@@ -14,7 +14,7 @@
 # http://www.gnu.org/licenses/.
 
 # This file was generated automatically by mk_core_grammar.pl
-# The date of generation was Sun Sep 30 18:39:00 2012
+# The date of generation was Sun Sep 30 19:24:53 2012
 
 package Marpa::R2::HTML::Internal;
 $CORE_RULES = [
@@ -223,13 +223,7 @@ $CORE_RULES = [
                 },
                 {
                   'rhs' => [
-                             'cruft'
-                           ],
-                  'lhs' => 'mixed_flow_item'
-                },
-                {
-                  'rhs' => [
-                             'SGML_item'
+                             'SGML_flow_item'
                            ],
                   'lhs' => 'mixed_flow_item'
                 },
@@ -260,12 +254,6 @@ $CORE_RULES = [
                 {
                   'rhs' => [
                              'inline_element'
-                           ],
-                  'lhs' => 'mixed_flow_item'
-                },
-                {
-                  'rhs' => [
-                             'whitespace'
                            ],
                   'lhs' => 'mixed_flow_item'
                 },
@@ -325,19 +313,7 @@ $CORE_RULES = [
                 },
                 {
                   'rhs' => [
-                             'cruft'
-                           ],
-                  'lhs' => 'head_item'
-                },
-                {
-                  'rhs' => [
-                             'whitespace'
-                           ],
-                  'lhs' => 'head_item'
-                },
-                {
-                  'rhs' => [
-                             'SGML_item'
+                             'SGML_flow_item'
                            ],
                   'lhs' => 'head_item'
                 },
@@ -381,19 +357,7 @@ $CORE_RULES = [
                 },
                 {
                   'rhs' => [
-                             'cruft'
-                           ],
-                  'lhs' => 'pcdata_flow_item'
-                },
-                {
-                  'rhs' => [
-                             'whitespace'
-                           ],
-                  'lhs' => 'pcdata_flow_item'
-                },
-                {
-                  'rhs' => [
-                             'SGML_item'
+                             'SGML_flow_item'
                            ],
                   'lhs' => 'pcdata_flow_item'
                 },
@@ -450,13 +414,7 @@ $CORE_RULES = [
                 },
                 {
                   'rhs' => [
-                             'cruft'
-                           ],
-                  'lhs' => 'list_item_flow_item'
-                },
-                {
-                  'rhs' => [
-                             'SGML_item'
+                             'SGML_flow_item'
                            ],
                   'lhs' => 'list_item_flow_item'
                 },
@@ -475,12 +433,6 @@ $CORE_RULES = [
                 {
                   'rhs' => [
                              'inline_element'
-                           ],
-                  'lhs' => 'list_item_flow_item'
-                },
-                {
-                  'rhs' => [
-                             'whitespace'
                            ],
                   'lhs' => 'list_item_flow_item'
                 },
