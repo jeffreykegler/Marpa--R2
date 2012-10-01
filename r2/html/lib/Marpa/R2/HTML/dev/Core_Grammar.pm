@@ -14,7 +14,7 @@
 # http://www.gnu.org/licenses/.
 
 # This file was generated automatically by mk_core_grammar.pl
-# The date of generation was Sun Sep 30 19:24:53 2012
+# The date of generation was Sun Sep 30 19:29:30 2012
 
 package Marpa::R2::HTML::Internal;
 $CORE_RULES = [
@@ -71,23 +71,17 @@ $CORE_RULES = [
                   'rhs' => [
                              'comment'
                            ],
-                  'lhs' => 'SGML_item'
+                  'lhs' => 'SGML_flow_item'
                 },
                 {
                   'rhs' => [
                              'pi'
                            ],
-                  'lhs' => 'SGML_item'
+                  'lhs' => 'SGML_flow_item'
                 },
                 {
                   'rhs' => [
                              'decl'
-                           ],
-                  'lhs' => 'SGML_item'
-                },
-                {
-                  'rhs' => [
-                             'SGML_item'
                            ],
                   'lhs' => 'SGML_flow_item'
                 },
@@ -236,12 +230,6 @@ $CORE_RULES = [
                 {
                   'rhs' => [
                              'list_item_element'
-                           ],
-                  'lhs' => 'mixed_flow_item'
-                },
-                {
-                  'rhs' => [
-                             'header_element'
                            ],
                   'lhs' => 'mixed_flow_item'
                 },
