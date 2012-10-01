@@ -157,11 +157,14 @@ my $legal = join q{}, <$fh>;
 close $fh;
 
 my $output = $legal;
+$output .=  "\n";
 
 $output .= "# This file was generated automatically by $PROGRAM_NAME\n";
-$output .= "# The date of generation was ", ( scalar localtime() ), "\n";
+$output .= "# The date of generation was " . ( scalar localtime() );
+$output .= "\n\n";
 
-$output .=  "package Marpa::R2::HTML::Internal;";
+$output .= 'package Marpa::R2::HTML::Internal;';
+$output .= "\n\n";
 
 require Data::Dumper;
 $output .= Data::Dumper->Purity(1)
@@ -183,11 +186,18 @@ my @element_hierarchy = (
     [qw( html )],
 );
 
-my @last_resort_tags = (
-    [qw(S_table)],
-    [qw(E_body)],
-    [qw(E_html)],
-);
+my @last_resort_tags = qw(S_table E_body E_html);
+
+my @tag_hierarchy = ();
+push @tag_hierarchy,
+    grep { not $_ ~~ \@last_resort_tags }
+    map { 'S_' . $_ } map { @{$_} } reverse @element_hierarchy;
+push @tag_hierarchy,
+    grep { not $_ ~~ \@last_resort_tags }
+    map { 'E_' . $_ } map { @{$_} } @element_hierarchy;
+push @tag_hierarchy, @last_resort_tags;
+
+say Data::Dumper::Dumper(\@tag_hierarchy);
 
 open my $out_fh, q{>}, 'Core_Grammar.pm';
 say {$out_fh} $output;

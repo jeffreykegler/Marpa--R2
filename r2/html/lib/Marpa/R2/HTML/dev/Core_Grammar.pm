@@ -14,9 +14,10 @@
 # http://www.gnu.org/licenses/.
 
 # This file was generated automatically by mk_core_grammar.pl
-# The date of generation was Sun Sep 30 19:45:03 2012
+# The date of generation was Mon Oct  1 09:19:50 2012
 
 package Marpa::R2::HTML::Internal;
+
 $CORE_RULES = [
                 {
                   'rhs' => [
