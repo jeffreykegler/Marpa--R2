@@ -269,11 +269,6 @@ sub create {
             table fieldset address
             )
     ),
-    (   map { $_ => 'header_element' }
-            qw(
-            script style meta link object title isindex base
-            )
-    ),
     ( map { $_ => 'list_item_element' } qw( li dd dt ) ),
     ( map { $_ => 'table_cell_element' } qw( td th ) ),
     ( map { $_ => 'table_row_element' } qw( tr ) ),
@@ -639,6 +634,27 @@ $p->eof;
         delete $tags{$special_element};
     }
 
+    for my $rule (@rules) {
+        my $lhs = $rule->{lhs};
+        if ( 0 == index $lhs, 'ELE_' ) {
+            my $tag = substr $lhs, 4;
+            my $end_tag = 'E_' . $tag;
+            delete $tags{$tag};
+
+            # There may be no
+            # end tag in the input.
+            # This silences the warning.
+            if ( not $terminals{$end_tag} ) {
+                push @terminals, $end_tag;
+                $terminals{$end_tag} = 1;
+            }
+
+            # Make each new optional terminal the highest ranking
+            $optional_terminals{$end_tag} //= keys %optional_terminals;
+
+        } ## end if ( 0 == index $lhs, 'ELE_' )
+    } ## end for my $rule (@rules)
+
     ELEMENT: for ( keys %tags ) {
         my $start_tag    = "S_$_";
         my $end_tag      = "E_$_";
@@ -662,7 +678,7 @@ $p->eof;
         # This silences the warning.
         if ( not $terminals{$end_tag} ) {
             push @terminals, $end_tag;
-            $terminals{$end_tag}++;
+            $terminals{$end_tag} = 1;
         }
 
         # Make each new optional terminal the highest ranking
@@ -746,7 +762,7 @@ $p->eof;
             my $element_type =
                 $Marpa::R2::HTML::Internal::ELEMENT_TYPE{$element};
             if ( defined $element_type
-                and $element_type ~~ [qw(block_element header_element)] )
+                and $element_type ~~ [qw(block_element)] )
             {
                 $level{$terminal} = $block_level;
                 next TERMINAL;
