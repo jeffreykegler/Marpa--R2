@@ -20,70 +20,6 @@ use autodie;
 
 use English qw( -no_match_vars );
 
-# block_element is for block-level ONLY elements.
-# head is for anything legal inside the HTML header.
-# Note that isindex can be both a head element and
-# and block level element in the body.
-# ISINDEX is classified as a header_element
-
-@Marpa::R2::HTML::Internal::CORE_OPTIONAL_TERMINALS = qw(
-    E_html
-    E_body
-    S_table
-    E_head
-    E_table
-    E_tbody
-    E_tr
-    E_td
-    S_td
-    S_tr
-    S_tbody
-    S_head
-    S_body
-    S_html
-);
-
-%Marpa::R2::HTML::Internal::CORE_OPTIONAL_TERMINALS = ();
-for my $rank ( 0 .. $#Marpa::R2::HTML::Internal::CORE_OPTIONAL_TERMINALS ) {
-    $Marpa::R2::HTML::Internal::CORE_OPTIONAL_TERMINALS{
-        $Marpa::R2::HTML::Internal::CORE_OPTIONAL_TERMINALS[$rank] } = $rank;
-}
-
-%Marpa::R2::HTML::Internal::VIRTUAL_TOKEN_HIERARCHY = ();
-{
-    my $hierarchy = <<'END_OF_STRING';
-th td
-tr
-col
-caption colgroup tfoot thead tbody
-table
-body head
-html
-END_OF_STRING
-
-    my $iota = 0;
-    my @hierarchy;
-    for my $level ( split /\n/xms, $hierarchy ) {
-        push @hierarchy,
-            map { ( "S_$_" => $iota, "E_$_" => $iota ) }
-            ( split q{ }, $level );
-        $iota++;
-    } ## end for my $level ( split /\n/xms, $hierarchy )
-    %Marpa::R2::HTML::Internal::VIRTUAL_TOKEN_HIERARCHY = @hierarchy;
-    $Marpa::R2::HTML::Internal::VIRTUAL_TOKEN_HIERARCHY{EOF} =
-        $Marpa::R2::HTML::Internal::VIRTUAL_TOKEN_HIERARCHY{E_tbody};
-}
-
-# This display set to be ignored
-# until the HTML::Implementation doc
-# is ready.
-
-# Marpa::R2::Display
-# name: HTML BNF
-# ignore: 1
-# start-after-line: END_OF_BNF
-# end-before-line: '^END_OF_BNF$'
-
 my $BNF = <<'END_OF_BNF';
 cruft ::= CRUFT
 comment ::= C
@@ -122,7 +58,13 @@ mixed_flow_item ::= inline_element
 mixed_flow_item ::= whitespace
 mixed_flow_item ::= cdata
 mixed_flow_item ::= pcdata
-head_item ::= header_element
+head_item ::= ELE_script
+head_item ::= ELE_object
+head_item ::= ELE_style
+head_item ::= ELE_meta
+head_item ::= ELE_link
+head_item ::= ELE_title
+head_item ::= ELE_base
 head_item ::= cruft
 head_item ::= whitespace
 head_item ::= SGML_item
@@ -170,6 +112,20 @@ table_flow_item ::= ELE_tbody
 table_flow_item ::= ELE_caption
 table_flow_item ::= ELE_col
 table_flow_item ::= SGML_flow_item
+inline_element ::= ELE_script
+inline_element ::= ELE_object
+ELE_script ::= S_script inline_flow E_script
+ELE_style ::= S_style inline_flow E_style
+ELE_title ::= S_title inline_flow E_title
+ELE_object ::= S_object Contents_object E_object
+Contents_object ::= Item_object*
+Item_object ::= mixed_flow_item
+Item_object ::= ELE_param
+ELE_param ::= S_param inline_flow E_param
+ELE_base ::= S_base empty E_base
+ELE_isindex ::= S_isindex empty E_isindex
+ELE_meta ::= S_meta empty E_meta
+ELE_link ::= S_link empty E_link
 empty ::=
 END_OF_BNF
 

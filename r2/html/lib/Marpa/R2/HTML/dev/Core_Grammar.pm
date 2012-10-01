@@ -14,7 +14,7 @@
 # http://www.gnu.org/licenses/.
 
 # This file was generated automatically by mk_core_grammar.pl
-# The date of generation was Sun Sep 30 16:06:59 2012
+# The date of generation was Sun Sep 30 18:39:00 2012
 
 package Marpa::R2::HTML::Internal;
 $CORE_RULES = [
@@ -283,7 +283,43 @@ $CORE_RULES = [
                 },
                 {
                   'rhs' => [
-                             'header_element'
+                             'ELE_script'
+                           ],
+                  'lhs' => 'head_item'
+                },
+                {
+                  'rhs' => [
+                             'ELE_object'
+                           ],
+                  'lhs' => 'head_item'
+                },
+                {
+                  'rhs' => [
+                             'ELE_style'
+                           ],
+                  'lhs' => 'head_item'
+                },
+                {
+                  'rhs' => [
+                             'ELE_meta'
+                           ],
+                  'lhs' => 'head_item'
+                },
+                {
+                  'rhs' => [
+                             'ELE_link'
+                           ],
+                  'lhs' => 'head_item'
+                },
+                {
+                  'rhs' => [
+                             'ELE_title'
+                           ],
+                  'lhs' => 'head_item'
+                },
+                {
+                  'rhs' => [
+                             'ELE_base'
                            ],
                   'lhs' => 'head_item'
                 },
@@ -577,6 +613,118 @@ $CORE_RULES = [
                              'SGML_flow_item'
                            ],
                   'lhs' => 'table_flow_item'
+                },
+                {
+                  'rhs' => [
+                             'ELE_script'
+                           ],
+                  'lhs' => 'inline_element'
+                },
+                {
+                  'rhs' => [
+                             'ELE_object'
+                           ],
+                  'lhs' => 'inline_element'
+                },
+                {
+                  'rhs' => [
+                             'S_script',
+                             'inline_flow',
+                             'E_script'
+                           ],
+                  'lhs' => 'ELE_script',
+                  'action' => 'ELE_script'
+                },
+                {
+                  'rhs' => [
+                             'S_style',
+                             'inline_flow',
+                             'E_style'
+                           ],
+                  'lhs' => 'ELE_style',
+                  'action' => 'ELE_style'
+                },
+                {
+                  'rhs' => [
+                             'S_title',
+                             'inline_flow',
+                             'E_title'
+                           ],
+                  'lhs' => 'ELE_title',
+                  'action' => 'ELE_title'
+                },
+                {
+                  'rhs' => [
+                             'S_object',
+                             'Contents_object',
+                             'E_object'
+                           ],
+                  'lhs' => 'ELE_object',
+                  'action' => 'ELE_object'
+                },
+                {
+                  'min' => 0,
+                  'rhs' => [
+                             'Item_object'
+                           ],
+                  'lhs' => 'Contents_object'
+                },
+                {
+                  'rhs' => [
+                             'mixed_flow_item'
+                           ],
+                  'lhs' => 'Item_object'
+                },
+                {
+                  'rhs' => [
+                             'ELE_param'
+                           ],
+                  'lhs' => 'Item_object'
+                },
+                {
+                  'rhs' => [
+                             'S_param',
+                             'inline_flow',
+                             'E_param'
+                           ],
+                  'lhs' => 'ELE_param',
+                  'action' => 'ELE_param'
+                },
+                {
+                  'rhs' => [
+                             'S_base',
+                             'empty',
+                             'E_base'
+                           ],
+                  'lhs' => 'ELE_base',
+                  'action' => 'ELE_base'
+                },
+                {
+                  'rhs' => [
+                             'S_isindex',
+                             'empty',
+                             'E_isindex'
+                           ],
+                  'lhs' => 'ELE_isindex',
+                  'action' => 'ELE_isindex'
+                },
+                {
+                  'rhs' => [
+                             'S_meta',
+                             'empty',
+                             'E_meta'
+                           ],
+                  'lhs' => 'ELE_meta',
+                  'action' => 'ELE_meta'
+                },
+                {
+                  'rhs' => [
+                             'S_link',
+                             'empty',
+                             'E_link'
+                           ],
+                  'lhs' => 'ELE_link',
+                  'action' => 'ELE_link'
                 },
                 {
                   'rhs' => [],
