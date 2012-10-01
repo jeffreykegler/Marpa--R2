@@ -153,13 +153,42 @@ for my $bnf_production ( split /\n/xms, $BNF ) {
 } ## end for my $bnf_production ( split /\n/xms, $BNF )
 
 open my $fh, q{<}, '../../../../../..//inc/Marpa/R2/legal.pl';
-say join q{}, <$fh>;
+my $legal = join q{}, <$fh>;
+close $fh;
 
-say "# This file was generated automatically by $PROGRAM_NAME";
-say "# The date of generation was ", ( scalar localtime() ), "\n";
+my $output = $legal;
 
-say "package Marpa::R2::HTML::Internal;";
+$output .= "# This file was generated automatically by $PROGRAM_NAME\n";
+$output .= "# The date of generation was ", ( scalar localtime() ), "\n";
+
+$output .=  "package Marpa::R2::HTML::Internal;";
 
 require Data::Dumper;
-say Data::Dumper->Purity(1)
+$output .= Data::Dumper->Purity(1)
     ->Dump( [ \@Marpa::R2::HTML::Internal::CORE_RULES ], [qw(CORE_RULES)] );
+
+my @element_hierarchy = (
+    [qw( span option )],
+    [qw( li optgroup dd dt )],
+    [qw( dir menu )],
+    [qw( div )],
+    [qw( ul ol dl )],
+    [qw( th td )],
+    [qw( tr )],
+    [qw( col )],
+    [qw( caption colgroup thead tfoot tbody )],
+    [qw( table )],
+    [qw( p )],
+    [qw( head body )],
+    [qw( html )],
+);
+
+my @last_resort_tags = (
+    [qw(S_table)],
+    [qw(E_body)],
+    [qw(E_html)],
+);
+
+open my $out_fh, q{>}, 'Core_Grammar.pm';
+say {$out_fh} $output;
+close $out_fh;

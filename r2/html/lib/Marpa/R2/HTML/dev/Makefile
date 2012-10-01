@@ -20,4 +20,4 @@ dummy:
 all: Core_Grammar.pm
 
 Core_Grammar.pm: mk_core_grammar.pl 
-	perl mk_core_grammar.pl > $@
+	perl mk_core_grammar.pl
