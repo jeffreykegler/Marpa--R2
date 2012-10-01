@@ -632,15 +632,11 @@ $p->eof;
     my @rules     = @{$Marpa::R2::HTML::Internal::CORE_RULES};
     my @terminals = keys %terminals;
 
-    my %pseudoclass_element_actions = ();
-    my %element_actions             = ();
-
     # Special cases which are dealt with elsewhere.
     # As of now the only special cases are elements with optional
     # start and end tags
     for my $special_element (qw(html head body table tbody tr td)) {
         delete $tags{$special_element};
-        $element_actions{"ELE_$special_element"} = $special_element;
     }
 
     ELEMENT: for ( keys %tags ) {
@@ -672,7 +668,6 @@ $p->eof;
         # Make each new optional terminal the highest ranking
         $optional_terminals{$end_tag} = keys %optional_terminals;
 
-        $element_actions{"ELE_$_"} = $_;
     } ## end ELEMENT: for ( keys %tags )
 
     # The question is where to put cruft -- in the current element,
