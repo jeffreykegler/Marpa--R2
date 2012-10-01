@@ -14,7 +14,7 @@
 # http://www.gnu.org/licenses/.
 
 # This file was generated automatically by mk_core_grammar.pl
-# The date of generation was Sun Sep 30 19:29:30 2012
+# The date of generation was Sun Sep 30 19:45:03 2012
 
 package Marpa::R2::HTML::Internal;
 $CORE_RULES = [
@@ -217,7 +217,13 @@ $CORE_RULES = [
                 },
                 {
                   'rhs' => [
-                             'SGML_flow_item'
+                             'block_element'
+                           ],
+                  'lhs' => 'mixed_flow_item'
+                },
+                {
+                  'rhs' => [
+                             'inline_flow_item'
                            ],
                   'lhs' => 'mixed_flow_item'
                 },
@@ -225,37 +231,13 @@ $CORE_RULES = [
                   'rhs' => [
                              'ELE_table'
                            ],
-                  'lhs' => 'mixed_flow_item'
+                  'lhs' => 'block_element'
                 },
                 {
                   'rhs' => [
                              'list_item_element'
                            ],
-                  'lhs' => 'mixed_flow_item'
-                },
-                {
-                  'rhs' => [
-                             'block_element'
-                           ],
-                  'lhs' => 'mixed_flow_item'
-                },
-                {
-                  'rhs' => [
-                             'inline_element'
-                           ],
-                  'lhs' => 'mixed_flow_item'
-                },
-                {
-                  'rhs' => [
-                             'cdata'
-                           ],
-                  'lhs' => 'mixed_flow_item'
-                },
-                {
-                  'rhs' => [
-                             'pcdata'
-                           ],
-                  'lhs' => 'mixed_flow_item'
+                  'lhs' => 'block_element'
                 },
                 {
                   'rhs' => [
