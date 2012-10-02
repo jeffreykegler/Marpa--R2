@@ -14,7 +14,7 @@
 # http://www.gnu.org/licenses/.
 
 # This file was generated automatically by mk_core_grammar.pl
-# The date of generation was Tue Oct  2 10:50:27 2012
+# The date of generation was Tue Oct  2 11:10:20 2012
 
 package Marpa::R2::HTML::Internal;
 
@@ -170,7 +170,7 @@ $CORE_RULES = [
                 },
                 {
                   'rhs' => [
-                             'block_element'
+                             'block_specific_element'
                            ],
                   'lhs' => 'mixed_flow_item'
                 },
@@ -184,31 +184,31 @@ $CORE_RULES = [
                   'rhs' => [
                              'ELE_table'
                            ],
-                  'lhs' => 'block_element'
+                  'lhs' => 'block_specific_element'
                 },
                 {
                   'rhs' => [
                              'ELE_p'
                            ],
-                  'lhs' => 'block_element'
+                  'lhs' => 'block_specific_element'
                 },
                 {
                   'rhs' => [
                              'ELE_ol'
                            ],
-                  'lhs' => 'block_element'
+                  'lhs' => 'block_specific_element'
                 },
                 {
                   'rhs' => [
                              'ELE_ul'
                            ],
-                  'lhs' => 'block_element'
+                  'lhs' => 'block_specific_element'
                 },
                 {
                   'rhs' => [
                              'ELE_dl'
                            ],
-                  'lhs' => 'block_element'
+                  'lhs' => 'block_specific_element'
                 },
                 {
                   'rhs' => [
@@ -218,15 +218,21 @@ $CORE_RULES = [
                 },
                 {
                   'rhs' => [
-                             'ELE_object'
+                             'inline_specific_element'
                            ],
                   'lhs' => 'inline_element'
                 },
                 {
                   'rhs' => [
+                             'ELE_object'
+                           ],
+                  'lhs' => 'inline_specific_element'
+                },
+                {
+                  'rhs' => [
                              'ELE_select'
                            ],
-                  'lhs' => 'inline_element'
+                  'lhs' => 'inline_specific_element'
                 },
                 {
                   'rhs' => [

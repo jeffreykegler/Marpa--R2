@@ -257,8 +257,8 @@ sub create {
 # Note that isindex can be both a head element and
 # and block level element in the body.
 # ISINDEX is classified as a header_element
-%Marpa::R2::HTML::Internal::ELEMENT_TYPE = (
-    (   map { $_ => 'block_element' }
+%Marpa::R2::HTML::Internal::IS_BLOCK_ELEMENT = (
+    (   map { $_ => 1 }
             qw(
             h1 h2 h3 h4 h5 h6
             ul ol dir menu
@@ -637,11 +637,16 @@ $p->eof;
     } ## end for my $rule (@rules)
 
     ELEMENT: for ( keys %tags ) {
-        my $start_tag    = "S_$_";
-        my $end_tag      = "E_$_";
-        my $contents     = $Marpa::R2::HTML::Internal::EMPTY_ELEMENT{$_} ? 'empty' : 'mixed_flow';
-        my $element_type = $Marpa::R2::HTML::Internal::ELEMENT_TYPE{$_}
-            // 'inline_element';
+        my $start_tag = "S_$_";
+        my $end_tag   = "E_$_";
+        my $contents =
+            $Marpa::R2::HTML::Internal::EMPTY_ELEMENT{$_}
+            ? 'empty'
+            : 'mixed_flow';
+        my $element_type =
+            $Marpa::R2::HTML::Internal::IS_BLOCK_ELEMENT{$_}
+            ? 'block_specific_element'
+            : 'inline_element';
 
         push @rules,
             {
@@ -740,10 +745,7 @@ $p->eof;
                 next TERMINAL;
             }
 
-            my $element_type =
-                $Marpa::R2::HTML::Internal::ELEMENT_TYPE{$element};
-            if ( defined $element_type
-                and $element_type ~~ [qw(block_element)] )
+            if ( $Marpa::R2::HTML::Internal::IS_BLOCK_ELEMENT{$element})
             {
                 $level{$terminal} = $block_level;
                 next TERMINAL;

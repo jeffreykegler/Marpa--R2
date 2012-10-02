@@ -57,16 +57,17 @@ ELE_body is mixed_flow
 # Common types of element content
 empty ::=
 mixed_flow ::= mixed_flow_item*
-mixed_flow_item ::= block_element
+mixed_flow_item ::= block_specific_element
 mixed_flow_item ::= inline_flow_item
-block_element ::= ELE_table
-block_element ::= ELE_p
-block_element ::= ELE_ol
-block_element ::= ELE_ul
-block_element ::= ELE_dl
+block_specific_element ::= ELE_table
+block_specific_element ::= ELE_p
+block_specific_element ::= ELE_ol
+block_specific_element ::= ELE_ul
+block_specific_element ::= ELE_dl
 inline_element ::= ELE_script
-inline_element ::= ELE_object
-inline_element ::= ELE_select
+inline_element ::= inline_specific_element
+inline_specific_element ::= ELE_object
+inline_specific_element ::= ELE_select
 head_item ::= ELE_script
 head_item ::= ELE_object
 head_item ::= ELE_style
