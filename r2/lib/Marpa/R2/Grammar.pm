@@ -299,7 +299,7 @@ sub Marpa::R2::Grammar::set {
         if (!%$args)
         {
             Carp::croak( 'Empty HASH reference passed as options for Marpa::R2::Grammar' );
-        } ## end if (keys %{$args} == 0)
+        } ## end if (!%$args)
         if (my @bad_options =
             grep { not $_ ~~ Marpa::R2::Internal::Grammar::GRAMMAR_OPTIONS }
             keys %{$args}
