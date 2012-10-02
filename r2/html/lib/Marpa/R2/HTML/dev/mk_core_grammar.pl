@@ -51,8 +51,7 @@ prolog ::= SGML_flow
 trailer ::= SGML_flow
 ELE_html ::= S_html EC_html E_html
 EC_html ::= SGML_flow ELE_head SGML_flow ELE_body SGML_flow
-ELE_head ::= S_head EC_head E_head
-EC_head ::= head_item*
+ELE_head contains head_item
 ELE_body is mixed_flow
 
 # Common types of element content
@@ -90,33 +89,33 @@ pcdata_flow_item ::= SGML_flow_item
 # cdata_flow_item ::= cdata
 
 # Alphabetically, by tagname
-ELE_object contains ELE_param mixed_flow_item
 ELE_base is empty
 ELE_colgroup contains ELE_col SGML_flow_item
-ELE_isindex ::= S_isindex empty E_isindex
-ELE_link ::= S_link empty E_link
-ELE_meta ::= S_meta empty E_meta
+ELE_dd is mixed_flow
+ELE_dl contains SGML_flow_item ELE_dt ELE_dd
+ELE_dt is inline_flow
+ELE_isindex is empty
+ELE_li is mixed_flow
+ELE_link is empty
+ELE_meta is empty
+ELE_object contains ELE_param mixed_flow_item
+ELE_ol contains SGML_flow_item ELE_li
 ELE_optgroup contains ELE_option SGML_flow_item
-ELE_p ::= S_p inline_flow E_p
-ELE_param ::= S_param inline_flow E_param
-ELE_script ::= S_script inline_flow E_script
+ELE_p is inline_flow
+ELE_param is inline_flow
+ELE_script is inline_flow
 ELE_select contains ELE_optgroup ELE_option
-ELE_style ::= S_style inline_flow E_style
+ELE_style is inline_flow
 ELE_table contains ELE_caption ELE_col ELE_colgroup
 ELE_table contains ELE_tbody ELE_tfoot ELE_thead
 ELE_table contains SGML_flow_item
 ELE_tbody contains SGML_flow_item ELE_tr
-ELE_td ::= S_td mixed_flow E_td
+ELE_td is mixed_flow
 ELE_tfoot contains SGML_flow_item ELE_tr
 ELE_thead contains SGML_flow_item ELE_tr
 ELE_title is inline_flow
 ELE_tr contains SGML_flow_item ELE_th ELE_td
-ELE_dl contains SGML_flow_item ELE_dt ELE_dd
-ELE_ol contains SGML_flow_item ELE_li
 ELE_ul contains SGML_flow_item ELE_li
-ELE_dt is inline_flow
-ELE_dd is mixed_flow
-ELE_li is mixed_flow
 END_OF_BNF
 
 @Marpa::R2::HTML::Internal::CORE_RULES = ();

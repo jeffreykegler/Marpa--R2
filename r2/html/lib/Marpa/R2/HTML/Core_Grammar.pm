@@ -14,7 +14,7 @@
 # http://www.gnu.org/licenses/.
 
 # This file was generated automatically by mk_core_grammar.pl
-# The date of generation was Tue Oct  2 10:45:44 2012
+# The date of generation was Tue Oct  2 10:50:27 2012
 
 package Marpa::R2::HTML::Internal;
 
@@ -147,22 +147,6 @@ $CORE_RULES = [
                              'SGML_flow'
                            ],
                   'lhs' => 'EC_html'
-                },
-                {
-                  'rhs' => [
-                             'S_head',
-                             'EC_head',
-                             'E_head'
-                           ],
-                  'lhs' => 'ELE_head',
-                  'action' => 'ELE_head'
-                },
-                {
-                  'min' => 0,
-                  'rhs' => [
-                             'head_item'
-                           ],
-                  'lhs' => 'EC_head'
                 },
                 {
                   'rhs' => [
@@ -346,12 +330,39 @@ $CORE_RULES = [
                 },
                 {
                   'rhs' => [
+                             'S_dd',
+                             'mixed_flow',
+                             'E_dd'
+                           ],
+                  'lhs' => 'ELE_dd',
+                  'action' => 'ELE_dd'
+                },
+                {
+                  'rhs' => [
+                             'S_dt',
+                             'inline_flow',
+                             'E_dt'
+                           ],
+                  'lhs' => 'ELE_dt',
+                  'action' => 'ELE_dt'
+                },
+                {
+                  'rhs' => [
                              'S_isindex',
                              'empty',
                              'E_isindex'
                            ],
                   'lhs' => 'ELE_isindex',
                   'action' => 'ELE_isindex'
+                },
+                {
+                  'rhs' => [
+                             'S_li',
+                             'mixed_flow',
+                             'E_li'
+                           ],
+                  'lhs' => 'ELE_li',
+                  'action' => 'ELE_li'
                 },
                 {
                   'rhs' => [
@@ -424,33 +435,6 @@ $CORE_RULES = [
                            ],
                   'lhs' => 'ELE_title',
                   'action' => 'ELE_title'
-                },
-                {
-                  'rhs' => [
-                             'S_dt',
-                             'inline_flow',
-                             'E_dt'
-                           ],
-                  'lhs' => 'ELE_dt',
-                  'action' => 'ELE_dt'
-                },
-                {
-                  'rhs' => [
-                             'S_dd',
-                             'mixed_flow',
-                             'E_dd'
-                           ],
-                  'lhs' => 'ELE_dd',
-                  'action' => 'ELE_dd'
-                },
-                {
-                  'rhs' => [
-                             'S_li',
-                             'mixed_flow',
-                             'E_li'
-                           ],
-                  'lhs' => 'ELE_li',
-                  'action' => 'ELE_li'
                 },
                 {
                   'rhs' => [
@@ -541,6 +525,28 @@ $CORE_RULES = [
                              'mixed_flow_item'
                            ],
                   'lhs' => 'EI_object'
+                },
+                {
+                  'rhs' => [
+                             'S_head',
+                             'EC_head',
+                             'E_head'
+                           ],
+                  'lhs' => 'ELE_head',
+                  'action' => 'ELE_head'
+                },
+                {
+                  'min' => 0,
+                  'rhs' => [
+                             'EI_head'
+                           ],
+                  'lhs' => 'EC_head'
+                },
+                {
+                  'rhs' => [
+                             'head_item'
+                           ],
+                  'lhs' => 'EI_head'
                 },
                 {
                   'rhs' => [
