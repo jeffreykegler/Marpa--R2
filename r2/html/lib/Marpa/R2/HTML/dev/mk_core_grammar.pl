@@ -88,35 +88,26 @@ pcdata_flow_item ::= SGML_flow_item
 # cdata_flow_item ::= cdata
 
 # Alphabetically, by tagname
+ELE_object contains ELE_param mixed_flow_item
 ELE_base ::= S_base empty E_base
 ELE_colgroup contains ELE_col SGML_flow_item
-table_flow_item ::= ELE_caption
-table_flow_item ::= ELE_col
-table_flow_item ::= ELE_colgroup
-table_flow_item ::= ELE_tbody
-table_flow_item ::= ELE_tfoot
-table_flow_item ::= ELE_thead
-table_flow_item ::= SGML_flow_item
-table_flow ::= table_flow_item*
 ELE_isindex ::= S_isindex empty E_isindex
 ELE_link ::= S_link empty E_link
 ELE_meta ::= S_meta empty E_meta
-Item_object ::= ELE_param
-EC_object ::= Item_object*
-ELE_object ::= S_object EC_object E_object
-Item_object ::= mixed_flow_item
 ELE_optgroup contains ELE_option SGML_flow_item
+ELE_p ::= S_p inline_flow E_p
 ELE_param ::= S_param inline_flow E_param
 ELE_script ::= S_script inline_flow E_script
 ELE_select contains ELE_optgroup ELE_option
-EI_select ::= SGML_flow_item
 ELE_style ::= S_style inline_flow E_style
 ELE_table ::= S_table table_flow E_table
+ELE_table contains ELE_caption ELE_col ELE_colgroup
+ELE_table contains ELE_tbody ELE_tfoot ELE_thead
+ELE_table contains SGML_flow_item
 ELE_tbody contains SGML_flow_item ELE_tr
-ELE_thead contains SGML_flow_item ELE_tr
-ELE_tfoot contains SGML_flow_item ELE_tr
 ELE_td ::= S_td mixed_flow E_td
-ELE_p ::= S_p inline_flow E_p
+ELE_tfoot contains SGML_flow_item ELE_tr
+ELE_thead contains SGML_flow_item ELE_tr
 ELE_title ::= S_title inline_flow E_title
 ELE_tr contains SGML_flow_item ELE_th ELE_td
 END_OF_BNF
