@@ -14,7 +14,7 @@
 # http://www.gnu.org/licenses/.
 
 # This file was generated automatically by mk_core_grammar.pl
-# The date of generation was Tue Oct  2 10:02:09 2012
+# The date of generation was Tue Oct  2 10:05:09 2012
 
 package Marpa::R2::HTML::Internal;
 
@@ -507,6 +507,34 @@ $CORE_RULES = [
                 },
                 {
                   'rhs' => [
+                             'S_thead',
+                             'EC_thead',
+                             'E_thead'
+                           ],
+                  'lhs' => 'ELE_thead',
+                  'action' => 'ELE_thead'
+                },
+                {
+                  'min' => 0,
+                  'rhs' => [
+                             'EI_thead'
+                           ],
+                  'lhs' => 'EC_thead'
+                },
+                {
+                  'rhs' => [
+                             'SGML_flow_item'
+                           ],
+                  'lhs' => 'EI_thead'
+                },
+                {
+                  'rhs' => [
+                             'ELE_tr'
+                           ],
+                  'lhs' => 'EI_thead'
+                },
+                {
+                  'rhs' => [
                              'S_tr',
                              'EC_tr',
                              'E_tr'
@@ -538,6 +566,34 @@ $CORE_RULES = [
                              'ELE_td'
                            ],
                   'lhs' => 'EI_tr'
+                },
+                {
+                  'rhs' => [
+                             'S_tfoot',
+                             'EC_tfoot',
+                             'E_tfoot'
+                           ],
+                  'lhs' => 'ELE_tfoot',
+                  'action' => 'ELE_tfoot'
+                },
+                {
+                  'min' => 0,
+                  'rhs' => [
+                             'EI_tfoot'
+                           ],
+                  'lhs' => 'EC_tfoot'
+                },
+                {
+                  'rhs' => [
+                             'SGML_flow_item'
+                           ],
+                  'lhs' => 'EI_tfoot'
+                },
+                {
+                  'rhs' => [
+                             'ELE_tr'
+                           ],
+                  'lhs' => 'EI_tfoot'
                 },
                 {
                   'rhs' => [
