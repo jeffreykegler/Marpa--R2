@@ -62,7 +62,9 @@ mixed_flow_item ::= block_element
 mixed_flow_item ::= inline_flow_item
 block_element ::= ELE_table
 block_element ::= ELE_p
-block_element ::= list_item_element
+block_element ::= ELE_ol
+block_element ::= ELE_ul
+block_element ::= ELE_dl
 inline_element ::= ELE_script
 inline_element ::= ELE_object
 inline_element ::= ELE_select
@@ -109,6 +111,12 @@ ELE_tfoot contains SGML_flow_item ELE_tr
 ELE_thead contains SGML_flow_item ELE_tr
 ELE_title is inline_flow
 ELE_tr contains SGML_flow_item ELE_th ELE_td
+ELE_dl contains SGML_flow_item ELE_dt ELE_dd
+ELE_ol contains SGML_flow_item ELE_li
+ELE_ul contains SGML_flow_item ELE_li
+ELE_dt is inline_flow
+ELE_dd is mixed_flow
+ELE_li is mixed_flow
 END_OF_BNF
 
 @Marpa::R2::HTML::Internal::CORE_RULES = ();

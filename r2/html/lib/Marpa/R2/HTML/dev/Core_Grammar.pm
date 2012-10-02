@@ -14,7 +14,7 @@
 # http://www.gnu.org/licenses/.
 
 # This file was generated automatically by mk_core_grammar.pl
-# The date of generation was Tue Oct  2 10:32:30 2012
+# The date of generation was Tue Oct  2 10:45:44 2012
 
 package Marpa::R2::HTML::Internal;
 
@@ -210,7 +210,19 @@ $CORE_RULES = [
                 },
                 {
                   'rhs' => [
-                             'list_item_element'
+                             'ELE_ol'
+                           ],
+                  'lhs' => 'block_element'
+                },
+                {
+                  'rhs' => [
+                             'ELE_ul'
+                           ],
+                  'lhs' => 'block_element'
+                },
+                {
+                  'rhs' => [
+                             'ELE_dl'
                            ],
                   'lhs' => 'block_element'
                 },
@@ -412,6 +424,61 @@ $CORE_RULES = [
                            ],
                   'lhs' => 'ELE_title',
                   'action' => 'ELE_title'
+                },
+                {
+                  'rhs' => [
+                             'S_dt',
+                             'inline_flow',
+                             'E_dt'
+                           ],
+                  'lhs' => 'ELE_dt',
+                  'action' => 'ELE_dt'
+                },
+                {
+                  'rhs' => [
+                             'S_dd',
+                             'mixed_flow',
+                             'E_dd'
+                           ],
+                  'lhs' => 'ELE_dd',
+                  'action' => 'ELE_dd'
+                },
+                {
+                  'rhs' => [
+                             'S_li',
+                             'mixed_flow',
+                             'E_li'
+                           ],
+                  'lhs' => 'ELE_li',
+                  'action' => 'ELE_li'
+                },
+                {
+                  'rhs' => [
+                             'S_ul',
+                             'EC_ul',
+                             'E_ul'
+                           ],
+                  'lhs' => 'ELE_ul',
+                  'action' => 'ELE_ul'
+                },
+                {
+                  'min' => 0,
+                  'rhs' => [
+                             'EI_ul'
+                           ],
+                  'lhs' => 'EC_ul'
+                },
+                {
+                  'rhs' => [
+                             'SGML_flow_item'
+                           ],
+                  'lhs' => 'EI_ul'
+                },
+                {
+                  'rhs' => [
+                             'ELE_li'
+                           ],
+                  'lhs' => 'EI_ul'
                 },
                 {
                   'rhs' => [
@@ -619,6 +686,34 @@ $CORE_RULES = [
                 },
                 {
                   'rhs' => [
+                             'S_ol',
+                             'EC_ol',
+                             'E_ol'
+                           ],
+                  'lhs' => 'ELE_ol',
+                  'action' => 'ELE_ol'
+                },
+                {
+                  'min' => 0,
+                  'rhs' => [
+                             'EI_ol'
+                           ],
+                  'lhs' => 'EC_ol'
+                },
+                {
+                  'rhs' => [
+                             'SGML_flow_item'
+                           ],
+                  'lhs' => 'EI_ol'
+                },
+                {
+                  'rhs' => [
+                             'ELE_li'
+                           ],
+                  'lhs' => 'EI_ol'
+                },
+                {
+                  'rhs' => [
                              'S_tfoot',
                              'EC_tfoot',
                              'E_tfoot'
@@ -672,6 +767,40 @@ $CORE_RULES = [
                              'SGML_flow_item'
                            ],
                   'lhs' => 'EI_optgroup'
+                },
+                {
+                  'rhs' => [
+                             'S_dl',
+                             'EC_dl',
+                             'E_dl'
+                           ],
+                  'lhs' => 'ELE_dl',
+                  'action' => 'ELE_dl'
+                },
+                {
+                  'min' => 0,
+                  'rhs' => [
+                             'EI_dl'
+                           ],
+                  'lhs' => 'EC_dl'
+                },
+                {
+                  'rhs' => [
+                             'SGML_flow_item'
+                           ],
+                  'lhs' => 'EI_dl'
+                },
+                {
+                  'rhs' => [
+                             'ELE_dt'
+                           ],
+                  'lhs' => 'EI_dl'
+                },
+                {
+                  'rhs' => [
+                             'ELE_dd'
+                           ],
+                  'lhs' => 'EI_dl'
                 },
                 {
                   'rhs' => [

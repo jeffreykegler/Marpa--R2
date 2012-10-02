@@ -333,10 +333,6 @@ push @Marpa::R2::HTML::Internal::CORE_TERMINALS,
     img input isindex link meta param);
 
 %Marpa::R2::HTML::Internal::CONTENTS = (
-    'p'        => 'inline_flow',
-    'dt'       => 'inline_flow',
-    'dd'       => 'mixed_flow',
-    'li'       => 'mixed_flow',
     ( map { $_ => 'empty' } keys %Marpa::R2::HTML::Internal::EMPTY_ELEMENT ),
 );
 
