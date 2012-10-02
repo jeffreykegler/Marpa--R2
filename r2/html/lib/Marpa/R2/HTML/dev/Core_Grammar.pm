@@ -14,66 +14,11 @@
 # http://www.gnu.org/licenses/.
 
 # This file was generated automatically by mk_core_grammar.pl
-# The date of generation was Tue Oct  2 08:45:03 2012
+# The date of generation was Tue Oct  2 09:53:53 2012
 
 package Marpa::R2::HTML::Internal;
 
 $CORE_RULES = [
-                {
-                  'rhs' => [
-                             'ELE_p'
-                           ],
-                  'lhs' => 'block_element'
-                },
-                {
-                  'rhs' => [
-                             'S_p',
-                             'inline_flow',
-                             'E_p'
-                           ],
-                  'lhs' => 'ELE_p',
-                  'action' => 'ELE_p'
-                },
-                {
-                  'rhs' => [
-                             'ELE_tr'
-                           ],
-                  'lhs' => 'EI_tbody'
-                },
-                {
-                  'rhs' => [
-                             'S_tr',
-                             'EC_tr',
-                             'E_tr'
-                           ],
-                  'lhs' => 'ELE_tr',
-                  'action' => 'ELE_tr'
-                },
-                {
-                  'min' => 0,
-                  'rhs' => [
-                             'EI_tr'
-                           ],
-                  'lhs' => 'EC_tr'
-                },
-                {
-                  'rhs' => [
-                             'SGML_flow_item'
-                           ],
-                  'lhs' => 'EI_tr'
-                },
-                {
-                  'rhs' => [
-                             'ELE_th'
-                           ],
-                  'lhs' => 'EI_tr'
-                },
-                {
-                  'rhs' => [
-                             'ELE_td'
-                           ],
-                  'lhs' => 'EI_tr'
-                },
                 {
                   'rhs' => [
                              'CRUFT'
@@ -254,6 +199,12 @@ $CORE_RULES = [
                 {
                   'rhs' => [
                              'ELE_table'
+                           ],
+                  'lhs' => 'block_element'
+                },
+                {
+                  'rhs' => [
+                             'ELE_p'
                            ],
                   'lhs' => 'block_element'
                 },
@@ -635,6 +586,12 @@ $CORE_RULES = [
                 },
                 {
                   'rhs' => [
+                             'ELE_tr'
+                           ],
+                  'lhs' => 'EI_tbody'
+                },
+                {
+                  'rhs' => [
                              'S_td',
                              'mixed_flow',
                              'E_td'
@@ -644,12 +601,55 @@ $CORE_RULES = [
                 },
                 {
                   'rhs' => [
+                             'S_p',
+                             'inline_flow',
+                             'E_p'
+                           ],
+                  'lhs' => 'ELE_p',
+                  'action' => 'ELE_p'
+                },
+                {
+                  'rhs' => [
                              'S_title',
                              'inline_flow',
                              'E_title'
                            ],
                   'lhs' => 'ELE_title',
                   'action' => 'ELE_title'
+                },
+                {
+                  'rhs' => [
+                             'S_tr',
+                             'EC_tr',
+                             'E_tr'
+                           ],
+                  'lhs' => 'ELE_tr',
+                  'action' => 'ELE_tr'
+                },
+                {
+                  'min' => 0,
+                  'rhs' => [
+                             'EI_tr'
+                           ],
+                  'lhs' => 'EC_tr'
+                },
+                {
+                  'rhs' => [
+                             'SGML_flow_item'
+                           ],
+                  'lhs' => 'EI_tr'
+                },
+                {
+                  'rhs' => [
+                             'ELE_th'
+                           ],
+                  'lhs' => 'EI_tr'
+                },
+                {
+                  'rhs' => [
+                             'ELE_td'
+                           ],
+                  'lhs' => 'EI_tr'
                 }
               ];
 

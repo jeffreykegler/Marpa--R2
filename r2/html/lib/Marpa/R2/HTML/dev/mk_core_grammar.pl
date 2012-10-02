@@ -61,6 +61,7 @@ mixed_flow ::= mixed_flow_item*
 mixed_flow_item ::= block_element
 mixed_flow_item ::= inline_flow_item
 block_element ::= ELE_table
+block_element ::= ELE_p
 block_element ::= list_item_element
 inline_element ::= ELE_script
 inline_element ::= ELE_object
@@ -123,52 +124,14 @@ ELE_table ::= S_table table_flow E_table
 EC_tbody ::= EI_tbody*
 ELE_tbody ::= S_tbody EC_tbody E_tbody
 EI_tbody ::= SGML_flow_item
+EI_tbody ::= ELE_tr
 ELE_td ::= S_td mixed_flow E_td
+ELE_p ::= S_p inline_flow E_p
 ELE_title ::= S_title inline_flow E_title
+ELE_tr contains SGML_flow_item ELE_th ELE_td
 END_OF_BNF
 
-my @core_elements = (
-    [ qw( block_element p inline_flow ) ],
-    [ qw( EI_tbody tr ) => [qw( SGML_flow_item ELE_th ELE_td )] ],
-);
-
 @Marpa::R2::HTML::Internal::CORE_RULES = ();
-
-ELEMENT: for my $core_element_data (@core_elements) {
-    my ( $element_type, $tag, $contents ) = @{$core_element_data};
-    my $element_symbol = 'ELE_' . $tag;
-    push @Marpa::R2::HTML::Internal::CORE_RULES,
-        { lhs => $element_type, rhs => [$element_symbol] };
-    if ( ref $contents ne 'ARRAY' ) {
-        push @Marpa::R2::HTML::Internal::CORE_RULES,
-            {
-            lhs    => $element_symbol,
-            rhs    => [ "S_$tag", $contents, "E_$tag" ],
-            action => $element_symbol,
-            };
-        next ELEMENT;
-    } ## end if ( ref $contents ne 'ARRAY' )
-    my $contents_symbol = 'EC_' . $tag;
-    my $item_symbol     = 'EI_' . $tag;
-    push @Marpa::R2::HTML::Internal::CORE_RULES,
-        {
-        lhs    => $element_symbol,
-        rhs    => [ "S_$tag", $contents_symbol, "E_$tag" ],
-        action => $element_symbol,
-        },
-        {
-        lhs => $contents_symbol,
-        rhs => [$item_symbol],
-        min => 0
-        };
-    for my $content_item ( @{$contents} ) {
-        push @Marpa::R2::HTML::Internal::CORE_RULES,
-            {
-            lhs => $item_symbol,
-            rhs => [$content_item],
-            };
-    } ## end for my $content_item ( @{$contents} )
-} ## end ELEMENT: for my $core_element_data (@core_elements)
 
 my %handler = (
     cruft      => 'SPE_CRUFT',
@@ -183,13 +146,16 @@ my %handler = (
     trailer    => 'SPE_TRAILER',
 );
 
-LINE: for my $bnf_production ( split /\n/xms, $BNF ) {
-    $bnf_production =~ s/ [#] .* //xms;    # Remove comments
+my %containments = ();
+LINE: for my $line ( split /\n/xms, $BNF ) {
+    my $definition = $line;
+    $definition =~ s/ [#] .* //xms;    # Remove comments
     next LINE
-        if not $bnf_production =~ / \S /xms;    # ignore all-whitespace line
-    my $sequence = ( $bnf_production =~ s/ [*] \s* $//xms );
-    $bnf_production =~ s/ \s* [:][:][=] \s* / /xms;
-    my @symbols         = ( split q{ }, $bnf_production );
+        if not $definition =~ / \S /xms;    # ignore all-whitespace line
+    my $sequence = ( $definition =~ s/ [*] \s* $//xms );
+    if ($definition =~ s/ \s* [:][:][=] \s* / /xms) {
+       # Production is Ordinary BNF rule
+    my @symbols         = ( split q{ }, $definition );
     my $lhs             = shift @symbols;
     my %rule_descriptor = (
         lhs => $lhs,
@@ -205,7 +171,40 @@ LINE: for my $bnf_production ( split /\n/xms, $BNF ) {
         $rule_descriptor{action} = "$lhs";
     }
     push @Marpa::R2::HTML::Internal::CORE_RULES, \%rule_descriptor;
+    next LINE;
+    }
+    if ($definition =~ s/ \A \s* ELE_(\w+) \s+ contains \s+ / /xms) {
+        my $tag = $1;
+	push @{$containments{$tag} }, split q{ }, $definition;
+    next LINE;
+    }
+    die "Badly formed line in grammar description: $line";
 } ## end LINE: for my $bnf_production ( split /\n/xms, $BNF )
+
+ELEMENT: for my $tag (keys %containments) {
+    my @contents = @{$containments{$tag}};
+    my $element_symbol = 'ELE_' . $tag;
+    my $contents_symbol = 'EC_' . $tag;
+    my $item_symbol     = 'EI_' . $tag;
+    push @Marpa::R2::HTML::Internal::CORE_RULES,
+        {
+        lhs    => $element_symbol,
+        rhs    => [ "S_$tag", $contents_symbol, "E_$tag" ],
+        action => $element_symbol,
+        },
+        {
+        lhs => $contents_symbol,
+        rhs => [$item_symbol],
+        min => 0
+        };
+    for my $content_item ( @contents ) {
+        push @Marpa::R2::HTML::Internal::CORE_RULES,
+            {
+            lhs => $item_symbol,
+            rhs => [$content_item],
+            };
+    } ## end for my $content_item ( @{$contents} )
+} ## end ELEMENT: for my $core_element_data (@core_elements)
 
 open my $fh, q{<}, '../../../../../..//inc/Marpa/R2/legal.pl';
 my $legal = join q{}, <$fh>;
