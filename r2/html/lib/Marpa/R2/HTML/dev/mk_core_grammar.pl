@@ -100,7 +100,6 @@ ELE_param ::= S_param inline_flow E_param
 ELE_script ::= S_script inline_flow E_script
 ELE_select contains ELE_optgroup ELE_option
 ELE_style ::= S_style inline_flow E_style
-ELE_table ::= S_table table_flow E_table
 ELE_table contains ELE_caption ELE_col ELE_colgroup
 ELE_table contains ELE_tbody ELE_tfoot ELE_thead
 ELE_table contains SGML_flow_item

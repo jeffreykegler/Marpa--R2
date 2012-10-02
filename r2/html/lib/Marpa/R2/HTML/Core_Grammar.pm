@@ -14,7 +14,7 @@
 # http://www.gnu.org/licenses/.
 
 # This file was generated automatically by mk_core_grammar.pl
-# The date of generation was Tue Oct  2 10:09:54 2012
+# The date of generation was Tue Oct  2 10:15:03 2012
 
 package Marpa::R2::HTML::Internal;
 
@@ -394,15 +394,6 @@ $CORE_RULES = [
                            ],
                   'lhs' => 'ELE_style',
                   'action' => 'ELE_style'
-                },
-                {
-                  'rhs' => [
-                             'S_table',
-                             'table_flow',
-                             'E_table'
-                           ],
-                  'lhs' => 'ELE_table',
-                  'action' => 'ELE_table'
                 },
                 {
                   'rhs' => [
