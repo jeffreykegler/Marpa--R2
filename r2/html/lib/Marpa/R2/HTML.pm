@@ -252,25 +252,6 @@ sub create {
     return $self;
 } ## end sub create
 
-# block_element is for block-level ONLY elements.
-# head is for anything legal inside the HTML header.
-# Note that isindex can be both a head element and
-# and block level element in the body.
-# ISINDEX is classified as a header_element
-%Marpa::R2::HTML::Internal::IS_BLOCK_ELEMENT = (
-    (   map { $_ => 1 }
-            qw(
-            h1 h2 h3 h4 h5 h6
-            ul ol dir menu
-            pre
-            p dl div center
-            noscript noframes
-            blockquote form hr
-            table fieldset address
-            )
-    ),
-);
-
 @Marpa::R2::HTML::Internal::CORE_OPTIONAL_TERMINALS = qw(
     E_html
     E_body
@@ -636,27 +617,32 @@ $p->eof;
         } ## end if ( 0 == index $lhs, 'ELE_' )
     } ## end for my $rule (@rules)
 
-    ELEMENT: for ( keys %tags ) {
-        my $start_tag = "S_$_";
-        my $end_tag   = "E_$_";
-        my $contents =
-            $Marpa::R2::HTML::Internal::EMPTY_ELEMENT{$_}
-            ? 'empty'
-            : 'mixed_flow';
-        my $element_type =
-            $Marpa::R2::HTML::Internal::IS_BLOCK_ELEMENT{$_}
-            ? 'block_specific_element'
-            : 'inline_element';
+    ELEMENT: for my $tag ( keys %tags ) {
+        my $start_tag = "S_$tag";
+        my $end_tag   = "E_$tag";
+	my $contents;
+	my $element_type;
+	FIND_TYPE_AND_CONTENTS: {
+	    $contents = $Marpa::R2::HTML::Internal::IS_BLOCK_ELEMENT{$tag};
+	    if ( defined $contents ) {
+		$element_type = 'block_specific_element';
+		last FIND_TYPE_CONTENTS;
+	    }
+	    $element_type = 'inline_element';
+	    $contents = 'mixed_flow';
+	} ## end FIND_TYPE_AND_CONTENTS:
+
+        $contents = 'empty' if $Marpa::R2::HTML::Internal::EMPTY_ELEMENT{$tag};
 
         push @rules,
             {
             lhs => $element_type,
-            rhs => ["ELE_$_"],
+            rhs => ["ELE_$tag"],
             },
             {
-            lhs    => "ELE_$_",
+            lhs    => "ELE_$tag",
             rhs    => [ $start_tag, $contents, $end_tag ],
-            action => "ELE_$_",
+            action => "ELE_$tag",
             };
 
         # There may be no

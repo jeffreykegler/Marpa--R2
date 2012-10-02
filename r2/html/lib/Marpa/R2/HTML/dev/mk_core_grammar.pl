@@ -17,6 +17,7 @@ use 5.010;
 use strict;
 use warnings;
 use autodie;
+use Data::Dumper;
 
 use English qw( -no_match_vars );
 
@@ -226,9 +227,30 @@ $output .= "\n\n";
 $output .= 'package Marpa::R2::HTML::Internal;';
 $output .= "\n\n";
 
-require Data::Dumper;
 $output .= Data::Dumper->Purity(1)
     ->Dump( [ \@Marpa::R2::HTML::Internal::CORE_RULES ], [qw(CORE_RULES)] );
+
+# block_element is for block-level ONLY elements.
+# head is for anything legal inside the HTML header.
+# Note that isindex can be both a head element and
+# and block level element in the body.
+# ISINDEX is classified as a header_element
+%Marpa::R2::HTML::Internal::IS_BLOCK_ELEMENT = (
+    (   map { $_ => 'mixed_flow' }
+            qw(
+            h1 h2 h3 h4 h5 h6
+            ul ol dir menu
+            pre
+            p dl div center
+            noscript noframes
+            blockquote form hr
+            table fieldset address
+            )
+    ),
+);
+
+$output .= Data::Dumper->Purity(1)
+    ->Dump( [ \%Marpa::R2::HTML::Internal::IS_BLOCK_ELEMENT ], [qw(IS_BLOCK_ELEMENT)]);
 
 my @element_hierarchy = (
     [qw( span option )],
@@ -257,7 +279,7 @@ push @tag_hierarchy,
     map { 'E_' . $_ } map { @{$_} } @element_hierarchy;
 push @tag_hierarchy, @last_resort_tags;
 
-say Data::Dumper::Dumper(\@tag_hierarchy);
+# say Data::Dumper::Dumper(\@tag_hierarchy);
 
 open my $out_fh, q{>}, 'Core_Grammar.pm';
 say {$out_fh} $output;
