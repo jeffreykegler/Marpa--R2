@@ -53,7 +53,7 @@ ELE_html ::= S_html EC_html E_html
 EC_html ::= SGML_flow ELE_head SGML_flow ELE_body SGML_flow
 ELE_head ::= S_head EC_head E_head
 EC_head ::= head_item*
-ELE_body ::= S_body mixed_flow E_body
+ELE_body is mixed_flow
 
 # Common types of element content
 empty ::=
@@ -89,7 +89,7 @@ pcdata_flow_item ::= SGML_flow_item
 
 # Alphabetically, by tagname
 ELE_object contains ELE_param mixed_flow_item
-ELE_base ::= S_base empty E_base
+ELE_base is empty
 ELE_colgroup contains ELE_col SGML_flow_item
 ELE_isindex ::= S_isindex empty E_isindex
 ELE_link ::= S_link empty E_link
@@ -107,7 +107,7 @@ ELE_tbody contains SGML_flow_item ELE_tr
 ELE_td ::= S_td mixed_flow E_td
 ELE_tfoot contains SGML_flow_item ELE_tr
 ELE_thead contains SGML_flow_item ELE_tr
-ELE_title ::= S_title inline_flow E_title
+ELE_title is inline_flow
 ELE_tr contains SGML_flow_item ELE_th ELE_td
 END_OF_BNF
 
@@ -133,33 +133,51 @@ LINE: for my $line ( split /\n/xms, $BNF ) {
     next LINE
         if not $definition =~ / \S /xms;    # ignore all-whitespace line
     my $sequence = ( $definition =~ s/ [*] \s* $//xms );
-    if ($definition =~ s/ \s* [:][:][=] \s* / /xms) {
-       # Production is Ordinary BNF rule
-    my @symbols         = ( split q{ }, $definition );
-    my $lhs             = shift @symbols;
-    my %rule_descriptor = (
-        lhs => $lhs,
-        rhs => \@symbols,
-    );
-    if ($sequence) {
-        $rule_descriptor{min} = 0;
-    }
-    if ( my $handler = $handler{$lhs} ) {
-        $rule_descriptor{action} = $handler;
-    }
-    elsif ( $lhs =~ /^ELE_/xms ) {
-        $rule_descriptor{action} = "$lhs";
-    }
-    push @Marpa::R2::HTML::Internal::CORE_RULES, \%rule_descriptor;
-    next LINE;
-    }
-    if ($definition =~ s/ \A \s* ELE_(\w+) \s+ contains \s+ / /xms) {
+    if ( $definition =~ s/ \s* [:][:][=] \s* / /xms ) {
+
+        # Production is Ordinary BNF rule
+        my @symbols         = ( split q{ }, $definition );
+        my $lhs             = shift @symbols;
+        my %rule_descriptor = (
+            lhs => $lhs,
+            rhs => \@symbols,
+        );
+        if ($sequence) {
+            $rule_descriptor{min} = 0;
+        }
+        if ( my $handler = $handler{$lhs} ) {
+            $rule_descriptor{action} = $handler;
+        }
+        elsif ( $lhs =~ /^ELE_/xms ) {
+            $rule_descriptor{action} = "$lhs";
+        }
+        push @Marpa::R2::HTML::Internal::CORE_RULES, \%rule_descriptor;
+        next LINE;
+    } ## end if ( $definition =~ s/ \s* [:][:][=] \s* / /xms )
+    if ( $definition =~ s/ \A \s* ELE_(\w+) \s+ is \s+ / /xms ) {
+        # Production is Element with standard flow
         my $tag = $1;
-	push @{$containments{$tag} }, split q{ }, $definition;
-    next LINE;
+        my @symbols         = ( split q{ }, $definition );
+	die "Standard flow element should have exactly one content symbol: $line"
+	   if scalar @symbols != 1;
+        my $contents             = shift @symbols;
+	my $lhs = 'ELE_' . $tag;
+        my %rule_descriptor = (
+            lhs => $lhs,
+            rhs => [ "S_$tag", $contents, "E_$tag" ],
+	    action => $lhs
+        );
+        push @Marpa::R2::HTML::Internal::CORE_RULES, \%rule_descriptor;
+        next LINE;
+    }
+    if ( $definition =~ s/ \A \s* ELE_(\w+) \s+ contains \s+ / /xms ) {
+        # Production is Element with custom flow
+        my $tag = $1;
+        push @{ $containments{$tag} }, split q{ }, $definition;
+        next LINE;
     }
     die "Badly formed line in grammar description: $line";
-} ## end LINE: for my $bnf_production ( split /\n/xms, $BNF )
+} ## end LINE: for my $line ( split /\n/xms, $BNF )
 
 ELEMENT: for my $tag (keys %containments) {
     my @contents = @{$containments{$tag}};
