@@ -14,10 +14,18 @@
 # http://www.gnu.org/licenses/.
 
 # This file was generated automatically by mk_core_grammar.pl
-# The date of generation was Sun Sep 30 19:45:03 2012
+# The date of generation was Mon Oct  1 21:16:00 2012
 
 package Marpa::R2::HTML::Internal;
+
 $CORE_RULES = [
+                {
+                  'rhs' => [
+                             'Non-element',
+                             'tokens'
+                           ],
+                  'lhs' => '#'
+                },
                 {
                   'rhs' => [
                              'CRUFT'
@@ -69,6 +77,13 @@ $CORE_RULES = [
                 },
                 {
                   'rhs' => [
+                             'SGML',
+                             'flows'
+                           ],
+                  'lhs' => '#'
+                },
+                {
+                  'rhs' => [
                              'comment'
                            ],
                   'lhs' => 'SGML_flow_item'
@@ -103,6 +118,13 @@ $CORE_RULES = [
                              'SGML_flow_item'
                            ],
                   'lhs' => 'SGML_flow'
+                },
+                {
+                  'rhs' => [
+                             'Top-level',
+                             'structure'
+                           ],
+                  'lhs' => '#'
                 },
                 {
                   'rhs' => [
@@ -174,39 +196,17 @@ $CORE_RULES = [
                 },
                 {
                   'rhs' => [
-                             'S_table',
-                             'table_flow',
-                             'E_table'
+                             'Common',
+                             'types',
+                             'of',
+                             'element',
+                             'content'
                            ],
-                  'lhs' => 'ELE_table',
-                  'action' => 'ELE_table'
+                  'lhs' => '#'
                 },
                 {
-                  'rhs' => [
-                             'S_tbody',
-                             'table_section_flow',
-                             'E_tbody'
-                           ],
-                  'lhs' => 'ELE_tbody',
-                  'action' => 'ELE_tbody'
-                },
-                {
-                  'rhs' => [
-                             'S_tr',
-                             'table_row_flow',
-                             'E_tr'
-                           ],
-                  'lhs' => 'ELE_tr',
-                  'action' => 'ELE_tr'
-                },
-                {
-                  'rhs' => [
-                             'S_td',
-                             'mixed_flow',
-                             'E_td'
-                           ],
-                  'lhs' => 'ELE_td',
-                  'action' => 'ELE_td'
+                  'rhs' => [],
+                  'lhs' => 'empty'
                 },
                 {
                   'min' => 0,
@@ -238,6 +238,18 @@ $CORE_RULES = [
                              'list_item_element'
                            ],
                   'lhs' => 'block_element'
+                },
+                {
+                  'rhs' => [
+                             'ELE_script'
+                           ],
+                  'lhs' => 'inline_element'
+                },
+                {
+                  'rhs' => [
+                             'ELE_object'
+                           ],
+                  'lhs' => 'inline_element'
                 },
                 {
                   'rhs' => [
@@ -332,91 +344,21 @@ $CORE_RULES = [
                   'lhs' => 'pcdata_flow_item'
                 },
                 {
-                  'min' => 0,
                   'rhs' => [
-                             'select_flow_item'
+                             'Alphabetically,',
+                             'by',
+                             'tagname'
                            ],
-                  'lhs' => 'Contents_select'
+                  'lhs' => '#'
                 },
                 {
                   'rhs' => [
-                             'ELE_optgroup'
+                             'S_base',
+                             'empty',
+                             'E_base'
                            ],
-                  'lhs' => 'select_flow_item'
-                },
-                {
-                  'rhs' => [
-                             'ELE_option'
-                           ],
-                  'lhs' => 'select_flow_item'
-                },
-                {
-                  'rhs' => [
-                             'SGML_flow_item'
-                           ],
-                  'lhs' => 'select_flow_item'
-                },
-                {
-                  'min' => 0,
-                  'rhs' => [
-                             'optgroup_flow_item'
-                           ],
-                  'lhs' => 'Contents_optgroup'
-                },
-                {
-                  'rhs' => [
-                             'ELE_option'
-                           ],
-                  'lhs' => 'optgroup_flow_item'
-                },
-                {
-                  'rhs' => [
-                             'SGML_flow_item'
-                           ],
-                  'lhs' => 'optgroup_flow_item'
-                },
-                {
-                  'min' => 0,
-                  'rhs' => [
-                             'list_item_flow_item'
-                           ],
-                  'lhs' => 'list_item_flow'
-                },
-                {
-                  'rhs' => [
-                             'SGML_flow_item'
-                           ],
-                  'lhs' => 'list_item_flow_item'
-                },
-                {
-                  'rhs' => [
-                             'header_element'
-                           ],
-                  'lhs' => 'list_item_flow_item'
-                },
-                {
-                  'rhs' => [
-                             'block_element'
-                           ],
-                  'lhs' => 'list_item_flow_item'
-                },
-                {
-                  'rhs' => [
-                             'inline_element'
-                           ],
-                  'lhs' => 'list_item_flow_item'
-                },
-                {
-                  'rhs' => [
-                             'cdata'
-                           ],
-                  'lhs' => 'list_item_flow_item'
-                },
-                {
-                  'rhs' => [
-                             'pcdata'
-                           ],
-                  'lhs' => 'list_item_flow_item'
+                  'lhs' => 'ELE_base',
+                  'action' => 'ELE_base'
                 },
                 {
                   'min' => 0,
@@ -438,85 +380,34 @@ $CORE_RULES = [
                   'lhs' => 'colgroup_flow_item'
                 },
                 {
-                  'min' => 0,
                   'rhs' => [
-                             'table_row_flow_item'
+                             'ELE_option'
                            ],
-                  'lhs' => 'table_row_flow'
-                },
-                {
-                  'rhs' => [
-                             'ELE_th'
-                           ],
-                  'lhs' => 'table_row_flow_item'
-                },
-                {
-                  'rhs' => [
-                             'ELE_td'
-                           ],
-                  'lhs' => 'table_row_flow_item'
+                  'lhs' => 'optgroup_flow_item'
                 },
                 {
                   'rhs' => [
                              'SGML_flow_item'
                            ],
-                  'lhs' => 'table_row_flow_item'
-                },
-                {
-                  'min' => 0,
-                  'rhs' => [
-                             'table_section_flow_item'
-                           ],
-                  'lhs' => 'table_section_flow'
+                  'lhs' => 'optgroup_flow_item'
                 },
                 {
                   'rhs' => [
-                             'table_row_element'
+                             'ELE_optgroup'
                            ],
-                  'lhs' => 'table_section_flow_item'
+                  'lhs' => 'select_flow_item'
+                },
+                {
+                  'rhs' => [
+                             'ELE_option'
+                           ],
+                  'lhs' => 'select_flow_item'
                 },
                 {
                   'rhs' => [
                              'SGML_flow_item'
                            ],
-                  'lhs' => 'table_section_flow_item'
-                },
-                {
-                  'rhs' => [
-                             'ELE_tr'
-                           ],
-                  'lhs' => 'table_row_element'
-                },
-                {
-                  'min' => 0,
-                  'rhs' => [
-                             'table_flow_item'
-                           ],
-                  'lhs' => 'table_flow'
-                },
-                {
-                  'rhs' => [
-                             'ELE_colgroup'
-                           ],
-                  'lhs' => 'table_flow_item'
-                },
-                {
-                  'rhs' => [
-                             'ELE_thead'
-                           ],
-                  'lhs' => 'table_flow_item'
-                },
-                {
-                  'rhs' => [
-                             'ELE_tfoot'
-                           ],
-                  'lhs' => 'table_flow_item'
-                },
-                {
-                  'rhs' => [
-                             'ELE_tbody'
-                           ],
-                  'lhs' => 'table_flow_item'
+                  'lhs' => 'select_flow_item'
                 },
                 {
                   'rhs' => [
@@ -532,94 +423,40 @@ $CORE_RULES = [
                 },
                 {
                   'rhs' => [
-                             'SGML_flow_item'
+                             'ELE_colgroup'
                            ],
                   'lhs' => 'table_flow_item'
                 },
                 {
                   'rhs' => [
-                             'ELE_script'
+                             'ELE_tbody'
                            ],
-                  'lhs' => 'inline_element'
+                  'lhs' => 'table_flow_item'
                 },
                 {
                   'rhs' => [
-                             'ELE_object'
+                             'ELE_tfoot'
                            ],
-                  'lhs' => 'inline_element'
+                  'lhs' => 'table_flow_item'
                 },
                 {
                   'rhs' => [
-                             'S_script',
-                             'inline_flow',
-                             'E_script'
+                             'ELE_thead'
                            ],
-                  'lhs' => 'ELE_script',
-                  'action' => 'ELE_script'
+                  'lhs' => 'table_flow_item'
                 },
                 {
                   'rhs' => [
-                             'S_style',
-                             'inline_flow',
-                             'E_style'
+                             'SGML_flow_item'
                            ],
-                  'lhs' => 'ELE_style',
-                  'action' => 'ELE_style'
-                },
-                {
-                  'rhs' => [
-                             'S_title',
-                             'inline_flow',
-                             'E_title'
-                           ],
-                  'lhs' => 'ELE_title',
-                  'action' => 'ELE_title'
-                },
-                {
-                  'rhs' => [
-                             'S_object',
-                             'Contents_object',
-                             'E_object'
-                           ],
-                  'lhs' => 'ELE_object',
-                  'action' => 'ELE_object'
+                  'lhs' => 'table_flow_item'
                 },
                 {
                   'min' => 0,
                   'rhs' => [
-                             'Item_object'
+                             'table_flow_item'
                            ],
-                  'lhs' => 'Contents_object'
-                },
-                {
-                  'rhs' => [
-                             'mixed_flow_item'
-                           ],
-                  'lhs' => 'Item_object'
-                },
-                {
-                  'rhs' => [
-                             'ELE_param'
-                           ],
-                  'lhs' => 'Item_object'
-                },
-                {
-                  'rhs' => [
-                             'S_param',
-                             'inline_flow',
-                             'E_param'
-                           ],
-                  'lhs' => 'ELE_param',
-                  'action' => 'ELE_param'
-                },
-                {
-                  'rhs' => [
-                             'S_base',
-                             'empty',
-                             'E_base'
-                           ],
-                  'lhs' => 'ELE_base',
-                  'action' => 'ELE_base'
+                  'lhs' => 'table_flow'
                 },
                 {
                   'rhs' => [
@@ -629,6 +466,58 @@ $CORE_RULES = [
                            ],
                   'lhs' => 'ELE_isindex',
                   'action' => 'ELE_isindex'
+                },
+                {
+                  'min' => 0,
+                  'rhs' => [
+                             'list_item_flow_item'
+                           ],
+                  'lhs' => 'list_item_flow'
+                },
+                {
+                  'rhs' => [
+                             'SGML_flow_item'
+                           ],
+                  'lhs' => 'list_item_flow_item'
+                },
+                {
+                  'rhs' => [
+                             'block_element'
+                           ],
+                  'lhs' => 'list_item_flow_item'
+                },
+                {
+                  'rhs' => [
+                             'cdata'
+                           ],
+                  'lhs' => 'list_item_flow_item'
+                },
+                {
+                  'rhs' => [
+                             'header_element'
+                           ],
+                  'lhs' => 'list_item_flow_item'
+                },
+                {
+                  'rhs' => [
+                             'inline_element'
+                           ],
+                  'lhs' => 'list_item_flow_item'
+                },
+                {
+                  'rhs' => [
+                             'pcdata'
+                           ],
+                  'lhs' => 'list_item_flow_item'
+                },
+                {
+                  'rhs' => [
+                             'S_link',
+                             'empty',
+                             'E_link'
+                           ],
+                  'lhs' => 'ELE_link',
+                  'action' => 'ELE_link'
                 },
                 {
                   'rhs' => [
@@ -641,16 +530,167 @@ $CORE_RULES = [
                 },
                 {
                   'rhs' => [
-                             'S_link',
-                             'empty',
-                             'E_link'
+                             'ELE_param'
                            ],
-                  'lhs' => 'ELE_link',
-                  'action' => 'ELE_link'
+                  'lhs' => 'Item_object'
                 },
                 {
-                  'rhs' => [],
-                  'lhs' => 'empty'
+                  'min' => 0,
+                  'rhs' => [
+                             'Item_object'
+                           ],
+                  'lhs' => 'Contents_object'
+                },
+                {
+                  'rhs' => [
+                             'S_object',
+                             'Contents_object',
+                             'E_object'
+                           ],
+                  'lhs' => 'ELE_object',
+                  'action' => 'ELE_object'
+                },
+                {
+                  'rhs' => [
+                             'mixed_flow_item'
+                           ],
+                  'lhs' => 'Item_object'
+                },
+                {
+                  'min' => 0,
+                  'rhs' => [
+                             'optgroup_flow_item'
+                           ],
+                  'lhs' => 'Contents_optgroup'
+                },
+                {
+                  'rhs' => [
+                             'S_param',
+                             'inline_flow',
+                             'E_param'
+                           ],
+                  'lhs' => 'ELE_param',
+                  'action' => 'ELE_param'
+                },
+                {
+                  'rhs' => [
+                             'ELE_tr'
+                           ],
+                  'lhs' => 'table_row_element'
+                },
+                {
+                  'min' => 0,
+                  'rhs' => [
+                             'table_row_flow_item'
+                           ],
+                  'lhs' => 'table_row_flow'
+                },
+                {
+                  'rhs' => [
+                             'ELE_td'
+                           ],
+                  'lhs' => 'table_row_flow_item'
+                },
+                {
+                  'rhs' => [
+                             'ELE_th'
+                           ],
+                  'lhs' => 'table_row_flow_item'
+                },
+                {
+                  'rhs' => [
+                             'SGML_flow_item'
+                           ],
+                  'lhs' => 'table_row_flow_item'
+                },
+                {
+                  'rhs' => [
+                             'S_script',
+                             'inline_flow',
+                             'E_script'
+                           ],
+                  'lhs' => 'ELE_script',
+                  'action' => 'ELE_script'
+                },
+                {
+                  'min' => 0,
+                  'rhs' => [
+                             'table_section_flow_item'
+                           ],
+                  'lhs' => 'table_section_flow'
+                },
+                {
+                  'rhs' => [
+                             'SGML_flow_item'
+                           ],
+                  'lhs' => 'table_section_flow_item'
+                },
+                {
+                  'rhs' => [
+                             'table_row_element'
+                           ],
+                  'lhs' => 'table_section_flow_item'
+                },
+                {
+                  'min' => 0,
+                  'rhs' => [
+                             'select_flow_item'
+                           ],
+                  'lhs' => 'Contents_select'
+                },
+                {
+                  'rhs' => [
+                             'S_style',
+                             'inline_flow',
+                             'E_style'
+                           ],
+                  'lhs' => 'ELE_style',
+                  'action' => 'ELE_style'
+                },
+                {
+                  'rhs' => [
+                             'S_table',
+                             'table_flow',
+                             'E_table'
+                           ],
+                  'lhs' => 'ELE_table',
+                  'action' => 'ELE_table'
+                },
+                {
+                  'rhs' => [
+                             'S_tbody',
+                             'table_section_flow',
+                             'E_tbody'
+                           ],
+                  'lhs' => 'ELE_tbody',
+                  'action' => 'ELE_tbody'
+                },
+                {
+                  'rhs' => [
+                             'S_td',
+                             'mixed_flow',
+                             'E_td'
+                           ],
+                  'lhs' => 'ELE_td',
+                  'action' => 'ELE_td'
+                },
+                {
+                  'rhs' => [
+                             'S_title',
+                             'inline_flow',
+                             'E_title'
+                           ],
+                  'lhs' => 'ELE_title',
+                  'action' => 'ELE_title'
+                },
+                {
+                  'rhs' => [
+                             'S_tr',
+                             'table_row_flow',
+                             'E_tr'
+                           ],
+                  'lhs' => 'ELE_tr',
+                  'action' => 'ELE_tr'
                 }
               ];
 
