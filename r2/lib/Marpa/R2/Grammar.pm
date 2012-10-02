@@ -214,7 +214,7 @@ sub Marpa::R2::uncaught_error {
     # message, which causes spurious success reports.
     Carp::croak(
         "libmarpa reported an error which Marpa::R2 did not catch\n",
-	$error
+    $error
     );
 } ## end sub Marpa::R2::uncaught_error
 
@@ -519,7 +519,7 @@ sub Marpa::R2::Grammar::precompute {
                 'libmarpa error, but no error code returned');
         }
 
-	# If already precomputed, just return success
+    # If already precomputed, just return success
         return $grammar
             if $precompute_error_code == $Marpa::R2::Error::PRECOMPUTED;
 
@@ -540,7 +540,7 @@ sub Marpa::R2::Grammar::precompute {
         }
         if ( $precompute_error_code == $Marpa::R2::Error::NULLING_TERMINAL ) {
             my @nulling_terminals = ();
-	    my $event_count = $grammar_c->event_count();
+        my $event_count = $grammar_c->event_count();
             EVENT:
             for ( my $event_ix = 0; $event_ix < $event_count; $event_ix++ )
             {
@@ -961,7 +961,7 @@ sub assign_user_symbol {
             Marpa::R2::exception(qq{Symbol "$name": rank must be an integer})
                 if not Scalar::Util::looks_like_number($value)
                     or int($value) != $value;
-	    $grammar_c->symbol_rank_set($symbol_id) = $value;
+        $grammar_c->symbol_rank_set($symbol_id) = $value;
         } ## end if ( $property eq 'rank' )
     } ## end while ( my ( $property, $value ) = each %{$options} )
 
@@ -1160,18 +1160,18 @@ sub add_user_rule {
 
     if ($is_ordinary_rule) {
 
-	# Capture errors
-	$grammar_c->throw_set(0);
+    # Capture errors
+    $grammar_c->throw_set(0);
         my $ordinary_rule_id = $grammar_c->rule_new( $lhs_id, \@rhs_ids );
-	$grammar_c->throw_set(1);
+    $grammar_c->throw_set(1);
 
         if ( $ordinary_rule_id < 0 ) {
             my $rule_description =
                 "$lhs_name -> " . ( join q{ }, @{$rhs_names} );
             my ($error_code, $error_string) = $grammar_c->error();
-	    $error_code //= -1;
+        $error_code //= -1;
             my $problem_description =
-		$error_code == $Marpa::R2::Error::DUPLICATE_RULE
+        $error_code == $Marpa::R2::Error::DUPLICATE_RULE
                 ? 'Duplicate rule'
                 : $error_string;
             Marpa::R2::exception("$problem_description: $rule_description");
@@ -1179,11 +1179,11 @@ sub add_user_rule {
         shadow_rule( $grammar, $ordinary_rule_id );
         my $ordinary_rule = $rules->[$ordinary_rule_id];
         action_set( $ordinary_rule_id, $grammar, $action );
-	if (defined $rank) {
-	   $grammar_c->rule_rank_set($ordinary_rule_id, $rank);
-	}
-	$grammar_c->rule_null_high_set( $ordinary_rule_id,
-	    ( $null_ranking eq 'high' ? 1 : 0 ) );
+    if (defined $rank) {
+       $grammar_c->rule_rank_set($ordinary_rule_id, $rank);
+    }
+    $grammar_c->rule_null_high_set( $ordinary_rule_id,
+        ( $null_ranking eq 'high' ? 1 : 0 ) );
         if ( defined $rule_name ) {
             $ordinary_rule->[Marpa::R2::Internal::Rule::NAME] = $rule_name;
             $rules_by_name->{$rule_name} = $ordinary_rule;
@@ -1241,7 +1241,7 @@ sub add_user_rule {
     $original_rule->[Marpa::R2::Internal::Rule::DISCARD_SEPARATION] =
         $separator_id >= 0 && !$keep_separation;
     $grammar_c->rule_null_high_set( $original_rule_id,
-	( $null_ranking eq 'high' ? 1 : 0 ) );
+    ( $null_ranking eq 'high' ? 1 : 0 ) );
     $grammar_c->rule_rank_set($original_rule_id, $rank);
 
     if ( defined $rule_name ) {
@@ -1481,12 +1481,12 @@ sub Marpa::R2::Grammar::isy_name {
 
     GEN_NAME: {
 
-	if ($grammar_c->_marpa_g_isy_is_start($id)) {
-	  my $source_id = $grammar_c->_marpa_g_source_xsy($id);
-	  $name = $grammar->symbol_name($source_id);
-	  $name .= q<[']>;
+    if ($grammar_c->_marpa_g_isy_is_start($id)) {
+      my $source_id = $grammar_c->_marpa_g_source_xsy($id);
+      $name = $grammar->symbol_name($source_id);
+      $name .= q<[']>;
             last GEN_NAME;
-	}
+    }
 
         my $lhs_xrl = $grammar_c->_marpa_g_isy_lhs_xrl($id);
         if ( defined $lhs_xrl and $grammar_c->rule_is_sequence($lhs_xrl) ) {
