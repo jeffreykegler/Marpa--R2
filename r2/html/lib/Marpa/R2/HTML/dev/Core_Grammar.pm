@@ -14,11 +14,66 @@
 # http://www.gnu.org/licenses/.
 
 # This file was generated automatically by mk_core_grammar.pl
-# The date of generation was Tue Oct  2 08:04:44 2012
+# The date of generation was Tue Oct  2 08:45:03 2012
 
 package Marpa::R2::HTML::Internal;
 
 $CORE_RULES = [
+                {
+                  'rhs' => [
+                             'ELE_p'
+                           ],
+                  'lhs' => 'block_element'
+                },
+                {
+                  'rhs' => [
+                             'S_p',
+                             'inline_flow',
+                             'E_p'
+                           ],
+                  'lhs' => 'ELE_p',
+                  'action' => 'ELE_p'
+                },
+                {
+                  'rhs' => [
+                             'ELE_tr'
+                           ],
+                  'lhs' => 'EI_tbody'
+                },
+                {
+                  'rhs' => [
+                             'S_tr',
+                             'EC_tr',
+                             'E_tr'
+                           ],
+                  'lhs' => 'ELE_tr',
+                  'action' => 'ELE_tr'
+                },
+                {
+                  'min' => 0,
+                  'rhs' => [
+                             'EI_tr'
+                           ],
+                  'lhs' => 'EC_tr'
+                },
+                {
+                  'rhs' => [
+                             'SGML_flow_item'
+                           ],
+                  'lhs' => 'EI_tr'
+                },
+                {
+                  'rhs' => [
+                             'ELE_th'
+                           ],
+                  'lhs' => 'EI_tr'
+                },
+                {
+                  'rhs' => [
+                             'ELE_td'
+                           ],
+                  'lhs' => 'EI_tr'
+                },
                 {
                   'rhs' => [
                              'CRUFT'
@@ -565,12 +620,6 @@ $CORE_RULES = [
                 },
                 {
                   'rhs' => [
-                             'ELE_tr'
-                           ],
-                  'lhs' => 'EI_tbody'
-                },
-                {
-                  'rhs' => [
                              'S_tbody',
                              'EC_tbody',
                              'E_tbody'
@@ -601,40 +650,6 @@ $CORE_RULES = [
                            ],
                   'lhs' => 'ELE_title',
                   'action' => 'ELE_title'
-                },
-                {
-                  'min' => 0,
-                  'rhs' => [
-                             'EI_tr'
-                           ],
-                  'lhs' => 'EC_tr'
-                },
-                {
-                  'rhs' => [
-                             'ELE_td'
-                           ],
-                  'lhs' => 'EI_tr'
-                },
-                {
-                  'rhs' => [
-                             'ELE_th'
-                           ],
-                  'lhs' => 'EI_tr'
-                },
-                {
-                  'rhs' => [
-                             'S_tr',
-                             'EC_tr',
-                             'E_tr'
-                           ],
-                  'lhs' => 'ELE_tr',
-                  'action' => 'ELE_tr'
-                },
-                {
-                  'rhs' => [
-                             'SGML_flow_item'
-                           ],
-                  'lhs' => 'EI_tr'
                 }
               ];
 

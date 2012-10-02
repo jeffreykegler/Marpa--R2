@@ -121,19 +121,54 @@ EI_select ::= SGML_flow_item
 ELE_style ::= S_style inline_flow E_style
 ELE_table ::= S_table table_flow E_table
 EC_tbody ::= EI_tbody*
-EI_tbody ::= ELE_tr
 ELE_tbody ::= S_tbody EC_tbody E_tbody
 EI_tbody ::= SGML_flow_item
 ELE_td ::= S_td mixed_flow E_td
 ELE_title ::= S_title inline_flow E_title
-EC_tr ::= EI_tr*
-EI_tr ::= ELE_td
-EI_tr ::= ELE_th
-ELE_tr ::= S_tr EC_tr E_tr
-EI_tr ::= SGML_flow_item
 END_OF_BNF
 
+my @core_elements = (
+    [ qw( block_element p inline_flow ) ],
+    [ qw( EI_tbody tr ) => [qw( SGML_flow_item ELE_th ELE_td )] ],
+);
+
 @Marpa::R2::HTML::Internal::CORE_RULES = ();
+
+ELEMENT: for my $core_element_data (@core_elements) {
+    my ( $element_type, $tag, $contents ) = @{$core_element_data};
+    my $element_symbol = 'ELE_' . $tag;
+    push @Marpa::R2::HTML::Internal::CORE_RULES,
+        { lhs => $element_type, rhs => [$element_symbol] };
+    if ( ref $contents ne 'ARRAY' ) {
+        push @Marpa::R2::HTML::Internal::CORE_RULES,
+            {
+            lhs    => $element_symbol,
+            rhs    => [ "S_$tag", $contents, "E_$tag" ],
+            action => $element_symbol,
+            };
+        next ELEMENT;
+    } ## end if ( ref $contents ne 'ARRAY' )
+    my $contents_symbol = 'EC_' . $tag;
+    my $item_symbol     = 'EI_' . $tag;
+    push @Marpa::R2::HTML::Internal::CORE_RULES,
+        {
+        lhs    => $element_symbol,
+        rhs    => [ "S_$tag", $contents_symbol, "E_$tag" ],
+        action => $element_symbol,
+        },
+        {
+        lhs => $contents_symbol,
+        rhs => [$item_symbol],
+        min => 0
+        };
+    for my $content_item ( @{$contents} ) {
+        push @Marpa::R2::HTML::Internal::CORE_RULES,
+            {
+            lhs => $item_symbol,
+            rhs => [$content_item],
+            };
+    } ## end for my $content_item ( @{$contents} )
+} ## end ELEMENT: for my $core_element_data (@core_elements)
 
 my %handler = (
     cruft      => 'SPE_CRUFT',
