@@ -292,10 +292,14 @@ sub Marpa::R2::Grammar::set {
         if ( not $ref_type or $ref_type ne 'HASH' ) {
             Carp::croak(
                 'Marpa::R2::Grammar expects args as ref to HASH, got ',
-                ( "ref to $ref_type" || 'non-reference' ),
+                ( ($ref_type ? "ref to $ref_type" : undef) || 'non-reference' ),
                 ' instead'
             );
         } ## end if ( not $ref_type or $ref_type ne 'HASH' )
+        if (!%$args)
+        {
+            Carp::croak( 'Empty HASH reference passed as options for Marpa::R2::Grammar' );
+        } ## end if (keys %{$args} == 0)
         if (my @bad_options =
             grep { not $_ ~~ Marpa::R2::Internal::Grammar::GRAMMAR_OPTIONS }
             keys %{$args}

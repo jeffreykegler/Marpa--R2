@@ -54,7 +54,9 @@ sub test_grammar {
         $added_args = { trace_file_handle => $memory };
     } ## end if ($trace_result)
     my $eval_ok = eval {
-        my $grammar = Marpa::R2::Grammar->new( $grammar_args, $added_args );
+        # merge added args
+        @$grammar_args{keys %$added_args} = values %$added_args;
+        my $grammar = Marpa::R2::Grammar->new( $grammar_args );
         $grammar->precompute();
         1;
     };

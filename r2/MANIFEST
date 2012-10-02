@@ -175,6 +175,7 @@ t/equation.t
 t/etc/wall_proof.txt
 t/final_nonnullable.t
 t/gabend.t
+t/grammar_options_diagnostics.t
 t/implementation.t
 t/infinite.t
 t/infinite2.t
