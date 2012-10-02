@@ -75,15 +75,18 @@ head_item ::= SGML_flow_item
 inline_flow ::= inline_flow_item*
 inline_flow_item ::= pcdata_flow_item
 inline_flow_item ::= inline_element
-pcdata_flow ::= pcdata_flow_item*
+
+# pcdata_flow ::= pcdata_flow_item*
 pcdata_flow_item ::= cdata
 pcdata_flow_item ::= pcdata
 pcdata_flow_item ::= SGML_flow_item
-cdata_flow ::= cdata_flow_item*
-cdata_flow_item ::= cdata
+
+# cdata_flow ::= cdata_flow_item*
+# cdata_flow_item ::= cdata
 
 # Alphabetically, by tagname
 ELE_base ::= S_base empty E_base
+ELE_colgroup ::= S_colgroup EC_colgroup E_colgroup
 EC_colgroup ::= EI_colgroup*
 EI_colgroup ::= ELE_col
 EI_colgroup ::= SGML_flow_item
@@ -99,13 +102,6 @@ table_flow_item ::= ELE_thead
 table_flow_item ::= SGML_flow_item
 table_flow ::= table_flow_item*
 ELE_isindex ::= S_isindex empty E_isindex
-list_item_flow ::= list_item_flow_item*
-list_item_flow_item ::= SGML_flow_item
-list_item_flow_item ::= block_element
-list_item_flow_item ::= cdata
-list_item_flow_item ::= header_element
-list_item_flow_item ::= inline_element
-list_item_flow_item ::= pcdata
 ELE_link ::= S_link empty E_link
 ELE_meta ::= S_meta empty E_meta
 Item_object ::= ELE_param
@@ -149,7 +145,7 @@ my %handler = (
 );
 
 LINE: for my $bnf_production ( split /\n/xms, $BNF ) {
-    $bnf_production =~ s/ [#] .* //;    # Remove comments
+    $bnf_production =~ s/ [#] .* //xms;    # Remove comments
     next LINE
         if not $bnf_production =~ / \S /xms;    # ignore all-whitespace line
     my $sequence = ( $bnf_production =~ s/ [*] \s* $//xms );
