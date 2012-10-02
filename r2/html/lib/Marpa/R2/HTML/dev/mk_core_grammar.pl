@@ -89,10 +89,7 @@ pcdata_flow_item ::= SGML_flow_item
 
 # Alphabetically, by tagname
 ELE_base ::= S_base empty E_base
-EC_colgroup ::= EI_colgroup*
-EI_colgroup ::= ELE_col
-ELE_colgroup ::= S_colgroup EC_colgroup E_colgroup
-EI_colgroup ::= SGML_flow_item
+ELE_colgroup contains ELE_col SGML_flow_item
 table_flow_item ::= ELE_caption
 table_flow_item ::= ELE_col
 table_flow_item ::= ELE_colgroup
@@ -108,16 +105,10 @@ Item_object ::= ELE_param
 EC_object ::= Item_object*
 ELE_object ::= S_object EC_object E_object
 Item_object ::= mixed_flow_item
-ELE_optgroup ::= S_optgroup EC_optgroup E_optgroup
-EC_optgroup ::= EI_optgroup*
-EI_optgroup ::= ELE_option
-EI_optgroup ::= SGML_flow_item
+ELE_optgroup contains ELE_option SGML_flow_item
 ELE_param ::= S_param inline_flow E_param
 ELE_script ::= S_script inline_flow E_script
-EC_select ::= EI_select*
-EI_select ::= ELE_optgroup
-EI_select ::= ELE_option
-ELE_select ::= S_select EC_select E_select
+ELE_select contains ELE_optgroup ELE_option
 EI_select ::= SGML_flow_item
 ELE_style ::= S_style inline_flow E_style
 ELE_table ::= S_table table_flow E_table

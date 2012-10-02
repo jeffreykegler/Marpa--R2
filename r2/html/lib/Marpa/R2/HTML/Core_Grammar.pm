@@ -14,7 +14,7 @@
 # http://www.gnu.org/licenses/.
 
 # This file was generated automatically by mk_core_grammar.pl
-# The date of generation was Tue Oct  2 09:58:10 2012
+# The date of generation was Tue Oct  2 10:02:09 2012
 
 package Marpa::R2::HTML::Internal;
 
@@ -333,34 +333,6 @@ $CORE_RULES = [
                   'action' => 'ELE_base'
                 },
                 {
-                  'min' => 0,
-                  'rhs' => [
-                             'EI_colgroup'
-                           ],
-                  'lhs' => 'EC_colgroup'
-                },
-                {
-                  'rhs' => [
-                             'ELE_col'
-                           ],
-                  'lhs' => 'EI_colgroup'
-                },
-                {
-                  'rhs' => [
-                             'S_colgroup',
-                             'EC_colgroup',
-                             'E_colgroup'
-                           ],
-                  'lhs' => 'ELE_colgroup',
-                  'action' => 'ELE_colgroup'
-                },
-                {
-                  'rhs' => [
-                             'SGML_flow_item'
-                           ],
-                  'lhs' => 'EI_colgroup'
-                },
-                {
                   'rhs' => [
                              'ELE_caption'
                            ],
@@ -466,34 +438,6 @@ $CORE_RULES = [
                 },
                 {
                   'rhs' => [
-                             'S_optgroup',
-                             'EC_optgroup',
-                             'E_optgroup'
-                           ],
-                  'lhs' => 'ELE_optgroup',
-                  'action' => 'ELE_optgroup'
-                },
-                {
-                  'min' => 0,
-                  'rhs' => [
-                             'EI_optgroup'
-                           ],
-                  'lhs' => 'EC_optgroup'
-                },
-                {
-                  'rhs' => [
-                             'ELE_option'
-                           ],
-                  'lhs' => 'EI_optgroup'
-                },
-                {
-                  'rhs' => [
-                             'SGML_flow_item'
-                           ],
-                  'lhs' => 'EI_optgroup'
-                },
-                {
-                  'rhs' => [
                              'S_param',
                              'inline_flow',
                              'E_param'
@@ -509,34 +453,6 @@ $CORE_RULES = [
                            ],
                   'lhs' => 'ELE_script',
                   'action' => 'ELE_script'
-                },
-                {
-                  'min' => 0,
-                  'rhs' => [
-                             'EI_select'
-                           ],
-                  'lhs' => 'EC_select'
-                },
-                {
-                  'rhs' => [
-                             'ELE_optgroup'
-                           ],
-                  'lhs' => 'EI_select'
-                },
-                {
-                  'rhs' => [
-                             'ELE_option'
-                           ],
-                  'lhs' => 'EI_select'
-                },
-                {
-                  'rhs' => [
-                             'S_select',
-                             'EC_select',
-                             'E_select'
-                           ],
-                  'lhs' => 'ELE_select',
-                  'action' => 'ELE_select'
                 },
                 {
                   'rhs' => [
@@ -650,6 +566,90 @@ $CORE_RULES = [
                              'ELE_tr'
                            ],
                   'lhs' => 'EI_tbody'
+                },
+                {
+                  'rhs' => [
+                             'S_colgroup',
+                             'EC_colgroup',
+                             'E_colgroup'
+                           ],
+                  'lhs' => 'ELE_colgroup',
+                  'action' => 'ELE_colgroup'
+                },
+                {
+                  'min' => 0,
+                  'rhs' => [
+                             'EI_colgroup'
+                           ],
+                  'lhs' => 'EC_colgroup'
+                },
+                {
+                  'rhs' => [
+                             'ELE_col'
+                           ],
+                  'lhs' => 'EI_colgroup'
+                },
+                {
+                  'rhs' => [
+                             'SGML_flow_item'
+                           ],
+                  'lhs' => 'EI_colgroup'
+                },
+                {
+                  'rhs' => [
+                             'S_optgroup',
+                             'EC_optgroup',
+                             'E_optgroup'
+                           ],
+                  'lhs' => 'ELE_optgroup',
+                  'action' => 'ELE_optgroup'
+                },
+                {
+                  'min' => 0,
+                  'rhs' => [
+                             'EI_optgroup'
+                           ],
+                  'lhs' => 'EC_optgroup'
+                },
+                {
+                  'rhs' => [
+                             'ELE_option'
+                           ],
+                  'lhs' => 'EI_optgroup'
+                },
+                {
+                  'rhs' => [
+                             'SGML_flow_item'
+                           ],
+                  'lhs' => 'EI_optgroup'
+                },
+                {
+                  'rhs' => [
+                             'S_select',
+                             'EC_select',
+                             'E_select'
+                           ],
+                  'lhs' => 'ELE_select',
+                  'action' => 'ELE_select'
+                },
+                {
+                  'min' => 0,
+                  'rhs' => [
+                             'EI_select'
+                           ],
+                  'lhs' => 'EC_select'
+                },
+                {
+                  'rhs' => [
+                             'ELE_optgroup'
+                           ],
+                  'lhs' => 'EI_select'
+                },
+                {
+                  'rhs' => [
+                             'ELE_option'
+                           ],
+                  'lhs' => 'EI_select'
                 }
               ];
 
