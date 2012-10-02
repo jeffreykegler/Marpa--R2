@@ -14,7 +14,7 @@
 # http://www.gnu.org/licenses/.
 
 # This file was generated automatically by mk_core_grammar.pl
-# The date of generation was Tue Oct  2 07:54:42 2012
+# The date of generation was Tue Oct  2 08:04:44 2012
 
 package Marpa::R2::HTML::Internal;
 
@@ -459,6 +459,15 @@ $CORE_RULES = [
                   'lhs' => 'Item_object'
                 },
                 {
+                  'rhs' => [
+                             'S_optgroup',
+                             'EC_optgroup',
+                             'E_optgroup'
+                           ],
+                  'lhs' => 'ELE_optgroup',
+                  'action' => 'ELE_optgroup'
+                },
+                {
                   'min' => 0,
                   'rhs' => [
                              'EI_optgroup'
@@ -516,7 +525,9 @@ $CORE_RULES = [
                 },
                 {
                   'rhs' => [
-                             'ELE_optgroup'
+                             'S_select',
+                             'EC_select',
+                             'E_select'
                            ],
                   'lhs' => 'ELE_select',
                   'action' => 'ELE_select'
