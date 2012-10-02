@@ -37,14 +37,22 @@ SGML_flow_item ::= whitespace
 SGML_flow_item ::= cruft
 SGML_flow ::= SGML_flow_item*
 
+# For element x,
+# ELE_x is complete element
+# S_x is start tag
+# E_x is end tag
+# EC_x is the element's contents
+#   The contents of many elements consists of zero or more items
+# EI_x is a content "item" for element x
+
 # Top-level structure
 document ::= prolog ELE_html trailer EOF
 prolog ::= SGML_flow
 trailer ::= SGML_flow
-ELE_html ::= S_html Contents_html E_html
-Contents_html ::= SGML_flow ELE_head SGML_flow ELE_body SGML_flow
-ELE_head ::= S_head Contents_head E_head
-Contents_head ::= head_item*
+ELE_html ::= S_html EC_html E_html
+EC_html ::= SGML_flow ELE_head SGML_flow ELE_body SGML_flow
+ELE_head ::= S_head EC_head E_head
+EC_head ::= head_item*
 ELE_body ::= S_body mixed_flow E_body
 
 # Common types of element content
@@ -71,14 +79,14 @@ pcdata_flow ::= pcdata_flow_item*
 pcdata_flow_item ::= cdata
 pcdata_flow_item ::= pcdata
 pcdata_flow_item ::= SGML_flow_item
+cdata_flow ::= cdata_flow_item*
+cdata_flow_item ::= cdata
 
 # Alphabetically, by tagname
 ELE_base ::= S_base empty E_base
-Contents_colgroup ::= colgroup_flow_item*
-colgroup_flow_item ::= ELE_col
-colgroup_flow_item ::= SGML_flow_item
-optgroup_flow_item ::= ELE_option
-optgroup_flow_item ::= SGML_flow_item
+EC_colgroup ::= EI_colgroup*
+EI_colgroup ::= ELE_col
+EI_colgroup ::= SGML_flow_item
 select_flow_item ::= ELE_optgroup
 select_flow_item ::= ELE_option
 select_flow_item ::= SGML_flow_item
@@ -101,27 +109,28 @@ list_item_flow_item ::= pcdata
 ELE_link ::= S_link empty E_link
 ELE_meta ::= S_meta empty E_meta
 Item_object ::= ELE_param
-Contents_object ::= Item_object*
-ELE_object ::= S_object Contents_object E_object
+EC_object ::= Item_object*
+ELE_object ::= S_object EC_object E_object
 Item_object ::= mixed_flow_item
-Contents_optgroup ::= optgroup_flow_item*
+EC_optgroup ::= EI_optgroup*
+EI_optgroup ::= ELE_option
+EI_optgroup ::= SGML_flow_item
 ELE_param ::= S_param inline_flow E_param
-table_row_element ::= ELE_tr
-table_row_flow ::= table_row_flow_item*
-table_row_flow_item ::= ELE_td
-table_row_flow_item ::= ELE_th
-table_row_flow_item ::= SGML_flow_item
 ELE_script ::= S_script inline_flow E_script
-table_section_flow ::= table_section_flow_item*
-table_section_flow_item ::= SGML_flow_item
-table_section_flow_item ::= table_row_element
-Contents_select ::= select_flow_item*
+EC_select ::= select_flow_item*
 ELE_style ::= S_style inline_flow E_style
 ELE_table ::= S_table table_flow E_table
-ELE_tbody ::= S_tbody table_section_flow E_tbody
+EC_tbody ::= EI_tbody*
+EI_tbody ::= ELE_tr
+ELE_tbody ::= S_tbody EC_tbody E_tbody
+EI_tbody ::= SGML_flow_item
 ELE_td ::= S_td mixed_flow E_td
 ELE_title ::= S_title inline_flow E_title
-ELE_tr ::= S_tr table_row_flow E_tr
+EC_tr ::= EI_tr*
+EI_tr ::= ELE_td
+EI_tr ::= ELE_th
+ELE_tr ::= S_tr EC_tr E_tr
+EI_tr ::= SGML_flow_item
 END_OF_BNF
 
 @Marpa::R2::HTML::Internal::CORE_RULES = ();
