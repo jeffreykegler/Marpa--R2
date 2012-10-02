@@ -332,10 +332,6 @@ push @Marpa::R2::HTML::Internal::CORE_TERMINALS,
     area base basefont br col frame hr
     img input isindex link meta param);
 
-%Marpa::R2::HTML::Internal::CONTENTS = (
-    ( map { $_ => 'empty' } keys %Marpa::R2::HTML::Internal::EMPTY_ELEMENT ),
-);
-
 sub handler_find {
     my ( $self, $rule_id, $class ) = @_;
     my $trace_handlers = $self->{trace_handlers};
@@ -646,7 +642,7 @@ $p->eof;
     ELEMENT: for ( keys %tags ) {
         my $start_tag    = "S_$_";
         my $end_tag      = "E_$_";
-        my $contents     = $Marpa::R2::HTML::Internal::CONTENTS{$_} // 'mixed_flow';
+        my $contents     = $Marpa::R2::HTML::Internal::EMPTY_ELEMENT{$_} ? 'empty' : 'mixed_flow';
         my $element_type = $Marpa::R2::HTML::Internal::ELEMENT_TYPE{$_}
             // 'inline_element';
 
