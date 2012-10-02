@@ -121,10 +121,7 @@ ELE_select ::= S_select EC_select E_select
 EI_select ::= SGML_flow_item
 ELE_style ::= S_style inline_flow E_style
 ELE_table ::= S_table table_flow E_table
-EC_tbody ::= EI_tbody*
-ELE_tbody ::= S_tbody EC_tbody E_tbody
-EI_tbody ::= SGML_flow_item
-EI_tbody ::= ELE_tr
+ELE_tbody contains SGML_flow_item ELE_tr
 ELE_td ::= S_td mixed_flow E_td
 ELE_p ::= S_p inline_flow E_p
 ELE_title ::= S_title inline_flow E_title
