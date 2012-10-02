@@ -269,9 +269,6 @@ sub create {
             table fieldset address
             )
     ),
-    ( map { $_ => 'list_item_element' } qw( li dd dt ) ),
-    ( map { $_ => 'table_cell_element' } qw( td th ) ),
-    ( map { $_ => 'table_row_element' } qw( tr ) ),
 );
 
 @Marpa::R2::HTML::Internal::CORE_OPTIONAL_TERMINALS = qw(
