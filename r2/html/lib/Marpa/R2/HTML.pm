@@ -334,9 +334,6 @@ push @Marpa::R2::HTML::Internal::CORE_TERMINALS,
 
 %Marpa::R2::HTML::Internal::CONTENTS = (
     'p'        => 'inline_flow',
-    'select'   => 'Contents_select',
-    'option'   => 'pcdata_flow',
-    'optgroup' => 'Contents_optgroup',
     'dt'       => 'inline_flow',
     'dd'       => 'mixed_flow',
     'li'       => 'mixed_flow',
