@@ -101,6 +101,7 @@ pcdata_flow_item ::= SGML_flow_item
 
 # Alphabetically, by tagname
 ELE_base is empty
+ELE_col is empty
 ELE_colgroup contains ELE_col SGML_flow_item
 ELE_dd is mixed_flow
 ELE_div is block_flow
@@ -116,7 +117,7 @@ ELE_object contains ELE_param mixed_flow_item
 ELE_ol contains SGML_flow_item ELE_li
 ELE_optgroup contains ELE_option SGML_flow_item
 ELE_p is inline_flow
-ELE_param is inline_flow
+ELE_param is empty
 ELE_script is inline_flow
 ELE_select contains ELE_optgroup ELE_option
 ELE_span is inline_flow
@@ -264,7 +265,7 @@ my %is_block_element = (
     h4         => 'mixed_flow',
     h5         => 'mixed_flow',
     h6         => 'mixed_flow',
-    hr         => 'mixed_flow',
+    hr         => 'empty',
     menu       => 'mixed_flow',
     noframes   => 'mixed_flow',
     noscript   => 'mixed_flow',
@@ -299,10 +300,11 @@ my %is_inline_element = (
     applet   => 'inline_flow',
     audio    => 'inline_flow',
     b        => 'inline_flow',
+    basefont => 'empty',
     bdo      => 'inline_flow',
     big      => 'inline_flow',
     blink    => 'inline_flow',
-    # br       => 'empty',
+    br       => 'empty',
     button   => 'inline_flow',
     cite     => 'inline_flow',
     code     => 'inline_flow',
@@ -312,8 +314,8 @@ my %is_inline_element = (
     embed    => 'inline_flow',
     font     => 'inline_flow',
     i        => 'inline_flow',
-    img      => 'inline_flow',
-    input    => 'inline_flow',
+    img      => 'empty',
+    input    => 'empty',
     kbd      => 'inline_flow',
     keygen   => 'inline_flow',
     label    => 'inline_flow',

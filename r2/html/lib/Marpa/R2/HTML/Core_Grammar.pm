@@ -14,7 +14,7 @@
 # http://www.gnu.org/licenses/.
 
 # This file was generated automatically by mk_core_grammar.pl
-# The date of generation was Tue Oct  2 19:15:39 2012
+# The date of generation was Tue Oct  2 19:32:13 2012
 
 package Marpa::R2::HTML::Internal;
 
@@ -373,6 +373,15 @@ $CORE_RULES = [
                 },
                 {
                   'rhs' => [
+                             'S_col',
+                             'empty',
+                             'E_col'
+                           ],
+                  'lhs' => 'ELE_col',
+                  'action' => 'ELE_col'
+                },
+                {
+                  'rhs' => [
                              'S_dd',
                              'mixed_flow',
                              'E_dd'
@@ -455,7 +464,7 @@ $CORE_RULES = [
                 {
                   'rhs' => [
                              'S_param',
-                             'inline_flow',
+                             'empty',
                              'E_param'
                            ],
                   'lhs' => 'ELE_param',
@@ -956,18 +965,18 @@ $IS_BLOCK_ELEMENT = {
                       'h4' => 'mixed_flow',
                       'h2' => 'mixed_flow',
                       'fieldset' => 'mixed_flow',
-                      'hr' => 'mixed_flow',
+                      'hr' => 'empty',
                       'h3' => 'mixed_flow',
                       'noscript' => 'mixed_flow'
                     };
 $IS_INLINE_ELEMENT = {
                        'embed' => 'inline_flow',
                        'a' => 'inline_flow',
-                       'input' => 'inline_flow',
+                       'input' => 'empty',
                        'strike' => 'inline_flow',
                        'rbc' => 'inline_flow',
                        'keygen' => 'inline_flow',
-                       'img' => 'inline_flow',
+                       'img' => 'empty',
                        'font' => 'inline_flow',
                        'rb' => 'inline_flow',
                        'tt' => 'inline_flow',
@@ -977,7 +986,9 @@ $IS_INLINE_ELEMENT = {
                        'u' => 'inline_flow',
                        'sup' => 'inline_flow',
                        'rt' => 'inline_flow',
+                       'basefont' => 'empty',
                        'code' => 'inline_flow',
+                       'br' => 'empty',
                        'acronym' => 'inline_flow',
                        'video' => 'inline_flow',
                        'strong' => 'inline_flow',
