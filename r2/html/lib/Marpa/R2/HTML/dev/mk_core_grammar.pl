@@ -481,8 +481,17 @@ my @core_symbols = map { substr $_, 4 } grep { m/\A ELE_ /xms } map { $_->{lhs},
         if scalar @symbols_with_no_ruby_status;
 }
 
+my %ruby_rank = ();
+for my $rejected_symbol (keys %rubies) {
+  my $rank = 1;
+  for my $candidate (reverse @{$rubies{$rejected_symbol}})
+  {
+     $ruby_rank{$rejected_symbol}{$candidate} = $rank++;
+  }
+}
+
 $output .= Data::Dumper->Purity(1)
-    ->Dump( [ \%rubies ], [qw(RUBY_SLIPPERS)] );
+    ->Dump( [ \%ruby_rank ], [qw(RUBY_SLIPPERS_RANK)] );
 
 open my $out_fh, q{>}, 'Core_Grammar.pm';
 say {$out_fh} $output;
