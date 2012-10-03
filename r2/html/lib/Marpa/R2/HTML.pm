@@ -619,17 +619,17 @@ $p->eof;
 	my $contents;
 	my $element_type;
 	FIND_TYPE_AND_CONTENTS: {
-	    $contents = $Marpa::R2::HTML::Internal::IS_BLOCK_ELEMENT{$tag};
+	    $contents = $Marpa::R2::HTML::Internal::IS_BLOCK_ELEMENT->{$tag};
 	    if ( defined $contents ) {
 		$element_type = 'block_element';
-		last FIND_TYPE_CONTENTS;
+		last FIND_TYPE_AND_CONTENTS;
 	    }
-	    $contents = $Marpa::R2::HTML::Internal::IS_INLINE_ELEMENT{$tag};
+	    $contents = $Marpa::R2::HTML::Internal::IS_INLINE_ELEMENT->{$tag};
 	    if ( defined $contents ) {
 		$element_type = 'inline_element';
-		last FIND_TYPE_CONTENTS;
+		last FIND_TYPE_AND_CONTENTS;
 	    }
-	    $element_type = 'inline_element';
+	    $element_type = 'anywhere_element';
 	    $contents = 'mixed_flow';
 	} ## end FIND_TYPE_AND_CONTENTS:
 
