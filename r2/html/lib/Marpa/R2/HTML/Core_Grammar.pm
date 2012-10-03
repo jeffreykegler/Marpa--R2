@@ -14,7 +14,7 @@
 # http://www.gnu.org/licenses/.
 
 # This file was generated automatically by mk_core_grammar.pl
-# The date of generation was Tue Oct  2 19:32:13 2012
+# The date of generation was Tue Oct  2 19:37:20 2012
 
 package Marpa::R2::HTML::Internal;
 
@@ -72,36 +72,36 @@ $CORE_RULES = [
                   'rhs' => [
                              'comment'
                            ],
-                  'lhs' => 'SGML_flow_item'
+                  'lhs' => 'SGML_item'
                 },
                 {
                   'rhs' => [
                              'pi'
                            ],
-                  'lhs' => 'SGML_flow_item'
+                  'lhs' => 'SGML_item'
                 },
                 {
                   'rhs' => [
                              'decl'
                            ],
-                  'lhs' => 'SGML_flow_item'
+                  'lhs' => 'SGML_item'
                 },
                 {
                   'rhs' => [
                              'whitespace'
                            ],
-                  'lhs' => 'SGML_flow_item'
+                  'lhs' => 'SGML_item'
                 },
                 {
                   'rhs' => [
                              'cruft'
                            ],
-                  'lhs' => 'SGML_flow_item'
+                  'lhs' => 'SGML_item'
                 },
                 {
                   'min' => 0,
                   'rhs' => [
-                             'SGML_flow_item'
+                             'SGML_item'
                            ],
                   'lhs' => 'SGML_flow'
                 },
@@ -170,7 +170,7 @@ $CORE_RULES = [
                 },
                 {
                   'rhs' => [
-                             'block_specific_element'
+                             'block_element'
                            ],
                   'lhs' => 'mixed_flow_item'
                 },
@@ -184,37 +184,37 @@ $CORE_RULES = [
                   'rhs' => [
                              'ELE_table'
                            ],
-                  'lhs' => 'block_specific_element'
+                  'lhs' => 'block_element'
                 },
                 {
                   'rhs' => [
                              'ELE_p'
                            ],
-                  'lhs' => 'block_specific_element'
+                  'lhs' => 'block_element'
                 },
                 {
                   'rhs' => [
                              'ELE_ol'
                            ],
-                  'lhs' => 'block_specific_element'
+                  'lhs' => 'block_element'
                 },
                 {
                   'rhs' => [
                              'ELE_ul'
                            ],
-                  'lhs' => 'block_specific_element'
+                  'lhs' => 'block_element'
                 },
                 {
                   'rhs' => [
                              'ELE_dl'
                            ],
-                  'lhs' => 'block_specific_element'
+                  'lhs' => 'block_element'
                 },
                 {
                   'rhs' => [
                              'ELE_div'
                            ],
-                  'lhs' => 'block_specific_element'
+                  'lhs' => 'block_element'
                 },
                 {
                   'min' => 0,
@@ -225,13 +225,13 @@ $CORE_RULES = [
                 },
                 {
                   'rhs' => [
-                             'SGML_flow_item'
+                             'SGML_item'
                            ],
                   'lhs' => 'block_item'
                 },
                 {
                   'rhs' => [
-                             'block_specific_element'
+                             'block_element'
                            ],
                   'lhs' => 'block_item'
                 },
@@ -321,7 +321,7 @@ $CORE_RULES = [
                 },
                 {
                   'rhs' => [
-                             'SGML_flow_item'
+                             'SGML_item'
                            ],
                   'lhs' => 'head_item'
                 },
@@ -358,7 +358,7 @@ $CORE_RULES = [
                 },
                 {
                   'rhs' => [
-                             'SGML_flow_item'
+                             'SGML_item'
                            ],
                   'lhs' => 'pcdata_flow_item'
                 },
@@ -533,7 +533,7 @@ $CORE_RULES = [
                 },
                 {
                   'rhs' => [
-                             'SGML_flow_item'
+                             'SGML_item'
                            ],
                   'lhs' => 'EI_ul'
                 },
@@ -561,7 +561,7 @@ $CORE_RULES = [
                 },
                 {
                   'rhs' => [
-                             'SGML_flow_item'
+                             'SGML_item'
                            ],
                   'lhs' => 'EI_tr'
                 },
@@ -645,7 +645,7 @@ $CORE_RULES = [
                 },
                 {
                   'rhs' => [
-                             'SGML_flow_item'
+                             'SGML_item'
                            ],
                   'lhs' => 'EI_tbody'
                 },
@@ -709,7 +709,7 @@ $CORE_RULES = [
                 },
                 {
                   'rhs' => [
-                             'SGML_flow_item'
+                             'SGML_item'
                            ],
                   'lhs' => 'EI_table'
                 },
@@ -737,7 +737,7 @@ $CORE_RULES = [
                 },
                 {
                   'rhs' => [
-                             'SGML_flow_item'
+                             'SGML_item'
                            ],
                   'lhs' => 'EI_colgroup'
                 },
@@ -759,7 +759,7 @@ $CORE_RULES = [
                 },
                 {
                   'rhs' => [
-                             'SGML_flow_item'
+                             'SGML_item'
                            ],
                   'lhs' => 'EI_thead'
                 },
@@ -793,7 +793,7 @@ $CORE_RULES = [
                 },
                 {
                   'rhs' => [
-                             'SGML_flow_item'
+                             'SGML_item'
                            ],
                   'lhs' => 'EI_map'
                 },
@@ -821,7 +821,7 @@ $CORE_RULES = [
                 },
                 {
                   'rhs' => [
-                             'SGML_flow_item'
+                             'SGML_item'
                            ],
                   'lhs' => 'EI_ol'
                 },
@@ -849,7 +849,7 @@ $CORE_RULES = [
                 },
                 {
                   'rhs' => [
-                             'SGML_flow_item'
+                             'SGML_item'
                            ],
                   'lhs' => 'EI_tfoot'
                 },
@@ -883,7 +883,7 @@ $CORE_RULES = [
                 },
                 {
                   'rhs' => [
-                             'SGML_flow_item'
+                             'SGML_item'
                            ],
                   'lhs' => 'EI_optgroup'
                 },
@@ -905,7 +905,7 @@ $CORE_RULES = [
                 },
                 {
                   'rhs' => [
-                             'SGML_flow_item'
+                             'SGML_item'
                            ],
                   'lhs' => 'EI_dl'
                 },

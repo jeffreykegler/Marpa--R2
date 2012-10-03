@@ -31,12 +31,12 @@ pcdata ::= PCDATA
 cdata ::= CDATA
 whitespace ::= WHITESPACE
 # SGML flows
-SGML_flow_item ::= comment
-SGML_flow_item ::= pi
-SGML_flow_item ::= decl
-SGML_flow_item ::= whitespace
-SGML_flow_item ::= cruft
-SGML_flow ::= SGML_flow_item*
+SGML_item ::= comment
+SGML_item ::= pi
+SGML_item ::= decl
+SGML_item ::= whitespace
+SGML_item ::= cruft
+SGML_flow ::= SGML_item*
 
 # For element x,
 # ELE_x is complete element
@@ -58,17 +58,17 @@ ELE_body is mixed_flow
 # Common types of element content
 empty ::=
 mixed_flow ::= mixed_flow_item*
-mixed_flow_item ::= block_specific_element
+mixed_flow_item ::= block_element
 mixed_flow_item ::= inline_flow_item
-block_specific_element ::= ELE_table
-block_specific_element ::= ELE_p
-block_specific_element ::= ELE_ol
-block_specific_element ::= ELE_ul
-block_specific_element ::= ELE_dl
-block_specific_element ::= ELE_div
+block_element ::= ELE_table
+block_element ::= ELE_p
+block_element ::= ELE_ol
+block_element ::= ELE_ul
+block_element ::= ELE_dl
+block_element ::= ELE_div
 block_flow ::= block_item*
-block_item ::= SGML_flow_item
-block_item ::= block_specific_element
+block_item ::= SGML_item
+block_item ::= block_element
 inline_element ::= ELE_script
 inline_element ::= ELE_map
 inline_element ::= inline_specific_element
@@ -86,7 +86,7 @@ head_item ::= ELE_meta
 head_item ::= ELE_link
 head_item ::= ELE_title
 head_item ::= ELE_base
-head_item ::= SGML_flow_item
+head_item ::= SGML_item
 inline_flow ::= inline_flow_item*
 inline_flow_item ::= pcdata_flow_item
 inline_flow_item ::= inline_element
@@ -94,7 +94,7 @@ inline_flow_item ::= inline_element
 # pcdata_flow ::= pcdata_flow_item*
 pcdata_flow_item ::= cdata
 pcdata_flow_item ::= pcdata
-pcdata_flow_item ::= SGML_flow_item
+pcdata_flow_item ::= SGML_item
 
 # cdata_flow ::= cdata_flow_item*
 # cdata_flow_item ::= cdata
@@ -102,20 +102,20 @@ pcdata_flow_item ::= SGML_flow_item
 # Alphabetically, by tagname
 ELE_base is empty
 ELE_col is empty
-ELE_colgroup contains ELE_col SGML_flow_item
+ELE_colgroup contains ELE_col SGML_item
 ELE_dd is mixed_flow
 ELE_div is block_flow
-ELE_dl contains SGML_flow_item ELE_dt ELE_dd
+ELE_dl contains SGML_item ELE_dt ELE_dd
 ELE_dt is inline_flow
 ELE_isindex is empty
 ELE_li is mixed_flow
-ELE_map contains block_element SGML_flow_item ELE_area
+ELE_map contains block_element SGML_item ELE_area
 ELE_area is empty
 ELE_link is empty
 ELE_meta is empty
 ELE_object contains ELE_param mixed_flow_item
-ELE_ol contains SGML_flow_item ELE_li
-ELE_optgroup contains ELE_option SGML_flow_item
+ELE_ol contains SGML_item ELE_li
+ELE_optgroup contains ELE_option SGML_item
 ELE_p is inline_flow
 ELE_param is empty
 ELE_script is inline_flow
@@ -124,14 +124,14 @@ ELE_span is inline_flow
 ELE_style is inline_flow
 ELE_table contains ELE_caption ELE_col ELE_colgroup
 ELE_table contains ELE_tbody ELE_tfoot ELE_thead
-ELE_table contains SGML_flow_item
-ELE_tbody contains SGML_flow_item ELE_tr
+ELE_table contains SGML_item
+ELE_tbody contains SGML_item ELE_tr
 ELE_td is mixed_flow
-ELE_tfoot contains SGML_flow_item ELE_tr
-ELE_thead contains SGML_flow_item ELE_tr
+ELE_tfoot contains SGML_item ELE_tr
+ELE_thead contains SGML_item ELE_tr
 ELE_title is inline_flow
-ELE_tr contains SGML_flow_item ELE_th ELE_td
-ELE_ul contains SGML_flow_item ELE_li
+ELE_tr contains SGML_item ELE_th ELE_td
+ELE_ul contains SGML_item ELE_li
 END_OF_BNF
 
 @Marpa::R2::HTML::Internal::CORE_RULES = ();

@@ -621,7 +621,7 @@ $p->eof;
 	FIND_TYPE_AND_CONTENTS: {
 	    $contents = $Marpa::R2::HTML::Internal::IS_BLOCK_ELEMENT{$tag};
 	    if ( defined $contents ) {
-		$element_type = 'block_specific_element';
+		$element_type = 'block_element';
 		last FIND_TYPE_CONTENTS;
 	    }
 	    $contents = $Marpa::R2::HTML::Internal::IS_INLINE_ELEMENT{$tag};
