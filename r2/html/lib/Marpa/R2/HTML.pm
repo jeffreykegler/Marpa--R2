@@ -775,7 +775,21 @@ $p->eof;
             or Carp::croak("Cannot print: $ERRNO");
     }
 
-    my $recce = Marpa::R2::Thin::R->new( $grammar->thin() );
+    my $thin_grammar = $grammar->thin() ;
+
+    # Find Ruby slippers ranks, by symbol ID
+    {
+        my @non_final_end_tag_ids = ();
+        SYMBOL: for my $symbol_id ( 0 .. $thin_grammar->highest_symbol_id() )
+        {
+            my $symbol_name = $grammar->symbol_name($symbol_id);
+            next SYMBOL if not 0 == index $symbol_name, 'E_';
+            next SYMBOL if $symbol_name ~~ [qw(E_body E_html)];
+            push @non_final_end_tag_ids, $symbol_id;
+        } ## end for my $symbol_id ( 0 .. $thin_grammar...)
+    }
+
+    my $recce = Marpa::R2::Thin::R->new( $thin_grammar );
     $recce->ruby_slippers_set(1);
     $recce->start_input();
 
