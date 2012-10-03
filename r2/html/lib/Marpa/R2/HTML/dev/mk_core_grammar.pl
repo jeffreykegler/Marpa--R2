@@ -235,22 +235,59 @@ $output .= Data::Dumper->Purity(1)
 # Note that isindex can be both a head element and
 # and block level element in the body.
 # ISINDEX is classified as a header_element
-%Marpa::R2::HTML::Internal::IS_BLOCK_ELEMENT = (
-    (   map { $_ => 'mixed_flow' }
-            qw(
-            h1 h2 h3 h4 h5 h6
-            ul ol dir menu
-            pre
-            p dl div center
-            noscript noframes
-            blockquote form hr
-            table fieldset address
-            )
-    ),
+my %is_block_element = (
+    address    => 'mixed_flow',
+    blockquote => 'mixed_flow',
+    center     => 'mixed_flow',
+    dir        => 'mixed_flow',
+    div        => 'mixed_flow',
+    dl         => 'core',
+    fieldset   => 'mixed_flow',
+    form       => 'mixed_flow',
+    h1         => 'mixed_flow',
+    h2         => 'mixed_flow',
+    h3         => 'mixed_flow',
+    h4         => 'mixed_flow',
+    h5         => 'mixed_flow',
+    h6         => 'mixed_flow',
+    hr         => 'mixed_flow',
+    menu       => 'mixed_flow',
+    noframes   => 'mixed_flow',
+    noscript   => 'mixed_flow',
+    ol         => 'core',
+    p          => 'core',
+    pre        => 'inline_flow',
+    table      => 'core',
+    ul         => 'core',
 );
 
+my @core_elements = grep { /\A ELE_ /xms } map { $_->{lhs} } @Marpa::R2::HTML::Internal::CORE_RULES;
+
+my @non_core_block_elements = ();
+ELEMENT: for my $element (keys %is_block_element) {
+    if ($is_block_element{$element} eq 'core')
+    {
+       next ELEMENT if 'ELE_' . $element ~~ \@core_elements;
+       die "Core grammar is missing a block element $element";
+    }
+    push @non_core_block_elements, $element;
+}
+
+my @duplicated_elements =
+    grep { $_ ~~ \@core_elements }
+    map { 'ELE_' . $_ } @non_core_block_elements;
+if (@duplicated_elements) {
+    say STDERR 'Runtime elements also in the core grammar:';
+    say STDERR q{    }, join " ", @duplicated_elements;
+    die "Elements cannot be both runtime and in the core grammar";
+}
+
+my %non_core_block_hash =
+    map { $_, $is_block_element{$_} }
+    @non_core_block_elements;
+
 $output .= Data::Dumper->Purity(1)
-    ->Dump( [ \%Marpa::R2::HTML::Internal::IS_BLOCK_ELEMENT ], [qw(IS_BLOCK_ELEMENT)]);
+    ->Dump( [ \%non_core_block_hash ], [qw(IS_BLOCK_ELEMENT)] );
 
 my @element_hierarchy = (
     [qw( span option )],

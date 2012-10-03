@@ -14,7 +14,7 @@
 # http://www.gnu.org/licenses/.
 
 # This file was generated automatically by mk_core_grammar.pl
-# The date of generation was Tue Oct  2 11:47:08 2012
+# The date of generation was Tue Oct  2 17:59:04 2012
 
 package Marpa::R2::HTML::Internal;
 
@@ -845,27 +845,22 @@ $CORE_RULES = [
               ];
 $IS_BLOCK_ELEMENT = {
                       'div' => 'mixed_flow',
-                      'table' => 'mixed_flow',
                       'form' => 'mixed_flow',
-                      'pre' => 'mixed_flow',
+                      'pre' => 'inline_flow',
                       'h5' => 'mixed_flow',
-                      'noframes' => 'mixed_flow',
                       'center' => 'mixed_flow',
                       'dir' => 'mixed_flow',
-                      'ol' => 'mixed_flow',
+                      'noframes' => 'mixed_flow',
                       'h6' => 'mixed_flow',
                       'address' => 'mixed_flow',
                       'h1' => 'mixed_flow',
-                      'ul' => 'mixed_flow',
                       'blockquote' => 'mixed_flow',
                       'menu' => 'mixed_flow',
                       'h4' => 'mixed_flow',
                       'h2' => 'mixed_flow',
-                      'p' => 'mixed_flow',
                       'fieldset' => 'mixed_flow',
                       'hr' => 'mixed_flow',
                       'h3' => 'mixed_flow',
-                      'noscript' => 'mixed_flow',
-                      'dl' => 'mixed_flow'
+                      'noscript' => 'mixed_flow'
                     };
 
