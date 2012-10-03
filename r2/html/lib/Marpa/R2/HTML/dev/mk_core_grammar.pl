@@ -57,44 +57,56 @@ ELE_body is mixed_flow
 
 # Common types of element content
 empty ::=
+
 mixed_flow ::= mixed_flow_item*
+mixed_flow_item ::= anywhere_element
 mixed_flow_item ::= block_element
-mixed_flow_item ::= inline_flow_item
+mixed_flow_item ::= inline_element
+mixed_flow_item ::= cdata
+mixed_flow_item ::= pcdata
+mixed_flow_item ::= SGML_item
+
+block_flow ::= block_item*
+block_item ::= SGML_item
+block_item ::= block_element
 block_element ::= ELE_table
 block_element ::= ELE_p
 block_element ::= ELE_ol
 block_element ::= ELE_ul
 block_element ::= ELE_dl
 block_element ::= ELE_div
-block_flow ::= block_item*
-block_item ::= SGML_item
-block_item ::= block_element
-inline_element ::= ELE_script
-inline_element ::= ELE_map
-inline_element ::= inline_specific_element
-inline_specific_element ::= ELE_object
-inline_specific_element ::= ELE_select
-inline_specific_element ::= ELE_span
+
 # isindex can also be a block element
 # and script can be a block and an inline element
 # these will become "anywhere" elements
-head_item ::= ELE_script
-head_item ::= ELE_isindex
-head_item ::= ELE_object
-head_item ::= ELE_style
-head_item ::= ELE_meta
-head_item ::= ELE_link
-head_item ::= ELE_title
-head_item ::= ELE_base
+anywhere_element ::= ELE_script
+anywhere_element ::= ELE_isindex
+
+head_item ::= anywhere_element
 head_item ::= SGML_item
-inline_flow ::= inline_flow_item*
-inline_flow_item ::= pcdata_flow_item
-inline_flow_item ::= inline_element
+head_item ::= head_element
+head_element ::= ELE_object
+head_element ::= ELE_style
+head_element ::= ELE_meta
+head_element ::= ELE_link
+head_element ::= ELE_title
+head_element ::= ELE_base
+
+inline_flow ::= inline_item*
+inline_item ::= pcdata
+inline_item ::= cdata
+inline_item ::= SGML_item
+inline_item ::= inline_element
+inline_item ::= anywhere_element
+inline_element ::= ELE_object
+inline_element ::= ELE_select
+inline_element ::= ELE_span
+inline_element ::= ELE_map
 
 # pcdata_flow ::= pcdata_flow_item*
-pcdata_flow_item ::= cdata
-pcdata_flow_item ::= pcdata
-pcdata_flow_item ::= SGML_item
+# pcdata_flow_item ::= cdata
+# pcdata_flow_item ::= pcdata
+# pcdata_flow_item ::= SGML_item
 
 # cdata_flow ::= cdata_flow_item*
 # cdata_flow_item ::= cdata

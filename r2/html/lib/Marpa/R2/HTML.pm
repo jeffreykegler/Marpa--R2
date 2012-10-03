@@ -626,7 +626,7 @@ $p->eof;
 	    }
 	    $contents = $Marpa::R2::HTML::Internal::IS_INLINE_ELEMENT{$tag};
 	    if ( defined $contents ) {
-		$element_type = 'inline_specific_element';
+		$element_type = 'inline_element';
 		last FIND_TYPE_CONTENTS;
 	    }
 	    $element_type = 'inline_element';

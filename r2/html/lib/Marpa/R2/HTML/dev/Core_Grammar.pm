@@ -14,7 +14,7 @@
 # http://www.gnu.org/licenses/.
 
 # This file was generated automatically by mk_core_grammar.pl
-# The date of generation was Tue Oct  2 19:37:20 2012
+# The date of generation was Tue Oct  2 19:50:33 2012
 
 package Marpa::R2::HTML::Internal;
 
@@ -170,15 +170,58 @@ $CORE_RULES = [
                 },
                 {
                   'rhs' => [
+                             'anywhere_element'
+                           ],
+                  'lhs' => 'mixed_flow_item'
+                },
+                {
+                  'rhs' => [
                              'block_element'
                            ],
                   'lhs' => 'mixed_flow_item'
                 },
                 {
                   'rhs' => [
-                             'inline_flow_item'
+                             'inline_element'
                            ],
                   'lhs' => 'mixed_flow_item'
+                },
+                {
+                  'rhs' => [
+                             'cdata'
+                           ],
+                  'lhs' => 'mixed_flow_item'
+                },
+                {
+                  'rhs' => [
+                             'pcdata'
+                           ],
+                  'lhs' => 'mixed_flow_item'
+                },
+                {
+                  'rhs' => [
+                             'SGML_item'
+                           ],
+                  'lhs' => 'mixed_flow_item'
+                },
+                {
+                  'min' => 0,
+                  'rhs' => [
+                             'block_item'
+                           ],
+                  'lhs' => 'block_flow'
+                },
+                {
+                  'rhs' => [
+                             'SGML_item'
+                           ],
+                  'lhs' => 'block_item'
+                },
+                {
+                  'rhs' => [
+                             'block_element'
+                           ],
+                  'lhs' => 'block_item'
                 },
                 {
                   'rhs' => [
@@ -217,27 +260,123 @@ $CORE_RULES = [
                   'lhs' => 'block_element'
                 },
                 {
-                  'min' => 0,
                   'rhs' => [
-                             'block_item'
+                             'ELE_script'
                            ],
-                  'lhs' => 'block_flow'
+                  'lhs' => 'anywhere_element'
+                },
+                {
+                  'rhs' => [
+                             'ELE_isindex'
+                           ],
+                  'lhs' => 'anywhere_element'
+                },
+                {
+                  'rhs' => [
+                             'anywhere_element'
+                           ],
+                  'lhs' => 'head_item'
                 },
                 {
                   'rhs' => [
                              'SGML_item'
                            ],
-                  'lhs' => 'block_item'
+                  'lhs' => 'head_item'
                 },
                 {
                   'rhs' => [
-                             'block_element'
+                             'head_element'
                            ],
-                  'lhs' => 'block_item'
+                  'lhs' => 'head_item'
                 },
                 {
                   'rhs' => [
-                             'ELE_script'
+                             'ELE_object'
+                           ],
+                  'lhs' => 'head_element'
+                },
+                {
+                  'rhs' => [
+                             'ELE_style'
+                           ],
+                  'lhs' => 'head_element'
+                },
+                {
+                  'rhs' => [
+                             'ELE_meta'
+                           ],
+                  'lhs' => 'head_element'
+                },
+                {
+                  'rhs' => [
+                             'ELE_link'
+                           ],
+                  'lhs' => 'head_element'
+                },
+                {
+                  'rhs' => [
+                             'ELE_title'
+                           ],
+                  'lhs' => 'head_element'
+                },
+                {
+                  'rhs' => [
+                             'ELE_base'
+                           ],
+                  'lhs' => 'head_element'
+                },
+                {
+                  'min' => 0,
+                  'rhs' => [
+                             'inline_item'
+                           ],
+                  'lhs' => 'inline_flow'
+                },
+                {
+                  'rhs' => [
+                             'pcdata'
+                           ],
+                  'lhs' => 'inline_item'
+                },
+                {
+                  'rhs' => [
+                             'cdata'
+                           ],
+                  'lhs' => 'inline_item'
+                },
+                {
+                  'rhs' => [
+                             'SGML_item'
+                           ],
+                  'lhs' => 'inline_item'
+                },
+                {
+                  'rhs' => [
+                             'inline_element'
+                           ],
+                  'lhs' => 'inline_item'
+                },
+                {
+                  'rhs' => [
+                             'anywhere_element'
+                           ],
+                  'lhs' => 'inline_item'
+                },
+                {
+                  'rhs' => [
+                             'ELE_object'
+                           ],
+                  'lhs' => 'inline_element'
+                },
+                {
+                  'rhs' => [
+                             'ELE_select'
+                           ],
+                  'lhs' => 'inline_element'
+                },
+                {
+                  'rhs' => [
+                             'ELE_span'
                            ],
                   'lhs' => 'inline_element'
                 },
@@ -246,121 +385,6 @@ $CORE_RULES = [
                              'ELE_map'
                            ],
                   'lhs' => 'inline_element'
-                },
-                {
-                  'rhs' => [
-                             'inline_specific_element'
-                           ],
-                  'lhs' => 'inline_element'
-                },
-                {
-                  'rhs' => [
-                             'ELE_object'
-                           ],
-                  'lhs' => 'inline_specific_element'
-                },
-                {
-                  'rhs' => [
-                             'ELE_select'
-                           ],
-                  'lhs' => 'inline_specific_element'
-                },
-                {
-                  'rhs' => [
-                             'ELE_span'
-                           ],
-                  'lhs' => 'inline_specific_element'
-                },
-                {
-                  'rhs' => [
-                             'ELE_script'
-                           ],
-                  'lhs' => 'head_item'
-                },
-                {
-                  'rhs' => [
-                             'ELE_isindex'
-                           ],
-                  'lhs' => 'head_item'
-                },
-                {
-                  'rhs' => [
-                             'ELE_object'
-                           ],
-                  'lhs' => 'head_item'
-                },
-                {
-                  'rhs' => [
-                             'ELE_style'
-                           ],
-                  'lhs' => 'head_item'
-                },
-                {
-                  'rhs' => [
-                             'ELE_meta'
-                           ],
-                  'lhs' => 'head_item'
-                },
-                {
-                  'rhs' => [
-                             'ELE_link'
-                           ],
-                  'lhs' => 'head_item'
-                },
-                {
-                  'rhs' => [
-                             'ELE_title'
-                           ],
-                  'lhs' => 'head_item'
-                },
-                {
-                  'rhs' => [
-                             'ELE_base'
-                           ],
-                  'lhs' => 'head_item'
-                },
-                {
-                  'rhs' => [
-                             'SGML_item'
-                           ],
-                  'lhs' => 'head_item'
-                },
-                {
-                  'min' => 0,
-                  'rhs' => [
-                             'inline_flow_item'
-                           ],
-                  'lhs' => 'inline_flow'
-                },
-                {
-                  'rhs' => [
-                             'pcdata_flow_item'
-                           ],
-                  'lhs' => 'inline_flow_item'
-                },
-                {
-                  'rhs' => [
-                             'inline_element'
-                           ],
-                  'lhs' => 'inline_flow_item'
-                },
-                {
-                  'rhs' => [
-                             'cdata'
-                           ],
-                  'lhs' => 'pcdata_flow_item'
-                },
-                {
-                  'rhs' => [
-                             'pcdata'
-                           ],
-                  'lhs' => 'pcdata_flow_item'
-                },
-                {
-                  'rhs' => [
-                             'SGML_item'
-                           ],
-                  'lhs' => 'pcdata_flow_item'
                 },
                 {
                   'rhs' => [
