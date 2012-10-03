@@ -14,7 +14,7 @@
 # http://www.gnu.org/licenses/.
 
 # This file was generated automatically by mk_core_grammar.pl
-# The date of generation was Tue Oct  2 17:59:04 2012
+# The date of generation was Tue Oct  2 19:15:39 2012
 
 package Marpa::R2::HTML::Internal;
 
@@ -212,7 +212,38 @@ $CORE_RULES = [
                 },
                 {
                   'rhs' => [
+                             'ELE_div'
+                           ],
+                  'lhs' => 'block_specific_element'
+                },
+                {
+                  'min' => 0,
+                  'rhs' => [
+                             'block_item'
+                           ],
+                  'lhs' => 'block_flow'
+                },
+                {
+                  'rhs' => [
+                             'SGML_flow_item'
+                           ],
+                  'lhs' => 'block_item'
+                },
+                {
+                  'rhs' => [
+                             'block_specific_element'
+                           ],
+                  'lhs' => 'block_item'
+                },
+                {
+                  'rhs' => [
                              'ELE_script'
+                           ],
+                  'lhs' => 'inline_element'
+                },
+                {
+                  'rhs' => [
+                             'ELE_map'
                            ],
                   'lhs' => 'inline_element'
                 },
@@ -236,7 +267,19 @@ $CORE_RULES = [
                 },
                 {
                   'rhs' => [
+                             'ELE_span'
+                           ],
+                  'lhs' => 'inline_specific_element'
+                },
+                {
+                  'rhs' => [
                              'ELE_script'
+                           ],
+                  'lhs' => 'head_item'
+                },
+                {
+                  'rhs' => [
+                             'ELE_isindex'
                            ],
                   'lhs' => 'head_item'
                 },
@@ -261,12 +304,6 @@ $CORE_RULES = [
                 {
                   'rhs' => [
                              'ELE_link'
-                           ],
-                  'lhs' => 'head_item'
-                },
-                {
-                  'rhs' => [
-                             'ELE_isindex'
                            ],
                   'lhs' => 'head_item'
                 },
@@ -345,6 +382,15 @@ $CORE_RULES = [
                 },
                 {
                   'rhs' => [
+                             'S_div',
+                             'block_flow',
+                             'E_div'
+                           ],
+                  'lhs' => 'ELE_div',
+                  'action' => 'ELE_div'
+                },
+                {
+                  'rhs' => [
                              'S_dt',
                              'inline_flow',
                              'E_dt'
@@ -369,6 +415,15 @@ $CORE_RULES = [
                            ],
                   'lhs' => 'ELE_li',
                   'action' => 'ELE_li'
+                },
+                {
+                  'rhs' => [
+                             'S_area',
+                             'empty',
+                             'E_area'
+                           ],
+                  'lhs' => 'ELE_area',
+                  'action' => 'ELE_area'
                 },
                 {
                   'rhs' => [
@@ -414,6 +469,15 @@ $CORE_RULES = [
                            ],
                   'lhs' => 'ELE_script',
                   'action' => 'ELE_script'
+                },
+                {
+                  'rhs' => [
+                             'S_span',
+                             'inline_flow',
+                             'E_span'
+                           ],
+                  'lhs' => 'ELE_span',
+                  'action' => 'ELE_span'
                 },
                 {
                   'rhs' => [
@@ -698,6 +762,40 @@ $CORE_RULES = [
                 },
                 {
                   'rhs' => [
+                             'S_map',
+                             'EC_map',
+                             'E_map'
+                           ],
+                  'lhs' => 'ELE_map',
+                  'action' => 'ELE_map'
+                },
+                {
+                  'min' => 0,
+                  'rhs' => [
+                             'EI_map'
+                           ],
+                  'lhs' => 'EC_map'
+                },
+                {
+                  'rhs' => [
+                             'block_element'
+                           ],
+                  'lhs' => 'EI_map'
+                },
+                {
+                  'rhs' => [
+                             'SGML_flow_item'
+                           ],
+                  'lhs' => 'EI_map'
+                },
+                {
+                  'rhs' => [
+                             'ELE_area'
+                           ],
+                  'lhs' => 'EI_map'
+                },
+                {
+                  'rhs' => [
                              'S_ol',
                              'EC_ol',
                              'E_ol'
@@ -844,7 +942,6 @@ $CORE_RULES = [
                 }
               ];
 $IS_BLOCK_ELEMENT = {
-                      'div' => 'mixed_flow',
                       'form' => 'mixed_flow',
                       'pre' => 'inline_flow',
                       'h5' => 'mixed_flow',
@@ -863,4 +960,55 @@ $IS_BLOCK_ELEMENT = {
                       'h3' => 'mixed_flow',
                       'noscript' => 'mixed_flow'
                     };
+$IS_INLINE_ELEMENT = {
+                       'embed' => 'inline_flow',
+                       'a' => 'inline_flow',
+                       'input' => 'inline_flow',
+                       'strike' => 'inline_flow',
+                       'rbc' => 'inline_flow',
+                       'keygen' => 'inline_flow',
+                       'img' => 'inline_flow',
+                       'font' => 'inline_flow',
+                       'rb' => 'inline_flow',
+                       'tt' => 'inline_flow',
+                       'blink' => 'inline_flow',
+                       'mark' => 'inline_flow',
+                       'abbr' => 'inline_flow',
+                       'u' => 'inline_flow',
+                       'sup' => 'inline_flow',
+                       'rt' => 'inline_flow',
+                       'code' => 'inline_flow',
+                       'acronym' => 'inline_flow',
+                       'video' => 'inline_flow',
+                       'strong' => 'inline_flow',
+                       'output' => 'inline_flow',
+                       's' => 'inline_flow',
+                       'em' => 'inline_flow',
+                       'b' => 'inline_flow',
+                       'q' => 'inline_flow',
+                       'applet' => 'inline_flow',
+                       'label' => 'inline_flow',
+                       'kbd' => 'inline_flow',
+                       'rp' => 'inline_flow',
+                       'small' => 'inline_flow',
+                       'time' => 'inline_flow',
+                       'audio' => 'inline_flow',
+                       'nobr' => 'inline_flow',
+                       'rtc' => 'inline_flow',
+                       'samp' => 'inline_flow',
+                       'var' => 'inline_flow',
+                       'cite' => 'inline_flow',
+                       'i' => 'inline_flow',
+                       'command' => 'inline_flow',
+                       'bdo' => 'inline_flow',
+                       'progress' => 'inline_flow',
+                       'ruby' => 'inline_flow',
+                       'wbr' => 'inline_flow',
+                       'dfn' => 'inline_flow',
+                       'big' => 'inline_flow',
+                       'sub' => 'inline_flow',
+                       'meter' => 'inline_flow',
+                       'button' => 'inline_flow',
+                       'textarea' => 'inline_flow'
+                     };
 

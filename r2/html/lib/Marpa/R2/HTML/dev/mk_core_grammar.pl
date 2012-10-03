@@ -65,16 +65,25 @@ block_specific_element ::= ELE_p
 block_specific_element ::= ELE_ol
 block_specific_element ::= ELE_ul
 block_specific_element ::= ELE_dl
+block_specific_element ::= ELE_div
+block_flow ::= block_item*
+block_item ::= SGML_flow_item
+block_item ::= block_specific_element
 inline_element ::= ELE_script
+inline_element ::= ELE_map
 inline_element ::= inline_specific_element
 inline_specific_element ::= ELE_object
 inline_specific_element ::= ELE_select
+inline_specific_element ::= ELE_span
+# isindex can also be a block element
+# and script can be a block and an inline element
+# these will become "anywhere" elements
 head_item ::= ELE_script
+head_item ::= ELE_isindex
 head_item ::= ELE_object
 head_item ::= ELE_style
 head_item ::= ELE_meta
 head_item ::= ELE_link
-head_item ::= ELE_isindex
 head_item ::= ELE_title
 head_item ::= ELE_base
 head_item ::= SGML_flow_item
@@ -94,10 +103,13 @@ pcdata_flow_item ::= SGML_flow_item
 ELE_base is empty
 ELE_colgroup contains ELE_col SGML_flow_item
 ELE_dd is mixed_flow
+ELE_div is block_flow
 ELE_dl contains SGML_flow_item ELE_dt ELE_dd
 ELE_dt is inline_flow
 ELE_isindex is empty
 ELE_li is mixed_flow
+ELE_map contains block_element SGML_flow_item ELE_area
+ELE_area is empty
 ELE_link is empty
 ELE_meta is empty
 ELE_object contains ELE_param mixed_flow_item
@@ -107,6 +119,7 @@ ELE_p is inline_flow
 ELE_param is inline_flow
 ELE_script is inline_flow
 ELE_select contains ELE_optgroup ELE_option
+ELE_span is inline_flow
 ELE_style is inline_flow
 ELE_table contains ELE_caption ELE_col ELE_colgroup
 ELE_table contains ELE_tbody ELE_tfoot ELE_thead
@@ -230,8 +243,9 @@ $output .= "\n\n";
 $output .= Data::Dumper->Purity(1)
     ->Dump( [ \@Marpa::R2::HTML::Internal::CORE_RULES ], [qw(CORE_RULES)] );
 
+my @core_elements = grep { /\A ELE_ /xms } map { $_->{lhs} } @Marpa::R2::HTML::Internal::CORE_RULES;
+
 # block_element is for block-level ONLY elements.
-# head is for anything legal inside the HTML header.
 # Note that isindex can be both a head element and
 # and block level element in the body.
 # ISINDEX is classified as a header_element
@@ -240,7 +254,7 @@ my %is_block_element = (
     blockquote => 'mixed_flow',
     center     => 'mixed_flow',
     dir        => 'mixed_flow',
-    div        => 'mixed_flow',
+    div        => 'core',
     dl         => 'core',
     fieldset   => 'mixed_flow',
     form       => 'mixed_flow',
@@ -261,8 +275,6 @@ my %is_block_element = (
     ul         => 'core',
 );
 
-my @core_elements = grep { /\A ELE_ /xms } map { $_->{lhs} } @Marpa::R2::HTML::Internal::CORE_RULES;
-
 my @non_core_block_elements = ();
 ELEMENT: for my $element (keys %is_block_element) {
     if ($is_block_element{$element} eq 'core')
@@ -273,21 +285,96 @@ ELEMENT: for my $element (keys %is_block_element) {
     push @non_core_block_elements, $element;
 }
 
-my @duplicated_elements =
-    grep { $_ ~~ \@core_elements }
-    map { 'ELE_' . $_ } @non_core_block_elements;
-if (@duplicated_elements) {
-    say STDERR 'Runtime elements also in the core grammar:';
-    say STDERR q{    }, join " ", @duplicated_elements;
-    die "Elements cannot be both runtime and in the core grammar";
-}
-
 my %non_core_block_hash =
     map { $_, $is_block_element{$_} }
     @non_core_block_elements;
 
 $output .= Data::Dumper->Purity(1)
     ->Dump( [ \%non_core_block_hash ], [qw(IS_BLOCK_ELEMENT)] );
+
+my %is_inline_element = (
+    a        => 'inline_flow',
+    abbr     => 'inline_flow',
+    acronym  => 'inline_flow',
+    applet   => 'inline_flow',
+    audio    => 'inline_flow',
+    b        => 'inline_flow',
+    bdo      => 'inline_flow',
+    big      => 'inline_flow',
+    blink    => 'inline_flow',
+    # br       => 'empty',
+    button   => 'inline_flow',
+    cite     => 'inline_flow',
+    code     => 'inline_flow',
+    command  => 'inline_flow',
+    dfn      => 'inline_flow',
+    em       => 'inline_flow',
+    embed    => 'inline_flow',
+    font     => 'inline_flow',
+    i        => 'inline_flow',
+    img      => 'inline_flow',
+    input    => 'inline_flow',
+    kbd      => 'inline_flow',
+    keygen   => 'inline_flow',
+    label    => 'inline_flow',
+    mark     => 'inline_flow',
+    meter    => 'inline_flow',
+    nobr     => 'inline_flow',
+    output   => 'inline_flow',
+    progress => 'inline_flow',
+    q        => 'inline_flow',
+    rb       => 'inline_flow',
+    rbc      => 'inline_flow',
+    rp       => 'inline_flow',
+    rt       => 'inline_flow',
+    rtc      => 'inline_flow',
+    ruby     => 'inline_flow',
+    s        => 'inline_flow',
+    samp     => 'inline_flow',
+    select   => 'core',
+    small    => 'inline_flow',
+    span     => 'core',
+    strike   => 'inline_flow',
+    strong   => 'inline_flow',
+    sub      => 'inline_flow',
+    sup      => 'inline_flow',
+    textarea => 'inline_flow',
+    time     => 'inline_flow',
+    tt       => 'inline_flow',
+    u        => 'inline_flow',
+    var      => 'inline_flow',
+    video    => 'inline_flow',
+    wbr      => 'inline_flow',
+);
+
+my @non_core_inline_elements = ();
+ELEMENT: for my $element (keys %is_inline_element) {
+    if ($is_inline_element{$element} eq 'core')
+    {
+       next ELEMENT if 'ELE_' . $element ~~ \@core_elements;
+       die "Core grammar is missing a inline element $element";
+    }
+    push @non_core_inline_elements, $element;
+}
+
+my %non_core_inline_hash =
+    map { $_, $is_inline_element{$_} }
+    @non_core_inline_elements;
+
+$output .= Data::Dumper->Purity(1)
+    ->Dump( [ \%non_core_inline_hash ], [qw(IS_INLINE_ELEMENT)] );
+
+my @duplicated_elements =
+    grep { $_ ~~ \@core_elements }
+    map { 'ELE_' . $_ }
+    @non_core_block_elements,
+    @non_core_inline_elements,
+    ;
+if (@duplicated_elements) {
+    say STDERR 'Runtime elements also in the core grammar:';
+    say STDERR q{    }, join " ", @duplicated_elements;
+    die "Elements cannot be both runtime and in the core grammar";
+}
 
 my @element_hierarchy = (
     [qw( span option )],

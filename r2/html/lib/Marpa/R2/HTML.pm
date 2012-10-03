@@ -306,10 +306,6 @@ END_OF_STRING
 push @Marpa::R2::HTML::Internal::CORE_TERMINALS,
     keys %Marpa::R2::HTML::Internal::CORE_OPTIONAL_TERMINALS;
 
-%Marpa::R2::HTML::Internal::EMPTY_ELEMENT = map { $_ => 1 } qw(
-    area base basefont br col frame hr
-    img input isindex link meta param);
-
 sub handler_find {
     my ( $self, $rule_id, $class ) = @_;
     my $trace_handlers = $self->{trace_handlers};
@@ -628,11 +624,14 @@ $p->eof;
 		$element_type = 'block_specific_element';
 		last FIND_TYPE_CONTENTS;
 	    }
+	    $contents = $Marpa::R2::HTML::Internal::IS_INLINE_ELEMENT{$tag};
+	    if ( defined $contents ) {
+		$element_type = 'inline_specific_element';
+		last FIND_TYPE_CONTENTS;
+	    }
 	    $element_type = 'inline_element';
 	    $contents = 'mixed_flow';
 	} ## end FIND_TYPE_AND_CONTENTS:
-
-        $contents = 'empty' if $Marpa::R2::HTML::Internal::EMPTY_ELEMENT{$tag};
 
         push @rules,
             {
@@ -726,16 +725,16 @@ $p->eof;
                 next TERMINAL;
             }
             my $element = substr $terminal, 2;
-            if ( $Marpa::R2::HTML::Internal::EMPTY_ELEMENT{$element} ) {
-                $level{$terminal} = $no_cruft_allowed;
-                next TERMINAL;
-            }
 
-            if ( $Marpa::R2::HTML::Internal::IS_BLOCK_ELEMENT{$element})
-            {
-                $level{$terminal} = $block_level;
+            my $block_contents =
+                $Marpa::R2::HTML::Internal::IS_BLOCK_ELEMENT{$element};
+            if ( defined $block_contents ) {
+                $level{$terminal} =
+                      $block_contents eq 'empty'
+                    ? $no_cruft_allowed
+                    : $block_level;
                 next TERMINAL;
-            } ## end if ( defined $element_type and $element_type ~~ [...])
+            } ## end if ( defined $block_contents eq 'empty' )
 
             $level{$terminal} = $inline_level;
 
@@ -805,6 +804,11 @@ $p->eof;
 	  my $read_result =
 	      $recce->alternative( $marpa_symbol_id, PHYSICAL_TOKEN, 1 );
 	  if ( $read_result != $UNEXPECTED_TOKEN_ID ) {
+	      if ($trace_terminals) {
+		  say {$trace_fh} 'Token accepted: ',
+		      $token->[Marpa::R2::HTML::Internal::Token::TOKEN_NAME] ,
+		      or Carp::croak("Cannot print: $ERRNO");
+	      } ## end if ($trace_terminals)
 	      $recce->earleme_complete();
 	      my $last_html_token_of_marpa_token //= $token_number;
 	      $token_number++;
