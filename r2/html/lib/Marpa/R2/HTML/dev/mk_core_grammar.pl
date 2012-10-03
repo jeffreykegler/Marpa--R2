@@ -75,6 +75,8 @@ block_element ::= ELE_ol
 block_element ::= ELE_ul
 block_element ::= ELE_dl
 block_element ::= ELE_div
+block_element ::= ELE_dir
+block_element ::= ELE_menu
 
 # isindex can also be a block element
 # and script can be a block and an inline element
@@ -102,14 +104,16 @@ inline_element ::= ELE_object
 inline_element ::= ELE_select
 inline_element ::= ELE_span
 inline_element ::= ELE_map
+inline_element ::= ELE_applet
 
-# pcdata_flow ::= pcdata_flow_item*
-# pcdata_flow_item ::= cdata
-# pcdata_flow_item ::= pcdata
-# pcdata_flow_item ::= SGML_item
+pcdata_flow ::= pcdata_flow_item*
+pcdata_flow_item ::= cdata
+pcdata_flow_item ::= pcdata
+pcdata_flow_item ::= SGML_item
 
-# cdata_flow ::= cdata_flow_item*
-# cdata_flow_item ::= cdata
+cdata_flow ::= cdata_flow_item*
+cdata_flow_item ::= cdata
+cdata_flow_item ::= cruft
 
 # Alphabetically, by tagname
 ELE_base is empty
@@ -126,14 +130,17 @@ ELE_area is empty
 ELE_link is empty
 ELE_meta is empty
 ELE_object contains ELE_param mixed_flow_item
+ELE_applet contains ELE_param mixed_flow_item
 ELE_ol contains SGML_item ELE_li
+ELE_dir contains SGML_item ELE_li
+ELE_menu contains SGML_item ELE_li
 ELE_optgroup contains ELE_option SGML_item
 ELE_p is inline_flow
 ELE_param is empty
-ELE_script is inline_flow
+ELE_script is cdata_flow
 ELE_select contains ELE_optgroup ELE_option
 ELE_span is inline_flow
-ELE_style is inline_flow
+ELE_style is cdata_flow
 ELE_table contains ELE_caption ELE_col ELE_colgroup
 ELE_table contains ELE_tbody ELE_tfoot ELE_thead
 ELE_table contains SGML_item
@@ -141,7 +148,7 @@ ELE_tbody contains SGML_item ELE_tr
 ELE_td is mixed_flow
 ELE_tfoot contains SGML_item ELE_tr
 ELE_thead contains SGML_item ELE_tr
-ELE_title is inline_flow
+ELE_title is pcdata_flow
 ELE_tr contains SGML_item ELE_th ELE_td
 ELE_ul contains SGML_item ELE_li
 END_OF_BNF
@@ -263,22 +270,22 @@ my @core_elements = grep { /\A ELE_ /xms } map { $_->{lhs} } @Marpa::R2::HTML::I
 # and block level element in the body.
 # ISINDEX is classified as a header_element
 my %is_block_element = (
-    address    => 'mixed_flow',
+    address    => 'inline_flow',
     blockquote => 'mixed_flow',
     center     => 'mixed_flow',
-    dir        => 'mixed_flow',
+    dir        => 'core',
     div        => 'core',
     dl         => 'core',
     fieldset   => 'mixed_flow',
     form       => 'mixed_flow',
-    h1         => 'mixed_flow',
-    h2         => 'mixed_flow',
-    h3         => 'mixed_flow',
-    h4         => 'mixed_flow',
-    h5         => 'mixed_flow',
-    h6         => 'mixed_flow',
+    h1         => 'inline_flow',
+    h2         => 'inline_flow',
+    h3         => 'inline_flow',
+    h4         => 'inline_flow',
+    h5         => 'inline_flow',
+    h6         => 'inline_flow',
     hr         => 'empty',
-    menu       => 'mixed_flow',
+    menu       => 'core',
     noframes   => 'mixed_flow',
     noscript   => 'mixed_flow',
     ol         => 'core',
@@ -309,7 +316,7 @@ my %is_inline_element = (
     a        => 'inline_flow',
     abbr     => 'inline_flow',
     acronym  => 'inline_flow',
-    applet   => 'inline_flow',
+    applet   => 'core',
     audio    => 'inline_flow',
     b        => 'inline_flow',
     basefont => 'empty',
@@ -352,7 +359,7 @@ my %is_inline_element = (
     strong   => 'inline_flow',
     sub      => 'inline_flow',
     sup      => 'inline_flow',
-    textarea => 'inline_flow',
+    textarea => 'pcdata_flow',
     time     => 'inline_flow',
     tt       => 'inline_flow',
     u        => 'inline_flow',

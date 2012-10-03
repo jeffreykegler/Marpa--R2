@@ -14,7 +14,7 @@
 # http://www.gnu.org/licenses/.
 
 # This file was generated automatically by mk_core_grammar.pl
-# The date of generation was Tue Oct  2 19:50:33 2012
+# The date of generation was Tue Oct  2 22:31:27 2012
 
 package Marpa::R2::HTML::Internal;
 
@@ -261,6 +261,18 @@ $CORE_RULES = [
                 },
                 {
                   'rhs' => [
+                             'ELE_dir'
+                           ],
+                  'lhs' => 'block_element'
+                },
+                {
+                  'rhs' => [
+                             'ELE_menu'
+                           ],
+                  'lhs' => 'block_element'
+                },
+                {
+                  'rhs' => [
                              'ELE_script'
                            ],
                   'lhs' => 'anywhere_element'
@@ -388,6 +400,56 @@ $CORE_RULES = [
                 },
                 {
                   'rhs' => [
+                             'ELE_applet'
+                           ],
+                  'lhs' => 'inline_element'
+                },
+                {
+                  'min' => 0,
+                  'rhs' => [
+                             'pcdata_flow_item'
+                           ],
+                  'lhs' => 'pcdata_flow'
+                },
+                {
+                  'rhs' => [
+                             'cdata'
+                           ],
+                  'lhs' => 'pcdata_flow_item'
+                },
+                {
+                  'rhs' => [
+                             'pcdata'
+                           ],
+                  'lhs' => 'pcdata_flow_item'
+                },
+                {
+                  'rhs' => [
+                             'SGML_item'
+                           ],
+                  'lhs' => 'pcdata_flow_item'
+                },
+                {
+                  'min' => 0,
+                  'rhs' => [
+                             'cdata_flow_item'
+                           ],
+                  'lhs' => 'cdata_flow'
+                },
+                {
+                  'rhs' => [
+                             'cdata'
+                           ],
+                  'lhs' => 'cdata_flow_item'
+                },
+                {
+                  'rhs' => [
+                             'cruft'
+                           ],
+                  'lhs' => 'cdata_flow_item'
+                },
+                {
+                  'rhs' => [
                              'S_base',
                              'empty',
                              'E_base'
@@ -497,7 +559,7 @@ $CORE_RULES = [
                 {
                   'rhs' => [
                              'S_script',
-                             'inline_flow',
+                             'cdata_flow',
                              'E_script'
                            ],
                   'lhs' => 'ELE_script',
@@ -515,7 +577,7 @@ $CORE_RULES = [
                 {
                   'rhs' => [
                              'S_style',
-                             'inline_flow',
+                             'cdata_flow',
                              'E_style'
                            ],
                   'lhs' => 'ELE_style',
@@ -533,39 +595,11 @@ $CORE_RULES = [
                 {
                   'rhs' => [
                              'S_title',
-                             'inline_flow',
+                             'pcdata_flow',
                              'E_title'
                            ],
                   'lhs' => 'ELE_title',
                   'action' => 'ELE_title'
-                },
-                {
-                  'rhs' => [
-                             'S_ul',
-                             'EC_ul',
-                             'E_ul'
-                           ],
-                  'lhs' => 'ELE_ul',
-                  'action' => 'ELE_ul'
-                },
-                {
-                  'min' => 0,
-                  'rhs' => [
-                             'EI_ul'
-                           ],
-                  'lhs' => 'EC_ul'
-                },
-                {
-                  'rhs' => [
-                             'SGML_item'
-                           ],
-                  'lhs' => 'EI_ul'
-                },
-                {
-                  'rhs' => [
-                             'ELE_li'
-                           ],
-                  'lhs' => 'EI_ul'
                 },
                 {
                   'rhs' => [
@@ -631,56 +665,6 @@ $CORE_RULES = [
                 },
                 {
                   'rhs' => [
-                             'S_head',
-                             'EC_head',
-                             'E_head'
-                           ],
-                  'lhs' => 'ELE_head',
-                  'action' => 'ELE_head'
-                },
-                {
-                  'min' => 0,
-                  'rhs' => [
-                             'EI_head'
-                           ],
-                  'lhs' => 'EC_head'
-                },
-                {
-                  'rhs' => [
-                             'head_item'
-                           ],
-                  'lhs' => 'EI_head'
-                },
-                {
-                  'rhs' => [
-                             'S_tbody',
-                             'EC_tbody',
-                             'E_tbody'
-                           ],
-                  'lhs' => 'ELE_tbody',
-                  'action' => 'ELE_tbody'
-                },
-                {
-                  'min' => 0,
-                  'rhs' => [
-                             'EI_tbody'
-                           ],
-                  'lhs' => 'EC_tbody'
-                },
-                {
-                  'rhs' => [
-                             'SGML_item'
-                           ],
-                  'lhs' => 'EI_tbody'
-                },
-                {
-                  'rhs' => [
-                             'ELE_tr'
-                           ],
-                  'lhs' => 'EI_tbody'
-                },
-                {
-                  'rhs' => [
                              'S_table',
                              'EC_table',
                              'E_table'
@@ -739,31 +723,31 @@ $CORE_RULES = [
                 },
                 {
                   'rhs' => [
-                             'S_colgroup',
-                             'EC_colgroup',
-                             'E_colgroup'
+                             'S_dir',
+                             'EC_dir',
+                             'E_dir'
                            ],
-                  'lhs' => 'ELE_colgroup',
-                  'action' => 'ELE_colgroup'
+                  'lhs' => 'ELE_dir',
+                  'action' => 'ELE_dir'
                 },
                 {
                   'min' => 0,
                   'rhs' => [
-                             'EI_colgroup'
+                             'EI_dir'
                            ],
-                  'lhs' => 'EC_colgroup'
-                },
-                {
-                  'rhs' => [
-                             'ELE_col'
-                           ],
-                  'lhs' => 'EI_colgroup'
+                  'lhs' => 'EC_dir'
                 },
                 {
                   'rhs' => [
                              'SGML_item'
                            ],
-                  'lhs' => 'EI_colgroup'
+                  'lhs' => 'EI_dir'
+                },
+                {
+                  'rhs' => [
+                             'ELE_li'
+                           ],
+                  'lhs' => 'EI_dir'
                 },
                 {
                   'rhs' => [
@@ -885,6 +869,196 @@ $CORE_RULES = [
                 },
                 {
                   'rhs' => [
+                             'S_select',
+                             'EC_select',
+                             'E_select'
+                           ],
+                  'lhs' => 'ELE_select',
+                  'action' => 'ELE_select'
+                },
+                {
+                  'min' => 0,
+                  'rhs' => [
+                             'EI_select'
+                           ],
+                  'lhs' => 'EC_select'
+                },
+                {
+                  'rhs' => [
+                             'ELE_optgroup'
+                           ],
+                  'lhs' => 'EI_select'
+                },
+                {
+                  'rhs' => [
+                             'ELE_option'
+                           ],
+                  'lhs' => 'EI_select'
+                },
+                {
+                  'rhs' => [
+                             'S_ul',
+                             'EC_ul',
+                             'E_ul'
+                           ],
+                  'lhs' => 'ELE_ul',
+                  'action' => 'ELE_ul'
+                },
+                {
+                  'min' => 0,
+                  'rhs' => [
+                             'EI_ul'
+                           ],
+                  'lhs' => 'EC_ul'
+                },
+                {
+                  'rhs' => [
+                             'SGML_item'
+                           ],
+                  'lhs' => 'EI_ul'
+                },
+                {
+                  'rhs' => [
+                             'ELE_li'
+                           ],
+                  'lhs' => 'EI_ul'
+                },
+                {
+                  'rhs' => [
+                             'S_head',
+                             'EC_head',
+                             'E_head'
+                           ],
+                  'lhs' => 'ELE_head',
+                  'action' => 'ELE_head'
+                },
+                {
+                  'min' => 0,
+                  'rhs' => [
+                             'EI_head'
+                           ],
+                  'lhs' => 'EC_head'
+                },
+                {
+                  'rhs' => [
+                             'head_item'
+                           ],
+                  'lhs' => 'EI_head'
+                },
+                {
+                  'rhs' => [
+                             'S_tbody',
+                             'EC_tbody',
+                             'E_tbody'
+                           ],
+                  'lhs' => 'ELE_tbody',
+                  'action' => 'ELE_tbody'
+                },
+                {
+                  'min' => 0,
+                  'rhs' => [
+                             'EI_tbody'
+                           ],
+                  'lhs' => 'EC_tbody'
+                },
+                {
+                  'rhs' => [
+                             'SGML_item'
+                           ],
+                  'lhs' => 'EI_tbody'
+                },
+                {
+                  'rhs' => [
+                             'ELE_tr'
+                           ],
+                  'lhs' => 'EI_tbody'
+                },
+                {
+                  'rhs' => [
+                             'S_menu',
+                             'EC_menu',
+                             'E_menu'
+                           ],
+                  'lhs' => 'ELE_menu',
+                  'action' => 'ELE_menu'
+                },
+                {
+                  'min' => 0,
+                  'rhs' => [
+                             'EI_menu'
+                           ],
+                  'lhs' => 'EC_menu'
+                },
+                {
+                  'rhs' => [
+                             'SGML_item'
+                           ],
+                  'lhs' => 'EI_menu'
+                },
+                {
+                  'rhs' => [
+                             'ELE_li'
+                           ],
+                  'lhs' => 'EI_menu'
+                },
+                {
+                  'rhs' => [
+                             'S_colgroup',
+                             'EC_colgroup',
+                             'E_colgroup'
+                           ],
+                  'lhs' => 'ELE_colgroup',
+                  'action' => 'ELE_colgroup'
+                },
+                {
+                  'min' => 0,
+                  'rhs' => [
+                             'EI_colgroup'
+                           ],
+                  'lhs' => 'EC_colgroup'
+                },
+                {
+                  'rhs' => [
+                             'ELE_col'
+                           ],
+                  'lhs' => 'EI_colgroup'
+                },
+                {
+                  'rhs' => [
+                             'SGML_item'
+                           ],
+                  'lhs' => 'EI_colgroup'
+                },
+                {
+                  'rhs' => [
+                             'S_applet',
+                             'EC_applet',
+                             'E_applet'
+                           ],
+                  'lhs' => 'ELE_applet',
+                  'action' => 'ELE_applet'
+                },
+                {
+                  'min' => 0,
+                  'rhs' => [
+                             'EI_applet'
+                           ],
+                  'lhs' => 'EC_applet'
+                },
+                {
+                  'rhs' => [
+                             'ELE_param'
+                           ],
+                  'lhs' => 'EI_applet'
+                },
+                {
+                  'rhs' => [
+                             'mixed_flow_item'
+                           ],
+                  'lhs' => 'EI_applet'
+                },
+                {
+                  'rhs' => [
                              'S_optgroup',
                              'EC_optgroup',
                              'E_optgroup'
@@ -944,54 +1118,24 @@ $CORE_RULES = [
                              'ELE_dd'
                            ],
                   'lhs' => 'EI_dl'
-                },
-                {
-                  'rhs' => [
-                             'S_select',
-                             'EC_select',
-                             'E_select'
-                           ],
-                  'lhs' => 'ELE_select',
-                  'action' => 'ELE_select'
-                },
-                {
-                  'min' => 0,
-                  'rhs' => [
-                             'EI_select'
-                           ],
-                  'lhs' => 'EC_select'
-                },
-                {
-                  'rhs' => [
-                             'ELE_optgroup'
-                           ],
-                  'lhs' => 'EI_select'
-                },
-                {
-                  'rhs' => [
-                             'ELE_option'
-                           ],
-                  'lhs' => 'EI_select'
                 }
               ];
 $IS_BLOCK_ELEMENT = {
+                      'h1' => 'inline_flow',
+                      'blockquote' => 'mixed_flow',
                       'form' => 'mixed_flow',
                       'pre' => 'inline_flow',
-                      'h5' => 'mixed_flow',
+                      'h4' => 'inline_flow',
+                      'h5' => 'inline_flow',
+                      'h2' => 'inline_flow',
                       'center' => 'mixed_flow',
-                      'dir' => 'mixed_flow',
                       'noframes' => 'mixed_flow',
-                      'h6' => 'mixed_flow',
-                      'address' => 'mixed_flow',
-                      'h1' => 'mixed_flow',
-                      'blockquote' => 'mixed_flow',
-                      'menu' => 'mixed_flow',
-                      'h4' => 'mixed_flow',
-                      'h2' => 'mixed_flow',
-                      'fieldset' => 'mixed_flow',
                       'hr' => 'empty',
-                      'h3' => 'mixed_flow',
-                      'noscript' => 'mixed_flow'
+                      'fieldset' => 'mixed_flow',
+                      'h6' => 'inline_flow',
+                      'h3' => 'inline_flow',
+                      'noscript' => 'mixed_flow',
+                      'address' => 'inline_flow'
                     };
 $IS_INLINE_ELEMENT = {
                        'embed' => 'inline_flow',
@@ -1021,7 +1165,6 @@ $IS_INLINE_ELEMENT = {
                        'em' => 'inline_flow',
                        'b' => 'inline_flow',
                        'q' => 'inline_flow',
-                       'applet' => 'inline_flow',
                        'label' => 'inline_flow',
                        'kbd' => 'inline_flow',
                        'rp' => 'inline_flow',
@@ -1044,6 +1187,6 @@ $IS_INLINE_ELEMENT = {
                        'sub' => 'inline_flow',
                        'meter' => 'inline_flow',
                        'button' => 'inline_flow',
-                       'textarea' => 'inline_flow'
+                       'textarea' => 'pcdata_flow'
                      };
 
