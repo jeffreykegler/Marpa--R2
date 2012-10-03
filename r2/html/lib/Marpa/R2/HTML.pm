@@ -780,13 +780,35 @@ $p->eof;
     # Find Ruby slippers ranks, by symbol ID
     {
         my @non_final_end_tag_ids = ();
-        SYMBOL: for my $symbol_id ( 0 .. $thin_grammar->highest_symbol_id() )
-        {
+	my $rank_by_name = $Marpa::R2::HTML::Internal::RUBY_SLIPPERS_RANK_BY_NAME;
+        SYMBOL:
+        for my $symbol_id ( 0 .. $thin_grammar->highest_symbol_id() ) {
             my $symbol_name = $grammar->symbol_name($symbol_id);
             next SYMBOL if not 0 == index $symbol_name, 'E_';
             next SYMBOL if $symbol_name ~~ [qw(E_body E_html)];
             push @non_final_end_tag_ids, $symbol_id;
-        } ## end for my $symbol_id ( 0 .. $thin_grammar...)
+        } ## end SYMBOL: for my $symbol_id ( 0 .. $thin_grammar...)
+
+        my %ruby_vectors = ();
+        for my $rejected_symbol_name ( keys %{$rank_by_name} ) {
+            my @ruby_vector_by_id = ();
+            my $rank_by_candidate_name =
+                $rank_by_name->{$rejected_symbol_name};
+            CANDIDATE:
+            for my $candidate_name ( keys %{$rank_by_candidate_name} ) {
+                my $rank = $rank_by_candidate_name->{$candidate_name};
+                if ( $candidate_name eq '!non_final_end' ) {
+                    $ruby_vector_by_id[$_] = $rank for @non_final_end_tag_ids;
+                    next CANDIDATE;
+                }
+                my $candidate_id = $grammar->thin_symbol($candidate_name);
+                die "Unknown ruby slippers candidate name: $candidate_name"
+                    if not defined $candidate_id;
+                $ruby_vector_by_id[$candidate_id] = $rank
+                    for @non_final_end_tag_ids;
+            } ## end CANDIDATE: for my $candidate_name ( keys %{...})
+        } ## end for my $rejected_symbol_name ( keys %{...})
+
     }
 
     my $recce = Marpa::R2::Thin::R->new( $thin_grammar );

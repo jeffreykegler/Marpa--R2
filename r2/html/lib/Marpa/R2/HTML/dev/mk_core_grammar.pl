@@ -432,7 +432,7 @@ sub table_rubies {
 my %rubies = (
     S_html                => [],
     S_head                => [qw( S_html )],
-    S_body                => [qw( S_html S_head !non=final_end )],
+    S_body                => [qw( S_html S_head !non_final_end )],
     CDATA                 => inline_rubies(),
     PCDATA                => inline_rubies(),
     '!other_non_elements' => [],
@@ -457,9 +457,9 @@ my %rubies = (
     S_tr                  => table_rubies( [qw( S_thead S_tbody )] ),
     S_th                  => table_rubies( [qw( S_thead S_tbody S_tr )] ),
     S_td                  => table_rubies( [qw( S_tbody S_tr )] ),
-    E_body                => [qw( S_html S_head S_body !non=final_end )],
-    E_html => [qw( S_html S_head S_body !non=final_end E_body )],
-    EOF    => [qw( !non-final_end E_body E_html)]
+    E_body                => [qw( S_html S_head S_body !non_final_end )],
+    E_html => [qw( S_html S_head S_body !non_final_end E_body )],
+    EOF    => [qw( !non_final_end E_body E_html)]
 );
 
 my @core_symbols = map { substr $_, 4 } grep { m/\A ELE_ /xms } map { $_->{lhs}, @{$_->{rhs}} } @core_rules;
@@ -491,7 +491,7 @@ for my $rejected_symbol (keys %rubies) {
 }
 
 $output .= Data::Dumper->Purity(1)
-    ->Dump( [ \%ruby_rank ], [qw(RUBY_SLIPPERS_RANK)] );
+    ->Dump( [ \%ruby_rank ], [qw(RUBY_SLIPPERS_RANK_BY_NAME)] );
 
 open my $out_fh, q{>}, 'Core_Grammar.pm';
 say {$out_fh} $output;

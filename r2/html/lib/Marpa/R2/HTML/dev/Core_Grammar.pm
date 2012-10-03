@@ -14,7 +14,7 @@
 # http://www.gnu.org/licenses/.
 
 # This file was generated automatically by mk_core_grammar.pl
-# The date of generation was Wed Oct  3 10:38:01 2012
+# The date of generation was Wed Oct  3 11:38:16 2012
 
 package Marpa::R2::HTML::Internal;
 
@@ -1189,192 +1189,192 @@ $IS_INLINE_ELEMENT = {
                        'button' => 'inline_flow',
                        'textarea' => 'pcdata_flow'
                      };
-$RUBY_SLIPPERS_RANK = {
-                        'S_col' => {
-                                     'S_head' => 4,
-                                     '!non_final_end' => 2,
-                                     'S_table' => 1,
-                                     'S_html' => 5,
-                                     'S_body' => 3
-                                   },
-                        'E_p' => {
-                                   'S_head' => 4,
-                                   'S_p' => 2,
-                                   '!non_final_end' => 1,
-                                   'S_html' => 5,
-                                   'S_body' => 3
-                                 },
-                        'S_optgroup' => {
-                                          'S_head' => 5,
-                                          'S_p' => 3,
-                                          '!non_final_end' => 1,
-                                          'S_html' => 6,
-                                          'S_body' => 4,
-                                          'S_select' => 2
-                                        },
-                        'S_colgroup' => {
-                                          'S_head' => 4,
-                                          '!non_final_end' => 2,
-                                          'S_table' => 1,
-                                          'S_html' => 5,
-                                          'S_body' => 3
-                                        },
-                        'EOF' => {
-                                   '!non-final_end' => 3,
-                                   'E_html' => 1,
-                                   'E_body' => 2
-                                 },
-                        '!head_start_tag' => {
-                                               'S_head' => 2,
+$RUBY_SLIPPERS_RANK_BY_NAME = {
+                                'S_col' => {
+                                             'S_head' => 4,
+                                             '!non_final_end' => 2,
+                                             'S_table' => 1,
+                                             'S_html' => 5,
+                                             'S_body' => 3
+                                           },
+                                'E_p' => {
+                                           'S_head' => 4,
+                                           'S_p' => 2,
+                                           '!non_final_end' => 1,
+                                           'S_html' => 5,
+                                           'S_body' => 3
+                                         },
+                                'S_optgroup' => {
+                                                  'S_head' => 5,
+                                                  'S_p' => 3,
+                                                  '!non_final_end' => 1,
+                                                  'S_html' => 6,
+                                                  'S_body' => 4,
+                                                  'S_select' => 2
+                                                },
+                                'S_colgroup' => {
+                                                  'S_head' => 4,
+                                                  '!non_final_end' => 2,
+                                                  'S_table' => 1,
+                                                  'S_html' => 5,
+                                                  'S_body' => 3
+                                                },
+                                'EOF' => {
+                                           'E_html' => 1,
+                                           '!non_final_end' => 3,
+                                           'E_body' => 2
+                                         },
+                                '!head_start_tag' => {
+                                                       'S_head' => 2,
+                                                       '!non_final_end' => 1,
+                                                       'S_html' => 3
+                                                     },
+                                'S_param' => {
+                                               'S_head' => 4,
                                                '!non_final_end' => 1,
-                                               'S_html' => 3
+                                               'S_object' => 2,
+                                               'S_html' => 5,
+                                               'S_body' => 3
                                              },
-                        'S_param' => {
-                                       'S_head' => 4,
-                                       '!non_final_end' => 1,
-                                       'S_object' => 2,
-                                       'S_html' => 5,
-                                       'S_body' => 3
-                                     },
-                        'PCDATA' => {
-                                      'S_head' => 4,
-                                      'S_p' => 2,
-                                      '!non_final_end' => 1,
-                                      'S_html' => 5,
-                                      'S_body' => 3
-                                    },
-                        'S_caption' => {
-                                         'S_head' => 4,
-                                         '!non_final_end' => 2,
-                                         'S_table' => 1,
-                                         'S_html' => 5,
-                                         'S_body' => 3
-                                       },
-                        'S_th' => {
-                                    'S_thead' => 5,
-                                    'S_table' => 1,
-                                    'S_tbody' => 4,
-                                    'S_html' => 8,
-                                    'S_tr' => 3,
-                                    'S_head' => 7,
-                                    '!non_final_end' => 2,
-                                    'S_body' => 6
-                                  },
-                        'E_body' => {
-                                      '!non=final_end' => 1,
-                                      'S_head' => 3,
-                                      'S_html' => 4,
-                                      'S_body' => 2
-                                    },
-                        'S_option' => {
-                                        'S_head' => 5,
-                                        'S_p' => 3,
-                                        '!non_final_end' => 1,
-                                        'S_html' => 6,
-                                        'S_body' => 4,
-                                        'S_select' => 2
-                                      },
-                        'S_dd' => {
-                                    'S_head' => 4,
-                                    '!non_final_end' => 1,
-                                    'S_dl' => 2,
-                                    'S_html' => 5,
-                                    'S_body' => 3
-                                  },
-                        '!inline_start_tag' => {
+                                'PCDATA' => {
+                                              'S_head' => 4,
+                                              'S_p' => 2,
+                                              '!non_final_end' => 1,
+                                              'S_html' => 5,
+                                              'S_body' => 3
+                                            },
+                                'S_caption' => {
                                                  'S_head' => 4,
-                                                 'S_p' => 2,
-                                                 '!non_final_end' => 1,
+                                                 '!non_final_end' => 2,
+                                                 'S_table' => 1,
                                                  'S_html' => 5,
                                                  'S_body' => 3
                                                },
-                        'E_html' => {
-                                      '!non=final_end' => 2,
-                                      'S_head' => 4,
-                                      'E_body' => 1,
-                                      'S_html' => 5,
-                                      'S_body' => 3
-                                    },
-                        'S_thead' => {
-                                       'S_head' => 4,
-                                       '!non_final_end' => 2,
-                                       'S_table' => 1,
-                                       'S_html' => 5,
-                                       'S_body' => 3
-                                     },
-                        'S_dt' => {
-                                    'S_head' => 4,
-                                    '!non_final_end' => 1,
-                                    'S_dl' => 2,
-                                    'S_html' => 5,
-                                    'S_body' => 3
-                                  },
-                        'S_area' => {
-                                      'S_head' => 4,
-                                      'S_map' => 2,
-                                      '!non_final_end' => 1,
-                                      'S_html' => 5,
-                                      'S_body' => 3
-                                    },
-                        'S_tbody' => {
-                                       'S_head' => 4,
-                                       '!non_final_end' => 2,
-                                       'S_table' => 1,
-                                       'S_html' => 5,
-                                       'S_body' => 3
-                                     },
-                        'S_tfoot' => {
-                                       'S_head' => 4,
-                                       '!non_final_end' => 2,
-                                       'S_table' => 1,
-                                       'S_html' => 5,
-                                       'S_body' => 3
-                                     },
-                        'CDATA' => {
-                                     'S_head' => 4,
-                                     'S_p' => 2,
-                                     '!non_final_end' => 1,
-                                     'S_html' => 5,
-                                     'S_body' => 3
-                                   },
-                        'S_tr' => {
-                                    'S_head' => 6,
-                                    'S_thead' => 4,
-                                    '!non_final_end' => 2,
-                                    'S_table' => 1,
-                                    'S_tbody' => 3,
-                                    'S_html' => 7,
-                                    'S_body' => 5
-                                  },
-                        'S_head' => {
-                                      'S_html' => 1
-                                    },
-                        '!start_tag' => {
-                                          'S_head' => 3,
-                                          '!non_final_end' => 1,
-                                          'S_html' => 4,
-                                          'S_body' => 2
-                                        },
-                        'S_td' => {
-                                    'S_tr' => 3,
-                                    'S_head' => 6,
-                                    '!non_final_end' => 2,
-                                    'S_table' => 1,
-                                    'S_tbody' => 4,
-                                    'S_html' => 7,
-                                    'S_body' => 5
-                                  },
-                        'S_li' => {
-                                    'S_head' => 4,
-                                    '!non_final_end' => 1,
-                                    'S_html' => 5,
-                                    'S_body' => 3,
-                                    'S_ul' => 2
-                                  },
-                        'S_body' => {
-                                      '!non=final_end' => 1,
-                                      'S_head' => 2,
-                                      'S_html' => 3
-                                    }
-                      };
+                                'S_th' => {
+                                            'S_thead' => 5,
+                                            'S_table' => 1,
+                                            'S_tbody' => 4,
+                                            'S_html' => 8,
+                                            'S_tr' => 3,
+                                            'S_head' => 7,
+                                            '!non_final_end' => 2,
+                                            'S_body' => 6
+                                          },
+                                'E_body' => {
+                                              'S_head' => 3,
+                                              '!non_final_end' => 1,
+                                              'S_html' => 4,
+                                              'S_body' => 2
+                                            },
+                                'S_option' => {
+                                                'S_head' => 5,
+                                                'S_p' => 3,
+                                                '!non_final_end' => 1,
+                                                'S_html' => 6,
+                                                'S_body' => 4,
+                                                'S_select' => 2
+                                              },
+                                'S_dd' => {
+                                            'S_head' => 4,
+                                            '!non_final_end' => 1,
+                                            'S_dl' => 2,
+                                            'S_html' => 5,
+                                            'S_body' => 3
+                                          },
+                                '!inline_start_tag' => {
+                                                         'S_head' => 4,
+                                                         'S_p' => 2,
+                                                         '!non_final_end' => 1,
+                                                         'S_html' => 5,
+                                                         'S_body' => 3
+                                                       },
+                                'E_html' => {
+                                              'S_head' => 4,
+                                              '!non_final_end' => 2,
+                                              'E_body' => 1,
+                                              'S_html' => 5,
+                                              'S_body' => 3
+                                            },
+                                'S_thead' => {
+                                               'S_head' => 4,
+                                               '!non_final_end' => 2,
+                                               'S_table' => 1,
+                                               'S_html' => 5,
+                                               'S_body' => 3
+                                             },
+                                'S_dt' => {
+                                            'S_head' => 4,
+                                            '!non_final_end' => 1,
+                                            'S_dl' => 2,
+                                            'S_html' => 5,
+                                            'S_body' => 3
+                                          },
+                                'S_area' => {
+                                              'S_head' => 4,
+                                              'S_map' => 2,
+                                              '!non_final_end' => 1,
+                                              'S_html' => 5,
+                                              'S_body' => 3
+                                            },
+                                'S_tbody' => {
+                                               'S_head' => 4,
+                                               '!non_final_end' => 2,
+                                               'S_table' => 1,
+                                               'S_html' => 5,
+                                               'S_body' => 3
+                                             },
+                                'S_tfoot' => {
+                                               'S_head' => 4,
+                                               '!non_final_end' => 2,
+                                               'S_table' => 1,
+                                               'S_html' => 5,
+                                               'S_body' => 3
+                                             },
+                                'CDATA' => {
+                                             'S_head' => 4,
+                                             'S_p' => 2,
+                                             '!non_final_end' => 1,
+                                             'S_html' => 5,
+                                             'S_body' => 3
+                                           },
+                                'S_tr' => {
+                                            'S_head' => 6,
+                                            'S_thead' => 4,
+                                            '!non_final_end' => 2,
+                                            'S_table' => 1,
+                                            'S_tbody' => 3,
+                                            'S_html' => 7,
+                                            'S_body' => 5
+                                          },
+                                'S_head' => {
+                                              'S_html' => 1
+                                            },
+                                '!start_tag' => {
+                                                  'S_head' => 3,
+                                                  '!non_final_end' => 1,
+                                                  'S_html' => 4,
+                                                  'S_body' => 2
+                                                },
+                                'S_td' => {
+                                            'S_tr' => 3,
+                                            'S_head' => 6,
+                                            '!non_final_end' => 2,
+                                            'S_table' => 1,
+                                            'S_tbody' => 4,
+                                            'S_html' => 7,
+                                            'S_body' => 5
+                                          },
+                                'S_li' => {
+                                            'S_head' => 4,
+                                            '!non_final_end' => 1,
+                                            'S_html' => 5,
+                                            'S_body' => 3,
+                                            'S_ul' => 2
+                                          },
+                                'S_body' => {
+                                              'S_head' => 2,
+                                              '!non_final_end' => 1,
+                                              'S_html' => 3
+                                            }
+                              };
 
