@@ -153,7 +153,7 @@ ELE_tr contains SGML_item ELE_th ELE_td
 ELE_ul contains SGML_item ELE_li
 END_OF_BNF
 
-@Marpa::R2::HTML::Internal::CORE_RULES = ();
+my @core_rules = ();
 
 my %handler = (
     cruft      => 'SPE_CRUFT',
@@ -193,7 +193,7 @@ LINE: for my $line ( split /\n/xms, $BNF ) {
         elsif ( $lhs =~ /^ELE_/xms ) {
             $rule_descriptor{action} = "$lhs";
         }
-        push @Marpa::R2::HTML::Internal::CORE_RULES, \%rule_descriptor;
+        push @core_rules, \%rule_descriptor;
         next LINE;
     } ## end if ( $definition =~ s/ \s* [:][:][=] \s* / /xms )
     if ( $definition =~ s/ \A \s* ELE_(\w+) \s+ is \s+ / /xms ) {
@@ -209,7 +209,7 @@ LINE: for my $line ( split /\n/xms, $BNF ) {
             rhs => [ "S_$tag", $contents, "E_$tag" ],
 	    action => $lhs
         );
-        push @Marpa::R2::HTML::Internal::CORE_RULES, \%rule_descriptor;
+        push @core_rules, \%rule_descriptor;
         next LINE;
     }
     if ( $definition =~ s/ \A \s* ELE_(\w+) \s+ contains \s+ / /xms ) {
@@ -226,7 +226,7 @@ ELEMENT: for my $tag (keys %containments) {
     my $element_symbol = 'ELE_' . $tag;
     my $contents_symbol = 'EC_' . $tag;
     my $item_symbol     = 'EI_' . $tag;
-    push @Marpa::R2::HTML::Internal::CORE_RULES,
+    push @core_rules,
         {
         lhs    => $element_symbol,
         rhs    => [ "S_$tag", $contents_symbol, "E_$tag" ],
@@ -238,7 +238,7 @@ ELEMENT: for my $tag (keys %containments) {
         min => 0
         };
     for my $content_item ( @contents ) {
-        push @Marpa::R2::HTML::Internal::CORE_RULES,
+        push @core_rules,
             {
             lhs => $item_symbol,
             rhs => [$content_item],
@@ -261,9 +261,9 @@ $output .= 'package Marpa::R2::HTML::Internal;';
 $output .= "\n\n";
 
 $output .= Data::Dumper->Purity(1)
-    ->Dump( [ \@Marpa::R2::HTML::Internal::CORE_RULES ], [qw(CORE_RULES)] );
+    ->Dump( [ \@core_rules ], [qw(CORE_RULES)] );
 
-my @core_elements = grep { /\A ELE_ /xms } map { $_->{lhs} } @Marpa::R2::HTML::Internal::CORE_RULES;
+my @core_elements = grep { /\A ELE_ /xms } map { $_->{lhs} } @core_rules;
 
 # block_element is for block-level ONLY elements.
 # Note that isindex can be both a head element and
@@ -338,6 +338,7 @@ my %is_inline_element = (
     kbd      => 'inline_flow',
     keygen   => 'inline_flow',
     label    => 'inline_flow',
+    map     => 'core',
     mark     => 'inline_flow',
     meter    => 'inline_flow',
     nobr     => 'inline_flow',
@@ -397,34 +398,91 @@ if (@duplicated_elements) {
     die "Elements cannot be both runtime and in the core grammar";
 }
 
-my @element_hierarchy = (
-    [qw( span option )],
-    [qw( li optgroup dd dt )],
-    [qw( dir menu )],
-    [qw( div )],
-    [qw( ul ol dl )],
-    [qw( th td )],
-    [qw( tr )],
-    [qw( col )],
-    [qw( caption colgroup thead tfoot tbody )],
-    [qw( table )],
-    [qw( p )],
-    [qw( head body )],
-    [qw( html )],
+sub head_rubies {
+    my ($infix) = @_;
+    my @result = qw( S_html S_head );
+    push @result, @{$infix} if defined $infix;
+    push @result, '!non_final_end';
+    return \@result;
+}
+sub block_rubies {
+    my ($infix) = @_;
+    my @result = qw( S_html S_head S_body);
+    push @result, @{$infix} if defined $infix;
+    push @result, '!non_final_end';
+    return \@result;
+}
+sub inline_rubies {
+    my ($infix) = @_;
+    my @infix = ('S_p');
+    push @infix, @{$infix} if defined $infix;
+    return block_rubies(\@infix);
+}
+sub anywhere_rubies {
+    my ($infix) = @_;
+    return block_rubies($infix);
+}
+sub table_rubies {
+    my ($infix) = @_;
+    my @result = @{block_rubies($infix)};
+    push @result, 'S_table';
+    return \@result;
+}
+
+my %rubies = (
+    S_html                => [],
+    S_head                => [qw( S_html )],
+    S_body                => [qw( S_html S_head !non=final_end )],
+    CDATA                 => inline_rubies(),
+    PCDATA                => inline_rubies(),
+    '!other_non_elements' => [],
+    '!end_tag'            => [],
+    '!start_tag'          => block_rubies(),
+    '!inline_start_tag'   => inline_rubies(),
+    '!head_start_tag'     => head_rubies(),
+    E_p                   => block_rubies( ['S_p'] ),
+    S_area                => block_rubies( ['S_map'] ),
+    S_option              => inline_rubies( ['S_select'] ),
+    S_optgroup            => inline_rubies( ['S_select'] ),
+    S_param               => anywhere_rubies( ['S_object'] ),
+    S_li                  => block_rubies( ['S_ul'] ),
+    S_dt                  => block_rubies( ['S_dl'] ),
+    S_dd                  => block_rubies( ['S_dl'] ),
+    S_caption             => table_rubies(),
+    S_col                 => table_rubies(),
+    S_colgroup            => table_rubies(),
+    S_tbody               => table_rubies(),
+    S_tfoot               => table_rubies(),
+    S_thead               => table_rubies(),
+    S_tr                  => table_rubies( [qw( S_thead S_tbody )] ),
+    S_th                  => table_rubies( [qw( S_thead S_tbody S_tr )] ),
+    S_td                  => table_rubies( [qw( S_tbody S_tr )] ),
+    E_body                => [qw( S_html S_head S_body !non=final_end )],
+    E_html => [qw( S_html S_head S_body !non=final_end E_body )],
+    EOF    => [qw( !non-final_end E_body E_html)]
 );
 
-my @last_resort_tags = qw(S_table E_body E_html);
+my @core_symbols = map { substr $_, 4 } grep { m/\A ELE_ /xms } map { $_->{lhs}, @{$_->{rhs}} } @core_rules;
+{
+    my %seen = map { ( substr $_, 2 ) => 1 } grep {m/ \A S_ /xms} keys %rubies;
+    $seen{$_} = 1 for keys %is_block_element;
+    $seen{$_} = 1 for keys %is_inline_element;
+    RULE: for my $rule (@core_rules) {
+        next RULE
+            if not $rule->{lhs} ~~
+            [qw(anywhere_element head_element)];
+        my ($rhs) = @{$rule->{rhs}};
+        next RULE if not $rhs =~ / \A ELE_ /xms;
+        $seen{ substr $rhs, 4 } = 1;
+    } ## end for my $rule (@core_rules)
+    my @symbols_with_no_ruby_status = grep { !$seen{$_} } @core_symbols;
+    die "symbols with no ruby status: ", join " ",
+        @symbols_with_no_ruby_status
+        if scalar @symbols_with_no_ruby_status;
+}
 
-my @tag_hierarchy = ();
-push @tag_hierarchy,
-    grep { not $_ ~~ \@last_resort_tags }
-    map { 'S_' . $_ } map { @{$_} } reverse @element_hierarchy;
-push @tag_hierarchy,
-    grep { not $_ ~~ \@last_resort_tags }
-    map { 'E_' . $_ } map { @{$_} } @element_hierarchy;
-push @tag_hierarchy, @last_resort_tags;
-
-# say Data::Dumper::Dumper(\@tag_hierarchy);
+$output .= Data::Dumper->Purity(1)
+    ->Dump( [ \%rubies ], [qw(RUBY_SLIPPERS)] );
 
 open my $out_fh, q{>}, 'Core_Grammar.pm';
 say {$out_fh} $output;

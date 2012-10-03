@@ -14,7 +14,7 @@
 # http://www.gnu.org/licenses/.
 
 # This file was generated automatically by mk_core_grammar.pl
-# The date of generation was Tue Oct  2 22:31:27 2012
+# The date of generation was Wed Oct  3 09:28:45 2012
 
 package Marpa::R2::HTML::Internal;
 
@@ -1189,4 +1189,195 @@ $IS_INLINE_ELEMENT = {
                        'button' => 'inline_flow',
                        'textarea' => 'pcdata_flow'
                      };
+$RUBY_SLIPPERS = {
+                   '!other_non_elements' => [],
+                   'S_col' => [
+                                'S_html',
+                                'S_head',
+                                'S_body',
+                                '!non_final_end',
+                                'S_table'
+                              ],
+                   'S_colgroup' => [
+                                     'S_html',
+                                     'S_head',
+                                     'S_body',
+                                     '!non_final_end',
+                                     'S_table'
+                                   ],
+                   'S_optgroup' => [
+                                     'S_html',
+                                     'S_head',
+                                     'S_body',
+                                     'S_p',
+                                     'S_select',
+                                     '!non_final_end'
+                                   ],
+                   'E_p' => [
+                              'S_html',
+                              'S_head',
+                              'S_body',
+                              'S_p',
+                              '!non_final_end'
+                            ],
+                   'EOF' => [
+                              '!non-final_end',
+                              'E_body',
+                              'E_html'
+                            ],
+                   '!head_start_tag' => [
+                                          'S_html',
+                                          'S_head',
+                                          '!non_final_end'
+                                        ],
+                   '!end_tag' => [],
+                   'S_param' => [
+                                  'S_html',
+                                  'S_head',
+                                  'S_body',
+                                  'S_object',
+                                  '!non_final_end'
+                                ],
+                   'PCDATA' => [
+                                 'S_html',
+                                 'S_head',
+                                 'S_body',
+                                 'S_p',
+                                 '!non_final_end'
+                               ],
+                   'E_body' => [
+                                 'S_html',
+                                 'S_head',
+                                 'S_body',
+                                 '!non=final_end'
+                               ],
+                   'S_th' => [
+                               'S_html',
+                               'S_head',
+                               'S_body',
+                               'S_thead',
+                               'S_tbody',
+                               'S_tr',
+                               '!non_final_end',
+                               'S_table'
+                             ],
+                   'S_caption' => [
+                                    'S_html',
+                                    'S_head',
+                                    'S_body',
+                                    '!non_final_end',
+                                    'S_table'
+                                  ],
+                   'S_option' => [
+                                   'S_html',
+                                   'S_head',
+                                   'S_body',
+                                   'S_p',
+                                   'S_select',
+                                   '!non_final_end'
+                                 ],
+                   'S_dd' => [
+                               'S_html',
+                               'S_head',
+                               'S_body',
+                               'S_dl',
+                               '!non_final_end'
+                             ],
+                   '!inline_start_tag' => [
+                                            'S_html',
+                                            'S_head',
+                                            'S_body',
+                                            'S_p',
+                                            '!non_final_end'
+                                          ],
+                   'E_html' => [
+                                 'S_html',
+                                 'S_head',
+                                 'S_body',
+                                 '!non=final_end',
+                                 'E_body'
+                               ],
+                   'S_thead' => [
+                                  'S_html',
+                                  'S_head',
+                                  'S_body',
+                                  '!non_final_end',
+                                  'S_table'
+                                ],
+                   'S_dt' => [
+                               'S_html',
+                               'S_head',
+                               'S_body',
+                               'S_dl',
+                               '!non_final_end'
+                             ],
+                   'S_area' => [
+                                 'S_html',
+                                 'S_head',
+                                 'S_body',
+                                 'S_map',
+                                 '!non_final_end'
+                               ],
+                   'S_tfoot' => [
+                                  'S_html',
+                                  'S_head',
+                                  'S_body',
+                                  '!non_final_end',
+                                  'S_table'
+                                ],
+                   'S_tbody' => [
+                                  'S_html',
+                                  'S_head',
+                                  'S_body',
+                                  '!non_final_end',
+                                  'S_table'
+                                ],
+                   'S_html' => [],
+                   'S_tr' => [
+                               'S_html',
+                               'S_head',
+                               'S_body',
+                               'S_thead',
+                               'S_tbody',
+                               '!non_final_end',
+                               'S_table'
+                             ],
+                   'CDATA' => [
+                                'S_html',
+                                'S_head',
+                                'S_body',
+                                'S_p',
+                                '!non_final_end'
+                              ],
+                   'S_head' => [
+                                 'S_html'
+                               ],
+                   '!start_tag' => [
+                                     'S_html',
+                                     'S_head',
+                                     'S_body',
+                                     '!non_final_end'
+                                   ],
+                   'S_td' => [
+                               'S_html',
+                               'S_head',
+                               'S_body',
+                               'S_tbody',
+                               'S_tr',
+                               '!non_final_end',
+                               'S_table'
+                             ],
+                   'S_li' => [
+                               'S_html',
+                               'S_head',
+                               'S_body',
+                               'S_ul',
+                               '!non_final_end'
+                             ],
+                   'S_body' => [
+                                 'S_html',
+                                 'S_head',
+                                 '!non=final_end'
+                               ]
+                 };
 
