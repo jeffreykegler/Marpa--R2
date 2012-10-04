@@ -398,6 +398,7 @@ if (@duplicated_elements) {
     die "Elements cannot be both runtime and in the core grammar";
 }
 
+my @head_rubies = qw( S_html S_head );
 sub head_rubies {
     my ($infix) = @_;
     my @result = qw( S_html S_head );
@@ -438,10 +439,10 @@ my %rubies = (
     '!non_element' => [],
     '!start_tag'          => block_rubies(),
     '!inline_start_tag'   => inline_rubies(),
-    '!head_start_tag'     => head_rubies(),
+    '!head_start_tag'     => \@head_rubies,
     '!end_tag'            => block_rubies(),
     '!inline_end_tag'   => inline_rubies(),
-    '!head_end_tag'     => head_rubies(),
+    '!head_end_tag'     => \@head_rubies,
     S_area                => block_rubies( ['S_map'] ),
     S_option              => inline_rubies( ['S_select'] ),
     S_optgroup            => inline_rubies( ['S_select'] ),
