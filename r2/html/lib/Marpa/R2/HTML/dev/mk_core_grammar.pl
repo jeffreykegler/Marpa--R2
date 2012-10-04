@@ -413,12 +413,6 @@ sub inline_rubies {
     push @infix, @{$infix} if defined $infix;
     return [@block_rubies, @infix];
 }
-sub table_rubies {
-    my ($infix) = @_;
-    my @result = @{block_rubies($infix)};
-    push @result, 'S_table';
-    return \@result;
-}
 
 my %rubies = (
     S_html                => [],
@@ -440,16 +434,16 @@ my %rubies = (
     S_li                  => [@block_rubies, qw( !non_final_end S_ul) ],
     S_dt                  => [@block_rubies, 'S_dl'],
     S_dd                  => [@block_rubies, 'S_dl'],
-    S_caption             => table_rubies(),
-    S_col                 => table_rubies(),
-    S_colgroup            => table_rubies(),
-    S_tbody               => table_rubies(),
-    S_tfoot               => table_rubies(),
-    S_thead               => table_rubies(),
-    E_table               => table_rubies(),
-    S_tr                  => table_rubies( [qw( S_tbody )] ),
-    S_th                  => table_rubies( [qw( S_thead S_tbody S_tr )] ),
-    S_td                  => table_rubies( [qw( S_tbody S_tr )] ),
+    S_caption             => [@block_rubies, qw( !non_final_end S_table )],
+    S_col                 => [@block_rubies, qw( !non_final_end S_table )],
+    S_colgroup            => [@block_rubies, qw( !non_final_end S_table )],
+    S_tbody               => [@block_rubies, qw( !non_final_end S_table )],
+    S_tfoot               => [@block_rubies, qw( !non_final_end S_table )],
+    S_thead               => [@block_rubies, qw( !non_final_end S_table )],
+    E_table               => [@block_rubies, qw( !non_final_end S_table )],
+    S_tr                  => [@block_rubies, qw( S_tbody !non_final_end S_table )],
+    S_th                  => [@block_rubies, qw( S_thead S_tbody S_tr !non_final_end S_table )],
+    S_td                  => [@block_rubies, qw( S_tbody S_tr !non_final_end S_table )],
     E_body                => [qw( S_html S_head S_body )],
     E_html => [qw( S_html S_head S_body !non_final_end E_body )],
     EOF    => [qw( S_html S_head S_body !non_final_end E_body E_html)]
