@@ -14,7 +14,7 @@
 # http://www.gnu.org/licenses/.
 
 # This file was generated automatically by mk_core_grammar.pl
-# The date of generation was Wed Oct  3 11:38:16 2012
+# The date of generation was Wed Oct  3 18:19:09 2012
 
 package Marpa::R2::HTML::Internal;
 
@@ -1189,6 +1189,99 @@ $IS_INLINE_ELEMENT = {
                        'button' => 'inline_flow',
                        'textarea' => 'pcdata_flow'
                      };
+$IS_HEAD_ELEMENT = {
+                     'base' => 'core',
+                     'link' => 'core',
+                     'object' => 'core',
+                     'style' => 'core',
+                     'title' => 'core',
+                     'meta' => 'core'
+                   };
+$IS_ANYWHERE_ELEMENT = {
+                         'isindex' => 'core',
+                         'script' => 'core'
+                       };
+$IS_INLINE_ELEMENT = {
+                       'embed' => 'inline_flow',
+                       'strike' => 'inline_flow',
+                       'input' => 'empty',
+                       'a' => 'inline_flow',
+                       'rbc' => 'inline_flow',
+                       'keygen' => 'inline_flow',
+                       'img' => 'empty',
+                       'tt' => 'inline_flow',
+                       'rb' => 'inline_flow',
+                       'font' => 'inline_flow',
+                       'mark' => 'inline_flow',
+                       'map' => 'core',
+                       'blink' => 'inline_flow',
+                       'u' => 'inline_flow',
+                       'abbr' => 'inline_flow',
+                       'sup' => 'inline_flow',
+                       'rt' => 'inline_flow',
+                       'basefont' => 'empty',
+                       'code' => 'inline_flow',
+                       'video' => 'inline_flow',
+                       'acronym' => 'inline_flow',
+                       'br' => 'empty',
+                       'strong' => 'inline_flow',
+                       's' => 'inline_flow',
+                       'output' => 'inline_flow',
+                       'em' => 'inline_flow',
+                       'q' => 'inline_flow',
+                       'b' => 'inline_flow',
+                       'span' => 'core',
+                       'label' => 'inline_flow',
+                       'applet' => 'core',
+                       'rp' => 'inline_flow',
+                       'kbd' => 'inline_flow',
+                       'small' => 'inline_flow',
+                       'time' => 'inline_flow',
+                       'audio' => 'inline_flow',
+                       'nobr' => 'inline_flow',
+                       'samp' => 'inline_flow',
+                       'rtc' => 'inline_flow',
+                       'var' => 'inline_flow',
+                       'cite' => 'inline_flow',
+                       'select' => 'core',
+                       'command' => 'inline_flow',
+                       'i' => 'inline_flow',
+                       'bdo' => 'inline_flow',
+                       'progress' => 'inline_flow',
+                       'ruby' => 'inline_flow',
+                       'wbr' => 'inline_flow',
+                       'dfn' => 'inline_flow',
+                       'sub' => 'inline_flow',
+                       'big' => 'inline_flow',
+                       'meter' => 'inline_flow',
+                       'button' => 'inline_flow',
+                       'textarea' => 'pcdata_flow'
+                     };
+$IS_BLOCK_ELEMENT = {
+                      'div' => 'core',
+                      'table' => 'core',
+                      'pre' => 'inline_flow',
+                      'form' => 'mixed_flow',
+                      'h5' => 'inline_flow',
+                      'noframes' => 'mixed_flow',
+                      'dir' => 'core',
+                      'center' => 'mixed_flow',
+                      'ol' => 'core',
+                      'h6' => 'inline_flow',
+                      'address' => 'inline_flow',
+                      'ul' => 'core',
+                      'h1' => 'inline_flow',
+                      'blockquote' => 'mixed_flow',
+                      'menu' => 'core',
+                      'h4' => 'inline_flow',
+                      'h2' => 'inline_flow',
+                      'p' => 'core',
+                      'fieldset' => 'mixed_flow',
+                      'hr' => 'empty',
+                      'noscript' => 'mixed_flow',
+                      'h3' => 'inline_flow',
+                      'dl' => 'core'
+                    };
 $RUBY_SLIPPERS_RANK_BY_NAME = {
                                 'S_col' => {
                                              'S_head' => 4,

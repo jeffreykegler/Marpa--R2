@@ -778,11 +778,13 @@ $p->eof;
     my $thin_grammar = $grammar->thin() ;
 
     # Find Ruby slippers ranks, by symbol ID
+    my @ruby_rank_by_id = ();
     {
+        my $highest_symbol_id = $thin_grammar->highest_symbol_id();
         my @non_final_end_tag_ids = ();
 	my $rank_by_name = $Marpa::R2::HTML::Internal::RUBY_SLIPPERS_RANK_BY_NAME;
         SYMBOL:
-        for my $symbol_id ( 0 .. $thin_grammar->highest_symbol_id() ) {
+        for my $symbol_id ( 0 .. $highest_symbol_id ) {
             my $symbol_name = $grammar->symbol_name($symbol_id);
             next SYMBOL if not 0 == index $symbol_name, 'E_';
             next SYMBOL if $symbol_name ~~ [qw(E_body E_html)];
@@ -791,7 +793,7 @@ $p->eof;
 
         my %ruby_vectors = ();
         for my $rejected_symbol_name ( keys %{$rank_by_name} ) {
-            my @ruby_vector_by_id = ();
+            my @ruby_vector_by_id = ((0) x ($highest_symbol_id+1));
             my $rank_by_candidate_name =
                 $rank_by_name->{$rejected_symbol_name};
             CANDIDATE:
@@ -807,7 +809,64 @@ $p->eof;
                 $ruby_vector_by_id[$candidate_id] = $rank
                     for @non_final_end_tag_ids;
             } ## end CANDIDATE: for my $candidate_name ( keys %{...})
+	    $ruby_vectors{$rejected_symbol_name} = \@ruby_vector_by_id;
         } ## end for my $rejected_symbol_name ( keys %{...})
+
+	my $anywhere_start_tag_vector = $ruby_vectors{'!anywhere_start_tag'};
+	my $head_start_tag_vector     = $ruby_vectors{'!head_start_tag'};
+	my $block_start_tag_vector    = $ruby_vectors{'!block_start_tag'};
+	my $inline_start_tag_vector   = $ruby_vectors{'!inline_start_tag'};
+	my $start_tag_vector          = $ruby_vectors{'!start_tag'};
+	my $anywhere_end_tag_vector   = $ruby_vectors{'!anywhere_end_tag'};
+	my $head_end_tag_vector       = $ruby_vectors{'!head_end_tag'};
+	my $block_end_tag_vector      = $ruby_vectors{'!block_end_tag'};
+	my $inline_end_tag_vector     = $ruby_vectors{'!inline_end_tag'};
+	my $end_tag_vector            = $ruby_vectors{'!end_tag'};
+
+	my @no_ruby_slippers_vector = ((0) x ($highest_symbol_id+1));
+        SYMBOL: for my $rejected_symbol_id ( 0 .. $highest_symbol_id ) {
+            if ( not $thin_grammar->symbol_is_terminal($rejected_symbol_id) ) {
+                $ruby_rank_by_id[$rejected_symbol_id] =
+                    \@no_ruby_slippers_vector;
+                next SYMBOL;
+            }
+            my $rejected_symbol_name =
+                $grammar->symbol_name($rejected_symbol_id);
+            my $ruby_vector = $ruby_vectors{$rejected_symbol_name};
+            if ( defined $ruby_vector ) {
+                $ruby_rank_by_id[$rejected_symbol_id] = $ruby_vector;
+                next SYMBOL;
+            }
+            my $prefix = substr $rejected_symbol_name, 0, 2;
+            my $placement =
+                $prefix eq 'S_' ? 'start' : $prefix eq 'E_' ? 'end' : undef;
+            if ( not defined $placement ) {
+                $ruby_rank_by_id[$rejected_symbol_id] =
+                    $ruby_vectors{'!non_element'}
+                    // \@no_ruby_slippers_vector;
+                next SYMBOL;
+            } ## end if ( not defined $placement )
+            my $tag = substr $rejected_symbol_name, 2;
+            my $type =
+                $Marpa::R2::HTML::Internal::IS_INLINE_ELEMENT->{$tag}
+                ? 'inline'
+                : $Marpa::R2::HTML::Internal::IS_BLOCK_ELEMENT->{$tag}
+                ? 'block'
+                : $Marpa::R2::HTML::Internal::IS_HEAD_ELEMENT->{$tag} ? 'head'
+                :   'anywhere';
+            $ruby_vector =
+                $ruby_vectors{ q{!} . $type . q{_} . $placement . q{_tag} };
+            if ( defined $ruby_vector ) {
+                $ruby_rank_by_id[$rejected_symbol_id] = $ruby_vector;
+                next SYMBOL;
+            }
+            $ruby_vector = $ruby_vectors{ q{!} . $placement . q{_tag} };
+            if ( defined $ruby_vector ) {
+                $ruby_rank_by_id[$rejected_symbol_id] = $ruby_vector;
+                next SYMBOL;
+            }
+            $ruby_rank_by_id[$rejected_symbol_id] = \@no_ruby_slippers_vector;
+        } ## end SYMBOL: for my $rejected_symbol_id ( 0 .. $highest_symbol_id )
 
     }
 

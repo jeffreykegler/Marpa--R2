@@ -435,7 +435,7 @@ my %rubies = (
     S_body                => [qw( S_html S_head !non_final_end )],
     CDATA                 => inline_rubies(),
     PCDATA                => inline_rubies(),
-    '!other_non_elements' => [],
+    '!non_element' => [],
     '!end_tag'            => [],
     '!start_tag'          => block_rubies(),
     '!inline_start_tag'   => inline_rubies(),
@@ -462,19 +462,22 @@ my %rubies = (
     EOF    => [qw( !non_final_end E_body E_html)]
 );
 
+my %is_anywhere_element = map { ( substr $_, 4 ) => 'core' }
+    grep { 'ELE_' eq substr $_, 0, 4 }
+    map { $_->{rhs}->[0] }
+    grep { $_->{lhs} eq 'anywhere_element' } @core_rules;
+my %is_head_element = map { ( substr $_, 4 ) => 'core' }
+    grep { 'ELE_' eq substr $_, 0, 4 }
+    map { $_->{rhs}->[0] }
+    grep { $_->{lhs} eq 'head_element' } @core_rules;
+
 my @core_symbols = map { substr $_, 4 } grep { m/\A ELE_ /xms } map { $_->{lhs}, @{$_->{rhs}} } @core_rules;
 {
     my %seen = map { ( substr $_, 2 ) => 1 } grep {m/ \A S_ /xms} keys %rubies;
     $seen{$_} = 1 for keys %is_block_element;
     $seen{$_} = 1 for keys %is_inline_element;
-    RULE: for my $rule (@core_rules) {
-        next RULE
-            if not $rule->{lhs} ~~
-            [qw(anywhere_element head_element)];
-        my ($rhs) = @{$rule->{rhs}};
-        next RULE if not $rhs =~ / \A ELE_ /xms;
-        $seen{ substr $rhs, 4 } = 1;
-    } ## end for my $rule (@core_rules)
+    $seen{$_} = 1 for keys %is_anywhere_element;
+    $seen{$_} = 1 for keys %is_head_element;
     my @symbols_with_no_ruby_status = grep { !$seen{$_} } @core_symbols;
     die "symbols with no ruby status: ", join " ",
         @symbols_with_no_ruby_status
@@ -489,6 +492,11 @@ for my $rejected_symbol (keys %rubies) {
      $ruby_rank{$rejected_symbol}{$candidate} = $rank++;
   }
 }
+
+$output .= Data::Dumper->Purity(1) ->Dump( [ \%is_head_element ], [qw(IS_HEAD_ELEMENT)] );
+$output .= Data::Dumper->Purity(1) ->Dump( [ \%is_anywhere_element ], [qw(IS_ANYWHERE_ELEMENT)] );
+$output .= Data::Dumper->Purity(1) ->Dump( [ \%is_inline_element ], [qw(IS_INLINE_ELEMENT)] );
+$output .= Data::Dumper->Purity(1) ->Dump( [ \%is_block_element ], [qw(IS_BLOCK_ELEMENT)] );
 
 $output .= Data::Dumper->Purity(1)
     ->Dump( [ \%ruby_rank ], [qw(RUBY_SLIPPERS_RANK_BY_NAME)] );
