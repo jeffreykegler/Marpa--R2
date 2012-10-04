@@ -430,12 +430,12 @@ sub table_rubies {
 }
 
 my %rubies = (
-    S_html                => ['!non_final_end'],
-    S_head                => [qw( S_html !non_final_end)],
-    S_body                => [qw( S_html S_head !non_final_end )],
+    S_html                => [],
+    S_head                => [qw( S_html )],
+    S_body                => [qw( S_html S_head )],
     CDATA                 => inline_rubies(),
     PCDATA                => inline_rubies(),
-    '!non_element' => ['!non_final_end'],
+    '!non_element' => [],
     '!start_tag'          => block_rubies(),
     '!inline_start_tag'   => inline_rubies(),
     '!head_start_tag'     => head_rubies(),
@@ -459,7 +459,7 @@ my %rubies = (
     S_tr                  => table_rubies( [qw( S_tbody )] ),
     S_th                  => table_rubies( [qw( S_thead S_tbody S_tr )] ),
     S_td                  => table_rubies( [qw( S_tbody S_tr )] ),
-    E_body                => [qw( S_html S_head S_body !non_final_end )],
+    E_body                => [qw( S_html S_head S_body )],
     E_html => [qw( S_html S_head S_body !non_final_end E_body )],
     EOF    => [qw( S_html S_head S_body !non_final_end E_body E_html)]
 );
