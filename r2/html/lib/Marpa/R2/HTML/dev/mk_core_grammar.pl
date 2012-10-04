@@ -53,7 +53,7 @@ trailer ::= SGML_flow
 ELE_html ::= S_html EC_html E_html
 EC_html ::= SGML_flow ELE_head SGML_flow ELE_body SGML_flow
 ELE_head contains head_item
-ELE_body is mixed_flow
+ELE_body is block_flow
 
 # Common types of element content
 empty ::=
@@ -414,7 +414,7 @@ sub block_rubies {
 }
 sub inline_rubies {
     my ($infix) = @_;
-    my @infix = ('S_p');
+    my @infix = qw(S_tbody S_tr S_td S_p);
     push @infix, @{$infix} if defined $infix;
     return block_rubies(\@infix);
 }
@@ -454,12 +454,13 @@ my %rubies = (
     S_tbody               => table_rubies(),
     S_tfoot               => table_rubies(),
     S_thead               => table_rubies(),
-    S_tr                  => table_rubies( [qw( S_thead S_tbody )] ),
+    E_table               => table_rubies(),
+    S_tr                  => table_rubies( [qw( S_tbody )] ),
     S_th                  => table_rubies( [qw( S_thead S_tbody S_tr )] ),
     S_td                  => table_rubies( [qw( S_tbody S_tr )] ),
     E_body                => [qw( S_html S_head S_body !non_final_end )],
     E_html => [qw( S_html S_head S_body !non_final_end E_body )],
-    EOF    => [qw( !non_final_end E_body E_html)]
+    EOF    => [qw( S_html S_head S_body !non_final_end E_body E_html)]
 );
 
 my %is_anywhere_element = map { ( substr $_, 4 ) => 'core' }
