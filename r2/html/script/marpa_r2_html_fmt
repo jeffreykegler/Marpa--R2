@@ -137,7 +137,7 @@ sub post_process {
                     push @text_pieces,
                         [
                         'html_fmt comment', $indent,
-                        "Inside following <pre>, an end tag is missing: <$tagname>"
+                        "Inside following <pre>, an end tag is missing: </$tagname>"
                         ];
                 } ## end when ('following pre')
                 default {
@@ -148,6 +148,22 @@ sub post_process {
             } ## end given
             next DATUM;
         } ## end if ( $type eq 'msg: missing end tag' )
+        if ( $type eq 'msg: missing pre end tag' ) {
+                    push @text_pieces,
+                        [
+                        'html_fmt comment', $indent,
+                        'An end tag was added to close the following <pre>: </pre>'
+                        ];
+            next DATUM;
+	}
+        if ( $type eq 'msg: missing pre start tag' ) {
+                    push @text_pieces,
+                        [
+                        'html_fmt comment', $indent,
+                        'A start tag was added in front of the following <pre>: <pre>'
+                        ];
+            next DATUM;
+	}
         if ( $type eq 'msg: cruft' ) {
             my $location = $line_data->[2];
             my $cruft    = $line_data->[3];
@@ -338,6 +354,26 @@ sub post_process {
 
 sub do_pre {
     my @new_line_data      = ();
+
+    my $suffix = q{};
+    my $prefix = q{};
+    {
+        my $start_tag = Marpa::R2::HTML::start_tag();
+        my $end_tag   = Marpa::R2::HTML::end_tag();
+        if ( not defined $start_tag ) {
+	    $prefix = '<pre>';
+            push @new_line_data, [ 'start tag', 0, '<pre>' ];
+            push @new_line_data,
+                [ 'msg: missing pre start tag', 0 ];
+        }
+        if ( not defined $end_tag ) {
+	    $suffix = '</pre>';
+            push @new_line_data, [ 'end tag', 0, $suffix ];
+            push @new_line_data,
+                [ 'msg: missing pre end tag', 0 ];
+        }
+    }
+
     CHILD:
     for my $value ( @{ Marpa::R2::HTML::values() } ) {
         for my $line_data ( @{$value} ) {
@@ -352,7 +388,7 @@ sub do_pre {
         } ## end for my $line_data ( @{$value} )
     } ## end CHILD: for my $value ( @{ Marpa::R2::HTML::values() } )
     my $original = Marpa::R2::HTML::original();
-    push @new_line_data, [ 'pre', 0, $original ];
+    push @new_line_data, [ 'pre', 0, ($prefix . $original . $suffix) ];
     return \@new_line_data;
 } ## end sub do_pre
 
@@ -371,11 +407,10 @@ sub do_comment {
 sub do_default {
     my $tagname       = Marpa::R2::HTML::tagname();
     my @new_line_data = ();
-    my @descendant_data =
-        @{ Marpa::R2::HTML::descendants('token_type,value,original') };
-    my $first_child         = $descendant_data[0];
-    my $first_content_child = 0;
 
+    my $start_tag        = Marpa::R2::HTML::start_tag();
+    my $end_tag          = Marpa::R2::HTML::end_tag();
+    my $is_empty_element = $HTML::Tagset::emptyElement{$tagname};
     {
         ## no critic(Variables::ProhibitPackageVars)
         my $tag_type =
@@ -383,9 +418,8 @@ sub do_default {
             ? 'empty element'
             : 'start tag';
         ##use critic
-        if ( defined $first_child->[0] and $first_child->[0] eq 'S' ) {
-            push @new_line_data, [ $tag_type, 0, $first_child->[2] ];
-            $first_content_child = 1;
+        if ( defined $start_tag ) {
+            push @new_line_data, [ $tag_type, 0, $start_tag ];
         }
         else {
             push @new_line_data, [ $tag_type, 0, '<' . $tagname . '>' ];
@@ -394,19 +428,13 @@ sub do_default {
         }
     }
 
-    my $last_child         = $descendant_data[-1];
-    my $last_content_child = $#descendant_data;
-    my $end_tag_child;
-    if ( defined $last_child->[0] and $last_child->[0] eq 'E' ) {
-        $end_tag_child = $last_child;
-        $last_content_child -= 1;
-    }
-
+    my @descendant_data = @{ Marpa::R2::HTML::descendants('value,original') };
+    my $first_content_child = defined $start_tag ? 1 : 0;
+    my $last_content_child = $#descendant_data - ( defined $end_tag ? 1 : 0 );
     CHILD:
     for my $descendant_data_ix ( $first_content_child .. $last_content_child )
     {
-        my ( $token_type, $value, $original ) =
-            @{ $descendant_data[$descendant_data_ix] };
+        my ( $value, $original ) = @{ $descendant_data[$descendant_data_ix] };
         if ( defined $value ) {
             for my $line_data ( @{$value} ) {
                 my ( $type, $indent, @data ) = @{$line_data};
@@ -417,19 +445,16 @@ sub do_default {
         push @new_line_data, [ 'text', 1, $original ];
     } ## end CHILD: for my $descendant_data_ix ( $first_content_child .. ...)
 
-    END_TAG_PROCESSING: {
-        my $tag_type = 'end tag';
-        if ( defined $end_tag_child ) {
-            push @new_line_data, [ $tag_type, 0, $end_tag_child->[2] ];
-            last END_TAG_PROCESSING;
+    if ( not $is_empty_element ) {
+        if ( defined $end_tag ) {
+            push @new_line_data, [ 'end tag', 0, $end_tag ];
         }
-        ## no critic(Variables::ProhibitPackageVars)
-        last END_TAG_PROCESSING if $HTML::Tagset::emptyElement{$tagname};
-        ## use critic
-        push @new_line_data,
-            [ 'msg: missing end tag', 0, 'following', $tagname ];
-        push @new_line_data, [ $tag_type, 0, '</' . $tagname . '>' ];
-    } ## end END_TAG_PROCESSING:
+        else {
+            push @new_line_data,
+                [ 'msg: missing end tag', 0, 'following', $tagname ];
+            push @new_line_data, [ 'end tag', 0, '</' . $tagname . '>' ];
+        }
+    } ## end if ( not $is_empty_element )
 
     return \@new_line_data;
 } ## end sub do_default
