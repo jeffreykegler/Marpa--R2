@@ -68,7 +68,8 @@ sub calculate_length {
             $length += $value->{length};
             next CHILD;
         }
-        $length += ( $literal =~ tr/\t\f \x{200B}//c );
+        my $literal_length = ( $literal =~ tr/\t\f \x{200B}//c );
+        $length += $literal_length;
     } ## end for my $descendant_data ( @{$descendant_data} )
     return $length;
 } ## end sub calculate_length
