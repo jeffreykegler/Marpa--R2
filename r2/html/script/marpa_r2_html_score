@@ -62,14 +62,16 @@ sub calculate_max_depths {
 sub calculate_length {
     my ($descendant_data) = @_;
     my $length = 0;
-    CHILD: for my $descendant_data ( @{$descendant_data} ) {
+    for my $descendant_data ( @{$descendant_data} ) {
         my ( $value, $literal ) = @{$descendant_data};
-        if ( defined $value ) {
-            $length += $value->{length};
-            next CHILD;
-        }
-        my $literal_length = ( $literal =~ tr/\t\f \x{200B}//c );
-        $length += $literal_length;
+        my $this_length;
+	if (defined $value) {
+	   $this_length = $value->{length};
+	} else {
+	   (my $no_whitespace_literal = $literal) =~ s/\s//xmsg;
+	  $this_length = length $no_whitespace_literal;
+	}
+        $length += $this_length;
     } ## end for my $descendant_data ( @{$descendant_data} )
     return $length;
 } ## end sub calculate_length
@@ -92,6 +94,17 @@ my ( $instance, $value ) = @{
                     length => $length,
                 };
             },
+	    ':CRUFT' => sub {
+                my $descendant_data = Marpa::R2::HTML::descendants('value,literal');
+                my $return_depths = { '[CRUFT]' => 1 };
+                my $length     = calculate_length($descendant_data);
+                $Marpa::R2::HTML::INSTANCE->{count}->{'[CRUFT]'}++;
+                $Marpa::R2::HTML::INSTANCE->{length}->{'[CRUFT]'} += $length;
+                return {
+                    depths => $return_depths,
+                    length => $length,
+                };
+	    },
             ':TOP' => sub {
                 my $descendant_data = Marpa::R2::HTML::descendants('value,literal');
                 return [
