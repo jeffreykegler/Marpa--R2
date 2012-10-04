@@ -53,26 +53,30 @@ my $html = <<'END_OF_HTML';
 <div class="oddball">Oddball Div</div>
 END_OF_HTML
 
-my $result = Marpa::R2::HTML::html(
+our @RESULTS = ();
+Marpa::R2::HTML::html(
     \$html,
     {   q{*} => sub {
-            return 'wildcard handler: ' . Marpa::R2::HTML::contents();
+            push @RESULTS, 'wildcard handler: ' . Marpa::R2::HTML::contents();
         },
-        'head' => sub { return Marpa::R2::HTML::literal() },
-        'html' => sub { return Marpa::R2::HTML::literal() },
-        'body' => sub { return Marpa::R2::HTML::literal() },
-        'div'  => sub {
-            return '"div" handler: ' . Marpa::R2::HTML::contents();
+        'div' => sub {
+            push @RESULTS, '"div" handler: ' . Marpa::R2::HTML::contents();
         },
         '.high' => sub {
-            return '".high" handler: ' . Marpa::R2::HTML::contents();
+            push @RESULTS, '".high" handler: ' . Marpa::R2::HTML::contents();
         },
         'div.high' => sub {
-            return '"div.high" handler: ' . Marpa::R2::HTML::contents();
+            push @RESULTS,
+                '"div.high" handler: ' . Marpa::R2::HTML::contents();
         },
         '.oddball' => sub {
-            return '".oddball" handler: ' . Marpa::R2::HTML::contents();
+            push @RESULTS,
+                '".oddball" handler: ' . Marpa::R2::HTML::contents();
         },
+        'body' => sub {undef},
+        'head' => sub {undef},
+        'html' => sub {undef},
+        'p'    => sub {undef},
     }
 );
 
@@ -93,7 +97,8 @@ EXPECTED_RESULT
 
 # Marpa::R2::Display::End
 
-Marpa::R2::Test::is( ${$result}, $expected_result,
+my $result = join "\n", @RESULTS;
+Marpa::R2::Test::is( "$result\n", $expected_result,
     'handler precedence example' );
 
 # Marpa::R2::Display
@@ -112,8 +117,8 @@ my $expected_structured_result = <<'END_OF_EXPECTED';
 <head>
 <title>Short</title></head>
 <body>
-<p>Text</head><head>
-</p>
+<p>Text</p>
+</head><head>
 </body>
 </html>
 END_OF_EXPECTED

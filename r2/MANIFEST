@@ -55,7 +55,6 @@ html/lib/Marpa/R2/HTML/Core_Grammar.pm
 html/lib/Marpa/R2/HTML/dev/Core_Grammar.pm
 html/lib/Marpa/R2/HTML/dev/Makefile
 html/lib/Marpa/R2/HTML/dev/mk_core_grammar.pl
-html/lib/Marpa/R2/HTML/dev/mk_default_ruby.pl
 html/pod/HTML.pod
 html/script/marpa_r2_html_fmt
 html/script/marpa_r2_html_score
