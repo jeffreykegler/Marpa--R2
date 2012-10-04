@@ -398,53 +398,42 @@ if (@duplicated_elements) {
     die "Elements cannot be both runtime and in the core grammar";
 }
 
-my @head_rubies = qw( S_html S_head );
-my @block_rubies = qw( S_html S_head S_body );
-sub block_rubies {
-    my ($infix) = @_;
-    my @result = qw( S_html S_head S_body);
-    push @result, @{$infix} if defined $infix;
-    push @result, '!non_final_end';
-    return \@result;
-}
-sub inline_rubies {
-    my ($infix) = @_;
-    my @infix = qw(S_tbody S_tr S_td S_p);
-    push @infix, @{$infix} if defined $infix;
-    return [@block_rubies, @infix];
-}
+my @head_rubies   = qw( S_html S_head );
+my @block_rubies  = qw( S_html S_head S_body );
+my @inline_rubies = ( @block_rubies, qw(S_tbody S_tr S_td S_p) );
 
 my %rubies = (
-    S_html                => [],
-    S_head                => [qw( S_html )],
-    S_body                => [qw( S_html S_head )],
-    CDATA                 => inline_rubies(),
-    PCDATA                => inline_rubies(),
-    '!non_element' => [],
-    '!start_tag'          => \@block_rubies,
-    '!inline_start_tag'   => inline_rubies(),
-    '!head_start_tag'     => \@head_rubies,
-    '!end_tag'            => \@block_rubies,
-    '!inline_end_tag'   => inline_rubies(),
+    S_html              => [],
+    S_head              => [qw( S_html )],
+    S_body              => [qw( S_html S_head )],
+    CDATA               => \@inline_rubies,
+    PCDATA              => \@inline_rubies,
+    '!non_element'      => [],
+    '!start_tag'        => \@block_rubies,
+    '!inline_start_tag' => \@inline_rubies,
+    '!head_start_tag'   => \@head_rubies,
+    '!end_tag'          => \@block_rubies,
+    '!inline_end_tag'   => \@inline_rubies,
     '!head_end_tag'     => \@head_rubies,
-    S_area                => [@block_rubies, 'S_map'],
-    S_option              => inline_rubies( ['S_select'] ),
-    S_optgroup            => inline_rubies( ['S_select'] ),
-    S_param               => [@block_rubies, 'S_object'],
-    S_li                  => [@block_rubies, qw( !non_final_end S_ul) ],
-    S_dt                  => [@block_rubies, 'S_dl'],
-    S_dd                  => [@block_rubies, 'S_dl'],
-    S_caption             => [@block_rubies, qw( !non_final_end S_table )],
-    S_col                 => [@block_rubies, qw( !non_final_end S_table )],
-    S_colgroup            => [@block_rubies, qw( !non_final_end S_table )],
-    S_tbody               => [@block_rubies, qw( !non_final_end S_table )],
-    S_tfoot               => [@block_rubies, qw( !non_final_end S_table )],
-    S_thead               => [@block_rubies, qw( !non_final_end S_table )],
-    E_table               => [@block_rubies, qw( !non_final_end S_table )],
-    S_tr                  => [@block_rubies, qw( S_tbody !non_final_end S_table )],
-    S_th                  => [@block_rubies, qw( S_thead S_tbody S_tr !non_final_end S_table )],
-    S_td                  => [@block_rubies, qw( S_tbody S_tr !non_final_end S_table )],
-    E_body                => [qw( S_html S_head S_body )],
+    S_area              => [ @block_rubies, 'S_map' ],
+    S_option            => [ @inline_rubies, 'S_select' ],
+    S_optgroup          => [ @inline_rubies, 'S_select' ],
+    S_param             => [ @block_rubies, 'S_object' ],
+    S_li                => [ @block_rubies, qw( !non_final_end S_ul) ],
+    S_dt                => [ @block_rubies, 'S_dl' ],
+    S_dd                => [ @block_rubies, 'S_dl' ],
+    S_caption           => [ @block_rubies, qw( !non_final_end S_table ) ],
+    S_col               => [ @block_rubies, qw( !non_final_end S_table ) ],
+    S_colgroup          => [ @block_rubies, qw( !non_final_end S_table ) ],
+    S_tbody             => [ @block_rubies, qw( !non_final_end S_table ) ],
+    S_tfoot             => [ @block_rubies, qw( !non_final_end S_table ) ],
+    S_thead             => [ @block_rubies, qw( !non_final_end S_table ) ],
+    E_table             => [ @block_rubies, qw( !non_final_end S_table ) ],
+    S_tr => [ @block_rubies, qw( S_tbody !non_final_end S_table ) ],
+    S_th =>
+        [ @block_rubies, qw( S_thead S_tbody S_tr !non_final_end S_table ) ],
+    S_td => [ @block_rubies, qw( S_tbody S_tr !non_final_end S_table ) ],
+    E_body => [qw( S_html S_head S_body )],
     E_html => [qw( S_html S_head S_body !non_final_end E_body )],
     EOF    => [qw( S_html S_head S_body !non_final_end E_body E_html)]
 );
