@@ -14,7 +14,7 @@
 # http://www.gnu.org/licenses/.
 
 # This file was generated automatically by mk_core_grammar.pl
-# The date of generation was Wed Oct  3 20:53:11 2012
+# The date of generation was Wed Oct  3 21:18:17 2012
 
 package Marpa::R2::HTML::Internal;
 
@@ -478,7 +478,7 @@ $CORE_RULES = [
                 {
                   'rhs' => [
                              'S_div',
-                             'block_flow',
+                             'mixed_flow',
                              'E_div'
                            ],
                   'lhs' => 'ELE_div',
@@ -1283,6 +1283,16 @@ $IS_BLOCK_ELEMENT = {
                       'dl' => 'core'
                     };
 $RUBY_SLIPPERS_RANK_BY_NAME = {
+                                '!inline_end_tag' => {
+                                                       'S_p' => 2,
+                                                       'S_tbody' => 5,
+                                                       'S_html' => 8,
+                                                       'S_tr' => 4,
+                                                       'S_head' => 7,
+                                                       'S_td' => 3,
+                                                       '!non_final_end' => 1,
+                                                       'S_body' => 6
+                                                     },
                                 'S_col' => {
                                              'S_head' => 4,
                                              '!non_final_end' => 2,
@@ -1290,13 +1300,6 @@ $RUBY_SLIPPERS_RANK_BY_NAME = {
                                              'S_html' => 5,
                                              'S_body' => 3
                                            },
-                                'E_p' => {
-                                           'S_head' => 4,
-                                           'S_p' => 2,
-                                           '!non_final_end' => 1,
-                                           'S_html' => 5,
-                                           'S_body' => 3
-                                         },
                                 'S_optgroup' => {
                                                   'S_p' => 3,
                                                   'S_tbody' => 6,
@@ -1323,18 +1326,17 @@ $RUBY_SLIPPERS_RANK_BY_NAME = {
                                            'S_html' => 6,
                                            'S_body' => 4
                                          },
+                                '!end_tag' => {
+                                                'S_head' => 3,
+                                                '!non_final_end' => 1,
+                                                'S_html' => 4,
+                                                'S_body' => 2
+                                              },
                                 '!head_start_tag' => {
                                                        'S_head' => 2,
                                                        '!non_final_end' => 1,
                                                        'S_html' => 3
                                                      },
-                                'S_param' => {
-                                               'S_head' => 4,
-                                               '!non_final_end' => 1,
-                                               'S_object' => 2,
-                                               'S_html' => 5,
-                                               'S_body' => 3
-                                             },
                                 'PCDATA' => {
                                               'S_p' => 2,
                                               'S_tbody' => 5,
@@ -1345,6 +1347,13 @@ $RUBY_SLIPPERS_RANK_BY_NAME = {
                                               '!non_final_end' => 1,
                                               'S_body' => 6
                                             },
+                                'S_param' => {
+                                               'S_head' => 4,
+                                               '!non_final_end' => 1,
+                                               'S_object' => 2,
+                                               'S_html' => 5,
+                                               'S_body' => 3
+                                             },
                                 'S_caption' => {
                                                  'S_head' => 4,
                                                  '!non_final_end' => 2,
@@ -1481,6 +1490,11 @@ $RUBY_SLIPPERS_RANK_BY_NAME = {
                                             'S_html' => 7,
                                             'S_body' => 5
                                           },
+                                '!head_end_tag' => {
+                                                     'S_head' => 2,
+                                                     '!non_final_end' => 1,
+                                                     'S_html' => 3
+                                                   },
                                 'S_li' => {
                                             'S_head' => 4,
                                             '!non_final_end' => 1,

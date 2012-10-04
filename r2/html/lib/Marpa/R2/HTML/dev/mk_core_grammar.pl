@@ -120,7 +120,7 @@ ELE_base is empty
 ELE_col is empty
 ELE_colgroup contains ELE_col SGML_item
 ELE_dd is mixed_flow
-ELE_div is block_flow
+ELE_div is mixed_flow
 ELE_dl contains SGML_item ELE_dt ELE_dd
 ELE_dt is inline_flow
 ELE_isindex is empty
@@ -436,11 +436,12 @@ my %rubies = (
     CDATA                 => inline_rubies(),
     PCDATA                => inline_rubies(),
     '!non_element' => [],
-    '!end_tag'            => [],
     '!start_tag'          => block_rubies(),
     '!inline_start_tag'   => inline_rubies(),
     '!head_start_tag'     => head_rubies(),
-    E_p                   => block_rubies( ['S_p'] ),
+    '!end_tag'            => block_rubies(),
+    '!inline_end_tag'   => inline_rubies(),
+    '!head_end_tag'     => head_rubies(),
     S_area                => block_rubies( ['S_map'] ),
     S_option              => inline_rubies( ['S_select'] ),
     S_optgroup            => inline_rubies( ['S_select'] ),
