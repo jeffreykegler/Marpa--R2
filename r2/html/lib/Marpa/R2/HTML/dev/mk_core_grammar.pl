@@ -464,6 +464,12 @@ my %rubies = (
     EOF    => [qw( S_html S_head S_body !non_final_end E_body E_html)]
 );
 
+DESC: for my $rubies_desc (keys %rubies) {
+    my $candidates = $rubies{$rubies_desc};
+    next DESC if '!non_final_end' ~~ $candidates;
+    $rubies{$rubies_desc} = [@{$candidates}, '!non_final_end'];
+}
+
 my %is_anywhere_element = map { ( substr $_, 4 ) => 'core' }
     grep { 'ELE_' eq substr $_, 0, 4 }
     map { $_->{rhs}->[0] }
