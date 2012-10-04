@@ -777,10 +777,16 @@ $p->eof;
 
     my $thin_grammar = $grammar->thin() ;
 
+    # Memoize this -- we will use it a lot
+    my $highest_symbol_id = $thin_grammar->highest_symbol_id();
+
+    # For the Ruby Slippers engine
+    # We need to know quickly if a symbol is a start tag;
+    my @is_start_tag = ();
+
     # Find Ruby slippers ranks, by symbol ID
     my @ruby_rank_by_id = ();
     {
-        my $highest_symbol_id = $thin_grammar->highest_symbol_id();
         my @non_final_end_tag_ids = ();
 	my $rank_by_name = $Marpa::R2::HTML::Internal::RUBY_SLIPPERS_RANK_BY_NAME;
         SYMBOL:
@@ -812,17 +818,6 @@ $p->eof;
 	    $ruby_vectors{$rejected_symbol_name} = \@ruby_vector_by_id;
         } ## end for my $rejected_symbol_name ( keys %{...})
 
-	my $anywhere_start_tag_vector = $ruby_vectors{'!anywhere_start_tag'};
-	my $head_start_tag_vector     = $ruby_vectors{'!head_start_tag'};
-	my $block_start_tag_vector    = $ruby_vectors{'!block_start_tag'};
-	my $inline_start_tag_vector   = $ruby_vectors{'!inline_start_tag'};
-	my $start_tag_vector          = $ruby_vectors{'!start_tag'};
-	my $anywhere_end_tag_vector   = $ruby_vectors{'!anywhere_end_tag'};
-	my $head_end_tag_vector       = $ruby_vectors{'!head_end_tag'};
-	my $block_end_tag_vector      = $ruby_vectors{'!block_end_tag'};
-	my $inline_end_tag_vector     = $ruby_vectors{'!inline_end_tag'};
-	my $end_tag_vector            = $ruby_vectors{'!end_tag'};
-
 	my @no_ruby_slippers_vector = ((0) x ($highest_symbol_id+1));
         SYMBOL: for my $rejected_symbol_id ( 0 .. $highest_symbol_id ) {
             if ( not $thin_grammar->symbol_is_terminal($rejected_symbol_id) ) {
@@ -832,14 +827,23 @@ $p->eof;
             }
             my $rejected_symbol_name =
                 $grammar->symbol_name($rejected_symbol_id);
+	    my $placement;
+	    FIND_PLACEMENT: {
+		my $prefix = substr $rejected_symbol_name, 0, 2;
+		if ( $prefix eq 'S_' ) {
+		    $placement = 'start';
+		    $is_start_tag[$rejected_symbol_id] = 1;
+		    last FIND_PLACEMENT;
+		}
+		if ( $prefix eq 'E_' ) {
+		    $placement = 'end';
+		}
+	    } ## end FIND_PLACEMENT:
             my $ruby_vector = $ruby_vectors{$rejected_symbol_name};
             if ( defined $ruby_vector ) {
                 $ruby_rank_by_id[$rejected_symbol_id] = $ruby_vector;
                 next SYMBOL;
             }
-            my $prefix = substr $rejected_symbol_name, 0, 2;
-            my $placement =
-                $prefix eq 'S_' ? 'start' : $prefix eq 'E_' ? 'end' : undef;
             if ( not defined $placement ) {
                 $ruby_rank_by_id[$rejected_symbol_id] =
                     $ruby_vectors{'!non_element'}
@@ -890,6 +894,16 @@ $p->eof;
     my $latest_html_token = -1;
     my $token_number = 0;
     my $token_count = scalar @html_parser_tokens;
+
+    # this array track the last token number (location) at which
+    # the symbol with this number was last read.  It's used
+    # to prevent the same Ruby Slippers token being added
+    # at the same location more than once.
+    # If allowed, this could cause an infinite loop.
+    # Note that only start tags are tracked -- the rest of the
+    # array stays at -1.
+    my @terminal_last_seen = ((-1) x ($highest_symbol_id+1));
+
     RECCE_RESPONSE: while ( $token_number < $token_count) {
 	  my $token = $html_parser_tokens[$token_number];
 
@@ -914,180 +928,39 @@ $p->eof;
 	      next RECCE_RESPONSE;
 	  } ## end if ( $read_result != $UNEXPECTED_TOKEN_ID )
 
-	  my $actual_terminal = $token->[0];
+	  my $rejected_terminal_name = $token->[0];
+	  my $rejected_terminal_id = $grammar->thin_symbol($rejected_terminal_name);
 	  if ($trace_terminals) {
-	      say {$trace_fh} 'Literal Token not accepted: ', $actual_terminal
+	      say {$trace_fh} 'Literal Token not accepted: ', $rejected_terminal_name
 		  or Carp::croak("Cannot print: $ERRNO");
 	  }
 
+	  my $highest_candidate_rank = 0;
 	  my $virtual_terminal_to_add;
-
-	  FIND_VIRTUAL_TOKEN: {
-	      my $virtual_terminal;
-	      my @virtuals_expected =
-		  sort { $optional_terminals{$a} <=> $optional_terminals{$b} }
-		  grep { defined $optional_terminals{$_} }
-		  map  { $grammar->symbol_name($_) }
-		  $recce->terminals_expected();
-	      if ($trace_conflicts) {
-		  say {$trace_fh} 'Conflict of virtual choices'
-		      or Carp::croak("Cannot print: $ERRNO");
-		  say {$trace_fh} "Actual Token is $actual_terminal"
-		      or Carp::croak("Cannot print: $ERRNO");
-		  say {$trace_fh} +( scalar @virtuals_expected ),
-		      ' virtual terminals expected: ', join q{ },
-		      @virtuals_expected
-		      or Carp::croak("Cannot print: $ERRNO");
-	      } ## end if ($trace_conflicts)
-
-	      LOOKAHEAD_VIRTUAL_TERMINAL:
-	      while ( my $candidate = pop @virtuals_expected ) {
-
-		  # Start an implied table only if the next token is one which
-		  # can only occur inside a table
-		  if ( $candidate eq 'S_table' ) {
-		      if (not $actual_terminal ~~ [
-			      qw(
-				  S_caption S_col S_colgroup S_thead S_tfoot
-				  S_tbody S_tr S_th S_td
-				  E_caption E_col E_colgroup E_thead E_tfoot
-				  E_tbody E_tr E_th E_td
-				  E_table
-				  )
-			  ]
-			  )
-		      {
-			  next LOOKAHEAD_VIRTUAL_TERMINAL;
-		      } ## end if ( not $actual_terminal ~~ [ qw(...)])
-
-		      # The above test implies the others below, so
-		      # this virtual table start terminal is OK.
-		      $virtual_terminal = $candidate;
-		      last LOOKAHEAD_VIRTUAL_TERMINAL;
-		  } ## end if ( $candidate eq 'S_table' )
-
-		  # For other than <table>, we are permissive.
-		  # Unless the lookahead gives us
-		  # a specific reason to
-		  # reject the virtual terminal, we accept it.
-
-		  # No need to check lookahead, unless we are starting
-		  # an element
-		  if ( $candidate !~ /^S_/xms ) {
-		      $virtual_terminal = $candidate;
-		      last LOOKAHEAD_VIRTUAL_TERMINAL;
-		  }
-
-  #<<< no perltidy cycles as of 12 Mar 2010
-
-		  my $candidate_level =
-		      $Marpa::R2::HTML::Internal::VIRTUAL_TOKEN_HIERARCHY{
-		      $candidate };
-
-  #>>>
-		  # If the candidate is not part of the hierarchy, no need to check
-		  # lookahead
-		  if ( not defined $candidate_level ) {
-		      $virtual_terminal = $candidate;
-		      last LOOKAHEAD_VIRTUAL_TERMINAL;
-		  }
-
-		  my $actual_terminal_level =
-		      $Marpa::R2::HTML::Internal::VIRTUAL_TOKEN_HIERARCHY{
-		      $actual_terminal};
-
-		  # If the actual terminal is not part of the hierarchy, no need to check
-		  # lookahead, either
-		  if ( not defined $actual_terminal_level ) {
-		      $virtual_terminal = $candidate;
-		      last LOOKAHEAD_VIRTUAL_TERMINAL;
-		  }
-
-		  # Here we are trying to deal with a higher-level element's
-		  # start or end, by starting a new lower level element.
-		  # This won't work, because we'll have to close it
-		  # immediately with another virtual terminal.
-		  # At best this means useless, empty elements.
-		  # At worst, it means an infinite loop where
-		  # empty lower-level elements are repeatedly added.
-		  #
-		  next LOOKAHEAD_VIRTUAL_TERMINAL
-		      if $candidate_level <= $actual_terminal_level;
-
-		  $virtual_terminal = $candidate;
-		  last LOOKAHEAD_VIRTUAL_TERMINAL;
-
-	      } ## end LOOKAHEAD_VIRTUAL_TERMINAL: while ( my $candidate = pop @virtuals_expected )
-
-	      if ($trace_terminals) {
-		  say {$trace_fh} 'Converting Token: ', $actual_terminal
-		      or Carp::croak("Cannot print: $ERRNO");
-		  if ( defined $virtual_terminal ) {
-		      say {$trace_fh} 'Candidate as Virtual Token: ',
-			  $virtual_terminal
-			  or Carp::croak("Cannot print: $ERRNO");
-		  }
-	      } ## end if ($trace_terminals)
-
-	      # Depending on the expected (optional or virtual)
-	      # terminal and the actual
-	      # terminal, we either want to add the actual one as cruft, or add
-	      # the virtual one to move on in the parse.
-
-	      if ( $trace_terminals > 1 and defined $virtual_terminal ) {
-		  say {$trace_fh}
-		      "OK as cruft when expecting $virtual_terminal: ",
-		      join q{ }, keys %{ $ok_as_cruft{$virtual_terminal} }
-		      or Carp::croak("Cannot print: $ERRNO");
-	      } ## end if ( $trace_terminals > 1 and defined $virtual_terminal)
-
-	      last FIND_VIRTUAL_TOKEN if not defined $virtual_terminal;
-	      last FIND_VIRTUAL_TOKEN
-		  if $ok_as_cruft{$virtual_terminal}{$actual_terminal};
-
-	      CHECK_FOR_INFINITE_LOOP: {
-
-		  # It is sufficient to check for start tags.
-		  # Just ending things will never cause an infinite loop.
-		  last CHECK_FOR_INFINITE_LOOP if $virtual_terminal !~ /^S_/xms;
-
-		  # Are we at the same earleme as we were when the last
-		  # virtual start was added?  If not, no problem.
-		  # But we need to reinitialize.
-		  my $current_earleme = $recce->current_earleme();
-		  if ( $current_earleme != $earleme_of_last_start_virtual ) {
-		      $earleme_of_last_start_virtual = $current_earleme;
-		      %start_virtuals_used           = ();
-		      last CHECK_FOR_INFINITE_LOOP;
-		  }
-
-		  # Is this the first time we've added this start
-		  # terminal?  If so, we're OK.
-		  last CHECK_FOR_INFINITE_LOOP
-		      if $start_virtuals_used{$virtual_terminal}++ <= 1;
-
-		  # Attempt to add duplicate.
-		  # Give up on adding virtual at this location,
-		  # and warn the user.
-		  ( my $tagname = $virtual_terminal ) =~ s/^S_//xms;
-		  say {$trace_fh}
-		      "Warning: attempt to add <$tagname> twice at the same place"
-		      or Carp::croak("Cannot print: $ERRNO");
-		  last FIND_VIRTUAL_TOKEN;
-
-	      } ## end CHECK_FOR_INFINITE_LOOP:
-
-	      $virtual_terminal_to_add = $virtual_terminal;
-
-	  } ## end FIND_VIRTUAL_TOKEN:
+	  my $ruby_vector = $ruby_rank_by_id[$rejected_terminal_id];
+	  CANDIDATE: for my $candidate_id ( $recce->terminals_expected() ) {
+	      my $this_candidate_rank = $ruby_vector->[$candidate_id];
+	      if ( $this_candidate_rank > $highest_candidate_rank ) {
+		  next CANDIDATE if $terminal_last_seen[$candidate_id] == $token_number;
+		  $highest_candidate_rank = $this_candidate_rank;
+		  $virtual_terminal_to_add = $candidate_id;
+	      }
+	  } ## end CANDIDATE: for my $candidate_id ( $recce->terminals_expected() )
 
 	  if ( defined $virtual_terminal_to_add ) {
-	      my $marpa_symbol_id =
-		  $grammar->thin_symbol( $virtual_terminal_to_add );
 	      $recce->ruby_slippers_set(0);
-	      $recce->alternative( $marpa_symbol_id, RUBY_SLIPPERS_TOKEN, 1 );
+	      $recce->alternative( $virtual_terminal_to_add, RUBY_SLIPPERS_TOKEN, 1 );
 	      $recce->ruby_slippers_set(1);
 	      $recce->earleme_complete();
+
+	      # Only keep track of start tags.  We need to be able to add end
+	      # tags repeatedly.
+	      # Adding end tags cannot cause an infinite loop, because each
+	      # one ends an element and only a finite number of elements
+	      # can have been started.
+	      $terminal_last_seen[$virtual_terminal_to_add] = $token_number
+	         if $is_start_tag[$virtual_terminal_to_add];
+
 	      $self->{earleme_to_html_token_ix}->[ $recce->current_earleme() ] =
 		  $latest_html_token;
 	      next RECCE_RESPONSE;
@@ -1097,7 +970,7 @@ $p->eof;
 	  # current physical token as CRUFT.
 
 	  if ($trace_terminals) {
-	      say {$trace_fh} 'Adding actual token as cruft: ', $actual_terminal
+	      say {$trace_fh} 'Adding rejected token as cruft: ', $rejected_terminal_name
 		  or Carp::croak("Cannot print: $ERRNO");
 	  }
 
