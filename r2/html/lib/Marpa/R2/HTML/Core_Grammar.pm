@@ -14,7 +14,7 @@
 # http://www.gnu.org/licenses/.
 
 # This file was generated automatically by mk_core_grammar.pl
-# The date of generation was Wed Oct  3 21:18:17 2012
+# The date of generation was Wed Oct  3 22:08:40 2012
 
 package Marpa::R2::HTML::Internal;
 
@@ -1497,10 +1497,10 @@ $RUBY_SLIPPERS_RANK_BY_NAME = {
                                                    },
                                 'S_li' => {
                                             'S_head' => 4,
-                                            '!non_final_end' => 1,
+                                            '!non_final_end' => 2,
                                             'S_html' => 5,
                                             'S_body' => 3,
-                                            'S_ul' => 2
+                                            'S_ul' => 1
                                           },
                                 'S_body' => {
                                               'S_head' => 2,
