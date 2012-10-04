@@ -408,11 +408,9 @@ my %rubies = (
     S_body              => [qw( S_html S_head )],
     CDATA               => \@inline_rubies,
     PCDATA              => \@inline_rubies,
-    '!non_element'      => [],
     '!start_tag'        => \@block_rubies,
     '!inline_start_tag' => \@inline_rubies,
     '!head_start_tag'   => \@head_rubies,
-    '!end_tag'          => [],
     S_area              => [ @block_rubies, 'S_map' ],
     S_option            => [ @inline_rubies, 'S_select' ],
     S_optgroup          => [ @inline_rubies, 'S_select' ],
@@ -435,6 +433,12 @@ my %rubies = (
     E_html => [qw( S_html S_head S_body !non_final_end E_body )],
     EOF    => [qw( S_html S_head S_body !non_final_end E_body E_html)]
 );
+
+
+# Make sure the last resort defaults are always defined
+for my $required_rubies_desc (qw( !start_tag !end_tag !non_element )) {
+    $rubies{$required_rubies_desc} //= [];
+}
 
 DESC: for my $rubies_desc (keys %rubies) {
     my $candidates = $rubies{$rubies_desc};
