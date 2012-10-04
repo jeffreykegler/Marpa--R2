@@ -74,9 +74,19 @@ use constant PHYSICAL_TOKEN => 42;
 use constant RUBY_SLIPPERS_TOKEN => 43;
 
 our @LIBMARPA_ERROR_NAMES = Marpa::R2::Thin::error_names();
-our $UNEXPECTED_TOKEN_ID =
-    ( grep { $LIBMARPA_ERROR_NAMES[$_] eq 'MARPA_ERR_UNEXPECTED_TOKEN_ID' }
-        ( 0 .. $#LIBMARPA_ERROR_NAMES ) )[0];
+our $UNEXPECTED_TOKEN_ID;
+our $NO_MARPA_ERROR;
+ERROR: for my $error_number ( 0 .. $#LIBMARPA_ERROR_NAMES ) {
+    my $error_name = $LIBMARPA_ERROR_NAMES[$error_number];
+    if ( $error_name eq 'MARPA_ERR_UNEXPECTED_TOKEN_ID' ) {
+        $UNEXPECTED_TOKEN_ID = $error_number;
+        next ERROR;
+    }
+    if ( $error_name eq 'MARPA_ERR_NONE' ) {
+        $NO_MARPA_ERROR = $error_number;
+        next ERROR;
+    }
+} ## end ERROR: for my $error_number ( 0 .. $#LIBMARPA_ERROR_NAMES )
 
 BEGIN {
     my $structure = <<'END_OF_STRUCTURE';
@@ -319,7 +329,8 @@ sub handler_find {
         if ( index( $action, 'SPE_' ) == 0 ) {
             my $species = substr $action, 4;
             $handler = $self->{handler_by_species}->{$species};
-            say STDERR qq{Rule $rule_id: Found handler by species: "$species"}
+            say {*STDERR} qq{Rule $rule_id: Found handler by species: "$species"}
+            or Carp::croak("Cannot print: $ERRNO")
                 if $trace_handlers and defined $handler;
             last FIND_HANDLER;
         } ## end if ( index( $action, 'SPE_' ) == 0 )
@@ -338,19 +349,21 @@ sub handler_find {
             grep {defined}
             @{ $self->{handler_by_element_and_class} }{@handler_keys};
 
-        say STDERR qq{Rule $rule_id: Found handler by action and class: "},
+        say {*STDERR} qq{Rule $rule_id: Found handler by action and class: "},
             ( grep { defined $self->{handler_by_element_and_class}->{$_} }
-                @handler_keys )[0], qq{"}
+                @handler_keys )[0], q{"}
+            or Carp::croak("Cannot print: $ERRNO")
             if $trace_handlers and defined $handler;
 
     } ## end FIND_HANDLER:
     return $handler if defined $handler;
 
-    say STDERR qq{Rule $rule_id: Using default handler for action "},
+    say {*STDERR} qq{Rule $rule_id: Using default handler for action "},
         ( $action // q{*} ), qq{" and class: "$class"}
+            or Carp::croak("Cannot print: $ERRNO")
         if $trace_handlers;
 
-    return "default_handler";
+    return 'default_handler';
 } ## end sub handler_find
 
 # "Original" value of a token range -- that is, the corresponding
@@ -384,7 +397,7 @@ sub tdesc_item_to_original {
     my $document        = $self->{document};
     my $tokens          = $self->{tokens};
     my $tdesc_item_type = $tdesc_item->[0];
-    return '' if not defined $tdesc_item_type;
+    return q{} if not defined $tdesc_item_type;
 
     if ( $tdesc_item_type eq 'PHYSICAL_TOKEN' ) {
         return token_range_to_original(
@@ -400,7 +413,7 @@ sub tdesc_item_to_original {
             $tdesc_item->[Marpa::R2::HTML::Internal::TDesc::END_TOKEN],
         );
     } ## end if ( $tdesc_item_type eq 'VALUED_SPAN' )
-    return '';
+    return q{};
 } ## end sub tdesc_item_to_original
 
 # Given a token range and a tdesc list,
@@ -565,7 +578,7 @@ $p->eof;
     # The other logic needs to be ready for this.
     {
         my $document_length = length ${$document};
-        my $last_token      = $html_parser_tokens[$#html_parser_tokens];
+        my $last_token      = $html_parser_tokens[-1];
         push @html_parser_tokens,
             [
             'EOF', 'EOF',
@@ -875,7 +888,6 @@ $p->eof;
     }
 
     my $recce = Marpa::R2::Thin::R->new( $thin_grammar );
-    $recce->ruby_slippers_set(1);
     $recce->start_input();
 
     $self->{thick_grammar}  = $grammar;
@@ -904,6 +916,7 @@ $p->eof;
     # array stays at -1.
     my @terminal_last_seen = ((-1) x ($highest_symbol_id+1));
 
+    $thin_grammar->throw_set(0);
     RECCE_RESPONSE: while ( $token_number < $token_count) {
 	  my $token = $html_parser_tokens[$token_number];
 
@@ -913,18 +926,25 @@ $p->eof;
 	  my $read_result =
 	      $recce->alternative( $marpa_symbol_id, PHYSICAL_TOKEN, 1 );
 	  if ( $read_result != $UNEXPECTED_TOKEN_ID ) {
+	      if ($read_result != $NO_MARPA_ERROR) {
+	          die $thin_grammar->error();
+	      }
 	      if ($trace_terminals) {
 		  say {$trace_fh} 'Token accepted: ',
 		      $token->[Marpa::R2::HTML::Internal::Token::TOKEN_NAME] ,
 		      or Carp::croak("Cannot print: $ERRNO");
 	      } ## end if ($trace_terminals)
-	      $recce->earleme_complete();
-	      my $last_html_token_of_marpa_token //= $token_number;
+	      if ($recce->earleme_complete() < 0) {
+	          die $thin_grammar->error();
+	      }
+	      my $last_html_token_of_marpa_token = $token_number;
 	      $token_number++;
 	      if (defined $last_html_token_of_marpa_token) {
 		  $latest_html_token = $last_html_token_of_marpa_token;
 	      }
-	      $self->{earleme_to_html_token_ix}->[$recce->current_earleme()] = $latest_html_token;
+	      my $current_earleme = $recce->current_earleme();
+	      die $thin_grammar->error() if not defined $current_earleme;
+	      $self->{earleme_to_html_token_ix}->[$current_earleme] = $latest_html_token;
 	      next RECCE_RESPONSE;
 	  } ## end if ( $read_result != $UNEXPECTED_TOKEN_ID )
 
@@ -938,33 +958,67 @@ $p->eof;
 	  my $highest_candidate_rank = 0;
 	  my $virtual_terminal_to_add;
 	  my $ruby_vector = $ruby_rank_by_id[$rejected_terminal_id];
-	  CANDIDATE: for my $candidate_id ( $recce->terminals_expected() ) {
+	  my @terminals_expected = $recce->terminals_expected();
+	  die $thin_grammar->error() if not defined $terminals_expected[0];
+	  CANDIDATE: for my $candidate_id ( @terminals_expected ) {
 	      my $this_candidate_rank = $ruby_vector->[$candidate_id];
+	      if ($trace_terminals) {
+		  say {$trace_fh} 'Considering candidate: ',
+		      $grammar->symbol_name($candidate_id),
+		      "; rank is $this_candidate_rank; highest rank so far is $highest_candidate_rank"
+		      or Carp::croak("Cannot print: $ERRNO");
+	      } ## end if ($trace_terminals)
 	      if ( $this_candidate_rank > $highest_candidate_rank ) {
-		  next CANDIDATE if $terminal_last_seen[$candidate_id] == $token_number;
-		  $highest_candidate_rank = $this_candidate_rank;
-		  $virtual_terminal_to_add = $candidate_id;
-	      }
-	  } ## end CANDIDATE: for my $candidate_id ( $recce->terminals_expected() )
+		  if ($trace_terminals) {
+		      say {$trace_fh} 'Considering candidate: ',
+			  $grammar->symbol_name($candidate_id),
+			  '; last seen at ', $terminal_last_seen[$candidate_id],
+			  "; current token number is $token_number"
+			  or Carp::croak("Cannot print: $ERRNO");
+		  } ## end if ($trace_terminals)
+		  next CANDIDATE
+		      if $terminal_last_seen[$candidate_id] == $token_number;
+		  if ($trace_terminals) {
+		      say {$trace_fh} 'Current best candidate: ',
+			  $grammar->symbol_name($candidate_id),
+			  or Carp::croak("Cannot print: $ERRNO");
+		  }
+            $highest_candidate_rank  = $this_candidate_rank;
+            $virtual_terminal_to_add = $candidate_id;
+        } ## end if ( $this_candidate_rank > $highest_candidate_rank )
+    } ## end CANDIDATE: for my $candidate_id ( $recce->terminals_expected() )
 
-	  if ( defined $virtual_terminal_to_add ) {
-	      $recce->ruby_slippers_set(0);
-	      $recce->alternative( $virtual_terminal_to_add, RUBY_SLIPPERS_TOKEN, 1 );
-	      $recce->ruby_slippers_set(1);
-	      $recce->earleme_complete();
+    if ( defined $virtual_terminal_to_add ) {
 
-	      # Only keep track of start tags.  We need to be able to add end
-	      # tags repeatedly.
-	      # Adding end tags cannot cause an infinite loop, because each
-	      # one ends an element and only a finite number of elements
-	      # can have been started.
-	      $terminal_last_seen[$virtual_terminal_to_add] = $token_number
-	         if $is_start_tag[$virtual_terminal_to_add];
+        if ($trace_terminals) {
+            say {$trace_fh} 'Adding Ruby Slippers token: ',
+                $grammar->symbol_name($virtual_terminal_to_add),
+                or Carp::croak("Cannot print: $ERRNO");
+        }
 
-	      $self->{earleme_to_html_token_ix}->[ $recce->current_earleme() ] =
-		  $latest_html_token;
-	      next RECCE_RESPONSE;
-	  } ## end if ( defined $virtual_terminal_to_add )
+        my $ruby_slippers_result = $recce->alternative( $virtual_terminal_to_add,
+            RUBY_SLIPPERS_TOKEN, 1 );
+        if ( $ruby_slippers_result != $NO_MARPA_ERROR ) {
+            die $thin_grammar->error();
+        }
+        if ($recce->earleme_complete() < 0) {
+            die $thin_grammar->error();
+	}
+
+        # Only keep track of start tags.  We need to be able to add end
+        # tags repeatedly.
+        # Adding end tags cannot cause an infinite loop, because each
+        # one ends an element and only a finite number of elements
+        # can have been started.
+        $terminal_last_seen[$virtual_terminal_to_add] = $token_number
+            if $is_start_tag[$virtual_terminal_to_add];
+
+        my $current_earleme = $recce->current_earleme();
+        die $thin_grammar->error() if not defined $current_earleme;
+        $self->{earleme_to_html_token_ix}->[$current_earleme] =
+            $latest_html_token;
+        next RECCE_RESPONSE;
+    } ## end if ( defined $virtual_terminal_to_add )
 
 	  # If we didn't find a token to add, add the
 	  # current physical token as CRUFT.
@@ -978,8 +1032,10 @@ $p->eof;
 	  # They are the real things, hacked up.
 	  $token->[0] = 'CRUFT';
 	  if ($trace_cruft) {
+	      my $current_earleme = $recce->current_earleme();
+	      die $thin_grammar->error() if not defined $current_earleme;
 	      my ( $line, $col ) =
-		  earleme_to_linecol( $self, $recce->current_earleme() );
+		  earleme_to_linecol( $self, $current_earleme );
 
 	      # HTML::Parser uses one-based line numbers,
 	      # but zero-based column numbers
@@ -994,6 +1050,7 @@ $p->eof;
 	  } ## end if ($trace_cruft)
 
       } ## end RECCE_RESPONSE: while (1)
+      $thin_grammar->throw_set(1);
 
       if ($trace_terminals) {
 	  say {$trace_fh} 'at end of tokens'
@@ -1023,12 +1080,14 @@ $p->eof;
 	  my ( $type, @step_data ) = $valuator->step();
 	  last STEP if not defined $type;
 	  if ( $type eq 'MARPA_STEP_TOKEN' ) {
-	      say STDERR join " ", $type, @step_data , $grammar->symbol_name($step_data[0])
+	      say {*STDERR} join q{ }, $type, @step_data , $grammar->symbol_name($step_data[0])
+            or Carp::croak("Cannot print: $ERRNO")
 		if $trace_values;
 	      my ( undef, $token_value, $arg_n ) = @step_data;
 	      if ( $token_value eq RUBY_SLIPPERS_TOKEN ) {
 		  $stack[$arg_n] = [ 'RUBY_SLIPPERS_TOKEN' ];
-		  say STDERR "Stack:\n", Data::Dumper::Dumper( \@stack )
+		  say {*STDERR} "Stack:\n", Data::Dumper::Dumper( \@stack )
+            or Carp::croak("Cannot print: $ERRNO")
 		     if $trace_values;
 		  next STEP;
 	      }
@@ -1044,12 +1103,14 @@ $p->eof;
 		  'PHYSICAL_TOKEN' => $start_html_token_ix + 1,
 		  $end_html_token_ix,
 	      ];
-	      say STDERR "Stack:\n", Data::Dumper::Dumper( \@stack )
+	      say {*STDERR} "Stack:\n", Data::Dumper::Dumper( \@stack )
+            or Carp::croak("Cannot print: $ERRNO")
 		if $trace_values;
 	      next STEP;
 	  } ## end if ( $type eq 'MARPA_STEP_TOKEN' )
 	  if ( $type eq 'MARPA_STEP_RULE' ) {
-	      say STDERR join " ", ( $type, @step_data )
+	      say {*STDERR} join q{ }, ( $type, @step_data )
+            or Carp::croak("Cannot print: $ERRNO")
 		 if $trace_values;
 	      my ( $rule_id, $arg_0, $arg_n ) = @step_data;
 
@@ -1109,14 +1170,14 @@ $p->eof;
 	      local $Marpa::R2::HTML::Internal::END_HTML_TOKEN_IX = $end_html_token_ix;
 
 	      my $handler_key =
-		  $rule_id . ';' . $Marpa::R2::HTML::Internal::CLASS;
+		  $rule_id . q{;} . $Marpa::R2::HTML::Internal::CLASS;
 
 	      my $handler = $memoized_handlers{$handler_key};
 
 	      $trace_handlers
 		  and $handler
-		  and say STDERR qq{Found memoized handler for rule $rule_id, class "},
-		  ( $class // q{*} ), qq{"};
+		  and say {*STDERR} qq{Found memoized handler for rule $rule_id, class "},
+		  ( $class // q{*} ), q{"};
 
 	      if ( not defined $handler ) {
 		  $handler = $memoized_handlers{$handler_key} =
@@ -1139,13 +1200,13 @@ $p->eof;
 		      $Marpa::R2::HTML::Internal::ARG_N )
 		  {
 		      my $tdesc_item = $Marpa::R2::HTML::Internal::STACK->[$stack_ix];
-		      my $type       = $tdesc_item->[0];
-		      next STACK_IX if not defined $type;
-		      if ( $type eq 'VALUES' ) {
+		      my $tdesc_type       = $tdesc_item->[0];
+		      next STACK_IX if not defined $tdesc_type;
+		      if ( $tdesc_type eq 'VALUES' ) {
 			  push @flat_tdesc_list, @{ $tdesc_item->[Marpa::R2::HTML::Internal::TDesc::VALUE] };
 			  next STACK_IX;
 		      }
-		      next STACK_IX if $type ne 'VALUED_SPAN';
+		      next STACK_IX if $tdesc_type ne 'VALUED_SPAN';
 		      push @flat_tdesc_list, $tdesc_item;
 		  } ## end STACK_IX: for my $stack_ix ( $Marpa::R2::HTML::Internal::ARG_0...)
 		  if ( scalar @flat_tdesc_list <= 1 ) {
@@ -1167,10 +1228,12 @@ $p->eof;
 		  ];
 	      } ## end COMPUTE_VALUE:
 
-	      if ($trace_values) {
-		  say STDERR "rule $rule_id: ", join " ", $grammar->rule($rule_id);
-		  say STDERR "Stack:\n", Data::Dumper::Dumper( \@stack );
-	      }
+    if ($trace_values) {
+        say {*STDERR} "rule $rule_id: ", join q{ }, $grammar->rule($rule_id)
+            or Carp::croak("Cannot print: $ERRNO");
+        say {*STDERR} "Stack:\n", Data::Dumper::Dumper( \@stack )
+            or Carp::croak("Cannot print: $ERRNO");
+    } ## end if ($trace_values)
 	      next STEP;
 	  } ## end if ( $type eq 'MARPA_STEP_RULE' )
 
@@ -1179,11 +1242,13 @@ $p->eof;
 	      my $symbol_name = $grammar->symbol_name($symbol_id);
 	      $stack[$arg_n] = ['ZERO_SPAN'];
 
-	      if ($trace_values) {
-		  say STDERR join " ", $type, @step_data,
-		      $grammar->symbol_name($symbol_id);
-		  say STDERR "Stack:\n", Data::Dumper::Dumper( \@stack );
-	      }
+    if ($trace_values) {
+        say {*STDERR} join q{ }, $type, @step_data,
+            $grammar->symbol_name($symbol_id)
+            or Carp::croak("Cannot print: $ERRNO");
+        say {*STDERR} "Stack:\n", Data::Dumper::Dumper( \@stack )
+            or Carp::croak("Cannot print: $ERRNO");
+    } ## end if ($trace_values)
 	      next STEP;
 	  } ## end if ( $type eq 'MARPA_STEP_NULLING_SYMBOL' )
 	  die "Unexpected step type: $type";
@@ -1211,7 +1276,7 @@ $p->eof;
 		  $result = [$result];
 		  last FIND_LITERALIZEABLE;
 	      }
-	      die "Internal: TOP result is not literalize-able";
+	      die 'Internal: TOP result is not literalize-able';
 	  } ## end FIND_LITERALIZEABLE:
 	  $result = range_and_values_to_literal( $self, 0, $#html_parser_tokens,
 	      $result );
