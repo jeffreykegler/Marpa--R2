@@ -399,13 +399,7 @@ if (@duplicated_elements) {
 }
 
 my @head_rubies = qw( S_html S_head );
-sub head_rubies {
-    my ($infix) = @_;
-    my @result = qw( S_html S_head );
-    push @result, @{$infix} if defined $infix;
-    push @result, '!non_final_end';
-    return \@result;
-}
+my @block_rubies = qw( S_html S_head S_body );
 sub block_rubies {
     my ($infix) = @_;
     my @result = qw( S_html S_head S_body);
@@ -417,7 +411,7 @@ sub inline_rubies {
     my ($infix) = @_;
     my @infix = qw(S_tbody S_tr S_td S_p);
     push @infix, @{$infix} if defined $infix;
-    return block_rubies(\@infix);
+    return [@block_rubies, @infix];
 }
 sub anywhere_rubies {
     my ($infix) = @_;
@@ -437,19 +431,19 @@ my %rubies = (
     CDATA                 => inline_rubies(),
     PCDATA                => inline_rubies(),
     '!non_element' => [],
-    '!start_tag'          => block_rubies(),
+    '!start_tag'          => \@block_rubies,
     '!inline_start_tag'   => inline_rubies(),
     '!head_start_tag'     => \@head_rubies,
-    '!end_tag'            => block_rubies(),
+    '!end_tag'            => \@block_rubies,
     '!inline_end_tag'   => inline_rubies(),
     '!head_end_tag'     => \@head_rubies,
-    S_area                => block_rubies( ['S_map'] ),
+    S_area                => [@block_rubies, 'S_map'],
     S_option              => inline_rubies( ['S_select'] ),
     S_optgroup            => inline_rubies( ['S_select'] ),
     S_param               => anywhere_rubies( ['S_object'] ),
-    S_li                  => [@{block_rubies()}, 'S_ul'],
-    S_dt                  => block_rubies( ['S_dl'] ),
-    S_dd                  => block_rubies( ['S_dl'] ),
+    S_li                  => [@block_rubies, qw( !non_final_end S_ul) ],
+    S_dt                  => [@block_rubies, 'S_dl'],
+    S_dd                  => [@block_rubies, 'S_dl'],
     S_caption             => table_rubies(),
     S_col                 => table_rubies(),
     S_colgroup            => table_rubies(),
