@@ -413,10 +413,6 @@ sub inline_rubies {
     push @infix, @{$infix} if defined $infix;
     return [@block_rubies, @infix];
 }
-sub anywhere_rubies {
-    my ($infix) = @_;
-    return block_rubies($infix);
-}
 sub table_rubies {
     my ($infix) = @_;
     my @result = @{block_rubies($infix)};
@@ -440,7 +436,7 @@ my %rubies = (
     S_area                => [@block_rubies, 'S_map'],
     S_option              => inline_rubies( ['S_select'] ),
     S_optgroup            => inline_rubies( ['S_select'] ),
-    S_param               => anywhere_rubies( ['S_object'] ),
+    S_param               => [@block_rubies, 'S_object'],
     S_li                  => [@block_rubies, qw( !non_final_end S_ul) ],
     S_dt                  => [@block_rubies, 'S_dl'],
     S_dd                  => [@block_rubies, 'S_dl'],
