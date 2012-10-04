@@ -506,8 +506,6 @@ sub parse {
 
     my %terminals =
         map { $_ => 1 } @Marpa::R2::HTML::Internal::CORE_TERMINALS;
-    my %optional_terminals =
-        %Marpa::R2::HTML::Internal::CORE_OPTIONAL_TERMINALS;
     my @html_parser_tokens = ();
     HTML_PARSER_TOKEN:
     for my $raw_token (@raw_tokens) {
@@ -609,9 +607,6 @@ sub parse {
                 $terminals{$end_tag} = 1;
             }
 
-            # Make each new optional terminal the highest ranking
-            $optional_terminals{$end_tag} //= keys %optional_terminals;
-
         } ## end if ( 0 == index $lhs, 'ELE_' )
     } ## end for my $rule (@rules)
 
@@ -654,109 +649,8 @@ sub parse {
             $terminals{$end_tag} = 1;
         }
 
-        # Make each new optional terminal the highest ranking
-        $optional_terminals{$end_tag} = keys %optional_terminals;
-
     } ## end ELEMENT: for my $tag ( keys %tags )
 
-    # The question is where to put cruft -- in the current element,
-    # or at a higher level.  As a first step, we set up a system of
-    # levels for specific elements, going from the lowest, where no
-    # cruft is allowed, to the highest, where everything is
-    # acceptable as cruft, if only because it has nowhere else to go.
-
-    # First step, set up the levels, using specific elements.
-    # Some of these elements will are stand-ins for large category.
-    # For example, the HR element stands in for those elements
-    # such as empty elements,
-    # which tolerate zero cruft, while SPAN stands in for
-    # inline elements and DIV stands in for the class of
-    # block-level elements
-
-    my %ok_as_cruft = ();
-    DECIDE_CRUFT_TREATMENT: {
-        my %level             = ();
-        my @elements_by_level = (
-            [qw( HR HEAD )],
-            [qw( SPAN OPTION )],
-            [qw( LI OPTGROUP DD DT )],
-            [qw( DIR MENU )],
-            [qw( DIV )],
-            [qw( UL OL DL )],
-            [qw( TH TD )],
-            [qw( TR )],
-            [qw( COL )],
-            [qw( CAPTION COLGROUP THEAD TFOOT TBODY )],
-            [qw( TABLE )],
-            [qw( BODY )],
-            [qw( HTML )],
-        );
-
-        # EOF comes after everything -- it is
-        # the highest level of all
-        $level{EOF} = scalar @elements_by_level;
-
-        # Assign levels to the end tags of the elements
-        # in the above table.
-        for my $level ( 0 .. $#elements_by_level ) {
-            for my $element ( @{ $elements_by_level[$level] } ) {
-                $level{ 'S_' . lc $element } = $level{ 'E_' . lc $element } =
-                    $level;
-            }
-        } ## end for my $level ( 0 .. $#elements_by_level )
-
-        my $no_cruft_allowed = $level{E_hr};
-        my $block_level      = $level{E_div};
-        my $inline_level     = $level{E_span};
-
-        # Now that we have set out the structure of levels
-        # fill it in for all the terminals we have yet to
-        # define.
-        TERMINAL:
-        for my $terminal ( grep { not defined $level{$_} }
-            ( @terminals, keys %optional_terminals ) )
-        {
-
-            # With the exception of EOF,
-            # only tags can have levels because only they really
-            # tell us anyting about "state" --
-            # whether we are awaiting something
-            # or are inside something.
-            if ( $terminal !~ /^[SE]_/xms ) {
-                $level{$terminal} = $no_cruft_allowed;
-                next TERMINAL;
-            }
-            my $element = substr $terminal, 2;
-
-            my $block_contents =
-                $Marpa::R2::HTML::Internal::IS_BLOCK_ELEMENT{$element};
-            if ( defined $block_contents ) {
-                $level{$terminal} =
-                      $block_contents eq 'empty'
-                    ? $no_cruft_allowed
-                    : $block_level;
-                next TERMINAL;
-            } ## end if ( defined $block_contents )
-
-            $level{$terminal} = $inline_level;
-
-        } ## end for my $terminal ( grep { not defined $level{$_} } (...))
-
-        EXPECTED_TERMINAL:
-        for my $expected_terminal ( keys %optional_terminals ) {
-
-            # Regardless of levels, allow no cruft before a start tag.
-            # Start whatever it is, then deal with the cruft.
-            next EXPECTED_TERMINAL if $expected_terminal =~ /^S_/xms;
-
-            # For end tags, use the levels
-            TERMINAL: for my $actual_terminal (@terminals) {
-                $ok_as_cruft{$expected_terminal}{$actual_terminal} =
-                    $level{$actual_terminal} < $level{$expected_terminal};
-            }
-        } ## end EXPECTED_TERMINAL: for my $expected_terminal ( keys %optional_terminals)
-
-    } ## end DECIDE_CRUFT_TREATMENT:
 
     my $grammar = Marpa::R2::Grammar->new(
         {   rules          => \@rules,
