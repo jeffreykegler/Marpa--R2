@@ -14,7 +14,7 @@
 # http://www.gnu.org/licenses/.
 
 # This file was generated automatically by mk_core_grammar.pl
-# The date of generation was Thu Oct  4 19:19:04 2012
+# The date of generation was Fri Oct  5 13:53:10 2012
 
 package Marpa::R2::HTML::Internal;
 
@@ -225,6 +225,12 @@ $CORE_RULES = [
                 },
                 {
                   'rhs' => [
+                             'anywhere_element'
+                           ],
+                  'lhs' => 'block_item'
+                },
+                {
+                  'rhs' => [
                              'ELE_table'
                            ],
                   'lhs' => 'block_element'
@@ -285,9 +291,9 @@ $CORE_RULES = [
                 },
                 {
                   'rhs' => [
-                             'anywhere_element'
+                             'ELE_textarea'
                            ],
-                  'lhs' => 'head_item'
+                  'lhs' => 'anywhere_element'
                 },
                 {
                   'rhs' => [
@@ -298,6 +304,12 @@ $CORE_RULES = [
                 {
                   'rhs' => [
                              'head_element'
+                           ],
+                  'lhs' => 'head_item'
+                },
+                {
+                  'rhs' => [
+                             'anywhere_element'
                            ],
                   'lhs' => 'head_item'
                 },
@@ -582,6 +594,15 @@ $CORE_RULES = [
                            ],
                   'lhs' => 'ELE_style',
                   'action' => 'ELE_style'
+                },
+                {
+                  'rhs' => [
+                             'S_textarea',
+                             'cdata_flow',
+                             'E_textarea'
+                           ],
+                  'lhs' => 'ELE_textarea',
+                  'action' => 'ELE_textarea'
                 },
                 {
                   'rhs' => [
@@ -885,6 +906,12 @@ $CORE_RULES = [
                 },
                 {
                   'rhs' => [
+                             'SGML_item'
+                           ],
+                  'lhs' => 'EI_select'
+                },
+                {
+                  'rhs' => [
                              'ELE_optgroup'
                            ],
                   'lhs' => 'EI_select'
@@ -1121,26 +1148,28 @@ $CORE_RULES = [
                 }
               ];
 $IS_BLOCK_ELEMENT = {
-                      'h1' => 'inline_flow',
-                      'blockquote' => 'mixed_flow',
+                      'xmp' => 'cdata_flow',
                       'form' => 'mixed_flow',
                       'pre' => 'inline_flow',
-                      'h4' => 'inline_flow',
                       'h5' => 'inline_flow',
-                      'h2' => 'inline_flow',
                       'center' => 'mixed_flow',
                       'noframes' => 'mixed_flow',
-                      'hr' => 'empty',
-                      'fieldset' => 'mixed_flow',
+                      'plaintext' => 'cdata_flow',
                       'h6' => 'inline_flow',
+                      'address' => 'inline_flow',
+                      'h1' => 'inline_flow',
+                      'blockquote' => 'mixed_flow',
+                      'h4' => 'inline_flow',
+                      'h2' => 'inline_flow',
+                      'fieldset' => 'mixed_flow',
+                      'hr' => 'empty',
                       'h3' => 'inline_flow',
-                      'noscript' => 'mixed_flow',
-                      'address' => 'inline_flow'
+                      'noscript' => 'mixed_flow'
                     };
 $IS_INLINE_ELEMENT = {
                        'embed' => 'inline_flow',
                        'a' => 'inline_flow',
-                       'input' => 'empty',
+                       'input' => 'cdata_flow',
                        'strike' => 'inline_flow',
                        'rbc' => 'inline_flow',
                        'keygen' => 'inline_flow',
@@ -1186,8 +1215,7 @@ $IS_INLINE_ELEMENT = {
                        'big' => 'inline_flow',
                        'sub' => 'inline_flow',
                        'meter' => 'inline_flow',
-                       'button' => 'inline_flow',
-                       'textarea' => 'pcdata_flow'
+                       'button' => 'inline_flow'
                      };
 $IS_HEAD_ELEMENT = {
                      'base' => 'core',
@@ -1199,12 +1227,13 @@ $IS_HEAD_ELEMENT = {
                    };
 $IS_ANYWHERE_ELEMENT = {
                          'isindex' => 'core',
-                         'script' => 'core'
+                         'script' => 'core',
+                         'textarea' => 'core'
                        };
 $IS_INLINE_ELEMENT = {
                        'embed' => 'inline_flow',
                        'strike' => 'inline_flow',
-                       'input' => 'empty',
+                       'input' => 'cdata_flow',
                        'a' => 'inline_flow',
                        'rbc' => 'inline_flow',
                        'keygen' => 'inline_flow',
@@ -1255,9 +1284,10 @@ $IS_INLINE_ELEMENT = {
                        'big' => 'inline_flow',
                        'meter' => 'inline_flow',
                        'button' => 'inline_flow',
-                       'textarea' => 'pcdata_flow'
+                       'textarea' => 'core'
                      };
 $IS_BLOCK_ELEMENT = {
+                      'xmp' => 'cdata_flow',
                       'div' => 'core',
                       'table' => 'core',
                       'pre' => 'inline_flow',
@@ -1266,6 +1296,7 @@ $IS_BLOCK_ELEMENT = {
                       'noframes' => 'mixed_flow',
                       'dir' => 'core',
                       'center' => 'mixed_flow',
+                      'plaintext' => 'cdata_flow',
                       'ol' => 'core',
                       'h6' => 'inline_flow',
                       'address' => 'inline_flow',

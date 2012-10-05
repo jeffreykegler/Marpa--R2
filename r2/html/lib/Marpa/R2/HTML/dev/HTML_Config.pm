@@ -142,7 +142,7 @@ ELE_optgroup contains ELE_option SGML_item
 ELE_p is inline_flow
 ELE_param is empty
 ELE_script is cdata_flow
-ELE_select contains ELE_optgroup ELE_option
+ELE_select contains SGML_item ELE_optgroup ELE_option
 ELE_span is inline_flow
 ELE_style is cdata_flow
 ELE_table contains ELE_caption ELE_col ELE_colgroup
