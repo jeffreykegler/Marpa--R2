@@ -189,9 +189,9 @@ sub add_handlers {
     HANDLER_SPEC: for my $specifier ( keys %{$handler_specs} ) {
         my ( $element, $class, $pseudoclass );
         my $action = $handler_specs->{$specifier};
-        ( $element, $class ) = ( $specifier =~ /\A ([^.]*) [.] (.*) \z/xms )
+        ( $element, $class ) = ( $specifier =~ /\A ([^.]*) [.] (.*) \z/oxms )
             or ( $element, $pseudoclass ) =
-            ( $specifier =~ /\A ([^:]*) [:] (.*) \z/xms )
+            ( $specifier =~ /\A ([^:]*) [:] (.*) \z/oxms )
             or $element = $specifier;
         if ($pseudoclass
             and not $pseudoclass ~~ [
