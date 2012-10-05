@@ -525,14 +525,27 @@ sub parse {
             @{$raw_token};
 
         PROCESS_BY_TYPE: {
+            if ($is_cdata) {
+                $raw_token->[Marpa::R2::HTML::Internal::Token::TOKEN_NAME] =
+                    'CDATA';
+                last PROCESS_BY_TYPE;
+            }
             if ( $token_type eq 'T' ) {
+
+                # White space as defined in HTML 4.01
+                # space (x20); ASCII tab (x09); ASCII form feed (x0C;); Zero-width space (x200B)
+                # and the two characters which appear in line breaks:
+                # carriage return (x0D) and line feed (x0A)
+                # I avoid the Perl character codes because I do NOT want
+                # localization
+
                 if (substr(
                         ${$document}, $offset, ( $offset_end - $offset )
-                    ) =~ / \S /xms
+                    ) =~ / [^\x09\x0A\x0C\x0D\x20\x{200B}] /oxms
                     )
                 {
                     $raw_token->[Marpa::R2::HTML::Internal::Token::TOKEN_NAME]
-                        = $is_cdata ? 'CDATA' : 'PCDATA';
+                        = 'PCDATA';
                 } ## end if ( substr( ${$document}, $offset, ( $offset_end - ...)))
                 last PROCESS_BY_TYPE;
             } ## end if ( $token_type eq 'T' )
