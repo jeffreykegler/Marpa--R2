@@ -42,18 +42,21 @@ no_index:
     - Marpa::R2::Internal
     - Marpa::R2::Thin::Trace
 provides:
+  HTML_Config:
+    file: html/lib/Marpa/R2/HTML/dev/HTML_Config.pm
+    version: 0
   Marpa::R2:
     file: lib/Marpa/R2.pm
-    version: 2.021_003
+    version: 2.021_004
   Marpa::R2::Grammar:
     file: lib/Marpa/R2/Grammar.pm
-    version: 2.021_003
+    version: 2.021_004
   Marpa::R2::HTML:
     file: html/lib/Marpa/R2/HTML.pm
-    version: 2.021_003
+    version: 2.021_004
   Marpa::R2::HTML::Callback:
     file: html/lib/Marpa/R2/HTML/Callback.pm
-    version: 2.021_003
+    version: 2.021_004
   Marpa::R2::HTML::Internal:
     file: html/lib/Marpa/R2/HTML.pm
     version: 0
@@ -62,7 +65,7 @@ provides:
     version: 0
   Marpa::R2::Internal:
     file: lib/Marpa/R2/Internal.pm
-    version: 2.021_003
+    version: 2.021_004
   Marpa::R2::Internal::Grammar:
     file: lib/Marpa/R2/Grammar.pm
     version: 0
@@ -74,13 +77,13 @@ provides:
     version: 0
   Marpa::R2::Recognizer:
     file: lib/Marpa/R2/Recognizer.pm
-    version: 2.021_003
+    version: 2.021_004
   Marpa::R2::Thin::Trace:
     file: lib/Marpa/R2/Thin/Trace.pm
-    version: 2.021_003
+    version: 2.021_004
   Marpa::R2::Value:
     file: lib/Marpa/R2/Value.pm
-    version: 2.021_003
+    version: 2.021_004
 recommends:
   PPI: 1.206
 requires:
@@ -92,4 +95,4 @@ requires:
   Scalar::Util: 1.21
 resources:
   repository: git://github.com/jeffreykegler/Marpa-R2.git
-version: 2.021_003
+version: 2.021_004
