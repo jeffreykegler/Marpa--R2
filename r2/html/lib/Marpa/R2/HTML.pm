@@ -826,11 +826,11 @@ sub parse {
     RECCE_RESPONSE: while ( $token_number < $token_count ) {
         my $token = $html_parser_tokens[$token_number];
 
-        my $marpa_symbol_id =
+        my $attempted_symbol_id =
             $symbol_id_by_name{
             $token->[Marpa::R2::HTML::Internal::Token::TOKEN_NAME] };
         my $read_result =
-            $recce->alternative( $marpa_symbol_id, PHYSICAL_TOKEN, 1 );
+            $recce->alternative( $attempted_symbol_id, PHYSICAL_TOKEN, 1 );
         if ( $read_result != $UNEXPECTED_TOKEN_ID ) {
             if ( $read_result != $NO_MARPA_ERROR ) {
                 die $thin_grammar->error();
@@ -855,18 +855,15 @@ sub parse {
             next RECCE_RESPONSE;
         } ## end if ( $read_result != $UNEXPECTED_TOKEN_ID )
 
-        my $rejected_terminal_name = $token->[0];
-        my $rejected_terminal_id =
-            $symbol_id_by_name{$rejected_terminal_name};
         if ($trace_terminals) {
             say {$trace_fh} 'Literal Token not accepted: ',
-                $rejected_terminal_name
+                $symbol_name_by_id[$attempted_symbol_id]
                 or Carp::croak("Cannot print: $ERRNO");
         }
 
         my $highest_candidate_rank = 0;
         my $virtual_terminal_to_add;
-        my $ruby_vector        = $ruby_rank_by_id[$rejected_terminal_id];
+        my $ruby_vector        = $ruby_rank_by_id[$attempted_symbol_id];
         my @terminals_expected = $recce->terminals_expected();
         die $thin_grammar->error() if not defined $terminals_expected[0];
         CANDIDATE: for my $candidate_id (@terminals_expected) {
@@ -935,7 +932,7 @@ sub parse {
 
         if ($trace_terminals) {
             say {$trace_fh} 'Adding rejected token as cruft: ',
-                $rejected_terminal_name
+                $symbol_name_by_id[$attempted_symbol_id]
                 or Carp::croak("Cannot print: $ERRNO");
         }
 
