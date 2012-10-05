@@ -7,55 +7,75 @@
   <body>
     <!-- html_fmt: Preceeding start tag is replacement for a missing one -->
     <p>
-      I am before the outer pre
+      I am before the first pre
       <!-- html_fmt: Following end tag is replacement for a missing one -->
-    </p><!--
-        html_fmt: Inside following <pre>, an end tag is missing: <p>
-      --><!--
-        html_fmt: Inside the following <pre>, there is this cruft:
-</a>
-      --><!--
-        html_fmt: Inside following <pre>, an end tag is missing: <p>
-      --><!--
-        html_fmt: Inside following <pre>, a start tag is missing: <tbody>
-      --><!--
-        html_fmt: Inside following <pre>, a start tag is missing: <tr>
-      --><!--
-        html_fmt: Inside following <pre>, a start tag is missing: <td>
-      --><!--
-        html_fmt: Inside following <pre>, an end tag is missing: <td>
-      --><!--
-        html_fmt: Inside following <pre>, an end tag is missing: <tr>
-      --><!--
-        html_fmt: Inside following <pre>, an end tag is missing: <tbody>
+    </p></pre><!--
+        html_fmt: An end tag was added to close the following <pre>: </pre>
       --><pre>
-    <p>
  Now   is     the     time
  for   all    good    birds
  to    fly    to
  the   edge   of      the
  world and    take    a
- look  over   the     edge</p>
-<p>First unterminated graf
-<p>I am flush with the left margin</p>
-<p>I am before the inner pre</p>
-<pre>
- A pre inside a pre
-<p>Second unterminated graf
-<!-- The following tag should be low-level cruft -->
-</a>
-<p>A terminated graf after an unterminated one</p>
-Flush with the left margin
-<table>Inside the pre within a pre,
-a very poorly formed table</table>
-</pre>
-</pre>
+ look  over   the     edge</pre><!--
+        html_fmt: Next line is cruft
+      --></p>
     <p>
-      I am after the outer pre
+      An unterminated graf
+      <!-- html_fmt: Following end tag is replacement for a missing one -->
+    </p><p>
+      A terminated paragraph</p>
+    <p>
+      I am before the second pre</p>
+    </pre><!--
+        html_fmt: An end tag was added to close the following <pre>: </pre>
+      --><pre>
+ The second pre
+</pre><p>
+      Unterminated graf
+      <!-- The following a element end tag should be low-level cruft,
+     forcing the end of the paragraph -->
+      <!-- html_fmt: Following end tag is replacement for a missing one -->
+    </p><!--
+        html_fmt: Next line is cruft
+      --></a>
+    <p>
+      A terminated graf
+    </p><p>
+      <!-- html_fmt: Preceeding start tag is replacement for a missing one -->
+      A graf without start or end tags
+      <!-- html_fmt: Following end tag is replacement for a missing one -->
+    </p><table>
+      <tbody>
+        <!-- html_fmt: Preceeding start tag is replacement for a missing one -->
+        <tr>
+          <!-- html_fmt: Preceeding start tag is replacement for a missing one -->
+          <td>
+            <!-- html_fmt: Preceeding start tag is replacement for a missing one -->
+            A very poorly formed table<!--
+                html_fmt: Following end tag is replacement for a missing one
+              --></td><!--
+              html_fmt: Following end tag is replacement for a missing one
+            --></tr><!--
+            html_fmt: Following end tag is replacement for a missing one
+          --></tbody></table>
+    <!-- html_fmt: Next line is cruft -->
+    </pre><p>
+      <!-- html_fmt: Preceeding start tag is replacement for a missing one -->
+      The pre end tags to either side of this
+      will be treated as cruft
+      <!-- html_fmt: Following end tag is replacement for a missing one -->
+    </p><!--
+        html_fmt: Next line is cruft
+      --></pre>
+    <p>
+      I am at the end
       <!--
     </p>
     <p>
-    You should not see me ...
+    This is a comment
+    In a browser,
+    you should not see me ...
     </p>
 </pre>
 <p> ... or me ...
