@@ -51,7 +51,6 @@ my %pod_files = ();
     LINE: for my $pod_file (@pod_files) {
         $pod_file =~ s/ \s* [#] .* \z //xms;
         next LINE if not $pod_file =~ / [.] pod \z /xms;
-        next LINE if $pod_file =~ m{ html [/] etc [/] drafts [/] }xms;
         next LINE if $pod_file =~ m{ libmarpa [/] dev [/] old_pod [/] }xms;
         if ( ( my $destfile = $pod_file ) =~ s{ \A pod [/] }{lib/Marpa/R2/}xms ) {
             $pod_files{$pod_file} = $destfile;

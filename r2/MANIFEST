@@ -51,9 +51,12 @@ html/lib/Marpa/R2/HTML/.gitignore
 html/lib/Marpa/R2/HTML/Callback.pm
 html/lib/Marpa/R2/HTML/Core_Grammar.pm
 html/lib/Marpa/R2/HTML/dev/Core_Grammar.pm
+html/lib/Marpa/R2/HTML/dev/HTML_Config.pm
 html/lib/Marpa/R2/HTML/dev/Makefile
 html/lib/Marpa/R2/HTML/dev/mk_core_grammar.pl
 html/pod/HTML.pod
+html/pod/html_fmt.pod
+html/pod/html_score.pod
 html/script/marpa_r2_html_fmt
 html/script/marpa_r2_html_score
 html/t/00-load.t

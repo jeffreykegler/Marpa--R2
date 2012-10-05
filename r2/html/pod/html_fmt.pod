@@ -1,0 +1,237 @@
+#!/usr/bin/perl
+# Copyright 2012 Jeffrey Kegler
+# This file is part of Marpa::R2.  Marpa::R2 is free software: you can
+# redistribute it and/or modify it under the terms of the GNU Lesser
+# General Public License as published by the Free Software Foundation,
+# either version 3 of the License, or (at your option) any later version.
+#
+# Marpa::R2 is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser
+# General Public License along with Marpa::R2.  If not, see
+# http://www.gnu.org/licenses/.
+
+=head1 NAME
+
+  html_fmt - Reformat HTML, indented according to structure
+
+=head1 Synopsis
+
+    html_fmt [--avoid-whitespace=[yes|comment]]
+      [--ws-ok-before-end-tag|--no-ws-ok-before-end-tag] [uri|file]
+
+=head1 Description
+
+Writes its input to C<STDOUT>,
+reformatted and
+indented according to the HTML structure.
+With no arguments,
+C<html_fmt> looks for its input
+on C<STDIN>.
+If it has an argument that looks like a URI,
+C<html_fmt> treats that argument
+as a URI.
+If it has an argument that does not
+look like a URI,
+C<html_fmt> uses that argument
+as the name
+of its input file.
+C<html_fmt> considers its argument to
+"look like a URI",
+if it
+starts with alphanumerics followed by a colon.
+
+When reformatting and indenting,
+C<html_fmt> takes measures
+to avoid introducing
+whitespace that will affect the way in which the HTML
+displays.
+The standards differ on whitespace treatment;
+when the standards agree
+they often allow considerable
+latitude to the browsers;
+and specific implementions will
+exploit the allowed latitude in different ways,
+or exceed it.
+All of which is to say that
+C<html_fmt>'s attempts to avoid introducing
+whitespace are not always successful.
+
+C<html_fmt> supplies missing start and end tags.
+If C<html_fmt> cannot find required start and end tags,
+it supplies them.
+C<html_fmt>'s grammar is very liberal in its interpretation
+of what is valid HTML.
+Finally, if this is not sufficient to turn the input
+into valid HTML,
+C<html_fmt>
+will treat problem sections of the input
+as noise or "cruft",
+ignoring them in determining
+the structure of the document.
+C<html_fmt> never rejects its input,
+whatever its contents.
+
+When
+C<html_fmt> adds
+a missing start tag,
+it follows the new start tag with a comment.
+When
+C<html_fmt> adds
+a missing end tag,
+it preceeds the new end tag with a comment.
+When C<html_fmt> classifies characters
+as "cruft",
+it adds a comment to that effect before the "cruft".
+
+C<pre> and C<script>
+elements receive special treatment.
+The contents of
+C<pre> and C<script> elements are not reformatted.
+When missing tags or cruft occur inside a C<pre> element,
+the comments to that effect are placed
+before the C<< <pre> >> start tag.
+The contents of C<script> elements are not
+examined.
+
+=head1 Options
+
+No single set of reformatting choices is anywhere
+near adequate to the variety of standards,
+renderers and application requirements out there.
+Ideally,
+C<html_fmt> would have many options customizing its behavior.
+As of this writing, there are only two.
+
+=head2 avoid-whitespace
+
+The C<--avoid-whitespace> option
+may take one of two values:
+C<yes> and C<comment>.
+If the value is C<yes>,
+C<html_fmt> does not try to add indentation
+in whitespace-sensitive places.
+This avoids clutter but,
+because of the missed indentation,
+the structure of the 
+document becomes harder to follow.
+C<yes> is the default value.
+
+If the value is C<comment>,
+HTML (SGML) comments are used to achieve proper
+indentation without introducing whitespace.
+This works, but does get a bit cluttered.
+
+=head2 ws-ok-before-end-tag
+
+The C<--ws-ok-before-end-tag> option is a Boolean.
+If set, C<html_fmt> will add whitespace before an end tag when
+that is useful.
+If the SGML standards
+are adhered to, the added whitespace will not
+be rendered.
+However, the HTML standards, while they allow SGML-adherent behavior
+for whitespace before end tags,
+do not require it.
+In practice,
+many browsers will render whitespace found before
+end tags.
+
+If C<--ws-ok-before-end-tag> is false,
+C<html_fmt> will not add whitespace before
+end tags.
+C<--ws-ok-before-end-tag> is false by default.
+This is always safe,
+in the sense that it will not change
+what is there to be rendered.
+But it limits the ability of
+C<html_fmt> to make its output readable.
+
+=head1 Example
+
+Given this input:
+
+    <title>Test page<tr>x<head attr="I am cruft"><p>Final graf
+
+to this command:
+
+    html_fmt --avoid-whitespace=comment --ws-ok-before-end-tag
+
+the output is
+
+  <html>
+    <!-- html_fmt: Preceeding start tag is replacement for a missing one -->
+    <head>
+      <!-- html_fmt: Preceeding start tag is replacement for a missing one -->
+      <title>
+	Test page
+	<!-- html_fmt: Following end tag is replacement for a missing one -->
+      </title>
+      <!-- html_fmt: Following end tag is replacement for a missing one -->
+    </head><!--
+      html_fmt: this comment is to avoid introducing whitespace
+    --><body>
+      <!-- html_fmt: Preceeding start tag is replacement for a missing one -->
+      <table>
+	<!-- html_fmt: Preceeding start tag is replacement for a missing one -->
+	<tbody>
+	  <!-- html_fmt: Preceeding start tag is replacement for a missing one -->
+	  <tr>
+	    <td>
+	      <!-- html_fmt: Preceeding start tag is replacement for a missing one -->
+	      x<!--
+		html_fmt: this comment is to avoid introducing whitespace
+	      --><!-- html_fmt: Next line is cruft --><!--
+		html_fmt: this comment is to avoid introducing whitespace
+	      --><head attr="I am cruft"><!--
+		html_fmt: this comment is to avoid introducing whitespace
+	      --><p>
+		Final graf
+		<!-- html_fmt: Following end tag is replacement for a missing one -->
+	      </p>
+	      <!-- html_fmt: Following end tag is replacement for a missing one -->
+	    </td>
+	    <!-- html_fmt: Following end tag is replacement for a missing one -->
+	  </tr>
+	  <!-- html_fmt: Following end tag is replacement for a missing one -->
+	</tbody>
+	<!-- html_fmt: Following end tag is replacement for a missing one -->
+      </table>
+      <!-- html_fmt: Following end tag is replacement for a missing one -->
+    </body>
+    <!-- html_fmt: Following end tag is replacement for a missing one -->
+  </html>
+
+=head1 Acknowledgements
+
+The starting template for this code was
+L<HTML::TokeParser|HTML::TokeParser>, by Gisle Aas.
+
+=head1 Copyright and License
+
+=for Marpa::R2::Display
+ignore: 1
+
+  Copyright 2012 Jeffrey Kegler
+  This file is part of Marpa::R2.  Marpa::R2 is free software: you can
+  redistribute it and/or modify it under the terms of the GNU Lesser
+  General Public License as published by the Free Software Foundation,
+  either version 3 of the License, or (at your option) any later version.
+
+  Marpa::R2 is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser
+  General Public License along with Marpa::R2.  If not, see
+  http://www.gnu.org/licenses/.
+
+=for Marpa::R2::Display::End
+
+=cut
+
+=cut

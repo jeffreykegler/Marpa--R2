@@ -1,0 +1,145 @@
+#!/usr/bin/perl
+# Copyright 2012 Jeffrey Kegler
+# This file is part of Marpa::R2.  Marpa::R2 is free software: you can
+# redistribute it and/or modify it under the terms of the GNU Lesser
+# General Public License as published by the Free Software Foundation,
+# either version 3 of the License, or (at your option) any later version.
+#
+# Marpa::R2 is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser
+# General Public License along with Marpa::R2.  If not, see
+# http://www.gnu.org/licenses/.
+
+=head1 NAME
+
+C<html_score> - Show complexity metric and other stats for web page
+
+=head1 SYNOPSIS
+
+    html_score [--html] [uri|file]
+
+=head1 EXAMPLES
+
+    html_score http://perl.org
+
+    html_score --html http://perl6.org
+
+=head1 DESCRIPTION
+
+Given a URI or a file name,
+treats its referent as HTML
+and prints a complexity metric,
+the maximum element depth, and per-element statistics.
+The per-element statistics appear in rows, one per tag name.
+For each tag name, its row contains:
+
+=over 4
+
+=item *
+The maximum nesting depth of elements with
+that tag name.
+This is per-tag-name nesting depth,
+and does not take
+into account nesting within other elements with
+other tag names.
+
+=item *
+A count of the elements with that tag name in the document.
+
+=item *
+The total number of characters in elements with that tag name.
+Characters in nested elements are counted multiple times.
+For example, if a page contains a table within a table,
+characters in the inner table will be counted twice.
+
+=item *
+The average size of elements with this tag name, in characters.
+
+=back
+
+The argument to L<html_score> can be either a URI or a file
+name.  If it starts with alphanumerics followed by a colon, it is treated
+as a URI.  Otherwise it is treated as file name.
+If the C<--html> option is specified, the output is written
+as an HTML table.
+
+The complexity metric is the average depth (or nesting level), in elements, of a character,
+divided by the logarithm of the length of the HTML.
+Whitespace and comments are ignored in calculating the complexity metric.
+The division by the logarithm of the HTML length is based on the idea that,
+all else being equal,
+it is reasonable for the nesting to increase logarithmically as
+a web page grows in length.
+
+=head1 SAMPLE OUTPUT
+
+Here is the first part of the output for C<http://perl.org>.
+
+    http://perl.org
+    Complexity Score = 0.873
+    Maximum Depth = 12
+                  Maximum   Number of  Size in      Average
+       Element    Nesting   Elements  Characters     Size  
+    a                    1         56       3533         63
+    body                 1          1       7615       7615
+    div                  5         30      24695        823
+    em                   1          1         13         13
+    h1                   1          1         37         37
+    h4                   1         11        559         50
+
+=head1 INTERPRETING THE COMPLEXITY METRIC
+
+With caution,
+the complexity metric can be used as a self-assessment
+of website quality.
+Well designed websites often have low numbers,
+particularly if fast loading is an important goal.
+But high values of the complexity metric do not necessarily mean low quality.
+Everything depends on what the mission is, and how well
+complexity is being used to serve the site's mission.
+
+=head1 PURPOSE
+
+This program is a demo of a demo.
+It purpose is to show how easy it is to write applications which look
+at the structure of web pages using L<Marpa::R2::HTML>.
+And the purpose of L<Marpa::R2::HTML>
+is to demonstrate the power of its parse engine,
+L<Marpa::R2>.
+L<Marpa::R2::HTML> was written in a few days,
+and its logic 
+is a straightforward,
+natural expression of the structure of HTML.
+
+=head1 ACKNOWLEDGEMENTS
+
+The starting template for this code was
+L<HTML::TokeParser>, by Gisle Aas.
+
+=head1 Copyright and License
+
+=for Marpa::R2::Display
+ignore: 1
+
+  Copyright 2012 Jeffrey Kegler
+  This file is part of Marpa::R2.  Marpa::R2 is free software: you can
+  redistribute it and/or modify it under the terms of the GNU Lesser
+  General Public License as published by the Free Software Foundation,
+  either version 3 of the License, or (at your option) any later version.
+
+  Marpa::R2 is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser
+  General Public License along with Marpa::R2.  If not, see
+  http://www.gnu.org/licenses/.
+
+=for Marpa::R2::Display::End
+
+=cut
