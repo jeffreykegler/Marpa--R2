@@ -466,7 +466,7 @@ sub symbol_names_by_rule_id {
     push @symbol_ids,
         map { $grammar->rule_rhs( $rule_id, $_ ) } ( 0 .. $rule_length - 1 );
     return map { $symbol_name_by_id->[$_] } @symbol_ids;
-} ## end sub rule_symbol_name
+} ## end sub symbol_names_by_rule_id
 
 sub parse {
     my ( $self, $document_ref ) = @_;
@@ -663,7 +663,6 @@ sub parse {
 
     } ## end ELEMENT: for my $tag ( keys %tags )
 
-
     my %symbol_id_by_name = ();
     $self->{symbol_id_by_name} = \%symbol_id_by_name;
     my @symbol_name_by_id = ();
@@ -672,26 +671,31 @@ sub parse {
     $self->{action_by_rule_id} = \@action_by_rule_id;
     my $thin_grammar = Marpa::R2::Thin::G->new( { if => 1 } );
     RULE: for my $rule (@rules) {
-        my $lhs = $rule->{lhs};
-        my $rhs = $rule->{rhs};
-        my $min = $rule->{min};
+        my $lhs    = $rule->{lhs};
+        my $rhs    = $rule->{rhs};
+        my $min    = $rule->{min};
         my $action = $rule->{action};
-	for my $symbol_name (grep { not defined $symbol_id_by_name{$_} } ($lhs, @{$rhs})) {
-	  my $symbol_id = $thin_grammar->symbol_new();
-	  $symbol_name_by_id[$symbol_id] = $symbol_name;
-	  $symbol_id_by_name{$symbol_name} = $symbol_id;
-	}
-	my $lhs_id = $symbol_id_by_name{$lhs};
-	my @rhs_ids = map { $symbol_id_by_name{$_} } @{$rhs};
-	my $rule_id;
-	if (defined $min) {
-	    $rule_id = $thin_grammar->sequence_new($lhs_id, $rhs_ids[0], { min => $min });
-	} else {
-	  $rule_id = $thin_grammar->rule_new($lhs_id, \@rhs_ids);
-	}
-	$action_by_rule_id[$rule_id] = $action;
-    }
-    $thin_grammar->start_symbol_set($symbol_id_by_name{'document'});
+        for my $symbol_name ( grep { not defined $symbol_id_by_name{$_} }
+            ( $lhs, @{$rhs} ) )
+        {
+            my $symbol_id = $thin_grammar->symbol_new();
+            $symbol_name_by_id[$symbol_id] = $symbol_name;
+            $symbol_id_by_name{$symbol_name} = $symbol_id;
+        } ## end for my $symbol_name ( grep { not defined $symbol_id_by_name...})
+        my $lhs_id = $symbol_id_by_name{$lhs};
+        my @rhs_ids = map { $symbol_id_by_name{$_} } @{$rhs};
+        my $rule_id;
+        if ( defined $min ) {
+            $rule_id =
+                $thin_grammar->sequence_new( $lhs_id, $rhs_ids[0],
+                { min => $min } );
+        }
+        else {
+            $rule_id = $thin_grammar->rule_new( $lhs_id, \@rhs_ids );
+        }
+        $action_by_rule_id[$rule_id] = $action;
+    } ## end RULE: for my $rule (@rules)
+    $thin_grammar->start_symbol_set( $symbol_id_by_name{'document'} );
     $thin_grammar->precompute();
 
     # Memoize this -- we will use it a lot
@@ -796,7 +800,7 @@ sub parse {
     my $recce = Marpa::R2::Thin::R->new($thin_grammar);
     $recce->start_input();
 
-    $self->{grammar}            = $thin_grammar;
+    $self->{grammar}                  = $thin_grammar;
     $self->{recce}                    = $recce;
     $self->{tokens}                   = \@html_parser_tokens;
     $self->{earleme_to_html_token_ix} = [-1];
@@ -827,8 +831,8 @@ sub parse {
         my $token = $html_parser_tokens[$token_number];
 
         my $attempted_symbol_id =
-            $symbol_id_by_name{
-            $token->[Marpa::R2::HTML::Internal::Token::TOKEN_NAME] };
+            $symbol_id_by_name{ $token
+                ->[Marpa::R2::HTML::Internal::Token::TOKEN_NAME] };
         my $read_result =
             $recce->alternative( $attempted_symbol_id, PHYSICAL_TOKEN, 1 );
         if ( $read_result != $UNEXPECTED_TOKEN_ID ) {
@@ -877,7 +881,7 @@ sub parse {
             if ( $this_candidate_rank > $highest_candidate_rank ) {
                 if ($trace_terminals) {
                     say {$trace_fh} 'Considering candidate: ',
-                    $symbol_name_by_id[$candidate_id],
+                        $symbol_name_by_id[$candidate_id],
                         '; last seen at ', $terminal_last_seen[$candidate_id],
                         "; current token number is $token_number"
                         or Carp::croak("Cannot print: $ERRNO");
@@ -886,7 +890,7 @@ sub parse {
                     if $terminal_last_seen[$candidate_id] == $token_number;
                 if ($trace_terminals) {
                     say {$trace_fh} 'Current best candidate: ',
-                    $symbol_name_by_id[$candidate_id],
+                        $symbol_name_by_id[$candidate_id],
                         or Carp::croak("Cannot print: $ERRNO");
                 }
                 $highest_candidate_rank  = $this_candidate_rank;
@@ -985,9 +989,9 @@ sub parse {
     local $Marpa::R2::HTML::Internal::RECCE    = $recce;
     local $Marpa::R2::HTML::Internal::VALUATOR = $valuator;
 
-    for my $rule_id ( 
-        grep { $thin_grammar->rule_length($_); }
-        0 .. $thin_grammar->highest_rule_id()) {
+    for my $rule_id ( grep { $thin_grammar->rule_length($_); }
+        0 .. $thin_grammar->highest_rule_id() )
+    {
         $valuator->rule_is_valued_set( $rule_id, 1 );
     }
     STEP: while (1) {
@@ -1151,7 +1155,7 @@ sub parse {
 
             if ($trace_values) {
                 say {*STDERR} "rule $rule_id: ", join q{ },
-                    symbol_names_by_rule_id($self, $rule_id)
+                    symbol_names_by_rule_id( $self, $rule_id )
                     or Carp::croak("Cannot print: $ERRNO");
                 say {*STDERR} "Stack:\n", Data::Dumper::Dumper( \@stack )
                     or Carp::croak("Cannot print: $ERRNO");
@@ -1161,7 +1165,6 @@ sub parse {
 
         if ( $type eq 'MARPA_STEP_NULLING_SYMBOL' ) {
             my ( $symbol_id, $arg_n ) = @step_data;
-            my $symbol_name = $symbol_name_by_id[$symbol_id];
             $stack[$arg_n] = ['ZERO_SPAN'];
 
             if ($trace_values) {
