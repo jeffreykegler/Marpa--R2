@@ -71,6 +71,7 @@ mixed_flow_item ::= SGML_item
 block_flow ::= block_item*
 block_item ::= SGML_item
 block_item ::= block_element
+block_item ::= anywhere_element
 block_element ::= ELE_table
 block_element ::= ELE_p
 block_element ::= ELE_ol
@@ -85,10 +86,11 @@ block_element ::= ELE_menu
 # these will become "anywhere" elements
 anywhere_element ::= ELE_script
 anywhere_element ::= ELE_isindex
+anywhere_element ::= ELE_textarea
 
-head_item ::= anywhere_element
 head_item ::= SGML_item
 head_item ::= head_element
+head_item ::= anywhere_element
 head_element ::= ELE_object
 head_element ::= ELE_style
 head_element ::= ELE_meta
@@ -146,6 +148,7 @@ ELE_style is cdata_flow
 ELE_table contains ELE_caption ELE_col ELE_colgroup
 ELE_table contains ELE_tbody ELE_tfoot ELE_thead
 ELE_table contains SGML_item
+ELE_textarea is cdata_flow
 ELE_tbody contains SGML_item ELE_tr
 ELE_td is mixed_flow
 ELE_tfoot contains SGML_item ELE_tr
@@ -193,9 +196,11 @@ our %IS_BLOCK_ELEMENT = (
     noscript   => 'mixed_flow',
     ol         => 'core',
     p          => 'core',
+    plaintext  => 'cdata_flow',
     pre        => 'inline_flow',
     table      => 'core',
     ul         => 'core',
+    xmp        => 'cdata_flow',
 );
 
 our %IS_INLINE_ELEMENT = (
@@ -221,6 +226,7 @@ our %IS_INLINE_ELEMENT = (
     i        => 'inline_flow',
     img      => 'empty',
     input    => 'empty',
+    input    => 'cdata_flow',
     kbd      => 'inline_flow',
     keygen   => 'inline_flow',
     label    => 'inline_flow',
@@ -246,7 +252,7 @@ our %IS_INLINE_ELEMENT = (
     strong   => 'inline_flow',
     sub      => 'inline_flow',
     sup      => 'inline_flow',
-    textarea => 'pcdata_flow',
+    textarea => 'core',
     time     => 'inline_flow',
     tt       => 'inline_flow',
     u        => 'inline_flow',

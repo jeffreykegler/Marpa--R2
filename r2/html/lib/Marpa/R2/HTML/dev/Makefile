@@ -19,5 +19,5 @@ dummy:
 
 all: Core_Grammar.pm
 
-Core_Grammar.pm: mk_core_grammar.pl 
+Core_Grammar.pm: mk_core_grammar.pl HTML_Config.pm
 	perl mk_core_grammar.pl

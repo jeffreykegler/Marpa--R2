@@ -34,6 +34,7 @@ my @avoid_whitespace_flags = qw(comment yes);
 my $avoid_whitespace_flag  = 'yes';
 my $ws_ok_before_end_tag_flag = 0;
 my $trace_terminals_flag = 0;
+my $trace_cruft_flag = 0;
 my $trace_values_flag = 0;
 usage()
     if not Getopt::Long::GetOptions(
@@ -41,6 +42,7 @@ usage()
     'avoid-whitespace=s' => \$avoid_whitespace_flag,
     'ws-ok-before-end-tag' => \$ws_ok_before_end_tag_flag,
     'trace-terminals' => \$trace_terminals_flag,
+    'trace-cruft' => \$trace_cruft_flag,
     'trace-values' => \$trace_values_flag,
     );
 usage() if $help_flag or scalar @ARGV > 1;
@@ -473,6 +475,7 @@ my $value_ref = Marpa::R2::HTML::html(
     \$document,
     $html_args,
     \{  trace_terminals => $trace_terminals_flag,
+        trace_cruft    => $trace_cruft_flag,
         trace_values    => $trace_values_flag,
     }
 );

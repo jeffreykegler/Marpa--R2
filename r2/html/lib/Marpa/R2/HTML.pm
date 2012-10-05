@@ -98,8 +98,8 @@ BEGIN {
     =COLUMN
     START_OFFSET
     END_OFFSET
+    IS_CDATA
     ATTR
-    =IS_CDATA
 END_OF_STRUCTURE
     Marpa::R2::offset($structure);
 } ## end BEGIN
@@ -496,20 +496,20 @@ sub parse {
     my $p          = HTML::Parser->new(
         api_version => 3,
         start_h     => [
-            \@raw_tokens, q{tagname,'S',line,column,offset,offset_end,attr}
+            \@raw_tokens, q{tagname,'S',line,column,offset,offset_end,is_cdata,attr}
         ],
         end_h =>
-            [ \@raw_tokens, q{tagname,'E',line,column,offset,offset_end} ],
+            [ \@raw_tokens, q{tagname,'E',line,column,offset,offset_end,is_cdata} ],
         text_h => [
             \@raw_tokens,
             q{'WHITESPACE','T',line,column,offset,offset_end,is_cdata}
         ],
         comment_h =>
-            [ \@raw_tokens, q{'C','C',line,column,offset,offset_end} ],
+            [ \@raw_tokens, q{'C','C',line,column,offset,offset_end,is_cdata} ],
         declaration_h =>
-            [ \@raw_tokens, q{'D','D',line,column,offset,offset_end} ],
+            [ \@raw_tokens, q{'D','D',line,column,offset,offset_end,is_cdata} ],
         process_h =>
-            [ \@raw_tokens, q{'PI','PI',line,column,offset,offset_end} ],
+            [ \@raw_tokens, q{'PI','PI',line,column,offset,offset_end,is_cdata} ],
         unbroken_text => 1
     );
 
@@ -521,7 +521,7 @@ sub parse {
     my @html_parser_tokens = ();
     HTML_PARSER_TOKEN:
     for my $raw_token (@raw_tokens) {
-        my ( $dummy, $token_type, $line, $column, $offset, $offset_end ) =
+        my ( $dummy, $token_type, $line, $column, $offset, $offset_end, $is_cdata, $attr ) =
             @{$raw_token};
 
         PROCESS_BY_TYPE: {
@@ -531,8 +531,6 @@ sub parse {
                     ) =~ / \S /xms
                     )
                 {
-                    my $is_cdata = $raw_token
-                        ->[Marpa::R2::HTML::Internal::Token::IS_CDATA];
                     $raw_token->[Marpa::R2::HTML::Internal::Token::TOKEN_NAME]
                         = $is_cdata ? 'CDATA' : 'PCDATA';
                 } ## end if ( substr( ${$document}, $offset, ( $offset_end - ...)))
