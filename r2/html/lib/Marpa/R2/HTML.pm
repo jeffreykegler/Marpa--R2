@@ -249,7 +249,7 @@ sub create {
             }
             if (not $option ~~ [
                     qw(trace_fh trace_values trace_handlers
-                        trace_conflicts trace_rules 
+                        trace_conflicts
                         trace_terminals trace_cruft)
                 ]
                 )
@@ -296,7 +296,7 @@ sub handler_find {
     my $trace_handlers = $self->{trace_handlers};
     my $handler;
     $class //= q{*};
-    my $action = $self->{thick_grammar}->action($rule_id);
+    my $action = $self->{action_by_rule_id}->[$rule_id];
     FIND_HANDLER: {
 
         last FIND_HANDLER if not defined $action;
@@ -455,6 +455,18 @@ sub range_and_values_to_literal {
     return \( join q{}, map { ${$_} } @literal_pieces );
 
 } ## end sub range_and_values_to_literal
+
+sub symbol_names_by_rule_id {
+    my ( $self, $rule_id ) = @_;
+    my $grammar           = $self->{grammar};
+    my $symbol_name_by_id = $self->{symbol_name_by_id};
+    my $rule_length       = $grammar->rule_length($rule_id);
+    return if not defined $rule_length;
+    my @symbol_ids = ( $grammar->rule_lhs($rule_id) );
+    push @symbol_ids,
+        map { $grammar->rule_rhs( $rule_id, $_ ) } ( 0 .. $rule_length - 1 );
+    return map { $symbol_name_by_id->[$_] } @symbol_ids;
+} ## end sub rule_symbol_name
 
 sub parse {
     my ( $self, $document_ref ) = @_;
@@ -652,26 +664,35 @@ sub parse {
     } ## end ELEMENT: for my $tag ( keys %tags )
 
 
-    my $grammar = Marpa::R2::Grammar->new(
-        {   rules          => \@rules,
-            start          => 'document',
-            terminals      => \@terminals,
-            default_action => 'Marpa::R2::HTML::Internal::default_action',
-            default_empty_action => '::undef',
-        }
-    );
-    $grammar->precompute();
-
-    if ( $self->{trace_rules} ) {
-        say {$trace_fh} $grammar->show_rules()
-            or Carp::croak("Cannot print: $ERRNO");
+    my %symbol_id_by_name = ();
+    $self->{symbol_id_by_name} = \%symbol_id_by_name;
+    my @symbol_name_by_id = ();
+    $self->{symbol_name_by_id} = \@symbol_name_by_id;
+    my @action_by_rule_id = ();
+    $self->{action_by_rule_id} = \@action_by_rule_id;
+    my $thin_grammar = Marpa::R2::Thin::G->new( { if => 1 } );
+    RULE: for my $rule (@rules) {
+        my $lhs = $rule->{lhs};
+        my $rhs = $rule->{rhs};
+        my $min = $rule->{min};
+        my $action = $rule->{action};
+	for my $symbol_name (grep { not defined $symbol_id_by_name{$_} } ($lhs, @{$rhs})) {
+	  my $symbol_id = $thin_grammar->symbol_new();
+	  $symbol_name_by_id[$symbol_id] = $symbol_name;
+	  $symbol_id_by_name{$symbol_name} = $symbol_id;
+	}
+	my $lhs_id = $symbol_id_by_name{$lhs};
+	my @rhs_ids = map { $symbol_id_by_name{$_} } @{$rhs};
+	my $rule_id;
+	if (defined $min) {
+	    $rule_id = $thin_grammar->sequence_new($lhs_id, $rhs_ids[0], { min => $min });
+	} else {
+	  $rule_id = $thin_grammar->rule_new($lhs_id, \@rhs_ids);
+	}
+	$action_by_rule_id[$rule_id] = $action;
     }
-    if ( $self->{trace_QDFA} ) {
-        say {$trace_fh} $grammar->show_QDFA()
-            or Carp::croak("Cannot print: $ERRNO");
-    }
-
-    my $thin_grammar = $grammar->thin();
+    $thin_grammar->start_symbol_set($symbol_id_by_name{'document'});
+    $thin_grammar->precompute();
 
     # Memoize this -- we will use it a lot
     my $highest_symbol_id = $thin_grammar->highest_symbol_id();
@@ -688,7 +709,7 @@ sub parse {
             $Marpa::R2::HTML::Internal::RUBY_SLIPPERS_RANK_BY_NAME;
         SYMBOL:
         for my $symbol_id ( 0 .. $highest_symbol_id ) {
-            my $symbol_name = $grammar->symbol_name($symbol_id);
+            my $symbol_name = $symbol_name_by_id[$symbol_id];
             next SYMBOL if not 0 == index $symbol_name, 'E_';
             next SYMBOL if $symbol_name ~~ [qw(E_body E_html)];
             push @non_final_end_tag_ids, $symbol_id;
@@ -706,7 +727,7 @@ sub parse {
                     $ruby_vector_by_id[$_] = $rank for @non_final_end_tag_ids;
                     next CANDIDATE;
                 }
-                my $candidate_id = $grammar->thin_symbol($candidate_name);
+                my $candidate_id = $symbol_id_by_name{$candidate_name};
                 die "Unknown ruby slippers candidate name: $candidate_name"
                     if not defined $candidate_id;
                 $ruby_vector_by_id[$candidate_id] = $rank
@@ -724,7 +745,7 @@ sub parse {
                 next SYMBOL;
             } ## end if ( not $thin_grammar->symbol_is_terminal(...))
             my $rejected_symbol_name =
-                $grammar->symbol_name($rejected_symbol_id);
+                $symbol_name_by_id[$rejected_symbol_id];
             my $placement;
             FIND_PLACEMENT: {
                 my $prefix = substr $rejected_symbol_name, 0, 2;
@@ -775,7 +796,7 @@ sub parse {
     my $recce = Marpa::R2::Thin::R->new($thin_grammar);
     $recce->start_input();
 
-    $self->{thick_grammar}            = $grammar;
+    $self->{grammar}            = $thin_grammar;
     $self->{recce}                    = $recce;
     $self->{tokens}                   = \@html_parser_tokens;
     $self->{earleme_to_html_token_ix} = [-1];
@@ -806,8 +827,8 @@ sub parse {
         my $token = $html_parser_tokens[$token_number];
 
         my $marpa_symbol_id =
-            $grammar->thin_symbol(
-            $token->[Marpa::R2::HTML::Internal::Token::TOKEN_NAME] );
+            $symbol_id_by_name{
+            $token->[Marpa::R2::HTML::Internal::Token::TOKEN_NAME] };
         my $read_result =
             $recce->alternative( $marpa_symbol_id, PHYSICAL_TOKEN, 1 );
         if ( $read_result != $UNEXPECTED_TOKEN_ID ) {
@@ -836,7 +857,7 @@ sub parse {
 
         my $rejected_terminal_name = $token->[0];
         my $rejected_terminal_id =
-            $grammar->thin_symbol($rejected_terminal_name);
+            $symbol_id_by_name{$rejected_terminal_name};
         if ($trace_terminals) {
             say {$trace_fh} 'Literal Token not accepted: ',
                 $rejected_terminal_name
@@ -852,14 +873,14 @@ sub parse {
             my $this_candidate_rank = $ruby_vector->[$candidate_id];
             if ($trace_terminals) {
                 say {$trace_fh} 'Considering candidate: ',
-                    $grammar->symbol_name($candidate_id),
+                    $symbol_name_by_id[$candidate_id],
                     "; rank is $this_candidate_rank; highest rank so far is $highest_candidate_rank"
                     or Carp::croak("Cannot print: $ERRNO");
             } ## end if ($trace_terminals)
             if ( $this_candidate_rank > $highest_candidate_rank ) {
                 if ($trace_terminals) {
                     say {$trace_fh} 'Considering candidate: ',
-                        $grammar->symbol_name($candidate_id),
+                    $symbol_name_by_id[$candidate_id],
                         '; last seen at ', $terminal_last_seen[$candidate_id],
                         "; current token number is $token_number"
                         or Carp::croak("Cannot print: $ERRNO");
@@ -868,7 +889,7 @@ sub parse {
                     if $terminal_last_seen[$candidate_id] == $token_number;
                 if ($trace_terminals) {
                     say {$trace_fh} 'Current best candidate: ',
-                        $grammar->symbol_name($candidate_id),
+                    $symbol_name_by_id[$candidate_id],
                         or Carp::croak("Cannot print: $ERRNO");
                 }
                 $highest_candidate_rank  = $this_candidate_rank;
@@ -880,7 +901,7 @@ sub parse {
 
             if ($trace_terminals) {
                 say {$trace_fh} 'Adding Ruby Slippers token: ',
-                    $grammar->symbol_name($virtual_terminal_to_add),
+                    $symbol_name_by_id[$virtual_terminal_to_add],
                     or Carp::croak("Cannot print: $ERRNO");
             }
 
@@ -967,7 +988,9 @@ sub parse {
     local $Marpa::R2::HTML::Internal::RECCE    = $recce;
     local $Marpa::R2::HTML::Internal::VALUATOR = $valuator;
 
-    for my $rule_id ( $grammar->rule_ids() ) {
+    for my $rule_id ( 
+        grep { $thin_grammar->rule_length($_); }
+        0 .. $thin_grammar->highest_rule_id()) {
         $valuator->rule_is_valued_set( $rule_id, 1 );
     }
     STEP: while (1) {
@@ -975,7 +998,7 @@ sub parse {
         last STEP if not defined $type;
         if ( $type eq 'MARPA_STEP_TOKEN' ) {
             say {*STDERR} join q{ }, $type, @step_data,
-                $grammar->symbol_name( $step_data[0] )
+                $symbol_name_by_id[ $step_data[0] ]
                 or Carp::croak("Cannot print: $ERRNO")
                 if $trace_values;
             my ( undef, $token_value, $arg_n ) = @step_data;
@@ -1011,7 +1034,7 @@ sub parse {
 
             my $attributes = undef;
             my $class      = undef;
-            my $action     = $grammar->action($rule_id);
+            my $action     = $action_by_rule_id[$rule_id];
             local $Marpa::R2::HTML::Internal::START_TAG_IX   = undef;
             local $Marpa::R2::HTML::Internal::END_TAG_IX_REF = undef;
             local $Marpa::R2::HTML::Internal::ELEMENT        = undef;
@@ -1131,7 +1154,7 @@ sub parse {
 
             if ($trace_values) {
                 say {*STDERR} "rule $rule_id: ", join q{ },
-                    $grammar->rule($rule_id)
+                    symbol_names_by_rule_id($self, $rule_id)
                     or Carp::croak("Cannot print: $ERRNO");
                 say {*STDERR} "Stack:\n", Data::Dumper::Dumper( \@stack )
                     or Carp::croak("Cannot print: $ERRNO");
@@ -1141,12 +1164,12 @@ sub parse {
 
         if ( $type eq 'MARPA_STEP_NULLING_SYMBOL' ) {
             my ( $symbol_id, $arg_n ) = @step_data;
-            my $symbol_name = $grammar->symbol_name($symbol_id);
+            my $symbol_name = $symbol_name_by_id[$symbol_id];
             $stack[$arg_n] = ['ZERO_SPAN'];
 
             if ($trace_values) {
                 say {*STDERR} join q{ }, $type, @step_data,
-                    $grammar->symbol_name($symbol_id)
+                    $symbol_name_by_id[$symbol_id]
                     or Carp::croak("Cannot print: $ERRNO");
                 say {*STDERR} "Stack:\n", Data::Dumper::Dumper( \@stack )
                     or Carp::croak("Cannot print: $ERRNO");

@@ -309,7 +309,7 @@ sub Marpa::R2::HTML::descendants {
                 my $rule_id =
                     $data->[Marpa::R2::HTML::Internal::TDesc::RULE_ID];
                 my $action =
-                    $parse_instance->{thick_grammar}->action($rule_id);
+                    $parse_instance->{action_by_rule_id}->[$rule_id];
                 if ( not defined $action ) {
                     push @per_descendant_results, undef;
                     next ARGSPEC;
@@ -332,7 +332,7 @@ sub Marpa::R2::HTML::descendants {
                 my $rule_id =
                     $data->[Marpa::R2::HTML::Internal::TDesc::RULE_ID];
                 my $action =
-                    $parse_instance->{thick_grammar}->action($rule_id);
+                    $parse_instance->{action_by_rule_id}->[$rule_id];
                 if ( not defined $action ) {
                     push @per_descendant_results, undef;
                     next ARGSPEC;
