@@ -34,12 +34,14 @@ my @avoid_whitespace_flags = qw(comment yes);
 my $avoid_whitespace_flag  = 'yes';
 my $ws_ok_before_end_tag_flag = 0;
 my $trace_terminals_flag = 0;
+my $trace_values_flag = 0;
 usage()
     if not Getopt::Long::GetOptions(
     'help'               => \$help_flag,
     'avoid-whitespace=s' => \$avoid_whitespace_flag,
     'ws-ok-before-end-tag' => \$ws_ok_before_end_tag_flag,
     'trace-terminals' => \$trace_terminals_flag,
+    'trace-values' => \$trace_values_flag,
     );
 usage() if $help_flag or scalar @ARGV > 1;
 if ( not $avoid_whitespace_flag ~~ \@avoid_whitespace_flags ) {
@@ -154,7 +156,7 @@ sub post_process {
                     push @text_pieces,
                         [
                         'html_fmt comment', $indent,
-                        'An end tag was added to close the following <pre>: </pre>'
+                        'An missing end tag was added to close the preceding <pre> element'
                         ];
             next DATUM;
 	}
@@ -162,7 +164,7 @@ sub post_process {
                     push @text_pieces,
                         [
                         'html_fmt comment', $indent,
-                        'A start tag was added in front of the following <pre>: <pre>'
+                        'A missing start tag was added in front of the following <pre> element'
                         ];
             next DATUM;
 	}
@@ -332,7 +334,6 @@ sub post_process {
 			  . $indentation . '  -->';
                     }
                     $output[-1] .= $text;
-require Data::Dumper; die Data::Dumper::Dumper( $text_pieces[$text_piece_ix] ) if not defined $text;
                     next TEXT_PIECE;
                 } ## end if ( $ws_unsafe[$text_piece_ix] )
                 my $indentation = q{  } x $indent;
@@ -356,26 +357,10 @@ require Data::Dumper; die Data::Dumper::Dumper( $text_pieces[$text_piece_ix] ) i
 } ## end sub post_process
 
 sub do_pre {
-    my @new_line_data      = ();
+    my @new_line_data = ();
+    my $start_tag     = Marpa::R2::HTML::start_tag();
+    my $end_tag       = Marpa::R2::HTML::end_tag();
 
-    my $suffix = q{};
-    my $prefix = q{};
-    {
-        my $start_tag = Marpa::R2::HTML::start_tag();
-        my $end_tag   = Marpa::R2::HTML::end_tag();
-        if ( not defined $start_tag ) {
-	    $prefix = '<pre>';
-            push @new_line_data, [ 'start tag', 0, '<pre>' ];
-            push @new_line_data,
-                [ 'msg: missing pre start tag', 0 ];
-        }
-        if ( not defined $end_tag ) {
-	    $suffix = '</pre>';
-            push @new_line_data, [ 'end tag', 0, $suffix ];
-            push @new_line_data,
-                [ 'msg: missing pre end tag', 0 ];
-        }
-    }
 
     CHILD:
     for my $value ( @{ Marpa::R2::HTML::values() } ) {
@@ -384,14 +369,25 @@ sub do_pre {
                 push @new_line_data,
                     [
                     $line_data->[0], 0,
-                    'following pre',
-                    @{$line_data}[ 3 .. $#{$line_data} ]
+                    'following pre', @{$line_data}[ 3 .. $#{$line_data} ]
                     ];
-            } ## end if ( $line_data->[0] =~ /^msg:/ )
+            } ## end if ( $line_data->[0] =~ /\A msg [:] /xms )
         } ## end for my $line_data ( @{$value} )
     } ## end CHILD: for my $value ( @{ Marpa::R2::HTML::values() } )
+
+    if ( not defined $start_tag ) {
+        push @new_line_data, [ 'msg: missing pre start tag', 0 ];
+        push @new_line_data, [ 'start tag', 0, '<pre>' ];
+    }
+
     my $original = Marpa::R2::HTML::original();
-    push @new_line_data, [ 'pre', 0, ($prefix . $original . $suffix) ];
+    push @new_line_data, [ 'pre', 0, $original ];
+
+    if ( not defined $end_tag ) {
+        push @new_line_data,
+            [ 'end tag', 0, '</pre>' ],
+            [ 'msg: missing pre end tag', 0 ];
+    }
     return \@new_line_data;
 } ## end sub do_pre
 
@@ -473,9 +469,14 @@ my $html_args = {
     ':TOP'     => sub { return Marpa::R2::HTML::values(); }
 };
 
-my $value_ref = Marpa::R2::HTML::html( \$document, $html_args, \{ trace_terminals => $trace_terminals_flag });
+my $value_ref = Marpa::R2::HTML::html(
+    \$document,
+    $html_args,
+    \{  trace_terminals => $trace_terminals_flag,
+        trace_values    => $trace_values_flag,
+    }
+);
 die 'Internal error: no parse' if not defined $value_ref;
-require Data::Dumper;
 print post_process($value_ref) or die "print failed: $ERRNO";
 
 exit 0;

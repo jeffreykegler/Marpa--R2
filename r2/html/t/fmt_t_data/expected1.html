@@ -9,15 +9,15 @@
     <p>
       I am before the first pre
       <!-- html_fmt: Following end tag is replacement for a missing one -->
-    </p></pre><!--
-        html_fmt: An end tag was added to close the following <pre>: </pre>
-      --><pre>
+    </p><pre>
  Now   is     the     time
  for   all    good    birds
  to    fly    to
  the   edge   of      the
  world and    take    a
  look  over   the     edge</pre><!--
+        html_fmt: An missing end tag was added to close the preceding <pre> element
+      --><!--
         html_fmt: Next line is cruft
       --></p>
     <p>
@@ -27,11 +27,11 @@
       A terminated paragraph</p>
     <p>
       I am before the second pre</p>
-    </pre><!--
-        html_fmt: An end tag was added to close the following <pre>: </pre>
-      --><pre>
+    <pre>
  The second pre
-</pre><p>
+</pre><!--
+        html_fmt: An missing end tag was added to close the preceding <pre> element
+      --><p>
       Unterminated graf
       <!-- The following a element end tag should be low-level cruft,
      forcing the end of the paragraph -->

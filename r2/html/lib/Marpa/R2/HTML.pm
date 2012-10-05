@@ -248,9 +248,9 @@ sub create {
                 add_handlers_from_hashes( $self, $option_hash->{$option} );
             }
             if (not $option ~~ [
-                    qw(trace_fh trace_values trace_handlers trace_actions
-                        trace_conflicts trace_ambiguity trace_rules trace_QDFA
-                        trace_earley_sets trace_terminals trace_cruft)
+                    qw(trace_fh trace_values trace_handlers
+                        trace_conflicts trace_rules 
+                        trace_terminals trace_cruft)
                 ]
                 )
             {
