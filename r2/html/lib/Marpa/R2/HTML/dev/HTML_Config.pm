@@ -53,13 +53,8 @@ ELE_body is block_flow
 # Common types of element content
 empty ::=
 
-mixed_flow ::= mixed_flow_item*
-mixed_flow_item ::= anywhere_element
-mixed_flow_item ::= block_element
-mixed_flow_item ::= inline_element
-mixed_flow_item ::= cdata
-mixed_flow_item ::= pcdata
-mixed_flow_item ::= ITEM_SGML
+FLO_mixed contains anywhere_element block_element inline_element
+FLO_mixed contains cdata pcdata ITEM_SGML
 
 block_flow ::= block_item*
 block_item ::= ITEM_SGML
@@ -119,18 +114,18 @@ cdata_flow_item ::= CRUFT
 ELE_base is empty
 ELE_col is empty
 ELE_colgroup contains ELE_col ITEM_SGML
-ELE_dd is mixed_flow
-ELE_div is mixed_flow
+ELE_dd is FLO_mixed
+ELE_div is FLO_mixed
 ELE_dl contains ITEM_SGML ELE_dt ELE_dd
 ELE_dt is inline_flow
 ELE_isindex is empty
-ELE_li is mixed_flow
+ELE_li is FLO_mixed
 ELE_map contains block_element ITEM_SGML ELE_area
 ELE_area is empty
 ELE_link is empty
 ELE_meta is empty
-ELE_object contains ELE_param mixed_flow_item
-ELE_applet contains ELE_param mixed_flow_item
+ELE_object contains ELE_param ITEM_mixed
+ELE_applet contains ELE_param ITEM_mixed
 ELE_ol contains ITEM_SGML ELE_li
 ELE_dir contains ITEM_SGML ELE_li
 ELE_menu contains ITEM_SGML ELE_li
@@ -146,7 +141,7 @@ ELE_table contains ELE_tbody ELE_tfoot ELE_thead
 ELE_table contains ITEM_SGML
 ELE_textarea is cdata_flow
 ELE_tbody contains ITEM_SGML ELE_tr
-ELE_td is mixed_flow
+ELE_td is FLO_mixed
 ELE_tfoot contains ITEM_SGML ELE_tr
 ELE_thead contains ITEM_SGML ELE_tr
 ELE_title is pcdata_flow
@@ -173,13 +168,13 @@ our %HANDLER = (
 # ISINDEX is classified as a header_element
 our %IS_BLOCK_ELEMENT = (
     address    => 'inline_flow',
-    blockquote => 'mixed_flow',
-    center     => 'mixed_flow',
+    blockquote => 'FLO_mixed',
+    center     => 'FLO_mixed',
     dir        => 'core',
     div        => 'core',
     dl         => 'core',
-    fieldset   => 'mixed_flow',
-    form       => 'mixed_flow',
+    fieldset   => 'FLO_mixed',
+    form       => 'FLO_mixed',
     h1         => 'inline_flow',
     h2         => 'inline_flow',
     h3         => 'inline_flow',
@@ -188,8 +183,8 @@ our %IS_BLOCK_ELEMENT = (
     h6         => 'inline_flow',
     hr         => 'empty',
     menu       => 'core',
-    noframes   => 'mixed_flow',
-    noscript   => 'mixed_flow',
+    noframes   => 'FLO_mixed',
+    noscript   => 'FLO_mixed',
     ol         => 'core',
     p          => 'core',
     plaintext  => 'cdata_flow',

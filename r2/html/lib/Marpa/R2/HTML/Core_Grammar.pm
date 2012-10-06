@@ -14,7 +14,7 @@
 # http://www.gnu.org/licenses/.
 
 # This file was generated automatically by mk_core_grammar.pl
-# The date of generation was Fri Oct  5 22:17:01 2012
+# The date of generation was Fri Oct  5 22:22:25 2012
 
 package Marpa::R2::HTML::Internal;
 
@@ -116,49 +116,6 @@ $CORE_RULES = [
                 {
                   'rhs' => [],
                   'lhs' => 'empty'
-                },
-                {
-                  'min' => 0,
-                  'rhs' => [
-                             'mixed_flow_item'
-                           ],
-                  'lhs' => 'mixed_flow'
-                },
-                {
-                  'rhs' => [
-                             'anywhere_element'
-                           ],
-                  'lhs' => 'mixed_flow_item'
-                },
-                {
-                  'rhs' => [
-                             'block_element'
-                           ],
-                  'lhs' => 'mixed_flow_item'
-                },
-                {
-                  'rhs' => [
-                             'inline_element'
-                           ],
-                  'lhs' => 'mixed_flow_item'
-                },
-                {
-                  'rhs' => [
-                             'cdata'
-                           ],
-                  'lhs' => 'mixed_flow_item'
-                },
-                {
-                  'rhs' => [
-                             'pcdata'
-                           ],
-                  'lhs' => 'mixed_flow_item'
-                },
-                {
-                  'rhs' => [
-                             'ITEM_SGML'
-                           ],
-                  'lhs' => 'mixed_flow_item'
                 },
                 {
                   'min' => 0,
@@ -455,7 +412,7 @@ $CORE_RULES = [
                 {
                   'rhs' => [
                              'S_dd',
-                             'mixed_flow',
+                             'FLO_mixed',
                              'E_dd'
                            ],
                   'lhs' => 'ELE_dd',
@@ -464,7 +421,7 @@ $CORE_RULES = [
                 {
                   'rhs' => [
                              'S_div',
-                             'mixed_flow',
+                             'FLO_mixed',
                              'E_div'
                            ],
                   'lhs' => 'ELE_div',
@@ -491,7 +448,7 @@ $CORE_RULES = [
                 {
                   'rhs' => [
                              'S_li',
-                             'mixed_flow',
+                             'FLO_mixed',
                              'E_li'
                            ],
                   'lhs' => 'ELE_li',
@@ -581,7 +538,7 @@ $CORE_RULES = [
                 {
                   'rhs' => [
                              'S_td',
-                             'mixed_flow',
+                             'FLO_mixed',
                              'E_td'
                            ],
                   'lhs' => 'ELE_td',
@@ -943,7 +900,7 @@ $CORE_RULES = [
                 },
                 {
                   'rhs' => [
-                             'mixed_flow_item'
+                             'ITEM_mixed'
                            ],
                   'lhs' => 'ITEM_ELE_applet'
                 },
@@ -1057,6 +1014,61 @@ $CORE_RULES = [
                 },
                 {
                   'rhs' => [
+                             '_C_FLO_mixed'
+                           ],
+                  'lhs' => 'FLO_mixed'
+                },
+                {
+                  'min' => 0,
+                  'rhs' => [
+                             'ITEM_mixed'
+                           ],
+                  'lhs' => '_C_FLO_mixed'
+                },
+                {
+                  'rhs' => [
+                             'anywhere_element'
+                           ],
+                  'lhs' => 'ITEM_mixed'
+                },
+                {
+                  'rhs' => [
+                             'block_element'
+                           ],
+                  'lhs' => 'ITEM_mixed'
+                },
+                {
+                  'rhs' => [
+                             'inline_element'
+                           ],
+                  'lhs' => 'ITEM_mixed'
+                },
+                {
+                  'rhs' => [
+                             'cdata'
+                           ],
+                  'lhs' => 'ITEM_mixed'
+                },
+                {
+                  'rhs' => [
+                             'pcdata'
+                           ],
+                  'lhs' => 'ITEM_mixed'
+                },
+                {
+                  'rhs' => [
+                             'ITEM_SGML'
+                           ],
+                  'lhs' => 'ITEM_mixed'
+                },
+                {
+                  'rhs' => [
+                             'CRUFT'
+                           ],
+                  'lhs' => 'ITEM_mixed'
+                },
+                {
+                  'rhs' => [
                              'S_dir',
                              '_C_ELE_dir',
                              'E_dir'
@@ -1113,7 +1125,7 @@ $CORE_RULES = [
                 },
                 {
                   'rhs' => [
-                             'mixed_flow_item'
+                             'ITEM_mixed'
                            ],
                   'lhs' => 'ITEM_ELE_object'
                 },
@@ -1159,40 +1171,6 @@ $CORE_RULES = [
                 },
                 {
                   'rhs' => [
-                             'S_colgroup',
-                             '_C_ELE_colgroup',
-                             'E_colgroup'
-                           ],
-                  'lhs' => 'ELE_colgroup',
-                  'action' => 'ELE_colgroup'
-                },
-                {
-                  'min' => 0,
-                  'rhs' => [
-                             'ITEM_ELE_colgroup'
-                           ],
-                  'lhs' => '_C_ELE_colgroup'
-                },
-                {
-                  'rhs' => [
-                             'ELE_col'
-                           ],
-                  'lhs' => 'ITEM_ELE_colgroup'
-                },
-                {
-                  'rhs' => [
-                             'ITEM_SGML'
-                           ],
-                  'lhs' => 'ITEM_ELE_colgroup'
-                },
-                {
-                  'rhs' => [
-                             'CRUFT'
-                           ],
-                  'lhs' => 'ITEM_ELE_colgroup'
-                },
-                {
-                  'rhs' => [
                              'S_thead',
                              '_C_ELE_thead',
                              'E_thead'
@@ -1224,6 +1202,40 @@ $CORE_RULES = [
                              'CRUFT'
                            ],
                   'lhs' => 'ITEM_ELE_thead'
+                },
+                {
+                  'rhs' => [
+                             'S_colgroup',
+                             '_C_ELE_colgroup',
+                             'E_colgroup'
+                           ],
+                  'lhs' => 'ELE_colgroup',
+                  'action' => 'ELE_colgroup'
+                },
+                {
+                  'min' => 0,
+                  'rhs' => [
+                             'ITEM_ELE_colgroup'
+                           ],
+                  'lhs' => '_C_ELE_colgroup'
+                },
+                {
+                  'rhs' => [
+                             'ELE_col'
+                           ],
+                  'lhs' => 'ITEM_ELE_colgroup'
+                },
+                {
+                  'rhs' => [
+                             'ITEM_SGML'
+                           ],
+                  'lhs' => 'ITEM_ELE_colgroup'
+                },
+                {
+                  'rhs' => [
+                             'CRUFT'
+                           ],
+                  'lhs' => 'ITEM_ELE_colgroup'
                 },
                 {
                   'rhs' => [
@@ -1268,22 +1280,22 @@ $CORE_RULES = [
               ];
 $IS_BLOCK_ELEMENT = {
                       'xmp' => 'cdata_flow',
-                      'form' => 'mixed_flow',
+                      'form' => 'FLO_mixed',
                       'pre' => 'inline_flow',
                       'h5' => 'inline_flow',
-                      'center' => 'mixed_flow',
-                      'noframes' => 'mixed_flow',
+                      'center' => 'FLO_mixed',
+                      'noframes' => 'FLO_mixed',
                       'plaintext' => 'cdata_flow',
                       'h6' => 'inline_flow',
                       'address' => 'inline_flow',
                       'h1' => 'inline_flow',
-                      'blockquote' => 'mixed_flow',
+                      'blockquote' => 'FLO_mixed',
                       'h4' => 'inline_flow',
                       'h2' => 'inline_flow',
-                      'fieldset' => 'mixed_flow',
+                      'fieldset' => 'FLO_mixed',
                       'hr' => 'empty',
                       'h3' => 'inline_flow',
-                      'noscript' => 'mixed_flow'
+                      'noscript' => 'FLO_mixed'
                     };
 $IS_INLINE_ELEMENT = {
                        'embed' => 'inline_flow',
@@ -1410,25 +1422,25 @@ $IS_BLOCK_ELEMENT = {
                       'div' => 'core',
                       'table' => 'core',
                       'pre' => 'inline_flow',
-                      'form' => 'mixed_flow',
+                      'form' => 'FLO_mixed',
                       'h5' => 'inline_flow',
-                      'noframes' => 'mixed_flow',
+                      'noframes' => 'FLO_mixed',
                       'dir' => 'core',
-                      'center' => 'mixed_flow',
+                      'center' => 'FLO_mixed',
                       'plaintext' => 'cdata_flow',
                       'ol' => 'core',
                       'h6' => 'inline_flow',
                       'address' => 'inline_flow',
                       'ul' => 'core',
                       'h1' => 'inline_flow',
-                      'blockquote' => 'mixed_flow',
+                      'blockquote' => 'FLO_mixed',
                       'menu' => 'core',
                       'h4' => 'inline_flow',
                       'h2' => 'inline_flow',
                       'p' => 'core',
-                      'fieldset' => 'mixed_flow',
+                      'fieldset' => 'FLO_mixed',
                       'hr' => 'empty',
-                      'noscript' => 'mixed_flow',
+                      'noscript' => 'FLO_mixed',
                       'h3' => 'inline_flow',
                       'dl' => 'core'
                     };

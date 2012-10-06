@@ -650,7 +650,7 @@ sub parse {
                 last FIND_TYPE_AND_CONTENTS;
             }
             $element_type = 'anywhere_element';
-            $contents     = 'mixed_flow';
+            $contents     = 'FLO_mixed';
         } ## end FIND_TYPE_AND_CONTENTS:
 
         push @rules,
