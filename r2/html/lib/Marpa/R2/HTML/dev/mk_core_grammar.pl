@@ -26,7 +26,8 @@ use HTML_Config;
 
 my @core_rules = ();
 
-my %containments = ();
+my %element_containments = ();
+my %flow_containments = ();
 LINE: for my $line ( split /\n/xms, $HTML_Config::BNF ) {
     my $definition = $line;
     $definition =~ s/ [#] .* //xms;    # Remove comments
@@ -70,11 +71,18 @@ LINE: for my $line ( split /\n/xms, $HTML_Config::BNF ) {
         push @core_rules, \%rule_descriptor;
         next LINE;
     }
-    if ( $definition =~ s/ \A \s* ((ELE|FLO)_\w+) \s+ contains \s+ / /xms ) {
+    if ( $definition =~ s/ \A \s* ((ELE)_\w+) \s+ contains \s+ / /xms ) {
         # Production is Element with custom flow
         my $element_symbol = $1;
         my @contents = split q{ }, $definition;
-        push @{ $containments{$element_symbol} }, @contents;
+        push @{ $element_containments{$element_symbol} }, @contents;
+        next LINE;
+    }
+    if ( $definition =~ s/ \A \s* ((FLO)_\w+) \s+ contains \s+ / /xms ) {
+        # Production is Flow
+        my $element_symbol = $1;
+        my @contents = split q{ }, $definition;
+        push @{ $flow_containments{$element_symbol} }, @contents;
         next LINE;
     }
     die "Badly formed line in grammar description: $line";
@@ -86,8 +94,9 @@ LINE: for my $line ( split /\n/xms, $HTML_Config::BNF ) {
 
 {
     my @symbols = map { $_->{lhs}, @{ $_->{rhs} } } @core_rules;
-    push @symbols, keys %containments;
-    push @symbols, map { @{$_} } values %containments;
+    push @symbols, keys %flow_containments, keys %element_containments;
+    push @symbols, map { @{$_} } values %flow_containments,
+        values %element_containments;
     my @reserved = grep { $_ =~ /\A [[:^alpha:]] /xms } @symbols;
     die "Reserved symbols in use: ", join " ", @reserved if scalar @reserved;
 }
@@ -96,57 +105,63 @@ LINE: for my $line ( split /\n/xms, $HTML_Config::BNF ) {
 # LHS.
 
 my %cruft_enabled = ();
-ELEMENT: for my $main_symbol (keys %containments) {
-    my @contents = @{$containments{$main_symbol}};
-    my $contents_symbol;
-    my $item_symbol;
-    my @main_rhs = ();
-    my @action = ();
-    NAME_SYMBOLS: {
-        if ( (substr $main_symbol, 0, 4) eq 'ELE_' ) {
-            my $tag = substr $main_symbol, 4;
-            $contents_symbol = '_C_ELE_' . $tag;
-            $item_symbol     = 'ITEM_ELE_' . $tag;
-            push @action, action => $main_symbol;
-            @main_rhs = ( "S_$tag", $contents_symbol, "E_$tag" );
-            last NAME_SYMBOLS;
-        } ## end if ( substr $main_symbol, 0, 4 eq 'ELE_' )
-        if ( (substr $main_symbol, 0, 4) eq 'FLO_' ) {
-            my $tag = substr $main_symbol, 4;
-            $contents_symbol = '_C_FLO_' . $tag;
-            $item_symbol     = 'ITEM_' . $tag;
-            @main_rhs        = ($contents_symbol);
-            last NAME_SYMBOLS;
-        } ## end if ( substr $main_symbol, 0, 4 eq 'FLO_' )
-        die "Bad containment: cannot use symbol $main_symbol";
-    } ## end NAME_SYMBOLS:
-    push @core_rules,
-        {
+ELEMENT: for my $main_symbol ( keys %element_containments ) {
+    my @contents        = @{ $element_containments{$main_symbol} };
+    my $tag             = substr $main_symbol, 4;
+    my $contents_symbol = '_C_ELE_' . $tag;
+    my $item_symbol     = 'ITEM_ELE_' . $tag;
+    push @core_rules, {
         lhs    => $main_symbol,
-        rhs    => \@main_rhs,
-        @action
+        rhs    => [ "S_$tag", $contents_symbol, "E_$tag" ],
+        action => $main_symbol,
         },
         {
         lhs => $contents_symbol,
         rhs => [$item_symbol],
         min => 0
         };
-    for my $content_item ( @contents ) {
+    for my $content_item (@contents) {
         push @core_rules,
             {
             lhs => $item_symbol,
             rhs => [$content_item],
             };
-    } ## end for my $content_item ( @{$contents} )
-    if (!$cruft_enabled{$item_symbol}) {
-	$cruft_enabled{$item_symbol} = 1;
+    } ## end for my $content_item (@contents)
+    if ( !$cruft_enabled{$item_symbol} ) {
+        $cruft_enabled{$item_symbol} = 1;
         push @core_rules,
             {
             lhs => $item_symbol,
             rhs => ['CRUFT'],
             };
-    }
-} ## end ELEMENT: for my $core_element_data (@core_elements)
+    } ## end if ( !$cruft_enabled{$item_symbol} )
+} ## end ELEMENT: for my $main_symbol ( keys %element_containments )
+
+ELEMENT: for my $main_symbol ( keys %flow_containments ) {
+    my @contents    = @{ $flow_containments{$main_symbol} };
+    my $item_symbol = 'ITEM_' . substr $main_symbol, 4;
+    push @core_rules,
+        {
+        lhs => $main_symbol,
+        rhs => [$item_symbol],
+        min => 0
+        };
+    for my $content_item (@contents) {
+        push @core_rules,
+            {
+            lhs => $item_symbol,
+            rhs => [$content_item],
+            };
+    } ## end for my $content_item (@contents)
+    if ( !$cruft_enabled{$item_symbol} ) {
+        $cruft_enabled{$item_symbol} = 1;
+        push @core_rules,
+            {
+            lhs => $item_symbol,
+            rhs => ['CRUFT'],
+            };
+    } ## end if ( !$cruft_enabled{$item_symbol} )
+} ## end ELEMENT: for my $main_symbol ( keys %flow_containments )
 
 {
     # Make sure all item symbols have a flow
