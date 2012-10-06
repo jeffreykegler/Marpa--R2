@@ -14,7 +14,7 @@
 # http://www.gnu.org/licenses/.
 
 # This file was generated automatically by mk_core_grammar.pl
-# The date of generation was Fri Oct  5 22:28:41 2012
+# The date of generation was Fri Oct  5 22:35:14 2012
 
 package Marpa::R2::HTML::Internal;
 
@@ -106,6 +106,15 @@ $CORE_RULES = [
                 },
                 {
                   'rhs' => [
+                             'S_head',
+                             'FLO_head',
+                             'E_head'
+                           ],
+                  'lhs' => 'ELE_head',
+                  'action' => 'ELE_head'
+                },
+                {
+                  'rhs' => [
                              'S_body',
                              'FLO_block',
                              'E_body'
@@ -185,30 +194,6 @@ $CORE_RULES = [
                 },
                 {
                   'rhs' => [
-                             'ITEM_SGML'
-                           ],
-                  'lhs' => 'head_item'
-                },
-                {
-                  'rhs' => [
-                             'head_element'
-                           ],
-                  'lhs' => 'head_item'
-                },
-                {
-                  'rhs' => [
-                             'anywhere_element'
-                           ],
-                  'lhs' => 'head_item'
-                },
-                {
-                  'rhs' => [
-                             'CRUFT'
-                           ],
-                  'lhs' => 'head_item'
-                },
-                {
-                  'rhs' => [
                              'ELE_object'
                            ],
                   'lhs' => 'head_element'
@@ -242,49 +227,6 @@ $CORE_RULES = [
                              'ELE_base'
                            ],
                   'lhs' => 'head_element'
-                },
-                {
-                  'min' => 0,
-                  'rhs' => [
-                             'inline_item'
-                           ],
-                  'lhs' => 'inline_flow'
-                },
-                {
-                  'rhs' => [
-                             'pcdata'
-                           ],
-                  'lhs' => 'inline_item'
-                },
-                {
-                  'rhs' => [
-                             'cdata'
-                           ],
-                  'lhs' => 'inline_item'
-                },
-                {
-                  'rhs' => [
-                             'ITEM_SGML'
-                           ],
-                  'lhs' => 'inline_item'
-                },
-                {
-                  'rhs' => [
-                             'inline_element'
-                           ],
-                  'lhs' => 'inline_item'
-                },
-                {
-                  'rhs' => [
-                             'anywhere_element'
-                           ],
-                  'lhs' => 'inline_item'
-                },
-                {
-                  'rhs' => [
-                             'CRUFT'
-                           ],
-                  'lhs' => 'inline_item'
                 },
                 {
                   'rhs' => [
@@ -399,7 +341,7 @@ $CORE_RULES = [
                 {
                   'rhs' => [
                              'S_dt',
-                             'inline_flow',
+                             'FLO_inline',
                              'E_dt'
                            ],
                   'lhs' => 'ELE_dt',
@@ -453,7 +395,7 @@ $CORE_RULES = [
                 {
                   'rhs' => [
                              'S_p',
-                             'inline_flow',
+                             'FLO_inline',
                              'E_p'
                            ],
                   'lhs' => 'ELE_p',
@@ -480,7 +422,7 @@ $CORE_RULES = [
                 {
                   'rhs' => [
                              'S_span',
-                             'inline_flow',
+                             'FLO_inline',
                              'E_span'
                            ],
                   'lhs' => 'ELE_span',
@@ -524,34 +466,6 @@ $CORE_RULES = [
                 },
                 {
                   'rhs' => [
-                             'S_head',
-                             '_C_ELE_head',
-                             'E_head'
-                           ],
-                  'lhs' => 'ELE_head',
-                  'action' => 'ELE_head'
-                },
-                {
-                  'min' => 0,
-                  'rhs' => [
-                             'ITEM_ELE_head'
-                           ],
-                  'lhs' => '_C_ELE_head'
-                },
-                {
-                  'rhs' => [
-                             'head_item'
-                           ],
-                  'lhs' => 'ITEM_ELE_head'
-                },
-                {
-                  'rhs' => [
-                             'CRUFT'
-                           ],
-                  'lhs' => 'ITEM_ELE_head'
-                },
-                {
-                  'rhs' => [
                              'S_optgroup',
                              '_C_ELE_optgroup',
                              'E_optgroup'
@@ -583,6 +497,43 @@ $CORE_RULES = [
                              'CRUFT'
                            ],
                   'lhs' => 'ITEM_ELE_optgroup'
+                },
+                {
+                  'rhs' => [
+                             '_C_FLO_head'
+                           ],
+                  'lhs' => 'FLO_head'
+                },
+                {
+                  'min' => 0,
+                  'rhs' => [
+                             'ITEM_head'
+                           ],
+                  'lhs' => '_C_FLO_head'
+                },
+                {
+                  'rhs' => [
+                             'ITEM_SGML'
+                           ],
+                  'lhs' => 'ITEM_head'
+                },
+                {
+                  'rhs' => [
+                             'head_element'
+                           ],
+                  'lhs' => 'ITEM_head'
+                },
+                {
+                  'rhs' => [
+                             'anywhere_element'
+                           ],
+                  'lhs' => 'ITEM_head'
+                },
+                {
+                  'rhs' => [
+                             'CRUFT'
+                           ],
+                  'lhs' => 'ITEM_head'
                 },
                 {
                   'rhs' => [
@@ -1109,40 +1060,6 @@ $CORE_RULES = [
                 },
                 {
                   'rhs' => [
-                             'S_object',
-                             '_C_ELE_object',
-                             'E_object'
-                           ],
-                  'lhs' => 'ELE_object',
-                  'action' => 'ELE_object'
-                },
-                {
-                  'min' => 0,
-                  'rhs' => [
-                             'ITEM_ELE_object'
-                           ],
-                  'lhs' => '_C_ELE_object'
-                },
-                {
-                  'rhs' => [
-                             'ELE_param'
-                           ],
-                  'lhs' => 'ITEM_ELE_object'
-                },
-                {
-                  'rhs' => [
-                             'ITEM_mixed'
-                           ],
-                  'lhs' => 'ITEM_ELE_object'
-                },
-                {
-                  'rhs' => [
-                             'CRUFT'
-                           ],
-                  'lhs' => 'ITEM_ELE_object'
-                },
-                {
-                  'rhs' => [
                              'S_tfoot',
                              '_C_ELE_tfoot',
                              'E_tfoot'
@@ -1174,6 +1091,40 @@ $CORE_RULES = [
                              'CRUFT'
                            ],
                   'lhs' => 'ITEM_ELE_tfoot'
+                },
+                {
+                  'rhs' => [
+                             'S_object',
+                             '_C_ELE_object',
+                             'E_object'
+                           ],
+                  'lhs' => 'ELE_object',
+                  'action' => 'ELE_object'
+                },
+                {
+                  'min' => 0,
+                  'rhs' => [
+                             'ITEM_ELE_object'
+                           ],
+                  'lhs' => '_C_ELE_object'
+                },
+                {
+                  'rhs' => [
+                             'ELE_param'
+                           ],
+                  'lhs' => 'ITEM_ELE_object'
+                },
+                {
+                  'rhs' => [
+                             'ITEM_mixed'
+                           ],
+                  'lhs' => 'ITEM_ELE_object'
+                },
+                {
+                  'rhs' => [
+                             'CRUFT'
+                           ],
+                  'lhs' => 'ITEM_ELE_object'
                 },
                 {
                   'rhs' => [
@@ -1245,6 +1196,55 @@ $CORE_RULES = [
                 },
                 {
                   'rhs' => [
+                             '_C_FLO_inline'
+                           ],
+                  'lhs' => 'FLO_inline'
+                },
+                {
+                  'min' => 0,
+                  'rhs' => [
+                             'ITEM_inline'
+                           ],
+                  'lhs' => '_C_FLO_inline'
+                },
+                {
+                  'rhs' => [
+                             'pcdata'
+                           ],
+                  'lhs' => 'ITEM_inline'
+                },
+                {
+                  'rhs' => [
+                             'cdata'
+                           ],
+                  'lhs' => 'ITEM_inline'
+                },
+                {
+                  'rhs' => [
+                             'ITEM_SGML'
+                           ],
+                  'lhs' => 'ITEM_inline'
+                },
+                {
+                  'rhs' => [
+                             'inline_element'
+                           ],
+                  'lhs' => 'ITEM_inline'
+                },
+                {
+                  'rhs' => [
+                             'anywhere_element'
+                           ],
+                  'lhs' => 'ITEM_inline'
+                },
+                {
+                  'rhs' => [
+                             'CRUFT'
+                           ],
+                  'lhs' => 'ITEM_inline'
+                },
+                {
+                  'rhs' => [
                              'S_select',
                              '_C_ELE_select',
                              'E_select'
@@ -1287,72 +1287,72 @@ $CORE_RULES = [
 $IS_BLOCK_ELEMENT = {
                       'xmp' => 'cdata_flow',
                       'form' => 'FLO_mixed',
-                      'pre' => 'inline_flow',
-                      'h5' => 'inline_flow',
+                      'pre' => 'FLO_inline',
+                      'h5' => 'FLO_inline',
                       'center' => 'FLO_mixed',
                       'noframes' => 'FLO_mixed',
                       'plaintext' => 'cdata_flow',
-                      'h6' => 'inline_flow',
-                      'address' => 'inline_flow',
-                      'h1' => 'inline_flow',
+                      'h6' => 'FLO_inline',
+                      'address' => 'FLO_inline',
+                      'h1' => 'FLO_inline',
                       'blockquote' => 'FLO_mixed',
-                      'h4' => 'inline_flow',
-                      'h2' => 'inline_flow',
+                      'h4' => 'FLO_inline',
+                      'h2' => 'FLO_inline',
                       'fieldset' => 'FLO_mixed',
                       'hr' => 'empty',
-                      'h3' => 'inline_flow',
+                      'h3' => 'FLO_inline',
                       'noscript' => 'FLO_mixed'
                     };
 $IS_INLINE_ELEMENT = {
-                       'embed' => 'inline_flow',
-                       'a' => 'inline_flow',
+                       'embed' => 'FLO_inline',
+                       'a' => 'FLO_inline',
                        'input' => 'cdata_flow',
-                       'strike' => 'inline_flow',
-                       'rbc' => 'inline_flow',
-                       'keygen' => 'inline_flow',
+                       'strike' => 'FLO_inline',
+                       'rbc' => 'FLO_inline',
+                       'keygen' => 'FLO_inline',
                        'img' => 'empty',
-                       'font' => 'inline_flow',
-                       'rb' => 'inline_flow',
-                       'tt' => 'inline_flow',
-                       'blink' => 'inline_flow',
-                       'mark' => 'inline_flow',
-                       'abbr' => 'inline_flow',
-                       'u' => 'inline_flow',
-                       'sup' => 'inline_flow',
-                       'rt' => 'inline_flow',
+                       'font' => 'FLO_inline',
+                       'rb' => 'FLO_inline',
+                       'tt' => 'FLO_inline',
+                       'blink' => 'FLO_inline',
+                       'mark' => 'FLO_inline',
+                       'abbr' => 'FLO_inline',
+                       'u' => 'FLO_inline',
+                       'sup' => 'FLO_inline',
+                       'rt' => 'FLO_inline',
                        'basefont' => 'empty',
-                       'code' => 'inline_flow',
+                       'code' => 'FLO_inline',
                        'br' => 'empty',
-                       'acronym' => 'inline_flow',
-                       'video' => 'inline_flow',
-                       'strong' => 'inline_flow',
-                       'output' => 'inline_flow',
-                       's' => 'inline_flow',
-                       'em' => 'inline_flow',
-                       'b' => 'inline_flow',
-                       'q' => 'inline_flow',
-                       'label' => 'inline_flow',
-                       'kbd' => 'inline_flow',
-                       'rp' => 'inline_flow',
-                       'small' => 'inline_flow',
-                       'time' => 'inline_flow',
-                       'audio' => 'inline_flow',
-                       'nobr' => 'inline_flow',
-                       'rtc' => 'inline_flow',
-                       'samp' => 'inline_flow',
-                       'var' => 'inline_flow',
-                       'cite' => 'inline_flow',
-                       'i' => 'inline_flow',
-                       'command' => 'inline_flow',
-                       'bdo' => 'inline_flow',
-                       'progress' => 'inline_flow',
-                       'ruby' => 'inline_flow',
-                       'wbr' => 'inline_flow',
-                       'dfn' => 'inline_flow',
-                       'big' => 'inline_flow',
-                       'sub' => 'inline_flow',
-                       'meter' => 'inline_flow',
-                       'button' => 'inline_flow'
+                       'acronym' => 'FLO_inline',
+                       'video' => 'FLO_inline',
+                       'strong' => 'FLO_inline',
+                       'output' => 'FLO_inline',
+                       's' => 'FLO_inline',
+                       'em' => 'FLO_inline',
+                       'b' => 'FLO_inline',
+                       'q' => 'FLO_inline',
+                       'label' => 'FLO_inline',
+                       'kbd' => 'FLO_inline',
+                       'rp' => 'FLO_inline',
+                       'small' => 'FLO_inline',
+                       'time' => 'FLO_inline',
+                       'audio' => 'FLO_inline',
+                       'nobr' => 'FLO_inline',
+                       'rtc' => 'FLO_inline',
+                       'samp' => 'FLO_inline',
+                       'var' => 'FLO_inline',
+                       'cite' => 'FLO_inline',
+                       'i' => 'FLO_inline',
+                       'command' => 'FLO_inline',
+                       'bdo' => 'FLO_inline',
+                       'progress' => 'FLO_inline',
+                       'ruby' => 'FLO_inline',
+                       'wbr' => 'FLO_inline',
+                       'dfn' => 'FLO_inline',
+                       'big' => 'FLO_inline',
+                       'sub' => 'FLO_inline',
+                       'meter' => 'FLO_inline',
+                       'button' => 'FLO_inline'
                      };
 $IS_HEAD_ELEMENT = {
                      'base' => 'core',
@@ -1368,86 +1368,86 @@ $IS_ANYWHERE_ELEMENT = {
                          'textarea' => 'core'
                        };
 $IS_INLINE_ELEMENT = {
-                       'embed' => 'inline_flow',
-                       'strike' => 'inline_flow',
+                       'embed' => 'FLO_inline',
+                       'strike' => 'FLO_inline',
                        'input' => 'cdata_flow',
-                       'a' => 'inline_flow',
-                       'rbc' => 'inline_flow',
-                       'keygen' => 'inline_flow',
+                       'a' => 'FLO_inline',
+                       'rbc' => 'FLO_inline',
+                       'keygen' => 'FLO_inline',
                        'img' => 'empty',
-                       'tt' => 'inline_flow',
-                       'rb' => 'inline_flow',
-                       'font' => 'inline_flow',
-                       'mark' => 'inline_flow',
+                       'tt' => 'FLO_inline',
+                       'rb' => 'FLO_inline',
+                       'font' => 'FLO_inline',
+                       'mark' => 'FLO_inline',
                        'map' => 'core',
-                       'blink' => 'inline_flow',
-                       'u' => 'inline_flow',
-                       'abbr' => 'inline_flow',
-                       'sup' => 'inline_flow',
-                       'rt' => 'inline_flow',
+                       'blink' => 'FLO_inline',
+                       'u' => 'FLO_inline',
+                       'abbr' => 'FLO_inline',
+                       'sup' => 'FLO_inline',
+                       'rt' => 'FLO_inline',
                        'basefont' => 'empty',
-                       'code' => 'inline_flow',
-                       'video' => 'inline_flow',
-                       'acronym' => 'inline_flow',
+                       'code' => 'FLO_inline',
+                       'video' => 'FLO_inline',
+                       'acronym' => 'FLO_inline',
                        'br' => 'empty',
-                       'strong' => 'inline_flow',
-                       's' => 'inline_flow',
-                       'output' => 'inline_flow',
-                       'em' => 'inline_flow',
-                       'q' => 'inline_flow',
-                       'b' => 'inline_flow',
+                       'strong' => 'FLO_inline',
+                       's' => 'FLO_inline',
+                       'output' => 'FLO_inline',
+                       'em' => 'FLO_inline',
+                       'q' => 'FLO_inline',
+                       'b' => 'FLO_inline',
                        'span' => 'core',
-                       'label' => 'inline_flow',
+                       'label' => 'FLO_inline',
                        'applet' => 'core',
-                       'rp' => 'inline_flow',
-                       'kbd' => 'inline_flow',
-                       'small' => 'inline_flow',
-                       'time' => 'inline_flow',
-                       'audio' => 'inline_flow',
-                       'nobr' => 'inline_flow',
-                       'samp' => 'inline_flow',
-                       'rtc' => 'inline_flow',
-                       'var' => 'inline_flow',
-                       'cite' => 'inline_flow',
+                       'rp' => 'FLO_inline',
+                       'kbd' => 'FLO_inline',
+                       'small' => 'FLO_inline',
+                       'time' => 'FLO_inline',
+                       'audio' => 'FLO_inline',
+                       'nobr' => 'FLO_inline',
+                       'samp' => 'FLO_inline',
+                       'rtc' => 'FLO_inline',
+                       'var' => 'FLO_inline',
+                       'cite' => 'FLO_inline',
                        'select' => 'core',
-                       'command' => 'inline_flow',
-                       'i' => 'inline_flow',
-                       'bdo' => 'inline_flow',
-                       'progress' => 'inline_flow',
-                       'ruby' => 'inline_flow',
-                       'wbr' => 'inline_flow',
-                       'dfn' => 'inline_flow',
-                       'sub' => 'inline_flow',
-                       'big' => 'inline_flow',
-                       'meter' => 'inline_flow',
-                       'button' => 'inline_flow',
+                       'command' => 'FLO_inline',
+                       'i' => 'FLO_inline',
+                       'bdo' => 'FLO_inline',
+                       'progress' => 'FLO_inline',
+                       'ruby' => 'FLO_inline',
+                       'wbr' => 'FLO_inline',
+                       'dfn' => 'FLO_inline',
+                       'sub' => 'FLO_inline',
+                       'big' => 'FLO_inline',
+                       'meter' => 'FLO_inline',
+                       'button' => 'FLO_inline',
                        'textarea' => 'core'
                      };
 $IS_BLOCK_ELEMENT = {
                       'xmp' => 'cdata_flow',
                       'div' => 'core',
                       'table' => 'core',
-                      'pre' => 'inline_flow',
+                      'pre' => 'FLO_inline',
                       'form' => 'FLO_mixed',
-                      'h5' => 'inline_flow',
+                      'h5' => 'FLO_inline',
                       'noframes' => 'FLO_mixed',
                       'dir' => 'core',
                       'center' => 'FLO_mixed',
                       'plaintext' => 'cdata_flow',
                       'ol' => 'core',
-                      'h6' => 'inline_flow',
-                      'address' => 'inline_flow',
+                      'h6' => 'FLO_inline',
+                      'address' => 'FLO_inline',
                       'ul' => 'core',
-                      'h1' => 'inline_flow',
+                      'h1' => 'FLO_inline',
                       'blockquote' => 'FLO_mixed',
                       'menu' => 'core',
-                      'h4' => 'inline_flow',
-                      'h2' => 'inline_flow',
+                      'h4' => 'FLO_inline',
+                      'h2' => 'FLO_inline',
                       'p' => 'core',
                       'fieldset' => 'FLO_mixed',
                       'hr' => 'empty',
                       'noscript' => 'FLO_mixed',
-                      'h3' => 'inline_flow',
+                      'h3' => 'FLO_inline',
                       'dl' => 'core'
                     };
 $RUBY_SLIPPERS_RANK_BY_NAME = {

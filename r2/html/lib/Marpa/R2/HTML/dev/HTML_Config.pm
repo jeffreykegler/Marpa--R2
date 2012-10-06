@@ -47,7 +47,7 @@ prolog ::= FLO_SGML
 trailer ::= FLO_SGML
 ELE_html ::= S_html EC_html E_html
 EC_html ::= FLO_SGML ELE_head FLO_SGML ELE_body FLO_SGML
-ELE_head contains head_item
+ELE_head is FLO_head
 ELE_body is FLO_block
 
 # Common types of element content
@@ -74,10 +74,8 @@ anywhere_element ::= ELE_script
 anywhere_element ::= ELE_isindex
 anywhere_element ::= ELE_textarea
 
-head_item ::= ITEM_SGML
-head_item ::= head_element
-head_item ::= anywhere_element
-head_item ::= CRUFT
+FLO_head contains ITEM_SGML head_element anywhere_element
+
 head_element ::= ELE_object
 head_element ::= ELE_style
 head_element ::= ELE_meta
@@ -85,13 +83,8 @@ head_element ::= ELE_link
 head_element ::= ELE_title
 head_element ::= ELE_base
 
-inline_flow ::= inline_item*
-inline_item ::= pcdata
-inline_item ::= cdata
-inline_item ::= ITEM_SGML
-inline_item ::= inline_element
-inline_item ::= anywhere_element
-inline_item ::= CRUFT
+FLO_inline contains pcdata cdata ITEM_SGML inline_element anywhere_element
+
 inline_element ::= ELE_object
 inline_element ::= ELE_select
 inline_element ::= ELE_span
@@ -114,7 +107,7 @@ ELE_colgroup contains ELE_col ITEM_SGML
 ELE_dd is FLO_mixed
 ELE_div is FLO_mixed
 ELE_dl contains ITEM_SGML ELE_dt ELE_dd
-ELE_dt is inline_flow
+ELE_dt is FLO_inline
 ELE_isindex is empty
 ELE_li is FLO_mixed
 ELE_map contains block_element ITEM_SGML ELE_area
@@ -127,11 +120,11 @@ ELE_ol contains ITEM_SGML ELE_li
 ELE_dir contains ITEM_SGML ELE_li
 ELE_menu contains ITEM_SGML ELE_li
 ELE_optgroup contains ELE_option ITEM_SGML
-ELE_p is inline_flow
+ELE_p is FLO_inline
 ELE_param is empty
 ELE_script is cdata_flow
 ELE_select contains ITEM_SGML ELE_optgroup ELE_option
-ELE_span is inline_flow
+ELE_span is FLO_inline
 ELE_style is cdata_flow
 ELE_table contains ELE_caption ELE_col ELE_colgroup
 ELE_table contains ELE_tbody ELE_tfoot ELE_thead
@@ -164,7 +157,7 @@ our %HANDLER = (
 # and block level element in the body.
 # ISINDEX is classified as a header_element
 our %IS_BLOCK_ELEMENT = (
-    address    => 'inline_flow',
+    address    => 'FLO_inline',
     blockquote => 'FLO_mixed',
     center     => 'FLO_mixed',
     dir        => 'core',
@@ -172,12 +165,12 @@ our %IS_BLOCK_ELEMENT = (
     dl         => 'core',
     fieldset   => 'FLO_mixed',
     form       => 'FLO_mixed',
-    h1         => 'inline_flow',
-    h2         => 'inline_flow',
-    h3         => 'inline_flow',
-    h4         => 'inline_flow',
-    h5         => 'inline_flow',
-    h6         => 'inline_flow',
+    h1         => 'FLO_inline',
+    h2         => 'FLO_inline',
+    h3         => 'FLO_inline',
+    h4         => 'FLO_inline',
+    h5         => 'FLO_inline',
+    h6         => 'FLO_inline',
     hr         => 'empty',
     menu       => 'core',
     noframes   => 'FLO_mixed',
@@ -185,68 +178,68 @@ our %IS_BLOCK_ELEMENT = (
     ol         => 'core',
     p          => 'core',
     plaintext  => 'cdata_flow',
-    pre        => 'inline_flow',
+    pre        => 'FLO_inline',
     table      => 'core',
     ul         => 'core',
     xmp        => 'cdata_flow',
 );
 
 our %IS_INLINE_ELEMENT = (
-    a        => 'inline_flow',
-    abbr     => 'inline_flow',
-    acronym  => 'inline_flow',
+    a        => 'FLO_inline',
+    abbr     => 'FLO_inline',
+    acronym  => 'FLO_inline',
     applet   => 'core',
-    audio    => 'inline_flow',
-    b        => 'inline_flow',
+    audio    => 'FLO_inline',
+    b        => 'FLO_inline',
     basefont => 'empty',
-    bdo      => 'inline_flow',
-    big      => 'inline_flow',
-    blink    => 'inline_flow',
+    bdo      => 'FLO_inline',
+    big      => 'FLO_inline',
+    blink    => 'FLO_inline',
     br       => 'empty',
-    button   => 'inline_flow',
-    cite     => 'inline_flow',
-    code     => 'inline_flow',
-    command  => 'inline_flow',
-    dfn      => 'inline_flow',
-    em       => 'inline_flow',
-    embed    => 'inline_flow',
-    font     => 'inline_flow',
-    i        => 'inline_flow',
+    button   => 'FLO_inline',
+    cite     => 'FLO_inline',
+    code     => 'FLO_inline',
+    command  => 'FLO_inline',
+    dfn      => 'FLO_inline',
+    em       => 'FLO_inline',
+    embed    => 'FLO_inline',
+    font     => 'FLO_inline',
+    i        => 'FLO_inline',
     img      => 'empty',
     input    => 'empty',
     input    => 'cdata_flow',
-    kbd      => 'inline_flow',
-    keygen   => 'inline_flow',
-    label    => 'inline_flow',
+    kbd      => 'FLO_inline',
+    keygen   => 'FLO_inline',
+    label    => 'FLO_inline',
     map     => 'core',
-    mark     => 'inline_flow',
-    meter    => 'inline_flow',
-    nobr     => 'inline_flow',
-    output   => 'inline_flow',
-    progress => 'inline_flow',
-    q        => 'inline_flow',
-    rb       => 'inline_flow',
-    rbc      => 'inline_flow',
-    rp       => 'inline_flow',
-    rt       => 'inline_flow',
-    rtc      => 'inline_flow',
-    ruby     => 'inline_flow',
-    s        => 'inline_flow',
-    samp     => 'inline_flow',
+    mark     => 'FLO_inline',
+    meter    => 'FLO_inline',
+    nobr     => 'FLO_inline',
+    output   => 'FLO_inline',
+    progress => 'FLO_inline',
+    q        => 'FLO_inline',
+    rb       => 'FLO_inline',
+    rbc      => 'FLO_inline',
+    rp       => 'FLO_inline',
+    rt       => 'FLO_inline',
+    rtc      => 'FLO_inline',
+    ruby     => 'FLO_inline',
+    s        => 'FLO_inline',
+    samp     => 'FLO_inline',
     select   => 'core',
-    small    => 'inline_flow',
+    small    => 'FLO_inline',
     span     => 'core',
-    strike   => 'inline_flow',
-    strong   => 'inline_flow',
-    sub      => 'inline_flow',
-    sup      => 'inline_flow',
+    strike   => 'FLO_inline',
+    strong   => 'FLO_inline',
+    sub      => 'FLO_inline',
+    sup      => 'FLO_inline',
     textarea => 'core',
-    time     => 'inline_flow',
-    tt       => 'inline_flow',
-    u        => 'inline_flow',
-    var      => 'inline_flow',
-    video    => 'inline_flow',
-    wbr      => 'inline_flow',
+    time     => 'FLO_inline',
+    tt       => 'FLO_inline',
+    u        => 'FLO_inline',
+    var      => 'FLO_inline',
+    video    => 'FLO_inline',
+    wbr      => 'FLO_inline',
 );
 
 my @head_rubies   = qw( S_html S_head );
