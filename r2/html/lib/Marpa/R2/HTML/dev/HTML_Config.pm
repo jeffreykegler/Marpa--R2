@@ -25,7 +25,6 @@ use English qw( -no_match_vars );
 
 our $BNF = <<'END_OF_BNF';
 # Non-element tokens
-cruft ::= CRUFT
 comment ::= C
 pi ::= PI
 decl ::= D
@@ -33,12 +32,11 @@ pcdata ::= PCDATA
 cdata ::= CDATA
 whitespace ::= WHITESPACE
 # SGML flows
-SGML_item ::= comment
-SGML_item ::= pi
-SGML_item ::= decl
-SGML_item ::= whitespace
-SGML_item ::= cruft
-SGML_flow ::= SGML_item*
+ITEM_SGML ::= comment
+ITEM_SGML ::= pi
+ITEM_SGML ::= decl
+ITEM_SGML ::= whitespace
+FLO_SGML contains ITEM_SGML
 
 # For element x,
 # ELE_x is complete element
@@ -50,10 +48,10 @@ SGML_flow ::= SGML_item*
 
 # Top-level structure
 document ::= prolog ELE_html trailer EOF
-prolog ::= SGML_flow
-trailer ::= SGML_flow
+prolog ::= FLO_SGML
+trailer ::= FLO_SGML
 ELE_html ::= S_html EC_html E_html
-EC_html ::= SGML_flow ELE_head SGML_flow ELE_body SGML_flow
+EC_html ::= FLO_SGML ELE_head FLO_SGML ELE_body FLO_SGML
 ELE_head contains head_item
 ELE_body is block_flow
 
@@ -66,12 +64,13 @@ mixed_flow_item ::= block_element
 mixed_flow_item ::= inline_element
 mixed_flow_item ::= cdata
 mixed_flow_item ::= pcdata
-mixed_flow_item ::= SGML_item
+mixed_flow_item ::= ITEM_SGML
 
 block_flow ::= block_item*
-block_item ::= SGML_item
+block_item ::= ITEM_SGML
 block_item ::= block_element
 block_item ::= anywhere_element
+block_item ::= CRUFT
 block_element ::= ELE_table
 block_element ::= ELE_p
 block_element ::= ELE_ol
@@ -88,9 +87,10 @@ anywhere_element ::= ELE_script
 anywhere_element ::= ELE_isindex
 anywhere_element ::= ELE_textarea
 
-head_item ::= SGML_item
+head_item ::= ITEM_SGML
 head_item ::= head_element
 head_item ::= anywhere_element
+head_item ::= CRUFT
 head_element ::= ELE_object
 head_element ::= ELE_style
 head_element ::= ELE_meta
@@ -101,9 +101,10 @@ head_element ::= ELE_base
 inline_flow ::= inline_item*
 inline_item ::= pcdata
 inline_item ::= cdata
-inline_item ::= SGML_item
+inline_item ::= ITEM_SGML
 inline_item ::= inline_element
 inline_item ::= anywhere_element
+inline_item ::= CRUFT
 inline_element ::= ELE_object
 inline_element ::= ELE_select
 inline_element ::= ELE_span
@@ -113,49 +114,49 @@ inline_element ::= ELE_applet
 pcdata_flow ::= pcdata_flow_item*
 pcdata_flow_item ::= cdata
 pcdata_flow_item ::= pcdata
-pcdata_flow_item ::= SGML_item
+pcdata_flow_item ::= ITEM_SGML
 
 cdata_flow ::= cdata_flow_item*
 cdata_flow_item ::= cdata
-cdata_flow_item ::= cruft
+cdata_flow_item ::= CRUFT
 
 # Alphabetically, by tagname
 ELE_base is empty
 ELE_col is empty
-ELE_colgroup contains ELE_col SGML_item
+ELE_colgroup contains ELE_col ITEM_SGML
 ELE_dd is mixed_flow
 ELE_div is mixed_flow
-ELE_dl contains SGML_item ELE_dt ELE_dd
+ELE_dl contains ITEM_SGML ELE_dt ELE_dd
 ELE_dt is inline_flow
 ELE_isindex is empty
 ELE_li is mixed_flow
-ELE_map contains block_element SGML_item ELE_area
+ELE_map contains block_element ITEM_SGML ELE_area
 ELE_area is empty
 ELE_link is empty
 ELE_meta is empty
 ELE_object contains ELE_param mixed_flow_item
 ELE_applet contains ELE_param mixed_flow_item
-ELE_ol contains SGML_item ELE_li
-ELE_dir contains SGML_item ELE_li
-ELE_menu contains SGML_item ELE_li
-ELE_optgroup contains ELE_option SGML_item
+ELE_ol contains ITEM_SGML ELE_li
+ELE_dir contains ITEM_SGML ELE_li
+ELE_menu contains ITEM_SGML ELE_li
+ELE_optgroup contains ELE_option ITEM_SGML
 ELE_p is inline_flow
 ELE_param is empty
 ELE_script is cdata_flow
-ELE_select contains SGML_item ELE_optgroup ELE_option
+ELE_select contains ITEM_SGML ELE_optgroup ELE_option
 ELE_span is inline_flow
 ELE_style is cdata_flow
 ELE_table contains ELE_caption ELE_col ELE_colgroup
 ELE_table contains ELE_tbody ELE_tfoot ELE_thead
-ELE_table contains SGML_item
+ELE_table contains ITEM_SGML
 ELE_textarea is cdata_flow
-ELE_tbody contains SGML_item ELE_tr
+ELE_tbody contains ITEM_SGML ELE_tr
 ELE_td is mixed_flow
-ELE_tfoot contains SGML_item ELE_tr
-ELE_thead contains SGML_item ELE_tr
+ELE_tfoot contains ITEM_SGML ELE_tr
+ELE_thead contains ITEM_SGML ELE_tr
 ELE_title is pcdata_flow
-ELE_tr contains SGML_item ELE_th ELE_td
-ELE_ul contains SGML_item ELE_li
+ELE_tr contains ITEM_SGML ELE_th ELE_td
+ELE_ul contains ITEM_SGML ELE_li
 END_OF_BNF
 
 our %HANDLER = (

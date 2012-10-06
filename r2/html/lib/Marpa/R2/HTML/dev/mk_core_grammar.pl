@@ -126,7 +126,7 @@ ELEMENT: for my $main_symbol (keys %containments) {
 	$flow_seen{$main_symbol} = 1;
         push @core_rules,
             {
-            lhs => $main_symbol,
+            lhs => $item_symbol,
             rhs => ['CRUFT'],
             };
     }
