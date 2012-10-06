@@ -104,7 +104,7 @@ LINE: for my $line ( split /\n/xms, $HTML_Config::BNF ) {
 # Other ITEM_ ok, but there must be a corresponding FLO_
 # LHS.
 
-my %cruft_enabled = ();
+my %sgml_flow_included = ();
 ELEMENT: for my $main_symbol ( keys %element_containments ) {
     my @contents        = @{ $element_containments{$main_symbol} };
     my $tag             = substr $main_symbol, 4;
@@ -127,14 +127,14 @@ ELEMENT: for my $main_symbol ( keys %element_containments ) {
             rhs => [$content_item],
             };
     } ## end for my $content_item (@contents)
-    if ( !$cruft_enabled{$item_symbol} ) {
-        $cruft_enabled{$item_symbol} = 1;
+    if ( !$sgml_flow_included{$item_symbol} ) {
+        $sgml_flow_included{$item_symbol} = 1;
         push @core_rules,
             {
             lhs => $item_symbol,
-            rhs => ['CRUFT'],
+            rhs => ['ITEM_SGML'],
             };
-    } ## end if ( !$cruft_enabled{$item_symbol} )
+    } ## end if ( !$sgml_flow_included{$item_symbol} )
 } ## end ELEMENT: for my $main_symbol ( keys %element_containments )
 
 ELEMENT: for my $main_symbol ( keys %flow_containments ) {
@@ -153,14 +153,14 @@ ELEMENT: for my $main_symbol ( keys %flow_containments ) {
             rhs => [$content_item],
             };
     } ## end for my $content_item (@contents)
-    if ( !$cruft_enabled{$item_symbol} ) {
-        $cruft_enabled{$item_symbol} = 1;
+    if ( !$sgml_flow_included{$item_symbol} ) {
+        $sgml_flow_included{$item_symbol} = 1;
         push @core_rules,
             {
             lhs => $item_symbol,
-            rhs => ['CRUFT'],
+            rhs => ['ITEM_SGML'],
             };
-    } ## end if ( !$cruft_enabled{$item_symbol} )
+    } ## end if ( !$sgml_flow_included{$item_symbol} )
 } ## end ELEMENT: for my $main_symbol ( keys %flow_containments )
 
 {

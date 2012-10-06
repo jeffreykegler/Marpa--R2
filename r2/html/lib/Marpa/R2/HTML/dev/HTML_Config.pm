@@ -31,9 +31,16 @@ decl ::= D
 pcdata ::= PCDATA
 cdata ::= CDATA
 whitespace ::= WHITESPACE
+cruft ::= CRUFT
 
-# SGML flow
-FLO_SGML contains comment pi decl whitespace
+# FLO_SGML and ITEM_SGML defined by BNF rules,
+# because they must explicity include cruft
+FLO_SGML ::= ITEM_SGML*
+ITEM_SGML ::= comment
+ITEM_SGML ::= pi
+ITEM_SGML ::= decl
+ITEM_SGML ::= whitespace
+ITEM_SGML ::= cruft
 
 # For element x,
 # ELE_x is complete element
@@ -54,9 +61,9 @@ ELE_body is FLO_block
 empty ::=
 
 FLO_mixed contains anywhere_element block_element inline_element
-FLO_mixed contains cdata pcdata ITEM_SGML
+FLO_mixed contains cdata pcdata
 
-FLO_block contains ITEM_SGML block_element anywhere_element
+FLO_block contains block_element anywhere_element
 
 block_element ::= ELE_table
 block_element ::= ELE_p
@@ -74,7 +81,7 @@ anywhere_element ::= ELE_script
 anywhere_element ::= ELE_isindex
 anywhere_element ::= ELE_textarea
 
-FLO_head contains ITEM_SGML head_element anywhere_element
+FLO_head contains head_element anywhere_element
 
 head_element ::= ELE_object
 head_element ::= ELE_style
@@ -83,7 +90,7 @@ head_element ::= ELE_link
 head_element ::= ELE_title
 head_element ::= ELE_base
 
-FLO_inline contains pcdata cdata ITEM_SGML inline_element anywhere_element
+FLO_inline contains pcdata cdata inline_element anywhere_element
 
 inline_element ::= ELE_object
 inline_element ::= ELE_select
@@ -103,40 +110,39 @@ cdata_flow_item ::= CRUFT
 # Alphabetically, by tagname
 ELE_base is empty
 ELE_col is empty
-ELE_colgroup contains ELE_col ITEM_SGML
+ELE_colgroup contains ELE_col
 ELE_dd is FLO_mixed
 ELE_div is FLO_mixed
-ELE_dl contains ITEM_SGML ELE_dt ELE_dd
+ELE_dl contains ELE_dt ELE_dd
 ELE_dt is FLO_inline
 ELE_isindex is empty
 ELE_li is FLO_mixed
-ELE_map contains block_element ITEM_SGML ELE_area
+ELE_map contains block_element ELE_area
 ELE_area is empty
 ELE_link is empty
 ELE_meta is empty
 ELE_object contains ELE_param ITEM_mixed
 ELE_applet contains ELE_param ITEM_mixed
-ELE_ol contains ITEM_SGML ELE_li
-ELE_dir contains ITEM_SGML ELE_li
-ELE_menu contains ITEM_SGML ELE_li
-ELE_optgroup contains ELE_option ITEM_SGML
+ELE_ol contains ELE_li
+ELE_dir contains ELE_li
+ELE_menu contains ELE_li
+ELE_optgroup contains ELE_option
 ELE_p is FLO_inline
 ELE_param is empty
 ELE_script is cdata_flow
-ELE_select contains ITEM_SGML ELE_optgroup ELE_option
+ELE_select contains ELE_optgroup ELE_option
 ELE_span is FLO_inline
 ELE_style is cdata_flow
 ELE_table contains ELE_caption ELE_col ELE_colgroup
 ELE_table contains ELE_tbody ELE_tfoot ELE_thead
-ELE_table contains ITEM_SGML
 ELE_textarea is cdata_flow
-ELE_tbody contains ITEM_SGML ELE_tr
+ELE_tbody contains ELE_tr
 ELE_td is FLO_mixed
-ELE_tfoot contains ITEM_SGML ELE_tr
-ELE_thead contains ITEM_SGML ELE_tr
+ELE_tfoot contains ELE_tr
+ELE_thead contains ELE_tr
 ELE_title is pcdata_flow
-ELE_tr contains ITEM_SGML ELE_th ELE_td
-ELE_ul contains ITEM_SGML ELE_li
+ELE_tr contains ELE_th ELE_td
+ELE_ul contains ELE_li
 END_OF_BNF
 
 our %HANDLER = (
