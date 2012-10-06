@@ -14,7 +14,7 @@
 # http://www.gnu.org/licenses/.
 
 # This file was generated automatically by mk_core_grammar.pl
-# The date of generation was Fri Oct  5 20:50:42 2012
+# The date of generation was Fri Oct  5 22:17:01 2012
 
 package Marpa::R2::HTML::Internal;
 
@@ -60,30 +60,6 @@ $CORE_RULES = [
                            ],
                   'lhs' => 'whitespace',
                   'action' => 'SPE_WHITESPACE'
-                },
-                {
-                  'rhs' => [
-                             'comment'
-                           ],
-                  'lhs' => 'ITEM_SGML'
-                },
-                {
-                  'rhs' => [
-                             'pi'
-                           ],
-                  'lhs' => 'ITEM_SGML'
-                },
-                {
-                  'rhs' => [
-                             'decl'
-                           ],
-                  'lhs' => 'ITEM_SGML'
-                },
-                {
-                  'rhs' => [
-                             'whitespace'
-                           ],
-                  'lhs' => 'ITEM_SGML'
                 },
                 {
                   'rhs' => [
@@ -623,7 +599,7 @@ $CORE_RULES = [
                 {
                   'rhs' => [
                              'S_head',
-                             'ELC_head',
+                             '_C_ELE_head',
                              'E_head'
                            ],
                   'lhs' => 'ELE_head',
@@ -632,26 +608,26 @@ $CORE_RULES = [
                 {
                   'min' => 0,
                   'rhs' => [
-                             'ELI_head'
+                             'ITEM_ELE_head'
                            ],
-                  'lhs' => 'ELC_head'
+                  'lhs' => '_C_ELE_head'
                 },
                 {
                   'rhs' => [
                              'head_item'
                            ],
-                  'lhs' => 'ELI_head'
+                  'lhs' => 'ITEM_ELE_head'
                 },
                 {
                   'rhs' => [
                              'CRUFT'
                            ],
-                  'lhs' => 'ELI_head'
+                  'lhs' => 'ITEM_ELE_head'
                 },
                 {
                   'rhs' => [
                              'S_optgroup',
-                             'ELC_optgroup',
+                             '_C_ELE_optgroup',
                              'E_optgroup'
                            ],
                   'lhs' => 'ELE_optgroup',
@@ -660,32 +636,32 @@ $CORE_RULES = [
                 {
                   'min' => 0,
                   'rhs' => [
-                             'ELI_optgroup'
+                             'ITEM_ELE_optgroup'
                            ],
-                  'lhs' => 'ELC_optgroup'
+                  'lhs' => '_C_ELE_optgroup'
                 },
                 {
                   'rhs' => [
                              'ELE_option'
                            ],
-                  'lhs' => 'ELI_optgroup'
+                  'lhs' => 'ITEM_ELE_optgroup'
                 },
                 {
                   'rhs' => [
                              'ITEM_SGML'
                            ],
-                  'lhs' => 'ELI_optgroup'
+                  'lhs' => 'ITEM_ELE_optgroup'
                 },
                 {
                   'rhs' => [
                              'CRUFT'
                            ],
-                  'lhs' => 'ELI_optgroup'
+                  'lhs' => 'ITEM_ELE_optgroup'
                 },
                 {
                   'rhs' => [
                              'S_table',
-                             'ELC_table',
+                             '_C_ELE_table',
                              'E_table'
                            ],
                   'lhs' => 'ELE_table',
@@ -694,87 +670,105 @@ $CORE_RULES = [
                 {
                   'min' => 0,
                   'rhs' => [
-                             'ELI_table'
+                             'ITEM_ELE_table'
                            ],
-                  'lhs' => 'ELC_table'
+                  'lhs' => '_C_ELE_table'
                 },
                 {
                   'rhs' => [
                              'ELE_caption'
                            ],
-                  'lhs' => 'ELI_table'
+                  'lhs' => 'ITEM_ELE_table'
                 },
                 {
                   'rhs' => [
                              'ELE_col'
                            ],
-                  'lhs' => 'ELI_table'
+                  'lhs' => 'ITEM_ELE_table'
                 },
                 {
                   'rhs' => [
                              'ELE_colgroup'
                            ],
-                  'lhs' => 'ELI_table'
+                  'lhs' => 'ITEM_ELE_table'
                 },
                 {
                   'rhs' => [
                              'ELE_tbody'
                            ],
-                  'lhs' => 'ELI_table'
+                  'lhs' => 'ITEM_ELE_table'
                 },
                 {
                   'rhs' => [
                              'ELE_tfoot'
                            ],
-                  'lhs' => 'ELI_table'
+                  'lhs' => 'ITEM_ELE_table'
                 },
                 {
                   'rhs' => [
                              'ELE_thead'
                            ],
-                  'lhs' => 'ELI_table'
+                  'lhs' => 'ITEM_ELE_table'
                 },
                 {
                   'rhs' => [
                              'ITEM_SGML'
                            ],
-                  'lhs' => 'ELI_table'
+                  'lhs' => 'ITEM_ELE_table'
                 },
                 {
                   'rhs' => [
                              'CRUFT'
                            ],
-                  'lhs' => 'ELI_table'
+                  'lhs' => 'ITEM_ELE_table'
                 },
                 {
                   'rhs' => [
-                             'FLC_SGML'
+                             '_C_FLO_SGML'
                            ],
                   'lhs' => 'FLO_SGML'
                 },
                 {
                   'min' => 0,
                   'rhs' => [
-                             'FLI_SGML'
+                             'ITEM_SGML'
                            ],
-                  'lhs' => 'FLC_SGML'
+                  'lhs' => '_C_FLO_SGML'
                 },
                 {
                   'rhs' => [
-                             'ITEM_SGML'
+                             'comment'
                            ],
-                  'lhs' => 'FLI_SGML'
+                  'lhs' => 'ITEM_SGML'
+                },
+                {
+                  'rhs' => [
+                             'pi'
+                           ],
+                  'lhs' => 'ITEM_SGML'
+                },
+                {
+                  'rhs' => [
+                             'decl'
+                           ],
+                  'lhs' => 'ITEM_SGML'
+                },
+                {
+                  'rhs' => [
+                             'whitespace'
+                           ],
+                  'lhs' => 'ITEM_SGML'
                 },
                 {
                   'rhs' => [
                              'CRUFT'
                            ],
-                  'lhs' => 'FLI_SGML'
+                  'lhs' => 'ITEM_SGML'
                 },
                 {
                   'rhs' => [
                              'S_menu',
-                             'ELC_menu',
+                             '_C_ELE_menu',
                              'E_menu'
                            ],
                   'lhs' => 'ELE_menu',
@@ -783,32 +777,32 @@ $CORE_RULES = [
                 {
                   'min' => 0,
                   'rhs' => [
-                             'ELI_menu'
+                             'ITEM_ELE_menu'
                            ],
-                  'lhs' => 'ELC_menu'
+                  'lhs' => '_C_ELE_menu'
                 },
                 {
                   'rhs' => [
                              'ITEM_SGML'
                            ],
-                  'lhs' => 'ELI_menu'
+                  'lhs' => 'ITEM_ELE_menu'
                 },
                 {
                   'rhs' => [
                              'ELE_li'
                            ],
-                  'lhs' => 'ELI_menu'
+                  'lhs' => 'ITEM_ELE_menu'
                 },
                 {
                   'rhs' => [
                              'CRUFT'
                            ],
-                  'lhs' => 'ELI_menu'
+                  'lhs' => 'ITEM_ELE_menu'
                 },
                 {
                   'rhs' => [
                              'S_tr',
-                             'ELC_tr',
+                             '_C_ELE_tr',
                              'E_tr'
                            ],
                   'lhs' => 'ELE_tr',
@@ -817,38 +811,38 @@ $CORE_RULES = [
                 {
                   'min' => 0,
                   'rhs' => [
-                             'ELI_tr'
+                             'ITEM_ELE_tr'
                            ],
-                  'lhs' => 'ELC_tr'
+                  'lhs' => '_C_ELE_tr'
                 },
                 {
                   'rhs' => [
                              'ITEM_SGML'
                            ],
-                  'lhs' => 'ELI_tr'
+                  'lhs' => 'ITEM_ELE_tr'
                 },
                 {
                   'rhs' => [
                              'ELE_th'
                            ],
-                  'lhs' => 'ELI_tr'
+                  'lhs' => 'ITEM_ELE_tr'
                 },
                 {
                   'rhs' => [
                              'ELE_td'
                            ],
-                  'lhs' => 'ELI_tr'
+                  'lhs' => 'ITEM_ELE_tr'
                 },
                 {
                   'rhs' => [
                              'CRUFT'
                            ],
-                  'lhs' => 'ELI_tr'
+                  'lhs' => 'ITEM_ELE_tr'
                 },
                 {
                   'rhs' => [
                              'S_dl',
-                             'ELC_dl',
+                             '_C_ELE_dl',
                              'E_dl'
                            ],
                   'lhs' => 'ELE_dl',
@@ -857,38 +851,38 @@ $CORE_RULES = [
                 {
                   'min' => 0,
                   'rhs' => [
-                             'ELI_dl'
+                             'ITEM_ELE_dl'
                            ],
-                  'lhs' => 'ELC_dl'
+                  'lhs' => '_C_ELE_dl'
                 },
                 {
                   'rhs' => [
                              'ITEM_SGML'
                            ],
-                  'lhs' => 'ELI_dl'
+                  'lhs' => 'ITEM_ELE_dl'
                 },
                 {
                   'rhs' => [
                              'ELE_dt'
                            ],
-                  'lhs' => 'ELI_dl'
+                  'lhs' => 'ITEM_ELE_dl'
                 },
                 {
                   'rhs' => [
                              'ELE_dd'
                            ],
-                  'lhs' => 'ELI_dl'
+                  'lhs' => 'ITEM_ELE_dl'
                 },
                 {
                   'rhs' => [
                              'CRUFT'
                            ],
-                  'lhs' => 'ELI_dl'
+                  'lhs' => 'ITEM_ELE_dl'
                 },
                 {
                   'rhs' => [
                              'S_map',
-                             'ELC_map',
+                             '_C_ELE_map',
                              'E_map'
                            ],
                   'lhs' => 'ELE_map',
@@ -897,38 +891,38 @@ $CORE_RULES = [
                 {
                   'min' => 0,
                   'rhs' => [
-                             'ELI_map'
+                             'ITEM_ELE_map'
                            ],
-                  'lhs' => 'ELC_map'
+                  'lhs' => '_C_ELE_map'
                 },
                 {
                   'rhs' => [
                              'block_element'
                            ],
-                  'lhs' => 'ELI_map'
+                  'lhs' => 'ITEM_ELE_map'
                 },
                 {
                   'rhs' => [
                              'ITEM_SGML'
                            ],
-                  'lhs' => 'ELI_map'
+                  'lhs' => 'ITEM_ELE_map'
                 },
                 {
                   'rhs' => [
                              'ELE_area'
                            ],
-                  'lhs' => 'ELI_map'
+                  'lhs' => 'ITEM_ELE_map'
                 },
                 {
                   'rhs' => [
                              'CRUFT'
                            ],
-                  'lhs' => 'ELI_map'
+                  'lhs' => 'ITEM_ELE_map'
                 },
                 {
                   'rhs' => [
                              'S_applet',
-                             'ELC_applet',
+                             '_C_ELE_applet',
                              'E_applet'
                            ],
                   'lhs' => 'ELE_applet',
@@ -937,32 +931,32 @@ $CORE_RULES = [
                 {
                   'min' => 0,
                   'rhs' => [
-                             'ELI_applet'
+                             'ITEM_ELE_applet'
                            ],
-                  'lhs' => 'ELC_applet'
+                  'lhs' => '_C_ELE_applet'
                 },
                 {
                   'rhs' => [
                              'ELE_param'
                            ],
-                  'lhs' => 'ELI_applet'
+                  'lhs' => 'ITEM_ELE_applet'
                 },
                 {
                   'rhs' => [
                              'mixed_flow_item'
                            ],
-                  'lhs' => 'ELI_applet'
+                  'lhs' => 'ITEM_ELE_applet'
                 },
                 {
                   'rhs' => [
                              'CRUFT'
                            ],
-                  'lhs' => 'ELI_applet'
+                  'lhs' => 'ITEM_ELE_applet'
                 },
                 {
                   'rhs' => [
                              'S_ol',
-                             'ELC_ol',
+                             '_C_ELE_ol',
                              'E_ol'
                            ],
                   'lhs' => 'ELE_ol',
@@ -971,32 +965,32 @@ $CORE_RULES = [
                 {
                   'min' => 0,
                   'rhs' => [
-                             'ELI_ol'
+                             'ITEM_ELE_ol'
                            ],
-                  'lhs' => 'ELC_ol'
+                  'lhs' => '_C_ELE_ol'
                 },
                 {
                   'rhs' => [
                              'ITEM_SGML'
                            ],
-                  'lhs' => 'ELI_ol'
+                  'lhs' => 'ITEM_ELE_ol'
                 },
                 {
                   'rhs' => [
                              'ELE_li'
                            ],
-                  'lhs' => 'ELI_ol'
+                  'lhs' => 'ITEM_ELE_ol'
                 },
                 {
                   'rhs' => [
                              'CRUFT'
                            ],
-                  'lhs' => 'ELI_ol'
+                  'lhs' => 'ITEM_ELE_ol'
                 },
                 {
                   'rhs' => [
                              'S_ul',
-                             'ELC_ul',
+                             '_C_ELE_ul',
                              'E_ul'
                            ],
                   'lhs' => 'ELE_ul',
@@ -1005,32 +999,32 @@ $CORE_RULES = [
                 {
                   'min' => 0,
                   'rhs' => [
-                             'ELI_ul'
+                             'ITEM_ELE_ul'
                            ],
-                  'lhs' => 'ELC_ul'
+                  'lhs' => '_C_ELE_ul'
                 },
                 {
                   'rhs' => [
                              'ITEM_SGML'
                            ],
-                  'lhs' => 'ELI_ul'
+                  'lhs' => 'ITEM_ELE_ul'
                 },
                 {
                   'rhs' => [
                              'ELE_li'
                            ],
-                  'lhs' => 'ELI_ul'
+                  'lhs' => 'ITEM_ELE_ul'
                 },
                 {
                   'rhs' => [
                              'CRUFT'
                            ],
-                  'lhs' => 'ELI_ul'
+                  'lhs' => 'ITEM_ELE_ul'
                 },
                 {
                   'rhs' => [
                              'S_tbody',
-                             'ELC_tbody',
+                             '_C_ELE_tbody',
                              'E_tbody'
                            ],
                   'lhs' => 'ELE_tbody',
@@ -1039,32 +1033,32 @@ $CORE_RULES = [
                 {
                   'min' => 0,
                   'rhs' => [
-                             'ELI_tbody'
+                             'ITEM_ELE_tbody'
                            ],
-                  'lhs' => 'ELC_tbody'
+                  'lhs' => '_C_ELE_tbody'
                 },
                 {
                   'rhs' => [
                              'ITEM_SGML'
                            ],
-                  'lhs' => 'ELI_tbody'
+                  'lhs' => 'ITEM_ELE_tbody'
                 },
                 {
                   'rhs' => [
                              'ELE_tr'
                            ],
-                  'lhs' => 'ELI_tbody'
+                  'lhs' => 'ITEM_ELE_tbody'
                 },
                 {
                   'rhs' => [
                              'CRUFT'
                            ],
-                  'lhs' => 'ELI_tbody'
+                  'lhs' => 'ITEM_ELE_tbody'
                 },
                 {
                   'rhs' => [
                              'S_dir',
-                             'ELC_dir',
+                             '_C_ELE_dir',
                              'E_dir'
                            ],
                   'lhs' => 'ELE_dir',
@@ -1073,32 +1067,32 @@ $CORE_RULES = [
                 {
                   'min' => 0,
                   'rhs' => [
-                             'ELI_dir'
+                             'ITEM_ELE_dir'
                            ],
-                  'lhs' => 'ELC_dir'
+                  'lhs' => '_C_ELE_dir'
                 },
                 {
                   'rhs' => [
                              'ITEM_SGML'
                            ],
-                  'lhs' => 'ELI_dir'
+                  'lhs' => 'ITEM_ELE_dir'
                 },
                 {
                   'rhs' => [
                              'ELE_li'
                            ],
-                  'lhs' => 'ELI_dir'
+                  'lhs' => 'ITEM_ELE_dir'
                 },
                 {
                   'rhs' => [
                              'CRUFT'
                            ],
-                  'lhs' => 'ELI_dir'
+                  'lhs' => 'ITEM_ELE_dir'
                 },
                 {
                   'rhs' => [
                              'S_object',
-                             'ELC_object',
+                             '_C_ELE_object',
                              'E_object'
                            ],
                   'lhs' => 'ELE_object',
@@ -1107,32 +1101,32 @@ $CORE_RULES = [
                 {
                   'min' => 0,
                   'rhs' => [
-                             'ELI_object'
+                             'ITEM_ELE_object'
                            ],
-                  'lhs' => 'ELC_object'
+                  'lhs' => '_C_ELE_object'
                 },
                 {
                   'rhs' => [
                              'ELE_param'
                            ],
-                  'lhs' => 'ELI_object'
+                  'lhs' => 'ITEM_ELE_object'
                 },
                 {
                   'rhs' => [
                              'mixed_flow_item'
                            ],
-                  'lhs' => 'ELI_object'
+                  'lhs' => 'ITEM_ELE_object'
                 },
                 {
                   'rhs' => [
                              'CRUFT'
                            ],
-                  'lhs' => 'ELI_object'
+                  'lhs' => 'ITEM_ELE_object'
                 },
                 {
                   'rhs' => [
                              'S_tfoot',
-                             'ELC_tfoot',
+                             '_C_ELE_tfoot',
                              'E_tfoot'
                            ],
                   'lhs' => 'ELE_tfoot',
@@ -1141,32 +1135,32 @@ $CORE_RULES = [
                 {
                   'min' => 0,
                   'rhs' => [
-                             'ELI_tfoot'
+                             'ITEM_ELE_tfoot'
                            ],
-                  'lhs' => 'ELC_tfoot'
+                  'lhs' => '_C_ELE_tfoot'
                 },
                 {
                   'rhs' => [
                              'ITEM_SGML'
                            ],
-                  'lhs' => 'ELI_tfoot'
+                  'lhs' => 'ITEM_ELE_tfoot'
                 },
                 {
                   'rhs' => [
                              'ELE_tr'
                            ],
-                  'lhs' => 'ELI_tfoot'
+                  'lhs' => 'ITEM_ELE_tfoot'
                 },
                 {
                   'rhs' => [
                              'CRUFT'
                            ],
-                  'lhs' => 'ELI_tfoot'
+                  'lhs' => 'ITEM_ELE_tfoot'
                 },
                 {
                   'rhs' => [
                              'S_colgroup',
-                             'ELC_colgroup',
+                             '_C_ELE_colgroup',
                              'E_colgroup'
                            ],
                   'lhs' => 'ELE_colgroup',
@@ -1175,32 +1169,32 @@ $CORE_RULES = [
                 {
                   'min' => 0,
                   'rhs' => [
-                             'ELI_colgroup'
+                             'ITEM_ELE_colgroup'
                            ],
-                  'lhs' => 'ELC_colgroup'
+                  'lhs' => '_C_ELE_colgroup'
                 },
                 {
                   'rhs' => [
                              'ELE_col'
                            ],
-                  'lhs' => 'ELI_colgroup'
+                  'lhs' => 'ITEM_ELE_colgroup'
                 },
                 {
                   'rhs' => [
                              'ITEM_SGML'
                            ],
-                  'lhs' => 'ELI_colgroup'
+                  'lhs' => 'ITEM_ELE_colgroup'
                 },
                 {
                   'rhs' => [
                              'CRUFT'
                            ],
-                  'lhs' => 'ELI_colgroup'
+                  'lhs' => 'ITEM_ELE_colgroup'
                 },
                 {
                   'rhs' => [
                              'S_thead',
-                             'ELC_thead',
+                             '_C_ELE_thead',
                              'E_thead'
                            ],
                   'lhs' => 'ELE_thead',
@@ -1209,32 +1203,32 @@ $CORE_RULES = [
                 {
                   'min' => 0,
                   'rhs' => [
-                             'ELI_thead'
+                             'ITEM_ELE_thead'
                            ],
-                  'lhs' => 'ELC_thead'
+                  'lhs' => '_C_ELE_thead'
                 },
                 {
                   'rhs' => [
                              'ITEM_SGML'
                            ],
-                  'lhs' => 'ELI_thead'
+                  'lhs' => 'ITEM_ELE_thead'
                 },
                 {
                   'rhs' => [
                              'ELE_tr'
                            ],
-                  'lhs' => 'ELI_thead'
+                  'lhs' => 'ITEM_ELE_thead'
                 },
                 {
                   'rhs' => [
                              'CRUFT'
                            ],
-                  'lhs' => 'ELI_thead'
+                  'lhs' => 'ITEM_ELE_thead'
                 },
                 {
                   'rhs' => [
                              'S_select',
-                             'ELC_select',
+                             '_C_ELE_select',
                              'E_select'
                            ],
                   'lhs' => 'ELE_select',
@@ -1243,33 +1237,33 @@ $CORE_RULES = [
                 {
                   'min' => 0,
                   'rhs' => [
-                             'ELI_select'
+                             'ITEM_ELE_select'
                            ],
-                  'lhs' => 'ELC_select'
+                  'lhs' => '_C_ELE_select'
                 },
                 {
                   'rhs' => [
                              'ITEM_SGML'
                            ],
-                  'lhs' => 'ELI_select'
+                  'lhs' => 'ITEM_ELE_select'
                 },
                 {
                   'rhs' => [
                              'ELE_optgroup'
                            ],
-                  'lhs' => 'ELI_select'
+                  'lhs' => 'ITEM_ELE_select'
                 },
                 {
                   'rhs' => [
                              'ELE_option'
                            ],
-                  'lhs' => 'ELI_select'
+                  'lhs' => 'ITEM_ELE_select'
                 },
                 {
                   'rhs' => [
                              'CRUFT'
                            ],
-                  'lhs' => 'ELI_select'
+                  'lhs' => 'ITEM_ELE_select'
                 }
               ];
 $IS_BLOCK_ELEMENT = {

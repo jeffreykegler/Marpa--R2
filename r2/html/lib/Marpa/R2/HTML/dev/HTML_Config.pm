@@ -31,20 +31,15 @@ decl ::= D
 pcdata ::= PCDATA
 cdata ::= CDATA
 whitespace ::= WHITESPACE
-# SGML flows
-ITEM_SGML ::= comment
-ITEM_SGML ::= pi
-ITEM_SGML ::= decl
-ITEM_SGML ::= whitespace
-FLO_SGML contains ITEM_SGML
+
+# SGML flow
+FLO_SGML contains comment pi decl whitespace
 
 # For element x,
 # ELE_x is complete element
 # S_x is start tag
 # E_x is end tag
-# EC_x is the element's contents
 #   The contents of many elements consists of zero or more items
-# EI_x is a content "item" for element x
 
 # Top-level structure
 document ::= prolog ELE_html trailer EOF

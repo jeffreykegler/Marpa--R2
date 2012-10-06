@@ -73,13 +73,29 @@ LINE: for my $line ( split /\n/xms, $HTML_Config::BNF ) {
     if ( $definition =~ s/ \A \s* ((ELE|FLO)_\w+) \s+ contains \s+ / /xms ) {
         # Production is Element with custom flow
         my $element_symbol = $1;
-        push @{ $containments{$element_symbol} }, split q{ }, $definition;
+        my @contents = split q{ }, $definition;
+        push @{ $containments{$element_symbol} }, @contents;
         next LINE;
     }
     die "Badly formed line in grammar description: $line";
 } ## end LINE: for my $line ( split /\n/xms, $HTML_Config::BNF )
 
-my %flow_seen = ();
+# Check rules, prefixes starting with '_'
+# are reserved.
+# Actually, checking for starting with any non-alphabetic.
+
+{
+    my @symbols = map { $_->{lhs}, @{ $_->{rhs} } } @core_rules;
+    push @symbols, keys %containments;
+    push @symbols, map { @{$_} } values %containments;
+    my @reserved = grep { $_ =~ /\A [[:^alpha:]] /xms } @symbols;
+    die "Reserved symbols in use: ", join " ", @reserved if scalar @reserved;
+}
+
+# Other ITEM_ ok, but there must be a corresponding FLO_
+# LHS.
+
+my %cruft_enabled = ();
 ELEMENT: for my $main_symbol (keys %containments) {
     my @contents = @{$containments{$main_symbol}};
     my $contents_symbol;
@@ -89,16 +105,16 @@ ELEMENT: for my $main_symbol (keys %containments) {
     NAME_SYMBOLS: {
         if ( (substr $main_symbol, 0, 4) eq 'ELE_' ) {
             my $tag = substr $main_symbol, 4;
-            $contents_symbol = 'ELC_' . $tag;
-            $item_symbol     = 'ELI_' . $tag;
+            $contents_symbol = '_C_ELE_' . $tag;
+            $item_symbol     = 'ITEM_ELE_' . $tag;
             push @action, action => $main_symbol;
             @main_rhs = ( "S_$tag", $contents_symbol, "E_$tag" );
             last NAME_SYMBOLS;
         } ## end if ( substr $main_symbol, 0, 4 eq 'ELE_' )
         if ( (substr $main_symbol, 0, 4) eq 'FLO_' ) {
             my $tag = substr $main_symbol, 4;
-            $contents_symbol = 'FLC_' . $tag;
-            $item_symbol     = 'FLI_' . $tag;
+            $contents_symbol = '_C_FLO_' . $tag;
+            $item_symbol     = 'ITEM_' . $tag;
             @main_rhs        = ($contents_symbol);
             last NAME_SYMBOLS;
         } ## end if ( substr $main_symbol, 0, 4 eq 'FLO_' )
@@ -122,8 +138,8 @@ ELEMENT: for my $main_symbol (keys %containments) {
             rhs => [$content_item],
             };
     } ## end for my $content_item ( @{$contents} )
-    if (!$flow_seen{$main_symbol}) {
-	$flow_seen{$main_symbol} = 1;
+    if (!$cruft_enabled{$item_symbol}) {
+	$cruft_enabled{$item_symbol} = 1;
         push @core_rules,
             {
             lhs => $item_symbol,
@@ -131,6 +147,29 @@ ELEMENT: for my $main_symbol (keys %containments) {
             };
     }
 } ## end ELEMENT: for my $core_element_data (@core_elements)
+
+{
+    # Make sure all item symbols have a flow
+    my @symbols = map { $_->{lhs}, @{ $_->{rhs} } } @core_rules;
+    my %ITEM_symbols =
+        map { $_ => 1 } grep { ( substr $_, 0, 5 ) eq 'ITEM_' } @symbols;
+    my %FLO_symbols =
+        map { $_ => 1 } grep { ( substr $_, 0, 4 ) eq 'FLO_' } @symbols;
+    my %ELE_symbols =
+        map { $_ => 1 } grep { ( substr $_, 0, 4 ) eq 'ELE_' } @symbols;
+    my @problem = ();
+    ITEM: for my $item_symbol ( keys %ITEM_symbols ) {
+        if ( ( substr $item_symbol, 0, 9 ) eq 'ITEM_ELE_' ) {
+            push @problem, "No matching element for $item_symbol"
+                if not defined $ELE_symbols{ substr $item_symbol, 5 };
+            next ITEM;
+        }
+        push @problem, "No matching flow for $item_symbol"
+            if not
+                defined $FLO_symbols{ 'FLO_' . ( substr $item_symbol, 5 ) };
+    } ## end ITEM: for my $item_symbol ( keys %ITEM_symbols )
+    die join "\n", @problem if scalar @problem;
+}
 
 open my $fh, q{<}, '../../../../../..//inc/Marpa/R2/legal.pl';
 my $legal = join q{}, <$fh>;
