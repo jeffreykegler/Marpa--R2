@@ -14,7 +14,7 @@
 # http://www.gnu.org/licenses/.
 
 # This file was generated automatically by mk_core_grammar.pl
-# The date of generation was Fri Oct  5 13:53:10 2012
+# The date of generation was Fri Oct  5 20:07:21 2012
 
 package Marpa::R2::HTML::Internal;
 
@@ -624,336 +624,8 @@ $CORE_RULES = [
                 },
                 {
                   'rhs' => [
-                             'S_tr',
-                             'EC_tr',
-                             'E_tr'
-                           ],
-                  'lhs' => 'ELE_tr',
-                  'action' => 'ELE_tr'
-                },
-                {
-                  'min' => 0,
-                  'rhs' => [
-                             'EI_tr'
-                           ],
-                  'lhs' => 'EC_tr'
-                },
-                {
-                  'rhs' => [
-                             'SGML_item'
-                           ],
-                  'lhs' => 'EI_tr'
-                },
-                {
-                  'rhs' => [
-                             'ELE_th'
-                           ],
-                  'lhs' => 'EI_tr'
-                },
-                {
-                  'rhs' => [
-                             'ELE_td'
-                           ],
-                  'lhs' => 'EI_tr'
-                },
-                {
-                  'rhs' => [
-                             'S_object',
-                             'EC_object',
-                             'E_object'
-                           ],
-                  'lhs' => 'ELE_object',
-                  'action' => 'ELE_object'
-                },
-                {
-                  'min' => 0,
-                  'rhs' => [
-                             'EI_object'
-                           ],
-                  'lhs' => 'EC_object'
-                },
-                {
-                  'rhs' => [
-                             'ELE_param'
-                           ],
-                  'lhs' => 'EI_object'
-                },
-                {
-                  'rhs' => [
-                             'mixed_flow_item'
-                           ],
-                  'lhs' => 'EI_object'
-                },
-                {
-                  'rhs' => [
-                             'S_table',
-                             'EC_table',
-                             'E_table'
-                           ],
-                  'lhs' => 'ELE_table',
-                  'action' => 'ELE_table'
-                },
-                {
-                  'min' => 0,
-                  'rhs' => [
-                             'EI_table'
-                           ],
-                  'lhs' => 'EC_table'
-                },
-                {
-                  'rhs' => [
-                             'ELE_caption'
-                           ],
-                  'lhs' => 'EI_table'
-                },
-                {
-                  'rhs' => [
-                             'ELE_col'
-                           ],
-                  'lhs' => 'EI_table'
-                },
-                {
-                  'rhs' => [
-                             'ELE_colgroup'
-                           ],
-                  'lhs' => 'EI_table'
-                },
-                {
-                  'rhs' => [
-                             'ELE_tbody'
-                           ],
-                  'lhs' => 'EI_table'
-                },
-                {
-                  'rhs' => [
-                             'ELE_tfoot'
-                           ],
-                  'lhs' => 'EI_table'
-                },
-                {
-                  'rhs' => [
-                             'ELE_thead'
-                           ],
-                  'lhs' => 'EI_table'
-                },
-                {
-                  'rhs' => [
-                             'SGML_item'
-                           ],
-                  'lhs' => 'EI_table'
-                },
-                {
-                  'rhs' => [
-                             'S_dir',
-                             'EC_dir',
-                             'E_dir'
-                           ],
-                  'lhs' => 'ELE_dir',
-                  'action' => 'ELE_dir'
-                },
-                {
-                  'min' => 0,
-                  'rhs' => [
-                             'EI_dir'
-                           ],
-                  'lhs' => 'EC_dir'
-                },
-                {
-                  'rhs' => [
-                             'SGML_item'
-                           ],
-                  'lhs' => 'EI_dir'
-                },
-                {
-                  'rhs' => [
-                             'ELE_li'
-                           ],
-                  'lhs' => 'EI_dir'
-                },
-                {
-                  'rhs' => [
-                             'S_thead',
-                             'EC_thead',
-                             'E_thead'
-                           ],
-                  'lhs' => 'ELE_thead',
-                  'action' => 'ELE_thead'
-                },
-                {
-                  'min' => 0,
-                  'rhs' => [
-                             'EI_thead'
-                           ],
-                  'lhs' => 'EC_thead'
-                },
-                {
-                  'rhs' => [
-                             'SGML_item'
-                           ],
-                  'lhs' => 'EI_thead'
-                },
-                {
-                  'rhs' => [
-                             'ELE_tr'
-                           ],
-                  'lhs' => 'EI_thead'
-                },
-                {
-                  'rhs' => [
-                             'S_map',
-                             'EC_map',
-                             'E_map'
-                           ],
-                  'lhs' => 'ELE_map',
-                  'action' => 'ELE_map'
-                },
-                {
-                  'min' => 0,
-                  'rhs' => [
-                             'EI_map'
-                           ],
-                  'lhs' => 'EC_map'
-                },
-                {
-                  'rhs' => [
-                             'block_element'
-                           ],
-                  'lhs' => 'EI_map'
-                },
-                {
-                  'rhs' => [
-                             'SGML_item'
-                           ],
-                  'lhs' => 'EI_map'
-                },
-                {
-                  'rhs' => [
-                             'ELE_area'
-                           ],
-                  'lhs' => 'EI_map'
-                },
-                {
-                  'rhs' => [
-                             'S_ol',
-                             'EC_ol',
-                             'E_ol'
-                           ],
-                  'lhs' => 'ELE_ol',
-                  'action' => 'ELE_ol'
-                },
-                {
-                  'min' => 0,
-                  'rhs' => [
-                             'EI_ol'
-                           ],
-                  'lhs' => 'EC_ol'
-                },
-                {
-                  'rhs' => [
-                             'SGML_item'
-                           ],
-                  'lhs' => 'EI_ol'
-                },
-                {
-                  'rhs' => [
-                             'ELE_li'
-                           ],
-                  'lhs' => 'EI_ol'
-                },
-                {
-                  'rhs' => [
-                             'S_tfoot',
-                             'EC_tfoot',
-                             'E_tfoot'
-                           ],
-                  'lhs' => 'ELE_tfoot',
-                  'action' => 'ELE_tfoot'
-                },
-                {
-                  'min' => 0,
-                  'rhs' => [
-                             'EI_tfoot'
-                           ],
-                  'lhs' => 'EC_tfoot'
-                },
-                {
-                  'rhs' => [
-                             'SGML_item'
-                           ],
-                  'lhs' => 'EI_tfoot'
-                },
-                {
-                  'rhs' => [
-                             'ELE_tr'
-                           ],
-                  'lhs' => 'EI_tfoot'
-                },
-                {
-                  'rhs' => [
-                             'S_select',
-                             'EC_select',
-                             'E_select'
-                           ],
-                  'lhs' => 'ELE_select',
-                  'action' => 'ELE_select'
-                },
-                {
-                  'min' => 0,
-                  'rhs' => [
-                             'EI_select'
-                           ],
-                  'lhs' => 'EC_select'
-                },
-                {
-                  'rhs' => [
-                             'SGML_item'
-                           ],
-                  'lhs' => 'EI_select'
-                },
-                {
-                  'rhs' => [
-                             'ELE_optgroup'
-                           ],
-                  'lhs' => 'EI_select'
-                },
-                {
-                  'rhs' => [
-                             'ELE_option'
-                           ],
-                  'lhs' => 'EI_select'
-                },
-                {
-                  'rhs' => [
-                             'S_ul',
-                             'EC_ul',
-                             'E_ul'
-                           ],
-                  'lhs' => 'ELE_ul',
-                  'action' => 'ELE_ul'
-                },
-                {
-                  'min' => 0,
-                  'rhs' => [
-                             'EI_ul'
-                           ],
-                  'lhs' => 'EC_ul'
-                },
-                {
-                  'rhs' => [
-                             'SGML_item'
-                           ],
-                  'lhs' => 'EI_ul'
-                },
-                {
-                  'rhs' => [
-                             'ELE_li'
-                           ],
-                  'lhs' => 'EI_ul'
-                },
-                {
-                  'rhs' => [
                              'S_head',
-                             'EC_head',
+                             'ELC_head',
                              'E_head'
                            ],
                   'lhs' => 'ELE_head',
@@ -962,132 +634,26 @@ $CORE_RULES = [
                 {
                   'min' => 0,
                   'rhs' => [
-                             'EI_head'
+                             'ELI_head'
                            ],
-                  'lhs' => 'EC_head'
+                  'lhs' => 'ELC_head'
                 },
                 {
                   'rhs' => [
                              'head_item'
                            ],
-                  'lhs' => 'EI_head'
+                  'lhs' => 'ELI_head'
                 },
                 {
                   'rhs' => [
-                             'S_tbody',
-                             'EC_tbody',
-                             'E_tbody'
+                             'CRUFT'
                            ],
-                  'lhs' => 'ELE_tbody',
-                  'action' => 'ELE_tbody'
-                },
-                {
-                  'min' => 0,
-                  'rhs' => [
-                             'EI_tbody'
-                           ],
-                  'lhs' => 'EC_tbody'
-                },
-                {
-                  'rhs' => [
-                             'SGML_item'
-                           ],
-                  'lhs' => 'EI_tbody'
-                },
-                {
-                  'rhs' => [
-                             'ELE_tr'
-                           ],
-                  'lhs' => 'EI_tbody'
-                },
-                {
-                  'rhs' => [
-                             'S_menu',
-                             'EC_menu',
-                             'E_menu'
-                           ],
-                  'lhs' => 'ELE_menu',
-                  'action' => 'ELE_menu'
-                },
-                {
-                  'min' => 0,
-                  'rhs' => [
-                             'EI_menu'
-                           ],
-                  'lhs' => 'EC_menu'
-                },
-                {
-                  'rhs' => [
-                             'SGML_item'
-                           ],
-                  'lhs' => 'EI_menu'
-                },
-                {
-                  'rhs' => [
-                             'ELE_li'
-                           ],
-                  'lhs' => 'EI_menu'
-                },
-                {
-                  'rhs' => [
-                             'S_colgroup',
-                             'EC_colgroup',
-                             'E_colgroup'
-                           ],
-                  'lhs' => 'ELE_colgroup',
-                  'action' => 'ELE_colgroup'
-                },
-                {
-                  'min' => 0,
-                  'rhs' => [
-                             'EI_colgroup'
-                           ],
-                  'lhs' => 'EC_colgroup'
-                },
-                {
-                  'rhs' => [
-                             'ELE_col'
-                           ],
-                  'lhs' => 'EI_colgroup'
-                },
-                {
-                  'rhs' => [
-                             'SGML_item'
-                           ],
-                  'lhs' => 'EI_colgroup'
-                },
-                {
-                  'rhs' => [
-                             'S_applet',
-                             'EC_applet',
-                             'E_applet'
-                           ],
-                  'lhs' => 'ELE_applet',
-                  'action' => 'ELE_applet'
-                },
-                {
-                  'min' => 0,
-                  'rhs' => [
-                             'EI_applet'
-                           ],
-                  'lhs' => 'EC_applet'
-                },
-                {
-                  'rhs' => [
-                             'ELE_param'
-                           ],
-                  'lhs' => 'EI_applet'
-                },
-                {
-                  'rhs' => [
-                             'mixed_flow_item'
-                           ],
-                  'lhs' => 'EI_applet'
+                  'lhs' => 'ELE_head'
                 },
                 {
                   'rhs' => [
                              'S_optgroup',
-                             'EC_optgroup',
+                             'ELC_optgroup',
                              'E_optgroup'
                            ],
                   'lhs' => 'ELE_optgroup',
@@ -1096,26 +662,170 @@ $CORE_RULES = [
                 {
                   'min' => 0,
                   'rhs' => [
-                             'EI_optgroup'
+                             'ELI_optgroup'
                            ],
-                  'lhs' => 'EC_optgroup'
+                  'lhs' => 'ELC_optgroup'
                 },
                 {
                   'rhs' => [
                              'ELE_option'
                            ],
-                  'lhs' => 'EI_optgroup'
+                  'lhs' => 'ELI_optgroup'
                 },
                 {
                   'rhs' => [
                              'SGML_item'
                            ],
-                  'lhs' => 'EI_optgroup'
+                  'lhs' => 'ELI_optgroup'
+                },
+                {
+                  'rhs' => [
+                             'CRUFT'
+                           ],
+                  'lhs' => 'ELE_optgroup'
+                },
+                {
+                  'rhs' => [
+                             'S_table',
+                             'ELC_table',
+                             'E_table'
+                           ],
+                  'lhs' => 'ELE_table',
+                  'action' => 'ELE_table'
+                },
+                {
+                  'min' => 0,
+                  'rhs' => [
+                             'ELI_table'
+                           ],
+                  'lhs' => 'ELC_table'
+                },
+                {
+                  'rhs' => [
+                             'ELE_caption'
+                           ],
+                  'lhs' => 'ELI_table'
+                },
+                {
+                  'rhs' => [
+                             'ELE_col'
+                           ],
+                  'lhs' => 'ELI_table'
+                },
+                {
+                  'rhs' => [
+                             'ELE_colgroup'
+                           ],
+                  'lhs' => 'ELI_table'
+                },
+                {
+                  'rhs' => [
+                             'ELE_tbody'
+                           ],
+                  'lhs' => 'ELI_table'
+                },
+                {
+                  'rhs' => [
+                             'ELE_tfoot'
+                           ],
+                  'lhs' => 'ELI_table'
+                },
+                {
+                  'rhs' => [
+                             'ELE_thead'
+                           ],
+                  'lhs' => 'ELI_table'
+                },
+                {
+                  'rhs' => [
+                             'SGML_item'
+                           ],
+                  'lhs' => 'ELI_table'
+                },
+                {
+                  'rhs' => [
+                             'CRUFT'
+                           ],
+                  'lhs' => 'ELE_table'
+                },
+                {
+                  'rhs' => [
+                             'S_menu',
+                             'ELC_menu',
+                             'E_menu'
+                           ],
+                  'lhs' => 'ELE_menu',
+                  'action' => 'ELE_menu'
+                },
+                {
+                  'min' => 0,
+                  'rhs' => [
+                             'ELI_menu'
+                           ],
+                  'lhs' => 'ELC_menu'
+                },
+                {
+                  'rhs' => [
+                             'SGML_item'
+                           ],
+                  'lhs' => 'ELI_menu'
+                },
+                {
+                  'rhs' => [
+                             'ELE_li'
+                           ],
+                  'lhs' => 'ELI_menu'
+                },
+                {
+                  'rhs' => [
+                             'CRUFT'
+                           ],
+                  'lhs' => 'ELE_menu'
+                },
+                {
+                  'rhs' => [
+                             'S_tr',
+                             'ELC_tr',
+                             'E_tr'
+                           ],
+                  'lhs' => 'ELE_tr',
+                  'action' => 'ELE_tr'
+                },
+                {
+                  'min' => 0,
+                  'rhs' => [
+                             'ELI_tr'
+                           ],
+                  'lhs' => 'ELC_tr'
+                },
+                {
+                  'rhs' => [
+                             'SGML_item'
+                           ],
+                  'lhs' => 'ELI_tr'
+                },
+                {
+                  'rhs' => [
+                             'ELE_th'
+                           ],
+                  'lhs' => 'ELI_tr'
+                },
+                {
+                  'rhs' => [
+                             'ELE_td'
+                           ],
+                  'lhs' => 'ELI_tr'
+                },
+                {
+                  'rhs' => [
+                             'CRUFT'
+                           ],
+                  'lhs' => 'ELE_tr'
                 },
                 {
                   'rhs' => [
                              'S_dl',
-                             'EC_dl',
+                             'ELC_dl',
                              'E_dl'
                            ],
                   'lhs' => 'ELE_dl',
@@ -1124,27 +834,419 @@ $CORE_RULES = [
                 {
                   'min' => 0,
                   'rhs' => [
-                             'EI_dl'
+                             'ELI_dl'
                            ],
-                  'lhs' => 'EC_dl'
+                  'lhs' => 'ELC_dl'
                 },
                 {
                   'rhs' => [
                              'SGML_item'
                            ],
-                  'lhs' => 'EI_dl'
+                  'lhs' => 'ELI_dl'
                 },
                 {
                   'rhs' => [
                              'ELE_dt'
                            ],
-                  'lhs' => 'EI_dl'
+                  'lhs' => 'ELI_dl'
                 },
                 {
                   'rhs' => [
                              'ELE_dd'
                            ],
-                  'lhs' => 'EI_dl'
+                  'lhs' => 'ELI_dl'
+                },
+                {
+                  'rhs' => [
+                             'CRUFT'
+                           ],
+                  'lhs' => 'ELE_dl'
+                },
+                {
+                  'rhs' => [
+                             'S_map',
+                             'ELC_map',
+                             'E_map'
+                           ],
+                  'lhs' => 'ELE_map',
+                  'action' => 'ELE_map'
+                },
+                {
+                  'min' => 0,
+                  'rhs' => [
+                             'ELI_map'
+                           ],
+                  'lhs' => 'ELC_map'
+                },
+                {
+                  'rhs' => [
+                             'block_element'
+                           ],
+                  'lhs' => 'ELI_map'
+                },
+                {
+                  'rhs' => [
+                             'SGML_item'
+                           ],
+                  'lhs' => 'ELI_map'
+                },
+                {
+                  'rhs' => [
+                             'ELE_area'
+                           ],
+                  'lhs' => 'ELI_map'
+                },
+                {
+                  'rhs' => [
+                             'CRUFT'
+                           ],
+                  'lhs' => 'ELE_map'
+                },
+                {
+                  'rhs' => [
+                             'S_applet',
+                             'ELC_applet',
+                             'E_applet'
+                           ],
+                  'lhs' => 'ELE_applet',
+                  'action' => 'ELE_applet'
+                },
+                {
+                  'min' => 0,
+                  'rhs' => [
+                             'ELI_applet'
+                           ],
+                  'lhs' => 'ELC_applet'
+                },
+                {
+                  'rhs' => [
+                             'ELE_param'
+                           ],
+                  'lhs' => 'ELI_applet'
+                },
+                {
+                  'rhs' => [
+                             'mixed_flow_item'
+                           ],
+                  'lhs' => 'ELI_applet'
+                },
+                {
+                  'rhs' => [
+                             'CRUFT'
+                           ],
+                  'lhs' => 'ELE_applet'
+                },
+                {
+                  'rhs' => [
+                             'S_ol',
+                             'ELC_ol',
+                             'E_ol'
+                           ],
+                  'lhs' => 'ELE_ol',
+                  'action' => 'ELE_ol'
+                },
+                {
+                  'min' => 0,
+                  'rhs' => [
+                             'ELI_ol'
+                           ],
+                  'lhs' => 'ELC_ol'
+                },
+                {
+                  'rhs' => [
+                             'SGML_item'
+                           ],
+                  'lhs' => 'ELI_ol'
+                },
+                {
+                  'rhs' => [
+                             'ELE_li'
+                           ],
+                  'lhs' => 'ELI_ol'
+                },
+                {
+                  'rhs' => [
+                             'CRUFT'
+                           ],
+                  'lhs' => 'ELE_ol'
+                },
+                {
+                  'rhs' => [
+                             'S_ul',
+                             'ELC_ul',
+                             'E_ul'
+                           ],
+                  'lhs' => 'ELE_ul',
+                  'action' => 'ELE_ul'
+                },
+                {
+                  'min' => 0,
+                  'rhs' => [
+                             'ELI_ul'
+                           ],
+                  'lhs' => 'ELC_ul'
+                },
+                {
+                  'rhs' => [
+                             'SGML_item'
+                           ],
+                  'lhs' => 'ELI_ul'
+                },
+                {
+                  'rhs' => [
+                             'ELE_li'
+                           ],
+                  'lhs' => 'ELI_ul'
+                },
+                {
+                  'rhs' => [
+                             'CRUFT'
+                           ],
+                  'lhs' => 'ELE_ul'
+                },
+                {
+                  'rhs' => [
+                             'S_tbody',
+                             'ELC_tbody',
+                             'E_tbody'
+                           ],
+                  'lhs' => 'ELE_tbody',
+                  'action' => 'ELE_tbody'
+                },
+                {
+                  'min' => 0,
+                  'rhs' => [
+                             'ELI_tbody'
+                           ],
+                  'lhs' => 'ELC_tbody'
+                },
+                {
+                  'rhs' => [
+                             'SGML_item'
+                           ],
+                  'lhs' => 'ELI_tbody'
+                },
+                {
+                  'rhs' => [
+                             'ELE_tr'
+                           ],
+                  'lhs' => 'ELI_tbody'
+                },
+                {
+                  'rhs' => [
+                             'CRUFT'
+                           ],
+                  'lhs' => 'ELE_tbody'
+                },
+                {
+                  'rhs' => [
+                             'S_dir',
+                             'ELC_dir',
+                             'E_dir'
+                           ],
+                  'lhs' => 'ELE_dir',
+                  'action' => 'ELE_dir'
+                },
+                {
+                  'min' => 0,
+                  'rhs' => [
+                             'ELI_dir'
+                           ],
+                  'lhs' => 'ELC_dir'
+                },
+                {
+                  'rhs' => [
+                             'SGML_item'
+                           ],
+                  'lhs' => 'ELI_dir'
+                },
+                {
+                  'rhs' => [
+                             'ELE_li'
+                           ],
+                  'lhs' => 'ELI_dir'
+                },
+                {
+                  'rhs' => [
+                             'CRUFT'
+                           ],
+                  'lhs' => 'ELE_dir'
+                },
+                {
+                  'rhs' => [
+                             'S_object',
+                             'ELC_object',
+                             'E_object'
+                           ],
+                  'lhs' => 'ELE_object',
+                  'action' => 'ELE_object'
+                },
+                {
+                  'min' => 0,
+                  'rhs' => [
+                             'ELI_object'
+                           ],
+                  'lhs' => 'ELC_object'
+                },
+                {
+                  'rhs' => [
+                             'ELE_param'
+                           ],
+                  'lhs' => 'ELI_object'
+                },
+                {
+                  'rhs' => [
+                             'mixed_flow_item'
+                           ],
+                  'lhs' => 'ELI_object'
+                },
+                {
+                  'rhs' => [
+                             'CRUFT'
+                           ],
+                  'lhs' => 'ELE_object'
+                },
+                {
+                  'rhs' => [
+                             'S_tfoot',
+                             'ELC_tfoot',
+                             'E_tfoot'
+                           ],
+                  'lhs' => 'ELE_tfoot',
+                  'action' => 'ELE_tfoot'
+                },
+                {
+                  'min' => 0,
+                  'rhs' => [
+                             'ELI_tfoot'
+                           ],
+                  'lhs' => 'ELC_tfoot'
+                },
+                {
+                  'rhs' => [
+                             'SGML_item'
+                           ],
+                  'lhs' => 'ELI_tfoot'
+                },
+                {
+                  'rhs' => [
+                             'ELE_tr'
+                           ],
+                  'lhs' => 'ELI_tfoot'
+                },
+                {
+                  'rhs' => [
+                             'CRUFT'
+                           ],
+                  'lhs' => 'ELE_tfoot'
+                },
+                {
+                  'rhs' => [
+                             'S_colgroup',
+                             'ELC_colgroup',
+                             'E_colgroup'
+                           ],
+                  'lhs' => 'ELE_colgroup',
+                  'action' => 'ELE_colgroup'
+                },
+                {
+                  'min' => 0,
+                  'rhs' => [
+                             'ELI_colgroup'
+                           ],
+                  'lhs' => 'ELC_colgroup'
+                },
+                {
+                  'rhs' => [
+                             'ELE_col'
+                           ],
+                  'lhs' => 'ELI_colgroup'
+                },
+                {
+                  'rhs' => [
+                             'SGML_item'
+                           ],
+                  'lhs' => 'ELI_colgroup'
+                },
+                {
+                  'rhs' => [
+                             'CRUFT'
+                           ],
+                  'lhs' => 'ELE_colgroup'
+                },
+                {
+                  'rhs' => [
+                             'S_thead',
+                             'ELC_thead',
+                             'E_thead'
+                           ],
+                  'lhs' => 'ELE_thead',
+                  'action' => 'ELE_thead'
+                },
+                {
+                  'min' => 0,
+                  'rhs' => [
+                             'ELI_thead'
+                           ],
+                  'lhs' => 'ELC_thead'
+                },
+                {
+                  'rhs' => [
+                             'SGML_item'
+                           ],
+                  'lhs' => 'ELI_thead'
+                },
+                {
+                  'rhs' => [
+                             'ELE_tr'
+                           ],
+                  'lhs' => 'ELI_thead'
+                },
+                {
+                  'rhs' => [
+                             'CRUFT'
+                           ],
+                  'lhs' => 'ELE_thead'
+                },
+                {
+                  'rhs' => [
+                             'S_select',
+                             'ELC_select',
+                             'E_select'
+                           ],
+                  'lhs' => 'ELE_select',
+                  'action' => 'ELE_select'
+                },
+                {
+                  'min' => 0,
+                  'rhs' => [
+                             'ELI_select'
+                           ],
+                  'lhs' => 'ELC_select'
+                },
+                {
+                  'rhs' => [
+                             'SGML_item'
+                           ],
+                  'lhs' => 'ELI_select'
+                },
+                {
+                  'rhs' => [
+                             'ELE_optgroup'
+                           ],
+                  'lhs' => 'ELI_select'
+                },
+                {
+                  'rhs' => [
+                             'ELE_option'
+                           ],
+                  'lhs' => 'ELI_select'
+                },
+                {
+                  'rhs' => [
+                             'CRUFT'
+                           ],
+                  'lhs' => 'ELE_select'
                 }
               ];
 $IS_BLOCK_ELEMENT = {

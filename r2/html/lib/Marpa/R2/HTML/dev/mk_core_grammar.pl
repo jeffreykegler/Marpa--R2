@@ -70,25 +70,45 @@ LINE: for my $line ( split /\n/xms, $HTML_Config::BNF ) {
         push @core_rules, \%rule_descriptor;
         next LINE;
     }
-    if ( $definition =~ s/ \A \s* ELE_(\w+) \s+ contains \s+ / /xms ) {
+    if ( $definition =~ s/ \A \s* ((ELE|FLO)_\w+) \s+ contains \s+ / /xms ) {
         # Production is Element with custom flow
-        my $tag = $1;
-        push @{ $containments{$tag} }, split q{ }, $definition;
+        my $element_symbol = $1;
+        push @{ $containments{$element_symbol} }, split q{ }, $definition;
         next LINE;
     }
     die "Badly formed line in grammar description: $line";
 } ## end LINE: for my $line ( split /\n/xms, $HTML_Config::BNF )
 
-ELEMENT: for my $tag (keys %containments) {
-    my @contents = @{$containments{$tag}};
-    my $element_symbol = 'ELE_' . $tag;
-    my $contents_symbol = 'EC_' . $tag;
-    my $item_symbol     = 'EI_' . $tag;
+my %flow_seen = ();
+ELEMENT: for my $main_symbol (keys %containments) {
+    my @contents = @{$containments{$main_symbol}};
+    my $contents_symbol;
+    my $item_symbol;
+    my @main_rhs = ();
+    my @action = ();
+    NAME_SYMBOLS: {
+        if ( (substr $main_symbol, 0, 4) eq 'ELE_' ) {
+            my $tag = substr $main_symbol, 4;
+            $contents_symbol = 'ELC_' . $tag;
+            $item_symbol     = 'ELI_' . $tag;
+            push @action, action => $main_symbol;
+            @main_rhs = ( "S_$tag", $contents_symbol, "E_$tag" );
+            last NAME_SYMBOLS;
+        } ## end if ( substr $main_symbol, 0, 4 eq 'ELE_' )
+        if ( (substr $main_symbol, 0, 4) eq 'FLO_' ) {
+            my $tag = substr $main_symbol, 4;
+            $contents_symbol = 'FLC_' . $tag;
+            $item_symbol     = 'FLI_' . $tag;
+            @main_rhs        = ($contents_symbol);
+            last NAME_SYMBOLS;
+        } ## end if ( substr $main_symbol, 0, 4 eq 'FLO_' )
+        die "Bad containment: cannot use symbol $main_symbol";
+    } ## end NAME_SYMBOLS:
     push @core_rules,
         {
-        lhs    => $element_symbol,
-        rhs    => [ "S_$tag", $contents_symbol, "E_$tag" ],
-        action => $element_symbol,
+        lhs    => $main_symbol,
+        rhs    => \@main_rhs,
+        @action
         },
         {
         lhs => $contents_symbol,
@@ -102,6 +122,14 @@ ELEMENT: for my $tag (keys %containments) {
             rhs => [$content_item],
             };
     } ## end for my $content_item ( @{$contents} )
+    if (!$flow_seen{$main_symbol}) {
+	$flow_seen{$main_symbol} = 1;
+        push @core_rules,
+            {
+            lhs => $main_symbol,
+            rhs => ['CRUFT'],
+            };
+    }
 } ## end ELEMENT: for my $core_element_data (@core_elements)
 
 open my $fh, q{<}, '../../../../../..//inc/Marpa/R2/legal.pl';
