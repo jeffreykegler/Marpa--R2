@@ -14,7 +14,7 @@
 # http://www.gnu.org/licenses/.
 
 # This file was generated automatically by mk_core_grammar.pl
-# The date of generation was Sat Oct  6 12:45:13 2012
+# The date of generation was Sat Oct  6 12:55:27 2012
 
 package Marpa::R2::HTML::Internal;
 
@@ -305,46 +305,21 @@ $CORE_RULES = [
                 {
                   'min' => 0,
                   'rhs' => [
-                             'pcdata_flow_item'
+                             'ITEM_cdata'
                            ],
-                  'lhs' => 'pcdata_flow'
+                  'lhs' => 'FLO_cdata'
                 },
                 {
                   'rhs' => [
                              'cdata'
                            ],
-                  'lhs' => 'pcdata_flow_item'
-                },
-                {
-                  'rhs' => [
-                             'pcdata'
-                           ],
-                  'lhs' => 'pcdata_flow_item'
-                },
-                {
-                  'rhs' => [
-                             'ITEM_SGML'
-                           ],
-                  'lhs' => 'pcdata_flow_item'
-                },
-                {
-                  'min' => 0,
-                  'rhs' => [
-                             'cdata_flow_item'
-                           ],
-                  'lhs' => 'cdata_flow'
-                },
-                {
-                  'rhs' => [
-                             'cdata'
-                           ],
-                  'lhs' => 'cdata_flow_item'
+                  'lhs' => 'ITEM_cdata'
                 },
                 {
                   'rhs' => [
                              'CRUFT'
                            ],
-                  'lhs' => 'cdata_flow_item'
+                  'lhs' => 'ITEM_cdata'
                 },
                 {
                   'rhs' => [
@@ -457,7 +432,7 @@ $CORE_RULES = [
                 {
                   'rhs' => [
                              'S_script',
-                             'cdata_flow',
+                             'FLO_cdata',
                              'E_script'
                            ],
                   'lhs' => 'ELE_script',
@@ -475,7 +450,7 @@ $CORE_RULES = [
                 {
                   'rhs' => [
                              'S_style',
-                             'cdata_flow',
+                             'FLO_cdata',
                              'E_style'
                            ],
                   'lhs' => 'ELE_style',
@@ -484,7 +459,7 @@ $CORE_RULES = [
                 {
                   'rhs' => [
                              'S_textarea',
-                             'cdata_flow',
+                             'FLO_cdata',
                              'E_textarea'
                            ],
                   'lhs' => 'ELE_textarea',
@@ -502,7 +477,7 @@ $CORE_RULES = [
                 {
                   'rhs' => [
                              'S_title',
-                             'pcdata_flow',
+                             'FLO_pcdata',
                              'E_title'
                            ],
                   'lhs' => 'ELE_title',
@@ -1025,6 +1000,31 @@ $CORE_RULES = [
                 {
                   'min' => 0,
                   'rhs' => [
+                             'ITEM_pcdata'
+                           ],
+                  'lhs' => 'FLO_pcdata'
+                },
+                {
+                  'rhs' => [
+                             'cdata'
+                           ],
+                  'lhs' => 'ITEM_pcdata'
+                },
+                {
+                  'rhs' => [
+                             'pcdata'
+                           ],
+                  'lhs' => 'ITEM_pcdata'
+                },
+                {
+                  'rhs' => [
+                             'ITEM_SGML'
+                           ],
+                  'lhs' => 'ITEM_pcdata'
+                },
+                {
+                  'min' => 0,
+                  'rhs' => [
                              'ITEM_inline'
                            ],
                   'lhs' => 'FLO_inline'
@@ -1154,13 +1154,13 @@ $CORE_RULES = [
                 }
               ];
 $IS_BLOCK_ELEMENT = {
-                      'xmp' => 'cdata_flow',
+                      'xmp' => 'FLO_cdata',
                       'form' => 'FLO_mixed',
                       'pre' => 'FLO_inline',
                       'h5' => 'FLO_inline',
                       'center' => 'FLO_mixed',
                       'noframes' => 'FLO_mixed',
-                      'plaintext' => 'cdata_flow',
+                      'plaintext' => 'FLO_cdata',
                       'h6' => 'FLO_inline',
                       'address' => 'FLO_inline',
                       'h1' => 'FLO_inline',
@@ -1175,7 +1175,7 @@ $IS_BLOCK_ELEMENT = {
 $IS_INLINE_ELEMENT = {
                        'embed' => 'FLO_inline',
                        'a' => 'FLO_inline',
-                       'input' => 'cdata_flow',
+                       'input' => 'FLO_cdata',
                        'strike' => 'FLO_inline',
                        'rbc' => 'FLO_inline',
                        'keygen' => 'FLO_inline',
@@ -1239,7 +1239,7 @@ $IS_ANYWHERE_ELEMENT = {
 $IS_INLINE_ELEMENT = {
                        'embed' => 'FLO_inline',
                        'strike' => 'FLO_inline',
-                       'input' => 'cdata_flow',
+                       'input' => 'FLO_cdata',
                        'a' => 'FLO_inline',
                        'rbc' => 'FLO_inline',
                        'keygen' => 'FLO_inline',
@@ -1293,7 +1293,7 @@ $IS_INLINE_ELEMENT = {
                        'textarea' => 'core'
                      };
 $IS_BLOCK_ELEMENT = {
-                      'xmp' => 'cdata_flow',
+                      'xmp' => 'FLO_cdata',
                       'div' => 'core',
                       'table' => 'core',
                       'pre' => 'FLO_inline',
@@ -1302,7 +1302,7 @@ $IS_BLOCK_ELEMENT = {
                       'noframes' => 'FLO_mixed',
                       'dir' => 'core',
                       'center' => 'FLO_mixed',
-                      'plaintext' => 'cdata_flow',
+                      'plaintext' => 'FLO_cdata',
                       'ol' => 'core',
                       'h6' => 'FLO_inline',
                       'address' => 'FLO_inline',

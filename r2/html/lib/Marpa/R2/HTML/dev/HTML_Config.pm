@@ -98,14 +98,14 @@ inline_element ::= ELE_span
 inline_element ::= ELE_map
 inline_element ::= ELE_applet
 
-pcdata_flow ::= pcdata_flow_item*
-pcdata_flow_item ::= cdata
-pcdata_flow_item ::= pcdata
-pcdata_flow_item ::= ITEM_SGML
+FLO_pcdata contains cdata pcdata
 
-cdata_flow ::= cdata_flow_item*
-cdata_flow_item ::= cdata
-cdata_flow_item ::= CRUFT
+# FLO_cdata and ITEM_cdata defined by "hand" (BNF)
+# because they do NOT allow SGML items as part of
+# their flow
+FLO_cdata ::= ITEM_cdata*
+ITEM_cdata ::= cdata
+ITEM_cdata ::= CRUFT
 
 # Alphabetically, by tagname
 ELE_base is empty
@@ -129,18 +129,18 @@ ELE_menu contains ELE_li
 ELE_optgroup contains ELE_option
 ELE_p is FLO_inline
 ELE_param is empty
-ELE_script is cdata_flow
+ELE_script is FLO_cdata
 ELE_select contains ELE_optgroup ELE_option
 ELE_span is FLO_inline
-ELE_style is cdata_flow
+ELE_style is FLO_cdata
 ELE_table contains ELE_caption ELE_col ELE_colgroup
 ELE_table contains ELE_tbody ELE_tfoot ELE_thead
-ELE_textarea is cdata_flow
+ELE_textarea is FLO_cdata
 ELE_tbody contains ELE_tr
 ELE_td is FLO_mixed
 ELE_tfoot contains ELE_tr
 ELE_thead contains ELE_tr
-ELE_title is pcdata_flow
+ELE_title is FLO_pcdata
 ELE_tr contains ELE_th ELE_td
 ELE_ul contains ELE_li
 END_OF_BNF
@@ -183,11 +183,11 @@ our %IS_BLOCK_ELEMENT = (
     noscript   => 'FLO_mixed',
     ol         => 'core',
     p          => 'core',
-    plaintext  => 'cdata_flow',
+    plaintext  => 'FLO_cdata',
     pre        => 'FLO_inline',
     table      => 'core',
     ul         => 'core',
-    xmp        => 'cdata_flow',
+    xmp        => 'FLO_cdata',
 );
 
 our %IS_INLINE_ELEMENT = (
@@ -213,7 +213,7 @@ our %IS_INLINE_ELEMENT = (
     i        => 'FLO_inline',
     img      => 'empty',
     input    => 'empty',
-    input    => 'cdata_flow',
+    input    => 'FLO_cdata',
     kbd      => 'FLO_inline',
     keygen   => 'FLO_inline',
     label    => 'FLO_inline',
