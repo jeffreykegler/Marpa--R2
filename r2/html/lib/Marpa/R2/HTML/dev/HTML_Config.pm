@@ -48,7 +48,7 @@ trailer ::= FLO_SGML
 ELE_html ::= S_html EC_html E_html
 EC_html ::= FLO_SGML ELE_head FLO_SGML ELE_body FLO_SGML
 ELE_head contains head_item
-ELE_body is block_flow
+ELE_body is FLO_block
 
 # Common types of element content
 empty ::=
@@ -56,11 +56,8 @@ empty ::=
 FLO_mixed contains anywhere_element block_element inline_element
 FLO_mixed contains cdata pcdata ITEM_SGML
 
-block_flow ::= block_item*
-block_item ::= ITEM_SGML
-block_item ::= block_element
-block_item ::= anywhere_element
-block_item ::= CRUFT
+FLO_block contains ITEM_SGML block_element anywhere_element
+
 block_element ::= ELE_table
 block_element ::= ELE_p
 block_element ::= ELE_ol

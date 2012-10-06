@@ -14,7 +14,7 @@
 # http://www.gnu.org/licenses/.
 
 # This file was generated automatically by mk_core_grammar.pl
-# The date of generation was Fri Oct  5 22:22:25 2012
+# The date of generation was Fri Oct  5 22:28:41 2012
 
 package Marpa::R2::HTML::Internal;
 
@@ -107,7 +107,7 @@ $CORE_RULES = [
                 {
                   'rhs' => [
                              'S_body',
-                             'block_flow',
+                             'FLO_block',
                              'E_body'
                            ],
                   'lhs' => 'ELE_body',
@@ -116,37 +116,6 @@ $CORE_RULES = [
                 {
                   'rhs' => [],
                   'lhs' => 'empty'
-                },
-                {
-                  'min' => 0,
-                  'rhs' => [
-                             'block_item'
-                           ],
-                  'lhs' => 'block_flow'
-                },
-                {
-                  'rhs' => [
-                             'ITEM_SGML'
-                           ],
-                  'lhs' => 'block_item'
-                },
-                {
-                  'rhs' => [
-                             'block_element'
-                           ],
-                  'lhs' => 'block_item'
-                },
-                {
-                  'rhs' => [
-                             'anywhere_element'
-                           ],
-                  'lhs' => 'block_item'
-                },
-                {
-                  'rhs' => [
-                             'CRUFT'
-                           ],
-                  'lhs' => 'block_item'
                 },
                 {
                   'rhs' => [
@@ -1066,6 +1035,43 @@ $CORE_RULES = [
                              'CRUFT'
                            ],
                   'lhs' => 'ITEM_mixed'
+                },
+                {
+                  'rhs' => [
+                             '_C_FLO_block'
+                           ],
+                  'lhs' => 'FLO_block'
+                },
+                {
+                  'min' => 0,
+                  'rhs' => [
+                             'ITEM_block'
+                           ],
+                  'lhs' => '_C_FLO_block'
+                },
+                {
+                  'rhs' => [
+                             'ITEM_SGML'
+                           ],
+                  'lhs' => 'ITEM_block'
+                },
+                {
+                  'rhs' => [
+                             'block_element'
+                           ],
+                  'lhs' => 'ITEM_block'
+                },
+                {
+                  'rhs' => [
+                             'anywhere_element'
+                           ],
+                  'lhs' => 'ITEM_block'
+                },
+                {
+                  'rhs' => [
+                             'CRUFT'
+                           ],
+                  'lhs' => 'ITEM_block'
                 },
                 {
                   'rhs' => [
