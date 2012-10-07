@@ -13,8 +13,8 @@
 # General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 
-# This file was generated automatically by mk_core_grammar.pl
-# The date of generation was Sat Oct  6 23:12:46 2012
+# This file was generated automatically by mk_definition.pl
+# The date of generation was Sun Oct  7 09:15:31 2012
 
 package Marpa::R2::HTML::Internal;
 

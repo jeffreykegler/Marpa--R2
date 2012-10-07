@@ -27,7 +27,7 @@
 \.swp$
 \.tar.gz$
 \/\.git\/
-\/\hide\/
+\/hide\/
 ^Build$
 ^MANIFEST\.SKIP$
 ^MYMETA.json$

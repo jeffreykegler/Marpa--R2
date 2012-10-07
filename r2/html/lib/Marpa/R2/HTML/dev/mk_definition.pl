@@ -27,13 +27,13 @@ use Marpa::R2::HTML::dev::Configuration;
 
 # Make sure the last resort defaults are always defined
 for my $required_rubies_desc (qw( !start_tag !end_tag !non_element )) {
-    $HTML_Config::RUBY_CONFIG{$required_rubies_desc} //= [];
+    $HTML_Configuration::RUBY_CONFIG{$required_rubies_desc} //= [];
 }
 
-DESC: for my $rubies_desc (keys %HTML_Config::RUBY_CONFIG) {
-    my $candidates = $HTML_Config::RUBY_CONFIG{$rubies_desc};
+DESC: for my $rubies_desc (keys %HTML_Configuration::RUBY_CONFIG) {
+    my $candidates = $HTML_Configuration::RUBY_CONFIG{$rubies_desc};
     next DESC if '!non_final_end' ~~ $candidates;
-    $HTML_Config::RUBY_CONFIG{$rubies_desc} = [@{$candidates}, '!non_final_end'];
+    $HTML_Configuration::RUBY_CONFIG{$rubies_desc} = [@{$candidates}, '!non_final_end'];
 }
 
 my %species_handler = (
@@ -170,7 +170,7 @@ for my $bnf_set_data (
         } ## end if ( $definition =~ ...)
         die "Badly formed line in grammar description: $line";
     } ## end LINE: for my $line ( split /\n/xms, ${$bnf_set} )
-} ## end for my $bnf_set_data ( \[ \$HTML_Config::CORE_BNF, 0 ...])
+} ## end for my $bnf_set_data ( \[ \$HTML_Configuration::CORE_BNF, 0 ...])
 
 {
     my @species_not_defined = grep { not defined $species_defined{$_} }
@@ -336,7 +336,7 @@ $output .= "\n\n";
     # non-physical one
     my @ruby_start_tags =
         grep { ( substr $_, 0, 2 ) eq 'S_' }
-        map { @{$_} } values %HTML_Config::RUBY_CONFIG;
+        map { @{$_} } values %HTML_Configuration::RUBY_CONFIG;
 
     my %defined_in_core_rules =
         map { ( substr $_, 4 ) => 'core' }
@@ -382,9 +382,9 @@ $output .= Data::Dumper->Dump( [ \%tag_descriptor ], [qw(TAG_DESCRIPTOR)] );
 }
 
 my %ruby_rank = ();
-for my $rejected_symbol (keys %HTML_Config::RUBY_CONFIG) {
+for my $rejected_symbol (keys %HTML_Configuration::RUBY_CONFIG) {
   my $rank = 1;
-  for my $candidate (reverse @{$HTML_Config::RUBY_CONFIG{$rejected_symbol}})
+  for my $candidate (reverse @{$HTML_Configuration::RUBY_CONFIG{$rejected_symbol}})
   {
      $ruby_rank{$rejected_symbol}{$candidate} = $rank++;
   }
@@ -392,6 +392,6 @@ for my $rejected_symbol (keys %HTML_Config::RUBY_CONFIG) {
 
 $output .= Data::Dumper->Dump( [ \%ruby_rank ], [qw(RUBY_SLIPPERS_RANK_BY_NAME)] );
 
-open my $out_fh, q{>}, 'Core_Grammar.pm';
+open my $out_fh, q{>}, 'Definition.pm';
 say {$out_fh} $output;
 close $out_fh;
