@@ -40,6 +40,7 @@ my %tag_descriptor = ();
 
 my %element_containments = ();
 my %flow_containments = ();
+my %element_defined = ();
 LINE: for my $line ( split /\n/xms, $HTML_Config::BNF ) {
     my $definition = $line;
     chomp $definition;
@@ -63,6 +64,7 @@ LINE: for my $line ( split /\n/xms, $HTML_Config::BNF ) {
             $rule_descriptor{action} = $handler;
         }
         elsif ( $lhs =~ /^ELE_/xms ) {
+	    push @{ $element_defined{$lhs} }, 'BNF';
             $rule_descriptor{action} = "$lhs";
         }
         push @core_rules, \%rule_descriptor;
@@ -75,13 +77,14 @@ LINE: for my $line ( split /\n/xms, $HTML_Config::BNF ) {
         my $tag = $1;
 	my $contents = $2;
 	my $group = $3;
-	die "ELE_$tag already defined" if $tag_descriptor{$tag};
+	push @{ $element_defined{'ELE_', $tag} }, 'is-a-included';
 	$tag_descriptor{$tag} = [$group, $contents];
         next LINE;
     }
     if ( $definition =~ s/ \A \s* ELE_(\w+) \s+ is \s+ (FLO_\w+) \s* \z/ /xms ) {
         # Production is Element with flow, but no group specified
         my $tag = $1;
+	push @{ $element_defined{'ELE_', $tag} }, 'is-a';
 	my $contents = $2;
 	my $lhs = 'ELE_' . $tag;
         my %rule_descriptor = (
@@ -93,12 +96,14 @@ LINE: for my $line ( split /\n/xms, $HTML_Config::BNF ) {
         next LINE;
     }
     if ( $definition =~ s/ \A \s* ((ELE)_\w+) \s+ contains \s+ / /xms ) {
+
         # Production is Element with custom flow
         my $element_symbol = $1;
         my @contents = split q{ }, $definition;
+	push @{ $element_defined{$element_symbol} }, 'contains';
         push @{ $element_containments{$element_symbol} }, @contents;
         next LINE;
-    }
+    } ## end if ( $definition =~ ...)
     if ( $definition =~ s/ \A \s* ((FLO)_\w+) \s+ contains \s+ / /xms ) {
         # Production is Flow
         my $element_symbol = $1;
@@ -108,6 +113,16 @@ LINE: for my $line ( split /\n/xms, $HTML_Config::BNF ) {
     }
     die "Badly formed line in grammar description: $line";
 } ## end LINE: for my $line ( split /\n/xms, $HTML_Config::BNF )
+
+ELEMENT: for my $element ( keys %element_defined ) {
+    my $definitions = $element_defined{$element};
+
+    next ELEMENT if scalar @{$definitions} <= 1;
+    my $first = $definitions->[0];
+    if ( grep { $_ ne $first } @{$definitions} ) {
+        die "$element multiply defined";
+    }
+} ## end ELEMENT: for my $element ( keys %element_defined )
 
 # Check rules, prefixes starting with '_'
 # are reserved.
@@ -221,6 +236,22 @@ $output .= "\n\n";
 $Data::Dumper::Purity = 1;
 $Data::Dumper::Sortkeys = 1;
 $output .= Data::Dumper->Dump( [ \@core_rules ], [qw(CORE_RULES)] );
+
+{
+    my %flows =
+        map { $_ => 'core' }
+        grep {m/\A FLO_ /xms} map { $_->{lhs} } @core_rules;
+    my %groups =
+        map { $_ => 'core' }
+        grep {m/\A GRP_ /xms} map { $_->{lhs} } @core_rules;
+    for my $tag ( keys %tag_descriptor ) {
+        my ( $group, $flow ) = @{ $tag_descriptor{$tag} };
+        die qq{$tag is a "$flow", which is not defined}
+            if not $flows{$flow};
+        die qq{$tag included in "$group", which is not defined}
+            if not $groups{$group};
+    } ## end for my $tag ( keys %tag_descriptor )
+}
 
 $output .= Data::Dumper->Dump( [ \%tag_descriptor ], [qw(TAG_DESCRIPTOR)] );
 
