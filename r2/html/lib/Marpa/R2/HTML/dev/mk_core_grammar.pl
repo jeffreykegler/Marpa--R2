@@ -25,6 +25,7 @@ use lib '.';
 use HTML_Config;
 
 my @core_rules = ();
+my %tag_descriptor = ();
 
 my %element_containments = ();
 my %flow_containments = ();
@@ -56,8 +57,19 @@ LINE: for my $line ( split /\n/xms, $HTML_Config::BNF ) {
         push @core_rules, \%rule_descriptor;
         next LINE;
     } ## end if ( $definition =~ s/ \s* [:][:][=] \s* / /xms )
+    if ( $definition =~ m{
+      \A \s* ELE_(\w+) \s+
+      is \s+ a \s+ (FLO_\w+) \s+
+      included \s+ in \s+ (GRP_\w+) \s* \z}xms ) {
+        my $tag = $1;
+	my $contents = $2;
+	my $group = $3;
+	die "ELE_$tag already defined" if $tag_descriptor{$tag};
+	$tag_descriptor{$tag} = [$group, $contents];
+        next LINE;
+    }
     if ( $definition =~ s/ \A \s* ELE_(\w+) \s+ is \s+ (FLO_\w+) \s* \z/ /xms ) {
-        # Production is Element with standard flow
+        # Production is Element with flow, but no group specified
         my $tag = $1;
 	my $contents = $2;
 	my $lhs = 'ELE_' . $tag;
@@ -98,9 +110,6 @@ LINE: for my $line ( split /\n/xms, $HTML_Config::BNF ) {
     my @reserved = grep { $_ =~ /\A [[:^alpha:]] /xms } @symbols;
     die "Reserved symbols in use: ", join " ", @reserved if scalar @reserved;
 }
-
-# Other ITEM_ ok, but there must be a corresponding FLO_
-# LHS.
 
 my %sgml_flow_included = ();
 ELEMENT: for my $main_symbol ( keys %element_containments ) {
@@ -198,74 +207,21 @@ $output .= "\n\n";
 $output .= 'package Marpa::R2::HTML::Internal;';
 $output .= "\n\n";
 
-$output .= Data::Dumper->Purity(1)
-    ->Dump( [ \@core_rules ], [qw(CORE_RULES)] );
+$Data::Dumper::Purity = 1;
+$Data::Dumper::Sortkeys = 1;
+$output .= Data::Dumper->Dump( [ \@core_rules ], [qw(CORE_RULES)] );
 
-my @core_elements = grep { /\A ELE_ /xms } map { $_->{lhs} } @core_rules;
+$output .= Data::Dumper->Dump( [ \%tag_descriptor ], [qw(TAG_DESCRIPTOR)] );
 
-my @non_core_block_elements = ();
-ELEMENT: for my $element (keys %HTML_Config::IS_BLOCK_ELEMENT) {
-    if ($HTML_Config::IS_BLOCK_ELEMENT{$element} eq 'core')
-    {
-       next ELEMENT if 'ELE_' . $element ~~ \@core_elements;
-       die "Core grammar is missing a block element $element";
-    }
-    push @non_core_block_elements, $element;
-}
-
-my %non_core_block_hash =
-    map { $_, $HTML_Config::IS_BLOCK_ELEMENT{$_} }
-    @non_core_block_elements;
-
-$output .= Data::Dumper->Purity(1)
-    ->Dump( [ \%non_core_block_hash ], [qw(IS_BLOCK_ELEMENT)] );
-
-my @non_core_inline_elements = ();
-ELEMENT: for my $element (keys %HTML_Config::IS_INLINE_ELEMENT) {
-    if ($HTML_Config::IS_INLINE_ELEMENT{$element} eq 'core')
-    {
-       next ELEMENT if 'ELE_' . $element ~~ \@core_elements;
-       die "Core grammar is missing a inline element $element";
-    }
-    push @non_core_inline_elements, $element;
-}
-
-my %non_core_inline_hash =
-    map { $_, $HTML_Config::IS_INLINE_ELEMENT{$_} }
-    @non_core_inline_elements;
-
-$output .= Data::Dumper->Purity(1)
-    ->Dump( [ \%non_core_inline_hash ], [qw(IS_INLINE_ELEMENT)] );
-
-my @duplicated_elements =
-    grep { $_ ~~ \@core_elements }
-    map { 'ELE_' . $_ }
-    @non_core_block_elements,
-    @non_core_inline_elements,
-    ;
-if (@duplicated_elements) {
-    say STDERR 'Runtime elements also in the core grammar:';
-    say STDERR q{    }, join " ", @duplicated_elements;
-    die "Elements cannot be both runtime and in the core grammar";
-}
-
-my %is_anywhere_element = map { ( substr $_, 4 ) => 'core' }
-    grep { 'ELE_' eq substr $_, 0, 4 }
-    map { $_->{rhs}->[0] }
-    grep { $_->{lhs} eq 'GRP_anywhere' } @core_rules;
-my %is_head_element = map { ( substr $_, 4 ) => 'core' }
-    grep { 'ELE_' eq substr $_, 0, 4 }
-    map { $_->{rhs}->[0] }
-    grep { $_->{lhs} eq 'GRP_head' } @core_rules;
-
-my @core_symbols = map { substr $_, 4 } grep { m/\A ELE_ /xms } map { $_->{lhs}, @{$_->{rhs}} } @core_rules;
 {
-    my %seen = map { ( substr $_, 2 ) => 1 } grep {m/ \A S_ /xms} keys %HTML_Config::RUBY_CONFIG;
-    $seen{$_} = 1 for keys %HTML_Config::IS_BLOCK_ELEMENT;
-    $seen{$_} = 1 for keys %HTML_Config::IS_INLINE_ELEMENT;
-    $seen{$_} = 1 for keys %is_anywhere_element;
-    $seen{$_} = 1 for keys %is_head_element;
-    my @symbols_with_no_ruby_status = grep { !$seen{$_} } @core_symbols;
+    my @mentioned_in_core =
+        map { substr $_, 4 }
+        grep {m/\A ELE_ /xms} map { @{ $_->{rhs} } } @core_rules;
+    my %defined_in_core =
+        map { ( substr $_, 4 ) => 'core' }
+        grep {m/\A ELE_ /xms} map { $_->{lhs} } @core_rules;
+    my @symbols_with_no_ruby_status =
+        grep { !$defined_in_core{$_} and !$tag_descriptor{$_} } @mentioned_in_core;
     die "symbols with no ruby status: ", join " ",
         @symbols_with_no_ruby_status
         if scalar @symbols_with_no_ruby_status;
@@ -280,13 +236,7 @@ for my $rejected_symbol (keys %HTML_Config::RUBY_CONFIG) {
   }
 }
 
-$output .= Data::Dumper->Purity(1) ->Dump( [ \%is_head_element ], [qw(IS_HEAD_ELEMENT)] );
-$output .= Data::Dumper->Purity(1) ->Dump( [ \%is_anywhere_element ], [qw(IS_ANYWHERE_ELEMENT)] );
-$output .= Data::Dumper->Purity(1) ->Dump( [ \%HTML_Config::IS_INLINE_ELEMENT ], [qw(IS_INLINE_ELEMENT)] );
-$output .= Data::Dumper->Purity(1) ->Dump( [ \%HTML_Config::IS_BLOCK_ELEMENT ], [qw(IS_BLOCK_ELEMENT)] );
-
-$output .= Data::Dumper->Purity(1)
-    ->Dump( [ \%ruby_rank ], [qw(RUBY_SLIPPERS_RANK_BY_NAME)] );
+$output .= Data::Dumper->Dump( [ \%ruby_rank ], [qw(RUBY_SLIPPERS_RANK_BY_NAME)] );
 
 open my $out_fh, q{>}, 'Core_Grammar.pm';
 say {$out_fh} $output;

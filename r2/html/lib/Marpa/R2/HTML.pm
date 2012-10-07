@@ -634,24 +634,15 @@ sub parse {
     } ## end for my $rule (@rules)
 
     ELEMENT: for my $tag ( keys %tags ) {
-        my $start_tag = "S_$tag";
-        my $end_tag   = "E_$tag";
-        my $contents;
-        my $element_type;
-        FIND_TYPE_AND_CONTENTS: {
-            $contents = $Marpa::R2::HTML::Internal::IS_BLOCK_ELEMENT->{$tag};
-            if ( defined $contents ) {
-                $element_type = 'GRP_block';
-                last FIND_TYPE_AND_CONTENTS;
-            }
-            $contents = $Marpa::R2::HTML::Internal::IS_INLINE_ELEMENT->{$tag};
-            if ( defined $contents ) {
-                $element_type = 'GRP_inline';
-                last FIND_TYPE_AND_CONTENTS;
-            }
-            $element_type = 'GRP_anywhere';
-            $contents     = 'FLO_mixed';
-        } ## end FIND_TYPE_AND_CONTENTS:
+        my $start_tag    = "S_$tag";
+        my $end_tag      = "E_$tag";
+        my $element_type = 'GRP_anywhere';
+        my $contents     = 'FLO_mixed';
+        my $tag_descriptor =
+            $Marpa::R2::HTML::Internal::TAG_DESCRIPTOR->{$tag};
+        if ( defined $tag_descriptor ) {
+            ( $element_type, $contents ) = @{$tag_descriptor};
+        }
 
         push @rules,
             {
