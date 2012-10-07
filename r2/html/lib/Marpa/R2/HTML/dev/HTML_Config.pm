@@ -79,12 +79,10 @@ GRP_block ::= ELE_menu
 
 FLO_head contains GRP_head GRP_anywhere
 
-GRP_head ::= ELE_object
 GRP_head ::= ELE_style
 
 FLO_inline contains pcdata cdata GRP_inline GRP_anywhere
 
-GRP_inline ::= ELE_object
 GRP_inline ::= ELE_select
 GRP_inline ::= ELE_map
 
@@ -155,6 +153,7 @@ ELE_nobr     is a FLO_inline included in GRP_inline
 ELE_noframes   is a FLO_mixed included in GRP_block
 ELE_noscript   is a FLO_mixed included in GRP_block
 ELE_object contains ELE_param ITEM_mixed
+ELE_object is included in GRP_anywhere
 ELE_ol contains ELE_li
 ELE_optgroup contains ELE_option
 ELE_option is FLO_pcdata

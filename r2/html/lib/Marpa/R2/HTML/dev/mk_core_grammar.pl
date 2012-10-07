@@ -54,6 +54,11 @@ LINE: for my $line ( split /\n/xms, $HTML_Config::BNF ) {
         # Production is Ordinary BNF rule
         my @symbols         = ( split q{ }, $definition );
         my $lhs             = shift @symbols;
+        for my $contained_element ( grep { ( substr $_, 0, 4 ) eq 'ELE_' }
+            @symbols )
+        {
+            $element_included{$contained_element} = 1;
+        }
         my %rule_descriptor = (
             lhs => $lhs,
             rhs => \@symbols,
@@ -139,7 +144,7 @@ ELEMENT: for my $element ( keys %element_defined ) {
     if ( $definitions->[0] ne 'BNF'
         and !$element_included{$element} )
     {
-        # die "$element not included anywhere";
+        die "$element not included anywhere";
     }
 
     next ELEMENT if scalar @{$definitions} <= 1;
