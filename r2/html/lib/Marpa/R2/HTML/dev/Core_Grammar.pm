@@ -14,7 +14,7 @@
 # http://www.gnu.org/licenses/.
 
 # This file was generated automatically by mk_core_grammar.pl
-# The date of generation was Sat Oct  6 22:31:25 2012
+# The date of generation was Sat Oct  6 22:37:41 2012
 
 package Marpa::R2::HTML::Internal;
 
@@ -226,12 +226,6 @@ $CORE_RULES = [
                            ]
                 },
                 {
-                  'lhs' => 'GRP_anywhere',
-                  'rhs' => [
-                             'ELE_script'
-                           ]
-                },
-                {
                   'lhs' => 'GRP_head',
                   'rhs' => [
                              'ELE_object'
@@ -346,15 +340,6 @@ $CORE_RULES = [
                              'S_param',
                              'FLO_empty',
                              'E_param'
-                           ]
-                },
-                {
-                  'action' => 'ELE_script',
-                  'lhs' => 'ELE_script',
-                  'rhs' => [
-                             'S_script',
-                             'FLO_cdata',
-                             'E_script'
                            ]
                 },
                 {
@@ -1308,6 +1293,10 @@ $TAG_DESCRIPTOR = {
                                 'GRP_inline',
                                 'FLO_inline'
                               ],
+                    'script' => [
+                                  'GRP_anywhere',
+                                  'FLO_cdata'
+                                ],
                     'small' => [
                                  'GRP_inline',
                                  'FLO_inline'

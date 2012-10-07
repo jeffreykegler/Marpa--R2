@@ -77,11 +77,6 @@ GRP_block ::= ELE_div
 GRP_block ::= ELE_dir
 GRP_block ::= ELE_menu
 
-# isindex can also be a block element
-# and script can be a block and an inline element
-# these will become "anywhere" elements
-GRP_anywhere ::= ELE_script
-
 FLO_head contains GRP_head GRP_anywhere
 
 GRP_head ::= ELE_object
@@ -94,6 +89,10 @@ GRP_inline ::= ELE_select
 GRP_inline ::= ELE_map
 
 FLO_pcdata contains cdata pcdata
+
+# isindex can also be a block element
+# and script can be a block and an inline element
+# these will become "anywhere" elements
 
 # Alphabetically, by tagname
 ELE_a        is a FLO_inline included in GRP_inline
@@ -174,7 +173,7 @@ ELE_rtc      is a FLO_inline included in GRP_inline
 ELE_ruby     is a FLO_inline included in GRP_inline
 ELE_s        is a FLO_inline included in GRP_inline
 ELE_samp     is a FLO_inline included in GRP_inline
-ELE_script is FLO_cdata
+ELE_script is a FLO_cdata included in GRP_anywhere
 ELE_select contains ELE_optgroup ELE_option
 ELE_small    is a FLO_inline included in GRP_inline
 ELE_span is a FLO_inline included in GRP_inline

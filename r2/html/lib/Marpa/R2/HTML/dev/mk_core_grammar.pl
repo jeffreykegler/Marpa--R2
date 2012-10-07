@@ -266,7 +266,7 @@ $output .= "\n\n";
         grep {m/\A FLO_ /xms} map { $_->{lhs} } @core_rules;
     my %groups =
         map { $_ => 'core' }
-        grep {m/\A GRP_ /xms} map { $_->{lhs} } @core_rules;
+        grep {m/\A GRP_ /xms} map { $_->{lhs}, @{ $_->{rhs} } } @core_rules;
     for my $tag ( keys %tag_descriptor ) {
         my ( $group, $flow ) = @{ $tag_descriptor{$tag} };
         die qq{$tag is a "$flow", which is not defined}
