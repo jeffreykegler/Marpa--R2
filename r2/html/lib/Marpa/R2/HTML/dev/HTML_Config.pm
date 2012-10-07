@@ -92,7 +92,6 @@ GRP_head ::= ELE_object
 GRP_head ::= ELE_style
 GRP_head ::= ELE_meta
 GRP_head ::= ELE_link
-GRP_head ::= ELE_title
 GRP_head ::= ELE_base
 
 FLO_inline contains pcdata cdata GRP_inline GRP_anywhere
@@ -141,9 +140,10 @@ ELE_td is FLO_mixed
 ELE_th is FLO_mixed
 ELE_tfoot contains ELE_tr
 ELE_thead contains ELE_tr
-ELE_title is FLO_pcdata
 ELE_tr contains ELE_th ELE_td
 ELE_ul contains ELE_li
+
+ELE_title is a FLO_pcdata included in GRP_head
 
 ELE_address    is a FLO_inline included in GRP_block
 ELE_blockquote is a FLO_mixed included in GRP_block

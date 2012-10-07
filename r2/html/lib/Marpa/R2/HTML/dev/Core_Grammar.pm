@@ -14,7 +14,7 @@
 # http://www.gnu.org/licenses/.
 
 # This file was generated automatically by mk_core_grammar.pl
-# The date of generation was Sat Oct  6 21:47:04 2012
+# The date of generation was Sat Oct  6 21:49:18 2012
 
 package Marpa::R2::HTML::Internal;
 
@@ -282,12 +282,6 @@ $CORE_RULES = [
                 {
                   'lhs' => 'GRP_head',
                   'rhs' => [
-                             'ELE_title'
-                           ]
-                },
-                {
-                  'lhs' => 'GRP_head',
-                  'rhs' => [
                              'ELE_base'
                            ]
                 },
@@ -499,15 +493,6 @@ $CORE_RULES = [
                              'S_th',
                              'FLO_mixed',
                              'E_th'
-                           ]
-                },
-                {
-                  'action' => 'ELE_title',
-                  'lhs' => 'ELE_title',
-                  'rhs' => [
-                             'S_title',
-                             'FLO_pcdata',
-                             'E_title'
                            ]
                 },
                 {
@@ -1421,6 +1406,10 @@ $TAG_DESCRIPTOR = {
                                 'GRP_inline',
                                 'FLO_inline'
                               ],
+                    'title' => [
+                                 'GRP_head',
+                                 'FLO_pcdata'
+                               ],
                     'tt' => [
                               'GRP_inline',
                               'FLO_inline'
