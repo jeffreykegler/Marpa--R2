@@ -262,35 +262,6 @@ sub create {
     return $self;
 } ## end sub create
 
-@Marpa::R2::HTML::Internal::CORE_OPTIONAL_TERMINALS = qw(
-    E_html
-    E_body
-    S_table
-    E_head
-    E_table
-    E_tbody
-    E_tr
-    E_td
-    S_td
-    S_tr
-    S_tbody
-    S_head
-    S_body
-    S_html
-);
-
-%Marpa::R2::HTML::Internal::CORE_OPTIONAL_TERMINALS = ();
-for my $rank ( 0 .. $#Marpa::R2::HTML::Internal::CORE_OPTIONAL_TERMINALS ) {
-    $Marpa::R2::HTML::Internal::CORE_OPTIONAL_TERMINALS{
-        $Marpa::R2::HTML::Internal::CORE_OPTIONAL_TERMINALS[$rank] } = $rank;
-}
-
-@Marpa::R2::HTML::Internal::CORE_TERMINALS =
-    qw(C D PI CRUFT CDATA PCDATA WHITESPACE EOF );
-
-push @Marpa::R2::HTML::Internal::CORE_TERMINALS,
-    keys %Marpa::R2::HTML::Internal::CORE_OPTIONAL_TERMINALS;
-
 sub handler_find {
     my ( $self, $rule_id, $class ) = @_;
     my $trace_handlers = $self->{trace_handlers};
@@ -516,8 +487,6 @@ sub parse {
     $p->parse( ${$document} );
     $p->eof;
 
-    my %terminals =
-        map { $_ => 1 } @Marpa::R2::HTML::Internal::CORE_TERMINALS;
     my @html_parser_tokens = ();
     HTML_PARSER_TOKEN:
     for my $raw_token (@raw_tokens) {
@@ -556,7 +525,6 @@ sub parse {
                 my $terminal = "S_$tag_name";
                 $raw_token->[Marpa::R2::HTML::Internal::Token::TOKEN_NAME] =
                     $terminal;
-                $terminals{$terminal}++;
                 last PROCESS_BY_TYPE;
             } ## end if ( $token_type eq 'S' )
             if ( $token_type eq 'E' ) {
@@ -576,7 +544,6 @@ sub parse {
                 my $terminal = "E_$tag_name";
                 $raw_token->[Marpa::R2::HTML::Internal::Token::TOKEN_NAME] =
                     $terminal;
-                $terminals{$terminal}++;
                 last PROCESS_BY_TYPE;
             } ## end if ( $token_type eq 'E' )
         } ## end PROCESS_BY_TYPE:
@@ -606,7 +573,6 @@ sub parse {
     @raw_tokens = ();
 
     my @rules     = @{$Marpa::R2::HTML::Internal::CORE_RULES};
-    my @terminals = keys %terminals;
 
     # Special cases which are dealt with elsewhere.
     # As of now the only special cases are elements with optional
@@ -621,14 +587,6 @@ sub parse {
             my $tag = substr $lhs, 4;
             my $end_tag = 'E_' . $tag;
             delete $tags{$tag};
-
-            # There may be no
-            # end tag in the input.
-            # This silences the warning.
-            if ( not $terminals{$end_tag} ) {
-                push @terminals, $end_tag;
-                $terminals{$end_tag} = 1;
-            }
 
         } ## end if ( 0 == index $lhs, 'ELE_' )
     } ## end for my $rule (@rules)
@@ -654,14 +612,6 @@ sub parse {
             rhs    => [ $start_tag, $contents, $end_tag ],
             action => "ELE_$tag",
             };
-
-        # There may be no
-        # end tag in the input.
-        # This silences the warning.
-        if ( not $terminals{$end_tag} ) {
-            push @terminals, $end_tag;
-            $terminals{$end_tag} = 1;
-        }
 
     } ## end ELEMENT: for my $tag ( keys %tags )
 
