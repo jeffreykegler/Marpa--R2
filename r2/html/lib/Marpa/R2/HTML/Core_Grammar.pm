@@ -14,7 +14,7 @@
 # http://www.gnu.org/licenses/.
 
 # This file was generated automatically by mk_core_grammar.pl
-# The date of generation was Sat Oct  6 22:42:47 2012
+# The date of generation was Sat Oct  6 22:47:21 2012
 
 package Marpa::R2::HTML::Internal;
 
@@ -226,24 +226,6 @@ $CORE_RULES = [
                            ]
                 },
                 {
-                  'lhs' => 'GRP_head',
-                  'rhs' => [
-                             'ELE_style'
-                           ]
-                },
-                {
-                  'lhs' => 'GRP_inline',
-                  'rhs' => [
-                             'ELE_select'
-                           ]
-                },
-                {
-                  'lhs' => 'GRP_inline',
-                  'rhs' => [
-                             'ELE_map'
-                           ]
-                },
-                {
                   'lhs' => 'GRP_inline',
                   'rhs' => [
                              'ELE_applet'
@@ -313,6 +295,12 @@ $CORE_RULES = [
                            ]
                 },
                 {
+                  'lhs' => 'GRP_inline',
+                  'rhs' => [
+                             'ELE_map'
+                           ]
+                },
+                {
                   'lhs' => 'GRP_anywhere',
                   'rhs' => [
                              'ELE_object'
@@ -337,12 +325,9 @@ $CORE_RULES = [
                            ]
                 },
                 {
-                  'action' => 'ELE_style',
-                  'lhs' => 'ELE_style',
+                  'lhs' => 'GRP_inline',
                   'rhs' => [
-                             'S_style',
-                             'FLO_cdata',
-                             'E_style'
+                             'ELE_select'
                            ]
                 },
                 {
@@ -1307,6 +1292,10 @@ $TAG_DESCRIPTOR = {
                                   'GRP_inline',
                                   'FLO_inline'
                                 ],
+                    'style' => [
+                                 'GRP_head',
+                                 'FLO_cdata'
+                               ],
                     'sub' => [
                                'GRP_inline',
                                'FLO_inline'
