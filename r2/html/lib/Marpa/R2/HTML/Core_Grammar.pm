@@ -14,7 +14,7 @@
 # http://www.gnu.org/licenses/.
 
 # This file was generated automatically by mk_core_grammar.pl
-# The date of generation was Sat Oct  6 22:52:05 2012
+# The date of generation was Sat Oct  6 23:05:16 2012
 
 package Marpa::R2::HTML::Internal;
 

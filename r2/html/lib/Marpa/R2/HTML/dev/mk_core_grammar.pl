@@ -35,6 +35,19 @@ DESC: for my $rubies_desc (keys %HTML_Config::RUBY_CONFIG) {
     $HTML_Config::RUBY_CONFIG{$rubies_desc} = [@{$candidates}, '!non_final_end'];
 }
 
+my %species_handler = (
+    cruft      => 'SPE_CRUFT',
+    comment    => 'SPE_COMMENT',
+    pi         => 'SPE_PI',
+    decl       => 'SPE_DECL',
+    document   => 'SPE_TOP',
+    whitespace => 'SPE_WHITESPACE',
+    pcdata     => 'SPE_PCDATA',
+    cdata      => 'SPE_CDATA',
+    prolog     => 'SPE_PROLOG',
+    trailer    => 'SPE_TRAILER',
+);
+
 my @core_rules = ();
 my %tag_descriptor = ();
 
@@ -42,6 +55,7 @@ my %element_containments = ();
 my %flow_containments = ();
 my %element_defined = ();
 my %element_included = ();
+my %species_defined = ();
 LINE: for my $line ( split /\n/xms, $HTML_Config::BNF ) {
     my $definition = $line;
     chomp $definition;
@@ -66,7 +80,8 @@ LINE: for my $line ( split /\n/xms, $HTML_Config::BNF ) {
         if ($sequence) {
             $rule_descriptor{min} = 0;
         }
-        if ( my $handler = $HTML_Config::HANDLER{$lhs} ) {
+        if ( my $handler = $species_handler{$lhs} ) {
+	    $species_defined{$lhs} = 1;
             $rule_descriptor{action} = $handler;
         }
         elsif ( $lhs =~ /^ELE_/xms ) {
@@ -138,6 +153,16 @@ LINE: for my $line ( split /\n/xms, $HTML_Config::BNF ) {
     }
     die "Badly formed line in grammar description: $line";
 } ## end LINE: for my $line ( split /\n/xms, $HTML_Config::BNF )
+
+{
+    my @species_not_defined = grep { not defined $species_defined{$_} }
+        keys %species_handler;
+    if ( scalar @species_not_defined ) {
+        die
+            "Definitions for the following required text components are missing: ",
+            join " ", @species_not_defined;
+    }
+}
 
 ELEMENT: for my $element ( keys %element_defined ) {
     my $definitions = $element_defined{$element};

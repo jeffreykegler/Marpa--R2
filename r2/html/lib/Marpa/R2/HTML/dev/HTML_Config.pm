@@ -67,19 +67,10 @@ ITEM_cdata ::= CRUFT
 
 FLO_mixed contains GRP_anywhere GRP_block GRP_inline
 FLO_mixed contains cdata pcdata
-
 FLO_block contains GRP_block GRP_anywhere
-
 FLO_head contains GRP_head GRP_anywhere
-
-
 FLO_inline contains pcdata cdata GRP_inline GRP_anywhere
-
 FLO_pcdata contains cdata pcdata
-
-# isindex can also be a block element
-# and script can be a block and an inline element
-# these will become "anywhere" elements
 
 # Alphabetically, by tagname
 ELE_a        is a FLO_inline included in GRP_inline
@@ -197,19 +188,6 @@ ELE_video    is a FLO_inline included in GRP_inline
 ELE_wbr      is a FLO_inline included in GRP_inline
 ELE_xmp        is a FLO_cdata included in GRP_block
 END_OF_BNF
-
-our %HANDLER = (
-    cruft      => 'SPE_CRUFT',
-    comment    => 'SPE_COMMENT',
-    pi         => 'SPE_PI',
-    decl       => 'SPE_DECL',
-    document   => 'SPE_TOP',
-    whitespace => 'SPE_WHITESPACE',
-    pcdata     => 'SPE_PCDATA',
-    cdata      => 'SPE_CDATA',
-    prolog     => 'SPE_PROLOG',
-    trailer    => 'SPE_TRAILER',
-);
 
 my @head_rubies   = qw( S_html S_head );
 my @block_rubies  = qw( S_html S_head S_body );
