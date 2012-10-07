@@ -641,7 +641,7 @@ sub parse {
         FIND_TYPE_AND_CONTENTS: {
             $contents = $Marpa::R2::HTML::Internal::IS_BLOCK_ELEMENT->{$tag};
             if ( defined $contents ) {
-                $element_type = 'block_element';
+                $element_type = 'GRP_block';
                 last FIND_TYPE_AND_CONTENTS;
             }
             $contents = $Marpa::R2::HTML::Internal::IS_INLINE_ELEMENT->{$tag};

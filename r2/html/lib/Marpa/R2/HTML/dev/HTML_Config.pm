@@ -60,19 +60,19 @@ ELE_body is FLO_block
 # Common types of element content
 empty ::=
 
-FLO_mixed contains anywhere_element block_element GRP_inline
+FLO_mixed contains anywhere_element GRP_block GRP_inline
 FLO_mixed contains cdata pcdata
 
-FLO_block contains block_element anywhere_element
+FLO_block contains GRP_block anywhere_element
 
-block_element ::= ELE_table
-block_element ::= ELE_p
-block_element ::= ELE_ol
-block_element ::= ELE_ul
-block_element ::= ELE_dl
-block_element ::= ELE_div
-block_element ::= ELE_dir
-block_element ::= ELE_menu
+GRP_block ::= ELE_table
+GRP_block ::= ELE_p
+GRP_block ::= ELE_ol
+GRP_block ::= ELE_ul
+GRP_block ::= ELE_dl
+GRP_block ::= ELE_div
+GRP_block ::= ELE_dir
+GRP_block ::= ELE_menu
 
 # isindex can also be a block element
 # and script can be a block and an inline element
@@ -117,7 +117,7 @@ ELE_dl contains ELE_dt ELE_dd
 ELE_dt is FLO_inline
 ELE_isindex is empty
 ELE_li is FLO_mixed
-ELE_map contains block_element ELE_area
+ELE_map contains GRP_block ELE_area
 ELE_area is empty
 ELE_link is empty
 ELE_meta is empty
@@ -158,7 +158,7 @@ our %HANDLER = (
     trailer    => 'SPE_TRAILER',
 );
 
-# block_element is for block-level ONLY elements.
+# GRP_block is for block-level ONLY elements.
 # Note that isindex can be both a head element and
 # and block level element in the body.
 # ISINDEX is classified as a header_element

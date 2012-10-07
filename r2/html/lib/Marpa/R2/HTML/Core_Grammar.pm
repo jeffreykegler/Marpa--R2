@@ -14,7 +14,7 @@
 # http://www.gnu.org/licenses/.
 
 # This file was generated automatically by mk_core_grammar.pl
-# The date of generation was Sat Oct  6 17:22:54 2012
+# The date of generation was Sat Oct  6 17:27:23 2012
 
 package Marpa::R2::HTML::Internal;
 
@@ -174,49 +174,49 @@ $CORE_RULES = [
                   'rhs' => [
                              'ELE_table'
                            ],
-                  'lhs' => 'block_element'
+                  'lhs' => 'GRP_block'
                 },
                 {
                   'rhs' => [
                              'ELE_p'
                            ],
-                  'lhs' => 'block_element'
+                  'lhs' => 'GRP_block'
                 },
                 {
                   'rhs' => [
                              'ELE_ol'
                            ],
-                  'lhs' => 'block_element'
+                  'lhs' => 'GRP_block'
                 },
                 {
                   'rhs' => [
                              'ELE_ul'
                            ],
-                  'lhs' => 'block_element'
+                  'lhs' => 'GRP_block'
                 },
                 {
                   'rhs' => [
                              'ELE_dl'
                            ],
-                  'lhs' => 'block_element'
+                  'lhs' => 'GRP_block'
                 },
                 {
                   'rhs' => [
                              'ELE_div'
                            ],
-                  'lhs' => 'block_element'
+                  'lhs' => 'GRP_block'
                 },
                 {
                   'rhs' => [
                              'ELE_dir'
                            ],
-                  'lhs' => 'block_element'
+                  'lhs' => 'GRP_block'
                 },
                 {
                   'rhs' => [
                              'ELE_menu'
                            ],
-                  'lhs' => 'block_element'
+                  'lhs' => 'GRP_block'
                 },
                 {
                   'rhs' => [
@@ -683,7 +683,7 @@ $CORE_RULES = [
                 },
                 {
                   'rhs' => [
-                             'block_element'
+                             'GRP_block'
                            ],
                   'lhs' => 'ITEM_ELE_map'
                 },
@@ -1099,7 +1099,7 @@ $CORE_RULES = [
                 },
                 {
                   'rhs' => [
-                             'block_element'
+                             'GRP_block'
                            ],
                   'lhs' => 'ITEM_mixed'
                 },
@@ -1136,7 +1136,7 @@ $CORE_RULES = [
                 },
                 {
                   'rhs' => [
-                             'block_element'
+                             'GRP_block'
                            ],
                   'lhs' => 'ITEM_block'
                 },
