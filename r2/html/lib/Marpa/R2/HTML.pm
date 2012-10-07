@@ -40,7 +40,7 @@ use HTML::Parser 3.69;
 use HTML::Entities qw(decode_entities);
 use HTML::Tagset ();
 
-use Marpa::R2::HTML::Core_Grammar;
+use Marpa::R2::HTML::Definition;
 
 # versions below must be coordinated with
 # those required in Build.PL

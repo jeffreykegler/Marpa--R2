@@ -19,5 +19,5 @@ dummy:
 
 all: Definition.pm
 
-Definition.pm: mk_definition.pl Configuarion.pm Core.pm
+Definition.pm: mk_definition.pl Configuration.pm Core.pm
 	perl mk_definition.pl

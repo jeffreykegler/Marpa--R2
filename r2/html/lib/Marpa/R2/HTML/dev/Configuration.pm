@@ -19,60 +19,12 @@ use warnings;
 use autodie;
 use Data::Dumper;
 
-package HTML_Config;
+package HTML_Configuration;
 
 use English qw( -no_match_vars );
 
-our $BNF = <<'END_OF_BNF';
-# Non-element tokens
-comment ::= C
-pi ::= PI
-decl ::= D
-pcdata ::= PCDATA
-cdata ::= CDATA
-whitespace ::= WHITESPACE
-cruft ::= CRUFT
-
-# FLO_SGML and ITEM_SGML defined by BNF rules,
-# because they must explicity include cruft
-FLO_SGML ::= ITEM_SGML*
-ITEM_SGML ::= comment
-ITEM_SGML ::= pi
-ITEM_SGML ::= decl
-ITEM_SGML ::= whitespace
-ITEM_SGML ::= cruft
-
-# For element x,
-# ELE_x is complete element
-# S_x is start tag
-# E_x is end tag
-#   The contents of many elements consists of zero or more items
-
-# Top-level structure
-document ::= prolog ELE_html trailer EOF
-prolog ::= FLO_SGML
-trailer ::= FLO_SGML
-ELE_html ::= S_html EC_html E_html
-EC_html ::= FLO_SGML ELE_head FLO_SGML ELE_body FLO_SGML
-ELE_head is FLO_head
-ELE_body is FLO_block
-
-# FLO_empty, FLO_cdata and ITEM_cdata defined by "hand" (BNF)
-# because they do NOT allow SGML items as part of
-# their flow
-FLO_empty ::=
-FLO_cdata ::= ITEM_cdata*
-ITEM_cdata ::= cdata
-ITEM_cdata ::= CRUFT
-
-FLO_mixed contains GRP_anywhere GRP_block GRP_inline
-FLO_mixed contains cdata pcdata
-FLO_block contains GRP_block GRP_anywhere
-FLO_head contains GRP_head GRP_anywhere
-FLO_inline contains pcdata cdata GRP_inline GRP_anywhere
-FLO_pcdata contains cdata pcdata
-
 # Alphabetically, by tagname
+our $CONFIGURATION_BNF = <<'END_OF_CONFIG_BNF';
 ELE_a is a FLO_inline included in GRP_inline
 ELE_abbr is a FLO_inline included in GRP_inline
 ELE_acronym is a FLO_inline included in GRP_inline
@@ -187,7 +139,7 @@ ELE_var is a FLO_inline included in GRP_inline
 ELE_video is a FLO_inline included in GRP_inline
 ELE_wbr is a FLO_inline included in GRP_inline
 ELE_xmp is a FLO_cdata included in GRP_block
-END_OF_BNF
+END_OF_CONFIG_BNF
 
 my @head_rubies   = qw( S_html S_head );
 my @block_rubies  = qw( S_html S_head S_body );
