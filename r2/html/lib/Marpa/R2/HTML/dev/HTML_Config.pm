@@ -60,10 +60,10 @@ ELE_body is FLO_block
 # Common types of element content
 empty ::=
 
-FLO_mixed contains anywhere_element GRP_block GRP_inline
+FLO_mixed contains GRP_anywhere GRP_block GRP_inline
 FLO_mixed contains cdata pcdata
 
-FLO_block contains GRP_block anywhere_element
+FLO_block contains GRP_block GRP_anywhere
 
 GRP_block ::= ELE_table
 GRP_block ::= ELE_p
@@ -77,11 +77,11 @@ GRP_block ::= ELE_menu
 # isindex can also be a block element
 # and script can be a block and an inline element
 # these will become "anywhere" elements
-anywhere_element ::= ELE_script
-anywhere_element ::= ELE_isindex
-anywhere_element ::= ELE_textarea
+GRP_anywhere ::= ELE_script
+GRP_anywhere ::= ELE_isindex
+GRP_anywhere ::= ELE_textarea
 
-FLO_head contains head_element anywhere_element
+FLO_head contains head_element GRP_anywhere
 
 head_element ::= ELE_object
 head_element ::= ELE_style
@@ -90,7 +90,7 @@ head_element ::= ELE_link
 head_element ::= ELE_title
 head_element ::= ELE_base
 
-FLO_inline contains pcdata cdata GRP_inline anywhere_element
+FLO_inline contains pcdata cdata GRP_inline GRP_anywhere
 
 GRP_inline ::= ELE_object
 GRP_inline ::= ELE_select

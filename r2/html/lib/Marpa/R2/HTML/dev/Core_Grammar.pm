@@ -14,7 +14,7 @@
 # http://www.gnu.org/licenses/.
 
 # This file was generated automatically by mk_core_grammar.pl
-# The date of generation was Sat Oct  6 17:27:23 2012
+# The date of generation was Sat Oct  6 17:30:55 2012
 
 package Marpa::R2::HTML::Internal;
 
@@ -222,19 +222,19 @@ $CORE_RULES = [
                   'rhs' => [
                              'ELE_script'
                            ],
-                  'lhs' => 'anywhere_element'
+                  'lhs' => 'GRP_anywhere'
                 },
                 {
                   'rhs' => [
                              'ELE_isindex'
                            ],
-                  'lhs' => 'anywhere_element'
+                  'lhs' => 'GRP_anywhere'
                 },
                 {
                   'rhs' => [
                              'ELE_textarea'
                            ],
-                  'lhs' => 'anywhere_element'
+                  'lhs' => 'GRP_anywhere'
                 },
                 {
                   'rhs' => [
@@ -1049,7 +1049,7 @@ $CORE_RULES = [
                 },
                 {
                   'rhs' => [
-                             'anywhere_element'
+                             'GRP_anywhere'
                            ],
                   'lhs' => 'ITEM_inline'
                 },
@@ -1074,7 +1074,7 @@ $CORE_RULES = [
                 },
                 {
                   'rhs' => [
-                             'anywhere_element'
+                             'GRP_anywhere'
                            ],
                   'lhs' => 'ITEM_head'
                 },
@@ -1093,7 +1093,7 @@ $CORE_RULES = [
                 },
                 {
                   'rhs' => [
-                             'anywhere_element'
+                             'GRP_anywhere'
                            ],
                   'lhs' => 'ITEM_mixed'
                 },
@@ -1142,7 +1142,7 @@ $CORE_RULES = [
                 },
                 {
                   'rhs' => [
-                             'anywhere_element'
+                             'GRP_anywhere'
                            ],
                   'lhs' => 'ITEM_block'
                 },

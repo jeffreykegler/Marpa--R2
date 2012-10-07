@@ -254,7 +254,7 @@ if (@duplicated_elements) {
 my %is_anywhere_element = map { ( substr $_, 4 ) => 'core' }
     grep { 'ELE_' eq substr $_, 0, 4 }
     map { $_->{rhs}->[0] }
-    grep { $_->{lhs} eq 'anywhere_element' } @core_rules;
+    grep { $_->{lhs} eq 'GRP_anywhere' } @core_rules;
 my %is_head_element = map { ( substr $_, 4 ) => 'core' }
     grep { 'ELE_' eq substr $_, 0, 4 }
     map { $_->{rhs}->[0] }

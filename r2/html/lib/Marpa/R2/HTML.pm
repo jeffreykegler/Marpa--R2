@@ -649,7 +649,7 @@ sub parse {
                 $element_type = 'GRP_inline';
                 last FIND_TYPE_AND_CONTENTS;
             }
-            $element_type = 'anywhere_element';
+            $element_type = 'GRP_anywhere';
             $contents     = 'FLO_mixed';
         } ## end FIND_TYPE_AND_CONTENTS:
 
