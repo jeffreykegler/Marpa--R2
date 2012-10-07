@@ -238,6 +238,8 @@ $Data::Dumper::Sortkeys = 1;
 $output .= Data::Dumper->Dump( [ \@core_rules ], [qw(CORE_RULES)] );
 
 {
+    # Check that the tag descriptors refer to groups and flows
+    # which are defined
     my %flows =
         map { $_ => 'core' }
         grep {m/\A FLO_ /xms} map { $_->{lhs} } @core_rules;
@@ -252,6 +254,44 @@ $output .= Data::Dumper->Dump( [ \@core_rules ], [qw(CORE_RULES)] );
             if not $groups{$group};
     } ## end for my $tag ( keys %tag_descriptor )
 }
+
+{
+    # Find the tag descriptors which refer to required
+    # elements and add them
+
+    # Required elements are those which we may have to
+    # supply even though they are not in the physical input
+
+    # Anything which has a start tag among the ruby candidates
+    # is required, since we may be required to create a
+    # non-physical one
+    my @ruby_start_tags =
+        grep { ( substr $_, 0, 2 ) eq 'S_' }
+        map { @{$_} } values %HTML_Config::RUBY_CONFIG;
+
+    my %defined_in_core_rules =
+        map { ( substr $_, 4 ) => 'core' }
+        grep {m/\A ELE_ /xms} map { $_->{lhs} } @core_rules;
+
+    my %required_tags = map { ( substr $_, 2 ) => 1 } @ruby_start_tags;
+    TAG: for my $tag ( keys %required_tags ) {
+        next TAG if $defined_in_core_rules{$tag};
+        my ( $group, $flow ) = @{ $tag_descriptor{$tag} };
+        my $element = 'ELE_' . $tag;
+        push @core_rules,
+            {
+            lhs    => $element,
+            rhs    => [ "S_$tag", $flow, "E_$tag" ],
+            action => $element
+            },
+            {
+            lhs => $group,
+            rhs => [$element],
+            };
+        delete $tag_descriptor{$tag};
+    } ## end TAG: for my $tag ( keys %required_tags )
+}
+
 
 $output .= Data::Dumper->Dump( [ \%tag_descriptor ], [qw(TAG_DESCRIPTOR)] );
 
