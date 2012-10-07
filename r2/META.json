@@ -71,8 +71,12 @@
       }
    },
    "provides" : {
-      "HTML_Config" : {
-         "file" : "html/lib/Marpa/R2/HTML/dev/HTML_Config.pm",
+      "HTML_Configuration" : {
+         "file" : "html/lib/Marpa/R2/HTML/dev/Configuration.pm",
+         "version" : 0
+      },
+      "HTML_Core" : {
+         "file" : "html/lib/Marpa/R2/HTML/dev/Core.pm",
          "version" : 0
       },
       "Marpa::R2" : {
