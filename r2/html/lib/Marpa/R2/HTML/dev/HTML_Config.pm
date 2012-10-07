@@ -70,13 +70,6 @@ FLO_mixed contains cdata pcdata
 
 FLO_block contains GRP_block GRP_anywhere
 
-GRP_block ::= ELE_table
-GRP_block ::= ELE_ol
-GRP_block ::= ELE_dl
-GRP_block ::= ELE_div
-GRP_block ::= ELE_dir
-GRP_block ::= ELE_menu
-
 FLO_head contains GRP_head GRP_anywhere
 
 
@@ -93,8 +86,8 @@ ELE_a        is a FLO_inline included in GRP_inline
 ELE_abbr     is a FLO_inline included in GRP_inline
 ELE_acronym  is a FLO_inline included in GRP_inline
 ELE_address    is a FLO_inline included in GRP_block
-ELE_applet is included in GRP_inline
 ELE_applet contains ELE_param ITEM_mixed
+ELE_applet is included in GRP_inline
 ELE_area is FLO_empty
 ELE_audio    is a FLO_inline included in GRP_inline
 ELE_b        is a FLO_inline included in GRP_inline
@@ -116,8 +109,10 @@ ELE_command  is a FLO_inline included in GRP_inline
 ELE_dd is FLO_mixed
 ELE_dfn      is a FLO_inline included in GRP_inline
 ELE_dir contains ELE_li
-ELE_div is FLO_mixed
+ELE_dir is included in GRP_block
+ELE_div is a FLO_mixed included in GRP_block
 ELE_dl contains ELE_dt ELE_dd
+ELE_dl is included in GRP_block
 ELE_dt is FLO_inline
 ELE_em       is a FLO_inline included in GRP_inline
 ELE_embed    is a FLO_inline included in GRP_inline
@@ -144,6 +139,7 @@ ELE_map contains GRP_block ELE_area
 ELE_map is included in GRP_inline
 ELE_mark     is a FLO_inline included in GRP_inline
 ELE_menu contains ELE_li
+ELE_menu is included in GRP_block
 ELE_meta is a FLO_empty included in GRP_head
 ELE_meter    is a FLO_inline included in GRP_inline
 ELE_nobr     is a FLO_inline included in GRP_inline
@@ -152,6 +148,7 @@ ELE_noscript   is a FLO_mixed included in GRP_block
 ELE_object contains ELE_param ITEM_mixed
 ELE_object is included in GRP_anywhere
 ELE_ol contains ELE_li
+ELE_ol is included in GRP_block
 ELE_optgroup contains ELE_option
 ELE_option is FLO_pcdata
 ELE_output   is a FLO_inline included in GRP_inline
@@ -181,6 +178,7 @@ ELE_sub      is a FLO_inline included in GRP_inline
 ELE_sup      is a FLO_inline included in GRP_inline
 ELE_table contains ELE_caption ELE_col ELE_colgroup
 ELE_table contains ELE_tbody ELE_tfoot ELE_thead
+ELE_table is included in GRP_block
 ELE_tbody contains ELE_tr
 ELE_td is FLO_mixed
 ELE_textarea is a FLO_cdata included in GRP_anywhere
@@ -192,8 +190,8 @@ ELE_title is a FLO_pcdata included in GRP_head
 ELE_tr contains ELE_th ELE_td
 ELE_tt       is a FLO_inline included in GRP_inline
 ELE_u        is a FLO_inline included in GRP_inline
-ELE_ul is included in GRP_block
 ELE_ul contains ELE_li
+ELE_ul is included in GRP_block
 ELE_var      is a FLO_inline included in GRP_inline
 ELE_video    is a FLO_inline included in GRP_inline
 ELE_wbr      is a FLO_inline included in GRP_inline

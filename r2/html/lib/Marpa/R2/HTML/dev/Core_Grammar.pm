@@ -14,7 +14,7 @@
 # http://www.gnu.org/licenses/.
 
 # This file was generated automatically by mk_core_grammar.pl
-# The date of generation was Sat Oct  6 22:47:21 2012
+# The date of generation was Sat Oct  6 22:52:05 2012
 
 package Marpa::R2::HTML::Internal;
 
@@ -190,42 +190,6 @@ $CORE_RULES = [
                            ]
                 },
                 {
-                  'lhs' => 'GRP_block',
-                  'rhs' => [
-                             'ELE_table'
-                           ]
-                },
-                {
-                  'lhs' => 'GRP_block',
-                  'rhs' => [
-                             'ELE_ol'
-                           ]
-                },
-                {
-                  'lhs' => 'GRP_block',
-                  'rhs' => [
-                             'ELE_dl'
-                           ]
-                },
-                {
-                  'lhs' => 'GRP_block',
-                  'rhs' => [
-                             'ELE_div'
-                           ]
-                },
-                {
-                  'lhs' => 'GRP_block',
-                  'rhs' => [
-                             'ELE_dir'
-                           ]
-                },
-                {
-                  'lhs' => 'GRP_block',
-                  'rhs' => [
-                             'ELE_menu'
-                           ]
-                },
-                {
                   'lhs' => 'GRP_inline',
                   'rhs' => [
                              'ELE_applet'
@@ -268,12 +232,15 @@ $CORE_RULES = [
                            ]
                 },
                 {
-                  'action' => 'ELE_div',
-                  'lhs' => 'ELE_div',
+                  'lhs' => 'GRP_block',
                   'rhs' => [
-                             'S_div',
-                             'FLO_mixed',
-                             'E_div'
+                             'ELE_dir'
+                           ]
+                },
+                {
+                  'lhs' => 'GRP_block',
+                  'rhs' => [
+                             'ELE_dl'
                            ]
                 },
                 {
@@ -301,9 +268,21 @@ $CORE_RULES = [
                            ]
                 },
                 {
+                  'lhs' => 'GRP_block',
+                  'rhs' => [
+                             'ELE_menu'
+                           ]
+                },
+                {
                   'lhs' => 'GRP_anywhere',
                   'rhs' => [
                              'ELE_object'
+                           ]
+                },
+                {
+                  'lhs' => 'GRP_block',
+                  'rhs' => [
+                             'ELE_ol'
                            ]
                 },
                 {
@@ -328,6 +307,12 @@ $CORE_RULES = [
                   'lhs' => 'GRP_inline',
                   'rhs' => [
                              'ELE_select'
+                           ]
+                },
+                {
+                  'lhs' => 'GRP_block',
+                  'rhs' => [
+                             'ELE_table'
                            ]
                 },
                 {
@@ -1115,6 +1100,10 @@ $TAG_DESCRIPTOR = {
                     'dfn' => [
                                'GRP_inline',
                                'FLO_inline'
+                             ],
+                    'div' => [
+                               'GRP_block',
+                               'FLO_mixed'
                              ],
                     'em' => [
                               'GRP_inline',
