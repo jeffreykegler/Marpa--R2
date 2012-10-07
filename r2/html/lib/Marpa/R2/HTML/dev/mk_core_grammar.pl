@@ -253,10 +253,6 @@ $output .= "\n\n";
 $output .= 'package Marpa::R2::HTML::Internal;';
 $output .= "\n\n";
 
-$Data::Dumper::Purity = 1;
-$Data::Dumper::Sortkeys = 1;
-$output .= Data::Dumper->Dump( [ \@core_rules ], [qw(CORE_RULES)] );
-
 {
     # Check that the tag descriptors refer to groups and flows
     # which are defined
@@ -296,6 +292,7 @@ $output .= Data::Dumper->Dump( [ \@core_rules ], [qw(CORE_RULES)] );
     my %required_tags = map { ( substr $_, 2 ) => 1 } @ruby_start_tags;
     TAG: for my $tag ( keys %required_tags ) {
         next TAG if $defined_in_core_rules{$tag};
+say STDERR "Required: $tag";
         my ( $group, $flow ) = @{ $tag_descriptor{$tag} };
         my $element = 'ELE_' . $tag;
         push @core_rules,
@@ -312,6 +309,9 @@ $output .= Data::Dumper->Dump( [ \@core_rules ], [qw(CORE_RULES)] );
     } ## end TAG: for my $tag ( keys %required_tags )
 }
 
+$Data::Dumper::Purity = 1;
+$Data::Dumper::Sortkeys = 1;
+$output .= Data::Dumper->Dump( [ \@core_rules ], [qw(CORE_RULES)] );
 
 $output .= Data::Dumper->Dump( [ \%tag_descriptor ], [qw(TAG_DESCRIPTOR)] );
 

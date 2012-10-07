@@ -14,7 +14,7 @@
 # http://www.gnu.org/licenses/.
 
 # This file was generated automatically by mk_core_grammar.pl
-# The date of generation was Sat Oct  6 22:14:12 2012
+# The date of generation was Sat Oct  6 22:23:41 2012
 
 package Marpa::R2::HTML::Internal;
 
@@ -198,12 +198,6 @@ $CORE_RULES = [
                 {
                   'lhs' => 'GRP_block',
                   'rhs' => [
-                             'ELE_p'
-                           ]
-                },
-                {
-                  'lhs' => 'GRP_block',
-                  'rhs' => [
                              'ELE_ol'
                            ]
                 },
@@ -244,12 +238,6 @@ $CORE_RULES = [
                            ]
                 },
                 {
-                  'lhs' => 'GRP_anywhere',
-                  'rhs' => [
-                             'ELE_textarea'
-                           ]
-                },
-                {
                   'lhs' => 'GRP_head',
                   'rhs' => [
                              'ELE_object'
@@ -259,12 +247,6 @@ $CORE_RULES = [
                   'lhs' => 'GRP_head',
                   'rhs' => [
                              'ELE_style'
-                           ]
-                },
-                {
-                  'lhs' => 'GRP_head',
-                  'rhs' => [
-                             'ELE_link'
                            ]
                 },
                 {
@@ -364,30 +346,12 @@ $CORE_RULES = [
                            ]
                 },
                 {
-                  'action' => 'ELE_link',
-                  'lhs' => 'ELE_link',
-                  'rhs' => [
-                             'S_link',
-                             'FLO_empty',
-                             'E_link'
-                           ]
-                },
-                {
                   'action' => 'ELE_option',
                   'lhs' => 'ELE_option',
                   'rhs' => [
                              'S_option',
                              'FLO_pcdata',
                              'E_option'
-                           ]
-                },
-                {
-                  'action' => 'ELE_p',
-                  'lhs' => 'ELE_p',
-                  'rhs' => [
-                             'S_p',
-                             'FLO_inline',
-                             'E_p'
                            ]
                 },
                 {
@@ -424,15 +388,6 @@ $CORE_RULES = [
                              'S_td',
                              'FLO_mixed',
                              'E_td'
-                           ]
-                },
-                {
-                  'action' => 'ELE_textarea',
-                  'lhs' => 'ELE_textarea',
-                  'rhs' => [
-                             'S_textarea',
-                             'FLO_cdata',
-                             'E_textarea'
                            ]
                 },
                 {
@@ -1118,6 +1073,21 @@ $CORE_RULES = [
                   'rhs' => [
                              'ITEM_SGML'
                            ]
+                },
+                {
+                  'action' => 'ELE_p',
+                  'lhs' => 'ELE_p',
+                  'rhs' => [
+                             'S_p',
+                             'FLO_inline',
+                             'E_p'
+                           ]
+                },
+                {
+                  'lhs' => 'GRP_block',
+                  'rhs' => [
+                             'ELE_p'
+                           ]
                 }
               ];
 $TAG_DESCRIPTOR = {
@@ -1269,6 +1239,10 @@ $TAG_DESCRIPTOR = {
                                  'GRP_inline',
                                  'FLO_inline'
                                ],
+                    'link' => [
+                                'GRP_head',
+                                'FLO_empty'
+                              ],
                     'mark' => [
                                 'GRP_inline',
                                 'FLO_inline'
@@ -1369,6 +1343,10 @@ $TAG_DESCRIPTOR = {
                                'GRP_inline',
                                'FLO_inline'
                              ],
+                    'textarea' => [
+                                    'GRP_anywhere',
+                                    'FLO_cdata'
+                                  ],
                     'time' => [
                                 'GRP_inline',
                                 'FLO_inline'
