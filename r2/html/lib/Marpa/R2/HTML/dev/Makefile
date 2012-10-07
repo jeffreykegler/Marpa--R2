@@ -17,7 +17,7 @@
 
 dummy:
 
-all: Core_Grammar.pm
+all: Definition.pm
 
-Core_Grammar.pm: mk_core_grammar.pl HTML_Config.pm
-	perl mk_core_grammar.pl
+Definition.pm: mk_definition.pl Configuarion.pm Core.pm
+	perl mk_definition.pl
