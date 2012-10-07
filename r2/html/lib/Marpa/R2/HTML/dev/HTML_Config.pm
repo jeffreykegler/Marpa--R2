@@ -60,7 +60,7 @@ ELE_body is FLO_block
 # Common types of element content
 empty ::=
 
-FLO_mixed contains anywhere_element block_element inline_element
+FLO_mixed contains anywhere_element block_element GRP_inline
 FLO_mixed contains cdata pcdata
 
 FLO_block contains block_element anywhere_element
@@ -90,13 +90,13 @@ head_element ::= ELE_link
 head_element ::= ELE_title
 head_element ::= ELE_base
 
-FLO_inline contains pcdata cdata inline_element anywhere_element
+FLO_inline contains pcdata cdata GRP_inline anywhere_element
 
-inline_element ::= ELE_object
-inline_element ::= ELE_select
-inline_element ::= ELE_span
-inline_element ::= ELE_map
-inline_element ::= ELE_applet
+GRP_inline ::= ELE_object
+GRP_inline ::= ELE_select
+GRP_inline ::= ELE_span
+GRP_inline ::= ELE_map
+GRP_inline ::= ELE_applet
 
 FLO_pcdata contains cdata pcdata
 

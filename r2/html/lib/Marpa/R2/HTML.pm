@@ -646,7 +646,7 @@ sub parse {
             }
             $contents = $Marpa::R2::HTML::Internal::IS_INLINE_ELEMENT->{$tag};
             if ( defined $contents ) {
-                $element_type = 'inline_element';
+                $element_type = 'GRP_inline';
                 last FIND_TYPE_AND_CONTENTS;
             }
             $element_type = 'anywhere_element';

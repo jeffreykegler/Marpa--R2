@@ -14,7 +14,7 @@
 # http://www.gnu.org/licenses/.
 
 # This file was generated automatically by mk_core_grammar.pl
-# The date of generation was Sat Oct  6 12:55:27 2012
+# The date of generation was Sat Oct  6 17:22:54 2012
 
 package Marpa::R2::HTML::Internal;
 
@@ -276,31 +276,31 @@ $CORE_RULES = [
                   'rhs' => [
                              'ELE_object'
                            ],
-                  'lhs' => 'inline_element'
+                  'lhs' => 'GRP_inline'
                 },
                 {
                   'rhs' => [
                              'ELE_select'
                            ],
-                  'lhs' => 'inline_element'
+                  'lhs' => 'GRP_inline'
                 },
                 {
                   'rhs' => [
                              'ELE_span'
                            ],
-                  'lhs' => 'inline_element'
+                  'lhs' => 'GRP_inline'
                 },
                 {
                   'rhs' => [
                              'ELE_map'
                            ],
-                  'lhs' => 'inline_element'
+                  'lhs' => 'GRP_inline'
                 },
                 {
                   'rhs' => [
                              'ELE_applet'
                            ],
-                  'lhs' => 'inline_element'
+                  'lhs' => 'GRP_inline'
                 },
                 {
                   'min' => 0,
@@ -1043,7 +1043,7 @@ $CORE_RULES = [
                 },
                 {
                   'rhs' => [
-                             'inline_element'
+                             'GRP_inline'
                            ],
                   'lhs' => 'ITEM_inline'
                 },
@@ -1105,7 +1105,7 @@ $CORE_RULES = [
                 },
                 {
                   'rhs' => [
-                             'inline_element'
+                             'GRP_inline'
                            ],
                   'lhs' => 'ITEM_mixed'
                 },
