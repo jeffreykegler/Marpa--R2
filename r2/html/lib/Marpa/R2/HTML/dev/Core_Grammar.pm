@@ -14,7 +14,7 @@
 # http://www.gnu.org/licenses/.
 
 # This file was generated automatically by mk_core_grammar.pl
-# The date of generation was Sat Oct  6 22:10:27 2012
+# The date of generation was Sat Oct  6 22:14:12 2012
 
 package Marpa::R2::HTML::Internal;
 
@@ -210,12 +210,6 @@ $CORE_RULES = [
                 {
                   'lhs' => 'GRP_block',
                   'rhs' => [
-                             'ELE_ul'
-                           ]
-                },
-                {
-                  'lhs' => 'GRP_block',
-                  'rhs' => [
                              'ELE_dl'
                            ]
                 },
@@ -270,12 +264,6 @@ $CORE_RULES = [
                 {
                   'lhs' => 'GRP_head',
                   'rhs' => [
-                             'ELE_meta'
-                           ]
-                },
-                {
-                  'lhs' => 'GRP_head',
-                  'rhs' => [
                              'ELE_link'
                            ]
                 },
@@ -289,12 +277,6 @@ $CORE_RULES = [
                   'lhs' => 'GRP_inline',
                   'rhs' => [
                              'ELE_select'
-                           ]
-                },
-                {
-                  'lhs' => 'GRP_inline',
-                  'rhs' => [
-                             'ELE_span'
                            ]
                 },
                 {
@@ -391,15 +373,6 @@ $CORE_RULES = [
                            ]
                 },
                 {
-                  'action' => 'ELE_meta',
-                  'lhs' => 'ELE_meta',
-                  'rhs' => [
-                             'S_meta',
-                             'FLO_empty',
-                             'E_meta'
-                           ]
-                },
-                {
                   'action' => 'ELE_option',
                   'lhs' => 'ELE_option',
                   'rhs' => [
@@ -436,15 +409,6 @@ $CORE_RULES = [
                            ]
                 },
                 {
-                  'action' => 'ELE_span',
-                  'lhs' => 'ELE_span',
-                  'rhs' => [
-                             'S_span',
-                             'FLO_inline',
-                             'E_span'
-                           ]
-                },
-                {
                   'action' => 'ELE_style',
                   'lhs' => 'ELE_style',
                   'rhs' => [
@@ -478,6 +442,12 @@ $CORE_RULES = [
                              'S_th',
                              'FLO_mixed',
                              'E_th'
+                           ]
+                },
+                {
+                  'lhs' => 'GRP_block',
+                  'rhs' => [
+                             'ELE_ul'
                            ]
                 },
                 {
@@ -1303,6 +1273,10 @@ $TAG_DESCRIPTOR = {
                                 'GRP_inline',
                                 'FLO_inline'
                               ],
+                    'meta' => [
+                                'GRP_head',
+                                'FLO_empty'
+                              ],
                     'meter' => [
                                  'GRP_inline',
                                  'FLO_inline'
@@ -1375,6 +1349,10 @@ $TAG_DESCRIPTOR = {
                                  'GRP_inline',
                                  'FLO_inline'
                                ],
+                    'span' => [
+                                'GRP_inline',
+                                'FLO_inline'
+                              ],
                     'strike' => [
                                   'GRP_inline',
                                   'FLO_inline'

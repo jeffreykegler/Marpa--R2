@@ -73,7 +73,6 @@ FLO_block contains GRP_block GRP_anywhere
 GRP_block ::= ELE_table
 GRP_block ::= ELE_p
 GRP_block ::= ELE_ol
-GRP_block ::= ELE_ul
 GRP_block ::= ELE_dl
 GRP_block ::= ELE_div
 GRP_block ::= ELE_dir
@@ -90,14 +89,12 @@ FLO_head contains GRP_head GRP_anywhere
 
 GRP_head ::= ELE_object
 GRP_head ::= ELE_style
-GRP_head ::= ELE_meta
 GRP_head ::= ELE_link
 
 FLO_inline contains pcdata cdata GRP_inline GRP_anywhere
 
 GRP_inline ::= ELE_object
 GRP_inline ::= ELE_select
-GRP_inline ::= ELE_span
 GRP_inline ::= ELE_map
 
 FLO_pcdata contains cdata pcdata
@@ -157,7 +154,7 @@ ELE_link is FLO_empty
 ELE_map contains GRP_block ELE_area
 ELE_mark     is a FLO_inline included in GRP_inline
 ELE_menu contains ELE_li
-ELE_meta is FLO_empty
+ELE_meta is a FLO_empty included in GRP_head
 ELE_meter    is a FLO_inline included in GRP_inline
 ELE_nobr     is a FLO_inline included in GRP_inline
 ELE_noframes   is a FLO_mixed included in GRP_block
@@ -184,7 +181,7 @@ ELE_samp     is a FLO_inline included in GRP_inline
 ELE_script is FLO_cdata
 ELE_select contains ELE_optgroup ELE_option
 ELE_small    is a FLO_inline included in GRP_inline
-ELE_span is FLO_inline
+ELE_span is a FLO_inline included in GRP_inline 
 ELE_strike   is a FLO_inline included in GRP_inline
 ELE_strong   is a FLO_inline included in GRP_inline
 ELE_style is FLO_cdata
@@ -203,6 +200,7 @@ ELE_title is a FLO_pcdata included in GRP_head
 ELE_tr contains ELE_th ELE_td
 ELE_tt       is a FLO_inline included in GRP_inline
 ELE_u        is a FLO_inline included in GRP_inline
+ELE_ul is included in GRP_block 
 ELE_ul contains ELE_li
 ELE_var      is a FLO_inline included in GRP_inline
 ELE_video    is a FLO_inline included in GRP_inline
