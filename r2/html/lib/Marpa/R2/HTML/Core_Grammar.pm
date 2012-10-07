@@ -14,7 +14,7 @@
 # http://www.gnu.org/licenses/.
 
 # This file was generated automatically by mk_core_grammar.pl
-# The date of generation was Sat Oct  6 21:49:18 2012
+# The date of generation was Sat Oct  6 21:56:41 2012
 
 package Marpa::R2::HTML::Internal;
 
@@ -316,6 +316,15 @@ $CORE_RULES = [
                            ]
                 },
                 {
+                  'action' => 'ELE_area',
+                  'lhs' => 'ELE_area',
+                  'rhs' => [
+                             'S_area',
+                             'FLO_empty',
+                             'E_area'
+                           ]
+                },
+                {
                   'action' => 'ELE_base',
                   'lhs' => 'ELE_base',
                   'rhs' => [
@@ -385,15 +394,6 @@ $CORE_RULES = [
                              'S_li',
                              'FLO_mixed',
                              'E_li'
-                           ]
-                },
-                {
-                  'action' => 'ELE_area',
-                  'lhs' => 'ELE_area',
-                  'rhs' => [
-                             'S_area',
-                             'FLO_empty',
-                             'E_area'
                            ]
                 },
                 {
@@ -469,21 +469,21 @@ $CORE_RULES = [
                            ]
                 },
                 {
-                  'action' => 'ELE_textarea',
-                  'lhs' => 'ELE_textarea',
-                  'rhs' => [
-                             'S_textarea',
-                             'FLO_cdata',
-                             'E_textarea'
-                           ]
-                },
-                {
                   'action' => 'ELE_td',
                   'lhs' => 'ELE_td',
                   'rhs' => [
                              'S_td',
                              'FLO_mixed',
                              'E_td'
+                           ]
+                },
+                {
+                  'action' => 'ELE_textarea',
+                  'lhs' => 'ELE_textarea',
+                  'rhs' => [
+                             'S_textarea',
+                             'FLO_cdata',
+                             'E_textarea'
                            ]
                 },
                 {
@@ -678,40 +678,6 @@ $CORE_RULES = [
                            ]
                 },
                 {
-                  'action' => 'ELE_map',
-                  'lhs' => 'ELE_map',
-                  'rhs' => [
-                             'S_map',
-                             '_C_ELE_map',
-                             'E_map'
-                           ]
-                },
-                {
-                  'lhs' => '_C_ELE_map',
-                  'min' => 0,
-                  'rhs' => [
-                             'ITEM_ELE_map'
-                           ]
-                },
-                {
-                  'lhs' => 'ITEM_ELE_map',
-                  'rhs' => [
-                             'GRP_block'
-                           ]
-                },
-                {
-                  'lhs' => 'ITEM_ELE_map',
-                  'rhs' => [
-                             'ELE_area'
-                           ]
-                },
-                {
-                  'lhs' => 'ITEM_ELE_map',
-                  'rhs' => [
-                             'ITEM_SGML'
-                           ]
-                },
-                {
                   'action' => 'ELE_applet',
                   'lhs' => 'ELE_applet',
                   'rhs' => [
@@ -741,6 +707,40 @@ $CORE_RULES = [
                 },
                 {
                   'lhs' => 'ITEM_ELE_applet',
+                  'rhs' => [
+                             'ITEM_SGML'
+                           ]
+                },
+                {
+                  'action' => 'ELE_map',
+                  'lhs' => 'ELE_map',
+                  'rhs' => [
+                             'S_map',
+                             '_C_ELE_map',
+                             'E_map'
+                           ]
+                },
+                {
+                  'lhs' => '_C_ELE_map',
+                  'min' => 0,
+                  'rhs' => [
+                             'ITEM_ELE_map'
+                           ]
+                },
+                {
+                  'lhs' => 'ITEM_ELE_map',
+                  'rhs' => [
+                             'GRP_block'
+                           ]
+                },
+                {
+                  'lhs' => 'ITEM_ELE_map',
+                  'rhs' => [
+                             'ELE_area'
+                           ]
+                },
+                {
+                  'lhs' => 'ITEM_ELE_map',
                   'rhs' => [
                              'ITEM_SGML'
                            ]
