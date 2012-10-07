@@ -163,9 +163,9 @@ for my $bnf_set_data (
         if ( $definition =~ s/ \A \s* ((FLO)_\w+) \s+ contains \s+ / /xms ) {
 
             # Production is Flow
-            my $element_symbol = $1;
+            my $flow_symbol = $1;
             my @contents = split q{ }, $definition;
-            push @{ $flow_containments{$element_symbol} }, @contents;
+            push @{ $flow_containments{$flow_symbol} }, @contents;
             next LINE;
         } ## end if ( $definition =~ ...)
         die "Badly formed line in grammar description: $line";
@@ -196,19 +196,6 @@ ELEMENT: for my $element ( keys %element_defined ) {
         die "$element multiply defined";
     }
 } ## end ELEMENT: for my $element ( keys %element_defined )
-
-# Check rules, prefixes starting with '_'
-# are reserved.
-# Actually, checking for starting with any non-alphabetic.
-
-{
-    my @symbols = map { $_->{lhs}, @{ $_->{rhs} } } @core_rules;
-    push @symbols, keys %flow_containments, keys %element_containments;
-    push @symbols, map { @{$_} } values %flow_containments,
-        values %element_containments;
-    my @reserved = grep { $_ =~ /\A [[:^alpha:]] /xms } @symbols;
-    die "Reserved symbols in use: ", join " ", @reserved if scalar @reserved;
-}
 
 my %sgml_flow_included = ();
 ELEMENT: for my $main_symbol ( keys %element_containments ) {
