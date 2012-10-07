@@ -30,6 +30,7 @@ my %element_containments = ();
 my %flow_containments = ();
 LINE: for my $line ( split /\n/xms, $HTML_Config::BNF ) {
     my $definition = $line;
+    chomp $definition;
     $definition =~ s/ [#] .* //xms;    # Remove comments
     next LINE
         if not $definition =~ / \S /xms;    # ignore all-whitespace line
@@ -55,13 +56,10 @@ LINE: for my $line ( split /\n/xms, $HTML_Config::BNF ) {
         push @core_rules, \%rule_descriptor;
         next LINE;
     } ## end if ( $definition =~ s/ \s* [:][:][=] \s* / /xms )
-    if ( $definition =~ s/ \A \s* ELE_(\w+) \s+ is \s+ / /xms ) {
+    if ( $definition =~ s/ \A \s* ELE_(\w+) \s+ is \s+ (FLO_\w+) \s* \z/ /xms ) {
         # Production is Element with standard flow
         my $tag = $1;
-        my @symbols         = ( split q{ }, $definition );
-	die "Standard flow element should have exactly one content symbol: $line"
-	   if scalar @symbols != 1;
-        my $contents             = shift @symbols;
+	my $contents = $2;
 	my $lhs = 'ELE_' . $tag;
         my %rule_descriptor = (
             lhs => $lhs,
@@ -258,7 +256,7 @@ my %is_anywhere_element = map { ( substr $_, 4 ) => 'core' }
 my %is_head_element = map { ( substr $_, 4 ) => 'core' }
     grep { 'ELE_' eq substr $_, 0, 4 }
     map { $_->{rhs}->[0] }
-    grep { $_->{lhs} eq 'head_element' } @core_rules;
+    grep { $_->{lhs} eq 'GRP_head' } @core_rules;
 
 my @core_symbols = map { substr $_, 4 } grep { m/\A ELE_ /xms } map { $_->{lhs}, @{$_->{rhs}} } @core_rules;
 {

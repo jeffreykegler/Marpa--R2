@@ -14,7 +14,7 @@
 # http://www.gnu.org/licenses/.
 
 # This file was generated automatically by mk_core_grammar.pl
-# The date of generation was Sat Oct  6 17:30:55 2012
+# The date of generation was Sat Oct  6 17:37:11 2012
 
 package Marpa::R2::HTML::Internal;
 
@@ -168,7 +168,26 @@ $CORE_RULES = [
                 },
                 {
                   'rhs' => [],
-                  'lhs' => 'empty'
+                  'lhs' => 'FLO_empty'
+                },
+                {
+                  'min' => 0,
+                  'rhs' => [
+                             'ITEM_cdata'
+                           ],
+                  'lhs' => 'FLO_cdata'
+                },
+                {
+                  'rhs' => [
+                             'cdata'
+                           ],
+                  'lhs' => 'ITEM_cdata'
+                },
+                {
+                  'rhs' => [
+                             'CRUFT'
+                           ],
+                  'lhs' => 'ITEM_cdata'
                 },
                 {
                   'rhs' => [
@@ -240,37 +259,37 @@ $CORE_RULES = [
                   'rhs' => [
                              'ELE_object'
                            ],
-                  'lhs' => 'head_element'
+                  'lhs' => 'GRP_head'
                 },
                 {
                   'rhs' => [
                              'ELE_style'
                            ],
-                  'lhs' => 'head_element'
+                  'lhs' => 'GRP_head'
                 },
                 {
                   'rhs' => [
                              'ELE_meta'
                            ],
-                  'lhs' => 'head_element'
+                  'lhs' => 'GRP_head'
                 },
                 {
                   'rhs' => [
                              'ELE_link'
                            ],
-                  'lhs' => 'head_element'
+                  'lhs' => 'GRP_head'
                 },
                 {
                   'rhs' => [
                              'ELE_title'
                            ],
-                  'lhs' => 'head_element'
+                  'lhs' => 'GRP_head'
                 },
                 {
                   'rhs' => [
                              'ELE_base'
                            ],
-                  'lhs' => 'head_element'
+                  'lhs' => 'GRP_head'
                 },
                 {
                   'rhs' => [
@@ -303,28 +322,9 @@ $CORE_RULES = [
                   'lhs' => 'GRP_inline'
                 },
                 {
-                  'min' => 0,
-                  'rhs' => [
-                             'ITEM_cdata'
-                           ],
-                  'lhs' => 'FLO_cdata'
-                },
-                {
-                  'rhs' => [
-                             'cdata'
-                           ],
-                  'lhs' => 'ITEM_cdata'
-                },
-                {
-                  'rhs' => [
-                             'CRUFT'
-                           ],
-                  'lhs' => 'ITEM_cdata'
-                },
-                {
                   'rhs' => [
                              'S_base',
-                             'empty',
+                             'FLO_empty',
                              'E_base'
                            ],
                   'lhs' => 'ELE_base',
@@ -333,7 +333,7 @@ $CORE_RULES = [
                 {
                   'rhs' => [
                              'S_col',
-                             'empty',
+                             'FLO_empty',
                              'E_col'
                            ],
                   'lhs' => 'ELE_col',
@@ -369,7 +369,7 @@ $CORE_RULES = [
                 {
                   'rhs' => [
                              'S_isindex',
-                             'empty',
+                             'FLO_empty',
                              'E_isindex'
                            ],
                   'lhs' => 'ELE_isindex',
@@ -387,7 +387,7 @@ $CORE_RULES = [
                 {
                   'rhs' => [
                              'S_area',
-                             'empty',
+                             'FLO_empty',
                              'E_area'
                            ],
                   'lhs' => 'ELE_area',
@@ -396,7 +396,7 @@ $CORE_RULES = [
                 {
                   'rhs' => [
                              'S_link',
-                             'empty',
+                             'FLO_empty',
                              'E_link'
                            ],
                   'lhs' => 'ELE_link',
@@ -405,7 +405,7 @@ $CORE_RULES = [
                 {
                   'rhs' => [
                              'S_meta',
-                             'empty',
+                             'FLO_empty',
                              'E_meta'
                            ],
                   'lhs' => 'ELE_meta',
@@ -423,7 +423,7 @@ $CORE_RULES = [
                 {
                   'rhs' => [
                              'S_param',
-                             'empty',
+                             'FLO_empty',
                              'E_param'
                            ],
                   'lhs' => 'ELE_param',
@@ -1068,7 +1068,7 @@ $CORE_RULES = [
                 },
                 {
                   'rhs' => [
-                             'head_element'
+                             'GRP_head'
                            ],
                   'lhs' => 'ITEM_head'
                 },
@@ -1168,7 +1168,7 @@ $IS_BLOCK_ELEMENT = {
                       'h4' => 'FLO_inline',
                       'h2' => 'FLO_inline',
                       'fieldset' => 'FLO_mixed',
-                      'hr' => 'empty',
+                      'hr' => 'FLO_empty',
                       'h3' => 'FLO_inline',
                       'noscript' => 'FLO_mixed'
                     };
@@ -1179,7 +1179,7 @@ $IS_INLINE_ELEMENT = {
                        'strike' => 'FLO_inline',
                        'rbc' => 'FLO_inline',
                        'keygen' => 'FLO_inline',
-                       'img' => 'empty',
+                       'img' => 'FLO_empty',
                        'font' => 'FLO_inline',
                        'rb' => 'FLO_inline',
                        'tt' => 'FLO_inline',
@@ -1189,9 +1189,9 @@ $IS_INLINE_ELEMENT = {
                        'u' => 'FLO_inline',
                        'sup' => 'FLO_inline',
                        'rt' => 'FLO_inline',
-                       'basefont' => 'empty',
+                       'basefont' => 'FLO_empty',
                        'code' => 'FLO_inline',
-                       'br' => 'empty',
+                       'br' => 'FLO_empty',
                        'acronym' => 'FLO_inline',
                        'video' => 'FLO_inline',
                        'strong' => 'FLO_inline',
@@ -1243,7 +1243,7 @@ $IS_INLINE_ELEMENT = {
                        'a' => 'FLO_inline',
                        'rbc' => 'FLO_inline',
                        'keygen' => 'FLO_inline',
-                       'img' => 'empty',
+                       'img' => 'FLO_empty',
                        'tt' => 'FLO_inline',
                        'rb' => 'FLO_inline',
                        'font' => 'FLO_inline',
@@ -1254,11 +1254,11 @@ $IS_INLINE_ELEMENT = {
                        'abbr' => 'FLO_inline',
                        'sup' => 'FLO_inline',
                        'rt' => 'FLO_inline',
-                       'basefont' => 'empty',
+                       'basefont' => 'FLO_empty',
                        'code' => 'FLO_inline',
                        'video' => 'FLO_inline',
                        'acronym' => 'FLO_inline',
-                       'br' => 'empty',
+                       'br' => 'FLO_empty',
                        'strong' => 'FLO_inline',
                        's' => 'FLO_inline',
                        'output' => 'FLO_inline',
@@ -1314,7 +1314,7 @@ $IS_BLOCK_ELEMENT = {
                       'h2' => 'FLO_inline',
                       'p' => 'core',
                       'fieldset' => 'FLO_mixed',
-                      'hr' => 'empty',
+                      'hr' => 'FLO_empty',
                       'noscript' => 'FLO_mixed',
                       'h3' => 'FLO_inline',
                       'dl' => 'core'

@@ -57,8 +57,13 @@ EC_html ::= FLO_SGML ELE_head FLO_SGML ELE_body FLO_SGML
 ELE_head is FLO_head
 ELE_body is FLO_block
 
-# Common types of element content
-empty ::=
+# FLO_empty, FLO_cdata and ITEM_cdata defined by "hand" (BNF)
+# because they do NOT allow SGML items as part of
+# their flow
+FLO_empty ::=
+FLO_cdata ::= ITEM_cdata*
+ITEM_cdata ::= cdata
+ITEM_cdata ::= CRUFT
 
 FLO_mixed contains GRP_anywhere GRP_block GRP_inline
 FLO_mixed contains cdata pcdata
@@ -81,14 +86,14 @@ GRP_anywhere ::= ELE_script
 GRP_anywhere ::= ELE_isindex
 GRP_anywhere ::= ELE_textarea
 
-FLO_head contains head_element GRP_anywhere
+FLO_head contains GRP_head GRP_anywhere
 
-head_element ::= ELE_object
-head_element ::= ELE_style
-head_element ::= ELE_meta
-head_element ::= ELE_link
-head_element ::= ELE_title
-head_element ::= ELE_base
+GRP_head ::= ELE_object
+GRP_head ::= ELE_style
+GRP_head ::= ELE_meta
+GRP_head ::= ELE_link
+GRP_head ::= ELE_title
+GRP_head ::= ELE_base
 
 FLO_inline contains pcdata cdata GRP_inline GRP_anywhere
 
@@ -100,27 +105,20 @@ GRP_inline ::= ELE_applet
 
 FLO_pcdata contains cdata pcdata
 
-# FLO_cdata and ITEM_cdata defined by "hand" (BNF)
-# because they do NOT allow SGML items as part of
-# their flow
-FLO_cdata ::= ITEM_cdata*
-ITEM_cdata ::= cdata
-ITEM_cdata ::= CRUFT
-
 # Alphabetically, by tagname
-ELE_base is empty
-ELE_col is empty
+ELE_base is FLO_empty
+ELE_col is FLO_empty
 ELE_colgroup contains ELE_col
 ELE_dd is FLO_mixed
 ELE_div is FLO_mixed
 ELE_dl contains ELE_dt ELE_dd
 ELE_dt is FLO_inline
-ELE_isindex is empty
+ELE_isindex is FLO_empty
 ELE_li is FLO_mixed
 ELE_map contains GRP_block ELE_area
-ELE_area is empty
-ELE_link is empty
-ELE_meta is empty
+ELE_area is FLO_empty
+ELE_link is FLO_empty
+ELE_meta is FLO_empty
 ELE_object contains ELE_param ITEM_mixed
 ELE_applet contains ELE_param ITEM_mixed
 ELE_ol contains ELE_li
@@ -128,7 +126,7 @@ ELE_dir contains ELE_li
 ELE_menu contains ELE_li
 ELE_optgroup contains ELE_option
 ELE_p is FLO_inline
-ELE_param is empty
+ELE_param is FLO_empty
 ELE_script is FLO_cdata
 ELE_select contains ELE_optgroup ELE_option
 ELE_span is FLO_inline
@@ -177,7 +175,7 @@ our %IS_BLOCK_ELEMENT = (
     h4         => 'FLO_inline',
     h5         => 'FLO_inline',
     h6         => 'FLO_inline',
-    hr         => 'empty',
+    hr         => 'FLO_empty',
     menu       => 'core',
     noframes   => 'FLO_mixed',
     noscript   => 'FLO_mixed',
@@ -197,11 +195,11 @@ our %IS_INLINE_ELEMENT = (
     applet   => 'core',
     audio    => 'FLO_inline',
     b        => 'FLO_inline',
-    basefont => 'empty',
+    basefont => 'FLO_empty',
     bdo      => 'FLO_inline',
     big      => 'FLO_inline',
     blink    => 'FLO_inline',
-    br       => 'empty',
+    br       => 'FLO_empty',
     button   => 'FLO_inline',
     cite     => 'FLO_inline',
     code     => 'FLO_inline',
@@ -211,8 +209,8 @@ our %IS_INLINE_ELEMENT = (
     embed    => 'FLO_inline',
     font     => 'FLO_inline',
     i        => 'FLO_inline',
-    img      => 'empty',
-    input    => 'empty',
+    img      => 'FLO_empty',
+    input    => 'FLO_empty',
     input    => 'FLO_cdata',
     kbd      => 'FLO_inline',
     keygen   => 'FLO_inline',
