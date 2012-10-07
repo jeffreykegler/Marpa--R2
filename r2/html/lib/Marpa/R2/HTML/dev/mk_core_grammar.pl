@@ -41,6 +41,7 @@ my %tag_descriptor = ();
 my %element_containments = ();
 my %flow_containments = ();
 my %element_defined = ();
+my %element_included = ();
 LINE: for my $line ( split /\n/xms, $HTML_Config::BNF ) {
     my $definition = $line;
     chomp $definition;
@@ -71,20 +72,34 @@ LINE: for my $line ( split /\n/xms, $HTML_Config::BNF ) {
         next LINE;
     } ## end if ( $definition =~ s/ \s* [:][:][=] \s* / /xms )
     if ( $definition =~ m{
+      \A \s* (ELE_\w+) \s+
+      is \s+ included \s+ in \s+ (GRP_\w+) \s* \z}xms ) {
+        my $element = $1;
+	my $group = $2;
+	push @core_rules,
+	{
+	   lhs => $group,
+	   rhs => [$element],
+	};
+	$element_included{$element} = 1;
+        next LINE;
+    }
+    if ( $definition =~ m{
       \A \s* ELE_(\w+) \s+
       is \s+ a \s+ (FLO_\w+) \s+
       included \s+ in \s+ (GRP_\w+) \s* \z}xms ) {
         my $tag = $1;
 	my $contents = $2;
 	my $group = $3;
-	push @{ $element_defined{'ELE_', $tag} }, 'is-a-included';
+	push @{ $element_defined{'ELE_' . $tag} }, 'is-a-included';
+	$element_included{'ELE_' . $tag } = 1;
 	$tag_descriptor{$tag} = [$group, $contents];
         next LINE;
     }
     if ( $definition =~ s/ \A \s* ELE_(\w+) \s+ is \s+ (FLO_\w+) \s* \z/ /xms ) {
         # Production is Element with flow, but no group specified
         my $tag = $1;
-	push @{ $element_defined{'ELE_', $tag} }, 'is-a';
+	push @{ $element_defined{'ELE_' . $tag} }, 'is-a';
 	my $contents = $2;
 	my $lhs = 'ELE_' . $tag;
         my %rule_descriptor = (
@@ -116,6 +131,11 @@ LINE: for my $line ( split /\n/xms, $HTML_Config::BNF ) {
 
 ELEMENT: for my $element ( keys %element_defined ) {
     my $definitions = $element_defined{$element};
+    if ( $definitions->[0] ne 'BNF'
+        and !$element_included{$element} )
+    {
+        # die "$element not included anywhere";
+    }
 
     next ELEMENT if scalar @{$definitions} <= 1;
     my $first = $definitions->[0];

@@ -92,7 +92,6 @@ GRP_head ::= ELE_object
 GRP_head ::= ELE_style
 GRP_head ::= ELE_meta
 GRP_head ::= ELE_link
-GRP_head ::= ELE_base
 
 FLO_inline contains pcdata cdata GRP_inline GRP_anywhere
 
@@ -100,7 +99,6 @@ GRP_inline ::= ELE_object
 GRP_inline ::= ELE_select
 GRP_inline ::= ELE_span
 GRP_inline ::= ELE_map
-GRP_inline ::= ELE_applet
 
 FLO_pcdata contains cdata pcdata
 
@@ -109,11 +107,12 @@ ELE_a        is a FLO_inline included in GRP_inline
 ELE_abbr     is a FLO_inline included in GRP_inline
 ELE_acronym  is a FLO_inline included in GRP_inline
 ELE_address    is a FLO_inline included in GRP_block
+ELE_applet is included in GRP_inline
 ELE_applet contains ELE_param ITEM_mixed
 ELE_area is FLO_empty
 ELE_audio    is a FLO_inline included in GRP_inline
 ELE_b        is a FLO_inline included in GRP_inline
-ELE_base is FLO_empty
+ELE_base is a FLO_empty included in GRP_head
 ELE_basefont is a FLO_empty included in GRP_inline
 ELE_bdo      is a FLO_inline included in GRP_inline
 ELE_big      is a FLO_inline included in GRP_inline
