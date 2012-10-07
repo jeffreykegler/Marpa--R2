@@ -81,7 +81,6 @@ GRP_block ::= ELE_menu
 # and script can be a block and an inline element
 # these will become "anywhere" elements
 GRP_anywhere ::= ELE_script
-GRP_anywhere ::= ELE_isindex
 
 FLO_head contains GRP_head GRP_anywhere
 
@@ -142,7 +141,7 @@ ELE_hr         is a FLO_empty included in GRP_block
 ELE_i        is a FLO_inline included in GRP_inline
 ELE_img      is a FLO_empty included in GRP_inline
 ELE_input    is a FLO_empty included in GRP_inline
-ELE_isindex is FLO_empty
+ELE_isindex is a FLO_empty included in GRP_anywhere
 ELE_kbd      is a FLO_inline included in GRP_inline
 ELE_keygen   is a FLO_inline included in GRP_inline
 ELE_label    is a FLO_inline included in GRP_inline

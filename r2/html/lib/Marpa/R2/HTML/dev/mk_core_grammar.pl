@@ -115,8 +115,13 @@ LINE: for my $line ( split /\n/xms, $HTML_Config::BNF ) {
         # Production is Element with custom flow
         my $element_symbol = $1;
         my @contents = split q{ }, $definition;
-	push @{ $element_defined{$element_symbol} }, 'contains';
+        push @{ $element_defined{$element_symbol} },      'contains';
         push @{ $element_containments{$element_symbol} }, @contents;
+        for my $contained_element ( grep { ( substr $_, 0, 4 ) eq 'ELE_' }
+            @contents )
+        {
+            $element_included{$contained_element} = 1;
+        }
         next LINE;
     } ## end if ( $definition =~ ...)
     if ( $definition =~ s/ \A \s* ((FLO)_\w+) \s+ contains \s+ / /xms ) {
@@ -292,7 +297,6 @@ $output .= "\n\n";
     my %required_tags = map { ( substr $_, 2 ) => 1 } @ruby_start_tags;
     TAG: for my $tag ( keys %required_tags ) {
         next TAG if $defined_in_core_rules{$tag};
-say STDERR "Required: $tag";
         my ( $group, $flow ) = @{ $tag_descriptor{$tag} };
         my $element = 'ELE_' . $tag;
         push @core_rules,
