@@ -52,24 +52,29 @@ ITEM_SGML ::= cruft
 document ::= prolog ELE_html trailer EOF
 prolog ::= FLO_SGML
 trailer ::= FLO_SGML
-ELE_html ::= S_html EC_html E_html
-EC_html ::= FLO_SGML ELE_head FLO_SGML ELE_body FLO_SGML
-ELE_head is FLO_head
-ELE_body is FLO_block
+ELE_html ::= S_html Contents_html E_html
+Contents_html ::= FLO_SGML ELE_head FLO_SGML ELE_body FLO_SGML
+ELE_head ::= S_head FLO_head E_head
+ELE_body ::= S_body FLO_block E_body
 
-# FLO_empty, FLO_cdata and ITEM_cdata defined by "hand" (BNF)
-# because they do NOT allow SGML items as part of
+# FLO_empty, FLO_cdata and ITEM_cdata 
+# do NOT allow SGML items as part of
 # their flow
 FLO_empty ::=
+
 FLO_cdata ::= ITEM_cdata*
 ITEM_cdata ::= cdata
 ITEM_cdata ::= CRUFT
 
 FLO_mixed contains GRP_anywhere GRP_block GRP_inline
 FLO_mixed contains cdata pcdata
+
 FLO_block contains GRP_block GRP_anywhere
+
 FLO_head contains GRP_head GRP_anywhere
+
 FLO_inline contains pcdata cdata GRP_inline GRP_anywhere
+
 FLO_pcdata contains cdata pcdata
 
 END_OF_CORE_BNF

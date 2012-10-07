@@ -14,7 +14,7 @@
 # http://www.gnu.org/licenses/.
 
 # This file was generated automatically by mk_definition.pl
-# The date of generation was Sun Oct  7 09:15:31 2012
+# The date of generation was Sun Oct  7 16:48:37 2012
 
 package Marpa::R2::HTML::Internal;
 
@@ -134,12 +134,12 @@ $CORE_RULES = [
                   'lhs' => 'ELE_html',
                   'rhs' => [
                              'S_html',
-                             'EC_html',
+                             'Contents_html',
                              'E_html'
                            ]
                 },
                 {
-                  'lhs' => 'EC_html',
+                  'lhs' => 'Contents_html',
                   'rhs' => [
                              'FLO_SGML',
                              'ELE_head',
