@@ -574,21 +574,12 @@ sub parse {
 
     my @rules     = @{$Marpa::R2::HTML::Internal::CORE_RULES};
 
-    # Special cases which are dealt with elsewhere.
-    # As of now the only special cases are elements with optional
-    # start and end tags
-    for my $special_element (qw(html head body table tbody tr td)) {
-        delete $tags{$special_element};
-    }
-
     for my $rule (@rules) {
         my $lhs = $rule->{lhs};
         if ( 0 == index $lhs, 'ELE_' ) {
             my $tag = substr $lhs, 4;
-            my $end_tag = 'E_' . $tag;
             delete $tags{$tag};
-
-        } ## end if ( 0 == index $lhs, 'ELE_' )
+        }
     } ## end for my $rule (@rules)
 
     ELEMENT: for my $tag ( keys %tags ) {
