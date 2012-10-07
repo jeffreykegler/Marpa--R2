@@ -681,6 +681,8 @@ sub parse {
     my @action_by_rule_id = ();
     $self->{action_by_rule_id} = \@action_by_rule_id;
     my $thin_grammar = Marpa::R2::Thin::G->new( { if => 1 } );
+    $self->{grammar}                  = $thin_grammar;
+
     RULE: for my $rule (@rules) {
         my $lhs    = $rule->{lhs};
         my $rhs    = $rule->{rhs};
@@ -709,8 +711,9 @@ sub parse {
     $thin_grammar->start_symbol_set( $symbol_id_by_name{'document'} );
     $thin_grammar->precompute();
 
-    # Memoize this -- we will use it a lot
+    # Memoize these -- we use highest symbol a lot
     my $highest_symbol_id = $thin_grammar->highest_symbol_id();
+    my $highest_rule_id = $thin_grammar->highest_rule_id();
 
     # For the Ruby Slippers engine
     # We need to know quickly if a symbol is a start tag;
@@ -729,6 +732,20 @@ sub parse {
             next SYMBOL if $symbol_name ~~ [qw(E_body E_html)];
             push @non_final_end_tag_ids, $symbol_id;
         } ## end SYMBOL: for my $symbol_id ( 0 .. $highest_symbol_id )
+
+	my %element_type = ();
+        RULE: for my $rule_id ( 0 .. $highest_rule_id ) {
+	     # RHS should be length 1
+	     my ($lhs, $rhs) = symbol_names_by_rule_id($self, $rule_id);
+	     # In theory there could be gaps in the rule numbering
+	     next RULE if not defined $lhs;
+	     next RULE if 'GRP_' ne substr $lhs, 0, 4;
+	     next RULE if 'ELE_' ne substr $rhs, 0, 4;
+	     my $group = substr $lhs, 4;
+	     next RULE if not $group ~~ [qw( inline block head )];
+	     my $tag = substr $rhs, 4;
+	     $element_type{$tag} = $group;
+	}
 
         my %ruby_vectors = ();
         for my $rejected_symbol_name ( keys %{$rank_by_name} ) {
@@ -785,15 +802,9 @@ sub parse {
                 next SYMBOL;
             } ## end if ( not defined $placement )
             my $tag = substr $rejected_symbol_name, 2;
-            my $type =
-                $Marpa::R2::HTML::Internal::IS_INLINE_ELEMENT->{$tag}
-                ? 'inline'
-                : $Marpa::R2::HTML::Internal::IS_BLOCK_ELEMENT->{$tag}
-                ? 'block'
-                : $Marpa::R2::HTML::Internal::IS_HEAD_ELEMENT->{$tag} ? 'head'
-                :   'anywhere';
+            my $element_type = $element_type{$tag} //  'anywhere';
             $ruby_vector =
-                $ruby_vectors{ q{!} . $type . q{_} . $placement . q{_tag} };
+                $ruby_vectors{ q{!} . $element_type . q{_} . $placement . q{_tag} };
             if ( defined $ruby_vector ) {
                 $ruby_rank_by_id[$rejected_symbol_id] = $ruby_vector;
                 next SYMBOL;
@@ -811,7 +822,6 @@ sub parse {
     my $recce = Marpa::R2::Thin::R->new($thin_grammar);
     $recce->start_input();
 
-    $self->{grammar}                  = $thin_grammar;
     $self->{recce}                    = $recce;
     $self->{tokens}                   = \@html_parser_tokens;
     $self->{earleme_to_html_token_ix} = [-1];
