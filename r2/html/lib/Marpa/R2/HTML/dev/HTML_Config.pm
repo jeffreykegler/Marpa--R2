@@ -73,100 +73,100 @@ FLO_inline contains pcdata cdata GRP_inline GRP_anywhere
 FLO_pcdata contains cdata pcdata
 
 # Alphabetically, by tagname
-ELE_a        is a FLO_inline included in GRP_inline
-ELE_abbr     is a FLO_inline included in GRP_inline
-ELE_acronym  is a FLO_inline included in GRP_inline
-ELE_address    is a FLO_inline included in GRP_block
+ELE_a is a FLO_inline included in GRP_inline
+ELE_abbr is a FLO_inline included in GRP_inline
+ELE_acronym is a FLO_inline included in GRP_inline
+ELE_address is a FLO_inline included in GRP_block
 ELE_applet contains ELE_param ITEM_mixed
 ELE_applet is included in GRP_inline
 ELE_area is FLO_empty
-ELE_audio    is a FLO_inline included in GRP_inline
-ELE_b        is a FLO_inline included in GRP_inline
+ELE_audio is a FLO_inline included in GRP_inline
+ELE_b is a FLO_inline included in GRP_inline
 ELE_base is a FLO_empty included in GRP_head
 ELE_basefont is a FLO_empty included in GRP_inline
-ELE_bdo      is a FLO_inline included in GRP_inline
-ELE_big      is a FLO_inline included in GRP_inline
-ELE_blink    is a FLO_inline included in GRP_inline
+ELE_bdo is a FLO_inline included in GRP_inline
+ELE_big is a FLO_inline included in GRP_inline
+ELE_blink is a FLO_inline included in GRP_inline
 ELE_blockquote is a FLO_mixed included in GRP_block
-ELE_br       is a FLO_empty included in GRP_inline
-ELE_button   is a FLO_inline included in GRP_inline
+ELE_br is a FLO_empty included in GRP_inline
+ELE_button is a FLO_inline included in GRP_inline
 ELE_caption is FLO_inline
-ELE_center     is a FLO_mixed included in GRP_block
-ELE_cite     is a FLO_inline included in GRP_inline
-ELE_code     is a FLO_inline included in GRP_inline
+ELE_center is a FLO_mixed included in GRP_block
+ELE_cite is a FLO_inline included in GRP_inline
+ELE_code is a FLO_inline included in GRP_inline
 ELE_col is FLO_empty
 ELE_colgroup contains ELE_col
-ELE_command  is a FLO_inline included in GRP_inline
+ELE_command is a FLO_inline included in GRP_inline
 ELE_dd is FLO_mixed
-ELE_dfn      is a FLO_inline included in GRP_inline
+ELE_dfn is a FLO_inline included in GRP_inline
 ELE_dir contains ELE_li
 ELE_dir is included in GRP_block
 ELE_div is a FLO_mixed included in GRP_block
 ELE_dl contains ELE_dt ELE_dd
 ELE_dl is included in GRP_block
 ELE_dt is FLO_inline
-ELE_em       is a FLO_inline included in GRP_inline
-ELE_embed    is a FLO_inline included in GRP_inline
-ELE_fieldset   is a FLO_mixed included in GRP_block
-ELE_font     is a FLO_inline included in GRP_inline
-ELE_form       is a FLO_mixed included in GRP_block
-ELE_h1         is a FLO_inline included in GRP_block
-ELE_h2         is a FLO_inline included in GRP_block
-ELE_h3         is a FLO_inline included in GRP_block
-ELE_h4         is a FLO_inline included in GRP_block
-ELE_h5         is a FLO_inline included in GRP_block
-ELE_h6         is a FLO_inline included in GRP_block
-ELE_hr         is a FLO_empty included in GRP_block
-ELE_i        is a FLO_inline included in GRP_inline
-ELE_img      is a FLO_empty included in GRP_inline
-ELE_input    is a FLO_empty included in GRP_inline
+ELE_em is a FLO_inline included in GRP_inline
+ELE_embed is a FLO_inline included in GRP_inline
+ELE_fieldset is a FLO_mixed included in GRP_block
+ELE_font is a FLO_inline included in GRP_inline
+ELE_form is a FLO_mixed included in GRP_block
+ELE_h1 is a FLO_inline included in GRP_block
+ELE_h2 is a FLO_inline included in GRP_block
+ELE_h3 is a FLO_inline included in GRP_block
+ELE_h4 is a FLO_inline included in GRP_block
+ELE_h5 is a FLO_inline included in GRP_block
+ELE_h6 is a FLO_inline included in GRP_block
+ELE_hr is a FLO_empty included in GRP_block
+ELE_i is a FLO_inline included in GRP_inline
+ELE_img is a FLO_empty included in GRP_inline
+ELE_input is a FLO_empty included in GRP_inline
 ELE_isindex is a FLO_empty included in GRP_anywhere
-ELE_kbd      is a FLO_inline included in GRP_inline
-ELE_keygen   is a FLO_inline included in GRP_inline
-ELE_label    is a FLO_inline included in GRP_inline
+ELE_kbd is a FLO_inline included in GRP_inline
+ELE_keygen is a FLO_inline included in GRP_inline
+ELE_label is a FLO_inline included in GRP_inline
 ELE_li is FLO_mixed
 ELE_link is a FLO_empty included in GRP_head
 ELE_map contains GRP_block ELE_area
 ELE_map is included in GRP_inline
-ELE_mark     is a FLO_inline included in GRP_inline
+ELE_mark is a FLO_inline included in GRP_inline
 ELE_menu contains ELE_li
 ELE_menu is included in GRP_block
 ELE_meta is a FLO_empty included in GRP_head
-ELE_meter    is a FLO_inline included in GRP_inline
-ELE_nobr     is a FLO_inline included in GRP_inline
-ELE_noframes   is a FLO_mixed included in GRP_block
-ELE_noscript   is a FLO_mixed included in GRP_block
+ELE_meter is a FLO_inline included in GRP_inline
+ELE_nobr is a FLO_inline included in GRP_inline
+ELE_noframes is a FLO_mixed included in GRP_block
+ELE_noscript is a FLO_mixed included in GRP_block
 ELE_object contains ELE_param ITEM_mixed
 ELE_object is included in GRP_anywhere
 ELE_ol contains ELE_li
 ELE_ol is included in GRP_block
 ELE_optgroup contains ELE_option
 ELE_option is FLO_pcdata
-ELE_output   is a FLO_inline included in GRP_inline
+ELE_output is a FLO_inline included in GRP_inline
 ELE_p is a FLO_inline included in GRP_block
 ELE_param is FLO_empty
-ELE_plaintext  is a FLO_cdata included in GRP_block
-ELE_pre        is a FLO_inline included in GRP_block
+ELE_plaintext is a FLO_cdata included in GRP_block
+ELE_pre is a FLO_inline included in GRP_block
 ELE_progress is a FLO_inline included in GRP_inline
-ELE_q        is a FLO_inline included in GRP_inline
-ELE_rb       is a FLO_inline included in GRP_inline
-ELE_rbc      is a FLO_inline included in GRP_inline
-ELE_rp       is a FLO_inline included in GRP_inline
-ELE_rt       is a FLO_inline included in GRP_inline
-ELE_rtc      is a FLO_inline included in GRP_inline
-ELE_ruby     is a FLO_inline included in GRP_inline
-ELE_s        is a FLO_inline included in GRP_inline
-ELE_samp     is a FLO_inline included in GRP_inline
+ELE_q is a FLO_inline included in GRP_inline
+ELE_rb is a FLO_inline included in GRP_inline
+ELE_rbc is a FLO_inline included in GRP_inline
+ELE_rp is a FLO_inline included in GRP_inline
+ELE_rt is a FLO_inline included in GRP_inline
+ELE_rtc is a FLO_inline included in GRP_inline
+ELE_ruby is a FLO_inline included in GRP_inline
+ELE_s is a FLO_inline included in GRP_inline
+ELE_samp is a FLO_inline included in GRP_inline
 ELE_script is a FLO_cdata included in GRP_anywhere
 ELE_select contains ELE_optgroup ELE_option
 ELE_select is included in GRP_inline
-ELE_small    is a FLO_inline included in GRP_inline
+ELE_small is a FLO_inline included in GRP_inline
 ELE_span is a FLO_inline included in GRP_inline
-ELE_strike   is a FLO_inline included in GRP_inline
-ELE_strong   is a FLO_inline included in GRP_inline
+ELE_strike is a FLO_inline included in GRP_inline
+ELE_strong is a FLO_inline included in GRP_inline
 ELE_style is a FLO_cdata included in GRP_head
-ELE_sub      is a FLO_inline included in GRP_inline
-ELE_sup      is a FLO_inline included in GRP_inline
+ELE_sub is a FLO_inline included in GRP_inline
+ELE_sup is a FLO_inline included in GRP_inline
 ELE_table contains ELE_caption ELE_col ELE_colgroup
 ELE_table contains ELE_tbody ELE_tfoot ELE_thead
 ELE_table is included in GRP_block
@@ -176,17 +176,17 @@ ELE_textarea is a FLO_cdata included in GRP_anywhere
 ELE_tfoot contains ELE_tr
 ELE_th is FLO_mixed
 ELE_thead contains ELE_tr
-ELE_time     is a FLO_inline included in GRP_inline
+ELE_time is a FLO_inline included in GRP_inline
 ELE_title is a FLO_pcdata included in GRP_head
 ELE_tr contains ELE_th ELE_td
-ELE_tt       is a FLO_inline included in GRP_inline
-ELE_u        is a FLO_inline included in GRP_inline
+ELE_tt is a FLO_inline included in GRP_inline
+ELE_u is a FLO_inline included in GRP_inline
 ELE_ul contains ELE_li
 ELE_ul is included in GRP_block
-ELE_var      is a FLO_inline included in GRP_inline
-ELE_video    is a FLO_inline included in GRP_inline
-ELE_wbr      is a FLO_inline included in GRP_inline
-ELE_xmp        is a FLO_cdata included in GRP_block
+ELE_var is a FLO_inline included in GRP_inline
+ELE_video is a FLO_inline included in GRP_inline
+ELE_wbr is a FLO_inline included in GRP_inline
+ELE_xmp is a FLO_cdata included in GRP_block
 END_OF_BNF
 
 my @head_rubies   = qw( S_html S_head );
