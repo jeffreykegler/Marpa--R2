@@ -263,16 +263,4 @@ our %RUBY_CONFIG = (
     EOF    => [qw( S_html S_head S_body !non_final_end E_body E_html)]
 );
 
-
-# Make sure the last resort defaults are always defined
-for my $required_rubies_desc (qw( !start_tag !end_tag !non_element )) {
-    $RUBY_CONFIG{$required_rubies_desc} //= [];
-}
-
-DESC: for my $rubies_desc (keys %RUBY_CONFIG) {
-    my $candidates = $RUBY_CONFIG{$rubies_desc};
-    next DESC if '!non_final_end' ~~ $candidates;
-    $RUBY_CONFIG{$rubies_desc} = [@{$candidates}, '!non_final_end'];
-}
-
 1;
