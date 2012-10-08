@@ -106,6 +106,8 @@ my %symbol_included = ();
     }
 }
 
+my %core_symbol = %symbol_included;
+
 LINE: for my $line ( split /\n/xms, $HTML_Configuration::CONFIGURATION_BNF ) {
     my $definition = $line;
     chomp $definition;
@@ -119,6 +121,8 @@ LINE: for my $line ( split /\n/xms, $HTML_Configuration::CONFIGURATION_BNF ) {
     {
         my $element = $1;
         my $group   = $2;
+	die "Core symbol context cannot be changed: $definition"
+	    if $core_symbol{$element};
         push @core_rules,
             {
             lhs => $group,
@@ -136,8 +140,11 @@ LINE: for my $line ( split /\n/xms, $HTML_Configuration::CONFIGURATION_BNF ) {
         my $tag      = $1;
         my $contents = $2;
         my $group    = $3;
-        push @{ $symbol_defined{ 'ELE_' . $tag } }, 'is-a-included';
-        $symbol_included{ 'ELE_' . $tag } = 1;
+	my $element = 'ELE_' . $tag;
+	die "Core symbol context cannot be changed: $definition"
+	    if $core_symbol{$element};
+        push @{ $symbol_defined{ $element } }, 'is-a-included';
+        $symbol_included{ $element } = 1;
         $tag_descriptor{$tag} = [ $group, $contents ];
         next LINE;
     } ## end if ( $definition =~ m{ ) (})
