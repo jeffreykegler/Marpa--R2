@@ -33,8 +33,6 @@ cdata ::= CDATA
 whitespace ::= WHITESPACE
 cruft ::= CRUFT
 
-# FLO_SGML and ITEM_SGML defined by BNF rules,
-# because they must explicity include cruft
 FLO_SGML ::= ITEM_SGML*
 ITEM_SGML ::= comment
 ITEM_SGML ::= pi
@@ -62,12 +60,22 @@ ELE_body ::= S_body FLO_block E_body
 # their flow
 FLO_empty ::=
 
-FLO_cdata ::= ITEM_cdata*
+# In FLO_cdata, disallow all SGML components,
+# but include cruft. ITEM_cdata is redundant,
+# but is defined for orthogonality.
+FLO_cdata ::= SITEM_cdata*
+SITEM_cdata ::= CRUFT
+SITEM_cdata ::= ITEM_cdata
 ITEM_cdata ::= cdata
-ITEM_cdata ::= CRUFT
 
-FLO_mixed contains GRP_anywhere GRP_block GRP_inline
-FLO_mixed contains cdata pcdata
+FLO_mixed ::= SITEM_mixed*
+SITEM_mixed ::= ITEM_SGML
+SITEM_mixed ::= ITEM_mixed
+ITEM_mixed ::= GRP_anywhere
+ITEM_mixed ::= GRP_block
+ITEM_mixed ::= GRP_inline
+ITEM_mixed ::= cdata
+ITEM_mixed ::= pcdata
 
 FLO_block contains GRP_block GRP_anywhere
 

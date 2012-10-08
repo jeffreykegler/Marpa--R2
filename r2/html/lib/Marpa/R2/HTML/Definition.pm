@@ -14,7 +14,7 @@
 # http://www.gnu.org/licenses/.
 
 # This file was generated automatically by mk_definition.pl
-# The date of generation was Sun Oct  7 16:55:13 2012
+# The date of generation was Sun Oct  7 17:01:23 2012
 
 package Marpa::R2::HTML::Internal;
 
@@ -174,6 +174,18 @@ $CORE_RULES = [
                   'lhs' => 'FLO_cdata',
                   'min' => 0,
                   'rhs' => [
+                             'SITEM_cdata'
+                           ]
+                },
+                {
+                  'lhs' => 'SITEM_cdata',
+                  'rhs' => [
+                             'CRUFT'
+                           ]
+                },
+                {
+                  'lhs' => 'SITEM_cdata',
+                  'rhs' => [
                              'ITEM_cdata'
                            ]
                 },
@@ -184,9 +196,52 @@ $CORE_RULES = [
                            ]
                 },
                 {
-                  'lhs' => 'ITEM_cdata',
+                  'lhs' => 'FLO_mixed',
+                  'min' => 0,
                   'rhs' => [
-                             'CRUFT'
+                             'SITEM_mixed'
+                           ]
+                },
+                {
+                  'lhs' => 'SITEM_mixed',
+                  'rhs' => [
+                             'ITEM_SGML'
+                           ]
+                },
+                {
+                  'lhs' => 'SITEM_mixed',
+                  'rhs' => [
+                             'ITEM_mixed'
+                           ]
+                },
+                {
+                  'lhs' => 'ITEM_mixed',
+                  'rhs' => [
+                             'GRP_anywhere'
+                           ]
+                },
+                {
+                  'lhs' => 'ITEM_mixed',
+                  'rhs' => [
+                             'GRP_block'
+                           ]
+                },
+                {
+                  'lhs' => 'ITEM_mixed',
+                  'rhs' => [
+                             'GRP_inline'
+                           ]
+                },
+                {
+                  'lhs' => 'ITEM_mixed',
+                  'rhs' => [
+                             'cdata'
+                           ]
+                },
+                {
+                  'lhs' => 'ITEM_mixed',
+                  'rhs' => [
+                             'pcdata'
                            ]
                 },
                 {
@@ -936,49 +991,6 @@ $CORE_RULES = [
                 },
                 {
                   'lhs' => 'ITEM_head',
-                  'rhs' => [
-                             'ITEM_SGML'
-                           ]
-                },
-                {
-                  'lhs' => 'FLO_mixed',
-                  'min' => 0,
-                  'rhs' => [
-                             'ITEM_mixed'
-                           ]
-                },
-                {
-                  'lhs' => 'ITEM_mixed',
-                  'rhs' => [
-                             'GRP_anywhere'
-                           ]
-                },
-                {
-                  'lhs' => 'ITEM_mixed',
-                  'rhs' => [
-                             'GRP_block'
-                           ]
-                },
-                {
-                  'lhs' => 'ITEM_mixed',
-                  'rhs' => [
-                             'GRP_inline'
-                           ]
-                },
-                {
-                  'lhs' => 'ITEM_mixed',
-                  'rhs' => [
-                             'cdata'
-                           ]
-                },
-                {
-                  'lhs' => 'ITEM_mixed',
-                  'rhs' => [
-                             'pcdata'
-                           ]
-                },
-                {
-                  'lhs' => 'ITEM_mixed',
                   'rhs' => [
                              'ITEM_SGML'
                            ]
