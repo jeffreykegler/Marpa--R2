@@ -320,6 +320,30 @@ $output .= "\n\n";
 }
 
 {
+    # Make sure groups are non-overlapping
+    my %group_rules =
+        map { $_->{lhs}, $_->{rhs} }
+        grep { ( substr $_->{lhs}, 0, 4 ) eq 'GRP_' } @core_rules;
+    my %group_by_member = ();
+    while ( my ( $group, $contents ) = each %group_rules ) {
+        for my $member ( @{$contents} ) {
+            die qq{"$member" is a member of two groups: "$group" and "},
+                $group_by_member{$member}
+                if defined $group_by_member{$member};
+            $group_by_member{$member} = $group;
+        } ## end for my $member ( @{$contents} )
+    } ## end while ( my ( $group, $contents ) = each %group_rules )
+    for my $tag (keys %tag_descriptor) {
+        my $descriptor = $tag_descriptor{$tag};
+        my ($group)    = @{$descriptor};
+        my $member     = 'ELE_' . $tag;
+        die qq{"$member" is a member of two groups: "$group" and "},
+            $group_by_member{$member}
+            if defined $group_by_member{$member};
+    } ## end for my $tag (%tag_descriptor)
+}
+
+{
     # Find the tag descriptors which refer to required
     # elements and add them
 
