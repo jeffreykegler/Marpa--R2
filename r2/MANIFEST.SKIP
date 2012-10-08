@@ -27,7 +27,6 @@
 \.swp$
 \.tar.gz$
 \/\.git\/
-\/hide\/
 ^Build$
 ^MANIFEST\.SKIP$
 ^MYMETA.json$
@@ -51,6 +50,7 @@
 ^blib/
 ^errs$
 ^etc/track[.]list
+^hide/
 ^html/Build$
 ^html/MANIFEST\.SKIP$
 ^html/MYMETA.yml$
@@ -91,6 +91,7 @@
 ^libmarpa/dev/private[.]h$
 ^libmarpa/doc/
 ^libmarpa/libmarpa[-]doc[.]tar$
+^libmarpa/orig/
 ^libmarpa/stage/
 ^libmarpa/test/dev/Makefile[.]in$
 ^libmarpa/test/dev/aclocal[.]m4$
@@ -110,7 +111,6 @@
 ^libmarpa/test/dev/missing$
 ^libmarpa/test/libmarpa/
 ^libmarpa/test/work/
-^libmarpa/orig/
 ^libmarpa_build/marpa-[0-9]*[.][0-9]*[.][0-9]*/
 ^nogit
 ^nogit/
