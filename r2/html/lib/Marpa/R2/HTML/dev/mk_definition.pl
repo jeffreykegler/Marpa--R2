@@ -25,6 +25,9 @@ use lib '../../../../';
 use Marpa::R2::HTML::dev::Core;
 use Marpa::R2::HTML::dev::Configuration;
 
+my %predefined_groups =
+    ( GRP_mixed => [qw( GRP_anywhere GRP_block GRP_inline cdata pcdata)] );
+
 # Make sure the last resort defaults are always defined
 for my $required_rubies_desc (qw( !start_tag !end_tag !non_element )) {
     $HTML_Configuration::RUBY_CONFIG{$required_rubies_desc} //= [];
@@ -98,6 +101,10 @@ my %core_symbol = ();
     } ## end LINE: for my $line ( split /\n/xms, $HTML_Core::CORE_BNF )
 }
 
+# A few symbols are allowed as contents as special cases
+my %allowed_contents = map { $_ => 1 } qw(cdata pcdata);
+my %banned_contents = grep { not $_ =~ m/\A GRP_ /xms } %core_symbol;
+
 {
     my @species_not_defined = grep { not defined $symbol_defined{$_} }
         keys %species_handler;
@@ -168,12 +175,22 @@ LINE: for my $line ( split /\n/xms, $HTML_Configuration::CONFIGURATION_BNF ) {
         # Production is Element with custom flow
         my $element_symbol = $1;
         my @contents = split q{ }, $definition;
+	@contents = map { defined $predefined_groups{$_} ?  @{$predefined_groups{$_}  } : $_ } @contents;
         push @{ $symbol_defined{$element_symbol} },      'contains';
         push @{ $element_containments{$element_symbol} }, @contents;
-        for my $contained_element ( grep { ( substr $_, 0, 4 ) eq 'ELE_' }
-            @contents )
+	
+        for my $contained_symbol ( @contents )
         {
-            $symbol_included{$contained_element} = 1;
+            if ( not $allowed_contents{$contained_symbol} ) {
+                die
+                    qq{Symbol "$contained_symbol" cannot be in the contents of an element: },
+                    $line
+                    if $banned_contents{$contained_symbol};
+		my $prefix = substr $contained_symbol, 0, 4;
+                die qq{Symbol "$contained_symbol" is not an element or a group: }, $line
+                    if $prefix ne 'ELE_' and $prefix ne 'GRP_';
+            } ## end if ( not $allowed_contents{$contained_symbol} )
+            $symbol_included{$contained_symbol} = 1;
         }
         next LINE;
     } ## end if ( $definition =~ ...)

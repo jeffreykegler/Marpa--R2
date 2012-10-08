@@ -14,7 +14,7 @@
 # http://www.gnu.org/licenses/.
 
 # This file was generated automatically by mk_definition.pl
-# The date of generation was Sun Oct  7 19:57:30 2012
+# The date of generation was Sun Oct  7 20:22:07 2012
 
 package Marpa::R2::HTML::Internal;
 
@@ -737,7 +737,31 @@ $CORE_RULES = [
                 {
                   'lhs' => 'ITEM_ELE_applet',
                   'rhs' => [
-                             'ITEM_mixed'
+                             'GRP_anywhere'
+                           ]
+                },
+                {
+                  'lhs' => 'ITEM_ELE_applet',
+                  'rhs' => [
+                             'GRP_block'
+                           ]
+                },
+                {
+                  'lhs' => 'ITEM_ELE_applet',
+                  'rhs' => [
+                             'GRP_inline'
+                           ]
+                },
+                {
+                  'lhs' => 'ITEM_ELE_applet',
+                  'rhs' => [
+                             'cdata'
+                           ]
+                },
+                {
+                  'lhs' => 'ITEM_ELE_applet',
+                  'rhs' => [
+                             'pcdata'
                            ]
                 },
                 {
@@ -917,7 +941,31 @@ $CORE_RULES = [
                 {
                   'lhs' => 'ITEM_ELE_object',
                   'rhs' => [
-                             'ITEM_mixed'
+                             'GRP_anywhere'
+                           ]
+                },
+                {
+                  'lhs' => 'ITEM_ELE_object',
+                  'rhs' => [
+                             'GRP_block'
+                           ]
+                },
+                {
+                  'lhs' => 'ITEM_ELE_object',
+                  'rhs' => [
+                             'GRP_inline'
+                           ]
+                },
+                {
+                  'lhs' => 'ITEM_ELE_object',
+                  'rhs' => [
+                             'cdata'
+                           ]
+                },
+                {
+                  'lhs' => 'ITEM_ELE_object',
+                  'rhs' => [
+                             'pcdata'
                            ]
                 },
                 {
