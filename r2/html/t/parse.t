@@ -31,7 +31,7 @@ BEGIN {
     } ## end if ( !$eval_result )
 } ## end BEGIN
 
-BEGIN { Marpa::R2::HTML::Test::Util::load_or_skip_all('HTML::PullParser'); }
+BEGIN { Marpa::R2::HTML::Test::Util::load_or_skip_all('HTML::Parser'); }
 BEGIN { Marpa::R2::HTML::Test::Util::load_or_skip_all('HTML::Entities'); }
 
 # These tests are based closely on those in the HTML-Tree module,
@@ -217,7 +217,7 @@ sub same {
     if (not eval { $value1 = Marpa::R2::HTML::html( \$code1, $html_args ); 1 }
         )
     {
-        say "No parse for $code1"
+        say "No parse for $code1; $EVAL_ERROR"
             or Carp::croak("Cannot print: $ERRNO");
         return $flip;
     } ## end if ( not eval { $value1 = Marpa::R2::HTML::html( \$code1...)})
@@ -226,7 +226,7 @@ sub same {
     if (not eval { $value2 = Marpa::R2::HTML::html( \$code2, $html_args ); 1 }
         )
     {
-        say "No parse for $code2"
+        say "No parse for $code2; $EVAL_ERROR"
             or Carp::croak("Cannot print: $ERRNO");
         return $flip;
     } ## end if ( not eval { $value2 = Marpa::R2::HTML::html( \$code2...)})

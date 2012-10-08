@@ -24,6 +24,7 @@ use Fatal qw(open close);
 use Test::More;
 use lib 'config';
 use lib 'html/lib';
+use Marpa::R2::Test;
 
 BEGIN {
     use lib 'html/tool/lib';
@@ -36,7 +37,7 @@ BEGIN {
     } ## end if ( !$eval_result )
 } ## end BEGIN
 
-BEGIN { Marpa::R2::HTML::Test::Util::load_or_skip_all('HTML::PullParser'); }
+BEGIN { Marpa::R2::HTML::Test::Util::load_or_skip_all('HTML::Parser'); }
 
 BEGIN { Test::More::plan tests => 1; }
 
@@ -52,4 +53,4 @@ my $document;
 
 my $value = Marpa::R2::HTML::html( \$document );
 
-Test::More::is( ${$value}, $document, 'Straight copy using defaults' );
+Marpa::R2::Test::is( ${$value}, $document, 'Straight copy using defaults' );

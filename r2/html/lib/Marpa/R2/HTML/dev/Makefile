@@ -13,27 +13,11 @@
 # General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 
-# This file is editable.  It is used during the
-# configuration process to set up version information.
+.PHONY: all dummy
 
-package Marpa::R2;
+dummy:
 
-use 5.010;
+all: Core_Grammar.pm
 
-use strict;
-use warnings;
-
-%Marpa::R2::VERSION_FOR_CONFIG = (
-    'Carp'                => 1.08,
-    'Data::Dumper'        => '2.125',
-    'ExtUtils::CBuilder'  => 0.27,
-    'HTML::Parser'        => '3.69',
-    'HTML::Entities'      => '3.68',
-    'List::Util'          => 1.21,
-    'Module::Build'       => 0.3601,
-    'PPI'                 => '1.206',
-    'Scalar::Util'        => 1.21,
-    'Test::More'          => 0.94,
-);
-
-1;
+Core_Grammar.pm: mk_core_grammar.pl 
+	perl mk_core_grammar.pl

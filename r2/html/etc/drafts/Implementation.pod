@@ -93,10 +93,10 @@ HTML into nitty low-level details, on one hand,
 and the big picture on the other,
 turns out to be eminently practical.
 A Ruby Slippers Tokenizer is not at all hard to write.
-L<Marpa::HTML> uses L<HTML::PullParser> to handle most
+L<Marpa::HTML> uses L<HTML::Parser> to handle most
 of the low-level details.
 A thin layer of logic is wrapped around
-L<HTML::PullParser>
+L<HTML::Parser>
 to implement the wish-granting abilities of the Ruby Slippers.
 
 =head1 HOW THE RUBY SLIPPERS WORK

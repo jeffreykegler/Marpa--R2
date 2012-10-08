@@ -21,221 +21,434 @@ use English qw( -no_match_vars );
 use Marpa::R2::HTML;
 use HTML::Tagset;
 use Fatal qw(open close);
+use Getopt::Long;
+
+sub usage
+{
+    say {*STDERR} "$PROGRAM_NAME html_fmt [uri|file]" or die "say failed: $ERRNO";
+    exit 1;
+}
+
+my $help_flag              = 0;
+my @avoid_whitespace_flags = qw(comment yes);
+my $avoid_whitespace_flag  = 'yes';
+my $ws_ok_before_end_tag_flag = 0;
+usage()
+    if not Getopt::Long::GetOptions(
+    'help'               => \$help_flag,
+    'avoid-whitespace=s' => \$avoid_whitespace_flag,
+    'ws-ok-before-end-tag' => \$ws_ok_before_end_tag_flag,
+    );
+usage() if $help_flag or scalar @ARGV > 1;
+if ( not $avoid_whitespace_flag ~~ \@avoid_whitespace_flags ) {
+    die "Bad avoid-whitespace flag\n",
+        'avoid-whitespace must be one of the following: ', join q{ },
+        @avoid_whitespace_flags;
+}
 
 my $locator = shift;
 my $document;
-if ($locator =~ /^[a-zA-Z0-9]+[:]/) {
-    require WWW::Mechanize;
-    my $mech = WWW::Mechanize->new( autocheck => 1 );
-    $mech->get( $locator );
-    $document = $mech->content;
-    undef $mech;
-} else {
-    local $RS = undef;
-    open my $fh, q{<}, $locator;
-    $document = <$fh>;
-    close $fh;
+GET_DOCUMENT: {
+    if ( not defined $locator ) {
+        local $RS = undef;
+	## no critic(InputOutput::ProhibitExplicitStdin)
+        $document = <STDIN>;
+        last GET_DOCUMENT;
+    }
+    if ( $locator =~ /\A [[:alnum:]]+ [:] /xms ) {
+        require WWW::Mechanize;
+        my $mech = WWW::Mechanize->new( autocheck => 1 );
+        $mech->get($locator);
+        $document = $mech->content;
+        undef $mech;
+        last GET_DOCUMENT;
+    } ## end if ( $locator =~ /\A [[:alnum:]]+ [:] /xms )
+    {
+        local $RS = undef;
+        open my $fh, q{<}, $locator;
+        $document = <$fh>;
+        close $fh;
+    }
+} ## end GET_DOCUMENT:
+
+sub post_process {
+    my ($value) = @_;
+    my @text_pieces = ();
+    DATUM: for my $line_data ( @{ $value->[0] } ) {
+        my ( $type, $indent ) = @{$line_data};
+        if ( $type eq 'text' ) {
+            my $text = $line_data->[2];
+            my $has_trailing_ws = $text =~ s/ \s+ \z//xms;
+            if ( $text =~ s/ \A \s+ //xms ) {
+                push @text_pieces, [ 'whitespace', $indent ];
+            }
+            my @lines = grep { $_ =~ /\S/xms } split /\n/xms, $text;
+            for my $line_no ( 0 .. $#lines ) {
+                my $line = $lines[$line_no];
+                $line =~ s/\A[ \t]+//xms;
+                $line =~ s/[ \t]+\z//xms;
+                $line =~ s/[ \t]+/ /xms;
+                push @text_pieces, [ 'whitespace', $indent ] if $line_no;
+                push @text_pieces, [ 'text', $indent, $line ];
+            } ## end for my $line_no ( 0 .. $#lines )
+            push @text_pieces, [ 'whitespace', $indent ] if $has_trailing_ws;
+            next DATUM;
+        } ## end if ( $type eq 'text' )
+        if ( $type eq 'msg: missing start tag' ) {
+            my $location = $line_data->[2];
+            my $tagname  = $line_data->[3];
+            given ($location) {
+                when ('preceeding') {
+                    push @text_pieces,
+                        [
+                        'html_fmt comment',
+                        $indent + 1,
+                        'Preceeding start tag is replacement for a missing one'
+                        ];
+                } ## end when ('preceeding')
+                when ('following pre') {
+                    push @text_pieces,
+                        [
+                        'html_fmt comment', $indent,
+                        "Inside following <pre>, a start tag is missing: <$tagname>"
+                        ];
+                } ## end when ('following pre')
+                default {
+                    Carp::croak(
+                        "Internal error: unprovided-for missing start tag location: $_"
+                    );
+                }
+            } ## end given
+            next DATUM;
+        } ## end if ( $type eq 'msg: missing start tag' )
+        if ( $type eq 'msg: missing end tag' ) {
+            my $location = $line_data->[2];
+            my $tagname  = $line_data->[3];
+            given ($location) {
+                when ('following') {
+                    push @text_pieces,
+                        [
+                        'html_fmt comment',
+                        $indent + 1,
+                        'Following end tag is replacement for a missing one'
+                        ];
+                } ## end when ('following')
+                when ('following pre') {
+                    push @text_pieces,
+                        [
+                        'html_fmt comment', $indent,
+                        "Inside following <pre>, an end tag is missing: <$tagname>"
+                        ];
+                } ## end when ('following pre')
+                default {
+                    Carp::croak(
+                        "Internal error: unprovided-for missing end tag location: $_"
+                    );
+                }
+            } ## end given
+            next DATUM;
+        } ## end if ( $type eq 'msg: missing end tag' )
+        if ( $type eq 'msg: cruft' ) {
+            my $location = $line_data->[2];
+            my $cruft    = $line_data->[3];
+            given ($location) {
+                when ('following') {
+                    push @text_pieces,
+                        [ 'html_fmt comment', $indent, 'Next line is cruft' ];
+                }
+                when ('following pre') {
+
+                    # Make sure the cruft quoted inside
+                    # the HTML comment does not
+                    # disrupt the comment.
+                    ( my $safe_cruft = $cruft ) =~ s/--/- -/xms;
+                    push @text_pieces,
+                        [
+                        'html_fmt comment', $indent,
+                        qq{Inside the following <pre>, there is this cruft:\n$safe_cruft}
+                        ];
+                } ## end when ('following pre')
+                default {
+                    Carp::croak(
+                        "Internal error: unprovided-for cruft location: $_");
+                }
+            } ## end given
+            next DATUM;
+        } ## end if ( $type eq 'msg: cruft' )
+        push @text_pieces, [ $type, $indent, $line_data->[2] ];
+    } ## end DATUM: for my $line_data ( @{ $value->[0] } )
+    my @ws_unsafe;
+    $ws_unsafe[scalar @text_pieces] = 0; # size the array
+    $ws_unsafe[0] = 0;
+    my $last_non_comment_ix = scalar @text_pieces;
+    my $safe_after_piece = 0;
+    my $first_body_tag;
+    my $last_body_tag;
+    TEXT_PIECE: for my $text_piece_ix ( 0 .. $#text_pieces ) {
+        my ( $type, $indent, $text ) = @{ $text_pieces[$text_piece_ix] };
+        my $safe_before_piece = 0;
+        WHITESPACE_BY_TYPE: {
+
+            # If a comment, after-piece is whatever current value
+            # of $safe_after_piece,
+            # leave before as-is
+            last WHITESPACE_BY_TYPE if $type eq 'html_fmt comment';
+            last WHITESPACE_BY_TYPE if $type eq 'comment';
+            if ( $type eq 'whitespace' ) {
+
+                # Safe before and after other whitespace
+                $safe_before_piece = $safe_after_piece = 1;
+                last WHITESPACE_BY_TYPE;
+            } ## end if ( $type eq 'whitespace' )
+            if ( $type eq 'end tag' ) {
+
+		if ( $text =~ /\A [^[:alnum:]]+ body [^[:alnum:]]+ \z /xmsi) {
+		    $last_body_tag = $text_piece_ix;
+		}
+
+                # Unsafe after an end tag, but safe before it
+                $safe_before_piece = $ws_ok_before_end_tag_flag;
+                $safe_after_piece  = 0;
+                last WHITESPACE_BY_TYPE;
+            } ## end if ( $type eq 'end tag' )
+            if ( $type eq 'start tag' ) {
+
+		if ( not defined $first_body_tag and
+		$text =~ /\A [^[:alnum:]]+ body [^[:alnum:]]+ \z /xmsi) {
+		    $first_body_tag = $text_piece_ix;
+		}
+
+                # Leave safe status as-is before start tag
+                # Whitespace safe after a start tag
+                $safe_after_piece = 1;
+                last WHITESPACE_BY_TYPE;
+            } ## end if ( $type eq 'start tag' )
+            if ( $type eq 'text' ) {
+
+                # Leave safe status as-is before text
+                # Whitespace not safe after a start tag
+                $safe_after_piece = 0;
+                last WHITESPACE_BY_TYPE;
+            } ## end if ( $type eq 'text' )
+                # Blocks can occur inline, etc.
+                # So with everything else, be conservative.
+                # Whitespace is unsafe after, and left as-is before.
+            $safe_after_piece = 0;
+        } ## end WHITESPACE_BY_TYPE:
+        $ws_unsafe[ $text_piece_ix + 1 ] = $safe_after_piece ? 0 : 1;
+        if ($safe_before_piece) {
+            for my $ix ( $last_non_comment_ix + 1 .. $text_piece_ix ) {
+                $ws_unsafe[$ix] = 0;
+            }
+        }
+	if ( $type ne 'comment' and $type ne 'html_fmt comment' ) {
+	    $last_non_comment_ix = $text_piece_ix;
+	}
+    } ## end TEXT_PIECE: for my $text_piece_ix ( 0 .. $#text_pieces )
+
+    # Whitespace safe before the body
+    $first_body_tag //= -1;
+    for (
+        my $text_piece_ix = 0;
+        $text_piece_ix <= $first_body_tag;
+        $text_piece_ix++
+        )
+    {
+        $ws_unsafe[$text_piece_ix] = 0;
+    } ## end for ( my $text_piece_ix = 0; $text_piece_ix <= $first_body_tag...)
+
+    # Whitespace safe after the body,
+    # or at least at the EOF if no end tag
+    $last_body_tag //= $#text_pieces;
+    for (
+        my $text_piece_ix = scalar @text_pieces;
+        $text_piece_ix > $last_body_tag;
+        $text_piece_ix--
+        )
+    {
+        $ws_unsafe[$text_piece_ix] = 0;
+    } ## end for ( my $text_piece_ix = scalar @text_pieces; $text_piece_ix...)
+
+    my @output = ();
+    CREATE_OUTPUT: {
+        if ( $avoid_whitespace_flag eq 'comment' ) {
+            TEXT_PIECE: for my $text_piece_ix ( 0 .. $#text_pieces ) {
+                my ( $type, $indent, $text ) =
+                    @{ $text_pieces[$text_piece_ix] };
+                next TEXT_PIECE if $type eq 'whitespace';
+                my $suffix = $ws_unsafe[ $text_piece_ix + 1 ] ? '<!--' : q{};
+                my $indentation = q{  } x $indent;
+                if ( $type eq 'html_fmt comment' ) {
+                    push @output,
+                          $indentation
+                        . '  html_fmt: '
+                        . $text . ' -->'
+                        . $suffix;
+                    next TEXT_PIECE;
+                } ## end if ( $type eq 'html_fmt comment' )
+                if ( $ws_unsafe[$text_piece_ix] ) {
+                    $indentation =
+                          $indentation
+                        . '  html_fmt: this comment is to avoid introducing whitespace'
+                        . "\n"
+                        . $indentation . '-->';
+                } ## end if ( $ws_unsafe[$text_piece_ix] )
+                if ( $type eq 'text' and $text =~ /\S/xms ) {
+                    push @output, $indentation . $text . $suffix;
+                    next TEXT_PIECE;
+                }
+                push @output, $indentation . $text . $suffix;
+            } ## end TEXT_PIECE: for my $text_piece_ix ( 0 .. $#text_pieces )
+            last CREATE_OUTPUT;
+        } ## end if ( $avoid_whitespace_flag eq 'comment' )
+        if ( $avoid_whitespace_flag eq 'yes' ) {
+            TEXT_PIECE: for my $text_piece_ix ( 0 .. $#text_pieces ) {
+                my ( $type, $indent, $text ) =
+                    @{ $text_pieces[$text_piece_ix] };
+                next TEXT_PIECE if $type eq 'whitespace';
+                if ( $ws_unsafe[$text_piece_ix] ) {
+		    my $indentation = q{  } x ($indent);
+                    if ( $type eq 'html_fmt comment' ) {
+                        $text = qq{<!--\n}
+			  . $indentation . '    html_fmt: ' . $text . "\n"
+			  . $indentation . '  -->';
+                    }
+                    $output[-1] .= $text;
+                    next TEXT_PIECE;
+                } ## end if ( $ws_unsafe[$text_piece_ix] )
+                my $indentation = q{  } x $indent;
+                if ( $type eq 'text' and $text =~ /\S/xms ) {
+                    push @output, $indentation . $text;
+                    next TEXT_PIECE;
+                }
+                if ( $type eq 'html_fmt comment' ) {
+                    push @output,
+                          $indentation
+                        . '<!-- html_fmt: '
+                        . $text . ' -->';
+                    next TEXT_PIECE;
+                } ## end if ( $type eq 'html_fmt comment' )
+                push @output, $indentation . $text;
+            } ## end TEXT_PIECE: for my $text_piece_ix ( 0 .. $#text_pieces )
+            last CREATE_OUTPUT;
+	}
+    } ## end CREATE_OUTPUT:
+    return join "\n", @output, q{};
+} ## end sub post_process
+
+sub do_pre {
+    my @new_line_data      = ();
+    CHILD:
+    for my $value ( @{ Marpa::R2::HTML::values() } ) {
+        for my $line_data ( @{$value} ) {
+            if ( $line_data->[0] =~ /\A msg [:] /xms ) {
+                push @new_line_data,
+                    [
+                    $line_data->[0], 0,
+                    'following pre',
+                    @{$line_data}[ 3 .. $#{$line_data} ]
+                    ];
+            } ## end if ( $line_data->[0] =~ /^msg:/ )
+        } ## end for my $line_data ( @{$value} )
+    } ## end CHILD: for my $value ( @{ Marpa::R2::HTML::values() } )
+    my $original = Marpa::R2::HTML::original();
+    push @new_line_data, [ 'pre', 0, $original ];
+    return \@new_line_data;
+} ## end sub do_pre
+
+sub do_cruft {
+    my $literal = Marpa::R2::HTML::literal();
+    my @new_line_data = ( [ 'msg: cruft', 0, 'following', $literal ] );
+    push @new_line_data, [ 'cruft', 0, $literal ];
+    return \@new_line_data;
+} ## end sub do_cruft
+
+sub do_comment {
+    my $literal = Marpa::R2::HTML::literal();
+    return [ [ 'comment', 0, $literal ] ];
 }
 
-my $html_args = {
-    'pre' => sub {
-        my @new_line_data      = ();
-        my @following_comments = ();
-        CHILD:
-        for my $descendant_data ( @{ Marpa::R2::HTML::descendants('value') } ) {
-            next CHILD if not defined( my $value = $descendant_data->[0] );
-            for my $line_data ( @{$value} ) {
-                given ( $line_data->[0] ) {    # depending on the type
-                    when (
-                        [ 'cruft', 'missing start tag', 'missing end tag' ] )
-                    {
-                        push @new_line_data,
-                            [
-                            $_, 0,
-                            'following pre',
-                            @{$line_data}[ 3 .. $#{$line_data} ]
-                            ];
-                    } ## end when ( [ 'cruft', 'missing start tag', ...])
-                } ## end given
-            } ## end for my $line_data ( @{$value} )
-        } ## end for my $descendant_data ( @{ Marpa::R2::HTML::descendants('value'...)})
-        my $original = Marpa::R2::HTML::original();
-        push @new_line_data, [ 'line', 0, $original ];
-        push @new_line_data, @following_comments;
-        return \@new_line_data;
-    },
-    ':CRUFT' => sub {
-        my $literal = Marpa::R2::HTML::literal();
-        my @new_line_data = ( [ 'cruft', 0, 'following', $literal ] );
-        $literal =~ s/^\s+//gxms;
-        $literal =~ s/\s+$//gxms;
-        $literal =~ s/\s+/ /gxms;
-        push @new_line_data, [ 'line', 0, $literal ];
-        return \@new_line_data;
-    },
-    q{*} => sub {
-        my $tagname       = Marpa::R2::HTML::tagname();
-        my @new_line_data = ();
-        my @descendant_data =
-            @{ Marpa::R2::HTML::descendants('token_type,value,original') };
-        my $first_child         = $descendant_data[0];
-        my $first_content_child = 0;
+sub do_default {
+    my $tagname       = Marpa::R2::HTML::tagname();
+    my @new_line_data = ();
+    my @descendant_data =
+        @{ Marpa::R2::HTML::descendants('token_type,value,original') };
+    my $first_child         = $descendant_data[0];
+    my $first_content_child = 0;
 
+    {
+        ## no critic(Variables::ProhibitPackageVars)
+        my $tag_type =
+            $HTML::Tagset::emptyElement{$tagname}
+            ? 'empty element'
+            : 'start tag';
+        ##use critic
         if ( defined $first_child->[0] and $first_child->[0] eq 'S' ) {
-            push @new_line_data, [ 'line', 0, $first_child->[2] ];
+            push @new_line_data, [ $tag_type, 0, $first_child->[2] ];
             $first_content_child = 1;
         }
         else {
+            push @new_line_data, [ $tag_type, 0, '<' . $tagname . '>' ];
             push @new_line_data,
-                [ 'missing start tag', 0, 'following', $tagname ];
+                [ 'msg: missing start tag', 0, 'preceeding', $tagname ];
         }
+    }
 
-        my $last_child         = $descendant_data[-1];
-        my $last_content_child = $#descendant_data;
-        my $end_tag_child;
-        if ( defined $last_child->[0] and $last_child->[0] eq 'E' ) {
-            $end_tag_child = $last_child;
-            $last_content_child -= 1;
+    my $last_child         = $descendant_data[-1];
+    my $last_content_child = $#descendant_data;
+    my $end_tag_child;
+    if ( defined $last_child->[0] and $last_child->[0] eq 'E' ) {
+        $end_tag_child = $last_child;
+        $last_content_child -= 1;
+    }
+
+    CHILD:
+    for my $descendant_data_ix ( $first_content_child .. $last_content_child )
+    {
+        my ( $token_type, $value, $original ) =
+            @{ $descendant_data[$descendant_data_ix] };
+        if ( defined $value ) {
+            for my $line_data ( @{$value} ) {
+                my ( $type, $indent, @data ) = @{$line_data};
+                push @new_line_data, [ $type, $indent + 1, @data ];
+            }
+            next CHILD;
+        } ## end if ( defined $value )
+        push @new_line_data, [ 'text', 1, $original ];
+    } ## end CHILD: for my $descendant_data_ix ( $first_content_child .. ...)
+
+    END_TAG_PROCESSING: {
+        my $tag_type = 'end tag';
+        if ( defined $end_tag_child ) {
+            push @new_line_data, [ $tag_type, 0, $end_tag_child->[2] ];
+            last END_TAG_PROCESSING;
         }
+        ## no critic(Variables::ProhibitPackageVars)
+        last END_TAG_PROCESSING if $HTML::Tagset::emptyElement{$tagname};
+        ## use critic
+        push @new_line_data,
+            [ 'msg: missing end tag', 0, 'following', $tagname ];
+        push @new_line_data, [ $tag_type, 0, '</' . $tagname . '>' ];
+    } ## end END_TAG_PROCESSING:
 
-        CHILD:
-        for my $descendant_data_ix ( $first_content_child .. $last_content_child )
-        {
-            my ( $token_type, $value, $original ) =
-                @{ $descendant_data[$descendant_data_ix] };
-            if ( defined $value ) {
-                for my $line_data ( @{$value} ) {
-                    my ( $type, $indent, @data ) = @{$line_data};
-                    push @new_line_data, [ $type, $indent + 1, @data ];
-                }
-                next CHILD;
-            } ## end if ( defined $value )
-            for my $line ( split /\n/xms, $original ) {
-                $line =~ s/^\s+//gxms;
-                $line =~ s/\s+$//gxms;
-                $line =~ s/\s+/ /gxms;
-                push @new_line_data, [ 'line', 1, $line ];
-            } ## end for my $line ( split /\n/xms, $original )
-        } ## end for my $descendant_data_ix ( $first_content_child .. ...)
+    return \@new_line_data;
+} ## end sub do_default
 
-        given (1) {
-            when ( defined $end_tag_child ) {
-                push @new_line_data, [ 'line', 0, $end_tag_child->[2] ];
-            }
-            when ( not $HTML::Tagset::emptyElement{$tagname} ) {
-                push @new_line_data,
-                    [ 'missing end tag', 0, 'preceding', $tagname ];
-            }
-        } ## end given
-
-        return \@new_line_data;
+my $html_args = {
+    'script' => sub {
+        return [ [ 'script', 0, Marpa::R2::HTML::original() ] ];
     },
-    ':TOP' => sub {
-        my $result = q{};
-        CHILD:
-        for my $descendant_data (
-            @{ Marpa::R2::HTML::descendants('value,original') } )
-        {
-            my ( $value, $original ) = @{$descendant_data};
-            if ( defined $value ) {
-                LINE: for my $line_data ( @{$value} ) {
-                    my $type        = shift @{$line_data};
-                    my $indent      = shift @{$line_data};
-                    my $line_prefix = q{  } x $indent;
-                    if ( $type eq 'line' ) {
-                        my ($line) = @{$line_data};
-                        next LINE if $line =~ /^\s*$/;
-                        $result .= "$line_prefix$line\n";
-                        next LINE;
-                    } ## end if ( $type eq 'line' )
-                    if ( $type eq 'missing start tag' ) {
-                        my ( $location, $tagname ) = @{$line_data};
-                        given ($location) {
-                            when ('following') {
-                                $result
-                                    .= $line_prefix
-                                    . qq{<!-- Following start tag is replacement for a missing one -->\n}
-                                    . $line_prefix
-                                    . "<$tagname>\n";
-                            } ## end when ('following')
-                            when ('following pre') {
-                                $result .= $line_prefix
-                                    . qq{<!-- Inside following <pre>, a start tag is missing: <$tagname> -->\n};
-                            }
-                            default {
-                                Carp::croak(
-                                    "Internal error: unprovided-for missing start tag location: $_"
-                                );
-                            }
-                        } ## end given
-                        next LINE;
-                    } ## end if ( $type eq 'missing start tag' )
-                    if ( $type eq 'missing end tag' ) {
-                        my ( $location, $tagname ) = @{$line_data};
-                        given ($location) {
-                            when ('preceding') {
-                                $result
-                                    .= "$line_prefix</$tagname>\n"
-                                    . $line_prefix
-                                    . qq{<!-- Preceding end tag is replacement for a missing one -->\n};
-                            } ## end when ('preceding')
-                            when ('following pre') {
-                                $result .= $line_prefix
-                                    . qq{<!-- Inside following <pre>, an end tag is missing: <$tagname> -->\n};
-                            }
-                            default {
-                                Carp::croak(
-                                    "Internal error: unprovided-for missing end tag location: $_"
-                                );
-                            }
-                        } ## end given
-                        next LINE;
-                    } ## end if ( $type eq 'missing end tag' )
-                    if ( $type eq 'cruft' ) {
-                        my ( $location, $cruft ) = @{$line_data};
-                        given ($location) {
-                            when ('following') {
-                                $result
-                                    .= "$line_prefix<!-- Next line is cruft -->\n";
-                            }
-                            when ('following pre') {
-
-                                # Make sure the cruft quoted inside
-                                # the HTML comment does not
-                                # disrupt the comment.
-                                ( my $safe_cruft = $cruft ) =~ s/--/- -/xms;
-                                $safe_cruft =~ s/^/  $line_prefix/gxms;
-                                $result
-                                    .= qq{$line_prefix<!-- Inside the following <pre>, there is this cruft:\n}
-                                    . qq{$safe_cruft\n}
-                                    . qq{$line_prefix-->\n};
-                            } ## end when ('following pre')
-                            default {
-                                Carp::croak(
-                                    "Internal error: unprovided-for cruft location: $_"
-                                );
-                            }
-                        } ## end given
-                        next LINE;
-                    } ## end if ( $type eq 'cruft' )
-                    Carp::croak(
-                        qq{Internal error: unknown line data type: "$type"});
-                } ## end for my $line_data ( @{$value} )
-                next CHILD;
-            } ## end if ( defined $value )
-            LINE: for my $line ( split /\n/xms, $original ) {
-                next LINE if $line =~ /^\s*$/;
-                $line =~ s/^\s+//gxms;
-                $line =~ s/\s+$//gxms;
-                $line =~ s/\s+/ /gxms;
-                $result .= "$line\n";
-            } ## end for my $line ( split /\n/xms, $original )
-        } ## end for my $descendant_data ( @{ Marpa::R2::HTML::descendant_data(...)})
-        return $result;
-    },
+    ':CRUFT'   => \&do_cruft,
+    ':COMMENT' => \&do_comment,
+    'pre'      => \&do_pre,
+    q{*}       => \&do_default,
+    ':TOP'     => sub { return Marpa::R2::HTML::values(); }
 };
 
-print Marpa::R2::HTML::html( \$document, $html_args );
+my $value_ref = Marpa::R2::HTML::html( \$document, $html_args );
+die 'Internal error: no parse' if not defined $value_ref;
+require Data::Dumper;
+print post_process($value_ref) or die "print failed: $ERRNO";
 
 exit 0;
 
@@ -243,133 +456,203 @@ __END__
 
 =head1 NAME
 
-C<html_fmt> - Reformat HTML, indented according to structure
+  html_fmt - Reformat HTML, indented according to structure
 
-=head1 SYNOPSIS
+=head1 Synopsis
 
-    html_fmt [uri|file]
+    html_fmt [--avoid-whitespace=[yes|comment]]
+      [--ws-ok-before-end-tag|--no-ws-ok-before-end-tag] [uri|file]
 
-=head1 EXAMPLE
+=head1 Description
 
-    html_fmt http://perl.org
-
-=head1 DESCRIPTION
-
-Given the URI or the name of a file,
-writes it to C<STDOUT>
+Writes its input to C<STDOUT>,
 reformatted and
 indented according to the HTML structure.
-Missing start and end tags are supplied and
-comments added to indicate this.
-Text inside
-C<< <pre> >> elements 
-is not altered.
+With no arguments,
+C<html_fmt> looks for its input
+on C<STDIN>.
+If it has an argument that looks like a URI,
+C<html_fmt> treats that argument
+as a URI.
+If it has an argument that does not
+look like a URI,
+C<html_fmt> uses that argument
+as the name
+of its input file.
+C<html_fmt> considers its argument to
+"look like a URI",
+if it
+starts with alphanumerics followed by a colon.
 
-L<html_fmt> tries to parse everything that is actually out there on the Web.
-In fact,
-L<html_fmt> will assume any file fed to it was intended as HTML,
-and will produce its best guess of the author's intent.
+When reformatting and indenting,
+C<html_fmt> takes measures
+to avoid introducing
+whitespace that will affect the way in which the HTML
+displays.
+The standards differ on whitespace treatment;
+when the standards agree
+they often allow considerable
+latitude to the browsers;
+and specific implementions will
+exploit the allowed latitude in different ways,
+or exceed it.
+All of which is to say that
+C<html_fmt>'s attempts to avoid introducing
+whitespace are not always successful.
 
-L<html_fmt> supplies missing start and end tags.
-L<html_fmt>'s parser is extremely liberal in what it accepts.
-When its liberalization of the standards is not sufficient to make
-a document into valid HTML,
-L<html_fmt>
-will pick characters to treat as noise or "cruft".
-The parser ignores cruft in determining
+C<html_fmt> supplies missing start and end tags.
+If C<html_fmt> cannot find required start and end tags,
+it supplies them.
+C<html_fmt>'s grammar is very liberal in its interpretation
+of what is valid HTML.
+Finally, if this is not sufficient to turn the input
+into valid HTML,
+C<html_fmt>
+will treat problem sections of the input
+as noise or "cruft",
+ignoring them in determining
 the structure of the document.
+C<html_fmt> never rejects its input,
+whatever its contents.
 
 When
-L<html_fmt> adds
+C<html_fmt> adds
 a missing start tag,
-it precedes the new start tag with a comment.
+it follows the new start tag with a comment.
 When
-L<html_fmt> adds
+C<html_fmt> adds
 a missing end tag,
-it follows the new end tag with a comment.
-When L<html_fmt> classifies characters
+it preceeds the new end tag with a comment.
+When C<html_fmt> classifies characters
 as "cruft",
 it adds a comment to that effect before the "cruft".
 
-C<pre> elements receive special treatment.
-The contents of 
-C<pre> elements are not reformatted.
+C<pre> and C<script>
+elements receive special treatment.
+The contents of
+C<pre> and C<script> elements are not reformatted.
 When missing tags or cruft occur inside a C<pre> element,
-the comments to that effect are placed 
+the comments to that effect are placed
 before the C<< <pre> >> start tag.
+The contents of C<script> elements are not
+examined.
 
-The argument to L<html_score> can be either as a URI or a file
-name.  If it starts with alphanumerics followed by a colon, it is treated
-as a URI.  Otherwise it is treated as file name.
+=head1 Options
 
-=head1 SAMPLE OUTPUT
+No single set of reformatting choices is anywhere
+near adequate to the variety of standards,
+renderers and application requirements out there.
+Ideally,
+C<html_fmt> would have many options customizing its behavior.
+As of this writing, there are only two.
+
+=head2 avoid-whitespace
+
+The C<--avoid-whitespace> option
+may take one of two values:
+C<yes> and C<comment>.
+If the value is C<yes>,
+C<html_fmt> does not try to add indentation
+in whitespace-sensitive places.
+This avoids clutter but,
+because of the missed indentation,
+the structure of the 
+document becomes harder to follow.
+C<yes> is the default value.
+
+If the value is C<comment>,
+HTML (SGML) comments are used to achieve proper
+indentation without introducing whitespace.
+This works, but does get a bit cluttered.
+
+=head2 ws-ok-before-end-tag
+
+The C<--ws-ok-before-end-tag> option is a Boolean.
+If set, C<html_fmt> will add whitespace before an end tag when
+that is useful.
+If the SGML standards
+are adhered to, the added whitespace will not
+be rendered.
+However, the HTML standards, while they allow SGML-adherent behavior
+for whitespace before end tags,
+do not require it.
+In practice,
+many browsers will render whitespace found before
+end tags.
+
+If C<--ws-ok-before-end-tag> is false,
+C<html_fmt> will not add whitespace before
+end tags.
+C<--ws-ok-before-end-tag> is false by default.
+This is always safe,
+in the sense that it will not change
+what is there to be rendered.
+But it limits the ability of
+C<html_fmt> to make its output readable.
+
+=head1 Example
 
 Given this input:
 
     <title>Test page<tr>x<head attr="I am cruft"><p>Final graf
 
-L<html_fmt> returns
+to this command:
 
-    <!-- Following start tag is replacement for a missing one -->
-    <html>
-      <!-- Following start tag is replacement for a missing one -->
-      <head>
-        <title>
-          Test page
-        </title>
-        <!-- Preceding end tag is replacement for a missing one -->
-      </head>
-      <!-- Preceding end tag is replacement for a missing one -->
-      <!-- Following start tag is replacement for a missing one -->
-      <body>
-        <!-- Following start tag is replacement for a missing one -->
-        <table>
-          <!-- Following start tag is replacement for a missing one -->
-          <tbody>
-            <tr>
-              <!-- Following start tag is replacement for a missing one -->
-              <td>
-                x
-                <!-- Next line is cruft -->
-                <head attr="I am cruft">
-                <p>
-                  Final graf
-                </p>
-                <!-- Preceding end tag is replacement for a missing one -->
-              </td>
-              <!-- Preceding end tag is replacement for a missing one -->
-            </tr>
-            <!-- Preceding end tag is replacement for a missing one -->
-          </tbody>
-          <!-- Preceding end tag is replacement for a missing one -->
-        </table>
-        <!-- Preceding end tag is replacement for a missing one -->
-      </body>
-      <!-- Preceding end tag is replacement for a missing one -->
-    </html>
-    <!-- Preceding end tag is replacement for a missing one -->
+    html_fmt --avoid-whitespace=comment --ws-ok-before-end-tag
 
-=head1 PURPOSE
+the output is
 
-This program is a demo of a demo.
-It purpose is to show how easy it is to write applications which look
-at the structure of web pages using L<Marpa::R2::HTML>.
-And the purpose of L<Marpa::R2::HTML>
-is to demonstrate the power of its parse engine,
-L<Marpa>.
-L<Marpa::R2::HTML> was written in a few days,
-and its logic 
-is a straightforward,
-natural expression of the structure of HTML.
+  <html>
+    <!-- html_fmt: Preceeding start tag is replacement for a missing one -->
+    <head>
+      <!-- html_fmt: Preceeding start tag is replacement for a missing one -->
+      <title>
+	Test page
+	<!-- html_fmt: Following end tag is replacement for a missing one -->
+      </title>
+      <!-- html_fmt: Following end tag is replacement for a missing one -->
+    </head><!--
+      html_fmt: this comment is to avoid introducing whitespace
+    --><body>
+      <!-- html_fmt: Preceeding start tag is replacement for a missing one -->
+      <table>
+	<!-- html_fmt: Preceeding start tag is replacement for a missing one -->
+	<tbody>
+	  <!-- html_fmt: Preceeding start tag is replacement for a missing one -->
+	  <tr>
+	    <td>
+	      <!-- html_fmt: Preceeding start tag is replacement for a missing one -->
+	      x<!--
+		html_fmt: this comment is to avoid introducing whitespace
+	      --><!-- html_fmt: Next line is cruft --><!--
+		html_fmt: this comment is to avoid introducing whitespace
+	      --><head attr="I am cruft"><!--
+		html_fmt: this comment is to avoid introducing whitespace
+	      --><p>
+		Final graf
+		<!-- html_fmt: Following end tag is replacement for a missing one -->
+	      </p>
+	      <!-- html_fmt: Following end tag is replacement for a missing one -->
+	    </td>
+	    <!-- html_fmt: Following end tag is replacement for a missing one -->
+	  </tr>
+	  <!-- html_fmt: Following end tag is replacement for a missing one -->
+	</tbody>
+	<!-- html_fmt: Following end tag is replacement for a missing one -->
+      </table>
+      <!-- html_fmt: Following end tag is replacement for a missing one -->
+    </body>
+    <!-- html_fmt: Following end tag is replacement for a missing one -->
+  </html>
 
-=head1 ACKNOWLEDGEMENTS
+=head1 Acknowledgements
 
 The starting template for this code was
-L<HTML::TokeParser>, by Gisle Aas.
+L<HTML::TokeParser|HTML::TokeParser>, by Gisle Aas.
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright 2007-2010 Jeffrey Kegler, all rights reserved.
+Copyright 2007-2012 Jeffrey Kegler, all rights reserved.
 Marpa is free software under the Perl license.
 For details see the LICENSE file in the Marpa distribution.
 

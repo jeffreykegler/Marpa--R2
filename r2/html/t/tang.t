@@ -34,7 +34,7 @@ BEGIN {
     } ## end if ( !$eval_result )
 } ## end BEGIN
 
-BEGIN { Marpa::R2::HTML::Test::Util::load_or_skip_all('HTML::PullParser'); }
+BEGIN { Marpa::R2::HTML::Test::Util::load_or_skip_all('HTML::Parser'); }
 
 
 BEGIN { Test::More::plan tests => 1; }
@@ -65,7 +65,7 @@ my $no_tang_document;
 
 my $value = Marpa::R2::HTML::html(
     \$document,
-    {   '.ktang' => sub { return q{}; }
+    {   '.kTang' => sub { return q{}; }
     }
 );
 

@@ -108,7 +108,11 @@ my $length_by_element = $instance->{length};
 my $count_by_element = $instance->{count};
 my $html_length = $length_by_element->{html};
 my $total_lengths = List::Util::sum values %{ $length_by_element };
-my $complexity = sprintf "%.3f", ($total_lengths / ($html_length * log ($html_length)));
+my $complexity = 0;
+if ( $html_length >= 1 ) {
+    $complexity = sprintf "%.3f",
+        ( $total_lengths / ( $html_length * log($html_length) ) );
+}
 my $max_depths = $value->{depths};
 my $max_element_depth = $max_depths->{ANY};
 delete $max_depths->{ANY};
