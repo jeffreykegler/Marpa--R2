@@ -53,7 +53,6 @@ trailer ::= FLO_SGML
 ELE_html ::= S_html Contents_html E_html
 Contents_html ::= FLO_SGML ELE_head FLO_SGML ELE_body FLO_SGML
 ELE_head ::= S_head FLO_head E_head
-ELE_body ::= S_body FLO_block E_body
 
 # FLO_empty, FLO_cdata and ITEM_cdata 
 # do NOT allow SGML items as part of

@@ -25,6 +25,7 @@ use English qw( -no_match_vars );
 
 # Alphabetically, by tagname
 our $CONFIGURATION_BNF = <<'END_OF_CONFIG_BNF';
+ELE_body is FLO_block
 ELE_a is a FLO_inline included in GRP_inline
 ELE_abbr is a FLO_inline included in GRP_inline
 ELE_acronym is a FLO_inline included in GRP_inline

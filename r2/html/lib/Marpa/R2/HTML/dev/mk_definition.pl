@@ -72,7 +72,6 @@ my %symbol_included = ();
             my $lhs = shift @symbols;
 	    @{$symbol_defined{$lhs} } = ('BNF');
 	    for my $symbol (@symbols) {
-	      @{$symbol_defined{$symbol} } = ('BNF');
 	      $symbol_included{$symbol} = 1;
 	    }
 
@@ -341,7 +340,10 @@ $output .= "\n\n";
     my %required_tags = map { ( substr $_, 2 ) => 1 } @ruby_start_tags;
     TAG: for my $tag ( keys %required_tags ) {
         next TAG if $defined_in_core_rules{$tag};
-        my ( $group, $flow ) = @{ $tag_descriptor{$tag} };
+        my $descriptor = $tag_descriptor{$tag};
+	die qq{Required element "ELE_$tag" was never defined}
+	   if not defined $descriptor;
+        my ( $group, $flow ) = @{$descriptor};
         my $element = 'ELE_' . $tag;
         push @core_rules,
             {
