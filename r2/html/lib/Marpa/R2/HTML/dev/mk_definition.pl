@@ -56,6 +56,7 @@ my %element_containments = ();
 my %flow_containments = ();
 my %symbol_defined = ();
 my %symbol_included = ();
+my %core_symbol = ();
 
 {
     LINE: for my $line ( split /\n/xms, $HTML_Core::CORE_BNF ) {
@@ -71,8 +72,10 @@ my %symbol_included = ();
             my @symbols = ( split q{ }, $definition );
             my $lhs = shift @symbols;
 	    @{$symbol_defined{$lhs} } = ('BNF');
+	    $core_symbol{$lhs} = 1;
 	    for my $symbol (@symbols) {
 	      $symbol_included{$symbol} = 1;
+	      $core_symbol{$symbol} = 1;
 	    }
 
             my %rule_descriptor = (
@@ -104,8 +107,6 @@ my %symbol_included = ();
             join " ", @species_not_defined;
     }
 }
-
-my %core_symbol = %symbol_included;
 
 LINE: for my $line ( split /\n/xms, $HTML_Configuration::CONFIGURATION_BNF ) {
     my $definition = $line;
@@ -325,13 +326,16 @@ $output .= "\n\n";
         map { $_->{lhs}, $_->{rhs} }
         grep { ( substr $_->{lhs}, 0, 4 ) eq 'GRP_' } @core_rules;
     my %group_by_member = ();
+    my %members_by_group = ();
     while ( my ( $group, $contents ) = each %group_rules ) {
-        for my $member ( @{$contents} ) {
+	die "Misformed rule for group contents: $group ::= ", join " ",
+	    @{$contents} if scalar @{$contents} != 1;
+        my $member = $contents->[0];
             die qq{"$member" is a member of two groups: "$group" and "},
                 $group_by_member{$member}
                 if defined $group_by_member{$member};
             $group_by_member{$member} = $group;
-        } ## end for my $member ( @{$contents} )
+	    push @{$members_by_group{$group}}, $member;
     } ## end while ( my ( $group, $contents ) = each %group_rules )
     for my $tag (keys %tag_descriptor) {
         my $descriptor = $tag_descriptor{$tag};
@@ -340,7 +344,35 @@ $output .= "\n\n";
         die qq{"$member" is a member of two groups: "$group" and "},
             $group_by_member{$member}
             if defined $group_by_member{$member};
+	$group_by_member{$member} = $group;
+	push @{$members_by_group{$group}}, $member;
     } ## end for my $tag (%tag_descriptor)
+
+    # Now ensure item lists are non-overlapping
+    my @item_rules =
+        grep { ( substr $_->{lhs}, 0, 5 ) eq 'ITEM_' } @core_rules;
+
+    my %members_by_item_list = ();
+    for my $rule (@item_rules) {
+	my $item_list = $rule->{lhs};
+	my $rhs = $rule->{rhs};
+        die "Misformed rule for item list contents: $item_list ::= ",
+            join " ", @{$rhs}
+            if scalar @{$rhs} != 1;
+        my $raw_member =  $rhs->[0] ;
+        my @members = ( $raw_member );
+        if ( ( substr $raw_member, 0, 4 ) eq 'GRP_' ) {
+            @members = @{ $members_by_group{$raw_member} };
+        }
+
+        for my $member (@members) {
+
+            my $count = $members_by_item_list{$item_list}{$member}++;
+            if ( $count > 0 ) {
+                die qq{"$member" is in item list "$item_list" more than once};
+            }
+        } ## end for my $member (@members)
+    } ## end while ( my ( $item_list, $contents ) = each %item_rules)
 }
 
 {
