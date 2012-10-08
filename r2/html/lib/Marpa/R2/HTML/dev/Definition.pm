@@ -14,7 +14,7 @@
 # http://www.gnu.org/licenses/.
 
 # This file was generated automatically by mk_definition.pl
-# The date of generation was Sun Oct  7 17:14:31 2012
+# The date of generation was Sun Oct  7 17:28:54 2012
 
 package Marpa::R2::HTML::Internal;
 
@@ -535,12 +535,12 @@ $CORE_RULES = [
                   'lhs' => 'ELE_optgroup',
                   'rhs' => [
                              'S_optgroup',
-                             '_C_ELE_optgroup',
+                             'Contents_ELE_optgroup',
                              'E_optgroup'
                            ]
                 },
                 {
-                  'lhs' => '_C_ELE_optgroup',
+                  'lhs' => 'Contents_ELE_optgroup',
                   'min' => 0,
                   'rhs' => [
                              'ITEM_ELE_optgroup'
@@ -563,12 +563,12 @@ $CORE_RULES = [
                   'lhs' => 'ELE_table',
                   'rhs' => [
                              'S_table',
-                             '_C_ELE_table',
+                             'Contents_ELE_table',
                              'E_table'
                            ]
                 },
                 {
-                  'lhs' => '_C_ELE_table',
+                  'lhs' => 'Contents_ELE_table',
                   'min' => 0,
                   'rhs' => [
                              'ITEM_ELE_table'
@@ -621,12 +621,12 @@ $CORE_RULES = [
                   'lhs' => 'ELE_menu',
                   'rhs' => [
                              'S_menu',
-                             '_C_ELE_menu',
+                             'Contents_ELE_menu',
                              'E_menu'
                            ]
                 },
                 {
-                  'lhs' => '_C_ELE_menu',
+                  'lhs' => 'Contents_ELE_menu',
                   'min' => 0,
                   'rhs' => [
                              'ITEM_ELE_menu'
@@ -649,12 +649,12 @@ $CORE_RULES = [
                   'lhs' => 'ELE_tr',
                   'rhs' => [
                              'S_tr',
-                             '_C_ELE_tr',
+                             'Contents_ELE_tr',
                              'E_tr'
                            ]
                 },
                 {
-                  'lhs' => '_C_ELE_tr',
+                  'lhs' => 'Contents_ELE_tr',
                   'min' => 0,
                   'rhs' => [
                              'ITEM_ELE_tr'
@@ -683,12 +683,12 @@ $CORE_RULES = [
                   'lhs' => 'ELE_dl',
                   'rhs' => [
                              'S_dl',
-                             '_C_ELE_dl',
+                             'Contents_ELE_dl',
                              'E_dl'
                            ]
                 },
                 {
-                  'lhs' => '_C_ELE_dl',
+                  'lhs' => 'Contents_ELE_dl',
                   'min' => 0,
                   'rhs' => [
                              'ITEM_ELE_dl'
@@ -717,12 +717,12 @@ $CORE_RULES = [
                   'lhs' => 'ELE_applet',
                   'rhs' => [
                              'S_applet',
-                             '_C_ELE_applet',
+                             'Contents_ELE_applet',
                              'E_applet'
                            ]
                 },
                 {
-                  'lhs' => '_C_ELE_applet',
+                  'lhs' => 'Contents_ELE_applet',
                   'min' => 0,
                   'rhs' => [
                              'ITEM_ELE_applet'
@@ -751,12 +751,12 @@ $CORE_RULES = [
                   'lhs' => 'ELE_map',
                   'rhs' => [
                              'S_map',
-                             '_C_ELE_map',
+                             'Contents_ELE_map',
                              'E_map'
                            ]
                 },
                 {
-                  'lhs' => '_C_ELE_map',
+                  'lhs' => 'Contents_ELE_map',
                   'min' => 0,
                   'rhs' => [
                              'ITEM_ELE_map'
@@ -785,12 +785,12 @@ $CORE_RULES = [
                   'lhs' => 'ELE_ol',
                   'rhs' => [
                              'S_ol',
-                             '_C_ELE_ol',
+                             'Contents_ELE_ol',
                              'E_ol'
                            ]
                 },
                 {
-                  'lhs' => '_C_ELE_ol',
+                  'lhs' => 'Contents_ELE_ol',
                   'min' => 0,
                   'rhs' => [
                              'ITEM_ELE_ol'
@@ -813,12 +813,12 @@ $CORE_RULES = [
                   'lhs' => 'ELE_tbody',
                   'rhs' => [
                              'S_tbody',
-                             '_C_ELE_tbody',
+                             'Contents_ELE_tbody',
                              'E_tbody'
                            ]
                 },
                 {
-                  'lhs' => '_C_ELE_tbody',
+                  'lhs' => 'Contents_ELE_tbody',
                   'min' => 0,
                   'rhs' => [
                              'ITEM_ELE_tbody'
@@ -841,12 +841,12 @@ $CORE_RULES = [
                   'lhs' => 'ELE_ul',
                   'rhs' => [
                              'S_ul',
-                             '_C_ELE_ul',
+                             'Contents_ELE_ul',
                              'E_ul'
                            ]
                 },
                 {
-                  'lhs' => '_C_ELE_ul',
+                  'lhs' => 'Contents_ELE_ul',
                   'min' => 0,
                   'rhs' => [
                              'ITEM_ELE_ul'
@@ -869,12 +869,12 @@ $CORE_RULES = [
                   'lhs' => 'ELE_dir',
                   'rhs' => [
                              'S_dir',
-                             '_C_ELE_dir',
+                             'Contents_ELE_dir',
                              'E_dir'
                            ]
                 },
                 {
-                  'lhs' => '_C_ELE_dir',
+                  'lhs' => 'Contents_ELE_dir',
                   'min' => 0,
                   'rhs' => [
                              'ITEM_ELE_dir'
@@ -897,12 +897,12 @@ $CORE_RULES = [
                   'lhs' => 'ELE_object',
                   'rhs' => [
                              'S_object',
-                             '_C_ELE_object',
+                             'Contents_ELE_object',
                              'E_object'
                            ]
                 },
                 {
-                  'lhs' => '_C_ELE_object',
+                  'lhs' => 'Contents_ELE_object',
                   'min' => 0,
                   'rhs' => [
                              'ITEM_ELE_object'
@@ -931,12 +931,12 @@ $CORE_RULES = [
                   'lhs' => 'ELE_tfoot',
                   'rhs' => [
                              'S_tfoot',
-                             '_C_ELE_tfoot',
+                             'Contents_ELE_tfoot',
                              'E_tfoot'
                            ]
                 },
                 {
-                  'lhs' => '_C_ELE_tfoot',
+                  'lhs' => 'Contents_ELE_tfoot',
                   'min' => 0,
                   'rhs' => [
                              'ITEM_ELE_tfoot'
@@ -959,12 +959,12 @@ $CORE_RULES = [
                   'lhs' => 'ELE_colgroup',
                   'rhs' => [
                              'S_colgroup',
-                             '_C_ELE_colgroup',
+                             'Contents_ELE_colgroup',
                              'E_colgroup'
                            ]
                 },
                 {
-                  'lhs' => '_C_ELE_colgroup',
+                  'lhs' => 'Contents_ELE_colgroup',
                   'min' => 0,
                   'rhs' => [
                              'ITEM_ELE_colgroup'
@@ -987,12 +987,12 @@ $CORE_RULES = [
                   'lhs' => 'ELE_thead',
                   'rhs' => [
                              'S_thead',
-                             '_C_ELE_thead',
+                             'Contents_ELE_thead',
                              'E_thead'
                            ]
                 },
                 {
-                  'lhs' => '_C_ELE_thead',
+                  'lhs' => 'Contents_ELE_thead',
                   'min' => 0,
                   'rhs' => [
                              'ITEM_ELE_thead'
@@ -1015,12 +1015,12 @@ $CORE_RULES = [
                   'lhs' => 'ELE_select',
                   'rhs' => [
                              'S_select',
-                             '_C_ELE_select',
+                             'Contents_ELE_select',
                              'E_select'
                            ]
                 },
                 {
-                  'lhs' => '_C_ELE_select',
+                  'lhs' => 'Contents_ELE_select',
                   'min' => 0,
                   'rhs' => [
                              'ITEM_ELE_select'

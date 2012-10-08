@@ -204,7 +204,7 @@ my %sgml_flow_included = ();
 ELEMENT: for my $main_symbol ( keys %element_containments ) {
     my @contents        = @{ $element_containments{$main_symbol} };
     my $tag             = substr $main_symbol, 4;
-    my $contents_symbol = '_C_ELE_' . $tag;
+    my $contents_symbol = 'Contents_ELE_' . $tag;
     my $item_symbol     = 'ITEM_ELE_' . $tag;
     push @core_rules, {
         lhs    => $main_symbol,
