@@ -19,6 +19,20 @@ use 5.010;
 use strict;
 use warnings;
 
+sub Marpa::R2::Test::check_PPI{
+    my $PPI_problem;
+    CHECK_PPI: {
+        if ( not eval { require PPI } ) {
+            $PPI_problem = "PPI not installed: $@";
+            last CHECK_PPI;
+        }
+        if ( not PPI->VERSION(1.206) ) {
+            $PPI_problem = 'PPI 1.206 not installed';
+        }
+    } ## end CHECK_PPI:
+    return $PPI_problem;
+}
+
 use Data::Dumper;
 
 Marpa::R2::exception('Test::More not loaded')
