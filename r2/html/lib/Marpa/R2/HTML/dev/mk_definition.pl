@@ -57,13 +57,9 @@ my %flow_containments = ();
 my %element_defined = ();
 my %element_included = ();
 my %species_defined = ();
-for my $bnf_set_data (
-    [ \$HTML_Core::CORE_BNF,         1 ],
-    [ \$HTML_Configuration::CONFIGURATION_BNF, 0 ]
-    )
+
 {
-    my ( $bnf_set, $is_pure_bnf_rule_ok ) = @{$bnf_set_data};
-    LINE: for my $line ( split /\n/xms, ${$bnf_set} ) {
+    LINE: for my $line ( split /\n/xms, $HTML_Core::CORE_BNF ) {
         my $definition = $line;
         chomp $definition;
         $definition =~ s/ [#] .* //xms;    # Remove comments
@@ -71,9 +67,6 @@ for my $bnf_set_data (
             if not $definition =~ / \S /xms;    # ignore all-whitespace line
         my $sequence = ( $definition =~ s/ [*] \s* $//xms );
         if ( $definition =~ s/ \s* [:][:][=] \s* / /xms ) {
-
-            die "Pure BNF rules are not allowed in the configuration"
-                if not $is_pure_bnf_rule_ok;
 
             # Production is Ordinary BNF rule
             my @symbols = ( split q{ }, $definition );
@@ -101,77 +94,86 @@ for my $bnf_set_data (
             push @core_rules, \%rule_descriptor;
             next LINE;
         } ## end if ( $definition =~ s/ \s* [:][:][=] \s* / /xms )
-        if ($definition =~ m{
+        die "Badly formed line in grammar description: $line";
+    } ## end LINE: for my $line ( split /\n/xms, $HTML_Core::CORE_BNF )
+}
+
+LINE: for my $line ( split /\n/xms, $HTML_Configuration::CONFIGURATION_BNF ) {
+    my $definition = $line;
+    chomp $definition;
+    $definition =~ s/ [#] .* //xms;    # Remove comments
+    next LINE
+        if not $definition =~ / \S /xms;    # ignore all-whitespace line
+    if ($definition =~ m{
       \A \s* (ELE_\w+) \s+
       is \s+ included \s+ in \s+ (GRP_\w+) \s* \z}xms
-            )
-        {
-            my $element = $1;
-            my $group   = $2;
-            push @core_rules,
-                {
-                lhs => $group,
-                rhs => [$element],
-                };
-            $element_included{$element} = 1;
-            next LINE;
-        } ## end if ( $definition =~ m{ ) (})
-        if ($definition =~ m{
+        )
+    {
+        my $element = $1;
+        my $group   = $2;
+        push @core_rules,
+            {
+            lhs => $group,
+            rhs => [$element],
+            };
+        $element_included{$element} = 1;
+        next LINE;
+    } ## end if ( $definition =~ m{ ) (})
+    if ($definition =~ m{
       \A \s* ELE_(\w+) \s+
       is \s+ a \s+ (FLO_\w+) \s+
       included \s+ in \s+ (GRP_\w+) \s* \z}xms
-            )
-        {
-            my $tag      = $1;
-            my $contents = $2;
-            my $group    = $3;
-            push @{ $element_defined{ 'ELE_' . $tag } }, 'is-a-included';
-            $element_included{ 'ELE_' . $tag } = 1;
-            $tag_descriptor{$tag} = [ $group, $contents ];
-            next LINE;
-        } ## end if ( $definition =~ m{ ) (})
-        if ( $definition
-            =~ s/ \A \s* ELE_(\w+) \s+ is \s+ (FLO_\w+) \s* \z/ /xms )
-        {
-            # Production is Element with flow, but no group specified
-            my $tag = $1;
-            push @{ $element_defined{ 'ELE_' . $tag } }, 'is-a';
-            my $contents        = $2;
-            my $lhs             = 'ELE_' . $tag;
-            my %rule_descriptor = (
-                lhs    => $lhs,
-                rhs    => [ "S_$tag", $contents, "E_$tag" ],
-                action => $lhs
-            );
-            push @core_rules, \%rule_descriptor;
-            next LINE;
-        } ## end if ( $definition =~ ...)
-        if ( $definition =~ s/ \A \s* ((ELE)_\w+) \s+ contains \s+ / /xms ) {
+        )
+    {
+        my $tag      = $1;
+        my $contents = $2;
+        my $group    = $3;
+        push @{ $element_defined{ 'ELE_' . $tag } }, 'is-a-included';
+        $element_included{ 'ELE_' . $tag } = 1;
+        $tag_descriptor{$tag} = [ $group, $contents ];
+        next LINE;
+    } ## end if ( $definition =~ m{ ) (})
+    if ($definition =~ s/ \A \s* ELE_(\w+) \s+ is \s+ (FLO_\w+) \s* \z/ /xms )
+    {
+        # Production is Element with flow, but no group specified
+        my $tag = $1;
+        push @{ $element_defined{ 'ELE_' . $tag } }, 'is-a';
+        my $contents        = $2;
+        my $lhs             = 'ELE_' . $tag;
+        my %rule_descriptor = (
+            lhs    => $lhs,
+            rhs    => [ "S_$tag", $contents, "E_$tag" ],
+            action => $lhs
+        );
+        push @core_rules, \%rule_descriptor;
+        next LINE;
+    } ## end if ( $definition =~ ...)
+    if ( $definition =~ s/ \A \s* ((ELE)_\w+) \s+ contains \s+ / /xms ) {
 
-            # Production is Element with custom flow
-            my $element_symbol = $1;
-            my @contents = split q{ }, $definition;
-            push @{ $element_defined{$element_symbol} },      'contains';
-            push @{ $element_containments{$element_symbol} }, @contents;
-            for my $contained_element ( grep { ( substr $_, 0, 4 ) eq 'ELE_' }
-                @contents )
-            {
-                $element_included{$contained_element} = 1;
-            }
-            next LINE;
-        } ## end if ( $definition =~ ...)
-        if ( $definition =~ s/ \A \s* ((FLO)_\w+) \s+ contains \s+ / /xms ) {
+        # Production is Element with custom flow
+        my $element_symbol = $1;
+        my @contents = split q{ }, $definition;
+        push @{ $element_defined{$element_symbol} },      'contains';
+        push @{ $element_containments{$element_symbol} }, @contents;
+        for my $contained_element ( grep { ( substr $_, 0, 4 ) eq 'ELE_' }
+            @contents )
+        {
+            $element_included{$contained_element} = 1;
+        }
+        next LINE;
+    } ## end if ( $definition =~ ...)
+    if ( $definition =~ s/ \A \s* ((FLO)_\w+) \s+ contains \s+ / /xms ) {
 
-	    die "Not yet implemented: ", $definition;
-            # Production is Flow
-            my $flow_symbol = $1;
-            my @contents = split q{ }, $definition;
-            push @{ $flow_containments{$flow_symbol} }, @contents;
-            next LINE;
-        } ## end if ( $definition =~ ...)
-        die "Badly formed line in grammar description: $line";
-    } ## end LINE: for my $line ( split /\n/xms, ${$bnf_set} )
-} ## end for my $bnf_set_data ( \[ \$HTML_Configuration::CORE_BNF, 0 ...])
+        die "Not yet implemented: ", $definition;
+
+        # Production is Flow
+        my $flow_symbol = $1;
+        my @contents = split q{ }, $definition;
+        push @{ $flow_containments{$flow_symbol} }, @contents;
+        next LINE;
+    } ## end if ( $definition =~ ...)
+    die "Badly formed line in grammar description: $line";
+} ## end LINE: for my $line ( split /\n/xms, ...)
 
 {
     my @species_not_defined = grep { not defined $species_defined{$_} }
@@ -232,6 +234,7 @@ ELEMENT: for my $main_symbol ( keys %element_containments ) {
 } ## end ELEMENT: for my $main_symbol ( keys %element_containments )
 
 ELEMENT: for my $main_symbol ( keys %flow_containments ) {
+    die "Internal: Flow containments not yet implemented";
     my @contents    = @{ $flow_containments{$main_symbol} };
     my $item_symbol = 'ITEM_' . substr $main_symbol, 4;
     push @core_rules,
