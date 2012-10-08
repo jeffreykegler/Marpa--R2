@@ -77,13 +77,31 @@ ITEM_mixed ::= GRP_inline
 ITEM_mixed ::= cdata
 ITEM_mixed ::= pcdata
 
-FLO_block contains GRP_block GRP_anywhere
+FLO_block ::= SITEM_block*
+SITEM_block ::= ITEM_SGML
+SITEM_block ::= ITEM_block
+ITEM_block ::= GRP_block
+ITEM_block ::= GRP_anywhere
 
-FLO_head contains GRP_head GRP_anywhere
+FLO_head ::= SITEM_head*
+SITEM_head ::= ITEM_SGML
+SITEM_head ::= ITEM_head
+ITEM_head ::= GRP_head
+ITEM_head ::= GRP_anywhere
 
-FLO_inline contains pcdata cdata GRP_inline GRP_anywhere
+FLO_inline ::= SITEM_inline*
+SITEM_inline ::= ITEM_SGML
+SITEM_inline ::= ITEM_inline
+ITEM_inline ::= pcdata
+ITEM_inline ::= cdata
+ITEM_inline ::= GRP_inline
+ITEM_inline ::= GRP_anywhere
 
-FLO_pcdata contains cdata pcdata
+FLO_pcdata ::= SITEM_pcdata*
+SITEM_pcdata ::= ITEM_SGML
+SITEM_pcdata ::= ITEM_pcdata
+ITEM_pcdata ::= pcdata
+ITEM_pcdata ::= cdata
 
 END_OF_CORE_BNF
 

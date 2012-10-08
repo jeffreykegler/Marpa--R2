@@ -14,7 +14,7 @@
 # http://www.gnu.org/licenses/.
 
 # This file was generated automatically by mk_definition.pl
-# The date of generation was Sun Oct  7 17:01:23 2012
+# The date of generation was Sun Oct  7 17:06:22 2012
 
 package Marpa::R2::HTML::Internal;
 
@@ -242,6 +242,142 @@ $CORE_RULES = [
                   'lhs' => 'ITEM_mixed',
                   'rhs' => [
                              'pcdata'
+                           ]
+                },
+                {
+                  'lhs' => 'FLO_block',
+                  'min' => 0,
+                  'rhs' => [
+                             'SITEM_block'
+                           ]
+                },
+                {
+                  'lhs' => 'SITEM_block',
+                  'rhs' => [
+                             'ITEM_SGML'
+                           ]
+                },
+                {
+                  'lhs' => 'SITEM_block',
+                  'rhs' => [
+                             'ITEM_block'
+                           ]
+                },
+                {
+                  'lhs' => 'ITEM_block',
+                  'rhs' => [
+                             'GRP_block'
+                           ]
+                },
+                {
+                  'lhs' => 'ITEM_block',
+                  'rhs' => [
+                             'GRP_anywhere'
+                           ]
+                },
+                {
+                  'lhs' => 'FLO_head',
+                  'min' => 0,
+                  'rhs' => [
+                             'SITEM_head'
+                           ]
+                },
+                {
+                  'lhs' => 'SITEM_head',
+                  'rhs' => [
+                             'ITEM_SGML'
+                           ]
+                },
+                {
+                  'lhs' => 'SITEM_head',
+                  'rhs' => [
+                             'ITEM_head'
+                           ]
+                },
+                {
+                  'lhs' => 'ITEM_head',
+                  'rhs' => [
+                             'GRP_head'
+                           ]
+                },
+                {
+                  'lhs' => 'ITEM_head',
+                  'rhs' => [
+                             'GRP_anywhere'
+                           ]
+                },
+                {
+                  'lhs' => 'FLO_inline',
+                  'min' => 0,
+                  'rhs' => [
+                             'SITEM_inline'
+                           ]
+                },
+                {
+                  'lhs' => 'SITEM_inline',
+                  'rhs' => [
+                             'ITEM_SGML'
+                           ]
+                },
+                {
+                  'lhs' => 'SITEM_inline',
+                  'rhs' => [
+                             'ITEM_inline'
+                           ]
+                },
+                {
+                  'lhs' => 'ITEM_inline',
+                  'rhs' => [
+                             'pcdata'
+                           ]
+                },
+                {
+                  'lhs' => 'ITEM_inline',
+                  'rhs' => [
+                             'cdata'
+                           ]
+                },
+                {
+                  'lhs' => 'ITEM_inline',
+                  'rhs' => [
+                             'GRP_inline'
+                           ]
+                },
+                {
+                  'lhs' => 'ITEM_inline',
+                  'rhs' => [
+                             'GRP_anywhere'
+                           ]
+                },
+                {
+                  'lhs' => 'FLO_pcdata',
+                  'min' => 0,
+                  'rhs' => [
+                             'SITEM_pcdata'
+                           ]
+                },
+                {
+                  'lhs' => 'SITEM_pcdata',
+                  'rhs' => [
+                             'ITEM_SGML'
+                           ]
+                },
+                {
+                  'lhs' => 'SITEM_pcdata',
+                  'rhs' => [
+                             'ITEM_pcdata'
+                           ]
+                },
+                {
+                  'lhs' => 'ITEM_pcdata',
+                  'rhs' => [
+                             'pcdata'
+                           ]
+                },
+                {
+                  'lhs' => 'ITEM_pcdata',
+                  'rhs' => [
+                             'cdata'
                            ]
                 },
                 {
@@ -904,118 +1040,6 @@ $CORE_RULES = [
                 },
                 {
                   'lhs' => 'ITEM_ELE_select',
-                  'rhs' => [
-                             'ITEM_SGML'
-                           ]
-                },
-                {
-                  'lhs' => 'FLO_pcdata',
-                  'min' => 0,
-                  'rhs' => [
-                             'ITEM_pcdata'
-                           ]
-                },
-                {
-                  'lhs' => 'ITEM_pcdata',
-                  'rhs' => [
-                             'cdata'
-                           ]
-                },
-                {
-                  'lhs' => 'ITEM_pcdata',
-                  'rhs' => [
-                             'pcdata'
-                           ]
-                },
-                {
-                  'lhs' => 'ITEM_pcdata',
-                  'rhs' => [
-                             'ITEM_SGML'
-                           ]
-                },
-                {
-                  'lhs' => 'FLO_inline',
-                  'min' => 0,
-                  'rhs' => [
-                             'ITEM_inline'
-                           ]
-                },
-                {
-                  'lhs' => 'ITEM_inline',
-                  'rhs' => [
-                             'pcdata'
-                           ]
-                },
-                {
-                  'lhs' => 'ITEM_inline',
-                  'rhs' => [
-                             'cdata'
-                           ]
-                },
-                {
-                  'lhs' => 'ITEM_inline',
-                  'rhs' => [
-                             'GRP_inline'
-                           ]
-                },
-                {
-                  'lhs' => 'ITEM_inline',
-                  'rhs' => [
-                             'GRP_anywhere'
-                           ]
-                },
-                {
-                  'lhs' => 'ITEM_inline',
-                  'rhs' => [
-                             'ITEM_SGML'
-                           ]
-                },
-                {
-                  'lhs' => 'FLO_head',
-                  'min' => 0,
-                  'rhs' => [
-                             'ITEM_head'
-                           ]
-                },
-                {
-                  'lhs' => 'ITEM_head',
-                  'rhs' => [
-                             'GRP_head'
-                           ]
-                },
-                {
-                  'lhs' => 'ITEM_head',
-                  'rhs' => [
-                             'GRP_anywhere'
-                           ]
-                },
-                {
-                  'lhs' => 'ITEM_head',
-                  'rhs' => [
-                             'ITEM_SGML'
-                           ]
-                },
-                {
-                  'lhs' => 'FLO_block',
-                  'min' => 0,
-                  'rhs' => [
-                             'ITEM_block'
-                           ]
-                },
-                {
-                  'lhs' => 'ITEM_block',
-                  'rhs' => [
-                             'GRP_block'
-                           ]
-                },
-                {
-                  'lhs' => 'ITEM_block',
-                  'rhs' => [
-                             'GRP_anywhere'
-                           ]
-                },
-                {
-                  'lhs' => 'ITEM_block',
                   'rhs' => [
                              'ITEM_SGML'
                            ]

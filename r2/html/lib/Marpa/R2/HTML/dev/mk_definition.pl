@@ -162,6 +162,7 @@ for my $bnf_set_data (
         } ## end if ( $definition =~ ...)
         if ( $definition =~ s/ \A \s* ((FLO)_\w+) \s+ contains \s+ / /xms ) {
 
+	    die "Not yet implemented: ", $definition;
             # Production is Flow
             my $flow_symbol = $1;
             my @contents = split q{ }, $definition;
