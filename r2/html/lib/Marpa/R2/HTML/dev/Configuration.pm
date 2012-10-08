@@ -23,9 +23,14 @@ package HTML_Configuration;
 
 use English qw( -no_match_vars );
 
-# Alphabetically, by tagname
 our $CONFIGURATION_BNF = <<'END_OF_CONFIG_BNF';
+
+# Only the contents of these can be changed,
+# not the context
 ELE_body is FLO_block
+ELE_head is FLO_head
+
+# Now alphabetically, by tagname
 ELE_a is a FLO_inline included in GRP_inline
 ELE_abbr is a FLO_inline included in GRP_inline
 ELE_acronym is a FLO_inline included in GRP_inline
