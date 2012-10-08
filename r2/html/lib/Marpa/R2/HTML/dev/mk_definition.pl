@@ -54,9 +54,8 @@ my %tag_descriptor = ();
 
 my %element_containments = ();
 my %flow_containments = ();
-my %element_defined = ();
-my %element_included = ();
-my %species_defined = ();
+my %symbol_defined = ();
+my %symbol_included = ();
 
 {
     LINE: for my $line ( split /\n/xms, $HTML_Core::CORE_BNF ) {
@@ -71,11 +70,12 @@ my %species_defined = ();
             # Production is Ordinary BNF rule
             my @symbols = ( split q{ }, $definition );
             my $lhs = shift @symbols;
-            for my $contained_element ( grep { ( substr $_, 0, 4 ) eq 'ELE_' }
-                @symbols )
-            {
-                $element_included{$contained_element} = 1;
-            }
+	    @{$symbol_defined{$lhs} } = ('BNF');
+	    for my $symbol (@symbols) {
+	      @{$symbol_defined{$symbol} } = ('BNF');
+	      $symbol_included{$symbol} = 1;
+	    }
+
             my %rule_descriptor = (
                 lhs => $lhs,
                 rhs => \@symbols,
@@ -84,11 +84,9 @@ my %species_defined = ();
                 $rule_descriptor{min} = 0;
             }
             if ( my $handler = $species_handler{$lhs} ) {
-                $species_defined{$lhs} = 1;
                 $rule_descriptor{action} = $handler;
             }
             elsif ( $lhs =~ /^ELE_/xms ) {
-                push @{ $element_defined{$lhs} }, 'BNF';
                 $rule_descriptor{action} = "$lhs";
             }
             push @core_rules, \%rule_descriptor;
@@ -96,6 +94,16 @@ my %species_defined = ();
         } ## end if ( $definition =~ s/ \s* [:][:][=] \s* / /xms )
         die "Badly formed line in grammar description: $line";
     } ## end LINE: for my $line ( split /\n/xms, $HTML_Core::CORE_BNF )
+}
+
+{
+    my @species_not_defined = grep { not defined $symbol_defined{$_} }
+        keys %species_handler;
+    if ( scalar @species_not_defined ) {
+        die
+            "Definitions for the following required text components are missing: ",
+            join " ", @species_not_defined;
+    }
 }
 
 LINE: for my $line ( split /\n/xms, $HTML_Configuration::CONFIGURATION_BNF ) {
@@ -116,7 +124,7 @@ LINE: for my $line ( split /\n/xms, $HTML_Configuration::CONFIGURATION_BNF ) {
             lhs => $group,
             rhs => [$element],
             };
-        $element_included{$element} = 1;
+        $symbol_included{$element} = 1;
         next LINE;
     } ## end if ( $definition =~ m{ ) (})
     if ($definition =~ m{
@@ -128,8 +136,8 @@ LINE: for my $line ( split /\n/xms, $HTML_Configuration::CONFIGURATION_BNF ) {
         my $tag      = $1;
         my $contents = $2;
         my $group    = $3;
-        push @{ $element_defined{ 'ELE_' . $tag } }, 'is-a-included';
-        $element_included{ 'ELE_' . $tag } = 1;
+        push @{ $symbol_defined{ 'ELE_' . $tag } }, 'is-a-included';
+        $symbol_included{ 'ELE_' . $tag } = 1;
         $tag_descriptor{$tag} = [ $group, $contents ];
         next LINE;
     } ## end if ( $definition =~ m{ ) (})
@@ -137,7 +145,7 @@ LINE: for my $line ( split /\n/xms, $HTML_Configuration::CONFIGURATION_BNF ) {
     {
         # Production is Element with flow, but no group specified
         my $tag = $1;
-        push @{ $element_defined{ 'ELE_' . $tag } }, 'is-a';
+        push @{ $symbol_defined{ 'ELE_' . $tag } }, 'is-a';
         my $contents        = $2;
         my $lhs             = 'ELE_' . $tag;
         my %rule_descriptor = (
@@ -153,12 +161,12 @@ LINE: for my $line ( split /\n/xms, $HTML_Configuration::CONFIGURATION_BNF ) {
         # Production is Element with custom flow
         my $element_symbol = $1;
         my @contents = split q{ }, $definition;
-        push @{ $element_defined{$element_symbol} },      'contains';
+        push @{ $symbol_defined{$element_symbol} },      'contains';
         push @{ $element_containments{$element_symbol} }, @contents;
         for my $contained_element ( grep { ( substr $_, 0, 4 ) eq 'ELE_' }
             @contents )
         {
-            $element_included{$contained_element} = 1;
+            $symbol_included{$contained_element} = 1;
         }
         next LINE;
     } ## end if ( $definition =~ ...)
@@ -175,20 +183,10 @@ LINE: for my $line ( split /\n/xms, $HTML_Configuration::CONFIGURATION_BNF ) {
     die "Badly formed line in grammar description: $line";
 } ## end LINE: for my $line ( split /\n/xms, ...)
 
-{
-    my @species_not_defined = grep { not defined $species_defined{$_} }
-        keys %species_handler;
-    if ( scalar @species_not_defined ) {
-        die
-            "Definitions for the following required text components are missing: ",
-            join " ", @species_not_defined;
-    }
-}
-
-ELEMENT: for my $element ( keys %element_defined ) {
-    my $definitions = $element_defined{$element};
+ELEMENT: for my $element ( keys %symbol_defined ) {
+    my $definitions = $symbol_defined{$element};
     if ( $definitions->[0] ne 'BNF'
-        and !$element_included{$element} )
+        and !$symbol_included{$element} )
     {
         die "$element not included anywhere";
     }
@@ -198,7 +196,7 @@ ELEMENT: for my $element ( keys %element_defined ) {
     if ( grep { $_ ne $first } @{$definitions} ) {
         die "$element multiply defined";
     }
-} ## end ELEMENT: for my $element ( keys %element_defined )
+} ## end ELEMENT: for my $element ( keys %symbol_defined )
 
 my %sgml_flow_included = ();
 ELEMENT: for my $main_symbol ( keys %element_containments ) {
