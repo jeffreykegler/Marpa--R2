@@ -49,11 +49,13 @@ html/.gitignore
 html/lib/Marpa/R2/HTML.pm
 html/lib/Marpa/R2/HTML/.gitignore
 html/lib/Marpa/R2/HTML/Callback.pm
-html/lib/Marpa/R2/HTML/Definition.pm
-html/lib/Marpa/R2/HTML/Config/Definition.pm
+html/lib/Marpa/R2/HTML/Config/Compile.pm
 html/lib/Marpa/R2/HTML/Config/Configuration.pm
 html/lib/Marpa/R2/HTML/Config/Core.pm
+html/lib/Marpa/R2/HTML/Config/Definition.pm
 html/lib/Marpa/R2/HTML/Config/Makefile
+html/lib/Marpa/R2/HTML/Config/Write.pm
+html/lib/Marpa/R2/HTML/Definition.pm
 html/pod/HTML.pod
 html/pod/html_fmt.pod
 html/pod/html_score.pod
