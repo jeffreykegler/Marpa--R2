@@ -22,8 +22,8 @@ use Data::Dumper;
 use English qw( -no_match_vars );
 
 use lib '../../../../';
-use Marpa::R2::HTML::dev::Core;
-use Marpa::R2::HTML::dev::Configuration;
+use Marpa::R2::HTML::Config::Core;
+use Marpa::R2::HTML::Config::Configuration;
 
 my %predefined_groups =
     ( GRP_mixed => [qw( GRP_anywhere GRP_block GRP_inline cdata pcdata)] );

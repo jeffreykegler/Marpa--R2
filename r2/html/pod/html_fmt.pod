@@ -21,7 +21,9 @@
 =head1 Synopsis
 
     html_fmt [--avoid-whitespace=[yes|comment]]
-      [--ws-ok-before-end-tag|--no-ws-ok-before-end-tag] [uri|file]
+      [--no-ws-ok-before-end-tag|--no-ok-before-end-tag]
+      [--added-tag-comment|--no-added-tag-comment]
+      [uri|file]
 
 =head1 Description
 
@@ -124,6 +126,17 @@ If the value is C<comment>,
 HTML (SGML) comments are used to achieve proper
 indentation without introducing whitespace.
 This works, but does get a bit cluttered.
+
+=head2 added-tag-comment
+
+The C<--added-tag-comment> option is a Boolean.
+If set, whenever C<html_fmt> supplies a missing start
+or end tag, C<html_fmt> will include a comment to that effect.
+If the boolean is unset with
+C<--no-added-tag-comment>,
+C<html_fmt> will be silent when supply missing start
+and end tags.
+C<--added-tag-comment> is the default.
 
 =head2 ws-ok-before-end-tag
 
