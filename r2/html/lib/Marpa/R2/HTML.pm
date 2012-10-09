@@ -40,8 +40,6 @@ use HTML::Parser 3.69;
 use HTML::Entities qw(decode_entities);
 use HTML::Tagset ();
 
-use Marpa::R2::HTML::Definition;
-
 # versions below must be coordinated with
 # those required in Build.PL
 
@@ -259,6 +257,8 @@ sub create {
             $self->{$option} = $option_hash->{$option};
         } ## end OPTION: for my $option ( keys %{$option_hash} )
     } ## end ARG: for my $arg (@_)
+    require Marpa::R2::HTML::Config or die "@_";
+    $self->{config} = Marpa::R2::HTML::Config->new_from_default();
     return $self;
 } ## end sub create
 
@@ -572,7 +572,8 @@ sub parse {
     $p          = undef;
     @raw_tokens = ();
 
-    my @rules     = @{$Marpa::R2::HTML::Internal::Compiled::CORE_RULES};
+    my ($core_rules, $descriptor_by_tag, $rank_by_name) = $self->{config}->contents();
+    my @rules     = @{$core_rules};
 
     for my $rule (@rules) {
         my $lhs = $rule->{lhs};
@@ -587,8 +588,7 @@ sub parse {
         my $end_tag      = "E_$tag";
         my $element_type = 'GRP_anywhere';
         my $contents     = 'FLO_mixed';
-        my $tag_descriptor =
-            $Marpa::R2::HTML::Internal::Compiled::TAG_DESCRIPTOR->{$tag};
+        my $tag_descriptor = $descriptor_by_tag->{$tag};
         if ( defined $tag_descriptor ) {
             ( $element_type, $contents ) = @{$tag_descriptor};
         }
@@ -655,8 +655,6 @@ sub parse {
     my @ruby_rank_by_id = ();
     {
         my @non_final_end_tag_ids = ();
-        my $rank_by_name =
-            $Marpa::R2::HTML::Internal::Compiled::RUBY_SLIPPERS_RANK_BY_NAME;
         SYMBOL:
         for my $symbol_id ( 0 .. $highest_symbol_id ) {
             my $symbol_name = $symbol_name_by_id[$symbol_id];

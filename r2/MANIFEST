@@ -49,6 +49,7 @@ html/.gitignore
 html/lib/Marpa/R2/HTML.pm
 html/lib/Marpa/R2/HTML/.gitignore
 html/lib/Marpa/R2/HTML/Callback.pm
+html/lib/Marpa/R2/HTML/Config.pm
 html/lib/Marpa/R2/HTML/Config/Compile.pm
 html/lib/Marpa/R2/HTML/Config/Configuration.pm
 html/lib/Marpa/R2/HTML/Config/Core.pm

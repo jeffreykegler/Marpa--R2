@@ -13,7 +13,7 @@
 # General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 
-package Marpa::R2::HTML;
+package Marpa::R2::HTML::Config;
 
 use 5.010;
 use strict;
@@ -21,11 +21,9 @@ use warnings;
 
 use Marpa::R2::HTML::Config::Definition;
 
-# versions below must be coordinated with
-# those required in Build.PL
-
 sub new_from_default {
-    my ($class) = @_ my $self = {
+    my ($class) = @_;
+    my $self = {
         rules => $Marpa::R2::HTML::Internal::Compiled::CORE_RULES,
         descriptor_by_tag =>
             $Marpa::R2::HTML::Internal::Compiled::TAG_DESCRIPTOR,
@@ -37,7 +35,7 @@ sub new_from_default {
 
 sub contents {
     my ($self) = @_;
-    return @{$self}{qw(rules descriptor_by_tag, ruby_slippers_rank_by_name)};
+    return @{$self}{qw(rules descriptor_by_tag ruby_slippers_rank_by_name)};
 }
 
 1;
