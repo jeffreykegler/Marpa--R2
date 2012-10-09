@@ -19,5 +19,9 @@ dummy:
 
 all: Definition.pm
 
-Definition.pm: mk_definition.pl Configuration.pm Core.pm
-	perl mk_definition.pl
+Definition.pm: Compile.pm Write.pm Configuration.pm Core.pm
+	perl -I$(HOME)/projects/marpa/r2/r2/html/lib \
+	  -MMarpa::R2::HTML::Config::Compile \
+	  -MMarpa::R2::HTML::Config::Write \
+	  -E 'say $${Marpa::R2::HTML::Config::Write::file_string()}' \
+	  > $@

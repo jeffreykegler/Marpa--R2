@@ -572,7 +572,7 @@ sub parse {
     $p          = undef;
     @raw_tokens = ();
 
-    my @rules     = @{$Marpa::R2::HTML::Internal::CORE_RULES};
+    my @rules     = @{$Marpa::R2::HTML::Internal::Compiled::CORE_RULES};
 
     for my $rule (@rules) {
         my $lhs = $rule->{lhs};
@@ -588,7 +588,7 @@ sub parse {
         my $element_type = 'GRP_anywhere';
         my $contents     = 'FLO_mixed';
         my $tag_descriptor =
-            $Marpa::R2::HTML::Internal::TAG_DESCRIPTOR->{$tag};
+            $Marpa::R2::HTML::Internal::Compiled::TAG_DESCRIPTOR->{$tag};
         if ( defined $tag_descriptor ) {
             ( $element_type, $contents ) = @{$tag_descriptor};
         }
@@ -656,7 +656,7 @@ sub parse {
     {
         my @non_final_end_tag_ids = ();
         my $rank_by_name =
-            $Marpa::R2::HTML::Internal::RUBY_SLIPPERS_RANK_BY_NAME;
+            $Marpa::R2::HTML::Internal::Compiled::RUBY_SLIPPERS_RANK_BY_NAME;
         SYMBOL:
         for my $symbol_id ( 0 .. $highest_symbol_id ) {
             my $symbol_name = $symbol_name_by_id[$symbol_id];

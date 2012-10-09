@@ -15,7 +15,7 @@
 
 # Same package as the compilation file --
 # They are always used together and it's convenient
-package Marpa::R2::HTML::Internal::Write;
+package Marpa::R2::HTML::Config::Write;
 
 use 5.010;
 use strict;
@@ -34,14 +34,14 @@ sub file_string {
             . "# This file was generated automatically by $PROGRAM_NAME\n"
             . "# The date of generation was "
             . ( scalar localtime() ) . "\n" . "\n"
-            . "package Marpa::R2::HTML::Internal;\n" . "\n"
-            . Data::Dumper->Dump( [ \@Marpa::R2::HTML::Internal::CORE_RULES ],
+            . "package Marpa::R2::HTML::Internal::Compiled;\n" . "\n"
+            . Data::Dumper->Dump( [ \@Marpa::R2::HTML::Internal::Compiled::CORE_RULES ],
             [qw(CORE_RULES)] )
             . Data::Dumper->Dump(
-            [ \%Marpa::R2::HTML::Internal::TAG_DESCRIPTOR ],
+            [ \%Marpa::R2::HTML::Internal::Compiled::TAG_DESCRIPTOR ],
             [qw(TAG_DESCRIPTOR)] )
             . Data::Dumper->Dump(
-            [ \%Marpa::R2::HTML::Internal::RUBY_RANK ],
+            [ \%Marpa::R2::HTML::Internal::Compiled::RUBY_RANK ],
             [qw(RUBY_SLIPPERS_RANK_BY_NAME)]
             )
     );
