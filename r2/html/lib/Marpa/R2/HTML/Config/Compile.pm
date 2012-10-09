@@ -13,10 +13,11 @@
 # General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 
+package Marpa::R2::HTML::Internal::Compiled;
+
 use 5.010;
 use strict;
 use warnings;
-use autodie;
 use Data::Dumper;
 
 use English qw( -no_match_vars );
@@ -52,8 +53,8 @@ my %species_handler = (
     trailer    => 'SPE_TRAILER',
 );
 
-my @core_rules = ();
-my %tag_descriptor = ();
+our @CORE_RULES = ();
+our %TAG_DESCRIPTOR = ();
 
 my %element_containments = ();
 my %flow_containments = ();
@@ -94,7 +95,7 @@ my %core_symbol = ();
             elsif ( $lhs =~ /^ELE_/xms ) {
                 $rule_descriptor{action} = "$lhs";
             }
-            push @core_rules, \%rule_descriptor;
+            push @CORE_RULES, \%rule_descriptor;
             next LINE;
         } ## end if ( $definition =~ s/ \s* [:][:][=] \s* / /xms )
         die "Badly formed line in grammar description: $line";
@@ -130,7 +131,7 @@ LINE: for my $line ( split /\n/xms, $HTML_Configuration::CONFIGURATION_BNF ) {
         my $group   = $2;
 	die "Core symbol context cannot be changed: $definition"
 	    if $core_symbol{$element};
-        push @core_rules,
+        push @CORE_RULES,
             {
             lhs => $group,
             rhs => [$element],
@@ -152,7 +153,7 @@ LINE: for my $line ( split /\n/xms, $HTML_Configuration::CONFIGURATION_BNF ) {
 	    if $core_symbol{$element};
         push @{ $symbol_defined{ $element } }, 'is-a-included';
         $symbol_included{ $element } = 1;
-        $tag_descriptor{$tag} = [ $group, $contents ];
+        $TAG_DESCRIPTOR{$tag} = [ $group, $contents ];
         next LINE;
     } ## end if ( $definition =~ m{ ) (})
     if ($definition =~ s/ \A \s* ELE_(\w+) \s+ is \s+ (FLO_\w+) \s* \z/ /xms )
@@ -167,7 +168,7 @@ LINE: for my $line ( split /\n/xms, $HTML_Configuration::CONFIGURATION_BNF ) {
             rhs    => [ "S_$tag", $contents, "E_$tag" ],
             action => $lhs
         );
-        push @core_rules, \%rule_descriptor;
+        push @CORE_RULES, \%rule_descriptor;
         next LINE;
     } ## end if ( $definition =~ ...)
     if ( $definition =~ s/ \A \s* ((ELE)_\w+) \s+ contains \s+ / /xms ) {
@@ -228,7 +229,7 @@ ELEMENT: for my $main_symbol ( keys %element_containments ) {
     my $tag             = substr $main_symbol, 4;
     my $contents_symbol = 'Contents_ELE_' . $tag;
     my $item_symbol     = 'ITEM_ELE_' . $tag;
-    push @core_rules, {
+    push @CORE_RULES, {
         lhs    => $main_symbol,
         rhs    => [ "S_$tag", $contents_symbol, "E_$tag" ],
         action => $main_symbol,
@@ -239,7 +240,7 @@ ELEMENT: for my $main_symbol ( keys %element_containments ) {
         min => 0
         };
     for my $content_item (@contents) {
-        push @core_rules,
+        push @CORE_RULES,
             {
             lhs => $item_symbol,
             rhs => [$content_item],
@@ -247,7 +248,7 @@ ELEMENT: for my $main_symbol ( keys %element_containments ) {
     } ## end for my $content_item (@contents)
     if ( !$sgml_flow_included{$item_symbol} ) {
         $sgml_flow_included{$item_symbol} = 1;
-        push @core_rules,
+        push @CORE_RULES,
             {
             lhs => $item_symbol,
             rhs => ['ITEM_SGML'],
@@ -259,14 +260,14 @@ ELEMENT: for my $main_symbol ( keys %flow_containments ) {
     die "Internal: Flow containments not yet implemented";
     my @contents    = @{ $flow_containments{$main_symbol} };
     my $item_symbol = 'ITEM_' . substr $main_symbol, 4;
-    push @core_rules,
+    push @CORE_RULES,
         {
         lhs => $main_symbol,
         rhs => [$item_symbol],
         min => 0
         };
     for my $content_item (@contents) {
-        push @core_rules,
+        push @CORE_RULES,
             {
             lhs => $item_symbol,
             rhs => [$content_item],
@@ -274,7 +275,7 @@ ELEMENT: for my $main_symbol ( keys %flow_containments ) {
     } ## end for my $content_item (@contents)
     if ( !$sgml_flow_included{$item_symbol} ) {
         $sgml_flow_included{$item_symbol} = 1;
-        push @core_rules,
+        push @CORE_RULES,
             {
             lhs => $item_symbol,
             rhs => ['ITEM_SGML'],
@@ -284,7 +285,7 @@ ELEMENT: for my $main_symbol ( keys %flow_containments ) {
 
 {
     # Make sure all item symbols have a flow
-    my @symbols = map { $_->{lhs}, @{ $_->{rhs} } } @core_rules;
+    my @symbols = map { $_->{lhs}, @{ $_->{rhs} } } @CORE_RULES;
     my %ITEM_symbols =
         map { $_ => 1 } grep { ( substr $_, 0, 5 ) eq 'ITEM_' } @symbols;
     my %FLO_symbols =
@@ -305,43 +306,29 @@ ELEMENT: for my $main_symbol ( keys %flow_containments ) {
     die join "\n", @problem if scalar @problem;
 }
 
-open my $fh, q{<}, '../../../../../..//inc/Marpa/R2/legal.pl';
-my $legal = join q{}, <$fh>;
-close $fh;
-
-my $output = $legal;
-$output .=  "\n";
-
-$output .= "# This file was generated automatically by $PROGRAM_NAME\n";
-$output .= "# The date of generation was " . ( scalar localtime() );
-$output .= "\n\n";
-
-$output .= 'package Marpa::R2::HTML::Internal;';
-$output .= "\n\n";
-
 {
     # Check that the tag descriptors refer to groups and flows
     # which are defined
     my %flows =
         map { $_ => 'core' }
-        grep {m/\A FLO_ /xms} map { $_->{lhs} } @core_rules;
+        grep {m/\A FLO_ /xms} map { $_->{lhs} } @CORE_RULES;
     my %groups =
         map { $_ => 'core' }
-        grep {m/\A GRP_ /xms} map { $_->{lhs}, @{ $_->{rhs} } } @core_rules;
-    for my $tag ( keys %tag_descriptor ) {
-        my ( $group, $flow ) = @{ $tag_descriptor{$tag} };
+        grep {m/\A GRP_ /xms} map { $_->{lhs}, @{ $_->{rhs} } } @CORE_RULES;
+    for my $tag ( keys %TAG_DESCRIPTOR ) {
+        my ( $group, $flow ) = @{ $TAG_DESCRIPTOR{$tag} };
         die qq{$tag is a "$flow", which is not defined}
             if not $flows{$flow};
         die qq{$tag included in "$group", which is not defined}
             if not $groups{$group};
-    } ## end for my $tag ( keys %tag_descriptor )
+    } ## end for my $tag ( keys %TAG_DESCRIPTOR )
 }
 
 {
     # Make sure groups are non-overlapping
     my %group_rules =
         map { $_->{lhs}, $_->{rhs} }
-        grep { ( substr $_->{lhs}, 0, 4 ) eq 'GRP_' } @core_rules;
+        grep { ( substr $_->{lhs}, 0, 4 ) eq 'GRP_' } @CORE_RULES;
     my %group_by_member = ();
     my %members_by_group = ();
     while ( my ( $group, $contents ) = each %group_rules ) {
@@ -354,8 +341,8 @@ $output .= "\n\n";
             $group_by_member{$member} = $group;
 	    push @{$members_by_group{$group}}, $member;
     } ## end while ( my ( $group, $contents ) = each %group_rules )
-    for my $tag (keys %tag_descriptor) {
-        my $descriptor = $tag_descriptor{$tag};
+    for my $tag (keys %TAG_DESCRIPTOR) {
+        my $descriptor = $TAG_DESCRIPTOR{$tag};
         my ($group)    = @{$descriptor};
         my $member     = 'ELE_' . $tag;
         die qq{"$member" is a member of two groups: "$group" and "},
@@ -363,11 +350,11 @@ $output .= "\n\n";
             if defined $group_by_member{$member};
 	$group_by_member{$member} = $group;
 	push @{$members_by_group{$group}}, $member;
-    } ## end for my $tag (%tag_descriptor)
+    } ## end for my $tag (%TAG_DESCRIPTOR)
 
     # Now ensure item lists are non-overlapping
     my @item_rules =
-        grep { ( substr $_->{lhs}, 0, 5 ) eq 'ITEM_' } @core_rules;
+        grep { ( substr $_->{lhs}, 0, 5 ) eq 'ITEM_' } @CORE_RULES;
 
     my %members_by_item_list = ();
     for my $rule (@item_rules) {
@@ -406,19 +393,19 @@ $output .= "\n\n";
         grep { ( substr $_, 0, 2 ) eq 'S_' }
         map { @{$_} } values %HTML_Configuration::RUBY_CONFIG;
 
-    my %defined_in_core_rules =
+    my %defined_in_CORE_RULES =
         map { ( substr $_, 4 ) => 'core' }
-        grep {m/\A ELE_ /xms} map { $_->{lhs} } @core_rules;
+        grep {m/\A ELE_ /xms} map { $_->{lhs} } @CORE_RULES;
 
     my %required_tags = map { ( substr $_, 2 ) => 1 } @ruby_start_tags;
     TAG: for my $tag ( keys %required_tags ) {
-        next TAG if $defined_in_core_rules{$tag};
-        my $descriptor = $tag_descriptor{$tag};
+        next TAG if $defined_in_CORE_RULES{$tag};
+        my $descriptor = $TAG_DESCRIPTOR{$tag};
 	die qq{Required element "ELE_$tag" was never defined}
 	   if not defined $descriptor;
         my ( $group, $flow ) = @{$descriptor};
         my $element = 'ELE_' . $tag;
-        push @core_rules,
+        push @CORE_RULES,
             {
             lhs    => $element,
             rhs    => [ "S_$tag", $flow, "E_$tag" ],
@@ -428,41 +415,31 @@ $output .= "\n\n";
             lhs => $group,
             rhs => [$element],
             };
-        delete $tag_descriptor{$tag};
+        delete $TAG_DESCRIPTOR{$tag};
     } ## end TAG: for my $tag ( keys %required_tags )
 }
-
-$Data::Dumper::Purity = 1;
-$Data::Dumper::Sortkeys = 1;
-$output .= Data::Dumper->Dump( [ \@core_rules ], [qw(CORE_RULES)] );
-
-$output .= Data::Dumper->Dump( [ \%tag_descriptor ], [qw(TAG_DESCRIPTOR)] );
 
 {
     my @mentioned_in_core =
         map { substr $_, 4 }
-        grep {m/\A ELE_ /xms} map { @{ $_->{rhs} } } @core_rules;
+        grep {m/\A ELE_ /xms} map { @{ $_->{rhs} } } @CORE_RULES;
     my %defined_in_core =
         map { ( substr $_, 4 ) => 'core' }
-        grep {m/\A ELE_ /xms} map { $_->{lhs} } @core_rules;
+        grep {m/\A ELE_ /xms} map { $_->{lhs} } @CORE_RULES;
     my @symbols_with_no_ruby_status =
-        grep { !$defined_in_core{$_} and !$tag_descriptor{$_} } @mentioned_in_core;
+        grep { !$defined_in_core{$_} and !$TAG_DESCRIPTOR{$_} } @mentioned_in_core;
     die "symbols with no ruby status: ", join " ",
         @symbols_with_no_ruby_status
         if scalar @symbols_with_no_ruby_status;
 }
 
-my %ruby_rank = ();
+our %RUBY_RANK = ();
 for my $rejected_symbol (keys %HTML_Configuration::RUBY_CONFIG) {
   my $rank = 1;
   for my $candidate (reverse @{$HTML_Configuration::RUBY_CONFIG{$rejected_symbol}})
   {
-     $ruby_rank{$rejected_symbol}{$candidate} = $rank++;
+     $RUBY_RANK{$rejected_symbol}{$candidate} = $rank++;
   }
 }
 
-$output .= Data::Dumper->Dump( [ \%ruby_rank ], [qw(RUBY_SLIPPERS_RANK_BY_NAME)] );
-
-open my $out_fh, q{>}, 'Definition.pm';
-say {$out_fh} $output;
-close $out_fh;
+1;
