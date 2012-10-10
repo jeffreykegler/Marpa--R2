@@ -30,7 +30,7 @@ BEGIN {
     use lib 'html/tool/lib';
     my $eval_result = eval { require Marpa::R2::HTML::Test::Util; 1 };
     if ( !$eval_result ) {
-        Test::More::plan tests => 2;
+        Test::More::plan tests => 1;
         Test::More::fail(
             "Could not load Marpa::R2::HTML::Test::Util; $EVAL_ERROR");
         exit 0;
@@ -39,7 +39,7 @@ BEGIN {
 
 BEGIN { Marpa::R2::HTML::Test::Util::load_or_skip_all('HTML::Parser'); }
 
-BEGIN { Test::More::plan tests => 1; }
+BEGIN { Test::More::plan tests => 2; }
 
 use Marpa::R2::HTML;
 use Marpa::R2::HTML::Config::Default;
