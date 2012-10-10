@@ -497,7 +497,7 @@ if (defined $compile_flag) {
 my $value_ref = Marpa::R2::HTML::html( \$document, \%html_args, \\%flags );
 die 'Internal error: no parse' if not defined $value_ref;
 if ($dump_config_flag) {
-  say ${$value_ref};
+  print ${$value_ref};
   exit 0;
 }
 
