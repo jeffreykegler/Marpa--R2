@@ -58,8 +58,11 @@ my $short_round_trip_file = do {
 };
 
 my $long_round_trip_file = do {
+  open my $source_fh, q{<}, 'g/config/default.txt';
+  my $source_file = join q{}, <$source_fh>;
+  close $source_fh;
     my $long_round_trip_ref =
-        Marpa::R2::HTML::html( \"hi", \{ compile => 'g/config/default.txt', dump_config => 1 } );
+        Marpa::R2::HTML::html( \"hi", \{ compile => \$source_file, dump_config => 1 } );
     die "No parse" if not ref $long_round_trip_ref;
     ${$long_round_trip_ref};
 };
