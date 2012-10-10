@@ -42,9 +42,6 @@ no_index:
     - Marpa::R2::Internal
     - Marpa::R2::Thin::Trace
 provides:
-  HTML_Configuration:
-    file: html/lib/Marpa/R2/HTML/Config/Configuration.pm
-    version: 0
   HTML_Core:
     file: html/lib/Marpa/R2/HTML/Config/Core.pm
     version: 0
@@ -60,8 +57,11 @@ provides:
   Marpa::R2::HTML::Callback:
     file: html/lib/Marpa/R2/HTML/Callback.pm
     version: 2.021_006
-  Marpa::R2::HTML::Config::Write:
-    file: html/lib/Marpa/R2/HTML/Config/Write.pm
+  Marpa::R2::HTML::Config:
+    file: html/lib/Marpa/R2/HTML/Config.pm
+    version: 0
+  Marpa::R2::HTML::Config::Compile:
+    file: html/lib/Marpa/R2/HTML/Config/Compile.pm
     version: 0
   Marpa::R2::HTML::Internal:
     file: html/lib/Marpa/R2/HTML.pm
@@ -69,8 +69,8 @@ provides:
   Marpa::R2::HTML::Internal::Callback:
     file: html/lib/Marpa/R2/HTML/Callback.pm
     version: 0
-  Marpa::R2::HTML::Internal::Compiled:
-    file: html/lib/Marpa/R2/HTML/Config/Definition.pm
+  Marpa::R2::HTML::Internal::Config::Default:
+    file: html/lib/Marpa/R2/HTML/Config/Default.pm
     version: 0
   Marpa::R2::Internal:
     file: lib/Marpa/R2/Internal.pm
