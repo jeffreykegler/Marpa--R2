@@ -32,8 +32,14 @@ sub new {
         ruby_slippers_rank_by_name =>
             $Marpa::R2::HTML::Internal::Config::Default::RUBY_SLIPPERS_RANK_BY_NAME,
     };
-    bless $self, $class;
+    return bless $self, $class;
 } ## end sub new
+
+sub new_from_compile {
+    my ( $class, $source_ref ) = @_;
+    require Marpa::R2::HTML::Config::Compile;
+    return bless Marpa::R2::HTML::Config::Compile::compile($source_ref), $class;
+} ## end sub new_from_compile
 
 sub contents {
     my ($self) = @_;

@@ -35,6 +35,7 @@ package Marpa::R2::HTML::Internal;
 # Data::Dumper is used in tracing
 use Data::Dumper;
 
+use Marpa::R2::HTML::Config;
 use Carp ();
 use HTML::Parser 3.69;
 use HTML::Entities qw(decode_entities);
@@ -259,8 +260,18 @@ sub create {
             $self->{$option} = $option_hash->{$option};
         } ## end OPTION: for my $option ( keys %{$option_hash} )
     } ## end ARG: for my $arg (@_)
-    require Marpa::R2::HTML::Config or die "@_";
-    $self->{config} = Marpa::R2::HTML::Config->new();
+
+    my $source_ref = $self->{compile};
+    if ( defined $source_ref ) {
+        ref $source_ref eq 'SCALAR'
+            or Marpa::R2::exception(
+            qq{value of "compile" option must be a SCALAR});
+        $self->{config} = Marpa::R2::HTML::Config->new_from_compile($source_ref);
+    } ## end if ( defined $source_ref )
+    else {
+        $self->{config} = Marpa::R2::HTML::Config->new();
+    }
+
     return $self;
 } ## end sub create
 

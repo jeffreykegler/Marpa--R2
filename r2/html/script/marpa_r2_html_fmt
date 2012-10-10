@@ -38,6 +38,7 @@ my $dump_config_flag = 0;
 my $trace_terminals_flag = 0;
 my $trace_cruft_flag = 0;
 my $trace_values_flag = 0;
+my $compile_flag;
 usage()
     if not Getopt::Long::GetOptions(
     'help'               => \$help_flag,
@@ -47,6 +48,7 @@ usage()
 
     # undocumented
     'dump-config' => \$dump_config_flag,
+    'compile=s' => \$compile_flag,
     'trace-terminals' => \$trace_terminals_flag,
     'trace-cruft' => \$trace_cruft_flag,
     'trace-values' => \$trace_values_flag,
@@ -468,7 +470,7 @@ sub do_default {
     return \@new_line_data;
 } ## end sub do_default
 
-my $html_args = {
+my %html_args = (
     'script' => sub {
         return [ [ 'script', 0, Marpa::R2::HTML::original() ] ];
     },
@@ -477,18 +479,19 @@ my $html_args = {
     'pre'      => \&do_pre,
     q{*}       => \&do_default,
     ':TOP'     => sub { return Marpa::R2::HTML::values(); }
-};
-
-my $value_ref = Marpa::R2::HTML::html(
-    \$document,
-    $html_args,
-    \{  trace_terminals => $trace_terminals_flag,
-        trace_cruft    => $trace_cruft_flag,
-        trace_values    => $trace_values_flag,
-        dump_config    => $dump_config_flag,
-    }
 );
+
+my %flags = (
+    trace_terminals => $trace_terminals_flag,
+    trace_cruft     => $trace_cruft_flag,
+    trace_values    => $trace_values_flag,
+    dump_config     => $dump_config_flag,
+);
+$flags{compile} = $compile_flag if defined $compile_flag;
+
+my $value_ref = Marpa::R2::HTML::html( \$document, \%html_args, \\%flags );
 die 'Internal error: no parse' if not defined $value_ref;
+
 print post_process($value_ref) or die "print failed: $ERRNO";
 
 exit 0;
