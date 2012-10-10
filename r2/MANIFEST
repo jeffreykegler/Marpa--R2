@@ -55,7 +55,6 @@ html/lib/Marpa/R2/HTML/Config/Configuration.pm
 html/lib/Marpa/R2/HTML/Config/Core.pm
 html/lib/Marpa/R2/HTML/Config/Default.pm
 html/lib/Marpa/R2/HTML/Config/Makefile
-html/lib/Marpa/R2/HTML/Config/Write.pm
 html/pod/HTML.pod
 html/pod/html_fmt.pod
 html/pod/html_score.pod
