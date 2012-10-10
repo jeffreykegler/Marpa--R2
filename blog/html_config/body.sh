@@ -1,5 +1,5 @@
 BASE=../../r2/
-for config in pcdata inline mixed
+for config in pcdata inline mixed block
 do
 echo === $config ===
 echo 'before tag<p>after tag' |
