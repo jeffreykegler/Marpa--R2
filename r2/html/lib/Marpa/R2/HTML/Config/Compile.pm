@@ -159,6 +159,9 @@ sub compile {
             push @{ $symbol_defined{ 'ELE_' . $tag } }, 'is-a';
             my $contents        = $2;
             my $lhs             = 'ELE_' . $tag;
+	    # Special case
+	    die "ELE_body cannot contain FLO_empty"
+	        if $tag eq 'body' and $contents eq 'FLO_empty';
             my %rule_descriptor = (
                 lhs    => $lhs,
                 rhs    => [ "S_$tag", $contents, "E_$tag" ],
