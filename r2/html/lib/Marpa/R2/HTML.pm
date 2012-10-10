@@ -248,7 +248,9 @@ sub create {
             if (not $option ~~ [
                     qw(trace_fh trace_values trace_handlers
                         trace_conflicts
-                        trace_terminals trace_cruft)
+                        trace_terminals trace_cruft
+			dump_config
+			)
                 ]
                 )
             {
@@ -258,7 +260,7 @@ sub create {
         } ## end OPTION: for my $option ( keys %{$option_hash} )
     } ## end ARG: for my $arg (@_)
     require Marpa::R2::HTML::Config or die "@_";
-    $self->{config} = Marpa::R2::HTML::Config->new_from_default();
+    $self->{config} = Marpa::R2::HTML::Config->new();
     return $self;
 } ## end sub create
 
@@ -573,6 +575,10 @@ sub parse {
     @raw_tokens = ();
 
     my ($core_rules, $descriptor_by_tag, $rank_by_name) = $self->{config}->contents();
+    if ($self->{dump_config}) {
+         say $self->{config}->dump();
+	 exit(0);
+    }
     my @rules     = @{$core_rules};
 
     for my $rule (@rules) {

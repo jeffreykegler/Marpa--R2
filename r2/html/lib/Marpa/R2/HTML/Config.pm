@@ -19,10 +19,9 @@ use 5.010;
 use strict;
 use warnings;
 
-use Marpa::R2::HTML::Config::Definition;
-
-sub new_from_default {
+sub new {
     my ($class) = @_;
+    require Marpa::R2::HTML::Config::Default;
     my $self = {
         rules => $Marpa::R2::HTML::Internal::Compiled::CORE_RULES,
         descriptor_by_tag =>
@@ -36,6 +35,11 @@ sub new_from_default {
 sub contents {
     my ($self) = @_;
     return @{$self}{qw(rules descriptor_by_tag ruby_slippers_rank_by_name)};
+}
+
+sub dump {
+    my ($class) = @_;
+    require Marpa::R2::HTML::Config::Dump;
 }
 
 1;
