@@ -24,17 +24,10 @@ use Getopt::Long ();
 use Test::More ( import => [] );
 use lib 'pperl';
 
+use Marpa::R2::Test;
+
 BEGIN {
-    my $PPI_problem;
-    CHECK_PPI: {
-        if ( not eval { require PPI } ) {
-            $PPI_problem = 'PPI not installed';
-            last CHECK_PPI;
-        }
-        if ( not PPI->VERSION(1.206) ) {
-            $PPI_problem = 'PPI 1.206 not installed';
-        }
-    } ## end CHECK_PPI:
+    my $PPI_problem = Marpa::R2::Test::check_PPI();
     if ($PPI_problem) {
         Test::More::plan skip_all => $PPI_problem;
     }
@@ -46,7 +39,6 @@ BEGIN {
 use Marpa::R2;
 use Marpa::R2::Perl;
 use lib 'inc';
-use Marpa::R2::Test;
 
 # Run in utility mode?
 my $utility = 0;

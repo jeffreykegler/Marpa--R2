@@ -23,17 +23,10 @@ use English qw( -no_match_vars );
 use Test::More ( import => [] );
 use lib 'pperl';
 
+use Marpa::R2::Test;
+
 BEGIN {
-    my $PPI_problem;
-    CHECK_PPI: {
-        if ( not eval { require PPI } ) {
-            $PPI_problem = 'PPI not installed';
-            last CHECK_PPI;
-        }
-        if ( not PPI->VERSION(1.206) ) {
-            $PPI_problem = 'PPI 1.206 not installed';
-        }
-    } ## end CHECK_PPI:
+    my $PPI_problem = Marpa::R2::Test::check_PPI();
     if ($PPI_problem) {
         Test::More::plan skip_all => $PPI_problem;
     }
@@ -45,7 +38,6 @@ BEGIN {
 use Marpa::R2;
 use Marpa::R2::Perl;
 use lib 'inc';
-use Marpa::R2::Test;
 
 my $string = <<'END_OF_INPUT';
 Note: line:column figures include preceding whitepace
@@ -168,8 +160,8 @@ sub find_curly {
         for my $hash_location (@hash_locations) {
             my ( $start, $end ) = @{$hash_location};
             my $start_ix = $earleme_to_token->[$start];
-	    my $end_ix   = $earleme_to_token->[$end];
-	    while (not defined $end_ix) { $end_ix = $earleme_to_token->[ --$end ] };
+        my $end_ix   = $earleme_to_token->[$end];
+        while (not defined $end_ix) { $end_ix = $earleme_to_token->[ --$end ] };
             my $string = join q{},
                 map { $_->content() } @{$tokens}[ $start_ix .. $end_ix ];
             $string =~ s/^\s*//;
@@ -177,13 +169,13 @@ sub find_curly {
             $result .= join q{ }, @ambiguous, 'Hash at',
                 linecol( $PPI_tokens->[$start_ix] ),
                 linecol( $PPI_tokens->[$end_ix] ), $string;
-	    $result .= "\n";
+        $result .= "\n";
         } ## end for my $hash_location (@hash_locations)
         for my $code_location (@code_locations) {
             my ( $start, $end ) = @{$code_location};
             my $start_ix = $earleme_to_token->[$start];
             my $end_ix   = $earleme_to_token->[$end];
-	    while (not defined $end_ix) { $end_ix = $earleme_to_token->[ --$end ] };
+        while (not defined $end_ix) { $end_ix = $earleme_to_token->[ --$end ] };
             my $string = join q{},
                 map { $_->content() } @{$tokens}[ $start_ix .. $end_ix ];
             $string =~ s/^\s*//;
@@ -191,7 +183,7 @@ sub find_curly {
             $result .= join q{ }, @ambiguous, 'Code block at',
                 linecol( $PPI_tokens->[$start_ix] ),
                 linecol( $PPI_tokens->[$end_ix] ), $string;
-	    $result .= "\n";
+        $result .= "\n";
         } ## end for my $code_location (@code_locations)
     } ## end for my $earley_set_id ( 0 .. $recce->latest_earley_set...)
 
