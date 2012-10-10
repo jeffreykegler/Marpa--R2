@@ -106,7 +106,7 @@ near adequate to the variety of standards,
 renderers and application requirements out there.
 Ideally,
 C<html_fmt> would have many options customizing its behavior.
-As of this writing, there are only two.
+As of this writing, there are only a few.
 
 =head2 avoid-whitespace
 

@@ -13,10 +13,10 @@
 # General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 
-# This file was generated automatically by -e
-# The date of generation was Tue Oct  9 09:46:41 2012
+# This file was generated automatically by Marpa::R2::HTML::Config
+# The date of generation was Tue Oct  9 18:04:21 2012
 
-package Marpa::R2::HTML::Internal::Compiled;
+package Marpa::R2::HTML::Internal::Config::Default;
 
 $CORE_RULES = [
                 {

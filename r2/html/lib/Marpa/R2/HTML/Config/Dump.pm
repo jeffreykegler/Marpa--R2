@@ -13,7 +13,7 @@
 # General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 
-package Marpa::R2::HTML::Config::Dump;
+package Marpa::R2::HTML::Config::As_String;
 
 use 5.010;
 use strict;
@@ -37,12 +37,13 @@ sub as_string {
             . "# The date of generation was "
             . ( scalar localtime() ) . "\n" . "\n"
             . "package Marpa::R2::HTML::Internal::Config::Default;\n" . "\n"
-            . Data::Dumper->Dump( \@contents,
+            . Data::Dumper->Dump(
+            \@contents,
             [qw(CORE_RULES TAG_DESCRIPTOR RUBY_SLIPPERS_RANK_BY_NAME)]
             )
     );
 
-} ## end sub write
+} ## end sub as_string
 
 1;
 

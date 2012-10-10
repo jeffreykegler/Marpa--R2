@@ -576,7 +576,7 @@ sub parse {
 
     my ($core_rules, $descriptor_by_tag, $rank_by_name) = $self->{config}->contents();
     if ($self->{dump_config}) {
-         say $self->{config}->dump();
+         say ${$self->{config}->as_string()};
 	 exit(0);
     }
     my @rules     = @{$core_rules};
