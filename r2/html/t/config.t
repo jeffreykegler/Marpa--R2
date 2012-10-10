@@ -64,7 +64,7 @@ my $long_round_trip_file = do {
     ${$long_round_trip_ref};
 };
 
-my $datestamp_re = qr/ ^ \s* [#] \s+ The \s+ date \s+ of \s+ generation \s+ was \s+ .* $/xms;
+my $datestamp_re = qr/ ^ \s* [#] \s+ The \s+ date \s+ of \s+ generation \s+ was [^\n]* /xms;
 $current_file =~ s/$datestamp_re/[ DATESTAMP ]/xms;
 $short_round_trip_file =~ s/$datestamp_re/[ DATESTAMP ]/xms;
 $long_round_trip_file =~ s/$datestamp_re/[ DATESTAMP ]/xms;
