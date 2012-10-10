@@ -23,7 +23,6 @@ use Data::Dumper;
 use English qw( -no_match_vars );
 
 use Marpa::R2::HTML::Config::Core;
-use Marpa::R2::HTML::Config::Configuration;
 
 my %predefined_groups =
     ( GRP_mixed => [qw( GRP_anywhere GRP_block GRP_inline cdata pcdata)] );
@@ -111,7 +110,7 @@ sub compile {
     my %lists = ();
 
     LINE:
-    for my $line ( split /\n/xms, $HTML_Configuration::CONFIGURATION_BNF )
+    for my $line ( split /\n/xms, ${$source_ref} )
     {
         my $definition = $line;
         chomp $definition;

@@ -13,18 +13,6 @@
 # General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 
-use 5.010;
-use strict;
-use warnings;
-use autodie;
-use Data::Dumper;
-
-package HTML_Configuration;
-
-use English qw( -no_match_vars );
-
-our $CONFIGURATION_BNF = <<'END_OF_CONFIG_BNF';
-
 # Only the contents of these can be changed,
 # not the context
 ELE_body is FLO_block
@@ -179,6 +167,3 @@ PCDATA -> @inline_rubies
 </html> -> <html> <head> <body> <!non_final_end> </body>
 EOF -> <html> <head> <body> <!non_final_end> </body> </html>
 
-END_OF_CONFIG_BNF
-
-1;
