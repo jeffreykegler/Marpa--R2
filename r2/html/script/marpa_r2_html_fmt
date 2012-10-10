@@ -487,10 +487,19 @@ my %flags = (
     trace_values    => $trace_values_flag,
     dump_config     => $dump_config_flag,
 );
-$flags{compile} = $compile_flag if defined $compile_flag;
+if (defined $compile_flag) {
+  open my $fh, q{<}, $compile_flag;
+  my $source = join q{}, <$fh>;
+  close $fh;
+  $flags{compile} = \$source;
+}
 
 my $value_ref = Marpa::R2::HTML::html( \$document, \%html_args, \\%flags );
 die 'Internal error: no parse' if not defined $value_ref;
+if ($dump_config_flag) {
+  say ${$value_ref};
+  exit 0;
+}
 
 print post_process($value_ref) or die "print failed: $ERRNO";
 

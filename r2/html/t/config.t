@@ -30,7 +30,7 @@ BEGIN {
     use lib 'html/tool/lib';
     my $eval_result = eval { require Marpa::R2::HTML::Test::Util; 1 };
     if ( !$eval_result ) {
-        Test::More::plan tests => 1;
+        Test::More::plan tests => 2;
         Test::More::fail(
             "Could not load Marpa::R2::HTML::Test::Util; $EVAL_ERROR");
         exit 0;
@@ -57,8 +57,17 @@ my $short_round_trip_file = do {
     ${$short_round_trip_ref};
 };
 
+my $long_round_trip_file = do {
+    my $long_round_trip_ref =
+        Marpa::R2::HTML::html( \"hi", \{ compile => \'/dev/null', dump_config => 1 } );
+    die "No parse" if not ref $long_round_trip_ref;
+    ${$long_round_trip_ref};
+};
+
 my $datestamp_re = qr/ ^ \s* [#] \s+ The \s+ date \s+ of \s+ generation \s+ was \s+ .* $/xms;
 $current_file =~ s/$datestamp_re/[ DATESTAMP ]/xms;
 $short_round_trip_file =~ s/$datestamp_re/[ DATESTAMP ]/xms;
+$long_round_trip_file =~ s/$datestamp_re/[ DATESTAMP ]/xms;
 
 Marpa::R2::Test::is( $short_round_trip_file, $current_file, 'Default config, short round trip' );
+Marpa::R2::Test::is( $long_round_trip_file, $current_file, 'Default config, long round trip' );

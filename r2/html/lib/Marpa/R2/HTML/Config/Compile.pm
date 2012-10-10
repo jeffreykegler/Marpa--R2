@@ -13,7 +13,7 @@
 # General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 
-package Marpa::R2::HTML::Compile;
+package Marpa::R2::HTML::Config::Compile;
 
 use 5.010;
 use strict;

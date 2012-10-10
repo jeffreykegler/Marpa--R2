@@ -250,7 +250,7 @@ sub create {
                     qw(trace_fh trace_values trace_handlers
                         trace_conflicts
                         trace_terminals trace_cruft
-			dump_config
+			dump_config compile
 			)
                 ]
                 )
