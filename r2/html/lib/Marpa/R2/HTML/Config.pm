@@ -46,34 +46,7 @@ sub contents {
     return @{$self}{qw(rules descriptor_by_tag ruby_slippers_rank_by_name)};
 }
 
-sub as_string {
-    my ($self) = @_;
-
-    require Data::Dumper;
-    require Marpa::R2::HTML::Config::Default;
-
-    local $Data::Dumper::Purity   = 1;
-    local $Data::Dumper::Sortkeys = 1;
-    my @contents = $self->contents();
-
-    # Start with the legal language
-    return \(
-              ( join q{}, <DATA> ) . "\n"
-            . '# This file was generated automatically by ' . __PACKAGE__ . "\n"
-            . '# The date of generation was '
-            . ( scalar localtime() ) . "\n" . "\n"
-            . "package Marpa::R2::HTML::Internal::Config::Default;\n" . "\n"
-            . Data::Dumper->Dump(
-            \@contents,
-            [qw(CORE_RULES TAG_DESCRIPTOR RUBY_SLIPPERS_RANK_BY_NAME)]
-            )
-    );
-
-} ## end sub as_string
-
-1;
-
-__DATA__
+my $legal_preamble = <<'END_OF_TEXT';
 # Copyright 2012 Jeffrey Kegler
 # This file is part of Marpa::R2.  Marpa::R2 is free software: you can
 # redistribute it and/or modify it under the terms of the GNU Lesser
@@ -88,3 +61,33 @@ __DATA__
 # You should have received a copy of the GNU Lesser
 # General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
+
+END_OF_TEXT
+
+sub as_string {
+    my ($self) = @_;
+
+    require Data::Dumper;
+    require Marpa::R2::HTML::Config::Default;
+
+    local $Data::Dumper::Purity   = 1;
+    local $Data::Dumper::Sortkeys = 1;
+    my @contents = $self->contents();
+
+    # Start with the legal language
+    return \(
+              $legal_preamble
+            . '# This file was generated automatically by '
+            . __PACKAGE__ . "\n"
+            . '# The date of generation was '
+            . ( scalar localtime() ) . "\n" . "\n"
+            . "package Marpa::R2::HTML::Internal::Config::Default;\n" . "\n"
+            . Data::Dumper->Dump(
+            \@contents,
+            [qw(CORE_RULES TAG_DESCRIPTOR RUBY_SLIPPERS_RANK_BY_NAME)]
+            )
+    );
+
+} ## end sub as_string
+
+1;
