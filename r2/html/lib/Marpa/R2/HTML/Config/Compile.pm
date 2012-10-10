@@ -22,7 +22,6 @@ use Data::Dumper;
 
 use English qw( -no_match_vars );
 
-use lib '../../../../';
 use Marpa::R2::HTML::Config::Core;
 use Marpa::R2::HTML::Config::Configuration;
 
