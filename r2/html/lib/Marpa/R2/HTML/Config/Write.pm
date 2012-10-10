@@ -13,9 +13,7 @@
 # General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 
-# Same package as the compilation file --
-# They are always used together and it's convenient
-package Marpa::R2::HTML::Config::Write;
+package Marpa::R2::HTML::Config::Dump;
 
 use 5.010;
 use strict;
@@ -23,10 +21,14 @@ use warnings;
 use Data::Dumper;
 use English qw( -no_match_vars );
 
-sub file_string {
+use Marpa::R2::HTML::Config::Default;
 
-    $Data::Dumper::Purity   = 1;
-    $Data::Dumper::Sortkeys = 1;
+sub as_string {
+    my ($self) = @_;
+
+    local $Data::Dumper::Purity   = 1;
+    local $Data::Dumper::Sortkeys = 1;
+    my @contents = $self->{config}->contents();
 
     # Start with the legal language
     return \(
@@ -34,15 +36,9 @@ sub file_string {
             . "# This file was generated automatically by $PROGRAM_NAME\n"
             . "# The date of generation was "
             . ( scalar localtime() ) . "\n" . "\n"
-            . "package Marpa::R2::HTML::Internal::Compiled;\n" . "\n"
-            . Data::Dumper->Dump( [ \@Marpa::R2::HTML::Internal::Compiled::CORE_RULES ],
-            [qw(CORE_RULES)] )
-            . Data::Dumper->Dump(
-            [ \%Marpa::R2::HTML::Internal::Compiled::TAG_DESCRIPTOR ],
-            [qw(TAG_DESCRIPTOR)] )
-            . Data::Dumper->Dump(
-            [ \%Marpa::R2::HTML::Internal::Compiled::RUBY_RANK ],
-            [qw(RUBY_SLIPPERS_RANK_BY_NAME)]
+            . "package Marpa::R2::HTML::Internal::Config::Default;\n" . "\n"
+            . Data::Dumper->Dump( \@contents,
+            [qw(CORE_RULES TAG_DESCRIPTOR RUBY_SLIPPERS_RANK_BY_NAME)]
             )
     );
 
