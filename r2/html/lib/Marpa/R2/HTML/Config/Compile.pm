@@ -31,18 +31,6 @@ my %predefined_groups =
 sub compile {
     my ($source_ref) = @_;
 
-# Make sure the last resort defaults are always defined
-    for my $required_rubies_desc (qw( !start_tag !end_tag !non_element )) {
-        $HTML_Configuration::RUBY_CONFIG{$required_rubies_desc} //= [];
-    }
-
-    DESC: for my $rubies_desc ( keys %HTML_Configuration::RUBY_CONFIG ) {
-        my $candidates = $HTML_Configuration::RUBY_CONFIG{$rubies_desc};
-        next DESC if '!non_final_end' ~~ $candidates;
-        $HTML_Configuration::RUBY_CONFIG{$rubies_desc} =
-            [ @{$candidates}, '!non_final_end' ];
-    } ## end DESC: for my $rubies_desc ( keys %HTML_Configuration::RUBY_CONFIG)
-
     my %species_handler = (
         cruft      => 'SPE_CRUFT',
         comment    => 'SPE_COMMENT',
@@ -118,6 +106,9 @@ sub compile {
                 join " ", @species_not_defined;
         }
     }
+
+    my %ruby_config = ();
+    my %lists = ();
 
     LINE:
     for my $line ( split /\n/xms, $HTML_Configuration::CONFIGURATION_BNF )
@@ -216,8 +207,83 @@ sub compile {
             push @{ $flow_containments{$flow_symbol} }, @contents;
             next LINE;
         } ## end if ( $definition =~ ...)
+        if ( $definition =~ s/ \A \s* [@](\w+) \s* = \s* / /xms ) {
+            my $new_list = $1;
+            die "Problem in line: $line\n",
+                'list @' . $new_list . ' is already defined'
+                if defined $lists{$new_list};
+            my @raw_members = split q{ }, $definition;
+            my @members = ();
+            RAW_MEMBER: for my $raw_member (@raw_members) {
+                if ( $raw_member =~ / \A [@] (.*) \z/xms ) {
+                    my $member_list = $1;
+                    die "Problem in line: $line\n",
+                        'member list @' . $member_list . ' is not yet defined'
+                        if not defined $lists{$member_list};
+                    push @members, @{ $lists{$member_list} };
+                    next RAW_MEMBER;
+                } ## end if ( $member =~ / \A [@] (.*) \z/xms )
+                push @members, $raw_member;
+            } ## end RAW_MEMBER: for my $raw_member (@raw_members)
+            $lists{$new_list} = \@members;
+	    next LINE;
+        } ## end if ( $definition =~ s/ \A \s* [@](\w+) \s* = \s* / /xms)
+        if ( $definition =~ s{ \A \s* ([\w<!>/]+) \s* [-][>] \s* }{}xms ) {
+            my $rejected_symbol = $1;
+            my @raw_candidates = split q{ }, $definition;
+            my @symbols = ($rejected_symbol);
+            RAW_CANDIDATE: for my $raw_candidate (@raw_candidates) {
+                if ( $raw_candidate =~ / \A [@] (.*) \z/xms ) {
+                    my $list = $1;
+                    die "Problem in line: $line\n",
+                        'candidate list @' . $list . ' is not yet defined'
+                        if not defined $lists{$list};
+                    push @symbols, @{ $lists{$list} };
+                    next RAW_CANDIDATE;
+                } ## end if ( $raw_candidate =~ / \A [@] (.*) \z/xms )
+		push @symbols, $raw_candidate;
+            } ## end RAW_CANDIDATE: for my $raw_candidate (@raw_candidates)
+	    my @internal_symbols = ();
+	    SYMBOL: for my $symbol (@symbols) {
+	        if ($symbol =~ /\A \w+ \z/xms) {
+		     push @internal_symbols, $symbol;
+		     next SYMBOL;
+		}
+	        if ($symbol =~ /\A [<] ([!]\w+) [>] \z/xms) {
+		     my $special_symbol = $1;
+		     push @internal_symbols, $special_symbol;
+		     next SYMBOL;
+		}
+	        if ($symbol =~ /\A [<] (\w+) [>] \z/xms) {
+		     my $start_tag = 'S_' . $1;
+		     push @internal_symbols, $start_tag;
+		     next SYMBOL;
+		}
+	        if ($symbol =~ m{\A [<] [/](\w+) [>] \z}xms) {
+		     my $end_tag = 'E_' . $1;
+		     push @internal_symbols, $end_tag;
+		     next SYMBOL;
+		}
+		die "Problem in line: $line\n", qq{Misformed symbol "$symbol"};
+	    }
+	    $rejected_symbol = shift @internal_symbols;
+            $ruby_config{$rejected_symbol} = \@internal_symbols;
+	    next LINE;
+	}
         die "Badly formed line in grammar description: $line";
     } ## end LINE: for my $line ( split /\n/xms, ...)
+
+# Make sure the last resort defaults are always defined
+    for my $required_rubies_desc (qw( !start_tag !end_tag !non_element )) {
+        $ruby_config{$required_rubies_desc} //= [];
+    }
+
+    DESC: for my $rubies_desc ( keys %ruby_config ) {
+        my $candidates = $ruby_config{$rubies_desc};
+        next DESC if '!non_final_end' ~~ $candidates;
+        $ruby_config{$rubies_desc} =
+            [ @{$candidates}, '!non_final_end' ];
+    } ## end DESC: for my $rubies_desc ( keys %ruby_config)
 
     ELEMENT: for my $element ( keys %symbol_defined ) {
         my $definitions = $symbol_defined{$element};
@@ -407,7 +473,7 @@ sub compile {
         # non-physical one
         my @ruby_start_tags =
             grep { ( substr $_, 0, 2 ) eq 'S_' }
-            map { @{$_} } values %HTML_Configuration::RUBY_CONFIG;
+            map { @{$_} } values %ruby_config;
 
         my %defined_in_core_rules =
             map { ( substr $_, 4 ) => 'core' }
@@ -451,14 +517,14 @@ sub compile {
     }
 
     my %ruby_rank = ();
-    for my $rejected_symbol ( keys %HTML_Configuration::RUBY_CONFIG ) {
+    for my $rejected_symbol ( keys %ruby_config ) {
         my $rank = 1;
         for my $candidate (
-            reverse @{ $HTML_Configuration::RUBY_CONFIG{$rejected_symbol} } )
+            reverse @{ $ruby_config{$rejected_symbol} } )
         {
             $ruby_rank{$rejected_symbol}{$candidate} = $rank++;
         }
-    } ## end for my $rejected_symbol ( keys %HTML_Configuration::RUBY_CONFIG)
+    } ## end for my $rejected_symbol ( keys %ruby_config)
 
     return {
         rules                      => \@core_rules,
