@@ -90,6 +90,7 @@ ERROR: for my $error_number ( 0 .. $#LIBMARPA_ERROR_NAMES ) {
 BEGIN {
     my $structure = <<'END_OF_STRUCTURE';
     :package=Marpa::R2::HTML::Internal::Token
+    TOKEN_ID
     TOKEN_NAME
     TYPE
     LINE
@@ -480,20 +481,20 @@ sub parse {
     my $p          = HTML::Parser->new(
         api_version => 3,
         start_h     => [
-            \@raw_tokens, q{tagname,'S',line,column,offset,offset_end,is_cdata,attr}
+            \@raw_tokens, q{'-1',tagname,'S',line,column,offset,offset_end,is_cdata,attr}
         ],
         end_h =>
-            [ \@raw_tokens, q{tagname,'E',line,column,offset,offset_end,is_cdata} ],
+            [ \@raw_tokens, q{'-1',tagname,'E',line,column,offset,offset_end,is_cdata} ],
         text_h => [
             \@raw_tokens,
-            q{'WHITESPACE','T',line,column,offset,offset_end,is_cdata}
+            q{'-1','WHITESPACE','T',line,column,offset,offset_end,is_cdata}
         ],
         comment_h =>
-            [ \@raw_tokens, q{'C','C',line,column,offset,offset_end,is_cdata} ],
+            [ \@raw_tokens, q{'-1','C','C',line,column,offset,offset_end,is_cdata} ],
         declaration_h =>
-            [ \@raw_tokens, q{'D','D',line,column,offset,offset_end,is_cdata} ],
+            [ \@raw_tokens, q{'-1','D','D',line,column,offset,offset_end,is_cdata} ],
         process_h =>
-            [ \@raw_tokens, q{'PI','PI',line,column,offset,offset_end,is_cdata} ],
+            [ \@raw_tokens, q{'-1','PI','PI',line,column,offset,offset_end,is_cdata} ],
         unbroken_text => 1
     );
 
@@ -503,7 +504,7 @@ sub parse {
     my @html_parser_tokens = ();
     HTML_PARSER_TOKEN:
     for my $raw_token (@raw_tokens) {
-        my ( $dummy, $token_type, $line, $column, $offset, $offset_end, $is_cdata, $attr ) =
+        my ( undef, undef, $token_type, $line, $column, $offset, $offset_end, $is_cdata, $attr ) =
             @{$raw_token};
 
         PROCESS_BY_TYPE: {
@@ -521,14 +522,11 @@ sub parse {
                 # I avoid the Perl character codes because I do NOT want
                 # localization
 
-                if (substr(
+                $raw_token->[Marpa::R2::HTML::Internal::Token::TOKEN_NAME] = (
+                    substr(
                         ${$document}, $offset, ( $offset_end - $offset )
                     ) =~ / [^\x09\x0A\x0C\x0D\x20\x{200B}] /oxms
-                    )
-                {
-                    $raw_token->[Marpa::R2::HTML::Internal::Token::TOKEN_NAME]
-                        = 'PCDATA';
-                } ## end if ( substr( ${$document}, $offset, ( $offset_end - ...)))
+                ) ? 'PCDATA' : 'WHITESPACE';
                 last PROCESS_BY_TYPE;
             } ## end if ( $token_type eq 'T' )
             if ( $token_type eq 'S' ) {
@@ -571,7 +569,7 @@ sub parse {
         my $last_token      = $html_parser_tokens[-1];
         push @html_parser_tokens,
             [
-            'EOF', 'EOF',
+            '-1', 'EOF', 'EOF',
             @{$last_token}[
                 Marpa::R2::HTML::Internal::Token::LINE,
             Marpa::R2::HTML::Internal::Token::COLUMN
@@ -793,13 +791,19 @@ sub parse {
     # array stays at -1.
     my @terminal_last_seen = ( (-1) x ( $highest_symbol_id + 1 ) );
 
+    for my $token (@html_parser_tokens) {
+        $token->[Marpa::R2::HTML::Internal::Token::TOKEN_ID] =
+            $symbol_id_by_name{ $token
+                ->[Marpa::R2::HTML::Internal::Token::TOKEN_NAME] };
+    }
+
     $thin_grammar->throw_set(0);
+    my $SYMID_cruft = $symbol_id_by_name{'CRUFT'};
     RECCE_RESPONSE: while ( $token_number < $token_count ) {
         my $token = $html_parser_tokens[$token_number];
 
-        my $attempted_symbol_id =
-            $symbol_id_by_name{ $token
-                ->[Marpa::R2::HTML::Internal::Token::TOKEN_NAME] };
+        my $attempted_symbol_id = $token
+                ->[Marpa::R2::HTML::Internal::Token::TOKEN_ID];
         my $read_result =
             $recce->alternative( $attempted_symbol_id, PHYSICAL_TOKEN, 1 );
         if ( $read_result != $UNEXPECTED_TOKEN_ID ) {
@@ -808,7 +812,7 @@ sub parse {
             }
             if ($trace_terminals) {
                 say {$trace_fh} 'Token accepted: ',
-                    $token->[Marpa::R2::HTML::Internal::Token::TOKEN_NAME],
+                    $symbol_name_by_id[$attempted_symbol_id]
                     or Carp::croak("Cannot print: $ERRNO");
             }
             if ( $recce->earleme_complete() < 0 ) {
@@ -909,7 +913,7 @@ sub parse {
 
         # Cruft tokens are not virtual.
         # They are the real things, hacked up.
-        $token->[0] = 'CRUFT';
+        $token->[Marpa::R2::HTML::Internal::Token::TOKEN_ID] = $SYMID_cruft;
         if ($trace_cruft) {
             my $current_earleme = $recce->current_earleme();
             die $thin_grammar->error() if not defined $current_earleme;
