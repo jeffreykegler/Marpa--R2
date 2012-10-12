@@ -501,6 +501,11 @@ sub parse {
     $p->parse( ${$document} );
     $p->eof;
 
+    my ($core_rules, $compiled_descriptor_by_tag, $rank_by_name) = $self->{config}->contents();
+    if ($self->{dump_config}) {
+         return $self->{config}->as_string();
+    }
+
     my @html_parser_tokens = ();
     HTML_PARSER_TOKEN:
     for my $raw_token (@raw_tokens) {
@@ -542,7 +547,17 @@ sub parse {
 
                 my $tag_name = $raw_token
                     ->[Marpa::R2::HTML::Internal::Token::TOKEN_NAME];
-                $tags{$tag_name}++;
+                my $tag_descriptor = $tags{$tag_name};
+                if (not defined $tag_descriptor) {
+		  my $element_type = 'GRP_anywhere';
+		  my $contents     = 'FLO_mixed';
+		  my $compiled_tag_descriptor = $compiled_descriptor_by_tag->{$tag_name};
+		  if ( defined $compiled_tag_descriptor ) {
+		      ( $element_type, $contents ) = @{$compiled_tag_descriptor};
+		  }
+		  $tag_descriptor = [$element_type, $contents];
+		  $tags{$tag_name} = $tag_descriptor;
+		}
                 my $terminal = $token_type . q{_} . $tag_name;
                 $raw_token->[Marpa::R2::HTML::Internal::Token::TOKEN_NAME] =
                     $terminal;
@@ -574,10 +589,6 @@ sub parse {
     $p          = undef;
     @raw_tokens = ();
 
-    my ($core_rules, $descriptor_by_tag, $rank_by_name) = $self->{config}->contents();
-    if ($self->{dump_config}) {
-         return $self->{config}->as_string();
-    }
     my @rules     = @{$core_rules};
 
     for my $rule (@rules) {
@@ -589,14 +600,9 @@ sub parse {
     } ## end for my $rule (@rules)
 
     ELEMENT: for my $tag ( keys %tags ) {
-        my $start_tag    = "S_$tag";
-        my $end_tag      = "E_$tag";
-        my $element_type = 'GRP_anywhere';
-        my $contents     = 'FLO_mixed';
-        my $tag_descriptor = $descriptor_by_tag->{$tag};
-        if ( defined $tag_descriptor ) {
-            ( $element_type, $contents ) = @{$tag_descriptor};
-        }
+        my $start_tag = "S_$tag";
+        my $end_tag   = "E_$tag";
+        my ( $element_type, $contents ) = @{ $tags{$tag} };
 
         push @rules,
             {
