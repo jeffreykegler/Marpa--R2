@@ -813,12 +813,6 @@ sub parse {
     # array stays at -1.
     my @terminal_last_seen = ( (-1) x ( $highest_symbol_id + 1 ) );
 
-    for my $token (@html_parser_tokens) {
-        $token->[Marpa::R2::HTML::Internal::Token::TOKEN_ID] =
-            $symbol_id_by_name{ $token
-                ->[Marpa::R2::HTML::Internal::Token::TOKEN_NAME] };
-    }
-
     $thin_grammar->throw_set(0);
     RECCE_RESPONSE: while ( $token_number < $token_count ) {
         my $token = $html_parser_tokens[$token_number];
