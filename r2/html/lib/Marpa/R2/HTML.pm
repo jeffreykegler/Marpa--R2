@@ -541,6 +541,16 @@ sub parse {
         $action_by_rule_id[$rule_id] = $action;
     } ## end RULE: for my $rule (@rules)
 
+    # Some constants that we will use a lot
+    my $SYMID_CRUFT = $symbol_id_by_name{'CRUFT'};
+    my $SYMID_CDATA = $symbol_id_by_name{'CDATA'};
+    my $SYMID_PCDATA = $symbol_id_by_name{'PCDATA'};
+    my $SYMID_WHITESPACE = $symbol_id_by_name{'WHITESPACE'};
+    my $SYMID_PI = $symbol_id_by_name{'PI'};
+    my $SYMID_C = $symbol_id_by_name{'C'};
+    my $SYMID_D = $symbol_id_by_name{'D'};
+    my $SYMID_EOF = $symbol_id_by_name{'EOF'};
+
     my @html_parser_tokens = ();
     HTML_PARSER_TOKEN:
     for my $raw_token (@raw_tokens) {
@@ -551,6 +561,8 @@ sub parse {
             if ($is_cdata) {
                 $raw_token->[Marpa::R2::HTML::Internal::Token::TOKEN_NAME] =
                     'CDATA';
+                $raw_token->[Marpa::R2::HTML::Internal::Token::TOKEN_ID] =
+		    $SYMID_CDATA;
                 last PROCESS_TOKEN_TYPE;
             }
             if ( $token_type eq 'T' ) {
@@ -567,6 +579,13 @@ sub parse {
                         ${$document}, $offset, ( $offset_end - $offset )
                     ) =~ / [^\x09\x0A\x0C\x0D\x20\x{200B}] /oxms
                 ) ? 'PCDATA' : 'WHITESPACE';
+
+                $raw_token->[Marpa::R2::HTML::Internal::Token::TOKEN_ID] = (
+                    substr(
+                        ${$document}, $offset, ( $offset_end - $offset )
+                    ) =~ / [^\x09\x0A\x0C\x0D\x20\x{200B}] /oxms
+                ) ? $SYMID_PCDATA : $SYMID_WHITESPACE;
+
                 last PROCESS_TOKEN_TYPE;
             } ## end if ( $token_type eq 'T' )
             if ( $token_type eq 'E' or $token_type eq 'S' ) {
@@ -622,6 +641,15 @@ sub parse {
                     $terminal_id;
                 last PROCESS_TOKEN_TYPE;
             } ## end if ( $token_type eq 'E' or $token_type eq 'S' )
+            if ( $token_type eq 'C' ) {
+                $raw_token->[Marpa::R2::HTML::Internal::Token::TOKEN_ID] = $SYMID_C;
+                last PROCESS_TOKEN_TYPE;
+	    }
+            if ( $token_type eq 'D' ) {
+                $raw_token->[Marpa::R2::HTML::Internal::Token::TOKEN_ID] = $SYMID_D;
+                last PROCESS_TOKEN_TYPE;
+	    }
+	    die qq{Internal error: unexpected token type "$token_type"};
         } ## end PROCESS_TOKEN_TYPE:
         push @html_parser_tokens, $raw_token;
     } ## end HTML_PARSER_TOKEN: for my $raw_token (@raw_tokens)
@@ -634,7 +662,7 @@ sub parse {
         my $last_token      = $html_parser_tokens[-1];
         push @html_parser_tokens,
             [
-            $symbol_id_by_name{'EOF'}, 'EOF', 'EOF',
+            $SYMID_EOF, 'EOF', 'EOF',
             @{$last_token}[
                 Marpa::R2::HTML::Internal::Token::LINE,
             Marpa::R2::HTML::Internal::Token::COLUMN
@@ -792,7 +820,6 @@ sub parse {
     }
 
     $thin_grammar->throw_set(0);
-    my $SYMID_cruft = $symbol_id_by_name{'CRUFT'};
     RECCE_RESPONSE: while ( $token_number < $token_count ) {
         my $token = $html_parser_tokens[$token_number];
 
@@ -907,7 +934,7 @@ sub parse {
 
         # Cruft tokens are not virtual.
         # They are the real things, hacked up.
-        $token->[Marpa::R2::HTML::Internal::Token::TOKEN_ID] = $SYMID_cruft;
+        $token->[Marpa::R2::HTML::Internal::Token::TOKEN_ID] = $SYMID_CRUFT;
         if ($trace_cruft) {
             my $current_earleme = $recce->current_earleme();
             die $thin_grammar->error() if not defined $current_earleme;
