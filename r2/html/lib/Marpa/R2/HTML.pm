@@ -506,6 +506,41 @@ sub parse {
          return $self->{config}->as_string();
     }
 
+    my %symbol_id_by_name = ();
+    $self->{symbol_id_by_name} = \%symbol_id_by_name;
+    my @symbol_name_by_id = ();
+    $self->{symbol_name_by_id} = \@symbol_name_by_id;
+    my @action_by_rule_id = ();
+    $self->{action_by_rule_id} = \@action_by_rule_id;
+    my $thin_grammar = Marpa::R2::Thin::G->new( { if => 1 } );
+    $self->{grammar}                  = $thin_grammar;
+
+    RULE: for my $rule (@{$core_rules}) {
+        my $lhs    = $rule->{lhs};
+        my $rhs    = $rule->{rhs};
+        my $min    = $rule->{min};
+        my $action = $rule->{action};
+        for my $symbol_name ( grep { not defined $symbol_id_by_name{$_} }
+            ( $lhs, @{$rhs} ) )
+        {
+            my $symbol_id = $thin_grammar->symbol_new();
+            $symbol_name_by_id[$symbol_id] = $symbol_name;
+            $symbol_id_by_name{$symbol_name} = $symbol_id;
+        } ## end for my $symbol_name ( grep { not defined $symbol_id_by_name...})
+        my $lhs_id = $symbol_id_by_name{$lhs};
+        my @rhs_ids = map { $symbol_id_by_name{$_} } @{$rhs};
+        my $rule_id;
+        if ( defined $min ) {
+            $rule_id =
+                $thin_grammar->sequence_new( $lhs_id, $rhs_ids[0],
+                { min => $min } );
+        }
+        else {
+            $rule_id = $thin_grammar->rule_new( $lhs_id, \@rhs_ids );
+        }
+        $action_by_rule_id[$rule_id] = $action;
+    } ## end RULE: for my $rule (@rules)
+
     my @html_parser_tokens = ();
     HTML_PARSER_TOKEN:
     for my $raw_token (@raw_tokens) {
@@ -547,20 +582,44 @@ sub parse {
 
                 my $tag_name = $raw_token
                     ->[Marpa::R2::HTML::Internal::Token::TOKEN_NAME];
-                my $tag_descriptor = $tags{$tag_name};
-                if (not defined $tag_descriptor) {
-		  my $element_type = 'GRP_anywhere';
-		  my $contents     = 'FLO_mixed';
-		  my $compiled_tag_descriptor = $compiled_descriptor_by_tag->{$tag_name};
-		  if ( defined $compiled_tag_descriptor ) {
-		      ( $element_type, $contents ) = @{$compiled_tag_descriptor};
-		  }
-		  $tag_descriptor = [$element_type, $contents];
-		  $tags{$tag_name} = $tag_descriptor;
-		}
-                my $terminal = $token_type . q{_} . $tag_name;
+                my $terminal    = $token_type . q{_} . $tag_name;
+                my $terminal_id = $symbol_id_by_name{$terminal};
+                if ( not defined $terminal_id ) {
+                    my $element_type = 'GRP_anywhere';
+                    my $contents     = 'FLO_mixed';
+                    my $tag_descriptor =
+                        $compiled_descriptor_by_tag->{$tag_name};
+                    if ( defined $tag_descriptor ) {
+                        ( $element_type, $contents ) = @{$tag_descriptor};
+                    }
+                    my @symbol_names = (
+                        $element_type,
+                        'ELE_' . $tag_name,
+                        'S_' . $tag_name,
+                        $contents, 'E_' . $tag_name
+                    );
+                    my @symbol_ids = ();
+                    SYMBOL: for my $symbol_name (@symbol_names) {
+                        my $symbol_id = $symbol_id_by_name{$symbol_name};
+                        if ( not defined $symbol_id ) {
+                            $symbol_id = $thin_grammar->symbol_new();
+                            $symbol_name_by_id[$symbol_id] = $symbol_name;
+                            $symbol_id_by_name{$symbol_name} = $symbol_id;
+                        }
+                        push @symbol_ids, $symbol_id;
+                    } ## end SYMBOL: for my $symbol_name (@symbol_names)
+                    my ( $top_id, $lhs_id, @rhs_ids ) = @symbol_ids;
+                    $thin_grammar->rule_new( $top_id, [$lhs_id] );
+                    my $element_rule_id =
+                        $thin_grammar->rule_new( $lhs_id, \@rhs_ids );
+                    $action_by_rule_id[$element_rule_id] = 'ELE_' . $tag_name;
+                    $terminal_id = $symbol_id_by_name{$terminal};
+
+                } ## end if ( not defined $terminal_id )
                 $raw_token->[Marpa::R2::HTML::Internal::Token::TOKEN_NAME] =
                     $terminal;
+                $raw_token->[Marpa::R2::HTML::Internal::Token::TOKEN_ID] =
+                    $terminal_id;
                 last PROCESS_TOKEN_TYPE;
             } ## end if ( $token_type eq 'E' or $token_type eq 'S' )
         } ## end PROCESS_TOKEN_TYPE:
@@ -575,7 +634,7 @@ sub parse {
         my $last_token      = $html_parser_tokens[-1];
         push @html_parser_tokens,
             [
-            '-1', 'EOF', 'EOF',
+            $symbol_id_by_name{'EOF'}, 'EOF', 'EOF',
             @{$last_token}[
                 Marpa::R2::HTML::Internal::Token::LINE,
             Marpa::R2::HTML::Internal::Token::COLUMN
@@ -589,68 +648,6 @@ sub parse {
     $p          = undef;
     @raw_tokens = ();
 
-    my @rules     = @{$core_rules};
-
-    for my $rule (@rules) {
-        my $lhs = $rule->{lhs};
-        if ( 0 == index $lhs, 'ELE_' ) {
-            my $tag = substr $lhs, 4;
-            delete $tags{$tag};
-        }
-    } ## end for my $rule (@rules)
-
-    ELEMENT: for my $tag ( keys %tags ) {
-        my $start_tag = "S_$tag";
-        my $end_tag   = "E_$tag";
-        my ( $element_type, $contents ) = @{ $tags{$tag} };
-
-        push @rules,
-            {
-            lhs => $element_type,
-            rhs => ["ELE_$tag"],
-            },
-            {
-            lhs    => "ELE_$tag",
-            rhs    => [ $start_tag, $contents, $end_tag ],
-            action => "ELE_$tag",
-            };
-
-    } ## end ELEMENT: for my $tag ( keys %tags )
-
-    my %symbol_id_by_name = ();
-    $self->{symbol_id_by_name} = \%symbol_id_by_name;
-    my @symbol_name_by_id = ();
-    $self->{symbol_name_by_id} = \@symbol_name_by_id;
-    my @action_by_rule_id = ();
-    $self->{action_by_rule_id} = \@action_by_rule_id;
-    my $thin_grammar = Marpa::R2::Thin::G->new( { if => 1 } );
-    $self->{grammar}                  = $thin_grammar;
-
-    RULE: for my $rule (@rules) {
-        my $lhs    = $rule->{lhs};
-        my $rhs    = $rule->{rhs};
-        my $min    = $rule->{min};
-        my $action = $rule->{action};
-        for my $symbol_name ( grep { not defined $symbol_id_by_name{$_} }
-            ( $lhs, @{$rhs} ) )
-        {
-            my $symbol_id = $thin_grammar->symbol_new();
-            $symbol_name_by_id[$symbol_id] = $symbol_name;
-            $symbol_id_by_name{$symbol_name} = $symbol_id;
-        } ## end for my $symbol_name ( grep { not defined $symbol_id_by_name...})
-        my $lhs_id = $symbol_id_by_name{$lhs};
-        my @rhs_ids = map { $symbol_id_by_name{$_} } @{$rhs};
-        my $rule_id;
-        if ( defined $min ) {
-            $rule_id =
-                $thin_grammar->sequence_new( $lhs_id, $rhs_ids[0],
-                { min => $min } );
-        }
-        else {
-            $rule_id = $thin_grammar->rule_new( $lhs_id, \@rhs_ids );
-        }
-        $action_by_rule_id[$rule_id] = $action;
-    } ## end RULE: for my $rule (@rules)
     $thin_grammar->start_symbol_set( $symbol_id_by_name{'document'} );
     $thin_grammar->precompute();
 
