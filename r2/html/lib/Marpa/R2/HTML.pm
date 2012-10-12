@@ -537,14 +537,14 @@ sub parse {
             [ \@raw_tokens, q{tagname,'E',line,column,offset,offset_end,is_cdata} ],
         text_h => [
             \@raw_tokens,
-            q{'-1','T',line,column,offset,offset_end,is_cdata}
+            qq{'$SYMID_WHITESPACE','T',line,column,offset,offset_end,is_cdata}
         ],
         comment_h =>
-            [ \@raw_tokens, q{'-1','C',line,column,offset,offset_end,is_cdata} ],
+            [ \@raw_tokens, qq{'$SYMID_C','C',line,column,offset,offset_end,is_cdata} ],
         declaration_h =>
-            [ \@raw_tokens, q{'-1','D',line,column,offset,offset_end,is_cdata} ],
+            [ \@raw_tokens, qq{'$SYMID_D','D',line,column,offset,offset_end,is_cdata} ],
         process_h =>
-            [ \@raw_tokens, q{'-1','PI',line,column,offset,offset_end,is_cdata} ],
+            [ \@raw_tokens, qq{'$SYMID_PI','PI',line,column,offset,offset_end,is_cdata} ],
         unbroken_text => 1
     );
 
@@ -571,11 +571,11 @@ sub parse {
                 # carriage return (x0D) and line feed (x0A)
                 # I avoid the Perl character codes because I do NOT want
                 # localization
-                $raw_token->[Marpa::R2::HTML::Internal::Token::TOKEN_ID] = (
+                $raw_token->[Marpa::R2::HTML::Internal::Token::TOKEN_ID] =
+                 $SYMID_PCDATA if
                     substr(
                         ${$document}, $offset, ( $offset_end - $offset )
-                    ) =~ / [^\x09\x0A\x0C\x0D\x20\x{200B}] /oxms
-                ) ? $SYMID_PCDATA : $SYMID_WHITESPACE;
+                    ) =~ / [^\x09\x0A\x0C\x0D\x20\x{200B}] /oxms;
 
                 last PROCESS_TOKEN_TYPE;
             } ## end if ( $token_type eq 'T' )
@@ -630,15 +630,6 @@ sub parse {
                     $terminal_id;
                 last PROCESS_TOKEN_TYPE;
             } ## end if ( $token_type eq 'E' or $token_type eq 'S' )
-            if ( $token_type eq 'C' ) {
-                $raw_token->[Marpa::R2::HTML::Internal::Token::TOKEN_ID] = $SYMID_C;
-                last PROCESS_TOKEN_TYPE;
-	    }
-            if ( $token_type eq 'D' ) {
-                $raw_token->[Marpa::R2::HTML::Internal::Token::TOKEN_ID] = $SYMID_D;
-                last PROCESS_TOKEN_TYPE;
-	    }
-	    die qq{Internal error: unexpected token type "$token_type"};
         } ## end PROCESS_TOKEN_TYPE:
         push @html_parser_tokens, $raw_token;
     } ## end HTML_PARSER_TOKEN: for my $raw_token (@raw_tokens)
