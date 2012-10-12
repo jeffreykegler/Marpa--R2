@@ -477,30 +477,6 @@ sub parse {
 
     my $document = $self->{document} = $document_ref;
 
-    my @raw_tokens = ();
-    my $p          = HTML::Parser->new(
-        api_version => 3,
-        start_h     => [
-            \@raw_tokens, q{tagname,'S',line,column,offset,offset_end,is_cdata,attr}
-        ],
-        end_h =>
-            [ \@raw_tokens, q{tagname,'E',line,column,offset,offset_end,is_cdata} ],
-        text_h => [
-            \@raw_tokens,
-            q{'-1','T',line,column,offset,offset_end,is_cdata}
-        ],
-        comment_h =>
-            [ \@raw_tokens, q{'-1','C',line,column,offset,offset_end,is_cdata} ],
-        declaration_h =>
-            [ \@raw_tokens, q{'-1','D',line,column,offset,offset_end,is_cdata} ],
-        process_h =>
-            [ \@raw_tokens, q{'-1','PI',line,column,offset,offset_end,is_cdata} ],
-        unbroken_text => 1
-    );
-
-    $p->parse( ${$document} );
-    $p->eof;
-
     my ($core_rules, $compiled_descriptor_by_tag, $rank_by_name) = $self->{config}->contents();
     if ($self->{dump_config}) {
          return $self->{config}->as_string();
@@ -550,6 +526,30 @@ sub parse {
     my $SYMID_C = $symbol_id_by_name{'C'};
     my $SYMID_D = $symbol_id_by_name{'D'};
     my $SYMID_EOF = $symbol_id_by_name{'EOF'};
+
+    my @raw_tokens = ();
+    my $p          = HTML::Parser->new(
+        api_version => 3,
+        start_h     => [
+            \@raw_tokens, q{tagname,'S',line,column,offset,offset_end,is_cdata,attr}
+        ],
+        end_h =>
+            [ \@raw_tokens, q{tagname,'E',line,column,offset,offset_end,is_cdata} ],
+        text_h => [
+            \@raw_tokens,
+            q{'-1','T',line,column,offset,offset_end,is_cdata}
+        ],
+        comment_h =>
+            [ \@raw_tokens, q{'-1','C',line,column,offset,offset_end,is_cdata} ],
+        declaration_h =>
+            [ \@raw_tokens, q{'-1','D',line,column,offset,offset_end,is_cdata} ],
+        process_h =>
+            [ \@raw_tokens, q{'-1','PI',line,column,offset,offset_end,is_cdata} ],
+        unbroken_text => 1
+    );
+
+    $p->parse( ${$document} );
+    $p->eof;
 
     my @html_parser_tokens = ();
     HTML_PARSER_TOKEN:
