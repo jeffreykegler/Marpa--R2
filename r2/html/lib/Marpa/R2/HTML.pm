@@ -91,7 +91,7 @@ BEGIN {
     my $structure = <<'END_OF_STRUCTURE';
     :package=Marpa::R2::HTML::Internal::Token
     TOKEN_ID
-    TOKEN_NAME
+    =TAG_NAME
     TYPE
     LINE
     COL
@@ -481,20 +481,20 @@ sub parse {
     my $p          = HTML::Parser->new(
         api_version => 3,
         start_h     => [
-            \@raw_tokens, q{'-1',tagname,'S',line,column,offset,offset_end,is_cdata,attr}
+            \@raw_tokens, q{tagname,'S',line,column,offset,offset_end,is_cdata,attr}
         ],
         end_h =>
-            [ \@raw_tokens, q{'-1',tagname,'E',line,column,offset,offset_end,is_cdata} ],
+            [ \@raw_tokens, q{tagname,'E',line,column,offset,offset_end,is_cdata} ],
         text_h => [
             \@raw_tokens,
-            q{'-1','WHITESPACE','T',line,column,offset,offset_end,is_cdata}
+            q{'-1','T',line,column,offset,offset_end,is_cdata}
         ],
         comment_h =>
-            [ \@raw_tokens, q{'-1','C','C',line,column,offset,offset_end,is_cdata} ],
+            [ \@raw_tokens, q{'-1','C',line,column,offset,offset_end,is_cdata} ],
         declaration_h =>
-            [ \@raw_tokens, q{'-1','D','D',line,column,offset,offset_end,is_cdata} ],
+            [ \@raw_tokens, q{'-1','D',line,column,offset,offset_end,is_cdata} ],
         process_h =>
-            [ \@raw_tokens, q{'-1','PI','PI',line,column,offset,offset_end,is_cdata} ],
+            [ \@raw_tokens, q{'-1','PI',line,column,offset,offset_end,is_cdata} ],
         unbroken_text => 1
     );
 
@@ -554,13 +554,11 @@ sub parse {
     my @html_parser_tokens = ();
     HTML_PARSER_TOKEN:
     for my $raw_token (@raw_tokens) {
-        my ( undef, undef, $token_type, $line, $column, $offset, $offset_end, $is_cdata, $attr ) =
+        my ( undef, $token_type, $line, $column, $offset, $offset_end, $is_cdata, $attr ) =
             @{$raw_token};
 
         PROCESS_TOKEN_TYPE: {
             if ($is_cdata) {
-                $raw_token->[Marpa::R2::HTML::Internal::Token::TOKEN_NAME] =
-                    'CDATA';
                 $raw_token->[Marpa::R2::HTML::Internal::Token::TOKEN_ID] =
 		    $SYMID_CDATA;
                 last PROCESS_TOKEN_TYPE;
@@ -573,13 +571,6 @@ sub parse {
                 # carriage return (x0D) and line feed (x0A)
                 # I avoid the Perl character codes because I do NOT want
                 # localization
-
-                $raw_token->[Marpa::R2::HTML::Internal::Token::TOKEN_NAME] = (
-                    substr(
-                        ${$document}, $offset, ( $offset_end - $offset )
-                    ) =~ / [^\x09\x0A\x0C\x0D\x20\x{200B}] /oxms
-                ) ? 'PCDATA' : 'WHITESPACE';
-
                 $raw_token->[Marpa::R2::HTML::Internal::Token::TOKEN_ID] = (
                     substr(
                         ${$document}, $offset, ( $offset_end - $offset )
@@ -600,7 +591,7 @@ sub parse {
                 next HTML_PARSER_TOKEN if $offset_end <= $offset;
 
                 my $tag_name = $raw_token
-                    ->[Marpa::R2::HTML::Internal::Token::TOKEN_NAME];
+                    ->[Marpa::R2::HTML::Internal::Token::TAG_NAME];
                 my $terminal    = $token_type . q{_} . $tag_name;
                 my $terminal_id = $symbol_id_by_name{$terminal};
                 if ( not defined $terminal_id ) {
@@ -635,8 +626,6 @@ sub parse {
                     $terminal_id = $symbol_id_by_name{$terminal};
 
                 } ## end if ( not defined $terminal_id )
-                $raw_token->[Marpa::R2::HTML::Internal::Token::TOKEN_NAME] =
-                    $terminal;
                 $raw_token->[Marpa::R2::HTML::Internal::Token::TOKEN_ID] =
                     $terminal_id;
                 last PROCESS_TOKEN_TYPE;
@@ -662,7 +651,7 @@ sub parse {
         my $last_token      = $html_parser_tokens[-1];
         push @html_parser_tokens,
             [
-            $SYMID_EOF, 'EOF', 'EOF',
+            $SYMID_EOF, 'EOF',
             @{$last_token}[
                 Marpa::R2::HTML::Internal::Token::LINE,
             Marpa::R2::HTML::Internal::Token::COLUMN
