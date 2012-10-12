@@ -507,11 +507,11 @@ sub parse {
         my ( undef, undef, $token_type, $line, $column, $offset, $offset_end, $is_cdata, $attr ) =
             @{$raw_token};
 
-        PROCESS_BY_TYPE: {
+        PROCESS_TOKEN_TYPE: {
             if ($is_cdata) {
                 $raw_token->[Marpa::R2::HTML::Internal::Token::TOKEN_NAME] =
                     'CDATA';
-                last PROCESS_BY_TYPE;
+                last PROCESS_TOKEN_TYPE;
             }
             if ( $token_type eq 'T' ) {
 
@@ -527,18 +527,9 @@ sub parse {
                         ${$document}, $offset, ( $offset_end - $offset )
                     ) =~ / [^\x09\x0A\x0C\x0D\x20\x{200B}] /oxms
                 ) ? 'PCDATA' : 'WHITESPACE';
-                last PROCESS_BY_TYPE;
+                last PROCESS_TOKEN_TYPE;
             } ## end if ( $token_type eq 'T' )
-            if ( $token_type eq 'S' ) {
-                my $tag_name = $raw_token
-                    ->[Marpa::R2::HTML::Internal::Token::TOKEN_NAME];
-                $tags{$tag_name}++;
-                my $terminal = "S_$tag_name";
-                $raw_token->[Marpa::R2::HTML::Internal::Token::TOKEN_NAME] =
-                    $terminal;
-                last PROCESS_BY_TYPE;
-            } ## end if ( $token_type eq 'S' )
-            if ( $token_type eq 'E' ) {
+            if ( $token_type eq 'E' or $token_type eq 'S' ) {
 
                 # If it's a virtual token from HTML::Parser,
                 # pretend it never existed.
@@ -552,12 +543,12 @@ sub parse {
                 my $tag_name = $raw_token
                     ->[Marpa::R2::HTML::Internal::Token::TOKEN_NAME];
                 $tags{$tag_name}++;
-                my $terminal = "E_$tag_name";
+                my $terminal = $token_type . q{_} . $tag_name;
                 $raw_token->[Marpa::R2::HTML::Internal::Token::TOKEN_NAME] =
                     $terminal;
-                last PROCESS_BY_TYPE;
-            } ## end if ( $token_type eq 'E' )
-        } ## end PROCESS_BY_TYPE:
+                last PROCESS_TOKEN_TYPE;
+            } ## end if ( $token_type eq 'E' or $token_type eq 'S' )
+        } ## end PROCESS_TOKEN_TYPE:
         push @html_parser_tokens, $raw_token;
     } ## end HTML_PARSER_TOKEN: for my $raw_token (@raw_tokens)
 
