@@ -449,7 +449,8 @@ sub compile {
             my $raw_member = $rhs->[0];
             my @members    = ($raw_member);
             if ( ( substr $raw_member, 0, 4 ) eq 'GRP_' ) {
-                @members = @{ $members_by_group{$raw_member} };
+		my $members_ref = $members_by_group{$raw_member} // [];
+                @members = @{ $members_ref };
             }
 
             for my $member (@members) {
