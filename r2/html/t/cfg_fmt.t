@@ -37,7 +37,7 @@ BEGIN {
 
 BEGIN { Marpa::R2::HTML::Test::Util::load_or_skip_all('HTML::Parser'); }
 
-BEGIN { Test::More::plan tests => 4; }
+BEGIN { Test::More::plan tests => 12; }
 
 use lib 'tool/lib';
 use Marpa::R2::Test;
@@ -141,46 +141,61 @@ $expected_output = <<'END_OF_EXPECTED_OUTPUT';
 END_OF_EXPECTED_OUTPUT
 run_one_test( $test_name, $test_html, \$test_config, \$expected_output );
 
-# ELE_acme is a FLO_block included in GRP_block
-# 
-#     <html>
-#       <head>
-#       </head>
-#       <body>
-#         <acme>
-#           <p>
-#             -during-<span>
-#               -more inline stuff-</span></p><p>
-#             -new block-
-#           </p></acme></body>
-#     </html>
+$test_name = 'Block element containing block flow';
+$test_config =
+    ${$default_config} . 'ELE_acme is a FLO_block included in GRP_block';
+# $test_html is same as in previous test
+$expected_output = <<'END_OF_EXPECTED_OUTPUT';
+<html>
+  <head>
+  </head>
+  <body>
+    <acme>
+      <p>
+        -during-<span>
+          -more inline stuff-</span></p><p>
+        -new block-
+      </p></acme></body>
+</html>
+END_OF_EXPECTED_OUTPUT
+run_one_test( $test_name, $test_html, \$test_config, \$expected_output );
 
-# ELE_acme is a FLO_pcdata included in GRP_block
-# 
-#     <html>
-#       <head>
-#       </head>
-#       <body>
-#         <acme>
-#           -during-</acme><p>
-#           <span>
-#             -more inline stuff-</span></p><p>
-#           -new block-
-#         </p></body>
-#     </html>
-
-# ELE_acme is a FLO_empty included in GRP_block
-# 
-#     <html>
-#       <head>
-#       </head>
-#       <body>
-#         <acme>
-#         </acme><p>
-#           -during-<span>
-#             -more inline stuff-</span></p><p>
-#           -new block-
-#         </p></body>
-#     </html>
+$test_name = 'Block element containing PCDATA';
+$test_config =
+    ${$default_config} . 'ELE_acme is a FLO_pcdata included in GRP_block';
+# $test_html is same as in previous test
+$expected_output = <<'END_OF_EXPECTED_OUTPUT';
+<html>
+  <head>
+  </head>
+  <body>
+    <acme>
+      -during-</acme><p>
+      <span>
+        -more inline stuff-</span></p><p>
+      -new block-
+    </p></body>
+</html>
+END_OF_EXPECTED_OUTPUT
+run_one_test( $test_name, $test_html, \$test_config, \$expected_output );
+ 
+$test_name = 'Empty block element';
+$test_config =
+    ${$default_config} . 'ELE_acme is a FLO_empty included in GRP_block';
+# $test_html is same as in previous test
+$expected_output = <<'END_OF_EXPECTED_OUTPUT';
+<html>
+  <head>
+  </head>
+  <body>
+    <acme>
+    </acme><p>
+      -during-<span>
+        -more inline stuff-</span></p><p>
+      -new block-
+    </p></body>
+</html>
+END_OF_EXPECTED_OUTPUT
+run_one_test( $test_name, $test_html, \$test_config, \$expected_output );
 
 # vim: expandtab shiftwidth=4:
