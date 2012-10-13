@@ -253,7 +253,7 @@ sub create {
                     qw(trace_fh trace_values trace_handlers
                         trace_conflicts
                         trace_terminals trace_cruft
-			dump_config compile
+			dump_AHFA dump_config compile
 			)
                 ]
                 )
@@ -483,7 +483,6 @@ sub parse {
     if ($self->{dump_config}) {
          return $self->{config}->as_string();
     }
-
     my @action_by_rule_id = ();
     $self->{action_by_rule_id} = \@action_by_rule_id;
     my $thin_grammar = Marpa::R2::Thin::G->new( { if => 1 } );
@@ -653,6 +652,10 @@ sub parse {
 
     $thin_grammar->start_symbol_set( $tracer->symbol_by_name('document') );
     $thin_grammar->precompute();
+
+    if ($self->{dump_AHFA}) {
+         return \$tracer->show_AHFA();
+    }
 
     # Memoize these -- we use highest symbol a lot
     my $highest_symbol_id = $thin_grammar->highest_symbol_id();

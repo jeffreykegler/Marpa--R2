@@ -35,6 +35,7 @@ my $avoid_whitespace_flag  = 'yes';
 local $main::ADDED_TAG_COMMENT_FLAG = 1;
 my $ws_ok_before_end_tag_flag = 0;
 my $dump_config_flag = 0;
+my $dump_AHFA_flag = 0;
 my $trace_terminals_flag = 0;
 my $trace_cruft_flag = 0;
 my $trace_values_flag = 0;
@@ -48,6 +49,7 @@ usage()
 
     # undocumented
     'dump-config' => \$dump_config_flag,
+    'dump-AHFA' => \$dump_AHFA_flag,
     'compile=s' => \$compile_flag,
     'trace-terminals' => \$trace_terminals_flag,
     'trace-cruft' => \$trace_cruft_flag,
@@ -486,6 +488,7 @@ my %flags = (
     trace_cruft     => $trace_cruft_flag,
     trace_values    => $trace_values_flag,
     dump_config     => $dump_config_flag,
+    dump_AHFA     => $dump_AHFA_flag,
 );
 if (defined $compile_flag) {
   open my $fh, q{<}, $compile_flag;
@@ -496,7 +499,7 @@ if (defined $compile_flag) {
 
 my $value_ref = Marpa::R2::HTML::html( \$document, \%html_args, \\%flags );
 die 'Internal error: no parse' if not defined $value_ref;
-if ($dump_config_flag) {
+if ($dump_config_flag or $dump_AHFA_flag) {
   print ${$value_ref};
   exit 0;
 }
