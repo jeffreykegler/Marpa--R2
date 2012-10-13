@@ -103,7 +103,7 @@ sub Marpa::R2::Recognizer::new {
         if not $grammar_class eq 'Marpa::R2::Grammar';
 
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
-    my $symbol_hash = $grammar->[Marpa::R2::Internal::Grammar::SYMBOL_HASH];
+    my $tracer = $grammar->[Marpa::R2::Internal::Grammar::TRACER];
 
     my $problems = $grammar->[Marpa::R2::Internal::Grammar::PROBLEMS];
     if ($problems) {
@@ -147,7 +147,7 @@ sub Marpa::R2::Recognizer::new {
                 'value of "event_if_expected" must be a REF to an array of symbol names'
             ) if ref $value ne 'ARRAY';
             for my $symbol_name ( @{$value} ) {
-                my $symbol_id = $symbol_hash->{$symbol_name};
+                my $symbol_id = $tracer->symbol_by_name($symbol_name);
                 Marpa::exception(
                     qq{Unknown symbol in "event_if_expected" value: "$symbol_name"}
                 ) if not defined $symbol_id;
@@ -458,10 +458,11 @@ sub Marpa::R2::Recognizer::earleme {
 
 sub Marpa::R2::Recognizer::expected_symbol_event_set {
     my ( $recce, $symbol_name, $value ) = @_;
-    my $recce_c     = $recce->[Marpa::R2::Internal::Recognizer::C];
-    my $grammar     = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
-    my $symbol_hash = $grammar->[Marpa::R2::Internal::Grammar::SYMBOL_HASH];
-    my $symbol_id   = $symbol_hash->{$symbol_name};
+    my $recce_c = $recce->[Marpa::R2::Internal::Recognizer::C];
+    my $grammar = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
+    my $symbol_id =
+        $grammar->[Marpa::R2::Internal::Grammar::TRACER]
+        ->symbol_by_name($symbol_name);
     Marpa::exception(qq{Unknown symbol: "$symbol_name"})
         if not defined $symbol_id;
     return $recce_c->expected_symbol_event_set( $symbol_id, $value );
@@ -620,8 +621,9 @@ sub Marpa::R2::Recognizer::alternative {
     my $grammar = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my $token_values =
         $recce->[Marpa::R2::Internal::Recognizer::TOKEN_VALUES];
-    my $symbol_hash = $grammar->[Marpa::R2::Internal::Grammar::SYMBOL_HASH];
-    my $symbol_id   = $symbol_hash->{$symbol_name};
+    my $symbol_id =
+        $grammar->[Marpa::R2::Internal::Grammar::TRACER]
+        ->symbol_by_name($symbol_name);
 
     if ( not defined $symbol_id ) {
         Marpa::R2::exception(
@@ -787,12 +789,13 @@ sub Marpa::R2::show_leo_item {
     my ($recce)        = @_;
     my $recce_c        = $recce->[Marpa::R2::Internal::Recognizer::C];
     my $grammar        = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
+    my $tracer        = $grammar->[Marpa::R2::Internal::Grammar::TRACER];
     my $leo_base_state = $recce_c->_marpa_r_leo_base_state();
     return if not defined $leo_base_state;
     my $trace_earley_set      = $recce_c->_marpa_r_trace_earley_set();
     my $trace_earleme         = $recce_c->earleme($trace_earley_set);
     my $postdot_symbol_id     = $recce_c->_marpa_r_postdot_item_symbol();
-    my $postdot_symbol_name   = $grammar->isy_name($postdot_symbol_id);
+    my $postdot_symbol_name   = $tracer->isy_name($postdot_symbol_id);
     my $predecessor_symbol_id = $recce_c->_marpa_r_leo_predecessor_symbol();
     my $base_origin_set_id    = $recce_c->_marpa_r_leo_base_origin();
     my $base_origin_earleme   = $recce_c->earleme($base_origin_set_id);
@@ -815,7 +818,7 @@ sub Marpa::R2::show_token_link_choice {
     my ( $recce, $current_earleme ) = @_;
     my $recce_c = $recce->[Marpa::R2::Internal::Recognizer::C];
     my $grammar = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
-    my $symbols = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
+    my $tracer = $grammar->[Marpa::R2::Internal::Grammar::TRACER];
     my $text    = q{};
     my @pieces  = ();
     my ( $token_id, $value_ix ) = $recce_c->_marpa_r_source_token();
@@ -833,7 +836,7 @@ sub Marpa::R2::show_token_link_choice {
             . $origin_earleme . q{-}
             . $middle_earleme;
     } ## end if ( defined $predecessor_state )
-    my $symbol_name = $grammar->isy_name($token_id);
+    my $symbol_name = $tracer->isy_name($token_id);
     push @pieces, 's=' . $symbol_name;
     my $token_length = $current_earleme - $middle_earleme;
     my $value =

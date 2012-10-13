@@ -712,7 +712,6 @@ sub Marpa::R2::Recognizer::show_bocage {
     my $bocage      = $recce->[Marpa::R2::Internal::Recognizer::B_C];
     my $grammar     = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my $grammar_c   = $grammar->[Marpa::R2::Internal::Grammar::C];
-    my $symbol_hash = $grammar->[Marpa::R2::Internal::Grammar::SYMBOL_HASH];
     OR_NODE: for ( my $or_node_id = 0;; $or_node_id++ ) {
         my $irl_id = $bocage->_marpa_b_or_node_irl($or_node_id);
         last OR_NODE if not defined $irl_id;

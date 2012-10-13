@@ -125,7 +125,7 @@ sub show_dotted_irl {
 
 }
 
-sub AHFA_item {
+sub show_AHFA_item {
     my ( $self, $item_id ) = @_;
     my $grammar_c  = $self->{g};
     my $postdot_id = $grammar_c->_marpa_g_AHFA_item_postdot($item_id);
@@ -143,9 +143,9 @@ sub AHFA_item {
     }
     $text .= join q{; }, @properties;
     $text .= "\n" . ( q{ } x 4 );
-    $text .= $self->show_brief_AHFA_item( $item_id ) . "\n";
+    $text .= $self->show_brief_AHFA_item($item_id) . "\n";
     return $text;
-} ## end sub Marpa::R2::show_AHFA_item
+} ## end sub show_AHFA_item
 
 sub show_brief_AHFA_item {
     my ( $self, $item_id ) = @_;

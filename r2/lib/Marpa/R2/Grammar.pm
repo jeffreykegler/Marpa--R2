@@ -49,11 +49,13 @@ what in C would be structures.
 
 =cut
 
+# This structure could be eliminated, and doing
+# would be more efficient, but it is part of the
+# external interface.  So this is a stub.
 BEGIN {
     my $structure = <<'END_OF_STRUCTURE';
     :package=Marpa::R2::Internal::Symbol
     ID { Unique ID }
-    NAME
 END_OF_STRUCTURE
     Marpa::R2::offset($structure);
 } ## end BEGIN
@@ -78,6 +80,11 @@ BEGIN {
     :package=Marpa::R2::Internal::Grammar
 
     C { A C structure }
+    TRACER { Also contains a copy of the C structure.
+       It is used frequently, so that an easy memoization
+       is probably worthwhile to save a the extra
+       indirection.
+    }
     RULES { array of rule refs }
     SYMBOLS { array of symbol refs }
     ACTIONS { Default package in which to find actions }
@@ -91,7 +98,6 @@ BEGIN {
 
     { === Evaluator Fields === }
 
-    SYMBOL_HASH { hash to symbol ID by name of symbol }
     DEFAULT_EMPTY_ACTION { default value for empty rules }
     ACTION_OBJECT
     INFINITE_ACTION
@@ -116,6 +122,8 @@ END_OF_STRUCTURE
 package Marpa::R2::Internal::Grammar;
 
 use English qw( -no_match_vars );
+
+use Marpa::R2::Thin::Trace;
 
 our %DEFAULT_SYMBOLS_RESERVED;
 %DEFAULT_SYMBOLS_RESERVED = map { $_, 1 } split //xms, '}]>)';
@@ -236,13 +244,14 @@ sub Marpa::R2::Grammar::new {
     $grammar->[Marpa::R2::Internal::Grammar::INFINITE_ACTION] = 'fatal';
 
     $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS]            = [];
-    $grammar->[Marpa::R2::Internal::Grammar::SYMBOL_HASH]        = {};
     $grammar->[Marpa::R2::Internal::Grammar::RULES]              = [];
     $grammar->[Marpa::R2::Internal::Grammar::RULE_BY_NAME]       = {};
     $grammar->[Marpa::R2::Internal::Grammar::RULE_NAME_REQUIRED] = 0;
 
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C] =
         Marpa::R2::Thin::G->new( { if => 1 } );
+    $grammar->[Marpa::R2::Internal::Grammar::TRACER] =
+        Marpa::R2::Thin::Trace->new($grammar_c);
 
     $grammar->set(@arg_hashes);
 
@@ -255,7 +264,7 @@ sub Marpa::R2::Grammar::thin {
 
 sub Marpa::R2::Grammar::thin_symbol {
     my ($grammar, $symbol_name) = @_;
-    return $grammar->[Marpa::R2::Internal::Grammar::SYMBOL_HASH]->{$symbol_name};
+    return $grammar->[Marpa::R2::Internal::Grammar::TRACER]->symbol_by_name($symbol_name);
 }
 
 use constant GRAMMAR_OPTIONS => [
@@ -876,9 +885,10 @@ sub Marpa::R2::Grammar::show_dotted_rule {
 sub Marpa::R2::Grammar::check_terminal {
     my ( $grammar, $name ) = @_;
     return 0 if not defined $name;
-    my $grammar_c   = $grammar->[Marpa::R2::Internal::Grammar::C];
-    my $symbol_hash = $grammar->[Marpa::R2::Internal::Grammar::SYMBOL_HASH];
-    my $symbol_id   = $symbol_hash->{$name};
+    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
+    my $symbol_id =
+        $grammar->[Marpa::R2::Internal::Grammar::TRACER]
+        ->symbol_by_name($name);
     return 0 if not defined $symbol_id;
     my $symbols = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
     my $symbol  = $symbols->[$symbol_id];
@@ -887,23 +897,16 @@ sub Marpa::R2::Grammar::check_terminal {
 
 sub Marpa::R2::Grammar::symbol_name {
     my ( $grammar, $id ) = @_;
-    my $symbols = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
-
-    # The next is a little roundabout to prevent auto-instantiation
-    if ( defined $symbols->[$id] ) {
-        return $symbols->[$id]->[Marpa::R2::Internal::Symbol::NAME];
-    }
-    return '[SYMBOL' . $id . ']';
+    my $symbol_name =
+        $grammar->[Marpa::R2::Internal::Grammar::TRACER]->symbol_name($id);
+    return defined $symbol_name ? $symbol_name : '[SYMBOL' . $id . ']';
 } ## end sub Marpa::R2::Grammar::symbol_name
 
 sub shadow_symbol {
-    my ( $grammar, $symbol_id, $name ) = @_;
+    my ( $grammar, $symbol_id ) = @_;
     my $symbols     = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
-    my $symbol_hash = $grammar->[Marpa::R2::Internal::Grammar::SYMBOL_HASH];
     my $symbol      = $symbols->[$symbol_id] = [];
     $symbol->[Marpa::R2::Internal::Symbol::ID] = $symbol_id;
-    $symbol->[Marpa::R2::Internal::Symbol::NAME] = $name;
-    $symbol_hash->{$name} = $symbol_id;
     return $symbol;
 } ## end sub shadow_symbol
 
@@ -920,15 +923,15 @@ sub shadow_rule {
 sub assign_symbol {
     my ( $grammar, $name ) = @_;
 
-    my $grammar_c   = $grammar->[Marpa::R2::Internal::Grammar::C];
-    my $symbol_hash = $grammar->[Marpa::R2::Internal::Grammar::SYMBOL_HASH];
-    my $symbol_id   = $symbol_hash->{$name};
+    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
+    my $tracer = $grammar->[Marpa::R2::Internal::Grammar::TRACER];
+    my $symbol_id = $tracer->symbol_by_name($name);
     if ( defined $symbol_id ) {
         my $symbols = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
         return $symbols->[$symbol_id];
     }
-    $symbol_id = $grammar_c->symbol_new();
-    return shadow_symbol( $grammar, $symbol_id, $name );
+    $symbol_id = $tracer->symbol_new($name);
+    return shadow_symbol( $grammar, $symbol_id );
 } ## end sub assign_symbol
 
 sub assign_user_symbol {
@@ -1259,8 +1262,9 @@ sub set_start_symbol {
     my $start_name = $grammar->[Marpa::R2::Internal::Grammar::START_NAME];
 
     return if not defined $start_name;
-    my $symbol_hash = $grammar->[Marpa::R2::Internal::Grammar::SYMBOL_HASH];
-    my $start_id    = $symbol_hash->{$start_name};
+    my $start_id =
+        $grammar->[Marpa::R2::Internal::Grammar::TRACER]
+        ->symbol_by_name($start_name);
     Marpa::R2::exception(qq{Start symbol "$start_name" not in grammar})
         if not defined $start_id;
 
@@ -1281,9 +1285,10 @@ sub Marpa::R2::Grammar::error {
 sub Marpa::R2::Grammar::show_ISY {
     my ( $grammar, $isy_id ) = @_;
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
+    my $tracer = $grammar->[Marpa::R2::Internal::Grammar::TRACER];
     my $text      = q{};
 
-    my $name = $grammar->isy_name($isy_id);
+    my $name = $tracer->isy_name($isy_id);
     $text .= "$isy_id: $name";
 
     my @tag_list = ();
@@ -1309,15 +1314,16 @@ sub Marpa::R2::Grammar::show_ISYs {
 sub Marpa::R2::Grammar::brief_irl {
     my ( $grammar, $irl_id ) = @_;
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
+    my $tracer = $grammar->[Marpa::R2::Internal::Grammar::TRACER];
     my $lhs_id    = $grammar_c->_marpa_g_irl_lhs($irl_id);
-    my $text .= $irl_id . ': ' . $grammar->isy_name($lhs_id) . ' ->';
+    my $text .= $irl_id . ': ' . $tracer->isy_name($lhs_id) . ' ->';
     if ( my $rh_length = $grammar_c->_marpa_g_irl_length($irl_id) ) {
         my @rhs_ids = ();
         for my $ix ( 0 .. $rh_length - 1 ) {
             push @rhs_ids, $grammar_c->_marpa_g_irl_rhs( $irl_id, $ix );
         }
         $text
-            .= q{ } . ( join q{ }, map { $grammar->isy_name($_) } @rhs_ids );
+            .= q{ } . ( join q{ }, map { $tracer->isy_name($_) } @rhs_ids );
     } ## end if ( my $rh_length = $grammar_c->_marpa_g_irl_length($irl_id))
     return $text;
 } ## end sub Marpa::R2::Grammar::brief_irl
@@ -1338,176 +1344,16 @@ sub Marpa::R2::Grammar::rule_is_used {
     return $grammar_c->_marpa_g_rule_is_used($rule_id);
 }
 
-sub Marpa::R2::Grammar::show_dotted_irl {
-    my ( $grammar, $irl_id, $dot_position ) = @_;
-    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
-    my $lhs_id    = $grammar_c->_marpa_g_irl_lhs($irl_id);
-    my $irl_length = $grammar_c->_marpa_g_irl_length($irl_id);
-
-    my $text = $grammar->isy_name($lhs_id) . q{ ->};
-
-    if ( $dot_position < 0 ) {
-        $dot_position = $irl_length;
-    }
-
-    my @rhs_names = ();
-    for my $ix ( 0 .. $irl_length - 1 ) {
-        my $rhs_isy_id = $grammar_c->_marpa_g_irl_rhs( $irl_id, $ix );
-        my $rhs_isy_name = $grammar->isy_name($rhs_isy_id);
-        push @rhs_names, $rhs_isy_name;
-    }
-
-    POSITION: for my $position ( 0 .. scalar @rhs_names ) {
-        if ( $position == $dot_position ) {
-            $text .= q{ .};
-        }
-        my $name = $rhs_names[$position];
-        next POSITION if not defined $name;
-        $text .= " $name";
-    } ## end for my $position ( 0 .. scalar @rhs_names )
-
-    return $text;
-
-} ## end sub Marpa::R2::Grammar::show_dotted_irl
-
-sub Marpa::R2::show_AHFA_item {
-    my ( $grammar, $item_id ) = @_;
-    my $grammar_c  = $grammar->[Marpa::R2::Internal::Grammar::C];
-    my $postdot_id = $grammar_c->_marpa_g_AHFA_item_postdot($item_id);
-    my $sort_key   = $grammar_c->_marpa_g_AHFA_item_sort_key($item_id);
-    my $text       = "AHFA item $item_id: ";
-    my @properties = ();
-    push @properties, "sort = $sort_key";
-
-    if ( $postdot_id < 0 ) {
-        push @properties, 'completion';
-    }
-    else {
-        my $postdot_symbol_name = $grammar->isy_name($postdot_id);
-        push @properties, qq{postdot = "$postdot_symbol_name"};
-    }
-    $text .= join q{; }, @properties;
-    $text .= "\n" . ( q{ } x 4 );
-    $text .= Marpa::R2::show_brief_AHFA_item( $grammar, $item_id ) . "\n";
-    return $text;
-} ## end sub Marpa::R2::show_AHFA_item
-
-sub Marpa::R2::show_brief_AHFA_item {
-    my ( $grammar, $item_id ) = @_;
-    my $grammar_c  = $grammar->[Marpa::R2::Internal::Grammar::C];
-    my $postdot_id = $grammar_c->_marpa_g_AHFA_item_postdot($item_id);
-    my $irl_id    = $grammar_c->_marpa_g_AHFA_item_irl($item_id);
-    my $position   = $grammar_c->_marpa_g_AHFA_item_position($item_id);
-    return $grammar->show_dotted_irl( $irl_id, $position );
-} ## end sub Marpa::R2::show_brief_AHFA_item
-
 sub Marpa::R2::Grammar::show_AHFA {
     my ( $grammar, $verbose ) = @_;
-    $verbose //= 1;    # legacy is to be verbose, so default to it
-    my $grammar_c        = $grammar->[Marpa::R2::Internal::Grammar::C];
-    my $text             = q{};
-    my $AHFA_state_count = $grammar_c->_marpa_g_AHFA_state_count();
-    STATE:
-    for ( my $state_id = 0; $state_id < $AHFA_state_count; $state_id++ ) {
-        $text .= "* S$state_id:";
-        defined $grammar_c->_marpa_g_AHFA_state_leo_lhs_symbol($state_id)
-            and $text .= ' leo-c';
-        $grammar_c->_marpa_g_AHFA_state_is_predict($state_id) and $text .= ' predict';
-        $text .= "\n";
-        my @items = ();
-        for my $item_id ( $grammar_c->_marpa_g_AHFA_state_items($state_id) ) {
-            push @items,
-                [
-                $grammar_c->_marpa_g_AHFA_item_irl($item_id),
-                $grammar_c->_marpa_g_AHFA_item_postdot($item_id),
-                Marpa::R2::show_brief_AHFA_item( $grammar, $item_id )
-                ];
-        } ## end for my $item_id ( $grammar_c->_marpa_g_AHFA_state_items($state_id...))
-        $text .= join "\n", map { $_->[2] }
-            sort { $a->[0] <=> $b->[0] || $a->[1] <=> $b->[1] } @items;
-        $text .= "\n";
-
-        next STATE if not $verbose;
-
-        my @raw_transitions = $grammar_c->_marpa_g_AHFA_state_transitions($state_id);
-        my %transitions     = ();
-        while ( my ( $isy_id, $to_state_id ) = splice @raw_transitions, 0,
-            2 )
-        {
-            my $symbol_name = $grammar->isy_name($isy_id);
-            $transitions{$symbol_name} = $to_state_id;
-        } ## end while ( my ( $isy_id, $to_state_id ) = splice ...)
-        for my $transition_symbol ( sort keys %transitions ) {
-            $text .= ' <' . $transition_symbol . '> => ';
-            my $to_state_id = $transitions{$transition_symbol};
-            my @to_descs    = ("S$to_state_id");
-            my $lhs_id = $grammar_c->_marpa_g_AHFA_state_leo_lhs_symbol($to_state_id);
-            if ( defined $lhs_id ) {
-                my $lhs_name = $grammar->isy_name($lhs_id);
-                push @to_descs, "leo($lhs_name)";
-            }
-            my $empty_transition_state =
-                $grammar_c->_marpa_g_AHFA_state_empty_transition($to_state_id);
-            $empty_transition_state >= 0
-                and push @to_descs, "S$empty_transition_state";
-            $text .= ( join q{; }, sort @to_descs ) . "\n";
-        } ## end for my $transition_symbol ( sort keys %transitions )
-
-    } ## end for ( my $state_id = 0; $state_id < $AHFA_state_count...)
-    return $text;
-} ## end sub Marpa::R2::Grammar::show_AHFA
+    return $grammar->[Marpa::R2::Internal::Grammar::TRACER]
+        ->show_AHFA($verbose);
+}
 
 sub Marpa::R2::Grammar::show_AHFA_items {
-    my ($grammar) = @_;
-    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
-    my $text      = q{};
-    my $count     = $grammar_c->_marpa_g_AHFA_item_count();
-    for my $AHFA_item_id ( 0 .. $count - 1 ) {
-        $text .= Marpa::R2::show_AHFA_item( $grammar, $AHFA_item_id );
-    }
-    return $text;
-} ## end sub Marpa::R2::Grammar::show_AHFA_items
-
-sub Marpa::R2::Grammar::isy_name {
-    my ( $grammar, $id ) = @_;
-    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
-
-    # The next is a little roundabout to prevent auto-instantiation
-    my $name = '[ISY' . $id . ']';
-
-    GEN_NAME: {
-
-	if ($grammar_c->_marpa_g_isy_is_start($id)) {
-	  my $source_id = $grammar_c->_marpa_g_source_xsy($id);
-	  $name = $grammar->symbol_name($source_id);
-	  $name .= q<[']>;
-            last GEN_NAME;
-	}
-
-        my $lhs_xrl = $grammar_c->_marpa_g_isy_lhs_xrl($id);
-        if ( defined $lhs_xrl and $grammar_c->rule_is_sequence($lhs_xrl) ) {
-            my $original_lhs_id = $grammar_c->rule_lhs($lhs_xrl);
-            $name = $grammar->symbol_name($original_lhs_id) . '[Seq]';
-            last GEN_NAME;
-        }
-
-        my $xrl_offset = $grammar_c->_marpa_g_isy_xrl_offset($id);
-        if ( $xrl_offset ) {
-            my $original_lhs_id = $grammar_c->rule_lhs($lhs_xrl);
-            $name =
-                  $grammar->symbol_name($original_lhs_id) . '[R' 
-                . $lhs_xrl . q{:}
-                . $xrl_offset . ']';
-            last GEN_NAME;
-        } ## end if ( defined $xrl_offset )
-
-        my $source_id = $grammar_c->_marpa_g_source_xsy($id);
-        $name = $grammar->symbol_name($source_id);
-        $name .= '[]' if $grammar_c->_marpa_g_isy_is_nulling($id);
-
-    } ## end GEN_NAME:
-
-    return $name;
-} ## end sub Marpa::R2::Grammar::isy_name
+    my ( $grammar, $verbose ) = @_;
+    return $grammar->[Marpa::R2::Internal::Grammar::TRACER]
+        ->show_AHFA_items($verbose);
+}
 
 1;
