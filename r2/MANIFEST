@@ -60,6 +60,7 @@ html/pod/html_score.pod
 html/script/marpa_r2_html_fmt
 html/script/marpa_r2_html_score
 html/t/00-load.t
+html/t/cfg_fmt.t
 html/t/config.t
 html/t/copy.t
 html/t/examples.t
