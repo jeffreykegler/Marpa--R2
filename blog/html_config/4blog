@@ -1,0 +1,16 @@
+for f in \
+examples/acme-inline-inline.out \
+examples/acme-block-inline.out \
+examples/acme-block-mixed.out \
+examples/acme-block-block.out \
+examples/acme-block-pcdata.out \
+examples/acme-block-empty.out
+do 
+echo "<!-- $f -->"
+echo '<blockquote><pre>'
+echo "ELE_acme is a FLO_x included in GRP_y"
+echo '</pre></blockquote>'
+echo '<blockquote><pre>'
+cat $f | perl -pE 's/</\&lt;/g; s/>/\&gt;/g;'
+echo '</pre></blockquote>'
+done

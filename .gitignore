@@ -1,9 +1,7 @@
 /devlib/
 full_test.out
-[.]DS_store$
+[.]DS_store
 errs
 junk
 /nogit/
-/dxslib/
-/dpplib/
 nogit*
