@@ -23,7 +23,11 @@ package HTML_Core;
 use English qw( -no_match_vars );
 
 our $CORE_BNF = <<'END_OF_CORE_BNF';
-# Non-element tokens
+# The tokens are not used directly
+# because, in order to have handlers
+# deal with them individually, I need
+# a rule with which to associate the
+# handler.
 comment ::= C
 pi ::= PI
 decl ::= D
@@ -32,12 +36,12 @@ cdata ::= CDATA
 whitespace ::= WHITESPACE
 cruft ::= CRUFT
 
-FLO_SGML ::= ITEM_SGML*
-ITEM_SGML ::= comment
-ITEM_SGML ::= pi
-ITEM_SGML ::= decl
-ITEM_SGML ::= whitespace
-ITEM_SGML ::= cruft
+FLO_SGML ::= GRP_SGML*
+GRP_SGML ::= comment
+GRP_SGML ::= pi
+GRP_SGML ::= decl
+GRP_SGML ::= whitespace
+GRP_SGML ::= cruft
 
 # For element x,
 # ELE_x is complete element
@@ -52,53 +56,39 @@ trailer ::= FLO_SGML
 ELE_html ::= S_html Contents_html E_html
 Contents_html ::= FLO_SGML ELE_head FLO_SGML ELE_body FLO_SGML
 
-# FLO_empty, FLO_cdata and ITEM_cdata 
+# FLO_empty and FLO_cdata
 # do NOT allow SGML items as part of
 # their flow
 FLO_empty ::=
 
 # In FLO_cdata, disallow all SGML components,
-# but include cruft. ITEM_cdata is redundant,
-# but is defined for orthogonality.
-FLO_cdata ::= SITEM_cdata*
-SITEM_cdata ::= CRUFT
-SITEM_cdata ::= ITEM_cdata
-ITEM_cdata ::= cdata
+# but include cruft.
+FLO_cdata ::= GRP_cdata*
+GRP_cdata ::= CRUFT
+GRP_cdata ::= cdata
 
-FLO_mixed ::= SITEM_mixed*
-SITEM_mixed ::= ITEM_SGML
-SITEM_mixed ::= ITEM_mixed
-ITEM_mixed ::= GRP_anywhere
-ITEM_mixed ::= GRP_block
-ITEM_mixed ::= GRP_inline
-ITEM_mixed ::= cdata
-ITEM_mixed ::= pcdata
+FLO_mixed ::= GRP_mixed*
+GRP_mixed ::= GRP_block
+GRP_mixed ::= GRP_inline
 
-FLO_block ::= SITEM_block*
-SITEM_block ::= ITEM_SGML
-SITEM_block ::= ITEM_block
-ITEM_block ::= GRP_block
-ITEM_block ::= GRP_anywhere
+FLO_block ::= GRP_block*
+GRP_block ::= GRP_SGML
+GRP_block ::= GRP_anywhere
 
-FLO_head ::= SITEM_head*
-SITEM_head ::= ITEM_SGML
-SITEM_head ::= ITEM_head
-ITEM_head ::= GRP_head
-ITEM_head ::= GRP_anywhere
+FLO_head ::= GRP_head*
+GRP_head ::= GRP_SGML
+GRP_head ::= GRP_anywhere
 
-FLO_inline ::= SITEM_inline*
-SITEM_inline ::= ITEM_SGML
-SITEM_inline ::= ITEM_inline
-ITEM_inline ::= pcdata
-ITEM_inline ::= cdata
-ITEM_inline ::= GRP_inline
-ITEM_inline ::= GRP_anywhere
+FLO_inline ::= GRP_inline*
+GRP_inline ::= GRP_SGML
+GRP_inline ::= pcdata
+GRP_inline ::= cdata
+GRP_inline ::= GRP_anywhere
 
-FLO_pcdata ::= SITEM_pcdata*
-SITEM_pcdata ::= ITEM_SGML
-SITEM_pcdata ::= ITEM_pcdata
-ITEM_pcdata ::= pcdata
-ITEM_pcdata ::= cdata
+FLO_pcdata ::= GRP_pcdata*
+GRP_pcdata ::= GRP_SGML
+GRP_pcdata ::= pcdata
+GRP_pcdata ::= cdata
 
 END_OF_CORE_BNF
 

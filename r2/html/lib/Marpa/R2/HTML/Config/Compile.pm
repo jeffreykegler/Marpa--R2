@@ -25,9 +25,6 @@ use English qw( -no_match_vars );
 use Marpa::R2::HTML::Config::Core;
 use Marpa::R2::Thin::Trace;
 
-my %predefined_groups =
-    ( GRP_mixed => [qw( GRP_anywhere GRP_block GRP_inline cdata pcdata)] );
-
 sub compile {
     my ($source_ref) = @_;
 
@@ -176,11 +173,6 @@ sub compile {
             # Production is Element with custom flow
             my $element_symbol = $1;
             my @contents = split q{ }, $definition;
-            @contents = map {
-                defined $predefined_groups{$_}
-                    ? @{ $predefined_groups{$_} }
-                    : $_
-            } @contents;
             push @{ $symbol_defined{$element_symbol} },       'contains';
             push @{ $element_containments{$element_symbol} }, @contents;
 
@@ -311,7 +303,7 @@ sub compile {
         my @contents        = @{ $element_containments{$main_symbol} };
         my $tag             = substr $main_symbol, 4;
         my $contents_symbol = 'Contents_ELE_' . $tag;
-        my $item_symbol     = 'ITEM_ELE_' . $tag;
+        my $item_symbol     = 'GRP_ELE_' . $tag;
         push @core_rules,
             {
             lhs    => $main_symbol,
@@ -335,7 +327,7 @@ sub compile {
             push @core_rules,
                 {
                 lhs => $item_symbol,
-                rhs => ['ITEM_SGML'],
+                rhs => ['GRP_SGML'],
                 };
         } ## end if ( !$sgml_flow_included{$item_symbol} )
     } ## end ELEMENT: for my $main_symbol ( keys %element_containments )
@@ -343,7 +335,7 @@ sub compile {
     ELEMENT: for my $main_symbol ( keys %flow_containments ) {
         die "Internal: Flow containments not yet implemented";
         my @contents = @{ $flow_containments{$main_symbol} };
-        my $item_symbol = 'ITEM_' . substr $main_symbol, 4;
+        my $item_symbol = 'GRP_' . substr $main_symbol, 4;
         push @core_rules,
             {
             lhs => $main_symbol,
@@ -362,7 +354,7 @@ sub compile {
             push @core_rules,
                 {
                 lhs => $item_symbol,
-                rhs => ['ITEM_SGML'],
+                rhs => ['GRP_SGML'],
                 };
         } ## end if ( !$sgml_flow_included{$item_symbol} )
     } ## end ELEMENT: for my $main_symbol ( keys %flow_containments )
@@ -370,24 +362,24 @@ sub compile {
     {
         # Make sure all item symbols have a flow
         my @symbols = map { $_->{lhs}, @{ $_->{rhs} } } @core_rules;
-        my %ITEM_symbols =
-            map { $_ => 1 } grep { ( substr $_, 0, 5 ) eq 'ITEM_' } @symbols;
+        my %GRP_symbols =
+            map { $_ => 1 } grep { ( substr $_, 0, 5 ) eq 'GRP_' } @symbols;
         my %FLO_symbols =
             map { $_ => 1 } grep { ( substr $_, 0, 4 ) eq 'FLO_' } @symbols;
         my %ELE_symbols =
             map { $_ => 1 } grep { ( substr $_, 0, 4 ) eq 'ELE_' } @symbols;
         my @problem = ();
-        ITEM: for my $item_symbol ( keys %ITEM_symbols ) {
-            if ( ( substr $item_symbol, 0, 9 ) eq 'ITEM_ELE_' ) {
+        GRP: for my $item_symbol ( keys %GRP_symbols ) {
+            if ( ( substr $item_symbol, 0, 9 ) eq 'GRP_ELE_' ) {
                 push @problem, "No matching element for $item_symbol"
                     if not defined $ELE_symbols{ substr $item_symbol, 5 };
-                next ITEM;
+                next GRP;
             }
             push @problem, "No matching flow for $item_symbol"
                 if not
                     defined $FLO_symbols{ 'FLO_'
                             . ( substr $item_symbol, 5 ) };
-        } ## end ITEM: for my $item_symbol ( keys %ITEM_symbols )
+        } ## end GRP: for my $item_symbol ( keys %GRP_symbols )
         die join "\n", @problem if scalar @problem;
     }
 
@@ -408,64 +400,6 @@ sub compile {
             die qq{$tag included in "$group", which is not defined}
                 if not $groups{$group};
         } ## end for my $tag ( keys %descriptor_by_tag )
-    }
-
-    {
-        # Make sure groups are non-overlapping
-        my %group_rules =
-            map { $_->{lhs}, $_->{rhs} }
-            grep { ( substr $_->{lhs}, 0, 4 ) eq 'GRP_' } @core_rules;
-        my %group_by_member  = ();
-        my %members_by_group = ();
-        while ( my ( $group, $contents ) = each %group_rules ) {
-            die "Misformed rule for group contents: $group ::= ", join " ",
-                @{$contents}
-                if scalar @{$contents} != 1;
-            my $member = $contents->[0];
-            # die qq{"$member" is a member of two groups: "$group" and "},
-                # $group_by_member{$member}
-                # if defined $group_by_member{$member};
-            $group_by_member{$member} = $group;
-            push @{ $members_by_group{$group} }, $member;
-        } ## end while ( my ( $group, $contents ) = each %group_rules )
-        for my $tag ( keys %descriptor_by_tag ) {
-            my $descriptor = $descriptor_by_tag{$tag};
-            my ($group)    = @{$descriptor};
-            my $member     = 'ELE_' . $tag;
-            die qq{"$member" is a member of two groups: "$group" and "},
-                $group_by_member{$member}
-                if defined $group_by_member{$member};
-            $group_by_member{$member} = $group;
-            push @{ $members_by_group{$group} }, $member;
-        } ## end for my $tag ( keys %descriptor_by_tag )
-
-        # Now ensure item lists are non-overlapping
-        my @item_rules =
-            grep { ( substr $_->{lhs}, 0, 5 ) eq 'ITEM_' } @core_rules;
-
-        my %members_by_item_list = ();
-        for my $rule (@item_rules) {
-            my $item_list = $rule->{lhs};
-            my $rhs       = $rule->{rhs};
-            die "Misformed rule for item list contents: $item_list ::= ",
-                join " ", @{$rhs}
-                if scalar @{$rhs} != 1;
-            my $raw_member = $rhs->[0];
-            my @members    = ($raw_member);
-            if ( ( substr $raw_member, 0, 4 ) eq 'GRP_' ) {
-		my $members_ref = $members_by_group{$raw_member} // [];
-                @members = @{ $members_ref };
-            }
-
-            for my $member (@members) {
-
-                my $count = $members_by_item_list{$item_list}{$member}++;
-                if ( $count > 0 ) {
-                    # die
-                        # qq{"$member" is in item list "$item_list" more than once};
-                }
-            } ## end for my $member (@members)
-        } ## end for my $rule (@item_rules)
     }
 
     {
