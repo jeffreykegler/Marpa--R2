@@ -60,15 +60,16 @@ sub run_one_test {
     );
     print {$cfg_fh} ${$config_ref};
     close $cfg_fh;
-    my $output = Marpa::R2::HTML::Test::Util::run_command(
+    my ($output, $stderr) = Marpa::R2::HTML::Test::Util::run_with_stderr(
         File::Spec->catfile( @script_dir, 'marpa_r2_html_fmt' ),
 	'--no-added-tag',
         '--compile=' . $test_config_name,
         $html_file_name
     );
 
-    # unlink $test_config_name, $html_file_name;
+    unlink $test_config_name, $html_file_name;
     Marpa::R2::Test::is( $output, ${$expected_ref}, $test_name );
+    Marpa::R2::Test::is( $stderr, q{}, "$test_name: stderr");
 } ## end sub run_one_test
 
 my $default_config = do {
@@ -104,32 +105,42 @@ $expected_output = <<'END_OF_EXPECTED_OUTPUT';
 END_OF_EXPECTED_OUTPUT
 run_one_test( $test_name, $test_html, \$test_config, \$expected_output );
 
-# ELE_acme is a FLO_inline included in GRP_block
-# 
-#     <html>
-#       <head>
-#       </head>
-#       <body>
-#         <acme>
-#           -during-<span>
-#             -more inline stuff-</span></acme><p>
-#           -new block-
-#         </p></body>
-#     </html>
-# 
-# ELE_acme is a FLO_mixed included in GRP_block
-# 
-#     <html>
-#       <head>
-#       </head>
-#       <body>
-#         <acme>
-#           -during-<span>
-#             -more inline stuff-</span><p>
-#             -new block-
-#           </p></acme></body>
-#     </html>
-# 
+$test_name = 'Inline element containing block flow';
+$test_config =
+    ${$default_config} . 'ELE_acme is a FLO_inline included in GRP_block';
+# $test_html is same as in previous test
+$expected_output = <<'END_OF_EXPECTED_OUTPUT';
+<html>
+  <head>
+  </head>
+  <body>
+    <acme>
+      -during-<span>
+        -more inline stuff-</span></acme><p>
+      -new block-
+    </p></body>
+</html>
+END_OF_EXPECTED_OUTPUT
+run_one_test( $test_name, $test_html, \$test_config, \$expected_output );
+
+$test_name = 'Block element containing mixed flow';
+$test_config =
+    ${$default_config} . 'ELE_acme is a FLO_mixed included in GRP_block';
+# $test_html is same as in previous test
+$expected_output = <<'END_OF_EXPECTED_OUTPUT';
+<html>
+  <head>
+  </head>
+  <body>
+    <acme>
+      -during-<span>
+        -more inline stuff-</span><p>
+        -new block-
+      </p></acme></body>
+</html>
+END_OF_EXPECTED_OUTPUT
+run_one_test( $test_name, $test_html, \$test_config, \$expected_output );
+
 # ELE_acme is a FLO_block included in GRP_block
 # 
 #     <html>
@@ -143,7 +154,7 @@ run_one_test( $test_name, $test_html, \$test_config, \$expected_output );
 #             -new block-
 #           </p></acme></body>
 #     </html>
-# 
+
 # ELE_acme is a FLO_pcdata included in GRP_block
 # 
 #     <html>
@@ -157,7 +168,7 @@ run_one_test( $test_name, $test_html, \$test_config, \$expected_output );
 #           -new block-
 #         </p></body>
 #     </html>
-# 
+
 # ELE_acme is a FLO_empty included in GRP_block
 # 
 #     <html>
