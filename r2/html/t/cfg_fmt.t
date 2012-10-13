@@ -37,7 +37,7 @@ BEGIN {
 
 BEGIN { Marpa::R2::HTML::Test::Util::load_or_skip_all('HTML::Parser'); }
 
-BEGIN { Test::More::plan tests => 12; }
+BEGIN { Test::More::plan tests => 16; }
 
 use lib 'tool/lib';
 use Marpa::R2::Test;
@@ -194,6 +194,37 @@ $expected_output = <<'END_OF_EXPECTED_OUTPUT';
         -more inline stuff-</span></p><p>
       -new block-
     </p></body>
+</html>
+END_OF_EXPECTED_OUTPUT
+run_one_test( $test_name, $test_html, \$test_config, \$expected_output );
+ 
+$test_name = 'Body allows mixed flow';
+$test_config =
+    ${$default_config} . 'ELE_body is FLO_mixed';
+$test_html = 'I cannot wait for a start tag<p>I can';
+$expected_output = <<'END_OF_EXPECTED_OUTPUT';
+<html>
+  <head>
+  </head>
+  <body>
+    I cannot wait for a start tag<p>
+      I can</p></body>
+</html>
+END_OF_EXPECTED_OUTPUT
+run_one_test( $test_name, $test_html, \$test_config, \$expected_output );
+
+$test_name = 'Body allows block flow';
+# This is the default
+$test_config = ${$default_config};
+# $test_html is same as in previous test
+$expected_output = <<'END_OF_EXPECTED_OUTPUT';
+<html>
+  <head>
+  </head>
+  <body>
+    <p>
+      I cannot wait for a start tag</p><p>
+      I can</p></body>
 </html>
 END_OF_EXPECTED_OUTPUT
 run_one_test( $test_name, $test_html, \$test_config, \$expected_output );
