@@ -487,7 +487,6 @@ sub Marpa::R2::Grammar::symbol_reserved_set {
 sub Marpa::R2::Grammar::precompute {
     my $grammar = shift;
 
-    my $symbols   = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
     my $rules     = $grammar->[Marpa::R2::Internal::Grammar::RULES];
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
     my $trace_fh =
@@ -1374,7 +1373,6 @@ sub Marpa::R2::Grammar::show_dotted_irl {
 sub Marpa::R2::show_AHFA_item {
     my ( $grammar, $item_id ) = @_;
     my $grammar_c  = $grammar->[Marpa::R2::Internal::Grammar::C];
-    my $symbols    = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
     my $postdot_id = $grammar_c->_marpa_g_AHFA_item_postdot($item_id);
     my $sort_key   = $grammar_c->_marpa_g_AHFA_item_sort_key($item_id);
     my $text       = "AHFA item $item_id: ";
@@ -1407,7 +1405,6 @@ sub Marpa::R2::Grammar::show_AHFA {
     my ( $grammar, $verbose ) = @_;
     $verbose //= 1;    # legacy is to be verbose, so default to it
     my $grammar_c        = $grammar->[Marpa::R2::Internal::Grammar::C];
-    my $symbols          = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
     my $text             = q{};
     my $AHFA_state_count = $grammar_c->_marpa_g_AHFA_state_count();
     STATE:
@@ -1474,7 +1471,6 @@ sub Marpa::R2::Grammar::show_AHFA_items {
 sub Marpa::R2::Grammar::isy_name {
     my ( $grammar, $id ) = @_;
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
-    my $symbols   = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
 
     # The next is a little roundabout to prevent auto-instantiation
     my $name = '[ISY' . $id . ']';

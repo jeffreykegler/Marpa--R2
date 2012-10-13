@@ -28,46 +28,19 @@ sub new {
     my ($class, $grammar) = @_;
     my $self = bless {}, $class;
     $self->{g} = $grammar;
-    $self->{rule_by_name} = {};
     $self->{symbol_by_name} = {};
-    $self->{rule_names} = {};
     $self->{symbol_names} = {};
     return $self;
 }
 
-sub rule_by_name {
-   my ($self, $name) = @_;
-   my $rule = $self->{rule_by_name}->{$name};
-   die qq{No rule with name "$name"} if not defined $rule;
-   return $rule;
+sub grammar {
+   my ($self) = @_;
+   return $self->{g};
 }
-
-sub rule_name {
-   my ($self, $rule_id) = @_;
-   my $rule_name = $self->{rule_name}->[$rule_id];
-   $rule_name = 'R' . $rule_id if not defined $rule_name;
-   return $rule_name;
-}
-
-sub rule_name_set {
-   my ($self, $name, $rule_id) = @_;
-   $self->{rule_name}->[$rule_id] = $name;
-   $self->{rule_by_name}->{$name} = $rule_id;
-   return $rule_id;
-}
-
-sub rule_new {
-    my ( $self, $lhs, @rhs ) = @_;
-    die "Missing lhs" if not defined $lhs;
-    return $self->{g}->rule_new( $self->symbol_by_name($lhs),
-        [ map { $self->symbol_by_name($_) } @rhs ] );
-} ## end sub rule_new
 
 sub symbol_by_name {
    my ($self, $name) = @_;
-   my $symbol = $self->{symbol_by_name}->{$name};
-   die qq{No symbol with name "$name"} if not defined $symbol;
-   return $symbol;
+   return $self->{symbol_by_name}->{$name};
 }
 
 sub symbol_name {

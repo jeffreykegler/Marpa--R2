@@ -55,7 +55,7 @@ sub run_one_test {
     close $html_fh;
     my ( $cfg_fh, $test_config_name ) = File::Temp::tempfile(
         'temp_for_test_XXXXXX',
-        UNLINK => 0,
+        UNLINK => 1,
         SUFFIX => '.txt'
     );
     print {$cfg_fh} ${$config_ref};

@@ -23,6 +23,7 @@ use Data::Dumper;
 use English qw( -no_match_vars );
 
 use Marpa::R2::HTML::Config::Core;
+use Marpa::R2::Thin::Trace;
 
 my %predefined_groups =
     ( GRP_mixed => [qw( GRP_anywhere GRP_block GRP_inline cdata pcdata)] );
@@ -421,9 +422,9 @@ sub compile {
                 @{$contents}
                 if scalar @{$contents} != 1;
             my $member = $contents->[0];
-            die qq{"$member" is a member of two groups: "$group" and "},
-                $group_by_member{$member}
-                if defined $group_by_member{$member};
+            # die qq{"$member" is a member of two groups: "$group" and "},
+                # $group_by_member{$member}
+                # if defined $group_by_member{$member};
             $group_by_member{$member} = $group;
             push @{ $members_by_group{$group} }, $member;
         } ## end while ( my ( $group, $contents ) = each %group_rules )
@@ -460,8 +461,8 @@ sub compile {
 
                 my $count = $members_by_item_list{$item_list}{$member}++;
                 if ( $count > 0 ) {
-                    die
-                        qq{"$member" is in item list "$item_list" more than once};
+                    # die
+                        # qq{"$member" is in item list "$item_list" more than once};
                 }
             } ## end for my $member (@members)
         } ## end for my $rule (@item_rules)
@@ -531,6 +532,19 @@ sub compile {
             $ruby_rank{$rejected_symbol}{$candidate} = $rank++;
         }
     } ## end for my $rejected_symbol ( keys %ruby_config)
+
+    {
+        my %seen = ();
+        for my $rule (@core_rules) {
+            my $lhs  = $rule->{lhs};
+            my $rhs  = $rule->{rhs};
+            my $desc = join q{ }, $lhs, '::=', @{$rhs};
+            if ( $seen{$desc} ) {
+                Carp::croak("Duplicate rule: $desc");
+            }
+            $seen{$desc}++;
+        } ## end for my $rule (@core_rules)
+    }
 
     return {
         rules                      => \@core_rules,
