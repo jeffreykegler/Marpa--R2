@@ -300,6 +300,9 @@ sub compile {
         if ( grep { $_ ne $first } @{$definitions} ) {
             die "$element multiply defined";
         }
+	if ($first ne 'contains') {
+            die "$element multiply defined";
+	}
     } ## end ELEMENT: for my $element ( keys %symbol_defined )
 
     my %sgml_flow_included = ();

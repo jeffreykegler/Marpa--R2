@@ -199,8 +199,8 @@ END_OF_EXPECTED_OUTPUT
 run_one_test( $test_name, $test_html, \$test_config, \$expected_output );
  
 $test_name = 'Body allows mixed flow';
-$test_config =
-    ${$default_config} . 'ELE_body is FLO_mixed';
+$test_config = ${$default_config};
+$test_config =~ s/^ \s* ELE_body [^\n]* $/ELE_body is FLO_mixed/xms;
 $test_html = 'I cannot wait for a start tag<p>I can';
 $expected_output = <<'END_OF_EXPECTED_OUTPUT';
 <html>
@@ -216,6 +216,7 @@ run_one_test( $test_name, $test_html, \$test_config, \$expected_output );
 $test_name = 'Body allows block flow';
 # This is the default
 $test_config = ${$default_config};
+$test_config =~ s/^ \s* ELE_body [^\n]* $/ELE_body is FLO_block/xms;
 # $test_html is same as in previous test
 $expected_output = <<'END_OF_EXPECTED_OUTPUT';
 <html>
