@@ -19,7 +19,6 @@ use strict;
 use warnings;
 use English qw( -no_match_vars );
 use Marpa::R2::HTML;
-use HTML::Tagset;
 use Fatal qw(open close);
 use Getopt::Long;
 
@@ -419,13 +418,13 @@ sub do_default {
     my $tagname       = Marpa::R2::HTML::tagname();
     my @new_line_data = ();
 
-    my $start_tag        = Marpa::R2::HTML::start_tag();
-    my $end_tag          = Marpa::R2::HTML::end_tag();
-    my $is_empty_element = $HTML::Tagset::emptyElement{$tagname};
+    my $start_tag = Marpa::R2::HTML::start_tag();
+    my $end_tag   = Marpa::R2::HTML::end_tag();
+    my $is_empty  = Marpa::R2::HTML::is_empty_element();
     {
         ## no critic(Variables::ProhibitPackageVars)
         my $tag_type =
-            $HTML::Tagset::emptyElement{$tagname}
+            $is_empty
             ? 'empty element'
             : 'start tag';
         ##use critic
@@ -466,7 +465,7 @@ sub do_default {
                 [ 'msg: missing end tag', 0, 'following', $tagname ]
                 if $main::ADDED_TAG_COMMENT_FLAG;
             push @new_line_data, [ 'end tag', 0, '</' . $tagname . '>' ];
-        }
+        } ## end else [ if ( defined $end_tag ) ]
     } ## end if ( not $is_empty_element )
 
     return \@new_line_data;

@@ -39,7 +39,6 @@ use Marpa::R2::HTML::Config;
 use Carp ();
 use HTML::Parser 3.69;
 use HTML::Entities qw(decode_entities);
-use HTML::Tagset ();
 
 # versions below must be coordinated with
 # those required in Build.PL

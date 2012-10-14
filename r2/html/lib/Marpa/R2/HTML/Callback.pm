@@ -381,6 +381,11 @@ sub Marpa::R2::HTML::tagname {
     return $Marpa::R2::HTML::Internal::ELEMENT;
 }
 
+sub Marpa::R2::HTML::is_empty_element {
+    return Marpa::R2::HTML::Internal::is_empty_element( $self,
+        $Marpa::R2::HTML::Internal::ELEMENT );
+}
+
 sub Marpa::R2::HTML::species {
     return $Marpa::R2::HTML::Internal::SPECIES;
 }
