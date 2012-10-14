@@ -188,8 +188,7 @@ $expected_output = <<'END_OF_EXPECTED_OUTPUT';
   <head>
   </head>
   <body>
-    <acme>
-    </acme><p>
+    <acme><p>
       -during-<span>
         -more inline stuff-</span></p><p>
       -new block-
