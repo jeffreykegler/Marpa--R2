@@ -14,7 +14,7 @@
 # http://www.gnu.org/licenses/.
 
 # This file was generated automatically by Marpa::R2::HTML::Config
-# The date of generation was Sat Oct 13 22:09:19 2012
+# The date of generation was Sun Oct 14 09:35:36 2012
 
 package Marpa::R2::HTML::Internal::Config::Default;
 
@@ -1503,3 +1503,17 @@ $RUBY_SLIPPERS_RANK_BY_NAME = {
                                             'S_tbody' => 3
                                           }
                               };
+$IS_EMPTY_ELEMENT = {
+                      'area' => 1,
+                      'base' => 1,
+                      'basefont' => 1,
+                      'br' => 1,
+                      'col' => 1,
+                      'hr' => 1,
+                      'img' => 1,
+                      'input' => 1,
+                      'isindex' => 1,
+                      'link' => 1,
+                      'meta' => 1,
+                      'param' => 1
+                    };

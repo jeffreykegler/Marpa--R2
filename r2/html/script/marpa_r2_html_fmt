@@ -420,11 +420,11 @@ sub do_default {
 
     my $start_tag = Marpa::R2::HTML::start_tag();
     my $end_tag   = Marpa::R2::HTML::end_tag();
-    my $is_empty  = Marpa::R2::HTML::is_empty_element();
+    my $is_empty_element  = Marpa::R2::HTML::is_empty_element();
     {
         ## no critic(Variables::ProhibitPackageVars)
         my $tag_type =
-            $is_empty
+            $is_empty_element
             ? 'empty element'
             : 'start tag';
         ##use critic

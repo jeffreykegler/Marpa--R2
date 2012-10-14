@@ -411,18 +411,6 @@ sub compile {
         die "Badly formed line in grammar description: $line";
     } ## end LINE: for my $line ( split /\n/xms, ...)
 
-# Make sure the last resort defaults are always defined
-    for my $required_rubies_desc (qw( !start_tag !end_tag !non_element )) {
-        $ruby_config{$required_rubies_desc} //= [];
-    }
-
-    DESC: for my $rubies_desc ( keys %ruby_config ) {
-        my $candidates = $ruby_config{$rubies_desc};
-        next DESC if '!non_final_end' ~~ $candidates;
-        $ruby_config{$rubies_desc} =
-            [ @{$candidates}, '!non_final_end' ];
-    } ## end DESC: for my $rubies_desc ( keys %ruby_config)
-
     my %sgml_flow_included = ();
     SYMBOL: for my $element_symbol ( keys %symbol_table ) {
         next SYMBOL if not 'ELE_' eq substr $element_symbol, 0, 4;
@@ -495,6 +483,34 @@ sub compile {
         } ## end for my $context_item ( @{$context} )
     } ## end SYMBOL: for my $element_symbol ( keys %symbol_table )
 
+    # Finish out the Ruby Slippers configuration
+    # Make sure the last resort defaults are always defined
+    for my $required_rubies_desc (qw( !start_tag !end_tag !non_element )) {
+        $ruby_config{$required_rubies_desc} //= [];
+    }
+
+    DESC: for my $rubies_desc ( keys %ruby_config ) {
+        my $candidates = $ruby_config{$rubies_desc};
+        next DESC if '!non_final_end' ~~ $candidates;
+        $ruby_config{$rubies_desc} =
+            [ @{$candidates}, '!non_final_end' ];
+    } ## end DESC: for my $rubies_desc ( keys %ruby_config)
+
+    my %is_empty_element = ();
+    {
+        for my $tag ( keys %descriptor_by_tag ) {
+            my ( undef, $contents ) = @{ $descriptor_by_tag{$tag} };
+            $is_empty_element{$tag} = 1 if $contents eq 'FLO_empty';
+        }
+        RULE: for my $rule (@core_rules) {
+            my $lhs = $rule->{lhs};
+            next RULE if not 'ELE_' eq substr $lhs, 0, 4;
+            my $contents = $rule->{rhs}->[1];
+            $is_empty_element{ substr $lhs, 4 } = 1
+                if $contents eq 'FLO_empty';
+        } ## end RULE: for my $rule (@core_rules)
+    }
+
     {
         # Find the tag descriptors which refer to required
         # elements and add them
@@ -550,6 +566,7 @@ sub compile {
             if scalar @symbols_with_no_ruby_status;
     }
 
+    # Calculate the numeric Ruby ranks
     my %ruby_rank = ();
     for my $rejected_symbol ( keys %ruby_config ) {
         my $rank = 1;
@@ -588,7 +605,8 @@ sub compile {
     return {
         rules                      => \@core_rules,
         descriptor_by_tag          => \%descriptor_by_tag,
-        ruby_slippers_rank_by_name => \%ruby_rank
+        ruby_slippers_rank_by_name => \%ruby_rank,
+	is_empty_element => \%is_empty_element
     };
 
 } ## end sub compile

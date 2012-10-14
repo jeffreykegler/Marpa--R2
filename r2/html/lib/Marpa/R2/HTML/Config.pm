@@ -31,6 +31,8 @@ sub new {
             $Marpa::R2::HTML::Internal::Config::Default::TAG_DESCRIPTOR,
         ruby_slippers_rank_by_name =>
             $Marpa::R2::HTML::Internal::Config::Default::RUBY_SLIPPERS_RANK_BY_NAME,
+        is_empty_element =>
+            $Marpa::R2::HTML::Internal::Config::Default::IS_EMPTY_ELEMENT,
     };
     return bless $self, $class;
 } ## end sub new
@@ -43,8 +45,11 @@ sub new_from_compile {
 
 sub contents {
     my ($self) = @_;
-    return @{$self}{qw(rules descriptor_by_tag ruby_slippers_rank_by_name)};
-}
+    return @{$self}{
+        qw( rules descriptor_by_tag
+            ruby_slippers_rank_by_name is_empty_element )
+        };
+} ## end sub contents
 
 my $legal_preamble = <<'END_OF_TEXT';
 # Copyright 2012 Jeffrey Kegler
@@ -84,7 +89,9 @@ sub as_string {
             . "package Marpa::R2::HTML::Internal::Config::Default;\n" . "\n"
             . Data::Dumper->Dump(
             \@contents,
-            [qw(CORE_RULES TAG_DESCRIPTOR RUBY_SLIPPERS_RANK_BY_NAME)]
+            [   qw( CORE_RULES TAG_DESCRIPTOR
+                    RUBY_SLIPPERS_RANK_BY_NAME IS_EMPTY_ELEMENT )
+            ]
             )
     );
 

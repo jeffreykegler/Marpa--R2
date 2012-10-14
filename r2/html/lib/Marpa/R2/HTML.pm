@@ -478,7 +478,10 @@ sub parse {
 
     my $document = $self->{document} = $document_ref;
 
-    my ($core_rules, $compiled_descriptor_by_tag, $rank_by_name) = $self->{config}->contents();
+    my ($core_rules,   $compiled_descriptor_by_tag,
+        $rank_by_name, $is_empty_element
+    ) = $self->{config}->contents();
+    $self->{is_empty_element} = $is_empty_element;
     if ($self->{dump_config}) {
          return $self->{config}->as_string();
     }
