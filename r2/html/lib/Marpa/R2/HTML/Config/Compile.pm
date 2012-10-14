@@ -434,12 +434,10 @@ sub compile {
 	if (defined $context and not defined $contents) {
 	   Carp::croak(qq{Element <$tag> was defined but was never given any contents});
 	}
-	# Contents without context are OK only in the special case of
-	# <head> and <body>
-	$context //= [] if $tag eq 'head' or $tag eq 'body';
-	if ( not defined $context and defined $contents ) {
-	    Carp::croak(qq{Element <$tag> was given contents, but never used});
-	}
+
+	# Contents without context are OK at this point
+	# We will check later for elements defined but not used
+	$context //= [];
 
 	# The special case where both are defined and both
 	# are scalars is for elements to be created at runtime
@@ -447,8 +445,8 @@ sub compile {
             $descriptor_by_tag{$tag} = [ $context, $contents ];
             next SYMBOL;
         }
-        $contents = [$contents] if not ref $contents;
-        $context  = [$context]  if not ref $context;
+
+    if ( ref $contents ) {
         my $contents_symbol = 'Contents_ELE_' . $tag;
         my $item_symbol     = 'GRP_ELE_' . $tag;
         push @core_rules,
@@ -477,6 +475,17 @@ sub compile {
                 rhs => ['GRP_SGML'],
                 };
         } ## end if ( !$sgml_flow_included{$item_symbol} )
+    } ## end if ( ref $contents )
+    else {
+        push @core_rules,
+            {
+            lhs    => $element_symbol,
+            rhs    => [ "S_$tag", $contents, "E_$tag" ],
+            action => $element_symbol,
+            };
+    } ## end else [ if ( ref $contents ) ]
+
+        $context  = [$context]  if not ref $context;
         for my $context_item ( @{$context} ) {
             push @core_rules,
                 {
@@ -550,6 +559,18 @@ sub compile {
             $ruby_rank{$rejected_symbol}{$candidate} = $rank++;
         }
     } ## end for my $rejected_symbol ( keys %ruby_config)
+
+    {
+        my %element_used =
+            map { ( $_ => 1 ) }
+            grep {m/\A ELE_ /xms} map { @{ $_->{rhs} } } @core_rules;
+        my @elements_defined_but_not_used =
+            grep { !$element_used{$_} }
+            grep {m/\A ELE_ /xms} map { $_->{lhs} } @core_rules;
+        die "elements defined but never used: ", join " ",
+            @elements_defined_but_not_used
+            if scalar @elements_defined_but_not_used;
+    }
 
     {
         my %seen = ();
