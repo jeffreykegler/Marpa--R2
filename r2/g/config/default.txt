@@ -15,124 +15,124 @@
 
 # Only the contents of these can be changed,
 # not the context
-ELE_body is FLO_block
-ELE_head is FLO_head
+<body> is FLO_block
+<head> is FLO_head
 
 # Now alphabetically, by tagname
-ELE_a is a FLO_inline included in GRP_inline
-ELE_abbr is a FLO_inline included in GRP_inline
-ELE_acronym is a FLO_inline included in GRP_inline
-ELE_address is a FLO_inline included in GRP_block
-ELE_applet contains ELE_param GRP_mixed
-ELE_applet is included in GRP_inline
-ELE_area is FLO_empty
-ELE_audio is a FLO_inline included in GRP_inline
-ELE_b is a FLO_inline included in GRP_inline
-ELE_base is a FLO_empty included in GRP_head
-ELE_basefont is a FLO_empty included in GRP_inline
-ELE_bdo is a FLO_inline included in GRP_inline
-ELE_big is a FLO_inline included in GRP_inline
-ELE_blink is a FLO_inline included in GRP_inline
-ELE_blockquote is a FLO_mixed included in GRP_block
-ELE_br is a FLO_empty included in GRP_inline
-ELE_button is a FLO_inline included in GRP_inline
-ELE_caption is FLO_inline
-ELE_center is a FLO_mixed included in GRP_block
-ELE_cite is a FLO_inline included in GRP_inline
-ELE_code is a FLO_inline included in GRP_inline
-ELE_col is FLO_empty
-ELE_colgroup contains ELE_col
-ELE_command is a FLO_inline included in GRP_inline
-ELE_dd is FLO_mixed
-ELE_dfn is a FLO_inline included in GRP_inline
-ELE_dir contains ELE_li
-ELE_dir is included in GRP_block
-ELE_div is a FLO_mixed included in GRP_block
-ELE_dl contains ELE_dt ELE_dd
-ELE_dl is included in GRP_block
-ELE_dt is FLO_inline
-ELE_em is a FLO_inline included in GRP_inline
-ELE_embed is a FLO_inline included in GRP_inline
-ELE_fieldset is a FLO_mixed included in GRP_block
-ELE_font is a FLO_inline included in GRP_inline
-ELE_form is a FLO_mixed included in GRP_block
-ELE_h1 is a FLO_inline included in GRP_block
-ELE_h2 is a FLO_inline included in GRP_block
-ELE_h3 is a FLO_inline included in GRP_block
-ELE_h4 is a FLO_inline included in GRP_block
-ELE_h5 is a FLO_inline included in GRP_block
-ELE_h6 is a FLO_inline included in GRP_block
-ELE_hr is a FLO_empty included in GRP_block
-ELE_i is a FLO_inline included in GRP_inline
-ELE_img is a FLO_empty included in GRP_inline
-ELE_input is a FLO_empty included in GRP_inline
-ELE_isindex is a FLO_empty included in GRP_anywhere
-ELE_kbd is a FLO_inline included in GRP_inline
-ELE_keygen is a FLO_inline included in GRP_inline
-ELE_label is a FLO_inline included in GRP_inline
-ELE_li is FLO_mixed
-ELE_link is a FLO_empty included in GRP_head
-ELE_map contains GRP_block ELE_area
-ELE_map is included in GRP_inline
-ELE_mark is a FLO_inline included in GRP_inline
-ELE_menu contains ELE_li
-ELE_menu is included in GRP_block
-ELE_meta is a FLO_empty included in GRP_head
-ELE_meter is a FLO_inline included in GRP_inline
-ELE_nobr is a FLO_inline included in GRP_inline
-ELE_noframes is a FLO_mixed included in GRP_block
-ELE_noscript is a FLO_mixed included in GRP_block
-ELE_object contains ELE_param GRP_mixed
-ELE_object is included in GRP_anywhere
-ELE_ol contains ELE_li
-ELE_ol is included in GRP_block
-ELE_optgroup contains ELE_option
-ELE_option is FLO_pcdata
-ELE_output is a FLO_inline included in GRP_inline
-ELE_p is a FLO_inline included in GRP_block
-ELE_param is FLO_empty
-ELE_plaintext is a FLO_cdata included in GRP_block
-ELE_pre is a FLO_inline included in GRP_block
-ELE_progress is a FLO_inline included in GRP_inline
-ELE_q is a FLO_inline included in GRP_inline
-ELE_rb is a FLO_inline included in GRP_inline
-ELE_rbc is a FLO_inline included in GRP_inline
-ELE_rp is a FLO_inline included in GRP_inline
-ELE_rt is a FLO_inline included in GRP_inline
-ELE_rtc is a FLO_inline included in GRP_inline
-ELE_ruby is a FLO_inline included in GRP_inline
-ELE_s is a FLO_inline included in GRP_inline
-ELE_samp is a FLO_inline included in GRP_inline
-ELE_script is a FLO_cdata included in GRP_anywhere
-ELE_select contains ELE_optgroup ELE_option
-ELE_select is included in GRP_inline
-ELE_small is a FLO_inline included in GRP_inline
-ELE_span is a FLO_inline included in GRP_inline
-ELE_strike is a FLO_inline included in GRP_inline
-ELE_strong is a FLO_inline included in GRP_inline
-ELE_style is a FLO_cdata included in GRP_head
-ELE_sub is a FLO_inline included in GRP_inline
-ELE_sup is a FLO_inline included in GRP_inline
-ELE_table contains ELE_caption ELE_col ELE_colgroup
-ELE_table contains ELE_tbody ELE_tfoot ELE_thead
-ELE_table is included in GRP_block
-ELE_tbody contains ELE_tr
-ELE_td is FLO_mixed
-ELE_textarea is a FLO_cdata included in GRP_anywhere
-ELE_tfoot contains ELE_tr
-ELE_th is FLO_mixed
-ELE_thead contains ELE_tr
-ELE_time is a FLO_inline included in GRP_inline
-ELE_title is a FLO_pcdata included in GRP_head
-ELE_tr contains ELE_th ELE_td
-ELE_tt is a FLO_inline included in GRP_inline
-ELE_u is a FLO_inline included in GRP_inline
-ELE_ul contains ELE_li
-ELE_ul is included in GRP_block
-ELE_var is a FLO_inline included in GRP_inline
-ELE_video is a FLO_inline included in GRP_inline
-ELE_wbr is a FLO_inline included in GRP_inline
-ELE_xmp is a FLO_cdata included in GRP_block
+<a> is a FLO_inline included in %inline
+<abbr> is a FLO_inline included in %inline
+<acronym> is a FLO_inline included in %inline
+<address> is a FLO_inline included in %block
+<applet> contains <param> %mixed
+<applet> is included in %inline
+<area> is FLO_empty
+<audio> is a FLO_inline included in %inline
+<b> is a FLO_inline included in %inline
+<base> is a FLO_empty included in %head
+<basefont> is a FLO_empty included in %inline
+<bdo> is a FLO_inline included in %inline
+<big> is a FLO_inline included in %inline
+<blink> is a FLO_inline included in %inline
+<blockquote> is a FLO_mixed included in %block
+<br> is a FLO_empty included in %inline
+<button> is a FLO_inline included in %inline
+<caption> is FLO_inline
+<center> is a FLO_mixed included in %block
+<cite> is a FLO_inline included in %inline
+<code> is a FLO_inline included in %inline
+<col> is FLO_empty
+<colgroup> contains <col>
+<command> is a FLO_inline included in %inline
+<dd> is FLO_mixed
+<dfn> is a FLO_inline included in %inline
+<dir> contains <li>
+<dir> is included in %block
+<div> is a FLO_mixed included in %block
+<dl> contains <dt> <dd>
+<dl> is included in %block
+<dt> is FLO_inline
+<em> is a FLO_inline included in %inline
+<embed> is a FLO_inline included in %inline
+<fieldset> is a FLO_mixed included in %block
+<font> is a FLO_inline included in %inline
+<form> is a FLO_mixed included in %block
+<h1> is a FLO_inline included in %block
+<h2> is a FLO_inline included in %block
+<h3> is a FLO_inline included in %block
+<h4> is a FLO_inline included in %block
+<h5> is a FLO_inline included in %block
+<h6> is a FLO_inline included in %block
+<hr> is a FLO_empty included in %block
+<i> is a FLO_inline included in %inline
+<img> is a FLO_empty included in %inline
+<input> is a FLO_empty included in %inline
+<isindex> is a FLO_empty included in %anywhere
+<kbd> is a FLO_inline included in %inline
+<keygen> is a FLO_inline included in %inline
+<label> is a FLO_inline included in %inline
+<li> is FLO_mixed
+<link> is a FLO_empty included in %head
+<map> contains %block <area>
+<map> is included in %inline
+<mark> is a FLO_inline included in %inline
+<menu> contains <li>
+<menu> is included in %block
+<meta> is a FLO_empty included in %head
+<meter> is a FLO_inline included in %inline
+<nobr> is a FLO_inline included in %inline
+<noframes> is a FLO_mixed included in %block
+<noscript> is a FLO_mixed included in %block
+<object> contains <param> %mixed
+<object> is included in %anywhere
+<ol> contains <li>
+<ol> is included in %block
+<optgroup> contains <option>
+<option> is FLO_pcdata
+<output> is a FLO_inline included in %inline
+<p> is a FLO_inline included in %block
+<param> is FLO_empty
+<plaintext> is a FLO_cdata included in %block
+<pre> is a FLO_inline included in %block
+<progress> is a FLO_inline included in %inline
+<q> is a FLO_inline included in %inline
+<rb> is a FLO_inline included in %inline
+<rbc> is a FLO_inline included in %inline
+<rp> is a FLO_inline included in %inline
+<rt> is a FLO_inline included in %inline
+<rtc> is a FLO_inline included in %inline
+<ruby> is a FLO_inline included in %inline
+<s> is a FLO_inline included in %inline
+<samp> is a FLO_inline included in %inline
+<script> is a FLO_cdata included in %anywhere
+<select> contains <optgroup> <option>
+<select> is included in %inline
+<small> is a FLO_inline included in %inline
+<span> is a FLO_inline included in %inline
+<strike> is a FLO_inline included in %inline
+<strong> is a FLO_inline included in %inline
+<style> is a FLO_cdata included in %head
+<sub> is a FLO_inline included in %inline
+<sup> is a FLO_inline included in %inline
+<table> contains <caption> <col> <colgroup>
+<table> contains <tbody> <tfoot> <thead>
+<table> is included in %block
+<tbody> contains <tr>
+<td> is FLO_mixed
+<textarea> is a FLO_cdata included in %anywhere
+<tfoot> contains <tr>
+<th> is FLO_mixed
+<thead> contains <tr>
+<time> is a FLO_inline included in %inline
+<title> is a FLO_pcdata included in %head
+<tr> contains <th> <td>
+<tt> is a FLO_inline included in %inline
+<u> is a FLO_inline included in %inline
+<ul> contains <li>
+<ul> is included in %block
+<var> is a FLO_inline included in %inline
+<video> is a FLO_inline included in %inline
+<wbr> is a FLO_inline included in %inline
+<xmp> is a FLO_cdata included in %block
 
 @head_rubies   = <html> <head>
 @block_rubies  = <html> <head> <body>

@@ -88,7 +88,7 @@ my $expected_output;
 
 $test_name = 'Inline element containing inline flow';
 $test_config =
-    ${$default_config} . '<acme> is a FLO_inline included in GRP_inline';
+    ${$default_config} . '<acme> is a FLO_inline included in %inline';
 $test_html       = '<acme>-during-<span>-more inline stuff-<p>-new block-' . "\n";
 $expected_output = <<'END_OF_EXPECTED_OUTPUT';
 <html>
@@ -107,7 +107,7 @@ run_one_test( $test_name, $test_html, \$test_config, \$expected_output );
 
 $test_name = 'Inline element containing block flow';
 $test_config =
-    ${$default_config} . '<acme> is a FLO_inline included in GRP_block';
+    ${$default_config} . '<acme> is a FLO_inline included in %block';
 # $test_html is same as in previous test
 $expected_output = <<'END_OF_EXPECTED_OUTPUT';
 <html>
@@ -125,7 +125,7 @@ run_one_test( $test_name, $test_html, \$test_config, \$expected_output );
 
 $test_name = 'Block element containing mixed flow';
 $test_config =
-    ${$default_config} . '<acme> is a FLO_mixed included in GRP_block';
+    ${$default_config} . '<acme> is a FLO_mixed included in %block';
 # $test_html is same as in previous test
 $expected_output = <<'END_OF_EXPECTED_OUTPUT';
 <html>
@@ -143,7 +143,7 @@ run_one_test( $test_name, $test_html, \$test_config, \$expected_output );
 
 $test_name = 'Block element containing block flow';
 $test_config =
-    ${$default_config} . '<acme> is a FLO_block included in GRP_block';
+    ${$default_config} . '<acme> is a FLO_block included in %block';
 # $test_html is same as in previous test
 $expected_output = <<'END_OF_EXPECTED_OUTPUT';
 <html>
@@ -162,7 +162,7 @@ run_one_test( $test_name, $test_html, \$test_config, \$expected_output );
 
 $test_name = 'Block element containing PCDATA';
 $test_config =
-    ${$default_config} . '<acme> is a FLO_pcdata included in GRP_block';
+    ${$default_config} . '<acme> is a FLO_pcdata included in %block';
 # $test_html is same as in previous test
 $expected_output = <<'END_OF_EXPECTED_OUTPUT';
 <html>
@@ -181,7 +181,7 @@ run_one_test( $test_name, $test_html, \$test_config, \$expected_output );
  
 $test_name = 'Empty block element';
 $test_config =
-    ${$default_config} . '<acme> is a FLO_empty included in GRP_block';
+    ${$default_config} . '<acme> is a FLO_empty included in %block';
 # $test_html is same as in previous test
 $expected_output = <<'END_OF_EXPECTED_OUTPUT';
 <html>

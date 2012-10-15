@@ -151,12 +151,12 @@ sub compile {
             if not $definition =~ / \S /xms;    # ignore all-whitespace line
         if ($definition =~ m{
 	\A \s* [<](\w+)[>] \s+
-	is \s+ included \s+ in \s+ (GRP_\w+) \s* \z}xms
+	is \s+ included \s+ in \s+ [%](\w+) \s* \z}xms
             )
         {
             my $tag = $1;
             my $element       = 'ELE_' . $tag;
-            my $group         = $2;
+            my $group         = 'GRP_' . $2;
             my $element_entry = $symbol_table{$element} //= [];
             my $group_entry   = $symbol_table{$group};
 
@@ -194,12 +194,12 @@ sub compile {
         if ($definition =~ m{
 	\A \s* [<](\w+)[>] \s+
 	is \s+ a \s+ (FLO_\w+) \s+
-      included \s+ in \s+ (GRP_\w+) \s* \z}xms
+      included \s+ in \s+ [%](\w+) \s* \z}xms
             )
         {
             my $tag           = $1;
             my $flow          = $2;
-            my $group         = $3;
+            my $group         = 'GRP_' . $3;
             my $element       = 'ELE_' . $tag;
             my $element_entry = $symbol_table{$element} //= [];
             my $group_entry   = $symbol_table{$group};
@@ -334,6 +334,9 @@ sub compile {
 		my $content_symbol;
 		if ($external_content_symbol =~ /\A [<] (\w+) [>] \z/xms) {
 		    $content_symbol = 'ELE_' . $1;
+		}
+		if ($external_content_symbol =~ /\A [%] (\w+)  \z/xms) {
+		    $content_symbol = 'GRP_' . $1;
 		}
 		$content_symbol //= $external_content_symbol;
                 my $content_entry = $symbol_table{$content_symbol};
