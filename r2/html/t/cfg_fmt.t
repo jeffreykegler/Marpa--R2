@@ -37,7 +37,7 @@ BEGIN {
 
 BEGIN { Marpa::R2::HTML::Test::Util::load_or_skip_all('HTML::Parser'); }
 
-BEGIN { Test::More::plan tests => 16; }
+BEGIN { Test::More::plan tests => 18; }
 
 use lib 'tool/lib';
 use Marpa::R2::Test;
@@ -233,6 +233,10 @@ $test_name = 'Body is empty';
 # This is the default
 $test_config = ${$default_config};
 $test_config =~ s/^ \s* ELE_body [^\n]* $/ELE_body is FLO_empty/xms;
+# I also need to eliminate all mentions of the </body> tag
+# now that <body> is an empty element
+$test_config =~ s{^ \s* [<][/]body[>] \s [^\n]* $}{}xms;
+$test_config =~ s{  [<][/]body[>] }{}gxms;
 # $test_html is same as in previous test
 $expected_output = <<'END_OF_EXPECTED_OUTPUT';
 <html>

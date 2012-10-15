@@ -684,7 +684,7 @@ sub parse {
             CANDIDATE:
             for my $candidate_name ( keys %{$rank_by_candidate_name} ) {
                 my $rank = $rank_by_candidate_name->{$candidate_name};
-                if ( $candidate_name eq '!non_final_end' ) {
+                if ( $candidate_name eq '</*>' ) {
                     $ruby_vector_by_id[$_] = $rank for @non_final_end_tag_ids;
                     next CANDIDATE;
                 }
@@ -711,12 +711,12 @@ sub parse {
             FIND_PLACEMENT: {
                 my $prefix = substr $rejected_symbol_name, 0, 2;
                 if ( $prefix eq 'S_' ) {
-                    $placement = 'start';
+                    $placement = '';
                     $is_start_tag[$rejected_symbol_id] = 1;
                     last FIND_PLACEMENT;
                 }
                 if ( $prefix eq 'E_' ) {
-                    $placement = 'end';
+                    $placement = '/';
                 }
             } ## end FIND_PLACEMENT:
             my $ruby_vector = $ruby_vectors{$rejected_symbol_name};
@@ -739,12 +739,12 @@ sub parse {
 	    my $primary_group = $primary_group_by_tag->{$tag};
             my $element_type = defined $primary_group ? (substr $primary_group, 4) : 'anywhere';
             $ruby_vector =
-                $ruby_vectors{ q{!} . $element_type . q{_} . $placement . q{_tag} };
+                $ruby_vectors{ q{<} . $placement . q{%} . $element_type . q{>} };
             if ( defined $ruby_vector ) {
                 $ruby_rank_by_id[$rejected_symbol_id] = $ruby_vector;
                 next SYMBOL;
             }
-            $ruby_vector = $ruby_vectors{ q{!} . $placement . q{_tag} };
+            $ruby_vector = $ruby_vectors{ q{<} . $placement . q{*>} };
             if ( defined $ruby_vector ) {
                 $ruby_rank_by_id[$rejected_symbol_id] = $ruby_vector;
                 next SYMBOL;

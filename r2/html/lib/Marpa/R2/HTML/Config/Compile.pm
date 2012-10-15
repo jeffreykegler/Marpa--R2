@@ -370,7 +370,7 @@ sub compile {
             $lists{$new_list} = \@members;
 	    next LINE;
         } ## end if ( $definition =~ s/ \A \s* [@](\w+) \s* = \s* / /xms)
-        if ( $definition =~ s{ \A \s* ([\w<!>/]+) \s* [-][>] \s* }{}xms ) {
+        if ( $definition =~ s{ \A \s* ([\w<*%>/]+) \s* [-][>] \s* }{}xms ) {
             my $rejected_symbol = $1;
             my @raw_candidates = split q{ }, $definition;
             my @symbols = ($rejected_symbol);
@@ -387,15 +387,30 @@ sub compile {
             } ## end RAW_CANDIDATE: for my $raw_candidate (@raw_candidates)
 	    my @internal_symbols = ();
 	    SYMBOL: for my $symbol (@symbols) {
-	        if ($symbol =~ /\A \w+ \z/xms) {
+	        if ($symbol =~ /\A (EOF|CDATA|PCDATA) \z/xms) {
 		     push @internal_symbols, $symbol;
 		     next SYMBOL;
 		}
-	        if ($symbol =~ /\A [<] ([!]\w+) [>] \z/xms) {
+	        if ($symbol =~ /\A ( [<] [%] (inline|head|block) [>] ) \z/xms) {
 		     my $special_symbol = $1;
 		     push @internal_symbols, $special_symbol;
 		     next SYMBOL;
 		}
+	        if ($symbol =~ m{\A ( [<] [/] [%] (inline|head|block) [>] ) \z}xms) {
+		     my $special_symbol = $1;
+		     push @internal_symbols, $special_symbol;
+		     next SYMBOL;
+		}
+	        if ($symbol =~ m{\A ( [<] [*] [>] ) \z}xms) {
+		     my $special_symbol = $1;
+		     push @internal_symbols, $special_symbol;
+		     next SYMBOL;
+		 }
+	        if ($symbol =~ m{\A ( [<] [/] [*] [>] ) \z}xms) {
+		     my $special_symbol = $1;
+		     push @internal_symbols, $special_symbol;
+		     next SYMBOL;
+		 }
 	        if ($symbol =~ /\A [<] (\w+) [>] \z/xms) {
 		     my $start_tag = 'S_' . $1;
 		     push @internal_symbols, $start_tag;
@@ -489,15 +504,15 @@ sub compile {
 
     # Finish out the Ruby Slippers configuration
     # Make sure the last resort defaults are always defined
-    for my $required_rubies_desc (qw( !start_tag !end_tag !non_element )) {
+    for my $required_rubies_desc (qw( <*> </*> <!element> )) {
         $ruby_config{$required_rubies_desc} //= [];
     }
 
     DESC: for my $rubies_desc ( keys %ruby_config ) {
         my $candidates = $ruby_config{$rubies_desc};
-        next DESC if '!non_final_end' ~~ $candidates;
+        next DESC if '</*>' ~~ $candidates;
         $ruby_config{$rubies_desc} =
-            [ @{$candidates}, '!non_final_end' ];
+            [ @{$candidates}, '</*>' ];
     } ## end DESC: for my $rubies_desc ( keys %ruby_config)
 
     my %is_empty_element = ();
@@ -513,6 +528,25 @@ sub compile {
             $is_empty_element{ substr $lhs, 4 } = 1
                 if $contents eq 'FLO_empty';
         } ## end RULE: for my $rule (@core_rules)
+    }
+
+    {
+        # Make sure no ruby candidates or rejected symbols are
+	# end tags of empty elements
+	SYMBOL: for my $rejected_symbol (keys %ruby_config) {
+	    next SYMBOL if 'E_' ne substr $rejected_symbol, 0, 2;
+	    my $tag = substr $rejected_symbol, 2;
+	    next SYMBOL if not $is_empty_element{$tag};
+	    Carp::croak(qq{Ruby Slippers alternatives specified for </$tag>\n},
+	       qq{  "$tag" is an empty element and this is not allowed"});
+	}
+	SYMBOL: for my $candidate_symbol (map { @{$_} } values %ruby_config) {
+	    next SYMBOL if 'E_' ne substr $candidate_symbol, 0, 2;
+	    my $tag = substr $candidate_symbol, 2;
+	    next SYMBOL if not $is_empty_element{$tag};
+	    Carp::croak(qq{Tag </$tag> specified as a Ruby Slippers alternative\n},
+	       qq{  "$tag" is an empty element and this is not allowed"});
+	}
     }
 
     {

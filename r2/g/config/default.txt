@@ -143,27 +143,27 @@ ELE_xmp is a FLO_cdata included in GRP_block
 <body> -> <html> <head>
 CDATA -> @inline_rubies
 PCDATA -> @inline_rubies
-<!start_tag> -> @block_rubies
-<!inline_start_tag> -> @inline_rubies
-<!head_start_tag> -> @head_rubies
+<*> -> @block_rubies
+<%inline> -> @inline_rubies
+<%head> -> @head_rubies
 <area> -> @block_rubies <map>
 <option> -> @inline_rubies <select>
 <optgroup> -> @inline_rubies <select>
 <param> -> @block_rubies <object>
-<li> -> @block_rubies <!non_final_end> <ul>
+<li> -> @block_rubies </*> <ul>
 <dt> -> @block_rubies <dl>
 <dd> -> @block_rubies <dl>
-<caption> -> @block_rubies <!non_final_end> <table>
-<col> -> @block_rubies <!non_final_end> <table>
-<colgroup> -> @block_rubies <!non_final_end> <table>
-<tbody> -> @block_rubies <!non_final_end> <table>
-<tfoot> -> @block_rubies <!non_final_end> <table>
-<thead> -> @block_rubies <!non_final_end> <table>
-</table> -> @block_rubies <!non_final_end> <table>
-<tr> -> @block_rubies <tbody> <!non_final_end> <table>
-<th> -> @block_rubies <thead> <tbody> <tr> <!non_final_end> <table>
-<td> -> @block_rubies <tbody> <tr> <!non_final_end> <table>
+<caption> -> @block_rubies </*> <table>
+<col> -> @block_rubies </*> <table>
+<colgroup> -> @block_rubies </*> <table>
+<tbody> -> @block_rubies </*> <table>
+<tfoot> -> @block_rubies </*> <table>
+<thead> -> @block_rubies </*> <table>
+</table> -> @block_rubies </*> <table>
+<tr> -> @block_rubies <tbody> </*> <table>
+<th> -> @block_rubies <thead> <tbody> <tr> </*> <table>
+<td> -> @block_rubies <tbody> <tr> </*> <table>
 </body> -> <html> <head> <body>
-</html> -> <html> <head> <body> <!non_final_end> </body>
-EOF -> <html> <head> <body> <!non_final_end> </body> </html>
+</html> -> <html> <head> <body> </*> </body>
+EOF -> <html> <head> <body> </*> </body> </html>
 

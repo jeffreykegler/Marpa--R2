@@ -14,7 +14,7 @@
 # http://www.gnu.org/licenses/.
 
 # This file was generated automatically by Marpa::R2::HTML::Config
-# The date of generation was Sun Oct 14 18:13:58 2012
+# The date of generation was Sun Oct 14 20:54:26 2012
 
 package Marpa::R2::HTML::Internal::Config::Default;
 
@@ -1061,35 +1061,35 @@ $RUNTIME_TAG = {
                  'xmp' => 'FLO_cdata'
                };
 $RUBY_SLIPPERS_RANK_BY_NAME = {
-                                '!end_tag' => {
-                                                '!non_final_end' => 1
-                                              },
-                                '!head_start_tag' => {
-                                                       '!non_final_end' => 1,
-                                                       'S_head' => 2,
-                                                       'S_html' => 3
-                                                     },
-                                '!inline_start_tag' => {
-                                                         '!non_final_end' => 1,
-                                                         'S_body' => 6,
-                                                         'S_head' => 7,
-                                                         'S_html' => 8,
-                                                         'S_p' => 2,
-                                                         'S_tbody' => 5,
-                                                         'S_td' => 3,
-                                                         'S_tr' => 4
-                                                       },
-                                '!non_element' => {
-                                                    '!non_final_end' => 1
-                                                  },
-                                '!start_tag' => {
-                                                  '!non_final_end' => 1,
-                                                  'S_body' => 2,
-                                                  'S_head' => 3,
-                                                  'S_html' => 4
+                                '<!element>' => {
+                                                  '</*>' => 1
                                                 },
+                                '<%head>' => {
+                                               '</*>' => 1,
+                                               'S_head' => 2,
+                                               'S_html' => 3
+                                             },
+                                '<%inline>' => {
+                                                 '</*>' => 1,
+                                                 'S_body' => 6,
+                                                 'S_head' => 7,
+                                                 'S_html' => 8,
+                                                 'S_p' => 2,
+                                                 'S_tbody' => 5,
+                                                 'S_td' => 3,
+                                                 'S_tr' => 4
+                                               },
+                                '<*>' => {
+                                           '</*>' => 1,
+                                           'S_body' => 2,
+                                           'S_head' => 3,
+                                           'S_html' => 4
+                                         },
+                                '</*>' => {
+                                            '</*>' => 1
+                                          },
                                 'CDATA' => {
-                                             '!non_final_end' => 1,
+                                             '</*>' => 1,
                                              'S_body' => 6,
                                              'S_head' => 7,
                                              'S_html' => 8,
@@ -1099,7 +1099,7 @@ $RUBY_SLIPPERS_RANK_BY_NAME = {
                                              'S_tr' => 4
                                            },
                                 'EOF' => {
-                                           '!non_final_end' => 3,
+                                           '</*>' => 3,
                                            'E_body' => 2,
                                            'E_html' => 1,
                                            'S_body' => 4,
@@ -1107,27 +1107,27 @@ $RUBY_SLIPPERS_RANK_BY_NAME = {
                                            'S_html' => 6
                                          },
                                 'E_body' => {
-                                              '!non_final_end' => 1,
+                                              '</*>' => 1,
                                               'S_body' => 2,
                                               'S_head' => 3,
                                               'S_html' => 4
                                             },
                                 'E_html' => {
-                                              '!non_final_end' => 2,
+                                              '</*>' => 2,
                                               'E_body' => 1,
                                               'S_body' => 3,
                                               'S_head' => 4,
                                               'S_html' => 5
                                             },
                                 'E_table' => {
-                                               '!non_final_end' => 2,
+                                               '</*>' => 2,
                                                'S_body' => 3,
                                                'S_head' => 4,
                                                'S_html' => 5,
                                                'S_table' => 1
                                              },
                                 'PCDATA' => {
-                                              '!non_final_end' => 1,
+                                              '</*>' => 1,
                                               'S_body' => 6,
                                               'S_head' => 7,
                                               'S_html' => 8,
@@ -1137,68 +1137,68 @@ $RUBY_SLIPPERS_RANK_BY_NAME = {
                                               'S_tr' => 4
                                             },
                                 'S_area' => {
-                                              '!non_final_end' => 1,
+                                              '</*>' => 1,
                                               'S_body' => 3,
                                               'S_head' => 4,
                                               'S_html' => 5,
                                               'S_map' => 2
                                             },
                                 'S_body' => {
-                                              '!non_final_end' => 1,
+                                              '</*>' => 1,
                                               'S_head' => 2,
                                               'S_html' => 3
                                             },
                                 'S_caption' => {
-                                                 '!non_final_end' => 2,
+                                                 '</*>' => 2,
                                                  'S_body' => 3,
                                                  'S_head' => 4,
                                                  'S_html' => 5,
                                                  'S_table' => 1
                                                },
                                 'S_col' => {
-                                             '!non_final_end' => 2,
+                                             '</*>' => 2,
                                              'S_body' => 3,
                                              'S_head' => 4,
                                              'S_html' => 5,
                                              'S_table' => 1
                                            },
                                 'S_colgroup' => {
-                                                  '!non_final_end' => 2,
+                                                  '</*>' => 2,
                                                   'S_body' => 3,
                                                   'S_head' => 4,
                                                   'S_html' => 5,
                                                   'S_table' => 1
                                                 },
                                 'S_dd' => {
-                                            '!non_final_end' => 1,
+                                            '</*>' => 1,
                                             'S_body' => 3,
                                             'S_dl' => 2,
                                             'S_head' => 4,
                                             'S_html' => 5
                                           },
                                 'S_dt' => {
-                                            '!non_final_end' => 1,
+                                            '</*>' => 1,
                                             'S_body' => 3,
                                             'S_dl' => 2,
                                             'S_head' => 4,
                                             'S_html' => 5
                                           },
                                 'S_head' => {
-                                              '!non_final_end' => 1,
+                                              '</*>' => 1,
                                               'S_html' => 2
                                             },
                                 'S_html' => {
-                                              '!non_final_end' => 1
+                                              '</*>' => 1
                                             },
                                 'S_li' => {
-                                            '!non_final_end' => 2,
+                                            '</*>' => 2,
                                             'S_body' => 3,
                                             'S_head' => 4,
                                             'S_html' => 5,
                                             'S_ul' => 1
                                           },
                                 'S_optgroup' => {
-                                                  '!non_final_end' => 1,
+                                                  '</*>' => 1,
                                                   'S_body' => 7,
                                                   'S_head' => 8,
                                                   'S_html' => 9,
@@ -1209,7 +1209,7 @@ $RUBY_SLIPPERS_RANK_BY_NAME = {
                                                   'S_tr' => 5
                                                 },
                                 'S_option' => {
-                                                '!non_final_end' => 1,
+                                                '</*>' => 1,
                                                 'S_body' => 7,
                                                 'S_head' => 8,
                                                 'S_html' => 9,
@@ -1220,21 +1220,21 @@ $RUBY_SLIPPERS_RANK_BY_NAME = {
                                                 'S_tr' => 5
                                               },
                                 'S_param' => {
-                                               '!non_final_end' => 1,
+                                               '</*>' => 1,
                                                'S_body' => 3,
                                                'S_head' => 4,
                                                'S_html' => 5,
                                                'S_object' => 2
                                              },
                                 'S_tbody' => {
-                                               '!non_final_end' => 2,
+                                               '</*>' => 2,
                                                'S_body' => 3,
                                                'S_head' => 4,
                                                'S_html' => 5,
                                                'S_table' => 1
                                              },
                                 'S_td' => {
-                                            '!non_final_end' => 2,
+                                            '</*>' => 2,
                                             'S_body' => 5,
                                             'S_head' => 6,
                                             'S_html' => 7,
@@ -1243,14 +1243,14 @@ $RUBY_SLIPPERS_RANK_BY_NAME = {
                                             'S_tr' => 3
                                           },
                                 'S_tfoot' => {
-                                               '!non_final_end' => 2,
+                                               '</*>' => 2,
                                                'S_body' => 3,
                                                'S_head' => 4,
                                                'S_html' => 5,
                                                'S_table' => 1
                                              },
                                 'S_th' => {
-                                            '!non_final_end' => 2,
+                                            '</*>' => 2,
                                             'S_body' => 6,
                                             'S_head' => 7,
                                             'S_html' => 8,
@@ -1260,14 +1260,14 @@ $RUBY_SLIPPERS_RANK_BY_NAME = {
                                             'S_tr' => 3
                                           },
                                 'S_thead' => {
-                                               '!non_final_end' => 2,
+                                               '</*>' => 2,
                                                'S_body' => 3,
                                                'S_head' => 4,
                                                'S_html' => 5,
                                                'S_table' => 1
                                              },
                                 'S_tr' => {
-                                            '!non_final_end' => 2,
+                                            '</*>' => 2,
                                             'S_body' => 4,
                                             'S_head' => 5,
                                             'S_html' => 6,
