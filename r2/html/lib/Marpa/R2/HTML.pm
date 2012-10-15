@@ -765,6 +765,16 @@ sub parse {
 
     }
 
+    my @empty_element_end_tag = ();
+    {
+        TAG: for my $tag (keys %{$is_empty_element}) {
+	    my $start_tag_id = $tracer->symbol_by_name('S_' . $tag);
+	    next TAG if not defined $start_tag_id;
+	    my $end_tag_id = $tracer->symbol_by_name('E_' . $tag);
+	    $empty_element_end_tag[$start_tag_id] = $end_tag_id;
+	}
+    }
+
     my $recce = Marpa::R2::Thin::R->new($thin_grammar);
     $recce->start_input();
 
@@ -813,6 +823,7 @@ sub parse {
             if ( $recce->earleme_complete() < 0 ) {
                 die $thin_grammar->error();
             }
+
             my $last_html_token_of_marpa_token = $token_number;
             $token_number++;
             if ( defined $last_html_token_of_marpa_token ) {
@@ -822,6 +833,24 @@ sub parse {
             die $thin_grammar->error() if not defined $current_earleme;
             $self->{earleme_to_html_token_ix}->[$current_earleme] =
                 $latest_html_token;
+
+	    my $empty_element_end_tag = $empty_element_end_tag[$attempted_symbol_id];
+	    if ( defined $empty_element_end_tag ) {
+		$read_result =
+		    $recce->alternative( $empty_element_end_tag, RUBY_SLIPPERS_TOKEN,
+		    1 );
+		if ( $read_result != $NO_MARPA_ERROR ) {
+		    die $thin_grammar->error();
+		}
+		if ( $recce->earleme_complete() < 0 ) {
+		    die $thin_grammar->error();
+		}
+		my $current_earleme = $recce->current_earleme();
+		die $thin_grammar->error() if not defined $current_earleme;
+		$self->{earleme_to_html_token_ix}->[$current_earleme] =
+		    $latest_html_token;
+	    } ## end if ( defined $empty_element_end_tag )
+
             next RECCE_RESPONSE;
         } ## end if ( $read_result != $UNEXPECTED_TOKEN_ID )
 
