@@ -89,7 +89,7 @@ GET_DOCUMENT: {
 sub post_process {
     my ($value) = @_;
     my @text_pieces = ();
-    DATUM: for my $line_data ( @{ $value->[0] } ) {
+    DATUM: for my $line_data ( map { @{$_} } @{$value} ) {
         my ( $type, $indent ) = @{$line_data};
         if ( $type eq 'text' ) {
             my $text = $line_data->[2];
