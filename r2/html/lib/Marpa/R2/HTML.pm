@@ -478,8 +478,9 @@ sub parse {
 
     my $document = $self->{document} = $document_ref;
 
-    my ($core_rules,   $compiled_descriptor_by_tag,
-        $rank_by_name, $is_empty_element
+    my ($core_rules,   $runtime_tag,
+        $rank_by_name, $is_empty_element,
+	$primary_group_by_tag
     ) = $self->{config}->contents();
     $self->{is_empty_element} = $is_empty_element;
     if ($self->{dump_config}) {
@@ -596,7 +597,7 @@ sub parse {
                     my $element_type = 'GRP_anywhere';
                     my $contents     = 'FLO_mixed';
                     my $tag_descriptor =
-                        $compiled_descriptor_by_tag->{$tag_name};
+                        $runtime_tag->{$tag_name};
                     if ( defined $tag_descriptor ) {
                         ( $element_type, $contents ) = @{$tag_descriptor};
                     }
@@ -679,20 +680,6 @@ sub parse {
             push @non_final_end_tag_ids, $symbol_id;
         } ## end SYMBOL: for my $symbol_id ( 0 .. $highest_symbol_id )
 
-	my %element_type = ();
-        RULE: for my $rule_id ( 0 .. $highest_rule_id ) {
-	     # RHS should be length 1
-	     my ($lhs, $rhs) = symbol_names_by_rule_id($self, $rule_id);
-	     # In theory there could be gaps in the rule numbering
-	     next RULE if not defined $lhs;
-	     next RULE if 'GRP_' ne substr $lhs, 0, 4;
-	     next RULE if 'ELE_' ne substr $rhs, 0, 4;
-	     my $group = substr $lhs, 4;
-	     next RULE if not $group ~~ [qw( inline block head )];
-	     my $tag = substr $rhs, 4;
-	     $element_type{$tag} = $group;
-	}
-
         my %ruby_vectors = ();
         for my $rejected_symbol_name ( keys %{$rank_by_name} ) {
             my @ruby_vector_by_id = ( (0) x ( $highest_symbol_id + 1 ) );
@@ -748,7 +735,8 @@ sub parse {
                 next SYMBOL;
             } ## end if ( not defined $placement )
             my $tag = substr $rejected_symbol_name, 2;
-            my $element_type = $element_type{$tag} //  'anywhere';
+	    my $primary_group = $primary_group_by_tag->{$tag};
+            my $element_type = defined $primary_group ? (substr $primary_group, 4) : 'anywhere';
             $ruby_vector =
                 $ruby_vectors{ q{!} . $element_type . q{_} . $placement . q{_tag} };
             if ( defined $ruby_vector ) {

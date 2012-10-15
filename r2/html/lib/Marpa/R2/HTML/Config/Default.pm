@@ -14,7 +14,7 @@
 # http://www.gnu.org/licenses/.
 
 # This file was generated automatically by Marpa::R2::HTML::Config
-# The date of generation was Sun Oct 14 09:35:36 2012
+# The date of generation was Sun Oct 14 17:43:12 2012
 
 package Marpa::R2::HTML::Internal::Config::Default;
 
@@ -982,312 +982,312 @@ $CORE_RULES = [
                            ]
                 }
               ];
-$TAG_DESCRIPTOR = {
-                    'a' => [
+$RUNTIME_TAG = {
+                 'a' => [
+                          'GRP_inline',
+                          'FLO_inline'
+                        ],
+                 'abbr' => [
                              'GRP_inline',
                              'FLO_inline'
                            ],
-                    'abbr' => [
+                 'acronym' => [
                                 'GRP_inline',
                                 'FLO_inline'
                               ],
-                    'acronym' => [
-                                   'GRP_inline',
-                                   'FLO_inline'
-                                 ],
-                    'address' => [
-                                   'GRP_block',
-                                   'FLO_inline'
-                                 ],
-                    'audio' => [
-                                 'GRP_inline',
-                                 'FLO_inline'
-                               ],
-                    'b' => [
-                             'GRP_inline',
-                             'FLO_inline'
-                           ],
-                    'base' => [
-                                'GRP_head',
-                                'FLO_empty'
-                              ],
-                    'basefont' => [
-                                    'GRP_inline',
-                                    'FLO_empty'
-                                  ],
-                    'bdo' => [
-                               'GRP_inline',
-                               'FLO_inline'
-                             ],
-                    'big' => [
-                               'GRP_inline',
-                               'FLO_inline'
-                             ],
-                    'blink' => [
-                                 'GRP_inline',
-                                 'FLO_inline'
-                               ],
-                    'blockquote' => [
-                                      'GRP_block',
-                                      'FLO_mixed'
-                                    ],
-                    'br' => [
-                              'GRP_inline',
-                              'FLO_empty'
-                            ],
-                    'button' => [
-                                  'GRP_inline',
-                                  'FLO_inline'
-                                ],
-                    'center' => [
-                                  'GRP_block',
-                                  'FLO_mixed'
-                                ],
-                    'cite' => [
-                                'GRP_inline',
-                                'FLO_inline'
-                              ],
-                    'code' => [
-                                'GRP_inline',
-                                'FLO_inline'
-                              ],
-                    'command' => [
-                                   'GRP_inline',
-                                   'FLO_inline'
-                                 ],
-                    'dfn' => [
-                               'GRP_inline',
-                               'FLO_inline'
-                             ],
-                    'div' => [
-                               'GRP_block',
-                               'FLO_mixed'
-                             ],
-                    'em' => [
-                              'GRP_inline',
-                              'FLO_inline'
-                            ],
-                    'embed' => [
-                                 'GRP_inline',
-                                 'FLO_inline'
-                               ],
-                    'fieldset' => [
-                                    'GRP_block',
-                                    'FLO_mixed'
-                                  ],
-                    'font' => [
-                                'GRP_inline',
-                                'FLO_inline'
-                              ],
-                    'form' => [
+                 'address' => [
                                 'GRP_block',
-                                'FLO_mixed'
+                                'FLO_inline'
                               ],
-                    'h1' => [
-                              'GRP_block',
+                 'audio' => [
+                              'GRP_inline',
                               'FLO_inline'
                             ],
-                    'h2' => [
-                              'GRP_block',
-                              'FLO_inline'
-                            ],
-                    'h3' => [
-                              'GRP_block',
-                              'FLO_inline'
-                            ],
-                    'h4' => [
-                              'GRP_block',
-                              'FLO_inline'
-                            ],
-                    'h5' => [
-                              'GRP_block',
-                              'FLO_inline'
-                            ],
-                    'h6' => [
-                              'GRP_block',
-                              'FLO_inline'
-                            ],
-                    'hr' => [
-                              'GRP_block',
-                              'FLO_empty'
-                            ],
-                    'i' => [
-                             'GRP_inline',
-                             'FLO_inline'
+                 'b' => [
+                          'GRP_inline',
+                          'FLO_inline'
+                        ],
+                 'base' => [
+                             'GRP_head',
+                             'FLO_empty'
                            ],
-                    'img' => [
-                               'GRP_inline',
-                               'FLO_empty'
-                             ],
-                    'input' => [
+                 'basefont' => [
                                  'GRP_inline',
                                  'FLO_empty'
                                ],
-                    'isindex' => [
-                                   'GRP_anywhere',
-                                   'FLO_empty'
+                 'bdo' => [
+                            'GRP_inline',
+                            'FLO_inline'
+                          ],
+                 'big' => [
+                            'GRP_inline',
+                            'FLO_inline'
+                          ],
+                 'blink' => [
+                              'GRP_inline',
+                              'FLO_inline'
+                            ],
+                 'blockquote' => [
+                                   'GRP_block',
+                                   'FLO_mixed'
                                  ],
-                    'kbd' => [
+                 'br' => [
+                           'GRP_inline',
+                           'FLO_empty'
+                         ],
+                 'button' => [
                                'GRP_inline',
                                'FLO_inline'
                              ],
-                    'keygen' => [
-                                  'GRP_inline',
-                                  'FLO_inline'
-                                ],
-                    'label' => [
-                                 'GRP_inline',
-                                 'FLO_inline'
-                               ],
-                    'link' => [
-                                'GRP_head',
-                                'FLO_empty'
-                              ],
-                    'mark' => [
-                                'GRP_inline',
-                                'FLO_inline'
-                              ],
-                    'meta' => [
-                                'GRP_head',
-                                'FLO_empty'
-                              ],
-                    'meter' => [
-                                 'GRP_inline',
-                                 'FLO_inline'
-                               ],
-                    'nobr' => [
-                                'GRP_inline',
-                                'FLO_inline'
-                              ],
-                    'noframes' => [
-                                    'GRP_block',
-                                    'FLO_mixed'
-                                  ],
-                    'noscript' => [
-                                    'GRP_block',
-                                    'FLO_mixed'
-                                  ],
-                    'output' => [
-                                  'GRP_inline',
-                                  'FLO_inline'
-                                ],
-                    'plaintext' => [
-                                     'GRP_block',
-                                     'FLO_cdata'
-                                   ],
-                    'pre' => [
+                 'center' => [
                                'GRP_block',
-                               'FLO_inline'
+                               'FLO_mixed'
                              ],
-                    'progress' => [
-                                    'GRP_inline',
-                                    'FLO_inline'
-                                  ],
-                    'q' => [
+                 'cite' => [
                              'GRP_inline',
                              'FLO_inline'
                            ],
-                    'rb' => [
-                              'GRP_inline',
-                              'FLO_inline'
-                            ],
-                    'rbc' => [
-                               'GRP_inline',
-                               'FLO_inline'
-                             ],
-                    'rp' => [
-                              'GRP_inline',
-                              'FLO_inline'
-                            ],
-                    'rt' => [
-                              'GRP_inline',
-                              'FLO_inline'
-                            ],
-                    'rtc' => [
-                               'GRP_inline',
-                               'FLO_inline'
-                             ],
-                    'ruby' => [
-                                'GRP_inline',
-                                'FLO_inline'
-                              ],
-                    's' => [
+                 'code' => [
                              'GRP_inline',
                              'FLO_inline'
                            ],
-                    'samp' => [
+                 'command' => [
                                 'GRP_inline',
                                 'FLO_inline'
                               ],
-                    'script' => [
-                                  'GRP_anywhere',
+                 'dfn' => [
+                            'GRP_inline',
+                            'FLO_inline'
+                          ],
+                 'div' => [
+                            'GRP_block',
+                            'FLO_mixed'
+                          ],
+                 'em' => [
+                           'GRP_inline',
+                           'FLO_inline'
+                         ],
+                 'embed' => [
+                              'GRP_inline',
+                              'FLO_inline'
+                            ],
+                 'fieldset' => [
+                                 'GRP_block',
+                                 'FLO_mixed'
+                               ],
+                 'font' => [
+                             'GRP_inline',
+                             'FLO_inline'
+                           ],
+                 'form' => [
+                             'GRP_block',
+                             'FLO_mixed'
+                           ],
+                 'h1' => [
+                           'GRP_block',
+                           'FLO_inline'
+                         ],
+                 'h2' => [
+                           'GRP_block',
+                           'FLO_inline'
+                         ],
+                 'h3' => [
+                           'GRP_block',
+                           'FLO_inline'
+                         ],
+                 'h4' => [
+                           'GRP_block',
+                           'FLO_inline'
+                         ],
+                 'h5' => [
+                           'GRP_block',
+                           'FLO_inline'
+                         ],
+                 'h6' => [
+                           'GRP_block',
+                           'FLO_inline'
+                         ],
+                 'hr' => [
+                           'GRP_block',
+                           'FLO_empty'
+                         ],
+                 'i' => [
+                          'GRP_inline',
+                          'FLO_inline'
+                        ],
+                 'img' => [
+                            'GRP_inline',
+                            'FLO_empty'
+                          ],
+                 'input' => [
+                              'GRP_inline',
+                              'FLO_empty'
+                            ],
+                 'isindex' => [
+                                'GRP_anywhere',
+                                'FLO_empty'
+                              ],
+                 'kbd' => [
+                            'GRP_inline',
+                            'FLO_inline'
+                          ],
+                 'keygen' => [
+                               'GRP_inline',
+                               'FLO_inline'
+                             ],
+                 'label' => [
+                              'GRP_inline',
+                              'FLO_inline'
+                            ],
+                 'link' => [
+                             'GRP_head',
+                             'FLO_empty'
+                           ],
+                 'mark' => [
+                             'GRP_inline',
+                             'FLO_inline'
+                           ],
+                 'meta' => [
+                             'GRP_head',
+                             'FLO_empty'
+                           ],
+                 'meter' => [
+                              'GRP_inline',
+                              'FLO_inline'
+                            ],
+                 'nobr' => [
+                             'GRP_inline',
+                             'FLO_inline'
+                           ],
+                 'noframes' => [
+                                 'GRP_block',
+                                 'FLO_mixed'
+                               ],
+                 'noscript' => [
+                                 'GRP_block',
+                                 'FLO_mixed'
+                               ],
+                 'output' => [
+                               'GRP_inline',
+                               'FLO_inline'
+                             ],
+                 'plaintext' => [
+                                  'GRP_block',
                                   'FLO_cdata'
                                 ],
-                    'small' => [
+                 'pre' => [
+                            'GRP_block',
+                            'FLO_inline'
+                          ],
+                 'progress' => [
                                  'GRP_inline',
                                  'FLO_inline'
                                ],
-                    'span' => [
-                                'GRP_inline',
-                                'FLO_inline'
-                              ],
-                    'strike' => [
-                                  'GRP_inline',
-                                  'FLO_inline'
-                                ],
-                    'strong' => [
-                                  'GRP_inline',
-                                  'FLO_inline'
-                                ],
-                    'style' => [
-                                 'GRP_head',
-                                 'FLO_cdata'
-                               ],
-                    'sub' => [
-                               'GRP_inline',
-                               'FLO_inline'
-                             ],
-                    'sup' => [
-                               'GRP_inline',
-                               'FLO_inline'
-                             ],
-                    'textarea' => [
-                                    'GRP_anywhere',
-                                    'FLO_cdata'
-                                  ],
-                    'time' => [
-                                'GRP_inline',
-                                'FLO_inline'
-                              ],
-                    'title' => [
-                                 'GRP_head',
-                                 'FLO_pcdata'
-                               ],
-                    'tt' => [
-                              'GRP_inline',
-                              'FLO_inline'
-                            ],
-                    'u' => [
+                 'q' => [
+                          'GRP_inline',
+                          'FLO_inline'
+                        ],
+                 'rb' => [
+                           'GRP_inline',
+                           'FLO_inline'
+                         ],
+                 'rbc' => [
+                            'GRP_inline',
+                            'FLO_inline'
+                          ],
+                 'rp' => [
+                           'GRP_inline',
+                           'FLO_inline'
+                         ],
+                 'rt' => [
+                           'GRP_inline',
+                           'FLO_inline'
+                         ],
+                 'rtc' => [
+                            'GRP_inline',
+                            'FLO_inline'
+                          ],
+                 'ruby' => [
                              'GRP_inline',
                              'FLO_inline'
                            ],
-                    'var' => [
-                               'GRP_inline',
-                               'FLO_inline'
-                             ],
-                    'video' => [
-                                 'GRP_inline',
-                                 'FLO_inline'
-                               ],
-                    'wbr' => [
-                               'GRP_inline',
-                               'FLO_inline'
-                             ],
-                    'xmp' => [
-                               'GRP_block',
+                 's' => [
+                          'GRP_inline',
+                          'FLO_inline'
+                        ],
+                 'samp' => [
+                             'GRP_inline',
+                             'FLO_inline'
+                           ],
+                 'script' => [
+                               'GRP_anywhere',
                                'FLO_cdata'
-                             ]
-                  };
+                             ],
+                 'small' => [
+                              'GRP_inline',
+                              'FLO_inline'
+                            ],
+                 'span' => [
+                             'GRP_inline',
+                             'FLO_inline'
+                           ],
+                 'strike' => [
+                               'GRP_inline',
+                               'FLO_inline'
+                             ],
+                 'strong' => [
+                               'GRP_inline',
+                               'FLO_inline'
+                             ],
+                 'style' => [
+                              'GRP_head',
+                              'FLO_cdata'
+                            ],
+                 'sub' => [
+                            'GRP_inline',
+                            'FLO_inline'
+                          ],
+                 'sup' => [
+                            'GRP_inline',
+                            'FLO_inline'
+                          ],
+                 'textarea' => [
+                                 'GRP_anywhere',
+                                 'FLO_cdata'
+                               ],
+                 'time' => [
+                             'GRP_inline',
+                             'FLO_inline'
+                           ],
+                 'title' => [
+                              'GRP_head',
+                              'FLO_pcdata'
+                            ],
+                 'tt' => [
+                           'GRP_inline',
+                           'FLO_inline'
+                         ],
+                 'u' => [
+                          'GRP_inline',
+                          'FLO_inline'
+                        ],
+                 'var' => [
+                            'GRP_inline',
+                            'FLO_inline'
+                          ],
+                 'video' => [
+                              'GRP_inline',
+                              'FLO_inline'
+                            ],
+                 'wbr' => [
+                            'GRP_inline',
+                            'FLO_inline'
+                          ],
+                 'xmp' => [
+                            'GRP_block',
+                            'FLO_cdata'
+                          ]
+               };
 $RUBY_SLIPPERS_RANK_BY_NAME = {
                                 '!end_tag' => {
                                                 '!non_final_end' => 1
@@ -1517,3 +1517,92 @@ $IS_EMPTY_ELEMENT = {
                       'meta' => 1,
                       'param' => 1
                     };
+$PRIMARY_GROUP_BY_TAG = {
+                          'a' => 'GRP_inline',
+                          'abbr' => 'GRP_inline',
+                          'acronym' => 'GRP_inline',
+                          'address' => 'GRP_block',
+                          'applet' => 'GRP_inline',
+                          'audio' => 'GRP_inline',
+                          'b' => 'GRP_inline',
+                          'base' => 'GRP_head',
+                          'basefont' => 'GRP_inline',
+                          'bdo' => 'GRP_inline',
+                          'big' => 'GRP_inline',
+                          'blink' => 'GRP_inline',
+                          'blockquote' => 'GRP_block',
+                          'br' => 'GRP_inline',
+                          'button' => 'GRP_inline',
+                          'center' => 'GRP_block',
+                          'cite' => 'GRP_inline',
+                          'code' => 'GRP_inline',
+                          'command' => 'GRP_inline',
+                          'dfn' => 'GRP_inline',
+                          'dir' => 'GRP_block',
+                          'div' => 'GRP_block',
+                          'dl' => 'GRP_block',
+                          'em' => 'GRP_inline',
+                          'embed' => 'GRP_inline',
+                          'fieldset' => 'GRP_block',
+                          'font' => 'GRP_inline',
+                          'form' => 'GRP_block',
+                          'h1' => 'GRP_block',
+                          'h2' => 'GRP_block',
+                          'h3' => 'GRP_block',
+                          'h4' => 'GRP_block',
+                          'h5' => 'GRP_block',
+                          'h6' => 'GRP_block',
+                          'hr' => 'GRP_block',
+                          'i' => 'GRP_inline',
+                          'img' => 'GRP_inline',
+                          'input' => 'GRP_inline',
+                          'isindex' => 'GRP_anywhere',
+                          'kbd' => 'GRP_inline',
+                          'keygen' => 'GRP_inline',
+                          'label' => 'GRP_inline',
+                          'link' => 'GRP_head',
+                          'map' => 'GRP_inline',
+                          'mark' => 'GRP_inline',
+                          'menu' => 'GRP_block',
+                          'meta' => 'GRP_head',
+                          'meter' => 'GRP_inline',
+                          'nobr' => 'GRP_inline',
+                          'noframes' => 'GRP_block',
+                          'noscript' => 'GRP_block',
+                          'object' => 'GRP_anywhere',
+                          'ol' => 'GRP_block',
+                          'output' => 'GRP_inline',
+                          'p' => 'GRP_block',
+                          'plaintext' => 'GRP_block',
+                          'pre' => 'GRP_block',
+                          'progress' => 'GRP_inline',
+                          'q' => 'GRP_inline',
+                          'rb' => 'GRP_inline',
+                          'rbc' => 'GRP_inline',
+                          'rp' => 'GRP_inline',
+                          'rt' => 'GRP_inline',
+                          'rtc' => 'GRP_inline',
+                          'ruby' => 'GRP_inline',
+                          's' => 'GRP_inline',
+                          'samp' => 'GRP_inline',
+                          'script' => 'GRP_anywhere',
+                          'select' => 'GRP_inline',
+                          'small' => 'GRP_inline',
+                          'span' => 'GRP_inline',
+                          'strike' => 'GRP_inline',
+                          'strong' => 'GRP_inline',
+                          'style' => 'GRP_head',
+                          'sub' => 'GRP_inline',
+                          'sup' => 'GRP_inline',
+                          'table' => 'GRP_block',
+                          'textarea' => 'GRP_anywhere',
+                          'time' => 'GRP_inline',
+                          'title' => 'GRP_head',
+                          'tt' => 'GRP_inline',
+                          'u' => 'GRP_inline',
+                          'ul' => 'GRP_block',
+                          'var' => 'GRP_inline',
+                          'video' => 'GRP_inline',
+                          'wbr' => 'GRP_inline',
+                          'xmp' => 'GRP_block'
+                        };

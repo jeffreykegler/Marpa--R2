@@ -48,7 +48,8 @@ sub compile {
     );
 
     my @core_rules        = ();
-    my %descriptor_by_tag = ();
+    my %runtime_tag = ();
+    my %primary_group_by_tag = ();
 
     {
         LINE: for my $line ( split /\n/xms, $HTML_Core::CORE_BNF ) {
@@ -180,6 +181,10 @@ sub compile {
 		)
 	    } ## end if ($closed_reason)
 
+	    my $tag = substr $element, 4;
+
+	    # If this is the first, it sets the primary group
+	    $primary_group_by_tag{$tag} //= $group;
 	    push @{$element_entry->[CONTEXT]}, $group;
 
             next LINE;
@@ -251,6 +256,8 @@ sub compile {
 		qq{  Problem was in this line: $line}
 	    ) if defined $element_entry->[CONTEXT];
 
+	    # Always sets the primary group
+	    $primary_group_by_tag{$tag} = $group;
 	    $element_entry->[CONTENTS] = $flow;
 	    $element_entry->[CONTEXT] = $group;
 	    $element_entry->[CONTEXT_CLOSED] =
@@ -430,7 +437,7 @@ sub compile {
 	# The special case where both are defined and both
 	# are scalars is for elements to be created at runtime
         if ( not ref $context and not ref $contents ) {
-            $descriptor_by_tag{$tag} = [ $context, $contents ];
+            $runtime_tag{$tag} = [ $context, $contents ];
             next SYMBOL;
         }
 
@@ -498,8 +505,8 @@ sub compile {
 
     my %is_empty_element = ();
     {
-        for my $tag ( keys %descriptor_by_tag ) {
-            my ( undef, $contents ) = @{ $descriptor_by_tag{$tag} };
+        for my $tag ( keys %runtime_tag ) {
+            my ( undef, $contents ) = @{ $runtime_tag{$tag} };
             $is_empty_element{$tag} = 1 if $contents eq 'FLO_empty';
         }
         RULE: for my $rule (@core_rules) {
@@ -532,7 +539,7 @@ sub compile {
         my %required_tags = map { ( substr $_, 2 ) => 1 } @ruby_start_tags;
         TAG: for my $tag ( keys %required_tags ) {
             next TAG if $defined_in_core_rules{$tag};
-            my $descriptor = $descriptor_by_tag{$tag};
+            my $descriptor = $runtime_tag{$tag};
             die qq{Required element "ELE_$tag" was never defined}
                 if not defined $descriptor;
             my ( $group, $flow ) = @{$descriptor};
@@ -547,7 +554,7 @@ sub compile {
                 lhs => $group,
                 rhs => [$element],
                 };
-            delete $descriptor_by_tag{$tag};
+            delete $runtime_tag{$tag};
         } ## end TAG: for my $tag ( keys %required_tags )
     }
 
@@ -559,7 +566,7 @@ sub compile {
             map { ( substr $_, 4 ) => 'core' }
             grep {m/\A ELE_ /xms} map { $_->{lhs} } @core_rules;
         my @symbols_with_no_ruby_status =
-            grep { !$defined_in_core{$_} and !$descriptor_by_tag{$_} }
+            grep { !$defined_in_core{$_} and !$runtime_tag{$_} }
             @mentioned_in_core;
         die "symbols with no ruby status: ", join " ",
             @symbols_with_no_ruby_status
@@ -604,9 +611,10 @@ sub compile {
 
     return {
         rules                      => \@core_rules,
-        descriptor_by_tag          => \%descriptor_by_tag,
+        runtime_tag          => \%runtime_tag,
         ruby_slippers_rank_by_name => \%ruby_rank,
-	is_empty_element => \%is_empty_element
+	is_empty_element => \%is_empty_element,
+	primary_group_by_tag => \%primary_group_by_tag
     };
 
 } ## end sub compile

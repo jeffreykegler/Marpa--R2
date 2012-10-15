@@ -27,12 +27,14 @@ sub new {
     require Marpa::R2::HTML::Config::Default;
     my $self = {
         rules => $Marpa::R2::HTML::Internal::Config::Default::CORE_RULES,
-        descriptor_by_tag =>
-            $Marpa::R2::HTML::Internal::Config::Default::TAG_DESCRIPTOR,
+        runtime_tag =>
+            $Marpa::R2::HTML::Internal::Config::Default::RUNTIME_TAG,
         ruby_slippers_rank_by_name =>
             $Marpa::R2::HTML::Internal::Config::Default::RUBY_SLIPPERS_RANK_BY_NAME,
         is_empty_element =>
             $Marpa::R2::HTML::Internal::Config::Default::IS_EMPTY_ELEMENT,
+        primary_group_by_tag =>
+            $Marpa::R2::HTML::Internal::Config::Default::PRIMARY_GROUP_BY_TAG
     };
     return bless $self, $class;
 } ## end sub new
@@ -46,8 +48,10 @@ sub new_from_compile {
 sub contents {
     my ($self) = @_;
     return @{$self}{
-        qw( rules descriptor_by_tag
-            ruby_slippers_rank_by_name is_empty_element )
+        qw( rules runtime_tag
+            ruby_slippers_rank_by_name is_empty_element
+	    primary_group_by_tag
+	    )
         };
 } ## end sub contents
 
@@ -89,8 +93,10 @@ sub as_string {
             . "package Marpa::R2::HTML::Internal::Config::Default;\n" . "\n"
             . Data::Dumper->Dump(
             \@contents,
-            [   qw( CORE_RULES TAG_DESCRIPTOR
-                    RUBY_SLIPPERS_RANK_BY_NAME IS_EMPTY_ELEMENT )
+            [   qw( CORE_RULES RUNTIME_TAG
+                    RUBY_SLIPPERS_RANK_BY_NAME IS_EMPTY_ELEMENT
+		    PRIMARY_GROUP_BY_TAG
+		    )
             ]
             )
     );
