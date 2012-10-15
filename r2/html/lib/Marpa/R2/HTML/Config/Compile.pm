@@ -272,9 +272,6 @@ sub compile {
             # Production is Element with flow, but no group specified
             my $tag = $1;
             my $flow        = $2;
-	    # Special case
-	    Carp::croak( "ELE_body cannot contain FLO_empty")
-	        if $tag eq 'body' and $flow eq 'FLO_empty';
             my $element  = 'ELE_' . $tag;
 	    my $element_entry = $symbol_table{$element} //= [];
 	    my $flow_entry = $symbol_table{$flow};

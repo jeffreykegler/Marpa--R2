@@ -725,6 +725,11 @@ sub parse {
                 next SYMBOL;
             }
             if ( not defined $placement ) {
+                if ( $rejected_symbol_name eq 'CRUFT' ) {
+                    $ruby_rank_by_id[$rejected_symbol_id] =
+                        \@no_ruby_slippers_vector;
+                    next SYMBOL;
+                }
                 $ruby_rank_by_id[$rejected_symbol_id] =
                     $ruby_vectors{'!non_element'}
                     // \@no_ruby_slippers_vector;
@@ -788,7 +793,32 @@ sub parse {
     my @terminal_last_seen = ( (-1) x ( $highest_symbol_id + 1 ) );
 
     $thin_grammar->throw_set(0);
+    my $empty_element_end_tag;
     RECCE_RESPONSE: while ( $token_number < $token_count ) {
+
+	if ( defined $empty_element_end_tag ) {
+	    my $read_result =
+		$recce->alternative( $empty_element_end_tag, RUBY_SLIPPERS_TOKEN,
+		1 );
+	    if ( $read_result != $NO_MARPA_ERROR ) {
+		die $thin_grammar->error();
+	    }
+	    if ($trace_terminals) {
+		say {$trace_fh} 'Virtual end tag accepted: ',
+		    $tracer->symbol_name($empty_element_end_tag)
+		    or Carp::croak("Cannot print: $ERRNO");
+	    }
+	    if ( $recce->earleme_complete() < 0 ) {
+		die $thin_grammar->error();
+	    }
+	    my $current_earleme = $recce->current_earleme();
+	    die $thin_grammar->error() if not defined $current_earleme;
+	    $self->{earleme_to_html_token_ix}->[$current_earleme] =
+		$latest_html_token;
+	    $empty_element_end_tag = undef;
+	    next RECCE_RESPONSE;
+	} ## end if ( defined $empty_element_end_tag )
+
         my $token = $html_parser_tokens[$token_number];
 
         my $attempted_symbol_id = $token
@@ -818,23 +848,7 @@ sub parse {
             $self->{earleme_to_html_token_ix}->[$current_earleme] =
                 $latest_html_token;
 
-	    my $empty_element_end_tag = $empty_element_end_tag[$attempted_symbol_id];
-	    if ( defined $empty_element_end_tag ) {
-		$read_result =
-		    $recce->alternative( $empty_element_end_tag, RUBY_SLIPPERS_TOKEN,
-		    1 );
-		if ( $read_result != $NO_MARPA_ERROR ) {
-		    die $thin_grammar->error();
-		}
-		if ( $recce->earleme_complete() < 0 ) {
-		    die $thin_grammar->error();
-		}
-		my $current_earleme = $recce->current_earleme();
-		die $thin_grammar->error() if not defined $current_earleme;
-		$self->{earleme_to_html_token_ix}->[$current_earleme] =
-		    $latest_html_token;
-	    } ## end if ( defined $empty_element_end_tag )
-
+	    $empty_element_end_tag = $empty_element_end_tag[$attempted_symbol_id];
             next RECCE_RESPONSE;
         } ## end if ( $read_result != $UNEXPECTED_TOKEN_ID )
 
@@ -907,6 +921,9 @@ sub parse {
             die $thin_grammar->error() if not defined $current_earleme;
             $self->{earleme_to_html_token_ix}->[$current_earleme] =
                 $latest_html_token;
+
+	    $empty_element_end_tag = $empty_element_end_tag[$virtual_terminal_to_add];
+
             next RECCE_RESPONSE;
         } ## end if ( defined $virtual_terminal_to_add )
 
@@ -919,7 +936,10 @@ sub parse {
                 or Carp::croak("Cannot print: $ERRNO");
         }
 
-        if ($trace_cruft) {
+        my $fatal_cruft_error = $token->[Marpa::R2::HTML::Internal::Token::TOKEN_ID]
+            == $SYMID_CRUFT ? 1 : 0;
+
+        if ( $trace_cruft or $fatal_cruft_error ) {
             my $current_earleme = $recce->current_earleme();
             die $thin_grammar->error() if not defined $current_earleme;
             my ( $line, $col ) =
@@ -939,13 +959,9 @@ sub parse {
                 },
                 q{"}
                 or Carp::croak("Cannot print: $ERRNO");
-        } ## end if ($trace_cruft)
-
-        if ( $token->[Marpa::R2::HTML::Internal::Token::TOKEN_ID]
-            == $SYMID_CRUFT )
-        {
-            die "Internal error: cruft token was rejected";
-        }
+            die 'Internal error: cruft token was rejected'
+                if $fatal_cruft_error;
+        } ## end if ( $trace_cruft or $fatal_cruft_error )
 
         # Cruft tokens are not virtual.
         # They are the real things, hacked up.
