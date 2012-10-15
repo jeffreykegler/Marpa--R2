@@ -150,11 +150,12 @@ sub compile {
         next LINE
             if not $definition =~ / \S /xms;    # ignore all-whitespace line
         if ($definition =~ m{
-	\A \s* (ELE_\w+) \s+
+	\A \s* [<](\w+)[>] \s+
 	is \s+ included \s+ in \s+ (GRP_\w+) \s* \z}xms
             )
         {
-            my $element       = $1;
+            my $tag = $1;
+            my $element       = 'ELE_' . $tag;
             my $group         = $2;
             my $element_entry = $symbol_table{$element} //= [];
             my $group_entry   = $symbol_table{$group};
@@ -182,7 +183,6 @@ sub compile {
                 );
             } ## end if ($closed_reason)
 
-            my $tag = substr $element, 4;
 
             # If this is the first, it sets the primary group
             $primary_group_by_tag{$tag} //= $group;
@@ -192,7 +192,7 @@ sub compile {
 
         } ## end if ( $definition =~ m{ ) (})
         if ($definition =~ m{
-	\A \s* ELE_(\w+) \s+
+	\A \s* [<](\w+)[>] \s+
 	is \s+ a \s+ (FLO_\w+) \s+
       included \s+ in \s+ (GRP_\w+) \s* \z}xms
             )
@@ -269,7 +269,7 @@ sub compile {
         } ## end if ( $definition =~ m{ ) (})
 
         if ( $definition
-            =~ s/ \A \s* ELE_(\w+) \s+ is \s+ (FLO_\w+) \s* \z/ /xms )
+            =~ s/ \A \s* [<](\w+)[>] \s+ is \s+ (FLO_\w+) \s* \z/ /xms )
         {
             # Production is Element with flow, but no group specified
             my $tag           = $1;
@@ -312,10 +312,11 @@ sub compile {
 
             next LINE;
         } ## end if ( $definition =~ ...)
-        if ( $definition =~ s/ \A \s* ((ELE)_\w+) \s+ contains \s+ / /xms ) {
+        if ( $definition =~ s/ \A \s* [<](\w+)[>] \s+ contains \s+ / /xms ) {
 
             # Production is Element with custom flow
-            my $element_symbol = $1;
+            my $tag = $1;
+            my $element_symbol = 'ELE_' . $tag;
             my $element_entry  = $symbol_table{$element_symbol} //= [];
             my $closed_reason  = $element_entry->[CONTENTS_CLOSED];
             if ($closed_reason) {
@@ -326,14 +327,20 @@ sub compile {
                 );
             } ## end if ($closed_reason)
 
-            my @contents = split q{ }, $definition;
+            my @external_contents = split q{ }, $definition;
+	    my @contents = ();
 
-            CONTAINED_SYMBOL: for my $content_symbol (@contents) {
+            CONTAINED_SYMBOL: for my $external_content_symbol (@external_contents) {
+		my $content_symbol;
+		if ($external_content_symbol =~ /\A [<] (\w+) [>] \z/xms) {
+		    $content_symbol = 'ELE_' . $1;
+		}
+		$content_symbol //= $external_content_symbol;
                 my $content_entry = $symbol_table{$content_symbol};
                 if ( not defined $content_entry ) {
                     if ( not $content_symbol =~ /\A ELE_ /xms ) {
                         Carp::croak(
-                            qq{Symbol "$content_symbol" is undefined\n},
+                            qq{Symbol "$external_content_symbol" is undefined\n},
                             qq{  Problem was in this line: $line}
                         ) if not defined $content_entry;
                     } ## end if ( not $content_symbol =~ /\A ELE_ /xms )
@@ -342,11 +349,12 @@ sub compile {
                 $closed_reason = $content_entry->[CONTEXT_CLOSED];
                 if ($closed_reason) {
                     Carp::croak(
-                        qq{Context of "$content_symbol" cannot be changed:\n},
+                        qq{Context of "$external_content_symbol" cannot be changed:\n},
                         qq{  Reason: $closed_reason\n},
                         qq{  Problem was in this line: $line}
                     );
                 } ## end if ($closed_reason)
+		push @contents, $content_symbol;
             } ## end CONTAINED_SYMBOL: for my $content_symbol (@contents)
 
             push @{ $element_entry->[CONTENTS] }, @contents;
