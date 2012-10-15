@@ -165,5 +165,4 @@ PCDATA -> @inline_rubies
 <td> -> @block_rubies <tbody> <tr> </*> <table>
 </body> -> <html> <head> <body>
 </html> -> <html> <head> <body> </*> </body>
-EOF -> <html> <head> <body> </*> </body> </html>
 

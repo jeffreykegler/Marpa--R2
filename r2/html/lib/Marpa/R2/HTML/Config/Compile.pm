@@ -402,7 +402,7 @@ sub compile {
             } ## end RAW_CANDIDATE: for my $raw_candidate (@raw_candidates)
             my @internal_symbols = ();
             SYMBOL: for my $symbol (@symbols) {
-                if ( $symbol =~ /\A (EOF|CDATA|PCDATA) \z/xms ) {
+                if ( $symbol =~ /\A (CDATA|PCDATA) \z/xms ) {
                     push @internal_symbols, $symbol;
                     next SYMBOL;
                 }
@@ -574,6 +574,11 @@ sub compile {
                 qq{  "$tag" is an empty element and this is not allowed"}
             );
         } ## end for my $candidate_symbol ( map { @{$_} } values ...)
+    }
+
+    # Special case the EOF Ruby Slippers treatment
+    {
+        @{$ruby_config{EOF}} = qw( S_html S_head S_body </*> E_body E_html );
     }
 
     {
