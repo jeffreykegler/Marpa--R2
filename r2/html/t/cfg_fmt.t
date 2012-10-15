@@ -229,8 +229,23 @@ $expected_output = <<'END_OF_EXPECTED_OUTPUT';
 END_OF_EXPECTED_OUTPUT
 run_one_test( $test_name, $test_html, \$test_config, \$expected_output );
 
+$test_name = 'Body is inline flow';
+$test_config = ${$default_config};
+$test_config =~ s/^ \s* <body> [^\n]* $/<body> is *inline/xms;
+# $test_html is same as in previous test
+$expected_output = <<'END_OF_EXPECTED_OUTPUT';
+<html>
+  <head>
+  </head>
+  <body>
+    I cannot wait for a start tag<!--
+        html_fmt: Next line is cruft
+      --><p>I can</body>
+</html>
+END_OF_EXPECTED_OUTPUT
+run_one_test( $test_name, $test_html, \$test_config, \$expected_output );
+
 $test_name = 'Body is empty';
-# This is the default
 $test_config = ${$default_config};
 $test_config =~ s/^ \s* <body> [^\n]* $/<body> is *empty/xms;
 # I also need to eliminate all mentions of the </body> tag
