@@ -919,9 +919,6 @@ sub parse {
                 or Carp::croak("Cannot print: $ERRNO");
         }
 
-        # Cruft tokens are not virtual.
-        # They are the real things, hacked up.
-        $token->[Marpa::R2::HTML::Internal::Token::TOKEN_ID] = $SYMID_CRUFT;
         if ($trace_cruft) {
             my $current_earleme = $recce->current_earleme();
             die $thin_grammar->error() if not defined $current_earleme;
@@ -943,6 +940,16 @@ sub parse {
                 q{"}
                 or Carp::croak("Cannot print: $ERRNO");
         } ## end if ($trace_cruft)
+
+        if ( $token->[Marpa::R2::HTML::Internal::Token::TOKEN_ID]
+            == $SYMID_CRUFT )
+        {
+            die "Internal error: cruft token was rejected";
+        }
+
+        # Cruft tokens are not virtual.
+        # They are the real things, hacked up.
+        $token->[Marpa::R2::HTML::Internal::Token::TOKEN_ID] = $SYMID_CRUFT;
 
     } ## end RECCE_RESPONSE: while ( $token_number < $token_count )
     $thin_grammar->throw_set(1);
