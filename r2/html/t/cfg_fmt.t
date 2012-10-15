@@ -88,7 +88,7 @@ my $expected_output;
 
 $test_name = 'Inline element containing inline flow';
 $test_config =
-    ${$default_config} . '<acme> is a FLO_inline included in %inline';
+    ${$default_config} . '<acme> is a *inline included in %inline';
 $test_html       = '<acme>-during-<span>-more inline stuff-<p>-new block-' . "\n";
 $expected_output = <<'END_OF_EXPECTED_OUTPUT';
 <html>
@@ -107,7 +107,7 @@ run_one_test( $test_name, $test_html, \$test_config, \$expected_output );
 
 $test_name = 'Inline element containing block flow';
 $test_config =
-    ${$default_config} . '<acme> is a FLO_inline included in %block';
+    ${$default_config} . '<acme> is a *inline included in %block';
 # $test_html is same as in previous test
 $expected_output = <<'END_OF_EXPECTED_OUTPUT';
 <html>
@@ -125,7 +125,7 @@ run_one_test( $test_name, $test_html, \$test_config, \$expected_output );
 
 $test_name = 'Block element containing mixed flow';
 $test_config =
-    ${$default_config} . '<acme> is a FLO_mixed included in %block';
+    ${$default_config} . '<acme> is a *mixed included in %block';
 # $test_html is same as in previous test
 $expected_output = <<'END_OF_EXPECTED_OUTPUT';
 <html>
@@ -143,7 +143,7 @@ run_one_test( $test_name, $test_html, \$test_config, \$expected_output );
 
 $test_name = 'Block element containing block flow';
 $test_config =
-    ${$default_config} . '<acme> is a FLO_block included in %block';
+    ${$default_config} . '<acme> is a *block included in %block';
 # $test_html is same as in previous test
 $expected_output = <<'END_OF_EXPECTED_OUTPUT';
 <html>
@@ -162,7 +162,7 @@ run_one_test( $test_name, $test_html, \$test_config, \$expected_output );
 
 $test_name = 'Block element containing PCDATA';
 $test_config =
-    ${$default_config} . '<acme> is a FLO_pcdata included in %block';
+    ${$default_config} . '<acme> is a *pcdata included in %block';
 # $test_html is same as in previous test
 $expected_output = <<'END_OF_EXPECTED_OUTPUT';
 <html>
@@ -181,7 +181,7 @@ run_one_test( $test_name, $test_html, \$test_config, \$expected_output );
  
 $test_name = 'Empty block element';
 $test_config =
-    ${$default_config} . '<acme> is a FLO_empty included in %block';
+    ${$default_config} . '<acme> is a *empty included in %block';
 # $test_html is same as in previous test
 $expected_output = <<'END_OF_EXPECTED_OUTPUT';
 <html>
@@ -199,7 +199,7 @@ run_one_test( $test_name, $test_html, \$test_config, \$expected_output );
  
 $test_name = 'Body allows mixed flow';
 $test_config = ${$default_config};
-$test_config =~ s/^ \s* <body> [^\n]* $/<body> is FLO_mixed/xms;
+$test_config =~ s/^ \s* <body> [^\n]* $/<body> is *mixed/xms;
 $test_html = 'I cannot wait for a start tag<p>I can';
 $expected_output = <<'END_OF_EXPECTED_OUTPUT';
 <html>
@@ -215,7 +215,7 @@ run_one_test( $test_name, $test_html, \$test_config, \$expected_output );
 $test_name = 'Body allows block flow';
 # This is the default
 $test_config = ${$default_config};
-$test_config =~ s/^ \s* <body> [^\n]* $/<body> is FLO_block/xms;
+$test_config =~ s/^ \s* <body> [^\n]* $/<body> is *block/xms;
 # $test_html is same as in previous test
 $expected_output = <<'END_OF_EXPECTED_OUTPUT';
 <html>
@@ -232,7 +232,7 @@ run_one_test( $test_name, $test_html, \$test_config, \$expected_output );
 $test_name = 'Body is empty';
 # This is the default
 $test_config = ${$default_config};
-$test_config =~ s/^ \s* <body> [^\n]* $/<body> is FLO_empty/xms;
+$test_config =~ s/^ \s* <body> [^\n]* $/<body> is *empty/xms;
 # I also need to eliminate all mentions of the </body> tag
 # now that <body> is an empty element
 $test_config =~ s{^ \s* [<][/]body[>] \s [^\n]* $}{}xms;

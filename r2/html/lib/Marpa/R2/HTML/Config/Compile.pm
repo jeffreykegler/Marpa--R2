@@ -193,12 +193,12 @@ sub compile {
         } ## end if ( $definition =~ m{ ) (})
         if ($definition =~ m{
 	\A \s* [<](\w+)[>] \s+
-	is \s+ a \s+ (FLO_\w+) \s+
+	is \s+ a \s+ [*](\w+) \s+
       included \s+ in \s+ [%](\w+) \s* \z}xms
             )
         {
             my $tag           = $1;
-            my $flow          = $2;
+            my $flow          = 'FLO_' . $2;
             my $group         = 'GRP_' . $3;
             my $element       = 'ELE_' . $tag;
             my $element_entry = $symbol_table{$element} //= [];
@@ -269,11 +269,11 @@ sub compile {
         } ## end if ( $definition =~ m{ ) (})
 
         if ( $definition
-            =~ s/ \A \s* [<](\w+)[>] \s+ is \s+ (FLO_\w+) \s* \z/ /xms )
+            =~ s/ \A \s* [<](\w+)[>] \s+ is \s+ [*](\w+) \s* \z/ /xms )
         {
             # Production is Element with flow, but no group specified
             my $tag           = $1;
-            my $flow          = $2;
+            my $flow          = 'FLO_' . $2;
             my $element       = 'ELE_' . $tag;
             my $element_entry = $symbol_table{$element} //= [];
             my $flow_entry    = $symbol_table{$flow};

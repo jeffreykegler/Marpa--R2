@@ -15,124 +15,124 @@
 
 # Only the contents of these can be changed,
 # not the context
-<body> is FLO_block
-<head> is FLO_head
+<body> is *block
+<head> is *head
 
 # Now alphabetically, by tagname
-<a> is a FLO_inline included in %inline
-<abbr> is a FLO_inline included in %inline
-<acronym> is a FLO_inline included in %inline
-<address> is a FLO_inline included in %block
+<a> is a *inline included in %inline
+<abbr> is a *inline included in %inline
+<acronym> is a *inline included in %inline
+<address> is a *inline included in %block
 <applet> contains <param> %mixed
 <applet> is included in %inline
-<area> is FLO_empty
-<audio> is a FLO_inline included in %inline
-<b> is a FLO_inline included in %inline
-<base> is a FLO_empty included in %head
-<basefont> is a FLO_empty included in %inline
-<bdo> is a FLO_inline included in %inline
-<big> is a FLO_inline included in %inline
-<blink> is a FLO_inline included in %inline
-<blockquote> is a FLO_mixed included in %block
-<br> is a FLO_empty included in %inline
-<button> is a FLO_inline included in %inline
-<caption> is FLO_inline
-<center> is a FLO_mixed included in %block
-<cite> is a FLO_inline included in %inline
-<code> is a FLO_inline included in %inline
-<col> is FLO_empty
+<area> is *empty
+<audio> is a *inline included in %inline
+<b> is a *inline included in %inline
+<base> is a *empty included in %head
+<basefont> is a *empty included in %inline
+<bdo> is a *inline included in %inline
+<big> is a *inline included in %inline
+<blink> is a *inline included in %inline
+<blockquote> is a *mixed included in %block
+<br> is a *empty included in %inline
+<button> is a *inline included in %inline
+<caption> is *inline
+<center> is a *mixed included in %block
+<cite> is a *inline included in %inline
+<code> is a *inline included in %inline
+<col> is *empty
 <colgroup> contains <col>
-<command> is a FLO_inline included in %inline
-<dd> is FLO_mixed
-<dfn> is a FLO_inline included in %inline
+<command> is a *inline included in %inline
+<dd> is *mixed
+<dfn> is a *inline included in %inline
 <dir> contains <li>
 <dir> is included in %block
-<div> is a FLO_mixed included in %block
+<div> is a *mixed included in %block
 <dl> contains <dt> <dd>
 <dl> is included in %block
-<dt> is FLO_inline
-<em> is a FLO_inline included in %inline
-<embed> is a FLO_inline included in %inline
-<fieldset> is a FLO_mixed included in %block
-<font> is a FLO_inline included in %inline
-<form> is a FLO_mixed included in %block
-<h1> is a FLO_inline included in %block
-<h2> is a FLO_inline included in %block
-<h3> is a FLO_inline included in %block
-<h4> is a FLO_inline included in %block
-<h5> is a FLO_inline included in %block
-<h6> is a FLO_inline included in %block
-<hr> is a FLO_empty included in %block
-<i> is a FLO_inline included in %inline
-<img> is a FLO_empty included in %inline
-<input> is a FLO_empty included in %inline
-<isindex> is a FLO_empty included in %anywhere
-<kbd> is a FLO_inline included in %inline
-<keygen> is a FLO_inline included in %inline
-<label> is a FLO_inline included in %inline
-<li> is FLO_mixed
-<link> is a FLO_empty included in %head
+<dt> is *inline
+<em> is a *inline included in %inline
+<embed> is a *inline included in %inline
+<fieldset> is a *mixed included in %block
+<font> is a *inline included in %inline
+<form> is a *mixed included in %block
+<h1> is a *inline included in %block
+<h2> is a *inline included in %block
+<h3> is a *inline included in %block
+<h4> is a *inline included in %block
+<h5> is a *inline included in %block
+<h6> is a *inline included in %block
+<hr> is a *empty included in %block
+<i> is a *inline included in %inline
+<img> is a *empty included in %inline
+<input> is a *empty included in %inline
+<isindex> is a *empty included in %anywhere
+<kbd> is a *inline included in %inline
+<keygen> is a *inline included in %inline
+<label> is a *inline included in %inline
+<li> is *mixed
+<link> is a *empty included in %head
 <map> contains %block <area>
 <map> is included in %inline
-<mark> is a FLO_inline included in %inline
+<mark> is a *inline included in %inline
 <menu> contains <li>
 <menu> is included in %block
-<meta> is a FLO_empty included in %head
-<meter> is a FLO_inline included in %inline
-<nobr> is a FLO_inline included in %inline
-<noframes> is a FLO_mixed included in %block
-<noscript> is a FLO_mixed included in %block
+<meta> is a *empty included in %head
+<meter> is a *inline included in %inline
+<nobr> is a *inline included in %inline
+<noframes> is a *mixed included in %block
+<noscript> is a *mixed included in %block
 <object> contains <param> %mixed
 <object> is included in %anywhere
 <ol> contains <li>
 <ol> is included in %block
 <optgroup> contains <option>
-<option> is FLO_pcdata
-<output> is a FLO_inline included in %inline
-<p> is a FLO_inline included in %block
-<param> is FLO_empty
-<plaintext> is a FLO_cdata included in %block
-<pre> is a FLO_inline included in %block
-<progress> is a FLO_inline included in %inline
-<q> is a FLO_inline included in %inline
-<rb> is a FLO_inline included in %inline
-<rbc> is a FLO_inline included in %inline
-<rp> is a FLO_inline included in %inline
-<rt> is a FLO_inline included in %inline
-<rtc> is a FLO_inline included in %inline
-<ruby> is a FLO_inline included in %inline
-<s> is a FLO_inline included in %inline
-<samp> is a FLO_inline included in %inline
-<script> is a FLO_cdata included in %anywhere
+<option> is *pcdata
+<output> is a *inline included in %inline
+<p> is a *inline included in %block
+<param> is *empty
+<plaintext> is a *cdata included in %block
+<pre> is a *inline included in %block
+<progress> is a *inline included in %inline
+<q> is a *inline included in %inline
+<rb> is a *inline included in %inline
+<rbc> is a *inline included in %inline
+<rp> is a *inline included in %inline
+<rt> is a *inline included in %inline
+<rtc> is a *inline included in %inline
+<ruby> is a *inline included in %inline
+<s> is a *inline included in %inline
+<samp> is a *inline included in %inline
+<script> is a *cdata included in %anywhere
 <select> contains <optgroup> <option>
 <select> is included in %inline
-<small> is a FLO_inline included in %inline
-<span> is a FLO_inline included in %inline
-<strike> is a FLO_inline included in %inline
-<strong> is a FLO_inline included in %inline
-<style> is a FLO_cdata included in %head
-<sub> is a FLO_inline included in %inline
-<sup> is a FLO_inline included in %inline
+<small> is a *inline included in %inline
+<span> is a *inline included in %inline
+<strike> is a *inline included in %inline
+<strong> is a *inline included in %inline
+<style> is a *cdata included in %head
+<sub> is a *inline included in %inline
+<sup> is a *inline included in %inline
 <table> contains <caption> <col> <colgroup>
 <table> contains <tbody> <tfoot> <thead>
 <table> is included in %block
 <tbody> contains <tr>
-<td> is FLO_mixed
-<textarea> is a FLO_cdata included in %anywhere
+<td> is *mixed
+<textarea> is a *cdata included in %anywhere
 <tfoot> contains <tr>
-<th> is FLO_mixed
+<th> is *mixed
 <thead> contains <tr>
-<time> is a FLO_inline included in %inline
-<title> is a FLO_pcdata included in %head
+<time> is a *inline included in %inline
+<title> is a *pcdata included in %head
 <tr> contains <th> <td>
-<tt> is a FLO_inline included in %inline
-<u> is a FLO_inline included in %inline
+<tt> is a *inline included in %inline
+<u> is a *inline included in %inline
 <ul> contains <li>
 <ul> is included in %block
-<var> is a FLO_inline included in %inline
-<video> is a FLO_inline included in %inline
-<wbr> is a FLO_inline included in %inline
-<xmp> is a FLO_cdata included in %block
+<var> is a *inline included in %inline
+<video> is a *inline included in %inline
+<wbr> is a *inline included in %inline
+<xmp> is a *cdata included in %block
 
 @head_rubies   = <html> <head>
 @block_rubies  = <html> <head> <body>
