@@ -437,7 +437,7 @@ sub compile {
 	# The special case where both are defined and both
 	# are scalars is for elements to be created at runtime
         if ( not ref $context and not ref $contents ) {
-            $runtime_tag{$tag} = [ $context, $contents ];
+            $runtime_tag{$tag} = $contents;
             next SYMBOL;
         }
 
@@ -506,7 +506,7 @@ sub compile {
     my %is_empty_element = ();
     {
         for my $tag ( keys %runtime_tag ) {
-            my ( undef, $contents ) = @{ $runtime_tag{$tag} };
+            my $contents = $runtime_tag{$tag};
             $is_empty_element{$tag} = 1 if $contents eq 'FLO_empty';
         }
         RULE: for my $rule (@core_rules) {
@@ -539,10 +539,10 @@ sub compile {
         my %required_tags = map { ( substr $_, 2 ) => 1 } @ruby_start_tags;
         TAG: for my $tag ( keys %required_tags ) {
             next TAG if $defined_in_core_rules{$tag};
-            my $descriptor = $runtime_tag{$tag};
+            my $flow = $runtime_tag{$tag};
             die qq{Required element "ELE_$tag" was never defined}
-                if not defined $descriptor;
-            my ( $group, $flow ) = @{$descriptor};
+                if not defined $flow;
+            my $group = $primary_group_by_tag{$tag};
             my $element = 'ELE_' . $tag;
             push @core_rules,
                 {

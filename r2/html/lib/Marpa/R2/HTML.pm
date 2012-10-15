@@ -594,15 +594,11 @@ sub parse {
                 my $terminal    = $token_type . q{_} . $tag_name;
                 my $terminal_id = $tracer->symbol_by_name($terminal);
                 if ( not defined $terminal_id ) {
-                    my $element_type = 'GRP_anywhere';
-                    my $contents     = 'FLO_mixed';
-                    my $tag_descriptor =
-                        $runtime_tag->{$tag_name};
-                    if ( defined $tag_descriptor ) {
-                        ( $element_type, $contents ) = @{$tag_descriptor};
-                    }
+                    my $group_symbol = $primary_group_by_tag->{$tag_name}
+                        // 'GRP_anywhere';
+                    my $contents = $runtime_tag->{$tag_name} // 'FLO_mixed';
                     my @symbol_names = (
-                        $element_type,
+                        $group_symbol,
                         'ELE_' . $tag_name,
                         'S_' . $tag_name,
                         $contents, 'E_' . $tag_name
