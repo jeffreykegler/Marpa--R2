@@ -23,24 +23,43 @@ use List::Util qw(sum);
 use Fatal qw(open close);
 use Getopt::Long;
 
-my $html_flag;
 sub usage {
     say {*STDERR} "$PROGRAM_NAME html_score [uri|file]" or die "say failed: $ERRNO";
     exit 1;
 }
 
-usage() unless GetOptions( 'html' => \$html_flag );
-usage() unless 1 == scalar @ARGV;
+my $html_flag = 0;
+my $help_flag = 0;
+my $dump_config_flag     = 0;
+my $dump_AHFA_flag       = 0;
+my $trace_terminals_flag = 0;
+my $trace_cruft_flag     = 0;
+my $trace_values_flag    = 0;
+my $compile_flag;
+usage() unless GetOptions(
+    'html' => \$html_flag,
+    'help' => \$help_flag,
+
+    # undocumented
+    'dump-config'     => \$dump_config_flag,
+    'dump-AHFA'       => \$dump_AHFA_flag,
+    'compile=s'       => \$compile_flag,
+    'trace-terminals' => \$trace_terminals_flag,
+    'trace-cruft'     => \$trace_cruft_flag,
+    'trace-values'    => \$trace_values_flag,
+);
+usage() unless $help_flag or 1 >= scalar @ARGV;
 
 my $locator = shift;
 my $document;
 GET_DOCUMENT: {
     if ( not defined $locator ) {
+        $locator = 'STDIN';    # for possible display, later
         local $RS = undef;
-	## no critic(InputOutput::ProhibitExplicitStdin)
+        ## no critic(InputOutput::ProhibitExplicitStdin)
         $document = <STDIN>;
         last GET_DOCUMENT;
-    }
+    } ## end if ( not defined $locator )
     if ( $locator =~ /\A [[:alnum:]]+ [:] /xms ) {
         require WWW::Mechanize;
         my $mech = WWW::Mechanize->new( autocheck => 1 );
@@ -92,14 +111,29 @@ sub calculate_length {
     return $length;
 } ## end sub calculate_length
 
+my %flags = (
+    trace_terminals => $trace_terminals_flag,
+    trace_cruft     => $trace_cruft_flag,
+    trace_values    => $trace_values_flag,
+    dump_config     => $dump_config_flag,
+    dump_AHFA     => $dump_AHFA_flag,
+);
+if (defined $compile_flag) {
+  open my $fh, q{<}, $compile_flag;
+  my $source = join q{}, <$fh>;
+  close $fh;
+  $flags{compile} = \$source;
+}
+
 my ( $instance, $value ) = @{
     Marpa::R2::HTML::html(
         \$document,
         {   ':COMMENT' => sub { return { depths => {}, length => 0 } },
             q{*}       => sub {
-                my $descendant_data = Marpa::R2::HTML::descendants('value,literal');
-                my $tagname    = Marpa::R2::HTML::tagname();
-                my $length     = calculate_length($descendant_data);
+                my $descendant_data =
+                    Marpa::R2::HTML::descendants('value,literal');
+                my $tagname = Marpa::R2::HTML::tagname();
+                my $length  = calculate_length($descendant_data);
                 $Marpa::R2::HTML::INSTANCE->{count}->{$tagname}++;
                 $Marpa::R2::HTML::INSTANCE->{length}->{$tagname} += $length;
                 my $return_depths = calculate_max_depths($descendant_data);
@@ -110,19 +144,21 @@ my ( $instance, $value ) = @{
                     length => $length,
                 };
             },
-	    ':CRUFT' => sub {
-                my $descendant_data = Marpa::R2::HTML::descendants('value,literal');
+            ':CRUFT' => sub {
+                my $descendant_data =
+                    Marpa::R2::HTML::descendants('value,literal');
                 my $return_depths = { '[CRUFT]' => 1 };
-                my $length     = calculate_length($descendant_data);
+                my $length = calculate_length($descendant_data);
                 $Marpa::R2::HTML::INSTANCE->{count}->{'[CRUFT]'}++;
                 $Marpa::R2::HTML::INSTANCE->{length}->{'[CRUFT]'} += $length;
                 return {
                     depths => $return_depths,
                     length => $length,
                 };
-	    },
+            },
             ':TOP' => sub {
-                my $descendant_data = Marpa::R2::HTML::descendants('value,literal');
+                my $descendant_data =
+                    Marpa::R2::HTML::descendants('value,literal');
                 return [
                     $Marpa::R2::HTML::INSTANCE,
                     {   depths => calculate_max_depths($descendant_data),
@@ -131,7 +167,8 @@ my ( $instance, $value ) = @{
                 ];
             },
         },
-    )
+        \\%flags
+    ),
     };
 
 my $length_by_element = $instance->{length};
