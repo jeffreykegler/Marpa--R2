@@ -237,12 +237,13 @@ $test_config =~ s/^ \s* ELE_body [^\n]* $/ELE_body is FLO_empty/xms;
 $expected_output = <<'END_OF_EXPECTED_OUTPUT';
 <html>
   <head>
-  </head>
-  <body>
-    <p>
-      I cannot wait for a start tag</p><p>
-      I can</p></body>
-</html>
+  </head><body><!--
+      html_fmt: Next line is cruft
+    -->I cannot wait for a start tag<!--
+      html_fmt: Next line is cruft
+    --><p><!--
+      html_fmt: Next line is cruft
+    -->I can</html>
 END_OF_EXPECTED_OUTPUT
 run_one_test( $test_name, $test_html, \$test_config, \$expected_output );
 
