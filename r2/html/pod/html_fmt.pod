@@ -21,7 +21,8 @@
 =head1 Synopsis
 
     html_fmt [--avoid-whitespace=[yes|comment]]
-      [--no-ws-ok-before-end-tag|--no-ok-before-end-tag]
+      [--no-ws-ok-before-end-tag|--no-ws-ok-before-end-tag]
+      [--no-ws-ok-after-start-tag|--no-ws-ok-after-start-tag]
       [--added-tag-comment|--no-added-tag-comment]
       [uri|file]
 
@@ -138,6 +139,29 @@ C<html_fmt> will be silent when supply missing start
 and end tags.
 C<--added-tag-comment> is the default.
 
+=head2 ws-ok-after-start-tag
+
+The C<--ws-ok-after-start-tag> option is a Boolean.
+If set, C<html_fmt> will add whitespace after an start tag when
+that is useful.
+If the SGML standards
+are adhered to, the added whitespace will not
+be rendered.
+However, the HTML standards, while they allow SGML-adherent behavior
+for whitespace after start tags,
+do not require it.
+In some case in practice,
+browsers will render whitespace found after
+start tags.
+
+If C<--ws-ok-after-start-tag> is false,
+C<html_fmt> will not add whitespace after
+start tags.
+But it increases the ability of
+C<html_fmt> to make its output readable,
+but may result in a change in what some
+browsers display.
+
 =head2 ws-ok-before-end-tag
 
 The C<--ws-ok-before-end-tag> option is a Boolean.
@@ -150,7 +174,7 @@ However, the HTML standards, while they allow SGML-adherent behavior
 for whitespace before end tags,
 do not require it.
 In practice,
-many browsers will render whitespace found before
+browsers will often render whitespace found before
 end tags.
 
 If C<--ws-ok-before-end-tag> is false,
@@ -244,7 +268,5 @@ ignore: 1
   http://www.gnu.org/licenses/.
 
 =for Marpa::R2::Display::End
-
-=cut
 
 =cut

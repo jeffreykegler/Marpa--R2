@@ -33,6 +33,7 @@ my @avoid_whitespace_flags = qw(comment yes);
 my $avoid_whitespace_flag  = 'yes';
 local $main::ADDED_TAG_COMMENT_FLAG = 1;
 my $ws_ok_before_end_tag_flag = 0;
+my $ws_ok_after_start_tag_flag = 1;
 my $dump_config_flag = 0;
 my $dump_AHFA_flag = 0;
 my $trace_terminals_flag = 0;
@@ -43,7 +44,8 @@ usage()
     if not Getopt::Long::GetOptions(
     'help'               => \$help_flag,
     'avoid-whitespace=s' => \$avoid_whitespace_flag,
-    'ws-ok-before-end-tag' => \$ws_ok_before_end_tag_flag,
+    'ws-ok-before-end-tag!' => \$ws_ok_before_end_tag_flag,
+    'ws-ok-after-start-tag!' => \$ws_ok_after_start_tag_flag,
     'added-tag-comment!' => \$main::ADDED_TAG_COMMENT_FLAG,
 
     # undocumented
@@ -257,13 +259,13 @@ sub post_process {
 
                 # Leave safe status as-is before start tag
                 # Whitespace safe after a start tag
-                $safe_after_piece = 1;
+                $safe_after_piece = $ws_ok_after_start_tag_flag;
                 last WHITESPACE_BY_TYPE;
             } ## end if ( $type eq 'start tag' )
             if ( $type eq 'text' ) {
 
                 # Leave safe status as-is before text
-                # Whitespace not safe after a start tag
+                # Whitespace not safe after text
                 $safe_after_piece = 0;
                 last WHITESPACE_BY_TYPE;
             } ## end if ( $type eq 'text' )
