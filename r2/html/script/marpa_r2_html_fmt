@@ -180,12 +180,18 @@ sub post_process {
             next DATUM;
 	}
         if ( $type eq 'msg: cruft' ) {
-            my $location = $line_data->[2];
-            my $cruft    = $line_data->[3];
+            my $location   = $line_data->[2];
+            my $cruft      = $line_data->[3];
+            my $token_type = $line_data->[4];
+            my $node_desc =
+                  $token_type eq 'S' ? 'start tag'
+                : $token_type eq 'E' ? 'end tag'
+                : $token_type eq 'T' ? 'text'
+                :                      'node';
             given ($location) {
                 when ('following') {
                     push @text_pieces,
-                        [ 'html_fmt comment', $indent, 'Next line is cruft' ];
+                        [ 'html_fmt comment', $indent, "Next $node_desc is cruft" ];
                 }
                 when ('following pre') {
 
@@ -196,7 +202,7 @@ sub post_process {
                     push @text_pieces,
                         [
                         'html_fmt comment', $indent,
-                        qq{Inside the following <pre>, there is this cruft:\n$safe_cruft}
+                        qq{Inside the following <pre>, $node_desc is cruft:\n$safe_cruft}
                         ];
                 } ## end when ('following pre')
                 default {
@@ -404,7 +410,7 @@ sub do_pre {
 
 sub do_cruft {
     my $literal = Marpa::R2::HTML::literal();
-    my @new_line_data = ( [ 'msg: cruft', 0, 'following', $literal ] );
+    my @new_line_data = ( [ 'msg: cruft', 0, 'following', $literal, Marpa::R2::HTML::token_type() ] );
     push @new_line_data, [ 'cruft', 0, $literal ];
     return \@new_line_data;
 } ## end sub do_cruft

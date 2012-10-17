@@ -239,7 +239,7 @@ $expected_output = <<'END_OF_EXPECTED_OUTPUT';
   </head>
   <body>
     I cannot wait for a start tag<!--
-        html_fmt: Next line is cruft
+        html_fmt: Next start tag is cruft
       --><p>I can</body>
 </html>
 END_OF_EXPECTED_OUTPUT
@@ -257,11 +257,11 @@ $expected_output = <<'END_OF_EXPECTED_OUTPUT';
 <html>
   <head>
   </head><body><!--
-      html_fmt: Next line is cruft
+      html_fmt: Next text is cruft
     -->I cannot wait for a start tag<!--
-      html_fmt: Next line is cruft
+      html_fmt: Next start tag is cruft
     --><p><!--
-      html_fmt: Next line is cruft
+      html_fmt: Next text is cruft
     -->I can</html>
 END_OF_EXPECTED_OUTPUT
 run_one_test( $test_name, $test_html, \$test_config, \$expected_output );
