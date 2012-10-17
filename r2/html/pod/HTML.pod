@@ -804,6 +804,20 @@ For a non-element component, returns undef.
 If there was no explicit start tag, returns undef.
 If there was no title attribute, returns undef.
 
+=item Marpa::R2::HTML::token_type
+
+For a token, returns the token type.
+The token types
+are the event types from L<HTML::Parser>:
+"C<T>" for text,
+"C<S>" for a start tag,
+"C<E>" for an end tag,
+"C<PI>" for a processing instruction,
+"C<D>" for an SGML declaration,
+and "C<C>" for a comment.
+If the component is an element or some other
+non-token, returns undef.
+
 =item Marpa::R2::HTML::values
 
 The C<Marpa::R2::HTML::values> method implements the values view.
@@ -858,14 +872,8 @@ descendant.
 =item C<token_type>
 
 If the descendant is a terminal, returns the token type.
-These token types
-are the event types from L<HTML::Parser>:
-"C<T>" for text,
-"C<S>" for a start tag,
-"C<E>" for an end tag,
-"C<PI>" for a processing instruction,
-"C<D>" for an SGML declaration,
-and "C<C>" for a comment.
+Token types are as described for the
+L</"Marpa::R2::HTML::token_type"> API method.
 For components with visible values, returns undef.
 
 =item C<value>
