@@ -16,15 +16,20 @@
 
 =head1 NAME
 
-  html_fmt - Reformat HTML, indented according to structure
+html_fmt - Reformat HTML, indented according to structure
 
 =head1 Synopsis
+
+=for Marpa::R2::Display
+ignore: 1
 
     html_fmt [--avoid-whitespace=[yes|comment]]
       [--no-ws-ok-before-end-tag|--no-ws-ok-before-end-tag]
       [--no-ws-ok-after-start-tag|--no-ws-ok-after-start-tag]
       [--added-tag-comment|--no-added-tag-comment]
       [uri|file]
+
+=for Marpa::R2::Display::End
 
 =head1 Description
 
@@ -191,13 +196,26 @@ C<html_fmt> to make its output readable.
 
 Given this input:
 
+=for Marpa::R2::Display
+ignore: 1
+
     <title>Test page<tr>x<head attr="I am cruft"><p>Final graf
+
+=for Marpa::R2::Display::End
 
 to this command:
 
+=for Marpa::R2::Display
+ignore: 1
+
     html_fmt --avoid-whitespace=comment --ws-ok-before-end-tag
 
+=for Marpa::R2::Display::End
+
 the output is
+
+=for Marpa::R2::Display
+ignore: 1
 
   <html>
     <!-- html_fmt: Preceeding start tag is replacement for a missing one -->
@@ -241,6 +259,8 @@ the output is
     </body>
     <!-- html_fmt: Following end tag is replacement for a missing one -->
   </html>
+
+=for Marpa::R2::Display::End
 
 =head1 Acknowledgements
 

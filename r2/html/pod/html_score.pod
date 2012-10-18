@@ -20,13 +20,23 @@ C<html_score> - Show complexity metric and other stats for web page
 
 =head1 SYNOPSIS
 
+=for Marpa::R2::Display
+ignore: 1
+
     html_score [--html] [uri|file]
 
+=for Marpa::R2::Display::End
+
 =head1 EXAMPLES
+
+=for Marpa::R2::Display
+ignore: 1
 
     html_score http://perl.org
 
     html_score --html http://perl6.org
+
+=for Marpa::R2::Display::End
 
 =head1 DESCRIPTION
 
@@ -79,6 +89,9 @@ a web page grows in length.
 
 Here is the first part of the output for C<http://perl.org>.
 
+=for Marpa::R2::Display
+ignore: 1
+
     http://perl.org
     Complexity Score = 0.873
     Maximum Depth = 12
@@ -90,6 +103,8 @@ Here is the first part of the output for C<http://perl.org>.
     em                   1          1         13         13
     h1                   1          1         37         37
     h4                   1         11        559         50
+
+=for Marpa::R2::Display::End
 
 =head1 INTERPRETING THE COMPLEXITY METRIC
 
