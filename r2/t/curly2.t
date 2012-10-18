@@ -27,7 +27,7 @@ BEGIN {
     my $PPI_problem;
     CHECK_PPI: {
         if ( not eval { require PPI } ) {
-            $PPI_problem = 'PPI not installed';
+            $PPI_problem = "PPI not installed: $EVAL_ERROR";
             last CHECK_PPI;
         }
         if ( not PPI->VERSION(1.206) ) {
@@ -47,7 +47,7 @@ use Marpa::R2::Perl;
 use lib 'inc';
 use Marpa::R2::Test;
 
-my $string = <<'END_OF_INPUT';
+my $input_string = <<'END_OF_INPUT';
 Note: line:column figures include preceding whitepace
 The next line is a perl fragment
 {42;{1,2,3;4}}
@@ -69,21 +69,20 @@ Code block from 15:33 to 16:15
 END_OF_INPUT
 
 my $finder = Marpa::R2::Perl->new( { embedded => 1, closures => {} } );
-my $parser = Marpa::R2::Perl->new( { closures => {} } );
+my $main_parser = Marpa::R2::Perl->new( { closures => {} } );
 
 sub linecol {
     my ($token) = @_;
-    return '?' if not defined $token;
-    return $token->logical_line_number() . ':' . $token->column_number;
+    return q{?} if not defined $token;
+    return $token->logical_line_number() . q{:} . $token->column_number;
 }
 
-my $tokens = $finder->tokens(\$string);
-$parser->clone_tokens($finder);
+my $tokens = $finder->tokens( \$input_string );
+$main_parser->clone_tokens($finder);
 my $count_of_tokens = scalar @{$tokens};
-my $perl_found = 0;
-my $start = 0;
-my $next_start = 0;
-my $result = q{};
+my $perl_found      = 0;
+my $next_start      = 0;
+my $main_result          = q{};
 
 PERL_CODE: while (1) {
     last PERL_CODE if $next_start >= $count_of_tokens;
@@ -91,20 +90,21 @@ PERL_CODE: while (1) {
     if ( not defined $start ) {
         $next_start = $end + 1;
         next PERL_CODE;
-    } ## end if ( not defined $start )
-    $perl_found += ($end - $start) + 1;
-    my $perl_code = join q{}, map { $_->content() } @{$tokens}[ $start .. $end ];
-    $perl_code =~ s/^\s*//;
-    $perl_code =~ s/\s*$//;
-    $result .= "Perl fragment: $perl_code\n";
-    $result .= find_curly( $parser, $start, $end );
+    }
+    $perl_found += ( $end - $start ) + 1;
+    my $perl_code = join q{},
+        map { $_->content() } @{$tokens}[ $start .. $end ];
+    $perl_code =~ s/\A \s*//xms;
+    $perl_code =~ s/\s* \z//xms;
+    $main_result .= "Perl fragment: $perl_code\n";
+    $main_result .= find_curly( $main_parser, $start, $end );
     $next_start = $end + 1;
 } ## end PERL_CODE: while (1)
 
-$result .= sprintf "perl tokens = %d; all tokens=%d; %.2f%%\n", $perl_found,
+$main_result .= sprintf "perl tokens = %d; all tokens=%d; %.2f%%\n", $perl_found,
     $count_of_tokens, ( $perl_found / $count_of_tokens ) * 100;
 
-Marpa::R2::Test::is( $result, <<'END_OF_OUTPUT', 'Output' );
+Marpa::R2::Test::is( $main_result, <<'END_OF_OUTPUT', 'Output' );
 Perl fragment: {42;{1,2,3;4}}
 Code block at 3:5 3:13 {1,2,3;4}
 Code block at 2:33 3:14 {42;{1,2,3;4}}
@@ -122,10 +122,10 @@ perl tokens = 62; all tokens=267; 23.22%
 END_OF_OUTPUT
 
 sub find_curly {
-    my ( $parser, $start_ix, $end_ix ) = @_;
+    my ( $parser, $token_start_ix, $token_end_ix ) = @_;
     my $result = q{};
 
-    $parser->read_tokens( $start_ix, $end_ix );
+    $parser->read_tokens( $token_start_ix, $token_end_ix );
 
     my $recce            = $parser->{recce};
     my $earleme_to_token = $parser->{earleme_to_PPI_token};
@@ -156,9 +156,9 @@ sub find_curly {
                 :                             undef;
             next ITEM if not defined $blocktype;
             my $token = $PPI_tokens->[ $earleme_to_token->[$origin_earleme] ];
-            push @hash_locations, [ $origin_earleme, $earley_set_id-1 ]
+            push @hash_locations, [ $origin_earleme, $earley_set_id - 1 ]
                 if $blocktype eq 'hash';
-            push @code_locations, [ $origin_earleme, $earley_set_id-1 ]
+            push @code_locations, [ $origin_earleme, $earley_set_id - 1 ]
                 if $blocktype eq 'code';
 
         } ## end ITEM: for my $progress_item ( @{$progress_report} )
@@ -168,33 +168,39 @@ sub find_curly {
         for my $hash_location (@hash_locations) {
             my ( $start, $end ) = @{$hash_location};
             my $start_ix = $earleme_to_token->[$start];
-	    my $end_ix   = $earleme_to_token->[$end];
-	    while (not defined $end_ix) { $end_ix = $earleme_to_token->[ --$end ] };
+            my $end_ix   = $earleme_to_token->[$end];
+            while ( not defined $end_ix ) {
+                $end_ix = $earleme_to_token->[ --$end ];
+            }
             my $string = join q{},
                 map { $_->content() } @{$tokens}[ $start_ix .. $end_ix ];
-            $string =~ s/^\s*//;
-            $string =~ s/\s*$//;
+            $string =~ s/\A \s* //xms;
+            $string =~ s/\s* \z//xms;
             $result .= join q{ }, @ambiguous, 'Hash at',
                 linecol( $PPI_tokens->[$start_ix] ),
                 linecol( $PPI_tokens->[$end_ix] ), $string;
-	    $result .= "\n";
+            $result .= "\n";
         } ## end for my $hash_location (@hash_locations)
         for my $code_location (@code_locations) {
             my ( $start, $end ) = @{$code_location};
             my $start_ix = $earleme_to_token->[$start];
             my $end_ix   = $earleme_to_token->[$end];
-	    while (not defined $end_ix) { $end_ix = $earleme_to_token->[ --$end ] };
+            while ( not defined $end_ix ) {
+                $end_ix = $earleme_to_token->[ --$end ];
+            }
             my $string = join q{},
                 map { $_->content() } @{$tokens}[ $start_ix .. $end_ix ];
-            $string =~ s/^\s*//;
-            $string =~ s/\s*$//;
+            $string =~ s/\A \s*//xms;
+            $string =~ s/\s* \z//xms;
             $result .= join q{ }, @ambiguous, 'Code block at',
                 linecol( $PPI_tokens->[$start_ix] ),
                 linecol( $PPI_tokens->[$end_ix] ), $string;
-	    $result .= "\n";
+            $result .= "\n";
         } ## end for my $code_location (@code_locations)
     } ## end for my $earley_set_id ( 0 .. $recce->latest_earley_set...)
 
     return $result;
 
 } ## end sub find_curly
+
+# vim: expandtab shiftwidth=4:

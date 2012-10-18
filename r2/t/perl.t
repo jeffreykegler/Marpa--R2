@@ -29,7 +29,7 @@ BEGIN {
     my $PPI_problem;
     CHECK_PPI: {
         if ( not eval { require PPI } ) {
-            $PPI_problem = 'PPI not installed';
+            $PPI_problem = "PPI not installed: $EVAL_ERROR";
             last CHECK_PPI;
         }
         if ( not PPI->VERSION(1.206) ) {
@@ -238,9 +238,10 @@ sub do_assign {
 
 sub do_THING {
     my ( undef, $value ) = @_;
-        $value = eval $value;
+## no critic (BuiltinFunctions::ProhibitStringyEval)
+    $value = eval $value;
     return [ 'R', \$value ];
-} ## end sub do_THING
+}
 
 sub do_anon_array {
     my ( undef, undef, $expr ) = @_;
@@ -272,9 +273,7 @@ sub do_anon_hash {
             die 'expr for anon hash cannot be SCALAR'
         }
         when ('ARRAY') {
-            $result = {
-                @{$value_ref}
-            }
+            $result = { @{$value_ref} }
         }
         when ('HASH') { $result = \%{$value_ref} }
         default { die "Unknown expr type: $_" }
@@ -424,7 +423,7 @@ sub gen_closure {
     my $closure = $unwrapped{$action};
     die "lhs=$lhs: $closure is not a closure"
         if defined $closure and ref $closure ne 'CODE';
-    if (not defined $closure and scalar @{$rhs} <= 0) {
+    if ( not defined $closure and scalar @{$rhs} <= 0 ) {
         $closure = sub { undef; }
     }
     return sub {
@@ -602,7 +601,4 @@ sub test {
 
 } ## end sub test
 
-## use critic
-
-1;    # In case used as "do" file
-
+# vim: expandtab shiftwidth=4:

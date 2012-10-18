@@ -28,7 +28,7 @@ BEGIN {
     my $PPI_problem;
     CHECK_PPI: {
         if ( not eval { require PPI } ) {
-            $PPI_problem = 'PPI not installed';
+            $PPI_problem = "PPI not installed: $EVAL_ERROR";
             last CHECK_PPI;
         }
         if ( not PPI->VERSION(1.206) ) {
@@ -155,5 +155,4 @@ TEST: for my $test (@tests) {
     %codeblock = ();
 } ## end for my $test (@tests)
 
-1;    # In case used as "do" file
-
+# vim: expandtab shiftwidth=4:

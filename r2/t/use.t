@@ -28,7 +28,7 @@ BEGIN {
     my $PPI_problem;
     CHECK_PPI: {
         if ( not eval { require PPI } ) {
-            $PPI_problem = 'PPI not installed';
+            $PPI_problem = "PPI not installed: $EVAL_ERROR";
             last CHECK_PPI;
         }
         if ( not PPI->VERSION(1.206) ) {
@@ -101,17 +101,39 @@ sub gen_closure {
 
 my $parser = Marpa::R2::Perl->new( { closures => \&gen_closure } );
 
+my $default_input = <<'END_OF_TEST_DATA';
+use v5;
+use 5;
+use 5.1;
+use xyz;
+use v5 xyz;
+use 5 xyz;
+use 5.1 xyz;
+use xyz v5;
+use xyz 5;
+use xyz 5.1;
+use v5 xyz 5;
+use 5 xyz 5;
+use 5.1 xyz 5;
+use xyz v5 5;
+use xyz 5 5;
+use xyz 5.1 5;
+use v5 xyz 5, 5;
+use 5 xyz 5, 5;
+use 5.1 xyz 5, 5;
+use xyz v5 5, 5;
+use xyz 5 5, 5;
+use xyz 5.1 5, 5;
+use xyz 5.1 @a;
+END_OF_TEST_DATA
+
 my $string;
 if ($utility) {
     $string = do { local $RS = undef; <STDIN> };
 }
 else {
-    $string = do {
-        local $RS = undef;
-## no critic(Subroutines::ProhibitCallsToUndeclaredSubs)
-        <DATA>;
-    };
-} ## end else [ if ($utility) ]
+    $string = $default_input;
+}
 
 my $expected = <<'EOS';
 PERL: use v5 ;
@@ -149,29 +171,4 @@ else {
     Marpa::R2::Test::is( $result, $expected, 'Test of use statements' );
 }
 
-1;    # In case used as "do" file
-
-__DATA__
-use v5;
-use 5;
-use 5.1;
-use xyz;
-use v5 xyz;
-use 5 xyz;
-use 5.1 xyz;
-use xyz v5;
-use xyz 5;
-use xyz 5.1;
-use v5 xyz 5;
-use 5 xyz 5;
-use 5.1 xyz 5;
-use xyz v5 5;
-use xyz 5 5;
-use xyz 5.1 5;
-use v5 xyz 5, 5;
-use 5 xyz 5, 5;
-use 5.1 xyz 5, 5;
-use xyz v5 5, 5;
-use xyz 5 5, 5;
-use xyz 5.1 5, 5;
-use xyz 5.1 @a;
+# vim: expandtab shiftwidth=4:
