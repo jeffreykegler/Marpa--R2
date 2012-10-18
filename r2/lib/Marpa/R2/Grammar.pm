@@ -804,8 +804,11 @@ sub Marpa::R2::Grammar::unproductive_symbols {
 
 sub Marpa::R2::Grammar::brief_rule {
     my ( $grammar, $rule_id ) = @_;
-    my ($lhs, @rhs) = $grammar->rule($rule_id);
-    return join q{ }, "$rule_id:", $lhs, '->', @rhs;
+    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
+    my ( $lhs,     @rhs )     = $grammar->rule($rule_id);
+    my $minimum = $grammar_c->sequence_min($rule_id);
+    my $quantifier = defined $minimum ? $minimum <= 0 ? q{*} : q{+} : q{};
+    return (join q{ }, "$rule_id:", $lhs, '->', @rhs) . $quantifier;
 } ## end sub Marpa::R2::Grammar::brief_rule
 
 sub Marpa::R2::Grammar::show_rule {
