@@ -240,7 +240,7 @@ sub isy_name {
 	}
 
         my $lhs_xrl = $grammar_c->_marpa_g_isy_lhs_xrl($id);
-        if ( defined $lhs_xrl and $grammar_c->rule_is_sequence($lhs_xrl) ) {
+        if ( defined $lhs_xrl and defined $grammar_c->sequence_min($lhs_xrl) ) {
             my $original_lhs_id = $grammar_c->rule_lhs($lhs_xrl);
             $name = $self->symbol_name($original_lhs_id) . '[Seq]';
             last GEN_NAME;

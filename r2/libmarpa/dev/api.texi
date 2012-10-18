@@ -1787,16 +1787,22 @@ such rule, -1.
 On failure, @minus{}2.
 @end deftypefun
 
-@deftypefun int marpa_g_rule_is_sequence ( @
+@deftypefun int marpa_g_sequence_min ( @
     Marpa_Grammar @var{g}, @
     Marpa_Rule_ID @var{rule_id})
+
+Returns the mininum length of a sequence rule.
+This accessor can be also be used to test whether
+or not a rule is a sequence rule.
+|-1| is returned if and only if the rule is valid
+but not a sequence rule.
 Return value:
-On success,
-if rule @var{rule_id} is a sequence rule, 1;
-otherwise, 0.
+If rule @var{rule_id} is a sequence rule, its minimum length.
+If rule @var{rule_id} is valid, but is
+not the rule ID of sequence rule, @minus{}1.
 If @var{rule_id} is well-formed, but there is no
-such rule, -1.
-On failure, @minus{}2.
+such rule,
+or on other failure, @minus{}2.
 @end deftypefun
 
 @deftypefun Marpa_Rule_ID marpa_g_sequence_new (Marpa_Grammar @var{g}, @
@@ -1866,6 +1872,21 @@ setting the error code to
 
 Return value:  On success, the ID of the external rule.
 On failure, @minus{}2.
+@end deftypefun
+
+@deftypefun int marpa_g_sequence_separator ( @
+    Marpa_Grammar @var{g}, @
+    Marpa_Rule_ID @var{rule_id})
+
+Return value:
+If rule @var{rule_id} is a sequence rule, its separator.
+If rule @var{rule_id} is a sequence rule,, but there is no
+separator, @minus{}1.
+If @var{rule_id} is
+not a sequence rule,
+does not exist
+or is not well-formed;
+or on other failure, @minus{}2.
 @end deftypefun
 
 @deftypefun int marpa_g_symbol_is_counted (Marpa_Grammar @var{g}, @

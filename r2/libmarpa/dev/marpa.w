@@ -2280,38 +2280,63 @@ BNF rule, false otherwise.
 rule->t_is_bnf = 0;
 
 @*0 Rule is sequence?.
-True for external sequence rules, false otherwise.
 @d XRL_is_Sequence(rule) ((rule)->t_is_sequence)
 @<Bit aligned rule elements@> = unsigned int t_is_sequence:1;
 @ @<Initialize rule elements@> =
 rule->t_is_sequence = 0;
-@ @<Function definitions@> =
-int marpa_g_rule_is_sequence(
-    Marpa_Grammar g,
-    Marpa_Rule_ID xrl_id)
-{
-    @<Return |-2| on failure@>@;
-    @<Fail if fatal error@>@;
-    @<Fail if |xrl_id| is malformed@>@;
-    @<Soft fail if |xrl_id| does not exist@>@;
-    return XRL_is_Sequence(XRL_by_ID(xrl_id));
-}
-
 
 @*0 Sequence minimum length.
-The minimum length for a sequence rule, |-1| otherwise.
+The minimum length for a sequence rule.
+This accessor can also
+be used as a test of whether
+or not a rule is a sequence rule.
+|-1| is returned if and only if the rule is valid
+but not a sequence rule.
+Rule IDs which do not exist and
+other failures are hard failures.
 @d Minimum_of_XRL(rule) ((rule)->t_minimum)
 @<Bit aligned rule elements@> = int t_minimum;
 @ @<Initialize rule elements@> =
 rule->t_minimum = -1;
+@ @<Function definitions@> =
+int marpa_g_sequence_min(
+    Marpa_Grammar g,
+    Marpa_Rule_ID xrl_id)
+{
+    @<Return |-2| on failure@>@;
+    XRL xrl;
+    @<Fail if fatal error@>@;
+    @<Fail if |xrl_id| is malformed@>@;
+    @<Fail if |xrl_id| does not exist@>@;
+    xrl = XRL_by_ID(xrl_id);
+    if (!XRL_is_Sequence(xrl)) return -1;
+    return Minimum_of_XRL(xrl);
+}
 
-@*0 Rule has separator?.
+@*0 Sequence separator.
 ID of the separator, for sequence rules which have one.
-Otherwise, |-1|.
+|-1| if the rule is not a sequence or does not have
+a separator (the two cases are not distinguished).
+Rule IDs which do not exist and
+other failures are hard failures.
 @d Separator_of_XRL(rule) ((rule)->t_separator_id)
 @<Bit aligned rule elements@> = SYMID t_separator_id;
 @ @<Initialize rule elements@> =
 Separator_of_XRL(rule) = -1;
+@ @<Function definitions@> =
+Marpa_Symbol_ID marpa_g_sequence_separator(
+    Marpa_Grammar g,
+    Marpa_Rule_ID xrl_id)
+{
+    @<Return |-2| on failure@>@;
+    XRL xrl;
+    @<Fail if fatal error@>@;
+    @<Fail if |xrl_id| is malformed@>@;
+    @<Fail if |xrl_id| does not exist@>@;
+    xrl = XRL_by_ID(xrl_id);
+    if (!XRL_is_Sequence(xrl)) return -1;
+    return Separator_of_XRL(xrl);
+}
 
 @*0 Rule keeps separator?.
 When this rule is evaluated by the semantics,
@@ -14493,12 +14518,18 @@ if (UNLIKELY(!IRLID_of_G_is_Valid(irl_id))) {
     MARPA_ERROR (MARPA_ERR_INVALID_IRLID);
     return failure_indicator;
 }
-@ Fail with |-1| for well-formed,
-but non-existent rule ID.
+@ For well-formed, but non-existent rule ids,
+sometimes we want hard failures,
+and sometimes soft (|-1|).
 @<Soft fail if |xrl_id| does not exist@> =
 if (UNLIKELY(!XRLID_of_G_Exists(xrl_id))) {
     MARPA_ERROR (MARPA_ERR_NO_SUCH_RULE_ID);
     return -1;
+    }
+@ @<Fail if |xrl_id| does not exist@> =
+if (UNLIKELY(!XRLID_of_G_Exists(xrl_id))) {
+    MARPA_ERROR (MARPA_ERR_NO_SUCH_RULE_ID);
+    return failure_indicator;
 }
 @
 @<Fail if |xrl_id| is malformed@> =
