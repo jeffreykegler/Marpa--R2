@@ -14,7 +14,7 @@
 # General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 
-=head1 NAME
+=head1 Name
 
 html_fmt - Reformat HTML, indented according to structure
 
