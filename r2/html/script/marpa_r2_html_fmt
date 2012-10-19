@@ -29,7 +29,7 @@ sub usage
 }
 
 my $help_flag              = 0;
-my @avoid_whitespace_flags = qw(comment yes);
+my @avoid_whitespace_flags = qw(comment yes no);
 my $avoid_whitespace_flag  = 'yes';
 local $main::ADDED_TAG_COMMENT_FLAG = 1;
 my $ws_ok_before_end_tag_flag = 0;
@@ -340,21 +340,27 @@ sub post_process {
             } ## end TEXT_PIECE: for my $text_piece_ix ( 0 .. $#text_pieces )
             last CREATE_OUTPUT;
         } ## end if ( $avoid_whitespace_flag eq 'comment' )
-        if ( $avoid_whitespace_flag eq 'yes' ) {
+        {
+            # $avoid_whitespace eq 'yes' or $avoid_whitespace eq 'no'
+            my $avoid_whitespace_is_yes = $avoid_whitespace_flag ne 'no';
             TEXT_PIECE: for my $text_piece_ix ( 0 .. $#text_pieces ) {
                 my ( $type, $indent, $text ) =
                     @{ $text_pieces[$text_piece_ix] };
                 next TEXT_PIECE if $type eq 'whitespace';
-                if ( $ws_unsafe[$text_piece_ix] ) {
-		    my $indentation = q{  } x ($indent);
+                if ( $avoid_whitespace_is_yes and $ws_unsafe[$text_piece_ix] )
+                {
+                    my $indentation = q{  } x ($indent);
                     if ( $type eq 'html_fmt comment' ) {
-                        $text = qq{<!--\n}
-			  . $indentation . '    html_fmt: ' . $text . "\n"
-			  . $indentation . '  -->';
-                    }
+                        $text =
+                              qq{<!--\n}
+                            . $indentation
+                            . '    html_fmt: '
+                            . $text . "\n"
+                            . $indentation . '  -->';
+                    } ## end if ( $type eq 'html_fmt comment' )
                     $output[-1] .= $text;
                     next TEXT_PIECE;
-                } ## end if ( $ws_unsafe[$text_piece_ix] )
+                } ## end if ( $ws_unsafe[$text_piece_ix] and ...)
                 my $indentation = q{  } x $indent;
                 if ( $type eq 'text' and $text =~ /\S/xms ) {
                     push @output, $indentation . $text;
@@ -362,15 +368,13 @@ sub post_process {
                 }
                 if ( $type eq 'html_fmt comment' ) {
                     push @output,
-                          $indentation
-                        . '<!-- html_fmt: '
-                        . $text . ' -->';
+                        $indentation . '<!-- html_fmt: ' . $text . ' -->';
                     next TEXT_PIECE;
-                } ## end if ( $type eq 'html_fmt comment' )
+                }
                 push @output, $indentation . $text;
             } ## end TEXT_PIECE: for my $text_piece_ix ( 0 .. $#text_pieces )
             last CREATE_OUTPUT;
-	}
+        }
     } ## end CREATE_OUTPUT:
     return join "\n", @output, q{};
 } ## end sub post_process

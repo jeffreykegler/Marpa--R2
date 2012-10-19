@@ -23,7 +23,7 @@ html_fmt - Reformat HTML, indented according to structure
 =for Marpa::R2::Display
 ignore: 1
 
-    html_fmt [--avoid-whitespace=[yes|comment]]
+    html_fmt [--avoid-whitespace=[yes|comment|no]]
       [--no-ws-ok-before-end-tag|--no-ws-ok-before-end-tag]
       [--no-ws-ok-after-start-tag|--no-ws-ok-after-start-tag]
       [--added-tag-comment|--no-added-tag-comment]
@@ -116,11 +116,21 @@ As of this writing, there are only a few.
 
 =head2 avoid-whitespace
 
-The C<--avoid-whitespace> option
-may take one of two values:
-C<yes> and C<comment>.
-If the value is C<yes>,
-C<html_fmt> does not try to add indentation
+When adding indentation,
+C<html_fmt> runs the risk of introducing
+whitespace that will change
+the way in which the document is displayed.
+How C<html_fmt> deals with this risk
+is controlled by the
+the C<--avoid-whitespace> option,
+which
+may take one of three values:
+C<yes>, C<no> and C<comment>.
+
+If the value
+of the C<--avoid-whitespace> option
+is C<yes>,
+C<html_fmt> does not add indentation
 in whitespace-sensitive places.
 This avoids clutter but,
 because of the missed indentation,
@@ -132,6 +142,13 @@ If the value is C<comment>,
 HTML (SGML) comments are used to achieve proper
 indentation without introducing whitespace.
 This works, but does get a bit cluttered.
+
+If the value is C<no>,
+C<html_fmt> 
+adds whitespace whenever it is convenient
+for formatting, regardless of whether or
+not it may change the way in which
+the document displays.
 
 =head2 added-tag-comment
 
