@@ -52,7 +52,10 @@ sub compile {
     my %primary_group_by_tag = ();
 
     {
-        LINE: for my $line ( split /\n/xms, $HTML_Core::CORE_BNF ) {
+        LINE:
+        for my $line ( split /\n/xms,
+            $Marpa::R2::HTML::Internal::Core::CORE_BNF )
+        {
             my $definition = $line;
             chomp $definition;
             $definition =~ s/ [#] .* //xms;    # Remove comments
@@ -81,10 +84,10 @@ sub compile {
                 next LINE;
             } ## end if ( $definition =~ s/ \s* [:][:][=] \s* / /xms )
             die "Badly formed line in grammar description: $line";
-        } ## end LINE: for my $line ( split /\n/xms, $HTML_Core::CORE_BNF )
+        } ## end LINE: for my $line ( split /\n/xms, ...)
     }
 
-    my @core_symbols = map { $_->{lhs}, @{ $_->{rhs} } } @core_rules;
+    my @core_symbols = map { ( $_->{lhs}, @{ $_->{rhs} } ) } @core_rules;
 
     # Start out by closing the context and contents of everything
     my %symbol_table = map {
@@ -134,8 +137,8 @@ sub compile {
             keys %species_handler;
         if ( scalar @species_not_defined ) {
             die
-                "Definitions for the following required text components are missing: ",
-                join " ", @species_not_defined;
+                'Definitions for the following required text components are missing: ',
+                join q{ }, @species_not_defined;
         }
     }
 
@@ -149,12 +152,11 @@ sub compile {
         $definition =~ s/ [#] .* //xms;    # Remove comments
         next LINE
             if not $definition =~ / \S /xms;    # ignore all-whitespace line
-        if ($definition =~ m{
-	\A \s* [<](\w+)[>] \s+
-	is \s+ included \s+ in \s+ [%](\w+) \s* \z}xms
+        if ( $definition
+            =~ m{ \A \s* [<](\w+)[>] \s+ is \s+ included \s+ in \s+ [%](\w+) \s* \z}xms
             )
         {
-            my $tag = $1;
+            my $tag           = $1;
             my $element       = 'ELE_' . $tag;
             my $group         = 'GRP_' . $2;
             my $element_entry = $symbol_table{$element} //= [];
@@ -183,18 +185,19 @@ sub compile {
                 );
             } ## end if ($closed_reason)
 
-
             # If this is the first, it sets the primary group
             $primary_group_by_tag{$tag} //= $group;
             push @{ $element_entry->[CONTEXT] }, $group;
 
             next LINE;
 
-        } ## end if ( $definition =~ m{ ) (})
+        } ## end if ( $definition =~ ...)
         if ($definition =~ m{
-	\A \s* [<](\w+)[>] \s+
-	is \s+ a \s+ [*](\w+) \s+
-      included \s+ in \s+ [%](\w+) \s* \z}xms
+            \A \s* [<](\w+)[>] \s+
+            is \s+ a \s+ [*](\w+) \s+
+            included \s+
+            in \s+ [%](\w+) \s* \z
+            }xms
             )
         {
             my $tag           = $1;
@@ -315,7 +318,7 @@ sub compile {
         if ( $definition =~ s/ \A \s* [<](\w+)[>] \s+ contains \s+ / /xms ) {
 
             # Production is Element with custom flow
-            my $tag = $1;
+            my $tag            = $1;
             my $element_symbol = 'ELE_' . $tag;
             my $element_entry  = $symbol_table{$element_symbol} //= [];
             my $closed_reason  = $element_entry->[CONTENTS_CLOSED];
@@ -328,17 +331,19 @@ sub compile {
             } ## end if ($closed_reason)
 
             my @external_contents = split q{ }, $definition;
-	    my @contents = ();
+            my @contents = ();
 
-            CONTAINED_SYMBOL: for my $external_content_symbol (@external_contents) {
-		my $content_symbol;
-		if ($external_content_symbol =~ /\A [<] (\w+) [>] \z/xms) {
-		    $content_symbol = 'ELE_' . $1;
-		}
-		if ($external_content_symbol =~ /\A [%] (\w+)  \z/xms) {
-		    $content_symbol = 'GRP_' . $1;
-		}
-		$content_symbol //= $external_content_symbol;
+            CONTAINED_SYMBOL:
+            for my $external_content_symbol (@external_contents)
+            {
+                my $content_symbol;
+                if ( $external_content_symbol =~ /\A [<] (\w+) [>] \z/xms ) {
+                    $content_symbol = 'ELE_' . $1;
+                }
+                if ( $external_content_symbol =~ /\A [%] (\w+)  \z/xms ) {
+                    $content_symbol = 'GRP_' . $1;
+                }
+                $content_symbol //= $external_content_symbol;
                 my $content_entry = $symbol_table{$content_symbol};
                 if ( not defined $content_entry ) {
                     if ( not $content_symbol =~ /\A ELE_ /xms ) {
@@ -357,8 +362,8 @@ sub compile {
                         qq{  Problem was in this line: $line}
                     );
                 } ## end if ($closed_reason)
-		push @contents, $content_symbol;
-            } ## end CONTAINED_SYMBOL: for my $content_symbol (@contents)
+                push @contents, $content_symbol;
+            } ## end CONTAINED_SYMBOL: for my $external_content_symbol (@external_contents)
 
             push @{ $element_entry->[CONTENTS] }, @contents;
 
@@ -402,7 +407,7 @@ sub compile {
             } ## end RAW_CANDIDATE: for my $raw_candidate (@raw_candidates)
             my @internal_symbols = ();
             SYMBOL: for my $symbol (@symbols) {
-                if ( $symbol =~ /\A (CDATA|PCDATA) \z/xms ) {
+                if ( $symbol eq 'CDATA' or $symbol eq 'PCDATA' ) {
                     push @internal_symbols, $symbol;
                     next SYMBOL;
                 }
@@ -564,8 +569,7 @@ sub compile {
             );
         } ## end SYMBOL: for my $rejected_symbol ( keys %ruby_config )
         SYMBOL:
-        for my $candidate_symbol ( map { @{$_} } values %ruby_config )
-        {
+        for my $candidate_symbol ( map { @{$_} } values %ruby_config ) {
             next SYMBOL if 'E_' ne substr $candidate_symbol, 0, 2;
             my $tag = substr $candidate_symbol, 2;
             next SYMBOL if not $is_empty_element{$tag};
@@ -578,7 +582,8 @@ sub compile {
 
     # Special case the EOF Ruby Slippers treatment
     {
-        @{$ruby_config{EOF}} = qw( S_html S_head S_body </*> E_body E_html );
+        @{ $ruby_config{EOF} } =
+            qw( S_html S_head S_body </*> E_body E_html );
     }
 
     {
@@ -631,7 +636,7 @@ sub compile {
         my @symbols_with_no_ruby_status =
             grep { !$defined_in_core{$_} and !$runtime_tag{$_} }
             @mentioned_in_core;
-        die "symbols with no ruby status: ", join " ",
+        die 'symbols with no ruby status: ', join q{ },
             @symbols_with_no_ruby_status
             if scalar @symbols_with_no_ruby_status;
     }
@@ -652,7 +657,7 @@ sub compile {
         my @elements_defined_but_not_used =
             grep { !$element_used{$_} }
             grep {m/\A ELE_ /xms} map { $_->{lhs} } @core_rules;
-        die "elements defined but never used: ", join " ",
+        die 'elements defined but never used: ', join q{ },
             @elements_defined_but_not_used
             if scalar @elements_defined_but_not_used;
     }
@@ -681,3 +686,5 @@ sub compile {
 } ## end sub compile
 
 1;
+
+# vim: expandtab shiftwidth=4:

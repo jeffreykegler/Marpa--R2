@@ -13,12 +13,12 @@
 # General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 
+package Marpa::R2::HTML::Internal::Core;
+
 use 5.010;
 use strict;
 use warnings;
 use Data::Dumper;
-
-package HTML_Core;
 
 use English qw( -no_match_vars );
 
