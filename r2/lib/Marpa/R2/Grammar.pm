@@ -1081,6 +1081,11 @@ sub add_user_rule {
         } ## end given
     } ## end while ( my ( $option, $value ) = each %{$options} )
 
+    if ( defined $min and not Scalar::Util::looks_like_number($min) ) {
+        Marpa::R2::exception(
+            qq{"min" must be undefined or a valid Perl number});
+    }
+
     my $lhs = assign_user_symbol( $grammar, $lhs_name );
     $rhs_names //= [];
 
