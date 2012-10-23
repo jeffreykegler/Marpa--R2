@@ -614,6 +614,8 @@ sub Marpa::R2::Recognizer::value {
     Marpa::R2::exception('Too many arguments to Marpa::R2::Recognizer::value')
         if scalar @_ != 1;
 
+    my $grammar = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
+    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
     my $recce_c = $recce->[Marpa::R2::Internal::Recognizer::C];
     my $order   = $recce->[Marpa::R2::Internal::Recognizer::O_C];
 
@@ -644,9 +646,11 @@ sub Marpa::R2::Recognizer::value {
     } ## end if ($tree)
     else {
 
+	$grammar_c->throw_set(0);
         my $bocage = $recce->[Marpa::R2::Internal::Recognizer::B_C] =
             Marpa::R2::Thin::B->new( $recce_c,
             ( $parse_set_arg // -1 ) );
+	$grammar_c->throw_set(1);
 
         return if not defined $bocage;
 
