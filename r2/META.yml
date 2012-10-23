@@ -92,7 +92,7 @@ provides:
     version: 2.023_002
   Marpa::R2::Stuifzand:
     file: lib/Marpa/R2/Stuifzand.pm
-    version: 2.023_001
+    version: 2.023_002
   Marpa::R2::Thin::Trace:
     file: lib/Marpa/R2/Thin/Trace.pm
     version: 2.023_002
