@@ -42,9 +42,6 @@ no_index:
     - Marpa::R2::Internal
     - Marpa::R2::Thin::Trace
 provides:
-  HTML_Core:
-    file: html/lib/Marpa/R2/HTML/Config/Core.pm
-    version: 0
   Marpa::R2:
     file: lib/Marpa/R2.pm
     version: 2.023_001
@@ -71,6 +68,9 @@ provides:
     version: 0
   Marpa::R2::HTML::Internal::Config::Default:
     file: html/lib/Marpa/R2/HTML/Config/Default.pm
+    version: 0
+  Marpa::R2::HTML::Internal::Core:
+    file: html/lib/Marpa/R2/HTML/Config/Core.pm
     version: 0
   Marpa::R2::Internal:
     file: lib/Marpa/R2/Internal.pm
