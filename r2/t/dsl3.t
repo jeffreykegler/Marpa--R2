@@ -22,7 +22,8 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 5;
+use English qw( -no_match_vars );
+use Test::More tests => 6;
 use lib 'inc';
 use Marpa::R2::Test;
 use Marpa::R2;
@@ -260,6 +261,7 @@ END_OF_OUTPUT
     [ '1 * 2 + 3 * 4 ^ 2 ^ 2 ^ 2 * 42 + 1', <<'END_OF_OUTPUT'],
 Input: "1 * 2 + 3 * 4 ^ 2 ^ 2 ^ 2 * 42 + 1"
   Parse: 541165879299
+END_OF_OUTPUT
     ['+ reduce 1 + 2, 3,4*2 , 5', <<'END_OF_OUTPUT'],
 Input: "+ reduce 1 + 2, 3,4*2 , 5"
   Parse: 19
@@ -267,12 +269,10 @@ END_OF_OUTPUT
 );
 
 for my $test (@tests) {
-    my ($input, $expected_output) = @{$test};
+    my ( $input, $expected_output ) = @{$test};
     my $actual_output = report_calculation($input);
-Marpa::R2::Test::is( $actual_parse_count, $expected_ouput, qq{Parsing "$input"});
-}
+    Marpa::R2::Test::is( $actual_output, $expected_output,
+        qq{Parsing "$input"} );
+} ## end for my $test (@tests)
 
-print $output or die "print failed: $ERRNO";
-$output eq <<'EXPECTED_OUTPUT' or die 'FAIL: Output mismatch';
-EXPECTED_OUTPUT
-
+# vim: expandtab shiftwidth=4:
