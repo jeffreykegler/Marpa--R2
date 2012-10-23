@@ -1018,6 +1018,7 @@ sub add_user_rules {
             next RULE;
         } ## end if ( not $ref_rule )
         if ( $ref_rule eq 'HASH' ) {
+            $rule->{check_symbols} = 1;
             push @hash_rules, $rule;
             next RULE;
         }
@@ -1039,6 +1040,7 @@ sub add_user_rules {
                 lhs    => $lhs,
                 rhs    => $rhs,
                 action => $action,
+                check_symbols => 1
                 };
             next RULE;
         } ## end if ( $ref_rule eq 'ARRAY' )
@@ -1077,31 +1079,41 @@ sub add_user_rule {
     my $rule_name;
     my $proper_separation = 0;
     my $keep_separation   = 0;
+    my $check_symbols = 0;
 
-    while ( my ( $option, $value ) = each %{$options} ) {
-        given ($option) {
-            when ('name')         { $rule_name         = $value }
-            when ('rhs')          { $rhs_names         = $value }
-            when ('lhs')          { $lhs_name          = $value }
-            when ('action')       { $action            = $value }
-            when ('rank')         { $rank              = $value }
-            when ('null_ranking') { $null_ranking      = $value }
-            when ('min')          { $min               = $value }
-            when ('separator')    { $separator_name    = $value }
-            when ('proper')       { $proper_separation = $value }
-            when ('keep')         { $keep_separation   = $value }
-            default {
-                Marpa::R2::exception("Unknown user rule option: $option");
-            }
-        } ## end given
-    } ## end while ( my ( $option, $value ) = each %{$options} )
+    OPTION: while ( my ( $option, $value ) = each %{$options} ) {
+        if ( $option eq 'check_symbols' )   { $check_symbols = $value; next OPTION; }
+        if ( $option eq 'name' )   { $rule_name = $value; next OPTION; }
+        if ( $option eq 'rhs' )    { $rhs_names = $value; next OPTION }
+        if ( $option eq 'lhs' )    { $lhs_name  = $value; next OPTION }
+        if ( $option eq 'action' ) { $action    = $value; next OPTION }
+        if ( $option eq 'rank' )   { $rank      = $value; next OPTION }
+        if ( $option eq 'null_ranking' ) {
+            $null_ranking = $value;
+            next OPTION;
+        }
+        if ( $option eq 'min' ) { $min = $value; next OPTION }
+        if ( $option eq 'separator' ) {
+            $separator_name = $value;
+            next OPTION;
+        }
+        if ( $option eq 'proper' ) {
+            $proper_separation = $value;
+            next OPTION;
+        }
+        if ( $option eq 'keep' ) { $keep_separation = $value; next OPTION }
+        Marpa::R2::exception("Unknown user rule option: $option");
+    } ## end OPTION: while ( my ( $option, $value ) = each %{$options} )
 
     if ( defined $min and not Scalar::Util::looks_like_number($min) ) {
         Marpa::R2::exception(
             q{"min" must be undefined or a valid Perl number});
     }
 
-    my $lhs = assign_user_symbol( $grammar, $lhs_name );
+    my $lhs =
+        $check_symbols
+        ? assign_user_symbol( $grammar, $lhs_name )
+        : assign_symbol( $grammar, $lhs_name );
     $rhs_names //= [];
 
     my @rule_problems = ();
@@ -1168,7 +1180,13 @@ sub add_user_rule {
         Marpa::R2::exception($msg);
     } ## end if ( scalar @rule_problems )
 
-    my $rhs = [ map { assign_user_symbol( $grammar, $_ ); } @{$rhs_names} ];
+    my $rhs = [
+        map {
+            $check_symbols
+                ? assign_user_symbol( $grammar, $_ )
+                : assign_symbol( $grammar, $_ );
+        } @{$rhs_names}
+    ];
 
     # Is this is an ordinary, non-counted rule?
     my $is_ordinary_rule = scalar @{$rhs_names} == 0 || !defined $min;
@@ -1222,9 +1240,12 @@ sub add_user_rule {
     my $separator;
     my $separator_id = -1;
     if ( defined $separator_name ) {
-        $separator = assign_user_symbol( $grammar, $separator_name );
+        $separator =
+            $check_symbols
+            ? assign_user_symbol( $grammar, $separator_name )
+            : assign_symbol( $grammar, $separator_name );
         $separator_id = $separator->[Marpa::R2::Internal::Symbol::ID];
-    }
+    } ## end if ( defined $separator_name )
 
     my $original_rule_id = $grammar_c->sequence_new(
         $lhs_id,
