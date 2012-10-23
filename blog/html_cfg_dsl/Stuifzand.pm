@@ -1,4 +1,4 @@
-package Marpa::R2::Stuifzand;
+package Marpa::R2::Internal::Stuifzand;
 
 use 5.010;
 use strict;
@@ -33,7 +33,7 @@ sub do_priority_rule {
         return [ { lhs => $lhs, rhs => $rhs, @action_kv } ];
     } ## end if ( scalar @rules <= 1 )
     my $do_arg0_full_name = __PACKAGE__ . q{::} . 'do_arg0';
-    my @xs_rules = (
+    my @xs_rules          = (
         {   lhs    => $lhs,
             rhs    => [ $lhs . '_0' ],
             action => $do_arg0_full_name
@@ -177,48 +177,46 @@ sub do_what_I_mean {
 # of the last such symbol completed,
 # undef if there was none.
 sub last_completed_range {
-    my ($grammar, $recce, $symbol) = @_;
-    my @sought_rules = grep { my ($lhs) = $grammar->rule($_); $lhs eq $symbol; } $grammar->rule_ids();
-    die "Looking for completion of non-existent rule lhs: $symbol" if not scalar @sought_rules;
+    my ( $grammar, $recce, $symbol ) = @_;
+    my @sought_rules =
+        grep { my ($lhs) = $grammar->rule($_); $lhs eq $symbol; }
+        $grammar->rule_ids();
+    die "Looking for completion of non-existent rule lhs: $symbol"
+        if not scalar @sought_rules;
     my $latest_earley_set = $recce->latest_earley_set();
-    my $earley_set = $latest_earley_set;
+    my $earley_set        = $latest_earley_set;
+
     # Initialize to one past the end, so we can tell if there were no hits
-    my $first_origin = $latest_earley_set+1;
-    EARLEY_SET: while( $earley_set >= 0) {
+    my $first_origin = $latest_earley_set + 1;
+    EARLEY_SET: while ( $earley_set >= 0 ) {
         my $report_items = $recce->progress($earley_set);
         ITEM: for my $report_item ( @{$report_items} ) {
-	    my ($rule_id, $dot_position, $origin) = @{$report_item};
-	    next ITEM if $dot_position != -1;
-	    next ITEM if not scalar grep { $_ == $rule_id } @sought_rules;
-	    next ITEM if $origin >= $first_origin;
-	        $first_origin = $origin;
-	}
-	last EARLEY_SET if $first_origin <= $latest_earley_set;
-	$earley_set--;
-    }
+            my ( $rule_id, $dot_position, $origin ) = @{$report_item};
+            next ITEM if $dot_position != -1;
+            next ITEM if not scalar grep { $_ == $rule_id } @sought_rules;
+            next ITEM if $origin >= $first_origin;
+            $first_origin = $origin;
+        } ## end ITEM: for my $report_item ( @{$report_items} )
+        last EARLEY_SET if $first_origin <= $latest_earley_set;
+        $earley_set--;
+    } ## end EARLEY_SET: while ( $earley_set >= 0 )
     return if $earley_set < 0;
-
-say STDERR "Returning  $first_origin, $earley_set";
-
-    return ($first_origin, $earley_set);
-}
+    return ( $first_origin, $earley_set );
+} ## end sub last_completed_range
 
 # Given a string, an earley set to position mapping,
 # and two earley sets, return the slice of the string
 sub input_slice {
-    my ($input, $positions, $start, $end) = @_;
-
-say STDERR join " ", __FILE__, __LINE__, ':', @{$positions};
-
+    my ( $input, $positions, $start, $end ) = @_;
     return if not defined $start;
-say STDERR "start=$start end=$end";
     my $start_position = $positions->[$start];
-    my $length = $positions->[$end] - $start_position;
+    my $length         = $positions->[$end] - $start_position;
     return substr $input, $start_position, $length;
-}
+} ## end sub input_slice
 
 sub parse_rules {
     my ($string) = @_;
+
     # Track earley set positions in input,
     # for debuggging
     my @positions = (0);
@@ -341,14 +339,14 @@ sub parse_rules {
         # read other tokens
         TOKEN_TYPE: for my $t (@terminals) {
             next TOKEN_TYPE if not $string =~ m/\G($t->[1])/gcxms;
-	    my $string_position = pos $string;
+            my $string_position = pos $string;
             if ( not defined $rec->read( $t->[0], $1 ) ) {
                 die die q{Problem before position }, $string_position, ': ',
                     ( substr $string, $string_position, 40 ),
                     qq{\nToken rejected, "}, $t->[0], qq{", "$1"},
                     ;
             } ## end if ( not defined $rec->read( $t->[0], $1 ) )
-	    $positions[$rec->latest_earley_set()] = $string_position;
+            $positions[ $rec->latest_earley_set() ] = $string_position;
             next TOKEN;
         } ## end TOKEN_TYPE: for my $t (@terminals)
 
@@ -357,8 +355,6 @@ sub parse_rules {
     } ## end TOKEN: while ( pos $string < $length )
 
     my $parse_ref = $rec->value;
-
-say STDERR join " ", @positions;
 
     if ( !defined $parse_ref ) {
         say $rec->show_progress() or die "say failed: $ERRNO";
