@@ -126,7 +126,7 @@ use English qw( -no_match_vars );
 use Marpa::R2::Thin::Trace;
 
 our %DEFAULT_SYMBOLS_RESERVED;
-%DEFAULT_SYMBOLS_RESERVED = map { $_, 1 } split //xms, '}]>)';
+%DEFAULT_SYMBOLS_RESERVED = map { ($_, 1) } split //xms, '}]>)';
 
 sub Marpa::R2::Internal::code_problems {
     my $args = shift;
@@ -257,7 +257,7 @@ sub Marpa::R2::Grammar::new {
 } ## end sub Marpa::R2::Grammar::new
 
 sub Marpa::R2::Grammar::thin {
-    $_[0]->[Marpa::R2::Internal::Grammar::C];
+    return $_[0]->[Marpa::R2::Internal::Grammar::C];
 }
 
 sub Marpa::R2::Grammar::thin_symbol {
@@ -487,7 +487,8 @@ sub Marpa::R2::Grammar::symbol_reserved_set {
             qq{symbol_reserved_set(): "$final_character" is not a reservable symbol}
         );
     }
-    $DEFAULT_SYMBOLS_RESERVED{$final_character} = $boolean ? 1 : 0;
+    # Return a value to make perlcritic happy
+    return $DEFAULT_SYMBOLS_RESERVED{$final_character} = $boolean ? 1 : 0;
 } ## end sub Marpa::R2::Grammar::symbol_reserved_set
 
 sub Marpa::R2::Grammar::precompute {
@@ -880,7 +881,7 @@ sub Marpa::R2::Grammar::show_dotted_rule {
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
     my ( $lhs, @rhs ) = $grammar->rule($rule_id);
     $dot_position = 0 if $dot_position < 0;
-    splice( @rhs, $dot_position, 0, q{.} );
+    splice @rhs, $dot_position, 0, q{.};
     return join q{ }, $lhs, q{->}, @rhs;
 } ## end sub Marpa::R2::Grammar::show_dotted_rule
 
@@ -1083,7 +1084,7 @@ sub add_user_rule {
 
     if ( defined $min and not Scalar::Util::looks_like_number($min) ) {
         Marpa::R2::exception(
-            qq{"min" must be undefined or a valid Perl number});
+            q{"min" must be undefined or a valid Perl number});
     }
 
     my $lhs = assign_user_symbol( $grammar, $lhs_name );
@@ -1211,15 +1212,6 @@ sub add_user_rule {
         $separator_id = $separator->[Marpa::R2::Internal::Symbol::ID];
     }
 
-    # Name the internal lhs symbol
-    my $sequence_symbol_name_base;
-    {
-        ## Escape any characters in symbol name which may cause dups
-        ( my $rhs_desc = $rhs_names->[0] ) =~ s/ [\[\]%] /%$1/gxms;
-        $sequence_symbol_name_base =
-            $lhs_name . '[' . $rhs_desc . ( $min ? q{+} : q{*} ) . ']';
-    }
-
     my $original_rule_id = $grammar_c->sequence_new(
         $lhs_id,
         $rhs_ids[0],
@@ -1324,7 +1316,7 @@ sub Marpa::R2::Grammar::brief_irl {
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
     my $tracer    = $grammar->[Marpa::R2::Internal::Grammar::TRACER];
     my $lhs_id    = $grammar_c->_marpa_g_irl_lhs($irl_id);
-    my $text .= $irl_id . ': ' . $tracer->isy_name($lhs_id) . ' ->';
+    my $text = $irl_id . ': ' . $tracer->isy_name($lhs_id) . ' ->';
     if ( my $rh_length = $grammar_c->_marpa_g_irl_length($irl_id) ) {
         my @rhs_ids = ();
         for my $ix ( 0 .. $rh_length - 1 ) {
