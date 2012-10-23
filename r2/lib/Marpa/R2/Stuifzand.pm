@@ -1,11 +1,37 @@
-package Marpa::R2::Internal::Stuifzand;
+# Copyright 2012 Jeffrey Kegler
+# This file is part of Marpa::R2.  Marpa::R2 is free software: you can
+# redistribute it and/or modify it under the terms of the GNU Lesser
+# General Public License as published by the Free Software Foundation,
+# either version 3 of the License, or (at your option) any later version.
+#
+# Marpa::R2 is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser
+# General Public License along with Marpa::R2.  If not, see
+# http://www.gnu.org/licenses/.
+
+package Marpa::R2::Stuifzand;
 
 use 5.010;
 use strict;
 use warnings;
-use English qw( -no_match_vars );
 
-use Marpa::R2;
+use integer;
+use utf8;
+
+use vars qw($VERSION $STRING_VERSION);
+$VERSION        = '2.023_001';
+$STRING_VERSION = $VERSION;
+## no critic(BuiltinFunctions::ProhibitStringyEval)
+$VERSION = eval $VERSION;
+## use critic
+
+package Marpa::R2::Internal::Stuifzand;
+
+use English qw( -no_match_vars );
 
 sub do_arg0 { return $_[1]; }
 
@@ -369,3 +395,5 @@ sub parse_rules {
 } ## end sub parse_rules
 
 1;
+
+# vim: expandtab shiftwidth=4:

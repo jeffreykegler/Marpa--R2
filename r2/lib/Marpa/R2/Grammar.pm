@@ -425,19 +425,20 @@ sub Marpa::R2::Grammar::set {
                     or Marpa::R2::exception("Could not print: $ERRNO");
 
             } ## end if ( $value && $grammar_c->is_precomputed() )
-            given ( ref $value ) {
-                when (q{}) {
-                    $value //= {}
+            GIVEN_REF_VALUE: {
+                my $ref_value = ref $value;
+                if ( $ref_value eq q{} ) {
+                    $value //= {};
+                    last GIVEN_REF_VALUE;
                 }
-                when ('ARRAY') {
-                    $value = { map { ( $_, 1 ) } @{$value} }
+                if ( $ref_value eq 'ARRAY' ) {
+                    $value = { map { ( $_, 1 ) } @{$value} };
+                    last GIVEN_REF_VALUE;
                 }
-                default {
-                    Marpa::R2::exception(
-                        'value of inaccessible_ok option must be boolean or an array ref'
-                        )
-                }
-            } ## end given
+                Marpa::R2::exception(
+                    'value of inaccessible_ok option must be boolean or an array ref'
+                );
+            } ## end GIVEN_REF_VALUE:
             $grammar->[Marpa::R2::Internal::Grammar::INACCESSIBLE_OK] =
                 $value;
         } ## end if ( defined( my $value = $args->{'inaccessible_ok'}...))
@@ -448,19 +449,20 @@ sub Marpa::R2::Grammar::set {
                     q{"unproductive_ok" option is useless after grammar is precomputed}
                     or Marpa::R2::exception("Could not print: $ERRNO");
             }
-            given ( ref $value ) {
-                when (q{}) {
+            GIVEN_REF_VALUE: {
+                my $ref_value = ref $value;
+                if ( $ref_value eq q{} ) {
                     $value //= {};
+                    last GIVEN_REF_VALUE;
                 }
-                when ('ARRAY') {
-                    $value = { map { ( $_, 1 ) } @{$value} }
+                if ( $ref_value eq 'ARRAY' ) {
+                    $value = { map { ( $_, 1 ) } @{$value} };
+                    last GIVEN_REF_VALUE;
                 }
-                default {
-                    Marpa::R2::exception(
+                Marpa::R2::exception(
                         'value of unproductive_ok option must be boolean or an array ref'
-                        )
-                }
-            } ## end given
+                );
+            } ## end GIVEN_REF_VALUE:
             $grammar->[Marpa::R2::Internal::Grammar::UNPRODUCTIVE_OK] =
                 $value;
         } ## end if ( defined( my $value = $args->{'unproductive_ok'}...))
@@ -1001,45 +1003,54 @@ sub action_set {
 sub add_user_rules {
     my ( $grammar, $rules ) = @_;
 
+    my @hash_rules = ();
     RULE: for my $rule ( @{$rules} ) {
 
-        given ( ref $rule ) {
-            when ('ARRAY') {
-                my $arg_count = @{$rule};
+        # Translate other rule formats into hash rules
+        my $ref_rule = ref $rule;
+        if ( not $ref_rule ) {
+           # If it is not a ref, assume it is a string using
+           # the Stuifzand interface
+           push @hash_rules, Marpa::R2::Internal::Stuifzand::parse_rules($rule);
+           next RULE;
+        }
+        if ( $ref_rule eq 'HASH' ) {
+            push @hash_rules, $rule;
+            next RULE;
+        }
+        if ( $ref_rule eq 'ARRAY' ) {
+            my $arg_count = @{$rule};
 
-                if ( $arg_count > 4 or $arg_count < 1 ) {
-                    Marpa::R2::exception(
-                        "Rule has $arg_count arguments: "
-                            . join( ', ',
-                            map { defined $_ ? $_ : 'undef' } @{$rule} )
-                            . "\n"
-                            . 'Rule must have from 1 to 4 arguments'
-                    );
-                } ## end if ( $arg_count > 4 or $arg_count < 1 )
-                my ( $lhs, $rhs, $action ) = @{$rule};
-                add_user_rule(
-                    $grammar,
-                    {   lhs    => $lhs,
-                        rhs    => $rhs,
-                        action => $action,
-                    }
-                );
-
-            } ## end when ('ARRAY')
-            when ('HASH') {
-                add_user_rule( $grammar, $rule );
-            }
-            default {
+            if ( $arg_count > 4 or $arg_count < 1 ) {
                 Marpa::R2::exception(
-                    'Invalid rule: ',
-                    Data::Dumper->new( [$rule], ['Invalid_Rule'] )->Indent(2)
-                        ->Terse(1)->Maxdepth(2)->Dump,
-                    'Rule must be ref to HASH or ARRAY'
+                    "Rule has $arg_count arguments: "
+                        . join( ', ',
+                        map { defined $_ ? $_ : 'undef' } @{$rule} )
+                        . "\n"
+                        . 'Rule must have from 1 to 4 arguments'
                 );
-            } ## end default
-        } ## end given
+            } ## end if ( $arg_count > 4 or $arg_count < 1 )
+            my ( $lhs, $rhs, $action ) = @{$rule};
+            push @hash_rules,
+                {
+                lhs    => $lhs,
+                rhs    => $rhs,
+                action => $action,
+                };
+            next RULE;
+        } ## end if ( $ref_rule eq 'ARRAY' )
+        Marpa::R2::exception(
+            'Invalid rule: ',
+            Data::Dumper->new( [$rule], ['Invalid_Rule'] )->Indent(2)
+                ->Terse(1)->Maxdepth(2)->Dump,
+            'Rule must be ref to HASH or ARRAY'
+        );
 
     }    # RULE
+
+    for my $hash_rule (@hash_rules) {
+        add_user_rule( $grammar, $hash_rule );
+    }
 
     return;
 

@@ -50,7 +50,7 @@ eval {
 @Marpa::R2::CARP_NOT = ();
 for my $start (qw(Marpa::R2)) {
     for my $middle ( q{}, '::Internal' ) {
-        for my $end ( q{}, qw(::Recognizer ::Callback ::Grammar ::Value) ) {
+        for my $end ( q{}, qw(::Stuifzand ::Recognizer ::Callback ::Grammar ::Value) ) {
             push @Marpa::R2::CARP_NOT, $start . $middle . $end;
         }
     }
@@ -97,6 +97,10 @@ require Marpa::R2::Internal;
 require Marpa::R2::Grammar;
 ( $version_result = version_ok($Marpa::R2::Grammar::VERSION) )
     and die 'Marpa::R2::Grammar::VERSION ', $version_result;
+
+require Marpa::R2::Stuifzand;
+( $version_result = version_ok($Marpa::R2::Stuifzand::VERSION) )
+    and die 'Marpa::R2::Stuifzand::VERSION ', $version_result;
 
 require Marpa::R2::Recognizer;
 ( $version_result = version_ok($Marpa::R2::Recognizer::VERSION) )
