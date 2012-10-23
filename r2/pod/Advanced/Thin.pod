@@ -930,13 +930,37 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
-The thin interface's C<alternative()> method follows
-the general pattern, with one exception:
+In the Libmarpa API
+the
+C<alternative()> method returns an error
+code,
+with 
+C<MARPA_ERR_NONE> being the code returned if there
+was no error.
 The C<alternative()> method will
-throw failures as exceptions if and only if the
-base grammar's throw flag is on
-and the Ruby Slippers flag is off.
-For more, see L<< C<ruby_slippers_set()>|"$r->ruby_slippers_set()" >>.
+throw the error code as an
+exception if and only if all three 
+of the following are true:
+
+=over
+
+=item * The base grammar's throw flag is on.
+
+=item * The Ruby Slippers flag is off.
+
+=item * The error code is not C<MARPA_ERR_NONE>.
+
+=back
+
+Of major interest is the error code
+C<MARPA_ERR_UNEXPECTED_TOKEN_ID>,
+which indicates that a token was not accepted because
+its token ID was not one of those expected.
+Catching and recovering
+from this error is the basis of the Ruby Slippers parsing
+technique.
+For more on the Ruby Slippers flag,
+see L<< C<ruby_slippers_set()>|"$r->ruby_slippers_set()" >>.
 
 =head2 C<< $r->terminals_expected() >>
 
