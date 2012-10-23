@@ -1009,11 +1009,14 @@ sub add_user_rules {
         # Translate other rule formats into hash rules
         my $ref_rule = ref $rule;
         if ( not $ref_rule ) {
-           # If it is not a ref, assume it is a string using
-           # the Stuifzand interface
-           push @hash_rules, Marpa::R2::Internal::Stuifzand::parse_rules($rule);
-           next RULE;
-        }
+
+            # If it is not a ref, assume it is a string using
+            # the Stuifzand interface
+            my $stuifzand_rules =
+                Marpa::R2::Internal::Stuifzand::parse_rules($rule);
+            push @hash_rules, @{$stuifzand_rules};
+            next RULE;
+        } ## end if ( not $ref_rule )
         if ( $ref_rule eq 'HASH' ) {
             push @hash_rules, $rule;
             next RULE;

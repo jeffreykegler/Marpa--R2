@@ -184,8 +184,7 @@ sub do_group_adverb { return 'G' }
 
 sub do_what_I_mean {
 
-    # The first argument is the per-parse variable.
-    # Until we know what to do with it, just throw it away
+    # Throw away the per-parse variable.
     shift;
 
     # Throw away any undef's
