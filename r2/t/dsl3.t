@@ -1,39 +1,31 @@
 #!perl
+# Copyright 2012 Jeffrey Kegler
+# This file is part of Marpa::R2.  Marpa::R2 is free software: you can
+# redistribute it and/or modify it under the terms of the GNU Lesser
+# General Public License as published by the Free Software Foundation,
+# either version 3 of the License, or (at your option) any later version.
+#
+# Marpa::R2 is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser
+# General Public License along with Marpa::R2.  If not, see
+# http://www.gnu.org/licenses/.
 
-# This calculator contains *TWO* DSL's.
-# The first one is for the calculator itself.
-# The calculator's grammar is written in OP2.
-# OP2 is the second DSL, and its code is the
-# second half of this file.
+# the example grammar in Aycock/Horspool "Practical Earley Parsing",
+# _The Computer Journal_, Vol. 45, No. 6, pp. 620-630,
+# in its "NNF" form
 
 use 5.010;
 use strict;
 use warnings;
-use English qw( -no_match_vars );
 
-use Getopt::Long;
+use Test::More tests => 5;
+use lib 'inc';
+use Marpa::R2::Test;
 use Marpa::R2;
-
-my $do_demo = 0;
-my $getopt_result = GetOptions( "demo!" => \$do_demo, );
-
-sub usage {
-    die <<"END_OF_USAGE_MESSAGE";
-$PROGRAM_NAME --demo
-$PROGRAM_NAME 'exp' [...]
-
-Run $PROGRAM_NAME with either the "--demo" argument
-or a series of calculator expressions.
-END_OF_USAGE_MESSAGE
-} ## end sub usage
-
-if ( not $getopt_result ) {
-    usage();
-}
-if ($do_demo) {
-    if ( scalar @ARGV > 0 ) { say join " ", @ARGV; usage(); }
-}
-elsif ( scalar @ARGV <= 0 ) { usage(); }
 
 my $rules = <<'END_OF_GRAMMAR';
 reduce_op ::=
@@ -244,31 +236,43 @@ if (@ARGV) {
     exit 0;
 } ## end if (@ARGV)
 
-my $output = join q{},
-    report_calculation('4 * 3 + 42 / 1'),
-    report_calculation('4 * 3 / (a = b = 5) + 42 - 1'),
-    report_calculation('4 * 3 /  5 - - - 3 + 42 - 1'),
-    report_calculation('a=1;b = 5;  - a - b'),
-    report_calculation('1 * 2 + 3 * 4 ^ 2 ^ 2 ^ 2 * 42 + 1'),
-    report_calculation('+ reduce 1 + 2, 3,4*2 , 5');
-
-print $output or die "print failed: $ERRNO";
-$output eq <<'EXPECTED_OUTPUT' or die 'FAIL: Output mismatch';
+my @tests = (
+    [ '4 * 3 + 42 / 1', <<'END_OF_OUTPUT'],
 Input: "4 * 3 + 42 / 1"
   Parse: 54
+END_OF_OUTPUT
+    [ '4 * 3 / (a = b = 5) + 42 - 1', <<'END_OF_OUTPUT'],
 Input: "4 * 3 / (a = b = 5) + 42 - 1"
   Parse: 43.4
 "a" = "5"
 "b" = "5"
+END_OF_OUTPUT
+    [ '4 * 3 /  5 - - - 3 + 42 - 1', <<'END_OF_OUTPUT'],
 Input: "4 * 3 /  5 - - - 3 + 42 - 1"
   Parse: 40.4
+END_OF_OUTPUT
+    [ 'a=1;b = 5;  - a - b', <<'END_OF_OUTPUT'],
 Input: "a=1;b = 5;  - a - b"
   Parse: -6
 "a" = "1"
 "b" = "5"
+END_OF_OUTPUT
+    [ '1 * 2 + 3 * 4 ^ 2 ^ 2 ^ 2 * 42 + 1', <<'END_OF_OUTPUT'],
 Input: "1 * 2 + 3 * 4 ^ 2 ^ 2 ^ 2 * 42 + 1"
   Parse: 541165879299
+    ['+ reduce 1 + 2, 3,4*2 , 5', <<'END_OF_OUTPUT'],
 Input: "+ reduce 1 + 2, 3,4*2 , 5"
   Parse: 19
+END_OF_OUTPUT
+);
+
+for my $test (@tests) {
+    my ($input, $expected_output) = @{$test};
+    my $actual_output = report_calculation($input);
+Marpa::R2::Test::is( $actual_parse_count, $expected_ouput, qq{Parsing "$input"});
+}
+
+print $output or die "print failed: $ERRNO";
+$output eq <<'EXPECTED_OUTPUT' or die 'FAIL: Output mismatch';
 EXPECTED_OUTPUT
 
