@@ -234,11 +234,14 @@ sub stuifzand_grammar {
     my $grammar = Marpa::R2::Thin::G->new( { if => 1 } );
     my $tracer = Marpa::R2::Thin::Trace->new($grammar);
     $tracer->sequence_new( do_rules => qw(rules rule), { min => 1 } );
+    $tracer->rule_new( undef, qw(rule empty_rule));
+    $tracer->rule_new( undef, qw(rule priority_rule));
+    $tracer->rule_new( undef, qw(rule quantified_rule));
     $tracer->rule_new(
-        do_priority_rule => qw(rule lhs op_declare priorities) );
-    $tracer->rule_new( do_empty_rule => qw(rule lhs op_declare action) );
+        do_priority_rule => qw(priority_rule lhs op_declare priorities) );
+    $tracer->rule_new( do_empty_rule => qw(empty_rule lhs op_declare action) );
     $tracer->rule_new(
-        do_quantified_rule => qw(rule lhs op_declare name quantifier action)
+        do_quantified_rule => qw(quantified_rule lhs op_declare name quantifier action)
     );
     $tracer->rule_new( do_priority1 => qw(priorities alternatives) );
     $tracer->rule_new(
@@ -254,7 +257,6 @@ sub stuifzand_grammar {
     $tracer->rule_new( do_left_adverb      => qw(adverb op_left) );
     $tracer->rule_new( undef, qw(adverb) );
     $tracer->rule_new( undef, qw(action) );
-    $tracer->rule_new( do_arg1 => qw( action op_arrow action_name) );
     $tracer->rule_new( do_arg1 => qw( action op_arrow name) );
     $tracer->rule_new( do_lhs  => qw( lhs name ) );
     $tracer->rule_new( undef, qw( rhs names ) );
