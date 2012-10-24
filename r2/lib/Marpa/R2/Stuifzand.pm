@@ -153,16 +153,6 @@ sub do_quantified_rule {
     return [ \%hash_rule ];
 } ## end sub do_quantified_rule
 
-sub do_priority_one {
-    shift;
-    return [ $_[0] ];
-}
-
-sub do_priority_many {
-    shift;
-    return [ $_[0], @{ $_[2] } ];
-}
-
 sub do_lhs { shift; return $_[0]; }
 sub do_adverb_list { shift; return { map {; @{$_}} @_ } }
 sub do_action { shift; return [ action => $_[2] ] }
@@ -225,9 +215,7 @@ sub stuifzand_grammar {
     $tracer->rule_new(
         do_quantified_rule => qw(quantified_rule lhs op_declare name quantifier adverb_list)
     );
-    $tracer->rule_new( do_priority_one => qw(priorities alternatives) );
-    $tracer->rule_new(
-        do_priority_many => qw(priorities alternatives op_tighter priorities) );
+    $tracer->sequence_new( do_discard_separators => qw(priorities alternatives), { min => 1, separator => 'op_tighter', proper => 1 } );
     $tracer->sequence_new( do_discard_separators => qw(alternatives alternative), { min => 1, separator => 'op_eq_pri', proper => 1 } );
     $tracer->rule_new(
         do_alternative => qw(alternative rhs adverb_list) );
@@ -374,16 +362,6 @@ sub parse_rules {
             if ( $action eq 'do_quantified_rule' ) {
                 $stack[$arg_0] =
                     do_quantified_rule( undef, @stack[ $arg_0 .. $arg_n ] );
-                next STEP;
-            }
-            if ( $action eq 'do_priority_one' ) {
-                $stack[$arg_0] =
-                    do_priority_one( undef, @stack[ $arg_0 .. $arg_n ] );
-                next STEP;
-            }
-            if ( $action eq 'do_priority_many' ) {
-                $stack[$arg_0] =
-                    do_priority_many( undef, @stack[ $arg_0 .. $arg_n ] );
                 next STEP;
             }
             if ( $action eq 'do_alternative' ) {
