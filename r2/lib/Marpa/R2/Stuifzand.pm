@@ -149,15 +149,6 @@ sub do_quantified_rule {
     ];
 } ## end sub do_quantified_rule
 
-sub do_simple_rule {
-    shift;
-    return {
-        @{ $_[0] },
-        rhs => [ $_[2] ],
-        @{ $_[3] || [] }
-    };
-} ## end sub do_simple_rule
-
 sub do_priority_one {
     shift;
     return [ $_[0] ];
@@ -257,7 +248,7 @@ sub stuifzand_grammar {
     $tracer->rule_new( do_left_adverb      => qw(adverb op_left) );
     $tracer->rule_new( undef, qw(adverb) );
     $tracer->rule_new( undef, qw(action) );
-    $tracer->rule_new( do_arg1 => qw( action op_arrow name) );
+    $tracer->rule_new( do_arg2 => qw( action kw_action op_arrow name) );
     $tracer->rule_new( do_lhs  => qw( lhs name ) );
     $tracer->rule_new( undef, qw( rhs names ) );
     $tracer->rule_new( undef, qw( quantifier op_star ) );
@@ -285,6 +276,7 @@ sub parse_rules {
 
     # Order matters !!!
     my @terminals = (
+        [ 'kw_action', qr/action\b/xms ],
         [ 'op_right',      qr/:right\b/xms ],
         [ 'op_left',       qr/:left\b/xms ],
         [ 'op_group',      qr/:group\b/xms ],
@@ -292,7 +284,7 @@ sub parse_rules {
         [ 'op_arrow',      qr/=>/xms ],
         [ 'op_tighter',    qr/[|][|]/xms ],
         [ 'op_eq_pri',     qr/[|]/xms ],
-        [ 'reserved_name', qr/(::(whatever|undef))/xms ],
+        # [ 'reserved_name', qr/(::(whatever|undef))/xms ],
         [ 'op_plus',       qr/[+]/xms ],
         [ 'op_star',       qr/[*]/xms ],
         [ 'name',          qr/\w+/xms ],
@@ -437,6 +429,10 @@ sub parse_rules {
             }
             if ( $action eq 'do_arg1' ) {
                 $stack[$arg_0] = $stack[ $arg_0 + 1 ];
+                next STEP;
+            }
+            if ( $action eq 'do_arg2' ) {
+                $stack[$arg_0] = $stack[ $arg_0 + 2 ];
                 next STEP;
             }
             if ( $action eq 'do_right_adverb' ) {

@@ -30,25 +30,25 @@ use Marpa::R2;
 
 my $rules = <<'END_OF_GRAMMAR';
 reduce_op ::=
-    '+' => do_arg0
-  | '-' => do_arg0
-  | '/' => do_arg0
-  | '*' => do_arg0
-script ::= e => do_arg0
-script ::= script ';' e => do_arg2
+    '+' action => do_arg0
+  | '-' action => do_arg0
+  | '/' action => do_arg0
+  | '*' action => do_arg0
+script ::= e action => do_arg0
+script ::= script ';' e action => do_arg2
 e ::=
-     NUM => do_arg0
-   | VAR => do_is_var
-   | :group '(' e ')' => do_arg1
-  || '-' e => do_negate
-  || :right e '^' e => do_binop
-  || e '*' e => do_binop
-   | e '/' e => do_binop
-  || e '+' e => do_binop
-   | e '-' e => do_binop
-  || e ',' e => do_array
-  || reduce_op 'reduce' e => do_reduce
-  || VAR '=' e => do_set_var
+     NUM action => do_arg0
+   | VAR action => do_is_var
+   | :group '(' e ')' action => do_arg1
+  || '-' e action => do_negate
+  || :right e '^' e action => do_binop
+  || e '*' e action => do_binop
+   | e '/' e action => do_binop
+  || e '+' e action => do_binop
+   | e '-' e action => do_binop
+  || e ',' e action => do_array
+  || reduce_op 'reduce' e action => do_reduce
+  || VAR '=' e action => do_set_var
 END_OF_GRAMMAR
 
 my $grammar = Marpa::R2::Grammar->new(
