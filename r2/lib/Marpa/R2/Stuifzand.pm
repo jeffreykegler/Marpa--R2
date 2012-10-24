@@ -239,13 +239,7 @@ sub input_slice {
     return substr $input, $start_position, $length;
 } ## end sub input_slice
 
-sub parse_rules {
-    my ($string) = @_;
-
-    # Track earley set positions in input,
-    # for debuggging
-    my @positions = (0);
-
+sub stuifzand_grammar {
     my $grammar = Marpa::R2::Grammar->new(
         {   start          => 'rules',
             actions        => __PACKAGE__,
@@ -335,8 +329,19 @@ sub parse_rules {
         }
     );
     $grammar->precompute;
+    return $grammar;
+}
 
-    my $thin_grammar = $grammar->thin();
+
+sub parse_rules {
+    my ($string) = @_;
+
+    # Track earley set positions in input,
+    # for debuggging
+    my @positions = (0);
+
+    state $thick_grammar = stuifzand_grammar();
+    my $thin_grammar = $thick_grammar->thin();
     my $recce = Marpa::R2::Thin::R->new($thin_grammar);
     $recce->start_input();
     $recce->ruby_slippers_set(1);
@@ -372,7 +377,7 @@ sub parse_rules {
             next TOKEN_TYPE if not $string =~ m/\G($t->[1])/gcxms;
             my $value_number = -1 + push @token_values, $1;
             my $string_position = pos $string;
-            if ($recce->alternative( $grammar->thin_symbol( $t->[0] ),
+            if ($recce->alternative( $thick_grammar->thin_symbol( $t->[0] ),
                     $value_number, 1 ) != $Marpa::R2::Error::NONE
                 )
             {
@@ -380,7 +385,7 @@ sub parse_rules {
                     ( substr $string, $string_position, 40 ),
                     qq{\nToken rejected, "}, $t->[0], qq{", "$1"},
                     ;
-            } ## end if ( $recce->alternative( $grammar->thin_symbol( $t->...)))
+            } ## end if ( $recce->alternative( $thick_grammar->thin_symbol( $t->...)))
             $recce->earleme_complete();
             $latest_earley_set_ID = $recce->latest_earley_set();
             $positions[$latest_earley_set_ID] = $string_position;
@@ -397,7 +402,7 @@ sub parse_rules {
     if ( !defined $bocage ) {
         say $recce->show_progress() or die "say failed: $ERRNO";
         say input_slice( $string, \@positions,
-            last_completed_range( $grammar, $recce, 'rule' ) )
+            last_completed_range( $thin_grammar, $recce, 'rule' ) )
             // 'No rule was completed';
         die 'Parse failed';
     } ## end if ( !defined $parse_ref )
@@ -411,7 +416,7 @@ sub parse_rules {
         0 .. $thin_grammar->highest_rule_id() )
     {
         $valuator->rule_is_valued_set( $rule_id, 1 );
-        $actions_by_rule_id[$rule_id] = $grammar->action($rule_id);
+        $actions_by_rule_id[$rule_id] = $thick_grammar->action($rule_id);
     }
 
     my @stack = ();
