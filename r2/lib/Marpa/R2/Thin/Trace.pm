@@ -20,54 +20,77 @@ use warnings;
 use strict;
 
 use vars qw($VERSION $STRING_VERSION);
-$VERSION = '2.023_002';
+$VERSION        = '2.023_002';
 $STRING_VERSION = $VERSION;
-$VERSION = eval $VERSION;
+$VERSION        = eval $VERSION;
 
 sub new {
-    my ($class, $grammar) = @_;
+    my ( $class, $grammar ) = @_;
     my $self = bless {}, $class;
-    $self->{g} = $grammar;
+    $self->{g}              = $grammar;
     $self->{symbol_by_name} = {};
-    $self->{symbol_names} = {};
+    $self->{symbol_names}   = {};
     return $self;
-}
+} ## end sub new
 
 sub grammar {
-   my ($self) = @_;
-   return $self->{g};
+    my ($self) = @_;
+    return $self->{g};
 }
 
 sub symbol_by_name {
-   my ($self, $name) = @_;
-   return $self->{symbol_by_name}->{$name};
+    my ( $self, $name ) = @_;
+    return $self->{symbol_by_name}->{$name};
 }
 
 sub symbol_name {
-   my ($self, $symbol_id) = @_;
-   my $symbol_name = $self->{symbol_name}->[$symbol_id];
-   $symbol_name = 'R' . $symbol_id if not defined $symbol_name;
-   return $symbol_name;
-}
+    my ( $self, $symbol_id ) = @_;
+    my $symbol_name = $self->{symbol_name}->[$symbol_id];
+    $symbol_name = 'R' . $symbol_id if not defined $symbol_name;
+    return $symbol_name;
+} ## end sub symbol_name
 
 sub symbol_name_set {
-   my ($self, $name, $symbol_id) = @_;
-   $self->{symbol_name}->[$symbol_id] = $name;
-   $self->{symbol_by_name}->{$name} = $symbol_id;
-   return $symbol_id;
-}
+    my ( $self, $name, $symbol_id ) = @_;
+    $self->{symbol_name}->[$symbol_id] = $name;
+    $self->{symbol_by_name}->{$name} = $symbol_id;
+    return $symbol_id;
+} ## end sub symbol_name_set
 
 sub symbol_new {
-   my ($self, $name) = @_;
-   return $self->symbol_name_set($name, $self->{g}->symbol_new());
+    my ( $self, $name ) = @_;
+    return $self->symbol_name_set( $name, $self->{g}->symbol_new() );
 }
+
+sub symbol_force {
+    my ( $self, $name ) = @_;
+    return $self->{symbol_by_name}->{$name} // $self->symbol_new($name);
+}
+
+sub rule_new {
+    my ( $self, $lhs, @rhs ) = @_;
+    my $lhs_id = $self->symbol_force($lhs);
+    my @rhs_ids = map { $self->symbol_force($_); } @rhs;
+    return $self->{g}->rule_new( $lhs_id, \@rhs_ids );
+} ## end sub rule_new
+
+sub sequence_new {
+    my ( $self, $lhs, $rhs, $hash_args ) = @_;
+    my $lhs_id         = $self->symbol_force($lhs);
+    my $rhs_id         = $self->symbol_force($rhs);
+    my %thin_hash_args = %{$hash_args} // {};
+    if ( defined (my $separator = $thin_hash_args{separator} )) {
+        $thin_hash_args{separator} = $self->symbol_force($separator);
+    }
+    return $self->{g}->sequence_new( $lhs_id, $rhs_id, \%thin_hash_args );
+} ## end sub sequence_new
 
 sub dotted_rule {
     my ( $self, $rule_id, $dot_position ) = @_;
     my $grammar     = $self->{g};
     my $rule_length = $grammar->rule_length($rule_id);
     $dot_position = $rule_length if $dot_position < 0;
-    my $lhs         = $self->symbol_name( $grammar->rule_lhs($rule_id) );
+    my $lhs = $self->symbol_name( $grammar->rule_lhs($rule_id) );
     my @rhs =
         map { $self->symbol_name( $grammar->rule_rhs( $rule_id, $_ ) ) }
         ( 0 .. $rule_length - 1 );
@@ -83,7 +106,7 @@ sub progress_report {
     $recce->progress_report_start($ordinal);
     ITEM: while (1) {
         my ( $rule_id, $dot_position, $origin ) = $recce->progress_item();
-        last ITEM if not defined $rule_id; 
+        last ITEM if not defined $rule_id;
         $result
             .= q{@}
             . $origin . q{: }
@@ -95,8 +118,8 @@ sub progress_report {
 
 sub show_dotted_irl {
     my ( $self, $irl_id, $dot_position ) = @_;
-    my $grammar_c = $self->{g};
-    my $lhs_id    = $grammar_c->_marpa_g_irl_lhs($irl_id);
+    my $grammar_c  = $self->{g};
+    my $lhs_id     = $grammar_c->_marpa_g_irl_lhs($irl_id);
     my $irl_length = $grammar_c->_marpa_g_irl_length($irl_id);
 
     my $text = $self->isy_name($lhs_id) . q{ ->};
@@ -119,11 +142,11 @@ sub show_dotted_irl {
         my $name = $rhs_names[$position];
         next POSITION if not defined $name;
         $text .= " $name";
-    } ## end for my $position ( 0 .. scalar @rhs_names )
+    } ## end POSITION: for my $position ( 0 .. scalar @rhs_names )
 
     return $text;
 
-}
+} ## end sub show_dotted_irl
 
 sub show_AHFA_item {
     my ( $self, $item_id ) = @_;
@@ -151,10 +174,10 @@ sub show_brief_AHFA_item {
     my ( $self, $item_id ) = @_;
     my $grammar_c  = $self->{g};
     my $postdot_id = $grammar_c->_marpa_g_AHFA_item_postdot($item_id);
-    my $irl_id    = $grammar_c->_marpa_g_AHFA_item_irl($item_id);
+    my $irl_id     = $grammar_c->_marpa_g_AHFA_item_irl($item_id);
     my $position   = $grammar_c->_marpa_g_AHFA_item_position($item_id);
     return $self->show_dotted_irl( $irl_id, $position );
-} ## end sub Marpa::R2::show_brief_AHFA_item
+} ## end sub show_brief_AHFA_item
 
 sub show_AHFA {
     my ( $self, $verbose ) = @_;
@@ -167,7 +190,8 @@ sub show_AHFA {
         $text .= "* S$state_id:";
         defined $grammar_c->_marpa_g_AHFA_state_leo_lhs_symbol($state_id)
             and $text .= ' leo-c';
-        $grammar_c->_marpa_g_AHFA_state_is_predict($state_id) and $text .= ' predict';
+        $grammar_c->_marpa_g_AHFA_state_is_predict($state_id)
+            and $text .= ' predict';
         $text .= "\n";
         my @items = ();
         for my $item_id ( $grammar_c->_marpa_g_AHFA_state_items($state_id) ) {
@@ -175,53 +199,55 @@ sub show_AHFA {
                 [
                 $grammar_c->_marpa_g_AHFA_item_irl($item_id),
                 $grammar_c->_marpa_g_AHFA_item_postdot($item_id),
-                $self->show_brief_AHFA_item( $item_id )
+                $self->show_brief_AHFA_item($item_id)
                 ];
-        } ## end for my $item_id ( $grammar_c->_marpa_g_AHFA_state_items($state_id...))
+        } ## end for my $item_id ( $grammar_c->_marpa_g_AHFA_state_items...)
         $text .= join "\n", map { $_->[2] }
             sort { $a->[0] <=> $b->[0] || $a->[1] <=> $b->[1] } @items;
         $text .= "\n";
 
         next STATE if not $verbose;
 
-        my @raw_transitions = $grammar_c->_marpa_g_AHFA_state_transitions($state_id);
-        my %transitions     = ();
-        while ( my ( $isy_id, $to_state_id ) = splice @raw_transitions, 0,
-            2 )
+        my @raw_transitions =
+            $grammar_c->_marpa_g_AHFA_state_transitions($state_id);
+        my %transitions = ();
+        while ( my ( $isy_id, $to_state_id ) = splice @raw_transitions, 0, 2 )
         {
             my $symbol_name = $self->isy_name($isy_id);
             $transitions{$symbol_name} = $to_state_id;
-        } ## end while ( my ( $isy_id, $to_state_id ) = splice ...)
+        }
         for my $transition_symbol ( sort keys %transitions ) {
             $text .= ' <' . $transition_symbol . '> => ';
             my $to_state_id = $transitions{$transition_symbol};
             my @to_descs    = ("S$to_state_id");
-            my $lhs_id = $grammar_c->_marpa_g_AHFA_state_leo_lhs_symbol($to_state_id);
+            my $lhs_id =
+                $grammar_c->_marpa_g_AHFA_state_leo_lhs_symbol($to_state_id);
             if ( defined $lhs_id ) {
                 my $lhs_name = $self->isy_name($lhs_id);
                 push @to_descs, "leo($lhs_name)";
             }
             my $empty_transition_state =
-                $grammar_c->_marpa_g_AHFA_state_empty_transition($to_state_id);
+                $grammar_c->_marpa_g_AHFA_state_empty_transition(
+                $to_state_id);
             $empty_transition_state >= 0
                 and push @to_descs, "S$empty_transition_state";
             $text .= ( join q{; }, sort @to_descs ) . "\n";
         } ## end for my $transition_symbol ( sort keys %transitions )
 
-    } ## end for ( my $state_id = 0; $state_id < $AHFA_state_count...)
+    } ## end STATE: for ( my $state_id = 0; $state_id < $AHFA_state_count...)
     return $text;
-}
+} ## end sub show_AHFA
 
 sub show_AHFA_items {
-    my ($self) = @_;
+    my ($self)    = @_;
     my $grammar_c = $self->{g};
     my $text      = q{};
     my $count     = $grammar_c->_marpa_g_AHFA_item_count();
     for my $AHFA_item_id ( 0 .. $count - 1 ) {
-        $text .= $self->show_AHFA_item( $AHFA_item_id );
+        $text .= $self->show_AHFA_item($AHFA_item_id);
     }
     return $text;
-}
+} ## end sub show_AHFA_items
 
 sub isy_name {
     my ( $self, $id ) = @_;
@@ -232,29 +258,30 @@ sub isy_name {
 
     GEN_NAME: {
 
-	if ($grammar_c->_marpa_g_isy_is_start($id)) {
-	  my $source_id = $grammar_c->_marpa_g_source_xsy($id);
-	  $name = $self->symbol_name($source_id);
-	  $name .= q<[']>;
+        if ( $grammar_c->_marpa_g_isy_is_start($id) ) {
+            my $source_id = $grammar_c->_marpa_g_source_xsy($id);
+            $name = $self->symbol_name($source_id);
+            $name .= q<[']>;
             last GEN_NAME;
-	}
+        } ## end if ( $grammar_c->_marpa_g_isy_is_start($id) )
 
         my $lhs_xrl = $grammar_c->_marpa_g_isy_lhs_xrl($id);
-        if ( defined $lhs_xrl and defined $grammar_c->sequence_min($lhs_xrl) ) {
+        if ( defined $lhs_xrl and defined $grammar_c->sequence_min($lhs_xrl) )
+        {
             my $original_lhs_id = $grammar_c->rule_lhs($lhs_xrl);
             $name = $self->symbol_name($original_lhs_id) . '[Seq]';
             last GEN_NAME;
-        }
+        } ## end if ( defined $lhs_xrl and defined $grammar_c->sequence_min...)
 
         my $xrl_offset = $grammar_c->_marpa_g_isy_xrl_offset($id);
-        if ( $xrl_offset ) {
+        if ($xrl_offset) {
             my $original_lhs_id = $grammar_c->rule_lhs($lhs_xrl);
             $name =
-                  $self->symbol_name($original_lhs_id) . '[R' 
+                  $self->symbol_name($original_lhs_id) . '[R'
                 . $lhs_xrl . q{:}
                 . $xrl_offset . ']';
             last GEN_NAME;
-        } ## end if ( defined $xrl_offset )
+        } ## end if ($xrl_offset)
 
         my $source_id = $grammar_c->_marpa_g_source_xsy($id);
         $name = $self->symbol_name($source_id);
@@ -263,6 +290,6 @@ sub isy_name {
     } ## end GEN_NAME:
 
     return $name;
-}
+} ## end sub isy_name
 
 1;
