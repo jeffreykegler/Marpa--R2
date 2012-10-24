@@ -336,7 +336,12 @@ sub parse_rules {
     );
     $grammar->precompute;
 
-    my $rec = Marpa::R2::Recognizer->new( { grammar => $grammar } );
+    my $thin_grammar = $grammar->thin();
+    my $recce = Marpa::R2::Thin::R->new($thin_grammar);
+    $recce->start_input();
+    $recce->ruby_slippers_set(1);
+    # Zero position must not be used
+    my @token_values = (0);
 
     # Order matters !!!
     my @terminals = (
@@ -356,6 +361,7 @@ sub parse_rules {
 
     my $length = length $string;
     pos $string = 0;
+    my $latest_earley_set_ID = 0;
     TOKEN: while ( pos $string < $length ) {
 
         # skip whitespace
@@ -364,14 +370,20 @@ sub parse_rules {
         # read other tokens
         TOKEN_TYPE: for my $t (@terminals) {
             next TOKEN_TYPE if not $string =~ m/\G($t->[1])/gcxms;
+            my $value_number = 1 + push @token_values, $1;
             my $string_position = pos $string;
-            if ( not defined $rec->read( $t->[0], $1 ) ) {
+            if ($recce->alternative( $grammar->thin_symbol( $t->[0] ),
+                    $value_number, 1 ) != $Marpa::R2::Error::NONE
+                )
+            {
                 die die q{Problem before position }, $string_position, ': ',
                     ( substr $string, $string_position, 40 ),
                     qq{\nToken rejected, "}, $t->[0], qq{", "$1"},
                     ;
-            } ## end if ( not defined $rec->read( $t->[0], $1 ) )
-            $positions[ $rec->latest_earley_set() ] = $string_position;
+            } ## end if ( $recce->alternative( $grammar->thin_symbol( $t->...)))
+            $recce->earleme_complete();
+            $latest_earley_set_ID = $recce->latest_earley_set();
+            $positions[$latest_earley_set_ID] = $string_position;
             next TOKEN;
         } ## end TOKEN_TYPE: for my $t (@terminals)
 
@@ -379,16 +391,141 @@ sub parse_rules {
             q{", position }, pos $string;
     } ## end TOKEN: while ( pos $string < $length )
 
-    my $parse_ref = $rec->value;
-
-    if ( !defined $parse_ref ) {
-        say $rec->show_progress() or die "say failed: $ERRNO";
+    $thin_grammar->throw_set(0);
+    my $bocage        = Marpa::R2::Thin::B->new( $recce, $latest_earley_set_ID );
+    $thin_grammar->throw_set(1);
+    if ( !defined $bocage ) {
+        say $recce->show_progress() or die "say failed: $ERRNO";
         say input_slice( $string, \@positions,
-            last_completed_range( $grammar, $rec, 'rule' ) )
+            last_completed_range( $grammar, $recce, 'rule' ) )
             // 'No rule was completed';
         die 'Parse failed';
     } ## end if ( !defined $parse_ref )
-    my $parse = ${$parse_ref};
+
+    my $order         = Marpa::R2::Thin::O->new($bocage);
+    my $tree          = Marpa::R2::Thin::T->new($order);
+    $tree->next();
+    my $valuator = Marpa::R2::Thin::V->new($tree);
+    my @actions_by_rule_id;
+    for my $rule_id ( grep { $thin_grammar->rule_length($_); }
+        0 .. $thin_grammar->highest_rule_id() )
+    {
+        $valuator->rule_is_valued_set( $rule_id, 1 );
+        $actions_by_rule_id[$rule_id] = $grammar->action($rule_id);
+    }
+
+    my @stack = ();
+    STEP: while (1) {
+        my ( $type, @step_data ) = $valuator->step();
+        last STEP if not defined $type;
+        if ( $type eq 'MARPA_STEP_TOKEN' ) {
+            my ( undef, $token_value_ix, $arg_n ) = @step_data;
+            $stack[$arg_n] = $token_values[$token_value_ix];
+            next STEP;
+        }
+        if ( $type eq 'MARPA_STEP_RULE' ) {
+            my ( $rule_id, $arg_0, $arg_n ) = @step_data;
+            my $action = $actions_by_rule_id[$rule_id] // 'do_what_I_mean';
+            if ( $action eq 'do_arg0' ) {
+                $stack[$arg_0] = do_arg0( undef, @stack[ $arg_0 .. $arg_n ] );
+                next STEP;
+            }
+            if ( $action eq 'do_rules' ) {
+                $stack[$arg_0] =
+                    do_rules( undef, @stack[ $arg_0 .. $arg_n ] );
+                next STEP;
+            }
+            if ( $action eq 'do_priority_rule' ) {
+                $stack[$arg_0] =
+                    do_priority_rule( undef, @stack[ $arg_0 .. $arg_n ] );
+                next STEP;
+            }
+            if ( $action eq 'do_empty_rule' ) {
+                $stack[$arg_0] =
+                    do_empty_rule( undef, @stack[ $arg_0 .. $arg_n ] );
+                next STEP;
+            }
+            if ( $action eq 'do_quantified_rule' ) {
+                $stack[$arg_0] =
+                    do_quantified_rule( undef, @stack[ $arg_0 .. $arg_n ] );
+                next STEP;
+            }
+            if ( $action eq 'do_simple_rule' ) {
+                $stack[$arg_0] =
+                    do_simple_rule( undef, @stack[ $arg_0 .. $arg_n ] );
+                next STEP;
+            }
+            if ( $action eq 'do_priority1' ) {
+                $stack[$arg_0] =
+                    do_priority1( undef, @stack[ $arg_0 .. $arg_n ] );
+                next STEP;
+            }
+            if ( $action eq 'do_priority3' ) {
+                $stack[$arg_0] =
+                    do_priority3( undef, @stack[ $arg_0 .. $arg_n ] );
+                next STEP;
+            }
+            if ( $action eq 'do_full_alternative' ) {
+                $stack[$arg_0] =
+                    do_full_alternative( undef, @stack[ $arg_0 .. $arg_n ] );
+                next STEP;
+            }
+            if ( $action eq 'do_bare_alternative' ) {
+                $stack[$arg_0] =
+                    do_bare_alternative( undef, @stack[ $arg_0 .. $arg_n ] );
+                next STEP;
+            }
+            if ( $action eq 'do_alternatives_1' ) {
+                $stack[$arg_0] =
+                    do_alternatives_1( undef, @stack[ $arg_0 .. $arg_n ] );
+                next STEP;
+            }
+            if ( $action eq 'do_alternatives_3' ) {
+                $stack[$arg_0] =
+                    do_alternatives_3( undef, @stack[ $arg_0 .. $arg_n ] );
+                next STEP;
+            }
+            if ( $action eq 'do_lhs' ) {
+                $stack[$arg_0] = do_lhs( undef, @stack[ $arg_0 .. $arg_n ] );
+                next STEP;
+            }
+            if ( $action eq 'do_array' ) {
+                $stack[$arg_0] =
+                    do_array( undef, @stack[ $arg_0 .. $arg_n ] );
+                next STEP;
+            }
+            if ( $action eq 'do_arg1' ) {
+                $stack[$arg_0] = do_arg1( undef, @stack[ $arg_0 .. $arg_n ] );
+                next STEP;
+            }
+            if ( $action eq 'do_right_adverb' ) {
+                $stack[$arg_0] =
+                    do_right_adverb( undef, @stack[ $arg_0 .. $arg_n ] );
+                next STEP;
+            }
+            if ( $action eq 'do_left_adverb' ) {
+                $stack[$arg_0] =
+                    do_left_adverb( undef, @stack[ $arg_0 .. $arg_n ] );
+                next STEP;
+            }
+            if ( $action eq 'do_group_adverb' ) {
+                $stack[$arg_0] =
+                    do_group_adverb( undef, @stack[ $arg_0 .. $arg_n ] );
+                next STEP;
+            }
+            $stack[$arg_0] =
+                do_what_I_mean( undef, @stack[ $arg_0 .. $arg_n ] );
+            next STEP;
+        } ## end if ( $type eq 'MARPA_STEP_RULE' )
+        if ( $type eq 'MARPA_STEP_NULLING_SYMBOL' ) {
+            my ( $symbol_id, $arg_0 ) = @step_data;
+            $stack[$arg_0] = undef;
+            next STEP;
+        }
+        die "Unexpected step type: $type";
+    } ## end STEP: while (1)
+
+    my $parse = $stack[0];
 
     return $parse;
 } ## end sub parse_rules
