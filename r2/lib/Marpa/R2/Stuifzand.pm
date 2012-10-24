@@ -264,6 +264,7 @@ sub stuifzand_grammar {
     $tracer->rule_new( undef, qw(adverb) );
     $tracer->rule_new( undef, qw(action) );
     $tracer->rule_new( do_arg1 => qw( action op_arrow action_name) );
+    $tracer->rule_new( do_arg1 => qw( action op_arrow name) );
     $tracer->rule_new( do_lhs  => qw( lhs name ) );
     $tracer->rule_new( undef, qw( rhs names ) );
     $tracer->rule_new( undef, qw( quantifier op_star ) );
@@ -322,7 +323,7 @@ sub parse_rules {
                     $value_number, 1 ) != $Marpa::R2::Error::NONE
                 )
             {
-                die die q{Problem before position }, $string_position, ': ',
+                die q{Problem before position }, $string_position, ': ',
                     ( substr $string, $string_position, 40 ),
                     qq{\nToken rejected, "}, $t->[0], qq{", "$1"},
                     ;

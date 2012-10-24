@@ -70,7 +70,7 @@ sub symbol_force {
 
 sub action {
     my ( $self, $rule_id ) = @_;
-    return $self->{action_by_rule_id}->{$rule_id};
+    return $self->{action_by_rule_id}->[$rule_id];
 }
 
 sub rule_new {
@@ -78,7 +78,7 @@ sub rule_new {
     my $lhs_id = $self->symbol_force($lhs);
     my @rhs_ids = map { $self->symbol_force($_); } @rhs;
     my $rule_id = $self->{g}->rule_new( $lhs_id, \@rhs_ids );
-    $self->{action_by_rule_id} = $action if defined $action;
+    $self->{action_by_rule_id}->[$rule_id] = $action if defined $action;
     return $rule_id;
 } ## end sub rule_new
 
@@ -91,7 +91,7 @@ sub sequence_new {
         $thin_hash_args{separator} = $self->symbol_force($separator);
     }
     my $rule_id = $self->{g}->sequence_new( $lhs_id, $rhs_id, \%thin_hash_args );
-    $self->{action_by_rule_id} = $action if defined $action;
+    $self->{action_by_rule_id}->[$rule_id] = $action if defined $action;
     return $rule_id;
 } ## end sub sequence_new
 
