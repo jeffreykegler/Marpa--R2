@@ -178,7 +178,8 @@ sub do_array { shift; return [@_]; }
 sub do_right_adverb { return 'R' }
 sub do_left_adverb  { return 'L' }
 sub do_group_adverb { return 'G' }
-sub do_adverb_list { return { action => $_[1] } }
+sub do_adverb_list { shift; return { map {; @{$_}} @_ } }
+sub do_action { shift; return [ action => $_[2] ] }
 
 # Given a recognizer, an input,
 # a reference to an array
@@ -250,9 +251,10 @@ sub stuifzand_grammar {
     $tracer->rule_new( do_group_adverb     => qw(adverb op_group) );
     $tracer->rule_new( do_right_adverb     => qw(adverb op_right) );
     $tracer->rule_new( do_left_adverb      => qw(adverb op_left) );
-    $tracer->rule_new( do_adverb_list => qw(adverb_list action) );
+    $tracer->sequence_new( do_adverb_list => qw(adverb_list adverb_item), { min => 0 } );
+    $tracer->rule_new( undef,  qw(adverb_item action) );
     $tracer->rule_new( undef, qw(adverb) );
-    $tracer->rule_new( do_arg2 => qw(action kw_action op_arrow name) );
+    $tracer->rule_new( do_action => qw(action kw_action op_arrow name) );
     $tracer->rule_new( do_lhs  => qw( lhs name ) );
     $tracer->rule_new( undef, qw( rhs names ) );
     $tracer->rule_new( undef, qw( quantifier op_star ) );
@@ -458,6 +460,11 @@ sub parse_rules {
             if ( $action eq 'do_adverb_list' ) {
                 $stack[$arg_0] =
                     do_adverb_list( undef, @stack[ $arg_0 .. $arg_n ] );
+                next STEP;
+            }
+            if ( $action eq 'do_action' ) {
+                $stack[$arg_0] =
+                    do_action( undef, @stack[ $arg_0 .. $arg_n ] );
                 next STEP;
             }
             die 'Internal error: Unknown action in Stuifzand grammar: ',
