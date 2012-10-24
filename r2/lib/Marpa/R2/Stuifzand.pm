@@ -57,8 +57,9 @@ sub do_priority_rule {
     if ( scalar @rules <= 1 ) {
 
         # If there is only one rule,
-        my ( $priority, $assoc, $rhs, $action ) = @{ $rules[0] };
+        my ( $priority, $assoc, $rhs, $adverb_list ) = @{ $rules[0] };
         my %hash_rule = ( lhs => $lhs, rhs => $rhs );
+        my $action = $adverb_list->{action};
         $hash_rule{action} = $action if defined $action;
         return [\%hash_rule];
     } ## end if ( scalar @rules <= 1 )
@@ -78,7 +79,7 @@ sub do_priority_rule {
         )
     );
     RULE: for my $rule (@rules) {
-        my ( $priority, $assoc, $rhs, $action ) = @{$rule};
+        my ( $priority, $assoc, $rhs, $adverb_list ) = @{$rule};
         my @new_rhs = @{$rhs};
         my @arity   = grep { $new_rhs[$_] eq $lhs } 0 .. $#new_rhs;
         my $length  = scalar @{$rhs};
@@ -86,6 +87,7 @@ sub do_priority_rule {
         my $current_exp = $lhs . '_' . $priority;
         my %new_xs_rule = (lhs => $current_exp);
 
+        my $action = $adverb_list->{action};
         $new_xs_rule{action} = $action if defined $action;
 
         my $next_priority = $priority + 1;
@@ -133,21 +135,21 @@ sub do_priority_rule {
 } ## end sub do_priority_rule
 
 sub do_empty_rule {
-    my ( undef, $lhs, undef, $action ) = @_;
+    my ( undef, $lhs, undef, $adverb_list ) = @_;
+    my $action = $adverb_list->{action};
     return [ { lhs => $lhs, rhs => [], @{ $action || [] } } ];
 }
 
 sub do_quantified_rule {
-    my ( undef, $lhs, undef, $rhs, $quantifier, $action ) = @_;
-    my @action_kv;
-    push @action_kv, action => $action if defined $action;
-    return [
-        {   lhs => $lhs,
-            rhs => [$rhs],
-            min => ( $quantifier eq q{+} ? 1 : 0 ),
-            @action_kv
-        }
-    ];
+    my ( undef, $lhs, undef, $rhs, $quantifier, $adverb_list ) = @_;
+    my %hash_rule = (
+        lhs => $lhs,
+        rhs => [$rhs],
+        min => ( $quantifier eq q{+} ? 1 : 0 )
+    );
+    my $action = $adverb_list->{action};
+    $hash_rule{action} = $action if defined $action;
+    return [ \%hash_rule ];
 } ## end sub do_quantified_rule
 
 sub do_priority_one {
@@ -176,6 +178,7 @@ sub do_array { shift; return [@_]; }
 sub do_right_adverb { return 'R' }
 sub do_left_adverb  { return 'L' }
 sub do_group_adverb { return 'G' }
+sub do_adverb_list { return { action => $_[1] } }
 
 # Given a recognizer, an input,
 # a reference to an array
@@ -247,7 +250,7 @@ sub stuifzand_grammar {
     $tracer->rule_new( do_group_adverb     => qw(adverb op_group) );
     $tracer->rule_new( do_right_adverb     => qw(adverb op_right) );
     $tracer->rule_new( do_left_adverb      => qw(adverb op_left) );
-    $tracer->rule_new( undef, qw(adverb_list action) );
+    $tracer->rule_new( do_adverb_list => qw(adverb_list action) );
     $tracer->rule_new( undef, qw(adverb) );
     $tracer->rule_new( do_arg2 => qw(action kw_action op_arrow name) );
     $tracer->rule_new( do_lhs  => qw( lhs name ) );
@@ -450,6 +453,11 @@ sub parse_rules {
             if ( $action eq 'do_group_adverb' ) {
                 $stack[$arg_0] =
                     do_group_adverb( undef, @stack[ $arg_0 .. $arg_n ] );
+                next STEP;
+            }
+            if ( $action eq 'do_adverb_list' ) {
+                $stack[$arg_0] =
+                    do_adverb_list( undef, @stack[ $arg_0 .. $arg_n ] );
                 next STEP;
             }
             die 'Internal error: Unknown action in Stuifzand grammar: ',
