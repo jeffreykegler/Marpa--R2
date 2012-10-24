@@ -33,7 +33,11 @@ package Marpa::R2::Internal::Stuifzand;
 
 use English qw( -no_match_vars );
 
-sub do_arg0 { return $_[1]; }
+# This rule is used by the semantics of the *GENERATED*
+# grammars, not the Stuifzand grammar itself.
+sub external_do_arg0 {
+   return $_[1];
+}
 
 sub do_rules {
     shift;
@@ -58,7 +62,7 @@ sub do_priority_rule {
         push @action_kv, action => $action if defined $action;
         return [ { lhs => $lhs, rhs => $rhs, @action_kv } ];
     } ## end if ( scalar @rules <= 1 )
-    my $do_arg0_full_name = __PACKAGE__ . q{::} . 'do_arg0';
+    state $do_arg0_full_name = __PACKAGE__ . q{::} . 'external_do_arg0';
     my @xs_rules          = (
         {   lhs    => $lhs,
             rhs    => [ $lhs . '_0' ],
@@ -177,22 +181,9 @@ sub do_alternatives_3 {
 }
 sub do_lhs { shift; return $_[0]; }
 sub do_array { shift; return [@_]; }
-sub do_arg1         { return $_[2]; }
 sub do_right_adverb { return 'R' }
 sub do_left_adverb  { return 'L' }
 sub do_group_adverb { return 'G' }
-
-sub do_what_I_mean {
-
-    # Throw away the per-parse variable.
-    shift;
-
-    # Throw away any undef's
-    my @children = grep {defined} @_;
-
-    # Return what's left
-    return scalar @children > 1 ? \@children : shift @children;
-} ## end sub do_what_I_mean
 
 # Given a recognizer, an input,
 # a reference to an array
@@ -372,9 +363,10 @@ sub parse_rules {
         }
         if ( $type eq 'MARPA_STEP_RULE' ) {
             my ( $rule_id, $arg_0, $arg_n ) = @step_data;
-            my $action = $actions_by_rule_id[$rule_id] // 'do_what_I_mean';
-            if ( $action eq 'do_arg0' ) {
-                $stack[$arg_0] = do_arg0( undef, @stack[ $arg_0 .. $arg_n ] );
+            my $action = $actions_by_rule_id[$rule_id];
+            if ( not defined $action ) {
+
+                # No-op -- value is arg 0
                 next STEP;
             }
             if ( $action eq 'do_rules' ) {
@@ -442,7 +434,7 @@ sub parse_rules {
                 next STEP;
             }
             if ( $action eq 'do_arg1' ) {
-                $stack[$arg_0] = do_arg1( undef, @stack[ $arg_0 .. $arg_n ] );
+                $stack[$arg_0] = $stack[ $arg_0 + 1 ];
                 next STEP;
             }
             if ( $action eq 'do_right_adverb' ) {
@@ -460,9 +452,8 @@ sub parse_rules {
                     do_group_adverb( undef, @stack[ $arg_0 .. $arg_n ] );
                 next STEP;
             }
-            $stack[$arg_0] =
-                do_what_I_mean( undef, @stack[ $arg_0 .. $arg_n ] );
-            next STEP;
+            die 'Internal error: Unknown action in Stuifzand grammar: ',
+                $action;
         } ## end if ( $type eq 'MARPA_STEP_RULE' )
         if ( $type eq 'MARPA_STEP_NULLING_SYMBOL' ) {
             my ( $symbol_id, $arg_0 ) = @step_data;
