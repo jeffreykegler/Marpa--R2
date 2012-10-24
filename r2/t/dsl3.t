@@ -39,9 +39,9 @@ script ::= script ';' e action => do_arg2
 e ::=
      NUM action => do_arg0
    | VAR action => do_is_var
-   | :group '(' e ')' action => do_arg1
+   | '(' e ')' action => do_arg1 assoc => group
   || '-' e action => do_negate
-  || :right e '^' e action => do_binop
+  || e '^' e action => do_binop assoc => right
   || e '*' e action => do_binop
    | e '/' e action => do_binop
   || e '+' e action => do_binop

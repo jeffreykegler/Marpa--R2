@@ -57,7 +57,7 @@ sub do_priority_rule {
     if ( scalar @rules <= 1 ) {
 
         # If there is only one rule,
-        my ( $priority, $assoc, $rhs, $adverb_list ) = @{ $rules[0] };
+        my ( $priority, $rhs, $adverb_list ) = @{ $rules[0] };
         my %hash_rule = ( lhs => $lhs, rhs => $rhs );
         my $action = $adverb_list->{action};
         $hash_rule{action} = $action if defined $action;
@@ -79,7 +79,8 @@ sub do_priority_rule {
         )
     );
     RULE: for my $rule (@rules) {
-        my ( $priority, $assoc, $rhs, $adverb_list ) = @{$rule};
+        my ( $priority, $rhs, $adverb_list ) = @{$rule};
+        my $assoc = $adverb_list->{assoc} // 'L';
         my @new_rhs = @{$rhs};
         my @arity   = grep { $new_rhs[$_] eq $lhs } 0 .. $#new_rhs;
         my $length  = scalar @{$rhs};
@@ -175,9 +176,6 @@ sub do_alternatives_many {
 }
 sub do_lhs { shift; return $_[0]; }
 sub do_array { shift; return [@_]; }
-sub do_right_adverb { return 'R' }
-sub do_left_adverb  { return 'L' }
-sub do_group_adverb { return 'G' }
 sub do_adverb_list { shift; return { map {; @{$_}} @_ } }
 sub do_action { shift; return [ action => $_[2] ] }
 
@@ -246,15 +244,17 @@ sub stuifzand_grammar {
     $tracer->rule_new( do_alternatives_many =>
             qw(alternatives alternative op_eq_pri alternatives) );
     $tracer->rule_new(
-        do_full_alternative => qw(alternative adverb rhs adverb_list) );
-    $tracer->rule_new( do_bare_alternative => qw(alternative adverb rhs) );
-    $tracer->rule_new( do_group_adverb     => qw(adverb op_group) );
-    $tracer->rule_new( do_right_adverb     => qw(adverb op_right) );
-    $tracer->rule_new( do_left_adverb      => qw(adverb op_left) );
+        do_full_alternative => qw(alternative rhs adverb_list) );
+    $tracer->rule_new( do_bare_alternative => qw(alternative rhs) );
     $tracer->sequence_new( do_adverb_list => qw(adverb_list adverb_item), { min => 0 } );
     $tracer->rule_new( undef,  qw(adverb_item action) );
-    $tracer->rule_new( undef, qw(adverb) );
+    $tracer->rule_new( undef,  qw(adverb_item left_association) );
+    $tracer->rule_new( undef,  qw(adverb_item right_association) );
+    $tracer->rule_new( undef,  qw(adverb_item group_association) );
     $tracer->rule_new( do_action => qw(action kw_action op_arrow name) );
+    $tracer->rule_new( do_left_association => qw(action kw_assoc op_arrow kw_left) );
+    $tracer->rule_new( do_right_association => qw(action kw_assoc op_arrow kw_right) );
+    $tracer->rule_new( do_group_association => qw(action kw_assoc op_arrow kw_group) );
     $tracer->rule_new( do_lhs  => qw( lhs name ) );
     $tracer->rule_new( undef, qw( rhs names ) );
     $tracer->rule_new( undef, qw( quantifier op_star ) );
@@ -283,9 +283,10 @@ sub parse_rules {
     # Order matters !!!
     my @terminals = (
         [ 'kw_action', qr/action\b/xms ],
-        [ 'op_right',      qr/:right\b/xms ],
-        [ 'op_left',       qr/:left\b/xms ],
-        [ 'op_group',      qr/:group\b/xms ],
+        [ 'kw_assoc', qr/assoc\b/xms ],
+        [ 'kw_left', qr/left\b/xms ],
+        [ 'kw_right', qr/right\b/xms ],
+        [ 'kw_group', qr/group\b/xms ],
         [ 'op_declare',    qr/::=/xms ],
         [ 'op_arrow',      qr/=>/xms ],
         [ 'op_tighter',    qr/[|][|]/xms ],
@@ -465,6 +466,18 @@ sub parse_rules {
             if ( $action eq 'do_action' ) {
                 $stack[$arg_0] =
                     do_action( undef, @stack[ $arg_0 .. $arg_n ] );
+                next STEP;
+            }
+            if ( $action eq 'do_left_association' ) {
+                $stack[$arg_0] = [ assoc => 'L' ];
+                next STEP;
+            }
+            if ( $action eq 'do_right_association' ) {
+                $stack[$arg_0] = [ assoc => 'R' ];
+                next STEP;
+            }
+            if ( $action eq 'do_group_association' ) {
+                $stack[$arg_0] = [ assoc => 'G' ];
                 next STEP;
             }
             die 'Internal error: Unknown action in Stuifzand grammar: ',
