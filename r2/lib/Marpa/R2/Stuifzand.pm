@@ -163,7 +163,6 @@ sub do_priority_many {
     return [ $_[0], @{ $_[2] } ];
 }
 sub do_full_alternative { shift; return [ ( $_[0] // 'L' ), $_[1], $_[2] ]; }
-sub do_bare_alternative { shift; return [ ( $_[0] // 'L' ), $_[1], undef ] }
 
 sub do_alternatives_one {
     shift;
@@ -245,7 +244,6 @@ sub stuifzand_grammar {
             qw(alternatives alternative op_eq_pri alternatives) );
     $tracer->rule_new(
         do_full_alternative => qw(alternative rhs adverb_list) );
-    $tracer->rule_new( do_bare_alternative => qw(alternative rhs) );
     $tracer->sequence_new( do_adverb_list => qw(adverb_list adverb_item), { min => 0 } );
     $tracer->rule_new( undef,  qw(adverb_item action) );
     $tracer->rule_new( undef,  qw(adverb_item left_association) );
@@ -409,11 +407,6 @@ sub parse_rules {
             if ( $action eq 'do_full_alternative' ) {
                 $stack[$arg_0] =
                     do_full_alternative( undef, @stack[ $arg_0 .. $arg_n ] );
-                next STEP;
-            }
-            if ( $action eq 'do_bare_alternative' ) {
-                $stack[$arg_0] =
-                    do_bare_alternative( undef, @stack[ $arg_0 .. $arg_n ] );
                 next STEP;
             }
             if ( $action eq 'do_alternatives_one' ) {
