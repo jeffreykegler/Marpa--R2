@@ -66,13 +66,13 @@ sub do_priority_rule {
     state $do_arg0_full_name = __PACKAGE__ . q{::} . 'external_do_arg0';
     my @xs_rules = (
         {   lhs    => $lhs,
-            rhs    => [ $lhs . '_0' ],
+            rhs    => [ $lhs . '[prec0]' ],
             action => $do_arg0_full_name
         },
         (   map {
                 ;
-                {   lhs => ( $lhs . '_' . ( $_ - 1 ) ),
-                    rhs => [ $lhs . '_' . ($_) ],
+                {   lhs => ( $lhs . '[prec' . ( $_ - 1 ) . ']'),
+                    rhs => [ $lhs . '[prec' . $_ . ']'],
                     action => $do_arg0_full_name
                 }
             } 1 .. $priority_count - 1
@@ -85,7 +85,7 @@ sub do_priority_rule {
         my @arity   = grep { $new_rhs[$_] eq $lhs } 0 .. $#new_rhs;
         my $length  = scalar @{$rhs};
 
-        my $current_exp = $lhs . '_' . $priority;
+        my $current_exp = $lhs . '[prec' . $priority . ']';
         my %new_xs_rule = (lhs => $current_exp);
 
         my $action = $adverb_list->{action};
@@ -93,7 +93,7 @@ sub do_priority_rule {
 
         my $next_priority = $priority + 1;
         $next_priority = 0 if $next_priority >= $priority_count;
-        my $next_exp = $lhs . '_' . $next_priority;
+        my $next_exp = $lhs . '[prec' . $next_priority . ']';
 
         if ( not scalar @arity ) {
             $new_xs_rule{rhs} = \@new_rhs;
@@ -122,7 +122,7 @@ sub do_priority_rule {
             } ## end if ( $assoc eq 'R' )
             if ( $assoc eq 'G' ) {
                 for my $rhs_ix ( @arity[ 0 .. $#arity ] ) {
-                    $new_rhs[$rhs_ix] = $lhs . '_0';
+                    $new_rhs[$rhs_ix] = $lhs . '[prec0]';
                 }
                 last DO_ASSOCIATION;
             } ## end if ( $assoc eq 'G' )
@@ -206,29 +206,40 @@ sub stuifzand_grammar {
     my $grammar = Marpa::R2::Thin::G->new( { if => 1 } );
     my $tracer = Marpa::R2::Thin::Trace->new($grammar);
     $tracer->sequence_new( do_rules => qw(rules rule), { min => 1 } );
-    $tracer->rule_new( undef, qw(rule empty_rule));
-    $tracer->rule_new( undef, qw(rule priority_rule));
-    $tracer->rule_new( undef, qw(rule quantified_rule));
+    $tracer->rule_new( undef, qw(rule empty_rule) );
+    $tracer->rule_new( undef, qw(rule priority_rule) );
+    $tracer->rule_new( undef, qw(rule quantified_rule) );
     $tracer->rule_new(
         do_priority_rule => qw(priority_rule lhs op_declare priorities) );
-    $tracer->rule_new( do_empty_rule => qw(empty_rule lhs op_declare adverb_list) );
     $tracer->rule_new(
-        do_quantified_rule => qw(quantified_rule lhs op_declare name quantifier adverb_list)
+        do_empty_rule => qw(empty_rule lhs op_declare adverb_list) );
+    $tracer->rule_new( do_quantified_rule =>
+            qw(quantified_rule lhs op_declare name quantifier adverb_list) );
+    $tracer->sequence_new(
+        do_discard_separators => qw(priorities alternatives),
+        { min => 1, separator => 'op_tighter', proper => 1 }
     );
-    $tracer->sequence_new( do_discard_separators => qw(priorities alternatives), { min => 1, separator => 'op_tighter', proper => 1 } );
-    $tracer->sequence_new( do_discard_separators => qw(alternatives alternative), { min => 1, separator => 'op_eq_pri', proper => 1 } );
-    $tracer->rule_new(
-        do_alternative => qw(alternative rhs adverb_list) );
-    $tracer->sequence_new( do_adverb_list => qw(adverb_list adverb_item), { min => 0 } );
-    $tracer->rule_new( undef,  qw(adverb_item action) );
-    $tracer->rule_new( undef,  qw(adverb_item left_association) );
-    $tracer->rule_new( undef,  qw(adverb_item right_association) );
-    $tracer->rule_new( undef,  qw(adverb_item group_association) );
+    $tracer->sequence_new(
+        do_discard_separators => qw(alternatives alternative),
+        { min => 1, separator => 'op_eq_pri', proper => 1 }
+    );
+    $tracer->rule_new( do_alternative => qw(alternative rhs adverb_list) );
+    $tracer->sequence_new(
+        do_adverb_list => qw(adverb_list adverb_item),
+        { min => 0 }
+    );
+    $tracer->rule_new( undef, qw(adverb_item action) );
+    $tracer->rule_new( undef, qw(adverb_item left_association) );
+    $tracer->rule_new( undef, qw(adverb_item right_association) );
+    $tracer->rule_new( undef, qw(adverb_item group_association) );
     $tracer->rule_new( do_action => qw(action kw_action op_arrow name) );
-    $tracer->rule_new( do_left_association => qw(action kw_assoc op_arrow kw_left) );
-    $tracer->rule_new( do_right_association => qw(action kw_assoc op_arrow kw_right) );
-    $tracer->rule_new( do_group_association => qw(action kw_assoc op_arrow kw_group) );
-    $tracer->rule_new( do_lhs  => qw( lhs name ) );
+    $tracer->rule_new(
+        do_left_association => qw(action kw_assoc op_arrow kw_left) );
+    $tracer->rule_new(
+        do_right_association => qw(action kw_assoc op_arrow kw_right) );
+    $tracer->rule_new(
+        do_group_association => qw(action kw_assoc op_arrow kw_group) );
+    $tracer->rule_new( do_lhs => qw( lhs name ) );
     $tracer->rule_new( undef, qw( rhs names ) );
     $tracer->rule_new( undef, qw( quantifier op_star ) );
     $tracer->rule_new( undef, qw( quantifier op_plus ) );
