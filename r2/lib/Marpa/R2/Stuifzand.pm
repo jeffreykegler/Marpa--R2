@@ -58,12 +58,12 @@ sub do_priority_rule {
 
         # If there is only one rule,
         my ( $priority, $assoc, $rhs, $action ) = @{ $rules[0] };
-        my @action_kv;
-        push @action_kv, action => $action if defined $action;
-        return [ { lhs => $lhs, rhs => $rhs, @action_kv } ];
+        my %hash_rule = ( lhs => $lhs, rhs => $rhs );
+        $hash_rule{action} = $action if defined $action;
+        return [\%hash_rule];
     } ## end if ( scalar @rules <= 1 )
     state $do_arg0_full_name = __PACKAGE__ . q{::} . 'external_do_arg0';
-    my @xs_rules          = (
+    my @xs_rules = (
         {   lhs    => $lhs,
             rhs    => [ $lhs . '_0' ],
             action => $do_arg0_full_name
@@ -79,25 +79,24 @@ sub do_priority_rule {
     );
     RULE: for my $rule (@rules) {
         my ( $priority, $assoc, $rhs, $action ) = @{$rule};
-        my @action_kv = ();
-        push @action_kv, action => $action if defined $action;
-        my @new_rhs       = @{$rhs};
-        my @arity         = grep { $new_rhs[$_] eq $lhs } 0 .. $#new_rhs;
-        my $length        = scalar @{$rhs};
-        my $current_exp   = $lhs . '_' . $priority;
+        my @new_rhs = @{$rhs};
+        my @arity   = grep { $new_rhs[$_] eq $lhs } 0 .. $#new_rhs;
+        my $length  = scalar @{$rhs};
+
+        my $current_exp = $lhs . '_' . $priority;
+        my %new_xs_rule = (lhs => $current_exp);
+
+        $new_xs_rule{action} = $action if defined $action;
+
         my $next_priority = $priority + 1;
         $next_priority = 0 if $next_priority >= $priority_count;
         my $next_exp = $lhs . '_' . $next_priority;
 
         if ( not scalar @arity ) {
-            push @xs_rules,
-                {
-                lhs => $current_exp,
-                rhs => \@new_rhs,
-                @action_kv
-                };
+            $new_xs_rule{rhs} = \@new_rhs;
+            push @xs_rules, \%new_xs_rule;
             next RULE;
-        } ## end if ( not scalar @arity )
+        }
 
         if ( scalar @arity == 1 ) {
             die 'Unnecessary unit rule in priority rule' if $length == 1;
@@ -126,7 +125,9 @@ sub do_priority_rule {
             } ## end if ( $assoc eq 'G' )
             die qq{Unknown association type: "$assoc"};
         } ## end DO_ASSOCIATION:
-        push @xs_rules, { lhs => $current_exp, rhs => \@new_rhs, @action_kv };
+
+        $new_xs_rule{rhs} = \@new_rhs;
+        push @xs_rules, \%new_xs_rule;
     } ## end RULE: for my $rule (@rules)
     return [@xs_rules];
 } ## end sub do_priority_rule
@@ -230,9 +231,9 @@ sub stuifzand_grammar {
     $tracer->rule_new( undef, qw(rule quantified_rule));
     $tracer->rule_new(
         do_priority_rule => qw(priority_rule lhs op_declare priorities) );
-    $tracer->rule_new( do_empty_rule => qw(empty_rule lhs op_declare action) );
+    $tracer->rule_new( do_empty_rule => qw(empty_rule lhs op_declare adverb_list) );
     $tracer->rule_new(
-        do_quantified_rule => qw(quantified_rule lhs op_declare name quantifier action)
+        do_quantified_rule => qw(quantified_rule lhs op_declare name quantifier adverb_list)
     );
     $tracer->rule_new( do_priority_one => qw(priorities alternatives) );
     $tracer->rule_new(
@@ -241,14 +242,14 @@ sub stuifzand_grammar {
     $tracer->rule_new( do_alternatives_many =>
             qw(alternatives alternative op_eq_pri alternatives) );
     $tracer->rule_new(
-        do_full_alternative => qw(alternative adverb rhs action) );
+        do_full_alternative => qw(alternative adverb rhs adverb_list) );
     $tracer->rule_new( do_bare_alternative => qw(alternative adverb rhs) );
     $tracer->rule_new( do_group_adverb     => qw(adverb op_group) );
     $tracer->rule_new( do_right_adverb     => qw(adverb op_right) );
     $tracer->rule_new( do_left_adverb      => qw(adverb op_left) );
+    $tracer->rule_new( undef, qw(adverb_list action) );
     $tracer->rule_new( undef, qw(adverb) );
-    $tracer->rule_new( undef, qw(action) );
-    $tracer->rule_new( do_arg2 => qw( action kw_action op_arrow name) );
+    $tracer->rule_new( do_arg2 => qw(action kw_action op_arrow name) );
     $tracer->rule_new( do_lhs  => qw( lhs name ) );
     $tracer->rule_new( undef, qw( rhs names ) );
     $tracer->rule_new( undef, qw( quantifier op_star ) );
@@ -308,8 +309,9 @@ sub parse_rules {
                     $value_number, 1 ) != $Marpa::R2::Error::NONE
                 )
             {
-                die q{Problem before position }, $string_position, ': ',
-                    ( substr $string, $string_position, 40 ),
+                my $problem_position = $positions[-1];
+                die q{Problem near position }, $problem_position, ': ',
+                    ( substr $string, $problem_position, 40 ),
                     qq{\nToken rejected, "}, $t->[0], qq{", "$1"},
                     ;
             }
