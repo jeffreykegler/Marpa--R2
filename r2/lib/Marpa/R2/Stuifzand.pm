@@ -158,24 +158,24 @@ sub do_simple_rule {
     };
 } ## end sub do_simple_rule
 
-sub do_priority1 {
+sub do_priority_one {
     shift;
     return [ $_[0] ];
 }
 
-sub do_priority3 {
+sub do_priority_many {
     shift;
     return [ $_[0], @{ $_[2] } ];
 }
 sub do_full_alternative { shift; return [ ( $_[0] // 'L' ), $_[1], $_[2] ]; }
 sub do_bare_alternative { shift; return [ ( $_[0] // 'L' ), $_[1], undef ] }
 
-sub do_alternatives_1 {
+sub do_alternatives_one {
     shift;
     return [ $_[0] ];
 }
 
-sub do_alternatives_3 {
+sub do_alternatives_many {
     shift;
     return [ $_[0], @{ $_[2] } ];
 }
@@ -243,11 +243,11 @@ sub stuifzand_grammar {
     $tracer->rule_new(
         do_quantified_rule => qw(quantified_rule lhs op_declare name quantifier action)
     );
-    $tracer->rule_new( do_priority1 => qw(priorities alternatives) );
+    $tracer->rule_new( do_priority_one => qw(priorities alternatives) );
     $tracer->rule_new(
-        do_priority3 => qw(priorities alternatives op_tighter priorities) );
-    $tracer->rule_new( do_alternatives_1 => qw(alternatives alternative) );
-    $tracer->rule_new( do_alternatives_3 =>
+        do_priority_many => qw(priorities alternatives op_tighter priorities) );
+    $tracer->rule_new( do_alternatives_one => qw(alternatives alternative) );
+    $tracer->rule_new( do_alternatives_many =>
             qw(alternatives alternative op_eq_pri alternatives) );
     $tracer->rule_new(
         do_full_alternative => qw(alternative adverb rhs action) );
@@ -396,14 +396,14 @@ sub parse_rules {
                     do_simple_rule( undef, @stack[ $arg_0 .. $arg_n ] );
                 next STEP;
             }
-            if ( $action eq 'do_priority1' ) {
+            if ( $action eq 'do_priority_one' ) {
                 $stack[$arg_0] =
-                    do_priority1( undef, @stack[ $arg_0 .. $arg_n ] );
+                    do_priority_one( undef, @stack[ $arg_0 .. $arg_n ] );
                 next STEP;
             }
-            if ( $action eq 'do_priority3' ) {
+            if ( $action eq 'do_priority_many' ) {
                 $stack[$arg_0] =
-                    do_priority3( undef, @stack[ $arg_0 .. $arg_n ] );
+                    do_priority_many( undef, @stack[ $arg_0 .. $arg_n ] );
                 next STEP;
             }
             if ( $action eq 'do_full_alternative' ) {
@@ -416,14 +416,14 @@ sub parse_rules {
                     do_bare_alternative( undef, @stack[ $arg_0 .. $arg_n ] );
                 next STEP;
             }
-            if ( $action eq 'do_alternatives_1' ) {
+            if ( $action eq 'do_alternatives_one' ) {
                 $stack[$arg_0] =
-                    do_alternatives_1( undef, @stack[ $arg_0 .. $arg_n ] );
+                    do_alternatives_one( undef, @stack[ $arg_0 .. $arg_n ] );
                 next STEP;
             }
-            if ( $action eq 'do_alternatives_3' ) {
+            if ( $action eq 'do_alternatives_many' ) {
                 $stack[$arg_0] =
-                    do_alternatives_3( undef, @stack[ $arg_0 .. $arg_n ] );
+                    do_alternatives_many( undef, @stack[ $arg_0 .. $arg_n ] );
                 next STEP;
             }
             if ( $action eq 'do_lhs' ) {
