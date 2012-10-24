@@ -370,7 +370,7 @@ sub parse_rules {
         # read other tokens
         TOKEN_TYPE: for my $t (@terminals) {
             next TOKEN_TYPE if not $string =~ m/\G($t->[1])/gcxms;
-            my $value_number = 1 + push @token_values, $1;
+            my $value_number = -1 + push @token_values, $1;
             my $string_position = pos $string;
             if ($recce->alternative( $grammar->thin_symbol( $t->[0] ),
                     $value_number, 1 ) != $Marpa::R2::Error::NONE
