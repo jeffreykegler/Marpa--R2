@@ -163,17 +163,7 @@ sub do_priority_many {
     return [ $_[0], @{ $_[2] } ];
 }
 
-sub do_alternatives_one {
-    shift;
-    return [ $_[0] ];
-}
-
-sub do_alternatives_many {
-    shift;
-    return [ $_[0], @{ $_[2] } ];
-}
 sub do_lhs { shift; return $_[0]; }
-sub do_array { shift; return [@_]; }
 sub do_adverb_list { shift; return { map {; @{$_}} @_ } }
 sub do_action { shift; return [ action => $_[2] ] }
 
@@ -238,9 +228,7 @@ sub stuifzand_grammar {
     $tracer->rule_new( do_priority_one => qw(priorities alternatives) );
     $tracer->rule_new(
         do_priority_many => qw(priorities alternatives op_tighter priorities) );
-    $tracer->rule_new( do_alternatives_one => qw(alternatives alternative) );
-    $tracer->rule_new( do_alternatives_many =>
-            qw(alternatives alternative op_eq_pri alternatives) );
+    $tracer->sequence_new( do_discard_separators => qw(alternatives alternative), { min => 1, separator => 'op_eq_pri', proper => 1 } );
     $tracer->rule_new(
         do_alternative => qw(alternative rhs adverb_list) );
     $tracer->sequence_new( do_adverb_list => qw(adverb_list adverb_item), { min => 0 } );
@@ -402,23 +390,20 @@ sub parse_rules {
                 $stack[$arg_0] = [ @stack[ $arg_0 .. $arg_n ] ];
                 next STEP;
             }
-            if ( $action eq 'do_alternatives_one' ) {
-                $stack[$arg_0] =
-                    do_alternatives_one( undef, @stack[ $arg_0 .. $arg_n ] );
-                next STEP;
-            }
-            if ( $action eq 'do_alternatives_many' ) {
-                $stack[$arg_0] =
-                    do_alternatives_many( undef, @stack[ $arg_0 .. $arg_n ] );
-                next STEP;
-            }
             if ( $action eq 'do_lhs' ) {
                 $stack[$arg_0] = do_lhs( undef, @stack[ $arg_0 .. $arg_n ] );
                 next STEP;
             }
             if ( $action eq 'do_array' ) {
-                $stack[$arg_0] =
-                    do_array( undef, @stack[ $arg_0 .. $arg_n ] );
+                $stack[$arg_0] = [ @stack[ $arg_0 .. $arg_n ] ];
+                next STEP;
+            }
+            if ( $action eq 'do_discard_separators' ) {
+                my @items = ();
+                for (my $item_ix = $arg_0; $item_ix <= $arg_n; $item_ix += 2) {
+                   push @items, $stack[$item_ix];
+                }
+                $stack[$arg_0] = \@items;
                 next STEP;
             }
             if ( $action eq 'do_arg1' ) {
