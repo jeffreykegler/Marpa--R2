@@ -30,6 +30,7 @@ sub new {
     $self->{g}              = $grammar;
     $self->{symbol_by_name} = {};
     $self->{symbol_names}   = {};
+    $self->{action_by_rule_id}   = [];
     return $self;
 } ## end sub new
 
@@ -67,22 +68,31 @@ sub symbol_force {
     return $self->{symbol_by_name}->{$name} // $self->symbol_new($name);
 }
 
+sub action {
+    my ( $self, $rule_id ) = @_;
+    return $self->{action_by_rule_id}->{$rule_id};
+}
+
 sub rule_new {
-    my ( $self, $lhs, @rhs ) = @_;
+    my ( $self, $action, $lhs, @rhs ) = @_;
     my $lhs_id = $self->symbol_force($lhs);
     my @rhs_ids = map { $self->symbol_force($_); } @rhs;
-    return $self->{g}->rule_new( $lhs_id, \@rhs_ids );
+    my $rule_id = $self->{g}->rule_new( $lhs_id, \@rhs_ids );
+    $self->{action_by_rule_id} = $action if defined $action;
+    return $rule_id;
 } ## end sub rule_new
 
 sub sequence_new {
-    my ( $self, $lhs, $rhs, $hash_args ) = @_;
+    my ( $self, $action, $lhs, $rhs, $hash_args ) = @_;
     my $lhs_id         = $self->symbol_force($lhs);
     my $rhs_id         = $self->symbol_force($rhs);
-    my %thin_hash_args = %{$hash_args} // {};
+    my %thin_hash_args = %{$hash_args // {}};
     if ( defined (my $separator = $thin_hash_args{separator} )) {
         $thin_hash_args{separator} = $self->symbol_force($separator);
     }
-    return $self->{g}->sequence_new( $lhs_id, $rhs_id, \%thin_hash_args );
+    my $rule_id = $self->{g}->sequence_new( $lhs_id, $rhs_id, \%thin_hash_args );
+    $self->{action_by_rule_id} = $action if defined $action;
+    return $rule_id;
 } ## end sub sequence_new
 
 sub dotted_rule {

@@ -240,98 +240,39 @@ sub input_slice {
 } ## end sub input_slice
 
 sub stuifzand_grammar {
-    my $grammar = Marpa::R2::Grammar->new(
-        {   start          => 'rules',
-            actions        => __PACKAGE__,
-            default_action => 'do_what_I_mean',
-            rules          => [
-                {   lhs    => 'rules',
-                    rhs    => [qw/rule/],
-                    action => 'do_rules',
-                    min    => 1
-                },
-                {   lhs    => 'rule',
-                    rhs    => [qw/lhs op_declare priorities/],
-                    action => 'do_priority_rule'
-                },
-                {   lhs    => 'rule',
-                    rhs    => [qw/lhs op_declare action/],
-                    action => 'do_empty_rule'
-                },
-                {   lhs    => 'rule',
-                    rhs    => [qw/lhs op_declare name quantifier action/],
-                    action => 'do_quantified_rule'
-                },
-
-                {   lhs    => 'priorities',
-                    rhs    => [qw(alternatives)],
-                    action => 'do_priority1'
-                },
-                {   lhs    => 'priorities',
-                    rhs    => [qw(alternatives op_tighter priorities)],
-                    action => 'do_priority3'
-                },
-
-                {   lhs    => 'alternatives',
-                    rhs    => [qw(alternative)],
-                    action => 'do_alternatives_1',
-                },
-                {   lhs    => 'alternatives',
-                    rhs    => [qw(alternative op_eq_pri alternatives)],
-                    action => 'do_alternatives_3',
-                },
-
-                {   lhs    => 'alternative',
-                    rhs    => [qw(adverb rhs action)],
-                    action => 'do_full_alternative'
-                },
-                {   lhs    => 'alternative',
-                    rhs    => [qw(adverb rhs)],
-                    action => 'do_bare_alternative'
-                },
-
-                {   lhs    => 'adverb',
-                    rhs    => [qw/op_group/],
-                    action => 'do_group_adverb'
-                },
-                {   lhs    => 'adverb',
-                    rhs    => [qw/op_right/],
-                    action => 'do_right_adverb'
-                },
-                {   lhs    => 'adverb',
-                    rhs    => [qw/op_left/],
-                    action => 'do_left_adverb'
-                },
-                { lhs => 'adverb', rhs => [] },
-
-                { lhs => 'action', rhs => [] },
-                {   lhs    => 'action',
-                    rhs    => [qw/op_arrow action_name/],
-                    action => 'do_arg1'
-                },
-                {   lhs    => 'action',
-                    rhs    => [qw/op_arrow name/],
-                    action => 'do_arg1'
-                },
-
-                { lhs => 'lhs', rhs => [qw/name/], action => 'do_lhs' },
-
-                { lhs => 'rhs',        rhs => [qw/names/] },
-                { lhs => 'quantifier', rhs => [qw/op_plus/] },
-                { lhs => 'quantifier', rhs => [qw/op_star/] },
-
-                {   lhs    => 'names',
-                    rhs    => [qw/name/],
-                    min    => 1,
-                    action => 'do_array'
-                },
-            ],
-        }
+    my $grammar = Marpa::R2::Thin::G->new( { if => 1 } );
+    my $tracer = Marpa::R2::Thin::Trace->new($grammar);
+    $tracer->sequence_new( do_rules => qw(rules rule), { min => 1 } );
+    $tracer->rule_new(
+        do_priority_rule => qw(rule lhs op_declare priorities) );
+    $tracer->rule_new( do_empty_rule => qw(rule lhs op_declare action) );
+    $tracer->rule_new(
+        do_quantified_rule => qw(rule lhs op_declare name quantifier action)
     );
-    $grammar->precompute;
-    return $grammar;
-}
-
+    $tracer->rule_new( do_priority1 => qw(priorities alternatives) );
+    $tracer->rule_new(
+        do_priority3 => qw(priorities alternatives op_tighter priorities) );
+    $tracer->rule_new( do_alternatives_1 => qw(alternatives alternative) );
+    $tracer->rule_new( do_alternatives_3 =>
+            qw(alternatives alternative op_eq_pri alternatives) );
+    $tracer->rule_new(
+        do_full_alternative => qw(alternative adverb rhs action) );
+    $tracer->rule_new( do_bare_alternative => qw(alternative adverb rhs) );
+    $tracer->rule_new( do_group_adverb     => qw(adverb op_group) );
+    $tracer->rule_new( do_right_adverb     => qw(adverb op_right) );
+    $tracer->rule_new( do_left_adverb      => qw(adverb op_left) );
+    $tracer->rule_new( undef, qw(adverb) );
+    $tracer->rule_new( undef, qw(action) );
+    $tracer->rule_new( do_arg1 => qw( action op_arrow action_name) );
+    $tracer->rule_new( do_lhs  => qw( lhs name ) );
+    $tracer->rule_new( undef, qw( rhs names ) );
+    $tracer->rule_new( undef, qw( quantifier op_star ) );
+    $tracer->rule_new( undef, qw( quantifier op_plus ) );
+    $tracer->sequence_new( do_array => qw(names name), { min => 1 } );
+    $grammar->start_symbol_set( $tracer->symbol_by_name('rules') );
+    $grammar->precompute();
+    return $tracer;
+} ## end sub stuifzand_grammar
 
 sub parse_rules {
     my ($string) = @_;
@@ -340,8 +281,8 @@ sub parse_rules {
     # for debuggging
     my @positions = (0);
 
-    state $thick_grammar = stuifzand_grammar();
-    my $thin_grammar = $thick_grammar->thin();
+    state $tracer = stuifzand_grammar();
+    state $thin_grammar = $tracer->grammar();
     my $recce = Marpa::R2::Thin::R->new($thin_grammar);
     $recce->start_input();
     $recce->ruby_slippers_set(1);
@@ -377,7 +318,7 @@ sub parse_rules {
             next TOKEN_TYPE if not $string =~ m/\G($t->[1])/gcxms;
             my $value_number = -1 + push @token_values, $1;
             my $string_position = pos $string;
-            if ($recce->alternative( $thick_grammar->thin_symbol( $t->[0] ),
+            if ($recce->alternative( $tracer->symbol_by_name( $t->[0] ),
                     $value_number, 1 ) != $Marpa::R2::Error::NONE
                 )
             {
@@ -385,7 +326,7 @@ sub parse_rules {
                     ( substr $string, $string_position, 40 ),
                     qq{\nToken rejected, "}, $t->[0], qq{", "$1"},
                     ;
-            } ## end if ( $recce->alternative( $thick_grammar->thin_symbol( $t->...)))
+            }
             $recce->earleme_complete();
             $latest_earley_set_ID = $recce->latest_earley_set();
             $positions[$latest_earley_set_ID] = $string_position;
@@ -416,7 +357,7 @@ sub parse_rules {
         0 .. $thin_grammar->highest_rule_id() )
     {
         $valuator->rule_is_valued_set( $rule_id, 1 );
-        $actions_by_rule_id[$rule_id] = $thick_grammar->action($rule_id);
+        $actions_by_rule_id[$rule_id] = $tracer->action($rule_id);
     }
 
     my @stack = ();
