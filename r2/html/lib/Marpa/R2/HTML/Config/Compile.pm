@@ -32,7 +32,7 @@ use constant CONTEXT         => 2;
 use constant CONTENTS        => 3;
 
 sub do_is_included {
-    my ( $self, $external_element, $external_group, $line ) = @_;
+    my ( $self, $external_element, $external_group ) = @_;
     my $tag = $external_element;
     $tag =~ s/\A [<] \s* //xms;
     $tag =~ s/\s* [>] \z //xms;
@@ -209,7 +209,7 @@ sub do_is {
 } ## end sub do_is
 
 sub do_contains {
-    my ( $self, $external_element, $contents ) = @_;
+    my ( $self, $external_element, $external_contents ) = @_;
 
     # Production is Element with custom flow
     my $tag = $external_element;
@@ -228,11 +228,10 @@ sub do_contains {
         );
     } ## end if ($closed_reason)
 
-    my @external_contents = split q{ }, $contents;
     my @contents = ();
 
     CONTAINED_SYMBOL:
-    for my $external_content_symbol (@external_contents) {
+    for my $external_content_symbol (@{$external_contents}) {
         my $content_symbol;
         if ( $external_content_symbol =~ /\A [<] (\w+) [>] \z/xms ) {
             $content_symbol = 'ELE_' . $1;
@@ -423,7 +422,7 @@ sub compile {
         } ## end if ( $definition =~ ...)
 
         if ( $definition =~ s/ \A \s* ([<]\w+[>]) \s+ contains \s+ / /xms ) {
-            $self->do_contains($1, $definition);
+            $self->do_contains($1, [split q{ }, $definition]);
             next LINE;
         } ## end if ( $definition =~ ...)
 
