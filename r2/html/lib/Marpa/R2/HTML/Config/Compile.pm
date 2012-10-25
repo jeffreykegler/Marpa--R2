@@ -156,6 +156,58 @@ sub do_is_a_included {
     return $self;
 } ## end sub do_is_a_included
 
+sub do_is {
+
+    my ( $self, $external_element, $external_flow ) = @_;
+    my $tag = $external_element;
+    $tag =~ s/\A [<] \s* //xms;
+    $tag =~ s/\s* [>] \z //xms;
+    ( my $flow_name = $external_flow ) =~ s/\A [*] //xms;
+    my $flow          = 'FLO_' . $flow_name;
+    my $element       = 'ELE_' . $tag;
+    my $symbol_table  = $self->{symbol_table};
+    my $element_entry = $symbol_table->{$element} //= [];
+    my $flow_entry    = $symbol_table->{$flow};
+
+    # For now, new flows cannot be defined
+    Carp::croak(
+        qq{Flow "$flow" does not exist\n},
+        qq{  Problem was in this line: },
+        $Marpa::R2::HTML::Config::Compile::LINE
+    ) if not defined $flow_entry;
+
+    my $closed_reason = $element_entry->[CONTENTS_CLOSED];
+    if ($closed_reason) {
+        Carp::croak(
+            qq{Contents of "$element" cannot be changed:\n},
+            qq{  Reason: $closed_reason\n},
+            qq{  Problem was in this line: },
+            $Marpa::R2::HTML::Config::Compile::LINE
+        );
+    } ## end if ($closed_reason)
+    $closed_reason = $flow_entry->[CONTEXT_CLOSED];
+    if ($closed_reason) {
+        Carp::croak(
+            qq{Context of "$flow" cannot be changed:\n},
+            qq{  Reason: $closed_reason\n},
+            qq{  Problem was in this line: },
+            $Marpa::R2::HTML::Config::Compile::LINE
+        );
+    } ## end if ($closed_reason)
+
+    Carp::croak(
+        qq{Contents of "$element" are already being defined:\n},
+        qq{  Problem was in this line: },
+        $Marpa::R2::HTML::Config::Compile::LINE
+    ) if defined $element_entry->[CONTENTS];
+
+    $element_entry->[CONTENTS] = $flow;
+    $element_entry->[CONTENTS_CLOSED] =
+        'Contents of Element are already defined';
+
+    return $self;
+} ## end sub do_is
+
 sub compile {
     my ($source_ref) = @_;
 
@@ -304,50 +356,12 @@ sub compile {
         } ## end if ( $definition =~ m{ ) (})
 
         if ( $definition
-            =~ s/ \A \s* [<](\w+)[>] \s+ is \s+ [*](\w+) \s* \z/ /xms )
+            =~ s/ \A \s* ([<]\w+[>]) \s+ is \s+ ([*]\w+) \s* \z/ /xms )
         {
-            # Production is Element with flow, but no group specified
-            my $tag           = $1;
-            my $flow          = 'FLO_' . $2;
-            my $element       = 'ELE_' . $tag;
-            my $element_entry = $symbol_table{$element} //= [];
-            my $flow_entry    = $symbol_table{$flow};
-
-            # For now, new flows cannot be defined
-            Carp::croak(
-                qq{Flow "$flow" does not exist\n},
-            qq{  Problem was in this line: }, $Marpa::R2::HTML::Config::Compile::LINE
-            ) if not defined $flow_entry;
-
-            my $closed_reason = $element_entry->[CONTENTS_CLOSED];
-            if ($closed_reason) {
-                Carp::croak(
-                    qq{Contents of "$element" cannot be changed:\n},
-                    qq{  Reason: $closed_reason\n},
-            qq{  Problem was in this line: }, $Marpa::R2::HTML::Config::Compile::LINE
-                );
-            } ## end if ($closed_reason)
-            $closed_reason = $flow_entry->[CONTEXT_CLOSED];
-            if ($closed_reason) {
-                Carp::croak(
-                    qq{Context of "$flow" cannot be changed:\n},
-                    qq{  Reason: $closed_reason\n},
-            qq{  Problem was in this line: }, $Marpa::R2::HTML::Config::Compile::LINE
-                );
-            } ## end if ($closed_reason)
-
-            Carp::croak(
-                qq{Contents of "$element" are already being defined:\n},
-            qq{  Problem was in this line: }, $Marpa::R2::HTML::Config::Compile::LINE
-                )
-                if defined $element_entry->[CONTENTS];
-
-            $element_entry->[CONTENTS] = $flow;
-            $element_entry->[CONTENTS_CLOSED] =
-                'Contents of Element are already defined';
-
+            $self->do_is($1, $2);
             next LINE;
         } ## end if ( $definition =~ ...)
+
         if ( $definition =~ s/ \A \s* [<](\w+)[>] \s+ contains \s+ / /xms ) {
 
             # Production is Element with custom flow
