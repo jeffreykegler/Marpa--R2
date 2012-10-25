@@ -266,19 +266,19 @@ sub parse_rules {
 
     # Order matters !!!
     my @terminals = (
-        [ 'kw_action', qr/action\b/xms ],
-        [ 'kw_assoc', qr/assoc\b/xms ],
-        [ 'kw_left', qr/left\b/xms ],
-        [ 'kw_right', qr/right\b/xms ],
-        [ 'kw_group', qr/group\b/xms ],
-        [ 'op_declare',    qr/::=/xms ],
-        [ 'op_arrow',      qr/=>/xms ],
-        [ 'op_tighter',    qr/[|][|]/xms ],
-        [ 'op_eq_pri',     qr/[|]/xms ],
+        [ 'kw_action', qr/action\b/xms, qq{"action" keyword} ],
+        [ 'kw_assoc', qr/assoc\b/xms, qq{"assoc" keyword} ],
+        [ 'kw_left', qr/left\b/xms, qq{"left" keyword} ],
+        [ 'kw_right', qr/right\b/xms, qq{"right" keyword} ],
+        [ 'kw_group', qr/group\b/xms, qq{"group" keyword} ],
+        [ 'op_declare',    qr/::=/xms, 'BNF declaration operator' ],
+        [ 'op_arrow',      qr/=>/xms, 'adverb operator' ],
+        [ 'op_tighter',    qr/[|][|]/xms, 'tighten-precedence operator' ],
+        [ 'op_eq_pri',     qr/[|]/xms, 'alternative operator' ],
         # [ 'reserved_name', qr/(::(whatever|undef))/xms ],
-        [ 'op_plus',       qr/[+]/xms ],
-        [ 'op_star',       qr/[*]/xms ],
-        [ 'name',          qr/\w+/xms ],
+        [ 'op_plus',       qr/[+]/xms, 'plus quantification operator' ],
+        [ 'op_star',       qr/[*]/xms, 'star quantification operator' ],
+        [ 'name',          qr/\w+/xms, ],
         [ 'name',          qr/['][^']+[']/xms ],
     );
 
@@ -302,8 +302,7 @@ sub parse_rules {
                 my $problem_position = $positions[-1];
                 die q{Problem near position }, $problem_position, ': ',
                     ( substr $string, $problem_position, 40 ),
-                    qq{\nToken rejected, "}, $t->[0], qq{", "$1"},
-                    ;
+                    qq{\nToken rejected, "$1", }, ( $t->[2] // $t->[0] );
             }
             $recce->earleme_complete();
             $latest_earley_set_ID = $recce->latest_earley_set();
