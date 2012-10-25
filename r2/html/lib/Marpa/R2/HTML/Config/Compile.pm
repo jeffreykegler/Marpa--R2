@@ -76,6 +76,86 @@ sub do_is_included {
 
 } ## end sub do_is_included
 
+sub do_is_a_included {
+    my ( $self, $external_element, $external_flow, $external_group ) = @_;
+    my $tag = $external_element;
+    $tag =~ s/\A [<] \s* //xms;
+    $tag =~ s/\s* [>] \z //xms;
+    ( my $flow_name  = $external_flow )  =~ s/\A [*] //xms;
+    ( my $group_name = $external_group ) =~ s/\A [%] //xms;
+    my $flow          = 'FLO_' . $flow_name;
+    my $group         = 'GRP_' . $group_name;
+    my $element       = 'ELE_' . $tag;
+    my $symbol_table = $self->{symbol_table};
+    my $element_entry = $symbol_table->{$element} //= [];
+    my $group_entry   = $symbol_table->{$group};
+    my $flow_entry    = $symbol_table->{$flow};
+
+    # For now, new flows and groups cannot be defined
+    Carp::croak(
+        qq{Group "$group" does not exist\n},
+            qq{  Problem was in this line: }, $Marpa::R2::HTML::Config::Compile::LINE
+    ) if not defined $group_entry;
+    Carp::croak(
+        qq{Flow "$flow" does not exist\n},
+            qq{  Problem was in this line: }, $Marpa::R2::HTML::Config::Compile::LINE
+    ) if not defined $flow_entry;
+
+    my $closed_reason = $element_entry->[CONTEXT_CLOSED];
+    if ($closed_reason) {
+        Carp::croak(
+            qq{Context of "$element" cannot be changed:\n},
+            qq{  Reason: $closed_reason\n},
+            qq{  Problem was in this line: }, $Marpa::R2::HTML::Config::Compile::LINE
+        );
+    } ## end if ($closed_reason)
+    $closed_reason = $element_entry->[CONTENTS_CLOSED];
+    if ($closed_reason) {
+        Carp::croak(
+            qq{Contents of "$element" cannot be changed:\n},
+            qq{  Reason: $closed_reason\n},
+            qq{  Problem was in this line: }, $Marpa::R2::HTML::Config::Compile::LINE
+        );
+    } ## end if ($closed_reason)
+    $closed_reason = $flow_entry->[CONTEXT_CLOSED];
+    if ($closed_reason) {
+        Carp::croak(
+            qq{Context of "$flow" cannot be changed:\n},
+            qq{  Reason: $closed_reason\n},
+            qq{  Problem was in this line: }, $Marpa::R2::HTML::Config::Compile::LINE
+        );
+    } ## end if ($closed_reason)
+    $closed_reason = $group_entry->[CONTENTS_CLOSED];
+    if ($closed_reason) {
+        Carp::croak(
+            qq{Contents of "$group" cannot be changed:\n},
+            qq{  Reason: $closed_reason\n},
+            qq{  Problem was in this line: }, $Marpa::R2::HTML::Config::Compile::LINE
+        );
+    } ## end if ($closed_reason)
+
+    Carp::croak(
+        qq{Contents of "$element" are already being defined:\n},
+        qq{  Problem was in this line: },
+        $Marpa::R2::HTML::Config::Compile::LINE
+    ) if defined $element_entry->[CONTENTS];
+    Carp::croak(
+        qq{Context of "$element" is already being defined:\n},
+        qq{  Problem was in this line: },
+        $Marpa::R2::HTML::Config::Compile::LINE
+    ) if defined $element_entry->[CONTEXT];
+
+    # Always sets the primary group
+    my $primary_group_by_tag = $self->{primary_group_by_tag};
+    $primary_group_by_tag->{$tag}      = $group;
+    $element_entry->[CONTENTS]       = $flow;
+    $element_entry->[CONTEXT]        = $group;
+    $element_entry->[CONTEXT_CLOSED] = $element_entry->[CONTENTS_CLOSED] =
+        'Element is already fully defined';
+
+    return $self;
+} ## end sub do_is_a_included
+
 sub compile {
     my ($source_ref) = @_;
 
@@ -105,7 +185,6 @@ sub compile {
         for my $line ( split /\n/xms,
             $Marpa::R2::HTML::Internal::Core::CORE_BNF )
         {
-            local $Marpa::R2::HTML::Config::Compile::LINE = $line;
             my $definition = $line;
             chomp $definition;
             $definition =~ s/ [#] .* //xms;    # Remove comments
@@ -199,6 +278,7 @@ sub compile {
 
     LINE:
     for my $line ( split /\n/xms, ${$source_ref} ) {
+        local $Marpa::R2::HTML::Config::Compile::LINE = $line;
         my $definition = $line;
         chomp $definition;
         $definition =~ s/ [#] .* //xms;    # Remove comments
@@ -208,85 +288,18 @@ sub compile {
             =~ m{ \A \s* ([<]\w+[>]) \s+ is \s+ included \s+ in \s+ ([%]\w+) \s* \z}xms
             )
         {
-            $self->do_is_included($1, $2, $line);
+            $self->do_is_included($1, $2);
             next LINE;
         } ## end if ( $definition =~ ...)
         if ($definition =~ m{
-            \A \s* [<](\w+)[>] \s+
-            is \s+ a \s+ [*](\w+) \s+
+            \A \s* ([<]\w+[>]) \s+
+            is \s+ a \s+ ([*]\w+) \s+
             included \s+
-            in \s+ [%](\w+) \s* \z
+            in \s+ ([%]\w+) \s* \z
             }xms
             )
         {
-            my $tag           = $1;
-            my $flow          = 'FLO_' . $2;
-            my $group         = 'GRP_' . $3;
-            my $element       = 'ELE_' . $tag;
-            my $element_entry = $symbol_table{$element} //= [];
-            my $group_entry   = $symbol_table{$group};
-            my $flow_entry    = $symbol_table{$flow};
-
-            # For now, new flows and groups cannot be defined
-            Carp::croak(
-                qq{Group "$group" does not exist\n},
-                qq{  Problem was in this line: $line}
-            ) if not defined $group_entry;
-            Carp::croak(
-                qq{Flow "$flow" does not exist\n},
-                qq{  Problem was in this line: $line}
-            ) if not defined $flow_entry;
-
-            my $closed_reason = $element_entry->[CONTEXT_CLOSED];
-            if ($closed_reason) {
-                Carp::croak(
-                    qq{Context of "$element" cannot be changed:\n},
-                    qq{  Reason: $closed_reason\n},
-                    qq{  Problem was in this line: $line}
-                );
-            } ## end if ($closed_reason)
-            $closed_reason = $element_entry->[CONTENTS_CLOSED];
-            if ($closed_reason) {
-                Carp::croak(
-                    qq{Contents of "$element" cannot be changed:\n},
-                    qq{  Reason: $closed_reason\n},
-                    qq{  Problem was in this line: $line}
-                );
-            } ## end if ($closed_reason)
-            $closed_reason = $flow_entry->[CONTEXT_CLOSED];
-            if ($closed_reason) {
-                Carp::croak(
-                    qq{Context of "$flow" cannot be changed:\n},
-                    qq{  Reason: $closed_reason\n},
-                    qq{  Problem was in this line: $line}
-                );
-            } ## end if ($closed_reason)
-            $closed_reason = $group_entry->[CONTENTS_CLOSED];
-            if ($closed_reason) {
-                Carp::croak(
-                    qq{Contents of "$group" cannot be changed:\n},
-                    qq{  Reason: $closed_reason\n},
-                    qq{  Problem was in this line: $line}
-                );
-            } ## end if ($closed_reason)
-
-            Carp::croak(
-                qq{Contents of "$element" are already being defined:\n},
-                qq{  Problem was in this line: $line} )
-                if defined $element_entry->[CONTENTS];
-            Carp::croak(
-                qq{Context of "$element" is already being defined:\n},
-                qq{  Problem was in this line: $line} )
-                if defined $element_entry->[CONTEXT];
-
-            # Always sets the primary group
-            $primary_group_by_tag{$tag} = $group;
-            $element_entry->[CONTENTS]  = $flow;
-            $element_entry->[CONTEXT]   = $group;
-            $element_entry->[CONTEXT_CLOSED] =
-                $element_entry->[CONTENTS_CLOSED] =
-                'Element is already fully defined';
-
+            $self->do_is_a_included($1, $2, $3);
             next LINE;
         } ## end if ( $definition =~ m{ ) (})
 
@@ -303,7 +316,7 @@ sub compile {
             # For now, new flows cannot be defined
             Carp::croak(
                 qq{Flow "$flow" does not exist\n},
-                qq{  Problem was in this line: $line}
+            qq{  Problem was in this line: }, $Marpa::R2::HTML::Config::Compile::LINE
             ) if not defined $flow_entry;
 
             my $closed_reason = $element_entry->[CONTENTS_CLOSED];
@@ -311,7 +324,7 @@ sub compile {
                 Carp::croak(
                     qq{Contents of "$element" cannot be changed:\n},
                     qq{  Reason: $closed_reason\n},
-                    qq{  Problem was in this line: $line}
+            qq{  Problem was in this line: }, $Marpa::R2::HTML::Config::Compile::LINE
                 );
             } ## end if ($closed_reason)
             $closed_reason = $flow_entry->[CONTEXT_CLOSED];
@@ -319,13 +332,14 @@ sub compile {
                 Carp::croak(
                     qq{Context of "$flow" cannot be changed:\n},
                     qq{  Reason: $closed_reason\n},
-                    qq{  Problem was in this line: $line}
+            qq{  Problem was in this line: }, $Marpa::R2::HTML::Config::Compile::LINE
                 );
             } ## end if ($closed_reason)
 
             Carp::croak(
                 qq{Contents of "$element" are already being defined:\n},
-                qq{  Problem was in this line: $line} )
+            qq{  Problem was in this line: }, $Marpa::R2::HTML::Config::Compile::LINE
+                )
                 if defined $element_entry->[CONTENTS];
 
             $element_entry->[CONTENTS] = $flow;
@@ -345,7 +359,7 @@ sub compile {
                 Carp::croak(
                     qq{Contents of "$element_symbol" cannot be changed:\n},
                     qq{  Reason: $closed_reason\n},
-                    qq{  Problem was in this line: $line}
+            qq{  Problem was in this line: }, $Marpa::R2::HTML::Config::Compile::LINE
                 );
             } ## end if ($closed_reason)
 
@@ -368,7 +382,7 @@ sub compile {
                     if ( not $content_symbol =~ /\A ELE_ /xms ) {
                         Carp::croak(
                             qq{Symbol "$external_content_symbol" is undefined\n},
-                            qq{  Problem was in this line: $line}
+            qq{  Problem was in this line: }, $Marpa::R2::HTML::Config::Compile::LINE
                         ) if not defined $content_entry;
                     } ## end if ( not $content_symbol =~ /\A ELE_ /xms )
                     $content_entry = [];
@@ -378,7 +392,7 @@ sub compile {
                     Carp::croak(
                         qq{Context of "$external_content_symbol" cannot be changed:\n},
                         qq{  Reason: $closed_reason\n},
-                        qq{  Problem was in this line: $line}
+            qq{  Problem was in this line: }, $Marpa::R2::HTML::Config::Compile::LINE
                     );
                 } ## end if ($closed_reason)
                 push @contents, $content_symbol;
