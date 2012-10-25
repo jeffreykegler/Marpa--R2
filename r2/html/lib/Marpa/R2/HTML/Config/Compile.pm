@@ -31,8 +31,8 @@ use constant CONTENTS_CLOSED => 1;
 use constant CONTEXT         => 2;
 use constant CONTENTS        => 3;
 
-sub do_is_included {
-    my ( $self, $external_element, $external_group ) = @_;
+sub do_is_included_statement {
+    my ( $self, $external_element, undef, undef, undef, $external_group ) = @_;
     my $tag = $external_element;
     $tag =~ s/\A [<] \s* //xms;
     $tag =~ s/\s* [>] \z //xms;
@@ -76,8 +76,8 @@ sub do_is_included {
 
 } ## end sub do_is_included
 
-sub do_is_a_included {
-    my ( $self, $external_element, $external_flow, $external_group ) = @_;
+sub do_is_a_included_statement {
+    my ( $self, $external_element, undef, undef, $external_flow, undef, undef, $external_group ) = @_;
     my $tag = $external_element;
     $tag =~ s/\A [<] \s* //xms;
     $tag =~ s/\s* [>] \z //xms;
@@ -156,9 +156,9 @@ sub do_is_a_included {
     return $self;
 } ## end sub do_is_a_included
 
-sub do_is {
+sub do_is_statement {
 
-    my ( $self, $external_element, $external_flow ) = @_;
+    my ( $self, $external_element, undef, $external_flow ) = @_;
     my $tag = $external_element;
     $tag =~ s/\A [<] \s* //xms;
     $tag =~ s/\s* [>] \z //xms;
@@ -208,8 +208,8 @@ sub do_is {
     return $self;
 } ## end sub do_is
 
-sub do_contains {
-    my ( $self, $external_element, $external_contents ) = @_;
+sub do_contains_statement {
+    my ( $self, $external_element, undef, $external_contents ) = @_;
 
     # Production is Element with custom flow
     my $tag = $external_element;
@@ -268,7 +268,7 @@ sub do_contains {
 } ## end sub do_contains
 
 sub do_array_assignment {
-    my ( $self, $external_list, $external_members ) = @_;
+    my ( $self, $external_list, undef, $external_members ) = @_;
     ( my $new_list = $external_list ) =~ s/\A [@] //xms;
     my $lists = $self->{lists};
     Carp::croak(
@@ -295,7 +295,7 @@ sub do_array_assignment {
 } ## end sub do_array_assignment
 
 sub do_ruby_statement {
-    my ( $self, $external_reject_symbol, $external_candidates ) = @_;
+    my ( $self, $external_reject_symbol, undef, $external_candidates ) = @_;
     my $lists = $self->{lists};
     my @symbols = ($external_reject_symbol);
     RAW_CANDIDATE: for my $raw_candidate ( @{$external_candidates} ) {
@@ -375,6 +375,8 @@ sub die_on_read_problem {
         ;
 } ## end sub die_on_read_problem
 
+sub do_array { return [@_]; }
+
 sub do_what_I_mean {
 
     # The first argument is the per-parse variable.
@@ -422,22 +424,27 @@ statement ::= is_included_statement
     | list_assignment
     | ruby_statement
 is_included_statement ::= element kw_is kw_included kw_in <group>
-    # action => do_is_included_statement
+    action => do_is_included_statement
 element ::= start_tag
 is_a_included_statement ::= element kw_is kw_a flow kw_included kw_in <group>
-    # action => do_is_a_included_statement
+    action => do_is_a_included_statement
 is_statement ::= element kw_is flow
-    # action => do_is_statement
+    action => do_is_statement
 contains_statement ::= element kw_contains contents
-    # action => do_contains_statement
+    action => do_contains_statement
 contents ::= content_item*
+    action => do_array
 list_assignment ::= list op_assign list_members
+    action => do_array_assignment
 list_members ::= list_member*
+    action => do_array
 list_member ::= ruby_symbol
 list_member ::= list
 content_item ::= element | <group> | kw_PCDATA | kw_CDATA
 ruby_statement ::= ruby_symbol op_ruby ruby_symbol_list
+    action => do_ruby_statement
 ruby_symbol_list ::= ruby_symbol*
+    action => do_array
 ruby_symbol ::= kw_PCDATA | kw_CDATA
   | start_tag | group_start_tag | wildcard_start_tag
   | end_tag | group_end_tag | wildcard_end_tag
@@ -446,7 +453,7 @@ END_OF_GRAMMAR
  
     my $grammar = Marpa::R2::Grammar->new(
        { start => 'translation_unit',
-       actions => __PACKAGE__,
+       action_object => __PACKAGE__,
        rules =>[$source],
        default_action => 'do_what_I_mean'
        }
@@ -455,44 +462,8 @@ END_OF_GRAMMAR
    return $grammar;
 }
 
-sub new_compile {
-    my ($string) = @_;
-
-    state $grammar = create_grammar();
-    my $recce = Marpa::R2::Recognizer->new({ grammar => $grammar});
-    my $length = length $string;
-    pos $string = 0;
-    TOKEN: while ( pos $string < $length ) {
-
-        # skip comment
-        next TOKEN if $string =~ m/\G \s* [#] [^\n]* \n/gcxms;
-
-        # skip whitespace
-        next TOKEN if $string =~ m/\G\s+/gcxms;
-
-        # read other tokens
-        TOKEN_TYPE: for my $t (@terminals) {
-            next TOKEN_TYPE if not $string =~ m/\G($t->[1])/gcxms;
-	    # say join " ", $t->[0], '->', $1;
-            if ( not defined $recce->read( $t->[0], $1 ) ) {
-                die_on_read_problem( $recce, $t, $1, $string, pos $string );
-            }
-            next TOKEN;
-        } ## end TOKEN_TYPE: for my $t (@terminals)
-
-        die q{No token at "}, ( substr $string, pos $string, 40 ),
-            q{", position }, pos $string;
-    } ## end TOKEN: while ( pos $string < $length )
-
-    my $value_ref = $recce->value();
-    # require Data::Dumper; say Data::Dumper::Dumper($value_ref);
-
-}
-
 sub compile {
     my ($source_ref) = @_;
-
-    new_compile(${$source_ref});
 
     # A quasi-object, not used outside this routine
     my $self = bless {}, __PACKAGE__;
@@ -612,57 +583,39 @@ sub compile {
     $self->{ruby_config} = \%ruby_config;
     $self->{lists} = \%lists;
 
-    LINE:
-    for my $line ( split /\n/xms, ${$source_ref} ) {
-        local $Marpa::R2::HTML::Config::Compile::LINE = $line;
-        my $definition = $line;
-        chomp $definition;
-        $definition =~ s/ [#] .* //xms;    # Remove comments
-        next LINE
-            if not $definition =~ / \S /xms;    # ignore all-whitespace line
-        if ( $definition
-            =~ m{ \A \s* ([<]\w+[>]) \s+ is \s+ included \s+ in \s+ ([%]\w+) \s* \z}xms
-            )
-        {
-            $self->do_is_included($1, $2);
-            next LINE;
-        } ## end if ( $definition =~ ...)
-        if ($definition =~ m{
-            \A \s* ([<]\w+[>]) \s+
-            is \s+ a \s+ ([*]\w+) \s+
-            included \s+
-            in \s+ ([%]\w+) \s* \z
-            }xms
-            )
-        {
-            $self->do_is_a_included($1, $2, $3);
-            next LINE;
-        } ## end if ( $definition =~ m{ ) (})
+    state $grammar = create_grammar();
+    my $recce = Marpa::R2::Recognizer->new({ grammar => $grammar});
+    my $string = ${$source_ref};
+    my $length = length $string;
+    pos $string = 0;
+    TOKEN: while ( pos $string < $length ) {
 
-        if ( $definition
-            =~ s/ \A \s* ([<]\w+[>]) \s+ is \s+ ([*]\w+) \s* \z/ /xms )
-        {
-            $self->do_is($1, $2);
-            next LINE;
-        } ## end if ( $definition =~ ...)
+        # skip comment
+        next TOKEN if $string =~ m/\G \s* [#] [^\n]* \n/gcxms;
 
-        if ( $definition =~ s/ \A \s* ([<]\w+[>]) \s+ contains \s+ / /xms ) {
-            $self->do_contains($1, [split q{ }, $definition]);
-            next LINE;
-        } ## end if ( $definition =~ ...)
+        # skip whitespace
+        next TOKEN if $string =~ m/\G\s+/gcxms;
 
-        if ( $definition =~ s/ \A \s* ([@]\w+) \s* = \s* / /xms ) {
-            $self->do_array_assignment($1, [split q{ }, $definition]);
-            next LINE;
-        }
+        # read other tokens
+        TOKEN_TYPE: for my $t (@terminals) {
+            next TOKEN_TYPE if not $string =~ m/\G($t->[1])/gcxms;
+	    # say join " ", $t->[0], '->', $1;
+            if ( not defined $recce->read( $t->[0], $1 ) ) {
+                die_on_read_problem( $recce, $t, $1, $string, pos $string );
+            }
+            next TOKEN;
+        } ## end TOKEN_TYPE: for my $t (@terminals)
 
-        if ( $definition =~ s{ \A \s* ([\w<*%>/]+) \s* [-][>] \s* }{}xms ) {
-            $self->do_ruby_statement($1, [split q{ }, $definition]);
-            next LINE;
-        }
+        die q{No token at "}, ( substr $string, pos $string, 40 ),
+            q{", position }, pos $string;
+    } ## end TOKEN: while ( pos $string < $length )
 
-        die "Badly formed line in grammar description: $line";
-    } ## end LINE: for my $line ( split /\n/xms, ${$source_ref} )
+    # Value not used
+    {
+        # Have the new() just return the current $self
+        local *new = sub { return $self };
+        my $value_ref = $recce->value();
+    }
 
     my %sgml_flow_included = ();
     SYMBOL: for my $element_symbol ( keys %symbol_table ) {
