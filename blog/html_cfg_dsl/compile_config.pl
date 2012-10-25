@@ -54,9 +54,49 @@ my @terminals = (
     [ semi_colon   =>   qr/[;]/xms ],
 );
 
+sub create_grammar {
+
+my $source = <<'END_OF_GRAMMAR';
+translation_unit ::= statement*
+statement ::= is_included_statement
+    | is_a_included_statement
+    | is_statement
+    | contains_statement
+    | list_assignment
+    | ruby_statement
+is_included_statement ::= element kw_is kw_included kw_in group
+    action => do_is_included_statement
+element ::= start_tag
+is_a_included_statement ::= element kw_is kw_a flow kw_included kw_in group
+    action => do_is_a_included_statement
+is_statement ::= element kw_is flow
+    action => do_is_statement
+contains_statement ::= element kw_contains contents
+    action => do_contains_statement
+contents = content_item*
+content_item = element | group | kw_PCDATA | kw_CDATA
+ruby_statement ::= ruby_symbol ruby_op ruby_candidates
+ruby_symbol_list ::= ruby_symbol+
+ruby_symbol ::= kw_PCDATA | kw_CDATA
+  | start_tag | start_group_wildcard | start_wildcard
+  | end_tag | end_group_wildcard | end_wildcard
+END_OF_GRAMMAR
+ 
+    my $grammar = Marpa::R2::Grammar->new(
+       { start => 'configuration',
+       actions => __PACKAGE__,
+       rules =>[$source],
+       default_action => 'main::do_what_I_mean'
+       }
+    );
+    $grammar->precompute();
+   return $grammar;
+}
+
 sub compile {
     my ($string) = @_;
 
+    state $grammar = create_grammar();
     my $length = length $string;
     pos $string = 0;
     TOKEN: while ( pos $string < $length ) {
