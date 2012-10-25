@@ -294,6 +294,71 @@ sub do_array_assignment {
     return $self;
 } ## end sub do_array_assignment
 
+sub do_ruby_statement {
+    my ( $self, $external_reject_symbol, $external_candidates ) = @_;
+    my $lists = $self->{lists};
+    my @symbols = ($external_reject_symbol);
+    RAW_CANDIDATE: for my $raw_candidate ( @{$external_candidates} ) {
+        if ( $raw_candidate =~ / \A [@] (.*) \z/xms ) {
+            my $list = $1;
+            Carp::croak(
+                "Problem in line: ",
+                $Marpa::R2::HTML::Config::Compile::LINE,
+                "\n", 'candidate list @' . $list . ' is not yet defined'
+            ) if not defined $lists->{$list};
+            push @symbols, @{ $lists->{$list} };
+            next RAW_CANDIDATE;
+        } ## end if ( $raw_candidate =~ / \A [@] (.*) \z/xms )
+        push @symbols, $raw_candidate;
+    } ## end RAW_CANDIDATE: for my $raw_candidate ( @{$external_candidates} )
+    my @internal_symbols = ();
+    SYMBOL: for my $symbol (@symbols) {
+        if ( $symbol eq 'CDATA' or $symbol eq 'PCDATA' ) {
+            push @internal_symbols, $symbol;
+            next SYMBOL;
+        }
+        if ( $symbol =~ /\A ( [<] [%] (inline|head|block) [>] ) \z/xms ) {
+            my $special_symbol = $1;
+            push @internal_symbols, $special_symbol;
+            next SYMBOL;
+        }
+        if ( $symbol =~ m{\A ( [<] [/] [%] (inline|head|block) [>] ) \z}xms )
+        {
+            my $special_symbol = $1;
+            push @internal_symbols, $special_symbol;
+            next SYMBOL;
+        } ## end if ( $symbol =~ ...)
+        if ( $symbol =~ m{\A ( [<] [*] [>] ) \z}xms ) {
+            my $special_symbol = $1;
+            push @internal_symbols, $special_symbol;
+            next SYMBOL;
+        }
+        if ( $symbol =~ m{\A ( [<] [/] [*] [>] ) \z}xms ) {
+            my $special_symbol = $1;
+            push @internal_symbols, $special_symbol;
+            next SYMBOL;
+        }
+        if ( $symbol =~ /\A [<] (\w+) [>] \z/xms ) {
+            my $start_tag = 'S_' . $1;
+            push @internal_symbols, $start_tag;
+            next SYMBOL;
+        }
+        if ( $symbol =~ m{\A [<] [/](\w+) [>] \z}xms ) {
+            my $end_tag = 'E_' . $1;
+            push @internal_symbols, $end_tag;
+            next SYMBOL;
+        }
+        Carp::croak(
+            "Problem in line: ",
+            $Marpa::R2::HTML::Config::Compile::LINE,
+            "\n", qq{Misformed symbol "$symbol"}
+        );
+    } ## end SYMBOL: for my $symbol (@symbols)
+    my $rejected_symbol = shift @internal_symbols;
+    $self->{ruby_config}->{$rejected_symbol} = \@internal_symbols;
+    return $self;
+} ## end sub do_ruby_statement
+
 sub compile {
     my ($source_ref) = @_;
 
@@ -412,6 +477,7 @@ sub compile {
 
     my %ruby_config = ();
     my %lists       = ();
+    $self->{ruby_config} = \%ruby_config;
     $self->{lists} = \%lists;
 
     LINE:
@@ -459,67 +525,10 @@ sub compile {
         }
 
         if ( $definition =~ s{ \A \s* ([\w<*%>/]+) \s* [-][>] \s* }{}xms ) {
-            my $rejected_symbol = $1;
-            my @raw_candidates  = split q{ }, $definition;
-            my @symbols         = ($rejected_symbol);
-            RAW_CANDIDATE: for my $raw_candidate (@raw_candidates) {
-                if ( $raw_candidate =~ / \A [@] (.*) \z/xms ) {
-                    my $list = $1;
-                    die "Problem in line: $line\n",
-                        'candidate list @' . $list . ' is not yet defined'
-                        if not defined $lists{$list};
-                    push @symbols, @{ $lists{$list} };
-                    next RAW_CANDIDATE;
-                } ## end if ( $raw_candidate =~ / \A [@] (.*) \z/xms )
-                push @symbols, $raw_candidate;
-            } ## end RAW_CANDIDATE: for my $raw_candidate (@raw_candidates)
-            my @internal_symbols = ();
-            SYMBOL: for my $symbol (@symbols) {
-                if ( $symbol eq 'CDATA' or $symbol eq 'PCDATA' ) {
-                    push @internal_symbols, $symbol;
-                    next SYMBOL;
-                }
-                if ( $symbol
-                    =~ /\A ( [<] [%] (inline|head|block) [>] ) \z/xms )
-                {
-                    my $special_symbol = $1;
-                    push @internal_symbols, $special_symbol;
-                    next SYMBOL;
-                } ## end if ( $symbol =~ ...)
-                if ( $symbol
-                    =~ m{\A ( [<] [/] [%] (inline|head|block) [>] ) \z}xms )
-                {
-                    my $special_symbol = $1;
-                    push @internal_symbols, $special_symbol;
-                    next SYMBOL;
-                } ## end if ( $symbol =~ ...)
-                if ( $symbol =~ m{\A ( [<] [*] [>] ) \z}xms ) {
-                    my $special_symbol = $1;
-                    push @internal_symbols, $special_symbol;
-                    next SYMBOL;
-                }
-                if ( $symbol =~ m{\A ( [<] [/] [*] [>] ) \z}xms ) {
-                    my $special_symbol = $1;
-                    push @internal_symbols, $special_symbol;
-                    next SYMBOL;
-                }
-                if ( $symbol =~ /\A [<] (\w+) [>] \z/xms ) {
-                    my $start_tag = 'S_' . $1;
-                    push @internal_symbols, $start_tag;
-                    next SYMBOL;
-                }
-                if ( $symbol =~ m{\A [<] [/](\w+) [>] \z}xms ) {
-                    my $end_tag = 'E_' . $1;
-                    push @internal_symbols, $end_tag;
-                    next SYMBOL;
-                }
-                die "Problem in line: $line\n",
-                    qq{Misformed symbol "$symbol"};
-            } ## end SYMBOL: for my $symbol (@symbols)
-            $rejected_symbol = shift @internal_symbols;
-            $ruby_config{$rejected_symbol} = \@internal_symbols;
+            $self->do_ruby_statement($1, [split q{ }, $definition]);
             next LINE;
-        } ## end if ( $definition =~ ...)
+        }
+
         die "Badly formed line in grammar description: $line";
     } ## end LINE: for my $line ( split /\n/xms, ${$source_ref} )
 
