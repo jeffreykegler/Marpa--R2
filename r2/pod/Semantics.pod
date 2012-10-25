@@ -303,8 +303,11 @@ normalize-whitespace: 1
         my $rule_id         = $Marpa::R2::Context::rule;
         my $grammar         = $Marpa::R2::Context::grammar;
         my ( $lhs, @rhs ) = $grammar->rule($rule_id);
-        $action_object->{text}
-            .= "rule $rule_id: $lhs ::= " . ( join q{ }, @rhs ) . "\n";
+        $action_object->{text} =
+              "rule $rule_id: $lhs ::= "
+            . ( join q{ }, @rhs ) . "\n"
+            . "locations: "
+            . ( join q{-}, Marpa::R2::Context::location() ) . "\n";
         return $action_object;
     } ## end sub do_S
 
@@ -314,13 +317,22 @@ In addition to the per-parse-tree variable
 and their child arguments,
 rule evaluation closures also have access
 to B<context variables>.
-C<$Marpa::R2::Context::grammar> is set to
+
+=over
+
+=item * C<$Marpa::R2::Context::grammar> is set to
 the grammar being parsed.
-C<$Marpa::R2::Context::rule> is the ID of the
+
+=item * C<$Marpa::R2::Context::rule> is the ID of the
 current rule.
 Given the rule ID, an application can find
 its LHS and RHS symbols using
 L<the grammar's C<rule()> method|Marpa::R2::Grammar/"rule">.
+
+=item * C<Marpa::R2::Context::location()> returns the start
+and end locations of the current rule.
+
+=back
 
 =head1 Parse trees, parse results and parse series
 

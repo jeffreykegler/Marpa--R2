@@ -338,6 +338,14 @@ sub Marpa::R2::Internal::Recognizer::set_actions {
     return 1;
 }    # set_actions
 
+sub Marpa::R2::Context::location {
+    my $valuator = $Marpa::R2::Internal::Context::VALUATOR;
+    Marpa::R2::exception(
+        'Marpa::R2::Context::location called outside of a valuation context')
+        if not defined $valuator;
+    return $valuator->location();
+} ## end Marpa::R2::Context::location
+
 # Does not modify stack
 sub Marpa::R2::Internal::Recognizer::evaluate {
     my ($recce) = @_;
@@ -415,6 +423,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
     my $null_values = $recce->[Marpa::R2::Internal::Recognizer::NULL_VALUES];
 
     my $value = Marpa::R2::Thin::V->new($tree);
+    local $Marpa::R2::Internal::Context::VALUATOR = $value;
     for my $rule_id ( 0 .. $#{$rule_closures} ) {
         my $result = $value->rule_is_valued_set( $rule_id, 1 );
         if ( not $result ) {
