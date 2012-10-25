@@ -267,6 +267,33 @@ sub do_contains {
 
 } ## end sub do_contains
 
+sub do_array_assignment {
+    my ( $self, $external_list, $external_members ) = @_;
+    ( my $new_list = $external_list ) =~ s/\A [@] //xms;
+    my $lists = $self->{lists};
+    Carp::croak(
+        "Problem in line: ", $Marpa::R2::HTML::Config::Compile::LINE,
+        "\n",                'list @' . $new_list . ' is already defined'
+    ) if defined $lists->{$new_list};
+    my @members = ();
+    RAW_MEMBER: for my $raw_member (@{$external_members}) {
+        if ( $raw_member =~ / \A [@] (.*) \z/xms ) {
+            my $member_list = $1;
+            Carp::croak(
+                "Problem in line: ",
+                $Marpa::R2::HTML::Config::Compile::LINE,
+                "\n",
+                'member list @' . $member_list . ' is not yet defined'
+            ) if not defined $lists->{$member_list};
+            push @members, @{ $lists->{$member_list} };
+            next RAW_MEMBER;
+        } ## end if ( $raw_member =~ / \A [@] (.*) \z/xms )
+        push @members, $raw_member;
+    } ## end RAW_MEMBER: for my $raw_member (@{$external_members})
+    $lists->{$new_list} = \@members;
+    return $self;
+} ## end sub do_array_assignment
+
 sub compile {
     my ($source_ref) = @_;
 
@@ -426,27 +453,11 @@ sub compile {
             next LINE;
         } ## end if ( $definition =~ ...)
 
-        if ( $definition =~ s/ \A \s* [@](\w+) \s* = \s* / /xms ) {
-            my $new_list = $1;
-            die "Problem in line: $line\n",
-                'list @' . $new_list . ' is already defined'
-                if defined $lists{$new_list};
-            my @raw_members = split q{ }, $definition;
-            my @members = ();
-            RAW_MEMBER: for my $raw_member (@raw_members) {
-                if ( $raw_member =~ / \A [@] (.*) \z/xms ) {
-                    my $member_list = $1;
-                    die "Problem in line: $line\n",
-                        'member list @' . $member_list . ' is not yet defined'
-                        if not defined $lists{$member_list};
-                    push @members, @{ $lists{$member_list} };
-                    next RAW_MEMBER;
-                } ## end if ( $raw_member =~ / \A [@] (.*) \z/xms )
-                push @members, $raw_member;
-            } ## end RAW_MEMBER: for my $raw_member (@raw_members)
-            $lists{$new_list} = \@members;
+        if ( $definition =~ s/ \A \s* ([@]\w+) \s* = \s* / /xms ) {
+            $self->do_array_assignment($1, [split q{ }, $definition]);
             next LINE;
-        } ## end if ( $definition =~ s/ \A \s* [@](\w+) \s* = \s* / /xms)
+        }
+
         if ( $definition =~ s{ \A \s* ([\w<*%>/]+) \s* [-][>] \s* }{}xms ) {
             my $rejected_symbol = $1;
             my @raw_candidates  = split q{ }, $definition;
