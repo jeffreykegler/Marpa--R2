@@ -208,6 +208,66 @@ sub do_is {
     return $self;
 } ## end sub do_is
 
+sub do_contains {
+    my ( $self, $external_element, $contents ) = @_;
+
+    # Production is Element with custom flow
+    my $tag = $external_element;
+    $tag =~ s/\A [<] \s* //xms;
+    $tag =~ s/\s* [>] \z //xms;
+    my $element_symbol = 'ELE_' . $tag;
+    my $symbol_table   = $self->{symbol_table};
+    my $element_entry  = $symbol_table->{$element_symbol} //= [];
+    my $closed_reason  = $element_entry->[CONTENTS_CLOSED];
+    if ($closed_reason) {
+        Carp::croak(
+            qq{Contents of "$element_symbol" cannot be changed:\n},
+            qq{  Reason: $closed_reason\n},
+            qq{  Problem was in this line: },
+            $Marpa::R2::HTML::Config::Compile::LINE
+        );
+    } ## end if ($closed_reason)
+
+    my @external_contents = split q{ }, $contents;
+    my @contents = ();
+
+    CONTAINED_SYMBOL:
+    for my $external_content_symbol (@external_contents) {
+        my $content_symbol;
+        if ( $external_content_symbol =~ /\A [<] (\w+) [>] \z/xms ) {
+            $content_symbol = 'ELE_' . $1;
+        }
+        if ( $external_content_symbol =~ /\A [%] (\w+)  \z/xms ) {
+            $content_symbol = 'GRP_' . $1;
+        }
+        $content_symbol //= $external_content_symbol;
+        my $content_entry = $symbol_table->{$content_symbol};
+        if ( not defined $content_entry ) {
+            if ( not $content_symbol =~ /\A ELE_ /xms ) {
+                Carp::croak(
+                    qq{Symbol "$external_content_symbol" is undefined\n},
+                    qq{  Problem was in this line: },
+                    $Marpa::R2::HTML::Config::Compile::LINE
+                ) if not defined $content_entry;
+            } ## end if ( not $content_symbol =~ /\A ELE_ /xms )
+            $content_entry = [];
+        } ## end if ( not defined $content_entry )
+        $closed_reason = $content_entry->[CONTEXT_CLOSED];
+        if ($closed_reason) {
+            Carp::croak(
+                qq{Context of "$external_content_symbol" cannot be changed:\n},
+                qq{  Reason: $closed_reason\n},
+                qq{  Problem was in this line: },
+                $Marpa::R2::HTML::Config::Compile::LINE
+            );
+        } ## end if ($closed_reason)
+        push @contents, $content_symbol;
+    } ## end CONTAINED_SYMBOL: for my $external_content_symbol (@external_contents)
+
+    push @{ $element_entry->[CONTENTS] }, @contents;
+
+} ## end sub do_contains
+
 sub compile {
     my ($source_ref) = @_;
 
@@ -362,60 +422,11 @@ sub compile {
             next LINE;
         } ## end if ( $definition =~ ...)
 
-        if ( $definition =~ s/ \A \s* [<](\w+)[>] \s+ contains \s+ / /xms ) {
-
-            # Production is Element with custom flow
-            my $tag            = $1;
-            my $element_symbol = 'ELE_' . $tag;
-            my $element_entry  = $symbol_table{$element_symbol} //= [];
-            my $closed_reason  = $element_entry->[CONTENTS_CLOSED];
-            if ($closed_reason) {
-                Carp::croak(
-                    qq{Contents of "$element_symbol" cannot be changed:\n},
-                    qq{  Reason: $closed_reason\n},
-            qq{  Problem was in this line: }, $Marpa::R2::HTML::Config::Compile::LINE
-                );
-            } ## end if ($closed_reason)
-
-            my @external_contents = split q{ }, $definition;
-            my @contents = ();
-
-            CONTAINED_SYMBOL:
-            for my $external_content_symbol (@external_contents)
-            {
-                my $content_symbol;
-                if ( $external_content_symbol =~ /\A [<] (\w+) [>] \z/xms ) {
-                    $content_symbol = 'ELE_' . $1;
-                }
-                if ( $external_content_symbol =~ /\A [%] (\w+)  \z/xms ) {
-                    $content_symbol = 'GRP_' . $1;
-                }
-                $content_symbol //= $external_content_symbol;
-                my $content_entry = $symbol_table{$content_symbol};
-                if ( not defined $content_entry ) {
-                    if ( not $content_symbol =~ /\A ELE_ /xms ) {
-                        Carp::croak(
-                            qq{Symbol "$external_content_symbol" is undefined\n},
-            qq{  Problem was in this line: }, $Marpa::R2::HTML::Config::Compile::LINE
-                        ) if not defined $content_entry;
-                    } ## end if ( not $content_symbol =~ /\A ELE_ /xms )
-                    $content_entry = [];
-                } ## end if ( not defined $content_entry )
-                $closed_reason = $content_entry->[CONTEXT_CLOSED];
-                if ($closed_reason) {
-                    Carp::croak(
-                        qq{Context of "$external_content_symbol" cannot be changed:\n},
-                        qq{  Reason: $closed_reason\n},
-            qq{  Problem was in this line: }, $Marpa::R2::HTML::Config::Compile::LINE
-                    );
-                } ## end if ($closed_reason)
-                push @contents, $content_symbol;
-            } ## end CONTAINED_SYMBOL: for my $external_content_symbol (@external_contents)
-
-            push @{ $element_entry->[CONTENTS] }, @contents;
-
+        if ( $definition =~ s/ \A \s* ([<]\w+[>]) \s+ contains \s+ / /xms ) {
+            $self->do_contains($1, $definition);
             next LINE;
         } ## end if ( $definition =~ ...)
+
         if ( $definition =~ s/ \A \s* [@](\w+) \s* = \s* / /xms ) {
             my $new_list = $1;
             die "Problem in line: $line\n",
