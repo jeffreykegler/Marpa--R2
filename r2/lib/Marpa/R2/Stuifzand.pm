@@ -244,6 +244,9 @@ sub stuifzand_grammar {
     $tracer->rule_new( undef, qw( quantifier op_star ) );
     $tracer->rule_new( undef, qw( quantifier op_plus ) );
     $tracer->sequence_new( do_array => qw(names name), { min => 1 } );
+    $tracer->rule_new( undef, qw( name bare_name ) );
+    $tracer->rule_new( undef, qw( name quoted_name ) );
+    $tracer->rule_new( do_bracketed_name => qw( name bracketed_name ) );
     $grammar->start_symbol_set( $tracer->symbol_by_name('rules') );
     $grammar->precompute();
     return $tracer;
@@ -278,8 +281,9 @@ sub parse_rules {
         # [ 'reserved_name', qr/(::(whatever|undef))/xms ],
         [ 'op_plus',       qr/[+]/xms, 'plus quantification operator' ],
         [ 'op_star',       qr/[*]/xms, 'star quantification operator' ],
-        [ 'name',          qr/\w+/xms, ],
-        [ 'name',          qr/['][^']+[']/xms ],
+        [ 'bare_name',          qr/\w+/xms, ],
+        [ 'bracketed_name',          qr/ [<] \w+ [>] /xms, ],
+        [ 'quoted_name',          qr/['][^']+[']/xms ],
     );
 
     my $length = length $string;
@@ -376,6 +380,11 @@ sub parse_rules {
             }
             if ( $action eq 'do_alternative' ) {
                 $stack[$arg_0] = [ @stack[ $arg_0 .. $arg_n ] ];
+                next STEP;
+            }
+            if ( $action eq 'do_bracketed_name' ) {
+                $stack[$arg_0] =~ s/\A [<] \s*//xms;
+                $stack[$arg_0] =~ s/ \s* [>] \z//xms;
                 next STEP;
             }
             if ( $action eq 'do_lhs' ) {

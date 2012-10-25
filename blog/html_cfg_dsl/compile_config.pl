@@ -64,17 +64,17 @@ statement ::= is_included_statement
     | contains_statement
     | list_assignment
     | ruby_statement
-is_included_statement ::= element kw_is kw_included kw_in group
+is_included_statement ::= element kw_is kw_included kw_in <group>
     action => do_is_included_statement
 element ::= start_tag
-is_a_included_statement ::= element kw_is kw_a flow kw_included kw_in group
+is_a_included_statement ::= element kw_is kw_a flow kw_included kw_in <group>
     action => do_is_a_included_statement
 is_statement ::= element kw_is flow
     action => do_is_statement
 contains_statement ::= element kw_contains contents
     action => do_contains_statement
-contents = content_item*
-content_item = element | group | kw_PCDATA | kw_CDATA
+contents ::= content_item*
+content_item ::= element | <group> | kw_PCDATA | kw_CDATA
 ruby_statement ::= ruby_symbol ruby_op ruby_candidates
 ruby_symbol_list ::= ruby_symbol+
 ruby_symbol ::= kw_PCDATA | kw_CDATA
@@ -83,7 +83,7 @@ ruby_symbol ::= kw_PCDATA | kw_CDATA
 END_OF_GRAMMAR
  
     my $grammar = Marpa::R2::Grammar->new(
-       { start => 'configuration',
+       { start => 'translation_unit',
        actions => __PACKAGE__,
        rules =>[$source],
        default_action => 'main::do_what_I_mean'
