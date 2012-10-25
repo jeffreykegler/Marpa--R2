@@ -291,6 +291,9 @@ sub parse_rules {
     my $latest_earley_set_ID = 0;
     TOKEN: while ( pos $string < $length ) {
 
+        # skip comment
+        next TOKEN if $string =~ m/\G \s* [#] [^\n]* \n/gcxms;
+
         # skip whitespace
         next TOKEN if $string =~ m/\G\s+/gcxms;
 

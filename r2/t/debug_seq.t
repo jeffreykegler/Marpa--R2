@@ -62,7 +62,7 @@ Test::More::ok( $value_ref, 'Parse ok?' );
 
 Marpa::R2::Test::is( $progress_report,
     << 'END_PROGRESS_REPORT', 'progress report' );
-P0 @0-0 Document -> . Stuff
+P0 @0-0 Document -> . Stuff+
 END_PROGRESS_REPORT
 
 1;    # In case used as "do" file

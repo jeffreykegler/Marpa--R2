@@ -882,6 +882,12 @@ sub Marpa::R2::Grammar::show_dotted_rule {
     my ( $grammar, $rule_id, $dot_position ) = @_;
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
     my ( $lhs, @rhs ) = $grammar->rule($rule_id);
+
+    my $minimum = $grammar_c->sequence_min($rule_id);
+    if (defined $minimum) {
+        my $quantifier = $minimum <= 0 ? q{*} : q{+} ;
+        $rhs[0] .= $quantifier;
+    }
     $dot_position = 0 if $dot_position < 0;
     splice @rhs, $dot_position, 0, q{.};
     return join q{ }, $lhs, q{->}, @rhs;
