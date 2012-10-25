@@ -31,8 +31,56 @@ use constant CONTENTS_CLOSED => 1;
 use constant CONTEXT         => 2;
 use constant CONTENTS        => 3;
 
+sub do_is_included {
+    my ( $self, $external_element, $external_group, $line ) = @_;
+    my $tag = $external_element;
+    $tag =~ s/\A [<] \s* //xms;
+    $tag =~ s/\s* [>] \z //xms;
+    my $element = 'ELE_' . $tag;
+    ( my $group_name = $external_group ) =~ s/\A [%] //xms;
+    my $group         = 'GRP_' . $group_name;
+
+    my $symbol_table = $self->{symbol_table};
+    my $element_entry = $symbol_table->{$element} //= [];
+    my $group_entry   = $symbol_table->{$group};
+
+    # For now, new groups cannot be defined
+    Carp::croak(
+        qq{Group "$group" does not exist\n},
+        qq{  Problem was in this line: }, $Marpa::R2::HTML::Config::Compile::LINE
+    ) if not defined $group_entry;
+
+    my $closed_reason = $element_entry->[CONTEXT_CLOSED];
+    if ($closed_reason) {
+        Carp::croak(
+            qq{Context of "$element" cannot be changed:\n},
+            qq{  Reason: $closed_reason\n},
+            qq{  Problem was in this line: }, $Marpa::R2::HTML::Config::Compile::LINE
+        );
+    } ## end if ($closed_reason)
+    $closed_reason = $group_entry->[CONTENTS_CLOSED];
+    if ($closed_reason) {
+        Carp::croak(
+            qq{Contents of "$group" cannot be changed:\n},
+            qq{  Reason: $closed_reason\n},
+            qq{  Problem was in this line: }, $Marpa::R2::HTML::Config::Compile::LINE
+        );
+    } ## end if ($closed_reason)
+
+    # If this is the first, it sets the primary group
+    my $primary_group_by_tag = $self->{primary_group_by_tag};
+    $primary_group_by_tag->{$tag} //= $group;
+    push @{ $element_entry->[CONTEXT] }, $group;
+
+    return $self;
+
+} ## end sub do_is_included
+
 sub compile {
     my ($source_ref) = @_;
+
+    # A quasi-object, not used outside this routine
+    my $self = bless {}, __PACKAGE__;
 
     my %species_handler = (
         cruft      => 'SPE_CRUFT',
@@ -50,12 +98,14 @@ sub compile {
     my @core_rules           = ();
     my %runtime_tag          = ();
     my %primary_group_by_tag = ();
+    $self->{primary_group_by_tag} = \%primary_group_by_tag;
 
     {
         LINE:
         for my $line ( split /\n/xms,
             $Marpa::R2::HTML::Internal::Core::CORE_BNF )
         {
+            local $Marpa::R2::HTML::Config::Compile::LINE = $line;
             my $definition = $line;
             chomp $definition;
             $definition =~ s/ [#] .* //xms;    # Remove comments
@@ -94,6 +144,7 @@ sub compile {
         $_ =>
             [ 'Reserved by the core grammar', 'Reserved by the core grammar' ]
     } @core_symbols;
+    $self->{symbol_table} = \%symbol_table;
 
     # A few token symbols are allowed as contents -- most non-element
     # tokens are included via the SGML group
@@ -144,6 +195,7 @@ sub compile {
 
     my %ruby_config = ();
     my %lists       = ();
+    $self->{lists} = \%lists;
 
     LINE:
     for my $line ( split /\n/xms, ${$source_ref} ) {
@@ -153,44 +205,11 @@ sub compile {
         next LINE
             if not $definition =~ / \S /xms;    # ignore all-whitespace line
         if ( $definition
-            =~ m{ \A \s* [<](\w+)[>] \s+ is \s+ included \s+ in \s+ [%](\w+) \s* \z}xms
+            =~ m{ \A \s* ([<]\w+[>]) \s+ is \s+ included \s+ in \s+ ([%]\w+) \s* \z}xms
             )
         {
-            my $tag           = $1;
-            my $element       = 'ELE_' . $tag;
-            my $group         = 'GRP_' . $2;
-            my $element_entry = $symbol_table{$element} //= [];
-            my $group_entry   = $symbol_table{$group};
-
-            # For now, new groups cannot be defined
-            Carp::croak(
-                qq{Group "$group" does not exist\n},
-                qq{  Problem was in this line: $line}
-            ) if not defined $group_entry;
-
-            my $closed_reason = $element_entry->[CONTEXT_CLOSED];
-            if ($closed_reason) {
-                Carp::croak(
-                    qq{Context of "$element" cannot be changed:\n},
-                    qq{  Reason: $closed_reason\n},
-                    qq{  Problem was in this line: $line}
-                );
-            } ## end if ($closed_reason)
-            $closed_reason = $group_entry->[CONTENTS_CLOSED];
-            if ($closed_reason) {
-                Carp::croak(
-                    qq{Contents of "$group" cannot be changed:\n},
-                    qq{  Reason: $closed_reason\n},
-                    qq{  Problem was in this line: $line}
-                );
-            } ## end if ($closed_reason)
-
-            # If this is the first, it sets the primary group
-            $primary_group_by_tag{$tag} //= $group;
-            push @{ $element_entry->[CONTEXT] }, $group;
-
+            $self->do_is_included($1, $2, $line);
             next LINE;
-
         } ## end if ( $definition =~ ...)
         if ($definition =~ m{
             \A \s* [<](\w+)[>] \s+
