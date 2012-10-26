@@ -208,6 +208,11 @@ sub do_is_statement {
     return $self;
 } ## end sub do_is
 
+sub problem_in_rule {
+    my ($string) = @_;
+    Marpa::R2::Context::bail( [ $string, Marpa::R2::Context::location ] );
+}
+
 sub do_contains_statement {
     my ( $self, $external_element, undef, $external_contents ) = @_;
 
@@ -243,10 +248,9 @@ sub do_contains_statement {
         my $content_entry = $symbol_table->{$content_symbol};
         if ( not defined $content_entry ) {
             if ( not $content_symbol =~ /\A ELE_ /xms ) {
-                Marpa::R2::Context::bail(
-                    qq{Symbol "$external_content_symbol" is undefined\n}
-                ) if not defined $content_entry;
-            } ## end if ( not $content_symbol =~ /\A ELE_ /xms )
+                problem_in_rule(
+                    qq{Symbol "$external_content_symbol" is undefined\n});
+            }
             $content_entry = [];
         } ## end if ( not defined $content_entry )
         $closed_reason = $content_entry->[CONTEXT_CLOSED];
@@ -609,10 +613,21 @@ sub compile {
     } ## end TOKEN: while ( pos $string < $length )
 
     # Value not used
-    {
+    my $parse_value_ref;
+    my $eval_ok = eval {
+
         # Have the new() just return the current $self
         local *new = sub { return $self };
-        my $value_ref = $recce->value();
+        $parse_value_ref = $recce->value();
+        1;
+    };
+    if ( not defined $eval_ok )
+    {
+        die Data::Dumper::Dumper($EVAL_ERROR) if ref $EVAL_ERROR;
+        die $EVAL_ERROR;
+    }
+    if ( not defined $parse_value_ref ) {
+        die "Compile of HTML configuration failed: source did not parse";
     }
 
     my %sgml_flow_included = ();
