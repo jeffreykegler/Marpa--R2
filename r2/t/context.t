@@ -33,7 +33,7 @@ my $trace_rules = q{};
 # Marpa::R2::Display
 # name: Action context synopsis
 
-sub do_data_S {
+sub do_S {
     my ($action_object) = @_;
     my $rule_id = $Marpa::R2::Context::rule;
     my $grammar = $Marpa::R2::Context::grammar;
@@ -94,10 +94,7 @@ sub do_parse {
 } ## end sub do_parse
 
 my $value_ref;
-{
-    local *do_S = *do_data_S;
-    $value_ref = do_parse();
-}
+$value_ref = do_parse();
 VALUE_TEST: {
     if ( ref $value_ref ne 'REF' ) {
         my $ref_type = ref $value_ref;
