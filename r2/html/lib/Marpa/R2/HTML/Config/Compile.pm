@@ -243,10 +243,8 @@ sub do_contains_statement {
         my $content_entry = $symbol_table->{$content_symbol};
         if ( not defined $content_entry ) {
             if ( not $content_symbol =~ /\A ELE_ /xms ) {
-                Carp::croak(
-                    qq{Symbol "$external_content_symbol" is undefined\n},
-                    qq{  Problem was in this line: },
-                    $Marpa::R2::HTML::Config::Compile::LINE
+                Marpa::R2::Context::bail(
+                    qq{Symbol "$external_content_symbol" is undefined\n}
                 ) if not defined $content_entry;
             } ## end if ( not $content_symbol =~ /\A ELE_ /xms )
             $content_entry = [];

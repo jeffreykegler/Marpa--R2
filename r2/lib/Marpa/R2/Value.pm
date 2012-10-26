@@ -338,6 +338,20 @@ sub Marpa::R2::Internal::Recognizer::set_actions {
     return 1;
 }    # set_actions
 
+our $CONTEXT_EXCEPTION_CLASS = __PACKAGE__ . '::Context_Exception';
+
+sub Marpa::R2::Context::bail {
+    if ( scalar @_ == 1 and ref $_[0] ) {
+        die bless { exception_object => $_[0] }, $CONTEXT_EXCEPTION_CLASS;
+    }
+    my $error_string = join q{}, @_;
+    my ( $package, $filename, $line ) = caller;
+    chomp $error_string;
+    die bless { message => qq{User bailed at line $line in file "$filename"\n}
+            . $error_string
+            . "\n" }, $CONTEXT_EXCEPTION_CLASS;
+} ## end sub Marpa::R2::Context::bail
+
 sub Marpa::R2::Context::location {
     my $valuator = $Marpa::R2::Internal::Context::VALUATOR;
     Marpa::R2::exception(
@@ -345,6 +359,110 @@ sub Marpa::R2::Context::location {
         if not defined $valuator;
     return $valuator->location();
 } ## end Marpa::R2::Context::location
+
+sub code_problems {
+    my $args = shift;
+
+    my $grammar;
+    my $fatal_error;
+    my $warnings = [];
+    my $where    = '?where?';
+    my $long_where;
+    my @msg = ();
+    my $eval_value;
+    my $eval_given = 0;
+
+    push @msg, q{=} x 60, "\n";
+    ARG: for my $arg ( keys %{$args} ) {
+        my $value = $args->{$arg};
+        if ( $arg eq 'fatal_error' ) { $fatal_error = $value; next ARG }
+        if ( $arg eq 'grammar' )     { $grammar     = $value; next ARG }
+        if ( $arg eq 'where' )       { $where       = $value; next ARG }
+        if ( $arg eq 'long_where' )  { $long_where  = $value; next ARG }
+        if ( $arg eq 'warnings' )    { $warnings    = $value; next ARG }
+        if ( $arg eq 'eval_ok' ) {
+            $eval_value = $value;
+            $eval_given = 1;
+            next ARG;
+        }
+        push @msg, "Unknown argument to code_problems: $arg";
+    } ## end ARG: for my $arg ( keys %{$args} )
+
+    GIVEN_FATAL_ERROR_REF_TYPE: {
+        my $fatal_error_ref_type = ref $fatal_error;
+        last GIVEN_FATAL_ERROR_REF_TYPE if not $fatal_error_ref_type;
+        if ( $fatal_error_ref_type eq $CONTEXT_EXCEPTION_CLASS ) {
+            my $exception_object = $fatal_error->{exception_object};
+            die $exception_object if defined $exception_object;
+            my $exception_message = $fatal_error->{message};
+            die $exception_message if defined $exception_message;
+            die "Internal error: bad $CONTEXT_EXCEPTION_CLASS object";
+        } ## end if ( $fatal_error_ref_type eq $CONTEXT_EXCEPTION_CLASS)
+        $fatal_error =
+              "Exception thrown as object inside Marpa closure\n"
+            . ( q{ } x 4 )
+            . "This is not allowed\n"
+            . ( q{ } x 4 )
+            . qq{Exception as string is "$fatal_error"};
+    } ## end GIVEN_FATAL_ERROR_REF_TYPE:
+
+    my @problem_line     = ();
+    my $max_problem_line = -1;
+    for my $warning_data ( @{$warnings} ) {
+        my ( $warning, $package, $filename, $problem_line ) =
+            @{$warning_data};
+        $problem_line[$problem_line] = 1;
+        $max_problem_line = List::Util::max $problem_line, $max_problem_line;
+    } ## end for my $warning_data ( @{$warnings} )
+
+    $long_where //= $where;
+
+    my $warnings_count = scalar @{$warnings};
+    {
+        my @problems;
+        my $false_eval = $eval_given && !$eval_value && !$fatal_error;
+        if ($false_eval) {
+            push @problems, '* THE MARPA SEMANTICS RETURNED A PERL FALSE',
+                'Marpa::R2 requires its semantics to return a true value';
+        }
+        if ($fatal_error) {
+            push @problems, '* THE MARPA SEMANTICS PRODUCED A FATAL ERROR';
+        }
+        if ($warnings_count) {
+            push @problems,
+                "* THERE WERE $warnings_count WARNING(S) IN THE MARPA SEMANTICS:",
+                'Marpa treats warnings as fatal errors';
+        }
+        if ( not scalar @problems ) {
+            push @msg, '* THERE WAS A FATAL PROBLEM IN THE MARPA SEMANTICS';
+        }
+        push @msg, ( join "\n", @problems ) . "\n";
+    }
+
+    push @msg, "* THIS IS WHAT MARPA WAS DOING WHEN THE PROBLEM OCCURRED:\n"
+        . $long_where . "\n";
+
+    for my $warning_ix ( 0 .. ( $warnings_count - 1 ) ) {
+        push @msg, "* WARNING MESSAGE NUMBER $warning_ix:\n";
+        my $warning_message = $warnings->[$warning_ix]->[0];
+        $warning_message =~ s/\n*\z/\n/xms;
+        push @msg, $warning_message;
+    } ## end for my $warning_ix ( 0 .. ( $warnings_count - 1 ) )
+
+    if ($fatal_error) {
+        push @msg, "* THIS WAS THE FATAL ERROR MESSAGE:\n";
+        my $fatal_error_message = $fatal_error;
+        $fatal_error_message =~ s/\n*\z/\n/xms;
+        push @msg, $fatal_error_message;
+    } ## end if ($fatal_error)
+
+    push @msg, q{* ONE PLACE TO LOOK FOR THE PROBLEM IS IN THE CODE};
+    Marpa::R2::exception(@msg);
+
+    # this is to keep perlcritic happy
+    return 1;
+
+}
 
 # Does not modify stack
 sub Marpa::R2::Internal::Recognizer::evaluate {
@@ -400,7 +518,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
         } ## end DO_EVAL:
 
         if ( not $eval_ok or @warnings ) {
-            Marpa::R2::Internal::code_problems(
+            code_problems(
                 {   fatal_error => $fatal_error,
                     grammar     => $grammar,
                     eval_ok     => $eval_ok,
@@ -501,7 +619,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
                 if ( not $eval_ok or @warnings ) {
                     my $fatal_error = $EVAL_ERROR;
-                    Marpa::R2::Internal::code_problems(
+                    code_problems(
                         {   fatal_error => $fatal_error,
                             grammar     => $grammar,
                             eval_ok     => $eval_ok,
@@ -556,7 +674,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
                     if ( not $eval_ok or @warnings ) {
                         my $fatal_error = $EVAL_ERROR;
-                        Marpa::R2::Internal::code_problems(
+                        code_problems(
                             {   fatal_error => $fatal_error,
                                 grammar     => $grammar,
                                 eval_ok     => $eval_ok,
