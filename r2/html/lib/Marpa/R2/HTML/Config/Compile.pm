@@ -72,7 +72,7 @@ sub do_is_included_statement {
     $primary_group_by_tag->{$tag} //= $group;
     push @{ $element_entry->[CONTEXT] }, $group;
 
-    return $self;
+    return;
 
 } ## end sub do_is_included
 
@@ -153,7 +153,7 @@ sub do_is_a_included_statement {
     $element_entry->[CONTEXT_CLOSED] = $element_entry->[CONTENTS_CLOSED] =
         'Element is already fully defined';
 
-    return $self;
+    return;
 } ## end sub do_is_a_included
 
 sub do_is_statement {
@@ -205,12 +205,12 @@ sub do_is_statement {
     $element_entry->[CONTENTS_CLOSED] =
         'Contents of Element are already defined';
 
-    return $self;
+    return;
 } ## end sub do_is
 
 sub problem_in_rule {
     my ($string) = @_;
-    Marpa::R2::Context::bail( [ $string, Marpa::R2::Context::location ] );
+    Marpa::R2::Context::bail( [ 'rule', $string, Marpa::R2::Context::location() ] );
 }
 
 sub do_contains_statement {
@@ -267,6 +267,8 @@ sub do_contains_statement {
 
     push @{ $element_entry->[CONTENTS] }, @contents;
 
+    return;
+
 } ## end sub do_contains
 
 sub do_array_assignment {
@@ -293,7 +295,7 @@ sub do_array_assignment {
         push @members, $raw_member;
     } ## end RAW_MEMBER: for my $raw_member (@{$external_members})
     $lists->{$new_list} = \@members;
-    return $self;
+    return;
 } ## end sub do_array_assignment
 
 sub do_ruby_statement {
@@ -358,7 +360,7 @@ sub do_ruby_statement {
     } ## end SYMBOL: for my $symbol (@symbols)
     my $rejected_symbol = shift @internal_symbols;
     $self->{ruby_config}->{$rejected_symbol} = \@internal_symbols;
-    return $self;
+    return;
 } ## end sub do_ruby_statement
 
 sub die_on_read_problem {
@@ -377,7 +379,7 @@ sub die_on_read_problem {
         ;
 } ## end sub die_on_read_problem
 
-sub do_array { return [@_]; }
+sub do_array { shift; return [@_]; }
 
 sub do_what_I_mean {
 
@@ -463,6 +465,14 @@ END_OF_GRAMMAR
     $grammar->precompute();
    return $grammar;
 }
+
+sub source_by_location_range {
+    my ( $self, $start, $end ) = @_;
+    my $positions = $self->{positions};
+    my $start_pos = $start > 0 ? $positions->[$start] : 0;
+    my $end_pos   = $positions->[$end];
+    return substr ${ $self->{source_ref} }, $start_pos, $end_pos - $start_pos;
+} ## end sub source_by_location_range
 
 sub compile {
     my ($source_ref) = @_;
@@ -584,6 +594,9 @@ sub compile {
     my %lists       = ();
     $self->{ruby_config} = \%ruby_config;
     $self->{lists} = \%lists;
+    $self->{source_ref} = $source_ref;
+    my @positions = (0);
+    $self->{positions} = \@positions;
 
     state $grammar = create_grammar();
     my $recce = Marpa::R2::Recognizer->new({ grammar => $grammar});
@@ -605,6 +618,8 @@ sub compile {
             if ( not defined $recce->read( $t->[0], $1 ) ) {
                 die_on_read_problem( $recce, $t, $1, $string, pos $string );
             }
+            my $latest_earley_set = $recce->latest_earley_set();
+            $positions[$latest_earley_set] = pos $string;
             next TOKEN;
         } ## end TOKEN_TYPE: for my $t (@terminals)
 
@@ -621,11 +636,18 @@ sub compile {
         $parse_value_ref = $recce->value();
         1;
     };
-    if ( not defined $eval_ok )
-    {
-        die Data::Dumper::Dumper($EVAL_ERROR) if ref $EVAL_ERROR;
-        die $EVAL_ERROR;
-    }
+    if ( not defined $eval_ok ) {
+        my $eval_ref_type = ref $EVAL_ERROR;
+        die $EVAL_ERROR if not $eval_ref_type;
+        if ( $eval_ref_type eq 'ARRAY' and $EVAL_ERROR->[0] eq 'rule' ) {
+            my ( undef, $message, $start, $end ) = @{$EVAL_ERROR};
+            chomp $message;
+            die $message, "\n",
+                "Rule with problem was: ",
+                $self->source_by_location_range( $start, $end ), "\n";
+        } ## end if ( $eval_ref_type eq 'ARRAY' and $EVAL_ERROR->[0] ...)
+        die "Unknown exception: ", Data::Dumper::Dumper($EVAL_ERROR);
+    } ## end if ( not defined $eval_ok )
     if ( not defined $parse_value_ref ) {
         die "Compile of HTML configuration failed: source did not parse";
     }
