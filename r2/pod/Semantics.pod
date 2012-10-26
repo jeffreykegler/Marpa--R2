@@ -334,7 +334,7 @@ and end locations of the current rule.
 
 =back
 
-=head1 Bailing out of the semantic phase
+=head1 Bailing out of parse evaluation
 
 =for Marpa::R2::Display
 name: Semantics bail synopsis
@@ -355,12 +355,12 @@ normalize-whitespace: 1
 =for Marpa::R2::Display::End
 
 The C<Marpa::R2::Context::bail()> static method is used to
-"bail out" of a parse evaluation.
+"bail out" of the evaluation of a parse tree.
 It will cause an exception to be thrown.
 If its first and only argument is a reference,
-the reference is used as the exception object.
+that reference is the exception object.
 Otherwise, an exception message is created
-by converting its arguments to strings,
+by converting the method's arguments to strings,
 concatenating them,
 and prepending them with a message indicating
 the file and line number at which the
