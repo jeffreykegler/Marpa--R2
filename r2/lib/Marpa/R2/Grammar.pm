@@ -141,20 +141,20 @@ sub Marpa::R2::Internal::code_problems {
     my $eval_given = 0;
 
     push @msg, q{=} x 60, "\n";
-    while ( my ( $arg, $value ) = each %{$args} ) {
-        given ($arg) {
-            when ('fatal_error') { $fatal_error = $value }
-            when ('grammar')     { $grammar     = $value }
-            when ('where')       { $where       = $value }
-            when ('long_where')  { $long_where  = $value }
-            when ('warnings')    { $warnings    = $value }
-            when ('eval_ok') {
-                $eval_value = $value;
-                $eval_given = 1;
-            }
-            default { push @msg, "Unknown argument to code_problems: $arg" }
-        } ## end given
-    } ## end while ( my ( $arg, $value ) = each %{$args} )
+    ARG: for my $arg ( keys %{$args} ) {
+        my $value = $args->{$arg};
+        if ( $arg eq 'fatal_error' ) { $fatal_error = $value; next ARG }
+        if ( $arg eq 'grammar' )     { $grammar     = $value; next ARG }
+        if ( $arg eq 'where' )       { $where       = $value; next ARG }
+        if ( $arg eq 'long_where' )  { $long_where  = $value; next ARG }
+        if ( $arg eq 'warnings' )    { $warnings    = $value; next ARG }
+        if ( $arg eq 'eval_ok' ) {
+            $eval_value = $value;
+            $eval_given = 1;
+            next ARG;
+        }
+        push @msg, "Unknown argument to code_problems: $arg";
+    } ## end ARG: for my $arg ( keys %{$args} )
 
     my @problem_line     = ();
     my $max_problem_line = -1;

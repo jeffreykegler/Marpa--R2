@@ -623,10 +623,10 @@ sub Marpa::R2::Recognizer::value {
     Marpa::R2::exception('Too many arguments to Marpa::R2::Recognizer::value')
         if scalar @_ != 1;
 
-    my $grammar = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
+    my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
-    my $recce_c = $recce->[Marpa::R2::Internal::Recognizer::C];
-    my $order   = $recce->[Marpa::R2::Internal::Recognizer::O_C];
+    my $recce_c   = $recce->[Marpa::R2::Internal::Recognizer::C];
+    my $order     = $recce->[Marpa::R2::Internal::Recognizer::O_C];
 
     my $parse_set_arg = $recce->[Marpa::R2::Internal::Recognizer::END];
 
@@ -655,21 +655,28 @@ sub Marpa::R2::Recognizer::value {
     } ## end if ($tree)
     else {
 
-	$grammar_c->throw_set(0);
+        $grammar_c->throw_set(0);
         my $bocage = $recce->[Marpa::R2::Internal::Recognizer::B_C] =
-            Marpa::R2::Thin::B->new( $recce_c,
-            ( $parse_set_arg // -1 ) );
-	$grammar_c->throw_set(1);
+            Marpa::R2::Thin::B->new( $recce_c, ( $parse_set_arg // -1 ) );
+        $grammar_c->throw_set(1);
 
         return if not defined $bocage;
 
         $order = $recce->[Marpa::R2::Internal::Recognizer::O_C] =
             Marpa::R2::Thin::O->new($bocage);
 
-        given ( $recce->[Marpa::R2::Internal::Recognizer::RANKING_METHOD] ) {
-            when ('high_rule_only') { do_high_rule_only($recce); }
-            when ('rule')           { do_rank_by_rule($recce); }
-        }
+        GIVEN_RANKING_METHOD: {
+            my $ranking_method =
+                $recce->[Marpa::R2::Internal::Recognizer::RANKING_METHOD];
+            if ( $ranking_method eq 'high_rule_only' ) {
+                do_high_rule_only($recce);
+                last GIVEN_RANKING_METHOD;
+            }
+            if ( $ranking_method eq 'rule' ) {
+                do_rank_by_rule($recce);
+                last GIVEN_RANKING_METHOD;
+            }
+        } ## end GIVEN_RANKING_METHOD:
 
         $tree = $recce->[Marpa::R2::Internal::Recognizer::T_C] =
             Marpa::R2::Thin::T->new($order);

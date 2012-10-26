@@ -114,73 +114,77 @@ sub post_process {
         if ( $type eq 'msg: missing start tag' ) {
             my $location = $line_data->[2];
             my $tagname  = $line_data->[3];
-            given ($location) {
-                when ('preceeding') {
+            GIVEN_LOCATION: {
+                if ( $location eq 'preceeding' ) {
                     push @text_pieces,
                         [
                         'html_fmt comment',
                         $indent + 1,
                         'Preceeding start tag is replacement for a missing one'
                         ];
-                } ## end when ('preceeding')
-                when ('following pre') {
+                    last GIVEN_LOCATION;
+                } ## end if ( $location eq 'preceeding' )
+                if ( $location eq 'following pre' ) {
                     push @text_pieces,
                         [
-                        'html_fmt comment', $indent,
+                        'html_fmt comment',
+                        $indent,
                         "Inside following <pre>, a start tag is missing: <$tagname>"
                         ];
-                } ## end when ('following pre')
-                default {
-                    Carp::croak(
-                        "Internal error: unprovided-for missing start tag location: $_"
-                    );
-                }
-            } ## end given
+                    last GIVEN_LOCATION;
+                } ## end if ( $location eq 'following pre' )
+                Carp::croak(
+                    "Internal error: unprovided-for missing start tag location: $_"
+                );
+            } ## end GIVEN_LOCATION:
             next DATUM;
         } ## end if ( $type eq 'msg: missing start tag' )
         if ( $type eq 'msg: missing end tag' ) {
             my $location = $line_data->[2];
             my $tagname  = $line_data->[3];
-            given ($location) {
-                when ('following') {
+            GIVEN_LOCATION: {
+                if ( $location eq 'following' ) {
                     push @text_pieces,
                         [
                         'html_fmt comment',
                         $indent + 1,
                         'Following end tag is replacement for a missing one'
                         ];
-                } ## end when ('following')
-                when ('following pre') {
+                    last GIVEN_LOCATION;
+                } ## end if ( $location eq 'following' )
+                if ( $location eq 'following pre' ) {
                     push @text_pieces,
                         [
-                        'html_fmt comment', $indent,
+                        'html_fmt comment',
+                        $indent,
                         "Inside following <pre>, an end tag is missing: </$tagname>"
                         ];
-                } ## end when ('following pre')
-                default {
-                    Carp::croak(
-                        "Internal error: unprovided-for missing end tag location: $_"
-                    );
-                }
-            } ## end given
+                    last GIVEN_LOCATION;
+                } ## end if ( $location eq 'following pre' )
+                Carp::croak(
+                    "Internal error: unprovided-for missing end tag location: $_"
+                );
+            } ## end GIVEN_LOCATION:
             next DATUM;
         } ## end if ( $type eq 'msg: missing end tag' )
         if ( $type eq 'msg: missing pre end tag' ) {
-                    push @text_pieces,
-                        [
-                        'html_fmt comment', $indent,
-                        'An missing end tag was added to close the preceding <pre> element'
-                        ];
+            push @text_pieces,
+                [
+                'html_fmt comment',
+                $indent,
+                'An missing end tag was added to close the preceding <pre> element'
+                ];
             next DATUM;
-	}
+        } ## end if ( $type eq 'msg: missing pre end tag' )
         if ( $type eq 'msg: missing pre start tag' ) {
-                    push @text_pieces,
-                        [
-                        'html_fmt comment', $indent,
-                        'A missing start tag was added in front of the following <pre> element'
-                        ];
+            push @text_pieces,
+                [
+                'html_fmt comment',
+                $indent,
+                'A missing start tag was added in front of the following <pre> element'
+                ];
             next DATUM;
-	}
+        } ## end if ( $type eq 'msg: missing pre start tag' )
         if ( $type eq 'msg: cruft' ) {
             my $location   = $line_data->[2];
             my $cruft      = $line_data->[3];
@@ -190,12 +194,17 @@ sub post_process {
                 : $token_type eq 'E' ? 'end tag'
                 : $token_type eq 'T' ? 'text'
                 :                      'node';
-            given ($location) {
-                when ('following') {
+            GIVEN_LOCATION: {
+                if ( $location eq 'following' ) {
                     push @text_pieces,
-                        [ 'html_fmt comment', $indent, "Next $node_desc is cruft" ];
-                }
-                when ('following pre') {
+                        [
+                        'html_fmt comment',
+                        $indent,
+                        "Next $node_desc is cruft"
+                        ];
+                    last GIVEN_LOCATION;
+                } ## end if ( $location eq 'following' )
+                if ( $location eq 'following pre' ) {
 
                     # Make sure the cruft quoted inside
                     # the HTML comment does not
@@ -203,24 +212,24 @@ sub post_process {
                     ( my $safe_cruft = $cruft ) =~ s/--/- -/xms;
                     push @text_pieces,
                         [
-                        'html_fmt comment', $indent,
+                        'html_fmt comment',
+                        $indent,
                         qq{Inside the following <pre>, $node_desc is cruft:\n$safe_cruft}
                         ];
-                } ## end when ('following pre')
-                default {
-                    Carp::croak(
-                        "Internal error: unprovided-for cruft location: $_");
-                }
-            } ## end given
+                    last GIVEN_LOCATION;
+                } ## end if ( $location eq 'following pre' )
+                Carp::croak(
+                    "Internal error: unprovided-for cruft location: $_");
+            } ## end GIVEN_LOCATION:
             next DATUM;
         } ## end if ( $type eq 'msg: cruft' )
         push @text_pieces, [ $type, $indent, $line_data->[2] ];
-    } ## end DATUM: for my $line_data ( @{ $value->[0] } )
+    } ## end for my $line_data ( map { @{$_} } @{$value} )
     my @ws_unsafe;
-    $ws_unsafe[scalar @text_pieces] = 0; # size the array
+    $ws_unsafe[ scalar @text_pieces ] = 0;    # size the array
     $ws_unsafe[0] = 0;
     my $last_non_comment_ix = scalar @text_pieces;
-    my $safe_after_piece = 0;
+    my $safe_after_piece    = 0;
     my $first_body_tag;
     my $last_body_tag;
     TEXT_PIECE: for my $text_piece_ix ( 0 .. $#text_pieces ) {
@@ -241,9 +250,10 @@ sub post_process {
             } ## end if ( $type eq 'whitespace' )
             if ( $type eq 'end tag' ) {
 
-		if ( $text =~ /\A [^[:alnum:]]+ body [^[:alnum:]]+ \z /xmsi) {
-		    $last_body_tag = $text_piece_ix;
-		}
+                if ( $text =~ /\A [^[:alnum:]]+ body [^[:alnum:]]+ \z /xmsi )
+                {
+                    $last_body_tag = $text_piece_ix;
+                }
 
                 # Unsafe after an end tag, but safe before it
                 $safe_before_piece = $ws_ok_before_end_tag_flag;
@@ -252,10 +262,12 @@ sub post_process {
             } ## end if ( $type eq 'end tag' )
             if ( $type eq 'start tag' ) {
 
-		if ( not defined $first_body_tag and
-		$text =~ /\A [^[:alnum:]]+ body [^[:alnum:]]+ \z /xmsi) {
-		    $first_body_tag = $text_piece_ix;
-		}
+                if ( not defined $first_body_tag
+                    and $text
+                    =~ /\A [^[:alnum:]]+ body [^[:alnum:]]+ \z /xmsi )
+                {
+                    $first_body_tag = $text_piece_ix;
+                } ## end if ( not defined $first_body_tag and $text =~ ...)
 
                 # Leave safe status as-is before start tag
                 # Whitespace safe after a start tag
@@ -280,9 +292,9 @@ sub post_process {
                 $ws_unsafe[$ix] = 0;
             }
         }
-	if ( $type ne 'comment' and $type ne 'html_fmt comment' ) {
-	    $last_non_comment_ix = $text_piece_ix;
-	}
+        if ( $type ne 'comment' and $type ne 'html_fmt comment' ) {
+            $last_non_comment_ix = $text_piece_ix;
+        }
     } ## end TEXT_PIECE: for my $text_piece_ix ( 0 .. $#text_pieces )
 
     # Whitespace safe before the body
@@ -360,7 +372,7 @@ sub post_process {
                     } ## end if ( $type eq 'html_fmt comment' )
                     $output[-1] .= $text;
                     next TEXT_PIECE;
-                } ## end if ( $ws_unsafe[$text_piece_ix] and ...)
+                } ## end if ( $avoid_whitespace_is_yes and $ws_unsafe[...])
                 my $indentation = q{  } x $indent;
                 if ( $type eq 'text' and $text =~ /\S/xms ) {
                     push @output, $indentation . $text;
