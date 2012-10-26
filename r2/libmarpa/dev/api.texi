@@ -12,8 +12,6 @@ is for Libmarpa @value{VERSION}.
 
 Copyright @copyright{} 2012 Jeffrey Kegler.
 
-Libmarpa is alpha software.
-
 @quotation
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the @acronym{GNU} Free Documentation License,
@@ -276,9 +274,6 @@ in BNF as a right-recursion?
 
 @node About Libmarpa, Architecture, About this document, Top
 @chapter About Libmarpa
-
-Libmarpa is alpha software.
-Its interface is subject to change.
 
 Libmarpa implements the Marpa parsing algorithm.
 Marpa is named
@@ -1258,16 +1253,7 @@ as the three arguments to this function; that produces
 a check that the library in use is compatible with
 the version of Libmarpa the application or module was compiled
 against.
-
-Currently Libmarpa is undergoing rapid development,
-and backward compatibility is not maintained.
-This will be the case as long as Libmarpa stays
-alpha.
-While Libmarpa is alpha,
-the major, minor and micro numbers must match exactly.
-
-Once Libmarpa is beyond alpha releases,
-compatibility will be defined by two things:
+Compatibility is defined by two things:
 first the version
 of the running library is newer than the version
 @var{required_major}.@var{required_minor}.@var{required_micro}.

@@ -15,11 +15,15 @@
 
 Revision history for Marpa::R2
 
+2.023_004 Thu Oct 25 23:22:38 PDT 2012
 2.023_003 Wed Oct 24 10:12:33 PDT 2012
 2.023_002 Tue Oct 23 14:56:23 PDT 2012
 2.023_001 Fri Oct 19 19:21:50 PDT 2012
 
       * A new series of developer's releases.
+
+      * Changing Marpa::R2, Libmarpa and
+        Marpa::R2::Thin to full release.
 
 2.022000 Fri Oct 19 18:27:16 PDT 2012
 

@@ -526,23 +526,6 @@ prototypes, look at
 const unsigned int marpa_major_version = MARPA_MAJOR_VERSION;
 const unsigned int marpa_minor_version = MARPA_MINOR_VERSION;
 const unsigned int marpa_micro_version = MARPA_MICRO_VERSION;
-const unsigned int marpa_interface_age = MARPA_INTERFACE_AGE;
-const unsigned int marpa_binary_age = MARPA_BINARY_AGE;
-@ @<Function definitions@> =
-PRIVATE
-Marpa_Error_Code check_alpha_version(
-    unsigned int required_major,
-		unsigned int required_minor,
-		unsigned int required_micro)
-{
-  if (required_major != MARPA_MAJOR_VERSION)
-    return MARPA_ERR_MAJOR_VERSION_MISMATCH;
-  if (required_minor != MARPA_MINOR_VERSION)
-    return MARPA_ERR_MINOR_VERSION_MISMATCH;
-  if (required_micro != MARPA_MICRO_VERSION)
-    return MARPA_ERR_MICRO_VERSION_MISMATCH;
-  return MARPA_ERR_NONE;
-}
 
 @ @<Function definitions@> =
 Marpa_Error_Code
@@ -550,21 +533,13 @@ marpa_check_version (unsigned int required_major,
                     unsigned int required_minor,
                     unsigned int required_micro)
 {
-  const int alpha_version_check = 1;
-  int marpa_effective_micro =
-    100 * MARPA_MINOR_VERSION + MARPA_MICRO_VERSION;
-  int required_effective_micro = 100 * required_minor + required_micro;
-
-  if (alpha_version_check) 
-    return check_alpha_version (required_major, required_minor,
-				required_micro);
-  if (required_major > MARPA_MAJOR_VERSION)
+  if (required_major != MARPA_MAJOR_VERSION)
     return MARPA_ERR_MAJOR_VERSION_MISMATCH;
-  if (required_major < MARPA_MAJOR_VERSION)
+  if (required_minor > MARPA_MINOR_VERSION)
     return MARPA_ERR_MINOR_VERSION_MISMATCH;
-  if (required_effective_micro < marpa_effective_micro - MARPA_BINARY_AGE)
-    return MARPA_ERR_MICRO_VERSION_MISMATCH;
-  if (required_effective_micro > marpa_effective_micro)
+  if (required_minor < MARPA_MINOR_VERSION)
+    return MARPA_ERR_NONE;
+  if (required_micro > MARPA_MICRO_VERSION)
     return MARPA_ERR_MICRO_VERSION_MISMATCH;
   return MARPA_ERR_NONE;
 }

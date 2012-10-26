@@ -17,11 +17,6 @@
 
 Marpa::R2::Advanced::Thin - Direct access to Libmarpa
 
-=head1 This is alpha software
-
-Marpa::R2::Thin is alpha software.
-The interface is subject to change.
-
 =head1 About this document
 
 Most Marpa users can ignore this document.
