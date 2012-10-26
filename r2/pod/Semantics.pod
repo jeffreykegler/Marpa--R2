@@ -334,6 +334,38 @@ and end locations of the current rule.
 
 =back
 
+=head1 Bailing out of the semantic phase
+
+=for Marpa::R2::Display
+name: Semantics bail synopsis
+normalize-whitespace: 1
+
+    my $bail_message = "This is a bail out message!";
+
+    sub do_bail_with_message_if_A {
+        my ($action_object, $terminal) = @_;
+        Marpa::R2::Context::bail($bail_message) if $terminal eq 'A';
+    }
+
+    sub do_bail_with_object_if_A {
+        my ($action_object, $terminal) = @_;
+        Marpa::R2::Context::bail([$bail_message]) if $terminal eq 'A';
+    }
+
+=for Marpa::R2::Display::End
+
+The C<Marpa::R2::Context::bail()> static method is used to
+"bail out" of a parse evaluation.
+It will cause an exception to be thrown.
+If its first and only argument is a reference,
+the reference is used as the exception object.
+Otherwise, an exception message is created
+by converting its arguments to strings,
+concatenating them,
+and prepending them with a message indicating
+the file and line number at which the
+C<Marpa::R2::Context::bail()> method was called.
+
 =head1 Parse trees, parse results and parse series
 
 When the semantics are applied to a parse tree,

@@ -33,11 +33,8 @@ my $trace_rules = q{};
 # Marpa::R2::Display
 # name: Action context synopsis
 
-our $BAIL_ARG = undef;
-
-sub do_S {
+sub do_data_S {
     my ($action_object) = @_;
-    Marpa::R2::Context::bail($BAIL_ARG) if defined $BAIL_ARG;
     my $rule_id = $Marpa::R2::Context::rule;
     my $grammar = $Marpa::R2::Context::grammar;
     my ( $lhs, @rhs ) = $grammar->rule($rule_id);
@@ -48,6 +45,23 @@ sub do_S {
         . ( join q{-}, Marpa::R2::Context::location() ) . "\n";
     return $action_object;
 } ## end sub do_S
+
+# Marpa::R2::Display::End
+
+# Marpa::R2::Display
+# name: Semantics bail synopsis
+
+my $bail_message = "This is a bail out message!";
+
+sub do_bail_with_message_if_A {
+    my ($action_object, $terminal) = @_;
+    Marpa::R2::Context::bail($bail_message) if $terminal eq 'A';
+}
+
+sub do_bail_with_object_if_A {
+    my ($action_object, $terminal) = @_;
+    Marpa::R2::Context::bail([$bail_message]) if $terminal eq 'A';
+}
 
 # Marpa::R2::Display::End
 
@@ -79,7 +93,11 @@ sub do_parse {
     return $recce->value();
 } ## end sub do_parse
 
-my $value_ref = do_parse();
+my $value_ref;
+{
+    local *do_S = *do_data_S;
+    $value_ref = do_parse();
+}
 VALUE_TEST: {
     if ( ref $value_ref ne 'REF' ) {
         my $ref_type = ref $value_ref;
@@ -98,9 +116,11 @@ VALUE_TEST: {
     Test::More::is( $value->{text}, $expected_text, 'Parse ok?' );
 } ## end VALUE_TEST:
 
-my $bail_message = "This is a bail out message!";
-$BAIL_ARG = $bail_message;
-my $eval_ok = eval { $value_ref = do_parse(); 1 };
+my $eval_ok;
+{
+    local *do_S = *do_bail_with_message_if_A;
+    $eval_ok = eval { $value_ref = do_parse(); 1 };
+}
 my $actual_eval_error = $EVAL_ERROR
     // 'no eval error';    # grab it now to be safe
 Test::More::ok( ( not defined $eval_ok ),
@@ -113,8 +133,10 @@ Test::More::is(
     "bail with string argument"
 );
 
-$BAIL_ARG          = [$bail_message];
-$eval_ok           = eval { $value_ref = do_parse(); 1 };
+{
+    local *do_S = *do_bail_with_object_if_A;
+    $eval_ok = eval { $value_ref = do_parse(); 1 };
+}
 $actual_eval_error = $EVAL_ERROR;
 my $eval_error_ref_type = ref $actual_eval_error;
 my $exception_value_desc =
