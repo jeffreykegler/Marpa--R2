@@ -32,10 +32,11 @@ use Marpa::R2::Test;
 use Marpa::R2;
 
 my $grammar = Marpa::R2::Grammar->new(
-    {   start          => 'Expression',
+    {   start          => 'Script',
         actions        => 'My_Actions',
         default_action => 'do_first_arg',
         rules          => [ <<'END_OF_RULES' ]
+Script ::= Expression+ separator => op_comma action => do_script
 Expression ::=
     Number
     | <op_lparen> Expression <op_rparen> action => do_parens assoc => group
@@ -52,14 +53,14 @@ $grammar->precompute();
 
 my @terminals = (
     [ Number    => qr/\d+/xms,    "Number" ],
-    [ op_lparen => qr/[(]/xms,    'Left parenthesis' ],
-    [ op_rparen => qr/[)]/xms,    'Right parenthesis' ],
+    [ op_pow      => qr/[\^]/xms, 'Exponentiation operator' ],
     [ op_pow    => qr/[*][*]/xms, 'Exponentiation' ],         # order matters!
-    [ op_times  => qr/[*]/xms,    'Multiplication operator' ],
+    [ op_times  => qr/[*]/xms,    'Multiplication operator' ], # order matters!
     [ op_divide => qr/[\/]/xms,   'Division operator' ],
     [ op_add    => qr/[+]/xms,    'Addition operator' ],
     [ op_subtract => qr/[-]/xms,  'Subtraction operator' ],
-    [ op_pow      => qr/[\^]/xms, 'Exponentiation operator' ],
+    [ op_lparen => qr/[(]/xms,    'Left parenthesis' ],
+    [ op_rparen => qr/[)]/xms,    'Right parenthesis' ],
 );
 
 sub my_parser {
@@ -93,13 +94,14 @@ say my_parser($grammar, '2**7-3');
 say my_parser($grammar, '2**(7-3)');
 
 # First arg is per-parse variable
-sub My_Actions::do_parens { shift; return $_[1] }
-sub My_Actions::do_add { shift; return $_[0] + $_[2] }
-sub My_Actions::do_subtract { shift; return $_[0] - $_[2] }
-sub My_Actions::do_multiply { shift; return $_[0] * $_[2] }
-sub My_Actions::do_divide { shift; return $_[0] / $_[2] }
-sub My_Actions::do_pow { shift; return $_[0] ** $_[2] }
+sub My_Actions::do_parens    { shift; return $_[1] }
+sub My_Actions::do_add       { shift; return $_[0] + $_[2] }
+sub My_Actions::do_subtract  { shift; return $_[0] - $_[2] }
+sub My_Actions::do_multiply  { shift; return $_[0] * $_[2] }
+sub My_Actions::do_divide    { shift; return $_[0] / $_[2] }
+sub My_Actions::do_pow       { shift; return $_[0]**$_[2] }
 sub My_Actions::do_first_arg { shift; return shift; }
+sub My_Actions::do_script    { shift; return join q{ }, @_ }
 
 # Local Variables:
 #   mode: cperl

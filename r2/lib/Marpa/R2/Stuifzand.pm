@@ -155,7 +155,6 @@ sub do_quantified_rule {
 
 sub do_lhs { shift; return $_[0]; }
 sub do_adverb_list { shift; return { map {; @{$_}} @_ } }
-sub do_action { shift; return [ action => $_[2] ] }
 
 # Given a recognizer, an input,
 # a reference to an array
@@ -232,6 +231,7 @@ sub stuifzand_grammar {
     $tracer->rule_new( undef, qw(adverb_item left_association) );
     $tracer->rule_new( undef, qw(adverb_item right_association) );
     $tracer->rule_new( undef, qw(adverb_item group_association) );
+    $tracer->rule_new( undef, qw(adverb_item separator_specification) );
     $tracer->rule_new( do_action => qw(action kw_action op_arrow name) );
     $tracer->rule_new(
         do_left_association => qw(left_association kw_assoc op_arrow kw_left) );
@@ -239,6 +239,8 @@ sub stuifzand_grammar {
         do_right_association => qw(right_association kw_assoc op_arrow kw_right) );
     $tracer->rule_new(
         do_group_association => qw(group_association kw_assoc op_arrow kw_group) );
+    $tracer->rule_new(
+        do_separator_specification => qw(separator_specification kw_separator op_arrow name ) );
     $tracer->rule_new( do_lhs => qw( lhs name ) );
     $tracer->rule_new( undef, qw( rhs names ) );
     $tracer->rule_new( undef, qw( quantifier op_star ) );
@@ -271,6 +273,7 @@ sub parse_rules {
     my @terminals = (
         [ 'kw_action', qr/action\b/xms, qq{"action" keyword} ],
         [ 'kw_assoc', qr/assoc\b/xms, qq{"assoc" keyword} ],
+        [ 'kw_separator', qr/separator\b/xms, qq{"separator" keyword} ],
         [ 'kw_left', qr/left\b/xms, qq{"left" keyword} ],
         [ 'kw_right', qr/right\b/xms, qq{"right" keyword} ],
         [ 'kw_group', qr/group\b/xms, qq{"group" keyword} ],
@@ -414,29 +417,13 @@ sub parse_rules {
                 $stack[$arg_0] = $stack[ $arg_0 + 2 ];
                 next STEP;
             }
-            if ( $action eq 'do_right_adverb' ) {
-                $stack[$arg_0] =
-                    do_right_adverb( undef, @stack[ $arg_0 .. $arg_n ] );
-                next STEP;
-            }
-            if ( $action eq 'do_left_adverb' ) {
-                $stack[$arg_0] =
-                    do_left_adverb( undef, @stack[ $arg_0 .. $arg_n ] );
-                next STEP;
-            }
-            if ( $action eq 'do_group_adverb' ) {
-                $stack[$arg_0] =
-                    do_group_adverb( undef, @stack[ $arg_0 .. $arg_n ] );
-                next STEP;
-            }
             if ( $action eq 'do_adverb_list' ) {
                 $stack[$arg_0] =
                     do_adverb_list( undef, @stack[ $arg_0 .. $arg_n ] );
                 next STEP;
             }
             if ( $action eq 'do_action' ) {
-                $stack[$arg_0] =
-                    do_action( undef, @stack[ $arg_0 .. $arg_n ] );
+                $stack[$arg_0] = [ action => $stack[$arg_0 + 2] ];
                 next STEP;
             }
             if ( $action eq 'do_left_association' ) {
@@ -449,6 +436,10 @@ sub parse_rules {
             }
             if ( $action eq 'do_group_association' ) {
                 $stack[$arg_0] = [ assoc => 'G' ];
+                next STEP;
+            }
+            if ( $action eq 'do_separator_specification' ) {
+                $stack[$arg_0] = [ separator => $stack[$arg_0 + 2] ];
                 next STEP;
             }
             die 'Internal error: Unknown action in Stuifzand grammar: ',
