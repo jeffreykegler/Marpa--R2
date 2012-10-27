@@ -234,11 +234,11 @@ sub stuifzand_grammar {
     $tracer->rule_new( undef, qw(adverb_item group_association) );
     $tracer->rule_new( do_action => qw(action kw_action op_arrow name) );
     $tracer->rule_new(
-        do_left_association => qw(action kw_assoc op_arrow kw_left) );
+        do_left_association => qw(left_association kw_assoc op_arrow kw_left) );
     $tracer->rule_new(
-        do_right_association => qw(action kw_assoc op_arrow kw_right) );
+        do_right_association => qw(right_association kw_assoc op_arrow kw_right) );
     $tracer->rule_new(
-        do_group_association => qw(action kw_assoc op_arrow kw_group) );
+        do_group_association => qw(group_association kw_assoc op_arrow kw_group) );
     $tracer->rule_new( do_lhs => qw( lhs name ) );
     $tracer->rule_new( undef, qw( rhs names ) );
     $tracer->rule_new( undef, qw( quantifier op_star ) );
