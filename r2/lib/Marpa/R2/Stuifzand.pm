@@ -150,6 +150,8 @@ sub do_quantified_rule {
     );
     my $action = $adverb_list->{action};
     $hash_rule{action} = $action if defined $action;
+    my $separator = $adverb_list->{separator};
+    $hash_rule{separator} = $separator if defined $separator;
     return [ \%hash_rule ];
 } ## end sub do_quantified_rule
 

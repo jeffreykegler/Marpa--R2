@@ -61,6 +61,7 @@ my @terminals = (
     [ op_subtract => qr/[-]/xms,  'Subtraction operator' ],
     [ op_lparen => qr/[(]/xms,    'Left parenthesis' ],
     [ op_rparen => qr/[)]/xms,    'Right parenthesis' ],
+    [ op_comma => qr/[,]/xms,    'Comma operator' ],
 );
 
 sub my_parser {
@@ -88,10 +89,7 @@ sub my_parser {
     return $value_ref ? ${$value_ref} : 'No Parse';
 } ## end sub my_parser
 
-say my_parser($grammar, '42*2+7/3');
-say my_parser($grammar, '42*(2+7)/3');
-say my_parser($grammar, '2**7-3');
-say my_parser($grammar, '2**(7-3)');
+say my_parser($grammar, '42*2+7/3, 42*(2+7)/3, 2**7-3, 2**(7-3)');
 
 # First arg is per-parse variable
 sub My_Actions::do_parens    { shift; return $_[1] }
