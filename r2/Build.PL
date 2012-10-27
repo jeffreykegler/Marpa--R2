@@ -97,6 +97,7 @@ my @no_index_namespace_inclusive = qw(
         Marpa::R2::Test
         Marpa::R2::Display
         Marpa::R2::Internal
+        Marpa::R2::Stuifzand
         );
 
 my @files_to_cleanup = (
