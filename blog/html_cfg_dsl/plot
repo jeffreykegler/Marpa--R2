@@ -1,0 +1,8 @@
+<Destroy_Ring> -> <Throw_Ring_in_Crack_of_Doom> <Climb_Mount_Orodruin> <Go_to_Mordor> <Spare_Life_of_Gollum> <Get_Ring_From_Uncle_Bilbo>
+<Holy_Grail> -> <Enter_Grail_Castle> <Cross_Bridge_of_Death> <Locate_Grail_Castle> <Tim_the_Enchanter>
+<Locate_Grail_Castle> -> <Cave_of_Caerbannog> 
+<Cross_Bridge_of_Death> -> <State_Thy_Favorite_Color> <State_Thy_Quest> <State_Thy_Name>
+<Cave_of_Caerbannog> -> <Beast_of_Aaaaarrrrrrggghhh> <Rabbit_of_Caerbannog>
+<Rabbit_of_Caerbannog> -> <Holy_Hand_Grenade_of_Antioch>
+<Trojan_Rabbit> -> FAIL
+<Storm_French_Castle> -> FAIL
