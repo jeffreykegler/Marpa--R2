@@ -307,9 +307,9 @@ sub parse_rules {
                 )
             {
                 my $problem_position = $positions[-1];
-                die q{Problem near position }, $problem_position, ': ',
-                    ( substr $string, $problem_position, 40 ),
-                    qq{\nToken rejected, "$1", }, ( $t->[2] // $t->[0] );
+                die q{Problem near position }, $problem_position, q{: "},
+                    ( substr $string, $problem_position, 40 ), qq{"\n},
+                    qq{Token rejected, "$1", }, ( $t->[2] // $t->[0] ), "\n";
             }
             $recce->earleme_complete();
             $latest_earley_set_ID = $recce->latest_earley_set();
