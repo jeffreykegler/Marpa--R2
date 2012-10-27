@@ -21,7 +21,7 @@ use strict;
 use integer;
 
 use vars qw($VERSION $STRING_VERSION);
-$VERSION        = '2.023_004';
+$VERSION        = '2.023_005';
 $STRING_VERSION = $VERSION;
 ## no critic (BuiltinFunctions::ProhibitStringyEval)
 $VERSION = eval $VERSION;
