@@ -13,7 +13,7 @@
 # General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 
-=head1 NAME
+=head1 Name
 
 Marpa::R2 - Release 2 of Marpa
 
@@ -62,29 +62,193 @@ the hash and/or array rule descriptors.
 
 =head2 The structure of the text
 
-Whitespace is separates tokens, but is otherwise ignored.
-Comments are equivalent to whitespace
-A hash ("C<#>") character starts a comment which,
-continue to the end of the line.
+Whitespace separates tokens, but is otherwise ignored.
+Comments are equivalent to whitespace.
+A hash ("C<#>") character starts a comment,
+which continues to the end of the line.
 
 The Stuifzand format consists of production declarations.
-And production declaraton consists of a left hand side
-symbol, and declaration operator ("C<::=>") and a right hand side.
-The left hand side consists of a single symbol.
+Each production declaraton consists of a left hand side
+symbol, followed by the declaration operator ("C<::=>")
+and a right hand side.
+Right hand sides are described below.
 
 =head2 Symbol names
 
 Symbols names must consist entirely of Perl word characters
-(alphanumerics, plus the underscore),
-enclosed in angle brackets.
+(alphanumerics, plus the underscore).
 Optionally, symbol names can be enclosed in angle brackets.
 
-=for Marpa::R2::Display
-ignore: 1
+=head2 Right hand sides
 
-    <symbol_name>
+A right hand side may be empty, quantified, or prioritized.
+A empty right hand side is what the name suggests,
+no symbols, modifiers or punctuation.
+A production with an empry right hand side defines an nulling rule.
 
-=for Marpa::R2::Display::END
+=head2 Quantified right hand sides
+
+A quantified right hand side defines a sequence rule.
+It consists of a single symbol,
+followed by a "quantifier",
+and then followed, optionally, by modifiers.
+The quantifer is either
+a star ("C<*>"),
+or a plus sign ("C<+>")
+indicating, respectively, that the sequence rule has a minimum length
+of 0 or 1.
+
+=head2 Prioritized right hand sides
+
+All productions which are not empty or quantified, are considered prioritized,
+although the prioritization may be trivial, consisting only of a single
+right hand side alternative,
+at a single priority level.
+Each prioritized right hand side consists of one or more right hand alternatives
+("alternatives" for brevity).
+An alternative is a series of one or more symbols,
+followed by zero or more modifiers.
+
+The alternatives are separated by single or double "or" symbols.
+This means the alternatives in a prioritized right hand side proceed
+from tightest (highest) priority to loosest.
+The double "or" symbol ("C<||>") is the "loosen" operator --
+the alternatives after it
+have a looser (lower) priority than the alternatives before it.
+The single "or" symbol ("C<|>") is the ordinary "alternative" operator --
+alternatives on each side of it have the same priority.
+Associativity is specified using modifiers, as described below.
+
+=head2 Modifiers
+
+Modifiers are allowed for quantified productions,
+and for the right hand side alternatives in prioritized productions.
+Modifiers must occur after the symbols.
+Modifiers consist of a keyword, the modifier operator ("C<< => >>"),
+and the modifier's value.
+The keyword must be from the following list of reserved names.
+Values are as described for each keyword.
+
+=head3 action
+
+The value of the C<action> keyword
+must be a Perl word (a string of alphanumerics
+or underscores).
+It will be interpreted as the action name,
+as described for
+L<the C<action> named argument of rule descriptors|Marpa::R2::Grammar/"action">.
+
+=head3 assoc
+
+The C<assoc> modifier is only valid in a prioritized production.
+Its value must be one of
+C<left>,
+C<right> or
+C<group>.
+Its effect will be as described below.
+
+=head3 separator
+
+The C<separator> keyword is only valid for a quantified right side,
+and its value must be a symbol of the grammar.
+It will be used as the separator,
+L<as described for sequence rules|Marpa::R2::Grammar/"Sequence rules">.
+
+=head2 How Marpa precedence works
+
+Marpa's precedence is a generalization beyond the traditional ideas of precedence.
+Traditional precedence parsing required the 
+the classification of operators as postfix, infix, etc.
+Marpa's precedence parsing is NOT based on
+the special treatment of operators.
+Marpa's precedence parsing,
+in fact,
+has no concept or definition of operator, except
+as something that is not an operand.
+
+An occurrence of the left hand side in a
+right hand side alternative is called an operand.
+Alternatives are assigned an arity according to
+the number of operands they contain.
+All arities are allowed, from zero to an arbitrary
+number imposed by system limits.
+
+An alternative with arity 0 is nullary.
+Precedence and associativity
+are meaningless in this
+case and will be ignored.
+
+An alternative with arity 1 is unary.
+Precedence will have an effect,
+but left and right associativity will not.
+
+An alternative with arity 2 is binary.
+Precedence will have an effect,
+and left and right associativity will behave
+in the traditional way,
+which is exactly as described for the I<N>-ary case.
+For left associativity,
+where I<N> is two or greater,
+only the leftmost operand associates -- operands
+after the first must be at a tighter priority level.
+For right associativity,
+where I<N> is two or greater,
+only the rightmost operand associates -- all operands
+except the last
+must be at a tighter priority level.
+
+Marpa also allows "group" associativity.
+In "group" associativity, all operands associate
+at the lowest priority.
+That is, in an alternative with group associativity,
+each operand may be a full expression of the kind
+defined by the prioritized production.
+"Group" associativity is used, for example,
+in implementing the traditional function of parentheses
+in Marpa.
+Group associativity is meaningless for nullary alternatives,
+and is ignored.
+
+=head2 Caveats
+
+Marpa's generalization of precedence works
+for all grammars that
+can be defined by prioritized productions.
+It is efficient for any grammars that could be
+parsed by the traditional precedence parsing methods.
+Marpa also allows you to defined alternatives
+not allowed by traditional methods.
+Many of these are useful,
+and most of those can also be parsed efficiently.
+
+However, because of the many forms of recursion allowed,
+it is possible
+to define highly ambiguous grammars using the precedence mechanism.
+This can occur even by accident.
+
+The user should especially be careful with
+right hand side alternatives in
+which all the symbols are operands.
+These can be useful.
+For example, an implicit operation can be defined using
+an binary alternative with no non-operands,
+and this could implement, for example,
+the standard notation for concatenation or multiplication.
+But to do this efficiently
+requires either avoiding ambiguity,
+or controlling its use carefully.
+
+Marpa does catch the case where an alternative consists
+only of a single operand -- a "unit rule".
+This causes a fatal error.
+Unit rules are easy to define by accident in
+the Stuifzand interface,
+and the author knows of no practical use for them.
+Note that, in the event someone can find a use for such rules,
+Marpa can parse a grammar which includes them,
+via its other interfaces.
+
+=for Marpa::R2::Display::End
    
 =head1 Copyright and License
 
