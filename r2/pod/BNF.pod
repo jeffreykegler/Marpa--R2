@@ -15,7 +15,7 @@
 
 =head1 Name
 
-Marpa::R2 - Release 2 of Marpa
+Marpa::R2::BNF - BNF Interface
 
 =head1 Synopsis
 
