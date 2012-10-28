@@ -36,10 +36,10 @@ my $grammar = Marpa::R2::Grammar->new(
         actions        => 'My_Actions',
         default_action => 'do_first_arg',
         rules          => [ <<'END_OF_RULES' ]
-Script ::= Expression+ separator => op_comma action => do_script
+Script ::= Expression+ separator => <op_comma> action => do_script
 Expression ::=
     Number
-    | <op_lparen> Expression <op_rparen> action => do_parens assoc => group
+    | op_lparen Expression op_rparen action => do_parens assoc => group
    || Expression op_pow Expression action => do_pow assoc => right
    || Expression op_times Expression action => do_multiply
     | Expression op_divide Expression action => do_divide

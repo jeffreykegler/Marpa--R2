@@ -140,6 +140,7 @@ pod/Acknowledgements.pod
 pod/Advanced/Bibliography.pod
 pod/Advanced/Models.pod
 pod/Advanced/Thin.pod
+pod/BNF.pod
 pod/Changes.pod
 pod/Grammar.pod
 pod/Marpa_R2.pod
@@ -204,6 +205,7 @@ t/rewrite.t
 t/sequence.t
 t/sequence2.t
 t/syn_engine.t
+t/syn_stuifzand.t
 t/thin_eq.t
 t/timeflies.t
 t/use.t

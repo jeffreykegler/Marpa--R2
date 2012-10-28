@@ -20,7 +20,7 @@ Marpa::R2 - Release 2 of Marpa
 =head1 Synopsis
 
 =for Marpa::R2::Display
-name: Stuifzand Synopis
+name: Stuifzand Synopsis
 partial: 1
 normalize-whitespace: 1
 
@@ -29,19 +29,20 @@ normalize-whitespace: 1
             actions        => 'My_Actions',
             default_action => 'do_first_arg',
             rules          => [ <<'END_OF_RULES' ]
-    Script ::= Expression+ separator = op_comma action = do_script
+    Script ::= Expression+ separator => <op_comma> action => do_script
     Expression ::=
         Number
-        | op_lparen Expression op_rparen action = do_parens assoc = group
-       || Expression op_pow Expression action = do_pow assoc = right
-       || Expression op_times Expression action = do_multiply
-        | Expression op_divide Expression action = do_divide
-       || Expression op_add Expression action = do_add
-        | Expression op_subtract Expression action = do_subtract
+        | op_lparen Expression op_rparen action => do_parens assoc => group
+       || Expression op_pow Expression action => do_pow assoc => right
+       || Expression op_times Expression action => do_multiply
+        | Expression op_divide Expression action => do_divide
+       || Expression op_add Expression action => do_add
+        | Expression op_subtract Expression action => do_subtract
     END_OF_RULES
         }
     );
-    =for Marpa::R2::Display::End
+
+=for Marpa::R2::Display::End
 
 =head2 This interface is beta
 
