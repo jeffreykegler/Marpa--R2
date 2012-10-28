@@ -75,9 +75,20 @@ sub action {
 
 sub rule_new {
     my ( $self, $action, $lhs, @rhs ) = @_;
-    my $lhs_id = $self->symbol_force($lhs);
+    my $lhs_id  = $self->symbol_force($lhs);
     my @rhs_ids = map { $self->symbol_force($_); } @rhs;
-    my $rule_id = $self->{g}->rule_new( $lhs_id, \@rhs_ids );
+    my $g       = $self->{g};
+    $g->throw_set(0);
+    my $rule_id = $g->rule_new( $lhs_id, \@rhs_ids );
+    $g->throw_set(1);
+    if ( not defined $rule_id or $rule_id < 0) {
+	my (undef, $error_description) = $g->error();
+        Carp::croak(
+            "Problem defining rule: $lhs ::= ",
+            ( join " ", @rhs ),
+            "\n$error_description\n"
+        );
+    } ## end if ( not defined $rule_id )
     $self->{action_by_rule_id}->[$rule_id] = $action if defined $action;
     return $rule_id;
 } ## end sub rule_new

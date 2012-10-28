@@ -1,0 +1,119 @@
+# Copyright 2012 Jeffrey Kegler
+# This file is part of Marpa::R2.  Marpa::R2 is free software: you can
+# redistribute it and/or modify it under the terms of the GNU Lesser
+# General Public License as published by the Free Software Foundation,
+# either version 3 of the License, or (at your option) any later version.
+#
+# Marpa::R2 is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser
+# General Public License along with Marpa::R2.  If not, see
+# http://www.gnu.org/licenses/.
+
+=head1 NAME
+
+Marpa::R2 - Release 2 of Marpa
+
+=head1 Synopsis
+
+=for Marpa::R2::Display
+name: Stuifzand Synopis
+partial: 1
+normalize-whitespace: 1
+
+    my $grammar = Marpa::R2::Grammar->new(
+        {   start          => 'Script',
+            actions        => 'My_Actions',
+            default_action => 'do_first_arg',
+            rules          => [ <<'END_OF_RULES' ]
+    Script ::= Expression+ separator = op_comma action = do_script
+    Expression ::=
+        Number
+        | op_lparen Expression op_rparen action = do_parens assoc = group
+       || Expression op_pow Expression action = do_pow assoc = right
+       || Expression op_times Expression action = do_multiply
+        | Expression op_divide Expression action = do_divide
+       || Expression op_add Expression action = do_add
+        | Expression op_subtract Expression action = do_subtract
+    END_OF_RULES
+        }
+    );
+    =for Marpa::R2::Display::End
+
+=head2 This interface is beta
+
+This page is the reference for the Marpa's "BNF interface",
+also called its "Stuifzand interface".
+The Stuifzand interface allows textual descriptions of grammars to be
+specified as rule descriptors in the C<rules> named
+arguments of Marpa grammars.
+These textual descriptions can be intermixed with
+the more established hash ("long form") and
+array ("short form") rule descriptors.
+
+This interface is beta.
+It is new, somewhat experimental,
+and therefore subject to change.
+Users who prize stability should prefer
+the hash and/or array rule descriptors.
+
+=head2 The structure of the text
+
+Whitespace is separates tokens, but is otherwise ignored.
+Comments are equivalent to whitespace
+A hash ("C<#>") character starts a comment which,
+continue to the end of the line.
+
+The Stuifzand format consists of production declarations.
+And production declaraton consists of a left hand side
+symbol, and declaration operator ("C<::=>") and a right hand side.
+The left hand side consists of a single symbol.
+
+=head2 Symbol names
+
+Symbols names must consist entirely of Perl word characters
+(alphanumerics, plus the underscore),
+enclosed in angle brackets.
+Optionally, symbol names can be enclosed in angle brackets.
+
+=for Marpa::R2::Display
+ignore: 1
+
+    <symbol_name>
+
+=for Marpa::R2::Display::END
+   
+=head1 Copyright and License
+
+=for Marpa::R2::Display
+ignore: 1
+
+  Copyright 2012 Jeffrey Kegler
+  This file is part of Marpa::R2.  Marpa::R2 is free software: you can
+  redistribute it and/or modify it under the terms of the GNU Lesser
+  General Public License as published by the Free Software Foundation,
+  either version 3 of the License, or (at your option) any later version.
+
+  Marpa::R2 is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser
+  General Public License along with Marpa::R2.  If not, see
+  http://www.gnu.org/licenses/.
+
+=for Marpa::R2::Display::End
+
+=cut
+
+# Local Variables:
+#   mode: cperl
+#   cperl-indent-level: 4
+#   fill-column: 100
+# End:
+# vim: expandtab shiftwidth=4:
+

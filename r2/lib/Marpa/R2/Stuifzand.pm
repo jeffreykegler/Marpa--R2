@@ -206,6 +206,8 @@ sub input_slice {
 sub stuifzand_grammar {
     my $grammar = Marpa::R2::Thin::G->new( { if => 1 } );
     my $tracer = Marpa::R2::Thin::Trace->new($grammar);
+    my @reserved_words = qw( action assoc separator
+        left right group);
     $tracer->sequence_new( do_rules => qw(rules rule), { min => 1 } );
     $tracer->rule_new( undef, qw(rule empty_rule) );
     $tracer->rule_new( undef, qw(rule priority_rule) );
@@ -249,11 +251,15 @@ sub stuifzand_grammar {
     $tracer->rule_new( undef, qw( quantifier op_plus ) );
     $tracer->sequence_new( do_array => qw(names name), { min => 1 } );
     $tracer->rule_new( undef, qw( name bare_name ) );
+    $tracer->rule_new( undef, qw( name reserved_word ) );
     $tracer->rule_new( undef, qw( name quoted_name ) );
     $tracer->rule_new( do_bracketed_name => qw( name bracketed_name ) );
+    for my $reserved_word (@reserved_words) {
+        $tracer->rule_new( undef, 'reserved_word', "kw_$reserved_word" );
+    }
     $grammar->start_symbol_set( $tracer->symbol_by_name('rules') );
     $grammar->precompute();
-    return $tracer;
+    return {tracer => $tracer, reserved_words => \@reserved_words};
 } ## end sub stuifzand_grammar
 
 sub parse_rules {
@@ -263,33 +269,39 @@ sub parse_rules {
     # for debuggging
     my @positions = (0);
 
-    state $tracer = stuifzand_grammar();
-    state $thin_grammar = $tracer->grammar();
+    state $stuifzand_grammar = stuifzand_grammar();
+    state $tracer            = $stuifzand_grammar->{tracer};
+    state $reserved_words    = $stuifzand_grammar->{reserved_words};
+    state $thin_grammar      = $tracer->grammar();
     my $recce = Marpa::R2::Thin::R->new($thin_grammar);
     $recce->start_input();
     $recce->ruby_slippers_set(1);
+
     # Zero position must not be used
     my @token_values = (0);
 
     # Order matters !!!
-    my @terminals = (
-        [ 'kw_action', qr/action\b/xms, qq{"action" keyword} ],
-        [ 'kw_assoc', qr/assoc\b/xms, qq{"assoc" keyword} ],
-        [ 'kw_separator', qr/separator\b/xms, qq{"separator" keyword} ],
-        [ 'kw_left', qr/left\b/xms, qq{"left" keyword} ],
-        [ 'kw_right', qr/right\b/xms, qq{"right" keyword} ],
-        [ 'kw_group', qr/group\b/xms, qq{"group" keyword} ],
-        [ 'op_declare',    qr/::=/xms, 'BNF declaration operator' ],
-        [ 'op_arrow',      qr/=>/xms, 'adverb operator' ],
-        [ 'op_tighter',    qr/[|][|]/xms, 'tighten-precedence operator' ],
-        [ 'op_eq_pri',     qr/[|]/xms, 'alternative operator' ],
-        # [ 'reserved_name', qr/(::(whatever|undef))/xms ],
-        [ 'op_plus',       qr/[+]/xms, 'plus quantification operator' ],
-        [ 'op_star',       qr/[*]/xms, 'star quantification operator' ],
-        [ 'bare_name',          qr/\w+/xms, ],
-        [ 'bracketed_name',          qr/ [<] \w+ [>] /xms, ],
-        [ 'quoted_name',          qr/['][^']+[']/xms ],
-    );
+    my @terminals = ();
+    for my $reserved_word ( @{$reserved_words} ) {
+        push @terminals,
+            [
+            'kw_' . $reserved_word,
+            qr/$reserved_word\b/xms,
+            qq{"$reserved_word" keyword}
+            ];
+    } ## end for my $reserved_word ( @{$reserved_words} )
+    push @terminals,
+        [ 'op_declare', qr/::=/xms,    'BNF declaration operator' ],
+        [ 'op_arrow',   qr/=>/xms,     'adverb operator' ],
+        [ 'op_tighter', qr/[|][|]/xms, 'tighten-precedence operator' ],
+        [ 'op_eq_pri',  qr/[|]/xms,    'alternative operator' ],
+        [ 'op_plus',    qr/[+]/xms,    'plus quantification operator' ],
+        [ 'op_star',    qr/[*]/xms,    'star quantification operator' ],
+        [ 'bare_name',  qr/\w+/xms, ],
+        [ 'bracketed_name', qr/ [<] \w+ [>] /xms, ],
+        [ 'quoted_name',    qr/['][^']+[']/xms ],
+        ## [ 'reserved_name', qr/(::(whatever|undef))/xms ]
+        ;
 
     my $length = length $string;
     pos $string = 0;

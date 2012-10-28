@@ -99,6 +99,9 @@ sub my_parser {
 } ## end sub my_parser
 
 my $value = my_parser( $grammar, '42*2+7/3, 42*(2+7)/3, 2**7-3, 2**(7-3)' );
+
+# Marpa::R2::Display::End
+
 Test::More::like( $value, qr/\A 86[.]3\d+ \s+ 126 \s+ 125 \s+ 16\z/xms, 'Value of Stuifzand parse' );
 
 # Local Variables:

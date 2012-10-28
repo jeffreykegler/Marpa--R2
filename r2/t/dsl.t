@@ -162,32 +162,20 @@ sub add_brackets {
     return '[' . $original . ']';
 } ## end sub add_brackets
 
-sub die_on_read_problem {
-    my ( $rec, $t, $token_value, $string, $position ) = @_;
-    say $rec->show_progress() or die "say failed: $ERRNO";
-    my $problem_position = $position - length $1;
-    my $before_start     = $problem_position - 40;
-    $before_start = 0 if $before_start < 0;
-    my $before_length = $problem_position - $before_start;
-    die "Problem near position $problem_position\n",
-        q{Problem is here: "},
-        ( substr $string, $before_start, $before_length + 40 ),
-        qq{"\n},
-        ( q{ } x ( $before_length + 18 ) ), qq{^\n},
-        q{Token rejected, "}, $t->[0], qq{", "$token_value"},
-        ;
-} ## end sub die_on_read_problem
-
 sub calculate {
     my ($string) = @_;
 
     %symbol_table = ();
 
-    my $rec = Marpa::R2::Recognizer->new( { grammar => $grammar } );
+    my $recce = Marpa::R2::Recognizer->new( { grammar => $grammar } );
 
     my $length = length $string;
-    pos $string = 0;
-    TOKEN: while ( pos $string < $length ) {
+    my $last_position = 0;
+    pos $string = $last_position;
+    TOKEN: while ( 1 ) {
+
+        $last_position = pos $string;
+        last TOKEN if $last_position >= $length;
 
         # skip whitespace
         next TOKEN if $string =~ m/\G\s+/gcxms;
@@ -195,20 +183,22 @@ sub calculate {
         # read other tokens
         TOKEN_TYPE: for my $t (@terminals) {
             next TOKEN_TYPE if not $string =~ m/\G($t->[1])/gcxms;
-            if ( not defined $rec->read( $t->[0], $1 ) ) {
-                die_on_read_problem( $rec, $t, $1, $string, pos $string );
-            }
-            next TOKEN;
+            my $token_value = $1;
+            next TOKEN if defined $recce->read( $t->[0], $token_value );
+            # say STDERR $recce->show_progress() or die "say failed: $ERRNO";
+            die q{Token rejected, "}, $t->[0], qq{", "$token_value"\n},
+                qq{Problem near position $last_position: "},
+                ( substr $string, $last_position, 40 ), "\n";
         } ## end TOKEN_TYPE: for my $t (@terminals)
 
         die q{No token at "}, ( substr $string, pos $string, 40 ),
             q{", position }, pos $string;
     } ## end TOKEN: while ( pos $string < $length )
 
-    my $value_ref = $rec->value;
+    my $value_ref = $recce->value;
 
     if ( !defined $value_ref ) {
-        say $rec->show_progress() or die "say failed: $ERRNO";
+        say $recce->show_progress() or die "say failed: $ERRNO";
         die 'Parse failed';
     }
     return ${$value_ref};
