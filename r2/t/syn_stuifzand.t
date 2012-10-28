@@ -19,7 +19,7 @@
 use 5.010;
 use strict;
 use warnings;
-use Test::More tests => 3;
+use Test::More tests => 1;
 
 use lib 'inc';
 use Marpa::R2::Test;
@@ -48,6 +48,15 @@ Expression ::=
 END_OF_RULES
     }
 );
+
+sub My_Actions::do_parens    { shift; return $_[1] }
+sub My_Actions::do_add       { shift; return $_[0] + $_[2] }
+sub My_Actions::do_subtract  { shift; return $_[0] - $_[2] }
+sub My_Actions::do_multiply  { shift; return $_[0] * $_[2] }
+sub My_Actions::do_divide    { shift; return $_[0] / $_[2] }
+sub My_Actions::do_pow       { shift; return $_[0]**$_[2] }
+sub My_Actions::do_first_arg { shift; return shift; }
+sub My_Actions::do_script    { shift; return join q{ }, @_ }
 
 $grammar->precompute();
 
@@ -89,17 +98,8 @@ sub my_parser {
     return $value_ref ? ${$value_ref} : 'No Parse';
 } ## end sub my_parser
 
-say my_parser($grammar, '42*2+7/3, 42*(2+7)/3, 2**7-3, 2**(7-3)');
-
-# First arg is per-parse variable
-sub My_Actions::do_parens    { shift; return $_[1] }
-sub My_Actions::do_add       { shift; return $_[0] + $_[2] }
-sub My_Actions::do_subtract  { shift; return $_[0] - $_[2] }
-sub My_Actions::do_multiply  { shift; return $_[0] * $_[2] }
-sub My_Actions::do_divide    { shift; return $_[0] / $_[2] }
-sub My_Actions::do_pow       { shift; return $_[0]**$_[2] }
-sub My_Actions::do_first_arg { shift; return shift; }
-sub My_Actions::do_script    { shift; return join q{ }, @_ }
+my $value = my_parser( $grammar, '42*2+7/3, 42*(2+7)/3, 2**7-3, 2**(7-3)' );
+Test::More::like( $value, qr/\A 86[.]3\d+ \s+ 126 \s+ 125 \s+ 16\z/xms, 'Value of Stuifzand parse' );
 
 # Local Variables:
 #   mode: cperl
