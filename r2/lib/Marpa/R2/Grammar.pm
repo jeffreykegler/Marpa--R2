@@ -32,7 +32,7 @@ use integer;
 use utf8;
 
 use vars qw($VERSION $STRING_VERSION);
-$VERSION        = '2.023_006';
+$VERSION        = '2.023_007';
 $STRING_VERSION = $VERSION;
 ## no critic(BuiltinFunctions::ProhibitStringyEval)
 $VERSION = eval $VERSION;
@@ -783,6 +783,14 @@ sub Marpa::R2::Grammar::rule {
         ( 0 .. $rule_length - 1 );
     return map { $grammar->symbol_name($_) } @symbol_ids;
 } ## end sub Marpa::R2::Grammar::rule
+
+# The symbols, before the BNF rewrites
+sub Marpa::R2::Grammar::bnf_rule {
+    my ( $grammar, $rule_id ) = @_;
+    my @symbols = Marpa::R2::Grammar::rule( $grammar, $rule_id);
+    return if not @symbols;
+    return map { s/\[ prec \d+ \] \z//xms; $_ } @symbols;
+}
 
 sub Marpa::R2::Grammar::action {
     my ( $grammar, $rule_id ) = @_;

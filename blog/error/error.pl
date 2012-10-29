@@ -25,9 +25,11 @@ my $prefix_grammar = Marpa::R2::Grammar->new(
         actions        => 'My_Actions',
         default_action => 'do_arg0',
         rules          => [ <<'END_OF_RULES' ]
-Script ::= Expression | kw_say Expression action => do_arg1
+Script ::=
+     Expression
+   | kw_say Expression action => do_arg1
 Expression ::=
-    Number
+     Number
    | op_add Expression Expression action => do_add
 END_OF_RULES
     }
@@ -51,8 +53,7 @@ sub My_Error::last_completed_range {
     my $recce        = $self->{recce};
     my @sought_rules = ();
     for my $rule_id ( $grammar->rule_ids() ) {
-        my ($lhs) = $grammar->rule($rule_id);
-        $lhs =~ s/\[prec\d+\]\z//xms;
+        my ($lhs) = $grammar->bnf_rule($rule_id);
         push @sought_rules, $rule_id if $lhs eq $symbol_name;
     }
     die "Looking for completion of non-existent rule lhs: $symbol_name"
