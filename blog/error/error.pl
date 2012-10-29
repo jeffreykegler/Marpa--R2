@@ -42,7 +42,7 @@ $prefix_grammar->precompute();
 my @terminals = (
     [ Number => qr/\d+/xms,   'Number' ],
     [ op_add => qr/[+]/xms,   'Addition operator' ],
-    [ kw_say => qr/say\b/xms, '"say" keyword' ],
+    [ kw_say => qr/say\b/xms, qq{"say" keyword} ],
 );
 
 sub My_Error::last_completed_range {
