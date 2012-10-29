@@ -18,7 +18,7 @@ use 5.010;
 use strict;
 use warnings;
 use English qw( -no_match_vars );
-use Marpa::R2;
+use Marpa::R2 2.023007;
 
 my $prefix_grammar = Marpa::R2::Grammar->new(
     {   start          => 'Script',
@@ -143,7 +143,7 @@ sub my_parser {
             die $self->show_last_expression(), "\n",
                 'A problem occurred here: ',
                 $self->show_position( $positions[-1] ), "\n",
-                qq{Parser rejected token "$long_name"};
+                qq{Parser rejected token "$long_name"\n};
         } ## end TOKEN_TYPE: for my $t (@terminals)
         die 'A problem occurred here: ',
             $self->show_position( $positions[-1] ), "\n",
