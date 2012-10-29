@@ -158,34 +158,36 @@ sub do_quantified_rule {
 sub do_lhs { shift; return $_[0]; }
 sub do_adverb_list { shift; return { map {; @{$_}} @_ } }
 
-# Given a recognizer, an input,
-# a reference to an array
-# mapping Earley sets to input positions,
-# and symbol,
+# Given a grammar,
+# a recognizer and a symbol
 # return the start and end earley sets
 # of the last such symbol completed,
 # undef if there was none.
 sub last_completed_range {
-    my ( $grammar, $recce, $symbol ) = @_;
+    my ( $tracer, $thin_recce, $symbol_name ) = @_;
+    my $thin_grammar = $tracer->grammar();
+    my $symbol_id = $tracer->symbol_by_name($symbol_name);
     my @sought_rules =
-        grep { my ($lhs) = $grammar->rule($_); $lhs eq $symbol; }
-        $grammar->rule_ids();
-    die "Looking for completion of non-existent rule lhs: $symbol"
+        grep { $thin_grammar->rule_lhs($_) == $symbol_id; }
+        0 .. $thin_grammar->highest_rule_id();
+    die "Looking for completion of non-existent rule lhs: $symbol_name"
         if not scalar @sought_rules;
-    my $latest_earley_set = $recce->latest_earley_set();
+    my $latest_earley_set = $thin_recce->latest_earley_set();
     my $earley_set        = $latest_earley_set;
 
     # Initialize to one past the end, so we can tell if there were no hits
     my $first_origin = $latest_earley_set + 1;
     EARLEY_SET: while ( $earley_set >= 0 ) {
-        my $report_items = $recce->progress($earley_set);
-        ITEM: for my $report_item ( @{$report_items} ) {
-            my ( $rule_id, $dot_position, $origin ) = @{$report_item};
+        $thin_recce->progress_report_start($earley_set);
+        ITEM: while (1) {
+            my ( $rule_id, $dot_position, $origin ) = $thin_recce->progress_item();
+            last ITEM if not defined $rule_id;
             next ITEM if $dot_position != -1;
             next ITEM if not scalar grep { $_ == $rule_id } @sought_rules;
             next ITEM if $origin >= $first_origin;
             $first_origin = $origin;
-        } ## end ITEM: for my $report_item ( @{$report_items} )
+        }
+        $thin_recce->progress_report_finish();
         last EARLEY_SET if $first_origin <= $latest_earley_set;
         $earley_set--;
     } ## end EARLEY_SET: while ( $earley_set >= 0 )
@@ -262,6 +264,13 @@ sub stuifzand_grammar {
     return {tracer => $tracer, reserved_words => \@reserved_words};
 } ## end sub stuifzand_grammar
 
+sub last_rule {
+   my ($tracer, $thin_recce, $string, $positions) = @_;
+        return input_slice( $string, $positions,
+            last_completed_range( $tracer, $thin_recce, 'rule') )
+            // 'No rule was completed';
+}
+
 sub parse_rules {
     my ($string) = @_;
 
@@ -324,10 +333,13 @@ sub parse_rules {
                 )
             {
                 my $problem_position = $positions[-1];
-                die q{Problem near position }, $problem_position, q{: "},
+                die qq{Last rule successfully parsed was: },
+                    last_rule( $tracer, $recce, $string, \@positions ),
+                    "\n", q{Problem near position }, $problem_position,
+                    q{: "},
                     ( substr $string, $problem_position, 40 ), qq{"\n},
                     qq{Token rejected, "$1", }, ( $t->[2] // $t->[0] ), "\n";
-            }
+            } ## end if ( $recce->alternative( $tracer->symbol_by_name( $t...)))
             $recce->earleme_complete();
             $latest_earley_set_ID = $recce->latest_earley_set();
             $positions[$latest_earley_set_ID] = $string_position;
@@ -342,12 +354,11 @@ sub parse_rules {
     my $bocage        = Marpa::R2::Thin::B->new( $recce, $latest_earley_set_ID );
     $thin_grammar->throw_set(1);
     if ( !defined $bocage ) {
-        say $recce->show_progress() or die "say failed: $ERRNO";
-        say input_slice( $string, \@positions,
-            last_completed_range( $thin_grammar, $recce, 'rule' ) )
-            // 'No rule was completed';
-        die 'Parse failed';
-    } ## end if ( !defined $parse_ref )
+        ## say STDERR $recce->show_progress() or die "say failed: $ERRNO";
+        die qq{Last rule successfully parsed was: },
+            last_rule( $tracer, $recce, $string, \@positions ),
+            'Parse failed';
+    } ## end if ( !defined $bocage )
 
     my $order         = Marpa::R2::Thin::O->new($bocage);
     my $tree          = Marpa::R2::Thin::T->new($order);
