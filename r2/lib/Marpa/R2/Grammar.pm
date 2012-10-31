@@ -63,7 +63,6 @@ BEGIN {
 
     ID
     NAME
-    ACTION { action for this rule as specified by user }
     DISCARD_SEPARATION
 
 END_OF_STRUCTURE
@@ -783,18 +782,15 @@ sub Marpa::R2::Grammar::rule {
 # The symbols, before the BNF rewrites
 sub Marpa::R2::Grammar::bnf_rule {
     my ( $grammar, $rule_id ) = @_;
-    my @symbols = Marpa::R2::Grammar::rule( $grammar, $rule_id);
+    my @symbols = Marpa::R2::Grammar::rule( $grammar, $rule_id );
     return if not @symbols;
-    return map { s/\[ prec \d+ \] \z//xms; $_ } @symbols;
-}
-
-sub Marpa::R2::Grammar::action {
-    my ( $grammar, $rule_id ) = @_;
-    my $rules = $grammar->[Marpa::R2::Internal::Grammar::RULES];
-    my $rule  = $rules->[$rule_id];
-    Marpa::R2::exception("No such rule ID: $rule_id") if not defined $rule;
-    return $rule->[Marpa::R2::Internal::Rule::ACTION];
-} ## end sub Marpa::R2::Grammar::action
+    my @return_value = ();
+    for my $symbol (@symbols) {
+        $symbol =~ s/\[ prec \d+ \] \z//xms;
+        push @return_value, $symbol;
+    }
+    return @return_value;
+} ## end sub Marpa::R2::Grammar::bnf_rule
 
 sub Marpa::R2::Grammar::show_dotted_rule {
     my ( $grammar, $rule_id, $dot_position ) = @_;
@@ -901,28 +897,6 @@ sub assign_user_symbol {
 
 } ## end sub assign_user_symbol
 
-sub action_set {
-    my ( $rule_id, $grammar, $action ) = @_;
-    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
-    my $rules     = $grammar->[Marpa::R2::Internal::Grammar::RULES];
-    my $rule      = $rules->[$rule_id];
-    if ( not $rule ) {
-        $rules->[$rule_id] = $rule = [];
-    }
-    my $rh_length = $grammar_c->rule_length($rule_id);
-    if ( defined $action and $rh_length < 0 ) {
-        my $lhs_id   = $grammar_c->rule_lhs($rule_id);
-        my $lhs_name = $grammar->symbol_name($lhs_id);
-        Marpa::R2::exception(
-            "Empty Rule cannot have an action\n",
-            "  Rule #$rule_id: $lhs_name  -> /* empty */",
-            "\n"
-        );
-    } ## end if ( defined $action and $rh_length < 0 )
-    $rule->[Marpa::R2::Internal::Rule::ACTION] = $action;
-    return 1;
-} ## end sub action_set
-
 # add one or more rules
 sub add_user_rules {
     my ( $grammar, $rules ) = @_;
@@ -993,6 +967,7 @@ sub add_user_rule {
             or not defined $options;
 
     my $grammar_c    = $grammar->[Marpa::R2::Internal::Grammar::C];
+    my $tracer    = $grammar->[Marpa::R2::Internal::Grammar::TRACER];
     my $rules        = $grammar->[Marpa::R2::Internal::Grammar::RULES];
     my $default_rank = $grammar_c->default_rank();
 
@@ -1144,7 +1119,7 @@ sub add_user_rule {
         } ## end if ( $ordinary_rule_id < 0 )
         shadow_rule( $grammar, $ordinary_rule_id );
         my $ordinary_rule = $rules->[$ordinary_rule_id];
-        action_set( $ordinary_rule_id, $grammar, $action );
+        $tracer->action_set( $ordinary_rule_id, $action );
         if ( defined $rank ) {
             $grammar_c->rule_rank_set( $ordinary_rule_id, $rank );
         }
@@ -1197,7 +1172,7 @@ sub add_user_rule {
     # but some of the rewritten sequence rules are its
     # semantic equivalents.
     my $original_rule = $rules->[$original_rule_id];
-    action_set( $original_rule_id, $grammar, $action );
+    $tracer->action_set( $original_rule_id, $action );
     $original_rule->[Marpa::R2::Internal::Rule::DISCARD_SEPARATION] =
         $separator_id >= 0 && !$keep_separation;
     $grammar_c->rule_null_high_set( $original_rule_id,

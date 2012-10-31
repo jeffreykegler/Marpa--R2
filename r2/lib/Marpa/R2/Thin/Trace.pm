@@ -73,6 +73,12 @@ sub action {
     return $self->{action_by_rule_id}->[$rule_id];
 }
 
+# Note: no check that $rule_id actually exists
+sub action_set {
+    my ( $self, $rule_id, $action ) = @_;
+    $self->{action_by_rule_id}->[$rule_id] = $action;
+}
+
 sub rule_new {
     my ( $self, $action, $lhs, @rhs ) = @_;
     my $lhs_id  = $self->symbol_force($lhs);

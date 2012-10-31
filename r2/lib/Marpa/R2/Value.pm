@@ -145,11 +145,12 @@ sub Marpa::R2::Internal::Recognizer::resolve_semantics {
 } ## end sub Marpa::R2::Internal::Recognizer::resolve_semantics
 
 sub Marpa::R2::Internal::Recognizer::set_actions {
-    my ( $recce ) = @_;
-    my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
-    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
-    my $rules     = $grammar->[Marpa::R2::Internal::Grammar::RULES];
-    my $symbols   = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
+    my ($recce)       = @_;
+    my $grammar       = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
+    my $grammar_c     = $grammar->[Marpa::R2::Internal::Grammar::C];
+    my $tracer        = $grammar->[Marpa::R2::Internal::Grammar::TRACER];
+    my $rules         = $grammar->[Marpa::R2::Internal::Grammar::RULES];
+    my $symbols       = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
     my $rule_closures = [];
     my $trace_actions =
         $recce->[Marpa::R2::Internal::Recognizer::TRACE_ACTIONS] // 0;
@@ -181,7 +182,7 @@ sub Marpa::R2::Internal::Recognizer::set_actions {
 
         my $rule_id = $rule->[Marpa::R2::Internal::Rule::ID];
 
-        if ( my $action = $rule->[Marpa::R2::Internal::Rule::ACTION] ) {
+        if ( my $action = $tracer->action($rule_id) ) {
             my $resolution =
                 Marpa::R2::Internal::Recognizer::resolve_semantics( $recce,
                 $action );
@@ -190,7 +191,7 @@ sub Marpa::R2::Internal::Recognizer::set_actions {
                 if not defined $resolution;
             $rule_resolutions->[$rule_id] = $resolution;
             next RULE;
-        } ## end if ( my $action = $rule->[Marpa::R2::Internal::Rule::ACTION...])
+        } ## end if ( my $action = $tracer->action($rule_id) )
 
         if (    $default_empty_action
             and $grammar_c->rule_length($rule_id) == 0 )
@@ -201,7 +202,7 @@ sub Marpa::R2::Internal::Recognizer::set_actions {
 
         $rule_resolutions->[$rule_id] = $default_action_resolution;
 
-    } ## end for my $rule ( @{$rules} )
+    } ## end RULE: for my $rule ( @{$rules} )
 
     if ( $trace_actions >= 2 ) {
         RULE: for my $rule_id ( 0 .. $#{$rules} ) {
@@ -211,7 +212,7 @@ sub Marpa::R2::Internal::Recognizer::set_actions {
                 $grammar->brief_rule($rule_id),
                 qq{ resolves to "$resolution_name"}
                 or Marpa::R2::exception('print to trace handle failed');
-        } ## end for my $rule_id ( 0 .. $#{$rules} )
+        } ## end RULE: for my $rule_id ( 0 .. $#{$rules} )
     } ## end if ( $trace_actions >= 2 )
 
     my @resolution_by_lhs;
@@ -236,10 +237,10 @@ sub Marpa::R2::Internal::Recognizer::set_actions {
         } ## end if ( $new_resolution ne $current_resolution and ( ...))
         if ( $new_resolution ne '::whatever' ) {
             $rule_closures->[$rule_id] = $closure;
-        } ## end if ( $new_resolution ne '::whatever' )
+        }
         push @{ $nullable_ruleids_by_lhs[$lhs_id] }, $rule_id
             if $grammar_c->rule_is_nullable($rule_id);
-    } ## end for my $rule_id ( 0 .. $#{$rules} )
+    } ## end RULE: for my $rule_id ( 0 .. $#{$rules} )
 
     # A LHS can be nullable via more than one rule,
     # and that means more than one semantics might be specified for
@@ -250,14 +251,14 @@ sub Marpa::R2::Internal::Recognizer::set_actions {
         my $ruleids = $nullable_ruleids_by_lhs[$lhs_id];
         my $resolution_rule;
 
-	# No nullable rules for this LHS?  No problem.
+        # No nullable rules for this LHS?  No problem.
         next LHS if not defined $ruleids;
         my $rule_count = scalar @{$ruleids};
 
-	# I am not sure if this test is necessary 
+        # I am not sure if this test is necessary
         next LHS if $rule_count <= 0;
 
-	# Just one nullable rule?  Then that's our semantics.
+        # Just one nullable rule?  Then that's our semantics.
         if ( $rule_count == 1 ) {
             $resolution_rule = $ruleids->[0];
             my ( $resolution_name, $closure ) =
@@ -274,8 +275,8 @@ sub Marpa::R2::Internal::Recognizer::set_actions {
             next LHS;
         } ## end if ( $rule_count == 1 )
 
-	# More than one rule?  Are any empty?
-	# If so, use the semantics of the empty rule
+        # More than one rule?  Are any empty?
+        # If so, use the semantics of the empty rule
         my @empty_rules =
             grep { $grammar_c->rule_length($_) <= 0 } @{$ruleids};
         if ( scalar @empty_rules ) {
@@ -294,12 +295,12 @@ sub Marpa::R2::Internal::Recognizer::set_actions {
             next LHS;
         } ## end if ( scalar @empty_rules )
 
-	# Multiple rules, none of them empty.
+        # Multiple rules, none of them empty.
         my ( $first_resolution_name, @other_resolution_names ) =
             map { $rule_resolutions->[$_]->[0] } @{$ruleids};
 
-	# Do they have more than one semantics?
-	# Just call it an error and let the user sort it out.
+        # Do they have more than one semantics?
+        # Just call it an error and let the user sort it out.
         if ( grep { $_ ne $first_resolution_name } @other_resolution_names ) {
             my %seen = map { ( $_, 1 ); } $first_resolution_name,
                 @other_resolution_names;
@@ -313,8 +314,8 @@ sub Marpa::R2::Internal::Recognizer::set_actions {
             );
         } ## end if ( grep { $_ ne $first_resolution_name } ...)
 
-	# Multiple rules, but they all have one semantics.
-	# So (obviously) use that semantics
+        # Multiple rules, but they all have one semantics.
+        # So (obviously) use that semantics
         $resolution_rule = $ruleids->[0];
         my ( $resolution_name, $closure ) =
             @{ $rule_resolutions->[$resolution_rule] };
@@ -328,7 +329,7 @@ sub Marpa::R2::Internal::Recognizer::set_actions {
         } ## end if ($trace_actions)
         $null_symbol_closures[$lhs_id] = $resolution_rule;
 
-    } ## end for ( my $lhs_id = 0; $lhs_id <= $#nullable_ruleids_by_lhs...)
+    } ## end LHS: for ( my $lhs_id = 0; $lhs_id <= $#nullable_ruleids_by_lhs...)
 
     $recce->[Marpa::R2::Internal::Recognizer::NULL_VALUES] =
         \@null_symbol_closures;
@@ -339,7 +340,7 @@ sub Marpa::R2::Internal::Recognizer::set_actions {
 
 our $CONTEXT_EXCEPTION_CLASS = __PACKAGE__ . '::Context_Exception';
 
-sub Marpa::R2::Context::bail {
+sub Marpa::R2::Context::bail { ## no critic (Subroutines::RequireArgUnpacking)
     if ( scalar @_ == 1 and ref $_[0] ) {
         die bless { exception_object => $_[0] }, $CONTEXT_EXCEPTION_CLASS;
     }
@@ -350,6 +351,7 @@ sub Marpa::R2::Context::bail {
             . $error_string
             . "\n" }, $CONTEXT_EXCEPTION_CLASS;
 } ## end sub Marpa::R2::Context::bail
+## use critic
 
 sub Marpa::R2::Context::location {
     my $valuator = $Marpa::R2::Internal::Context::VALUATOR;
@@ -357,7 +359,7 @@ sub Marpa::R2::Context::location {
         'Marpa::R2::Context::location called outside of a valuation context')
         if not defined $valuator;
     return $valuator->location();
-} ## end Marpa::R2::Context::location
+} ## end sub Marpa::R2::Context::location
 
 sub code_problems {
     my $args = shift;
@@ -461,7 +463,7 @@ sub code_problems {
     # this is to keep perlcritic happy
     return 1;
 
-}
+} ## end sub code_problems
 
 # Does not modify stack
 sub Marpa::R2::Internal::Recognizer::evaluate {
@@ -480,7 +482,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
         // 0;
 
     local $Marpa::R2::Context::grammar = $grammar;
-    local $Marpa::R2::Context::rule = undef;
+    local $Marpa::R2::Context::rule    = undef;
 
     my $action_object_class =
         $grammar->[Marpa::R2::Internal::Grammar::ACTION_OBJECT];
@@ -530,11 +532,12 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
     $action_object //= {};
 
-    my $rule_closures = $recce->[Marpa::R2::Internal::Recognizer::RULE_CLOSURES];
-    if (not defined $rule_closures )
-    {
+    my $rule_closures =
+        $recce->[Marpa::R2::Internal::Recognizer::RULE_CLOSURES];
+    if ( not defined $rule_closures ) {
         Marpa::R2::Internal::Recognizer::set_actions($recce);
-	$rule_closures = $recce->[Marpa::R2::Internal::Recognizer::RULE_CLOSURES];
+        $rule_closures =
+            $recce->[Marpa::R2::Internal::Recognizer::RULE_CLOSURES];
     }
 
     my $null_values = $recce->[Marpa::R2::Internal::Recognizer::NULL_VALUES];
@@ -544,7 +547,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
     for my $rule_id ( 0 .. $#{$rule_closures} ) {
         my $result = $value->rule_is_valued_set( $rule_id, 1 );
         if ( not $result ) {
-	    my $lhs_id = $grammar_c->rule_lhs($rule_id);
+            my $lhs_id   = $grammar_c->rule_lhs($rule_id);
             my $lhs_name = $grammar->symbol_name($lhs_id);
             Marpa::R2::exception(
                 qq{Cannot assign values to rule $rule_id (lhs is "$lhs_name") },
@@ -596,7 +599,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
         if ( $value_type eq 'MARPA_STEP_NULLING_SYMBOL' ) {
             my ( $token_id, $arg_n ) = @value_data;
             my $semantic_rule_id = $null_values->[$token_id];
-            my $value_ref = $rule_closures->[$semantic_rule_id];
+            my $value_ref        = $rule_closures->[$semantic_rule_id];
 
             if ( ref $value_ref eq 'CODE' ) {
                 my @warnings;
@@ -609,7 +612,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                     };
 
                     $eval_ok = eval {
-			local $Marpa::R2::Context::rule = $semantic_rule_id;
+                        local $Marpa::R2::Context::rule = $semantic_rule_id;
                         $result = $value_ref->($action_object);
                         1;
                     };
@@ -644,16 +647,17 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
             if ( defined $closure ) {
                 my $result;
-		my $rule = $rules->[$rule_id];
+                my $rule = $rules->[$rule_id];
 
                 my @args =
                     map { defined $_ ? ${$_} : $_ }
                     @evaluation_stack[ $arg_0 .. $arg_n ];
-                if ( $rule->[Marpa::R2::Internal::Rule::DISCARD_SEPARATION] ) {
+                if ( $rule->[Marpa::R2::Internal::Rule::DISCARD_SEPARATION] )
+                {
                     @args =
                         @args[ map { 2 * $_ }
                         ( 0 .. ( scalar @args + 1 ) / 2 - 1 ) ];
-                }
+                } ## end if ( $rule->[...])
 
                 if ( ref $closure eq 'CODE' ) {
                     my @warnings;
@@ -664,7 +668,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                         };
 
                         $eval_ok = eval {
-			    local $Marpa::R2::Context::rule = $rule_id;
+                            local $Marpa::R2::Context::rule = $rule_id;
                             $result = $closure->( $action_object, @args );
                             1;
                         };
@@ -725,7 +729,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
         die "Internal error: Unknown value type $value_type";
 
-    } ## end while (1)
+    } ## end EVENT: while (1)
 
     my $top_value = $evaluation_stack[0];
 
@@ -734,7 +738,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 } ## end sub Marpa::R2::Internal::Recognizer::evaluate
 
 # Returns false if no parse
-sub Marpa::R2::Recognizer::value {
+sub Marpa::R2::Recognizer::value { ## no critic (Subroutines::RequireArgUnpacking)
     my ($recce) = @_;
 
     Marpa::R2::exception('Too many arguments to Marpa::R2::Recognizer::value')
@@ -824,33 +828,34 @@ sub Marpa::R2::Recognizer::value {
 } ## end sub Marpa::R2::Recognizer::value
 
 sub do_high_rule_only {
-    my ($recce)    = @_;
-    my $order      = $recce->[Marpa::R2::Internal::Recognizer::O_C];
+    my ($recce) = @_;
+    my $order = $recce->[Marpa::R2::Internal::Recognizer::O_C];
     $order->high_rank_only_set(1);
     $order->rank();
     return 1;
 } ## end sub do_high_rule_only
 
 sub do_rank_by_rule {
-    my ($recce)    = @_;
-    my $order      = $recce->[Marpa::R2::Internal::Recognizer::O_C];
+    my ($recce) = @_;
+    my $order = $recce->[Marpa::R2::Internal::Recognizer::O_C];
+
     # Rank by rule is the default, but just in case
     $order->high_rank_only_set(0);
     $order->rank();
     return 1;
-} ## end sub do_high_rule_only
+} ## end sub do_rank_by_rule
 
 # INTERNAL OK AFTER HERE _marpa_
 
 sub Marpa::R2::Recognizer::show_bocage {
     my ($recce) = @_;
     my $text;
-    my @data        = ();
-    my $id          = 0;
-    my $recce_c     = $recce->[Marpa::R2::Internal::Recognizer::C];
-    my $bocage      = $recce->[Marpa::R2::Internal::Recognizer::B_C];
-    my $grammar     = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
-    my $grammar_c   = $grammar->[Marpa::R2::Internal::Grammar::C];
+    my @data      = ();
+    my $id        = 0;
+    my $recce_c   = $recce->[Marpa::R2::Internal::Recognizer::C];
+    my $bocage    = $recce->[Marpa::R2::Internal::Recognizer::B_C];
+    my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
+    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
     OR_NODE: for ( my $or_node_id = 0;; $or_node_id++ ) {
         my $irl_id = $bocage->_marpa_b_or_node_irl($or_node_id);
         last OR_NODE if not defined $irl_id;
@@ -902,8 +907,8 @@ sub Marpa::R2::Recognizer::show_bocage {
                 $middle_earleme, ( defined $symbol ? 0 : 1 ),
                 ( $symbol // $cause_irl_id ), $tag
                 ];
-        } ## end for my $and_node_id (@and_node_ids)
-    } ## end for ( my $or_node_id = 0;; $or_node_id++ )
+        } ## end AND_NODE: for my $and_node_id (@and_node_ids)
+    } ## end OR_NODE: for ( my $or_node_id = 0;; $or_node_id++ )
     my @sorted_data = map { $_->[-1] } sort {
                $a->[0] <=> $b->[0]
             or $a->[1] <=> $b->[1]
@@ -1005,7 +1010,7 @@ sub Marpa::R2::Recognizer::show_and_nodes {
             $position,       $middle_earleme,  $cause_rule,
             ( $symbol // -1 ), $desc
             ];
-    } ## end for ( my $id = 0;; $id++ )
+    } ## end AND_NODE: for ( my $id = 0;; $id++ )
     my @sorted_data = map { $_->[-1] } sort {
                $a->[0] <=> $b->[0]
             or $a->[1] <=> $b->[1]
@@ -1055,7 +1060,7 @@ sub Marpa::R2::Recognizer::show_or_nodes {
 #>>>
         push @data,
             [ $origin_earleme, $current_earleme, $irl_id, $position, $desc ];
-    } ## end for ( ;; )
+    } ## end OR_NODE: for ( ;; )
     my @sorted_data = map { $_->[-1] } sort {
                $a->[0] <=> $b->[0]
             or $a->[1] <=> $b->[1]
@@ -1115,7 +1120,7 @@ sub Marpa::R2::Recognizer::show_nook {
                 Marpa::R2::Recognizer::and_node_tag( $recce, $and_node_id );
             $text .= " ::= a$and_node_id $and_node_tag";
             $text .= "\n";
-        } ## end for ( my $choice_ix = 0;; $choice_ix++ )
+        } ## end CHOICE: for ( my $choice_ix = 0;; $choice_ix++ )
     } ## end DESCRIBE_CHOICES:
     return $text;
 } ## end sub Marpa::R2::Recognizer::show_nook
