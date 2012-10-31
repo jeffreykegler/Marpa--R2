@@ -18,7 +18,7 @@ use 5.010;
 use strict;
 use warnings;
 use English qw( -no_match_vars );
-use Marpa::R2 2.023007;
+use Marpa::R2 2.023008;
 
 my $prefix_grammar = Marpa::R2::Grammar->new(
     {   start          => 'Script',
