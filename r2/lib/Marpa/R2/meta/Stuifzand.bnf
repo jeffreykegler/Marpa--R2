@@ -1,0 +1,38 @@
+# On the first round, ignore the proper adverb
+
+# Reserved words?
+# my @reserved_words = qw( action assoc separator left right group);
+# for my $reserved_word (@reserved_words) {
+    # $tracer->rule_new( undef, 'reserved_word', "kw_$reserved_word" );
+# }
+
+rules ::= rule+ action => do_rules
+rule ::= empty_rule | priority_rule | quantified_rule
+priority_rule ::= lhs op_declare priorities action => do_priority_rule
+empty_rule ::= lhs op_declare adverb_list action => do_empty_rule
+quantified_rule ::= lhs op_declear name quantifier adverb_list
+    action => do_quantified_rule
+priorities ::= alternatives+
+    separator => op_tighter proper => 1 action => do_discard_separators
+alternatives ::= alternative+
+    separator => op_eq_pri proper => 1 action => do_discard_separators
+alternative ::= rhs adverb_list action => do_alternative 
+adverb_list ::= adverb_item* action => do_adverb_list
+adverb_item ::=
+      action
+    | left_association | right_association | group association
+    | separator_specification
+
+action ::= kw_action op_arrow name action => do_action
+left_association ::= kw_assoc op_arrow kw_left action => do_left_association 
+right_association ::= kw_assoc op_arrow kw_right action => do_right_association 
+group_association ::= kw_assoc op_arrow kw_group action => do_group_association 
+separator_specification ::= kw_separator op_arrow name action => do_separator_specification
+
+lhs ::= name action => do_lhs 
+rhs ::= names
+quantifier ::= op_star | op_plus
+names ::= name+ action => do_array
+name ::= bare_name | reserved_word | quoted_name
+name ::= bracketed_name action => do_bracketed_name
+
