@@ -16,7 +16,6 @@
 use 5.010;
 use warnings;
 use strict;
-use integer;
 
 package Marpa::R2::HTML::Callback;
 

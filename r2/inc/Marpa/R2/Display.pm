@@ -18,7 +18,6 @@ package Marpa::R2::Display;
 use 5.010;
 use strict;
 use warnings;
-use integer;
 use Fatal qw(open close);
 use YAML::XS;
 use Data::Dumper;    # for debugging
