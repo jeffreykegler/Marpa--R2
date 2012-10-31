@@ -613,6 +613,21 @@ Marpa API methods throw an exception.
 Classes in the Marpa API are not designed to
 be inherited.
 
+=head1 The Marpa:: namespace
+
+The C<Marpa::> top-level namespace is reserved.
+For extensions to Marpa,
+one appropriate place is the C<MarpaX::> namespace.
+This practice helps avoid namespace collisions,
+and follows a CPAN standard, as exemplified by
+the
+C<DBIx::>
+C<LWPx::>
+and
+C<MooseX::>
+which are for extensions of, respectively,
+DBI, LWP and Moose.
+
 =head1 Other documents
 
 This document gives a semi-tutorial overview of the entire Marpa API.
