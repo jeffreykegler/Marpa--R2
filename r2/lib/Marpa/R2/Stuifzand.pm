@@ -45,23 +45,28 @@ sub do_priority_rule {
     my ( undef, $lhs, undef, $priorities ) = @_;
     my $priority_count = scalar @{$priorities};
     my @rules          = ();
+    my @xs_rules = ();
+    if ( $priority_count <= 1 ) {
+        ## If there is only one priority
+        for my $alternative ( @{ $priorities->[0] } ) {
+            my ( $rhs, $adverb_list ) = @{ $alternative };
+            my %hash_rule = ( lhs => $lhs, rhs => $rhs );
+            my $action = $adverb_list->{action};
+            $hash_rule{action} = $action if defined $action;
+            push @xs_rules, \%hash_rule;
+        }
+        return [@xs_rules];
+    }
+
     for my $priority_ix ( 0 .. $priority_count - 1 ) {
         my $priority = $priority_count - ( $priority_ix + 1 );
         for my $alternative ( @{ $priorities->[$priority_ix] } ) {
             push @rules, [ $priority, @{$alternative} ];
         }
     } ## end for my $priority_ix ( 0 .. $priority_count - 1 )
-    if ( scalar @rules <= 1 ) {
 
-        # If there is only one rule,
-        my ( $priority, $rhs, $adverb_list ) = @{ $rules[0] };
-        my %hash_rule = ( lhs => $lhs, rhs => $rhs );
-        my $action = $adverb_list->{action};
-        $hash_rule{action} = $action if defined $action;
-        return [\%hash_rule];
-    } ## end if ( scalar @rules <= 1 )
     state $do_arg0_full_name = __PACKAGE__ . q{::} . 'external_do_arg0';
-    my @xs_rules = (
+    @xs_rules = (
         {   lhs    => $lhs,
             rhs    => [ $lhs . '[prec0]' ],
             action => $do_arg0_full_name
