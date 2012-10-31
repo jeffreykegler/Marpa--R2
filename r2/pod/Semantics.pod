@@ -300,14 +300,19 @@ normalize-whitespace: 1
 
     sub do_S {
         my ($action_object) = @_;
-        my $rule_id         = $Marpa::R2::Context::rule;
-        my $grammar         = $Marpa::R2::Context::grammar;
+        my $rule_id = $Marpa::R2::Context::rule;
+        my $grammar = $Marpa::R2::Context::grammar;
         my ( $lhs, @rhs ) = $grammar->rule($rule_id);
-        $action_object->{text} =
-              "rule $rule_id: $lhs ::= "
-            . ( join q{ }, @rhs ) . "\n"
-            . "locations: "
+        my $text =
+              "rewritten rule $rule_id: $lhs ::= "
+            . ( join q{ }, @rhs ) . "\n";
+        ( $lhs, @rhs ) = $grammar->bnf_rule($rule_id);
+        $text .=
+              "original rule $rule_id: $lhs ::= "
+            . ( join q{ }, @rhs ) . "\n";
+        $text .= "locations: "
             . ( join q{-}, Marpa::R2::Context::location() ) . "\n";
+        $action_object->{text} = $text;
         return $action_object;
     } ## end sub do_S
 

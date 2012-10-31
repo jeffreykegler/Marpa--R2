@@ -274,6 +274,36 @@ C<set> either returns true or throws an exception.
 
 =head1 Accessors
 
+=head2 bnf_rule()
+
+=for Marpa::R2::Display
+name: Action context synopsis
+normalize-whitespace: 1
+partial: 1
+
+    ( $lhs, @rhs ) = $grammar->bnf_rule($rule_id);
+
+=for Marpa::R2::Display::End
+
+Given a rule ID as its argument,
+returns an array containing the symbols of the rule.
+The C<bnf_rule()> method
+returns a Perl false if no rule with that rule ID exists.
+If the rule ID exists,
+the rule's LHS symbol is the first symbol in the array,
+and rest of the array contains the rule's
+RHS symbols in order.
+
+If a rule was specified using the BNF (Stuifzand) interface,
+it will be given as specified in the BNF source.
+To see the rule in its rewritten form,
+use the 
+L<the C<rule()> method|/"rule()">.
+Situations where
+Rule ID's are encountered include
+callbacks and
+use of L<the progress method|Marpa::R2::Progress/progress()>.
+
 =head2 check_terminal()
 
 Returns a Perl true when its argument is the name of a terminal symbol.
@@ -295,10 +325,19 @@ partial: 1
 
 Given a rule ID as its argument,
 returns an array containing the symbols of the rule.
-The LHS symbol is the first symbol in the array,
-and the RHS symbols follow it in order.
-Returns a Perl false if rule ID is well-formed,
-but no such rule exists.
+The C<rule()> method
+returns a Perl false if no rule with that rule ID exists.
+If the rule ID exists,
+the rule's LHS symbol is the first symbol in the array,
+and rest of the array contains the rule's
+RHS symbols in order.
+
+If a rule was specified using the BNF (Stuifzand) interface,
+it may be in a rewritten form.
+To see BNF interface rules in their
+original form,
+use the 
+L<the C<bnf_rule()> method|/"bnf_rule()">.
 Situations where
 Rule ID's are encountered include
 callbacks and

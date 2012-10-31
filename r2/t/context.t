@@ -38,11 +38,16 @@ sub do_S {
     my $rule_id = $Marpa::R2::Context::rule;
     my $grammar = $Marpa::R2::Context::grammar;
     my ( $lhs, @rhs ) = $grammar->rule($rule_id);
-    $action_object->{text} =
-          "rule $rule_id: $lhs ::= "
-        . ( join q{ }, @rhs ) . "\n"
-        . "locations: "
+    my $text =
+          "rewritten rule $rule_id: $lhs ::= "
+        . ( join q{ }, @rhs ) . "\n";
+    ( $lhs, @rhs ) = $grammar->bnf_rule($rule_id);
+    $text .=
+          "original rule $rule_id: $lhs ::= "
+        . ( join q{ }, @rhs ) . "\n";
+    $text .= "locations: "
         . ( join q{-}, Marpa::R2::Context::location() ) . "\n";
+    $action_object->{text} = $text;
     return $action_object;
 } ## end sub do_S
 
@@ -109,7 +114,10 @@ VALUE_TEST: {
             qq{Parse value ref type is "$ref_type"; it needs to be "HASH"});
         last VALUE_TEST;
     } ## end if ( ref $value ne 'HASH' )
-    my $expected_text = qq{rule 0: S ::= A B C D\nlocations: 0-4\n};
+    my $expected_text =
+          qq{rewritten rule 0: S ::= A B C D\n}
+        . qq{original rule 0: S ::= A B C D\n}
+        . qq{locations: 0-4\n};
     Test::More::is( $value->{text}, $expected_text, 'Parse ok?' );
 } ## end VALUE_TEST:
 

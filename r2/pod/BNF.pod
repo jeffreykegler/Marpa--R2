@@ -46,22 +46,44 @@ normalize-whitespace: 1
 
 =head2 This interface is beta
 
-This page is the reference for the Marpa's "BNF interface",
-also called its "Stuifzand interface".
-The Stuifzand interface allows textual descriptions of grammars to be
-specified as rule descriptors in the C<rules> named
-arguments of Marpa grammars.
-These textual descriptions can be intermixed with
-the more established hash ("long form") and
-array ("short form") rule descriptors.
-
 This interface is beta.
 It is new, somewhat experimental,
 and therefore subject to change.
 Users who prize stability should prefer
 the hash and/or array rule descriptors.
 
-=head2 The structure of the text
+=head2 Overview
+
+This page is the reference for the Marpa's "BNF interface",
+also called its "Stuifzand interface".
+The Stuifzand interface allows strings
+as rule descriptors in the C<rules> named
+arguments of Marpa grammars.
+These strings are called BNF source strings
+or Stuifzand source strings.
+
+Stuifzand source strings can,
+and commonly do,
+describe multiple rules.
+Stuifzand source strings
+can be intermixed with
+the more established hash ("long form") and
+array ("short form") rule descriptors.
+
+Users of the C<rule()> method of Marpa::R2's grammars should
+be aware that the Stuifzand interface sometimes rewrites symbol names,
+and the names as returned by the
+C<rule()> method reflect those rewrites.
+One example of a case where a rule
+is rewritten is when
+precedence
+parsing is implemented.
+Users who want to see symbol names as originally
+specified in the Stuifzand source should use the
+L<the C<bnf_rule()> method|Marpa::R2::Grammar/bnf_rule()>
+instead.
+
+=head2 The structure of the BNF source file
 
 Whitespace separates tokens, but is otherwise ignored.
 Comments are equivalent to whitespace.
