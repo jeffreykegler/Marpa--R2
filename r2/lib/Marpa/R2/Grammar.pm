@@ -776,20 +776,22 @@ sub Marpa::R2::Grammar::rule {
     push @symbol_ids,
         map { $grammar_c->rule_rhs( $rule_id, $_ ) }
         ( 0 .. $rule_length - 1 );
-    return map { $grammar->symbol_name($_) } @symbol_ids;
+    my @symbol_names = ();
+    for my $symbol_id (@symbol_ids) {
+       my $symbol_name = $grammar->symbol_name($symbol_id);
+       # The symbols, before the BNF rewrites
+       $symbol_name =~ s/\[ prec \d+ \] \z//xms;
+       push @symbol_names, $symbol_name;
+    }
+    return @symbol_names;
 } ## end sub Marpa::R2::Grammar::rule
 
-# The symbols, before the BNF rewrites
+# Deprecated and for removal
+# Used in blog post, and part of
+# CPAN version 2.023_008 but
+# never documented in any CPAN version
 sub Marpa::R2::Grammar::bnf_rule {
-    my ( $grammar, $rule_id ) = @_;
-    my @symbols = Marpa::R2::Grammar::rule( $grammar, $rule_id );
-    return if not @symbols;
-    my @return_value = ();
-    for my $symbol (@symbols) {
-        $symbol =~ s/\[ prec \d+ \] \z//xms;
-        push @return_value, $symbol;
-    }
-    return @return_value;
+    goto &Marpa::R2::Grammar::rule;
 } ## end sub Marpa::R2::Grammar::bnf_rule
 
 sub Marpa::R2::Grammar::show_dotted_rule {
