@@ -18,7 +18,6 @@ package Marpa::R2::Recognizer;
 use 5.010;
 use warnings;
 use strict;
-use integer;
 use English qw( -no_match_vars );
 
 use vars qw($VERSION $STRING_VERSION);

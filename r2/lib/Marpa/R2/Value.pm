@@ -18,7 +18,6 @@ package Marpa::R2::Value;
 use 5.010;
 use warnings;
 use strict;
-use integer;
 
 use vars qw($VERSION $STRING_VERSION);
 $VERSION        = '2.023_007';

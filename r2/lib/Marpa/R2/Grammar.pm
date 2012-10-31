@@ -27,10 +27,6 @@ no warnings qw(recursion qw);
 
 use strict;
 
-# It's all integers, except for the version number
-use integer;
-use utf8;
-
 use vars qw($VERSION $STRING_VERSION);
 $VERSION        = '2.023_007';
 $STRING_VERSION = $VERSION;

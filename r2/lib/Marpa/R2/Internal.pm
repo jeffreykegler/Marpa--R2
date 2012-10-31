@@ -18,7 +18,6 @@ package Marpa::R2::Internal;
 use 5.010;
 use strict;
 use warnings;
-use integer;
 use Carp;
 
 use vars qw($VERSION $STRING_VERSION);

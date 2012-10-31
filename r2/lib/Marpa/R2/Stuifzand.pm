@@ -19,9 +19,6 @@ use 5.010;
 use strict;
 use warnings;
 
-use integer;
-use utf8;
-
 use vars qw($VERSION $STRING_VERSION);
 $VERSION        = '2.023_007';
 $STRING_VERSION = $VERSION;

@@ -1,11 +1,5 @@
 # On the first round, ignore the proper adverb
 
-# Reserved words?
-# my @reserved_words = qw( action assoc separator left right group);
-# for my $reserved_word (@reserved_words) {
-    # $tracer->rule_new( undef, 'reserved_word', "kw_$reserved_word" );
-# }
-
 rules ::= rule+ action => do_rules
 rule ::= empty_rule | priority_rule | quantified_rule
 priority_rule ::= lhs op_declare priorities action => do_priority_rule
@@ -36,3 +30,4 @@ names ::= name+ action => do_array
 name ::= bare_name | reserved_word | quoted_name
 name ::= bracketed_name action => do_bracketed_name
 
+reserved_word ::= kw_action | kw_assoc | kw_separator | kw_left | kw_right | kw_group
