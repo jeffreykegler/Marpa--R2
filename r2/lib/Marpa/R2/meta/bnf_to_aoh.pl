@@ -18,6 +18,7 @@ use 5.010;
 use strict;
 use warnings;
 use English qw( -no_match_vars );
+use Data::Dumper;
 
 # This is a 'meta' tool, so I relax some of the
 # restrictions I use to guarantee portability.
@@ -28,11 +29,27 @@ use autodie;
 use Marpa::R2;
 
 use Getopt::Long;
-my $verbose = 1;
+my $verbose   = 1;
 my $help_flag = 0;
-my $result = Getopt::Long::GetOptions( 'help' => \$help_flag );
+my $result    = Getopt::Long::GetOptions( 'help' => \$help_flag );
 die "usage $PROGRAM_NAME [--help] file ...\n" if $help_flag;
 
 my $bnf = join q{}, <>;
-print $bnf;
-say Marpa::R2::Internal::Stuifzand::parse_rules($bnf);
+my $aoh = Marpa::R2::Internal::Stuifzand::parse_rules($bnf);
+
+sub sort_bnf {
+    my $cmp = $a->{lhs} cmp $b->{lhs};
+    return $cmp if $cmp;
+    my $a_rhs_length = scalar @{ $a->{rhs} };
+    my $b_rhs_length = scalar @{ $b->{rhs} };
+    $cmp = $a_rhs_length <=> $b_rhs_length;
+    return $cmp if $cmp;
+    for my $ix ( 0 .. $a_rhs_length ) {
+        $cmp = $a->{rhs}->[$ix] cmp $b->{rhs}->[$ix];
+        return $cmp if $cmp;
+    }
+    return 0;
+} ## end sub sort_bnf
+my $sorted_aoh = [ sort sort_bnf @{$aoh} ];
+$Data::Dumper::Sortkeys = 1;
+print Data::Dumper::Dumper($sorted_aoh);

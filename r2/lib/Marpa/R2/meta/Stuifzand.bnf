@@ -13,18 +13,23 @@
 # General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 
-# On the first round, ignore the proper adverb
 
 rules ::= rule+ action => do_rules
 rule ::= empty_rule | priority_rule | quantified_rule
 priority_rule ::= lhs op_declare priorities action => do_priority_rule
 empty_rule ::= lhs op_declare adverb_list action => do_empty_rule
-quantified_rule ::= lhs op_declear name quantifier adverb_list
+quantified_rule ::= lhs op_declare name quantifier adverb_list
     action => do_quantified_rule
 priorities ::= alternatives+
-    separator => op_tighter proper => 1 action => do_discard_separators
+    separator => op_tighter
+# On the first round, ignore the proper adverb
+    # proper => 1
+    action => do_discard_separators
 alternatives ::= alternative+
-    separator => op_eq_pri proper => 1 action => do_discard_separators
+    separator => op_eq_pri
+# On the first round, ignore the proper adverb
+    # proper => 1
+    action => do_discard_separators
 alternative ::= rhs adverb_list action => do_alternative 
 adverb_list ::= adverb_item* action => do_adverb_list
 adverb_item ::=
