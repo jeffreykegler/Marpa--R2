@@ -21,14 +21,10 @@ empty_rule ::= lhs op_declare adverb_list action => do_empty_rule
 quantified_rule ::= lhs op_declare name quantifier adverb_list
     action => do_quantified_rule
 priorities ::= alternatives+
-    separator => op_tighter
-# On the first round, ignore the proper adverb
-    # proper => 1
+    separator => op_tighter proper => 1
     action => do_discard_separators
 alternatives ::= alternative+
-    separator => op_eq_pri
-# On the first round, ignore the proper adverb
-    # proper => 1
+    separator => op_eq_pri proper => 1
     action => do_discard_separators
 alternative ::= rhs adverb_list action => do_alternative 
 adverb_list ::= adverb_item* action => do_adverb_list
