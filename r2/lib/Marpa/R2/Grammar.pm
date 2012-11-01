@@ -778,11 +778,11 @@ sub Marpa::R2::Grammar::rule {
         ( 0 .. $rule_length - 1 );
     my @symbol_names = ();
     for my $symbol_id (@symbol_ids) {
-       my $symbol_name = $grammar->symbol_name($symbol_id);
-       # The symbols, before the BNF rewrites
-       $symbol_name =~ s/\[ prec \d+ \] \z//xms;
-       push @symbol_names, $symbol_name;
-    }
+        ## The name of the symbols, before the BNF rewrites
+        push @symbol_names,
+            Marpa::R2::Grammar::original_symbol_name(
+            $grammar->symbol_name($symbol_id) );
+    } ## end for my $symbol_id (@symbol_ids)
     return @symbol_names;
 } ## end sub Marpa::R2::Grammar::rule
 

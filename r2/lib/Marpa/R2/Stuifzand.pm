@@ -30,6 +30,12 @@ package Marpa::R2::Internal::Stuifzand;
 
 use English qw( -no_match_vars );
 
+# Undo any rewrite of the symbol name
+sub Marpa::R2::Grammar::original_symbol_name {
+   $_[0] =~ s/\[ prec \d+ \] \z//xms;
+   return shift;
+}
+
 # This rule is used by the semantics of the *GENERATED*
 # grammars, not the Stuifzand grammar itself.
 sub external_do_arg0 {
@@ -293,14 +299,24 @@ sub parse_rules {
 
     # Order matters !!!
     my @terminals = ();
-    for my $reserved_word ( @{$reserved_words} ) {
+    ## This hack makes assumptions about the grammar rules
+    RULE:
+    for my $rule_id ( grep { $thin_grammar->rule_length($_); }
+        0 .. $thin_grammar->highest_rule_id() )
+    {
+        my ( $lhs, @rhs ) = $tracer->rule($rule_id);
+        next RULE if Marpa::R2::Grammar::original_symbol_name($lhs) ne 'reserved_word';
+        next RULE if scalar @rhs != 1;
+        my $reserved_word = Marpa::R2::Grammar::original_symbol_name( $rhs[0] );
+        next RULE if 'kw_' ne substr $reserved_word, 0, 3;
+        $reserved_word = substr $reserved_word, 3;
         push @terminals,
             [
             'kw_' . $reserved_word,
             qr/$reserved_word\b/xms,
             qq{"$reserved_word" keyword}
             ];
-    } ## end for my $reserved_word ( @{$reserved_words} )
+    } ## end for my $rule_id ( grep { $thin_grammar->rule_length($_...)})
     push @terminals,
         [ 'op_declare', qr/::=/xms,    'BNF declaration operator' ],
         [ 'op_arrow',   qr/=>/xms,     'adverb operator' ],
