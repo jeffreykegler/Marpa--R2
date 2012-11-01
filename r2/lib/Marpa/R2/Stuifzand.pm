@@ -269,7 +269,7 @@ sub stuifzand_grammar {
     }
     $grammar->start_symbol_set( $tracer->symbol_by_name('rules') );
     $grammar->precompute();
-    return {tracer => $tracer, reserved_words => \@reserved_words};
+    return {tracer => $tracer};
 } ## end sub stuifzand_grammar
 
 sub last_rule {
@@ -288,7 +288,6 @@ sub parse_rules {
 
     state $stuifzand_grammar = stuifzand_grammar();
     state $tracer            = $stuifzand_grammar->{tracer};
-    state $reserved_words    = $stuifzand_grammar->{reserved_words};
     state $thin_grammar      = $tracer->grammar();
     my $recce = Marpa::R2::Thin::R->new($thin_grammar);
     $recce->start_input();
