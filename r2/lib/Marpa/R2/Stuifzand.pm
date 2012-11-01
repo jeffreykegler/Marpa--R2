@@ -272,6 +272,38 @@ sub stuifzand_grammar {
     return {tracer => $tracer};
 } ## end sub stuifzand_grammar
 
+# 1-based numbering matches vi convention
+sub line_column {
+   my ($string, $position) = @_;
+   my $sub_string = substr $string, 0, $position;
+   my $nl_count = $sub_string =~ tr/\n//;
+   return (1, length $string) if $nl_count <= 0;
+   my $previous_nl = rindex $sub_string, "\n", length $string;
+   return ($nl_count+1, ($position-$previous_nl)+1);
+}
+
+sub problem_happened_here {
+    my ( $string, $position ) = @_;
+    my $line_count = 1;
+    my $next_nl = index $string, "\n", $position;
+    $next_nl = length $string if $next_nl < 0;
+    my $previous_nl = rindex $string, "\n", $position;
+    $previous_nl = 0 if $previous_nl < 0;
+    my $column = $position - $previous_nl;
+    if ( $previous_nl > 0 ) {
+        $line_count++;
+        $previous_nl = rindex $string, "\n", $previous_nl - 1;
+        $previous_nl = 0 if $previous_nl < 0;
+    }
+    my $line_desc =
+        $line_count == 1 ? 'this line' : 'the 2nd of these two lines';
+    return
+          "=== Marpa's problem occurred in $line_desc:\n"
+        . ( substr $string, $previous_nl + 1, ( $next_nl - $previous_nl ) )
+        . ( q{ } x ($column-1) ), '^', " Arrow points to\n"
+        . ( q{ } x ($column-1) ), '|', " location where Marpa had problem\n";
+} ## end sub problem_happened_here
+
 sub last_rule {
    my ($tracer, $thin_recce, $string, $positions) = @_;
         return input_slice( $string, $positions,
@@ -350,12 +382,13 @@ sub parse_rules {
                 )
             {
                 my $problem_position = $positions[-1];
-                die qq{Last rule successfully parsed was: },
-                    last_rule( $tracer, $recce, $string, \@positions ),
-                    "\n", q{Problem near position }, $problem_position,
-                    q{: "},
-                    ( substr $string, $problem_position, 40 ), qq{"\n},
-                    qq{Token rejected, "$1", }, ( $t->[2] // $t->[0] ), "\n";
+                my ( $line, $column ) =
+                    line_column( $string, $problem_position );
+                die qq{MARPA PARSE ABEND at line $line, column $column:\n},
+                    qq{=== Last rule that Marpa successfully parsed was: },
+                    last_rule( $tracer, $recce, $string, \@positions ), "\n",
+                    problem_happened_here($string, $problem_position),
+                    qq{=== Marpa rejected token, "$1", }, ( $t->[2] // $t->[0] ), "\n";
             } ## end if ( $recce->alternative( $tracer->symbol_by_name( $t...)))
             $recce->earleme_complete();
             $latest_earley_set_ID = $recce->latest_earley_set();
