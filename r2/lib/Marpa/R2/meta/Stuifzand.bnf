@@ -34,7 +34,7 @@ alternative ::= rhs adverb_list action => do_alternative
 adverb_list ::= adverb_item* action => do_adverb_list
 adverb_item ::=
       action
-    | left_association | right_association | group association
+    | left_association | right_association | group_association
     | separator_specification
 
 action ::= kw_action op_arrow name action => do_action
