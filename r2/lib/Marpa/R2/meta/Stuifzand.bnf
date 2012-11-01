@@ -35,13 +35,14 @@ adverb_list ::= adverb_item* action => do_adverb_list
 adverb_item ::=
       action
     | left_association | right_association | group_association
-    | separator_specification
+    | separator_specification | proper_specification
 
 action ::= kw_action op_arrow name action => do_action
 left_association ::= kw_assoc op_arrow kw_left action => do_left_association 
 right_association ::= kw_assoc op_arrow kw_right action => do_right_association 
 group_association ::= kw_assoc op_arrow kw_group action => do_group_association 
 separator_specification ::= kw_separator op_arrow name action => do_separator_specification
+proper_specification ::= kw_proper op_arrow boolean action => do_proper_specification
 
 lhs ::= name action => do_lhs 
 rhs ::= names
@@ -50,4 +51,5 @@ names ::= name+ action => do_array
 name ::= bare_name | reserved_word | quoted_name
 name ::= bracketed_name action => do_bracketed_name
 
-reserved_word ::= kw_action | kw_assoc | kw_separator | kw_left | kw_right | kw_group
+reserved_word ::= kw_action | kw_assoc | kw_separator | kw_proper
+  | kw_left | kw_right | kw_group
