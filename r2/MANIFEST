@@ -95,7 +95,10 @@ lib/Marpa/R2/Recognizer.pm
 lib/Marpa/R2/Stuifzand.pm
 lib/Marpa/R2/Thin/Trace.pm
 lib/Marpa/R2/Value.pm
+lib/Marpa/R2/meta/Makefile
 lib/Marpa/R2/meta/Stuifzand.bnf
+lib/Marpa/R2/meta/aoh_to_thin.pl
+lib/Marpa/R2/meta/bnf_to_aoh.pl
 libmarpa/.gitignore
 libmarpa/dev/.gitignore
 libmarpa/dev/Makefile
