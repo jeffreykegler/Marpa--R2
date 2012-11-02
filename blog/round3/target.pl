@@ -17,7 +17,6 @@ my $do_thin;
 my $do_thinsl;
 my $do_retrace;
 my $do_resl;
-my $do_sixish;
 my $do_r2;
 my $do_flm;
 my $do_flmsl;
@@ -36,7 +35,6 @@ my $getopt_result   = GetOptions(
     "thinsl!"   => \$do_thinsl,
     "retrace!"  => \$do_retrace,
     "resl!"  => \$do_resl,
-    "sixish!"  => \$do_sixish,
     "only!"     => \$do_only,
     "r2!"       => \$do_r2,
     "flm!"      => \$do_flm,
@@ -57,7 +55,6 @@ if ( !$do_only ) {
     $do_thinsl  //= 1;
     $do_retrace //= 1;
     $do_resl //= 1;
-    $do_sixish //= 0;
     $do_r2      //= 1;
     $do_flm     //= 0;
     $do_flmsl     //= 1;
@@ -79,14 +76,6 @@ my $op_alternative_args_ignore =
     Marpa::R2::Thin::op('alternative;args;ignore');
 my $op_alternative_ignore = Marpa::R2::Thin::op('alternative;ignore');
 my $op_earleme_complete   = Marpa::R2::Thin::op('earleme_complete');
-
-for my $file ('./do_sixish.pm') {
-    unless ( my $return = do $file ) {
-        warn "couldn't parse $file: $@" if $@;
-        warn "couldn't do $file: $!" unless defined $return;
-        warn "couldn't run $file" unless $return;
-    }
-} ## end for $file ('./sixish.pm')
 
 my $s;
 
@@ -1146,8 +1135,6 @@ $tests->{retrace} = sub { do_retrace($s) }
     if $do_retrace;
 $tests->{resl} = sub { do_resl($s) }
     if $do_resl;
-$tests->{sixish} = sub { Marpa::R2::Demo::Sixish1::do_sixish($s) }
-    if $do_sixish;
 $tests->{regex} = sub { do_regex($s) }
     if $do_regex;
 $tests->{thin} = sub { do_thin($s) }
@@ -1181,13 +1168,6 @@ if ($do_resl) {
         $resl_answer_shown eq $answer
         ? 'Resl Answer matches'
         : 'Resl ANSWER DOES NOT MATCH!'
-    );
-}
-if ($do_sixish) {
-    say +(
-        $sixish_answer_shown eq $answer
-        ? 'Sixish Answer matches'
-        : 'Sixish ANSWER DOES NOT MATCH!'
     );
 }
 if ($do_flm) {
