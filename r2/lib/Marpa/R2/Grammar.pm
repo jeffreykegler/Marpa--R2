@@ -283,23 +283,37 @@ sub Marpa::R2::Grammar::set {
                 'rules option not allowed after grammar is precomputed')
                 if $grammar_c->is_precomputed();
             DO_RULES: {
-                {
-                    if ( not ref $value ) {
-                        for my $rule (
-                            @{  Marpa::R2::Internal::Stuifzand::parse_rules(
-                                    $value)
-                            }
-                            )
-                        {
-                            add_user_rule( $grammar, $rule );
-                        } ## end for my $rule ( @{ ...})
-                        last DO_RULES;
-                    } ## end if ( not ref $value )
+                if ( not ref $value ) {
+                    $grammar->[Marpa::R2::Internal::Grammar::INTERFACE] //=
+                        'stuifzand';
                     Marpa::R2::exception(
-                        qq{"rules" named argument must be string or ref to ARRAY}
-                    ) if ref $value ne 'ARRAY';
-                    add_user_rules( $grammar, $value );
-                }
+                        qq{Attempt to use the BNF interface with a grammar that is already using the standard interface\n},
+                        qq{  Mixing the BNF and standard interface is not allowed},
+                        )
+                        if $grammar->[Marpa::R2::Internal::Grammar::INTERFACE]
+                            ne 'stuifzand';
+                    for my $rule (
+                        @{  Marpa::R2::Internal::Stuifzand::parse_rules(
+                                $value)
+                        }
+                        )
+                    {
+                        add_user_rule( $grammar, $rule );
+                    } ## end for my $rule ( @{ ...})
+                    last DO_RULES;
+                } ## end if ( not ref $value )
+                Marpa::R2::exception(
+                    qq{"rules" named argument must be string or ref to ARRAY}
+                ) if ref $value ne 'ARRAY';
+                $grammar->[Marpa::R2::Internal::Grammar::INTERFACE] //=
+                    'standard';
+                Marpa::R2::exception(
+                    qq{Attempt to use the standard interface with a grammar that is already using the BNF interface\n},
+                    qq{  Mixing the BNF and standard interface is not allowed}
+                    )
+                    if $grammar->[Marpa::R2::Internal::Grammar::INTERFACE] ne
+                        'standard';
+                add_user_rules( $grammar, $value );
             } ## end DO_RULES:
         } ## end if ( defined( my $value = $args->{'rules'} ) )
 

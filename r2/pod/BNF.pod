@@ -28,7 +28,7 @@ normalize-whitespace: 1
         {   start          => 'Script',
             actions        => 'My_Actions',
             default_action => 'do_first_arg',
-            rules          => [ <<'END_OF_RULES' ]
+            rules          => <<'END_OF_RULES',
     Script ::= Expression+ separator => <op_comma> action => do_script
     Expression ::=
         Number
@@ -49,39 +49,17 @@ normalize-whitespace: 1
 This interface is beta.
 It is new, somewhat experimental,
 and therefore subject to change.
-Users who prize stability should prefer
-the hash and/or array rule descriptors.
 
 =head2 Overview
 
 This page is the reference for the Marpa's "BNF interface",
 also called its "Stuifzand interface".
 The Stuifzand interface allows strings
-as rule descriptors in the C<rules> named
+in place of the rule descriptors as value
+of the C<rules> named
 arguments of Marpa grammars.
 These strings are called BNF source strings
 or Stuifzand source strings.
-
-Stuifzand source strings can,
-and commonly do,
-describe multiple rules.
-Stuifzand source strings
-can be intermixed with
-the more established hash ("long form") and
-array ("short form") rule descriptors.
-
-Users of the C<rule()> method of Marpa::R2's grammars should
-be aware that the Stuifzand interface sometimes rewrites symbol names,
-and the names as returned by the
-C<rule()> method reflect those rewrites.
-One example of a case where a rule
-is rewritten is when
-precedence
-parsing is implemented.
-Users who want to see symbol names as originally
-specified in the Stuifzand source should use the
-L<the C<bnf_rule()> method|Marpa::R2::Grammar/bnf_rule()>
-instead.
 
 =head2 The structure of the BNF source file
 
@@ -234,6 +212,28 @@ and is ignored.
 
 =head2 Caveats
 
+=head3 Symbol names
+
+The BNF interface may rewrite its symbol names internally.
+Here we call the name by which a symbol is specified in the
+BNF interface string its "external symbol name",
+and its name as rewritten, its "internal symbol name".
+Marpa::R2 usually makes sure the user sees only
+external symbol names.
+For example,
+L<the C<rule()> Grammar method|Marpa::R2::Grammar/"rule">
+returns external symbol names.
+
+However,
+for some purposes, such as tracing grammars, the use of
+internal names may sometimes
+be appropriate.
+Marpa::R2's use of external versus internal symbol name
+is evolving,
+and this is one reason the BNF interface is still beta.
+
+=head3 Precedence: the good news
+
 Marpa's generalization of precedence works
 for all grammars that
 can be defined by prioritized productions.
@@ -244,7 +244,9 @@ not allowed by traditional methods.
 Many of these are useful,
 and most of those can also be parsed efficiently.
 
-However, because of the many forms of recursion allowed,
+=head3 Precedence and ambiguous grammars
+
+Because of the many forms of recursion allowed,
 it is possible
 to define highly ambiguous grammars using the precedence mechanism.
 This can occur even by accident.
