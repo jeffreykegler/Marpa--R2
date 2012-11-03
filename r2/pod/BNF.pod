@@ -221,7 +221,7 @@ and its name as rewritten, its "internal symbol name".
 Marpa::R2 usually makes sure the user sees only
 external symbol names.
 For example,
-L<the C<rule()> Grammar method|Marpa::R2::Grammar/"rule">
+L<the C<rule()> Grammar method|Marpa::R2::Grammar/"rule()">
 returns external symbol names.
 
 However,
@@ -237,7 +237,7 @@ and this is one reason the BNF interface is still beta.
 Marpa's generalization of precedence works
 for all grammars that
 can be defined by prioritized productions.
-It is efficient for any grammars that could be
+It is efficient (linear) for all grammars that could be
 parsed by the traditional precedence parsing methods.
 Marpa also allows you to defined alternatives
 not allowed by traditional methods.
@@ -267,10 +267,13 @@ Marpa does catch the case where an alternative consists
 only of a single operand -- a "unit rule".
 This causes a fatal error.
 Unit rules are easy to define by accident in
-the Stuifzand interface,
-and the author knows of no practical use for them.
-Note that, in the event someone can find a use for such rules,
-Marpa can parse a grammar which includes them,
+the Stuifzand interface.
+The author knows of no practical use for them,
+and their presence in a grammar is usually
+unintentional.
+Note that, in the event an application
+does find a use for such rules,
+Marpa can parse grammar which includes unit rules,
 via its other interfaces.
 
 =for Marpa::R2::Display::End
