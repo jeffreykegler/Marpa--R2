@@ -16,8 +16,10 @@
 
 rules ::= rule+ action => do_rules
 rule ::= empty_rule | priority_rule | quantified_rule
-priority_rule ::= lhs op_declare priorities action => do_priority_rule
-empty_rule ::= lhs op_declare adverb_list action => do_empty_rule
+priority_rule ::= lhs op_declare priorities
+  action => do_priority_rule
+empty_rule ::= lhs op_declare adverb_list
+  action => do_empty_rule
 quantified_rule ::= lhs op_declare name quantifier adverb_list
     action => do_quantified_rule
 priorities ::= alternatives+
@@ -34,11 +36,16 @@ adverb_item ::=
     | separator_specification | proper_specification
 
 action ::= kw_action op_arrow name action => do_action
-left_association ::= kw_assoc op_arrow kw_left action => do_left_association 
-right_association ::= kw_assoc op_arrow kw_right action => do_right_association 
-group_association ::= kw_assoc op_arrow kw_group action => do_group_association 
-separator_specification ::= kw_separator op_arrow name action => do_separator_specification
-proper_specification ::= kw_proper op_arrow boolean action => do_proper_specification
+left_association ::= kw_assoc op_arrow kw_left
+  action => do_left_association 
+right_association ::= kw_assoc op_arrow kw_right
+  action => do_right_association 
+group_association ::= kw_assoc op_arrow kw_group
+  action => do_group_association 
+separator_specification ::= kw_separator op_arrow name
+  action => do_separator_specification
+proper_specification ::= kw_proper op_arrow boolean
+action => do_proper_specification
 
 lhs ::= name action => do_lhs 
 rhs ::= names
