@@ -54,7 +54,7 @@ END_OF_GRAMMAR
 my $grammar = Marpa::R2::Grammar->new(
     {   start          => 'script',
         actions        => __PACKAGE__,
-        rules          => [$rules],
+        rules          => $rules,
     }
 );
 $grammar->precompute;

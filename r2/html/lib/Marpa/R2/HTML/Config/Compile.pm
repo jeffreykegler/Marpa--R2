@@ -458,7 +458,7 @@ END_OF_GRAMMAR
     my $grammar = Marpa::R2::Grammar->new(
        { start => 'translation_unit',
        action_object => __PACKAGE__,
-       rules =>[$source],
+       rules =>$source,
        default_action => 'do_what_I_mean'
        }
     );

@@ -282,9 +282,25 @@ sub Marpa::R2::Grammar::set {
             Marpa::R2::exception(
                 'rules option not allowed after grammar is precomputed')
                 if $grammar_c->is_precomputed();
-            Marpa::R2::exception('rules value must be reference to array')
-                if ref $value ne 'ARRAY';
-            add_user_rules( $grammar, $value );
+            DO_RULES: {
+                {
+                    if ( not ref $value ) {
+                        for my $rule (
+                            @{  Marpa::R2::Internal::Stuifzand::parse_rules(
+                                    $value)
+                            }
+                            )
+                        {
+                            add_user_rule( $grammar, $rule );
+                        } ## end for my $rule ( @{ ...})
+                        last DO_RULES;
+                    } ## end if ( not ref $value )
+                    Marpa::R2::exception(
+                        qq{"rules" named argument must be string or ref to ARRAY}
+                    ) if ref $value ne 'ARRAY';
+                    add_user_rules( $grammar, $value );
+                }
+            } ## end DO_RULES:
         } ## end if ( defined( my $value = $args->{'rules'} ) )
 
         if ( exists $args->{'default_empty_action'} ) {
@@ -912,6 +928,10 @@ sub add_user_rules {
 
             # If it is not a ref, assume it is a string using
             # the Stuifzand interface
+            #
+            # At some point I will deprecate this, to discourage
+            # mixing of Stuifzand rules and others
+            #
             my $stuifzand_rules =
                 Marpa::R2::Internal::Stuifzand::parse_rules($rule);
             push @hash_rules, @{$stuifzand_rules};
