@@ -88,6 +88,7 @@ BEGIN {
     WARNINGS { print warnings about grammar? }
     RULE_NAME_REQUIRED
     RULE_BY_NAME
+    INTERFACE { current 'standard' or 'stuifzand' }
 
     =LAST_BASIC_DATA_FIELD
 
@@ -283,6 +284,14 @@ sub Marpa::R2::Grammar::set {
                 'rules option not allowed after grammar is precomputed')
                 if $grammar_c->is_precomputed();
             DO_RULES: {
+                ## Allow this via a hack for new
+                ## Eventually deprecate and eliminate it
+                if (    ref $value eq 'ARRAY'
+                    and scalar @{$value} == 1
+                    and not ref $value->[0] )
+                {
+                    $value = $value->[0];
+                } ## end if ( ref $value eq 'ARRAY' and scalar @{$value} == 1...)
                 if ( not ref $value ) {
                     $grammar->[Marpa::R2::Internal::Grammar::INTERFACE] //=
                         'stuifzand';
@@ -938,19 +947,6 @@ sub add_user_rules {
 
         # Translate other rule formats into hash rules
         my $ref_rule = ref $rule;
-        if ( not $ref_rule ) {
-
-            # If it is not a ref, assume it is a string using
-            # the Stuifzand interface
-            #
-            # At some point I will deprecate this, to discourage
-            # mixing of Stuifzand rules and others
-            #
-            my $stuifzand_rules =
-                Marpa::R2::Internal::Stuifzand::parse_rules($rule);
-            push @hash_rules, @{$stuifzand_rules};
-            next RULE;
-        } ## end if ( not $ref_rule )
         if ( $ref_rule eq 'HASH' ) {
             $rule->{check_symbols} = 1;
             push @hash_rules, $rule;
@@ -971,9 +967,9 @@ sub add_user_rules {
             my ( $lhs, $rhs, $action ) = @{$rule};
             push @hash_rules,
                 {
-                lhs    => $lhs,
-                rhs    => $rhs,
-                action => $action,
+                lhs           => $lhs,
+                rhs           => $rhs,
+                action        => $action,
                 check_symbols => 1
                 };
             next RULE;
