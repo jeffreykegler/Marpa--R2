@@ -180,27 +180,33 @@ are meaningless in this
 case and will be ignored.
 
 An alternative with arity 1 is unary.
-Precedence will have an effect,
+Precedence will have effect,
 but left and right associativity will not.
 
 An alternative with arity 2 is binary.
-Precedence will have an effect,
+Precedence will have effect,
 and left and right associativity will behave
 in the traditional way,
-which is exactly as described for the I<N>-ary case.
+The traditional behavior for binary alternatives
+is exactly as described next for the I<N>-ary case.
+
+An alternative with an arity of I<N>,
+where I<N> is 2 or greater, is I<N>-ary.
+Precedence will have effect.
 For left associativity,
-where I<N> is two or greater,
-only the leftmost operand associates -- operands
-after the first must be at a tighter priority level.
+only the leftmost operand of an I<N>-ary alternative
+associates -- operands
+after the first will have the
+next-tightest priority level.
 For right associativity,
-where I<N> is two or greater,
-only the rightmost operand associates -- all operands
+only the rightmost operand of an I<N>-ary alternative
+associates -- all operands
 except the last
-must be at a tighter priority level.
+will have the next-tightest priority level.
 
 Marpa also allows "group" associativity.
 In "group" associativity, all operands associate
-at the lowest priority.
+at the loosest (lowest) priority.
 That is, in an alternative with group associativity,
 each operand may be a full expression of the kind
 defined by the prioritized production.
