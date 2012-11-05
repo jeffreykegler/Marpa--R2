@@ -288,14 +288,11 @@ If the earleme cannot be completed,
 an exception is thrown.
 Otherwise, an "event" count is returned.
 If zero is returned, the earleme was completed without event.
-
 In this context,
 an "event" is one of a list of occurrences of special interest during
-the successful completion of an earleme.
-One example of an event is parse exhaustion.
-To determine if one of the events was parse exhaustion,
-the L<C<exhausted> method|Marpa::R2::Recognizer/"exhausted">
-can be used.
+the successful completion of an earleme,
+as described for
+the L<recognizer's C<read> method|Marpa::R2::Recognizer/"read()">.
 
 All tokens read using the C<alternative> method start at one
 location -- the current earleme.
