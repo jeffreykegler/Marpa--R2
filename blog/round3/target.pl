@@ -23,9 +23,8 @@ use Marpa::R2 2.023008;
 my $target_grammar = Marpa::R2::Grammar->new(
     {   start          => 'start',
         rules          => [ <<'END_OF_RULES' ]
-	    start ::= prefix target suffix
+	    start ::= prefix target
 	    prefix ::= any_char*
-	    suffix ::= any_char*
 	    target ::= balanced_parens
 	    balanced_paren_sequence ::= balanced_parens*
 	    balanced_parens ::= lparen balanced_paren_sequence rparen
@@ -36,7 +35,7 @@ END_OF_RULES
 $target_grammar->precompute();
 
 sub My_Error::last_completed_range {
-    my ( $self, $symbol_name ) = @_;
+    my ( $self, $symbol_name, $latest_earley_set ) = @_;
     my $grammar      = $self->{grammar};
     my $recce        = $self->{recce};
     my @sought_rules = ();
@@ -46,7 +45,7 @@ sub My_Error::last_completed_range {
     }
     die "Looking for completion of non-existent rule lhs: $symbol_name"
         if not scalar @sought_rules;
-    my $latest_earley_set = $recce->latest_earley_set();
+    $latest_earley_set //= $recce->latest_earley_set();
     my $earley_set        = $latest_earley_set;
 
     # Initialize to one past the end, so we can tell if there were no hits
@@ -77,16 +76,6 @@ sub My_Error::input_slice {
     return substr ${ $self->{input} }, $start_position, $length;
 } ## end sub My_Error::input_slice
 
-sub My_Error::show_last_expression {
-    my ($self) = @_;
-    my $last_expression =
-        $self->input_slice( $self->last_completed_range('Expression') );
-    return
-        defined $last_expression
-        ? "Last expression successfully parsed was: $last_expression"
-        : 'No expression was successfully parsed';
-} ## end sub My_Error::show_last_expression
-
 sub My_Error::show_position {
     my ( $self, $position ) = @_;
     my $input = $self->{input};
@@ -110,31 +99,41 @@ sub my_parser {
     my $length = length $string;
     TOKEN: for ( my $position = 0; $position < $length; $position++ ) {
         if ( $recce->exhausted() ) {
-            die $self->show_last_expression(), "\n",
-                q{The parse became exhausted here: "},
-                $self->show_position( $position - 1 ), qq{"\n},
+            die qq{The parse became exhausted at position $position: "},
+                $self->show_position( $position ), qq{"\n},
                 ;
         } ## end if ( $recce->exhausted() )
         my $char = substr $string, $position, 1;
         my $specific_char = ( $char eq '(' ) ? 'lparen' : 'rparen';
         DO_READ: {
-            last DO_READ if not defined $recce->alternative($specific_char);
+            $recce->alternative($specific_char);
             last DO_READ if not defined $recce->alternative('any_char');
             $recce->earleme_complete();
             next TOKEN;
         } ## end DO_READ:
-        die $self->show_last_expression(), "\n",
-            'A problem occurred here: ',
-            $self->show_position( $position - 1 ), "\n",
+        die "A problem occurred at position $position: ",
+            $self->show_position( $position ), "\n",
             qq{Parser rejected character "$specific_char"\n};
     } ## end TOKEN: for ( my $position = 0; $position < $length; $position...)
-    say join " ", $self->last_completed_range('target');
+    my $end_of_search;
+    my @results = ();
+    RESULTS: while (1) {
+        my ( $origin, $end ) =
+            $self->last_completed_range( 'target', $end_of_search );
+        last RESULTS if not defined $origin;
+        push @results, "$origin-$end";
+        $end_of_search = $origin - 1;
+    } ## end RESULTS: while (1)
+    return join " ", reverse @results;
 } ## end sub my_parser
 
 TEST:
 for my $test_string (
     '(()())',
     '((((()())',
+    '((((()())((()',
+    (( ')' x 1000) . '(()())))'),
+    # (( '))()' x 100_000) . '(()())))') # stays linear
     )
 {
     my $output;
