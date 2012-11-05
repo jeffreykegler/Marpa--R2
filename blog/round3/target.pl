@@ -128,6 +128,7 @@ sub my_parser {
             $self->show_position( $position - 1 ), "\n",
             qq{Parser rejected character "$specific_char"\n};
     } ## end TOKEN: for ( my $position = 0; $position < $length; $position...)
+    say join " ", $self->last_completed_range('target');
 } ## end sub my_parser
 
 TEST:
