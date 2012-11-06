@@ -34,18 +34,7 @@ $STRING_VERSION = $VERSION;
 $VERSION = eval $VERSION;
 ## use critic
 
-=begin Implementation:
-
-Structures and Objects: The design is to present an object-oriented
-interface, but internally to avoid overheads.  So internally, where
-objects might be used, I use array with constant indices to imitate
-what in C would be structures.
-
-=end Implementation:
-
-=cut
-
-# This structure could be eliminated, and doing
+# This structure could be eliminated, and doing so
 # would be more efficient, but it is part of the
 # external interface.  So this is a stub.
 BEGIN {
@@ -64,6 +53,7 @@ BEGIN {
     ID
     NAME
     DISCARD_SEPARATION
+    MASK { Semantic mask of RHS symbols }
 
 END_OF_STRUCTURE
     Marpa::R2::offset($structure);
@@ -1006,6 +996,7 @@ sub add_user_rule {
     my $rank;
     my $null_ranking;
     my $rule_name;
+    my $mask;
     my $proper_separation = 0;
     my $keep_separation   = 0;
 
@@ -1029,6 +1020,7 @@ sub add_user_rule {
             next OPTION;
         }
         if ( $option eq 'keep' ) { $keep_separation = $value; next OPTION }
+        if ( $option eq 'mask' ) { $mask = $value; next OPTION }
         Marpa::R2::exception("Unknown user rule option: $option");
     } ## end OPTION: while ( my ( $option, $value ) = each %{$options} )
 
@@ -1136,6 +1128,7 @@ sub add_user_rule {
         my $ordinary_rule_id = $grammar_c->rule_new( $lhs_id, \@rhs_ids );
         $grammar_c->throw_set(1);
 
+
         if ( $ordinary_rule_id < 0 ) {
             my $rule_description =
                 "$lhs_name -> " . ( join q{ }, @{$rhs_names} );
@@ -1149,6 +1142,13 @@ sub add_user_rule {
         } ## end if ( $ordinary_rule_id < 0 )
         shadow_rule( $grammar, $ordinary_rule_id );
         my $ordinary_rule = $rules->[$ordinary_rule_id];
+
+        # Only the Stuifzand interface can set a custom mask
+        if (not defined $mask or not $stuifzand_interface) {
+            $mask = [(1) x scalar @rhs_ids];
+        }
+        $ordinary_rule->[Marpa::R2::Internal::Rule::MASK] = $mask;
+
         $tracer->action_set( $ordinary_rule_id, $action );
         if ( defined $rank ) {
             $grammar_c->rule_rank_set( $ordinary_rule_id, $rank );
