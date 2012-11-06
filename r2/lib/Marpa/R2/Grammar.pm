@@ -88,7 +88,7 @@ BEGIN {
     WARNINGS { print warnings about grammar? }
     RULE_NAME_REQUIRED
     RULE_BY_NAME
-    INTERFACE { current 'standard' or 'stuifzand' }
+    INTERFACE { currently 'standard' or 'stuifzand' }
 
     =LAST_BASIC_DATA_FIELD
 
@@ -948,7 +948,6 @@ sub add_user_rules {
         # Translate other rule formats into hash rules
         my $ref_rule = ref $rule;
         if ( $ref_rule eq 'HASH' ) {
-            $rule->{check_symbols} = 1;
             push @hash_rules, $rule;
             next RULE;
         }
@@ -970,7 +969,6 @@ sub add_user_rules {
                 lhs           => $lhs,
                 rhs           => $rhs,
                 action        => $action,
-                check_symbols => 1
                 };
             next RULE;
         } ## end if ( $ref_rule eq 'ARRAY' )
@@ -1010,10 +1008,8 @@ sub add_user_rule {
     my $rule_name;
     my $proper_separation = 0;
     my $keep_separation   = 0;
-    my $check_symbols = 0;
 
     OPTION: while ( my ( $option, $value ) = each %{$options} ) {
-        if ( $option eq 'check_symbols' )   { $check_symbols = $value; next OPTION; }
         if ( $option eq 'name' )   { $rule_name = $value; next OPTION; }
         if ( $option eq 'rhs' )    { $rhs_names = $value; next OPTION }
         if ( $option eq 'lhs' )    { $lhs_name  = $value; next OPTION }
@@ -1040,11 +1036,13 @@ sub add_user_rule {
         Marpa::R2::exception(
             q{"min" must be undefined or a valid Perl number});
     }
+    my $stuifzand_interface = 
+        $grammar->[Marpa::R2::Internal::Grammar::INTERFACE] eq 'stuifzand';
 
     my $lhs =
-        $check_symbols
-        ? assign_user_symbol( $grammar, $lhs_name )
-        : assign_symbol( $grammar, $lhs_name );
+        $stuifzand_interface
+        ? assign_symbol( $grammar, $lhs_name )
+        : assign_user_symbol( $grammar, $lhs_name );
     $rhs_names //= [];
 
     my @rule_problems = ();
@@ -1113,9 +1111,9 @@ sub add_user_rule {
 
     my $rhs = [
         map {
-            $check_symbols
-                ? assign_user_symbol( $grammar, $_ )
-                : assign_symbol( $grammar, $_ );
+            $stuifzand_interface
+                ? assign_symbol( $grammar, $_ )
+                : assign_user_symbol( $grammar, $_ );
         } @{$rhs_names}
     ];
 
@@ -1172,9 +1170,9 @@ sub add_user_rule {
     my $separator_id = -1;
     if ( defined $separator_name ) {
         $separator =
-            $check_symbols
-            ? assign_user_symbol( $grammar, $separator_name )
-            : assign_symbol( $grammar, $separator_name );
+            $stuifzand_interface
+            ? assign_symbol( $grammar, $separator_name )
+            : assign_user_symbol( $grammar, $separator_name );
         $separator_id = $separator->[Marpa::R2::Internal::Symbol::ID];
     } ## end if ( defined $separator_name )
 
