@@ -1780,8 +1780,9 @@ On failure, @minus{}2.
 Returns the mininum length of a sequence rule.
 This accessor can be also be used to test whether
 or not a rule is a sequence rule.
-|-1| is returned if and only if the rule is valid
+@minus{}1 is returned if and only if the rule is valid
 but not a sequence rule.
+
 Return value:
 If rule @var{rule_id} is a sequence rule, its minimum length.
 If rule @var{rule_id} is valid, but is
