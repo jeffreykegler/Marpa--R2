@@ -26,6 +26,21 @@ $STRING_VERSION = $VERSION;
 $VERSION = eval $VERSION;
 ## use critic
 
+package My_Node::Symbol;
+
+use const NAME => 0;
+use const MASK_BIT => 1;
+
+sub new { my $class = shift; return bless, { name => $_[NAME], mask_bit => ($_[MASK_BIT]//1) }, $class }
+sub name { return $_->{name} }
+sub mask_bit { return $_->{mask_bit} }
+
+package My_Node::Symbol_List;
+
+sub new { my $class = shift; return bless, [@_], $class }
+sub names { return map { $_->name() } @_ }
+sub mask { return map { $_->mask_bit() } @_ }
+
 package Marpa::R2::Internal::Stuifzand;
 
 use English qw( -no_match_vars );
