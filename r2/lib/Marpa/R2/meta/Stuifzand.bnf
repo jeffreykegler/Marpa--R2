@@ -47,11 +47,13 @@ separator_specification ::= kw_separator op_arrow symbol_name
 proper_specification ::= kw_proper op_arrow boolean
 action => do_proper_specification
 
-lhs ::= symbol_name action => do_lhs 
-rhs ::= symbol_names
 quantifier ::= op_star | op_plus
-symbol_names ::= symbol_name+ action => do_array
-symbol_name ::= bare_name | quoted_name | reserved_word
+
+lhs ::= symbol_name action => do_lhs 
+rhs ::= symbol_list
+symbol_list ::= symbol+ action => do_symbol_list
+symbol ::= symbol_name action => do_symbol
+symbol_name ::= bare_name | reserved_word
 symbol_name ::= bracketed_name action => do_bracketed_name
 action_name ::= bare_name | reserved_word
 
