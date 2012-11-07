@@ -20,7 +20,7 @@ priority_rule ::= lhs op_declare priorities
   action => do_priority_rule
 empty_rule ::= lhs op_declare adverb_list
   action => do_empty_rule
-quantified_rule ::= lhs op_declare name quantifier adverb_list
+quantified_rule ::= lhs op_declare symbol_name quantifier adverb_list
     action => do_quantified_rule
 priorities ::= alternatives+
     separator => op_tighter proper => 1
@@ -35,24 +35,25 @@ adverb_item ::=
     | left_association | right_association | group_association
     | separator_specification | proper_specification
 
-action ::= kw_action op_arrow name action => do_action
+action ::= kw_action op_arrow action_name action => do_action
 left_association ::= kw_assoc op_arrow kw_left
   action => do_left_association 
 right_association ::= kw_assoc op_arrow kw_right
   action => do_right_association 
 group_association ::= kw_assoc op_arrow kw_group
   action => do_group_association 
-separator_specification ::= kw_separator op_arrow name
+separator_specification ::= kw_separator op_arrow symbol_name
   action => do_separator_specification
 proper_specification ::= kw_proper op_arrow boolean
 action => do_proper_specification
 
-lhs ::= name action => do_lhs 
-rhs ::= names
+lhs ::= symbol_name action => do_lhs 
+rhs ::= symbol_names
 quantifier ::= op_star | op_plus
-names ::= name+ action => do_array
-name ::= bare_name | reserved_word | quoted_name
-name ::= bracketed_name action => do_bracketed_name
+symbol_names ::= symbol_name+ action => do_array
+symbol_name ::= bare_name | quoted_name | reserved_word
+symbol_name ::= bracketed_name action => do_bracketed_name
+action_name ::= bare_name | reserved_word
 
 reserved_word ::= kw_action | kw_assoc | kw_separator | kw_proper
   | kw_left | kw_right | kw_group
