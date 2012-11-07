@@ -30,24 +30,24 @@ use Marpa::R2;
 
 my $rules = <<'END_OF_GRAMMAR';
 reduce_op ::=
-    '+' action => do_arg0
-  | '-' action => do_arg0
-  | '/' action => do_arg0
-  | '*' action => do_arg0
+    op_plus action => do_arg0
+  | op_minus action => do_arg0
+  | op_divide action => do_arg0
+  | op_star action => do_arg0
 script ::= e action => do_arg0
-script ::= script ';' e action => do_arg2
+script ::= script op_semicolon e action => do_arg2
 e ::=
      NUM action => do_arg0
    | VAR action => do_is_var
-   | '(' e ')' action => do_arg1 assoc => group
-  || '-' e action => do_negate
-  || e '^' e action => do_power assoc => right
-  || e '*' e action => do_multiply
-   | e '/' e action => do_divide
-  || e '+' e action => do_addition
-   | e '-' e action => do_subtract
-  || e ',' e action => do_array
-  || reduce_op kw_reduce e action => do_reduce
+   | op_lparen e op_rparen action => do_arg1 assoc => group
+  || op_minus e action => do_negate
+  || e op_caret e action => do_power assoc => right
+  || e op_star e action => do_multiply
+   | e op_divide e action => do_divide
+  || e op_plus e action => do_addition
+   | e op_minus e action => do_subtract
+  || e op_comma e action => do_array
+  || reduce_op op_reduce e action => do_reduce
   || VAR op_assign e action => do_set_var
 END_OF_GRAMMAR
 
@@ -61,19 +61,19 @@ $grammar->precompute;
 
 # Order matters !!
 my @terminals = (
-    [ kw_reduce => qr/reduce\b/xms ],
-    [ NUM =>       qr/\d+/xms ],
-    [ VAR =>       qr/\w+/xms ],
-    [ op_assign =>     qr/[=]/xms ],
-    [ q{';'},      qr/[;]/xms ],
-    [ q{'*'},      qr/[*]/xms ],
-    [ q{'/'},      qr/[\/]/xms ],
-    [ q{'+'},      qr/[+]/xms ],
-    [ q{'-'},      qr/[-]/xms ],
-    [ q{'^'},      qr/[\^]/xms ],
-    [ q{'('},      qr/[(]/xms ],
-    [ q{')'},      qr/[)]/xms ],
-    [ q{','},      qr/[,]/xms ],
+    [ op_reduce     => qr/reduce\b/xms ],
+    [ NUM           => qr/\d+/xms ],
+    [ VAR           => qr/\w+/xms ],
+    [ op_assign     => qr/[=]/xms ],
+    [ op_semicolon => qr/[;]/xms ],
+    [ op_star       => qr/[*]/xms ],
+    [ op_divide     => qr/[\/]/xms ],
+    [ op_plus       => qr/[+]/xms ],
+    [ op_minus      => qr/[-]/xms ],
+    [ op_caret      => qr/[\^]/xms ],
+    [ op_lparen     => qr/[(]/xms ],
+    [ op_rparen     => qr/[)]/xms ],
+    [ op_comma      => qr/[,]/xms ],
 );
 
 my %symbol_table = ();
