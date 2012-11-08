@@ -79,8 +79,10 @@ sub do_priority_rule {
             my ( $rhs, $adverb_list ) = @{ $alternative };
             my @rhs_names = $rhs->names();
             my %hash_rule = ( lhs => $lhs, rhs => \@rhs_names );
-            my $action = $adverb_list->{action};
-            $hash_rule{action} = $action if defined $action;
+            for my $keyword (qw(action mask)) {
+                my $value = $adverb_list->{$keyword};
+                $hash_rule{$keyword} = $value if defined $value;
+            }
             push @xs_rules, \%hash_rule;
         }
         return [@xs_rules];
@@ -94,6 +96,7 @@ sub do_priority_rule {
     } ## end for my $priority_ix ( 0 .. $priority_count - 1 )
 
     state $do_arg0_full_name = __PACKAGE__ . q{::} . 'external_do_arg0';
+    # Default mask (all ones) is OK for this rule
     @xs_rules = (
         {   lhs    => $lhs,
             rhs    => [ $lhs . '[prec0]' ],
@@ -117,6 +120,9 @@ sub do_priority_rule {
 
         my $current_exp = $lhs . '[prec' . $priority . ']';
         my %new_xs_rule = (lhs => $current_exp);
+        if (defined (my $mask = $adverb_list->{mask})) {
+           $new_xs_rule{mask} = $mask;
+        }
 
         my $action = $adverb_list->{action};
         $new_xs_rule{action} = $action if defined $action;

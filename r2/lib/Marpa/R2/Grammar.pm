@@ -856,7 +856,7 @@ sub Marpa::R2::Grammar::symbol_name {
     my ( $grammar, $id ) = @_;
     my $symbol_name =
         $grammar->[Marpa::R2::Internal::Grammar::TRACER]->symbol_name($id);
-    return defined $symbol_name ? $symbol_name : '[SYMBOL' . $id . ']';
+    return defined $symbol_name ? $symbol_name : '[SYMBOL#' . $id . ']';
 } ## end sub Marpa::R2::Grammar::symbol_name
 
 sub shadow_symbol {
