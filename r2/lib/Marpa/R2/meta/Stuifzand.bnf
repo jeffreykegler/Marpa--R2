@@ -53,7 +53,7 @@ lhs ::= symbol_name action => do_lhs
 rhs ::= rhs_primary+ action => do_rhs
 rhs_primary ::= symbol action => do_symbol_list
 rhs_primary ::= op_lparen symbol_list op_rparen
-  action => do_masked_symbol_group
+  action => do_parenthesized_symbol_list
 symbol_list ::= symbol+ action => do_symbol_list
 symbol ::= symbol_name action => do_symbol
 symbol_name ::= bare_name | reserved_word
