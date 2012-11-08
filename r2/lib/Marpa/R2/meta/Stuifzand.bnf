@@ -50,7 +50,10 @@ action => do_proper_specification
 quantifier ::= op_star | op_plus
 
 lhs ::= symbol_name action => do_lhs 
-rhs ::= symbol_list
+rhs ::= rhs_primary+ action => do_rhs
+rhs_primary ::= symbol action => do_symbol_list
+rhs_primary ::= op_lparen symbol_list op_rparen
+  action => do_masked_symbol_group
 symbol_list ::= symbol+ action => do_symbol_list
 symbol ::= symbol_name action => do_symbol
 symbol_name ::= bare_name | reserved_word
