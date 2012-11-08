@@ -18,7 +18,11 @@ use 5.010;
 use strict;
 use warnings;
 use English qw( -no_match_vars );
-use Marpa::R2 2.023008;
+use lib '../../r2/lib';
+use lib '../../r2/blib/arch';
+use Marpa::R2 2.023010;
+
+say STDERR "Using ", $INC{'Marpa/R2.pm'};
 
 my $infix_grammar = Marpa::R2::Grammar->new(
     {   start          => 'Script',
@@ -27,17 +31,16 @@ my $infix_grammar = Marpa::R2::Grammar->new(
         rules          => [ <<'END_OF_RULES' ]
 Script ::=
      Expression
-   | kw_say Expression action => do_arg1
+   | (kw_say) Expression
 Expression ::=
      Number
-   | Expression op_add Expression action => do_add
+   | Expression (op_add) Expression action => do_add
 END_OF_RULES
     }
 );
 
-sub My_Actions::do_add  { shift; return $_[0] + $_[2] }
+sub My_Actions::do_add  { shift; return $_[0] + $_[1] }
 sub My_Actions::do_arg0 { shift; return shift; }
-sub My_Actions::do_arg1 { shift; return $_[1]; }
 
 $infix_grammar->precompute();
 
