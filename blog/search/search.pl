@@ -27,7 +27,7 @@ start ::= prefix target
 prefix ::= any_token*
 target ::= expression
 expression ::=
-     number
+     number | scalar | scalar postfix_unop
   || op_lparen expression op_rparen assoc => group
   || unop expression
   || expression binop expression
@@ -39,13 +39,22 @@ $target_grammar->precompute();
 
 # Order matters !!
 my @lexer_table = (
-    [ number    => qr/-?(?:\d+(?:\.\d*)?|\.\d*)/xms ],
-    [ binop     => qr/[=*\/+-,]/xms ],
-    [ unop      => qr/[+-]/xms ],
-    [ op_lparen => qr/[(]/xms ],
-    [ op_rparen => qr/[)]/xms ],
-    ## Matches a sequence of chars which are illegal in any valid token
-    [ any_token => qr/[^\d.=*\/+()-]+/xms ],
+    [ number       => qr/(?:\d+(?:\.\d*)?|\.\d+)/xms ],
+    [ scalar       => qr/ [\$] \w+ \b/xms ],
+    [ postfix_unop => qr/[-][-]/xms ],
+    [ postfix_unop => qr/[+][+]/xms ],
+    [ unop       => qr/[-][-]/ ],
+    [ unop         => qr/[+][+]/xms ],
+    [ binop        => qr/[*][*]/xms ],
+    [ binop        => qr/[>][>]/xms ],
+    [ binop        => qr/[<][<]/xms ],
+    [ binop       => qr/[-]/ ],
+    [ binop        => qr/[=*\/+,%&|]/xms ],
+    [ binop        => qr/ x \b/xms ],
+    [ unop       => qr/[-]/ ],
+    [ unop         => qr/[+!~]/xms ],
+    [ op_lparen    => qr/[(]/xms ],
+    [ op_rparen    => qr/[)]/xms ],
     ## Matches a single char, as a catchall
     [ any_token => qr/./xms ],
 );
@@ -82,18 +91,6 @@ sub My_Error::last_completed_range {
     return ( $first_origin, $earley_set );
 } ## end sub My_Error::last_completed_range
 
-
-# Given a string, an earley set to position mapping,
-# and two earley sets, return the slice of the string
-sub My_Error::input_slice {
-    my ( $self, $start, $end ) = @_;
-    my $positions = $self->{positions};
-    return if not defined $start;
-    my $start_position = $positions->[$start];
-    my $length         = $positions->[$end] - $start_position;
-    return substr ${ $self->{input} }, $start_position, $length;
-} ## end sub My_Error::input_slice
-
 sub My_Error::show_last_expression {
     my ($self) = @_;
     my $last_expression =
@@ -115,7 +112,9 @@ sub My_Error::show_position {
 my $string    = join q{}, <>;
 my @positions = (0);
 my $recce     = Marpa::R2::Recognizer->new(
-    { grammar => $target_grammar, trace_terminals => 1 } );
+    { grammar => $target_grammar,
+      # trace_terminals => 1
+    } );
 
 # A quasi-object, for internal use only
 my $self = bless {
@@ -175,9 +174,17 @@ RESULTS: while (1) {
     my ( $origin, $end ) =
         $self->last_completed_range( 'target', $end_of_search );
     last RESULTS if not defined $origin;
-    push @results, "$origin-$end";
-    say STDERR "$origin-$end: ", $self->input_slice( $origin, $end );
+    push @results, [$origin, $end];
     $end_of_search = $origin - 1;
+}
+for my $result (reverse @results) {
+    my ($origin, $end) = @{$result};
+    my $slice = $self->input_slice( $origin, $end );
+    $slice =~ s/ \A \s* //xms;
+    $slice =~ s/ \s* \z //xms;
+    $slice =~ s/ \n / /gxms;
+    $slice =~ s/ \s+ / /gxms;
+    say qq{$origin-$end: "$slice"};
 } ## end RESULTS: while (1)
 
 # vim: expandtab shiftwidth=4:
