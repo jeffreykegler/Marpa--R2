@@ -21,6 +21,111 @@ use English qw( -no_match_vars );
 use Marpa::R2 2.024000;
 use PPI;
 
+my %token_by_structure = (
+    q{(} => 'LPAREN',
+    q{)} => 'RPAREN',
+    q{[} => 'LSQUARE',
+    q{]} => 'RSQUARE',
+    q[{] => 'LCURLY',
+    q[}] => 'RCURLY',
+    q{;} => 'SEMI',
+);
+
+my %tokens_by_op = (
+    q{->}  => ['ARROW'],               # 1
+    q{--}  => [qw(PREDEC POSTDEC)],    # 2
+    q{++}  => [qw(PREINC POSTINC)],    # 2
+    q{**}  => ['POWOP'],               # 3
+    q{~}   => ['TILDE'],               # 4
+    q{!}   => ['BANG'],                # 4
+    q{\\}  => ['REFGEN'],              # 4
+    q{=~}  => ['MATCHOP'],             # 5
+    q{!~}  => ['MATCHOP'],             # 5
+    q{/}   => ['MULOP'],               # 6
+    q{*}   => ['MULOP'],               # 6
+    q{%}   => ['MULOP'],               # 6
+    q{x}   => ['MULOP'],               # 6
+    q{-}   => [qw(ADDOP UMINUS)],      # 7
+    q{.}   => ['ADDOP'],               # 7
+    q{+}   => [qw(ADDOP PLUS)],        # 7
+    q{<<}  => ['SHIFTOP'],             # 8
+    q{>>}  => ['SHIFTOP'],             # 8
+    q{-A}  => ['UNIOP'],               # 9
+    q{-b}  => ['UNIOP'],               # 9
+    q{-B}  => ['UNIOP'],               # 9
+    q{-c}  => ['UNIOP'],               # 9
+    q{-C}  => ['UNIOP'],               # 9
+    q{-d}  => ['UNIOP'],               # 9
+    q{-e}  => ['UNIOP'],               # 9
+    q{-f}  => ['UNIOP'],               # 9
+    q{-g}  => ['UNIOP'],               # 9
+    q{-k}  => ['UNIOP'],               # 9
+    q{-l}  => ['UNIOP'],               # 9
+    q{-M}  => ['UNIOP'],               # 9
+    q{-o}  => ['UNIOP'],               # 9
+    q{-O}  => ['UNIOP'],               # 9
+    q{-p}  => ['UNIOP'],               # 9
+    q{-r}  => ['UNIOP'],               # 9
+    q{-R}  => ['UNIOP'],               # 9
+    q{-s}  => ['UNIOP'],               # 9
+    q{-S}  => ['UNIOP'],               # 9
+    q{-t}  => ['UNIOP'],               # 9
+    q{-T}  => ['UNIOP'],               # 9
+    q{-u}  => ['UNIOP'],               # 9
+    q{-w}  => ['UNIOP'],               # 9
+    q{-W}  => ['UNIOP'],               # 9
+    q{-x}  => ['UNIOP'],               # 9
+    q{-X}  => ['UNIOP'],               # 9
+    q{-z}  => ['UNIOP'],               # 9
+    q{ge}  => ['RELOP'],               # 10
+    q{gt}  => ['RELOP'],               # 10
+    q{le}  => ['RELOP'],               # 10
+    q{lt}  => ['RELOP'],               # 10
+    q{<=}  => ['RELOP'],               # 10
+    q{<}   => ['RELOP'],               # 10
+    q{>=}  => ['RELOP'],               # 10
+    q{>}   => ['RELOP'],               # 10
+    q{cmp} => ['EQOP'],                # 11
+    q{eq}  => ['EQOP'],                # 11
+    q{ne}  => ['EQOP'],                # 11
+    q{~~}  => ['EQOP'],                # 11
+    q{<=>} => ['EQOP'],                # 11
+    q{==}  => ['EQOP'],                # 11
+    q{!=}  => ['EQOP'],                # 11
+    q{&}   => ['BITANDOP'],            # 12
+    q{^}   => ['BITOROP'],             # 13
+    q{|}   => ['BITOROP'],             # 13
+    q{&&}  => ['ANDAND'],              # 14
+    q{||}  => ['OROR'],                # 15
+    q{//}  => ['DORDOR'],              # 15
+    q{..}  => ['DOTDOT'],              # 16
+    q{...} => ['YADAYADA'],            # 17
+    q{:}   => ['COLON'],               # 18
+    q{?}   => ['QUESTION'],            # 18
+    q{^=}  => ['ASSIGNOP'],            # 19
+    q{<<=} => ['ASSIGNOP'],            # 19
+    q{=}   => ['ASSIGNOP'],            # 19
+    q{>>=} => ['ASSIGNOP'],            # 19
+    q{|=}  => ['ASSIGNOP'],            # 19
+    q{||=} => ['ASSIGNOP'],            # 19
+    q{-=}  => ['ASSIGNOP'],            # 19
+    q{/=}  => ['ASSIGNOP'],            # 19
+    q{.=}  => ['ASSIGNOP'],            # 19
+    q{*=}  => ['ASSIGNOP'],            # 19
+    q{**=} => ['ASSIGNOP'],            # 19
+    q{&=}  => ['ASSIGNOP'],            # 19
+    q{&&=} => ['ASSIGNOP'],            # 19
+    q{%=}  => ['ASSIGNOP'],            # 19
+    q{+=}  => ['ASSIGNOP'],            # 19
+    q{x=}  => ['ASSIGNOP'],            # 19
+    q{,}   => ['COMMA'],               # 20
+    q{=>}  => ['COMMA'],               # 20
+    q{not} => ['NOTOP'],               # 22
+    q{and} => ['ANDOP'],               # 23
+    q{or}  => ['OROP'],                # 24
+    q{xor} => ['DOROP'],               # 24
+);
+
 my $target_grammar = Marpa::R2::Grammar->new(
     {   start => 'start',
         rules => [ <<'END_OF_RULES' ]
@@ -28,15 +133,51 @@ start ::= prefix target
 prefix ::= any_token*
 target ::= expression
 expression ::=
-     number | scalar | scalar postfix_unop
-  || op_lparen expression op_rparen assoc => group
-  || unop expression
-  || expression binop expression
+     number | variable
+  || LPAREN expression RPAREN assoc => group
+  || PREINC expression
+   | PREDEC expression
+   | expression POSTINC
+   | expression POSTDEC
+  || expression POWOP expression assoc => right
+  || BANG expression 
+   | TILDE expression 
+   | UMINUS expression
+  || expression MULOP expression
+  || expression ADDOP expression
+  || expression BITANDOP expression
+  || expression BITOROP expression
+  || expression ANDAND expression
+  || expression OROR expression
 END_OF_RULES
     }
 );
 
 $target_grammar->precompute();
+
+# Prune the tables while we are building the grammar
+for my $structure ( keys %token_by_structure ) {
+    my $token = $token_by_structure{$structure};
+    if ( not $target_grammar->check_terminal($token) ) {
+        # say STDERR "Token $token is not in grammar";
+        delete $token_by_structure{$structure};
+    }
+} ## end for my $structure ( keys %token_by_structure )
+
+for my $op ( keys %tokens_by_op ) {
+    my $tokens = $tokens_by_op{$op};
+    my @tokens_used = ();
+    for my $token ( @{$tokens} ) {
+        if ( $target_grammar->check_terminal($token) ) {
+            push @tokens_used, $token;
+        }
+        else {
+            # say STDERR "Token $token is not in grammar";
+        }
+    } ## end for my $token ( @{$tokens} )
+    if (scalar @tokens_used) { $tokens_by_op{$op} = \@tokens_used; }
+    else              { delete $tokens_by_op{$op}; }
+} ## end for my $structure ( keys %tokens_by_op )
 
 sub My_Error::last_completed_range {
     my ( $self, $symbol_name, $latest_earley_set ) = @_;
@@ -110,16 +251,26 @@ my @tokens =$document->tokens();
 
 TOKEN: for my $PPI_token (@tokens) {
 
-    my $token = 'any_token';
+    my @tokens = ('any_token');
     my $content = $PPI_token->{content};
     my $PPI_type = ref $PPI_token;
     GIVEN_PPI_TYPE: {
         if ( $PPI_type eq 'PPI::Token::Symbol' ) {
-            $token = 'symbol';
+            push @tokens, 'variable';
+            last GIVEN_PPI_TYPE;
+        }
+        if ( $PPI_type eq 'PPI::Token::Structure' ) {
+            my $token = $token_by_structure{$content};
+            # For now, ignore if not defined
+            # die "No token for structure $content" if not defined $token;
+            push @tokens, $token if defined $token;
             last GIVEN_PPI_TYPE;
         }
         if ( $PPI_type eq 'PPI::Token::Operator' ) {
-            $token = 'operator';
+            my $tokens = $tokens_by_op{$content};
+            # For now, ignore if not defined
+            # die "No tokens for operator $content" if not defined $tokens;
+            push @tokens, @{$tokens} if defined $tokens;
             last GIVEN_PPI_TYPE;
         }
         if (   $PPI_type eq 'PPI::Token::Number'
@@ -127,19 +278,16 @@ TOKEN: for my $PPI_token (@tokens) {
             or $PPI_type eq 'PPI::Token::Magic'
             or $PPI_type eq 'PPI::Token::Number::Version' )
         {
-            $token = 'number';
+            push @tokens, 'number';
             last GIVEN_PPI_TYPE;
-        } ## end if ( $p or $PPI_type eq 'PPI::Token::Number::Float' ...)
-        $token = 'any_token';
+        } ## end if ( $PPI_type eq 'PPI::Token::Number' or $PPI_type ...)
     } ## end GIVEN_PPI_TYPE:
-    say "$PPI_type; $token; $content\n" if $token ne 'any_token';
-    next TOKEN;
 
     ## parse should never get exhausted
-    if ( $token ne 'any_token' ) {
-        $recce->alternative( $token, $1 );
+    for my $token (@tokens) {
+        say "$PPI_type; $token; $content" ;
+        $recce->alternative( $token, \$content );
     }
-    $recce->alternative( 'any_token', $1 );
     $recce->earleme_complete();
     my $latest_earley_set_ID = $recce->latest_earley_set();
     $positions[$latest_earley_set_ID] = pos $string;
