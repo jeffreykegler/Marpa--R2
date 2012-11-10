@@ -211,16 +211,6 @@ sub My_Error::last_completed_range {
     return ( $first_origin, $earley_set );
 } ## end sub My_Error::last_completed_range
 
-sub My_Error::show_last_expression {
-    my ($self) = @_;
-    my $last_expression =
-        $self->input_slice( $self->last_completed_range('target') );
-    return
-        defined $last_expression
-        ? "Last expression successfully parsed was: $last_expression"
-        : 'No expression was successfully parsed';
-} ## end sub My_Error::show_last_expression
-
 sub My_Error::show_position {
     my ( $self, $position ) = @_;
     my $input = $self->{input};
@@ -230,10 +220,10 @@ sub My_Error::show_position {
 } ## end sub My_Error::show_position
 
 my $string    = join q{}, <>;
-my @positions = (0);
+my @PPI_token_by_earley_set = ();
 my $recce     = Marpa::R2::Recognizer->new(
     { grammar => $target_grammar,
-      # trace_terminals => 1
+       trace_terminals => 1
     } );
 
 # A quasi-object, for internal use only
@@ -241,7 +231,7 @@ my $self = bless {
     grammar   => $target_grammar,
     input     => \$string,
     recce     => $recce,
-    positions => \@positions
+    PPI_token_by_earley_set => \@PPI_token_by_earley_set
     },
     'My_Error';
 
@@ -285,25 +275,21 @@ TOKEN: for my $PPI_token (@tokens) {
 
     ## parse should never get exhausted
     for my $token (@tokens) {
-        say "$PPI_type; $token; $content" ;
+        # say "$PPI_type; $token; $content" ;
         $recce->alternative( $token, \$content );
     }
     $recce->earleme_complete();
     my $latest_earley_set_ID = $recce->latest_earley_set();
-    $positions[$latest_earley_set_ID] = pos $string;
+    $PPI_token_by_earley_set[$latest_earley_set_ID] = $PPI_token;
 } ## end TOKEN: while ( pos $string < $length )
-
-die;
 
 # Given a string, an earley set to position mapping,
 # and two earley sets, return the slice of the string
 sub My_Error::input_slice {
     my ( $self, $start, $end ) = @_;
-    my $positions = $self->{positions};
+    my $token_by_earley_set = $self->{PPI_token_by_earley_set};
     return if not defined $start;
-    my $start_position = $positions->[$start];
-    my $length         = $positions->[$end] - $start_position;
-    return substr ${ $self->{input} }, $start_position, $length;
+    return join q{}, map { defined $_ ? $_->content() : q{} } @{$token_by_earley_set}[$start .. $end];
 } ## end sub My_Error::input_slice
 
 my $end_of_search;
