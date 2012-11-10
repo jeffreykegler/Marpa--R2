@@ -611,6 +611,11 @@ sub Marpa::R2::Recognizer::alternative {
         if not defined $recce
             or ref $recce ne 'Marpa::R2::Recognizer';
 
+    Marpa::R2::exception(
+       "recce->alternative(): symbol name is undefined\n",
+       "    The symbol name cannot be undefined\n"
+    ) if not defined $symbol_name;
+
     Marpa::R2::exception('Attempt to read token after parsing is finished')
         if $recce->[Marpa::R2::Internal::Recognizer::FINISHED];
 
