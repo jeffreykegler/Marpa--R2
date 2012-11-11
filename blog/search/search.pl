@@ -42,7 +42,7 @@ start ::= prefix target
 prefix ::= any_token*
 target ::= expression
 expression ::=
-     number | scalar | scalar postfix_unop
+     number | scalar | scalar postfix_op
   || op_lparen expression op_rparen assoc => group
   || unop expression
   || expression binop expression
@@ -56,16 +56,25 @@ $target_grammar->precompute();
 my @lexer_table = (
     [ number       => qr/(?:\d+(?:\.\d*)?|\.\d+)/xms ],
     [ scalar       => qr/ [\$] \w+ \b/xms ],
-    [ postfix_unop => qr/[-][-]/xms ],
-    [ postfix_unop => qr/[+][+]/xms ],
-    [ unop       => qr/[-][-]/ ],
-    [ unop         => qr/[+][+]/xms ],
-    [ binop        => qr/[*][*]/xms ],
-    [ binop        => qr/[>][>]/xms ],
-    [ binop        => qr/[<][<]/xms ],
-    [ binop       => qr/[-]/ ],
-    [ binop        => qr/[=*\/+,%&|]/xms ],
-    [ binop        => qr/ x \b/xms ],
+    [ postfix_op => qr/ [-][-] | [+][+] /xms ],
+    [ unop => qr/ [-][-] | [+][+] /xms ],
+    [ binop        => qr/
+          [*][*]
+        | [>][>]
+        | [<][<]
+        | [!]
+        | [~]
+        | [*]
+        | [\/]
+        | [%]
+        | [x] \b
+        | [+]
+        | [-]
+        | [&]
+        | [|]
+        | [=]
+        | [,]
+    /xms ],
     [ unop       => qr/[-]/ ],
     [ unop         => qr/[+!~]/xms ],
     [ op_lparen    => qr/[(]/xms ],
