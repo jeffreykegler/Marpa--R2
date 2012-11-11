@@ -31,9 +31,9 @@ END_OF_USAGE_MESSAGE
 
 my $show_position_flag;
 my $getopt_result = GetOptions( "n!" => \$show_position_flag, );
-usage() if  not $getopt_result ;
+usage() if not $getopt_result;
 
-my $string    = join q{}, <>;
+my $string = join q{}, <>;
 
 my $target_grammar = Marpa::R2::Grammar->new(
     {   start => 'start',
@@ -97,7 +97,7 @@ sub My_Error::last_completed_range {
     die "Looking for completion of non-existent rule lhs: $symbol_name"
         if not scalar @sought_rules;
     $latest_earley_set //= $recce->latest_earley_set();
-    my $earley_set        = $latest_earley_set;
+    my $earley_set = $latest_earley_set;
 
     # Initialize to one past the end, so we can tell if there were no hits
     my $first_origin = $latest_earley_set + 1;
@@ -185,11 +185,11 @@ RESULTS: while (1) {
     my ( $origin, $end ) =
         $self->last_completed_range( 'target', $end_of_search );
     last RESULTS if not defined $origin;
-    push @results, [$origin, $end];
-    $end_of_search = $origin ;
-}
-for my $result (reverse @results) {
-    my ($origin, $end) = @{$result};
+    push @results, [ $origin, $end ];
+    $end_of_search = $origin;
+} ## end RESULTS: while (1)
+for my $result ( reverse @results ) {
+    my ( $origin, $end ) = @{$result};
     my $slice = $self->input_slice( $origin, $end );
     $slice =~ s/ \A \s* //xms;
     $slice =~ s/ \s* \z //xms;
@@ -197,6 +197,6 @@ for my $result (reverse @results) {
     $slice =~ s/ \s+ / /gxms;
     print qq{$origin-$end: } if $show_position_flag;
     say $slice;
-} ## end RESULTS: while (1)
+} ## end for my $result ( reverse @results )
 
 # vim: expandtab shiftwidth=4:
