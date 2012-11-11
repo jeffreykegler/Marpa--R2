@@ -1,0 +1,82 @@
+        @ary = (1, 3, sort 4, 2);
+        print @ary;         # prints 1324
+        # These evaluate exit before doing the print:
+        print($foo, exit);  # Obviously not what you want.
+        print $foo, exit;   # Nor is this.
+        # These do the print before evaluating exit:
+        (print $foo), exit; # This is what you want.
+        print($foo), exit;  # Or this.
+        print ($foo), exit; # Or even this.
+        print ($foo & 255) + 1, "\n";
+        1 + 1, "\n";    # Obviously not what you meant.
+        print(($foo & 255) + 1, "\n");
+        $i = 0;  $j = 0;
+        print $i++;  # prints 0
+        print ++$j;  # prints 1
+        $i = $i ++;
+        print ++ $i + $i ++;
+        print ++($foo = '99');      # prints '100'
+        print ++($foo = 'a0');      # prints 'a1'
+        print ++($foo = 'Az');      # prints 'Ba'
+        print ++($foo = 'zz');      # prints 'aaa'
+      '\\' =~ q'\\';
+        print '-' x 80;             # print row of dashes
+        print "\t" x ($tab/8), ' ' x ($tab%8);      # tab over
+        @ones = (1) x 80;           # a list of 80 1's
+        @ones = (5) x @ones;        # set all elements to 5
+        chdir $foo    || die;       # (chdir $foo) || die
+        chdir($foo)   || die;       # (chdir $foo) || die
+        chdir ($foo)  || die;       # (chdir $foo) || die
+        chdir +($foo) || die;       # (chdir $foo) || die
+        chdir $foo * 20;    # chdir ($foo * 20)
+        chdir($foo) * 20;   # (chdir $foo) * 20
+        chdir ($foo) * 20;  # (chdir $foo) * 20
+        chdir +($foo) * 20; # chdir ($foo * 20)
+        rand 10 * 20;       # rand (10 * 20)
+        rand(10) * 20;      # (rand 10) * 20
+        rand (10) * 20;     # (rand 10) * 20
+        rand +(10) * 20;    # rand (10 * 20)
+        perl -le '$a = "NaN"; print "No NaN support here" if $a == $a'
+        perl -le '$a = "NaN"; print "NaN support here" if $a != $a'
+            print "Even\n" if ($x & 1) == 0;
+            print "false\n" if (8 | 2) != 10;
+        @a = @b || @c;              # this is wrong
+        @a = scalar(@b) || @c;      # really meant this
+        @a = @b ? @b : @c;          # this works fine, though
+        $a = $ok ? @b : @c;  # oops, that's just a count!
+        ($a_or_b ? $a : $b) = $c;
+        $a % 2 ? $a += 10 : $a += 2
+        (($a % 2) ? ($a += 10) : $a) += 2
+        ($a % 2) ? ($a += 10) : ($a += 2)
+        $a += ($a % 2) ? 10 : 2;
+        $a += 2;
+        $a = $a + 2;
+        ($tmp = $global) =~ tr [A-Z] [a-z];
+        ($a += 2) *= 3;
+        $a += 2;
+        $a *= 3;
+        use constant FOO => "something";
+        my %h = ( FOO => 23 );
+        my %h = ("FOO", 23);
+        my %h = ("something", 23);
+            %hash = ( $key => $value );
+            login( $username => $password );
+        open HANDLE, "filename"
+            or die "Can't open: $!\n";
+        print FH $data              or die "Can't write to FH: $!";
+        $a = $b or $c;              # bug: this is wrong
+        ($a = $b) or $c;            # really means this
+        $a = $b || $c;              # better written this way
+        $foo =  150  |  105;        # yields 255  (0x96 | 0x69 is 0xFF)
+        $foo = '150' |  105;        # yields 255
+        $foo =  150  | '105';       # yields 255
+        $foo = '150' | '105';       # yields string '155' (under ASCII)
+        $baz = 0+$foo & 0+$bar;     # both ops explicitly numeric
+        $biz = "$foo" ^ "$bar";     # both ops explicitly stringy
+        use integer;
+        no integer;
+        printf "%.20g\n", 123456789123456789;
+        #        produces 123456789123456784
+        $x = Math::BigInt->new('123456789123456789');
+        print $x * $x;
+        # prints +15241578780673678515622620750190521

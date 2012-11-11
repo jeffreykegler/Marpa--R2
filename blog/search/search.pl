@@ -18,7 +18,22 @@ use 5.010;
 use strict;
 use warnings;
 use English qw( -no_match_vars );
+use Getopt::Long;
+
 use Marpa::R2 2.024000;
+
+sub usage {
+    die <<"END_OF_USAGE_MESSAGE";
+$PROGRAM_NAME [-n] 'exp'
+$PROGRAM_NAME [-n] < file
+END_OF_USAGE_MESSAGE
+} ## end sub usage
+
+my $show_position_flag;
+my $getopt_result = GetOptions( "n!" => \$show_position_flag, );
+usage() if  not $getopt_result ;
+
+my $string    = join q{}, <>;
 
 my $target_grammar = Marpa::R2::Grammar->new(
     {   start => 'start',
@@ -91,16 +106,6 @@ sub My_Error::last_completed_range {
     return ( $first_origin, $earley_set );
 } ## end sub My_Error::last_completed_range
 
-sub My_Error::show_last_expression {
-    my ($self) = @_;
-    my $last_expression =
-        $self->input_slice( $self->last_completed_range('target') );
-    return
-        defined $last_expression
-        ? "Last expression successfully parsed was: $last_expression"
-        : 'No expression was successfully parsed';
-} ## end sub My_Error::show_last_expression
-
 sub My_Error::show_position {
     my ( $self, $position ) = @_;
     my $input = $self->{input};
@@ -109,12 +114,8 @@ sub My_Error::show_position {
     return $local_string;
 } ## end sub My_Error::show_position
 
-my $string    = join q{}, <>;
 my @positions = (0);
-my $recce     = Marpa::R2::Recognizer->new(
-    { grammar => $target_grammar,
-      # trace_terminals => 1
-    } );
+my $recce = Marpa::R2::Recognizer->new( { grammar => $target_grammar, } );
 
 # A quasi-object, for internal use only
 my $self = bless {
@@ -175,7 +176,7 @@ RESULTS: while (1) {
         $self->last_completed_range( 'target', $end_of_search );
     last RESULTS if not defined $origin;
     push @results, [$origin, $end];
-    $end_of_search = $origin - 1;
+    $end_of_search = $origin ;
 }
 for my $result (reverse @results) {
     my ($origin, $end) = @{$result};
@@ -184,7 +185,8 @@ for my $result (reverse @results) {
     $slice =~ s/ \s* \z //xms;
     $slice =~ s/ \n / /gxms;
     $slice =~ s/ \s+ / /gxms;
-    say qq{$origin-$end: "$slice"};
+    print qq{$origin-$end: } if $show_position_flag;
+    say $slice;
 } ## end RESULTS: while (1)
 
 # vim: expandtab shiftwidth=4:
