@@ -83,8 +83,6 @@ my @lexer_table = (
     ],
     [ op_lparen => qr/[(]/xms ],
     [ op_rparen => qr/[)]/xms ],
-    ## Matches a single char, as a catchall
-    [ any_token => qr/./xms ],
 );
 
 sub My_Error::last_completed_range {
@@ -148,24 +146,23 @@ TOKEN: while ( pos $string < $length ) {
     # interest
     next TOKEN if $string =~ m/\G\s+/gcxms;    # skip whitespace
 
-    ## parse should never get exhausted
-    my @terminals_expected = @{ $recce->terminals_expected() };
-    my $matched_token;
-    TOKEN_TYPE: for my $t (@lexer_table) {
-        my ( $token_name, $regex ) = @{$t};
-        CHECK_IF_EXPECTED: {
-            $_ eq $token_name and last CHECK_IF_EXPECTED
-                for @terminals_expected;
-            next TOKEN_TYPE;
-        }
-        next TOKEN_TYPE if not $string =~ m/\G($regex)/gcxms;
-        $matched_token = $token_name;
-        last TOKEN_TYPE;
-    } ## end TOKEN_TYPE: for my $t (@lexer_table)
-    if ( $matched_token ne 'any_token' ) {
-        $recce->alternative( $matched_token, $1 );
-    }
-    $recce->alternative( 'any_token', $1 );
+    my $position = pos $string;
+    FIND_ALTERNATIVE: {
+        TOKEN_TYPE: for my $t (@lexer_table) {
+            my ( $token_name, $regex ) = @{$t};
+            next TOKEN_TYPE if not $string =~ m/\G($regex)/gcxms;
+            if ( not defined $recce->alternative($token_name) ) {
+                pos $string = $position;       # reset position for matching
+                next TOKEN_TYPE;
+            }
+            $recce->alternative('any_token');
+            last FIND_ALTERNATIVE;
+        } ## end TOKEN_TYPE: for my $t (@lexer_table)
+        ## Nothing in the lexer table matched
+        ## Just read the currrent character as an 'any_token'
+        pos $string = $position + 1;
+        $recce->alternative('any_token');
+    } ## end FIND_ALTERNATIVE:
     $recce->earleme_complete();
     my $latest_earley_set_ID = $recce->latest_earley_set();
     $positions[$latest_earley_set_ID] = pos $string;
