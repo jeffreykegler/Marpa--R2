@@ -102,14 +102,6 @@ sub My_Error::last_completed_range {
     return ( $first_origin, $earley_set );
 } ## end sub My_Error::last_completed_range
 
-sub My_Error::show_position {
-    my ( $self, $position ) = @_;
-    my $input = $self->{input};
-    my $local_string = substr ${$input}, $position, 40;
-    $local_string =~ s/\n/\\n/gxms;
-    return $local_string;
-} ## end sub My_Error::show_position
-
 my @positions = (0);
 my $recce = Marpa::R2::Recognizer->new( { grammar => $target_grammar, } );
 
