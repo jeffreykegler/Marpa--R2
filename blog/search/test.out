@@ -104,6 +104,7 @@ Found:
 In: @ones = (1) x 80;           # a list of 80 1's
 Found:
 (1) x 80
+80
 1
 ===
 In: @ones = (5) x @ones;        # set all elements to 5
