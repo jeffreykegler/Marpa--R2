@@ -54,16 +54,14 @@ $target_grammar->precompute();
 
 # Order matters !!
 my @lexer_table = (
-    [ number       => qr/(?:\d+(?:\.\d*)?|\.\d+)/xms ],
-    [ scalar       => qr/ [\$] \w+ \b/xms ],
+    [ number     => qr/(?:\d+(?:\.\d*)?|\.\d+)/xms ],
+    [ scalar     => qr/ [\$] \w+ \b/xms ],
     [ postfix_op => qr/ [-][-] | [+][+] /xms ],
-    [ unop => qr/ [-][-] | [+][+] /xms ],
-    [ binop        => qr/
+    [ unop       => qr/ [-][-] | [+][+] /xms ],
+    [   binop => qr/
           [*][*]
         | [>][>]
         | [<][<]
-        | [!]
-        | [~]
         | [*]
         | [\/]
         | [%]
@@ -74,11 +72,17 @@ my @lexer_table = (
         | [|]
         | [=]
         | [,]
-    /xms ],
-    [ unop       => qr/[-]/ ],
-    [ unop         => qr/[+!~]/xms ],
-    [ op_lparen    => qr/[(]/xms ],
-    [ op_rparen    => qr/[)]/xms ],
+    /xms
+    ],
+    [   unop => qr/
+          [-]
+        | [+]
+        | [!]
+        | [~]
+    /xms
+    ],
+    [ op_lparen => qr/[(]/xms ],
+    [ op_rparen => qr/[)]/xms ],
     ## Matches a single char, as a catchall
     [ any_token => qr/./xms ],
 );
