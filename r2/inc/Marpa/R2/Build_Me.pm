@@ -32,6 +32,11 @@ use English qw( -no_match_vars );
 use Time::Piece;
 
 use Marpa::R2::Config;
+if ($Marpa::R2::PURE_PERL_BUILD_MODE) {
+	foreach (keys %Marpa::R2::PURE_PERL_BUILD_MODE_VERSION_FOR_CONFIG) {
+		eval "use $_; 1;" || die "Cannot load $_";
+	}
+}
 
 my $preamble = <<'END_OF_STRING';
 # This file is written by Build.PL
@@ -227,8 +232,9 @@ sub process_xs {
         # finalize libmarpa.a
         my $libmarpa_libs_dir =
             File::Spec->catdir( $self->base_dir(), 'libmarpa_build',
-            "marpa-$libmarpa_version", '.libs' );
-        my $libmarpa_archive = File::Spec->catfile( $libmarpa_libs_dir, 'libmarpa.a' );
+            "marpa-$libmarpa_version",
+            $Marpa::R2::PURE_PERL_BUILD_MODE ? ('blib', 'arch', 'auto', 'libmarpa') : '.libs');
+        my $libmarpa_archive = File::Spec->catfile( $libmarpa_libs_dir, $Marpa::R2::PURE_PERL_BUILD_MODE ? "libmarpa$Config{lib_ext}" : 'libmarpa.a');
         push @{ $self->{properties}->{objects} }, $libmarpa_archive;
     }
 
@@ -313,97 +319,240 @@ sub do_libmarpa {
     File::Path::rmtree($build_dir);
 
     if ( $self->verbose() ) {
-        say join q{ }, "Running command: tar -xf $tar_file"
-            or die "print failed: $ERRNO";
+    	if ($Marpa::R2::PURE_PERL_BUILD_MODE) {
+        	say join q{ }, "Extracting $tar_file"
+            	or die "print failed: $ERRNO";
+    	} else {
+        	say join q{ }, "Running command: tar -xf $tar_file"
+            	or die "print failed: $ERRNO";
+        }
     }
-    if (not IPC::Cmd::run(
-            command => [ 'tar', '-xf', $tar_file ],
-            verbose => 1
-        )
-        )
-    {
-        die "tar Failed: $ERRNO";
-    } ## end if ( not IPC::Cmd::run( command => [ 'tar', '-xf', $tar_file...]))
+    if ($Marpa::R2::PURE_PERL_BUILD_MODE) {
+	Archive::Tar->extract_archive($tar_file) || die "Extraction failed: $Archive::Tar::error";
+    } else {
+    	if (not IPC::Cmd::run(
+            	command => [ 'tar', '-xf', $tar_file ],
+            	verbose => 1
+        	)
+        	)
+    	{
+        	die "tar Failed: $ERRNO";
+    	} ## end if ( not IPC::Cmd::run( command => [ 'tar', '-xf', $tar_file...]))
+    }
 
     chdir $build_dir;
 
-    my @m4_files         = glob('m4/*.m4');
-    my $configure_script = 'configure';
-
-    # Some files should NEVER be updated in this directory, by
-    # make or anything else.  If for some reason they are
-    # out of date, stamp them up to date
-    if (not $self->up_to_date( [ 'configure.ac', @m4_files ], 'aclocal.m4' ) )
-    {
-        utime time(), time(), 'aclocal.m4';
+    if (! $Marpa::R2::PURE_PERL_BUILD_MODE) {
+	    my @m4_files         = glob('m4/*.m4');
+	    my $configure_script = 'configure';
+	
+	    # Some files should NEVER be updated in this directory, by
+	    # make or anything else.  If for some reason they are
+	    # out of date, stamp them up to date
+	    if (not $self->up_to_date( [ 'configure.ac', @m4_files ], 'aclocal.m4' ) )
+	    {
+	        utime time(), time(), 'aclocal.m4';
+	    }
+	    if (not $self->up_to_date(
+	            [ 'configure.ac', 'Makefile.am', 'aclocal.m4' ],
+	            'Makefile.in'
+	        )
+	        )
+	    {
+	        utime time(), time(), 'Makefile.in';
+	    } ## end if ( not $self->up_to_date( [ 'configure.ac', 'Makefile.am'...]))
+	    if (not $self->up_to_date(
+	            [ 'configure.ac',    'aclocal.m4' ],
+	            [ $configure_script, 'config.h.in' ]
+	        )
+	        )
+	    {
+	        utime time(), time(), $configure_script;
+	        utime time(), time(), 'config.h.in';
+	    } ## end if ( not $self->up_to_date( [ 'configure.ac', 'aclocal.m4'...]))
+	
+	    if ( $self->verbose() ) {
+	        print "Configuring libmarpa\n"
+	            or die "print failed: $ERRNO";
+	    }
+	    my $shell = $Config{sh};
+	
+	##no critic(ValuesAndExpressions::RequireInterpolationOfMetachars)
+	    $shell or die q{No Bourne shell available says $Config{sh}};
+	##use critic
     }
-    if (not $self->up_to_date(
-            [ 'configure.ac', 'Makefile.am', 'aclocal.m4' ],
-            'Makefile.in'
-        )
-        )
-    {
-        utime time(), time(), 'Makefile.in';
-    } ## end if ( not $self->up_to_date( [ 'configure.ac', 'Makefile.am'...]))
-    if (not $self->up_to_date(
-            [ 'configure.ac',    'aclocal.m4' ],
-            [ $configure_script, 'config.h.in' ]
-        )
-        )
-    {
-        utime time(), time(), $configure_script;
-        utime time(), time(), 'config.h.in';
-    } ## end if ( not $self->up_to_date( [ 'configure.ac', 'aclocal.m4'...]))
-
-    if ( $self->verbose() ) {
-        print "Configuring libmarpa\n"
-            or die "print failed: $ERRNO";
-    }
-    my $shell = $Config{sh};
-
-##no critic(ValuesAndExpressions::RequireInterpolationOfMetachars)
-    $shell or die q{No Bourne shell available says $Config{sh}};
-##use critic
-
+    
     my $original_cflags = $ENV{CFLAGS};
     local $ENV{CFLAGS};
     $ENV{CFLAGS} = $original_cflags if defined $original_cflags;
 
     my @configure_command_args = ('--disable-static');
+    my @debug_flags = ();
     if ( defined $self->args('Marpa-debug') ) {
         if ( defined $ENV{LIBMARPA_CFLAGS} ) {
             $ENV{CFLAGS} = $ENV{LIBMARPA_CFLAGS};
         }
-        my @debug_flags = ('-DMARPA_DEBUG');
-        push @debug_flags, '-fno-inline', '-Wno-inline';
+        push @debug_flags, '-DMARPA_DEBUG';
+        push @debug_flags, '-fno-inline', '-Wno-inline' if ($self->config('cc') eq 'gcc');
         push @debug_flags, '-DMARPA_OBSTACK_DEBUG';
         push @configure_command_args,
             'MARPA_DEBUG_FLAG=' . ( join q{ }, @debug_flags );
     } ## end if ( defined $self->args('Marpa-debug') )
-
-    if ( $self->verbose() ) {
-        say join q{ }, "Running command:", $shell, $configure_script,
-            @configure_command_args
-            or die "print failed: $ERRNO";
+	
+    if ($Marpa::R2::PURE_PERL_BUILD_MODE) {
+	my @marpa_version= (
+	    $self->dist_version() =~ /\A (\d+) [.] (\d{3}) [_]? (\d{3}) \z/xms );
+	my $marpa_version = int($marpa_version[0]) . "." . int($marpa_version[1]) . "." . int($marpa_version[2]);
+	#
+	## C.f. http://fr.slideshare.net/hashashin/building-c-and-c-libraries-with-perl
+	#
+	my @c = qw/marpa.c marpa_obs.c avl.c/;
+	if (! -r 'config.h') {
+	    #
+	    ## Because Config::AutoConf can only generate #define/#undef
+	    ## stubs, we write our config.h with these stubs, our config.h
+	    ## will then include a generated config_from_autoconf.h
+	    #
+	    if ( $self->verbose() ) {
+		say join q{ }, "Doing config.h"
+	            or die "print failed: $ERRNO";
+	    }
+	    open(CONFIG_H, '>>', 'config.h') || die "Cannot open config.h, $!\n";
+	    my $ac = Config::AutoConf->new();
+	    my $inline_ok = 0;
+	    {
+		$ac->msg_checking('inline');
+		my $program = $ac->lang_build_program("static inline int testinline() {return 1;}\n", 'testinline');
+		$inline_ok = $ac->compile_if_else($program);
+		$ac->msg_result($inline_ok ? 'yes' : 'no');
+	    }
+	    my $inline = '';
+	    if (! $inline_ok) {
+		foreach (qw/__inline__ __inline/) {
+		    my $candidate = $_;
+		    $ac->msg_checking($candidate);
+		    my $program = $ac->lang_build_program("static $candidate int testinline() {return 1;}\n", 'testinline');
+		    my $rc = $ac->compile_if_else($program);
+		    $ac->msg_result($rc ? 'yes' : 'no');
+		    if ($rc) {
+			$inline = $candidate;
+			last;
+		    }
+		}
+	    }
+	    if ($inline) {
+		print CONFIG_H <<INLINEHOOK;
+#ifndef __CONFIG_WITH_STUBS_H
+#ifndef __cplusplus
+#define inline $inline
+#endif
+#include "config_from_autoconf.h"
+#endif /* __CONFIG_WITH_STUBS_H */
+INLINEHOOK
+	    } else {
+		print CONFIG_H <<INLINEHOOK;
+#ifndef __CONFIG_WITH_STUBS_H
+#ifndef __cplusplus
+/* #undef inline */
+#endif
+#include "config_from_autoconf.h"
+#endif /* __CONFIG_WITH_STUBS_H */
+INLINEHOOK
+	    }
+	    close(CONFIG_H);
+	    $ac = Config::AutoConf->new();
+	    $ac->check_stdc_headers;
+	    $ac->check_all_headers( qw#dlfcn.h sys/types.h sys/stat.h memory.h strings.h inttypes.h unistd.h stdint.h# );
+	    $ac->check_type('unsigned long long int');
+	    if ($ac->cache_val($ac->_cache_name('unsigned long long int'))) {
+		$ac->check_type('intmax_t',  undef, sub {$ac->define_var('intmax_t', 'long long int');},           undef);
+		$ac->check_type('size_t',    undef, sub {$ac->define_var('size_t', 'long long int');},             undef);
+		$ac->check_type('uintmax_t', undef, sub {$ac->define_var('uintmax_t', 'unsigned long long int');}, undef);
+	    } else {
+		$ac->check_type('intmax_t',  undef, sub {$ac->define_var('intmax_t', 'long int');},           undef);
+		$ac->check_type('size_t',    undef, sub {$ac->define_var('size_t', 'long int');},             undef);
+		$ac->check_type('uintmax_t', undef, sub {$ac->define_var('uintmax_t', 'unsigned long int');}, undef);
+	    }
+	    my $memset = $ac->lang_call('', 'memset');
+	    $ac->msg_checking('memset');
+	    my $rc = $ac->compile_if_else($memset);
+	    $ac->define_var('HAVE_MEMSET', $ac->compile_if_else($memset));
+	    $ac->define_var('PACKAGE', "\"marpa\"");
+	    $ac->define_var('PACKAGE_BUGREPORT', "\"http://rt.cpan.org/NoAuth/Bugs.html?Dist=Marpa\"");
+	    $ac->define_var('PACKAGE_NAME', "\"marpa\"");
+	    $ac->define_var('PACKAGE_STRING', "\"marpa $marpa_version[0].$marpa_version[2].$marpa_version[1]\"");
+	    $ac->define_var('PACKAGE_TARNAME', "\"marpa\"");
+	    $ac->define_var('PACKAGE_URL', "\"\"");
+	    $ac->define_var('PACKAGE_VERSION', "\"$marpa_version\"");
+	    $ac->define_var('PACKAGE_STRING', "\"$marpa_version\"");
+	    $ac->msg_result($rc ? 'yes' : 'no');
+	    $ac->write_config_h('config_from_autoconf.h');
+	}
+	if (! -r 'marpa_config.h') {
+	    if ( $self->verbose() ) {
+		say join q{ }, "Doing marpa_config.h"
+	            or die "print failed: $ERRNO";
+	    }
+	    open(CONF, '>', 'marpa_config.h') || die "Cannot open marpa_config.h, $!\n";
+	    print CONF <<MARPA_CONFIG_H;
+#ifndef __MARPA_CONFIG_H__
+#define __MARPA_CONFIG_H__
+	
+#define MARPA_MAJOR_VERSION $marpa_version[0]
+#define MARPA_MINOR_VERSION $marpa_version[1]
+#define MARPA_MICRO_VERSION $marpa_version[2]
+#define MARPA_INTERFACE_AGE 100
+#define MARPA_BINARY_AGE (100 * $marpa_version[2] + $marpa_version[1])
+#define MARPA_VERSION \"$marpa_version\"
+	
+#endif /* __MARPA_CONFIG_H__ */
+MARPA_CONFIG_H
+            close(CONF);
+	}
+	my @o = map {s/\.c$/$Config{obj_ext}/; $_} @c;
+	if (! -r 'Makefile.PL') {
+	    open(MAKEFILEPL, '>', 'Makefile.PL') || die "Cannot open Makefile.PL, $!\n";
+	    my $CCFLAGS = @debug_flags ? "$Config{ccflags} @debug_flags" : '';
+	    print MAKEFILEPL "
+use ExtUtils::MakeMaker;
+WriteMakefile(VERSION        => \"$marpa_version\",
+              XS_VERSION     => \"$marpa_version\",
+              NAME           => 'libmarpa',
+              OBJECT         => '@o',
+              CCFLAGS        => '$CCFLAGS',
+              LINKTYPE       => 'static');
+";
+	    close(MAKEFILEPL);
+	    die 'Making Makefile: perl Failure'
+	        if not IPC::Cmd::run( command => [$^X, 'Makefile.PL'], verbose => 1 );
+	}
+    } else {
+	    my $shell = $Config{sh};
+	    my $configure_script = 'configure';
+	    if ( $self->verbose() ) {
+	        say join q{ }, "Running command:", $shell, $configure_script,
+	            @configure_command_args
+	            or die "print failed: $ERRNO";
+	    }
+	    if (not IPC::Cmd::run(
+	            command => [ $shell, $configure_script, @configure_command_args ],
+	            verbose => 1
+	        )
+	        )
+	    {
+	        say {*STDERR} "Failed: $configure_script"
+	            or die "say failed: $ERRNO";
+	        say {*STDERR} "Current directory: $build_dir"
+	            or die "say failed: $ERRNO";
+	        die 'Cannot run libmarpa configure';
+	    } ## end if ( not IPC::Cmd::run( command => [ $shell, $configure_script...]))
+	
     }
-    if (not IPC::Cmd::run(
-            command => [ $shell, $configure_script, @configure_command_args ],
-            verbose => 1
-        )
-        )
-    {
-        say {*STDERR} "Failed: $configure_script"
-            or die "say failed: $ERRNO";
-        say {*STDERR} "Current directory: $build_dir"
-            or die "say failed: $ERRNO";
-        die 'Cannot run libmarpa configure';
-    } ## end if ( not IPC::Cmd::run( command => [ $shell, $configure_script...]))
-
     if ( $self->verbose() ) {
         print "Making libmarpa: Start\n" or die "Cannot print: $ERRNO";
     }
     die 'Making libmarpa: make Failure'
-        if not IPC::Cmd::run( command => ['make'], verbose => 1 );
+        if not IPC::Cmd::run( command => [$Config{make}], verbose => 1 );
 
     chdir $cwd;
     return 1;
@@ -479,7 +628,7 @@ sub ACTION_code {
     $self->write_file( $version_pm,      qw(lib Marpa R2 Version.pm) );
     $self->write_file( $perl_version_pm, qw(pperl Marpa R2 Perl Version.pm) );
     $self->do_libmarpa();
-    return $self->SUPER::ACTION_code;
+ return $self->SUPER::ACTION_code;
 } ## end sub ACTION_code
 
 sub ACTION_clean {

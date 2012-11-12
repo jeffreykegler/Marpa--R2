@@ -32,6 +32,10 @@ use Marpa::R2::Config;
 my %build_requires =
     map { ( $_, $Marpa::R2::VERSION_FOR_CONFIG{$_} ) }
     qw( ExtUtils::CBuilder Test::More );
+if ($Marpa::R2::PURE_PERL_BUILD_MODE) {
+    map { $build_requires{$_} = $Marpa::R2::VERSION_FOR_CONFIG{$_} }
+    qw( Archive::Tar Config::AutoConf ExtUtils::MakeMaker );
+}
 my %configure_requires =
     map { ( $_, $Marpa::R2::VERSION_FOR_CONFIG{$_} ) }
     qw( Module::Build );

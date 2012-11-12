@@ -23,6 +23,13 @@ use 5.010;
 use strict;
 use warnings;
 
+%Marpa::R2::PURE_PERL_BUILD_MODE_VERSION_FOR_CONFIG = (
+    'Archive::Tar'        => 0,
+    'Config::AutoConf'    => 0,
+    'ExtUtils::MakeMaker' => 0,
+);
+$Marpa::R2::PURE_PERL_BUILD_MODE = $ENV{PURE_PERL_BUILD_MODE} || (($^O eq 'MSWin32') ? 1 : 0);
+
 %Marpa::R2::VERSION_FOR_CONFIG = (
     'Carp'                => 1.08,
     'Data::Dumper'        => '2.125',
@@ -34,6 +41,7 @@ use warnings;
     'PPI'                 => '1.206',
     'Scalar::Util'        => 1.21,
     'Test::More'          => 0.94,
+    %Marpa::R2::PURE_PERL_BUILD_MODE_VERSION_FOR_CONFIG
 );
 
 1;

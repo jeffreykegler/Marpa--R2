@@ -28,6 +28,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "config.h"
 #include "marpa_obs.h"
 #include "marpa_util.h"
 #include "avl.h"
