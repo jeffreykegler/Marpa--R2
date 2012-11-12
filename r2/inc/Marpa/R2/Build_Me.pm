@@ -32,11 +32,23 @@ use English qw( -no_match_vars );
 use Time::Piece;
 
 use Marpa::R2::Config;
-if ($Marpa::R2::PURE_PERL_BUILD_MODE) {
-	foreach (keys %Marpa::R2::PURE_PERL_BUILD_MODE_VERSION_FOR_CONFIG) {
-		eval "use $_; 1;" || die "Cannot load $_";
-	}
-}
+
+BEGIN {
+    if ($Marpa::R2::USE_PERL_AUTOCONF) {
+        for my $package (qw(Archive::Tar ExtUtils::MakeMaker Config::AutoConf))
+        {
+            if ( not eval "require $package" ) {
+                die "$package is not installed: $EVAL_ERROR\n",
+                    "    Module $package is required for Windows and for USE_PERL_AUTOCONF mode\n";
+            }
+            my $version = $Marpa::R2::VERSION_FOR_CONFIG{$package};
+            if ( not $package->VERSION($version) ) {
+                die "Version $version of $package is not installed\n",
+                    "    Version $version of $package is required for Windows and for USE_PERL_AUTOCONF mode\n";
+            }
+        } ## end for my $package (...)
+    } ## end if ($Marpa::R2::USE_PERL_AUTOCONF)
+} ## end BEGIN
 
 my $preamble = <<'END_OF_STRING';
 # This file is written by Build.PL
@@ -233,8 +245,8 @@ sub process_xs {
         my $libmarpa_libs_dir =
             File::Spec->catdir( $self->base_dir(), 'libmarpa_build',
             "marpa-$libmarpa_version",
-            $Marpa::R2::PURE_PERL_BUILD_MODE ? ('blib', 'arch', 'auto', 'libmarpa') : '.libs');
-        my $libmarpa_archive = File::Spec->catfile( $libmarpa_libs_dir, $Marpa::R2::PURE_PERL_BUILD_MODE ? "libmarpa$Config{lib_ext}" : 'libmarpa.a');
+            $Marpa::R2::USE_PERL_AUTOCONF ? ('blib', 'arch', 'auto', 'libmarpa') : '.libs');
+        my $libmarpa_archive = File::Spec->catfile( $libmarpa_libs_dir, $Marpa::R2::USE_PERL_AUTOCONF ? "libmarpa$Config{lib_ext}" : 'libmarpa.a');
         push @{ $self->{properties}->{objects} }, $libmarpa_archive;
     }
 
@@ -319,7 +331,7 @@ sub do_libmarpa {
     File::Path::rmtree($build_dir);
 
     if ( $self->verbose() ) {
-    	if ($Marpa::R2::PURE_PERL_BUILD_MODE) {
+    	if ($Marpa::R2::USE_PERL_AUTOCONF) {
         	say join q{ }, "Extracting $tar_file"
             	or die "print failed: $ERRNO";
     	} else {
@@ -327,7 +339,7 @@ sub do_libmarpa {
             	or die "print failed: $ERRNO";
         }
     }
-    if ($Marpa::R2::PURE_PERL_BUILD_MODE) {
+    if ($Marpa::R2::USE_PERL_AUTOCONF) {
 	Archive::Tar->extract_archive($tar_file) || die "Extraction failed: $Archive::Tar::error";
     } else {
     	if (not IPC::Cmd::run(
@@ -342,7 +354,7 @@ sub do_libmarpa {
 
     chdir $build_dir;
 
-    if (! $Marpa::R2::PURE_PERL_BUILD_MODE) {
+    if (! $Marpa::R2::USE_PERL_AUTOCONF) {
 	    my @m4_files         = glob('m4/*.m4');
 	    my $configure_script = 'configure';
 	
@@ -399,7 +411,7 @@ sub do_libmarpa {
             'MARPA_DEBUG_FLAG=' . ( join q{ }, @debug_flags );
     } ## end if ( defined $self->args('Marpa-debug') )
 	
-    if ($Marpa::R2::PURE_PERL_BUILD_MODE) {
+    if ($Marpa::R2::USE_PERL_AUTOCONF) {
 	my @marpa_version= (
 	    $self->dist_version() =~ /\A (\d+) [.] (\d{3}) [_]? (\d{3}) \z/xms );
 	my $marpa_version = int($marpa_version[0]) . "." . int($marpa_version[1]) . "." . int($marpa_version[2]);

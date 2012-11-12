@@ -29,22 +29,38 @@ use lib File::Spec->catdir('inc');
 use Marpa::R2::Build_Me;
 use Marpa::R2::Config;
 
+my @packages_for_perl_autoconf = qw( Archive::Tar Config::AutoConf ExtUtils::MakeMaker );
+
 my %build_requires =
     map { ( $_, $Marpa::R2::VERSION_FOR_CONFIG{$_} ) }
     qw( ExtUtils::CBuilder Test::More );
-if ($Marpa::R2::PURE_PERL_BUILD_MODE) {
+if ($Marpa::R2::USE_PERL_AUTOCONF) {
     map { $build_requires{$_} = $Marpa::R2::VERSION_FOR_CONFIG{$_} }
-    qw( Archive::Tar Config::AutoConf ExtUtils::MakeMaker );
+    @packages_for_perl_autoconf;
 }
+
 my %configure_requires =
-    map { ( $_, $Marpa::R2::VERSION_FOR_CONFIG{$_} ) }
-    qw( Module::Build );
+    map { ( $_, $Marpa::R2::VERSION_FOR_CONFIG{$_} ) } qw( Module::Build );
 my %requires =
     map { ( $_, $Marpa::R2::VERSION_FOR_CONFIG{$_} ) }
     qw( Scalar::Util List::Util HTML::Entities HTML::Parser Carp Data::Dumper );
 my %recommends =
     map { ( $_, $Marpa::R2::VERSION_FOR_CONFIG{$_} ) }
-    qw( PPI );
+    ( @packages_for_perl_autoconf, qw( PPI ) );
+
+if ($Marpa::R2::USE_PERL_AUTOCONF) {
+    for my $package (@packages_for_perl_autoconf) {
+        if ( not eval "require $package" ) {
+            die "$package is not installed: $EVAL_ERROR\n",
+                "    Module $package is required for Windows and for USE_PERL_AUTOCONF mode\n";
+        }
+        my $version = $Marpa::R2::VERSION_FOR_CONFIG{$package};
+        if ( not $package->VERSION($version) ) {
+            die "Version $version of $package is not installed\n",
+                "    Version $version of $package is required for Windows and for USE_PERL_AUTOCONF mode\n";
+        }
+    } ## end for my $package (@packages_for_perl_autoconf)
+} ## end if ($Marpa::R2::USE_PERL_AUTOCONF)
 
 my %pod_files = ();
 {
