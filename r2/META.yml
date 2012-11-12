@@ -3,7 +3,10 @@ abstract: 'Release 2 of Marpa'
 author:
   - 'Jeffrey Kegler'
 build_requires:
+  Archive::Tar: 0
+  Config::AutoConf: 0
   ExtUtils::CBuilder: 0.27
+  ExtUtils::MakeMaker: 0
   Test::More: 0.94
 configure_requires:
   Module::Build: 0.3601
