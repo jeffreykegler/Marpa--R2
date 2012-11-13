@@ -60,7 +60,6 @@
       },
       "runtime" : {
          "recommends" : {
-            "Archive::Tar" : 0,
             "Config::AutoConf" : 0,
             "ExtUtils::MakeMaker" : 0,
             "PPI" : "1.206"

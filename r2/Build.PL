@@ -29,7 +29,7 @@ use lib File::Spec->catdir('inc');
 use Marpa::R2::Build_Me;
 use Marpa::R2::Config;
 
-my @packages_for_perl_autoconf = qw( Archive::Tar Config::AutoConf ExtUtils::MakeMaker );
+my @packages_for_perl_autoconf = qw( Config::AutoConf ExtUtils::MakeMaker );
 
 my %build_requires =
     map { ( $_, $Marpa::R2::VERSION_FOR_CONFIG{$_} ) }

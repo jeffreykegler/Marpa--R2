@@ -36,7 +36,7 @@ use Marpa::R2::Config;
 BEGIN {
     if ($Marpa::R2::USE_PERL_AUTOCONF) {
 	say "Using Config::Autoconf";
-        for my $package (qw(Archive::Tar ExtUtils::MakeMaker Config::AutoConf))
+        for my $package (qw( ExtUtils::MakeMaker Config::AutoConf ))
         {
             if ( not eval "require $package" ) {
                 die "$package is not installed: $EVAL_ERROR\n",
