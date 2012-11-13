@@ -146,7 +146,7 @@ sub do_priority_rule {
 sub do_empty_rule {
     my ( undef, $lhs, undef, $adverb_list ) = @_;
     my $action = $adverb_list->{action};
-    return [ { lhs => $lhs, rhs => [], @{ $action || [] } } ];
+    return [ { lhs => $lhs, rhs => [], defined($action) ? (action => $action) : () } ];
 }
 
 sub do_quantified_rule {
