@@ -49,10 +49,7 @@
    "prereqs" : {
       "build" : {
          "requires" : {
-            "Archive::Tar" : 0,
-            "Config::AutoConf" : 0,
             "ExtUtils::CBuilder" : "0.27",
-            "ExtUtils::MakeMaker" : 0,
             "Test::More" : "0.94"
          }
       },

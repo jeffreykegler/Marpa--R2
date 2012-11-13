@@ -145,7 +145,9 @@ END_OF_STRING
 my %GNU_file = (
     map {
     (   'libmarpa/stage/' . $_, 1,
-        'libmarpa/test/dev/' . $_,   1
+        'libmarpa/test/dev/' . $_,   1,
+        'libmarpa_dist/' . $_,   1,
+        'libmarpa_doc_dist/' . $_,   1
         )
     } qw(
 	aclocal.m4
@@ -276,28 +278,22 @@ my %files_by_type = (
     'libmarpa/dev/VERSION.in'                => \&trivial,
     'libmarpa/dev/api.texi'                 => \&license_problems_in_fdl_file,
     'libmarpa/dev/internal.texi'            => \&license_problems_in_fdl_file,
+    'libmarpa_doc_dist/api.texi'            => \&license_problems_in_fdl_file,
+    'libmarpa_doc_dist/internal.texi'       => \&license_problems_in_fdl_file,
+    'libmarpa_doc_dist/version_i.texi'      => \&trivial,
+    'libmarpa_doc_dist/version.texi'        => \&trivial,
     'libmarpa/dev/copyright_page_license.w' => \&copyright_page,
     'libmarpa/dev/cwebmac.tex' =>
         \&ignored,    # originally from Cweb, leave it alone
-    'libmarpa/dev/dist/AUTHORS' => \&trivial,
-    'libmarpa/dev/dist/COPYING.LESSER' =>
-        \&ignored,    # GNU license text, leave it alone
-    'libmarpa/dev/dist/ChangeLog'   => \&trivial,
-    'libmarpa/dev/dist/NEWS'        => \&trivial,
-    'libmarpa/dev/dist/README'      => \&license_problems_in_text_file,
-    'libmarpa/dev/doc_dist/AUTHORS' => \&trivial,
-    'libmarpa/dev/doc_dist/fdl-1.3.texi' =>
-        \&ignored,    # GNU license text, leave it alone
-    'libmarpa/dev/doc_dist/lgpl-3.0.texi' =>
-        \&ignored,    # GNU license text, leave it alone
-    'libmarpa/dev/doc_dist/COPYING.LESSER' =>
-        \&ignored,    # GNU license text, leave it alone
-    'libmarpa/dev/doc_dist/ChangeLog' => \&trivial,
-    'libmarpa/dev/doc_dist/NEWS'      => \&trivial,
-    'libmarpa/dev/doc_dist/README'    => \&license_problems_in_text_file,
+
+     ## GNU license text, leave it alone
+    'libmarpa_doc_dist/fdl-1.3.texi'        => \&ignored,
+    'libmarpa/dev/doc_dist/fdl-1.3.texi' => \&ignored,  
+    'libmarpa/dev/doc_dist/lgpl-3.0.texi' => \&ignored, 
+    'libmarpa_doc_dist/lgpl-3.0.texi'       => \&ignored, 
+
     'libmarpa/stage/config.h.in' =>
         check_tag( 'Generated from configure.ac by autoheader', 250 ),
-    'libmarpa/stage_dist/install-sh'    => \&check_X_copyright,
     'libmarpa/test/Makefile'            => \&trivial,
     'libmarpa/test/README'              => \&trivial,
     'libmarpa/test/dev/install-sh'      => \&check_X_copyright,
@@ -311,6 +307,30 @@ my %files_by_type = (
     't/etc/wall_proof.txt'              => \&cc_a_nd,
 );
 
+# Common files in the GNU distributions
+for my $distlib (
+    qw(libmarpa/dev/doc_dist libmarpa/dev/dist libmarpa_dist libmarpa_doc_dist)
+    )
+{
+    $files_by_type{"$distlib/AUTHORS"}   = \&trivial;
+    $files_by_type{"$distlib/NEWS"}      = \&trivial;
+    $files_by_type{"$distlib/ChangeLog"} = \&trivial;
+
+    ## GNU license text, leave it alone
+    $files_by_type{"$distlib/COPYING.LESSER"} = \&ignored;
+
+    ## GNU standard -- has their license language
+    $files_by_type{"$distlib/INSTALL"} = \&ignored;
+
+    $files_by_type{"$distlib/README"}     = \&license_problems_in_text_file;
+    $files_by_type{"$distlib/stamp-h1"}   = \&trivial;
+    $files_by_type{"$distlib/stamp-1"}   = \&trivial;
+    $files_by_type{"$distlib/stamp-vti"}   = \&trivial;
+    $files_by_type{"$distlib/install-sh"} = \&check_X_copyright;
+    $files_by_type{"$distlib/config.h.in"} =
+        check_tag( 'Generated from configure.ac by autoheader', 250 );
+} ## end for my $distlib (...)
+
 sub file_type {
     my ($filename) = @_;
     my $closure = $files_by_type{$filename};
@@ -322,6 +342,9 @@ sub file_type {
             and $dirs[0] eq 'pperl'
             and $filepart =~ /[.]pm\z/xms;
     return \&ignored if $filepart =~ /[.]tar\z/xms;
+
+    # info files are generated -- licensing is in source
+    return \&ignored if $filepart =~ /[.]info\z/xms;
     return \&ignored
         if scalar @dirs >= 2
             and $dirs[0] eq 'libmarpa'
