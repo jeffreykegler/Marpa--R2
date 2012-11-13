@@ -207,8 +207,6 @@ sub process_xs {
 
     my @libmarpa_build_dir = File::Spec->splitdir( $self->base_dir );
     push @libmarpa_build_dir, 'libmarpa_build';
-    my $libmarpa_version = libmarpa_version($self);
-    push @libmarpa_build_dir, "marpa-$libmarpa_version";
     my $libmarpa_build_dir = File::Spec->catdir(@libmarpa_build_dir);
 
     my @xs_dependencies = ( 'typemap', 'Build', $xs_file, $dest_gp_xsh );
@@ -245,7 +243,6 @@ sub process_xs {
         # finalize libmarpa.a
         my $libmarpa_libs_dir =
             File::Spec->catdir( $self->base_dir(), 'libmarpa_build',
-            "marpa-$libmarpa_version",
             $Marpa::R2::USE_PERL_AUTOCONF ? ('blib', 'arch', 'auto', 'libmarpa') : '.libs');
         my $libmarpa_archive = File::Spec->catfile( $libmarpa_libs_dir, $Marpa::R2::USE_PERL_AUTOCONF ? "libmarpa$Config{lib_ext}" : 'libmarpa.a');
         push @{ $self->{properties}->{objects} }, $libmarpa_archive;
@@ -294,74 +291,74 @@ sub marpa_link_c {
     return $spec->{lib_file};
 } ## end sub marpa_link_c
 
-sub libmarpa_version {
-    my $self     = shift;
-    my @marpa_version= (
-        $self->dist_version() =~ /\A (\d+) [.] (\d{3}) [_]? (\d{3}) \z/xms );
-    my $libmarpa_version = join '.', map { 0+$_ } @marpa_version;
-    return $libmarpa_version;
-}
-
 sub do_libmarpa {
     my $self     = shift;
     my $cwd      = $self->cwd();
     my $base_dir = $self->base_dir();
 
-    my $libmarpa_version = libmarpa_version($self);
+    my $dist_dir = File::Spec->catdir( $base_dir, 'libmarpa_dist' );
+    my $build_dir = File::Spec->catdir( $base_dir, 'libmarpa_build' );
 
-    my $build_parent_dir = File::Spec->catdir( $base_dir, 'libmarpa_build' );
-    -d $build_parent_dir or mkdir $build_parent_dir;
-    chdir $build_parent_dir;
-
-    my $build_dir = File::Spec->catdir( "marpa-$libmarpa_version" );
-    my $stamp_file =
-        File::Spec->catfile( "marpa-$libmarpa_version",
-        'stamp-h1' );
-    my $up_dir = File::Spec->updir();
-    my $tar_file =
-        File::Spec->catfile( $up_dir, 'libmarpa', 'libmarpa.tar' );
+    my $build_stamp_file = File::Spec->catfile( $build_dir, 'stamp-h1' );
+    my $dist_stamp_file = File::Spec->catfile( $dist_dir, 'stamp-h1' );
 
     # If build directory exists and contains a stamp file more recent than the
     # tar file, we are done.
-    if (-d $build_dir and -e $stamp_file and $self->up_to_date( [$tar_file], $stamp_file )) {
-      chdir $cwd;
-      return;
-    }
+    return if  $self->up_to_date( [$dist_stamp_file], $build_stamp_file ) ;
 
     # Otherwise, rebuild from scratch
     File::Path::rmtree($build_dir);
 
     if ( $self->verbose() ) {
-    	if ($Marpa::R2::USE_PERL_AUTOCONF) {
-        	say join q{ }, "Extracting $tar_file"
+        	say join q{ }, "Copying files from $dist_dir to $build_dir"
             	or die "print failed: $ERRNO";
-    	} else {
-        	say join q{ }, "Running command: tar -xf $tar_file"
-            	or die "print failed: $ERRNO";
-        }
     }
-    if ($Marpa::R2::USE_PERL_AUTOCONF) {
-	Archive::Tar->extract_archive($tar_file) || die "Extraction failed: $Archive::Tar::error";
-    } else {
-    	if (not IPC::Cmd::run(
-            	command => [ 'tar', '-xf', $tar_file ],
-            	verbose => 1
-        	)
-        	)
-    	{
-        	die "tar Failed: $ERRNO";
-    	} ## end if ( not IPC::Cmd::run( command => [ 'tar', '-xf', $tar_file...]))
+
+     ## Make sure build dir structure exists, even if empty
+     my $m4_dir = File::Spec->catdir( $build_dir, 'm4' );
+     File::Path::make_path($m4_dir);
+
+    my @copy_work_list = ();
+    {
+        my $from_m4_dir = File::Spec->catdir( $dist_dir, 'm4' );
+        my $to_m4_dir = File::Spec->catdir( $build_dir, 'm4' );
+	chdir $from_m4_dir;
+	for my $file (<*>) {
+	  my $from_file = File::Spec->catfile($from_m4_dir, $file);
+	  my $to_file = File::Spec->catfile($to_m4_dir, $file);
+	  push @copy_work_list, [$from_file, $to_file];
+	}
+	chdir $cwd;
+    }
+    {
+	chdir $dist_dir;
+	FILE: for my $file (<*>) {
+	  next FILE if -d $file;
+	  next FILE if $file eq 'stamp-h1';
+	  my $from_file = File::Spec->catfile($dist_dir, $file);
+	  my $to_file = File::Spec->catfile($build_dir, $file);
+	  push @copy_work_list, [$from_file, $to_file];
+	}
+	chdir $cwd;
+    }
+    for my $file (@copy_work_list) {
+        File::Copy::copy(@{$file});
     }
 
     chdir $build_dir;
 
     if (! $Marpa::R2::USE_PERL_AUTOCONF) {
-	    my @m4_files         = glob('m4/*.m4');
-	    my $configure_script = 'configure';
-	
+
+	    # This is only necessary for GNU autoconf, which is aggressive
+	    # about looking for things to update
+
 	    # Some files should NEVER be updated in this directory, by
 	    # make or anything else.  If for some reason they are
 	    # out of date, stamp them up to date
+
+	    my @m4_files         = glob('m4/*.m4');
+	    my $configure_script = 'configure';
+	
 	    if (not $self->up_to_date( [ 'configure.ac', @m4_files ], 'aclocal.m4' ) )
 	    {
 	        utime time(), time(), 'aclocal.m4';
@@ -506,8 +503,8 @@ INLINEHOOK
 		say join q{ }, "Doing marpa_config.h"
 	            or die "print failed: $ERRNO";
 	    }
-	    open(CONF, '>', 'marpa_config.h') || die "Cannot open marpa_config.h, $!\n";
-	    print CONF <<MARPA_CONFIG_H;
+	    open my $conf_fh, '>', 'marpa_config.h';
+	    print ${conf_fh}  <<MARPA_CONFIG_H;
 #ifndef __MARPA_CONFIG_H__
 #define __MARPA_CONFIG_H__
 	
@@ -520,13 +517,13 @@ INLINEHOOK
 	
 #endif /* __MARPA_CONFIG_H__ */
 MARPA_CONFIG_H
-            close(CONF);
+            close $conf_fh;
 	}
 	my @o = map {s/\.c$/$Config{obj_ext}/; $_} @c;
 	if (! -r 'Makefile.PL') {
-	    open(MAKEFILEPL, '>', 'Makefile.PL') || die "Cannot open Makefile.PL, $!\n";
+	    open my $makefile_pl_fh, '>', 'Makefile.PL';
 	    my $CCFLAGS = @debug_flags ? "$Config{ccflags} @debug_flags" : '';
-	    print MAKEFILEPL "
+	    print {$makefile_pl_fh} "
 use ExtUtils::MakeMaker;
 WriteMakefile(VERSION        => \"$marpa_version\",
               XS_VERSION     => \"$marpa_version\",
@@ -535,7 +532,7 @@ WriteMakefile(VERSION        => \"$marpa_version\",
               CCFLAGS        => '$CCFLAGS',
               LINKTYPE       => 'static');
 ";
-	    close(MAKEFILEPL);
+	    close $makefile_pl_fh;
 	    die 'Making Makefile: perl Failure'
 	        if not IPC::Cmd::run( command => [$^X, 'Makefile.PL'], verbose => 1 );
 	}
