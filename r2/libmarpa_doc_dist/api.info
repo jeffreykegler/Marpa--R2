@@ -1,0 +1,4413 @@
+This is api.info, produced by makeinfo version 4.13 from api.texi.
+
+This manual (8 November 2012) is for Libmarpa 2.25.0.
+
+   Copyright (C) 2012 Jeffrey Kegler.
+
+     Permission is granted to copy, distribute and/or modify this
+     document under the terms of the GNU Free Documentation License,
+     Version 1.3 or any later version published by the Free Software
+     Foundation.  A copy of the license is included in the section
+     entitled "GNU Free Documentation License."
+
+
+File: api.info,  Node: Top,  Next: Copying,  Prev: (dir),  Up: (dir)
+
+Libmarpa: The Marpa low-level library
+*************************************
+
+This manual (8 November 2012) is for Libmarpa 2.25.0.
+
+   Copyright (C) 2012 Jeffrey Kegler.
+
+     Permission is granted to copy, distribute and/or modify this
+     document under the terms of the GNU Free Documentation License,
+     Version 1.3 or any later version published by the Free Software
+     Foundation.  A copy of the license is included in the section
+     entitled "GNU Free Documentation License."
+
+* Menu:
+
+* Copying::
+* About this document::
+* About Libmarpa::
+* Architecture::
+* Input::
+* Semantics::
+* Threads::
+* Fatal Errors::
+* Introduction to the external interface::
+* Static method::
+* Configuration methods::
+* Grammar methods::
+* Recognizer methods::
+* Progress reports::
+* Bocage methods::
+* Ordering methods::
+* Tree methods::
+* Value methods::
+* Events::
+* Error methods macros and codes::
+* Design notes::
+* Work in Progress::
+* GNU Free Documentation License::
+
+ --- The Detailed Node Listing ---
+
+About this document
+
+* How to read this document::
+* Prerequisites::
+* Parsing theory::
+
+Architecture
+
+* Major objects::
+* Time objects::
+* Reference counting::
+* Numbered objects::
+
+Input
+
+* Earlemes::
+* Terminals::
+
+Earlemes
+
+* The traditional model::
+* The earleme variables::
+* The significances of the earleme variables::
+* The initial earleme settings::
+* The standard model of input::
+* Ambiguous input::
+* Variable length tokens::
+* The generalized model::
+* General rules for the earleme variables::
+
+Semantics
+
+* How Libmarpa semantics work::
+* Valued and unvalued symbols::
+
+Introduction to the external interface
+
+* About the overviews::
+* Return values::
+* Naming conventions::
+
+Grammar methods
+
+* Grammar overview::
+* Grammar constructor::
+* Grammar reference counting::
+* Symbols::
+* Rules::
+* Sequences::
+* Ranks::
+* Grammar precomputation::
+
+Recognizer methods
+
+* Recognizer overview::
+* Recognizer constructor::
+* Recognizer reference counting::
+* Recognizer life cycle mutators::
+* Location accessors::
+* Other parse status methods::
+
+Bocage methods
+
+* Bocage overview::
+* Bocage constructor::
+* Bocage reference counting::
+
+Ordering methods
+
+* Ordering overview::
+* Ordering constructor::
+* Ordering reference counting::
+* Non-default ordering::
+
+Tree methods
+
+* Tree overview::
+* Tree constructor::
+* Tree reference counting::
+* Tree iteration::
+
+Value methods
+
+* Value overview::
+* How to use the valuator::
+* Advantages of step-driven valuation::
+* Maintaining the stack::
+* Valuator constructor::
+* Valuator reference counting::
+* Registering semantics::
+* Stepping through the valuator::
+* Valuator steps by type::
+* Basic step accessors::
+* Other step accessors::
+
+Maintaining the stack
+
+* Sizing the stack::
+* Initializing locations in the stack::
+
+Events
+
+* Events overview::
+* Event methods::
+* Event codes::
+
+Error methods, macros and codes
+
+* Error methods::
+* Error Macros::
+* External error codes::
+* Internal error codes::
+
+Design notes
+
+* Why so many time objects::
+* Design of numbered objects::
+* LHS Terminals::
+
+Work in Progress
+
+* Untested methods::
+
+
+File: api.info,  Node: Copying,  Next: About this document,  Prev: Top,  Up: Top
+
+GNU LESSER GENERAL PUBLIC LICENSE
+*********************************
+
+                        Version 3, 29 June 2007
+
+     Copyright (C) 2007 Free Software Foundation, Inc. `http://fsf.org/'
+
+     Everyone is permitted to copy and distribute verbatim copies of this
+     license document, but changing it is not allowed.
+
+   This version of the GNU Lesser General Public License incorporates
+the terms and conditions of version 3 of the GNU General Public
+License, supplemented by the additional permissions listed below.
+
+  0. Additional Definitions.
+
+     As used herein, "this License" refers to version 3 of the GNU
+     Lesser General Public License, and the "GNU GPL" refers to version
+     3 of the GNU General Public License.
+
+     "The Library" refers to a covered work governed by this License,
+     other than an Application or a Combined Work as defined below.
+
+     An "Application" is any work that makes use of an interface
+     provided by the Library, but which is not otherwise based on the
+     Library.  Defining a subclass of a class defined by the Library is
+     deemed a mode of using an interface provided by the Library.
+
+     A "Combined Work" is a work produced by combining or linking an
+     Application with the Library.  The particular version of the
+     Library with which the Combined Work was made is also called the
+     "Linked Version".
+
+     The "Minimal Corresponding Source" for a Combined Work means the
+     Corresponding Source for the Combined Work, excluding any source
+     code for portions of the Combined Work that, considered in
+     isolation, are based on the Application, and not on the Linked
+     Version.
+
+     The "Corresponding Application Code" for a Combined Work means the
+     object code and/or source code for the Application, including any
+     data and utility programs needed for reproducing the Combined Work
+     from the Application, but excluding the System Libraries of the
+     Combined Work.
+
+  1. Exception to Section 3 of the GNU GPL.
+
+     You may convey a covered work under sections 3 and 4 of this
+     License without being bound by section 3 of the GNU GPL.
+
+  2. Conveying Modified Versions.
+
+     If you modify a copy of the Library, and, in your modifications, a
+     facility refers to a function or data to be supplied by an
+     Application that uses the facility (other than as an argument
+     passed when the facility is invoked), then you may convey a copy
+     of the modified version:
+
+       a. under this License, provided that you make a good faith
+          effort to ensure that, in the event an Application does not
+          supply the function or data, the facility still operates, and
+          performs whatever part of its purpose remains meaningful, or
+
+       b. under the GNU GPL, with none of the additional permissions of
+          this License applicable to that copy.
+
+  3. Object Code Incorporating Material from Library Header Files.
+
+     The object code form of an Application may incorporate material
+     from a header file that is part of the Library.  You may convey
+     such object code under terms of your choice, provided that, if the
+     incorporated material is not limited to numerical parameters, data
+     structure layouts and accessors, or small macros, inline functions
+     and templates (ten or fewer lines in length), you do both of the
+     following:
+
+       a. Give prominent notice with each copy of the object code that
+          the Library is used in it and that the Library and its use are
+          covered by this License.
+
+       b. Accompany the object code with a copy of the GNU GPL and this
+          license document.
+
+  4. Combined Works.
+
+     You may convey a Combined Work under terms of your choice that,
+     taken together, effectively do not restrict modification of the
+     portions of the Library contained in the Combined Work and reverse
+     engineering for debugging such modifications, if you also do each
+     of the following:
+
+       a. Give prominent notice with each copy of the Combined Work that
+          the Library is used in it and that the Library and its use are
+          covered by this License.
+
+       b. Accompany the Combined Work with a copy of the GNU GPL and
+          this license document.
+
+       c. For a Combined Work that displays copyright notices during
+          execution, include the copyright notice for the Library among
+          these notices, as well as a reference directing the user to
+          the copies of the GNU GPL and this license document.
+
+       d. Do one of the following:
+
+            0. Convey the Minimal Corresponding Source under the terms
+               of this License, and the Corresponding Application Code
+               in a form suitable for, and under terms that permit, the
+               user to recombine or relink the Application with a
+               modified version of the Linked Version to produce a
+               modified Combined Work, in the manner specified by
+               section 6 of the GNU GPL for conveying Corresponding
+               Source.
+
+            1. Use a suitable shared library mechanism for linking with
+               the Library.  A suitable mechanism is one that (a) uses
+               at run time a copy of the Library already present on the
+               user's computer system, and (b) will operate properly
+               with a modified version of the Library that is
+               interface-compatible with the Linked Version.
+
+       e. Provide Installation Information, but only if you would
+          otherwise be required to provide such information under
+          section 6 of the GNU GPL, and only to the extent that such
+          information is necessary to install and execute a modified
+          version of the Combined Work produced by recombining or
+          relinking the Application with a modified version of the
+          Linked Version. (If you use option 4d0, the Installation
+          Information must accompany the Minimal Corresponding Source
+          and Corresponding Application Code. If you use option 4d1,
+          you must provide the Installation Information in the manner
+          specified by section 6 of the GNU GPL for conveying
+          Corresponding Source.)
+
+  5. Combined Libraries.
+
+     You may place library facilities that are a work based on the
+     Library side by side in a single library together with other
+     library facilities that are not Applications and are not covered
+     by this License, and convey such a combined library under terms of
+     your choice, if you do both of the following:
+
+       a. Accompany the combined library with a copy of the same work
+          based on the Library, uncombined with any other library
+          facilities, conveyed under the terms of this License.
+
+       b. Give prominent notice with the combined library that part of
+          it is a work based on the Library, and explaining where to
+          find the accompanying uncombined form of the same work.
+
+  6. Revised Versions of the GNU Lesser General Public License.
+
+     The Free Software Foundation may publish revised and/or new
+     versions of the GNU Lesser General Public License from time to
+     time. Such new versions will be similar in spirit to the present
+     version, but may differ in detail to address new problems or
+     concerns.
+
+     Each version is given a distinguishing version number. If the
+     Library as you received it specifies that a certain numbered
+     version of the GNU Lesser General Public License "or any later
+     version" applies to it, you have the option of following the terms
+     and conditions either of that published version or of any later
+     version published by the Free Software Foundation. If the Library
+     as you received it does not specify a version number of the GNU
+     Lesser General Public License, you may choose any version of the
+     GNU Lesser General Public License ever published by the Free
+     Software Foundation.
+
+     If the Library as you received it specifies that a proxy can decide
+     whether future versions of the GNU Lesser General Public License
+     shall apply, that proxy's public statement of acceptance of any
+     version is permanent authorization for you to choose that version
+     for the Library.
+
+
+
+File: api.info,  Node: About this document,  Next: About Libmarpa,  Prev: Copying,  Up: Top
+
+1 About this document
+*********************
+
+* Menu:
+
+* How to read this document::
+* Prerequisites::
+* Parsing theory::
+
+
+File: api.info,  Node: How to read this document,  Next: Prerequisites,  Prev: About this document,  Up: About this document
+
+1.1 How to read this document
+=============================
+
+This is essentially a reference document, but its early chapters lay
+out concepts essential to the others.  Readers will usually want to
+read the chapters up and including *note Introduction to the external
+interface:: in order.  Otherwise, they should follow their interests.
+
+
+File: api.info,  Node: Prerequisites,  Next: Parsing theory,  Prev: How to read this document,  Up: About this document
+
+1.2 Prerequisites
+=================
+
+This document is very far from self-contained.  It assumes the
+following:
+   * The reader knows the C programming language at least well enough
+     to understand function prototypes and return values.
+
+   * The reader has read the documents for one of Libmarpa's upper
+     layers.  As of this writing, the only such layer is `Marpa::R2',
+     in Perl.
+
+   * The reader knows some parsing theory.  *Note Parsing theory::.
+
+
+File: api.info,  Node: Parsing theory,  Prev: Prerequisites,  Up: About this document
+
+1.3 Parsing theory
+==================
+
+This document assumes some acquaintance with parsing theory.  The
+reader's level of knowledge is probably adequate if he can answer the
+following questions, either immediately or after a little reflection.
+   * What is a BNF rule?
+
+   * What is a Marpa sequence rule?
+
+   * As a reminder, Marpa's sequence rules are implemented as left
+     recursions.  What does that mean?
+
+   * Take a Marpa sequence rule at random.  What does it look like when
+     rewritten in BNF?
+
+   * What does the sequence look like when rewritten in BNF as a
+     right-recursion?
+
+
+File: api.info,  Node: About Libmarpa,  Next: Architecture,  Prev: About this document,  Up: Top
+
+2 About Libmarpa
+****************
+
+Libmarpa implements the Marpa parsing algorithm.  Marpa is named after
+the legendary 11th century Tibetan translator, Marpa Lotsawa.  In
+creating Marpa, I depended heavily on previous work by Jay Earley, Joop
+Leo, John Aycock and Nigel Horspool.
+
+   Libmarpa implements the entire Marpa algorithm.  This library does
+the necessary grammar preprocessing, recognizes the input, and produces
+parse trees.  It also supports the ordering, iteration and evaluation
+of the parse trees.
+
+   Libmarpa is very low-level.  For example, it has no strings.  Rules,
+symbols, and token values are all represented by integers.  This, of
+course, will not suffice for many applications.  Users will very often
+want names for the symbols, non-integer values for tokens, or both.
+Typically, applications will use arrays to translate Libmarpa's integer
+ID's to strings or other values as required.
+
+   Libmarpa also does *not* implement most of the semantics.  Libmarpa
+does have an evaluator (called a "valuator"), but it does *not*
+manipulate the stack directly.  Instead, Libmarpa, based on its
+traversal of the parse tree, passes optimized step by step stack
+manipulation instructions to the upper layer.  These instructions
+indicate the token or rule involved, and the proper location for the
+true token value or the result of the rule evaluation.  For rule
+evaluations, the instructions include the stack location of the
+arguments.
+
+   Marpa requires most semantics to be implemented in the application.
+This allows the application total flexibility.  It also puts the
+application is in a much better position to prevent errors, to catch
+errors at runtime or, failing all else, to successfully debug the logic.
+
+
+File: api.info,  Node: Architecture,  Next: Input,  Prev: About Libmarpa,  Up: Top
+
+3 Architecture
+**************
+
+* Menu:
+
+* Major objects::
+* Time objects::
+* Reference counting::
+* Numbered objects::
+
+
+File: api.info,  Node: Major objects,  Next: Time objects,  Prev: Architecture,  Up: Architecture
+
+3.1 Major objects
+=================
+
+The classes of Libmarpa's object system fall into two types: major and
+numbered.  These are the Libmarpa's major classes, in sequence.
+
+   * Configuration: A configuration object is a thread-safe way to hold
+     configuration variables, as well as the return code from failed
+     attempts to create grammar objects.
+
+   * Grammar: A grammar object contains rules and symbols, with their
+     properties.
+
+   * Recognizer: A recognizer object reads input.
+
+   * Bocage: A bocage object is a collection of parse trees, as found
+     by a recognizer.  Bocages are similar to parse forests.
+
+   * Ordering: An ordering object is an ordering of the trees in a
+     bocage.
+
+   * Tree: A tree object is a bocage iterator.
+
+   * Value: A value object is a tree iterator.  Iteration of tree using
+     a value object produces "steps".  These "steps" are instructions to
+     the application on how to evaluate the semantics, and how to
+     manipulate the stack.
+
+   The major objects have one letter abbreviations, which are used
+frequently.  These are, in the standard sequence,
+
+   * Configuration:  C
+
+   * Grammar:  G
+
+   * Recognizer: R
+
+   * Bocage: B
+
+   * Ordering: O
+
+   * Tree: T
+
+   * Value: V
+
+
+File: api.info,  Node: Time objects,  Next: Reference counting,  Prev: Major objects,  Up: Architecture
+
+3.2 Time objects
+================
+
+All of Libmarpa's major classes, except the configuration class, are
+"time" classes.  Except for objects in the grammar class, all time
+objects are created from another time object.  Each time object is
+created from a time object of the class before it in the sequence.  A
+recognizer cannot be created without a precomputed grammar; a bocage
+cannot be created without a recognizer; and so on.
+
+   When one time object is used to create a second time object, the
+first time object is the "parent object" and the second time object is
+the "child object".  For example, when a bocage is created from a
+recognizer, the recognizer is the parent object, and the bocage is the
+child object.
+
+   Grammars have no parent object.  Every other time object has exactly
+one parent object.  Value objects have no child objects.  All other
+time objects can have any number of children, from zero up to a number
+determined by memory or some other machine-determined limit.
+
+   Every time object has a "base grammar".  A grammar object is its own
+base grammar.  The base grammar of a recognizer is the grammar that it
+was created with.  The base grammar of any other time object is the base
+grammar of its parent object.  For example, the base grammar of a
+bocage is the base grammar of the recognizer that it was created with.
+
+
+File: api.info,  Node: Reference counting,  Next: Numbered objects,  Prev: Time objects,  Up: Architecture
+
+3.3 Reference counting
+======================
+
+Every object in a "time" class has its own, distinct, lifetime, which
+is controlled by the object's reference count.  Reference counting
+follows the usual practice.  Contexts which take a share of the
+"ownership" of an object increase the reference count by 1.  When a
+context relinquishes its share of the ownership of an object, it
+decreases the reference count by 1.
+
+   Each class of time object has a "ref" and an "unref" method, to be
+used by those contexts which need to explicitly increment and decrement
+the reference count.  For example, the "ref" method for the grammar
+class is `marpa_g_ref()' and the "unref" method for the grammar class is
+`marpa_g_unref()'.
+
+   Time objects do not have explicit destructors.  When the reference
+count of a time object reaches 0, that time object is destroyed.
+
+   Much of the necessary reference counting is performed automatically.
+The context calling the constructor of a time object does not need to
+explicitly increase the reference count, because Libmarpa time objects
+are always created with a reference count of 1.
+
+   Child objects "own" their parents, and when a child object is
+successfully created, the reference count of its parent object is
+automatically incremented to reflect this.  When a child object is
+destroyed, it automatically decrements the reference count of its
+parent.
+
+   In a typical application, a calling context needs only to remember
+to "unref" each time object that it creates, once it is finished with
+that time object.  All other reference decrements and increments are
+taken care of automatically.  The typical application never needs to
+explicitly call one of the "ref" methods.
+
+   More complex applications may find it convenient to have one or more
+contexts share ownership of objects created in another context.  These
+more complex situations are the only cases in which the "ref" methods
+will be needed.
+
+
+File: api.info,  Node: Numbered objects,  Prev: Reference counting,  Up: Architecture
+
+3.4 Numbered objects
+====================
+
+In addition to its major, "time" objects, Libmarpa also has numbered
+objects.  Numbered objects do not have lifetimes of their own.  Every
+numbered object belongs to a time object, and is destroyed with it.
+Rules and symbols are numbered objects.  Tokens values are another
+class of numbered objects.
+
+
+File: api.info,  Node: Input,  Next: Semantics,  Prev: Architecture,  Up: Top
+
+4 Input
+*******
+
+* Menu:
+
+* Earlemes::
+* Terminals::
+
+
+File: api.info,  Node: Earlemes,  Next: Terminals,  Prev: Input,  Up: Input
+
+4.1 Earlemes
+============
+
+* Menu:
+
+* The traditional model::
+* The earleme variables::
+* The significances of the earleme variables::
+* The initial earleme settings::
+* The standard model of input::
+* Ambiguous input::
+* Variable length tokens::
+* The generalized model::
+* General rules for the earleme variables::
+
+
+File: api.info,  Node: The traditional model,  Next: The earleme variables,  Prev: Earlemes,  Up: Earlemes
+
+4.1.1 The traditional model
+---------------------------
+
+In traditional Earley parsers, the concept of location is very simple.
+Locations are numbered from 0 to N, where N is the length of the input.
+Every location has an Earley set, and vice versa.  Location 0 is the
+start location.  Every location after the start location has exactly
+one input token associated with it.
+
+   Some applications do not fit this traditional input model -- natural
+language processing requires ambiguous tokens, for example.  Libmarpa
+allows a wide variety of alternative input models.
+
+   This document assumes that the reader knows the concepts behind
+Libmarpa's alternative input models, either from the documentation of a
+higher level interface, such as `Marpa::XS' or `Marpa::R2', or from
+Marpa's theory document
+(https://github.com/downloads/jeffreykegler/Marpa-theory/recce.pdf).
+
+   As a reminder, in Libmarpa a location is called a "earleme".  The
+number of an Earley set is the "ID of the Earley set", or its "ordinal".
+In the traditional model, the ordinal of an Earley set and its earleme
+are always exactly the same, but in Libmarpa they will be different.
+
+
+File: api.info,  Node: The earleme variables,  Next: The significances of the earleme variables,  Prev: The traditional model,  Up: Earlemes
+
+4.1.2 The earleme variables
+---------------------------
+
+The important earleme variables are the current earleme, the furthest
+earleme and the latest earleme.  The "current earleme" is the earleme
+that Libmarpa is currently working on.  More specifically, it is the
+one at which new tokens will *start*.  Since tokens are never zero
+length, a new token will always end after the current earleme.  The
+current earleme is initially earleme 0.  Every call to
+`marpa_r_earleme_complete()' advances the current earleme by 1.
+
+   The "furthest earleme" is the highest numbered (and therefore
+"furthest") earleme at which a token ends.  The furthest earleme is
+initially earleme 0.  With every call to `marpa_r_alternative()', the
+end of the token it adds is calculated.  A token ends at the earleme
+location CURRENT+LENGTH, where CURRENT is the current earleme, and
+LENGTH is the length of the newly added token.  After a call to
+`marpa_r_alternative()', the furthest earleme is its value before the
+call, or CURRENT+LENGTH, whichever is greater.
+
+   The "latest earleme" is the earleme of the latest Earley set.  The
+"latest Earley set" is the last Earley set completed.  This is always
+the highest numbered Earley set.  If there is an Earley set at the
+current earleme, it is the latest Earley set and the latest earleme is
+equal to the current earleme.  There is never an Earley set after the
+current earleme.
+
+   After every call to the `marpa_r_earleme_complete()' method that
+adds a token, the value of the latest earleme is same as the value of
+the current earleme.  After every call to the
+`marpa_r_earleme_complete()' method that does *not* add a token, the
+value of the lastest earleme is unchanged from its value before the
+call.
+
+
+File: api.info,  Node: The significances of the earleme variables,  Next: The initial earleme settings,  Prev: The earleme variables,  Up: Earlemes
+
+4.1.3 The significances of the earleme variables
+------------------------------------------------
+
+The current earleme tracks the advance of the recognizer through the
+input.  Input tokens always start at the current earleme.  An
+application can advance past the current earleme, by calling
+`marpa_r_earleme_complete()', which increments the current earleme by 1.
+After initialization, `marpa_r_earleme_complete()' is the only way to
+manipulate the value of the current earleme.
+
+   The furthest earleme tracks how "far out" tokens can be found.  In
+the standard input model, calling `marpa_r_earleme_complete()' after
+each `marpa_r_alternative()' call is sufficient to process all inputs,
+and the furthest earleme's value can be typically be ignored.  In
+alternative input models, if tokens have lengths greater than 1, calling
+`marpa_r_earleme_complete()' once after the last token is read may not
+be enough to ensure that all tokens have been processed.  To ensure
+that all tokens have been processed, an application must advance the
+current earleme by calling `marpa_r_earleme_complete()', until the
+current earleme is equal to the furthest earleme.
+
+   The lastest earleme is the earleme of the last Earley set.  The
+latest earleme is different from the current earleme if and only if
+there is no Earley set at the current earleme.  A different end of
+parsing can be specified, but by default, parsing is of the input in
+the range from earleme 0 to the latest earleme.
+
+
+File: api.info,  Node: The initial earleme settings,  Next: The standard model of input,  Prev: The significances of the earleme variables,  Up: Earlemes
+
+4.1.4 The initial earleme settings
+----------------------------------
+
+All input models have the same initial values.  Initially the current,
+latest and furthest earleme are always earleme 0.
+
+   Understanding the settings of current, latest and furthest earleme is
+crucial to working with advanced input models, and for this reason the
+next sections will go through the possibilities carefully.  The
+presentation will start with the most traditional and restrictive
+models.  It will proceed to less restrictive models.
+
+
+File: api.info,  Node: The standard model of input,  Next: Ambiguous input,  Prev: The initial earleme settings,  Up: Earlemes
+
+4.1.5 The standard model of input
+---------------------------------
+
+In the standard model of input, calls to `marpa_r_alternative()' and
+`marpa_r_earleme_complete()' are made in pairs.  There is, first,
+exactly one call to `marpa_r_alternative()', and it is for a token with
+length 1.  Following it must be a call to `marpa_r_earleme_complete()'.
+For an input of length N, there will be exactly N such paired calls.
+
+   Suppose, in the standard model that, for a call to
+`marpa_r_alternative()', the following is true:
+   * The current earleme before the call was C.
+   Because this is the standard model, this means that we also know that
+   * The latest earleme before the call was C.
+
+   * The furthest earleme before the call was C.
+   In that case, after the call to `marpa_r_alternative()', the
+following will be true:
+   * The current earleme will still be C.
+
+   * The latest earleme will still be C.
+
+   * The furthest earleme will be C+1.
+
+   Suppose, in the standard model that, for a call to
+`marpa_r_earleme_complete()', the following is true:
+   * The current earleme before the call is C.
+   Because this is the standard model, this means that we also know that
+   * The latest earleme before the call was C.
+
+   * The furthest earleme before the call was C+1.
+   In that case, after the call to `marpa_r_earleme_complete()', the
+current, latest and furthest earlemes will be the same.  Specifically,
+the following will be true:
+   * The current earleme will be advanced to C+1.
+
+   * The latest earleme will be advanced to C+1.
+
+   * The furthest earleme will remain at C+1.
+
+
+File: api.info,  Node: Ambiguous input,  Next: Variable length tokens,  Prev: The standard model of input,  Up: Earlemes
+
+4.1.6 Ambiguous input
+---------------------
+
+As a first loosening of the standard model, we no longer require calls
+to `marpa_r_alternative()' to be paired with calls to
+`marpa_r_earleme_complete()'.  Instead, we allow a series of one or
+more calls to `marpa_r_alternative()' before each call to
+`marpa_r_earleme_complete()'.  We still require that there be at least
+one call to `marpa_r_alternative()' before each call to
+`marpa_r_earleme_complete()', and we still require that all tokens have
+a length of 1.
+
+   In the ambiguous input model, the behavior of the current, latest
+and furthest earlemes are exactly as described for the standard model,
+with one minor exception: Where the current earleme is C, and a call to
+`marpa_r_alternative()' is not the first of a series, the value of the
+furthest earleme before the call will be C+1.
+
+
+File: api.info,  Node: Variable length tokens,  Next: The generalized model,  Prev: Ambiguous input,  Up: Earlemes
+
+4.1.7 Variable length tokens
+----------------------------
+
+Our next loosening of the restrictions is to allow variable length
+tokens.  That is, instead of requiring that all tokens be of length 1,
+we allow tokens to be of length 1 or longer.  This does change the
+behavior of the earleme variables.
+
+   Suppose, in the variable length token model that, for a call to
+`marpa_r_alternative()', the following is true:
+   * The current earleme before the call was C.  In this model, this
+     means that the latest earleme before the call is also C.
+
+   * The furthest earleme before the call was OLD_F.
+
+   * The length of the token is LENGTH.
+   In that case, after the call to `marpa_r_alternative()', the
+following will be true:
+   * The current and latest earlemes will still be C.  The current and
+     latest earlemes are never changed by a call to
+     `marpa_r_alternative()'.
+
+   * The furthest earleme will be either OLD_F or  C+LENGTH, whichever
+     was greater.
+
+   Suppose, in the variable length token model that, for a call to
+`marpa_r_earleme_complete()', the following is true:
+   * The current earleme before the call is C.  In this model, this
+     means that the latest earleme before the call is also C.
+
+   * The furthest earleme before the call is OLD_F.
+   In that case, after the call to `marpa_r_earleme_complete()', the
+following will be true:
+   * The current earleme will be advanced to C+1.
+
+   * The latest earleme will also be C+1.
+
+   * The furthest earleme will still be OLD_F.  The furthest earleme is
+     never changed by a call to `marpa_r_earleme_complete()'.
+
+
+File: api.info,  Node: The generalized model,  Next: General rules for the earleme variables,  Prev: Variable length tokens,  Up: Earlemes
+
+4.1.8 The generalized model
+---------------------------
+
+To fully generalize the input model, we now need to remove only one
+restriction.  We now allow empty earlemes -- earlemes with no tokens
+and no Earley set.  For the generalized input model, the effect on the
+earleme variables of a call to `marpa_r_alternative()' is exactly the
+same as it is for the variable length input model.  The effect on the
+earleme variables of a call to to `marpa_r_earleme_complete()' depends
+on whether or not that call creates an empty earleme.  A call to
+`marpa_r_earleme_complete()' creates an empty earleme if and only if it
+falls into one of these two cases:
+   * There has been no call to `marpa_r_alternative()' since recognizer
+     initialization.
+
+   * There has been no call to `marpa_r_alternative()' since the
+     previous call to `marpa_r_earleme_complete()'.
+
+   Suppose, in the generalized input model that, for a call to
+`marpa_r_earleme_complete()' that creates an empty earleme, the
+following is true:
+   * The current earleme before the call is C.
+
+   * The latest earleme before the call is OLD_L.
+
+   * The furthest earleme before the call is OLD_F.
+   In that case, after the call to `marpa_r_earleme_complete()', the
+following will be true:
+   * The current earleme will be advanced to C+1.
+
+   * The latest earleme will remain at OLD_L.  This means that the
+     latest earleme will be less than the current earleme.
+
+   * The furthest earleme will remain at OLD_F.  The furthest earleme
+     is never changed by a call to `marpa_r_earleme_complete()'.
+
+   Suppose, in the generalized input model that, for a call to
+`marpa_r_earleme_complete()' that does not creates an empty earleme,
+the following is true:
+   * The current earleme before the call is C.
+
+   * The latest earleme before the call is OLD_L.
+
+   * The furthest earleme before the call is OLD_F.
+   In that case, after the call to `marpa_r_earleme_complete()', the
+following will be true:
+   * The current earleme will be advanced to C+1.
+
+   * The latest earleme will be advanced to C+1.
+
+   * The furthest earleme will remain at OLD_F.  The furthest earleme
+     is never changed by a call to `marpa_r_earleme_complete()'.
+
+
+File: api.info,  Node: General rules for the earleme variables,  Prev: The generalized model,  Up: Earlemes
+
+4.1.9 General rules for the earleme variables
+---------------------------------------------
+
+At this point, the most generalized input model has been introduced.
+Here are some useful facts about the earleme variables that will always
+be the case, no matter which of the input models is in use.
+
+   * The current earleme is greater than or equal to the latest earleme.
+
+   * The furthest earleme is greater than or equal to the latest
+     earleme.
+
+   * If the parser is not exhausted, the furthest earleme is always
+     greater than or equal to the current earleme.
+
+   * In an exhausted parser, the furthest earleme is always less than
+     or equal to the current earleme.
+
+   * If the furthest earleme is greater than the current earleme, the
+     parser is not exhausted.
+
+   * For the furthest earleme to be less than the current earleme, the
+     parser must be exhausted.
+
+
+File: api.info,  Node: Terminals,  Prev: Earlemes,  Up: Input
+
+4.2 Terminals
+=============
+
+A terminal symbol is a symbol which may appear in the input.
+Traditionally, all LHS symbols, as well as the start symbol, must be
+non-terminals.  This is Marpa's behavior, by default.
+
+   Marpa allows the user to eliminate the distinction between terminals
+and non-terminals.  In this, it differs from traditional parsers.  A
+Libmarpa can arrange for a a terminal to appear on the LHS of one or
+more rules, or for a terminal to be the start symbol.  However, since
+terminals can never be zero length, it is a logical contradiction for a
+nulling symbol to also be a terminal and Marpa does not allow it.
+
+   Token values are `int''s.  Libmarpa does nothing with token values
+except accept them from the application and return them during parse
+evaluation.
+
+
+File: api.info,  Node: Semantics,  Next: Threads,  Prev: Input,  Up: Top
+
+5 Semantics
+***********
+
+* Menu:
+
+* How Libmarpa semantics work::
+* Valued and unvalued symbols::
+
+
+File: api.info,  Node: How Libmarpa semantics work,  Next: Valued and unvalued symbols,  Prev: Semantics,  Up: Semantics
+
+5.1 How the Libmarpa semantics work
+===================================
+
+Libmarpa handling of semantics is unusual.  Most semantics are left up
+to the application, but Libmarpa guides them.  Specifically, the
+application is expected to maintain the evaluation stack.  Libmarpa's
+valuator provides instructions on how to handle the stack.  Libmarpa's
+stack handling instructions are called "steps".  For example, a
+Libmarpa step might tell the application that the value of a token
+needs to go into a certain stack position.  Or a Libmarpa step might
+tell the application that a rule is to be evaluated.  For rule
+evalution, Libmarpa will tell the application where the operands are to
+be found, and where the result must go.
+
+   The detailed discussion of Libmarpa's handling of semantics is in
+the reference chapters of this document, under the appropriate methods
+and classes.  The most extensive discussion of the semantics is in the
+section that deals with the methods of the value time class.  *Note
+Value methods::.
+
+
+File: api.info,  Node: Valued and unvalued symbols,  Prev: How Libmarpa semantics work,  Up: Semantics
+
+5.2 Valued and unvalued symbols
+===============================
+
+Libmarpa symbols can have values, which is the traditional way of doing
+semantics.  Libmarpa also allows symbols to be unvalued.  An "unvalued"
+symbol is one whose value is unpredictable from instance to instance.
+If a symbol is unvalued, we sometimes say that it has "whatever"
+semantics.
+
+   Situations where the semantics can tolerate unvalued symbols are
+surprisingly frequent.  For example, the top-level of many languages is
+a series of major units, all of whose semantics are typically
+accomplished via side effects.  The compiler is typically indifferent
+to the actual value produced by these major units, and tracking them is
+a waste of time.  Similarly, the value of the separators in a list is
+typically ignored.
+
+   Rules are unvalued if and only if their LHS symbols are unvalued.
+When rules and symbols are unvalued, Libmarpa optimizes their
+evaluation.
+
+   It is in principle unsafe to check the value of a symbol if it can
+be unvalued.  For this reason, once a symbol has been treated as valued,
+Libmarpa marks it as valued.  Similarly, once a symbol has been treated
+as unvalued, Libmarpa marks it as unvalued.  Once marked, a symbol's
+valued status is "locked" and cannot be changed later.
+
+   The valued status of terminals is marked the first time they are
+read.  The valued status of LHS symbols must be explicitly marked by
+the application when initializing the valuator -- this is Libmarpa's
+equivalent of registering a callback.
+
+   LHS terminals are disabled by default.  If allowed, the user should
+be aware that the valued status of a LHS terminal will be locked in the
+recognizer if it is used as a terminal, and the symbol's use as a rule
+LHS in the valuator must be consistent with the recognizer's marking.
+
+   Marpa reports an error when a symbol's use conflicts with its locked
+valued status.  Doing so usually saves the programmer some tricky
+debugging further down the road.  But it is possible that an
+application might deliberately want to mix valued and unvalued uses of
+a symbol -- an application might be able to differentiate them using
+the larger context, or might be tolerant of the uncertainty.  If there
+is interest, a future Libmarpa extension might allow a locked valued
+status to be overriden.
+
+
+File: api.info,  Node: Threads,  Next: Fatal Errors,  Prev: Semantics,  Up: Top
+
+6 Threads
+*********
+
+Libmarpa is thread-safe, given circumstances as described below.  The
+Libmarpa methods are not reentrant.
+
+   Libmarpa is C89-compliant.  It uses no global data, and calls only
+the routines that are defined in the C89 standard and that can be made
+thread-safe.  In most modern implementations, the default C89
+implementation is thread-safe to the extent possible.  But the C89
+standard does not require thread-safety, and even most modern
+environments allow the user to turn thread safety off.  To be
+thread-safe, Libmarpa must be compiled and linked in an environment
+that provides thread-safety.
+
+   While Libmarpa can be used safely across multiple threads, a
+Libmarpa grammar cannot be.  Further, a Libmarpa time object can only
+be used safely in the same thread as its base grammar.  This is because
+all time objects with the same base grammar share data from that base
+grammar.
+
+   To work around this limitation, the same grammar definition can be
+used to a create a new Libmarpa grammar time object in each thread.  If
+there is sufficient interest, future versions of Libmarpa could allow
+thread-safe cloning of grammars and other time objects.
+
+
+File: api.info,  Node: Fatal Errors,  Next: Introduction to the external interface,  Prev: Threads,  Up: Top
+
+7 Fatal Errors
+**************
+
+Libmarpa avoids fatal errors, leaving that decision up to the
+application, with one exception.  Currently, if `malloc' fails to
+allocate memory, Libmarpa terminates the program with a fatal error.
+
+   While this is in keeping with current practice, future versions of
+Libmarpa are likely to both allow an alternative memory allocator to be
+specificied, and to allow the user to specifier a handler to be called
+when an out-of-memory condition occurs.
+
+
+File: api.info,  Node: Introduction to the external interface,  Next: Static method,  Prev: Fatal Errors,  Up: Top
+
+8 Introduction to the external interface
+****************************************
+
+The following chapters describe Libmarpa's external interface in detail.
+
+* Menu:
+
+* About the overviews::
+* Return values::
+* Naming conventions::
+
+
+File: api.info,  Node: About the overviews,  Next: Return values,  Prev: Introduction to the external interface,  Up: Introduction to the external interface
+
+8.1 About the overviews
+=======================
+
+The reference sections for each major class begin with an overview.
+These sections name the most important Libmarpa methods in the order in
+which they are typically used, and very briefly describe their purpose.
+The overviews are intended as "cheat sheets".
+
+   The overview sections often speak of an "archetypal" application.
+The archetypal Libmarpa application implements a complete logic flow,
+starting with the creation of a grammar, and proceeding all the way to
+the return of the final result from a value object.  In the archetypal
+Libmarpa application, the grammar, input and semantics are all small
+but non-trivial.
+
+
+File: api.info,  Node: Return values,  Next: Naming conventions,  Prev: About the overviews,  Up: Introduction to the external interface
+
+8.2 Return values
+=================
+
+Return values are discussed method by method, but some general
+practices are worth mentioning.  For methods that return an integer,
+Libmarpa usually reserves -1 for special purposes, such as indicating
+loop termination in an iterator.  In Libmarpa, methods usually indicate
+failure by returning -2.  Any result greater than -2 usually indicates
+success.
+
+   If a method returns an pointer value, `NULL' usually indicates
+failure.  Any other result usually indicates success.
+
+   On failure, a Libmarpa method always sets the error code.  On
+success, a Libmarpa method may take one of three actions:
+   * Set an informational error code.
+
+   * Leave the error code as it is.
+
+   * Reset the error code to `MARPA_ERROR_NONE'.
+
+   Which of the three actions the method takes on success should be
+regarded as unspecified, unless stated in the description of the method
+in this document.  If a method sets an informational error code on
+success, that will always be stated in its description, and the
+description will specify, for each informational error code, the
+specific error code value, the circumstances under which it is set, and
+what return values will accompany it.
+
+   Informational error codes are set because some applications may find
+them convenient.  Typically information error codes are redundant
+information, which may be ignored.
+
+   A method can have many reasons for failing, and many of the reasons
+for failure are common to large number of methods.  Full descriptions
+of the error codes that are returned by the external methods are given
+in their own section.  *Note External error codes::.
+
+
+File: api.info,  Node: Naming conventions,  Prev: Return values,  Up: Introduction to the external interface
+
+8.3 Naming conventions
+======================
+
+Methods in Libmarpa follow a strict naming convention.  All methods
+have a name beginning with `marpa_', if they are part of the external
+interface.  If an external method is not a static method, its name is
+prefixed with one of `marpa_c_', `marpa_g_', `marpa_r_', `marpa_b_',
+`marpa_o_', `marpa_t_' or `marpa_v_', where the single letter between
+underscores is one of the Libmarpa major class abbreviations.  The
+letter indicates which class the method belongs to.
+
+   Methods that are exported, but that are part of the internal
+interface, begin with `_marpa_'.  Methods that are part of the internal
+interface (often called "internal methods") are subject to change and
+are intended for use only by Libmarpa's developers.
+
+   Libmarpa reserves the `marpa_' and `_marpa_' prefixes for itself,
+with all their capitalization variants.  All Libmarpa names visible
+outside the package will begin with a capitalization variant of one of
+these two prefixes.
+
+
+File: api.info,  Node: Static method,  Next: Configuration methods,  Prev: Introduction to the external interface,  Up: Top
+
+9 Static method
+***************
+
+ -- Function: Marpa_Error_Code marpa_check_version (unsigned int
+          REQUIRED_MAJOR, unsigned int REQUIRED_MINOR, unsigned int
+          REQUIRED_MICRO )
+     Checks that the Marpa library in use is compatible with the given
+     version. Generally you will pass in the constants
+     `MARPA_MAJOR_VERSION', `MARPA_MINOR_VERSION', `MARPA_MICRO_VERSION'
+     as the three arguments to this function; that produces a check
+     that the library in use is compatible with the version of Libmarpa
+     the application or module was compiled against.  Compatibility is
+     defined by two things: first the version of the running library is
+     newer than the version
+     REQUIRED_MAJOR.REQUIRED_MINOR.REQUIRED_MICRO.  Second the running
+     library must be binary compatible with the version
+     REQUIRED_MAJOR.REQUIRED_MINOR.REQUIRED_MICRO (same major version.)
+
+     Return value: `MARPA_ERR_NONE' if the Marpa library is compatible
+     with the requested version.  If the library is not compatible, one
+     of the following is returned, indicating the nature of the
+     mismatch:
+        * `MARPA_ERR_MAJOR_VERSION_MISMATCH',
+
+        * `MARPA_ERR_MINOR_VERSION_MISMATCH'
+
+        * `MARPA_ERR_MICRO_VERSION_MISMATCH'
+
+
+
+File: api.info,  Node: Configuration methods,  Next: Grammar methods,  Prev: Static method,  Up: Top
+
+10 Configuration methods
+************************
+
+The configuration object is intended for future extensions.  These may
+allow the application to override Libmarpa's memory allocation and
+fatal error handling without resorting to global variables, and
+therefore in a thread-safe way.  Currently, the only function of the
+`Marpa_Config' class is to give `marpa_g_new()' a place to put its
+error code.
+
+   `Marpa_Config' is Libmarpa's only "major" class which is not a time
+class.  There is no constructor or destructor, although `Marpa_Config'
+objects *do* need to be initialized before use.  Aside from its own
+accessor, `Marpa_Config' objects are only used by `marpa_g_new' and no
+reference to their location is not kept in any of Libmarpa's time
+objects.  The intent is to that it be convenient to have them in memory
+that might be deallocated soon after `marpa_g_new' returns.  For
+example, they could be put on the stack.
+
+ -- Function: int marpa_c_init ( Marpa_Config* CONFIG)
+     Initialize the CONFIG information to "safe" default values.
+     Unspecified behavior will result if an initialized configuration
+     is used to create a grammar.
+
+     Return value: A non-negative value.  Always succeeds.
+
+ -- Function: Marpa_Error_Code marpa_c_error ( Marpa_Config* CONFIG,
+          const char** P_ERROR_STRING )
+     Error codes are usually kept in the base grammar, which leaves
+     `marpa_g_new()' no place to put its error code on failure.
+     Objects of the `Marpa_Config' class provide such a place.
+
+     Return value: The error code in CONFIG.  Always succeeds.
+
+
+File: api.info,  Node: Grammar methods,  Next: Recognizer methods,  Prev: Configuration methods,  Up: Top
+
+11 Grammar methods
+******************
+
+* Menu:
+
+* Grammar overview::
+* Grammar constructor::
+* Grammar reference counting::
+* Symbols::
+* Rules::
+* Sequences::
+* Ranks::
+* Grammar precomputation::
+
+
+File: api.info,  Node: Grammar overview,  Next: Grammar constructor,  Prev: Grammar methods,  Up: Grammar methods
+
+11.1 Overview
+=============
+
+An archtypal application has a grammar.  To create a grammar, use the
+`marpa_g_new()' method.  When a grammar is no longer in use, its memory
+can be freed using the `marpa_g_unref()' method.
+
+   To be precomputed, a grammar must have one or more symbols.  To
+create symbols, use the `marpa_g_symbol_new()' method.
+
+   To be precomputed, a grammar must have one or more rules.  To create
+rules, use the `marpa_g_rule_new()' and `marpa_g_sequence_new()'
+methods.
+
+   For non-trivial parsing, one or more of the symbols must be
+terminals.  To mark a symbol as a terminal, use the
+`marpa_g_symbol_is_terminal_set()' method.
+
+   To be precomputed, a grammar must have exactly one start symbol.  To
+mark a symbol as the start symbol, use the `marpa_g_start_symbol_set()'
+method.
+
+   Before parsing with a grammar, it must be precomputed.  To
+precompute a grammar, use the `marpa_g_precompute()' method.
+
+
+File: api.info,  Node: Grammar constructor,  Next: Grammar reference counting,  Prev: Grammar overview,  Up: Grammar methods
+
+11.2 Creating a new grammar
+===========================
+
+ -- Function: Marpa_Grammar marpa_g_new ( Marpa_Config* configuration )
+     Creates a new grammar time object.  The returned grammar object is
+     not yet precomputed, and will have no symbols and rules.  Its
+     reference count will be 1.
+
+     Unless the application calls `marpa_c_error', Libmarpa will not
+     reference the location pointed to by the CONFIGURATION argument
+     after `marpa_g_new' returns.  The CONFIGURATION argument may be
+     `NULL', but if it is, there will be no way to determine the error
+     code on failure.
+
+     Return value: On success, the grammar object.  On failure, `NULL',
+     and the error code is set in CONFIGURATION.
+
+
+
+File: api.info,  Node: Grammar reference counting,  Next: Symbols,  Prev: Grammar constructor,  Up: Grammar methods
+
+11.3 Tracking the reference count of the grammar
+================================================
+
+ -- Function: Marpa_Grammar marpa_g_ref (Marpa_Grammar G)
+     Increases the reference count by 1.  Not needed by most
+     applications.
+
+     Return value: On success, the grammar object it was called with;
+     `NULL' on failure.
+
+
+ -- Function: void marpa_g_unref (Marpa_Grammar G)
+     Decreases the reference count by 1, destroying G once the
+     reference count reaches zero.
+
+
+
+File: api.info,  Node: Symbols,  Next: Rules,  Prev: Grammar reference counting,  Up: Grammar methods
+
+11.4 Symbols
+============
+
+ -- Function: Marpa_Symbol_ID marpa_g_start_symbol (Marpa_Grammar G)
+     Returns current value of the start symbol of grammar G.  The value
+     is that specified in the `marpa_g_start_symbol_set()' call, if
+     there has been one.
+
+     Return value: On failure, -2; -1 if there is no start symbol yet;
+     otherwise the ID of the new start symbol.
+
+ -- Function: Marpa_Symbol_ID marpa_g_start_symbol_set ( Marpa_Grammar
+          G, Marpa_Symbol_ID SYM_ID)
+     Sets the start symbol of grammar G to symbol ID.
+
+     Return value: On success, the ID of the new start symbol.  If
+     SYM_ID is well-formed, but there is no such symbol, -1.  On
+     failure, -2.
+
+
+ -- Function: int marpa_g_highest_symbol_id (Marpa_Grammar G)
+     Return value: On success, the numerically largest symbol ID of G.
+     On failure, -2.
+
+ -- Function: int marpa_g_symbol_is_accessible (Marpa_Grammar G,
+          Marpa_Symbol_ID SYM_ID)
+     A symbol is "accessible" if it can be reached from the start
+     symbol.
+
+     Return value: On success, 1 if symbol SYM_ID is accessible, 0 if
+     not.  If SYM_ID is well-formed, but there is no such symbol, -1.
+     If the grammar is not precomputed, or on other failure, -2.
+
+ -- Function: int marpa_g_symbol_is_nullable ( Marpa_Grammar g,
+          Marpa_Symbol_ID sym_id)
+     A symbol is "nullable" if it sometimes produces the empty string.
+     A *nulling* symbol is always a *nullable* symbol, but not all
+     *nullable* symbols are *nulling* symbols.
+
+     Return value: On success, 1 if symbol SYM_ID is nullable, 0 if not.
+     If SYM_ID is well-formed, but there is no such symbol, -1.  If the
+     grammar is not precomputed, or on other failure, -2.
+
+ -- Function: int marpa_g_symbol_is_nulling (Marpa_Grammar G,
+          Marpa_Symbol_ID SYM_ID)
+     A symbol is "nulling" if it always produces the empty string.
+
+     Return value: On success, 1 if symbol SYM_ID is nulling, 0 if not.
+     If SYM_ID is well-formed, but there is no such symbol, -1.  If the
+     grammar is not precomputed, or on other failure, -2.
+
+ -- Function: int marpa_g_symbol_is_productive (Marpa_Grammar G,
+          Marpa_Symbol_ID SYM_ID)
+     A symbol is "productive" if it can produce a string of terminals.
+     All nullable symbols are considered productive.
+
+     Return value: On success, 1 if symbol SYM_ID is productive, 0 if
+     not.  If the grammar If SYM_ID is well-formed, but there is no
+     such symbol, -1.  is not precomputed, or on other failure, -2.
+
+ -- Function: int marpa_g_symbol_is_start ( Marpa_Grammar G,
+          Marpa_Symbol_ID SYM_ID)
+     This return value of this call indicates whether SYM_ID is the
+     start symbol.
+
+     Return value: On success, 1 if SYM_ID is the start symbol; 0
+     otherwise.  If SYM_ID is well-formed, but there is no such symbol,
+     -1.  On other failure, -2.
+
+
+ -- Function: int marpa_g_symbol_is_terminal ( Marpa_Grammar G,
+          Marpa_Symbol_ID SYM_ID)
+ -- Function: int marpa_g_symbol_is_terminal_set ( Marpa_Grammar G,
+          Marpa_Symbol_ID SYM_ID, int VALUE)
+     These methods, respectively, set and query the "terminal status"
+     of a symbol.  To be used as an input symbol in the
+     `marpa_r_alternative()' method, a symbol must be a terminal.  This
+     function flags symbol SYM_ID as a terminal if VALUE is 1, or flags
+     it as a non-terminal if VALUE is 0.
+
+     Once set to a value with the `marpa_g_symbol_is_terminal_set()'
+     method, the terminal status of a symbol is "locked" at that value.
+     A subsequent call to `marpa_g_symbol_is_terminal_set()' that
+     attempts to change the terminal status of SYM_ID to a value
+     different from its current one will fail.  The error code will be
+     `MARPA_ERR_TERMINAL_IS_LOCKED'.
+
+     By default, a symbol is a terminal if and only if it does not
+     appear on the LHS of any rule.  An attempt to flag a nulling symbol
+     as a terminal will cause a failure, but this is not necesssarily
+     detected before precomputation.
+
+     Return value: On success, 1 if symbol SYM_ID is a terminal symbol
+     after the call, 0 otherwise.  If VALUE is not 0 or 1; if the
+     terminal status is locked and VALUE is different from its current
+     value; if the grammar G is precomputed; or on other failure, -2.
+
+ -- Function: int marpa_g_symbol_is_valued ( Marpa_Grammar G,
+          Marpa_Symbol_ID SYMBOL_ID)
+ -- Function: int marpa_g_symbol_is_valued_set ( Marpa_Grammar G,
+          Marpa_Symbol_ID SYMBOL_ID, int value)
+     These methods, respectively, set and query the "valued status" of
+     a symbol.  Once set to a value with the
+     `marpa_g_symbol_is_valued_set()' method, the valued status of a
+     symbol is "locked" at that value.  It cannot thereafter be changed.
+     Subsequent calls to `marpa_g_symbol_is_valued_set()' for the same
+     SYM_ID will fail, leaving SYM_ID's valued status unchanged, unless
+     VALUE is the same as the locked-in value.
+
+     Return value: On success, 1 if the symbol SYMBOL_ID is valued
+     after the call, 0 if not.  If the valued status is locked and VALUE
+     is different from the current status, -2.  If VALUE is not 0 or 1;
+     or on other failure, -2.
+
+
+ -- Function: Marpa_Symbol_ID marpa_g_symbol_new (Marpa_Grammar G)
+     Creates a new symbol.
+
+     Return value: On success, the ID of a new symbol; On failure, -2.
+
+
+
+File: api.info,  Node: Rules,  Next: Sequences,  Prev: Symbols,  Up: Grammar methods
+
+11.5 Rules
+==========
+
+ -- Function: int marpa_g_highest_rule_id (Marpa_Grammar G)
+     Return value: On success, the numerically largest rule ID of G.
+     On failure, -2.
+
+ -- Function: int marpa_g_rule_is_accessible (Marpa_Grammar G,
+          Marpa_Rule_ID RULE_ID)
+     A rule is "accessible" if it can be reached from the start symbol.
+     A rule is accessible if and only if its LHS symbol is accessible.
+     The start rule is always an accessible rule.
+
+     Return value: On success, 1 if rule RULE_ID is accessible, 0 if
+     not.  If RULE_ID is well-formed, but there is no such rule, -1.
+     If the grammar is not precomputed, or on other failure, -2.
+
+ -- Function: int marpa_g_rule_is_nullable ( Marpa_Grammar G,
+          Marpa_Rule_ID RULEID)
+     A rule is "nullable" if it sometimes produces the empty string.  A
+     *nulling* rule is always a *nullable* rule, but not all *nullable*
+     rules are *nulling* rules.
+
+     Return value: On success, 1 if rule RULEID is nullable, 0 if not.
+     If RULE_ID is well-formed, but there is no such rule, -1.  If the
+     grammar is not precomputed, or on other failure, -2.
+
+ -- Function: int marpa_g_rule_is_nulling (Marpa_Grammar G,
+          Marpa_Rule_ID RULEID)
+     A rule is "nulling" if it always produces the empty string.
+
+     Return value: On success, 1 if rule RULEID is nulling, 0 if not.
+     If RULE_ID is well-formed, but there is no such rule, -1.  If the
+     grammar is not precomputed, or on other failure, -2.
+
+ -- Function: int marpa_g_rule_is_loop (Marpa_Grammar G, Marpa_Rule_ID
+          RULE_ID)
+     A rule is a loop rule if it non-trivially produces the string of
+     length one which consists only of its LHS symbol.  Such a
+     derivation takes the parse back to where it started, hence the
+     term "loop".  "Non-trivially" means the zero-step derivation does
+     not count -- the derivation must have at least one step.
+
+     The presence of a loop rule makes a grammar infinitely ambiguous,
+     and applications will typically want to treat them as fatal errors.
+     But nothing forces an application to do this, and Marpa will
+     successfully parse and evaluate grammars with loop rules.
+
+     Return value: On success, 1 if rule RULE_ID is a loop rule, 0 if
+     not.  If RULE_ID is well-formed, but there is no such rule, -1.
+     If the grammar is not precomputed, or on other failure, -2.
+
+ -- Function: int marpa_g_rule_is_productive (Marpa_Grammar G,
+          Marpa_Rule_ID RULE_ID)
+     A rule is "productive" if it can produce a string of terminals.
+     An rule is productive if and only if all the symbols on its RHS
+     are productive.  The empty string counts as a string of terminals,
+     so that a nullable rule is always a productive rule.  For that
+     same reason, an empty rule is considered productive.
+
+     Return value: On success, 1 if rule RULE_ID is productive, 0 if
+     not.  If RULE_ID is well-formed, but there is no such rule, -1.
+     If the grammar is not precomputed, or on other failure, -2.
+
+ -- Function: int marpa_g_rule_length ( Marpa_Grammar G, Marpa_Rule_ID
+          RULE_ID)
+     The length of a rule is the number of symbols on its RHS.
+
+     Return value: On success, the length of rule RULE_ID.  On failure,
+     -2.
+
+ -- Function: Marpa_Symbol_ID marpa_g_rule_lhs ( Marpa_Grammar G,
+          Marpa_Rule_ID RULE_ID)
+     Return value: On success, the LHS symbol of rule RULE_ID.  If
+     RULE_ID is well-formed, but there is no such rule, -1.  On other
+     failure, -2.
+
+ -- Function: Marpa_Rule_ID marpa_g_rule_new (Marpa_Grammar G,
+          Marpa_Symbol_ID LHS_ID, Marpa_Symbol_ID *RHS_IDS, int LENGTH)
+     Creates a new external rule in grammar G.  The LHS symbol is
+     LHS_ID, and there are LENGTH symbols on the RHS.  The RHS symbols
+     are in an array pointed to by RHS_IDS.
+
+     Possible failures, with their error codes, include:
+        * `MARPA_ERR_SEQUENCE_LHS_NOT_UNIQUE': The LHS symbol is the
+          same as that of a sequence rule.
+
+        * `MARPA_ERR_DUPLICATE_RULE': The new rule would duplicate
+          another BNF rule.  Another BNF rule is considered the
+          duplicate of the new one, if its LHS symbol is the same as
+          symbol LHS_ID, if its length is the same as LENGTH, and if
+          its RHS symbols match one for one those in the array of
+          symbols RHS_IDS.
+
+     Return value:  On success, the ID of new external rule.  On
+     failure, -2.
+
+ -- Function: Marpa_Symbol_ID marpa_g_rule_rhs ( Marpa_Grammar G,
+          Marpa_Rule_ID RULE_ID, int IX)
+     Returns the ID of the symbol in position IX in the RHS of rule
+     RULE_ID.  The RHS position, IX, is zero-based.
+
+     Return value: On success, the ID of the symbol in position IX on
+     the rules RHS.  If RULE_ID is well-formed, but there is no such
+     rule, -1.  If IX is greater than or equal to the length of the
+     rule, or on other failure, -2.
+
+
+File: api.info,  Node: Sequences,  Next: Ranks,  Prev: Rules,  Up: Grammar methods
+
+11.6 Sequences
+==============
+
+ -- Function: int marpa_g_rule_is_proper_separation ( Marpa_Grammar G,
+          Marpa_Rule_ID RULE_ID)
+     Return value: On success, if rule RULE_ID is not a sequence rule,
+     0.  On success, if rule RULE_ID is a sequence rule where the
+     proper separation flag is set, 1.  On success, if rule RULE_ID is
+     a sequence rule where the proper separation flag is *not* set, 0.
+     If RULE_ID is well-formed, but there is no such rule, -1.  On
+     failure, -2.
+
+ -- Function: int marpa_g_sequence_min ( Marpa_Grammar G, Marpa_Rule_ID
+          RULE_ID)
+     Returns the mininum length of a sequence rule.  This accessor can
+     be also be used to test whether or not a rule is a sequence rule.
+     -1 is returned if and only if the rule is valid but not a sequence
+     rule.
+
+     Return value: If rule RULE_ID is a sequence rule, its minimum
+     length.  If rule RULE_ID is valid, but is not the rule ID of
+     sequence rule, -1.  If RULE_ID is well-formed, but there is no
+     such rule, or on other failure, -2.
+
+ -- Function: Marpa_Rule_ID marpa_g_sequence_new (Marpa_Grammar G,
+          Marpa_Symbol_ID LHS_ID, Marpa_Symbol_ID RHS_ID,
+          Marpa_Symbol_ID SEPARATOR_ID, int MIN, int FLAGS )
+     Adds a new sequence rule to grammar G.  Sequence rules do not add
+     to the classes of grammar parsed by Libmarpa -- a sequence can
+     always be written as BNF rules.  When a rule is created with the
+     `marpa_g_sequence_new()' method, Libmarpa will understand that it
+     is a sequence, and will optimize accordingly.  The speedup is
+     often considerable.
+
+     The sequence is LHS_ID, and the item to be repeated in the
+     sequence is RHS_ID.  The sequence must be repeated at least MIN
+     times, where MIN is 0 or 1.  If SEPARATOR_ID is non-negative, it
+     is a separator symbol.
+
+     If `flags & MARPA_PROPER_SEPARATION' is non-zero, separation is
+     "proper", that is, a trailing separator is not allowed.  The term
+     "proper" is based on the idea that properly-speaking, separators
+     should actually separate items.
+
+     Some higher-level Marpa interfaces offer the ability to discard
+     separators in the semantics, and in fact will do this by default.
+     At the Libmarpa level, sequences always "keep separators".  It is
+     up to the programmer to arrange to discard separators, if that is
+     what is desired.
+
+     The sequence RHS, or item, is restricted to a single symbol, and
+     that symbol cannot be nullable.  If SEPARATOR_ID is a symbol, it
+     also cannot be a nullable symbol.  Nullables on the RHS of
+     sequences are restricted because they lead to highly ambiguous
+     grammars.  Grammars of this kind are allowed by Libmarpa, but they
+     must be expressed using BNF rules, not sequence rules.  This is
+     for two reasons: First, sequence optimizations would not work in
+     the presence of nullables.  Second, since it is not completely
+     clear what an application intends when it asks for a sequence of
+     identical items, some of which are nullable, the user's intent can
+     be more clearly expressed directly in BNF.
+
+     The LHS symbol cannot be the LHS of any other rule, whether a BNF
+     rule or a sequence rule.  On an attempt to create an sequence rule
+     with a duplicate LHS, `marpa_g_sequence_new()' fails, setting the
+     error code to `MARPA_ERR_SEQUENCE_LHS_NOT_UNIQUE'.
+
+     Return value:  On success, the ID of the external rule.  On
+     failure, -2.
+
+ -- Function: int marpa_g_sequence_separator ( Marpa_Grammar G,
+          Marpa_Rule_ID RULE_ID)
+     Return value: If rule RULE_ID is a sequence rule, its separator.
+     If rule RULE_ID is a sequence rule,, but there is no separator, -1.
+     If RULE_ID is not a sequence rule, does not exist or is not
+     well-formed; or on other failure, -2.
+
+ -- Function: int marpa_g_symbol_is_counted (Marpa_Grammar G,
+          Marpa_Symbol_ID SYM_ID)
+     A symbol is "counted" if it appears on the RHS of a sequence rule,
+     or if it is used as the separator symbol of a sequence rule.
+
+     Return value: On success, 1 if symbol SYM_ID is counted, 0 if not.
+     On failure, -2.
+
+
+File: api.info,  Node: Ranks,  Next: Grammar precomputation,  Prev: Sequences,  Up: Grammar methods
+
+11.7 Ranks
+==========
+
+ -- Function: Marpa_Rank marpa_g_rule_rank ( Marpa_Grammar G,
+          Marpa_Rule_ID rule_id)
+ -- Function: Marpa_Rank marpa_g_rule_rank_set ( Marpa_Grammar G,
+          Marpa_Rule_ID RULE_ID, Marpa_Rank RANK)
+     These methods, respectively, set and query the rank of a rule
+     RULE_ID.  When RULE_ID is created, its rank initialized to the
+     default rank of the grammar.
+
+     Initially, the default rank of the grammar is 0.  Methods to reset
+     the grammar's default rank are currently in the experimental stage.
+
+     Return value: On success, the rank *after* the call.  If the
+     grammar has been precomputed, or on other failure, -2.
+
+
+ -- Function: int marpa_g_rule_null_high ( Marpa_Grammar G,
+          Marpa_Rule_ID rule_id)
+ -- Function: int marpa_g_rule_null_high_set ( Marpa_Grammar G,
+          Marpa_Rule_ID RULE_ID, int FLAG)
+     These methods, respectively, set and discover the "null ranks
+     high" setting of the rule RULE_ID.  The "null ranks high" setting
+     is either 0 or 1.  When RULE_ID is created, its "null ranks high"
+     setting is initialized to 0.
+
+     The "null ranks high" setting affects the ranking of rules with
+     properly nullable symbols on their right hand side.  If a rule has
+     properly nullable symbols on its RHS, each instance in which it
+     appears in a parse will have a pattern of nulled and non-nulled
+     symbols.  Such a pattern is called a "null variant".
+
+     If the "null ranks high" setting is 0 (the default), nulled
+     symbols rank low.  If the "null ranks high" setting is 1, nulled
+     symbols rank high.  Ranking of a null variants is done from
+     left-to-right.
+
+     Return value: On success, the setting of the "null ranks high"
+     flag *after* the call.  If the grammar has been precomputed, or on
+     other failure, -2.
+
+
+
+File: api.info,  Node: Grammar precomputation,  Prev: Ranks,  Up: Grammar methods
+
+11.8 Precomputing the Grammar
+=============================
+
+ -- Function: int marpa_g_precompute (Marpa_Grammar G)
+     Precomputation is necessary for a recognizer to be generated from
+     a grammar.  On success, `marpa_g_precompute' returns a non-negative
+     number to indicate that it precomputed the grammar without issues.
+     On failure, `marpa_g_precompute' returns -2.
+
+     Precomputation may return one or more events, which may be queried
+     using the `marpa_g_event()' method.  At this point events only
+     occur when failure is reported, and events always report issues.
+     But application writers should expect future versions to have
+     events which are reported on success, as well as events which do
+     not represent issues.
+
+     A `MARPA_EVENT_LOOP_RULES' event occurs when there are infinite
+     loop rules (cycles) in the grammar.  The presence of one or more
+     of these will cause failure to be reported, but will not prevent
+     the grammar from being precomputed.
+
+     Each `MARPA_EVENT_COUNTED_NULLABLE' event is a symbol which is a
+     nullable on the right hand side of a sequence rule -- a "counted"
+     symbol.  The presence of one or more of these will cause failure
+     to be reported, and will prevent the grammar from being
+     precomputed.  So that the programmer can fix several at once,
+     these failures are delayed until events are created for all of the
+     counted nullables.
+
+     Each `MARPA_EVENT_NULLING_TERMINAL' event is a nulling symbol
+     which is also flagged as a terminal.  Since terminals cannot be of
+     zero length, this is a logical impossibility.  The presence of one
+     or more of these will cause failure to be reported, and will
+     prevent the grammar from being precomputed.  So that the
+     programmer can fix several at once, the failure is delayed until
+     events are created for all of the counted nullables.
+
+     Precomputation involves freezing and then thoroughly checking the
+     grammar.  Among the reasons for precomputation to fail are the
+     following:
+
+        * `MARPA_ERR_NO_RULES': The grammar has no rules.
+
+        * `MARPA_ERR_NO_START_SYMBOL': No start symbol was specified.
+
+        * `MARPA_ERR_INVALID_START_SYMBOL': A start symbol ID was
+          specified, but it is not the ID of a valid symbol.
+
+        * `MARPA_ERR_START_NOT_LHS': The start symbol is not on the LHS
+          of any rule.
+
+        * `MARPA_ERR_UNPRODUCTIVE_START': The start symbol is not
+          productive.
+
+        * `MARPA_ERR_COUNTED_NULLABLE': A symbol on the RHS of a
+          sequence rule is nullable.  Libmarpa does not allow this.
+
+        * `MARPA_ERR_NULLING_TERMINAL': A terminal is also a nulling
+          symbol.  Libmarpa does not allow this.
+
+     More details of these can be found under the description of the
+     appropriate code.  *Note External error codes::.
+
+     `marpa_g_precompute()' is unusual in that it is possible to treat
+     one of its failures as "advisory", and to proceed with parsing.  If
+     `marpa_g_precompute()' fails with an error code of
+     `MARPA_ERR_GRAMMAR_HAS_CYCLE', parsing can proceed, just as it
+     typically would for success.  The grammar will have been
+     precomputed, as calling the `marpa_g_is_precomputed()' method will
+     confirm.
+
+     Most applications, however, will want to simply treat failure with
+     `MARPA_ERR_GRAMMAR_HAS_CYCLE', as simply another failure, and fix
+     the cycles before parsing.  Cycles make a grammar infinitely
+     ambiguous, and are considered useless in current practice.  Cycles
+     make processing the grammar less efficient, sometimes considerably
+     so.  Detection of cycles is returned as failure because that is by
+     far the convenient thing to do for the vast majority of
+     applications.
+
+     Return value: On success, a non-negative number.  On failure, -2.
+
+ -- Function: int marpa_g_is_precomputed (Marpa_Grammar G)
+     Return value: On success, 1 if grammar G is already precomputed, 0
+     otherwise.  On failure, -2.
+
+ -- Function: int marpa_g_has_cycle (Marpa_Grammar G)
+     This function allows the application to determine if grammar G has
+     a cycle.  As mentioned, most applications will want to treat these
+     as fatal errors.  To determine which rules are in the cycle,
+     `marpa_g_rule_is_loop()' can be used.
+
+     Return value: On success, 1 if the grammar has a cycle, 0
+     otherwise.  On failure, -2.
+
+
+File: api.info,  Node: Recognizer methods,  Next: Progress reports,  Prev: Grammar methods,  Up: Top
+
+12 Recognizer methods
+*********************
+
+* Menu:
+
+* Recognizer overview::
+* Recognizer constructor::
+* Recognizer reference counting::
+* Recognizer life cycle mutators::
+* Location accessors::
+* Other parse status methods::
+
+
+File: api.info,  Node: Recognizer overview,  Next: Recognizer constructor,  Prev: Recognizer methods,  Up: Recognizer methods
+
+12.1 Overview
+=============
+
+An archtypal application uses a recognizer to read input.  To create a
+recognizer, use the `marpa_r_new()' method.  When a recognizer is no
+longer in use, its memory can be freed using the `marpa_r_unref()'
+method.
+
+   To make a recognizer ready for input, use the
+`marpa_r_start_input()' method.
+
+   The recognizer starts with its current earleme at location 0.  To
+read a token at the current earleme, use the `marpa_r_alternative()'
+call.
+
+   To complete the processing of the current earleme, and move forward
+to a new one, use the `marpa_r_earleme_complete()' call.
+
+
+File: api.info,  Node: Recognizer constructor,  Next: Recognizer reference counting,  Prev: Recognizer overview,  Up: Recognizer methods
+
+12.2 Creating a new recognizer
+==============================
+
+ -- Function: Marpa_Recognizer marpa_r_new ( Marpa_Grammar G )
+     Creates a new recognizer.  The reference count of the recognizer
+     will be 1.  The reference count of G, the base grammar, will be
+     incremented by one.
+
+     Return value:  On success, the newly created recognizer.  If G is
+     not precomputed, or on other failure, `NULL'.
+
+
+File: api.info,  Node: Recognizer reference counting,  Next: Recognizer life cycle mutators,  Prev: Recognizer constructor,  Up: Recognizer methods
+
+12.3 Keeping the reference count of a recognizer
+================================================
+
+ -- Function: Marpa_Recognizer marpa_r_ref (Marpa_Recognizer R)
+     Increases the reference count by 1.  Not needed by most
+     applications.
+
+     Return value: On success, the recognizer object, R.  On failure,
+     `NULL'.
+
+ -- Function: void marpa_r_unref (Marpa_Recognizer R)
+     Decreases the reference count by 1, destroying R once the
+     reference count reaches zero.  When R is destroyed, the reference
+     count of its base grammar is decreased by one.  If this takes the
+     reference count of the base grammar to zero, it too is destroyed.
+
+
+
+File: api.info,  Node: Recognizer life cycle mutators,  Next: Location accessors,  Prev: Recognizer reference counting,  Up: Recognizer methods
+
+12.4 Life cycle mutators
+========================
+
+ -- Function: int marpa_r_start_input (Marpa_Recognizer R)
+     Makes R ready to accept input.
+
+     Return value:  On success, a non-negative value.  On failure, -2.
+
+ -- Function: int marpa_r_alternative (Marpa_Recognizer R,
+          Marpa_Symbol_ID TOKEN_ID, int VALUE, int LENGTH)
+     Reads a token into R.  The token will start at the current earleme.
+     Libmarpa allows tokens to be ambiguous, to be of variable length
+     and to overlap.  TOKEN_ID is the symbol ID of the token, which
+     must be a terminal.  LENGTH is the length of the token.
+
+     VALUE is an integer that represents the value of the token.  In
+     applications where the token's actual value is not an integer, it
+     is expected that the application will use this value as a
+     "virtual" value, perhaps finding the actual value by using VALUE
+     to index an array.  VALUE is not used inside Libmarpa -- it is
+     simply stored to be returned by the valuator as a convenience for
+     the application.  Some applications may prefer to track token
+     values on their own, perhaps based on the earleme location and
+     TOKEN_ID, instead of using Libmarpa's token values.
+
+     A VALUE of 0 has special significance -- it indicates that the
+     token is unvalued -- that its value is allowed to be unpredictable.
+     Note that if a token is unvalued, it must be the case, not just
+     that Libmarpa need not care about its value, but also that *the
+     application* does not care about the value of the token.  When a
+     token is unvalued, Libmarpa optimizes away the valuator steps that
+     give the application an opportunity to provide a value for that
+     token.  Applications that do not use Libmarpa's token values, but
+     that *do* care about the token's value, must tell Libmarpa not to
+     optimize away the relevant valuator steps.  An application can do
+     this by letting VALUE be any non-zero integer.
+
+     When VALUE in a call to `marpa_r_alternative()' is 0, symbol
+     TOKEN_ID is considered to have been used as an unvalued symbol.
+     When VALUE in a call to `marpa_r_alternative()' is not zero,
+     symbol TOKEN_ID is considered to have been used as an valued
+     symbol.  On the first read by `marpa_r_alternative()', if symbol
+     TOKEN_ID is used as a valued symbol, the valued status of symbol
+     TOKEN_ID will be set to 1 and locked.  On the first read by
+     `marpa_r_alternative()', if symbol TOKEN_ID is used as a unvalued
+     symbol, the valued status of symbol TOKEN_ID will be set to 0 and
+     locked.
+
+     If the valued status of symbol TOKEN_ID is locked at 0, it is a
+     failure if that symbol is used as an valued symbol.  If the valued
+     status of symbol TOKEN_ID is locked at 1, it is a failure if that
+     symbol is used as an unvalued symbol.
+
+     When `marpa_r_alternative()' is successful, the value of the
+     furthest earleme is set to the greater of its value before the
+     call, and CURRENT+LENGTH, where CURRENT is the value of the
+     current earleme.  The values of the current and latest earlemes
+     are unchanged by calls to `marpa_r_alternative()'.
+
+     Several error codes leave the recognizer in a fully recoverable
+     state, allowing the application to retry the
+     `marpa_r_alternative()' method.  Retry is efficient, and quite
+     useable as a parsing technique.  The error code of primary
+     interest from this point of view is
+     `MARPA_ERR_UNEXPECTED_TOKEN_ID', which indicates that the token
+     was not accepted because of its token ID.  Retry after this
+     condition is used in several applications, and is called "the Ruby
+     Slippers technique".
+
+     The error codes `MARPA_ERR_DUPLICATE_TOKEN',
+     `MARPA_ERR_NO_TOKEN_EXPECTED_HERE' and
+     `MARPA_ERR_INACCESSIBLE_TOKEN' also leave the recognizer in a
+     fully recoverable state, and may also be useable for the Ruby
+     Slippers or similar techniques.  At this writing, the author knows
+     of no applications which attempt to recover from these errors.
+
+     Return value:  On success, `MARPA_ERR_NONE'.  On failure, some
+     other error code.
+
+
+ -- Function: Marpa_Earleme marpa_r_earleme_complete (Marpa_Recognizer
+          R)
+     This method does the final processing for the current earleme.  It
+     then advances the current earleme by one.  Note that
+     `marpa_r_earleme_complete()' may be called even when no tokens
+     have been read at the current earleme -- in the
+     character-per-earleme input model, for example, tokens can span
+     many characters and, if the input is unambiguous over that span,
+     there will be no other tokens that start inside it.
+
+     As mentioned, `marpa_r_earleme_complete()' always advances the
+     current earleme, incrementing its value by 1.  This means that
+     value of the current earleme after the call will be the one plus
+     the value of the earleme processed by the call to
+     `marpa_r_earleme_complete()'.  If any token was accepted at the
+     earleme being processed, `marpa_r_earleme_complete()' creates a
+     new Earley set which will be the latest Earley set and, after the
+     call, the latest earleme will be equal to the new current earleme.
+     If no token was accepted at the earleme being processed, no Earley
+     set is created, and the value of the latest earleme remains
+     unchanged.  The value of the furthest earleme is never changed by
+     a call to `marpa_r_earleme_complete()'.
+
+     During this method, one or more events may occur.  On success,
+     this function returns the number of events generated, but it is
+     important to note that events may be created whether earleme
+     completion fails or succeeds.  When this method fails, the
+     application must call `marpa_g_event()' if it wants to determine
+     if any events occurred.  Since the reason for failure to complete
+     an earleme is often detailed in the events, applications that fail
+     will often be at least as interested in the events as those that
+     succeed.
+
+     `MARPA_EVENT_EXHAUSTED' indicates that the parse is exhausted --
+     that no input will be accepted at later earlemes.
+
+     The `MARPA_EVENT_EARLEY_ITEM_THRESHOLD' event indicates that an
+     application-settable threshold on the number of Earley items has
+     been reached or exceeded.  What this means depends on the
+     application, but when the default threshold is exceeded, it means
+     that it is very likely that the time and space resources consumed
+     by the parse will prove excessive.
+
+     Note that an exhausted parse may be returned as a failure, or it
+     may be an event returned on success, depending on the
+     circumstances.  If `marpa_r_earleme_complete()' is called with the
+     furthest earleme equal to the current earleme, a failure will
+     result whose error code is `MARPA_ERR_PARSE_EXHAUSTED'.  A failure
+     of this sort can happen if the last call to
+     `marpa_r_earleme_complete()' left the current earleme equal to the
+     furthest earleme, and no alternatives were added at the current
+     earleme.  Note that when a parse fails due to exhaustion, it may
+     have succeeded at earlier earlemes.
+
+     On the other hand, a parse can be exhausted on success.  In this
+     case, a new Earley set is created, and the earleme advanced, but
+     no input will be possible at the new current earleme.  It is quite
+     common for a parse to accept no more input when it succeeds.  Many
+     practical grammars are designed so that a successful parse cannot
+     be extended.
+
+     Return value:  On success, the number of events generated.  On
+     failure, -2.
+
+
+File: api.info,  Node: Location accessors,  Next: Other parse status methods,  Prev: Recognizer life cycle mutators,  Up: Recognizer methods
+
+12.5 Location accessors
+=======================
+
+ -- Function: Marpa_Earleme marpa_r_earleme ( Marpa_Recognizer R,
+          Marpa_Earley_Set_ID SET_ID)
+     In the default, token-stream model, Earley set ID and earleme are
+     always equal, but this is not the case in other input models.
+     (The ID of an Earley set ID is also called its ordinal.)  If there
+     is no Earley set whose ID is SET_ID, `marpa_r_earleme()' fails.
+     If SET_ID was negative, the error code is set to
+     `MARPA_ERR_INVALID_LOCATION'.  If SET_ID is greater than the
+     ordinal of the latest Earley set, the error code is set to
+     `MARPA_ERR_NO_EARLEY_SET_AT_LOCATION'.
+
+     At this writing, there is no method for the inverse operation
+     (conversion of an earleme to an Earley set ID).  One consideration
+     in writing such a method is that not all earlemes correspond to
+     Earley sets.  Applications that want to map earlemes to Earley
+     sets will have no trouble if they are using the standard input
+     model -- the Earley set ID is always exactly equal to the earleme
+     in that model.  For other applications that want an earleme-to-ID
+     mapping, the most general method is create an ID-to-earleme array
+     using the `marpa_r_earleme()' method and invert it.
+
+     Return value: On success, the earleme corresponding to Earley set
+     SET_ID.  On failure, -2.
+
+ -- Function: `unsigned int' marpa_r_current_earleme (Marpa_Recognizer
+          R)
+     Return value: If input has started, the current earleme.  If input
+     has not started, -1.  Always succeeds.
+
+ -- Function: Marpa_Earley_Set_ID marpa_r_latest_earley_set
+          (Marpa_Recognizer R)
+     This method returns the Earley set ID (ordinal) of the latest
+     Earley set.  Applications that want the value of the latest
+     earleme can convert this value using the `marpa_r_earleme()'
+     method.
+
+     Return value: On success, the ID of the latest Earley set.  Always
+     succeeds.
+
+ -- Function: `unsigned int' marpa_r_furthest_earleme (Marpa_Recognizer
+          R)
+     Return value: On success, the furthest earleme.  Always succeeds.
+
+
+File: api.info,  Node: Other parse status methods,  Prev: Location accessors,  Up: Recognizer methods
+
+12.6 Other parse status methods
+===============================
+
+ -- Function: int marpa_r_earley_item_warning_threshold
+          (Marpa_Recognizer R)
+ -- Function: int marpa_r_earley_item_warning_threshold_set
+          (Marpa_Recognizer R, int THRESHOLD)
+     These methods, respectively, report and set the Earley item
+     warning threshold.  The "Earley item warning threshold" is a
+     number that is compared with the count of Earley items in each
+     Earley set.  When it is matched or exceeded, a
+     `MARPA_EVENT_EARLEY_ITEM_THRESHOLD' event is created.
+
+     If THRESHOLD is zero or less, an unlimited number of Earley items
+     will be allowed without warning.  This will rarely be what the
+     user wants.
+
+     By default, Libmarpa calculates a value based on the grammar.  The
+     formula Libmarpa uses is the result of some experience, and most
+     applications will be happy with it.
+
+     Return value: The value that the Earley item warning threshold has
+     after the method call is finished.  Always succeeds.
+
+ -- Function: int marpa_r_expected_symbol_event_set ( Marpa_Recognizer
+          R, Marpa_Symbol_ID SYMBOL_ID, int VALUE)
+     Sets the "expected symbol event bit" for SYMBOL_ID to VALUE.  A
+     recognizer event is created whenever symbol SYMBOL_ID is expected
+     at the current earleme.  if and only if the expected symbol event
+     bit for SYMBOL_ID is 1.  The "expected symbol event bit" must be 1
+     or 0.
+
+     By default, the "expected symbol event bit" is 0.  It is an error
+     to attempt to set the "expected symbol event bit" to 1 for a
+     nulling symbol, an inaccessible symbol, or an unproductive symbol.
+
+     Return value: The value of the event bit after the method call is
+     finished.  -2 if SYMBOL_ID is not the ID of a valid symbol; if it
+     is the ID of an nulling, inaccessible for unproductive symbol; or
+     on other failure.
+
+ -- Function: int marpa_r_terminals_expected ( Marpa_Recognizer R,
+          Marpa_Symbol_ID* BUFFER)
+     Returns a list of the ID's of the symbols that are acceptable as
+     tokens at the current earleme.  BUFFER is expected to be large
+     enough to hold the result.  This is guaranteed to be the case if
+     the buffer is large enough to hold a number of `Marpa_Symbol_ID''s
+     that is greater than or equal to the number of symbols in the
+     grammar.
+
+     Return value:  On success, the number of `Marpa_Symbol_ID''s in
+     BUFFER.  On failure, -2.
+
+ -- Function: int marpa_r_is_exhausted (Marpa_Recognizer R)
+     A parser is "exhausted" if it cannot accept any more input.  Both
+     successful and failed parses can be exhausted.  In many grammars,
+     the parse is always exhausted as soon as it succeeds.  Good parses
+     may also exist at earlemes prior to the current one.
+
+     Return value: 1 if the parser is exhausted, 0 otherwise.  Always
+     succeeds.
+
+
+File: api.info,  Node: Progress reports,  Next: Bocage methods,  Prev: Recognizer methods,  Up: Top
+
+13 Progress reports
+*******************
+
+An important advantage of the Marpa algorithm is the ability to easily
+get full information about the state of the parse.
+
+   To start a progress report, use the
+`marpa_r_progress_report_start()' command.  Only one progress report
+can be in use at any one time.
+
+   To get the information in a progress report, it is necessary to step
+through the progress report items.  To get the data for the current
+progress report item, and advance to the next one, use the
+`marpa_r_progress_item()' method.
+
+   To destroy a progress report, freeing the memory it uses, call the
+`marpa_r_progress_report_finish()' method.
+
+ -- Function: int marpa_r_progress_report_start ( Marpa_Recognizer R,
+          Marpa_Earley_Set_ID SET_ID)
+     Initializes a report of the progress at Earley set SET_ID for
+     recognizer R.  If a progress report already exists, it is
+     destroyed and its memory is freed.  Initially, the progress report
+     is positioned before its first item.
+
+     If no Earley set with ID SET_ID exists,
+     `marpa_r_progress_report_start()' fails.  The error code is
+     `MARPA_ERR_INVALID_LOCATION' if SET_ID is negative.  The error
+     code is `MARPA_ERR_NO_EARLEY_SET_AT_LOCATION' if SET_ID is greater
+     than the ID of the latest Earley set.
+
+     Return value: On success, the number of report items available.
+     If the recognizer has not been started; if SET_ID does not exist;
+     or on other failure, -2.
+
+ -- Function: int marpa_r_progress_report_finish ( Marpa_Recognizer R )
+     Destroys the report of the progress at Earley set SET_ID for
+     recognizer R, freeing the memory and other resources.  It is often
+     not necessary to call this method.  Any previously existing
+     progress report is destroyed automatically whenever a new progress
+     report is started, and when the recognizer is destroyed.
+
+     Return value: -2 if no progress report has been started, or on
+     other failure.  On success, a non-negative value.
+
+ -- Function: Marpa_Rule_ID marpa_r_progress_item ( Marpa_Recognizer R,
+          int* POSITION, Marpa_Earley_Set_ID* ORIGIN )
+     This method allows access to the data for the next item of a
+     progress report.  If there are no more progress report items, it
+     returns -1 as a termination indicator and sets the error code to
+     `MARPA_ERR_PROGRESS_REPORT_EXHAUSTED'.  Either the termination
+     indicator, or the item count returned by
+     `marpa_r_progress_report_start()', can be used to determine when
+     the last item has been seen.
+
+     On success, the dot position is returned in the location pointed
+     to by the POSITION argument, and the origin is returned in the
+     location pointed to by the ORIGIN argument.  On failure, the
+     locations pointed to by the POSITION and ORIGIN arguments are
+     unchanged.
+
+     Return value: On success, the rule ID of the next progress report
+     item.  If there are no more progress report items, -1.  If either
+     the POSITION or the ORIGIN argument is `NULL', or on other
+     failure, -2.
+
+
+File: api.info,  Node: Bocage methods,  Next: Ordering methods,  Prev: Progress reports,  Up: Top
+
+14 Bocage methods
+*****************
+
+* Menu:
+
+* Bocage overview::
+* Bocage constructor::
+* Bocage reference counting::
+
+
+File: api.info,  Node: Bocage overview,  Next: Bocage constructor,  Prev: Bocage methods,  Up: Bocage methods
+
+14.1 Overview
+=============
+
+A bocage is structure containing the full set of parses found by
+processing the input according to the grammar.  The bocage structure is
+new with Libmarpa, but is very similar in purpose to the more familar
+parse forests.
+
+   To create a bocage, use the `marpa_b_new()' method.
+
+   When a bocage is no longer in use, its memory can be freed using the
+`marpa_b_unref()' method.
+
+
+File: api.info,  Node: Bocage constructor,  Next: Bocage reference counting,  Prev: Bocage overview,  Up: Bocage methods
+
+14.2 Creating a new bocage
+==========================
+
+ -- Function: Marpa_Bocage marpa_b_new (Marpa_Recognizer R,
+          Marpa_Earley_Set_ID EARLEY_SET_ID)
+     Creates a new bocage object, with a reference count of 1.  The
+     reference count of its parent recognizer object, R, is increased
+     by 1.  If there is no parse ending at Earley set EARLEY_SET_ID,
+     `marpa_b_new' fails and the error code is set to
+     `MARPA_ERR_NO_PARSE'.
+
+     Return value: On success, the new bocage object.  On failure,
+     `NULL'.
+
+
+File: api.info,  Node: Bocage reference counting,  Prev: Bocage constructor,  Up: Bocage methods
+
+14.3 Reference counting
+=======================
+
+ -- Function: Marpa_Bocage marpa_b_ref (Marpa_Bocage B)
+     Increases the reference count by 1.  Not needed by most
+     applications.
+
+     Return value: On success, B.  On failure, `NULL'.
+
+ -- Function: void marpa_b_unref (Marpa_Bocage B)
+     Decreases the reference count by 1, destroying B once the
+     reference count reaches zero.  When B is destroyed, the reference
+     count of its parent recognizer is decreased by 1.  If this takes
+     the reference count of the parent recognizer to zero, it too is
+     destroyed.  If the parent recognizer is destroyed, the reference
+     count of its base grammar is decreased by 1.  If this takes the
+     reference count of the base grammar to zero, it too is destroyed.
+
+
+
+File: api.info,  Node: Ordering methods,  Next: Tree methods,  Prev: Bocage methods,  Up: Top
+
+15 Ordering methods
+*******************
+
+* Menu:
+
+* Ordering overview::
+* Ordering constructor::
+* Ordering reference counting::
+* Non-default ordering::
+
+
+File: api.info,  Node: Ordering overview,  Next: Ordering constructor,  Prev: Ordering methods,  Up: Ordering methods
+
+15.1 Overview
+=============
+
+Before iterating the parses in the bocage, they must be ordered.  To
+create an ordering, use the `marpa_o_new()' method.  When an ordering
+is no longer in use, its memory can be freed using the
+`marpa_o_unref()' method.
+
+   An ordering is "frozen" once the first tree iterator is created
+using it.  A frozen ordering cannot be changed.
+
+   As of this writing, the only methods to order parses are internal
+and undocumented.  This is expected to change.
+
+
+File: api.info,  Node: Ordering constructor,  Next: Ordering reference counting,  Prev: Ordering overview,  Up: Ordering methods
+
+15.2 Creating an ordering
+=========================
+
+ -- Function: Marpa_Order marpa_o_new ( Marpa_Bocage B)
+     Creates a new ordering object, with a reference count of 1.  The
+     reference count of its parent bocage object, B, is increased by 1.
+
+     Return value: On success, the new ordering object.  On failure,
+     `NULL'.
+
+
+File: api.info,  Node: Ordering reference counting,  Next: Non-default ordering,  Prev: Ordering constructor,  Up: Ordering methods
+
+15.3 Reference counting
+=======================
+
+ -- Function: Marpa_Order marpa_o_ref ( Marpa_Order O)
+     Increases the reference count by 1.  Not needed by most
+     applications.
+
+     Return value: On success, O.  On failure, `NULL'.
+
+ -- Function: void marpa_o_unref ( Marpa_Order O)
+     Decreases the reference count by 1, destroying O once the
+     reference count reaches zero.  Beginning with O's parent bocage,
+     Libmarpa then proceeds up the chain of parent objects.  Every time
+     a child is destroyed, the reference count of its parent is
+     decreased by 1.  Every time the reference count of an object is
+     decreased by 1, if that reference count is now zero, that object
+     is destroyed.  Libmarpa follows this chain of decrements and
+     destructions as required, all the way back to the base grammar, if
+     necessary.
+
+
+
+File: api.info,  Node: Non-default ordering,  Prev: Ordering reference counting,  Up: Ordering methods
+
+15.4 Non-default ordering
+=========================
+
+ -- Function: int marpa_o_high_rank_only_set ( Marpa_Order O, int FLAG)
+ -- Function: int marpa_o_high_rank_only ( Marpa_Order O)
+     These methods, respectively, set and discover the "high rank only"
+     flag of ordering O.  A flag of 1 indicates that, when ranking, all
+     choices should be discarded except those of the highest rank.  A
+     valued status of 0 indicates that no choices should be discarded
+     on the basis of their rank.
+
+     Return value:  On success, the  value of the "high rank only" flag
+     *after* the call.  On failure, -2.
+
+ -- Function: int marpa_o_rank ( Marpa_Order O )
+     By default, the ordering of parse trees is arbitrary.  This method
+     causes the ordering to be ranked according to the ranks of symbols
+     and rules, the "null ranks high" flags of the rules, and the "high
+     rank only" flag of the ordering.  Once this method returns, the
+     ordering is frozen.
+
+     Return value:  On success, a non-negative value.  On failure, -2.
+
+
+
+File: api.info,  Node: Tree methods,  Next: Value methods,  Prev: Ordering methods,  Up: Top
+
+16 Tree methods
+***************
+
+* Menu:
+
+* Tree overview::
+* Tree constructor::
+* Tree reference counting::
+* Tree iteration::
+
+
+File: api.info,  Node: Tree overview,  Next: Tree constructor,  Prev: Tree methods,  Up: Tree methods
+
+16.1 Overview
+=============
+
+Once the bocage has an ordering, the parses trees can be iterated.
+Marpa's "parse tree iterators" iterate the parse trees contained in a
+bocage object.  In Libmarpa, "parse tree iterators" are usually just
+called "trees".
+
+   To create a tree, use the `marpa_t_new()' method.  A newly created
+tree iterator is positioned before the first parse tree.  When a tree
+iterator is no longer in use, its memory can be freed using the
+`marpa_t_unref()' method.
+
+   To position a newly created tree iterator at the first parse tree,
+use the `marpa_t_next()' method.  Once the tree iterator is positioned
+at a parse tree, the same `marpa_t_next()' method is used to position
+it to the next parse tree.
+
+
+File: api.info,  Node: Tree constructor,  Next: Tree reference counting,  Prev: Tree overview,  Up: Tree methods
+
+16.2 Creating a new tree iterator
+=================================
+
+ -- Function: Marpa_Tree marpa_t_new (Marpa_Order O)
+     Creates a new tree iterator, with a reference count of 1.  The
+     reference count of its parent ordering object, O, is increased by
+     1.
+
+     When initialized, a tree iterator is positioned before the first
+     parse tree.  To position the tree iterator to the first parse, the
+     application must call `marpa_t_next()'.
+
+     Return value:  On success, a newly created tree.  On failure,
+     `NULL'.
+
+
+File: api.info,  Node: Tree reference counting,  Next: Tree iteration,  Prev: Tree constructor,  Up: Tree methods
+
+16.3 Reference counting
+=======================
+
+ -- Function: Marpa_Tree marpa_t_ref (Marpa_Tree T)
+     Increases the reference count by 1.  Not needed by most
+     applications.
+
+     Return value: On success, T.  On failure, `NULL'.
+
+ -- Function: void marpa_t_unref (Marpa_Tree T)
+     Decreases the reference count by 1, destroying T once the
+     reference count reaches zero.  Beginning with T's parent ordering,
+     Libmarpa then proceeds up the chain of parent objects.  Every time
+     a child is destroyed, the reference count of its parent is
+     decreased by 1.  Every time the reference count of an object is
+     decreased by 1, if that reference count is now zero, that object
+     is destroyed.  Libmarpa follows this chain of decrements and
+     destructions as required, all the way back to the base grammar, if
+     necessary.
+
+
+
+File: api.info,  Node: Tree iteration,  Prev: Tree reference counting,  Up: Tree methods
+
+16.4 Iterating through the trees
+================================
+
+ -- Function: int marpa_t_next ( Marpa_Tree T)
+     Positions T at the next parse tree in the iteration.  Tree
+     iterators are initialized to the position before the first parse
+     tree, so this method must be called before creating a valuator
+     from a tree.
+
+     If a tree iterator is positioned after the last parse, the tree is
+     said to be "exhausted".  A tree iterator for a bocage with no
+     parse trees is considered to be "exhausted" when initialized.  If
+     the tree iterator is exhausted, `marpa_t_next()' returns -1 as a
+     termination indicator, and sets the error code to
+     `MARPA_ERR_TREE_EXHAUSTED'.
+
+     Return value: On success, a non-negative value.  If the tree
+     iterator is exhausted, -1.  On failure, -2.
+
+ -- Function: int marpa_t_parse_count ( Marpa_Tree T)
+     The parse counter counts the number of parse trees traversed so
+     far.  The count includes the current iteration of the tree, so
+     that a value of 0 indicates that the tree iterator is at its
+     initialized position, before the first parse tree.
+
+     Return value: The number of parses traversed so far.  Always
+     succeeds.
+
+
+File: api.info,  Node: Value methods,  Next: Events,  Prev: Tree methods,  Up: Top
+
+17 Value methods
+****************
+
+* Menu:
+
+* Value overview::
+* How to use the valuator::
+* Advantages of step-driven valuation::
+* Maintaining the stack::
+* Valuator constructor::
+* Valuator reference counting::
+* Registering semantics::
+* Stepping through the valuator::
+* Valuator steps by type::
+* Basic step accessors::
+* Other step accessors::
+
+
+File: api.info,  Node: Value overview,  Next: How to use the valuator,  Prev: Value methods,  Up: Value methods
+
+17.1 Overview
+=============
+
+The archetypal application needs a value object (or "valuator") to
+produce the value of the parse.  To create a valuator, use the
+`marpa_v_new()' method.  When a valuator is no longer in use, its
+memory can be freed using the `marpa_v_unref()' method.
+
+   By default, Libmarpa assumes that non-terminal symbols have no
+semantics.  The archetypal application will need to register symbols
+that contain semantics.  The primary method for doing this is
+`marpa_v_symbol_is_valued()'.  Applications will typically register
+semantics by rule, and these applications will find the
+`marpa_v_rule_is_valued()' method more convenient.
+
+   The application is required to maintain the stack, and the
+application is also required to implement most of the semantics,
+including the evaluation of rules.  Libmarpa's valuator provides
+instructions to the application on how to manipulate the stack.  To
+iterate through this series of instructions, use the `marpa_v_step()'
+method.
+
+   `marpa_v_step()' returns the type of step.  Most step types has
+values associated with them.  To access these values use the methods
+described in the section *note Basic step accessors::.  How to perform
+the steps is described in the sections *note How to use the valuator::
+and *note Stepping through the valuator::.
+
+
+File: api.info,  Node: How to use the valuator,  Next: Advantages of step-driven valuation,  Prev: Value overview,  Up: Value methods
+
+17.2 How to use the valuator
+============================
+
+Libmarpa's valuator provides the application with "steps", which are
+instructions for stack manipulation.  Libmarpa itself does not maintain
+a stack.  This leaves the upper layer in total control of the stack and
+the values which are placed on it.
+
+   As example may make this clearer.  Suppose the evalution is at a
+place in the parse tree where an addition is being performed.  Libmarpa
+does not know that the operation is an addition.  It will tell the
+application that rule number R is to be applied to the arguments at
+stack locations N and N+1, and that the result is to placed in stack
+location N.
+
+   In this system the application keeps track of the semantics for all
+rules, so it looks up rule R and determines that it is an addition.
+The application can do this by using R as an index into an array of
+callbacks, or by any other method it chooses.  Let's assume a callback
+implements the semantics for rule R.  Libmarpa has told the application
+that two arguments are available for this operation, and that they are
+at locations N and N+1 in the stack.  They might be the numbers 42 and
+711.  So the callback is called with its two arguments, and produces a
+return value, let's say, 753.  Libmarpa has told the application that
+the result belongs at location N in the stack, so the application
+writes 753 to location N.
+
+   Since Libmarpa knows nothing about the semantics, the operation for
+rule R could be string concatenation instead of addition.  Or, if it is
+addition, it could allow for its arguments to be floating point or
+complex numbers.  Since the application maintains the stack, it is up
+to the application whether the stack contains integers, strings,
+complex numbers, or polymorphic objects which are capable of being any
+of these things and more.
+
+
+File: api.info,  Node: Advantages of step-driven valuation,  Next: Maintaining the stack,  Prev: How to use the valuator,  Up: Value methods
+
+17.3 Advantages of step-driven valuation
+========================================
+
+Step-driven valuation hides Libmarpa's grammar rewrites from the
+application, and is quite efficient.  Libmarpa knows which rules are
+sequences.  Based on the individual symbol's valued statuses, Libmarpa
+also knows which rules and terminals have values that it need not
+bother tracking.  Libmarpa optimizes stack manipulations based on this
+knowledge.  Long sequences, as well as unvalued rules and symbols, are
+very common in practical grammars.  For these, the stack manipulations
+suggested by Libmarpa's step-driven valuator will be significantly
+faster than the traditional stack evaluation algorithm.
+
+   Step-driven evalution has another advantage.  To illustrate this,
+consider what is a very common case: The semantics are implemented in a
+higher-level language, using callbacks.  If Libmarpa did not use
+step-driven valuation, it would need to provide for this case.  But for
+generality, Libmarpa would have to deal in C callbacks.  Therefore, a
+middle layer would have to create C language wrappers for the callbacks
+in the higher level language.
+
+   The implementation that results is this: The higher level language
+would need to wrap each callback in C.  When calling Libmarpa, it would
+pass the wrappered callback.  Libmarpa would then need to call the C
+language "wrappered" callback.  Next, the wrapper would call the
+higher-level language callback.  The return value, which would be data
+native to the higher-level language, would need to be passed to the C
+language wrapper, which will need to make arrangements for it to be
+based back to the higher-level language when appropriate.
+
+   A setup like this is not terribly efficient.  And exception handling
+across language boundaries would be very tricky.  But neither of these
+is the worst problem.
+
+   Callbacks are hard to debug.  Wrappered callbacks are even worse.
+Calls made across language boundaries are harder yet to debug.  In the
+system described above, by the time a return value is finally consumed,
+a language boundary will have been crossed four times.
+
+   How do programmers deal with difficulties like this?  Usually, by
+doing the absolute minimum possible in the callbacks.  A horrific
+debugging enviroment can become a manageable one if there is next to no
+code to be debugged.  And this can be accomplished by doing as much as
+possible in pre- and post-processing.
+
+   In essence, callbacks force applications to do most of the
+programming via side effects.  One need not be a functional programming
+purist to find this a very undesirable style of design to force on an
+application.  But the ability to debug can make the difference between
+code that does work and code that does not.  Unfairly or not, code is
+rarely considered well-designed when it does not work.
+
+   So, while step-driven valuation seems a roundabout approach, it is
+simpler and more direct than the likely alternatives.  And there is
+something to be said for pushing semantics up to the higher levels --
+they can be expected to know more about it.
+
+   These advantages of step-driven valuation are strictly in the
+context of a low-level interface.  The author is under no illusion that
+direct use of Libmarpa's valuator will be found satisfactory by most
+application programmers, even those using the C language.  The author
+certainly avoids using step-driven valuation directly.  Libmarpa's
+valuator is intended to be used via an upper layer, one which *does*
+know about semantics.
+
+
+File: api.info,  Node: Maintaining the stack,  Next: Valuator constructor,  Prev: Advantages of step-driven valuation,  Up: Value methods
+
+17.4 Maintaining the stack
+==========================
+
+This section discusses in detail the requirements for maintaining the
+stack.  In some cases, such as implementation using a Perl array,
+fulfilling these requirements is trivial.  Perl auto-extends its arrays,
+and initializes the element values, on every read or write.  For the C
+programmer, things are not quite so easy.
+
+   In this section, we will assume a C90 or C99 standard-conformant C
+application.  This assumption is convenient on two grounds.  First,
+this will be the intended use for many readers.  Second,
+standard-conformant C is a "worst case".  Any issue faced by a
+programmer of another environment is likely to also be one that must be
+solved by the C programmer.
+
+   Libmarpa often optimizes away unnecessary stack writes to stack
+locations.  When it does so, it will not necessarily optimize away all
+reads to that stack location.  This means that a location's first
+access, as suggested by the Libmarpa step instructions, may be a read.
+This possibility requires a special awareness from the C programmer, as
+discussed in the sections *note Sizing the stack:: and *note
+Initializing locations in the stack::.
+
+   In the discussions in this document, stack locations are
+non-negative integers.  The bottom of the stack is location 0.  In
+moving from the bottom of the stack to the top, the numbers increase.
+Stack location Y is said to be "greater" than stack location X if stack
+location Y is closer to the top of stack than location X, and therefore
+stack locations are considered greater or lesser if the integers that
+represent them are greater or lesser.  Another way to state that a
+stack location Y is greater (lesser) than stack location X is to say
+that a stack location Y is later (earlier) than stack location X.
+
+* Menu:
+
+* Sizing the stack::
+* Initializing locations in the stack::
+
+
+File: api.info,  Node: Sizing the stack,  Next: Initializing locations in the stack,  Prev: Maintaining the stack,  Up: Maintaining the stack
+
+17.4.1 Sizing the stack
+-----------------------
+
+If an implementation applies Libmarpa's step instructions literally,
+using a physical stack, it must make sure the stack is large enough.
+Specifically, the application must do the following
+
+   * Ensure location 0 exists -- in other words that the stack is at
+     least length 1.
+
+   * For `MARPA_STEP_TOKEN' steps, ensure that location
+     `marpa_v_result(v)' exists.
+
+   * For `MARPA_STEP_NULLING_SYMBOL' steps, ensure that location
+     `marpa_v_result(v)' exists.
+
+   * For `MARPA_STEP_RULE' steps, ensure that stack locations from
+     `marpa_v_arg_0(v)' to `marpa_v_arg_n(v)' exist.
+
+   Three aspects of these requirements deserve special mention.  First,
+note that the requirement for a `MARPA_STEP_RULE' is that the
+application size the stack to include the arguments to be read.
+Because stack writes may be optimized away, an application, when
+reading, cannot assume that the stack was sized appropriately by a
+prior write.  The first access to a new stack location may be a read.
+
+   Second, note that there is no explicit requirement that the
+application size the stack to include the location for the result of the
+`MARPA_STEP_RULE' step.  An application is allowed to assume that
+result will go into one of the locations that were read.
+
+   Third, special note should be made of the requirement that location
+0 exist.  By convention, the parse result resides in location 0 of the
+stack.  But, because the start symbol may have unvalued status, an
+application cannot assume that it will receive a Libmarpa step
+instruction that either reads from or writes to location 0.
+
+
+File: api.info,  Node: Initializing locations in the stack,  Prev: Sizing the stack,  Up: Maintaining the stack
+
+17.4.2 Initializing locations in the stack
+------------------------------------------
+
+Write optimizations also creates issues for implementations which
+require data to be initialized before reading.  Every fully
+standard-conforming C application is such an implementation.  Both C90
+and C99 allow "trap values", and therefore conforming applications must
+be prepared for an uninitialized location to contain one of those.
+Reading a trap value may cause an abend.  (It is safe, in
+standard-conforming C, to write to a location containing a trap value.)
+
+   The requirement that locations be initialized before reading occurs
+in other implementations.  Uninitialized locations will correspond to
+unvalued symbols, but an implementation may require even "unvalued"
+symbols to have a value that belongs to its "universe" of values.  A
+symbol is "unvalued" if it does not have a predictable *specific* value.
+For example, an application may be implemented expecting every item on
+the stack to belong to a class, in which case the set of all objects of
+that class would be that application's "universe" of values.  In such
+an implementation, just as in standard-conformant C, every stack
+location would need to be initialized before being read.
+
+   Due to write optimizations, an application cannot rely on Libmarpa's
+step instructions to initialize every stack location before its first
+read.  One way to safely deal with the initialization of stack
+locations, is to do all of the following:
+   * When starting evaluation, ensure that the stack contains at least
+     location 0.
+
+   * Also, when starting evaluation, initialize every location in the
+     stack.
+
+   * Whenever the stack is extended, initialize every stack location
+     added.
+
+   Applications which try to optimize out some of these initializations
+need to be aware that an application can never assume that activity in
+the stack is safely "beyond" an uninitialized location.  Libmarpa steps
+often revisit earlier sections of the stack, and these revisits may
+include reads of previously unvisited stack locations.
+
+
+File: api.info,  Node: Valuator constructor,  Next: Valuator reference counting,  Prev: Maintaining the stack,  Up: Value methods
+
+17.5 Creating a new valuator
+============================
+
+ -- Function: Marpa_Value marpa_v_new ( Marpa_Tree T )
+     Creates a new valuator.  The parent object of the new valuator
+     will be the tree iterator T, and the reference count of the new
+     valuator will be 1.  The reference count of T is increased by 1.
+
+     The parent tree iterator is "paused", so that the tree iterator
+     cannot move on to a new parse tree until the valuator is destroyed.
+     Many valuators of the same parse tree can exist at once.  A tree
+     iterator is "unpaused" when all of the valuators of that tree
+     iterator are destroyed.
+
+     Return value:  On success, the newly created valuator.  On
+     failure, `NULL'.
+
+
+File: api.info,  Node: Valuator reference counting,  Next: Registering semantics,  Prev: Valuator constructor,  Up: Value methods
+
+17.6 Reference counting
+=======================
+
+ -- Function: Marpa_Value marpa_v_ref (Marpa_Value V)
+     Increases the reference count by 1.  Not needed by most
+     applications.
+
+     Return value: On success, V.  On failure, `NULL'.
+
+ -- Function: void marpa_v_unref ( Marpa_Value V)
+     Decreases the reference count by 1, destroying V once the
+     reference count reaches zero.  Beginning with V's parent tree,
+     Libmarpa then proceeds up the chain of parent objects.  Every time
+     a child is destroyed, the reference count of its parent is
+     decreased by 1.  Every time the reference count of an object is
+     decreased by 1, if that reference count is now zero, that object
+     is destroyed.  Libmarpa follows this chain of decrements and
+     destructions as required, all the way back to the base grammar, if
+     necessary.
+
+
+
+File: api.info,  Node: Registering semantics,  Next: Stepping through the valuator,  Prev: Valuator reference counting,  Up: Value methods
+
+17.7 Registering semantics
+==========================
+
+ -- Function: int marpa_v_symbol_is_valued ( Marpa_Value V,
+          Marpa_Symbol_ID SYM_ID )
+ -- Function: int marpa_v_symbol_is_valued_set ( Marpa_Value V,
+          Marpa_Symbol_ID SYM_ID, int VALUE )
+     These methods, respectively, discover and set to VALUE, the valued
+     status for symbol SYM_ID.  A valued status of 1 indicates that the
+     symbol is valued.  A valued status of 0 indicates that the symbol
+     is unvalued.  If the valued status is locked, an attempt to change
+     to a status different from the current one will fail (error code
+     `MARPA_ERR_VALUED_IS_LOCKED').
+
+     Return value:  On success, the valued status *after* the call.  If
+     VALUE is not either 0 or 1, or on other failure, -2.
+
+ -- Function: int marpa_v_rule_is_valued ( Marpa_Value V, Marpa_Rule_ID
+          RULE_ID )
+ -- Function: int marpa_v_rule_is_valued_set ( Marpa_Value V,
+          Marpa_Rule_ID RULE_ID, int VALUE )
+     These methods respectively, discover and set to VALUE, the valued
+     status for the LHS symbol of rule RULE_ID.  A valued status of 1
+     indicates that the symbol is valued.  A valued status of 0
+     indicates that the symbol is unvalued.  If the valued status is
+     locked, an attempt to change to a status different from the
+     current one will fail (error code `MARPA_ERR_VALUED_IS_LOCKED').
+
+     Rules have no valued status of their own.  The valued status of a
+     rule is always that of its LHS symbol.  These methods are
+     conveniences -- they save the application the trouble of looking
+     up the rule's LHS.
+
+     Return value:  On success, the valued status of the rule RULE_ID's
+     LHS symbol *after* the call.  If VALUE is not either 0 or 1, or on
+     other failure, -2.
+
+
+File: api.info,  Node: Stepping through the valuator,  Next: Valuator steps by type,  Prev: Registering semantics,  Up: Value methods
+
+17.8 Stepping through the valuator
+==================================
+
+ -- Function: Marpa_Step_Type marpa_v_step ( Marpa_Value V)
+     This method "steps through" the valuator.  The return value is a
+     `Marpa_Step_Type', an integer which indicates the type of step.
+     How the application is expected to act on each step is described
+     below.  *Note Valuator steps by type::.  When the iteration
+     through the steps is finished, `marpa_v_step' returns
+     `MARPA_STEP_INACTIVE'.
+
+     Return value:  On success, the type of the step to be performed.
+     This will always be a non-negative number.  On failure, -2.
+
+
+File: api.info,  Node: Valuator steps by type,  Next: Basic step accessors,  Prev: Stepping through the valuator,  Up: Value methods
+
+17.9 Valuator steps by type
+===========================
+
+ -- Macro: Marpa_Step_Type MARPA_STEP_RULE
+     The semantics of a rule should be performed.  The application can
+     find the value of the rule's children in the stack locations from
+     `marpa_v_arg_0(v)' to `marpa_v_arg_n(v)'.  The semantics for the
+     rule whose ID is `marpa_v_rule(v)' should be executed on these
+     child values, and the result placed in `marpa_v_result(v)'.  The
+     stack location of `marpa_v_result(v)' is guaranteed to be equal to
+     `marpa_v_arg_0(v)'.
+
+ -- Macro: Marpa_Step_Type MARPA_STEP_TOKEN
+     The semantics of a non-null token should be performed.  The
+     application's value for the token whose ID is `marpa_v_token(v)'
+     should be placed in stack location `marpa_v_result(v)'.  Its value
+     according to Libmarpa will be in `marpa_v_token_value(v)'.
+
+ -- Macro: Marpa_Step_Type MARPA_STEP_NULLING_SYMBOL
+     The semantics for a nulling symbol should be performed.  The ID of
+     the symbol is `marpa_v_symbol(v)' and its value should be placed in
+     stack location `marpa_v_result(v)'.
+
+ -- Macro: Marpa_Step_Type MARPA_STEP_INACTIVE
+     The valuator has gone through all of its steps and is now inactive.
+     The value of the parse will be in stack location 0.  Because of
+     unvalued symbols, it is quite possible for valuator to immediately
+     became inactive -- `MARPA_STEP_INACTIVE' could be both the first
+     and last step.
+
+
+ -- Macro: Marpa_Step_Type MARPA_STEP_INITIAL
+     The valuator is new and has yet to go through any steps.
+
+ -- Macro: Marpa_Step_Type MARPA_STEP_INTERNAL1
+ -- Macro: Marpa_Step_Type MARPA_STEP_INTERNAL2
+ -- Macro: Marpa_Step_Type MARPA_STEP_TRACE
+     These step types are reserved for internal purposes.
+
+
+File: api.info,  Node: Basic step accessors,  Next: Other step accessors,  Prev: Valuator steps by type,  Up: Value methods
+
+17.10 Basic step accessors
+==========================
+
+The basic step accessors are so called because their information is
+basic to the stack manipulation.  The basic step accessors are
+implemented as macros.  They always succeed.
+
+ -- Macro: int marpa_v_arg_0 (Marpa_Value V)
+     For a `MARPA_STEP_RULE' step, returns the stack location where the
+     value of first child can be found.  The value is always the same
+     as that for the `marpa_v_result()' macro.
+
+ -- Macro: int marpa_v_arg_n (Marpa_Value V)
+     For a `MARPA_STEP_RULE' step, returns the stack location where the
+     value of the last child can be found.
+
+ -- Macro: int marpa_v_result (Marpa_Value V)
+     Return the stack location where the result of the semantics should
+     be placed.
+
+ -- Macro: Marpa_Rule_ID marpa_v_rule (Marpa_Value V)
+     Return value: Returns the ID of the rule token for the
+     `MARPA_STEP_RULE' step.
+
+ -- Macro: Marpa_Step_Type marpa_v_step_type (Marpa_Value V)
+     Return value: Returns the current step type: `MARPA_STEP_TOKEN',
+     `MARPA_STEP_RULE', etc.  Usually not needed since this is also the
+     return value of `marpa_v_step()'.
+
+ -- Macro: Marpa_Symbol_ID marpa_v_symbol (Marpa_Value V)
+     Return value: Returns the ID of the symbol for the
+     `MARPA_STEP_NULLING_SYMBOL' step.  The value is always the same as
+     that for the `marpa_v_token()' macro.
+
+ -- Macro: Marpa_Symbol_ID marpa_v_token (Marpa_Value V)
+     Return value: Returns the ID of the token for the
+     `MARPA_STEP_TOKEN' step.
+
+ -- Macro: void* marpa_v_token_value (Marpa_Value V)
+     Return value: Returns the integer which is (or which represents)
+     the value of the token for the `MARPA_STEP_TOKEN' step.
+
+
+File: api.info,  Node: Other step accessors,  Prev: Basic step accessors,  Up: Value methods
+
+17.11 Other step accessors
+==========================
+
+This section contains the step accessors that are not basic to stack
+manipulation, but which provide other useful information about the
+parse.  These step accessors are implemented as macros.
+
+   All of these accessors always succeed, but if called when they are
+irrelevant they return an unspecified value.  In this context, an
+"unspecified value" is a value that is either -1 or the ID of a valid
+Earley set, but which is otherwise unpredictable.
+
+ -- Macro: Marpa_Earley_Set_ID marpa_v_es_id (Marpa_Value V)
+     Return value: If the current step type is `MARPA_STEP_RULE', the
+     Earley Set ordinal where the rule ends.  If the current step type
+     is `MARPA_STEP_TOKEN' or `MARPA_STEP_NULLING_SYMBOL', the Earley
+     Set ordinal where the symbol ends.  If the current step type is
+     anything else, an unspecified value.
+
+ -- Macro: Marpa_Earley_Set_ID marpa_v_rule_start_es_id (Marpa_Value V)
+     Return value: If the current step type is `MARPA_STEP_RULE', the
+     Earley Set ordinal where the rule begins.  If the current step
+     type is anything else, an unspecified value.
+
+ -- Macro: Marpa_Earley_Set_ID marpa_v_token_start_es_id (Marpa_Value V)
+     Return value: If the current step type is `MARPA_STEP_TOKEN' or
+     `MARPA_STEP_NULLING_SYMBOL', the Earley Set ordinal where the
+     token begins.  If the current step type is anything else, an
+     unspecified value.
+
+
+File: api.info,  Node: Events,  Next: Error methods macros and codes,  Prev: Value methods,  Up: Top
+
+18 Events
+*********
+
+* Menu:
+
+* Events overview::
+* Event methods::
+* Event codes::
+
+
+File: api.info,  Node: Events overview,  Next: Event methods,  Prev: Events,  Up: Events
+
+18.1 Overview
+=============
+
+Events are generated by the `marpa_g_precompute()',
+`marpa_r_earleme_complete()', and `marpa_r_start_input()' methods.  The
+methods are called event-active.  Event-active methods always clear all
+previous events, so that after an event-active method the only events
+available will be those generated by that method.
+
+   Events are volatile, and it is expected that events will be queried
+immediately after the method that generated them.  Note especially that
+multiple recognizers using the same base grammar overwrite each other's
+events.
+
+   To find out how many events were generated by the last event-active
+method, use the `marpa_g_event_count' method.
+
+   To query a specific event, use the `marpa_g_event' and
+`marpa_g_event_value' methods.
+
+
+File: api.info,  Node: Event methods,  Next: Event codes,  Prev: Events overview,  Up: Events
+
+18.2 Methods
+============
+
+ -- Function: Marpa_Event_Type marpa_g_event (Marpa_Grammar G,
+          Marpa_Event* EVENT, int IX)
+     On success, the type of the IX'th event is returned and the data
+     for the IX'th event is placed in the location pointed to by EVENT.
+
+     Event indexes are in sequence.  Valid events will be in the range
+     from 0 to N, where N is one less than the event count.  The event
+     count can be queried using the `marpa_g_event_count()' method.
+
+     Return value:  On success, the type of event IX.  If there is no
+     IX'th event, if IX is negative, or on other failure, -2.  On
+     failure, the locations pointed to by EVENT are not changed.
+
+ -- Function: int marpa_g_event_count ( Marpa_Grammar g )
+     Return value:  On success, the number of events.  On failure, -2.
+
+ -- Macro: int marpa_g_event_value (Marpa_Event* EVENT)
+     This macro provides access to the "value" of the event.  The
+     semantics of the value varies according to the type of the event,
+     and is described in the section on event codes.  *Note Event
+     codes::.
+
+
+File: api.info,  Node: Event codes,  Prev: Event methods,  Up: Events
+
+18.3 Event codes
+================
+
+ -- Macro: int MARPA_EVENT_NONE
+     Applications should never see this event.  Event value: Undefined.
+     Suggested message: "No event".
+
+ -- Macro: int MARPA_EVENT_COUNTED_NULLABLE
+     A nullable symbol is either the separator for, or the right hand
+     side of, a sequence.  Event value: The ID of the symbol.
+     Suggested message: "This symbol is a counted nullable".
+
+ -- Macro: int MARPA_EVENT_EARLEY_ITEM_THRESHOLD
+     The user-settable Earley item threshold was exceeded.  Event
+     value: Undefined.  Suggested message: "Too many Earley items".
+
+ -- Macro: int MARPA_EVENT_EXHAUSTED
+     The parse is exhausted.  Event value: Undefined.  Suggested
+     message: "Recognizer is exhausted".
+
+ -- Macro: int MARPA_EVENT_LOOP_RULES
+     One or more rules are loop rules -- rules that are part of a cycle.
+     Cycles are pathological cases of recursion, in which the same
+     symbol string derives itself a potentially infinite number of
+     times.  Nonetheless, Marpa parses in the presence of these, and it
+     is up to the application to treat these as fatal errors, something
+     they almost always will wish to do.  Event value: The count of
+     loop rules.  Suggested message: "Grammar contains a infinite loop".
+
+ -- Macro: int MARPA_EVENT_NULLING_TERMINAL
+     A nulling symbol is also a terminal.  Event value: The ID of the
+     symbol.  Suggested message: "This symbol is a nulling terminal".
+
+ -- Macro: int MARPA_EVENT_SYMBOL_EXPECTED
+     The recognizer can be set to generate an events when a symbol is
+     expected using its `marpa_r_expected_symbol_event_set()' method.
+     This event code indicates that one of those events occurred.
+     Event value: The ID of the expected symbol.  Suggested message:
+     "Expecting symbol".
+
+
+File: api.info,  Node: Error methods macros and codes,  Next: Design notes,  Prev: Events,  Up: Top
+
+19 Error methods, macros and codes
+**********************************
+
+* Menu:
+
+* Error methods::
+* Error Macros::
+* External error codes::
+* Internal error codes::
+
+
+File: api.info,  Node: Error methods,  Next: Error Macros,  Prev: Error methods macros and codes,  Up: Error methods macros and codes
+
+19.1 Error methods
+==================
+
+ -- Function: Marpa_Error_Code marpa_g_error ( Marpa_Grammar G, const
+          char** P_ERROR_STRING)
+     When a method fails, this method allows the application to read
+     the error code.  P_ERROR_STRING is reserved for use by the
+     internals.  Applications should set it to `NULL'.
+
+     Return value: The last error code from a Libmarpa method.  Always
+     succeeds.
+
+ -- Function: Marpa_Error_Code marpa_g_error_clear ( Marpa_Grammar G )
+     Sets the error code to `MARPA_ERR_NONE'.  Not often used, but now
+     and then it can be useful to force the error code to a known state.
+
+     Return value: `MARPA_ERR_NONE'.  Always succeeds.
+
+
+File: api.info,  Node: Error Macros,  Next: External error codes,  Prev: Error methods,  Up: Error methods macros and codes
+
+19.2 Error Macros
+=================
+
+ -- Macro: int MARPA_ERRCODE_COUNT
+     The number of error codes.  All error codes, whether internal or
+     external, will be integers, non-negative but strictly less than
+     `MARPA_ERRCODE_COUNT'.
+
+
+File: api.info,  Node: External error codes,  Next: Internal error codes,  Prev: Error Macros,  Up: Error methods macros and codes
+
+19.3 External error codes
+=========================
+
+This section lists the external error codes.  These are the only error
+codes that users of the Libmarpa external interface should ever see.
+Internal error codes are in their own section.  *Note Internal error
+codes::.
+
+ -- Macro: int MARPA_ERR_NONE
+     No error condition.  The error code is initialized to this value.
+     Methods which do not result in failure sometimes reset the error
+     code to `MARPA_ERR_NONE'.  Numeric value: 0.  Suggested message:
+     "No error".
+
+ -- Macro: int MARPA_ERR_BAD_SEPARATOR
+     A separator was specified for a sequence rule, but its ID was not
+     that of a valid symbol.  Numeric value: 6.  Suggested message:
+     "Separator has invalid symbol ID".
+
+ -- Macro: int MARPA_ERR_BEFORE_FIRST_TREE
+     A tree iterator is positioned before the first tree, and it was
+     specified in a context where that is not allowed.  A newly created
+     tree is positioned before the first tree.  To position a newly
+     created tree iterator to the first tree use the `marpa_t_next()'
+     method.  Numeric value: 91.  Suggested message: "Tree iterator is
+     before first tree".
+
+ -- Macro: int MARPA_ERR_COUNTED_NULLABLE
+     A "counted" symbol was found that is also a nullable symbol.  A
+     "counted" symbol is one that appears on the RHS of a sequence rule.
+     If a symbol is nullable, counting its occurrences becomes
+     difficult.  Questions of definition and problems of implementation
+     arise.  At a minimum, a sequence with counted nullables would be
+     wildly ambigious.
+
+     Sequence rules are simply an optimized shorthand for rules that
+     can also be written in ordinary BNF.  If the equivalent of a
+     sequence of nullables is really what your application needs,
+     nothing in Libmarpa prevents you from specifying that sequence
+     with ordinary BNF rules.
+
+     Numeric value: 8.  Suggested message: "Nullable symbol on RHS of a
+     sequence rule".
+
+ -- Macro: int MARPA_ERR_DUPLICATE_RULE
+     This error indicates an attempt to add a BNF rule which is a
+     duplicate of a BNF rule already in the grammar.  Two BNF rules are
+     considered duplicates if
+
+        * Both rules have the same left hand symbol, and
+
+        * Both rules have the same right hand symbols in the same order.
+
+     Duplication of sequence rules, and duplication between BNF rules
+     and sequence rules, is dealt with by requiring that the LHS of a
+     sequence rule not be the LHS of any other rule.
+
+     Numeric value: 11.  Suggested message: "Duplicate rule".
+
+ -- Macro: int MARPA_ERR_DUPLICATE_TOKEN
+     This error indicates an attempt to add a duplicate token.  A token
+     is a duplicate if one already read at the same earleme has the
+     same symbol ID and the same length.  Numeric value: 12.  Suggested
+     message: "Duplicate token".
+
+ -- Macro: int MARPA_ERR_EIM_COUNT
+     This error code indicates that an implementation-defined limit on
+     the number of Earley items per Earley set was exceedeed.  This
+     limit is different from the Earley item warning threshold, an
+     optional limit on the number of Earley items in an Earley set,
+     which can be set by the application.
+
+     The implementation defined-limit is very large, at least
+     500,000,000 earlemes.  An application is unlikely ever to see this
+     error.  Libmarpa's use of memory would almost certainly exceed the
+     implementation's limits before it occurred.  Numeric value: 13.
+     Suggested message: "Maximum number of Earley items exceeded".
+
+ -- Macro: int MARPA_ERR_EVENT_IX_NEGATIVE
+     A negative event index was specified.  That is not allowed.
+     Numeric value: 15.  Suggested message: "Negative event index".
+
+ -- Macro: int MARPA_ERR_EVENT_IX_OOB
+     An non-negative event index was specified, but there is no event
+     at that index.  Since the events are in sequence, this means it
+     was too large.  Numeric value: 16.  Suggested message: "No event
+     at that index".
+
+ -- Macro: int MARPA_ERR_I_AM_NOT_OK
+     The Libmarpa base grammar is in a "not ok" state.  Currently, the
+     only way this can happen is if Libmarpa memory is being
+     overwritten.  Numeric value: 29.  Suggested message: "Marpa is in
+     a not OK state".
+
+ -- Macro: int MARPA_ERR_GRAMMAR_HAS_CYCLE
+     The grammar has a cycle -- one or more loop rules.  This is a
+     recoverable error, although most applications will want to treat
+     it as fatal.  For more see the description of *note
+     marpa_g_precompute::.  Numeric value: 17.  Suggested message:
+     "Grammar has cycle".
+
+ -- Macro: int MARPA_ERR_INACCESSIBLE_TOKEN
+     This error code indicates that indicates that the token symbol is
+     an inaccessible symbol -- one which cannot be reached from the
+     start symbol.
+
+     Since the inaccessibility of a symbol is a property of the grammar,
+     this error code typically indicates an application error.
+     Nevertheless, a retry at this location, using another token ID,
+     may succeed.  At this writing, the author knows of no uses of this
+     technique.
+
+     Numeric value: 18.  Suggested message: "Token symbol is
+     inaccessible".
+
+ -- Macro: int MARPA_ERR_INVALID_BOOLEAN
+     A function was called that takes a boolean argument, but the value
+     of that argument was not either 0 or 1.  Numeric value: 22.
+     Suggested message: "Argument is not boolean".
+
+ -- Macro: int MARPA_ERR_INVALID_LOCATION
+     The location (Earley set ID) is not valid.  It may be invalid for
+     one of two reasons:
+        * It is negative, and it is being used as the argument to a
+          method for which that negative value does not have a special
+          meaning.
+
+        * It is after the latest Earley set.
+
+     For users of input models other than the standard one, the term
+     "location", as used in association with this error code, means
+     Earley set ID or Earley set ordinal.  In the standard input model,
+     this will always be identical with Libmarpa's other idea of
+     location, the earleme.
+
+     Numeric value: 25.  Suggested message: "Location is not valid".
+
+ -- Macro: int MARPA_ERR_INVALID_START_SYMBOL
+     A start symbol was specified, but its symbol ID is not that of a
+     valid symbol.  Numeric value: 27.  Suggested message: "Specified
+     start symbol is not valid".
+
+ -- Macro: int MARPA_ERR_INVALID_RULE_ID
+     A method was called with an invalid rule ID.  This is a rule ID
+     which not only does not exist, but cannot exist.  Currently that
+     means its value is less than zero.  Numeric value: 26.  Suggested
+     message: "Rule ID is malformed".
+
+ -- Macro: int MARPA_ERR_INVALID_SYMBOL_ID
+     A method was called with an invalid symbol ID.  This is a symbol
+     ID which not only does not exist, but cannot exist.  Currently
+     that means its value is less than zero.  Numeric value: 28.
+     Suggested message: "Symbol ID is malformed".
+
+ -- Macro: int MARPA_ERR_MAJOR_VERSION_MISMATCH
+     There was a mismatch in the major version number between the
+     requested version of libmarpa, and the actual one.  Numeric value:
+     30.  Suggested message: "Libmarpa major version number is a
+     mismatch".
+
+
+ -- Macro: int MARPA_ERR_MICRO_VERSION_MISMATCH
+     There was a mismatch in the micro version number between the
+     requested version of libmarpa, and the actual one.  Numeric value:
+     31.  Suggested message: "Libmarpa micro version number is a
+     mismatch".
+
+ -- Macro: int MARPA_ERR_MINOR_VERSION_MISMATCH
+     There was a mismatch in the minor version number between the
+     requested version of libmarpa, and the actual one.  Numeric value:
+     32.  Suggested message: "Libmarpa minor version number is a
+     mismatch".
+
+ -- Macro: int MARPA_ERR_NO_EARLEY_SET_AT_LOCATION
+     A non-negative Earley set ID (also called an Earley set ordinal)
+     was specified, but there is no corresponding Earley set.  Since
+     the Earley set ordinals are in sequence, this means that the
+     specified ID is greater than that of the latest Earley set.
+     Numeric value: 39.  Suggested message: "Earley set ID is after
+     latest Earley set".
+
+ -- Macro: int MARPA_ERR_NOT_PRECOMPUTED
+     The grammar is not precomputed, and attempt was made to do
+     something with it that is not allowed for unprecomputed grammars.
+     For example, a recognizer cannot be created from a grammar until
+     it is precomputed.  Numeric value: 34.  Suggested message: "This
+     grammar is not precomputed".
+
+ -- Macro: int MARPA_ERR_NO_PARSE
+     The application attempted to create a bocage from a recognizer
+     without a parse.  Applications will often want to treat this as a
+     soft error.  Numeric value: 41.  Suggested message: "No parse".
+
+ -- Macro: int MARPA_ERR_NO_RULES
+     A grammar which has no rules is being used in a way that is not
+     allowed.  Usually the problem is that the user is trying to
+     precompute the grammar.  Numeric value: 42.  Suggested message:
+     "This grammar does not have any rules".
+
+ -- Macro: int MARPA_ERR_NO_START_SYMBOL
+     The grammar has no start symbol, and an attempt was made to
+     perform an operation which requires one.  Usually the problem is
+     that the user is trying to precompute the grammar.  Numeric value:
+     43.  Suggested message: "This grammar has no start symbol".
+
+ -- Macro: int MARPA_ERR_NO_SUCH_RULE_ID
+     A method was called with a rule ID which is well-formed, but the
+     rule does not exist.  Numeric value: 89.  Suggested message: "No
+     rule with this ID exists".
+
+ -- Macro: int MARPA_ERR_NO_SUCH_SYMBOL_ID
+     A method was called with a symbol ID which is well-formed, but the
+     symbol does not exist.  Numeric value: 90.  Suggested message: "No
+     symbol with this ID exists".
+
+ -- Macro: int MARPA_ERR_NO_TOKEN_EXPECTED_HERE
+     This error code indicates that no tokens at all were expected at
+     this earleme location.  This can only happen in alternative input
+     models.
+
+     Typically, this indicates an application programming error.
+     Retrying input at this location will always fail.  But if the
+     application is able to leave this earleme empty, a retry at a
+     later location, using this or another token, may succeed.  At this
+     writing, the author knows of no uses of this technique.
+
+     Numeric value: 44.  Suggested message: "No token is expected at
+     this earleme location".
+
+ -- Macro: int MARPA_ERR_NULLING_TERMINAL
+     Marpa does not allow a symbol to be both nulling and a terminal.
+     Numeric value: 49.  Suggested message: "A symbol is both terminal
+     and nulling".
+
+ -- Macro: int MARPA_ERR_ORDER_FROZEN
+     The Marpa order object has been frozen.  If a Marpa order object
+     is frozen, it cannot be changed.
+
+     Multiple tree iterators can share a Marpa order object, but that
+     order object is frozen after the first tree iterator is created
+     from it.  Applications can order an bocage in many ways, but they
+     must do so by creating multiple order objects.
+
+     Numeric value: 50.  Suggested message: "The ordering is frozen".
+
+ -- Macro: int MARPA_ERR_PARSE_EXHAUSTED
+     The parse is exhausted.  Numeric value: 53.  Suggested message:
+     "The parse is exhausted".
+
+ -- Macro: int MARPA_ERR_PARSE_TOO_LONG
+     The parse is too long.  The limit on the length of a parse is
+     implementation dependent, but it is very large, at least
+     500,000,000 earlemes.
+
+     This error code is unlikely in the standard input model.  Almost
+     certainly memory would be exceeded before it could occur.  If an
+     application sees this error, it almost certainly using one of the
+     non-standard input models.
+
+     Most often this messsage will occur because of a request to add a
+     single extremely long token, perhaps as a result of an application
+     error.  But it is also possible this error condition will occur
+     after the input of a large number of long tokens.
+
+     Numeric value: 54.  Suggested message: "This input would make the
+     parse too long".
+
+ -- Macro: int MARPA_ERR_POINTER_ARG_NULL
+     In a method which takes pointers as arguments, one of the pointer
+     arguments is `NULL', in a case where that is not allowed.  One
+     such method is `marpa_r_progress_item()'.  Numeric value: 56.
+     Suggested message: "An argument is null when it should not be".
+
+ -- Macro: int MARPA_ERR_PRECOMPUTED
+     An attempt was made to use a precomputed grammar in a way that is
+     not allowed.  Often this is an attempt to change the grammar.
+     Nearly every change to a grammar after precomputation invalidates
+     the precomputation, and is therefore not allowed.  Numeric value:
+     57.  Suggested message: "This grammar is precomputed".
+
+ -- Macro: int MARPA_ERR_PROGRESS_REPORT_NOT_STARTED
+     No recognizer progress report is currently active, and an action
+     has been attempted which is inconsistent with that.  One such
+     action would be a `marpa_r_progress_item()' call.  Numeric value:
+     59.  Suggested message: "No progress report has been started".
+
+ -- Macro: int MARPA_ERR_PROGRESS_REPORT_EXHAUSTED
+     The progress report is "exhausted" -- all its items have been
+     iterated through.  Numeric value: 58.  Suggested message: "The
+     progress report is exhausted".
+
+ -- Macro: int MARPA_ERR_RANK_TOO_LOW
+     A symbol or rule rank was specified which was less than an
+     implementation-defined minimum.  Implementations will always allow
+     at least those ranks in the range between -134,217,727 and
+     134,217,727.  Numeric value: 85.  Suggested message: "Rule or
+     symbol rank too low".
+
+ -- Macro: int MARPA_ERR_RANK_TOO_HIGH
+     A symbol or rule rank was specified which was greater than an
+     implementation-defined maximum.  Implementations will always allow
+     at least those ranks in the range between -134,217,727 and
+     134,217,727.  Numeric value: 86.  Suggested message: "Rule or
+     symbol rank too high".
+
+ -- Macro: int MARPA_ERR_RECCE_NOT_ACCEPTING_INPUT
+     The recognizer is not accepting input, and the application has
+     attempted something that is inconsistent with that fact.  Numeric
+     value: 60.  Suggested message: "The recognizer is not accepting
+     input".
+
+ -- Macro: int MARPA_ERR_RECCE_NOT_STARTED
+     The recognizer has not been started.  and the application has
+     attempted something that is inconsistent with that fact.  Numeric
+     value: 61.  Suggested message: "The recognizer has not been
+     started".
+
+ -- Macro: int MARPA_ERR_RECCE_STARTED
+     The recognizer has been started.  and the application has
+     attempted something that is inconsistent with that fact.  Numeric
+     value: 62.  Suggested message: "The recognizer has been started".
+
+ -- Macro: int MARPA_ERR_RHS_IX_NEGATIVE
+     The index of a RHS symbol was specified, and it was negative.
+     That is not allowed.  Numeric value: 63.  Suggested message: "RHS
+     index cannot be negative".
+
+ -- Macro: int MARPA_ERR_RHS_IX_OOB
+     A non-negative index of RHS symbol was specified, but there is no
+     symbol at that index.  Since the indexes are in sequence, this
+     means the index was greater than or equal to the rule length.
+     Numeric value: 64.  Suggested message: "RHS index must be less
+     than rule length".
+
+ -- Macro: int MARPA_ERR_RHS_TOO_LONG
+     An attempt was made to add a rule with too many right hand side
+     symbols.  The limit on the RHS symbol count is implementation
+     dependent, but it is very large, at least 500,000,000 symbols.
+     This is far beyond what is required in any current practical
+     grammar.  An application with rules of this length is almost
+     certain to run into memory and other limits.  Numeric value: 65.
+     Suggested message: "The RHS is too long".
+
+ -- Macro: int MARPA_ERR_SEQUENCE_LHS_NOT_UNIQUE
+     The LHS of a sequence rule cannot be the LHS of any other rule,
+     whether a sequence rule or a BNF rule.  An attempt was made to
+     violate this restriction.  Numeric value: 66.  Suggested message:
+     "LHS of sequence rule would not be unique".
+
+ -- Macro: int MARPA_ERR_START_NOT_LHS
+     The start symbol is not on the LHS on any rule.  That means it
+     could never match any possible input, not even the null string.
+     Presumably, an error in writing the grammar.  Numeric value: 73.
+     Suggested message: "Start symbol not on LHS of any rule".
+
+ -- Macro: int MARPA_ERR_SYMBOL_VALUED_CONFLICT
+     An unvalued symbol may take on any value, and therefore a symbol
+     which is unvalued at some points cannot safely to be used to
+     contain a value at others.  This error indicates that such an
+     unsafe use is being attempted.  Numeric value: 74.  Suggested
+     message: "Symbol is treated both as valued and unvalued".
+
+ -- Macro: int MARPA_ERR_TERMINAL_IS_LOCKED
+     An attempt was made to change the terminal status of a symbol to a
+     different value after it was locked.  Numeric value: 75.
+     Suggested message: "The terminal status of the symbol is locked".
+
+ -- Macro: int MARPA_ERR_TOKEN_IS_NOT_TERMINAL
+     A token was specified whose symbol ID is not a terminal.  Numeric
+     value: 76.  Suggested message: "Token symbol must be a terminal".
+
+ -- Macro: int MARPA_ERR_TOKEN_LENGTH_LE_ZERO
+     A token length was specified which is less than or equal to zero.
+     Zero-length tokens are not allowed in Libmarpa.  Numeric value: 77.
+     Suggested message: "Token length must greater than zero".
+
+ -- Macro: int MARPA_ERR_TOKEN_TOO_LONG
+     The token length is too long.  The limit on the length of a token
+     is implementation dependent, but it is at least 500,000,000
+     earlemes.  An application using a token that long is almost
+     certain to run into some other limit.  Numeric value: 78.
+     Suggested message: "Token is too long".
+
+ -- Macro: int MARPA_ERR_TREE_EXHAUSTED
+     A Libmarpa parse tree iterator is "exhausted", that is, it has no
+     more parses.  Numeric value: 79.  Suggested message: "Tree
+     iterator is exhausted".
+
+ -- Macro: int MARPA_ERR_TREE_PAUSED
+     A Libmarpa tree is "paused" and an operation was attempted which
+     is inconsistent with that fact.  Typically, this operation will be
+     a call of the `marpa_t_next()' method.  Numeric value: 80.
+     Suggested message: "Tree iterator is paused".
+
+ -- Macro: int MARPA_ERR_UNEXPECTED_TOKEN_ID
+     An attempt was made to read a token where a token with that symbol
+     ID is not expected.  This message can also occur when an attempt
+     is made to read a token at a location where no token is expected.
+     Numeric value: 81.  Suggested message: "Unexpected token".
+
+ -- Macro: int MARPA_ERR_UNPRODUCTIVE_START
+     The start symbol is unproductive.  That means it could never match
+     any possible input, not even the null string.  Presumably, an
+     error in writing the grammar.  Numeric value: 82.  Suggested
+     message: "Unproductive start symbol".
+
+ -- Macro: int MARPA_ERR_VALUATOR_INACTIVE
+     The valuator is inactive in a context where that should not be the
+     case.  Numeric value: 83.  Suggested message: "Valuator inactive".
+
+ -- Macro: int MARPA_ERR_VALUED_IS_LOCKED
+     The valued status of a symbol is locked, and an attempt was made
+     to change it to a status different from the current one.  Numeric
+     value: 84.  Suggested message: "The valued status of the symbol is
+     locked".
+
+ -- Macro: int MARPA_ERR_SYMBOL_IS_NULLING
+     An attempt was made to do something with a nulling symbol that is
+     not allowed.  For example, the ID of a nulling symbol cannot be an
+     argument to `marpa_r_expected_symbol_event_set' -- because it is
+     not possible to create an "expected symbol" event for a nulling
+     symbol.  Numeric value: 87.  Suggested message: "Symbol is
+     nulling".
+
+ -- Macro: int MARPA_ERR_SYMBOL_IS_UNUSED
+     An attempt was made to do something with a nulling symbol that is
+     not allowed.  An "unused" symbol is a inaccessible or unproductive
+     symbol.  For example, the ID of a unused symbol cannot be an
+     argument to `marpa_r_expected_symbol_event_set' -- because it is
+     not possible to create an "expected symbol" event for a nulling
+     symbol.  Numeric value: 88.  Suggested message: "Symbol is not
+     used".
+
+
+File: api.info,  Node: Internal error codes,  Prev: External error codes,  Up: Error methods macros and codes
+
+19.4 Internal error codes
+=========================
+
+An internal error code may be one of two things: First, it can be an
+error code which arises from an internal Libmarpa programming issue (in
+other words, something happening in the code that was not supposed to
+be able to happen.)  Second, it can be an error code which only occurs
+when a method from Libmarpa's internal interface is used.  Both kinds
+of internal error message share one common trait -- users of the
+Libmarpa's external interface should never see them.
+
+   Internal error messages require someone with knowledge of the
+Libmarpa internals to follow up on them.  They usually do not have
+descriptions or suggested messages.
+
+ -- Macro: int MARPA_ERR_AHFA_IX_NEGATIVE
+     Numeric value: 1.
+
+ -- Macro: int MARPA_ERR_AHFA_IX_OOB
+     Numeric value: 2.
+
+ -- Macro: int MARPA_ERR_ANDID_NEGATIVE
+     Numeric value: 3.
+
+ -- Macro: int MARPA_ERR_ANDID_NOT_IN_OR
+     Numeric value: 4.
+
+ -- Macro: int MARPA_ERR_ANDIX_NEGATIVE
+     Numeric value: 5.
+
+ -- Macro: int MARPA_ERR_BOCAGE_ITERATION_EXHAUSTED
+     Numeric value: 7.
+
+ -- Macro: int MARPA_ERR_DEVELOPMENT
+     "Development" errors were used heavily during Libmarpa's
+     development, when it was not yet clear how precisely to classify
+     every error condition.  Unless they are using a developer's
+     version, users of the external interface should never see
+     development errors.
+
+     Development errors has an error string associated with them.  The
+     error string is a short 7-bit ASCII error string which describes
+     the error.  Numeric value: 9.  Suggested message: "Development
+     error, see string".
+
+ -- Macro: int MARPA_ERR_DUPLICATE_AND_NODE
+     Numeric value: 10.
+
+ -- Macro: int MARPA_ERR_EIM_ID_INVALID
+     Numeric value: 14.
+
+ -- Macro: int MARPA_ERR_INTERNAL
+     A "catchall" internal error.  Numeric value: 19.
+
+ -- Macro: int MARPA_ERR_INVALID_AHFA_ID
+     Numeric value: 20.
+
+ -- Macro: int MARPA_ERR_INVALID_AIMID
+     Numeric value: 21.
+
+ -- Macro: int MARPA_ERR_INVALID_IRLID
+     Numeric value: 23.
+
+ -- Macro: int MARPA_ERR_INVALID_ISYID
+     Numeric value: 24.
+
+ -- Macro: int MARPA_ERR_NOOKID_NEGATIVE
+     Numeric value: 33.
+
+ -- Macro: int MARPA_ERR_NOT_TRACING_COMPLETION_LINKS
+     Numeric value: 35.
+
+ -- Macro: int MARPA_ERR_NOT_TRACING_LEO_LINKS
+     Numeric value: 36.
+
+ -- Macro: int MARPA_ERR_NOT_TRACING_TOKEN_LINKS
+     Numeric value: 37.
+
+ -- Macro: int MARPA_ERR_NO_AND_NODES
+     Numeric value: 38.
+
+ -- Macro: int MARPA_ERR_NO_OR_NODES
+     Numeric value: 40.
+
+ -- Macro: int MARPA_ERR_NO_TRACE_ES
+     Numeric value: 46.
+
+ -- Macro: int MARPA_ERR_NO_TRACE_PIM
+     Numeric value: 47.
+
+ -- Macro: int MARPA_ERR_NO_TRACE_EIM
+     Numeric value: 45.
+
+ -- Macro: int MARPA_ERR_NO_TRACE_SRCL
+     Numeric value: 48.
+
+ -- Macro: int MARPA_ERR_ORID_NEGATIVE
+     Numeric value: 51.
+
+ -- Macro: int MARPA_ERR_OR_ALREADY_ORDERED
+     Numeric value: 52.
+
+ -- Macro: int MARPA_ERR_PIM_IS_NOT_LIM
+     Numeric value: 55.
+
+ -- Macro: int MARPA_ERR_SOURCE_TYPE_IS_NONE
+     Numeric value: 70.
+
+ -- Macro: int MARPA_ERR_SOURCE_TYPE_IS_TOKEN
+     Numeric value: 71.
+
+ -- Macro: int MARPA_ERR_SOURCE_TYPE_IS_COMPLETION
+     Numeric value: 68.
+
+ -- Macro: int MARPA_ERR_SOURCE_TYPE_IS_LEO
+     Numeric value: 69.
+
+ -- Macro: int MARPA_ERR_SOURCE_TYPE_IS_AMBIGUOUS
+     Numeric value: 67.
+
+ -- Macro: int MARPA_ERR_SOURCE_TYPE_IS_UNKNOWN
+     Numeric value: 72.
+
+
+File: api.info,  Node: Design notes,  Next: Work in Progress,  Prev: Error methods macros and codes,  Up: Top
+
+20 Design notes
+***************
+
+Design apologetics are throughout this document, dispersed among
+sections where it is hoped that they motivate the description or
+discussion.  The notes in this section did not find a home elsewhere.
+
+* Menu:
+
+* Why so many time objects::
+* Design of numbered objects::
+* LHS Terminals::
+
+
+File: api.info,  Node: Why so many time objects,  Next: Design of numbered objects,  Prev: Design notes,  Up: Design notes
+
+20.1 Why so many time objects?
+==============================
+
+Marpa is an aggressively multi-pass algorithm.  Marpa achieves its
+efficiency, not in spite of making multiple passes over the data, but
+because of it.  Marpa regularly substitutes two fast O(N) passes for a
+single O(N log N) pass.  Marpa's proliferation of time objects is in
+keeping with its multi-pass approach.
+
+   Bocage objects come at no cost, even for unambiguous parses, because
+the same pass which creates the bocage also deals with other issues
+which are of major significance for unambiguous parses.  It is the
+post-processing of the bocage pass that enables Marpa to do both left-
+and right-recursion in linear time.
+
+   Of the various objects, the best case for elimination is of the
+ordering object.  In many cases, the ordering is trivial.  Either the
+parse is unambiguous, or the application does not care about the order
+in which parses are returned.  But while it would be easy to add an
+option to bypass creation of an ordering object, there is little to be
+gained from it.  When the ordering is trivial, its overhead is very
+small -- essentially a handful of subroutine calls.  Many orderings
+accomplish nothing, but these cost next to nothing.
+
+   Tree objects come at minimal cost to unambiguous grammars, because
+the same pass that allows iteration through multiple parse trees does
+the tree traversal.  This eliminates much of the work that otherwise
+would need to be done in the valuation time object.  In the current
+implement, the valuation time object needs only to step through a
+sequence already determined in the tree iterator.
+
+
+File: api.info,  Node: Design of numbered objects,  Next: LHS Terminals,  Prev: Why so many time objects,  Up: Design notes
+
+20.2 Numbered objects
+=====================
+
+As the name suggests, the choice was made to implement numbered objects
+as integers, and not as pointers.  In standard-conformant C, integers
+can be safely checked for validity, while pointers cannot.
+
+   There are efficiency tradeoffs between pointers and integers but
+they are complicated, and they go both ways.  Pointers can be faster,
+but integers can be used as indexes into more than one data structure.
+Which is actually faster depends on the design.  Integers allow for a
+more flexible design, so that once the choice is settled on, careful
+programming can make them a win, possibly a very big one.
+
+   The approach taken in Libmarpa was to settle, from the outset, on
+integers as the implementation for numbered objects, and to optimize on
+that basis.  The author concedes that it is possible that others
+redoing Libmarpa from scratch might find that pointers are faster.  But
+the author is confident that they will also discover, on modern
+architectures, that the lack of safe validity checking is far too high
+a price to pay for the difference in speed.
+
+
+File: api.info,  Node: LHS Terminals,  Prev: Design of numbered objects,  Up: Design notes
+
+20.3 LHS terminals
+==================
+
+Marpa's idea in losing the sharp division between terminals and
+non-terminals is that the distinction, while helpful for proving
+theorems, is not essential in practice.  LHS symbols in the input might
+be useful for "short circuiting" the rules in which they occur.  This
+may prove helpful in debugging, or have other applications.
+
+   However, it also can be useful, for checking input validity as well
+as for efficiency, to follow tradition and distinguish non-terminals
+from terminals.  For this reason, the traditional behavior is the
+default in Libmarpa.
+
+
+File: api.info,  Node: Work in Progress,  Next: GNU Free Documentation License,  Prev: Design notes,  Up: Top
+
+21 Work in Progress
+*******************
+
+* Menu:
+
+* Untested methods::
+
+
+File: api.info,  Node: Untested methods,  Prev: Work in Progress,  Up: Work in Progress
+
+21.1 Untested methods
+=====================
+
+The methods of this section are not in the external interface, because
+they have not been adequately tested.  Their fate is uncertain.  Users
+should regard these methods as experimental and unsupported.
+
+ -- Function: Marpa_Rank marpa_g_default_rank ( Marpa_Grammar G)
+ -- Function: Marpa_Rank marpa_g_default_rank_set ( Marpa_Grammar G,
+          Marpa_Rank RANK)
+     These methods, respectively, set and query the default rank of the
+     grammar.  When a grammar is created, the default rank is 0.  When
+     rules and symbols are created, their rank is the default rank of
+     the grammar.
+
+     Changing the grammar's default rank does not affect those rules
+     and symbols already created, only those that will be created.
+     This means that the grammar's default rank can be used to, in
+     effect, assign ranks to groups of rules and symbols.  Applications
+     may find this behavior useful.
+
+     Return value: On success, the rank *after* the call.  On failure,
+     -2.
+
+
+ -- Function: Marpa_Rank marpa_g_symbol_rank ( Marpa_Grammar G,
+          Marpa_Symbol_ID sym_id)
+ -- Function: Marpa_Rank marpa_g_symbol_rank_set ( Marpa_Grammar G,
+          Marpa_Symbol_ID SYM_ID, Marpa_Rank RANK)
+     These methods, respectively, set and query the rank of a symbol
+     SYM_ID.  When SYM_ID is created, its rank initialized to the
+     default rank of the grammar.
+
+     Return value: On success, the rank *after* the call.  If the
+     grammar has been precomputed, or on other failure, -2.
+
+
+
+File: api.info,  Node: GNU Free Documentation License,  Prev: Work in Progress,  Up: Top
+
+Appendix A GNU Free Documentation License
+*****************************************
+
+                     Version 1.3, 3 November 2008
+
+     Copyright (C) 2000, 2001, 2002, 2007, 2008 Free Software Foundation, Inc.
+     `http://fsf.org/'
+
+     Everyone is permitted to copy and distribute verbatim copies
+     of this license document, but changing it is not allowed.
+
+  0. PREAMBLE
+
+     The purpose of this License is to make a manual, textbook, or other
+     functional and useful document "free" in the sense of freedom: to
+     assure everyone the effective freedom to copy and redistribute it,
+     with or without modifying it, either commercially or
+     noncommercially.  Secondarily, this License preserves for the
+     author and publisher a way to get credit for their work, while not
+     being considered responsible for modifications made by others.
+
+     This License is a kind of "copyleft", which means that derivative
+     works of the document must themselves be free in the same sense.
+     It complements the GNU General Public License, which is a copyleft
+     license designed for free software.
+
+     We have designed this License in order to use it for manuals for
+     free software, because free software needs free documentation: a
+     free program should come with manuals providing the same freedoms
+     that the software does.  But this License is not limited to
+     software manuals; it can be used for any textual work, regardless
+     of subject matter or whether it is published as a printed book.
+     We recommend this License principally for works whose purpose is
+     instruction or reference.
+
+  1. APPLICABILITY AND DEFINITIONS
+
+     This License applies to any manual or other work, in any medium,
+     that contains a notice placed by the copyright holder saying it
+     can be distributed under the terms of this License.  Such a notice
+     grants a world-wide, royalty-free license, unlimited in duration,
+     to use that work under the conditions stated herein.  The
+     "Document", below, refers to any such manual or work.  Any member
+     of the public is a licensee, and is addressed as "you".  You
+     accept the license if you copy, modify or distribute the work in a
+     way requiring permission under copyright law.
+
+     A "Modified Version" of the Document means any work containing the
+     Document or a portion of it, either copied verbatim, or with
+     modifications and/or translated into another language.
+
+     A "Secondary Section" is a named appendix or a front-matter section
+     of the Document that deals exclusively with the relationship of the
+     publishers or authors of the Document to the Document's overall
+     subject (or to related matters) and contains nothing that could
+     fall directly within that overall subject.  (Thus, if the Document
+     is in part a textbook of mathematics, a Secondary Section may not
+     explain any mathematics.)  The relationship could be a matter of
+     historical connection with the subject or with related matters, or
+     of legal, commercial, philosophical, ethical or political position
+     regarding them.
+
+     The "Invariant Sections" are certain Secondary Sections whose
+     titles are designated, as being those of Invariant Sections, in
+     the notice that says that the Document is released under this
+     License.  If a section does not fit the above definition of
+     Secondary then it is not allowed to be designated as Invariant.
+     The Document may contain zero Invariant Sections.  If the Document
+     does not identify any Invariant Sections then there are none.
+
+     The "Cover Texts" are certain short passages of text that are
+     listed, as Front-Cover Texts or Back-Cover Texts, in the notice
+     that says that the Document is released under this License.  A
+     Front-Cover Text may be at most 5 words, and a Back-Cover Text may
+     be at most 25 words.
+
+     A "Transparent" copy of the Document means a machine-readable copy,
+     represented in a format whose specification is available to the
+     general public, that is suitable for revising the document
+     straightforwardly with generic text editors or (for images
+     composed of pixels) generic paint programs or (for drawings) some
+     widely available drawing editor, and that is suitable for input to
+     text formatters or for automatic translation to a variety of
+     formats suitable for input to text formatters.  A copy made in an
+     otherwise Transparent file format whose markup, or absence of
+     markup, has been arranged to thwart or discourage subsequent
+     modification by readers is not Transparent.  An image format is
+     not Transparent if used for any substantial amount of text.  A
+     copy that is not "Transparent" is called "Opaque".
+
+     Examples of suitable formats for Transparent copies include plain
+     ASCII without markup, Texinfo input format, LaTeX input format,
+     SGML or XML using a publicly available DTD, and
+     standard-conforming simple HTML, PostScript or PDF designed for
+     human modification.  Examples of transparent image formats include
+     PNG, XCF and JPG.  Opaque formats include proprietary formats that
+     can be read and edited only by proprietary word processors, SGML or
+     XML for which the DTD and/or processing tools are not generally
+     available, and the machine-generated HTML, PostScript or PDF
+     produced by some word processors for output purposes only.
+
+     The "Title Page" means, for a printed book, the title page itself,
+     plus such following pages as are needed to hold, legibly, the
+     material this License requires to appear in the title page.  For
+     works in formats which do not have any title page as such, "Title
+     Page" means the text near the most prominent appearance of the
+     work's title, preceding the beginning of the body of the text.
+
+     The "publisher" means any person or entity that distributes copies
+     of the Document to the public.
+
+     A section "Entitled XYZ" means a named subunit of the Document
+     whose title either is precisely XYZ or contains XYZ in parentheses
+     following text that translates XYZ in another language.  (Here XYZ
+     stands for a specific section name mentioned below, such as
+     "Acknowledgements", "Dedications", "Endorsements", or "History".)
+     To "Preserve the Title" of such a section when you modify the
+     Document means that it remains a section "Entitled XYZ" according
+     to this definition.
+
+     The Document may include Warranty Disclaimers next to the notice
+     which states that this License applies to the Document.  These
+     Warranty Disclaimers are considered to be included by reference in
+     this License, but only as regards disclaiming warranties: any other
+     implication that these Warranty Disclaimers may have is void and
+     has no effect on the meaning of this License.
+
+  2. VERBATIM COPYING
+
+     You may copy and distribute the Document in any medium, either
+     commercially or noncommercially, provided that this License, the
+     copyright notices, and the license notice saying this License
+     applies to the Document are reproduced in all copies, and that you
+     add no other conditions whatsoever to those of this License.  You
+     may not use technical measures to obstruct or control the reading
+     or further copying of the copies you make or distribute.  However,
+     you may accept compensation in exchange for copies.  If you
+     distribute a large enough number of copies you must also follow
+     the conditions in section 3.
+
+     You may also lend copies, under the same conditions stated above,
+     and you may publicly display copies.
+
+  3. COPYING IN QUANTITY
+
+     If you publish printed copies (or copies in media that commonly
+     have printed covers) of the Document, numbering more than 100, and
+     the Document's license notice requires Cover Texts, you must
+     enclose the copies in covers that carry, clearly and legibly, all
+     these Cover Texts: Front-Cover Texts on the front cover, and
+     Back-Cover Texts on the back cover.  Both covers must also clearly
+     and legibly identify you as the publisher of these copies.  The
+     front cover must present the full title with all words of the
+     title equally prominent and visible.  You may add other material
+     on the covers in addition.  Copying with changes limited to the
+     covers, as long as they preserve the title of the Document and
+     satisfy these conditions, can be treated as verbatim copying in
+     other respects.
+
+     If the required texts for either cover are too voluminous to fit
+     legibly, you should put the first ones listed (as many as fit
+     reasonably) on the actual cover, and continue the rest onto
+     adjacent pages.
+
+     If you publish or distribute Opaque copies of the Document
+     numbering more than 100, you must either include a
+     machine-readable Transparent copy along with each Opaque copy, or
+     state in or with each Opaque copy a computer-network location from
+     which the general network-using public has access to download
+     using public-standard network protocols a complete Transparent
+     copy of the Document, free of added material.  If you use the
+     latter option, you must take reasonably prudent steps, when you
+     begin distribution of Opaque copies in quantity, to ensure that
+     this Transparent copy will remain thus accessible at the stated
+     location until at least one year after the last time you
+     distribute an Opaque copy (directly or through your agents or
+     retailers) of that edition to the public.
+
+     It is requested, but not required, that you contact the authors of
+     the Document well before redistributing any large number of
+     copies, to give them a chance to provide you with an updated
+     version of the Document.
+
+  4. MODIFICATIONS
+
+     You may copy and distribute a Modified Version of the Document
+     under the conditions of sections 2 and 3 above, provided that you
+     release the Modified Version under precisely this License, with
+     the Modified Version filling the role of the Document, thus
+     licensing distribution and modification of the Modified Version to
+     whoever possesses a copy of it.  In addition, you must do these
+     things in the Modified Version:
+
+       A. Use in the Title Page (and on the covers, if any) a title
+          distinct from that of the Document, and from those of
+          previous versions (which should, if there were any, be listed
+          in the History section of the Document).  You may use the
+          same title as a previous version if the original publisher of
+          that version gives permission.
+
+       B. List on the Title Page, as authors, one or more persons or
+          entities responsible for authorship of the modifications in
+          the Modified Version, together with at least five of the
+          principal authors of the Document (all of its principal
+          authors, if it has fewer than five), unless they release you
+          from this requirement.
+
+       C. State on the Title page the name of the publisher of the
+          Modified Version, as the publisher.
+
+       D. Preserve all the copyright notices of the Document.
+
+       E. Add an appropriate copyright notice for your modifications
+          adjacent to the other copyright notices.
+
+       F. Include, immediately after the copyright notices, a license
+          notice giving the public permission to use the Modified
+          Version under the terms of this License, in the form shown in
+          the Addendum below.
+
+       G. Preserve in that license notice the full lists of Invariant
+          Sections and required Cover Texts given in the Document's
+          license notice.
+
+       H. Include an unaltered copy of this License.
+
+       I. Preserve the section Entitled "History", Preserve its Title,
+          and add to it an item stating at least the title, year, new
+          authors, and publisher of the Modified Version as given on
+          the Title Page.  If there is no section Entitled "History" in
+          the Document, create one stating the title, year, authors,
+          and publisher of the Document as given on its Title Page,
+          then add an item describing the Modified Version as stated in
+          the previous sentence.
+
+       J. Preserve the network location, if any, given in the Document
+          for public access to a Transparent copy of the Document, and
+          likewise the network locations given in the Document for
+          previous versions it was based on.  These may be placed in
+          the "History" section.  You may omit a network location for a
+          work that was published at least four years before the
+          Document itself, or if the original publisher of the version
+          it refers to gives permission.
+
+       K. For any section Entitled "Acknowledgements" or "Dedications",
+          Preserve the Title of the section, and preserve in the
+          section all the substance and tone of each of the contributor
+          acknowledgements and/or dedications given therein.
+
+       L. Preserve all the Invariant Sections of the Document,
+          unaltered in their text and in their titles.  Section numbers
+          or the equivalent are not considered part of the section
+          titles.
+
+       M. Delete any section Entitled "Endorsements".  Such a section
+          may not be included in the Modified Version.
+
+       N. Do not retitle any existing section to be Entitled
+          "Endorsements" or to conflict in title with any Invariant
+          Section.
+
+       O. Preserve any Warranty Disclaimers.
+
+     If the Modified Version includes new front-matter sections or
+     appendices that qualify as Secondary Sections and contain no
+     material copied from the Document, you may at your option
+     designate some or all of these sections as invariant.  To do this,
+     add their titles to the list of Invariant Sections in the Modified
+     Version's license notice.  These titles must be distinct from any
+     other section titles.
+
+     You may add a section Entitled "Endorsements", provided it contains
+     nothing but endorsements of your Modified Version by various
+     parties--for example, statements of peer review or that the text
+     has been approved by an organization as the authoritative
+     definition of a standard.
+
+     You may add a passage of up to five words as a Front-Cover Text,
+     and a passage of up to 25 words as a Back-Cover Text, to the end
+     of the list of Cover Texts in the Modified Version.  Only one
+     passage of Front-Cover Text and one of Back-Cover Text may be
+     added by (or through arrangements made by) any one entity.  If the
+     Document already includes a cover text for the same cover,
+     previously added by you or by arrangement made by the same entity
+     you are acting on behalf of, you may not add another; but you may
+     replace the old one, on explicit permission from the previous
+     publisher that added the old one.
+
+     The author(s) and publisher(s) of the Document do not by this
+     License give permission to use their names for publicity for or to
+     assert or imply endorsement of any Modified Version.
+
+  5. COMBINING DOCUMENTS
+
+     You may combine the Document with other documents released under
+     this License, under the terms defined in section 4 above for
+     modified versions, provided that you include in the combination
+     all of the Invariant Sections of all of the original documents,
+     unmodified, and list them all as Invariant Sections of your
+     combined work in its license notice, and that you preserve all
+     their Warranty Disclaimers.
+
+     The combined work need only contain one copy of this License, and
+     multiple identical Invariant Sections may be replaced with a single
+     copy.  If there are multiple Invariant Sections with the same name
+     but different contents, make the title of each such section unique
+     by adding at the end of it, in parentheses, the name of the
+     original author or publisher of that section if known, or else a
+     unique number.  Make the same adjustment to the section titles in
+     the list of Invariant Sections in the license notice of the
+     combined work.
+
+     In the combination, you must combine any sections Entitled
+     "History" in the various original documents, forming one section
+     Entitled "History"; likewise combine any sections Entitled
+     "Acknowledgements", and any sections Entitled "Dedications".  You
+     must delete all sections Entitled "Endorsements."
+
+  6. COLLECTIONS OF DOCUMENTS
+
+     You may make a collection consisting of the Document and other
+     documents released under this License, and replace the individual
+     copies of this License in the various documents with a single copy
+     that is included in the collection, provided that you follow the
+     rules of this License for verbatim copying of each of the
+     documents in all other respects.
+
+     You may extract a single document from such a collection, and
+     distribute it individually under this License, provided you insert
+     a copy of this License into the extracted document, and follow
+     this License in all other respects regarding verbatim copying of
+     that document.
+
+  7. AGGREGATION WITH INDEPENDENT WORKS
+
+     A compilation of the Document or its derivatives with other
+     separate and independent documents or works, in or on a volume of
+     a storage or distribution medium, is called an "aggregate" if the
+     copyright resulting from the compilation is not used to limit the
+     legal rights of the compilation's users beyond what the individual
+     works permit.  When the Document is included in an aggregate, this
+     License does not apply to the other works in the aggregate which
+     are not themselves derivative works of the Document.
+
+     If the Cover Text requirement of section 3 is applicable to these
+     copies of the Document, then if the Document is less than one half
+     of the entire aggregate, the Document's Cover Texts may be placed
+     on covers that bracket the Document within the aggregate, or the
+     electronic equivalent of covers if the Document is in electronic
+     form.  Otherwise they must appear on printed covers that bracket
+     the whole aggregate.
+
+  8. TRANSLATION
+
+     Translation is considered a kind of modification, so you may
+     distribute translations of the Document under the terms of section
+     4.  Replacing Invariant Sections with translations requires special
+     permission from their copyright holders, but you may include
+     translations of some or all Invariant Sections in addition to the
+     original versions of these Invariant Sections.  You may include a
+     translation of this License, and all the license notices in the
+     Document, and any Warranty Disclaimers, provided that you also
+     include the original English version of this License and the
+     original versions of those notices and disclaimers.  In case of a
+     disagreement between the translation and the original version of
+     this License or a notice or disclaimer, the original version will
+     prevail.
+
+     If a section in the Document is Entitled "Acknowledgements",
+     "Dedications", or "History", the requirement (section 4) to
+     Preserve its Title (section 1) will typically require changing the
+     actual title.
+
+  9. TERMINATION
+
+     You may not copy, modify, sublicense, or distribute the Document
+     except as expressly provided under this License.  Any attempt
+     otherwise to copy, modify, sublicense, or distribute it is void,
+     and will automatically terminate your rights under this License.
+
+     However, if you cease all violation of this License, then your
+     license from a particular copyright holder is reinstated (a)
+     provisionally, unless and until the copyright holder explicitly
+     and finally terminates your license, and (b) permanently, if the
+     copyright holder fails to notify you of the violation by some
+     reasonable means prior to 60 days after the cessation.
+
+     Moreover, your license from a particular copyright holder is
+     reinstated permanently if the copyright holder notifies you of the
+     violation by some reasonable means, this is the first time you have
+     received notice of violation of this License (for any work) from
+     that copyright holder, and you cure the violation prior to 30 days
+     after your receipt of the notice.
+
+     Termination of your rights under this section does not terminate
+     the licenses of parties who have received copies or rights from
+     you under this License.  If your rights have been terminated and
+     not permanently reinstated, receipt of a copy of some or all of
+     the same material does not give you any rights to use it.
+
+ 10. FUTURE REVISIONS OF THIS LICENSE
+
+     The Free Software Foundation may publish new, revised versions of
+     the GNU Free Documentation License from time to time.  Such new
+     versions will be similar in spirit to the present version, but may
+     differ in detail to address new problems or concerns.  See
+     `http://www.gnu.org/copyleft/'.
+
+     Each version of the License is given a distinguishing version
+     number.  If the Document specifies that a particular numbered
+     version of this License "or any later version" applies to it, you
+     have the option of following the terms and conditions either of
+     that specified version or of any later version that has been
+     published (not as a draft) by the Free Software Foundation.  If
+     the Document does not specify a version number of this License,
+     you may choose any version ever published (not as a draft) by the
+     Free Software Foundation.  If the Document specifies that a proxy
+     can decide which future versions of this License can be used, that
+     proxy's public statement of acceptance of a version permanently
+     authorizes you to choose that version for the Document.
+
+ 11. RELICENSING
+
+     "Massive Multiauthor Collaboration Site" (or "MMC Site") means any
+     World Wide Web server that publishes copyrightable works and also
+     provides prominent facilities for anybody to edit those works.  A
+     public wiki that anybody can edit is an example of such a server.
+     A "Massive Multiauthor Collaboration" (or "MMC") contained in the
+     site means any set of copyrightable works thus published on the MMC
+     site.
+
+     "CC-BY-SA" means the Creative Commons Attribution-Share Alike 3.0
+     license published by Creative Commons Corporation, a not-for-profit
+     corporation with a principal place of business in San Francisco,
+     California, as well as future copyleft versions of that license
+     published by that same organization.
+
+     "Incorporate" means to publish or republish a Document, in whole or
+     in part, as part of another Document.
+
+     An MMC is "eligible for relicensing" if it is licensed under this
+     License, and if all works that were first published under this
+     License somewhere other than this MMC, and subsequently
+     incorporated in whole or in part into the MMC, (1) had no cover
+     texts or invariant sections, and (2) were thus incorporated prior
+     to November 1, 2008.
+
+     The operator of an MMC Site may republish an MMC contained in the
+     site under CC-BY-SA on the same site at any time before August 1,
+     2009, provided the MMC is eligible for relicensing.
+
+
+ADDENDUM: How to use this License for your documents
+====================================================
+
+To use this License in a document you have written, include a copy of
+the License in the document and put the following copyright and license
+notices just after the title page:
+
+       Copyright (C)  YEAR  YOUR NAME.
+       Permission is granted to copy, distribute and/or modify this document
+       under the terms of the GNU Free Documentation License, Version 1.3
+       or any later version published by the Free Software Foundation;
+       with no Invariant Sections, no Front-Cover Texts, and no Back-Cover
+       Texts.  A copy of the license is included in the section entitled ``GNU
+       Free Documentation License''.
+
+   If you have Invariant Sections, Front-Cover Texts and Back-Cover
+Texts, replace the "with...Texts." line with this:
+
+         with the Invariant Sections being LIST THEIR TITLES, with
+         the Front-Cover Texts being LIST, and with the Back-Cover Texts
+         being LIST.
+
+   If you have Invariant Sections without Cover Texts, or some other
+combination of the three, merge those two alternatives to suit the
+situation.
+
+   If your document contains nontrivial examples of program code, we
+recommend releasing these examples in parallel under your choice of
+free software license, such as the GNU General Public License, to
+permit their use in free software.
+
+
+
+Tag Table:
+Node: Top482
+Node: Copying3652
+Node: About this document12083
+Node: How to read this document12300
+Node: Prerequisites12767
+Node: Parsing theory13351
+Node: About Libmarpa14039
+Node: Architecture15871
+Node: Major objects16077
+Node: Time objects17416
+Node: Reference counting18870
+Node: Numbered objects20923
+Node: Input21357
+Node: Earlemes21492
+Node: The traditional model21889
+Node: The earleme variables23152
+Node: The significances of the earleme variables25032
+Node: The initial earleme settings26658
+Node: The standard model of input27336
+Node: Ambiguous input29059
+Node: Variable length tokens30024
+Node: The generalized model31740
+Node: General rules for the earleme variables34082
+Node: Terminals35075
+Node: Semantics35925
+Node: How Libmarpa semantics work36100
+Node: Valued and unvalued symbols37247
+Node: Threads39661
+Node: Fatal Errors40919
+Node: Introduction to the external interface41514
+Node: About the overviews41864
+Node: Return values42700
+Node: Naming conventions44489
+Node: Static method45603
+Node: Configuration methods46995
+Node: Grammar methods48681
+Node: Grammar overview48988
+Node: Grammar constructor50032
+Node: Grammar reference counting50885
+Node: Symbols51489
+Node: Rules56976
+Node: Sequences62000
+Node: Ranks66265
+Node: Grammar precomputation68215
+Ref: marpa_g_precompute68416
+Node: Recognizer methods72754
+Node: Recognizer overview73087
+Node: Recognizer constructor73817
+Node: Recognizer reference counting74371
+Node: Recognizer life cycle mutators75182
+Node: Location accessors83003
+Node: Other parse status methods85274
+Node: Progress reports88267
+Node: Bocage methods91439
+Node: Bocage overview91660
+Node: Bocage constructor92180
+Node: Bocage reference counting92834
+Node: Ordering methods93711
+Node: Ordering overview93963
+Node: Ordering constructor94567
+Node: Ordering reference counting95034
+Node: Non-default ordering96024
+Node: Tree methods97177
+Node: Tree overview97402
+Node: Tree constructor98229
+Node: Tree reference counting98884
+Node: Tree iteration99853
+Node: Value methods101161
+Node: Value overview101599
+Node: How to use the valuator103030
+Node: Advantages of step-driven valuation105001
+Node: Maintaining the stack108671
+Node: Sizing the stack110682
+Node: Initializing locations in the stack112462
+Node: Valuator constructor114658
+Node: Valuator reference counting115509
+Node: Registering semantics116494
+Node: Stepping through the valuator118428
+Node: Valuator steps by type119194
+Node: Basic step accessors121095
+Node: Other step accessors122930
+Node: Events124476
+Node: Events overview124665
+Node: Event methods125535
+Node: Event codes126720
+Node: Error methods macros and codes128595
+Node: Error methods128864
+Node: Error Macros129691
+Node: External error codes130058
+Node: Internal error codes150463
+Node: Design notes154004
+Node: Why so many time objects154439
+Node: Design of numbered objects156189
+Node: LHS Terminals157428
+Node: Work in Progress158121
+Node: Untested methods158306
+Node: GNU Free Documentation License159948
+
+End Tag Table
