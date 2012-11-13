@@ -269,6 +269,7 @@ t/randal.t
 t/rewrite.t
 t/sequence.t
 t/sequence2.t
+t/stuifzand.t
 t/syn_engine.t
 t/syn_stuifzand.t
 t/thin_eq.t
