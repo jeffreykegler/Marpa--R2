@@ -58,7 +58,7 @@ symbol_list ::= symbol+ action => do_symbol_list
 symbol ::= symbol_name action => do_symbol
 symbol_name ::= bare_name | reserved_word
 symbol_name ::= bracketed_name action => do_bracketed_name
-action_name ::= bare_name | reserved_word
+action_name ::= bare_name | reserved_action_name
 
 reserved_word ::= kw_action | kw_assoc | kw_separator | kw_proper
   | kw_left | kw_right | kw_group
