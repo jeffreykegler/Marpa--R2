@@ -34,6 +34,8 @@ r2/xs/general_pattern.xsh: r2/xs/gp_generate.pl
 	(cd r2/xs; perl gp_generate.pl general_pattern.xsh)
 
 install: r2/xs/general_pattern.xsh
+	test -d r2/libmarpa_dist || mkdir r2/libmarpa_dist
+	test -d r2/libmarpa_doc_dist || mkdir r2/libmarpa_doc_dist
 	(cd r2 && sh c_to_dist.sh)
 	(cd r2 && perl Build.PL)
 	(cd r2 && ./Build code)
