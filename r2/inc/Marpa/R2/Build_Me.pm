@@ -564,6 +564,14 @@ WriteMakefile(VERSION        => \"$marpa_version\",
     die 'Making libmarpa: make Failure'
         if not IPC::Cmd::run( command => [$Config{make}], verbose => 1 );
 
+    ## stamp-h1 is a by-product of the GNU autotools, but for Config::AutoConf,
+    ## I need to dummy one up, so do it for both
+    {
+        open my $time_stamp_fh, q{>}, 'stamp-h1';
+	say {$time_stamp_fh} scalar localtime();
+	close $time_stamp_fh;
+    }
+
     chdir $cwd;
     return 1;
 
