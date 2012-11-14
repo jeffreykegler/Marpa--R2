@@ -213,7 +213,7 @@ marpa.pdf: marpa.tex cwebmac.tex
 ../doc/internal.html/index.html: ../doc/Makefile ../doc/internal.texi
 	cd ../doc && make html
 
-install:
+install: $(STAGE_FILES) docs
 	(cd ../stage; make dist)
 	(cd ../doc; make dist)
 
