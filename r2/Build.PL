@@ -49,7 +49,7 @@ my %recommends =
     ( @packages_for_perl_autoconf, qw( PPI ) );
 
 if ($Marpa::R2::USE_PERL_AUTOCONF) {
-    say "Creating build to use Config::Autoconf";
+    say "Creating build to use Config::AutoConf";
     for my $package (@packages_for_perl_autoconf) {
         if ( not eval "require $package" ) {
             die "$package is not installed: $EVAL_ERROR\n",
