@@ -35,11 +35,11 @@ usage() if not $getopt_result;
 
 my $string = join q{}, <>;
 
-my $target_grammar = Marpa::R2::Grammar->new(
+my $grammar = Marpa::R2::Grammar->new(
     {   start => 'start',
         rules => [ <<'END_OF_RULES' ]
 start ::= prefix target
-prefix ::= any_token*
+prefix ::= any_char*
 target ::= balanced_parens
 balanced_parens ::= op_lparen balanced_paren_sequence op_rparen
 balanced_paren_sequence ::= balanced_parens*
@@ -47,7 +47,7 @@ END_OF_RULES
     }
 );
 
-$target_grammar->precompute();
+$grammar->precompute();
 
 # Order matters !!
 my @lexer_table = (
@@ -87,58 +87,52 @@ sub My_Error::last_completed_range {
     return ( $first_origin, $earley_set );
 } ## end sub My_Error::last_completed_range
 
-my @positions = (0);
-my $recce = Marpa::R2::Recognizer->new( { grammar => $target_grammar, } );
+my $thin_grammar = $grammar->thin();
+my $recce = Marpa::R2::Thin::R->new($thin_grammar);
 
 # A quasi-object, for internal use only
 my $self = bless {
-    grammar   => $target_grammar,
+    grammar   => $grammar,
     input     => \$string,
     recce     => $recce,
-    positions => \@positions
     },
     'My_Error';
 
 my $length = length $string;
-pos $string = $positions[-1];
-TOKEN: while ( pos $string < $length ) {
 
-    # In this application, we do not skip comments --
-    # Expressions inside strings or commments may be of
-    # interest
-    next TOKEN if $string =~ m/\G\s+/gcxms;    # skip whitespace
+my $op_alternative      = Marpa::R2::Thin::op('alternative');
+my $op_alternative_args = Marpa::R2::Thin::op('alternative;args');
+my $op_alternative_args_ignore =
+    Marpa::R2::Thin::op('alternative;args;ignore');
+my $op_alternative_ignore = Marpa::R2::Thin::op('alternative;ignore');
+my $op_earleme_complete   = Marpa::R2::Thin::op('earleme_complete');
 
-    my $position = pos $string;
-    FIND_ALTERNATIVE: {
-        TOKEN_TYPE: for my $t (@lexer_table) {
-            my ( $token_name, $regex ) = @{$t};
-            next TOKEN_TYPE if not $string =~ m/\G($regex)/gcxms;
-            if ( not defined $recce->alternative($token_name) ) {
-                pos $string = $position;       # reset position for matching
-                next TOKEN_TYPE;
-            }
-            $recce->alternative('any_token');
-            last FIND_ALTERNATIVE;
-        } ## end TOKEN_TYPE: for my $t (@lexer_table)
-        ## Nothing in the lexer table matched
-        ## Just read the currrent character as an 'any_token'
-        pos $string = $position + 1;
-        $recce->alternative('any_token');
-    } ## end FIND_ALTERNATIVE:
-    $recce->earleme_complete();
-    my $latest_earley_set_ID = $recce->latest_earley_set();
-    $positions[$latest_earley_set_ID] = pos $string;
-} ## end TOKEN: while ( pos $string < $length )
+my $s_lparen = $grammar->thin_symbol('op_lparen');
+my $s_rparen = $grammar->thin_symbol('op_rparen');
+my $s_any_char = $grammar->thin_symbol('any_char');
+
+$recce->char_register(
+    ord('('),               $op_alternative_ignore, $s_lparen,
+    $op_alternative_ignore, $s_any_char,         $op_earleme_complete
+);
+$recce->char_register(
+    ord(')'),               $op_alternative_ignore, $s_rparen,
+    $op_alternative_ignore, $s_any_char,         $op_earleme_complete
+);
+
+$recce->input_string_set($string);
+my $event_count = $recce->input_string_read();
+if ( $event_count < 0 ) {
+    die "Error in input_string_read: $event_count";
+}
 
 # Given a string, an earley set to position mapping,
 # and two earley sets, return the slice of the string
 sub My_Error::input_slice {
     my ( $self, $start, $end ) = @_;
-    my $positions = $self->{positions};
     return if not defined $start;
-    my $start_position = $positions->[$start];
-    my $length         = $positions->[$end] - $start_position;
-    return substr ${ $self->{input} }, $start_position, $length;
+    my $length         = $end - $start;
+    return substr ${ $self->{input} }, $start, $length;
 } ## end sub My_Error::input_slice
 
 my $end_of_search;
@@ -154,7 +148,7 @@ for my $result ( reverse @results ) {
     my ( $origin, $end ) = @{$result};
     my $slice = $self->input_slice( $origin, $end );
     print qq{$origin-$end: } if $show_position_flag;
-    say +(length $slice), ': ', substr $slice, 0, 40;
+    say +( length $slice ), ': ', substr $slice, 0, 40;
 } ## end for my $result ( reverse @results )
 
 # vim: expandtab shiftwidth=4:
