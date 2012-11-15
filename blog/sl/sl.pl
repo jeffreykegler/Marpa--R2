@@ -34,6 +34,7 @@ my $getopt_result = GetOptions( "n!" => \$show_position_flag, );
 usage() if not $getopt_result;
 
 my $string = join q{}, <>;
+chomp $string;
 
 my $grammar = Marpa::R2::Grammar->new(
     {   start => 'start',
@@ -72,14 +73,18 @@ sub My_Error::last_completed_range {
     # Initialize to one past the end, so we can tell if there were no hits
     my $first_origin = $latest_earley_set + 1;
     EARLEY_SET: while ( $earley_set >= 0 ) {
-        my $report_items = $recce->progress($earley_set);
-        ITEM: for my $report_item ( @{$report_items} ) {
-            my ( $rule_id, $dot_position, $origin ) = @{$report_item};
+
+        $recce->progress_report_start($latest_earley_set);
+        ITEM: while (1) {
+            my ( $rule_id, $dot_position, $origin ) = $recce->progress_item();
+            last ITEM if not defined $rule_id;
+
             next ITEM if $dot_position != -1;
             next ITEM if not scalar grep { $_ == $rule_id } @sought_rules;
             next ITEM if $origin >= $first_origin;
             $first_origin = $origin;
-        } ## end ITEM: for my $report_item ( @{$report_items} )
+        } ## end ITEM: while (1)
+        $recce->progress_report_finish();
         last EARLEY_SET if $first_origin <= $latest_earley_set;
         $earley_set--;
     } ## end EARLEY_SET: while ( $earley_set >= 0 )
@@ -89,6 +94,7 @@ sub My_Error::last_completed_range {
 
 my $thin_grammar = $grammar->thin();
 my $recce = Marpa::R2::Thin::R->new($thin_grammar);
+$recce->start_input();
 
 # A quasi-object, for internal use only
 my $self = bless {
@@ -122,9 +128,9 @@ $recce->char_register(
 
 $recce->input_string_set($string);
 my $event_count = $recce->input_string_read();
-if ( $event_count < 0 ) {
-    die "Error in input_string_read: $event_count";
-}
+# if ( $event_count < 0 ) {
+    # die "Error in input_string_read: $event_count";
+# }
 
 # Given a string, an earley set to position mapping,
 # and two earley sets, return the slice of the string

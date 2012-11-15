@@ -32,6 +32,7 @@ my $getopt_result = GetOptions( "n!" => \$show_position_flag, );
 usage() if not $getopt_result;
 
 my $string = join q{}, <>;
+chomp $string;
 my $tchrist_regex = '(\\((?:[^()]++|(?-1))*+\\))';
 my @re_results = ($string =~ m/$tchrist_regex/msxg);
 say join "\n", map { (length $_) . ': ' . substr $_, 0, 40 } @re_results;
