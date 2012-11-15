@@ -50,23 +50,18 @@ END_OF_RULES
 
 $grammar->precompute();
 
-# Order matters !!
-my @lexer_table = (
-    [ op_lparen => qr/[(]/xms ],
-    [ op_rparen => qr/[)]/xms ],
-);
 
-sub My_Error::last_completed_range {
-    my ( $self, $symbol_name, $latest_earley_set ) = @_;
-    my $grammar      = $self->{grammar};
-    my $recce        = $self->{recce};
-    my @sought_rules = ();
-    for my $rule_id ( $grammar->rule_ids() ) {
-        my ($lhs) = $grammar->bnf_rule($rule_id);
-        push @sought_rules, $rule_id if $lhs eq $symbol_name;
-    }
-    die "Looking for completion of non-existent rule lhs: $symbol_name"
-        if not scalar @sought_rules;
+# Relies on target being on the LHS of exactly one rule
+my $target_rule_id =
+    List::Util::first { ( $grammar->rule($_) )[0] eq 'target' }
+$grammar->rule_ids();
+die "No target?" if not defined $target_rule_id;
+say "Target rule id = $target_rule_id";
+
+sub My_Error::last_completed_target {
+    my ( $self, $latest_earley_set ) = @_;
+    my $grammar = $self->{grammar};
+    my $recce   = $self->{recce};
     $latest_earley_set //= $recce->latest_earley_set();
     my $earley_set = $latest_earley_set;
 
@@ -74,23 +69,22 @@ sub My_Error::last_completed_range {
     my $first_origin = $latest_earley_set + 1;
     EARLEY_SET: while ( $earley_set >= 0 ) {
 
-        $recce->progress_report_start($latest_earley_set);
+        $recce->progress_report_start($earley_set);
         ITEM: while (1) {
             my ( $rule_id, $dot_position, $origin ) = $recce->progress_item();
             last ITEM if not defined $rule_id;
-
+            next ITEM if $rule_id != $target_rule_id;
             next ITEM if $dot_position != -1;
-            next ITEM if not scalar grep { $_ == $rule_id } @sought_rules;
             next ITEM if $origin >= $first_origin;
             $first_origin = $origin;
         } ## end ITEM: while (1)
-        $recce->progress_report_finish();
         last EARLEY_SET if $first_origin <= $latest_earley_set;
         $earley_set--;
     } ## end EARLEY_SET: while ( $earley_set >= 0 )
+    $recce->progress_report_finish();
     return if $earley_set < 0;
     return ( $first_origin, $earley_set );
-} ## end sub My_Error::last_completed_range
+} ## end sub My_Error::last_completed_target
 
 my $thin_grammar = $grammar->thin();
 my $recce = Marpa::R2::Thin::R->new($thin_grammar);
@@ -141,11 +135,11 @@ sub My_Error::input_slice {
     return substr ${ $self->{input} }, $start, $length;
 } ## end sub My_Error::input_slice
 
-my $end_of_search;
+my $end_of_search = $recce->latest_earley_set();
 my @results = ();
 RESULTS: while (1) {
     my ( $origin, $end ) =
-        $self->last_completed_range( 'target', $end_of_search );
+        $self->last_completed_target( $end_of_search );
     last RESULTS if not defined $origin;
     push @results, [ $origin, $end ];
     $end_of_search = $origin;
