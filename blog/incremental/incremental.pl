@@ -59,11 +59,31 @@ start ::= prefix target action => do_arg1
 prefix ::= any_token* action => do_undef
 target ::= expression action => do_target
 expression ::=
-     number | scalar
-  || prefix_auto_op expression | expression postfix_auto_op
-  || op_lparen expression op_rparen assoc => group
-  || unop expression
-  || expression binop expression
+     number
+   | scalar
+   | op_lparen expression op_rparen assoc => group
+  || op_predecrement expression
+   | op_preincrement expression
+   | expression op_postincrement
+   | expression op_postdecrement
+  || expression op_starstar expression assoc => right
+  || op_uminus expression
+   | op_uplus expression
+   | op_bang expression
+   | op_tilde expression
+  || expression op_star expression
+   | expression op_slash expression
+   | expression op_percent expression
+   | expression kw_x expression
+  || expression op_plus expression
+   | expression op_minus expression
+  || expression op_ltlt expression
+   | expression op_gtgt expression
+  || expression op_ampersand expression
+  || expression op_vbar expression
+   | expression op_caret expression
+  || expression op_equal expression assoc => right
+  || expression op_comma expression
 END_OF_RULES
     }
 );
@@ -72,19 +92,41 @@ $grammar->precompute();
 
 # Order matters !!
 my @lexer_table = (
-    [ number     => qr/(?:\d+(?:\.\d*)?|\.\d+)/xms ],
-    [ scalar     => qr/ [\$] \w+ \b/xms ],
-    [ postfix_auto_op => qr/ [-][-] | [+][+] /xms ],
-    [ prefix_auto_op =>  qr/ [-][-] | [+][+] /xms ],
-    [ unop       => qr/ [-][-] | [+][+] /xms ],
-    [   binop => qr/
-          [*][*] | [>][>] | [<][<]
-        | [*] | [\/] | [%] | [x] \b
-        | [+] | [-] | [&] | [|] | [=] | [,]
-    /xms
-    ],
-    [   unop => qr/ [-] | [+] | [!] | [~] /xms
-    ],
+    [ op_postdecrement => qr/ [-][-] /xms ],
+    [ op_postincrement => qr/ [+][+] /xms ],
+
+    # More than 3 plus or minus signs is ambiguous.
+    # Perl allows them if they include a postfix operator
+    # and always considers them an error otherwise
+    [ op_error        => qr/ [-][-][-] /xms ],
+    [ op_error        => qr/ [+][+][+] /xms ],
+    [ op_predecrement => qr/ [-][-] /xms ],
+    [ op_preincrement => qr/ [+][+] /xms ],
+
+    [ number => qr/(?:\d+(?:\.\d*)?|\.\d+)/xms ],
+    [ scalar => qr/ [\$] \w+ \b/xms ],
+
+    [ op_gtgt      => qr/ [>][>] /xms ],
+    [ op_ltlt      => qr/ [<][>] /xms ],
+    [ op_starstar  => qr/ [*][*] /xms ],
+    [ kw_x         => qr/ x \b  /xms ],
+    [ op_ampersand => qr/ [&] /xms ],
+    [ op_bang      => qr/ [!] /xms ],
+    [ op_caret     => qr/ [\^] /xms ],
+    [ op_comma     => qr/ [,] /xms ],
+    [ op_equal     => qr/ [=] /xms ],
+    [ op_minus     => qr/ [-] /xms ],
+    [ op_percent   => qr/ [%] /xms ],
+    [ op_plus      => qr/ [+] /xms ],
+    [ op_slash     => qr/ [\/] /xms ],
+    [ op_star      => qr/ [*] /xms ],
+    [ op_tilde     => qr/ [~] /xms ],
+    [ op_minus     => qr/ [-] /xms ],
+    [ op_plus      => qr/ [+] /xms ],
+    [ op_uminus    => qr/ [-] /xms ],
+    [ op_uplus     => qr/ [+] /xms ],
+    [ op_vbar      => qr/ [|] /xms ],
+
     [ op_lparen => qr/[(]/xms ],
     [ op_rparen => qr/[)]/xms ],
 );
