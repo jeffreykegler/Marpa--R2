@@ -22,6 +22,8 @@ use Getopt::Long;
 
 use Marpa::R2 2.024000;
 
+our $ORIGIN;
+
 sub usage {
     die <<"END_OF_USAGE_MESSAGE";
 $PROGRAM_NAME [-n] 'exp'
@@ -30,7 +32,11 @@ END_OF_USAGE_MESSAGE
 } ## end sub usage
 
 my $show_position_flag;
-my $getopt_result = GetOptions( "n!" => \$show_position_flag, );
+my $quiet_flag;
+my $getopt_result = GetOptions(
+"n!" => \$show_position_flag,
+"q!" => \$quiet_flag,
+);
 usage() if not $getopt_result;
 
 my $string = join q{}, <>;
@@ -38,6 +44,11 @@ my $string = join q{}, <>;
 sub do_undef       { undef; }
 sub do_arg1        { $_[2]; }
 sub do_what_I_mean { shift; return $_[0] if scalar @_ == 1; return \@_ }
+sub do_target {
+my $origin = (Marpa::R2::Context::location())[0];
+return undef if $origin != $ORIGIN;
+return $_[1];
+}
 
 my $grammar = Marpa::R2::Grammar->new(
     {   start => 'start',
@@ -46,9 +57,10 @@ my $grammar = Marpa::R2::Grammar->new(
         rules => [ <<'END_OF_RULES' ]
 start ::= prefix target action => do_arg1
 prefix ::= any_token* action => do_undef
-target ::= expression
+target ::= expression action => do_target
 expression ::=
-     number | scalar | scalar postfix_op
+     number | scalar
+  || prefix_auto_op expression | expression postfix_auto_op
   || op_lparen expression op_rparen assoc => group
   || unop expression
   || expression binop expression
@@ -62,7 +74,8 @@ $grammar->precompute();
 my @lexer_table = (
     [ number     => qr/(?:\d+(?:\.\d*)?|\.\d+)/xms ],
     [ scalar     => qr/ [\$] \w+ \b/xms ],
-    [ postfix_op => qr/ [-][-] | [+][+] /xms ],
+    [ postfix_auto_op => qr/ [-][-] | [+][+] /xms ],
+    [ prefix_auto_op =>  qr/ [-][-] | [+][+] /xms ],
     [ unop       => qr/ [-][-] | [+][+] /xms ],
     [   binop => qr/
           [*][*] | [>][>] | [<][<]
@@ -109,7 +122,7 @@ sub My_Error::last_completed_range {
 } ## end sub My_Error::last_completed_range
 
 my @positions = (0);
-my $recce = Marpa::R2::Recognizer->new( { grammar => $grammar, } );
+my $recce = Marpa::R2::Recognizer->new( { grammar => $grammar } );
 
 # A quasi-object, for internal use only
 my $self = bless {
@@ -181,13 +194,17 @@ RESULT: for my $result ( reverse @results ) {
     print qq{$origin-$end: } if $show_position_flag;
     say $slice;
     $recce->set( { end => $end } );
-    my $value_ref = $recce->value();
-
-    if ( not defined $value_ref ) {
-        say 'No parse';
-        next RESULT;
-    }
-    say Data::Dumper::Dumper( ${$value_ref} );
+    my $parse_count = 0;
+    VALUE: while (1) {
+        local $ORIGIN = $origin;
+        my $value_ref = $recce->value();
+        last VALUE if not defined $value_ref;
+        $parse_count++;
+        my $value = ${$value_ref};
+        next VALUE if not defined $value;
+        say Data::Dumper::Dumper($value) if not $quiet_flag;
+    } ## end VALUE: while (1)
+    say 'No parse' if not $parse_count;
     $recce->reset_evaluation();
 } ## end RESULT: for my $result ( reverse @results )
 
