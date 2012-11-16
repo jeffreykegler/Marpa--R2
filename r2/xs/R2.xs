@@ -204,8 +204,10 @@ static int marpa_r2_warn(const char* format, ...)
 }
 
 enum marpa_recce_op {
+   op_noop,
+   op_ignore_rejection,
+   op_report_rejection,
    op_alternative,
-   op_alternative_ignore,
    op_earleme_complete,
    op_unregistered,
 };
@@ -244,9 +246,13 @@ PPCODE:
     {
       XSRETURN_IV (op_alternative);
     }
-  if (strEQ (op_name, "alternative;ignore"))
+  if (strEQ (op_name, "ignore_rejection"))
     {
-      XSRETURN_IV (op_alternative_ignore);
+      XSRETURN_IV (op_ignore_rejection);
+    }
+  if (strEQ (op_name, "report_rejection"))
+    {
+      XSRETURN_IV (op_report_rejection);
     }
   if (strEQ (op_name, "earleme_complete"))
     {
@@ -849,6 +855,7 @@ PPCODE:
       STRLEN op_ix;
       STRLEN op_count;
       UV *ops;
+      int ignore_rejection = 0;
       if (r_wrapper->input_offset >= len)
 	break;
       if (input_is_utf8)
@@ -874,16 +881,23 @@ PPCODE:
       op_count = ops[1];
       for (op_ix = 2; op_ix < op_count; op_ix++)
 	{
-	  int ignore_is_on = 0;
 	  UV op_code = ops[op_ix];
 	  switch (op_code)
 	    {
+	    case op_report_rejection:
+	      {
+		 ignore_rejection = 0;
+	         break;
+	      }
+	    case op_ignore_rejection:
+	      {
+		 ignore_rejection = 1;
+	         break;
+	      }
 	    case op_alternative:
-	    case op_alternative_ignore:
 	      {
 		int result;
 		int symbol_id;
-		const int ignore_is_on = op_code == op_alternative_ignore;
 		int length;
 		int value;
 
@@ -913,7 +927,7 @@ PPCODE:
 		       warn("input_read_string unexpected token: %d,%d,%d",
 			 symbol_id, value, length);
 		    }
-		    if (!ignore_is_on)
+		    if (!ignore_rejection)
 		      {
 			r_wrapper->input_symbol_id = symbol_id;
 			XSRETURN_IV (-1);
