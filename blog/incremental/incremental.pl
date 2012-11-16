@@ -33,25 +33,27 @@ END_OF_USAGE_MESSAGE
 
 my $show_position_flag;
 my $quiet_flag;
-my $getopt_result = GetOptions(
-    "n!" => \$show_position_flag,
-    "q!" => \$quiet_flag,
+my $getopt_result = Getopt::Long::GetOptions(
+    'n!' => \$show_position_flag,
+    'q!' => \$quiet_flag,
 );
 usage() if not $getopt_result;
 
-my $string = join q{}, <>;
+my $string = do { local $INPUT_RECORD_SEPARATOR = undef; <> };
 
+## no critic (Subroutines::RequireFinalReturn)
 sub do_undef       { undef; }
 sub do_arg1        { $_[2]; }
 sub do_what_I_mean { shift; return $_[0] if scalar @_ == 1; return \@_ }
+## use critic
 
 sub do_target {
     my $origin = ( Marpa::R2::Context::location() )[0];
-    return undef if $origin != $ORIGIN;
+    return if $origin != $ORIGIN;
     return $_[1];
 } ## end sub do_target
 
-my $grammar = Marpa::R2::Grammar->new(
+my $perl_grammar = Marpa::R2::Grammar->new(
     {   start          => 'start',
         actions        => 'main',
         default_action => 'do_what_I_mean',
@@ -89,7 +91,7 @@ END_OF_RULES
     }
 );
 
-$grammar->precompute();
+$perl_grammar->precompute();
 
 # Order matters !!
 my @lexer_table = (
@@ -104,7 +106,7 @@ my @lexer_table = (
     [ op_predecrement => qr/ [-][-] /xms ],
     [ op_preincrement => qr/ [+][+] /xms ],
 
-    [ number => qr/(?:\d+(?:\.\d*)?|\.\d+)/xms ],
+    [ number => qr/(?: \d+ (?: [.] \d* )?| [.] \d+ )/xms ],
     [ scalar => qr/ [\$] \w+ \b/xms ],
 
     [ op_gtgt      => qr/ [>][>] /xms ],
@@ -165,20 +167,20 @@ sub My_Error::last_completed_range {
 } ## end sub My_Error::last_completed_range
 
 my @positions = (0);
-my $recce = Marpa::R2::Recognizer->new( { grammar => $grammar } );
+my $recce = Marpa::R2::Recognizer->new( { grammar => $perl_grammar } );
 
 # A quasi-object, for internal use only
 my $self = bless {
-    grammar   => $grammar,
+    grammar   => $perl_grammar,
     input     => \$string,
     recce     => $recce,
     positions => \@positions
     },
     'My_Error';
 
-my $length = length $string;
+my $input_length = length $string;
 pos $string = $positions[-1];
-TOKEN: while ( pos $string < $length ) {
+TOKEN: while ( pos $string < $input_length ) {
 
     # In this application, we do not skip comments --
     # Expressions inside strings or commments may be of
@@ -227,6 +229,7 @@ RESULTS: while (1) {
     push @results, [ $origin, $end ];
     $end_of_search = $origin;
 } ## end RESULTS: while (1)
+
 RESULT: for my $result ( reverse @results ) {
     my ( $origin, $end ) = @{$result};
     my $slice = $self->input_slice( $origin, $end );
@@ -234,21 +237,26 @@ RESULT: for my $result ( reverse @results ) {
     $slice =~ s/ \s* \z //xms;
     $slice =~ s/ \n / /gxms;
     $slice =~ s/ \s+ / /gxms;
-    print qq{$origin-$end: } if $show_position_flag;
-    say $slice;
+    print qq{$origin-$end: }
+        or die "print() failed: $ERRNO"
+        if $show_position_flag;
+    say $slice or die "say failed: $ERRNO";
     $recce->set( { end => $end } );
     my $value;
-    VALUE: while (not defined $value) {
-        local $ORIGIN = $origin;
+    VALUE: while ( not defined $value ) {
+        local $main::ORIGIN = $origin;
         my $value_ref = $recce->value();
         last VALUE if not defined $value_ref;
         $value = ${$value_ref};
-    } ## end VALUE: while (1)
-    if (not defined $value) {
-        say 'No parse';
+    } ## end VALUE: while ( not defined $value )
+    if ( not defined $value ) {
+        say 'No parse'
+            or die "say() failed: $ERRNO";
         next RESULT;
     }
-    say Data::Dumper::Dumper($value) if not $quiet_flag;
+    say Data::Dumper::Dumper($value)
+        or die "say() failed: $ERRNO"
+        if not $quiet_flag;
     $recce->reset_evaluation();
 } ## end RESULT: for my $result ( reverse @results )
 
