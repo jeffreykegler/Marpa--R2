@@ -34,8 +34,8 @@ END_OF_USAGE_MESSAGE
 my $show_position_flag;
 my $quiet_flag;
 my $getopt_result = GetOptions(
-"n!" => \$show_position_flag,
-"q!" => \$quiet_flag,
+    "n!" => \$show_position_flag,
+    "q!" => \$quiet_flag,
 );
 usage() if not $getopt_result;
 
@@ -44,17 +44,18 @@ my $string = join q{}, <>;
 sub do_undef       { undef; }
 sub do_arg1        { $_[2]; }
 sub do_what_I_mean { shift; return $_[0] if scalar @_ == 1; return \@_ }
+
 sub do_target {
-my $origin = (Marpa::R2::Context::location())[0];
-return undef if $origin != $ORIGIN;
-return $_[1];
-}
+    my $origin = ( Marpa::R2::Context::location() )[0];
+    return undef if $origin != $ORIGIN;
+    return $_[1];
+} ## end sub do_target
 
 my $grammar = Marpa::R2::Grammar->new(
-    {   start => 'start',
-        actions => 'main',
+    {   start          => 'start',
+        actions        => 'main',
         default_action => 'do_what_I_mean',
-        rules => [ <<'END_OF_RULES' ]
+        rules          => [ <<'END_OF_RULES' ]
 start ::= prefix target action => do_arg1
 prefix ::= any_token* action => do_undef
 target ::= expression action => do_target
@@ -189,7 +190,7 @@ TOKEN: while ( pos $string < $length ) {
         TOKEN_TYPE: for my $t (@lexer_table) {
             my ( $token_name, $regex ) = @{$t};
             next TOKEN_TYPE if not $string =~ m/\G($regex)/gcxms;
-            if ( not defined $recce->alternative($token_name, \$1) ) {
+            if ( not defined $recce->alternative( $token_name, \$1 ) ) {
                 pos $string = $position;       # reset position for matching
                 next TOKEN_TYPE;
             }
@@ -236,17 +237,18 @@ RESULT: for my $result ( reverse @results ) {
     print qq{$origin-$end: } if $show_position_flag;
     say $slice;
     $recce->set( { end => $end } );
-    my $parse_count = 0;
-    VALUE: while (1) {
+    my $value;
+    VALUE: while (not defined $value) {
         local $ORIGIN = $origin;
         my $value_ref = $recce->value();
         last VALUE if not defined $value_ref;
-        $parse_count++;
-        my $value = ${$value_ref};
-        next VALUE if not defined $value;
-        say Data::Dumper::Dumper($value) if not $quiet_flag;
+        $value = ${$value_ref};
     } ## end VALUE: while (1)
-    say 'No parse' if not $parse_count;
+    if (not defined $value) {
+        say 'No parse';
+        next RESULT;
+    }
+    say Data::Dumper::Dumper($value) if not $quiet_flag;
     $recce->reset_evaluation();
 } ## end RESULT: for my $result ( reverse @results )
 
