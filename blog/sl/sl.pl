@@ -50,13 +50,11 @@ END_OF_RULES
 
 $grammar->precompute();
 
-
 # Relies on target being on the LHS of exactly one rule
 my $target_rule_id =
     List::Util::first { ( $grammar->rule($_) )[0] eq 'target' }
 $grammar->rule_ids();
 die "No target?" if not defined $target_rule_id;
-say "Target rule id = $target_rule_id";
 
 sub My_Error::last_completed_target {
     my ( $self, $latest_earley_set ) = @_;
@@ -112,12 +110,12 @@ my $s_rparen = $grammar->thin_symbol('op_rparen');
 my $s_any_char = $grammar->thin_symbol('any_char');
 
 $recce->char_register(
-    ord('('),               $op_alternative_ignore, $s_lparen,
-    $op_alternative_ignore, $s_any_char,         $op_earleme_complete
+    ord('('),               $op_alternative_args_ignore, $s_lparen, 0, 1,
+    $op_alternative_args_ignore, $s_any_char, 0, 1,        $op_earleme_complete
 );
 $recce->char_register(
-    ord(')'),               $op_alternative_ignore, $s_rparen,
-    $op_alternative_ignore, $s_any_char,         $op_earleme_complete
+    ord(')'),               $op_alternative_args_ignore, $s_rparen, 0, 1,
+    $op_alternative_args_ignore, $s_any_char, 0, 1,         $op_earleme_complete
 );
 
 $recce->input_string_set($string);

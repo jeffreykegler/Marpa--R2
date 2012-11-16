@@ -206,8 +206,6 @@ static int marpa_r2_warn(const char* format, ...)
 enum marpa_recce_op {
    op_alternative,
    op_alternative_ignore,
-   op_alternative_args,
-   op_alternative_args_ignore,
    op_earleme_complete,
    op_unregistered,
 };
@@ -249,14 +247,6 @@ PPCODE:
   if (strEQ (op_name, "alternative;ignore"))
     {
       XSRETURN_IV (op_alternative_ignore);
-    }
-  if (strEQ (op_name, "alternative;args"))
-    {
-      XSRETURN_IV (op_alternative_args);
-    }
-  if (strEQ (op_name, "alternative;args;ignore"))
-    {
-      XSRETURN_IV (op_alternative_args_ignore);
     }
   if (strEQ (op_name, "earleme_complete"))
     {
@@ -889,16 +879,13 @@ PPCODE:
 	  switch (op_code)
 	    {
 	    case op_alternative:
-	    case op_alternative_args:
-	    case op_alternative_args_ignore:
 	    case op_alternative_ignore:
 	      {
 		int result;
 		int symbol_id;
-		const int ignore_is_on = op_code == op_alternative_ignore
-		  || op_code == op_alternative_args_ignore;
-		int length = 1;
-		int value = 0;
+		const int ignore_is_on = op_code == op_alternative_ignore;
+		int length;
+		int value;
 
 		op_ix++;
 		if (op_ix >= op_count)
@@ -909,9 +896,6 @@ PPCODE:
 		       (unsigned long) op_ix);
 		  }
 		symbol_id = (int) ops[op_ix];
-		if (op_code == op_alternative_args
-		    || op_code == op_alternative_args_ignore)
-		  {
 		    if (op_ix + 2 >= op_count)
 		      {
 			croak
@@ -921,7 +905,6 @@ PPCODE:
 		      }
 		    value = (int) ops[++op_ix];
 		    length = (int) ops[++op_ix];
-		  }
 		result = marpa_r_alternative (r, symbol_id, value, length);
 		switch (result)
 		  {
