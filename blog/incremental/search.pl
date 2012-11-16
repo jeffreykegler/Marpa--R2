@@ -35,11 +35,17 @@ usage() if not $getopt_result;
 
 my $string = join q{}, <>;
 
-my $target_grammar = Marpa::R2::Grammar->new(
+sub do_undef       { undef; }
+sub do_arg1        { $_[2]; }
+sub do_what_I_mean { shift; return $_[0] if scalar @_ == 1; return \@_ }
+
+my $grammar = Marpa::R2::Grammar->new(
     {   start => 'start',
+        actions => 'main',
+        default_action => 'do_what_I_mean',
         rules => [ <<'END_OF_RULES' ]
-start ::= prefix target
-prefix ::= any_token*
+start ::= prefix target action => do_arg1
+prefix ::= any_token* action => do_undef
 target ::= expression
 expression ::=
      number | scalar | scalar postfix_op
@@ -50,7 +56,7 @@ END_OF_RULES
     }
 );
 
-$target_grammar->precompute();
+$grammar->precompute();
 
 # Order matters !!
 my @lexer_table = (
@@ -103,11 +109,11 @@ sub My_Error::last_completed_range {
 } ## end sub My_Error::last_completed_range
 
 my @positions = (0);
-my $recce = Marpa::R2::Recognizer->new( { grammar => $target_grammar, } );
+my $recce = Marpa::R2::Recognizer->new( { grammar => $grammar, } );
 
 # A quasi-object, for internal use only
 my $self = bless {
-    grammar   => $target_grammar,
+    grammar   => $grammar,
     input     => \$string,
     recce     => $recce,
     positions => \@positions
@@ -128,7 +134,7 @@ TOKEN: while ( pos $string < $length ) {
         TOKEN_TYPE: for my $t (@lexer_table) {
             my ( $token_name, $regex ) = @{$t};
             next TOKEN_TYPE if not $string =~ m/\G($regex)/gcxms;
-            if ( not defined $recce->alternative($token_name) ) {
+            if ( not defined $recce->alternative($token_name, \$1) ) {
                 pos $string = $position;       # reset position for matching
                 next TOKEN_TYPE;
             }
@@ -165,7 +171,7 @@ RESULTS: while (1) {
     push @results, [ $origin, $end ];
     $end_of_search = $origin;
 } ## end RESULTS: while (1)
-for my $result ( reverse @results ) {
+RESULT: for my $result ( reverse @results ) {
     my ( $origin, $end ) = @{$result};
     my $slice = $self->input_slice( $origin, $end );
     $slice =~ s/ \A \s* //xms;
@@ -174,6 +180,15 @@ for my $result ( reverse @results ) {
     $slice =~ s/ \s+ / /gxms;
     print qq{$origin-$end: } if $show_position_flag;
     say $slice;
-} ## end for my $result ( reverse @results )
+    $recce->set( { end => $end } );
+    my $value_ref = $recce->value();
+
+    if ( not defined $value_ref ) {
+        say 'No parse';
+        next RESULT;
+    }
+    say Data::Dumper::Dumper( ${$value_ref} );
+    $recce->reset_evaluation();
+} ## end RESULT: for my $result ( reverse @results )
 
 # vim: expandtab shiftwidth=4:
