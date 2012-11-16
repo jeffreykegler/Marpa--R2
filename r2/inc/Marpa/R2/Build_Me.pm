@@ -636,17 +636,35 @@ sub write_installed_pm {
 } ## end sub write_installed_pm
 
 sub ACTION_code {
-    my $self = shift;
-    say {*STDERR} 'Writing version files'
-        or die "say failed: $ERRNO";
-    write_installed_pm( $self, qw(lib Marpa R2 ) );
-    write_installed_pm( $self, qw(pperl Marpa R2 Perl ) );
-    my $perl_version_pm = perl_version_contents( $self, 'Marpa::R2::Perl' );
-    my $version_pm = xs_version_contents( $self, 'Marpa::R2' );
-    $self->write_file( $version_pm,      qw(lib Marpa R2 Version.pm) );
-    $self->write_file( $perl_version_pm, qw(pperl Marpa R2 Perl Version.pm) );
+    my $self               = shift;
+    my @r2_perl_components = qw(pperl Marpa R2 Perl);
+    my @r2_components      = qw(lib Marpa R2);
+    my $config_pm_filename = File::Spec->catfile(qw(inc Marpa R2 Config.pm ));
+    my $build_filename     = 'Build';
+    my @derived_files      = (
+        File::Spec->catfile( @r2_components,      'Version.pm' ),
+        File::Spec->catfile( @r2_components,      'Installed.pm' ),
+        File::Spec->catfile( @r2_perl_components, 'Version.pm' ),
+        File::Spec->catfile( @r2_perl_components, 'Installed.pm' ),
+    );
+    if (not $self->up_to_date(
+            [ $config_pm_filename, $build_filename ],
+            \@derived_files
+        )
+        )
+    {
+        say {*STDERR} 'Writing version files' or die "say failed: $ERRNO";
+        write_installed_pm( $self, qw(lib Marpa R2 ) );
+        write_installed_pm( $self, qw(pperl Marpa R2 Perl ) );
+        my $perl_version_pm =
+            perl_version_contents( $self, 'Marpa::R2::Perl' );
+        my $version_pm = xs_version_contents( $self, 'Marpa::R2' );
+        $self->write_file( $version_pm, qw(lib Marpa R2 Version.pm) );
+        $self->write_file( $perl_version_pm,
+            qw(pperl Marpa R2 Perl Version.pm) );
+    } ## end if ( not $self->up_to_date( [ $config_pm_filename, ...]))
     $self->do_libmarpa();
- return $self->SUPER::ACTION_code;
+    return $self->SUPER::ACTION_code;
 } ## end sub ACTION_code
 
 sub ACTION_clean {
