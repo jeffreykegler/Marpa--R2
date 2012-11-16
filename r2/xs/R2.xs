@@ -836,6 +836,13 @@ PPCODE:
   XSRETURN_UNDEF;
 }
 
+ # Return values:
+ # 1 or greater: an event count, as returned by earleme complete.
+ # 0: success: a full reading of the input, with nothing to report.
+ # -1: a character was rejected, when rejection is not being ignored
+ # -2: an unregistered character was found
+ # -3: earleme_complete() reported an exhausted parse.
+ #
 void
 input_string_read( r_wrapper )
      R_Wrapper *r_wrapper;
@@ -990,14 +997,15 @@ PPCODE:
 	}
       r_wrapper->character_ix++;
       /* This logic does not allow a return value of 0,
-       * but at the moment that is not an issue.
+       * which is reserved for a indicating a full
+       * read of the input string without event
        */
       if (return_value)
 	{
 	  XSRETURN_IV (return_value);
 	}
     }
-  XSRETURN_UNDEF;
+  XSRETURN_IV(0);
 }
 
 MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin::B
