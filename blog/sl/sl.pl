@@ -21,6 +21,7 @@ use English qw( -no_match_vars );
 use Getopt::Long;
 
 use Marpa::R2 2.024000;
+say "Using ", $Marpa::R2::VERSION;
 
 sub usage {
     die <<"END_OF_USAGE_MESSAGE";
@@ -99,10 +100,7 @@ my $self = bless {
 my $length = length $string;
 
 my $op_alternative      = Marpa::R2::Thin::op('alternative');
-my $op_alternative_args = Marpa::R2::Thin::op('alternative;args');
-my $op_alternative_args_ignore =
-    Marpa::R2::Thin::op('alternative;args;ignore');
-my $op_alternative_ignore = Marpa::R2::Thin::op('alternative;ignore');
+my $op_ignore_rejection = Marpa::R2::Thin::op('ignore_rejection');
 my $op_earleme_complete   = Marpa::R2::Thin::op('earleme_complete');
 
 my $s_lparen = $grammar->thin_symbol('op_lparen');
@@ -110,12 +108,18 @@ my $s_rparen = $grammar->thin_symbol('op_rparen');
 my $s_any_char = $grammar->thin_symbol('any_char');
 
 $recce->char_register(
-    ord('('),               $op_alternative_args_ignore, $s_lparen, 0, 1,
-    $op_alternative_args_ignore, $s_any_char, 0, 1,        $op_earleme_complete
+    ord('('), 
+    $op_alternative, $s_any_char, 0, 1,
+    $op_ignore_rejection,
+    $op_alternative, $s_lparen,   0, 1,
+    $op_earleme_complete
 );
 $recce->char_register(
-    ord(')'),               $op_alternative_args_ignore, $s_rparen, 0, 1,
-    $op_alternative_args_ignore, $s_any_char, 0, 1,         $op_earleme_complete
+    ord(')'), 
+    $op_alternative, $s_any_char, 0, 1,
+    $op_ignore_rejection,
+    $op_alternative, $s_rparen,   0, 1,
+    $op_earleme_complete
 );
 
 $recce->input_string_set($string);
