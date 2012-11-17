@@ -60,8 +60,15 @@ sub ah_extended {
 
         # An arbitrary maximum is put on the number of parses -- this is for
         # debugging, and infinite loops happen.
+
+# Marpa::R2::Display
+# name: reset_evaluation Synopsis
+
         $recce->reset_evaluation();
         $recce->set( { end => $loc, max_parses => 999, } );
+
+# Marpa::R2::Display::End
+
         while ( $recce->value() ) { $parse_counts[$loc]++ }
     } ## end for my $loc ( 0 .. $n )
     return join q{ }, @parse_counts;

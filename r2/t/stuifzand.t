@@ -26,9 +26,6 @@ use Marpa::R2::Test;
 
 ## no critic (ErrorHandling::RequireCarping);
 
-# Marpa::R2::Display
-# name: Stuifzand Synopsis
-
 use Marpa::R2;
 
 # Regression test of bug found by Andrew Rodland

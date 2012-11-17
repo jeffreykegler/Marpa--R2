@@ -320,6 +320,51 @@ and returns a reference to the parse result for that parse tree.
 If there are no more parse trees,
 the C<value> method returns C<undef>.
 
+=head2 reset_evaluation()
+
+=for Marpa::R2::Display
+name: reset_evaluation Synopsis
+normalize-whitespace: 1
+
+        $recce->reset_evaluation();
+        $recce->set( { end => $loc, max_parses => 999, } );
+
+=for Marpa::R2::Display::End
+
+The C<reset_evaluation()> method ends a parse series,
+and starts another.
+It can be used to "restart" the parse series.
+Restarting the parse series with
+the C<reset_evaluation()> method
+allows the
+application to specify new
+values for
+the C<closures>,
+C<end>
+and C<ranking_method> named arguments.
+Once a parse series is underway,
+these values cannot be changed.
+
+The most common use for
+C<reset_evaluation()> method
+is to parse
+a single input stream
+at different end points.
+This can also be done by creating a new recognizer
+and re-reading the input
+from the beginning,
+but it is much more efficient to
+evaluate a single recognizer run
+several times,
+using different parse end locations.
+After the parse is restarted using
+the C<reset_evaluation()> method,
+the recognizer's C<set()>
+method
+and its C<end> named argument
+can be used to change the
+parse end location.
+
 =head1 Trace accessors
 
 =head2 show_progress()
