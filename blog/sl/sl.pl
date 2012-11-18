@@ -109,35 +109,32 @@ my $op_alternative      = Marpa::R2::Thin::U::op('alternative');
 my $op_ignore_rejection = Marpa::R2::Thin::U::op('ignore_rejection');
 my $op_earleme_complete   = Marpa::R2::Thin::U::op('earleme_complete');
 
-my $s_lparen = $grammar->thin_symbol('op_lparen');
-my $s_rparen = $grammar->thin_symbol('op_rparen');
+my %symbol_id_by_codepoint = (
+'(' => $grammar->thin_symbol('op_lparen'),
+')' => $grammar->thin_symbol('op_rparen'),
+);
 my $s_any_char = $grammar->thin_symbol('any_char');
-
-$stream->char_register(
-    ord('('), 
-    $op_alternative, $s_any_char, 0, 1,
-    $op_alternative, $s_lparen,   0, 1,
-    $op_earleme_complete
-);
-$stream->char_register(
-    ord(')'), 
-    $op_alternative, $s_any_char, 0, 1,
-    $op_alternative, $s_rparen,   0, 1,
-    $op_earleme_complete
-);
 
 $stream->string_set($string);
 READ: {
-my $event_count = $stream->read();
-last READ if $event_count == 0;
-READ_ERROR: {
-   if ($event_count == -2) {
-      my $codepoint = $stream->codepoint();
-      die sprintf "Unregistered character U+%04x: %c\n", $codepoint, $codepoint;
-   }
-   die "Error in read: $event_count";
-}
-}
+    my $event_count = $stream->read();
+    last READ if $event_count == 0;
+    READ_ERROR: {
+        if ( $event_count == -2 ) {
+            my $codepoint = $stream->codepoint();
+            printf "Unregistered character U+%04x: %c\n", $codepoint,
+                $codepoint;
+            my @ops = ( $op_alternative, $s_any_char, 0, 1 );
+            my $codepoint_symbol_id = $symbol_id_by_codepoint{chr($codepoint)};
+            push @ops, $op_alternative, $codepoint_symbol_id,
+                0, 1
+                if defined $codepoint_symbol_id;
+            $stream->char_register( $codepoint, @ops, $op_earleme_complete );
+            redo READ;
+        } ## end if ( $event_count == -2 )
+        die "Error in read: $event_count";
+    } ## end READ_ERROR:
+} ## end READ:
 
 # Given a string, an earley set to position mapping,
 # and two earley sets, return the slice of the string
