@@ -109,14 +109,14 @@ my $s_lparen = $grammar->thin_symbol('op_lparen');
 my $s_rparen = $grammar->thin_symbol('op_rparen');
 my $s_any_char = $grammar->thin_symbol('any_char');
 
-$recce->char_register(
+$stream->char_register(
     ord('('), 
     $op_alternative, $s_any_char, 0, 1,
     $op_ignore_rejection,
     $op_alternative, $s_lparen,   0, 1,
     $op_earleme_complete
 );
-$recce->char_register(
+$stream->char_register(
     ord(')'), 
     $op_alternative, $s_any_char, 0, 1,
     $op_ignore_rejection,
@@ -124,8 +124,8 @@ $recce->char_register(
     $op_earleme_complete
 );
 
-$recce->input_string_set($string);
-my $event_count = $recce->input_string_read();
+$stream->input_string_set($string);
+my $event_count = $stream->input_string_read();
 # if ( $event_count < 0 ) {
     # die "Error in input_string_read: $event_count";
 # }
