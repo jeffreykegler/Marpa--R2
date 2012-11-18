@@ -244,30 +244,6 @@ PPCODE:
     }
 }
 
-void
-op( op_name )
-     char *op_name;
-PPCODE:
-{
-  if (strEQ (op_name, "alternative"))
-    {
-      XSRETURN_IV (op_alternative);
-    }
-  if (strEQ (op_name, "ignore_rejection"))
-    {
-      XSRETURN_IV (op_ignore_rejection);
-    }
-  if (strEQ (op_name, "report_rejection"))
-    {
-      XSRETURN_IV (op_report_rejection);
-    }
-  if (strEQ (op_name, "earleme_complete"))
-    {
-      XSRETURN_IV (op_earleme_complete);
-    }
-  XSRETURN_UNDEF;
-}
-
 MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin::G
 
 void
@@ -1050,6 +1026,30 @@ PPCODE:
     const SV* r_sv = stream->r_sv;
     SvREFCNT_dec(r_sv);
     Safefree( stream );
+}
+
+void
+op( op_name )
+     char *op_name;
+PPCODE:
+{
+  if (strEQ (op_name, "alternative"))
+    {
+      XSRETURN_IV (op_alternative);
+    }
+  if (strEQ (op_name, "ignore_rejection"))
+    {
+      XSRETURN_IV (op_ignore_rejection);
+    }
+  if (strEQ (op_name, "report_rejection"))
+    {
+      XSRETURN_IV (op_report_rejection);
+    }
+  if (strEQ (op_name, "earleme_complete"))
+    {
+      XSRETURN_IV (op_earleme_complete);
+    }
+  XSRETURN_UNDEF;
 }
 
 MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin::B
