@@ -54,6 +54,7 @@ typedef struct {
      SV* input;
      int input_debug; /* debug level for input */
      Marpa_Symbol_ID input_symbol_id;
+     UV codepoint; /* For error returns */
      UV** oplists_by_byte;
      HV* per_codepoint_ops;
      IV ignore_rejection;
@@ -841,6 +842,14 @@ PPCODE:
 }
 
 void
+codepoint( stream )
+     Unicode_Stream *stream;
+PPCODE:
+{
+  XSRETURN_UV(stream->codepoint);
+}
+
+void
 symbol_id( stream )
      Unicode_Stream *stream;
 PPCODE:
@@ -939,6 +948,7 @@ PPCODE:
       ops = stream->oplists_by_byte[codepoint];
       if (!ops)
 	{
+	  stream->codepoint = codepoint;
 	  XSRETURN_IV (-2);
 	}
       /* ops[0] is codepoint */
@@ -994,6 +1004,7 @@ PPCODE:
 		    if (!ignore_rejection)
 		      {
 			stream->input_symbol_id = symbol_id;
+			stream->codepoint = codepoint;
 			XSRETURN_IV (-1);
 		      }
 		    /* fall through */

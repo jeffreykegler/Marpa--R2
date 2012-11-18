@@ -23,6 +23,9 @@ use Getopt::Long;
 use Marpa::R2 2.024000;
 say "Using ", $Marpa::R2::VERSION;
 
+binmode STDOUT, ':encoding(UTF-8)';
+binmode STDERR, ':encoding(UTF-8)';
+
 sub usage {
     die <<"END_OF_USAGE_MESSAGE";
 $PROGRAM_NAME [-n] 'exp'
@@ -124,9 +127,16 @@ $stream->char_register(
 );
 
 $stream->string_set($string);
+READ: {
 my $event_count = $stream->read();
-if ( $event_count < 0 ) {
-    die "Error in read: $event_count";
+last READ if $event_count == 0;
+READ_ERROR: {
+   if ($event_count == -2) {
+      my $codepoint = $stream->codepoint();
+      die sprintf "Unregistered character U+%04x: %c\n", $codepoint, $codepoint;
+   }
+   die "Error in read: $event_count";
+}
 }
 
 # Given a string, an earley set to position mapping,
