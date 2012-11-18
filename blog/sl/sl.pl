@@ -99,9 +99,11 @@ my $self = bless {
 
 my $length = length $string;
 
-my $op_alternative      = Marpa::R2::Thin::op('alternative');
-my $op_ignore_rejection = Marpa::R2::Thin::op('ignore_rejection');
-my $op_earleme_complete   = Marpa::R2::Thin::op('earleme_complete');
+my $stream = Marpa::R2::Thin::U->new($recce);
+
+my $op_alternative      = Marpa::R2::Thin::U::op('alternative');
+my $op_ignore_rejection = Marpa::R2::Thin::U::op('ignore_rejection');
+my $op_earleme_complete   = Marpa::R2::Thin::U::op('earleme_complete');
 
 my $s_lparen = $grammar->thin_symbol('op_lparen');
 my $s_rparen = $grammar->thin_symbol('op_rparen');
