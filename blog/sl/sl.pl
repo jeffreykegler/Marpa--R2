@@ -100,6 +100,7 @@ my $self = bless {
 my $length = length $string;
 
 my $stream = Marpa::R2::Thin::U->new($recce);
+$stream->ignore_rejection(1);
 
 my $op_alternative      = Marpa::R2::Thin::U::op('alternative');
 my $op_ignore_rejection = Marpa::R2::Thin::U::op('ignore_rejection');
@@ -112,23 +113,21 @@ my $s_any_char = $grammar->thin_symbol('any_char');
 $stream->char_register(
     ord('('), 
     $op_alternative, $s_any_char, 0, 1,
-    $op_ignore_rejection,
     $op_alternative, $s_lparen,   0, 1,
     $op_earleme_complete
 );
 $stream->char_register(
     ord(')'), 
     $op_alternative, $s_any_char, 0, 1,
-    $op_ignore_rejection,
     $op_alternative, $s_rparen,   0, 1,
     $op_earleme_complete
 );
 
-$stream->input_string_set($string);
-my $event_count = $stream->input_string_read();
-# if ( $event_count < 0 ) {
-    # die "Error in input_string_read: $event_count";
-# }
+$stream->string_set($string);
+my $event_count = $stream->read();
+if ( $event_count < 0 ) {
+    die "Error in read: $event_count";
+}
 
 # Given a string, an earley set to position mapping,
 # and two earley sets, return the slice of the string

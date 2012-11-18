@@ -56,6 +56,7 @@ typedef struct {
      Marpa_Symbol_ID input_symbol_id;
      UV** oplists_by_byte;
      HV* per_codepoint_ops;
+     IV ignore_rejection;
 } Unicode_Stream;
 
 typedef struct marpa_b Bocage;
@@ -718,6 +719,7 @@ PPCODE:
         oplists[codepoint] = (UV*)NULL;
     }
   }
+  stream->ignore_rejection = 0;
     sv_setref_pv (u_sv, unicode_stream_class_name, (void *) stream);
     XPUSHs (u_sv);
   }
@@ -769,6 +771,16 @@ PPCODE:
 }
 
 void
+ignore_rejection( stream, boolean )
+     Unicode_Stream *stream;
+     IV boolean;
+PPCODE:
+{
+     stream->ignore_rejection = boolean ? 1 : 0;
+     XSRETURN_IV(stream->ignore_rejection);
+}
+
+void
 _per_codepoint_ops( stream )
      Unicode_Stream *stream;
 PPCODE:
@@ -809,7 +821,7 @@ PPCODE:
 }
 
 void
-input_string_set( stream, string )
+string_set( stream, string )
      Unicode_Stream *stream;
      SV *string;
 PPCODE:
@@ -821,7 +833,7 @@ PPCODE:
 }
 
 void
-input_string_pos( stream )
+pos( stream )
      Unicode_Stream *stream;
 PPCODE:
 {
@@ -829,7 +841,7 @@ PPCODE:
 }
 
 void
-input_string_symbol_id( stream )
+symbol_id( stream )
      Unicode_Stream *stream;
 PPCODE:
 {
@@ -837,7 +849,7 @@ PPCODE:
 }
 
 void
-input_string_offset( stream )
+offset( stream )
      Unicode_Stream *stream;
 PPCODE:
 {
@@ -845,7 +857,7 @@ PPCODE:
 }
 
 void
-input_string_hop( stream, hop )
+hop( stream, hop )
      Unicode_Stream *stream;
      int hop;
 PPCODE:
@@ -888,7 +900,7 @@ PPCODE:
  # -3: earleme_complete() reported an exhausted parse.
  #
 void
-input_string_read( stream )
+read( stream )
      Unicode_Stream *stream;
 PPCODE:
 {
@@ -907,7 +919,7 @@ PPCODE:
       STRLEN op_ix;
       STRLEN op_count;
       UV *ops;
-      int ignore_rejection = 0;
+      int ignore_rejection = stream->ignore_rejection;
       if (stream->input_offset >= len)
 	break;
       if (input_is_utf8)
