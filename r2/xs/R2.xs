@@ -52,6 +52,12 @@ typedef struct {
      unsigned int ruby_slippers:1;
 } R_Wrapper;
 
+typedef struct {
+     R_Wrapper* r_wrapper;
+     G_Wrapper* base;
+     SV* r_sv;
+} Unicode_Stream;
+
 typedef struct marpa_b Bocage;
 typedef struct {
      Marpa_Bocage b;
@@ -79,6 +85,7 @@ typedef struct {
 static const char grammar_c_class_name[] = "Marpa::R2::Thin::G";
 static const char recce_c_class_name[] = "Marpa::R2::Thin::R";
 static const char bocage_c_class_name[] = "Marpa::R2::Thin::B";
+static const char unicode_stream_class_name[] = "Marpa::R2::Thin::U";
 static const char order_c_class_name[] = "Marpa::R2::Thin::O";
 static const char tree_c_class_name[] = "Marpa::R2::Thin::T";
 static const char value_c_class_name[] = "Marpa::R2::Thin::V";
@@ -1006,6 +1013,43 @@ PPCODE:
 	}
     }
   XSRETURN_IV(0);
+}
+
+MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin::U
+
+void
+new( class, r_sv )
+    char * class;
+    SV *r_sv;
+PPCODE:
+{
+  if (!sv_isa (r_sv, "Marpa::R2::Thin::R"))
+    {
+      croak ("Problem in u->new(): arg is not of type Marpa::R2::Thin::R");
+    }
+  SvREFCNT_inc (r_sv);
+  {
+    IV tmp = SvIV ((SV *) SvRV (r_sv));
+    R_Wrapper *r_wrapper = INT2PTR (R_Wrapper *, tmp);
+    SV *u_sv = sv_newmortal ();
+    Unicode_Stream *stream;
+    Newx (stream, 1, Unicode_Stream);
+    stream->base = r_wrapper->base;
+    stream->r_wrapper = r_wrapper;
+    stream->r_sv = r_sv;
+    sv_setref_pv (u_sv, unicode_stream_class_name, (void *) stream);
+    XPUSHs (u_sv);
+  }
+}
+
+void
+DESTROY( stream )
+    Unicode_Stream *stream;
+PPCODE:
+{
+    const SV* r_sv = stream->r_sv;
+    SvREFCNT_dec(r_sv);
+    Safefree( stream );
 }
 
 MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin::B
