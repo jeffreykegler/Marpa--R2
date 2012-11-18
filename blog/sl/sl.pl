@@ -109,11 +109,11 @@ my $op_alternative      = Marpa::R2::Thin::U::op('alternative');
 my $op_ignore_rejection = Marpa::R2::Thin::U::op('ignore_rejection');
 my $op_earleme_complete   = Marpa::R2::Thin::U::op('earleme_complete');
 
-my %symbol_id_by_codepoint = (
-'(' => $grammar->thin_symbol('op_lparen'),
-')' => $grammar->thin_symbol('op_rparen'),
+my @class_table = (
+    [ $grammar->thin_symbol('op_lparen'), qr/[(]/xms ],
+    [ $grammar->thin_symbol('op_rparen'), qr/[)]/xms ],
+    [ $grammar->thin_symbol('any_char'),  qr/./xms ],
 );
-my $s_any_char = $grammar->thin_symbol('any_char');
 
 $stream->string_set($string);
 READ: {
@@ -124,11 +124,14 @@ READ: {
             my $codepoint = $stream->codepoint();
             printf "Unregistered character U+%04x: %c\n", $codepoint,
                 $codepoint;
-            my @ops = ( $op_alternative, $s_any_char, 0, 1 );
-            my $codepoint_symbol_id = $symbol_id_by_codepoint{chr($codepoint)};
-            push @ops, $op_alternative, $codepoint_symbol_id,
-                0, 1
-                if defined $codepoint_symbol_id;
+            my @ops;
+            for my $entry (@class_table) {
+                my ( $symbol_id, $re ) = @{$entry};
+                push @ops, $op_alternative, $symbol_id, 0, 1
+                    if chr($codepoint) =~ $re;
+            }
+            die "Cannot read character U+%04x: %c\n", $codepoint, $codepoint
+                if not @ops;
             $stream->char_register( $codepoint, @ops, $op_earleme_complete );
             redo READ;
         } ## end if ( $event_count == -2 )
