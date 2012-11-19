@@ -49,18 +49,22 @@
    "prereqs" : {
       "build" : {
          "requires" : {
+            "Config::AutoConf" : "0.2",
             "ExtUtils::CBuilder" : "0.27",
+            "ExtUtils::MakeMaker" : 0,
             "Test::More" : "0.94"
          }
       },
       "configure" : {
          "requires" : {
+            "Config::AutoConf" : "0.2",
+            "ExtUtils::MakeMaker" : 0,
             "Module::Build" : "0.3601"
          }
       },
       "runtime" : {
          "recommends" : {
-            "Config::AutoConf" : 0,
+            "Config::AutoConf" : "0.2",
             "ExtUtils::MakeMaker" : 0,
             "PPI" : "1.206"
          },
