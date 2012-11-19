@@ -26,7 +26,7 @@ use warnings;
 $Marpa::R2::USE_PERL_AUTOCONF = $ENV{MARPA_USE_PERL_AUTOCONF} || (($^O eq 'MSWin32') ? 1 : 0);
 
 %Marpa::R2::VERSION_FOR_CONFIG = (
-    'Config::AutoConf'    => 0,
+    'Config::AutoConf'    => 0.20,
     'ExtUtils::MakeMaker' => 0,
     'Carp'                => 1.08,
     'Data::Dumper'        => '2.125',
