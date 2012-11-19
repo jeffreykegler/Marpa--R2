@@ -33,14 +33,15 @@ my @packages_for_perl_autoconf = qw( Config::AutoConf ExtUtils::MakeMaker );
 
 my %build_requires =
     map { ( $_, $Marpa::R2::VERSION_FOR_CONFIG{$_} ) }
-    qw( ExtUtils::CBuilder Test::More );
+    qw( ExtUtils::CBuilder Test::More ), @packages_for_perl_autoconf;
 if ($Marpa::R2::USE_PERL_AUTOCONF) {
     map { $build_requires{$_} = $Marpa::R2::VERSION_FOR_CONFIG{$_} }
-    @packages_for_perl_autoconf;
+        @packages_for_perl_autoconf;
 }
 
 my %configure_requires =
-    map { ( $_, $Marpa::R2::VERSION_FOR_CONFIG{$_} ) } qw( Module::Build );
+    map { ( $_, $Marpa::R2::VERSION_FOR_CONFIG{$_} ) } qw( Module::Build ),
+    @packages_for_perl_autoconf;
 my %requires =
     map { ( $_, $Marpa::R2::VERSION_FOR_CONFIG{$_} ) }
     qw( Scalar::Util List::Util HTML::Entities HTML::Parser Carp Data::Dumper );
@@ -48,7 +49,8 @@ my %recommends =
     map { ( $_, $Marpa::R2::VERSION_FOR_CONFIG{$_} ) }
     ( @packages_for_perl_autoconf, qw( PPI ) );
 
-if ($Marpa::R2::USE_PERL_AUTOCONF) {
+if (0) {
+# if ($Marpa::R2::USE_PERL_AUTOCONF) {
     say "Creating build to use Config::AutoConf";
     for my $package (@packages_for_perl_autoconf) {
         if ( not eval "require $package" ) {
