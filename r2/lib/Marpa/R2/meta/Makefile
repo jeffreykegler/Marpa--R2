@@ -16,6 +16,9 @@
 dummy:
 
 doit:
-	cp thin.pl thin-g1.pl
+	-test -r thin-g3.pl && mv thin-g3.pl thin-g4.pl
+	-test -r thin-g2.pl && mv thin-g2.pl thin-g3.pl
+	-test -r thin-g1.pl && mv thin-g1.pl thin-g2.pl
+	mv thin.pl thin-g1.pl
 	perl -I../../../ -I../../../../blib/arch bnf_to_aoh.pl < Stuifzand.bnf | \
 	  perl aoh_to_thin.pl > thin.pl
