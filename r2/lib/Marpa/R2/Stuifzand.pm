@@ -220,6 +220,7 @@ sub do_symbol { shift; return Marpa::R2::Internal::Stuifzand::Symbol->new($_[0])
 sub do_character_class {
     my ( $self, $char_class ) = @_;
     my $symbol_name = '[' . $char_class . ']';
+    $self->{character_classes} //= {};
     my $cc_hash     = $self->{character_classes};
     my $hash_entry  = $cc_hash->{$symbol_name};
     if ( not defined $hash_entry ) {

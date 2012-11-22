@@ -93,14 +93,6 @@ my $thin_grammar = $grammar->thin();
 my $recce = Marpa::R2::Thin::R->new($thin_grammar);
 $recce->start_input();
 
-# A quasi-object, for internal use only
-my $self = bless {
-    grammar   => $grammar,
-    input     => \$string,
-    recce     => $recce,
-    },
-    'My_Error';
-
 my $length = length $string;
 
 my $stream = Marpa::R2::Thin::U->new($recce);
@@ -140,6 +132,14 @@ READ: {
         die "Error in read: $event_count";
     } ## end READ_ERROR:
 } ## end READ:
+
+# A quasi-object, for internal use only
+my $self = bless {
+    grammar   => $grammar,
+    input     => \$string,
+    recce     => $recce,
+    },
+    'My_Error';
 
 # Given a string, an earley set to position mapping,
 # and two earley sets, return the slice of the string
