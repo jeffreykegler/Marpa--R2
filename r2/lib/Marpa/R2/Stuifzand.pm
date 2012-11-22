@@ -218,12 +218,17 @@ sub do_quantified_rule {
 
 sub do_symbol { shift; return Marpa::R2::Internal::Stuifzand::Symbol->new($_[0]) }
 sub do_character_class {
-    my ($self, $char_class) = @_;
+    my ( $self, $char_class ) = @_;
     my $symbol_name = '[' . $char_class . ']';
-    my $regex = qr/$char_class/xms;
-    push @{$self->{character_classes}}, [ $symbol_name, $regex ];
-    return Marpa::R2::Internal::Stuifzand::Symbol->new( $symbol_name );
-}
+    my $cc_hash     = $self->{character_classes};
+    my $hash_entry  = $cc_hash->{$symbol_name};
+    if ( not defined $hash_entry ) {
+        my $regex = qr/$char_class/xms;
+        $cc_hash->{$symbol_name} = $regex;
+    }
+    return Marpa::R2::Internal::Stuifzand::Symbol->new($symbol_name);
+} ## end sub do_character_class
+
 sub do_symbol_list { shift; return Marpa::R2::Internal::Stuifzand::Symbol_List->new(@_) }
 sub do_lhs { shift; return $_[0]; }
 sub do_rhs {
