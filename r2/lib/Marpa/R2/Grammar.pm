@@ -79,6 +79,8 @@ BEGIN {
     RULE_NAME_REQUIRED
     RULE_BY_NAME
     INTERFACE { currently 'standard' or 'stuifzand' }
+    CHARACTER_CLASSES { an array of symbol name and
+    character class regex }
 
     =LAST_BASIC_DATA_FIELD
 
@@ -291,14 +293,17 @@ sub Marpa::R2::Grammar::set {
                         )
                         if $grammar->[Marpa::R2::Internal::Grammar::INTERFACE]
                             ne 'stuifzand';
-                    for my $rule (
-                        @{  Marpa::R2::Internal::Stuifzand::parse_rules(
-                                $value)
-                        }
-                        )
-                    {
+                    my $parse_result =
+                        Marpa::R2::Internal::Stuifzand::parse_rules($value);
+                    my $character_classes =
+                        $parse_result->{character_classes};
+                    $grammar
+                        ->[Marpa::R2::Internal::Grammar::CHARACTER_CLASSES] =
+                        $character_classes
+                        if defined $character_classes;
+                    for my $rule ( @{$parse_result->{rules}} ) {
                         add_user_rule( $grammar, $rule );
-                    } ## end for my $rule ( @{ ...})
+                    }
                     last DO_RULES;
                 } ## end if ( not ref $value )
                 Marpa::R2::exception(

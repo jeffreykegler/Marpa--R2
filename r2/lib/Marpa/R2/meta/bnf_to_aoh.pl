@@ -35,7 +35,8 @@ my $result    = Getopt::Long::GetOptions( 'help' => \$help_flag );
 die "usage $PROGRAM_NAME [--help] file ...\n" if $help_flag;
 
 my $bnf = join q{}, <>;
-my $aoh = Marpa::R2::Internal::Stuifzand::parse_rules($bnf);
+my $parse_result = Marpa::R2::Internal::Stuifzand::parse_rules($bnf);
+my $aoh = $parse_result->{rules};
 
 sub sort_bnf {
     my $cmp = $a->{lhs} cmp $b->{lhs};
@@ -52,4 +53,5 @@ sub sort_bnf {
 } ## end sub sort_bnf
 my $sorted_aoh = [ sort sort_bnf @{$aoh} ];
 $Data::Dumper::Sortkeys = 1;
-print Data::Dumper::Dumper($sorted_aoh);
+$parse_result->{rules} = $sorted_aoh;
+print Data::Dumper::Dumper($parse_result);

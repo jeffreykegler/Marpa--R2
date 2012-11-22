@@ -35,17 +35,18 @@ my $help_flag = 0;
 my $result    = Getopt::Long::GetOptions( 'help' => \$help_flag );
 die "usage $PROGRAM_NAME [--help] file ...\n" if $help_flag;
 
-my $aoh_source = join q{}, <>;
-my $aoh;
-unless ( $aoh = eval "no strict; $aoh_source" ) {
-    die "couldn't parse $aoh_source: $EVAL_ERROR"
+my $parse_result;
+my $parse_result_source = do { local $RS = undef; <> };
+unless ( $parse_result = eval "no strict; $parse_result_source" ) {
+    die "couldn't parse $parse_result_source: $EVAL_ERROR"
         if $EVAL_ERROR;
-    die "couldn't do $aoh_source: $ERRNO"
-        unless defined $aoh;
-    die "couldn't run $aoh_source" unless $aoh;
-} ## end unless ( my $aoh = do $aoh_source )
+    die "couldn't do $parse_result_source: $ERRNO"
+        unless defined $parse_result;
+    die "couldn't run $parse_result_source" unless $parse_result;
+} ## end unless ( $parse_result = eval "no strict; $parse_result_source")
 
 sub quote { return q{"} . (quotemeta shift) . q{"}; }
+my $aoh = $parse_result->{rules};
 
 my %numeric = map {$_ => 1} qw(min proper);
 my $untidied = '';
