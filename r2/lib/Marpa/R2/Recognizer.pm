@@ -41,6 +41,7 @@ BEGIN {
     GRAMMAR { the grammar used }
     FINISHED
     TOKEN_VALUES
+    STREAM
 
     TRACE_FILE_HANDLE
 
@@ -186,6 +187,15 @@ sub Marpa::R2::Recognizer::new {
                 or Marpa::R2::exception("Cannot print: $ERRNO");
         }
     } ## end if ( $trace_terminals > 1 )
+
+    # If this is a scannerless recognizer, set that up
+    if (defined
+        $grammar->[Marpa::R2::Internal::Grammar::CHARACTER_CLASS_TABLE] )
+    {
+        my $stream = $recce->[Marpa::R2::Internal::Recognizer::STREAM] =
+            Marpa::R2::Thin::U->new($recce_c);
+        $stream->ignore_rejection(1);
+    } ## end if ( defined $grammar->[...])
 
     return $recce;
 } ## end sub Marpa::R2::Recognizer::new
@@ -770,6 +780,45 @@ sub Marpa::R2::Recognizer::events {
     my ($recce) = @_;
     return $recce->[Marpa::R2::Internal::Recognizer::EVENTS];
 }
+
+sub Marpa::R2::Recognizer::read_string {
+    my ( $recce, $string ) = @_;
+    my $grammar        = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
+    my $length = length $string;
+    my $stream = $recce->[Marpa::R2::Internal::Recognizer::STREAM];
+
+    my $class_table =
+            $grammar->[Marpa::R2::Internal::Grammar::CHARACTER_CLASS_TABLE];
+
+    $stream->string_set($string);
+    READ: {
+        state $op_alternative = Marpa::R2::Thin::U::op('alternative');
+        state $op_earleme_complete =
+            Marpa::R2::Thin::U::op('earleme_complete');
+        my $event_count = $stream->read();
+        last READ if $event_count == 0;
+        READ_ERROR: {
+            if ( $event_count == -2 ) {
+                my $codepoint = $stream->codepoint();
+                printf "Unregistered character U+%04x: %c\n", $codepoint,
+                    $codepoint;
+                my @ops;
+                for my $entry ( @{$class_table} ) {
+                    my ( $symbol_id, $re ) = @{$entry};
+                    push @ops, $op_alternative, $symbol_id, 0, 1
+                        if chr($codepoint) =~ $re;
+                }
+                die sprintf "Cannot read character U+%04x: %c\n", $codepoint,
+                    $codepoint
+                    if not @ops;
+                $stream->char_register( $codepoint, @ops,
+                    $op_earleme_complete );
+                redo READ;
+            } ## end if ( $event_count == -2 )
+            die "Error in read: $event_count";
+        } ## end READ_ERROR:
+    } ## end READ:
+} ## end sub read_string
 
 # INTERNAL OK AFTER HERE _marpa_
 

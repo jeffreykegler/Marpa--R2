@@ -37,7 +37,7 @@ my $show_position_flag;
 my $getopt_result = GetOptions( "n!" => \$show_position_flag, );
 usage() if not $getopt_result;
 
-my $string = join q{}, <>;
+my $string = do { $RS = undef; <> };
 chomp $string;
 
 my $grammar = Marpa::R2::Grammar->new(
@@ -71,73 +71,30 @@ sub My_Error::last_completed_target {
     # Initialize to one past the end, so we can tell if there were no hits
     my $first_origin = $latest_earley_set + 1;
     EARLEY_SET: while ( $earley_set >= 0 ) {
-
-        $recce->progress_report_start($earley_set);
-        ITEM: while (1) {
-            my ( $rule_id, $dot_position, $origin ) = $recce->progress_item();
-            last ITEM if not defined $rule_id;
-            next ITEM if $rule_id != $target_rule_id;
+        my $report_items = $recce->progress($earley_set);
+        ITEM: for my $report_item ( @{$report_items} ) {
+            my ( $rule_id, $dot_position, $origin ) = @{$report_item};
             next ITEM if $dot_position != -1;
+            next ITEM if $rule_id != $target_rule_id;
             next ITEM if $origin >= $first_origin;
             $first_origin = $origin;
-        } ## end ITEM: while (1)
+        } ## end ITEM: for my $report_item ( @{$report_items} )
         last EARLEY_SET if $first_origin <= $latest_earley_set;
         $earley_set--;
     } ## end EARLEY_SET: while ( $earley_set >= 0 )
-    $recce->progress_report_finish();
     return if $earley_set < 0;
     return ( $first_origin, $earley_set );
+
 } ## end sub My_Error::last_completed_target
 
-my $thin_grammar = $grammar->thin();
-my $recce = Marpa::R2::Thin::R->new($thin_grammar);
-$recce->start_input();
-
-my $length = length $string;
-
-my $stream = Marpa::R2::Thin::U->new($recce);
-$stream->ignore_rejection(1);
-
-my $op_alternative      = Marpa::R2::Thin::U::op('alternative');
-my $op_ignore_rejection = Marpa::R2::Thin::U::op('ignore_rejection');
-my $op_earleme_complete   = Marpa::R2::Thin::U::op('earleme_complete');
-
-my @class_table = ();
-my $cc_hash = $grammar->[Marpa::R2::Internal::Grammar::CHARACTER_CLASSES];
-for my $cc_symbol (keys %{$cc_hash} ) {
-   my $regex = $cc_hash->{$cc_symbol};
-   push @class_table, [ $grammar->thin_symbol($cc_symbol), $regex ];
-}
-
-$stream->string_set($string);
-READ: {
-    my $event_count = $stream->read();
-    last READ if $event_count == 0;
-    READ_ERROR: {
-        if ( $event_count == -2 ) {
-            my $codepoint = $stream->codepoint();
-            printf "Unregistered character U+%04x: %c\n", $codepoint,
-                $codepoint;
-            my @ops;
-            for my $entry (@class_table) {
-                my ( $symbol_id, $re ) = @{$entry};
-                push @ops, $op_alternative, $symbol_id, 0, 1
-                    if chr($codepoint) =~ $re;
-            }
-            die sprintf "Cannot read character U+%04x: %c\n", $codepoint, $codepoint
-                if not @ops;
-            $stream->char_register( $codepoint, @ops, $op_earleme_complete );
-            redo READ;
-        } ## end if ( $event_count == -2 )
-        die "Error in read: $event_count";
-    } ## end READ_ERROR:
-} ## end READ:
+my $recce        = Marpa::R2::Recognizer->new({ grammar => $grammar} );
+$recce->read_string( $string );
 
 # A quasi-object, for internal use only
 my $self = bless {
-    grammar   => $grammar,
-    input     => \$string,
-    recce     => $recce,
+    grammar => $grammar,
+    input   => \$string,
+    recce   => $recce,
     },
     'My_Error';
 
@@ -146,15 +103,14 @@ my $self = bless {
 sub My_Error::input_slice {
     my ( $self, $start, $end ) = @_;
     return if not defined $start;
-    my $length         = $end - $start;
+    my $length = $end - $start;
     return substr ${ $self->{input} }, $start, $length;
 } ## end sub My_Error::input_slice
 
 my $end_of_search = $recce->latest_earley_set();
-my @results = ();
+my @results       = ();
 RESULTS: while (1) {
-    my ( $origin, $end ) =
-        $self->last_completed_target( $end_of_search );
+    my ( $origin, $end ) = $self->last_completed_target($end_of_search);
     last RESULTS if not defined $origin;
     push @results, [ $origin, $end ];
     $end_of_search = $origin;

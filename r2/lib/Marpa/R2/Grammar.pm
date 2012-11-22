@@ -79,8 +79,13 @@ BEGIN {
     RULE_NAME_REQUIRED
     RULE_BY_NAME
     INTERFACE { currently 'standard' or 'stuifzand' }
-    CHARACTER_CLASSES { an array of symbol name and
-    character class regex }
+
+    CHARACTER_CLASSES { an hash of
+    character class regex by symbol name.
+    Used before precomputation. }
+
+    CHARACTER_CLASS_TABLE { An array of symbol ID and
+    regex.  Used after precomputation. }
 
     =LAST_BASIC_DATA_FIELD
 
@@ -644,6 +649,20 @@ sub Marpa::R2::Grammar::precompute {
                 or Marpa::R2::exception("Could not print: $ERRNO");
         } ## end SYMBOL: for my $symbol ( @{ ...})
     } ## end if ( $grammar->[Marpa::R2::Internal::Grammar::WARNINGS...])
+
+    # If we are using scannerless parsing, set that up
+    my $cc_hash = $grammar->[Marpa::R2::Internal::Grammar::CHARACTER_CLASSES];
+    if (defined $cc_hash) {
+        my $class_table = $grammar->[Marpa::R2::Internal::Grammar::CHARACTER_CLASS_TABLE] = [];
+        for my $cc_symbol ( keys %{$cc_hash} ) {
+            my $regex = $cc_hash->{$cc_symbol};
+            push @{$class_table},
+                [ $grammar->thin_symbol($cc_symbol), $regex ];
+        }
+    }
+
+    # Save some memory
+    $grammar->[Marpa::R2::Internal::Grammar::CHARACTER_CLASSES] = undef;
 
     return $grammar;
 
