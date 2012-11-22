@@ -796,7 +796,10 @@ sub Marpa::R2::Recognizer::read_string {
         state $op_earleme_complete =
             Marpa::R2::Thin::U::op('earleme_complete');
         my $event_count = $stream->read();
-        last READ if $event_count == 0;
+        if ( $event_count == 0 ) {
+            $recce->[Marpa::R2::Internal::Recognizer::EVENTS] = [];
+            last READ;
+        }
         READ_ERROR: {
             if ( $event_count == -2 ) {
                 my $codepoint = $stream->codepoint();
@@ -815,10 +818,15 @@ sub Marpa::R2::Recognizer::read_string {
                     $op_earleme_complete );
                 redo READ;
             } ## end if ( $event_count == -2 )
-            die "Error in read: $event_count";
+            if ( $event_count > 0 ) {
+                $recce->[Marpa::R2::Internal::Recognizer::EVENTS] =
+                    cook_events($recce);
+		    last READ;
+            }
+	    die "Error in read: $event_count";
         } ## end READ_ERROR:
     } ## end READ:
-} ## end sub read_string
+}
 
 # INTERNAL OK AFTER HERE _marpa_
 

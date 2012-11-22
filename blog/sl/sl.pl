@@ -48,7 +48,9 @@ prefix ::= any_char*
 any_char ::= [\p{Cn}\P{Cn}]
 target ::= balanced_parens
 balanced_parens ::= [(] balanced_paren_sequence [)]
-balanced_paren_sequence ::= balanced_parens*
+balanced_paren_sequence ::= balanced_paren_item*
+balanced_paren_item ::= balanced_parens
+balanced_paren_item ::= [^()]
 END_OF_RULES
     }
 );
