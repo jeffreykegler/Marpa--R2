@@ -45,8 +45,9 @@ my $grammar = Marpa::R2::Grammar->new(
         rules => [ <<'END_OF_RULES' ]
 start ::= prefix target
 prefix ::= any_char*
+any_char ::= [\p{Cn}\P{Cn}]
 target ::= balanced_parens
-balanced_parens ::= op_lparen balanced_paren_sequence op_rparen
+balanced_parens ::= [(] balanced_paren_sequence [)]
 balanced_paren_sequence ::= balanced_parens*
 END_OF_RULES
     }
@@ -109,11 +110,12 @@ my $op_alternative      = Marpa::R2::Thin::U::op('alternative');
 my $op_ignore_rejection = Marpa::R2::Thin::U::op('ignore_rejection');
 my $op_earleme_complete   = Marpa::R2::Thin::U::op('earleme_complete');
 
-my @class_table = (
-    [ $grammar->thin_symbol('op_lparen'), qr/[(]/xms ],
-    [ $grammar->thin_symbol('op_rparen'), qr/[)]/xms ],
-    [ $grammar->thin_symbol('any_char'),  qr/./xms ],
-);
+my @class_table = ();
+my $cc_hash = $grammar->[Marpa::R2::Internal::Grammar::CHARACTER_CLASSES];
+for my $cc_symbol (keys %{$cc_hash} ) {
+   my $regex = $cc_hash->{$cc_symbol};
+   push @class_table, [ $grammar->thin_symbol($cc_symbol), $regex ];
+}
 
 $stream->string_set($string);
 READ: {
@@ -130,7 +132,7 @@ READ: {
                 push @ops, $op_alternative, $symbol_id, 0, 1
                     if chr($codepoint) =~ $re;
             }
-            die "Cannot read character U+%04x: %c\n", $codepoint, $codepoint
+            die sprintf "Cannot read character U+%04x: %c\n", $codepoint, $codepoint
                 if not @ops;
             $stream->char_register( $codepoint, @ops, $op_earleme_complete );
             redo READ;
