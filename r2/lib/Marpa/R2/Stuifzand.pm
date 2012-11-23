@@ -705,8 +705,21 @@ sub parse_rules {
         die "Unexpected step type: $type";
     } ## end STEP: while (1)
 
-    $self->{rules} = $stack[0];
+    my $rules = $self->{rules} = $stack[0];
 
+    my @ws_rules = ();
+    if ($self->{has_kw__ws}) {
+         push @{ws_rules}, { lhs => '[:ws]', rhs => '[:WSpace]', min => 1 }
+    }
+    if ($self->{has_kw__ows}) {
+         push @{ws_rules}, { lhs => '[:ows]', rhs => '[:WSpace]', min => 0 }
+    }
+    if (@ws_rules) {
+        ensure_char_class( $self, '[\p{White_Space=Y}]', '[:WSpace]' );
+        push @{$rules}, @ws_rules;
+    }
+
+    $self->{rules} = $rules;
     return $self;
 } ## end sub parse_rules
 
