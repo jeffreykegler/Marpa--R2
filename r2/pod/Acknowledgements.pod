@@ -86,6 +86,9 @@ I am especially grateful to Ron,
 who has been a very aggressive early adopter
 of all Marpa's versions.
 
+For the Windows port of Marpa,
+I am indebted to the work of Jean-Damien Durand.
+
 =head1 Copyright and License
 
 =for Marpa::R2::Display
