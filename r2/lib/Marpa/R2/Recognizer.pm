@@ -835,8 +835,6 @@ sub Marpa::R2::Recognizer::read_string {
         READ_ERROR: {
             if ( $event_count == -2 ) {
                 my $codepoint = $stream->codepoint();
-                printf "Unregistered character U+%04x: %c\n", $codepoint,
-                    $codepoint;
                 my @ops;
                 for my $entry ( @{$class_table} ) {
                     my ( $symbol_id, $re ) = @{$entry};
