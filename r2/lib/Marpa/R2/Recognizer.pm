@@ -103,7 +103,7 @@ sub Marpa::R2::Recognizer::new {
         if not $grammar_class eq 'Marpa::R2::Grammar';
 
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
-    my $tracer = $grammar->[Marpa::R2::Internal::Grammar::TRACER];
+    my $tracer    = $grammar->[Marpa::R2::Internal::Grammar::TRACER];
 
     my $problems = $grammar->[Marpa::R2::Internal::Grammar::PROBLEMS];
     if ($problems) {
@@ -208,7 +208,7 @@ use constant RECOGNIZER_OPTIONS => [
     qw{
         closures
         end
-	event_if_expected
+        event_if_expected
         leo
         max_parses
         ranking_method
@@ -622,8 +622,8 @@ sub Marpa::R2::Recognizer::alternative {
             or ref $recce ne 'Marpa::R2::Recognizer';
 
     Marpa::R2::exception(
-       "recce->alternative(): symbol name is undefined\n",
-       "    The symbol name cannot be undefined\n"
+        "recce->alternative(): symbol name is undefined\n",
+        "    The symbol name cannot be undefined\n"
     ) if not defined $symbol_name;
 
     Marpa::R2::exception('Attempt to read token after parsing is finished')
@@ -708,14 +708,14 @@ sub Marpa::R2::Recognizer::terminals_expected {
 } ## end sub Marpa::R2::Recognizer::terminals_expected
 
 sub cook_events {
-    my ($recce) = @_;
-    my $recce_c = $recce->[Marpa::R2::Internal::Recognizer::C];
-    my $grammar = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
+    my ($recce)   = @_;
+    my $recce_c   = $recce->[Marpa::R2::Internal::Recognizer::C];
+    my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
 
     my @cooked_events = ();
-    my $event_count = $grammar_c->event_count();
-    EVENT: for (my $event_ix = 0; $event_ix < $event_count; $event_ix++) {
+    my $event_count   = $grammar_c->event_count();
+    EVENT: for ( my $event_ix = 0; $event_ix < $event_count; $event_ix++ ) {
         my ( $event_type, $value ) = $grammar_c->event($event_ix);
         if ( $event_type eq 'MARPA_EVENT_EARLEY_ITEM_THRESHOLD' ) {
             say {
@@ -734,9 +734,9 @@ sub cook_events {
             push @cooked_events, ['EXHAUSTED'];
             next EVENT;
         }
-    } ## end EVENT: for my $event_ix ( 0 .. $event_count - 1 )
+    } ## end EVENT: for ( my $event_ix = 0; $event_ix < $event_count; ...)
     return \@cooked_events;
-}
+} ## end sub cook_events
 
 sub Marpa::R2::Recognizer::earleme_complete {
     my ($recce) = @_;
@@ -782,45 +782,45 @@ sub Marpa::R2::Recognizer::events {
 }
 
 my @escape_by_ord = ();
-$escape_by_ord[ord q{\\}] = q{\\\\};
-$escape_by_ord[ord eval qq{"$_"}] = $_ for
-     "\\t", "\\r", "\\f", "\\b", "\\a", "\\e";
+$escape_by_ord[ ord q{\\} ] = q{\\\\};
+$escape_by_ord[ ord eval qq{"$_"} ] = $_
+    for "\\t", "\\r", "\\f", "\\b", "\\a", "\\e";
 $escape_by_ord[0xa] = '\\n';
 $escape_by_ord[$_] //= chr $_ for 32 .. 126;
-$escape_by_ord[$_] //= sprintf( "\\x%02x", $_ ) for 0..255;
+$escape_by_ord[$_] //= sprintf( "\\x%02x", $_ ) for 0 .. 255;
 
-sub escape_string
-{
-    my ($string, $length) = @_;
+sub escape_string {
+    my ( $string, $length ) = @_;
     my $reversed = $length < 0;
     if ($reversed) {
-       $string = reverse $string;
-       $length = -$length;
+        $string = reverse $string;
+        $length = -$length;
     }
     my @escaped_chars = ();
-    ORD: for my $ord ( map { ord } split //xms, $string ) {
-	last ORD if $length <= 0;
-	my $escaped_char = $escape_by_ord[$ord] //sprintf( "\\x{%04x}", $_ ) ;
-	$length -= length $escaped_char;
+    ORD: for my $ord ( map {ord} split //xms, $string ) {
+        last ORD if $length <= 0;
+        my $escaped_char = $escape_by_ord[$ord] // sprintf( "\\x{%04x}", $_ );
+        $length -= length $escaped_char;
         push @escaped_chars, $escaped_char;
-    }
+    } ## end for my $ord ( map {ord} split //xms, $string )
     @escaped_chars = reverse @escaped_chars if $reversed;
-    IX: for my $ix (reverse 0 .. $#escaped_chars ) {
-	# only trailing spaces are escaped
-        last IX if $escaped_chars [$ix] ne q{ };
-        $escaped_chars [$ix] = '\\s';
-    }
+    IX: for my $ix ( reverse 0 .. $#escaped_chars ) {
+
+        # only trailing spaces are escaped
+        last IX if $escaped_chars[$ix] ne q{ };
+        $escaped_chars[$ix] = '\\s';
+    } ## end IX: for my $ix ( reverse 0 .. $#escaped_chars )
     return join q{}, @escaped_chars;
-}
+} ## end sub escape_string
 
 sub Marpa::R2::Recognizer::read_string {
     my ( $recce, $string ) = @_;
-    my $grammar        = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
-    my $length = length $string;
-    my $stream = $recce->[Marpa::R2::Internal::Recognizer::STREAM];
+    my $grammar = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
+    my $length  = length $string;
+    my $stream  = $recce->[Marpa::R2::Internal::Recognizer::STREAM];
 
     my $class_table =
-            $grammar->[Marpa::R2::Internal::Grammar::CHARACTER_CLASS_TABLE];
+        $grammar->[Marpa::R2::Internal::Grammar::CHARACTER_CLASS_TABLE];
 
     $stream->string_set($string);
     READ: {
@@ -853,35 +853,44 @@ sub Marpa::R2::Recognizer::read_string {
             if ( $event_count > 0 ) {
                 $recce->[Marpa::R2::Internal::Recognizer::EVENTS] =
                     cook_events($recce);
-		    last READ;
+                last READ;
             }
-	    my $pos = $stream->pos();
-	    my $desc;
-	    DESC: {
-		if ( $event_count == -1 ) { $desc = 'Character rejected'; last DESC }
-		if ( $event_count == -2 ) {
-		    $desc = 'Unregistered character';
-		    last DESC;
-		}
-		if ( $event_count == -3 ) {
-		    $desc = 'Parse exhausted';
-		    last DESC;
-		}
-	    } ## end DESC:
-	    my $char = substr $string, $pos, 1;
-	    my $char_desc = $char =~ m/[\p{PosixGraph}]/xms ? $char : '[not graphic]';
-	    my $prefix = $pos >= 72 ? (substr $string, $pos-72, 72) : (substr $string, 0, $pos);
-	    Marpa::R2::exception(
-	      "Error in string_read: $desc\n",
-	      "* Error was at string position: $pos, and at character 0x%04x, $char_desc\n",
-	      "* String before error:\n",
-	      escape_string($prefix, -72), "\n",
-	      "* String after error:\n",
-	      escape_string((substr $string, $pos, 72), 72), "\n"
-	      );
+            my $pos = $stream->pos();
+            my $desc;
+            DESC: {
+                if ( $event_count == -1 ) {
+                    $desc = 'Character rejected';
+                    last DESC;
+                }
+                if ( $event_count == -2 ) {
+                    $desc = 'Unregistered character';
+                    last DESC;
+                }
+                if ( $event_count == -3 ) {
+                    $desc = 'Parse exhausted';
+                    last DESC;
+                }
+            } ## end DESC:
+            my $char = substr $string, $pos, 1;
+            my $char_desc =
+                $char =~ m/[\p{PosixGraph}]/xms ? $char : '[not graphic]';
+            my $prefix =
+                $pos >= 72
+                ? ( substr $string, $pos - 72, 72 )
+                : ( substr $string, 0, $pos );
+            Marpa::R2::exception(
+                "Error in string_read: $desc\n",
+                "* Error was at string position: $pos, and at character 0x%04x, $char_desc\n",
+                "* String before error:\n",
+                escape_string( $prefix, -72 ),
+                "\n",
+                "* String after error:\n",
+                escape_string( ( substr $string, $pos, 72 ), 72 ),
+                "\n"
+            );
         } ## end READ_ERROR:
     } ## end READ:
-}
+} ## end sub Marpa::R2::Recognizer::read_string
 
 # INTERNAL OK AFTER HERE _marpa_
 
@@ -905,7 +914,7 @@ sub Marpa::R2::show_leo_item {
     my ($recce)        = @_;
     my $recce_c        = $recce->[Marpa::R2::Internal::Recognizer::C];
     my $grammar        = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
-    my $tracer        = $grammar->[Marpa::R2::Internal::Grammar::TRACER];
+    my $tracer         = $grammar->[Marpa::R2::Internal::Grammar::TRACER];
     my $leo_base_state = $recce_c->_marpa_r_leo_base_state();
     return if not defined $leo_base_state;
     my $trace_earley_set      = $recce_c->_marpa_r_trace_earley_set();
@@ -934,7 +943,7 @@ sub Marpa::R2::show_token_link_choice {
     my ( $recce, $current_earleme ) = @_;
     my $recce_c = $recce->[Marpa::R2::Internal::Recognizer::C];
     my $grammar = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
-    my $tracer = $grammar->[Marpa::R2::Internal::Grammar::TRACER];
+    my $tracer  = $grammar->[Marpa::R2::Internal::Grammar::TRACER];
     my $text    = q{};
     my @pieces  = ();
     my ( $token_id, $value_ix ) = $recce_c->_marpa_r_source_token();
