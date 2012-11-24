@@ -781,6 +781,38 @@ sub Marpa::R2::Recognizer::events {
     return $recce->[Marpa::R2::Internal::Recognizer::EVENTS];
 }
 
+my @escape_by_ord = ();
+$escape_by_ord[ord q{\\}] = q{\\\\};
+$escape_by_ord[ord eval qq{"$_"}] = $_ for
+     "\\t", "\\r", "\\f", "\\b", "\\a", "\\e";
+$escape_by_ord[0xa] = '\\n';
+$escape_by_ord[$_] //= chr $_ for 32 .. 126;
+$escape_by_ord[$_] //= sprintf( "\\x%02x", $_ ) for 0..255;
+
+sub escape_string
+{
+    my ($string, $length) = @_;
+    my $reversed = $length < 0;
+    if ($reversed) {
+       $string = reverse $string;
+       $length = -$length;
+    }
+    my @escaped_chars = ();
+    ORD: for my $ord ( map { ord } split //xms, $string ) {
+	last ORD if $length <= 0;
+	my $escaped_char = $escape_by_ord[$ord] //sprintf( "\\x{%04x}", $_ ) ;
+	$length -= length $escaped_char;
+        push @escaped_chars, $escaped_char;
+    }
+    @escaped_chars = reverse @escaped_chars if $reversed;
+    IX: for my $ix (reverse 0 .. $#escaped_chars ) {
+	# only trailing spaces are escaped
+        last IX if $escaped_chars [$ix] ne q{ };
+        $escaped_chars [$ix] = '\\s';
+    }
+    return join q{}, @escaped_chars;
+}
+
 sub Marpa::R2::Recognizer::read_string {
     my ( $recce, $string ) = @_;
     my $grammar        = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
@@ -823,7 +855,30 @@ sub Marpa::R2::Recognizer::read_string {
                     cook_events($recce);
 		    last READ;
             }
-	    die "Error in read: $event_count";
+	    my $pos = $stream->pos();
+	    my $desc;
+	    DESC: {
+		if ( $event_count == -1 ) { $desc = 'Character rejected'; last DESC }
+		if ( $event_count == -2 ) {
+		    $desc = 'Unregistered character';
+		    last DESC;
+		}
+		if ( $event_count == -3 ) {
+		    $desc = 'Parse exhausted';
+		    last DESC;
+		}
+	    } ## end DESC:
+	    my $char = substr $string, $pos, 1;
+	    my $char_desc = $char =~ m/[\p{PosixGraph}]/xms ? $char : '[not graphic]';
+	    my $prefix = $pos >= 72 ? (substr $string, $pos-72, 72) : (substr $string, 0, $pos);
+	    Marpa::R2::exception(
+	      "Error in string_read: $desc\n",
+	      "* Error was at string position: $pos, and at character 0x%04x, $char_desc\n",
+	      "* String before error:\n",
+	      escape_string($prefix, -72), "\n",
+	      "* String after error:\n",
+	      escape_string((substr $string, $pos, 72), 72), "\n"
+	      );
         } ## end READ_ERROR:
     } ## end READ:
 }
