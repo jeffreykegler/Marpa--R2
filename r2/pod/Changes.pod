@@ -325,7 +325,10 @@ see L<Marpa::R2::Semantics::Infinite>.
 Symbols and rules have numeric ranks.
 Previously, no mention was made of range of values allowed.
 This is implemented-defined,
-except that the minimum magnitudes will always be
+except that the magnitudes
+of the ends of the range
+will always be
+at least
 the 28th power of 2, less 1.
 That is,
 numbers in the range between
