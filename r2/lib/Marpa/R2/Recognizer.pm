@@ -870,15 +870,16 @@ sub Marpa::R2::Recognizer::read_string {
                 }
             } ## end DESC:
             my $char = substr $string, $pos, 1;
+	    my $char_in_hex = sprintf '0x%04x', ord $char;
             my $char_desc =
-                $char =~ m/[\p{PosixGraph}]/xms ? $char : '[not graphic]';
+                $char =~ m/[\p{PosixGraph}]/xms ? $char : '[non-graphic character]';
             my $prefix =
                 $pos >= 72
                 ? ( substr $string, $pos - 72, 72 )
                 : ( substr $string, 0, $pos );
             Marpa::R2::exception(
                 "Error in string_read: $desc\n",
-                "* Error was at string position: $pos, and at character 0x%04x, $char_desc\n",
+                "* Error was at string position: $pos, and at character $char_in_hex, '$char_desc'\n",
                 "* String before error:\n",
                 escape_string( $prefix, -72 ),
                 "\n",
