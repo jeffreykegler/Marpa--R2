@@ -22,23 +22,35 @@ use Marpa::R2 2.023008;
 
 my $prefix_grammar = Marpa::R2::Grammar->new(
     {   start          => 'Script',
-        actions        => 'My_Actions',
+        action_object        => 'My_Actions',
         default_action => 'do_arg0',
         rules          => [ <<'END_OF_RULES' ]
 Script ::=
-     Expression
-   | [s] [a] [y] :ws Expression action => do_arg1
+     :ows Expression :ows
+   | :ows ([s] [a] [y]) :ows Expression
 Expression ::=
-     :ows Number :ows
-   | :ows [+] :ows Expression :ows action => do_add
+     Number
+   | ([+]) :ows Expression :ows Expression action => do_add
 Number ::= [\d] + action => do_number
 END_OF_RULES
     }
 );
 
-sub My_Actions::do_add  { shift; return $_[1] + $_[2] }
-sub My_Actions::do_arg0 { shift; return shift; }
-sub My_Actions::do_arg1 { shift; return $_[1]; }
+package My_Actions;
+our $SELF;
+sub new { return $SELF }
+sub do_number  {
+   my $self = shift;
+   my ($start, $end) = Marpa::R2::Context::location();
+   return substr ${$self->{input}}, $start, $end-$start;
+}
+sub do_add  { shift;
+# say +(scalar @_), " args: ", join "; ", @_;
+return $_[0] + $_[1] }
+sub do_arg0 { shift; return shift; }
+sub do_arg1 { shift; return $_[1]; }
+
+package main;
 
 $prefix_grammar->precompute();
 
@@ -105,15 +117,12 @@ sub My_Error::show_position {
 
 sub my_parser {
     my ( $grammar, $string ) = @_;
-    my $recce = Marpa::R2::Recognizer->new( { grammar => $grammar } );
 
-    # A quasi-object, for internal use only
-    my $self = bless {
-        grammar   => $grammar,
-        input     => \$string,
-        recce     => $recce,
-        },
-        'My_Error';
+    my $self = bless { grammar => $grammar, input => \$string, }, 'My_Error';
+    local $My_Actions::SELF = $self;
+
+    my $recce = Marpa::R2::Recognizer->new( { grammar => $grammar } );
+    $self->{recce} = $recce;
 
     $recce->read_string($string);
     my $value_ref = $recce->value;

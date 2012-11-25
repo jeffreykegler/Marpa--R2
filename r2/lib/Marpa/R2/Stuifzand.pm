@@ -33,6 +33,7 @@ use constant HIDE => 1;
 
 sub new { my $class = shift; return bless { name => $_[NAME], is_hidden => ($_[HIDE]//0) }, $class }
 sub name { return $_[0]->{name} }
+sub names { return $_[0]->{name} }
 sub is_hidden { return $_[0]->{is_hidden} }
 sub hidden_set { $_[0]->{is_hidden} = 1; }
 sub symbols { return $_[0]; }
@@ -42,7 +43,10 @@ package Marpa::R2::Internal::Stuifzand::Symbol_List;
 sub new { my $class = shift; return bless [@_], $class }
 
 sub names {
-    return map { $_->name() } @{ $_[0] };
+    return map { $_->names() } @{ $_[0] };
+}
+sub is_hidden {
+    return map { $_->is_hidden() } @{ $_[0] };
 }
 
 sub hidden_set {
@@ -50,7 +54,7 @@ sub hidden_set {
 }
 
 sub mask {
-    return map { !$_->is_hidden() } @{ $_[0] };
+    return map { ! $_ } map { $_->is_hidden() } @{ $_[0] };
 }
 
 sub symbols { return @{ $_[0] }; }
