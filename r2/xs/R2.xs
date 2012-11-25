@@ -1021,7 +1021,9 @@ PPCODE:
 	      break;
 	    case op_earleme_complete:
 	      {
-		const int result = marpa_r_earleme_complete (r);
+		int result;
+		marpa_r_latest_earley_set_value_set (r, codepoint);
+		result = marpa_r_earleme_complete (r);
 		if (result > 0)
 		  {
 		    return_value = result;
