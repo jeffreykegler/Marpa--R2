@@ -130,7 +130,7 @@ sub my_parser {
         die $self->show_last_expression(), "\n", $eval_error, "\n";
     } ## end if ( not defined eval { $recce->read_string($string)...})
     if (not defined $event_count) {
-        die $recce->read_string_error();
+        die $self->show_last_expression(), "\n", $recce->read_string_error();
     }
     my $value_ref = $recce->value;
     if ( not defined $value_ref ) {

@@ -195,7 +195,6 @@ sub Marpa::R2::Recognizer::new {
     {
         my $stream = $recce->[Marpa::R2::Internal::Recognizer::STREAM] =
             Marpa::R2::Thin::U->new($recce_c);
-        $stream->ignore_rejection(1);
     } ## end if ( defined $grammar->[...])
 
     return $recce;
@@ -204,6 +203,11 @@ sub Marpa::R2::Recognizer::new {
 sub Marpa::R2::Recognizer::thin {
     $_[0]->[Marpa::R2::Internal::Recognizer::C];
 }
+
+sub Marpa::R2::Recognizer::thin_stream {
+    $_[0]->[Marpa::R2::Internal::Recognizer::STREAM];
+}
+
 
 use constant RECOGNIZER_OPTIONS => [
     qw{

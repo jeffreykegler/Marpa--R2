@@ -90,6 +90,11 @@ sub My_Error::last_completed_target {
 } ## end sub My_Error::last_completed_target
 
 my $recce        = Marpa::R2::Recognizer->new({ grammar => $grammar} );
+
+# A hack, not to be documented
+my $stream = $recce->thin_stream();
+$stream->ignore_rejection(1);
+
 $recce->read_string( $string );
 
 # A quasi-object, for internal use only
