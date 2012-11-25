@@ -66,6 +66,7 @@ BEGIN {
     RULE_CLOSURES
     NULL_VALUES
     EVENTS
+    READ_STRING_ERROR
 
     { This is the end of the list of fields which
     must be reinitialized when evaluation is reset }
@@ -781,6 +782,11 @@ sub Marpa::R2::Recognizer::events {
     return $recce->[Marpa::R2::Internal::Recognizer::EVENTS];
 }
 
+sub Marpa::R2::Recognizer::read_string_error {
+    my ($recce) = @_;
+    return $recce->[Marpa::R2::Internal::Recognizer::READ_STRING_ERROR];
+}
+
 my @escape_by_ord = ();
 $escape_by_ord[ ord q{\\} ] = q{\\\\};
 $escape_by_ord[ ord eval qq{"$_"} ] = $_
@@ -818,6 +824,7 @@ sub Marpa::R2::Recognizer::read_string {
     my $grammar = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my $length  = length $string;
     my $stream  = $recce->[Marpa::R2::Internal::Recognizer::STREAM];
+    my $event_count;
 
     my $class_table =
         $grammar->[Marpa::R2::Internal::Grammar::CHARACTER_CLASS_TABLE];
@@ -827,68 +834,70 @@ sub Marpa::R2::Recognizer::read_string {
         state $op_alternative = Marpa::R2::Thin::U::op('alternative');
         state $op_earleme_complete =
             Marpa::R2::Thin::U::op('earleme_complete');
-        my $event_count = $stream->read();
-        if ( $event_count == 0 ) {
-            $recce->[Marpa::R2::Internal::Recognizer::EVENTS] = [];
-            last READ;
+        $event_count = $stream->read();
+        if ( $event_count >= 0 ) {
+            $recce->[Marpa::R2::Internal::Recognizer::EVENTS] =
+                $event_count > 0 ? cook_events($recce) : [];
+            return $event_count;
         }
-        READ_ERROR: {
-            if ( $event_count == -2 ) {
-                my $codepoint = $stream->codepoint();
-                my @ops;
-                for my $entry ( @{$class_table} ) {
-                    my ( $symbol_id, $re ) = @{$entry};
-                    push @ops, $op_alternative, $symbol_id, 0, 1
-                        if chr($codepoint) =~ $re;
-                }
-                die sprintf "Cannot read character U+%04x: %c\n", $codepoint,
-                    $codepoint
-                    if not @ops;
-                $stream->char_register( $codepoint, @ops,
-                    $op_earleme_complete );
-                redo READ;
-            } ## end if ( $event_count == -2 )
-            if ( $event_count > 0 ) {
-                $recce->[Marpa::R2::Internal::Recognizer::EVENTS] =
-                    cook_events($recce);
-                last READ;
+        if ( $event_count == -2 ) {
+
+            # Recover by registering character, if we can
+            my $codepoint = $stream->codepoint();
+            my @ops;
+            for my $entry ( @{$class_table} ) {
+                my ( $symbol_id, $re ) = @{$entry};
+                push @ops, $op_alternative, $symbol_id, 0, 1
+                    if chr($codepoint) =~ $re;
             }
-            my $pos = $stream->pos();
-            my $desc;
-            DESC: {
-                if ( $event_count == -1 ) {
-                    $desc = 'Character rejected';
-                    last DESC;
-                }
-                if ( $event_count == -2 ) {
-                    $desc = 'Unregistered character';
-                    last DESC;
-                }
-                if ( $event_count == -3 ) {
-                    $desc = 'Parse exhausted';
-                    last DESC;
-                }
-            } ## end DESC:
-            my $char = substr $string, $pos, 1;
-	    my $char_in_hex = sprintf '0x%04x', ord $char;
-            my $char_desc =
-                $char =~ m/[\p{PosixGraph}]/xms ? $char : '[non-graphic character]';
-            my $prefix =
-                $pos >= 72
-                ? ( substr $string, $pos - 72, 72 )
-                : ( substr $string, 0, $pos );
-            Marpa::R2::exception(
-                "Error in string_read: $desc\n",
-                "* Error was at string position: $pos, and at character $char_in_hex, '$char_desc'\n",
-                "* String before error:\n",
-                escape_string( $prefix, -72 ),
-                "\n",
-                "* String after error:\n",
-                escape_string( ( substr $string, $pos, 72 ), 72 ),
-                "\n"
-            );
-        } ## end READ_ERROR:
+            die sprintf "Cannot read character U+%04x: %c\n", $codepoint,
+                $codepoint
+                if not @ops;
+            $stream->char_register( $codepoint, @ops, $op_earleme_complete );
+            redo READ;
+        } ## end if ( $event_count == -2 )
     } ## end READ:
+        # If we are here, recovery is a matter for the caller,
+        # if it is possible at all
+    my $pos = $stream->pos();
+    my $desc;
+    DESC: {
+        if ( $event_count == -1 ) {
+            $desc = 'Character rejected';
+            last DESC;
+        }
+        if ( $event_count == -2 ) {
+            $desc = 'Unregistered character';
+            last DESC;
+        }
+        if ( $event_count == -3 ) {
+            $desc = 'Parse exhausted';
+            last DESC;
+        }
+    } ## end DESC:
+    my $char = substr $string, $pos, 1;
+    my $char_in_hex = sprintf '0x%04x', ord $char;
+    my $char_desc =
+          $char =~ m/[\p{PosixGraph}]/xms
+        ? $char
+        : '[non-graphic character]';
+    my $prefix =
+        $pos >= 72
+        ? ( substr $string, $pos - 72, 72 )
+        : ( substr $string, 0, $pos );
+
+    my $read_string_error =
+        $recce->[Marpa::R2::Internal::Recognizer::READ_STRING_ERROR] =
+          "Error in string_read: $desc\n"
+        . "* Error was at string position: $pos, and at character $char_in_hex, '$char_desc'\n"
+        . "* String before error:\n"
+        . escape_string( $prefix, -72 ) . "\n"
+        . "* String after error:\n"
+        . escape_string( ( substr $string, $pos, 72 ), 72 ) . "\n";
+    Marpa::R2::exception($read_string_error) if $event_count == -3;
+
+    # Fall through to return undef
+    return;
 } ## end sub Marpa::R2::Recognizer::read_string
 
 # INTERNAL OK AFTER HERE _marpa_

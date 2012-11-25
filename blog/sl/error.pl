@@ -90,11 +90,8 @@ sub My_Error::last_completed_range {
 # and two earley sets, return the slice of the string
 sub My_Error::input_slice {
     my ( $self, $start, $end ) = @_;
-    my $positions = $self->{positions};
     return if not defined $start;
-    my $start_position = $positions->[$start];
-    my $length         = $positions->[$end] - $start_position;
-    return substr ${ $self->{input} }, $start_position, $length;
+    return substr ${ $self->{input} }, $start, $end-$start;
 } ## end sub My_Error::input_slice
 
 sub My_Error::show_last_expression {
@@ -123,8 +120,18 @@ sub my_parser {
 
     my $recce = Marpa::R2::Recognizer->new( { grammar => $grammar } );
     $self->{recce} = $recce;
+    my $event_count;
 
-    $recce->read_string($string);
+    if ( not defined eval { $event_count = $recce->read_string($string); 1 } ) {
+
+        # Add last expression found, and rethrow
+        my $eval_error = $EVAL_ERROR;
+        chomp $eval_error;
+        die $self->show_last_expression(), "\n", $eval_error, "\n";
+    } ## end if ( not defined eval { $recce->read_string($string)...})
+    if (not defined $event_count) {
+        die $recce->read_string_error();
+    }
     my $value_ref = $recce->value;
     if ( not defined $value_ref ) {
         die $self->show_last_expression(), "\n",
