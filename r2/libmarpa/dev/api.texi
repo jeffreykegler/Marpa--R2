@@ -2359,6 +2359,12 @@ On failure, @minus{}2.
 @node Location accessors, Other parse status methods, Recognizer life cycle mutators, Recognizer methods
 @section Location accessors
 
+@deftypefun @code{unsigned int} marpa_r_current_earleme (Marpa_Recognizer @var{r})
+Return value: If input has started, the current earleme.
+If input has not started, @minus{}1.
+Always succeeds.
+@end deftypefun
+
 @deftypefun Marpa_Earleme marpa_r_earleme ( @
     Marpa_Recognizer @var{r}, @
     Marpa_Earley_Set_ID @var{set_id})
@@ -2401,9 +2407,25 @@ set @var{set_id}.
 On failure, @minus{}2.
 @end deftypefun
 
-@deftypefun @code{unsigned int} marpa_r_current_earleme (Marpa_Recognizer @var{r})
-Return value: If input has started, the current earleme.
-If input has not started, @minus{}1.
+@deftypefun Marpa_Earley_Set_ID marpa_r_earley_set_value (@
+  Marpa_Recognizer @var{r}, @
+  Marpa_Earley_Set_ID earley_set)
+Returns the integer value of @var{earley_set}.
+The ``value'' of an Earley is an arbitrary integer that the application
+can use for its own purposes.
+In character-per-earleme input models, for example,
+it can be the codepoint of the current character.
+The Earley set value can be set using
+the 
+@code{marpa_r_latest_earley_set()} method.
+The Earley set value defaults to @minus{}1.
+
+Return value: On success, the value of @var{earley_set}.
+On failure, @minus{}2.
+@end deftypefun
+
+@deftypefun @code{unsigned int} marpa_r_furthest_earleme (Marpa_Recognizer @var{r})
+Return value: On success, the furthest earleme.
 Always succeeds.
 @end deftypefun
 
@@ -2418,9 +2440,16 @@ Return value: On success, the ID of the latest Earley set.
 Always succeeds.
 @end deftypefun
 
-@deftypefun @code{unsigned int} marpa_r_furthest_earleme (Marpa_Recognizer @var{r})
-Return value: On success, the furthest earleme.
-Always succeeds.
+@deftypefun Marpa_Earley_Set_ID marpa_r_latest_earley_set_value_set (@
+  Marpa_Recognizer @var{r} )
+Sets the integer value of the latest Earley set.
+For more about the ``value'' of an Earley set,
+see the description of the
+@code{marpa_r_earley_set_value()} method.
+The Earley set value defaults to @minus{}1.
+
+Return value: On success, the new value of @var{earley_set}.
+On failure, @minus{}2.
 @end deftypefun
 
 @node Other parse status methods,  , Location accessors, Recognizer methods
