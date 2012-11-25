@@ -6617,10 +6617,10 @@ an integer of its choice with each Earley set.
 @<Int aligned Earley set elements@> =
     int t_value;
 @ @<Initialize Earley set@> =
-   Value_of_ES(set) = -1
+   Value_of_ES(set) = -1;
 
 @ @<Function definitions@> =
-unsigned int marpa_r_earley_set_value(Marpa_Recognizer r, Marpa_Earley_Set_ID set_id)
+int marpa_r_earley_set_value(Marpa_Recognizer r, Marpa_Earley_Set_ID set_id)
 {
   @<Return |-2| on failure@>@;
   ES earley_set;
@@ -6643,12 +6643,14 @@ unsigned int marpa_r_earley_set_value(Marpa_Recognizer r, Marpa_Earley_Set_ID se
 }
 
 @ @<Function definitions@> =
-unsigned int marpa_r_latest_earley_set_value_set(Marpa_Recognizer r, int value)
+int marpa_r_latest_earley_set_value_set(Marpa_Recognizer r, int value)
 {
+  ES earley_set;
   @<Return |-2| on failure@>@;
+  @<Unpack recognizer objects@>@;
   @<Fail if fatal error@>@;
   @<Fail if recognizer not started@>@;
-  ES earley_set = Latest_ES_of_R(r);
+  earley_set = Latest_ES_of_R(r);
   return Value_of_ES(earley_set) = value;
 }
 

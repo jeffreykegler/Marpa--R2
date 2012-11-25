@@ -2407,7 +2407,7 @@ set @var{set_id}.
 On failure, @minus{}2.
 @end deftypefun
 
-@deftypefun Marpa_Earley_Set_ID marpa_r_earley_set_value (@
+@deftypefun int marpa_r_earley_set_value (@
   Marpa_Recognizer @var{r}, @
   Marpa_Earley_Set_ID earley_set)
 Returns the integer value of @var{earley_set}.
@@ -2440,8 +2440,9 @@ Return value: On success, the ID of the latest Earley set.
 Always succeeds.
 @end deftypefun
 
-@deftypefun Marpa_Earley_Set_ID marpa_r_latest_earley_set_value_set (@
-  Marpa_Recognizer @var{r} )
+@deftypefun int marpa_r_latest_earley_set_value_set (@
+  Marpa_Recognizer @var{r}, @
+  int value)
 Sets the integer value of the latest Earley set.
 For more about the ``value'' of an Earley set,
 see the description of the
