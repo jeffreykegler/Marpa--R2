@@ -39,11 +39,15 @@ END_OF_RULES
 package My_Actions;
 our $SELF;
 sub new { return $SELF }
-sub do_number  {
-   my $self = shift;
-   my ($start, $end) = Marpa::R2::Context::location();
-   return substr ${$self->{input}}, $start, $end-$start;
-}
+sub do_number {
+    my $self = shift;
+    my $recce = $self->{recce}->thin();
+    my ( $start, $end ) = Marpa::R2::Context::location();
+    return join q{},
+        map { (not defined $_ or $_ < 0) ? q{} : chr $_ }
+        map { $recce->earley_set_value($_) } $start .. $end;
+} ## end sub do_number
+
 sub do_add  { shift;
 # say +(scalar @_), " args: ", join "; ", @_;
 return $_[0] + $_[1] }
@@ -149,7 +153,9 @@ for my $test_string (
     '+++',
     '++1 2++',
     '++1 2++3 4++',
-    '1 + 2 +3  4 + 5 + 6 + 7'
+    '1 + 2 +3  4 + 5 + 6 + 7',
+    '+12',
+    '+1234'
     )
 {
     my $output;
