@@ -142,33 +142,33 @@ E -> . MinusMinus E
 E -> . Minus E
 E -> . Number
  <E> => S6
- <Minus> => S1; S5
+ <Minus> => S1; S3
  <MinusMinus> => S1; S4
- <Number> => S3
+ <Number> => S5
 * S2: leo-c
 E['] -> E .
 * S3:
-E -> Number .
+E -> Minus . E
+ <E> => S7; leo(E)
 * S4:
 E -> MinusMinus . E
- <E> => S7; leo(E)
-* S5:
-E -> Minus . E
  <E> => S8; leo(E)
+* S5:
+E -> Number .
 * S6:
 E -> E . Minus E
 E -> E . MinusMinus
- <Minus> => S1; S10
- <MinusMinus> => S9
+ <Minus> => S1; S9
+ <MinusMinus> => S10
 * S7: leo-c
-E -> MinusMinus E .
-* S8: leo-c
 E -> Minus E .
+* S8: leo-c
+E -> MinusMinus E .
 * S9:
-E -> E MinusMinus .
-* S10:
 E -> E Minus . E
  <E> => S11; leo(E)
+* S10:
+E -> E MinusMinus .
 * S11: leo-c
 E -> E Minus E .
 END_AHFA

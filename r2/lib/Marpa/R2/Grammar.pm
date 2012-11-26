@@ -248,7 +248,8 @@ sub Marpa::R2::Grammar::set {
                 if $grammar_c->is_precomputed();
             Marpa::R2::exception('symbols value must be REF to HASH')
                 if ref $value ne 'HASH';
-            while ( my ( $symbol, $properties ) = each %{$value} ) {
+            for my $symbol ( sort keys %{$value} ) {
+                my $properties = $value->{$symbol};
                 assign_user_symbol( $grammar, $symbol, $properties );
             }
         } ## end if ( defined( my $value = $args->{'symbols'} ) )
@@ -654,7 +655,7 @@ sub Marpa::R2::Grammar::precompute {
     my $cc_hash = $grammar->[Marpa::R2::Internal::Grammar::CHARACTER_CLASSES];
     if (defined $cc_hash) {
         my $class_table = $grammar->[Marpa::R2::Internal::Grammar::CHARACTER_CLASS_TABLE] = [];
-        for my $cc_symbol ( keys %{$cc_hash} ) {
+        for my $cc_symbol ( sort keys %{$cc_hash} ) {
             my $regex = $cc_hash->{$cc_symbol};
             push @{$class_table},
                 [ $grammar->thin_symbol($cc_symbol), $regex ];
@@ -933,20 +934,22 @@ sub assign_user_symbol {
     my $symbol = assign_symbol( $grammar, $name );
     my $symbol_id = $symbol->[Marpa::R2::Internal::Symbol::ID];
 
-    PROPERTY: while ( my ( $property, $value ) = each %{$options} ) {
+    PROPERTY: for my $property ( sort keys %{$options} ) {
         if ( not $property ~~ [qw(terminal rank )] ) {
             Marpa::R2::exception(qq{Unknown symbol property "$property"});
         }
         if ( $property eq 'terminal' ) {
+            my $value = $options->{$property};
             $grammar_c->symbol_is_terminal_set( $symbol_id, $value );
         }
         if ( $property eq 'rank' ) {
+            my $value = $options->{$property};
             Marpa::R2::exception(qq{Symbol "$name": rank must be an integer})
                 if not Scalar::Util::looks_like_number($value)
                     or int($value) != $value;
             $grammar_c->symbol_rank_set($symbol_id) = $value;
         } ## end if ( $property eq 'rank' )
-    } ## end PROPERTY: while ( my ( $property, $value ) = each %{$options} )
+    } ## end PROPERTY: for my $property ( keys %{$options} )
 
     return $symbol;
 
