@@ -95,7 +95,7 @@ my $recce        = Marpa::R2::Recognizer->new({ grammar => $grammar} );
 my $stream = $recce->thin_stream();
 $stream->ignore_rejection(1);
 
-$recce->read_string( $string );
+$recce->sl_read( $string );
 
 # A quasi-object, for internal use only
 my $self = bless {

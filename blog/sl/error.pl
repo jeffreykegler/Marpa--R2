@@ -41,11 +41,9 @@ our $SELF;
 sub new { return $SELF }
 sub do_number {
     my $self = shift;
-    my $recce = $self->{recce}->thin();
+    my $recce = $self->{recce};
     my ( $start, $end ) = Marpa::R2::Context::location();
-    return join q{},
-        map { (not defined $_ or $_ < 0) ? q{} : chr $_ }
-        map { $recce->earley_set_value($_) } $start .. $end;
+    return $recce->sl_range_to_string($start, $end);
 } ## end sub do_number
 
 sub do_add  { shift;
@@ -126,15 +124,15 @@ sub my_parser {
     $self->{recce} = $recce;
     my $event_count;
 
-    if ( not defined eval { $event_count = $recce->read_string($string); 1 } ) {
+    if ( not defined eval { $event_count = $recce->sl_read($string); 1 } ) {
 
         # Add last expression found, and rethrow
         my $eval_error = $EVAL_ERROR;
         chomp $eval_error;
         die $self->show_last_expression(), "\n", $eval_error, "\n";
-    } ## end if ( not defined eval { $recce->read_string($string)...})
+    } ## end if ( not defined eval { $recce->sl_read($string)...})
     if (not defined $event_count) {
-        die $self->show_last_expression(), "\n", $recce->read_string_error();
+        die $self->show_last_expression(), "\n", $recce->sl_error();
     }
     my $value_ref = $recce->value;
     if ( not defined $value_ref ) {

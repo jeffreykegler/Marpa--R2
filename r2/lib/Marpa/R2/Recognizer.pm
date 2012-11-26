@@ -786,7 +786,7 @@ sub Marpa::R2::Recognizer::events {
     return $recce->[Marpa::R2::Internal::Recognizer::EVENTS];
 }
 
-sub Marpa::R2::Recognizer::read_string_error {
+sub Marpa::R2::Recognizer::sl_error {
     my ($recce) = @_;
     return $recce->[Marpa::R2::Internal::Recognizer::READ_STRING_ERROR];
 }
@@ -823,7 +823,7 @@ sub escape_string {
     return join q{}, @escaped_chars;
 } ## end sub escape_string
 
-sub Marpa::R2::Recognizer::read_string {
+sub Marpa::R2::Recognizer::sl_read {
     my ( $recce, $string ) = @_;
     my $grammar = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my $length  = length $string;
@@ -903,6 +903,17 @@ sub Marpa::R2::Recognizer::read_string {
     # Fall through to return undef
     return;
 } ## end sub Marpa::R2::Recognizer::read_string
+
+# Given a range of locations, return the
+# input string.
+# Only work in scannerless mode.
+sub Marpa::R2::Recognizer::sl_range_to_string {
+    my ($recce, $start, $end) = @_;
+    my $recce_c = $recce->[Marpa::R2::Internal::Recognizer::C];
+    return join q{},
+        map { (not defined $_ or $_ < 0) ? q{} : chr $_ }
+        map { $recce_c->earley_set_value($_) } $start .. $end;
+} ## end sub do_number
 
 # INTERNAL OK AFTER HERE _marpa_
 
