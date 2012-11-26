@@ -73,6 +73,20 @@ my $legal_preamble = <<'END_OF_TEXT';
 
 END_OF_TEXT
 
+sub sort_bnf {
+    my $cmp = $a->{lhs} cmp $b->{lhs};
+    return $cmp if $cmp;
+    my $a_rhs_length = scalar @{ $a->{rhs} };
+    my $b_rhs_length = scalar @{ $b->{rhs} };
+    $cmp = $a_rhs_length <=> $b_rhs_length;
+    return $cmp if $cmp;
+    for my $ix ( 0 .. $a_rhs_length ) {
+        $cmp = $a->{rhs}->[$ix] cmp $b->{rhs}->[$ix];
+        return $cmp if $cmp;
+    }
+    return 0;
+} ## end sub sort_bnf
+
 sub as_string {
     my ($self) = @_;
 
@@ -82,6 +96,8 @@ sub as_string {
     local $Data::Dumper::Purity   = 1;
     local $Data::Dumper::Sortkeys = 1;
     my @contents = $self->contents();
+    my @rules = sort sort_bnf @{$contents[0]};
+    $contents[0] = \@rules;
 
     # Start with the legal language
     return \(

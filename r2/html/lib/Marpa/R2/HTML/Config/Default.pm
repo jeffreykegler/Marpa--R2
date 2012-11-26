@@ -14,128 +14,121 @@
 # http://www.gnu.org/licenses/.
 
 # This file was generated automatically by Marpa::R2::HTML::Config
-# The date of generation was Sun Oct 14 20:54:26 2012
+# The date of generation was Sun Nov 25 19:01:20 2012
 
 package Marpa::R2::HTML::Internal::Config::Default;
 
 $CORE_RULES = [
                 {
-                  'action' => 'SPE_COMMENT',
-                  'lhs' => 'comment',
-                  'rhs' => [
-                             'C'
-                           ]
-                },
-                {
-                  'action' => 'SPE_PI',
-                  'lhs' => 'pi',
-                  'rhs' => [
-                             'PI'
-                           ]
-                },
-                {
-                  'action' => 'SPE_DECL',
-                  'lhs' => 'decl',
-                  'rhs' => [
-                             'D'
-                           ]
-                },
-                {
-                  'action' => 'SPE_PCDATA',
-                  'lhs' => 'pcdata',
-                  'rhs' => [
-                             'PCDATA'
-                           ]
-                },
-                {
-                  'action' => 'SPE_CDATA',
-                  'lhs' => 'cdata',
-                  'rhs' => [
-                             'CDATA'
-                           ]
-                },
-                {
-                  'action' => 'SPE_WHITESPACE',
-                  'lhs' => 'whitespace',
-                  'rhs' => [
-                             'WHITESPACE'
-                           ]
-                },
-                {
-                  'action' => 'SPE_CRUFT',
-                  'lhs' => 'cruft',
-                  'rhs' => [
-                             'CRUFT'
-                           ]
-                },
-                {
-                  'lhs' => 'FLO_SGML',
+                  'lhs' => 'Contents_ELE_applet',
                   'min' => 0,
                   'rhs' => [
-                             'GRP_SGML'
+                             'GRP_ELE_applet'
                            ]
                 },
                 {
-                  'lhs' => 'GRP_SGML',
+                  'lhs' => 'Contents_ELE_colgroup',
+                  'min' => 0,
                   'rhs' => [
-                             'comment'
+                             'GRP_ELE_colgroup'
                            ]
                 },
                 {
-                  'lhs' => 'GRP_SGML',
+                  'lhs' => 'Contents_ELE_dir',
+                  'min' => 0,
                   'rhs' => [
-                             'pi'
+                             'GRP_ELE_dir'
                            ]
                 },
                 {
-                  'lhs' => 'GRP_SGML',
+                  'lhs' => 'Contents_ELE_dl',
+                  'min' => 0,
                   'rhs' => [
-                             'decl'
+                             'GRP_ELE_dl'
                            ]
                 },
                 {
-                  'lhs' => 'GRP_SGML',
+                  'lhs' => 'Contents_ELE_map',
+                  'min' => 0,
                   'rhs' => [
-                             'whitespace'
+                             'GRP_ELE_map'
                            ]
                 },
                 {
-                  'lhs' => 'GRP_SGML',
+                  'lhs' => 'Contents_ELE_menu',
+                  'min' => 0,
                   'rhs' => [
-                             'cruft'
+                             'GRP_ELE_menu'
                            ]
                 },
                 {
-                  'action' => 'SPE_TOP',
-                  'lhs' => 'document',
+                  'lhs' => 'Contents_ELE_object',
+                  'min' => 0,
                   'rhs' => [
-                             'prolog',
-                             'ELE_html',
-                             'trailer',
-                             'EOF'
+                             'GRP_ELE_object'
                            ]
                 },
                 {
-                  'action' => 'SPE_PROLOG',
-                  'lhs' => 'prolog',
+                  'lhs' => 'Contents_ELE_ol',
+                  'min' => 0,
                   'rhs' => [
-                             'FLO_SGML'
+                             'GRP_ELE_ol'
                            ]
                 },
                 {
-                  'action' => 'SPE_TRAILER',
-                  'lhs' => 'trailer',
+                  'lhs' => 'Contents_ELE_optgroup',
+                  'min' => 0,
                   'rhs' => [
-                             'FLO_SGML'
+                             'GRP_ELE_optgroup'
                            ]
                 },
                 {
-                  'action' => 'ELE_html',
-                  'lhs' => 'ELE_html',
+                  'lhs' => 'Contents_ELE_select',
+                  'min' => 0,
                   'rhs' => [
-                             'S_html',
-                             'Contents_html',
-                             'E_html'
+                             'GRP_ELE_select'
+                           ]
+                },
+                {
+                  'lhs' => 'Contents_ELE_table',
+                  'min' => 0,
+                  'rhs' => [
+                             'GRP_ELE_table'
+                           ]
+                },
+                {
+                  'lhs' => 'Contents_ELE_tbody',
+                  'min' => 0,
+                  'rhs' => [
+                             'GRP_ELE_tbody'
+                           ]
+                },
+                {
+                  'lhs' => 'Contents_ELE_tfoot',
+                  'min' => 0,
+                  'rhs' => [
+                             'GRP_ELE_tfoot'
+                           ]
+                },
+                {
+                  'lhs' => 'Contents_ELE_thead',
+                  'min' => 0,
+                  'rhs' => [
+                             'GRP_ELE_thead'
+                           ]
+                },
+                {
+                  'lhs' => 'Contents_ELE_tr',
+                  'min' => 0,
+                  'rhs' => [
+                             'GRP_ELE_tr'
+                           ]
+                },
+                {
+                  'lhs' => 'Contents_ELE_ul',
+                  'min' => 0,
+                  'rhs' => [
+                             'GRP_ELE_ul'
                            ]
                 },
                 {
@@ -149,197 +142,12 @@ $CORE_RULES = [
                            ]
                 },
                 {
-                  'lhs' => 'FLO_empty',
-                  'rhs' => []
-                },
-                {
-                  'lhs' => 'FLO_cdata',
-                  'min' => 0,
-                  'rhs' => [
-                             'GRP_cdata'
-                           ]
-                },
-                {
-                  'lhs' => 'GRP_cdata',
-                  'rhs' => [
-                             'CRUFT'
-                           ]
-                },
-                {
-                  'lhs' => 'GRP_cdata',
-                  'rhs' => [
-                             'cdata'
-                           ]
-                },
-                {
-                  'lhs' => 'FLO_mixed',
-                  'min' => 0,
-                  'rhs' => [
-                             'GRP_mixed'
-                           ]
-                },
-                {
-                  'lhs' => 'GRP_mixed',
-                  'rhs' => [
-                             'GRP_block'
-                           ]
-                },
-                {
-                  'lhs' => 'GRP_mixed',
-                  'rhs' => [
-                             'GRP_inline'
-                           ]
-                },
-                {
-                  'lhs' => 'FLO_block',
-                  'min' => 0,
-                  'rhs' => [
-                             'GRP_block'
-                           ]
-                },
-                {
-                  'lhs' => 'GRP_block',
-                  'rhs' => [
-                             'GRP_SGML'
-                           ]
-                },
-                {
-                  'lhs' => 'GRP_block',
-                  'rhs' => [
-                             'GRP_anywhere'
-                           ]
-                },
-                {
-                  'lhs' => 'FLO_head',
-                  'min' => 0,
-                  'rhs' => [
-                             'GRP_head'
-                           ]
-                },
-                {
-                  'lhs' => 'GRP_head',
-                  'rhs' => [
-                             'GRP_SGML'
-                           ]
-                },
-                {
-                  'lhs' => 'GRP_head',
-                  'rhs' => [
-                             'GRP_anywhere'
-                           ]
-                },
-                {
-                  'lhs' => 'FLO_inline',
-                  'min' => 0,
-                  'rhs' => [
-                             'GRP_inline'
-                           ]
-                },
-                {
-                  'lhs' => 'GRP_inline',
-                  'rhs' => [
-                             'GRP_SGML'
-                           ]
-                },
-                {
-                  'lhs' => 'GRP_inline',
-                  'rhs' => [
-                             'pcdata'
-                           ]
-                },
-                {
-                  'lhs' => 'GRP_inline',
-                  'rhs' => [
-                             'cdata'
-                           ]
-                },
-                {
-                  'lhs' => 'GRP_inline',
-                  'rhs' => [
-                             'GRP_anywhere'
-                           ]
-                },
-                {
-                  'lhs' => 'FLO_pcdata',
-                  'min' => 0,
-                  'rhs' => [
-                             'GRP_pcdata'
-                           ]
-                },
-                {
-                  'lhs' => 'GRP_pcdata',
-                  'rhs' => [
-                             'GRP_SGML'
-                           ]
-                },
-                {
-                  'lhs' => 'GRP_pcdata',
-                  'rhs' => [
-                             'pcdata'
-                           ]
-                },
-                {
-                  'lhs' => 'GRP_pcdata',
-                  'rhs' => [
-                             'cdata'
-                           ]
-                },
-                {
                   'action' => 'ELE_applet',
                   'lhs' => 'ELE_applet',
                   'rhs' => [
                              'S_applet',
                              'Contents_ELE_applet',
                              'E_applet'
-                           ]
-                },
-                {
-                  'lhs' => 'Contents_ELE_applet',
-                  'min' => 0,
-                  'rhs' => [
-                             'GRP_ELE_applet'
-                           ]
-                },
-                {
-                  'lhs' => 'GRP_ELE_applet',
-                  'rhs' => [
-                             'ELE_param'
-                           ]
-                },
-                {
-                  'lhs' => 'GRP_ELE_applet',
-                  'rhs' => [
-                             'GRP_mixed'
-                           ]
-                },
-                {
-                  'lhs' => 'GRP_ELE_applet',
-                  'rhs' => [
-                             'GRP_SGML'
-                           ]
-                },
-                {
-                  'lhs' => 'GRP_inline',
-                  'rhs' => [
-                             'ELE_applet'
-                           ]
-                },
-                {
-                  'action' => 'ELE_dt',
-                  'lhs' => 'ELE_dt',
-                  'rhs' => [
-                             'S_dt',
-                             'FLO_inline',
-                             'E_dt'
-                           ]
-                },
-                {
-                  'action' => 'ELE_caption',
-                  'lhs' => 'ELE_caption',
-                  'rhs' => [
-                             'S_caption',
-                             'FLO_inline',
-                             'E_caption'
                            ]
                 },
                 {
@@ -361,101 +169,12 @@ $CORE_RULES = [
                            ]
                 },
                 {
-                  'action' => 'ELE_param',
-                  'lhs' => 'ELE_param',
+                  'action' => 'ELE_caption',
+                  'lhs' => 'ELE_caption',
                   'rhs' => [
-                             'S_param',
-                             'FLO_empty',
-                             'E_param'
-                           ]
-                },
-                {
-                  'action' => 'ELE_dl',
-                  'lhs' => 'ELE_dl',
-                  'rhs' => [
-                             'S_dl',
-                             'Contents_ELE_dl',
-                             'E_dl'
-                           ]
-                },
-                {
-                  'lhs' => 'Contents_ELE_dl',
-                  'min' => 0,
-                  'rhs' => [
-                             'GRP_ELE_dl'
-                           ]
-                },
-                {
-                  'lhs' => 'GRP_ELE_dl',
-                  'rhs' => [
-                             'ELE_dt'
-                           ]
-                },
-                {
-                  'lhs' => 'GRP_ELE_dl',
-                  'rhs' => [
-                             'ELE_dd'
-                           ]
-                },
-                {
-                  'lhs' => 'GRP_ELE_dl',
-                  'rhs' => [
-                             'GRP_SGML'
-                           ]
-                },
-                {
-                  'lhs' => 'GRP_block',
-                  'rhs' => [
-                             'ELE_dl'
-                           ]
-                },
-                {
-                  'action' => 'ELE_map',
-                  'lhs' => 'ELE_map',
-                  'rhs' => [
-                             'S_map',
-                             'Contents_ELE_map',
-                             'E_map'
-                           ]
-                },
-                {
-                  'lhs' => 'Contents_ELE_map',
-                  'min' => 0,
-                  'rhs' => [
-                             'GRP_ELE_map'
-                           ]
-                },
-                {
-                  'lhs' => 'GRP_ELE_map',
-                  'rhs' => [
-                             'GRP_block'
-                           ]
-                },
-                {
-                  'lhs' => 'GRP_ELE_map',
-                  'rhs' => [
-                             'ELE_area'
-                           ]
-                },
-                {
-                  'lhs' => 'GRP_ELE_map',
-                  'rhs' => [
-                             'GRP_SGML'
-                           ]
-                },
-                {
-                  'lhs' => 'GRP_inline',
-                  'rhs' => [
-                             'ELE_map'
-                           ]
-                },
-                {
-                  'action' => 'ELE_th',
-                  'lhs' => 'ELE_th',
-                  'rhs' => [
-                             'S_th',
-                             'FLO_mixed',
-                             'E_th'
+                             'S_caption',
+                             'FLO_inline',
+                             'E_caption'
                            ]
                 },
                 {
@@ -468,105 +187,12 @@ $CORE_RULES = [
                            ]
                 },
                 {
-                  'action' => 'ELE_ul',
-                  'lhs' => 'ELE_ul',
+                  'action' => 'ELE_colgroup',
+                  'lhs' => 'ELE_colgroup',
                   'rhs' => [
-                             'S_ul',
-                             'Contents_ELE_ul',
-                             'E_ul'
-                           ]
-                },
-                {
-                  'lhs' => 'Contents_ELE_ul',
-                  'min' => 0,
-                  'rhs' => [
-                             'GRP_ELE_ul'
-                           ]
-                },
-                {
-                  'lhs' => 'GRP_ELE_ul',
-                  'rhs' => [
-                             'ELE_li'
-                           ]
-                },
-                {
-                  'lhs' => 'GRP_ELE_ul',
-                  'rhs' => [
-                             'GRP_SGML'
-                           ]
-                },
-                {
-                  'lhs' => 'GRP_block',
-                  'rhs' => [
-                             'ELE_ul'
-                           ]
-                },
-                {
-                  'action' => 'ELE_optgroup',
-                  'lhs' => 'ELE_optgroup',
-                  'rhs' => [
-                             'S_optgroup',
-                             'Contents_ELE_optgroup',
-                             'E_optgroup'
-                           ]
-                },
-                {
-                  'lhs' => 'Contents_ELE_optgroup',
-                  'min' => 0,
-                  'rhs' => [
-                             'GRP_ELE_optgroup'
-                           ]
-                },
-                {
-                  'lhs' => 'GRP_ELE_optgroup',
-                  'rhs' => [
-                             'ELE_option'
-                           ]
-                },
-                {
-                  'lhs' => 'GRP_ELE_optgroup',
-                  'rhs' => [
-                             'GRP_SGML'
-                           ]
-                },
-                {
-                  'action' => 'ELE_object',
-                  'lhs' => 'ELE_object',
-                  'rhs' => [
-                             'S_object',
-                             'Contents_ELE_object',
-                             'E_object'
-                           ]
-                },
-                {
-                  'lhs' => 'Contents_ELE_object',
-                  'min' => 0,
-                  'rhs' => [
-                             'GRP_ELE_object'
-                           ]
-                },
-                {
-                  'lhs' => 'GRP_ELE_object',
-                  'rhs' => [
-                             'ELE_param'
-                           ]
-                },
-                {
-                  'lhs' => 'GRP_ELE_object',
-                  'rhs' => [
-                             'GRP_mixed'
-                           ]
-                },
-                {
-                  'lhs' => 'GRP_ELE_object',
-                  'rhs' => [
-                             'GRP_SGML'
-                           ]
-                },
-                {
-                  'lhs' => 'GRP_anywhere',
-                  'rhs' => [
-                             'ELE_object'
+                             'S_colgroup',
+                             'Contents_ELE_colgroup',
+                             'E_colgroup'
                            ]
                 },
                 {
@@ -579,6 +205,33 @@ $CORE_RULES = [
                            ]
                 },
                 {
+                  'action' => 'ELE_dir',
+                  'lhs' => 'ELE_dir',
+                  'rhs' => [
+                             'S_dir',
+                             'Contents_ELE_dir',
+                             'E_dir'
+                           ]
+                },
+                {
+                  'action' => 'ELE_dl',
+                  'lhs' => 'ELE_dl',
+                  'rhs' => [
+                             'S_dl',
+                             'Contents_ELE_dl',
+                             'E_dl'
+                           ]
+                },
+                {
+                  'action' => 'ELE_dt',
+                  'lhs' => 'ELE_dt',
+                  'rhs' => [
+                             'S_dt',
+                             'FLO_inline',
+                             'E_dt'
+                           ]
+                },
+                {
                   'action' => 'ELE_head',
                   'lhs' => 'ELE_head',
                   'rhs' => [
@@ -588,46 +241,12 @@ $CORE_RULES = [
                            ]
                 },
                 {
-                  'action' => 'ELE_td',
-                  'lhs' => 'ELE_td',
+                  'action' => 'ELE_html',
+                  'lhs' => 'ELE_html',
                   'rhs' => [
-                             'S_td',
-                             'FLO_mixed',
-                             'E_td'
-                           ]
-                },
-                {
-                  'action' => 'ELE_menu',
-                  'lhs' => 'ELE_menu',
-                  'rhs' => [
-                             'S_menu',
-                             'Contents_ELE_menu',
-                             'E_menu'
-                           ]
-                },
-                {
-                  'lhs' => 'Contents_ELE_menu',
-                  'min' => 0,
-                  'rhs' => [
-                             'GRP_ELE_menu'
-                           ]
-                },
-                {
-                  'lhs' => 'GRP_ELE_menu',
-                  'rhs' => [
-                             'ELE_li'
-                           ]
-                },
-                {
-                  'lhs' => 'GRP_ELE_menu',
-                  'rhs' => [
-                             'GRP_SGML'
-                           ]
-                },
-                {
-                  'lhs' => 'GRP_block',
-                  'rhs' => [
-                             'ELE_menu'
+                             'S_html',
+                             'Contents_html',
+                             'E_html'
                            ]
                 },
                 {
@@ -640,46 +259,30 @@ $CORE_RULES = [
                            ]
                 },
                 {
-                  'action' => 'ELE_tr',
-                  'lhs' => 'ELE_tr',
+                  'action' => 'ELE_map',
+                  'lhs' => 'ELE_map',
                   'rhs' => [
-                             'S_tr',
-                             'Contents_ELE_tr',
-                             'E_tr'
+                             'S_map',
+                             'Contents_ELE_map',
+                             'E_map'
                            ]
                 },
                 {
-                  'lhs' => 'Contents_ELE_tr',
-                  'min' => 0,
+                  'action' => 'ELE_menu',
+                  'lhs' => 'ELE_menu',
                   'rhs' => [
-                             'GRP_ELE_tr'
+                             'S_menu',
+                             'Contents_ELE_menu',
+                             'E_menu'
                            ]
                 },
                 {
-                  'lhs' => 'GRP_ELE_tr',
+                  'action' => 'ELE_object',
+                  'lhs' => 'ELE_object',
                   'rhs' => [
-                             'ELE_th'
-                           ]
-                },
-                {
-                  'lhs' => 'GRP_ELE_tr',
-                  'rhs' => [
-                             'ELE_td'
-                           ]
-                },
-                {
-                  'lhs' => 'GRP_ELE_tr',
-                  'rhs' => [
-                             'GRP_SGML'
-                           ]
-                },
-                {
-                  'action' => 'ELE_option',
-                  'lhs' => 'ELE_option',
-                  'rhs' => [
-                             'S_option',
-                             'FLO_pcdata',
-                             'E_option'
+                             'S_object',
+                             'Contents_ELE_object',
+                             'E_object'
                            ]
                 },
                 {
@@ -692,28 +295,57 @@ $CORE_RULES = [
                            ]
                 },
                 {
-                  'lhs' => 'Contents_ELE_ol',
-                  'min' => 0,
+                  'action' => 'ELE_optgroup',
+                  'lhs' => 'ELE_optgroup',
                   'rhs' => [
-                             'GRP_ELE_ol'
+                             'S_optgroup',
+                             'Contents_ELE_optgroup',
+                             'E_optgroup'
                            ]
                 },
                 {
-                  'lhs' => 'GRP_ELE_ol',
+                  'action' => 'ELE_option',
+                  'lhs' => 'ELE_option',
                   'rhs' => [
-                             'ELE_li'
+                             'S_option',
+                             'FLO_pcdata',
+                             'E_option'
                            ]
                 },
                 {
-                  'lhs' => 'GRP_ELE_ol',
+                  'action' => 'ELE_p',
+                  'lhs' => 'ELE_p',
                   'rhs' => [
-                             'GRP_SGML'
+                             'S_p',
+                             'FLO_inline',
+                             'E_p'
                            ]
                 },
                 {
-                  'lhs' => 'GRP_block',
+                  'action' => 'ELE_param',
+                  'lhs' => 'ELE_param',
                   'rhs' => [
-                             'ELE_ol'
+                             'S_param',
+                             'FLO_empty',
+                             'E_param'
+                           ]
+                },
+                {
+                  'action' => 'ELE_select',
+                  'lhs' => 'ELE_select',
+                  'rhs' => [
+                             'S_select',
+                             'Contents_ELE_select',
+                             'E_select'
+                           ]
+                },
+                {
+                  'action' => 'ELE_table',
+                  'lhs' => 'ELE_table',
+                  'rhs' => [
+                             'S_table',
+                             'Contents_ELE_table',
+                             'E_table'
                            ]
                 },
                 {
@@ -726,56 +358,12 @@ $CORE_RULES = [
                            ]
                 },
                 {
-                  'lhs' => 'Contents_ELE_tbody',
-                  'min' => 0,
+                  'action' => 'ELE_td',
+                  'lhs' => 'ELE_td',
                   'rhs' => [
-                             'GRP_ELE_tbody'
-                           ]
-                },
-                {
-                  'lhs' => 'GRP_ELE_tbody',
-                  'rhs' => [
-                             'ELE_tr'
-                           ]
-                },
-                {
-                  'lhs' => 'GRP_ELE_tbody',
-                  'rhs' => [
-                             'GRP_SGML'
-                           ]
-                },
-                {
-                  'action' => 'ELE_dir',
-                  'lhs' => 'ELE_dir',
-                  'rhs' => [
-                             'S_dir',
-                             'Contents_ELE_dir',
-                             'E_dir'
-                           ]
-                },
-                {
-                  'lhs' => 'Contents_ELE_dir',
-                  'min' => 0,
-                  'rhs' => [
-                             'GRP_ELE_dir'
-                           ]
-                },
-                {
-                  'lhs' => 'GRP_ELE_dir',
-                  'rhs' => [
-                             'ELE_li'
-                           ]
-                },
-                {
-                  'lhs' => 'GRP_ELE_dir',
-                  'rhs' => [
-                             'GRP_SGML'
-                           ]
-                },
-                {
-                  'lhs' => 'GRP_block',
-                  'rhs' => [
-                             'ELE_dir'
+                             'S_td',
+                             'FLO_mixed',
+                             'E_td'
                            ]
                 },
                 {
@@ -788,22 +376,12 @@ $CORE_RULES = [
                            ]
                 },
                 {
-                  'lhs' => 'Contents_ELE_tfoot',
-                  'min' => 0,
+                  'action' => 'ELE_th',
+                  'lhs' => 'ELE_th',
                   'rhs' => [
-                             'GRP_ELE_tfoot'
-                           ]
-                },
-                {
-                  'lhs' => 'GRP_ELE_tfoot',
-                  'rhs' => [
-                             'ELE_tr'
-                           ]
-                },
-                {
-                  'lhs' => 'GRP_ELE_tfoot',
-                  'rhs' => [
-                             'GRP_SGML'
+                             'S_th',
+                             'FLO_mixed',
+                             'E_th'
                            ]
                 },
                 {
@@ -816,38 +394,92 @@ $CORE_RULES = [
                            ]
                 },
                 {
-                  'lhs' => 'Contents_ELE_thead',
+                  'action' => 'ELE_tr',
+                  'lhs' => 'ELE_tr',
+                  'rhs' => [
+                             'S_tr',
+                             'Contents_ELE_tr',
+                             'E_tr'
+                           ]
+                },
+                {
+                  'action' => 'ELE_ul',
+                  'lhs' => 'ELE_ul',
+                  'rhs' => [
+                             'S_ul',
+                             'Contents_ELE_ul',
+                             'E_ul'
+                           ]
+                },
+                {
+                  'lhs' => 'FLO_SGML',
                   'min' => 0,
-                  'rhs' => [
-                             'GRP_ELE_thead'
-                           ]
-                },
-                {
-                  'lhs' => 'GRP_ELE_thead',
-                  'rhs' => [
-                             'ELE_tr'
-                           ]
-                },
-                {
-                  'lhs' => 'GRP_ELE_thead',
                   'rhs' => [
                              'GRP_SGML'
                            ]
                 },
                 {
-                  'action' => 'ELE_colgroup',
-                  'lhs' => 'ELE_colgroup',
+                  'lhs' => 'FLO_block',
+                  'min' => 0,
                   'rhs' => [
-                             'S_colgroup',
-                             'Contents_ELE_colgroup',
-                             'E_colgroup'
+                             'GRP_block'
                            ]
                 },
                 {
-                  'lhs' => 'Contents_ELE_colgroup',
+                  'lhs' => 'FLO_cdata',
                   'min' => 0,
                   'rhs' => [
-                             'GRP_ELE_colgroup'
+                             'GRP_cdata'
+                           ]
+                },
+                {
+                  'lhs' => 'FLO_empty',
+                  'rhs' => []
+                },
+                {
+                  'lhs' => 'FLO_head',
+                  'min' => 0,
+                  'rhs' => [
+                             'GRP_head'
+                           ]
+                },
+                {
+                  'lhs' => 'FLO_inline',
+                  'min' => 0,
+                  'rhs' => [
+                             'GRP_inline'
+                           ]
+                },
+                {
+                  'lhs' => 'FLO_mixed',
+                  'min' => 0,
+                  'rhs' => [
+                             'GRP_mixed'
+                           ]
+                },
+                {
+                  'lhs' => 'FLO_pcdata',
+                  'min' => 0,
+                  'rhs' => [
+                             'GRP_pcdata'
+                           ]
+                },
+                {
+                  'lhs' => 'GRP_ELE_applet',
+                  'rhs' => [
+                             'ELE_param'
+                           ]
+                },
+                {
+                  'lhs' => 'GRP_ELE_applet',
+                  'rhs' => [
+                             'GRP_SGML'
+                           ]
+                },
+                {
+                  'lhs' => 'GRP_ELE_applet',
+                  'rhs' => [
+                             'GRP_mixed'
                            ]
                 },
                 {
@@ -863,19 +495,105 @@ $CORE_RULES = [
                            ]
                 },
                 {
-                  'action' => 'ELE_select',
-                  'lhs' => 'ELE_select',
+                  'lhs' => 'GRP_ELE_dir',
                   'rhs' => [
-                             'S_select',
-                             'Contents_ELE_select',
-                             'E_select'
+                             'ELE_li'
                            ]
                 },
                 {
-                  'lhs' => 'Contents_ELE_select',
-                  'min' => 0,
+                  'lhs' => 'GRP_ELE_dir',
                   'rhs' => [
-                             'GRP_ELE_select'
+                             'GRP_SGML'
+                           ]
+                },
+                {
+                  'lhs' => 'GRP_ELE_dl',
+                  'rhs' => [
+                             'ELE_dd'
+                           ]
+                },
+                {
+                  'lhs' => 'GRP_ELE_dl',
+                  'rhs' => [
+                             'ELE_dt'
+                           ]
+                },
+                {
+                  'lhs' => 'GRP_ELE_dl',
+                  'rhs' => [
+                             'GRP_SGML'
+                           ]
+                },
+                {
+                  'lhs' => 'GRP_ELE_map',
+                  'rhs' => [
+                             'ELE_area'
+                           ]
+                },
+                {
+                  'lhs' => 'GRP_ELE_map',
+                  'rhs' => [
+                             'GRP_SGML'
+                           ]
+                },
+                {
+                  'lhs' => 'GRP_ELE_map',
+                  'rhs' => [
+                             'GRP_block'
+                           ]
+                },
+                {
+                  'lhs' => 'GRP_ELE_menu',
+                  'rhs' => [
+                             'ELE_li'
+                           ]
+                },
+                {
+                  'lhs' => 'GRP_ELE_menu',
+                  'rhs' => [
+                             'GRP_SGML'
+                           ]
+                },
+                {
+                  'lhs' => 'GRP_ELE_object',
+                  'rhs' => [
+                             'ELE_param'
+                           ]
+                },
+                {
+                  'lhs' => 'GRP_ELE_object',
+                  'rhs' => [
+                             'GRP_SGML'
+                           ]
+                },
+                {
+                  'lhs' => 'GRP_ELE_object',
+                  'rhs' => [
+                             'GRP_mixed'
+                           ]
+                },
+                {
+                  'lhs' => 'GRP_ELE_ol',
+                  'rhs' => [
+                             'ELE_li'
+                           ]
+                },
+                {
+                  'lhs' => 'GRP_ELE_ol',
+                  'rhs' => [
+                             'GRP_SGML'
+                           ]
+                },
+                {
+                  'lhs' => 'GRP_ELE_optgroup',
+                  'rhs' => [
+                             'ELE_option'
+                           ]
+                },
+                {
+                  'lhs' => 'GRP_ELE_optgroup',
+                  'rhs' => [
+                             'GRP_SGML'
                            ]
                 },
                 {
@@ -894,28 +612,6 @@ $CORE_RULES = [
                   'lhs' => 'GRP_ELE_select',
                   'rhs' => [
                              'GRP_SGML'
-                           ]
-                },
-                {
-                  'lhs' => 'GRP_inline',
-                  'rhs' => [
-                             'ELE_select'
-                           ]
-                },
-                {
-                  'action' => 'ELE_table',
-                  'lhs' => 'ELE_table',
-                  'rhs' => [
-                             'S_table',
-                             'Contents_ELE_table',
-                             'E_table'
-                           ]
-                },
-                {
-                  'lhs' => 'Contents_ELE_table',
-                  'min' => 0,
-                  'rhs' => [
-                             'GRP_ELE_table'
                            ]
                 },
                 {
@@ -961,24 +657,328 @@ $CORE_RULES = [
                            ]
                 },
                 {
-                  'lhs' => 'GRP_block',
+                  'lhs' => 'GRP_ELE_tbody',
                   'rhs' => [
-                             'ELE_table'
+                             'ELE_tr'
                            ]
                 },
                 {
-                  'action' => 'ELE_p',
-                  'lhs' => 'ELE_p',
+                  'lhs' => 'GRP_ELE_tbody',
                   'rhs' => [
-                             'S_p',
-                             'FLO_inline',
-                             'E_p'
+                             'GRP_SGML'
+                           ]
+                },
+                {
+                  'lhs' => 'GRP_ELE_tfoot',
+                  'rhs' => [
+                             'ELE_tr'
+                           ]
+                },
+                {
+                  'lhs' => 'GRP_ELE_tfoot',
+                  'rhs' => [
+                             'GRP_SGML'
+                           ]
+                },
+                {
+                  'lhs' => 'GRP_ELE_thead',
+                  'rhs' => [
+                             'ELE_tr'
+                           ]
+                },
+                {
+                  'lhs' => 'GRP_ELE_thead',
+                  'rhs' => [
+                             'GRP_SGML'
+                           ]
+                },
+                {
+                  'lhs' => 'GRP_ELE_tr',
+                  'rhs' => [
+                             'ELE_td'
+                           ]
+                },
+                {
+                  'lhs' => 'GRP_ELE_tr',
+                  'rhs' => [
+                             'ELE_th'
+                           ]
+                },
+                {
+                  'lhs' => 'GRP_ELE_tr',
+                  'rhs' => [
+                             'GRP_SGML'
+                           ]
+                },
+                {
+                  'lhs' => 'GRP_ELE_ul',
+                  'rhs' => [
+                             'ELE_li'
+                           ]
+                },
+                {
+                  'lhs' => 'GRP_ELE_ul',
+                  'rhs' => [
+                             'GRP_SGML'
+                           ]
+                },
+                {
+                  'lhs' => 'GRP_SGML',
+                  'rhs' => [
+                             'comment'
+                           ]
+                },
+                {
+                  'lhs' => 'GRP_SGML',
+                  'rhs' => [
+                             'cruft'
+                           ]
+                },
+                {
+                  'lhs' => 'GRP_SGML',
+                  'rhs' => [
+                             'decl'
+                           ]
+                },
+                {
+                  'lhs' => 'GRP_SGML',
+                  'rhs' => [
+                             'pi'
+                           ]
+                },
+                {
+                  'lhs' => 'GRP_SGML',
+                  'rhs' => [
+                             'whitespace'
+                           ]
+                },
+                {
+                  'lhs' => 'GRP_anywhere',
+                  'rhs' => [
+                             'ELE_object'
+                           ]
+                },
+                {
+                  'lhs' => 'GRP_block',
+                  'rhs' => [
+                             'ELE_dir'
+                           ]
+                },
+                {
+                  'lhs' => 'GRP_block',
+                  'rhs' => [
+                             'ELE_dl'
+                           ]
+                },
+                {
+                  'lhs' => 'GRP_block',
+                  'rhs' => [
+                             'ELE_menu'
+                           ]
+                },
+                {
+                  'lhs' => 'GRP_block',
+                  'rhs' => [
+                             'ELE_ol'
                            ]
                 },
                 {
                   'lhs' => 'GRP_block',
                   'rhs' => [
                              'ELE_p'
+                           ]
+                },
+                {
+                  'lhs' => 'GRP_block',
+                  'rhs' => [
+                             'ELE_table'
+                           ]
+                },
+                {
+                  'lhs' => 'GRP_block',
+                  'rhs' => [
+                             'ELE_ul'
+                           ]
+                },
+                {
+                  'lhs' => 'GRP_block',
+                  'rhs' => [
+                             'GRP_SGML'
+                           ]
+                },
+                {
+                  'lhs' => 'GRP_block',
+                  'rhs' => [
+                             'GRP_anywhere'
+                           ]
+                },
+                {
+                  'lhs' => 'GRP_cdata',
+                  'rhs' => [
+                             'CRUFT'
+                           ]
+                },
+                {
+                  'lhs' => 'GRP_cdata',
+                  'rhs' => [
+                             'cdata'
+                           ]
+                },
+                {
+                  'lhs' => 'GRP_head',
+                  'rhs' => [
+                             'GRP_SGML'
+                           ]
+                },
+                {
+                  'lhs' => 'GRP_head',
+                  'rhs' => [
+                             'GRP_anywhere'
+                           ]
+                },
+                {
+                  'lhs' => 'GRP_inline',
+                  'rhs' => [
+                             'ELE_applet'
+                           ]
+                },
+                {
+                  'lhs' => 'GRP_inline',
+                  'rhs' => [
+                             'ELE_map'
+                           ]
+                },
+                {
+                  'lhs' => 'GRP_inline',
+                  'rhs' => [
+                             'ELE_select'
+                           ]
+                },
+                {
+                  'lhs' => 'GRP_inline',
+                  'rhs' => [
+                             'GRP_SGML'
+                           ]
+                },
+                {
+                  'lhs' => 'GRP_inline',
+                  'rhs' => [
+                             'GRP_anywhere'
+                           ]
+                },
+                {
+                  'lhs' => 'GRP_inline',
+                  'rhs' => [
+                             'cdata'
+                           ]
+                },
+                {
+                  'lhs' => 'GRP_inline',
+                  'rhs' => [
+                             'pcdata'
+                           ]
+                },
+                {
+                  'lhs' => 'GRP_mixed',
+                  'rhs' => [
+                             'GRP_block'
+                           ]
+                },
+                {
+                  'lhs' => 'GRP_mixed',
+                  'rhs' => [
+                             'GRP_inline'
+                           ]
+                },
+                {
+                  'lhs' => 'GRP_pcdata',
+                  'rhs' => [
+                             'GRP_SGML'
+                           ]
+                },
+                {
+                  'lhs' => 'GRP_pcdata',
+                  'rhs' => [
+                             'cdata'
+                           ]
+                },
+                {
+                  'lhs' => 'GRP_pcdata',
+                  'rhs' => [
+                             'pcdata'
+                           ]
+                },
+                {
+                  'action' => 'SPE_CDATA',
+                  'lhs' => 'cdata',
+                  'rhs' => [
+                             'CDATA'
+                           ]
+                },
+                {
+                  'action' => 'SPE_COMMENT',
+                  'lhs' => 'comment',
+                  'rhs' => [
+                             'C'
+                           ]
+                },
+                {
+                  'action' => 'SPE_CRUFT',
+                  'lhs' => 'cruft',
+                  'rhs' => [
+                             'CRUFT'
+                           ]
+                },
+                {
+                  'action' => 'SPE_DECL',
+                  'lhs' => 'decl',
+                  'rhs' => [
+                             'D'
+                           ]
+                },
+                {
+                  'action' => 'SPE_TOP',
+                  'lhs' => 'document',
+                  'rhs' => [
+                             'prolog',
+                             'ELE_html',
+                             'trailer',
+                             'EOF'
+                           ]
+                },
+                {
+                  'action' => 'SPE_PCDATA',
+                  'lhs' => 'pcdata',
+                  'rhs' => [
+                             'PCDATA'
+                           ]
+                },
+                {
+                  'action' => 'SPE_PI',
+                  'lhs' => 'pi',
+                  'rhs' => [
+                             'PI'
+                           ]
+                },
+                {
+                  'action' => 'SPE_PROLOG',
+                  'lhs' => 'prolog',
+                  'rhs' => [
+                             'FLO_SGML'
+                           ]
+                },
+                {
+                  'action' => 'SPE_TRAILER',
+                  'lhs' => 'trailer',
+                  'rhs' => [
+                             'FLO_SGML'
+                           ]
+                },
+                {
+                  'action' => 'SPE_WHITESPACE',
+                  'lhs' => 'whitespace',
+                  'rhs' => [
+                             'WHITESPACE'
                            ]
                 }
               ];
