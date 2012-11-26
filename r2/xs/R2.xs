@@ -23,6 +23,8 @@
 #include "config.h"
 #include "marpa.h"
 
+typedef SV* SVREF;
+
 typedef struct marpa_g Grammar;
 /* The error_code member should usually be ignored in favor of
  * getting a fresh error code from Libmarpa.  Essentially it
@@ -824,7 +826,7 @@ PPCODE:
 void
 string_set( stream, string )
      Unicode_Stream *stream;
-     SV *string;
+     SVREF string;
 PPCODE:
 {
   stream->character_ix = 0;
@@ -880,7 +882,7 @@ PPCODE:
   char *input;
   if (hop == 0) XSRETURN_IV(0);
   if (input_is_utf8) {
-      croak ("Problem in r->read_string(): UTF8 not yet implemented");
+      croak ("Problem in r->hop(): UTF8 not yet implemented");
   }
   input = SvPV (stream->input, len);
   if (hop > 0) {

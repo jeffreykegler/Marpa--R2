@@ -833,7 +833,7 @@ sub Marpa::R2::Recognizer::read_string {
     my $class_table =
         $grammar->[Marpa::R2::Internal::Grammar::CHARACTER_CLASS_TABLE];
 
-    $stream->string_set($string);
+    $stream->string_set(\$string);
     READ: {
         state $op_alternative = Marpa::R2::Thin::U::op('alternative');
         state $op_earleme_complete =
