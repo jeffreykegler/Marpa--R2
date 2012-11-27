@@ -28,10 +28,10 @@ my $prefix_grammar = Marpa::R2::Grammar->new(
 :start ::= Script
 Script ::=
      Expression
-   | ([s] [a] [y]) :ws Expression
+   | 'say' :ws Expression
 Expression ::=
      Number
-   | ([+]) :ws Expression :ws Expression action => do_add
+   | '+' :ws Expression :ws Expression action => do_add
 Number ::= [\d] + action => do_number
 END_OF_RULES
     }

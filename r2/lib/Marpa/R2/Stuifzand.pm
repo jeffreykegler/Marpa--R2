@@ -306,7 +306,7 @@ sub do_separator_specification {
     return [ separator => $separator->name() ];
 }
 
-sub do_single_quote {
+sub do_single_quoted_string {
     my ($self, $string ) = @_;
     my @symbols = ();
     my $symbol;
@@ -314,10 +314,12 @@ sub do_single_quote {
         my $symbol_name = ensure_char_class($self, $char_class);
         $symbol = Marpa::R2::Internal::Stuifzand::Symbol->new($symbol_name);
         $symbol->{ws_after_ok} = 0;
-        push @symbols, $symbol
+        push @symbols, $symbol;
     }
     $symbol->{ws_after_ok} = 1; # OK to add WS after last symbol
-    return Marpa::R2::Internal::Stuifzand::Symbol_List->new(\@symbols);
+    my $list = Marpa::R2::Internal::Stuifzand::Symbol_List->new(@symbols);
+    $list->hidden_set();
+    return $list;
 }
 
 my %hashed_closures = (
@@ -328,17 +330,17 @@ my %hashed_closures = (
     do_lhs                       => \&do_lhs,
     do_parenthesized_symbol_list => \&do_parenthesized_symbol_list,
     do_priority_rule             => \&do_priority_rule,
-    do_start_rule             => \&do_start_rule,
+    do_start_rule                => \&do_start_rule,
     do_quantified_rule           => \&do_quantified_rule,
     do_rhs                       => \&do_rhs,
     do_rules                     => \&do_rules,
     do_separator_specification   => \&do_separator_specification,
-    do_single_quote                    => \&do_single_quote,
+    do_single_quoted_string      => \&do_single_quoted_string,
     do_symbol                    => \&do_symbol,
     do_symbol_list               => \&do_symbol_list,
     do_ws                        => \&do_ws,
-    do_ws_plus                        => \&do_ws_plus,
-    do_ws_star                        => \&do_ws_star,
+    do_ws_plus                   => \&do_ws_plus,
+    do_ws_star                   => \&do_ws_star,
 );
 
 # Given a grammar,

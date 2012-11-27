@@ -43,8 +43,8 @@ chomp $string;
 my $grammar = Marpa::R2::Grammar->new(
     {
         rules => [ <<'END_OF_RULES' ]
- :start ~ start
- start ::= prefix target
+:start ~ start
+start ::= prefix target
 prefix ::= any_char*
 any_char ::= :any
 target ::= balanced_parens
