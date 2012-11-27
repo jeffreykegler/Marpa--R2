@@ -26,8 +26,8 @@ my $prefix_grammar = Marpa::R2::Grammar->new(
         default_action => 'do_arg0',
         rules          => [ <<'END_OF_RULES' ]
 Script ::=
-     :ws* Expression :ws*
-   | :ws* ([s] [a] [y]) :ws Expression :ws*
+     :ws Expression :ws*
+   | :ws ([s] [a] [y]) :ws Expression :ws*
 Expression ::=
      Number
    | ([+]) :ws Expression :ws Expression action => do_add
