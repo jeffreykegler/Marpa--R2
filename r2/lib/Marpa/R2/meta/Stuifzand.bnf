@@ -42,7 +42,7 @@ right_association ::= kw_assoc op_arrow kw_right
   action => do_right_association 
 group_association ::= kw_assoc op_arrow kw_group
   action => do_group_association 
-separator_specification ::= kw_separator op_arrow symbol_name
+separator_specification ::= kw_separator op_arrow single_symbol
   action => do_separator_specification
 proper_specification ::= kw_proper op_arrow boolean
 action => do_proper_specification
@@ -52,7 +52,8 @@ quantifier ::= op_star | op_plus
 lhs ::= symbol_name action => do_lhs 
 rhs ::= rhs_primary+ action => do_rhs
 rhs_primary ::= single_symbol action => do_symbol_list
-rhs_primary ::= kw__ows action => do_ows
+rhs_primary ::= kw__ws_star action => do_ws_star
+rhs_primary ::= kw__ws_plus action => do_ws_plus
 rhs_primary ::= kw__ws action => do_ws
 rhs_primary ::= kw__any action => do_any
 rhs_primary ::= op_lparen rhs_primary_list op_rparen
