@@ -79,6 +79,7 @@ BEGIN {
     RULE_NAME_REQUIRED
     RULE_BY_NAME
     INTERFACE { currently 'standard' or 'stuifzand' }
+    SCANNERLESS { A Boolean indicating whether the grammar is scannerless }
 
     CHARACTER_CLASSES { an hash of
     character class regex by symbol name.
@@ -301,8 +302,15 @@ sub Marpa::R2::Grammar::set {
                             ne 'stuifzand';
                     my $parse_result =
                         Marpa::R2::Internal::Stuifzand::parse_rules($value);
+                    my $scannerless =
+                        $grammar->[Marpa::R2::Internal::Grammar::SCANNERLESS] =  $parse_result->{scannerless};
                     my $character_classes =
                         $parse_result->{character_classes};
+                    Marpa::R2::exception(
+                        qq{Attempt to use character class with a grammar that is not scannerless\n},
+                        qq{  A scannerless grammar must have a ':start' rules }
+                        )
+                        if not $scannerless and defined $character_classes ;
                     $grammar
                         ->[Marpa::R2::Internal::Grammar::CHARACTER_CLASSES] =
                         $character_classes
@@ -1250,6 +1258,14 @@ sub set_start_symbol {
 
     my $grammar_c  = $grammar->[Marpa::R2::Internal::Grammar::C];
     my $start_name = $grammar->[Marpa::R2::Internal::Grammar::START_NAME];
+
+    if ( $grammar->[Marpa::R2::Internal::Grammar::SCANNERLESS] ) {
+        Marpa::R2::exception(
+            qq{'start' named argument not allowed for scannerless grammar},
+            qq{  ':start' rules in the BNF must be the only start symbol specification},
+        ) if defined $start_name;
+        $start_name = '[:start]';
+    } ## end if ( $grammar->[Marpa::R2::Internal::Grammar::SCANNERLESS...])
 
     return if not defined $start_name;
     my $start_id =
