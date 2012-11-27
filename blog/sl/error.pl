@@ -90,13 +90,10 @@ sub My_Error::last_completed_range {
 
 sub My_Error::show_last_expression {
     my ($self) = @_;
-    my $last_expression =
-        $self->{recce}->sl_range_to_string(
-        $self->last_completed_range('Expression') );
-    return
-        defined $last_expression
-        ? "Last expression successfully parsed was: $last_expression"
-        : 'No expression was successfully parsed';
+    my ( $start, $end ) = $self->last_completed_range('Expression');
+    return 'No expression was successfully parsed' if not defined $start;
+    my $last_expression = $self->{recce}->sl_range_to_string( $start, $end );
+    return "Last expression successfully parsed was: $last_expression";
 } ## end sub My_Error::show_last_expression
 
 sub my_parser {
