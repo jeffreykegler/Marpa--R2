@@ -103,7 +103,7 @@ sub do_start_rule {
     my ( $self, $lhs, $op_declare, $rhs ) = @_;
     $self->{scannerless} = 1;
     my @ws = $op_declare eq q{::=} ? ('[:ws*]') : ();
-    my @rhs = ( @ws, $rhs->name(), @ws );
+    my @rhs = ( @ws, $rhs, @ws );
     return [ { lhs => '[:start]', rhs => \@rhs } ];
 } ## end sub do_start_rule
 
