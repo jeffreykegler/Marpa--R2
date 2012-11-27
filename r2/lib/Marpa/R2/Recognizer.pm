@@ -799,7 +799,7 @@ $escape_by_ord[0xa] = '\\n';
 $escape_by_ord[$_] //= chr $_ for 32 .. 126;
 $escape_by_ord[$_] //= sprintf( "\\x%02x", $_ ) for 0 .. 255;
 
-sub escape_string {
+sub Marpa::R2::escape_string {
     my ( $string, $length ) = @_;
     my $reversed = $length < 0;
     if ($reversed) {
@@ -928,9 +928,9 @@ sub Marpa::R2::Recognizer::sl_read {
           "Error in string_read: $desc\n"
         . "* Error was at string position: $pos, and at character $char_in_hex, '$char_desc'\n"
         . "* String before error:\n"
-        . escape_string( $prefix, -72 ) . "\n"
+        . Marpa::R2::escape_string( $prefix, -72 ) . "\n"
         . "* String after error:\n"
-        . escape_string( ( substr $string, $pos, 72 ), 72 ) . "\n";
+        . Marpa::R2::escape_string( ( substr $string, $pos, 72 ), 72 ) . "\n";
     Marpa::R2::exception($read_string_error) if $event_count == -3;
 
     # Fall through to return undef

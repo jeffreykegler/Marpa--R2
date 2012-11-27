@@ -100,10 +100,12 @@ sub do_rules {
 }
 
 sub do_start_rule {
-    my ( $self, $lhs, $declare_op, $rhs ) = @_;
+    my ( $self, $lhs, $op_declare, $rhs ) = @_;
     $self->{scannerless} = 1;
-    return [ { lhs => '[:start]', rhs => [], declare_op => $declare_op } ];
-}
+    my @ws = $op_declare eq q{::=} ? ('[:ws*]') : ();
+    my @rhs = ( @ws, $rhs->name(), @ws );
+    return [ { lhs => '[:start]', rhs => \@rhs } ];
+} ## end sub do_start_rule
 
 sub do_priority_rule {
     my ( undef, $lhs, undef, $priorities ) = @_;
@@ -305,6 +307,7 @@ my %hashed_closures = (
     do_lhs                       => \&do_lhs,
     do_parenthesized_symbol_list => \&do_parenthesized_symbol_list,
     do_priority_rule             => \&do_priority_rule,
+    do_start_rule             => \&do_start_rule,
     do_quantified_rule           => \&do_quantified_rule,
     do_rhs                       => \&do_rhs,
     do_rules                     => \&do_rules,
@@ -484,24 +487,23 @@ sub line_column {
 
 sub problem_happened_here {
     my ( $string, $position ) = @_;
-    my $line_count = 1;
-    my $next_nl = index $string, "\n", $position;
-    $next_nl = length $string if $next_nl < 0;
-    my $previous_nl = rindex $string, "\n", $position;
-    $previous_nl = 0 if $previous_nl < 0;
-    my $column = $position - $previous_nl;
-    if ( $previous_nl > 0 ) {
-        $line_count++;
-        $previous_nl = rindex $string, "\n", $previous_nl - 1;
-        $previous_nl = 0 if $previous_nl < 0;
-    }
-    my $line_desc =
-        $line_count == 1 ? 'this line' : 'the 2nd of these two lines';
+    my $char = substr $string, $position, 1;
+    my $char_in_hex = sprintf '0x%04x', ord $char;
+    my $char_desc =
+          $char =~ m/[\p{PosixGraph}]/xms
+        ? $char
+        : '[non-graphic character]';
+    my $prefix =
+        $position >= 72
+        ? ( substr $string, $position - 72, 72 )
+        : ( substr $string, 0, $position );
+
     return
-          "=== Marpa's problem occurred in $line_desc:\n"
-        . ( substr $string, $previous_nl + 1, ( $next_nl - $previous_nl ) )
-        . ( q{ } x ($column-1) ), '^', " Arrow points to\n"
-        . ( q{ } x ($column-1) ), '|', " location where Marpa had problem\n";
+        "* Error was at string position: $position, and at character $char_in_hex, '$char_desc'\n"
+        . "* String before error:\n"
+        . Marpa::R2::escape_string( $prefix, -72 ) . "\n"
+        . "* String after error:\n"
+        . Marpa::R2::escape_string( ( substr $string, $position, 72 ), 72 ) . "\n";
 } ## end sub problem_happened_here
 
 sub last_rule {
@@ -555,7 +557,8 @@ sub parse_rules {
         [ 'kw__ws', qr/ [:] ws\b/xms,    ':ws reserved symbol' ],
         [ 'kw__default', qr/ [:] default\b/xms,    ':default reserved symbol' ],
         [ 'kw__any', qr/ [:] any\b/xms,    ':any reserved symbol' ],
-        [ 'op_declare', qr/::=/xms,    'BNF declaration operator' ],
+        [ 'op_declare', qr/::=/xms,    'BNF declaration operator (ws)' ],
+        [ 'op_declare', qr/[~]/xms,    'BNF declaration operator (no ws)' ],
         [ 'op_arrow',   qr/=>/xms,     'adverb operator' ],
         [ 'op_lparen',  qr/[(]/xms,    'left parenthesis' ],
         [ 'op_rparen',  qr/[)]/xms,    'right parenthesis' ],
@@ -614,7 +617,6 @@ sub parse_rules {
     my $bocage        = Marpa::R2::Thin::B->new( $recce, $latest_earley_set_ID );
     $thin_grammar->throw_set(1);
     if ( !defined $bocage ) {
-        ## say STDERR $recce->show_progress() or die "say failed: $ERRNO";
         die qq{Last rule successfully parsed was: },
             last_rule( $tracer, $recce, $string, \@positions ),
             'Parse failed';
