@@ -88,31 +88,16 @@ sub My_Error::last_completed_range {
     return ( $first_origin, $earley_set );
 } ## end sub My_Error::last_completed_range
 
-# Given a string, an earley set to position mapping,
-# and two earley sets, return the slice of the string
-sub My_Error::input_slice {
-    my ( $self, $start, $end ) = @_;
-    return if not defined $start;
-    return substr ${ $self->{input} }, $start, $end-$start;
-} ## end sub My_Error::input_slice
-
 sub My_Error::show_last_expression {
     my ($self) = @_;
     my $last_expression =
-        $self->input_slice( $self->last_completed_range('Expression') );
+        $self->{recce}->sl_range_to_string(
+        $self->last_completed_range('Expression') );
     return
         defined $last_expression
         ? "Last expression successfully parsed was: $last_expression"
         : 'No expression was successfully parsed';
 } ## end sub My_Error::show_last_expression
-
-sub My_Error::show_position {
-    my ( $self, $position ) = @_;
-    my $input = $self->{input};
-    my $local_string = substr ${$input}, $position, 40;
-    $local_string =~ s/\n/\\n/gxms;
-    return $local_string;
-} ## end sub My_Error::show_position
 
 sub my_parser {
     my ( $grammar, $string ) = @_;
@@ -132,7 +117,7 @@ sub my_parser {
         die $self->show_last_expression(), "\n", $eval_error, "\n";
     } ## end if ( not defined eval { $recce->sl_read($string)...})
     if (not defined $event_count) {
-        die $recce->show_progress(), $self->show_last_expression(), "\n", $recce->sl_error();
+        die $self->show_last_expression(), "\n", $recce->sl_error();
     }
     my $value_ref = $recce->value;
     if ( not defined $value_ref ) {
