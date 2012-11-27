@@ -26,11 +26,11 @@ my $prefix_grammar = Marpa::R2::Grammar->new(
         default_action => 'do_arg0',
         rules          => [ <<'END_OF_RULES' ]
 Script ::=
-     :ows Expression :ows
-   | :ows ([s] [a] [y]) :ows Expression
+     :ws* Expression :ws*
+   | :ws* ([s] [a] [y]) :ws Expression :ws*
 Expression ::=
      Number
-   | ([+]) :ows Expression :ows Expression action => do_add
+   | ([+]) :ws Expression :ws Expression action => do_add
 Number ::= [\d] + action => do_number
 END_OF_RULES
     }
@@ -132,7 +132,7 @@ sub my_parser {
         die $self->show_last_expression(), "\n", $eval_error, "\n";
     } ## end if ( not defined eval { $recce->sl_read($string)...})
     if (not defined $event_count) {
-        die $self->show_last_expression(), "\n", $recce->sl_error();
+        die $recce->show_progress(), $self->show_last_expression(), "\n", $recce->sl_error();
     }
     my $value_ref = $recce->value;
     if ( not defined $value_ref ) {

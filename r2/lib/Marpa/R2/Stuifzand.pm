@@ -249,16 +249,16 @@ sub do_any {
 }
 
 sub create_hidden_internal_symbol {
-    my ($self, $symbol_name) = shift;
+    my ($self, $symbol_name) = @_;
     $self->{needs_symbol}->{$symbol_name} = 1;
     my $symbol = Marpa::R2::Internal::Stuifzand::Symbol->new($symbol_name);
     $symbol->hidden_set();
     return $symbol;
-} ## end sub do_ows
+}
 
-sub do_ws { return $_[0]->create_hidden_internal_symbol('[:ws]') }
-sub do_ws_star { return $_[0]->create_hidden_internal_symbol('[:ws*]') }
-sub do_ws_plus { return $_[0]->create_hidden_internal_symbol('[:ws+]') }
+sub do_ws { return create_hidden_internal_symbol($_[0], '[:ws]') }
+sub do_ws_star { return create_hidden_internal_symbol($_[0], '[:ws*]') }
+sub do_ws_plus { return create_hidden_internal_symbol($_[0], '[:ws+]') }
 
 sub do_symbol {
     shift;
@@ -297,7 +297,6 @@ my %hashed_closures = (
     do_character_class           => \&do_character_class,
     do_empty_rule                => \&do_empty_rule,
     do_lhs                       => \&do_lhs,
-    do_ows                       => \&do_ows,
     do_parenthesized_symbol_list => \&do_parenthesized_symbol_list,
     do_priority_rule             => \&do_priority_rule,
     do_quantified_rule           => \&do_quantified_rule,
@@ -307,6 +306,8 @@ my %hashed_closures = (
     do_symbol                    => \&do_symbol,
     do_symbol_list               => \&do_symbol_list,
     do_ws                        => \&do_ws,
+    do_ws_plus                        => \&do_ws_plus,
+    do_ws_star                        => \&do_ws_star,
 );
 
 # Given a grammar,
@@ -537,7 +538,8 @@ sub parse_rules {
             ];
     } ## end for my $rule_id ( grep { $thin_grammar->rule_length($_...)})
     push @terminals,
-        [ 'kw__ows', qr/ [:] ows\b/xms,    ':ows reserved symbol' ],
+        [ 'kw__ws_plus', qr/ [:] ws [+] /xms,    ':ws+ reserved symbol' ],
+        [ 'kw__ws_star', qr/ [:] ws [*] /xms,    ':ws* reserved symbol' ],
         [ 'kw__ws', qr/ [:] ws\b/xms,    ':ws reserved symbol' ],
         [ 'kw__default', qr/ [:] default\b/xms,    ':default reserved symbol' ],
         [ 'kw__any', qr/ [:] any\b/xms,    ':any reserved symbol' ],
@@ -744,8 +746,7 @@ sub parse_rules {
                 } ## end if ( $needed_symbol eq '[:ws*]' )
                 if ( $needed_symbol eq '[:ws]' ) {
                     push @{ws_rules}, { lhs => '[:ws]', rhs => ['[:ws+]'] };
-                    push @{ws_rules}, { lhs => '[:ws]', rhs => ['[:\\b]'] };
-                    $needed{'[:\\b]'} = 1;
+                    push @{ws_rules}, { lhs => '[:ws]', rhs => ['[:|w]'] };
                     $needed{'[:ws+]'} = 1;
                     next SYMBOL;
                 } ## end if ( $needed_symbol eq '[:ws]' )
