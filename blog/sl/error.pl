@@ -21,13 +21,14 @@ use English qw( -no_match_vars );
 use Marpa::R2 2.023008;
 
 my $prefix_grammar = Marpa::R2::Grammar->new(
-    {   start          => 'Script',
+    {
         action_object        => 'My_Actions',
         default_action => 'do_arg0',
         rules          => [ <<'END_OF_RULES' ]
+:start ::= Script
 Script ::=
-     :ws Expression :ws*
-   | :ws ([s] [a] [y]) :ws Expression :ws*
+     Expression
+   | ([s] [a] [y]) :ws Expression
 Expression ::=
      Number
    | ([+]) :ws Expression :ws Expression action => do_add

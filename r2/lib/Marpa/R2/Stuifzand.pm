@@ -102,9 +102,16 @@ sub do_rules {
 sub do_start_rule {
     my ( $self, $lhs, $op_declare, $rhs ) = @_;
     $self->{scannerless} = 1;
-    my @ws = $op_declare eq q{::=} ? ('[:ws*]') : ();
+    my @ws = ();
+    my @mask_kv = ();
+    if ( $op_declare eq q{::=} ) {
+        my $ws_star = '[:ws*]';
+        $self->{needs_symbol}->{$ws_star} = 1;
+        push @ws, $ws_star;
+        push @mask_kv, mask => [0, 1, 0];
+    }
     my @rhs = ( @ws, $rhs, @ws );
-    return [ { lhs => '[:start]', rhs => \@rhs } ];
+    return [ { lhs => '[:start]', rhs => \@rhs, @mask_kv } ];
 } ## end sub do_start_rule
 
 sub do_priority_rule {

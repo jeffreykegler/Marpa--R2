@@ -6,4 +6,4 @@ test:
 	  diff - re1000.out || true
 
 test_error:
-	PERL5LIB=../../r2/lib:../../r2/blib/arch:$PERL5LIB perl error.pl
+	PERL5LIB=../../r2/lib:../../r2/blib/arch:$$PERL5LIB perl error.pl
