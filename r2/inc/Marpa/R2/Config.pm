@@ -23,7 +23,9 @@ use 5.010;
 use strict;
 use warnings;
 
-$Marpa::R2::USE_PERL_AUTOCONF = $ENV{MARPA_USE_PERL_AUTOCONF} || (($^O eq 'MSWin32') ? 1 : 0);
+my %perl_autoconf_os = map { $_ => 1 } qw( MSWin32 openbsd solaris sunos );
+$Marpa::R2::USE_PERL_AUTOCONF = $ENV{MARPA_USE_PERL_AUTOCONF}
+    || ( $perl_autoconf_os{$^O} // 0 );
 
 %Marpa::R2::VERSION_FOR_CONFIG = (
     'Config::AutoConf'    => 0.20,
