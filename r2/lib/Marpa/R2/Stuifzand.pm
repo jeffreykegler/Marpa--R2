@@ -115,7 +115,8 @@ sub do_start_rule {
 } ## end sub do_start_rule
 
 sub do_priority_rule {
-    my ( undef, $lhs, undef, $priorities ) = @_;
+    my ( undef, $lhs, $op_declare, $priorities ) = @_;
+    my $add_ws = $op_declare eq q{::=};
     my $priority_count = scalar @{$priorities};
     my @rules          = ();
     my @xs_rules = ();
@@ -129,6 +130,7 @@ sub do_priority_rule {
                 ( lhs => $lhs, rhs => \@rhs_names, mask => \@mask );
             my $action = $adverb_list->{action};
             $hash_rule{action} = $action if defined $action;
+            $hash_rule{add_ws} = 1 if $add_ws;
             push @xs_rules, \%hash_rule;
         } ## end for my $alternative ( @{ $priorities->[0] } )
         return [@xs_rules];
@@ -177,6 +179,7 @@ sub do_priority_rule {
 
         if ( not scalar @arity ) {
             $new_xs_rule{rhs} = \@new_rhs;
+            $new_xs_rule{add_ws} = 1 if $add_ws;
             push @xs_rules, \%new_xs_rule;
             next RULE;
         }
@@ -210,6 +213,7 @@ sub do_priority_rule {
         } ## end DO_ASSOCIATION:
 
         $new_xs_rule{rhs} = \@new_rhs;
+        $new_xs_rule{add_ws} = 1 if $add_ws;
         push @xs_rules, \%new_xs_rule;
     } ## end RULE: for my $rule (@rules)
     return [@xs_rules];
@@ -803,6 +807,10 @@ sub parse_rules {
     } ## end NEEDED_SYMBOL_LOOP:
 
     push @{$rules}, @ws_rules;
+
+    for my $rule (@{$rules}) {
+        delete $rule->{add_ws};
+    }
 
     $self->{rules} = $rules;
     return $self;
