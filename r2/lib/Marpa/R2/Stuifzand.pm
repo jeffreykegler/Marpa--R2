@@ -63,23 +63,25 @@ package Marpa::R2::Internal::Stuifzand;
 
 use English qw( -no_match_vars );
 
-# Internal names end in ']' and are distinguished by prefix
-# Currently they also all begin with a '['
+# Internal names end in ']' and are distinguished by prefix.
+# Currently they also all begin with a '[', but that will
+# not necessarily remain the case.
 #
 # Suffixed with '[prec%d]' --
 # a symbol created to implement precedence.
 # Suffix is removed to restore 'original'.
 #
-# '[[' -- a character class
+# Prefixed with '[[' -- a character class
 # These are their own 'original'.
 #
-# '[:' -- a reserved symbol, one which in the
+# Prefixed with '[:' -- a reserved symbol, one which in the
 # grammars start with a colon.
 # These are their own 'original'.
 #
-# '[SYMBOL#' - a unnamed internal symbol.  Seeing these
-# indicates some sort of internal error.  When seen,
-# They will be treated as their own original.
+# Prefixed with '[SYMBOL#' - a unnamed internal symbol.
+# Seeing these
+# indicates some sort of internal error.  If seen,
+# they will be treated as their own original.
 # 
 
 # Undo any rewrite of the symbol name
@@ -114,12 +116,31 @@ sub do_start_rule {
     return [ { lhs => '[:start]', rhs => \@rhs, @mask_kv } ];
 } ## end sub do_start_rule
 
+# From least to most restrictive
+my @ws_by_rank = qw( [:ws*] [:ws] [:ws+] );
+my %rank_by_ws = map { $ws_by_rank[$_] => $_ } 0 .. $#ws_by_rank;
+
 sub do_priority_rule {
     my ( undef, $lhs, $op_declare, $priorities ) = @_;
     my $add_ws = $op_declare eq q{::=};
     my $priority_count = scalar @{$priorities};
     my @rules          = ();
     my @xs_rules = ();
+
+    ## First check for consecutive whitespace specials
+    RHS: for my $rhs ( map { $_->[0] } map { @{$_} } @{$priorities} ) {
+        my @rhs_names = $rhs->names();
+       my $penult = $#rhs_names - 1;
+       next RHS if $penult < 0;
+       for my $rhs_ix (0 .. $penult) {
+            if ($rank_by_ws{$rhs_names[$rhs_ix]} && $rank_by_ws{$rhs_names[$rhs_ix+1]}) {
+                 die "Two consecutive whitespace special symbols were found in a RHS:\n",
+                     q{  }, $lhs->name(), ': ', (join q{ }, $rhs->names()), "\n",
+                     "  Consecutive whitespace specials are confusing and are not allowed\n";
+            }
+       }
+    }
+
     if ( $priority_count <= 1 ) {
         ## If there is only one priority
         for my $alternative ( @{ $priorities->[0] } ) {
