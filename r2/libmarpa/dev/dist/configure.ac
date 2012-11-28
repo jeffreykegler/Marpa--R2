@@ -128,13 +128,28 @@ AC_TYPE_SIZE_T
 
 if test x"$GCC" = xyes; then
 
+marpa_save_CFLAGS="$CFLAGS"
+CFLAGS="$marpa_save_CFLAGS -Wextra"
+AC_CACHE_CHECK([whether GCC handles -Wextra],
+    [marpa_cv_prog_gcc_wextra],
+    [AC_COMPILE_IFELSE([AC_LANG_PROGRAM([],[])],
+                                       [marpa_cv_prog_gcc_wextra=-Wextra],
+                                       [marpa_cv_prog_gcc_wextra=])])
+CFLAGS="$marpa_save_CFLAGS -Wdeclaration-after-statement"
+AC_CACHE_CHECK([whether GCC handles -Wdeclaration-after-statement],
+    [marpa_cv_prog_gcc_wdas],
+    [AC_COMPILE_IFELSE([AC_LANG_PROGRAM([],[])],
+                                       [marpa_cv_prog_gcc_wdas=-Wdeclaration-after-statement],
+                                       [marpa_cv_prog_gcc_wdas=])])
+CFLAGS="$marpa_save_CFLAGS"
+
 dnl One to a line to make these easy to edit
 WARNING_CFLAGS="-Wall \
--Wextra \
+$marpa_cv_prog_gcc_wextra \
+$marpa_cv_prog_gcc_wdas \
 -Wpointer-arith \
 -Wstrict-prototypes \
 -Wwrite-strings \
--Wdeclaration-after-statement \
 -Wshadow \
 -Winline \
 -Wmissing-declarations \

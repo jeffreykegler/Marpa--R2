@@ -224,10 +224,18 @@ sub process_xs {
     $self->verbose() and say "compiling $spec->{c_file}";
     my @new_ccflags = ( '-I', $libmarpa_build_dir );
     if ( $self->config('cc') eq 'gcc' ) {
+	## -W instead of -Wextra is case the GCC is pre 3.0.0
+	##
+	## Skipping -Wdeclaration-after-statement.  It was
+	## introduced somewhere between GCC 3.3.6 and
+	## 3.4.6, and checking to see if it is supported
+	## is just not worth the trouble.
+	##
         push @new_ccflags,
-            qw( -Wall -Wno-unused-variable -Wextra -Wpointer-arith
+            qw( -Wall -Wno-unused-variable -W
+	    -Wpointer-arith
             -Wstrict-prototypes -Wwrite-strings
-            -Wdeclaration-after-statement -Winline
+            -Winline
             -Wmissing-declarations );
     } ## end if ( $self->config('cc') eq 'gcc' )
     my $ccflags = $self->config('ccflags');
