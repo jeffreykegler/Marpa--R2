@@ -31,22 +31,22 @@ elsif ( scalar @ARGV <= 0 ) { usage(); }
 
 my $rules = <<'END_OF_GRAMMAR';
 :start ::= script
-script ::= e
-script ::= (script ';') e
+script ::= expression
+script ::= (script ';') expression
 reduce_op ::= '+' | '-' | '/' | '*'
-e ::=
+expression ::=
      NUM
    | VAR action => do_is_var
-   | '(' e ')' action => do_arg1 assoc => group
-  || '-' e action => do_negate
-  || e [\^] e action => do_binop assoc => right
-  || e [*] e action => do_binop
-   | e [/] e action => do_binop
-  || e [+] e action => do_binop
-   | e [-] e action => do_binop
-  || e ',' e action => do_array
+   | '(' expression ')' action => do_arg1 assoc => group
+  || '-' expression action => do_negate
+  || expression [\^] expression action => do_binop assoc => right
+  || expression [*] expression action => do_binop
+   | expression [/] expression action => do_binop
+  || expression [+] expression action => do_binop
+   | expression [-] expression action => do_binop
+  || expression ',' expression action => do_array
   || reduce_op 'reduce' e action => do_reduce
-  || VAR '=' e action => do_set_var
+  || VAR '=' expression action => do_set_var
 NUM ~ [\d]+
 VAR ~ [\w]+
 END_OF_GRAMMAR
@@ -144,21 +144,45 @@ sub add_brackets {
     return '[' . $original . ']';
 } ## end sub add_brackets
 
-sub die_on_read_problem {
-    my ( $rec, $t, $token_value, $string, $position ) = @_;
-    say $rec->show_progress() or die "say failed: $ERRNO";
-    my $problem_position = $position - length $1;
-    my $before_start     = $problem_position - 40;
-    $before_start = 0 if $before_start < 0;
-    my $before_length = $problem_position - $before_start;
-    die "Problem near position $problem_position\n",
-        q{Problem is here: "},
-        ( substr $string, $before_start, $before_length + 40 ),
-        qq{"\n},
-        ( q{ } x ( $before_length + 18 ) ), qq{^\n},
-        q{Token rejected, "}, $t->[0], qq{", "$token_value"},
-        ;
-} ## end sub die_on_read_problem
+sub My_Error::last_completed_range {
+    my ( $self, $symbol_name ) = @_;
+    my $grammar      = $self->{grammar};
+    my $recce        = $self->{recce};
+    my @sought_rules = ();
+    for my $rule_id ( $grammar->rule_ids() ) {
+        my ($lhs) = $grammar->bnf_rule($rule_id);
+        push @sought_rules, $rule_id if $lhs eq $symbol_name;
+    }
+    die "Looking for completion of non-existent rule lhs: $symbol_name"
+        if not scalar @sought_rules;
+    my $latest_earley_set = $recce->latest_earley_set();
+    my $earley_set        = $latest_earley_set;
+
+    # Initialize to one past the end, so we can tell if there were no hits
+    my $first_origin = $latest_earley_set + 1;
+    EARLEY_SET: while ( $earley_set >= 0 ) {
+        my $report_items = $recce->progress($earley_set);
+        ITEM: for my $report_item ( @{$report_items} ) {
+            my ( $rule_id, $dot_position, $origin ) = @{$report_item};
+            next ITEM if $dot_position != -1;
+            next ITEM if not scalar grep { $_ == $rule_id } @sought_rules;
+            next ITEM if $origin >= $first_origin;
+            $first_origin = $origin;
+        } ## end ITEM: for my $report_item ( @{$report_items} )
+        last EARLEY_SET if $first_origin <= $latest_earley_set;
+        $earley_set--;
+    } ## end EARLEY_SET: while ( $earley_set >= 0 )
+    return if $earley_set < 0;
+    return ( $first_origin, $earley_set );
+} ## end sub My_Error::last_completed_range
+
+sub My_Error::show_last_expression {
+    my ($self) = @_;
+    my ( $start, $end ) = $self->last_completed_range('expression');
+    return 'No expression was successfully parsed' if not defined $start;
+    my $last_expression = $self->{recce}->sl_range_to_string( $start, $end );
+    return "Last expression successfully parsed was: $last_expression";
+} ## end sub My_Error::show_last_expression
 
 sub calculate {
     my ($string) = @_;
@@ -167,13 +191,24 @@ sub calculate {
 
     my $recce = Marpa::R2::Recognizer->new( { grammar => $grammar } );
 
-    $recce->sl_read($string);
-    $recce->end_input();
-    my $value_ref = $recce->value;
+    my $self = bless { grammar => $grammar }, 'My_Error';
+    $self->{recce} = $recce;
+    my $event_count;
 
-    if ( !defined $value_ref ) {
-        say $recce->show_progress() or die "say failed: $ERRNO";
-        die 'Parse failed';
+    if ( not defined eval { $event_count = $recce->sl_read($string); 1 } ) {
+
+        # Add last expression found, and rethrow
+        my $eval_error = $EVAL_ERROR;
+        chomp $eval_error;
+        die $self->show_last_expression(), "\n", $eval_error, "\n";
+    } ## end if ( not defined eval { $recce->sl_read($string)...})
+    if (not defined $event_count) {
+        die $self->show_last_expression(), "\n", $recce->sl_error();
+    }
+    my $value_ref = $recce->value;
+    if ( not defined $value_ref ) {
+        die $self->show_last_expression(), "\n",
+            "No parse was found, after reading the entire input\n";
     }
     return ${$value_ref};
 
