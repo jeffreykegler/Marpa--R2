@@ -42,16 +42,17 @@ chomp $string;
 
 my $grammar = Marpa::R2::Grammar->new(
     {
+        scannerless => 1,
         rules => [ <<'END_OF_RULES' ]
 :start ~ start
-start ::= prefix target
-prefix ::= any_char*
-any_char ::= :any
-target ::= balanced_parens
-balanced_parens ::= [(] balanced_paren_sequence [)]
-balanced_paren_sequence ::= balanced_paren_item*
-balanced_paren_item ::= balanced_parens
-balanced_paren_item ::= [^()]
+start ~ prefix target
+prefix ~ any_char*
+any_char ~ :any
+target ~ balanced_parens
+balanced_parens ~ [(] balanced_paren_sequence [)]
+balanced_paren_sequence ~ balanced_paren_item*
+balanced_paren_item ~ balanced_parens
+balanced_paren_item ~ [^()]
 END_OF_RULES
     }
 );

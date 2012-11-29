@@ -35,7 +35,8 @@ my $result    = Getopt::Long::GetOptions( 'help' => \$help_flag );
 die "usage $PROGRAM_NAME [--help] file ...\n" if $help_flag;
 
 my $bnf = join q{}, <>;
-my $parse_result = Marpa::R2::Internal::Stuifzand::parse_rules($bnf);
+my $dummy_grammar = [];
+my $parse_result = Marpa::R2::Internal::Stuifzand::parse_rules($dummy_grammar, $bnf);
 my $aoh = $parse_result->{rules};
 
 sub sort_bnf {

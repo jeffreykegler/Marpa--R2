@@ -103,15 +103,17 @@ sub do_rules {
 
 sub do_start_rule {
     my ( $self, $lhs, $op_declare, $rhs ) = @_;
-    $self->{scannerless} = 1;
-    my @ws = ();
+    my $thick_grammar = $self->{thick_grammar};
+    die ':start not allowed unless grammar is scannerless'
+        if not $thick_grammar->[Marpa::R2::Internal::Grammar::SCANNERLESS];
+    my @ws      = ();
     my @mask_kv = ();
     if ( $op_declare eq q{::=} ) {
         my $ws_star = '[:ws*]';
         $self->{needs_symbol}->{$ws_star} = 1;
         push @ws, $ws_star;
-        push @mask_kv, mask => [0, 1, 0];
-    }
+        push @mask_kv, mask => [ 0, 1, 0 ];
+    } ## end if ( $op_declare eq q{::=} )
     my @rhs = ( @ws, $rhs, @ws );
     return [ { lhs => '[:start]', rhs => \@rhs, @mask_kv } ];
 } ## end sub do_start_rule
@@ -120,9 +122,40 @@ sub do_start_rule {
 my @ws_by_rank = qw( [:ws*] [:ws] [:ws+] );
 my %rank_by_ws = map { $ws_by_rank[$_] => $_ } 0 .. $#ws_by_rank;
 
+sub add_ws_to_alternative {
+    my ( $self, $alternative ) = @_;
+    my ( $rhs,  $adverb_list ) = @{$alternative};
+    state $default_ws_symbol =
+        create_hidden_internal_symbol( $self, '[:ws]' );
+
+    # Do not add initial whitespace
+    my $slot_for_ws = 0;
+    my @new_symbols = ();
+    SYMBOL: for my $symbol ( $rhs->symbols() ) {
+        my $symbol_name = $symbol->name();
+        if ( defined $rank_by_ws{$symbol_name} ) {
+            push @new_symbols, $symbol;
+            $slot_for_ws = 0;    # already has ws in this slot
+            next SYMBOL;
+        }
+        if ($slot_for_ws) {
+            ## Not a whitespace symbol, but this is a slot
+            ## for whitespace, so add it
+            push @new_symbols, $default_ws_symbol;
+        }
+        push @new_symbols, $symbol;
+        $slot_for_ws = $symbol->{ws_after_ok} // 1;
+    } ## end SYMBOL: for my $symbol ( $rhs->symbols() )
+    $alternative->[0] =
+        Marpa::R2::Internal::Stuifzand::Symbol_List->new(@new_symbols);
+    return $alternative;
+} ## end sub add_ws_to_alternative
+
 sub do_priority_rule {
-    my ( undef, $lhs, $op_declare, $priorities ) = @_;
-    my $add_ws = $op_declare eq q{::=};
+    my ( $self, $lhs, $op_declare, $priorities ) = @_;
+    my $thick_grammar = $self->{thick_grammar};
+    my $add_ws = $thick_grammar->[Marpa::R2::Internal::Grammar::SCANNERLESS]
+        && $op_declare eq q{::=};
     my $priority_count = scalar @{$priorities};
     my @rules          = ();
     my @xs_rules = ();
@@ -130,20 +163,26 @@ sub do_priority_rule {
     ## First check for consecutive whitespace specials
     RHS: for my $rhs ( map { $_->[0] } map { @{$_} } @{$priorities} ) {
         my @rhs_names = $rhs->names();
-       my $penult = $#rhs_names - 1;
-       next RHS if $penult < 0;
-       for my $rhs_ix (0 .. $penult) {
-            if ($rank_by_ws{$rhs_names[$rhs_ix]} && $rank_by_ws{$rhs_names[$rhs_ix+1]}) {
-                 die "Two consecutive whitespace special symbols were found in a RHS:\n",
-                     q{  }, $lhs->name(), ': ', (join q{ }, $rhs->names()), "\n",
-                     "  Consecutive whitespace specials are confusing and are not allowed\n";
-            }
-       }
-    }
+        my $penult    = $#rhs_names - 1;
+        next RHS if $penult < 0;
+        $DB::single = 1;
+        for my $rhs_ix ( 0 .. $penult ) {
+            if (   defined $rank_by_ws{ $rhs_names[$rhs_ix] }
+                && defined $rank_by_ws{ $rhs_names[ $rhs_ix + 1 ] } )
+            {
+                die
+                    "Two consecutive whitespace special symbols were found in a RHS:\n",
+                    q{  }, ( join q{ }, $lhs, $op_declare, $rhs->names() ),
+                    "\n",
+                    "  Consecutive whitespace specials are confusing and are not allowed\n";
+            } ## end if ( defined $rank_by_ws{ $rhs_names[$rhs_ix] } && ...)
+        } ## end for my $rhs_ix ( 0 .. $penult )
+    } ## end for my $rhs ( map { $_->[0] } map { @{$_} } @{$priorities...})
 
     if ( $priority_count <= 1 ) {
         ## If there is only one priority
         for my $alternative ( @{ $priorities->[0] } ) {
+            add_ws_to_alternative($self, $alternative) if $add_ws;
             my ( $rhs, $adverb_list ) = @{$alternative};
             my @rhs_names = $rhs->names();
             my @mask      = $rhs->mask();
@@ -151,7 +190,6 @@ sub do_priority_rule {
                 ( lhs => $lhs, rhs => \@rhs_names, mask => \@mask );
             my $action = $adverb_list->{action};
             $hash_rule{action} = $action if defined $action;
-            $hash_rule{add_ws} = 1 if $add_ws;
             push @xs_rules, \%hash_rule;
         } ## end for my $alternative ( @{ $priorities->[0] } )
         return [@xs_rules];
@@ -160,6 +198,7 @@ sub do_priority_rule {
     for my $priority_ix ( 0 .. $priority_count - 1 ) {
         my $priority = $priority_count - ( $priority_ix + 1 );
         for my $alternative ( @{ $priorities->[$priority_ix] } ) {
+            add_ws_to_alternative($self, $alternative) if $add_ws;
             push @rules, [ $priority, @{$alternative} ];
         }
     } ## end for my $priority_ix ( 0 .. $priority_count - 1 )
@@ -200,7 +239,6 @@ sub do_priority_rule {
 
         if ( not scalar @arity ) {
             $new_xs_rule{rhs} = \@new_rhs;
-            $new_xs_rule{add_ws} = 1 if $add_ws;
             push @xs_rules, \%new_xs_rule;
             next RULE;
         }
@@ -234,7 +272,6 @@ sub do_priority_rule {
         } ## end DO_ASSOCIATION:
 
         $new_xs_rule{rhs} = \@new_rhs;
-        $new_xs_rule{add_ws} = 1 if $add_ws;
         push @xs_rules, \%new_xs_rule;
     } ## end RULE: for my $rule (@rules)
     return [@xs_rules];
@@ -567,7 +604,7 @@ sub last_rule {
 }
 
 sub parse_rules {
-    my ($string) = @_;
+    my ($thick_grammar, $string) = @_;
 
     # Track earley set positions in input,
     # for debuggging
@@ -690,7 +727,7 @@ sub parse_rules {
     }
 
     # The parse result object
-    my $self = {};
+    my $self = { thick_grammar => $thick_grammar };
 
     my @stack = ();
     STEP: while (1) {
@@ -828,10 +865,6 @@ sub parse_rules {
     } ## end NEEDED_SYMBOL_LOOP:
 
     push @{$rules}, @ws_rules;
-
-    for my $rule (@{$rules}) {
-        delete $rule->{add_ws};
-    }
 
     $self->{rules} = $rules;
     return $self;

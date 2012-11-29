@@ -24,15 +24,16 @@ my $prefix_grammar = Marpa::R2::Grammar->new(
     {
         action_object        => 'My_Actions',
         default_action => 'do_arg0',
+        scannerless => 1,
         rules          => [ <<'END_OF_RULES' ]
 :start ::= Script
 Script ::=
      Expression
-   | 'say' :ws Expression
+   | 'say' Expression
 Expression ::=
      Number
-   | '+' :ws Expression :ws Expression action => do_add
-Number ::= [\d] + action => do_number
+   | '+' Expression Expression action => do_add
+Number ~ [\d] + action => do_number
 END_OF_RULES
     }
 );
