@@ -33,27 +33,30 @@ my $rules = <<'END_OF_GRAMMAR';
 :start ::= script
 script ::= expression
 script ::= (script ';') expression
-reduce_op ::= '+' | '-' | '/' | '*'
+reduce_op ::= '+' action => do_literal
+| '-' action => do_literal
+| '/' action => do_literal
+  | '*' action => do_literal
 expression ::=
      NUM
    | VAR action => do_is_var
-   | '(' expression ')' action => do_arg1 assoc => group
+   | '(' expression ')' assoc => group
   || '-' expression action => do_negate
-  || expression [\^] expression action => do_binop assoc => right
-  || expression [*] expression action => do_binop
-   | expression [/] expression action => do_binop
-  || expression [+] expression action => do_binop
-   | expression [-] expression action => do_binop
+  || expression '^' expression action => do_caret assoc => right
+  || expression '*' expression action => do_star
+   | expression '/' expression action => do_slash
+  || expression '+' expression action => do_plus
+   | expression '-' expression action => do_minus
   || expression ',' expression action => do_array
-  || reduce_op 'reduce' e action => do_reduce
+  || reduce_op 'reduce' expression action => do_reduce
   || VAR '=' expression action => do_set_var
-NUM ~ [\d]+
-VAR ~ [\w]+
+NUM ~ [\d]+ action => do_literal
+VAR ~ [\w]+ action => do_literal
 END_OF_GRAMMAR
 
 my $grammar = Marpa::R2::Grammar->new(
     {   
-        actions        => __PACKAGE__,
+        action_object        => 'My_Actions',
 	default_action => 'do_arg0',
 	scannerless => 1,
         rules          => $rules,
@@ -71,6 +74,20 @@ my %binop_closure = (
 
 my %symbol_table = ();
 
+package My_Actions;
+our $SELF;
+sub new { return $SELF }
+
+sub do_literal {
+    my $self = shift;
+    my $recce = $self->{recce};
+    my ( $start, $end ) = Marpa::R2::Context::location();
+    my $literal = $recce->sl_range_to_string($start, $end);
+    $literal =~ s/ \s+ \z //xms;
+    $literal =~ s/ \A \s+ //xms;
+    return $literal;
+} ## end sub do_number
+
 sub do_is_var {
     my ( undef, $var ) = @_;
     my $value = $symbol_table{$var};
@@ -79,12 +96,12 @@ sub do_is_var {
 } ## end sub do_is_var
 
 sub do_set_var {
-    my ( undef, $var, undef, $value ) = @_;
+    my ( undef, $var, $value ) = @_;
     return $symbol_table{$var} = $value;
 }
 
 sub do_negate {
-    return -$_[2];
+    return -$_[1];
 }
 
 sub do_arg0 { return $_[1]; }
@@ -113,16 +130,40 @@ sub do_array {
 } ## end sub do_array
 
 sub do_binop {
-    my ( undef, $left, $op, $right ) = @_;
-
+    my ( $op, $left, $right ) = @_;
     my $closure = $binop_closure{$op};
     die qq{Do not know how to perform binary operation "$op"}
         if not defined $closure;
     return $closure->( $left, $right );
 } ## end sub do_binop
 
+sub do_caret {
+    my ( undef, $left, $right ) = @_;
+    return do_binop( '^', $left, $right );
+}
+
+sub do_star {
+    my ( undef, $left, $right ) = @_;
+    return do_binop( '*', $left, $right );
+}
+
+sub do_slash {
+    my ( undef, $left, $right ) = @_;
+    return do_binop( '/', $left, $right );
+}
+
+sub do_plus {
+    my ( undef, $left, $right ) = @_;
+    return do_binop( '+', $left, $right );
+}
+
+sub do_minus {
+    my ( undef, $left, $right ) = @_;
+    return do_binop( '-', $left, $right );
+}
+
 sub do_reduce {
-    my ( undef, $op, undef, $args ) = @_;
+    my ( undef, $op, $args ) = @_;
     my $closure = $binop_closure{$op};
     die qq{Do not know how to perform binary operation "$op"}
         if not defined $closure;
@@ -135,6 +176,8 @@ sub do_reduce {
     }
     die;    # Should not get here
 } ## end sub do_reduce
+
+package main;
 
 # For debugging
 sub add_brackets {
@@ -193,6 +236,7 @@ sub calculate {
 
     my $self = bless { grammar => $grammar }, 'My_Error';
     $self->{recce} = $recce;
+    local $My_Actions::SELF = $self;
     my $event_count;
 
     if ( not defined eval { $event_count = $recce->sl_read($string); 1 } ) {
@@ -200,10 +244,10 @@ sub calculate {
         # Add last expression found, and rethrow
         my $eval_error = $EVAL_ERROR;
         chomp $eval_error;
-        die $self->show_last_expression(), "\n", $eval_error, "\n";
+        die $recce->show_progress(), $self->show_last_expression(), "\n", $eval_error, "\n";
     } ## end if ( not defined eval { $recce->sl_read($string)...})
     if (not defined $event_count) {
-        die $self->show_last_expression(), "\n", $recce->sl_error();
+        die $recce->show_progress(), $self->show_last_expression(), "\n", $recce->sl_error();
     }
     my $value_ref = $recce->value;
     if ( not defined $value_ref ) {
