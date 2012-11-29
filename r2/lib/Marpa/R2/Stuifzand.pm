@@ -373,14 +373,18 @@ sub ensure_char_class {
     # default symbol name always start with TWO left square brackets
     $symbol_name //= '[' . $char_class . ']';
     $self->{character_classes} //= {};
-    my $cc_hash     = $self->{character_classes};
-    my $hash_entry  = $cc_hash->{$symbol_name};
+    my $cc_hash    = $self->{character_classes};
+    my $hash_entry = $cc_hash->{$symbol_name};
     if ( not defined $hash_entry ) {
-        my $regex = qr/$char_class/xms;
+        my $regex;
+        if ( not defined eval { $regex = qr/$char_class/xms; 1; } ) {
+            Carp::croak( 'Bad Character class: ',
+                $char_class, "\n", "Perl said ", $EVAL_ERROR );
+        }
         $cc_hash->{$symbol_name} = $regex;
-    }
+    } ## end if ( not defined $hash_entry )
     return $symbol_name;
-}
+} ## end sub ensure_char_class
 
 sub do_any {
     my $self = shift;
