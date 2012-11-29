@@ -20,7 +20,7 @@ use warnings;
 use English qw( -no_match_vars );
 use Getopt::Long;
 
-use Marpa::R2 2.024000;
+use Marpa::R2 2.027_003;
 
 our $ORIGIN;
 
@@ -54,10 +54,11 @@ sub do_target {
 } ## end sub do_target
 
 my $perl_grammar = Marpa::R2::Grammar->new(
-    {   start          => 'start',
+    {   scannerless => 1,
         actions        => 'main',
         default_action => 'do_what_I_mean',
         rules          => [ <<'END_OF_RULES' ]
+:start ::= start
 start ::= prefix target action => do_arg1
 prefix ::= any_token* action => do_undef
 target ::= expression action => do_target
@@ -65,74 +66,39 @@ expression ::=
      number
    | scalar
    | op_lparen expression op_rparen assoc => group
-  || op_predecrement expression
-   | op_preincrement expression
-   | expression op_postincrement
-   | expression op_postdecrement
-  || expression op_starstar expression assoc => right
-  || op_uminus expression
-   | op_uplus expression
-   | op_bang expression
-   | op_tilde expression
-  || expression op_star expression
-   | expression op_slash expression
-   | expression op_percent expression
-   | expression kw_x expression
-  || expression op_plus expression
-   | expression op_minus expression
-  || expression op_ltlt expression
-   | expression op_gtgt expression
-  || expression op_ampersand expression
-  || expression op_vbar expression
-   | expression op_caret expression
-  || expression op_equal expression assoc => right
-  || expression op_comma expression
+  || '--' expression
+   | '++' expression
+   | expression '--'
+   | expression '++'
+  || expression '**' expression assoc => right
+  || '-' expression
+   | '+' expression
+   | '!' expression
+   | '!' expression
+  || expression '*' expression
+   | expression '/' expression
+   | expression '%' expression
+   | expression 'x' expression
+  || expression '+' expression
+   | expression '-' expression
+  || expression '<<' expression
+   | expression '>>' expression
+  || expression '&' expression
+  || expression '|' expression
+   | expression '^' expression
+  || expression '=' expression assoc => right
+  || expression ',' expression
+optional_digits ~ [\d]*
+digits ~ [\d]+
+number ~ digits
+number ~ digits [.] optional_digits
+number ~ [.] digits
+scalar ~ '$' [\w]+
 END_OF_RULES
     }
 );
 
 $perl_grammar->precompute();
-
-# Order matters !!
-my @lexer_table = (
-    [ op_postdecrement => qr/ [-][-] /xms ],
-    [ op_postincrement => qr/ [+][+] /xms ],
-
-    # More than 3 plus or minus signs is ambiguous.
-    # Perl allows them if they include a postfix operator
-    # and always considers them an error otherwise
-    [ op_error        => qr/ [-][-][-] /xms ],
-    [ op_error        => qr/ [+][+][+] /xms ],
-    [ op_predecrement => qr/ [-][-] /xms ],
-    [ op_preincrement => qr/ [+][+] /xms ],
-
-    [ number => qr/(?: \d+ (?: [.] \d* )?| [.] \d+ )/xms ],
-    [ scalar => qr/ [\$] \w+ \b/xms ],
-
-    [ op_gtgt      => qr/ [>][>] /xms ],
-    [ op_ltlt      => qr/ [<][>] /xms ],
-    [ op_starstar  => qr/ [*][*] /xms ],
-    [ kw_x         => qr/ x \b  /xms ],
-    [ op_ampersand => qr/ [&] /xms ],
-    [ op_bang      => qr/ [!] /xms ],
-    [ op_caret     => qr/ [\^] /xms ],
-    [ op_comma     => qr/ [,] /xms ],
-    [ op_equal     => qr/ [=] /xms ],
-    [ op_minus     => qr/ [-] /xms ],
-    [ op_percent   => qr/ [%] /xms ],
-    [ op_plus      => qr/ [+] /xms ],
-    [ op_slash     => qr/ [\/] /xms ],
-    [ op_star      => qr/ [*] /xms ],
-    [ op_tilde     => qr/ [~] /xms ],
-    [ op_minus     => qr/ [-] /xms ],
-    [ op_plus      => qr/ [+] /xms ],
-    [ op_uminus    => qr/ [-] /xms ],
-    [ op_uplus     => qr/ [+] /xms ],
-    [ op_vbar      => qr/ [|] /xms ],
-
-    [ op_lparen => qr/[(]/xms ],
-    [ op_rparen => qr/[)]/xms ],
-);
 
 sub My_Error::last_completed_range {
     my ( $self, $symbol_name, $latest_earley_set ) = @_;
@@ -178,36 +144,19 @@ my $self = bless {
     },
     'My_Error';
 
-my $input_length = length $string;
-pos $string = $positions[-1];
-TOKEN: while ( pos $string < $input_length ) {
+local $My_Actions::SELF = $self;
+my $event_count;
 
-    # In this application, we do not skip comments --
-    # Expressions inside strings or commments may be of
-    # interest
-    next TOKEN if $string =~ m/\G\s+/gcxms;    # skip whitespace
+if ( not defined eval { $event_count = $recce->sl_read($string); 1 } ) {
 
-    my $position = pos $string;
-    FIND_ALTERNATIVE: {
-        TOKEN_TYPE: for my $t (@lexer_table) {
-            my ( $token_name, $regex ) = @{$t};
-            next TOKEN_TYPE if not $string =~ m/\G($regex)/gcxms;
-            if ( not defined $recce->alternative( $token_name, \$1 ) ) {
-                pos $string = $position;       # reset position for matching
-                next TOKEN_TYPE;
-            }
-            $recce->alternative('any_token');
-            last FIND_ALTERNATIVE;
-        } ## end TOKEN_TYPE: for my $t (@lexer_table)
-        ## Nothing in the lexer table matched
-        ## Just read the currrent character as an 'any_token'
-        pos $string = $position + 1;
-        $recce->alternative('any_token');
-    } ## end FIND_ALTERNATIVE:
-    $recce->earleme_complete();
-    my $latest_earley_set_ID = $recce->latest_earley_set();
-    $positions[$latest_earley_set_ID] = pos $string;
-} ## end TOKEN: while ( pos $string < $length )
+    # Add last expression found, and rethrow
+    my $eval_error = $EVAL_ERROR;
+    chomp $eval_error;
+    die $self->show_last_expression(), "\n", $eval_error, "\n";
+} ## end if ( not defined eval { $event_count = $recce->sl_read...})
+if ( not defined $event_count ) {
+    die $self->show_last_expression(), "\n", $recce->sl_error();
+}
 
 # Given a string, an earley set to position mapping,
 # and two earley sets, return the slice of the string
