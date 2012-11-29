@@ -57,7 +57,9 @@ sub mask {
     return map { ! $_ } map { $_->is_hidden() } @{ $_[0] };
 }
 
-sub symbols { return @{ $_[0] }; }
+sub symbols {
+    return map { $_->symbols() } @{ $_[0] };
+}
 
 package Marpa::R2::Internal::Stuifzand;
 

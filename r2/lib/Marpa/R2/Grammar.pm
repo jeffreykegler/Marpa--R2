@@ -1274,7 +1274,8 @@ sub set_start_symbol {
             qq{'start' named argument not allowed for scannerless grammar},
             qq{  ':start' rules in the BNF must be the only start symbol specification},
         ) if defined $start_name;
-        $start_name = '[:start]';
+        $start_name = $grammar->[Marpa::R2::Internal::Grammar::START_NAME] =
+            '[:start]';
     } ## end if ( $grammar->[Marpa::R2::Internal::Grammar::SCANNERLESS...])
 
     return if not defined $start_name;
