@@ -60,6 +60,10 @@ typedef struct {
      UV** oplists_by_byte;
      HV* per_codepoint_ops;
      IV ignore_rejection;
+
+     /* The minimum number of tokens that must
+       be accepted at an earleme */
+     IV minimum_accepted;
 } Unicode_Stream;
 
 typedef struct marpa_b Bocage;
@@ -723,6 +727,7 @@ PPCODE:
     }
   }
   stream->ignore_rejection = 1;
+  stream->minimum_accepted = 1;
     sv_setref_pv (u_sv, unicode_stream_class_name, (void *) stream);
     XPUSHs (u_sv);
   }
@@ -931,6 +936,8 @@ PPCODE:
       STRLEN op_count;
       UV *ops;
       int ignore_rejection = stream->ignore_rejection;
+      int minimum_accepted = stream->minimum_accepted;
+      int tokens_accepted = 0;
       if (stream->input_offset >= len)
 	break;
       if (input_is_utf8)
@@ -1003,14 +1010,18 @@ PPCODE:
 		       warn("input_read_string unexpected token: %d,%d,%d",
 			 symbol_id, value, length);
 		    }
+		    # This guarantees that later, if we fall below
+		    # the minimum number of tokens accepted,
+		    # we have one of them as an example
+		    stream->input_symbol_id = symbol_id;
 		    if (!ignore_rejection)
 		      {
-			stream->input_symbol_id = symbol_id;
 			stream->codepoint = codepoint;
 			XSRETURN_IV (-1);
 		      }
-		    /* fall through */
+		    break;
 		  case MARPA_ERR_NONE:
+		    tokens_accepted++;
 		    break;
 		  default:
 		    croak
@@ -1024,6 +1035,10 @@ PPCODE:
 	    case op_earleme_complete:
 	      {
 		int result;
+		if (tokens_accepted < minimum_accepted) {
+		    stream->codepoint = codepoint;
+		    XSRETURN_IV (-1);
+		}
 		marpa_r_latest_earley_set_value_set (r, codepoint);
 		result = marpa_r_earleme_complete (r);
 		if (result > 0)
