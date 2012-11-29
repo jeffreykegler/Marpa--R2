@@ -337,7 +337,7 @@ sub do_quantified_rule {
 
         # If originally no separator or proper separation,
         # we are pretty much done
-        $sequence_rule{$lhs} = $lhs;
+        $sequence_rule{lhs} = $lhs;
         return \@rules;
     } ## end if ( not defined $original_separator || $adverb_list...)
 
