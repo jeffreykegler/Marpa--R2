@@ -853,11 +853,16 @@ sub Marpa::R2::Recognizer::sl_read {
             my @ops;
             for my $entry ( @{$class_table} ) {
                 my ( $symbol_id, $re ) = @{$entry};
-                push @ops, $op_alternative, $symbol_id, 0, 1
-                    if chr($codepoint) =~ $re;
-            }
+                if ( chr($codepoint) =~ $re ) {
+		    # This needs to be made into a trace option
+                    # say STDERR "Registering character ",
+			# (sprintf 'U+%04x', $codepoint), " as symbol $symbol_id: ",
+                        # $tracer->symbol_name($symbol_id);
+                    push @ops, $op_alternative, $symbol_id, 0, 1;
+                } ## end if ( chr($codepoint) =~ $re )
+            } ## end for my $entry ( @{$class_table} )
             die sprintf "Cannot read character U+%04x: %c\n", $codepoint,
-                $codepoint
+                chr $codepoint
                 if not @ops;
             $stream->char_register( $codepoint, @ops, $op_earleme_complete );
             redo READ;

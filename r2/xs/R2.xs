@@ -722,7 +722,7 @@ PPCODE:
         oplists[codepoint] = (UV*)NULL;
     }
   }
-  stream->ignore_rejection = 0;
+  stream->ignore_rejection = 1;
     sv_setref_pv (u_sv, unicode_stream_class_name, (void *) stream);
     XPUSHs (u_sv);
   }
