@@ -33,9 +33,10 @@ my $rules = <<'END_OF_GRAMMAR';
 :start ::= script
 script ::= expression
 script ::= (script ';') expression
-reduce_op ::= '+' action => do_literal
-| '-' action => do_literal
-| '/' action => do_literal
+reduce_op ::=
+    '+' action => do_literal
+  | '-' action => do_literal
+  | '/' action => do_literal
   | '*' action => do_literal
 expression ::=
      NUM
@@ -55,10 +56,9 @@ VAR ~ [\w]+ action => do_literal
 END_OF_GRAMMAR
 
 my $grammar = Marpa::R2::Grammar->new(
-    {   
-        action_object        => 'My_Actions',
-	default_action => 'do_arg0',
-	scannerless => 1,
+    {   action_object  => 'My_Actions',
+        default_action => 'do_arg0',
+        scannerless    => 1,
         rules          => $rules,
     }
 );
@@ -66,7 +66,10 @@ $grammar->precompute;
 
 my %binop_closure = (
     '*' => sub { $_[0] * $_[1] },
-    '/' => sub { $_[0] / $_[1] },
+    '/' => sub {
+        Marpa::R2::Context::bail('Division by zero') if not $_[1];
+        $_[0] / $_[1];
+    },
     '+' => sub { $_[0] + $_[1] },
     '-' => sub { $_[0] - $_[1] },
     '^' => sub { $_[0]**$_[1] },
@@ -79,19 +82,20 @@ our $SELF;
 sub new { return $SELF }
 
 sub do_literal {
-    my $self = shift;
+    my $self  = shift;
     my $recce = $self->{recce};
     my ( $start, $end ) = Marpa::R2::Context::location();
-    my $literal = $recce->sl_range_to_string($start, $end);
+    my $literal = $recce->sl_range_to_string( $start, $end );
     $literal =~ s/ \s+ \z //xms;
     $literal =~ s/ \A \s+ //xms;
     return $literal;
-} ## end sub do_number
+} ## end sub do_literal
 
 sub do_is_var {
     my ( undef, $var ) = @_;
     my $value = $symbol_table{$var};
-    die qq{Undefined variable "$var"} if not defined $value;
+    Marpa::R2::Context::bail(qq{Undefined variable "$var"})
+        if not defined $value;
     return $value;
 } ## end sub do_is_var
 
@@ -113,14 +117,16 @@ sub do_array {
     my @value = ();
     my $ref;
     if ( $ref = ref $left ) {
-        die "Bad ref type for array operand: $ref" if $ref ne 'ARRAY';
+        Marpa::R2::Context::bail("Bad ref type for array operand: $ref")
+            if $ref ne 'ARRAY';
         push @value, @{$left};
     }
     else {
         push @value, $left;
     }
     if ( $ref = ref $right ) {
-        die "Bad ref type for array operand: $ref" if $ref ne 'ARRAY';
+        Marpa::R2::Context::bail("Bad ref type for array operand: $ref")
+            if $ref ne 'ARRAY';
         push @value, @{$right};
     }
     else {
@@ -132,7 +138,8 @@ sub do_array {
 sub do_binop {
     my ( $op, $left, $right ) = @_;
     my $closure = $binop_closure{$op};
-    die qq{Do not know how to perform binary operation "$op"}
+    Marpa::R2::Context::bail(
+        qq{Do not know how to perform binary operation "$op"})
         if not defined $closure;
     return $closure->( $left, $right );
 } ## end sub do_binop
@@ -165,7 +172,8 @@ sub do_minus {
 sub do_reduce {
     my ( undef, $op, $args ) = @_;
     my $closure = $binop_closure{$op};
-    die qq{Do not know how to perform binary operation "$op"}
+    Marpa::R2::Context::bail(
+        qq{Do not know how to perform binary operation "$op"})
         if not defined $closure;
     $args = [$args] if ref $args eq '';
     my @stack = @{$args};
@@ -174,7 +182,7 @@ sub do_reduce {
         my $result = $closure->( $stack[-2], $stack[-1] );
         splice @stack, -2, 2, $result;
     }
-    die;    # Should not get here
+    Marpa::R2::Context::bail('Should not get here');
 } ## end sub do_reduce
 
 package main;
@@ -244,10 +252,10 @@ sub calculate {
         # Add last expression found, and rethrow
         my $eval_error = $EVAL_ERROR;
         chomp $eval_error;
-        die $recce->show_progress(), $self->show_last_expression(), "\n", $eval_error, "\n";
-    } ## end if ( not defined eval { $recce->sl_read($string)...})
-    if (not defined $event_count) {
-        die $recce->show_progress(), $self->show_last_expression(), "\n", $recce->sl_error();
+        die $self->show_last_expression(), "\n", $eval_error, "\n";
+    } ## end if ( not defined eval { $event_count = $recce->sl_read...})
+    if ( not defined $event_count ) {
+        die $self->show_last_expression(), "\n", $recce->sl_error();
     }
     my $value_ref = $recce->value;
     if ( not defined $value_ref ) {
