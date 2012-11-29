@@ -285,20 +285,82 @@ sub do_empty_rule {
 }
 
 sub do_quantified_rule {
-    my ( undef, $lhs, undef, $rhs, $quantifier, $adverb_list ) = @_;
-    # mask not needed
-    my %hash_rule = (
-        lhs => $lhs,
-        rhs => [$rhs->name()],
+    my ( $self, $lhs, $op_declare, $rhs, $quantifier, $adverb_list ) = @_;
+    my $thick_grammar = $self->{thick_grammar};
+
+    # Some properties of the sequence rule will not be altered
+    # no matter how complicated this gets
+    my %sequence_rule = (
+        rhs => [ $rhs->name() ],
         min => ( $quantifier eq q{+} ? 1 : 0 )
     );
     my $action = $adverb_list->{action};
-    $hash_rule{action} = $action if defined $action;
-    my $separator = $adverb_list->{separator};
-    $hash_rule{separator} = $separator if defined $separator;
-    my $proper = $adverb_list->{proper};
-    $hash_rule{proper} = $proper if defined $proper;
-    return [ \%hash_rule ];
+    $sequence_rule{action} = $action if defined $action;
+    my @rules = ( \%sequence_rule );
+
+    my $original_separator = $adverb_list->{separator};
+    if ( $op_declare ne q{::=}
+        or not $thick_grammar->[Marpa::R2::Internal::Grammar::SCANNERLESS] )
+    {
+        # mask not needed
+        $sequence_rule{lhs}       = $lhs;
+        $sequence_rule{separator} = $original_separator
+            if defined $original_separator;
+        my $proper = $adverb_list->{proper};
+        $sequence_rule{proper} = $proper if defined $proper;
+        return \@rules;
+    } ## end if ( $op_declare ne q{::=} or not $thick_grammar->[...])
+
+    # If here, we are adding whitespace
+
+    state $do_arg0_full_name = __PACKAGE__ . q{::} . 'external_do_arg0';
+    state $default_ws_symbol =
+        create_hidden_internal_symbol( $self, '[:ws]' );
+    my $new_separator = $lhs . '[Sep]';
+    my @separator_rhs = ('[:ws]');
+    push @separator_rhs, $original_separator, '[:ws]'
+        if defined $original_separator;
+    my %separator_rule = (
+        lhs    => $new_separator,
+        rhs    => \@separator_rhs,
+        mask   => [ (0) x scalar @separator_rhs ],
+        action => '::whatever'
+    );
+    push @rules, \%separator_rule;
+
+    # With the new separator,
+    # we know a few more things about the sequence rule
+    $sequence_rule{proper}    = 1;
+    $sequence_rule{separator} = $new_separator;
+
+    if ( not defined $original_separator || $adverb_list->{proper} ) {
+
+        # If originally no separator or proper separation,
+        # we are pretty much done
+        $sequence_rule{$lhs} = $lhs;
+        return \@rules;
+    } ## end if ( not defined $original_separator || $adverb_list...)
+
+    ## If here, Perl separation
+    ## We need two more rules and a new LHS for the
+    ## sequence rule
+    my $sequence_lhs = $lhs . '[SeqLHS]';
+    $sequence_rule{lhs} = $sequence_lhs;
+    push @rules,
+        {
+        lhs    => $lhs,
+        rhs    => [$sequence_lhs],
+        action => $do_arg0_full_name,
+        },
+        {
+        lhs    => $lhs,
+        rhs    => [ $sequence_lhs, '[:ws]', $original_separator ],
+        mask   => [ 1, 0, 0 ],
+        action => $do_arg0_full_name,
+        };
+
+    return \@rules;
+
 } ## end sub do_quantified_rule
 
 # Return the character class symbol name,
