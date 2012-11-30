@@ -365,40 +365,40 @@ sub do_quantified_rule {
 
 } ## end sub do_quantified_rule
 
-# Return the character class symbol name,
-# after ensuring everything is set up properly
-sub assign_char_class {
-    my ( $self, $char_class, $symbol_name ) = @_;
-
-    # default symbol name always start with TWO left square brackets
-    $symbol_name //= '[' . $char_class . ']';
-    $self->{character_classes} //= {};
-    my $cc_hash    = $self->{character_classes};
-    my $hash_entry = $cc_hash->{$symbol_name};
-    if ( not defined $hash_entry ) {
-        my $regex;
-        if ( not defined eval { $regex = qr/$char_class/xms; 1; } ) {
-            Carp::croak( 'Bad Character class: ',
-                $char_class, "\n", "Perl said ", $EVAL_ERROR );
-        }
-        $cc_hash->{$symbol_name} = $regex;
-    } ## end if ( not defined $hash_entry )
-    return $symbol_name;
-} ## end sub assign_char_class
-
-sub do_any {
-    my $self = shift;
-    my $symbol_name = '[:any]';
-    $symbol_name = assign_char_class( $self, '[\p{Cn}\P{Cn}]', $symbol_name );
-    return Marpa::R2::Internal::Stuifzand::Symbol->new($symbol_name);
-}
-
 sub create_hidden_internal_symbol {
     my ($self, $symbol_name) = @_;
     $self->{needs_symbol}->{$symbol_name} = 1;
     my $symbol = Marpa::R2::Internal::Stuifzand::Symbol->new($symbol_name);
     $symbol->hidden_set();
     return $symbol;
+}
+
+# Return the character class symbol name,
+# after ensuring everything is set up properly
+sub assign_symbol_by_char_class {
+    my ( $self, $char_class, $symbol_name ) = @_;
+
+    # default symbol name always start with TWO left square brackets
+    $symbol_name //= '[' . $char_class . ']';
+    $self->{character_classes} //= {};
+    my $cc_hash    = $self->{character_classes};
+    my (undef, $symbol) = $cc_hash->{$symbol_name};
+    if ( not defined $symbol ) {
+        my $regex;
+        if ( not defined eval { $regex = qr/$char_class/xms; 1; } ) {
+            Carp::croak( 'Bad Character class: ',
+                $char_class, "\n", "Perl said ", $EVAL_ERROR );
+        }
+        $symbol = create_hidden_internal_symbol($self, $symbol_name);
+        $cc_hash->{$symbol_name} = [ $regex, $symbol ];
+    } ## end if ( not defined $hash_entry )
+    return $symbol;
+} ## end sub assign_symbol_by_char_class
+
+sub do_any {
+    my $self = shift;
+    my $symbol_name = '[:any]';
+    return assign_symbol_by_char_class( $self, '[\p{Cn}\P{Cn}]', $symbol_name );
 }
 
 sub do_ws { return create_hidden_internal_symbol($_[0], '[:ws]') }
@@ -409,10 +409,10 @@ sub do_symbol {
     shift;
     return Marpa::R2::Internal::Stuifzand::Symbol->new( $_[0] );
 }
+
 sub do_character_class {
     my ( $self, $char_class ) = @_;
-    my $symbol_name = assign_char_class($self, $char_class);
-    return Marpa::R2::Internal::Stuifzand::Symbol->new($symbol_name);
+    return assign_symbol_by_char_class($self, $char_class);
 } ## end sub do_character_class
 
 sub do_symbol_list { shift; return Marpa::R2::Internal::Stuifzand::Symbol_List->new(@_) }
@@ -441,8 +441,7 @@ sub do_single_quoted_string {
     my @symbols = ();
     my $symbol;
     for my $char_class ( map { "[" . (quotemeta $_) . "]" } split //xms, substr $string, 1, -1) {
-        my $symbol_name = assign_char_class($self, $char_class);
-        $symbol = Marpa::R2::Internal::Stuifzand::Symbol->new($symbol_name);
+        $symbol = assign_symbol_by_char_class($self, $char_class);
         $symbol->{ws_after_ok} = 0;
         push @symbols, $symbol;
     }
@@ -925,7 +924,7 @@ sub parse_rules {
                     next SYMBOL;
                 } ## end if ( $needed_symbol eq '[:ws]' )
                 if ( $needed_symbol eq '[:WSpace]' ) {
-                    assign_char_class( $self, '[\p{White_Space}]',
+                    assign_symbol_by_char_class( $self, '[\p{White_Space}]',
                         '[:WSpace]' );
                 }
             } ## end SYMBOL: for my $needed_symbol (@needed_symbols)
@@ -935,6 +934,15 @@ sub parse_rules {
     push @{$rules}, @ws_rules;
 
     $self->{rules} = $rules;
+    my $raw_cc      = $self->{character_classes};
+    if ( defined $raw_cc ) {
+        my $stripped_cc = {};
+        for my $symbol_name ( keys %{$raw_cc} ) {
+            my ($re) = @{ $raw_cc->{$symbol_name} };
+            $stripped_cc->{$symbol_name} = $re;
+        }
+        $self->{character_classes} = $stripped_cc;
+    } ## end if ( defined $raw_cc )
     return $self;
 } ## end sub parse_rules
 

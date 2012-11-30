@@ -862,7 +862,7 @@ sub Marpa::R2::Recognizer::sl_read {
                 } ## end if ( chr($codepoint) =~ $re )
             } ## end for my $entry ( @{$class_table} )
             die sprintf "Cannot read character U+%04x: %c\n", $codepoint,
-                chr $codepoint
+                $codepoint
                 if not @ops;
             $stream->char_register( $codepoint, @ops, $op_earleme_complete );
             redo READ;
