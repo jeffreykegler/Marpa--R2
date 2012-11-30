@@ -20,8 +20,35 @@ use 5.010;
 use strict;
 use warnings;
 use English qw( -no_match_vars );
+use Getopt::Long;
 
 use Marpa::R2 2.027_003;
+
+my $do_demo = 0;
+my $getopt_result = GetOptions( "demo!" => \$do_demo, );
+
+sub usage {
+    die <<"END_OF_USAGE_MESSAGE";
+$PROGRAM_NAME --demo
+$PROGRAM_NAME 'exp' [...]
+
+Run $PROGRAM_NAME with either the "--demo" argument
+or a series of calculator expressions.
+END_OF_USAGE_MESSAGE
+} ## end sub usage
+
+if ( not $getopt_result ) {
+    usage();
+}
+if ($do_demo) {
+    if ( scalar @ARGV > 0 ) { say join " ", @ARGV; usage(); }
+}
+elsif ( scalar @ARGV <= 0 ) { usage(); }
+
+my $string = '42*1+7';
+if (!$do_demo) {
+$string = shift;
+}
 
 my $grammar = Marpa::R2::Grammar->new(
     {   scannerless => 1,
@@ -50,13 +77,13 @@ $self->{recce} = $recce;
 local $My_Actions::SELF = $self;
 
 my $event_count;
-if ( not defined eval { $event_count = $recce->sl_read('42*1+7'); 1 } ) {
-
-    # Add last expression found, and rethrow
+if ( not defined eval { $event_count = $recce->sl_read($string); 1 } ) {
+    ## Add last expression found, and rethrow
     my $eval_error = $EVAL_ERROR;
     chomp $eval_error;
     die $self->show_last_expression(), "\n", $eval_error, "\n";
 } ## end if ( not defined eval { $event_count = $recce->sl_read...})
+
 if ( not defined $event_count ) {
     die $self->show_last_expression(), "\n", $recce->sl_error();
 }
