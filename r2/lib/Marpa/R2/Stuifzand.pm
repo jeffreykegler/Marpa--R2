@@ -167,7 +167,6 @@ sub do_priority_rule {
         my @rhs_names = $rhs->names();
         my $penult    = $#rhs_names - 1;
         next RHS if $penult < 0;
-        $DB::single = 1;
         for my $rhs_ix ( 0 .. $penult ) {
             if (   defined $rank_by_ws{ $rhs_names[$rhs_ix] }
                 && defined $rank_by_ws{ $rhs_names[ $rhs_ix + 1 ] } )
