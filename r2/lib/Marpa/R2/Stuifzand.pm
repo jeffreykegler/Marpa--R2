@@ -367,7 +367,7 @@ sub do_quantified_rule {
 
 # Return the character class symbol name,
 # after ensuring everything is set up properly
-sub ensure_char_class {
+sub assign_char_class {
     my ( $self, $char_class, $symbol_name ) = @_;
 
     # default symbol name always start with TWO left square brackets
@@ -384,12 +384,12 @@ sub ensure_char_class {
         $cc_hash->{$symbol_name} = $regex;
     } ## end if ( not defined $hash_entry )
     return $symbol_name;
-} ## end sub ensure_char_class
+} ## end sub assign_char_class
 
 sub do_any {
     my $self = shift;
     my $symbol_name = '[:any]';
-    $symbol_name = ensure_char_class( $self, '[\p{Cn}\P{Cn}]', $symbol_name );
+    $symbol_name = assign_char_class( $self, '[\p{Cn}\P{Cn}]', $symbol_name );
     return Marpa::R2::Internal::Stuifzand::Symbol->new($symbol_name);
 }
 
@@ -411,7 +411,7 @@ sub do_symbol {
 }
 sub do_character_class {
     my ( $self, $char_class ) = @_;
-    my $symbol_name = ensure_char_class($self, $char_class);
+    my $symbol_name = assign_char_class($self, $char_class);
     return Marpa::R2::Internal::Stuifzand::Symbol->new($symbol_name);
 } ## end sub do_character_class
 
@@ -441,7 +441,7 @@ sub do_single_quoted_string {
     my @symbols = ();
     my $symbol;
     for my $char_class ( map { "[" . (quotemeta $_) . "]" } split //xms, substr $string, 1, -1) {
-        my $symbol_name = ensure_char_class($self, $char_class);
+        my $symbol_name = assign_char_class($self, $char_class);
         $symbol = Marpa::R2::Internal::Stuifzand::Symbol->new($symbol_name);
         $symbol->{ws_after_ok} = 0;
         push @symbols, $symbol;
@@ -925,7 +925,7 @@ sub parse_rules {
                     next SYMBOL;
                 } ## end if ( $needed_symbol eq '[:ws]' )
                 if ( $needed_symbol eq '[:WSpace]' ) {
-                    ensure_char_class( $self, '[\p{White_Space}]',
+                    assign_char_class( $self, '[\p{White_Space}]',
                         '[:WSpace]' );
                 }
             } ## end SYMBOL: for my $needed_symbol (@needed_symbols)

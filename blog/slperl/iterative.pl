@@ -66,34 +66,34 @@ expression ::=
      number
    | scalar
    | op_lparen expression op_rparen assoc => group
-  || '--' expression
-   | '++' expression
-   | expression '--'
-   | expression '++'
-  || expression '**' expression assoc => right
-  || '-' expression
-   | '+' expression
-   | '!' expression
-   | '!' expression
-  || expression '*' expression
-   | expression '/' expression
-   | expression '%' expression
-   | expression 'x' expression
-  || expression '+' expression
-   | expression '-' expression
-  || expression '<<' expression
-   | expression '>>' expression
-  || expression '&' expression
-  || expression '|' expression
-   | expression '^' expression
-  || expression '=' expression assoc => right
-  || expression ',' expression
+  || '--' expression action => do_predecrement
+   | '++' expression action => do_preincrement
+   | expression '--' action => do_postdecrement
+   | expression '++' action => do_postincrement
+  || expression '**' expression assoc => right action => do_power
+  || '-' expression action => do_uminus
+   | '+' expression action => do_uplus
+   | '!' expression action => do_bang
+   | '~' expression action => do_tilde
+  || expression '*' expression action => do_multiply
+   | expression '/' expression action => do_divide
+   | expression '%' expression action => do_modulo
+   | expression 'x' expression action => do_x_op
+  || expression '+' expression action => do_add
+   | expression '-' expression action => do_subtract
+  || expression '<<' expression action => do_lshift
+   | expression '>>' expression action => do_rshift
+  || expression '&' expression action => do_bitand
+  || expression '|' expression action => do_bitor
+   | expression '^' expression action => do_bitxor
+  || expression '=' expression assoc => right action => do_assign
+  || expression ',' expression action => do_comma
 optional_digits ~ [\d]*
 digits ~ [\d]+
-number ~ digits
-number ~ digits [.] optional_digits
-number ~ [.] digits
-scalar ~ '$' [\w]+
+number ~ digits action => do_literal
+number ~ digits [.] optional_digits action => do_literal
+number ~ [.] digits action => do_literal
+scalar ~ '$' [\w]+ action => do_literal
 END_OF_RULES
     }
 );
