@@ -19,6 +19,28 @@ use strict;
 use warnings;
 use English qw( -no_match_vars );
 use Marpa::R2 2.023008;
+use Getopt::Long;
+
+my $do_demo = 0;
+my $getopt_result = GetOptions( "demo!" => \$do_demo, );
+
+sub usage {
+    die <<"END_OF_USAGE_MESSAGE";
+$PROGRAM_NAME --demo
+$PROGRAM_NAME 'exp' [...]
+
+Run $PROGRAM_NAME with either the "--demo" argument
+or a series of calculator expressions.
+END_OF_USAGE_MESSAGE
+} ## end sub usage
+
+if ( not $getopt_result ) {
+    usage();
+}
+if ($do_demo) {
+    if ( scalar @ARGV > 0 ) { say join q{ }, @ARGV; usage(); }
+}
+elsif ( scalar @ARGV <= 0 ) { usage(); }
 
 my $prefix_grammar = Marpa::R2::Grammar->new(
     {
@@ -48,7 +70,10 @@ sub do_literal {
     my $self = shift;
     my $recce = $self->{recce};
     my ( $start, $end ) = Marpa::R2::Context::location();
-    return $recce->sl_range_to_string($start, $end);
+    my $result = $recce->sl_range_to_string($start, $end);
+    $result =~ s/ \A \s+ //xms;
+    $result =~ s/ \s+ \z //xms;
+    return $result;
 } ## end sub do_literal
 
 sub do_add  { shift; return $_[0] + $_[1] }
@@ -126,8 +151,9 @@ sub my_parser {
     return ${$value_ref};
 } ## end sub my_parser
 
-TEST:
-for my $test_string (
+my @test_strings;
+if ($do_demo) {
+    push @test_strings,
     '+++ 1 2 3 + + 1 2 4',
     'say + 1 2',
     '+ 1 say 2',
@@ -138,8 +164,13 @@ for my $test_string (
     '1 + 2 +3  4 + 5 + 6 + 7',
     '+12',
     '+1234'
-    )
-{
+    ;
+} else {
+    push @test_strings, shift;
+}
+
+TEST:
+for my $test_string (@test_strings) {
     my $output;
     my $eval_ok =
         eval { $output = my_parser( $prefix_grammar, $test_string ); 1 };
@@ -155,6 +186,6 @@ for my $test_string (
     say q{=} x 30;
     print qq{Input was "$test_string"\n},
         qq{Parse was successful, output was "$output"\n};
-} ## end TEST: for my $test_string ( '+++ 1 2 3 + + 1 2 4', 'say + 1 2'...)
+} ## end TEST: for my $test_string (@test_strings)
 
 # vim: expandtab shiftwidth=4:
