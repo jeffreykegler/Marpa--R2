@@ -46,13 +46,13 @@ if ($do_demo) {
 elsif ( scalar @ARGV <= 0 ) { usage(); }
 
 my $string = '42*1+7';
-if (!$do_demo) {
-$string = shift;
+if ( !$do_demo ) {
+    $string = shift;
 }
 
 my $grammar = Marpa::R2::Grammar->new(
-    {   scannerless => 1,
-        action_object        => 'My_Actions',
+    {   scannerless    => 1,
+        action_object  => 'My_Actions',
         default_action => 'first_arg',
         rules          => <<'END_OF_GRAMMAR',
 
@@ -60,7 +60,7 @@ my $grammar = Marpa::R2::Grammar->new(
 Expression ::=
        Number
     || Expression '*' Expression action => do_multiply
-     | Expression '+' Expression action => do_add
+    || Expression '+' Expression action => do_add
 Number ~ digits '.' digits action => do_literal
 Number ~ digits action => do_literal
 digits ~ [\d]+
@@ -160,9 +160,8 @@ sub My_Actions::do_literal {
     $literal =~ s/ \s+ \z //xms;
     $literal =~ s/ \A \s+ //xms;
     return $literal;
-} ## end sub do_literal
+} ## end sub My_Actions::do_literal
 
 sub My_Actions::first_arg { shift; return shift; }
-
 
 # vim: expandtab shiftwidth=4:
