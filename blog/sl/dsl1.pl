@@ -10,8 +10,8 @@ use Marpa::R2 2.027_003;
 use Data::Dumper;
 
 my $grammar = Marpa::R2::Grammar->new(
-    {   scannerless => 1,
-        action_object        => 'My_Actions',
+    {   scannerless    => 1,
+        action_object  => 'My_Actions',
         default_action => 'do_what_I_mean',
         rules          => <<'END_OF_GRAMMAR',
 :start ::= expression
@@ -92,25 +92,25 @@ sub new { return $SELF }
 
 sub do_what_I_mean {
     my $self = shift;
-    my @children = grep { defined } @_;
-    if (not scalar @children) {
-      return $self->do_literal();
+    my @children = grep {defined} @_;
+    if ( not scalar @children ) {
+        return $self->do_literal();
     }
     return $children[0] if scalar @children == 1;
     return \@children;
-} ## end sub add_brackets
+} ## end sub do_what_I_mean
 
-sub do_parens { shift; return '(' . $_[0] . ')' }
-sub do_power { shift; return '[' . $_[0] . '**' . $_[1] . ']' };
-sub do_multiply { shift; return '[' . $_[0] . '*' . $_[1] . ']' };
-sub do_divide { shift; return '[' . $_[0] . '/' . $_[1] . ']' };
-sub do_add { shift; return '[' . $_[0] . '+' . $_[1] . ']' };
-sub do_subtract { shift; return '[' . $_[0] . '-' . $_[1] . ']' };
-sub do_bitand { shift; return '[' . $_[0] . '&' . $_[1] . ']' };
-sub do_bitxor { shift; return '[' . $_[0] . '^' . $_[1] . ']' };
-sub do_bitor { shift; return '[' . $_[0] . '|' . $_[1] . ']' };
-sub do_uminus { shift; return '[-' . $_[0] . ']' };
-sub do_assign { shift; return '[' . $_[0] . '=' . $_[1] . ']' };
+sub do_parens   { shift; return '(' . $_[0] . ')' }
+sub do_power    { shift; return '[' . $_[0] . '**' . $_[1] . ']' }
+sub do_multiply { shift; return '[' . $_[0] . '*' . $_[1] . ']' }
+sub do_divide   { shift; return '[' . $_[0] . '/' . $_[1] . ']' }
+sub do_add      { shift; return '[' . $_[0] . '+' . $_[1] . ']' }
+sub do_subtract { shift; return '[' . $_[0] . '-' . $_[1] . ']' }
+sub do_bitand   { shift; return '[' . $_[0] . '&' . $_[1] . ']' }
+sub do_bitxor   { shift; return '[' . $_[0] . '^' . $_[1] . ']' }
+sub do_bitor    { shift; return '[' . $_[0] . '|' . $_[1] . ']' }
+sub do_uminus   { shift; return '[-' . $_[0] . ']' }
+sub do_assign   { shift; return '[' . $_[0] . '=' . $_[1] . ']' }
 
 sub do_literal {
     my $self  = shift;
