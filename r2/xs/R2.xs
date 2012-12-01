@@ -708,6 +708,7 @@ PPCODE:
     SV *u_sv = sv_newmortal ();
     Unicode_Stream *stream;
     Newx (stream, 1, Unicode_Stream);
+    stream->trace = 0;
     stream->base = r_wrapper->base;
     stream->r_wrapper = r_wrapper;
     stream->r_sv = r_sv;
