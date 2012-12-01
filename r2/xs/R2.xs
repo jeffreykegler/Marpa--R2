@@ -64,6 +64,7 @@ typedef struct {
      /* The minimum number of tokens that must
        be accepted at an earleme */
      IV minimum_accepted;
+     IV trace; /* trace level */
 } Unicode_Stream;
 
 typedef struct marpa_b Bocage;
@@ -755,6 +756,23 @@ PPCODE:
 }
 
 void
+trace( stream, level )
+     Unicode_Stream *stream;
+    int level;
+PPCODE:
+{
+  if (level < 0)
+    {
+      /* Always thrown */
+      croak ("Problem in u->trace(%d): argument must be greater than 0", level);
+    }
+  warn ("Setting Marpa scannerless stream trace level to %d", level);
+  stream->trace = level;
+  XPUSHs (sv_2mortal (newSViv (level)));
+}
+
+
+void
 op( op_name )
      char *op_name;
 PPCODE:
@@ -920,6 +938,7 @@ read( stream )
      Unicode_Stream *stream;
 PPCODE:
 {
+  const int trace_level = stream->trace;
   const R_Wrapper* r_wrapper = stream->r_wrapper;
   const Marpa_Recognizer r = r_wrapper->r;
   char *input;
@@ -954,6 +973,10 @@ PPCODE:
 		 codepoint);
 	    }
 	}
+      if (trace_level >= 10) {
+          warn("Thin::U::read() Reading codepoint 0x%04x at pos %d",
+	    (int)codepoint, (int)stream->character_ix);
+      }
       ops = stream->oplists_by_byte[codepoint];
       if (!ops)
 	{
@@ -1014,6 +1037,10 @@ PPCODE:
 		    # the minimum number of tokens accepted,
 		    # we have one of them as an example
 		    stream->input_symbol_id = symbol_id;
+		    if (trace_level >= 10) {
+			warn("Thin::U::read() Rejected codepoint 0x%04x at pos %d at symbol %d",
+			  (int)codepoint, (int)stream->character_ix, symbol_id);
+		    }
 		    if (!ignore_rejection)
 		      {
 			stream->codepoint = codepoint;
@@ -1021,6 +1048,10 @@ PPCODE:
 		      }
 		    break;
 		  case MARPA_ERR_NONE:
+		    if (trace_level >= 10) {
+			warn("Thin::U::read() Accepted codepoint 0x%04x at pos %d at symbol %d",
+			  (int)codepoint, (int)stream->character_ix, symbol_id);
+		    }
 		    tokens_accepted++;
 		    break;
 		  default:

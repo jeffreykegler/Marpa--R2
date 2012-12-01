@@ -793,10 +793,18 @@ sub Marpa::R2::Recognizer::sl_error {
 }
 
 sub Marpa::R2::Recognizer::sl_trace {
-    my ($recce, $level) = @_;
+    my ( $recce, $level ) = @_;
+    my $stream = $recce->[Marpa::R2::Internal::Recognizer::STREAM];
+    Marpa::R2::exception(
+        "Marpa::R2::Recogizer::sl_read() called, but grammar is not scannerless\n"
+    ) if not defined $stream;
     $level //= 1;
-    return $recce->[Marpa::R2::Internal::Recognizer::TRACE_SL] = $level;
-}
+    $recce->[Marpa::R2::Internal::Recognizer::TRACE_SL] = $level;
+    if ( $level > 9 ) {
+        $stream->trace($level);
+    }
+    return $level;
+} ## end sub Marpa::R2::Recognizer::sl_trace
 
 my @escape_by_ord = ();
 $escape_by_ord[ ord q{\\} ] = q{\\\\};
@@ -834,8 +842,11 @@ sub Marpa::R2::Recognizer::sl_read {
     my ( $recce, $string ) = @_;
     my $grammar = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my $tracer  = $grammar->[Marpa::R2::Internal::Grammar::TRACER];
-    my $stream  = $recce->[Marpa::R2::Internal::Recognizer::STREAM];
     my $recce_c = $recce->[Marpa::R2::Internal::Recognizer::C];
+    my $stream  = $recce->[Marpa::R2::Internal::Recognizer::STREAM];
+    Marpa::R2::exception("Marpa::R2::Recogizer::sl_read() called, but grammar is not scannerless\n")
+        if not defined $stream;
+
     my $length  = length $string;
     my $event_count;
 
@@ -982,6 +993,7 @@ sub Marpa::R2::Recognizer::use_leo_set {
 sub Marpa::R2::Recognizer::earley_set_size {
     my ( $recce, $set_id ) = @_;
     my $recce_c = $recce->[Marpa::R2::Internal::Recognizer::C];
+    $set_id //= $recce_c->latest_earley_set();
     return $recce_c->_marpa_r_earley_set_size($set_id);
 }
 
