@@ -41,26 +41,15 @@ usage() if not $getopt_result;
 
 my $string = do { local $INPUT_RECORD_SEPARATOR = undef; <> };
 
-## no critic (Subroutines::RequireFinalReturn)
-sub do_undef       { undef; }
-sub do_arg1        { $_[2]; }
-sub do_what_I_mean { shift; return $_[0] if scalar @_ == 1; return \@_ }
-## use critic
-
-sub do_target {
-    my $origin = ( Marpa::R2::Context::location() )[0];
-    return if $origin != $ORIGIN;
-    return $_[1];
-} ## end sub do_target
-
 my $perl_grammar = Marpa::R2::Grammar->new(
     {   scannerless => 1,
-        actions        => 'main',
+        actions        => 'My_Actions',
         default_action => 'do_what_I_mean',
         rules          => [ <<'END_OF_RULES' ]
-:start ::= start
-start ::= prefix target action => do_arg1
-prefix ::= any_token* action => do_undef
+:start ~ start
+start ~ (prefix) target
+prefix ~ any_char*
+any_char ~ :any
 target ::= expression action => do_target
 expression ::=
      number
@@ -93,7 +82,8 @@ digits ~ [\d]+
 number ~ digits action => do_literal
 number ~ digits [.] optional_digits action => do_literal
 number ~ [.] digits action => do_literal
-scalar ~ '$' [\w]+ action => do_literal
+bare_word ~ [\w]+
+scalar ~ '$' bare_word action => do_literal
 END_OF_RULES
     }
 );
@@ -132,7 +122,6 @@ sub My_Error::last_completed_range {
     return ( $first_origin, $earley_set );
 } ## end sub My_Error::last_completed_range
 
-my @positions = (0);
 my $recce = Marpa::R2::Recognizer->new( { grammar => $perl_grammar } );
 
 # A quasi-object, for internal use only
@@ -140,7 +129,6 @@ my $self = bless {
     grammar   => $perl_grammar,
     input     => \$string,
     recce     => $recce,
-    positions => \@positions
     },
     'My_Error';
 
@@ -152,22 +140,19 @@ if ( not defined eval { $event_count = $recce->sl_read($string); 1 } ) {
     # Add last expression found, and rethrow
     my $eval_error = $EVAL_ERROR;
     chomp $eval_error;
-    die $self->show_last_expression(), "\n", $eval_error, "\n";
+    die "\n", $eval_error, "\n";
 } ## end if ( not defined eval { $event_count = $recce->sl_read...})
 if ( not defined $event_count ) {
-    die $self->show_last_expression(), "\n", $recce->sl_error();
+    die "\n", $recce->sl_error();
 }
 
 # Given a string, an earley set to position mapping,
 # and two earley sets, return the slice of the string
 sub My_Error::input_slice {
     my ( $self, $start, $end ) = @_;
-    my $positions = $self->{positions};
     return if not defined $start;
-    my $start_position = $positions->[$start];
-    my $length         = $positions->[$end] - $start_position;
-    return substr ${ $self->{input} }, $start_position, $length;
-} ## end sub My_Error::input_slice
+    return substr ${ $self->{input} }, $start, $end - $start;
+}
 
 my $end_of_search;
 my @results = ();
@@ -209,4 +194,41 @@ RESULT: for my $result ( reverse @results ) {
     $recce->reset_evaluation();
 } ## end RESULT: for my $result ( reverse @results )
 
+package My_Actions;
+
+our $SELF;
+
+## no critic (Subroutines::RequireFinalReturn)
+sub do_arg1        { $_[2]; }
+sub do_what_I_mean { shift; return $_[0] if scalar @_ == 1; return \@_ }
+## use critic
+
+sub do_target {
+    my $origin = ( Marpa::R2::Context::location() )[0];
+    return if $origin != $ORIGIN;
+    return $_[1];
+} ## end sub do_target
+
+sub do_add { shift; return [ '+', @_ ] }
+sub do_assign{ shift; return [ '=', @_ ] }
+sub do_bang{ shift; return [ '!', @_ ] }
+sub do_bitand{ shift; return [ '&', @_ ] }
+sub do_bitor{ shift; return [ '|', @_ ] }
+sub do_bitxor{ shift; return [ '^', @_ ] }
+sub do_comma{ shift; return [ ',', @_ ] }
+sub do_divide{ shift; return [ '/', @_ ] }
+sub do_lshift{ shift; return [ '<<', @_ ] }
+sub do_modulo{ shift; return [ '%', @_ ] }
+sub do_multiply{ shift; return [ '*', @_ ] }
+sub do_postdecrement{ shift; return [ @_, '--' ] }
+sub do_postincrement{ shift; return [ @_, '++' ] }
+sub do_power{ shift; return [ '**', @_ ] }
+sub do_predecrement{ shift; return [ '--', @_ ] }
+sub do_preincrement{ shift; return [ '++', @_ ] }
+sub do_rshift{ shift; return [ '>>', @_ ] }
+sub do_subtract{ shift; return [ '-', @_ ] }
+sub do_tilde{ shift; return [ '~', @_ ] }
+sub do_uminus{ shift; return [ 'u-', @_ ] }
+sub do_uplus{ shift; return [ 'u+', @_ ] }
+sub do_x_op{ shift; return [ 'x', @_ ] }
 # vim: expandtab shiftwidth=4:
