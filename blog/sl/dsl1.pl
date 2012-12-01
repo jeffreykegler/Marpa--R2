@@ -4,10 +4,34 @@ use 5.010;
 use strict;
 use warnings;
 use English qw( -no_match_vars );
+use Getopt::Long;
 
 use Marpa::R2 2.027_003;
 
-use Data::Dumper;
+my $do_demo = 0;
+my $getopt_result = GetOptions( "demo!" => \$do_demo, );
+
+sub usage {
+    die <<"END_OF_USAGE_MESSAGE";
+$PROGRAM_NAME --demo
+$PROGRAM_NAME 'exp' [...]
+
+Run $PROGRAM_NAME with either the "--demo" argument
+or a series of calculator expressions.
+END_OF_USAGE_MESSAGE
+} ## end sub usage
+
+my $input_string;
+if ( not $getopt_result ) {
+    usage();
+}
+if ($do_demo) {
+    if ( scalar @ARGV > 0 ) { say join " ", @ARGV; usage(); }
+}
+else { # NOT $do_demo
+ if ( scalar @ARGV <= 0 ) { usage(); }
+ $input_string = join " ", @ARGV;
+}
 
 my $grammar = Marpa::R2::Grammar->new(
     {   scannerless    => 1,
@@ -42,13 +66,11 @@ sub calculate {
     my $recce = Marpa::R2::Recognizer->new( { grammar => $grammar } );
 
     ## A quasi-object, for internal use only
-    my $self = bless {
-        grammar => $grammar,
+    local $My_Actions::SELF = bless {
         recce   => $recce,
         },
         'My_Actions';
 
-    local $My_Actions::SELF = $self;
     $recce->sl_read($string);
     my $value_ref = $recce->value;
 
@@ -63,6 +85,11 @@ sub calculate {
 sub report_calculation {
     my ($string) = @_;
     return qq{Input: "$string"\n} . '  Parse: ' . calculate($string) . "\n";
+}
+
+if (defined $input_string) {
+    print report_calculation($input_string);
+    exit 0;
 }
 
 my $output = join q{},

@@ -6,7 +6,7 @@ test:
 	  diff - re1000.out || true
 
 dsl1:
-	PERL5LIB=../../r2/lib:../../r2/blib/arch:$$PERL5LIB perl dsl1.pl
+	PERL5LIB=../../r2/lib:../../r2/blib/arch:$$PERL5LIB perl dsl1.pl --demo
 
 dsl3:
 	PERL5LIB=../../r2/lib:../../r2/blib/arch:$$PERL5LIB perl dsl3.pl --demo
