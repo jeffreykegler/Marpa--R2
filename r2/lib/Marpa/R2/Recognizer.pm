@@ -58,6 +58,7 @@ BEGIN {
     TRACE_TASKS
     TRACE_TERMINALS
     TRACE_VALUES
+    TRACE_SL
     WARNINGS
 
     { The following fields must be reinitialized when
@@ -791,6 +792,12 @@ sub Marpa::R2::Recognizer::sl_error {
     return $recce->[Marpa::R2::Internal::Recognizer::READ_STRING_ERROR];
 }
 
+sub Marpa::R2::Recognizer::sl_trace {
+    my ($recce, $level) = @_;
+    $level //= 1;
+    return $recce->[Marpa::R2::Internal::Recognizer::TRACE_SL] = $level;
+}
+
 my @escape_by_ord = ();
 $escape_by_ord[ ord q{\\} ] = q{\\\\};
 $escape_by_ord[ ord eval qq{"$_"} ] = $_
@@ -854,10 +861,17 @@ sub Marpa::R2::Recognizer::sl_read {
             for my $entry ( @{$class_table} ) {
                 my ( $symbol_id, $re ) = @{$entry};
                 if ( chr($codepoint) =~ $re ) {
-		    # This needs to be made into a trace option
-                    # say STDERR "Registering character ",
-			# (sprintf 'U+%04x', $codepoint), " as symbol $symbol_id: ",
-                        # $tracer->symbol_name($symbol_id);
+                    if ( $recce->[Marpa::R2::Internal::Recognizer::TRACE_SL] )
+                    {
+                        my $trace_fh =
+                            $recce->[
+                            Marpa::R2::Internal::Recognizer::TRACE_FILE_HANDLE
+                            ];
+                        say {$trace_fh} "Registering character ",
+                            ( sprintf 'U+%04x', $codepoint ),
+                            " as symbol $symbol_id: ",
+                            $tracer->symbol_name($symbol_id);
+                    } ## end if ( $recce->[...])
                     push @ops, $op_alternative, $symbol_id, 0, 1;
                 } ## end if ( chr($codepoint) =~ $re )
             } ## end for my $entry ( @{$class_table} )
