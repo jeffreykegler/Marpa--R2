@@ -33,8 +33,10 @@ END_OF_USAGE_MESSAGE
 
 my $show_position_flag;
 my $quiet_flag;
+my $trace_level = 0;
 my $getopt_result = Getopt::Long::GetOptions(
     'n!' => \$show_position_flag,
+    'trace_level=i' => \$trace_level,
     'q!' => \$quiet_flag,
 );
 usage() if not $getopt_result;
@@ -43,14 +45,14 @@ my $string = do { local $INPUT_RECORD_SEPARATOR = undef; <> };
 
 my $perl_grammar = Marpa::R2::Grammar->new(
     {   scannerless => 1,
-        actions        => 'My_Actions',
+        action_object        => 'My_Actions',
         default_action => 'do_what_I_mean',
         rules          => [ <<'END_OF_RULES' ]
 :start ~ start
 start ~ (prefix) target
 prefix ~ any_char*
 any_char ~ :any
-target ::= expression action => do_target
+target ~ expression action => do_target
 expression ::=
      number
    | scalar
@@ -80,8 +82,7 @@ expression ::=
 optional_digits ~ [\d]*
 digits ~ [\d]+
 number ~ digits action => do_literal
-number ~ digits [.] optional_digits action => do_literal
-number ~ [.] digits action => do_literal
+number ~ digits [.] digits action => do_literal
 bare_word ~ [\w]+
 scalar ~ '$' bare_word action => do_literal
 END_OF_RULES
@@ -135,7 +136,9 @@ my $self = bless {
 local $My_Actions::SELF = $self;
 my $event_count;
 
-if ( not defined eval { $event_count = $recce->sl_read($string); 1 } ) {
+$recce->sl_trace($trace_level) if $trace_level;
+for my $char (split //, $string) {
+if ( not defined eval { $event_count = $recce->sl_read($char); 1 } ) {
 
     # Add last expression found, and rethrow
     my $eval_error = $EVAL_ERROR;
@@ -144,6 +147,8 @@ if ( not defined eval { $event_count = $recce->sl_read($string); 1 } ) {
 } ## end if ( not defined eval { $event_count = $recce->sl_read...})
 if ( not defined $event_count ) {
     die "\n", $recce->sl_error();
+}
+say "Size=", $recce->earley_set_size();
 }
 
 # Given a string, an earley set to position mapping,
@@ -195,8 +200,8 @@ RESULT: for my $result ( reverse @results ) {
 } ## end RESULT: for my $result ( reverse @results )
 
 package My_Actions;
-
 our $SELF;
+sub new { return $SELF }
 
 ## no critic (Subroutines::RequireFinalReturn)
 sub do_arg1        { $_[2]; }
@@ -231,4 +236,15 @@ sub do_tilde{ shift; return [ '~', @_ ] }
 sub do_uminus{ shift; return [ 'u-', @_ ] }
 sub do_uplus{ shift; return [ 'u+', @_ ] }
 sub do_x_op{ shift; return [ 'x', @_ ] }
+
+sub do_literal {
+    my $self = shift;
+    my $recce = $self->{recce};
+    my ( $start, $end ) = Marpa::R2::Context::location();
+    my $result = $recce->sl_range_to_string($start, $end);
+    $result =~ s/ \A \s+ //xms;
+    $result =~ s/ \s+ \z //xms;
+    return $result;
+} ## end sub do_literal
+
 # vim: expandtab shiftwidth=4:
