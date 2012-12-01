@@ -45,9 +45,9 @@ if ($do_demo) {
 }
 elsif ( scalar @ARGV <= 0 ) { usage(); }
 
-my $string = '42*1+7';
+my $input_string = '42*1+7';
 if ( !$do_demo ) {
-    $string = shift;
+    $input_string = shift;
 }
 
 my $grammar = Marpa::R2::Grammar->new(
@@ -77,7 +77,7 @@ $self->{recce} = $recce;
 local $My_Actions::SELF = $self;
 
 my $event_count;
-if ( not defined eval { $event_count = $recce->sl_read($string); 1 } ) {
+if ( not defined eval { $event_count = $recce->sl_read($input_string); 1 } ) {
     ## Add last expression found, and rethrow
     my $eval_error = $EVAL_ERROR;
     chomp $eval_error;
