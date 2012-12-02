@@ -31,16 +31,9 @@ use Marpa::R2::Config;
 
 my @packages_for_perl_autoconf = qw( Config::AutoConf ExtUtils::MakeMaker );
 
-my %build_requires =
-    map { ( $_, $Marpa::R2::VERSION_FOR_CONFIG{$_} ) }
-    qw( ExtUtils::CBuilder Test::More ), @packages_for_perl_autoconf;
-if ($Marpa::R2::USE_PERL_AUTOCONF) {
-    map { $build_requires{$_} = $Marpa::R2::VERSION_FOR_CONFIG{$_} }
-        @packages_for_perl_autoconf;
-}
-
 my %configure_requires =
-    map { ( $_, $Marpa::R2::VERSION_FOR_CONFIG{$_} ) } qw( Module::Build ),
+    map { ( $_, $Marpa::R2::VERSION_FOR_CONFIG{$_} ) }
+    qw( Module::Build Scalar::Util List::Util Carp Data::Dumper ExtUtils::CBuilder Test::More ),
     @packages_for_perl_autoconf;
 my %requires =
     map { ( $_, $Marpa::R2::VERSION_FOR_CONFIG{$_} ) }
@@ -48,22 +41,6 @@ my %requires =
 my %recommends =
     map { ( $_, $Marpa::R2::VERSION_FOR_CONFIG{$_} ) }
     ( @packages_for_perl_autoconf, qw( PPI ) );
-
-if (0) {
-# if ($Marpa::R2::USE_PERL_AUTOCONF) {
-    say "Creating build to use Config::AutoConf";
-    for my $package (@packages_for_perl_autoconf) {
-        if ( not eval "require $package" ) {
-            die "$package is not installed: $EVAL_ERROR\n",
-                "    Module $package is required for Windows and for USE_PERL_AUTOCONF mode\n";
-        }
-        my $version = $Marpa::R2::VERSION_FOR_CONFIG{$package};
-        if ( not $package->VERSION($version) ) {
-            die "Version $version of $package is not installed\n",
-                "    Version $version of $package is required for Windows and for USE_PERL_AUTOCONF mode\n";
-        }
-    } ## end for my $package (@packages_for_perl_autoconf)
-} ## end if ($Marpa::R2::USE_PERL_AUTOCONF)
 
 my %pod_files = ();
 {
@@ -137,7 +114,6 @@ my $build = Marpa::R2::Build_Me->new(
     recommends         => \%recommends,
     requires           => \%requires,
     configure_requires => \%configure_requires,
-    build_requires     => \%build_requires,
     dynamic_config     => 1,
     PL_files           => {},
     pm_files           => \%pm_files,

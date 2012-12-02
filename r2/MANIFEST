@@ -100,6 +100,7 @@ lib/Marpa/R2/meta/Makefile
 lib/Marpa/R2/meta/Stuifzand.bnf
 lib/Marpa/R2/meta/aoh_to_thin.pl
 lib/Marpa/R2/meta/bnf_to_aoh.pl
+lib/Marpa/R2/meta/sl_to_aoh.pl
 libmarpa/.gitignore
 libmarpa/dev/.gitignore
 libmarpa/dev/Makefile
