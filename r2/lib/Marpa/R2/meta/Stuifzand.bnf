@@ -24,6 +24,9 @@ empty_rule ::= lhs op_declare adverb_list
   action => do_empty_rule
 quantified_rule ::= lhs op_declare single_symbol quantifier adverb_list
     action => do_quantified_rule
+op_declare ::= 
+      op_declare_bnf action => do_op_declare_bnf
+    | op_declare_match action => do_op_declare_match
 priorities ::= alternatives+
     separator => op_tighter proper => 1
     action => do_discard_separators
@@ -49,7 +52,9 @@ separator_specification ::= kw_separator op_arrow single_symbol
 proper_specification ::= kw_proper op_arrow boolean
 action => do_proper_specification
 
-quantifier ::= op_star | op_plus
+quantifier ::=
+    op_star action => do_op_star_quantifier
+  | op_plus action => do_op_plus_quantifier
 
 lhs ::= symbol_name action => do_lhs 
 rhs ::= rhs_primary+ action => do_rhs
