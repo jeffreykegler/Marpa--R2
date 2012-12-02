@@ -72,12 +72,15 @@ DESCRIPTOR: for my $descriptor ( @{$aoh} ) {
     } ## end if ( defined $min )
     $untidied .= q{ );} . "\n";
 
-    my $mask = $descriptor->{mask};
-    if (defined $mask) {
+    if ( not defined $min ) {
+        my $mask = $descriptor->{mask};
+        if ( not defined $mask ) {
+            die "Non-sequence rule must have mask" if not defined $min;
+        }
         $untidied .= '$mask_by_rule_id[$rule_id] = [';
         $untidied .= join q{,}, @{$mask};
         $untidied .= qq{];\n};
-    }
+    } ## end if ( not defined $min )
 
 } ## end DESCRIPTOR: for my $descriptor ( @{$aoh} )
 
