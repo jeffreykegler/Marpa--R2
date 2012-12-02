@@ -38,6 +38,7 @@ install: r2/xs/general_pattern.xsh
 	test -d r2/libmarpa_doc_dist || mkdir r2/libmarpa_doc_dist
 	(cd r2 && sh c_to_dist.sh)
 	(cd r2 && perl Build.PL)
+	(cd r2 && ./Build distmeta)
 	(cd r2 && ./Build code)
 
 fullinstall: install
