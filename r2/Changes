@@ -15,6 +15,10 @@
 
 Revision history for Marpa::R2
 
+2.029_001 Mon Dec  3 10:22:56 PST 2012
+
+      * Use legacy File::Path::mkpath() for portability
+
 2.029_000 Sun Dec  2 17:50:11 PST 2012
 
       * New series of developer's releases
