@@ -20,7 +20,7 @@ use strict;
 use warnings;
 
 use vars qw( $VERSION $STRING_VERSION );
-$VERSION        = '2.027_004';
+$VERSION        = '2.029_000';
 $STRING_VERSION = $VERSION;
 ## no critic (BuiltinFunctions::ProhibitStringyEval)
 $VERSION = eval $VERSION;
