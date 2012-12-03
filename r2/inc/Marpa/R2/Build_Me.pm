@@ -264,6 +264,7 @@ sub process_xs {
         defines => { VERSION => qq{"$v"}, XS_VERSION => qq{"$v"} } );
 
     # archdir
+    # Legacy mkpath(), for compatibility with Perl 5.10.0
     File::Path::mkpath( $spec->{archdir}, 0, ( oct 777 ) )
         if not -d $spec->{archdir};
 
@@ -344,7 +345,9 @@ sub do_libmarpa {
 
      ## Make sure build dir structure exists, even if empty
      my $m4_dir = File::Spec->catdir( $build_dir, 'm4' );
-     File::Path::make_path($m4_dir);
+
+     # Legacy mkpath(), for compatibility with Perl 5.10.0
+     File::Path::mkpath($m4_dir);
 
     my @copy_work_list = ();
     {
