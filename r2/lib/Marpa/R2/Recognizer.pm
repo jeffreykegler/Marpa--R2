@@ -842,6 +842,10 @@ sub Marpa::R2::Recognizer::sl_read {
     my ( $recce, $string ) = @_;
     my $grammar = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my $tracer  = $grammar->[Marpa::R2::Internal::Grammar::TRACER];
+
+    # Memoize in recognizer ?
+    my $word_boundary     = $tracer->symbol_by_name('[:|w]');
+
     my $recce_c = $recce->[Marpa::R2::Internal::Recognizer::C];
     my $stream  = $recce->[Marpa::R2::Internal::Recognizer::STREAM];
     Marpa::R2::exception("Marpa::R2::Recogizer::sl_read() called, but grammar is not scannerless\n")
@@ -894,7 +898,6 @@ sub Marpa::R2::Recognizer::sl_read {
         } ## end if ( $event_count == -2 )
         if ( $event_count == -1 ) {
             for my $terminal ( $recce_c->terminals_expected() ) {
-                state $word_boundary     = $tracer->symbol_by_name('[:|w]');
                 state $re_word_character = qr/
 		[\p{alpha}\p{GC=Mark}\p{Digit}\p{GC=Connector_Punctuation}\p{Join_Control}]
 	      /xms;
@@ -966,6 +969,28 @@ sub Marpa::R2::Recognizer::sl_read {
     # Fall through to return undef
     return;
 } ## end sub Marpa::R2::Recognizer::read_string
+
+sub Marpa::R2::Recognizer::sl_end_input {
+    my ($recce) = @_;
+    my $grammar = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
+    my $tracer  = $grammar->[Marpa::R2::Internal::Grammar::TRACER];
+    my $recce_c = $recce->[Marpa::R2::Internal::Recognizer::C];
+    my $stream  = $recce->[Marpa::R2::Internal::Recognizer::STREAM];
+    Marpa::R2::exception(
+        "Marpa::R2::Recogizer::sl_end_input() called, but grammar is not scannerless\n"
+    ) if not defined $stream;
+
+    my $end_of_input = $tracer->symbol_by_name('[:$]');
+
+    END_OF_INPUT: while (1) {
+        my $end_of_input_expected =
+            grep { $_ == $end_of_input } $recce_c->terminals_expected();
+        last END_OF_INPUT if not $end_of_input_expected;
+        $recce_c->alternative( $end_of_input, 0, 1 );
+        $recce_c->earleme_complete();
+    } ## end END_OF_INPUT:
+    return;
+} ## end sub Marpa::R2::Recognizer::sl_end_input
 
 # Given a range of locations, return the
 # input string.

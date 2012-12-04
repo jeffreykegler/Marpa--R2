@@ -77,6 +77,10 @@ use English qw( -no_match_vars );
 # Prefixed with '[:' -- a reserved symbol, one which in the
 # grammars start with a colon.
 # These are their own 'original'.
+# The names tend to be suggested by the corresponding
+# symbols in Perl 6.  Among them:
+#     [:$] -- end of input
+#     [:|w] -- word boundary
 #
 # Prefixed with '[SYMBOL#' - a unnamed internal symbol.
 # Seeing these
@@ -117,13 +121,18 @@ sub do_start_rule {
         if not $thick_grammar->[Marpa::R2::Internal::Grammar::SCANNERLESS];
     my @ws      = ();
     my @mask_kv = ();
+    my @rhs = ();
     if ( $op_declare eq q{::=} ) {
         my $ws_star = '[:ws*]';
         $self->{needs_symbol}->{$ws_star} = 1;
+        my $end_of_input = '[:$]';
+        $self->{needs_symbol}->{$end_of_input} = 1;
         push @ws, $ws_star;
-        push @mask_kv, mask => [ 0, 1, 0 ];
-    } ## end if ( $op_declare eq q{::=} )
-    my @rhs = ( @ws, $rhs, @ws );
+        @rhs = ( $ws_star, $rhs, $ws_star, $end_of_input );
+        push @mask_kv, mask => [ 0, 1, 0, 0 ];
+    } else {
+        @rhs = ( $rhs );
+    }
     return [ { lhs => '[:start]', rhs => \@rhs, @mask_kv } ];
 } ## end sub do_start_rule
 
