@@ -441,8 +441,10 @@ sub do_libmarpa {
     } ## end if ( defined $self->args('Marpa-debug') )
 	
     if ($Marpa::R2::USE_PERL_AUTOCONF) {
-	my @marpa_version= (
-	    $self->dist_version() =~ /\A (\d+) [.] (\d{3}) [_]? (\d{3}) \z/xms );
+	my @marpa_version =
+	    ( map { $_ + 0 }
+		$self->dist_version()
+		=~ /\A (\d+) [.] (\d{3}) [_]? (\d{3}) \z/xms );
 	my $marpa_version = int($marpa_version[0]) . "." . int($marpa_version[1]) . "." . int($marpa_version[2]);
 	#
 	## C.f. http://fr.slideshare.net/hashashin/building-c-and-c-libraries-with-perl
