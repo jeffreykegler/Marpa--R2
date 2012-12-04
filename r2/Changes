@@ -15,6 +15,15 @@
 
 Revision history for Marpa::R2
 
+2.031_000 Mon Dec  3 16:26:24 PST 2012
+
+      * New series of developer's releases, from
+        top of dev branch.
+
+      * Jump from minor 029 to minor 031 to
+	avoid confusion with indexed release
+	candidates.
+
 2.029_001 Mon Dec  3 10:22:56 PST 2012
 
       * Use legacy File::Path::mkpath() for portability
