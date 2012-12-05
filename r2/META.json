@@ -81,19 +81,19 @@
    "provides" : {
       "Marpa::R2" : {
          "file" : "lib/Marpa/R2.pm",
-         "version" : "2.029_010"
+         "version" : "2.030000"
       },
       "Marpa::R2::Grammar" : {
          "file" : "lib/Marpa/R2/Grammar.pm",
-         "version" : "2.029_010"
+         "version" : "2.030000"
       },
       "Marpa::R2::HTML" : {
          "file" : "html/lib/Marpa/R2/HTML.pm",
-         "version" : "2.029_010"
+         "version" : "2.030000"
       },
       "Marpa::R2::HTML::Callback" : {
          "file" : "html/lib/Marpa/R2/HTML/Callback.pm",
-         "version" : "2.029_010"
+         "version" : "2.030000"
       },
       "Marpa::R2::HTML::Config" : {
          "file" : "html/lib/Marpa/R2/HTML/Config.pm",
@@ -121,7 +121,7 @@
       },
       "Marpa::R2::Internal" : {
          "file" : "lib/Marpa/R2/Internal.pm",
-         "version" : "2.029_010"
+         "version" : "2.030000"
       },
       "Marpa::R2::Internal::Grammar" : {
          "file" : "lib/Marpa/R2/Grammar.pm",
@@ -149,26 +149,26 @@
       },
       "Marpa::R2::Recognizer" : {
          "file" : "lib/Marpa/R2/Recognizer.pm",
-         "version" : "2.029_010"
+         "version" : "2.030000"
       },
       "Marpa::R2::Stuifzand" : {
          "file" : "lib/Marpa/R2/Stuifzand.pm",
-         "version" : "2.029_010"
+         "version" : "2.030000"
       },
       "Marpa::R2::Thin::Trace" : {
          "file" : "lib/Marpa/R2/Thin/Trace.pm",
-         "version" : "2.029_010"
+         "version" : "2.030000"
       },
       "Marpa::R2::Value" : {
          "file" : "lib/Marpa/R2/Value.pm",
-         "version" : "2.029_010"
+         "version" : "2.030000"
       }
    },
-   "release_status" : "testing",
+   "release_status" : "stable",
    "resources" : {
       "repository" : {
          "url" : "git://github.com/jeffreykegler/Marpa-R2.git"
       }
    },
-   "version" : "2.029_010"
+   "version" : "2.030000"
 }

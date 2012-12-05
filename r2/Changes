@@ -15,21 +15,16 @@
 
 Revision history for Marpa::R2
 
-2.029_010 Mon Dec  3 16:45:04 PST 2012
-
-      * Release candidate for indexed release,
-        with fixes to install issues only.
-
-      * Based on 2.027_003.
-
-2.028000 Sun Dec  2 17:23:21 PST 2012
+2.030000 Tue Dec  4 18:01:55 PST 2012
 
       * Use Config::AutoConf to install on Sun's,
 	OpenBSD.
 
+      * Based on 2.027_003.
+
 2.026000 Fri Nov 23 08:04:02 PST 2012
 
-      * Now installs in  Windows,
+      * Now installs on Windows,
         using Config::AutoConf
 
 2.024000 Thu Nov  8 08:19:21 PST 2012
