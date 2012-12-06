@@ -13882,6 +13882,10 @@ and produces a matrix that represents the transitive closure
 of the relation.
 The matrix is assumed to be square.
 The input matrix will be destroyed.
+
+Its uses Warshall's algorithm,
+which is
+$O(n^3)$ where the matrix is $n$x$n$.
 @<Function definitions@> =
 PRIVATE_NOT_INLINE void transitive_closure(Bit_Matrix matrix)
 {
