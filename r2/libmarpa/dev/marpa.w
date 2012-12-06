@@ -13885,46 +13885,21 @@ The input matrix will be destroyed.
 @<Function definitions@> =
 PRIVATE_NOT_INLINE void transitive_closure(Bit_Matrix matrix)
 {
-      struct transition { unsigned int from, to; } * top_of_stack = NULL;
-      unsigned int size = matrix_columns(matrix);
-      unsigned int row;
-      DSTACK_DECLARE(stack);
-      DSTACK_INIT(stack, struct transition, 1024);
-      for (row = 0; row < size; row++) {
-          unsigned int min, max, start;
-	  Bit_Vector row_vector = matrix_row(matrix, row);
-	for ( start = 0; bv_scan(row_vector, start, &min, &max); start = max+2 ) {
-	    unsigned int column;
-	    for (column = min; column <= max; column++) {
-		struct transition *t = DSTACK_PUSH(stack, struct transition);
-		t->from = row;
-		t->to = column;
-    } } }
-    while ((top_of_stack = DSTACK_POP(stack, struct transition))) {
-	unsigned int old_from = top_of_stack->from;
-	unsigned int old_to = top_of_stack->to;
-	unsigned int new_ix;
-	for (new_ix = 0; new_ix < size; new_ix++) {
-	     /* Optimizations based on reuse of the same row are
-	       probably best left to the compiler's optimizer.
-	      */
-	     if (!matrix_bit_test(matrix, new_ix, old_to) && 
-	     matrix_bit_test(matrix, new_ix, old_from)) {
-		 struct transition *t = (DSTACK_PUSH(stack, struct transition));
-		  matrix_bit_set(matrix, new_ix, old_to);
-		 t->from = new_ix;
-		 t->to = old_to;
-		}
-	     if (!matrix_bit_test(matrix, old_from, new_ix) && 
-	     matrix_bit_test(matrix, old_to, new_ix)) {
-		 struct transition *t = (DSTACK_PUSH(stack, struct transition));
-		  matrix_bit_set(matrix, old_from, new_ix);
-		 t->from = old_from;
-		 t->to = new_ix;
-		}
+  unsigned int size = matrix_columns (matrix);
+  unsigned int outer_row;
+  for (outer_row = 0; outer_row < size; outer_row++)
+    {
+      Bit_Vector outer_row_v = matrix_row (matrix, outer_row);
+      unsigned int column;
+      for (column = 0; column < size; column++)
+	{
+	  Bit_Vector inner_row_v = matrix_row (matrix, column);
+	  if (bv_bit_test (inner_row_v, (unsigned int) outer_row))
+	    {
+	      bv_or_assign (inner_row_v, outer_row_v);
+	    }
 	}
     }
-      DSTACK_DESTROY(stack);
 }
 
 @** Efficient stacks and queues.
