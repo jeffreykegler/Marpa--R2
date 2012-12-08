@@ -136,6 +136,17 @@ sub do_start_rule {
     return [ { lhs => '[:start]', rhs => \@rhs, @mask_kv } ];
 } ## end sub do_start_rule
 
+sub do_comment_rule {
+    my ( $self, $rhs ) = @_;
+    my $thick_grammar = $self->{thick_grammar};
+    die ':comment not allowed unless grammar is scannerless'
+        if not $thick_grammar->[Marpa::R2::Internal::Grammar::SCANNERLESS];
+    my @mask_kv = ( mask => [0] );
+    my @rhs = ($rhs);
+    $self->{needs_symbol}->{'[:WSpace]'} = 1;
+    return [ { lhs => '[:WSpace]', rhs => \@rhs, [0] }, ];
+} ## end sub do_comment_rule
+
 # From least to most restrictive
 my @ws_by_rank = qw( [:ws*] [:ws] [:ws+] );
 my %rank_by_ws = map { $ws_by_rank[$_] => $_ } 0 .. $#ws_by_rank;
@@ -810,6 +821,7 @@ sub parse_rules {
     } ## end for my $rule_id ( grep { $thin_grammar->rule_length($_...)})
     push @terminals,
         [ 'kw__start', qr/ [:] start \b /xms,    ':start reserved symbol' ],
+        [ 'kw__comment', qr/ [:] comment \b /xms,    ':comment reserved symbol' ],
         [ 'kw__ws_plus', qr/ [:] ws [+] /xms,    ':ws+ reserved symbol' ],
         [ 'kw__ws_star', qr/ [:] ws [*] /xms,    ':ws* reserved symbol' ],
         [ 'kw__ws', qr/ [:] ws\b/xms,    ':ws reserved symbol' ],
@@ -1024,8 +1036,8 @@ sub parse_rules {
                     next SYMBOL;
                 } ## end if ( $needed_symbol eq '[:ws]' )
                 if ( $needed_symbol eq '[:WSpace]' ) {
-                    assign_symbol_by_char_class( $self, '[\p{White_Space}]',
-                        '[:WSpace]' );
+                    my $true_ws = assign_symbol_by_char_class( $self, '[\p{White_Space}]');
+                    push @{ws_rules}, { lhs => '[:WSpace]', rhs => [$true_ws->name()] };
                 }
             } ## end SYMBOL: for my $needed_symbol (@needed_symbols)
         } ## end while (1)
