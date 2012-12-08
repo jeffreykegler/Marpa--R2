@@ -57,8 +57,8 @@ Expression ::=
 Number ~ [\d] + action => do_literal
 :comment ~ hash_comment
 hash_comment ~ '#' comment_body comment_end
-comment_body ~ [^\v]*
-comment_end ~ :$ | [\v]
+comment_body ~ [^\n]*
+comment_end ~ :$ | [\n]
 END_OF_RULES
     }
 );
@@ -150,6 +150,7 @@ sub my_parser {
     $recce->sl_end_input();
     my $value_ref = $recce->value;
     if ( not defined $value_ref ) {
+        say STDERR $recce->show_progress();
         die $self->show_last_expression(), "\n",
             "No parse was found, after reading the entire input\n";
     }
@@ -159,10 +160,13 @@ sub my_parser {
 my @test_strings;
 if ($do_demo) {
     push @test_strings,
-    '2
-    # this is my very first comment
-    5',
-    ;
+    <<'END_OF_STRING';
+#this is a first first comment
+2
+# this is my very first comment
+5 #this is a final comment
+END_OF_STRING
+
 } else {
     push @test_strings, shift;
 }

@@ -427,7 +427,7 @@ sub do_any {
 
 sub do_end_of_input {
     my $self = shift;
-    my $symbol_name = ':$';
+    my $symbol_name = '[:$]';
     return assign_symbol_by_char_class( $self, '[:$]', $symbol_name );
 }
 
