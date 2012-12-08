@@ -55,6 +55,10 @@ Expression ::=
      Number
    | '+' Expression Expression action => do_add
 Number ~ [\d] + action => do_literal
+:comment ~ hash_comment
+hash_comment ~ '#' comment_body comment_end
+comment_body ~ [^\v]*
+comment_end ~ :$ | [\v]
 END_OF_RULES
     }
 );
@@ -156,6 +160,7 @@ my @test_strings;
 if ($do_demo) {
     push @test_strings,
     '2
+    # this is my very first comment
     5',
     ;
 } else {

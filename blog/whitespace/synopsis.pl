@@ -87,8 +87,10 @@ if ( not defined eval { $event_count = $recce->sl_read($input_string); 1 } ) {
 if ( not defined $event_count ) {
     die $self->show_last_expression(), "\n", $recce->sl_error();
 }
+$recce->sl_end_input();
 my $value_ref = $recce->value;
 if ( not defined $value_ref ) {
+    print STDERR $recce->show_progress();
     die $self->show_last_expression(), "\n",
         "No parse was found, after reading the entire input\n";
 }
