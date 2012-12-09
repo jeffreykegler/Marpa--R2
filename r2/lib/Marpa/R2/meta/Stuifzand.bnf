@@ -50,12 +50,10 @@ right_association ::= (kw_assoc op_arrow kw_right)
 group_association ::= (kw_assoc op_arrow kw_group)
   action => do_group_association 
 
-# to here
-
-separator_specification ::= kw_separator op_arrow single_symbol
+separator_specification ::= (kw_separator op_arrow) single_symbol
   action => do_separator_specification
-proper_specification ::= kw_proper op_arrow boolean
-action => do_proper_specification
+proper_specification ::= (kw_proper op_arrow) boolean
+  action => do_proper_specification
 
 quantifier ::=
     op_star action => do_op_star_quantifier
