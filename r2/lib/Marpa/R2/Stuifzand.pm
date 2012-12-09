@@ -425,7 +425,11 @@ sub do_any {
     return assign_symbol_by_char_class( $self, '[\p{Cn}\P{Cn}]', $symbol_name );
 }
 
-sub do_end_of_input { return '[:$]'; }
+sub do_end_of_input {
+    my $self = shift;
+    return $self->{end_of_input_symbol} //=
+        Marpa::R2::Internal::Stuifzand::Symbol->new('[:$]');
+}
 
 sub do_ws { return create_hidden_internal_symbol($_[0], '[:ws]') }
 sub do_ws_star { return create_hidden_internal_symbol($_[0], '[:ws*]') }
