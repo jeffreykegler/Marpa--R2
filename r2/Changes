@@ -15,12 +15,9 @@
 
 Revision history for Marpa::R2
 
-2.031_001 Tue Dec  4 18:30:56 PST 2012
-2.031_000 Mon Dec  3 16:26:24 PST 2012
+2.032000 Sun Dec  9 10:19:50 PST 2012
 
-      * New series of developer's releases, from
-        top of dev branch.
-        Includes "Leapfrogged" developer's release: 2.027_004 
+      * Speed up precomputation of large grammars.
 
 2.030000 Tue Dec  4 18:01:55 PST 2012
 

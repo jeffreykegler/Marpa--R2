@@ -53,16 +53,16 @@ no_index:
 provides:
   Marpa::R2:
     file: lib/Marpa/R2.pm
-    version: 2.031_001
+    version: 2.032000
   Marpa::R2::Grammar:
     file: lib/Marpa/R2/Grammar.pm
-    version: 2.031_001
+    version: 2.032000
   Marpa::R2::HTML:
     file: html/lib/Marpa/R2/HTML.pm
-    version: 2.031_001
+    version: 2.032000
   Marpa::R2::HTML::Callback:
     file: html/lib/Marpa/R2/HTML/Callback.pm
-    version: 2.031_001
+    version: 2.032000
   Marpa::R2::HTML::Config:
     file: html/lib/Marpa/R2/HTML/Config.pm
     version: 0
@@ -83,7 +83,7 @@ provides:
     version: 0
   Marpa::R2::Internal:
     file: lib/Marpa/R2/Internal.pm
-    version: 2.031_001
+    version: 2.032000
   Marpa::R2::Internal::Grammar:
     file: lib/Marpa/R2/Grammar.pm
     version: 0
@@ -104,16 +104,16 @@ provides:
     version: 0
   Marpa::R2::Recognizer:
     file: lib/Marpa/R2/Recognizer.pm
-    version: 2.031_001
+    version: 2.032000
   Marpa::R2::Stuifzand:
     file: lib/Marpa/R2/Stuifzand.pm
-    version: 2.031_001
+    version: 2.032000
   Marpa::R2::Thin::Trace:
     file: lib/Marpa/R2/Thin/Trace.pm
-    version: 2.031_001
+    version: 2.032000
   Marpa::R2::Value:
     file: lib/Marpa/R2/Value.pm
-    version: 2.031_001
+    version: 2.032000
 recommends:
   Config::AutoConf: 0.2
   ExtUtils::MakeMaker: 0
@@ -127,4 +127,4 @@ requires:
   Scalar::Util: 1.21
 resources:
   repository: git://github.com/jeffreykegler/Marpa-R2.git
-version: 2.031_001
+version: 2.032000
