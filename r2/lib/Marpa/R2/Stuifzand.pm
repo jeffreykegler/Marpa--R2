@@ -377,6 +377,7 @@ sub do_quantified_rule {
         lhs    => $lhs,
         rhs    => [$sequence_lhs],
         action => $do_arg0_full_name,
+        mask => [1]
         },
         {
         lhs    => $lhs,
@@ -1037,8 +1038,8 @@ sub parse_rules {
                     next SYMBOL;
                 } ## end if ( $needed_symbol eq '[:ws*]' )
                 if ( $needed_symbol eq '[:ws]' ) {
-                    push @{ws_rules}, { lhs => '[:ws]', rhs => ['[:ws+]'] };
-                    push @{ws_rules}, { lhs => '[:ws]', rhs => ['[:|w]'] };
+                    push @{ws_rules}, { lhs => '[:ws]', rhs => ['[:ws+]'], mask => [0] };
+                    push @{ws_rules}, { lhs => '[:ws]', rhs => ['[:|w]'], mask => [0] };
                     $needed{'[:ws+]'} = 1;
                     next SYMBOL;
                 } ## end if ( $needed_symbol eq '[:ws]' )

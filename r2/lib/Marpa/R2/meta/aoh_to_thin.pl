@@ -38,11 +38,11 @@ die "usage $PROGRAM_NAME [--help] file ...\n" if $help_flag;
 my $parse_result;
 my $parse_result_source = do { local $RS = undef; <> };
 unless ( $parse_result = eval "no strict; $parse_result_source" ) {
-    die "couldn't parse $parse_result_source: $EVAL_ERROR"
+    die "couldn't parse input: $EVAL_ERROR"
         if $EVAL_ERROR;
-    die "couldn't do $parse_result_source: $ERRNO"
+    die "couldn't do input: $ERRNO"
         unless defined $parse_result;
-    die "couldn't run $parse_result_source" unless $parse_result;
+    die "couldn't run input" unless $parse_result;
 } ## end unless ( $parse_result = eval "no strict; $parse_result_source")
 
 sub quote { return q{"} . (quotemeta shift) . q{"}; }
@@ -75,6 +75,7 @@ DESCRIPTOR: for my $descriptor ( @{$aoh} ) {
     if ( not defined $min ) {
         my $mask = $descriptor->{mask};
         if ( not defined $mask ) {
+	    say STDERR "Problem with rule:\n", Data::Dumper::Dumper($descriptor);
             die "Non-sequence rule must have mask" if not defined $min;
         }
         $untidied .= '$mask_by_rule_id[$rule_id] = [';
