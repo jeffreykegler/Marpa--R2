@@ -29,13 +29,19 @@ use autodie;
 use Marpa::R2;
 
 use Getopt::Long;
-my $verbose   = 1;
-my $help_flag = 0;
-my $result    = Getopt::Long::GetOptions( 'help' => \$help_flag );
+my $verbose          = 1;
+my $help_flag        = 0;
+my $scannerless_flag = 0;
+my $result           = Getopt::Long::GetOptions(
+    'help'      => \$help_flag,
+    scannerless => \$scannerless_flag
+);
 die "usage $PROGRAM_NAME [--help] file ...\n" if $help_flag;
 
-my $bnf = join q{}, <>;
-my $dummy_grammar = [];
+my $bnf           = join q{}, <>;
+my @grammar_args  = ();
+push @grammar_args, scannerless => 1 if $scannerless_flag;
+my $dummy_grammar = Marpa::R2::Grammar->new( {@grammar_args} );
 my $parse_result =
     Marpa::R2::Internal::Stuifzand::parse_rules( $dummy_grammar, $bnf );
 my %keys_to_save = map { $_, 1 } qw(rules character_classes);
@@ -60,4 +66,4 @@ sub sort_bnf {
 my $sorted_aoh = [ sort sort_bnf @{$aoh} ];
 $Data::Dumper::Sortkeys = 1;
 $parse_result->{rules} = $sorted_aoh;
-print Data::Dumper::Dumper(  $parse_result );
+print Data::Dumper::Dumper($parse_result);
