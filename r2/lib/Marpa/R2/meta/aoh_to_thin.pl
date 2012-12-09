@@ -46,10 +46,31 @@ unless ( $parse_result = eval "no strict; $parse_result_source" ) {
 } ## end unless ( $parse_result = eval "no strict; $parse_result_source")
 
 sub quote { return q{"} . (quotemeta shift) . q{"}; }
-my $aoh = $parse_result->{rules};
+
+my $untidied = '';
+
+CHARARACTER_CLASSES:
+for my $char_class ( @{ $parse_result->{character_classes} } )
+{
+    $untidied
+        .= '$symbol_id = $tracer->symbol_new( '
+        . quote($char_class)
+        . qq{);\n};
+    my $re = substr $char_class, 1, -1;
+
+    # try to fast fail at this point, rather than in the module
+    if ( not defined eval { qr/$re/xms; 1; } ) {
+        die 'Bad Character class: ',
+            $char_class, "\n", "Perl said ", $EVAL_ERROR;
+    }
+    $untidied
+        .= 'push @character_class_table, [ $symbol_id, qr/'
+        . $re
+        . qq{/xms ];\n};
+} ## end CHARARACTER_CLASSES: for my $char_class ( @{ $parse_result->{...}})
 
 my %numeric = map {$_ => 1} qw(min proper);
-my $untidied = '';
+my $aoh = $parse_result->{rules};
 DESCRIPTOR: for my $descriptor ( @{$aoh} ) {
     my $min    = $descriptor->{min};
     my $method = defined $min ? 'sequence_new' : 'rule_new';
