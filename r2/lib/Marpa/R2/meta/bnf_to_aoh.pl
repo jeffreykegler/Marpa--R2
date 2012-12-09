@@ -31,7 +31,7 @@ use Marpa::R2;
 use Getopt::Long;
 my $verbose          = 1;
 my $help_flag        = 0;
-my $scannerless_flag = 0;
+my $scannerless_flag = 1;
 my $result           = Getopt::Long::GetOptions(
     'help'      => \$help_flag,
     scannerless => \$scannerless_flag

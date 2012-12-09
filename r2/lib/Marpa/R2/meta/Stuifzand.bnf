@@ -14,9 +14,10 @@
 # http://www.gnu.org/licenses/.
 
 
+:start ::= rules
 rules ::= rule+ action => do_rules
 rule ::= start_rule | empty_rule | priority_rule | quantified_rule | comment_rule
-start_rule ::= (kw__start) op_declare symbol_name
+start_rule ::= ':start' op_declare symbol_name
   action => do_start_rule
 priority_rule ::= lhs op_declare priorities
   action => do_priority_rule
@@ -24,17 +25,19 @@ empty_rule ::= lhs op_declare adverb_list
   action => do_empty_rule
 quantified_rule ::= lhs op_declare single_symbol quantifier adverb_list
     action => do_quantified_rule
-comment_rule ::= (kw__comment op_declare_match) single_symbol
+comment_rule ::= ':comment' '~' single_symbol
   action => do_comment_rule
 op_declare ::= 
-      op_declare_bnf action => do_op_declare_bnf
-    | op_declare_match action => do_op_declare_match
+      '::=' action => do_op_declare_bnf
+    | '~' action => do_op_declare_match
 priorities ::= alternatives+
     separator => op_tighter proper => 1
     action => do_discard_separators
+op_tighter ~ '||'
 alternatives ::= alternative+
     separator => op_eq_pri proper => 1
     action => do_discard_separators
+op_eq_pri ~ '|'
 alternative ::= rhs adverb_list action => do_alternative 
 adverb_list ::= adverb_item* action => do_adverb_list
 adverb_item ::=
@@ -42,42 +45,68 @@ adverb_item ::=
     | left_association | right_association | group_association
     | separator_specification | proper_specification
 
-action ::= (kw_action op_arrow) action_name action => do_action
-left_association ::= (kw_assoc op_arrow kw_left)
+action ::= 'action' '=>' action_name action => do_action
+left_association ::= 'assoc' '=>' 'left'
   action => do_left_association 
-right_association ::= (kw_assoc op_arrow kw_right)
+right_association ::= 'assoc' '=>' 'right'
   action => do_right_association 
-group_association ::= (kw_assoc op_arrow kw_group)
+group_association ::= 'assoc' '=>' 'group'
   action => do_group_association 
 
-separator_specification ::= (kw_separator op_arrow) single_symbol
+separator_specification ::= 'separator' '=>' single_symbol
   action => do_separator_specification
-proper_specification ::= (kw_proper op_arrow) boolean
+proper_specification ::= 'proper' '=>' boolean
   action => do_proper_specification
 
 quantifier ::=
-    op_star action => do_op_star_quantifier
-  | op_plus action => do_op_plus_quantifier
+    '*' action => do_op_star_quantifier
+  | '+' action => do_op_plus_quantifier
 
 lhs ::= symbol_name action => do_lhs 
 rhs ::= rhs_primary+ action => do_rhs
 rhs_primary ::= single_symbol action => do_symbol_list
-rhs_primary ::= kw__ws_star action => do_ws_star
-rhs_primary ::= kw__ws_plus action => do_ws_plus
-rhs_primary ::= kw__ws action => do_ws
-rhs_primary ::= kw__any action => do_any
-rhs_primary ::= kw__end_of_input action => do_end_of_input
+rhs_primary ::= ':ws*' action => do_ws_star
+rhs_primary ::= ':ws+' action => do_ws_plus
+rhs_primary ::= ':ws' action => do_ws
+rhs_primary ::= ':any' action => do_any
+rhs_primary ::= ':$' action => do_end_of_input
 rhs_primary ::= single_quoted_string action => do_single_quoted_string
-rhs_primary ::= (op_lparen) rhs_primary_list (op_rparen)
+rhs_primary ::= '(' rhs_primary_list ')'
   action => do_parenthesized_symbol_list
+
 rhs_primary_list ::= rhs_primary+ action => do_symbol_list
 single_symbol ::=
     symbol
   | character_class action => do_character_class
 symbol ::= symbol_name action => do_symbol
 symbol_name ::= bare_name | reserved_word
-symbol_name ::= bracketed_name action => do_bracketed_name
-action_name ::= bare_name | reserved_action_name
+symbol_name ::= '<' phrase_name '>' action => do_symbol
+action_name ::= bare_name | '::whatever' | '::undef'
 
-reserved_word ::= kw_action | kw_assoc | kw_separator | kw_proper
-  | kw_left | kw_right | kw_group
+boolean ~ [\d+]+ action => do_literal
+bare_name ~ [\w]+ action => do_literal
+
+# phrase name can contain spaces
+phrase_name ~ [ \w]+ action => do_literal
+
+# In single quotes strings and character classes
+# no escaping or internal newlines, and disallow empty string
+
+single_quoted_string ~ ['] <string without single quote or vertical space> ['] action => do_literal
+<string without single quote or vertical space> ~ [^'\x{0A}\x{0B}\x{0C}\x{0D}\x{0085}\x{2028}\x{2029}]+
+
+<character class> ~ '[' <cc string> ']' action => do_literal
+<cc string> ~ <cc character>
+<cc character> ~ <escaped cc char> | <safe cc char>
+<escaped cc character> ~ '\' <horizontal character>
+# hex 5d is right square bracket
+<safe cc character> ~ [^\x{5d}\x{0A}\x{0B}\x{0C}\x{0D}\x{0085}\x{2028}\x{2029}]
+
+:comment ~ <hash comment>
+<hash comment> ~ '#' <hash comment body> <hash comment end>
+<hash comment body> ~ <horizontal character>*
+<hash comment end> ~ :$ | <vertical space char>
+<vertical space char> ~ [\x{A}\x{B}\x{C}\x{D}\x{2028}\x{2029}]
+
+# a horizontal character is any character that is not vertical space
+<horizontal character> ~ [^\x{A}\x{B}\x{C}\x{D}\x{2028}\x{2029}]
