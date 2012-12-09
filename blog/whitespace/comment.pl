@@ -55,10 +55,12 @@ Expression ::=
      Number
    | '+' Expression Expression action => do_add
 Number ~ [\d] + action => do_literal
-:comment ~ hash_comment
-hash_comment ~ '#' comment_body comment_end
-comment_body ~ [^\n]*
-comment_end ~ :$ | [\n]
+:comment ~ <hash comment>
+<hash comment> ~ '#' <hash comment body> <hash comment end>
+<hash comment body> ~ <hash comment char>*
+<hash comment end> ~ :$ | <vertical space char>
+<vertical space char> ~ [\x{A}\x{B}\x{C}\x{D}\x{2028}\x{2029}]
+<hash comment char> ~ [^\x{A}\x{B}\x{C}\x{D}\x{2028}\x{2029}]
 END_OF_RULES
     }
 );
