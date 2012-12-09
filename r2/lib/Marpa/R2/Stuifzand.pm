@@ -1006,7 +1006,7 @@ sub parse_rules {
     my $rules = $self->{rules} = $stack[0];
 
     my @ws_rules = ();
-    if (defined $self->{needs_symbol} ) {
+    if ( defined $self->{needs_symbol} ) {
         my %needed = %{ $self->{needs_symbol} };
         my %seen   = ();
         undef $self->{needs_symbol};
@@ -1043,12 +1043,18 @@ sub parse_rules {
                     next SYMBOL;
                 } ## end if ( $needed_symbol eq '[:ws]' )
                 if ( $needed_symbol eq '[:Space]' ) {
-                    my $true_ws = assign_symbol_by_char_class( $self, '[\p{White_Space}]');
-                    push @{ws_rules}, { lhs => '[:Space]', rhs => [$true_ws->name()] };
-                }
+                    my $true_ws = assign_symbol_by_char_class( $self,
+                        '[\p{White_Space}]' );
+                    push @{ws_rules},
+                        {
+                        lhs  => '[:Space]',
+                        rhs  => [ $true_ws->name() ],
+                        mask => [0]
+                        };
+                } ## end if ( $needed_symbol eq '[:Space]' )
             } ## end SYMBOL: for my $needed_symbol (@needed_symbols)
-        } ## end while (1)
-    } ## end NEEDED_SYMBOL_LOOP:
+        } ## end NEEDED_SYMBOL_LOOP: while (1)
+    } ## end if ( defined $self->{needs_symbol} )
 
     push @{$rules}, @ws_rules;
 
