@@ -34,7 +34,7 @@ my $help_flag        = 0;
 my $scannerless_flag = 1;
 my $result           = Getopt::Long::GetOptions(
     'help'      => \$help_flag,
-    scannerless => \$scannerless_flag
+    'scannerless!' => \$scannerless_flag
 );
 die "usage $PROGRAM_NAME [--help] file ...\n" if $help_flag;
 
@@ -44,10 +44,6 @@ push @grammar_args, scannerless => 1 if $scannerless_flag;
 my $dummy_grammar = Marpa::R2::Grammar->new( {@grammar_args} );
 my $parse_result =
     Marpa::R2::Internal::Stuifzand::parse_rules( $dummy_grammar, $bnf );
-my %keys_to_save = map { $_, 1 } qw(rules character_classes);
-for my $key ( grep { not $keys_to_save{$_} } keys %{$parse_result} ) {
-    delete $parse_result->{$key};
-}
 my $aoh = $parse_result->{rules};
 
 sub sort_bnf {
@@ -65,5 +61,7 @@ sub sort_bnf {
 } ## end sub sort_bnf
 my $sorted_aoh = [ sort sort_bnf @{$aoh} ];
 $Data::Dumper::Sortkeys = 1;
-$parse_result->{rules} = $sorted_aoh;
-print Data::Dumper::Dumper($parse_result);
+my $cooked_parse_result = {};
+$cooked_parse_result->{rules} = $sorted_aoh;
+$cooked_parse_result->{character_classes} = [sort keys %{$parse_result->{character_classes}}];
+print Data::Dumper::Dumper($cooked_parse_result);
