@@ -43,12 +43,15 @@ adverb_item ::=
     | separator_specification | proper_specification
 
 action ::= (kw_action op_arrow) action_name action => do_action
-left_association ::= kw_assoc op_arrow kw_left
+left_association ::= (kw_assoc op_arrow kw_left)
   action => do_left_association 
-right_association ::= kw_assoc op_arrow kw_right
+right_association ::= (kw_assoc op_arrow kw_right)
   action => do_right_association 
-group_association ::= kw_assoc op_arrow kw_group
+group_association ::= (kw_assoc op_arrow kw_group)
   action => do_group_association 
+
+# to here
+
 separator_specification ::= kw_separator op_arrow single_symbol
   action => do_separator_specification
 proper_specification ::= kw_proper op_arrow boolean
