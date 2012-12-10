@@ -1023,7 +1023,11 @@ $mask_by_rule_id[$rule_id] = [0];
 
     $grammar->start_symbol_set( $tracer->symbol_by_name('rules') );
     $grammar->precompute();
-    return {tracer => $tracer, mask_by_rule_id => \@mask_by_rule_id };
+    return {
+        tracer                => $tracer,
+        mask_by_rule_id       => \@mask_by_rule_id,
+        character_class_table => \@character_class_table
+    };
 } ## end sub stuifzand_grammar
 
 # 1-based numbering matches vi convention
@@ -1073,103 +1077,161 @@ sub parse_rules {
 
     state $stuifzand_grammar = stuifzand_grammar();
     state $tracer            = $stuifzand_grammar->{tracer};
+    state $character_class_table            = $stuifzand_grammar->{character_class_table};
     state $mask_by_rule_id            = $stuifzand_grammar->{mask_by_rule_id};
     state $thin_grammar      = $tracer->grammar();
     my $recce = Marpa::R2::Thin::R->new($thin_grammar);
     $recce->start_input();
-    $recce->ruby_slippers_set(1);
 
-    # Zero position must not be used
-    my @token_values = (0);
+    # Memoize ? Global ?
+    my $word_boundary     = $tracer->symbol_by_name('[:|w]');
 
-    # Order matters !!!
-    my @terminals = ();
-    ## This hack makes assumptions about the grammar rules
-    RULE:
-    for my $rule_id ( grep { $thin_grammar->rule_length($_); }
-        0 .. $thin_grammar->highest_rule_id() )
-    {
-        my ( $lhs, @rhs ) = $tracer->rule($rule_id);
-        next RULE if Marpa::R2::Grammar::original_symbol_name($lhs) ne 'reserved_word';
-        next RULE if scalar @rhs != 1;
-        my $reserved_word = Marpa::R2::Grammar::original_symbol_name( $rhs[0] );
-        next RULE if 'kw_' ne substr $reserved_word, 0, 3;
-        $reserved_word = substr $reserved_word, 3;
-        push @terminals,
-            [
-            'kw_' . $reserved_word,
-            qr/$reserved_word\b/xms,
-            qq{"$reserved_word" keyword}
-            ];
-    } ## end for my $rule_id ( grep { $thin_grammar->rule_length($_...)})
-    push @terminals,
-        [ 'kw__start', qr/ [:] start \b /xms,    ':start reserved symbol' ],
-        [ 'kw__comment', qr/ [:] comment \b /xms,    ':comment reserved symbol' ],
-        [ 'kw__ws_plus', qr/ [:] ws [+] /xms,    ':ws+ reserved symbol' ],
-        [ 'kw__ws_star', qr/ [:] ws [*] /xms,    ':ws* reserved symbol' ],
-        [ 'kw__ws', qr/ [:] ws \b/xms,    ':ws reserved symbol' ],
-        [ 'kw__default', qr/ [:] default \b/xms,    ':default reserved symbol' ],
-        [ 'kw__any', qr/ [:] any \b/xms,    ':any reserved symbol' ],
-        [ 'kw__end_of_input', qr/ [:] [\$] /xms,    q{':$': end_of_input reserved symbol} ],
-        [ 'op_declare_bnf', qr/::=/xms,    'BNF declaration operator (ws)' ],
-        [ 'op_declare_match', qr/[~]/xms,    'match declaration operator (no ws)' ],
-        [ 'op_arrow',   qr/=>/xms,     'adverb operator' ],
-        [ 'op_lparen',  qr/[(]/xms,    'left parenthesis' ],
-        [ 'op_rparen',  qr/[)]/xms,    'right parenthesis' ],
-        [ 'op_tighter', qr/[|][|]/xms, 'tighten-precedence operator' ],
-        [ 'op_eq_pri',  qr/[|]/xms,    'alternative operator' ],
-        [ 'op_plus',    qr/[+]/xms,    'plus quantification operator' ],
-        [ 'op_star',    qr/[*]/xms,    'star quantification operator' ],
-        [ 'boolean',    qr/[01]/xms ],
-        [ 'bare_name',  qr/\w+/xms, ],
-        [ 'bracketed_name', qr/ [<] [ \w]+ [>] /xms, ],
-        [ 'reserved_action_name', qr/(::(whatever|undef))/xms ],
-        ## no escaping or internal newlines, and disallow empty string
-        [ 'single_quoted_string', qr/ ['] [^'\x{0A}\x{0B}\x{0C}\x{0D}\x{0085}\x{2028}\x{2029}]+ ['] /xms ],
-        [ 'character_class', qr/ (?: (?: \[) (?: [^\\\[]* (?: \\. [^\\\]]* )* ) (?: \]) ) /xms,
-            'character class' ],
-        ;
+    my $stream = Marpa::R2::Thin::U->new($recce);
 
-    my $length = length $string;
-    pos $string = 0;
-    my $latest_earley_set_ID = 0;
-    TOKEN: while ( pos $string < $length ) {
+    my $event_count;
 
-        # skip comment
-        next TOKEN if $string =~ m/\G \s* [#] [^\n]* \n/gcxms;
+    $stream->string_set(\$string);
+    READ: {
+        state $op_alternative = Marpa::R2::Thin::U::op('alternative');
+        state $op_earleme_complete =
+            Marpa::R2::Thin::U::op('earleme_complete');
+        $event_count = $stream->read();
+        last READ if $event_count == 0;
+        if ( $event_count > 0 ) {
+            say STDERR
+                "Events occurred while parsing BNF grammar; these will be fatal errors\n",
+                "  Event count: $event_count";
+            for ( my $event_ix = 0; $event_ix < $event_count; $event_ix++ ) {
+                my ( $event_type, $value ) = $thin_grammar->event($event_ix);
+                if ( $event_type eq 'MARPA_EVENT_EARLEY_ITEM_THRESHOLD' ) {
+                    say STDERR
+                        "Unexpected event: Earley item count ($value) exceeds warning threshold";
+                    next EVENT;
+                }
+                if ( $event_type eq 'MARPA_EVENT_SYMBOL_EXPECTED' ) {
+                    say STDERR "Unexpected event: $event_type ",
+                        $tracer->symbol_name($value);
+                    next EVENT;
+                }
+                if ( $event_type eq 'MARPA_EVENT_EXHAUSTED' ) {
+                    say STDERR "Unexpected event: $event_type ";
+                    next EVENT;
+                }
+            } ## end for ( my $event_ix = 0; $event_ix < $event_count; ...)
+            die "Unexpected events when parsing BNF grammar, cannot proceed";
+        } ## end if ( $event_count > 0 )
+        if ( $event_count == -2 ) {
 
-        # skip whitespace
-        next TOKEN if $string =~ m/\G\s+/gcxms;
+            # Recover by registering character, if we can
+            my $codepoint = $stream->codepoint();
+            my @ops;
+            for my $entry ( @{$character_class_table} ) {
+                my ( $symbol_id, $re ) = @{$entry};
+                if ( chr($codepoint) =~ $re ) {
 
-        # read other tokens
-        TOKEN_TYPE: for my $t (@terminals) {
-            next TOKEN_TYPE if not $string =~ m/\G($t->[1])/gcxms;
-            my $value_number = -1 + push @token_values, $1;
-            my $string_position = pos $string;
-            if ($recce->alternative( $tracer->symbol_by_name( $t->[0] ),
-                    $value_number, 1 ) != $Marpa::R2::Error::NONE
-                )
-            {
-                my $problem_position = $positions[-1];
-                my ( $line, $column ) =
-                    line_column( $string, $problem_position );
-                die qq{MARPA PARSE ABEND at line $line, column $column:\n},
-                    qq{=== Last rule that Marpa successfully parsed was: },
-                    last_rule( $tracer, $recce, $string, \@positions ), "\n",
-                    problem_happened_here($string, $problem_position),
-                    qq{=== Marpa rejected token, "$1", }, ( $t->[2] // $t->[0] ), "\n";
-            } ## end if ( $recce->alternative( $tracer->symbol_by_name( $t...)))
-            $recce->earleme_complete();
-            $latest_earley_set_ID = $recce->latest_earley_set();
-            $positions[$latest_earley_set_ID] = $string_position;
-            next TOKEN;
-        } ## end TOKEN_TYPE: for my $t (@terminals)
+                    # Add an undocumented flag for this?
+                    # if ( $recce->[Marpa::R2::Internal::Recognizer::TRACE_SL] )
+                    if (0) {
+                        my $trace_fh =
+                            $recce->[
+                            Marpa::R2::Internal::Recognizer::TRACE_FILE_HANDLE
+                            ];
+                        say {$trace_fh} "Registering character ",
+                            ( sprintf 'U+%04x', $codepoint ),
+                            " as symbol $symbol_id: ",
+                            $tracer->symbol_name($symbol_id);
+                    } ## end if (0)
+                    push @ops, $op_alternative, $symbol_id, 0, 1;
+                } ## end if ( chr($codepoint) =~ $re )
+            } ## end for my $entry ( @{$character_class_table} )
+            die sprintf "Cannot read character U+%04x: %c\n", $codepoint,
+                $codepoint
+                if not @ops;
+            $stream->char_register( $codepoint, @ops, $op_earleme_complete );
+            redo READ;
+        } ## end if ( $event_count == -2 )
+        if ( $event_count == -1 ) {
+            for my $terminal ( $recce->terminals_expected() ) {
+                state $re_word_character = qr/
+		[\p{alpha}\p{GC=Mark}\p{Digit}\p{GC=Connector_Punctuation}\p{Join_Control}]
+	      /xms;
+                DO_WORD_BOUNDARY: {
+                    last DO_WORD_BOUNDARY if $terminal != $word_boundary;
+                    my $current_is_word_char = 1
+                        if ( chr $stream->codepoint() ) =~ $re_word_character;
+                    if ($current_is_word_char) {
+                        my $previous_codepoint;
+                        my $previous_location = $recce->latest_earley_set();
+                        while ( not defined $previous_codepoint
+                            and $previous_location > 0 )
+                        {
+                            $previous_codepoint = $recce->earley_set_value(
+                                --$previous_location );
+                        } ## end while ( not defined $previous_codepoint and ...)
+                        last DO_WORD_BOUNDARY
+                            if defined $previous_codepoint
+                                and ( chr $previous_codepoint )
+                                =~ $re_word_character;
+                    } ## end if ($current_is_word_char)
+                    $recce->alternative( $word_boundary, 0, 1 );
+                    $recce->earleme_complete();
+                    redo READ;
+                } ## end DO_WORD_BOUNDARY:
+            } ## end for my $terminal ( $recce->terminals_expected() )
+        } ## end if ( $event_count == -1 )
 
-        die q{No token at "}, ( substr $string, pos $string, 40 ),
-            q{", position }, pos $string, "\n";
-    } ## end TOKEN: while ( pos $string < $length )
+        ## If we are here, the error is not recoverable
+        my $pos = $stream->pos();
+        my $desc;
+        DESC: {
+            if ( $event_count == -1 ) {
+                $desc = 'Character rejected';
+                last DESC;
+            }
+            if ( $event_count == -2 ) {
+                $desc = 'Unregistered character';
+                last DESC;
+            }
+            if ( $event_count == -3 ) {
+                $desc = 'Parse exhausted';
+                last DESC;
+            }
+        } ## end DESC:
+        my $char = substr $string, $pos, 1;
+        my $char_in_hex = sprintf '0x%04x', ord $char;
+        my $char_desc =
+              $char =~ m/[\p{PosixGraph}]/xms
+            ? $char
+            : '[non-graphic character]';
+        my $prefix =
+            $pos >= 72
+            ? ( substr $string, $pos - 72, 72 )
+            : ( substr $string, 0, $pos );
+
+        my $read_string_error =
+              "Error in string_read: $desc\n"
+            . "* Error was at string position: $pos, and at character $char_in_hex, '$char_desc'\n"
+            . "* String before error:\n"
+            . Marpa::R2::escape_string( $prefix, -72 ) . "\n"
+            . "* String after error:\n"
+            . Marpa::R2::escape_string( ( substr $string, $pos, 72 ), 72 )
+            . "\n";
+        Marpa::R2::exception($read_string_error);
+    } ## end READ:
+
+    # Global ?
+    my $end_of_input = $tracer->symbol_by_name('[:$]');
+
+    END_OF_INPUT: while (1) {
+        my $end_of_input_expected =
+            grep { $_ == $end_of_input } $recce->terminals_expected();
+        last END_OF_INPUT if not $end_of_input_expected;
+        $recce->alternative( $end_of_input, 0, 1 );
+        $recce->earleme_complete();
+    } ## end END_OF_INPUT: while (1)
 
     $thin_grammar->throw_set(0);
+    my $latest_earley_set_ID = $recce->latest_earley_set_ID();
     my $bocage        = Marpa::R2::Thin::B->new( $recce, $latest_earley_set_ID );
     $thin_grammar->throw_set(1);
     if ( !defined $bocage ) {
@@ -1198,8 +1260,8 @@ sub parse_rules {
         my ( $type, @step_data ) = $valuator->step();
         last STEP if not defined $type;
         if ( $type eq 'MARPA_STEP_TOKEN' ) {
-            my ( undef, $token_value_ix, $arg_n ) = @step_data;
-            $stack[$arg_n] = $token_values[$token_value_ix];
+            # my ( undef, $token_value_ix, $arg_n ) = @step_data;
+            # $stack[$arg_n] = $token_values[$token_value_ix];
             next STEP;
         }
         if ( $type eq 'MARPA_STEP_RULE' ) {
