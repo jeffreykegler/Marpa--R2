@@ -51,6 +51,16 @@ sub symbol_name {
     return $symbol_name;
 } ## end sub symbol_name
 
+sub formatted_symbol_name {
+    my ( $self, $symbol_id ) = @_;
+    my $symbol_name = $self->symbol_name($symbol_id);
+    # As-is if all word characters
+    return $symbol_name if $symbol_name =~ m/ \A \w* \z/xms;
+    # As-is if ends in right bracket
+    return $symbol_name if $symbol_name =~ m/ \] \z/xms;
+    return '<' . $symbol_name . '>';
+}
+
 sub symbol_name_set {
     my ( $self, $name, $symbol_id ) = @_;
     $self->{symbol_name}->[$symbol_id] = $name;
@@ -128,13 +138,29 @@ sub dotted_rule {
     my $grammar     = $self->{g};
     my $rule_length = $grammar->rule_length($rule_id);
     $dot_position = $rule_length if $dot_position < 0;
-    my $lhs = $self->symbol_name( $grammar->rule_lhs($rule_id) );
+    my $lhs = $self->formatted_symbol_name( $grammar->rule_lhs($rule_id) );
     my @rhs =
-        map { $self->symbol_name( $grammar->rule_rhs( $rule_id, $_ ) ) }
+        map { $self->formatted_symbol_name( $grammar->rule_rhs( $rule_id, $_ ) ) }
         ( 0 .. $rule_length - 1 );
     $dot_position = 0 if $dot_position < 0;
     splice( @rhs, $dot_position, 0, q{.} );
     return join q{ }, $lhs, q{::=}, @rhs;
+} ## end sub dotted_rule
+
+sub brief_rule {
+    my ( $self, $rule_id ) = @_;
+    my $grammar     = $self->{g};
+    my $rule_length = $grammar->rule_length($rule_id);
+    my $lhs = $self->formatted_symbol_name( $grammar->rule_lhs($rule_id) );
+    my @rhs =
+        map { $self->formatted_symbol_name( $grammar->rule_rhs( $rule_id, $_ ) ) }
+        ( 0 .. $rule_length - 1 );
+    my $minimum = $grammar->sequence_min($rule_id);
+    my @quantifier = ();
+    if (defined $minimum) {
+         push @quantifier, ($minimum <= 0 ? q{ *} : q{ +});
+    }
+    return join q{ }, $lhs, q{::=}, @rhs, @quantifier;
 } ## end sub dotted_rule
 
 sub progress_report {
@@ -329,5 +355,39 @@ sub isy_name {
 
     return $name;
 } ## end sub isy_name
+
+sub show_rule {
+    my ( $self, $rule_id ) = @_;
+
+    my $grammar = $self->{g};
+    my @comment   = ();
+
+    $grammar->rule_length($rule_id) == 0 and push @comment, 'empty';
+    $grammar->rule_is_productive($rule_id) or push @comment, 'unproductive';
+    $grammar->rule_is_accessible($rule_id) or push @comment, 'inaccessible';
+
+    my $text = $self->brief_rule($rule_id);
+
+
+    if (@comment) {
+        $text .= q{ } . ( join q{ }, q{/*}, @comment, q{*/} );
+    }
+
+    return $text .= "\n";
+
+}    # sub show_rule
+
+sub show_rules {
+    my ($self) = @_;
+    my $grammar = $self->{g};
+    my $text;
+
+    my $highest_rule_id = $grammar->highest_rule_id();
+    RULE:
+    for ( my $rule_id = 0; $rule_id <= $highest_rule_id; $rule_id++ ) {
+        $text .= $self->show_rule($rule_id);
+    }
+    return $text;
+} ## end sub show_rules
 
 1;
