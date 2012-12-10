@@ -77,7 +77,7 @@ rhs_primary ::= '(' rhs_primary_list ')'
 rhs_primary_list ::= rhs_primary+ action => do_symbol_list
 single_symbol ::=
     symbol
-  | character_class action => do_character_class
+  | <character class> action => do_character_class
 symbol ::= symbol_name action => do_symbol
 symbol_name ::= bare_name | reserved_word
 symbol_name ::= '<' phrase_name '>' action => do_symbol
