@@ -80,7 +80,7 @@ single_symbol ::=
   | <character class> action => do_character_class
 symbol ::= symbol_name action => do_symbol
 symbol_name ::= bare_name | reserved_word
-symbol_name ::= '<' phrase_name '>' action => do_symbol
+symbol_name ::= '<' phrase_name '>'
 action_name ::= bare_name | '::whatever' | '::undef'
 
 boolean ~ [\d+]+ action => do_literal
