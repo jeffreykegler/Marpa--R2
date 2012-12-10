@@ -519,8 +519,10 @@ my %hashed_closures = (
 # of the last such symbol completed,
 # undef if there was none.
 sub last_completed_range {
-    my ( $tracer, $thin_recce, $symbol_name ) = @_;
+    my ( $self, $symbol_name ) = @_;
+    my $tracer = $self->{tracer};
     my $thin_grammar = $tracer->grammar();
+    my $thin_recce = $self->{recce};
     my $symbol_id = $tracer->symbol_by_name($symbol_name);
     my @sought_rules =
         grep { $thin_grammar->rule_lhs($_) == $symbol_id; }
@@ -1063,18 +1065,16 @@ sub problem_happened_here {
 } ## end sub problem_happened_here
 
 sub last_rule {
-   my ($tracer, $thin_recce, $string, $positions) = @_;
-        return input_slice( $string, $positions,
-            last_completed_range( $tracer, $thin_recce, 'rule') )
-            // 'No rule was completed';
-}
+    my ($self) = @_;
+    my ( $start, $end ) = last_completed_range( $self, 'rule' );
+    return 'No rule was successfully parsed' if not defined $start;
+    return
+        join q{}, map { ( not defined $_ or $_ < 0 ) ? q{} : chr $_ }
+        map { $self->{recce}->earley_set_value($_) } $start .. $end;
+} ## end sub last_rule
 
 sub parse_rules {
     my ($thick_grammar, $string) = @_;
-
-    # Track earley set positions in input,
-    # for debuggging
-    my @positions = (0);
 
     state $stuifzand_grammar = stuifzand_grammar();
     state $tracer            = $stuifzand_grammar->{tracer};
@@ -1086,6 +1086,8 @@ sub parse_rules {
 
     # Memoize ? Global ?
     my $word_boundary     = $tracer->symbol_by_name('[:|w]');
+
+    my $inner_self = { tracer => $tracer, recce => $recce };
 
     my $stream = Marpa::R2::Thin::U->new($recce);
 
@@ -1244,8 +1246,9 @@ sub parse_rules {
     my $bocage        = Marpa::R2::Thin::B->new( $recce, $latest_earley_set_ID );
     $thin_grammar->throw_set(1);
     if ( !defined $bocage ) {
+        say STDERR $tracer->progress_report($recce);
         die qq{Last rule successfully parsed was: },
-            last_rule( $tracer, $recce, $string, \@positions ),
+            last_rule( $inner_self ),
             'Parse failed';
     } ## end if ( !defined $bocage )
 
