@@ -1140,7 +1140,6 @@ sub parse_rules {
         } ## end if ( $event_count > 0 )
         if ( $event_count == -2 ) {
 
-            $DB::single = 1;
             # Recover by registering character, if we can
             my $codepoint = $stream->codepoint();
             my @ops;
