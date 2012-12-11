@@ -85,7 +85,7 @@ Optionally, symbol names can be enclosed in angle brackets.
 A right hand side may be empty, quantified, or prioritized.
 A empty right hand side is what the name suggests,
 no symbols, modifiers or punctuation.
-A production with an empry right hand side defines an nulling rule.
+A production with an empty right hand side defines an nulling rule.
 
 =head2 Quantified right hand sides
 
