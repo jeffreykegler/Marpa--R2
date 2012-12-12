@@ -994,7 +994,7 @@ sub Marpa::R2::Recognizer::sl_end_input {
 
 # Given a range of locations, return the
 # input string.
-# Only work in scannerless mode.
+# Only works in scannerless mode.
 sub Marpa::R2::Recognizer::sl_range_to_string {
     my ($recce, $start, $end) = @_;
     my $recce_c = $recce->[Marpa::R2::Internal::Recognizer::C];
