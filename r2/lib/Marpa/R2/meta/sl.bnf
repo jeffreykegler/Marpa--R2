@@ -77,10 +77,10 @@ rhs_primary ::= '(' rhs_primary_list ')'
 rhs_primary_list ::= rhs_primary+ action => do_symbol_list
 single_symbol ::=
     symbol
-  | character_class action => do_character_class
+  | <character class> action => do_character_class
 symbol ::= symbol_name action => do_symbol
 symbol_name ::= bare_name | reserved_word
-symbol_name ::= '<' phrase_name '>' action => do_symbol
+symbol_name ::= '<' phrase_name '>'
 action_name ::= bare_name | '::whatever' | '::undef'
 
 boolean ~ [\d+]+ action => do_literal
@@ -97,7 +97,7 @@ single_quoted_string ~ ['] <string without single quote or vertical space> ['] a
 
 <character class> ~ '[' <cc string> ']' action => do_literal
 <cc string> ~ <cc character>
-<cc character> ~ <escaped cc char> | <safe cc char>
+<cc character> ~ <escaped cc character> | <safe cc character>
 <escaped cc character> ~ '\' <horizontal character>
 # hex 5d is right square bracket
 <safe cc character> ~ [^\x{5d}\x{0A}\x{0B}\x{0C}\x{0D}\x{0085}\x{2028}\x{2029}]
