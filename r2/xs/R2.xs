@@ -1056,6 +1056,8 @@ PPCODE:
 		    tokens_accepted++;
 		    break;
 		  default:
+		    stream->codepoint = codepoint;
+		    stream->input_symbol_id = symbol_id;
 		    croak
 		      ("Problem alternative() failed at char ix %d; symbol id %d; codepoint 0x%lx\n"
 		       "Problem in r->input_string_read(), alternative() failed: %s",
