@@ -93,20 +93,8 @@ sub do_rules {
 sub do_start_rule {
     my ( $self, $op_declare, $rhs ) = @_;
     my @ws      = ();
-    my @mask_kv = ();
     my @rhs = ();
-    if ( $op_declare eq q{::=} ) {
-        my $ws_star = '[:ws*]';
-        $self->{needs_symbol}->{$ws_star} = 1;
-        my $end_of_input = '[:$]';
-        $self->{needs_symbol}->{$end_of_input} = 1;
-        push @ws, $ws_star;
-        @rhs = ( $ws_star, $rhs, $ws_star, $end_of_input );
-        push @mask_kv, mask => [ 0, 1, 0, 0 ];
-    } else {
-        @rhs = ( $rhs );
-    }
-    return [ { lhs => '[:start]', rhs => \@rhs, @mask_kv } ];
+    return [ { lhs => '[:start]', rhs => \@rhs } ];
 } ## end sub do_start_rule
 
 sub do_comment_rule {
@@ -1016,7 +1004,8 @@ sub rules_add {
         die "Unexpected step type: $type";
     } ## end STEP: while (1)
 
-    my $rules = $inner_self->{rules} = $stack[0];
+    my $g1_rules = $inner_self->{g1_rules} = $stack[0];
+    my $lex_rules = $inner_self->{lex_rules};
 
     my @ws_rules = ();
     if ( defined $inner_self->{needs_symbol} ) {
@@ -1069,9 +1058,10 @@ sub rules_add {
         } ## end NEEDED_SYMBOL_LOOP: while (1)
     } ## end if ( defined $inner_self->{needs_symbol} )
 
-    push @{$rules}, @ws_rules;
+    push @{$g1_rules}, @ws_rules;
 
-    $inner_self->{rules} = $rules;
+    $inner_self->{g1_rules} = $g1_rules;
+    $inner_self->{lex_rules} = $lex_rules;
     my $raw_cc      = $inner_self->{character_classes};
     if ( defined $raw_cc ) {
         my $stripped_cc = {};
