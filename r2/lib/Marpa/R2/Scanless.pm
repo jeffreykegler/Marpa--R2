@@ -37,6 +37,9 @@ END_OF_STRUCTURE
     Marpa::R2::offset($structure);
 } ## end BEGIN
 
+# names of packages for strings
+our $G_PACKAGE = 'Marpa::R2::Scanless::G';
+our $R_PACKAGE = 'Marpa::R2::Scanless::R';
 
 package Marpa::R2::Internal::Scanless::Symbol;
 
@@ -534,14 +537,54 @@ sub Marpa::R2::Scanless::G::new {
     return $self;
 } ## end sub Marpa::R2::Scanless::G::new
 
+my  %grammar_options = map { $_, 1 } qw{
+        action_object
+        actions
+        default_action
+        default_empty_action
+        default_rank
+        inaccessible_ok
+        source
+        symbols
+        terminals
+        trace_file_handle
+        unproductive_ok
+        warnings
+        };
+
 
 sub Marpa::R2::Scanless::G::set {
     my ( $self, @arg_hashes ) = @_;
 
     # set trace_fh even if no tracing, because we may turn it on in this method
-    my $trace_fh = $self->[Marpa::R2::Internal::Scanless::G::TRACE_FILE_HANDLE];
+    my $trace_fh =
+        $self->[Marpa::R2::Internal::Scanless::G::TRACE_FILE_HANDLE];
 
-}
+    for my $args (@arg_hashes) {
+
+        my $ref_type = ref $args;
+        if ( not $ref_type ) {
+            Carp::croak(
+                '$G_PACKAGE expects args as ref to HASH; arg was non-reference'
+            );
+        }
+        if ( $ref_type ne 'HASH' ) {
+            Carp::croak(
+                "$G_PACKAGE expects args as ref to HASH, got ref to $ref_type instead"
+            );
+        }
+        if ( my @bad_options =
+            grep { not defined $grammar_options{$_} } keys %{$args} )
+        {
+            Carp::croak(
+                "$G_PACKAGE does not know some of option(s) given to it:\n",
+                "   The option(s) not recognized were ",
+                ( join q{ }, map { q{"} . $_ . q{"} } @bad_options ),
+                "\n"
+            );
+        } ## end if ( my @bad_options = grep { not defined $grammar_options...})
+    } ## end for my $args (@arg_hashes)
+} ## end sub Marpa::R2::Scanless::G::set
 
 sub Marpa::R2::Scanless::G::precompute {
    die "precompute not yet implemented";
