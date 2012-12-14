@@ -46,7 +46,7 @@ my $prefix_grammar = Marpa::R2::Scanless::G->new(
     {
         action_object        => 'My_Actions',
         default_action => 'do_arg0',
-        source          => [ <<'END_OF_RULES' ]
+        source          => \(<<'END_OF_RULES'),
 :start ::= Script
 Script ::= Calculation* action => do_list
 Calculation ::= Expression | 'say' Expression
