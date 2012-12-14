@@ -9,3 +9,6 @@ synopsis:
 comment:
 	PERL5LIB=../../r2/lib:../../r2/blib/arch:$$PERL5LIB perl comment.pl --demo
 
+prefix:
+	PERL5LIB=../../r2/lib:../../r2/blib/arch:$$PERL5LIB perl prefix.pl --demo
+

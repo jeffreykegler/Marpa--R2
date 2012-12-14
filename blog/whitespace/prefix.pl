@@ -42,12 +42,11 @@ if ($do_demo) {
 }
 elsif ( scalar @ARGV <= 0 ) { usage(); }
 
-my $prefix_grammar = Marpa::R2::Grammar->new(
+my $prefix_grammar = Marpa::R2::Scanless::G->new(
     {
         action_object        => 'My_Actions',
         default_action => 'do_arg0',
-        scannerless => 1,
-        rules          => [ <<'END_OF_RULES' ]
+        source          => [ <<'END_OF_RULES' ]
 :start ::= Script
 Script ::= Calculation* action => do_list
 Calculation ::= Expression | 'say' Expression
@@ -68,9 +67,9 @@ sub do_list {
 }
 sub do_literal {
     my $self = shift;
-    my $recce = $self->{recce};
+    my $slr = $self->{slr};
     my ( $start, $end ) = Marpa::R2::Context::location();
-    my $result = $recce->sl_range_to_string($start, $end);
+    my $result = $slr->range_to_string($start, $end);
     $result =~ s/ \A \s+ //xms;
     $result =~ s/ \s+ \z //xms;
     return $result;
@@ -86,7 +85,7 @@ $prefix_grammar->precompute();
 sub My_Error::last_completed_range {
     my ( $self, $symbol_name ) = @_;
     my $grammar      = $self->{grammar};
-    my $recce        = $self->{recce};
+    my $slr        = $self->{slr};
     my @sought_rules = ();
     for my $rule_id ( $grammar->rule_ids() ) {
         my ($lhs) = $grammar->bnf_rule($rule_id);
@@ -94,13 +93,13 @@ sub My_Error::last_completed_range {
     }
     die "Looking for completion of non-existent rule lhs: $symbol_name"
         if not scalar @sought_rules;
-    my $latest_earley_set = $recce->latest_earley_set();
+    my $latest_earley_set = $slr->latest_earley_set();
     my $earley_set        = $latest_earley_set;
 
     # Initialize to one past the end, so we can tell if there were no hits
     my $first_origin = $latest_earley_set + 1;
     EARLEY_SET: while ( $earley_set >= 0 ) {
-        my $report_items = $recce->progress($earley_set);
+        my $report_items = $slr->progress($earley_set);
         ITEM: for my $report_item ( @{$report_items} ) {
             my ( $rule_id, $dot_position, $origin ) = @{$report_item};
             next ITEM if $dot_position != -1;
@@ -119,7 +118,7 @@ sub My_Error::show_last_expression {
     my ($self) = @_;
     my ( $start, $end ) = $self->last_completed_range('Expression');
     return 'No expression was successfully parsed' if not defined $start;
-    my $last_expression = $self->{recce}->sl_range_to_string( $start, $end );
+    my $last_expression = $self->{slr}->range_to_string( $start, $end );
     return "Last expression successfully parsed was: $last_expression";
 } ## end sub My_Error::show_last_expression
 
@@ -129,21 +128,21 @@ sub my_parser {
     my $self = bless { grammar => $grammar, input => \$string, }, 'My_Error';
     local $My_Actions::SELF = $self;
 
-    my $recce = Marpa::R2::Recognizer->new( { grammar => $grammar } );
-    $self->{recce} = $recce;
+    my $slr = Marpa::R2::Recognizer->new( { grammar => $grammar } );
+    $self->{slr} = $slr;
     my $event_count;
 
-    if ( not defined eval { $event_count = $recce->sl_read($string); 1 } ) {
+    if ( not defined eval { $event_count = $slr->read($string); 1 } ) {
 
         # Add last expression found, and rethrow
         my $eval_error = $EVAL_ERROR;
         chomp $eval_error;
         die $self->show_last_expression(), "\n", $eval_error, "\n";
-    } ## end if ( not defined eval { $recce->sl_read($string)...})
+    } ## end if ( not defined eval { $slr->read($string)...})
     if (not defined $event_count) {
-        die $self->show_last_expression(), "\n", $recce->sl_error();
+        die $self->show_last_expression(), "\n", $slr->error();
     }
-    my $value_ref = $recce->value;
+    my $value_ref = $slr->value;
     if ( not defined $value_ref ) {
         die $self->show_last_expression(), "\n",
             "No parse was found, after reading the entire input\n";
