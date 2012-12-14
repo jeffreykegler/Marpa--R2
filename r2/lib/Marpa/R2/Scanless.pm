@@ -92,7 +92,6 @@ sub do_rules {
 
 sub do_start_rule {
     my ( $self, $op_declare, $rhs ) = @_;
-    my $thick_grammar = $self->{thick_grammar};
     my @ws      = ();
     my @mask_kv = ();
     my @rhs = ();
@@ -112,14 +111,12 @@ sub do_start_rule {
 
 sub do_comment_rule {
     my ( $self, $rhs ) = @_;
-    my $thick_grammar = $self->{thick_grammar};
     $self->{needs_symbol}->{'[:Space]'} = 1;
     return [ { lhs => '[:Space]', rhs => [$rhs->name()], mask => [0] }, ];
 } ## end sub do_comment_rule
 
 sub do_priority_rule {
     my ( $self, $lhs, $op_declare, $priorities ) = @_;
-    my $thick_grammar = $self->{thick_grammar};
     my $priority_count = scalar @{$priorities};
     my @rules          = ();
     my @xs_rules = ();
@@ -229,7 +226,6 @@ sub do_empty_rule {
 
 sub do_quantified_rule {
     my ( $self, $lhs, $op_declare, $rhs, $quantifier, $adverb_list ) = @_;
-    my $thick_grammar = $self->{thick_grammar};
 
     # Some properties of the sequence rule will not be altered
     # no matter how complicated this gets
@@ -242,9 +238,8 @@ sub do_quantified_rule {
     my @rules = ( \%sequence_rule );
 
     my $original_separator = $adverb_list->{separator};
-    if ( $op_declare ne q{::=}
-        or not $thick_grammar->[Marpa::R2::Internal::Grammar::SCANNERLESS] )
-    {
+    if ( $op_declare ne q{::=} ) {
+
         # mask not needed
         $sequence_rule{lhs}       = $lhs;
         $sequence_rule{separator} = $original_separator
@@ -252,7 +247,7 @@ sub do_quantified_rule {
         my $proper = $adverb_list->{proper};
         $sequence_rule{proper} = $proper if defined $proper;
         return \@rules;
-    } ## end if ( $op_declare ne q{::=} or not $thick_grammar->[...])
+    } ## end if ( $op_declare ne q{::=} )
 
     # If here, we are adding whitespace
 
@@ -708,23 +703,6 @@ sub last_rule {
             // 'No rule was completed';
 }
 
-sub Marpa::R2::Scanless::G::new {
-    my ( $class, @arg_hashes ) = @_;
-
-    my $self = [];
-    bless $self, $class;
-
-    my $lex_g_c = Marpa::R2::Thin::G->new( { if => 1 } );
-    $self->[Marpa::R2::Internal::Scanless::G::LEX_TRACER] =
-        Marpa::R2::Thin::Trace->new($lex_g_c);
-    my $g1_c = Marpa::R2::Thin::G->new( { if => 1 } );
-    $self->[Marpa::R2::Internal::Scanless::G::G1_TRACER] =
-        Marpa::R2::Thin::Trace->new($g1_c);
-
-    $self->set(@arg_hashes);
-
-    return $self;
-} ## end sub Marpa::R2::Scanless::G::new
 
 my %grammar_options = map { $_, 1 } qw{
     action_object
@@ -743,8 +721,18 @@ my %grammar_options = map { $_, 1 } qw{
     # unproductive_ok
     # warnings
 
-sub Marpa::R2::Scanless::G::set {
-    my ( $self, @arg_hashes ) = @_;
+sub Marpa::R2::Scanless::G::new {
+    my ($class, $args) = @_;
+
+    my $self = [];
+    bless $self, $class;
+
+    my $lex_g_c = Marpa::R2::Thin::G->new( { if => 1 } );
+    $self->[Marpa::R2::Internal::Scanless::G::LEX_TRACER] =
+        Marpa::R2::Thin::Trace->new($lex_g_c);
+    my $g1_c = Marpa::R2::Thin::G->new( { if => 1 } );
+    $self->[Marpa::R2::Internal::Scanless::G::G1_TRACER] =
+        Marpa::R2::Thin::Trace->new($g1_c);
 
     # set trace_fh even if no tracing, because we may turn it on in this method
     my $trace_fh =
@@ -752,68 +740,70 @@ sub Marpa::R2::Scanless::G::set {
     my $lex_tracer = $self->[Marpa::R2::Internal::Scanless::G::LEX_TRACER];
     my $lex_g      = $lex_tracer->grammar();
 
-    for my $args (@arg_hashes) {
+    my $ref_type = ref $args;
+    if ( not $ref_type ) {
+        Carp::croak(
+            '$G_PACKAGE expects args as ref to HASH; arg was non-reference' );
+    }
+    if ( $ref_type ne 'HASH' ) {
+        Carp::croak(
+            "$G_PACKAGE expects args as ref to HASH, got ref to $ref_type instead"
+        );
+    }
+    if (my @bad_options =
+        grep { not defined $grammar_options{$_} } keys %{$args}
+        )
+    {
+        Carp::croak(
+            "$G_PACKAGE does not know some of option(s) given to it:\n",
+            "   The option(s) not recognized were ",
+            ( join q{ }, map { q{"} . $_ . q{"} } @bad_options ),
+            "\n"
+        );
+    } ## end if ( my @bad_options = grep { not defined $grammar_options...})
 
-        my $ref_type = ref $args;
-        if ( not $ref_type ) {
-            Carp::croak(
-                '$G_PACKAGE expects args as ref to HASH; arg was non-reference'
-            );
-        }
-        if ( $ref_type ne 'HASH' ) {
-            Carp::croak(
-                "$G_PACKAGE expects args as ref to HASH, got ref to $ref_type instead"
-            );
-        }
-        if (my @bad_options =
-            grep { not defined $grammar_options{$_} } keys %{$args}
-            )
-        {
-            Carp::croak(
-                "$G_PACKAGE does not know some of option(s) given to it:\n",
-                "   The option(s) not recognized were ",
-                ( join q{ }, map { q{"} . $_ . q{"} } @bad_options ),
-                "\n"
-            );
-        } ## end if ( my @bad_options = grep { not defined $grammar_options...})
+    if ( defined( my $value = $args->{'trace_file_handle'} ) ) {
+        $trace_fh =
+            $self->[Marpa::R2::Internal::Scanless::G::TRACE_FILE_HANDLE] =
+            $value;
+    }
 
-        if ( defined( my $value = $args->{'trace_file_handle'} ) ) {
-            $trace_fh =
-                $self->[Marpa::R2::Internal::Scanless::G::TRACE_FILE_HANDLE] =
-                $value;
-        }
+    if ( defined( my $value = $args->{'action_object'} ) ) {
+        $self->[Marpa::R2::Internal::Scanless::G::ACTION_OBJECT] = $value;
+    }
 
-        if ( defined( my $value = $args->{'action_object'} ) ) {
-            $self->[Marpa::R2::Internal::Scanless::G::ACTION_OBJECT] = $value;
-        }
+    if ( defined( my $value = $args->{'default_action'} ) ) {
+        $self->[Marpa::R2::Internal::Scanless::G::DEFAULT_ACTION] = $value;
+    }
 
-        if ( defined( my $value = $args->{'default_action'} ) ) {
-            $self->[Marpa::R2::Internal::Scanless::G::DEFAULT_ACTION] =
-                $value;
-        }
-
-        if ( defined( my $value = $args->{'source'} ) ) {
-            my $ref_type = ref $value;
-            if ( $ref_type ne 'SCALAR' ) {
-                Marpa::R2::exception(
-                    'value of "source" named argument must be a ref to a string'
-                );
-            }
+      my $rules_source = $args->{'source'};
+    if ( not defined $rules_source ) {
             Marpa::R2::exception(
-                'rules option not allowed after grammar is precomputed')
-                if $lex_g->is_precomputed();
-            rules_add( $self, $value );
-        } ## end if ( defined( my $value = $args->{'source'} ) )
+                'Marpa::R2::Scanless::G::new() called without a "source" argument'
+            );
+        }
 
-    } ## end for my $args (@arg_hashes)
-} ## end sub Marpa::R2::Scanless::G::set
+        $ref_type = ref $rules_source;
+        if ( $ref_type ne 'SCALAR' ) {
+            Marpa::R2::exception(
+                qq{Marpa::R2::Scanless::G::new() type of "source" argument is "$ref_type"},
+                "  It must be a ref to a string\n"
+            );
+        }
+        Marpa::R2::exception(
+            'rules option not allowed after grammar is precomputed')
+            if $lex_g->is_precomputed();
+        my $compiled_rules = rules_add( $self, $rules_source );
+        die Data::Dumper::Dumper($compiled_rules);
 
-sub Marpa::R2::Scanless::G::precompute {
-   die "precompute not yet implemented";
-}
+    return $self;
+
+} ## end sub Marpa::R2::Scanless::G::new
 
 sub rules_add {
     my ( $self, $p_rules_source ) = @_;
+
+    my $inner_self = { self => $self };
 
     # Track earley set positions in input,
     # for debuggging
@@ -966,7 +956,7 @@ sub rules_add {
             my $hashed_closure = $hashed_closures{$action};
             if ( defined $hashed_closure ) {
                 $stack[$arg_0] =
-                    $hashed_closure->( $self, @args );
+                    $hashed_closure->( $inner_self, @args );
                 next STEP;
             }
             if ( $action eq 'do_alternative' ) {
@@ -1026,13 +1016,13 @@ sub rules_add {
         die "Unexpected step type: $type";
     } ## end STEP: while (1)
 
-    my $rules = $self->{rules} = $stack[0];
+    my $rules = $inner_self->{rules} = $stack[0];
 
     my @ws_rules = ();
-    if ( defined $self->{needs_symbol} ) {
-        my %needed = %{ $self->{needs_symbol} };
+    if ( defined $inner_self->{needs_symbol} ) {
+        my %needed = %{ $inner_self->{needs_symbol} };
         my %seen   = ();
-        undef $self->{needs_symbol};
+        undef $inner_self->{needs_symbol};
         NEEDED_SYMBOL_LOOP: while (1) {
             my @needed_symbols =
                 sort grep { !$seen{$_} } keys %needed;
@@ -1066,7 +1056,7 @@ sub rules_add {
                     next SYMBOL;
                 } ## end if ( $needed_symbol eq '[:ws]' )
                 if ( $needed_symbol eq '[:Space]' ) {
-                    my $true_ws = assign_symbol_by_char_class( $self,
+                    my $true_ws = assign_symbol_by_char_class( $inner_self,
                         '[\p{White_Space}]' );
                     push @{ws_rules},
                         {
@@ -1077,21 +1067,21 @@ sub rules_add {
                 } ## end if ( $needed_symbol eq '[:Space]' )
             } ## end SYMBOL: for my $needed_symbol (@needed_symbols)
         } ## end NEEDED_SYMBOL_LOOP: while (1)
-    } ## end if ( defined $self->{needs_symbol} )
+    } ## end if ( defined $inner_self->{needs_symbol} )
 
     push @{$rules}, @ws_rules;
 
-    $self->{rules} = $rules;
-    my $raw_cc      = $self->{character_classes};
+    $inner_self->{rules} = $rules;
+    my $raw_cc      = $inner_self->{character_classes};
     if ( defined $raw_cc ) {
         my $stripped_cc = {};
         for my $symbol_name ( keys %{$raw_cc} ) {
             my ($re) = @{ $raw_cc->{$symbol_name} };
             $stripped_cc->{$symbol_name} = $re;
         }
-        $self->{character_classes} = $stripped_cc;
+        $inner_self->{character_classes} = $stripped_cc;
     } ## end if ( defined $raw_cc )
-    return $self;
+    return $inner_self;
 } ## end sub parse_rules
 
 1;

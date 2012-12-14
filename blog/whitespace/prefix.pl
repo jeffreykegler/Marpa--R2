@@ -80,8 +80,6 @@ sub do_arg0 { shift; return shift; }
 
 package main;
 
-$prefix_grammar->precompute();
-
 sub My_Error::last_completed_range {
     my ( $self, $symbol_name ) = @_;
     my $grammar      = $self->{grammar};
@@ -125,6 +123,9 @@ sub My_Error::show_last_expression {
 sub my_parser {
     my ( $grammar, $string ) = @_;
 
+    say Data::Dumper::Dumper($grammar);
+    die;
+
     my $self = bless { grammar => $grammar, input => \$string, }, 'My_Error';
     local $My_Actions::SELF = $self;
 
@@ -154,15 +155,15 @@ my @test_strings;
 if ($do_demo) {
     push @test_strings,
     '+++ 1 2 3 + + 1 2 4',
-    'say + 1 2',
-    '+ 1 say 2',
-    '+ 1 2 3 + + 1 2 4',
-    '+++',
-    '++1 2++',
-    '++1 2++3 4++',
-    '1 + 2 +3  4 + 5 + 6 + 7',
-    '+12',
-    '+1234'
+    # 'say + 1 2',
+    # '+ 1 say 2',
+    # '+ 1 2 3 + + 1 2 4',
+    # '+++',
+    # '++1 2++',
+    # '++1 2++3 4++',
+    # '1 + 2 +3  4 + 5 + 6 + 7',
+    # '+12',
+    # '+1234'
     ;
 } else {
     push @test_strings, shift;
