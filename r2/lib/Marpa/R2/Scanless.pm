@@ -32,6 +32,8 @@ BEGIN {
     :package=Marpa::R2::Internal::Scanless::G
 
     TRACE_FILE_HANDLE
+    DEFAULT_ACTION
+    ACTION_OBJECT
 
 END_OF_STRUCTURE
     Marpa::R2::offset($structure);
@@ -537,21 +539,22 @@ sub Marpa::R2::Scanless::G::new {
     return $self;
 } ## end sub Marpa::R2::Scanless::G::new
 
-my  %grammar_options = map { $_, 1 } qw{
-        action_object
-        actions
-        default_action
-        default_empty_action
-        default_rank
-        inaccessible_ok
-        source
-        symbols
-        terminals
-        trace_file_handle
-        unproductive_ok
-        warnings
-        };
+my %grammar_options = map { $_, 1 } qw{
+    action_object
+    default_action
+    source
+    trace_file_handle
+};
 
+    # Other possible grammar options:
+    # actions
+    # default_empty_action
+    # default_rank
+    # inaccessible_ok
+    # symbols
+    # terminals
+    # unproductive_ok
+    # warnings
 
 sub Marpa::R2::Scanless::G::set {
     my ( $self, @arg_hashes ) = @_;
@@ -583,6 +586,25 @@ sub Marpa::R2::Scanless::G::set {
                 "\n"
             );
         } ## end if ( my @bad_options = grep { not defined $grammar_options...})
+
+        if ( defined( my $value = $args->{'trace_file_handle'} ) ) {
+            $trace_fh =
+                $self->[Marpa::R2::Internal::Scanless::G::TRACE_FILE_HANDLE] =
+                $value;
+        }
+
+        if ( defined( my $value = $args->{'action_object'} ) ) {
+            $self->[Marpa::R2::Internal::Scanless::G::ACTION_OBJECT] = $value;
+        }
+
+        if ( defined( my $value = $args->{'default_action'} ) ) {
+            $self->[Marpa::R2::Internal::Scanless::G::DEFAULT_ACTION] = $value;
+        }
+
+        if ( defined( my $value = $args->{'source'} ) ) {
+            die "Not yet implemented";
+        }
+
     } ## end for my $args (@arg_hashes)
 } ## end sub Marpa::R2::Scanless::G::set
 
