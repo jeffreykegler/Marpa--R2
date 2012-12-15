@@ -55,30 +55,37 @@ sub new { my $class = shift; return bless { name => $_[NAME], is_hidden => ($_[H
 sub name { return $_[0]->{name} }
 sub names { return $_[0]->{name} }
 sub is_hidden { return $_[0]->{is_hidden} }
-sub hidden_set { $_[0]->{is_hidden} = 1; }
+sub is_lexical { return $_[0]->{is_lexical} // 0 }
+sub hidden_set { shift->{is_hidden} = 1; }
+sub lexical_set { shift->{is_lexical} = 1; }
 sub symbols { return $_[0]; }
 
 package Marpa::R2::Internal::Scanless::Symbol_List;
 
-sub new { my $class = shift; return bless [@_], $class }
+sub new { my $class = shift; return bless { symbols => [@_] }, $class }
 
 sub names {
-    return map { $_->names() } @{ $_[0] };
+    return map { $_->names() } @{ shift->{symbol_list} };
 }
+
 sub is_hidden {
-    return map { $_->is_hidden() } @{ $_[0] };
+    return map { $_->is_hidden() } @{ shift->{symbol_list} };
 }
 
 sub hidden_set {
-     $_->hidden_set() for @ { $_[0] };
+    $_->hidden_set() for @{ shift->{symbol_list} };
 }
 
+sub is_lexical { return $_[0]->{is_lexical} // 0 }
+sub lexical_set { shift->{is_lexical} = 1; }
+
 sub mask {
-    return map { $_ ? 0 : 1 } map { $_->is_hidden() } @{ $_[0] };
+    return
+        map { $_ ? 0 : 1 } map { $_->is_hidden() } @{ shift->{symbol_list} };
 }
 
 sub symbols {
-    return map { $_->symbols() } @{ $_[0] };
+    return map { $_->symbols() } @{ shift->{symbol_list} };
 }
 
 package Marpa::R2::Internal::Scanless;
@@ -303,7 +310,9 @@ sub do_symbol {
 
 sub do_character_class {
     my ( $self, $char_class ) = @_;
-    return assign_symbol_by_char_class($self, $char_class);
+    my $symbol = assign_symbol_by_char_class($self, $char_class);
+    $symbol->lexical_set();
+    return $symbol;
 } ## end sub do_character_class
 
 sub do_symbol_list { shift; return Marpa::R2::Internal::Scanless::Symbol_List->new(@_) }
@@ -337,7 +346,7 @@ sub do_single_quoted_string {
     }
     $symbol->{ws_after_ok} = 1; # OK to add WS after last symbol
     my $list = Marpa::R2::Internal::Scanless::Symbol_List->new(@symbols);
-    $list->hidden_set();
+    $list->lexical_set();
     return $list;
 }
 
