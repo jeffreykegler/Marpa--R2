@@ -106,8 +106,9 @@ sub do_comment_rule {
 sub do_priority_rule {
     my ( $self, $lhs, $op_declare, $priorities ) = @_;
     my $priority_count = scalar @{$priorities};
-    my @rules          = ();
+    my @working_rules          = ();
     my @xs_rules = ();
+    my $rules = $op_declare eq q{::=} ? \@xs_rules : $self->{lex_rules};
 
     if ( $priority_count <= 1 ) {
         ## If there is only one priority
@@ -119,7 +120,7 @@ sub do_priority_rule {
                 ( lhs => $lhs, rhs => \@rhs_names, mask => \@mask );
             my $action = $adverb_list->{action};
             $hash_rule{action} = $action if defined $action;
-            push @xs_rules, \%hash_rule;
+            push @{$rules}, \%hash_rule;
         } ## end for my $alternative ( @{ $priorities->[0] } )
         return [@xs_rules];
     }
@@ -127,7 +128,7 @@ sub do_priority_rule {
     for my $priority_ix ( 0 .. $priority_count - 1 ) {
         my $priority = $priority_count - ( $priority_ix + 1 );
         for my $alternative ( @{ $priorities->[$priority_ix] } ) {
-            push @rules, [ $priority, @{$alternative} ];
+            push @working_rules, [ $priority, @{$alternative} ];
         }
     } ## end for my $priority_ix ( 0 .. $priority_count - 1 )
 
@@ -147,8 +148,8 @@ sub do_priority_rule {
             } 1 .. $priority_count - 1
         )
     );
-    RULE: for my $rule (@rules) {
-        my ( $priority, $rhs, $adverb_list ) = @{$rule};
+    RULE: for my $working_rule (@working_rules) {
+        my ( $priority, $rhs, $adverb_list ) = @{$working_rule};
         my $assoc = $adverb_list->{assoc} // 'L';
         my @new_rhs = $rhs->names();
         my @arity   = grep { $new_rhs[$_] eq $lhs } 0 .. $#new_rhs;
@@ -167,7 +168,7 @@ sub do_priority_rule {
 
         if ( not scalar @arity ) {
             $new_xs_rule{rhs} = \@new_rhs;
-            push @xs_rules, \%new_xs_rule;
+            push @{$rules}, \%new_xs_rule;
             next RULE;
         }
 
@@ -200,7 +201,7 @@ sub do_priority_rule {
         } ## end DO_ASSOCIATION:
 
         $new_xs_rule{rhs} = \@new_rhs;
-        push @xs_rules, \%new_xs_rule;
+        push @{$rules}, \%new_xs_rule;
     } ## end RULE: for my $rule (@rules)
     return [@xs_rules];
 } ## end sub do_priority_rule
@@ -226,67 +227,20 @@ sub do_quantified_rule {
     my @rules = ( \%sequence_rule );
 
     my $original_separator = $adverb_list->{separator};
-    if ( $op_declare ne q{::=} ) {
 
-        # mask not needed
-        $sequence_rule{lhs}       = $lhs;
-        $sequence_rule{separator} = $original_separator
-            if defined $original_separator;
-        my $proper = $adverb_list->{proper};
-        $sequence_rule{proper} = $proper if defined $proper;
-        return \@rules;
-    } ## end if ( $op_declare ne q{::=} )
-
-    # If here, we are adding whitespace
-
-    state $do_arg0_full_name = __PACKAGE__ . q{::} . 'external_do_arg0';
-    state $default_ws_symbol =
-        create_hidden_internal_symbol( $self, '[:ws]' );
-    my $new_separator = $lhs . '[Sep]';
-    my @separator_rhs = ('[:ws]');
-    push @separator_rhs, $original_separator, '[:ws]'
+    # mask not needed
+    $sequence_rule{lhs}       = $lhs;
+    $sequence_rule{separator} = $original_separator
         if defined $original_separator;
-    my %separator_rule = (
-        lhs    => $new_separator,
-        rhs    => \@separator_rhs,
-        mask   => [ (0) x scalar @separator_rhs ],
-        action => '::whatever'
-    );
-    push @rules, \%separator_rule;
+    my $proper = $adverb_list->{proper};
+    $sequence_rule{proper} = $proper if defined $proper;
 
-    # With the new separator,
-    # we know a few more things about the sequence rule
-    $sequence_rule{proper}    = 1;
-    $sequence_rule{separator} = $new_separator;
-
-    if ( not defined $original_separator || $adverb_list->{proper} ) {
-
-        # If originally no separator or proper separation,
-        # we are pretty much done
-        $sequence_rule{lhs} = $lhs;
+    if ($op_declare eq q{::=}) {
         return \@rules;
-    } ## end if ( not defined $original_separator || $adverb_list...)
-
-    ## If here, Perl separation
-    ## We need two more rules and a new LHS for the
-    ## sequence rule
-    my $sequence_lhs = $lhs . '[SeqLHS]';
-    $sequence_rule{lhs} = $sequence_lhs;
-    push @rules,
-        {
-        lhs    => $lhs,
-        rhs    => [$sequence_lhs],
-        action => $do_arg0_full_name,
-        mask => [1]
-        },
-        {
-        lhs    => $lhs,
-        rhs    => [ $sequence_lhs, '[:ws]', $original_separator ],
-        mask   => [ 1, 0, 0 ],
-        action => $do_arg0_full_name,
-        };
-
-    return \@rules;
+    } else {
+       push @{$self->{lex_rules}}, @rules;
+       return [];
+    }
 
 } ## end sub do_quantified_rule
 
@@ -788,16 +742,16 @@ sub Marpa::R2::Scanless::G::new {
 sub rules_add {
     my ( $self, $p_rules_source ) = @_;
 
-    my $inner_self = { self => $self };
+    my $inner_self = { self => $self, lex_rules => [] };
 
     # Track earley set positions in input,
     # for debuggging
     my @positions = (0);
 
     state $scanless_grammar = scanless_grammar();
-    state $tracer            = $scanless_grammar->{tracer};
-    state $mask_by_rule_id            = $scanless_grammar->{mask_by_rule_id};
-    state $thin_grammar      = $tracer->grammar();
+    state $tracer           = $scanless_grammar->{tracer};
+    state $mask_by_rule_id  = $scanless_grammar->{mask_by_rule_id};
+    state $thin_grammar     = $tracer->grammar();
     my $recce = Marpa::R2::Thin::R->new($thin_grammar);
     $recce->start_input();
     $recce->ruby_slippers_set(1);
@@ -813,9 +767,12 @@ sub rules_add {
         0 .. $thin_grammar->highest_rule_id() )
     {
         my ( $lhs, @rhs ) = $tracer->rule($rule_id);
-        next RULE if Marpa::R2::Grammar::original_symbol_name($lhs) ne 'reserved_word';
+        next RULE
+            if Marpa::R2::Grammar::original_symbol_name($lhs) ne
+                'reserved_word';
         next RULE if scalar @rhs != 1;
-        my $reserved_word = Marpa::R2::Grammar::original_symbol_name( $rhs[0] );
+        my $reserved_word =
+            Marpa::R2::Grammar::original_symbol_name( $rhs[0] );
         next RULE if 'kw_' ne substr $reserved_word, 0, 3;
         $reserved_word = substr $reserved_word, 3;
         push @terminals,
@@ -826,16 +783,24 @@ sub rules_add {
             ];
     } ## end for my $rule_id ( grep { $thin_grammar->rule_length($_...)})
     push @terminals,
-        [ 'kw__start', qr/ [:] start \b /xms,    ':start reserved symbol' ],
-        [ 'kw__comment', qr/ [:] comment \b /xms,    ':comment reserved symbol' ],
+        [ 'kw__start', qr/ [:] start \b /xms, ':start reserved symbol' ],
+        [ 'kw__comment', qr/ [:] comment \b /xms,
+        ':comment reserved symbol' ],
         [ 'kw__ws_plus', qr/ [:] ws [+] /xms,    ':ws+ reserved symbol' ],
         [ 'kw__ws_star', qr/ [:] ws [*] /xms,    ':ws* reserved symbol' ],
-        [ 'kw__ws', qr/ [:] ws \b/xms,    ':ws reserved symbol' ],
-        [ 'kw__default', qr/ [:] default \b/xms,    ':default reserved symbol' ],
-        [ 'kw__any', qr/ [:] any \b/xms,    ':any reserved symbol' ],
-        [ 'kw__end_of_input', qr/ [:] [\$] /xms,    q{':$': end_of_input reserved symbol} ],
-        [ 'op_declare_bnf', qr/::=/xms,    'BNF declaration operator (ws)' ],
-        [ 'op_declare_match', qr/[~]/xms,    'match declaration operator (no ws)' ],
+        [ 'kw__ws',      qr/ [:] ws \b/xms,      ':ws reserved symbol' ],
+        [ 'kw__default', qr/ [:] default \b/xms, ':default reserved symbol' ],
+        [ 'kw__any',     qr/ [:] any \b/xms,     ':any reserved symbol' ],
+        [
+        'kw__end_of_input',
+        qr/ [:] [\$] /xms,
+        q{':$': end_of_input reserved symbol}
+        ],
+        [ 'op_declare_bnf', qr/::=/xms, 'BNF declaration operator (ws)' ],
+        [
+        'op_declare_match', qr/[~]/xms,
+        'match declaration operator (no ws)'
+        ],
         [ 'op_arrow',   qr/=>/xms,     'adverb operator' ],
         [ 'op_lparen',  qr/[(]/xms,    'left parenthesis' ],
         [ 'op_rparen',  qr/[)]/xms,    'right parenthesis' ],
@@ -845,16 +810,22 @@ sub rules_add {
         [ 'op_star',    qr/[*]/xms,    'star quantification operator' ],
         [ 'boolean',    qr/[01]/xms ],
         [ 'bare_name',  qr/\w+/xms, ],
-        [ 'bracketed_name', qr/ [<] [ \w]+ [>] /xms, ],
+        [ 'bracketed_name',       qr/ [<] [ \w]+ [>] /xms, ],
         [ 'reserved_action_name', qr/(::(whatever|undef))/xms ],
         ## no escaping or internal newlines, and disallow empty string
-        [ 'single_quoted_string', qr/ ['] [^'\x{0A}\x{0B}\x{0C}\x{0D}\x{0085}\x{2028}\x{2029}]+ ['] /xms ],
-        [ 'character_class', qr/ (?: (?: \[) (?: [^\\\[]* (?: \\. [^\\\]]* )* ) (?: \]) ) /xms,
-            'character class' ],
+        [
+        'single_quoted_string',
+        qr/ ['] [^'\x{0A}\x{0B}\x{0C}\x{0D}\x{0085}\x{2028}\x{2029}]+ ['] /xms
+        ],
+        [
+        'character_class',
+        qr/ (?: (?: \[) (?: [^\\\[]* (?: \\. [^\\\]]* )* ) (?: \]) ) /xms,
+        'character class'
+        ],
         ;
 
     my $rules_source = ${$p_rules_source};
-    my $length = length $rules_source;
+    my $length       = length $rules_source;
     pos $rules_source = 0;
     my $latest_earley_set_ID = 0;
     TOKEN: while ( pos $rules_source < $length ) {
@@ -879,9 +850,11 @@ sub rules_add {
                     line_column( $rules_source, $problem_position );
                 die qq{MARPA PARSE ABEND at line $line, column $column:\n},
                     qq{=== Last rule that Marpa successfully parsed was: },
-                    last_rule( $tracer, $recce, $rules_source, \@positions ), "\n",
-                    problem_happened_here($rules_source, $problem_position),
-                    qq{=== Marpa rejected token, "$1", }, ( $t->[2] // $t->[0] ), "\n";
+                    last_rule( $tracer, $recce, $rules_source, \@positions ),
+                    "\n",
+                    problem_happened_here( $rules_source, $problem_position ),
+                    qq{=== Marpa rejected token, "$1", },
+                    ( $t->[2] // $t->[0] ), "\n";
             } ## end if ( $recce->alternative( $tracer->symbol_by_name( $t...)))
             $recce->earleme_complete();
             $latest_earley_set_ID = $recce->latest_earley_set();
@@ -894,16 +867,16 @@ sub rules_add {
     } ## end TOKEN: while ( pos $rules_source < $length )
 
     $thin_grammar->throw_set(0);
-    my $bocage        = Marpa::R2::Thin::B->new( $recce, $latest_earley_set_ID );
+    my $bocage = Marpa::R2::Thin::B->new( $recce, $latest_earley_set_ID );
     $thin_grammar->throw_set(1);
     if ( !defined $bocage ) {
         die qq{Last rule successfully parsed was: },
             last_rule( $tracer, $recce, $rules_source, \@positions ),
             'Parse failed';
-    } ## end if ( !defined $bocage )
+    }
 
-    my $order         = Marpa::R2::Thin::O->new($bocage);
-    my $tree          = Marpa::R2::Thin::T->new($order);
+    my $order = Marpa::R2::Thin::O->new($bocage);
+    my $tree  = Marpa::R2::Thin::T->new($order);
     $tree->next();
     my $valuator = Marpa::R2::Thin::V->new($tree);
     my @actions_by_rule_id;
@@ -912,7 +885,7 @@ sub rules_add {
     {
         $valuator->rule_is_valued_set( $rule_id, 1 );
         $actions_by_rule_id[$rule_id] = $tracer->action($rule_id);
-    }
+    } ## end for my $rule_id ( grep { $thin_grammar->rule_length($_...)})
 
     my @stack = ();
     STEP: while (1) {
@@ -926,11 +899,11 @@ sub rules_add {
         if ( $type eq 'MARPA_STEP_RULE' ) {
             my ( $rule_id, $arg_0, $arg_n ) = @step_data;
 
-                my @args = @stack[ $arg_0 .. $arg_n ];
-                if ( not defined $thin_grammar->sequence_min($rule_id) ) {
-                    my $mask = $mask_by_rule_id->[$rule_id];
-                    @args = @args[ grep { $mask->[$_] } 0 .. $#args ];
-                }
+            my @args = @stack[ $arg_0 .. $arg_n ];
+            if ( not defined $thin_grammar->sequence_min($rule_id) ) {
+                my $mask = $mask_by_rule_id->[$rule_id];
+                @args = @args[ grep { $mask->[$_] } 0 .. $#args ];
+            }
 
             my $action = $actions_by_rule_id[$rule_id];
             if ( not defined $action ) {
@@ -940,12 +913,11 @@ sub rules_add {
             }
             my $hashed_closure = $hashed_closures{$action};
             if ( defined $hashed_closure ) {
-                $stack[$arg_0] =
-                    $hashed_closure->( $inner_self, @args );
+                $stack[$arg_0] = $hashed_closure->( $inner_self, @args );
                 next STEP;
             }
             if ( $action eq 'do_alternative' ) {
-                $stack[$arg_0] = [ @args ];
+                $stack[$arg_0] = [@args];
                 next STEP;
             }
             if ( $action eq 'do_bracketed_name' ) {
@@ -954,7 +926,7 @@ sub rules_add {
                 next STEP;
             }
             if ( $action eq 'do_array' ) {
-                $stack[$arg_0] = [ @args ];
+                $stack[$arg_0] = [@args];
                 next STEP;
             }
             if ( $action eq 'do_discard_separators' ) {
@@ -1036,8 +1008,10 @@ sub rules_add {
                     next SYMBOL;
                 } ## end if ( $needed_symbol eq '[:ws*]' )
                 if ( $needed_symbol eq '[:ws]' ) {
-                    push @{ws_rules}, { lhs => '[:ws]', rhs => ['[:ws+]'], mask => [0] };
-                    push @{ws_rules}, { lhs => '[:ws]', rhs => ['[:|w]'], mask => [0] };
+                    push @{ws_rules},
+                        { lhs => '[:ws]', rhs => ['[:ws+]'], mask => [0] };
+                    push @{ws_rules},
+                        { lhs => '[:ws]', rhs => ['[:|w]'], mask => [0] };
                     $needed{'[:ws+]'} = 1;
                     next SYMBOL;
                 } ## end if ( $needed_symbol eq '[:ws]' )
@@ -1057,9 +1031,9 @@ sub rules_add {
 
     push @{$g1_rules}, @ws_rules;
 
-    $inner_self->{g1_rules} = $g1_rules;
+    $inner_self->{g1_rules}  = $g1_rules;
     $inner_self->{lex_rules} = $lex_rules;
-    my $raw_cc      = $inner_self->{character_classes};
+    my $raw_cc = $inner_self->{character_classes};
     if ( defined $raw_cc ) {
         my $stripped_cc = {};
         for my $symbol_name ( keys %{$raw_cc} ) {
@@ -1069,7 +1043,7 @@ sub rules_add {
         $inner_self->{character_classes} = $stripped_cc;
     } ## end if ( defined $raw_cc )
     return $inner_self;
-} ## end sub parse_rules
+} ## end sub rules_add
 
 1;
 
