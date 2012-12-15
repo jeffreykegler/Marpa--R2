@@ -952,7 +952,7 @@ sub parse_rules {
                 # normalize whitespace
                 $stack[$arg_0] =~ s/\A [<] \s*//xms;
                 $stack[$arg_0] =~ s/ \s* [>] \z//xms;
-                $stack[$arg_0] =~ s/ \s+ / [ ] /gxms;
+                $stack[$arg_0] =~ s/ \s+ / /gxms;
                 next STEP;
             }
             if ( $action eq 'do_array' ) {
