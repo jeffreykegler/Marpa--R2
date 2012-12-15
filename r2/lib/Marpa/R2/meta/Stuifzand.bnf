@@ -15,7 +15,7 @@
 
 
 rules ::= rule+ action => do_rules
-rule ::= start_rule | empty_rule | priority_rule | quantified_rule | comment_rule
+rule ::= start_rule | empty_rule | priority_rule | quantified_rule | discard_rule
 start_rule ::= (kw__start op_declare) symbol_name
   action => do_start_rule
 priority_rule ::= lhs op_declare priorities
@@ -24,8 +24,8 @@ empty_rule ::= lhs op_declare adverb_list
   action => do_empty_rule
 quantified_rule ::= lhs op_declare single_symbol quantifier adverb_list
     action => do_quantified_rule
-comment_rule ::= (kw__comment op_declare_match) single_symbol
-  action => do_comment_rule
+discard_rule ::= (kw__discard op_declare_match) single_symbol
+  action => do_discard_rule
 op_declare ::= 
       op_declare_bnf action => do_op_declare_bnf
     | op_declare_match action => do_op_declare_match
