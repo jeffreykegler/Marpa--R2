@@ -55,8 +55,9 @@ Expression ::=
      Number
    | '+' Expression Expression action => do_add
 Number ~ [\d] + action => do_literal
-:comment ~ <hash comment>
-<hash comment> ~ '#' <hash comment body> <hash comment end>
+:discard ~ <hash comment>
+<hash comment> ~ '#' <hash comment body> <hash
+    comment end>
 <hash comment body> ~ <hash comment char>*
 <hash comment end> ~ :$ | <vertical space char>
 <vertical space char> ~ [\x{A}\x{B}\x{C}\x{D}\x{2028}\x{2029}]

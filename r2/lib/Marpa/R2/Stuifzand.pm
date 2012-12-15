@@ -843,7 +843,7 @@ sub parse_rules {
         [ 'op_star',    qr/[*]/xms,    'star quantification operator' ],
         [ 'boolean',    qr/[01]/xms ],
         [ 'bare_name',  qr/\w+/xms, ],
-        [ 'bracketed_name', qr/ [<] [ \w]+ [>] /xms, ],
+        [ 'bracketed_name', qr/ [<] [\s\w]+ [>] /xms, ],
         [ 'reserved_action_name', qr/(::(whatever|undef))/xms ],
         ## no escaping or internal newlines, and disallow empty string
         [ 'single_quoted_string', qr/ ['] [^'\x{0A}\x{0B}\x{0C}\x{0D}\x{0085}\x{2028}\x{2029}]+ ['] /xms ],
@@ -949,8 +949,10 @@ sub parse_rules {
                 next STEP;
             }
             if ( $action eq 'do_bracketed_name' ) {
+                # normalize whitespace
                 $stack[$arg_0] =~ s/\A [<] \s*//xms;
                 $stack[$arg_0] =~ s/ \s* [>] \z//xms;
+                $stack[$arg_0] =~ s/ \s+ / [ ] /gxms;
                 next STEP;
             }
             if ( $action eq 'do_array' ) {
