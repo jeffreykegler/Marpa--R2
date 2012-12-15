@@ -47,6 +47,7 @@ package Marpa::R2::Inner::Scanless;
 # names of packages for strings
 our $G_PACKAGE = 'Marpa::R2::Scanless::G';
 our $R_PACKAGE = 'Marpa::R2::Scanless::R';
+our $GRAMMAR_LEVEL;
 
 package Marpa::R2::Inner::Scanless::Symbol;
 
@@ -116,15 +117,17 @@ sub do_start_rule {
 
 sub do_discard_rule {
     my ( $self, $rhs ) = @_;
-    $self->{needs_symbol}->{'[:Space]'} = 1;
-    return [ { lhs => '[:Space]', rhs => [$rhs->name()], mask => [0] }, ];
+    local $GRAMMAR_LEVEL = 0;
+    my $normalized_rhs = $self->normalize($rhs);
+    push @{$self->{lex_rules}}, { lhs => '[:discard]', rhs => [$normalized_rhs->name()], mask => [0] };
+    return [];
 } ## end sub do_discard_rule
 
 # "Normalize" a symbol list, creating subrules as needed
 # for lexicalization.
 sub normalize {
     my ( $self, $symbols ) = @_;
-    return $symbols if $self->{grammar_level} <= 0;
+    return $symbols if $GRAMMAR_LEVEL <= 0;
     return Marpa::R2::Inner::Scanless::Symbol_List->new(
         map { $_->is_symbol() ? $_ : $self->normalize($_) } $symbols->symbol_lists() )
         if not $symbols->is_lexical();
@@ -144,8 +147,10 @@ sub do_priority_rule {
     my ( $self, $lhs, $op_declare, $priorities ) = @_;
     my $priority_count = scalar @{$priorities};
     my @working_rules          = ();
+
     my @xs_rules = ();
     my $rules = $op_declare eq q{::=} ? \@xs_rules : $self->{lex_rules};
+    local $GRAMMAR_LEVEL = 0 if not $op_declare eq q{::=};
 
     if ( $priority_count <= 1 ) {
         ## If there is only one priority
@@ -788,11 +793,11 @@ sub Marpa::R2::Scanless::G::new {
 sub rules_add {
     my ( $self, $p_rules_source ) = @_;
 
+    local $GRAMMAR_LEVEL = 1;
     my $inner_self = bless {
         self              => $self,
         lex_rules         => [],
         lexical_lhs_index => 0,
-        grammar_level     => 1
         },
         __PACKAGE__;
 
@@ -1064,8 +1069,6 @@ sub rules_add {
                 if ( $needed_symbol eq '[:ws]' ) {
                     push @{ws_rules},
                         { lhs => '[:ws]', rhs => ['[:ws+]'], mask => [0] };
-                    push @{ws_rules},
-                        { lhs => '[:ws]', rhs => ['[:|w]'], mask => [0] };
                     $needed{'[:ws+]'} = 1;
                     next SYMBOL;
                 } ## end if ( $needed_symbol eq '[:ws]' )
