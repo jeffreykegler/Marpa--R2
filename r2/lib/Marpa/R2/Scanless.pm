@@ -207,10 +207,16 @@ sub do_priority_rule {
 } ## end sub do_priority_rule
 
 sub do_empty_rule {
-    my ( undef, $lhs, undef, $adverb_list ) = @_;
+    my ( $self, $lhs, $op_declare, $adverb_list ) = @_;
     my $action = $adverb_list->{action};
     # mask not needed
-    return [ { lhs => $lhs, rhs => [], defined($action) ? (action => $action) : () } ];
+    my %rule = ( lhs => $lhs, rhs => []);
+    $rule{action} = $action if defined $action;
+    if ($op_declare eq q{::=}) {
+         return \%rule;
+    }
+    push @{$self->{lex_rules}}, \%rule;
+    return [];
 }
 
 sub do_quantified_rule {
