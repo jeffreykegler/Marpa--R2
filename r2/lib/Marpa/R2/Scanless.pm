@@ -1068,7 +1068,7 @@ sub rules_add {
                 } ## end if ( $needed_symbol eq '[:ws*]' )
                 if ( $needed_symbol eq '[:ws]' ) {
                     push @{ws_rules},
-                        { lhs => '[:ws]', rhs => ['[:ws+]'], mask => [0] };
+                        { lhs => '[:ws]', rhs => ['[:ws+]'],  };
                     $needed{'[:ws+]'} = 1;
                     next SYMBOL;
                 } ## end if ( $needed_symbol eq '[:ws]' )
@@ -1079,7 +1079,6 @@ sub rules_add {
                         {
                         lhs  => '[:Space]',
                         rhs  => [ $true_ws->name() ],
-                        mask => [0]
                         };
                 } ## end if ( $needed_symbol eq '[:Space]' )
             } ## end SYMBOL: for my $needed_symbol (@needed_symbols)
@@ -1090,6 +1089,21 @@ sub rules_add {
 
     $inner_self->{g1_rules}  = $g1_rules;
     $inner_self->{lex_rules} = $lex_rules;
+    my %lex_lhs = ();
+    my %lex_rhs = ();
+    for my $lex_rule (@{$lex_rules}) {
+        $lex_lhs{$lex_rule->{lhs}} = 1;
+        $lex_rhs{$_} = 1 for @{$lex_rule->{rhs}};
+    }
+
+    my %lexemes = map { $_ => 1 } grep { not $lex_rhs{$_}} keys %lex_lhs;
+    my @unproductive = grep { not $lex_lhs{$_} and not $_ =~ /\A \[\[ /xms } keys %lex_rhs;
+    if (@unproductive) {
+        Marpa::R2::exception("Unproductive lexical symbols: ", join q{ }, @unproductive);
+    }
+    push @{ $inner_self->{lex_rules} },
+        map { ; { lhs => '[:start_lex]', rhs => [$_] } } keys %lexemes;
+
     my $raw_cc = $inner_self->{character_classes};
     if ( defined $raw_cc ) {
         my $stripped_cc = {};

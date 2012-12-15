@@ -82,6 +82,10 @@ use English qw( -no_match_vars );
 #     [:$] -- end of input
 #     [:|w] -- word boundary
 #
+# Of the form '[Lex-42]' - where for '42' any other
+# decimal number can be subsituted.  Anonymous lexicals.
+# These symbols are their own originals.
+#
 # Prefixed with '[SYMBOL#' - a unnamed internal symbol.
 # Seeing these
 # indicates some sort of internal error.  If seen,
