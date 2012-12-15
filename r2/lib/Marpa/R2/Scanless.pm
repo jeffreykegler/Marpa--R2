@@ -29,7 +29,7 @@ $VERSION = eval $VERSION;
 BEGIN {
     my $structure = <<'END_OF_STRUCTURE';
 
-    :package=Marpa::R2::Internal::Scanless::G
+    :package=Marpa::R2::Inner::Scanless::G
 
     LEX_TRACER
     G1_TRACER
@@ -42,11 +42,13 @@ END_OF_STRUCTURE
     Marpa::R2::offset($structure);
 } ## end BEGIN
 
+
+package Marpa::R2::Inner::Scanless;
 # names of packages for strings
 our $G_PACKAGE = 'Marpa::R2::Scanless::G';
 our $R_PACKAGE = 'Marpa::R2::Scanless::R';
 
-package Marpa::R2::Internal::Scanless::Symbol;
+package Marpa::R2::Inner::Scanless::Symbol;
 
 use constant NAME => 0;
 use constant HIDE => 1;
@@ -60,7 +62,7 @@ sub hidden_set { shift->{is_hidden} = 1; }
 sub lexical_set { shift->{is_lexical} = 1; }
 sub symbols { return $_[0]; }
 
-package Marpa::R2::Internal::Scanless::Symbol_List;
+package Marpa::R2::Inner::Scanless::Symbol_List;
 
 sub new { my $class = shift; return bless { symbols => [@_] }, $class }
 
@@ -88,7 +90,7 @@ sub symbols {
     return map { $_->symbols() } @{ shift->{symbol_list} };
 }
 
-package Marpa::R2::Internal::Scanless;
+package Marpa::R2::Inner::Scanless;
 
 use English qw( -no_match_vars );
 
@@ -110,6 +112,24 @@ sub do_comment_rule {
     return [ { lhs => '[:Space]', rhs => [$rhs->name()], mask => [0] }, ];
 } ## end sub do_comment_rule
 
+# "Normalize" a symbol list, creating subrules as needed
+# for lexicalization.
+sub normalize {
+    my ( $self, $symbols ) = @_;
+    return $symbols
+        if $self->{grammar_level} <= 0
+            or not $symbols->is_lexical();
+    my $lexical_lhs_index = $self->{lexical_lhs_index}++;
+    my $lexical_lhs       = "[Lex-$lexical_lhs_index]";
+    my %lexical_rule      = {
+        lhs  => $lexical_lhs,
+        rhs  => [ $symbols->name() ],
+        mask => [ $symbols->mask() ]
+    };
+    push @{ $self->{lex_rules} }, \%lexical_rule;
+    return Marpa::R2::Inner::Scanless::Symbol->new($lexical_lhs);
+} ## end sub normalize
+
 sub do_priority_rule {
     my ( $self, $lhs, $op_declare, $priorities ) = @_;
     my $priority_count = scalar @{$priorities};
@@ -121,6 +141,7 @@ sub do_priority_rule {
         ## If there is only one priority
         for my $alternative ( @{ $priorities->[0] } ) {
             my ( $rhs, $adverb_list ) = @{$alternative};
+            $rhs = normalize($self, $rhs);
             my @rhs_names = $rhs->names();
             my @mask      = $rhs->mask();
             my %hash_rule =
@@ -158,6 +179,7 @@ sub do_priority_rule {
     RULE: for my $working_rule (@working_rules) {
         my ( $priority, $rhs, $adverb_list ) = @{$working_rule};
         my $assoc = $adverb_list->{assoc} // 'L';
+        $rhs = $self->normalize($rhs);
         my @new_rhs = $rhs->names();
         my @arity   = grep { $new_rhs[$_] eq $lhs } 0 .. $#new_rhs;
         my $length  = scalar @new_rhs;
@@ -260,7 +282,7 @@ sub do_quantified_rule {
 sub create_hidden_internal_symbol {
     my ($self, $symbol_name) = @_;
     $self->{needs_symbol}->{$symbol_name} = 1;
-    my $symbol = Marpa::R2::Internal::Scanless::Symbol->new($symbol_name);
+    my $symbol = Marpa::R2::Inner::Scanless::Symbol->new($symbol_name);
     $symbol->hidden_set();
     return $symbol;
 }
@@ -296,7 +318,7 @@ sub do_any {
 sub do_end_of_input {
     my $self = shift;
     return $self->{end_of_input_symbol} //=
-        Marpa::R2::Internal::Scanless::Symbol->new('[:$]');
+        Marpa::R2::Inner::Scanless::Symbol->new('[:$]');
 }
 
 sub do_ws { return create_hidden_internal_symbol($_[0], '[:ws]') }
@@ -305,7 +327,7 @@ sub do_ws_plus { return create_hidden_internal_symbol($_[0], '[:ws+]') }
 
 sub do_symbol {
     shift;
-    return Marpa::R2::Internal::Scanless::Symbol->new( $_[0] );
+    return Marpa::R2::Inner::Scanless::Symbol->new( $_[0] );
 }
 
 sub do_character_class {
@@ -315,11 +337,11 @@ sub do_character_class {
     return $symbol;
 } ## end sub do_character_class
 
-sub do_symbol_list { shift; return Marpa::R2::Internal::Scanless::Symbol_List->new(@_) }
+sub do_symbol_list { shift; return Marpa::R2::Inner::Scanless::Symbol_List->new(@_) }
 sub do_lhs { shift; return $_[0]; }
 sub do_rhs {
     shift;
-    return Marpa::R2::Internal::Scanless::Symbol_List->new(
+    return Marpa::R2::Inner::Scanless::Symbol_List->new(
         map { $_->symbols() } @_ );
 }
 sub do_adverb_list { shift; return { map {; @{$_}} @_ } }
@@ -345,7 +367,7 @@ sub do_single_quoted_string {
         push @symbols, $symbol;
     }
     $symbol->{ws_after_ok} = 1; # OK to add WS after last symbol
-    my $list = Marpa::R2::Internal::Scanless::Symbol_List->new(@symbols);
+    my $list = Marpa::R2::Inner::Scanless::Symbol_List->new(@symbols);
     $list->lexical_set();
     return $list;
 }
@@ -682,16 +704,16 @@ sub Marpa::R2::Scanless::G::new {
     bless $self, $class;
 
     my $lex_g_c = Marpa::R2::Thin::G->new( { if => 1 } );
-    $self->[Marpa::R2::Internal::Scanless::G::LEX_TRACER] =
+    $self->[Marpa::R2::Inner::Scanless::G::LEX_TRACER] =
         Marpa::R2::Thin::Trace->new($lex_g_c);
     my $g1_c = Marpa::R2::Thin::G->new( { if => 1 } );
-    $self->[Marpa::R2::Internal::Scanless::G::G1_TRACER] =
+    $self->[Marpa::R2::Inner::Scanless::G::G1_TRACER] =
         Marpa::R2::Thin::Trace->new($g1_c);
 
     # set trace_fh even if no tracing, because we may turn it on in this method
     my $trace_fh =
-        $self->[Marpa::R2::Internal::Scanless::G::TRACE_FILE_HANDLE];
-    my $lex_tracer = $self->[Marpa::R2::Internal::Scanless::G::LEX_TRACER];
+        $self->[Marpa::R2::Inner::Scanless::G::TRACE_FILE_HANDLE];
+    my $lex_tracer = $self->[Marpa::R2::Inner::Scanless::G::LEX_TRACER];
     my $lex_g      = $lex_tracer->grammar();
 
     my $ref_type = ref $args;
@@ -718,16 +740,16 @@ sub Marpa::R2::Scanless::G::new {
 
     if ( defined( my $value = $args->{'trace_file_handle'} ) ) {
         $trace_fh =
-            $self->[Marpa::R2::Internal::Scanless::G::TRACE_FILE_HANDLE] =
+            $self->[Marpa::R2::Inner::Scanless::G::TRACE_FILE_HANDLE] =
             $value;
     }
 
     if ( defined( my $value = $args->{'action_object'} ) ) {
-        $self->[Marpa::R2::Internal::Scanless::G::ACTION_OBJECT] = $value;
+        $self->[Marpa::R2::Inner::Scanless::G::ACTION_OBJECT] = $value;
     }
 
     if ( defined( my $value = $args->{'default_action'} ) ) {
-        $self->[Marpa::R2::Internal::Scanless::G::DEFAULT_ACTION] = $value;
+        $self->[Marpa::R2::Inner::Scanless::G::DEFAULT_ACTION] = $value;
     }
 
       my $rules_source = $args->{'source'};
@@ -757,7 +779,13 @@ sub Marpa::R2::Scanless::G::new {
 sub rules_add {
     my ( $self, $p_rules_source ) = @_;
 
-    my $inner_self = { self => $self, lex_rules => [] };
+    my $inner_self = bless {
+        self              => $self,
+        lex_rules         => [],
+        lexical_lhs_index => 0,
+        grammar_level     => 1
+        },
+        __PACKAGE__;
 
     # Track earley set positions in input,
     # for debuggging
