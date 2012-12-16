@@ -794,15 +794,20 @@ sub Marpa::R2::Scanless::G::new {
     $lex_args{start} = '[:start_lex]';
     $lex_args{'_internal_'} = 1;
     my $lex_grammar = Marpa::R2::Grammar->new( \%lex_args );
+    $lex_grammar->precompute();
+    my $lex_tracer = $lex_grammar->tracer();
     $self->[Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMAR] = $lex_grammar;
     my $character_class_hash = $compiled_source->{character_classes};
     my @class_table = ();
-    for my $class (sort keys %{$character_class_hash} )
+    for my $class_symbol (sort keys %{$character_class_hash} )
     {
-        push @class_table, [ $class, $character_class_hash->{$class} ];
+        push @class_table,
+            [
+            $lex_tracer->symbol_by_name($class_symbol),
+            $character_class_hash->{$class_symbol}
+            ];
     }
     $self->[Marpa::R2::Inner::Scanless::G::CHARACTER_CLASS_TABLE] = \@class_table;
-    $lex_grammar->precompute();
     return $self;
 
 } ## end sub Marpa::R2::Scanless::G::new
@@ -1151,6 +1156,7 @@ sub Marpa::R2::Scanless::R::new {
     my $thin_lex_grammar       = $lex_tracer->grammar();
     my $lex_r       = $self->[Marpa::R2::Inner::Scanless::R::LEX_R] =
         Marpa::R2::Thin::R->new($thin_lex_grammar);
+    $lex_r->start_input();
     my $stream = $self->[Marpa::R2::Inner::Scanless::R::STREAM] =
         Marpa::R2::Thin::U->new($lex_r);
     return $self;
@@ -1189,7 +1195,7 @@ sub Marpa::R2::Scanless::R::read {
             say STDERR
                 "Events occurred while parsing BNF grammar; these will be fatal errors\n",
                 "  Event count: $event_count";
-            for ( my $event_ix = 0; $event_ix < $event_count; $event_ix++ ) {
+            EVENT: for ( my $event_ix = 0; $event_ix < $event_count; $event_ix++ ) {
                 my ( $event_type, $value ) = $thin_lex_grammar->event($event_ix);
                 if ( $event_type eq 'MARPA_EVENT_EARLEY_ITEM_THRESHOLD' ) {
                     say STDERR
