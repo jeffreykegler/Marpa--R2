@@ -134,13 +134,10 @@ sub My_Error::show_last_expression {
 sub my_parser {
     my ( $grammar, $string ) = @_;
 
-    say Data::Dumper::Dumper($grammar);
-    die;
-
     my $self = bless { grammar => $grammar, input => \$string, }, 'My_Error';
     local $My_Actions::SELF = $self;
 
-    my $slr = Marpa::R2::Recognizer->new( { grammar => $grammar } );
+    my $slr = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
     $self->{slr} = $slr;
     my $event_count;
 
