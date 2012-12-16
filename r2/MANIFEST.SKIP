@@ -13,6 +13,10 @@
 # General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 
+# Temporary
+^lib/Marpa/R2/meta/sl[.]bnf
+
+# Permanent
 /[.]gdb_history$
 /[.]gitignore$
 /errs$
