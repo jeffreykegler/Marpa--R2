@@ -786,6 +786,13 @@ sub Marpa::R2::Scanless::G::new {
         my $compiled_rules = rules_add( $self, $rules_source );
         die Data::Dumper::Dumper($compiled_rules);
 
+    my %lex_args = ();
+    $lex_args{$_} = $args->{$_} for qw( action_object default_action trace_file_handle );
+    $lex_args{rules} = $compiled_rules;
+    $lex_args{start} = '[:start_lex]';
+    my $lex_grammar = Marpa::R2::Grammar->new( \%lex_args );
+    $lex_grammar->precompute();
+    $self->{lex_g} = $lex_grammar;
     return $self;
 
 } ## end sub Marpa::R2::Scanless::G::new
