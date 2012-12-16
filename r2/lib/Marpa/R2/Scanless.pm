@@ -31,12 +31,29 @@ BEGIN {
 
     :package=Marpa::R2::Inner::Scanless::G
 
-    LEX_TRACER
-    G1_TRACER
+    THICK_LEX_GRAMMAR
+    THICK_G1_GRAMMAR
+    CHARACTER_CLASSES
 
     TRACE_FILE_HANDLE
     DEFAULT_ACTION
     ACTION_OBJECT
+
+END_OF_STRUCTURE
+    Marpa::R2::offset($structure);
+} ## end BEGIN
+
+BEGIN {
+    my $structure = <<'END_OF_STRUCTURE';
+
+    :package=Marpa::R2::Inner::Scanless::R
+
+    GRAMMAR
+    STREAM
+    LEX_R
+    G1_R
+
+    TRACE_FILE_HANDLE
 
 END_OF_STRUCTURE
     Marpa::R2::offset($structure);
@@ -48,6 +65,7 @@ package Marpa::R2::Inner::Scanless;
 our $G_PACKAGE = 'Marpa::R2::Scanless::G';
 our $R_PACKAGE = 'Marpa::R2::Scanless::R';
 our $GRAMMAR_LEVEL;
+our $TRACE_FILE_HANDLE;
 
 package Marpa::R2::Inner::Scanless::Symbol;
 
@@ -712,28 +730,17 @@ my %grammar_options = map { $_, 1 } qw{
     # warnings
 
 sub Marpa::R2::Scanless::G::new {
-    my ($class, $args) = @_;
+    my ( $class, $args ) = @_;
 
     my $self = [];
     bless $self, $class;
 
-    my $lex_g_c = Marpa::R2::Thin::G->new( { if => 1 } );
-    $self->[Marpa::R2::Inner::Scanless::G::LEX_TRACER] =
-        Marpa::R2::Thin::Trace->new($lex_g_c);
-    my $g1_c = Marpa::R2::Thin::G->new( { if => 1 } );
-    $self->[Marpa::R2::Inner::Scanless::G::G1_TRACER] =
-        Marpa::R2::Thin::Trace->new($g1_c);
-
-    # set trace_fh even if no tracing, because we may turn it on in this method
-    my $trace_fh =
-        $self->[Marpa::R2::Inner::Scanless::G::TRACE_FILE_HANDLE];
-    my $lex_tracer = $self->[Marpa::R2::Inner::Scanless::G::LEX_TRACER];
-    my $lex_g      = $lex_tracer->grammar();
+    $self->[Marpa::R2::Inner::Scanless::G::TRACE_FILE_HANDLE] = *STDERR;
 
     my $ref_type = ref $args;
     if ( not $ref_type ) {
         Carp::croak(
-            '$G_PACKAGE expects args as ref to HASH; arg was non-reference' );
+            '$G_PACKAGE expects args as ref to HASH; arg was non-reference');
     }
     if ( $ref_type ne 'HASH' ) {
         Carp::croak(
@@ -753,9 +760,7 @@ sub Marpa::R2::Scanless::G::new {
     } ## end if ( my @bad_options = grep { not defined $grammar_options...})
 
     if ( defined( my $value = $args->{'trace_file_handle'} ) ) {
-        $trace_fh =
-            $self->[Marpa::R2::Inner::Scanless::G::TRACE_FILE_HANDLE] =
-            $value;
+        $self->[Marpa::R2::Inner::Scanless::G::TRACE_FILE_HANDLE] = $value;
     }
 
     if ( defined( my $value = $args->{'action_object'} ) ) {
@@ -766,33 +771,33 @@ sub Marpa::R2::Scanless::G::new {
         $self->[Marpa::R2::Inner::Scanless::G::DEFAULT_ACTION] = $value;
     }
 
-      my $rules_source = $args->{'source'};
+    my $rules_source = $args->{'source'};
     if ( not defined $rules_source ) {
-            Marpa::R2::exception(
-                'Marpa::R2::Scanless::G::new() called without a "source" argument'
-            );
-        }
-
-        $ref_type = ref $rules_source;
-        if ( $ref_type ne 'SCALAR' ) {
-            Marpa::R2::exception(
-                qq{Marpa::R2::Scanless::G::new() type of "source" argument is "$ref_type"},
-                "  It must be a ref to a string\n"
-            );
-        }
         Marpa::R2::exception(
-            'rules option not allowed after grammar is precomputed')
-            if $lex_g->is_precomputed();
-        my $compiled_rules = rules_add( $self, $rules_source );
-        die Data::Dumper::Dumper($compiled_rules);
+            'Marpa::R2::Scanless::G::new() called without a "source" argument'
+        );
+    }
+
+    $ref_type = ref $rules_source;
+    if ( $ref_type ne 'SCALAR' ) {
+        Marpa::R2::exception(
+            qq{Marpa::R2::Scanless::G::new() type of "source" argument is "$ref_type"},
+            "  It must be a ref to a string\n"
+        );
+    } ## end if ( $ref_type ne 'SCALAR' )
+    my $compiled_source = rules_add( $self, $rules_source );
+    # die Data::Dumper::Dumper($compiled_rules);
 
     my %lex_args = ();
-    $lex_args{$_} = $args->{$_} for qw( action_object default_action trace_file_handle );
-    $lex_args{rules} = $compiled_rules;
+    $lex_args{$_} = $args->{$_}
+        for qw( action_object default_action trace_file_handle );
+    $lex_args{rules} = $compiled_source->{lex_rules};
     $lex_args{start} = '[:start_lex]';
+    $lex_args{'_internal_'} = 1;
     my $lex_grammar = Marpa::R2::Grammar->new( \%lex_args );
+    $self->[Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMAR] = $lex_grammar;
+    $self->[Marpa::R2::Inner::Scanless::G::CHARACTER_CLASSES] = $compiled_source->{character_classes};
     $lex_grammar->precompute();
-    $self->{lex_g} = $lex_grammar;
     return $self;
 
 } ## end sub Marpa::R2::Scanless::G::new
@@ -1122,6 +1127,151 @@ sub rules_add {
     } ## end if ( defined $raw_cc )
     return $inner_self;
 } ## end sub rules_add
+
+sub Marpa::R2::Scanless::R::new {
+    my ( $class, $args ) = @_;
+
+    my $self = [];
+    bless $self, $class;
+
+    my $grammar = $args->{grammar};
+    if ( not defined $grammar ) {
+        Marpa::R2::exception(
+            'Marpa::R2::Scanless::R::new() called without a "grammar" argument'
+        );
+    }
+    $self->[Marpa::R2::Inner::Scanless::R::GRAMMAR] = $grammar;
+    my $thick_lex_grammar = $grammar->[Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMAR];
+    my $lex_tracer = $thick_lex_grammar->tracer();
+    my $thin_lex_grammar       = $lex_tracer->grammar();
+    my $lex_r       = $self->[Marpa::R2::Inner::Scanless::R::LEX_R] =
+        Marpa::R2::Thin::R->new($thin_lex_grammar);
+    my $stream = $self->[Marpa::R2::Inner::Scanless::R::STREAM] =
+        Marpa::R2::Thin::U->new($lex_r);
+    return $self;
+} ## end sub Marpa::R2::Scanless::R::new
+
+sub Marpa::R2::Scanless::R::read {
+     my ($self, $string) = @_;
+
+    my $stream  = $self->[Marpa::R2::Inner::Scanless::R::STREAM];
+    my $grammar  = $self->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
+    my $thick_lex_grammar  = $grammar->[Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMAR];
+    my $lex_tracer       = $thick_lex_grammar->tracer();
+    my $thin_lex_grammar  = $lex_tracer->grammar();
+
+    my $event_count;
+
+    my $class_table =
+        $grammar->[Marpa::R2::Inner::Scanless::G::CHARACTER_CLASSES];
+
+    $stream->string_set(\$string);
+    READ: {
+        state $op_alternative = Marpa::R2::Thin::U::op('alternative');
+        state $op_earleme_complete =
+            Marpa::R2::Thin::U::op('earleme_complete');
+        if ( not defined eval { $event_count = $stream->read(); 1 } ) {
+            my $problem_symbol = $stream->symbol_id();
+            my $symbol_desc =
+                $problem_symbol < 0
+                ? q{}
+                : "Problem was with symbol "
+                . $lex_tracer->symbol_name($problem_symbol);
+            die "Exception in stream read(): $EVAL_ERROR\n", $symbol_desc;
+        } ## end if ( not defined eval { $event_count = $stream->read...})
+        last READ if $event_count == 0;
+        if ( $event_count > 0 ) {
+            say STDERR
+                "Events occurred while parsing BNF grammar; these will be fatal errors\n",
+                "  Event count: $event_count";
+            for ( my $event_ix = 0; $event_ix < $event_count; $event_ix++ ) {
+                my ( $event_type, $value ) = $thin_lex_grammar->event($event_ix);
+                if ( $event_type eq 'MARPA_EVENT_EARLEY_ITEM_THRESHOLD' ) {
+                    say STDERR
+                        "Unexpected event: Earley item count ($value) exceeds warning threshold";
+                    next EVENT;
+                }
+                if ( $event_type eq 'MARPA_EVENT_SYMBOL_EXPECTED' ) {
+                    say STDERR "Unexpected event: $event_type ",
+                        $lex_tracer->symbol_name($value);
+                    next EVENT;
+                }
+                if ( $event_type eq 'MARPA_EVENT_EXHAUSTED' ) {
+                    say STDERR "Unexpected event: $event_type ";
+                    next EVENT;
+                }
+            } ## end for ( my $event_ix = 0; $event_ix < $event_count; ...)
+            die "Unexpected events when parsing BNF grammar, cannot proceed";
+        } ## end if ( $event_count > 0 )
+        if ( $event_count == -2 ) {
+
+            # Recover by registering character, if we can
+            my $codepoint = $stream->codepoint();
+            my @ops;
+            for my $entry ( @{$class_table} ) {
+                my ( $symbol_id, $re ) = @{$entry};
+                if ( chr($codepoint) =~ $re ) {
+                    # if ( $recce->[Marpa::R2::Internal::Recognizer::TRACE_SL] )
+                    if (0)
+                    {
+                        say {$Marpa::R2::Inner::Scanless::TRACE_FILE_HANDLE} "Registering character ",
+                            ( sprintf 'U+%04x', $codepoint ),
+                            " as symbol $symbol_id: ",
+                            $lex_tracer->symbol_name($symbol_id);
+                    } ## end if ( $recce->[...])
+                    push @ops, $op_alternative, $symbol_id, 0, 1;
+                } ## end if ( chr($codepoint) =~ $re )
+            } ## end for my $entry ( @{$class_table} )
+            die sprintf "Cannot read character U+%04x: %c\n", $codepoint,
+                $codepoint
+                if not @ops;
+            $stream->char_register( $codepoint, @ops, $op_earleme_complete );
+            redo READ;
+        } ## end if ( $event_count == -2 )
+    } ## end READ:
+
+    ## If we are here, recovery is a matter for the caller,
+    ## if it is possible at all
+    my $pos = $stream->pos();
+    my $desc;
+    DESC: {
+        if ( $event_count == -1 ) {
+            $desc = 'Character rejected';
+            last DESC;
+        }
+        if ( $event_count == -2 ) {
+            $desc = 'Unregistered character';
+            last DESC;
+        }
+        if ( $event_count == -3 ) {
+            $desc = 'Parse exhausted';
+            last DESC;
+        }
+    } ## end DESC:
+    my $char = substr $string, $pos, 1;
+    my $char_in_hex = sprintf '0x%04x', ord $char;
+    my $char_desc =
+          $char =~ m/[\p{PosixGraph}]/xms
+        ? $char
+        : '[non-graphic character]';
+    my $prefix =
+        $pos >= 72
+        ? ( substr $string, $pos - 72, 72 )
+        : ( substr $string, 0, $pos );
+
+    my $read_string_error =
+          "Error in string_read: $desc\n"
+        . "* Error was at string position: $pos, and at character $char_in_hex, '$char_desc'\n"
+        . "* String before error:\n"
+        . Marpa::R2::escape_string( $prefix, -72 ) . "\n"
+        . "* String after error:\n"
+        . Marpa::R2::escape_string( ( substr $string, $pos, 72 ), 72 ) . "\n";
+    Marpa::R2::exception($read_string_error) if $event_count == -3;
+
+    # Fall through to return undef
+    return;
+
+}
 
 1;
 

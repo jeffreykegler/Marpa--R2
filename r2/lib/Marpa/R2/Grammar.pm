@@ -79,6 +79,7 @@ BEGIN {
     RULE_NAME_REQUIRED
     RULE_BY_NAME
     INTERFACE { currently 'standard' or 'stuifzand' }
+    INTERNAL { internal grammar -- relax various restrictions }
     SCANNERLESS { A Boolean indicating whether the grammar is scannerless }
 
     CHARACTER_CLASSES { an hash of
@@ -176,6 +177,7 @@ sub Marpa::R2::Grammar::thin_symbol {
 
 use constant GRAMMAR_OPTIONS => [
     qw{
+        _internal_
         action_object
         actions
         infinite_action
@@ -228,6 +230,10 @@ sub Marpa::R2::Grammar::set {
         # First pass options: These affect processing of other
         # options and are expected to take force for the other
         # options, even if specified afterwards
+
+        if ( defined( my $value = $args->{'_internal_'} ) ) {
+            $grammar->[Marpa::R2::Internal::Grammar::INTERNAL] =  $value;
+        }
 
         if ( defined( my $value = $args->{'scannerless'} ) ) {
             $grammar->[Marpa::R2::Internal::Grammar::SCANNERLESS] =  $value;
@@ -1076,8 +1082,11 @@ sub add_user_rule {
     my $stuifzand_interface = 
         $grammar->[Marpa::R2::Internal::Grammar::INTERFACE] eq 'stuifzand';
 
+    my $grammar_is_internal = $stuifzand_interface ||
+        $grammar->[Marpa::R2::Internal::Grammar::INTERNAL];
+
     my $lhs =
-        $stuifzand_interface
+        $grammar_is_internal
         ? assign_symbol( $grammar, $lhs_name )
         : assign_user_symbol( $grammar, $lhs_name );
     $rhs_names //= [];
