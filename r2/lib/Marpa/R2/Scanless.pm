@@ -33,7 +33,7 @@ BEGIN {
 
     THICK_LEX_GRAMMAR
     THICK_G1_GRAMMAR
-    CHARACTER_CLASSES
+    CHARACTER_CLASS_TABLE
 
     TRACE_FILE_HANDLE
     DEFAULT_ACTION
@@ -795,7 +795,13 @@ sub Marpa::R2::Scanless::G::new {
     $lex_args{'_internal_'} = 1;
     my $lex_grammar = Marpa::R2::Grammar->new( \%lex_args );
     $self->[Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMAR] = $lex_grammar;
-    $self->[Marpa::R2::Inner::Scanless::G::CHARACTER_CLASSES] = $compiled_source->{character_classes};
+    my $character_class_hash = $compiled_source->{character_classes};
+    my @class_table = ();
+    for my $class (sort keys %{$character_class_hash} )
+    {
+        push @class_table, [ $class, $character_class_hash->{$class} ];
+    }
+    $self->[Marpa::R2::Inner::Scanless::G::CHARACTER_CLASS_TABLE] = \@class_table;
     $lex_grammar->precompute();
     return $self;
 
@@ -1162,7 +1168,7 @@ sub Marpa::R2::Scanless::R::read {
     my $event_count;
 
     my $class_table =
-        $grammar->[Marpa::R2::Inner::Scanless::G::CHARACTER_CLASSES];
+        $grammar->[Marpa::R2::Inner::Scanless::G::CHARACTER_CLASS_TABLE];
 
     $stream->string_set(\$string);
     READ: {

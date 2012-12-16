@@ -124,6 +124,7 @@ sub My_Error::last_completed_range {
 } ## end sub My_Error::last_completed_range
 
 sub My_Error::show_last_expression {
+    return 'NYI';
     my ($self) = @_;
     my ( $start, $end ) = $self->last_completed_range('Expression');
     return 'No expression was successfully parsed' if not defined $start;

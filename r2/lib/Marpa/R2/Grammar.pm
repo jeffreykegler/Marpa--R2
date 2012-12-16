@@ -165,6 +165,10 @@ sub Marpa::R2::Grammar::new {
     return $grammar;
 } ## end sub Marpa::R2::Grammar::new
 
+sub Marpa::R2::Grammar::tracer {
+    return $_[0]->[Marpa::R2::Internal::Grammar::TRACER];
+}
+
 sub Marpa::R2::Grammar::thin {
     return $_[0]->[Marpa::R2::Internal::Grammar::C];
 }
@@ -1085,7 +1089,6 @@ sub add_user_rule {
     my $grammar_is_internal = $stuifzand_interface ||
         $grammar->[Marpa::R2::Internal::Grammar::INTERNAL];
 
-    $DB::single = 1;
     my $lhs =
         $grammar_is_internal
         ? assign_symbol( $grammar, $lhs_name )
