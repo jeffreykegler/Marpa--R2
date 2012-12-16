@@ -101,7 +101,7 @@ sub hidden_set {
     $_->hidden_set() for @{ shift->{symbol_lists} };
 }
 
-sub is_lexical { $DB::single = 1; shift->{is_lexical} // 0 }
+sub is_lexical { shift->{is_lexical} // 0 }
 sub lexical_set { shift->{is_lexical} = 1; }
 
 sub mask {
@@ -149,7 +149,6 @@ sub normalize {
     return Marpa::R2::Inner::Scanless::Symbol_List->new(
         map { $_->is_symbol() ? $_ : $self->normalize($_) } $symbols->symbol_lists() )
         if not $symbols->is_lexical();
-    $DB::single = 1;
     my $lexical_lhs_index = $self->{lexical_lhs_index}++;
     my $lexical_lhs       = "[Lex-$lexical_lhs_index]";
     my %lexical_rule      = (

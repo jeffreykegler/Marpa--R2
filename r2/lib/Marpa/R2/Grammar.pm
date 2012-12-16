@@ -1085,6 +1085,7 @@ sub add_user_rule {
     my $grammar_is_internal = $stuifzand_interface ||
         $grammar->[Marpa::R2::Internal::Grammar::INTERNAL];
 
+    $DB::single = 1;
     my $lhs =
         $grammar_is_internal
         ? assign_symbol( $grammar, $lhs_name )
@@ -1157,7 +1158,7 @@ sub add_user_rule {
 
     my $rhs = [
         map {
-            $stuifzand_interface
+            $grammar_is_internal
                 ? assign_symbol( $grammar, $_ )
                 : assign_user_symbol( $grammar, $_ );
         } @{$rhs_names}
