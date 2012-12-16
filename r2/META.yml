@@ -39,6 +39,7 @@ no_index:
     - Marpa::R2::Perl
     - Marpa::R2::Test
     - Marpa::R2::Display
+    - Marpa::R2::Inner
     - Marpa::R2::Internal
     - Marpa::R2::Stuifzand
   package:
@@ -47,6 +48,7 @@ no_index:
     - Marpa::R2::Perl
     - Marpa::R2::Test
     - Marpa::R2::Display
+    - Marpa::R2::Inner
     - Marpa::R2::Internal
     - Marpa::R2::Stuifzand
     - Marpa::R2::Thin::Trace
@@ -81,6 +83,15 @@ provides:
   Marpa::R2::HTML::Internal::Core:
     file: html/lib/Marpa/R2/HTML/Config/Core.pm
     version: 0
+  Marpa::R2::Inner::Scanless:
+    file: lib/Marpa/R2/Scanless.pm
+    version: 0
+  Marpa::R2::Inner::Scanless::Symbol:
+    file: lib/Marpa/R2/Scanless.pm
+    version: 0
+  Marpa::R2::Inner::Scanless::Symbol_List:
+    file: lib/Marpa/R2/Scanless.pm
+    version: 0
   Marpa::R2::Internal:
     file: lib/Marpa/R2/Internal.pm
     version: 2.033_000
@@ -104,6 +115,9 @@ provides:
     version: 0
   Marpa::R2::Recognizer:
     file: lib/Marpa/R2/Recognizer.pm
+    version: 2.033_000
+  Marpa::R2::Scanless:
+    file: lib/Marpa/R2/Scanless.pm
     version: 2.033_000
   Marpa::R2::Stuifzand:
     file: lib/Marpa/R2/Stuifzand.pm
