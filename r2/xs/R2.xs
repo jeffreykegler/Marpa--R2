@@ -736,6 +736,28 @@ PPCODE:
 }
 
 void
+recce_set( stream, new_r_sv )
+    Unicode_Stream *stream;
+    SV *new_r_sv;
+PPCODE:
+{
+  if (!sv_isa (new_r_sv, "Marpa::R2::Thin::R"))
+    {
+      croak ("Problem in u->recce_set(): arg is not of type Marpa::R2::Thin::R");
+    }
+  SvREFCNT_inc (new_r_sv);
+  {
+    IV tmp = SvIV ((SV *) SvRV (new_r_sv));
+    R_Wrapper *new_r_wrapper = INT2PTR (R_Wrapper *, tmp);
+    stream->base = new_r_wrapper->base;
+    stream->r_wrapper = new_r_wrapper;
+    SvREFCNT_dec(stream->r_sv);
+    stream->r_sv = new_r_sv;
+  }
+}
+
+
+void
 DESTROY( stream )
     Unicode_Stream *stream;
 PPCODE:
