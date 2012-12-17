@@ -1190,7 +1190,7 @@ sub Marpa::R2::Scanless::R::read {
         $grammar->[Marpa::R2::Inner::Scanless::G::CHARACTER_CLASS_TABLE];
 
     $stream->string_set(\$string);
-    my $recce = $stream->recce();
+    my $thin_lex_recce = $self->[Marpa::R2::Inner::Scanless::R::LEX_R];
     READ: {
         state $op_alternative = Marpa::R2::Thin::U::op('alternative');
         state $op_earleme_complete =
@@ -1205,22 +1205,22 @@ sub Marpa::R2::Scanless::R::read {
             die "Exception in stream read(): $EVAL_ERROR\n", $symbol_desc;
         } ## end if ( not defined eval { $event_count = $stream->read...})
         last READ if $event_count == 0;
-        if ( $recce->is_exhausted() ) {
-            my $earley_set = $recce->latest_earley_set();
-            my $is_lexeme = $self->[Marpa::R2::Inner::Scanless::G::IS_LEXEME];
+        if ( $thin_lex_recce->is_exhausted() ) {
+            my $earley_set = $thin_lex_recce->latest_earley_set();
+            my $is_lexeme = $grammar->[Marpa::R2::Inner::Scanless::G::IS_LEXEME];
             my %found     = ();
 
             # Do not search Earley set 0 -- we do not care about
             # zero-length lexemes
             EARLEY_SET: while ( $earley_set > 0 ) {
-                $recce->progress_report_start($earley_set);
+                $thin_lex_recce->progress_report_start($earley_set);
                 ITEM: while (1) {
                     my ( $rule_id, $dot_position, $origin ) =
-                        $recce->progress_item();
+                        $thin_lex_recce->progress_item();
                     last ITEM if not defined $rule_id;
                     next ITEM if $origin != 0;
                     next ITEM if $dot_position != -1;
-                    my $lhs_id = $grammar->lhs($rule_id);
+                    my $lhs_id = $thin_lex_grammar->rule_lhs($rule_id);
                     next ITEM if not $is_lexeme->[$lhs_id];
                     $found{$lhs_id} = 1;
                 } ## end ITEM: while (1)
@@ -1230,9 +1230,9 @@ sub Marpa::R2::Scanless::R::read {
             if ( not scalar %found ) {
                 Marpa::R2::exception( 'No lexeme found in ', $string );
             }
-            die 'Found lexemes: =', join q{ },
+            die 'Found lexemes: ', join q{ },
                 map { $lex_tracer->symbol_name($_) } keys %found;
-        } ## end if ( $recce->is_exhausted() )
+        } ## end if ( $thin_lex_recce->is_exhausted() )
         if ( $event_count > 0 ) {
             say STDERR
                 "Events occurred while parsing BNF grammar; these will be fatal errors\n",
