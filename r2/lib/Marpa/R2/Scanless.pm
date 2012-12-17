@@ -1276,10 +1276,11 @@ sub Marpa::R2::Scanless::R::read {
         } ## end if ( $event_count == -2 )
     } ## end READ:
 
+    my $pos = $stream->pos();
+    return $pos if $event_count == 0;
 
     ## If we are here, recovery is a matter for the caller,
     ## if it is possible at all
-    my $pos = $stream->pos();
     my $desc;
     DESC: {
         if ( $event_count > 0 ) {
@@ -1331,7 +1332,7 @@ sub Marpa::R2::Scanless::R::read {
         : ( substr $string, 0, $pos );
 
     my $read_string_error =
-            $self->[Marpa::R2::Inner::Scanless::R::READ_STRING_ERROR] =
+        $self->[Marpa::R2::Inner::Scanless::R::READ_STRING_ERROR] =
           "Error in string_read: $desc\n"
         . "* Error was at string position: $pos, and at character $char_in_hex, '$char_desc'\n"
         . "* String before error:\n"

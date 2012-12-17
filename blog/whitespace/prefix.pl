@@ -142,6 +142,8 @@ sub my_parser {
     $self->{slr} = $slr;
     my $event_count;
 
+    # $slr->trace(99);
+
     if ( not defined eval { $event_count = $slr->read($string); 1 } ) {
 
         # Add last expression found, and rethrow
