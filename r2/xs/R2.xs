@@ -914,39 +914,33 @@ PPCODE:
 }
 
 void
-hop( stream, hop )
+pos_set( stream, new_pos )
      Unicode_Stream *stream;
-     int hop;
+     STRLEN new_pos;
 PPCODE:
 {
-  /* *SAFELY* move the pointer backward or forward
+  /* *SAFELY* change the position
    * This requires care in UTF8
-   * Returns the hop actually performed
+   * Returns the position *BEFORE* the call
    */
   int input_is_utf8 = SvUTF8 (stream->input);
   STRLEN len;
+  const STRLEN old_pos = stream->character_ix;
   char *input;
-  if (hop == 0) XSRETURN_IV(0);
-  if (input_is_utf8) {
-      croak ("Problem in r->hop(): UTF8 not yet implemented");
-  }
+  if (input_is_utf8)
+    {
+      croak ("Problem in stream->pos_set(): UTF8 not yet implemented");
+    }
   input = SvPV (stream->input, len);
-  if (hop > 0) {
-     const int maximum_hop = len - stream->input_offset;
-     const int actual_hop = hop > maximum_hop ? maximum_hop : hop;
-     stream->input_offset += actual_hop;
-     stream->character_ix += actual_hop;
-     XSRETURN_IV(actual_hop);
-  }
-  if (hop < 0) {
-     const int minimum_hop = -stream->input_offset;
-     const int actual_hop = hop < minimum_hop ? minimum_hop : hop;
-     stream->input_offset += actual_hop;
-     stream->character_ix += actual_hop;
-     XSRETURN_IV(actual_hop);
-  }
-  /* Never reached */
-  XSRETURN_UNDEF;
+  /* STRLEN is assumed to be unsigned so no check for less than zero */
+  if (new_pos >= len)
+    {
+      croak ("Problem in stream->pos_set(): new pos = %ld, but length = %ld",
+	     (long) new_pos, (long) len);
+    }
+  stream->input_offset = new_pos;
+  stream->character_ix = new_pos;
+  XSRETURN_IV (old_pos);
 }
 
  # Return values:

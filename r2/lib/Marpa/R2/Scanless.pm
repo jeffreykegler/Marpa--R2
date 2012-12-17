@@ -1195,6 +1195,7 @@ sub Marpa::R2::Scanless::R::read {
     my $class_table =
         $grammar->[Marpa::R2::Inner::Scanless::G::CHARACTER_CLASS_TABLE];
 
+    my $start_of_next_lexeme = 0;
     $stream->string_set(\$string);
     my $thin_lex_recce = $self->[Marpa::R2::Inner::Scanless::R::LEX_R];
     READ: {
@@ -1211,8 +1212,9 @@ sub Marpa::R2::Scanless::R::read {
             die "Exception in stream read(): $EVAL_ERROR\n", $symbol_desc;
         } ## end if ( not defined eval { $event_count = $stream->read...})
         last READ if $event_count == 0;
-        if ( $thin_lex_recce->is_exhausted() ) {
-            my $earley_set = $thin_lex_recce->latest_earley_set();
+        if ( $thin_lex_recce->is_exhausted() or $event_count == -1) {
+            my $latest_earley_set = $thin_lex_recce->latest_earley_set();
+            my $earley_set = $latest_earley_set;
             my $is_lexeme = $grammar->[Marpa::R2::Inner::Scanless::G::IS_LEXEME];
             my %found     = ();
 
@@ -1236,12 +1238,15 @@ sub Marpa::R2::Scanless::R::read {
             if ( not scalar %found ) {
                 Marpa::R2::exception( 'No lexeme found in ', $string );
             }
-            say STDERR 'Found lexemes: ', join q{ },
+            my $lexeme_start_pos = $start_of_next_lexeme;
+            my $lexeme_end_pos = $start_of_next_lexeme = $lexeme_start_pos + $earley_set;
+            say STDERR 'Found lexemes @' . $lexeme_start_pos, q{-}, $lexeme_end_pos , q{: }, join q{ },
                 map { $lex_tracer->symbol_name($_) } keys %found;
             $thin_lex_recce       = $self->[Marpa::R2::Inner::Scanless::R::LEX_R] =
                 Marpa::R2::Thin::R->new($thin_lex_grammar);
             $thin_lex_recce->start_input();
             $stream->recce_set($thin_lex_recce);
+            $stream->pos_set($start_of_next_lexeme);
             redo READ;
         } ## end if ( $thin_lex_recce->is_exhausted() )
         if ( $event_count == -2 ) {
