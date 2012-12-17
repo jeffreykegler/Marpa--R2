@@ -1039,7 +1039,7 @@ PPCODE:
 		    # we have one of them as an example
 		    stream->input_symbol_id = symbol_id;
 		    if (trace_level >= 10) {
-			warn("Thin::U::read() Rejected codepoint 0x%04x at pos %d at symbol %d",
+			warn("Thin::U::read() Rejected codepoint 0x%04x at pos %d as symbol %d",
 			  (int)codepoint, (int)stream->character_ix, symbol_id);
 		    }
 		    if (!ignore_rejection)
@@ -1050,7 +1050,7 @@ PPCODE:
 		    break;
 		  case MARPA_ERR_NONE:
 		    if (trace_level >= 10) {
-			warn("Thin::U::read() Accepted codepoint 0x%04x at pos %d at symbol %d",
+			warn("Thin::U::read() Accepted codepoint 0x%04x at pos %d as symbol %d",
 			  (int)codepoint, (int)stream->character_ix, symbol_id);
 		    }
 		    tokens_accepted++;

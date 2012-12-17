@@ -1162,6 +1162,13 @@ sub Marpa::R2::Scanless::R::new {
     return $self;
 } ## end sub Marpa::R2::Scanless::R::new
 
+sub Marpa::R2::Scanless::R::trace {
+    my ($self, $level) = @_;
+    $level //= 1;
+    my $stream = $self->[Marpa::R2::Inner::Scanless::R::STREAM];
+    $stream->trace($level);
+}
+
 sub Marpa::R2::Scanless::R::read {
      my ($self, $string) = @_;
 
