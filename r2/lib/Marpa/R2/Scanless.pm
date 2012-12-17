@@ -55,6 +55,7 @@ BEGIN {
     G1_R
 
     TRACE_FILE_HANDLE
+    READ_STRING_ERROR
 
 END_OF_STRUCTURE
     Marpa::R2::offset($structure);
@@ -1175,6 +1176,11 @@ sub Marpa::R2::Scanless::R::trace {
     $stream->trace($level);
 }
 
+sub Marpa::R2::Scanless::R::error {
+    my ($self) = @_;
+    return $self->[Marpa::R2::Inner::Scanless::R::READ_STRING_ERROR];
+}
+
 sub Marpa::R2::Scanless::R::read {
      my ($self, $string) = @_;
 
@@ -1230,32 +1236,14 @@ sub Marpa::R2::Scanless::R::read {
             if ( not scalar %found ) {
                 Marpa::R2::exception( 'No lexeme found in ', $string );
             }
-            die 'Found lexemes: ', join q{ },
+            say STDERR 'Found lexemes: ', join q{ },
                 map { $lex_tracer->symbol_name($_) } keys %found;
+            $thin_lex_recce       = $self->[Marpa::R2::Inner::Scanless::R::LEX_R] =
+                Marpa::R2::Thin::R->new($thin_lex_grammar);
+            $thin_lex_recce->start_input();
+            $stream->recce_set($thin_lex_recce);
+            redo READ;
         } ## end if ( $thin_lex_recce->is_exhausted() )
-        if ( $event_count > 0 ) {
-            say STDERR
-                "Events occurred while parsing BNF grammar; these will be fatal errors\n",
-                "  Event count: $event_count";
-            EVENT: for ( my $event_ix = 0; $event_ix < $event_count; $event_ix++ ) {
-                my ( $event_type, $value ) = $thin_lex_grammar->event($event_ix);
-                if ( $event_type eq 'MARPA_EVENT_EARLEY_ITEM_THRESHOLD' ) {
-                    say STDERR
-                        "Unexpected event: Earley item count ($value) exceeds warning threshold";
-                    next EVENT;
-                }
-                if ( $event_type eq 'MARPA_EVENT_SYMBOL_EXPECTED' ) {
-                    say STDERR "Unexpected event: $event_type ",
-                        $lex_tracer->symbol_name($value);
-                    next EVENT;
-                }
-                if ( $event_type eq 'MARPA_EVENT_EXHAUSTED' ) {
-                    say STDERR "Unexpected event: $event_type ";
-                    next EVENT;
-                }
-            } ## end for ( my $event_ix = 0; $event_ix < $event_count; ...)
-            die "Unexpected events when parsing BNF grammar, cannot proceed";
-        } ## end if ( $event_count > 0 )
         if ( $event_count == -2 ) {
 
             # Recover by registering character, if we can
@@ -1283,11 +1271,36 @@ sub Marpa::R2::Scanless::R::read {
         } ## end if ( $event_count == -2 )
     } ## end READ:
 
+
     ## If we are here, recovery is a matter for the caller,
     ## if it is possible at all
     my $pos = $stream->pos();
     my $desc;
     DESC: {
+        if ( $event_count > 0 ) {
+            EVENT:
+            for ( my $event_ix = 0; $event_ix < $event_count; $event_ix++ ) {
+                my ( $event_type, $value ) =
+                    $thin_lex_grammar->event($event_ix);
+                if ( $event_type eq 'MARPA_EVENT_EARLEY_ITEM_THRESHOLD' ) {
+                    $desc
+                        .= "Unexpected event: Earley item count ($value) exceeds warning threshold\n";
+                    next EVENT;
+                }
+                if ( $event_type eq 'MARPA_EVENT_SYMBOL_EXPECTED' ) {
+                    $desc .= "Unexpected event: $event_type "
+                        . $lex_tracer->symbol_name($value) . "\n";
+                    next EVENT;
+                }
+                if ( $event_type eq 'MARPA_EVENT_EXHAUSTED' ) {
+                    $desc .= "Unexpected event: $event_type\n";
+                    next EVENT;
+                }
+            } ## end EVENT: for ( my $event_ix = 0; $event_ix < $event_count; ...)
+            ## If we are here, recovery is a matter for the caller,
+            ## if it is possible at all
+            last DESC;
+        } ## end if ( $event_count > 0 )
         if ( $event_count == -1 ) {
             $desc = 'Character rejected';
             last DESC;
@@ -1313,6 +1326,7 @@ sub Marpa::R2::Scanless::R::read {
         : ( substr $string, 0, $pos );
 
     my $read_string_error =
+            $self->[Marpa::R2::Inner::Scanless::R::READ_STRING_ERROR] =
           "Error in string_read: $desc\n"
         . "* Error was at string position: $pos, and at character $char_in_hex, '$char_desc'\n"
         . "* String before error:\n"
