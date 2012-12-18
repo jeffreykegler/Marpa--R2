@@ -1259,7 +1259,10 @@ sub Marpa::R2::Scanless::R::read {
     my $thin_g1_recce = $thick_g1_recce->thin();
     my $thick_g1_grammar = $thick_g1_recce->grammar();
     my $thin_g1_grammar = $thick_g1_grammar->thin();
-    my @token_values;
+
+    # Here we access an internal value of the Recognizer class
+    # Scanless is, in C++ terms, a friend class of the Recognizer
+    my $token_values = $thick_g1_recce->[Marpa::R2::Internal::Recognizer::TOKEN_VALUES];
 
     my $event_count;
 
@@ -1326,7 +1329,7 @@ sub Marpa::R2::Scanless::R::read {
 
             for my $lexed_symbol_id (@found_lexemes) {
                 my $g1_lexeme   = $lexeme_to_g1_symbol->[$lexed_symbol_id];
-                my $token_value = -1 + push @token_values,
+                my $token_value = -1 + push @{$token_values},
                     (
                     substr $string,
                     $lexeme_start_pos, $lexeme_end_pos - $lexeme_start_pos
@@ -1435,6 +1438,12 @@ sub Marpa::R2::Scanless::R::read {
     # Fall through to return undef
     return;
 
+}
+
+sub Marpa::R2::Scanless::R::value {
+     # Make the thick recognizer the new "self"
+     $_[0] = $_[0]->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+     goto &Marpa::R2::Recognizer::value;
 }
 
 sub Marpa::R2::Scanless::R::show_progress {
