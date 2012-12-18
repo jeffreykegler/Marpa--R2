@@ -35,6 +35,7 @@ BEGIN {
     THICK_G1_GRAMMAR
     IS_LEXEME
     CHARACTER_CLASS_TABLE
+    LEXEME_TO_G1_SYMBOL
 
     TRACE_FILE_HANDLE
     DEFAULT_ACTION
@@ -787,6 +788,7 @@ sub Marpa::R2::Scanless::G::new {
         );
     } ## end if ( $ref_type ne 'SCALAR' )
     my $compiled_source = rules_add( $self, $rules_source );
+
     # die Data::Dumper::Dumper($compiled_rules);
 
     my %lex_args = ();
@@ -797,22 +799,24 @@ sub Marpa::R2::Scanless::G::new {
     $lex_args{'_internal_'} = 1;
     my $lex_grammar = Marpa::R2::Grammar->new( \%lex_args );
     $lex_grammar->precompute();
-    my $lex_tracer = $lex_grammar->tracer();
-    my @is_lexeme = ();
-    $is_lexeme[$lex_tracer->symbol_by_name($_)] = 1 for keys %{ $compiled_source->{is_lexeme}};
-    $self->[Marpa::R2::Inner::Scanless::G::IS_LEXEME] = \@is_lexeme;
+    my $lex_tracer     = $lex_grammar->tracer();
+    my @is_lexeme      = ();
+    my @lexeme_names = keys %{ $compiled_source->{is_lexeme} };
+    $is_lexeme[ $lex_tracer->symbol_by_name($_) ] = 1 for @lexeme_names;
+    $self->[Marpa::R2::Inner::Scanless::G::IS_LEXEME]         = \@is_lexeme;
     $self->[Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMAR] = $lex_grammar;
     my $character_class_hash = $compiled_source->{character_classes};
-    my @class_table = ();
-    for my $class_symbol (sort keys %{$character_class_hash} )
-    {
+    my @class_table          = ();
+
+    for my $class_symbol ( sort keys %{$character_class_hash} ) {
         push @class_table,
             [
             $lex_tracer->symbol_by_name($class_symbol),
             $character_class_hash->{$class_symbol}
             ];
-    }
-    $self->[Marpa::R2::Inner::Scanless::G::CHARACTER_CLASS_TABLE] = \@class_table;
+    } ## end for my $class_symbol ( sort keys %{$character_class_hash...})
+    $self->[Marpa::R2::Inner::Scanless::G::CHARACTER_CLASS_TABLE] =
+        \@class_table;
 
     # The G1 grammar
     my %g1_args = ();
@@ -822,10 +826,36 @@ sub Marpa::R2::Scanless::G::new {
     state $g1_target_symbol = '[:start]';
     $g1_args{start} = $g1_target_symbol;
     $g1_args{'_internal_'} = 1;
-    say STDERR Data::Dumper::Dumper(\%g1_args);
     my $g1_grammar = Marpa::R2::Grammar->new( \%g1_args );
     $g1_grammar->precompute();
     my $g1_tracer = $g1_grammar->tracer();
+    my $g1_thin   = $g1_tracer->grammar();
+    my @lexeme_to_g1_symbol;
+    my @g1_symbol_is_lexeme;
+    $lexeme_to_g1_symbol[$_] = -1 for 0 .. $g1_thin->highest_symbol_id();
+
+    for my $lexeme_name ( grep { $_ ne '[:discard]' } @lexeme_names ) {
+        my $g1_symbol_id = $g1_tracer->symbol_by_name($lexeme_name);
+        if ( not defined $g1_symbol_id ) {
+            Marpa::R2::exception(
+                "A lexeme is not accessible from the start symbol: ",
+                $lexeme_name );
+        }
+        my $lex_symbol_id = $lex_tracer->symbol_by_name($lexeme_name);
+        $lexeme_to_g1_symbol[$lex_symbol_id] = $g1_symbol_id;
+        $g1_symbol_is_lexeme[$g1_symbol_id]  = 1;
+    } ## end for my $lexeme_name ( grep { $_ ne '[:discard]' } @lexeme_names)
+    SYMBOL_ID: for my $symbol_id ( 0 .. $g1_thin->highest_symbol_id() ) {
+        if ($g1_thin->symbol_is_terminal($symbol_id)
+            and not $g1_symbol_is_lexeme[$symbol_id]
+            )
+        {
+            Marpa::R2::exception( "Unproductive symbol: ",
+                $g1_tracer->symbol_name($symbol_id) );
+        } ## end if ( $g1_thin->symbol_is_terminal($symbol_id); and not...)
+    } ## end SYMBOL_ID: for my $symbol_id ( 0 .. $g1_thin->highest_symbol_id(...))
+
+    $self->[Marpa::R2::Inner::Scanless::G::LEXEME_TO_G1_SYMBOL] = \@lexeme_to_g1_symbol;
     $self->[Marpa::R2::Inner::Scanless::G::THICK_G1_GRAMMAR] = $g1_grammar;
 
     return $self;

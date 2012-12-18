@@ -1557,6 +1557,8 @@ but this is not necesssarily detected before precomputation.
 Return value: On success, 1 if symbol @var{sym_id}
 is a terminal symbol after the
 call, 0 otherwise.
+If @var{sym_id} is well-formed, but there is no
+such symbol, -1.
 If @var{value} is not 0 or 1;
 if the terminal status is locked and @var{value}
 is different from its current value;
