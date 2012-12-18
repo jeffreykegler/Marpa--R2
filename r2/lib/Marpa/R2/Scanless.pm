@@ -790,8 +790,7 @@ sub Marpa::R2::Scanless::G::new {
     # die Data::Dumper::Dumper($compiled_rules);
 
     my %lex_args = ();
-    $lex_args{$_} = $args->{$_}
-        for qw( action_object default_action trace_file_handle );
+    $lex_args{$_} = $args->{$_} for qw( trace_file_handle );
     $lex_args{rules} = $compiled_source->{lex_rules};
     state $lex_target_symbol = '[:start_lex]';
     $lex_args{start} = $lex_target_symbol;
@@ -814,6 +813,20 @@ sub Marpa::R2::Scanless::G::new {
             ];
     }
     $self->[Marpa::R2::Inner::Scanless::G::CHARACTER_CLASS_TABLE] = \@class_table;
+
+    # The G1 grammar
+    my %g1_args = ();
+    $g1_args{$_} = $args->{$_}
+        for qw( action_object default_action trace_file_handle );
+    $g1_args{rules} = $compiled_source->{g1_rules};
+    state $g1_target_symbol = '[:start]';
+    $g1_args{start} = $g1_target_symbol;
+    $g1_args{'_internal_'} = 1;
+    my $g1_grammar = Marpa::R2::Grammar->new( \%g1_args );
+    $g1_grammar->precompute();
+    my $g1_tracer = $g1_grammar->tracer();
+    $self->[Marpa::R2::Inner::Scanless::G::THICK_G1_GRAMMAR] = $g1_grammar;
+
     return $self;
 
 } ## end sub Marpa::R2::Scanless::G::new
