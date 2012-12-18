@@ -201,6 +201,11 @@ sub Marpa::R2::Recognizer::new {
     return $recce;
 } ## end sub Marpa::R2::Recognizer::new
 
+# Not documented, at least for the moment
+sub Marpa::R2::Recognizer::grammar {
+    $_[0]->[Marpa::R2::Internal::Recognizer::GRAMMAR];
+}
+
 sub Marpa::R2::Recognizer::thin {
     $_[0]->[Marpa::R2::Internal::Recognizer::C];
 }

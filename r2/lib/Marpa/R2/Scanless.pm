@@ -1254,9 +1254,11 @@ sub Marpa::R2::Scanless::R::read {
     my $lex_tracer       = $thick_lex_grammar->tracer();
     my $thin_lex_grammar  = $lex_tracer->grammar();
     my $g0_discard_symbol_id = $grammar->[Marpa::R2::Inner::Scanless::G::G0_DISCARD_SYMBOL_ID];
-    my $lexeme_to_g1_symbol = $self->[Marpa::R2::Inner::Scanless::G::LEXEME_TO_G1_SYMBOL] ;
+    my $lexeme_to_g1_symbol = $grammar->[Marpa::R2::Inner::Scanless::G::LEXEME_TO_G1_SYMBOL] ;
     my $thick_g1_recce = $self->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
     my $thin_g1_recce = $thick_g1_recce->thin();
+    my $thick_g1_grammar = $thick_g1_recce->grammar();
+    my $thin_g1_grammar = $thick_g1_grammar->thin();
     my @token_values;
 
     my $event_count;
@@ -1307,28 +1309,34 @@ sub Marpa::R2::Scanless::R::read {
             if ( not scalar %found ) {
                 Marpa::R2::exception( 'No lexeme found in ', $string );
             }
+
             my $lexeme_start_pos = $start_of_next_lexeme;
             my $lexeme_end_pos = $start_of_next_lexeme = $lexeme_start_pos + $earley_set;
-            say STDERR 'Found lexemes @' . $lexeme_start_pos, q{-}, $lexeme_end_pos , q{: }, join q{ },
-                map { $lex_tracer->symbol_name($_) } keys %found;
             $thin_lex_recce       = $self->[Marpa::R2::Inner::Scanless::R::THIN_LEX_RECCE] =
                 Marpa::R2::Thin::R->new($thin_lex_grammar);
             $thin_lex_recce->start_input();
             $stream->recce_set($thin_lex_recce);
             $stream->pos_set($start_of_next_lexeme);
 
-            for my $lexed_symbol_id ( keys %found ) {
-                next LEXED_SYMBOL
-                    if $g0_discard_symbol_id == $lexed_symbol_id;
-                my $g1_lexeme = $lexeme_to_g1_symbol->[$lexed_symbol_id];
+            my @found_lexemes = grep { $_ != $g0_discard_symbol_id } keys %found;
+            redo READ if not scalar @found_lexemes;
+
+            say STDERR 'Found lexemes @' . $lexeme_start_pos, q{-}, $lexeme_end_pos , q{: }, join q{ },
+                map { $lex_tracer->symbol_name($_) } @found_lexemes;
+
+            for my $lexed_symbol_id (@found_lexemes) {
+                my $g1_lexeme   = $lexeme_to_g1_symbol->[$lexed_symbol_id];
                 my $token_value = -1 + push @token_values,
                     (
                     substr $string,
                     $lexeme_start_pos, $lexeme_end_pos - $lexeme_start_pos
                     );
                 $thin_g1_recce->alternative( $g1_lexeme, $token_value, 1 );
-            } ## end for my $lexed_symbol_id ( keys %found )
-            $thin_g1_recce->earleme_complete();
+            } ## end for my $lexed_symbol_id (@found_lexemes)
+            $thin_g1_grammar->throw_set(0);
+            my $event_count = $thin_g1_recce->earleme_complete();
+            last READ if not defined $event_count or $event_count != 0;
+            $thin_g1_grammar->throw_set(1);
 
             redo READ;
         } ## end if ( $thin_lex_recce->is_exhausted() )
@@ -1427,6 +1435,12 @@ sub Marpa::R2::Scanless::R::read {
     # Fall through to return undef
     return;
 
+}
+
+sub Marpa::R2::Scanless::R::show_progress {
+     # Make the thick recognizer the new "self"
+     $_[0] = $_[0]->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+     goto &Marpa::R2::Recognizer::show_progress;
 }
 
 1;
