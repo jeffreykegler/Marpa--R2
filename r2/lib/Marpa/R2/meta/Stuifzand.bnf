@@ -16,7 +16,7 @@
 
 rules ::= rule+ action => do_rules
 rule ::= start_rule | empty_rule | priority_rule | quantified_rule | discard_rule
-start_rule ::= (kw__start op_declare) symbol_name
+start_rule ::= (kw__start op_declare) symbol
   action => do_start_rule
 priority_rule ::= lhs op_declare priorities
   action => do_priority_rule
