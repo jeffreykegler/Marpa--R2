@@ -26,6 +26,12 @@ $STRING_VERSION = $VERSION;
 $VERSION = eval $VERSION;
 ## use critic
 
+# The grammars and recognizers are numbered starting
+# with the lexer, which is grammar 0 -- G0.
+# The "higher level" grammar is G1.
+# In theory, this scheme could be extended to more than
+# two layers.
+
 BEGIN {
     my $structure = <<'END_OF_STRUCTURE';
 
@@ -36,6 +42,7 @@ BEGIN {
     IS_LEXEME
     CHARACTER_CLASS_TABLE
     LEXEME_TO_G1_SYMBOL
+    G0_DISCARD_SYMBOL_ID
 
     TRACE_FILE_HANDLE
     DEFAULT_ACTION
@@ -52,8 +59,8 @@ BEGIN {
 
     GRAMMAR
     STREAM
-    LEX_R
-    G1_R
+    THIN_LEX_RECCE
+    THICK_G1_RECCE
 
     TRACE_FILE_HANDLE
     READ_STRING_ERROR
@@ -826,15 +833,19 @@ sub Marpa::R2::Scanless::G::new {
     state $g1_target_symbol = '[:start]';
     $g1_args{start} = $g1_target_symbol;
     $g1_args{'_internal_'} = 1;
-    my $g1_grammar = Marpa::R2::Grammar->new( \%g1_args );
-    $g1_grammar->precompute();
-    my $g1_tracer = $g1_grammar->tracer();
+    my $thick_g1_grammar = Marpa::R2::Grammar->new( \%g1_args );
+    $thick_g1_grammar->precompute();
+    my $g1_tracer = $thick_g1_grammar->tracer();
     my $g1_thin   = $g1_tracer->grammar();
     my @lexeme_to_g1_symbol;
     my @g1_symbol_is_lexeme;
     $lexeme_to_g1_symbol[$_] = -1 for 0 .. $g1_thin->highest_symbol_id();
+    state $discard_symbol_name = '[:discard]';
+    $self->[Marpa::R2::Inner::Scanless::G::G0_DISCARD_SYMBOL_ID] =
+        $lex_tracer->symbol_by_name($discard_symbol_name);
 
-    for my $lexeme_name ( grep { $_ ne '[:discard]' } @lexeme_names ) {
+    for my $lexeme_name ( grep { $_ ne $discard_symbol_name } @lexeme_names )
+    {
         my $g1_symbol_id = $g1_tracer->symbol_by_name($lexeme_name);
         if ( not defined $g1_symbol_id ) {
             Marpa::R2::exception(
@@ -844,7 +855,8 @@ sub Marpa::R2::Scanless::G::new {
         my $lex_symbol_id = $lex_tracer->symbol_by_name($lexeme_name);
         $lexeme_to_g1_symbol[$lex_symbol_id] = $g1_symbol_id;
         $g1_symbol_is_lexeme[$g1_symbol_id]  = 1;
-    } ## end for my $lexeme_name ( grep { $_ ne '[:discard]' } @lexeme_names)
+    } ## end for my $lexeme_name ( grep { $_ ne $discard_symbol_name...})
+
     SYMBOL_ID: for my $symbol_id ( 0 .. $g1_thin->highest_symbol_id() ) {
         if ($g1_thin->symbol_is_terminal($symbol_id)
             and not $g1_symbol_is_lexeme[$symbol_id]
@@ -856,7 +868,7 @@ sub Marpa::R2::Scanless::G::new {
     } ## end SYMBOL_ID: for my $symbol_id ( 0 .. $g1_thin->highest_symbol_id(...))
 
     $self->[Marpa::R2::Inner::Scanless::G::LEXEME_TO_G1_SYMBOL] = \@lexeme_to_g1_symbol;
-    $self->[Marpa::R2::Inner::Scanless::G::THICK_G1_GRAMMAR] = $g1_grammar;
+    $self->[Marpa::R2::Inner::Scanless::G::THICK_G1_GRAMMAR] = $thick_g1_grammar;
 
     return $self;
 
@@ -1202,12 +1214,20 @@ sub Marpa::R2::Scanless::R::new {
         );
     }
     $self->[Marpa::R2::Inner::Scanless::R::GRAMMAR] = $grammar;
-    my $thick_lex_grammar = $grammar->[Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMAR];
-    my $lex_tracer = $thick_lex_grammar->tracer();
-    my $thin_lex_grammar       = $lex_tracer->grammar();
-    my $lex_r       = $self->[Marpa::R2::Inner::Scanless::R::LEX_R] =
+    my $thick_lex_grammar =
+        $grammar->[Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMAR];
+    my $lex_tracer       = $thick_lex_grammar->tracer();
+    my $thin_lex_grammar = $lex_tracer->grammar();
+    my $lex_r            = $self->[Marpa::R2::Inner::Scanless::R::THIN_LEX_RECCE] =
         Marpa::R2::Thin::R->new($thin_lex_grammar);
     $lex_r->start_input();
+
+    my $thick_g1_grammar =
+        $grammar->[Marpa::R2::Inner::Scanless::G::THICK_G1_GRAMMAR];
+    my $thick_g1_recce =
+        $self->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE] =
+        Marpa::R2::Recognizer->new( { grammar => $thick_g1_grammar } );
+
     my $stream = $self->[Marpa::R2::Inner::Scanless::R::STREAM] =
         Marpa::R2::Thin::U->new($lex_r);
     return $self;
@@ -1233,6 +1253,11 @@ sub Marpa::R2::Scanless::R::read {
     my $thick_lex_grammar  = $grammar->[Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMAR];
     my $lex_tracer       = $thick_lex_grammar->tracer();
     my $thin_lex_grammar  = $lex_tracer->grammar();
+    my $g0_discard_symbol_id = $grammar->[Marpa::R2::Inner::Scanless::G::G0_DISCARD_SYMBOL_ID];
+    my $lexeme_to_g1_symbol = $self->[Marpa::R2::Inner::Scanless::G::LEXEME_TO_G1_SYMBOL] ;
+    my $thick_g1_recce = $self->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+    my $thin_g1_recce = $thick_g1_recce->thin();
+    my @token_values;
 
     my $event_count;
 
@@ -1241,7 +1266,7 @@ sub Marpa::R2::Scanless::R::read {
 
     my $start_of_next_lexeme = 0;
     $stream->string_set(\$string);
-    my $thin_lex_recce = $self->[Marpa::R2::Inner::Scanless::R::LEX_R];
+    my $thin_lex_recce = $self->[Marpa::R2::Inner::Scanless::R::THIN_LEX_RECCE];
     READ: {
         state $op_alternative = Marpa::R2::Thin::U::op('alternative');
         state $op_earleme_complete =
@@ -1286,11 +1311,25 @@ sub Marpa::R2::Scanless::R::read {
             my $lexeme_end_pos = $start_of_next_lexeme = $lexeme_start_pos + $earley_set;
             say STDERR 'Found lexemes @' . $lexeme_start_pos, q{-}, $lexeme_end_pos , q{: }, join q{ },
                 map { $lex_tracer->symbol_name($_) } keys %found;
-            $thin_lex_recce       = $self->[Marpa::R2::Inner::Scanless::R::LEX_R] =
+            $thin_lex_recce       = $self->[Marpa::R2::Inner::Scanless::R::THIN_LEX_RECCE] =
                 Marpa::R2::Thin::R->new($thin_lex_grammar);
             $thin_lex_recce->start_input();
             $stream->recce_set($thin_lex_recce);
             $stream->pos_set($start_of_next_lexeme);
+
+            for my $lexed_symbol_id ( keys %found ) {
+                next LEXED_SYMBOL
+                    if $g0_discard_symbol_id == $lexed_symbol_id;
+                my $g1_lexeme = $lexeme_to_g1_symbol->[$lexed_symbol_id];
+                my $token_value = -1 + push @token_values,
+                    (
+                    substr $string,
+                    $lexeme_start_pos, $lexeme_end_pos - $lexeme_start_pos
+                    );
+                $thin_g1_recce->alternative( $g1_lexeme, $token_value, 1 );
+            } ## end for my $lexed_symbol_id ( keys %found )
+            $thin_g1_recce->earleme_complete();
+
             redo READ;
         } ## end if ( $thin_lex_recce->is_exhausted() )
         if ( $event_count == -2 ) {
