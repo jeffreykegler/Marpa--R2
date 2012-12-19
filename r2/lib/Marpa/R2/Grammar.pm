@@ -1201,8 +1201,8 @@ sub add_user_rule {
         shadow_rule( $grammar, $ordinary_rule_id );
         my $ordinary_rule = $rules->[$ordinary_rule_id];
 
-        # Only the Stuifzand interface can set a custom mask
-        if (not defined $mask or not $stuifzand_interface) {
+        # Only internal grammars can set a custom mask
+        if (not defined $mask or not $grammar_is_internal) {
             $mask = [(1) x scalar @rhs_ids];
         }
         $ordinary_rule->[Marpa::R2::Internal::Rule::MASK] = $mask;
@@ -1228,7 +1228,7 @@ sub add_user_rule {
     my $separator_id = -1;
     if ( defined $separator_name ) {
         $separator =
-            $stuifzand_interface
+            $grammar_is_internal
             ? assign_symbol( $grammar, $separator_name )
             : assign_user_symbol( $grammar, $separator_name );
         $separator_id = $separator->[Marpa::R2::Internal::Symbol::ID];

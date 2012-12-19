@@ -89,6 +89,8 @@ sub is_symbol { 1 };
 sub name { return $_[0]->{name} }
 sub names { return $_[0]->{name} }
 sub is_hidden { return $_[0]->{is_hidden} }
+sub are_all_hidden { return $_[0]->{is_hidden} }
+
 sub is_lexical { shift->{is_lexical} // 0 }
 sub hidden_set { shift->{is_hidden} = 1; }
 sub lexical_set { shift->{is_lexical} = 1; }
@@ -103,6 +105,11 @@ sub is_symbol { 0 };
 
 sub names {
     return map { $_->names() } @{ shift->{symbol_lists} };
+}
+
+sub are_all_hidden {
+     $_->is_hidden() || return 0 for @{ shift->{symbol_lists } };
+     return 1;
 }
 
 sub is_hidden {
@@ -161,6 +168,7 @@ sub normalize {
     return Marpa::R2::Inner::Scanless::Symbol_List->new(
         map { $_->is_symbol() ? $_ : $self->normalize($_) } $symbols->symbol_lists() )
         if not $symbols->is_lexical();
+    my $is_hidden = $symbols->are_all_hidden();
     my $lexical_lhs_index = $self->{lexical_lhs_index}++;
     my $lexical_lhs       = "[Lex-$lexical_lhs_index]";
     my %lexical_rule      = (
@@ -169,7 +177,9 @@ sub normalize {
         mask => [ $symbols->mask() ]
     );
     push @{ $self->{lex_rules} }, \%lexical_rule;
-    return Marpa::R2::Inner::Scanless::Symbol->new($lexical_lhs);
+    my $g1_symbol = Marpa::R2::Inner::Scanless::Symbol->new($lexical_lhs);
+    $g1_symbol->hidden_set() if $is_hidden;
+    return $g1_symbol;
 } ## end sub normalize
 
 sub do_priority_rule {
@@ -406,10 +416,8 @@ sub do_single_quoted_string {
     my $symbol;
     for my $char_class ( map { "[" . (quotemeta $_) . "]" } split //xms, substr $string, 1, -1) {
         $symbol = assign_symbol_by_char_class($self, $char_class);
-        $symbol->{ws_after_ok} = 0;
         push @symbols, $symbol;
     }
-    $symbol->{ws_after_ok} = 1; # OK to add WS after last symbol
     my $list = Marpa::R2::Inner::Scanless::Symbol_List->new(@symbols);
     $list->lexical_set();
     return $list;
