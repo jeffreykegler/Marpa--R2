@@ -42,12 +42,11 @@ if ($do_demo) {
 }
 elsif ( scalar @ARGV <= 0 ) { usage(); }
 
-my $prefix_grammar = Marpa::R2::Grammar->new(
+my $prefix_grammar = Marpa::R2::Scanless::G->new(
     {
         action_object        => 'My_Actions',
         default_action => 'do_arg0',
-        scannerless => 1,
-        rules          => [ <<'END_OF_RULES' ]
+        source          => \( <<'END_OF_RULES' ),
 :start ::= Script
 Script ::= Calculation* action => do_list
 Calculation ::= Expression | 'say' Expression
@@ -55,11 +54,16 @@ Expression ::=
      Number
    | '+' Expression Expression action => do_add
 Number ~ [\d] + action => do_literal
+
+:discard ~ whitespace
+whitespace ~ [\s]+
+# allow comments
 :discard ~ <hash comment>
-<hash comment> ~ '#' <hash comment body> <hash
-    comment end>
+<hash comment> ~ <terminated hash comment> | <unterminated
+   final hash comment>
+<terminated hash comment> ~ '#' <hash comment body> <vertical space char>
+<unterminated final hash comment> ~ '#' <hash comment body>
 <hash comment body> ~ <hash comment char>*
-<hash comment end> ~ :$ | <vertical space char>
 <vertical space char> ~ [\x{A}\x{B}\x{C}\x{D}\x{2028}\x{2029}]
 <hash comment char> ~ [^\x{A}\x{B}\x{C}\x{D}\x{2028}\x{2029}]
 END_OF_RULES
@@ -88,40 +92,6 @@ sub do_arg0 { shift; return shift; }
 
 package main;
 
-$prefix_grammar->precompute();
-
-sub My_Error::last_completed_range {
-    my ( $self, $symbol_name ) = @_;
-    my $grammar      = $self->{grammar};
-    my $recce        = $self->{recce};
-    my @sought_rules = ();
-    for my $rule_id ( $grammar->rule_ids() ) {
-        my ($lhs) = $grammar->bnf_rule($rule_id);
-        push @sought_rules, $rule_id if $lhs eq $symbol_name;
-    }
-    die "Looking for completion of non-existent rule lhs: $symbol_name"
-        if not scalar @sought_rules;
-    my $latest_earley_set = $recce->latest_earley_set();
-    my $earley_set        = $latest_earley_set;
-
-    # Initialize to one past the end, so we can tell if there were no hits
-    my $first_origin = $latest_earley_set + 1;
-    EARLEY_SET: while ( $earley_set >= 0 ) {
-        my $report_items = $recce->progress($earley_set);
-        ITEM: for my $report_item ( @{$report_items} ) {
-            my ( $rule_id, $dot_position, $origin ) = @{$report_item};
-            next ITEM if $dot_position != -1;
-            next ITEM if not scalar grep { $_ == $rule_id } @sought_rules;
-            next ITEM if $origin >= $first_origin;
-            $first_origin = $origin;
-        } ## end ITEM: for my $report_item ( @{$report_items} )
-        last EARLEY_SET if $first_origin <= $latest_earley_set;
-        $earley_set--;
-    } ## end EARLEY_SET: while ( $earley_set >= 0 )
-    return if $earley_set < 0;
-    return ( $first_origin, $earley_set );
-} ## end sub My_Error::last_completed_range
-
 sub My_Error::show_last_expression {
     my ($self) = @_;
     my ( $start, $end ) = $self->last_completed_range('Expression');
@@ -136,24 +106,22 @@ sub my_parser {
     my $self = bless { grammar => $grammar, input => \$string, }, 'My_Error';
     local $My_Actions::SELF = $self;
 
-    my $recce = Marpa::R2::Recognizer->new( { grammar => $grammar } );
+    my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
     $self->{recce} = $recce;
     my $event_count;
 
-    if ( not defined eval { $event_count = $recce->sl_read($string); 1 } ) {
+    if ( not defined eval { $event_count = $recce->read($string); 1 } ) {
 
         # Add last expression found, and rethrow
         my $eval_error = $EVAL_ERROR;
         chomp $eval_error;
         die $self->show_last_expression(), "\n", $eval_error, "\n";
-    } ## end if ( not defined eval { $recce->sl_read($string)...})
-    if (not defined $event_count) {
-        die $self->show_last_expression(), "\n", $recce->sl_error();
+    } ## end if ( not defined eval { $event_count = $recce->read(...)})
+    if ( not defined $event_count ) {
+        die $self->show_last_expression(), "\n", $recce->error();
     }
-    $recce->sl_end_input();
     my $value_ref = $recce->value;
     if ( not defined $value_ref ) {
-        say STDERR $recce->show_progress();
         die $self->show_last_expression(), "\n",
             "No parse was found, after reading the entire input\n";
     }

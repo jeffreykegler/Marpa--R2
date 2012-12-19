@@ -110,8 +110,6 @@ sub my_parser {
     $self->{slr} = $slr;
     my $event_count;
 
-    # $slr->trace(99);
-
     if ( not defined eval { $event_count = $slr->read($string); 1 } ) {
 
         # Add last expression found, and rethrow
@@ -138,11 +136,11 @@ if ($do_demo) {
     '+ 1 say 2',
     '+ 1 2 3 + + 1 2 4',
     '+++',
-    # '++1 2++',
-    # '++1 2++3 4++',
-    # '1 + 2 +3  4 + 5 + 6 + 7',
-    # '+12',
-    # '+1234'
+    '++1 2++',
+    '++1 2++3 4++',
+    '1 + 2 +3  4 + 5 + 6 + 7',
+    '+12',
+    '+1234'
     ;
 } else {
     push @test_strings, shift;
