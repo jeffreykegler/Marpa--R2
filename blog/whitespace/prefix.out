@@ -1,0 +1,50 @@
+==============================
+Input was "+++ 1 2 3 + + 1 2 4"
+Parse was successful, output was "1 results: 13"
+==============================
+Input was "say + 1 2"
+Parse was successful, output was "1 results: 3"
+==============================
+Input was "+ 1 say 2"
+Parse failed, with this diagnostic:
+Last expression successfully parsed was: 1
+Error in string_read: Parse exhausted
+* Error was at string position: 4
+* Error was at lexemes: [Lex-0]
+* String before error:
++ 1\s
+* String after error:
+say 2
+==============================
+Input was "+ 1 2 3 + + 1 2 4"
+Parse was successful, output was "3 results: 3 3 7"
+==============================
+Input was "+++"
+Parse failed, with this diagnostic:
+No expression was successfully parsed
+No parse was found, after reading the entire input
+==============================
+Input was "++1 2++"
+Parse failed, with this diagnostic:
+Last expression successfully parsed was: +1 2
+No parse was found, after reading the entire input
+==============================
+Input was "++1 2++3 4++"
+Parse failed, with this diagnostic:
+Last expression successfully parsed was: +3 4
+No parse was found, after reading the entire input
+==============================
+Input was "1 + 2 +3  4 + 5 + 6 + 7"
+Parse failed, with this diagnostic:
+Last expression successfully parsed was: 7
+No parse was found, after reading the entire input
+==============================
+Input was "+12"
+Parse failed, with this diagnostic:
+Last expression successfully parsed was: 12
+No parse was found, after reading the entire input
+==============================
+Input was "+1234"
+Parse failed, with this diagnostic:
+Last expression successfully parsed was: 1234
+No parse was found, after reading the entire input
