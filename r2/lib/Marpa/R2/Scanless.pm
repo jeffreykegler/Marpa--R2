@@ -1316,13 +1316,25 @@ sub Marpa::R2::Scanless::R::read {
     my $class_table =
         $grammar->[Marpa::R2::Inner::Scanless::G::CHARACTER_CLASS_TABLE];
 
+    my $length_of_string = length $string;
     my $start_of_next_lexeme = 0;
-    $stream->string_set(\$string);
     my $thin_lex_recce = $self->[Marpa::R2::Inner::Scanless::R::THIN_LEX_RECCE];
-    READ: {
+    $stream->string_set(\$string);
+
+    READ: while ($start_of_next_lexeme < $length_of_string) {
+
         state $op_alternative = Marpa::R2::Thin::U::op('alternative');
         state $op_earleme_complete =
             Marpa::R2::Thin::U::op('earleme_complete');
+
+        if (not defined $thin_lex_recce) {
+            $lex_event_count = 0;
+            $thin_lex_recce = Marpa::R2::Thin::R->new($thin_lex_grammar);
+            $thin_lex_recce->start_input();
+            $stream->recce_set($thin_lex_recce);
+            $stream->pos_set($start_of_next_lexeme);
+        }
+
         if ( not defined eval { $lex_event_count = $stream->read(); 1 } ) {
             my $problem_symbol = $stream->symbol_id();
             my $symbol_desc =
@@ -1394,17 +1406,10 @@ sub Marpa::R2::Scanless::R::read {
                     last READ;
                 }
             } ## end if ( scalar @found_lexemes )
-            last READ if $lex_event_count == 0;
 
-            $lex_event_count = 0;
-            $thin_lex_recce =
-                $self->[Marpa::R2::Inner::Scanless::R::THIN_LEX_RECCE] =
-                Marpa::R2::Thin::R->new($thin_lex_grammar);
-            $thin_lex_recce->start_input();
-            $stream->recce_set($thin_lex_recce);
-            $stream->pos_set($start_of_next_lexeme);
+            $thin_lex_recce = undef;
 
-            redo READ;
+            next READ;
         } ## end if ( $thin_lex_recce->is_exhausted() or $lex_event_count...)
         if ( $lex_event_count == -2 ) {
 
@@ -1430,7 +1435,7 @@ sub Marpa::R2::Scanless::R::read {
                 $codepoint
                 if not @ops;
             $stream->char_register( $codepoint, @ops, $op_earleme_complete );
-            redo READ;
+            next READ;
         } ## end if ( $lex_event_count == -2 )
     } ## end READ:
 
