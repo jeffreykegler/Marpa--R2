@@ -509,7 +509,7 @@ sub Marpa::R2::Scanless::R::range_to_string {
     return if not defined $start;
     my $locations = $self->[Marpa::R2::Inner::Scanless::R::LOCATIONS];
     my $input = $self->[Marpa::R2::Inner::Scanless::R::INPUT_STRING];
-    my $start_position = $locations->[$start]->[0];
+    my $start_position = $locations->[$start+1]->[0];
     my $end_position = $locations->[$end]->[1];
     return substr $input, $start_position, ($end_position - $start_position);
 } ## end sub input_slice
@@ -1328,7 +1328,6 @@ sub Marpa::R2::Scanless::R::read {
             Marpa::R2::Thin::U::op('earleme_complete');
 
         if (not defined $thin_lex_recce) {
-            $lex_event_count = 0;
             $thin_lex_recce = Marpa::R2::Thin::R->new($thin_lex_grammar);
             $thin_lex_recce->start_input();
             $stream->recce_set($thin_lex_recce);
@@ -1408,6 +1407,7 @@ sub Marpa::R2::Scanless::R::read {
             } ## end if ( scalar @found_lexemes )
 
             $thin_lex_recce = undef;
+            $lex_event_count = 0;
 
             next READ;
         } ## end if ( $thin_lex_recce->is_exhausted() or $lex_event_count...)
@@ -1496,8 +1496,7 @@ sub Marpa::R2::Scanless::R::read {
                     next EVENT;
                 }
                 if ( $event_type eq 'MARPA_EVENT_EXHAUSTED' ) {
-                    $desc .= "Parse exhausted: lexemes were " . join q{ },
-                        map { $lex_tracer->symbol_name($_) } @found_lexemes;
+                    $desc .= "Parse exhausted";
                     next EVENT;
                 }
             } ## end EVENT: while (1)
@@ -1508,25 +1507,55 @@ sub Marpa::R2::Scanless::R::read {
             last DESC;
         }
     } ## end DESC:
-    my $char = substr $string, $pos, 1;
-    my $char_in_hex = sprintf '0x%04x', ord $char;
-    my $char_desc =
-          $char =~ m/[\p{PosixGraph}]/xms
-        ? $char
-        : '[non-graphic character]';
-    my $prefix =
-        $pos >= 72
-        ? ( substr $string, $pos - 72, 72 )
-        : ( substr $string, 0, $pos );
+    my $read_string_error;
+    if ($g1_event_count)
+    {
+        my ($pos) = @{ $locations[-1] };
+        my $prefix =
+            $pos >= 72
+            ? ( substr $string, $pos - 72, 72 )
+            : ( substr $string, 0, $pos );
+        $read_string_error =
+              "Error in string_read: $desc\n"
+            . "* Error was at string position: $pos\n"
+            . '* Error was at lexemes: '
+            . ( join q{ },
+            map { $lex_tracer->symbol_name($_) } @found_lexemes )
+            . "\n"
+            . "* String before error:\n"
+            . Marpa::R2::escape_string( $prefix, -72 ) . "\n"
+            . "* String after error:\n"
+            . Marpa::R2::escape_string( ( substr $string, $pos, 72 ), 72 )
+            . "\n";
+    } elsif ( $pos < $length_of_string ) {
+        my $char = substr $string, $pos, 1;
+        my $char_in_hex = sprintf '0x%04x', ord $char;
+        my $char_desc =
+              $char =~ m/[\p{PosixGraph}]/xms
+            ? $char
+            : '[non-graphic character]';
+        my $prefix =
+            $pos >= 72
+            ? ( substr $string, $pos - 72, 72 )
+            : ( substr $string, 0, $pos );
 
-    my $read_string_error =
-        $self->[Marpa::R2::Inner::Scanless::R::READ_STRING_ERROR] =
+        $read_string_error =
+              "Error in string_read: $desc\n"
+            . "* Error was at string position: $pos, and at character $char_in_hex, '$char_desc'\n"
+            . "* String before error:\n"
+            . Marpa::R2::escape_string( $prefix, -72 ) . "\n"
+            . "* String after error:\n"
+            . Marpa::R2::escape_string( ( substr $string, $pos, 72 ), 72 )
+            . "\n";
+    } ## end if ( $pos < $length_of_string )
+    else {
+        $read_string_error =
           "Error in string_read: $desc\n"
-        . "* Error was at string position: $pos, and at character $char_in_hex, '$char_desc'\n"
+        . "* Error was at end of string\n"
         . "* String before error:\n"
-        . Marpa::R2::escape_string( $prefix, -72 ) . "\n"
-        . "* String after error:\n"
-        . Marpa::R2::escape_string( ( substr $string, $pos, 72 ), 72 ) . "\n";
+        . Marpa::R2::escape_string( $string, -72 ) . "\n"
+    }
+    $self->[Marpa::R2::Inner::Scanless::R::READ_STRING_ERROR] = $read_string_error;
     Marpa::R2::exception($read_string_error) if $lex_event_count == -3;
 
     # Fall through to return undef
