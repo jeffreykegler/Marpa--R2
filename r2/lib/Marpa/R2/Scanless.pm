@@ -1360,6 +1360,8 @@ sub Marpa::R2::Scanless::R::read {
             my $lexeme_start_pos = $start_of_next_lexeme;
             my $lexeme_end_pos   = $start_of_next_lexeme =
                 $lexeme_start_pos + $earley_set;
+
+            $lex_event_count = 0;
             $thin_lex_recce =
                 $self->[Marpa::R2::Inner::Scanless::R::THIN_LEX_RECCE] =
                 Marpa::R2::Thin::R->new($thin_lex_grammar);
