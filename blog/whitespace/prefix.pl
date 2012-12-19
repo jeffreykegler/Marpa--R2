@@ -52,7 +52,7 @@ Script ::= Calculation* action => do_list
 Calculation ::= Expression | 'say' Expression
 Expression ::=
      Number
-   | '+' Expression Expression action => do_add
+   | ('+') Expression Expression action => do_add
 Number ~ [\d] + action => do_literal
 :discard ~ whitespace
 whitespace ~ [\s]+
@@ -89,21 +89,21 @@ sub do_literal {
 sub do_add  { shift; return $_[0] + $_[1] }
 sub do_arg0 { shift; return shift; }
 
-package main;
-
-sub My_Error::show_last_expression {
+sub show_last_expression {
     my ($self) = @_;
     my $slr = $self->{slr};
     my ( $start, $end ) = $slr->last_completed_range('Expression');
     return 'No expression was successfully parsed' if not defined $start;
     my $last_expression = $slr->range_to_string( $start, $end );
     return "Last expression successfully parsed was: $last_expression";
-} ## end sub My_Error::show_last_expression
+} ## end sub show_last_expression
+
+package main;
 
 sub my_parser {
     my ( $grammar, $string ) = @_;
 
-    my $self = bless { grammar => $grammar, input => \$string, }, 'My_Error';
+    my $self = bless { grammar => $grammar, input => \$string, }, 'My_Actions';
     local $My_Actions::SELF = $self;
 
     my $slr = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
