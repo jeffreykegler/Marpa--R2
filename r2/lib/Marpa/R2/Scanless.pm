@@ -79,6 +79,12 @@ our $R_PACKAGE = 'Marpa::R2::Scanless::R';
 our $GRAMMAR_LEVEL;
 our $TRACE_FILE_HANDLE;
 
+# This rule is used by the semantics of the *GENERATED*
+# grammars, not the Scanless grammar itself.
+sub external_do_arg0 {
+   return $_[1];
+}
+
 package Marpa::R2::Inner::Scanless::Symbol;
 
 use constant NAME => 0;
@@ -1382,9 +1388,9 @@ sub Marpa::R2::Scanless::R::read {
                 grep { $_ != $g0_discard_symbol_id } keys %found;
             if ( scalar @found_lexemes ) {
 
-                say STDERR 'Found lexemes @' . $lexeme_start_pos, q{-},
-                    $lexeme_end_pos, q{: }, join q{ },
-                    map { $lex_tracer->symbol_name($_) } @found_lexemes;
+                # say STDERR 'Found lexemes @' . $lexeme_start_pos, q{-},
+                    # $lexeme_end_pos, q{: }, join q{ },
+                    # map { $lex_tracer->symbol_name($_) } @found_lexemes;
 
                 for my $lexed_symbol_id (@found_lexemes) {
                     my $g1_lexeme = $lexeme_to_g1_symbol->[$lexed_symbol_id];
