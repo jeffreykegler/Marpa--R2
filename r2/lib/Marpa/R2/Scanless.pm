@@ -1437,9 +1437,10 @@ sub Marpa::R2::Scanless::R::read {
                     push @ops, $op_alternative, $symbol_id, 0, 1;
                 } ## end if ( chr($codepoint) =~ $re )
             } ## end for my $entry ( @{$class_table} )
-            die sprintf "Cannot read character U+%04x: %c\n", $codepoint,
-                $codepoint
-                if not @ops;
+            Marpa::R2::exception(
+                "Lexing failed at unacceptable character ",
+                character_describe( chr $codepoint )
+            ) if not @ops;
             $stream->char_register( $codepoint, @ops, $op_earleme_complete );
             next READ;
         } ## end if ( $lex_event_count == -2 )
@@ -1535,11 +1536,7 @@ sub Marpa::R2::Scanless::R::read {
             . "\n";
     } elsif ( $pos < $length_of_string ) {
         my $char = substr $string, $pos, 1;
-        my $char_in_hex = sprintf '0x%04x', ord $char;
-        my $char_desc =
-              $char =~ m/[\p{PosixGraph}]/xms
-            ? $char
-            : '[non-graphic character]';
+        my $char_desc = character_descibe($char);
         my $prefix =
             $pos >= 72
             ? ( substr $string, $pos - 72, 72 )
@@ -1547,7 +1544,7 @@ sub Marpa::R2::Scanless::R::read {
 
         $read_string_error =
               "Error in string_read: $desc\n"
-            . "* Error was at string position: $pos, and at character $char_in_hex, '$char_desc'\n"
+            . "* Error was at string position: $pos, and at character $char_desc\n"
             . "* String before error:\n"
             . Marpa::R2::escape_string( $prefix, -72 ) . "\n"
             . "* String after error:\n"
@@ -1568,6 +1565,18 @@ sub Marpa::R2::Scanless::R::read {
     return;
 
 }
+
+sub character_describe {
+    my ($char) = @_;
+    my $text = sprintf '0x%04x', ord $char;
+    $text .= q{ } .
+        (
+        $char =~ m/[\p{PosixGraph}]/xms
+        ? qq{'$char'}
+        : '(non-graphic character)'
+        );
+    return $text;
+} ## end sub character_describe
 
 sub Marpa::R2::Scanless::R::value {
      # Make the thick recognizer the new "self"
