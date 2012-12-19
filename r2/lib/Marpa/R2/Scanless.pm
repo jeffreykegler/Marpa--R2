@@ -61,6 +61,7 @@ BEGIN {
     STREAM
     THIN_LEX_RECCE
     THICK_G1_RECCE
+    LOCATIONS
 
     TRACE_FILE_HANDLE
     READ_STRING_ERROR
@@ -445,42 +446,52 @@ my %hashed_closures = (
     do_ws_star                   => \&do_ws_star,
 );
 
-# Given a grammar,
-# a recognizer and a symbol
+# Given a scanless 
+# recognizer and a symbol,
 # return the start and end earley sets
 # of the last such symbol completed,
 # undef if there was none.
-sub last_completed_range {
-    my ( $tracer, $thin_recce, $symbol_name ) = @_;
-    my $thin_grammar = $tracer->grammar();
-    my $symbol_id = $tracer->symbol_by_name($symbol_name);
+sub Marpa::R2::Scanless::R::last_completed_range {
+    my ( $self, $symbol_name ) = @_;
+    my $grammar = $self->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
+    my $thick_g1_grammar =
+        $grammar->[Marpa::R2::Inner::Scanless::G::THICK_G1_GRAMMAR];
+    my $thick_g1_recce =
+        $self->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+    my $thin_g1_recce   = $thick_g1_recce->thin();
+    my $g1_tracer       = $thick_g1_grammar->tracer();
+    my $thin_g1_grammar = $thick_g1_grammar->thin();
+    my $symbol_id       = $g1_tracer->symbol_by_name($symbol_name);
+    Marpa::R2::exception("Bad symbol in last_completed_range(): $symbol_name")
+        if not defined $symbol_id;
     my @sought_rules =
-        grep { $thin_grammar->rule_lhs($_) == $symbol_id; }
-        0 .. $thin_grammar->highest_rule_id();
+        grep { $thin_g1_grammar->rule_lhs($_) == $symbol_id; }
+        0 .. $thin_g1_grammar->highest_rule_id();
     die "Looking for completion of non-existent rule lhs: $symbol_name"
         if not scalar @sought_rules;
-    my $latest_earley_set = $thin_recce->latest_earley_set();
+    my $latest_earley_set = $thin_g1_recce->latest_earley_set();
     my $earley_set        = $latest_earley_set;
 
     # Initialize to one past the end, so we can tell if there were no hits
     my $first_origin = $latest_earley_set + 1;
     EARLEY_SET: while ( $earley_set >= 0 ) {
-        $thin_recce->progress_report_start($earley_set);
+        $thin_g1_recce->progress_report_start($earley_set);
         ITEM: while (1) {
-            my ( $rule_id, $dot_position, $origin ) = $thin_recce->progress_item();
+            my ( $rule_id, $dot_position, $origin ) =
+                $thin_g1_recce->progress_item();
             last ITEM if not defined $rule_id;
             next ITEM if $dot_position != -1;
             next ITEM if not scalar grep { $_ == $rule_id } @sought_rules;
             next ITEM if $origin >= $first_origin;
             $first_origin = $origin;
-        }
-        $thin_recce->progress_report_finish();
+        } ## end ITEM: while (1)
+        $thin_g1_recce->progress_report_finish();
         last EARLEY_SET if $first_origin <= $latest_earley_set;
         $earley_set--;
     } ## end EARLEY_SET: while ( $earley_set >= 0 )
     return if $earley_set < 0;
     return ( $first_origin, $earley_set );
-} ## end sub last_completed_range
+} ## end sub Marpa::R2::Scanless::R::last_completed_range
 
 # Given a string, an earley set to position mapping,
 # and two earley sets, return the slice of the string
@@ -1265,6 +1276,8 @@ sub Marpa::R2::Scanless::R::read {
     my $token_values = $thick_g1_recce->[Marpa::R2::Internal::Recognizer::TOKEN_VALUES];
 
     my $event_count;
+    my @locations = ([0, 0]);
+    $self->[Marpa::R2::Inner::Scanless::R::LOCATIONS] = \@locations;
 
     my $class_table =
         $grammar->[Marpa::R2::Inner::Scanless::G::CHARACTER_CLASS_TABLE];
@@ -1336,6 +1349,7 @@ sub Marpa::R2::Scanless::R::read {
                     );
                 $thin_g1_recce->alternative( $g1_lexeme, $token_value, 1 );
             } ## end for my $lexed_symbol_id (@found_lexemes)
+            push @locations, [$lexeme_start_pos, $lexeme_end_pos];
             $thin_g1_grammar->throw_set(0);
             my $event_count = $thin_g1_recce->earleme_complete();
             last READ if not defined $event_count or $event_count != 0;
