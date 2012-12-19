@@ -1303,7 +1303,13 @@ sub Marpa::R2::Scanless::R::read {
     # Scanless is, in C++ terms, a friend class of the Recognizer
     my $token_values = $thick_g1_recce->[Marpa::R2::Internal::Recognizer::TOKEN_VALUES];
 
-    my $lex_event_count;
+
+    # These values are used for diagnostics,
+    # so they are initialized here.
+    # Event counts are initialized to 0 for "no events, no problems".
+    my $lex_event_count = 0;
+    my $g1_event_count = 0;
+    my @found_lexemes = ();
     my @locations = ([0, 0]);
     $self->[Marpa::R2::Inner::Scanless::R::LOCATIONS] = \@locations;
 
@@ -1361,14 +1367,7 @@ sub Marpa::R2::Scanless::R::read {
             my $lexeme_end_pos   = $start_of_next_lexeme =
                 $lexeme_start_pos + $earley_set;
 
-            $lex_event_count = 0;
-            $thin_lex_recce =
-                $self->[Marpa::R2::Inner::Scanless::R::THIN_LEX_RECCE] =
-                Marpa::R2::Thin::R->new($thin_lex_grammar);
-            $thin_lex_recce->start_input();
-            $stream->recce_set($thin_lex_recce);
-
-            my @found_lexemes =
+            @found_lexemes =
                 grep { $_ != $g0_discard_symbol_id } keys %found;
             if ( scalar @found_lexemes ) {
 
@@ -1388,13 +1387,23 @@ sub Marpa::R2::Scanless::R::read {
                 } ## end for my $lexed_symbol_id (@found_lexemes)
                 push @locations, [ $lexeme_start_pos, $lexeme_end_pos ];
                 $thin_g1_grammar->throw_set(0);
-                my $g1_event_count = $thin_g1_recce->earleme_complete();
+                $g1_event_count = $thin_g1_recce->earleme_complete();
                 $thin_g1_grammar->throw_set(1);
-                last READ if not defined $g1_event_count or $g1_event_count != 0;
+                if (not defined $g1_event_count or $g1_event_count != 0) {
+                    $lex_event_count = 0; # lexer was NOT the problem
+                    last READ;
+                }
             } ## end if ( scalar @found_lexemes )
             last READ if $lex_event_count == 0;
 
+            $lex_event_count = 0;
+            $thin_lex_recce =
+                $self->[Marpa::R2::Inner::Scanless::R::THIN_LEX_RECCE] =
+                Marpa::R2::Thin::R->new($thin_lex_grammar);
+            $thin_lex_recce->start_input();
+            $stream->recce_set($thin_lex_recce);
             $stream->pos_set($start_of_next_lexeme);
+
             redo READ;
         } ## end if ( $thin_lex_recce->is_exhausted() or $lex_event_count...)
         if ( $lex_event_count == -2 ) {
@@ -1426,7 +1435,7 @@ sub Marpa::R2::Scanless::R::read {
     } ## end READ:
 
     my $pos = $stream->pos();
-    return $pos if $lex_event_count == 0;
+    return $pos if $lex_event_count == 0 and $g1_event_count == 0;
 
     ## If we are here, recovery is a matter for the caller,
     ## if it is possible at all
@@ -1439,32 +1448,64 @@ sub Marpa::R2::Scanless::R::read {
                     $thin_lex_grammar->event($event_ix);
                 if ( $event_type eq 'MARPA_EVENT_EARLEY_ITEM_THRESHOLD' ) {
                     $desc
-                        .= "Unexpected event: Earley item count ($value) exceeds warning threshold\n";
+                        .= "Lexer: Earley item count ($value) exceeds warning threshold\n";
                     next EVENT;
                 }
                 if ( $event_type eq 'MARPA_EVENT_SYMBOL_EXPECTED' ) {
-                    $desc .= "Unexpected event: $event_type "
+                    $desc .= "Unexpected lexer event: $event_type "
                         . $lex_tracer->symbol_name($value) . "\n";
                     next EVENT;
                 }
                 if ( $event_type eq 'MARPA_EVENT_EXHAUSTED' ) {
-                    $desc .= "Unexpected event: $event_type\n";
+                    $desc .= "Unexpected lexer event: $event_type\n";
                     next EVENT;
                 }
             } ## end EVENT: for ( my $event_ix = 0; $event_ix < $lex_event_count; ...)
-            ## If we are here, recovery is a matter for the caller,
-            ## if it is possible at all
             last DESC;
         } ## end if ( $lex_event_count > 0 )
         if ( $lex_event_count == -1 ) {
-            $desc = 'Character rejected';
+            $desc = 'Lexer: Character rejected';
             last DESC;
         }
         if ( $lex_event_count == -2 ) {
-            $desc = 'Unregistered character';
+            $desc = 'Lexer: Unregistered character';
             last DESC;
         }
         if ( $lex_event_count == -3 ) {
+            $desc = 'Unexpected return value from lexer: Parse exhausted';
+            last DESC;
+        }
+        if ( $g1_event_count > 0 ) {
+            EVENT:
+            for ( my $event_ix = 0; $event_ix < $g1_event_count; $event_ix++ ) {
+                my ( $event_type, $value ) =
+                    $thin_lex_grammar->event($event_ix);
+                if ( $event_type eq 'MARPA_EVENT_EARLEY_ITEM_THRESHOLD' ) {
+                    $desc
+                        .= "G1 grammar: Earley item count ($value) exceeds warning threshold\n";
+                    next EVENT;
+                }
+                if ( $event_type eq 'MARPA_EVENT_SYMBOL_EXPECTED' ) {
+                    $desc .= "Unexpected G1 grammar event: $event_type "
+                        . $lex_tracer->symbol_name($value) . "\n";
+                    next EVENT;
+                }
+                if ( $event_type eq 'MARPA_EVENT_EXHAUSTED' ) {
+                    $desc .= "Parse exhausted\n";
+                    next EVENT;
+                }
+            } ## end EVENT: for ( my $event_ix = 0; $event_ix < $g1_event_count; ...)
+            last DESC;
+        } ## end if ( $g1_event_count > 0 )
+        if ( $g1_event_count == -1 ) {
+            $desc = 'Lexeme(s) rejected: ' . join q{ }, map { $lex_tracer->symbol_name($_) } @found_lexemes;
+            last DESC;
+        }
+        if ( $g1_event_count == -2 ) {
+            $desc = 'Unexpected return value from G1 grammar: Unregistered character';
+            last DESC;
+        }
+        if ( $g1_event_count == -3 ) {
             $desc = 'Parse exhausted';
             last DESC;
         }
