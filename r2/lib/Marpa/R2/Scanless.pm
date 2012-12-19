@@ -1475,11 +1475,11 @@ sub Marpa::R2::Scanless::R::read {
             $desc = 'Unexpected return value from lexer: Parse exhausted';
             last DESC;
         }
-        if ( $g1_event_count > 0 ) {
+        if ($g1_event_count) {
+            my $true_event_count = $thin_lex_grammar->event_count();
             EVENT:
-            for ( my $event_ix = 0; $event_ix < $g1_event_count; $event_ix++ ) {
-                my ( $event_type, $value ) =
-                    $thin_lex_grammar->event($event_ix);
+            for (my $event_ix = 0; $event_ix < $true_event_count; $event_ix++) {
+                my ( $event_type, $value ) = $thin_lex_grammar->event($event_ix);
                 if ( $event_type eq 'MARPA_EVENT_EARLEY_ITEM_THRESHOLD' ) {
                     $desc
                         .= "G1 grammar: Earley item count ($value) exceeds warning threshold\n";
@@ -1491,22 +1491,15 @@ sub Marpa::R2::Scanless::R::read {
                     next EVENT;
                 }
                 if ( $event_type eq 'MARPA_EVENT_EXHAUSTED' ) {
-                    $desc .= "Parse exhausted\n";
+                    $desc .= "Parse exhausted: lexemes were " . join q{ },
+                        map { $lex_tracer->symbol_name($_) } @found_lexemes;
                     next EVENT;
                 }
-            } ## end EVENT: for ( my $event_ix = 0; $event_ix < $g1_event_count; ...)
+            } ## end EVENT: while (1)
             last DESC;
-        } ## end if ( $g1_event_count > 0 )
-        if ( $g1_event_count == -1 ) {
-            $desc = 'Lexeme(s) rejected: ' . join q{ }, map { $lex_tracer->symbol_name($_) } @found_lexemes;
-            last DESC;
-        }
-        if ( $g1_event_count == -2 ) {
-            $desc = 'Unexpected return value from G1 grammar: Unregistered character';
-            last DESC;
-        }
-        if ( $g1_event_count == -3 ) {
-            $desc = 'Parse exhausted';
+        } ## end if ($g1_event_count)
+        if ( $g1_event_count < 0 ) {
+            $desc = 'G1 error: ' . $thin_g1_grammar->error();
             last DESC;
         }
     } ## end DESC:
