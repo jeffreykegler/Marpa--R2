@@ -748,7 +748,6 @@ sub last_rule {
             // 'No rule was completed';
 }
 
-
 my %grammar_options = map { $_, 1 } qw{
     action_object
     default_action
@@ -1240,6 +1239,15 @@ sub rules_add {
     return $inner_self;
 } ## end sub rules_add
 
+
+
+
+my %recce_options = map { $_, 1 } qw{
+    grammar
+    trace_values
+    trace_file_handle
+};
+
 sub Marpa::R2::Scanless::R::new {
     my ( $class, $args ) = @_;
 
@@ -1252,6 +1260,18 @@ sub Marpa::R2::Scanless::R::new {
             'Marpa::R2::Scanless::R::new() called without a "grammar" argument'
         );
     }
+    if (my @bad_options =
+        grep { not defined $recce_options{$_} } keys %{$args}
+        )
+    {
+        Carp::croak(
+            "$G_PACKAGE does not know some of option(s) given to it:\n",
+            "   The option(s) not recognized were ",
+            ( join q{ }, map { q{"} . $_ . q{"} } @bad_options ),
+            "\n"
+        );
+    } ## end if ( my @bad_options = grep { not defined $recce_options...})
+
     $self->[Marpa::R2::Inner::Scanless::R::GRAMMAR] = $grammar;
     my $thick_lex_grammar =
         $grammar->[Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMAR];
@@ -1263,9 +1283,12 @@ sub Marpa::R2::Scanless::R::new {
 
     my $thick_g1_grammar =
         $grammar->[Marpa::R2::Inner::Scanless::G::THICK_G1_GRAMMAR];
+    my %g1_recce_args = ( grammar => $thick_g1_grammar );
+    $g1_recce_args{$_} = $args->{$_}
+        for qw( trace_values trace_file_handle );
     my $thick_g1_recce =
         $self->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE] =
-        Marpa::R2::Recognizer->new( { grammar => $thick_g1_grammar } );
+        Marpa::R2::Recognizer->new( \%g1_recce_args );
 
     my $stream = $self->[Marpa::R2::Inner::Scanless::R::STREAM] =
         Marpa::R2::Thin::U->new($lex_r);
