@@ -91,44 +91,12 @@ sub do_arg0 { shift; return shift; }
 
 package main;
 
-sub My_Error::last_completed_range {
-    my ( $self, $symbol_name ) = @_;
-    my $grammar      = $self->{grammar};
-    my $slr        = $self->{slr};
-    my @sought_rules = ();
-    for my $rule_id ( $grammar->rule_ids() ) {
-        my ($lhs) = $grammar->bnf_rule($rule_id);
-        push @sought_rules, $rule_id if $lhs eq $symbol_name;
-    }
-    die "Looking for completion of non-existent rule lhs: $symbol_name"
-        if not scalar @sought_rules;
-    my $latest_earley_set = $slr->latest_earley_set();
-    my $earley_set        = $latest_earley_set;
-
-    # Initialize to one past the end, so we can tell if there were no hits
-    my $first_origin = $latest_earley_set + 1;
-    EARLEY_SET: while ( $earley_set >= 0 ) {
-        my $report_items = $slr->progress($earley_set);
-        ITEM: for my $report_item ( @{$report_items} ) {
-            my ( $rule_id, $dot_position, $origin ) = @{$report_item};
-            next ITEM if $dot_position != -1;
-            next ITEM if not scalar grep { $_ == $rule_id } @sought_rules;
-            next ITEM if $origin >= $first_origin;
-            $first_origin = $origin;
-        } ## end ITEM: for my $report_item ( @{$report_items} )
-        last EARLEY_SET if $first_origin <= $latest_earley_set;
-        $earley_set--;
-    } ## end EARLEY_SET: while ( $earley_set >= 0 )
-    return if $earley_set < 0;
-    return ( $first_origin, $earley_set );
-} ## end sub My_Error::last_completed_range
-
 sub My_Error::show_last_expression {
-    return 'NYI';
     my ($self) = @_;
-    my ( $start, $end ) = $self->last_completed_range('Expression');
+    my $slr = $self->{slr};
+    my ( $start, $end ) = $slr->last_completed_range('Expression');
     return 'No expression was successfully parsed' if not defined $start;
-    my $last_expression = $self->{slr}->range_to_string( $start, $end );
+    my $last_expression = $slr->range_to_string( $start, $end );
     return "Last expression successfully parsed was: $last_expression";
 } ## end sub My_Error::show_last_expression
 

@@ -62,6 +62,7 @@ BEGIN {
     THIN_LEX_RECCE
     THICK_G1_RECCE
     LOCATIONS
+    INPUT_STRING
 
     TRACE_FILE_HANDLE
     READ_STRING_ERROR
@@ -493,14 +494,16 @@ sub Marpa::R2::Scanless::R::last_completed_range {
     return ( $first_origin, $earley_set );
 } ## end sub Marpa::R2::Scanless::R::last_completed_range
 
-# Given a string, an earley set to position mapping,
-# and two earley sets, return the slice of the string
-sub input_slice {
-    my ( $input, $positions, $start, $end ) = @_;
+# Given a scanless recognizer and 
+# and two earley sets, return the input string
+sub Marpa::R2::Scanless::R::range_to_string {
+    my ( $self, $start, $end ) = @_;
     return if not defined $start;
-    my $start_position = $positions->[$start];
-    my $length         = $positions->[$end] - $start_position;
-    return substr $input, $start_position, $length;
+    my $locations = $self->[Marpa::R2::Inner::Scanless::R::LOCATIONS];
+    my $input = $self->[Marpa::R2::Inner::Scanless::R::INPUT_STRING];
+    my $start_position = $locations->[$start]->[0];
+    my $end_position = $locations->[$end]->[1];
+    return substr $input, $start_position, ($end_position - $start_position);
 } ## end sub input_slice
 
 sub scanless_grammar {
@@ -1258,6 +1261,12 @@ sub Marpa::R2::Scanless::R::error {
 
 sub Marpa::R2::Scanless::R::read {
      my ($self, $string) = @_;
+
+    Marpa::R2::exception("Multiple read()'s tried on a scannerless recognizer\n",
+    "  Currently only a single scannerless read is allowed")
+        if defined $self->[Marpa::R2::Inner::Scanless::R::INPUT_STRING];
+
+    $self->[Marpa::R2::Inner::Scanless::R::INPUT_STRING] = $string;
 
     my $stream  = $self->[Marpa::R2::Inner::Scanless::R::STREAM];
     my $grammar  = $self->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
