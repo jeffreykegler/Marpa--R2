@@ -1357,32 +1357,34 @@ sub Marpa::R2::Scanless::R::read {
                 Marpa::R2::Thin::R->new($thin_lex_grammar);
             $thin_lex_recce->start_input();
             $stream->recce_set($thin_lex_recce);
-            $stream->pos_set($start_of_next_lexeme);
 
             my @found_lexemes =
                 grep { $_ != $g0_discard_symbol_id } keys %found;
-            redo READ if not scalar @found_lexemes;
+            if ( scalar @found_lexemes ) {
 
-            say STDERR 'Found lexemes @' . $lexeme_start_pos, q{-},
-                $lexeme_end_pos, q{: }, join q{ },
-                map { $lex_tracer->symbol_name($_) } @found_lexemes;
+                say STDERR 'Found lexemes @' . $lexeme_start_pos, q{-},
+                    $lexeme_end_pos, q{: }, join q{ },
+                    map { $lex_tracer->symbol_name($_) } @found_lexemes;
 
-            for my $lexed_symbol_id (@found_lexemes) {
-                my $g1_lexeme   = $lexeme_to_g1_symbol->[$lexed_symbol_id];
-                my $token_value = -1 + push @{$token_values},
-                    (
-                    substr $string,
-                    $lexeme_start_pos, $lexeme_end_pos - $lexeme_start_pos
-                    );
-                $thin_g1_recce->alternative( $g1_lexeme, $token_value, 1 );
-            } ## end for my $lexed_symbol_id (@found_lexemes)
-            push @locations, [ $lexeme_start_pos, $lexeme_end_pos ];
-            $thin_g1_grammar->throw_set(0);
-            my $g1_event_count = $thin_g1_recce->earleme_complete();
-            $thin_g1_grammar->throw_set(1);
-            last READ if not defined $g1_event_count or $g1_event_count != 0;
+                for my $lexed_symbol_id (@found_lexemes) {
+                    my $g1_lexeme = $lexeme_to_g1_symbol->[$lexed_symbol_id];
+                    my $token_value = -1 + push @{$token_values},
+                        (
+                        substr $string,
+                        $lexeme_start_pos, $lexeme_end_pos - $lexeme_start_pos
+                        );
+                    $thin_g1_recce->alternative( $g1_lexeme, $token_value,
+                        1 );
+                } ## end for my $lexed_symbol_id (@found_lexemes)
+                push @locations, [ $lexeme_start_pos, $lexeme_end_pos ];
+                $thin_g1_grammar->throw_set(0);
+                my $g1_event_count = $thin_g1_recce->earleme_complete();
+                $thin_g1_grammar->throw_set(1);
+                last READ if not defined $g1_event_count or $g1_event_count != 0;
+            } ## end if ( scalar @found_lexemes )
             last READ if $lex_event_count == 0;
 
+            $stream->pos_set($start_of_next_lexeme);
             redo READ;
         } ## end if ( $thin_lex_recce->is_exhausted() or $lex_event_count...)
         if ( $lex_event_count == -2 ) {
