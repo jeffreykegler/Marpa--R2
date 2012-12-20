@@ -29,6 +29,7 @@ use Marpa::R2::Test;
 use Marpa::R2;
 
 my $rules = <<'END_OF_GRAMMAR';
+:start ::= script
 reduce_op ::=
     op_plus action => do_arg0
   | op_minus action => do_arg0
@@ -52,7 +53,7 @@ e ::=
 END_OF_GRAMMAR
 
 my $grammar = Marpa::R2::Grammar->new(
-    {   start          => 'script',
+    {   
         actions        => __PACKAGE__,
         rules          => $rules,
     }

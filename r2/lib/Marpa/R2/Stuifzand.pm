@@ -120,7 +120,8 @@ sub do_rules {
 
 sub do_start_rule {
     my ( $self, $rhs ) = @_;
-    Marpa::R2::exception( ':start not allowed unless grammar is scannerless');
+    my $do_arg0 = __PACKAGE__ . q{::} . 'external_do_arg0';
+    return [ { lhs => '[:start]', rhs => [$rhs->names()], action => $do_arg0 } ];
 } ## end sub do_start_rule
 
 sub do_discard_rule {
