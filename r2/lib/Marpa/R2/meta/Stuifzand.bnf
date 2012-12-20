@@ -59,8 +59,8 @@ quantifier ::=
     op_star action => do_op_star_quantifier
   | op_plus action => do_op_plus_quantifier
 
-lhs ::= symbol_name action => do_lhs 
-rhs ::= rhs_primary+ action => do_rhs
+lhs ::= symbol_name
+rhs ::= rhs_primary+
 rhs_primary ::= single_symbol
 rhs_primary ::= kw__ws_star
 rhs_primary ::= kw__ws_plus
