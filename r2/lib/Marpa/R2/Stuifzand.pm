@@ -120,96 +120,25 @@ sub do_rules {
 
 sub do_start_rule {
     my ( $self, $rhs ) = @_;
-    # Always a '::=' rule
-    my $thick_grammar = $self->{thick_grammar};
-    die ':start not allowed unless grammar is scannerless'
-        if not $thick_grammar->[Marpa::R2::Internal::Grammar::SCANNERLESS];
-    my @ws      = ();
-    my @mask_kv = ();
-    my @rhs     = ();
-    my $ws_star = '[:ws*]';
-    $self->{needs_symbol}->{$ws_star} = 1;
-    my $end_of_input = '[:$]';
-    $self->{needs_symbol}->{$end_of_input} = 1;
-    push @ws, $ws_star;
-    @rhs = ( $ws_star, $rhs->names(), $ws_star, $end_of_input );
-    push @mask_kv, mask => [ 0, 1, 0, 0 ];
-    return [ { lhs => '[:start]', rhs => \@rhs, @mask_kv } ];
+    Marpa::R2::exception( ':start not allowed unless grammar is scannerless');
 } ## end sub do_start_rule
 
 sub do_discard_rule {
     my ( $self, $rhs ) = @_;
     my $thick_grammar = $self->{thick_grammar};
-    die ':discard not allowed unless grammar is scannerless'
-        if not $thick_grammar->[Marpa::R2::Internal::Grammar::SCANNERLESS];
-    $self->{needs_symbol}->{'[:Space]'} = 1;
-    return [ { lhs => '[:Space]', rhs => [$rhs->name()], mask => [0] }, ];
+    Marpa::R2::exception( ':discard not allowed unless grammar is scannerless');
 } ## end sub do_discard_rule
-
-# From least to most restrictive
-my @ws_by_rank = qw( [:ws*] [:ws] [:ws+] );
-my %rank_by_ws = map { $ws_by_rank[$_] => $_ } 0 .. $#ws_by_rank;
-
-sub add_ws_to_alternative {
-    my ( $self, $alternative ) = @_;
-    my ( $rhs,  $adverb_list ) = @{$alternative};
-    state $default_ws_symbol =
-        create_hidden_internal_symbol( $self, '[:ws]' );
-
-    # Do not add initial whitespace
-    my $slot_for_ws = 0;
-    my @new_symbols = ();
-    SYMBOL: for my $symbol ( $rhs->symbols() ) {
-        my $symbol_name = $symbol->name();
-        if ( defined $rank_by_ws{$symbol_name} ) {
-            push @new_symbols, $symbol;
-            $slot_for_ws = 0;    # already has ws in this slot
-            next SYMBOL;
-        }
-        if ($slot_for_ws) {
-            ## Not a whitespace symbol, but this is a slot
-            ## for whitespace, so add it
-            push @new_symbols, $default_ws_symbol;
-        }
-        push @new_symbols, $symbol;
-        $slot_for_ws = $symbol->{ws_after_ok} // 1;
-    } ## end SYMBOL: for my $symbol ( $rhs->symbols() )
-    $alternative->[0] =
-        Marpa::R2::Internal::Stuifzand::Symbol_List->new(@new_symbols);
-    return $alternative;
-} ## end sub add_ws_to_alternative
 
 sub do_priority_rule {
     my ( $self, $lhs, $op_declare, $priorities ) = @_;
     my $thick_grammar = $self->{thick_grammar};
-    my $add_ws = $thick_grammar->[Marpa::R2::Internal::Grammar::SCANNERLESS]
-        && $op_declare eq q{::=};
     my $priority_count = scalar @{$priorities};
     my @rules          = ();
     my @xs_rules = ();
 
-    ## First check for consecutive whitespace specials
-    RHS: for my $rhs ( map { $_->[0] } map { @{$_} } @{$priorities} ) {
-        my @rhs_names = $rhs->names();
-        my $penult    = $#rhs_names - 1;
-        next RHS if $penult < 0;
-        for my $rhs_ix ( 0 .. $penult ) {
-            if (   defined $rank_by_ws{ $rhs_names[$rhs_ix] }
-                && defined $rank_by_ws{ $rhs_names[ $rhs_ix + 1 ] } )
-            {
-                die
-                    "Two consecutive whitespace special symbols were found in a RHS:\n",
-                    q{  }, ( join q{ }, $lhs, $op_declare, $rhs->names() ),
-                    "\n",
-                    "  Consecutive whitespace specials are confusing and are not allowed\n";
-            } ## end if ( defined $rank_by_ws{ $rhs_names[$rhs_ix] } && ...)
-        } ## end for my $rhs_ix ( 0 .. $penult )
-    } ## end for my $rhs ( map { $_->[0] } map { @{$_} } @{$priorities...})
-
     if ( $priority_count <= 1 ) {
         ## If there is only one priority
         for my $alternative ( @{ $priorities->[0] } ) {
-            add_ws_to_alternative($self, $alternative) if $add_ws;
             my ( $rhs, $adverb_list ) = @{$alternative};
             my @rhs_names = $rhs->names();
             my @mask      = $rhs->mask();
@@ -225,7 +154,6 @@ sub do_priority_rule {
     for my $priority_ix ( 0 .. $priority_count - 1 ) {
         my $priority = $priority_count - ( $priority_ix + 1 );
         for my $alternative ( @{ $priorities->[$priority_ix] } ) {
-            add_ws_to_alternative($self, $alternative) if $add_ws;
             push @rules, [ $priority, @{$alternative} ];
         }
     } ## end for my $priority_ix ( 0 .. $priority_count - 1 )
@@ -326,67 +254,13 @@ sub do_quantified_rule {
     my @rules = ( \%sequence_rule );
 
     my $original_separator = $adverb_list->{separator};
-    if ( $op_declare ne q{::=}
-        or not $thick_grammar->[Marpa::R2::Internal::Grammar::SCANNERLESS] )
-    {
-        # mask not needed
-        $sequence_rule{lhs}       = $lhs;
-        $sequence_rule{separator} = $original_separator
-            if defined $original_separator;
-        my $proper = $adverb_list->{proper};
-        $sequence_rule{proper} = $proper if defined $proper;
-        return \@rules;
-    } ## end if ( $op_declare ne q{::=} or not $thick_grammar->[...])
 
-    # If here, we are adding whitespace
-
-    state $do_arg0_full_name = __PACKAGE__ . q{::} . 'external_do_arg0';
-    state $default_ws_symbol =
-        create_hidden_internal_symbol( $self, '[:ws]' );
-    my $new_separator = $lhs . '[Sep]';
-    my @separator_rhs = ('[:ws]');
-    push @separator_rhs, $original_separator, '[:ws]'
+    # mask not needed
+    $sequence_rule{lhs}       = $lhs;
+    $sequence_rule{separator} = $original_separator
         if defined $original_separator;
-    my %separator_rule = (
-        lhs    => $new_separator,
-        rhs    => \@separator_rhs,
-        mask   => [ (0) x scalar @separator_rhs ],
-        action => '::whatever'
-    );
-    push @rules, \%separator_rule;
-
-    # With the new separator,
-    # we know a few more things about the sequence rule
-    $sequence_rule{proper}    = 1;
-    $sequence_rule{separator} = $new_separator;
-
-    if ( not defined $original_separator || $adverb_list->{proper} ) {
-
-        # If originally no separator or proper separation,
-        # we are pretty much done
-        $sequence_rule{lhs} = $lhs;
-        return \@rules;
-    } ## end if ( not defined $original_separator || $adverb_list...)
-
-    ## If here, Perl separation
-    ## We need two more rules and a new LHS for the
-    ## sequence rule
-    my $sequence_lhs = $lhs . '[SeqLHS]';
-    $sequence_rule{lhs} = $sequence_lhs;
-    push @rules,
-        {
-        lhs    => $lhs,
-        rhs    => [$sequence_lhs],
-        action => $do_arg0_full_name,
-        mask => [1]
-        },
-        {
-        lhs    => $lhs,
-        rhs    => [ $sequence_lhs, '[:ws]', $original_separator ],
-        mask   => [ 1, 0, 0 ],
-        action => $do_arg0_full_name,
-        };
-
+    my $proper = $adverb_list->{proper};
+    $sequence_rule{proper} = $proper if defined $proper;
     return \@rules;
 
 } ## end sub do_quantified_rule
@@ -399,43 +273,23 @@ sub create_hidden_internal_symbol {
     return $symbol;
 }
 
-# Return the character class symbol name,
-# after ensuring everything is set up properly
-sub assign_symbol_by_char_class {
-    my ( $self, $char_class, $symbol_name ) = @_;
-
-    # default symbol name always start with TWO left square brackets
-    $symbol_name //= '[' . $char_class . ']';
-    $self->{character_classes} //= {};
-    my $cc_hash    = $self->{character_classes};
-    my (undef, $symbol) = $cc_hash->{$symbol_name};
-    if ( not defined $symbol ) {
-        my $regex;
-        if ( not defined eval { $regex = qr/$char_class/xms; 1; } ) {
-            Carp::croak( 'Bad Character class: ',
-                $char_class, "\n", "Perl said ", $EVAL_ERROR );
-        }
-        $symbol = create_hidden_internal_symbol($self, $symbol_name);
-        $cc_hash->{$symbol_name} = [ $regex, $symbol ];
-    } ## end if ( not defined $hash_entry )
-    return $symbol;
-} ## end sub assign_symbol_by_char_class
-
 sub do_any {
-    my $self = shift;
-    my $symbol_name = '[:any]';
-    return assign_symbol_by_char_class( $self, '[\p{Cn}\P{Cn}]', $symbol_name );
+    Marpa::R2::exception( ':any not allowed unless grammar is scannerless');
 }
 
 sub do_end_of_input {
-    my $self = shift;
-    return $self->{end_of_input_symbol} //=
-        Marpa::R2::Internal::Stuifzand::Symbol->new('[:$]');
+    Marpa::R2::exception( ':$ not allowed unless grammar is scannerless');
 }
 
-sub do_ws { return create_hidden_internal_symbol($_[0], '[:ws]') }
-sub do_ws_star { return create_hidden_internal_symbol($_[0], '[:ws*]') }
-sub do_ws_plus { return create_hidden_internal_symbol($_[0], '[:ws+]') }
+sub do_ws {
+    Marpa::R2::exception( ':ws not allowed unless grammar is scannerless');
+}
+sub do_ws_star {
+    Marpa::R2::exception( ':ws* not allowed unless grammar is scannerless');
+}
+sub do_ws_plus {
+    Marpa::R2::exception( ':ws+ not allowed unless grammar is scannerless');
+}
 
 sub do_symbol {
     shift;
@@ -443,8 +297,7 @@ sub do_symbol {
 }
 
 sub do_character_class {
-    my ( $self, $char_class ) = @_;
-    return assign_symbol_by_char_class($self, $char_class);
+    Marpa::R2::exception( 'character classes not allowed unless grammar is scannerless');
 } ## end sub do_character_class
 
 sub do_rhs_primary_list { shift; return Marpa::R2::Internal::Stuifzand::Symbol_List->new(@_) }
@@ -468,18 +321,7 @@ sub do_separator_specification {
 }
 
 sub do_single_quoted_string {
-    my ($self, $string ) = @_;
-    my @symbols = ();
-    my $symbol;
-    for my $char_class ( map { "[" . (quotemeta $_) . "]" } split //xms, substr $string, 1, -1) {
-        $symbol = assign_symbol_by_char_class($self, $char_class);
-        $symbol->{ws_after_ok} = 0;
-        push @symbols, $symbol;
-    }
-    $symbol->{ws_after_ok} = 1; # OK to add WS after last symbol
-    my $list = Marpa::R2::Internal::Stuifzand::Symbol_List->new(@symbols);
-    $list->hidden_set();
-    return $list;
+    Marpa::R2::exception( 'quoted strings not allowed unless grammar is scannerless');
 }
 
 sub do_op_declare_bnf     { return q{::=} }
@@ -1092,15 +934,6 @@ sub parse_rules {
     push @{$rules}, @ws_rules;
 
     $self->{rules} = $rules;
-    my $raw_cc      = $self->{character_classes};
-    if ( defined $raw_cc ) {
-        my $stripped_cc = {};
-        for my $symbol_name ( keys %{$raw_cc} ) {
-            my ($re) = @{ $raw_cc->{$symbol_name} };
-            $stripped_cc->{$symbol_name} = $re;
-        }
-        $self->{character_classes} = $stripped_cc;
-    } ## end if ( defined $raw_cc )
     return $self;
 } ## end sub parse_rules
 

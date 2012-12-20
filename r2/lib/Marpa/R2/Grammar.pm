@@ -80,7 +80,6 @@ BEGIN {
     RULE_BY_NAME
     INTERFACE { currently 'standard' or 'stuifzand' }
     INTERNAL { internal grammar -- relax various restrictions }
-    SCANNERLESS { A Boolean indicating whether the grammar is scannerless }
 
     CHARACTER_CLASSES { an hash of
     character class regex by symbol name.
@@ -191,7 +190,6 @@ use constant GRAMMAR_OPTIONS => [
         inaccessible_ok
         rule_name_required
         rules
-        scannerless
         start
         symbols
         terminals
@@ -238,13 +236,6 @@ sub Marpa::R2::Grammar::set {
         if ( defined( my $value = $args->{'_internal_'} ) ) {
             $grammar->[Marpa::R2::Internal::Grammar::INTERNAL] =  $value;
         }
-
-        if ( defined( my $value = $args->{'scannerless'} ) ) {
-            $grammar->[Marpa::R2::Internal::Grammar::SCANNERLESS] =  $value;
-        }
-        ## If not marked scannerless in the first arg hash of the
-        ## constructor, then the grammar is not scannerless
-        $grammar->[Marpa::R2::Internal::Grammar::SCANNERLESS] //= 0;
 
         if ( defined( my $value = $args->{'trace_file_handle'} ) ) {
             $trace_fh =
@@ -319,18 +310,13 @@ sub Marpa::R2::Grammar::set {
                         )
                         if $grammar->[Marpa::R2::Internal::Grammar::INTERFACE]
                             ne 'stuifzand';
-                    # If we have not already been set as scannerless, exclude the
-                    # possibility
-                    my $scannerless = $grammar->[Marpa::R2::Internal::Grammar::SCANNERLESS];
                     my $parse_result =
                         Marpa::R2::Internal::Stuifzand::parse_rules($grammar, $value);
                     my $character_classes =
                         $parse_result->{character_classes};
                     Marpa::R2::exception(
                         qq{Attempt to use character class with a grammar that is not scannerless\n},
-                        qq{  A scannerless grammar must have a ':start' rule }
-                        )
-                        if not $scannerless and defined $character_classes ;
+                    ) if defined $character_classes;
                     $grammar
                         ->[Marpa::R2::Internal::Grammar::CHARACTER_CLASSES] =
                         $character_classes
@@ -1281,15 +1267,6 @@ sub set_start_symbol {
 
     my $grammar_c  = $grammar->[Marpa::R2::Internal::Grammar::C];
     my $start_name = $grammar->[Marpa::R2::Internal::Grammar::START_NAME];
-
-    if ( $grammar->[Marpa::R2::Internal::Grammar::SCANNERLESS] ) {
-        Marpa::R2::exception(
-            qq{'start' named argument not allowed for scannerless grammar},
-            qq{  ':start' rules in the BNF must be the only start symbol specification},
-        ) if defined $start_name;
-        $start_name = $grammar->[Marpa::R2::Internal::Grammar::START_NAME] =
-            '[:start]';
-    } ## end if ( $grammar->[Marpa::R2::Internal::Grammar::SCANNERLESS...])
 
     return if not defined $start_name;
     my $start_id =
