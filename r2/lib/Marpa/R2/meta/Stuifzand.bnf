@@ -66,7 +66,6 @@ rhs_primary ::= kw__ws_star
 rhs_primary ::= kw__ws_plus
 rhs_primary ::= kw__ws
 rhs_primary ::= kw__any
-rhs_primary ::= kw__end_of_input
 rhs_primary ::= single_quoted_string
 rhs_primary ::= <parenthesized rhs primary list>
 <parenthesized rhs primary list> ::= (op_lparen) rhs_primary_list (op_rparen)
