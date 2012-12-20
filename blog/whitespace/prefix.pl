@@ -49,7 +49,7 @@ my $prefix_grammar = Marpa::R2::Scanless::G->new(
         source          => \(<<'END_OF_RULES'),
 :start ::= Script
 Script ::= Calculation* action => do_list
-Calculation ::= Expression | 'say' Expression
+Calculation ::= Expression | ('say') Expression
 Expression ::=
      Number
    | ('+') Expression Expression action => do_add

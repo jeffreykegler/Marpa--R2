@@ -65,6 +65,7 @@ BEGIN {
     INPUT_STRING
 
     TRACE_FILE_HANDLE
+    TRACE_TERMINALS
     READ_STRING_ERROR
 
 END_OF_STRUCTURE
@@ -339,11 +340,10 @@ sub do_quantified_rule {
 
 } ## end sub do_quantified_rule
 
-sub create_hidden_internal_symbol {
+sub create_internal_symbol {
     my ($self, $symbol_name) = @_;
     $self->{needs_symbol}->{$symbol_name} = 1;
     my $symbol = Marpa::R2::Inner::Scanless::Symbol->new($symbol_name);
-    $symbol->hidden_set();
     return $symbol;
 }
 
@@ -363,7 +363,7 @@ sub assign_symbol_by_char_class {
             Carp::croak( 'Bad Character class: ',
                 $char_class, "\n", "Perl said ", $EVAL_ERROR );
         }
-        $symbol = create_hidden_internal_symbol($self, $symbol_name);
+        $symbol = create_internal_symbol($self, $symbol_name);
         $cc_hash->{$symbol_name} = [ $regex, $symbol ];
     } ## end if ( not defined $hash_entry )
     return $symbol;
@@ -381,9 +381,9 @@ sub do_end_of_input {
         Marpa::R2::Inner::Scanless::Symbol->new('[:$]');
 }
 
-sub do_ws { return create_hidden_internal_symbol($_[0], '[:ws]') }
-sub do_ws_star { return create_hidden_internal_symbol($_[0], '[:ws*]') }
-sub do_ws_plus { return create_hidden_internal_symbol($_[0], '[:ws+]') }
+sub do_ws { return create_internal_symbol($_[0], '[:ws]') }
+sub do_ws_star { return create_internal_symbol($_[0], '[:ws*]') }
+sub do_ws_plus { return create_internal_symbol($_[0], '[:ws+]') }
 
 sub do_symbol {
     shift;
@@ -1244,6 +1244,7 @@ sub rules_add {
 
 my %recce_options = map { $_, 1 } qw{
     grammar
+    trace_terminals
     trace_values
     trace_file_handle
 };
@@ -1260,17 +1261,28 @@ sub Marpa::R2::Scanless::R::new {
             'Marpa::R2::Scanless::R::new() called without a "grammar" argument'
         );
     }
+
+    $self->[Marpa::R2::Inner::Scanless::R::TRACE_FILE_HANDLE] =
+        $grammar->[Marpa::R2::Inner::Scanless::G::TRACE_FILE_HANDLE];
+
     if (my @bad_options =
         grep { not defined $recce_options{$_} } keys %{$args}
         )
     {
-        Carp::croak(
+        Marpa::R2::exception(
             "$G_PACKAGE does not know some of option(s) given to it:\n",
             "   The option(s) not recognized were ",
             ( join q{ }, map { q{"} . $_ . q{"} } @bad_options ),
             "\n"
         );
     } ## end if ( my @bad_options = grep { not defined $recce_options...})
+
+    if ( defined( my $value = $args->{'trace_file_handle'} ) ) {
+        $self->[Marpa::R2::Inner::Scanless::R::TRACE_FILE_HANDLE] = $value;
+    }
+    if ( defined( my $value = $args->{'trace_terminals'} ) ) {
+        $self->[Marpa::R2::Inner::Scanless::R::TRACE_TERMINALS] = $value;
+    }
 
     $self->[Marpa::R2::Inner::Scanless::R::GRAMMAR] = $grammar;
     my $thick_lex_grammar =
@@ -1308,60 +1320,68 @@ sub Marpa::R2::Scanless::R::error {
 }
 
 sub Marpa::R2::Scanless::R::read {
-     my ($self, $string) = @_;
+    my ( $self, $string ) = @_;
 
-    Marpa::R2::exception("Multiple read()'s tried on a scannerless recognizer\n",
-    "  Currently only a single scannerless read is allowed")
-        if defined $self->[Marpa::R2::Inner::Scanless::R::INPUT_STRING];
+    Marpa::R2::exception(
+        "Multiple read()'s tried on a scannerless recognizer\n",
+        "  Currently only a single scannerless read is allowed"
+    ) if defined $self->[Marpa::R2::Inner::Scanless::R::INPUT_STRING];
 
     $self->[Marpa::R2::Inner::Scanless::R::INPUT_STRING] = $string;
+    my $trace_terminals =
+        $self->[Marpa::R2::Inner::Scanless::R::TRACE_TERMINALS];
 
     my $stream  = $self->[Marpa::R2::Inner::Scanless::R::STREAM];
-    my $grammar  = $self->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
-    my $thick_lex_grammar  = $grammar->[Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMAR];
+    my $grammar = $self->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
+    my $thick_lex_grammar =
+        $grammar->[Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMAR];
     my $lex_tracer       = $thick_lex_grammar->tracer();
-    my $thin_lex_grammar  = $lex_tracer->grammar();
-    my $g0_discard_symbol_id = $grammar->[Marpa::R2::Inner::Scanless::G::G0_DISCARD_SYMBOL_ID];
-    my $lexeme_to_g1_symbol = $grammar->[Marpa::R2::Inner::Scanless::G::LEXEME_TO_G1_SYMBOL] ;
-    my $thick_g1_recce = $self->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
-    my $thin_g1_recce = $thick_g1_recce->thin();
+    my $thin_lex_grammar = $lex_tracer->grammar();
+    my $g0_discard_symbol_id =
+        $grammar->[Marpa::R2::Inner::Scanless::G::G0_DISCARD_SYMBOL_ID];
+    my $lexeme_to_g1_symbol =
+        $grammar->[Marpa::R2::Inner::Scanless::G::LEXEME_TO_G1_SYMBOL];
+    my $thick_g1_recce =
+        $self->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+    my $thin_g1_recce    = $thick_g1_recce->thin();
     my $thick_g1_grammar = $thick_g1_recce->grammar();
-    my $thin_g1_grammar = $thick_g1_grammar->thin();
+    my $thin_g1_grammar  = $thick_g1_grammar->thin();
 
     # Here we access an internal value of the Recognizer class
     # Scanless is, in C++ terms, a friend class of the Recognizer
-    my $token_values = $thick_g1_recce->[Marpa::R2::Internal::Recognizer::TOKEN_VALUES];
-
+    my $token_values =
+        $thick_g1_recce->[Marpa::R2::Internal::Recognizer::TOKEN_VALUES];
 
     # These values are used for diagnostics,
     # so they are initialized here.
     # Event counts are initialized to 0 for "no events, no problems".
     my $lex_event_count = 0;
-    my $g1_event_count = 0;
-    my @found_lexemes = ();
-    my @locations = ([0, 0]);
+    my $g1_event_count  = 0;
+    my @found_lexemes   = ();
+    my @locations       = ( [ 0, 0 ] );
     $self->[Marpa::R2::Inner::Scanless::R::LOCATIONS] = \@locations;
 
     my $class_table =
         $grammar->[Marpa::R2::Inner::Scanless::G::CHARACTER_CLASS_TABLE];
 
-    my $length_of_string = length $string;
+    my $length_of_string     = length $string;
     my $start_of_next_lexeme = 0;
-    my $thin_lex_recce = $self->[Marpa::R2::Inner::Scanless::R::THIN_LEX_RECCE];
-    $stream->string_set(\$string);
+    my $thin_lex_recce =
+        $self->[Marpa::R2::Inner::Scanless::R::THIN_LEX_RECCE];
+    $stream->string_set( \$string );
 
-    READ: while ($start_of_next_lexeme < $length_of_string) {
+    READ: while ( $start_of_next_lexeme < $length_of_string ) {
 
         state $op_alternative = Marpa::R2::Thin::U::op('alternative');
         state $op_earleme_complete =
             Marpa::R2::Thin::U::op('earleme_complete');
 
-        if (not defined $thin_lex_recce) {
+        if ( not defined $thin_lex_recce ) {
             $thin_lex_recce = Marpa::R2::Thin::R->new($thin_lex_grammar);
             $thin_lex_recce->start_input();
             $stream->recce_set($thin_lex_recce);
             $stream->pos_set($start_of_next_lexeme);
-        }
+        } ## end if ( not defined $thin_lex_recce )
 
         if ( not defined eval { $lex_event_count = $stream->read(); 1 } ) {
             my $problem_symbol = $stream->symbol_id();
@@ -1411,31 +1431,39 @@ sub Marpa::R2::Scanless::R::read {
                 grep { $_ != $g0_discard_symbol_id } keys %found;
             if ( scalar @found_lexemes ) {
 
-                # say STDERR 'Found lexemes @' . $lexeme_start_pos, q{-},
-                    # $lexeme_end_pos, q{: }, join q{ },
-                    # map { $lex_tracer->symbol_name($_) } @found_lexemes;
+                my $raw_token_value = substr $string, $lexeme_start_pos, $lexeme_end_pos - $lexeme_start_pos;
+
+                if ($trace_terminals) {
+                    say {
+                        $self->[
+                            Marpa::R2::Inner::Scanless::R::TRACE_FILE_HANDLE]
+                        } 'Found lexemes @'
+                        . $lexeme_start_pos, q{-}, $lexeme_end_pos, q{: },
+                        (
+                        join q{ },
+                        map { $lex_tracer->symbol_name($_) } @found_lexemes
+                        ),
+                        qq{; value="$raw_token_value"};
+                } ## end if ($trace_terminals)
+
+                my $token_ix = -1 + push @{$token_values}, $raw_token_value;
 
                 for my $lexed_symbol_id (@found_lexemes) {
                     my $g1_lexeme = $lexeme_to_g1_symbol->[$lexed_symbol_id];
-                    my $token_value = -1 + push @{$token_values},
-                        (
-                        substr $string,
-                        $lexeme_start_pos, $lexeme_end_pos - $lexeme_start_pos
-                        );
-                    $thin_g1_recce->alternative( $g1_lexeme, $token_value,
+                    $thin_g1_recce->alternative( $g1_lexeme, $token_ix,
                         1 );
                 } ## end for my $lexed_symbol_id (@found_lexemes)
                 push @locations, [ $lexeme_start_pos, $lexeme_end_pos ];
                 $thin_g1_grammar->throw_set(0);
                 $g1_event_count = $thin_g1_recce->earleme_complete();
                 $thin_g1_grammar->throw_set(1);
-                if (not defined $g1_event_count or $g1_event_count != 0) {
-                    $lex_event_count = 0; # lexer was NOT the problem
+                if ( not defined $g1_event_count or $g1_event_count != 0 ) {
+                    $lex_event_count = 0;    # lexer was NOT the problem
                     last READ;
                 }
             } ## end if ( scalar @found_lexemes )
 
-            $thin_lex_recce = undef;
+            $thin_lex_recce  = undef;
             $lex_event_count = 0;
 
             next READ;
@@ -1467,7 +1495,7 @@ sub Marpa::R2::Scanless::R::read {
             $stream->char_register( $codepoint, @ops, $op_earleme_complete );
             next READ;
         } ## end if ( $lex_event_count == -2 )
-    } ## end READ:
+    } ## end READ: while ( $start_of_next_lexeme < $length_of_string )
 
     my $pos = $stream->pos();
     return $pos if $lex_event_count == 0 and $g1_event_count == 0;
@@ -1478,7 +1506,12 @@ sub Marpa::R2::Scanless::R::read {
     DESC: {
         if ( $lex_event_count > 0 ) {
             EVENT:
-            for ( my $event_ix = 0; $event_ix < $lex_event_count; $event_ix++ ) {
+            for (
+                my $event_ix = 0;
+                $event_ix < $lex_event_count;
+                $event_ix++
+                )
+            {
                 my ( $event_type, $value ) =
                     $thin_lex_grammar->event($event_ix);
                 if ( $event_type eq 'MARPA_EVENT_EARLEY_ITEM_THRESHOLD' ) {
@@ -1495,7 +1528,7 @@ sub Marpa::R2::Scanless::R::read {
                     $desc .= "Unexpected lexer event: $event_type\n";
                     next EVENT;
                 }
-            } ## end EVENT: for ( my $event_ix = 0; $event_ix < $lex_event_count; ...)
+            } ## end EVENT: for ( my $event_ix = 0; $event_ix < $lex_event_count...)
             last DESC;
         } ## end if ( $lex_event_count > 0 )
         if ( $lex_event_count == -1 ) {
@@ -1513,8 +1546,14 @@ sub Marpa::R2::Scanless::R::read {
         if ($g1_event_count) {
             my $true_event_count = $thin_lex_grammar->event_count();
             EVENT:
-            for (my $event_ix = 0; $event_ix < $true_event_count; $event_ix++) {
-                my ( $event_type, $value ) = $thin_lex_grammar->event($event_ix);
+            for (
+                my $event_ix = 0;
+                $event_ix < $true_event_count;
+                $event_ix++
+                )
+            {
+                my ( $event_type, $value ) =
+                    $thin_lex_grammar->event($event_ix);
                 if ( $event_type eq 'MARPA_EVENT_EARLEY_ITEM_THRESHOLD' ) {
                     $desc
                         .= "G1 grammar: Earley item count ($value) exceeds warning threshold\n";
@@ -1529,7 +1568,7 @@ sub Marpa::R2::Scanless::R::read {
                     $desc .= "Parse exhausted";
                     next EVENT;
                 }
-            } ## end EVENT: while (1)
+            } ## end EVENT: for ( my $event_ix = 0; $event_ix < ...)
             last DESC;
         } ## end if ($g1_event_count)
         if ( $g1_event_count < 0 ) {
@@ -1538,8 +1577,7 @@ sub Marpa::R2::Scanless::R::read {
         }
     } ## end DESC:
     my $read_string_error;
-    if ($g1_event_count)
-    {
+    if ($g1_event_count) {
         my ($pos) = @{ $locations[-1] };
         my $prefix =
             $pos >= 72
@@ -1557,7 +1595,8 @@ sub Marpa::R2::Scanless::R::read {
             . "* String after error:\n"
             . Marpa::R2::escape_string( ( substr $string, $pos, 72 ), 72 )
             . "\n";
-    } elsif ( $pos < $length_of_string ) {
+    } ## end if ($g1_event_count)
+    elsif ( $pos < $length_of_string ) {
         my $char = substr $string, $pos, 1;
         my $char_desc = character_descibe($char);
         my $prefix =
@@ -1573,21 +1612,22 @@ sub Marpa::R2::Scanless::R::read {
             . "* String after error:\n"
             . Marpa::R2::escape_string( ( substr $string, $pos, 72 ), 72 )
             . "\n";
-    } ## end if ( $pos < $length_of_string )
+    } ## end elsif ( $pos < $length_of_string )
     else {
         $read_string_error =
-          "Error in string_read: $desc\n"
-        . "* Error was at end of string\n"
-        . "* String before error:\n"
-        . Marpa::R2::escape_string( $string, -72 ) . "\n"
-    }
-    $self->[Marpa::R2::Inner::Scanless::R::READ_STRING_ERROR] = $read_string_error;
+              "Error in string_read: $desc\n"
+            . "* Error was at end of string\n"
+            . "* String before error:\n"
+            . Marpa::R2::escape_string( $string, -72 ) . "\n";
+    } ## end else [ if ($g1_event_count) ]
+    $self->[Marpa::R2::Inner::Scanless::R::READ_STRING_ERROR] =
+        $read_string_error;
     Marpa::R2::exception($read_string_error) if $lex_event_count == -3;
 
     # Fall through to return undef
     return;
 
-}
+} ## end sub Marpa::R2::Scanless::R::read
 
 sub character_describe {
     my ($char) = @_;

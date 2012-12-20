@@ -61,8 +61,8 @@ Expression ::=
        Number
     || Expression '*' Expression action => do_multiply
     || Expression '+' Expression action => do_add
-Number ~ digits '.' digits action => do_literal
-Number ~ digits action => do_literal
+Number ~ digits '.' digits
+Number ~ digits
 digits ~ [\d]+
 
 :discard ~ whitespace
@@ -111,24 +111,14 @@ our $SELF;
 sub new { return $SELF }
 
 sub My_Actions::do_add {
-    my ( undef, $t1, $t2 ) = @_;
+    my ( undef, $t1, undef, $t2 ) = @_;
     return $t1 + $t2;
 }
 
 sub My_Actions::do_multiply {
-    my ( undef, $t1, $t2 ) = @_;
+    my ( undef, $t1, undef, $t2 ) = @_;
     return $t1 * $t2;
 }
-
-sub My_Actions::do_literal {
-    my $self  = shift;
-    my $recce = $self->{recce};
-    my ( $start, $end ) = Marpa::R2::Context::location();
-    my $literal = $recce->sl_range_to_string( $start, $end );
-    $literal =~ s/ \s+ \z //xms;
-    $literal =~ s/ \A \s+ //xms;
-    return $literal;
-} ## end sub My_Actions::do_literal
 
 sub My_Actions::first_arg { shift; return shift; }
 

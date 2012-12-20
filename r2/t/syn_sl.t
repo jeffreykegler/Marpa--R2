@@ -45,7 +45,7 @@ Expression ::=
     | Expression '/' Expression action => do_divide
    || Expression '+' Expression action => do_add
     | Expression '-' Expression action => do_subtract
-Number ~ [\d]+ action => do_literal
+Number ~ [\d]+
 
 :discard ~ whitespace
 whitespace ~ [\s]+
@@ -114,24 +114,14 @@ package My_Actions;
 our $SELF;
 sub new { return $SELF }
 
-sub do_parens    { shift; return $_[0] }
-sub do_add       { shift; return $_[0] + $_[1] }
-sub do_subtract  { shift; return $_[0] - $_[1] }
-sub do_multiply  { shift; return $_[0] * $_[1] }
-sub do_divide    { shift; return $_[0] / $_[1] }
-sub do_pow       { shift; return $_[0]**$_[1] }
+sub do_parens    { shift; return $_[1] }
+sub do_add       { shift; return $_[0] + $_[2] }
+sub do_subtract  { shift; return $_[0] - $_[2] }
+sub do_multiply  { shift; return $_[0] * $_[2] }
+sub do_divide    { shift; return $_[0] / $_[2] }
+sub do_pow       { shift; return $_[0]**$_[2] }
 sub do_first_arg { shift; return shift; }
 sub do_script    { shift; return join q{ }, @_ }
-
-sub do_literal {
-    my $self  = shift;
-    my $recce = $self->{recce};
-    my ( $start, $end ) = Marpa::R2::Context::location();
-    my $literal = $recce->range_to_string( $start, $end );
-    $literal =~ s/ \s+ \z //xms;
-    $literal =~ s/ \A \s+ //xms;
-    return $literal;
-} ## end sub do_literal
 
 sub show_last_expression {
     my ($self) = @_;
