@@ -37,7 +37,7 @@ reduce_op ::= '+' | '-' | '/' | '*'
 expression ::=
      NUM
    | VAR action => do_is_var
-   | '(' expression ')' assoc => group
+   | ('(') expression (')') assoc => group
   || '-' expression action => do_negate
   || expression '^' expression action => do_caret assoc => right
   || expression '*' expression action => do_star
@@ -152,7 +152,8 @@ my $output = join q{},
     report_calculation('4 * 3 /  5 - - - 3 + 42 - 1'),
     report_calculation('a=1;b = 5;  - a - b'),
     report_calculation('1 * 2 + 3 * 4 ^ 2 ^ 2 ^ 2 * 42 + 1'),
-    report_calculation('+ reduce 1 + 2, 3,4*2 , 5');
+    report_calculation('+ reduce 1 + 2, 3,4*2 , 5')
+    ;
 
 print $output or die "print failed: $ERRNO";
 $output eq <<'EXPECTED_OUTPUT' or die 'FAIL: Output mismatch';
@@ -187,12 +188,12 @@ sub do_is_var {
 } ## end sub do_is_var
 
 sub do_set_var {
-    my ( undef, $var, $value ) = @_;
+    my ( undef, $var, undef, $value ) = @_;
     return $symbol_table{$var} = $value;
 }
 
 sub do_negate {
-    return -$_[1];
+    return -$_[2];
 }
 
 sub do_arg0 { return $_[1]; }
@@ -200,7 +201,7 @@ sub do_arg1 { return $_[2]; }
 sub do_arg2 { return $_[3]; }
 
 sub do_array {
-    my ( undef, $left, $right ) = @_;
+    my ( undef, $left, undef, $right ) = @_;
     my @value = ();
     my $ref;
     if ( $ref = ref $left ) {
@@ -232,34 +233,33 @@ sub do_binop {
 } ## end sub do_binop
 
 sub do_caret {
-    my ( undef, $left, $right ) = @_;
+    my ( undef, $left, undef, $right ) = @_;
     return do_binop( '^', $left, $right );
 }
 
 sub do_star {
-    my ( undef, $left, $right ) = @_;
+    my ( undef, $left, undef, $right ) = @_;
     return do_binop( '*', $left, $right );
 }
 
 sub do_slash {
-    my ( undef, $left, $right ) = @_;
+    my ( undef, $left, undef, $right ) = @_;
     return do_binop( '/', $left, $right );
 }
 
 sub do_plus {
-    my ( undef, $left, $right ) = @_;
+    my ( undef, $left, undef, $right ) = @_;
     return do_binop( '+', $left, $right );
 }
 
 sub do_minus {
-    my ( undef, $left, $right ) = @_;
+    my ( undef, $left, undef, $right ) = @_;
     return do_binop( '-', $left, $right );
 }
 
 sub do_reduce {
-    my ( undef, $op, $args ) = @_;
+    my ( undef, $op, undef, $args ) = @_;
     my $closure = $binop_closure{$op};
-    $DB::single = 1;
     Marpa::R2::Context::bail(
         qq{Do not know how to perform binary operation "$op"})
         if not defined $closure;
