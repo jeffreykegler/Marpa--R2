@@ -68,8 +68,8 @@ rhs_primary ::= kw__ws
 rhs_primary ::= kw__any
 rhs_primary ::= kw__end_of_input
 rhs_primary ::= single_quoted_string
-rhs_primary ::= (op_lparen) rhs_primary_list (op_rparen)
-  action => do_parenthesized_symbol_list
+rhs_primary ::= <parenthesized rhs primary list>
+<parenthesized rhs primary list> ::= (op_lparen) rhs_primary_list (op_rparen)
 rhs_primary_list ::= rhs_primary+
 single_symbol ::=
     symbol
