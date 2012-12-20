@@ -56,8 +56,8 @@ proper_specification ::= (kw_proper op_arrow) boolean
   action => do_proper_specification
 
 quantifier ::=
-    op_star action => do_op_star_quantifier
-  | op_plus action => do_op_plus_quantifier
+    op_star
+  | op_plus
 
 lhs ::= symbol_name
 rhs ::= rhs_primary+
