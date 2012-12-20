@@ -142,7 +142,6 @@ sub symbols {
 # The "unflattened" list, which may contain other lists
 sub symbol_lists { return @{ shift->{symbol_lists} }; }
 
-
 package Marpa::R2::Inner::Scanless;
 
 use English qw( -no_match_vars );
@@ -163,7 +162,7 @@ sub do_discard_rule {
     my ( $self, $rhs ) = @_;
     local $GRAMMAR_LEVEL = 0;
     my $normalized_rhs = $self->normalize($rhs);
-    push @{$self->{lex_rules}}, { lhs => '[:discard]', rhs => [$normalized_rhs->name()], mask => [0] };
+    push @{$self->{lex_rules}}, { lhs => '[:discard]', rhs => [$normalized_rhs->name()] };
     return [];
 } ## end sub do_discard_rule
 
@@ -202,13 +201,19 @@ sub do_priority_rule {
         ## If there is only one priority
         for my $alternative ( @{ $priorities->[0] } ) {
             my ( $rhs, $adverb_list ) = @{$alternative};
-            $rhs = $self->normalize( $rhs);
+            $rhs = $self->normalize($rhs);
             my @rhs_names = $rhs->names();
             my @mask      = $rhs->mask();
             my %hash_rule =
                 ( lhs => $lhs, rhs => \@rhs_names, mask => \@mask );
             my $action = $adverb_list->{action};
-            $hash_rule{action} = $action if defined $action;
+            if ( defined $action ) {
+                Marpa::R2::exception(
+                    'actions not allowed in lexical rules (rules LHS was "',
+                    $lhs->name(), '")' )
+                    if $GRAMMAR_LEVEL <= 0;
+                $hash_rule{action} = $action;
+            } ## end if ( defined $action )
             push @{$rules}, \%hash_rule;
         } ## end for my $alternative ( @{ $priorities->[0] } )
         return [@xs_rules];
@@ -223,16 +228,18 @@ sub do_priority_rule {
 
     state $do_arg0_full_name = __PACKAGE__ . q{::} . 'external_do_arg0';
     # Default mask (all ones) is OK for this rule
+    my @arg0_action = ();
+    @arg0_action = ( action => $do_arg0_full_name) if $GRAMMAR_LEVEL > 0;
     @xs_rules = (
         {   lhs    => $lhs,
             rhs    => [ $lhs . '[prec0]' ],
-            action => $do_arg0_full_name
+            @arg0_action
         },
         (   map {
                 ;
                 {   lhs => ( $lhs . '[prec' . ( $_ - 1 ) . ']'),
                     rhs => [ $lhs . '[prec' . $_ . ']'],
-                    action => $do_arg0_full_name
+                    @arg0_action
                 }
             } 1 .. $priority_count - 1
         )
@@ -250,7 +257,12 @@ sub do_priority_rule {
            $new_xs_rule{mask} = [$rhs->mask()];
 
         my $action = $adverb_list->{action};
-        $new_xs_rule{action} = $action if defined $action;
+        if ( defined $action ) {
+            Marpa::R2::exception(
+                'actions not allowed in lexical rules (rules LHS was "',
+                $lhs->name(), '")' ) if $GRAMMAR_LEVEL <= 0;
+            $new_xs_rule{action} = $action;
+        } ## end if ( defined $action )
 
         my $next_priority = $priority + 1;
         $next_priority = 0 if $next_priority >= $priority_count;
@@ -298,16 +310,23 @@ sub do_priority_rule {
 
 sub do_empty_rule {
     my ( $self, $lhs, $op_declare, $adverb_list ) = @_;
+    my %rule = ( lhs => $lhs, rhs => [] );
     my $action = $adverb_list->{action};
+    if ( defined $action ) {
+        Marpa::R2::exception(
+            'actions not allowed in lexical rules (rules LHS was "',
+            $lhs->name(), '")' )
+            if $GRAMMAR_LEVEL <= 0;
+        $rule{action} = $action;
+    } ## end if ( defined $action )
+
     # mask not needed
-    my %rule = ( lhs => $lhs, rhs => []);
-    $rule{action} = $action if defined $action;
-    if ($op_declare eq q{::=}) {
-         return \%rule;
+    if ( $op_declare eq q{::=} ) {
+        return \%rule;
     }
-    push @{$self->{lex_rules}}, \%rule;
+    push @{ $self->{lex_rules} }, \%rule;
     return [];
-}
+} ## end sub do_empty_rule
 
 sub do_quantified_rule {
     my ( $self, $lhs, $op_declare, $rhs, $quantifier, $adverb_list ) = @_;
@@ -319,7 +338,13 @@ sub do_quantified_rule {
         min => ( $quantifier eq q{+} ? 1 : 0 )
     );
     my $action = $adverb_list->{action};
-    $sequence_rule{action} = $action if defined $action;
+    if ( defined $action ) {
+        Marpa::R2::exception(
+            'actions not allowed in lexical rules (rules LHS was "',
+            $lhs->name(), '")' )
+            if $GRAMMAR_LEVEL <= 0;
+        $sequence_rule{action} = $action;
+    } ## end if ( defined $action )
     my @rules = ( \%sequence_rule );
 
     my $original_separator = $adverb_list->{separator};
