@@ -61,7 +61,7 @@ quantifier ::=
 
 lhs ::= symbol_name action => do_lhs 
 rhs ::= rhs_primary+ action => do_rhs
-rhs_primary ::= single_symbol action => do_symbol_list
+rhs_primary ::= single_symbol
 rhs_primary ::= kw__ws_star action => do_ws_star
 rhs_primary ::= kw__ws_plus action => do_ws_plus
 rhs_primary ::= kw__ws action => do_ws
@@ -74,9 +74,9 @@ rhs_primary_list ::= rhs_primary+ action => do_symbol_list
 single_symbol ::=
     symbol
   | character_class action => do_character_class
-symbol ::= symbol_name action => do_symbol
+symbol ::= symbol_name
 symbol_name ::= bare_name | reserved_word
-symbol_name ::= bracketed_name action => do_bracketed_name
+symbol_name ::= bracketed_name
 action_name ::= bare_name | reserved_action_name
 
 reserved_word ::= kw_action | kw_assoc | kw_separator | kw_proper
