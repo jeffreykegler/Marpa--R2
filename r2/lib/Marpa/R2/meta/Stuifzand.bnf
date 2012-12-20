@@ -13,7 +13,7 @@
 # General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 
-
+:start ::= rules
 rules ::= rule+ action => do_rules
 rule ::= start_rule | empty_rule | priority_rule | quantified_rule | discard_rule
 start_rule ::= (kw__start op_declare) symbol
