@@ -59,9 +59,9 @@ single_symbol ::=
     symbol
   | <character class>
 symbol ::= symbol_name
-symbol_name ::= <bare name> | reserved_word
+symbol_name ::= <bare name> | <reserved word>
 symbol_name ::= <bracketed name>
 action_name ::= <bare name> | <reserved action name>
 
-reserved_word ::= <kw action> | <kw assoc> | <kw separator> | <kw proper>
+<reserved word> ::= <kw action> | <kw assoc> | <kw separator> | <kw proper>
   | <kw left> | <kw right> | <kw group>
