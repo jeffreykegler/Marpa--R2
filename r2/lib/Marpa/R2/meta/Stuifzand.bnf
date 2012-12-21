@@ -51,17 +51,17 @@ rhs_primary ::= <kwc ws star>
 rhs_primary ::= <kwc ws plus>
 rhs_primary ::= <kwc ws>
 rhs_primary ::= <kwc any>
-rhs_primary ::= single_quoted_string
+rhs_primary ::= <single quoted string>
 rhs_primary ::= <parenthesized rhs primary list>
 <parenthesized rhs primary list> ::= (<op lparen>) rhs_primary_list (<op rparen>)
 rhs_primary_list ::= rhs_primary+
 single_symbol ::=
     symbol
-  | character_class
+  | <character class>
 symbol ::= symbol_name
-symbol_name ::= bare_name | reserved_word
-symbol_name ::= bracketed_name
-action_name ::= bare_name | reserved_action_name
+symbol_name ::= <bare name> | reserved_word
+symbol_name ::= <bracketed name>
+action_name ::= <bare name> | <reserved action name>
 
 reserved_word ::= <kw action> | <kw assoc> | <kw separator> | <kw proper>
   | <kw left> | <kw right> | <kw group>
