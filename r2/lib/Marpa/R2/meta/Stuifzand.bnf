@@ -21,9 +21,7 @@ priority_rule ::= lhs op_declare priorities
 empty_rule ::= lhs op_declare adverb_list
 quantified_rule ::= lhs op_declare single_symbol quantifier adverb_list
 discard_rule ::= (kw__discard op_declare_match) single_symbol
-op_declare ::= 
-      op_declare_bnf action => do_op_declare_bnf
-    | op_declare_match action => do_op_declare_match
+op_declare ::= op_declare_bnf | op_declare_match
 priorities ::= alternatives+
     separator => op_tighter proper => 1
 alternatives ::= alternative+
