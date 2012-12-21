@@ -826,13 +826,19 @@ sub Marpa::R2::Scanless::G::new {
             "  It must be a ref to a string\n"
         );
     } ## end if ( $ref_type ne 'SCALAR' )
-    my $compiled_source = rules_add( $self, $rules_source );
+    my $hashed_source = $self->_source_to_hash( $rules_source );
+    $self->_hash_to_runtime($hashed_source);
+    return $self;
 
-    # die Data::Dumper::Dumper($compiled_rules);
+}
+
+sub Marpa::R2::Scanless::G::_hash_to_runtime {
+    my ($self, $hashed_source) = @_;
 
     my %lex_args = ();
-    $lex_args{$_} = $args->{$_} for qw( trace_file_handle );
-    $lex_args{rules} = $compiled_source->{lex_rules};
+    $lex_args{trace_file_handle} = 
+        $self->[Marpa::R2::Inner::Scanless::G::TRACE_FILE_HANDLE] // \*STDERR;
+    $lex_args{rules} = $hashed_source->{lex_rules};
     state $lex_target_symbol = '[:start_lex]';
     $lex_args{start} = $lex_target_symbol;
     $lex_args{'_internal_'} = 1;
@@ -840,11 +846,11 @@ sub Marpa::R2::Scanless::G::new {
     $lex_grammar->precompute();
     my $lex_tracer     = $lex_grammar->tracer();
     my @is_lexeme      = ();
-    my @lexeme_names = keys %{ $compiled_source->{is_lexeme} };
+    my @lexeme_names = keys %{ $hashed_source->{is_lexeme} };
     $is_lexeme[ $lex_tracer->symbol_by_name($_) ] = 1 for @lexeme_names;
     $self->[Marpa::R2::Inner::Scanless::G::IS_LEXEME]         = \@is_lexeme;
     $self->[Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMAR] = $lex_grammar;
-    my $character_class_hash = $compiled_source->{character_classes};
+    my $character_class_hash = $hashed_source->{character_classes};
     my @class_table          = ();
 
     for my $class_symbol ( sort keys %{$character_class_hash} ) {
@@ -859,9 +865,11 @@ sub Marpa::R2::Scanless::G::new {
 
     # The G1 grammar
     my %g1_args = ();
-    $g1_args{$_} = $args->{$_}
-        for qw( action_object default_action trace_file_handle );
-    $g1_args{rules} = $compiled_source->{g1_rules};
+    $g1_args{trace_file_handle} = 
+        $self->[Marpa::R2::Inner::Scanless::G::TRACE_FILE_HANDLE] // \*STDERR;
+    $g1_args{action_object} = $self->[Marpa::R2::Inner::Scanless::G::ACTION_OBJECT];
+    $g1_args{default_action} = $self->[Marpa::R2::Inner::Scanless::G::DEFAULT_ACTION];
+    $g1_args{rules} = $hashed_source->{g1_rules};
     state $g1_target_symbol = '[:start]';
     $g1_args{start} = $g1_target_symbol;
     $g1_args{'_internal_'} = 1;
@@ -901,8 +909,6 @@ sub Marpa::R2::Scanless::G::new {
 
     $self->[Marpa::R2::Inner::Scanless::G::LEXEME_TO_G1_SYMBOL] = \@lexeme_to_g1_symbol;
     $self->[Marpa::R2::Inner::Scanless::G::THICK_G1_GRAMMAR] = $thick_g1_grammar;
-
-    return $self;
 
 } ## end sub Marpa::R2::Scanless::G::new
 
@@ -959,7 +965,7 @@ my %actions_by_lhs_symbol = (
     'proper specification'           => 'do_proper_specification',
 );
 
-sub rules_add {
+sub Marpa::R2::Scanless::G::_source_to_hash {
     my ( $self, $p_rules_source ) = @_;
 
     local $GRAMMAR_LEVEL = 1;
