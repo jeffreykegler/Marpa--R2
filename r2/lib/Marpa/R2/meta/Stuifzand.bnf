@@ -15,53 +15,53 @@
 
 :start ::= rules
 rules ::= rule+
-rule ::= start_rule | empty_rule | priority_rule | quantified_rule | discard_rule
-start_rule ::= (<kwc start> <op declare>) symbol
-priority_rule ::= lhs <op declare> priorities
-empty_rule ::= lhs <op declare> adverb_list
-quantified_rule ::= lhs <op declare> single_symbol quantifier adverb_list
-discard_rule ::= (<kwc discard> <op declare match>) single_symbol
+rule ::= <start rule> | <empty rule> | <priority rule> | <quantified rule> | <discard rule>
+<start rule> ::= (<kwc start> <op declare>) symbol
+<priority rule> ::= lhs <op declare> priorities
+<empty rule> ::= lhs <op declare> <adverb list>
+<quantified rule> ::= lhs <op declare> <single symbol> quantifier <adverb list>
+<discard rule> ::= (<kwc discard> <op declare match>) <single symbol>
 <op declare> ::= <op declare bnf> | <op declare match>
 priorities ::= alternatives+
     separator => <op tighter> proper => 1
 alternatives ::= alternative+
     separator => <op eq pri> proper => 1
-alternative ::= rhs adverb_list
-adverb_list ::= adverb_item*
-adverb_item ::=
+alternative ::= rhs <adverb list>
+<adverb list> ::= <adverb item>*
+<adverb item> ::=
       action
-    | left_association | right_association | group_association
-    | separator_specification | proper_specification
+    | <left association> | <right association> | <group association>
+    | <separator specification> | <proper specification>
 
-action ::= (<kw action> <op arrow>) action_name
-left_association ::= (<kw assoc> <op arrow> <kw left>)
-right_association ::= (<kw assoc> <op arrow> <kw right>)
-group_association ::= (<kw assoc> <op arrow> <kw group>)
-separator_specification ::= (<kw separator> <op arrow>) single_symbol
-proper_specification ::= (<kw proper> <op arrow>) boolean
+action ::= (<kw action> <op arrow>) <action name>
+<left association> ::= (<kw assoc> <op arrow> <kw left>)
+<right association> ::= (<kw assoc> <op arrow> <kw right>)
+<group association> ::= (<kw assoc> <op arrow> <kw group>)
+<separator specification> ::= (<kw separator> <op arrow>) <single symbol>
+<proper specification> ::= (<kw proper> <op arrow>) boolean
 
 quantifier ::=
     <op star>
   | <op plus>
 
-lhs ::= symbol_name
-rhs ::= rhs_primary+
-rhs_primary ::= single_symbol
-rhs_primary ::= <kwc ws star>
-rhs_primary ::= <kwc ws plus>
-rhs_primary ::= <kwc ws>
-rhs_primary ::= <kwc any>
-rhs_primary ::= <single quoted string>
-rhs_primary ::= <parenthesized rhs primary list>
-<parenthesized rhs primary list> ::= (<op lparen>) rhs_primary_list (<op rparen>)
-rhs_primary_list ::= rhs_primary+
-single_symbol ::=
+lhs ::= <symbol name>
+rhs ::= <rhs primary>+
+<rhs primary> ::= <single symbol>
+<rhs primary> ::= <kwc ws star>
+<rhs primary> ::= <kwc ws plus>
+<rhs primary> ::= <kwc ws>
+<rhs primary> ::= <kwc any>
+<rhs primary> ::= <single quoted string>
+<rhs primary> ::= <parenthesized rhs primary list>
+<parenthesized rhs primary list> ::= (<op lparen>) <rhs primary list> (<op rparen>)
+<rhs primary list> ::= <rhs primary>+
+<single symbol> ::=
     symbol
   | <character class>
-symbol ::= symbol_name
-symbol_name ::= <bare name> | <reserved word>
-symbol_name ::= <bracketed name>
-action_name ::= <bare name> | <reserved action name>
+symbol ::= <symbol name>
+<symbol name> ::= <bare name> | <reserved word>
+<symbol name> ::= <bracketed name>
+<action name> ::= <bare name> | <reserved action name>
 
 <reserved word> ::= <kw action> | <kw assoc> | <kw separator> | <kw proper>
   | <kw left> | <kw right> | <kw group>
