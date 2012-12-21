@@ -96,14 +96,10 @@ use English qw( -no_match_vars );
 # original, because otherwise the "original" name
 # would conflict with the LHS of the sequence.
 # 
-# Suffixed with '[SeqLHS]' indicates an internal version
-# of the sequence LHS.  The "original" name is that
-# of the LHS of the sequence.
 
 # Undo any rewrite of the symbol name
 sub Marpa::R2::Grammar::original_symbol_name {
    $_[0] =~ s/\[ prec \d+ \] \z//xms;
-   $_[0] =~ s/\[ SeqLHS \] \z//xms;
    return shift;
 }
 

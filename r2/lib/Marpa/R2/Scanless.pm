@@ -1082,7 +1082,9 @@ sub rules_add {
         0 .. $thin_grammar->highest_rule_id() )
     {
         $valuator->rule_is_valued_set( $rule_id, 1 );
-        my ( $lhs, @rhs ) = $tracer->rule($rule_id);
+        my ( $lhs, @rhs ) =
+            map { Marpa::R2::Grammar::original_symbol_name($_) }
+            $tracer->rule($rule_id);
         if (scalar @rhs == 1) {
             # These actions are by rhs symbol, for rules
             # with only one RHS symbol
