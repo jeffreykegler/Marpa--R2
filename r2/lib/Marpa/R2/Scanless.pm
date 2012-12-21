@@ -204,6 +204,12 @@ sub do_priority_rule {
             $rhs = $self->normalize($rhs);
             my @rhs_names = $rhs->names();
             my @mask      = $rhs->mask();
+            if ( $GRAMMAR_LEVEL <= 0 and grep { !$_ } @mask ) {
+                Marpa::R2::exception(
+                    'hidden symbols are not allowed in lexical rules (rules LHS was "',
+                    $lhs->name(), '")'
+                );
+            } ## end if ( $GRAMMAR_LEVEL <= 0 and grep { !$_ } @mask )
             my %hash_rule =
                 ( lhs => $lhs, rhs => \@rhs_names, mask => \@mask );
             my $action = $adverb_list->{action};
@@ -217,7 +223,7 @@ sub do_priority_rule {
             push @{$rules}, \%hash_rule;
         } ## end for my $alternative ( @{ $priorities->[0] } )
         return [@xs_rules];
-    }
+    } ## end if ( $priority_count <= 1 )
 
     for my $priority_ix ( 0 .. $priority_count - 1 ) {
         my $priority = $priority_count - ( $priority_ix + 1 );
@@ -247,20 +253,28 @@ sub do_priority_rule {
     RULE: for my $working_rule (@working_rules) {
         my ( $priority, $rhs, $adverb_list ) = @{$working_rule};
         $rhs = $self->normalize($rhs);
-        my $assoc = $adverb_list->{assoc} // 'L';
+        my $assoc   = $adverb_list->{assoc} // 'L';
         my @new_rhs = $rhs->names();
         my @arity   = grep { $new_rhs[$_] eq $lhs } 0 .. $#new_rhs;
         my $length  = scalar @new_rhs;
 
         my $current_exp = $lhs . '[prec' . $priority . ']';
-        my %new_xs_rule = (lhs => $current_exp);
-           $new_xs_rule{mask} = [$rhs->mask()];
+        my @mask        = $rhs->mask();
+        if ( $GRAMMAR_LEVEL <= 0 and grep { !$_ } @mask ) {
+            Marpa::R2::exception(
+                'hidden symbols are not allowed in lexical rules (rules LHS was "',
+                $lhs->name(), '")'
+            );
+        } ## end if ( $GRAMMAR_LEVEL <= 0 and grep { !$_ } @mask )
+        my %new_xs_rule = ( lhs => $current_exp );
+        $new_xs_rule{mask} = \@mask;
 
         my $action = $adverb_list->{action};
         if ( defined $action ) {
             Marpa::R2::exception(
                 'actions not allowed in lexical rules (rules LHS was "',
-                $lhs->name(), '")' ) if $GRAMMAR_LEVEL <= 0;
+                $lhs->name(), '")' )
+                if $GRAMMAR_LEVEL <= 0;
             $new_xs_rule{action} = $action;
         } ## end if ( defined $action )
 
@@ -304,7 +318,7 @@ sub do_priority_rule {
 
         $new_xs_rule{rhs} = \@new_rhs;
         push @{$rules}, \%new_xs_rule;
-    } ## end RULE: for my $rule (@rules)
+    } ## end RULE: for my $working_rule (@working_rules)
     return [@xs_rules];
 } ## end sub do_priority_rule
 
