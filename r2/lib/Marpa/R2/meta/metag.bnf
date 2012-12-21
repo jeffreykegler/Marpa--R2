@@ -1,0 +1,67 @@
+# Copyright 2012 Jeffrey Kegler
+# This file is part of Marpa::R2.  Marpa::R2 is free software: you can
+# redistribute it and/or modify it under the terms of the GNU Lesser
+# General Public License as published by the Free Software Foundation,
+# either version 3 of the License, or (at your option) any later version.
+#
+# Marpa::R2 is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser
+# General Public License along with Marpa::R2.  If not, see
+# http://www.gnu.org/licenses/.
+
+:start ::= rules
+rules ::= rule+
+rule ::= <start rule> | <empty rule> | <priority rule> | <quantified rule> | <discard rule>
+<start rule> ::= (<kwc start> <op declare bnf>) symbol
+<priority rule> ::= lhs <op declare> priorities
+<empty rule> ::= lhs <op declare> <adverb list>
+<quantified rule> ::= lhs <op declare> <single symbol> quantifier <adverb list>
+<discard rule> ::= (<kwc discard> <op declare match>) <single symbol>
+<op declare> ::= <op declare bnf> | <op declare match>
+priorities ::= alternatives+
+    separator => <op tighter> proper => 1
+alternatives ::= alternative+
+    separator => <op eq pri> proper => 1
+alternative ::= rhs <adverb list>
+<adverb list> ::= <adverb item>*
+<adverb item> ::=
+      action
+    | <left association> | <right association> | <group association>
+    | <separator specification> | <proper specification>
+
+action ::= (<kw action> <op arrow>) <action name>
+<left association> ::= (<kw assoc> <op arrow> <kw left>)
+<right association> ::= (<kw assoc> <op arrow> <kw right>)
+<group association> ::= (<kw assoc> <op arrow> <kw group>)
+<separator specification> ::= (<kw separator> <op arrow>) <single symbol>
+<proper specification> ::= (<kw proper> <op arrow>) boolean
+
+quantifier ::=
+    <op star>
+  | <op plus>
+
+lhs ::= <symbol name>
+rhs ::= <rhs primary>+
+<rhs primary> ::= <single symbol>
+<rhs primary> ::= <kwc ws star>
+<rhs primary> ::= <kwc ws plus>
+<rhs primary> ::= <kwc ws>
+<rhs primary> ::= <kwc any>
+<rhs primary> ::= <single quoted string>
+<rhs primary> ::= <parenthesized rhs primary list>
+<parenthesized rhs primary list> ::= (<op lparen>) <rhs primary list> (<op rparen>)
+<rhs primary list> ::= <rhs primary>+
+<single symbol> ::=
+    symbol
+  | <character class>
+symbol ::= <symbol name>
+<symbol name> ::= <bare name> | <reserved word>
+<symbol name> ::= <bracketed name>
+<action name> ::= <bare name> | <reserved action name>
+
+<reserved word> ::= <kw action> | <kw assoc> | <kw separator> | <kw proper>
+  | <kw left> | <kw right> | <kw group>
