@@ -16,7 +16,7 @@
 :start ::= rules
 rules ::= rule+
 rule ::= <start rule> | <empty rule> | <priority rule> | <quantified rule> | <discard rule>
-<start rule> ::= (<kwc start> <op declare>) symbol
+<start rule> ::= (<kwc start> <op declare bnf>) symbol
 <priority rule> ::= lhs <op declare> priorities
 <empty rule> ::= lhs <op declare> <adverb list>
 <quantified rule> ::= lhs <op declare> <single symbol> quantifier <adverb list>
