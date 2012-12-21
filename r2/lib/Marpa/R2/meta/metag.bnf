@@ -63,5 +63,37 @@ symbol ::= <symbol name>
 <symbol name> ::= <bracketed name>
 <action name> ::= <bare name> | <reserved action name>
 
-<reserved word> ::= <kw action> | <kw assoc> | <kw separator> | <kw proper>
-  | <kw left> | <kw right> | <kw group>
+:discard ~ whitespace
+whitespace ~ [\s]+
+
+# allow comments
+:discard ~ <hash comment>
+<hash comment> ~ <terminated hash comment> | <unterminated
+   final hash comment>
+<terminated hash comment> ~ '#' <hash comment body> <vertical space char>
+<unterminated final hash comment> ~ '#' <hash comment body>
+<hash comment body> ~ <hash comment char>*
+<vertical space char> ~ [\x{A}\x{B}\x{C}\x{D}\x{2028}\x{2029}]
+<hash comment char> ~ [^\x{A}\x{B}\x{C}\x{D}\x{2028}\x{2029}]
+
+boolean ~ [\d+]+ action => do_literal
+bare_name ~ [\w]+ action => do_literal
+
+# phrase name can contain spaces
+phrase_name ~ [ \w]+ action => do_literal
+
+# In single quotes strings and character classes
+# no escaping or internal newlines, and disallow empty string
+
+single_quoted_string ~ ['] <string without single quote or vertical space> ['] action => do_literal
+<string without single quote or vertical space> ~ [^'\x{0A}\x{0B}\x{0C}\x{0D}\x{0085}\x{2028}\x{2029}]+
+
+<character class> ~ '[' <cc string> ']' action => do_literal
+<cc string> ~ <cc character>
+<cc character> ~ <escaped cc character> | <safe cc character>
+<escaped cc character> ~ '\' <horizontal character>
+# hex 5d is right square bracket
+<safe cc character> ~ [^\x{5d}\x{0A}\x{0B}\x{0C}\x{0D}\x{0085}\x{2028}\x{2029}]
+
+# a horizontal character is any character that is not vertical space
+<horizontal character> ~ [^\x{A}\x{B}\x{C}\x{D}\x{2028}\x{2029}]
