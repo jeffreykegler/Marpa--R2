@@ -14,46 +14,33 @@
 # http://www.gnu.org/licenses/.
 
 :start ::= rules
-rules ::= rule+ action => do_rules
+rules ::= rule+
 rule ::= start_rule | empty_rule | priority_rule | quantified_rule | discard_rule
 start_rule ::= (kw__start op_declare) symbol
-  action => do_start_rule
 priority_rule ::= lhs op_declare priorities
-  action => do_priority_rule
 empty_rule ::= lhs op_declare adverb_list
-  action => do_empty_rule
 quantified_rule ::= lhs op_declare single_symbol quantifier adverb_list
-    action => do_quantified_rule
 discard_rule ::= (kw__discard op_declare_match) single_symbol
-  action => do_discard_rule
 op_declare ::= 
       op_declare_bnf action => do_op_declare_bnf
     | op_declare_match action => do_op_declare_match
 priorities ::= alternatives+
     separator => op_tighter proper => 1
-    action => do_discard_separators
 alternatives ::= alternative+
     separator => op_eq_pri proper => 1
-    action => do_discard_separators
-alternative ::= rhs adverb_list action => do_alternative 
-adverb_list ::= adverb_item* action => do_adverb_list
+alternative ::= rhs adverb_list
+adverb_list ::= adverb_item*
 adverb_item ::=
       action
     | left_association | right_association | group_association
     | separator_specification | proper_specification
 
-action ::= (kw_action op_arrow) action_name action => do_action
+action ::= (kw_action op_arrow) action_name
 left_association ::= (kw_assoc op_arrow kw_left)
-  action => do_left_association 
 right_association ::= (kw_assoc op_arrow kw_right)
-  action => do_right_association 
 group_association ::= (kw_assoc op_arrow kw_group)
-  action => do_group_association 
-
 separator_specification ::= (kw_separator op_arrow) single_symbol
-  action => do_separator_specification
 proper_specification ::= (kw_proper op_arrow) boolean
-  action => do_proper_specification
 
 quantifier ::=
     op_star
