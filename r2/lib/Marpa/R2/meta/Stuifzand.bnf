@@ -16,16 +16,16 @@
 :start ::= rules
 rules ::= rule+
 rule ::= start_rule | empty_rule | priority_rule | quantified_rule | discard_rule
-start_rule ::= (<kwc start> op_declare) symbol
-priority_rule ::= lhs op_declare priorities
-empty_rule ::= lhs op_declare adverb_list
-quantified_rule ::= lhs op_declare single_symbol quantifier adverb_list
-discard_rule ::= (<kwc discard> op_declare_match) single_symbol
-op_declare ::= op_declare_bnf | op_declare_match
+start_rule ::= (<kwc start> <op declare>) symbol
+priority_rule ::= lhs <op declare> priorities
+empty_rule ::= lhs <op declare> adverb_list
+quantified_rule ::= lhs <op declare> single_symbol quantifier adverb_list
+discard_rule ::= (<kwc discard> <op declare match>) single_symbol
+<op declare> ::= <op declare bnf> | <op declare match>
 priorities ::= alternatives+
-    separator => op_tighter proper => 1
+    separator => <op tighter> proper => 1
 alternatives ::= alternative+
-    separator => op_eq_pri proper => 1
+    separator => <op eq pri> proper => 1
 alternative ::= rhs adverb_list
 adverb_list ::= adverb_item*
 adverb_item ::=
@@ -33,16 +33,16 @@ adverb_item ::=
     | left_association | right_association | group_association
     | separator_specification | proper_specification
 
-action ::= (<kw action> op_arrow) action_name
-left_association ::= (<kw assoc> op_arrow <kw left>)
-right_association ::= (<kw assoc> op_arrow <kw right>)
-group_association ::= (<kw assoc> op_arrow <kw group>)
-separator_specification ::= (<kw separator> op_arrow) single_symbol
-proper_specification ::= (<kw proper> op_arrow) boolean
+action ::= (<kw action> <op arrow>) action_name
+left_association ::= (<kw assoc> <op arrow> <kw left>)
+right_association ::= (<kw assoc> <op arrow> <kw right>)
+group_association ::= (<kw assoc> <op arrow> <kw group>)
+separator_specification ::= (<kw separator> <op arrow>) single_symbol
+proper_specification ::= (<kw proper> <op arrow>) boolean
 
 quantifier ::=
-    op_star
-  | op_plus
+    <op star>
+  | <op plus>
 
 lhs ::= symbol_name
 rhs ::= rhs_primary+
@@ -53,7 +53,7 @@ rhs_primary ::= <kwc ws>
 rhs_primary ::= <kwc any>
 rhs_primary ::= single_quoted_string
 rhs_primary ::= <parenthesized rhs primary list>
-<parenthesized rhs primary list> ::= (op_lparen) rhs_primary_list (op_rparen)
+<parenthesized rhs primary list> ::= (<op lparen>) rhs_primary_list (<op rparen>)
 rhs_primary_list ::= rhs_primary+
 single_symbol ::=
     symbol
