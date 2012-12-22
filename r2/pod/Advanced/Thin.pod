@@ -871,7 +871,7 @@ C<rule_rank()> always throw its errors.
 
 The C<rule_rank_set()> method is based on
 Libmarpa's C<marpa_g_rule_rank_set()> method.
-Its two arguments is the rule ID and a rule rank.
+Its two arguments are the rule ID and a rule rank.
 Its return value is the new value of the rank,
 or a -2 to indicate an unthrown error.
 
