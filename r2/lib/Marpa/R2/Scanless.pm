@@ -541,6 +541,18 @@ sub Marpa::R2::Scanless::R::last_completed_range {
     return ( $first_origin, $earley_set );
 } ## end sub Marpa::R2::Scanless::R::last_completed_range
 
+# Given a scanless recognizer and 
+# and two earley sets, return the input string
+sub Marpa::R2::Scanless::R::range_to_string {
+    my ( $self, $start, $end ) = @_;
+    return if not defined $start;
+    my $locations = $self->[Marpa::R2::Inner::Scanless::R::LOCATIONS];
+    my $input = $self->[Marpa::R2::Inner::Scanless::R::INPUT_STRING];
+    my $start_position = $locations->[$start+1]->[0];
+    my $end_position = $locations->[$end]->[1];
+    return substr $input, $start_position, ($end_position - $start_position);
+} ## end sub input_slice
+
 sub meta_grammar {
     my $hashed_metag;
 
@@ -1959,7 +1971,7 @@ $hashed_metag = {
 
 } ## end sub meta_grammar
 
-sub last_rule {
+sub Marpa::R2::Scanless::R::last_rule {
    my ($meta_recce) = @_;
    my ($start, $end) = $meta_recce->last_completed_range( 'rule' );
    return 'No rule was completed' if not defined $start;
@@ -2193,19 +2205,22 @@ sub Marpa::R2::Scanless::G::_source_to_hash {
     # for debuggging
     my @positions = (0);
 
-    state $meta_grammar    = meta_grammar();
-    state $mask_by_rule_id = $meta_grammar->{mask_by_rule_id};
-    my $meta_recce = Marpa::R2::Scanless::R->new($meta_grammar);
+    state $meta_grammar = meta_grammar();
+    state $mask_by_rule_id =
+        $meta_grammar->[Marpa::R2::Inner::Scanless::G::MASK_BY_RULE_ID];
+    my $meta_recce = Marpa::R2::Scanless::R->new({ grammar => $meta_grammar});
+    $meta_recce->read(${$p_rules_source});
     my $thick_meta_g1_grammar =
-        $self->[Marpa::R2::Inner::Scanless::G::THICK_G1_GRAMMAR];
+        $meta_grammar->[Marpa::R2::Inner::Scanless::G::THICK_G1_GRAMMAR];
     my $meta_g1_tracer       = $thick_meta_g1_grammar->tracer();
     my $thin_meta_g1_grammar = $thick_meta_g1_grammar->thin();
-    my $thin_meta_g1_recce   = $meta_recce->thin();
+    my $thick_meta_g1_recce = $meta_recce->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+    my $thin_meta_g1_recce   = $thick_meta_g1_recce->thin();
     my $thick_g1_recce =
         $meta_recce->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
 
     $thin_meta_g1_grammar->throw_set(0);
-    my $latest_earley_set_id = $meta_recce->latest_earley_set();
+    my $latest_earley_set_id = $thin_meta_g1_recce->latest_earley_set();
     my $bocage = Marpa::R2::Thin::B->new( $thin_meta_g1_recce, $latest_earley_set_id );
     $thin_meta_g1_grammar->throw_set(1);
     if ( !defined $bocage ) {
@@ -2539,6 +2554,8 @@ sub Marpa::R2::Scanless::R::read {
     # Event counts are initialized to 0 for "no events, no problems".
     my $lex_event_count = 0;
     my $g1_event_count  = 0;
+    my $problem;
+
     my @found_lexemes   = ();
     my @locations       = ( [ 0, 0 ] );
     $self->[Marpa::R2::Inner::Scanless::R::LOCATIONS] = \@locations;
@@ -2602,7 +2619,8 @@ sub Marpa::R2::Scanless::R::read {
                 $earley_set--;
             } ## end EARLEY_SET: while ( $earley_set > 0 )
             if ( not scalar %found ) {
-                Marpa::R2::exception( 'No lexeme found in ', $string );
+                $problem = 'No lexeme found in ' . $string;
+                last READ;
             }
 
             my $lexeme_start_pos = $start_of_next_lexeme;
@@ -2686,6 +2704,9 @@ sub Marpa::R2::Scanless::R::read {
     ## if it is possible at all
     my $desc;
     DESC: {
+        if (defined $problem) {
+            $desc .= "$problem\n";
+        }
         if ( $lex_event_count > 0 ) {
             EVENT:
             for (
@@ -2780,7 +2801,7 @@ sub Marpa::R2::Scanless::R::read {
     } ## end if ($g1_event_count)
     elsif ( $pos < $length_of_string ) {
         my $char = substr $string, $pos, 1;
-        my $char_desc = character_descibe($char);
+        my $char_desc = character_describe($char);
         my $prefix =
             $pos >= 72
             ? ( substr $string, $pos - 72, 72 )
