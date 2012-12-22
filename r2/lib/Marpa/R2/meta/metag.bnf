@@ -61,7 +61,7 @@ rhs ::= <rhs primary>+
 symbol ::= <symbol name>
 <symbol name> ::= <bare name> | <reserved word>
 <symbol name> ::= <bracketed name>
-<action name> ::= <bare name> | <reserved action name>
+<action name> ::= <bare name>
 
 :discard ~ whitespace
 whitespace ~ [\s]+
@@ -76,19 +76,46 @@ whitespace ~ [\s]+
 <vertical space char> ~ [\x{A}\x{B}\x{C}\x{D}\x{2028}\x{2029}]
 <hash comment char> ~ [^\x{A}\x{B}\x{C}\x{D}\x{2028}\x{2029}]
 
-boolean ~ [\d+]+ action => do_literal
-bare_name ~ [\w]+ action => do_literal
+<op declare bnf> ~ '::='
+<op declare match> ~ '~'
+quantifier ::= '*' | '+'
 
-# phrase name can contain spaces
-phrase_name ~ [ \w]+ action => do_literal
+lhs ::= <symbol name>
+rhs ::= <rhs primary>+
+<rhs primary> ::= <single symbol>
+<rhs primary> ::= <kwc ws star>
+<rhs primary> ::= <kwc ws plus>
+<rhs primary> ::= <kwc ws>
+<rhs primary> ::= <kwc any>
+<rhs primary> ::= <single quoted string>
+<rhs primary> ::= <parenthesized rhs primary list>
+<parenthesized rhs primary list> ::= (<op lparen>) <rhs primary list> (<op rparen>)
+<rhs primary list> ::= <rhs primary>+
+<single symbol> ::=
+    symbol
+  | <character class>
+symbol ::= <symbol name>
+<symbol name> ::= <bare name> | <reserved word>
+<symbol name> ::= <bracketed name>
+<action name> ::= <bare name>
+
+
+boolean ~ [01]
+<bare name> ~ [\w]+
+<bracketed name> ~ '<' <bracketed name string> '>'
+<bracketed name string> ~ [ \w]+
+<kwc ws star> ~ ':ws*'
+<kwc ws plus> ~ ':ws+'
+<kwc ws> ~ ':ws'
+<kwc any> ~ ':any'
 
 # In single quotes strings and character classes
 # no escaping or internal newlines, and disallow empty string
 
-single_quoted_string ~ ['] <string without single quote or vertical space> ['] action => do_literal
+<single quoted string> ~ ['] <string without single quote or vertical space> [']
 <string without single quote or vertical space> ~ [^'\x{0A}\x{0B}\x{0C}\x{0D}\x{0085}\x{2028}\x{2029}]+
 
-<character class> ~ '[' <cc string> ']' action => do_literal
+<character class> ~ '[' <cc string> ']'
 <cc string> ~ <cc character>
 <cc character> ~ <escaped cc character> | <safe cc character>
 <escaped cc character> ~ '\' <horizontal character>

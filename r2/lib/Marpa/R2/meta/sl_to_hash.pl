@@ -50,18 +50,21 @@ sub sort_bnf {
     my $b_rhs_length = scalar @{ $b->{rhs} };
     $cmp = $a_rhs_length <=> $b_rhs_length;
     return $cmp if $cmp;
-    for my $ix ( 0 .. $a_rhs_length ) {
+    for my $ix ( 0 .. ($a_rhs_length-1) ) {
         $cmp = $a->{rhs}->[$ix] cmp $b->{rhs}->[$ix];
         return $cmp if $cmp;
     }
     return 0;
 } ## end sub sort_bnf
-my %cooked_parse_result = %{$parse_result};
+
+my %cooked_parse_result = ( is_lexeme => $parse_result->{is_lexeme} );
 for my $rule_set (qw(lex_rules g1_rules)) {
-  my $aoh = $parse_result->{$rule_set};
-  my $sorted_aoh = [ sort sort_bnf @{$aoh} ];
-  $cooked_parse_result{$rule_set} = $sorted_aoh;
+    my $aoh        = $parse_result->{$rule_set};
+    my $sorted_aoh = [ sort sort_bnf @{$aoh} ];
+    $cooked_parse_result{$rule_set} = $sorted_aoh;
 }
+$cooked_parse_result{character_classes} =
+    [ sort keys %{ $parse_result->{character_classes} } ];
+
 $Data::Dumper::Sortkeys = 1;
-$cooked_parse_result{character_classes} = [sort keys %{$parse_result->{character_classes}}];
 print Data::Dumper::Dumper(\%cooked_parse_result);
