@@ -885,6 +885,7 @@ Marpa_Rank marpa_g_default_rank(Marpa_Grammar g)
 Marpa_Rank marpa_g_default_rank_set(Marpa_Grammar g, Marpa_Rank rank)
 {
   @<Return |-2| on failure@>@;
+  clear_error(g);
   @<Fail if fatal error@>@;
   @<Fail if precomputed@>@;
   if (UNLIKELY (rank < MINIMUM_RANK))
@@ -1136,29 +1137,11 @@ Marpa_Error_Code marpa_g_error(Marpa_Grammar g, const char** p_error_string)
     return error_code;
 }
 
-@ If this is called when Libmarpa is in a ``not OK'' state,
-it means very bad things are happening --
-possibly memory overwrites.
-So we do not attempt
-much.
-We return, leaving the error code as is,
-unless it is |MARPA_ERR_NONE|.
-Since this would be completely misleading,
-we take a chance and try to
-change it to |MARPA_ERR_I_AM_NOT_OK|.
-@<Function definitions@> =
+@ @<Function definitions@> =
 Marpa_Error_Code
 marpa_g_error_clear (Marpa_Grammar g)
 {
-  if (!IS_G_OK (g))
-    {
-      if (g->t_error == MARPA_ERR_NONE)
-	g->t_error = MARPA_ERR_I_AM_NOT_OK;
-      return g->t_error;
-    }
-  g->t_error = MARPA_ERR_NONE;
-  g->t_error_string = NULL;
-  return MARPA_ERR_NONE;
+   clear_error(g);
 }
 
 @** Symbol (XSY) code.
@@ -1241,6 +1224,7 @@ Marpa_Grammar g, Marpa_Symbol_ID xsy_id, Marpa_Rank rank)
 {
     SYM xsy;
     @<Return |-2| on failure@>@;
+    clear_error(g);
     @<Fail if fatal error@>@;
     @<Fail if precomputed@>@;
     @<Fail if |xsy_id| is malformed@>@;
@@ -2186,6 +2170,7 @@ Marpa_Grammar g, Marpa_Rule_ID xrl_id, Marpa_Rank rank)
 {
     XRL xrl;
     @<Return |-2| on failure@>@;
+    clear_error(g);
     @<Fail if fatal error@>@;
     @<Fail if precomputed@>@;
     @<Fail if |xrl_id| is malformed@>@;
@@ -14621,6 +14606,30 @@ set_error (GRAMMAR g, Marpa_Error_Code code, const char* message, unsigned int f
   g->t_error_string = message;
   if (flags & FATAL_FLAG)
     g->t_is_ok = 0;
+}
+@ If this is called when Libmarpa is in a ``not OK'' state,
+it means very bad things are happening --
+possibly memory overwrites.
+So we do not attempt
+much.
+We return, leaving the error code as is,
+unless it is |MARPA_ERR_NONE|.
+Since this would be completely misleading,
+we take a chance and try to
+change it to |MARPA_ERR_I_AM_NOT_OK|.
+@<Function definitions@> =
+PRIVATE Marpa_Error_Code
+clear_error (GRAMMAR g)
+{
+  if (!IS_G_OK (g))
+    {
+      if (g->t_error == MARPA_ERR_NONE)
+	g->t_error = MARPA_ERR_I_AM_NOT_OK;
+      return g->t_error;
+    }
+  g->t_error = MARPA_ERR_NONE;
+  g->t_error_string = NULL;
+  return MARPA_ERR_NONE;
 }
 
 @** Messages and logging.
