@@ -854,6 +854,15 @@ sub Marpa::R2::Grammar::rule {
     return @symbol_names;
 } ## end sub Marpa::R2::Grammar::rule
 
+# Internal, for use with in coordinating thin and thick
+# interfaces.  NOT DOCUMENTED.
+sub Marpa::R2::Grammar::_rule_mask {
+    my ( $grammar, $rule_id ) = @_;
+    my $rules = $grammar->[Marpa::R2::Internal::Grammar::RULES];
+    my $rule = $rules->[$rule_id];
+    return $rule->[Marpa::R2::Internal::Rule::MASK];
+} ## end sub Marpa::R2::Grammar::rule
+
 # Deprecated and for removal
 # Used in blog post, and part of
 # CPAN version 2.023_008 but
