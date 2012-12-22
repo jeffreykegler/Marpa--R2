@@ -31,16 +31,13 @@ use Marpa::R2;
 use Getopt::Long;
 my $verbose          = 1;
 my $help_flag        = 0;
-my $scannerless_flag = 1;
 my $result           = Getopt::Long::GetOptions(
     'help'      => \$help_flag,
-    'scannerless!' => \$scannerless_flag
 );
 die "usage $PROGRAM_NAME [--help] file ...\n" if $help_flag;
 
 my $bnf           = join q{}, <>;
 my @grammar_args  = ();
-push @grammar_args, scannerless => 1 if $scannerless_flag;
 my $dummy_grammar = Marpa::R2::Grammar->new( {@grammar_args} );
 my $parse_result =
     Marpa::R2::Internal::Stuifzand::parse_rules( $dummy_grammar, $bnf );
