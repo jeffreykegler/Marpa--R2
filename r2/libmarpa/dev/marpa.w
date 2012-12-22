@@ -876,6 +876,7 @@ g->t_default_rank = 0;
 Marpa_Rank marpa_g_default_rank(Marpa_Grammar g)
 {
    @<Return |-2| on failure@>@;
+  clear_error(g);
     @<Fail if fatal error@>@;
     return Default_Rank_of_G(g);
 }
@@ -1212,6 +1213,7 @@ int marpa_g_symbol_rank(Marpa_Grammar g,
 {
     SYM xsy;
     @<Return |-2| on failure@>@;
+    clear_error(g);
     @<Fail if fatal error@>@;
     @<Fail if |xsy_id| is malformed@>@;
     @<Soft fail if |xsy_id| does not exist@>@;
@@ -2158,6 +2160,7 @@ int marpa_g_rule_rank(Marpa_Grammar g,
 {
     XRL xrl;
     @<Return |-2| on failure@>@;
+    clear_error(g);
     @<Fail if fatal error@>@;
     @<Fail if |xrl_id| is malformed@>@;
     @<Soft fail if |xrl_id| does not exist@>@;
