@@ -1142,7 +1142,8 @@ Marpa_Error_Code marpa_g_error(Marpa_Grammar g, const char** p_error_string)
 Marpa_Error_Code
 marpa_g_error_clear (Marpa_Grammar g)
 {
-   clear_error(g);
+  clear_error (g);
+  return g->t_error;
 }
 
 @** Symbol (XSY) code.
@@ -1216,7 +1217,7 @@ int marpa_g_symbol_rank(Marpa_Grammar g,
     clear_error(g);
     @<Fail if fatal error@>@;
     @<Fail if |xsy_id| is malformed@>@;
-    @<Soft fail if |xsy_id| does not exist@>@;
+    @<Fail if |xsy_id| does not exist@>@;
     xsy = SYM_by_ID (xsy_id);
     return Rank_of_XSY(xsy);
 }
@@ -1230,7 +1231,7 @@ Marpa_Grammar g, Marpa_Symbol_ID xsy_id, Marpa_Rank rank)
     @<Fail if fatal error@>@;
     @<Fail if precomputed@>@;
     @<Fail if |xsy_id| is malformed@>@;
-    @<Soft fail if |xsy_id| does not exist@>@;
+    @<Fail if |xsy_id| does not exist@>@;
     xsy = SYM_by_ID (xsy_id);
     if (UNLIKELY (rank < MINIMUM_RANK))
       {
@@ -2163,7 +2164,7 @@ int marpa_g_rule_rank(Marpa_Grammar g,
     clear_error(g);
     @<Fail if fatal error@>@;
     @<Fail if |xrl_id| is malformed@>@;
-    @<Soft fail if |xrl_id| does not exist@>@;
+    @<Fail if |xrl_id| does not exist@>@;
     xrl = XRL_by_ID (xrl_id);
     return Rank_of_XRL(xrl);
 }
@@ -2177,7 +2178,7 @@ Marpa_Grammar g, Marpa_Rule_ID xrl_id, Marpa_Rank rank)
     @<Fail if fatal error@>@;
     @<Fail if precomputed@>@;
     @<Fail if |xrl_id| is malformed@>@;
-    @<Soft fail if |xrl_id| does not exist@>@;
+    @<Fail if |xrl_id| does not exist@>@;
     xrl = XRL_by_ID (xrl_id);
     if (UNLIKELY (rank < MINIMUM_RANK))
       {
@@ -14493,6 +14494,11 @@ but non-existent symbol ID.
 if (UNLIKELY(!XSYID_of_G_Exists(xsy_id))) {
     MARPA_ERROR (MARPA_ERR_NO_SUCH_SYMBOL_ID);
     return -1;
+}
+@ @<Fail if |xsy_id| does not exist@> =
+if (UNLIKELY(!XSYID_of_G_Exists(xsy_id))) {
+    MARPA_ERROR (MARPA_ERR_NO_SUCH_SYMBOL_ID);
+    return failure_indicator;
 }
 @ @<Fail if |isy_id| is invalid@> =
 if (UNLIKELY(!isy_is_valid(g, isy_id))) {
