@@ -267,6 +267,7 @@ t/pascal.t
 t/perl.t
 t/rabend.t
 t/randal.t
+t/rank.t
 t/rewrite.t
 t/sequence.t
 t/sequence2.t
