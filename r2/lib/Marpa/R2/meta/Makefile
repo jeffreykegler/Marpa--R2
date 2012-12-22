@@ -22,3 +22,6 @@ doit:
 	-mv thin.pl thin-g1.pl
 	perl -I../../../ -I../../../../blib/arch bnf_to_aoh.pl < Stuifzand.bnf | \
 	  perl aoh_to_thin.pl > thin.pl
+
+dosl:
+	perl -I../../../ -I../../../../blib/arch sl_to_hash.pl < metag.bnf > metag.pl
