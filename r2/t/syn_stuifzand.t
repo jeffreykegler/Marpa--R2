@@ -35,7 +35,7 @@ my $grammar = Marpa::R2::Grammar->new(
     {   start          => 'Script',
         actions        => 'My_Actions',
         default_action => 'do_first_arg',
-        rules          => <<'END_OF_RULES',
+        source          => \(<<'END_OF_SOURCE'),
 Script ::= Expression+ separator => <op_comma> action => do_script
 Expression ::=
     Number
@@ -45,7 +45,7 @@ Expression ::=
     | Expression op_divide Expression action => do_divide
    || Expression op_add Expression action => do_add
     | Expression op_subtract Expression action => do_subtract
-END_OF_RULES
+END_OF_SOURCE
     }
 );
 

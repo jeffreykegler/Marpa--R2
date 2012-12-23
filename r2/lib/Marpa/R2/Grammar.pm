@@ -190,6 +190,7 @@ use constant GRAMMAR_OPTIONS => [
         inaccessible_ok
         rule_name_required
         rules
+        source
         start
         symbols
         terminals
@@ -288,13 +289,27 @@ sub Marpa::R2::Grammar::set {
             $grammar->[Marpa::R2::Internal::Grammar::START_NAME] = $value;
         } ## end if ( defined( my $value = $args->{'start'} ) )
 
+        my $stuifzand_source;
+        my $deprecated_source;
+
+        if ( defined( my $value = $args->{'source'} ) ) {
+            Marpa::R2::exception(
+                'source option not allowed after grammar is precomputed')
+                if $grammar_c->is_precomputed();
+            Marpa::R2::exception(
+                qq{"source" named argument must be string or ref to SCALAR}
+            ) if ref $value ne 'SCALAR';
+            $stuifzand_source = $value;
+        }
+
         if ( defined( my $value = $args->{'rules'} ) ) {
             Marpa::R2::exception(
                 'rules option not allowed after grammar is precomputed')
                 if $grammar_c->is_precomputed();
             DO_RULES: {
-                ## Allow this via a hack for new
-                ## Eventually deprecate and eliminate it
+                ## These hacks are for previous method of specifying Stuifzand
+                ## grammars.  They are now deprecated and undocumented.
+                ## Eventually they may be eliminated.
                 if (    ref $value eq 'ARRAY'
                     and scalar @{$value} == 1
                     and not ref $value->[0] )
@@ -302,30 +317,18 @@ sub Marpa::R2::Grammar::set {
                     $value = $value->[0];
                 } ## end if ( ref $value eq 'ARRAY' and scalar @{$value} == 1...)
                 if ( not ref $value ) {
-                    $grammar->[Marpa::R2::Internal::Grammar::INTERFACE] //=
-                        'stuifzand';
+                   $deprecated_source = \$value;
+                }
+                if (defined $deprecated_source and defined $stuifzand_source) {
                     Marpa::R2::exception(
-                        qq{Attempt to use the BNF interface with a grammar that is already using the standard interface\n},
-                        qq{  Mixing the BNF and standard interface is not allowed},
+                        qq{Attempt to specify BNF via both 'rules' and 'source' named arguments\n},
+                        qq{  You must use one or the other},
                         )
-                        if $grammar->[Marpa::R2::Internal::Grammar::INTERFACE]
-                            ne 'stuifzand';
-                    my $parse_result =
-                        Marpa::R2::Internal::Stuifzand::parse_rules($grammar, $value);
-                    my $character_classes =
-                        $parse_result->{character_classes};
-                    Marpa::R2::exception(
-                        qq{Attempt to use character class with a grammar that is not scannerless\n},
-                    ) if defined $character_classes;
-                    $grammar
-                        ->[Marpa::R2::Internal::Grammar::CHARACTER_CLASSES] =
-                        $character_classes
-                        if defined $character_classes;
-                    for my $rule ( @{$parse_result->{rules}} ) {
-                        add_user_rule( $grammar, $rule );
-                    }
+                }
+                if (defined $deprecated_source) {
+                    $stuifzand_source = $deprecated_source;
                     last DO_RULES;
-                } ## end if ( not ref $value )
+                }
                 Marpa::R2::exception(
                     qq{"rules" named argument must be string or ref to ARRAY}
                 ) if ref $value ne 'ARRAY';
@@ -340,6 +343,36 @@ sub Marpa::R2::Grammar::set {
                 add_user_rules( $grammar, $value );
             } ## end DO_RULES:
         } ## end if ( defined( my $value = $args->{'rules'} ) )
+
+        if ( defined $stuifzand_source ) {
+            $grammar->[Marpa::R2::Internal::Grammar::INTERFACE] //=
+                'stuifzand';
+            Marpa::R2::exception(
+                qq{Attempt to use the standard interface with a grammar that is already using the BNF interface\n},
+                qq{  Mixing the BNF and standard interface is not allowed}
+                )
+                if $grammar->[Marpa::R2::Internal::Grammar::INTERFACE] ne
+                    'stuifzand';
+            Marpa::R2::exception(
+                qq{Attempt to use the BNF interface with a grammar that is already using the standard interface\n},
+                qq{  Mixing the BNF and standard interface is not allowed},
+                )
+                if $grammar->[Marpa::R2::Internal::Grammar::INTERFACE] ne
+                    'stuifzand';
+            my $parse_result =
+                Marpa::R2::Internal::Stuifzand::parse_rules( $grammar,
+                $stuifzand_source );
+            my $character_classes = $parse_result->{character_classes};
+            Marpa::R2::exception(
+                qq{Attempt to use character class with a grammar that is not scannerless\n},
+            ) if defined $character_classes;
+            $grammar->[Marpa::R2::Internal::Grammar::CHARACTER_CLASSES] =
+                $character_classes
+                if defined $character_classes;
+            for my $rule ( @{ $parse_result->{rules} } ) {
+                add_user_rule( $grammar, $rule );
+            }
+        } ## end if ( defined $stuifzand_source )
 
         if ( exists $args->{'default_empty_action'} ) {
             my $value = $args->{'default_empty_action'};

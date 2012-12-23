@@ -28,7 +28,7 @@ use lib 'inc';
 use Marpa::R2::Test;
 use Marpa::R2;
 
-my $rules = <<'END_OF_GRAMMAR';
+my $source = <<'END_OF_GRAMMAR';
 :start ::= script
 reduce_op ::=
     op_plus action => do_arg0
@@ -55,7 +55,7 @@ END_OF_GRAMMAR
 my $grammar = Marpa::R2::Grammar->new(
     {   
         actions        => __PACKAGE__,
-        rules          => $rules,
+        source          => \$source,
     }
 );
 $grammar->precompute;
