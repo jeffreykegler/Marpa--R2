@@ -91,7 +91,7 @@ sub add_brackets {
 } ## end sub add_brackets
 
 sub calculate {
-    my ($string) = @_;
+    my ($p_string) = @_;
 
     %symbol_table = ();
 
@@ -102,7 +102,7 @@ sub calculate {
     local $My_Actions::SELF = $self;
     my $event_count;
 
-    if ( not defined eval { $event_count = $recce->read($string); 1 } ) {
+    if ( not defined eval { $event_count = $recce->read($p_string); 1 } ) {
 
         # Add last expression found, and rethrow
         my $eval_error = $EVAL_ERROR;
@@ -123,12 +123,13 @@ sub calculate {
 
 sub report_calculation {
     my ($string) = @_;
-    my $result   = calculate($string);
+    my $result   = calculate(\$string);
     $result = join q{,}, @{$result} if ref $result eq 'ARRAY';
-    my $output = "  Parse: $result\n";
+    my $output = "Parse: $result\n";
     for my $symbol ( sort keys %symbol_table ) {
         $output .= qq{"$symbol" = "} . $symbol_table{$symbol} . qq{"\n};
     }
+    chomp $output;
     return $output;
 } ## end sub report_calculation
 
@@ -139,14 +140,14 @@ my @tests_data = (
     ],
     [ "4 * 3 /  5 - - - 3 + 42 - 1" => 'Parse: 40.4' ],
     [ "a=1;b = 5;  - a - b"         => qq{Parse: -6\n"a" = "1"\n"b" = "5"} ],
-    [ "1 * 2 + 3 * 4 ^ 2 ^ 2 ^ 2 * 42 + 1" => 'Parse: 541165879299]' ],
+    [ "1 * 2 + 3 * 4 ^ 2 ^ 2 ^ 2 * 42 + 1" => 'Parse: 541165879299' ],
     [ "+ reduce 1 + 2, 3,4*2 , 5"          => 'Parse: 19' ]
 );
 
 TEST:
 for my $test_data (@tests_data) {
     my ($test_string,     $expected_value) = @{$test_data};
-    my $actual_value = report_calculation( $grammar, $test_string );
+    my $actual_value = report_calculation( $test_string );
     $actual_value //= 'NO PARSE!';
     Test::More::is( $actual_value, $expected_value, qq{Value of "$test_string"} );
 } ## end TEST: for my $test_string (@test_strings)
@@ -252,7 +253,7 @@ sub do_reduce {
 sub show_last_expression {
     my ($self) = @_;
     my $slr = $self->{slr};
-    my ( $start, $end ) = $slr->last_completed_range('Expression');
+    my ( $start, $end ) = $slr->last_completed_range('expression');
     return 'No expression was successfully parsed' if not defined $start;
     my $last_expression = $slr->range_to_string( $start, $end );
     return "Last expression successfully parsed was: $last_expression";

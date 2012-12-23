@@ -75,6 +75,9 @@ END_OF_STRUCTURE
 
 
 package Marpa::R2::Inner::Scanless;
+
+use Scalar::Util 'blessed';
+
 # names of packages for strings
 our $G_PACKAGE = 'Marpa::R2::Scanless::G';
 our $R_PACKAGE = 'Marpa::R2::Scanless::R';
@@ -2450,12 +2453,22 @@ sub Marpa::R2::Scanless::R::new {
     my $self = [];
     bless $self, $class;
 
+    state $grammar_class = 'Marpa::R2::Scanless::G';
     my $grammar = $args->{grammar};
-    if ( not defined $grammar ) {
+    if ( not blessed $grammar or not $grammar->isa('Marpa::R2::Scanless::G') )
+    {
+        my $desc = 'undefined';
+        if ( defined $grammar ) {
+            my $ref_type = ref $grammar;
+            $desc = $ref_type ? "a ref to $ref_type" : 'not a ref';
+        }
+        Marpa::R2::exception(
+            qq{'grammar' name argument to scanless_r->new() is $desc\n},
+            "  It should be a ref to $grammar_class\n" );
         Marpa::R2::exception(
             'Marpa::R2::Scanless::R::new() called without a "grammar" argument'
         );
-    }
+    } ## end if ( not blessed $grammar or not $grammar->isa(...))
 
     $self->[Marpa::R2::Inner::Scanless::R::TRACE_FILE_HANDLE] =
         $grammar->[Marpa::R2::Inner::Scanless::G::TRACE_FILE_HANDLE];
