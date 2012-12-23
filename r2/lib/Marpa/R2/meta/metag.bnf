@@ -81,7 +81,7 @@ quantifier ::= '*' | '+'
 boolean ~ [01]
 <bare name> ~ [\w]+
 <bracketed name> ~ '<' <bracketed name string> '>'
-<bracketed name string> ~ [ \w]+
+<bracketed name string> ~ [\s\w]+
 <kwc ws star> ~ ':ws*'
 <kwc ws plus> ~ ':ws+'
 <kwc ws> ~ ':ws'
@@ -94,7 +94,7 @@ boolean ~ [01]
 <string without single quote or vertical space> ~ [^'\x{0A}\x{0B}\x{0C}\x{0D}\x{0085}\x{2028}\x{2029}]+
 
 <character class> ~ '[' <cc string> ']'
-<cc string> ~ <cc character>
+<cc string> ~ <cc character>+
 <cc character> ~ <escaped cc character> | <safe cc character>
 <escaped cc character> ~ '\' <horizontal character>
 # hex 5d is right square bracket
