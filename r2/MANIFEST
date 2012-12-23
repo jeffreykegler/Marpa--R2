@@ -273,6 +273,7 @@ t/rank.t
 t/rewrite.t
 t/sequence.t
 t/sequence2.t
+t/sl_prefix.t
 t/stuifzand.t
 t/syn_engine.t
 t/syn_sl.t

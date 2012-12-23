@@ -97,13 +97,15 @@ sub my_parser {
     my ( $parse_value, $parse_status, $last_expression );
 
     if ( not defined eval { $event_count = $slr->read($string); 1 } ) {
-        my $eval_error = $EVAL_ERROR;
-        chomp $eval_error;
-        return 'No parse', $eval_error, $self->show_last_expression();
+        my $abbreviated_error = $EVAL_ERROR;
+        chomp $abbreviated_error;
+        $abbreviated_error =~ s/\n.*//xms;
+        $abbreviated_error =~ s/^Error \s+ in \s+ string_read: \s+ //xms;
+        return 'No parse', $abbreviated_error, $self->show_last_expression();
     }
     if ( not defined $event_count ) {
-        (my $abbreviated_error = $slr->error()) =~ s/\n.*//;
-        return 'No parse', $abbreviated_error, $self->show_last_expression();
+        my $error = $slr->error();
+        return 'No parse', $error, $self->show_last_expression();
     }
     my $value_ref = $slr->value;
     if ( not defined $value_ref ) {
@@ -117,12 +119,12 @@ sub my_parser {
 my @tests_data = (
     [ '+++ 1 2 3 + + 1 2 4',     '1 results: 13', 'Parse OK', 'entire input' ],
     [ 'say + 1 2',               '1 results: 3', 'Parse OK', 'entire input' ],
-    [ '+ 1 say 2',               'No parse', 'Parse OK', '1' ],
-    [ '+ 1 2 3 + + 1 2 4',       '3 results: 3 3 7', 'Parse OK', '+ + 1 2 4' ],
-    [ '+++',                     'No parse', 'Parse OK', 'none' ],
-    [ '++1 2++',                 'No parse', 'Parse OK', '+1 2' ],
-    [ '++1 2++3 4++',            'No parse', 'Parse OK', '+3 4' ],
-    [ '1 + 2 +3  4 + 5 + 6 + 7', 'No parse', 'Parse OK', '7' ],
+    [ '+ 1 say 2',               'No parse', 'Parse exhausted', '1' ],
+    [ '+ 1 2 3 + + 1 2 4',       '3 results: 3 3 7', 'Parse OK', 'entire input' ],
+    [ '+++',                     'No parse', 'Input read to end but no parse', 'none' ],
+    [ '++1 2++',                 'No parse', 'Input read to end but no parse', '+1 2' ],
+    [ '++1 2++3 4++',            'No parse', 'Input read to end but no parse', '+3 4' ],
+    [ '1 + 2 +3  4 + 5 + 6 + 7', 'No parse', 'Input read to end but no parse', '7' ],
     [ '+12',                     'No parse', 'Input read to end but no parse', '12' ],
     [ '+1234',                   'No parse', 'Input read to end but no parse', '1234' ],
 );
