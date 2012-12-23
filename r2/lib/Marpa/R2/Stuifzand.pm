@@ -1820,7 +1820,7 @@ my %actions_by_lhs_symbol = (
 );
 
 sub parse_rules {
-    my ($thick_grammar, $string) = @_;
+    my ($thick_grammar, $p_rules_source) = @_;
 
     state $meta_grammar = meta_grammar();
     state $mask_by_rule_id =
@@ -1892,14 +1892,14 @@ sub parse_rules {
         last STEP if not defined $type;
         if ( $type eq 'MARPA_STEP_TOKEN' ) {
             my ( undef, $token_value_ix, $arg_n ) = @step_data;
-            $stack[$arg_n] = $token_values[$token_value_ix];
+            $stack[$arg_n] = $token_values->[$token_value_ix];
             next STEP;
         }
         if ( $type eq 'MARPA_STEP_RULE' ) {
             my ( $rule_id, $arg_0, $arg_n ) = @step_data;
 
                 my @args = @stack[ $arg_0 .. $arg_n ];
-                if ( not defined $thin_grammar->sequence_min($rule_id) ) {
+                if ( not defined $thin_meta_g1_grammar->sequence_min($rule_id) ) {
                     my $mask = $mask_by_rule_id->[$rule_id];
                     @args = @args[ grep { $mask->[$_] } 0 .. $#args ];
                 }
