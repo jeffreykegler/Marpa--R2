@@ -63,14 +63,14 @@ END_OF_RULES
 );
 
 sub my_parser {
-    my ( $grammar, $input_string ) = @_;
+    my ( $grammar, $p_input_string ) = @_;
     my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
     my $self = bless { grammar => $grammar }, 'My_Actions';
     $self->{recce} = $recce;
     local $My_Actions::SELF = $self;
 
     my $event_count;
-    if ( not defined eval { $event_count = $recce->read($input_string); 1 }
+    if ( not defined eval { $event_count = $recce->read($p_input_string); 1 }
         )
     {
         ## Add last expression found, and rethrow
@@ -105,7 +105,7 @@ my @tests = (
 
 for my $test (@tests) {
     my ( $input, $output_re ) = @{$test};
-    my $value = my_parser( $grammar, $input );
+    my $value = my_parser( $grammar, \$input );
     Test::More::like( $value, $output_re, 'Value of scannerless parse' );
 }
 
