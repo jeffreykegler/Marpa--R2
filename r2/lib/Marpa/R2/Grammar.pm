@@ -190,6 +190,7 @@ use constant GRAMMAR_OPTIONS => [
         inaccessible_ok
         rule_name_required
         rules
+        source
         start
         symbols
         terminals
@@ -290,6 +291,16 @@ sub Marpa::R2::Grammar::set {
 
         my $stuifzand_source;
         my $deprecated_source;
+
+        if ( defined( my $value = $args->{'source'} ) ) {
+            Marpa::R2::exception(
+                'source option not allowed after grammar is precomputed')
+                if $grammar_c->is_precomputed();
+            Marpa::R2::exception(
+                qq{"source" named argument must be string or ref to SCALAR}
+            ) if ref $value ne 'SCALAR';
+            $stuifzand_source = $value;
+        }
 
         if ( defined( my $value = $args->{'rules'} ) ) {
             Marpa::R2::exception(
