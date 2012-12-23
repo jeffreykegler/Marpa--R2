@@ -550,11 +550,12 @@ sub Marpa::R2::Scanless::R::range_to_string {
     my ( $self, $start, $end ) = @_;
     return if not defined $start;
     my $locations = $self->[Marpa::R2::Inner::Scanless::R::LOCATIONS];
-    my $p_input = $self->[Marpa::R2::Inner::Scanless::R::P_INPUT_STRING];
-    my $start_position = $locations->[$start+1]->[0];
-    my $end_position = $locations->[$end]->[1];
-    return substr ${$p_input}, $start_position, ($end_position - $start_position);
-} ## end sub input_slice
+    my $p_input   = $self->[Marpa::R2::Inner::Scanless::R::P_INPUT_STRING];
+    my $start_position = $locations->[ $start + 1 ]->[0];
+    my $end_position   = $locations->[$end]->[1];
+    return substr ${$p_input}, $start_position,
+        ( $end_position - $start_position );
+} ## end sub Marpa::R2::Scanless::R::range_to_string
 
 sub meta_grammar {
     my $hashed_metag;

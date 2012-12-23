@@ -106,12 +106,12 @@ require Marpa::R2::Value;
 ( $version_result = version_ok($Marpa::R2::Value::VERSION) )
     and die 'Marpa::R2::Value::VERSION ', $version_result;
 
-require Marpa::R2::Stuifzand;
-( $version_result = version_ok($Marpa::R2::Stuifzand::VERSION) )
-    and die 'Marpa::R2::Stuifzand::VERSION ', $version_result;
-
 require Marpa::R2::Scanless;
 ( $version_result = version_ok($Marpa::R2::Scanless::VERSION) )
     and die 'Marpa::R2::Scanless::VERSION ', $version_result;
+
+require Marpa::R2::Stuifzand;
+( $version_result = version_ok($Marpa::R2::Stuifzand::VERSION) )
+    and die 'Marpa::R2::Stuifzand::VERSION ', $version_result;
 
 1;
