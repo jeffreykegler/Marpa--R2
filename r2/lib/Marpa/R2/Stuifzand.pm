@@ -647,7 +647,7 @@ my %actions_by_lhs_symbol = (
 );
 
 sub parse_rules {
-    my ($thick_grammar, $string) = @_;
+    my ($thick_grammar, $p_string) = @_;
 
     # Track earley set positions in input,
     # for debuggging
@@ -715,6 +715,7 @@ sub parse_rules {
             'character class' ],
         ;
 
+    my $string = ${$p_string};
     my $length = length $string;
     pos $string = 0;
     my $latest_earley_set_ID = 0;
