@@ -15,7 +15,11 @@
 
 Revision history for Marpa::R2
 
+2.033_003
 2.033_002
+
+     * Fix problem with negative rule ranks.
+
 2.033_000
 
       * New series of developer's releases

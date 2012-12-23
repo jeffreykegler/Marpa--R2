@@ -93,14 +93,16 @@ lib/Marpa/R2/.gitignore
 lib/Marpa/R2/Grammar.pm
 lib/Marpa/R2/Internal.pm
 lib/Marpa/R2/Recognizer.pm
-lib/Marpa/R2/Stuifzand.pm
 lib/Marpa/R2/Scanless.pm
+lib/Marpa/R2/Stuifzand.pm
 lib/Marpa/R2/Thin/Trace.pm
 lib/Marpa/R2/Value.pm
 lib/Marpa/R2/meta/Makefile
 lib/Marpa/R2/meta/Stuifzand.bnf
 lib/Marpa/R2/meta/aoh_to_thin.pl
 lib/Marpa/R2/meta/bnf_to_aoh.pl
+lib/Marpa/R2/meta/metag.bnf
+lib/Marpa/R2/meta/sl_to_hash.pl
 libmarpa/.gitignore
 libmarpa/dev/.gitignore
 libmarpa/dev/Makefile
@@ -267,6 +269,7 @@ t/pascal.t
 t/perl.t
 t/rabend.t
 t/randal.t
+t/rank.t
 t/rewrite.t
 t/sequence.t
 t/sequence2.t

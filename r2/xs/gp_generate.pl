@@ -153,8 +153,6 @@ $main::CLASS_LETTER   = 'g';
 $main::LIBMARPA_CLASS = 'Marpa_Grammar';
 print {$out} 'MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin::G', "\n\n";
 
-say {$out} gp_generate(qw(default_rank));
-say {$out} gp_generate(qw(default_rank_set Marpa_Rank rank));
 say {$out} gp_generate(qw(error_clear));
 say {$out} gp_generate(qw(event_count));
 say {$out} gp_generate(qw(has_cycle));
@@ -172,8 +170,6 @@ say {$out} gp_generate(qw(rule_length Marpa_Rule_ID rule_id));
 say {$out} gp_generate(qw(rule_lhs Marpa_Rule_ID rule_id));
 say {$out} gp_generate(qw(rule_null_high Marpa_Rule_ID rule_id));
 say {$out} gp_generate(qw(rule_null_high_set Marpa_Rule_ID rule_id int flag));
-say {$out} gp_generate(qw(rule_rank Marpa_Rule_ID rule_id));
-say {$out} gp_generate(qw(rule_rank_set Marpa_Rule_ID rule_id Marpa_Rank rank));
 say {$out} gp_generate(qw(rule_rhs Marpa_Rule_ID rule_id int ix));
 say {$out} gp_generate(qw(sequence_min Marpa_Rule_ID rule_id));
 say {$out} gp_generate(qw(sequence_separator Marpa_Rule_ID rule_id));
@@ -190,8 +186,6 @@ say {$out} gp_generate(qw(symbol_is_terminal_set Marpa_Symbol_ID symbol_id int b
 say {$out} gp_generate(qw(symbol_is_valued Marpa_Symbol_ID symbol_id));
 say {$out} gp_generate(qw(symbol_is_valued_set Marpa_Symbol_ID symbol_id int boolean));
 say {$out} gp_generate(qw(symbol_new));
-say {$out} gp_generate(qw(symbol_rank Marpa_Symbol_ID symbol_id));
-say {$out} gp_generate(qw(symbol_rank_set Marpa_Symbol_ID symbol_id Marpa_Rank rank));
 
 $main::CLASS_LETTER   = 'r';
 $main::LIBMARPA_CLASS = 'Marpa_Recognizer';

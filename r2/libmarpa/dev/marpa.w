@@ -876,6 +876,7 @@ g->t_default_rank = 0;
 Marpa_Rank marpa_g_default_rank(Marpa_Grammar g)
 {
    @<Return |-2| on failure@>@;
+  clear_error(g);
     @<Fail if fatal error@>@;
     return Default_Rank_of_G(g);
 }
@@ -885,6 +886,7 @@ Marpa_Rank marpa_g_default_rank(Marpa_Grammar g)
 Marpa_Rank marpa_g_default_rank_set(Marpa_Grammar g, Marpa_Rank rank)
 {
   @<Return |-2| on failure@>@;
+  clear_error(g);
   @<Fail if fatal error@>@;
   @<Fail if precomputed@>@;
   if (UNLIKELY (rank < MINIMUM_RANK))
@@ -1136,29 +1138,12 @@ Marpa_Error_Code marpa_g_error(Marpa_Grammar g, const char** p_error_string)
     return error_code;
 }
 
-@ If this is called when Libmarpa is in a ``not OK'' state,
-it means very bad things are happening --
-possibly memory overwrites.
-So we do not attempt
-much.
-We return, leaving the error code as is,
-unless it is |MARPA_ERR_NONE|.
-Since this would be completely misleading,
-we take a chance and try to
-change it to |MARPA_ERR_I_AM_NOT_OK|.
-@<Function definitions@> =
+@ @<Function definitions@> =
 Marpa_Error_Code
 marpa_g_error_clear (Marpa_Grammar g)
 {
-  if (!IS_G_OK (g))
-    {
-      if (g->t_error == MARPA_ERR_NONE)
-	g->t_error = MARPA_ERR_I_AM_NOT_OK;
-      return g->t_error;
-    }
-  g->t_error = MARPA_ERR_NONE;
-  g->t_error_string = NULL;
-  return MARPA_ERR_NONE;
+  clear_error (g);
+  return g->t_error;
 }
 
 @** Symbol (XSY) code.
@@ -1229,9 +1214,10 @@ int marpa_g_symbol_rank(Marpa_Grammar g,
 {
     SYM xsy;
     @<Return |-2| on failure@>@;
+    clear_error(g);
     @<Fail if fatal error@>@;
     @<Fail if |xsy_id| is malformed@>@;
-    @<Soft fail if |xsy_id| does not exist@>@;
+    @<Fail if |xsy_id| does not exist@>@;
     xsy = SYM_by_ID (xsy_id);
     return Rank_of_XSY(xsy);
 }
@@ -1241,10 +1227,11 @@ Marpa_Grammar g, Marpa_Symbol_ID xsy_id, Marpa_Rank rank)
 {
     SYM xsy;
     @<Return |-2| on failure@>@;
+    clear_error(g);
     @<Fail if fatal error@>@;
     @<Fail if precomputed@>@;
     @<Fail if |xsy_id| is malformed@>@;
-    @<Soft fail if |xsy_id| does not exist@>@;
+    @<Fail if |xsy_id| does not exist@>@;
     xsy = SYM_by_ID (xsy_id);
     if (UNLIKELY (rank < MINIMUM_RANK))
       {
@@ -2174,9 +2161,10 @@ int marpa_g_rule_rank(Marpa_Grammar g,
 {
     XRL xrl;
     @<Return |-2| on failure@>@;
+    clear_error(g);
     @<Fail if fatal error@>@;
     @<Fail if |xrl_id| is malformed@>@;
-    @<Soft fail if |xrl_id| does not exist@>@;
+    @<Fail if |xrl_id| does not exist@>@;
     xrl = XRL_by_ID (xrl_id);
     return Rank_of_XRL(xrl);
 }
@@ -2186,10 +2174,11 @@ Marpa_Grammar g, Marpa_Rule_ID xrl_id, Marpa_Rank rank)
 {
     XRL xrl;
     @<Return |-2| on failure@>@;
+    clear_error(g);
     @<Fail if fatal error@>@;
     @<Fail if precomputed@>@;
     @<Fail if |xrl_id| is malformed@>@;
-    @<Soft fail if |xrl_id| does not exist@>@;
+    @<Fail if |xrl_id| does not exist@>@;
     xrl = XRL_by_ID (xrl_id);
     if (UNLIKELY (rank < MINIMUM_RANK))
       {
@@ -14506,6 +14495,11 @@ if (UNLIKELY(!XSYID_of_G_Exists(xsy_id))) {
     MARPA_ERROR (MARPA_ERR_NO_SUCH_SYMBOL_ID);
     return -1;
 }
+@ @<Fail if |xsy_id| does not exist@> =
+if (UNLIKELY(!XSYID_of_G_Exists(xsy_id))) {
+    MARPA_ERROR (MARPA_ERR_NO_SUCH_SYMBOL_ID);
+    return failure_indicator;
+}
 @ @<Fail if |isy_id| is invalid@> =
 if (UNLIKELY(!isy_is_valid(g, isy_id))) {
     MARPA_ERROR(MARPA_ERR_INVALID_ISYID);
@@ -14621,6 +14615,30 @@ set_error (GRAMMAR g, Marpa_Error_Code code, const char* message, unsigned int f
   g->t_error_string = message;
   if (flags & FATAL_FLAG)
     g->t_is_ok = 0;
+}
+@ If this is called when Libmarpa is in a ``not OK'' state,
+it means very bad things are happening --
+possibly memory overwrites.
+So we do not attempt
+much.
+We return, leaving the error code as is,
+unless it is |MARPA_ERR_NONE|.
+Since this would be completely misleading,
+we take a chance and try to
+change it to |MARPA_ERR_I_AM_NOT_OK|.
+@<Function definitions@> =
+PRIVATE Marpa_Error_Code
+clear_error (GRAMMAR g)
+{
+  if (!IS_G_OK (g))
+    {
+      if (g->t_error == MARPA_ERR_NONE)
+	g->t_error = MARPA_ERR_I_AM_NOT_OK;
+      return g->t_error;
+    }
+  g->t_error = MARPA_ERR_NONE;
+  g->t_error_string = NULL;
+  return MARPA_ERR_NONE;
 }
 
 @** Messages and logging.

@@ -127,3 +127,4 @@
 ^pperl/Marpa/R2/Perl/Version[.]pm$
 ^lib/Marpa/R2/meta/thin[-]g[123456789][.]pl
 ^lib/Marpa/R2/meta/thin[.]pl
+^lib/Marpa/R2/meta/metag[.]pl

@@ -519,6 +519,120 @@ PPCODE:
 }
 
 void
+default_rank( g_wrapper )
+    G_Wrapper *g_wrapper;
+PPCODE:
+{
+  Marpa_Grammar self = g_wrapper->g;
+  int gp_result = marpa_g_default_rank (self);
+  if (gp_result == -2 && g_wrapper->throw)
+    {
+      const int libmarpa_error_code = marpa_g_error (self, NULL);
+      if (libmarpa_error_code != MARPA_ERR_NONE)
+	{
+	  croak ("Problem in g->default_rank(): %s", xs_g_error (g_wrapper));
+	}
+    }
+  XSRETURN_IV (gp_result);
+}
+
+void
+default_rank_set( g_wrapper, rank )
+    G_Wrapper *g_wrapper;
+    Marpa_Rank rank;
+PPCODE:
+{
+  Marpa_Grammar self = g_wrapper->g;
+  int gp_result = marpa_g_default_rank_set (self, rank);
+  if (gp_result == -2 && g_wrapper->throw)
+    {
+      const int libmarpa_error_code = marpa_g_error (self, NULL);
+      if (libmarpa_error_code != MARPA_ERR_NONE)
+	croak ("Problem in g->default_rank_set(%d): %s",
+	       rank, xs_g_error (g_wrapper));
+    }
+  XSRETURN_IV (gp_result);
+}
+
+void
+rule_rank( g_wrapper, rule_id )
+    G_Wrapper *g_wrapper;
+    Marpa_Rule_ID rule_id;
+PPCODE:
+{
+  Marpa_Grammar self = g_wrapper->g;
+  int gp_result = marpa_g_rule_rank (self, rule_id);
+  if (gp_result == -2 && g_wrapper->throw)
+    {
+      const int libmarpa_error_code = marpa_g_error (self, NULL);
+      if (libmarpa_error_code != MARPA_ERR_NONE)
+	{
+	  croak ("Problem in g->rule_rank(%d): %s",
+		 rule_id, xs_g_error (g_wrapper));
+	}
+    }
+  XSRETURN_IV (gp_result);
+}
+
+void
+rule_rank_set( g_wrapper, rule_id, rank )
+    G_Wrapper *g_wrapper;
+    Marpa_Rule_ID rule_id;
+    Marpa_Rank rank;
+PPCODE:
+{
+  Marpa_Grammar self = g_wrapper->g;
+  int gp_result = marpa_g_rule_rank_set(self, rule_id, rank);
+  if (gp_result == -2 && g_wrapper->throw)
+    {
+      const int libmarpa_error_code = marpa_g_error (self, NULL);
+      if (libmarpa_error_code != MARPA_ERR_NONE)
+	croak ("Problem in g->rule_rank_set(%d, %d): %s",
+	       rule_id, rank, xs_g_error (g_wrapper));
+    }
+  XSRETURN_IV (gp_result);
+}
+
+void
+symbol_rank( g_wrapper, symbol_id )
+    G_Wrapper *g_wrapper;
+    Marpa_Symbol_ID symbol_id;
+PPCODE:
+{
+  Marpa_Grammar self = g_wrapper->g;
+  int gp_result = marpa_g_symbol_rank (self, symbol_id);
+  if (gp_result == -2 && g_wrapper->throw)
+    {
+      const int libmarpa_error_code = marpa_g_error (self, NULL);
+      if (libmarpa_error_code != MARPA_ERR_NONE)
+	{
+	  croak ("Problem in g->symbol_rank(%d): %s",
+		 symbol_id, xs_g_error (g_wrapper));
+	}
+    }
+  XSRETURN_IV (gp_result);
+}
+
+void
+symbol_rank_set( g_wrapper, symbol_id, rank )
+    G_Wrapper *g_wrapper;
+    Marpa_Symbol_ID symbol_id;
+    Marpa_Rank rank;
+PPCODE:
+{
+  Marpa_Grammar self = g_wrapper->g;
+  int gp_result = marpa_g_symbol_rank_set (self, symbol_id, rank);
+  if (gp_result == -2 && g_wrapper->throw)
+    {
+      const int libmarpa_error_code = marpa_g_error (self, NULL);
+      if (libmarpa_error_code != MARPA_ERR_NONE)
+	croak ("Problem in g->symbol_rank_set(%d, %d): %s",
+	       symbol_id, rank, xs_g_error (g_wrapper));
+    }
+  XSRETURN_IV (gp_result);
+}
+
+void
 throw_set( g_wrapper, boolean )
     G_Wrapper *g_wrapper;
     int boolean;

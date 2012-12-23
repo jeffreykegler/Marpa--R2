@@ -846,6 +846,48 @@ It is not safe to assume that no events occurred
 unless C<precompute()> succeeds and reports
 an event count of zero.
 
+=head2 C<< $g->rule_rank() >>
+
+The C<rule_rank()> method is based on
+Libmarpa's C<marpa_g_rule_rank()> method.
+Its argument is the rule ID,
+and its return value is the rank,
+or a -2 to indicate an unthrown error.
+
+Note a return value of -2 is ambiguous -- it can
+indicate that the rank was -2, or that a failure
+occurred.
+To distinguish the cases, the application can
+look at the error code.
+The error code
+will be C<MARPA_ERR_NONE> if and only
+if the call was successful.
+The error code can be found using the L<< C<error()>
+method|"$g->error()" >>.
+Applications may find it more convenient to have
+C<rule_rank()> always throw its errors.
+
+=head2 C<< $g->rule_rank_set() >>
+
+The C<rule_rank_set()> method is based on
+Libmarpa's C<marpa_g_rule_rank_set()> method.
+Its two arguments are the rule ID and a rule rank.
+Its return value is the new value of the rank,
+or a -2 to indicate an unthrown error.
+
+Note a return value of -2 is ambiguous -- it can
+indicate that the rank was -2, or that a failure
+occurred.
+To distinguish the cases, the application can
+look at the error code.
+The error code
+will be C<MARPA_ERR_NONE> if and only
+if the call was successful.
+The error code can be found using the L<< C<error()>
+method|"$g->error()" >>.
+Applications may find it more convenient to have
+C<rule_rank_set()> always throw its errors.
+
 =head2 Omitted methods
 
 The C<marpa_g_ref()>
