@@ -101,16 +101,16 @@ sub show_last_expression {
 package main;
 
 sub my_parser {
-    my ( $grammar, $string ) = @_;
+    my ( $grammar, $p_string ) = @_;
 
-    my $self = bless { grammar => $grammar, input => \$string, }, 'My_Actions';
+    my $self = bless { grammar => $grammar  }, 'My_Actions';
     local $My_Actions::SELF = $self;
 
     my $slr = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
     $self->{slr} = $slr;
     my $event_count;
 
-    if ( not defined eval { $event_count = $slr->read($string); 1 } ) {
+    if ( not defined eval { $event_count = $slr->read($p_string); 1 } ) {
 
         # Add last expression found, and rethrow
         my $eval_error = $EVAL_ERROR;
@@ -150,7 +150,7 @@ TEST:
 for my $test_string (@test_strings) {
     my $output;
     my $eval_ok =
-        eval { $output = my_parser( $prefix_grammar, $test_string ); 1 };
+        eval { $output = my_parser( $prefix_grammar, \$test_string ); 1 };
     my $eval_error = $EVAL_ERROR;
     if ( not defined $eval_ok ) {
         chomp $eval_error;

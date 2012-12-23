@@ -92,25 +92,17 @@ sub do_arg0 { shift; return shift; }
 
 package main;
 
-sub My_Error::show_last_expression {
-    my ($self) = @_;
-    my ( $start, $end ) = $self->last_completed_range('Expression');
-    return 'No expression was successfully parsed' if not defined $start;
-    my $last_expression = $self->{recce}->sl_range_to_string( $start, $end );
-    return "Last expression successfully parsed was: $last_expression";
-} ## end sub My_Error::show_last_expression
-
 sub my_parser {
-    my ( $grammar, $string ) = @_;
+    my ( $grammar, $p_string ) = @_;
 
-    my $self = bless { grammar => $grammar, input => \$string, }, 'My_Error';
+    my $self = bless { grammar => $grammar }, 'My_Actions';
     local $My_Actions::SELF = $self;
 
     my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
     $self->{recce} = $recce;
     my $event_count;
 
-    if ( not defined eval { $event_count = $recce->read($string); 1 } ) {
+    if ( not defined eval { $event_count = $recce->read($p_string); 1 } ) {
 
         # Add last expression found, and rethrow
         my $eval_error = $EVAL_ERROR;
@@ -146,7 +138,7 @@ TEST:
 for my $test_string (@test_strings) {
     my $output;
     my $eval_ok =
-        eval { $output = my_parser( $prefix_grammar, $test_string ); 1 };
+        eval { $output = my_parser( $prefix_grammar, \$test_string ); 1 };
     my $eval_error = $EVAL_ERROR;
     if ( not defined $eval_ok ) {
         chomp $eval_error;
@@ -160,5 +152,15 @@ for my $test_string (@test_strings) {
     print qq{Input was "$test_string"\n},
         qq{Parse was successful, output was "$output"\n};
 } ## end TEST: for my $test_string (@test_strings)
+
+package My_Actions;
+
+sub show_last_expression {
+    my ($self) = @_;
+    my ( $start, $end ) = $self->last_completed_range('Expression');
+    return 'No expression was successfully parsed' if not defined $start;
+    my $last_expression = $self->{recce}->sl_range_to_string( $start, $end );
+    return "Last expression successfully parsed was: $last_expression";
+} ## end sub show_last_expression
 
 # vim: expandtab shiftwidth=4:

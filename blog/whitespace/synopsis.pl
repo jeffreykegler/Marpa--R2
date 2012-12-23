@@ -82,12 +82,12 @@ END_OF_GRAMMAR
 
 my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
 
-my $self = bless { grammar => $grammar }, 'My_Error';
+my $self = bless { grammar => $grammar }, 'My_Actions';
 $self->{recce} = $recce;
 local $My_Actions::SELF = $self;
 
 my $event_count;
-if ( not defined eval { $event_count = $recce->read($input_string); 1 } ) {
+if ( not defined eval { $event_count = $recce->read(\$input_string); 1 } ) {
     ## Add last expression found, and rethrow
     my $eval_error = $EVAL_ERROR;
     chomp $eval_error;
@@ -124,10 +124,10 @@ sub My_Actions::first_arg { shift; return shift; }
 
 sub show_last_expression {
     my ($self) = @_;
-    my $slr = $self->{slr};
-    my ( $start, $end ) = $slr->last_completed_range('Expression');
+    my $recce = $self->{recce};
+    my ( $start, $end ) = $recce->last_completed_range('Expression');
     return 'No expression was successfully parsed' if not defined $start;
-    my $last_expression = $slr->range_to_string( $start, $end );
+    my $last_expression = $recce->range_to_string( $start, $end );
     return "Last expression successfully parsed was: $last_expression";
 } ## end sub show_last_expression
 
