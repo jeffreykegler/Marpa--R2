@@ -94,7 +94,7 @@ sub add_brackets {
 } ## end sub add_brackets
 
 sub calculate {
-    my ($string) = @_;
+    my ($p_string) = @_;
 
     %symbol_table = ();
 
@@ -105,7 +105,7 @@ sub calculate {
     local $My_Actions::SELF = $self;
     my $event_count;
 
-    if ( not defined eval { $event_count = $recce->read($string); 1 } ) {
+    if ( not defined eval { $event_count = $recce->read($p_string); 1 } ) {
 
         # Add last expression found, and rethrow
         my $eval_error = $EVAL_ERROR;
@@ -127,7 +127,7 @@ sub calculate {
 sub report_calculation {
     my ($string) = @_;
     my $output   = qq{Input: "$string"\n};
-    my $result   = calculate($string);
+    my $result   = calculate(\$string);
     $result = join q{,}, @{$result} if ref $result eq 'ARRAY';
     $output .= "  Parse: $result\n";
     for my $symbol ( sort keys %symbol_table ) {

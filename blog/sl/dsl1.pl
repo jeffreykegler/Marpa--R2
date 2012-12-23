@@ -72,7 +72,7 @@ END_OF_GRAMMAR
 );
 
 sub calculate {
-    my ($string) = @_;
+    my ($p_string) = @_;
     my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
 
     ## A quasi-object, for internal use only
@@ -81,7 +81,7 @@ sub calculate {
         },
         'My_Actions';
 
-    $recce->read($string);
+    $recce->read($p_string);
     my $value_ref = $recce->value;
 
     if ( !defined $value_ref ) {
@@ -94,7 +94,7 @@ sub calculate {
 
 sub report_calculation {
     my ($string) = @_;
-    return qq{Input: "$string"\n} . '  Parse: ' . calculate($string) . "\n";
+    return qq{Input: "$string"\n} . '  Parse: ' . calculate(\$string) . "\n";
 }
 
 if (defined $input_string) {
