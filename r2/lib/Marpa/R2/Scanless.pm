@@ -63,7 +63,7 @@ BEGIN {
     THIN_LEX_RECCE
     THICK_G1_RECCE
     LOCATIONS
-    INPUT_STRING
+    P_INPUT_STRING
 
     TRACE_FILE_HANDLE
     TRACE_TERMINALS
@@ -547,10 +547,10 @@ sub Marpa::R2::Scanless::R::range_to_string {
     my ( $self, $start, $end ) = @_;
     return if not defined $start;
     my $locations = $self->[Marpa::R2::Inner::Scanless::R::LOCATIONS];
-    my $input = $self->[Marpa::R2::Inner::Scanless::R::INPUT_STRING];
+    my $p_input = $self->[Marpa::R2::Inner::Scanless::R::P_INPUT_STRING];
     my $start_position = $locations->[$start+1]->[0];
     my $end_position = $locations->[$end]->[1];
-    return substr $input, $start_position, ($end_position - $start_position);
+    return substr ${$p_input}, $start_position, ($end_position - $start_position);
 } ## end sub input_slice
 
 sub meta_grammar {
@@ -2207,7 +2207,7 @@ sub Marpa::R2::Scanless::G::_source_to_hash {
     state $mask_by_rule_id =
         $meta_grammar->[Marpa::R2::Inner::Scanless::G::MASK_BY_RULE_ID];
     my $meta_recce = Marpa::R2::Scanless::R->new({ grammar => $meta_grammar});
-    $meta_recce->read(${$p_rules_source});
+    $meta_recce->read($p_rules_source);
     my $thick_meta_g1_grammar =
         $meta_grammar->[Marpa::R2::Inner::Scanless::G::THICK_G1_GRAMMAR];
     my $meta_g1_tracer       = $thick_meta_g1_grammar->tracer();
@@ -2515,14 +2515,22 @@ sub Marpa::R2::Scanless::R::error {
 }
 
 sub Marpa::R2::Scanless::R::read {
-    my ( $self, $string ) = @_;
+    my ( $self, $p_string ) = @_;
 
     Marpa::R2::exception(
         "Multiple read()'s tried on a scannerless recognizer\n",
         "  Currently only a single scannerless read is allowed"
-    ) if defined $self->[Marpa::R2::Inner::Scanless::R::INPUT_STRING];
+    ) if defined $self->[Marpa::R2::Inner::Scanless::R::P_INPUT_STRING];
 
-    $self->[Marpa::R2::Inner::Scanless::R::INPUT_STRING] = $string;
+    if ( ( my $ref_type = ref $p_string ) ne 'SCALAR' ) {
+        my $desc = $ref_type ? "a ref to $ref_type" : 'not a ref';
+        Marpa::R2::exception(
+            qq{Arg to scanless_r->read() is $desc\n"},
+            '  It should be a ref to scalar'
+        );
+    } ## end if ( ( my $ref_type = ref $p_string ) ne 'SCALAR' )
+    $self->[Marpa::R2::Inner::Scanless::R::P_INPUT_STRING] = $p_string;
+
     my $trace_terminals =
         $self->[Marpa::R2::Inner::Scanless::R::TRACE_TERMINALS];
 
@@ -2561,11 +2569,11 @@ sub Marpa::R2::Scanless::R::read {
     my $class_table =
         $grammar->[Marpa::R2::Inner::Scanless::G::CHARACTER_CLASS_TABLE];
 
-    my $length_of_string     = length $string;
+    my $length_of_string     = length ${$p_string};
     my $start_of_next_lexeme = 0;
     my $thin_lex_recce =
         $self->[Marpa::R2::Inner::Scanless::R::THIN_LEX_RECCE];
-    $stream->string_set( \$string );
+    $stream->string_set( $p_string );
 
     READ: while ( $start_of_next_lexeme < $length_of_string ) {
 
@@ -2630,7 +2638,7 @@ sub Marpa::R2::Scanless::R::read {
                 grep { $_ != $g0_discard_symbol_id } keys %found;
             if ( scalar @found_lexemes ) {
 
-                my $raw_token_value = substr $string, $lexeme_start_pos, $lexeme_end_pos - $lexeme_start_pos;
+                my $raw_token_value = substr ${$p_string}, $lexeme_start_pos, $lexeme_end_pos - $lexeme_start_pos;
 
                 if ($trace_terminals) {
                     say {
@@ -2786,8 +2794,8 @@ sub Marpa::R2::Scanless::R::read {
         my ($pos) = @{ $locations[-1] };
         my $prefix =
             $pos >= 72
-            ? ( substr $string, $pos - 72, 72 )
-            : ( substr $string, 0, $pos );
+            ? ( substr ${$p_string}, $pos - 72, 72 )
+            : ( substr ${$p_string}, 0, $pos );
         $read_string_error =
               "Error in string_read: $desc\n"
             . "* Error was at string position: $pos\n"
@@ -2798,16 +2806,16 @@ sub Marpa::R2::Scanless::R::read {
             . "* String before error:\n"
             . Marpa::R2::escape_string( $prefix, -72 ) . "\n"
             . "* String after error:\n"
-            . Marpa::R2::escape_string( ( substr $string, $pos, 72 ), 72 )
+            . Marpa::R2::escape_string( ( substr ${$p_string}, $pos, 72 ), 72 )
             . "\n";
     } ## end if ($g1_event_count)
     elsif ( $pos < $length_of_string ) {
-        my $char = substr $string, $pos, 1;
+        my $char = substr ${$p_string}, $pos, 1;
         my $char_desc = character_describe($char);
         my $prefix =
             $pos >= 72
-            ? ( substr $string, $pos - 72, 72 )
-            : ( substr $string, 0, $pos );
+            ? ( substr ${$p_string}, $pos - 72, 72 )
+            : ( substr ${$p_string}, 0, $pos );
 
         $read_string_error =
               "Error in string_read: $desc\n"
@@ -2815,7 +2823,7 @@ sub Marpa::R2::Scanless::R::read {
             . "* String before error:\n"
             . Marpa::R2::escape_string( $prefix, -72 ) . "\n"
             . "* String after error:\n"
-            . Marpa::R2::escape_string( ( substr $string, $pos, 72 ), 72 )
+            . Marpa::R2::escape_string( ( substr ${$p_string}, $pos, 72 ), 72 )
             . "\n";
     } ## end elsif ( $pos < $length_of_string )
     else {
@@ -2823,7 +2831,7 @@ sub Marpa::R2::Scanless::R::read {
               "Error in string_read: $desc\n"
             . "* Error was at end of string\n"
             . "* String before error:\n"
-            . Marpa::R2::escape_string( $string, -72 ) . "\n";
+            . Marpa::R2::escape_string( ${$p_string}, -72 ) . "\n";
     } ## end else [ if ($g1_event_count) ]
     $self->[Marpa::R2::Inner::Scanless::R::READ_STRING_ERROR] =
         $read_string_error;

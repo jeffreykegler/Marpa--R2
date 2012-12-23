@@ -96,7 +96,7 @@ sub my_parser {
     my $event_count;
     my ( $parse_value, $parse_status, $last_expression );
 
-    if ( not defined eval { $event_count = $slr->read($string); 1 } ) {
+    if ( not defined eval { $event_count = $slr->read(\$string); 1 } ) {
         my $abbreviated_error = $EVAL_ERROR;
         chomp $abbreviated_error;
         $abbreviated_error =~ s/\n.*//xms;
