@@ -85,7 +85,12 @@ and will not be part of the symbol name.
 If angle brackets are used, symbol names may also contain whitespace,
 as in
 
+=for Marpa::R2::Display
+ignore: 1
+
     <op comma>
+
+=for Marpa::R2::Display::End
 
 A whitespace sequence inside angle brackets can
 include any whitespace character that is legal in Perl,
@@ -100,14 +105,25 @@ and all other whitespace sequences are converted to a single ASCII
 space character.
 This means that
 
+=for Marpa::R2::Display
+ignore: 1
+
     < op comma  >
     <op   comma>
     <     op comma>
 
+=for Marpa::R2::Display::End
+
 and even
+
+
+=for Marpa::R2::Display
+ignore: 1
 
     <op
     comma>
+
+=for Marpa::R2::Display::End
 
 will all be treated as if they were a single symbol name,
 one which is in effect equivalent to C<< <op comma> >>.
