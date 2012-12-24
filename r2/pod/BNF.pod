@@ -32,15 +32,15 @@ normalize-whitespace: 1
             default_action => 'do_first_arg',
             source          => \(<<'END_OF_SOURCE'),
     :start ::= Script
-    Script ::= Expression+ separator => <op_comma> action => do_script
+    Script ::= Expression+ separator => <op comma> action => do_script
     Expression ::=
         Number
-        | op_lparen Expression op_rparen action => do_parens assoc => group
-       || Expression op_pow Expression action => do_pow assoc => right
-       || Expression op_times Expression action => do_multiply
-        | Expression op_divide Expression action => do_divide
-       || Expression op_add Expression action => do_add
-        | Expression op_subtract Expression action => do_subtract
+        | <op lparen> Expression <op rparen> action => do_parens assoc => group
+       || Expression <op pow> Expression action => do_pow assoc => right
+       || Expression <op times> Expression action => do_multiply
+        | Expression <op divide> Expression action => do_divide
+       || Expression <op add> Expression action => do_add
+        | Expression <op subtract> Expression action => do_subtract
     END_OF_SOURCE
         }
     );
@@ -79,8 +79,15 @@ Right hand sides are described below.
 
 =head2 Symbol names
 
-Symbols names must consist entirely of Perl word characters
+Symbol names can be either "bare" or enclosed in angle brackets.
+Bare symbols names must consist entirely of Perl word characters
 (alphanumerics, plus the underscore).
+The angle brackets, if used, serve to "quote"
+the symbol name,
+and will not be part of the symbol name.
+
+If angle brackets are used, symbol names may also contain whitespace,
+as in C<< <op comma> >>.
 Optionally, symbol names can be enclosed in angle brackets.
 
 =head2 Right hand sides
@@ -156,6 +163,14 @@ Its effect will be as described below.
 The C<separator> keyword is only valid for a quantified right side,
 and its value must be a symbol of the grammar.
 It will be used as the separator,
+L<as described for sequence rules|Marpa::R2::Grammar/"Sequence rules">.
+
+=head3 proper
+
+The C<proper> keyword is only valid for a quantified right side,
+and its value must be a boolean,
+in the form of a binary digit (C<0> or C<1>).
+It indicates proper or Perl separartion,
 L<as described for sequence rules|Marpa::R2::Grammar/"Sequence rules">.
 
 =head2 How Marpa precedence works

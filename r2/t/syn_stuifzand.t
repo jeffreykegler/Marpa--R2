@@ -37,15 +37,15 @@ my $grammar = Marpa::R2::Grammar->new(
         default_action => 'do_first_arg',
         source          => \(<<'END_OF_SOURCE'),
 :start ::= Script
-Script ::= Expression+ separator => <op_comma> action => do_script
+Script ::= Expression+ separator => <op comma> action => do_script
 Expression ::=
     Number
-    | op_lparen Expression op_rparen action => do_parens assoc => group
-   || Expression op_pow Expression action => do_pow assoc => right
-   || Expression op_times Expression action => do_multiply
-    | Expression op_divide Expression action => do_divide
-   || Expression op_add Expression action => do_add
-    | Expression op_subtract Expression action => do_subtract
+    | <op lparen> Expression <op rparen> action => do_parens assoc => group
+   || Expression <op pow> Expression action => do_pow assoc => right
+   || Expression <op times> Expression action => do_multiply
+    | Expression <op divide> Expression action => do_divide
+   || Expression <op add> Expression action => do_add
+    | Expression <op subtract> Expression action => do_subtract
 END_OF_SOURCE
     }
 );
@@ -64,16 +64,16 @@ sub My_Actions::do_script    { shift; return join q{ }, @_ }
 $grammar->precompute();
 
 my @terminals = (
-    [ Number    => qr/\d+/xms,    "Number" ],
-    [ op_pow      => qr/[\^]/xms, 'Exponentiation operator' ],
-    [ op_pow    => qr/[*][*]/xms, 'Exponentiation' ],         # order matters!
-    [ op_times  => qr/[*]/xms,    'Multiplication operator' ], # order matters!
-    [ op_divide => qr/[\/]/xms,   'Division operator' ],
-    [ op_add    => qr/[+]/xms,    'Addition operator' ],
-    [ op_subtract => qr/[-]/xms,  'Subtraction operator' ],
-    [ op_lparen => qr/[(]/xms,    'Left parenthesis' ],
-    [ op_rparen => qr/[)]/xms,    'Right parenthesis' ],
-    [ op_comma => qr/[,]/xms,    'Comma operator' ],
+    [ Number   => qr/\d+/xms,    "Number" ],
+    [ 'op pow' => qr/[\^]/xms,   'Exponentiation operator' ],
+    [ 'op pow' => qr/[*][*]/xms, 'Exponentiation' ],          # order matters!
+    [ 'op times' => qr/[*]/xms, 'Multiplication operator' ],  # order matters!
+    [ 'op divide'   => qr/[\/]/xms, 'Division operator' ],
+    [ 'op add'      => qr/[+]/xms,  'Addition operator' ],
+    [ 'op subtract' => qr/[-]/xms,  'Subtraction operator' ],
+    [ 'op lparen'   => qr/[(]/xms,  'Left parenthesis' ],
+    [ 'op rparen'   => qr/[)]/xms,  'Right parenthesis' ],
+    [ 'op comma'    => qr/[,]/xms,  'Comma operator' ],
 );
 
 sub my_parser {
