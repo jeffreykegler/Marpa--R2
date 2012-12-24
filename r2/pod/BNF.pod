@@ -69,11 +69,13 @@ Comments are equivalent to whitespace.
 A hash ("C<#>") character starts a comment,
 which continues to the end of the line.
 
-The Stuifzand format consists of production declarations.
-Each production declaraton consists of a left hand side
-symbol, followed by the declaration operator ("C<::=>")
-and a right hand side.
-Right hand sides are described below.
+The Stuifzand format consists of rule declarations.
+Each rule declaraton consists of a left hand side (LHS),
+followed by the declaration operator ("C<::=>")
+and a right hand side (RHS).
+The left and right hand sides
+are described in detail below,
+in the discussion of each rule by type.
 
 =head2 Symbol names
 
@@ -98,7 +100,7 @@ A whitespace sequence inside angle brackets can
 include any whitespace character that is legal in Perl,
 including newlines.
 This allows very long symbol names to be line wrapped,
-if necesseary.
+if necessary.
 
 Unlike angle brackets, the whitespace does become part of the symbol name,
 but it does so in a "normalized" form.
@@ -135,10 +137,14 @@ one which is in effect equivalent to C<< <op comma> >>.
 Rules are of four kinds:
 the start rule,
 empty rules,
-quanitified rules
+quantified rules
 and prioritized rules.
-A simple rule with a series of RHS symbols is a trivial case
-of a prioritized rule.
+A simple rule,
+with only a series of RHS symbols
+on their RHS,
+is treated as a
+prioritized rule with only one alternative
+and only one priority.
 In a large grammar,
 most rules are prioritized rules.
 
@@ -153,7 +159,7 @@ The start rule does not accept any rule adverbs.
 
 An empty rule is a rule with an empty RHS.
 A empty right hand side is what the name suggests,
-no symbols, modifiers or punctuation.
+no symbols, adverbs or punctuation.
 A empty rule makes its LHS symbol a nullable symbol.
 Empty rules may have an C<action> adverb.
 
@@ -190,7 +196,7 @@ the alternatives after it
 have a looser (lower) priority than the alternatives before it.
 The single "or" symbol ("C<|>") is the ordinary "alternative" operator --
 alternatives on each side of it have the same priority.
-Associativity is specified using modifiers, as described below.
+Associativity is specified using adverbs, as described below.
 
 Within an alternative, symbols may be enclosed in parentheses.
 A symbol enclosed in parentheses is hidden from Marpa's semantics.
@@ -198,13 +204,13 @@ A set of parentheses may contain more than one symbol,
 in which case the entire sequence of symbols is hidden,
 as if they had been enclosed in parentheses individually.
 
-=head2 Modifiers
+=head2 Adverbs
 
-Modifiers are allowed for quantified productions,
+Adverbs are allowed for quantified productions,
 and for the right hand side alternatives in prioritized productions.
-Modifiers must occur after the symbols.
-Modifiers consist of a keyword, the modifier operator ("C<< => >>"),
-and the modifier's value.
+Adverbs must occur after the symbols.
+Adverbs consist of a keyword, the adverb operator ("C<< => >>"),
+and the adverb's value.
 The keyword must be from the following list of reserved names.
 Values are as described for each keyword.
 
@@ -219,7 +225,7 @@ L<the C<action> named argument of rule descriptors|Marpa::R2::Grammar/"action">.
 
 =head3 assoc
 
-The C<assoc> modifier is only valid in a prioritized production.
+The C<assoc> adverb is only valid in a prioritized production.
 Its value must be one of
 C<left>,
 C<right> or
