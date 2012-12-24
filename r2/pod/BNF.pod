@@ -87,8 +87,34 @@ the symbol name,
 and will not be part of the symbol name.
 
 If angle brackets are used, symbol names may also contain whitespace,
-as in C<< <op comma> >>.
-Optionally, symbol names can be enclosed in angle brackets.
+as in
+
+    <op comma>
+
+A whitespace sequence inside angle brackets can
+include any whitespace character that is legal in Perl,
+including newlines.
+This allows very long symbol names to be line wrapped,
+if necesseary.
+
+Unlike angle brackets, the whitespace does become part of the symbol name,
+but it does so in a "normalized" form.
+Leading and trailing whitespace in the name is discarded,
+and all other whitespace sequences are converted to a single ASCII
+space character.
+This means that
+
+    < op comma  >
+    <op   comma>
+    <     op comma>
+
+and even
+
+    <op
+    comma>
+
+will all be treated as if they were a single symbol name,
+one which is in effect equivalent to C<< <op comma> >>.
 
 =head2 Right hand sides
 
