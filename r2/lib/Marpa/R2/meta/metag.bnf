@@ -23,7 +23,7 @@ rule ::= <start rule> | <empty rule> | <priority rule> | <quantified rule> | <di
 <discard rule> ::= (':discard' <op declare match>) <single symbol>
 <op declare> ::= <op declare bnf> | <op declare match>
 priorities ::= alternatives+
-    separator => <op tighter> proper => 1
+    separator => <op loosen> proper => 1
 alternatives ::= alternative+
     separator => <op equal priority> proper => 1
 alternative ::= rhs <adverb list>
@@ -74,7 +74,7 @@ whitespace ~ [\s]+
 
 <op declare bnf> ~ '::='
 <op declare match> ~ '~'
-<op tighter> ~ '||'
+<op loosen> ~ '||'
 <op equal priority> ~ '|'
 quantifier ::= '*' | '+'
 

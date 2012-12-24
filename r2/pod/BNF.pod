@@ -47,7 +47,7 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
-=head2 Overview
+=head1 Overview
 
 This page is the reference for the Marpa's "BNF interface",
 also called its "Stuifzand interface".
@@ -60,7 +60,9 @@ or Stuifzand source strings.
 BNF source strings are specified using the 
 L<the C<source> named argument of Marpa::R2's grammars|Marpa::R2::Grammar/"source">.
 
-=head2 The structure of the BNF source file
+=head1 The source file
+
+=head2 Structure
 
 Whitespace separates tokens, but is otherwise ignored.
 Comments are equivalent to whitespace.
@@ -128,35 +130,57 @@ ignore: 1
 will all be treated as if they were a single symbol name,
 one which is in effect equivalent to C<< <op comma> >>.
 
-=head2 Right hand sides
+=head2 Types of rules
 
-A right hand side may be empty, quantified, or prioritized.
+Rules are of four kinds:
+the start rule,
+empty rules,
+quanitified rules
+and prioritized rules.
+A simple rule with a series of RHS symbols is a trivial case
+of a prioritized rule.
+In a large grammar,
+most rules are prioritized rules.
+
+=head2 Start rule
+
+Every source file should have a start rule.
+The LHS of this rule is the C<:start> pseudo-symbol.
+The RHS must be a single symbol name.
+The start rule does not accept any rule adverbs.
+
+=head2 Empty rules
+
+An empty rule is a rule with an empty RHS.
 A empty right hand side is what the name suggests,
 no symbols, modifiers or punctuation.
-A production with an empty right hand side defines an nulling rule.
+A empty rule makes its LHS symbol a nullable symbol.
+Empty rules may have an C<action> adverb.
 
-=head2 Quantified right hand sides
+=head2 Quantified rules
 
 A quantified right hand side defines a sequence rule.
-It consists of a single symbol,
-followed by a "quantifier",
-and then followed, optionally, by modifiers.
+Its RHS consists of a single symbol name,
+followed by a "quantifier".
 The quantifer is either
 a star ("C<*>"),
 or a plus sign ("C<+>")
 indicating, respectively, that the sequence rule has a minimum length
 of 0 or 1.
+Quantified rules allow adverbs.
 
-=head2 Prioritized right hand sides
+=head2 Prioritized rules
 
-All productions which are not empty or quantified, are considered prioritized,
-although the prioritization may be trivial, consisting only of a single
+Any rule which is not a start rule,
+and not empty or quantified, is considered prioritized.
+The prioritization may be trivial, consisting only of a single
 right hand side alternative,
 at a single priority level.
+
 Each prioritized right hand side consists of one or more right hand alternatives
 ("alternatives" for brevity).
 An alternative is a series of one or more symbols,
-followed by zero or more modifiers.
+followed by zero or more adverbs.
 
 The alternatives are separated by single or double "or" symbols.
 This means the alternatives in a prioritized right hand side proceed
@@ -217,7 +241,7 @@ in the form of a binary digit (C<0> or C<1>).
 It indicates proper or Perl separartion,
 L<as described for sequence rules|Marpa::R2::Grammar/"Sequence rules">.
 
-=head2 How Marpa precedence works
+=head1 How Marpa precedence works
 
 Marpa's precedence is a generalization beyond the traditional ideas of precedence.
 Traditional precedence parsing required the 
@@ -278,9 +302,9 @@ in Marpa.
 Group associativity is meaningless for nullary alternatives,
 and is ignored.
 
-=head2 Caveats
+=head1 Caveats
 
-=head3 Symbol names
+=head2 Symbol names
 
 The BNF interface may rewrite its symbol names internally.
 Here we call the name by which a symbol is specified in the
@@ -303,7 +327,7 @@ the exact form of Marpa's internal names should be
 treated as beta,
 and subject to change.
 
-=head3 Precedence: the good news
+=head2 Precedence: the good news
 
 Marpa's generalization of precedence works
 for all grammars that
@@ -315,7 +339,7 @@ not allowed by traditional methods.
 Many of these are useful,
 and most of those can also be parsed efficiently.
 
-=head3 Precedence and ambiguous grammars
+=head2 Precedence and ambiguous grammars
 
 Because of the many forms of recursion allowed,
 it is possible
