@@ -32,10 +32,11 @@ use Marpa::R2::Test;
 use Marpa::R2;
 
 my $grammar = Marpa::R2::Grammar->new(
-    {   start          => 'Script',
+    {   
         actions        => 'My_Actions',
         default_action => 'do_first_arg',
         source          => \(<<'END_OF_SOURCE'),
+:start ::= Script
 Script ::= Expression+ separator => <op_comma> action => do_script
 Expression ::=
     Number
