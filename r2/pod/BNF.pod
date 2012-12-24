@@ -70,12 +70,29 @@ A hash ("C<#>") character starts a comment,
 which continues to the end of the line.
 
 The Stuifzand format consists of rule declarations.
-Each rule declaraton consists of a left hand side (LHS),
-followed by the declaration operator ("C<::=>")
-and a right hand side (RHS).
-The left and right hand sides
-are described in detail below,
-in the discussion of each rule by type.
+Each rule declaraton consists of, in order:
+
+=over 4
+
+=item * A left hand side (LHS).
+This will be a
+symbol or a pseudo-symbol.
+
+=item * The declaration operator ("C<::=>").
+
+=item * A right hand side (RHS).
+For each type of rule,
+the RHS will be described in detail below.
+In the case of empty rules,
+the RHS will be empty.
+
+=item * An adverb list.
+Each adverbs consist of a keyword,
+the adverb operator ("C<< => >>"),
+and the adverb's value.
+The adverb list may be zero length.
+
+=back
 
 =head2 Symbol names
 
@@ -153,7 +170,7 @@ most rules are prioritized rules.
 Every source file should have a start rule.
 The LHS of this rule is the C<:start> pseudo-symbol.
 The RHS must be a single symbol name.
-The start rule does not accept any rule adverbs.
+The start rule does not accept any adverbs.
 
 =head2 Empty rules
 
