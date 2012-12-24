@@ -544,6 +544,17 @@ New rules may be added until the grammar is precomputed.
 The format of rule descriptors is L<explained
 below|/"Rule descriptors">.
 
+=head2 source
+
+The value of the
+C<source> named argument is a reference to string
+that contains a description of the grammar in BNF format.
+The format of this string is described in
+L<the document on the BNF format|Marpa::R2::BNF>.
+The C<source> named argument may only be specified once,
+and it cannot be used together with the C<rules>
+named argument.
+
 =head2 start
 
 =for Marpa::R2::Display

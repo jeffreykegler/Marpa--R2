@@ -40,24 +40,24 @@ my $grammar = Marpa::R2::Grammar->new(
 Script ::= Expression+ separator => <op comma> action => do_script
 Expression ::=
     Number
-    | <op lparen> Expression <op rparen> action => do_parens assoc => group
-   || Expression <op pow> Expression action => do_pow assoc => right
-   || Expression <op times> Expression action => do_multiply
-    | Expression <op divide> Expression action => do_divide
-   || Expression <op add> Expression action => do_add
-    | Expression <op subtract> Expression action => do_subtract
+    | (<op lparen>) Expression (<op rparen>) action => do_parens assoc => group
+   || Expression (<op pow>) Expression action => do_pow assoc => right
+   || Expression (<op times>) Expression action => do_multiply
+    | Expression (<op divide>) Expression action => do_divide
+   || Expression (<op add>) Expression action => do_add
+    | Expression (<op subtract>) Expression action => do_subtract
 END_OF_SOURCE
     }
 );
 
 # Marpa::R2::Display::End
 
-sub My_Actions::do_parens    { shift; return $_[1] }
-sub My_Actions::do_add       { shift; return $_[0] + $_[2] }
-sub My_Actions::do_subtract  { shift; return $_[0] - $_[2] }
-sub My_Actions::do_multiply  { shift; return $_[0] * $_[2] }
-sub My_Actions::do_divide    { shift; return $_[0] / $_[2] }
-sub My_Actions::do_pow       { shift; return $_[0]**$_[2] }
+sub My_Actions::do_parens    { shift; return $_[0] }
+sub My_Actions::do_add       { shift; return $_[0] + $_[1] }
+sub My_Actions::do_subtract  { shift; return $_[0] - $_[1] }
+sub My_Actions::do_multiply  { shift; return $_[0] * $_[1] }
+sub My_Actions::do_divide    { shift; return $_[0] / $_[1] }
+sub My_Actions::do_pow       { shift; return $_[0]**$_[1] }
 sub My_Actions::do_first_arg { shift; return shift; }
 sub My_Actions::do_script    { shift; return join q{ }, @_ }
 

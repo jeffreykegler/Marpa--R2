@@ -35,23 +35,17 @@ normalize-whitespace: 1
     Script ::= Expression+ separator => <op comma> action => do_script
     Expression ::=
         Number
-        | <op lparen> Expression <op rparen> action => do_parens assoc => group
-       || Expression <op pow> Expression action => do_pow assoc => right
-       || Expression <op times> Expression action => do_multiply
-        | Expression <op divide> Expression action => do_divide
-       || Expression <op add> Expression action => do_add
-        | Expression <op subtract> Expression action => do_subtract
+        | (<op lparen>) Expression (<op rparen>) action => do_parens assoc => group
+       || Expression (<op pow>) Expression action => do_pow assoc => right
+       || Expression (<op times>) Expression action => do_multiply
+        | Expression (<op divide>) Expression action => do_divide
+       || Expression (<op add>) Expression action => do_add
+        | Expression (<op subtract>) Expression action => do_subtract
     END_OF_SOURCE
         }
     );
 
 =for Marpa::R2::Display::End
-
-=head2 This interface is beta
-
-This interface is beta.
-It is new, somewhat experimental,
-and therefore subject to change.
 
 =head2 Overview
 
@@ -63,6 +57,8 @@ of the C<rules> named
 arguments of Marpa grammars.
 These strings are called BNF source strings
 or Stuifzand source strings.
+BNF source strings are specified using the 
+L<the C<source> named argument of Marpa::R2's grammars|Marpa::R2::Grammar/"source">.
 
 =head2 The structure of the BNF source file
 
@@ -155,6 +151,12 @@ have a looser (lower) priority than the alternatives before it.
 The single "or" symbol ("C<|>") is the ordinary "alternative" operator --
 alternatives on each side of it have the same priority.
 Associativity is specified using modifiers, as described below.
+
+Within an alternative, symbols may be enclosed in parentheses.
+A symbol enclosed in parentheses is hidden from Marpa's semantics.
+A set of parentheses may contain more than one symbol,
+in which case the entire sequence of symbols is hidden,
+as if they had been enclosed in parentheses individually.
 
 =head2 Modifiers
 
@@ -279,8 +281,11 @@ for some purposes, such as tracing grammars, the use of
 internal names may sometimes
 be appropriate.
 Marpa::R2's use of external versus internal symbol name
-is evolving,
-and this is one reason the BNF interface is still beta.
+is evolving.
+When the Stuifzand interface is used,
+the exact form of Marpa's internal names should be
+treated as beta,
+and subject to change.
 
 =head3 Precedence: the good news
 
