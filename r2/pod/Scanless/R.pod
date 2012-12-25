@@ -19,10 +19,30 @@ Marpa::R2::Scanless::R - Scanless interface recognizers
 
 =head1 Synopsis
 
-=head1 Overview
+=head1 About this document
 
 This page is the reference for the recognizer objects
 of Marpa's Scanless interface.
+
+=head1 Methods
+
+=head2 error()
+
+=head2 last_completed_range()
+
+=head2 last_rule()
+
+=head2 new()
+
+=head2 range_to_string()
+
+=head2 read()
+
+=head2 show_progress()
+
+=head2 trace()
+
+=head2 value()
 
 =head1 Copyright and License
 

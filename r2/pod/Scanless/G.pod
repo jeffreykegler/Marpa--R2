@@ -19,10 +19,26 @@ Marpa::R2::Scanless::G - Scanless interface grammars
 
 =head1 Synopsis
 
-=head1 Overview
+=head1 About this document
 
 This page is the reference for the grammar objects
 of Marpa's Scanless interface.
+
+=head1 Methods
+
+=head2 new()
+
+=head2 show_rules()
+
+=head1 Source files
+
+=head2 Lexical rules
+
+=head2 Discard rules
+
+=head2 Single quoted strings
+
+=head2 Character classes
 
 =head1 Copyright and License
 
