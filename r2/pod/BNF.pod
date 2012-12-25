@@ -51,14 +51,21 @@ normalize-whitespace: 1
 
 This page is the reference for the Marpa's "BNF interface",
 also called its "Stuifzand interface".
-The Stuifzand interface allows strings
-in place of the rule descriptors as value
-of the C<rules> named
-arguments of Marpa grammars.
-These strings are called BNF source strings
-or Stuifzand source strings.
+The Stuifzand interface allows the grammar to be specified using
+a string whose text is in a variation of BNF.
 BNF source strings are specified using the 
 L<the C<source> named argument of Marpa::R2's grammars|Marpa::R2::Grammar/"source">.
+BNF source strings perform the functions of
+the C<rules> and C<start> named arguments of Marpa grammars.
+When
+the C<source> named argument is used to specify a grammar,
+the C<rules> and C<start> named arguments should not be used,
+and vice versa.
+
+The Stuifzand interface is
+an example of a domain-specific language (DSL).
+The DSL of this document can (and has been) used to specify other
+DSL's, and therefore can be seen as a "meta-DSL".
 
 =head1 The source file
 
@@ -146,8 +153,12 @@ ignore: 1
 
 =for Marpa::R2::Display::End
 
-will all be treated as if they were a single symbol name,
-one which is in effect equivalent to C<< <op comma> >>.
+will all be regarded as the same symbol name.
+The normalized form of that symbol name
+is C<< <op comma> >>.
+The actual name of a symbol
+is the string inside the brackets of its
+normalized form.
 
 =head2 Types of rules
 
@@ -156,14 +167,24 @@ the start rule,
 empty rules,
 quantified rules
 and prioritized rules.
-A simple rule,
-with only a series of RHS symbols
-on their RHS,
+A rule like the following,
+
+=for Marpa::R2::Display
+ignore: 1
+
+    a ::= b c d
+
+=for Marpa::R2::Display::End
+
+whose RHS consists only of a sequence of symbols,
 is treated as a
 prioritized rule with only one alternative
 and only one priority.
-In a large grammar,
-most rules are prioritized rules.
+In a typical large grammar,
+most rules are prioritized rules,
+many of them taking
+a simple form like that in the display
+above.
 
 =head2 Start rule
 
@@ -182,8 +203,8 @@ Empty rules may have an C<action> adverb.
 
 =head2 Quantified rules
 
-A quantified right hand side defines a sequence rule.
-Its RHS consists of a single symbol name,
+A rule is quantified if
+its RHS consists of a single symbol name,
 followed by a "quantifier".
 The quantifer is either
 a star ("C<*>"),
@@ -196,12 +217,11 @@ Quantified rules allow adverbs.
 
 Any rule which is not a start rule,
 and not empty or quantified, is considered prioritized.
-The prioritization may be trivial, consisting only of a single
-right hand side alternative,
-at a single priority level.
+The prioritization may be simple, consisting only of a
+single priority level.
 
 Each prioritized right hand side consists of one or more right hand alternatives
-("alternatives" for brevity).
+(called "alternatives" for brevity).
 An alternative is a series of one or more symbols,
 followed by zero or more adverbs.
 
@@ -224,12 +244,12 @@ as if they had been enclosed in parentheses individually.
 =head2 Adverbs
 
 Adverbs are allowed for empty rules, quantifiied rules,
-and for the right hand side alternatives in prioritized productions.
+and for the right hand side alternatives in prioritized rule.
 Adverbs must occur after the symbols.
 Adverbs consist of a keyword, the adverb operator ("C<< => >>"),
 and the adverb's value.
-The keyword must be from the following list of reserved names.
-Values are as described for each keyword.
+The keyword must be one of those described in this section.
+The adverb's value must be as described for each keyword.
 
 =head3 action
 
@@ -242,12 +262,13 @@ L<the C<action> named argument of rule descriptors|Marpa::R2::Grammar/"action">.
 
 =head3 assoc
 
-The C<assoc> adverb is only valid in a prioritized production.
+The C<assoc> adverb is only valid in a prioritized rule.
 Its value must be one of
 C<left>,
 C<right> or
 C<group>.
-Its effect will be as described below.
+Its effect will be as described
+L<below|/"Precedence">.
 
 =head3 separator
 
@@ -264,16 +285,15 @@ in the form of a binary digit (C<0> or C<1>).
 It indicates proper or Perl separartion,
 L<as described for sequence rules|Marpa::R2::Grammar/"Sequence rules">.
 
-=head1 How Marpa precedence works
+=head1 Precedence
 
 Marpa's precedence is a generalization beyond the traditional ideas of precedence.
 Traditional precedence parsing required the 
 the classification of operators as postfix, infix, etc.
 Marpa's precedence parsing is NOT based on
 the special treatment of operators.
-Marpa's precedence parsing,
-in fact,
-has no concept or definition of operator, except
+Marpa's precedence parsing
+has no concept of an operator, except
 as something that is not an operand.
 
 An occurrence of the left hand side in a
@@ -318,7 +338,7 @@ In "group" associativity, all operands associate
 at the loosest (lowest) priority.
 That is, in an alternative with group associativity,
 each operand may be a full expression of the kind
-defined by the prioritized production.
+defined by the prioritized rule.
 "Group" associativity is used, for example,
 in implementing the traditional function of parentheses
 in Marpa.
@@ -343,7 +363,7 @@ However,
 for some purposes, such as tracing grammars, the use of
 internal names may sometimes
 be appropriate.
-Marpa::R2's use of external versus internal symbol name
+Marpa::R2's use of external and internal symbol names
 is evolving.
 When the Stuifzand interface is used,
 except as documented in this section,
@@ -356,7 +376,7 @@ subject to change.
 
 Marpa's generalization of precedence works
 for all grammars that
-can be defined by prioritized productions.
+can be defined by prioritized rules.
 It is efficient (linear) for all grammars that could be
 parsed by the traditional precedence parsing methods.
 Marpa also allows you to define alternatives
