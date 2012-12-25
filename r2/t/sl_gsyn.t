@@ -27,6 +27,9 @@ use Marpa::R2::Test;
 
 ## no critic (ErrorHandling::RequireCarping);
 
+# Marpa::R2::Display
+# name: Scanless grammar synopsis
+
 use Marpa::R2;
 
 my $grammar = Marpa::R2::Scanless::G->new(
@@ -61,6 +64,8 @@ whitespace ~ [\s]+
 END_OF_SOURCE
     }
 );
+
+# Marpa::R2::Display::End
 
 sub my_parser {
     my ( $grammar, $p_input_string ) = @_;

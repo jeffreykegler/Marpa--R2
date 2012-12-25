@@ -20,7 +20,7 @@ Marpa::R2::Scanless::G - Scanless interface grammars
 =head1 Synopsis
 
 =for Marpa::R2::Display
-name: Stuifzand Synopsis
+name: Scanless grammar synopsis
 partial: 1
 normalize-whitespace: 1
 

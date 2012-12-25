@@ -277,10 +277,10 @@ t/rewrite.t
 t/sequence.t
 t/sequence2.t
 t/sl_dsl.t
+t/sl_gsyn.t
 t/sl_prefix.t
 t/stuifzand.t
 t/syn_engine.t
-t/syn_sl.t
 t/syn_stuifzand.t
 t/thin_eq.t
 t/timeflies.t
