@@ -120,6 +120,55 @@ leaving aside most lexical and whitespace issues.
 And this is the case even description is used
 for generating production code.
 
+=head1 The scanless interface's solution
+
+Here is full syntax of
+the example whitespace-and-digit language,
+described using Marpa::R2's scanless interface:
+
+=for Marpa::R2::Display
+name: Scanless concept example
+partial: 1
+normalize-whitespace: 1
+
+    :start ::= <number sequence>
+    <number sequence> ::= <number>+ action => add_sequence
+    number ~ digit+
+    digit ~ [0-9]
+
+    :discard ~ whitespace
+    whitespace ~ [\s]+
+
+=for Marpa::R2::Display::End
+
+This document is intended for readers already familiar with
+Marpa::R2's BNF (Stuifzand) interface.
+In this example, three of the scanless interface's extensions
+to the Stuifzand interface are used.
+First, the tilde ("C<~>") is used to separate LHS and RHS of rules at the lexical
+(G0) level.
+Rules whose LHS and RHS are separated by the traditional BNF operator ("C<::=>")
+are at the structural (G1) level.
+
+Second, Perl character classes are now allowed on the RHS of prioritized and quantified
+rules.
+The example shows character classes only in G0 rules,
+but character classes can also be used in G1 rules.
+When a character class is used
+in a G1 rule, it still must be implemented at
+the G0 level.
+Marpa knows this and "does what you mean."
+
+Third, a new type of rule is introduced:
+a "discard" rule.
+A discard rule has a C<:discard> pseudo-symbol on its LHS
+and one symbol name on its RHS.
+It indicates that, when the RHS symbol is recognized,
+it should not be passed on as usual to the structural (G1) level.
+Instead, the lexical (G0) level will simply "discard" what it has
+found.
+In the example, whitespace is discarded.
+
 =head1 Copyright and License
 
 =for Marpa::R2::Display

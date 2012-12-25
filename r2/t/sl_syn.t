@@ -27,9 +27,12 @@ use Marpa::R2::Test;
 use Marpa::R2;
 
 my $grammar = Marpa::R2::Scanless::G->new(
-    {
-        action_object        => 'My_Actions',
-        source          => \(<<'END_OF_SOURCE'),
+    {   action_object => 'My_Actions',
+
+# Marpa::R2::Display
+# name: Scanless concept example
+
+        source => \(<<'END_OF_SOURCE'),
 :start ::= <number sequence>
 <number sequence> ::= <number>+ action => add_sequence
 number ~ digit+
@@ -38,6 +41,9 @@ digit ~ [0-9]
 :discard ~ whitespace
 whitespace ~ [\s]+
 END_OF_SOURCE
+
+# Marpa::R2::Display::End
+
     }
 );
 
