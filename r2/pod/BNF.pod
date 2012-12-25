@@ -223,7 +223,7 @@ as if they had been enclosed in parentheses individually.
 
 =head2 Adverbs
 
-Adverbs are allowed for quantified productions,
+Adverbs are allowed for empty rules, quantifiied rules,
 and for the right hand side alternatives in prioritized productions.
 Adverbs must occur after the symbols.
 Adverbs consist of a keyword, the adverb operator ("C<< => >>"),
@@ -333,8 +333,8 @@ The BNF interface may rewrite its symbol names internally.
 Here we call the name by which a symbol is specified in the
 BNF interface string its "external symbol name",
 and its name as rewritten, its "internal symbol name".
-Marpa::R2 usually makes sure the user sees only
-external symbol names.
+In many cases, Marpa::R2 makes sure the user sees only
+the external names of symbols.
 For example,
 L<the C<rule()> Grammar method|Marpa::R2::Grammar/"rule()">
 returns external symbol names.
@@ -346,9 +346,11 @@ be appropriate.
 Marpa::R2's use of external versus internal symbol name
 is evolving.
 When the Stuifzand interface is used,
-the exact form of Marpa's internal names should be
-treated as beta,
-and subject to change.
+except as documented in this section,
+the user may see either the internal or external form
+of a symbol's name.
+Also, the exact form of the internal name is
+subject to change.
 
 =head2 Precedence: the good news
 
@@ -357,7 +359,7 @@ for all grammars that
 can be defined by prioritized productions.
 It is efficient (linear) for all grammars that could be
 parsed by the traditional precedence parsing methods.
-Marpa also allows you to defined alternatives
+Marpa also allows you to define alternatives
 not allowed by traditional methods.
 Many of these are useful,
 and most of those can also be parsed efficiently.
