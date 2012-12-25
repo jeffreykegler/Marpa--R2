@@ -77,7 +77,7 @@ A hash ("C<#>") character starts a comment,
 which continues to the end of the line.
 
 The Stuifzand format consists of rule declarations.
-Each rule declaraton consists of, in order:
+Each rule declaration consists of, in order:
 
 =over 4
 
@@ -104,7 +104,7 @@ The adverb list may be zero length.
 =head2 Symbol names
 
 Symbol names can be either "bare" or enclosed in angle brackets.
-Bare symbols names must consist entirely of Perl word characters
+Bare symbol names must consist entirely of Perl word characters
 (alphanumerics, plus the underscore).
 The angle brackets, if used, serve to "quote"
 the symbol name,
@@ -244,7 +244,7 @@ as if they had been enclosed in parentheses individually.
 =head2 Adverbs
 
 Adverbs are allowed for empty rules, quantifiied rules,
-and for the right hand side alternatives in prioritized rule.
+and for the right hand side alternatives in prioritized rules.
 Adverbs must occur after the symbols.
 Adverbs consist of a keyword, the adverb operator ("C<< => >>"),
 and the adverb's value.
@@ -282,7 +282,7 @@ L<as described for sequence rules|Marpa::R2::Grammar/"Sequence rules">.
 The C<proper> keyword is only valid for a quantified right side,
 and its value must be a boolean,
 in the form of a binary digit (C<0> or C<1>).
-It indicates proper or Perl separartion,
+It indicates proper or Perl separation,
 L<as described for sequence rules|Marpa::R2::Grammar/"Sequence rules">.
 
 =head1 Precedence
@@ -298,10 +298,10 @@ as something that is not an operand.
 
 An occurrence of the left hand side in a
 right hand side alternative is called an operand.
-Alternatives are assigned an arity according to
-the number of operands they contain.
-All arities are allowed, from zero to an arbitrary
-number imposed by system limits.
+The arity of an alternative is the number of operands that
+it contains.
+All arities are allowed, from zero to the arbitrary
+number imposed by system limits such as memory and file size.
 
 An alternative with arity 0 is nullary.
 Precedence and associativity
@@ -412,9 +412,8 @@ The author knows of no practical use for them,
 and their presence in a grammar is usually
 unintentional.
 Note that, in the event an application
-does find a use for such rules,
-Marpa can parse grammar which includes unit rules,
-via its other interfaces.
+does find a use for a grammar with unit rules,
+Marpa's standard interface can parse it.
 
 =for Marpa::R2::Display::End
    
