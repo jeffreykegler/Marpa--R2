@@ -20,7 +20,7 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 5;
+use Test::More tests => 21;
 use English qw( -no_match_vars );
 use lib 'inc';
 use Marpa::R2::Test;
@@ -63,7 +63,7 @@ package main;
 sub my_parser {
     my ( $grammar, $string ) = @_;
 
-    my $self = bless { grammar => $grammar, input => \$string, },
+    my $self = bless { grammar => $grammar },
         'My_Actions';
     local $My_Actions::SELF = $self;
 
@@ -73,35 +73,50 @@ sub my_parser {
     my ( $parse_value, $parse_status, $sequence_so_far );
 
     if ( not defined eval { $event_count = $slr->read(\$string); 1 } ) {
-        die join " ", 'No parse', $EVAL_ERROR, $self->show_sequence_so_far();
+        return 'No parse', $EVAL_ERROR, $self->show_sequence_so_far();
     }
     if ( not defined $event_count ) {
         my $error = $slr->error();
-        die join " ",
-        'No parse', $error, $self->show_sequence_so_far();
+        return 'No parse', $error, $self->show_sequence_so_far();
     }
     my $value_ref = $slr->value;
     if ( not defined $value_ref ) {
-        die join " ",
+        return
             'No parse', 'Input read to end but no parse',
             $self->show_sequence_so_far();
     } ## end if ( not defined $value_ref )
-    return ${$value_ref};
+    return [ return ${$value_ref}, 'Parse OK', ];
 } ## end sub my_parser
 
 my @tests_data = (
-    [ ' 1 2 3   1 2 4', 13, ],
-    [ ' 8675311',       8675311, ],
-    [ '867 5311',       6178, ],
-    [ ' 8 6 7 5 3 1 1', 31, ],
-    [ '1234',           1234 ],
+    [ ' 1 2 3   1 2 4', 13,      qr/\AParse \s+ OK\z/xms ],
+    [ ' 8675311',       8675311, qr/\AParse \s+ OK\z/xms ],
+    [ '867 5311',       6178,    qr/\AParse \s+ OK\z/xms ],
+    [ ' 8 6 7 5 3 1 1', 31,      qr/\AParse \s+ OK\z/xms ],
+    [ '1234',           1234,    qr/\AParse \s+ OK\z/xms ],
+    [   '2 x 1234', 'No parse',
+        qr/ Lexing \s+ failed \s+
+        at \s+ unacceptable \s+ character \s+
+        0x0078 \s+ [']x['] \s/xms,
+        2
+    ],
+    [   '', 'No parse',
+        qr/\A Input \s+ read \s+ to \s+ end \s+ but \s+ no \s+ parse \z/xms,
+    ],
 );
 
 TEST:
 for my $test_data (@tests_data) {
-    my ($test_string,     $expected_value) = @{$test_data};
-    my ($actual_value ) = my_parser( $grammar, $test_string );
+    my ($test_string,     $expected_value,
+        $expected_result, $expected_sequence_so_far
+    ) = @{$test_data};
+    $expected_sequence_so_far //= 'none';
+    my ($actual_value,
+        $actual_result, $actual_sequence_so_far
+    ) = my_parser( $grammar, $test_string );
+    $actual_sequence_so_far //= 'none';
     Test::More::is( $actual_value, $expected_value, qq{Value of "$test_string"} );
+    Test::More::like( $actual_result, $expected_result, qq{Result of "$test_string"} );
+    Test::More::is( $actual_sequence_so_far, $expected_sequence_so_far, qq{Sequence so far from "$test_string"} );
 } ## end TEST: for my $test_string (@test_strings)
-
 # vim: expandtab shiftwidth=4:
