@@ -33,7 +33,7 @@ my $grammar = Marpa::R2::Scanless::G->new(
     {   
         action_object  => 'My_Actions',
         default_action => 'do_first_arg',
-        source          => \(<<'END_OF_RULES'),
+        source          => \(<<'END_OF_SOURCE'),
 :start ::= Script
 Script ::= Expression+ separator => comma action => do_script
 comma ~ [,]
@@ -58,7 +58,7 @@ whitespace ~ [\s]+
 <hash comment body> ~ <hash comment char>*
 <vertical space char> ~ [\x{A}\x{B}\x{C}\x{D}\x{2028}\x{2029}]
 <hash comment char> ~ [^\x{A}\x{B}\x{C}\x{D}\x{2028}\x{2029}]
-END_OF_RULES
+END_OF_SOURCE
     }
 );
 

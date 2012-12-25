@@ -19,6 +19,46 @@ Marpa::R2::Scanless::G - Scanless interface grammars
 
 =head1 Synopsis
 
+=for Marpa::R2::Display
+name: Stuifzand Synopsis
+partial: 1
+normalize-whitespace: 1
+
+    my $grammar = Marpa::R2::Scanless::G->new(
+        {   
+            action_object  => 'My_Actions',
+            default_action => 'do_first_arg',
+            source          => \(<<'END_OF_SOURCE'),
+    :start ::= Script
+    Script ::= Expression+ separator => comma action => do_script
+    comma ~ [,]
+    Expression ::=
+        Number
+        | '(' Expression ')' action => do_parens assoc => group
+       || Expression '**' Expression action => do_pow assoc => right
+       || Expression '*' Expression action => do_multiply
+        | Expression '/' Expression action => do_divide
+       || Expression '+' Expression action => do_add
+        | Expression '-' Expression action => do_subtract
+    Number ~ [\d]+
+
+    :discard ~ whitespace
+    whitespace ~ [\s]+
+    # allow comments
+    :discard ~ <hash comment>
+    <hash comment> ~ <terminated hash comment> | <unterminated
+       final hash comment>
+    <terminated hash comment> ~ '#' <hash comment body> <vertical space char>
+    <unterminated final hash comment> ~ '#' <hash comment body>
+    <hash comment body> ~ <hash comment char>*
+    <vertical space char> ~ [\x{A}\x{B}\x{C}\x{D}\x{2028}\x{2029}]
+    <hash comment char> ~ [^\x{A}\x{B}\x{C}\x{D}\x{2028}\x{2029}]
+    END_OF_SOURCE
+        }
+    );
+
+=for Marpa::R2::Display::End
+
 =head1 About this document
 
 This page is the reference for the grammar objects

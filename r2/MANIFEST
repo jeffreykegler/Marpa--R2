@@ -214,6 +214,9 @@ pod/Grammar.pod
 pod/Marpa_R2.pod
 pod/Progress.pod
 pod/Recognizer.pod
+pod/Scanless.pod
+pod/Scanless/G.pod
+pod/Scanless/R.pod
 pod/Semantics.pod
 pod/Semantics/Infinite.pod
 pod/Semantics/Null.pod
