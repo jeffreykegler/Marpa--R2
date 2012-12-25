@@ -23,7 +23,102 @@ Marpa::R2::Scanless - Scanless interface
 
 This page is the reference for the Marpa's Scanless interface.
 
-=head1 Concepts
+=head1 Two different ways to look at syntax
+
+In describing the syntax of a language, we naturally switch back
+and forth between two levels of description.
+For example, the Perl docs describe one of the forms that Perl's C<use> statement takes
+in this way
+
+    use Module VERSION LIST
+
+On the other hand, Perl's L<perlpodspec> page has a number of statements like this:
+
+    Note that you can distinguish URL-links from anything else
+    by the fact that they match m/\A\w+:[^:\s]\S*\z/.
+
+The L<perlpodspec>'s desciption is character by character.
+I'll call descriptions at that level lexical descriptions.
+The description of the C<use> statement ignores whitespace and all character-level issues.
+I'll call its level of description, structural.
+For reasons that will become clear later,
+I will sometimes call the lexical level, G0,
+and will sometimes call the structural level, G1.
+
+The difference is NOT one of precision.
+The C<use> statement's structural description is repeated,
+in more or less the same form,
+in its source code (C<perly.y>).
+In that form it is quite precise enough to drive Perl's parser.
+Lexical and structural descriptions are equally exact,
+but they operate at different levels.
+
+=head1 A very simple language
+
+Let's take a very simple language with a very simple semantics.
+The language consists of decimal digits and ASCII spaces,
+and it is treated as a series of integers to be added.
+Here are three strings in that language
+
+     8675311
+     867 5311
+     8 6 7 5 3 1 1
+
+According to our semantics,
+the three string contain respectively,
+one, two and seven integers.
+The values of the three strings are,
+according to our semantics,
+the sum of these integers:
+respectively, 8675311, 6178, and 31.
+
+It's often said, in describing languages like the above,
+that whitespace is ignored.
+From the structural point of view this is, in a sense, true.
+But from the lexical point of view it's completely false.
+From the overall language description point of view it's also false.
+The three string differ only in whitespace, and the placement
+of the whitespace clearly makes a vast difference, which has a determining
+effect on the structure of string,
+and in turn on its semantics.
+
+=head1 The problem
+
+Why not simply insist that the descriptions be lexical,
+and take whitespace into proper account?
+That is, why not simply ban the structural (G1) level of description?
+
+A hint as to why is provided by the widespread use of structural level,
+not just in standards, but also in code like the Perl parser.
+Try, as as exercise, to rewrite a complex grammar, taking
+into account whitespace.
+If you know C, a good example will be C declarations.
+
+    unsigned int a;
+    unsigned*b;
+
+In the first of the two lines above the whitespace is necessary.
+In the second of the two lines whitespace would be allowed,
+but is not necessary.
+You cannot simply insist on whitespace between all symbols,
+because whitespace is and should be optional between
+some symbols and not between others.
+Where whitespace is optional, and where it should not be,
+depends on the initial and final characters,
+and this information is not convenient to represent
+at the structural (G1) level.
+If you try to represent this,
+the size of the grammar grows rapidly,
+and the number of special cases even more rapidly.
+
+As the description becomes harder and harder to write,
+there becomes less and less point in doing so --
+it rapidly gets to the point where nobody could read and
+understand it.
+This is why languages are usually written in a G1, structural level description,
+leaving aside most lexical and whitespace issues.
+And this is the case even description is used
+for generating production code.
 
 =head1 Copyright and License
 
