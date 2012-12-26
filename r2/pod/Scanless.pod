@@ -142,7 +142,7 @@ and intuitive way,
 a "unified" description rapidly becomes unwriteable,
 and even more rapidly becomes unreadable.
 The reader should be able to
-convince himself by taking the BNF from your favorite
+convince himself by taking the BNF from his favorite
 language standard and recasting it so every rule takes into account
 whitespace.
 As one example, consider declarations in the C language.
@@ -172,18 +172,18 @@ above.
 And it is certainly possible to extend it to include more and
 more of the declaration syntax.
 But long before you finish, I expect you will come to believe
-that the "unified" approach is simply not practical
-and that the authors of C clearly made the right choice in
-relegating lexical issues to their own section,
-and so that they could ignore them in
+that the "unified" approach is simply not going to work.
+The authors of C
+relegated lexical issues to their own brief section,
+and ignored them in
 most of their language description.
+This was clearly the only practical approach.
 
 =head1 Reuniting the two levels
 
-The scanless interface, I hope,
-reunites and even to an extent
-interweaves the two levels of description,
-but in a way that preserves the advantages of both.
+The scanless interface
+interweaves the "split" and "unified" approaches,
+and, I hope, preserves the best features of each.
 Here is full syntax of
 the example whitespace-and-digit language,
 described using Marpa::R2's scanless interface:
@@ -202,6 +202,8 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
+=head2 A new operator
+
 This document is intended for readers already familiar with
 Marpa::R2's BNF (Stuifzand) interface.
 In this example, three of the scanless interface's extensions
@@ -210,6 +212,16 @@ First, the tilde ("C<~>") is used to separate LHS and RHS of rules at the lexica
 (G0) level.
 Rules whose LHS and RHS are separated by the traditional BNF operator ("C<::=>")
 are at the structural (G1) level.
+
+The programmer needs to decide when to use the "C<~>" operator
+and when to use the "C<::=>" operator,
+but the choice will usually be intuitive:
+If you want Marpa to "do what I mean" with whitespace, you use the
+"C<::=>" operator.
+If you want Marpa to do exactly whay you say on a character-by-character basis,
+then you use the "C<~>" operator.
+
+=head2 Character classes
 
 Second, Perl character classes are now allowed on the RHS of prioritized and quantified
 rules.
@@ -220,6 +232,8 @@ in a G1 rule, it still must be implemented at
 the G0 level.
 Marpa knows this and "does what you mean."
 
+=head2 Discard rules
+
 Third, a new type of rule is introduced:
 a "discard" rule.
 A discard rule has a C<:discard> pseudo-symbol on its LHS
@@ -229,6 +243,50 @@ it should not be passed on as usual to the structural (G1) level.
 Instead, the lexical (G0) level will simply "discard" what it has
 found.
 In the example, whitespace is discarded.
+
+=head1 Lexemes
+
+Significant in the scannerless interface are the tokens
+at the boundary between G0 and G1.
+These are the top-level undiscarded symbols in G0,
+which go on to become the terminals in G1.
+These are called "lexemes".
+
+To find G0's lexemes, Marpa looks for symbols which are on
+the LHS of a G0 rule, but not on the RHS of any G0 rule.
+To determine G1's idea of what the lexemes are,
+Marpa looks for symbols on the RHS of at least one G1 rule,
+but not on the LHS of any G1 rule.
+If G0 and G1 have different ideas about the set of lexemes,
+the programmer receives a fatal message which describes the
+problem and the symbols involved.
+
+=head1 Longest tokens match
+
+The G0 grammar looks for tokens on a longest B<tokens> match basis.
+Those in discard rules are thrown away, and the rest are passed
+as tokens to the G1 grammar.
+Note that match is longest TOKENS.
+Marpa does ambiguous parsing and ambiguous lexing.
+There may be more than one longest match, in which case Marpa
+uses both.
+
+=head1 Implementation
+
+The scannerless interface uses two co-operating Marpa grammars,
+an approach pioneered by Andrew Rodland.
+There are separate Marpa grammars for the G0 and G1 levels,
+as well as separate parsers.
+The details of their interaction are hidden from the user.
+Typically, the G0 parser finds tokens and passes them up to the
+G1 parser.
+
+The interface described in
+this document is surprisingly implementation-agnostic.
+The author developed the basics of this
+interface while trying an implementation approach,
+that used a single Marpa grammar,
+before changing to the dual grammr implementation.
 
 =head1 Copyright and License
 
