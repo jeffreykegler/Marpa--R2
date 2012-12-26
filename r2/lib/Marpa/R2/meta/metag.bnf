@@ -1,0 +1,104 @@
+# Copyright 2012 Jeffrey Kegler
+# This file is part of Marpa::R2.  Marpa::R2 is free software: you can
+# redistribute it and/or modify it under the terms of the GNU Lesser
+# General Public License as published by the Free Software Foundation,
+# either version 3 of the License, or (at your option) any later version.
+#
+# Marpa::R2 is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser
+# General Public License along with Marpa::R2.  If not, see
+# http://www.gnu.org/licenses/.
+
+:start ::= rules
+rules ::= rule+
+rule ::= <start rule> | <empty rule> | <priority rule> | <quantified rule> | <discard rule>
+<start rule> ::= (':start' <op declare bnf>) symbol
+<priority rule> ::= lhs <op declare> priorities
+<empty rule> ::= lhs <op declare> <adverb list>
+<quantified rule> ::= lhs <op declare> <single symbol> quantifier <adverb list>
+<discard rule> ::= (':discard' <op declare match>) <single symbol>
+<op declare> ::= <op declare bnf> | <op declare match>
+priorities ::= alternatives+
+    separator => <op tighter> proper => 1
+alternatives ::= alternative+
+    separator => <op equal priority> proper => 1
+alternative ::= rhs <adverb list>
+<adverb list> ::= <adverb item>*
+<adverb item> ::=
+      action
+    | <left association> | <right association> | <group association>
+    | <separator specification> | <proper specification>
+
+action ::= ('action' '=>') <action name>
+<left association> ::= ('assoc' '=>' 'left')
+<right association> ::= ('assoc' '=>' 'right')
+<group association> ::= ('assoc' '=>' 'group')
+<separator specification> ::= ('separator' '=>') <single symbol>
+<proper specification> ::= ('proper' '=>') boolean
+
+lhs ::= <symbol name>
+rhs ::= <rhs primary>+
+<rhs primary> ::= <single symbol>
+<rhs primary> ::= <kwc ws star>
+<rhs primary> ::= <kwc ws plus>
+<rhs primary> ::= <kwc ws>
+<rhs primary> ::= <kwc any>
+<rhs primary> ::= <single quoted string>
+<rhs primary> ::= <parenthesized rhs primary list>
+<parenthesized rhs primary list> ::= ('(') <rhs primary list> (')')
+<rhs primary list> ::= <rhs primary>+
+<single symbol> ::=
+    symbol
+  | <character class>
+symbol ::= <symbol name>
+<symbol name> ::= <bare name>
+<symbol name> ::= <bracketed name>
+<action name> ::= <bare name>
+
+:discard ~ whitespace
+whitespace ~ [\s]+
+
+# allow comments
+:discard ~ <hash comment>
+<hash comment> ~ <terminated hash comment> | <unterminated
+   final hash comment>
+<terminated hash comment> ~ '#' <hash comment body> <vertical space char>
+<unterminated final hash comment> ~ '#' <hash comment body>
+<hash comment body> ~ <hash comment char>*
+<vertical space char> ~ [\x{A}\x{B}\x{C}\x{D}\x{2028}\x{2029}]
+<hash comment char> ~ [^\x{A}\x{B}\x{C}\x{D}\x{2028}\x{2029}]
+
+<op declare bnf> ~ '::='
+<op declare match> ~ '~'
+<op tighter> ~ '||'
+<op equal priority> ~ '|'
+quantifier ::= '*' | '+'
+
+boolean ~ [01]
+<bare name> ~ [\w]+
+<bracketed name> ~ '<' <bracketed name string> '>'
+<bracketed name string> ~ [\s\w]+
+<kwc ws star> ~ ':ws*'
+<kwc ws plus> ~ ':ws+'
+<kwc ws> ~ ':ws'
+<kwc any> ~ ':any'
+
+# In single quotes strings and character classes
+# no escaping or internal newlines, and disallow empty string
+
+<single quoted string> ~ ['] <string without single quote or vertical space> [']
+<string without single quote or vertical space> ~ [^'\x{0A}\x{0B}\x{0C}\x{0D}\x{0085}\x{2028}\x{2029}]+
+
+<character class> ~ '[' <cc string> ']'
+<cc string> ~ <cc character>+
+<cc character> ~ <escaped cc character> | <safe cc character>
+<escaped cc character> ~ '\' <horizontal character>
+# hex 5d is right square bracket
+<safe cc character> ~ [^\x{5d}\x{0A}\x{0B}\x{0C}\x{0D}\x{0085}\x{2028}\x{2029}]
+
+# a horizontal character is any character that is not vertical space
+<horizontal character> ~ [^\x{A}\x{B}\x{C}\x{D}\x{2028}\x{2029}]

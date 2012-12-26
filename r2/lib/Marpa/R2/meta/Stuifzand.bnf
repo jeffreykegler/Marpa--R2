@@ -13,68 +13,55 @@
 # General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 
-
-rules ::= rule+ action => do_rules
-rule ::= start_rule | empty_rule | priority_rule | quantified_rule
-start_rule ::= (kw__start) op_declare symbol_name
-  action => do_start_rule
-priority_rule ::= lhs op_declare priorities
-  action => do_priority_rule
-empty_rule ::= lhs op_declare adverb_list
-  action => do_empty_rule
-quantified_rule ::= lhs op_declare single_symbol quantifier adverb_list
-    action => do_quantified_rule
-op_declare ::= 
-      op_declare_bnf action => do_op_declare_bnf
-    | op_declare_match action => do_op_declare_match
+:start ::= rules
+rules ::= rule+
+rule ::= <start rule> | <empty rule> | <priority rule> | <quantified rule> | <discard rule>
+<start rule> ::= (<kwc start> <op declare bnf>) symbol
+<priority rule> ::= lhs <op declare> priorities
+<empty rule> ::= lhs <op declare> <adverb list>
+<quantified rule> ::= lhs <op declare> <single symbol> quantifier <adverb list>
+<discard rule> ::= (<kwc discard> <op declare match>) <single symbol>
+<op declare> ::= <op declare bnf> | <op declare match>
 priorities ::= alternatives+
-    separator => op_tighter proper => 1
-    action => do_discard_separators
+    separator => <op tighter> proper => 1
 alternatives ::= alternative+
-    separator => op_eq_pri proper => 1
-    action => do_discard_separators
-alternative ::= rhs adverb_list action => do_alternative 
-adverb_list ::= adverb_item* action => do_adverb_list
-adverb_item ::=
+    separator => <op eq pri> proper => 1
+alternative ::= rhs <adverb list>
+<adverb list> ::= <adverb item>*
+<adverb item> ::=
       action
-    | left_association | right_association | group_association
-    | separator_specification | proper_specification
+    | <left association> | <right association> | <group association>
+    | <separator specification> | <proper specification>
 
-action ::= (kw_action op_arrow) action_name action => do_action
-left_association ::= kw_assoc op_arrow kw_left
-  action => do_left_association 
-right_association ::= kw_assoc op_arrow kw_right
-  action => do_right_association 
-group_association ::= kw_assoc op_arrow kw_group
-  action => do_group_association 
-separator_specification ::= kw_separator op_arrow single_symbol
-  action => do_separator_specification
-proper_specification ::= kw_proper op_arrow boolean
-action => do_proper_specification
+action ::= (<kw action> <op arrow>) <action name>
+<left association> ::= (<kw assoc> <op arrow> <kw left>)
+<right association> ::= (<kw assoc> <op arrow> <kw right>)
+<group association> ::= (<kw assoc> <op arrow> <kw group>)
+<separator specification> ::= (<kw separator> <op arrow>) <single symbol>
+<proper specification> ::= (<kw proper> <op arrow>) boolean
 
 quantifier ::=
-    op_star action => do_op_star_quantifier
-  | op_plus action => do_op_plus_quantifier
+    <op star>
+  | <op plus>
 
-lhs ::= symbol_name action => do_lhs 
-rhs ::= rhs_primary+ action => do_rhs
-rhs_primary ::= single_symbol action => do_symbol_list
-rhs_primary ::= kw__ws_star action => do_ws_star
-rhs_primary ::= kw__ws_plus action => do_ws_plus
-rhs_primary ::= kw__ws action => do_ws
-rhs_primary ::= kw__any action => do_any
-rhs_primary ::= kw__end_of_input action => do_end_of_input
-rhs_primary ::= single_quoted_string action => do_single_quoted_string
-rhs_primary ::= op_lparen rhs_primary_list op_rparen
-  action => do_parenthesized_symbol_list
-rhs_primary_list ::= rhs_primary+ action => do_symbol_list
-single_symbol ::=
+lhs ::= <symbol name>
+rhs ::= <rhs primary>+
+<rhs primary> ::= <single symbol>
+<rhs primary> ::= <kwc ws star>
+<rhs primary> ::= <kwc ws plus>
+<rhs primary> ::= <kwc ws>
+<rhs primary> ::= <kwc any>
+<rhs primary> ::= <single quoted string>
+<rhs primary> ::= <parenthesized rhs primary list>
+<parenthesized rhs primary list> ::= (<op lparen>) <rhs primary list> (<op rparen>)
+<rhs primary list> ::= <rhs primary>+
+<single symbol> ::=
     symbol
-  | character_class action => do_character_class
-symbol ::= symbol_name action => do_symbol
-symbol_name ::= bare_name | reserved_word
-symbol_name ::= bracketed_name action => do_bracketed_name
-action_name ::= bare_name | reserved_action_name
+  | <character class>
+symbol ::= <symbol name>
+<symbol name> ::= <bare name> | <reserved word>
+<symbol name> ::= <bracketed name>
+<action name> ::= <bare name> | <reserved action name>
 
-reserved_word ::= kw_action | kw_assoc | kw_separator | kw_proper
-  | kw_left | kw_right | kw_group
+<reserved word> ::= <kw action> | <kw assoc> | <kw separator> | <kw proper>
+  | <kw left> | <kw right> | <kw group>

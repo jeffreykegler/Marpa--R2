@@ -20,7 +20,7 @@ use strict;
 use warnings;
 
 use vars qw($VERSION $STRING_VERSION @ISA $DEBUG);
-$VERSION        = '2.032000';
+$VERSION        = '2.033_003';
 $STRING_VERSION = $VERSION;
 ## no critic (BuiltinFunctions::ProhibitStringyEval)
 $VERSION = eval $VERSION;
@@ -50,7 +50,7 @@ eval {
 @Marpa::R2::CARP_NOT = ();
 for my $start (qw(Marpa::R2)) {
     for my $middle ( q{}, '::Internal' ) {
-        for my $end ( q{}, qw(::Stuifzand ::Recognizer ::Callback ::Grammar ::Value) ) {
+        for my $end ( q{}, qw(::Scanless ::Stuifzand ::Recognizer ::Callback ::Grammar ::Value) ) {
             push @Marpa::R2::CARP_NOT, $start . $middle . $end;
         }
     }
@@ -98,10 +98,6 @@ require Marpa::R2::Grammar;
 ( $version_result = version_ok($Marpa::R2::Grammar::VERSION) )
     and die 'Marpa::R2::Grammar::VERSION ', $version_result;
 
-require Marpa::R2::Stuifzand;
-( $version_result = version_ok($Marpa::R2::Stuifzand::VERSION) )
-    and die 'Marpa::R2::Stuifzand::VERSION ', $version_result;
-
 require Marpa::R2::Recognizer;
 ( $version_result = version_ok($Marpa::R2::Recognizer::VERSION) )
     and die 'Marpa::R2::Recognizer::VERSION ', $version_result;
@@ -109,5 +105,13 @@ require Marpa::R2::Recognizer;
 require Marpa::R2::Value;
 ( $version_result = version_ok($Marpa::R2::Value::VERSION) )
     and die 'Marpa::R2::Value::VERSION ', $version_result;
+
+require Marpa::R2::Scanless;
+( $version_result = version_ok($Marpa::R2::Scanless::VERSION) )
+    and die 'Marpa::R2::Scanless::VERSION ', $version_result;
+
+require Marpa::R2::Stuifzand;
+( $version_result = version_ok($Marpa::R2::Stuifzand::VERSION) )
+    and die 'Marpa::R2::Stuifzand::VERSION ', $version_result;
 
 1;

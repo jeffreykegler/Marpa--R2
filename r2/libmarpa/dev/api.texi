@@ -1557,6 +1557,8 @@ but this is not necesssarily detected before precomputation.
 Return value: On success, 1 if symbol @var{sym_id}
 is a terminal symbol after the
 call, 0 otherwise.
+If @var{sym_id} is well-formed, but there is no
+such symbol, -1.
 If @var{value} is not 0 or 1;
 if the terminal status is locked and @var{value}
 is different from its current value;
@@ -1909,10 +1911,20 @@ Initially, the default rank of the grammar is 0.
 Methods to reset the grammar's default rank
 are currently in the experimental stage.
 
-Return value: On success, the rank @strong{after}
-the call.
-If the grammar has been precomputed,
-or on other failure, @minus{}2.
+Return value: On success, returns
+the rank @strong{after}
+the call,
+and sets the error code to
+@code{MARPA_ERR_NONE}.
+On failure, returns @minus{}2,
+and sets the error code to an appropriate
+value, which will never be
+@code{MARPA_ERR_NONE}.
+Note that when the rank is @minus{}2,
+the error code is the only way to distinguish
+success from failure.
+The error code can be determined by using the
+@code{marpa_g_error()} call.
 
 @end deftypefun
 
@@ -4736,9 +4748,20 @@ the grammar's default rank can be used to,
 in effect, assign ranks to groups of rules and symbols.
 Applications may find this behavior useful.
 
-Return value: On success, the rank @strong{after}
-the call.
-On failure, @minus{}2.
+Return value: On success, returns
+the rank @strong{after}
+the call,
+and sets the error code to
+@code{MARPA_ERR_NONE}.
+On failure, returns @minus{}2,
+and sets the error code to an appropriate
+value, which will never be
+@code{MARPA_ERR_NONE}.
+Note that when the rank is @minus{}2,
+the error code is the only way to distinguish
+success from failure.
+The error code can be determined by using the
+@code{marpa_g_error()} call.
 
 @end deftypefun
 
@@ -4755,10 +4778,20 @@ and query the rank of a symbol @var{sym_id}.
 When @var{sym_id} is created, its rank
 initialized to the default rank of the grammar.
 
-Return value: On success, the rank @strong{after}
-the call.
-If the grammar has been precomputed,
-or on other failure, @minus{}2.
+Return value: On success, returns
+the rank @strong{after}
+the call,
+and sets the error code to
+@code{MARPA_ERR_NONE}.
+On failure, returns @minus{}2,
+and sets the error code to an appropriate
+value, which will never be
+@code{MARPA_ERR_NONE}.
+Note that when the rank is @minus{}2,
+the error code is the only way to distinguish
+success from failure.
+The error code can be determined by using the
+@code{marpa_g_error()} call.
 
 @end deftypefun
 

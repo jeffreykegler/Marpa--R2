@@ -33,11 +33,11 @@ else { # NOT $do_demo
  $input_string = join " ", @ARGV;
 }
 
-my $grammar = Marpa::R2::Grammar->new(
-    {   scannerless    => 1,
+my $grammar = Marpa::R2::Scanless::G->new(
+    {   
         action_object  => 'My_Actions',
         default_action => 'do_what_I_mean',
-        rules          => <<'END_OF_GRAMMAR',
+        source          => \(<<'END_OF_GRAMMAR'),
 :start ::= expression
 expression ::=
      NUM
@@ -54,16 +54,26 @@ expression ::=
   || expression '^' expression action => do_bitxor
    | expression '|' expression action => do_bitor
   || VAR '=' expression action => do_assign
-NUM ~ [\d]+ action => do_literal
-VAR ~ [\w]+ action => do_literal
+NUM ~ [\d]+
+VAR ~ [\w]
+:discard ~ whitespace
+whitespace ~ [\s]+
+# allow comments
+:discard ~ <hash comment>
+<hash comment> ~ <terminated hash comment> | <unterminated
+   final hash comment>
+<terminated hash comment> ~ '#' <hash comment body> <vertical space char>
+<unterminated final hash comment> ~ '#' <hash comment body>
+<hash comment body> ~ <hash comment char>*
+<vertical space char> ~ [\x{A}\x{B}\x{C}\x{D}\x{2028}\x{2029}]
+<hash comment char> ~ [^\x{A}\x{B}\x{C}\x{D}\x{2028}\x{2029}]
 END_OF_GRAMMAR
     }
 );
-$grammar->precompute;
 
 sub calculate {
     my ($string) = @_;
-    my $recce = Marpa::R2::Recognizer->new( { grammar => $grammar } );
+    my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
 
     ## A quasi-object, for internal use only
     local $My_Actions::SELF = bless {
@@ -71,7 +81,7 @@ sub calculate {
         },
         'My_Actions';
 
-    $recce->sl_read($string);
+    $recce->read($string);
     my $value_ref = $recce->value;
 
     if ( !defined $value_ref ) {
@@ -118,34 +128,20 @@ our $SELF;
 sub new { return $SELF }
 
 sub do_what_I_mean {
-    my $self = shift;
-    my @children = grep {defined} @_;
-    if ( not scalar @children ) {
-        return $self->do_literal();
-    }
+    my ($self, @children) = @_;
     return $children[0] if scalar @children == 1;
     return \@children;
 } ## end sub do_what_I_mean
 
-sub do_parens   { shift; return '(' . $_[0] . ')' }
-sub do_power    { shift; return '[' . $_[0] . '**' . $_[1] . ']' }
-sub do_multiply { shift; return '[' . $_[0] . '*' . $_[1] . ']' }
-sub do_divide   { shift; return '[' . $_[0] . '/' . $_[1] . ']' }
-sub do_add      { shift; return '[' . $_[0] . '+' . $_[1] . ']' }
-sub do_subtract { shift; return '[' . $_[0] . '-' . $_[1] . ']' }
-sub do_bitand   { shift; return '[' . $_[0] . '&' . $_[1] . ']' }
-sub do_bitxor   { shift; return '[' . $_[0] . '^' . $_[1] . ']' }
-sub do_bitor    { shift; return '[' . $_[0] . '|' . $_[1] . ']' }
-sub do_uminus   { shift; return '[-' . $_[0] . ']' }
-sub do_assign   { shift; return '[' . $_[0] . '=' . $_[1] . ']' }
-
-sub do_literal {
-    my $self  = shift;
-    my $recce = $self->{recce};
-    my ( $start, $end ) = Marpa::R2::Context::location();
-    my $literal = $recce->sl_range_to_string( $start, $end );
-    $literal =~ s/ \s+ \z //xms;
-    $literal =~ s/ \A \s+ //xms;
-    return $literal;
-} ## end sub do_literal
+sub do_parens   { shift; return '(' . $_[1] . ')' }
+sub do_power    { shift; return '[' . $_[0] . '**' . $_[2] . ']' }
+sub do_multiply { shift; return '[' . $_[0] . '*' . $_[2] . ']' }
+sub do_divide   { shift; return '[' . $_[0] . '/' . $_[2] . ']' }
+sub do_add      { shift; return '[' . $_[0] . '+' . $_[2] . ']' }
+sub do_subtract { shift; return '[' . $_[0] . '-' . $_[2] . ']' }
+sub do_bitand   { shift; return '[' . $_[0] . '&' . $_[2] . ']' }
+sub do_bitxor   { shift; return '[' . $_[0] . '^' . $_[2] . ']' }
+sub do_bitor    { shift; return '[' . $_[0] . '|' . $_[2] . ']' }
+sub do_uminus   { shift; return '[-' . $_[1] . ']' }
+sub do_assign   { shift; return '[' . $_[0] . '=' . $_[2] . ']' }
 

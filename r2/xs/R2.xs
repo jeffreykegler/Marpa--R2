@@ -519,6 +519,120 @@ PPCODE:
 }
 
 void
+default_rank( g_wrapper )
+    G_Wrapper *g_wrapper;
+PPCODE:
+{
+  Marpa_Grammar self = g_wrapper->g;
+  int gp_result = marpa_g_default_rank (self);
+  if (gp_result == -2 && g_wrapper->throw)
+    {
+      const int libmarpa_error_code = marpa_g_error (self, NULL);
+      if (libmarpa_error_code != MARPA_ERR_NONE)
+	{
+	  croak ("Problem in g->default_rank(): %s", xs_g_error (g_wrapper));
+	}
+    }
+  XSRETURN_IV (gp_result);
+}
+
+void
+default_rank_set( g_wrapper, rank )
+    G_Wrapper *g_wrapper;
+    Marpa_Rank rank;
+PPCODE:
+{
+  Marpa_Grammar self = g_wrapper->g;
+  int gp_result = marpa_g_default_rank_set (self, rank);
+  if (gp_result == -2 && g_wrapper->throw)
+    {
+      const int libmarpa_error_code = marpa_g_error (self, NULL);
+      if (libmarpa_error_code != MARPA_ERR_NONE)
+	croak ("Problem in g->default_rank_set(%d): %s",
+	       rank, xs_g_error (g_wrapper));
+    }
+  XSRETURN_IV (gp_result);
+}
+
+void
+rule_rank( g_wrapper, rule_id )
+    G_Wrapper *g_wrapper;
+    Marpa_Rule_ID rule_id;
+PPCODE:
+{
+  Marpa_Grammar self = g_wrapper->g;
+  int gp_result = marpa_g_rule_rank (self, rule_id);
+  if (gp_result == -2 && g_wrapper->throw)
+    {
+      const int libmarpa_error_code = marpa_g_error (self, NULL);
+      if (libmarpa_error_code != MARPA_ERR_NONE)
+	{
+	  croak ("Problem in g->rule_rank(%d): %s",
+		 rule_id, xs_g_error (g_wrapper));
+	}
+    }
+  XSRETURN_IV (gp_result);
+}
+
+void
+rule_rank_set( g_wrapper, rule_id, rank )
+    G_Wrapper *g_wrapper;
+    Marpa_Rule_ID rule_id;
+    Marpa_Rank rank;
+PPCODE:
+{
+  Marpa_Grammar self = g_wrapper->g;
+  int gp_result = marpa_g_rule_rank_set(self, rule_id, rank);
+  if (gp_result == -2 && g_wrapper->throw)
+    {
+      const int libmarpa_error_code = marpa_g_error (self, NULL);
+      if (libmarpa_error_code != MARPA_ERR_NONE)
+	croak ("Problem in g->rule_rank_set(%d, %d): %s",
+	       rule_id, rank, xs_g_error (g_wrapper));
+    }
+  XSRETURN_IV (gp_result);
+}
+
+void
+symbol_rank( g_wrapper, symbol_id )
+    G_Wrapper *g_wrapper;
+    Marpa_Symbol_ID symbol_id;
+PPCODE:
+{
+  Marpa_Grammar self = g_wrapper->g;
+  int gp_result = marpa_g_symbol_rank (self, symbol_id);
+  if (gp_result == -2 && g_wrapper->throw)
+    {
+      const int libmarpa_error_code = marpa_g_error (self, NULL);
+      if (libmarpa_error_code != MARPA_ERR_NONE)
+	{
+	  croak ("Problem in g->symbol_rank(%d): %s",
+		 symbol_id, xs_g_error (g_wrapper));
+	}
+    }
+  XSRETURN_IV (gp_result);
+}
+
+void
+symbol_rank_set( g_wrapper, symbol_id, rank )
+    G_Wrapper *g_wrapper;
+    Marpa_Symbol_ID symbol_id;
+    Marpa_Rank rank;
+PPCODE:
+{
+  Marpa_Grammar self = g_wrapper->g;
+  int gp_result = marpa_g_symbol_rank_set (self, symbol_id, rank);
+  if (gp_result == -2 && g_wrapper->throw)
+    {
+      const int libmarpa_error_code = marpa_g_error (self, NULL);
+      if (libmarpa_error_code != MARPA_ERR_NONE)
+	croak ("Problem in g->symbol_rank_set(%d, %d): %s",
+	       symbol_id, rank, xs_g_error (g_wrapper));
+    }
+  XSRETURN_IV (gp_result);
+}
+
+void
 throw_set( g_wrapper, boolean )
     G_Wrapper *g_wrapper;
     int boolean;
@@ -736,6 +850,28 @@ PPCODE:
 }
 
 void
+recce_set( stream, new_r_sv )
+    Unicode_Stream *stream;
+    SV *new_r_sv;
+PPCODE:
+{
+  if (!sv_isa (new_r_sv, "Marpa::R2::Thin::R"))
+    {
+      croak ("Problem in u->recce_set(): arg is not of type Marpa::R2::Thin::R");
+    }
+  SvREFCNT_inc (new_r_sv);
+  {
+    IV tmp = SvIV ((SV *) SvRV (new_r_sv));
+    R_Wrapper *new_r_wrapper = INT2PTR (R_Wrapper *, tmp);
+    stream->base = new_r_wrapper->base;
+    stream->r_wrapper = new_r_wrapper;
+    SvREFCNT_dec(stream->r_sv);
+    stream->r_sv = new_r_sv;
+  }
+}
+
+
+void
 DESTROY( stream )
     Unicode_Stream *stream;
 PPCODE:
@@ -892,39 +1028,33 @@ PPCODE:
 }
 
 void
-hop( stream, hop )
+pos_set( stream, new_pos )
      Unicode_Stream *stream;
-     int hop;
+     STRLEN new_pos;
 PPCODE:
 {
-  /* *SAFELY* move the pointer backward or forward
+  /* *SAFELY* change the position
    * This requires care in UTF8
-   * Returns the hop actually performed
+   * Returns the position *BEFORE* the call
    */
   int input_is_utf8 = SvUTF8 (stream->input);
   STRLEN len;
+  const STRLEN old_pos = stream->character_ix;
   char *input;
-  if (hop == 0) XSRETURN_IV(0);
-  if (input_is_utf8) {
-      croak ("Problem in r->hop(): UTF8 not yet implemented");
-  }
+  if (input_is_utf8)
+    {
+      croak ("Problem in stream->pos_set(): UTF8 not yet implemented");
+    }
   input = SvPV (stream->input, len);
-  if (hop > 0) {
-     const int maximum_hop = len - stream->input_offset;
-     const int actual_hop = hop > maximum_hop ? maximum_hop : hop;
-     stream->input_offset += actual_hop;
-     stream->character_ix += actual_hop;
-     XSRETURN_IV(actual_hop);
-  }
-  if (hop < 0) {
-     const int minimum_hop = -stream->input_offset;
-     const int actual_hop = hop < minimum_hop ? minimum_hop : hop;
-     stream->input_offset += actual_hop;
-     stream->character_ix += actual_hop;
-     XSRETURN_IV(actual_hop);
-  }
-  /* Never reached */
-  XSRETURN_UNDEF;
+  /* STRLEN is assumed to be unsigned so no check for less than zero */
+  if (new_pos >= len)
+    {
+      croak ("Problem in stream->pos_set(): new pos = %ld, but length = %ld",
+	     (long) new_pos, (long) len);
+    }
+  stream->input_offset = new_pos;
+  stream->character_ix = new_pos;
+  XSRETURN_IV (old_pos);
 }
 
  # Return values:
@@ -1039,7 +1169,7 @@ PPCODE:
 		    # we have one of them as an example
 		    stream->input_symbol_id = symbol_id;
 		    if (trace_level >= 10) {
-			warn("Thin::U::read() Rejected codepoint 0x%04x at pos %d at symbol %d",
+			warn("Thin::U::read() Rejected codepoint 0x%04x at pos %d as symbol %d",
 			  (int)codepoint, (int)stream->character_ix, symbol_id);
 		    }
 		    if (!ignore_rejection)
@@ -1050,12 +1180,14 @@ PPCODE:
 		    break;
 		  case MARPA_ERR_NONE:
 		    if (trace_level >= 10) {
-			warn("Thin::U::read() Accepted codepoint 0x%04x at pos %d at symbol %d",
+			warn("Thin::U::read() Accepted codepoint 0x%04x at pos %d as symbol %d",
 			  (int)codepoint, (int)stream->character_ix, symbol_id);
 		    }
 		    tokens_accepted++;
 		    break;
 		  default:
+		    stream->codepoint = codepoint;
+		    stream->input_symbol_id = symbol_id;
 		    croak
 		      ("Problem alternative() failed at char ix %d; symbol id %d; codepoint 0x%lx\n"
 		       "Problem in r->input_string_read(), alternative() failed: %s",

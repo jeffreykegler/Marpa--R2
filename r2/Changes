@@ -15,6 +15,15 @@
 
 Revision history for Marpa::R2
 
+2.033_003
+2.033_002
+
+     * Fix problem with negative rule ranks.
+
+2.033_000
+
+      * New series of developer's releases
+
 2.032000 Sun Dec  9 10:19:50 PST 2012
 
       * Speed up precomputation of large grammars.

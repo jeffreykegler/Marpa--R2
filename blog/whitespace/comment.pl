@@ -46,14 +46,15 @@ my $prefix_grammar = Marpa::R2::Scanless::G->new(
     {
         action_object        => 'My_Actions',
         default_action => 'do_arg0',
-        source          => \(<<'END_OF_RULES'),
+        source          => \( <<'END_OF_RULES' ),
 :start ::= Script
 Script ::= Calculation* action => do_list
-Calculation ::= Expression | ('say') Expression
+Calculation ::= Expression | 'say' Expression
 Expression ::=
      Number
-   | ('+') Expression Expression action => do_add
+   | '+' Expression Expression action => do_add
 Number ~ [\d] + action => do_literal
+
 :discard ~ whitespace
 whitespace ~ [\s]+
 # allow comments
@@ -78,9 +79,9 @@ sub do_list {
 }
 sub do_literal {
     my $self = shift;
-    my $slr = $self->{slr};
+    my $recce = $self->{recce};
     my ( $start, $end ) = Marpa::R2::Context::location();
-    my $result = $slr->range_to_string($start, $end);
+    my $result = $recce->sl_range_to_string($start, $end);
     $result =~ s/ \A \s+ //xms;
     $result =~ s/ \s+ \z //xms;
     return $result;
@@ -89,38 +90,37 @@ sub do_literal {
 sub do_add  { shift; return $_[0] + $_[1] }
 sub do_arg0 { shift; return shift; }
 
-sub show_last_expression {
-    my ($self) = @_;
-    my $slr = $self->{slr};
-    my ( $start, $end ) = $slr->last_completed_range('Expression');
-    return 'No expression was successfully parsed' if not defined $start;
-    my $last_expression = $slr->range_to_string( $start, $end );
-    return "Last expression successfully parsed was: $last_expression";
-} ## end sub show_last_expression
-
 package main;
+
+sub My_Error::show_last_expression {
+    my ($self) = @_;
+    my ( $start, $end ) = $self->last_completed_range('Expression');
+    return 'No expression was successfully parsed' if not defined $start;
+    my $last_expression = $self->{recce}->sl_range_to_string( $start, $end );
+    return "Last expression successfully parsed was: $last_expression";
+} ## end sub My_Error::show_last_expression
 
 sub my_parser {
     my ( $grammar, $string ) = @_;
 
-    my $self = bless { grammar => $grammar, input => \$string, }, 'My_Actions';
+    my $self = bless { grammar => $grammar, input => \$string, }, 'My_Error';
     local $My_Actions::SELF = $self;
 
-    my $slr = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
-    $self->{slr} = $slr;
+    my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
+    $self->{recce} = $recce;
     my $event_count;
 
-    if ( not defined eval { $event_count = $slr->read($string); 1 } ) {
+    if ( not defined eval { $event_count = $recce->read($string); 1 } ) {
 
         # Add last expression found, and rethrow
         my $eval_error = $EVAL_ERROR;
         chomp $eval_error;
         die $self->show_last_expression(), "\n", $eval_error, "\n";
-    } ## end if ( not defined eval { $slr->read($string)...})
-    if (not defined $event_count) {
-        die $self->show_last_expression(), "\n", $slr->error();
+    } ## end if ( not defined eval { $event_count = $recce->read(...)})
+    if ( not defined $event_count ) {
+        die $self->show_last_expression(), "\n", $recce->error();
     }
-    my $value_ref = $slr->value;
+    my $value_ref = $recce->value;
     if ( not defined $value_ref ) {
         die $self->show_last_expression(), "\n",
             "No parse was found, after reading the entire input\n";
@@ -131,17 +131,13 @@ sub my_parser {
 my @test_strings;
 if ($do_demo) {
     push @test_strings,
-    '+++ 1 2 3 + + 1 2 4',
-    'say + 1 2',
-    '+ 1 say 2',
-    '+ 1 2 3 + + 1 2 4',
-    '+++',
-    '++1 2++',
-    '++1 2++3 4++',
-    '1 + 2 +3  4 + 5 + 6 + 7',
-    '+12',
-    '+1234'
-    ;
+    <<'END_OF_STRING';
+#this is a first first comment
+2
+# this is my very first comment
+5 #this is a final comment
+END_OF_STRING
+
 } else {
     push @test_strings, shift;
 }

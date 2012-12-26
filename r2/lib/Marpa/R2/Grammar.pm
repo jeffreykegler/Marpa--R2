@@ -28,7 +28,7 @@ no warnings qw(recursion qw);
 use strict;
 
 use vars qw($VERSION $STRING_VERSION);
-$VERSION        = '2.032000';
+$VERSION        = '2.033_003';
 $STRING_VERSION = $VERSION;
 ## no critic(BuiltinFunctions::ProhibitStringyEval)
 $VERSION = eval $VERSION;
@@ -79,7 +79,7 @@ BEGIN {
     RULE_NAME_REQUIRED
     RULE_BY_NAME
     INTERFACE { currently 'standard' or 'stuifzand' }
-    SCANNERLESS { A Boolean indicating whether the grammar is scannerless }
+    INTERNAL { internal grammar -- relax various restrictions }
 
     CHARACTER_CLASSES { an hash of
     character class regex by symbol name.
@@ -164,6 +164,10 @@ sub Marpa::R2::Grammar::new {
     return $grammar;
 } ## end sub Marpa::R2::Grammar::new
 
+sub Marpa::R2::Grammar::tracer {
+    return $_[0]->[Marpa::R2::Internal::Grammar::TRACER];
+}
+
 sub Marpa::R2::Grammar::thin {
     return $_[0]->[Marpa::R2::Internal::Grammar::C];
 }
@@ -176,6 +180,7 @@ sub Marpa::R2::Grammar::thin_symbol {
 
 use constant GRAMMAR_OPTIONS => [
     qw{
+        _internal_
         action_object
         actions
         infinite_action
@@ -185,7 +190,7 @@ use constant GRAMMAR_OPTIONS => [
         inaccessible_ok
         rule_name_required
         rules
-        scannerless
+        source
         start
         symbols
         terminals
@@ -229,12 +234,9 @@ sub Marpa::R2::Grammar::set {
         # options and are expected to take force for the other
         # options, even if specified afterwards
 
-        if ( defined( my $value = $args->{'scannerless'} ) ) {
-            $grammar->[Marpa::R2::Internal::Grammar::SCANNERLESS] =  $value;
+        if ( defined( my $value = $args->{'_internal_'} ) ) {
+            $grammar->[Marpa::R2::Internal::Grammar::INTERNAL] =  $value;
         }
-        ## If not marked scannerless in the first arg hash of the
-        ## constructor, then the grammar is not scannerless
-        $grammar->[Marpa::R2::Internal::Grammar::SCANNERLESS] //= 0;
 
         if ( defined( my $value = $args->{'trace_file_handle'} ) ) {
             $trace_fh =
@@ -287,13 +289,27 @@ sub Marpa::R2::Grammar::set {
             $grammar->[Marpa::R2::Internal::Grammar::START_NAME] = $value;
         } ## end if ( defined( my $value = $args->{'start'} ) )
 
+        my $stuifzand_source;
+        my $deprecated_source;
+
+        if ( defined( my $value = $args->{'source'} ) ) {
+            Marpa::R2::exception(
+                'source option not allowed after grammar is precomputed')
+                if $grammar_c->is_precomputed();
+            Marpa::R2::exception(
+                qq{"source" named argument must be string or ref to SCALAR}
+            ) if ref $value ne 'SCALAR';
+            $stuifzand_source = $value;
+        }
+
         if ( defined( my $value = $args->{'rules'} ) ) {
             Marpa::R2::exception(
                 'rules option not allowed after grammar is precomputed')
                 if $grammar_c->is_precomputed();
             DO_RULES: {
-                ## Allow this via a hack for new
-                ## Eventually deprecate and eliminate it
+                ## These hacks are for previous method of specifying Stuifzand
+                ## grammars.  They are now deprecated and undocumented.
+                ## Eventually they may be eliminated.
                 if (    ref $value eq 'ARRAY'
                     and scalar @{$value} == 1
                     and not ref $value->[0] )
@@ -301,35 +317,18 @@ sub Marpa::R2::Grammar::set {
                     $value = $value->[0];
                 } ## end if ( ref $value eq 'ARRAY' and scalar @{$value} == 1...)
                 if ( not ref $value ) {
-                    $grammar->[Marpa::R2::Internal::Grammar::INTERFACE] //=
-                        'stuifzand';
+                   $deprecated_source = \$value;
+                }
+                if (defined $deprecated_source and defined $stuifzand_source) {
                     Marpa::R2::exception(
-                        qq{Attempt to use the BNF interface with a grammar that is already using the standard interface\n},
-                        qq{  Mixing the BNF and standard interface is not allowed},
+                        qq{Attempt to specify BNF via both 'rules' and 'source' named arguments\n},
+                        qq{  You must use one or the other},
                         )
-                        if $grammar->[Marpa::R2::Internal::Grammar::INTERFACE]
-                            ne 'stuifzand';
-                    # If we have not already been set as scannerless, exclude the
-                    # possibility
-                    my $scannerless = $grammar->[Marpa::R2::Internal::Grammar::SCANNERLESS];
-                    my $parse_result =
-                        Marpa::R2::Internal::Stuifzand::parse_rules($grammar, $value);
-                    my $character_classes =
-                        $parse_result->{character_classes};
-                    Marpa::R2::exception(
-                        qq{Attempt to use character class with a grammar that is not scannerless\n},
-                        qq{  A scannerless grammar must have a ':start' rule }
-                        )
-                        if not $scannerless and defined $character_classes ;
-                    $grammar
-                        ->[Marpa::R2::Internal::Grammar::CHARACTER_CLASSES] =
-                        $character_classes
-                        if defined $character_classes;
-                    for my $rule ( @{$parse_result->{rules}} ) {
-                        add_user_rule( $grammar, $rule );
-                    }
+                }
+                if (defined $deprecated_source) {
+                    $stuifzand_source = $deprecated_source;
                     last DO_RULES;
-                } ## end if ( not ref $value )
+                }
                 Marpa::R2::exception(
                     qq{"rules" named argument must be string or ref to ARRAY}
                 ) if ref $value ne 'ARRAY';
@@ -344,6 +343,36 @@ sub Marpa::R2::Grammar::set {
                 add_user_rules( $grammar, $value );
             } ## end DO_RULES:
         } ## end if ( defined( my $value = $args->{'rules'} ) )
+
+        if ( defined $stuifzand_source ) {
+            $grammar->[Marpa::R2::Internal::Grammar::INTERFACE] //=
+                'stuifzand';
+            Marpa::R2::exception(
+                qq{Attempt to use the standard interface with a grammar that is already using the BNF interface\n},
+                qq{  Mixing the BNF and standard interface is not allowed}
+                )
+                if $grammar->[Marpa::R2::Internal::Grammar::INTERFACE] ne
+                    'stuifzand';
+            Marpa::R2::exception(
+                qq{Attempt to use the BNF interface with a grammar that is already using the standard interface\n},
+                qq{  Mixing the BNF and standard interface is not allowed},
+                )
+                if $grammar->[Marpa::R2::Internal::Grammar::INTERFACE] ne
+                    'stuifzand';
+            my $parse_result =
+                Marpa::R2::Internal::Stuifzand::parse_rules( $grammar,
+                $stuifzand_source );
+            my $character_classes = $parse_result->{character_classes};
+            Marpa::R2::exception(
+                qq{Attempt to use character class with a grammar that is not scannerless\n},
+            ) if defined $character_classes;
+            $grammar->[Marpa::R2::Internal::Grammar::CHARACTER_CLASSES] =
+                $character_classes
+                if defined $character_classes;
+            for my $rule ( @{ $parse_result->{rules} } ) {
+                add_user_rule( $grammar, $rule );
+            }
+        } ## end if ( defined $stuifzand_source )
 
         if ( exists $args->{'default_empty_action'} ) {
             my $value = $args->{'default_empty_action'};
@@ -858,6 +887,15 @@ sub Marpa::R2::Grammar::rule {
     return @symbol_names;
 } ## end sub Marpa::R2::Grammar::rule
 
+# Internal, for use with in coordinating thin and thick
+# interfaces.  NOT DOCUMENTED.
+sub Marpa::R2::Grammar::_rule_mask {
+    my ( $grammar, $rule_id ) = @_;
+    my $rules = $grammar->[Marpa::R2::Internal::Grammar::RULES];
+    my $rule = $rules->[$rule_id];
+    return $rule->[Marpa::R2::Internal::Rule::MASK];
+} ## end sub Marpa::R2::Grammar::rule
+
 # Deprecated and for removal
 # Used in blog post, and part of
 # CPAN version 2.023_008 but
@@ -1076,8 +1114,11 @@ sub add_user_rule {
     my $stuifzand_interface = 
         $grammar->[Marpa::R2::Internal::Grammar::INTERFACE] eq 'stuifzand';
 
+    my $grammar_is_internal = $stuifzand_interface ||
+        $grammar->[Marpa::R2::Internal::Grammar::INTERNAL];
+
     my $lhs =
-        $stuifzand_interface
+        $grammar_is_internal
         ? assign_symbol( $grammar, $lhs_name )
         : assign_user_symbol( $grammar, $lhs_name );
     $rhs_names //= [];
@@ -1148,7 +1189,7 @@ sub add_user_rule {
 
     my $rhs = [
         map {
-            $stuifzand_interface
+            $grammar_is_internal
                 ? assign_symbol( $grammar, $_ )
                 : assign_user_symbol( $grammar, $_ );
         } @{$rhs_names}
@@ -1188,8 +1229,8 @@ sub add_user_rule {
         shadow_rule( $grammar, $ordinary_rule_id );
         my $ordinary_rule = $rules->[$ordinary_rule_id];
 
-        # Only the Stuifzand interface can set a custom mask
-        if (not defined $mask or not $stuifzand_interface) {
+        # Only internal grammars can set a custom mask
+        if (not defined $mask or not $grammar_is_internal) {
             $mask = [(1) x scalar @rhs_ids];
         }
         $ordinary_rule->[Marpa::R2::Internal::Rule::MASK] = $mask;
@@ -1215,7 +1256,7 @@ sub add_user_rule {
     my $separator_id = -1;
     if ( defined $separator_name ) {
         $separator =
-            $stuifzand_interface
+            $grammar_is_internal
             ? assign_symbol( $grammar, $separator_name )
             : assign_user_symbol( $grammar, $separator_name );
         $separator_id = $separator->[Marpa::R2::Internal::Symbol::ID];
@@ -1266,24 +1307,35 @@ sub add_user_rule {
 sub set_start_symbol {
     my $grammar = shift;
 
-    my $grammar_c  = $grammar->[Marpa::R2::Internal::Grammar::C];
-    my $start_name = $grammar->[Marpa::R2::Internal::Grammar::START_NAME];
-
-    if ( $grammar->[Marpa::R2::Internal::Grammar::SCANNERLESS] ) {
-        Marpa::R2::exception(
-            qq{'start' named argument not allowed for scannerless grammar},
-            qq{  ':start' rules in the BNF must be the only start symbol specification},
-        ) if defined $start_name;
-        $start_name = $grammar->[Marpa::R2::Internal::Grammar::START_NAME] =
-            '[:start]';
-    } ## end if ( $grammar->[Marpa::R2::Internal::Grammar::SCANNERLESS...])
-
-    return if not defined $start_name;
-    my $start_id =
-        $grammar->[Marpa::R2::Internal::Grammar::TRACER]
-        ->symbol_by_name($start_name);
-    Marpa::R2::exception(qq{Start symbol "$start_name" not in grammar})
-        if not defined $start_id;
+    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
+    state $default_start_name = '[:start]';
+    my $tracer           = $grammar->[Marpa::R2::Internal::Grammar::TRACER];
+    my $default_start_id = $tracer->symbol_by_name($default_start_name);
+    my $start_id;
+    VALIDATE_START_NAME: {
+        my $named_arg_start_name =
+            $grammar->[Marpa::R2::Internal::Grammar::START_NAME];
+        if ( defined $named_arg_start_name and defined $start_id ) {
+            Marpa::R2::exception(
+                qq{Start symbol specified as '[:start]', but also with named argument\n},
+                qq{   You must use one or the other\n}
+            );
+        } ## end if ( defined $named_arg_start_name and defined $start_id)
+        if ( defined $named_arg_start_name ) {
+            $start_id = $tracer->symbol_by_name($named_arg_start_name);
+            Marpa::R2::exception(
+                qq{Start symbol "$named_arg_start_name" not in grammar})
+                if not defined $start_id;
+            last VALIDATE_START_NAME;
+        } ## end if ( defined $named_arg_start_name )
+        if ( defined $default_start_id ) {
+            $start_id = $default_start_id;
+            $grammar->[Marpa::R2::Internal::Grammar::START_NAME] =
+                $named_arg_start_name;
+            last VALIDATE_START_NAME;
+        } ## end if ( defined $default_start_id )
+        Marpa::R2::exception(qq{No start symbol specified in grammar\n});
+    } ## end VALIDATE_START_NAME:
 
     if ( not defined $grammar_c->start_symbol_set($start_id) ) {
         Marpa::R2::uncaught_error( $grammar_c->error() );

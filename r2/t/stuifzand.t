@@ -33,7 +33,7 @@ use Marpa::R2;
 my $g = Marpa::R2::Grammar->new(
     {   actions => "main",
         start   => "start",
-        rules   => "start ::= action => act"
+        source   => \"start ::= action => act"
     }
 );
 $g->precompute;

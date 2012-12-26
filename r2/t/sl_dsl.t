@@ -1,33 +1,30 @@
 #!perl
+# Copyright 2012 Jeffrey Kegler
+# This file is part of Marpa::R2.  Marpa::R2 is free software: you can
+# redistribute it and/or modify it under the terms of the GNU Lesser
+# General Public License as published by the Free Software Foundation,
+# either version 3 of the License, or (at your option) any later version.
+#
+# Marpa::R2 is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser
+# General Public License along with Marpa::R2.  If not, see
+# http://www.gnu.org/licenses/.
+
+# Test of scannerless parsing -- a DSL
 
 use 5.010;
 use strict;
 use warnings;
+
+use Test::More tests => 6;
 use English qw( -no_match_vars );
-
-use Getopt::Long;
+use lib 'inc';
+use Marpa::R2::Test;
 use Marpa::R2;
-
-my $do_demo = 0;
-my $getopt_result = GetOptions( "demo!" => \$do_demo, );
-
-sub usage {
-    die <<"END_OF_USAGE_MESSAGE";
-$PROGRAM_NAME --demo
-$PROGRAM_NAME 'exp' [...]
-
-Run $PROGRAM_NAME with either the "--demo" argument
-or a series of calculator expressions.
-END_OF_USAGE_MESSAGE
-} ## end sub usage
-
-if ( not $getopt_result ) {
-    usage();
-}
-if ($do_demo) {
-    if ( scalar @ARGV > 0 ) { say join " ", @ARGV; usage(); }
-}
-elsif ( scalar @ARGV <= 0 ) { usage(); }
 
 my $rules = <<'END_OF_GRAMMAR';
 :start ::= script
@@ -94,7 +91,7 @@ sub add_brackets {
 } ## end sub add_brackets
 
 sub calculate {
-    my ($string) = @_;
+    my ($p_string) = @_;
 
     %symbol_table = ();
 
@@ -105,7 +102,7 @@ sub calculate {
     local $My_Actions::SELF = $self;
     my $event_count;
 
-    if ( not defined eval { $event_count = $recce->read($string); 1 } ) {
+    if ( not defined eval { $event_count = $recce->read($p_string); 1 } ) {
 
         # Add last expression found, and rethrow
         my $eval_error = $EVAL_ERROR;
@@ -126,54 +123,34 @@ sub calculate {
 
 sub report_calculation {
     my ($string) = @_;
-    my $output   = qq{Input: "$string"\n};
-    my $result   = calculate($string);
+    my $result   = calculate(\$string);
     $result = join q{,}, @{$result} if ref $result eq 'ARRAY';
-    $output .= "  Parse: $result\n";
+    my $output = "Parse: $result\n";
     for my $symbol ( sort keys %symbol_table ) {
         $output .= qq{"$symbol" = "} . $symbol_table{$symbol} . qq{"\n};
     }
+    chomp $output;
     return $output;
 } ## end sub report_calculation
 
-if (@ARGV) {
-    my $result = calculate( join ';', grep {/\S/} @ARGV );
-    $result = join q{,}, @{$result} if ref $result eq 'ARRAY';
-    say "Result is ", $result;
-    for my $symbol ( sort keys %symbol_table ) {
-        say qq{"$symbol" = "} . $symbol_table{$symbol} . qq{"};
-    }
-    exit 0;
-} ## end if (@ARGV)
+my @tests_data = (
+    [ "4 * 3 + 42 / 1" => 'Parse: 54' ],
+    [   "4 * 3 / (a = b = 5) + 42 - 1" =>
+            qq{Parse: 43.4\n"a" = "5"\n"b" = "5"}
+    ],
+    [ "4 * 3 /  5 - - - 3 + 42 - 1" => 'Parse: 40.4' ],
+    [ "a=1;b = 5;  - a - b"         => qq{Parse: -6\n"a" = "1"\n"b" = "5"} ],
+    [ "1 * 2 + 3 * 4 ^ 2 ^ 2 ^ 2 * 42 + 1" => 'Parse: 541165879299' ],
+    [ "+ reduce 1 + 2, 3,4*2 , 5"          => 'Parse: 19' ]
+);
 
-my $output = join q{},
-    report_calculation('4 * 3 + 42 / 1'),
-    report_calculation('4 * 3 / (a = b = 5) + 42 - 1'),
-    report_calculation('4 * 3 /  5 - - - 3 + 42 - 1'),
-    report_calculation('a=1;b = 5;  - a - b'),
-    report_calculation('1 * 2 + 3 * 4 ^ 2 ^ 2 ^ 2 * 42 + 1'),
-    report_calculation('+ reduce 1 + 2, 3,4*2 , 5')
-    ;
-
-print $output or die "print failed: $ERRNO";
-$output eq <<'EXPECTED_OUTPUT' or die 'FAIL: Output mismatch';
-Input: "4 * 3 + 42 / 1"
-  Parse: 54
-Input: "4 * 3 / (a = b = 5) + 42 - 1"
-  Parse: 43.4
-"a" = "5"
-"b" = "5"
-Input: "4 * 3 /  5 - - - 3 + 42 - 1"
-  Parse: 40.4
-Input: "a=1;b = 5;  - a - b"
-  Parse: -6
-"a" = "1"
-"b" = "5"
-Input: "1 * 2 + 3 * 4 ^ 2 ^ 2 ^ 2 * 42 + 1"
-  Parse: 541165879299
-Input: "+ reduce 1 + 2, 3,4*2 , 5"
-  Parse: 19
-EXPECTED_OUTPUT
+TEST:
+for my $test_data (@tests_data) {
+    my ($test_string,     $expected_value) = @{$test_data};
+    my $actual_value = report_calculation( $test_string );
+    $actual_value //= 'NO PARSE!';
+    Test::More::is( $actual_value, $expected_value, qq{Value of "$test_string"} );
+} ## end TEST: for my $test_string (@test_strings)
 
 package My_Actions;
 our $SELF;
@@ -276,7 +253,7 @@ sub do_reduce {
 sub show_last_expression {
     my ($self) = @_;
     my $slr = $self->{slr};
-    my ( $start, $end ) = $slr->last_completed_range('Expression');
+    my ( $start, $end ) = $slr->last_completed_range('expression');
     return 'No expression was successfully parsed' if not defined $start;
     my $last_expression = $slr->range_to_string( $start, $end );
     return "Last expression successfully parsed was: $last_expression";

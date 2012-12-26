@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!perl
 # Copyright 2012 Jeffrey Kegler
 # This file is part of Marpa::R2.  Marpa::R2 is free software: you can
 # redistribute it and/or modify it under the terms of the GNU Lesser
@@ -14,33 +14,17 @@
 # General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 
+# Test of scannerless parsing -- prefix addition
+
 use 5.010;
 use strict;
 use warnings;
+
+use Test::More tests => 30;
 use English qw( -no_match_vars );
-use Marpa::R2 2.023008;
-use Getopt::Long;
-
-my $do_demo = 0;
-my $getopt_result = GetOptions( "demo!" => \$do_demo, );
-
-sub usage {
-    die <<"END_OF_USAGE_MESSAGE";
-$PROGRAM_NAME --demo
-$PROGRAM_NAME 'exp' [...]
-
-Run $PROGRAM_NAME with either the "--demo" argument
-or a series of calculator expressions.
-END_OF_USAGE_MESSAGE
-} ## end sub usage
-
-if ( not $getopt_result ) {
-    usage();
-}
-if ($do_demo) {
-    if ( scalar @ARGV > 0 ) { say join q{ }, @ARGV; usage(); }
-}
-elsif ( scalar @ARGV <= 0 ) { usage(); }
+use lib 'inc';
+use Marpa::R2::Test;
+use Marpa::R2;
 
 my $prefix_grammar = Marpa::R2::Scanless::G->new(
     {
@@ -93,9 +77,9 @@ sub show_last_expression {
     my ($self) = @_;
     my $slr = $self->{slr};
     my ( $start, $end ) = $slr->last_completed_range('Expression');
-    return 'No expression was successfully parsed' if not defined $start;
+    return if not defined $start;
     my $last_expression = $slr->range_to_string( $start, $end );
-    return "Last expression successfully parsed was: $last_expression";
+    return $last_expression;
 } ## end sub show_last_expression
 
 package main;
@@ -103,66 +87,60 @@ package main;
 sub my_parser {
     my ( $grammar, $string ) = @_;
 
-    my $self = bless { grammar => $grammar, input => \$string, }, 'My_Actions';
+    my $self = bless { grammar => $grammar, input => \$string, },
+        'My_Actions';
     local $My_Actions::SELF = $self;
 
     my $slr = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
     $self->{slr} = $slr;
     my $event_count;
+    my ( $parse_value, $parse_status, $last_expression );
 
-    if ( not defined eval { $event_count = $slr->read($string); 1 } ) {
-
-        # Add last expression found, and rethrow
-        my $eval_error = $EVAL_ERROR;
-        chomp $eval_error;
-        die $self->show_last_expression(), "\n", $eval_error, "\n";
-    } ## end if ( not defined eval { $slr->read($string)...})
-    if (not defined $event_count) {
-        die $self->show_last_expression(), "\n", $slr->error();
+    if ( not defined eval { $event_count = $slr->read(\$string); 1 } ) {
+        my $abbreviated_error = $EVAL_ERROR;
+        chomp $abbreviated_error;
+        $abbreviated_error =~ s/\n.*//xms;
+        $abbreviated_error =~ s/^Error \s+ in \s+ string_read: \s+ //xms;
+        return 'No parse', $abbreviated_error, $self->show_last_expression();
+    }
+    if ( not defined $event_count ) {
+        my $error = $slr->error();
+        return 'No parse', $error, $self->show_last_expression();
     }
     my $value_ref = $slr->value;
     if ( not defined $value_ref ) {
-        die $self->show_last_expression(), "\n",
-            "No parse was found, after reading the entire input\n";
-    }
-    return ${$value_ref};
+        return
+            'No parse', 'Input read to end but no parse',
+            $self->show_last_expression();
+    } ## end if ( not defined $value_ref )
+    return [ return ${$value_ref}, 'Parse OK', 'entire input' ];
 } ## end sub my_parser
 
-my @test_strings;
-if ($do_demo) {
-    push @test_strings,
-    '+++ 1 2 3 + + 1 2 4',
-    'say + 1 2',
-    '+ 1 say 2',
-    '+ 1 2 3 + + 1 2 4',
-    '+++',
-    '++1 2++',
-    '++1 2++3 4++',
-    '1 + 2 +3  4 + 5 + 6 + 7',
-    '+12',
-    '+1234'
-    ;
-} else {
-    push @test_strings, shift;
-}
+my @tests_data = (
+    [ '+++ 1 2 3 + + 1 2 4',     '1 results: 13', 'Parse OK', 'entire input' ],
+    [ 'say + 1 2',               '1 results: 3', 'Parse OK', 'entire input' ],
+    [ '+ 1 say 2',               'No parse', 'Parse exhausted', '1' ],
+    [ '+ 1 2 3 + + 1 2 4',       '3 results: 3 3 7', 'Parse OK', 'entire input' ],
+    [ '+++',                     'No parse', 'Input read to end but no parse', 'none' ],
+    [ '++1 2++',                 'No parse', 'Input read to end but no parse', '+1 2' ],
+    [ '++1 2++3 4++',            'No parse', 'Input read to end but no parse', '+3 4' ],
+    [ '1 + 2 +3  4 + 5 + 6 + 7', 'No parse', 'Input read to end but no parse', '7' ],
+    [ '+12',                     'No parse', 'Input read to end but no parse', '12' ],
+    [ '+1234',                   'No parse', 'Input read to end but no parse', '1234' ],
+);
 
 TEST:
-for my $test_string (@test_strings) {
-    my $output;
-    my $eval_ok =
-        eval { $output = my_parser( $prefix_grammar, $test_string ); 1 };
-    my $eval_error = $EVAL_ERROR;
-    if ( not defined $eval_ok ) {
-        chomp $eval_error;
-        say q{=} x 30;
-        print qq{Input was "$test_string"\n},
-            qq{Parse failed, with this diagnostic:\n},
-            $eval_error, "\n";
-        next TEST;
-    } ## end if ( not defined $eval_ok )
-    say q{=} x 30;
-    print qq{Input was "$test_string"\n},
-        qq{Parse was successful, output was "$output"\n};
+for my $test_data (@tests_data) {
+    my ($test_string,     $expected_value,
+        $expected_result, $expected_last_expression
+    ) = @{$test_data};
+    my ($actual_value,
+        $actual_result, $actual_last_expression
+    ) = my_parser( $prefix_grammar, $test_string );
+    $actual_last_expression //= 'none';
+    Test::More::is( $actual_value, $expected_value, qq{Value of "$test_string"} );
+    Test::More::is( $actual_result, $expected_result, qq{Result of "$test_string"} );
+    Test::More::is( $actual_last_expression, $expected_last_expression, qq{Last expression found in "$test_string"} );
 } ## end TEST: for my $test_string (@test_strings)
 
 # vim: expandtab shiftwidth=4:

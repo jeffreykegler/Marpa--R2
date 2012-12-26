@@ -505,7 +505,7 @@ INLINEHOOK
 	    close(CONFIG_H);
 	    $ac = Config::AutoConf->new();
 	    $ac->check_stdc_headers;
-	    $ac->check_all_headers( qw#dlfcn.h sys/types.h sys/stat.h memory.h strings.h inttypes.h unistd.h stdint.h# );
+	    $ac->check_default_headers();
 	    $ac->check_type('unsigned long long int');
 	    if ($ac->cache_val($ac->_cache_name('unsigned long long int'))) {
 		$ac->check_type('intmax_t',  undef, sub {$ac->define_var('intmax_t', 'long long int');},           undef);

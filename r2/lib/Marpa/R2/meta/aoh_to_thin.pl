@@ -38,18 +38,39 @@ die "usage $PROGRAM_NAME [--help] file ...\n" if $help_flag;
 my $parse_result;
 my $parse_result_source = do { local $RS = undef; <> };
 unless ( $parse_result = eval "no strict; $parse_result_source" ) {
-    die "couldn't parse $parse_result_source: $EVAL_ERROR"
+    die "couldn't parse input: $EVAL_ERROR"
         if $EVAL_ERROR;
-    die "couldn't do $parse_result_source: $ERRNO"
+    die "couldn't do input: $ERRNO"
         unless defined $parse_result;
-    die "couldn't run $parse_result_source" unless $parse_result;
+    die "couldn't run input" unless $parse_result;
 } ## end unless ( $parse_result = eval "no strict; $parse_result_source")
 
 sub quote { return q{"} . (quotemeta shift) . q{"}; }
-my $aoh = $parse_result->{rules};
+
+my $untidied = '';
+
+CHARARACTER_CLASSES:
+for my $char_class ( @{ $parse_result->{character_classes} } )
+{
+    $untidied
+        .= '$symbol_id = $tracer->symbol_new( '
+        . quote($char_class)
+        . qq{);\n};
+    my $re = substr $char_class, 1, -1;
+
+    # try to fast fail at this point, rather than in the module
+    if ( not defined eval { qr/$re/xms; 1; } ) {
+        die 'Bad Character class: ',
+            $char_class, "\n", "Perl said ", $EVAL_ERROR;
+    }
+    $untidied
+        .= 'push @character_class_table, [ $symbol_id, qr/'
+        . $re
+        . qq{/xms ];\n};
+} ## end CHARARACTER_CLASSES: for my $char_class ( @{ $parse_result->{...}})
 
 my %numeric = map {$_ => 1} qw(min proper);
-my $untidied = '';
+my $aoh = $parse_result->{rules};
 DESCRIPTOR: for my $descriptor ( @{$aoh} ) {
     my $min    = $descriptor->{min};
     my $method = defined $min ? 'sequence_new' : 'rule_new';
@@ -75,6 +96,7 @@ DESCRIPTOR: for my $descriptor ( @{$aoh} ) {
     if ( not defined $min ) {
         my $mask = $descriptor->{mask};
         if ( not defined $mask ) {
+	    say STDERR "Problem with rule:\n", Data::Dumper::Dumper($descriptor);
             die "Non-sequence rule must have mask" if not defined $min;
         }
         $untidied .= '$mask_by_rule_id[$rule_id] = [';
