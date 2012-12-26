@@ -119,12 +119,18 @@ As we've seen, the structural level ignores essential aspects
 of the language.
 It is possible to describe a language using a single level of description.
 So why have a structural (G1) level of description?
+Why not a "unified" instead of a "split" description.
 
-A hint as to why is provided by the widespread use of structural level,
-not just in standards, but also in code like the Perl parser.
-Try, as as exercise, to rewrite a complex grammar, taking
-into account whitespace.
-If you know C, a good example will be C declarations.
+It turns out that, for most languages of practical size,
+particularly those that deploy whitespace in a natural
+and intuitive way,
+a "unified" description rapidly becomes unwriteable,
+and even more rapidly becomes unreadable.
+The reader should be able to
+convince himself by taking the BNF from your favorite
+language standard and recasting it so every rule takes into account
+whitespace.
+As one example, consider declarations in the C language.
 
     unsigned int a;
     unsigned*b;
@@ -139,21 +145,25 @@ Where whitespace is optional, and where it should not be,
 depends on the initial and final characters,
 and this information is not convenient to represent
 at the structural (G1) level.
-If you try to represent this,
-the size of the grammar grows rapidly,
-and the number of special cases even more rapidly.
 
-As the description becomes harder and harder to write,
-there becomes less and less point in doing so --
-it rapidly gets to the point where nobody could read and
-understand it.
-This is why languages are usually written in a G1, structural level description,
-leaving aside most lexical and whitespace issues.
-And this is the case even description is used
-for generating production code.
+It is certainly possible to write whitespace-aware
+BNF for the fragment of the C language
+above.
+And it is certainly possible to extend it to include more and
+more of the declaration syntax.
+But long before you finish, I expect you will come to believe
+that the "unified" approach is simply not practical
+and that the authors of C clearly made the right choice in
+relegating lexical issues to their own section,
+and so that they could ignore them in
+most of their language description.
 
-=head1 The scanless interface's solution
+=head1 Reuniting the two levels
 
+The scanless interface, I hope,
+reunites and even to an extent
+interweaves the two levels of description,
+but in a way that preserves the advantages of both.
 Here is full syntax of
 the example whitespace-and-digit language,
 described using Marpa::R2's scanless interface:
