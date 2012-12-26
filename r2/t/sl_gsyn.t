@@ -69,6 +69,10 @@ END_OF_SOURCE
 
 sub my_parser {
     my ( $grammar, $p_input_string ) = @_;
+
+# Marpa::R2::Display
+# name: Scanless recognizer synopsis
+
     my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
     my $self = bless { grammar => $grammar }, 'My_Actions';
     $self->{recce} = $recce;
@@ -87,11 +91,13 @@ sub my_parser {
     if ( not defined $event_count ) {
         die $self->show_last_expression(), "\n", $recce->error();
     }
-    my $value_ref = $recce->value;
+    my $value_ref = $recce->value();
     if ( not defined $value_ref ) {
         die $self->show_last_expression(), "\n",
             "No parse was found, after reading the entire input\n";
     }
+
+# Marpa::R2::Display::End
 
     return ${$value_ref};
 
@@ -114,6 +120,9 @@ for my $test (@tests) {
     Test::More::like( $value, $output_re, 'Value of scannerless parse' );
 }
 
+# Marpa::R2::Display
+# name: Scanless recognizer semantics
+
 package My_Actions;
 
 our $SELF;
@@ -128,14 +137,21 @@ sub do_pow       { shift; return $_[0]**$_[2] }
 sub do_first_arg { shift; return shift; }
 sub do_script    { shift; return join q{ }, @_ }
 
+# Marpa::R2::Display::End
+
+# Marpa::R2::Display
+# name: Scanless recognizer diagnostics
+
 sub show_last_expression {
     my ($self) = @_;
-    my $slr = $self->{slr};
-    my ( $start, $end ) = $slr->last_completed_range('Expression');
+    my $recce = $self->{recce};
+    my ( $start, $end ) = $recce->last_completed_range('Expression');
     return 'No expression was successfully parsed' if not defined $start;
-    my $last_expression = $slr->range_to_string( $start, $end );
+    my $last_expression = $recce->range_to_string( $start, $end );
     return "Last expression successfully parsed was: $last_expression";
 } ## end sub show_last_expression
+
+# Marpa::R2::Display::End
 
 # Local Variables:
 #   mode: cperl

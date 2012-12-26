@@ -17,11 +17,81 @@
 
 Marpa::R2::Scanless::R - Scanless interface recognizers
 
+=head1 This document is UNDER CONSTRUCTION
+
 =head1 Synopsis
+
+=for Marpa::R2::Display
+name: Scanless recognizer synopsis
+partial: 1
+normalize-whitespace: 1
+
+    my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
+    my $self = bless { grammar => $grammar }, 'My_Actions';
+    $self->{recce} = $recce;
+    local $My_Actions::SELF = $self;
+
+    my $event_count;
+    if ( not defined eval { $event_count = $recce->read($p_input_string); 1 }
+        )
+    {
+        ## Add last expression found, and rethrow
+        my $eval_error = $EVAL_ERROR;
+        chomp $eval_error;
+        die $self->show_last_expression(), "\n", $eval_error, "\n";
+    } ## end if ( not defined eval { $event_count = $recce->read...})
+
+    if ( not defined $event_count ) {
+        die $self->show_last_expression(), "\n", $recce->error();
+    }
+    my $value_ref = $recce->value();
+    if ( not defined $value_ref ) {
+        die $self->show_last_expression(), "\n",
+            "No parse was found, after reading the entire input\n";
+    }
+
+=for Marpa::R2::Display::End
+
+=for Marpa::R2::Display
+name: Scanless recognizer semantics
+partial: 1
+normalize-whitespace: 1
+
+    package My_Actions;
+
+    our $SELF;
+    sub new { return $SELF }
+
+    sub do_parens    { shift; return $_[1] }
+    sub do_add       { shift; return $_[0] + $_[2] }
+    sub do_subtract  { shift; return $_[0] - $_[2] }
+    sub do_multiply  { shift; return $_[0] * $_[2] }
+    sub do_divide    { shift; return $_[0] / $_[2] }
+    sub do_pow       { shift; return $_[0]**$_[2] }
+    sub do_first_arg { shift; return shift; }
+    sub do_script    { shift; return join q{ }, @_ }
+
+=for Marpa::R2::Display::End
+
+=for Marpa::R2::Display
+name: Scanless recognizer diagnostics
+partial: 1
+normalize-whitespace: 1
+
+    sub show_last_expression {
+        my ($self) = @_;
+        my $recce = $self->{recce};
+        my ( $start, $end ) = $recce->last_completed_range('Expression');
+        return 'No expression was successfully parsed' if not defined $start;
+        my $last_expression = $recce->range_to_string( $start, $end );
+        return "Last expression successfully parsed was: $last_expression";
+    } ## end sub show_last_expression
+
+=for Marpa::R2::Display::End
 
 =head1 About this document
 
-This page is the reference for the recognizer objects
+This page is the reference document for the recognizer objects
 of Marpa's Scanless interface.
 
 =head1 Methods
@@ -29,8 +99,6 @@ of Marpa's Scanless interface.
 =head2 error()
 
 =head2 last_completed_range()
-
-=head2 last_rule()
 
 =head2 new()
 
