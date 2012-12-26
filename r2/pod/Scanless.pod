@@ -17,12 +17,12 @@
 
 Marpa::R2::Scanless - Scanless interface
 
-=head1 This document is UNDER CONSTRUCTION
-
 =head1 About this document
 
-This document is an introduction to Marpa's Scanless interface.
-It introduces the concepts behind the interface.
+This document is intended for readers already familiar with
+Marpa::R2's BNF (Stuifzand) interface.
+It is an introduction to Marpa's Scanless interface,
+dealing with the concepts behind the interface.
 The reference documentation for the
 scanless interface is in two separate documents,
 L<one dealing with scanless grammar objects|Marpa::R2::Scanless::G>
@@ -31,12 +31,15 @@ L<one dealing with scanless recognizer objects|Marpa::R2::Scanless::R>.
 
 =head1 The two levels of language description
 
-There are two levels at which programmers
-describe the syntax of their languages.
-This two-level approach is convenient for some
-implementation strategies.
-But it also seems to be a natural approach to
-language design issues.
+Programmers usually
+describe the syntax of a language at two levels.
+The same two-level approach can be convenient for implementing
+a parser of the language.
+But, implementation aside,
+a two-level description
+seems to be a natural approach to
+the design issues that arise in languages
+intended for practical use.
 
 The first level is structural.
 For example, the Perl docs describe one of the forms that Perl's C<use> statement takes
@@ -76,15 +79,14 @@ It is important to realize
 that the difference between G0 and G1 is one
 of level of descripton and
 NOT one of precision or exactness.
-Something similar to the
-structural description of Perl's C<use> statement,
-which I just cited,
-in its source code (C<perly.y>),
-along with many other structural-level descriptions of
-the language,
-and it is these that are used
-generate the production parser for Perl.
-Clearly structural level descriptions can be every bit
+A structural description of Perl's C<use> statement,
+much like the one I showed above,
+is in Perl's source code (C<perly.y>),
+along with many other, similar,
+structural-level descriptions.
+These that are used
+generate the production parser for Perl so,
+clearly, structural level descriptions are every bit
 as much a precision instrument as regular expressions.
 
 =head1 A very simple language
@@ -107,14 +109,14 @@ ignore: 1
 =for Marpa::R2::Display::End
 
 According to our semantics,
-the three string contain respectively,
+the three strings contain respectively,
 one, two and seven integers.
 The values of the three strings are,
 according to our semantics,
 the sum of these integers:
 respectively, 8675311, 6178, and 31.
 
-It's often said, in describing languages like the above,
+It's sometimes said, in describing languages like the above,
 that "whitespace is ignored".
 From the purely structural point of view this can be, in one sense, true.
 But from the lexical point of view it's clearly quite false.
@@ -143,8 +145,8 @@ a "unified" description rapidly becomes unwriteable,
 and even more rapidly becomes unreadable.
 The reader should be able to
 convince himself by taking the BNF from his favorite
-language standard and recasting it so every rule takes into account
-whitespace.
+language standard and recasting it so that
+every rule takes into account whitespace.
 As one example, consider declarations in the C language.
 
 =for Marpa::R2::Display
@@ -171,15 +173,26 @@ BNF for the fragment of the C language
 above.
 And it is certainly possible to extend it to include more and
 more of the declaration syntax.
-But long before you finish, I expect you will come to believe
-that the "unified" approach is simply not going to work.
-The authors of C
+But before you've extend the BNF very much,
+you will notice it is becoming a lot harder to write.
+You will also notice that, as quickly as it is becoming hard to
+write, it is even more quickly becoming "write-only" --
+impossible to read.
+In making your BNF
+whitespace-aware, you are more than doubling its size.
+And you are burying
+what intuition sees as the structure of the language
+in special cases.
+
+Long before you finish, I expect you will realize
+that the "unified" approach is simply not workable.
+The authors of the C langauge
 relegated lexical issues to their own brief section,
 and ignored them in
 most of their language description.
 This was clearly the only practical approach.
 
-=head1 Reuniting the two levels
+=head1 Interweaving the two levels
 
 The scanless interface
 interweaves the "split" and "unified" approaches,
@@ -204,8 +217,6 @@ normalize-whitespace: 1
 
 =head2 A new operator
 
-This document is intended for readers already familiar with
-Marpa::R2's BNF (Stuifzand) interface.
 In this example, three of the scanless interface's extensions
 to the Stuifzand interface are used.
 First, the tilde ("C<~>") is used to separate LHS and RHS of rules at the lexical
@@ -213,9 +224,9 @@ First, the tilde ("C<~>") is used to separate LHS and RHS of rules at the lexica
 Rules whose LHS and RHS are separated by the traditional BNF operator ("C<::=>")
 are at the structural (G1) level.
 
-The programmer needs to decide when to use the "C<~>" operator
+The programmer must decide when to use the "C<~>" operator
 and when to use the "C<::=>" operator,
-but the choice will usually be intuitive:
+but the choice will usually be easy:
 If you want Marpa to "do what I mean" with whitespace, you use the
 "C<::=>" operator.
 If you want Marpa to do exactly whay you say on a character-by-character basis,
@@ -257,7 +268,7 @@ the LHS of a G0 rule, but not on the RHS of any G0 rule.
 To determine G1's idea of what the lexemes are,
 Marpa looks for symbols on the RHS of at least one G1 rule,
 but not on the LHS of any G1 rule.
-If G0 and G1 have different ideas about the set of lexemes,
+If G0 and G1 disagree about the set of lexemes,
 the programmer receives a fatal message which describes the
 problem and the symbols involved.
 
@@ -270,6 +281,22 @@ Note that match is longest TOKENS.
 Marpa does ambiguous parsing and ambiguous lexing.
 There may be more than one longest match, in which case Marpa
 uses both.
+
+=head1 Semantics
+
+The value of a G0 rule is always the string it matches,
+and the value of a lexeme from the G1 point of view is the
+same as its value from the G0 point of view.
+This means that it makes no sense to specify semantic
+actions for G0 rules, and that is not allowed.
+
+With the exception of lexeme values,
+the semantics of the G1 grammar are exactly the
+same as for ordinary grammars.
+Actions may be specified for G1 rules and will
+behave in
+L<the same way as they do for
+ordinary grammars|Marpa::R2::Semantics>.
 
 =head1 Implementation
 
