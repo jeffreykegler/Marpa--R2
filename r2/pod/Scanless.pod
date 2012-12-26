@@ -17,11 +17,19 @@
 
 Marpa::R2::Scanless - Scanless interface
 
+=head1 This document is UNDER CONSTRUCTION
+
 =head1 Synopsis
 
-=head1 Overview
+=head1 About this document
 
-This page is the reference for the Marpa's Scanless interface.
+This document is an introduction to Marpa's Scanless interface.
+It introduces the concepts behind the interface.
+The reference documentation for the
+scanless interface is in two separate documents,
+L<one dealing with scanless grammar objects|Marpa::R2::Scanless::G>
+and
+L<one dealing with scanless recognizer objects|Marpa::R2::Scanless::R>.
 
 =head1 Two different ways to look at syntax
 
