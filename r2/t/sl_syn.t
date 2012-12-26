@@ -37,7 +37,6 @@ my $grammar = Marpa::R2::Scanless::G->new(
 <number sequence> ::= <number>+ action => add_sequence
 number ~ digit+
 digit ~ [0-9]
-
 :discard ~ whitespace
 whitespace ~ [\s]+
 END_OF_SOURCE

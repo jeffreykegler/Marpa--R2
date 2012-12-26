@@ -42,7 +42,12 @@ The first level is structural.
 For example, the Perl docs describe one of the forms that Perl's C<use> statement takes
 in this way
 
+=for Marpa::R2::Display
+ignore: 1
+
     use Module VERSION LIST
+
+=for Marpa::R2::Display::End
 
 and in Perl's source code (C<perly.y>) something similar
 drives the parser.
@@ -51,8 +56,13 @@ The second level is lexical.
 For example,
 Perl's L<perlpodspec> page has a number of statements like this:
 
+=for Marpa::R2::Display
+ignore: 1
+
     [...] you can distinguish URL-links from anything else
     by the fact that they match m/\A\w+:[^:\s]\S*\z/.
+
+=for Marpa::R2::Display::End
 
 The lexical level is character by character.
 The structural level is less well-defined,
@@ -87,9 +97,14 @@ The semantics will treat it as a series of integers to be added.
 
 Here are three strings in that language
 
+=for Marpa::R2::Display
+ignore: 1
+
      8675311
      867 5311
      8 6 7 5 3 1 1
+
+=for Marpa::R2::Display::End
 
 According to our semantics,
 the three string contain respectively,
@@ -132,8 +147,13 @@ language standard and recasting it so every rule takes into account
 whitespace.
 As one example, consider declarations in the C language.
 
+=for Marpa::R2::Display
+ignore: 1
+
     unsigned int a;
     unsigned*b;
+
+=for Marpa::R2::Display::End
 
 In the first of the two lines above the whitespace is necessary.
 In the second of the two lines whitespace would be allowed,
@@ -177,7 +197,6 @@ normalize-whitespace: 1
     <number sequence> ::= <number>+ action => add_sequence
     number ~ digit+
     digit ~ [0-9]
-
     :discard ~ whitespace
     whitespace ~ [\s]+
 
