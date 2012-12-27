@@ -68,14 +68,22 @@ of Marpa's Scanless interface.
 
 =head1 Constructor
 
-The C<new()> is the constructor for Scanless grammars.
+The C<new()> method is the constructor for Scanless grammars.
 An example of its use is L<above|Synopsis>.
 The C<new()> constructor accepts a hash of named arguments.
 Allowed named arguments are the following:
 
 =head2 action_object
 
+Specifies the C<action_object> named argument that
+will be used for the G1 grammar.
+For details, see L<Marpa::R2::Grammar/"action_object">.
+
 =head2 default_action
+
+Specifies the C<default_action> named argument that
+will be used for the G1 grammar.
+For details, see L<Marpa::R2::Grammar/"default_action">.
 
 =head2 source
 
@@ -85,6 +93,11 @@ The string's format is described L<below|/"Source strings">.
 
 =head2 trace_file_handle
 
+The value is a file handle.
+Trace output and warning messages
+go to the trace file handle.
+By default the trace file handle is C<STDERR>.
+
 =head1 Trace method
 
 =head2 show_rules()
@@ -92,10 +105,10 @@ The string's format is described L<below|/"Source strings">.
 =head1 Source strings
 
 The format of
-Scanless source files is based
-on L<the format of
+Scanless source files is
+L<that of
 BNF source files|Marpa::R2::BNF>,
-but with the following changes
+with the following changes
 and extensions:
 
 =head2 Structural rules
