@@ -290,7 +290,7 @@ L<as described for sequence rules|Marpa::R2::Grammar/"Sequence rules">.
 =head1 Precedence
 
 Marpa's precedence is a generalization beyond the traditional ideas of precedence.
-Traditional precedence parsing required the 
+Traditional precedence parsing required
 the classification of operators as postfix, infix, etc.
 Marpa's precedence parsing is NOT based on
 the special treatment of operators.
