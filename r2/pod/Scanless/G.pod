@@ -66,13 +66,30 @@ normalize-whitespace: 1
 This page is the reference for the grammar objects
 of Marpa's Scanless interface.
 
-=head1 Methods
+=head1 Constructor
 
-=head2 new()
+The C<new()> is the constructor for Scanless grammars.
+An example of its use is L<above|Synopsis>.
+The C<new()> constructor accepts a hash of named arguments.
+Allowed named arguments are the following:
+
+=head2 action_object
+
+=head2 default_action
+
+=head2 source
+
+The value of the C<source> named argument must be a reference
+to a string which contains a description of the grammar.
+The string's format is described L<below|/"Source strings">.
+
+=head2 trace_file_handle
+
+=head1 Trace method
 
 =head2 show_rules()
 
-=head1 Source files
+=head1 Source strings
 
 The format of
 Scanless source files is based
