@@ -42,8 +42,8 @@ the design issues that arise in languages
 intended for practical use.
 
 The first level is structural.
-For example, the Perl docs describe one of the forms that Perl's C<use> statement takes
-in this way
+For example, here is how the Perl docs describe one of
+the forms that Perl's C<use> statement takes:
 
 =for Marpa::R2::Display
 ignore: 1

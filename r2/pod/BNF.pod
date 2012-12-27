@@ -52,7 +52,7 @@ normalize-whitespace: 1
 This page is the reference for the Marpa's "BNF interface",
 also called its "Stuifzand interface".
 The Stuifzand interface allows the grammar to be specified using
-a string whose text is in a variation of BNF.
+a string whose text is written in a variation of BNF.
 BNF source strings are specified using the 
 L<the C<source> named argument of Marpa::R2's grammars|Marpa::R2::Grammar/"source">.
 BNF source strings perform the functions of
@@ -67,7 +67,7 @@ an example of a domain-specific language (DSL).
 The DSL of this document can (and has been) used to specify other
 DSL's, and therefore can be seen as a "meta-DSL".
 
-=head1 The source file
+=head1 The source string
 
 =head2 Structure
 
@@ -94,7 +94,7 @@ In the case of empty rules,
 the RHS will be empty.
 
 =item * An adverb list.
-Each adverbs consist of a keyword,
+Each adverb consists of a keyword,
 the adverb operator ("C<< => >>"),
 and the adverb's value.
 The adverb list may be zero length.
@@ -188,7 +188,7 @@ above.
 
 =head2 Start rule
 
-Every source file should have a start rule.
+Every source string should have a start rule.
 The LHS of this rule is the C<:start> pseudo-symbol.
 The RHS must be a single symbol name.
 The start rule does not accept any adverbs.
