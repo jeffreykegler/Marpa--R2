@@ -196,10 +196,11 @@ The start rule does not accept any adverbs.
 =head2 Empty rules
 
 An empty rule is a rule with an empty RHS.
-A empty right hand side is what the name suggests,
-no symbols, adverbs or punctuation.
+An empty right hand side is what the name suggests: no symbols
+or punctuation.
+An action adverb is allowed in an empty rule,
+but no others.
 A empty rule makes its LHS symbol a nullable symbol.
-Empty rules may have an C<action> adverb.
 
 =head2 Quantified rules
 
@@ -236,7 +237,8 @@ alternatives on each side of it have the same priority.
 Associativity is specified using adverbs, as described below.
 
 Within an alternative, symbols may be enclosed in parentheses.
-A symbol enclosed in parentheses is hidden from Marpa's semantics.
+A symbol enclosed in parentheses is hidden from
+L<Marpa's semantics|Marpa::R2::Semantics>.
 A set of parentheses may contain more than one symbol,
 in which case the entire sequence of symbols is hidden,
 as if they had been enclosed in parentheses individually.
@@ -292,16 +294,64 @@ Traditional precedence parsing required the
 the classification of operators as postfix, infix, etc.
 Marpa's precedence parsing is NOT based on
 the special treatment of operators.
-Marpa's precedence parsing
-has no concept of an operator, except
-as something that is not an operand.
 
-An occurrence of the left hand side in a
-right hand side alternative is called an operand.
+For the purpose of precedence,
+an operand is an occurrence in a RHS alternative
+of the LHS symbol.
+An operator is considered to be anything 
+that is not an operand.
 The arity of an alternative is the number of operands that
 it contains.
 All arities are allowed, from zero to the arbitrary
 number imposed by system limits such as memory and file size.
+
+For example, in the synopsis, the LHS symbol is
+C<Expression>.  The alternative
+
+=for Marpa::R2::Display
+name: Stuifzand Synopsis
+partial: 1
+normalize-whitespace: 1
+
+        (<op lparen>) Expression (<op rparen>)
+
+=for Marpa::R2::Display::End
+
+contains one occurrence of C<Expression> and therefore has an arity of one.
+The C<< <op lparen> >> and C<< <op rparen> >> are considered operators.
+
+In the RHS alternative
+
+=for Marpa::R2::Display
+name: Stuifzand Synopsis
+partial: 1
+normalize-whitespace: 1
+
+       Expression (<op pow>) Expression
+
+=for Marpa::R2::Display::End
+
+C<Expression> occurs twice, and therefore the arity is 2.
+C<< <op pow> >> is considered to be an operator.
+
+Because for this purpose an operator is defined as anything that
+is not an operand, some symbols are considered operators
+that would not be in the traditional approach.
+For example,
+in the RHS alternative
+
+=for Marpa::R2::Display
+name: Stuifzand Synopsis
+partial: 1
+normalize-whitespace: 1
+
+       Number
+
+=for Marpa::R2::Display::End
+
+there are no occurrences of C<Expression>, so that the alternative
+has an arity of zero -- it is nullary.
+The symbol C<Number> is considered to be an operator.
 
 An alternative with arity 0 is nullary.
 Precedence and associativity
