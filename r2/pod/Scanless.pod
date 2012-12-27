@@ -164,8 +164,8 @@ You cannot simply insist on whitespace between all symbols,
 because whitespace is and should be optional between
 some symbols and not between others.
 Where whitespace is optional, and where it should not be,
-depends on the initial and final characters,
-and this information is not convenient to represent
+depends on which characters are adjacent to each other.
+This kind of character-level information is not convenient to represent
 at the structural (G1) level.
 
 It is certainly possible to write whitespace-aware
