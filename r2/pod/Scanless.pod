@@ -173,7 +173,7 @@ BNF for the fragment of the C language
 above.
 And it is certainly possible to extend it to include more and
 more of the declaration syntax.
-But before you've extend the BNF very much,
+But before you've extended the BNF very much,
 you will notice it is becoming a lot harder to write.
 You will also notice that, as quickly as it is becoming hard to
 write, it is even more quickly becoming "write-only" --
@@ -182,11 +182,11 @@ In making your BNF
 whitespace-aware, you are more than doubling its size.
 And you are burying
 what intuition sees as the structure of the language
-in special cases.
+under a deep pile of special cases.
 
 Long before you finish, I expect you will realize
 that the "unified" approach is simply not workable.
-The authors of the C langauge
+The authors of the C language
 relegated lexical issues to their own brief section,
 and ignored them in
 most of their language description.
@@ -195,7 +195,7 @@ This was clearly the only practical approach.
 =head1 Interweaving the two levels
 
 The scanless interface
-interweaves the "split" and "unified" approaches,
+interweaves the "split" and "unified" approaches
 and, I hope, preserves the best features of each.
 Here is full syntax of
 the example whitespace-and-digit language,
@@ -234,7 +234,7 @@ then you use the "C<~>" operator.
 
 =head2 Character classes
 
-Second, Perl character classes are now allowed on the RHS of prioritized and quantified
+Perl character classes are now allowed on the RHS of prioritized and quantified
 rules.
 The example shows character classes only in G0 rules,
 but character classes can also be used in G1 rules.
@@ -245,7 +245,7 @@ Marpa knows this and "does what you mean."
 
 =head2 Discard rules
 
-Third, a new type of rule is introduced:
+A new type of rule is introduced:
 a "discard" rule.
 A discard rule has a C<:discard> pseudo-symbol on its LHS
 and one symbol name on its RHS.
@@ -257,30 +257,33 @@ In the example, whitespace is discarded.
 
 =head1 Lexemes
 
-Significant in the scannerless interface are the tokens
-at the boundary between G0 and G1.
-These are the top-level undiscarded symbols in G0,
-which go on to become the terminals in G1.
-These are called "lexemes".
-
-To find G0's lexemes, Marpa looks for symbols which are on
+Tokens at the boundary between G0 and G1 have special
+significance.
+The top-level undiscarded symbols in G0,
+which will be called "G0 lexemes",
+go on to become the terminals in G1.
+G1's terminals are called "G1 lexemes".
+To find the "G0 lexemes",
+Marpa looks for symbols which are on
 the LHS of a G0 rule, but not on the RHS of any G0 rule.
-To determine G1's idea of what the lexemes are,
+To find the "G1 lexemes",
 Marpa looks for symbols on the RHS of at least one G1 rule,
 but not on the LHS of any G1 rule.
-If G0 and G1 disagree about the set of lexemes,
+
+G0 and G1 should agree on what is a lexeme and what is not.
+If they do not,
 the programmer receives a fatal message which describes the
 problem and the symbols involved.
+So in practice I will usually simply refer to "lexemes".
 
 =head1 Longest tokens match
 
 The G0 grammar looks for tokens on a longest B<tokens> match basis.
-Those in discard rules are thrown away, and the rest are passed
-as tokens to the G1 grammar.
+Tokens in discard rules are thrown away, and the rest are passed on
+to the G1 grammar.
 Note that match is longest TOKENS.
-Marpa does ambiguous parsing and ambiguous lexing.
 There may be more than one longest match, in which case Marpa
-uses both.
+uses the full set of longest matches.
 
 =head1 Semantics
 
@@ -313,7 +316,7 @@ this document is surprisingly implementation-agnostic.
 The author developed the basics of this
 interface while trying an implementation approach,
 that used a single Marpa grammar,
-before changing to the dual grammr implementation.
+before changing to the dual grammar implementation.
 
 =head1 Copyright and License
 
