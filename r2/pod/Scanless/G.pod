@@ -102,6 +102,22 @@ By default the trace file handle is C<STDERR>.
 
 =head2 show_rules()
 
+=for Marpa::R2::Display
+name: Scanless show_rules() synopsis
+partial: 1
+normalize-whitespace: 1
+
+    my $show_rules_output = $grammar->show_rules();
+
+=for Marpa::R2::Display::End
+
+The C<show_rules()> method is the equivalent of
+calling L<Marpa::R2::Grammar's show_rules()
+method|Marpa::R2::Grammar/"show_rules()">
+for both the G0 and G1 grammars.
+It is useful for showing the rules as they will
+appear in trace and debugging outputs.
+
 =head1 Source strings
 
 The format of
