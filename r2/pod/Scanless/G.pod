@@ -130,7 +130,7 @@ and extensions:
 The BNF operator ("C<::=>")
 has the same function as before,
 but in addition it indicates that the rule is
-a G1 rule C<::=>.
+a G1 rule.
 Start rules must be G1 rules.
 
 =head2 Lexical rules
@@ -160,10 +160,11 @@ Single quotes can be used in prioritized
 rules to indicate character strings.
 The characters inside the single quote
 will be matched in the input, literally and one-for-one.
-Single quoted strings can contain any character except
-a single quote and vertical whitespace.
+Single quoted strings can contain any characters with
+the exception of
+single quotes and vertical whitespace.
 
-Single quotes does not have "escaped" characters.
+Single quoted strings do not allow "escaped" characters.
 A backslash ("C<\>") represents itself and has no effect
 on the interpretation of the next character.
 If a rule needs to match one of the forbidden characters
@@ -177,8 +178,8 @@ When a single quoted string is used in a structural rule,
 Marpa creates a virtual G0 rule on behalf of the application.
 This is handy, but it does have a real disadvantage --
 the name of the virtual rule's LHS
-will be one assigned automatically by Marpa,
-When tracing and debugging parses and grammar,
+will be one assigned automatically by Marpa.
+When tracing and debugging parses and grammars,
 these virtual LHS's can be harder for a programmer
 to interpret.
 
@@ -197,8 +198,8 @@ When a character class is used in a structural rule,
 Marpa creates a virtual G0 rule on behalf of the application.
 This is handy, but it does have a real disadvantage --
 the name of the virtual rule's LHS
-will be one assigned automatically by Marpa,
-When tracing and debugging parses and grammar,
+will be one assigned automatically by Marpa.
+When tracing and debugging parses and grammars,
 these virtual LHS's can be harder for a programmer
 to interpret.
 
