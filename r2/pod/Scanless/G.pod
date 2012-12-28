@@ -17,8 +17,6 @@
 
 Marpa::R2::Scanless::G - Scanless interface grammars
 
-=head1 This document is UNDER CONSTRUCTION
-
 =head1 Synopsis
 
 =for Marpa::R2::Display
@@ -69,9 +67,9 @@ of Marpa's Scanless interface.
 =head1 Constructor
 
 The C<new()> method is the constructor for Scanless grammars.
-An example of its use is L<above|Synopsis>.
+An example of its use is L<above|/"Synopsis">.
 The C<new()> constructor accepts a hash of named arguments.
-Allowed named arguments are the following:
+The following named arguments are allowed:
 
 =head2 action_object
 
@@ -121,9 +119,9 @@ appear in trace and debugging outputs.
 =head1 Source strings
 
 The format of
-Scanless source files is
+Scanless source strings is
 L<that of
-BNF source files|Marpa::R2::BNF>,
+BNF source strings|Marpa::R2::BNF>,
 with the following changes
 and extensions:
 
