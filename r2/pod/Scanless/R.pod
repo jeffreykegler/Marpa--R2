@@ -98,19 +98,73 @@ of Marpa's Scanless interface.
 
 =head2 error()
 
+=for Marpa::R2::Display
+name: Scanless recognizer synopsis
+partial: 1
+normalize-whitespace: 1
+
+    $recce->error();
+
+=for Marpa::R2::Display::End
+
 =head2 last_completed_range()
+
+=for Marpa::R2::Display
+name: Scanless recognizer diagnostics
+partial: 1
+normalize-whitespace: 1
+
+    my ( $start, $end ) = $recce->last_completed_range('Expression');
+
+=for Marpa::R2::Display::End
 
 =head2 new()
 
+=for Marpa::R2::Display
+name: Scanless recognizer synopsis
+partial: 1
+normalize-whitespace: 1
+
+    my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
+
+=for Marpa::R2::Display::End
+
 =head2 range_to_string()
 
+=for Marpa::R2::Display
+name: Scanless recognizer diagnostics
+partial: 1
+normalize-whitespace: 1
+
+    my $last_expression = $recce->range_to_string( $start, $end );
+
+=for Marpa::R2::Display::End
+
 =head2 read()
+
+=for Marpa::R2::Display
+name: Scanless recognizer synopsis
+partial: 1
+normalize-whitespace: 1
+
+    $event_count = $recce->read($p_input_string);
+
+=for Marpa::R2::Display::End
 
 =head2 show_progress()
 
 =head2 trace()
 
 =head2 value()
+
+=for Marpa::R2::Display
+name: Scanless recognizer synopsis
+partial: 1
+normalize-whitespace: 1
+
+    my $value_ref = $recce->value();
+
+=for Marpa::R2::Display::End
 
 =head1 Copyright and License
 
