@@ -199,6 +199,10 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
+Has the same effect as a C<show_progress()> call
+on the G1 recognizer.
+See L<Marpa::R2::Recognizer/"show_progress()">.
+
 =head2 value()
 
 =for Marpa::R2::Display
@@ -209,6 +213,10 @@ normalize-whitespace: 1
     my $value_ref = $recce->value();
 
 =for Marpa::R2::Display::End
+
+Has the same effect as a C<value()> call
+on the G1 recognizer.
+See L<Marpa::R2::Recognizer/"value()">.
 
 =head1 Copyright and License
 
