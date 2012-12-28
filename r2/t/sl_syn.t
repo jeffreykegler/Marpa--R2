@@ -56,10 +56,10 @@ sub add_sequence {
 
 sub show_sequence_so_far {
     my ($self) = @_;
-    my $slr = $self->{slr};
-    my ( $start, $end ) = $slr->last_completed_range('number sequence');
+    my $recce = $self->{recce};
+    my ( $start, $end ) = $recce->last_completed_range('number sequence');
     return if not defined $start;
-    my $sequence_so_far = $slr->range_to_string( $start, $end );
+    my $sequence_so_far = $recce->range_to_string( $start, $end );
     return $sequence_so_far;
 } ## end sub show_sequence_so_far
 
@@ -68,28 +68,21 @@ package main;
 sub my_parser {
     my ( $grammar, $string ) = @_;
 
-    my $self = bless { grammar => $grammar },
-        'My_Actions';
+    my $self = bless { grammar => $grammar }, 'My_Actions';
     local $My_Actions::SELF = $self;
 
-    my $slr = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
-    $self->{slr} = $slr;
-    my $event_count;
+    my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
+    $self->{recce} = $recce;
     my ( $parse_value, $parse_status, $sequence_so_far );
 
-    if ( not defined eval { $event_count = $slr->read(\$string); 1 } ) {
+    if ( not defined eval { $recce->read( \$string ); 1 } ) {
         return 'No parse', $EVAL_ERROR, $self->show_sequence_so_far();
     }
-    if ( not defined $event_count ) {
-        my $error = $slr->error();
-        return 'No parse', $error, $self->show_sequence_so_far();
-    }
-    my $value_ref = $slr->value;
+    my $value_ref = $recce->value();
     if ( not defined $value_ref ) {
-        return
-            'No parse', 'Input read to end but no parse',
+        return 'No parse', 'Input read to end but no parse',
             $self->show_sequence_so_far();
-    } ## end if ( not defined $value_ref )
+    }
     return [ return ${$value_ref}, 'Parse OK', ];
 } ## end sub my_parser
 

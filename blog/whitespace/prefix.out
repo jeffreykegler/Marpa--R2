@@ -15,7 +15,7 @@ Error in string_read: Parse exhausted
 + 1\s
 * String after error:
 say 2
- at prefix.pl line 113.
+ at prefix.pl line 103.
 ==============================
 Input was "+ 1 2 3 + + 1 2 4"
 Parse was successful, output was "3 results: 3 3 7"

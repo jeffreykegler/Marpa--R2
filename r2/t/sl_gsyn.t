@@ -133,8 +133,7 @@ sub my_parser {
     $self->{recce} = $recce;
     local $My_Actions::SELF = $self;
 
-    my $event_count;
-    if ( not defined eval { $event_count = $recce->read($p_input_string); 1 }
+    if ( not defined eval { $recce->read($p_input_string); 1 }
         )
     {
         ## Add last expression found, and rethrow
@@ -143,9 +142,6 @@ sub my_parser {
         die $self->show_last_expression(), "\n", $eval_error, "\n";
     } ## end if ( not defined eval { $event_count = $recce->read...})
 
-    if ( not defined $event_count ) {
-        die $self->show_last_expression(), "\n", $recce->error();
-    }
     my $value_ref = $recce->value();
     if ( not defined $value_ref ) {
         die $self->show_last_expression(), "\n",

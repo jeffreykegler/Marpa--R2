@@ -2853,6 +2853,7 @@ sub Marpa::R2::Scanless::R::read {
         $read_string_error;
     Marpa::R2::exception($read_string_error);
 
+    # Never reached
     # Fall through to return undef
     return;
 

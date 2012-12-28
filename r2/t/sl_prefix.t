@@ -66,10 +66,10 @@ sub do_arg0 { shift; return shift; }
 
 sub show_last_expression {
     my ($self) = @_;
-    my $slr = $self->{slr};
-    my ( $start, $end ) = $slr->last_completed_range('Expression');
+    my $recce = $self->{recce};
+    my ( $start, $end ) = $recce->last_completed_range('Expression');
     return if not defined $start;
-    my $last_expression = $slr->range_to_string( $start, $end );
+    my $last_expression = $recce->range_to_string( $start, $end );
     return $last_expression;
 } ## end sub show_last_expression
 
@@ -78,27 +78,21 @@ package main;
 sub my_parser {
     my ( $grammar, $string ) = @_;
 
-    my $self = bless { grammar => $grammar, input => \$string, },
-        'My_Actions';
+    my $self = bless { grammar => $grammar }, 'My_Actions';
     local $My_Actions::SELF = $self;
 
-    my $slr = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
-    $self->{slr} = $slr;
-    my $event_count;
+    my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
+    $self->{recce} = $recce;
     my ( $parse_value, $parse_status, $last_expression );
 
-    if ( not defined eval { $event_count = $slr->read(\$string); 1 } ) {
+    if ( not defined eval { $recce->read(\$string); 1 } ) {
         my $abbreviated_error = $EVAL_ERROR;
         chomp $abbreviated_error;
         $abbreviated_error =~ s/\n.*//xms;
         $abbreviated_error =~ s/^Error \s+ in \s+ string_read: \s+ //xms;
         return 'No parse', $abbreviated_error, $self->show_last_expression();
     }
-    if ( not defined $event_count ) {
-        my $error = $slr->error();
-        return 'No parse', $error, $self->show_last_expression();
-    }
-    my $value_ref = $slr->value;
+    my $value_ref = $recce->value();
     if ( not defined $value_ref ) {
         return
             'No parse', 'Input read to end but no parse',

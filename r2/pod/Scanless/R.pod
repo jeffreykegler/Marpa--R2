@@ -105,13 +105,39 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
+The C<new()> method is the constructor for Scanless recognizers.
+An example of its use is L<above|/"Synopsis">.
+The C<new()> constructor accepts a hash of named arguments.
+The following named arguments are allowed:
+
 =head2 grammar
+
+The C<new> method is required to have
+a C<grammar> named argument.  Its
+value must be
+a Scanless grammar object.
 
 =head2 trace_terminals
 
+If non-zero, traces the lexemes --
+those tokens passed from the G0 parser to
+the G1 parser.
+This named argument is the best way to follow
+what the G0 parser is doing,
+but it is also very helpful for tracing the G1 parser.
+
 =head2 trace_values
 
+This named argument is passed on
+to the G1 recognizer.
+See L<Marpa::R2::Recognizer/"trace_values">
+
 =head2 trace_file_handle
+
+The value is a file handle.
+Trace output and warning messages
+go to the trace file handle.
+By default the trace file handle is C<STDERR>.
 
 =head1 Methods
 
@@ -126,6 +152,10 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
+Returns the last problem found by the scanless recognizer.
+Not much used currently,
+because all problems are also thrown as exceptions.
+
 =head2 last_completed_range()
 
 =for Marpa::R2::Display
@@ -136,6 +166,13 @@ normalize-whitespace: 1
     my ( $start, $end ) = $recce->last_completed_range('Expression');
 
 =for Marpa::R2::Display::End
+
+Given the name of a symbol,
+returns the start and end locations of most recent match.
+If there was more than one most recent match, it returns
+the longest.
+If there was no match, returns the empty array in array context
+and a Perl false in scalar context.
 
 =head2 range_to_string()
 
@@ -148,6 +185,9 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
+Given a start and an end location, returns the substring of the input
+string that is between the two.
+
 =head2 read()
 
 =for Marpa::R2::Display
@@ -158,6 +198,14 @@ normalize-whitespace: 1
     $event_count = $recce->read($p_input_string);
 
 =for Marpa::R2::Display::End
+
+Given a pointer to an input string,
+parses it according to the grammar.
+Currently only a single call to C<read()>
+is allowed for a scanless
+recognizer.
+On success, returns a non-negative integer.
+On failure, throws an exception.
 
 =head2 show_progress()
 

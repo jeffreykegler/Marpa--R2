@@ -90,10 +90,9 @@ sub my_parser {
         }
     );
     $self->{recce} = $recce;
-    my $event_count;
     my ( $parse_value, $parse_status, $last_expression );
 
-    my $eval_ok = eval { $event_count = $recce->read( \$string ); 1 };
+    my $eval_ok = eval { $recce->read( \$string ); 1 };
     close $trace_fh;
 
     if ( not defined $eval_ok ) {
@@ -103,10 +102,6 @@ sub my_parser {
         $abbreviated_error =~ s/^Error \s+ in \s+ string_read: \s+ //xms;
         die $self->show_last_expression(), $EVAL_ERROR;
     } ## end if ( not defined $eval_ok )
-    if ( not defined $event_count ) {
-        my $error = $recce->error();
-        die join q{ }, 'No parse:', $error, $self->show_last_expression();
-    }
     my $value_ref = $recce->value;
     if ( not defined $value_ref ) {
         die join q{ },

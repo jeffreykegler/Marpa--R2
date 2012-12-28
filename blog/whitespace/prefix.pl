@@ -53,7 +53,7 @@ Calculation ::= Expression | ('say') Expression
 Expression ::=
      Number
    | ('+') Expression Expression action => do_add
-Number ~ [\d] + action => do_literal
+Number ~ [\d] +
 :discard ~ whitespace
 whitespace ~ [\s]+
 # allow comments
@@ -76,25 +76,16 @@ sub do_list {
     my ($self, @results) = @_;
     return +(scalar @results) . ' results: ' . join q{ }, @results;
 }
-sub do_literal {
-    my $self = shift;
-    my $slr = $self->{slr};
-    my ( $start, $end ) = Marpa::R2::Context::location();
-    my $result = $slr->range_to_string($start, $end);
-    $result =~ s/ \A \s+ //xms;
-    $result =~ s/ \s+ \z //xms;
-    return $result;
-} ## end sub do_literal
 
 sub do_add  { shift; return $_[0] + $_[1] }
 sub do_arg0 { shift; return shift; }
 
 sub show_last_expression {
     my ($self) = @_;
-    my $slr = $self->{slr};
-    my ( $start, $end ) = $slr->last_completed_range('Expression');
+    my $recce = $self->{recce};
+    my ( $start, $end ) = $recce->last_completed_range('Expression');
     return 'No expression was successfully parsed' if not defined $start;
-    my $last_expression = $slr->range_to_string( $start, $end );
+    my $last_expression = $recce->range_to_string( $start, $end );
     return "Last expression successfully parsed was: $last_expression";
 } ## end sub show_last_expression
 
@@ -106,21 +97,17 @@ sub my_parser {
     my $self = bless { grammar => $grammar  }, 'My_Actions';
     local $My_Actions::SELF = $self;
 
-    my $slr = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
-    $self->{slr} = $slr;
-    my $event_count;
+    my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
+    $self->{recce} = $recce;
 
-    if ( not defined eval { $event_count = $slr->read($p_string); 1 } ) {
+    if ( not defined eval { $recce->read($p_string); 1 } ) {
 
         # Add last expression found, and rethrow
         my $eval_error = $EVAL_ERROR;
         chomp $eval_error;
         die $self->show_last_expression(), "\n", $eval_error, "\n";
-    } ## end if ( not defined eval { $slr->read($string)...})
-    if (not defined $event_count) {
-        die $self->show_last_expression(), "\n", $slr->error();
-    }
-    my $value_ref = $slr->value;
+    } ## end if ( not defined eval { $recce->read($string)...})
+    my $value_ref = $recce->value();
     if ( not defined $value_ref ) {
         die $self->show_last_expression(), "\n",
             "No parse was found, after reading the entire input\n";
