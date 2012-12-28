@@ -220,7 +220,7 @@ sub do_priority_rule {
             if ( defined $action ) {
                 Marpa::R2::exception(
                     'actions not allowed in lexical rules (rules LHS was "',
-                    $lhs->name(), '")' )
+                    $lhs, '")' )
                     if $GRAMMAR_LEVEL <= 0;
                 $hash_rule{action} = $action;
             } ## end if ( defined $action )
@@ -267,7 +267,7 @@ sub do_priority_rule {
         if ( $GRAMMAR_LEVEL <= 0 and grep { !$_ } @mask ) {
             Marpa::R2::exception(
                 'hidden symbols are not allowed in lexical rules (rules LHS was "',
-                $lhs->name(), '")'
+                $lhs, '")'
             );
         } ## end if ( $GRAMMAR_LEVEL <= 0 and grep { !$_ } @mask )
         my %new_xs_rule = ( lhs => $current_exp );
@@ -277,7 +277,7 @@ sub do_priority_rule {
         if ( defined $action ) {
             Marpa::R2::exception(
                 'actions not allowed in lexical rules (rules LHS was "',
-                $lhs->name(), '")' )
+                $lhs, '")' )
                 if $GRAMMAR_LEVEL <= 0;
             $new_xs_rule{action} = $action;
         } ## end if ( defined $action )
@@ -333,7 +333,7 @@ sub do_empty_rule {
     if ( defined $action ) {
         Marpa::R2::exception(
             'actions not allowed in lexical rules (rules LHS was "',
-            $lhs->name(), '")' )
+            $lhs, '")' )
             if $GRAMMAR_LEVEL <= 0;
         $rule{action} = $action;
     } ## end if ( defined $action )
@@ -349,6 +349,8 @@ sub do_empty_rule {
 sub do_quantified_rule {
     my ( $self, $lhs, $op_declare, $rhs, $quantifier, $adverb_list ) = @_;
 
+    local $GRAMMAR_LEVEL = 0 if not $op_declare eq q{::=};
+
     # Some properties of the sequence rule will not be altered
     # no matter how complicated this gets
     my %sequence_rule = (
@@ -359,7 +361,7 @@ sub do_quantified_rule {
     if ( defined $action ) {
         Marpa::R2::exception(
             'actions not allowed in lexical rules (rules LHS was "',
-            $lhs->name(), '")' )
+            $lhs, '")' )
             if $GRAMMAR_LEVEL <= 0;
         $sequence_rule{action} = $action;
     } ## end if ( defined $action )

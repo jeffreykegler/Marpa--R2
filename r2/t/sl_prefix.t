@@ -37,7 +37,7 @@ Calculation ::= Expression | ('say') Expression
 Expression ::=
      Number
    | ('+') Expression Expression action => do_add
-Number ~ [\d] + action => do_literal
+Number ~ [\d] +
 :discard ~ whitespace
 whitespace ~ [\s]+
 # allow comments
@@ -60,15 +60,6 @@ sub do_list {
     my ($self, @results) = @_;
     return +(scalar @results) . ' results: ' . join q{ }, @results;
 }
-sub do_literal {
-    my $self = shift;
-    my $slr = $self->{slr};
-    my ( $start, $end ) = Marpa::R2::Context::location();
-    my $result = $slr->range_to_string($start, $end);
-    $result =~ s/ \A \s+ //xms;
-    $result =~ s/ \s+ \z //xms;
-    return $result;
-} ## end sub do_literal
 
 sub do_add  { shift; return $_[0] + $_[1] }
 sub do_arg0 { shift; return shift; }
