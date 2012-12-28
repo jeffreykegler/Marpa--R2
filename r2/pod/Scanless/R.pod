@@ -94,6 +94,25 @@ normalize-whitespace: 1
 This page is the reference document for the recognizer objects
 of Marpa's Scanless interface.
 
+=head1 Constructor
+
+=for Marpa::R2::Display
+name: Scanless recognizer synopsis
+partial: 1
+normalize-whitespace: 1
+
+    my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
+
+=for Marpa::R2::Display::End
+
+=head2 grammar
+
+=head2 trace_terminals
+
+=head2 trace_values
+
+=head2 trace_file_handle
+
 =head1 Methods
 
 =head2 error()
@@ -115,17 +134,6 @@ partial: 1
 normalize-whitespace: 1
 
     my ( $start, $end ) = $recce->last_completed_range('Expression');
-
-=for Marpa::R2::Display::End
-
-=head2 new()
-
-=for Marpa::R2::Display
-name: Scanless recognizer synopsis
-partial: 1
-normalize-whitespace: 1
-
-    my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
 
 =for Marpa::R2::Display::End
 
@@ -152,8 +160,6 @@ normalize-whitespace: 1
 =for Marpa::R2::Display::End
 
 =head2 show_progress()
-
-=head2 trace()
 
 =head2 value()
 

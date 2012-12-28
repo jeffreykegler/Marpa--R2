@@ -279,6 +279,7 @@ t/sequence2.t
 t/sl_dsl.t
 t/sl_gsyn.t
 t/sl_prefix.t
+t/sl_diag.t
 t/sl_syn.t
 t/stuifzand.t
 t/syn_engine.t
