@@ -15,12 +15,13 @@
 
 Revision history for Marpa::R2
 
-2.035_001
+2.035_002
  
      * Release candidate.  Documentation for both
        the Stuifzand and Scanless interfaces is
        complete.
 
+2.035_001
 2.035_000
 
       * New series of developer's releases.

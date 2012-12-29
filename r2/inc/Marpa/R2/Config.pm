@@ -28,7 +28,7 @@ $Marpa::R2::USE_PERL_AUTOCONF = $ENV{MARPA_USE_PERL_AUTOCONF}
     || ( $perl_autoconf_os{$^O} // 0 );
 
 %Marpa::R2::VERSION_FOR_CONFIG = (
-    'Config::AutoConf'    => 0.20,
+    'Config::AutoConf'    => 0.22,
     'ExtUtils::MakeMaker' => 0,
     'Carp'                => 1.08,
     'Data::Dumper'        => '2.125',
