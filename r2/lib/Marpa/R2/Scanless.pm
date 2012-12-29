@@ -2864,7 +2864,7 @@ sub character_describe {
     my $text = sprintf '0x%04x', ord $char;
     $text .= q{ } .
         (
-        $char =~ m/[[:graph]]/xms
+        $char =~ m/[[:graph:]]/xms
         ? qq{'$char'}
         : '(non-graphic character)'
         );
