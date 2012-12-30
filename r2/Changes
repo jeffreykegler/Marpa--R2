@@ -15,6 +15,11 @@
 
 Revision history for Marpa::R2
 
+2.035_003
+     * Release candidate.  The Scanless G0 rule
+       order depended indirectly on the order of
+       keys in a Perl hash.  Fixed that.
+
 2.035_002
  
      * Release candidate.  Documentation for both
