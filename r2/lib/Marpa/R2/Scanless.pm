@@ -2429,7 +2429,7 @@ sub Marpa::R2::Scanless::G::_source_to_hash {
         Marpa::R2::exception("Unproductive lexical symbols: ", join q{ }, @unproductive);
     }
     push @{ $inner_self->{lex_rules} },
-        map { ; { lhs => '[:start_lex]', rhs => [$_] } } keys %lexemes;
+        map { ; { lhs => '[:start_lex]', rhs => [$_] } } sort keys %lexemes;
 
     my $raw_cc = $inner_self->{character_classes};
     if ( defined $raw_cc ) {
