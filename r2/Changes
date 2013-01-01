@@ -15,26 +15,23 @@
 
 Revision history for Marpa::R2
 
-2.035_003
+2.037_000
+
+      * New series of developer's releases.
+
+2.035_003 (leap-frogged)
+
      * Release candidate.  The Scanless G0 rule
        order depended indirectly on the order of
        keys in a Perl hash.  Fixed that.
 
-2.035_002
+2.036000 Tue Jan  1 00:54:36 PST 2013
  
-     * Release candidate.  Documentation for both
-       the Stuifzand and Scanless interfaces is
-       complete.
+     * Documentation for the Stuifzand (BNF) and
+       Scanless interfaces is complete.  They are
+       now in full release.
 
-2.035_001
-2.035_000
-
-      * New series of developer's releases.
-
-2.033_004 (leap-frogged)
-
-     * Release candidate.  Stuifzand interface is documented
-       and ready for full release.
+     * Based on release candidate 2.035_002
 
 2.034000 Wed Dec 26 08:44:16 PST 2012
 
@@ -43,8 +40,6 @@ Revision history for Marpa::R2
      * Stuifzand and Scanless interfaces are complete
        and tested.  Only lack of documentation prevented
        them from being taken out of beta.
-
-     * Based on release candidate 2.033_003
 
 2.032000 Sun Dec  9 10:19:50 PST 2012
 
