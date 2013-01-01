@@ -1,0 +1,249 @@
+# Copyright 2012 Jeffrey Kegler
+# This file is part of Marpa::R2.  Marpa::R2 is free software: you can
+# redistribute it and/or modify it under the terms of the GNU Lesser
+# General Public License as published by the Free Software Foundation,
+# either version 3 of the License, or (at your option) any later version.
+#
+# Marpa::R2 is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser
+# General Public License along with Marpa::R2.  If not, see
+# http://www.gnu.org/licenses/.
+
+=head1 Name
+
+Marpa::R2::Scanless::R - Scanless interface recognizers
+
+=head1 Synopsis
+
+=for Marpa::R2::Display
+name: Scanless recognizer synopsis
+partial: 1
+normalize-whitespace: 1
+
+    my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
+    my $self = bless { grammar => $grammar }, 'My_Actions';
+    $self->{recce} = $recce;
+    local $My_Actions::SELF = $self;
+
+    if ( not defined eval { $recce->read($p_input_string); 1 }
+        )
+    {
+        ## Add last expression found, and rethrow
+        my $eval_error = $EVAL_ERROR;
+        chomp $eval_error;
+        die $self->show_last_expression(), "\n", $eval_error, "\n";
+    } ## end if ( not defined eval { $event_count = $recce->read...})
+
+    my $value_ref = $recce->value();
+    if ( not defined $value_ref ) {
+        die $self->show_last_expression(), "\n",
+            "No parse was found, after reading the entire input\n";
+    }
+
+=for Marpa::R2::Display::End
+
+=for Marpa::R2::Display
+name: Scanless recognizer semantics
+partial: 1
+normalize-whitespace: 1
+
+    package My_Actions;
+
+    our $SELF;
+    sub new { return $SELF }
+
+    sub do_parens    { shift; return $_[1] }
+    sub do_add       { shift; return $_[0] + $_[2] }
+    sub do_subtract  { shift; return $_[0] - $_[2] }
+    sub do_multiply  { shift; return $_[0] * $_[2] }
+    sub do_divide    { shift; return $_[0] / $_[2] }
+    sub do_pow       { shift; return $_[0]**$_[2] }
+    sub do_first_arg { shift; return shift; }
+    sub do_script    { shift; return join q{ }, @_ }
+
+=for Marpa::R2::Display::End
+
+=for Marpa::R2::Display
+name: Scanless recognizer diagnostics
+partial: 1
+normalize-whitespace: 1
+
+    sub show_last_expression {
+        my ($self) = @_;
+        my $recce = $self->{recce};
+        my ( $start, $end ) = $recce->last_completed_range('Expression');
+        return 'No expression was successfully parsed' if not defined $start;
+        my $last_expression = $recce->range_to_string( $start, $end );
+        return "Last expression successfully parsed was: $last_expression";
+    } ## end sub show_last_expression
+
+=for Marpa::R2::Display::End
+
+=head1 About this document
+
+This page is the reference document for the recognizer objects
+of Marpa's Scanless interface.
+
+=head1 Constructor
+
+=for Marpa::R2::Display
+name: Scanless recognizer synopsis
+partial: 1
+normalize-whitespace: 1
+
+    my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
+
+=for Marpa::R2::Display::End
+
+The C<new()> method is the constructor for Scanless recognizers.
+An example of its use is L<above|/"Synopsis">.
+The C<new()> constructor accepts a hash of named arguments.
+The following named arguments are allowed:
+
+=head2 grammar
+
+The C<new> method is required to have
+a C<grammar> named argument.  Its
+value must be
+a Scanless grammar object.
+
+=head2 trace_terminals
+
+If non-zero, traces the lexemes --
+those tokens passed from the G0 parser to
+the G1 parser.
+This named argument is the best way to follow
+what the G0 parser is doing,
+but it is also very helpful for tracing the G1 parser.
+
+=head2 trace_values
+
+This named argument is passed on
+to the G1 recognizer.
+See L<Marpa::R2::Recognizer/"trace_values">
+
+=head2 trace_file_handle
+
+The value is a file handle.
+Trace output and warning messages
+go to the trace file handle.
+By default the trace file handle is C<STDERR>.
+
+=head1 Methods
+
+=head2 last_completed_range()
+
+=for Marpa::R2::Display
+name: Scanless recognizer diagnostics
+partial: 1
+normalize-whitespace: 1
+
+    my ( $start, $end ) = $recce->last_completed_range('Expression');
+
+=for Marpa::R2::Display::End
+
+Given the name of a symbol,
+returns the start and end locations of most recent match.
+If there was more than one most recent match, it returns
+the longest.
+If there was no match, returns the empty array in array context
+and a Perl false in scalar context.
+
+=head2 range_to_string()
+
+=for Marpa::R2::Display
+name: Scanless recognizer diagnostics
+partial: 1
+normalize-whitespace: 1
+
+    my $last_expression = $recce->range_to_string( $start, $end );
+
+=for Marpa::R2::Display::End
+
+Given a start and an end location, returns the substring of the input
+string that is between the two.
+
+=head2 read()
+
+=for Marpa::R2::Display
+name: Scanless recognizer synopsis
+partial: 1
+normalize-whitespace: 1
+
+    $recce->read($p_input_string);
+
+=for Marpa::R2::Display::End
+
+Given a pointer to an input string,
+parses it according to the grammar.
+Currently only a single call to C<read()>
+is allowed for a scanless
+recognizer.
+On success, returns a non-negative integer.
+On failure, throws an exception.
+
+=head2 show_progress()
+
+=for Marpa::R2::Display
+name: Scanless show_progress() synopsis
+partial: 1
+normalize-whitespace: 1
+
+    my $show_progress_output = $recce->show_progress();
+
+=for Marpa::R2::Display::End
+
+Has the same effect as a C<show_progress()> call
+on the G1 recognizer.
+See L<Marpa::R2::Recognizer/"show_progress()">.
+
+=head2 value()
+
+=for Marpa::R2::Display
+name: Scanless recognizer synopsis
+partial: 1
+normalize-whitespace: 1
+
+    my $value_ref = $recce->value();
+
+=for Marpa::R2::Display::End
+
+Has the same effect as a C<value()> call
+on the G1 recognizer.
+See L<Marpa::R2::Recognizer/"value()">.
+
+=head1 Copyright and License
+
+=for Marpa::R2::Display
+ignore: 1
+
+  Copyright 2012 Jeffrey Kegler
+  This file is part of Marpa::R2.  Marpa::R2 is free software: you can
+  redistribute it and/or modify it under the terms of the GNU Lesser
+  General Public License as published by the Free Software Foundation,
+  either version 3 of the License, or (at your option) any later version.
+
+  Marpa::R2 is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser
+  General Public License along with Marpa::R2.  If not, see
+  http://www.gnu.org/licenses/.
+
+=for Marpa::R2::Display::End
+
+=cut
+
+# Local Variables:
+#   mode: cperl
+#   cperl-indent-level: 4
+#   fill-column: 100
+# End:
+# vim: expandtab shiftwidth=4:
+

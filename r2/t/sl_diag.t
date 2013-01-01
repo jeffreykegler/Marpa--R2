@@ -14,13 +14,13 @@
 # General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 
-# Test of scannerless parsing -- prefix addition
+# Test of scannerless parsing -- diagnostics
 
 use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 30;
+use Test::More tests => 3;
 use English qw( -no_match_vars );
 use lib 'inc';
 use Marpa::R2::Test;
@@ -66,10 +66,10 @@ sub do_arg0 { shift; return shift; }
 
 sub show_last_expression {
     my ($self) = @_;
-    my $recce = $self->{recce};
-    my ( $start, $end ) = $recce->last_completed_range('Expression');
+    my $slr = $self->{slr};
+    my ( $start, $end ) = $slr->last_completed_range('Expression');
     return if not defined $start;
-    my $last_expression = $recce->range_to_string( $start, $end );
+    my $last_expression = $slr->range_to_string( $start, $end );
     return $last_expression;
 } ## end sub show_last_expression
 
@@ -81,37 +81,38 @@ sub my_parser {
     my $self = bless { grammar => $grammar }, 'My_Actions';
     local $My_Actions::SELF = $self;
 
-    my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
+    my $trace_output = q{};
+    open my $trace_fh, q{>}, \$trace_output;
+    my $recce = Marpa::R2::Scanless::R->new(
+        {   grammar           => $grammar,
+            trace_terminals   => 1,
+            trace_file_handle => $trace_fh
+        }
+    );
     $self->{recce} = $recce;
     my ( $parse_value, $parse_status, $last_expression );
 
-    if ( not defined eval { $recce->read(\$string); 1 } ) {
+    my $eval_ok = eval { $recce->read( \$string ); 1 };
+    close $trace_fh;
+
+    if ( not defined $eval_ok ) {
         my $abbreviated_error = $EVAL_ERROR;
         chomp $abbreviated_error;
         $abbreviated_error =~ s/\n.*//xms;
         $abbreviated_error =~ s/^Error \s+ in \s+ string_read: \s+ //xms;
-        return 'No parse', $abbreviated_error, $self->show_last_expression();
-    }
-    my $value_ref = $recce->value();
+        die $self->show_last_expression(), $EVAL_ERROR;
+    } ## end if ( not defined $eval_ok )
+    my $value_ref = $recce->value;
     if ( not defined $value_ref ) {
-        return
-            'No parse', 'Input read to end but no parse',
+        die join q{ },
+            'Input read to end but no parse',
             $self->show_last_expression();
-    } ## end if ( not defined $value_ref )
-    return [ return ${$value_ref}, 'Parse OK', 'entire input' ];
+    }
+    return $recce, ${$value_ref}, $trace_output;
 } ## end sub my_parser
 
 my @tests_data = (
     [ '+++ 1 2 3 + + 1 2 4',     '1 results: 13', 'Parse OK', 'entire input' ],
-    [ 'say + 1 2',               '1 results: 3', 'Parse OK', 'entire input' ],
-    [ '+ 1 say 2',               'No parse', 'Parse exhausted', '1' ],
-    [ '+ 1 2 3 + + 1 2 4',       '3 results: 3 3 7', 'Parse OK', 'entire input' ],
-    [ '+++',                     'No parse', 'Input read to end but no parse', 'none' ],
-    [ '++1 2++',                 'No parse', 'Input read to end but no parse', '+1 2' ],
-    [ '++1 2++3 4++',            'No parse', 'Input read to end but no parse', '+3 4' ],
-    [ '1 + 2 +3  4 + 5 + 6 + 7', 'No parse', 'Input read to end but no parse', '7' ],
-    [ '+12',                     'No parse', 'Input read to end but no parse', '12' ],
-    [ '+1234',                   'No parse', 'Input read to end but no parse', '1234' ],
 );
 
 TEST:
@@ -119,13 +120,45 @@ for my $test_data (@tests_data) {
     my ($test_string,     $expected_value,
         $expected_result, $expected_last_expression
     ) = @{$test_data};
-    my ($actual_value,
-        $actual_result, $actual_last_expression
-    ) = my_parser( $prefix_grammar, $test_string );
-    $actual_last_expression //= 'none';
-    Test::More::is( $actual_value, $expected_value, qq{Value of "$test_string"} );
-    Test::More::is( $actual_result, $expected_result, qq{Result of "$test_string"} );
-    Test::More::is( $actual_last_expression, $expected_last_expression, qq{Last expression found in "$test_string"} );
-} ## end TEST: for my $test_string (@test_strings)
+    my ( $recce, $actual_value, $trace_output ) =
+        my_parser( $prefix_grammar, $test_string );
+
+# Marpa::R2::Display
+# name: Scanless show_progress() synopsis
+
+    my $show_progress_output = $recce->show_progress();
+
+# Marpa::R2::Display::End
+
+    Marpa::R2::Test::is( $show_progress_output,
+        <<'END_OF_EXPECTED_OUTPUT', qq{Scanless show_progess()} );
+F0 @0-11 [:start] -> Script .
+P1 @0-11 Script -> . Calculation*
+F1 @0-11 Script -> Calculation* .
+P2 @11-11 Calculation -> . Expression
+F2 @0-11 Calculation -> Expression .
+P3 @11-11 Calculation -> . [Lex-0] Expression
+P4 @11-11 Expression -> . Number
+F4 @10-11 Expression -> Number .
+P5 @11-11 Expression -> . [Lex-1] Expression Expression
+F5 x3 @0,6,10-11 Expression -> [Lex-1] Expression Expression .
+END_OF_EXPECTED_OUTPUT
+
+    Test::More::is( $actual_value, $expected_value,
+        qq{Value of "$test_string"} );
+    Test::More::is( $trace_output, <<'END_OF_OUTPUT', qq{Trace output} );
+Found lexemes @0-1: [Lex-1]; value="+"
+Found lexemes @1-2: [Lex-1]; value="+"
+Found lexemes @2-3: [Lex-1]; value="+"
+Found lexemes @4-5: Number; value="1"
+Found lexemes @6-7: Number; value="2"
+Found lexemes @8-9: Number; value="3"
+Found lexemes @10-11: [Lex-1]; value="+"
+Found lexemes @12-13: [Lex-1]; value="+"
+Found lexemes @14-15: Number; value="1"
+Found lexemes @16-17: Number; value="2"
+Found lexemes @18-19: Number; value="4"
+END_OF_OUTPUT
+} ## end for my $test_data (@tests_data)
 
 # vim: expandtab shiftwidth=4:

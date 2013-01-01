@@ -15,9 +15,29 @@
 
 Revision history for Marpa::R2
 
+2.035_002
+ 
+     * Release candidate.  Documentation for both
+       the Stuifzand and Scanless interfaces is
+       complete.
+
+2.035_001
+2.035_000
+
+      * New series of developer's releases.
+
+2.033_004 (leap-frogged)
+
+     * Release candidate.  Stuifzand interface is documented
+       and ready for full release.
+
 2.034000 Wed Dec 26 08:44:16 PST 2012
 
      * Fix problem with negative rule ranks.
+
+     * Stuifzand and Scanless interfaces are complete
+       and tested.  Only lack of documentation prevented
+       them from being taken out of beta.
 
      * Based on release candidate 2.033_003
 

@@ -1,0 +1,243 @@
+# Copyright 2012 Jeffrey Kegler
+# This file is part of Marpa::R2.  Marpa::R2 is free software: you can
+# redistribute it and/or modify it under the terms of the GNU Lesser
+# General Public License as published by the Free Software Foundation,
+# either version 3 of the License, or (at your option) any later version.
+#
+# Marpa::R2 is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser
+# General Public License along with Marpa::R2.  If not, see
+# http://www.gnu.org/licenses/.
+
+=head1 Name
+
+Marpa::R2::Scanless::G - Scanless interface grammars
+
+=head1 Synopsis
+
+=for Marpa::R2::Display
+name: Scanless grammar synopsis
+partial: 1
+normalize-whitespace: 1
+
+    my $grammar = Marpa::R2::Scanless::G->new(
+        {   
+            action_object  => 'My_Actions',
+            default_action => 'do_first_arg',
+            source          => \(<<'END_OF_SOURCE'),
+    :start ::= Script
+    Script ::= Expression+ separator => comma action => do_script
+    comma ~ [,]
+    Expression ::=
+        Number
+        | '(' Expression ')' action => do_parens assoc => group
+       || Expression '**' Expression action => do_pow assoc => right
+       || Expression '*' Expression action => do_multiply
+        | Expression '/' Expression action => do_divide
+       || Expression '+' Expression action => do_add
+        | Expression '-' Expression action => do_subtract
+    Number ~ [\d]+
+
+    :discard ~ whitespace
+    whitespace ~ [\s]+
+    # allow comments
+    :discard ~ <hash comment>
+    <hash comment> ~ <terminated hash comment> | <unterminated
+       final hash comment>
+    <terminated hash comment> ~ '#' <hash comment body> <vertical space char>
+    <unterminated final hash comment> ~ '#' <hash comment body>
+    <hash comment body> ~ <hash comment char>*
+    <vertical space char> ~ [\x{A}\x{B}\x{C}\x{D}\x{2028}\x{2029}]
+    <hash comment char> ~ [^\x{A}\x{B}\x{C}\x{D}\x{2028}\x{2029}]
+    END_OF_SOURCE
+        }
+    );
+
+=for Marpa::R2::Display::End
+
+=head1 About this document
+
+This page is the reference for the grammar objects
+of Marpa's Scanless interface.
+
+=head1 Constructor
+
+The C<new()> method is the constructor for Scanless grammars.
+An example of its use is L<above|/"Synopsis">.
+The C<new()> constructor accepts a hash of named arguments.
+The following named arguments are allowed:
+
+=head2 action_object
+
+Specifies the C<action_object> named argument that
+will be used for the G1 grammar.
+For details, see L<Marpa::R2::Grammar/"action_object">.
+
+=head2 default_action
+
+Specifies the C<default_action> named argument that
+will be used for the G1 grammar.
+For details, see L<Marpa::R2::Grammar/"default_action">.
+
+=head2 source
+
+The value of the C<source> named argument must be a reference
+to a string which contains a description of the grammar.
+The string's format is described L<below|/"Source strings">.
+
+=head2 trace_file_handle
+
+The value is a file handle.
+Trace output and warning messages
+go to the trace file handle.
+By default the trace file handle is C<STDERR>.
+
+=head1 Trace method
+
+=head2 show_rules()
+
+=for Marpa::R2::Display
+name: Scanless show_rules() synopsis
+partial: 1
+normalize-whitespace: 1
+
+    my $show_rules_output = $grammar->show_rules();
+
+=for Marpa::R2::Display::End
+
+The C<show_rules()> method is the equivalent of
+calling L<Marpa::R2::Grammar's show_rules()
+method|Marpa::R2::Grammar/"show_rules()">
+for both the G0 and G1 grammars.
+It is useful for showing the rules as they will
+appear in trace and debugging outputs.
+
+=head1 Source strings
+
+The format of
+Scanless source strings is
+L<that of
+BNF source strings|Marpa::R2::BNF>,
+with the following changes
+and extensions:
+
+=head2 Structural rules
+
+The BNF operator ("C<::=>")
+has the same function as before,
+but in addition it indicates that the rule is
+a G1 rule.
+Start rules must be G1 rules.
+
+=head2 Lexical rules
+
+The match operator ("C<~>")
+can be used between the LHS and RHS of a rule,
+instead of the BNF operator.
+Rules which use the match operator are G0 rules.
+Discard rules must be G0 rules.
+A lexical rule cannot have an C<action> adverb.
+
+=head2 Discard rules
+
+A discard rule is a rule whose LHS is
+the C<:discard> pseudo-symbol,
+and whose RHS is a single symbol name,
+called the B<discarded symbol>.
+These rules indicate that the discarded symbol is a top-level G0
+symbol, but one which is not a lexeme.
+When a discarded symbol is recognized,
+it is not passed as a lexeme to the G1 parser, but is
+(as the name suggests) discarded.
+
+=head2 Single quoted strings
+
+Single quotes can be used in prioritized
+rules to indicate character strings.
+The characters inside the single quote
+will be matched in the input, literally and one-for-one.
+Single quoted strings can contain any characters with
+the exception of
+single quotes and vertical whitespace.
+
+Single quoted strings do not allow "escaped" characters.
+A backslash ("C<\>") represents itself and has no effect
+on the interpretation of the next character.
+If a rule needs to match one of the forbidden characters
+(single quote or vertical whitespace), it must use a
+character class.
+
+Single quoted strings are always interpreted at the
+G0 level, but they may be used in either structural
+or lexical rules.
+When a single quoted string is used in a structural rule,
+Marpa creates a virtual G0 rule on behalf of the application.
+This is handy, but it does have a real disadvantage --
+the name of the virtual rule's LHS
+will be one assigned automatically by Marpa.
+When tracing and debugging parses and grammars,
+these virtual LHS's can be harder for a programmer
+to interpret.
+
+=head2 Character classes
+
+A character class in square brackets ("C<[]>")
+can be used in a RHS alternative of a prioritized rule,
+or on the RHS of a quantified rule or a discard rule.
+Marpa character classes may contain anything acceptable to Perl,
+and follow the same escaping conventions as Perl's character classes.
+
+Character classes are always interpreted at the
+G0 level, but they may be used in either structural
+or lexical rules.
+When a character class is used in a structural rule,
+Marpa creates a virtual G0 rule on behalf of the application.
+This is handy, but it does have a real disadvantage --
+the name of the virtual rule's LHS
+will be one assigned automatically by Marpa.
+When tracing and debugging parses and grammars,
+these virtual LHS's can be harder for a programmer
+to interpret.
+
+An implementation note: character classes are
+interpreted by Perl, but this involves minimal overhead
+when the parse is of any length.
+Each character class is
+passed to Perl to interpret exactly once and the result is
+memoized in a C structure for future use.
+
+=head1 Copyright and License
+
+=for Marpa::R2::Display
+ignore: 1
+
+  Copyright 2012 Jeffrey Kegler
+  This file is part of Marpa::R2.  Marpa::R2 is free software: you can
+  redistribute it and/or modify it under the terms of the GNU Lesser
+  General Public License as published by the Free Software Foundation,
+  either version 3 of the License, or (at your option) any later version.
+
+  Marpa::R2 is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser
+  General Public License along with Marpa::R2.  If not, see
+  http://www.gnu.org/licenses/.
+
+=for Marpa::R2::Display::End
+
+=cut
+
+# Local Variables:
+#   mode: cperl
+#   cperl-indent-level: 4
+#   fill-column: 100
+# End:
+# vim: expandtab shiftwidth=4:
+

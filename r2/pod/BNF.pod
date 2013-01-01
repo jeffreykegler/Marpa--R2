@@ -24,91 +24,207 @@ name: Stuifzand Synopsis
 partial: 1
 normalize-whitespace: 1
 
+    use Marpa::R2;
+
     my $grammar = Marpa::R2::Grammar->new(
-        {   start          => 'Script',
+        {   
             actions        => 'My_Actions',
             default_action => 'do_first_arg',
-            rules          => <<'END_OF_RULES',
-    Script ::= Expression+ separator => <op_comma> action => do_script
+            source          => \(<<'END_OF_SOURCE'),
+    :start ::= Script
+    Script ::= Expression+ separator => <op comma> action => do_script
     Expression ::=
         Number
-        | op_lparen Expression op_rparen action => do_parens assoc => group
-       || Expression op_pow Expression action => do_pow assoc => right
-       || Expression op_times Expression action => do_multiply
-        | Expression op_divide Expression action => do_divide
-       || Expression op_add Expression action => do_add
-        | Expression op_subtract Expression action => do_subtract
-    END_OF_RULES
+        | (<op lparen>) Expression (<op rparen>) action => do_parens assoc => group
+       || Expression (<op pow>) Expression action => do_pow assoc => right
+       || Expression (<op times>) Expression action => do_multiply
+        | Expression (<op divide>) Expression action => do_divide
+       || Expression (<op add>) Expression action => do_add
+        | Expression (<op subtract>) Expression action => do_subtract
+    END_OF_SOURCE
         }
     );
 
 =for Marpa::R2::Display::End
 
-=head2 This interface is beta
-
-This interface is beta.
-It is new, somewhat experimental,
-and therefore subject to change.
-
-=head2 Overview
+=head1 Overview
 
 This page is the reference for the Marpa's "BNF interface",
 also called its "Stuifzand interface".
-The Stuifzand interface allows strings
-in place of the rule descriptors as value
-of the C<rules> named
-arguments of Marpa grammars.
-These strings are called BNF source strings
-or Stuifzand source strings.
+The Stuifzand interface allows the grammar to be specified using
+a string whose text is written in a variation of BNF.
+BNF source strings are specified using the 
+L<the C<source> named argument of Marpa::R2's grammars|Marpa::R2::Grammar/"source">.
+BNF source strings perform the functions of
+the C<rules> and C<start> named arguments of Marpa grammars.
+When
+the C<source> named argument is used to specify a grammar,
+the C<rules> and C<start> named arguments should not be used,
+and vice versa.
 
-=head2 The structure of the BNF source file
+The Stuifzand interface is
+an example of a domain-specific language (DSL).
+The DSL of this document can (and has been) used to specify other
+DSL's, and therefore can be seen as a "meta-DSL".
+
+=head1 The source string
+
+=head2 Structure
 
 Whitespace separates tokens, but is otherwise ignored.
 Comments are equivalent to whitespace.
 A hash ("C<#>") character starts a comment,
 which continues to the end of the line.
 
-The Stuifzand format consists of production declarations.
-Each production declaraton consists of a left hand side
-symbol, followed by the declaration operator ("C<::=>")
-and a right hand side.
-Right hand sides are described below.
+The Stuifzand format consists of rule declarations.
+Each rule declaration consists of, in order:
+
+=over 4
+
+=item * A left hand side (LHS).
+This will be a
+symbol or a pseudo-symbol.
+
+=item * The declaration operator ("C<::=>").
+
+=item * A right hand side (RHS).
+For each type of rule,
+the RHS will be described in detail below.
+In the case of empty rules,
+the RHS will be empty.
+
+=item * An adverb list.
+Each adverb consists of a keyword,
+the adverb operator ("C<< => >>"),
+and the adverb's value.
+The adverb list may be zero length.
+
+=back
 
 =head2 Symbol names
 
-Symbols names must consist entirely of Perl word characters
+Symbol names can be either "bare" or enclosed in angle brackets.
+Bare symbol names must consist entirely of Perl word characters
 (alphanumerics, plus the underscore).
-Optionally, symbol names can be enclosed in angle brackets.
+The angle brackets, if used, serve to "quote"
+the symbol name,
+and will not be part of the symbol name.
 
-=head2 Right hand sides
+If angle brackets are used, symbol names may also contain whitespace,
+as in
 
-A right hand side may be empty, quantified, or prioritized.
-A empty right hand side is what the name suggests,
-no symbols, modifiers or punctuation.
-A production with an empty right hand side defines an nulling rule.
+=for Marpa::R2::Display
+ignore: 1
 
-=head2 Quantified right hand sides
+    <op comma>
 
-A quantified right hand side defines a sequence rule.
-It consists of a single symbol,
-followed by a "quantifier",
-and then followed, optionally, by modifiers.
+=for Marpa::R2::Display::End
+
+A whitespace sequence inside angle brackets can
+include any whitespace character that is legal in Perl,
+including newlines.
+This allows very long symbol names to be line wrapped,
+if necessary.
+
+Unlike angle brackets, the whitespace does become part of the symbol name,
+but it does so in a "normalized" form.
+Leading and trailing whitespace in the name is discarded,
+and all other whitespace sequences are converted to a single ASCII
+space character.
+This means that
+
+=for Marpa::R2::Display
+ignore: 1
+
+    < op comma  >
+    <op   comma>
+    <     op comma>
+
+=for Marpa::R2::Display::End
+
+and even
+
+
+=for Marpa::R2::Display
+ignore: 1
+
+    <op
+    comma>
+
+=for Marpa::R2::Display::End
+
+will all be regarded as the same symbol name.
+The normalized form of that symbol name
+is C<< <op comma> >>.
+The actual name of a symbol
+is the string inside the brackets of its
+normalized form.
+
+=head2 Types of rules
+
+Rules are of four kinds:
+the start rule,
+empty rules,
+quantified rules
+and prioritized rules.
+A rule like the following,
+
+=for Marpa::R2::Display
+ignore: 1
+
+    a ::= b c d
+
+=for Marpa::R2::Display::End
+
+whose RHS consists only of a sequence of symbols,
+is treated as a
+prioritized rule with only one alternative
+and only one priority.
+In a typical large grammar,
+most rules are prioritized rules,
+many of them taking
+a simple form like that in the display
+above.
+
+=head2 Start rule
+
+Every source string should have a start rule.
+The LHS of this rule is the C<:start> pseudo-symbol.
+The RHS must be a single symbol name.
+The start rule does not accept any adverbs.
+
+=head2 Empty rules
+
+An empty rule is a rule with an empty RHS.
+An empty right hand side is what the name suggests: no symbols
+or punctuation.
+An action adverb is allowed in an empty rule,
+but no others.
+A empty rule makes its LHS symbol a nullable symbol.
+
+=head2 Quantified rules
+
+A rule is quantified if
+its RHS consists of a single symbol name,
+followed by a "quantifier".
 The quantifer is either
 a star ("C<*>"),
 or a plus sign ("C<+>")
 indicating, respectively, that the sequence rule has a minimum length
 of 0 or 1.
+Quantified rules allow adverbs.
 
-=head2 Prioritized right hand sides
+=head2 Prioritized rules
 
-All productions which are not empty or quantified, are considered prioritized,
-although the prioritization may be trivial, consisting only of a single
-right hand side alternative,
-at a single priority level.
+Any rule which is not a start rule,
+and not empty or quantified, is considered prioritized.
+The prioritization may be simple, consisting only of a
+single priority level.
+
 Each prioritized right hand side consists of one or more right hand alternatives
-("alternatives" for brevity).
+(called "alternatives" for brevity).
 An alternative is a series of one or more symbols,
-followed by zero or more modifiers.
+followed by zero or more adverbs.
 
 The alternatives are separated by single or double "or" symbols.
 This means the alternatives in a prioritized right hand side proceed
@@ -118,17 +234,24 @@ the alternatives after it
 have a looser (lower) priority than the alternatives before it.
 The single "or" symbol ("C<|>") is the ordinary "alternative" operator --
 alternatives on each side of it have the same priority.
-Associativity is specified using modifiers, as described below.
+Associativity is specified using adverbs, as described below.
 
-=head2 Modifiers
+Within an alternative, symbols may be enclosed in parentheses.
+A symbol enclosed in parentheses is hidden from
+L<Marpa's semantics|Marpa::R2::Semantics>.
+A set of parentheses may contain more than one symbol,
+in which case the entire sequence of symbols is hidden,
+as if they had been enclosed in parentheses individually.
 
-Modifiers are allowed for quantified productions,
-and for the right hand side alternatives in prioritized productions.
-Modifiers must occur after the symbols.
-Modifiers consist of a keyword, the modifier operator ("C<< => >>"),
-and the modifier's value.
-The keyword must be from the following list of reserved names.
-Values are as described for each keyword.
+=head2 Adverbs
+
+Adverbs are allowed for empty rules, quantifiied rules,
+and for the right hand side alternatives in prioritized rules.
+Adverbs must occur after the symbols.
+Adverbs consist of a keyword, the adverb operator ("C<< => >>"),
+and the adverb's value.
+The keyword must be one of those described in this section.
+The adverb's value must be as described for each keyword.
 
 =head3 action
 
@@ -141,12 +264,13 @@ L<the C<action> named argument of rule descriptors|Marpa::R2::Grammar/"action">.
 
 =head3 assoc
 
-The C<assoc> modifier is only valid in a prioritized production.
+The C<assoc> adverb is only valid in a prioritized rule.
 Its value must be one of
 C<left>,
 C<right> or
 C<group>.
-Its effect will be as described below.
+Its effect will be as described
+L<below|/"Precedence">.
 
 =head3 separator
 
@@ -155,24 +279,79 @@ and its value must be a symbol of the grammar.
 It will be used as the separator,
 L<as described for sequence rules|Marpa::R2::Grammar/"Sequence rules">.
 
-=head2 How Marpa precedence works
+=head3 proper
+
+The C<proper> keyword is only valid for a quantified right side,
+and its value must be a boolean,
+in the form of a binary digit (C<0> or C<1>).
+It indicates proper or Perl separation,
+L<as described for sequence rules|Marpa::R2::Grammar/"Sequence rules">.
+
+=head1 Precedence
 
 Marpa's precedence is a generalization beyond the traditional ideas of precedence.
-Traditional precedence parsing required the 
+Traditional precedence parsing required
 the classification of operators as postfix, infix, etc.
 Marpa's precedence parsing is NOT based on
 the special treatment of operators.
-Marpa's precedence parsing,
-in fact,
-has no concept or definition of operator, except
-as something that is not an operand.
 
-An occurrence of the left hand side in a
-right hand side alternative is called an operand.
-Alternatives are assigned an arity according to
-the number of operands they contain.
-All arities are allowed, from zero to an arbitrary
-number imposed by system limits.
+For the purpose of precedence,
+an operand is an occurrence in a RHS alternative
+of the LHS symbol.
+An operator is considered to be anything 
+that is not an operand.
+The arity of an alternative is the number of operands that
+it contains.
+All arities are allowed, from zero to the arbitrary
+number imposed by system limits such as memory and file size.
+
+For example, in the synopsis, the LHS symbol is
+C<Expression>.  The alternative
+
+=for Marpa::R2::Display
+name: Stuifzand Synopsis
+partial: 1
+normalize-whitespace: 1
+
+        (<op lparen>) Expression (<op rparen>)
+
+=for Marpa::R2::Display::End
+
+contains one occurrence of C<Expression> and therefore has an arity of one.
+The C<< <op lparen> >> and C<< <op rparen> >> are considered operators.
+
+In the RHS alternative
+
+=for Marpa::R2::Display
+name: Stuifzand Synopsis
+partial: 1
+normalize-whitespace: 1
+
+       Expression (<op pow>) Expression
+
+=for Marpa::R2::Display::End
+
+C<Expression> occurs twice, and therefore the arity is 2.
+C<< <op pow> >> is considered to be an operator.
+
+Because for this purpose an operator is defined as anything that
+is not an operand, some symbols are considered operators
+that would not be in the traditional approach.
+For example,
+in the RHS alternative
+
+=for Marpa::R2::Display
+name: Stuifzand Synopsis
+partial: 1
+normalize-whitespace: 1
+
+       Number
+
+=for Marpa::R2::Display::End
+
+there are no occurrences of C<Expression>, so that the alternative
+has an arity of zero -- it is nullary.
+The symbol C<Number> is considered to be an operator.
 
 An alternative with arity 0 is nullary.
 Precedence and associativity
@@ -209,23 +388,23 @@ In "group" associativity, all operands associate
 at the loosest (lowest) priority.
 That is, in an alternative with group associativity,
 each operand may be a full expression of the kind
-defined by the prioritized production.
+defined by the prioritized rule.
 "Group" associativity is used, for example,
 in implementing the traditional function of parentheses
 in Marpa.
 Group associativity is meaningless for nullary alternatives,
 and is ignored.
 
-=head2 Caveats
+=head1 Caveats
 
-=head3 Symbol names
+=head2 Symbol names
 
 The BNF interface may rewrite its symbol names internally.
 Here we call the name by which a symbol is specified in the
 BNF interface string its "external symbol name",
 and its name as rewritten, its "internal symbol name".
-Marpa::R2 usually makes sure the user sees only
-external symbol names.
+In many cases, Marpa::R2 makes sure the user sees only
+the external names of symbols.
 For example,
 L<the C<rule()> Grammar method|Marpa::R2::Grammar/"rule()">
 returns external symbol names.
@@ -234,23 +413,28 @@ However,
 for some purposes, such as tracing grammars, the use of
 internal names may sometimes
 be appropriate.
-Marpa::R2's use of external versus internal symbol name
-is evolving,
-and this is one reason the BNF interface is still beta.
+Marpa::R2's use of external and internal symbol names
+is evolving.
+When the Stuifzand interface is used,
+except as documented in this section,
+the user may see either the internal or external form
+of a symbol's name.
+Also, the exact form of the internal name is
+subject to change.
 
-=head3 Precedence: the good news
+=head2 Precedence: the good news
 
 Marpa's generalization of precedence works
 for all grammars that
-can be defined by prioritized productions.
+can be defined by prioritized rules.
 It is efficient (linear) for all grammars that could be
 parsed by the traditional precedence parsing methods.
-Marpa also allows you to defined alternatives
+Marpa also allows you to define alternatives
 not allowed by traditional methods.
 Many of these are useful,
 and most of those can also be parsed efficiently.
 
-=head3 Precedence and ambiguous grammars
+=head2 Precedence and ambiguous grammars
 
 Because of the many forms of recursion allowed,
 it is possible
@@ -278,9 +462,8 @@ The author knows of no practical use for them,
 and their presence in a grammar is usually
 unintentional.
 Note that, in the event an application
-does find a use for such rules,
-Marpa can parse grammar which includes unit rules,
-via its other interfaces.
+does find a use for a grammar with unit rules,
+Marpa's standard interface can parse it.
 
 =for Marpa::R2::Display::End
    

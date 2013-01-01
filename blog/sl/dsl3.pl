@@ -94,7 +94,7 @@ sub add_brackets {
 } ## end sub add_brackets
 
 sub calculate {
-    my ($string) = @_;
+    my ($p_string) = @_;
 
     %symbol_table = ();
 
@@ -103,19 +103,15 @@ sub calculate {
     my $self = bless { grammar => $grammar }, 'My_Actions';
     $self->{slr} = $recce;
     local $My_Actions::SELF = $self;
-    my $event_count;
 
-    if ( not defined eval { $event_count = $recce->read($string); 1 } ) {
+    if ( not defined eval { $recce->read($p_string); 1 } ) {
 
         # Add last expression found, and rethrow
         my $eval_error = $EVAL_ERROR;
         chomp $eval_error;
         die $self->show_last_expression(), "\n", $eval_error, "\n";
-    } ## end if ( not defined eval { $event_count = $recce->read...})
-    if ( not defined $event_count ) {
-        die $self->show_last_expression(), "\n", $recce->error();
-    }
-    my $value_ref = $recce->value;
+    } ## end if ( not defined eval { $recce->read($p_string); 1 })
+    my $value_ref = $recce->value();
     if ( not defined $value_ref ) {
         die $self->show_last_expression(), "\n",
             "No parse was found, after reading the entire input\n";
@@ -127,7 +123,7 @@ sub calculate {
 sub report_calculation {
     my ($string) = @_;
     my $output   = qq{Input: "$string"\n};
-    my $result   = calculate($string);
+    my $result   = calculate(\$string);
     $result = join q{,}, @{$result} if ref $result eq 'ARRAY';
     $output .= "  Parse: $result\n";
     for my $symbol ( sort keys %symbol_table ) {
