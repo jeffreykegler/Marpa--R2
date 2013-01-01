@@ -15,21 +15,10 @@
 
 Revision history for Marpa::R2
 
-2.035_002
+2.036000 Tue Jan  1 00:54:36 PST 2013
  
-     * Release candidate.  Documentation for both
-       the Stuifzand and Scanless interfaces is
-       complete.
-
-2.035_001
-2.035_000
-
-      * New series of developer's releases.
-
-2.033_004 (leap-frogged)
-
-     * Release candidate.  Stuifzand interface is documented
-       and ready for full release.
+     * Documentation for the Stuifzand (BNF) and
+       Scanless interfaces is complete.
 
 2.034000 Wed Dec 26 08:44:16 PST 2012
 
