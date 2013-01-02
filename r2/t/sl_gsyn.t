@@ -96,16 +96,16 @@ Lex (G0) Rules:
 16: hash comment body -> hash comment char*
 17: vertical space char -> [[\x{A}\x{B}\x{C}\x{D}\x{2028}\x{2029}]]
 18: hash comment char -> [[^\x{A}\x{B}\x{C}\x{D}\x{2028}\x{2029}]]
-19: [:start_lex] -> [Lex-1]
-20: [:start_lex] -> comma
-21: [:start_lex] -> [Lex-3]
-22: [:start_lex] -> [Lex-5]
+19: [:start_lex] -> Number
+20: [:start_lex] -> [:discard]
+21: [:start_lex] -> [Lex-0]
+22: [:start_lex] -> [Lex-1]
 23: [:start_lex] -> [Lex-2]
-24: [:start_lex] -> Number
-25: [:start_lex] -> [:discard]
-26: [:start_lex] -> [Lex-6]
-27: [:start_lex] -> [Lex-4]
-28: [:start_lex] -> [Lex-0]
+24: [:start_lex] -> [Lex-3]
+25: [:start_lex] -> [Lex-4]
+26: [:start_lex] -> [Lex-5]
+27: [:start_lex] -> [Lex-6]
+28: [:start_lex] -> comma
 G1 Rules:
 0: [:start] -> Script
 1: Script -> Expression+ /* discard_sep */
