@@ -2556,8 +2556,11 @@ sub Marpa::R2::Scanless::R::read {
         $grammar->[Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMAR];
     my $lex_tracer       = $thick_lex_grammar->tracer();
     my $thin_lex_grammar = $lex_tracer->grammar();
+
+    # Defaults to non-existent symbol
     my $g0_discard_symbol_id =
-        $grammar->[Marpa::R2::Inner::Scanless::G::G0_DISCARD_SYMBOL_ID];
+        $grammar->[Marpa::R2::Inner::Scanless::G::G0_DISCARD_SYMBOL_ID] // -1;
+
     my $lexeme_to_g1_symbol =
         $grammar->[Marpa::R2::Inner::Scanless::G::LEXEME_TO_G1_SYMBOL];
     my $thick_g1_recce =
