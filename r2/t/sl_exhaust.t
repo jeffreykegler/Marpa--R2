@@ -21,7 +21,7 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 30;
+use Test::More tests => 54;
 use English qw( -no_match_vars );
 use lib 'inc';
 use Marpa::R2::Test;
@@ -37,19 +37,27 @@ whitespace   ~ [\s]+
 END_OF_SOURCE
 
 (my $source_bare = $source_template) =~ s/ %QUANTIFIER% / /xms;
+(my $source_plus = $source_template) =~ s/ %QUANTIFIER% / + /xms;
+(my $source_star = $source_template) =~ s/ %QUANTIFIER% / * /xms;
 
-my $grammar_bare = Marpa::R2::Scanless::G->new(
-    {
-        action_object        => 'My_Actions',
-        default_action => 'do_arg0',
-        source          => \$source_bare
-    }
+my @common_args = (
+    action_object  => 'My_Actions',
+    default_action => 'do_list',
 );
+my $grammar_bare =
+    Marpa::R2::Scanless::G->new( { @common_args, source => \$source_bare } );
+my $grammar_plus =
+    Marpa::R2::Scanless::G->new( { @common_args, source => \$source_plus } );
+my $grammar_star =
+    Marpa::R2::Scanless::G->new( { @common_args, source => \$source_star } );
 
 package My_Actions;
 our $SELF;
 sub new { return $SELF }
-sub do_arg0 { shift; return shift; }
+sub do_list {
+    shift;
+    return join " ", @_;
+}
 
 sub show_last_expression {
     my ($self) = @_;
@@ -88,28 +96,42 @@ sub my_parser {
     return [ return ${$value_ref}, 'Parse OK', 'entire input' ];
 } ## end sub my_parser
 
-my @tests_data = (
-    [   $grammar_bare, '', 'No parse', 'Input read to end but no parse',
-        'none'
-    ],
-    [ $grammar_bare, '1', '1', 'Parse OK', 'entire input' ],
-    [   $grammar_bare, '1 2', 'No parse',
-        'Parse exhausted, but lexemes remain, at position 2', '1'
-    ],
+my %grammar_by_type = (
+    'Bare' => $grammar_bare,
+    'Plus' => $grammar_plus,
+    'Star' => $grammar_star,
 );
 
-TEST:
-for my $test_data (@tests_data) {
-    my ($grammar, $test_string,     $expected_value,
-        $expected_result, $expected_last_expression
-    ) = @{$test_data};
-    my ($actual_value,
-        $actual_result, $actual_last_expression
-    ) = my_parser( $grammar, $test_string );
-    $actual_last_expression //= 'none';
-    Test::More::is( $actual_value, $expected_value, qq{Value of "$test_string"} );
-    Test::More::is( $actual_result, $expected_result, qq{Result of "$test_string"} );
-    Test::More::is( $actual_last_expression, $expected_last_expression, qq{Last expression found in "$test_string"} );
-} ## end TEST: for my $test_string (@test_strings)
+my @tests_data = (
+    [ 'Bare', '', 'No parse', 'Input read to end but no parse', 'none' ],
+    [ 'Bare', '1', '1', 'Parse OK', 'entire input' ],
+    [   'Bare', '1 2', 'No parse',
+        'Parse exhausted, but lexemes remain, at position 2', '1'
+    ],
+    [ 'Plus', '', 'No parse', 'Input read to end but no parse', 'none' ],
+    [ 'Plus', '1',   '1',        'Parse OK', 'entire input' ],
+    [ 'Plus', '1 2', '1 2', 'Parse OK', 'entire input' ],
+    [ 'Star', '', '', 'Parse OK', 'entire input' ],
+    [ 'Star', '1',   '1',        'Parse OK', 'entire input' ],
+    [ 'Star', '1 2', '1 2', 'Parse OK', 'entire input' ],
+);
+
+for my $trailer ( q{}, q{  } ) {
+    for my $test_data (@tests_data) {
+        my ( $type, $test_string, $expected_value, $expected_result,
+            $expected_last_expression )
+            = @{$test_data};
+        $test_string .= $trailer;
+        my ( $actual_value, $actual_result, $actual_last_expression ) =
+            my_parser( $grammar_by_type{$type}, $test_string );
+        $actual_last_expression //= 'none';
+        Test::More::is( $actual_value, $expected_value,
+            qq{$type: Value of "$test_string"} );
+        Test::More::is( $actual_result, $expected_result,
+            qq{%type: Result of "$test_string"} );
+        Test::More::is( $actual_last_expression, $expected_last_expression,
+            qq{$type: Last expression found in "$test_string"} );
+    } ## end for my $test_data (@tests_data)
+} ## end for my $trailer ( q{}, q{  } )
 
 # vim: expandtab shiftwidth=4:
