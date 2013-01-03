@@ -89,7 +89,13 @@ sub my_parser {
 } ## end sub my_parser
 
 my @tests_data = (
-    [ $grammar_bare, '1 2 3',     '1 results: 13', 'Parse OK', 'entire input' ],
+    [   $grammar_bare, '', 'No parse', 'Input read to end but no parse',
+        'none'
+    ],
+    [ $grammar_bare, '1', '1', 'Parse OK', 'entire input' ],
+    [   $grammar_bare, '1 2', 'No parse',
+        'Parse exhausted, but lexemes remain, at position 2', '1'
+    ],
 );
 
 TEST:
