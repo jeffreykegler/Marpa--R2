@@ -4,7 +4,9 @@ use Marpa::R2;
 
 sub new {
     my ($class) = @_;
+
     my $self = bless {}, $class;
+
     $self->{grammar} = Marpa::R2::Scanless::G->new(
         {
             action_object  => 'MarpaX::JSON::Actions',
@@ -14,6 +16,7 @@ sub new {
 :start       ::= json
 
 json         ::= object
+               | array
 
 object       ::= '{' '}'               action => do_empty_object
                | '{' members '}'       action => do_object
@@ -36,9 +39,9 @@ array        ::= '[' ']'               action => do_empty_array
 elements     ::= value+                separator => <comma> action => do_list
 
 number       ::= int
-               | int frac
-               | int exp
-               | int frac exp
+               | int frac              action => do_join
+               | int exp               action => do_join
+               | int frac exp          action => do_join
 
 int            ~ digits
                | '-' digits
@@ -59,7 +62,7 @@ e              ~ 'e'
 string       ::= lstring               action => do_string
 lstring        ~ quote in_string quote
 quote          ~ ["]
-in_string      ~ [^"]+
+in_string      ~ [^"]*
 
 comma          ~ ','
 
@@ -144,6 +147,11 @@ sub do_true {
 
 sub do_null {
     return undef;
+}
+
+sub do_join {
+    shift;
+    return join '', @_;
 }
 
 1;
