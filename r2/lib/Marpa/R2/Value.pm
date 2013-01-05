@@ -218,6 +218,11 @@ sub Marpa::R2::Internal::Recognizer::set_actions {
     my @resolution_by_lhs;
     my @nullable_ruleids_by_lhs;
 
+    # Because a "whatever" resolution can be *anything*, it cannot
+    # be used along with a non-whatever resolution.  That is because
+    # you could never be sure that what seems to be
+    # a valid non-whatever resolution is not something random from
+    # a whatever resolution
     RULE: for my $rule_id ( 0 .. $#{$rules} ) {
         my ( $new_resolution, $closure ) = @{ $rule_resolutions->[$rule_id] };
         my $lhs_id = $grammar_c->rule_lhs($rule_id);
@@ -229,9 +234,9 @@ sub Marpa::R2::Internal::Recognizer::set_actions {
             )
         {
             Marpa::R2::exception(
-                'Symbol ',
+                'Symbol "',
                 $grammar->symbol_name($lhs_id),
-                qq{ has two resolutions "$current_resolution" and "$new_resolution"\n},
+                qq{" has two resolutions "$current_resolution" and "$new_resolution"\n},
                 qq{  These would confuse the semantics\n}
             );
         } ## end if ( $new_resolution ne $current_resolution and ( ...))
