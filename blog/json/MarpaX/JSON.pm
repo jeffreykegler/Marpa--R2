@@ -38,10 +38,10 @@ array        ::= '[' ']'               action => do_empty_array
 
 elements     ::= value+                separator => <comma> action => do_list
 
-number       ::= int
-               | int frac              action => do_join
-               | int exp               action => do_join
-               | int frac exp          action => do_join
+number       ~ int
+               | int frac
+               | int exp
+               | int frac exp
 
 int            ~ digits
                | '-' digits
@@ -147,11 +147,6 @@ sub do_true {
 
 sub do_null {
     return undef;
-}
-
-sub do_join {
-    shift;
-    return join '', @_;
 }
 
 1;
