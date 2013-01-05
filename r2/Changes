@@ -15,17 +15,21 @@
 
 Revision history for Marpa::R2
 
-2.039_000
+2.040000 Sat Jan  5 08:33:52 PST 2013
 
-      * New series of developer's releases.
+     * Fixed two cases in the Scanless interface.  In
+       one case, parse exhaustion at the G1 level was
+       treated as an error.  In the other, the G0 level
+       assumed there would be at least one :discard rules,
+       and had problems if there were none.
+
+     * Based on release candidate 2.039_000
 
 2.038000 Wed Jan  2 09:14:38 PST 2013
 
      * The Scanless G0 rule order depended
        indirectly on the order of
        keys in a Perl hash.  Fixed that.
-
-     * Based on release candidate 2.035_003
 
 2.036000 Tue Jan  1 00:54:36 PST 2013
  
