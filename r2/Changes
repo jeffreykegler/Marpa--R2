@@ -15,6 +15,10 @@
 
 Revision history for Marpa::R2
 
+2.039_000
+
+      * New series of developer's releases.
+
 2.038000 Wed Jan  2 09:14:38 PST 2013
 
      * The Scanless G0 rule order depended
@@ -36,8 +40,6 @@ Revision history for Marpa::R2
      * Stuifzand and Scanless interfaces are complete
        and tested.  Only lack of documentation prevented
        them from being taken out of beta.
-
-     * Based on release candidate 2.033_003
 
 2.032000 Sun Dec  9 10:19:50 PST 2012
 

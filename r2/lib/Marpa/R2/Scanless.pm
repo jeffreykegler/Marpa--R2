@@ -20,7 +20,7 @@ use strict;
 use warnings;
 
 use vars qw($VERSION $STRING_VERSION);
-$VERSION        = '2.038000';
+$VERSION        = '2.039_000';
 $STRING_VERSION = $VERSION;
 ## no critic(BuiltinFunctions::ProhibitStringyEval)
 $VERSION = eval $VERSION;
@@ -2556,15 +2556,19 @@ sub Marpa::R2::Scanless::R::read {
         $grammar->[Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMAR];
     my $lex_tracer       = $thick_lex_grammar->tracer();
     my $thin_lex_grammar = $lex_tracer->grammar();
+
+    # Defaults to non-existent symbol
     my $g0_discard_symbol_id =
-        $grammar->[Marpa::R2::Inner::Scanless::G::G0_DISCARD_SYMBOL_ID];
+        $grammar->[Marpa::R2::Inner::Scanless::G::G0_DISCARD_SYMBOL_ID] // -1;
+
     my $lexeme_to_g1_symbol =
         $grammar->[Marpa::R2::Inner::Scanless::G::LEXEME_TO_G1_SYMBOL];
     my $thick_g1_recce =
         $self->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
     my $thin_g1_recce    = $thick_g1_recce->thin();
     my $thick_g1_grammar = $thick_g1_recce->grammar();
-    my $thin_g1_grammar  = $thick_g1_grammar->thin();
+    my $g1_tracer       = $thick_g1_grammar->tracer();
+    my $thin_g1_grammar  = $g1_tracer->grammar();
 
     # Here we access an internal value of the Recognizer class
     # Scanless is, in C++ terms, a friend class of the Recognizer
@@ -2575,7 +2579,7 @@ sub Marpa::R2::Scanless::R::read {
     # so they are initialized here.
     # Event counts are initialized to 0 for "no events, no problems".
     my $lex_event_count = 0;
-    my $g1_event_count  = 0;
+    my $g1_status  = 0;
     my $problem;
 
     my @found_lexemes   = ();
@@ -2641,7 +2645,7 @@ sub Marpa::R2::Scanless::R::read {
                 $earley_set--;
             } ## end EARLEY_SET: while ( $earley_set > 0 )
             if ( not scalar %found ) {
-                $g1_event_count = $lex_event_count = 0;    # lexer was NOT the problem
+                $g1_status = $lex_event_count = 0;    # lexer was NOT the problem
                 $problem = "No lexeme found at position $start_of_next_lexeme";
                 last READ;
             }
@@ -2655,6 +2659,12 @@ sub Marpa::R2::Scanless::R::read {
             if ( scalar @found_lexemes ) {
 
                 my $raw_token_value = substr ${$p_string}, $lexeme_start_pos, $lexeme_end_pos - $lexeme_start_pos;
+
+                if ($thin_g1_recce->is_exhausted()) {
+                    $g1_status = $lex_event_count = 0;    # lexer was NOT the problem
+                    $problem = "Parse exhausted, but lexemes remain, at position $lexeme_start_pos\n";
+                    last READ;
+                }
 
                 if ($trace_terminals) {
                     say {
@@ -2678,12 +2688,38 @@ sub Marpa::R2::Scanless::R::read {
                 } ## end for my $lexed_symbol_id (@found_lexemes)
                 push @locations, [ $lexeme_start_pos, $lexeme_end_pos ];
                 $thin_g1_grammar->throw_set(0);
-                $g1_event_count = $thin_g1_recce->earleme_complete();
+                $g1_status = $thin_g1_recce->earleme_complete();
                 $thin_g1_grammar->throw_set(1);
-                if ( not defined $g1_event_count or $g1_event_count != 0 ) {
+                LOOK_FOR_G1_PROBLEMS: {
+                    if ( defined $g1_status ) {
+                        last LOOK_FOR_G1_PROBLEMS if $g1_status == 0;
+                        if ( $g1_status > 0 ) {
+                            my $significant_problems = 0;
+                            my $event_count = $thin_g1_grammar->event_count();
+                            for (
+                                my $event_ix = 0;
+                                $event_ix < $event_count;
+                                $event_ix++
+                                )
+                            {
+                                my ($event_type) =
+                                    $thin_g1_grammar->event($event_ix);
+                                if ( $event_type ne 'MARPA_EVENT_EXHAUSTED' )
+                                {
+                                    $significant_problems++;
+                                }
+                            } ## end for ( my $event_ix = 0; $event_ix < $g1_status;...)
+                            if ( not $significant_problems ) {
+                                $g1_status = 0;
+                                last LOOK_FOR_G1_PROBLEMS;
+                            }
+                        } ## end if ( $g1_status > 0 )
+                    } ## end if ( defined $g1_status )
+
+                    # If here, there was a problem
                     $lex_event_count = 0;    # lexer was NOT the problem
                     last READ;
-                }
+                } ## end LOOK_FOR_G1_PROBLEMS:
             } ## end if ( scalar @found_lexemes )
 
             $thin_lex_recce  = undef;
@@ -2724,7 +2760,7 @@ sub Marpa::R2::Scanless::R::read {
     return $pos
         if not defined $problem
             and $lex_event_count == 0
-            and $g1_event_count == 0;
+            and $g1_status == 0;
 
     ## If we are here, recovery is a matter for the caller,
     ## if it is possible at all
@@ -2772,8 +2808,8 @@ sub Marpa::R2::Scanless::R::read {
             $desc = 'Unexpected return value from lexer: Parse exhausted';
             last DESC;
         }
-        if ($g1_event_count) {
-            my $true_event_count = $thin_lex_grammar->event_count();
+        if ($g1_status) {
+            my $true_event_count = $thin_g1_grammar->event_count();
             EVENT:
             for (
                 my $event_ix = 0;
@@ -2782,7 +2818,7 @@ sub Marpa::R2::Scanless::R::read {
                 )
             {
                 my ( $event_type, $value ) =
-                    $thin_lex_grammar->event($event_ix);
+                    $thin_g1_grammar->event($event_ix);
                 if ( $event_type eq 'MARPA_EVENT_EARLEY_ITEM_THRESHOLD' ) {
                     $desc
                         .= "G1 grammar: Earley item count ($value) exceeds warning threshold\n";
@@ -2790,7 +2826,7 @@ sub Marpa::R2::Scanless::R::read {
                 }
                 if ( $event_type eq 'MARPA_EVENT_SYMBOL_EXPECTED' ) {
                     $desc .= "Unexpected G1 grammar event: $event_type "
-                        . $lex_tracer->symbol_name($value) . "\n";
+                        . $g1_tracer->symbol_name($value) . "\n";
                     next EVENT;
                 }
                 if ( $event_type eq 'MARPA_EVENT_EXHAUSTED' ) {
@@ -2799,14 +2835,14 @@ sub Marpa::R2::Scanless::R::read {
                 }
             } ## end EVENT: for ( my $event_ix = 0; $event_ix < ...)
             last DESC;
-        } ## end if ($g1_event_count)
-        if ( $g1_event_count < 0 ) {
+        } ## end if ($g1_status)
+        if ( $g1_status < 0 ) {
             $desc = 'G1 error: ' . $thin_g1_grammar->error();
             last DESC;
         }
     } ## end DESC:
     my $read_string_error;
-    if ($g1_event_count) {
+    if ($g1_status) {
         my ($pos) = @{ $locations[-1] };
         my $prefix =
             $pos >= 72
@@ -2824,7 +2860,7 @@ sub Marpa::R2::Scanless::R::read {
             . "* String after error:\n"
             . Marpa::R2::escape_string( ( substr ${$p_string}, $pos, 72 ), 72 )
             . "\n";
-    } ## end if ($g1_event_count)
+    } ## end if ($g1_status)
     elsif ( $pos < $length_of_string ) {
         my $char = substr ${$p_string}, $pos, 1;
         my $char_desc = character_describe($char);
@@ -2848,7 +2884,7 @@ sub Marpa::R2::Scanless::R::read {
             . "* Error was at end of string\n"
             . "* String before error:\n"
             . Marpa::R2::escape_string( ${$p_string}, -72 ) . "\n";
-    } ## end else [ if ($g1_event_count) ]
+    } ## end else [ if ($g1_status) ]
     $self->[Marpa::R2::Inner::Scanless::R::READ_STRING_ERROR] =
         $read_string_error;
     Marpa::R2::exception($read_string_error);

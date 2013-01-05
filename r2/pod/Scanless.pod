@@ -229,7 +229,7 @@ and when to use the "C<::=>" operator,
 but the choice will usually be easy:
 If you want Marpa to "do what I mean" with whitespace, you use the
 "C<::=>" operator.
-If you want Marpa to do exactly whay you say on a character-by-character basis,
+If you want Marpa to do exactly what you say on a character-by-character basis,
 then you use the "C<~>" operator.
 
 =head2 Character classes

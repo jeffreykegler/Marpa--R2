@@ -432,7 +432,7 @@ parsed by the traditional precedence parsing methods.
 Marpa also allows you to define alternatives
 not allowed by traditional methods.
 Many of these are useful,
-and most of those can also be parsed efficiently.
+and most of the useful ones can be parsed efficiently.
 
 =head2 Precedence and ambiguous grammars
 
