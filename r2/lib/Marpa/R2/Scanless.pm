@@ -2849,7 +2849,7 @@ sub Marpa::R2::Scanless::R::read {
             ? ( substr ${$p_string}, $pos - 72, 72 )
             : ( substr ${$p_string}, 0, $pos );
         $read_string_error =
-              "Error in string_read: $desc\n"
+              "Error in Scanless read: G1 $desc\n"
             . "* Error was at string position: $pos\n"
             . '* Error was at lexemes: '
             . ( join q{ },
@@ -2870,7 +2870,7 @@ sub Marpa::R2::Scanless::R::read {
             : ( substr ${$p_string}, 0, $pos );
 
         $read_string_error =
-              "Error in string_read: $desc\n"
+              "Error in Scanless read: G1 $desc\n"
             . "* Error was at string position: $pos, and at character $char_desc\n"
             . "* String before error:\n"
             . Marpa::R2::escape_string( $prefix, -72 ) . "\n"
@@ -2880,7 +2880,7 @@ sub Marpa::R2::Scanless::R::read {
     } ## end elsif ( $pos < $length_of_string )
     else {
         $read_string_error =
-              "Error in string_read: $desc\n"
+              "Error in Scanless read: G1 $desc\n"
             . "* Error was at end of string\n"
             . "* String before error:\n"
             . Marpa::R2::escape_string( ${$p_string}, -72 ) . "\n";
