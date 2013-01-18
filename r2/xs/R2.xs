@@ -51,7 +51,9 @@ typedef struct {
      R_Wrapper* r_wrapper;
      G_Wrapper* base;
      SV* r_sv;
-     STRLEN character_ix; /* character position, taking into account Unicode */
+     STRLEN perl_pos; /* character position, taking into account Unicode
+         Equivalent to Perl pos()
+     */
      STRLEN input_offset; /* byte position, ignoring Unicode */
      SV* input;
      int input_debug; /* debug level for input */
@@ -827,7 +829,7 @@ PPCODE:
     stream->r_wrapper = r_wrapper;
     stream->r_sv = r_sv;
   stream->input = newSVpvn("", 0);
-  stream->character_ix = 0;
+  stream->perl_pos = 0;
   stream->input_offset = 0;
   stream->input_debug = 0;
   stream->input_symbol_id = -1;
@@ -989,7 +991,7 @@ string_set( stream, string )
      SVREF string;
 PPCODE:
 {
-  stream->character_ix = 0;
+  stream->perl_pos = 0;
   stream->input_offset = 0;
   sv_setsv (stream->input, string);
   SvPV_nolen (stream->input);
@@ -1000,7 +1002,7 @@ pos( stream )
      Unicode_Stream *stream;
 PPCODE:
 {
-  XSRETURN_IV(stream->character_ix);
+  XSRETURN_IV(stream->perl_pos);
 }
 
 void
@@ -1039,7 +1041,7 @@ PPCODE:
    */
   int input_is_utf8 = SvUTF8 (stream->input);
   STRLEN len;
-  const STRLEN old_pos = stream->character_ix;
+  const STRLEN old_pos = stream->perl_pos;
   char *input;
   if (input_is_utf8)
     {
@@ -1053,7 +1055,7 @@ PPCODE:
 	     (long) new_pos, (long) len);
     }
   stream->input_offset = new_pos;
-  stream->character_ix = new_pos;
+  stream->perl_pos = new_pos;
   XSRETURN_IV (old_pos);
 }
 
@@ -1106,7 +1108,7 @@ PPCODE:
 	}
       if (trace_level >= 10) {
           warn("Thin::U::read() Reading codepoint 0x%04x at pos %d",
-	    (int)codepoint, (int)stream->character_ix);
+	    (int)codepoint, (int)stream->perl_pos);
       }
       ops = stream->oplists_by_byte[codepoint];
       if (!ops)
@@ -1170,7 +1172,7 @@ PPCODE:
 		    stream->input_symbol_id = symbol_id;
 		    if (trace_level >= 10) {
 			warn("Thin::U::read() Rejected codepoint 0x%04x at pos %d as symbol %d",
-			  (int)codepoint, (int)stream->character_ix, symbol_id);
+			  (int)codepoint, (int)stream->perl_pos, symbol_id);
 		    }
 		    if (!ignore_rejection)
 		      {
@@ -1181,7 +1183,7 @@ PPCODE:
 		  case MARPA_ERR_NONE:
 		    if (trace_level >= 10) {
 			warn("Thin::U::read() Accepted codepoint 0x%04x at pos %d as symbol %d",
-			  (int)codepoint, (int)stream->character_ix, symbol_id);
+			  (int)codepoint, (int)stream->perl_pos, symbol_id);
 		    }
 		    tokens_accepted++;
 		    break;
@@ -1191,7 +1193,7 @@ PPCODE:
 		    croak
 		      ("Problem alternative() failed at char ix %d; symbol id %d; codepoint 0x%lx\n"
 		       "Problem in r->input_string_read(), alternative() failed: %s",
-		       (int)stream->character_ix, symbol_id, codepoint,
+		       (int)stream->perl_pos, symbol_id, codepoint,
 		       xs_g_error (stream->base));
 		  }
 	      }
@@ -1246,7 +1248,7 @@ PPCODE:
 	{
 	  stream->input_offset++;
 	}
-      stream->character_ix++;
+      stream->perl_pos++;
       /* This logic does not allow a return value of 0,
        * which is reserved for a indicating a full
        * read of the input string without event
