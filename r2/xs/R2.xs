@@ -59,7 +59,6 @@ typedef struct {
      int input_debug; /* debug level for input */
      Marpa_Symbol_ID input_symbol_id;
      UV codepoint; /* For error returns */
-     UV** oplists_by_byte;
      HV* per_codepoint_ops;
      IV ignore_rejection;
 
@@ -834,16 +833,6 @@ PPCODE:
   stream->input_debug = 0;
   stream->input_symbol_id = -1;
   stream->per_codepoint_ops = newHV();
-  {
-    const int number_of_bytes = 0x100;
-    int codepoint;
-    UV **oplists;
-    Newx(oplists, number_of_bytes, UV*);
-    stream->oplists_by_byte = oplists;
-    for (codepoint = 0; codepoint < number_of_bytes; codepoint++) {
-        oplists[codepoint] = (UV*)NULL;
-    }
-  }
   stream->ignore_rejection = 1;
   stream->minimum_accepted = 1;
     sv_setref_pv (u_sv, unicode_stream_class_name, (void *) stream);
@@ -879,15 +868,6 @@ DESTROY( stream )
 PPCODE:
 {
     const SV* r_sv = stream->r_sv;
-    UV **oplists = stream->oplists_by_byte;
-    if (oplists) {
-      const int number_of_bytes = 0x100;
-      int codepoint;
-      for (codepoint = 0; codepoint < number_of_bytes; codepoint++) {
-	  Safefree(oplists[codepoint]);
-      }
-      Safefree(stream->oplists_by_byte);
-    }
     SvREFCNT_dec(stream->input);
     SvREFCNT_dec(stream->per_codepoint_ops);
     SvREFCNT_dec(r_sv);
@@ -969,10 +949,11 @@ PPCODE:
     }
   {
     STRLEN op_ix;
-    UV **const ops_by_byte = stream->oplists_by_byte;
-    UV *ops = ops_by_byte[codepoint];
-    Renew (ops, op_count, UV);
-    stream->oplists_by_byte[codepoint] = ops;
+    STRLEN dummy;
+    UV *ops;
+    SV* ops_sv = newSV(op_count*sizeof(UV));
+    SvPOK_on(ops_sv);
+    ops = (UV *)SvPV(ops_sv, dummy);
     ops[0] = codepoint;
     ops[1] = op_count;
     for (op_ix = 2; op_ix < op_count; op_ix++)
@@ -982,6 +963,7 @@ PPCODE:
 	 */
 	ops[op_ix] = SvUV (ST (op_ix));
       }
+      hv_store( stream->per_codepoint_ops, (char *)&codepoint, sizeof(codepoint), ops_sv, 0);
   }
 }
 
@@ -1110,12 +1092,19 @@ PPCODE:
           warn("Thin::U::read() Reading codepoint 0x%04x at pos %d",
 	    (int)codepoint, (int)stream->perl_pos);
       }
-      ops = stream->oplists_by_byte[codepoint];
-      if (!ops)
-	{
-	  stream->codepoint = codepoint;
-	  XSRETURN_IV (-2);
-	}
+      {
+	STRLEN dummy;
+	SV **p_ops_sv =
+	  hv_fetch (stream->per_codepoint_ops, (char *) &codepoint,
+		    (I32)sizeof (codepoint), 0);
+	if (!p_ops_sv)
+	  {
+	    stream->codepoint = codepoint;
+	    XSRETURN_IV (-2);
+	  }
+	ops = (UV *)SvPV (*p_ops_sv, dummy);
+      }
+	
       /* ops[0] is codepoint */
       op_count = ops[1];
       for (op_ix = 2; op_ix < op_count; op_ix++)
@@ -1158,6 +1147,11 @@ PPCODE:
 		      }
 		    value = (int) ops[++op_ix];
 		    length = (int) ops[++op_ix];
+		if (trace_level >= 10)
+		  {
+		    warn ("Thin::U::read() alternative(%p, %d, %d, %d)", r, symbol_id, value,
+			  length);
+		  }
 		result = marpa_r_alternative (r, symbol_id, value, length);
 		switch (result)
 		  {
