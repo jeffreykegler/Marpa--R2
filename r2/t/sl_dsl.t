@@ -35,6 +35,7 @@ expression ::=
      NUM
    | VAR action => do_is_var
    | ('(') expression (')') assoc => group
+   | ([\x{300C}]) expression ([\x{300D}]) assoc => group
   || '-' expression action => do_negate
   || expression '^' expression action => do_caret assoc => right
   || expression '*' expression action => do_star
@@ -139,6 +140,10 @@ my @tests_data = (
     [ "1 * 2 + 3 * 4 ^ 2 ^ 2 ^ 2 * 42 + 1" => 'Parse: 541165879299' ],
     [ "+ reduce 1 + 2, 3,4*2 , 5"          => 'Parse: 19' ]
 );
+
+my $unicoded_string = "4 * 3 / (a = b = 5) + 42 - 1";
+$unicoded_string =~ tr/() /\x{300C}\x{300D}\x{2028}/;
+push @tests_data, [   $unicoded_string, q{} ];
 
 TEST:
 for my $test_data (@tests_data) {
