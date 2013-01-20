@@ -941,30 +941,23 @@ PPCODE:
 {
   /* OP Count is args less two, then plus two for codepoint and length fields */
   const STRLEN op_count = items;
-  if (codepoint > 0xFF)
+  STRLEN op_ix;
+  STRLEN dummy;
+  UV *ops;
+  SV *ops_sv = newSV (op_count * sizeof (UV));
+  SvPOK_on (ops_sv);
+  ops = (UV *) SvPV (ops_sv, dummy);
+  ops[0] = codepoint;
+  ops[1] = op_count;
+  for (op_ix = 2; op_ix < op_count; op_ix++)
     {
-      croak
-	("Problem in r->char_register(0x%lx): More than 8bit codepoint not yet implemented",
-	 codepoint);
+      /* By coincidence, offset of individual ops is 2 both in the
+       * method arguments and in the op_list, so that arg IX == op_ix
+       */
+      ops[op_ix] = SvUV (ST (op_ix));
     }
-  {
-    STRLEN op_ix;
-    STRLEN dummy;
-    UV *ops;
-    SV* ops_sv = newSV(op_count*sizeof(UV));
-    SvPOK_on(ops_sv);
-    ops = (UV *)SvPV(ops_sv, dummy);
-    ops[0] = codepoint;
-    ops[1] = op_count;
-    for (op_ix = 2; op_ix < op_count; op_ix++)
-      {
-	/* By coincidence, offset of individual ops is 2 both in the
-	 * method arguments and in the op_list, so that arg IX == op_ix
-	 */
-	ops[op_ix] = SvUV (ST (op_ix));
-      }
-      hv_store( stream->per_codepoint_ops, (char *)&codepoint, sizeof(codepoint), ops_sv, 0);
-  }
+  hv_store (stream->per_codepoint_ops, (char *) &codepoint,
+	    sizeof (codepoint), ops_sv, 0);
 }
 
 void
