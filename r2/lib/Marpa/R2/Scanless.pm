@@ -158,39 +158,41 @@ sub do_rules {
 sub do_start_rule {
     my ( $self, $rhs ) = @_;
     my @ws      = ();
-    my $normalized_rhs = $self->normalize($rhs);
+    my $normalized_rhs = $self->rhs_normalize($rhs);
     return [ { lhs => '[:start]', rhs => [$normalized_rhs->names()] } ];
 } ## end sub do_start_rule
 
 sub do_discard_rule {
     my ( $self, $rhs ) = @_;
     local $GRAMMAR_LEVEL = 0;
-    my $normalized_rhs = $self->normalize($rhs);
+    my $normalized_rhs = $self->rhs_normalize($rhs);
     push @{$self->{lex_rules}}, { lhs => '[:discard]', rhs => [$normalized_rhs->name()] };
     return [];
 } ## end sub do_discard_rule
 
 # "Normalize" a symbol list, creating subrules as needed
 # for lexicalization.
-sub normalize {
+sub rhs_normalize {
     my ( $self, $symbols ) = @_;
     return $symbols if $GRAMMAR_LEVEL <= 0;
+    if ( $symbols->is_lexical() ) {
+        my $is_hidden         = $symbols->are_all_hidden();
+        my $lexical_lhs_index = $self->{lexical_lhs_index}++;
+        my $lexical_lhs       = "[Lex-$lexical_lhs_index]";
+        my %lexical_rule      = (
+            lhs  => $lexical_lhs,
+            rhs  => [ $symbols->names() ],
+            mask => [ $symbols->mask() ]
+        );
+        push @{ $self->{lex_rules} }, \%lexical_rule;
+        my $g1_symbol = Marpa::R2::Inner::Scanless::Symbol->new($lexical_lhs);
+        $g1_symbol->hidden_set() if $is_hidden;
+        return $g1_symbol;
+    } ## end if ( $symbols->is_lexical() )
     return Marpa::R2::Inner::Scanless::Symbol_List->new(
-        map { $_->is_symbol() ? $_ : $self->normalize($_) } $symbols->symbol_lists() )
-        if not $symbols->is_lexical();
-    my $is_hidden = $symbols->are_all_hidden();
-    my $lexical_lhs_index = $self->{lexical_lhs_index}++;
-    my $lexical_lhs       = "[Lex-$lexical_lhs_index]";
-    my %lexical_rule      = (
-        lhs  => $lexical_lhs,
-        rhs  => [ $symbols->names() ],
-        mask => [ $symbols->mask() ]
-    );
-    push @{ $self->{lex_rules} }, \%lexical_rule;
-    my $g1_symbol = Marpa::R2::Inner::Scanless::Symbol->new($lexical_lhs);
-    $g1_symbol->hidden_set() if $is_hidden;
-    return $g1_symbol;
-} ## end sub normalize
+        map { $_->is_symbol() ? $_ : $self->rhs_normalize($_) }
+            $symbols->symbol_lists() );
+} ## end sub rhs_normalize
 
 sub do_priority_rule {
     my ( $self, $lhs, $op_declare, $priorities ) = @_;
@@ -205,7 +207,7 @@ sub do_priority_rule {
         ## If there is only one priority
         for my $alternative ( @{ $priorities->[0] } ) {
             my ( $rhs, $adverb_list ) = @{$alternative};
-            $rhs = $self->normalize($rhs);
+            $rhs = $self->rhs_normalize($rhs);
             my @rhs_names = $rhs->names();
             my @mask      = $rhs->mask();
             if ( $GRAMMAR_LEVEL <= 0 and grep { !$_ } @mask ) {
@@ -256,7 +258,7 @@ sub do_priority_rule {
     );
     RULE: for my $working_rule (@working_rules) {
         my ( $priority, $rhs, $adverb_list ) = @{$working_rule};
-        $rhs = $self->normalize($rhs);
+        $rhs = $self->rhs_normalize($rhs);
         my $assoc   = $adverb_list->{assoc} // 'L';
         my @new_rhs = $rhs->names();
         my @arity   = grep { $new_rhs[$_] eq $lhs } 0 .. $#new_rhs;
