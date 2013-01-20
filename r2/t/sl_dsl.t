@@ -20,7 +20,11 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 6;
+use Test::More tests => 7;
+my $builder = Test::More->builder;
+binmode $builder->output,         ":utf8";
+binmode $builder->failure_output, ":utf8";
+binmode $builder->todo_output,    ":utf8";
 use English qw( -no_match_vars );
 use lib 'inc';
 use Marpa::R2::Test;
@@ -143,7 +147,7 @@ my @tests_data = (
 
 my $unicoded_string = "4 * 3 / (a = b = 5) + 42 - 1";
 $unicoded_string =~ tr/() /\x{300C}\x{300D}\x{2028}/;
-push @tests_data, [   $unicoded_string, q{} ];
+push @tests_data, [ $unicoded_string, qq{Parse: 43.4\n"a" = "5"\n"b" = "5"} ];
 
 TEST:
 for my $test_data (@tests_data) {
