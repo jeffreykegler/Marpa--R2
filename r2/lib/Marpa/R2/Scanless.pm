@@ -189,9 +189,15 @@ sub rhs_normalize {
         $g1_symbol->hidden_set() if $is_hidden;
         return $g1_symbol;
     } ## end if ( $symbols->is_lexical() )
-    return Marpa::R2::Inner::Scanless::Symbol_List->new(
-        map { $_->is_symbol() ? $_ : $self->rhs_normalize($_) }
-            $symbols->symbol_lists() );
+    my @symbols;
+    CONTAINER: for my $symbol_container ($symbols->symbol_lists()) {
+         if ($symbol_container->is_symbol()) {
+             push @symbols, $symbol_container;
+             next CONTAINER;
+         }
+         push @symbols, $self->rhs_normalize($symbol_container)->symbols();
+    }
+    return Marpa::R2::Inner::Scanless::Symbol_List->new(@symbols);
 } ## end sub rhs_normalize
 
 sub do_priority_rule {
