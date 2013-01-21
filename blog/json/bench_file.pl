@@ -7,7 +7,7 @@ use autodie;
 use JSON::PP 'decode_json';
 use lib '../../r2/blib/arch';
 use lib '../../r2/lib';
-use Marpa::R2 2.041_000;
+use Marpa::R2 2.041_001;
 use lib '.';
 use MarpaX::JSON;
 use Benchmark qw/:hireswallclock :all/;
