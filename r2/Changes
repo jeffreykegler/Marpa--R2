@@ -15,9 +15,13 @@
 
 Revision history for Marpa::R2
 
+2.041_001
+
 2.041_000
 
       * New series of developer's releases.
+
+      * Support Unicode in Scanless interface.
 
 2.040000 Sat Jan  5 08:33:52 PST 2013
 
