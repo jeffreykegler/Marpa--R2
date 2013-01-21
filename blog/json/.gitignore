@@ -1,3 +1,4 @@
 *.json
+gist[0-9][0-9][0-9]*/
 nytprof/
 nytprof.out

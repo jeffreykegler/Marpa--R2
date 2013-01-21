@@ -1,6 +1,6 @@
 package MarpaX::JSON;
 use strict;
-use Marpa::R2;
+use Marpa::R2 2.039_000;
 
 sub new {
     my ($class) = @_;
@@ -38,7 +38,7 @@ array        ::= '[' ']'               action => do_empty_array
 
 elements     ::= value+                separator => <comma> action => do_list
 
-number       ~ int
+number         ~ int
                | int frac
                | int exp
                | int frac exp
@@ -60,9 +60,25 @@ e              ~ 'e'
                | 'E-'
 
 string       ::= lstring               action => do_string
+
 lstring        ~ quote in_string quote
 quote          ~ ["]
-in_string      ~ [^"]*
+
+in_string      ~ in_string_char*
+
+in_string_char  ~ [^"\\]
+                | '\' '"'
+                | '\' 'b'
+                | '\' 'f'
+                | '\' 't'
+                | '\' 'n'
+                | '\' 'r'
+                | '\' 'u' four_hex_digits
+                | '\' '/'
+                | '\\'
+
+four_hex_digits ~ hex_digit hex_digit hex_digit hex_digit
+hex_digit       ~ [0-9a-fA-F]
 
 comma          ~ ','
 
@@ -92,7 +108,6 @@ sub parse_json {
 
 package MarpaX::JSON::Actions;
 use strict;
-use Data::Dumper;
 
 sub new {
     my ($class) = @_;
@@ -135,8 +150,21 @@ sub do_pair {
 sub do_string {
     shift;
     my $s = $_[0];
+
     $s =~ s/^"//;
     $s =~ s/"$//;
+
+    $s =~ s/\\u([0-9A-Fa-f]{4})/chr(hex($1))/eg;
+
+    $s =~ s/\\n/\n/g;
+    $s =~ s/\\r/\r/g;
+    $s =~ s/\\b/\b/g;
+    $s =~ s/\\f/\f/g;
+    $s =~ s/\\t/\t/g;
+    $s =~ s/\\\\/\\/g;
+    $s =~ s{\\/}{/}g;
+    $s =~ s{\\"}{"}g;
+
     return $s;
 }
 
@@ -147,6 +175,11 @@ sub do_true {
 
 sub do_null {
     return undef;
+}
+
+sub do_join {
+    shift;
+    return join '', @_;
 }
 
 1;
