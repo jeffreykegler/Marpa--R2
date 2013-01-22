@@ -229,6 +229,35 @@ enum marpa_recce_op {
    op_unregistered,
 };
 
+/* Recognizer statics */
+
+static R_Wrapper* r_new( G_Wrapper *g_wrapper )
+{
+  dTHX;
+  int highest_symbol_id;
+  Marpa_Grammar g = g_wrapper->g;
+  R_Wrapper *r_wrapper;
+  Marpa_Recce r;
+  r = marpa_r_new (g);
+  if (!r)
+    {
+      if (!g_wrapper->throw) { return 0; }
+      croak ("failure in marpa_r_new: %s", xs_g_error (g_wrapper));
+    };
+  highest_symbol_id = marpa_g_highest_symbol_id (g);
+  if (highest_symbol_id < 0)
+    {
+      if (!g_wrapper->throw) { return 0; }
+      croak ("failure in marpa_g_highest_symbol_id: %s", xs_g_error (g_wrapper));
+    };
+  Newx (r_wrapper, 1, R_Wrapper);
+  r_wrapper->r = r;
+  Newx (r_wrapper->terminals_buffer, highest_symbol_id+1, Marpa_Symbol_ID);
+  r_wrapper->ruby_slippers = 0;
+  r_wrapper->base = g_wrapper;
+  return r_wrapper;
+}
+
 MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin
 
 PROTOTYPES: DISABLE
@@ -687,28 +716,9 @@ new( class, g_wrapper )
     G_Wrapper *g_wrapper;
 PPCODE:
 {
-  int highest_symbol_id;
-  Marpa_Grammar g = g_wrapper->g;
   SV *sv;
-  R_Wrapper *r_wrapper;
-  Marpa_Recce r;
-  r = marpa_r_new (g);
-  if (!r)
-    {
-      if (!g_wrapper->throw) { XSRETURN_UNDEF; }
-      croak ("failure in marpa_r_new: %s", xs_g_error (g_wrapper));
-    };
-  highest_symbol_id = marpa_g_highest_symbol_id (g);
-  if (highest_symbol_id < 0)
-    {
-      if (!g_wrapper->throw) { XSRETURN_UNDEF; }
-      croak ("failure in marpa_g_highest_symbol_id: %s", xs_g_error (g_wrapper));
-    };
-  Newx (r_wrapper, 1, R_Wrapper);
-  r_wrapper->r = r;
-  Newx (r_wrapper->terminals_buffer, highest_symbol_id+1, Marpa_Symbol_ID);
-  r_wrapper->ruby_slippers = 0;
-  r_wrapper->base = g_wrapper;
+  R_Wrapper *r_wrapper = r_new( g_wrapper );
+  if (!r_wrapper) XSRETURN_UNDEF;
   sv = sv_newmortal ();
   sv_setref_pv (sv, recce_c_class_name, (void *) r_wrapper);
   XPUSHs (sv);
