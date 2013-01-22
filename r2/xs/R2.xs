@@ -231,7 +231,8 @@ enum marpa_recce_op {
 
 /* Recognizer statics */
 
-static R_Wrapper* r_new( G_Wrapper *g_wrapper )
+static R_Wrapper *
+r_new (G_Wrapper * g_wrapper)
 {
   dTHX;
   int highest_symbol_id;
@@ -241,21 +242,38 @@ static R_Wrapper* r_new( G_Wrapper *g_wrapper )
   r = marpa_r_new (g);
   if (!r)
     {
-      if (!g_wrapper->throw) { return 0; }
+      if (!g_wrapper->throw)
+	{
+	  return 0;
+	}
       croak ("failure in marpa_r_new: %s", xs_g_error (g_wrapper));
     };
   highest_symbol_id = marpa_g_highest_symbol_id (g);
   if (highest_symbol_id < 0)
     {
-      if (!g_wrapper->throw) { return 0; }
-      croak ("failure in marpa_g_highest_symbol_id: %s", xs_g_error (g_wrapper));
+      if (!g_wrapper->throw)
+	{
+	  return 0;
+	}
+      croak ("failure in marpa_g_highest_symbol_id: %s",
+	     xs_g_error (g_wrapper));
     };
   Newx (r_wrapper, 1, R_Wrapper);
   r_wrapper->r = r;
-  Newx (r_wrapper->terminals_buffer, highest_symbol_id+1, Marpa_Symbol_ID);
+  Newx (r_wrapper->terminals_buffer, highest_symbol_id + 1, Marpa_Symbol_ID);
   r_wrapper->ruby_slippers = 0;
   r_wrapper->base = g_wrapper;
   return r_wrapper;
+}
+
+static void
+r_destroy (R_Wrapper * r_wrapper)
+{
+  dTHX;
+  struct marpa_r *r = r_wrapper->r;
+  Safefree (r_wrapper->terminals_buffer);
+  marpa_r_unref (r);
+  Safefree (r_wrapper);
 }
 
 MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin
@@ -729,10 +747,7 @@ DESTROY( r_wrapper )
     R_Wrapper *r_wrapper;
 PPCODE:
 {
-    struct marpa_r *r = r_wrapper->r;
-    Safefree(r_wrapper->terminals_buffer);
-    marpa_r_unref( r );
-    Safefree( r_wrapper );
+    r_destroy(r_wrapper);
 }
 
 void
