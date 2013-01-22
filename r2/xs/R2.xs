@@ -43,12 +43,14 @@ typedef struct marpa_r Recce;
 typedef struct {
      Marpa_Recce r;
      Marpa_Symbol_ID* terminals_buffer;
+     SV* base_sv;
      G_Wrapper* base;
      unsigned int ruby_slippers:1;
 } R_Wrapper;
 
 typedef struct {
      R_Wrapper* r_wrapper;
+     SV* base_sv;
      G_Wrapper* base;
      SV* r_sv;
      STRLEN perl_pos; /* character position, taking into account Unicode
@@ -71,24 +73,28 @@ typedef struct {
 typedef struct marpa_b Bocage;
 typedef struct {
      Marpa_Bocage b;
+     SV* base_sv;
      G_Wrapper* base;
 } B_Wrapper;
 
 typedef struct marpa_o Order;
 typedef struct {
      Marpa_Order o;
+     SV* base_sv;
      G_Wrapper* base;
 } O_Wrapper;
 
 typedef struct marpa_t Tree;
 typedef struct {
      Marpa_Tree t;
+     SV* base_sv;
      G_Wrapper* base;
 } T_Wrapper;
 
 typedef struct marpa_v Value;
 typedef struct {
      Marpa_Value v;
+     SV* base_sv;
      G_Wrapper* base;
 } V_Wrapper;
 
@@ -231,14 +237,23 @@ enum marpa_recce_op {
 
 /* Recognizer statics */
 
+/* Assumes caller has checked that g_sv is blessed into right type */
 static R_Wrapper *
-r_new (G_Wrapper * g_wrapper)
+r_new (SV * g_sv)
 {
   dTHX;
   int highest_symbol_id;
-  Marpa_Grammar g = g_wrapper->g;
+  Marpa_Grammar g;
+  G_Wrapper *g_wrapper;
   R_Wrapper *r_wrapper;
   Marpa_Recce r;
+
+  {
+    IV tmp = SvIV ((SV *) SvRV (g_sv));
+    g_wrapper = INT2PTR (G_Wrapper *, tmp);
+  }
+
+  g = g_wrapper->g;
   r = marpa_r_new (g);
   if (!r)
     {
@@ -262,6 +277,8 @@ r_new (G_Wrapper * g_wrapper)
   r_wrapper->r = r;
   Newx (r_wrapper->terminals_buffer, highest_symbol_id + 1, Marpa_Symbol_ID);
   r_wrapper->ruby_slippers = 0;
+  SvREFCNT_inc (g_sv);
+  r_wrapper->base_sv = g_sv;
   r_wrapper->base = g_wrapper;
   return r_wrapper;
 }
@@ -271,6 +288,7 @@ r_destroy (R_Wrapper * r_wrapper)
 {
   dTHX;
   struct marpa_r *r = r_wrapper->r;
+  SvREFCNT_dec (r_wrapper->base_sv);
   Safefree (r_wrapper->terminals_buffer);
   marpa_r_unref (r);
   Safefree (r_wrapper);
@@ -729,13 +747,18 @@ PPCODE:
 MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin::R
 
 void
-new( class, g_wrapper )
+new( class, g_sv )
     char * class;
-    G_Wrapper *g_wrapper;
+    SV* g_sv;
 PPCODE:
 {
   SV *sv;
-  R_Wrapper *r_wrapper = r_new( g_wrapper );
+  R_Wrapper *r_wrapper;
+  if (!sv_isa (g_sv, "Marpa::R2::Thin::G"))
+    {
+      croak ("Problem in Marpa::R2->new(): arg is not of type Marpa::R2::Thin::G");
+    }
+  r_wrapper = r_new( g_sv );
   if (!r_wrapper) XSRETURN_UNDEF;
   sv = sv_newmortal ();
   sv_setref_pv (sv, recce_c_class_name, (void *) r_wrapper);
@@ -1322,6 +1345,11 @@ PPCODE:
       croak ("Problem in b->new(): %s", xs_g_error(r_wrapper->base));
     }
   Newx (b_wrapper, 1, B_Wrapper);
+  {
+    SV* base_sv = r_wrapper->base_sv;
+    SvREFCNT_inc (base_sv);
+    b_wrapper->base_sv = base_sv;
+  }
   b_wrapper->base = r_wrapper->base;
   b_wrapper->b = b;
   sv = sv_newmortal ();
@@ -1335,6 +1363,7 @@ DESTROY( b_wrapper )
 PPCODE:
 {
     const Marpa_Bocage b = b_wrapper->b;
+    SvREFCNT_dec (b_wrapper->base_sv);
     marpa_b_unref(b);
     Safefree( b_wrapper );
 }
@@ -1357,6 +1386,11 @@ PPCODE:
       croak ("Problem in o->new(): %s", xs_g_error(b_wrapper->base));
     }
   Newx (o_wrapper, 1, O_Wrapper);
+  {
+    SV* base_sv = b_wrapper->base_sv;
+    SvREFCNT_inc (base_sv);
+    o_wrapper->base_sv = base_sv;
+  }
   o_wrapper->base = b_wrapper->base;
   o_wrapper->o = o;
   sv = sv_newmortal ();
@@ -1370,6 +1404,7 @@ DESTROY( o_wrapper )
 PPCODE:
 {
     const Marpa_Order o = o_wrapper->o;
+    SvREFCNT_dec (o_wrapper->base_sv);
     marpa_o_unref(o);
     Safefree( o_wrapper );
 }
@@ -1392,6 +1427,11 @@ PPCODE:
       croak ("Problem in t->new(): %s", xs_g_error(o_wrapper->base));
     }
   Newx (t_wrapper, 1, T_Wrapper);
+  {
+    SV* base_sv = o_wrapper->base_sv;
+    SvREFCNT_inc (base_sv);
+    t_wrapper->base_sv = base_sv;
+  }
   t_wrapper->base = o_wrapper->base;
   t_wrapper->t = t;
   sv = sv_newmortal ();
@@ -1405,6 +1445,7 @@ DESTROY( t_wrapper )
 PPCODE:
 {
     const Marpa_Tree t = t_wrapper->t;
+    SvREFCNT_dec (t_wrapper->base_sv);
     marpa_t_unref(t);
     Safefree( t_wrapper );
 }
@@ -1427,6 +1468,11 @@ PPCODE:
       croak ("Problem in v->new(): %s", xs_g_error(t_wrapper->base));
     }
   Newx (v_wrapper, 1, V_Wrapper);
+  {
+    SV* base_sv = t_wrapper->base_sv;
+    SvREFCNT_inc (base_sv);
+    v_wrapper->base_sv = base_sv;
+  }
   v_wrapper->base = t_wrapper->base;
   v_wrapper->v = v;
   sv = sv_newmortal ();
@@ -1440,6 +1486,7 @@ DESTROY( v_wrapper )
 PPCODE:
 {
     const Marpa_Value v = v_wrapper->v;
+    SvREFCNT_dec (v_wrapper->base_sv);
     marpa_v_unref(v);
     Safefree( v_wrapper );
 }
