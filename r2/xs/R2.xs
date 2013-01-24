@@ -55,7 +55,6 @@ typedef struct {
       */
      SV* g0_sv;
      Marpa_Recce r0;
-     SV* r0_sv;
      STRLEN perl_pos; /* character position, taking into account Unicode
          Equivalent to Perl pos()
      */
@@ -251,6 +250,7 @@ enum marpa_recce_op {
 
 /* Assumes caller has checked that g_sv is blessed into right type
    Return a *mortalized* SV.
+   Assumes caller holds a ref to the recce.
 */
 static SV*
 r_wrap( Marpa_Recce r, SV* g_sv)
@@ -873,31 +873,29 @@ PPCODE:
 MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin::U
 
 void
-new( class, r_sv )
+new( class, g_sv )
     char * class;
-    SV *r_sv;
+    SV *g_sv;
 PPCODE:
 {
-  if (!sv_isa (r_sv, "Marpa::R2::Thin::R"))
+  if (!sv_isa (g_sv, "Marpa::R2::Thin::G"))
     {
-      croak ("Problem in u->new(): arg is not of type Marpa::R2::Thin::R");
+      croak ("Problem in u->new(): arg is not of type Marpa::R2::Thin::G");
     }
-  SvREFCNT_inc (r_sv);
   {
-    IV tmp = SvIV ((SV *) SvRV (r_sv));
-    R_Wrapper *r_wrapper = INT2PTR (R_Wrapper *, tmp);
+    IV tmp = SvIV ((SV *) SvRV (g_sv));
+    G_Wrapper *g_wrapper = INT2PTR (G_Wrapper *, tmp);
     SV *u_sv = sv_newmortal ();
     Unicode_Stream *stream;
     Newx (stream, 1, Unicode_Stream);
     stream->trace = 0;
-    stream->g0_wrapper = r_wrapper->base;
-    stream->r0 = r_wrapper->r;
-    {
-      SV *g0_sv = r_wrapper->base_sv;
-      SvREFCNT_inc (g0_sv);
-      stream->g0_sv = g0_sv;
-    }
-    stream->r0_sv = r_sv;
+    stream->g0_wrapper = g_wrapper;
+    stream->r0 = NULL;
+  /* Hold a ref to the grammar SV we were called with --
+   * it will have to exist for our lifetime
+   */
+  SvREFCNT_inc (g_sv);
+    stream->g0_sv = g_sv;
     stream->input = newSVpvn ("", 0);
     stream->perl_pos = 0;
     stream->input_offset = 0;
@@ -912,6 +910,22 @@ PPCODE:
 }
 
 void
+DESTROY( stream )
+    Unicode_Stream *stream;
+PPCODE:
+{
+  const Marpa_Recce r0 = stream->r0;
+  if (r0)
+    {
+      marpa_r_unref (r0);
+    }
+  SvREFCNT_dec (stream->input);
+  SvREFCNT_dec (stream->per_codepoint_ops);
+  SvREFCNT_dec (stream->g0_sv);
+  Safefree (stream);
+}
+
+void
 recce( stream )
     Unicode_Stream *stream;
 PPCODE:
@@ -920,42 +934,45 @@ PPCODE:
   Marpa_Recce r0 = stream->r0;
   if (!r0)
     XSRETURN_UNDEF;
+  marpa_r_ref(r0);
   wrapped_r = r_wrap (r0, stream->g0_sv);
   XPUSHs (wrapped_r);
 }
 
 void
-recce_set( stream, new_r_sv )
+recce_reset( stream )
     Unicode_Stream *stream;
-    SV *new_r_sv;
 PPCODE:
 {
-  if (!sv_isa (new_r_sv, "Marpa::R2::Thin::R"))
+  Marpa_Recce r0 = stream->r0;
+  G_Wrapper* g0_wrapper = stream->g0_wrapper;
+  if (r0)
     {
-      croak ("Problem in u->recce_set(): arg is not of type Marpa::R2::Thin::R");
+      marpa_r_unref (r0);
+      stream->r0 = NULL;
     }
-  SvREFCNT_inc (new_r_sv);
+  r0 = marpa_r_new (g0_wrapper->g);
+  if (!r0)
+    {
+      if (!g0_wrapper->throw)
+	{
+	  XSRETURN_NO;
+	}
+      croak ("failure in marpa_r_new(): %s", xs_g_error (g0_wrapper));
+    };
   {
-    IV tmp = SvIV ((SV *) SvRV (new_r_sv));
-    R_Wrapper *new_r_wrapper = INT2PTR (R_Wrapper *, tmp);
-    /* Does not change grammars !!! */
-    SvREFCNT_dec(stream->r0_sv);
-    stream->r0_sv = new_r_sv;
-    stream->r0  = new_r_wrapper->r;
+    int gp_result = marpa_r_start_input (r0);
+    if (gp_result == -1)
+      {
+	XSRETURN_NO;
+      }
+    if (gp_result < 0 && g0_wrapper->throw)
+      {
+	croak ("Problem in r->start_input(): %s", xs_g_error (g0_wrapper));
+      }
   }
-}
-
-void
-DESTROY( stream )
-    Unicode_Stream *stream;
-PPCODE:
-{
-    const SV* r_sv = stream->r0_sv;
-    SvREFCNT_dec(stream->input);
-    SvREFCNT_dec(stream->per_codepoint_ops);
-    SvREFCNT_dec(r_sv);
-    SvREFCNT_dec(stream->g0_sv);
-    Safefree( stream );
+  stream->r0  = r0;
+  XSRETURN_YES;
 }
 
 void
