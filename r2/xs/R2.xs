@@ -249,15 +249,6 @@ enum marpa_recce_op {
 
 /* Maybe inline some of these */
 
-static struct marpa_r*
-r_new ( G_Wrapper *g_wrapper )
-{
-  dTHX;
-  Marpa_Grammar g = g_wrapper->g;
-  Marpa_Recce r = marpa_r_new (g);
-  return r;
-}
-
 /* Assumes caller has checked that g_sv is blessed into right type
    Return a *mortalized* SV.
 */
@@ -776,20 +767,22 @@ PPCODE:
   SV *sv;
   G_Wrapper *g_wrapper;
   Marpa_Recce r;
+  Marpa_Grammar g;
   if (!sv_isa (g_sv, "Marpa::R2::Thin::G"))
     {
       croak
 	("Problem in Marpa::R2->new(): arg is not of type Marpa::R2::Thin::G");
     }
   SET_G_WRAPPER_FROM_G_SV (g_wrapper, g_sv);
-  r = r_new (g_wrapper);
+  g = g_wrapper->g;
+  r = marpa_r_new (g);
   if (!r)
     {
       if (!g_wrapper->throw)
 	{
 	  XSRETURN_UNDEF;
 	}
-      croak ("failure in marpa_r_new: %s", xs_g_error (g_wrapper));
+      croak ("failure in marpa_r_new(): %s", xs_g_error (g_wrapper));
     };
 
   sv = r_wrap (r, g_sv);
