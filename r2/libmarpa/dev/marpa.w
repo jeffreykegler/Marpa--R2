@@ -544,6 +544,17 @@ marpa_check_version (unsigned int required_major,
   return MARPA_ERR_NONE;
 }
 
+@ Always succeeds at this point.
+@<Function definitions@> =
+Marpa_Error_Code
+marpa_version (unsigned int* version)
+{
+  *version++ = MARPA_MAJOR_VERSION;
+  *version++ = MARPA_MINOR_VERSION;
+  *version = MARPA_MICRO_VERSION;
+  return 0;
+}
+
 @*0 Header file.
 These and other globals may need
 special variable declarations so that they
@@ -2864,7 +2875,7 @@ unproductive symbols will be make productive somehow,
 and not eliminated.
 The downside of this choice is that, in a few uncommon cases,
 a user relying entirely
-on the Marpa::R2 warnings to clean up his grammar will have to go through
+on Marpa warnings to clean up his grammar will have to go through
 more than a single pass of the diagnostics.
 (As of this writing, I personally have yet to encounter such a case.)
 The upside is that in the more frequent cases, the user is spared
@@ -5275,7 +5286,7 @@ one is every non-nulling rule, the only non-nulling rule will
 be in AHFA state 0, and AHFA state 0 is
 handled as a special cases.
 \par
-As a note, the current logic makes an item an leo completion
+As a note, the current logic makes an item an Leo completion
 if the last non-nulling symbol is on a LHS.
 With a bit more trouble, I could determine
 which rules are right-recursive.
@@ -7608,7 +7619,7 @@ Each possible cause
 link is only visited once.
 It may be paired with several different predecessors.
 Each cause may complete several different LHS symbols
-and Marpa::R2 will seek predecessors for each at
+and Marpa will seek predecessors for each at
 the parent location.
 Two different completed LHS symbols might be postdot
 symbols for the same predecessor Earley item.
@@ -8680,11 +8691,7 @@ Large stacks may needed for very ambiguous grammars.
     DSTACK_INIT2 (r->t_completion_stack, EIM );
 @ @<Destroy recognizer elements@> = DSTACK_DESTROY(r->t_completion_stack);
 
-@ The completion stack is initialized to a very high-ball estimate of the
-number of completions per Earley set.
-It will grow if needed.
-Large stacks may needed for very ambiguous grammars.
-@<Widely aligned recognizer elements@> = DSTACK_DECLARE(t_earley_set_stack);
+@ @<Widely aligned recognizer elements@> = DSTACK_DECLARE(t_earley_set_stack);
 @ @<Initialize recognizer elements@> = DSTACK_SAFE(r->t_earley_set_stack);
 @ @<Destroy recognizer elements@> = DSTACK_DESTROY(r->t_earley_set_stack);
 
@@ -8714,6 +8721,12 @@ marpa_r_earleme_complete(Marpa_Recognizer r)
   EIM* cause_p;
   ES current_earley_set;
   EARLEME current_earleme;
+
+  /* Initialized to -2 just in case.
+   * Should be set before returning;
+   */
+  EARLEME return_value = -2;
+
   int count_of_expected_terminals;
   @<Declare |marpa_r_earleme_complete| locals@>@;
   @<Fail if recognizer not accepting input@>@;
@@ -8740,8 +8753,10 @@ marpa_r_earleme_complete(Marpa_Recognizer r)
 	@<Set |r| exhausted@>@;
       }
     earley_set_update_items(r, current_earley_set);
+  return_value = G_EVENT_COUNT(g);
+  CLEANUP: ;
   @<Destroy |marpa_r_earleme_complete| locals@>@;
-  return G_EVENT_COUNT(g);
+  return return_value;
 }
 
 @ @<Declare |marpa_r_earleme_complete| locals@> =
@@ -8773,9 +8788,12 @@ return 0 without creating an
 Earley set.
 The return value means success, with no events.
 @<Return 0 if no alternatives@> = {
-    ALT top_of_stack = DSTACK_TOP(r->t_alternatives, ALT_Object);
-    if (!top_of_stack) return 0;
-    if (current_earleme != End_Earleme_of_ALT(top_of_stack)) return 0;
+  ALT top_of_stack = DSTACK_TOP (r->t_alternatives, ALT_Object);
+  if (!top_of_stack || current_earleme != End_Earleme_of_ALT (top_of_stack))
+    {
+      return_value = 0;
+      goto CLEANUP;
+    }
 }
 
 @ @<Scan from the alternative stack@> =
@@ -9470,7 +9488,7 @@ There will be
 pairs of these source links which share the same middle earleme,
 because if an AHFA item (dotted rule) in one is justified at a
 location, the same AHFA item in the other must be, also.
-This happen frequently enough to be an issue even for practical
+This happens frequently enough to be an issue even for practical
 grammars.
 
 @*0 Sources of Leo path items.
@@ -10140,8 +10158,9 @@ or arranging to test it.
 
 
 @  In the following logic, the order matters.
-The one added last in this or the logic for
-adding the main item, will be used as the or node
+The one added last in this logic,
+or in the logic for adding the main item,
+will be used as the or-node
 in the PSIA.
 @ In building the final or-node, the predecessor can be
 determined using the PSIA for $|symbol_instance|-1$.
@@ -10197,9 +10216,9 @@ MARPA_ASSERT(Position_of_OR(or_node) <= 1 || predecessor);
     }
 }
 
-@ The main loop in this code deliberately skips the first leo predecessor.
-The successor of the first leo predecessor is the base of the Leo path,
-which already exists, and therefore the first leo predecessor is not
+@ The main loop in this code deliberately skips the first Leo predecessor.
+The successor of the first Leo predecessor is the base of the Leo path,
+which already exists, and therefore the first Leo predecessor is not
 expanded.
 @ The unwrapping of the information for the Leo path item is quite the
 process, and some memoization might be useful.
@@ -10246,7 +10265,7 @@ PRIVATE AIM base_aim_of_lim(LIM leo_item)
 
 @ Adds the main Leo path or-node---%
 the non-nulling or-node which
-corresponds to the leo predecessor.
+corresponds to the Leo predecessor.
 @<Add main Leo path or-node@> =
 {
     {
@@ -10363,7 +10382,7 @@ DAND draft_and_node_new(struct obstack *obs, OR predecessor, OR cause)
 }
 
 @ Currently, I do not check draft and-nodes for duplicates.
-This will be done when they are copied to final and-ndoes.
+This will be done when they are copied to final and-nodes.
 In the future, it may be more efficient to do a linear search for
 duplicates until the number of draft and-nodes reaches a small
 constant $n$.
