@@ -334,7 +334,7 @@ PPCODE:
   Marpa_Grammar g;
   G_Wrapper *g_wrapper;
   int throw = 1;
-  int interface = 0;
+  IV interface = 0;
   Marpa_Config marpa_configuration;
   Marpa_Error_Code error_code;
 
@@ -491,7 +491,7 @@ PPCODE:
 		Safefree(rhs);
 	        XSRETURN_UNDEF;
 	    } else {
-	        rhs[i] = SvIV(*elem);
+	        rhs[i] = (Marpa_Symbol_ID)SvIV(*elem);
 	    }
 	}
     }
@@ -536,7 +536,7 @@ PPCODE:
 	    }
 	  if ((*key == 'm') && strnEQ (key, "min", (unsigned) retlen))
 	    {
-	      int raw_min = SvIV (arg_value);
+	      IV raw_min = SvIV (arg_value);
 	      if (raw_min < 0)
 		{
 		  char *error_message =
@@ -551,7 +551,21 @@ PPCODE:
 		      XSRETURN_UNDEF;
 		    }
 		}
-	      min = raw_min;
+		if (raw_min > INT_MAX) {
+		  /* IV can be larger than int */
+		  char *error_message =
+		    form ("sequence_new(): min cannot be greater than %d", INT_MAX);
+		  set_error_from_string (g_wrapper, savepv(error_message));
+		  if (g_wrapper->throw)
+		    {
+		      croak ("%s", error_message);
+		    }
+		  else
+		    {
+		      XSRETURN_UNDEF;
+		    }
+		}
+	      min = (int)raw_min;
 	      continue;
 	    }
 	  if ((*key == 'p') && strnEQ (key, "proper", (unsigned) retlen))
@@ -562,7 +576,7 @@ PPCODE:
 	    }
 	  if ((*key == 's') && strnEQ (key, "separator", (unsigned) retlen))
 	    {
-	      separator = SvIV (arg_value);
+	      separator = (Marpa_Symbol_ID)SvIV (arg_value);
 	      continue;
 	    }
 	  {
@@ -1127,7 +1141,7 @@ PPCODE:
        * to use the Perl API to hop one codepoint at a time,
        * which is basically how utf8_hop() does it anyway.
        */
-      int hop = new_pos - old_pos;
+      IV hop = new_pos - old_pos;
       U8 *p_current = input + stream->input_offset;
       U8 *end_of_input = input + len;
       while (hop > 0)
@@ -1180,7 +1194,7 @@ read( stream )
      Unicode_Stream *stream;
 PPCODE:
 {
-  const int trace_level = stream->trace;
+  const IV trace_level = stream->trace;
   const Marpa_Recognizer r = stream->r0;
   U8* input;
   int input_is_utf8;
@@ -1196,14 +1210,27 @@ PPCODE:
       STRLEN op_ix;
       STRLEN op_count;
       UV *ops;
-      int ignore_rejection = stream->ignore_rejection;
-      int minimum_accepted = stream->minimum_accepted;
+      IV ignore_rejection = stream->ignore_rejection;
+      IV minimum_accepted = stream->minimum_accepted;
       int tokens_accepted = 0;
       if (stream->input_offset >= len)
 	break;
       if (input_is_utf8)
 	{
+
+  /* utf8_to_uvchr is deprecated in 5.16, but
+   * utf8_to_uvchr_buf is not available before 5.16
+   * If I need to get fancier, I should look at Dumper.xs
+   * in Data::Dumper
+   */
+#if PERL_VERSION <= 15 && ! defined(utf8_to_uvchr_buf)
 	  codepoint = utf8_to_uvchr(input+stream->input_offset, &codepoint_length);
+#else
+	  codepoint =
+	  utf8_to_uvchr_buf (input + stream->input_offset, input + len,
+			     &codepoint_length);
+#endif
+
 	  /* Perl API documents that return value is 0 and length is -1 on error,
 	   * "if possible".  length can be, and is, in fact unsigned.
 	   * I deal with this by noting that 0 is a valid UTF8 char but should
@@ -1295,8 +1322,8 @@ PPCODE:
 		    # we have one of them as an example
 		    stream->input_symbol_id = symbol_id;
 		    if (trace_level >= 10) {
-			warn("Thin::U::read() Rejected codepoint 0x%04x at pos %d as symbol %d",
-			  (int)codepoint, (int)stream->perl_pos, symbol_id);
+			warn("Thin::U::read() Rejected codepoint 0x%04lx at pos %d as symbol %d",
+			  (unsigned long)codepoint, (int)stream->perl_pos, symbol_id);
 		    }
 		    if (!ignore_rejection)
 		      {
@@ -1306,8 +1333,8 @@ PPCODE:
 		    break;
 		  case MARPA_ERR_NONE:
 		    if (trace_level >= 10) {
-			warn("Thin::U::read() Accepted codepoint 0x%04x at pos %d as symbol %d",
-			  (int)codepoint, (int)stream->perl_pos, symbol_id);
+			warn("Thin::U::read() Accepted codepoint 0x%04lx at pos %d as symbol %d",
+			  (unsigned long)codepoint, (int)stream->perl_pos, symbol_id);
 		    }
 		    tokens_accepted++;
 		    break;
@@ -1317,7 +1344,7 @@ PPCODE:
 		    croak
 		      ("Problem alternative() failed at char ix %d; symbol id %d; codepoint 0x%lx\n"
 		       "Problem in r->input_string_read(), alternative() failed: %s",
-		       (int)stream->perl_pos, symbol_id, codepoint,
+		       (int)stream->perl_pos, symbol_id, (unsigned long)codepoint,
 		       xs_g_error (stream->g0_wrapper));
 		  }
 	      }
@@ -1329,7 +1356,7 @@ PPCODE:
 		    stream->codepoint = codepoint;
 		    XSRETURN_IV (-1);
 		}
-		marpa_r_latest_earley_set_value_set (r, codepoint);
+		marpa_r_latest_earley_set_value_set (r, (int)codepoint);
 		result = marpa_r_earleme_complete (r);
 		if (result > 0)
 		  {
@@ -1552,7 +1579,6 @@ PPCODE:
   Marpa_Symbol_ID token_id;
   Marpa_Rule_ID rule_id;
   const char *result_string;
-  SV *sv;
   const Marpa_Step_Type status = marpa_v_step (v);
 
   if (status == MARPA_STEP_INACTIVE)
