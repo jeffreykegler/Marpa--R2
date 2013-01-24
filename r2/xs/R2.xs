@@ -287,22 +287,16 @@ r_wrap( Marpa_Recce r, SV* g_sv)
   return sv_to_return;
 }
 
-static Marpa_Recce
+static void
 r_unwrap (R_Wrapper * r_wrapper)
 {
   dTHX;
-  struct marpa_r* r = r_wrapper->r;
+  Marpa_Recce r = r_wrapper->r;
+  /* The wrapper should always have had a ref to its base grammar's SV */
   SvREFCNT_dec (r_wrapper->base_sv);
   Safefree (r_wrapper->terminals_buffer);
   Safefree (r_wrapper);
-  return r;
-}
-
-static void
-r_destroy (R_Wrapper * r_wrapper)
-{
-  dTHX;
-  struct marpa_r *r = r_unwrap(r_wrapper);
+  /* The wrapper should always have had a ref to the Libmarpa recce */
   marpa_r_unref (r);
 }
 
@@ -794,7 +788,7 @@ DESTROY( r_wrapper )
     R_Wrapper *r_wrapper;
 PPCODE:
 {
-    r_destroy(r_wrapper);
+    r_unwrap(r_wrapper);
 }
 
 void
