@@ -55,6 +55,7 @@ typedef struct {
       */
      SV* g0_sv;
      Marpa_Recce r0;
+     SV* r0_sv;
      STRLEN perl_pos; /* character position, taking into account Unicode
          Equivalent to Perl pos()
      */
@@ -248,11 +249,10 @@ enum marpa_recce_op {
 
 /* Maybe inline some of these */
 
-/* Assumes caller has checked that g_sv is blessed into right type
-   Return a *mortalized* SV.
+/* Assumes caller has checked that g_sv is blessed into right type.
    Assumes caller holds a ref to the recce.
 */
-static SV*
+static R_Wrapper*
 r_wrap( Marpa_Recce r, SV* g_sv)
 {
   dTHX;
@@ -282,12 +282,13 @@ r_wrap( Marpa_Recce r, SV* g_sv)
   SvREFCNT_inc (g_sv);
   r_wrapper->base_sv = g_sv;
   r_wrapper->base = g_wrapper;
-  sv_to_return = sv_newmortal ();
-  sv_setref_pv (sv_to_return, recce_c_class_name, (void *) r_wrapper);
-  return sv_to_return;
+  return r_wrapper;
 }
 
-static void
+/* It is up to the caller to deal with the Libmarpa recce's
+ * reference count
+ */
+static Marpa_Recce
 r_unwrap (R_Wrapper * r_wrapper)
 {
   dTHX;
@@ -297,7 +298,7 @@ r_unwrap (R_Wrapper * r_wrapper)
   Safefree (r_wrapper->terminals_buffer);
   Safefree (r_wrapper);
   /* The wrapper should always have had a ref to the Libmarpa recce */
-  marpa_r_unref (r);
+  return r;
 }
 
 MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin
@@ -772,7 +773,7 @@ new( class, g_sv )
     SV* g_sv;
 PPCODE:
 {
-  SV *sv;
+  SV *sv_to_return;
   G_Wrapper *g_wrapper;
   Marpa_Recce r;
   Marpa_Grammar g;
@@ -793,8 +794,12 @@ PPCODE:
       croak ("failure in marpa_r_new(): %s", xs_g_error (g_wrapper));
     };
 
-  sv = r_wrap (r, g_sv);
-  XPUSHs (sv);
+  {
+    R_Wrapper *r_wrapper = r_wrap (r, g_sv);
+    sv_to_return = sv_newmortal ();
+    sv_setref_pv (sv_to_return, recce_c_class_name, (void *) r_wrapper);
+  }
+  XPUSHs (sv_to_return);
 }
 
 void
@@ -802,7 +807,8 @@ DESTROY( r_wrapper )
     R_Wrapper *r_wrapper;
 PPCODE:
 {
-    r_unwrap(r_wrapper);
+    Marpa_Recce r = r_unwrap(r_wrapper);
+    marpa_r_unref (r);
 }
 
 void
@@ -910,6 +916,7 @@ PPCODE:
    */
   SvREFCNT_inc (g_sv);
     stream->g0_sv = g_sv;
+    stream->r0_sv = NULL;
     stream->input = newSVpvn ("", 0);
     stream->perl_pos = 0;
     stream->input_offset = 0;
@@ -936,21 +943,27 @@ PPCODE:
   SvREFCNT_dec (stream->input);
   SvREFCNT_dec (stream->per_codepoint_ops);
   SvREFCNT_dec (stream->g0_sv);
+  if (stream->r0_sv) { SvREFCNT_dec (stream->r0_sv); }
   Safefree (stream);
 }
 
+ #  Always returns the same SV for a given stream -- 
+ #  it does not create a new one
+ # 
 void
 recce( stream )
     Unicode_Stream *stream;
 PPCODE:
 {
-  SV *wrapped_r;
-  Marpa_Recce r0 = stream->r0;
-  if (!r0)
-    XSRETURN_UNDEF;
-  marpa_r_ref(r0);
-  wrapped_r = r_wrap (r0, stream->g0_sv);
-  XPUSHs (wrapped_r);
+  SV* r0_sv = stream->r0_sv;
+  if (!r0_sv) {
+    marpa_r_ref(stream->r0);
+    R_Wrapper* r_wrapper = r_wrap (stream->r0, stream->g0_sv);
+    r0_sv = newSV(0);
+    sv_setref_pv (r0_sv, recce_c_class_name, (void *) r_wrapper);
+    stream->r0_sv = r0_sv;
+  }
+  XPUSHs (r0_sv);
 }
 
 void
@@ -962,6 +975,11 @@ PPCODE:
   G_Wrapper* g0_wrapper = stream->g0_wrapper;
   if (r0)
     {
+      SV* r0_sv = stream->r0_sv;
+      if (stream->r0_sv) {
+	SvREFCNT_dec (stream->r0_sv);
+	stream->r0_sv = NULL;
+      }
       marpa_r_unref (r0);
       stream->r0 = NULL;
     }
