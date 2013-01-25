@@ -73,6 +73,11 @@ typedef struct {
      IV trace; /* trace level */
 } Unicode_Stream;
 
+typedef struct {
+     SV* g0_sv;
+     SV* g1_sv;
+} Scanless;
+
 typedef struct marpa_b Bocage;
 typedef struct {
      Marpa_Bocage b;
@@ -108,6 +113,7 @@ static const char unicode_stream_class_name[] = "Marpa::R2::Thin::U";
 static const char order_c_class_name[] = "Marpa::R2::Thin::O";
 static const char tree_c_class_name[] = "Marpa::R2::Thin::T";
 static const char value_c_class_name[] = "Marpa::R2::Thin::V";
+static const char scanless_class_name[] = "Marpa::R2::Thin::SL";
 
 #include "codes.h"
 #include "codes.c"
@@ -945,15 +951,16 @@ new( class, g_sv )
     SV *g_sv;
 PPCODE:
 {
+  SV* new_sv;
   Unicode_Stream *stream;
   if (!sv_isa (g_sv, "Marpa::R2::Thin::G"))
     {
       croak ("Problem in u->new(): arg is not of type Marpa::R2::Thin::G");
     }
   stream = u_new (g_sv);
-  SV *u_sv = sv_newmortal ();
-  sv_setref_pv (u_sv, unicode_stream_class_name, (void *) stream);
-  XPUSHs (u_sv);
+  new_sv = sv_newmortal ();
+  sv_setref_pv (new_sv, unicode_stream_class_name, (void *) stream);
+  XPUSHs (new_sv);
 }
 
 void
@@ -3038,6 +3045,72 @@ PPCODE:
       croak ("Problem in v->_marpa_v_nook(): %s", xs_g_error(v_wrapper->base));
     }
   XPUSHs (sv_2mortal (newSViv (status)));
+}
+
+MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin::SL
+
+void
+new( class, g0_sv, g1_sv )
+    char * class;
+    SV *g0_sv;
+    SV *g1_sv;
+PPCODE:
+{
+  SV* new_sv;
+  Scanless *sl;
+  if (!sv_isa (g0_sv, "Marpa::R2::Thin::G"))
+    {
+      croak ("Problem in u->new(): g0 arg is not of type Marpa::R2::Thin::G");
+    }
+  if (!sv_isa (g1_sv, "Marpa::R2::Thin::G"))
+    {
+      croak ("Problem in u->new(): g1 arg is not of type Marpa::R2::Thin::G");
+    }
+  Newx (sl, 1, Scanless);
+  sl->g0_sv = g0_sv;
+  SvREFCNT_inc (g0_sv);
+  sl->g1_sv = g1_sv;
+  SvREFCNT_inc (g1_sv);
+  new_sv = sv_newmortal ();
+  sv_setref_pv (new_sv, unicode_stream_class_name, (void *) sl);
+  XPUSHs (new_sv);
+}
+
+void
+DESTROY( scanless )
+    Scanless *scanless;
+PPCODE:
+{
+  SvREFCNT_dec (scanless->g0_sv);
+  SvREFCNT_dec (scanless->g1_sv);
+}
+
+ #  Always returns the same SV for a given stream -- 
+ #  it does not create a new one
+ # 
+void
+g0( sl )
+    Scanless *sl;
+PPCODE:
+{
+  /* Not mortalized because,
+   * held for the length of the scanless object.
+   */
+  XPUSHs (sl->g0_sv);
+}
+
+ #  Always returns the same SV for a given stream -- 
+ #  it does not create a new one
+ # 
+void
+g1( sl )
+    Scanless *sl;
+PPCODE:
+{
+  /* Not mortalized because,
+   * held for the length of the scanless object.
+   */
+  XPUSHs (sl->g1_sv);
 }
 
 INCLUDE: general_pattern.xsh
