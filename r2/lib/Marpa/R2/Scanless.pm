@@ -58,6 +58,8 @@ BEGIN {
 
     :package=Marpa::R2::Inner::Scanless::R
 
+    C { The thin version of this object }
+
     GRAMMAR
     STREAM
     THICK_G1_RECCE
@@ -2519,6 +2521,11 @@ sub Marpa::R2::Scanless::R::new {
 
     my $stream = $self->[Marpa::R2::Inner::Scanless::R::STREAM] =
         Marpa::R2::Thin::U->new($thin_lex_grammar);
+
+    $self->[Marpa::R2::Inner::Scanless::R::C] =
+        Marpa::R2::Thin::SL->new( $thin_lex_grammar,
+        $thick_g1_grammar->thin() );
+
     return $self;
 } ## end sub Marpa::R2::Scanless::R::new
 

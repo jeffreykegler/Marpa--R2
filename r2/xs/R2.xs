@@ -482,14 +482,15 @@ PPCODE:
 void
 DESTROY( g_wrapper )
     G_Wrapper *g_wrapper;
-PREINIT:
+PPCODE:
+{
     Marpa_Grammar grammar;
-CODE:
     if (g_wrapper->message_buffer)
 	Safefree(g_wrapper->message_buffer);
     grammar = g_wrapper->g;
     marpa_g_unref( grammar );
     Safefree( g_wrapper );
+}
 
 
 void
@@ -3072,7 +3073,7 @@ PPCODE:
   sl->g1_sv = g1_sv;
   SvREFCNT_inc (g1_sv);
   new_sv = sv_newmortal ();
-  sv_setref_pv (new_sv, unicode_stream_class_name, (void *) sl);
+  sv_setref_pv (new_sv, scanless_class_name, (void *) sl);
   XPUSHs (new_sv);
 }
 
@@ -3083,6 +3084,7 @@ PPCODE:
 {
   SvREFCNT_dec (scanless->g0_sv);
   SvREFCNT_dec (scanless->g1_sv);
+  Safefree(scanless);
 }
 
  #  Always returns the same SV for a given stream -- 
