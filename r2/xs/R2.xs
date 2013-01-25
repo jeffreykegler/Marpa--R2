@@ -256,7 +256,6 @@ static R_Wrapper*
 r_wrap( Marpa_Recce r, SV* g_sv)
 {
   dTHX;
-  SV* sv_to_return;
   int highest_symbol_id;
   R_Wrapper *r_wrapper;
   G_Wrapper *g_wrapper;
@@ -299,6 +298,54 @@ r_unwrap (R_Wrapper * r_wrapper)
   Safefree (r_wrapper);
   /* The wrapper should always have had a ref to the Libmarpa recce */
   return r;
+}
+
+/* Static Stream methods */
+
+/* The caller must ensure that g_sv is an SV of the correct type */
+static Unicode_Stream* u_new(SV* g_sv)
+{
+  dTHX;
+  Unicode_Stream *stream;
+  IV tmp = SvIV ((SV *) SvRV (g_sv));
+  G_Wrapper *g_wrapper = INT2PTR (G_Wrapper *, tmp);
+  Newx (stream, 1, Unicode_Stream);
+  stream->trace = 0;
+  stream->g0_wrapper = g_wrapper;
+  stream->r0 = NULL;
+  /* Hold a ref to the grammar SV we were called with --
+   * it will have to exist for our lifetime
+   */
+  SvREFCNT_inc (g_sv);
+  stream->g0_sv = g_sv;
+  stream->r0_sv = NULL;
+  stream->input = newSVpvn ("", 0);
+  stream->perl_pos = 0;
+  stream->input_offset = 0;
+  stream->input_debug = 0;
+  stream->input_symbol_id = -1;
+  stream->per_codepoint_ops = newHV ();
+  stream->ignore_rejection = 1;
+  stream->minimum_accepted = 1;
+  return stream;
+}
+
+static void u_destroy(Unicode_Stream *stream)
+{
+  dTHX;
+  const Marpa_Recce r0 = stream->r0;
+  if (r0)
+    {
+      marpa_r_unref (r0);
+    }
+  SvREFCNT_dec (stream->input);
+  SvREFCNT_dec (stream->per_codepoint_ops);
+  SvREFCNT_dec (stream->g0_sv);
+  if (stream->r0_sv)
+    {
+      SvREFCNT_dec (stream->r0_sv);
+    }
+  Safefree (stream);
 }
 
 MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin
@@ -898,36 +945,15 @@ new( class, g_sv )
     SV *g_sv;
 PPCODE:
 {
+  Unicode_Stream *stream;
   if (!sv_isa (g_sv, "Marpa::R2::Thin::G"))
     {
       croak ("Problem in u->new(): arg is not of type Marpa::R2::Thin::G");
     }
-  {
-    IV tmp = SvIV ((SV *) SvRV (g_sv));
-    G_Wrapper *g_wrapper = INT2PTR (G_Wrapper *, tmp);
-    SV *u_sv = sv_newmortal ();
-    Unicode_Stream *stream;
-    Newx (stream, 1, Unicode_Stream);
-    stream->trace = 0;
-    stream->g0_wrapper = g_wrapper;
-    stream->r0 = NULL;
-  /* Hold a ref to the grammar SV we were called with --
-   * it will have to exist for our lifetime
-   */
-  SvREFCNT_inc (g_sv);
-    stream->g0_sv = g_sv;
-    stream->r0_sv = NULL;
-    stream->input = newSVpvn ("", 0);
-    stream->perl_pos = 0;
-    stream->input_offset = 0;
-    stream->input_debug = 0;
-    stream->input_symbol_id = -1;
-    stream->per_codepoint_ops = newHV ();
-    stream->ignore_rejection = 1;
-    stream->minimum_accepted = 1;
-    sv_setref_pv (u_sv, unicode_stream_class_name, (void *) stream);
-    XPUSHs (u_sv);
-  }
+  stream = u_new (g_sv);
+  SV *u_sv = sv_newmortal ();
+  sv_setref_pv (u_sv, unicode_stream_class_name, (void *) stream);
+  XPUSHs (u_sv);
 }
 
 void
@@ -935,16 +961,7 @@ DESTROY( stream )
     Unicode_Stream *stream;
 PPCODE:
 {
-  const Marpa_Recce r0 = stream->r0;
-  if (r0)
-    {
-      marpa_r_unref (r0);
-    }
-  SvREFCNT_dec (stream->input);
-  SvREFCNT_dec (stream->per_codepoint_ops);
-  SvREFCNT_dec (stream->g0_sv);
-  if (stream->r0_sv) { SvREFCNT_dec (stream->r0_sv); }
-  Safefree (stream);
+  u_destroy(stream);
 }
 
  #  Always returns the same SV for a given stream -- 
@@ -957,8 +974,8 @@ PPCODE:
 {
   SV* r0_sv = stream->r0_sv;
   if (!r0_sv) {
-    marpa_r_ref(stream->r0);
     R_Wrapper* r_wrapper = r_wrap (stream->r0, stream->g0_sv);
+    marpa_r_ref(stream->r0);
     r0_sv = newSV(0);
     sv_setref_pv (r0_sv, recce_c_class_name, (void *) r_wrapper);
     stream->r0_sv = r0_sv;
@@ -976,8 +993,8 @@ PPCODE:
   if (r0)
     {
       SV* r0_sv = stream->r0_sv;
-      if (stream->r0_sv) {
-	SvREFCNT_dec (stream->r0_sv);
+      if (r0_sv) {
+	SvREFCNT_dec (r0_sv);
 	stream->r0_sv = NULL;
       }
       marpa_r_unref (r0);
