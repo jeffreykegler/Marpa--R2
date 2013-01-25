@@ -2561,12 +2561,12 @@ sub Marpa::R2::Scanless::R::read {
     my $trace_terminals =
         $self->[Marpa::R2::Inner::Scanless::R::TRACE_TERMINALS];
 
+    my $thin_self  = $self->[Marpa::R2::Inner::Scanless::R::C];
     my $stream  = $self->[Marpa::R2::Inner::Scanless::R::STREAM];
     my $grammar = $self->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
     my $thick_lex_grammar =
         $grammar->[Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMAR];
     my $lex_tracer       = $thick_lex_grammar->tracer();
-    my $thin_lex_grammar = $lex_tracer->grammar();
 
     # Defaults to non-existent symbol
     my $g0_discard_symbol_id =
@@ -2579,7 +2579,6 @@ sub Marpa::R2::Scanless::R::read {
     my $thin_g1_recce    = $thick_g1_recce->thin();
     my $thick_g1_grammar = $thick_g1_recce->grammar();
     my $g1_tracer       = $thick_g1_grammar->tracer();
-    my $thin_g1_grammar  = $g1_tracer->grammar();
 
     # Here we access an internal value of the Recognizer class
     # Scanless is, in C++ terms, a friend class of the Recognizer
@@ -2649,7 +2648,7 @@ sub Marpa::R2::Scanless::R::read {
                         last ITEM if not defined $rule_id;
                         next ITEM if $origin != 0;
                         next ITEM if $dot_position != -1;
-                        my $lhs_id = $thin_lex_grammar->rule_lhs($rule_id);
+                        my $lhs_id = $thin_self->g0()->rule_lhs($rule_id);
                         next ITEM if not $is_lexeme->[$lhs_id];
                         $found{$lhs_id} = 1;
                     } ## end ITEM: while (1)
@@ -2699,15 +2698,15 @@ sub Marpa::R2::Scanless::R::read {
                     $thin_g1_recce->alternative( $g1_lexeme, $token_ix, 1 );
                 }
                 push @locations, [ $lexeme_start_pos, $lexeme_end_pos ];
-                $thin_g1_grammar->throw_set(0);
+                $thin_self->g1()->throw_set(0);
                 $g1_status = $thin_g1_recce->earleme_complete();
-                $thin_g1_grammar->throw_set(1);
+                $thin_self->g1()->throw_set(1);
                 LOOK_FOR_G1_PROBLEMS: {
                     if ( defined $g1_status ) {
                         last LOOK_FOR_G1_PROBLEMS if $g1_status == 0;
                         if ( $g1_status > 0 ) {
                             my $significant_problems = 0;
-                            my $event_count = $thin_g1_grammar->event_count();
+                            my $event_count = $thin_self->g1()->event_count();
                             for (
                                 my $event_ix = 0;
                                 $event_ix < $event_count;
@@ -2715,7 +2714,7 @@ sub Marpa::R2::Scanless::R::read {
                                 )
                             {
                                 my ($event_type) =
-                                    $thin_g1_grammar->event($event_ix);
+                                    $thin_self->g1()->event($event_ix);
                                 if ( $event_type ne 'MARPA_EVENT_EXHAUSTED' )
                                 {
                                     $significant_problems++;
@@ -2790,7 +2789,7 @@ sub Marpa::R2::Scanless::R::read {
                 )
             {
                 my ( $event_type, $value ) =
-                    $thin_lex_grammar->event($event_ix);
+                    $thin_self->g0()->event($event_ix);
                 if ( $event_type eq 'MARPA_EVENT_EARLEY_ITEM_THRESHOLD' ) {
                     $desc
                         .= "Lexer: Earley item count ($value) exceeds warning threshold\n";
@@ -2821,7 +2820,7 @@ sub Marpa::R2::Scanless::R::read {
             last DESC;
         }
         if ($g1_status) {
-            my $true_event_count = $thin_g1_grammar->event_count();
+            my $true_event_count = $thin_self->g1()->event_count();
             EVENT:
             for (
                 my $event_ix = 0;
@@ -2830,7 +2829,7 @@ sub Marpa::R2::Scanless::R::read {
                 )
             {
                 my ( $event_type, $value ) =
-                    $thin_g1_grammar->event($event_ix);
+                    $thin_self->g1()->event($event_ix);
                 if ( $event_type eq 'MARPA_EVENT_EARLEY_ITEM_THRESHOLD' ) {
                     $desc
                         .= "G1 grammar: Earley item count ($value) exceeds warning threshold\n";
@@ -2849,7 +2848,7 @@ sub Marpa::R2::Scanless::R::read {
             last DESC;
         } ## end if ($g1_status)
         if ( $g1_status < 0 ) {
-            $desc = 'G1 error: ' . $thin_g1_grammar->error();
+            $desc = 'G1 error: ' . $thin_self->g1()->error();
             last DESC;
         }
     } ## end DESC:
