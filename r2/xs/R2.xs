@@ -1094,7 +1094,7 @@ PPCODE:
 void
 char_register( stream, codepoint, ... )
      Unicode_Stream *stream;
-     unsigned long codepoint;
+     UV codepoint;
 PPCODE:
 {
   /* OP Count is args less two, then plus two for codepoint and length fields */
