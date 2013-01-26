@@ -1428,7 +1428,6 @@ PPCODE:
   Marpa_Symbol_ID token_id;
   Marpa_Rule_ID rule_id;
   const char *result_string;
-  SV *sv;
   const Marpa_Step_Type status = marpa_v_step (v);
 
   if (status == MARPA_STEP_INACTIVE)
