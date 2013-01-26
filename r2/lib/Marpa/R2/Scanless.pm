@@ -61,7 +61,6 @@ BEGIN {
     C { The thin version of this object }
 
     GRAMMAR
-    STREAM
     THICK_G1_RECCE
     LOCATIONS
     P_INPUT_STRING
@@ -2519,9 +2518,6 @@ sub Marpa::R2::Scanless::R::new {
         $self->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE] =
         Marpa::R2::Recognizer->new( \%g1_recce_args );
 
-    my $stream = $self->[Marpa::R2::Inner::Scanless::R::STREAM] =
-        Marpa::R2::Thin::U->new($thin_lex_grammar);
-
     $self->[Marpa::R2::Inner::Scanless::R::C] =
         Marpa::R2::Thin::SL->new( $thin_lex_grammar,
         $thick_g1_grammar->thin() );
@@ -2532,7 +2528,7 @@ sub Marpa::R2::Scanless::R::new {
 sub Marpa::R2::Scanless::R::trace {
     my ($self, $level) = @_;
     $level //= 1;
-    my $stream = $self->[Marpa::R2::Inner::Scanless::R::STREAM];
+    my $stream = $self->stream();
     $stream->trace($level);
 }
 
@@ -2562,7 +2558,7 @@ sub Marpa::R2::Scanless::R::read {
         $self->[Marpa::R2::Inner::Scanless::R::TRACE_TERMINALS];
 
     my $thin_self  = $self->[Marpa::R2::Inner::Scanless::R::C];
-    my $stream  = $self->[Marpa::R2::Inner::Scanless::R::STREAM];
+    my $stream  = $thin_self->stream();
     my $grammar = $self->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
     my $thick_lex_grammar =
         $grammar->[Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMAR];
