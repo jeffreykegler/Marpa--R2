@@ -15,6 +15,10 @@
 
 Revision history for Marpa::R2
 
+2.043_001
+
+      * Test "hot fix" for 64-bit Windows failures.
+
 2.042000 Tue Jan 22 17:15:50 PST 2013
 
       * Scanless interface now supports Unicode.
