@@ -354,6 +354,13 @@ static void u_destroy(Unicode_Stream *stream)
   Safefree (stream);
 }
 
+/* Return values:
+ * 1 or greater: an event count, as returned by earleme complete.
+ * 0: success: a full reading of the input, with nothing to report.
+ * -1: a character was rejected, when rejection is not being ignored
+ * -2: an unregistered character was found
+ * -3: earleme_complete() reported an exhausted parse.
+ */
 static int
 u_read(Unicode_Stream *stream)
 {
@@ -1441,13 +1448,6 @@ PPCODE:
   XSRETURN_IV (old_pos);
 }
 
- # Return values:
- # 1 or greater: an event count, as returned by earleme complete.
- # 0: success: a full reading of the input, with nothing to report.
- # -1: a character was rejected, when rejection is not being ignored
- # -2: an unregistered character was found
- # -3: earleme_complete() reported an exhausted parse.
- #
 void
 read( stream )
      Unicode_Stream *stream;
