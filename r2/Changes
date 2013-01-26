@@ -15,6 +15,15 @@
 
 Revision history for Marpa::R2
 
+2.043_002
+
+      * Developer release.
+
+2.043_001
+
+      * Test "hot fix" for 64-bit Windows failures.
+        Leapfrogs the trunk -- based on 2.042000.
+
 2.043_000
 
       * New series of developer's releases.
