@@ -354,6 +354,222 @@ static void u_destroy(Unicode_Stream *stream)
   Safefree (stream);
 }
 
+static int
+u_read(Unicode_Stream *stream)
+{
+  dTHX;
+  const IV trace_level = stream->trace;
+  const Marpa_Recognizer r = stream->r0;
+  U8* input;
+  int input_is_utf8;
+  int input_debug = stream->input_debug;
+  STRLEN len;
+  input_is_utf8 = SvUTF8 (stream->input);
+  input = (U8*)SvPV (stream->input, len);
+  for (;;)
+    {
+      int return_value = 0;
+      UV codepoint;
+      STRLEN codepoint_length = 1;
+      STRLEN op_ix;
+      STRLEN op_count;
+      UV *ops;
+      IV ignore_rejection = stream->ignore_rejection;
+      IV minimum_accepted = stream->minimum_accepted;
+      int tokens_accepted = 0;
+      if (stream->input_offset >= len)
+	break;
+      if (input_is_utf8)
+	{
+
+  /* utf8_to_uvchr is deprecated in 5.16, but
+   * utf8_to_uvchr_buf is not available before 5.16
+   * If I need to get fancier, I should look at Dumper.xs
+   * in Data::Dumper
+   */
+#if PERL_VERSION <= 15 && ! defined(utf8_to_uvchr_buf)
+	  codepoint = utf8_to_uvchr(input+stream->input_offset, &codepoint_length);
+#else
+	  codepoint =
+	  utf8_to_uvchr_buf (input + stream->input_offset, input + len,
+			     &codepoint_length);
+#endif
+
+	  /* Perl API documents that return value is 0 and length is -1 on error,
+	   * "if possible".  length can be, and is, in fact unsigned.
+	   * I deal with this by noting that 0 is a valid UTF8 char but should
+	   * have a length of 1, when valid.
+	   */
+	  if (codepoint == 0 && codepoint_length != 1) {
+	    croak ("Problem in r->read_string(): invalid UTF8 character");
+	  }
+	}
+      else
+	{
+	  codepoint = (UV) input[stream->input_offset];
+	  codepoint_length = 1;
+	}
+      if (trace_level >= 10) {
+          warn("Thin::U::read() Reading codepoint 0x%04x at pos %d",
+	    (int)codepoint, (int)stream->perl_pos);
+      }
+      {
+	STRLEN dummy;
+	SV **p_ops_sv =
+	  hv_fetch (stream->per_codepoint_ops, (char *) &codepoint,
+		    (I32)sizeof (codepoint), 0);
+	if (!p_ops_sv)
+	  {
+	    stream->codepoint = codepoint;
+	    return -2;
+	  }
+	ops = (UV *)SvPV (*p_ops_sv, dummy);
+      }
+	
+      /* ops[0] is codepoint */
+      op_count = ops[1];
+      for (op_ix = 2; op_ix < op_count; op_ix++)
+	{
+	  UV op_code = ops[op_ix];
+	  switch (op_code)
+	    {
+	    case op_report_rejection:
+	      {
+		 ignore_rejection = 0;
+	         break;
+	      }
+	    case op_ignore_rejection:
+	      {
+		 ignore_rejection = 1;
+	         break;
+	      }
+	    case op_alternative:
+	      {
+		int result;
+		int symbol_id;
+		int length;
+		int value;
+
+		op_ix++;
+		if (op_ix >= op_count)
+		  {
+		    croak
+		      ("Missing operand for op code (0x%lx); codepoint=0x%lx, op_ix=0x%lx",
+		       (unsigned long) op_code, (unsigned long) codepoint,
+		       (unsigned long) op_ix);
+		  }
+		symbol_id = (int) ops[op_ix];
+		    if (op_ix + 2 >= op_count)
+		      {
+			croak
+			  ("Missing operand for op code (0x%lx); codepoint=0x%lx, op_ix=0x%lx",
+			   (unsigned long) op_code, (unsigned long) codepoint,
+			   (unsigned long) op_ix);
+		      }
+		    value = (int) ops[++op_ix];
+		    length = (int) ops[++op_ix];
+		if (trace_level >= 10)
+		  {
+		    warn ("Thin::U::read() alternative(%p, %d, %d, %d)", r, symbol_id, value,
+			  length);
+		  }
+		result = marpa_r_alternative (r, symbol_id, value, length);
+		switch (result)
+		  {
+		  case MARPA_ERR_UNEXPECTED_TOKEN_ID:
+		    if (input_debug > 0) {
+		       warn("input_read_string unexpected token: %d,%d,%d",
+			 symbol_id, value, length);
+		    }
+		    /* This guarantees that later, if we fall below
+		     * the minimum number of tokens accepted,
+		     * we have one of them as an example
+		     */
+		    stream->input_symbol_id = symbol_id;
+		    if (trace_level >= 10) {
+			warn("Thin::U::read() Rejected codepoint 0x%04lx at pos %d as symbol %d",
+			  (unsigned long)codepoint, (int)stream->perl_pos, symbol_id);
+		    }
+		    if (!ignore_rejection)
+		      {
+			stream->codepoint = codepoint;
+			return -1;
+		      }
+		    break;
+		  case MARPA_ERR_NONE:
+		    if (trace_level >= 10) {
+			warn("Thin::U::read() Accepted codepoint 0x%04lx at pos %d as symbol %d",
+			  (unsigned long)codepoint, (int)stream->perl_pos, symbol_id);
+		    }
+		    tokens_accepted++;
+		    break;
+		  default:
+		    stream->codepoint = codepoint;
+		    stream->input_symbol_id = symbol_id;
+		    croak
+		      ("Problem alternative() failed at char ix %d; symbol id %d; codepoint 0x%lx\n"
+		       "Problem in r->input_string_read(), alternative() failed: %s",
+		       (int)stream->perl_pos, symbol_id, (unsigned long)codepoint,
+		       xs_g_error (stream->g0_wrapper));
+		  }
+	      }
+	      break;
+	    case op_earleme_complete:
+	      {
+		int result;
+		if (tokens_accepted < minimum_accepted) {
+		    stream->codepoint = codepoint;
+		    return -1;
+		}
+		marpa_r_latest_earley_set_value_set (r, (int)codepoint);
+		result = marpa_r_earleme_complete (r);
+		if (result > 0)
+		  {
+		    return_value = result;
+		    /* Advance one character before returning */
+		    goto ADVANCE_ONE_CHAR;
+		  }
+		if (result == -2)
+		  {
+		    const Marpa_Error_Code error =
+		      marpa_g_error (stream->g0_wrapper->g, NULL);
+		    if (error == MARPA_ERR_PARSE_EXHAUSTED)
+		      {
+			return -3;
+		      }
+		  }
+		if (result < 0)
+		  {
+		    croak
+		      ("Problem in r->input_string_read(), earleme_complete() failed: %s",
+		       xs_g_error (stream->g0_wrapper));
+		  }
+	      }
+	      break;
+	    case op_unregistered:
+	      croak ("Unregistered codepoint (0x%lx)",
+		     (unsigned long) codepoint);
+	    default:
+	      croak ("Unknown op code (0x%lx); codepoint=0x%lx, op_ix=0x%lx",
+		     (unsigned long) op_code, (unsigned long) codepoint,
+		     (unsigned long) op_ix);
+	    }
+	}
+    ADVANCE_ONE_CHAR:;
+	stream->input_offset += codepoint_length;
+      stream->perl_pos++;
+      /* This logic does not allow a return value of 0,
+       * which is reserved for a indicating a full
+       * read of the input string without event
+       */
+      if (return_value)
+	{
+	  return return_value;
+	}
+    }
+  return 0;
+}
+
 MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin
 
 PROTOTYPES: DISABLE
@@ -1237,215 +1453,8 @@ read( stream )
      Unicode_Stream *stream;
 PPCODE:
 {
-  const IV trace_level = stream->trace;
-  const Marpa_Recognizer r = stream->r0;
-  U8* input;
-  int input_is_utf8;
-  int input_debug = stream->input_debug;
-  STRLEN len;
-  input_is_utf8 = SvUTF8 (stream->input);
-  input = (U8*)SvPV (stream->input, len);
-  for (;;)
-    {
-      int return_value = 0;
-      UV codepoint;
-      STRLEN codepoint_length = 1;
-      STRLEN op_ix;
-      STRLEN op_count;
-      UV *ops;
-      IV ignore_rejection = stream->ignore_rejection;
-      IV minimum_accepted = stream->minimum_accepted;
-      int tokens_accepted = 0;
-      if (stream->input_offset >= len)
-	break;
-      if (input_is_utf8)
-	{
-
-  /* utf8_to_uvchr is deprecated in 5.16, but
-   * utf8_to_uvchr_buf is not available before 5.16
-   * If I need to get fancier, I should look at Dumper.xs
-   * in Data::Dumper
-   */
-#if PERL_VERSION <= 15 && ! defined(utf8_to_uvchr_buf)
-	  codepoint = utf8_to_uvchr(input+stream->input_offset, &codepoint_length);
-#else
-	  codepoint =
-	  utf8_to_uvchr_buf (input + stream->input_offset, input + len,
-			     &codepoint_length);
-#endif
-
-	  /* Perl API documents that return value is 0 and length is -1 on error,
-	   * "if possible".  length can be, and is, in fact unsigned.
-	   * I deal with this by noting that 0 is a valid UTF8 char but should
-	   * have a length of 1, when valid.
-	   */
-	  if (codepoint == 0 && codepoint_length != 1) {
-	    croak ("Problem in r->read_string(): invalid UTF8 character");
-	  }
-	}
-      else
-	{
-	  codepoint = (UV) input[stream->input_offset];
-	  codepoint_length = 1;
-	}
-      if (trace_level >= 10) {
-          warn("Thin::U::read() Reading codepoint 0x%04x at pos %d",
-	    (int)codepoint, (int)stream->perl_pos);
-      }
-      {
-	STRLEN dummy;
-	SV **p_ops_sv =
-	  hv_fetch (stream->per_codepoint_ops, (char *) &codepoint,
-		    (I32)sizeof (codepoint), 0);
-	if (!p_ops_sv)
-	  {
-	    stream->codepoint = codepoint;
-	    XSRETURN_IV (-2);
-	  }
-	ops = (UV *)SvPV (*p_ops_sv, dummy);
-      }
-	
-      /* ops[0] is codepoint */
-      op_count = ops[1];
-      for (op_ix = 2; op_ix < op_count; op_ix++)
-	{
-	  UV op_code = ops[op_ix];
-	  switch (op_code)
-	    {
-	    case op_report_rejection:
-	      {
-		 ignore_rejection = 0;
-	         break;
-	      }
-	    case op_ignore_rejection:
-	      {
-		 ignore_rejection = 1;
-	         break;
-	      }
-	    case op_alternative:
-	      {
-		int result;
-		int symbol_id;
-		int length;
-		int value;
-
-		op_ix++;
-		if (op_ix >= op_count)
-		  {
-		    croak
-		      ("Missing operand for op code (0x%lx); codepoint=0x%lx, op_ix=0x%lx",
-		       (unsigned long) op_code, (unsigned long) codepoint,
-		       (unsigned long) op_ix);
-		  }
-		symbol_id = (int) ops[op_ix];
-		    if (op_ix + 2 >= op_count)
-		      {
-			croak
-			  ("Missing operand for op code (0x%lx); codepoint=0x%lx, op_ix=0x%lx",
-			   (unsigned long) op_code, (unsigned long) codepoint,
-			   (unsigned long) op_ix);
-		      }
-		    value = (int) ops[++op_ix];
-		    length = (int) ops[++op_ix];
-		if (trace_level >= 10)
-		  {
-		    warn ("Thin::U::read() alternative(%p, %d, %d, %d)", r, symbol_id, value,
-			  length);
-		  }
-		result = marpa_r_alternative (r, symbol_id, value, length);
-		switch (result)
-		  {
-		  case MARPA_ERR_UNEXPECTED_TOKEN_ID:
-		    if (input_debug > 0) {
-		       warn("input_read_string unexpected token: %d,%d,%d",
-			 symbol_id, value, length);
-		    }
-		    # This guarantees that later, if we fall below
-		    # the minimum number of tokens accepted,
-		    # we have one of them as an example
-		    stream->input_symbol_id = symbol_id;
-		    if (trace_level >= 10) {
-			warn("Thin::U::read() Rejected codepoint 0x%04lx at pos %d as symbol %d",
-			  (unsigned long)codepoint, (int)stream->perl_pos, symbol_id);
-		    }
-		    if (!ignore_rejection)
-		      {
-			stream->codepoint = codepoint;
-			XSRETURN_IV (-1);
-		      }
-		    break;
-		  case MARPA_ERR_NONE:
-		    if (trace_level >= 10) {
-			warn("Thin::U::read() Accepted codepoint 0x%04lx at pos %d as symbol %d",
-			  (unsigned long)codepoint, (int)stream->perl_pos, symbol_id);
-		    }
-		    tokens_accepted++;
-		    break;
-		  default:
-		    stream->codepoint = codepoint;
-		    stream->input_symbol_id = symbol_id;
-		    croak
-		      ("Problem alternative() failed at char ix %d; symbol id %d; codepoint 0x%lx\n"
-		       "Problem in r->input_string_read(), alternative() failed: %s",
-		       (int)stream->perl_pos, symbol_id, (unsigned long)codepoint,
-		       xs_g_error (stream->g0_wrapper));
-		  }
-	      }
-	      break;
-	    case op_earleme_complete:
-	      {
-		int result;
-		if (tokens_accepted < minimum_accepted) {
-		    stream->codepoint = codepoint;
-		    XSRETURN_IV (-1);
-		}
-		marpa_r_latest_earley_set_value_set (r, (int)codepoint);
-		result = marpa_r_earleme_complete (r);
-		if (result > 0)
-		  {
-		    return_value = result;
-		    /* Advance one character before returning */
-		    goto ADVANCE_ONE_CHAR;
-		  }
-		if (result == -2)
-		  {
-		    const Marpa_Error_Code error =
-		      marpa_g_error (stream->g0_wrapper->g, NULL);
-		    if (error == MARPA_ERR_PARSE_EXHAUSTED)
-		      {
-			XSRETURN_IV (-3);
-		      }
-		  }
-		if (result < 0)
-		  {
-		    croak
-		      ("Problem in r->input_string_read(), earleme_complete() failed: %s",
-		       xs_g_error (stream->g0_wrapper));
-		  }
-	      }
-	      break;
-	    case op_unregistered:
-	      croak ("Unregistered codepoint (0x%lx)",
-		     (unsigned long) codepoint);
-	    default:
-	      croak ("Unknown op code (0x%lx); codepoint=0x%lx, op_ix=0x%lx",
-		     (unsigned long) op_code, (unsigned long) codepoint,
-		     (unsigned long) op_ix);
-	    }
-	}
-    ADVANCE_ONE_CHAR:;
-	stream->input_offset += codepoint_length;
-      stream->perl_pos++;
-      /* This logic does not allow a return value of 0,
-       * which is reserved for a indicating a full
-       * read of the input string without event
-       */
-      if (return_value)
-	{
-	  XSRETURN_IV (return_value);
-	}
-    }
-  XSRETURN_IV(0);
+  const int return_value = u_read(stream);
+  XSRETURN_IV(return_value);
 }
 
 MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin::B
