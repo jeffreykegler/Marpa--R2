@@ -258,6 +258,10 @@ sub process_xs {
             -Winline -Wmissing-declarations );
 	push @new_ccflags, '-Wdeclaration-after-statement' if gcc_is_at_least('3.4.6');
     } ## end if ( $self->config('cc') eq 'gcc' )
+    if ( defined $self->args('XS-debug') ) {
+     	say 'XS-debug flag is on';
+	push @new_ccflags, qw( -ansi -pedantic -Wundef -Wendif-labels -Wall );
+    }
     my $ccflags = $self->config('ccflags');
     $self->config( ccflags => ( $ccflags . q{ } . join q{ }, @new_ccflags ) );
     $self->compile_c( $spec->{c_file},
