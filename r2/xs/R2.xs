@@ -76,6 +76,8 @@ typedef struct {
 typedef struct {
      SV* g0_sv;
      SV* g1_sv;
+     SV* stream_sv;
+     Unicode_Stream* stream;
 } Scanless;
 
 typedef struct marpa_b Bocage;
@@ -3081,6 +3083,15 @@ PPCODE:
   SvREFCNT_inc (g0_sv);
   sl->g1_sv = g1_sv;
   SvREFCNT_inc (g1_sv);
+
+  {
+    Unicode_Stream* stream = u_new (g0_sv);
+    SV* stream_sv = newSV (0);
+    sv_setref_pv (stream_sv, unicode_stream_class_name, (void *) stream);
+    sl->stream = stream;
+    sl->stream_sv = stream_sv;
+  }
+
   new_sv = sv_newmortal ();
   sv_setref_pv (new_sv, scanless_class_name, (void *) sl);
   XPUSHs (new_sv);
@@ -3091,12 +3102,13 @@ DESTROY( scanless )
     Scanless *scanless;
 PPCODE:
 {
+  SvREFCNT_dec (scanless->stream_sv);
   SvREFCNT_dec (scanless->g0_sv);
   SvREFCNT_dec (scanless->g1_sv);
   Safefree(scanless);
 }
 
- #  Always returns the same SV for a given stream -- 
+ #  Always returns the same SV for a given Scanless object -- 
  #  it does not create a new one
  # 
 void
@@ -3110,7 +3122,7 @@ PPCODE:
   XPUSHs (sl->g0_sv);
 }
 
- #  Always returns the same SV for a given stream -- 
+ #  Always returns the same SV for a given Scanless object -- 
  #  it does not create a new one
  # 
 void
@@ -3122,6 +3134,20 @@ PPCODE:
    * held for the length of the scanless object.
    */
   XPUSHs (sl->g1_sv);
+}
+
+ #  Always returns the same SV for a given Scanless object -- 
+ #  it does not create a new one
+ # 
+void
+stream( sl )
+    Scanless *sl;
+PPCODE:
+{
+  /* Not mortalized because,
+   * held for the length of the scanless object.
+   */
+  XPUSHs (sl->stream_sv);
 }
 
 INCLUDE: general_pattern.xsh
