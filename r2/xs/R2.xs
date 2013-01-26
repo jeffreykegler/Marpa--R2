@@ -75,7 +75,8 @@ typedef struct {
 
 typedef struct {
      SV* g0_sv;
-     SV* g1_sv;
+     SV* r1_sv;
+     R_Wrapper* r1_wrapper;
      SV* stream_sv;
      Unicode_Stream* stream;
 } Scanless;
@@ -250,10 +251,15 @@ enum marpa_recce_op {
 
 #define SET_G_WRAPPER_FROM_G_SV(g_wrapper, g_sv) { \
     IV tmp = SvIV ((SV *) SvRV (g_sv)); \
-    g_wrapper = INT2PTR (G_Wrapper *, tmp); \
+    (g_wrapper) = INT2PTR (G_Wrapper *, tmp); \
 }
 
 /* Recognizer statics */
+
+#define SET_R_WRAPPER_FROM_R_SV(r_wrapper, r_sv) { \
+    IV tmp = SvIV ((SV *) SvRV (r_sv)); \
+    (r_wrapper) = INT2PTR (R_Wrapper *, tmp); \
+}
 
 /* Maybe inline some of these */
 
@@ -3062,10 +3068,10 @@ PPCODE:
 MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin::SL
 
 void
-new( class, g0_sv, g1_sv )
+new( class, g0_sv, r1_sv )
     char * class;
     SV *g0_sv;
-    SV *g1_sv;
+    SV *r1_sv;
 PPCODE:
 {
   SV* new_sv;
@@ -3074,15 +3080,21 @@ PPCODE:
     {
       croak ("Problem in u->new(): g0 arg is not of type Marpa::R2::Thin::G");
     }
-  if (!sv_isa (g1_sv, "Marpa::R2::Thin::G"))
+  if (!sv_isa (r1_sv, "Marpa::R2::Thin::R"))
     {
-      croak ("Problem in u->new(): g1 arg is not of type Marpa::R2::Thin::G");
+      croak ("Problem in u->new(): r1 arg is not of type Marpa::R2::Thin::R");
     }
   Newx (sl, 1, Scanless);
+
+  # Copy and take references to the parent objects
   sl->g0_sv = g0_sv;
   SvREFCNT_inc (g0_sv);
-  sl->g1_sv = g1_sv;
-  SvREFCNT_inc (g1_sv);
+  sl->r1_sv = r1_sv;
+  SvREFCNT_inc (r1_sv);
+
+  # These do not need references, because parent objects
+  # hold references to them
+  SET_R_WRAPPER_FROM_R_SV(sl->r1_wrapper, r1_sv)
 
   {
     Unicode_Stream* stream = u_new (g0_sv);
@@ -3104,7 +3116,7 @@ PPCODE:
 {
   SvREFCNT_dec (scanless->stream_sv);
   SvREFCNT_dec (scanless->g0_sv);
-  SvREFCNT_dec (scanless->g1_sv);
+  SvREFCNT_dec (scanless->r1_sv);
   Safefree(scanless);
 }
 
@@ -3133,7 +3145,7 @@ PPCODE:
   /* Not mortalized because,
    * held for the length of the scanless object.
    */
-  XPUSHs (sl->g1_sv);
+  XPUSHs (sl->r1_wrapper->base_sv);
 }
 
  #  Always returns the same SV for a given Scanless object -- 

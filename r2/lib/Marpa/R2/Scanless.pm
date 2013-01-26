@@ -2520,7 +2520,7 @@ sub Marpa::R2::Scanless::R::new {
 
     $self->[Marpa::R2::Inner::Scanless::R::C] =
         Marpa::R2::Thin::SL->new( $thin_lex_grammar,
-        $thick_g1_grammar->thin() );
+        $thick_g1_recce->thin() );
 
     return $self;
 } ## end sub Marpa::R2::Scanless::R::new
