@@ -643,10 +643,25 @@ u_pos_set(Unicode_Stream* stream, STRLEN new_pos)
    * Returns the position *BEFORE* the call
    */
   dTHX;
-  int input_is_utf8 = SvUTF8 (stream->input);
+  U8 *input;
+  int input_is_utf8;
   STRLEN len;
   const STRLEN old_pos = stream->perl_pos;
-  U8 *input = (U8 *) SvPV (stream->input, len);
+
+  /* Zero position is easy special case */
+  if (new_pos == 0) {
+      stream->input_offset = new_pos;
+      stream->perl_pos = new_pos;
+      return old_pos;
+  }
+
+  /* Same as current position is another easy special case */
+  if (new_pos == old_pos) {
+      return old_pos;
+  }
+
+  input_is_utf8 = SvUTF8 (stream->input);
+  input = (U8 *) SvPV (stream->input, len);
   if (input_is_utf8)
     {
       /* I am required to *know* that the "hop" is inside the string,
