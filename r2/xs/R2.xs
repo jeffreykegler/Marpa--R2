@@ -416,12 +416,19 @@ static int
 u_read(Unicode_Stream *stream)
 {
   dTHX;
-  const IV trace_level = stream->trace;
-  const Marpa_Recognizer r = stream->r0;
   U8* input;
-  int input_is_utf8;
-  int input_debug = stream->input_debug;
   STRLEN len;
+  int input_is_utf8;
+
+  const IV trace_level = stream->trace;
+  int input_debug = stream->input_debug;
+  Marpa_Recognizer r = stream->r0;
+
+  if (!r) {
+      r = u_r0_new(stream);
+      if (!r)
+	croak ("Problem in u_read(): %s", xs_g_error (stream->g0_wrapper));
+  }
   input_is_utf8 = SvUTF8 (stream->input);
   input = (U8*)SvPV (stream->input, len);
   for (;;)
@@ -1327,16 +1334,6 @@ PPCODE:
 }
 
 void
-recce_reset( stream )
-    Unicode_Stream *stream;
-PPCODE:
-{
-  u_r0_clear(stream);
-  if (u_r0_new(stream)) { XSRETURN_YES; }
-  XSRETURN_NO;
-}
-
-void
 trace( stream, level )
      Unicode_Stream *stream;
     int level;
@@ -1473,6 +1470,7 @@ pos_set( stream, new_pos )
 PPCODE:
 {
   const STRLEN old_pos = u_pos_set(stream, new_pos);
+  u_r0_clear(stream);
   XSRETURN_IV (old_pos);
 }
 

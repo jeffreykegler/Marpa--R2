@@ -2607,7 +2607,6 @@ sub Marpa::R2::Scanless::R::read {
             Marpa::R2::Thin::U::op('earleme_complete');
 
         if ( not $lex_recce_is_active ) {
-            $stream->recce_reset();
             $lex_recce_is_active = 1;
             $stream->pos_set($start_of_next_lexeme);
         } ## end if ( not defined $thin_lex_recce )
