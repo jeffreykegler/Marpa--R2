@@ -2593,11 +2593,6 @@ sub Marpa::R2::Scanless::R::read {
     my $thick_g1_grammar = $thick_g1_recce->grammar();
     my $g1_tracer       = $thick_g1_grammar->tracer();
 
-    # Here we access an internal value of the Recognizer class
-    # Scanless is, in C++ terms, a friend class of the Recognizer
-    my $token_values =
-        $thick_g1_recce->[Marpa::R2::Internal::Recognizer::TOKEN_VALUES];
-
     # These values are used for diagnostics,
     # so they are initialized here.
     # Event counts are initialized to 0 for "no events, no problems".
@@ -2682,7 +2677,6 @@ sub Marpa::R2::Scanless::R::read {
                 grep { $_ != $g0_discard_symbol_id } keys %found;
             if ( scalar @found_lexemes ) {
 
-                my $raw_token_value = substr ${$p_string}, $lexeme_start_pos, $lexeme_end_pos - $lexeme_start_pos;
 
                 if ($thin_g1_recce->is_exhausted()) {
                     $g1_status = $lex_event_count = 0;    # lexer was NOT the problem
@@ -2691,6 +2685,7 @@ sub Marpa::R2::Scanless::R::read {
                 }
 
                 if ($trace_terminals) {
+                    my $raw_token_value = substr ${$p_string}, $lexeme_start_pos, $lexeme_end_pos - $lexeme_start_pos;
                     say {
                         $self->[
                             Marpa::R2::Inner::Scanless::R::TRACE_FILE_HANDLE]
@@ -2704,8 +2699,7 @@ sub Marpa::R2::Scanless::R::read {
                     or Marpa::R2::exception("Could not say(): $ERRNO");
                 } ## end if ($trace_terminals)
 
-                my $token_ix = -1 + push @{$token_values}, $raw_token_value;
-
+                my $token_ix = scalar @locations;
                 for my $lexed_symbol_id (@found_lexemes) {
                     my $g1_lexeme = $lexeme_to_g1_symbol->[$lexed_symbol_id];
                     $thin_g1_recce->alternative( $g1_lexeme, $token_ix, 1 );
@@ -2933,10 +2927,21 @@ sub character_describe {
 } ## end sub character_describe
 
 sub Marpa::R2::Scanless::R::value {
-     # Make the thick recognizer the new "self"
-     $_[0] = $_[0]->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
-     goto &Marpa::R2::Recognizer::value;
-}
+
+    # Make the thick recognizer the new "self"
+    my ($self) = @_;
+    my $locations = $self->[Marpa::R2::Inner::Scanless::R::LOCATIONS];
+    my $thick_g1_recce = $self->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+    # dummy up the token values
+    my $p_input   = $self->[Marpa::R2::Inner::Scanless::R::P_INPUT_STRING];
+    my @token_values = ('');
+    for (my $location = 1 ; $location <= $#{$locations}; $location++) {
+        my ($start, $end) = @{$locations->[$location]};
+        push @token_values, substr ${$p_input}, $start, ( $end - $start );
+    }
+    $thick_g1_recce->[Marpa::R2::Internal::Recognizer::TOKEN_VALUES] = \@token_values;
+    return $thick_g1_recce->value();
+} ## end sub Marpa::R2::Scanless::R::value
 
 sub Marpa::R2::Scanless::R::show_progress {
      # Make the thick recognizer the new "self"
