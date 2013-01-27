@@ -37,6 +37,8 @@ BEGIN {
 
     :package=Marpa::R2::Inner::Scanless::G
 
+    C { The thin version of this object }
+
     THICK_LEX_GRAMMAR
     THICK_G1_GRAMMAR
     IS_LEXEME
@@ -2077,6 +2079,7 @@ sub Marpa::R2::Scanless::G::new {
     } ## end if ( $ref_type ne 'SCALAR' )
     my $hashed_source = $self->_source_to_hash( $rules_source );
     $self->_hash_to_runtime($hashed_source);
+
     return $self;
 
 }
@@ -2158,6 +2161,10 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
 
     $self->[Marpa::R2::Inner::Scanless::G::LEXEME_TO_G1_SYMBOL] = \@lexeme_to_g1_symbol;
     $self->[Marpa::R2::Inner::Scanless::G::THICK_G1_GRAMMAR] = $thick_g1_grammar;
+
+    $self->[Marpa::R2::Inner::Scanless::G::C] =
+        Marpa::R2::Thin::SLG->new( $lex_tracer->grammar(),
+        $g1_tracer->grammar() );
 
     return 1;
 
