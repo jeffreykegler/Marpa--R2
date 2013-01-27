@@ -2611,7 +2611,7 @@ sub Marpa::R2::Scanless::R::read {
             $stream->pos_set($start_of_next_lexeme);
         } ## end if ( not defined $thin_lex_recce )
 
-        if ( not defined eval { $lex_event_count = $stream->read(); 1 } ) {
+        if ( not defined eval { $lex_event_count = $thin_self->read(); 1 } ) {
             my $problem_symbol = $stream->symbol_id();
             my $symbol_desc =
                 $problem_symbol < 0

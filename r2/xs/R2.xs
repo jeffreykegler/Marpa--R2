@@ -3195,6 +3195,15 @@ PPCODE:
   XPUSHs (sl->stream_sv);
 }
 
+void
+read( sl )
+    Scanless *sl;
+PPCODE:
+{
+  const int return_value = u_read(sl->stream);
+  XSRETURN_IV(return_value);
+}
+
 INCLUDE: general_pattern.xsh
 
 BOOT:
