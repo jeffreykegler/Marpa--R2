@@ -585,6 +585,67 @@ u_read(Unicode_Stream *stream)
   return 0;
 }
 
+static STRLEN
+u_pos_set(Unicode_Stream* stream, STRLEN new_pos)
+{
+  /* *SAFELY* change the position
+   * This requires care in UTF8
+   * Returns the position *BEFORE* the call
+   */
+  dTHX;
+  int input_is_utf8 = SvUTF8 (stream->input);
+  STRLEN len;
+  const STRLEN old_pos = stream->perl_pos;
+  U8 *input = (U8 *) SvPV (stream->input, len);
+  if (input_is_utf8)
+    {
+      /* I am required to *know* that the "hop" is inside the string,
+       * which apparently can have Perl extensions -- it is *Perl* utf8, not
+       * standard UTF8.  The only safe thing
+       * to use the Perl API to hop one codepoint at a time,
+       * which is basically how utf8_hop() does it anyway.
+       */
+      IV hop = new_pos - old_pos;
+      U8 *p_current = input + stream->input_offset;
+      U8 *end_of_input = input + len;
+      while (hop > 0)
+	{
+	  if (p_current >= end_of_input)
+	    {
+	      croak
+		("Problem in stream->pos_set(): Attempt to set position after end of utf8 string");
+	    }
+	  p_current = utf8_hop (p_current, 1);
+	  hop--;
+	}
+      while (hop < 0)
+	{
+	  if (p_current <= input)
+	    {
+	      croak
+		("Problem in stream->pos_set(): Attempt to set position before start of utf8 string");
+	    }
+	  p_current = utf8_hop (p_current, -1);
+	  hop++;
+	}
+      stream->input_offset = p_current - input;
+      stream->perl_pos = new_pos;
+    }
+  else
+    {
+      /* STRLEN is assumed to be unsigned so no check for less than zero */
+      if (new_pos >= len)
+	{
+	  croak
+	    ("Problem in stream->pos_set(): new pos = %ld, but length = %ld",
+	     (long) new_pos, (long) len);
+	}
+      stream->input_offset = new_pos;
+      stream->perl_pos = new_pos;
+    }
+  return old_pos;
+}
+
 MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin
 
 PROTOTYPES: DISABLE
@@ -1399,60 +1460,7 @@ pos_set( stream, new_pos )
      STRLEN new_pos;
 PPCODE:
 {
-  /* *SAFELY* change the position
-   * This requires care in UTF8
-   * Returns the position *BEFORE* the call
-   */
-  int input_is_utf8 = SvUTF8 (stream->input);
-  STRLEN len;
-  const STRLEN old_pos = stream->perl_pos;
-  U8 *input = (U8*)SvPV (stream->input, len);
-  if (input_is_utf8)
-    {
-      /* I am required to *know* that the "hop" is inside the string,
-       * which apparently can have Perl extensions -- it is *Perl* utf8, not
-       * standard UTF8.  The only safe thing
-       * to use the Perl API to hop one codepoint at a time,
-       * which is basically how utf8_hop() does it anyway.
-       */
-      IV hop = new_pos - old_pos;
-      U8 *p_current = input + stream->input_offset;
-      U8 *end_of_input = input + len;
-      while (hop > 0)
-	{
-	  if (p_current >= end_of_input)
-	    {
-	      croak
-		("Problem in stream->pos_set(): Attempt to set position after end of utf8 string");
-	    }
-	  p_current = utf8_hop (p_current, 1);
-	  hop--;
-	}
-      while (hop < 0)
-	{
-	  if (p_current <= input)
-	    {
-	      croak
-		("Problem in stream->pos_set(): Attempt to set position before start of utf8 string");
-	    }
-	  p_current = utf8_hop (p_current, -1);
-	  hop++;
-	}
-      stream->input_offset = p_current - input;
-      stream->perl_pos = new_pos;
-    }
-  else
-    {
-      /* STRLEN is assumed to be unsigned so no check for less than zero */
-      if (new_pos >= len)
-	{
-	  croak
-	    ("Problem in stream->pos_set(): new pos = %ld, but length = %ld",
-	     (long) new_pos, (long) len);
-	}
-      stream->input_offset = new_pos;
-      stream->perl_pos = new_pos;
-    }
+  const STRLEN old_pos = u_pos_set(stream, new_pos);
   XSRETURN_IV (old_pos);
 }
 
