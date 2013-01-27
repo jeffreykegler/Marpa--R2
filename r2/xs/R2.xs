@@ -362,6 +362,49 @@ static void u_destroy(Unicode_Stream *stream)
   Safefree (stream);
 }
 
+static void
+u_r0_clear (Unicode_Stream * stream)
+{
+  dTHX;
+  SV *r0_sv;
+  Marpa_Recce r0 = stream->r0;
+  if (!r0)
+    return;
+  r0_sv = stream->r0_sv;
+  if (r0_sv)
+    {
+      SvREFCNT_dec (r0_sv);
+      stream->r0_sv = NULL;
+    }
+  marpa_r_unref (r0);
+  stream->r0 = NULL;
+}
+
+static Marpa_Recce
+u_r0_new (Unicode_Stream * stream)
+{
+  dTHX;
+  G_Wrapper *g0_wrapper = stream->g0_wrapper;
+  Marpa_Recce r0 = marpa_r_new (g0_wrapper->g);
+  if (!r0)
+    {
+      if (!g0_wrapper->throw)
+	return 0;
+      croak ("failure in marpa_r_new(): %s", xs_g_error (g0_wrapper));
+    };
+  {
+    int gp_result = marpa_r_start_input (r0);
+    if (gp_result == -1)
+      return 0;
+    if (gp_result < 0 && g0_wrapper->throw)
+      {
+	croak ("Problem in r->start_input(): %s", xs_g_error (g0_wrapper));
+      }
+  }
+  stream->r0 = r0;
+  return r0;
+}
+
 /* Return values:
  * 1 or greater: an event count, as returned by earleme complete.
  * 0: success: a full reading of the input, with nothing to report.
@@ -1288,40 +1331,9 @@ recce_reset( stream )
     Unicode_Stream *stream;
 PPCODE:
 {
-  Marpa_Recce r0 = stream->r0;
-  G_Wrapper* g0_wrapper = stream->g0_wrapper;
-  if (r0)
-    {
-      SV* r0_sv = stream->r0_sv;
-      if (r0_sv) {
-	SvREFCNT_dec (r0_sv);
-	stream->r0_sv = NULL;
-      }
-      marpa_r_unref (r0);
-      stream->r0 = NULL;
-    }
-  r0 = marpa_r_new (g0_wrapper->g);
-  if (!r0)
-    {
-      if (!g0_wrapper->throw)
-	{
-	  XSRETURN_NO;
-	}
-      croak ("failure in marpa_r_new(): %s", xs_g_error (g0_wrapper));
-    };
-  {
-    int gp_result = marpa_r_start_input (r0);
-    if (gp_result == -1)
-      {
-	XSRETURN_NO;
-      }
-    if (gp_result < 0 && g0_wrapper->throw)
-      {
-	croak ("Problem in r->start_input(): %s", xs_g_error (g0_wrapper));
-      }
-  }
-  stream->r0  = r0;
-  XSRETURN_YES;
+  u_r0_clear(stream);
+  if (u_r0_new(stream)) { XSRETURN_YES; }
+  XSRETURN_NO;
 }
 
 void
