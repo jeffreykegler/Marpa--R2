@@ -2699,12 +2699,13 @@ sub Marpa::R2::Scanless::R::read {
                     or Marpa::R2::exception("Could not say(): $ERRNO");
                 } ## end if ($trace_terminals)
 
-                my $token_ix = scalar @locations;
+                my $next_earley_set = $thin_g1_recce->latest_earley_set() + 1;
+                $locations[$next_earley_set] = [ $lexeme_start_pos, $lexeme_end_pos ];
+
                 for my $lexed_symbol_id (@found_lexemes) {
                     my $g1_lexeme = $lexeme_to_g1_symbol->[$lexed_symbol_id];
-                    $thin_g1_recce->alternative( $g1_lexeme, $token_ix, 1 );
+                    $thin_g1_recce->alternative( $g1_lexeme, $next_earley_set, 1 );
                 }
-                push @locations, [ $lexeme_start_pos, $lexeme_end_pos ];
                 $thin_self->g1()->throw_set(0);
                 $g1_status = $thin_g1_recce->earleme_complete();
                 $thin_self->g1()->throw_set(1);
