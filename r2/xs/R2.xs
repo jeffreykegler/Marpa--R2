@@ -81,10 +81,11 @@ typedef struct {
 } Scanless_G;
 
 typedef struct {
-     SV* g0_sv;
+     SV* slg_sv;
      SV* r1_sv;
-     R_Wrapper* r1_wrapper;
      SV* stream_sv;
+     R_Wrapper* r1_wrapper;
+     Scanless_G* slg;
      Unicode_Stream* stream;
 } Scanless_R;
 
@@ -717,6 +718,11 @@ u_pos_set(Unicode_Stream* stream, STRLEN new_pos)
       stream->perl_pos = new_pos;
     }
   return old_pos;
+}
+
+#define SET_SLG_FROM_SLG_SV(slg, slg_sv) { \
+    IV tmp = SvIV ((SV *) SvRV (slg_sv)); \
+    (slg) = INT2PTR (Scanless_G *, tmp); \
 }
 
 MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin
@@ -3184,17 +3190,18 @@ PPCODE:
 MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin::SLR
 
 void
-new( class, g0_sv, r1_sv )
+new( class, slg_sv, r1_sv )
     char * class;
-    SV *g0_sv;
+    SV *slg_sv;
     SV *r1_sv;
 PPCODE:
 {
   SV* new_sv;
   Scanless_R *slr;
-  if (!sv_isa (g0_sv, "Marpa::R2::Thin::G"))
+  Scanless_G *slg;
+  if (!sv_isa (slg_sv, "Marpa::R2::Thin::SLG"))
     {
-      croak ("Problem in u->new(): g0 arg is not of type Marpa::R2::Thin::G");
+      croak ("Problem in u->new(): g0 arg is not of type Marpa::R2::Thin::SLG");
     }
   if (!sv_isa (r1_sv, "Marpa::R2::Thin::R"))
     {
@@ -3202,17 +3209,21 @@ PPCODE:
     }
   Newx (slr, 1, Scanless_R);
 
-  # Copy and take references to the parent objects
-  slr->g0_sv = g0_sv;
-  SvREFCNT_inc (g0_sv);
+  # Copy and take references to the "parent objects",
+  # the ones responsible for holding references.
+  slr->slg_sv = slg_sv;
+  SvREFCNT_inc (slg_sv);
   slr->r1_sv = r1_sv;
   SvREFCNT_inc (r1_sv);
 
   # These do not need references, because parent objects
   # hold references to them
-  SET_R_WRAPPER_FROM_R_SV(slr->r1_wrapper, r1_sv)
+  SET_R_WRAPPER_FROM_R_SV(slr->r1_wrapper, r1_sv);
+  SET_SLG_FROM_SLG_SV(slg, slg_sv);
+  slr->slg = slg;
 
   {
+    SV* g0_sv = slg->g0_sv;
     Unicode_Stream* stream = u_new (g0_sv);
     SV* stream_sv = newSV (0);
     sv_setref_pv (stream_sv, unicode_stream_class_name, (void *) stream);
@@ -3231,7 +3242,7 @@ DESTROY( slr )
 PPCODE:
 {
   SvREFCNT_dec (slr->stream_sv);
-  SvREFCNT_dec (slr->g0_sv);
+  SvREFCNT_dec (slr->slg_sv);
   SvREFCNT_dec (slr->r1_sv);
   Safefree(slr);
 }
@@ -3247,7 +3258,7 @@ PPCODE:
   /* Not mortalized because,
    * held for the length of the scanless object.
    */
-  XPUSHs (slr->g0_sv);
+  XPUSHs (slr->slg->g0_sv);
 }
 
  #  Always returns the same SV for a given Scanless recce object -- 

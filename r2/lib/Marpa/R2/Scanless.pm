@@ -2505,6 +2505,7 @@ sub Marpa::R2::Scanless::R::new {
         );
     } ## end if ( not blessed $grammar or not $grammar->isa(...))
 
+    $self->[Marpa::R2::Inner::Scanless::R::GRAMMAR] = $grammar;
     $self->[Marpa::R2::Inner::Scanless::R::TRACE_FILE_HANDLE] =
         $grammar->[Marpa::R2::Inner::Scanless::G::TRACE_FILE_HANDLE];
 
@@ -2542,8 +2543,8 @@ sub Marpa::R2::Scanless::R::new {
         $self->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE] =
         Marpa::R2::Recognizer->new( \%g1_recce_args );
 
-    $self->[Marpa::R2::Inner::Scanless::R::C] =
-        Marpa::R2::Thin::SLR->new( $thin_lex_grammar,
+    $self->[Marpa::R2::Inner::Scanless::R::C] = Marpa::R2::Thin::SLR->new(
+        $grammar->[Marpa::R2::Inner::Scanless::G::C],
         $thick_g1_recce->thin() );
 
     return $self;
