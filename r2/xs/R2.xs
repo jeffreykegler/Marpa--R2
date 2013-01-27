@@ -75,6 +75,13 @@ typedef struct {
 
 typedef struct {
      SV* g0_sv;
+     SV* g1_sv;
+     G_Wrapper* g0_wrapper;
+     G_Wrapper* g1_wrapper;
+} Scanless_G;
+
+typedef struct {
+     SV* g0_sv;
      SV* r1_sv;
      R_Wrapper* r1_wrapper;
      SV* stream_sv;
@@ -3097,6 +3104,81 @@ PPCODE:
       croak ("Problem in v->_marpa_v_nook(): %s", xs_g_error(v_wrapper->base));
     }
   XPUSHs (sv_2mortal (newSViv (status)));
+}
+
+MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin::SLG
+
+void
+new( class, g0_sv, g1_sv )
+    char * class;
+    SV *g0_sv;
+    SV *g1_sv;
+PPCODE:
+{
+  SV* new_sv;
+  Scanless_G *slg;
+  if (!sv_isa (g0_sv, "Marpa::R2::Thin::G"))
+    {
+      croak ("Problem in u->new(): g0 arg is not of type Marpa::R2::Thin::G");
+    }
+  if (!sv_isa (g1_sv, "Marpa::R2::Thin::G"))
+    {
+      croak ("Problem in u->new(): r1 arg is not of type Marpa::R2::Thin::G");
+    }
+  Newx (slg, 1, Scanless_G);
+
+  # Copy and take references to the parent objects
+  slg->g0_sv = g0_sv;
+  SvREFCNT_inc (g0_sv);
+  slg->g1_sv = g1_sv;
+  SvREFCNT_inc (g1_sv);
+
+  # These do not need references, because parent objects
+  # hold references to them
+  SET_G_WRAPPER_FROM_G_SV(slg->g0_wrapper, g0_sv)
+  SET_G_WRAPPER_FROM_G_SV(slg->g1_wrapper, g1_sv)
+
+  new_sv = sv_newmortal ();
+  sv_setref_pv (new_sv, scanless_g_class_name, (void *) slg);
+  XPUSHs (new_sv);
+}
+
+void
+DESTROY( slg )
+    Scanless_G *slg;
+PPCODE:
+{
+  SvREFCNT_dec (slg->g0_sv);
+  SvREFCNT_dec (slg->g1_sv);
+  Safefree(slg);
+}
+
+ #  Always returns the same SV for a given Scanless recce object -- 
+ #  it does not create a new one
+ # 
+void
+g0( slg )
+    Scanless_G *slg;
+PPCODE:
+{
+  /* Not mortalized because,
+   * held for the length of the scanless object.
+   */
+  XPUSHs (slg->g0_sv);
+}
+
+ #  Always returns the same SV for a given Scanless recce object -- 
+ #  it does not create a new one
+ # 
+void
+g1( slg )
+    Scanless_G *slg;
+PPCODE:
+{
+  /* Not mortalized because,
+   * held for the length of the scanless object.
+   */
+  XPUSHs (slg->g1_sv);
 }
 
 MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin::SLR
