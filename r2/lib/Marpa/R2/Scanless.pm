@@ -2289,8 +2289,9 @@ sub Marpa::R2::Scanless::G::_source_to_hash {
         $actions_by_rule_id[$rule_id] = $action;
     } ## end for my $rule_id ( grep { $thin_meta_g1_grammar->rule_length($_...)})
 
-    my $token_values =
-        $thick_g1_recce->[Marpa::R2::Internal::Recognizer::TOKEN_VALUES];
+    my $locations =
+        $meta_recce->[Marpa::R2::Inner::Scanless::R::LOCATIONS];
+    my $p_input   = $meta_recce->[Marpa::R2::Inner::Scanless::R::P_INPUT_STRING];
 
     my @stack = ();
     STEP: while (1) {
@@ -2298,7 +2299,9 @@ sub Marpa::R2::Scanless::G::_source_to_hash {
         last STEP if not defined $type;
         if ( $type eq 'MARPA_STEP_TOKEN' ) {
             my ( undef, $token_value_ix, $arg_n ) = @step_data;
-            $stack[$arg_n] = $token_values->[$token_value_ix];
+            my ($start, $end) = @{$locations->[$token_value_ix]};
+            my $token = substr ${$p_input}, $start, ( $end - $start );
+            $stack[$arg_n] = $token;
             next STEP;
         }
         if ( $type eq 'MARPA_STEP_RULE' ) {
