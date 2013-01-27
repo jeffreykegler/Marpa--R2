@@ -96,16 +96,16 @@ use constant NAME => 0;
 use constant HIDE => 1;
 
 sub new { my $class = shift; return bless { name => $_[NAME], is_hidden => ($_[HIDE]//0) }, $class }
-sub is_symbol { 1 };
+sub is_symbol { return 1 };
 sub name { return $_[0]->{name} }
 sub names { return $_[0]->{name} }
 sub is_hidden { return $_[0]->{is_hidden} }
 sub are_all_hidden { return $_[0]->{is_hidden} }
 
-sub is_lexical { shift->{is_lexical} // 0 }
-sub hidden_set { shift->{is_hidden} = 1; }
-sub lexical_set { shift->{is_lexical} = 1; }
-sub mask { shift->is_hidden() ? 0 : 1 }
+sub is_lexical { return shift->{is_lexical} // 0 }
+sub hidden_set { return shift->{is_hidden} = 1; }
+sub lexical_set { return shift->{is_lexical} = 1; }
+sub mask { return shift->is_hidden() ? 0 : 1 }
 
 sub symbols { return $_[0]; }
 sub symbol_lists { return $_[0]; }
@@ -131,6 +131,7 @@ sub is_hidden {
 
 sub hidden_set {
     $_->hidden_set() for @{ shift->{symbol_lists} };
+    return 0;
 }
 
 sub is_lexical { return shift->{is_lexical} // 0 }
@@ -166,7 +167,7 @@ sub do_start_rule {
 
 sub do_discard_rule {
     my ( $self, $rhs ) = @_;
-    local $GRAMMAR_LEVEL = 0;
+    local $Marpa::R2::Inner::Scanless::GRAMMAR_LEVEL = 0;
     my $normalized_rhs = $self->rhs_normalize($rhs);
     push @{$self->{lex_rules}}, { lhs => '[:discard]', rhs => [$normalized_rhs->name()] };
     return [];
@@ -176,7 +177,7 @@ sub do_discard_rule {
 # for lexicalization.
 sub rhs_normalize {
     my ( $self, $symbols ) = @_;
-    return $symbols if $GRAMMAR_LEVEL <= 0;
+    return $symbols if $Marpa::R2::Inner::Scanless::GRAMMAR_LEVEL <= 0;
     if ( $symbols->is_lexical() ) {
         my $is_hidden         = $symbols->are_all_hidden();
         my $lexical_lhs_index = $self->{lexical_lhs_index}++;
@@ -184,7 +185,7 @@ sub rhs_normalize {
         my %lexical_rule      = (
             lhs  => $lexical_lhs,
             rhs  => [ $symbols->names() ],
-            mask => [ $symbols->mask() ]
+            mask => [ $symbols->mask() ],
         );
         push @{ $self->{lex_rules} }, \%lexical_rule;
         my $g1_symbol = Marpa::R2::Inner::Scanless::Symbol->new($lexical_lhs);
@@ -207,7 +208,7 @@ sub do_priority_rule {
 
     my @xs_rules = ();
     my $rules = $op_declare eq q{::=} ? \@xs_rules : $self->{lex_rules};
-    local $GRAMMAR_LEVEL = 0 if not $op_declare eq q{::=};
+    local $Marpa::R2::Inner::Scanless::GRAMMAR_LEVEL = 0 if not $op_declare eq q{::=};
 
     if ( $priority_count <= 1 ) {
         ## If there is only one priority
@@ -216,12 +217,12 @@ sub do_priority_rule {
             $rhs = $self->rhs_normalize($rhs);
             my @rhs_names = $rhs->names();
             my @mask      = $rhs->mask();
-            if ( $GRAMMAR_LEVEL <= 0 and grep { !$_ } @mask ) {
+            if ( $Marpa::R2::Inner::Scanless::GRAMMAR_LEVEL <= 0 and grep { !$_ } @mask ) {
                 Marpa::R2::exception(
                     'hidden symbols are not allowed in lexical rules (rules LHS was "',
                     $lhs->name(), '")'
                 );
-            } ## end if ( $GRAMMAR_LEVEL <= 0 and grep { !$_ } @mask )
+            } ## end if ( $Marpa::R2::Inner::Scanless::GRAMMAR_LEVEL <= 0 and grep { !$_ } @mask )
             my %hash_rule =
                 ( lhs => $lhs, rhs => \@rhs_names, mask => \@mask );
             my $action = $adverb_list->{action};
@@ -229,7 +230,7 @@ sub do_priority_rule {
                 Marpa::R2::exception(
                     'actions not allowed in lexical rules (rules LHS was "',
                     $lhs, '")' )
-                    if $GRAMMAR_LEVEL <= 0;
+                    if $Marpa::R2::Inner::Scanless::GRAMMAR_LEVEL <= 0;
                 $hash_rule{action} = $action;
             } ## end if ( defined $action )
             push @{$rules}, \%hash_rule;
@@ -247,7 +248,7 @@ sub do_priority_rule {
     state $do_arg0_full_name = __PACKAGE__ . q{::} . 'external_do_arg0';
     # Default mask (all ones) is OK for this rule
     my @arg0_action = ();
-    @arg0_action = ( action => $do_arg0_full_name) if $GRAMMAR_LEVEL > 0;
+    @arg0_action = ( action => $do_arg0_full_name) if $Marpa::R2::Inner::Scanless::GRAMMAR_LEVEL > 0;
     @xs_rules = (
         {   lhs    => $lhs,
             rhs    => [ $lhs . '[prec0]' ],
@@ -272,12 +273,12 @@ sub do_priority_rule {
 
         my $current_exp = $lhs . '[prec' . $priority . ']';
         my @mask        = $rhs->mask();
-        if ( $GRAMMAR_LEVEL <= 0 and grep { !$_ } @mask ) {
+        if ( $Marpa::R2::Inner::Scanless::GRAMMAR_LEVEL <= 0 and grep { !$_ } @mask ) {
             Marpa::R2::exception(
                 'hidden symbols are not allowed in lexical rules (rules LHS was "',
                 $lhs, '")'
             );
-        } ## end if ( $GRAMMAR_LEVEL <= 0 and grep { !$_ } @mask )
+        } ## end if ( $Marpa::R2::Inner::Scanless::GRAMMAR_LEVEL <= 0 and grep { !$_ } @mask )
         my %new_xs_rule = ( lhs => $current_exp );
         $new_xs_rule{mask} = \@mask;
 
@@ -286,7 +287,7 @@ sub do_priority_rule {
             Marpa::R2::exception(
                 'actions not allowed in lexical rules (rules LHS was "',
                 $lhs, '")' )
-                if $GRAMMAR_LEVEL <= 0;
+                if $Marpa::R2::Inner::Scanless::GRAMMAR_LEVEL <= 0;
             $new_xs_rule{action} = $action;
         } ## end if ( defined $action )
 
@@ -342,7 +343,7 @@ sub do_empty_rule {
         Marpa::R2::exception(
             'actions not allowed in lexical rules (rules LHS was "',
             $lhs, '")' )
-            if $GRAMMAR_LEVEL <= 0;
+            if $Marpa::R2::Inner::Scanless::GRAMMAR_LEVEL <= 0;
         $rule{action} = $action;
     } ## end if ( defined $action )
 
@@ -354,10 +355,11 @@ sub do_empty_rule {
     return [];
 } ## end sub do_empty_rule
 
+## no critic(Subroutines::ProhibitManyArgs)
 sub do_quantified_rule {
     my ( $self, $lhs, $op_declare, $rhs, $quantifier, $adverb_list ) = @_;
 
-    local $GRAMMAR_LEVEL = 0 if not $op_declare eq q{::=};
+    local $Marpa::R2::Inner::Scanless::GRAMMAR_LEVEL = 0 if not $op_declare eq q{::=};
 
     # Some properties of the sequence rule will not be altered
     # no matter how complicated this gets
@@ -370,7 +372,7 @@ sub do_quantified_rule {
         Marpa::R2::exception(
             'actions not allowed in lexical rules (rules LHS was "',
             $lhs, '")' )
-            if $GRAMMAR_LEVEL <= 0;
+            if $Marpa::R2::Inner::Scanless::GRAMMAR_LEVEL <= 0;
         $sequence_rule{action} = $action;
     } ## end if ( defined $action )
     my @rules = ( \%sequence_rule );
@@ -392,6 +394,7 @@ sub do_quantified_rule {
     }
 
 } ## end sub do_quantified_rule
+## use critic
 
 sub create_internal_symbol {
     my ($self, $symbol_name) = @_;
@@ -2040,7 +2043,7 @@ sub Marpa::R2::Scanless::G::new {
     {
         Carp::croak(
             "$G_PACKAGE does not know some of option(s) given to it:\n",
-            "   The option(s) not recognized were ",
+            '   The option(s) not recognized were ',
             ( join q{ }, map { q{"} . $_ . q{"} } @bad_options ),
             "\n"
         );
@@ -2216,7 +2219,7 @@ my %actions_by_lhs_symbol = (
 sub Marpa::R2::Scanless::G::_source_to_hash {
     my ( $self, $p_rules_source ) = @_;
 
-    local $GRAMMAR_LEVEL = 1;
+    local $Marpa::R2::Inner::Scanless::GRAMMAR_LEVEL = 1;
     my $inner_self = bless {
         self              => $self,
         lex_rules         => [],
