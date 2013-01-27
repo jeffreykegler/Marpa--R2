@@ -79,7 +79,7 @@ typedef struct {
      R_Wrapper* r1_wrapper;
      SV* stream_sv;
      Unicode_Stream* stream;
-} Scanless;
+} Scanless_R;
 
 typedef struct marpa_b Bocage;
 typedef struct {
@@ -116,7 +116,8 @@ static const char unicode_stream_class_name[] = "Marpa::R2::Thin::U";
 static const char order_c_class_name[] = "Marpa::R2::Thin::O";
 static const char tree_c_class_name[] = "Marpa::R2::Thin::T";
 static const char value_c_class_name[] = "Marpa::R2::Thin::V";
-static const char scanless_class_name[] = "Marpa::R2::Thin::SL";
+static const char scanless_g_class_name[] = "Marpa::R2::Thin::SLG";
+static const char scanless_r_class_name[] = "Marpa::R2::Thin::SLR";
 
 #include "codes.h"
 #include "codes.c"
@@ -3098,7 +3099,7 @@ PPCODE:
   XPUSHs (sv_2mortal (newSViv (status)));
 }
 
-MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin::SL
+MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin::SLR
 
 void
 new( class, g0_sv, r1_sv )
@@ -3108,7 +3109,7 @@ new( class, g0_sv, r1_sv )
 PPCODE:
 {
   SV* new_sv;
-  Scanless *sl;
+  Scanless_R *slr;
   if (!sv_isa (g0_sv, "Marpa::R2::Thin::G"))
     {
       croak ("Problem in u->new(): g0 arg is not of type Marpa::R2::Thin::G");
@@ -3117,90 +3118,90 @@ PPCODE:
     {
       croak ("Problem in u->new(): r1 arg is not of type Marpa::R2::Thin::R");
     }
-  Newx (sl, 1, Scanless);
+  Newx (slr, 1, Scanless_R);
 
   # Copy and take references to the parent objects
-  sl->g0_sv = g0_sv;
+  slr->g0_sv = g0_sv;
   SvREFCNT_inc (g0_sv);
-  sl->r1_sv = r1_sv;
+  slr->r1_sv = r1_sv;
   SvREFCNT_inc (r1_sv);
 
   # These do not need references, because parent objects
   # hold references to them
-  SET_R_WRAPPER_FROM_R_SV(sl->r1_wrapper, r1_sv)
+  SET_R_WRAPPER_FROM_R_SV(slr->r1_wrapper, r1_sv)
 
   {
     Unicode_Stream* stream = u_new (g0_sv);
     SV* stream_sv = newSV (0);
     sv_setref_pv (stream_sv, unicode_stream_class_name, (void *) stream);
-    sl->stream = stream;
-    sl->stream_sv = stream_sv;
+    slr->stream = stream;
+    slr->stream_sv = stream_sv;
   }
 
   new_sv = sv_newmortal ();
-  sv_setref_pv (new_sv, scanless_class_name, (void *) sl);
+  sv_setref_pv (new_sv, scanless_r_class_name, (void *) slr);
   XPUSHs (new_sv);
 }
 
 void
-DESTROY( scanless )
-    Scanless *scanless;
+DESTROY( slr )
+    Scanless_R *slr;
 PPCODE:
 {
-  SvREFCNT_dec (scanless->stream_sv);
-  SvREFCNT_dec (scanless->g0_sv);
-  SvREFCNT_dec (scanless->r1_sv);
-  Safefree(scanless);
+  SvREFCNT_dec (slr->stream_sv);
+  SvREFCNT_dec (slr->g0_sv);
+  SvREFCNT_dec (slr->r1_sv);
+  Safefree(slr);
 }
 
- #  Always returns the same SV for a given Scanless object -- 
+ #  Always returns the same SV for a given Scanless recce object -- 
  #  it does not create a new one
  # 
 void
-g0( sl )
-    Scanless *sl;
+g0( slr )
+    Scanless_R *slr;
 PPCODE:
 {
   /* Not mortalized because,
    * held for the length of the scanless object.
    */
-  XPUSHs (sl->g0_sv);
+  XPUSHs (slr->g0_sv);
 }
 
- #  Always returns the same SV for a given Scanless object -- 
+ #  Always returns the same SV for a given Scanless recce object -- 
  #  it does not create a new one
  # 
 void
-g1( sl )
-    Scanless *sl;
+g1( slr )
+    Scanless_R *slr;
 PPCODE:
 {
   /* Not mortalized because,
    * held for the length of the scanless object.
    */
-  XPUSHs (sl->r1_wrapper->base_sv);
+  XPUSHs (slr->r1_wrapper->base_sv);
 }
 
- #  Always returns the same SV for a given Scanless object -- 
+ #  Always returns the same SV for a given Scanless recce object -- 
  #  it does not create a new one
  # 
 void
-stream( sl )
-    Scanless *sl;
+stream( slr )
+    Scanless_R *slr;
 PPCODE:
 {
   /* Not mortalized because,
    * held for the length of the scanless object.
    */
-  XPUSHs (sl->stream_sv);
+  XPUSHs (slr->stream_sv);
 }
 
 void
-read( sl )
-    Scanless *sl;
+read( slr )
+    Scanless_R *slr;
 PPCODE:
 {
-  const int return_value = u_read(sl->stream);
+  const int return_value = u_read(slr->stream);
   XSRETURN_IV(return_value);
 }
 

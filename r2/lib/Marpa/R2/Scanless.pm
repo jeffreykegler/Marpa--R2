@@ -2536,7 +2536,7 @@ sub Marpa::R2::Scanless::R::new {
         Marpa::R2::Recognizer->new( \%g1_recce_args );
 
     $self->[Marpa::R2::Inner::Scanless::R::C] =
-        Marpa::R2::Thin::SL->new( $thin_lex_grammar,
+        Marpa::R2::Thin::SLR->new( $thin_lex_grammar,
         $thick_g1_recce->thin() );
 
     return $self;
