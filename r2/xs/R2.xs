@@ -3309,6 +3309,24 @@ PPCODE:
  #  it does not create a new one
  # 
 void
+trace( slr, level )
+    Scanless_R *slr;
+    int level;
+PPCODE:
+{
+  /* Not mortalized because,
+   * held for the length of the scanless object.
+   */
+  IV old_level = slr->trace_level;
+  slr->trace_level = level;
+  warn("Changing SLR trace level from %d to %d", (int)old_level, (int)level);
+  XSRETURN_IV(old_level);
+}
+
+ #  Always returns the same SV for a given Scanless recce object -- 
+ #  it does not create a new one
+ # 
+void
 g0( slr )
     Scanless_R *slr;
 PPCODE:
