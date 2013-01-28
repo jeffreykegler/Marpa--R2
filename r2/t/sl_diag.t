@@ -147,17 +147,17 @@ END_OF_EXPECTED_OUTPUT
     Test::More::is( $actual_value, $expected_value,
         qq{Value of "$test_string"} );
     Test::More::is( $trace_output, <<'END_OF_OUTPUT', qq{Trace output} );
-Found lexemes @0-1: [Lex-1]; value="+"
-Found lexemes @1-2: [Lex-1]; value="+"
-Found lexemes @2-3: [Lex-1]; value="+"
-Found lexemes @4-5: Number; value="1"
-Found lexemes @6-7: Number; value="2"
-Found lexemes @8-9: Number; value="3"
-Found lexemes @10-11: [Lex-1]; value="+"
-Found lexemes @12-13: [Lex-1]; value="+"
-Found lexemes @14-15: Number; value="1"
-Found lexemes @16-17: Number; value="2"
-Found lexemes @18-19: Number; value="4"
+Found lexeme @0-1: [Lex-1]; value="+"
+Found lexeme @1-2: [Lex-1]; value="+"
+Found lexeme @2-3: [Lex-1]; value="+"
+Found lexeme @4-5: Number; value="1"
+Found lexeme @6-7: Number; value="2"
+Found lexeme @8-9: Number; value="3"
+Found lexeme @10-11: [Lex-1]; value="+"
+Found lexeme @12-13: [Lex-1]; value="+"
+Found lexeme @14-15: Number; value="1"
+Found lexeme @16-17: Number; value="2"
+Found lexeme @18-19: Number; value="4"
 END_OF_OUTPUT
 } ## end for my $test_data (@tests_data)
 

@@ -2649,7 +2649,12 @@ sub Marpa::R2::Scanless::R::read {
             my $earley_set        = $latest_earley_set;
             my $is_lexeme =
                 $grammar->[Marpa::R2::Inner::Scanless::G::IS_LEXEME];
-            my %found = ();
+
+            my $lexemes_found = 0;
+            my $lexemes_attempted = 0;
+
+            my $lexeme_start_pos = $start_of_next_lexeme;
+            my $lexeme_end_pos;
 
             # Do not search Earley set 0 -- we do not care about
             # zero-length lexemes
@@ -2665,55 +2670,61 @@ sub Marpa::R2::Scanless::R::read {
                         next ITEM if $dot_position != -1;
                         my $lhs_id = $thin_self->g0()->rule_lhs($rule_id);
                         next ITEM if not $is_lexeme->[$lhs_id];
-                        $found{$lhs_id} = 1;
+                        $lexemes_found++;
+                        $lexeme_end_pos = $start_of_next_lexeme =
+                            $lexeme_start_pos + $earley_set;
+                        next ITEM if $lhs_id == $g0_discard_symbol_id;
+                        my $next_earley_set =
+                            $thin_g1_recce->latest_earley_set() + 1;
+
+                        if ( not $lexemes_attempted ) {
+
+                            if ( $thin_g1_recce->is_exhausted() ) {
+                                $g1_status = $lex_event_count =
+                                    0;    # lexer was NOT the problem
+                                $problem =
+                                    "Parse exhausted, but lexemes remain, at position $lexeme_start_pos\n";
+                                last READ;
+                            } ## end if ( $thin_g1_recce->is_exhausted() )
+
+                            if ($trace_terminals) {
+                                my $raw_token_value = substr ${$p_string},
+                                    $lexeme_start_pos,
+                                    $lexeme_end_pos - $lexeme_start_pos;
+                                say {
+                                    $self->[
+                                        Marpa::R2::Inner::Scanless::R::TRACE_FILE_HANDLE
+                                    ]
+                                    } 'Found lexeme @', $lexeme_start_pos,
+                                    q{-},
+                                    $lexeme_end_pos, q{: },
+                                    $lex_tracer->symbol_name($lhs_id),
+                                    qq{; value="$raw_token_value"}
+                                    or Marpa::R2::exception(
+                                    "Could not say(): $ERRNO");
+                            } ## end if ($trace_terminals)
+
+                            $locations[$next_earley_set] =
+                                [ $lexeme_start_pos, $lexeme_end_pos ];
+
+                        } ## end if ( not $lexemes_attempted )
+                        $lexemes_attempted++;
+                        my $g1_lexeme = $lexeme_to_g1_symbol->[$lhs_id];
+                        $thin_g1_recce->alternative( $g1_lexeme, $next_earley_set, 1 );
                     } ## end ITEM: while (1)
-                    last EARLEY_SET if scalar %found;
+                    last EARLEY_SET if $lexemes_found;
                     $earley_set--;
                 } ## end EARLEY_SET: while ( $earley_set > 0 )
             }
-            if ( not scalar %found ) {
+
+            if ( not $lexemes_found ) {
                 $g1_status = $lex_event_count = 0;    # lexer was NOT the problem
                 $problem = "No lexeme found at position $start_of_next_lexeme";
                 last READ;
             }
 
-            my $lexeme_start_pos = $start_of_next_lexeme;
-            my $lexeme_end_pos   = $start_of_next_lexeme =
-                $lexeme_start_pos + $earley_set;
+            if ( $lexemes_attempted ) {
 
-            @found_lexemes =
-                grep { $_ != $g0_discard_symbol_id } keys %found;
-            if ( scalar @found_lexemes ) {
-
-
-                if ($thin_g1_recce->is_exhausted()) {
-                    $g1_status = $lex_event_count = 0;    # lexer was NOT the problem
-                    $problem = "Parse exhausted, but lexemes remain, at position $lexeme_start_pos\n";
-                    last READ;
-                }
-
-                if ($trace_terminals) {
-                    my $raw_token_value = substr ${$p_string}, $lexeme_start_pos, $lexeme_end_pos - $lexeme_start_pos;
-                    say {
-                        $self->[
-                            Marpa::R2::Inner::Scanless::R::TRACE_FILE_HANDLE]
-                        } 'Found lexemes @'
-                        . $lexeme_start_pos, q{-}, $lexeme_end_pos, q{: },
-                        (
-                        join q{ },
-                        map { $lex_tracer->symbol_name($_) } @found_lexemes
-                        ),
-                        qq{; value="$raw_token_value"}
-                    or Marpa::R2::exception("Could not say(): $ERRNO");
-                } ## end if ($trace_terminals)
-
-                my $next_earley_set = $thin_g1_recce->latest_earley_set() + 1;
-                $locations[$next_earley_set] = [ $lexeme_start_pos, $lexeme_end_pos ];
-
-                for my $lexed_symbol_id (@found_lexemes) {
-                    my $g1_lexeme = $lexeme_to_g1_symbol->[$lexed_symbol_id];
-                    $thin_g1_recce->alternative( $g1_lexeme, $next_earley_set, 1 );
-                }
                 $thin_self->g1()->throw_set(0);
                 $g1_status = $thin_g1_recce->earleme_complete();
                 $thin_self->g1()->throw_set(1);
