@@ -2097,6 +2097,7 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
     my $lex_grammar = Marpa::R2::Grammar->new( \%lex_args );
     $lex_grammar->precompute();
     my $lex_tracer     = $lex_grammar->tracer();
+    my $g0_thin = $lex_tracer->grammar();
     my @is_lexeme      = ();
     my @lexeme_names = keys %{ $hashed_source->{is_lexeme} };
     $is_lexeme[ $lex_tracer->symbol_by_name($_) ] = 1 for @lexeme_names;
@@ -2129,9 +2130,9 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
     $thick_g1_grammar->precompute();
     my $g1_tracer = $thick_g1_grammar->tracer();
     my $g1_thin   = $g1_tracer->grammar();
-    my @lexeme_to_g1_symbol;
-    my @g1_symbol_is_lexeme;
-    $lexeme_to_g1_symbol[$_] = -1 for 0 .. $g1_thin->highest_symbol_id();
+    my @g0_lexeme_to_g1_symbol;
+    my @g1_symbol_to_lexeme;
+    $g0_lexeme_to_g1_symbol[$_] = -1 for 0 .. $g1_thin->highest_symbol_id();
     state $discard_symbol_name = '[:discard]';
     $self->[Marpa::R2::Inner::Scanless::G::G0_DISCARD_SYMBOL_ID] =
         $lex_tracer->symbol_by_name($discard_symbol_name);
@@ -2145,13 +2146,13 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
                 $lexeme_name );
         }
         my $lex_symbol_id = $lex_tracer->symbol_by_name($lexeme_name);
-        $lexeme_to_g1_symbol[$lex_symbol_id] = $g1_symbol_id;
-        $g1_symbol_is_lexeme[$g1_symbol_id]  = 1;
+        $g0_lexeme_to_g1_symbol[$lex_symbol_id] = $g1_symbol_id;
+        $g1_symbol_to_lexeme[$g1_symbol_id]  = $lex_symbol_id;
     } ## end for my $lexeme_name ( grep { $_ ne $discard_symbol_name...})
 
     SYMBOL_ID: for my $symbol_id ( 0 .. $g1_thin->highest_symbol_id() ) {
         if ($g1_thin->symbol_is_terminal($symbol_id)
-            and not $g1_symbol_is_lexeme[$symbol_id]
+            and not defined $g1_symbol_to_lexeme[$symbol_id]
             )
         {
             Marpa::R2::exception( 'Unproductive symbol: ',
@@ -2159,7 +2160,13 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
         } ## end if ( $g1_thin->symbol_is_terminal($symbol_id); and not...)
     } ## end SYMBOL_ID: for my $symbol_id ( 0 .. $g1_thin->highest_symbol_id(...))
 
-    $self->[Marpa::R2::Inner::Scanless::G::LEXEME_TO_G1_SYMBOL] = \@lexeme_to_g1_symbol;
+    my @g0_rule_to_g1_lexeme;
+    RULE_ID: for my $rule_id (0 .. $g0_thin->highest_rule_id()) {
+        my $lhs_id = $g0_thin->rule_lhs($rule_id);
+        $g0_rule_to_g1_lexeme[$rule_id] = $g0_lexeme_to_g1_symbol[$lhs_id] // -1;
+    }
+
+    $self->[Marpa::R2::Inner::Scanless::G::LEXEME_TO_G1_SYMBOL] = \@g0_lexeme_to_g1_symbol;
     $self->[Marpa::R2::Inner::Scanless::G::THICK_G1_GRAMMAR] = $thick_g1_grammar;
 
     $self->[Marpa::R2::Inner::Scanless::G::C] =
