@@ -84,9 +84,12 @@ typedef struct {
      SV* slg_sv;
      SV* r1_sv;
      SV* stream_sv;
-     R_Wrapper* r1_wrapper;
      Scanless_G* slg;
      Unicode_Stream* stream;
+     R_Wrapper* r1_wrapper;
+     Marpa_Recce r1;
+     G_Wrapper* g1_wrapper;
+     int trace_level;
 } Scanless_R;
 
 typedef struct marpa_b Bocage;
@@ -720,9 +723,60 @@ u_pos_set(Unicode_Stream* stream, STRLEN new_pos)
   return old_pos;
 }
 
+/* SLG static methods */
+
 #define SET_SLG_FROM_SLG_SV(slg, slg_sv) { \
     IV tmp = SvIV ((SV *) SvRV (slg_sv)); \
     (slg) = INT2PTR (Scanless_G *, tmp); \
+}
+
+/* SLR static methods */
+
+static IV 
+slr_stub_alterative(Scanless_R *slr, Marpa_Symbol_ID lexeme)
+{
+  Marpa_Recce r1 = slr->r1;
+  Unicode_Stream *stream = slr->stream;
+  int trace_level = slr->trace_level;
+  Marpa_Earley_Set_ID latest_earley_set = marpa_r_latest_earley_set (r1);
+  IV result = marpa_r_alternative (r1, lexeme, latest_earley_set + 1, 1);
+  switch (result)
+    {
+
+    case MARPA_ERR_UNEXPECTED_TOKEN_ID:
+      if (trace_level >= 10)
+	{
+	  warn
+	    ("slr->read() R1 Rejected unexpected symbol %d at pos %d",
+	     lexeme, (int) slr->stream->perl_pos);
+	}
+      return 0;
+
+    case MARPA_ERR_DUPLICATE_TOKEN:
+      if (trace_level >= 10)
+	{
+	  warn
+	    ("slr->read() R1 Rejected duplicate symbol %d at pos %d",
+	     lexeme, (int) slr->stream->perl_pos);
+	}
+      return 0;
+
+    case MARPA_ERR_NONE:
+      if (trace_level >= 10)
+	{
+	  warn
+	    ("slr->read() R1 Accepted symbol %d at pos %d",
+	     lexeme, (int) slr->stream->perl_pos);
+	}
+      return 1;
+
+    }
+
+  croak
+    ("Problem SLR->read() failed on symbol id %d at position %d: %s",
+     lexeme, (int) slr->stream->perl_pos, xs_g_error (slr->g1_wrapper));
+  /* NOTREACHED */
+  return 0;
 }
 
 MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin
@@ -3209,6 +3263,8 @@ PPCODE:
     }
   Newx (slr, 1, Scanless_R);
 
+  slr->trace_level = 0;
+
   # Copy and take references to the "parent objects",
   # the ones responsible for holding references.
   slr->slg_sv = slg_sv;
@@ -3221,6 +3277,8 @@ PPCODE:
   SET_R_WRAPPER_FROM_R_SV(slr->r1_wrapper, r1_sv);
   SET_SLG_FROM_SLG_SV(slg, slg_sv);
   slr->slg = slg;
+  slr->r1 = slr->r1_wrapper->r;
+  SET_G_WRAPPER_FROM_G_SV(slr->g1_wrapper, slr->r1_wrapper->base_sv);
 
   {
     SV* g0_sv = slg->g0_sv;
@@ -3303,7 +3361,9 @@ void stub_alternative( slr, lexeme )
      Marpa_Symbol_ID lexeme;
 PPCODE:
 {
-  XSRETURN_IV(0);
+  IV return_value;
+  return_value = slr_stub_alterative(slr, lexeme);
+  XSRETURN_IV(return_value);
 }
 
 INCLUDE: general_pattern.xsh
