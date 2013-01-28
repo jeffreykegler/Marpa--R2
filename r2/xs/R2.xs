@@ -3298,6 +3298,14 @@ PPCODE:
   XSRETURN_IV(return_value);
 }
 
+void stub_alternative( slr, lexeme )
+    Scanless_R *slr;
+     Marpa_Symbol_ID lexeme;
+PPCODE:
+{
+  XSRETURN_IV(0);
+}
+
 INCLUDE: general_pattern.xsh
 
 BOOT:

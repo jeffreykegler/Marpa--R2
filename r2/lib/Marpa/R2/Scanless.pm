@@ -2719,6 +2719,7 @@ sub Marpa::R2::Scanless::R::read {
                             } ## end if ($trace_terminals)
 
                         $lexemes_attempted++;
+                        $thin_self->stub_alternative( $g1_lexeme );
                         $thin_g1_recce->alternative( $g1_lexeme, $next_earley_set, 1 );
                     } ## end ITEM: while (1)
                     last EARLEY_SET if $lexemes_found;
