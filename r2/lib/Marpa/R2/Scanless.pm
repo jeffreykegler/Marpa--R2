@@ -41,9 +41,8 @@ BEGIN {
 
     THICK_LEX_GRAMMAR
     THICK_G1_GRAMMAR
-    IS_LEXEME
     CHARACTER_CLASS_TABLE
-    LEXEME_TO_G1_SYMBOL
+    G0_RULE_TO_G1_LEXEME
     G0_DISCARD_SYMBOL_ID
     MASK_BY_RULE_ID
 
@@ -2101,7 +2100,6 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
     my @is_lexeme      = ();
     my @lexeme_names = keys %{ $hashed_source->{is_lexeme} };
     $is_lexeme[ $lex_tracer->symbol_by_name($_) ] = 1 for @lexeme_names;
-    $self->[Marpa::R2::Inner::Scanless::G::IS_LEXEME]         = \@is_lexeme;
     $self->[Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMAR] = $lex_grammar;
     my $character_class_hash = $hashed_source->{character_classes};
     my @class_table          = ();
@@ -2134,11 +2132,12 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
     my @g1_symbol_to_lexeme;
     $g0_lexeme_to_g1_symbol[$_] = -1 for 0 .. $g1_thin->highest_symbol_id();
     state $discard_symbol_name = '[:discard]';
+    my $g0_discard_symbol_id =
     $self->[Marpa::R2::Inner::Scanless::G::G0_DISCARD_SYMBOL_ID] =
         $lex_tracer->symbol_by_name($discard_symbol_name);
 
-    for my $lexeme_name ( grep { $_ ne $discard_symbol_name } @lexeme_names )
-    {
+    LEXEME_NAME: for my $lexeme_name (@lexeme_names) {
+        next LEXEME_NAME if $lexeme_name eq $discard_symbol_name;
         my $g1_symbol_id = $g1_tracer->symbol_by_name($lexeme_name);
         if ( not defined $g1_symbol_id ) {
             Marpa::R2::exception(
@@ -2147,8 +2146,8 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
         }
         my $lex_symbol_id = $lex_tracer->symbol_by_name($lexeme_name);
         $g0_lexeme_to_g1_symbol[$lex_symbol_id] = $g1_symbol_id;
-        $g1_symbol_to_lexeme[$g1_symbol_id]  = $lex_symbol_id;
-    } ## end for my $lexeme_name ( grep { $_ ne $discard_symbol_name...})
+        $g1_symbol_to_lexeme[$g1_symbol_id] = $lex_symbol_id;
+    } ## end LEXEME_NAME: for my $lexeme_name (@lexeme_names)
 
     SYMBOL_ID: for my $symbol_id ( 0 .. $g1_thin->highest_symbol_id() ) {
         if ($g1_thin->symbol_is_terminal($symbol_id)
@@ -2163,10 +2162,14 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
     my @g0_rule_to_g1_lexeme;
     RULE_ID: for my $rule_id (0 .. $g0_thin->highest_rule_id()) {
         my $lhs_id = $g0_thin->rule_lhs($rule_id);
+        if ($lhs_id == $g0_discard_symbol_id) {
+            $g0_rule_to_g1_lexeme[$rule_id] = -2;
+            next RULE_ID;
+        }
         $g0_rule_to_g1_lexeme[$rule_id] = $g0_lexeme_to_g1_symbol[$lhs_id] // -1;
     }
 
-    $self->[Marpa::R2::Inner::Scanless::G::LEXEME_TO_G1_SYMBOL] = \@g0_lexeme_to_g1_symbol;
+    $self->[Marpa::R2::Inner::Scanless::G::G0_RULE_TO_G1_LEXEME] = \@g0_rule_to_g1_lexeme;
     $self->[Marpa::R2::Inner::Scanless::G::THICK_G1_GRAMMAR] = $thick_g1_grammar;
 
     $self->[Marpa::R2::Inner::Scanless::G::C] =
@@ -2600,8 +2603,8 @@ sub Marpa::R2::Scanless::R::read {
     my $g0_discard_symbol_id =
         $grammar->[Marpa::R2::Inner::Scanless::G::G0_DISCARD_SYMBOL_ID] // -1;
 
-    my $lexeme_to_g1_symbol =
-        $grammar->[Marpa::R2::Inner::Scanless::G::LEXEME_TO_G1_SYMBOL];
+    my $g0_rule_to_g1_lexeme =
+        $grammar->[Marpa::R2::Inner::Scanless::G::G0_RULE_TO_G1_LEXEME];
     my $thick_g1_recce =
         $self->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
     my $thin_g1_recce    = $thick_g1_recce->thin();
@@ -2654,8 +2657,6 @@ sub Marpa::R2::Scanless::R::read {
         {
             my $latest_earley_set = $stream->recce->latest_earley_set();
             my $earley_set        = $latest_earley_set;
-            my $is_lexeme =
-                $grammar->[Marpa::R2::Inner::Scanless::G::IS_LEXEME];
 
             my $lexemes_found = 0;
             my $lexemes_attempted = 0;
@@ -2675,12 +2676,13 @@ sub Marpa::R2::Scanless::R::read {
                         last ITEM if not defined $rule_id;
                         next ITEM if $origin != 0;
                         next ITEM if $dot_position != -1;
-                        my $lhs_id = $thin_self->g0()->rule_lhs($rule_id);
-                        next ITEM if not $is_lexeme->[$lhs_id];
+                        my $g1_lexeme = $g0_rule_to_g1_lexeme->[$rule_id];
+                        next ITEM if $g1_lexeme == -1;
                         $lexemes_found++;
                         $lexeme_end_pos = $start_of_next_lexeme =
                             $lexeme_start_pos + $earley_set;
-                        next ITEM if $lhs_id == $g0_discard_symbol_id;
+                        # -2 means the LHS of the G0 rule was the discard symbol
+                        next ITEM if $g1_lexeme == -2;
                         my $next_earley_set =
                             $thin_g1_recce->latest_earley_set() + 1;
 
@@ -2705,7 +2707,7 @@ sub Marpa::R2::Scanless::R::read {
                                     } 'Found lexeme @', $lexeme_start_pos,
                                     q{-},
                                     $lexeme_end_pos, q{: },
-                                    $lex_tracer->symbol_name($lhs_id),
+                                    $g1_tracer->symbol_name($g1_lexeme),
                                     qq{; value="$raw_token_value"}
                                     or Marpa::R2::exception(
                                     "Could not say(): $ERRNO");
@@ -2716,7 +2718,6 @@ sub Marpa::R2::Scanless::R::read {
 
                         } ## end if ( not $lexemes_attempted )
                         $lexemes_attempted++;
-                        my $g1_lexeme = $lexeme_to_g1_symbol->[$lhs_id];
                         $thin_g1_recce->alternative( $g1_lexeme, $next_earley_set, 1 );
                     } ## end ITEM: while (1)
                     last EARLEY_SET if $lexemes_found;
