@@ -2134,7 +2134,7 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
     state $discard_symbol_name = '[:discard]';
     my $g0_discard_symbol_id =
     $self->[Marpa::R2::Inner::Scanless::G::G0_DISCARD_SYMBOL_ID] =
-        $lex_tracer->symbol_by_name($discard_symbol_name);
+        $lex_tracer->symbol_by_name($discard_symbol_name) // -1;
 
     LEXEME_NAME: for my $lexeme_name (@lexeme_names) {
         next LEXEME_NAME if $lexeme_name eq $discard_symbol_name;
@@ -2696,6 +2696,11 @@ sub Marpa::R2::Scanless::R::read {
                                 last READ;
                             } ## end if ( $thin_g1_recce->is_exhausted() )
 
+                            $locations[$next_earley_set] =
+                                [ $lexeme_start_pos, $lexeme_end_pos ];
+
+                        } ## end if ( not $lexemes_attempted )
+
                             if ($trace_terminals) {
                                 my $raw_token_value = substr ${$p_string},
                                     $lexeme_start_pos,
@@ -2713,10 +2718,6 @@ sub Marpa::R2::Scanless::R::read {
                                     "Could not say(): $ERRNO");
                             } ## end if ($trace_terminals)
 
-                            $locations[$next_earley_set] =
-                                [ $lexeme_start_pos, $lexeme_end_pos ];
-
-                        } ## end if ( not $lexemes_attempted )
                         $lexemes_attempted++;
                         $thin_g1_recce->alternative( $g1_lexeme, $next_earley_set, 1 );
                     } ## end ITEM: while (1)
