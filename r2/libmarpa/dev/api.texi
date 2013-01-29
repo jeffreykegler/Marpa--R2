@@ -2434,17 +2434,46 @@ On failure, @minus{}2.
   Marpa_Recognizer @var{r}, @
   Marpa_Earley_Set_ID earley_set)
 Returns the integer value of @var{earley_set}.
-The ``value'' of an Earley is an arbitrary integer that the application
-can use for its own purposes.
-In character-per-earleme input models, for example,
-it can be the codepoint of the current character.
-The Earley set value can be set using
-the 
-@code{marpa_r_latest_earley_set()} method.
-The Earley set value defaults to @minus{}1.
+For more details, see
+the description of @code{marpa_r_earley_set_values()}.
 
 Return value: On success, the value of @var{earley_set}.
 On failure, @minus{}2.
+@end deftypefun
+
+@deftypefun int marpa_r_earley_set_values (@
+  Marpa_Recognizer @var{r}, @
+  Marpa_Earley_Set_ID earley_set, @
+  int* p_value, @
+  void** p_pvalue @
+  )
+If @var{p_value} is non-zero,
+sets the location pointed to by
+@var{p_value} to the integer value of the Earley set.
+Similarly, if @var{p_pvalue} is non-zero,
+sets the location pointed to by
+@var{p_pvalue} to the pointer value of the Earley set.
+
+The ``value'' and ``pointer'' of an Earley set are
+an arbitrary integer
+and an arbitrary pointer
+that the application
+can use for its own purposes.
+In character-per-earleme input models, for example,
+the integer can be the codepoint of the current character.
+In a traditional token-per-earley input model,
+they could be used to indicate the string value of the token --
+the pointer could point to the start of the string,
+and the integer could indicate its length.
+
+The Earley set value and pointer can be set using
+the 
+@code{marpa_r_latest_earley_set_values_set()} method.
+The Earley set integer value defaults to @minus{}1,
+and the pointer value defaults to @code{NULL}.
+
+Return value: On success, returns a non-negative integer.
+On failure, returns @minus{}2.
 @end deftypefun
 
 @deftypefun @code{unsigned int} marpa_r_furthest_earleme (Marpa_Recognizer @var{r})
@@ -2467,13 +2496,26 @@ Always succeeds.
   Marpa_Recognizer @var{r}, @
   int value)
 Sets the integer value of the latest Earley set.
-For more about the ``value'' of an Earley set,
-see the description of the
-@code{marpa_r_earley_set_value()} method.
-The Earley set value defaults to @minus{}1.
+For more details, see
+the description of 
+@code{marpa_r_latest_earley_set_values_set()}.
 
 Return value: On success, the new value of @var{earley_set}.
 On failure, @minus{}2.
+@end deftypefun
+
+@deftypefun int marpa_r_latest_earley_set_values_set (@
+  Marpa_Recognizer @var{r}, @
+  int value, @
+  void* pvalue)
+Sets the integer and pointer value of the latest Earley set.
+For more about the ``integer value'' and ``pointer value''
+of an Earley set,
+see the description of the
+@code{marpa_r_earley_set_values()} method.
+
+Return value: On success, returns a non-negative integer.
+On failure, returns @minus{}2.
 @end deftypefun
 
 @node Other parse status methods,  , Location accessors, Recognizer methods

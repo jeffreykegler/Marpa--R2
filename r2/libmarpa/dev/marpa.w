@@ -6610,14 +6610,18 @@ r->t_earley_set_count = 0;
 @*0 ID of Earley set.
 @d Earleme_of_ES(set) ((set)->t_key.t_earleme)
 
-@*0 Value of Earley set.
+@*0 Values of Earley set.
 To be used for the application to associate
-an integer of its choice with each Earley set.
+an integer and a pointer value
+of its choice with each Earley set.
 @d Value_of_ES(set) ((set)->t_value)
+@d PValue_of_ES(set) ((set)->t_pvalue)
 @<Int aligned Earley set elements@> =
     int t_value;
+    void* t_pvalue;
 @ @<Initialize Earley set@> =
    Value_of_ES(set) = -1;
+   PValue_of_ES(set) = NULL;
 
 @ @<Function definitions@> =
 int marpa_r_earley_set_value(Marpa_Recognizer r, Marpa_Earley_Set_ID set_id)
@@ -6643,6 +6647,33 @@ int marpa_r_earley_set_value(Marpa_Recognizer r, Marpa_Earley_Set_ID set_id)
 }
 
 @ @<Function definitions@> =
+int
+marpa_r_earley_set_values(Marpa_Recognizer r, Marpa_Earley_Set_ID set_id,
+  int* p_value, void** p_pvalue)
+{
+  @<Return |-2| on failure@>@;
+  ES earley_set;
+  @<Unpack recognizer objects@>@;
+  @<Fail if fatal error@>@;
+  @<Fail if recognizer not started@>@;
+  if (set_id < 0)
+    {
+      MARPA_ERROR (MARPA_ERR_INVALID_LOCATION);
+      return failure_indicator;
+    }
+  r_update_earley_sets (r);
+  if (!ES_Ord_is_Valid (r, set_id))
+    {
+      MARPA_ERROR(MARPA_ERR_NO_EARLEY_SET_AT_LOCATION);
+      return failure_indicator;
+    }
+  earley_set = ES_of_R_by_Ord (r, set_id);
+  if (p_value) *p_value = Value_of_ES(earley_set);
+  if (p_pvalue) *p_pvalue = PValue_of_ES(earley_set);
+  return 1;
+}
+
+@ @<Function definitions@> =
 int marpa_r_latest_earley_set_value_set(Marpa_Recognizer r, int value)
 {
   ES earley_set;
@@ -6652,6 +6683,21 @@ int marpa_r_latest_earley_set_value_set(Marpa_Recognizer r, int value)
   @<Fail if recognizer not started@>@;
   earley_set = Latest_ES_of_R(r);
   return Value_of_ES(earley_set) = value;
+}
+
+@ @<Function definitions@> =
+int marpa_r_latest_earley_set_values_set(Marpa_Recognizer r, int value,
+  void* pvalue)
+{
+  ES earley_set;
+  @<Return |-2| on failure@>@;
+  @<Unpack recognizer objects@>@;
+  @<Fail if fatal error@>@;
+  @<Fail if recognizer not started@>@;
+  earley_set = Latest_ES_of_R(r);
+  Value_of_ES(earley_set) = value;
+  PValue_of_ES(earley_set) = pvalue;
+  return 1;
 }
 
 @*0 Constructor.
