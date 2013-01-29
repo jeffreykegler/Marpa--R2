@@ -15,6 +15,16 @@
 
 Revision history for Marpa::R2
 
+2.045_000
+
+      * New series of developer's releases.
+
+2.044000 Mon Jan 28 19:42:06 PST 2013
+
+      * Fix 64-bit Windows failures.
+
+      * Based on 2.043_001.
+
 2.043_002
 
       * Developer release.
