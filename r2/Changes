@@ -15,9 +15,11 @@
 
 Revision history for Marpa::R2
 
-2.043_001
+2.044000 Mon Jan 28 19:42:06 PST 2013
 
       * Test "hot fix" for 64-bit Windows failures.
+
+      * Based on 2.043_001.
 
 2.042000 Tue Jan 22 17:15:50 PST 2013
 
