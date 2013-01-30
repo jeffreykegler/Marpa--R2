@@ -2707,23 +2707,6 @@ sub Marpa::R2::Scanless::R::read {
 
                         } ## end if ( not $lexemes_attempted )
 
-                            if ($trace_terminals) {
-                                my $raw_token_value = substr ${$p_string},
-                                    $lexeme_start_pos,
-                                    $lexeme_end_pos - $lexeme_start_pos;
-                                say {
-                                    $self->[
-                                        Marpa::R2::Inner::Scanless::R::TRACE_FILE_HANDLE
-                                    ]
-                                    } 'Found lexeme @', $lexeme_start_pos,
-                                    q{-},
-                                    $lexeme_end_pos, q{: },
-                                    $g1_tracer->symbol_name($g1_lexeme),
-                                    qq{; value="$raw_token_value"}
-                                    or Marpa::R2::exception(
-                                    "Could not say(): $ERRNO");
-                            } ## end if ($trace_terminals)
-
                         $thin_self->stub_alternative(
                             $g1_lexeme,        $lexemes_attempted,
                             $lexeme_start_pos, $lexeme_end_pos
@@ -2778,10 +2761,24 @@ sub Marpa::R2::Scanless::R::read {
                 } ## end LOOK_FOR_G1_PROBLEMS:
             } ## end if ( scalar @found_lexemes )
 
-            while (my $event = $thin_self->event()) {
-                say STDERR $event;
-                say STDERR join " ", @{$event};
-            }
+            while ( my $event = $thin_self->event() ) {
+                my ( $status, $lexeme_start_pos, $lexeme_end_pos, $g1_lexeme )
+                    = @{$event};
+                my $raw_token_value = substr ${$p_string},
+                    $lexeme_start_pos,
+                    $lexeme_end_pos - $lexeme_start_pos;
+                my $status_desc =
+                    $status eq 'accepted'
+                    ? 'Found'
+                    : "Rejected $status";
+                say {
+                    $self->[Marpa::R2::Inner::Scanless::R::TRACE_FILE_HANDLE]
+                    } $status_desc, ' lexeme @', $lexeme_start_pos,
+                    q{-},
+                    $lexeme_end_pos, q{: },
+                    $g1_tracer->symbol_name($g1_lexeme),
+                    qq{; value="$raw_token_value"};
+            } ## end while ( my $event = $thin_self->event() )
 
             $lex_recce_is_active = 0;
             $lex_event_count = 0;

@@ -3367,7 +3367,12 @@ PPCODE:
 {
   IV old_level = slr->trace_terminals;
   slr->trace_terminals = level;
-  warn("Changing SLR trace terminals level from %d to %d", (int)old_level, (int)level);
+  if (slr->trace_level) {
+    /* Note that we use *trace_level*, not *trace_terminals* to control warning.
+     * We never warn() for trace_terminals, just report events.
+     */
+    warn("Changing SLR trace terminals level from %d to %d", (int)old_level, (int)level);
+  }
   XSRETURN_IV(old_level);
 }
 
