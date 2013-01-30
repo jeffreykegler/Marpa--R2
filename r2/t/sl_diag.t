@@ -66,7 +66,7 @@ sub do_arg0 { shift; return shift; }
 
 sub show_last_expression {
     my ($self) = @_;
-    my $slr = $self->{slr};
+    my $slr = $self->{recce};
     my ( $start, $end ) = $slr->last_completed_range('Expression');
     return if not defined $start;
     my $last_expression = $slr->range_to_string( $start, $end );

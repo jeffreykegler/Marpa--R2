@@ -2598,6 +2598,7 @@ sub Marpa::R2::Scanless::R::read {
         $self->[Marpa::R2::Inner::Scanless::R::TRACE_TERMINALS];
 
     my $thin_self  = $self->[Marpa::R2::Inner::Scanless::R::C];
+    $thin_self->trace_terminals($trace_terminals) if $trace_terminals;
     my $stream  = $thin_self->stream();
     my $grammar = $self->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
     my $thick_lex_grammar =
@@ -2723,8 +2724,11 @@ sub Marpa::R2::Scanless::R::read {
                                     "Could not say(): $ERRNO");
                             } ## end if ($trace_terminals)
 
+                        $thin_self->stub_alternative(
+                            $g1_lexeme,        $lexemes_attempted,
+                            $lexeme_start_pos, $lexeme_end_pos
+                        );
                         $lexemes_attempted++;
-                        $thin_self->stub_alternative( $g1_lexeme );
                     } ## end ITEM: while (1)
                     last EARLEY_SET if $lexemes_found;
                     $earley_set--;
@@ -2774,11 +2778,17 @@ sub Marpa::R2::Scanless::R::read {
                 } ## end LOOK_FOR_G1_PROBLEMS:
             } ## end if ( scalar @found_lexemes )
 
+            while (my $event = $thin_self->event()) {
+                say STDERR $event;
+                say STDERR join " ", @{$event};
+            }
+
             $lex_recce_is_active = 0;
             $lex_event_count = 0;
 
             next READ;
         } ## end if ( $thin_lex_recce->is_exhausted() or $lex_event_count...)
+
         if ( $lex_event_count == -2 ) {
 
             # Recover by registering character, if we can

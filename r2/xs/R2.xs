@@ -26,7 +26,7 @@
 typedef SV* SVREF;
 
 #undef Dim
-#define Dim(x) (sizeof(x)/sizeof(x))
+#define Dim(x) (sizeof(x)/sizeof(*x))
 
 typedef struct marpa_g Grammar;
 /* The error_code member should usually be ignored in favor of
@@ -738,7 +738,8 @@ u_pos_set(Unicode_Stream* stream, STRLEN new_pos)
 /* SLR static methods */
 
 static IV 
-slr_stub_alternative(Scanless_R *slr, Marpa_Symbol_ID lexeme)
+slr_stub_alternative(Scanless_R *slr, Marpa_Symbol_ID lexeme,
+    IV attempted, IV start_pos, IV end_pos)
 {
   dTHX;
   Marpa_Recce r1 = slr->r1;
@@ -761,11 +762,11 @@ slr_stub_alternative(Scanless_R *slr, Marpa_Symbol_ID lexeme)
 	    AV* event;
 	    SV* event_data[4];
 	    event_data[0] = newSVpvs("unexpected");
-	    event_data[1] = newSViv(0); /* start */
-	    event_data[2] = newSViv(0); /* end */
+	    event_data[1] = newSViv(start_pos); /* start */
+	    event_data[2] = newSViv(end_pos); /* end */
 	    event_data[3] = newSViv(lexeme); /* lexeme */
-	    event = av_make(Dim(event), event_data);
-	    av_push(slr->event_queue, (SV*)event);
+	    event = av_make(Dim(event_data), event_data);
+	    av_push(slr->event_queue, newRV_noinc((SV*)event));
 	}
       return 0;
 
@@ -780,11 +781,11 @@ slr_stub_alternative(Scanless_R *slr, Marpa_Symbol_ID lexeme)
 	    AV* event;
 	    SV* event_data[4];
 	    event_data[0] = newSVpvs("duplicate");
-	    event_data[1] = newSViv(0); /* start */
-	    event_data[2] = newSViv(0); /* end */
+	    event_data[1] = newSViv(start_pos); /* start */
+	    event_data[2] = newSViv(end_pos); /* end */
 	    event_data[3] = newSViv(lexeme); /* lexeme */
-	    event = av_make(Dim(event), event_data);
-	    av_push(slr->event_queue, (SV*)event);
+	    event = av_make(Dim(event_data), event_data);
+	    av_push(slr->event_queue, newRV_noinc((SV*)event));
 	}
       return 0;
 
@@ -798,12 +799,12 @@ slr_stub_alternative(Scanless_R *slr, Marpa_Symbol_ID lexeme)
 	if (trace_terminals) {
 	    AV* event;
 	    SV* event_data[4];
-	    event_data[0] = newSVpvs("duplicate");
-	    event_data[1] = newSViv(0); /* start */
-	    event_data[2] = newSViv(0); /* end */
+	    event_data[0] = newSVpvs("accepted");
+	    event_data[1] = newSViv(start_pos); /* start */
+	    event_data[2] = newSViv(end_pos); /* end */
 	    event_data[3] = newSViv(lexeme); /* lexeme */
-	    event = av_make(Dim(event), event_data);
-	    av_push(slr->event_queue, (SV*)event);
+	    event = av_make(Dim(event_data), event_data);
+	    av_push(slr->event_queue, newRV_noinc((SV*)event));
 	}
       return 1;
 
@@ -3301,6 +3302,7 @@ PPCODE:
   Newx (slr, 1, Scanless_R);
 
   slr->trace_level = 0;
+  slr->trace_terminals = 0;
 
   # Copy and take references to the "parent objects",
   # the ones responsible for holding references.
@@ -3422,14 +3424,27 @@ PPCODE:
   XSRETURN_IV(return_value);
 }
 
-void stub_alternative( slr, lexeme )
+void
+stub_alternative( slr, lexeme, attempted, start_pos, end_pos )
     Scanless_R *slr;
      Marpa_Symbol_ID lexeme;
+     IV attempted;
+     IV start_pos;
+     IV end_pos;
 PPCODE:
 {
   IV return_value;
-  return_value = slr_stub_alternative(slr, lexeme);
+  return_value = slr_stub_alternative(slr, lexeme, attempted, start_pos, end_pos);
   XSRETURN_IV(return_value);
+}
+
+void
+event(slr)
+    Scanless_R *slr;
+PPCODE:
+{
+    SV* event = av_shift(slr->event_queue);
+    XPUSHs (sv_2mortal (event));
 }
 
 INCLUDE: general_pattern.xsh
