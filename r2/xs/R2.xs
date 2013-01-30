@@ -25,6 +25,9 @@
 
 typedef SV* SVREF;
 
+#undef Dim
+#define Dim(x) (sizeof(x)/sizeof(x))
+
 typedef struct marpa_g Grammar;
 /* The error_code member should usually be ignored in favor of
  * getting a fresh error code from Libmarpa.  Essentially it
@@ -89,7 +92,9 @@ typedef struct {
      R_Wrapper* r1_wrapper;
      Marpa_Recce r1;
      G_Wrapper* g1_wrapper;
+     AV* event_queue;
      int trace_level;
+     int trace_terminals;
 } Scanless_R;
 
 typedef struct marpa_b Bocage;
@@ -486,7 +491,7 @@ u_read(Unicode_Stream *stream)
 	  codepoint = (UV) input[stream->input_offset];
 	  codepoint_length = 1;
 	}
-      if (trace_level >= 10) {
+      if (trace_level >= 1) {
           warn("Thin::U::read() Reading codepoint 0x%04x at pos %d",
 	    (int)codepoint, (int)stream->perl_pos);
       }
@@ -545,7 +550,7 @@ u_read(Unicode_Stream *stream)
 		      }
 		    value = (int) ops[++op_ix];
 		    length = (int) ops[++op_ix];
-		if (trace_level >= 10)
+		if (trace_level >= 1)
 		  {
 		    warn ("Thin::U::read() alternative(%p, %d, %d, %d)", r, symbol_id, value,
 			  length);
@@ -563,7 +568,7 @@ u_read(Unicode_Stream *stream)
 		     * we have one of them as an example
 		     */
 		    stream->input_symbol_id = symbol_id;
-		    if (trace_level >= 10) {
+		    if (trace_level >= 1) {
 			warn("Thin::U::read() Rejected codepoint 0x%04lx at pos %d as symbol %d",
 			  (unsigned long)codepoint, (int)stream->perl_pos, symbol_id);
 		    }
@@ -574,7 +579,7 @@ u_read(Unicode_Stream *stream)
 		      }
 		    break;
 		  case MARPA_ERR_NONE:
-		    if (trace_level >= 10) {
+		    if (trace_level >= 1) {
 			warn("Thin::U::read() Accepted codepoint 0x%04lx at pos %d as symbol %d",
 			  (unsigned long)codepoint, (int)stream->perl_pos, symbol_id);
 		    }
@@ -733,40 +738,72 @@ u_pos_set(Unicode_Stream* stream, STRLEN new_pos)
 /* SLR static methods */
 
 static IV 
-slr_stub_alterative(Scanless_R *slr, Marpa_Symbol_ID lexeme)
+slr_stub_alternative(Scanless_R *slr, Marpa_Symbol_ID lexeme)
 {
+  dTHX;
   Marpa_Recce r1 = slr->r1;
   Unicode_Stream *stream = slr->stream;
   int trace_level = slr->trace_level;
+  int trace_terminals = slr->trace_terminals;
   Marpa_Earley_Set_ID latest_earley_set = marpa_r_latest_earley_set (r1);
   IV result = marpa_r_alternative (r1, lexeme, latest_earley_set + 1, 1);
   switch (result)
     {
 
     case MARPA_ERR_UNEXPECTED_TOKEN_ID:
-      if (trace_level >= 10)
+      if (trace_level >= 1)
 	{
 	  warn
 	    ("slr->read() R1 Rejected unexpected symbol %d at pos %d",
 	     lexeme, (int) slr->stream->perl_pos);
 	}
+	if (trace_terminals) {
+	    AV* event;
+	    SV* event_data[4];
+	    event_data[0] = newSVpvs("unexpected");
+	    event_data[1] = newSViv(0); /* start */
+	    event_data[2] = newSViv(0); /* end */
+	    event_data[3] = newSViv(lexeme); /* lexeme */
+	    event = av_make(Dim(event), event_data);
+	    av_push(slr->event_queue, (SV*)event);
+	}
       return 0;
 
     case MARPA_ERR_DUPLICATE_TOKEN:
-      if (trace_level >= 10)
+      if (trace_level >= 1)
 	{
 	  warn
 	    ("slr->read() R1 Rejected duplicate symbol %d at pos %d",
 	     lexeme, (int) slr->stream->perl_pos);
 	}
+	if (trace_terminals) {
+	    AV* event;
+	    SV* event_data[4];
+	    event_data[0] = newSVpvs("duplicate");
+	    event_data[1] = newSViv(0); /* start */
+	    event_data[2] = newSViv(0); /* end */
+	    event_data[3] = newSViv(lexeme); /* lexeme */
+	    event = av_make(Dim(event), event_data);
+	    av_push(slr->event_queue, (SV*)event);
+	}
       return 0;
 
     case MARPA_ERR_NONE:
-      if (trace_level >= 10)
+      if (trace_level >= 1)
 	{
 	  warn
 	    ("slr->read() R1 Accepted symbol %d at pos %d",
 	     lexeme, (int) slr->stream->perl_pos);
+	}
+	if (trace_terminals) {
+	    AV* event;
+	    SV* event_data[4];
+	    event_data[0] = newSVpvs("duplicate");
+	    event_data[1] = newSViv(0); /* start */
+	    event_data[2] = newSViv(0); /* end */
+	    event_data[3] = newSViv(lexeme); /* lexeme */
+	    event = av_make(Dim(event), event_data);
+	    av_push(slr->event_queue, (SV*)event);
 	}
       return 1;
 
@@ -3280,6 +3317,8 @@ PPCODE:
   slr->r1 = slr->r1_wrapper->r;
   SET_G_WRAPPER_FROM_G_SV(slr->g1_wrapper, slr->r1_wrapper->base_sv);
 
+  slr->event_queue = newAV();
+
   {
     SV* g0_sv = slg->g0_sv;
     Unicode_Stream* stream = u_new (g0_sv);
@@ -3302,24 +3341,31 @@ PPCODE:
   SvREFCNT_dec (slr->stream_sv);
   SvREFCNT_dec (slr->slg_sv);
   SvREFCNT_dec (slr->r1_sv);
+  SvREFCNT_dec ((SV*)slr->event_queue);
   Safefree(slr);
 }
 
- #  Always returns the same SV for a given Scanless recce object -- 
- #  it does not create a new one
- # 
 void
 trace( slr, level )
     Scanless_R *slr;
     int level;
 PPCODE:
 {
-  /* Not mortalized because,
-   * held for the length of the scanless object.
-   */
   IV old_level = slr->trace_level;
   slr->trace_level = level;
   warn("Changing SLR trace level from %d to %d", (int)old_level, (int)level);
+  XSRETURN_IV(old_level);
+}
+
+void
+trace_terminals( slr, level )
+    Scanless_R *slr;
+    int level;
+PPCODE:
+{
+  IV old_level = slr->trace_terminals;
+  slr->trace_terminals = level;
+  warn("Changing SLR trace terminals level from %d to %d", (int)old_level, (int)level);
   XSRETURN_IV(old_level);
 }
 
@@ -3370,7 +3416,9 @@ read( slr )
     Scanless_R *slr;
 PPCODE:
 {
-  const int return_value = u_read(slr->stream);
+  IV return_value;
+  av_clear(slr->event_queue);
+  return_value = u_read(slr->stream);
   XSRETURN_IV(return_value);
 }
 
@@ -3380,7 +3428,7 @@ void stub_alternative( slr, lexeme )
 PPCODE:
 {
   IV return_value;
-  return_value = slr_stub_alterative(slr, lexeme);
+  return_value = slr_stub_alternative(slr, lexeme);
   XSRETURN_IV(return_value);
 }
 
