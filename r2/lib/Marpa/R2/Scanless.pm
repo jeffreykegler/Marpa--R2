@@ -2097,9 +2097,7 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
     $lex_grammar->precompute();
     my $lex_tracer     = $lex_grammar->tracer();
     my $g0_thin = $lex_tracer->grammar();
-    my @is_lexeme      = ();
-    my @lexeme_names = keys %{ $hashed_source->{is_lexeme} };
-    $is_lexeme[ $lex_tracer->symbol_by_name($_) ] = 1 for @lexeme_names;
+    my @g0_lexeme_names = keys %{ $hashed_source->{is_lexeme} };
     $self->[Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMAR] = $lex_grammar;
     my $character_class_hash = $hashed_source->{character_classes};
     my @class_table          = ();
@@ -2129,14 +2127,14 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
     my $g1_tracer = $thick_g1_grammar->tracer();
     my $g1_thin   = $g1_tracer->grammar();
     my @g0_lexeme_to_g1_symbol;
-    my @g1_symbol_to_lexeme;
+    my @g1_symbol_to_g0_lexeme;
     $g0_lexeme_to_g1_symbol[$_] = -1 for 0 .. $g1_thin->highest_symbol_id();
     state $discard_symbol_name = '[:discard]';
     my $g0_discard_symbol_id =
     $self->[Marpa::R2::Inner::Scanless::G::G0_DISCARD_SYMBOL_ID] =
         $lex_tracer->symbol_by_name($discard_symbol_name) // -1;
 
-    LEXEME_NAME: for my $lexeme_name (@lexeme_names) {
+    LEXEME_NAME: for my $lexeme_name (@g0_lexeme_names) {
         next LEXEME_NAME if $lexeme_name eq $discard_symbol_name;
         my $g1_symbol_id = $g1_tracer->symbol_by_name($lexeme_name);
         if ( not defined $g1_symbol_id ) {
@@ -2146,17 +2144,24 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
         }
         my $lex_symbol_id = $lex_tracer->symbol_by_name($lexeme_name);
         $g0_lexeme_to_g1_symbol[$lex_symbol_id] = $g1_symbol_id;
-        $g1_symbol_to_lexeme[$g1_symbol_id] = $lex_symbol_id;
-    } ## end LEXEME_NAME: for my $lexeme_name (@lexeme_names)
+        $g1_symbol_to_g0_lexeme[$g1_symbol_id] = $lex_symbol_id;
+    } ## end LEXEME_NAME: for my $lexeme_name (@g0_lexeme_names)
 
     SYMBOL_ID: for my $symbol_id ( 0 .. $g1_thin->highest_symbol_id() ) {
-        if ($g1_thin->symbol_is_terminal($symbol_id)
-            and not defined $g1_symbol_to_lexeme[$symbol_id]
-            )
+        if ( $g1_thin->symbol_is_terminal($symbol_id)
+            and not defined $g1_symbol_to_g0_lexeme[$symbol_id] )
         {
+            my $symbol_name = $g1_tracer->symbol_name($symbol_id);
+            if ( $lex_tracer->symbol_by_name($symbol_name) ) {
+                Marpa::R2::exception(
+                    "Symbol <$symbol_name> is a lexeme in G1, but not in G0.\n",
+                    "  This may be because <$symbol_name> was used on a RHS in G0.\n",
+                    "  A lexeme cannot be used on the RHS of a G0 rule.\n"
+                );
+            } ## end if ( $lex_tracer->symbol_by_name($symbol_name) )
             Marpa::R2::exception( 'Unproductive symbol: ',
                 $g1_tracer->symbol_name($symbol_id) );
-        } ## end if ( $g1_thin->symbol_is_terminal($symbol_id); and not...)
+        } ## end if ( $g1_thin->symbol_is_terminal($symbol_id) and not...)
     } ## end SYMBOL_ID: for my $symbol_id ( 0 .. $g1_thin->highest_symbol_id(...))
 
     my @g0_rule_to_g1_lexeme;
