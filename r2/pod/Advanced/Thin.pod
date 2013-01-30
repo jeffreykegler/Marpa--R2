@@ -620,14 +620,13 @@ not a numeric 0 or 1.
 C<throw_set()> itself never returns failure --
 it always throws an exception.
 
-=head2 Omitted methods
+=head2 Omitted configuration methods
 
-All of
-the functions performed by Libmarpa's configuration
-methods are handled in a more Perl-centric way
-by the Marpa thin interface.
 All of the methods of Libmarpa's configuration
 class are omitted in the Marpa thin interface.
+The functions performed by Libmarpa's configuration
+methods are handled in a more Perl-centric way
+by the Marpa thin interface.
 
 =head1 Grammar methods
 
@@ -888,7 +887,7 @@ method|"$g->error()" >>.
 Applications may find it more convenient to have
 C<rule_rank_set()> always throw its errors.
 
-=head2 Omitted methods
+=head2 Omitted grammar methods
 
 The C<marpa_g_ref()>
 and C<marpa_g_unref()> methods are omitted
@@ -1048,7 +1047,7 @@ On unthrown failure,
 the rule ID element in the array returned by
 C<progress_item()> will have a value of -2.
 
-=head2 Omitted methods
+=head2 Omitted recognizer methods
 
 Because the Marpa thin interface 
 handles reference counting internally,
@@ -1056,6 +1055,28 @@ it does not implement methods
 directly corresponding to
 Libmarpa's C<marpa_r_ref()>
 and C<marpa_r_unref()> methods.
+
+There are Marpa thin methods
+corresponding to
+Libmarpa's C<marpa_r_earley_set_value()>
+and C<marpa_r_earley_set_value_set()> methods,
+but not to
+Libmarpa's C<marpa_r_earley_set_values()>
+and C<marpa_r_earley_set_values_set()> methods.
+The difference between these is that the "values" form allows an
+integer and a pointer value to be set,
+while 
+the "value" form allows only an integer to be set.
+Perl applications which want to associate non-integer data with an Earley set
+should create an array, and use the integer to index the array.
+The elements of the array can contain arbitrary data.
+
+The thin interface does not implement a way to set the Earley set pointer
+value, because to do so would not add value.
+The thin interface would have to track the reference
+count of a pointer,
+and this can done as easily and efficiently,
+and with more flexibility, at the Perl level.
 
 =head2 Methods not mentioned
 
@@ -1085,7 +1106,7 @@ On success, it returns a Marpa thin bocage object.
 C<new()> obeys the throw setting.
 On unthrown failure, it returns a Perl C<undef>.
 
-=head2 Omitted methods
+=head2 Omitted bocage methods
 
 Because the Marpa thin interface 
 handles reference counting internally,
@@ -1121,7 +1142,7 @@ On success, it returns a Marpa thin ordering object.
 C<new()> obeys the throw setting.
 On unthrown failure, it returns a Perl C<undef>.
 
-=head2 Omitted methods
+=head2 Omitted ordering methods
 
 Because the Marpa thin interface 
 handles reference counting internally,
@@ -1157,7 +1178,7 @@ On success, it returns a Marpa thin tree object.
 C<new()> obeys the throw setting.
 On unthrown failure, it returns a Perl C<undef>.
 
-=head2 Omitted methods
+=head2 Omitted tree methods
 
 Because the Marpa thin interface 
 handles reference counting internally,
@@ -1424,7 +1445,7 @@ not begin with "C<MARPA_>" in one of its
 capitalization variants.
 The string will usually be a description of the error.
 
-=head2 Omitted methods
+=head2 Omitted value methods
 
 Because the Marpa thin interface 
 handles reference counting internally,
