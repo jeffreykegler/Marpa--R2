@@ -3461,24 +3461,33 @@ PPCODE:
 }
 
 void
-location(slr, earley_set)
+locations(slr, earley_set)
     Scanless_R *slr;
     IV earley_set;
 PPCODE:
 {
-  int result;
+  int result = 0;
   int start_pos;
   void *end_pos;
-  if (earley_set < 1)
+  /* We need to fake the values for Earley set 0,
+   *  since we are using it to store the values for Earley set 1.
+   */
+  if (earley_set <= 0)
     {
-      XSRETURN_UNDEF;
+      start_pos = 0;
+      end_pos = INT2PTR (void *, 0);
     }
-  result = marpa_r_earley_set_values (slr->r1, earley_set-1, &start_pos, &end_pos);
+  else
+    {
+      result =
+	marpa_r_earley_set_values (slr->r1, earley_set - 1, &start_pos,
+				   &end_pos);
+    }
   if (result < 0)
     {
       croak ("failure in slr->location(): %s", xs_g_error (slr->g1_wrapper));
     }
-  XPUSHs (sv_2mortal (newSViv ((IV)start_pos)));
+  XPUSHs (sv_2mortal (newSViv ((IV) start_pos)));
   XPUSHs (sv_2mortal (newSViv (PTR2IV (end_pos))));
 }
   

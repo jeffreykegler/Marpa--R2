@@ -561,19 +561,18 @@ sub Marpa::R2::Scanless::R::last_completed_range {
 # Given a scanless recognizer and
 # and two earley sets, return the input string
 sub Marpa::R2::Scanless::R::range_to_string {
-    my ( $self, $start, $end ) = @_;
-    return if not defined $start;
-    my $locations = $self->[Marpa::R2::Inner::Scanless::R::LOCATIONS];
+    my ( $self, $start_earley_set, $end_earley_set ) = @_;
+    return if not defined $start_earley_set;
+    my $thin_self  = $self->[Marpa::R2::Inner::Scanless::R::C];
+    my ($start_position) = $thin_self->locations($start_earley_set+1);
+    my (undef, $end_position) = $thin_self->locations($end_earley_set);
     my $p_input   = $self->[Marpa::R2::Inner::Scanless::R::P_INPUT_STRING];
-    my $start_position = $locations->[ $start + 1 ]->[0];
-    my $end_position   = $locations->[$end]->[1];
     return substr ${$p_input}, $start_position,
         ( $end_position - $start_position );
 } ## end sub Marpa::R2::Scanless::R::range_to_string
 
 sub meta_grammar {
     my $hashed_metag;
-
 
 ## no critic(RegularExpressions::RequireDotMatchAnything)
 ## no critic(RegularExpressions::RequireExtendedFormatting)
@@ -2257,6 +2256,7 @@ sub Marpa::R2::Scanless::G::_source_to_hash {
     state $mask_by_rule_id =
         $meta_grammar->[Marpa::R2::Inner::Scanless::G::MASK_BY_RULE_ID];
     my $meta_recce = Marpa::R2::Scanless::R->new({ grammar => $meta_grammar});
+    my $thin_meta_recce  = $meta_recce->[Marpa::R2::Inner::Scanless::R::C];
     $meta_recce->read($p_rules_source);
     my $thick_meta_g1_grammar =
         $meta_grammar->[Marpa::R2::Inner::Scanless::G::THICK_G1_GRAMMAR];
@@ -2321,11 +2321,16 @@ sub Marpa::R2::Scanless::G::_source_to_hash {
         last STEP if not defined $type;
         if ( $type eq 'MARPA_STEP_TOKEN' ) {
             my ( undef, $token_value_ix, $arg_n ) = @step_data;
-            my ($start, $end) = @{$locations->[$token_value_ix]};
-            my $token = substr ${$p_input}, $start, ( $end - $start );
+            my ( $start_earley_set, $end_earley_set ) = $valuator->location();
+            my ($start_position) =
+                $thin_meta_recce->locations( $start_earley_set + 1 );
+            my ( undef, $end_position ) =
+                $thin_meta_recce->locations($end_earley_set);
+            my $token = substr ${$p_input}, $start_position,
+                ( $end_position - $start_position );
             $stack[$arg_n] = $token;
             next STEP;
-        }
+        } ## end if ( $type eq 'MARPA_STEP_TOKEN' )
         if ( $type eq 'MARPA_STEP_RULE' ) {
             my ( $rule_id, $arg_0, $arg_n ) = @step_data;
 
