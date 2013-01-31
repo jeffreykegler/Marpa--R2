@@ -2626,7 +2626,6 @@ sub Marpa::R2::Scanless::R::read {
     my $g1_status  = 0;
     my $problem;
 
-    my @found_lexemes   = ();
     my $class_table =
         $grammar->[Marpa::R2::Inner::Scanless::G::CHARACTER_CLASS_TABLE];
 
@@ -2660,8 +2659,7 @@ sub Marpa::R2::Scanless::R::read {
             or $lex_event_count == -1
             or $lex_event_count == 0 )
         {
-            my $latest_earley_set = $stream->recce->latest_earley_set();
-            my $earley_set        = $latest_earley_set;
+            my $earley_set        = $stream->recce->latest_earley_set();
 
             my $lexemes_found = 0;
             my $lexemes_attempted = 0;
@@ -2686,6 +2684,7 @@ sub Marpa::R2::Scanless::R::read {
                         $lexemes_found++;
                         $lexeme_end_pos = $start_of_next_lexeme =
                             $lexeme_start_pos + $earley_set;
+
                         # -2 means the LHS of the G0 rule was the discard symbol
                         next ITEM if $g1_lexeme == -2;
 
@@ -2693,13 +2692,13 @@ sub Marpa::R2::Scanless::R::read {
                             $g1_lexeme,        $lexemes_attempted,
                             $lexeme_start_pos, $lexeme_end_pos
                         );
-                        if ($return_value == -4) {
-                                $g1_status = $lex_event_count =
-                                    0;    # lexer was NOT the problem
-                                $problem =
-                                    "Parse exhausted, but lexemes remain, at position $lexeme_start_pos\n";
-                                last READ;
-                        }
+                        if ( $return_value == -4 ) {
+                            $g1_status = $lex_event_count =
+                                0;    # lexer was NOT the problem
+                            $problem =
+                                "Parse exhausted, but lexemes remain, at position $lexeme_start_pos\n";
+                            last READ;
+                        } ## end if ( $return_value == -4 )
                         $lexemes_attempted++;
                     } ## end ITEM: while (1)
                     last EARLEY_SET if $lexemes_found;
@@ -2748,7 +2747,7 @@ sub Marpa::R2::Scanless::R::read {
                     $lex_event_count = 0;    # lexer was NOT the problem
                     last READ;
                 } ## end LOOK_FOR_G1_PROBLEMS:
-            } ## end if ( scalar @found_lexemes )
+            }
 
             while ( my $event = $thin_self->event() ) {
                 my ( $status, $lexeme_start_pos, $lexeme_end_pos, $g1_lexeme )
@@ -2901,10 +2900,6 @@ sub Marpa::R2::Scanless::R::read {
         $read_string_error =
               "Error in Scanless read: G1 $desc\n"
             . "* Error was at string position: $last_pos\n"
-            . '* Error was at lexemes: '
-            . ( join q{ },
-            map { $lex_tracer->symbol_name($_) } @found_lexemes )
-            . "\n"
             . "* String before error:\n"
             . Marpa::R2::escape_string( $prefix, -72 ) . "\n"
             . "* String after error:\n"
