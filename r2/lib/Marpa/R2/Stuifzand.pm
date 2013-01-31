@@ -1888,8 +1888,6 @@ sub parse_rules {
         $actions_by_rule_id[$rule_id] = $action;
     } ## end for my $rule_id ( grep { $thin_meta_g1_grammar->rule_length($_...)})
 
-    my $locations =
-        $meta_recce->[Marpa::R2::Inner::Scanless::R::LOCATIONS];
     my $p_input   = $meta_recce->[Marpa::R2::Inner::Scanless::R::P_INPUT_STRING];
 
     # The parse result object

@@ -63,7 +63,6 @@ BEGIN {
 
     GRAMMAR
     THICK_G1_RECCE
-    LOCATIONS
     P_INPUT_STRING
 
     TRACE_FILE_HANDLE
@@ -2311,8 +2310,6 @@ sub Marpa::R2::Scanless::G::_source_to_hash {
         $actions_by_rule_id[$rule_id] = $action;
     } ## end for my $rule_id ( grep { $thin_meta_g1_grammar->rule_length($_...)})
 
-    my $locations =
-        $meta_recce->[Marpa::R2::Inner::Scanless::R::LOCATIONS];
     my $p_input   = $meta_recce->[Marpa::R2::Inner::Scanless::R::P_INPUT_STRING];
 
     my @stack = ();
@@ -2630,9 +2627,6 @@ sub Marpa::R2::Scanless::R::read {
     my $problem;
 
     my @found_lexemes   = ();
-    my @locations       = ( [ 0, 0 ] );
-    $self->[Marpa::R2::Inner::Scanless::R::LOCATIONS] = \@locations;
-
     my $class_table =
         $grammar->[Marpa::R2::Inner::Scanless::G::CHARACTER_CLASS_TABLE];
 
@@ -2706,9 +2700,6 @@ sub Marpa::R2::Scanless::R::read {
                                     "Parse exhausted, but lexemes remain, at position $lexeme_start_pos\n";
                                 last READ;
                             } ## end if ( $thin_g1_recce->is_exhausted() )
-
-                            $locations[$next_earley_set] =
-                                [ $lexeme_start_pos, $lexeme_end_pos ];
 
                         } ## end if ( not $lexemes_attempted )
 
@@ -2908,7 +2899,8 @@ sub Marpa::R2::Scanless::R::read {
     } ## end DESC:
     my $read_string_error;
     if ($g1_status) {
-        my ($last_pos) = @{ $locations[-1] };
+        my $latest_earley_set = $thin_g1_recce->latest_earley_set();
+        my (undef, $last_pos) = $thin_self->locations($latest_earley_set);
         my $prefix =
             $last_pos >= 72
             ? ( substr ${$p_string}, $last_pos - 72, 72 )
@@ -2974,16 +2966,16 @@ sub character_describe {
 
 sub Marpa::R2::Scanless::R::value {
 
-    # Make the thick recognizer the new "self"
     my ($self) = @_;
-    my $locations = $self->[Marpa::R2::Inner::Scanless::R::LOCATIONS];
+    my $thin_self  = $self->[Marpa::R2::Inner::Scanless::R::C];
     my $thick_g1_recce = $self->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
     # dummy up the token values
     my $p_input   = $self->[Marpa::R2::Inner::Scanless::R::P_INPUT_STRING];
     my @token_values = ('');
-    for (my $location = 1 ; $location <= $#{$locations}; $location++) {
-        my ($start, $end) = @{$locations->[$location]};
-        push @token_values, substr ${$p_input}, $start, ( $end - $start );
+    my $latest_earley_set = $thick_g1_recce->latest_earley_set();
+    for (my $earley_set = 1 ; $earley_set <= $latest_earley_set; $earley_set++) {
+        my ($start_position, $end_position) = $thin_self->locations($earley_set);
+        push @token_values, substr ${$p_input}, $start_position, ( $end_position - $start_position );
     }
     $thick_g1_recce->[Marpa::R2::Internal::Recognizer::TOKEN_VALUES] = \@token_values;
     return $thick_g1_recce->value();
