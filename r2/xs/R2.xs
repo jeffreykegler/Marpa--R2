@@ -742,12 +742,20 @@ slr_stub_alternative(Scanless_R *slr, Marpa_Symbol_ID lexeme,
     IV attempted, IV start_pos, IV end_pos)
 {
   dTHX;
+  int result;
   Marpa_Recce r1 = slr->r1;
   Unicode_Stream *stream = slr->stream;
   int trace_level = slr->trace_level;
   int trace_terminals = slr->trace_terminals;
   Marpa_Earley_Set_ID latest_earley_set = marpa_r_latest_earley_set (r1);
-  IV result = marpa_r_alternative (r1, lexeme, latest_earley_set + 1, 1);
+  if (!attempted) {
+       /* Set values for Earley set n-1 to positions of lexeme --
+        * that way we use set 0, and we can record position of a last,
+	* rejected lexeme.
+	*/
+       marpa_r_latest_earley_set_values_set(r1, start_pos, INT2PTR(void*, end_pos));
+  }
+  result = marpa_r_alternative (r1, lexeme, latest_earley_set + 1, 1);
   switch (result)
     {
 
@@ -3452,6 +3460,28 @@ PPCODE:
     XPUSHs (sv_2mortal (event));
 }
 
+void
+location(slr, earley_set)
+    Scanless_R *slr;
+    IV earley_set;
+PPCODE:
+{
+  int result;
+  int start_pos;
+  void *end_pos;
+  if (earley_set < 1)
+    {
+      XSRETURN_UNDEF;
+    }
+  result = marpa_r_earley_set_values (slr->r1, earley_set-1, &start_pos, &end_pos);
+  if (result < 0)
+    {
+      croak ("failure in slr->location(): %s", xs_g_error (slr->g1_wrapper));
+    }
+  XPUSHs (sv_2mortal (newSViv ((IV)start_pos)));
+  XPUSHs (sv_2mortal (newSViv (PTR2IV (end_pos))));
+}
+  
 INCLUDE: general_pattern.xsh
 
 BOOT:
