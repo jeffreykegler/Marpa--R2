@@ -2632,7 +2632,7 @@ sub Marpa::R2::Scanless::R::read {
     my $length_of_string     = length ${$p_string};
     my $start_of_next_lexeme = 0;
     $stream->string_set( $p_string );
-    my $lex_recce_is_active = 0;
+    my $please_start_lex_recce = 1;
 
     READ: while ( $start_of_next_lexeme < $length_of_string ) {
 
@@ -2640,8 +2640,8 @@ sub Marpa::R2::Scanless::R::read {
         state $op_earleme_complete =
             Marpa::R2::Thin::U::op('earleme_complete');
 
-        if ( not $lex_recce_is_active ) {
-            $lex_recce_is_active = 1;
+        if ( $please_start_lex_recce ) {
+            $please_start_lex_recce = 0;
             $stream->pos_set($start_of_next_lexeme);
         } ## end if ( not defined $thin_lex_recce )
 
@@ -2768,7 +2768,7 @@ sub Marpa::R2::Scanless::R::read {
                     qq{; value="$raw_token_value"};
             } ## end while ( my $event = $thin_self->event() )
 
-            $lex_recce_is_active = 0;
+            $please_start_lex_recce = 1;
             $lex_event_count = 0;
 
             next READ;
