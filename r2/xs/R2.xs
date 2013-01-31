@@ -737,6 +737,11 @@ u_pos_set(Unicode_Stream* stream, STRLEN new_pos)
 
 /* SLR static methods */
 
+/*
+ * Return values:
+ * 0 OK.
+ * -4: Exhausted, but lexemes remain.
+ */
 static IV 
 slr_stub_alternative(Scanless_R *slr, Marpa_Symbol_ID lexeme,
     IV attempted, IV start_pos, IV end_pos)
@@ -749,6 +754,7 @@ slr_stub_alternative(Scanless_R *slr, Marpa_Symbol_ID lexeme,
   int trace_terminals = slr->trace_terminals;
   Marpa_Earley_Set_ID latest_earley_set = marpa_r_latest_earley_set (r1);
   if (!attempted) {
+       if (marpa_r_is_exhausted(r1)) { return -4; }
        /* Set values for Earley set n-1 to positions of lexeme --
         * that way we use set 0, and we can record position of a last,
 	* rejected lexeme.
@@ -814,7 +820,7 @@ slr_stub_alternative(Scanless_R *slr, Marpa_Symbol_ID lexeme,
 	    event = av_make(Dim(event_data), event_data);
 	    av_push(slr->event_queue, newRV_noinc((SV*)event));
 	}
-      return 1;
+      return 0;
 
     }
 

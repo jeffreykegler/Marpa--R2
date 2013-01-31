@@ -2688,25 +2688,18 @@ sub Marpa::R2::Scanless::R::read {
                             $lexeme_start_pos + $earley_set;
                         # -2 means the LHS of the G0 rule was the discard symbol
                         next ITEM if $g1_lexeme == -2;
-                        my $next_earley_set =
-                            $thin_g1_recce->latest_earley_set() + 1;
 
-                        if ( not $lexemes_attempted ) {
-
-                            if ( $thin_g1_recce->is_exhausted() ) {
+                        my $return_value = $thin_self->stub_alternative(
+                            $g1_lexeme,        $lexemes_attempted,
+                            $lexeme_start_pos, $lexeme_end_pos
+                        );
+                        if ($return_value == -4) {
                                 $g1_status = $lex_event_count =
                                     0;    # lexer was NOT the problem
                                 $problem =
                                     "Parse exhausted, but lexemes remain, at position $lexeme_start_pos\n";
                                 last READ;
-                            } ## end if ( $thin_g1_recce->is_exhausted() )
-
-                        } ## end if ( not $lexemes_attempted )
-
-                        $thin_self->stub_alternative(
-                            $g1_lexeme,        $lexemes_attempted,
-                            $lexeme_start_pos, $lexeme_end_pos
-                        );
+                        }
                         $lexemes_attempted++;
                     } ## end ITEM: while (1)
                     last EARLEY_SET if $lexemes_found;
