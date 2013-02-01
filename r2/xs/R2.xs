@@ -81,6 +81,9 @@ typedef struct {
      SV* g1_sv;
      G_Wrapper* g0_wrapper;
      G_Wrapper* g1_wrapper;
+     Marpa_Grammar g0;
+     Marpa_Grammar g1;
+    Marpa_Symbol_ID* g0_rule_to_g1_lexeme;
 } Scanless_G;
 
 typedef struct {
@@ -3238,6 +3241,8 @@ PPCODE:
 {
   SV* new_sv;
   Scanless_G *slg;
+  int g0_rule_count;
+
   if (!sv_isa (g0_sv, "Marpa::R2::Thin::G"))
     {
       croak ("Problem in u->new(): g0 arg is not of type Marpa::R2::Thin::G");
@@ -3258,6 +3263,11 @@ PPCODE:
   # hold references to them
   SET_G_WRAPPER_FROM_G_SV(slg->g0_wrapper, g0_sv)
   SET_G_WRAPPER_FROM_G_SV(slg->g1_wrapper, g1_sv)
+  slg->g0 = slg->g0_wrapper->g;
+  slg->g1 = slg->g1_wrapper->g;
+
+  g0_rule_count = marpa_g_highest_rule_id(slg->g0)+1;
+  Newx (slg->g0_rule_to_g1_lexeme, g0_rule_count, Marpa_Symbol_ID);
 
   new_sv = sv_newmortal ();
   sv_setref_pv (new_sv, scanless_g_class_name, (void *) slg);
@@ -3271,6 +3281,7 @@ PPCODE:
 {
   SvREFCNT_dec (slg->g0_sv);
   SvREFCNT_dec (slg->g1_sv);
+  Safefree(slg->g0_rule_to_g1_lexeme);
   Safefree(slg);
 }
 
@@ -3302,6 +3313,51 @@ PPCODE:
   XPUSHs (slg->g1_sv);
 }
 
+void
+g0_rule_to_g1_lexeme_set( slg, g0_rule, g1_lexeme )
+    Scanless_G *slg;
+    Marpa_Rule_ID g0_rule;
+    Marpa_Symbol_ID g1_lexeme;
+PPCODE:
+{
+  Marpa_Rule_ID highest_g0_rule_id = marpa_g_highest_rule_id (slg->g0);
+  Marpa_Symbol_ID highest_g1_symbol_id = marpa_g_highest_symbol_id (slg->g1);
+    if (g0_rule > highest_g0_rule_id) 
+    {
+      croak
+	("Problem in slr->g0_rule_to_g1_lexeme_set(%ld, %ld): rule ID was %ld, but highest G0 rule ID = %ld",
+	 (unsigned long) g0_rule,
+	 (unsigned long) g1_lexeme,
+	 (unsigned long) g0_rule,
+	 (unsigned long) g1_lexeme);
+    }
+    if (g1_lexeme > highest_g1_symbol_id) 
+    {
+      croak
+	("Problem in slr->g0_rule_to_g1_lexeme_set(%ld, %ld): symbol ID was %ld, but highest G1 symbol ID = %ld",
+	 (unsigned long) g0_rule,
+	 (unsigned long) g1_lexeme,
+	 (unsigned long) g0_rule,
+	 (unsigned long) g1_lexeme);
+    }
+    if (g0_rule < -2) {
+      croak
+	("Problem in slr->g0_rule_to_g1_lexeme_set(%ld, %ld): rule ID was %ld, a disallowed value",
+	 (unsigned long) g0_rule,
+	 (unsigned long) g1_lexeme,
+	 (unsigned long) g0_rule);
+    }
+    if (g1_lexeme < -2) {
+      croak
+	("Problem in slr->g0_rule_to_g1_lexeme_set(%ld, %ld): symbol ID was %ld, a disallowed value",
+	 (unsigned long) g0_rule,
+	 (unsigned long) g1_lexeme,
+	 (unsigned long) g1_lexeme);
+    }
+  slg->g0_rule_to_g1_lexeme[g0_rule] = g1_lexeme;
+  XSRETURN_YES;
+}
+
 MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin::SLR
 
 void
@@ -3314,6 +3370,7 @@ PPCODE:
   SV* new_sv;
   Scanless_R *slr;
   Scanless_G *slg;
+
   if (!sv_isa (slg_sv, "Marpa::R2::Thin::SLG"))
     {
       croak ("Problem in u->new(): g0 arg is not of type Marpa::R2::Thin::SLG");
