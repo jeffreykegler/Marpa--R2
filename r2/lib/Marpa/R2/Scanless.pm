@@ -2162,22 +2162,23 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
         } ## end if ( $g1_thin->symbol_is_terminal($symbol_id) and not...)
     } ## end SYMBOL_ID: for my $symbol_id ( 0 .. $g1_thin->highest_symbol_id(...))
 
+    my $thin_slg = $self->[Marpa::R2::Inner::Scanless::G::C] =
+        Marpa::R2::Thin::SLG->new( $lex_tracer->grammar(),
+        $g1_tracer->grammar() );
+
     my @g0_rule_to_g1_lexeme;
-    RULE_ID: for my $rule_id (0 .. $g0_thin->highest_rule_id()) {
+    RULE_ID: for my $rule_id ( 0 .. $g0_thin->highest_rule_id() ) {
         my $lhs_id = $g0_thin->rule_lhs($rule_id);
-        if ($lhs_id == $g0_discard_symbol_id) {
-            $g0_rule_to_g1_lexeme[$rule_id] = -2;
-            next RULE_ID;
-        }
-        $g0_rule_to_g1_lexeme[$rule_id] = $g0_lexeme_to_g1_symbol[$lhs_id] // -1;
-    }
+        my $lexeme_id =
+            $lhs_id == $g0_discard_symbol_id
+            ? -2
+            : ( $g0_lexeme_to_g1_symbol[$lhs_id] // -1 );
+        $g0_rule_to_g1_lexeme[$rule_id] = $lexeme_id;
+        $thin_slg->g0_rule_to_g1_lexeme_set( $rule_id, $lexeme_id );
+    } ## end RULE_ID: for my $rule_id ( 0 .. $g0_thin->highest_rule_id() )
 
     $self->[Marpa::R2::Inner::Scanless::G::G0_RULE_TO_G1_LEXEME] = \@g0_rule_to_g1_lexeme;
     $self->[Marpa::R2::Inner::Scanless::G::THICK_G1_GRAMMAR] = $thick_g1_grammar;
-
-    $self->[Marpa::R2::Inner::Scanless::G::C] =
-        Marpa::R2::Thin::SLG->new( $lex_tracer->grammar(),
-        $g1_tracer->grammar() );
 
     return 1;
 
