@@ -839,6 +839,22 @@ slr_stub_alternative(Scanless_R *slr, Marpa_Symbol_ID lexeme,
   return 0;
 }
 
+/*
+ * Return values:
+ * 0 OK.
+ * -4: Exhausted, but lexemes remain.
+ */
+static IV 
+slr_stub_alternatives(Scanless_R *slr,
+  IV*lexemes_attempted, IV*lexemes_found)
+{
+  dTHX;
+  *lexemes_attempted = 0;
+  *lexemes_found = 0;
+  /* more needed, obviously */
+  return 0;
+}
+
 MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin
 
 PROTOTYPES: DISABLE
@@ -3527,6 +3543,19 @@ PPCODE:
   IV return_value;
   return_value = slr_stub_alternative(slr, lexeme, attempted);
   XSRETURN_IV(return_value);
+}
+
+void
+stub_alternatives( slr )
+    Scanless_R *slr;
+PPCODE:
+{
+  IV lexemes_attempted;
+  IV lexemes_found;
+  IV return_value = slr_stub_alternatives(slr, &lexemes_attempted, &lexemes_found);
+  XPUSHs (sv_2mortal (newSViv ((IV) return_value)));
+  XPUSHs (sv_2mortal (newSViv ((IV) lexemes_attempted)));
+  XPUSHs (sv_2mortal (newSViv ((IV) lexemes_found)));
 }
 
 void
