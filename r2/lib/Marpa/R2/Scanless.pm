@@ -2640,6 +2640,7 @@ sub Marpa::R2::Scanless::R::read {
             Marpa::R2::Thin::U::op('earleme_complete');
 
         if ( $please_start_lex_recce ) {
+            $please_start_lex_recce = 0;
             my ($lexeme_start, $lexeme_end) = $thin_self->lexeme_locations();
             last READ if $lexeme_end >= $length_of_string;
             $lexeme_start = $lexeme_end;
@@ -2648,7 +2649,6 @@ sub Marpa::R2::Scanless::R::read {
         } ## end if ( not defined $thin_lex_recce )
 
         if ( not defined eval { $lex_event_count = $thin_self->read(); 1 } ) {
-            $please_start_lex_recce = 0;
             my $problem_symbol = $stream->symbol_id();
             my $symbol_desc =
                 $problem_symbol < 0
@@ -2657,7 +2657,6 @@ sub Marpa::R2::Scanless::R::read {
                 . $lex_tracer->symbol_name($problem_symbol);
             die "Exception in stream read(): $EVAL_ERROR\n", $symbol_desc;
         } ## end if ( not defined eval { $lex_event_count = $stream->read...})
-        $please_start_lex_recce = 0;
 
         if (   $stream->recce->is_exhausted()
             or $lex_event_count == -1
