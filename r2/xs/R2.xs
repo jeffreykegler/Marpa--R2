@@ -95,6 +95,8 @@ typedef struct {
      AV* event_queue;
      int trace_level;
      int trace_terminals;
+     STRLEN start_of_lexeme;
+     STRLEN end_of_lexeme;
 } Scanless_R;
 
 typedef struct marpa_b Bocage;
@@ -744,7 +746,7 @@ u_pos_set(Unicode_Stream* stream, STRLEN new_pos)
  */
 static IV 
 slr_stub_alternative(Scanless_R *slr, Marpa_Symbol_ID lexeme,
-    IV attempted, IV start_pos, IV end_pos)
+    IV attempted)
 {
   dTHX;
   int result;
@@ -753,6 +755,9 @@ slr_stub_alternative(Scanless_R *slr, Marpa_Symbol_ID lexeme,
   int trace_level = slr->trace_level;
   int trace_terminals = slr->trace_terminals;
   Marpa_Earley_Set_ID latest_earley_set = marpa_r_latest_earley_set (r1);
+  STRLEN start_pos = slr->start_of_lexeme;
+  STRLEN end_pos = slr->end_of_lexeme;
+
   if (!attempted) {
        if (marpa_r_is_exhausted(r1)) { return -4; }
        /* Set values for Earley set n-1 to positions of lexeme --
@@ -1560,10 +1565,14 @@ string_set( stream, string )
      SVREF string;
 PPCODE:
 {
+  STRLEN length; /* set, but not used */
   stream->perl_pos = 0;
   stream->input_offset = 0;
-  sv_setsv (stream->input, string);
-  SvPV_nolen (stream->input);
+  /* Get our own copy and coerce it to a PV.
+   * Stealing in OK, magic is not.
+   */
+  SvSetSV (stream->input, string);
+  SvPV_force_nomg (stream->input, length);
 }
 
 void
@@ -3333,6 +3342,8 @@ PPCODE:
   slr->r1 = slr->r1_wrapper->r;
   SET_G_WRAPPER_FROM_G_SV(slr->g1_wrapper, slr->r1_wrapper->base_sv);
 
+  slr->start_of_lexeme = 0;
+  slr->end_of_lexeme = 0;
   slr->event_queue = newAV();
 
   {
@@ -3444,16 +3455,14 @@ PPCODE:
 }
 
 void
-stub_alternative( slr, lexeme, attempted, start_pos, end_pos )
+stub_alternative( slr, lexeme, attempted )
     Scanless_R *slr;
      Marpa_Symbol_ID lexeme;
      IV attempted;
-     IV start_pos;
-     IV end_pos;
 PPCODE:
 {
   IV return_value;
-  return_value = slr_stub_alternative(slr, lexeme, attempted, start_pos, end_pos);
+  return_value = slr_stub_alternative(slr, lexeme, attempted);
   XSRETURN_IV(return_value);
 }
 
@@ -3496,7 +3505,50 @@ PPCODE:
   XPUSHs (sv_2mortal (newSViv ((IV) start_pos)));
   XPUSHs (sv_2mortal (newSViv (PTR2IV (end_pos))));
 }
-  
+
+void
+lexeme_locations (slr)
+     Scanless_R *slr;
+PPCODE:
+{
+  STRLEN end_of_lexeme = slr->end_of_lexeme;
+  XPUSHs (sv_2mortal (newSViv ((IV) slr->start_of_lexeme)));
+  XPUSHs (sv_2mortal (newSViv ((IV)end_of_lexeme)));
+}
+
+  # Eliminate after converstion?
+void
+lexeme_locations_set (slr, start, end)
+     Scanless_R *slr;
+     STRLEN start;
+     STRLEN end;
+PPCODE:
+{
+  Unicode_Stream *stream = slr->stream;
+  STRLEN input_length = SvCUR (stream->input);
+  if (end < start)
+    {
+      croak
+	("Problem in slr->lexeme_locations_set(): start (%lu) is after the end (%lu)",
+	 (unsigned long) start, (unsigned long) end);
+    }
+  if (start > input_length)
+    {
+      croak
+	("Problem in slr->lexeme_locations_set(): new pos = %lu, but start = %lu",
+	 (unsigned long) input_length, (unsigned long) start);
+    }
+  if (end > input_length)
+    {
+      croak
+	("Problem in slr->lexeme_locations_set(): new pos = %lu, but end = %lu",
+	 (unsigned long) input_length, (unsigned long) end);
+    }
+  slr->start_of_lexeme = start;
+  slr->end_of_lexeme = end;
+  XSRETURN_YES;
+}
+
 INCLUDE: general_pattern.xsh
 
 BOOT:

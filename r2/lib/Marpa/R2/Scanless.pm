@@ -2630,22 +2630,25 @@ sub Marpa::R2::Scanless::R::read {
         $grammar->[Marpa::R2::Inner::Scanless::G::CHARACTER_CLASS_TABLE];
 
     my $length_of_string     = length ${$p_string};
-    my $start_of_next_lexeme = 0;
     $stream->string_set( $p_string );
     my $please_start_lex_recce = 1;
 
-    READ: while ( $start_of_next_lexeme < $length_of_string ) {
+    READ: while () {
 
         state $op_alternative = Marpa::R2::Thin::U::op('alternative');
         state $op_earleme_complete =
             Marpa::R2::Thin::U::op('earleme_complete');
 
         if ( $please_start_lex_recce ) {
-            $please_start_lex_recce = 0;
-            $stream->pos_set($start_of_next_lexeme);
+            my ($lexeme_start, $lexeme_end) = $thin_self->lexeme_locations();
+            last READ if $lexeme_end >= $length_of_string;
+            $lexeme_start = $lexeme_end;
+            $thin_self->lexeme_locations_set($lexeme_start, $lexeme_end);
+            $stream->pos_set($lexeme_start);
         } ## end if ( not defined $thin_lex_recce )
 
         if ( not defined eval { $lex_event_count = $thin_self->read(); 1 } ) {
+            $please_start_lex_recce = 0;
             my $problem_symbol = $stream->symbol_id();
             my $symbol_desc =
                 $problem_symbol < 0
@@ -2654,6 +2657,7 @@ sub Marpa::R2::Scanless::R::read {
                 . $lex_tracer->symbol_name($problem_symbol);
             die "Exception in stream read(): $EVAL_ERROR\n", $symbol_desc;
         } ## end if ( not defined eval { $lex_event_count = $stream->read...})
+        $please_start_lex_recce = 0;
 
         if (   $stream->recce->is_exhausted()
             or $lex_event_count == -1
@@ -2664,7 +2668,7 @@ sub Marpa::R2::Scanless::R::read {
             my $lexemes_found = 0;
             my $lexemes_attempted = 0;
 
-            my $lexeme_start_pos = $start_of_next_lexeme;
+            my ($lexeme_start_pos) = $thin_self->lexeme_locations();
             my $lexeme_end_pos;
 
             # Do not search Earley set 0 -- we do not care about
@@ -2682,15 +2686,14 @@ sub Marpa::R2::Scanless::R::read {
                         my $g1_lexeme = $g0_rule_to_g1_lexeme->[$rule_id];
                         next ITEM if $g1_lexeme == -1;
                         $lexemes_found++;
-                        $lexeme_end_pos = $start_of_next_lexeme =
-                            $lexeme_start_pos + $earley_set;
+                        $lexeme_end_pos = $lexeme_start_pos + $earley_set;
+                        $thin_self->lexeme_locations_set($lexeme_start_pos, $lexeme_end_pos);
 
                         # -2 means the LHS of the G0 rule was the discard symbol
                         next ITEM if $g1_lexeme == -2;
 
                         my $return_value = $thin_self->stub_alternative(
-                            $g1_lexeme,        $lexemes_attempted,
-                            $lexeme_start_pos, $lexeme_end_pos
+                            $g1_lexeme,        $lexemes_attempted
                         );
                         if ( $return_value == -4 ) {
                             $g1_status = $lex_event_count =
@@ -2707,10 +2710,11 @@ sub Marpa::R2::Scanless::R::read {
             }
 
             if ( not $lexemes_found ) {
-                $g1_status = $lex_event_count = 0;    # lexer was NOT the problem
-                $problem = "No lexeme found at position $start_of_next_lexeme";
+                $g1_status = $lex_event_count = 0; # lexer was NOT the problem
+                my ($lexeme_start) = $thin_self->lexeme_locations();
+                $problem = "No lexeme found at position $lexeme_start";
                 last READ;
-            }
+            } ## end if ( not $lexemes_found )
 
             if ( $lexemes_attempted ) {
 
@@ -2802,7 +2806,7 @@ sub Marpa::R2::Scanless::R::read {
             $stream->char_register( $codepoint, @ops, $op_earleme_complete );
             next READ;
         } ## end if ( $lex_event_count == -2 )
-    } ## end READ: while ( $start_of_next_lexeme < $length_of_string )
+    }
 
     my $pos = $stream->pos();
     return $pos
