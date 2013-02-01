@@ -3241,7 +3241,6 @@ PPCODE:
 {
   SV* new_sv;
   Scanless_G *slg;
-  int g0_rule_count;
 
   if (!sv_isa (g0_sv, "Marpa::R2::Thin::G"))
     {
@@ -3266,8 +3265,15 @@ PPCODE:
   slg->g0 = slg->g0_wrapper->g;
   slg->g1 = slg->g1_wrapper->g;
 
-  g0_rule_count = marpa_g_highest_rule_id(slg->g0)+1;
-  Newx (slg->g0_rule_to_g1_lexeme, g0_rule_count, Marpa_Symbol_ID);
+  {
+    Marpa_Rule_ID rule;
+    Marpa_Rule_ID g0_rule_count = marpa_g_highest_rule_id (slg->g0) + 1;
+    Newx (slg->g0_rule_to_g1_lexeme, g0_rule_count, Marpa_Symbol_ID);
+    for (rule = 0; rule < g0_rule_count; rule++)
+      {
+	slg->g0_rule_to_g1_lexeme[rule] = -1;
+      }
+  }
 
   new_sv = sv_newmortal ();
   sv_setref_pv (new_sv, scanless_g_class_name, (void *) slg);
