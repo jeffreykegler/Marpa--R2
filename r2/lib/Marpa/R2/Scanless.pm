@@ -2672,10 +2672,7 @@ sub Marpa::R2::Scanless::R::read {
             } ## end if ( $return_value == -4 )
 
             if ( not $lexemes_found ) {
-                $g1_status = $lex_event_count = 0; # lexer was NOT the problem
-                my ($lexeme_start) = $thin_self->lexeme_locations();
-                $problem = "No lexeme found at position $lexeme_start";
-                last READ;
+                return $self->read_problem(-5, undef, 0, 0);
             } ## end if ( not $lexemes_found )
 
             if ($lexemes_attempted) {
@@ -2806,6 +2803,11 @@ sub Marpa::R2::Scanless::R::read_problem {
             my ($lexeme_start_pos) = $thin_self->lexeme_locations();
             $problem =
                 "Parse exhausted, but lexemes remain, at position $lexeme_start_pos\n";
+            last CODE_TO_PROBLEM;
+        }
+        if ( $problem_code == -5 ) {
+                my ($lexeme_start) = $thin_self->lexeme_locations();
+                $problem = "No lexeme found at position $lexeme_start";
             last CODE_TO_PROBLEM;
         }
     } ## end CODE_TO_PROBLEM:
