@@ -2624,9 +2624,6 @@ sub Marpa::R2::Scanless::R::read {
     # so they are initialized here.
     # Event counts are initialized to 0 for "no events, no problems".
     my $lex_event_count = 0;
-    my $g1_status  = 0;
-    my $problem;
-
     my $class_table =
         $grammar->[Marpa::R2::Inner::Scanless::G::CHARACTER_CLASS_TABLE];
 
@@ -2668,47 +2665,37 @@ sub Marpa::R2::Scanless::R::read {
                 $thin_self->stub_alternatives();
 
             if ( $return_value == -4 ) {
-                return $self->read_problem(-4, undef, 0, 0);
+                return $self->read_problem(-4, 0, 0);
             } ## end if ( $return_value == -4 )
 
             if ( not $lexemes_found ) {
-                return $self->read_problem(-5, undef, 0, 0);
+                return $self->read_problem(-5, 0, 0);
             } ## end if ( not $lexemes_found )
 
             if ($lexemes_attempted) {
 
                 $thin_self->g1()->throw_set(0);
-                $g1_status = $thin_g1_recce->earleme_complete();
+                my $g1_status = $thin_g1_recce->earleme_complete();
                 $thin_self->g1()->throw_set(1);
                 LOOK_FOR_G1_PROBLEMS: {
-                    if ( defined $g1_status ) {
-                        last LOOK_FOR_G1_PROBLEMS if $g1_status == 0;
-                        if ( $g1_status > 0 ) {
-                            my $significant_problems = 0;
-                            my $event_count = $thin_self->g1()->event_count();
-                            for (
-                                my $event_ix = 0;
-                                $event_ix < $event_count;
-                                $event_ix++
-                                )
-                            {
-                                my ($event_type) =
-                                    $thin_self->g1()->event($event_ix);
-                                if ( $event_type ne 'MARPA_EVENT_EXHAUSTED' )
-                                {
-                                    $significant_problems++;
-                                }
-                            } ## end for ( my $event_ix = 0; $event_ix < $event_count; ...)
-                            if ( not $significant_problems ) {
-                                $g1_status = 0;
-                                last LOOK_FOR_G1_PROBLEMS;
-                            }
-                        } ## end if ( $g1_status > 0 )
-                    } ## end if ( defined $g1_status )
+                    $self->read_problem( undef, 0, $g1_status )
+                        if not defined $g1_status
+                            or $g1_status < 0;
+                    last LOOK_FOR_G1_PROBLEMS if $g1_status == 0;
 
-                    # If here, there was a problem
-                    $lex_event_count = 0;    # lexer was NOT the problem
-                    last READ;
+                    # g1 status must be > 0, if here
+                    my $event_count = $thin_self->g1()->event_count();
+                    for (
+                        my $event_ix = 0;
+                        $event_ix < $event_count;
+                        $event_ix++
+                        )
+                    {
+                        my ($event_type) = $thin_self->g1()->event($event_ix);
+                        if ( $event_type ne 'MARPA_EVENT_EXHAUSTED' ) {
+                            $self->read_problem( undef, 0, $g1_status )
+                        }
+                    } ## end for ( my $event_ix = 0; $event_ix < $event_count; ...)
                 } ## end LOOK_FOR_G1_PROBLEMS:
             } ## end if ($lexemes_attempted)
 
@@ -2767,9 +2754,9 @@ sub Marpa::R2::Scanless::R::read {
         } ## end if ( $lex_event_count == -2 )
     }
 
-        if (defined $problem or $lex_event_count or $g1_status)
+        if ($lex_event_count)
         {
-             return $self->read_problem(undef, $problem, $lex_event_count, $g1_status);
+             return $self->read_problem(0, $lex_event_count, 0);
         }
 
     return $stream->pos();
@@ -2778,7 +2765,7 @@ sub Marpa::R2::Scanless::R::read {
 ## From here, recovery is a matter for the caller,
 ## if it is possible at all
 sub Marpa::R2::Scanless::R::read_problem {
-    my ($self, $problem_code, $problem, $lex_event_count, $g1_status) = @_;
+    my ($self, $problem_code, $lex_event_count, $g1_status) = @_;
     my $thin_self  = $self->[Marpa::R2::Inner::Scanless::R::C];
     my $grammar = $self->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
 
@@ -2797,8 +2784,9 @@ sub Marpa::R2::Scanless::R::read_problem {
     my $p_string = $self->[Marpa::R2::Inner::Scanless::R::P_INPUT_STRING];
     my $length_of_string     = length ${$p_string};
 
+    my $problem;
     CODE_TO_PROBLEM: {
-        last CODE_TO_PROBLEM if not defined $problem_code;
+        last CODE_TO_PROBLEM if not $problem_code;
         if ( $problem_code == -4 ) {
             my ($lexeme_start_pos) = $thin_self->lexeme_locations();
             $problem =
