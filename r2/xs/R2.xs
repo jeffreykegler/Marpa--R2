@@ -847,7 +847,7 @@ slr_stub_alternative(Scanless_R *slr, Marpa_Symbol_ID lexeme,
  */
 static IV 
 slr_stub_alternatives(Scanless_R *slr,
-  IV*lexemes_attempted, IV*lexemes_found)
+  IV*lexemes_found, IV*lexemes_attempted)
 {
   dTHX;
   int return_value;
@@ -3599,12 +3599,12 @@ stub_alternatives( slr )
     Scanless_R *slr;
 PPCODE:
 {
-  IV lexemes_attempted;
   IV lexemes_found;
-  IV return_value = slr_stub_alternatives(slr, &lexemes_attempted, &lexemes_found);
+  IV lexemes_attempted;
+  IV return_value = slr_stub_alternatives(slr, &lexemes_found, &lexemes_attempted);
   XPUSHs (sv_2mortal (newSViv ((IV) return_value)));
-  XPUSHs (sv_2mortal (newSViv ((IV) lexemes_attempted)));
   XPUSHs (sv_2mortal (newSViv ((IV) lexemes_found)));
+  XPUSHs (sv_2mortal (newSViv ((IV) lexemes_attempted)));
 }
 
 void
