@@ -2580,6 +2580,77 @@ sub Marpa::R2::Scanless::R::error {
     return $self->[Marpa::R2::Inner::Scanless::R::READ_STRING_ERROR];
 }
 
+sub Marpa::R2::Scanless::R::inner_read {
+    my ($self, $please_start_lex_recce) = @_;
+    my $thin_self = $self->[Marpa::R2::Inner::Scanless::R::C];
+    my $stream  = $thin_self->stream();
+    my $thick_g1_recce =
+        $self->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+    my $thin_g1_recce    = $thick_g1_recce->thin();
+    my $trace_terminals =
+        $self->[Marpa::R2::Inner::Scanless::R::TRACE_TERMINALS];
+    my $p_string = $self->[Marpa::R2::Inner::Scanless::R::P_INPUT_STRING];
+    my $length_of_string     = length ${$p_string};
+
+    my $problem_code    = 0;
+    my $g1_status       = 0;
+    my $lex_event_count = 0;
+    INNER_READ: while (1) {
+
+        if ($please_start_lex_recce) {
+            $please_start_lex_recce = 0;
+            my ( $lexeme_start, $lexeme_end ) =
+                $thin_self->lexeme_locations();
+            return ( 0, 0, 0 ) if $lexeme_end >= $length_of_string;
+            $lexeme_start = $lexeme_end;
+            $thin_self->lexeme_locations_set( $lexeme_start, $lexeme_end );
+            $stream->pos_set($lexeme_start);
+        } ## end if ($please_start_lex_recce)
+
+        $lex_event_count = $thin_self->read();
+
+        if ( $lex_event_count < -1 ) {
+            return ( ( $lex_event_count == -2 ? -2 : -7 ),
+                $lex_event_count, $g1_status, $please_start_lex_recce );
+        }
+
+        my ( $return_value, $lexemes_found, $lexemes_attempted ) =
+            $thin_self->stub_alternatives();
+
+        if ( $return_value == -4 ) {
+            return ( -4, $lex_event_count, $g1_status, $please_start_lex_recce );
+        }
+
+        if ( not $lexemes_found ) {
+            return ( -5, $lex_event_count, $g1_status, $please_start_lex_recce );
+        }
+
+        # We found a lexeme, so must restart the lex recce
+        $please_start_lex_recce = 1;
+
+        if ($lexemes_attempted) {
+
+            $thin_self->g1()->throw_set(0);
+            $g1_status = $thin_g1_recce->earleme_complete();
+            $thin_self->g1()->throw_set(1);
+            if ( not defined $g1_status
+                or $g1_status < 0 )
+            {
+                return ( -8, $lex_event_count, $g1_status, $please_start_lex_recce );
+            }
+        } ## end if ($lexemes_attempted)
+
+        if ($trace_terminals) {
+            return ( -6, $lex_event_count, $g1_status, $please_start_lex_recce );
+        }
+
+    } ## end INNER_READ: while (1)
+
+    # UNREACHED
+    return ( 0, 0, 0 );
+
+} ## end sub Marpa::R2::Scanless::R::inner_read
+
 sub Marpa::R2::Scanless::R::read {
     my ( $self, $p_string ) = @_;
 
@@ -2642,64 +2713,10 @@ sub Marpa::R2::Scanless::R::read {
         # -7 means a lex read problem not in another category
         # -8 means an G1 earleme complete problem
 
-        my $problem_code    = 0;
-        my $g1_status       = 0;
-        my $lex_event_count = 0;
-        INNER_READ: while (1) {
-
-            if ($please_start_lex_recce) {
-                $please_start_lex_recce = 0;
-                my ( $lexeme_start, $lexeme_end ) =
-                    $thin_self->lexeme_locations();
-                last INNER_READ if $lexeme_end >= $length_of_string;
-                $lexeme_start = $lexeme_end;
-                $thin_self->lexeme_locations_set( $lexeme_start,
-                    $lexeme_end );
-                $stream->pos_set($lexeme_start);
-            } ## end if ($please_start_lex_recce)
-
-            $lex_event_count = $thin_self->read();
-
-            if ( $lex_event_count < -1 ) {
-                $problem_code = ( $lex_event_count == -2 ? -2 : -7 );
-                last INNER_READ;
-            }
-
-            my ( $return_value, $lexemes_found, $lexemes_attempted ) =
-                $thin_self->stub_alternatives();
-
-            if ( $return_value == -4 ) {
-                $problem_code = -4;
-                last INNER_READ;
-            }
-
-            if ( not $lexemes_found ) {
-                $problem_code = -5;
-                last INNER_READ;
-            }
-
-            # We found a lexeme, so must restart the lex recce
-            $please_start_lex_recce = 1;
-
-            if ($lexemes_attempted) {
-
-                $thin_self->g1()->throw_set(0);
-                $g1_status = $thin_g1_recce->earleme_complete();
-                $thin_self->g1()->throw_set(1);
-                if ( not defined $g1_status
-                    or $g1_status < 0 )
-                {
-                    $problem_code = -8;
-                    last INNER_READ;
-                } ## end if ( not defined $g1_status or $g1_status < 0 )
-            } ## end if ($lexemes_attempted)
-
-            if ($trace_terminals) {
-                $problem_code = -6;
-                last INNER_READ;
-            }
-
-        } ## end INNER_READ: while (1)
+        my ($problem_code    , $g1_status, $lex_event_count);
+        (   $problem_code, $g1_status, $lex_event_count,
+            $please_start_lex_recce
+        ) = $self->inner_read($please_start_lex_recce);
 
         last OUTER_READ if $problem_code == 0;
 
