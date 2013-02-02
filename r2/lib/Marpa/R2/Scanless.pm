@@ -2620,10 +2620,6 @@ sub Marpa::R2::Scanless::R::read {
     my $thick_g1_grammar = $thick_g1_recce->grammar();
     my $g1_tracer       = $thick_g1_grammar->tracer();
 
-    # These values are used for diagnostics,
-    # so they are initialized here.
-    # Event counts are initialized to 0 for "no events, no problems".
-    my $lex_event_count = 0;
     my $class_table =
         $grammar->[Marpa::R2::Inner::Scanless::G::CHARACTER_CLASS_TABLE];
 
@@ -2631,12 +2627,19 @@ sub Marpa::R2::Scanless::R::read {
     $stream->string_set( $p_string );
     my $please_start_lex_recce = 1;
 
-    READ: while () {
+    OUTER_READ: while (1) {
+    # These values are used for diagnostics,
+    # so they are initialized here.
+    # Event counts are initialized to 0 for "no events, no problems".
+    my $problem_code = 0;
+    my $g1_status = 0;
+    my $lex_event_count = 0;
+    INNER_READ: while (1) {
 
         if ( $please_start_lex_recce ) {
             $please_start_lex_recce = 0;
             my ($lexeme_start, $lexeme_end) = $thin_self->lexeme_locations();
-            last READ if $lexeme_end >= $length_of_string;
+            last INNER_READ if $lexeme_end >= $length_of_string;
             $lexeme_start = $lexeme_end;
             $thin_self->lexeme_locations_set($lexeme_start, $lexeme_end);
             $stream->pos_set($lexeme_start);
@@ -2671,7 +2674,7 @@ sub Marpa::R2::Scanless::R::read {
             if ($lexemes_attempted) {
 
                 $thin_self->g1()->throw_set(0);
-                my $g1_status = $thin_g1_recce->earleme_complete();
+                $g1_status = $thin_g1_recce->earleme_complete();
                 $thin_self->g1()->throw_set(1);
                     $self->read_problem( undef, 0, $g1_status )
                         if not defined $g1_status
@@ -2700,7 +2703,7 @@ sub Marpa::R2::Scanless::R::read {
             $please_start_lex_recce = 1;
             $lex_event_count        = 0;
 
-            next READ;
+            next INNER_READ;
         } ## end if ( $thin_lex_recce->is_exhausted() or $lex_event_count...)
 
         if ( $lex_event_count == -2 ) {
@@ -2733,14 +2736,12 @@ sub Marpa::R2::Scanless::R::read {
                 character_describe( chr $codepoint )
             ) if not @ops;
             $stream->char_register( $codepoint, @ops, $op_earleme_complete );
-            next READ;
+            next OUTER_READ;
         } ## end if ( $lex_event_count == -2 )
     }
-
-        if ($lex_event_count)
-        {
-             return $self->read_problem(0, $lex_event_count, 0);
-        }
+         last OUTER_READ if $problem_code == 0;
+         return $self->read_problem($problem_code, $lex_event_count, 0);
+    }
 
     return $stream->pos();
 }
