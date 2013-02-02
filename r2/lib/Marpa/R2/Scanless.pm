@@ -2592,7 +2592,7 @@ sub Marpa::R2::Scanless::R::inner_read {
     my $p_string = $self->[Marpa::R2::Inner::Scanless::R::P_INPUT_STRING];
     my $length_of_string     = length ${$p_string};
 
-    my $problem_code    = 0;
+    my $problem_code    = q{};
     my $g1_status       = 0;
     my $lex_event_count = 0;
     INNER_READ: while (1) {
@@ -2610,7 +2610,7 @@ sub Marpa::R2::Scanless::R::inner_read {
         $lex_event_count = $thin_self->read();
 
         if ( $lex_event_count < -1 ) {
-            return ( ( $lex_event_count == -2 ? -2 : -7 ),
+            return ( ( $lex_event_count == -2 ? 'unregistered char' : 'R0 read() problem' ),
                 $lex_event_count, $g1_status, $please_start_lex_recce );
         }
 
@@ -2618,11 +2618,11 @@ sub Marpa::R2::Scanless::R::inner_read {
             $thin_self->stub_alternatives();
 
         if ( $return_value == -4 ) {
-            return ( -4, $lex_event_count, $g1_status, $please_start_lex_recce );
+            return ( 'R0 exhausted before end', $lex_event_count, $g1_status, $please_start_lex_recce );
         }
 
         if ( not $lexemes_found ) {
-            return ( -5, $lex_event_count, $g1_status, $please_start_lex_recce );
+            return ( 'no lexeme', $lex_event_count, $g1_status, $please_start_lex_recce );
         }
 
         # We found a lexeme, so must restart the lex recce
@@ -2636,18 +2636,18 @@ sub Marpa::R2::Scanless::R::inner_read {
             if ( not defined $g1_status
                 or $g1_status < 0 )
             {
-                return ( -8, $lex_event_count, $g1_status, $please_start_lex_recce );
+                return ( 'R1 earleme_complete() problem', $lex_event_count, $g1_status, $please_start_lex_recce );
             }
         } ## end if ($lexemes_attempted)
 
         if ($trace_terminals) {
-            return ( -6, $lex_event_count, $g1_status, $please_start_lex_recce );
+            return ( 'trace', $lex_event_count, $g1_status, $please_start_lex_recce );
         }
 
     } ## end INNER_READ: while (1)
 
     # UNREACHED
-    return ( 0, 0, 0 );
+    return ( q{}, 0, 0, 0 );
 
 } ## end sub Marpa::R2::Scanless::R::inner_read
 
@@ -2718,9 +2718,9 @@ sub Marpa::R2::Scanless::R::read {
             $please_start_lex_recce
         ) = $self->inner_read($please_start_lex_recce);
 
-        last OUTER_READ if $problem_code == 0;
+        last OUTER_READ if not $problem_code;
 
-        if ( $problem_code == -6 ) {
+        if ( $problem_code eq 'trace' ) {
             while ( my $event = $thin_self->event() ) {
                 my ( $status, $lexeme_start_pos, $lexeme_end_pos, $g1_lexeme )
                     = @{$event};
@@ -2740,9 +2740,9 @@ sub Marpa::R2::Scanless::R::read {
                     qq{; value="$raw_token_value"};
             } ## end while ( my $event = $thin_self->event() )
             next OUTER_READ;
-        } ## end if ( $problem_code == -6 )
+        } ## end if ( $problem_code eq 'trace' )
 
-        if ( $problem_code == -2 ) {
+        if ( $problem_code eq 'unregistered char' ) {
 
             state $op_alternative = Marpa::R2::Thin::U::op('alternative');
             state $op_earleme_complete =
@@ -2757,7 +2757,7 @@ sub Marpa::R2::Scanless::R::read {
 
                     # if ( $recce->[Marpa::R2::Internal::Recognizer::TRACE_SL] )
                     if (0) {
-                        say { $Marpa::R2::Inner::Scanless::TRACE_FILE_HANDLE }
+                        say {$Marpa::R2::Inner::Scanless::TRACE_FILE_HANDLE}
                             'Registering character ',
                             ( sprintf 'U+%04x', $codepoint ),
                             " as symbol $symbol_id: ",
@@ -2774,7 +2774,7 @@ sub Marpa::R2::Scanless::R::read {
             ) if not @ops;
             $stream->char_register( $codepoint, @ops, $op_earleme_complete );
             next OUTER_READ;
-        } ## end if ( $problem_code == -2 )
+        } ## end if ( $problem_code eq 'unregistered char' )
 
         return $self->read_problem( $problem_code, $lex_event_count, $g1_status );
 
@@ -2813,27 +2813,28 @@ sub Marpa::R2::Scanless::R::read_problem {
     my $lex_event_count = 0;
     my $g1_status = 0;
     CODE_TO_PROBLEM: {
-        if ( $problem_code == -4 ) {
+        if ( $problem_code eq 'R0 exhausted before end' ) {
             my ($lexeme_start_pos) = $thin_self->lexeme_locations();
             $problem =
                 "Parse exhausted, but lexemes remain, at position $lexeme_start_pos\n";
             last CODE_TO_PROBLEM;
-        } ## end if ( $problem_code == -4 )
-        if ( $problem_code == -5 ) {
+        }
+        if ( $problem_code eq 'no lexeme' ) {
             my ($lexeme_start) = $thin_self->lexeme_locations();
             $problem = "No lexeme found at position $lexeme_start";
             last CODE_TO_PROBLEM;
         }
-        if ( $problem_code == -7 ) {
+        if ( $problem_code eq 'R0 read() problem' ) {
             $problem = undef; # let $lex_event_count do the work
             $lex_event_count = $arg_lex_event_count;
             last CODE_TO_PROBLEM;
         }
-        if ( $problem_code == -8 ) {
+        if ( $problem_code eq 'R1 earleme_complete() problem' ) {
             $problem = undef; # let $g1_status do the work
             $g1_status = $arg_g1_status;
             last CODE_TO_PROBLEM;
         }
+        $problem = 'Unrecognized problem code: ' . $problem_code;
     } ## end CODE_TO_PROBLEM:
 
     my $desc;
