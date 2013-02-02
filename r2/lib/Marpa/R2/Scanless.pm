@@ -2657,17 +2657,7 @@ sub Marpa::R2::Scanless::R::read {
                 $stream->pos_set($lexeme_start);
             } ## end if ($please_start_lex_recce)
 
-            if ( not defined eval { $lex_event_count = $thin_self->read(); 1 }
-                )
-            {
-                my $problem_symbol = $stream->symbol_id();
-                my $symbol_desc =
-                    $problem_symbol < 0
-                    ? q{}
-                    : 'Problem was with symbol '
-                    . $lex_tracer->symbol_name($problem_symbol);
-                die "Exception in stream read(): $EVAL_ERROR\n", $symbol_desc;
-            } ## end if ( not defined eval { $lex_event_count = $thin_self...})
+             $lex_event_count = $thin_self->read();
 
             if ($lex_event_count < -1) {
                 $problem_code = ($lex_event_count == -2 ? -2 : -7);
