@@ -2769,7 +2769,11 @@ sub Marpa::R2::Scanless::R::read {
 ## From here, recovery is a matter for the caller,
 ## if it is possible at all
 sub Marpa::R2::Scanless::R::read_problem {
-    my ($self, $problem_code, $lex_event_count, $g1_status) = @_;
+    my ($self, $problem_code, $arg_lex_event_count, $arg_g1_status) = @_;
+
+    die( "No problem_code in slr->read_problem(%d, %d, %d)",
+        $problem_code, $arg_lex_event_count, $arg_g1_status ) if not $problem_code;
+
     my $thin_self  = $self->[Marpa::R2::Inner::Scanless::R::C];
     my $grammar = $self->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
 
@@ -2789,11 +2793,11 @@ sub Marpa::R2::Scanless::R::read_problem {
     my $length_of_string     = length ${$p_string};
 
     my $problem;
+    my $lex_event_count = 0;
+    my $g1_status = 0;
     CODE_TO_PROBLEM: {
-        last CODE_TO_PROBLEM if not $problem_code;
         if ( $problem_code == -4 ) {
             my ($lexeme_start_pos) = $thin_self->lexeme_locations();
-            $lex_event_count = 0;
             $problem =
                 "Parse exhausted, but lexemes remain, at position $lexeme_start_pos\n";
             last CODE_TO_PROBLEM;
@@ -2805,11 +2809,12 @@ sub Marpa::R2::Scanless::R::read_problem {
         }
         if ( $problem_code == -7 ) {
             $problem = undef; # let $lex_event_count do the work
+            $lex_event_count = $arg_lex_event_count;
             last CODE_TO_PROBLEM;
         }
         if ( $problem_code == -8 ) {
             $problem = undef; # let $g1_status do the work
-            $lex_event_count = 0;
+            $g1_status = $arg_g1_status;
             last CODE_TO_PROBLEM;
         }
     } ## end CODE_TO_PROBLEM:
