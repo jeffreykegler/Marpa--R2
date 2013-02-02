@@ -2639,6 +2639,7 @@ sub Marpa::R2::Scanless::R::read {
         # -4 means parse exhausted, but lexemes remain
         # -5 means no lexeme recognized at a position
         # -6 means trace -- recoverable
+        # -7 means a lex read problem not in another category
 
         my $problem_code    = 0;
         my $g1_status       = 0;
@@ -2668,15 +2669,10 @@ sub Marpa::R2::Scanless::R::read {
                 die "Exception in stream read(): $EVAL_ERROR\n", $symbol_desc;
             } ## end if ( not defined eval { $lex_event_count = $thin_self...})
 
-            if ($lex_event_count == -2) {
-                $problem_code = -2;
+            if ($lex_event_count < -1) {
+                $problem_code = ($lex_event_count == -2 ? -2 : -7);
                 last INNER_READ;
             }
-
-            if (   $stream->recce->is_exhausted()
-                or $lex_event_count == -1
-                or $lex_event_count == 0 )
-            {
 
                 my ( $return_value, $lexemes_found, $lexemes_attempted ) =
                     $thin_self->stub_alternatives();
@@ -2722,9 +2718,6 @@ sub Marpa::R2::Scanless::R::read {
                         $g1_tracer->symbol_name($g1_lexeme),
                         qq{; value="$raw_token_value"};
                 } ## end while ( my $event = $thin_self->event() )
-
-                next INNER_READ;
-            } ## end if ( $stream->recce->is_exhausted() or $lex_event_count...)
 
         } ## end INNER_READ: while (1)
 
@@ -2804,10 +2797,14 @@ sub Marpa::R2::Scanless::R::read_problem {
             $problem =
                 "Parse exhausted, but lexemes remain, at position $lexeme_start_pos\n";
             last CODE_TO_PROBLEM;
-        }
+        } ## end if ( $problem_code == -4 )
         if ( $problem_code == -5 ) {
-                my ($lexeme_start) = $thin_self->lexeme_locations();
-                $problem = "No lexeme found at position $lexeme_start";
+            my ($lexeme_start) = $thin_self->lexeme_locations();
+            $problem = "No lexeme found at position $lexeme_start";
+            last CODE_TO_PROBLEM;
+        }
+        if ( $problem_code == -7 ) {
+            $problem = "Fatal problem in G0 stream read";
             last CODE_TO_PROBLEM;
         }
     } ## end CODE_TO_PROBLEM:
