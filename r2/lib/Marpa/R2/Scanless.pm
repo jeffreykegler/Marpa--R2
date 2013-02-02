@@ -2632,6 +2632,14 @@ sub Marpa::R2::Scanless::R::read {
         # These values are used for diagnostics,
         # so they are initialized here.
         # Event counts are initialized to 0 for "no events, no problems".
+
+        # Problem codes:
+        # -2 means unregistered character -- recoverable
+        # -3 means parse exhausted in lexer
+        # -4 means parse exhausted, but lexemes remain
+        # -5 means no lexeme recognized at a position
+        # -6 means trace -- recoverable
+
         my $problem_code    = 0;
         my $g1_status       = 0;
         my $lex_event_count = 0;
@@ -2681,6 +2689,9 @@ sub Marpa::R2::Scanless::R::read {
                     return $self->read_problem( -5, 0, 0 );
                 }
 
+                # We found a lexeme, so must restart the lex recce
+                $please_start_lex_recce = 1;
+
                 if ($lexemes_attempted) {
 
                     $thin_self->g1()->throw_set(0);
@@ -2711,9 +2722,6 @@ sub Marpa::R2::Scanless::R::read {
                         $g1_tracer->symbol_name($g1_lexeme),
                         qq{; value="$raw_token_value"};
                 } ## end while ( my $event = $thin_self->event() )
-
-                $please_start_lex_recce = 1;
-                $lex_event_count        = 0;
 
                 next INNER_READ;
             } ## end if ( $stream->recce->is_exhausted() or $lex_event_count...)
