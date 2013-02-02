@@ -2668,11 +2668,7 @@ sub Marpa::R2::Scanless::R::read {
                 $thin_self->stub_alternatives();
 
             if ( $return_value == -4 ) {
-                $g1_status = $lex_event_count = 0; # lexer was NOT the problem
-                my ($lexeme_start_pos) = $thin_self->lexeme_locations();
-                $problem =
-                    "Parse exhausted, but lexemes remain, at position $lexeme_start_pos\n";
-                last READ;
+                return $self->read_problem(-4, undef, 0, 0);
             } ## end if ( $return_value == -4 )
 
             if ( not $lexemes_found ) {
@@ -2803,6 +2799,16 @@ sub Marpa::R2::Scanless::R::read_problem {
     my $pos = $stream->pos();
     my $p_string = $self->[Marpa::R2::Inner::Scanless::R::P_INPUT_STRING];
     my $length_of_string     = length ${$p_string};
+
+    CODE_TO_PROBLEM: {
+        last CODE_TO_PROBLEM if not defined $problem_code;
+        if ( $problem_code == -4 ) {
+            my ($lexeme_start_pos) = $thin_self->lexeme_locations();
+            $problem =
+                "Parse exhausted, but lexemes remain, at position $lexeme_start_pos\n";
+            last CODE_TO_PROBLEM;
+        }
+    } ## end CODE_TO_PROBLEM:
 
     my $desc;
     DESC: {
