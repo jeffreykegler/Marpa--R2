@@ -2663,51 +2663,17 @@ sub Marpa::R2::Scanless::R::read {
             or $lex_event_count == -1
             or $lex_event_count == 0 )
         {
-            my $earley_set        = $stream->recce->latest_earley_set();
 
-            my $lexemes_found = 0;
-            my $lexemes_attempted = 0;
+            my ( $return_value, $lexemes_found, $lexemes_attempted ) =
+                $thin_self->stub_alternatives();
 
-            my ($lexeme_start_pos) = $thin_self->lexeme_locations();
-            my $lexeme_end_pos;
-
-            # Do not search Earley set 0 -- we do not care about
-            # zero-length lexemes
-            {
-                my $thin_lex_recce = $stream->recce();
-                EARLEY_SET: while ( $earley_set > 0 ) {
-                    $thin_lex_recce->progress_report_start($earley_set);
-                    ITEM: while (1) {
-                        my ( $rule_id, $dot_position, $origin ) =
-                            $thin_lex_recce->progress_item();
-                        last ITEM if not defined $rule_id;
-                        next ITEM if $origin != 0;
-                        next ITEM if $dot_position != -1;
-                        my $g1_lexeme = $g0_rule_to_g1_lexeme->[$rule_id];
-                        next ITEM if $g1_lexeme == -1;
-                        $lexemes_found++;
-                        $lexeme_end_pos = $lexeme_start_pos + $earley_set;
-                        $thin_self->lexeme_locations_set($lexeme_start_pos, $lexeme_end_pos);
-
-                        # -2 means the LHS of the G0 rule was the discard symbol
-                        next ITEM if $g1_lexeme == -2;
-
-                        my $return_value = $thin_self->stub_alternative(
-                            $g1_lexeme,        $lexemes_attempted
-                        );
-                        if ( $return_value == -4 ) {
-                            $g1_status = $lex_event_count =
-                                0;    # lexer was NOT the problem
-                            $problem =
-                                "Parse exhausted, but lexemes remain, at position $lexeme_start_pos\n";
-                            last READ;
-                        } ## end if ( $return_value == -4 )
-                        $lexemes_attempted++;
-                    } ## end ITEM: while (1)
-                    last EARLEY_SET if $lexemes_found;
-                    $earley_set--;
-                } ## end EARLEY_SET: while ( $earley_set > 0 )
-            }
+            if ( $return_value == -4 ) {
+                $g1_status = $lex_event_count = 0; # lexer was NOT the problem
+                my ($lexeme_start_pos) = $thin_self->lexeme_locations();
+                $problem =
+                    "Parse exhausted, but lexemes remain, at position $lexeme_start_pos\n";
+                last READ;
+            } ## end if ( $return_value == -4 )
 
             if ( not $lexemes_found ) {
                 $g1_status = $lex_event_count = 0; # lexer was NOT the problem
@@ -2716,7 +2682,7 @@ sub Marpa::R2::Scanless::R::read {
                 last READ;
             } ## end if ( not $lexemes_found )
 
-            if ( $lexemes_attempted ) {
+            if ($lexemes_attempted) {
 
                 $thin_self->g1()->throw_set(0);
                 $g1_status = $thin_g1_recce->earleme_complete();
@@ -2739,7 +2705,7 @@ sub Marpa::R2::Scanless::R::read {
                                 {
                                     $significant_problems++;
                                 }
-                            } ## end for ( my $event_ix = 0; $event_ix < $g1_status;...)
+                            } ## end for ( my $event_ix = 0; $event_ix < $event_count; ...)
                             if ( not $significant_problems ) {
                                 $g1_status = 0;
                                 last LOOK_FOR_G1_PROBLEMS;
@@ -2751,7 +2717,7 @@ sub Marpa::R2::Scanless::R::read {
                     $lex_event_count = 0;    # lexer was NOT the problem
                     last READ;
                 } ## end LOOK_FOR_G1_PROBLEMS:
-            }
+            } ## end if ($lexemes_attempted)
 
             while ( my $event = $thin_self->event() ) {
                 my ( $status, $lexeme_start_pos, $lexeme_end_pos, $g1_lexeme )
@@ -2773,7 +2739,7 @@ sub Marpa::R2::Scanless::R::read {
             } ## end while ( my $event = $thin_self->event() )
 
             $please_start_lex_recce = 1;
-            $lex_event_count = 0;
+            $lex_event_count        = 0;
 
             next READ;
         } ## end if ( $thin_lex_recce->is_exhausted() or $lex_event_count...)

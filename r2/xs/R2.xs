@@ -94,6 +94,7 @@ typedef struct {
      Unicode_Stream* stream;
      R_Wrapper* r1_wrapper;
      Marpa_Recce r1;
+     G_Wrapper* g0_wrapper;
      G_Wrapper* g1_wrapper;
      AV* event_queue;
      int trace_level;
@@ -849,9 +850,56 @@ slr_stub_alternatives(Scanless_R *slr,
   IV*lexemes_attempted, IV*lexemes_found)
 {
   dTHX;
+  int return_value;
+  Marpa_Recce r0;
+  Marpa_Earley_Set_ID earley_set;
+
+  r0 = slr->stream->r0;
+  if (!r0)
+    {
+      croak ("Problem in slr->read(): No R0 at %s %d", __FILE__, __LINE__);
+    }
+  earley_set = marpa_r_latest_earley_set(r0);
   *lexemes_attempted = 0;
   *lexemes_found = 0;
-  /* more needed, obviously */
+  while (earley_set > 0) {
+      return_value = marpa_r_progress_report_start(r0, earley_set);
+      if (return_value < 0) {
+	   croak ("Problem in marpa_r_progress_report_start(%p, %ld): %s",
+	       (void*)r0, (unsigned long)earley_set, xs_g_error (slr->g0_wrapper));
+      }
+      while (1) {
+	  Marpa_Symbol_ID g1_lexeme;
+          int dot_position;
+	  Marpa_Earley_Set_ID origin;
+	  Marpa_Rule_ID rule_id = marpa_r_progress_item(r0, &dot_position, &origin);
+	  if (rule_id <= -2) {
+	   croak ("Problem in marpa_r_progress_item(): %s",
+	        xs_g_error (slr->g0_wrapper));
+	  }
+	  if (rule_id == -1) goto NO_MORE_REPORT_ITEMS;
+	  if (origin < 0) goto NEXT_REPORT_ITEM;
+	  if (dot_position != -1) goto NEXT_REPORT_ITEM;
+	  g1_lexeme = slr->slg->g0_rule_to_g1_lexeme[rule_id];
+	  if (g1_lexeme == -1) goto NEXT_REPORT_ITEM;
+	  (*lexemes_found)++;
+	  slr->end_of_lexeme = slr->start_of_lexeme + earley_set;
+
+	  /* -2 means a discarded item */
+	  if (g1_lexeme <= -2) goto NEXT_REPORT_ITEM;
+	  return_value = slr_stub_alternative(slr, g1_lexeme, *lexemes_attempted);
+	  if (return_value == -4) { return return_value; }
+	  (*lexemes_attempted)++;
+	  NEXT_REPORT_ITEM: ;
+      }
+      NO_MORE_REPORT_ITEMS: ;
+      if (*lexemes_found) goto LEXEMES_FOUND;
+      earley_set--;
+      /* Zero length lexemes are not of interest, so we do *not*
+       * search the 0'th Earley set.
+       */
+  }
+  LEXEMES_FOUND: ;
   return 0;
 }
 
@@ -3429,6 +3477,7 @@ PPCODE:
     SV* g0_sv = slg->g0_sv;
     Unicode_Stream* stream = u_new (g0_sv);
     SV* stream_sv = newSV (0);
+    SET_G_WRAPPER_FROM_G_SV(slr->g0_wrapper, g0_sv);
     sv_setref_pv (stream_sv, unicode_stream_class_name, (void *) stream);
     slr->stream = stream;
     slr->stream_sv = stream_sv;
