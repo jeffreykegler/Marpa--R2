@@ -2640,6 +2640,7 @@ sub Marpa::R2::Scanless::R::read {
         # -5 means no lexeme recognized at a position
         # -6 means trace -- recoverable
         # -7 means a lex read problem not in another category
+        # -8 means an G1 earleme complete problem
 
         my $problem_code    = 0;
         my $g1_status       = 0;
@@ -2664,9 +2665,6 @@ sub Marpa::R2::Scanless::R::read {
                 last INNER_READ;
             }
 
-            $lex_event_count = 0;    # reset so that later problems are not
-                                     # confused with lexer problems
-
             my ( $return_value, $lexemes_found, $lexemes_attempted ) =
                 $thin_self->stub_alternatives();
 
@@ -2689,7 +2687,7 @@ sub Marpa::R2::Scanless::R::read {
                 if ( not defined $g1_status
                     or $g1_status < 0 )
                 {
-                    $problem_code = undef;
+                    $problem_code = -8;
                     last INNER_READ;
                 } ## end if ( not defined $g1_status or $g1_status < 0 )
             } ## end if ($lexemes_attempted)
@@ -2700,9 +2698,6 @@ sub Marpa::R2::Scanless::R::read {
             }
 
         } ## end INNER_READ: while (1)
-
-        return $self->read_problem( undef, $lex_event_count, $g1_status )
-            if not defined $problem_code;
 
         last OUTER_READ if $problem_code == 0;
 
@@ -2762,7 +2757,7 @@ sub Marpa::R2::Scanless::R::read {
             next OUTER_READ;
         } ## end if ( $problem_code == -2 )
 
-        return $self->read_problem( $problem_code, $lex_event_count, 0 );
+        return $self->read_problem( $problem_code, $lex_event_count, $g1_status );
 
     } ## end OUTER_READ: while (1)
 
@@ -2806,7 +2801,12 @@ sub Marpa::R2::Scanless::R::read_problem {
             last CODE_TO_PROBLEM;
         }
         if ( $problem_code == -7 ) {
-            $problem = "Fatal problem in G0 stream read";
+            $problem = undef; # let $lex_event_count do the work
+            last CODE_TO_PROBLEM;
+        }
+        if ( $problem_code == -8 ) {
+            $problem = undef; # let $g1_status do the work
+            $lex_event_count = 0;
             last CODE_TO_PROBLEM;
         }
     } ## end CODE_TO_PROBLEM:
