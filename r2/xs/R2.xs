@@ -419,9 +419,13 @@ u_r0_new (Unicode_Stream * stream)
     int gp_result = marpa_r_start_input (r0);
     if (gp_result == -1)
       return 0;
-    if (gp_result < 0 && g0_wrapper->throw)
+    if (gp_result < 0)
       {
-	croak ("Problem in r->start_input(): %s", xs_g_error (g0_wrapper));
+	if (g0_wrapper->throw)
+	  {
+	    croak ("Problem in r->start_input(): %s", xs_g_error (g0_wrapper));
+	  }
+	return 0;
       }
   }
   stream->r0 = r0;
