@@ -8,11 +8,16 @@ use JSON::PP 'decode_json';
 use lib '.';
 use lib '../../r2/lib';
 use lib '../../r2/blib/arch';
-use Marpa::R2 2.043_002;
+use Marpa::R2 2.044_000;
 use MarpaX::JSON;
 use Benchmark qw/:hireswallclock :all/;
 
-open my $json_fh, q{<}, 'ucd100k.json';
+my $input_file_name = 'ucd100k.json';
+if (scalar @ARGV >= 1) {
+  $input_file_name = shift;
+}
+say "Using ", $input_file_name;
+open my $json_fh, q{<}, $input_file_name;
 local $/ = undef;
 my $json_str = <$json_fh>;
 

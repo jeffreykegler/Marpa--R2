@@ -2774,14 +2774,36 @@ sub Marpa::R2::Scanless::R::read {
         } ## end if ( $lex_event_count == -2 )
     }
 
-    my $pos = $stream->pos();
-    return $pos
-        if not defined $problem
-            and $lex_event_count == 0
-            and $g1_status == 0;
+        if (defined $problem or $lex_event_count or $g1_status)
+        {
+             return $self->read_problem(undef, $problem, $lex_event_count, $g1_status);
+        }
 
-    ## If we are here, recovery is a matter for the caller,
-    ## if it is possible at all
+    return $stream->pos();
+}
+
+## From here, recovery is a matter for the caller,
+## if it is possible at all
+sub Marpa::R2::Scanless::R::read_problem {
+    my ($self, $problem_code, $problem, $lex_event_count, $g1_status) = @_;
+    my $thin_self  = $self->[Marpa::R2::Inner::Scanless::R::C];
+    my $grammar = $self->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
+
+    my $thick_lex_grammar =
+        $grammar->[Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMAR];
+    my $lex_tracer       = $thick_lex_grammar->tracer();
+    my $stream  = $thin_self->stream();
+
+    my $thick_g1_recce =
+        $self->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+    my $thin_g1_recce    = $thick_g1_recce->thin();
+    my $thick_g1_grammar = $thick_g1_recce->grammar();
+    my $g1_tracer       = $thick_g1_grammar->tracer();
+
+    my $pos = $stream->pos();
+    my $p_string = $self->[Marpa::R2::Inner::Scanless::R::P_INPUT_STRING];
+    my $length_of_string     = length ${$p_string};
+
     my $desc;
     DESC: {
         if (defined $problem) {
