@@ -2669,11 +2669,13 @@ sub Marpa::R2::Scanless::R::read {
                 $thin_self->stub_alternatives();
 
             if ( $return_value == -4 ) {
-                return $self->read_problem( -4, 0, 0 );
+                $problem_code = -4;
+                last INNER_READ;
             }
 
             if ( not $lexemes_found ) {
-                return $self->read_problem( -5, 0, 0 );
+                $problem_code = -5;
+                last INNER_READ;
             }
 
             # We found a lexeme, so must restart the lex recce
@@ -2791,6 +2793,7 @@ sub Marpa::R2::Scanless::R::read_problem {
         last CODE_TO_PROBLEM if not $problem_code;
         if ( $problem_code == -4 ) {
             my ($lexeme_start_pos) = $thin_self->lexeme_locations();
+            $lex_event_count = 0;
             $problem =
                 "Parse exhausted, but lexemes remain, at position $lexeme_start_pos\n";
             last CODE_TO_PROBLEM;
