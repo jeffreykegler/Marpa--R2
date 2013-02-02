@@ -2657,98 +2657,110 @@ sub Marpa::R2::Scanless::R::read {
                 $stream->pos_set($lexeme_start);
             } ## end if ($please_start_lex_recce)
 
-             $lex_event_count = $thin_self->read();
+            $lex_event_count = $thin_self->read();
 
-            if ($lex_event_count < -1) {
-                $problem_code = ($lex_event_count == -2 ? -2 : -7);
+            if ( $lex_event_count < -1 ) {
+                $problem_code = ( $lex_event_count == -2 ? -2 : -7 );
                 last INNER_READ;
             }
 
-                my ( $return_value, $lexemes_found, $lexemes_attempted ) =
-                    $thin_self->stub_alternatives();
+            $lex_event_count = 0;    # reset so that later problems are not
+                                     # confused with lexer problems
 
-                if ( $return_value == -4 ) {
-                    return $self->read_problem( -4, 0, 0 );
-                }
+            my ( $return_value, $lexemes_found, $lexemes_attempted ) =
+                $thin_self->stub_alternatives();
 
-                if ( not $lexemes_found ) {
-                    return $self->read_problem( -5, 0, 0 );
-                }
+            if ( $return_value == -4 ) {
+                return $self->read_problem( -4, 0, 0 );
+            }
 
-                # We found a lexeme, so must restart the lex recce
-                $please_start_lex_recce = 1;
+            if ( not $lexemes_found ) {
+                return $self->read_problem( -5, 0, 0 );
+            }
 
-                if ($lexemes_attempted) {
+            # We found a lexeme, so must restart the lex recce
+            $please_start_lex_recce = 1;
 
-                    $thin_self->g1()->throw_set(0);
-                    $g1_status = $thin_g1_recce->earleme_complete();
-                    $thin_self->g1()->throw_set(1);
-                    $self->read_problem( undef, 0, $g1_status )
-                        if not defined $g1_status
-                            or $g1_status < 0;
-                } ## end if ($lexemes_attempted)
+            if ($lexemes_attempted) {
 
-                while ( my $event = $thin_self->event() ) {
-                    my ( $status, $lexeme_start_pos, $lexeme_end_pos,
-                        $g1_lexeme )
-                        = @{$event};
-                    my $raw_token_value = substr ${$p_string},
-                        $lexeme_start_pos,
-                        $lexeme_end_pos - $lexeme_start_pos;
-                    my $status_desc =
-                        $status eq 'accepted'
-                        ? 'Found'
-                        : "Rejected $status";
-                    say {
-                        $self->[
-                            Marpa::R2::Inner::Scanless::R::TRACE_FILE_HANDLE]
-                        } $status_desc, ' lexeme @', $lexeme_start_pos,
-                        q{-},
-                        $lexeme_end_pos, q{: },
-                        $g1_tracer->symbol_name($g1_lexeme),
-                        qq{; value="$raw_token_value"};
-                } ## end while ( my $event = $thin_self->event() )
+                $thin_self->g1()->throw_set(0);
+                $g1_status = $thin_g1_recce->earleme_complete();
+                $thin_self->g1()->throw_set(1);
+                if ( not defined $g1_status
+                    or $g1_status < 0 )
+                {
+                    $problem_code = undef;
+                    last INNER_READ;
+                } ## end if ( not defined $g1_status or $g1_status < 0 )
+            } ## end if ($lexemes_attempted)
+
+            if ($trace_terminals) {
+                $problem_code = -6;
+                last INNER_READ;
+            }
 
         } ## end INNER_READ: while (1)
 
+        return $self->read_problem( undef, $lex_event_count, $g1_status )
+            if not defined $problem_code;
+
         last OUTER_READ if $problem_code == 0;
 
-            if ( $problem_code == -2 ) {
+        if ( $problem_code == -6 ) {
+            while ( my $event = $thin_self->event() ) {
+                my ( $status, $lexeme_start_pos, $lexeme_end_pos, $g1_lexeme )
+                    = @{$event};
+                my $raw_token_value = substr ${$p_string},
+                    $lexeme_start_pos,
+                    $lexeme_end_pos - $lexeme_start_pos;
+                my $status_desc =
+                    $status eq 'accepted'
+                    ? 'Found'
+                    : "Rejected $status";
+                say {
+                    $self->[Marpa::R2::Inner::Scanless::R::TRACE_FILE_HANDLE]
+                    } $status_desc, ' lexeme @', $lexeme_start_pos,
+                    q{-},
+                    $lexeme_end_pos, q{: },
+                    $g1_tracer->symbol_name($g1_lexeme),
+                    qq{; value="$raw_token_value"};
+            } ## end while ( my $event = $thin_self->event() )
+            next OUTER_READ;
+        } ## end if ( $problem_code == -6 )
 
-                state $op_alternative = Marpa::R2::Thin::U::op('alternative');
-                state $op_earleme_complete =
-                    Marpa::R2::Thin::U::op('earleme_complete');
+        if ( $problem_code == -2 ) {
 
-                # Recover by registering character, if we can
-                my $codepoint = $stream->codepoint();
-                my @ops;
-                for my $entry ( @{$class_table} ) {
-                    my ( $symbol_id, $re ) = @{$entry};
-                    if ( chr($codepoint) =~ $re ) {
+            state $op_alternative = Marpa::R2::Thin::U::op('alternative');
+            state $op_earleme_complete =
+                Marpa::R2::Thin::U::op('earleme_complete');
 
-                        # if ( $recce->[Marpa::R2::Internal::Recognizer::TRACE_SL] )
-                        if (0) {
-                            say {
-                                $Marpa::R2::Inner::Scanless::TRACE_FILE_HANDLE
-                                }
-                                'Registering character ',
-                                ( sprintf 'U+%04x', $codepoint ),
-                                " as symbol $symbol_id: ",
-                                $lex_tracer->symbol_name($symbol_id)
-                                or Marpa::R2::exception(
-                                "Could not say(): $ERRNO");
-                        } ## end if (0)
-                        push @ops, $op_alternative, $symbol_id, 0, 1;
-                    } ## end if ( chr($codepoint) =~ $re )
-                } ## end for my $entry ( @{$class_table} )
-                Marpa::R2::exception(
-                    'Lexing failed at unacceptable character ',
-                    character_describe( chr $codepoint )
-                ) if not @ops;
-                $stream->char_register( $codepoint, @ops,
-                    $op_earleme_complete );
-                next OUTER_READ;
-            } ## end if ( $lex_event_count == -2 )
+            # Recover by registering character, if we can
+            my $codepoint = $stream->codepoint();
+            my @ops;
+            for my $entry ( @{$class_table} ) {
+                my ( $symbol_id, $re ) = @{$entry};
+                if ( chr($codepoint) =~ $re ) {
+
+                    # if ( $recce->[Marpa::R2::Internal::Recognizer::TRACE_SL] )
+                    if (0) {
+                        say { $Marpa::R2::Inner::Scanless::TRACE_FILE_HANDLE }
+                            'Registering character ',
+                            ( sprintf 'U+%04x', $codepoint ),
+                            " as symbol $symbol_id: ",
+                            $lex_tracer->symbol_name($symbol_id)
+                            or
+                            Marpa::R2::exception("Could not say(): $ERRNO");
+                    } ## end if (0)
+                    push @ops, $op_alternative, $symbol_id, 0, 1;
+                } ## end if ( chr($codepoint) =~ $re )
+            } ## end for my $entry ( @{$class_table} )
+            Marpa::R2::exception(
+                'Lexing failed at unacceptable character ',
+                character_describe( chr $codepoint )
+            ) if not @ops;
+            $stream->char_register( $codepoint, @ops, $op_earleme_complete );
+            next OUTER_READ;
+        } ## end if ( $problem_code == -2 )
 
         return $self->read_problem( $problem_code, $lex_event_count, 0 );
 
