@@ -2633,10 +2633,6 @@ sub Marpa::R2::Scanless::R::read {
 
     READ: while () {
 
-        state $op_alternative = Marpa::R2::Thin::U::op('alternative');
-        state $op_earleme_complete =
-            Marpa::R2::Thin::U::op('earleme_complete');
-
         if ( $please_start_lex_recce ) {
             $please_start_lex_recce = 0;
             my ($lexeme_start, $lexeme_end) = $thin_self->lexeme_locations();
@@ -2677,26 +2673,9 @@ sub Marpa::R2::Scanless::R::read {
                 $thin_self->g1()->throw_set(0);
                 my $g1_status = $thin_g1_recce->earleme_complete();
                 $thin_self->g1()->throw_set(1);
-                LOOK_FOR_G1_PROBLEMS: {
                     $self->read_problem( undef, 0, $g1_status )
                         if not defined $g1_status
                             or $g1_status < 0;
-                    last LOOK_FOR_G1_PROBLEMS if $g1_status == 0;
-
-                    # g1 status must be > 0, if here
-                    my $event_count = $thin_self->g1()->event_count();
-                    for (
-                        my $event_ix = 0;
-                        $event_ix < $event_count;
-                        $event_ix++
-                        )
-                    {
-                        my ($event_type) = $thin_self->g1()->event($event_ix);
-                        if ( $event_type ne 'MARPA_EVENT_EXHAUSTED' ) {
-                            $self->read_problem( undef, 0, $g1_status )
-                        }
-                    } ## end for ( my $event_ix = 0; $event_ix < $event_count; ...)
-                } ## end LOOK_FOR_G1_PROBLEMS:
             } ## end if ($lexemes_attempted)
 
             while ( my $event = $thin_self->event() ) {
@@ -2725,6 +2704,10 @@ sub Marpa::R2::Scanless::R::read {
         } ## end if ( $thin_lex_recce->is_exhausted() or $lex_event_count...)
 
         if ( $lex_event_count == -2 ) {
+
+        state $op_alternative = Marpa::R2::Thin::U::op('alternative');
+        state $op_earleme_complete =
+            Marpa::R2::Thin::U::op('earleme_complete');
 
             # Recover by registering character, if we can
             my $codepoint = $stream->codepoint();
