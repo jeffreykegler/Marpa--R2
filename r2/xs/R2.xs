@@ -3600,13 +3600,15 @@ PPCODE:
 	{
 	  Unicode_Stream *stream = slr->stream;
 	  STRLEN input_length = SvCUR (stream->input);
+
+	  slr->start_of_lexeme = slr->end_of_lexeme;
+	  u_pos_set (stream, slr->start_of_lexeme);
 	  if (stream->input_offset >= input_length)
 	    {
 	      XSRETURN_PV ("");
 	    }
+
 	  slr->please_start_lex_recce = 0;
-	  slr->start_of_lexeme = slr->end_of_lexeme;
-	  u_pos_set (stream, slr->start_of_lexeme);
 	  u_r0_clear (stream);
 	}
 
