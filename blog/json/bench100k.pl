@@ -16,7 +16,10 @@ my $input_file_name = 'ucd100k.json';
 if (scalar @ARGV >= 1) {
   $input_file_name = shift;
 }
+
 say "Using ", $input_file_name;
+say "Using Marpa::R2 ", $Marpa::R2::VERSION;
+
 open my $json_fh, q{<}, $input_file_name;
 local $/ = undef;
 my $json_str = <$json_fh>;
