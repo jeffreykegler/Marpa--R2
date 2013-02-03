@@ -15,6 +15,11 @@
 
 Revision history for Marpa::R2
 
+2.045_001
+
+     * Core logic of Scanless recognizer converted to C --
+       it is now more than 10 times faster.
+
 2.045_000
 
       * New series of developer's releases.
