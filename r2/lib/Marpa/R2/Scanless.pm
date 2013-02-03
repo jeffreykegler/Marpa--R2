@@ -2601,7 +2601,7 @@ sub Marpa::R2::Scanless::R::inner_read {
             $please_start_lex_recce = 0;
             my ( $lexeme_start, $lexeme_end ) =
                 $thin_self->lexeme_locations();
-            return ( 0, 0, 0 ) if $lexeme_end >= $length_of_string;
+            return ( q{}, 0, 0 ) if $lexeme_end >= $length_of_string;
             $lexeme_start = $lexeme_end;
             $thin_self->lexeme_locations_set( $lexeme_start, $lexeme_end );
             $stream->pos_set($lexeme_start);

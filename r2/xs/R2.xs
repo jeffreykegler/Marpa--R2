@@ -101,6 +101,9 @@ typedef struct {
      int trace_terminals;
      STRLEN start_of_lexeme;
      STRLEN end_of_lexeme;
+     int please_start_lex_recce;
+     int stream_read_result;
+     int r1_earleme_complete_result;
 } Scanless_R;
 
 typedef struct marpa_b Bocage;
@@ -3487,6 +3490,10 @@ PPCODE:
     slr->stream_sv = stream_sv;
   }
 
+  slr->please_start_lex_recce = 1;
+  slr->stream_read_result = 0;
+  slr->r1_earleme_complete_result = 0;
+
   new_sv = sv_newmortal ();
   sv_setref_pv (new_sv, scanless_r_class_name, (void *) slr);
   XPUSHs (new_sv);
@@ -3575,6 +3582,99 @@ PPCODE:
   XPUSHs (slr->stream_sv);
 }
 
+void
+read(slr)
+    Scanless_R *slr;
+PPCODE:
+{
+  int result = 0;		/* Hold various results */
+
+  slr->stream_read_result = 0;
+  slr->r1_earleme_complete_result = 0;
+  while (1)
+    {
+      IV lexemes_found = 0;
+      IV lexemes_attempted = 0;
+
+      if (slr->please_start_lex_recce)
+	{
+	  Unicode_Stream *stream = slr->stream;
+	  STRLEN input_length = SvCUR (stream->input);
+	  slr->please_start_lex_recce = 0;
+	  if (slr->end_of_lexeme >= input_length)
+	    {
+	      XSRETURN_PV ("");
+	    }
+	  slr->start_of_lexeme = slr->end_of_lexeme;
+	  u_pos_set (stream, slr->start_of_lexeme);
+	  u_r0_clear (stream);
+	}
+
+      av_clear (slr->event_queue);
+
+      result = slr->stream_read_result = u_read (slr->stream);
+      if (result == -2)
+	{
+	  XSRETURN_PV ("unregistered char");
+	}
+      if (result < -1)
+	{
+	  XSRETURN_PV ("R0 read() problem");
+	}
+
+      result =
+	slr_stub_alternatives (slr, &lexemes_found, &lexemes_attempted);
+      if (result == -4)
+	{
+	  XSRETURN_PV ("R0 exhausted before end");
+	}
+      if (!lexemes_found)
+	{
+	  XSRETURN_PV ("no lexeme");
+	}
+      slr->please_start_lex_recce = 1;	/* We found a lexeme, so must restart r0 */
+
+      if (lexemes_attempted)
+	{
+	  G_Wrapper *g1_wrapper = slr->g1_wrapper;
+	  slr->g1_wrapper->throw = 0;
+	  result = slr->r1_earleme_complete_result =
+	    marpa_r_earleme_complete (slr->r1);
+	  slr->g1_wrapper->throw = 1;
+	  if (result < 0)
+	    {
+	      XSRETURN_PV ("R1 earleme_complete() problem");
+	    }
+	}
+
+      if (slr->trace_terminals)
+	{
+	  XSRETURN_PV ("trace");
+	}
+
+    }
+
+  /* Never reached */
+  XSRETURN_PV ("");
+}
+
+void
+stream_read_result (slr)
+     Scanless_R *slr;
+PPCODE:
+{
+  XPUSHs (sv_2mortal (newSViv ((IV) slr->stream_read_result)));
+}
+
+void
+r1_earleme_complete_result (slr)
+     Scanless_R *slr;
+PPCODE:
+{
+  XPUSHs (sv_2mortal (newSViv ((IV) slr->r1_earleme_complete_result)));
+}
+
+   # Delete this after testing conversion to C
 void
 core_read( slr )
     Scanless_R *slr;
