@@ -802,7 +802,7 @@ sub Marpa::R2::escape_string {
     my @escaped_chars = ();
     ORD: for my $ord ( map {ord} split //xms, $string ) {
         last ORD if $length <= 0;
-        my $escaped_char = $escape_by_ord[$ord] // sprintf( "\\x{%04x}", $_ );
+        my $escaped_char = $escape_by_ord[$ord] // sprintf( "\\x{%04x}", $ord );
         $length -= length $escaped_char;
         push @escaped_chars, $escaped_char;
     } ## end for my $ord ( map {ord} split //xms, $string )
