@@ -2607,7 +2607,7 @@ sub Marpa::R2::Scanless::R::inner_read {
             $stream->pos_set($lexeme_start);
         } ## end if ($please_start_lex_recce)
 
-        $lex_event_count = $thin_self->read();
+        $lex_event_count = $thin_self->core_read();
 
         if ( $lex_event_count < -1 ) {
             return ( ( $lex_event_count == -2 ? 'unregistered char' : 'R0 read() problem' ),

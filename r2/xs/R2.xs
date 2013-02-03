@@ -3576,7 +3576,7 @@ PPCODE:
 }
 
 void
-read( slr )
+core_read( slr )
     Scanless_R *slr;
 PPCODE:
 {
