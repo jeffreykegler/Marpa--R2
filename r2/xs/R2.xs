@@ -285,14 +285,14 @@ enum marpa_recce_op {
    op_unregistered,
 };
 
-/* Grammar statics */
+/* Static grammar methods */
 
 #define SET_G_WRAPPER_FROM_G_SV(g_wrapper, g_sv) { \
     IV tmp = SvIV ((SV *) SvRV (g_sv)); \
     (g_wrapper) = INT2PTR (G_Wrapper *, tmp); \
 }
 
-/* Recognizer statics */
+/* Static recognizer methods */
 
 #define SET_R_WRAPPER_FROM_R_SV(r_wrapper, r_sv) { \
     IV tmp = SvIV ((SV *) SvRV (r_sv)); \
@@ -753,14 +753,32 @@ u_pos_set(Unicode_Stream* stream, STRLEN new_pos)
   return old_pos;
 }
 
-/* SLG static methods */
+/* Static valuator methods */
+
+/* Return -1 on failure due to wrong mode */
+static IV
+v_create_stack(V_Wrapper* v_wrapper)
+{
+  dTHX;
+  if (v_wrapper->mode == MARPA_XS_V_MODE_IS_RAW)
+    {
+      return -1;
+    }
+  v_wrapper->stack = newAV ();
+  av_extend (v_wrapper->stack, 1024);
+  /* This assignment is not necessary, but makes the code clearer. */
+  v_wrapper->mode = MARPA_XS_V_MODE_IS_STACK;
+  return 0;
+}
+
+/* Static SLG methods */
 
 #define SET_SLG_FROM_SLG_SV(slg, slg_sv) { \
     IV tmp = SvIV ((SV *) SvRV (slg_sv)); \
     (slg) = INT2PTR (Scanless_G *, tmp); \
 }
 
-/* SLR static methods */
+/* Static SLR methods */
 
 /*
  * Return values:
@@ -1865,6 +1883,7 @@ PPCODE:
   v_wrapper->event_queue = newAV();
   v_wrapper->stack = NULL;
   v_wrapper->mode = MARPA_XS_V_MODE_IS_INITIAL;
+  v_wrapper->result = 0;
   sv = sv_newmortal ();
   sv_setref_pv (sv, value_c_class_name, (void *) v_wrapper);
   XPUSHs (sv);
@@ -1965,6 +1984,16 @@ PPCODE:
 }
 
 void
+stack_length( v_wrapper )
+    V_Wrapper *v_wrapper;
+PPCODE:
+{
+  AV* stack = v_wrapper->stack;
+  IV length = stack ? av_len(stack) : -1;
+  XSRETURN_IV(length);
+}
+
+void
 stack_step( v_wrapper )
     V_Wrapper *v_wrapper;
 PPCODE:
@@ -1976,13 +2005,8 @@ PPCODE:
 
   av_clear (v_wrapper->event_queue);
 
-  if (!stack) {
-       if (v_wrapper->mode == MARPA_XS_V_MODE_IS_RAW) {
-	  croak ("Problem in v->stack_step(): Cannot call when valuator is in 'raw' mode");
-       }
-       stack = v_wrapper->stack = newAV();
-       /* This assignment is not necessary, but makes the code clearer. */
-       v_wrapper->mode = MARPA_XS_V_MODE_IS_STACK;
+  if (!stack && v_create_stack(v_wrapper) == -1) {
+      croak ("Problem in v->stack_step(): Cannot call when valuator is in 'raw' mode");
   }
 
   status = marpa_v_step (v);
