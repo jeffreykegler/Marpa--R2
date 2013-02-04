@@ -12717,6 +12717,7 @@ struct marpa_value {
     Marpa_Rule_ID t_rule_id;
     int t_arg_0;
     int t_arg_n;
+    int t_result;
     Marpa_Earley_Set_ID t_token_start_es_id;
     Marpa_Earley_Set_ID t_rule_start_es_id;
     Marpa_Earley_Set_ID t_es_id;
@@ -12734,13 +12735,20 @@ struct marpa_value {
     ((v)->t_arg_0)
 #define marpa_v_arg_n(v) \
     ((v)->t_arg_n)
-#define marpa_v_result(v) marpa_v_arg_0(v)
+#define marpa_v_result(v) \
+    ((v)->t_result)
 #define marpa_v_rule_start_es_id(v) ((v)->t_rule_start_es_id)
 #define marpa_v_token_start_es_id(v) ((v)->t_token_start_es_id)
 #define marpa_v_es_id(v) ((v)->t_es_id)
 
 @
-|Arg_N_of_V| is the top of stack.
+|Arg_N_of_V| is the current top of stack.
+|Result_of_V| is where the result of the next evaluation
+operation should be placed and, once that is done,
+will be the new top of stack.
+If the next evaluation operation is a stack no-op,
+|Result_of_V| immediately becomes the
+new top of stack.
 @d Step_Type_of_V(val) ((val)->public.t_step_type)
 @d XSYID_of_V(val) ((val)->public.t_token_id)
 @d RULEID_of_V(val) ((val)->public.t_rule_id)
@@ -12748,6 +12756,7 @@ struct marpa_value {
 @d Token_Type_of_V(val) ((val)->t_token_type)
 @d Arg_0_of_V(val) ((val)->public.t_arg_0)
 @d Arg_N_of_V(val) ((val)->public.t_arg_n)
+@d Result_of_V(val) ((val)->public.t_result)
 @d Rule_Start_of_V(val) ((val)->public.t_rule_start_es_id)
 @d Token_Start_of_V(val) ((val)->public.t_token_start_es_id)
 @d ES_ID_of_V(val) ((val)->public.t_es_id)
@@ -12758,6 +12767,7 @@ Token_Value_of_V(v) = -1;
 Token_Type_of_V(v) = DUMMY_OR_NODE;
 Arg_0_of_V(v) = -1;
 Arg_N_of_V(v) = -1;
+Result_of_V(v) = -1;
 Rule_Start_of_V(v) = -1;
 Token_Start_of_V(v) = -1;
 ES_ID_of_V(v) = -1;
@@ -13097,11 +13107,14 @@ Marpa_Step_Type marpa_v_step(Marpa_Value public_v)
 	      Next_Value_Type_of_V (v) = MARPA_STEP_RULE;
 	      if (token_type == NULLING_TOKEN_OR_NODE)
 	      {
-		  if (lbv_bit_test(XSY_is_Valued_BV_of_V(v), XSYID_of_V(v)))
+		  if (lbv_bit_test(XSY_is_Valued_BV_of_V(v), XSYID_of_V(v))) {
+		      Result_of_V(v) = Arg_N_of_V(v);
 		      return Step_Type_of_V(v) = MARPA_STEP_NULLING_SYMBOL;
+		  }
 	      }
 	      else if (token_type != DUMMY_OR_NODE)
 		{
+		    Result_of_V(v) = Arg_N_of_V(v);
 		   return Step_Type_of_V(v) = MARPA_STEP_TOKEN;
 		 }
 	    }
@@ -13110,6 +13123,7 @@ Marpa_Step_Type marpa_v_step(Marpa_Value public_v)
 	    if (RULEID_of_V (v) >= 0)
 	      {
 		Next_Value_Type_of_V(v) = MARPA_STEP_TRACE;
+		Result_of_V(v) = Arg_0_of_V(v);
 		return Step_Type_of_V(v) = MARPA_STEP_RULE;
 	      }
 	    /* fall through */
@@ -13158,7 +13172,7 @@ for the rule.
 	  {
 	    Next_Value_Type_of_V (v) = MARPA_STEP_INACTIVE;
 	    XSYID_of_V (v) = g->t_start_xsy_id;
-	    Arg_0_of_V (v) = Arg_N_of_V (v) = 0;
+	    Result_of_V(v) = Arg_0_of_V (v) = Arg_N_of_V (v) = 0;
 	    if (lbv_bit_test (XSY_is_Valued_BV_of_V (v), XSYID_of_V (v)))
 	      return Step_Type_of_V (v) = MARPA_STEP_NULLING_SYMBOL;
 	  }
