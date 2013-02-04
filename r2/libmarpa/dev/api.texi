@@ -3522,7 +3522,8 @@ The semantics for the rule whose ID is
 on these child values,
 and the result placed in
 @code{marpa_v_result(v)}.
-The stack location of
+In the case of a @code{MARPA_STEP_RULE} step,
+the stack location of
 @code{marpa_v_result(v)} is guaranteed to
 be equal to @code{marpa_v_arg_0(v)}.
 @end deftypevr
@@ -3579,8 +3580,6 @@ They always succeed.
 For a @code{MARPA_STEP_RULE} step,
 returns the stack location where the value of first child
 can be found.
-The value is always the same as that for the @code{marpa_v_result()}
-macro.
 @end deftypefn
 
 @deftypefn {Macro} int marpa_v_arg_n (Marpa_Value @var{v})
@@ -3590,18 +3589,21 @@ can be found.
 @end deftypefn
 
 @deftypefn {Macro} int marpa_v_result (Marpa_Value @var{v})
-Return the stack location where the result of the semantics
+For @code{MARPA_STEP_RULE},
+@code{MARPA_STEP_TOKEN},
+and @code{MARPA_STEP_NULLING_SYMBOL} steps,
+returns the stack location where the result of the semantics
 should be placed.
 @end deftypefn
 
 @deftypefn {Macro} Marpa_Rule_ID marpa_v_rule (Marpa_Value @var{v})
-Return value: Returns the ID of the rule
-token for the
-@code{MARPA_STEP_RULE} step.
+For the
+@code{MARPA_STEP_RULE} step,
+returns the ID of the rule.
 @end deftypefn
 
 @deftypefn {Macro} Marpa_Step_Type marpa_v_step_type (Marpa_Value @var{v})
-Return value: Returns the current step type:
+Returns the current step type:
 @code{MARPA_STEP_TOKEN},
 @code{MARPA_STEP_RULE},
 etc.
@@ -3610,22 +3612,26 @@ Usually not needed since this is also the return value of
 @end deftypefn
 
 @deftypefn {Macro} Marpa_Symbol_ID marpa_v_symbol (Marpa_Value @var{v})
-Return value: Returns the ID of the symbol
-for the @code{MARPA_STEP_NULLING_SYMBOL} step.
-The value is always the same as that for the @code{marpa_v_token()}
+For the @code{MARPA_STEP_NULLING_SYMBOL} step,
+returns the ID of the symbol.
+The value returned is the same as that
+returned by the @code{marpa_v_token()}
 macro.
 @end deftypefn
 
 @deftypefn {Macro} Marpa_Symbol_ID marpa_v_token (Marpa_Value @var{v})
-Return value: Returns the ID of the token
-for the @code{MARPA_STEP_TOKEN} step.
+For the @code{MARPA_STEP_TOKEN} step,
+returns the ID of the token.
+The value returned is the same as that
+returned by the @code{marpa_v_symbol()}
+macro.
 @end deftypefn
 
 @deftypefn {Macro} void* marpa_v_token_value (Marpa_Value @var{v})
-Return value: Returns the integer which is
+For the @code{MARPA_STEP_TOKEN} step,
+returns the integer which is
 (or which represents)
-the value of the token for the
-@code{MARPA_STEP_TOKEN} step.
+the value of the token.
 @end deftypefn
 
 @node Other step accessors,  , Basic step accessors, Value methods
