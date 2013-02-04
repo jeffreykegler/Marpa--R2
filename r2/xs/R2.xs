@@ -135,6 +135,7 @@ typedef struct {
      AV* event_queue;
      AV* stack;
      int mode; /* 'raw' or 'stack' */
+     int result; /* stack location to which to write result */
 } V_Wrapper;
 
 /* I could get away without 'STACK', which is never tested,
@@ -1969,8 +1970,6 @@ stack_step( v_wrapper )
 PPCODE:
 {
   const Marpa_Value v = v_wrapper->v;
-  Marpa_Symbol_ID token_id;
-  Marpa_Rule_ID rule_id;
   const char *result_string;
   Marpa_Step_Type status;
   AV* stack = v_wrapper->stack;
@@ -2017,27 +2016,30 @@ PPCODE:
     }
   if (status == MARPA_STEP_TOKEN)
     {
-      token_id = marpa_v_token (v);
+      Marpa_Symbol_ID token_id = marpa_v_token (v);
+      v_wrapper->result = marpa_v_result (v);
       XPUSHs (sv_2mortal (newSVpv (result_string, 0)));
       XPUSHs (sv_2mortal (newSViv (token_id)));
       XPUSHs (sv_2mortal (newSViv (marpa_v_token_value (v))));
-      XPUSHs (sv_2mortal (newSViv (marpa_v_result (v))));
+      XPUSHs (sv_2mortal (newSViv (v_wrapper->result)));
       XSRETURN(4);
     }
   if (status == MARPA_STEP_NULLING_SYMBOL)
     {
-      token_id = marpa_v_token (v);
+      Marpa_Symbol_ID token_id = marpa_v_token (v);
+      v_wrapper->result = marpa_v_result (v);
       XPUSHs (sv_2mortal (newSVpv (result_string, 0)));
       XPUSHs (sv_2mortal (newSViv (token_id)));
-      XPUSHs (sv_2mortal (newSViv (marpa_v_result (v))));
+      XPUSHs (sv_2mortal (newSViv (v_wrapper->result)));
       XSRETURN(3);
     }
   if (status == MARPA_STEP_RULE)
     {
-      rule_id = marpa_v_rule (v);
+      Marpa_Rule_ID rule_id = marpa_v_rule (v);
+      v_wrapper->result = marpa_v_arg_0 (v);
       XPUSHs (sv_2mortal (newSVpv (result_string, 0)));
       XPUSHs (sv_2mortal (newSViv (rule_id)));
-      XPUSHs (sv_2mortal (newSViv (marpa_v_arg_0 (v))));
+      XPUSHs (sv_2mortal (newSViv (v_wrapper->result)));
       XPUSHs (sv_2mortal (newSViv (marpa_v_arg_n (v))));
       XSRETURN(4);
     }
