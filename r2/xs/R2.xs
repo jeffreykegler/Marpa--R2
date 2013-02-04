@@ -132,6 +132,8 @@ typedef struct {
      Marpa_Value v;
      SV* base_sv;
      G_Wrapper* base;
+     AV* event_queue;
+     AV* stack;
 } V_Wrapper;
 
 static const char grammar_c_class_name[] = "Marpa::R2::Thin::G";
@@ -1850,6 +1852,8 @@ PPCODE:
   }
   v_wrapper->base = t_wrapper->base;
   v_wrapper->v = v;
+  v_wrapper->event_queue = newAV();
+  v_wrapper->stack = NULL;
   sv = sv_newmortal ();
   sv_setref_pv (sv, value_c_class_name, (void *) v_wrapper);
   XPUSHs (sv);
@@ -1860,10 +1864,24 @@ DESTROY( v_wrapper )
     V_Wrapper *v_wrapper;
 PPCODE:
 {
-    const Marpa_Value v = v_wrapper->v;
-    SvREFCNT_dec (v_wrapper->base_sv);
-    marpa_v_unref(v);
-    Safefree( v_wrapper );
+  const Marpa_Value v = v_wrapper->v;
+  SvREFCNT_dec (v_wrapper->base_sv);
+  SvREFCNT_dec (v_wrapper->event_queue);
+  if (v_wrapper->stack)
+    {
+      SvREFCNT_dec (v_wrapper->stack);
+    }
+  marpa_v_unref (v);
+  Safefree (v_wrapper);
+}
+
+void
+event( v_wrapper )
+    V_Wrapper *v_wrapper;
+PPCODE:
+{
+    SV* event = av_shift(v_wrapper->event_queue);
+    XPUSHs (sv_2mortal (event));
 }
 
 void
@@ -1877,6 +1895,7 @@ PPCODE:
   const char *result_string;
   const Marpa_Step_Type status = marpa_v_step (v);
 
+  av_clear (v_wrapper->event_queue);
   if (status == MARPA_STEP_INACTIVE)
     {
       XSRETURN_EMPTY;
@@ -3674,18 +3693,6 @@ r1_earleme_complete_result (slr)
 PPCODE:
 {
   XPUSHs (sv_2mortal (newSViv ((IV) slr->r1_earleme_complete_result)));
-}
-
-   # Delete this after testing conversion to C
-void
-core_read( slr )
-    Scanless_R *slr;
-PPCODE:
-{
-  IV return_value;
-  av_clear(slr->event_queue);
-  return_value = u_read(slr->stream);
-  XSRETURN_IV(return_value);
 }
 
 void
