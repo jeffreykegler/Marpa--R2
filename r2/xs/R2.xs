@@ -134,7 +134,16 @@ typedef struct {
      G_Wrapper* base;
      AV* event_queue;
      AV* stack;
+     int mode; /* 'raw' or 'stack' */
 } V_Wrapper;
+
+/* I could get away without 'STACK', which is never tested,
+ * but the cost is an unneeded assignment, and it makes the code
+ * clearer if 'INITIAL' != 'STACK'
+ */
+#define MARPA_XS_V_MODE_IS_INITIAL 0
+#define MARPA_XS_V_MODE_IS_RAW 1
+#define MARPA_XS_V_MODE_IS_STACK 2
 
 static const char grammar_c_class_name[] = "Marpa::R2::Thin::G";
 static const char recce_c_class_name[] = "Marpa::R2::Thin::R";
@@ -1854,6 +1863,7 @@ PPCODE:
   v_wrapper->v = v;
   v_wrapper->event_queue = newAV();
   v_wrapper->stack = NULL;
+  v_wrapper->mode = MARPA_XS_V_MODE_IS_INITIAL;
   sv = sv_newmortal ();
   sv_setref_pv (sv, value_c_class_name, (void *) v_wrapper);
   XPUSHs (sv);
@@ -1895,7 +1905,88 @@ PPCODE:
   const char *result_string;
   const Marpa_Step_Type status = marpa_v_step (v);
 
+  if (v_wrapper->mode != MARPA_XS_V_MODE_IS_RAW) {
+       if (v_wrapper->stack) {
+	  croak ("Problem in v->step(): Cannot call when valuator is in 'stack' mode");
+       }
+       v_wrapper->mode = MARPA_XS_V_MODE_IS_RAW;
+  }
   av_clear (v_wrapper->event_queue);
+  if (status == MARPA_STEP_INACTIVE)
+    {
+      XSRETURN_EMPTY;
+    }
+  if (status < 0)
+    {
+      const char *error_message = xs_g_error (v_wrapper->base);
+      if (v_wrapper->base->throw)
+	{
+	  croak ("Problem in v->step(): %s", error_message);
+	}
+      XPUSHs (sv_2mortal
+	      (newSVpvf ("Problem in v->step(): %s", error_message)));
+      XSRETURN (1);
+    }
+  result_string = step_type_to_string (status);
+  if (!result_string)
+    {
+      char *error_message =
+	form ("Problem in v->step(): unknown step type %d", status);
+      set_error_from_string (v_wrapper->base, savepv(error_message));
+      if (v_wrapper->base->throw)
+	{
+	  croak ("%s", error_message);
+	}
+      XPUSHs (sv_2mortal (newSVpv (error_message, 0)));
+      XSRETURN (1);
+    }
+  XPUSHs (sv_2mortal (newSVpv (result_string, 0)));
+  if (status == MARPA_STEP_TOKEN)
+    {
+      token_id = marpa_v_token (v);
+      XPUSHs (sv_2mortal (newSViv (token_id)));
+      XPUSHs (sv_2mortal (newSViv (marpa_v_token_value (v))));
+      XPUSHs (sv_2mortal (newSViv (marpa_v_arg_n (v))));
+    }
+  if (status == MARPA_STEP_NULLING_SYMBOL)
+    {
+      token_id = marpa_v_token (v);
+      XPUSHs (sv_2mortal (newSViv (token_id)));
+      XPUSHs (sv_2mortal (newSViv (marpa_v_arg_n (v))));
+    }
+  if (status == MARPA_STEP_RULE)
+    {
+      rule_id = marpa_v_rule (v);
+      XPUSHs (sv_2mortal (newSViv (rule_id)));
+      XPUSHs (sv_2mortal (newSViv (marpa_v_arg_0 (v))));
+      XPUSHs (sv_2mortal (newSViv (marpa_v_arg_n (v))));
+    }
+}
+
+void
+stack_step( v_wrapper )
+    V_Wrapper *v_wrapper;
+PPCODE:
+{
+  const Marpa_Value v = v_wrapper->v;
+  Marpa_Symbol_ID token_id;
+  Marpa_Rule_ID rule_id;
+  const char *result_string;
+  Marpa_Step_Type status;
+  AV* stack = v_wrapper->stack;
+
+  av_clear (v_wrapper->event_queue);
+
+  if (!stack) {
+       if (v_wrapper->mode == MARPA_XS_V_MODE_IS_RAW) {
+	  croak ("Problem in v->stack_step(): Cannot call when valuator is in 'raw' mode");
+       }
+       stack = v_wrapper->stack = newAV();
+       /* This assignment is not necessary, but makes the code clearer. */
+       v_wrapper->mode = MARPA_XS_V_MODE_IS_STACK;
+  }
+
+  status = marpa_v_step (v);
   if (status == MARPA_STEP_INACTIVE)
     {
       XSRETURN_EMPTY;
