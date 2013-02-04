@@ -1984,13 +1984,61 @@ PPCODE:
 }
 
 void
-stack_length( v_wrapper )
+highest_index( v_wrapper )
     V_Wrapper *v_wrapper;
 PPCODE:
 {
   AV* stack = v_wrapper->stack;
   IV length = stack ? av_len(stack) : -1;
   XSRETURN_IV(length);
+}
+
+void
+absolute( v_wrapper, index )
+    V_Wrapper *v_wrapper;
+    IV index;
+PPCODE:
+{
+  SV** p_sv;
+  AV* stack = v_wrapper->stack;
+  if (!stack) { XSRETURN_UNDEF; }
+  p_sv = av_fetch(stack, index, 0);
+  if (!p_sv) { XSRETURN_UNDEF; }
+  XPUSHs (sv_mortalcopy(*p_sv));
+}
+
+void
+relative( v_wrapper, index )
+    V_Wrapper *v_wrapper;
+    IV index;
+PPCODE:
+{
+  SV** p_sv;
+  IV length;
+  AV* stack = v_wrapper->stack;
+  if (!stack) { XSRETURN_UNDEF; }
+  length = stack ? av_len(stack) : -1;
+  p_sv = av_fetch(stack, index+v_wrapper->result, 0);
+  if (!p_sv) { XSRETURN_UNDEF; }
+  XPUSHs (sv_mortalcopy(*p_sv));
+}
+
+void
+result_set( v_wrapper, sv )
+    V_Wrapper *v_wrapper;
+    SV* sv;
+PPCODE:
+{
+  SV** p_stored_sv;
+  AV* stack = v_wrapper->stack;
+  if (!stack) {
+      croak ("Problem in v->result_set(): valuator is not in stack mode");
+  }
+  p_stored_sv = av_store(stack, v_wrapper->result, sv);
+  if (!p_stored_sv) {
+      croak ("Problem in v->result_set(): Store failed");
+  }
+  SvREFCNT_inc(*p_stored_sv);
 }
 
 void
