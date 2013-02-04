@@ -577,7 +577,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
     value_trace( $value, $trace_values ? 1 : 0 );
 
     EVENT: while (1) {
-        my ( $value_type, @value_data ) = $value->step();
+        my ( $value_type, @value_data ) = $value->stack_step();
         last EVENT if not defined $value_type;
 
         if ( $trace_values >= 3 ) {

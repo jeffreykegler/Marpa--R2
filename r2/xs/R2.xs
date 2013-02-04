@@ -2015,27 +2015,33 @@ PPCODE:
       XPUSHs (sv_2mortal (newSVpv (error_message, 0)));
       XSRETURN (1);
     }
-  XPUSHs (sv_2mortal (newSVpv (result_string, 0)));
   if (status == MARPA_STEP_TOKEN)
     {
       token_id = marpa_v_token (v);
+      XPUSHs (sv_2mortal (newSVpv (result_string, 0)));
       XPUSHs (sv_2mortal (newSViv (token_id)));
       XPUSHs (sv_2mortal (newSViv (marpa_v_token_value (v))));
       XPUSHs (sv_2mortal (newSViv (marpa_v_result (v))));
+      XSRETURN(4);
     }
   if (status == MARPA_STEP_NULLING_SYMBOL)
     {
       token_id = marpa_v_token (v);
+      XPUSHs (sv_2mortal (newSVpv (result_string, 0)));
       XPUSHs (sv_2mortal (newSViv (token_id)));
       XPUSHs (sv_2mortal (newSViv (marpa_v_result (v))));
+      XSRETURN(3);
     }
   if (status == MARPA_STEP_RULE)
     {
       rule_id = marpa_v_rule (v);
+      XPUSHs (sv_2mortal (newSVpv (result_string, 0)));
       XPUSHs (sv_2mortal (newSViv (rule_id)));
       XPUSHs (sv_2mortal (newSViv (marpa_v_arg_0 (v))));
       XPUSHs (sv_2mortal (newSViv (marpa_v_arg_n (v))));
+      XSRETURN(4);
     }
+      XPUSHs (sv_2mortal (newSVpv (result_string, 0)));
 }
 
 void
