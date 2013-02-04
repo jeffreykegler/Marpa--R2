@@ -573,7 +573,6 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
             );
         } ## end if ( not $result )
     } ## end for my $token_id ( grep { defined $null_values->[$_] ...})
-    my @evaluation_stack = ();
     value_trace( $value, $trace_values ? 1 : 0 );
 
     EVENT: while (1) {
@@ -581,21 +580,21 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
         last EVENT if not defined $value_type;
 
         if ( $trace_values >= 3 ) {
-            for my $i ( reverse 0 .. $#evaluation_stack ) {
+            for my $i ( reverse 0 .. $value->highest_index ) {
                 printf {$Marpa::R2::Internal::TRACE_FH} 'Stack position %3d:',
                     $i
                     or Marpa::R2::exception('print to trace handle failed');
                 print {$Marpa::R2::Internal::TRACE_FH} q{ },
-                    Data::Dumper->new( [ $evaluation_stack[$i] ] )->Terse(1)
+                    Data::Dumper->new( [ $value->absolute($i) ] )->Terse(1)
                     ->Dump
                     or Marpa::R2::exception('print to trace handle failed');
-            } ## end for my $i ( reverse 0 .. $#evaluation_stack )
+            } ## end for my $i ( reverse 0 .. $value->highest_index )
         } ## end if ( $trace_values >= 3 )
 
         if ( $value_type eq 'MARPA_STEP_TOKEN' ) {
             my ( $token_id, $value_ix, $arg_n ) = @value_data;
             my $value_ref = \( $token_values->[$value_ix] );
-            $evaluation_stack[$arg_n] = $value_ref;
+	    $value->result_set($value_ref);
             trace_token_evaluation( $recce, $value, $token_id, $value_ref )
                 if $trace_values;
             next EVENT;
@@ -640,7 +639,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                 $value_ref = \$result;
             } ## end if ( ref $value_ref eq 'CODE' )
 
-            $evaluation_stack[$arg_n] = $value_ref;
+	    $value->result_set($value_ref);
             trace_token_evaluation( $recce, $value, $token_id, $value_ref )
                 if $trace_values;
             next EVENT;
@@ -656,7 +655,8 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
                 my @args =
                     map { defined $_ ? ${$_} : $_ }
-                    @evaluation_stack[ $arg_0 .. $arg_n ];
+		    map { $value->absolute($_) }
+                    ( $arg_0 .. $arg_n );
                 if ( defined $grammar_c->sequence_min($rule_id) ) {
                     if ($rule->[Marpa::R2::Internal::Rule::DISCARD_SEPARATION]
                         )
@@ -700,10 +700,10 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                             }
                         );
                     } ## end if ( not $eval_ok or @warnings )
-                    $evaluation_stack[$arg_0] = \$result;
+		    $value->result_set(\$result);
                 } ## end if ( ref $closure eq 'CODE' )
                 else {
-                    $evaluation_stack[$arg_0] = $closure;
+		    $value->result_set($closure);
                 }
 
                 if ($trace_values) {
@@ -743,7 +743,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
     } ## end EVENT: while (1)
 
-    my $top_value = $evaluation_stack[0];
+    my $top_value = $value->absolute(0);
 
     return $top_value // ( \undef );
 
