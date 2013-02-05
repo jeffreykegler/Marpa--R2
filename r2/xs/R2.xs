@@ -2077,16 +2077,18 @@ result_set( v_wrapper, sv )
     SV* sv;
 PPCODE:
 {
-  SV** p_stored_sv;
-  AV* stack = v_wrapper->stack;
-  if (!stack) {
+  SV **p_stored_sv;
+  AV *stack = v_wrapper->stack;
+  if (!stack)
+    {
       croak ("Problem in v->result_set(): valuator is not in stack mode");
-  }
-  p_stored_sv = av_store(stack, v_wrapper->result, sv);
-  if (!p_stored_sv) {
-      croak ("Problem in v->result_set(): Store failed");
-  }
-  SvREFCNT_inc(*p_stored_sv);
+    }
+  SvREFCNT_inc (sv);
+  p_stored_sv = av_store (stack, v_wrapper->result, sv);
+  if (!p_stored_sv)
+    {
+      SvREFCNT_dec (sv);
+    }
 }
 
 void
@@ -2151,7 +2153,12 @@ PPCODE:
 	  p_token_value_sv = av_fetch (token_values, token_value_ix, 0);
 	  if (p_token_value_sv)
 	    {
-	      av_store (stack, result, newSVsv (*p_token_value_sv));
+	      SV* token_value_sv = newSVsv (*p_token_value_sv);
+	      SV** stored_sv = av_store (stack, result, token_value_sv);
+	      if (!stored_sv)
+		{
+		  SvREFCNT_dec (token_value_sv);
+		}
 	    }
 	  else
 	    {
