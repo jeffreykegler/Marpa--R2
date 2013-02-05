@@ -2069,14 +2069,24 @@ PPCODE:
   const char *result_string;
   Marpa_Step_Type status;
   AV *stack = v_wrapper->stack;
+  AV* token_values;
 
   av_clear (v_wrapper->event_queue);
 
-  if (!stack && v_create_stack (v_wrapper) == -1)
+  if (!stack)
     {
-      croak
-	("Problem in v->stack_step(): Cannot call when valuator is in 'raw' mode");
+      if (v_create_stack (v_wrapper) == -1)
+	{
+	  croak
+	    ("Problem in v->stack_step(): Cannot call when valuator is in 'raw' mode");
+	}
+      stack = v_wrapper->stack;
     }
+  token_values = v_wrapper->token_values;
+  if (!token_values) {
+      croak
+	("Problem in v->stack_step(): token values not set");
+  }
 
   while (1)
     {
@@ -2112,12 +2122,23 @@ PPCODE:
       if (status == MARPA_STEP_TOKEN)
 	{
 	  Marpa_Symbol_ID token_id = marpa_v_token (v);
-	  v_wrapper->result = marpa_v_result (v);
-	  XPUSHs (sv_2mortal (newSVpv (result_string, 0)));
-	  XPUSHs (sv_2mortal (newSViv (token_id)));
-	  XPUSHs (sv_2mortal (newSViv (marpa_v_token_value (v))));
-	  XPUSHs (sv_2mortal (newSViv (v_wrapper->result)));
-	  XSRETURN (4);
+	  IV result = v_wrapper->result = marpa_v_result (v);
+	  SV** p_token_value_sv;
+
+	  p_token_value_sv = av_fetch(token_values, token_id, 0);
+	  if (p_token_value_sv) {
+	    av_store(stack, result, newSVsv(*p_token_value_sv));
+	  } else {
+	    av_store(stack, result, &PL_sv_undef);
+	  }
+
+	  goto NEXT_STEP;
+
+	  /* XPUSHs (sv_2mortal (newSVpv (result_string, 0))); */
+	  /* XPUSHs (sv_2mortal (newSViv (token_id))); */
+	  /* XPUSHs (sv_2mortal (newSViv (marpa_v_token_value (v)))); */
+	  /* XPUSHs (sv_2mortal (newSViv (v_wrapper->result))); */
+	  /* XSRETURN (4); */
 	}
       if (status == MARPA_STEP_NULLING_SYMBOL)
 	{
