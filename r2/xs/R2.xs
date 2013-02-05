@@ -135,6 +135,7 @@ typedef struct {
      AV* event_queue;
      AV* token_values;
      AV* stack;
+     IV trace_values;
      int mode; /* 'raw' or 'stack' */
      int result; /* stack location to which to write result */
 } V_Wrapper;
@@ -1886,6 +1887,7 @@ PPCODE:
   v_wrapper->stack = NULL;
   v_wrapper->mode = MARPA_XS_V_MODE_IS_INITIAL;
   v_wrapper->result = 0;
+  v_wrapper->trace_values = 0;
   sv = sv_newmortal ();
   sv_setref_pv (sv, value_c_class_name, (void *) v_wrapper);
   XPUSHs (sv);
@@ -1909,6 +1911,26 @@ PPCODE:
     }
   marpa_v_unref (v);
   Safefree (v_wrapper);
+}
+
+void
+trace_values( v_wrapper, level )
+    V_Wrapper *v_wrapper;
+    IV level;
+PPCODE:
+{
+  IV old_level = v_wrapper->trace_values;
+  v_wrapper->trace_values = level;
+  {
+    AV *event;
+    SV *event_data[3];
+    event_data[0] = newSVpvs ("trace level");
+    event_data[1] = newSViv (old_level);
+    event_data[2] = newSViv (level);
+    event = av_make (Dim (event_data), event_data);
+    av_push (v_wrapper->event_queue, newRV_noinc ((SV *) event));
+  }
+  XSRETURN_IV (old_level);
 }
 
 void
@@ -2136,13 +2158,19 @@ PPCODE:
 	      av_store (stack, result, &PL_sv_undef);
 	    }
 
+	if (v_wrapper->trace_values) {
+	    IV token_id = marpa_v_token (v);
+	    AV* event;
+	    SV* event_data[4];
+	  event_data[0] = newSVpv (result_string, 0);
+	  event_data[1] = newSViv (token_id);
+	  event_data[2] = newSViv (marpa_v_token_value (v));
+	  event_data[3] = newSViv (v_wrapper->result);
+	    event = av_make(Dim(event_data), event_data);
+	    av_push(v_wrapper->event_queue, newRV_noinc((SV*)event));
+	}
 	  goto NEXT_STEP;
 
-	  /* XPUSHs (sv_2mortal (newSVpv (result_string, 0))); */
-	  /* XPUSHs (sv_2mortal (newSViv (token_id))); */
-	  /* XPUSHs (sv_2mortal (newSViv (marpa_v_token_value (v)))); */
-	  /* XPUSHs (sv_2mortal (newSViv (v_wrapper->result))); */
-	  /* XSRETURN (4); */
 	}
       if (status == MARPA_STEP_NULLING_SYMBOL)
 	{
