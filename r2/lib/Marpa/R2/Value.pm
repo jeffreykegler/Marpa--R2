@@ -470,7 +470,6 @@ sub code_problems {
 
 } ## end sub code_problems
 
-# Does not modify stack
 sub Marpa::R2::Internal::Recognizer::evaluate {
     my ($recce) = @_;
     my $recce_c = $recce->[Marpa::R2::Internal::Recognizer::C];
@@ -745,10 +744,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
     } ## end EVENT: while (1)
 
-    return \undef if $value->highest_index() < 0;
-
-    my $top_value = $value->absolute(0);
-    return \$top_value;
+    return $value->absolute(0);
 
 } ## end sub Marpa::R2::Internal::Recognizer::evaluate
 
@@ -838,7 +834,7 @@ sub Marpa::R2::Recognizer::value { ## no critic (Subroutines::RequireArgUnpackin
     }
 
     return if not defined $tree->next();
-    return Marpa::R2::Internal::Recognizer::evaluate($recce);
+    return \Marpa::R2::Internal::Recognizer::evaluate($recce);
 
 } ## end sub Marpa::R2::Recognizer::value
 
