@@ -592,6 +592,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
         } ## end if ( $trace_values >= 3 )
 
         if ( $value_type eq 'MARPA_STEP_TOKEN' ) {
+	    die;
             my ( $token_id, $value_ix, $arg_n ) = @value_data;
             my $token_value = $token_values->[$value_ix];
 	    $value->result_set($token_value);

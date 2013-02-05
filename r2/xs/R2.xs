@@ -2121,11 +2121,11 @@ PPCODE:
 	}
       if (status == MARPA_STEP_TOKEN)
 	{
-	  Marpa_Symbol_ID token_id = marpa_v_token (v);
+	  IV token_value_ix = marpa_v_token_value (v);
 	  IV result = v_wrapper->result = marpa_v_result (v);
 	  SV** p_token_value_sv;
 
-	  p_token_value_sv = av_fetch(token_values, token_id, 0);
+	  p_token_value_sv = av_fetch(token_values, token_value_ix, 0);
 	  if (p_token_value_sv) {
 	    av_store(stack, result, newSVsv(*p_token_value_sv));
 	  } else {
