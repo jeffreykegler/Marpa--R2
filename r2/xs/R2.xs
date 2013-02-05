@@ -2201,6 +2201,9 @@ PPCODE:
       XPUSHs (sv_2mortal (newSVpv (result_string, 0)));
       XSRETURN (1);
     NEXT_STEP:;
+        if (v_wrapper->trace_values) {
+	    XSRETURN_PV("trace");
+	}
     }
 }
 
