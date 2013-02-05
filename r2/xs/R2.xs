@@ -2068,73 +2068,80 @@ PPCODE:
   const Marpa_Value v = v_wrapper->v;
   const char *result_string;
   Marpa_Step_Type status;
-  AV* stack = v_wrapper->stack;
+  AV *stack = v_wrapper->stack;
 
   av_clear (v_wrapper->event_queue);
 
-  if (!stack && v_create_stack(v_wrapper) == -1) {
-      croak ("Problem in v->stack_step(): Cannot call when valuator is in 'raw' mode");
-  }
+  if (!stack && v_create_stack (v_wrapper) == -1)
+    {
+      croak
+	("Problem in v->stack_step(): Cannot call when valuator is in 'raw' mode");
+    }
 
-  status = marpa_v_step (v);
-  if (status == MARPA_STEP_INACTIVE)
+  while (1)
     {
-      XSRETURN_EMPTY;
-    }
-  if (status < 0)
-    {
-      const char *error_message = xs_g_error (v_wrapper->base);
-      if (v_wrapper->base->throw)
+      status = marpa_v_step (v);
+      if (status == MARPA_STEP_INACTIVE)
 	{
-	  croak ("Problem in v->step(): %s", error_message);
+	  XSRETURN_EMPTY;
 	}
-      XPUSHs (sv_2mortal
-	      (newSVpvf ("Problem in v->step(): %s", error_message)));
-      XSRETURN (1);
-    }
-  result_string = step_type_to_string (status);
-  if (!result_string)
-    {
-      char *error_message =
-	form ("Problem in v->step(): unknown step type %d", status);
-      set_error_from_string (v_wrapper->base, savepv(error_message));
-      if (v_wrapper->base->throw)
+      if (status < 0)
 	{
-	  croak ("%s", error_message);
+	  const char *error_message = xs_g_error (v_wrapper->base);
+	  if (v_wrapper->base->throw)
+	    {
+	      croak ("Problem in v->step(): %s", error_message);
+	    }
+	  XPUSHs (sv_2mortal
+		  (newSVpvf ("Problem in v->step(): %s", error_message)));
+	  XSRETURN (1);
 	}
-      XPUSHs (sv_2mortal (newSVpv (error_message, 0)));
+      result_string = step_type_to_string (status);
+      if (!result_string)
+	{
+	  char *error_message =
+	    form ("Problem in v->step(): unknown step type %d", status);
+	  set_error_from_string (v_wrapper->base, savepv (error_message));
+	  if (v_wrapper->base->throw)
+	    {
+	      croak ("%s", error_message);
+	    }
+	  XPUSHs (sv_2mortal (newSVpv (error_message, 0)));
+	  XSRETURN (1);
+	}
+      if (status == MARPA_STEP_TOKEN)
+	{
+	  Marpa_Symbol_ID token_id = marpa_v_token (v);
+	  v_wrapper->result = marpa_v_result (v);
+	  XPUSHs (sv_2mortal (newSVpv (result_string, 0)));
+	  XPUSHs (sv_2mortal (newSViv (token_id)));
+	  XPUSHs (sv_2mortal (newSViv (marpa_v_token_value (v))));
+	  XPUSHs (sv_2mortal (newSViv (v_wrapper->result)));
+	  XSRETURN (4);
+	}
+      if (status == MARPA_STEP_NULLING_SYMBOL)
+	{
+	  Marpa_Symbol_ID token_id = marpa_v_token (v);
+	  v_wrapper->result = marpa_v_result (v);
+	  XPUSHs (sv_2mortal (newSVpv (result_string, 0)));
+	  XPUSHs (sv_2mortal (newSViv (token_id)));
+	  XPUSHs (sv_2mortal (newSViv (v_wrapper->result)));
+	  XSRETURN (3);
+	}
+      if (status == MARPA_STEP_RULE)
+	{
+	  Marpa_Rule_ID rule_id = marpa_v_rule (v);
+	  v_wrapper->result = marpa_v_arg_0 (v);
+	  XPUSHs (sv_2mortal (newSVpv (result_string, 0)));
+	  XPUSHs (sv_2mortal (newSViv (rule_id)));
+	  XPUSHs (sv_2mortal (newSViv (v_wrapper->result)));
+	  XPUSHs (sv_2mortal (newSViv (marpa_v_arg_n (v))));
+	  XSRETURN (4);
+	}
+      XPUSHs (sv_2mortal (newSVpv (result_string, 0)));
       XSRETURN (1);
+    NEXT_STEP:;
     }
-  if (status == MARPA_STEP_TOKEN)
-    {
-      Marpa_Symbol_ID token_id = marpa_v_token (v);
-      v_wrapper->result = marpa_v_result (v);
-      XPUSHs (sv_2mortal (newSVpv (result_string, 0)));
-      XPUSHs (sv_2mortal (newSViv (token_id)));
-      XPUSHs (sv_2mortal (newSViv (marpa_v_token_value (v))));
-      XPUSHs (sv_2mortal (newSViv (v_wrapper->result)));
-      XSRETURN(4);
-    }
-  if (status == MARPA_STEP_NULLING_SYMBOL)
-    {
-      Marpa_Symbol_ID token_id = marpa_v_token (v);
-      v_wrapper->result = marpa_v_result (v);
-      XPUSHs (sv_2mortal (newSVpv (result_string, 0)));
-      XPUSHs (sv_2mortal (newSViv (token_id)));
-      XPUSHs (sv_2mortal (newSViv (v_wrapper->result)));
-      XSRETURN(3);
-    }
-  if (status == MARPA_STEP_RULE)
-    {
-      Marpa_Rule_ID rule_id = marpa_v_rule (v);
-      v_wrapper->result = marpa_v_arg_0 (v);
-      XPUSHs (sv_2mortal (newSVpv (result_string, 0)));
-      XPUSHs (sv_2mortal (newSViv (rule_id)));
-      XPUSHs (sv_2mortal (newSViv (v_wrapper->result)));
-      XPUSHs (sv_2mortal (newSViv (marpa_v_arg_n (v))));
-      XSRETURN(4);
-    }
-      XPUSHs (sv_2mortal (newSVpv (result_string, 0)));
 }
 
 void
