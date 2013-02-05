@@ -573,11 +573,33 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
         } ## end if ( not $result )
     } ## end for my $token_id ( grep { defined $null_values->[$_] ...})
     value_trace( $value, $trace_values ? 1 : 0 );
+    $value->trace_values($trace_values);
     $value->stack_mode_set($token_values);
 
-    EVENT: while (1) {
+    STEP: while (1) {
         my ( $value_type, @value_data ) = $value->stack_step();
-        last EVENT if not defined $value_type;
+
+        if ($trace_values) {
+            EVENT: while (1) {
+                my $event = $value->event();
+                last EVENT if not defined $event;
+                my ( $event_type, @event_data ) = @{$event};
+                if ( $event_type eq 'MARPA_STEP_TOKEN' ) {
+                    my ( $token_id, $token_value_ix ) = @event_data;
+		    my $token_value = $token_values->[$token_value_ix];
+                    trace_token_evaluation( $recce, $value, $token_id,
+                        $token_value );
+                    next EVENT;
+                } ## end if ( $event_type eq 'MARPA_STEP_TOKEN' )
+                say {$Marpa::R2::Internal::TRACE_FH} join q{ },
+                    "value event:",
+                    map { $_ // 'undef' } $event_type, @event_data;
+            } ## end EVENT: while (1)
+
+        } ## end if ($trace_values)
+
+        last STEP if not defined $value_type;
+	next STEP if $value_type eq 'trace';
 
         if ( $trace_values >= 3 ) {
             for my $i ( reverse 0 .. $value->highest_index ) {
@@ -592,20 +614,20 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
         } ## end if ( $trace_values >= 3 )
 
         if ( $value_type eq 'MARPA_STEP_TOKEN' ) {
-	    die;
+            die;
             my ( $token_id, $value_ix, $arg_n ) = @value_data;
             my $token_value = $token_values->[$value_ix];
-	    $value->result_set($token_value);
+            $value->result_set($token_value);
             trace_token_evaluation( $recce, $value, $token_id, $token_value )
                 if $trace_values;
-            next EVENT;
+            next STEP;
         } ## end if ( $value_type eq 'MARPA_STEP_TOKEN' )
 
         if ( $value_type eq 'MARPA_STEP_NULLING_SYMBOL' ) {
             my ( $token_id, $arg_n ) = @value_data;
             my $semantic_rule_id = $null_values->[$token_id];
             my $value_ref        = $rule_closures->[$semantic_rule_id];
-	    my $result;
+            my $result;
 
             if ( ref $value_ref eq 'CODE' ) {
                 my @warnings;
@@ -638,14 +660,14 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                     );
                 } ## end if ( not $eval_ok or @warnings )
             } ## end if ( ref $value_ref eq 'CODE' )
-	    else {
-	        $result = defined $value_ref ? ${$value_ref} : undef;
-	    }
+            else {
+                $result = defined $value_ref ? ${$value_ref} : undef;
+            }
 
-	    $value->result_set($result);
+            $value->result_set($result);
             trace_token_evaluation( $recce, $value, $token_id, \$result )
                 if $trace_values;
-            next EVENT;
+            next STEP;
         } ## end if ( $value_type eq 'MARPA_STEP_NULLING_SYMBOL' )
 
         if ( $value_type eq 'MARPA_STEP_RULE' ) {
@@ -657,8 +679,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                 my $rule = $rules->[$rule_id];
 
                 my @args =
-		    map { $value->absolute($_) }
-                    ( $arg_0 .. $arg_n );
+                    map { $value->absolute($_) } ( $arg_0 .. $arg_n );
                 if ( defined $grammar_c->sequence_min($rule_id) ) {
                     if ($rule->[Marpa::R2::Internal::Rule::DISCARD_SEPARATION]
                         )
@@ -702,11 +723,11 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                             }
                         );
                     } ## end if ( not $eval_ok or @warnings )
-		    $value->result_set($result);
+                    $value->result_set($result);
                 } ## end if ( ref $closure eq 'CODE' )
                 else {
-		    my $closure_deref = ${$closure};
-		    $value->result_set($closure_deref);
+                    my $closure_deref = ${$closure};
+                    $value->result_set($closure_deref);
                 }
 
                 if ($trace_values) {
@@ -722,11 +743,11 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                         Marpa::R2::exception('print to trace handle failed');
                 } ## end if ($trace_values)
 
-                next EVENT;
+                next STEP;
 
             } ## end if ( defined $closure )
 
-            next EVENT;
+            next STEP;
 
         } ## end if ( $value_type eq 'MARPA_STEP_RULE' )
 
@@ -738,13 +759,13 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                     or Marpa::R2::exception('Could not print to trace file');
             }
 
-            next EVENT;
+            next STEP;
 
         } ## end if ( $value_type eq 'MARPA_STEP_TRACE' )
 
         die "Internal error: Unknown value type $value_type";
 
-    } ## end EVENT: while (1)
+    } ## end STEP: while (1)
 
     return $value->absolute(0);
 
