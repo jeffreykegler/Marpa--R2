@@ -585,7 +585,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                     $i
                     or Marpa::R2::exception('print to trace handle failed');
                 print {$Marpa::R2::Internal::TRACE_FH} q{ },
-                    Data::Dumper->new( [ $value->absolute($i) ] )->Terse(1)
+                    Data::Dumper->new( [ \$value->absolute($i) ] )->Terse(1)
                     ->Dump
                     or Marpa::R2::exception('print to trace handle failed');
             } ## end for my $i ( reverse 0 .. $value->highest_index )
@@ -593,9 +593,9 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
         if ( $value_type eq 'MARPA_STEP_TOKEN' ) {
             my ( $token_id, $value_ix, $arg_n ) = @value_data;
-            my $value_ref = \( $token_values->[$value_ix] );
-	    $value->result_set($value_ref);
-            trace_token_evaluation( $recce, $value, $token_id, $value_ref )
+            my $token_value = $token_values->[$value_ix];
+	    $value->result_set($token_value);
+            trace_token_evaluation( $recce, $value, $token_id, $token_value )
                 if $trace_values;
             next EVENT;
         } ## end if ( $value_type eq 'MARPA_STEP_TOKEN' )
@@ -604,11 +604,11 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
             my ( $token_id, $arg_n ) = @value_data;
             my $semantic_rule_id = $null_values->[$token_id];
             my $value_ref        = $rule_closures->[$semantic_rule_id];
+	    my $result;
 
             if ( ref $value_ref eq 'CODE' ) {
                 my @warnings;
                 my $eval_ok;
-                my $result;
 
                 DO_EVAL: {
                     local $SIG{__WARN__} = sub {
@@ -636,11 +636,13 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                         }
                     );
                 } ## end if ( not $eval_ok or @warnings )
-                $value_ref = \$result;
             } ## end if ( ref $value_ref eq 'CODE' )
+	    else {
+	        $result = defined $value_ref ? ${$value_ref} : undef;
+	    }
 
-	    $value->result_set($value_ref);
-            trace_token_evaluation( $recce, $value, $token_id, $value_ref )
+	    $value->result_set($result);
+            trace_token_evaluation( $recce, $value, $token_id, \$result )
                 if $trace_values;
             next EVENT;
         } ## end if ( $value_type eq 'MARPA_STEP_NULLING_SYMBOL' )
@@ -654,7 +656,6 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                 my $rule = $rules->[$rule_id];
 
                 my @args =
-                    map { defined $_ ? ${$_} : $_ }
 		    map { $value->absolute($_) }
                     ( $arg_0 .. $arg_n );
                 if ( defined $grammar_c->sequence_min($rule_id) ) {
@@ -700,10 +701,11 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                             }
                         );
                     } ## end if ( not $eval_ok or @warnings )
-		    $value->result_set(\$result);
+		    $value->result_set($result);
                 } ## end if ( ref $closure eq 'CODE' )
                 else {
-		    $value->result_set($closure);
+		    my $closure_deref = ${$closure};
+		    $value->result_set($closure_deref);
                 }
 
                 if ($trace_values) {
@@ -743,9 +745,10 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
     } ## end EVENT: while (1)
 
-    my $top_value = $value->absolute(0);
+    return \undef if $value->highest_index() < 0;
 
-    return $top_value // ( \undef );
+    my $top_value = $value->absolute(0);
+    return \$top_value;
 
 } ## end sub Marpa::R2::Internal::Recognizer::evaluate
 
@@ -1149,7 +1152,7 @@ sub Marpa::R2::Recognizer::show_tree {
 } ## end sub Marpa::R2::Recognizer::show_tree
 
 sub trace_token_evaluation {
-    my ( $recce, $value, $token_id, $value_ref ) = @_;
+    my ( $recce, $value, $token_id, $token_value ) = @_;
     my $order   = $recce->[Marpa::R2::Internal::Recognizer::O_C];
     my $tree    = $recce->[Marpa::R2::Internal::Recognizer::T_C];
     my $grammar = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
@@ -1174,7 +1177,7 @@ sub trace_token_evaluation {
         Marpa::R2::Recognizer::and_node_tag( $recce, $and_node_id ),
         ': ',
         ( $token_name ? qq{$token_name = } : q{} ),
-        Data::Dumper->new( [$value_ref] )->Terse(1)->Dump
+        Data::Dumper->new( [\$token_value] )->Terse(1)->Dump
         or Marpa::R2::exception('print to trace handle failed');
 
     return;
