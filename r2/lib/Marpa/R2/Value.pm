@@ -586,7 +586,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                 my ( $event_type, @event_data ) = @{$event};
                 if ( $event_type eq 'MARPA_STEP_TOKEN' ) {
                     my ( $token_id, $token_value_ix ) = @event_data;
-		    my $token_value = $token_values->[$token_value_ix];
+                    my $token_value = $token_values->[$token_value_ix];
                     trace_token_evaluation( $recce, $value, $token_id,
                         $token_value );
                     next EVENT;
@@ -596,32 +596,24 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                     map { $_ // 'undef' } $event_type, @event_data;
             } ## end EVENT: while (1)
 
+            if ( $trace_values >= 3 ) {
+                for my $i ( reverse 0 .. $value->highest_index ) {
+                    printf {$Marpa::R2::Internal::TRACE_FH}
+                        'Stack position %3d:', $i
+                        or
+                        Marpa::R2::exception('print to trace handle failed');
+                    print {$Marpa::R2::Internal::TRACE_FH} q{ },
+                        Data::Dumper->new( [ \$value->absolute($i) ] )
+                        ->Terse(1)->Dump
+                        or
+                        Marpa::R2::exception('print to trace handle failed');
+                } ## end for my $i ( reverse 0 .. $value->highest_index )
+            } ## end if ( $trace_values >= 3 )
+
         } ## end if ($trace_values)
 
         last STEP if not defined $value_type;
 	next STEP if $value_type eq 'trace';
-
-        if ( $trace_values >= 3 ) {
-            for my $i ( reverse 0 .. $value->highest_index ) {
-                printf {$Marpa::R2::Internal::TRACE_FH} 'Stack position %3d:',
-                    $i
-                    or Marpa::R2::exception('print to trace handle failed');
-                print {$Marpa::R2::Internal::TRACE_FH} q{ },
-                    Data::Dumper->new( [ \$value->absolute($i) ] )->Terse(1)
-                    ->Dump
-                    or Marpa::R2::exception('print to trace handle failed');
-            } ## end for my $i ( reverse 0 .. $value->highest_index )
-        } ## end if ( $trace_values >= 3 )
-
-        if ( $value_type eq 'MARPA_STEP_TOKEN' ) {
-            die;
-            my ( $token_id, $value_ix, $arg_n ) = @value_data;
-            my $token_value = $token_values->[$value_ix];
-            $value->result_set($token_value);
-            trace_token_evaluation( $recce, $value, $token_id, $token_value )
-                if $trace_values;
-            next STEP;
-        } ## end if ( $value_type eq 'MARPA_STEP_TOKEN' )
 
         if ( $value_type eq 'MARPA_STEP_NULLING_SYMBOL' ) {
             my ( $token_id, $arg_n ) = @value_data;
