@@ -133,6 +133,7 @@ typedef struct {
      SV* base_sv;
      G_Wrapper* base;
      AV* event_queue;
+     AV* token_values;
      AV* stack;
      int mode; /* 'raw' or 'stack' */
      int result; /* stack location to which to write result */
@@ -1881,6 +1882,7 @@ PPCODE:
   v_wrapper->base = t_wrapper->base;
   v_wrapper->v = v;
   v_wrapper->event_queue = newAV();
+  v_wrapper->token_values = NULL;
   v_wrapper->stack = NULL;
   v_wrapper->mode = MARPA_XS_V_MODE_IS_INITIAL;
   v_wrapper->result = 0;
@@ -1900,6 +1902,10 @@ PPCODE:
   if (v_wrapper->stack)
     {
       SvREFCNT_dec (v_wrapper->stack);
+    }
+  if (v_wrapper->token_values)
+    {
+      SvREFCNT_dec (v_wrapper->token_values);
     }
   marpa_v_unref (v);
   Safefree (v_wrapper);
@@ -1981,6 +1987,19 @@ PPCODE:
       XPUSHs (sv_2mortal (newSViv (marpa_v_arg_0 (v))));
       XPUSHs (sv_2mortal (newSViv (marpa_v_arg_n (v))));
     }
+}
+
+void
+token_values_set( v_wrapper, token_values )
+    V_Wrapper *v_wrapper;
+    AV* token_values;
+PPCODE:
+{
+  if (v_wrapper->token_values) {
+      croak("Problem in v->token_values_set(): token values can only be set once");
+  }
+  v_wrapper->token_values = token_values;
+  SvREFCNT_inc(token_values);
 }
 
 void

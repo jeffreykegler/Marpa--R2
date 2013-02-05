@@ -573,6 +573,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
         } ## end if ( not $result )
     } ## end for my $token_id ( grep { defined $null_values->[$_] ...})
     value_trace( $value, $trace_values ? 1 : 0 );
+    $value->token_values_set($token_values);
 
     EVENT: while (1) {
         my ( $value_type, @value_data ) = $value->stack_step();
