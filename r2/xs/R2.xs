@@ -1931,11 +1931,13 @@ PPCODE:
   const char *result_string;
   const Marpa_Step_Type status = marpa_v_step (v);
 
+  if (v_wrapper->mode == MARPA_XS_V_MODE_IS_INITIAL) {
+    v_wrapper->mode = MARPA_XS_V_MODE_IS_RAW;
+  }
   if (v_wrapper->mode != MARPA_XS_V_MODE_IS_RAW) {
        if (v_wrapper->stack) {
 	  croak ("Problem in v->step(): Cannot call when valuator is in 'stack' mode");
        }
-       v_wrapper->mode = MARPA_XS_V_MODE_IS_RAW;
   }
   av_clear (v_wrapper->event_queue);
   if (status == MARPA_STEP_INACTIVE)
@@ -1990,13 +1992,18 @@ PPCODE:
 }
 
 void
-token_values_set( v_wrapper, token_values )
+stack_mode_set( v_wrapper, token_values )
     V_Wrapper *v_wrapper;
     AV* token_values;
 PPCODE:
 {
-  if (v_wrapper->token_values) {
-      croak("Problem in v->token_values_set(): token values can only be set once");
+  if (v_wrapper->mode != MARPA_XS_V_MODE_IS_INITIAL) {
+       if (v_wrapper->stack) {
+	  croak ("Problem in v->stack_mode_set(): Cannot re-set stack mode");
+       }
+  }
+  if (v_create_stack (v_wrapper) == -1) {
+      croak ("Problem in v->stack_mode_set(): Could not create stack");
   }
   v_wrapper->token_values = token_values;
   SvREFCNT_inc(token_values);
@@ -2069,24 +2076,18 @@ PPCODE:
   const char *result_string;
   Marpa_Step_Type status;
   AV *stack = v_wrapper->stack;
-  AV* token_values;
+  AV *token_values = v_wrapper->token_values;
 
   av_clear (v_wrapper->event_queue);
 
-  if (!stack)
+  if (v_wrapper->mode != MARPA_XS_V_MODE_IS_STACK)
     {
-      if (v_create_stack (v_wrapper) == -1)
+      if (v_wrapper->stack)
 	{
 	  croak
-	    ("Problem in v->stack_step(): Cannot call when valuator is in 'raw' mode");
+	    ("Problem in v->stack_step(): Cannot call unless valuator is in 'stack' mode");
 	}
-      stack = v_wrapper->stack;
     }
-  token_values = v_wrapper->token_values;
-  if (!token_values) {
-      croak
-	("Problem in v->stack_step(): token values not set");
-  }
 
   while (1)
     {
@@ -2123,14 +2124,17 @@ PPCODE:
 	{
 	  IV token_value_ix = marpa_v_token_value (v);
 	  IV result = v_wrapper->result = marpa_v_result (v);
-	  SV** p_token_value_sv;
+	  SV **p_token_value_sv;
 
-	  p_token_value_sv = av_fetch(token_values, token_value_ix, 0);
-	  if (p_token_value_sv) {
-	    av_store(stack, result, newSVsv(*p_token_value_sv));
-	  } else {
-	    av_store(stack, result, &PL_sv_undef);
-	  }
+	  p_token_value_sv = av_fetch (token_values, token_value_ix, 0);
+	  if (p_token_value_sv)
+	    {
+	      av_store (stack, result, newSVsv (*p_token_value_sv));
+	    }
+	  else
+	    {
+	      av_store (stack, result, &PL_sv_undef);
+	    }
 
 	  goto NEXT_STEP;
 
