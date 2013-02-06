@@ -128,22 +128,22 @@ typedef struct {
 } T_Wrapper;
 
 typedef struct marpa_v Value;
-typedef struct {
-     Marpa_Value v;
-     SV* base_sv;
-     G_Wrapper* base;
-     AV* event_queue;
-     AV* token_values;
-     AV* stack;
-     IV trace_values;
-     int mode; /* 'raw' or 'stack' */
-     int result; /* stack location to which to write result */
+typedef struct
+{
+  Marpa_Value v;
+  SV *base_sv;
+  G_Wrapper *base;
+  AV *event_queue;
+  AV *token_values;
+  AV *stack;
+  IV trace_values;
+  int mode;			/* 'raw' or 'stack' */
+  int result;			/* stack location to which to write result */
+  AV *constants;
+  AV *rule_semantics;
+  AV *nulling_semantics;
 } V_Wrapper;
 
-/* I could get away without 'STACK', which is never tested,
- * but the cost is an unneeded assignment, and it makes the code
- * clearer if 'INITIAL' != 'STACK'
- */
 #define MARPA_XS_V_MODE_IS_INITIAL 0
 #define MARPA_XS_V_MODE_IS_RAW 1
 #define MARPA_XS_V_MODE_IS_STACK 2
@@ -278,13 +278,20 @@ static int marpa_r2_warn(const char* format, ...)
    return 1;
 }
 
-enum marpa_recce_op {
+enum marpa_op {
    op_noop,
    op_ignore_rejection,
    op_report_rejection,
    op_alternative,
    op_earleme_complete,
    op_unregistered,
+   op_push_all,
+   op_push_even,
+   op_push_one,
+   op_callback,
+   op_stack_result,
+   op_stack_constant,
+   op_end_marker,
 };
 
 /* Static grammar methods */
@@ -768,7 +775,6 @@ v_create_stack(V_Wrapper* v_wrapper)
     }
   v_wrapper->stack = newAV ();
   av_extend (v_wrapper->stack, 1024);
-  /* This assignment is not necessary, but makes the code clearer. */
   v_wrapper->mode = MARPA_XS_V_MODE_IS_STACK;
   return 0;
 }
@@ -1617,6 +1623,34 @@ PPCODE:
     {
       XSRETURN_IV (op_earleme_complete);
     }
+  if (strEQ (op_name, "push_all"))
+    {
+      XSRETURN_IV (op_push_all);
+    }
+  if (strEQ (op_name, "push_even"))
+    {
+      XSRETURN_IV (op_push_even);
+    }
+  if (strEQ (op_name, "push_one"))
+    {
+      XSRETURN_IV (op_push_one);
+    }
+  if (strEQ (op_name, "callback"))
+    {
+      XSRETURN_IV (op_callback);
+    }
+  if (strEQ (op_name, "stack_result"))
+    {
+      XSRETURN_IV (op_stack_result);
+    }
+  if (strEQ (op_name, "stack_constant"))
+    {
+      XSRETURN_IV (op_stack_constant);
+    }
+  if (strEQ (op_name, "end_marker"))
+    {
+      XSRETURN_IV (op_end_marker);
+    }
   XSRETURN_UNDEF;
 }
 
@@ -1888,6 +1922,9 @@ PPCODE:
   v_wrapper->mode = MARPA_XS_V_MODE_IS_INITIAL;
   v_wrapper->result = 0;
   v_wrapper->trace_values = 0;
+  v_wrapper->constants = newAV();
+  v_wrapper->rule_semantics = newAV();
+  v_wrapper->nulling_semantics = newAV();
   sv = sv_newmortal ();
   sv_setref_pv (sv, value_c_class_name, (void *) v_wrapper);
   XPUSHs (sv);
@@ -1901,6 +1938,9 @@ PPCODE:
   const Marpa_Value v = v_wrapper->v;
   SvREFCNT_dec (v_wrapper->base_sv);
   SvREFCNT_dec (v_wrapper->event_queue);
+  SvREFCNT_dec (v_wrapper->constants);
+  SvREFCNT_dec (v_wrapper->rule_semantics);
+  SvREFCNT_dec (v_wrapper->nulling_semantics);
   if (v_wrapper->stack)
     {
       SvREFCNT_dec (v_wrapper->stack);
@@ -2019,16 +2059,49 @@ stack_mode_set( v_wrapper, token_values )
     AV* token_values;
 PPCODE:
 {
-  if (v_wrapper->mode != MARPA_XS_V_MODE_IS_INITIAL) {
-       if (v_wrapper->stack) {
+  Marpa_Grammar g = v_wrapper->base->g;
+  if (v_wrapper->mode != MARPA_XS_V_MODE_IS_INITIAL)
+    {
+      if (v_wrapper->stack)
+	{
 	  croak ("Problem in v->stack_mode_set(): Cannot re-set stack mode");
-       }
-  }
-  if (v_create_stack (v_wrapper) == -1) {
+	}
+    }
+  if (v_create_stack (v_wrapper) == -1)
+    {
       croak ("Problem in v->stack_mode_set(): Could not create stack");
-  }
+    }
+
   v_wrapper->token_values = token_values;
-  SvREFCNT_inc(token_values);
+  SvREFCNT_inc (token_values);
+
+  v_wrapper->constants = newAV ();
+
+  { int ix;
+    UV ops[3];
+    const int highest_rule_id = marpa_g_highest_rule_id (g);
+    AV *av = v_wrapper->rule_semantics = newAV ();
+    av_extend (av, highest_rule_id);
+    ops[0] = op_push_all;
+    ops[1] = op_callback;
+    ops[2] = op_end_marker;
+    for (ix = 0; ix <= highest_rule_id; ix++)
+      {
+	SV **p_sv = av_fetch (av, ix, 1);
+	if (!p_sv)
+	  {
+	    croak
+	      ("Internal error in v->stack_mode_set(): av_fetch(%p,%ld,1) failed",
+	       (void *) av, (long) ix);
+	  }
+	sv_setpvn (*p_sv, (char *) ops, sizeof (ops));
+      } }
+
+  { const int highest_symbol_id = marpa_g_highest_symbol_id (g);
+    AV *av = v_wrapper->nulling_semantics = newAV ();
+    av_extend (av, highest_symbol_id); }
+
+  XSRETURN_YES;
 }
 
 void
