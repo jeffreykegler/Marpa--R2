@@ -15,34 +15,14 @@
 
 Revision history for Marpa::R2
 
-2.045_002
-2.045_001
+2.046000 Wed Feb  6 08:24:05 PST 2013
 
      * Core logic of Scanless recognizer converted to C --
        it is now more than 10 times faster.
 
-2.045_000
-
-      * New series of developer's releases.
-
 2.044000 Mon Jan 28 19:42:06 PST 2013
 
       * Fix 64-bit Windows failures.
-
-      * Based on 2.043_001.
-
-2.043_002
-
-      * Developer release.
-
-2.043_001
-
-      * Test "hot fix" for 64-bit Windows failures.
-        Leapfrogs the trunk -- based on 2.042000.
-
-2.043_000
-
-      * New series of developer's releases.
 
 2.042000 Tue Jan 22 17:15:50 PST 2013
 
@@ -61,8 +41,6 @@ Revision history for Marpa::R2
      * The Scanless G0 rule order depended
        indirectly on the order of
        keys in a Perl hash.  Fixed that.
-
-     * Based on release candidate 2.035_003
 
 2.036000 Tue Jan  1 00:54:36 PST 2013
  
@@ -87,7 +65,6 @@ Revision history for Marpa::R2
       * Use Config::AutoConf to install on Sun's,
 	OpenBSD.
       * Use legacy File::Path::mkpath() for portability
-      * Based on 2.027_003.
 
 2.026000 Fri Nov 23 08:04:02 PST 2012
 
