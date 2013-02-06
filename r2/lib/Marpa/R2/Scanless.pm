@@ -160,9 +160,15 @@ sub do_rules {
 
 sub do_start_rule {
     my ( $self, $rhs ) = @_;
-    my @ws      = ();
-    my $normalized_rhs = $self->rhs_normalize($rhs);
-    return [ { lhs => '[:start]', rhs => [$normalized_rhs->names()] } ];
+    my @ws                = ();
+    my $normalized_rhs    = $self->rhs_normalize($rhs);
+    my $do_arg0_full_name = __PACKAGE__ . q{::} . 'external_do_arg0';
+    return [
+        {   lhs    => '[:start]',
+            rhs    => [ $normalized_rhs->names() ],
+            action => $do_arg0_full_name
+        }
+    ];
 } ## end sub do_start_rule
 
 sub do_discard_rule {

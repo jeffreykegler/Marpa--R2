@@ -663,15 +663,15 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
         } ## end if ( $value_type eq 'MARPA_STEP_NULLING_SYMBOL' )
 
         if ( $value_type eq 'MARPA_STEP_RULE' ) {
-            my ( $rule_id, $arg_0, $arg_n ) = @value_data;
+            my ( $rule_id, $values ) = @value_data;
             my $closure = $rule_closures->[$rule_id];
 
             if ( defined $closure ) {
                 my $result;
                 my $rule = $rules->[$rule_id];
 
-                my @args =
-                    map { $value->absolute($_) } ( $arg_0 .. $arg_n );
+
+                my @args = @{$values};
                 if ( defined $grammar_c->sequence_min($rule_id) ) {
                     if ($rule->[Marpa::R2::Internal::Rule::DISCARD_SEPARATION]
                         )

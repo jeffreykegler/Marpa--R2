@@ -93,7 +93,8 @@ sub my_parser {
             'No parse', 'Input read to end but no parse',
             $self->show_last_expression();
     } ## end if ( not defined $value_ref )
-    return [ return ${$value_ref}, 'Parse OK', 'entire input' ];
+    my $value = ${$value_ref} // '';
+    return [ return $value, 'Parse OK', 'entire input' ];
 } ## end sub my_parser
 
 my %grammar_by_type = (
@@ -128,7 +129,7 @@ for my $trailer ( q{}, q{  } ) {
         Test::More::is( $actual_value, $expected_value,
             qq{$type: Value of "$test_string"} );
         Test::More::is( $actual_result, $expected_result,
-            qq{%type: Result of "$test_string"} );
+            qq{$type: Result of "$test_string"} );
         Test::More::is( $actual_last_expression, $expected_last_expression,
             qq{$type: Last expression found in "$test_string"} );
     } ## end for my $test_data (@tests_data)

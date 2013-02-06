@@ -2263,13 +2263,22 @@ PPCODE:
 	}
       if (status == MARPA_STEP_RULE)
 	{
+	  int stack_ix;
+	  AV* values_av;
 	  Marpa_Rule_ID rule_id = marpa_v_rule (v);
-	  v_wrapper->result = marpa_v_arg_0 (v);
+	  IV arg_0 = marpa_v_arg_0 (v);
+	  IV arg_n = marpa_v_arg_n (v);
+	  v_wrapper->result = arg_0;
 	  XPUSHs (sv_2mortal (newSVpv (result_string, 0)));
 	  XPUSHs (sv_2mortal (newSViv (rule_id)));
-	  XPUSHs (sv_2mortal (newSViv (v_wrapper->result)));
-	  XPUSHs (sv_2mortal (newSViv (marpa_v_arg_n (v))));
-	  XSRETURN (4);
+	  values_av = newAV();
+	  for (stack_ix = arg_0; stack_ix <= arg_n; stack_ix++) {
+	       SV* sv = av_delete(stack, stack_ix, 0);
+	       SvREFCNT_inc_simple_void(sv); /* De-mortalize */
+	       av_push(values_av, sv);
+	  }
+	  XPUSHs (sv_2mortal (newRV_noinc ((SV*)values_av)));
+	  XSRETURN (3);
 	}
       XPUSHs (sv_2mortal (newSVpv (result_string, 0)));
       XSRETURN (1);
