@@ -2383,6 +2383,26 @@ PPCODE:
 		      }
 		  }
 		  break;
+
+		case op_push_one:
+		  {
+		    int offset = rule_ops[op_ix++];
+		    /* Create a mortalized array, so that it will go away
+		     * by default.
+		     */
+			SV **p_sv = av_fetch (stack, arg_0 + offset, 0);
+			if (!p_sv)
+			  {
+			    av_push (values_av, &PL_sv_undef);
+			  }
+			else
+			  {
+			    av_push (values_av,
+				     SvREFCNT_inc_simple_NN (*p_sv));
+			  }
+		  }
+		  break;
+
 		case op_callback:
 		  {
 		    XPUSHs (sv_2mortal (newSVpv (result_string, 0)));
