@@ -597,6 +597,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 	$value->rule_register( $rule_id, @push_ops, $op_callback );
     } ## end RULE: for my $rule_id ( 0 .. $#{$rule_closures} )
 
+    my @nulling_closures;
     TOKEN:
     for my $token_id ( grep { defined $null_values->[$_] }
         0 .. $#{$null_values} )
@@ -619,10 +620,12 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
             next TOKEN if not defined $closure;
             $value->constant_register( $closure );
             $value->nulling_symbol_register( $token_id, $op_callback );
+            $nulling_closures[$token_id] = $closure_ref;
             next TOKEN;
         }
         if ( $ref_type eq 'CODE' ) {
             $value->nulling_symbol_register( $token_id, $op_callback );
+            $nulling_closures[$token_id] = $closure_ref;
             next TOKEN;
         }
         if ( $ref_type eq 'REF' ) {
@@ -679,8 +682,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
         if ( $value_type eq 'MARPA_STEP_NULLING_SYMBOL' ) {
             my ( $token_id, $arg_n ) = @value_data;
-            my $semantic_rule_id = $null_values->[$token_id];
-            my $value_ref        = $rule_closures->[$semantic_rule_id];
+            my $value_ref        = $nulling_closures[$token_id];
             my $result;
 
             if ( ref $value_ref eq 'CODE' ) {
@@ -693,7 +695,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                     };
 
                     $eval_ok = eval {
-                        local $Marpa::R2::Context::rule = $semantic_rule_id;
+                        local $Marpa::R2::Context::rule = $null_values->[$token_id];
                         $result = $value_ref->($action_object);
                         1;
                     };
@@ -732,9 +734,6 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                 my $result;
                 my $rule = $rules->[$rule_id];
 
-
-                my @args = @{$values};
-
                 if ( ref $closure eq 'CODE' ) {
                     my @warnings;
                     my $eval_ok;
@@ -745,7 +744,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
                         $eval_ok = eval {
                             local $Marpa::R2::Context::rule = $rule_id;
-                            $result = $closure->( $action_object, @args );
+                            $result = $closure->( $action_object, @{$values} );
                             1;
                         };
 
@@ -773,7 +772,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
                 if ($trace_values) {
                     say {$Marpa::R2::Internal::TRACE_FH}
-                        trace_stack_1( $grammar, $recce, $value, \@args,
+                        trace_stack_1( $grammar, $recce, $value, $values,
                         $rule_id )
                         or
                         Marpa::R2::exception('Could not print to trace file');
