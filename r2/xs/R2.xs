@@ -774,7 +774,7 @@ v_create_stack(V_Wrapper* v_wrapper)
       return -1;
     }
   v_wrapper->stack = newAV ();
-  av_extend (v_wrapper->stack, 1024);
+  av_extend (v_wrapper->stack, 1023);
   v_wrapper->mode = MARPA_XS_V_MODE_IS_STACK;
   return 0;
 }
@@ -2150,14 +2150,18 @@ result_set( v_wrapper, sv )
     SV* sv;
 PPCODE:
 {
+  IV result_ix;
   SV **p_stored_sv;
   AV *stack = v_wrapper->stack;
   if (!stack)
     {
       croak ("Problem in v->result_set(): valuator is not in stack mode");
     }
+  result_ix = v_wrapper->result;
+  av_fill(stack, result_ix);
+
   SvREFCNT_inc (sv);
-  p_stored_sv = av_store (stack, v_wrapper->result, sv);
+  p_stored_sv = av_store (stack, result_ix, sv);
   if (!p_stored_sv)
     {
       SvREFCNT_dec (sv);
@@ -2273,9 +2277,12 @@ PPCODE:
 	  XPUSHs (sv_2mortal (newSViv (rule_id)));
 	  values_av = newAV();
 	  for (stack_ix = arg_0; stack_ix <= arg_n; stack_ix++) {
-	       SV* sv = av_delete(stack, stack_ix, 0);
-	       SvREFCNT_inc_simple_void(sv); /* De-mortalize */
-	       av_push(values_av, sv);
+	       SV** p_sv = av_fetch(stack, stack_ix, 0);
+	       if (!p_sv) {
+		 av_push(values_av, &PL_sv_undef);
+	       } else {
+		 av_push(values_av, SvREFCNT_inc_simple_NN(*p_sv));
+	       }
 	  }
 	  XPUSHs (sv_2mortal (newRV_noinc ((SV*)values_av)));
 	  XSRETURN (3);
