@@ -563,7 +563,9 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
             );
         } ## end if ( not $result )
 
-	state $op_result_is_undef = Marpa::R2::Thin::op('result_is_undef');
+        state $op_result_is_undef = Marpa::R2::Thin::op('result_is_undef');
+        state $op_push_sequence = Marpa::R2::Thin::op('push_sequence');
+        state $op_callback = Marpa::R2::Thin::op('callback');
 
         my $closure = $rule_closures->[$rule_id];
         if ( !defined $closure
@@ -572,6 +574,15 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
             $value->rule_register( $rule_id, $op_result_is_undef );
             next RULE;
         } ## end if ( !defined $closure || ( ref $closure eq 'SCALAR'...))
+
+        # if here, $closure is defined
+        my $rule = $rules->[$rule_id];
+        if ( defined $grammar_c->sequence_min($rule_id)
+            && $rule->[Marpa::R2::Internal::Rule::DISCARD_SEPARATION] )
+        {
+            $value->rule_register( $rule_id, $op_push_sequence,
+                $op_callback );
+        } ## end if ( defined $grammar_c->sequence_min($rule_id) && $rule...)
     } ## end RULE: for my $rule_id ( 0 .. $#{$rule_closures} )
 
     for my $token_id ( grep { defined $null_values->[$_] }
@@ -684,16 +695,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
 
                 my @args = @{$values};
-                if ( defined $grammar_c->sequence_min($rule_id) ) {
-                    if ($rule->[Marpa::R2::Internal::Rule::DISCARD_SEPARATION]
-                        )
-                    {
-                        @args =
-                            @args[ map { 2 * $_ }
-                            ( 0 .. ( scalar @args + 1 ) / 2 - 1 ) ];
-                    } ## end if ( $rule->[...])
-                } ## end if ( defined $grammar_c->sequence_min($rule_id) )
-                else {
+                if ( !defined $grammar_c->sequence_min($rule_id) ) {
                     my $mask = $rule->[Marpa::R2::Internal::Rule::MASK];
                     @args = @args[ grep { $mask->[$_] } 0 .. $#args ];
                 }

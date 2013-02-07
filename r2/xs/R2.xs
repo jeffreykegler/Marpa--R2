@@ -287,7 +287,7 @@ enum marpa_op {
    op_earleme_complete,
    op_unregistered,
    op_push_all,
-   op_push_even,
+   op_push_sequence,
    op_push_one,
    op_callback,
    op_result_is_array,
@@ -999,9 +999,9 @@ PPCODE:
     {
       XSRETURN_IV (op_push_all);
     }
-  if (strEQ (op_name, "push_even"))
+  if (strEQ (op_name, "push_sequence"))
     {
-      XSRETURN_IV (op_push_even);
+      XSRETURN_IV (op_push_sequence);
     }
   if (strEQ (op_name, "push_one"))
     {
@@ -2362,11 +2362,13 @@ PPCODE:
 		break;
 
 		case op_push_all:
+		case op_push_sequence:
 		  {
+		    int increment = op_code == op_push_sequence ? 2 : 1;
 		    /* Create a mortalized array, so that it will go away
 		     * by default.
 		     */
-		    for (stack_ix = arg_0; stack_ix <= arg_n; stack_ix++)
+		    for (stack_ix = arg_0; stack_ix <= arg_n; stack_ix+=increment)
 		      {
 			SV **p_sv = av_fetch (stack, stack_ix, 0);
 			if (!p_sv)
