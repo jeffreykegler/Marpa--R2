@@ -2230,8 +2230,8 @@ PPCODE:
 	  p_token_value_sv = av_fetch (token_values, token_value_ix, 0);
 	  if (p_token_value_sv)
 	    {
-	      SV* token_value_sv = newSVsv (*p_token_value_sv);
-	      SV** stored_sv = av_store (stack, result, token_value_sv);
+	      SV *token_value_sv = newSVsv (*p_token_value_sv);
+	      SV **stored_sv = av_store (stack, result, token_value_sv);
 	      if (!stored_sv)
 		{
 		  SvREFCNT_dec (token_value_sv);
@@ -2242,17 +2242,18 @@ PPCODE:
 	      av_store (stack, result, &PL_sv_undef);
 	    }
 
-	if (v_wrapper->trace_values) {
-	    IV token_id = marpa_v_token (v);
-	    AV* event;
-	    SV* event_data[4];
-	  event_data[0] = newSVpv (result_string, 0);
-	  event_data[1] = newSViv (token_id);
-	  event_data[2] = newSViv (marpa_v_token_value (v));
-	  event_data[3] = newSViv (v_wrapper->result);
-	    event = av_make(Dim(event_data), event_data);
-	    av_push(v_wrapper->event_queue, newRV_noinc((SV*)event));
-	}
+	  if (v_wrapper->trace_values)
+	    {
+	      IV token_id = marpa_v_token (v);
+	      AV *event;
+	      SV *event_data[4];
+	      event_data[0] = newSVpv (result_string, 0);
+	      event_data[1] = newSViv (token_id);
+	      event_data[2] = newSViv (marpa_v_token_value (v));
+	      event_data[3] = newSViv (v_wrapper->result);
+	      event = av_make (Dim (event_data), event_data);
+	      av_push (v_wrapper->event_queue, newRV_noinc ((SV *) event));
+	    }
 	  goto NEXT_STEP;
 
 	}
@@ -2268,30 +2269,49 @@ PPCODE:
       if (status == MARPA_STEP_RULE)
 	{
 	  int stack_ix;
-	  AV* values_av;
+	  AV *values_av;
 	  Marpa_Rule_ID rule_id = marpa_v_rule (v);
 	  IV arg_0 = marpa_v_arg_0 (v);
 	  IV arg_n = marpa_v_arg_n (v);
+	  UV *rule_ops;
+
 	  v_wrapper->result = arg_0;
+
+	  {
+	    STRLEN dummy;
+	    SV **p_ops_sv = av_fetch (v_wrapper->rule_semantics, rule_id, 0);
+	    if (!p_ops_sv)
+	      {
+		croak ("Problem in v->stack_step: rule %d is not registered",
+		       rule_id);
+	      }
+	    rule_ops = (UV *) SvPV (*p_ops_sv, dummy);
+	  }
+
 	  XPUSHs (sv_2mortal (newSVpv (result_string, 0)));
 	  XPUSHs (sv_2mortal (newSViv (rule_id)));
-	  values_av = newAV();
-	  for (stack_ix = arg_0; stack_ix <= arg_n; stack_ix++) {
-	       SV** p_sv = av_fetch(stack, stack_ix, 0);
-	       if (!p_sv) {
-		 av_push(values_av, &PL_sv_undef);
-	       } else {
-		 av_push(values_av, SvREFCNT_inc_simple_NN(*p_sv));
-	       }
-	  }
-	  XPUSHs (sv_2mortal (newRV_noinc ((SV*)values_av)));
+	  values_av = newAV ();
+	  for (stack_ix = arg_0; stack_ix <= arg_n; stack_ix++)
+	    {
+	      SV **p_sv = av_fetch (stack, stack_ix, 0);
+	      if (!p_sv)
+		{
+		  av_push (values_av, &PL_sv_undef);
+		}
+	      else
+		{
+		  av_push (values_av, SvREFCNT_inc_simple_NN (*p_sv));
+		}
+	    }
+	  XPUSHs (sv_2mortal (newRV_noinc ((SV *) values_av)));
 	  XSRETURN (3);
 	}
       XPUSHs (sv_2mortal (newSVpv (result_string, 0)));
       XSRETURN (1);
     NEXT_STEP:;
-        if (v_wrapper->trace_values) {
-	    XSRETURN_PV("trace");
+      if (v_wrapper->trace_values)
+	{
+	  XSRETURN_PV ("trace");
 	}
     }
 }
