@@ -1575,15 +1575,16 @@ recce( stream )
     Unicode_Stream *stream;
 PPCODE:
 {
-  SV* r0_sv = stream->r0_sv;
-  if (!r0_sv) {
-    R_Wrapper* r_wrapper = r_wrap (stream->r0, stream->g0_sv);
-    marpa_r_ref(stream->r0);
-    r0_sv = newSV(0);
-    sv_setref_pv (r0_sv, recce_c_class_name, (void *) r_wrapper);
-    stream->r0_sv = r0_sv;
-  }
-  XPUSHs (r0_sv);
+  SV *r0_sv = stream->r0_sv;
+  if (!r0_sv)
+    {
+      R_Wrapper *r_wrapper = r_wrap (stream->r0, stream->g0_sv);
+      marpa_r_ref (stream->r0);
+      r0_sv = newSV (0);
+      sv_setref_pv (r0_sv, recce_c_class_name, (void *) r_wrapper);
+      stream->r0_sv = r0_sv;
+    }
+  XPUSHs (sv_2mortal (SvREFCNT_inc_simple_NN (r0_sv)));
 }
 
 void
@@ -3825,7 +3826,7 @@ PPCODE:
   /* Not mortalized because,
    * held for the length of the scanless object.
    */
-  XPUSHs (slg->g0_sv);
+  XPUSHs (sv_2mortal (SvREFCNT_inc_NN (slg->g0_sv)));
 }
 
  #  Always returns the same SV for a given Scanless recce object -- 
@@ -3839,7 +3840,7 @@ PPCODE:
   /* Not mortalized because,
    * held for the length of the scanless object.
    */
-  XPUSHs (slg->g1_sv);
+  XPUSHs (sv_2mortal (SvREFCNT_inc_NN (slg->g1_sv)));
 }
 
 void
@@ -4000,10 +4001,7 @@ g0( slr )
     Scanless_R *slr;
 PPCODE:
 {
-  /* Not mortalized because,
-   * held for the length of the scanless object.
-   */
-  XPUSHs (slr->slg->g0_sv);
+  XPUSHs (sv_2mortal (SvREFCNT_inc_NN ( slr->slg->g0_sv)));
 }
 
  #  Always returns the same SV for a given Scanless recce object -- 
@@ -4014,10 +4012,7 @@ g1( slr )
     Scanless_R *slr;
 PPCODE:
 {
-  /* Not mortalized because,
-   * held for the length of the scanless object.
-   */
-  XPUSHs (slr->r1_wrapper->base_sv);
+  XPUSHs (sv_2mortal (SvREFCNT_inc_NN ( slr->r1_wrapper->base_sv)));
 }
 
  #  Always returns the same SV for a given Scanless recce object -- 
@@ -4028,10 +4023,7 @@ stream( slr )
     Scanless_R *slr;
 PPCODE:
 {
-  /* Not mortalized because,
-   * held for the length of the scanless object.
-   */
-  XPUSHs (slr->stream_sv);
+  XPUSHs (sv_2mortal (SvREFCNT_inc_NN ( slr->stream_sv)));
 }
 
 void
