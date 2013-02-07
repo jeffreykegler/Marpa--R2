@@ -279,6 +279,7 @@ static int marpa_r2_warn(const char* format, ...)
 }
 
 enum marpa_op {
+   op_end_marker = 0,
    op_noop,
    op_ignore_rejection,
    op_report_rejection,
@@ -289,9 +290,8 @@ enum marpa_op {
    op_push_even,
    op_push_one,
    op_callback,
-   op_stack_result,
-   op_stack_constant,
-   op_end_marker,
+   op_result_is_array,
+   op_result_is_constant,
 };
 
 /* Static grammar methods */
@@ -1639,13 +1639,13 @@ PPCODE:
     {
       XSRETURN_IV (op_callback);
     }
-  if (strEQ (op_name, "stack_result"))
+  if (strEQ (op_name, "result_is_array"))
     {
-      XSRETURN_IV (op_stack_result);
+      XSRETURN_IV (op_result_is_array);
     }
-  if (strEQ (op_name, "stack_constant"))
+  if (strEQ (op_name, "result_is_constant"))
     {
-      XSRETURN_IV (op_stack_constant);
+      XSRETURN_IV (op_result_is_constant);
     }
   if (strEQ (op_name, "end_marker"))
     {
@@ -2084,7 +2084,7 @@ PPCODE:
     av_extend (av, highest_rule_id);
     ops[0] = op_push_all;
     ops[1] = op_callback;
-    ops[2] = op_end_marker;
+    ops[2] = 0;
     for (ix = 0; ix <= highest_rule_id; ix++)
       {
 	SV **p_sv = av_fetch (av, ix, 1);
