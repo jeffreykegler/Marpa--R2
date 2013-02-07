@@ -974,6 +974,62 @@ PPCODE:
     }
 }
 
+void
+op( op_name )
+     char *op_name;
+PPCODE:
+{
+  if (strEQ (op_name, "alternative"))
+    {
+      XSRETURN_IV (op_alternative);
+    }
+  if (strEQ (op_name, "ignore_rejection"))
+    {
+      XSRETURN_IV (op_ignore_rejection);
+    }
+  if (strEQ (op_name, "report_rejection"))
+    {
+      XSRETURN_IV (op_report_rejection);
+    }
+  if (strEQ (op_name, "earleme_complete"))
+    {
+      XSRETURN_IV (op_earleme_complete);
+    }
+  if (strEQ (op_name, "push_all"))
+    {
+      XSRETURN_IV (op_push_all);
+    }
+  if (strEQ (op_name, "push_even"))
+    {
+      XSRETURN_IV (op_push_even);
+    }
+  if (strEQ (op_name, "push_one"))
+    {
+      XSRETURN_IV (op_push_one);
+    }
+  if (strEQ (op_name, "callback"))
+    {
+      XSRETURN_IV (op_callback);
+    }
+  if (strEQ (op_name, "result_is_array"))
+    {
+      XSRETURN_IV (op_result_is_array);
+    }
+  if (strEQ (op_name, "result_is_constant"))
+    {
+      XSRETURN_IV (op_result_is_constant);
+    }
+  if (strEQ (op_name, "result_is_undef"))
+    {
+      XSRETURN_IV (op_result_is_undef);
+    }
+  if (strEQ (op_name, "end_marker"))
+    {
+      XSRETURN_IV (op_end_marker);
+    }
+  XSRETURN_UNDEF;
+}
+
 MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin::G
 
 void
@@ -1605,62 +1661,6 @@ PPCODE:
 
 
 void
-op( op_name )
-     char *op_name;
-PPCODE:
-{
-  if (strEQ (op_name, "alternative"))
-    {
-      XSRETURN_IV (op_alternative);
-    }
-  if (strEQ (op_name, "ignore_rejection"))
-    {
-      XSRETURN_IV (op_ignore_rejection);
-    }
-  if (strEQ (op_name, "report_rejection"))
-    {
-      XSRETURN_IV (op_report_rejection);
-    }
-  if (strEQ (op_name, "earleme_complete"))
-    {
-      XSRETURN_IV (op_earleme_complete);
-    }
-  if (strEQ (op_name, "push_all"))
-    {
-      XSRETURN_IV (op_push_all);
-    }
-  if (strEQ (op_name, "push_even"))
-    {
-      XSRETURN_IV (op_push_even);
-    }
-  if (strEQ (op_name, "push_one"))
-    {
-      XSRETURN_IV (op_push_one);
-    }
-  if (strEQ (op_name, "callback"))
-    {
-      XSRETURN_IV (op_callback);
-    }
-  if (strEQ (op_name, "result_is_array"))
-    {
-      XSRETURN_IV (op_result_is_array);
-    }
-  if (strEQ (op_name, "result_is_constant"))
-    {
-      XSRETURN_IV (op_result_is_constant);
-    }
-  if (strEQ (op_name, "result_is_undef"))
-    {
-      XSRETURN_IV (op_result_is_undef);
-    }
-  if (strEQ (op_name, "end_marker"))
-    {
-      XSRETURN_IV (op_end_marker);
-    }
-  XSRETURN_UNDEF;
-}
-
-void
 ignore_rejection( stream, boolean )
      Unicode_Stream *stream;
      IV boolean;
@@ -2128,14 +2128,20 @@ PPCODE:
     {
       croak ("Problem in v->rule_register(): valuator is not in stack mode");
     }
-  ops_sv = newSV (op_count * sizeof (UV));
+
+  /* Leave room for final 0 */
+  ops_sv = newSV ((op_count+1) * sizeof (UV));
+
   SvPOK_on (ops_sv);
   ops = (UV *) SvPV (ops_sv, dummy);
   for (op_ix = 2; op_ix < op_count; op_ix++)
     {
       ops[op_ix - 2] = SvUV (ST (op_ix));
     }
-  av_store (rule_semantics, (I32) rule_id, op_sv);
+  ops[op_ix] = 0;
+  if (!av_store (rule_semantics, (I32) rule_id, ops_sv)) {
+     SvREFCNT_dec(ops_sv);
+  }
 }
 
 void

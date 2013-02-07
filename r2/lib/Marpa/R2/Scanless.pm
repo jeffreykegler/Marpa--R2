@@ -2674,9 +2674,9 @@ sub Marpa::R2::Scanless::R::read {
 
         if ( $problem_code eq 'unregistered char' ) {
 
-            state $op_alternative = Marpa::R2::Thin::U::op('alternative');
+            state $op_alternative = Marpa::R2::Thin::op('alternative');
             state $op_earleme_complete =
-                Marpa::R2::Thin::U::op('earleme_complete');
+                Marpa::R2::Thin::op('earleme_complete');
 
             # Recover by registering character, if we can
             my $codepoint = $stream->codepoint();

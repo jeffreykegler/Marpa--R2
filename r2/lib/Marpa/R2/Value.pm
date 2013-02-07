@@ -548,7 +548,11 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
     my $value = Marpa::R2::Thin::V->new($tree);
     local $Marpa::R2::Internal::Context::VALUATOR = $value;
-    for my $rule_id ( 0 .. $#{$rule_closures} ) {
+    value_trace( $value, $trace_values ? 1 : 0 );
+    $value->trace_values($trace_values);
+    $value->stack_mode_set($token_values);
+
+    RULE: for my $rule_id ( 0 .. $#{$rule_closures} ) {
         my $result = $value->rule_is_valued_set( $rule_id, 1 );
         if ( not $result ) {
             my $lhs_id   = $grammar_c->rule_lhs($rule_id);
@@ -558,7 +562,17 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                 q{because the LHS was already treated as an unvalued symbol}
             );
         } ## end if ( not $result )
-    } ## end for my $rule_id ( 0 .. $#{$rule_closures} )
+
+	state $op_result_is_undef = Marpa::R2::Thin::op('result_is_undef');
+
+        my $closure = $rule_closures->[$rule_id];
+        if ( !defined $closure
+            || ( ref $closure eq 'SCALAR' && !defined ${$closure} ) )
+        {
+            $value->rule_register( $rule_id, $op_result_is_undef );
+            next RULE;
+        } ## end if ( !defined $closure || ( ref $closure eq 'SCALAR'...))
+    } ## end RULE: for my $rule_id ( 0 .. $#{$rule_closures} )
 
     for my $token_id ( grep { defined $null_values->[$_] }
         0 .. $#{$null_values} )
@@ -572,9 +586,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
             );
         } ## end if ( not $result )
     } ## end for my $token_id ( grep { defined $null_values->[$_] ...})
-    value_trace( $value, $trace_values ? 1 : 0 );
-    $value->trace_values($trace_values);
-    $value->stack_mode_set($token_values);
+
 
     STEP: while (1) {
         my ( $value_type, @value_data ) = $value->stack_step();
