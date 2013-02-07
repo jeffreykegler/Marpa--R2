@@ -2198,6 +2198,24 @@ PPCODE:
 }
 
 void
+constant_register( v_wrapper, sv )
+     V_Wrapper *v_wrapper;
+     SV* sv;
+PPCODE:
+{
+  AV *constants = v_wrapper->constants;
+
+  if (!constants)
+    {
+      croak
+	("Problem in v->constant_register(): valuator is not in stack mode");
+    }
+
+  av_push (constants, SvREFCNT_inc_simple_NN (sv));
+  XSRETURN_IV (av_len (constants));
+}
+
+void
 highest_index( v_wrapper )
     V_Wrapper *v_wrapper;
 PPCODE:

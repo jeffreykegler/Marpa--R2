@@ -613,9 +613,27 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
         my $semantic_rule_id = $null_values->[$token_id];
         my $closure_ref      = $rule_closures->[$semantic_rule_id];
         next TOKEN if not defined $closure_ref;
-        next TOKEN
-            if ref $closure_ref eq 'SCALAR' and not defined ${$closure_ref};
-        $value->nulling_symbol_register( $token_id, $op_callback );
+        my $ref_type = ref $closure_ref;
+        if ( $ref_type eq 'SCALAR') {
+            my $closure = ${$closure_ref};
+            next TOKEN if not defined $closure;
+            $value->constant_register( $closure );
+            $value->nulling_symbol_register( $token_id, $op_callback );
+            next TOKEN;
+        }
+        if ( $ref_type eq 'CODE' ) {
+            $value->nulling_symbol_register( $token_id, $op_callback );
+            next TOKEN;
+        }
+        if ( $ref_type eq 'REF' ) {
+            $value->constant_register( $token_id, ${$closure_ref} );
+            next TOKEN;
+        }
+        my $token_name = $grammar->symbol_name($token_id);
+        Marpa::R2::exception(
+            qq{Nulling value of symbol <$token_name> is of type '$ref_type'\n},
+            qq{  '$ref_type' is not an allowed type\n}
+        );
 
     } ## end for my $token_id ( grep { defined $null_values->[$_] ...})
 
