@@ -291,7 +291,8 @@ enum marpa_op {
    op_push_one,
    op_callback,
    op_result_is_array,
-   op_result_is_constant
+   op_result_is_constant,
+   op_result_is_undef
 };
 
 /* Static grammar methods */
@@ -1647,6 +1648,10 @@ PPCODE:
     {
       XSRETURN_IV (op_result_is_constant);
     }
+  if (strEQ (op_name, "result_is_undef"))
+    {
+      XSRETURN_IV (op_result_is_undef);
+    }
   if (strEQ (op_name, "end_marker"))
     {
       XSRETURN_IV (op_end_marker);
@@ -2298,9 +2303,18 @@ PPCODE:
 
 	      switch (op_code)
 		{
+
 		case 0:
 		done = 1;
 		break;
+
+		case op_result_is_undef:
+		{
+		   av_fill(stack, -1 + arg_0);
+		   done = 1;
+		}
+		break;
+
 		case op_push_all:
 		  {
 		    /* Create a mortalized array, so that it will go away
