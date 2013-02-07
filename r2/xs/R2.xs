@@ -2353,12 +2353,62 @@ PPCODE:
       if (status == MARPA_STEP_NULLING_SYMBOL)
 	{
 	  Marpa_Symbol_ID token_id = marpa_v_token (v);
-	  v_wrapper->result = marpa_v_result (v);
-	  XPUSHs (sv_2mortal (newSVpv (result_string, 0)));
-	  XPUSHs (sv_2mortal (newSViv (token_id)));
-	  XPUSHs (sv_2mortal (newSViv (v_wrapper->result)));
-	  XSRETURN (3);
+	  int result_stack_ix = v_wrapper->result = marpa_v_result (v);
+	  UV *nulling_ops;
+	  int op_ix;
+	  int done;
+
+	  {
+	    STRLEN dummy;
+	    SV **p_ops_sv =
+	      av_fetch (v_wrapper->nulling_semantics, token_id, 0);
+	    if (!p_ops_sv)
+	      {
+		croak
+		  ("Problem in v->stack_step: symbol %d is not registered",
+		   token_id);
+	      }
+	    nulling_ops = (UV *) SvPV (*p_ops_sv, dummy);
+	  }
+
+	  op_ix = 0;
+	  done = 0;
+	  while (!done)
+	    {
+	      UV op_code = nulling_ops[op_ix++];
+
+	      switch (op_code)
+		{
+
+		case 0:
+		  done = 1;
+		  break;
+
+		case op_result_is_undef:
+		  {
+		    av_fill (stack, -1 + result_stack_ix);
+		    done = 1;
+		  }
+		  break;
+
+		case op_callback:
+		  {
+		    XPUSHs (sv_2mortal (newSVpv (result_string, 0)));
+		    XPUSHs (sv_2mortal (newSViv (token_id)));
+		    XPUSHs (sv_2mortal (newSViv (result_stack_ix)));
+		    XSRETURN (3);
+		  }
+		  /* NOT REACHED */
+		default:
+		  croak
+		    ("Problem in v->stack_step: Unimplemented op code: %lu",
+		     (unsigned long) op_code);
+		}
+	    }
+
+	  goto NEXT_STEP;
 	}
+
       if (status == MARPA_STEP_RULE)
 	{
 	  AV *values_av = NULL;
@@ -2391,7 +2441,7 @@ PPCODE:
 	    {
 	      values_av = (AV *) sv_2mortal ((SV *) newAV ());
 	    }
-	  av_clear(values_av);
+	  av_clear (values_av);
 
 	  op_ix = 0;
 	  done = 0;
@@ -2404,15 +2454,15 @@ PPCODE:
 		{
 
 		case 0:
-		done = 1;
-		break;
+		  done = 1;
+		  break;
 
 		case op_result_is_undef:
-		{
-		   av_fill(stack, -1 + arg_0);
-		   done = 1;
-		}
-		break;
+		  {
+		    av_fill (stack, -1 + arg_0);
+		    done = 1;
+		  }
+		  break;
 
 		case op_push_all:
 		case op_push_sequence:
@@ -2421,7 +2471,8 @@ PPCODE:
 		    /* Create a mortalized array, so that it will go away
 		     * by default.
 		     */
-		    for (stack_ix = arg_0; stack_ix <= arg_n; stack_ix+=increment)
+		    for (stack_ix = arg_0; stack_ix <= arg_n;
+			 stack_ix += increment)
 		      {
 			SV **p_sv = av_fetch (stack, stack_ix, 0);
 			if (!p_sv)
@@ -2443,16 +2494,15 @@ PPCODE:
 		    /* Create a mortalized array, so that it will go away
 		     * by default.
 		     */
-			SV **p_sv = av_fetch (stack, arg_0 + offset, 0);
-			if (!p_sv)
-			  {
-			    av_push (values_av, &PL_sv_undef);
-			  }
-			else
-			  {
-			    av_push (values_av,
-				     SvREFCNT_inc_simple_NN (*p_sv));
-			  }
+		    SV **p_sv = av_fetch (stack, arg_0 + offset, 0);
+		    if (!p_sv)
+		      {
+			av_push (values_av, &PL_sv_undef);
+		      }
+		    else
+		      {
+			av_push (values_av, SvREFCNT_inc_simple_NN (*p_sv));
+		      }
 		  }
 		  break;
 
@@ -2470,7 +2520,7 @@ PPCODE:
 		default:
 		  croak
 		    ("Problem in v->stack_step: Unimplemented op code: %lu",
-		     (unsigned long)op_code);
+		     (unsigned long) op_code);
 		}
 	    }
 
