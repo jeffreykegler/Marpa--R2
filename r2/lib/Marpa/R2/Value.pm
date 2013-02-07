@@ -552,6 +552,11 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
     $value->trace_values($trace_values);
     $value->stack_mode_set($token_values);
 
+    state $op_result_is_undef = Marpa::R2::Thin::op('result_is_undef');
+    state $op_push_sequence   = Marpa::R2::Thin::op('push_sequence');
+    state $op_push_one        = Marpa::R2::Thin::op('push_one');
+    state $op_callback        = Marpa::R2::Thin::op('callback');
+
     RULE: for my $rule_id ( 0 .. $#{$rule_closures} ) {
         my $result = $value->rule_is_valued_set( $rule_id, 1 );
         if ( not $result ) {
@@ -562,11 +567,6 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                 q{because the LHS was already treated as an unvalued symbol}
             );
         } ## end if ( not $result )
-
-        state $op_result_is_undef = Marpa::R2::Thin::op('result_is_undef');
-        state $op_push_sequence   = Marpa::R2::Thin::op('push_sequence');
-        state $op_push_one        = Marpa::R2::Thin::op('push_one');
-        state $op_callback        = Marpa::R2::Thin::op('callback');
 
         my $closure = $rule_closures->[$rule_id];
         if ( !defined $closure
@@ -597,6 +597,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 	$value->rule_register( $rule_id, @push_ops, $op_callback );
     } ## end RULE: for my $rule_id ( 0 .. $#{$rule_closures} )
 
+    TOKEN:
     for my $token_id ( grep { defined $null_values->[$_] }
         0 .. $#{$null_values} )
     {
@@ -608,6 +609,14 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                 q{because it was already treated as an unvalued symbol}
             );
         } ## end if ( not $result )
+
+        my $semantic_rule_id = $null_values->[$token_id];
+        my $closure_ref      = $rule_closures->[$semantic_rule_id];
+        next TOKEN if not defined $closure_ref;
+        next TOKEN
+            if ref $closure_ref eq 'SCALAR' and not defined ${$closure_ref};
+        $value->nulling_symbol_register( $token_id, $op_callback );
+
     } ## end for my $token_id ( grep { defined $null_values->[$_] ...})
 
 

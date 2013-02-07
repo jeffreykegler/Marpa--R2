@@ -2083,7 +2083,8 @@ PPCODE:
 
   v_wrapper->constants = newAV ();
 
-  { int ix;
+  {
+    int ix;
     UV ops[3];
     const int highest_rule_id = marpa_g_highest_rule_id (g);
     AV *av = v_wrapper->rule_semantics = newAV ();
@@ -2101,11 +2102,29 @@ PPCODE:
 	       (void *) av, (long) ix);
 	  }
 	sv_setpvn (*p_sv, (char *) ops, sizeof (ops));
-      } }
+      }
+  }
 
-  { const int highest_symbol_id = marpa_g_highest_symbol_id (g);
+  {
+    int ix;
+    UV ops[2];
+    const int highest_symbol_id = marpa_g_highest_symbol_id (g);
     AV *av = v_wrapper->nulling_semantics = newAV ();
-    av_extend (av, highest_symbol_id); }
+    av_extend (av, highest_symbol_id);
+    ops[0] = op_result_is_undef;
+    ops[1] = 0;
+    for (ix = 0; ix <= highest_symbol_id; ix++)
+      {
+	SV **p_sv = av_fetch (av, ix, 1);
+	if (!p_sv)
+	  {
+	    croak
+	      ("Internal error in v->stack_mode_set(): av_fetch(%p,%ld,1) failed",
+	       (void *) av, (long) ix);
+	  }
+	sv_setpvn (*p_sv, (char *) ops, sizeof (ops));
+      }
+  }
 
   XSRETURN_YES;
 }
@@ -2140,6 +2159,40 @@ PPCODE:
     }
   ops[op_ix] = 0;
   if (!av_store (rule_semantics, (I32) rule_id, ops_sv)) {
+     SvREFCNT_dec(ops_sv);
+  }
+}
+
+void
+nulling_symbol_register( v_wrapper, symbol_id, ... )
+     V_Wrapper *v_wrapper;
+     Marpa_Symbol_ID symbol_id;
+PPCODE:
+{
+  /* OP Count is args less two */
+  const STRLEN op_count = items - 2;
+  STRLEN op_ix;
+  STRLEN dummy;
+  UV *ops;
+  SV *ops_sv;
+  AV *nulling_semantics = v_wrapper->nulling_semantics;
+
+  if (!nulling_semantics)
+    {
+      croak ("Problem in v->nulling_symbol_register(): valuator is not in stack mode");
+    }
+
+  /* Leave room for final 0 */
+  ops_sv = newSV ((op_count+1) * sizeof (UV));
+
+  SvPOK_on (ops_sv);
+  ops = (UV *) SvPV (ops_sv, dummy);
+  for (op_ix = 0; op_ix < op_count; op_ix++)
+    {
+      ops[op_ix] = SvUV (ST (op_ix+2));
+    }
+  ops[op_ix] = 0;
+  if (!av_store (nulling_semantics, (I32) symbol_id, ops_sv)) {
      SvREFCNT_dec(ops_sv);
   }
 }

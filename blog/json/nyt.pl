@@ -7,7 +7,7 @@ use Marpa::R2;
 use MarpaX::JSON;
 use Data::Dumper;
 
-say $Marpa::R2::VERSION;
+say STDERR $Marpa::R2::VERSION;
 
 local $/ = undef;
 my $json_str = <STDIN>;
