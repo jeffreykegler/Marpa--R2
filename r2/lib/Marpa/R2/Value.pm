@@ -730,62 +730,54 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
             my ( $rule_id, $values ) = @value_data;
             my $closure = $rule_closures->[$rule_id];
 
-            if ( defined $closure ) {
-                my $result;
-                my $rule = $rules->[$rule_id];
+            next STEP if not defined $closure;
+            my $result;
 
-                if ( ref $closure eq 'CODE' ) {
-                    my @warnings;
-                    my $eval_ok;
-                    DO_EVAL: {
-                        local $SIG{__WARN__} = sub {
-                            push @warnings, [ $_[0], ( caller 0 ) ];
-                        };
+            if ( ref $closure eq 'CODE' ) {
+                my @warnings;
+                my $eval_ok;
+                DO_EVAL: {
+                    local $SIG{__WARN__} = sub {
+                        push @warnings, [ $_[0], ( caller 0 ) ];
+                    };
 
-                        $eval_ok = eval {
-                            local $Marpa::R2::Context::rule = $rule_id;
-                            $result = $closure->( $action_object, @{$values} );
-                            1;
-                        };
+                    $eval_ok = eval {
+                        local $Marpa::R2::Context::rule = $rule_id;
+                        $result = $closure->( $action_object, @{$values} );
+                        1;
+                    };
 
-                    } ## end DO_EVAL:
+                } ## end DO_EVAL:
 
-                    if ( not $eval_ok or @warnings ) {
-                        my $fatal_error = $EVAL_ERROR;
-                        code_problems(
-                            {   fatal_error => $fatal_error,
-                                grammar     => $grammar,
-                                eval_ok     => $eval_ok,
-                                warnings    => \@warnings,
-                                where       => 'computing value',
-                                long_where  => 'Computing value for rule: '
-                                    . $grammar->brief_rule($rule_id),
-                            }
-                        );
-                    } ## end if ( not $eval_ok or @warnings )
-                    $value->result_set($result);
-                } ## end if ( ref $closure eq 'CODE' )
-                else {
-                    my $closure_deref = ${$closure};
-                    $value->result_set($closure_deref);
-                }
+                if ( not $eval_ok or @warnings ) {
+                    my $fatal_error = $EVAL_ERROR;
+                    code_problems(
+                        {   fatal_error => $fatal_error,
+                            grammar     => $grammar,
+                            eval_ok     => $eval_ok,
+                            warnings    => \@warnings,
+                            where       => 'computing value',
+                            long_where  => 'Computing value for rule: '
+                                . $grammar->brief_rule($rule_id),
+                        }
+                    );
+                } ## end if ( not $eval_ok or @warnings )
+            } ## end if ( ref $closure eq 'CODE' )
+            else {
+                $result = ${$closure};
+            }
+            $value->result_set($result);
 
-                if ($trace_values) {
-                    say {$Marpa::R2::Internal::TRACE_FH}
-                        trace_stack_1( $grammar, $recce, $value, $values,
-                        $rule_id )
-                        or
-                        Marpa::R2::exception('Could not print to trace file');
-                    print {$Marpa::R2::Internal::TRACE_FH}
-                        'Calculated and pushed value: ',
-                        Data::Dumper->new( [$result] )->Terse(1)->Dump
-                        or
-                        Marpa::R2::exception('print to trace handle failed');
-                } ## end if ($trace_values)
-
-                next STEP;
-
-            } ## end if ( defined $closure )
+            if ($trace_values) {
+                say {$Marpa::R2::Internal::TRACE_FH}
+                    trace_stack_1( $grammar, $recce, $value, $values,
+                    $rule_id )
+                    or Marpa::R2::exception('Could not print to trace file');
+                print {$Marpa::R2::Internal::TRACE_FH}
+                    'Calculated and pushed value: ',
+                    Data::Dumper->new( [$result] )->Terse(1)->Dump
+                    or Marpa::R2::exception('print to trace handle failed');
+            } ## end if ($trace_values)
 
             next STEP;
 
