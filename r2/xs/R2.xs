@@ -291,7 +291,7 @@ enum marpa_op {
    op_push_one,
    op_callback,
    op_result_is_array,
-   op_result_is_constant,
+   op_result_is_constant
 };
 
 /* Static grammar methods */
@@ -2268,12 +2268,13 @@ PPCODE:
 	}
       if (status == MARPA_STEP_RULE)
 	{
-	  int stack_ix;
-	  AV *values_av;
+	  AV *values_av = NULL;
 	  Marpa_Rule_ID rule_id = marpa_v_rule (v);
 	  IV arg_0 = marpa_v_arg_0 (v);
 	  IV arg_n = marpa_v_arg_n (v);
 	  UV *rule_ops;
+	  int op_ix;
+	  int done;
 
 	  v_wrapper->result = arg_0;
 
@@ -2288,26 +2289,73 @@ PPCODE:
 	    rule_ops = (UV *) SvPV (*p_ops_sv, dummy);
 	  }
 
-	  XPUSHs (sv_2mortal (newSVpv (result_string, 0)));
-	  XPUSHs (sv_2mortal (newSViv (rule_id)));
-	  values_av = newAV ();
-	  for (stack_ix = arg_0; stack_ix <= arg_n; stack_ix++)
+	  op_ix = 0;
+	  done = 0;
+	  while (!done)
 	    {
-	      SV **p_sv = av_fetch (stack, stack_ix, 0);
-	      if (!p_sv)
+	      UV op_code = rule_ops[op_ix++];
+	      int stack_ix;
+
+	      switch (op_code)
 		{
-		  av_push (values_av, &PL_sv_undef);
-		}
-	      else
-		{
-		  av_push (values_av, SvREFCNT_inc_simple_NN (*p_sv));
+		case 0:
+		done = 1;
+		break;
+		case op_push_all:
+		  {
+		    /* Create a mortalized array, so that it will go away
+		     * by default.
+		     */
+		    if (!values_av)
+		      {
+			values_av = (AV *) sv_2mortal ((SV *) newAV ());
+		      }
+		    for (stack_ix = arg_0; stack_ix <= arg_n; stack_ix++)
+		      {
+			SV **p_sv = av_fetch (stack, stack_ix, 0);
+			if (!p_sv)
+			  {
+			    av_push (values_av, &PL_sv_undef);
+			  }
+			else
+			  {
+			    av_push (values_av,
+				     SvREFCNT_inc_simple_NN (*p_sv));
+			  }
+		      }
+		  }
+		  break;
+		case op_callback:
+		  {
+
+		    if (!values_av)
+		      {
+			croak
+			  ("Problem in v->stack_step: Callback, but no values set");
+		      }
+		    XPUSHs (sv_2mortal (newSVpv (result_string, 0)));
+		    XPUSHs (sv_2mortal (newSViv (rule_id)));
+		    /* Must increment ref cnt of array to de-mortalize it,
+		     * but the RV must be mortal.
+		     */
+		    XPUSHs (sv_2mortal (newRV_inc ((SV *) values_av)));
+		    XSRETURN (3);
+		  }
+		  /* NOT REACHED */
+		default:
+		  croak
+		    ("Problem in v->stack_step: Unimplemented op code: %lu",
+		     (unsigned long)op_code);
 		}
 	    }
-	  XPUSHs (sv_2mortal (newRV_noinc ((SV *) values_av)));
-	  XSRETURN (3);
 	}
+
+      /* Default is just return the status string and let the upper
+       * layer deal with it.
+       */
       XPUSHs (sv_2mortal (newSVpv (result_string, 0)));
       XSRETURN (1);
+
     NEXT_STEP:;
       if (v_wrapper->trace_values)
 	{
