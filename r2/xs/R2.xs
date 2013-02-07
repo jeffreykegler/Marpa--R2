@@ -2294,6 +2294,17 @@ PPCODE:
 	    rule_ops = (UV *) SvPV (*p_ops_sv, dummy);
 	  }
 
+	  /* Create a values_av or, if there is one,
+	   * clear the old values out.
+	   * It's mortal, so it will go away unless we
+	   * de-mortalize it.
+	   */
+	  if (!values_av)
+	    {
+	      values_av = (AV *) sv_2mortal ((SV *) newAV ());
+	    }
+	  av_clear(values_av);
+
 	  op_ix = 0;
 	  done = 0;
 	  while (!done)
@@ -2320,10 +2331,6 @@ PPCODE:
 		    /* Create a mortalized array, so that it will go away
 		     * by default.
 		     */
-		    if (!values_av)
-		      {
-			values_av = (AV *) sv_2mortal ((SV *) newAV ());
-		      }
 		    for (stack_ix = arg_0; stack_ix <= arg_n; stack_ix++)
 		      {
 			SV **p_sv = av_fetch (stack, stack_ix, 0);
@@ -2341,12 +2348,6 @@ PPCODE:
 		  break;
 		case op_callback:
 		  {
-
-		    if (!values_av)
-		      {
-			croak
-			  ("Problem in v->stack_step: Callback, but no values set");
-		      }
 		    XPUSHs (sv_2mortal (newSVpv (result_string, 0)));
 		    XPUSHs (sv_2mortal (newSViv (rule_id)));
 		    /* Must increment ref cnt of array to de-mortalize it,
@@ -2362,6 +2363,7 @@ PPCODE:
 		     (unsigned long)op_code);
 		}
 	    }
+
 	}
 
       /* Default is just return the status string and let the upper
