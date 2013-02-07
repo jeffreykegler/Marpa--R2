@@ -2111,6 +2111,34 @@ PPCODE:
 }
 
 void
+rule_register( v_wrapper, rule_id, ... )
+     V_Wrapper *v_wrapper;
+     Marpa_Rule_ID rule_id;
+PPCODE:
+{
+  /* OP Count is args less two */
+  const STRLEN op_count = items - 2;
+  STRLEN op_ix;
+  STRLEN dummy;
+  UV *ops;
+  SV *ops_sv;
+  AV *rule_semantics = v_wrapper->rule_semantics;
+
+  if (!rule_semantics)
+    {
+      croak ("Problem in v->rule_register(): valuator is not in stack mode");
+    }
+  ops_sv = newSV (op_count * sizeof (UV));
+  SvPOK_on (ops_sv);
+  ops = (UV *) SvPV (ops_sv, dummy);
+  for (op_ix = 2; op_ix < op_count; op_ix++)
+    {
+      ops[op_ix - 2] = SvUV (ST (op_ix));
+    }
+  av_store (rule_semantics, (I32) rule_id, op_sv);
+}
+
+void
 highest_index( v_wrapper )
     V_Wrapper *v_wrapper;
 PPCODE:
