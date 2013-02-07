@@ -2134,9 +2134,9 @@ PPCODE:
 
   SvPOK_on (ops_sv);
   ops = (UV *) SvPV (ops_sv, dummy);
-  for (op_ix = 2; op_ix < op_count; op_ix++)
+  for (op_ix = 0; op_ix < op_count; op_ix++)
     {
-      ops[op_ix - 2] = SvUV (ST (op_ix));
+      ops[op_ix] = SvUV (ST (op_ix+2));
     }
   ops[op_ix] = 0;
   if (!av_store (rule_semantics, (I32) rule_id, ops_sv)) {
@@ -2399,6 +2399,7 @@ PPCODE:
 		}
 	    }
 
+	  goto NEXT_STEP;
 	}
 
       /* Default is just return the status string and let the upper
