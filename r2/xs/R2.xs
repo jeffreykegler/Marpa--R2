@@ -292,6 +292,7 @@ enum marpa_op {
    op_callback,
    op_result_is_array,
    op_result_is_constant,
+   op_result_is_arg_0,
    op_result_is_undef
 };
 
@@ -1014,6 +1015,10 @@ PPCODE:
   if (strEQ (op_name, "result_is_array"))
     {
       XSRETURN_IV (op_result_is_array);
+    }
+  if (strEQ (op_name, "result_is_arg_0"))
+    {
+      XSRETURN_IV (op_result_is_arg_0);
     }
   if (strEQ (op_name, "result_is_constant"))
     {
@@ -2516,6 +2521,13 @@ PPCODE:
 		case op_result_is_undef:
 		  {
 		    av_fill (stack, -1 + arg_0);
+		    done = 1;
+		  }
+		  break;
+
+		case op_result_is_arg_0:
+		  {
+		    av_fill (stack, arg_0);
 		    done = 1;
 		  }
 		  break;

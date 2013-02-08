@@ -115,8 +115,9 @@ it is called a B<rule evaluation closure>.
 The closure will be called to produce the value of
 the action.
 
-=item * A constant.
-The constant is the value of the action.
+=item * A constant whose
+builtin type is either C<SCALAR> or C<REF>.
+The constant will be the value of the action.
 
 =item * A "whatever" value.
 
