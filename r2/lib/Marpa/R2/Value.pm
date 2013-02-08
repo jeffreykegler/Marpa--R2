@@ -51,14 +51,10 @@ sub Marpa::R2::Internal::Recognizer::resolve_semantics {
         $recce->[Marpa::R2::Internal::Recognizer::TRACE_ACTIONS];
 
     # A reserved closure name;
-    return [ '::whatever', undef ] if not defined $closure_name;
+    return [ '::whatever', undef, '::whatever' ] if not defined $closure_name;
     if ( substr( $closure_name, 0, 2 ) eq q{::} ) {
-        return [ $closure_name, undef ]  if $closure_name eq '::whatever';
-        return [ $closure_name, \undef ] if $closure_name eq '::undef';
-        Marpa::R2::exception(
-            qq{Unknown reserved action name "$closure_name"\n},
-            q{  Action names beginning with "::" are reserved}
-        );
+        return [ $closure_name, \undef, $closure_name ] if $closure_name eq '::undef';
+        return [ $closure_name, undef, $closure_name ];
     } ## end if ( substr( $closure_name, 0, 2 ) eq q{::} )
 
     if ( my $closure = $closures->{$closure_name} ) {
@@ -152,6 +148,7 @@ sub Marpa::R2::Internal::Recognizer::set_actions {
     my $rules         = $grammar->[Marpa::R2::Internal::Grammar::RULES];
     my $symbols       = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
     my $rule_closures = [];
+    my $rule_semantics = [];
     my $trace_actions =
         $recce->[Marpa::R2::Internal::Recognizer::TRACE_ACTIONS] // 0;
 
@@ -224,7 +221,7 @@ sub Marpa::R2::Internal::Recognizer::set_actions {
     # a valid non-whatever resolution is not something random from
     # a whatever resolution
     RULE: for my $rule_id ( 0 .. $#{$rules} ) {
-        my ( $new_resolution, $closure ) = @{ $rule_resolutions->[$rule_id] };
+        my ( $new_resolution, $closure, $semantics ) = @{ $rule_resolutions->[$rule_id] };
         my $lhs_id = $grammar_c->rule_lhs($rule_id);
         $resolution_by_lhs[$lhs_id] //= $new_resolution;
         my $current_resolution = $resolution_by_lhs[$lhs_id];
@@ -243,6 +240,7 @@ sub Marpa::R2::Internal::Recognizer::set_actions {
         if ( $new_resolution ne '::whatever' ) {
             $rule_closures->[$rule_id] = $closure;
         }
+	$rule_semantics->[$rule_id] = $semantics;
         push @{ $nullable_ruleids_by_lhs[$lhs_id] }, $rule_id
             if $grammar_c->rule_is_nullable($rule_id);
     } ## end RULE: for my $rule_id ( 0 .. $#{$rules} )
@@ -339,6 +337,7 @@ sub Marpa::R2::Internal::Recognizer::set_actions {
     $recce->[Marpa::R2::Internal::Recognizer::NULL_VALUES] =
         \@null_symbol_closures;
     $recce->[Marpa::R2::Internal::Recognizer::RULE_CLOSURES] = $rule_closures;
+    $recce->[Marpa::R2::Internal::Recognizer::RULE_SEMANTICS] = $rule_semantics;
 
     return 1;
 }    # set_actions
@@ -542,8 +541,9 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
         Marpa::R2::Internal::Recognizer::set_actions($recce);
         $rule_closures =
             $recce->[Marpa::R2::Internal::Recognizer::RULE_CLOSURES];
-    }
+    } ## end if ( not defined $rule_closures )
 
+    my $rule_semantics = $recce->[Marpa::R2::Internal::Recognizer::RULE_SEMANTICS];
     my $null_values = $recce->[Marpa::R2::Internal::Recognizer::NULL_VALUES];
 
     my $value = Marpa::R2::Thin::V->new($tree);

@@ -65,6 +65,7 @@ BEGIN {
     evaluation is reset }
 
     RULE_CLOSURES
+    RULE_SEMANTICS
     NULL_VALUES
     EVENTS
     READ_STRING_ERROR
@@ -236,6 +237,7 @@ sub Marpa::R2::Recognizer::reset_evaluation {
     $recce->[Marpa::R2::Internal::Recognizer::O_C]           = undef;
     $recce->[Marpa::R2::Internal::Recognizer::T_C]           = undef;
     $recce->[Marpa::R2::Internal::Recognizer::RULE_CLOSURES] = undef;
+    $recce->[Marpa::R2::Internal::Recognizer::RULE_SEMANTICS] = undef;
     $recce->[Marpa::R2::Internal::Recognizer::NULL_VALUES]   = undef;
     $recce->[Marpa::R2::Internal::Recognizer::EVENTS]        = [];
     return;
