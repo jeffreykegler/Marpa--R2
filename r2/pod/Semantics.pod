@@ -115,19 +115,15 @@ it is called a B<rule evaluation closure>.
 The closure will be called to produce the value of
 the action.
 
-=item * A constant whose
-builtin type is either C<SCALAR> or C<REF>.
+=item * A scalar constant, that is one whose
+type, as returned by C<ref>, is C<SCALAR>.
 The constant will be the value of the action.
 
-=item * A "whatever" value.
+=item * One of a series of special action, as described
+under
+L<Reserved Action Names|/"Tree Traversal Phase">.
 
 =back
-
-Perl is unable to distinguish reliably between a
-non-existent value and scalars with an C<undef> value.
-For safety therefore,
-the "C<::undef>" reserved action name must be used
-to specify a constant whose value is a Perl C<undef>.
 
 It is important to note that,
 when Perl closures are used for the semantics,
@@ -145,6 +141,27 @@ because if a Perl closure is visible when the
 action is specified,
 but goes out of scope before the action name is resolved,
 resolution will fail.
+
+=head1 Reserved action names
+
+=head2 ::undef
+
+A constant whose value is a Perl C<undef>.
+Perl is unable to distinguish reliably between a
+non-existent value and scalars with an C<undef> value.
+To allow Marpa to help you to spot non-existent values,
+the "C<::undef>" reserved action name should be preferred
+for indicating a constant whose value is a Perl C<undef>.
+
+=head2 ::whatever
+
+In informal terms, a "whatever" value
+is one which does not matter --
+for example, because that value is never used.
+Specifying values as "whatever" allows Marpa to make
+certain optimizations.
+For a more precise description,
+see L</"Valued and unvalued symbols">.
 
 =head1 Valued and unvalued symbols
 
@@ -464,14 +481,12 @@ C<action_object> named argument of the Marpa grammar.
 
 =back
 
-=head2 Reserved action names
+=head2 Resolution of reserved action names
 
 If the action name begins with the two characters "C<::>",
 then it is a reserved action name and must be resolved as such.
-The current
-reserved action names are "C<::whatever>" and "C<::undef>".
-If the reserved action name is not one of those,
-Marpa throws an exception.
+Reserved action names were L<described
+above|/"Reserved action names">.
 
 =head2 Explicit resolution
 

@@ -558,7 +558,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
     state $op_push_one        = Marpa::R2::Thin::op('push_one');
     state $op_callback        = Marpa::R2::Thin::op('callback');
 
-    RULE: for my $rule_id ( 0 .. $#{$rule_closures} ) {
+    RULE: for my $rule_id ( $grammar->rule_ids() ) {
         my $result = $value->rule_is_valued_set( $rule_id, 1 );
         if ( not $result ) {
             my $lhs_id   = $grammar_c->rule_lhs($rule_id);
@@ -568,6 +568,20 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                 q{because the LHS was already treated as an unvalued symbol}
             );
         } ## end if ( not $result )
+
+        my $semantics = $rule_semantics->[$rule_id];
+	if ( defined $semantics ) {
+	    if ( $semantics eq '::undef' or $semantics eq '::whatever' ) {
+		$value->rule_register( $rule_id, $op_result_is_undef );
+		next RULE;
+	    }
+
+	    Marpa::R2::exception(
+		qq{Unknown semantics for rule },
+		$grammar->brief_rule($rule_id),
+		"\n", qq{    Semantics were specified as "$semantics"\n}
+	    );
+	} ## end if ( defined $semantics )
 
         my $closure = $rule_closures->[$rule_id];
         if ( !defined $closure
