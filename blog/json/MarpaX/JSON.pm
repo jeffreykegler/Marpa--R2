@@ -34,7 +34,7 @@ value        ::= string
                | 'null'                action => ::undef
 
 array        ::= '[' ']'               action => do_empty_array
-               | '[' elements ']'      action => do_array
+               | ('[') elements (']')      action => ::first
 
 elements     ::= value+                separator => <comma> action => do_list
 
@@ -125,11 +125,6 @@ sub do_object {
 
 sub do_empty_array {
     return [];
-}
-
-sub do_array {
-    shift;
-    return $_[1];
 }
 
 sub do_list {
