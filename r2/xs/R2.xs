@@ -2374,7 +2374,6 @@ PPCODE:
 	  int result_stack_ix = v_wrapper->result = marpa_v_result (v);
 	  UV *nulling_ops;
 	  int op_ix;
-	  int done;
 
 	  {
 	    STRLEN dummy;
@@ -2408,6 +2407,44 @@ PPCODE:
 		  }
 		  /* NOT REACHED */
 
+		case op_result_is_constant:
+		  {
+		    IV constant_ix = nulling_ops[op_ix++];
+		    SV **p_constant_sv;
+
+		    p_constant_sv =
+		      av_fetch (v_wrapper->constants, constant_ix, 0);
+		    if (p_constant_sv)
+		      {
+			SV *constant_sv = newSVsv (*p_constant_sv);
+			SV **stored_sv =
+			  av_store (stack, result_stack_ix, constant_sv);
+			if (!stored_sv)
+			  {
+			    SvREFCNT_dec (constant_sv);
+			  }
+		      }
+		    else
+		      {
+			av_store (stack, result_stack_ix, &PL_sv_undef);
+		      }
+
+		    if (v_wrapper->trace_values)
+		      {
+			AV *event;
+			SV *event_data[3];
+			event_data[0] = newSVpv (result_string, 0);
+			event_data[1] = newSViv (token_id);
+			event_data[2] = newSViv (result_stack_ix);
+			event = av_make (Dim (event_data), event_data);
+			av_push (v_wrapper->event_queue,
+				 newRV_noinc ((SV *) event));
+		      }
+		    goto NEXT_STEP;
+		  }
+		  /* NOT REACHED */
+
+
 		case op_callback:
 		  {
 		    XPUSHs (sv_2mortal (newSVpv (result_string, 0)));
@@ -2420,6 +2457,7 @@ PPCODE:
 		  croak
 		    ("Problem in v->stack_step: Unimplemented op code: %lu",
 		     (unsigned long) op_code);
+		  /* NOT REACHED */
 		}
 	    }
 
