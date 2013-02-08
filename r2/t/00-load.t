@@ -30,3 +30,4 @@ Test::More::ok( ( defined $Marpa::R2::VERSION ),
 Test::More::ok( ( defined $Marpa::R2::STRING_VERSION ),
     'Marpa::R2 string version is ' . $Marpa::R2::STRING_VERSION );
 
+# vim: expandtab shiftwidth=4:
