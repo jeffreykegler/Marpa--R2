@@ -58,6 +58,7 @@ symbol ::= <symbol name>
 <symbol name> ::= <bare name>
 <symbol name> ::= <bracketed name>
 <action name> ::= <bare name>
+<action name> ::= <reserved action name>
 
 :discard ~ whitespace
 whitespace ~ [\s]+
@@ -79,6 +80,8 @@ whitespace ~ [\s]+
 quantifier ::= '*' | '+'
 
 boolean ~ [01]
+<reserved action name> ~ '::' <one or more word characters>
+<one or more word characters> ~ [\w]+
 <bare name> ~ [\w]+
 <bracketed name> ~ '<' <bracketed name string> '>'
 <bracketed name string> ~ [\s\w]+
