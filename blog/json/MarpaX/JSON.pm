@@ -10,7 +10,7 @@ sub new {
     $self->{grammar} = Marpa::R2::Scanless::G->new(
         {
             action_object  => 'MarpaX::JSON::Actions',
-            default_action => 'do_first_arg',
+            default_action => '::first',
             source         => \(<<'END_OF_SOURCE'),
 
 :start       ::= json
@@ -31,7 +31,7 @@ value        ::= string
                | array
                | 'true'                action => do_true
                | 'false'               action => do_true
-               | 'null'                action => do_null
+               | 'null'                action => ::undef
 
 array        ::= '[' ']'               action => do_empty_array
                | '[' elements ']'      action => do_array
@@ -114,11 +114,6 @@ sub new {
     return bless {}, $class;
 }
 
-sub do_first_arg {
-    shift;
-    return $_[0];
-}
-
 sub do_empty_object {
     return {};
 }
@@ -171,10 +166,6 @@ sub do_string {
 sub do_true {
     shift;
     return $_[0] eq 'true';
-}
-
-sub do_null {
-    return undef;
 }
 
 sub do_join {
