@@ -552,6 +552,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
     $value->trace_values($trace_values);
     $value->stack_mode_set($token_values);
 
+    state $op_result_is_constant = Marpa::R2::Thin::op('result_is_constant');
     state $op_result_is_undef = Marpa::R2::Thin::op('result_is_undef');
     state $op_push_sequence   = Marpa::R2::Thin::op('push_sequence');
     state $op_push_one        = Marpa::R2::Thin::op('push_one');
@@ -618,9 +619,8 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
         if ( $ref_type eq 'SCALAR') {
             my $closure = ${$closure_ref};
             next TOKEN if not defined $closure;
-            $value->constant_register( $closure );
-            $value->nulling_symbol_register( $token_id, $op_callback );
-            $nulling_closures[$token_id] = $closure_ref;
+            my $constant_ix = $value->constant_register( $closure );
+            $value->nulling_symbol_register( $token_id, $op_result_is_constant, $constant_ix );
             next TOKEN;
         }
         if ( $ref_type eq 'CODE' ) {
@@ -632,9 +632,8 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
             or $ref_type eq 'LVALUE'
             or $ref_type eq 'VSTRING' )
         {
-            $value->constant_register( $token_id, ${$closure_ref} );
-            $value->nulling_symbol_register( $token_id, $op_callback );
-            $nulling_closures[$token_id] = $closure_ref;
+            my $constant_ix = $value->constant_register( $token_id, ${$closure_ref} );
+            $value->nulling_symbol_register( $token_id, $op_result_is_constant, $constant_ix );
             next TOKEN;
         } ## end if ( $ref_type eq 'REF' or $ref_type eq 'LVALUE' or ...)
         my $token_name = $grammar->symbol_name($token_id);
