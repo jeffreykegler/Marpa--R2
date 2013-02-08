@@ -103,12 +103,6 @@ sub Marpa::R2::Grammar::original_symbol_name {
    return shift;
 }
 
-# This rule is used by the semantics of the *GENERATED*
-# grammars, not the Stuifzand grammar itself.
-sub external_do_arg0 {
-   return $_[1];
-}
-
 sub do_rules {
     shift;
     return [ map { @{$_} } @_ ];
@@ -116,7 +110,6 @@ sub do_rules {
 
 sub do_start_rule {
     my ( $self, $rhs ) = @_;
-    my $do_arg0 = __PACKAGE__ . q{::} . 'external_do_arg0';
     return [
         {   lhs    => '[:start]',
             rhs    => [ $rhs->names() ],
@@ -161,18 +154,17 @@ sub do_priority_rule {
         }
     } ## end for my $priority_ix ( 0 .. $priority_count - 1 )
 
-    state $do_arg0_full_name = __PACKAGE__ . q{::} . 'external_do_arg0';
     # Default mask (all ones) is OK for this rule
     @xs_rules = (
         {   lhs    => $lhs,
             rhs    => [ $lhs . '[prec0]' ],
-            action => $do_arg0_full_name
+            action => '::first'
         },
         (   map {
                 ;
                 {   lhs => ( $lhs . '[prec' . ( $_ - 1 ) . ']'),
                     rhs => [ $lhs . '[prec' . $_ . ']'],
-                    action => $do_arg0_full_name
+                    action => '::first'
                 }
             } 1 .. $priority_count - 1
         )
@@ -1884,7 +1876,6 @@ sub parse_rules {
         }
         $action = $meta_g1_tracer->action($rule_id);
         next RULE if not defined $action;
-        next RULE if $action =~ / Marpa [:][:] R2 .* [:][:] external_do_arg0 \z /xms;
         $actions_by_rule_id[$rule_id] = $action;
     } ## end for my $rule_id ( grep { $thin_meta_g1_grammar->rule_length($_...)})
 

@@ -84,12 +84,6 @@ our $R_PACKAGE = 'Marpa::R2::Scanless::R';
 our $GRAMMAR_LEVEL;
 our $TRACE_FILE_HANDLE;
 
-# This rule is used by the semantics of the *GENERATED*
-# grammars, not the Scanless grammar itself.
-sub external_do_arg0 {
-   return $_[1];
-}
-
 package Marpa::R2::Inner::Scanless::Symbol;
 
 use constant NAME => 0;
@@ -162,11 +156,10 @@ sub do_start_rule {
     my ( $self, $rhs ) = @_;
     my @ws                = ();
     my $normalized_rhs    = $self->rhs_normalize($rhs);
-    my $do_arg0_full_name = __PACKAGE__ . q{::} . 'external_do_arg0';
     return [
         {   lhs    => '[:start]',
             rhs    => [ $normalized_rhs->names() ],
-            action => $do_arg0_full_name
+            action => '::first'
         }
     ];
 } ## end sub do_start_rule
@@ -251,10 +244,9 @@ sub do_priority_rule {
         }
     } ## end for my $priority_ix ( 0 .. $priority_count - 1 )
 
-    state $do_arg0_full_name = __PACKAGE__ . q{::} . 'external_do_arg0';
     # Default mask (all ones) is OK for this rule
     my @arg0_action = ();
-    @arg0_action = ( action => $do_arg0_full_name) if $Marpa::R2::Inner::Scanless::GRAMMAR_LEVEL > 0;
+    @arg0_action = ( action => '::first') if $Marpa::R2::Inner::Scanless::GRAMMAR_LEVEL > 0;
     @xs_rules = (
         {   lhs    => $lhs,
             rhs    => [ $lhs . '[prec0]' ],
@@ -2313,7 +2305,6 @@ sub Marpa::R2::Scanless::G::_source_to_hash {
         }
         $action = $meta_g1_tracer->action($rule_id);
         next RULE if not defined $action;
-        next RULE if $action =~ / Marpa [:][:] R2 .* [:][:] external_do_arg0 \z /xms;
         $actions_by_rule_id[$rule_id] = $action;
     } ## end for my $rule_id ( grep { $thin_meta_g1_grammar->rule_length($_...)})
 
