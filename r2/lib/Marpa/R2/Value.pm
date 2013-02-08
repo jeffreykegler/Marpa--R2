@@ -686,43 +686,39 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
         if ( $value_type eq 'MARPA_STEP_NULLING_SYMBOL' ) {
             my ( $token_id, $arg_n ) = @value_data;
-            my $value_ref        = $nulling_closures[$token_id];
+            my $value_ref = $nulling_closures[$token_id];
             my $result;
 
-            if ( ref $value_ref eq 'CODE' ) {
-                my @warnings;
-                my $eval_ok;
+            my @warnings;
+            my $eval_ok;
 
-                DO_EVAL: {
-                    local $SIG{__WARN__} = sub {
-                        push @warnings, [ $_[0], ( caller 0 ) ];
-                    };
+            DO_EVAL: {
+                local $SIG{__WARN__} = sub {
+                    push @warnings, [ $_[0], ( caller 0 ) ];
+                };
 
-                    $eval_ok = eval {
-                        local $Marpa::R2::Context::rule = $null_values->[$token_id];
-                        $result = $value_ref->($action_object);
-                        1;
-                    };
+                $eval_ok = eval {
+                    local $Marpa::R2::Context::rule =
+                        $null_values->[$token_id];
+                    $result = $value_ref->($action_object);
+                    1;
+                };
 
-                } ## end DO_EVAL:
+            } ## end DO_EVAL:
 
-                if ( not $eval_ok or @warnings ) {
-                    my $fatal_error = $EVAL_ERROR;
-                    code_problems(
-                        {   fatal_error => $fatal_error,
-                            grammar     => $grammar,
-                            eval_ok     => $eval_ok,
-                            warnings    => \@warnings,
-                            where       => 'computing value',
-                            long_where  => 'Computing value for null symbol: '
-                                . $grammar->symbol_name($token_id),
-                        }
-                    );
-                } ## end if ( not $eval_ok or @warnings )
-            } ## end if ( ref $value_ref eq 'CODE' )
-            else {
-                $result = defined $value_ref ? ${$value_ref} : undef;
-            }
+            if ( not $eval_ok or @warnings ) {
+                my $fatal_error = $EVAL_ERROR;
+                code_problems(
+                    {   fatal_error => $fatal_error,
+                        grammar     => $grammar,
+                        eval_ok     => $eval_ok,
+                        warnings    => \@warnings,
+                        where       => 'computing value',
+                        long_where  => 'Computing value for null symbol: '
+                            . $grammar->symbol_name($token_id),
+                    }
+                );
+            } ## end if ( not $eval_ok or @warnings )
 
             $value->result_set($result);
             trace_token_evaluation( $recce, $value, $token_id, \$result )
