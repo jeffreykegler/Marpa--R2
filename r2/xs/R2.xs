@@ -2390,8 +2390,7 @@ PPCODE:
 	  }
 
 	  op_ix = 0;
-	  done = 0;
-	  while (!done)
+	  while (1)
 	    {
 	      UV op_code = nulling_ops[op_ix++];
 
@@ -2399,15 +2398,15 @@ PPCODE:
 		{
 
 		case 0:
-		  done = 1;
-		  break;
+		  goto NEXT_STEP;
+		  /* NOT REACHED */
 
 		case op_result_is_undef:
 		  {
 		    av_fill (stack, -1 + result_stack_ix);
-		    done = 1;
+		    goto NEXT_STEP;
 		  }
-		  break;
+		  /* NOT REACHED */
 
 		case op_callback:
 		  {
@@ -2424,6 +2423,7 @@ PPCODE:
 		}
 	    }
 
+	  /* NOT REACHED */
 	  goto NEXT_STEP;
 	}
 
