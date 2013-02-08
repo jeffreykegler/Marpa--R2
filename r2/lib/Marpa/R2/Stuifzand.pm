@@ -120,7 +120,7 @@ sub do_start_rule {
     return [
         {   lhs    => '[:start]',
             rhs    => [ $rhs->names() ],
-            action => $do_arg0,
+            action => '::first',
             mask   => [1]
         }
     ];
