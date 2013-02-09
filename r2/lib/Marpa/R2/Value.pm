@@ -575,6 +575,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
         my $rule                = $rules->[$rule_id];
         my $mask                = $rule->[Marpa::R2::Internal::Rule::MASK];
+        my $mask_count = scalar grep { $_ } @{$mask};
         my $semantics           = $rule_semantics->[$rule_id];
         my $original_semantics = $semantics;
         my $rule_length         = $grammar_c->rule_length($rule_id);
@@ -586,6 +587,19 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
         PROCESS_SEMANTICS: {
 
             last PROCESS_SEMANTICS if not defined $semantics;
+
+            DWIM: {
+                last DWIM if $semantics ne '::dwim';
+                if ($is_sequence or $mask_count > 1) {
+                    $semantics = '::array';
+                    last DWIM;
+                }
+                if ($is_sequence or $mask_count == 1) {
+                    $semantics = '::first';
+                    last DWIM;
+                }
+                $semantics = '::undef';
+            } ## end DWIM:
 
             if ( $semantics eq '::array' ) {
                 $array_fate = $op_result_is_array;

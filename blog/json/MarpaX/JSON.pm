@@ -21,9 +21,9 @@ json         ::= object
 object       ::= '{' '}'               action => do_empty_object
                | '{' members '}'       action => do_object
 
-members      ::= pair+                 separator => <comma> action => do_list
+members      ::= pair+                 separator => <comma> action => ::array
 
-pair         ::= string ':' value      action => do_pair
+pair         ::= string (':') value      action => ::array
 
 value        ::= string
                | object
@@ -36,7 +36,7 @@ value        ::= string
 array        ::= '[' ']'               action => do_empty_array
                | ('[') elements (']')      action => ::first
 
-elements     ::= value+                separator => <comma> action => do_list
+elements     ::= value+                separator => <comma> action => ::array
 
 number         ~ int
                | int frac
@@ -125,16 +125,6 @@ sub do_object {
 
 sub do_empty_array {
     return [];
-}
-
-sub do_list {
-    shift;
-    return \@_;
-}
-
-sub do_pair {
-    shift;
-    return [ $_[0], $_[2] ];
 }
 
 sub do_string {
