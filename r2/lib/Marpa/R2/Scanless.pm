@@ -225,6 +225,7 @@ sub do_priority_rule {
             my %hash_rule =
                 ( lhs => $lhs, rhs => \@rhs_names, mask => \@mask );
             my $action = $adverb_list->{action};
+            my $blessing = $adverb_list->{bless};
             if ( defined $action ) {
                 Marpa::R2::exception(
                     'actions not allowed in lexical rules (rules LHS was "',
@@ -232,6 +233,14 @@ sub do_priority_rule {
                     if $Marpa::R2::Inner::Scanless::GRAMMAR_LEVEL <= 0;
                 $hash_rule{action} = $action;
             } ## end if ( defined $action )
+            if ( defined $blessing ) {
+                Marpa::R2::exception(
+                    'bless option not allowed in lexical rules (rules LHS was "',
+                    $lhs,
+                    '")'
+                ) if $Marpa::R2::Inner::Scanless::GRAMMAR_LEVEL <= 0;
+                $hash_rule{bless} = $blessing;
+            } ## end if ( defined $blessing )
             push @{$rules}, \%hash_rule;
         } ## end for my $alternative ( @{ $priorities->[0] } )
         return [@xs_rules];
@@ -289,6 +298,16 @@ sub do_priority_rule {
             $new_xs_rule{action} = $action;
         } ## end if ( defined $action )
 
+        my $blessing = $adverb_list->{bless};
+        if ( defined $blessing ) {
+            Marpa::R2::exception(
+                'bless option not allowed in lexical rules (rules LHS was "',
+                $lhs,
+                '")'
+            ) if $Marpa::R2::Inner::Scanless::GRAMMAR_LEVEL <= 0;
+            $new_xs_rule{bless} = $blessing;
+        } ## end if ( defined $blessing )
+
         my $next_priority = $priority + 1;
         $next_priority = 0 if $next_priority >= $priority_count;
         my $next_exp = $lhs . '[prec' . $next_priority . ']';
@@ -345,6 +364,15 @@ sub do_empty_rule {
         $rule{action} = $action;
     } ## end if ( defined $action )
 
+    my $blessing = $adverb_list->{bless};
+    if ( defined $blessing ) {
+        Marpa::R2::exception(
+            'bless option not allowed in lexical rules (rules LHS was "',
+            $lhs, '")' )
+            if $Marpa::R2::Inner::Scanless::GRAMMAR_LEVEL <= 0;
+        $rule{bless} = $blessing;
+    } ## end if ( defined $blessing )
+
     # mask not needed
     if ( $op_declare eq q{::=} ) {
         return \%rule;
@@ -365,6 +393,7 @@ sub do_quantified_rule {
         rhs => [ $rhs->name() ],
         min => ( $quantifier eq q{+} ? 1 : 0 )
     );
+
     my $action = $adverb_list->{action};
     if ( defined $action ) {
         Marpa::R2::exception(
@@ -373,6 +402,16 @@ sub do_quantified_rule {
             if $Marpa::R2::Inner::Scanless::GRAMMAR_LEVEL <= 0;
         $sequence_rule{action} = $action;
     } ## end if ( defined $action )
+
+    my $blessing = $adverb_list->{bless};
+    if ( defined $blessing ) {
+        Marpa::R2::exception(
+            'bless option not allowed in lexical rules (rules LHS was "',
+            $lhs, '")' )
+            if $Marpa::R2::Inner::Scanless::GRAMMAR_LEVEL <= 0;
+        $sequence_rule{bless} = $blessing;
+    } ## end if ( defined $blessing )
+
     my @rules = ( \%sequence_rule );
 
     my $original_separator = $adverb_list->{separator};
@@ -2356,6 +2395,7 @@ my %actions_by_lhs_symbol = (
     alternative                      => 'do_alternative',
     'adverb list'                    => 'do_adverb_list',
     action                           => 'do_action',
+    blessing                         => 'do_blessing',
     'left association'               => 'do_left_association',
     'right association'              => 'do_right_association',
     'group association'              => 'do_group_association',
@@ -2508,6 +2548,10 @@ sub Marpa::R2::Scanless::G::_source_to_hash {
             } ## end if ( $action eq 'do_discard_separators' )
             if ( $action eq 'do_action' ) {
                 $stack[$arg_0] = [ action => $args[0] ];
+                next STEP;
+            }
+            if ( $action eq 'do_blessing' ) {
+                $stack[$arg_0] = [ bless => $args[0] ];
                 next STEP;
             }
             if ( $action eq 'do_left_association' ) {

@@ -73,6 +73,7 @@ BEGIN {
     RULES { array of rule refs }
     SYMBOLS { array of symbol refs }
     ACTIONS { Default package in which to find actions }
+    BLESS_PACKAGE { Default package into which nodes are blessed }
     DEFAULT_ACTION { Action for rules without one }
     TRACE_FILE_HANDLE
     WARNINGS { print warnings about grammar? }
@@ -183,6 +184,7 @@ use constant GRAMMAR_OPTIONS => [
         _internal_
         action_object
         actions
+        bless_package
         infinite_action
         default_action
         default_empty_action
@@ -382,6 +384,10 @@ sub Marpa::R2::Grammar::set {
 
         if ( defined( my $value = $args->{'actions'} ) ) {
             $grammar->[Marpa::R2::Internal::Grammar::ACTIONS] = $value;
+        }
+
+        if ( defined( my $value = $args->{'bless_package'} ) ) {
+            $grammar->[Marpa::R2::Internal::Grammar::BLESS_PACKAGE] = $value;
         }
 
         if ( defined( my $value = $args->{'action_object'} ) ) {
@@ -1074,7 +1080,7 @@ sub add_user_rule {
     my $rules        = $grammar->[Marpa::R2::Internal::Grammar::RULES];
     my $default_rank = $grammar_c->default_rank();
 
-    my ( $lhs_name, $rhs_names, $action );
+    my ( $lhs_name, $rhs_names, $action, $blessing );
     my ( $min, $separator_name );
     my $rank;
     my $null_ranking;
@@ -1088,6 +1094,7 @@ sub add_user_rule {
         if ( $option eq 'rhs' )    { $rhs_names = $value; next OPTION }
         if ( $option eq 'lhs' )    { $lhs_name  = $value; next OPTION }
         if ( $option eq 'action' ) { $action    = $value; next OPTION }
+        if ( $option eq 'bless' ) { $blessing    = $value; next OPTION }
         if ( $option eq 'rank' )   { $rank      = $value; next OPTION }
         if ( $option eq 'null_ranking' ) {
             $null_ranking = $value;
