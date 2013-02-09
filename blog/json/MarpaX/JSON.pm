@@ -33,7 +33,7 @@ value        ::= string
                | 'false'               action => do_true
                | 'null'                action => ::undef
 
-array        ::= '[' ']'               action => do_empty_array
+array        ::= ('[' ']')               action => ::array
                | ('[') elements (']')
 
 elements     ::= value+                separator => <comma>
@@ -121,10 +121,6 @@ sub do_empty_object {
 sub do_object {
     shift;
     return { map { @$_ } @{$_[1]} };
-}
-
-sub do_empty_array {
-    return [];
 }
 
 sub do_string {
