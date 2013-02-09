@@ -15,9 +15,12 @@
 
 Revision history for Marpa::R2
 
+2.047_001
 2.047_000
 
      * New series of developer's releases
+
+     * Added blessed nodes
 
      * Working on speedup of valuator.
 
