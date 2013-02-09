@@ -556,6 +556,8 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
     state $op_result_is_rhs_n    = Marpa::R2::Thin::op('result_is_rhs_n');
     state $op_result_is_constant = Marpa::R2::Thin::op('result_is_constant');
     state $op_result_is_undef    = Marpa::R2::Thin::op('result_is_undef');
+    state $op_result_is_array    = Marpa::R2::Thin::op('result_is_array');
+    state $op_push_all           = Marpa::R2::Thin::op('push_all');
     state $op_push_sequence      = Marpa::R2::Thin::op('push_sequence');
     state $op_push_one           = Marpa::R2::Thin::op('push_one');
     state $op_callback           = Marpa::R2::Thin::op('callback');
@@ -578,6 +580,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
         my $is_sequence         = defined $grammar_c->sequence_min($rule_id);
         my $is_discard_sequence = $is_sequence
             && $rule->[Marpa::R2::Internal::Rule::DISCARD_SEPARATION];
+        my $array_fate;
 
         if ( defined $semantics ) {
             my $original_semantics = $semantics;
@@ -586,8 +589,12 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                 next RULE;
             }
 
+            if ( $semantics eq '::array' ) {
+                $array_fate = $op_result_is_array;
+            }
+
             my $singleton;
-            $singleton = 0  if $semantics eq '::first';
+            $singleton = 0 if $semantics eq '::first';
             if ( $semantics =~ m/\A [:][:] rhs (\d+)  \z/xms ) {
                 $singleton = $1 + 0;
             }
@@ -598,7 +605,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                     if ($is_discard_sequence) {
                         $singleton_element = $singleton * 2;
                     }
-                } ## end if ($is_sequence)
+                }
                 else {
                     my @elements =
                         grep { $mask->[$_] } 0 .. ( $rule_length - 1 );
@@ -621,7 +628,8 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                         );
                     } ## end if ( not defined $singleton_element )
                 } ## end else [ if ($is_sequence) ]
-                $value->rule_register( $rule_id, $op_result_is_rhs_n, $singleton_element );
+                $value->rule_register( $rule_id, $op_result_is_rhs_n,
+                    $singleton_element );
                 next RULE;
             } ## end if ( defined $singleton )
 
@@ -634,30 +642,33 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
         } ## end if ( defined $semantics )
 
-        my $closure = $rule_closures->[$rule_id];
-        if ( !defined $closure
-            || ( ref $closure eq 'SCALAR' && !defined ${$closure} ) )
-        {
-            $value->rule_register( $rule_id, $op_result_is_undef );
-            next RULE;
-        } ## end if ( !defined $closure || ( ref $closure eq 'SCALAR'...))
+        if ( not defined $array_fate ) {
+            my $closure = $rule_closures->[$rule_id];
+            if ( !defined $closure
+                || ( ref $closure eq 'SCALAR' && !defined ${$closure} ) )
+            {
+                $value->rule_register( $rule_id, $op_result_is_undef );
+                next RULE;
+            } ## end if ( !defined $closure || ( ref $closure eq 'SCALAR'...))
+            $array_fate = $op_callback;
+        } ## end if ( not defined $array_fate )
 
-        # if here, $closure is defined
+        # if here, $array_fate is defined
         if ($is_sequence) {
-            if ($is_discard_sequence) {
-                $value->rule_register( $rule_id, $op_push_sequence,
-                    $op_callback );
-            }
-
-            # KEEP SEPARATION can use the default
+            my $push_op =
+                $is_discard_sequence ? $op_push_sequence : $op_push_all;
+            $value->rule_register( $rule_id, $push_op, $array_fate );
             next RULE;
+        }
 
-        } ## end if ($is_sequence)
-        next RULE if $rule_length <= 0;
-        my @push_ops =
-            map { $mask->[$_] ? ( $op_push_one, $_ ) : () }
-            0 .. $grammar_c->rule_length($rule_id) - 1;
-        $value->rule_register( $rule_id, @push_ops, $op_callback );
+        my @push_ops = ();
+        if ( $rule_length > 0 ) {
+            push @push_ops,
+                map { $mask->[$_] ? ( $op_push_one, $_ ) : () }
+                0 .. $rule_length - 1;
+        }
+        $value->rule_register( $rule_id, @push_ops, $array_fate );
+
     } ## end RULE: for my $rule_id ( $grammar->rule_ids() )
 
     my @nulling_closures;
