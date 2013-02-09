@@ -553,7 +553,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
     $value->trace_values($trace_values);
     $value->stack_mode_set($token_values);
 
-    state $op_result_is_arg_0    = Marpa::R2::Thin::op('result_is_arg_0');
+    state $op_result_is_rhs_n    = Marpa::R2::Thin::op('result_is_rhs_n');
     state $op_result_is_constant = Marpa::R2::Thin::op('result_is_constant');
     state $op_result_is_undef    = Marpa::R2::Thin::op('result_is_undef');
     state $op_push_sequence      = Marpa::R2::Thin::op('push_sequence');
@@ -621,13 +621,8 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                         );
                     } ## end if ( not defined $singleton_element )
                 } ## end else [ if ($is_sequence) ]
-                if ( $singleton_element == 0 ) {
-                    $value->rule_register( $rule_id, $op_result_is_arg_0 );
-                    next RULE;
-                }
-                Marpa::R2::exception(
-                    qq{Unimplemented semantics: "$original_semantics"\n},
-                    qq{ Rule was }, $grammar->brief_rule($rule_id), "\n" );
+                $value->rule_register( $rule_id, $op_result_is_rhs_n, $singleton_element );
+                next RULE;
             } ## end if ( defined $singleton )
 
             Marpa::R2::exception(

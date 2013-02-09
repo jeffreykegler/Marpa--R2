@@ -292,7 +292,7 @@ enum marpa_op {
    op_callback,
    op_result_is_array,
    op_result_is_constant,
-   op_result_is_arg_0,
+   op_result_is_rhs_n,
    op_result_is_undef
 };
 
@@ -1016,9 +1016,9 @@ PPCODE:
     {
       XSRETURN_IV (op_result_is_array);
     }
-  if (strEQ (op_name, "result_is_arg_0"))
+  if (strEQ (op_name, "result_is_rhs_n"))
     {
-      XSRETURN_IV (op_result_is_arg_0);
+      XSRETURN_IV (op_result_is_rhs_n);
     }
   if (strEQ (op_name, "result_is_constant"))
     {
@@ -2403,14 +2403,12 @@ PPCODE:
 
 		case 0:
 		  goto NEXT_STEP;
-		  /* NOT REACHED */
 
 		case op_result_is_undef:
 		  {
 		    av_fill (stack, -1 + result_stack_ix);
-		    goto NEXT_STEP;
 		  }
-		  /* NOT REACHED */
+		  goto NEXT_STEP;
 
 		case op_result_is_constant:
 		  {
@@ -2445,10 +2443,8 @@ PPCODE:
 			av_push (v_wrapper->event_queue,
 				 newRV_noinc ((SV *) event));
 		      }
-		    goto NEXT_STEP;
 		  }
-		  /* NOT REACHED */
-
+		  goto NEXT_STEP;
 
 		case op_callback:
 		  {
@@ -2478,7 +2474,6 @@ PPCODE:
 	  IV arg_n = marpa_v_arg_n (v);
 	  UV *rule_ops;
 	  int op_ix;
-	  int done;
 
 	  v_wrapper->result = arg_0;
 
@@ -2505,36 +2500,54 @@ PPCODE:
 	  av_clear (values_av);
 
 	  op_ix = 0;
-	  done = 0;
-	  while (!done)
+	  while (1)
 	    {
 	      UV op_code = rule_ops[op_ix++];
-	      int stack_ix;
 
 	      switch (op_code)
 		{
 
 		case 0:
-		  done = 1;
-		  break;
+		  goto NEXT_STEP;
 
 		case op_result_is_undef:
 		  {
 		    av_fill (stack, -1 + arg_0);
-		    done = 1;
 		  }
-		  break;
+		  goto NEXT_STEP;
 
-		case op_result_is_arg_0:
-		  {
+		case op_result_is_rhs_n:
+		{
+		    SV** stored_av;
+		    SV **p_sv;
+		    UV stack_ix = rule_ops[op_ix++];
+
+		    if (stack_ix == 0) {
+		      /* Special-cased for two reasons --
+		       * it's common and can be optimized.
+		       */
+		      av_fill (stack, arg_0);
+		      goto NEXT_STEP;
+		    }
+		    p_sv = av_fetch (stack, arg_0 + stack_ix, 0);
+		    if (!p_sv) {
+		      av_fill (stack, arg_0-1);
+		      goto NEXT_STEP;
+		    }
+		    stored_av = av_store(stack, arg_0, SvREFCNT_inc_NN (*p_sv));
+		    if (!stored_av) {
+		      SvREFCNT_dec (*p_sv);
+		      av_fill (stack, arg_0-1);
+		      goto NEXT_STEP;
+		    }
 		    av_fill (stack, arg_0);
-		    done = 1;
-		  }
-		  break;
+		}
+		goto NEXT_STEP;
 
 		case op_push_all:
 		case op_push_sequence:
 		  {
+	      int stack_ix;
 		    int increment = op_code == op_push_sequence ? 2 : 1;
 		    /* Create a mortalized array, so that it will go away
 		     * by default.
