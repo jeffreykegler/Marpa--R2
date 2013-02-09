@@ -10,7 +10,7 @@ sub new {
     $self->{grammar} = Marpa::R2::Scanless::G->new(
         {
             action_object  => 'MarpaX::JSON::Actions',
-            default_action => '::first',
+            default_action => '::dwim',
             source         => \(<<'END_OF_SOURCE'),
 
 :start       ::= json
