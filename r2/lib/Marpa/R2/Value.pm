@@ -706,10 +706,18 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
         } ## end if ( not defined $array_fate )
 
         # if here, $array_fate is defined
+
+        my @bless_ops = ();
+        if ($blessing) {
+            my $fully_qualified_blessing = $bless_package . q{::} . $blessing;
+            my $constant_ix = $value->constant_register($fully_qualified_blessing);
+            push @bless_ops, $op_bless, $constant_ix;
+        }
+
         if ($is_sequence) {
             my $push_op =
                 $is_discard_sequence ? $op_push_sequence : $op_push_all;
-            $value->rule_register( $rule_id, $push_op, $array_fate );
+            $value->rule_register( $rule_id, $push_op, @bless_ops, $array_fate );
             next RULE;
         } ## end if ($is_sequence)
 
@@ -719,7 +727,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                 map { $mask->[$_] ? ( $op_push_one, $_ ) : () }
                 0 .. $rule_length - 1;
         }
-        $value->rule_register( $rule_id, @push_ops, $array_fate );
+        $value->rule_register( $rule_id, @push_ops, @bless_ops, $array_fate );
 
     } ## end RULE: for my $rule_id ( $grammar->rule_ids() )
 
