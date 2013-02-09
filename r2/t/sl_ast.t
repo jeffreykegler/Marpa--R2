@@ -19,7 +19,7 @@
 use 5.010;
 use strict;
 use warnings;
-use Test::More tests => 2;
+use Test::More tests => 4;
 use English qw( -no_match_vars );
 use Scalar::Util qw(blessed);
 
@@ -42,11 +42,11 @@ comma ~ [,]
 Expression ::=
     Number
     | ('(') Expression (')') assoc => group
-   || Expression '**' Expression assoc => right bless => power
-   || Expression '*' Expression bless => multiply
-    | Expression '/' Expression bless => divide
-   || Expression '+' Expression bless => add
-    | Expression '-' Expression bless => subtract
+   || Expression ('**') Expression assoc => right bless => power
+   || Expression ('*') Expression bless => multiply
+    | Expression ('/') Expression bless => divide
+   || Expression ('+') Expression bless => add
+    | Expression ('-') Expression bless => subtract
 Number ~ [\d]+
 
 :discard ~ whitespace
@@ -189,23 +189,23 @@ sub doit { return join q{ },  @_; }
 
 package My_Nodes::add;
 
-sub doit { my ($a, undef, $b) = @_; return $a+$b; }
+sub doit { my ($a, $b) = @_; return $a+$b; }
 
 package My_Nodes::subtract;
 
-sub doit { my ($a, undef, $b) = @_; return $a-$b; }
+sub doit { my ($a, $b) = @_; return $a-$b; }
 
 package My_Nodes::multiply;
 
-sub doit { my ($a, undef, $b) = @_; return $a*$b; }
+sub doit { my ($a, $b) = @_; return $a*$b; }
 
 package My_Nodes::divide;
 
-sub doit { my ($a, undef, $b) = @_; return $a/$b; }
+sub doit { my ($a, $b) = @_; return $a/$b; }
 
 package My_Nodes::power;
 
-sub doit { my ($a, undef, $b) = @_; return $a**$b; }
+sub doit { my ($a, $b) = @_; return $a**$b; }
 
 package My_Actions;
 
