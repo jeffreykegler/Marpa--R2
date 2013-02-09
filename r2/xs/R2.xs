@@ -2570,6 +2570,7 @@ PPCODE:
 			    sv_bless (ref_to_values_av, gv_stashpv (classname, 1));
 			  }
 		      }
+		    blessing = 0;
 		    stored_av = av_store(stack, arg_0, ref_to_values_av);
 
 		    /* Clear the way for a new values AV
@@ -2640,12 +2641,24 @@ PPCODE:
 
 		case op_callback:
 		  {
+		    SV* ref_to_values_av = sv_2mortal(newRV_inc((SV*)values_av));
+		    if (blessing)
+		      {
+			SV **p_blessing_sv = av_fetch (v_wrapper->constants, blessing, 0);
+			if (p_blessing_sv && SvPOK (*p_blessing_sv))
+			  {
+			    STRLEN blessing_length;
+			    char *classname = SvPV (*p_blessing_sv, blessing_length);
+			    sv_bless (ref_to_values_av, gv_stashpv (classname, 1));
+			  }
+		      }
+		    blessing = 0;
 		    XPUSHs (sv_2mortal (newSVpv (result_string, 0)));
 		    XPUSHs (sv_2mortal (newSViv (rule_id)));
 		    /* Must increment ref cnt of array to de-mortalize it,
 		     * but the RV must be mortal.
 		     */
-		    XPUSHs (sv_2mortal (newRV_inc ((SV *) values_av)));
+		    XPUSHs (ref_to_values_av);
 		    XSRETURN (3);
 		  }
 		  /* NOT REACHED */
