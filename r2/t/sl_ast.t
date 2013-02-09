@@ -21,6 +21,7 @@ use strict;
 use warnings;
 use Test::More tests => 2;
 use English qw( -no_match_vars );
+use Scalar::Util qw(blessed);
 
 use lib 'inc';
 use Marpa::R2::Test;
@@ -140,14 +141,71 @@ sub my_parser {
 
 } ## end sub my_parser
 
-my $test_input = '42*2+7/3, 42*(2+7)/3, 2**7-3, 2**(7-3)';
+sub doit {
+    my ($value) = @_;
+    my $ref_type = ref $value;
+    my $is_my_node = substr( $ref_type, 0, 10 ) eq 'My_Nodes::';
+    if ($is_my_node) {
+        my $method = $value->can('doit');
+        if ( defined $method ) {
+            my @children = map { doit($_); } @{$value};
+            return $method->(@children);
+        }
+    } ## end if ($is_my_node)
+    return [ map { doit($_) } @{$value} ]
+        if $is_my_node
+            or $ref_type eq 'ARRAY';
+    return $value;
+} ## end sub doit
 
-my $value = my_parser( $grammar, \$test_input );
-TODO: {
-    local $TODO = 'Work in progress';
-    my $actual = Data::Dumper::Dumper($value);
-    Test::More::is( $actual, '', 'Value' );
+my @tests = (
+    [   '42*2+7/3, 42*(2+7)/3, 2**7-3, 2**(7-3)' =>
+            qr/\A 86[.]3\d+ \s+ 126 \s+ 125 \s+ 16\z/xms
+    ],
+    [   '42*3+7, 42 * 3 + 7, 42 * 3+7' => qr/ \s* 133 \s+ 133 \s+ 133 \s* /xms
+    ],
+    [   '15329 + 42 * 290 * 711, 42*3+7, 3*3+4* 4' =>
+            qr/ \s* 8675309 \s+ 133 \s+ 25 \s* /xms
+    ],
+);
+
+for my $test (@tests) {
+    my ( $input, $output_re ) = @{$test};
+    my $value = my_parser( $grammar, \$input );
+    my $result = doit($value);
+    Test::More::like( $result, $output_re, 'Value of scannerless parse' );
 }
+
+# TODO: {
+    # local $TODO = 'Work in progress';
+    # say Data::Dumper::Dumper(doit($value));
+    # my $actual = Data::Dumper::Dumper($value);
+    # Test::More::is( $actual, '', 'Value' );
+# }
+
+package My_Nodes::script;
+
+sub doit { return join q{ },  @_; }
+
+package My_Nodes::add;
+
+sub doit { my ($a, undef, $b) = @_; return $a+$b; }
+
+package My_Nodes::subtract;
+
+sub doit { my ($a, undef, $b) = @_; return $a-$b; }
+
+package My_Nodes::multiply;
+
+sub doit { my ($a, undef, $b) = @_; return $a*$b; }
+
+package My_Nodes::divide;
+
+sub doit { my ($a, undef, $b) = @_; return $a/$b; }
+
+package My_Nodes::power;
+
+sub doit { my ($a, undef, $b) = @_; return $a**$b; }
 
 package My_Actions;
 
