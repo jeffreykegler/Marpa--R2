@@ -1921,26 +1921,33 @@ PPCODE:
   Marpa_Value v = marpa_v_new (t);
   if (!v)
     {
-      if (!t_wrapper->base->throw) { XSRETURN_UNDEF; }
-      croak ("Problem in v->new(): %s", xs_g_error(t_wrapper->base));
+      if (!t_wrapper->base->throw)
+	{
+	  XSRETURN_UNDEF;
+	}
+      croak ("Problem in v->new(): %s", xs_g_error (t_wrapper->base));
     }
   Newx (v_wrapper, 1, V_Wrapper);
   {
-    SV* base_sv = t_wrapper->base_sv;
+    SV *base_sv = t_wrapper->base_sv;
     SvREFCNT_inc (base_sv);
     v_wrapper->base_sv = base_sv;
   }
   v_wrapper->base = t_wrapper->base;
   v_wrapper->v = v;
-  v_wrapper->event_queue = newAV();
+  v_wrapper->event_queue = newAV ();
   v_wrapper->token_values = NULL;
   v_wrapper->stack = NULL;
   v_wrapper->mode = MARPA_XS_V_MODE_IS_INITIAL;
   v_wrapper->result = 0;
   v_wrapper->trace_values = 0;
-  v_wrapper->constants = newAV();
-  v_wrapper->rule_semantics = newAV();
-  v_wrapper->nulling_semantics = newAV();
+
+  v_wrapper->constants = newAV ();
+  /* Reserve position 0 */
+  av_push (v_wrapper->constants, &PL_sv_undef);
+
+  v_wrapper->rule_semantics = newAV ();
+  v_wrapper->nulling_semantics = newAV ();
   sv = sv_newmortal ();
   sv_setref_pv (sv, value_c_class_name, (void *) v_wrapper);
   XPUSHs (sv);
@@ -2090,8 +2097,6 @@ PPCODE:
 
   v_wrapper->token_values = token_values;
   SvREFCNT_inc (token_values);
-
-  v_wrapper->constants = newAV ();
 
   {
     int ix;
@@ -2479,6 +2484,7 @@ PPCODE:
 	  IV arg_n = marpa_v_arg_n (v);
 	  UV *rule_ops;
 	  int op_ix;
+	  UV blessing = 0;
 
 	  v_wrapper->result = arg_0;
 
@@ -2554,6 +2560,16 @@ PPCODE:
 		    SV** stored_av;
 		    /* Increment ref count of values_av to de-mortalize it */
 		    SV* ref_to_values_av = newRV_inc((SV*)values_av);
+		    if (blessing)
+		      {
+			SV **p_blessing_sv = av_fetch (v_wrapper->constants, blessing, 0);
+			if (p_blessing_sv && SvPOK (*p_blessing_sv))
+			  {
+			    STRLEN blessing_length;
+			    char *classname = SvPV (*p_blessing_sv, blessing_length);
+			    sv_bless (ref_to_values_av, gv_stashpv (classname, 1));
+			  }
+		      }
 		    stored_av = av_store(stack, arg_0, ref_to_values_av);
 
 		    /* Clear the way for a new values AV
@@ -2618,7 +2634,7 @@ PPCODE:
 
 		case op_bless:
 		  {
-		    int blessing = rule_ops[op_ix++];
+		    blessing = rule_ops[op_ix++];
 		  }
 		  break;
 
