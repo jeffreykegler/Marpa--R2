@@ -276,6 +276,7 @@ t/rank.t
 t/rewrite.t
 t/sequence.t
 t/sequence2.t
+t/sl_ast.t
 t/sl_diag.t
 t/sl_dsl.t
 t/sl_exhaust.t

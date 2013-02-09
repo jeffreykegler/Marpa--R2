@@ -590,11 +590,11 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
             DWIM: {
                 last DWIM if $semantics ne '::dwim';
-                if ($is_sequence or $mask_count > 1) {
+                if ( $is_sequence or $mask_count > 1 ) {
                     $semantics = '::array';
                     last DWIM;
                 }
-                if ($is_sequence or $mask_count == 1) {
+                if ( $is_sequence or $mask_count == 1 ) {
                     $semantics = '::first';
                     last DWIM;
                 }
