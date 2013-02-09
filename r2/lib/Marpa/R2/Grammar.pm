@@ -54,6 +54,7 @@ BEGIN {
     NAME
     DISCARD_SEPARATION
     MASK { Semantic mask of RHS symbols }
+    BLESSING
 
 END_OF_STRUCTURE
     Marpa::R2::offset($structure);
@@ -1221,7 +1222,6 @@ sub add_user_rule {
         my $ordinary_rule_id = $grammar_c->rule_new( $lhs_id, \@rhs_ids );
         $grammar_c->throw_set(1);
 
-
         if ( $ordinary_rule_id < 0 ) {
             my $rule_description =
                 "$lhs_name -> " . ( join q{ }, @{$rhs_names} );
@@ -1237,8 +1237,8 @@ sub add_user_rule {
         my $ordinary_rule = $rules->[$ordinary_rule_id];
 
         # Only internal grammars can set a custom mask
-        if (not defined $mask or not $grammar_is_internal) {
-            $mask = [(1) x scalar @rhs_ids];
+        if ( not defined $mask or not $grammar_is_internal ) {
+            $mask = [ (1) x scalar @rhs_ids ];
         }
         $ordinary_rule->[Marpa::R2::Internal::Rule::MASK] = $mask;
 
@@ -1252,6 +1252,11 @@ sub add_user_rule {
             $ordinary_rule->[Marpa::R2::Internal::Rule::NAME] = $rule_name;
             $rules_by_name->{$rule_name} = $ordinary_rule;
         }
+
+        if ( defined $blessing ) {
+            $ordinary_rule->[Marpa::R2::Internal::Rule::BLESSING] = $blessing;
+        }
+
         return;
     }    # not defined $min
 
@@ -1306,6 +1311,9 @@ sub add_user_rule {
         $original_rule->[Marpa::R2::Internal::Rule::NAME] = $rule_name;
         $rules_by_name->{$rule_name} = $original_rule;
     }
+    if ( defined $blessing ) {
+            $original_rule->[Marpa::R2::Internal::Rule::BLESSING] = $blessing;
+            }
 
     return;
 

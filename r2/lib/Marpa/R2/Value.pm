@@ -573,24 +573,33 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
             );
         } ## end if ( not $result )
 
+
+        my $semantics           = $rule_semantics->[$rule_id] // q{};
+        my $original_semantics  = $semantics;
+        state $allowed_semantics = { map { ;($_, 1) } qw(::array ::dwim ::undef ::first ::whatever), q{} };
+        if (    not $allowed_semantics->{$semantics}
+            and not $semantics =~ m/ \A rhs \d+ \z /xms )
+        {
+            Marpa::R2::exception(
+                qq{Unknown semantics for rule },
+                $grammar->brief_rule($rule_id),
+                "\n",
+                qq{    Semantics were specified as "$original_semantics"\n}
+            );
+        } ## end if ( not $allowed_semantics{$semantics} and not $semantics...)
+
         my $rule                = $rules->[$rule_id];
         my $mask                = $rule->[Marpa::R2::Internal::Rule::MASK];
-        my $mask_count = scalar grep { $_ } @{$mask};
-        my $semantics           = $rule_semantics->[$rule_id];
-        my $original_semantics = $semantics;
+        my $mask_count          = scalar grep {$_} @{$mask};
         my $rule_length         = $grammar_c->rule_length($rule_id);
         my $is_sequence         = defined $grammar_c->sequence_min($rule_id);
         my $is_discard_sequence = $is_sequence
             && $rule->[Marpa::R2::Internal::Rule::DISCARD_SEPARATION];
-        my $array_fate;
-
-        PROCESS_SEMANTICS: {
-
-            last PROCESS_SEMANTICS if not defined $semantics;
+        my $blessing = $rule->[Marpa::R2::Internal::Rule::BLESSING];
 
             DWIM: {
                 last DWIM if $semantics ne '::dwim';
-                if ( $is_sequence or $mask_count > 1 ) {
+                if ( defined $blessing or $is_sequence or $mask_count > 1 ) {
                     $semantics = '::array';
                     last DWIM;
                 }
@@ -601,74 +610,86 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                 $semantics = '::undef';
             } ## end DWIM:
 
-            if ( $semantics eq '::array' ) {
+        # Determine the "fate" of the array of child values
+        my $array_fate;
+        ARRAY_FATE: {
+            if ( $semantics eq '::array') {
                 $array_fate = $op_result_is_array;
-                last PROCESS_SEMANTICS;
+                last ARRAY_FATE;
             }
 
-            if ( $semantics eq '::undef' or $semantics eq '::whatever' ) {
-                $value->rule_register( $rule_id, $op_result_is_undef );
-                next RULE;
-            }
+            my $closure = $rule_closures->[$rule_id];
+            if ( defined $closure
+                && ( ref $closure ne 'SCALAR' || defined ${$closure} ) )
+            {
+                $array_fate = $op_callback;
+                last ARRAY_FATE;
 
+            } ## end if ( defined $closure && ( ref $closure ne 'SCALAR' ...))
+        } ## end ARRAY_FATE:
+
+        if ( not defined $array_fate ) {
+            if ( defined $blessing ) {
+                Marpa::R2::exception(
+                    qq{A blessed rule has the wrong semantics\n},
+                    qq{  The rule was: },
+                    $grammar->brief_rule($rule_id),
+                    "\n",
+                    qq{  The semantics were specified as "$original_semantics"\n}
+                );
+            } ## end if ( defined $blessing )
+        } ## end if ( not defined $array_fate )
+
+        if ( $semantics eq '::undef' or $semantics eq '::whatever' ) {
+            $value->rule_register( $rule_id, $op_result_is_undef );
+            next RULE;
+        } ## end if ( not defined $array_fate )
+
+        PROCESS_SINGLETON: {
             my $singleton;
             $singleton = 0 if $semantics eq '::first';
             if ( $semantics =~ m/\A [:][:] rhs (\d+)  \z/xms ) {
                 $singleton = $1 + 0;
             }
 
-            if ( defined $singleton ) {
-                my $singleton_element = $singleton;
-                if ($is_sequence) {
-                    if ($is_discard_sequence) {
-                        $singleton_element = $singleton * 2;
-                    }
+            last PROCESS_SINGLETON if not defined $singleton;
+
+            my $singleton_element = $singleton;
+            if ($is_sequence) {
+                if ($is_discard_sequence) {
+                    $singleton_element = $singleton * 2;
                 }
-                else {
-                    my @elements =
-                        grep { $mask->[$_] } 0 .. ( $rule_length - 1 );
-                    if ( not scalar @elements ) {
-                        Marpa::R2::exception(
-                            qq{Impossible semantics for empty rule: },
-                            $grammar->brief_rule($rule_id),
-                            "\n",
-                            qq{    Semantics were specified as "$original_semantics"\n}
-                        );
-                    } ## end if ( not scalar @elements )
-                    $singleton_element = $elements[$singleton];
+            }
+            else {
+                my @elements =
+                    grep { $mask->[$_] } 0 .. ( $rule_length - 1 );
+                if ( not scalar @elements ) {
+                    Marpa::R2::exception(
+                        qq{Impossible semantics for empty rule: },
+                        $grammar->brief_rule($rule_id),
+                        "\n",
+                        qq{    Semantics were specified as "$original_semantics"\n}
+                    );
+                } ## end if ( not scalar @elements )
+                $singleton_element = $elements[$singleton];
 
-                    if ( not defined $singleton_element ) {
-                        Marpa::R2::exception(
-                            qq{Impossible semantics for rule: },
-                            $grammar->brief_rule($rule_id),
-                            "\n",
-                            qq{    Semantics were specified as "$original_semantics"\n}
-                        );
-                    } ## end if ( not defined $singleton_element )
-                } ## end else [ if ($is_sequence) ]
-                $value->rule_register( $rule_id, $op_result_is_rhs_n,
-                    $singleton_element );
-                next RULE;
-            } ## end if ( defined $singleton )
-
-            Marpa::R2::exception(
-                qq{Unknown semantics for rule },
-                $grammar->brief_rule($rule_id),
-                "\n",
-                qq{    Semantics were specified as "$original_semantics"\n}
-            );
-
-        } ## end PROCESS_SEMANTICS:
+                if ( not defined $singleton_element ) {
+                    Marpa::R2::exception(
+                        qq{Impossible semantics for rule: },
+                        $grammar->brief_rule($rule_id),
+                        "\n",
+                        qq{    Semantics were specified as "$original_semantics"\n}
+                    );
+                } ## end if ( not defined $singleton_element )
+            } ## end else [ if ($is_sequence) ]
+            $value->rule_register( $rule_id, $op_result_is_rhs_n,
+                $singleton_element );
+            next RULE;
+        } ## end PROCESS_SINGLETON:
 
         if ( not defined $array_fate ) {
-            my $closure = $rule_closures->[$rule_id];
-            if ( !defined $closure
-                || ( ref $closure eq 'SCALAR' && !defined ${$closure} ) )
-            {
-                $value->rule_register( $rule_id, $op_result_is_undef );
-                next RULE;
-            } ## end if ( !defined $closure || ( ref $closure eq 'SCALAR'...))
-            $array_fate = $op_callback;
+            $value->rule_register( $rule_id, $op_result_is_undef );
+            next RULE;
         } ## end if ( not defined $array_fate )
 
         # if here, $array_fate is defined
@@ -677,7 +698,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                 $is_discard_sequence ? $op_push_sequence : $op_push_all;
             $value->rule_register( $rule_id, $push_op, $array_fate );
             next RULE;
-        }
+        } ## end if ($is_sequence)
 
         my @push_ops = ();
         if ( $rule_length > 0 ) {
