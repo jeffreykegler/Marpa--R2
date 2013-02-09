@@ -2544,6 +2544,30 @@ PPCODE:
 		}
 		goto NEXT_STEP;
 
+		case op_result_is_array:
+		{
+		    SV** stored_av;
+		    /* Increment ref count of values_av to de-mortalize it */
+		    SV* ref_to_values_av = newRV_inc((SV*)values_av);
+		    stored_av = av_store(stack, arg_0, ref_to_values_av);
+
+		    /* Clear the way for a new values AV
+		     * The mortal refcount held by this pointer will be
+		     * decremented eventually
+		     */
+		    values_av = NULL;
+		    /* If the new RV did not get stored properly,
+		     * decrement its ref count
+		     */
+		    if (!stored_av) {
+		      SvREFCNT_dec (ref_to_values_av);
+		      av_fill (stack, arg_0 - 1);
+		      goto NEXT_STEP;
+		    }
+		    av_fill (stack, arg_0);
+		}
+		goto NEXT_STEP;
+
 		case op_push_all:
 		case op_push_sequence:
 		  {
