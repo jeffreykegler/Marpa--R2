@@ -553,14 +553,17 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
     $value->trace_values($trace_values);
     $value->stack_mode_set($token_values);
 
-    state $op_result_is_rhs_n    = Marpa::R2::Thin::op('result_is_rhs_n');
-    state $op_result_is_constant = Marpa::R2::Thin::op('result_is_constant');
-    state $op_result_is_undef    = Marpa::R2::Thin::op('result_is_undef');
-    state $op_result_is_array    = Marpa::R2::Thin::op('result_is_array');
-    state $op_push_all           = Marpa::R2::Thin::op('push_all');
-    state $op_push_sequence      = Marpa::R2::Thin::op('push_sequence');
-    state $op_push_one           = Marpa::R2::Thin::op('push_one');
+    state $op_bless              = Marpa::R2::Thin::op('bless');
     state $op_callback           = Marpa::R2::Thin::op('callback');
+    state $op_push_all           = Marpa::R2::Thin::op('push_all');
+    state $op_push_one           = Marpa::R2::Thin::op('push_one');
+    state $op_push_sequence      = Marpa::R2::Thin::op('push_sequence');
+    state $op_result_is_array    = Marpa::R2::Thin::op('result_is_array');
+    state $op_result_is_constant = Marpa::R2::Thin::op('result_is_constant');
+    state $op_result_is_rhs_n    = Marpa::R2::Thin::op('result_is_rhs_n');
+    state $op_result_is_undef    = Marpa::R2::Thin::op('result_is_undef');
+
+    my $bless_package = $grammar->[Marpa::R2::Internal::Grammar::BLESS_PACKAGE];
 
     RULE: for my $rule_id ( $grammar->rule_ids() ) {
         my $result = $value->rule_is_valued_set( $rule_id, 1 );
@@ -597,18 +600,28 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
             && $rule->[Marpa::R2::Internal::Rule::DISCARD_SEPARATION];
         my $blessing = $rule->[Marpa::R2::Internal::Rule::BLESSING];
 
-            DWIM: {
-                last DWIM if $semantics ne '::dwim';
-                if ( defined $blessing or $is_sequence or $mask_count > 1 ) {
-                    $semantics = '::array';
-                    last DWIM;
-                }
-                if ( $is_sequence or $mask_count == 1 ) {
-                    $semantics = '::first';
-                    last DWIM;
-                }
-                $semantics = '::undef';
-            } ## end DWIM:
+        if ( defined $blessing and not defined $bless_package ) {
+            Marpa::R2::exception(
+                qq{A blessed rule is in a grammar with no bless_package\n},
+                qq{  The rule was: },
+                $grammar->brief_rule($rule_id),
+                "\n",
+                qq{  The rule was blessed as "$blessing"\n}
+            );
+        } ## end if ( defined $blessing and not defined $bless_package)
+
+        DWIM: {
+            last DWIM if $semantics ne '::dwim';
+            if ( defined $blessing or $is_sequence or $mask_count > 1 ) {
+                $semantics = '::array';
+                last DWIM;
+            }
+            if ( $is_sequence or $mask_count == 1 ) {
+                $semantics = '::first';
+                last DWIM;
+            }
+            $semantics = '::undef';
+        } ## end DWIM:
 
         # Determine the "fate" of the array of child values
         my $array_fate;

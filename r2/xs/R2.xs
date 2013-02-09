@@ -280,20 +280,21 @@ static int marpa_r2_warn(const char* format, ...)
 
 enum marpa_op {
    op_end_marker = 0,
-   op_noop,
-   op_ignore_rejection,
-   op_report_rejection,
    op_alternative,
-   op_earleme_complete,
-   op_unregistered,
-   op_push_all,
-   op_push_sequence,
-   op_push_one,
+   op_bless,
    op_callback,
+   op_earleme_complete,
+   op_ignore_rejection,
+   op_noop,
+   op_push_all,
+   op_push_one,
+   op_push_sequence,
+   op_report_rejection,
    op_result_is_array,
    op_result_is_constant,
    op_result_is_rhs_n,
-   op_result_is_undef
+   op_result_is_undef,
+   op_unregistered
 };
 
 /* Static grammar methods */
@@ -1007,6 +1008,10 @@ PPCODE:
   if (strEQ (op_name, "push_one"))
     {
       XSRETURN_IV (op_push_one);
+    }
+  if (strEQ (op_name, "bless"))
+    {
+      XSRETURN_IV (op_bless);
     }
   if (strEQ (op_name, "callback"))
     {
@@ -2608,6 +2613,12 @@ PPCODE:
 		      {
 			av_push (values_av, SvREFCNT_inc_simple_NN (*p_sv));
 		      }
+		  }
+		  break;
+
+		case op_bless:
+		  {
+		    int blessing = rule_ops[op_ix++];
 		  }
 		  break;
 
