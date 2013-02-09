@@ -576,21 +576,25 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
         my $rule                = $rules->[$rule_id];
         my $mask                = $rule->[Marpa::R2::Internal::Rule::MASK];
         my $semantics           = $rule_semantics->[$rule_id];
+        my $original_semantics = $semantics;
         my $rule_length         = $grammar_c->rule_length($rule_id);
         my $is_sequence         = defined $grammar_c->sequence_min($rule_id);
         my $is_discard_sequence = $is_sequence
             && $rule->[Marpa::R2::Internal::Rule::DISCARD_SEPARATION];
         my $array_fate;
 
-        if ( defined $semantics ) {
-            my $original_semantics = $semantics;
-            if ( $semantics eq '::undef' or $semantics eq '::whatever' ) {
-                $value->rule_register( $rule_id, $op_result_is_undef );
-                next RULE;
-            }
+        PROCESS_SEMANTICS: {
+
+            last PROCESS_SEMANTICS if not defined $semantics;
 
             if ( $semantics eq '::array' ) {
                 $array_fate = $op_result_is_array;
+                last PROCESS_SEMANTICS;
+            }
+
+            if ( $semantics eq '::undef' or $semantics eq '::whatever' ) {
+                $value->rule_register( $rule_id, $op_result_is_undef );
+                next RULE;
             }
 
             my $singleton;
@@ -640,7 +644,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                 qq{    Semantics were specified as "$original_semantics"\n}
             );
 
-        } ## end if ( defined $semantics )
+        } ## end PROCESS_SEMANTICS:
 
         if ( not defined $array_fate ) {
             my $closure = $rule_closures->[$rule_id];
