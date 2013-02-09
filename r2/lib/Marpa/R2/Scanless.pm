@@ -49,6 +49,7 @@ BEGIN {
     TRACE_FILE_HANDLE
     DEFAULT_ACTION
     ACTION_OBJECT
+    BLESS_PACKAGE
 
 END_OF_STRUCTURE
     Marpa::R2::offset($structure);
@@ -2168,6 +2169,7 @@ sub Marpa::R2::Scanless::R::last_rule {
 
 my %grammar_options = map { ($_, 1) } qw{
     action_object
+    bless_package
     default_action
     source
     trace_file_handle
@@ -2219,6 +2221,10 @@ sub Marpa::R2::Scanless::G::new {
 
     if ( defined( my $value = $args->{'action_object'} ) ) {
         $self->[Marpa::R2::Inner::Scanless::G::ACTION_OBJECT] = $value;
+    }
+
+    if ( defined( my $value = $args->{'bless_package'} ) ) {
+        $self->[Marpa::R2::Inner::Scanless::G::BLESS_PACKAGE] = $value;
     }
 
     if ( defined( my $value = $args->{'default_action'} ) ) {
@@ -2280,6 +2286,7 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
     $g1_args{trace_file_handle} =
         $self->[Marpa::R2::Inner::Scanless::G::TRACE_FILE_HANDLE] // \*STDERR;
     $g1_args{action_object} = $self->[Marpa::R2::Inner::Scanless::G::ACTION_OBJECT];
+    $g1_args{bless_package} = $self->[Marpa::R2::Inner::Scanless::G::BLESS_PACKAGE];
     $g1_args{default_action} = $self->[Marpa::R2::Inner::Scanless::G::DEFAULT_ACTION];
     $g1_args{rules} = $hashed_source->{g1_rules};
     state $g1_target_symbol = '[:start]';

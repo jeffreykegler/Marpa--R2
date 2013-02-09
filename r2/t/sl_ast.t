@@ -32,19 +32,20 @@ use Marpa::R2;
 my $grammar = Marpa::R2::Scanless::G->new(
     {   
         action_object  => 'My_Actions',
+        bless_package => 'My_Nodes',
         default_action => '::dwim',
         source          => \(<<'END_OF_SOURCE'),
 :start ::= Script
-Script ::= Expression+ separator => comma
+Script ::= Expression+ separator => comma bless => script
 comma ~ [,]
 Expression ::=
     Number
     | ('(') Expression (')') assoc => group
-   || Expression '**' Expression assoc => right
-   || Expression '*' Expression
-    | Expression '/' Expression
-   || Expression '+' Expression
-    | Expression '-' Expression
+   || Expression '**' Expression assoc => right bless => power
+   || Expression '*' Expression bless => multiply
+    | Expression '/' Expression bless => divide
+   || Expression '+' Expression bless => add
+    | Expression '-' Expression bless => subtract
 Number ~ [\d]+
 
 :discard ~ whitespace
