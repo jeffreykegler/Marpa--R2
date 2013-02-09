@@ -32,6 +32,7 @@ alternative ::= rhs <adverb list>
       action
     | <left association> | <right association> | <group association>
     | <separator specification> | <proper specification>
+    | blessing
 
 action ::= ('action' '=>') <action name>
 <left association> ::= ('assoc' '=>' 'left')
@@ -39,6 +40,7 @@ action ::= ('action' '=>') <action name>
 <group association> ::= ('assoc' '=>' 'group')
 <separator specification> ::= ('separator' '=>') <single symbol>
 <proper specification> ::= ('proper' '=>') boolean
+<blessing> ::= ('bless' '=>') <standard name>
 
 lhs ::= <symbol name>
 rhs ::= <rhs primary>+
@@ -82,7 +84,9 @@ quantifier ::= '*' | '+'
 boolean ~ [01]
 <reserved action name> ~ '::' <one or more word characters>
 <one or more word characters> ~ [\w]+
+<zero or more word characters> ~ [\w]*
 <bare name> ~ [\w]+
+<standard name> ~ [a-zA-Z] <zero or more word characters>
 <bracketed name> ~ '<' <bracketed name string> '>'
 <bracketed name string> ~ [\s\w]+
 <kwc ws star> ~ ':ws*'
