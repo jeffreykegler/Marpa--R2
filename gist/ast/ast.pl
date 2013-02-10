@@ -124,8 +124,8 @@ END_OF_AST_DUMP
     my $value = my_parser( $grammar, \$input );
     my $ast_dump = Data::Dumper::Dumper($value);
     my $result = doit($value);
-    Test::More::is( $ast_dump, $expected_ast_dump, 'AST of scannerless parse' );
-    Test::More::is( $result, $expected_output, 'Value of scannerless parse' );
+    Test::More::is( $ast_dump, $expected_ast_dump, 'AST' );
+    Test::More::is( $result, $expected_output, qq{Value of "$input"} );
 }
 
 TEST2: {
@@ -133,15 +133,8 @@ TEST2: {
     my $output_re = qr/\A 86[.]3\d+ \s+ 126 \s+ 125 \s+ 16\z/xms;
     my $value = my_parser( $grammar, \$input );
     my $result = doit($value);
-    Test::More::like( $result, $output_re, 'Value of scannerless parse' );
+    Test::More::like( $result, $output_re, qq{Value of "$input"} );
 }
-
-# TODO: {
-    # local $TODO = 'Work in progress';
-    # say Data::Dumper::Dumper(doit($value));
-    # my $actual = Data::Dumper::Dumper($value);
-    # Test::More::is( $actual, '', 'Value' );
-# }
 
 package My_Nodes::script;
 
