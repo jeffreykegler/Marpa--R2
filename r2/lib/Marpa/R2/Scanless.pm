@@ -624,6 +624,12 @@ sub Marpa::R2::Internal::Scanless::meta_grammar {
 
 } ## end sub meta_grammar
 
+sub Marpa::R2::Internal::Scanless::meta_recce {
+    state $meta_grammar = Marpa::R2::Internal::Scanless::meta_grammar();
+    my $self = Marpa::R2::Scanless::R->new( { grammar => $meta_grammar } );
+    return $self;
+}
+
 sub Marpa::R2::Scanless::R::last_rule {
    my ($meta_recce) = @_;
    my ($start, $end) = $meta_recce->last_completed_range( 'rule' );
@@ -889,10 +895,10 @@ sub Marpa::R2::Scanless::G::_source_to_hash {
     # for debuggging
     my @positions = (0);
 
-    state $meta_grammar = Marpa::R2::Internal::Scanless::meta_grammar();
+    my $meta_recce = Marpa::R2::Internal::Scanless::meta_recce();
+    my $meta_grammar = $meta_recce->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
     state $mask_by_rule_id =
         $meta_grammar->[Marpa::R2::Inner::Scanless::G::MASK_BY_RULE_ID];
-    my $meta_recce = Marpa::R2::Scanless::R->new({ grammar => $meta_grammar});
     my $thin_meta_recce  = $meta_recce->[Marpa::R2::Inner::Scanless::R::C];
     $meta_recce->read($p_rules_source);
     my $thick_meta_g1_grammar =
