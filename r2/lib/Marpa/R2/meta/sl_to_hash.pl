@@ -38,8 +38,6 @@ my $result           = Getopt::Long::GetOptions(
 die "usage $PROGRAM_NAME [--help] file ...\n" if $help_flag;
 
 my $bnf           = do { local $RS = undef; \(<>) };
-my @grammar_args  = ();
-my $dummy_grammar = Marpa::R2::Grammar->new( {@grammar_args} );
 my $parse_result =
     Marpa::R2::Scanless::G->_source_to_hash( $bnf );
 
