@@ -30,7 +30,7 @@ package Marpa::R2::Internal::MetaG;
 
 use English qw( -no_match_vars );
 
-sub hashed_meta_grammar {
+sub hashed_grammar {
     my $hashed_metag;
 
 ## no critic(RegularExpressions::RequireDotMatchAnything)
