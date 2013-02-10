@@ -563,62 +563,7 @@ sub parse_rules {
         die "Unexpected step type: $type";
     } ## end STEP: while (1)
 
-    my $rules = $self->{rules} = $stack[0];
-
-    my @ws_rules = ();
-    if ( defined $self->{needs_symbol} ) {
-        my %needed = %{ $self->{needs_symbol} };
-        my %seen   = ();
-        undef $self->{needs_symbol};
-        NEEDED_SYMBOL_LOOP: while (1) {
-            my @needed_symbols =
-                sort grep { !$seen{$_} } keys %needed;
-            last NEEDED_SYMBOL_LOOP if not @needed_symbols;
-            SYMBOL: for my $needed_symbol (@needed_symbols) {
-                $seen{$needed_symbol} = 1;
-                if ( $needed_symbol eq '[:ws+]' ) {
-                    push @ws_rules,
-                        {
-                        lhs => $needed_symbol,
-                        rhs => ['[:Space]'],
-                        min => 1
-                        };
-                    $needed{'[:Space]'} = 1;
-                    next SYMBOL;
-                } ## end if ( $needed_symbol eq '[:ws+]' )
-                if ( $needed_symbol eq '[:ws*]' ) {
-                    push @ws_rules,
-                        {
-                        lhs => $needed_symbol,
-                        rhs => ['[:Space]'],
-                        min => 0
-                        };
-                    $needed{'[:Space]'} = 1;
-                    next SYMBOL;
-                } ## end if ( $needed_symbol eq '[:ws*]' )
-                if ( $needed_symbol eq '[:ws]' ) {
-                    push @ws_rules, { lhs => '[:ws]', rhs => ['[:ws+]'], mask => [0] };
-                    push @ws_rules, { lhs => '[:ws]', rhs => ['[:|w]'], mask => [0] };
-                    $needed{'[:ws+]'} = 1;
-                    next SYMBOL;
-                } ## end if ( $needed_symbol eq '[:ws]' )
-                if ( $needed_symbol eq '[:Space]' ) {
-                    my $true_ws = assign_symbol_by_char_class( $self,
-                        '[\p{White_Space}]' );
-                    push @ws_rules,
-                        {
-                        lhs  => '[:Space]',
-                        rhs  => [ $true_ws->name() ],
-                        mask => [0]
-                        };
-                } ## end if ( $needed_symbol eq '[:Space]' )
-            } ## end SYMBOL: for my $needed_symbol (@needed_symbols)
-        } ## end NEEDED_SYMBOL_LOOP: while (1)
-    } ## end if ( defined $self->{needs_symbol} )
-
-    push @{$rules}, @ws_rules;
-
-    $self->{rules} = $rules;
+    $self->{rules} = $stack[0];
     return $self;
 } ## end sub parse_rules
 
