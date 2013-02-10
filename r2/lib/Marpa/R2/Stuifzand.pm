@@ -398,18 +398,20 @@ my %actions_by_lhs_symbol = (
 sub parse_rules {
     my ($thick_grammar, $p_rules_source) = @_;
 
-    state $meta_grammar = Marpa::R2::Internal::Scanless::meta_grammar();
+    my $meta_recce = Marpa::R2::Internal::Scanless::meta_recce();
+    my $meta_grammar = $meta_recce->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
+
     state $mask_by_rule_id =
         $meta_grammar->[Marpa::R2::Inner::Scanless::G::MASK_BY_RULE_ID];
-    my $meta_recce = Marpa::R2::Scanless::R->new({ grammar => $meta_grammar});
-    my $thin_meta_slr  = $meta_recce->[Marpa::R2::Inner::Scanless::R::C];
+    my $thin_meta_slr = $meta_recce->[Marpa::R2::Inner::Scanless::R::C];
     $meta_recce->read($p_rules_source);
     my $thick_meta_g1_grammar =
         $meta_grammar->[Marpa::R2::Inner::Scanless::G::THICK_G1_GRAMMAR];
     my $meta_g1_tracer       = $thick_meta_g1_grammar->tracer();
     my $thin_meta_g1_grammar = $thick_meta_g1_grammar->thin();
-    my $thick_meta_g1_recce = $meta_recce->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
-    my $thin_meta_g1_recce   = $thick_meta_g1_recce->thin();
+    my $thick_meta_g1_recce =
+        $meta_recce->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+    my $thin_meta_g1_recce = $thick_meta_g1_recce->thin();
     my $thick_g1_recce =
         $meta_recce->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
 
