@@ -608,7 +608,7 @@ sub Marpa::R2::Scanless::R::range_to_string {
         ( $end_position - $start_position );
 } ## end sub Marpa::R2::Scanless::R::range_to_string
 
-sub meta_grammar {
+sub Marpa::R2::Internal::Scanless::meta_grammar {
 
     my $self = bless [], 'Marpa::R2::Scanless::G';
     $self->[Marpa::R2::Inner::Scanless::G::TRACE_FILE_HANDLE] = \*STDERR;
@@ -889,7 +889,7 @@ sub Marpa::R2::Scanless::G::_source_to_hash {
     # for debuggging
     my @positions = (0);
 
-    state $meta_grammar = meta_grammar();
+    state $meta_grammar = Marpa::R2::Internal::Scanless::meta_grammar();
     state $mask_by_rule_id =
         $meta_grammar->[Marpa::R2::Inner::Scanless::G::MASK_BY_RULE_ID];
     my $meta_recce = Marpa::R2::Scanless::R->new({ grammar => $meta_grammar});

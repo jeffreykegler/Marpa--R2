@@ -346,22 +346,6 @@ my %hashed_closures = (
     do_ws_star                   => \&do_ws_star,
 );
 
-sub meta_grammar {
-
-    state $hashed_metag = Marpa::R2::Internal::MetaG::hashed_grammar();
-    my $self = bless [], 'Marpa::R2::Scanless::G';
-    $self->[Marpa::R2::Inner::Scanless::G::TRACE_FILE_HANDLE] = \*STDERR;
-    $self->_hash_to_runtime($hashed_metag);
-
-    my $thick_g1_grammar = $self->[Marpa::R2::Inner::Scanless::G::THICK_G1_GRAMMAR];
-    my @mask_by_rule_id;
-    $mask_by_rule_id[$_] = $thick_g1_grammar->_rule_mask($_) for $thick_g1_grammar->rule_ids();
-    $self->[Marpa::R2::Inner::Scanless::G::MASK_BY_RULE_ID] = \@mask_by_rule_id;
-
-    return $self;
-
-} ## end sub meta_grammar
-
 sub last_rule {
    my ($meta_recce) = @_;
    my ($start, $end) = $meta_recce->last_completed_range( 'rule' );
@@ -414,7 +398,7 @@ my %actions_by_lhs_symbol = (
 sub parse_rules {
     my ($thick_grammar, $p_rules_source) = @_;
 
-    state $meta_grammar = meta_grammar();
+    state $meta_grammar = Marpa::R2::Internal::Scanless::meta_grammar();
     state $mask_by_rule_id =
         $meta_grammar->[Marpa::R2::Inner::Scanless::G::MASK_BY_RULE_ID];
     my $meta_recce = Marpa::R2::Scanless::R->new({ grammar => $meta_grammar});
