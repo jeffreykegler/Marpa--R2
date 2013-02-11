@@ -210,7 +210,7 @@ sub Marpa::R2::Internal::Recognizer::resolve_semantics {
 
         my $rule_id = $rule->[Marpa::R2::Internal::Rule::ID];
 
-        if ( my $action = $tracer->action($rule_id) ) {
+        if ( my $action = $rule->[Marpa::R2::Internal::Rule::ACTION_NAME] ) {
             my $resolution =
                 Marpa::R2::Internal::Recognizer::resolve_action( $recce,
                 $action );
@@ -219,7 +219,7 @@ sub Marpa::R2::Internal::Recognizer::resolve_semantics {
                 if not defined $resolution;
             $rule_resolutions->[$rule_id] = $resolution;
             next RULE;
-        } ## end if ( my $action = $tracer->action($rule_id) )
+        } ## end if ( my $action = $rule->[...])
 
         if (    $default_empty_action
             and $grammar_c->rule_length($rule_id) == 0 )

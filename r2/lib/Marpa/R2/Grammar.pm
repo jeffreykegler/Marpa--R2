@@ -54,6 +54,7 @@ BEGIN {
     NAME
     DISCARD_SEPARATION
     MASK { Semantic mask of RHS symbols }
+    ACTION_NAME
     BLESSING
 
 END_OF_STRUCTURE
@@ -1241,6 +1242,7 @@ sub add_user_rule {
             $mask = [ (1) x scalar @rhs_ids ];
         }
         $ordinary_rule->[Marpa::R2::Internal::Rule::MASK] = $mask;
+        $ordinary_rule->[Marpa::R2::Internal::Rule::ACTION_NAME] = $action;
 
         $tracer->action_set( $ordinary_rule_id, $action );
         if ( defined $rank ) {
@@ -1300,6 +1302,7 @@ sub add_user_rule {
     # but some of the rewritten sequence rules are its
     # semantic equivalents.
     my $original_rule = $rules->[$original_rule_id];
+    $original_rule->[Marpa::R2::Internal::Rule::ACTION_NAME] = $action;
     $tracer->action_set( $original_rule_id, $action );
     $original_rule->[Marpa::R2::Internal::Rule::DISCARD_SEPARATION] =
         $separator_id >= 0 && !$keep_separation;
