@@ -926,6 +926,7 @@ sub Marpa::R2::Scanless::G::_source_to_hash {
     my $valuator = Marpa::R2::Thin::V->new($tree);
     my @actions_by_rule_id;
 
+    my $meta_g1_rules = $thick_meta_g1_grammar->[Marpa::R2::Internal::Grammar::RULES];
     RULE:
     for my $rule_id ( grep { $thin_meta_g1_grammar->rule_length($_); }
         0 .. $thin_meta_g1_grammar->highest_rule_id() )
@@ -948,7 +949,8 @@ sub Marpa::R2::Scanless::G::_source_to_hash {
             $actions_by_rule_id[$rule_id] = $action;
             next RULE;
         }
-        $action = $meta_g1_tracer->action($rule_id);
+        my $rule = $meta_g1_rules->[$rule_id];
+        $action = $rule->[Marpa::R2::Internal::Rule::ACTION_NAME];
         next RULE if not defined $action;
         $actions_by_rule_id[$rule_id] = $action;
     } ## end for my $rule_id ( grep { $thin_meta_g1_grammar->rule_length($_...)})

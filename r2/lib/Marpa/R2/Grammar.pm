@@ -1244,7 +1244,6 @@ sub add_user_rule {
         $ordinary_rule->[Marpa::R2::Internal::Rule::MASK] = $mask;
         $ordinary_rule->[Marpa::R2::Internal::Rule::ACTION_NAME] = $action;
 
-        $tracer->action_set( $ordinary_rule_id, $action );
         if ( defined $rank ) {
             $grammar_c->rule_rank_set( $ordinary_rule_id, $rank );
         }
@@ -1303,7 +1302,6 @@ sub add_user_rule {
     # semantic equivalents.
     my $original_rule = $rules->[$original_rule_id];
     $original_rule->[Marpa::R2::Internal::Rule::ACTION_NAME] = $action;
-    $tracer->action_set( $original_rule_id, $action );
     $original_rule->[Marpa::R2::Internal::Rule::DISCARD_SEPARATION] =
         $separator_id >= 0 && !$keep_separation;
     $grammar_c->rule_null_high_set( $original_rule_id,

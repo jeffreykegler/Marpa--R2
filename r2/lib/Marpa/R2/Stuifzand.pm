@@ -431,6 +431,8 @@ sub parse_rules {
     my $valuator = Marpa::R2::Thin::V->new($tree);
     my @actions_by_rule_id;
 
+    my $meta_g1_rules =
+        $thick_meta_g1_grammar->[Marpa::R2::Internal::Grammar::RULES];
     RULE:
     for my $rule_id ( grep { $thin_meta_g1_grammar->rule_length($_); }
         0 .. $thin_meta_g1_grammar->highest_rule_id() )
@@ -439,24 +441,26 @@ sub parse_rules {
         my ( $lhs, @rhs ) =
             map { Marpa::R2::Grammar::original_symbol_name($_) }
             $meta_g1_tracer->rule($rule_id);
-        if (scalar @rhs == 1) {
+        if ( scalar @rhs == 1 ) {
+
             # These actions are by rhs symbol, for rules
             # with only one RHS symbol
-            my $action = $actions_by_rhs_symbol{$rhs[0]};
-            if (defined $action) {
+            my $action = $actions_by_rhs_symbol{ $rhs[0] };
+            if ( defined $action ) {
                 $actions_by_rule_id[$rule_id] = $action;
                 next RULE;
             }
-        }
+        } ## end if ( scalar @rhs == 1 )
         my $action = $actions_by_lhs_symbol{$lhs};
-        if (defined $action) {
+        if ( defined $action ) {
             $actions_by_rule_id[$rule_id] = $action;
             next RULE;
         }
-        $action = $meta_g1_tracer->action($rule_id);
+        my $rule = $meta_g1_rules->[$rule_id];
+        $action = $rule->[Marpa::R2::Internal::Rule::ACTION_NAME];
         next RULE if not defined $action;
         $actions_by_rule_id[$rule_id] = $action;
-    } ## end for my $rule_id ( grep { $thin_meta_g1_grammar->rule_length($_...)})
+    } ## end for my $rule_id ( grep { $thin_meta_g1_grammar->rule_length...})
 
     my $p_input   = $meta_recce->[Marpa::R2::Inner::Scanless::R::P_INPUT_STRING];
 

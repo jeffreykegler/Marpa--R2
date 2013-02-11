@@ -30,7 +30,6 @@ sub new {
     $self->{g}              = $grammar;
     $self->{symbol_by_name} = {};
     $self->{symbol_names}   = {};
-    $self->{action_by_rule_id}   = [];
     return $self;
 } ## end sub new
 
@@ -77,50 +76,6 @@ sub symbol_force {
     my ( $self, $name ) = @_;
     return $self->{symbol_by_name}->{$name} // $self->symbol_new($name);
 }
-
-sub action {
-    my ( $self, $rule_id ) = @_;
-    return $self->{action_by_rule_id}->[$rule_id];
-}
-
-# Note: no check that $rule_id actually exists
-sub action_set {
-    my ( $self, $rule_id, $action ) = @_;
-    $self->{action_by_rule_id}->[$rule_id] = $action;
-}
-
-sub rule_new {
-    my ( $self, $action, $lhs, @rhs ) = @_;
-    my $lhs_id  = $self->symbol_force($lhs);
-    my @rhs_ids = map { $self->symbol_force($_); } @rhs;
-    my $g       = $self->{g};
-    $g->throw_set(0);
-    my $rule_id = $g->rule_new( $lhs_id, \@rhs_ids );
-    $g->throw_set(1);
-    if ( not defined $rule_id or $rule_id < 0) {
-	my (undef, $error_description) = $g->error();
-        Carp::croak(
-            "Problem defining rule: $lhs ::= ",
-            ( join " ", @rhs ),
-            "\n$error_description\n"
-        );
-    } ## end if ( not defined $rule_id )
-    $self->{action_by_rule_id}->[$rule_id] = $action if defined $action;
-    return $rule_id;
-} ## end sub rule_new
-
-sub sequence_new {
-    my ( $self, $action, $lhs, $rhs, $hash_args ) = @_;
-    my $lhs_id         = $self->symbol_force($lhs);
-    my $rhs_id         = $self->symbol_force($rhs);
-    my %thin_hash_args = %{$hash_args // {}};
-    if ( defined (my $separator = $thin_hash_args{separator} )) {
-        $thin_hash_args{separator} = $self->symbol_force($separator);
-    }
-    my $rule_id = $self->{g}->sequence_new( $lhs_id, $rhs_id, \%thin_hash_args );
-    $self->{action_by_rule_id}->[$rule_id] = $action if defined $action;
-    return $rule_id;
-} ## end sub sequence_new
 
 sub rule {
     my ( $self, $rule_id ) = @_;
