@@ -391,19 +391,20 @@ sub Marpa::R2::Internal::Recognizer::resolve_semantics {
         $blessing_by_rule_id[$rule_id] = join q{}, $bless_package, q{::}, $blessing;
     }
 
-    # Put the resolutions together, checking for consistency
-    my @resolution_by_rule_id = ();
-    RULE: for my $rule_id ( $grammar->rule_ids() )
+    # Put the resolutions together
+    my %resolution_data = ();
     {
-        my ($resolution_name) = @{ $rule_resolutions->[$rule_id] };
-        my $closure           = $closure_by_rule_id->[$rule_id];
-        my $semantics         = $semantics_by_rule_id->[$rule_id];
-        my $blessing          = $blessing_by_rule_id[$rule_id];
-        $resolution_by_rule_id[$rule_id] =
-            [ $resolution_name, $closure, $semantics, $blessing ];
+        $resolution_data{name} =
+            [ map { $rule_resolutions->[$_]->[0] } $grammar->rule_ids() ];
+        $resolution_data{closure} = $closure_by_rule_id;
+        $resolution_data{semantics} = $semantics_by_rule_id;
+        $resolution_data{blessing} = \@blessing_by_rule_id;
     } ## end RULE: for my $rule_id ( $grammar->rule_ids() )
 
-    $recce->[Marpa::R2::Internal::Recognizer::RULE_RESOLUTIONS] = \@resolution_by_rule_id;
+    # Do consistency checks
+
+    # Set the object values
+    $recce->[Marpa::R2::Internal::Recognizer::RULE_RESOLUTIONS] = \%resolution_data;
     $recce->[Marpa::R2::Internal::Recognizer::NULL_VALUES] =
         \@null_symbol_closures;
     $recce->[Marpa::R2::Internal::Recognizer::RULE_CLOSURES] = $closure_by_rule_id;
@@ -614,6 +615,9 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
     my $rule_resolutions =
         $recce->[Marpa::R2::Internal::Recognizer::RULE_RESOLUTIONS];
+    my $semantics_by_rule_id = $rule_resolutions->{semantics};
+    my $blessing_by_rule_id = $rule_resolutions->{blessing};
+    my $closure_by_rule_id = $rule_resolutions->{closure};
     my $null_values = $recce->[Marpa::R2::Internal::Recognizer::NULL_VALUES];
 
     my $value = Marpa::R2::Thin::V->new($tree);
@@ -646,10 +650,11 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
             );
         } ## end if ( not $result )
 
-        my (undef, undef, $semantics, $blessing) = @{$rule_resolutions->[$rule_id]};
-
+        my $semantics = $semantics_by_rule_id->[$rule_id] // q{};
         $semantics //= q{};
         my $original_semantics = $semantics;
+
+        my $blessing = $blessing_by_rule_id->[$rule_id];
 
         state $allowed_semantics = {
             map { ; ( $_, 1 ) } qw(::array ::dwim ::undef ::first ::whatever),
@@ -810,13 +815,10 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
         } ## end if ( not $result )
 
         my $semantic_rule_id = $null_values->[$token_id];
-        my $semantic_rule_resolution = $rule_resolutions->[$semantic_rule_id];
-        my $closure_ref;
-        if (defined $semantic_rule_resolution) {
-            (undef, $closure_ref)      = @{$semantic_rule_resolution};
-        }
+        my $closure_ref = $closure_by_rule_id->[$semantic_rule_id];
         next TOKEN if not defined $closure_ref;
         my $ref_type = Scalar::Util::reftype $closure_ref;
+
         if ( $ref_type eq 'SCALAR' ) {
             my $closure = ${$closure_ref};
             next TOKEN if not defined $closure;
