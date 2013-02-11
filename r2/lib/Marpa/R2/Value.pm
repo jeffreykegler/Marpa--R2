@@ -171,7 +171,7 @@ sub Marpa::R2::Internal::Recognizer::resolve_action {
 
 } ## end sub Marpa::R2::Internal::Recognizer::resolve_action
 
-sub Marpa::R2::Internal::Recognizer::resolutions_from_grammar {
+sub Marpa::R2::Internal::Recognizer::default_semantics {
     my ($recce)        = @_;
     my $grammar        = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my $rules          = $grammar->[Marpa::R2::Internal::Grammar::RULES];
@@ -244,7 +244,7 @@ sub Marpa::R2::Internal::Recognizer::resolutions_from_grammar {
 }
 
 sub Marpa::R2::Internal::Recognizer::resolve_semantics {
-    my ($recce)        = @_;
+    my ($recce, $rule_resolutions)        = @_;
     my $grammar        = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my $grammar_c      = $grammar->[Marpa::R2::Internal::Grammar::C];
     my $tracer         = $grammar->[Marpa::R2::Internal::Grammar::TRACER];
@@ -256,8 +256,6 @@ sub Marpa::R2::Internal::Recognizer::resolve_semantics {
 
     my $closure_by_rule_id  = [];
     my $semantics_by_rule_id = [];
-
-    my $rule_resolutions = Marpa::R2::Internal::Recognizer::resolutions_from_grammar($recce);
 
     # Because a "whatever" resolution can be *anything*, it cannot
     # be used along with a non-whatever resolution.  That is because
@@ -424,11 +422,11 @@ sub Marpa::R2::Internal::Recognizer::resolve_semantics {
     # Do consistency checks
 
     # Set the object values
-    $recce->[Marpa::R2::Internal::Recognizer::RULE_RESOLUTIONS] = \%resolution_data;
     $recce->[Marpa::R2::Internal::Recognizer::NULL_VALUES] =
         \@null_symbol_closures;
 
-    return 1;
+    return ( $recce->[Marpa::R2::Internal::Recognizer::RULE_RESOLUTIONS] =
+            \%resolution_data );
 }    # resolve_semantics
 
 our $CONTEXT_EXCEPTION_CLASS = __PACKAGE__ . '::Context_Exception';
@@ -625,17 +623,14 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
     $action_object //= {};
 
     my $rule_resolutions =
-        $recce->[Marpa::R2::Internal::Recognizer::RULE_RESOLUTIONS];
-    if ( not defined $rule_resolutions ) {
-        Marpa::R2::Internal::Recognizer::resolve_semantics($recce);
-        $rule_resolutions =
-            $recce->[Marpa::R2::Internal::Recognizer::RULE_RESOLUTIONS];
-    }
+        $recce->[Marpa::R2::Internal::Recognizer::RULE_RESOLUTIONS]
+        // Marpa::R2::Internal::Recognizer::resolve_semantics( $recce,
+        Marpa::R2::Internal::Recognizer::default_semantics($recce) );
 
+    my $null_values = $recce->[Marpa::R2::Internal::Recognizer::NULL_VALUES];
     my $semantics_by_rule_id = $rule_resolutions->{semantics};
     my $blessing_by_rule_id = $rule_resolutions->{blessing};
     my $closure_by_rule_id = $rule_resolutions->{closure};
-    my $null_values = $recce->[Marpa::R2::Internal::Recognizer::NULL_VALUES];
 
     my $value = Marpa::R2::Thin::V->new($tree);
     local $Marpa::R2::Internal::Context::VALUATOR = $value;
