@@ -406,8 +406,6 @@ sub Marpa::R2::Internal::Recognizer::resolve_semantics {
     $recce->[Marpa::R2::Internal::Recognizer::NULL_VALUES] =
         \@null_symbol_closures;
     $recce->[Marpa::R2::Internal::Recognizer::RULE_CLOSURES] = $closure_by_rule_id;
-    $recce->[Marpa::R2::Internal::Recognizer::RULE_SEMANTICS] =
-        $semantics_by_rule_id;
 
     return 1;
 }    # resolve_semantics
@@ -615,8 +613,6 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
     my $rule_resolutions =
         $recce->[Marpa::R2::Internal::Recognizer::RULE_RESOLUTIONS];
-    my $rule_semantics =
-        $recce->[Marpa::R2::Internal::Recognizer::RULE_SEMANTICS];
     my $null_values = $recce->[Marpa::R2::Internal::Recognizer::NULL_VALUES];
 
     my $value = Marpa::R2::Thin::V->new($tree);
@@ -649,10 +645,11 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
             );
         } ## end if ( not $result )
 
-        my (undef, undef, undef, $blessing) = @{$rule_resolutions->[$rule_id]};
+        my (undef, undef, $semantics, $blessing) = @{$rule_resolutions->[$rule_id]};
 
-        my $semantics = $rule_semantics->[$rule_id] // q{};
+        $semantics //= q{};
         my $original_semantics = $semantics;
+
         state $allowed_semantics = {
             map { ; ( $_, 1 ) } qw(::array ::dwim ::undef ::first ::whatever),
             q{}
