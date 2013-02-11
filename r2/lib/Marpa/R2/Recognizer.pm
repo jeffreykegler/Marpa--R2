@@ -64,7 +64,6 @@ BEGIN {
     { The following fields must be reinitialized when
     evaluation is reset }
 
-    RULE_CLOSURES
     RULE_RESOLUTIONS
     NULL_VALUES
     EVENTS
@@ -236,7 +235,6 @@ sub Marpa::R2::Recognizer::reset_evaluation {
     $recce->[Marpa::R2::Internal::Recognizer::B_C]              = undef;
     $recce->[Marpa::R2::Internal::Recognizer::O_C]              = undef;
     $recce->[Marpa::R2::Internal::Recognizer::T_C]              = undef;
-    $recce->[Marpa::R2::Internal::Recognizer::RULE_CLOSURES]    = undef;
     $recce->[Marpa::R2::Internal::Recognizer::RULE_RESOLUTIONS] = undef;
     $recce->[Marpa::R2::Internal::Recognizer::NULL_VALUES]      = undef;
     $recce->[Marpa::R2::Internal::Recognizer::EVENTS]           = [];

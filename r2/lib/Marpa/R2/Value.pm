@@ -66,7 +66,7 @@ sub Marpa::R2::Recognizer::resolve_semantics {
         } ## end if ( defined( my $value = $arg_hash->{...}))
     } ## end ARG_HASH: for my $arg_hash (@arg_hashes)
 
-    $recce->[Marpa::R2::Internal::Recognizer::RULE_CLOSURES] = undef;
+    $recce->[Marpa::R2::Internal::Recognizer::RULE_RESOLUTIONS] = undef;
 
     return $recce;
 } ## end sub Marpa::R2::Recognizer::resolve_semantics
@@ -407,7 +407,6 @@ sub Marpa::R2::Internal::Recognizer::resolve_semantics {
     $recce->[Marpa::R2::Internal::Recognizer::RULE_RESOLUTIONS] = \%resolution_data;
     $recce->[Marpa::R2::Internal::Recognizer::NULL_VALUES] =
         \@null_symbol_closures;
-    $recce->[Marpa::R2::Internal::Recognizer::RULE_CLOSURES] = $closure_by_rule_id;
 
     return 1;
 }    # resolve_semantics
@@ -605,16 +604,14 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
     $action_object //= {};
 
-    my $rule_closures =
-        $recce->[Marpa::R2::Internal::Recognizer::RULE_CLOSURES];
-    if ( not defined $rule_closures ) {
-        Marpa::R2::Internal::Recognizer::resolve_semantics($recce);
-        $rule_closures =
-            $recce->[Marpa::R2::Internal::Recognizer::RULE_CLOSURES];
-    }
-
     my $rule_resolutions =
         $recce->[Marpa::R2::Internal::Recognizer::RULE_RESOLUTIONS];
+    if ( not defined $rule_resolutions ) {
+        Marpa::R2::Internal::Recognizer::resolve_semantics($recce);
+        $rule_resolutions =
+            $recce->[Marpa::R2::Internal::Recognizer::RULE_RESOLUTIONS];
+    }
+
     my $semantics_by_rule_id = $rule_resolutions->{semantics};
     my $blessing_by_rule_id = $rule_resolutions->{blessing};
     my $closure_by_rule_id = $rule_resolutions->{closure};
@@ -649,6 +646,8 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                 q{because the LHS was already treated as an unvalued symbol}
             );
         } ## end if ( not $result )
+
+        my $closure = $closure_by_rule_id->[$rule_id] // q{};
 
         my $semantics = $semantics_by_rule_id->[$rule_id] // q{};
         $semantics //= q{};
@@ -700,7 +699,6 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                 last ARRAY_FATE;
             }
 
-            my $closure = $rule_closures->[$rule_id];
             if ( defined $closure
                 && ( ref $closure ne 'SCALAR' || defined ${$closure} ) )
             {
@@ -933,7 +931,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
         if ( $value_type eq 'MARPA_STEP_RULE' ) {
             my ( $rule_id, $values ) = @value_data;
-            my $closure = $rule_closures->[$rule_id];
+            my $closure = $closure_by_rule_id->[$rule_id];
 
             next STEP if not defined $closure;
             my $result;
