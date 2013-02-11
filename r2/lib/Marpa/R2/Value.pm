@@ -374,6 +374,32 @@ sub Marpa::R2::Internal::Recognizer::resolve_semantics {
     $recce->[Marpa::R2::Internal::Recognizer::RULE_SEMANTICS] =
         $semantics_by_rule_id;
 
+    # Now figure out the blessings
+    my $blessing_by_rule_id = [];
+    my $bless_package =
+        $grammar->[Marpa::R2::Internal::Grammar::BLESS_PACKAGE];
+    RULE: for my $rule_id ( $grammar->rule_ids() )
+    {
+        my $rule = $rules->[$rule_id];
+        my $blessing = $rule->[Marpa::R2::Internal::Rule::BLESSING];
+        next RULE if not defined $blessing;
+        if ( not defined $bless_package ) {
+            Marpa::R2::exception(
+                qq{A blessed rule is in a grammar with no bless_package\n},
+                qq{  The rule was: },
+                $grammar->brief_rule($rule_id),
+                "\n",
+                qq{  The rule was blessed as "$blessing"\n}
+            );
+        } ## end if ( defined $blessing and not defined $bless_package)
+
+        # fully qualfied blessing
+        $blessing_by_rule_id->[$rule_id] = join q{}, $bless_package, q{::}, $blessing;
+    }
+
+    my $resolution_by_rule_id = [];
+    $recce->[Marpa::R2::Internal::Recognizer::RULE_RESOLUTIONS] = $resolution_by_rule_id;
+
     return 1;
 }    # resolve_semantics
 
