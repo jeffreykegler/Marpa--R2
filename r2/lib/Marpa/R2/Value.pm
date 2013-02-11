@@ -178,8 +178,10 @@ sub Marpa::R2::Internal::Recognizer::resolve_semantics {
     my $tracer         = $grammar->[Marpa::R2::Internal::Grammar::TRACER];
     my $rules          = $grammar->[Marpa::R2::Internal::Grammar::RULES];
     my $symbols        = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
-    my $rule_closures  = [];
-    my $rule_semantics = [];
+
+    my $closure_by_rule_id  = [];
+    my $semantics_by_rule_id = [];
+
     my $trace_actions =
         $recce->[Marpa::R2::Internal::Recognizer::TRACE_ACTIONS] // 0;
 
@@ -270,9 +272,9 @@ sub Marpa::R2::Internal::Recognizer::resolve_semantics {
             );
         } ## end if ( $new_resolution ne $current_resolution and ( ...))
         if ( $new_resolution ne '::whatever' ) {
-            $rule_closures->[$rule_id] = $closure;
+            $closure_by_rule_id->[$rule_id] = $closure;
         }
-        $rule_semantics->[$rule_id] = $semantics;
+        $semantics_by_rule_id->[$rule_id] = $semantics;
         push @{ $nullable_ruleids_by_lhs[$lhs_id] }, $rule_id
             if $grammar_c->rule_is_nullable($rule_id);
     } ## end RULE: for my $rule_id ( 0 .. $#{$rules} )
@@ -368,9 +370,9 @@ sub Marpa::R2::Internal::Recognizer::resolve_semantics {
 
     $recce->[Marpa::R2::Internal::Recognizer::NULL_VALUES] =
         \@null_symbol_closures;
-    $recce->[Marpa::R2::Internal::Recognizer::RULE_CLOSURES] = $rule_closures;
+    $recce->[Marpa::R2::Internal::Recognizer::RULE_CLOSURES] = $closure_by_rule_id;
     $recce->[Marpa::R2::Internal::Recognizer::RULE_SEMANTICS] =
-        $rule_semantics;
+        $semantics_by_rule_id;
 
     return 1;
 }    # resolve_semantics
