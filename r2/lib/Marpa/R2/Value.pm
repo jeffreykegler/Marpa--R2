@@ -41,6 +41,36 @@ sub Marpa::R2::show_rank_ref {
 
 package Marpa::R2::Internal::Value;
 
+# The external version
+# Undocumented as of now.
+#
+# Instead of documenting this, perhaps semantics should be
+# separated into its own object.
+#
+sub Marpa::R2::Recognizer::resolve_semantics {
+    my ( $recce, @arg_hashes ) = @_;
+    my $grammar = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
+
+    # set the defaults
+    local $Marpa::R2::Internal::TRACE_FH = my $trace_fh =
+        $recce->[Marpa::R2::Internal::Recognizer::TRACE_FILE_HANDLE] =
+        $grammar->[Marpa::R2::Internal::Grammar::TRACE_FILE_HANDLE];
+
+    ARG_HASH: for my $arg_hash (@arg_hashes) {
+        if ( defined( my $value = $arg_hash->{'action_name_by_rule_id'} ) ) {
+            Marpa::R2::exception(
+                qq{value of "$value" must be a REF to an array rule ID's to action names}
+            ) if ref $value ne 'ARRAY';
+            delete $arg_hash->{$value};
+            last ARG_HASH;
+        } ## end if ( defined( my $value = $arg_hash->{...}))
+    } ## end ARG_HASH: for my $arg_hash (@arg_hashes)
+
+    $recce->[Marpa::R2::Internal::Recognizer::RULE_CLOSURES] = undef;
+
+    return $recce;
+} ## end sub Marpa::R2::Recognizer::resolve_semantics
+
 # Given the grammar and an action name, resolve it to a closure,
 # or return undef
 sub Marpa::R2::Internal::Recognizer::resolve_semantics {
