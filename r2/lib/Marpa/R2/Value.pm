@@ -171,16 +171,11 @@ sub Marpa::R2::Internal::Recognizer::resolve_action {
 
 } ## end sub Marpa::R2::Internal::Recognizer::resolve_action
 
-sub Marpa::R2::Internal::Recognizer::resolve_semantics {
+sub Marpa::R2::Internal::Recognizer::resolutions_from_grammar {
     my ($recce)        = @_;
     my $grammar        = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
-    my $grammar_c      = $grammar->[Marpa::R2::Internal::Grammar::C];
-    my $tracer         = $grammar->[Marpa::R2::Internal::Grammar::TRACER];
     my $rules          = $grammar->[Marpa::R2::Internal::Grammar::RULES];
-    my $symbols        = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
-
-    my $closure_by_rule_id  = [];
-    my $semantics_by_rule_id = [];
+    my $grammar_c      = $grammar->[Marpa::R2::Internal::Grammar::C];
 
     my $trace_actions =
         $recce->[Marpa::R2::Internal::Recognizer::TRACE_ACTIONS] // 0;
@@ -244,6 +239,25 @@ sub Marpa::R2::Internal::Recognizer::resolve_semantics {
                 or Marpa::R2::exception('print to trace handle failed');
         } ## end RULE: for my $rule_id ( 0 .. $#{$rules} )
     } ## end if ( $trace_actions >= 2 )
+
+    return $rule_resolutions;
+}
+
+sub Marpa::R2::Internal::Recognizer::resolve_semantics {
+    my ($recce)        = @_;
+    my $grammar        = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
+    my $grammar_c      = $grammar->[Marpa::R2::Internal::Grammar::C];
+    my $tracer         = $grammar->[Marpa::R2::Internal::Grammar::TRACER];
+    my $rules          = $grammar->[Marpa::R2::Internal::Grammar::RULES];
+    my $symbols        = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
+
+    my $trace_actions =
+        $recce->[Marpa::R2::Internal::Recognizer::TRACE_ACTIONS] // 0;
+
+    my $closure_by_rule_id  = [];
+    my $semantics_by_rule_id = [];
+
+    my $rule_resolutions = Marpa::R2::Internal::Recognizer::resolutions_from_grammar($recce);
 
     my @resolution_by_lhs;
     my @nullable_ruleids_by_lhs;
