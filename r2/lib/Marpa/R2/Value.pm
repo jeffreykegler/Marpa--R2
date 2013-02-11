@@ -395,12 +395,13 @@ sub Marpa::R2::Internal::Recognizer::resolve_semantics {
     my @resolution_by_rule_id = ();
     RULE: for my $rule_id ( $grammar->rule_ids() )
     {
-         my $name = undef;
-         my $closure = $closure_by_rule_id->[$rule_id];
-         my $semantics = $semantics_by_rule_id->[$rule_id];
-         my $blessing = $blessing_by_rule_id[$rule_id];
-         $resolution_by_rule_id[$rule_id] = [ $name, $closure, $semantics, $blessing ];
-    }
+        my ($resolution_name) = @{ $rule_resolutions->[$rule_id] };
+        my $closure           = $closure_by_rule_id->[$rule_id];
+        my $semantics         = $semantics_by_rule_id->[$rule_id];
+        my $blessing          = $blessing_by_rule_id[$rule_id];
+        $resolution_by_rule_id[$rule_id] =
+            [ $resolution_name, $closure, $semantics, $blessing ];
+    } ## end RULE: for my $rule_id ( $grammar->rule_ids() )
 
     $recce->[Marpa::R2::Internal::Recognizer::RULE_RESOLUTIONS] = \@resolution_by_rule_id;
     $recce->[Marpa::R2::Internal::Recognizer::NULL_VALUES] =
@@ -809,7 +810,11 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
         } ## end if ( not $result )
 
         my $semantic_rule_id = $null_values->[$token_id];
-        my $closure_ref      = $rule_closures->[$semantic_rule_id];
+        my $semantic_rule_resolution = $rule_resolutions->[$semantic_rule_id];
+        my $closure_ref;
+        if (defined $semantic_rule_resolution) {
+            (undef, $closure_ref)      = @{$semantic_rule_resolution};
+        }
         next TOKEN if not defined $closure_ref;
         my $ref_type = Scalar::Util::reftype $closure_ref;
         if ( $ref_type eq 'SCALAR' ) {

@@ -871,9 +871,7 @@ sub Marpa::R2::Grammar::show_rules {
 sub Marpa::R2::Grammar::rule_ids {
     my ($grammar) = @_;
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
-    return
-        grep { $grammar_c->rule_length($_); }
-        0 .. $grammar_c->highest_rule_id();
+    return 0 .. $grammar_c->highest_rule_id();
 } ## end sub Marpa::R2::Grammar::rule_ids
 
 sub Marpa::R2::Grammar::rule {
