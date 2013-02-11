@@ -171,7 +171,7 @@ sub Marpa::R2::Internal::Recognizer::resolve_action {
 
 } ## end sub Marpa::R2::Internal::Recognizer::resolve_action
 
-sub Marpa::R2::Internal::Recognizer::set_actions {
+sub Marpa::R2::Internal::Recognizer::resolve_semantics {
     my ($recce)        = @_;
     my $grammar        = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my $grammar_c      = $grammar->[Marpa::R2::Internal::Grammar::C];
@@ -373,7 +373,7 @@ sub Marpa::R2::Internal::Recognizer::set_actions {
         $rule_semantics;
 
     return 1;
-}    # set_actions
+}    # resolve_semantics
 
 our $CONTEXT_EXCEPTION_CLASS = __PACKAGE__ . '::Context_Exception';
 
@@ -571,7 +571,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
     my $rule_closures =
         $recce->[Marpa::R2::Internal::Recognizer::RULE_CLOSURES];
     if ( not defined $rule_closures ) {
-        Marpa::R2::Internal::Recognizer::set_actions($recce);
+        Marpa::R2::Internal::Recognizer::resolve_semantics($recce);
         $rule_closures =
             $recce->[Marpa::R2::Internal::Recognizer::RULE_CLOSURES];
     }
