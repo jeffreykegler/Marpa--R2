@@ -176,13 +176,6 @@ for my $test (@tests) {
     Test::More::like( $result, $output_re, 'Value of scannerless parse' );
 }
 
-# TODO: {
-    # local $TODO = 'Work in progress';
-    # say Data::Dumper::Dumper(doit($value));
-    # my $actual = Data::Dumper::Dumper($value);
-    # Test::More::is( $actual, '', 'Value' );
-# }
-
 package My_Nodes::script;
 
 sub doit { return join q{ },  @_; }

@@ -368,14 +368,8 @@ sub Marpa::R2::Internal::Recognizer::resolve_semantics {
 
     } ## end LHS: for ( my $lhs_id = 0; $lhs_id <= $#nullable_ruleids_by_lhs...)
 
-    $recce->[Marpa::R2::Internal::Recognizer::NULL_VALUES] =
-        \@null_symbol_closures;
-    $recce->[Marpa::R2::Internal::Recognizer::RULE_CLOSURES] = $closure_by_rule_id;
-    $recce->[Marpa::R2::Internal::Recognizer::RULE_SEMANTICS] =
-        $semantics_by_rule_id;
-
     # Now figure out the blessings
-    my $blessing_by_rule_id = [];
+    my @blessing_by_rule_id = ();
     my $bless_package =
         $grammar->[Marpa::R2::Internal::Grammar::BLESS_PACKAGE];
     RULE: for my $rule_id ( $grammar->rule_ids() )
@@ -394,11 +388,26 @@ sub Marpa::R2::Internal::Recognizer::resolve_semantics {
         } ## end if ( defined $blessing and not defined $bless_package)
 
         # fully qualfied blessing
-        $blessing_by_rule_id->[$rule_id] = join q{}, $bless_package, q{::}, $blessing;
+        $blessing_by_rule_id[$rule_id] = join q{}, $bless_package, q{::}, $blessing;
     }
 
-    my $resolution_by_rule_id = [];
-    $recce->[Marpa::R2::Internal::Recognizer::RULE_RESOLUTIONS] = $resolution_by_rule_id;
+    # Put the resolutions together, checking for consistency
+    my @resolution_by_rule_id = ();
+    RULE: for my $rule_id ( $grammar->rule_ids() )
+    {
+         my $name = undef;
+         my $closure = $closure_by_rule_id->[$rule_id];
+         my $semantics = $semantics_by_rule_id->[$rule_id];
+         my $blessing = $blessing_by_rule_id[$rule_id];
+         $resolution_by_rule_id[$rule_id] = [ $name, $closure, $semantics, $blessing ];
+    }
+
+    $recce->[Marpa::R2::Internal::Recognizer::RULE_RESOLUTIONS] = \@resolution_by_rule_id;
+    $recce->[Marpa::R2::Internal::Recognizer::NULL_VALUES] =
+        \@null_symbol_closures;
+    $recce->[Marpa::R2::Internal::Recognizer::RULE_CLOSURES] = $closure_by_rule_id;
+    $recce->[Marpa::R2::Internal::Recognizer::RULE_SEMANTICS] =
+        $semantics_by_rule_id;
 
     return 1;
 }    # resolve_semantics
@@ -604,6 +613,8 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
             $recce->[Marpa::R2::Internal::Recognizer::RULE_CLOSURES];
     }
 
+    my $rule_resolutions =
+        $recce->[Marpa::R2::Internal::Recognizer::RULE_RESOLUTIONS];
     my $rule_semantics =
         $recce->[Marpa::R2::Internal::Recognizer::RULE_SEMANTICS];
     my $null_values = $recce->[Marpa::R2::Internal::Recognizer::NULL_VALUES];
@@ -638,6 +649,8 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
             );
         } ## end if ( not $result )
 
+        my (undef, undef, undef, $blessing) = @{$rule_resolutions->[$rule_id]};
+
         my $semantics = $rule_semantics->[$rule_id] // q{};
         my $original_semantics = $semantics;
         state $allowed_semantics = {
@@ -662,17 +675,6 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
         my $is_sequence         = defined $grammar_c->sequence_min($rule_id);
         my $is_discard_sequence = $is_sequence
             && $rule->[Marpa::R2::Internal::Rule::DISCARD_SEPARATION];
-        my $blessing = $rule->[Marpa::R2::Internal::Rule::BLESSING];
-
-        if ( defined $blessing and not defined $bless_package ) {
-            Marpa::R2::exception(
-                qq{A blessed rule is in a grammar with no bless_package\n},
-                qq{  The rule was: },
-                $grammar->brief_rule($rule_id),
-                "\n",
-                qq{  The rule was blessed as "$blessing"\n}
-            );
-        } ## end if ( defined $blessing and not defined $bless_package)
 
         DWIM: {
             last DWIM if $semantics ne '::dwim';
@@ -773,9 +775,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
         my @bless_ops = ();
         if ($blessing) {
-            my $fully_qualified_blessing = $bless_package . q{::} . $blessing;
-            my $constant_ix =
-                $value->constant_register($fully_qualified_blessing);
+            my $constant_ix = $value->constant_register($blessing);
             push @bless_ops, $op_bless, $constant_ix;
         } ## end if ($blessing)
 
