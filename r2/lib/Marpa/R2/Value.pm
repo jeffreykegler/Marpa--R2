@@ -259,43 +259,49 @@ sub Marpa::R2::Internal::Recognizer::resolve_semantics {
 
     my $rule_resolutions = Marpa::R2::Internal::Recognizer::resolutions_from_grammar($recce);
 
-    my @resolution_by_lhs;
-    my @nullable_ruleids_by_lhs;
-
     # Because a "whatever" resolution can be *anything*, it cannot
     # be used along with a non-whatever resolution.  That is because
     # you could never be sure that what seems to be
     # a valid non-whatever resolution is not something random from
     # a whatever resolution
-    RULE: for my $rule_id ( 0 .. $#{$rules} ) {
-        my ( $new_resolution, $closure, $semantics ) =
-            @{ $rule_resolutions->[$rule_id] };
-        my $lhs_id = $grammar_c->rule_lhs($rule_id);
-        $resolution_by_lhs[$lhs_id] //= $new_resolution;
-        my $current_resolution = $resolution_by_lhs[$lhs_id];
-        if ($new_resolution ne $current_resolution
-            and (  $current_resolution eq '::whatever'
-                or $new_resolution eq '::whatever' )
-            )
-        {
-            Marpa::R2::exception(
-                'Symbol "',
-                $grammar->symbol_name($lhs_id),
-                qq{" has two resolutions "$current_resolution" and "$new_resolution"\n},
-                qq{  These would confuse the semantics\n}
-            );
-        } ## end if ( $new_resolution ne $current_resolution and ( ...))
-        if ( $new_resolution ne '::whatever' ) {
-            $closure_by_rule_id->[$rule_id] = $closure;
-        }
-        $semantics_by_rule_id->[$rule_id] = $semantics;
-        push @{ $nullable_ruleids_by_lhs[$lhs_id] }, $rule_id
-            if $grammar_c->rule_is_nullable($rule_id);
-    } ## end RULE: for my $rule_id ( 0 .. $#{$rules} )
+    {
+        my @resolution_by_lhs;
+        RULE:
+        for my $rule_id ( $grammar->rule_ids() ) {
+            my ( $new_resolution, $closure, $semantics ) =
+                @{ $rule_resolutions->[$rule_id] };
+            my $lhs_id = $grammar_c->rule_lhs($rule_id);
+            $resolution_by_lhs[$lhs_id] //= $new_resolution;
+            my $current_resolution = $resolution_by_lhs[$lhs_id];
+            if ($new_resolution ne $current_resolution
+                and (  $current_resolution eq '::whatever'
+                    or $new_resolution eq '::whatever' )
+                )
+            {
+                Marpa::R2::exception(
+                    'Symbol "',
+                    $grammar->symbol_name($lhs_id),
+                    qq{" has two resolutions "$current_resolution" and "$new_resolution"\n},
+                    qq{  These would confuse the semantics\n}
+                );
+            } ## end if ( $new_resolution ne $current_resolution and ( ...))
+            if ( $new_resolution ne '::whatever' ) {
+                $closure_by_rule_id->[$rule_id] = $closure;
+            }
+            $semantics_by_rule_id->[$rule_id] = $semantics;
+        } ## end RULE: for my $rule_id ( $grammar->rule_ids() )
+    }
 
     # A LHS can be nullable via more than one rule,
     # and that means more than one semantics might be specified for
     # the nullable symbol.  This logic deals with that.
+    my @nullable_ruleids_by_lhs = ();
+    RULE: for my $rule_id ( $grammar->rule_ids() ) {
+        my $lhs_id = $grammar_c->rule_lhs($rule_id);
+        push @{ $nullable_ruleids_by_lhs[$lhs_id] }, $rule_id
+            if $grammar_c->rule_is_nullable($rule_id);
+    }
+
     my @null_symbol_closures;
     LHS:
     for ( my $lhs_id = 0; $lhs_id <= $#nullable_ruleids_by_lhs; $lhs_id++ ) {
