@@ -81,7 +81,7 @@ sub Marpa::R2::Internal::Recognizer::resolve_action {
         $recce->[Marpa::R2::Internal::Recognizer::TRACE_ACTIONS];
 
     # A reserved closure name;
-    return [ '::whatever', undef, '::whatever', '' ] if not defined $closure_name;
+    return [ '::whatever', undef, '::whatever' ] if not defined $closure_name;
 
         if ( $closure_name eq '' ) {
             return qq{The action string cannot be the empty string};
@@ -100,7 +100,7 @@ sub Marpa::R2::Internal::Recognizer::resolve_action {
                 or Marpa::R2::exception('Could not print to trace file');
         }
 
-        return [ $closure_name, $closure ];
+        return [ $closure_name, $closure, '' ];
     } ## end if ( my $closure = $closures->{$closure_name} )
 
     my $fully_qualified_name;
@@ -162,7 +162,7 @@ sub Marpa::R2::Internal::Recognizer::resolve_action {
                 'to ', $fully_qualified_name, "\n"
                 or Marpa::R2::exception('Could not print to trace file');
         } ## end if ($trace_actions)
-        return [ $fully_qualified_name, $closure ];
+        return [ $fully_qualified_name, $closure, '' ];
     } ## end if ( defined $closure )
 
     my $error =
@@ -670,10 +670,8 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
             );
         } ## end if ( not $result )
 
-        my $closure = $closure_by_rule_id->[$rule_id] // q{};
-
-        my $semantics = $semantics_by_rule_id->[$rule_id] // q{};
-        $semantics //= q{};
+        my $closure = $closure_by_rule_id->[$rule_id];
+        my $semantics = $semantics_by_rule_id->[$rule_id];
         my $original_semantics = $semantics;
 
         my $blessing = $blessing_by_rule_id->[$rule_id];
