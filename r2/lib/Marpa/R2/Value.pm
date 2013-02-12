@@ -412,8 +412,6 @@ sub Marpa::R2::Internal::Recognizer::resolve_semantics {
     # Put the resolutions together
     my %resolution_data = ();
     {
-        $resolution_data{name} =
-            [ map { $rule_resolutions->[$_]->[0] } $grammar->rule_ids() ];
         $resolution_data{closure} = $closure_by_rule_id;
         $resolution_data{semantics} = $semantics_by_rule_id;
         $resolution_data{blessing} = \@blessing_by_rule_id;
