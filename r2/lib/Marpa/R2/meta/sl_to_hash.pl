@@ -24,8 +24,10 @@ use Data::Dumper;
 # restrictions I use to guarantee portability.
 use autodie;
 
-# Appropriate PERLLIB settings are expected to
-# be external
+# I expect to be run from a subdirectory in the
+# development heirarchy
+use lib '../../../';
+use lib '../../../../blib/arch';
 use Marpa::R2;
 
 use Getopt::Long;

@@ -20,4 +20,4 @@ doit:
 	-test -r metag-g2.pl && mv metag-g2.pl metag-g3.pl
 	-test -r metag-g1.pl && mv metag-g1.pl metag-g2.pl
 	-mv metag.pl metag-g1.pl
-	perl -I../../../ -I../../../../blib/arch sl_to_hash.pl < metag.bnf > metag.pl
+	perl sl_to_hash.pl < metag.bnf > metag.pl
