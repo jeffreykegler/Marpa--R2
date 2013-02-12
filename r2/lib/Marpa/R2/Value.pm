@@ -47,7 +47,7 @@ package Marpa::R2::Internal::Value;
 # Instead of documenting this, perhaps semantics should be
 # separated into its own object.
 #
-sub Marpa::R2::Recognizer::resolve_semantics {
+sub Marpa::R2::Recognizer::semantics_set {
     my ( $recce, @arg_hashes ) = @_;
     my $grammar = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
 
@@ -69,7 +69,7 @@ sub Marpa::R2::Recognizer::resolve_semantics {
     $recce->[Marpa::R2::Internal::Recognizer::RULE_RESOLUTIONS] = undef;
 
     return $recce;
-} ## end sub Marpa::R2::Recognizer::resolve_semantics
+} ## end sub Marpa::R2::Recognizer::semantics_set
 
 # Given the grammar and an action name, resolve it to a closure,
 # or return undef
@@ -186,10 +186,6 @@ sub Marpa::R2::Internal::Recognizer::add_blessing {
     my ( $closure_name, $closure, $semantics ) = @{$resolution};
     return [ $closure_name, $closure, $semantics, '' ]
         if not defined $blessing;
-    if ( not $closure and $semantics ne '::dwim' and $semantics ne '::array' )
-    {
-        return qq{Cannot bless rule when the semantics are "$semantics"};
-    }
 
     # Now figure out the blessings
     my $bless_package =
@@ -300,7 +296,7 @@ sub Marpa::R2::Internal::Recognizer::brief_rule_list {
     my $text = join q{}, map { q{    } . $_ . "\n" } @brief_rules ;
 }
 
-sub Marpa::R2::Internal::Recognizer::resolve_semantics {
+sub Marpa::R2::Internal::Recognizer::semantics_set {
     my ($recce, $rule_resolutions)        = @_;
     my $grammar        = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my $grammar_c      = $grammar->[Marpa::R2::Internal::Grammar::C];
@@ -311,16 +307,18 @@ sub Marpa::R2::Internal::Recognizer::resolve_semantics {
     my $trace_actions =
         $recce->[Marpa::R2::Internal::Recognizer::TRACE_ACTIONS] // 0;
 
-    my $closure_by_rule_id  = [];
-    my $semantics_by_rule_id = [];
+    my @closure_by_rule_id  = ();
+    my @semantics_by_rule_id = ();
     my @blessing_by_rule_id = ();
 
-    # Because a "whatever" resolution can be *anything*, it cannot
-    # be used along with a non-whatever resolution.  That is because
-    # you could never be sure that what seems to be
-    # a valid non-whatever resolution is not something random from
-    # a whatever resolution
+    # Set the arrays, and perform various checks on the resolutions
+    # we received
     {
+        state $allowed_semantics = {
+            map { ; ( $_, 1 ) } qw(::array ::dwim ::undef ::first ::whatever),
+            q{}
+        };
+
         my @rules_by_lhs;
         my @whatevers_by_lhs;
         RULE:
@@ -330,10 +328,44 @@ sub Marpa::R2::Internal::Recognizer::resolve_semantics {
             my $lhs_id = $grammar_c->rule_lhs($rule_id);
             $rules_by_lhs[$lhs_id]++;
             $whatevers_by_lhs[$lhs_id]++ if $semantics eq 'whatever';
-            $semantics_by_rule_id->[$rule_id] = $semantics;
-            $blessing_by_rule_id[$rule_id]    = $blessing;
-            $closure_by_rule_id->[$rule_id]   = $closure;
-        } ## end RULE: for my $rule_id ( $grammar->rule_ids() )
+            $semantics_by_rule_id[$rule_id] = $semantics;
+            $blessing_by_rule_id[$rule_id]  = $blessing;
+
+            if (    not $allowed_semantics->{$semantics}
+                and not $semantics =~ m/ \A rhs \d+ \z /xms )
+            {
+                Marpa::R2::exception(
+                    qq{Unknown semantics for rule },
+                    $grammar->brief_rule($rule_id),
+                    "\n",
+                    qq{    Semantics were specified as "$semantics"\n}
+                );
+            } ## end if ( not $allowed_semantics->{$semantics} and not ...)
+
+            $closure_by_rule_id[$rule_id] = $closure;
+
+            if (    $blessing ne ''
+                and not $closure
+                and $semantics ne '::dwim'
+                and $semantics ne '::array' )
+            {
+                Marpa::R2::exception(
+                    qq{Cannot bless rule when the semantics are "$semantics"},
+                    qq{  Rule is: },
+                    $grammar->brief_rule($rule_id),
+                    "\n",
+                    qq{  Blessing is "$blessing"\n},
+                    qq{  Semantics are "$semantics"\n}
+                );
+            } ## end if ( $blessing ne '' and not $closure and $semantics...)
+
+        } ## end for my $rule_id ( $grammar->rule_ids() )
+
+        # Because a "whatever" resolution can be *anything*, it cannot
+        # be used along with a non-whatever resolution.  That is because
+        # you could never be sure that what seems to be
+        # a valid non-whatever resolution is not something random from
+        # a whatever resolution
 
         # Look for LHS id has more than one rule with whatever semantics
         # and at least one rule without "whatever" semantics.
@@ -466,8 +498,8 @@ sub Marpa::R2::Internal::Recognizer::resolve_semantics {
     # Put the resolutions together
     my %resolution_data = ();
     {
-        $resolution_data{closure} = $closure_by_rule_id;
-        $resolution_data{semantics} = $semantics_by_rule_id;
+        $resolution_data{closure} = \@closure_by_rule_id;
+        $resolution_data{semantics} = \@semantics_by_rule_id;
         $resolution_data{blessing} = \@blessing_by_rule_id;
     } ## end RULE: for my $rule_id ( $grammar->rule_ids() )
 
@@ -479,7 +511,7 @@ sub Marpa::R2::Internal::Recognizer::resolve_semantics {
 
     return ( $recce->[Marpa::R2::Internal::Recognizer::RULE_RESOLUTIONS] =
             \%resolution_data );
-}    # resolve_semantics
+}    # semantics_set
 
 our $CONTEXT_EXCEPTION_CLASS = __PACKAGE__ . '::Context_Exception';
 
@@ -679,7 +711,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
     my $rule_resolutions =
         $recce->[Marpa::R2::Internal::Recognizer::RULE_RESOLUTIONS]
-        // Marpa::R2::Internal::Recognizer::resolve_semantics( $recce,
+        // Marpa::R2::Internal::Recognizer::semantics_set( $recce,
         Marpa::R2::Internal::Recognizer::default_semantics($recce) );
 
     my $null_values = $recce->[Marpa::R2::Internal::Recognizer::NULL_VALUES];
@@ -720,21 +752,6 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
         my $blessing = $blessing_by_rule_id->[$rule_id];
 
-        state $allowed_semantics = {
-            map { ; ( $_, 1 ) } qw(::array ::dwim ::undef ::first ::whatever),
-            q{}
-        };
-        if (    not $allowed_semantics->{$semantics}
-            and not $semantics =~ m/ \A rhs \d+ \z /xms )
-        {
-            Marpa::R2::exception(
-                qq{Unknown semantics for rule },
-                $grammar->brief_rule($rule_id),
-                "\n",
-                qq{    Semantics were specified as "$original_semantics"\n}
-            );
-        } ## end if ( not $allowed_semantics->{$semantics} and not $semantics...)
-
         my $rule                = $rules->[$rule_id];
         my $mask                = $rule->[Marpa::R2::Internal::Rule::MASK];
         my $mask_count          = scalar grep {$_} @{$mask};
@@ -772,19 +789,6 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
             } ## end if ( defined $closure && ( ref $closure ne 'SCALAR' ...))
         } ## end ARRAY_FATE:
-
-        if ( not defined $array_fate ) {
-            if ( $blessing ne '') {
-                Marpa::R2::exception(
-                    qq{A blessed rule has the wrong semantics\n},
-                    qq{  The blessing was "$blessing"\n},
-                    qq{  The rule was: },
-                    $grammar->brief_rule($rule_id),
-                    "\n",
-                    qq{  The semantics were specified as "$original_semantics"\n}
-                );
-            } ## end if ( defined $blessing )
-        } ## end if ( not defined $array_fate )
 
         if ( $semantics eq '::undef' or $semantics eq '::whatever' ) {
             $value->rule_register( $rule_id, $op_result_is_undef );
