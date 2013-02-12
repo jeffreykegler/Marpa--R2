@@ -292,6 +292,14 @@ sub Marpa::R2::Internal::Recognizer::default_semantics {
     return $rule_resolutions;
 }
 
+# For diagnostics
+sub Marpa::R2::Internal::Recognizer::brief_rule_list {
+    my ($recce, $rule_ids) = @_;
+    my $grammar        = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
+    my @brief_rules = map { $grammar->brief_rule($_) } @{$rule_ids};
+    my $text = join q{}, map { q{    } . $_ . "\n" } @brief_rules ;
+}
+
 sub Marpa::R2::Internal::Recognizer::resolve_semantics {
     my ($recce, $rule_resolutions)        = @_;
     my $grammar        = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
@@ -313,60 +321,72 @@ sub Marpa::R2::Internal::Recognizer::resolve_semantics {
     # a valid non-whatever resolution is not something random from
     # a whatever resolution
     {
-        my @resolution_by_lhs;
+        my @rules_by_lhs;
+        my @whatevers_by_lhs;
         RULE:
         for my $rule_id ( $grammar->rule_ids() ) {
             my ( $new_resolution, $closure, $semantics, $blessing ) =
                 @{ $rule_resolutions->[$rule_id] };
             my $lhs_id = $grammar_c->rule_lhs($rule_id);
-            $resolution_by_lhs[$lhs_id] //= $new_resolution;
-            my $current_resolution = $resolution_by_lhs[$lhs_id];
-            if ($new_resolution ne $current_resolution
-                and (  $current_resolution eq '::whatever'
-                    or $new_resolution eq '::whatever' )
-                )
-            {
-                Marpa::R2::exception(
-                    'Symbol "',
-                    $grammar->symbol_name($lhs_id),
-                    qq{" has two resolutions "$current_resolution" and "$new_resolution"\n},
-                    qq{  These would confuse the semantics\n}
-                );
-            } ## end if ( $new_resolution ne $current_resolution and ( ...))
-            if ( $new_resolution ne '::whatever' ) {
-                $closure_by_rule_id->[$rule_id] = $closure;
-            }
+            $rules_by_lhs[$lhs_id]++;
+            $whatevers_by_lhs[$lhs_id]++ if $semantics eq 'whatever';
             $semantics_by_rule_id->[$rule_id] = $semantics;
-            $blessing_by_rule_id[$rule_id] = $blessing;
+            $blessing_by_rule_id[$rule_id]    = $blessing;
+            $closure_by_rule_id->[$rule_id]   = $closure;
         } ## end RULE: for my $rule_id ( $grammar->rule_ids() )
-    }
+
+        # Look for LHS id has more than one rule with whatever semantics
+        # and at least one rule without "whatever" semantics.
+        my @problem_lhs_ids = grep {
+            $whatevers_by_lhs[$_] > 0
+                and $whatevers_by_lhs[$_] != $rules_by_lhs[$_]
+        } ( 0 .. $#whatevers_by_lhs );
+        if ( scalar @problem_lhs_ids ) {
+
+            # Just report for one of them
+            my $problem_lhs_id = pop @problem_lhs_ids;
+
+            my @problem_rule_ids =
+                grep { $problem_lhs_id == grammar_c->rule_lhs($_) }
+                $grammar->rule_ids();
+            Marpa::R2::exception(
+                'Symbol "',
+                $grammar->symbol_name($problem_lhs_id),
+                qq{ has both "whatever" semantics and "real" semantics\n},
+                qq{  Mixing "real" (non-"whatever") and "whatever" semantics is not allowed.},
+                qq{  The problem is that there is no way to tell them apart.},
+                qq{  The rules involved are:\n},
+                brief_rule_list( $recce, \@problem_rule_ids )
+            );
+        } ## end if ( scalar @problem_lhs_ids )
+    } ## end CHECK_FOR_WHATEVER_CONFLICT
 
     # A LHS can be nullable via more than one rule,
     # and that means more than one semantics might be specified for
     # the nullable symbol.  This logic deals with that.
-    my @nullable_ruleids_by_lhs = ();
+    my @nullable_rule_ids_by_lhs = ();
     RULE: for my $rule_id ( $grammar->rule_ids() ) {
         my $lhs_id = $grammar_c->rule_lhs($rule_id);
-        push @{ $nullable_ruleids_by_lhs[$lhs_id] }, $rule_id
+        push @{ $nullable_rule_ids_by_lhs[$lhs_id] }, $rule_id
             if $grammar_c->rule_is_nullable($rule_id);
     }
 
     my @null_symbol_closures;
     LHS:
-    for ( my $lhs_id = 0; $lhs_id <= $#nullable_ruleids_by_lhs; $lhs_id++ ) {
-        my $ruleids = $nullable_ruleids_by_lhs[$lhs_id];
+    for ( my $lhs_id = 0; $lhs_id <= $#nullable_rule_ids_by_lhs; $lhs_id++ ) {
+        my $rule_ids = $nullable_rule_ids_by_lhs[$lhs_id];
         my $resolution_rule;
 
         # No nullable rules for this LHS?  No problem.
-        next LHS if not defined $ruleids;
-        my $rule_count = scalar @{$ruleids};
+        next LHS if not defined $rule_ids;
+        my $rule_count = scalar @{$rule_ids};
 
         # I am not sure if this test is necessary
         next LHS if $rule_count <= 0;
 
         # Just one nullable rule?  Then that's our semantics.
         if ( $rule_count == 1 ) {
-            $resolution_rule = $ruleids->[0];
+            $resolution_rule = $rule_ids->[0];
             my ( $resolution_name, $closure ) =
                 @{ $rule_resolutions->[$resolution_rule] };
             if ($trace_actions) {
@@ -384,7 +404,7 @@ sub Marpa::R2::Internal::Recognizer::resolve_semantics {
         # More than one rule?  Are any empty?
         # If so, use the semantics of the empty rule
         my @empty_rules =
-            grep { $grammar_c->rule_length($_) <= 0 } @{$ruleids};
+            grep { $grammar_c->rule_length($_) <= 0 } @{$rule_ids};
         if ( scalar @empty_rules ) {
             $resolution_rule = $empty_rules[0];
             my ( $resolution_name, $closure ) =
@@ -402,27 +422,33 @@ sub Marpa::R2::Internal::Recognizer::resolve_semantics {
         } ## end if ( scalar @empty_rules )
 
         # Multiple rules, none of them empty.
-        my ( $first_resolution_name, @other_resolution_names ) =
-            map { $rule_resolutions->[$_]->[0] } @{$ruleids};
+        my ( $first_resolution, @other_resolutions ) =
+            map { $rule_resolutions->[$_] } @{$rule_ids};
 
         # Do they have more than one semantics?
-        # Just call it an error and let the user sort it out.
-        if ( grep { $_ ne $first_resolution_name } @other_resolution_names ) {
-            my %seen = map { ( $_, 1 ); } $first_resolution_name,
-                @other_resolution_names;
+        # If so, just call it an error and let the user sort it out.
+        my ($first_closure_name, undef, $first_semantics, $first_blessing) = @{$first_resolution};
+        OTHER_RESOLUTION: for my $other_resolution (@other_resolutions) {
+            my ( $other_closure_name, undef, $other_semantics,
+                $other_blessing )
+                = @{$other_resolution};
+            next OTHER_RESOLUTION
+                if $first_closure_name eq $other_closure_name;
+            next OTHER_RESOLUTION if $first_semantics eq $other_semantics;
+            next OTHER_RESOLUTION if $first_blessing  eq $other_blessing;
             Marpa::R2::exception(
                 'When nulled, symbol ',
                 $grammar->symbol_name($lhs_id),
-                ' can have more than one semantics: ',
-                ( join q{, }, ( keys %seen ) ),
-                "\n",
-                qq{  Marpa needs there to be only one\n}
+                qq{  can have more than one semantics\n},
+                qq{  Marpa needs there to be only one semantics\n},
+                qq{  The rules involved are:\n},
+                brief_rule_list($recce, $rule_ids),
             );
-        } ## end if ( grep { $_ ne $first_resolution_name } ...)
+        } ## end OTHER_RESOLUTION: for my $other_resolution (@other_resolutions)
 
         # Multiple rules, but they all have one semantics.
         # So (obviously) use that semantics
-        $resolution_rule = $ruleids->[0];
+        $resolution_rule = $rule_ids->[0];
         my ( $resolution_name, $closure ) =
             @{ $rule_resolutions->[$resolution_rule] };
         if ($trace_actions) {
