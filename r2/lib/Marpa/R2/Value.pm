@@ -74,7 +74,7 @@ sub Marpa::R2::Recognizer::resolve_semantics {
 # Given the grammar and an action name, resolve it to a closure,
 # or return undef
 sub Marpa::R2::Internal::Recognizer::resolve_action {
-    my ( $recce, $closure_name, $blessing ) = @_;
+    my ( $recce, $closure_name) = @_;
     my $grammar  = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my $closures = $recce->[Marpa::R2::Internal::Recognizer::CLOSURES];
     my $trace_actions =
@@ -218,8 +218,7 @@ sub Marpa::R2::Internal::Recognizer::default_semantics {
         if ( my $action = $rule->[Marpa::R2::Internal::Rule::ACTION_NAME] ) {
             my $resolution =
                 Marpa::R2::Internal::Recognizer::resolve_action( $recce,
-                $action,
-         $rule->[Marpa::R2::Internal::Rule::BLESSING]
+                $action
                 );
 
             Marpa::R2::exception(
