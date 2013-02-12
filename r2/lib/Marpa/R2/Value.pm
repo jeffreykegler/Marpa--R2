@@ -81,16 +81,16 @@ sub Marpa::R2::Internal::Recognizer::resolve_action {
         $recce->[Marpa::R2::Internal::Recognizer::TRACE_ACTIONS];
 
     # A reserved closure name;
-    return [ '::whatever', undef, '::whatever' ] if not defined $closure_name;
+    return [ '', undef, '::whatever' ] if not defined $closure_name;
 
         if ( $closure_name eq '' ) {
             return qq{The action string cannot be the empty string};
         }
 
     if ( substr( $closure_name, 0, 2 ) eq q{::} ) {
-        return [ $closure_name, \undef, $closure_name ]
+        return [ '', \undef, $closure_name ]
             if $closure_name eq '::undef';
-        return [ $closure_name, undef, $closure_name ];
+        return [ '', undef, $closure_name ];
     }
 
     if ( my $closure = $closures->{$closure_name} ) {
