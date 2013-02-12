@@ -74,14 +74,19 @@ sub Marpa::R2::Recognizer::resolve_semantics {
 # Given the grammar and an action name, resolve it to a closure,
 # or return undef
 sub Marpa::R2::Internal::Recognizer::resolve_action {
-    my ( $recce, $closure_name ) = @_;
+    my ( $recce, $closure_name, $blessing ) = @_;
     my $grammar  = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my $closures = $recce->[Marpa::R2::Internal::Recognizer::CLOSURES];
     my $trace_actions =
         $recce->[Marpa::R2::Internal::Recognizer::TRACE_ACTIONS];
 
     # A reserved closure name;
-    return [ '::whatever', undef, '::whatever' ] if not defined $closure_name;
+    return [ '::whatever', undef, '::whatever', '' ] if not defined $closure_name;
+
+        if ( $closure_name eq '' ) {
+            return qq{The action string cannot be the empty string};
+        } ## end if ( defined $blessing and not defined $bless_package)
+
     if ( substr( $closure_name, 0, 2 ) eq q{::} ) {
         return [ $closure_name, \undef, $closure_name ]
             if $closure_name eq '::undef';
@@ -125,7 +130,7 @@ sub Marpa::R2::Internal::Recognizer::resolve_action {
         } ## end if ( defined( my $action_object_class = $grammar->[...]))
     } ## end DETERMINE_FULLY_QUALIFIED_NAME:
 
-    return if not defined $fully_qualified_name;
+    return qq{Could not fully qualify "$closure_name"} if not defined $fully_qualified_name;
 
     my $closure;
     my $type;
@@ -160,14 +165,14 @@ sub Marpa::R2::Internal::Recognizer::resolve_action {
         return [ $fully_qualified_name, $closure ];
     } ## end if ( defined $closure )
 
+    my $error =
+        qq{Failed resolution of action "$closure_name" to $fully_qualified_name \n};
     if ($trace_actions) {
-        print {$Marpa::R2::Internal::TRACE_FH}
-            qq{Failed resolution of action "$closure_name" },
-            'to ', $fully_qualified_name, "\n"
+        print {$Marpa::R2::Internal::TRACE_FH} $error
             or Marpa::R2::exception('Could not print to trace file');
-    } ## end if ($trace_actions)
+    }
 
-    return;
+    return $error;
 
 } ## end sub Marpa::R2::Internal::Recognizer::resolve_action
 
@@ -186,8 +191,10 @@ sub Marpa::R2::Internal::Recognizer::default_semantics {
         Marpa::R2::Internal::Recognizer::resolve_action( $recce,
         $default_action );
     Marpa::R2::exception(
-        "Could not resolve default action named '$default_action'")
-        if not $default_action_resolution;
+        "Could not resolve default action named '$default_action'\n",
+        q{  }, ($default_action_resolution // 'Failed to resolve action')
+        )
+        if not ref $default_action_resolution;
 
     my $default_empty_action =
         $grammar->[Marpa::R2::Internal::Grammar::DEFAULT_EMPTY_ACTION];
@@ -197,8 +204,9 @@ sub Marpa::R2::Internal::Recognizer::default_semantics {
             Marpa::R2::Internal::Recognizer::resolve_action( $recce,
             $default_empty_action );
         Marpa::R2::exception(
-            "Could not resolve default empty rule action named '$default_empty_action'"
-        ) if not $default_empty_action_resolution;
+            "Could not resolve default empty rule action named '$default_empty_action'",
+        q{  }, ($default_empty_action_resolution // 'Failed to resolve action')
+        ) if not ref $default_empty_action_resolution;
     } ## end if ($default_empty_action)
 
     my $rule_resolutions = [];
@@ -210,10 +218,14 @@ sub Marpa::R2::Internal::Recognizer::default_semantics {
         if ( my $action = $rule->[Marpa::R2::Internal::Rule::ACTION_NAME] ) {
             my $resolution =
                 Marpa::R2::Internal::Recognizer::resolve_action( $recce,
-                $action );
+                $action,
+         $rule->[Marpa::R2::Internal::Rule::BLESSING]
+                );
 
-            Marpa::R2::exception(qq{Could not resolve action name: "$action"})
-                if not defined $resolution;
+            Marpa::R2::exception(
+                qq{Could not resolve action name: "$action"},
+                q{  }, ( $resolution // 'Failed to resolve action' ) )
+                if not ref $resolution;
             $rule_resolutions->[$rule_id] = $resolution;
             next RULE;
         } ## end if ( my $action = $rule->[...])
@@ -408,7 +420,6 @@ sub Marpa::R2::Internal::Recognizer::resolve_semantics {
         # fully qualfied blessing
         $blessing_by_rule_id[$rule_id] = join q{}, $bless_package, q{::}, $blessing;
     }
-
     # Put the resolutions together
     my %resolution_data = ();
     {
@@ -580,10 +591,13 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
         my $constructor_name = $action_object_class . q{::new};
         my $resolution =
             Marpa::R2::Internal::Recognizer::resolve_action( $recce,
-            $constructor_name );
+            $constructor_name
+            );
         Marpa::R2::exception(
-            qq{Could not find constructor "$constructor_name"})
-            if not defined $resolution;
+            qq{Could not find constructor "$constructor_name"},
+        q{  }, ($resolution // 'Failed to resolve action')
+        )
+            if not ref $resolution;
         ( undef, $action_object_constructor ) = @{$resolution};
     } ## end if ( defined $action_object_class )
 
@@ -645,9 +659,6 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
     state $op_result_is_constant = Marpa::R2::Thin::op('result_is_constant');
     state $op_result_is_rhs_n    = Marpa::R2::Thin::op('result_is_rhs_n');
     state $op_result_is_undef    = Marpa::R2::Thin::op('result_is_undef');
-
-    my $bless_package =
-        $grammar->[Marpa::R2::Internal::Grammar::BLESS_PACKAGE];
 
     RULE: for my $rule_id ( $grammar->rule_ids() ) {
         my $result = $value->rule_is_valued_set( $rule_id, 1 );
