@@ -210,6 +210,11 @@ sub do_priority_rule {
     my $rules = $op_declare eq q{::=} ? \@xs_rules : $self->{lex_rules};
     local $Marpa::R2::Inner::Scanless::GRAMMAR_LEVEL = 0 if not $op_declare eq q{::=};
 
+    my $default_adverbs =
+        $Marpa::R2::Inner::Scanless::GRAMMAR_LEVEL == 0
+        ? {}
+        : $self->{default_adverbs};
+
     if ( $priority_count <= 1 ) {
         ## If there is only one priority
         for my $alternative ( @{ $priorities->[0] } ) {
@@ -225,8 +230,8 @@ sub do_priority_rule {
             } ## end if ( $Marpa::R2::Inner::Scanless::GRAMMAR_LEVEL <= 0 and grep { !$_ } @mask )
             my %hash_rule =
                 ( lhs => $lhs, rhs => \@rhs_names, mask => \@mask );
-            my $action = $adverb_list->{action};
-            my $blessing = $adverb_list->{bless};
+
+            my $action = $adverb_list->{action} // $default_adverbs->{action};
             if ( defined $action ) {
                 Marpa::R2::exception(
                     'actions not allowed in lexical rules (rules LHS was "',
@@ -234,6 +239,8 @@ sub do_priority_rule {
                     if $Marpa::R2::Inner::Scanless::GRAMMAR_LEVEL <= 0;
                 $hash_rule{action} = $action;
             } ## end if ( defined $action )
+
+            my $blessing = $adverb_list->{bless} // $default_adverbs->{bless};
             if ( defined $blessing ) {
                 Marpa::R2::exception(
                     'bless option not allowed in lexical rules (rules LHS was "',
@@ -242,6 +249,7 @@ sub do_priority_rule {
                 ) if $Marpa::R2::Inner::Scanless::GRAMMAR_LEVEL <= 0;
                 $hash_rule{bless} = $blessing;
             } ## end if ( defined $blessing )
+
             push @{$rules}, \%hash_rule;
         } ## end for my $alternative ( @{ $priorities->[0] } )
         return [@xs_rules];
@@ -385,7 +393,7 @@ sub do_empty_rule {
 sub do_default_rule {
     my ( $self, $lhs, $op_declare, $adverb_list ) = @_;
     my %rule = ( lhs => $lhs, rhs => [] );
-    ADVERB: for my $key (%{$adverb_list}) {
+    ADVERB: for my $key (keys %{$adverb_list}) {
 	my $value = $adverb_list->{$key};
         if ($key eq 'action') {
 	    $self->{default_adverbs}->{$key} = $value;
@@ -546,6 +554,7 @@ my %hashed_closures = (
     do_character_class           => \&do_character_class,
     do_discard_rule              => \&do_discard_rule,
     do_empty_rule                => \&do_empty_rule,
+    do_default_rule                => \&do_default_rule,
     do_lhs                       => \&do_lhs,
     do_op_declare_bnf            => \&do_op_declare_bnf,
     do_op_declare_match          => \&do_op_declare_match,
@@ -970,6 +979,7 @@ sub Marpa::R2::Scanless::G::_source_to_hash {
         }
         my $rule = $meta_g1_rules->[$rule_id];
         $action = $rule->[Marpa::R2::Internal::Rule::ACTION_NAME];
+        $action = undef if $action eq '::dwim'; # temporary hack
         next RULE if not defined $action;
         $actions_by_rule_id[$rule_id] = $action;
     } ## end for my $rule_id ( grep { $thin_meta_g1_grammar->rule_length($_...)})

@@ -458,6 +458,7 @@ sub parse_rules {
         }
         my $rule = $meta_g1_rules->[$rule_id];
         $action = $rule->[Marpa::R2::Internal::Rule::ACTION_NAME];
+        $action = undef if $action eq '::dwim'; # temporary hack
         next RULE if not defined $action;
         $actions_by_rule_id[$rule_id] = $action;
     } ## end for my $rule_id ( grep { $thin_meta_g1_grammar->rule_length...})
