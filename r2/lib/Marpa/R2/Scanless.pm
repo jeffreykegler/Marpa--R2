@@ -298,7 +298,7 @@ sub do_priority_rule {
         my %new_xs_rule = ( lhs => $current_exp );
         $new_xs_rule{mask} = \@mask;
 
-        my $action = $adverb_list->{action};
+        my $action = $adverb_list->{action} // $default_adverbs->{action};
         if ( defined $action ) {
             Marpa::R2::exception(
                 'actions not allowed in lexical rules (rules LHS was "',
@@ -307,7 +307,7 @@ sub do_priority_rule {
             $new_xs_rule{action} = $action;
         } ## end if ( defined $action )
 
-        my $blessing = $adverb_list->{bless};
+        my $blessing = $adverb_list->{bless} // $default_adverbs->{bless};
         if ( defined $blessing ) {
             Marpa::R2::exception(
                 'bless option not allowed in lexical rules (rules LHS was "',
@@ -364,7 +364,14 @@ sub do_priority_rule {
 sub do_empty_rule {
     my ( $self, $lhs, $op_declare, $adverb_list ) = @_;
     my %rule = ( lhs => $lhs, rhs => [] );
-    my $action = $adverb_list->{action};
+
+    local $Marpa::R2::Inner::Scanless::GRAMMAR_LEVEL = 0 if not $op_declare eq q{::=};
+    my $default_adverbs =
+        $Marpa::R2::Inner::Scanless::GRAMMAR_LEVEL == 0
+        ? {}
+        : $self->{default_adverbs};
+
+    my $action = $adverb_list->{action} // $default_adverbs->{action};
     if ( defined $action ) {
         Marpa::R2::exception(
             'actions not allowed in lexical rules (rules LHS was "',
@@ -373,7 +380,7 @@ sub do_empty_rule {
         $rule{action} = $action;
     } ## end if ( defined $action )
 
-    my $blessing = $adverb_list->{bless};
+    my $blessing = $adverb_list->{bless} // $default_adverbs->{bless};
     if ( defined $blessing ) {
         Marpa::R2::exception(
             'bless option not allowed in lexical rules (rules LHS was "',
@@ -413,6 +420,10 @@ sub do_quantified_rule {
     my ( $self, $lhs, $op_declare, $rhs, $quantifier, $adverb_list ) = @_;
 
     local $Marpa::R2::Inner::Scanless::GRAMMAR_LEVEL = 0 if not $op_declare eq q{::=};
+    my $default_adverbs =
+        $Marpa::R2::Inner::Scanless::GRAMMAR_LEVEL == 0
+        ? {}
+        : $self->{default_adverbs};
 
     # Some properties of the sequence rule will not be altered
     # no matter how complicated this gets
@@ -421,7 +432,7 @@ sub do_quantified_rule {
         min => ( $quantifier eq q{+} ? 1 : 0 )
     );
 
-    my $action = $adverb_list->{action};
+    my $action = $adverb_list->{action} // $default_adverbs->{action};
     if ( defined $action ) {
         Marpa::R2::exception(
             'actions not allowed in lexical rules (rules LHS was "',
@@ -430,7 +441,7 @@ sub do_quantified_rule {
         $sequence_rule{action} = $action;
     } ## end if ( defined $action )
 
-    my $blessing = $adverb_list->{bless};
+    my $blessing = $adverb_list->{bless} // $default_adverbs->{bless};
     if ( defined $blessing ) {
         Marpa::R2::exception(
             'bless option not allowed in lexical rules (rules LHS was "',
