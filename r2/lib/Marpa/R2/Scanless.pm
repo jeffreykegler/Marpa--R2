@@ -382,6 +382,24 @@ sub do_empty_rule {
     return [];
 } ## end sub do_empty_rule
 
+sub do_default_rule {
+    my ( $self, $lhs, $op_declare, $adverb_list ) = @_;
+    my %rule = ( lhs => $lhs, rhs => [] );
+    ADVERB: for my $key (%{$adverb_list}) {
+	my $value = $adverb_list->{$key};
+        if ($key eq 'action') {
+	    $self->{default_adverbs}->{$key} = $value;
+	    next ADVERB;
+	}
+        if ($key eq 'bless') {
+	    $self->{default_adverbs}->{$key} = $value;
+	    next ADVERB;
+	}
+        Marpa::R2::exception( qq{"$key" adverb not allowed in default rule"})
+    }
+    return [];
+} ## end sub do_empty_rule
+
 ## no critic(Subroutines::ProhibitManyArgs)
 sub do_quantified_rule {
     my ( $self, $lhs, $op_declare, $rhs, $quantifier, $adverb_list ) = @_;
@@ -865,6 +883,7 @@ my %actions_by_lhs_symbol = (
     'start rule'                     => 'do_start_rule',
     'priority rule'                  => 'do_priority_rule',
     'empty rule'                     => 'do_empty_rule',
+    'default rule'                     => 'do_default_rule',
     'quantified rule'                => 'do_quantified_rule',
     'discard rule'                   => 'do_discard_rule',
     priorities                       => 'do_discard_separators',
