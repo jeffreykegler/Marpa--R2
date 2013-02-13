@@ -44,15 +44,17 @@ die "usage $PROGRAM_NAME [--help] file ...\n" if $help_flag;
 my $bnf           = do { local $RS = undef; \(<>) };
 my $parse_result =
     Marpa::R2::Scanless::G->_source_to_ast( $bnf );
-say Data::Dumper::Dumper(doit($parse_result));
+my $self = {};
+say "ast result = \n", Data::Dumper::Dumper(doit($self, $parse_result));
+say "self object = \n", Data::Dumper::Dumper($self);
 
 exit 0;
 
 sub doit {
-    my ($value) = @_;
+    my ($self, $value) = @_;
     my $ref_type = ref $value;
-    return $value->doit() if Scalar::Util::blessed($value);
-    return [ map { doit($_) } @{$value} ] if $ref_type eq 'ARRAY';
+    return $value->doit($self) if Scalar::Util::blessed($value);
+    return [ map { doit($self, $_) } @{$value} ] if $ref_type eq 'ARRAY';
     return $value;
 } ## end sub doit
 
