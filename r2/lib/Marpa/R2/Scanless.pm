@@ -201,6 +201,43 @@ sub rhs_normalize {
     return Marpa::R2::Inner::Scanless::Symbol_List->new(@symbols);
 } ## end sub rhs_normalize
 
+sub bless_hash_rule {
+    my ( $self, $hash_rule, $blessing ) = @_;
+    return if $Marpa::R2::Inner::Scanless::GRAMMAR_LEVEL == 0;
+    $blessing //= $self->{default_adverbs}->{bless};
+    return if not defined $blessing;
+    FIND_BLESSING: {
+        last FIND_BLESSING if $blessing =~ /\A [\w] /xms;
+        if ( $blessing eq '::undef' ) {
+            $blessing = undef;
+            last FIND_BLESSING;
+        }
+        my $lhs = $hash_rule->{lhs};
+        my @rhs = $hash_rule->{rhs};
+        if ( $blessing eq '::lhs' ) {
+            $blessing = $lhs;
+            if ( $blessing =~ / [^ [:alnum:]] /xms ) {
+                Marpa::R2::exception(
+                    qq{"::lhs" blessing only allowed if LHS is whitespace and alphanumerics\n},
+                    qq{   LHS was <$lhs>\n},
+                    qq{   Rule was <$lhs> ::= },
+                    join q{ },
+                    map { '<' . $_ . '>' } @rhs
+                );
+            } ## end if ( $blessing =~ / [^ [:alnum:]] /xms )
+            $blessing =~ s/[ ]/_/gxms;
+            last FIND_BLESSING;
+        } ## end if ( $blessing eq '::lhs' )
+        Marpa::R2::exception(
+            qq{Unknown blessing "$blessing"\n},
+            qq{   Rule was <$lhs> ::= },
+            join q{ }, map { '<' . $_ . '>' } @rhs
+        );
+    } ## end FIND_BLESSING:
+    $hash_rule->{bless} = $blessing;
+    return 1;
+} ## end sub bless_hash_rule
+
 sub do_priority_rule {
     my ( $self, $lhs, $op_declare, $priorities ) = @_;
     my $priority_count = scalar @{$priorities};
@@ -240,15 +277,16 @@ sub do_priority_rule {
                 $hash_rule{action} = $action;
             } ## end if ( defined $action )
 
-            my $blessing = $adverb_list->{bless} // $default_adverbs->{bless};
-            if ( defined $blessing ) {
+            my $blessing = $adverb_list->{bless};
+            if ( defined $blessing
+                and $Marpa::R2::Inner::Scanless::GRAMMAR_LEVEL <= 0 )
+            {
                 Marpa::R2::exception(
                     'bless option not allowed in lexical rules (rules LHS was "',
-                    $lhs,
-                    '")'
-                ) if $Marpa::R2::Inner::Scanless::GRAMMAR_LEVEL <= 0;
-                $hash_rule{bless} = $blessing;
-            } ## end if ( defined $blessing )
+                    $lhs, '")'
+                );
+            } ## end if ( defined $blessing and ...)
+            $self->bless_hash_rule( \%hash_rule, $blessing );
 
             push @{$rules}, \%hash_rule;
         } ## end for my $alternative ( @{ $priorities->[0] } )
@@ -307,15 +345,17 @@ sub do_priority_rule {
             $new_xs_rule{action} = $action;
         } ## end if ( defined $action )
 
-        my $blessing = $adverb_list->{bless} // $default_adverbs->{bless};
-        if ( defined $blessing ) {
+        my $blessing = $adverb_list->{bless};
+        if ( defined $blessing
+            and $Marpa::R2::Inner::Scanless::GRAMMAR_LEVEL <= 0 )
+        {
             Marpa::R2::exception(
                 'bless option not allowed in lexical rules (rules LHS was "',
                 $lhs,
                 '")'
-            ) if $Marpa::R2::Inner::Scanless::GRAMMAR_LEVEL <= 0;
-            $new_xs_rule{bless} = $blessing;
-        } ## end if ( defined $blessing )
+            );
+        } ## end if ( defined $blessing and ...)
+        $self->bless_hash_rule( \%new_xs_rule, $blessing );
 
         my $next_priority = $priority + 1;
         $next_priority = 0 if $next_priority >= $priority_count;
@@ -380,14 +420,17 @@ sub do_empty_rule {
         $rule{action} = $action;
     } ## end if ( defined $action )
 
-    my $blessing = $adverb_list->{bless} // $default_adverbs->{bless};
-    if ( defined $blessing ) {
+
+    my $blessing = $adverb_list->{bless};
+    if ( defined $blessing
+            and $Marpa::R2::Inner::Scanless::GRAMMAR_LEVEL <= 0 ) {
         Marpa::R2::exception(
             'bless option not allowed in lexical rules (rules LHS was "',
-            $lhs, '")' )
-            if $Marpa::R2::Inner::Scanless::GRAMMAR_LEVEL <= 0;
-        $rule{bless} = $blessing;
+            $lhs,
+            '")'
+        );
     } ## end if ( defined $blessing )
+    $self->bless_hash_rule(\%rule, $blessing);
 
     # mask not needed
     if ( $op_declare eq q{::=} ) {
@@ -441,14 +484,17 @@ sub do_quantified_rule {
         $sequence_rule{action} = $action;
     } ## end if ( defined $action )
 
-    my $blessing = $adverb_list->{bless} // $default_adverbs->{bless};
-    if ( defined $blessing ) {
+
+    my $blessing = $adverb_list->{bless};
+    if ( defined $blessing
+            and $Marpa::R2::Inner::Scanless::GRAMMAR_LEVEL <= 0 ) {
         Marpa::R2::exception(
             'bless option not allowed in lexical rules (rules LHS was "',
-            $lhs, '")' )
-            if $Marpa::R2::Inner::Scanless::GRAMMAR_LEVEL <= 0;
-        $sequence_rule{bless} = $blessing;
+            $lhs,
+            '")'
+        );
     } ## end if ( defined $blessing )
+    $self->bless_hash_rule(\%sequence_rule, $blessing);
 
     my @rules = ( \%sequence_rule );
 
