@@ -208,14 +208,12 @@ sub bless_hash_rule {
     return if not defined $blessing;
     FIND_BLESSING: {
         last FIND_BLESSING if $blessing =~ /\A [\w] /xms;
-        if ( $blessing eq '::undef' ) {
-            $blessing = undef;
-            last FIND_BLESSING;
-        }
+        return if $blessing eq '::undef';
         my $lhs = $hash_rule->{lhs};
         my @rhs = $hash_rule->{rhs};
         if ( $blessing eq '::lhs' ) {
             $blessing = $lhs;
+            $DB::single = 1 if not defined $blessing;
             if ( $blessing =~ / [^ [:alnum:]] /xms ) {
                 Marpa::R2::exception(
                     qq{"::lhs" blessing only allowed if LHS is whitespace and alphanumerics\n},
@@ -475,6 +473,17 @@ sub do_quantified_rule {
         min => ( $quantifier eq q{+} ? 1 : 0 )
     );
 
+    my @rules = ( \%sequence_rule );
+
+    my $original_separator = $adverb_list->{separator};
+
+    # mask not needed
+    $sequence_rule{lhs}       = $lhs;
+    $sequence_rule{separator} = $original_separator
+        if defined $original_separator;
+    my $proper = $adverb_list->{proper};
+    $sequence_rule{proper} = $proper if defined $proper;
+
     my $action = $adverb_list->{action} // $default_adverbs->{action};
     if ( defined $action ) {
         Marpa::R2::exception(
@@ -483,7 +492,6 @@ sub do_quantified_rule {
             if $Marpa::R2::Inner::Scanless::GRAMMAR_LEVEL <= 0;
         $sequence_rule{action} = $action;
     } ## end if ( defined $action )
-
 
     my $blessing = $adverb_list->{bless};
     if ( defined $blessing
@@ -495,17 +503,6 @@ sub do_quantified_rule {
         );
     } ## end if ( defined $blessing )
     $self->bless_hash_rule(\%sequence_rule, $blessing);
-
-    my @rules = ( \%sequence_rule );
-
-    my $original_separator = $adverb_list->{separator};
-
-    # mask not needed
-    $sequence_rule{lhs}       = $lhs;
-    $sequence_rule{separator} = $original_separator
-        if defined $original_separator;
-    my $proper = $adverb_list->{proper};
-    $sequence_rule{proper} = $proper if defined $proper;
 
     if ($op_declare eq q{::=}) {
         return \@rules;
