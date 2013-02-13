@@ -706,8 +706,10 @@ sub Marpa::R2::Internal::Scanless::meta_grammar {
 } ## end sub meta_grammar
 
 sub Marpa::R2::Internal::Scanless::meta_recce {
+    my ($hash_args) = @_;
     state $meta_grammar = Marpa::R2::Internal::Scanless::meta_grammar();
-    my $self = Marpa::R2::Scanless::R->new( { grammar => $meta_grammar } );
+    $hash_args->{grammar} = $meta_grammar;
+    my $self = Marpa::R2::Scanless::R->new( $hash_args );
     return $self;
 }
 

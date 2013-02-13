@@ -43,6 +43,7 @@ die "usage $PROGRAM_NAME [--help] file ...\n" if $help_flag;
 my $bnf           = do { local $RS = undef; \(<>) };
 my $parse_result =
     Marpa::R2::Scanless::G->_source_to_ast( $bnf );
+say Data::Dumper::Dumper($parse_result);
 
 sub sort_bnf {
     my $cmp = $a->{lhs} cmp $b->{lhs};

@@ -93,18 +93,6 @@ my %actions_by_lhs_symbol = (
 sub Marpa::R2::Scanless::G::_source_to_ast {
     my ( $self, $p_rules_source ) = @_;
 
-    local $Marpa::R2::Inner::Scanless::GRAMMAR_LEVEL = 1;
-    my $inner_self = bless {
-        self              => $self,
-        lex_rules         => [],
-        lexical_lhs_index => 0,
-        },
-        __PACKAGE__;
-
-    # Track earley set positions in input,
-    # for debuggging
-    my @positions = (0);
-
     my $meta_recce = Marpa::R2::Internal::Scanless::meta_recce();
     my $meta_grammar = $meta_recce->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
     state $mask_by_rule_id =
@@ -117,8 +105,7 @@ sub Marpa::R2::Scanless::G::_source_to_ast {
     my $thick_meta_g1_recce = $meta_recce->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
     my $thick_g1_recce = $meta_recce->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
 
-    die;
+    return $meta_recce->value();
 
-    return $inner_self;
 } ## end sub rules_add
 
