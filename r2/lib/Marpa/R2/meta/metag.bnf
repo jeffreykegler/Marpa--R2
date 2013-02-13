@@ -43,7 +43,9 @@ action ::= ('action' '=>') <action name>
 <group association> ::= ('assoc' '=>' 'group')
 <separator specification> ::= ('separator' '=>') <single symbol>
 <proper specification> ::= ('proper' '=>') boolean
-<blessing> ::= ('bless' '=>') <standard name>
+<blessing> ::= ('bless' '=>') <blessing name>
+<blessing name> ::= <standard name>
+<blessing name> ::= <reserved blessing name>
 
 lhs ::= <symbol name>
 rhs ::= <rhs primary>+
@@ -86,6 +88,7 @@ quantifier ::= '*' | '+'
 
 boolean ~ [01]
 <reserved action name> ~ '::' <one or more word characters>
+<reserved blessing name> ~ '::' <one or more word characters>
 <one or more word characters> ~ [\w]+
 <zero or more word characters> ~ [\w]*
 <bare name> ~ [\w]+
