@@ -203,8 +203,9 @@ sub rhs_normalize {
 
 sub bless_hash_rule {
     my ( $self, $hash_rule, $blessing ) = @_;
-    return if $Marpa::R2::Inner::Scanless::GRAMMAR_LEVEL == 0;
-    $blessing //= $self->{default_adverbs}->{bless};
+    my $grammar_level = $Marpa::R2::Inner::Scanless::GRAMMAR_LEVEL;
+    return if $grammar_level == 0;
+    $blessing //= $self->{default_adverbs}->[$grammar_level]->{bless};
     return if not defined $blessing;
     FIND_BLESSING: {
         last FIND_BLESSING if $blessing =~ /\A [\w] /xms;
@@ -243,11 +244,9 @@ sub do_priority_rule {
     my @xs_rules = ();
     my $rules = $op_declare eq q{::=} ? \@xs_rules : $self->{lex_rules};
     local $Marpa::R2::Inner::Scanless::GRAMMAR_LEVEL = 0 if not $op_declare eq q{::=};
+    my $grammar_level = $Marpa::R2::Inner::Scanless::GRAMMAR_LEVEL;
 
-    my $default_adverbs =
-        $Marpa::R2::Inner::Scanless::GRAMMAR_LEVEL == 0
-        ? {}
-        : $self->{default_adverbs};
+    my $default_adverbs = $self->{default_adverbs}->[$grammar_level];
 
     if ( $priority_count <= 1 ) {
         ## If there is only one priority
@@ -403,10 +402,9 @@ sub do_empty_rule {
     my %rule = ( lhs => $lhs, rhs => [] );
 
     local $Marpa::R2::Inner::Scanless::GRAMMAR_LEVEL = 0 if not $op_declare eq q{::=};
-    my $default_adverbs =
-        $Marpa::R2::Inner::Scanless::GRAMMAR_LEVEL == 0
-        ? {}
-        : $self->{default_adverbs};
+    my $grammar_level = $Marpa::R2::Inner::Scanless::GRAMMAR_LEVEL;
+
+    my $default_adverbs = $self->{default_adverbs}->[$grammar_level];
 
     my $action = $adverb_list->{action} // $default_adverbs->{action};
     if ( defined $action ) {
@@ -440,14 +438,16 @@ sub do_empty_rule {
 sub do_default_rule {
     my ( $self, $lhs, $op_declare, $adverb_list ) = @_;
     my %rule = ( lhs => $lhs, rhs => [] );
+    my $grammar_level = $op_declare eq q{::=} ? 1 : 0;
+    $self->{default_adverbs}->[$grammar_level] = {};
     ADVERB: for my $key (keys %{$adverb_list}) {
 	my $value = $adverb_list->{$key};
         if ($key eq 'action') {
-	    $self->{default_adverbs}->{$key} = $value;
+	    $self->{default_adverbs}->[$grammar_level]->{$key} = $value;
 	    next ADVERB;
 	}
         if ($key eq 'bless') {
-	    $self->{default_adverbs}->{$key} = $value;
+	    $self->{default_adverbs}->[$grammar_level]->{$key} = $value;
 	    next ADVERB;
 	}
         Marpa::R2::exception( qq{"$key" adverb not allowed in default rule"})
@@ -460,10 +460,8 @@ sub do_quantified_rule {
     my ( $self, $lhs, $op_declare, $rhs, $quantifier, $adverb_list ) = @_;
 
     local $Marpa::R2::Inner::Scanless::GRAMMAR_LEVEL = 0 if not $op_declare eq q{::=};
-    my $default_adverbs =
-        $Marpa::R2::Inner::Scanless::GRAMMAR_LEVEL == 0
-        ? {}
-        : $self->{default_adverbs};
+    my $grammar_level = $Marpa::R2::Inner::Scanless::GRAMMAR_LEVEL;
+    my $default_adverbs = $self->{default_adverbs}->[$grammar_level];
 
     # Some properties of the sequence rule will not be altered
     # no matter how complicated this gets
@@ -975,6 +973,8 @@ sub Marpa::R2::Scanless::G::_source_to_hash {
         lexical_lhs_index => 0,
         },
         __PACKAGE__;
+
+    $inner_self->{default_adverbs}->[$_] = {} for 0, 1;
 
     # Track earley set positions in input,
     # for debuggging
