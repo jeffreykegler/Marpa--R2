@@ -141,6 +141,7 @@ typedef struct
   int result;			/* stack location to which to write result */
   AV *constants;
   AV *rule_semantics;
+  AV *token_semantics;
   AV *nulling_semantics;
 } V_Wrapper;
 
@@ -294,7 +295,6 @@ enum marpa_op {
    op_result_is_constant,
    op_result_is_rhs_n,
    op_result_is_undef,
-   op_unregistered
 };
 
 /* Static grammar methods */
@@ -665,9 +665,6 @@ u_read(Unicode_Stream *stream)
 		  }
 	      }
 	      break;
-	    case op_unregistered:
-	      croak ("Unregistered codepoint (0x%lx)",
-		     (unsigned long) codepoint);
 	    default:
 	      croak ("Unknown op code (0x%lx); codepoint=0x%lx, op_ix=0x%lx",
 		     (unsigned long) op_code, (unsigned long) codepoint,
@@ -1947,6 +1944,7 @@ PPCODE:
   av_push (v_wrapper->constants, &PL_sv_undef);
 
   v_wrapper->rule_semantics = newAV ();
+  v_wrapper->token_semantics = newAV ();
   v_wrapper->nulling_semantics = newAV ();
   sv = sv_newmortal ();
   sv_setref_pv (sv, value_c_class_name, (void *) v_wrapper);
@@ -1963,6 +1961,7 @@ PPCODE:
   SvREFCNT_dec (v_wrapper->event_queue);
   SvREFCNT_dec (v_wrapper->constants);
   SvREFCNT_dec (v_wrapper->rule_semantics);
+  SvREFCNT_dec (v_wrapper->token_semantics);
   SvREFCNT_dec (v_wrapper->nulling_semantics);
   if (v_wrapper->stack)
     {
@@ -2102,7 +2101,7 @@ PPCODE:
     int ix;
     UV ops[3];
     const int highest_rule_id = marpa_g_highest_rule_id (g);
-    AV *av = v_wrapper->rule_semantics = newAV ();
+    AV *av = v_wrapper->rule_semantics;
     av_extend (av, highest_rule_id);
     ops[0] = op_push_all;
     ops[1] = op_callback;
@@ -2124,7 +2123,7 @@ PPCODE:
     int ix;
     UV ops[2];
     const int highest_symbol_id = marpa_g_highest_symbol_id (g);
-    AV *av = v_wrapper->nulling_semantics = newAV ();
+    AV *av = v_wrapper->nulling_semantics;
     av_extend (av, highest_symbol_id);
     ops[0] = op_result_is_undef;
     ops[1] = 0;
@@ -2174,6 +2173,40 @@ PPCODE:
     }
   ops[op_ix] = 0;
   if (!av_store (rule_semantics, (I32) rule_id, ops_sv)) {
+     SvREFCNT_dec(ops_sv);
+  }
+}
+
+void
+token_register( v_wrapper, token_id, ... )
+     V_Wrapper *v_wrapper;
+     Marpa_Symbol_ID token_id;
+PPCODE:
+{
+  /* OP Count is args less two */
+  const STRLEN op_count = items - 2;
+  STRLEN op_ix;
+  STRLEN dummy;
+  UV *ops;
+  SV *ops_sv;
+  AV *token_semantics = v_wrapper->token_semantics;
+
+  if (!token_semantics)
+    {
+      croak ("Problem in v->token_register(): valuator is not in stack mode");
+    }
+
+  /* Leave room for final 0 */
+  ops_sv = newSV ((op_count+1) * sizeof (UV));
+
+  SvPOK_on (ops_sv);
+  ops = (UV *) SvPV (ops_sv, dummy);
+  for (op_ix = 0; op_ix < op_count; op_ix++)
+    {
+      ops[op_ix] = SvUV (ST (op_ix+2));
+    }
+  ops[op_ix] = 0;
+  if (!av_store (token_semantics, (I32) token_id, ops_sv)) {
      SvREFCNT_dec(ops_sv);
   }
 }
