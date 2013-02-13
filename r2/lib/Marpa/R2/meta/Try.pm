@@ -108,4 +108,3 @@ sub Marpa::R2::Scanless::G::_source_to_ast {
     return $meta_recce->value();
 
 } ## end sub rules_add
-

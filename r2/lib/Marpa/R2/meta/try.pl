@@ -19,6 +19,7 @@ use strict;
 use warnings;
 use English qw( -no_match_vars );
 use Data::Dumper;
+use Scalar::Util qw(blessed);
 
 # This is a 'meta' tool, so I relax some of the
 # restrictions I use to guarantee portability.
@@ -43,7 +44,17 @@ die "usage $PROGRAM_NAME [--help] file ...\n" if $help_flag;
 my $bnf           = do { local $RS = undef; \(<>) };
 my $parse_result =
     Marpa::R2::Scanless::G->_source_to_ast( $bnf );
-say Data::Dumper::Dumper($parse_result);
+say Data::Dumper::Dumper(doit($parse_result));
+
+exit 0;
+
+sub doit {
+    my ($value) = @_;
+    my $ref_type = ref $value;
+    return $value->doit() if Scalar::Util::blessed($value);
+    return [ map { doit($_) } @{$value} ] if $ref_type eq 'ARRAY';
+    return $value;
+} ## end sub doit
 
 sub sort_bnf {
     my $cmp = $a->{lhs} cmp $b->{lhs};
