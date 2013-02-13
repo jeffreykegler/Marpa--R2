@@ -170,7 +170,7 @@
       },
       "Marpa::R2::MetaG" : {
          "file" : "lib/Marpa/R2/MetaG.pm",
-         "version" : "2.047_002"
+         "version" : "2.047_003"
       },
       "Marpa::R2::Recognizer" : {
          "file" : "lib/Marpa/R2/Recognizer.pm",
