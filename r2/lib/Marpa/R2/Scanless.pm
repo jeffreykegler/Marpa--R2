@@ -213,7 +213,6 @@ sub bless_hash_rule {
         my @rhs = $hash_rule->{rhs};
         if ( $blessing eq '::lhs' ) {
             $blessing = $lhs;
-            $DB::single = 1 if not defined $blessing;
             if ( $blessing =~ / [^ [:alnum:]] /xms ) {
                 Marpa::R2::exception(
                     qq{"::lhs" blessing only allowed if LHS is whitespace and alphanumerics\n},
@@ -693,6 +692,7 @@ sub Marpa::R2::Internal::Scanless::meta_grammar {
 
     my $self = bless [], 'Marpa::R2::Scanless::G';
     $self->[Marpa::R2::Inner::Scanless::G::TRACE_FILE_HANDLE] = \*STDERR;
+    $self->[Marpa::R2::Inner::Scanless::G::BLESS_PACKAGE] = 'Marpa::R2::Internal::MetaG_Nodes';
     state $hashed_metag = Marpa::R2::Internal::MetaG::hashed_grammar();
     $self->_hash_to_runtime($hashed_metag);
 
@@ -709,9 +709,9 @@ sub Marpa::R2::Internal::Scanless::meta_recce {
     my ($hash_args) = @_;
     state $meta_grammar = Marpa::R2::Internal::Scanless::meta_grammar();
     $hash_args->{grammar} = $meta_grammar;
-    my $self = Marpa::R2::Scanless::R->new( $hash_args );
+    my $self = Marpa::R2::Scanless::R->new($hash_args);
     return $self;
-}
+} ## end sub Marpa::R2::Internal::Scanless::meta_recce
 
 sub Marpa::R2::Scanless::R::last_rule {
    my ($meta_recce) = @_;
@@ -719,24 +719,6 @@ sub Marpa::R2::Scanless::R::last_rule {
    return 'No rule was completed' if not defined $start;
    return $meta_recce->range_to_string( $start, $end);
 }
-
-my %grammar_options = map { ($_, 1) } qw{
-    action_object
-    bless_package
-    default_action
-    source
-    trace_file_handle
-};
-
-    # Other possible grammar options:
-    # actions
-    # default_empty_action
-    # default_rank
-    # inaccessible_ok
-    # symbols
-    # terminals
-    # unproductive_ok
-    # warnings
 
 sub Marpa::R2::Scanless::G::new {
     my ( $class, $args ) = @_;
@@ -756,8 +738,27 @@ sub Marpa::R2::Scanless::G::new {
             "$G_PACKAGE expects args as ref to HASH, got ref to $ref_type instead"
         );
     }
+
+    # Other possible grammar options:
+    # actions
+    # default_empty_action
+    # default_rank
+    # inaccessible_ok
+    # symbols
+    # terminals
+    # unproductive_ok
+    # warnings
+
+state $grammar_options = { map { ($_, 1) } qw(
+    action_object
+    bless_package
+    default_action
+    source
+    trace_file_handle
+) };
+
     if (my @bad_options =
-        grep { not defined $grammar_options{$_} } keys %{$args}
+        grep { not defined $grammar_options->{$_} } keys %{$args}
         )
     {
         Carp::croak(
