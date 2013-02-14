@@ -16,8 +16,11 @@
 :default ::= action => ::dwim bless => ::lhs
 :start ::= rules
 rules ::= rule+
-rule ::= <start rule> | <empty rule>
+rule ::= <rule body>
+<rule body> ::= <start rule> | <empty rule>
   | <priority rule> | <quantified rule> | <discard rule> | <default rule>
+  | <bless lexemes statement>
+<bless lexemes statement> ::= 'bless' 'lexemes'
 <start rule> ::= (':start' <op declare bnf>) symbol
 <default rule> ::= ':default' <op declare bnf> <adverb list>
 <priority rule> ::= lhs <op declare> priorities
