@@ -13,7 +13,9 @@
 # General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 
+bless lexemes;
 :default ::= action => ::dwim bless => ::lhs
+
 :start ::= rules
 rules ::= rule+
 rule ::= <rule body>

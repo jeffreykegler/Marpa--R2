@@ -435,6 +435,12 @@ sub do_empty_rule {
     return [];
 } ## end sub do_empty_rule
 
+sub do_bless_lexemes {
+    my ( $self ) = @_;
+    $self->{bless_lexemes} = 1;
+    return [];
+}
+
 sub do_default_rule {
     my ( $self, $lhs, $op_declare, $adverb_list ) = @_;
     my $grammar_level = $op_declare eq q{::=} ? 1 : 0;
@@ -605,6 +611,7 @@ my %hashed_closures = (
     do_discard_rule              => \&do_discard_rule,
     do_empty_rule                => \&do_empty_rule,
     do_default_rule                => \&do_default_rule,
+    do_bless_lexemes                => \&do_bless_lexemes,
     do_lhs                       => \&do_lhs,
     do_op_declare_bnf            => \&do_op_declare_bnf,
     do_op_declare_match          => \&do_op_declare_match,
@@ -947,6 +954,7 @@ my %actions_by_lhs_symbol = (
     'priority rule'                  => 'do_priority_rule',
     'empty rule'                     => 'do_empty_rule',
     'default rule'                     => 'do_default_rule',
+    'bless lexemes statement'                     => 'do_bless_lexemes',
     'quantified rule'                => 'do_quantified_rule',
     'discard rule'                   => 'do_discard_rule',
     priorities                       => 'do_discard_separators',
