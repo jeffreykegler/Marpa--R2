@@ -1331,6 +1331,8 @@ sub Marpa::R2::Scanless::R::new {
         $self->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE] =
         Marpa::R2::Recognizer->new( \%g1_recce_args );
 
+    $thick_g1_recce->semantics_set();
+
     $self->[Marpa::R2::Inner::Scanless::R::C] = Marpa::R2::Thin::SLR->new(
         $grammar->[Marpa::R2::Inner::Scanless::G::C],
         $thick_g1_recce->thin() );

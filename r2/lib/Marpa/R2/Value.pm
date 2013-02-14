@@ -56,17 +56,22 @@ sub Marpa::R2::Recognizer::semantics_set {
         $recce->[Marpa::R2::Internal::Recognizer::TRACE_FILE_HANDLE] =
         $grammar->[Marpa::R2::Internal::Grammar::TRACE_FILE_HANDLE];
 
-    ARG_HASH: for my $arg_hash (@arg_hashes) {
-        if ( defined( my $value = $arg_hash->{'action_name_by_rule_id'} ) ) {
-            Marpa::R2::exception(
-                qq{value of "$value" must be a REF to an array rule ID's to action names}
-            ) if ref $value ne 'ARRAY';
-            delete $arg_hash->{$value};
-            last ARG_HASH;
-        } ## end if ( defined( my $value = $arg_hash->{...}))
-    } ## end ARG_HASH: for my $arg_hash (@arg_hashes)
+    $recce->[Marpa::R2::Internal::Recognizer::RULE_RESOLUTIONS] =
+        Marpa::R2::Internal::Recognizer::semantics_set( $recce,
+        Marpa::R2::Internal::Recognizer::default_semantics($recce) );
 
-    $recce->[Marpa::R2::Internal::Recognizer::RULE_RESOLUTIONS] = undef;
+    if (0) {
+        ARG_HASH: for my $arg_hash (@arg_hashes) {
+            if (defined( my $value = $arg_hash->{'action_name_by_rule_id'} ) )
+            {
+                Marpa::R2::exception(
+                    qq{value of "$value" must be a REF to an array rule ID's to action names}
+                ) if ref $value ne 'ARRAY';
+                delete $arg_hash->{$value};
+                last ARG_HASH;
+            } ## end if ( defined( my $value = $arg_hash->{...}))
+        } ## end ARG_HASH: for my $arg_hash (@arg_hashes)
+    } ## end if (0)
 
     return $recce;
 } ## end sub Marpa::R2::Recognizer::semantics_set
