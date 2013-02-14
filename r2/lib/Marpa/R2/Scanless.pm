@@ -1215,9 +1215,25 @@ sub Marpa::R2::Scanless::G::_source_to_hash {
         $lex_rhs{$_} = 1 for @{ $lex_rule->{rhs} };
     }
 
+    my $bless_lexemes = $inner_self->{bless_lexemes};
     my %lexemes =
-        map { $_ => '::undef' } grep { not $lex_rhs{$_} } keys %lex_lhs;
+        map { ( $_, '::undef' ); } grep { not $lex_rhs{$_} } keys %lex_lhs;
+    if ($bless_lexemes) {
+        LEXEME: for my $lexeme ( keys %lexemes ) {
+            next LEXEME if $lexeme =~ m/ \] \z/xms;
+            if ( $lexeme =~ / [^ [:alnum:]] /xms ) {
+                Marpa::R2::exception(
+                    qq{Lexeme blessing only allowed if lexeme name is whitespace and alphanumerics\n},
+                    qq{   Problematic lexeme was <$lexeme>\n}
+                );
+            } ## end if ( $lexeme =~ / [^ [:alnum:]] /xms )
+            my $blessing = $lexeme;
+            $blessing =~ s/[ ]/_/gxms;
+            $lexemes{$lexeme} = $blessing;
+        } ## end LEXEME: for my $lexeme ( keys %lexemes )
+    } ## end if ($bless_lexemes)
     $inner_self->{is_lexeme} = \%lexemes;
+
     my @unproductive =
         grep { not $lex_lhs{$_} and not $_ =~ /\A \[\[ /xms } keys %lex_rhs;
     if (@unproductive) {
