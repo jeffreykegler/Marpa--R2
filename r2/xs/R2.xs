@@ -279,22 +279,24 @@ static int marpa_r2_warn(const char* format, ...)
    return 1;
 }
 
-enum marpa_op {
-   op_end_marker = 0,
-   op_alternative,
-   op_bless,
-   op_callback,
-   op_earleme_complete,
-   op_ignore_rejection,
-   op_noop,
-   op_push_all,
-   op_push_one,
-   op_push_sequence,
-   op_report_rejection,
-   op_result_is_array,
-   op_result_is_constant,
-   op_result_is_rhs_n,
-   op_result_is_undef,
+enum marpa_op
+{
+  op_end_marker = 0,
+  op_alternative,
+  op_bless,
+  op_callback,
+  op_earleme_complete,
+  op_ignore_rejection,
+  op_noop,
+  op_push_all,
+  op_push_one,
+  op_push_sequence,
+  op_report_rejection,
+  op_result_is_array,
+  op_result_is_constant,
+  op_result_is_rhs_n,
+  op_result_is_token_value,
+  op_result_is_undef
 };
 
 /* Static grammar methods */
@@ -2119,13 +2121,34 @@ PPCODE:
       }
   }
 
-  {
+  { /* Set the default nulling symbol semantics */
     int ix;
     UV ops[2];
     const int highest_symbol_id = marpa_g_highest_symbol_id (g);
     AV *av = v_wrapper->nulling_semantics;
     av_extend (av, highest_symbol_id);
     ops[0] = op_result_is_undef;
+    ops[1] = 0;
+    for (ix = 0; ix <= highest_symbol_id; ix++)
+      {
+	SV **p_sv = av_fetch (av, ix, 1);
+	if (!p_sv)
+	  {
+	    croak
+	      ("Internal error in v->stack_mode_set(): av_fetch(%p,%ld,1) failed",
+	       (void *) av, (long) ix);
+	  }
+	sv_setpvn (*p_sv, (char *) ops, sizeof (ops));
+      }
+  }
+
+  { /* Set the default token semantics */
+    int ix;
+    UV ops[2];
+    const int highest_symbol_id = marpa_g_highest_symbol_id (g);
+    AV *av = v_wrapper->token_semantics;
+    av_extend (av, highest_symbol_id);
+    ops[0] = op_result_is_token_value;
     ops[1] = 0;
     for (ix = 0; ix <= highest_symbol_id; ix++)
       {
@@ -2361,17 +2384,18 @@ PPCODE:
 	  const char *error_message = xs_g_error (v_wrapper->base);
 	  if (v_wrapper->base->throw)
 	    {
-	      croak ("Problem in v->step(): %s", error_message);
+	      croak ("Problem in v_>stack_step(): %s", error_message);
 	    }
 	  XPUSHs (sv_2mortal
-		  (newSVpvf ("Problem in v->step(): %s", error_message)));
+		  (newSVpvf
+		   ("Problem in v_>stack_step(): %s", error_message)));
 	  XSRETURN (1);
 	}
       result_string = step_type_to_string (status);
       if (!result_string)
 	{
 	  char *error_message =
-	    form ("Problem in v->step(): unknown step type %d", status);
+	    form ("Problem in v->stack_step(): unknown step type %d", status);
 	  set_error_from_string (v_wrapper->base, savepv (error_message));
 	  if (v_wrapper->base->throw)
 	    {
@@ -2380,41 +2404,153 @@ PPCODE:
 	  XPUSHs (sv_2mortal (newSVpv (error_message, 0)));
 	  XSRETURN (1);
 	}
+
       if (status == MARPA_STEP_TOKEN)
 	{
+	  IV token_id = marpa_v_token (v);
 	  IV token_value_ix = marpa_v_token_value (v);
 	  IV result = v_wrapper->result = marpa_v_result (v);
-	  SV **p_token_value_sv;
 
-	  p_token_value_sv = av_fetch (token_values, token_value_ix, 0);
-	  if (p_token_value_sv)
+	  UV *token_ops;
+	  int op_ix;
+	  UV blessing = 0;
+
+	  {
+	    STRLEN dummy;
+	    SV **p_ops_sv =
+	      av_fetch (v_wrapper->token_semantics, token_id, 0);
+	    if (!p_ops_sv)
+	      {
+		croak ("Problem in v->stack_step: token %ld is not registered",
+		       (long)token_id);
+	      }
+	    token_ops = (UV *) SvPV (*p_ops_sv, dummy);
+	  }
+
+	  op_ix = 0;
+	  while (1)
 	    {
-	      SV *token_value_sv = newSVsv (*p_token_value_sv);
-	      SV **stored_sv = av_store (stack, result, token_value_sv);
-	      if (!stored_sv)
+	      UV op_code = token_ops[op_ix++];
+
+	      switch (op_code)
 		{
-		  SvREFCNT_dec (token_value_sv);
+
+		case 0:
+		  goto NEXT_STEP;
+
+		case op_bless:
+		  {
+		    blessing = token_ops[op_ix++];
+		  }
+		  break;
+
+		case op_result_is_token_value:
+		  {
+		    SV **p_token_value_sv;
+
+		    p_token_value_sv =
+		      av_fetch (token_values, token_value_ix, 0);
+		    if (p_token_value_sv)
+		      {
+			SV *token_value_sv = newSVsv (*p_token_value_sv);
+			SV **stored_sv =
+			  av_store (stack, result, token_value_sv);
+			if (!stored_sv)
+			  {
+			    SvREFCNT_dec (token_value_sv);
+			  }
+		      }
+		    else
+		      {
+			av_store (stack, result, &PL_sv_undef);
+		      }
+
+		    if (v_wrapper->trace_values)
+		      {
+			AV *event;
+			SV *event_data[4];
+			event_data[0] = newSVpv (result_string, 0);
+			event_data[1] = newSViv (token_id);
+			event_data[2] = newSViv (token_value_ix);
+			event_data[3] = newSViv (v_wrapper->result);
+			event = av_make (Dim (event_data), event_data);
+			av_push (v_wrapper->event_queue,
+				 newRV_noinc ((SV *) event));
+		      }
+
+		  }
+		  goto NEXT_STEP;
+		case op_result_is_array:
+		  {
+		    SV *ref_to_value_av;
+		    SV** p_token_value_sv;
+
+		    /* Create an array */
+		    AV *value_av = newAV ();
+
+		    /* Push the token value into the new array */
+		    p_token_value_sv =
+		      av_fetch (token_values, token_value_ix, 0);
+		    if (p_token_value_sv)
+		      {
+			SV *token_value_sv = newSVsv (*p_token_value_sv);
+			av_push (value_av, token_value_sv);
+		      }
+		    else
+		      {
+			av_push (value_av, &PL_sv_undef);
+		      }
+
+		    /* Create a reference to the array, blessing it if appropriate */
+		    ref_to_value_av = newRV_noinc ((SV *) value_av);
+		    if (blessing)
+		      {
+			SV **p_blessing_sv =
+			  av_fetch (v_wrapper->constants, blessing, 0);
+			if (p_blessing_sv && SvPOK (*p_blessing_sv))
+			  {
+			    STRLEN blessing_length;
+			    char *classname =
+			      SvPV (*p_blessing_sv, blessing_length);
+			    sv_bless (ref_to_value_av,
+				      gv_stashpv (classname, 1));
+			  }
+		      }
+		    blessing = 0;
+		    if (!av_store (stack, result, ref_to_value_av))
+		      {
+			/* This should not happen */
+			SvREFCNT_dec (ref_to_value_av);
+			av_fill (stack, result - 1);
+			croak ("Internal error: Could not write to stack at %s %d", __FILE__,
+			       __LINE__);
+			goto NEXT_STEP;
+		      }
+		    av_fill (stack, result);
+
+		    if (v_wrapper->trace_values)
+		      {
+			AV *event;
+			SV *event_data[4];
+			event_data[0] = newSVpv (result_string, 0);
+			event_data[1] = newSViv (token_id);
+			event_data[2] = newSViv (token_value_ix);
+			event_data[3] = newSViv (v_wrapper->result);
+			event = av_make (Dim (event_data), event_data);
+			av_push (v_wrapper->event_queue,
+				 newRV_noinc ((SV *) event));
+		      }
+
+		  }
+		  goto NEXT_STEP;
+		default:
+		  croak
+		    ("Problem in v->stack_step: Unimplemented op code: %lu",
+		     (unsigned long) op_code);
 		}
 	    }
-	  else
-	    {
-	      av_store (stack, result, &PL_sv_undef);
-	    }
 
-	  if (v_wrapper->trace_values)
-	    {
-	      IV token_id = marpa_v_token (v);
-	      AV *event;
-	      SV *event_data[4];
-	      event_data[0] = newSVpv (result_string, 0);
-	      event_data[1] = newSViv (token_id);
-	      event_data[2] = newSViv (marpa_v_token_value (v));
-	      event_data[3] = newSViv (v_wrapper->result);
-	      event = av_make (Dim (event_data), event_data);
-	      av_push (v_wrapper->event_queue, newRV_noinc ((SV *) event));
-	    }
 	  goto NEXT_STEP;
-
 	}
       if (status == MARPA_STEP_NULLING_SYMBOL)
 	{
@@ -2561,50 +2697,57 @@ PPCODE:
 		  goto NEXT_STEP;
 
 		case op_result_is_rhs_n:
-		{
-		    SV** stored_av;
+		  {
+		    SV **stored_av;
 		    SV **p_sv;
 		    UV stack_ix = rule_ops[op_ix++];
 
-		    if (stack_ix == 0) {
-		      /* Special-cased for two reasons --
-		       * it's common and can be optimized.
-		       */
-		      av_fill (stack, arg_0);
-		      goto NEXT_STEP;
-		    }
+		    if (stack_ix == 0)
+		      {
+			/* Special-cased for two reasons --
+			 * it's common and can be optimized.
+			 */
+			av_fill (stack, arg_0);
+			goto NEXT_STEP;
+		      }
 		    p_sv = av_fetch (stack, arg_0 + stack_ix, 0);
-		    if (!p_sv) {
-		      av_fill (stack, arg_0-1);
-		      goto NEXT_STEP;
-		    }
-		    stored_av = av_store(stack, arg_0, SvREFCNT_inc_NN (*p_sv));
-		    if (!stored_av) {
-		      SvREFCNT_dec (*p_sv);
-		      av_fill (stack, arg_0-1);
-		      goto NEXT_STEP;
-		    }
+		    if (!p_sv)
+		      {
+			av_fill (stack, arg_0 - 1);
+			goto NEXT_STEP;
+		      }
+		    stored_av =
+		      av_store (stack, arg_0, SvREFCNT_inc_NN (*p_sv));
+		    if (!stored_av)
+		      {
+			SvREFCNT_dec (*p_sv);
+			av_fill (stack, arg_0 - 1);
+			goto NEXT_STEP;
+		      }
 		    av_fill (stack, arg_0);
-		}
-		goto NEXT_STEP;
+		  }
+		  goto NEXT_STEP;
 
 		case op_result_is_array:
-		{
-		    SV** stored_av;
+		  {
+		    SV **stored_av;
 		    /* Increment ref count of values_av to de-mortalize it */
-		    SV* ref_to_values_av = newRV_inc((SV*)values_av);
+		    SV *ref_to_values_av = newRV_inc ((SV *) values_av);
 		    if (blessing)
 		      {
-			SV **p_blessing_sv = av_fetch (v_wrapper->constants, blessing, 0);
+			SV **p_blessing_sv =
+			  av_fetch (v_wrapper->constants, blessing, 0);
 			if (p_blessing_sv && SvPOK (*p_blessing_sv))
 			  {
 			    STRLEN blessing_length;
-			    char *classname = SvPV (*p_blessing_sv, blessing_length);
-			    sv_bless (ref_to_values_av, gv_stashpv (classname, 1));
+			    char *classname =
+			      SvPV (*p_blessing_sv, blessing_length);
+			    sv_bless (ref_to_values_av,
+				      gv_stashpv (classname, 1));
 			  }
 		      }
 		    blessing = 0;
-		    stored_av = av_store(stack, arg_0, ref_to_values_av);
+		    stored_av = av_store (stack, arg_0, ref_to_values_av);
 
 		    /* Clear the way for a new values AV
 		     * The mortal refcount held by this pointer will be
@@ -2614,19 +2757,20 @@ PPCODE:
 		    /* If the new RV did not get stored properly,
 		     * decrement its ref count
 		     */
-		    if (!stored_av) {
-		      SvREFCNT_dec (ref_to_values_av);
-		      av_fill (stack, arg_0 - 1);
-		      goto NEXT_STEP;
-		    }
+		    if (!stored_av)
+		      {
+			SvREFCNT_dec (ref_to_values_av);
+			av_fill (stack, arg_0 - 1);
+			goto NEXT_STEP;
+		      }
 		    av_fill (stack, arg_0);
-		}
-		goto NEXT_STEP;
+		  }
+		  goto NEXT_STEP;
 
 		case op_push_all:
 		case op_push_sequence:
 		  {
-	      int stack_ix;
+		    int stack_ix;
 		    int increment = op_code == op_push_sequence ? 2 : 1;
 		    /* Create a mortalized array, so that it will go away
 		     * by default.
@@ -2674,15 +2818,19 @@ PPCODE:
 
 		case op_callback:
 		  {
-		    SV* ref_to_values_av = sv_2mortal(newRV_inc((SV*)values_av));
+		    SV *ref_to_values_av =
+		      sv_2mortal (newRV_inc ((SV *) values_av));
 		    if (blessing)
 		      {
-			SV **p_blessing_sv = av_fetch (v_wrapper->constants, blessing, 0);
+			SV **p_blessing_sv =
+			  av_fetch (v_wrapper->constants, blessing, 0);
 			if (p_blessing_sv && SvPOK (*p_blessing_sv))
 			  {
 			    STRLEN blessing_length;
-			    char *classname = SvPV (*p_blessing_sv, blessing_length);
-			    sv_bless (ref_to_values_av, gv_stashpv (classname, 1));
+			    char *classname =
+			      SvPV (*p_blessing_sv, blessing_length);
+			    sv_bless (ref_to_values_av,
+				      gv_stashpv (classname, 1));
 			  }
 		      }
 		    blessing = 0;
