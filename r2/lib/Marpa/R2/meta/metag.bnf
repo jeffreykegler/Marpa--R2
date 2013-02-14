@@ -17,6 +17,7 @@
 :start ::= rules
 rules ::= rule+
 rule ::= <rule body>
+rule ::= <rule body> ';'
 <rule body> ::= <start rule> | <empty rule>
   | <priority rule> | <quantified rule> | <discard rule> | <default rule>
   | <bless lexemes statement>
