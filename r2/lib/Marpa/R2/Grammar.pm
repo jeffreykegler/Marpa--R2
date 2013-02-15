@@ -964,7 +964,7 @@ sub shadow_rule {
 } ## end sub shadow_rule
 
 sub assign_symbol {
-    my ( $grammar, $name ) = @_;
+    my ( $grammar, $name, $options ) = @_;
 
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
     my $tracer    = $grammar->[Marpa::R2::Internal::Grammar::TRACER];
@@ -974,7 +974,27 @@ sub assign_symbol {
         return $symbols->[$symbol_id];
     }
     $symbol_id = $tracer->symbol_new($name);
-    return shadow_symbol( $grammar, $symbol_id );
+    my $symbol = shadow_symbol( $grammar, $symbol_id );
+
+    PROPERTY: for my $property ( sort keys %{$options} ) {
+        if ( not $property ~~ [qw(terminal rank )] ) {
+            Marpa::R2::exception(qq{Unknown symbol property "$property"});
+        }
+        if ( $property eq 'terminal' ) {
+            my $value = $options->{$property};
+            $grammar_c->symbol_is_terminal_set( $symbol_id, $value );
+        }
+        if ( $property eq 'rank' ) {
+            my $value = $options->{$property};
+            Marpa::R2::exception(qq{Symbol "$name": rank must be an integer})
+                if not Scalar::Util::looks_like_number($value)
+                    or int($value) != $value;
+            $grammar_c->symbol_rank_set($symbol_id) = $value;
+        } ## end if ( $property eq 'rank' )
+    } ## end PROPERTY: for my $property ( keys %{$options} )
+
+    return $symbol;
+
 } ## end sub assign_symbol
 
 sub assign_user_symbol {
@@ -993,25 +1013,7 @@ sub assign_user_symbol {
             qq{Symbol name $name ends in "$final_symbol": that's not allowed}
         );
     }
-    my $symbol = assign_symbol( $grammar, $name );
-    my $symbol_id = $symbol->[Marpa::R2::Internal::Symbol::ID];
-
-    PROPERTY: for my $property ( sort keys %{$options} ) {
-        if ( not $property ~~ [qw(terminal rank )] ) {
-            Marpa::R2::exception(qq{Unknown symbol property "$property"});
-        }
-        if ( $property eq 'terminal' ) {
-            my $value = $options->{$property};
-            $grammar_c->symbol_is_terminal_set( $symbol_id, $value );
-        }
-        if ( $property eq 'rank' ) {
-            my $value = $options->{$property};
-            Marpa::R2::exception(qq{Symbol "$name": rank must be an integer})
-                if not Scalar::Util::looks_like_number($value)
-                    or int($value) != $value;
-            $grammar_c->symbol_rank_set($symbol_id) = $value;
-        } ## end if ( $property eq 'rank' )
-    } ## end PROPERTY: for my $property ( keys %{$options} )
+    my $symbol = assign_symbol( $grammar, $name, $options );
 
     return $symbol;
 
