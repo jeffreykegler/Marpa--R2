@@ -65,6 +65,7 @@ BEGIN {
     evaluation is reset }
 
     RULE_RESOLUTIONS
+    SYMBOL_RESOLUTIONS
     NULL_VALUES
     EVENTS
     READ_STRING_ERROR
