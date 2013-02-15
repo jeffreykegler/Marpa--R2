@@ -543,10 +543,8 @@ sub Marpa::R2::Internal::Recognizer::semantics_set {
         \@null_symbol_closures;
 
     # set the symbol resolutions
-    my @blessing_by_symbol_id = ();
+    my @blessing_by_symbol_id = map { ref $_ eq 'ARRAY' ? $_->[0] : undef } @{$symbol_resolutions};
     $resolution_data{blessing_by_symbol} = \@blessing_by_symbol_id;
-
-    $recce->[Marpa::R2::Internal::Recognizer::SYMBOL_RESOLUTIONS] = $symbol_resolutions;
 
     return ( $recce->[Marpa::R2::Internal::Recognizer::RULE_RESOLUTIONS] =
             \%resolution_data );

@@ -811,7 +811,7 @@ state $grammar_options = { map { ($_, 1) } qw(
 }
 
 sub Marpa::R2::Scanless::G::_hash_to_runtime {
-    my ($self, $hashed_source) = @_;
+    my ( $self, $hashed_source ) = @_;
 
     my %lex_args = ();
     $lex_args{trace_file_handle} =
@@ -822,8 +822,8 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
     $lex_args{'_internal_'} = 1;
     my $lex_grammar = Marpa::R2::Grammar->new( \%lex_args );
     $lex_grammar->precompute();
-    my $lex_tracer     = $lex_grammar->tracer();
-    my $g0_thin = $lex_tracer->grammar();
+    my $lex_tracer      = $lex_grammar->tracer();
+    my $g0_thin         = $lex_tracer->grammar();
     my @g0_lexeme_names = keys %{ $hashed_source->{is_lexeme} };
     $self->[Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMAR] = $lex_grammar;
     my $character_class_hash = $hashed_source->{character_classes};
@@ -843,10 +843,14 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
     my %g1_args = ();
     $g1_args{trace_file_handle} =
         $self->[Marpa::R2::Inner::Scanless::G::TRACE_FILE_HANDLE] // \*STDERR;
-    $g1_args{action_object} = $self->[Marpa::R2::Inner::Scanless::G::ACTION_OBJECT];
-    $g1_args{bless_package} = $self->[Marpa::R2::Inner::Scanless::G::BLESS_PACKAGE];
-    $g1_args{default_action} = $self->[Marpa::R2::Inner::Scanless::G::DEFAULT_ACTION];
-    $g1_args{rules} = $hashed_source->{g1_rules};
+    $g1_args{action_object} =
+        $self->[Marpa::R2::Inner::Scanless::G::ACTION_OBJECT];
+    $g1_args{bless_package} =
+        $self->[Marpa::R2::Inner::Scanless::G::BLESS_PACKAGE];
+    $g1_args{default_action} =
+        $self->[Marpa::R2::Inner::Scanless::G::DEFAULT_ACTION];
+    $g1_args{rules}   = $hashed_source->{g1_rules};
+    $g1_args{symbols} = $hashed_source->{g1_symbols};
     state $g1_target_symbol = '[:start]';
     $g1_args{start} = $g1_target_symbol;
     $g1_args{'_internal_'} = 1;
@@ -859,7 +863,7 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
     $g0_lexeme_to_g1_symbol[$_] = -1 for 0 .. $g1_thin->highest_symbol_id();
     state $discard_symbol_name = '[:discard]';
     my $g0_discard_symbol_id =
-    $self->[Marpa::R2::Inner::Scanless::G::G0_DISCARD_SYMBOL_ID] =
+        $self->[Marpa::R2::Inner::Scanless::G::G0_DISCARD_SYMBOL_ID] =
         $lex_tracer->symbol_by_name($discard_symbol_name) // -1;
 
     LEXEME_NAME: for my $lexeme_name (@g0_lexeme_names) {
@@ -872,7 +876,7 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
         }
         my $lex_symbol_id = $lex_tracer->symbol_by_name($lexeme_name);
         $g0_lexeme_to_g1_symbol[$lex_symbol_id] = $g1_symbol_id;
-        $g1_symbol_to_g0_lexeme[$g1_symbol_id] = $lex_symbol_id;
+        $g1_symbol_to_g0_lexeme[$g1_symbol_id]  = $lex_symbol_id;
     } ## end LEXEME_NAME: for my $lexeme_name (@g0_lexeme_names)
 
     SYMBOL_ID: for my $symbol_id ( 0 .. $g1_thin->highest_symbol_id() ) {
@@ -907,12 +911,14 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
         $thin_slg->g0_rule_to_g1_lexeme_set( $rule_id, $lexeme_id );
     } ## end RULE_ID: for my $rule_id ( 0 .. $g0_thin->highest_rule_id() )
 
-    $self->[Marpa::R2::Inner::Scanless::G::G0_RULE_TO_G1_LEXEME] = \@g0_rule_to_g1_lexeme;
-    $self->[Marpa::R2::Inner::Scanless::G::THICK_G1_GRAMMAR] = $thick_g1_grammar;
+    $self->[Marpa::R2::Inner::Scanless::G::G0_RULE_TO_G1_LEXEME] =
+        \@g0_rule_to_g1_lexeme;
+    $self->[Marpa::R2::Inner::Scanless::G::THICK_G1_GRAMMAR] =
+        $thick_g1_grammar;
 
     return 1;
 
-} ## end sub Marpa::R2::Scanless::G::new
+} ## end sub Marpa::R2::Scanless::G::_hash_to_runtime
 
 sub Marpa::R2::Scanless::G::show_rules {
     my ( $self ) = @_;
