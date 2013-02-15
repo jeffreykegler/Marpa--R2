@@ -758,6 +758,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
     my $semantics_by_rule_id = $rule_resolutions->{semantics};
     my $blessing_by_rule_id = $rule_resolutions->{blessing};
     my $closure_by_rule_id = $rule_resolutions->{closure};
+    my $blessing_by_symbol_id = $rule_resolutions->{blessing_by_symbol};
 
     my $value = Marpa::R2::Thin::V->new($tree);
     local $Marpa::R2::Internal::Context::VALUATOR = $value;
@@ -957,6 +958,26 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
         );
 
     } ## end for my $token_id ( grep { defined $null_values->[$_] ...})
+
+    LEXEME:
+    for my $lexeme_id ( grep { defined $blessing_by_symbol_id->[$_] } 0 .. $#{$blessing_by_symbol_id} )
+    {
+        my $result = $value->symbol_is_valued_set( $lexeme_id, 1 );
+        if ( not $result ) {
+            my $lexeme_name = $grammar->symbol_name($lexeme_id);
+            Marpa::R2::exception(
+                qq{Cannot assign values to symbol "$lexeme_name"},
+                q{because it was already treated as an unvalued symbol}
+            );
+        } ## end if ( not $result )
+
+        my ($blessing) = $blessing_by_symbol_id->[$lexeme_id];
+
+        my $constant_ix = $value->constant_register($blessing);
+        $value->token_register( $lexeme_id, $op_bless, $constant_ix,
+            $op_result_is_array );
+
+    } ## end for my $lexeme_id ( grep { defined $symbol_resolutions...})
 
     STEP: while (1) {
         my ( $value_type, @value_data ) = $value->stack_step();
