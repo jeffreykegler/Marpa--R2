@@ -59,8 +59,10 @@ sub sort_bnf {
 
 my %cooked_parse_result = (
     is_lexeme         => $parse_result->{is_lexeme},
+    g1_symbols        => $parse_result->{g1_symbols},
     character_classes => $parse_result->{character_classes}
 );
+
 for my $rule_set (qw(lex_rules g1_rules)) {
     my $aoh        = $parse_result->{$rule_set};
     my $sorted_aoh = [ sort sort_bnf @{$aoh} ];
