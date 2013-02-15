@@ -1224,10 +1224,11 @@ sub Marpa::R2::Scanless::G::_source_to_hash {
     }
 
     my $bless_lexemes = $inner_self->{bless_lexemes};
-    my %lexemes =
-        map { ( $_, '::undef' ); } grep { not $lex_rhs{$_} } keys %lex_lhs;
+    my $g1_symbols    = {};
+    my %is_lexeme =
+        map { ( $_, 1 ); } grep { not $lex_rhs{$_} } keys %lex_lhs;
     if ($bless_lexemes) {
-        LEXEME: for my $lexeme ( keys %lexemes ) {
+        LEXEME: for my $lexeme ( keys %is_lexeme ) {
             next LEXEME if $lexeme =~ m/ \] \z/xms;
             if ( $lexeme =~ / [^ [:alnum:]] /xms ) {
                 Marpa::R2::exception(
@@ -1237,10 +1238,11 @@ sub Marpa::R2::Scanless::G::_source_to_hash {
             } ## end if ( $lexeme =~ / [^ [:alnum:]] /xms )
             my $blessing = $lexeme;
             $blessing =~ s/[ ]/_/gxms;
-            $lexemes{$lexeme} = $blessing;
-        } ## end LEXEME: for my $lexeme ( keys %lexemes )
+            $g1_symbols->{$lexeme}->{bless} = $blessing;
+        } ## end LEXEME: for my $lexeme ( keys %is_lexeme )
     } ## end if ($bless_lexemes)
-    $inner_self->{is_lexeme} = \%lexemes;
+    $inner_self->{is_lexeme}  = \%is_lexeme;
+    $inner_self->{g1_symbols} = $g1_symbols;
 
     my @unproductive =
         grep { not $lex_lhs{$_} and not $_ =~ /\A \[\[ /xms } keys %lex_rhs;

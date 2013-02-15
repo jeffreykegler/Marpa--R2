@@ -21,9 +21,7 @@ use warnings;
 
 # There's a problem with this perlcritic check
 # as of 9 Aug 2010
-## no critic (TestingAndDebugging::ProhibitNoWarnings)
 no warnings qw(recursion qw);
-## use critic
 
 use strict;
 
@@ -34,13 +32,13 @@ $STRING_VERSION = $VERSION;
 $VERSION = eval $VERSION;
 ## use critic
 
-# This structure could be eliminated, and doing so
-# would be more efficient, but it is part of the
-# external interface.  So this is a stub.
 BEGIN {
     my $structure = <<'END_OF_STRUCTURE';
+
     :package=Marpa::R2::Internal::Symbol
     ID { Unique ID }
+    BLESSING
+
 END_OF_STRUCTURE
     Marpa::R2::offset($structure);
 } ## end BEGIN
@@ -301,7 +299,7 @@ sub Marpa::R2::Grammar::set {
                 'source option not allowed after grammar is precomputed')
                 if $grammar_c->is_precomputed();
             Marpa::R2::exception(
-                qq{"source" named argument must be string or ref to SCALAR}
+                q{"source" named argument must be string or ref to SCALAR}
             ) if ref $value ne 'SCALAR';
             $stuifzand_source = $value;
         }
@@ -326,7 +324,7 @@ sub Marpa::R2::Grammar::set {
                 if (defined $deprecated_source and defined $stuifzand_source) {
                     Marpa::R2::exception(
                         qq{Attempt to specify BNF via both 'rules' and 'source' named arguments\n},
-                        qq{  You must use one or the other},
+                        q{  You must use one or the other},
                         )
                 }
                 if (defined $deprecated_source) {
@@ -334,13 +332,13 @@ sub Marpa::R2::Grammar::set {
                     last DO_RULES;
                 }
                 Marpa::R2::exception(
-                    qq{"rules" named argument must be string or ref to ARRAY}
+                    q{"rules" named argument must be string or ref to ARRAY}
                 ) if ref $value ne 'ARRAY';
                 $grammar->[Marpa::R2::Internal::Grammar::INTERFACE] //=
                     'standard';
                 Marpa::R2::exception(
                     qq{Attempt to use the standard interface with a grammar that is already using the BNF interface\n},
-                    qq{  Mixing the BNF and standard interface is not allowed}
+                    q{  Mixing the BNF and standard interface is not allowed}
                     )
                     if $grammar->[Marpa::R2::Internal::Grammar::INTERFACE] ne
                         'standard';
@@ -353,13 +351,13 @@ sub Marpa::R2::Grammar::set {
                 'stuifzand';
             Marpa::R2::exception(
                 qq{Attempt to use the standard interface with a grammar that is already using the BNF interface\n},
-                qq{  Mixing the BNF and standard interface is not allowed}
+                q{  Mixing the BNF and standard interface is not allowed}
                 )
                 if $grammar->[Marpa::R2::Internal::Grammar::INTERFACE] ne
                     'stuifzand';
             Marpa::R2::exception(
                 qq{Attempt to use the BNF interface with a grammar that is already using the standard interface\n},
-                qq{  Mixing the BNF and standard interface is not allowed},
+                q{  Mixing the BNF and standard interface is not allowed},
                 )
                 if $grammar->[Marpa::R2::Internal::Grammar::INTERFACE] ne
                     'stuifzand';
@@ -977,12 +975,15 @@ sub assign_symbol {
     my $symbol = shadow_symbol( $grammar, $symbol_id );
 
     PROPERTY: for my $property ( sort keys %{$options} ) {
-        if ( not $property ~~ [qw(terminal rank )] ) {
-            Marpa::R2::exception(qq{Unknown symbol property "$property"});
+        if ( $property eq 'bless' ) {
+            my $value = $options->{$property};
+            $symbol->[Marpa::R2::Internal::Symbol::BLESSING] = $value;
+            next PROPERTY;
         }
         if ( $property eq 'terminal' ) {
             my $value = $options->{$property};
             $grammar_c->symbol_is_terminal_set( $symbol_id, $value );
+            next PROPERTY;
         }
         if ( $property eq 'rank' ) {
             my $value = $options->{$property};
@@ -990,7 +991,9 @@ sub assign_symbol {
                 if not Scalar::Util::looks_like_number($value)
                     or int($value) != $value;
             $grammar_c->symbol_rank_set($symbol_id) = $value;
+            next PROPERTY;
         } ## end if ( $property eq 'rank' )
+        Marpa::R2::exception(qq{Unknown symbol property "$property"});
     } ## end PROPERTY: for my $property ( keys %{$options} )
 
     return $symbol;
@@ -1120,7 +1123,7 @@ sub add_user_rule {
         Marpa::R2::exception(
             q{"min" must be undefined or a valid Perl number});
     }
-    my $stuifzand_interface = 
+    my $stuifzand_interface =
         $grammar->[Marpa::R2::Internal::Grammar::INTERFACE] eq 'stuifzand';
 
     my $grammar_is_internal = $stuifzand_interface ||

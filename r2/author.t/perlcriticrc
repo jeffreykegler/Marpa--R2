@@ -331,7 +331,7 @@ allow = refs
 # level of checking.
 [TestingAndDebugging::ProhibitNoWarnings]
 severity=5
-allow=qw once
+allow=qw once recursion
 
 [TestingAndDebugging::ProhibitProlongedStrictureOverride]
 severity=5
