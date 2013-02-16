@@ -240,6 +240,14 @@ sub evaluate {
 package Marpa::R2::Internal::MetaG_Nodes::bare_name;
 sub evaluate { return Marpa::R2::Internal::MetaG::Symbol->new( $_[0]->[0] ); }
 
+sub Marpa::R2::Internal::MetaG_Nodes::reserved_blessing_name::name
+{ return $_[0]->[0]; }
+sub Marpa::R2::Internal::MetaG_Nodes::blessing_name::name
+{ return $_[0]->[0]->name(); }
+sub Marpa::R2::Internal::MetaG_Nodes::standard_name::name
+{ return $_[0]->[0]; }
+
+
 package Marpa::R2::Internal::MetaG_Nodes::bracketed_name;
 
 sub evaluate {
@@ -308,7 +316,7 @@ package Marpa::R2::Internal::MetaG_Nodes::blessing;
 
 sub evaluate {
     my ( $values ) = @_;
-    return bless { bless => $values->[0] }, $PROTO_ALTERNATIVE;
+    return bless { bless => $values->[0]->name() }, $PROTO_ALTERNATIVE;
 }
 
 package Marpa::R2::Internal::MetaG_Nodes::right_association;
