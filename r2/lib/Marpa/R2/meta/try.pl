@@ -154,6 +154,45 @@ sub mask { return shift->is_hidden() ? 0 : 1 }
 sub symbols { return $_[0]; }
 sub symbol_lists { return $_[0]; }
 
+package Marpa::R2::Internal::Scanless::Symbol_List;
+
+sub new { my $class = shift; return bless { symbol_lists => [@_] }, $class }
+
+sub is_symbol { return 0 };
+
+sub names {
+    return map { $_->names() } @{ shift->{symbol_lists} };
+}
+
+sub are_all_hidden {
+     $_->is_hidden() || return 0 for @{ shift->{symbol_lists } };
+     return 1;
+}
+
+sub is_hidden {
+    return map { $_->is_hidden() } @{ shift->{symbol_lists } };
+}
+
+sub hidden_set {
+    $_->hidden_set() for @{ shift->{symbol_lists} };
+    return 0;
+}
+
+sub is_lexical { return shift->{is_lexical} // 0 }
+sub lexical_set { return shift->{is_lexical} = 1; }
+
+sub mask {
+    return
+        map { $_ ? 0 : 1 } map { $_->is_hidden() } @{ shift->{symbol_lists} };
+}
+
+sub symbols {
+    return map { $_->symbols() } @{ shift->{symbol_lists} };
+}
+
+# The "unflattened" list, which may contain other lists
+sub symbol_lists { return @{ shift->{symbol_lists} }; }
+
 package Marpa::R2::Internal::MetaG_Nodes::single_symbol;
 
 package Marpa::R2::Internal::MetaG_Nodes::kwc_ws_star;
@@ -201,4 +240,20 @@ sub evaluate {
     $bracketed_name =~ s/ \s+ / /gxms;
     return Marpa::R2::Internal::MetaG::Symbol->new($bracketed_name);
 } ## end sub evaluate
+
+package Marpa::R2::Internal::MetaG_Nodes::single_quoted_string;
+
+sub evaluate {
+    my ($values, $self ) = @_;
+    my $string = $values->[0];
+    my @symbols = ();
+    for my $char_class ( map { '[' . (quotemeta $_) . ']' } split //xms, substr $string, 1, -1) {
+        my $symbol = Marpa::R2::Internal::MetaG::Symbol::assign_symbol_by_char_class(
+        $self, $char_class);
+        push @symbols, $symbol;
+    }
+    my $list = Marpa::R2::Internal::Scanless::Symbol_List->new(@symbols);
+    $list->lexical_set();
+    return $list;
+}
 
