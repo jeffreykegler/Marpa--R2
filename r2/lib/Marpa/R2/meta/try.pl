@@ -111,6 +111,10 @@ sub new {
     return $self;
 }
 
+sub to_symbol_list {
+    Marpa::R2::Internal::Meta_AST::Symbol_List->new(@_);
+}
+
 sub create_internal_symbol {
     my ($self, $symbol_name) = @_;
     $self->{needs_symbol}->{$symbol_name} = 1;
@@ -154,11 +158,12 @@ sub mask { return shift->is_hidden() ? 0 : 1 }
 sub symbols { return $_[0]; }
 sub symbol_lists { return $_[0]; }
 
-package Marpa::R2::Internal::Scanless::Symbol_List;
+package Marpa::R2::Internal::Meta_AST::Symbol_List;
 
 sub new { my $class = shift; return bless { symbol_lists => [@_] }, $class }
-
 sub is_symbol { return 0 };
+
+sub to_symbol_list { $_[0]; }
 
 sub names {
     return map { $_->names() } @{ shift->{symbol_lists} };
@@ -192,6 +197,13 @@ sub symbols {
 
 # The "unflattened" list, which may contain other lists
 sub symbol_lists { return @{ shift->{symbol_lists} }; }
+
+package Marpa::R2::Internal::Meta_AST::Proto_Alternative;
+# This class is for pieces of RHS alternatives, as they are
+# being constructed
+
+our $PROTO_ALTERNATIVE;
+BEGIN { $PROTO_ALTERNATIVE = __PACKAGE__; }
 
 package Marpa::R2::Internal::MetaG_Nodes::single_symbol;
 
@@ -252,7 +264,7 @@ sub evaluate {
         $self, $char_class);
         push @symbols, $symbol;
     }
-    my $list = Marpa::R2::Internal::Scanless::Symbol_List->new(@symbols);
+    my $list = Marpa::R2::Internal::Meta_AST::Symbol_List->new(@symbols);
     $list->lexical_set();
     return $list;
 }
@@ -283,3 +295,42 @@ sub evaluate {
     return $list;
 } ## end sub evaluate
 
+package Marpa::R2::Internal::MetaG_Nodes::rhs;
+
+sub evaluate {
+    my ( $values, $self ) = @_;
+    my @symbol_lists = map { $_->evaluate() } @{$values};
+    my $list = Marpa::R2::Inner::Scanless::Symbol_List->new( @symbol_lists);
+    return bless { rhs => $list}, $PROTO_ALTERNATIVE;
+}
+
+package Marpa::R2::Internal::MetaG_Nodes::blessing;
+
+sub evaluate {
+    my ( $values ) = @_;
+    return bless { bless => $values->[0] }, $PROTO_ALTERNATIVE;
+}
+
+package Marpa::R2::Internal::MetaG_Nodes::right_association;
+sub evaluate {
+    my ( $values ) = @_;
+    return bless { assoc => 'R' }, $PROTO_ALTERNATIVE;
+}
+
+package Marpa::R2::Internal::MetaG_Nodes::left_association;
+sub evaluate {
+    my ( $values ) = @_;
+    return bless { assoc => 'L' }, $PROTO_ALTERNATIVE;
+}
+
+package Marpa::R2::Internal::MetaG_Nodes::group_association;
+sub evaluate {
+    my ( $values ) = @_;
+    return bless { assoc => 'G' }, $PROTO_ALTERNATIVE;
+}
+
+package Marpa::R2::Internal::MetaG_Nodes::proper_specification;
+sub evaluate {
+    my ( $values ) = @_;
+    return bless { proper => $values->[0] }, $PROTO_ALTERNATIVE;
+}
