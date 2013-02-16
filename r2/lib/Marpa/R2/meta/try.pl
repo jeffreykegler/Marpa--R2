@@ -257,3 +257,29 @@ sub evaluate {
     return $list;
 }
 
+package Marpa::R2::Internal::MetaG_Nodes::rhs_primary;
+
+sub evaluate {
+    my ( $values, $self ) = @_;
+    my @symbol_lists = map { $_->evaluate() } @{$values};
+    return Marpa::R2::Inner::Scanless::Symbol_List->new( @symbol_lists );
+}
+
+package Marpa::R2::Internal::MetaG_Nodes::rhs_primary_list;
+
+sub evaluate {
+    my ( $values, $self ) = @_;
+    my @symbol_lists = map { $_->evaluate() } @{$values};
+    return Marpa::R2::Inner::Scanless::Symbol_List->new( @symbol_lists );
+}
+
+package Marpa::R2::Internal::MetaG_Nodes::parenthesized_rhs_primary_list;
+
+sub evaluate {
+    my ( $values, $self ) = @_;
+    my @symbol_lists = map { $_->evaluate() } @{$values};
+    my $list = Marpa::R2::Inner::Scanless::Symbol_List->new( @symbol_lists);
+    $list->hidden_set();
+    return $list;
+} ## end sub evaluate
+
