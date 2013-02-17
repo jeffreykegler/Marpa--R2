@@ -143,6 +143,7 @@ typedef struct
   AV *rule_semantics;
   AV *token_semantics;
   AV *nulling_semantics;
+  Scanless_R* slr;
 } V_Wrapper;
 
 #define MARPA_XS_V_MODE_IS_INITIAL 0
@@ -292,6 +293,7 @@ enum marpa_op
   op_push_one,
   op_push_sequence,
   op_push_token_value,
+  op_push_slr_range,
   op_report_rejection,
   op_result_is_array,
   op_result_is_constant,
@@ -952,8 +954,8 @@ slr_stub_alternatives(Scanless_R *slr,
 }
 
 static void
-locations (Scanless_R * slr, Marpa_Earley_Set_ID earley_set, int *p_start,
-	   int *p_end)
+slr_locations (Scanless_R * slr, Marpa_Earley_Set_ID earley_set, int *p_start,
+	       int *p_end)
 {
   dTHX;
   int result = 0;
@@ -1040,6 +1042,10 @@ PPCODE:
   if (strEQ (op_name, "push_one"))
     {
       XSRETURN_IV (op_push_one);
+    }
+  if (strEQ (op_name, "push_slr_range"))
+    {
+      XSRETURN_IV (op_push_slr_range);
     }
   if (strEQ (op_name, "bless"))
     {
@@ -1981,6 +1987,7 @@ PPCODE:
   v_wrapper->rule_semantics = newAV ();
   v_wrapper->token_semantics = newAV ();
   v_wrapper->nulling_semantics = newAV ();
+  v_wrapper->slr = NULL;
   sv = sv_newmortal ();
   sv_setref_pv (sv, value_c_class_name, (void *) v_wrapper);
   XPUSHs (sv);
@@ -1998,6 +2005,9 @@ PPCODE:
   SvREFCNT_dec (v_wrapper->rule_semantics);
   SvREFCNT_dec (v_wrapper->token_semantics);
   SvREFCNT_dec (v_wrapper->nulling_semantics);
+  if (v_wrapper->slr) {
+    SvREFCNT_dec (v_wrapper->slr);
+  }
   if (v_wrapper->stack)
     {
       SvREFCNT_dec (v_wrapper->stack);
@@ -2028,6 +2038,20 @@ PPCODE:
     av_push (v_wrapper->event_queue, newRV_noinc ((SV *) event));
   }
   XSRETURN_IV (old_level);
+}
+
+void
+slr_set( v_wrapper, slr )
+    V_Wrapper *v_wrapper;
+    Scanless_R *slr;
+PPCODE:
+{
+  if (v_wrapper->slr)
+    {
+      croak ("Problem in v->slr_set(): The SLR is already set");
+    }
+  SvREFCNT_inc (slr);
+  v_wrapper->slr = slr;
 }
 
 void
@@ -2838,9 +2862,6 @@ PPCODE:
 		case op_push_one:
 		  {
 		    int offset = rule_ops[op_ix++];
-		    /* Create a mortalized array, so that it will go away
-		     * by default.
-		     */
 		    SV **p_sv = av_fetch (stack, arg_0 + offset, 0);
 		    if (!p_sv)
 		      {
@@ -2853,6 +2874,26 @@ PPCODE:
 		  }
 		  break;
 
+		case op_push_slr_range:
+		  {
+		    Marpa_Earley_Set_ID earley_set;
+		    int start_location;
+		    int end_location;
+		    Scanless_R *slr = v_wrapper->slr;
+		    if (!slr)
+		      {
+			croak
+			  ("Problem in v->stack_step: Push SLR op attempted when no slr is set");
+		      }
+		    earley_set = marpa_v_rule_start_es_id (v);
+		    slr_locations(slr, earley_set, &start_location, &end_location);
+		    av_push (values_av, newSViv((IV)start_location));
+		    earley_set = marpa_v_es_id (v);
+		    slr_locations(slr, earley_set, &start_location, &end_location);
+		    av_push (values_av, newSViv((IV)end_location));
+		  }
+		  break;
+		
 		case op_bless:
 		  {
 		    blessing = rule_ops[op_ix++];
@@ -4384,7 +4425,7 @@ PPCODE:
     if (g0_rule > highest_g0_rule_id) 
     {
       croak
-	("Problem in slr->g0_rule_to_g1_lexeme_set(%ld, %ld): rule ID was %ld, but highest G0 rule ID = %ld",
+	("Problem in slg->g0_rule_to_g1_lexeme_set(%ld, %ld): rule ID was %ld, but highest G0 rule ID = %ld",
 	 (unsigned long) g0_rule,
 	 (unsigned long) g1_lexeme,
 	 (unsigned long) g0_rule,
@@ -4393,7 +4434,7 @@ PPCODE:
     if (g1_lexeme > highest_g1_symbol_id) 
     {
       croak
-	("Problem in slr->g0_rule_to_g1_lexeme_set(%ld, %ld): symbol ID was %ld, but highest G1 symbol ID = %ld",
+	("Problem in slg->g0_rule_to_g1_lexeme_set(%ld, %ld): symbol ID was %ld, but highest G1 symbol ID = %ld",
 	 (unsigned long) g0_rule,
 	 (unsigned long) g1_lexeme,
 	 (unsigned long) g0_rule,
@@ -4401,14 +4442,14 @@ PPCODE:
     }
     if (g0_rule < -2) {
       croak
-	("Problem in slr->g0_rule_to_g1_lexeme_set(%ld, %ld): rule ID was %ld, a disallowed value",
+	("Problem in slg->g0_rule_to_g1_lexeme_set(%ld, %ld): rule ID was %ld, a disallowed value",
 	 (unsigned long) g0_rule,
 	 (unsigned long) g1_lexeme,
 	 (unsigned long) g0_rule);
     }
     if (g1_lexeme < -2) {
       croak
-	("Problem in slr->g0_rule_to_g1_lexeme_set(%ld, %ld): symbol ID was %ld, a disallowed value",
+	("Problem in slg->g0_rule_to_g1_lexeme_set(%ld, %ld): symbol ID was %ld, a disallowed value",
 	 (unsigned long) g0_rule,
 	 (unsigned long) g1_lexeme,
 	 (unsigned long) g1_lexeme);
@@ -4692,7 +4733,7 @@ PPCODE:
   int result = 0;
   int start_position;
   int end_position;
-  locations(slr, earley_set, &start_position, &end_position);
+  slr_locations(slr, earley_set, &start_position, &end_position);
   XPUSHs (sv_2mortal (newSViv ((IV) start_position)));
   XPUSHs (sv_2mortal (newSViv ((IV) end_position)));
 }
