@@ -21,8 +21,10 @@ rule ::= <rule body>
 rule ::= <rule body> ';'
 <rule body> ::= <start rule> | <empty rule>
   | <priority rule> | <quantified rule> | <discard rule> | <default rule>
+  | <lexeme rule>
 <start rule> ::= (':start' <op declare bnf>) symbol
 <default rule> ::= ':default' <op declare bnf> <adverb list>
+<lexeme rule> ::= ':lexeme' <op declare bnf> <adverb list>
 <priority rule> ::= lhs <op declare> priorities
 <empty rule> ::= lhs <op declare> <adverb list>
 <quantified rule> ::= lhs <op declare> <single symbol> quantifier <adverb list>
@@ -69,6 +71,7 @@ symbol ::= <symbol name>
 <symbol name> ::= <bracketed name>
 <action name> ::= <bare name>
 <action name> ::= <reserved action name>
+<action name> ::= <array descriptor>
 
 :discard ~ whitespace
 whitespace ~ [\s]+
@@ -98,6 +101,11 @@ boolean ~ [01]
 <standard name> ~ [a-zA-Z] <zero or more word characters>
 <bracketed name> ~ '<' <bracketed name string> '>'
 <bracketed name string> ~ [\s\w]+
+
+<array descriptor> ~ '[' <result item descriptor list> ']'
+<result item descriptor list> ~ <result item descriptor>* separator => [,]
+<result item descriptor> ~ 'start' | 'end' | 'value' | 'values'
+
 <kwc ws star> ~ ':ws*'
 <kwc ws plus> ~ ':ws+'
 <kwc ws> ~ ':ws'
