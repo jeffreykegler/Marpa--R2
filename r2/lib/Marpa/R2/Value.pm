@@ -769,6 +769,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
     state $op_push_all           = Marpa::R2::Thin::op('push_all');
     state $op_push_one           = Marpa::R2::Thin::op('push_one');
     state $op_push_sequence      = Marpa::R2::Thin::op('push_sequence');
+    state $op_push_token_value      = Marpa::R2::Thin::op('push_token_value');
     state $op_result_is_array    = Marpa::R2::Thin::op('result_is_array');
     state $op_result_is_constant = Marpa::R2::Thin::op('result_is_constant');
     state $op_result_is_rhs_n    = Marpa::R2::Thin::op('result_is_rhs_n');
@@ -973,7 +974,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
         my $constant_ix = $value->constant_register($blessing);
         $value->token_register( $lexeme_id, $op_bless, $constant_ix,
-            $op_result_is_array );
+            $op_push_token_value, $op_result_is_array );
 
     } ## end for my $lexeme_id ( grep { defined $symbol_resolutions...})
 

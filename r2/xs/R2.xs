@@ -291,6 +291,7 @@ enum marpa_op
   op_push_all,
   op_push_one,
   op_push_sequence,
+  op_push_token_value,
   op_report_rejection,
   op_result_is_array,
   op_result_is_constant,
@@ -1003,6 +1004,10 @@ PPCODE:
   if (strEQ (op_name, "push_sequence"))
     {
       XSRETURN_IV (op_push_sequence);
+    }
+  if (strEQ (op_name, "push_token_value"))
+    {
+      XSRETURN_IV (op_push_token_value);
     }
   if (strEQ (op_name, "push_one"))
     {
@@ -2410,7 +2415,7 @@ PPCODE:
 	{
 	  IV token_id = marpa_v_token (v);
 	  IV token_value_ix = marpa_v_token_value (v);
-	  IV result = v_wrapper->result = marpa_v_result (v);
+	  IV result_ix = v_wrapper->result = marpa_v_result (v);
 
 	  UV *token_ops;
 	  int op_ix;
@@ -2422,8 +2427,9 @@ PPCODE:
 	      av_fetch (v_wrapper->token_semantics, token_id, 0);
 	    if (!p_ops_sv)
 	      {
-		croak ("Problem in v->stack_step: token %ld is not registered",
-		       (long)token_id);
+		croak
+		  ("Problem in v->stack_step: token %ld is not registered",
+		   (long) token_id);
 	      }
 	    token_ops = (UV *) SvPV (*p_ops_sv, dummy);
 	  }
@@ -2450,6 +2456,24 @@ PPCODE:
 		case 0:
 		  goto NEXT_STEP;
 
+		case op_push_token_value:
+		  {
+		    SV **p_token_value_sv;
+
+		    p_token_value_sv =
+		      av_fetch (token_values, token_value_ix, 0);
+		    if (p_token_value_sv)
+		      {
+			av_push (values_av,
+				 SvREFCNT_inc_NN (*p_token_value_sv));
+		      }
+		    else
+		      {
+			av_push (values_av, &PL_sv_undef);
+		      }
+		  }
+		  break;
+
 		case op_bless:
 		  {
 		    blessing = token_ops[op_ix++];
@@ -2466,7 +2490,7 @@ PPCODE:
 		      {
 			SV *token_value_sv = newSVsv (*p_token_value_sv);
 			SV **stored_sv =
-			  av_store (stack, result, token_value_sv);
+			  av_store (stack, result_ix, token_value_sv);
 			if (!stored_sv)
 			  {
 			    SvREFCNT_dec (token_value_sv);
@@ -2474,7 +2498,7 @@ PPCODE:
 		      }
 		    else
 		      {
-			av_store (stack, result, &PL_sv_undef);
+			av_store (stack, result_ix, &PL_sv_undef);
 		      }
 
 		    if (v_wrapper->trace_values)
@@ -2494,27 +2518,9 @@ PPCODE:
 		  goto NEXT_STEP;
 		case op_result_is_array:
 		  {
-		    SV *ref_to_value_av;
-		    SV** p_token_value_sv;
-
-		    /* Create an array */
-		    AV *value_av = newAV ();
-
-		    /* Push the token value into the new array */
-		    p_token_value_sv =
-		      av_fetch (token_values, token_value_ix, 0);
-		    if (p_token_value_sv)
-		      {
-			SV *token_value_sv = newSVsv (*p_token_value_sv);
-			av_push (value_av, token_value_sv);
-		      }
-		    else
-		      {
-			av_push (value_av, &PL_sv_undef);
-		      }
-
-		    /* Create a reference to the array, blessing it if appropriate */
-		    ref_to_value_av = newRV_noinc ((SV *) value_av);
+		    SV **stored_av;
+		    /* Increment ref count of values_av to de-mortalize it */
+		    SV *ref_to_values_av = newRV_inc ((SV *) values_av);
 		    if (blessing)
 		      {
 			SV **p_blessing_sv =
@@ -2524,34 +2530,32 @@ PPCODE:
 			    STRLEN blessing_length;
 			    char *classname =
 			      SvPV (*p_blessing_sv, blessing_length);
-			    sv_bless (ref_to_value_av,
+			    sv_bless (ref_to_values_av,
 				      gv_stashpv (classname, 1));
 			  }
 		      }
 		    blessing = 0;
-		    if (!av_store (stack, result, ref_to_value_av))
+		    stored_av = av_store (stack, result_ix, ref_to_values_av);
+
+		    /* Clear the way for a new values AV
+		     * The mortal refcount held by this pointer will be
+		     * decremented eventually
+		     */
+		    values_av = NULL;
+		    /* If the new RV did not get stored properly,
+		     * decrement its ref count
+		     */
+		    if (!stored_av)
 		      {
 			/* This should not happen */
-			SvREFCNT_dec (ref_to_value_av);
-			av_fill (stack, result - 1);
-			croak ("Internal error: Could not write to stack at %s %d", __FILE__,
-			       __LINE__);
+			SvREFCNT_dec (ref_to_values_av);
+			av_fill (stack, result_ix - 1);
+			croak
+			  ("Internal error: Could not write to stack at %s %d",
+			   __FILE__, __LINE__);
 			goto NEXT_STEP;
 		      }
-		    av_fill (stack, result);
-
-		    if (v_wrapper->trace_values)
-		      {
-			AV *event;
-			SV *event_data[4];
-			event_data[0] = newSVpv (result_string, 0);
-			event_data[1] = newSViv (token_id);
-			event_data[2] = newSViv (token_value_ix);
-			event_data[3] = newSViv (v_wrapper->result);
-			event = av_make (Dim (event_data), event_data);
-			av_push (v_wrapper->event_queue,
-				 newRV_noinc ((SV *) event));
-		      }
+		    av_fill (stack, result_ix);
 
 		  }
 		  goto NEXT_STEP;
