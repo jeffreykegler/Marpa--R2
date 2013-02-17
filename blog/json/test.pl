@@ -30,13 +30,13 @@ is($data->{test}, undef);
 is($data->{test2}, "hello world");
 
 $data = MarpaX::JSON::parse_json(q${"test":"1.25"}$);
-is($data->{test}, '1.25');
+is($data->{test}, '1.25', '1.25');
 
 $data = MarpaX::JSON::parse_json(q${"test":"1.25e4"}$);
-is($data->{test}, '1.25e4');
+is($data->{test}, '1.25e4', '1.25e4');
 
 $data = MarpaX::JSON::parse_json(q$[]$);
-is_deeply($data, []);
+is_deeply($data, [], '[]');
 
 $data = MarpaX::JSON::parse_json(<<'JSON');
 [
@@ -69,7 +69,7 @@ is_deeply($data, [
     { "precision" => "zip", Longitude => "-122.026020", Address => "",
       City => "SUNNYVALE", Country => "US", Latitude => "37.371991",
       Zip => 94085, State => "CA" }
-]);
+], 'Geo data');
 
 $data = MarpaX::JSON::parse_json(<<'JSON');
 {
@@ -97,7 +97,7 @@ is_deeply($data, {
         },
         "IDs" => [ 116, 943, 234, 38793 ],
     }
-});
+}, 'is_deeply test');
 
 $data = MarpaX::JSON::parse_json(<<'JSON');
 {
