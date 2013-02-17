@@ -768,6 +768,10 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
     my $blessing_by_symbol_id = $rule_resolutions->{blessing_by_symbol};
 
     my $value = Marpa::R2::Thin::V->new($tree);
+    if ( my $slr = $recce->[Marpa::R2::Internal::Recognizer::SLR])
+    {
+        $value->set_slr($slr);
+    }
     local $Marpa::R2::Internal::Context::VALUATOR = $value;
     value_trace( $value, $trace_values ? 1 : 0 );
     $value->trace_values($trace_values);

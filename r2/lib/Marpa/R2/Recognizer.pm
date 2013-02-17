@@ -41,7 +41,7 @@ BEGIN {
     GRAMMAR { the grammar used }
     FINISHED
     TOKEN_VALUES
-    STREAM
+    SLR { the associated SLR, if there is one }
 
     TRACE_FILE_HANDLE
 
@@ -203,11 +203,6 @@ sub Marpa::R2::Recognizer::thin {
     $_[0]->[Marpa::R2::Internal::Recognizer::C];
 }
 
-sub Marpa::R2::Recognizer::thin_stream {
-    $_[0]->[Marpa::R2::Internal::Recognizer::STREAM];
-}
-
-
 use constant RECOGNIZER_OPTIONS => [
     qw{
         closures
@@ -230,6 +225,11 @@ use constant RECOGNIZER_OPTIONS => [
         warnings
         }
 ];
+
+sub Marpa::R2::Recognizer::set_slr {
+    my ($recce, $slr) = @_;
+    return $recce->[Marpa::R2::Internal::Recognizer::SLR] = $slr;
+}
 
 sub Marpa::R2::Recognizer::reset_evaluation {
     my ($recce) = @_;

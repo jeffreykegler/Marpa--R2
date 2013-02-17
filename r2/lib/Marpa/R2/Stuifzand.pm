@@ -429,6 +429,7 @@ sub parse_rules {
     my $tree  = Marpa::R2::Thin::T->new($order);
     $tree->next();
     my $valuator = Marpa::R2::Thin::V->new($tree);
+    $valuator->slr_set($thin_meta_slr);
     my @actions_by_rule_id;
 
     my $meta_g1_rules =

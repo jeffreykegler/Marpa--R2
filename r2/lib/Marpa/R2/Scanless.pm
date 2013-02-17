@@ -1024,6 +1024,7 @@ sub Marpa::R2::Scanless::G::_source_to_hash {
     my $tree  = Marpa::R2::Thin::T->new($order);
     $tree->next();
     my $valuator = Marpa::R2::Thin::V->new($tree);
+    $valuator->slr_set($thin_meta_recce);
     my @actions_by_rule_id;
 
     my $meta_g1_rules =
@@ -1694,7 +1695,8 @@ sub Marpa::R2::Scanless::R::value {
         push @token_values, substr ${$p_input}, $start_position, ( $end_position - $start_position );
     }
     $thick_g1_recce->[Marpa::R2::Internal::Recognizer::TOKEN_VALUES] = \@token_values;
-    return $thick_g1_recce->value();
+    my $thick_g1_value = $thick_g1_recce->value();
+    return $thick_g1_value;
 } ## end sub Marpa::R2::Scanless::R::value
 
 sub Marpa::R2::Scanless::R::show_progress {
