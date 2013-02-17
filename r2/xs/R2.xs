@@ -2360,6 +2360,7 @@ PPCODE:
   Marpa_Step_Type status;
   AV *stack = v_wrapper->stack;
   AV *token_values = v_wrapper->token_values;
+  AV *values_av = NULL;
 
   av_clear (v_wrapper->event_queue);
 
@@ -2426,6 +2427,17 @@ PPCODE:
 	      }
 	    token_ops = (UV *) SvPV (*p_ops_sv, dummy);
 	  }
+
+	  /* Create a values_av or, if there is one,
+	   * clear the old values out.
+	   * It's mortal, so it will go away unless we
+	   * de-mortalize it.
+	   */
+	  if (!values_av)
+	    {
+	      values_av = (AV *) sv_2mortal ((SV *) newAV ());
+	    }
+	  av_clear (values_av);
 
 	  op_ix = 0;
 	  while (1)
@@ -2647,7 +2659,6 @@ PPCODE:
 
       if (status == MARPA_STEP_RULE)
 	{
-	  AV *values_av = NULL;
 	  Marpa_Rule_ID rule_id = marpa_v_rule (v);
 	  IV arg_0 = marpa_v_arg_0 (v);
 	  IV arg_n = marpa_v_arg_n (v);
