@@ -951,6 +951,34 @@ slr_stub_alternatives(Scanless_R *slr,
   return 0;
 }
 
+static void
+locations (Scanless_R * slr, Marpa_Earley_Set_ID earley_set, int *p_start,
+	   int *p_end)
+{
+  dTHX;
+  int result = 0;
+  /* We need to fake the values for Earley set 0,
+   *  since we are using it to store the values for Earley set 1.
+   */
+  if (earley_set <= 0)
+    {
+      *p_start = 0;
+      *p_end = 0;
+    }
+  else
+    {
+      void *end_pos;
+      result =
+	marpa_r_earley_set_values (slr->r1, earley_set - 1, p_start,
+				   &end_pos);
+      *p_end = (int) PTR2IV (end_pos);
+    }
+  if (result < 0)
+    {
+      croak ("failure in slr->location(): %s", xs_g_error (slr->g1_wrapper));
+    }
+}
+
 MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin
 
 PROTOTYPES: DISABLE
@@ -4662,28 +4690,11 @@ locations(slr, earley_set)
 PPCODE:
 {
   int result = 0;
-  int start_pos;
-  void *end_pos;
-  /* We need to fake the values for Earley set 0,
-   *  since we are using it to store the values for Earley set 1.
-   */
-  if (earley_set <= 0)
-    {
-      start_pos = 0;
-      end_pos = INT2PTR (void *, 0);
-    }
-  else
-    {
-      result =
-	marpa_r_earley_set_values (slr->r1, earley_set - 1, &start_pos,
-				   &end_pos);
-    }
-  if (result < 0)
-    {
-      croak ("failure in slr->location(): %s", xs_g_error (slr->g1_wrapper));
-    }
-  XPUSHs (sv_2mortal (newSViv ((IV) start_pos)));
-  XPUSHs (sv_2mortal (newSViv (PTR2IV (end_pos))));
+  int start_position;
+  int end_position;
+  locations(slr, earley_set, &start_position, &end_position);
+  XPUSHs (sv_2mortal (newSViv ((IV) start_position)));
+  XPUSHs (sv_2mortal (newSViv ((IV) end_position)));
 }
 
 void
