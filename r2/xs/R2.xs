@@ -2526,6 +2526,24 @@ PPCODE:
 		  }
 		  break;
 
+		case op_push_slr_range:
+		  {
+		    Marpa_Earley_Set_ID earley_set;
+		    int start_location;
+		    int end_location;
+		    Scanless_R *slr = v_wrapper->slr;
+		    if (!slr)
+		      {
+			croak
+			  ("Problem in v->stack_step: 'push_slr_range' op attempted when no slr is set");
+		      }
+		    earley_set = marpa_v_es_id (v);
+		    slr_locations(slr, earley_set, &start_location, &end_location);
+		    av_push (values_av, newSViv((IV)start_location));
+		    av_push (values_av, newSViv((IV)end_location));
+		  }
+		  break;
+		
 		case op_bless:
 		  {
 		    blessing = token_ops[op_ix++];
@@ -2883,7 +2901,7 @@ PPCODE:
 		    if (!slr)
 		      {
 			croak
-			  ("Problem in v->stack_step: Push SLR op attempted when no slr is set");
+			  ("Problem in v->stack_step: 'push_slr_range' op attempted when no slr is set");
 		      }
 		    earley_set = marpa_v_rule_start_es_id (v);
 		    slr_locations(slr, earley_set, &start_location, &end_location);
