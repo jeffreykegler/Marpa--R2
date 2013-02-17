@@ -33,6 +33,10 @@ value        ::= string
                | 'false'               action => do_true
                | 'null'                action => ::undef
 
+#
+# Test new syntax
+# array        ::= ('[' ']')               action => []
+
 array        ::= ('[' ']')               action => ::array
                | ('[') elements (']')
 
