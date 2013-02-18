@@ -800,6 +800,11 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV** stack_results)
   UV *rule_ops;
   int op_ix;
   UV blessing = 0;
+
+  /* values_av is created when needed.
+   * It is created mortal, so it automatically goes
+   * away unless it is de-mortalized.
+   */
   AV *values_av = NULL;
 
   v_wrapper->result = arg_0;
@@ -815,12 +820,6 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV** stack_results)
     rule_ops = (UV *) SvPV (*p_ops_sv, dummy);
   }
 
-  /* Create a values_av or, if there is one,
-   * clear the old values out.
-   * It's mortal, so it will go away unless we
-   * de-mortalize it.
-   */
-  values_av = (AV *) sv_2mortal ((SV *) newAV ());
 
   op_ix = 0;
   while (1)
@@ -875,6 +874,8 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV** stack_results)
 	    SV **stored_av;
 	    /* Increment ref count of values_av to de-mortalize it */
 	    SV *ref_to_values_av = newRV_inc ((SV *) values_av);
+
+	    if (!values_av) { values_av = (AV *) sv_2mortal ((SV *) newAV ()); }
 	    if (blessing)
 	      {
 		SV **p_blessing_sv =
@@ -886,14 +887,8 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV** stack_results)
 		    sv_bless (ref_to_values_av, gv_stashpv (classname, 1));
 		  }
 	      }
-	    blessing = 0;
 	    stored_av = av_store (stack, arg_0, ref_to_values_av);
 
-	    /* Clear the way for a new values AV
-	     * The mortal refcount held by this pointer will be
-	     * decremented eventually
-	     */
-	    values_av = NULL;
 	    /* If the new RV did not get stored properly,
 	     * decrement its ref count
 	     */
@@ -912,9 +907,8 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV** stack_results)
 	  {
 	    int stack_ix;
 	    int increment = op_code == op_push_sequence ? 2 : 1;
-	    /* Create a mortalized array, so that it will go away
-	     * by default.
-	     */
+
+	    if (!values_av) { values_av = (AV *) sv_2mortal ((SV *) newAV ()); }
 	    for (stack_ix = arg_0; stack_ix <= arg_n; stack_ix += increment)
 	      {
 		SV **p_sv = av_fetch (stack, stack_ix, 0);
@@ -934,6 +928,8 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV** stack_results)
 	  {
 	    int offset = rule_ops[op_ix++];
 	    SV **p_sv = av_fetch (stack, arg_0 + offset, 0);
+
+	    if (!values_av) { values_av = (AV *) sv_2mortal ((SV *) newAV ()); }
 	    if (!p_sv)
 	      {
 		av_push (values_av, &PL_sv_undef);
@@ -951,6 +947,8 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV** stack_results)
 	    int start_location;
 	    int end_location;
 	    Scanless_R *slr = v_wrapper->slr;
+
+	    if (!values_av) { values_av = (AV *) sv_2mortal ((SV *) newAV ()); }
 	    if (!slr)
 	      {
 		croak
@@ -973,8 +971,11 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV** stack_results)
 
 	case op_callback:
 	  {
-	    SV *ref_to_values_av = sv_2mortal (newRV_inc ((SV *) values_av));
 	    const char *result_string = step_type_to_string (status);
+	    SV *ref_to_values_av;
+
+	    if (!values_av) { values_av = (AV *) sv_2mortal ((SV *) newAV ()); }
+	    ref_to_values_av = sv_2mortal (newRV_inc ((SV *) values_av));
 	    if (blessing)
 	      {
 		SV **p_blessing_sv =
