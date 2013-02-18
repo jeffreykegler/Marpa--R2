@@ -429,7 +429,7 @@ sub do_empty_rule {
 
     # mask not needed
     if ( $op_declare eq q{::=} ) {
-        return \%rule;
+        return [\%rule];
     }
     push @{ $self->{lex_rules} }, \%rule;
     return [];
