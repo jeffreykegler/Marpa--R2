@@ -592,11 +592,11 @@ u_read(Unicode_Stream *stream)
 		      }
 		    value = (int) ops[++op_ix];
 		    length = (int) ops[++op_ix];
-		if (trace_level >= 1)
-		  {
-		    warn ("Thin::U::read() alternative(%p, %d, %d, %d)", r, symbol_id, value,
-			  length);
-		  }
+		    if (trace_level >= 1)
+		      {
+			warn ("Thin::U::read() alternative(%p, %d, %d, %d)", (void *) r,
+			      symbol_id, value, length);
+		      }
 		result = marpa_r_alternative (r, symbol_id, value, length);
 		switch (result)
 		  {
@@ -784,6 +784,224 @@ v_create_stack(V_Wrapper* v_wrapper)
   return 0;
 }
 
+static void slr_locations (Scanless_R * slr, Marpa_Earley_Set_ID earley_set,
+			   int *p_start, int *p_end);
+
+static int
+v_do_stack_ops (V_Wrapper * v_wrapper, SV** stack_results)
+{
+  dTHX;
+  AV *stack = v_wrapper->stack;
+  const Marpa_Value v = v_wrapper->v;
+  const Marpa_Step_Type status = marpa_v_step_type (v);
+  Marpa_Rule_ID rule_id = marpa_v_rule (v);
+  IV arg_0 = marpa_v_arg_0 (v);
+  IV arg_n = marpa_v_arg_n (v);
+  UV *rule_ops;
+  int op_ix;
+  UV blessing = 0;
+  AV *values_av = NULL;
+
+  v_wrapper->result = arg_0;
+
+  {
+    STRLEN dummy;
+    SV **p_ops_sv = av_fetch (v_wrapper->rule_semantics, rule_id, 0);
+    if (!p_ops_sv)
+      {
+	croak ("Problem in v->stack_step: rule %d is not registered",
+	       rule_id);
+      }
+    rule_ops = (UV *) SvPV (*p_ops_sv, dummy);
+  }
+
+  /* Create a values_av or, if there is one,
+   * clear the old values out.
+   * It's mortal, so it will go away unless we
+   * de-mortalize it.
+   */
+  values_av = (AV *) sv_2mortal ((SV *) newAV ());
+
+  op_ix = 0;
+  while (1)
+    {
+      UV op_code = rule_ops[op_ix++];
+
+      switch (op_code)
+	{
+
+	case 0:
+	  return -1;
+
+	case op_result_is_undef:
+	  {
+	    av_fill (stack, -1 + arg_0);
+	  }
+	  return -1;
+
+	case op_result_is_rhs_n:
+	  {
+	    SV **stored_av;
+	    SV **p_sv;
+	    UV stack_ix = rule_ops[op_ix++];
+
+	    if (stack_ix == 0)
+	      {
+		/* Special-cased for two reasons --
+		 * it's common and can be optimized.
+		 */
+		av_fill (stack, arg_0);
+		return -1;
+	      }
+	    p_sv = av_fetch (stack, arg_0 + stack_ix, 0);
+	    if (!p_sv)
+	      {
+		av_fill (stack, arg_0 - 1);
+		return -1;
+	      }
+	    stored_av = av_store (stack, arg_0, SvREFCNT_inc_NN (*p_sv));
+	    if (!stored_av)
+	      {
+		SvREFCNT_dec (*p_sv);
+		av_fill (stack, arg_0 - 1);
+		return -1;
+	      }
+	    av_fill (stack, arg_0);
+	  }
+	  return -1;
+
+	case op_result_is_array:
+	  {
+	    SV **stored_av;
+	    /* Increment ref count of values_av to de-mortalize it */
+	    SV *ref_to_values_av = newRV_inc ((SV *) values_av);
+	    if (blessing)
+	      {
+		SV **p_blessing_sv =
+		  av_fetch (v_wrapper->constants, blessing, 0);
+		if (p_blessing_sv && SvPOK (*p_blessing_sv))
+		  {
+		    STRLEN blessing_length;
+		    char *classname = SvPV (*p_blessing_sv, blessing_length);
+		    sv_bless (ref_to_values_av, gv_stashpv (classname, 1));
+		  }
+	      }
+	    blessing = 0;
+	    stored_av = av_store (stack, arg_0, ref_to_values_av);
+
+	    /* Clear the way for a new values AV
+	     * The mortal refcount held by this pointer will be
+	     * decremented eventually
+	     */
+	    values_av = NULL;
+	    /* If the new RV did not get stored properly,
+	     * decrement its ref count
+	     */
+	    if (!stored_av)
+	      {
+		SvREFCNT_dec (ref_to_values_av);
+		av_fill (stack, arg_0 - 1);
+		return -1;
+	      }
+	    av_fill (stack, arg_0);
+	  }
+	  return -1;
+
+	case op_push_all:
+	case op_push_sequence:
+	  {
+	    int stack_ix;
+	    int increment = op_code == op_push_sequence ? 2 : 1;
+	    /* Create a mortalized array, so that it will go away
+	     * by default.
+	     */
+	    for (stack_ix = arg_0; stack_ix <= arg_n; stack_ix += increment)
+	      {
+		SV **p_sv = av_fetch (stack, stack_ix, 0);
+		if (!p_sv)
+		  {
+		    av_push (values_av, &PL_sv_undef);
+		  }
+		else
+		  {
+		    av_push (values_av, SvREFCNT_inc_simple_NN (*p_sv));
+		  }
+	      }
+	  }
+	  break;
+
+	case op_push_one:
+	  {
+	    int offset = rule_ops[op_ix++];
+	    SV **p_sv = av_fetch (stack, arg_0 + offset, 0);
+	    if (!p_sv)
+	      {
+		av_push (values_av, &PL_sv_undef);
+	      }
+	    else
+	      {
+		av_push (values_av, SvREFCNT_inc_simple_NN (*p_sv));
+	      }
+	  }
+	  break;
+
+	case op_push_slr_range:
+	  {
+	    Marpa_Earley_Set_ID earley_set;
+	    int start_location;
+	    int end_location;
+	    Scanless_R *slr = v_wrapper->slr;
+	    if (!slr)
+	      {
+		croak
+		  ("Problem in v->stack_step: 'push_slr_range' op attempted when no slr is set");
+	      }
+	    earley_set = marpa_v_rule_start_es_id (v);
+	    slr_locations (slr, earley_set, &start_location, &end_location);
+	    av_push (values_av, newSViv ((IV) start_location));
+	    earley_set = marpa_v_es_id (v);
+	    slr_locations (slr, earley_set, &start_location, &end_location);
+	    av_push (values_av, newSViv ((IV) end_location));
+	  }
+	  break;
+
+	case op_bless:
+	  {
+	    blessing = rule_ops[op_ix++];
+	  }
+	  break;
+
+	case op_callback:
+	  {
+	    SV *ref_to_values_av = sv_2mortal (newRV_inc ((SV *) values_av));
+	    const char *result_string = step_type_to_string (status);
+	    if (blessing)
+	      {
+		SV **p_blessing_sv =
+		  av_fetch (v_wrapper->constants, blessing, 0);
+		if (p_blessing_sv && SvPOK (*p_blessing_sv))
+		  {
+		    STRLEN blessing_length;
+		    char *classname = SvPV (*p_blessing_sv, blessing_length);
+		    sv_bless (ref_to_values_av, gv_stashpv (classname, 1));
+		  }
+	      }
+	    *stack_results++ = sv_2mortal (newSVpv (result_string, 0));
+	    *stack_results++ = sv_2mortal (newSViv (rule_id));
+	    *stack_results++ = ref_to_values_av;
+	    return 3;
+	  }
+	  /* NOT REACHED */
+	default:
+	  croak
+	    ("Problem in v->stack_step: Unimplemented op code: %lu",
+	     (unsigned long) op_code);
+	}
+    }
+
+  return -1;
+}
+
 /* Static SLG methods */
 
 #define SET_SLG_FROM_SLG_SV(slg, slg_sv) { \
@@ -805,7 +1023,6 @@ slr_stub_alternative(Scanless_R *slr, Marpa_Symbol_ID lexeme,
   dTHX;
   int result;
   Marpa_Recce r1 = slr->r1;
-  Unicode_Stream *stream = slr->stream;
   int trace_level = slr->trace_level;
   int trace_terminals = slr->trace_terminals;
   Marpa_Earley_Set_ID latest_earley_set = marpa_r_latest_earley_set (r1);
@@ -2731,228 +2948,20 @@ PPCODE:
 	  goto NEXT_STEP;
 	}
 
-      if (status == MARPA_STEP_RULE)
+	if (status == MARPA_STEP_RULE)
 	{
-	  Marpa_Rule_ID rule_id = marpa_v_rule (v);
-	  IV arg_0 = marpa_v_arg_0 (v);
-	  IV arg_n = marpa_v_arg_n (v);
-	  UV *rule_ops;
-	  int op_ix;
-	  UV blessing = 0;
-
-	  v_wrapper->result = arg_0;
-
-	  {
-	    STRLEN dummy;
-	    SV **p_ops_sv = av_fetch (v_wrapper->rule_semantics, rule_id, 0);
-	    if (!p_ops_sv)
-	      {
-		croak ("Problem in v->stack_step: rule %d is not registered",
-		       rule_id);
-	      }
-	    rule_ops = (UV *) SvPV (*p_ops_sv, dummy);
-	  }
-
-	  /* Create a values_av or, if there is one,
-	   * clear the old values out.
-	   * It's mortal, so it will go away unless we
-	   * de-mortalize it.
-	   */
-	  if (!values_av)
+	  int ix;
+	  SV *stack_results[3];
+	  int stack_offset = v_do_stack_ops (v_wrapper, stack_results);
+	  if (stack_offset < 0)
 	    {
-	      values_av = (AV *) sv_2mortal ((SV *) newAV ());
+	      goto NEXT_STEP;
 	    }
-	  av_clear (values_av);
-
-	  op_ix = 0;
-	  while (1)
+	  for (ix = 0; ix < stack_offset; ix++)
 	    {
-	      UV op_code = rule_ops[op_ix++];
-
-	      switch (op_code)
-		{
-
-		case 0:
-		  goto NEXT_STEP;
-
-		case op_result_is_undef:
-		  {
-		    av_fill (stack, -1 + arg_0);
-		  }
-		  goto NEXT_STEP;
-
-		case op_result_is_rhs_n:
-		  {
-		    SV **stored_av;
-		    SV **p_sv;
-		    UV stack_ix = rule_ops[op_ix++];
-
-		    if (stack_ix == 0)
-		      {
-			/* Special-cased for two reasons --
-			 * it's common and can be optimized.
-			 */
-			av_fill (stack, arg_0);
-			goto NEXT_STEP;
-		      }
-		    p_sv = av_fetch (stack, arg_0 + stack_ix, 0);
-		    if (!p_sv)
-		      {
-			av_fill (stack, arg_0 - 1);
-			goto NEXT_STEP;
-		      }
-		    stored_av =
-		      av_store (stack, arg_0, SvREFCNT_inc_NN (*p_sv));
-		    if (!stored_av)
-		      {
-			SvREFCNT_dec (*p_sv);
-			av_fill (stack, arg_0 - 1);
-			goto NEXT_STEP;
-		      }
-		    av_fill (stack, arg_0);
-		  }
-		  goto NEXT_STEP;
-
-		case op_result_is_array:
-		  {
-		    SV **stored_av;
-		    /* Increment ref count of values_av to de-mortalize it */
-		    SV *ref_to_values_av = newRV_inc ((SV *) values_av);
-		    if (blessing)
-		      {
-			SV **p_blessing_sv =
-			  av_fetch (v_wrapper->constants, blessing, 0);
-			if (p_blessing_sv && SvPOK (*p_blessing_sv))
-			  {
-			    STRLEN blessing_length;
-			    char *classname =
-			      SvPV (*p_blessing_sv, blessing_length);
-			    sv_bless (ref_to_values_av,
-				      gv_stashpv (classname, 1));
-			  }
-		      }
-		    blessing = 0;
-		    stored_av = av_store (stack, arg_0, ref_to_values_av);
-
-		    /* Clear the way for a new values AV
-		     * The mortal refcount held by this pointer will be
-		     * decremented eventually
-		     */
-		    values_av = NULL;
-		    /* If the new RV did not get stored properly,
-		     * decrement its ref count
-		     */
-		    if (!stored_av)
-		      {
-			SvREFCNT_dec (ref_to_values_av);
-			av_fill (stack, arg_0 - 1);
-			goto NEXT_STEP;
-		      }
-		    av_fill (stack, arg_0);
-		  }
-		  goto NEXT_STEP;
-
-		case op_push_all:
-		case op_push_sequence:
-		  {
-		    int stack_ix;
-		    int increment = op_code == op_push_sequence ? 2 : 1;
-		    /* Create a mortalized array, so that it will go away
-		     * by default.
-		     */
-		    for (stack_ix = arg_0; stack_ix <= arg_n;
-			 stack_ix += increment)
-		      {
-			SV **p_sv = av_fetch (stack, stack_ix, 0);
-			if (!p_sv)
-			  {
-			    av_push (values_av, &PL_sv_undef);
-			  }
-			else
-			  {
-			    av_push (values_av,
-				     SvREFCNT_inc_simple_NN (*p_sv));
-			  }
-		      }
-		  }
-		  break;
-
-		case op_push_one:
-		  {
-		    int offset = rule_ops[op_ix++];
-		    SV **p_sv = av_fetch (stack, arg_0 + offset, 0);
-		    if (!p_sv)
-		      {
-			av_push (values_av, &PL_sv_undef);
-		      }
-		    else
-		      {
-			av_push (values_av, SvREFCNT_inc_simple_NN (*p_sv));
-		      }
-		  }
-		  break;
-
-		case op_push_slr_range:
-		  {
-		    Marpa_Earley_Set_ID earley_set;
-		    int start_location;
-		    int end_location;
-		    Scanless_R *slr = v_wrapper->slr;
-		    if (!slr)
-		      {
-			croak
-			  ("Problem in v->stack_step: 'push_slr_range' op attempted when no slr is set");
-		      }
-		    earley_set = marpa_v_rule_start_es_id (v);
-		    slr_locations(slr, earley_set, &start_location, &end_location);
-		    av_push (values_av, newSViv((IV)start_location));
-		    earley_set = marpa_v_es_id (v);
-		    slr_locations(slr, earley_set, &start_location, &end_location);
-		    av_push (values_av, newSViv((IV)end_location));
-		  }
-		  break;
-		
-		case op_bless:
-		  {
-		    blessing = rule_ops[op_ix++];
-		  }
-		  break;
-
-		case op_callback:
-		  {
-		    SV *ref_to_values_av =
-		      sv_2mortal (newRV_inc ((SV *) values_av));
-		    if (blessing)
-		      {
-			SV **p_blessing_sv =
-			  av_fetch (v_wrapper->constants, blessing, 0);
-			if (p_blessing_sv && SvPOK (*p_blessing_sv))
-			  {
-			    STRLEN blessing_length;
-			    char *classname =
-			      SvPV (*p_blessing_sv, blessing_length);
-			    sv_bless (ref_to_values_av,
-				      gv_stashpv (classname, 1));
-			  }
-		      }
-		    blessing = 0;
-		    XPUSHs (sv_2mortal (newSVpv (result_string, 0)));
-		    XPUSHs (sv_2mortal (newSViv (rule_id)));
-		    /* Must increment ref cnt of array to de-mortalize it,
-		     * but the RV must be mortal.
-		     */
-		    XPUSHs (ref_to_values_av);
-		    XSRETURN (3);
-		  }
-		  /* NOT REACHED */
-		default:
-		  croak
-		    ("Problem in v->stack_step: Unimplemented op code: %lu",
-		     (unsigned long) op_code);
-		}
+	      XPUSHs (stack_results[ix]);
 	    }
-
-	  goto NEXT_STEP;
+	  XSRETURN (stack_offset);
 	}
 
       /* Default is just return the status string and let the upper
