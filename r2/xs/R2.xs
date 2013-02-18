@@ -797,7 +797,7 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV** stack_results)
   Marpa_Rule_ID rule_id = marpa_v_rule (v);
   IV arg_0 = marpa_v_arg_0 (v);
   IV arg_n = marpa_v_arg_n (v);
-  UV *rule_ops;
+  UV *ops;
   int op_ix;
   UV blessing = 0;
 
@@ -817,14 +817,14 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV** stack_results)
 	croak ("Problem in v->stack_step: rule %d is not registered",
 	       rule_id);
       }
-    rule_ops = (UV *) SvPV (*p_ops_sv, dummy);
+    ops = (UV *) SvPV (*p_ops_sv, dummy);
   }
 
 
   op_ix = 0;
   while (1)
     {
-      UV op_code = rule_ops[op_ix++];
+      UV op_code = ops[op_ix++];
 
       switch (op_code)
 	{
@@ -842,7 +842,7 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV** stack_results)
 	  {
 	    SV **stored_av;
 	    SV **p_sv;
-	    UV stack_ix = rule_ops[op_ix++];
+	    UV stack_ix = ops[op_ix++];
 
 	    if (stack_ix == 0)
 	      {
@@ -873,9 +873,10 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV** stack_results)
 	  {
 	    SV **stored_av;
 	    /* Increment ref count of values_av to de-mortalize it */
-	    SV *ref_to_values_av = newRV_inc ((SV *) values_av);
+	    SV *ref_to_values_av;
 
 	    if (!values_av) { values_av = (AV *) sv_2mortal ((SV *) newAV ()); }
+	    ref_to_values_av = newRV_inc ((SV *) values_av);
 	    if (blessing)
 	      {
 		SV **p_blessing_sv =
@@ -926,7 +927,7 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV** stack_results)
 
 	case op_push_one:
 	  {
-	    int offset = rule_ops[op_ix++];
+	    int offset = ops[op_ix++];
 	    SV **p_sv = av_fetch (stack, arg_0 + offset, 0);
 
 	    if (!values_av) { values_av = (AV *) sv_2mortal ((SV *) newAV ()); }
@@ -965,7 +966,7 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV** stack_results)
 
 	case op_bless:
 	  {
-	    blessing = rule_ops[op_ix++];
+	    blessing = ops[op_ix++];
 	  }
 	  break;
 
