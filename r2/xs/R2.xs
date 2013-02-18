@@ -794,7 +794,6 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV** stack_results)
   AV *stack = v_wrapper->stack;
   const Marpa_Value v = v_wrapper->v;
   const Marpa_Step_Type status = marpa_v_step_type (v);
-  Marpa_Rule_ID rule_id = marpa_v_rule (v);
   IV arg_0 = marpa_v_arg_0 (v);
   IV arg_n = marpa_v_arg_n (v);
   UV *ops;
@@ -809,17 +808,33 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV** stack_results)
 
   v_wrapper->result = arg_0;
 
-  {
+  switch (status) {
     STRLEN dummy;
-    SV **p_ops_sv = av_fetch (v_wrapper->rule_semantics, rule_id, 0);
+  case MARPA_STEP_RULE:
+  {
+    SV **p_ops_sv = av_fetch (v_wrapper->rule_semantics, marpa_v_rule(v), 0);
     if (!p_ops_sv)
       {
 	croak ("Problem in v->stack_step: rule %d is not registered",
-	       rule_id);
+	       marpa_v_rule(v));
       }
     ops = (UV *) SvPV (*p_ops_sv, dummy);
   }
-
+  break;
+  case MARPA_STEP_TOKEN:
+  {
+    SV **p_ops_sv = av_fetch (v_wrapper->token_semantics, marpa_v_token(v), 0);
+    if (!p_ops_sv)
+      {
+	croak ("Problem in v->stack_step: token %d is not registered",
+	       marpa_v_token(v));
+      }
+    ops = (UV *) SvPV (*p_ops_sv, dummy);
+  }
+  default:
+  /* Never reached -- turns off warning about unitialized ops */
+  ops = NULL;
+  }
 
   op_ix = 0;
   while (1)
@@ -942,27 +957,33 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV** stack_results)
 	  }
 	  break;
 
-	case op_push_slr_range:
+	  case op_push_slr_range:
 	  {
 	    Marpa_Earley_Set_ID earley_set;
 	    int start_location;
 	    int end_location;
 	    Scanless_R *slr = v_wrapper->slr;
 
-	    if (!values_av) { values_av = (AV *) sv_2mortal ((SV *) newAV ()); }
+	    if (!values_av)
+	      {
+		values_av = (AV *) sv_2mortal ((SV *) newAV ());
+	      }
 	    if (!slr)
 	      {
 		croak
 		  ("Problem in v->stack_step: 'push_slr_range' op attempted when no slr is set");
 	      }
-	    earley_set = marpa_v_rule_start_es_id (v);
+	    earley_set =
+	      status ==
+	      MARPA_STEP_RULE ? marpa_v_rule_start_es_id (v) :
+		  marpa_v_token_start_es_id (v);
 	    slr_locations (slr, earley_set, &start_location, &end_location);
 	    av_push (values_av, newSViv ((IV) start_location));
 	    earley_set = marpa_v_es_id (v);
 	    slr_locations (slr, earley_set, &start_location, &end_location);
 	    av_push (values_av, newSViv ((IV) end_location));
 	  }
-	  break;
+	break;
 
 	case op_bless:
 	  {
@@ -989,7 +1010,7 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV** stack_results)
 		  }
 	      }
 	    *stack_results++ = sv_2mortal (newSVpv (result_string, 0));
-	    *stack_results++ = sv_2mortal (newSViv (rule_id));
+	    *stack_results++ = sv_2mortal (newSViv (marpa_v_rule(v)));
 	    *stack_results++ = ref_to_values_av;
 	    return 3;
 	  }
