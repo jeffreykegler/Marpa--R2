@@ -2955,8 +2955,7 @@ PPCODE:
 		  {
 		    XPUSHs (sv_2mortal (newSVpv (result_string, 0)));
 		    XPUSHs (sv_2mortal (newSViv (token_id)));
-		    XPUSHs (sv_2mortal (newSViv (result_stack_ix)));
-		    XSRETURN (3);
+		    XSRETURN (2);
 		  }
 		  /* NOT REACHED */
 		default:

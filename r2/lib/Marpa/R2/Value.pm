@@ -1057,7 +1057,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
         next STEP if $value_type eq 'trace';
 
         if ( $value_type eq 'MARPA_STEP_NULLING_SYMBOL' ) {
-            my ( $token_id, $arg_n ) = @value_data;
+            my ( $token_id ) = @value_data;
             my $value_ref = $nulling_closures[$token_id];
             my $result;
 
