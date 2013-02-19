@@ -302,6 +302,29 @@ enum marpa_op
   op_result_is_undef
 };
 
+typedef struct { enum marpa_op op; const char *name; } Marpa_XS_OP_Data;
+static Marpa_XS_OP_Data marpa_op_data[] = {
+{  op_end_marker, "end_marker" },
+{  op_alternative, "alternative" },
+{  op_bless, "bless" },
+{  op_callback, "callback" },
+{  op_earleme_complete, "earleme_complete" },
+{  op_ignore_rejection, "ignore_rejection" },
+{  op_noop, "noop" },
+{  op_push_all, "push_all" },
+{  op_push_one, "push_one" },
+{  op_push_sequence, "push_sequence" },
+{  op_push_token_value, "push_token_value" },
+{  op_push_slr_range, "push_slr_range" },
+{  op_report_rejection, "report_rejection" },
+{  op_result_is_array, "result_is_array" },
+{  op_result_is_constant, "result_is_constant" },
+{  op_result_is_rhs_n, "result_is_rhs_n" },
+{  op_result_is_token_value, "result_is_token_value" },
+{  op_result_is_undef, "result_is_undef" },
+  { -1, (char *)NULL}
+};
+
 /* Static grammar methods */
 
 #define SET_G_WRAPPER_FROM_G_SV(g_wrapper, g_sv) { \
@@ -1277,74 +1300,42 @@ PPCODE:
     }
 }
 
+ # This search is not optimized.  This list is short
+ # and the data is constant, so that
+ # and lookup is expected to be done once by an application
+ # and memoized.
 void
 op( op_name )
      char *op_name;
 PPCODE:
 {
-  if (strEQ (op_name, "alternative"))
+  Marpa_XS_OP_Data *op_data = marpa_op_data;
+  for (op_data = marpa_op_data; op_data->name; op_data++)
     {
-      XSRETURN_IV (op_alternative);
+      if (strEQ (op_name, op_data->name))
+	{
+	  XSRETURN_IV ((IV) op_data->op);
+	}
     }
-  if (strEQ (op_name, "ignore_rejection"))
+  XSRETURN_UNDEF;
+}
+
+ # This search is not optimized.  This list is short
+ # and the data is constant.  It is expected this lookup
+ # will be done mainly for error messages.
+void
+op_name( op_as_iv )
+     IV op_as_iv;
+PPCODE:
+{
+  enum marpa_op op = (enum marpa_op)op_as_iv;
+  Marpa_XS_OP_Data *op_data = marpa_op_data;
+  for (op_data = marpa_op_data; op_data->name; op_data++)
     {
-      XSRETURN_IV (op_ignore_rejection);
-    }
-  if (strEQ (op_name, "report_rejection"))
-    {
-      XSRETURN_IV (op_report_rejection);
-    }
-  if (strEQ (op_name, "earleme_complete"))
-    {
-      XSRETURN_IV (op_earleme_complete);
-    }
-  if (strEQ (op_name, "push_all"))
-    {
-      XSRETURN_IV (op_push_all);
-    }
-  if (strEQ (op_name, "push_sequence"))
-    {
-      XSRETURN_IV (op_push_sequence);
-    }
-  if (strEQ (op_name, "push_token_value"))
-    {
-      XSRETURN_IV (op_push_token_value);
-    }
-  if (strEQ (op_name, "push_one"))
-    {
-      XSRETURN_IV (op_push_one);
-    }
-  if (strEQ (op_name, "push_slr_range"))
-    {
-      XSRETURN_IV (op_push_slr_range);
-    }
-  if (strEQ (op_name, "bless"))
-    {
-      XSRETURN_IV (op_bless);
-    }
-  if (strEQ (op_name, "callback"))
-    {
-      XSRETURN_IV (op_callback);
-    }
-  if (strEQ (op_name, "result_is_array"))
-    {
-      XSRETURN_IV (op_result_is_array);
-    }
-  if (strEQ (op_name, "result_is_rhs_n"))
-    {
-      XSRETURN_IV (op_result_is_rhs_n);
-    }
-  if (strEQ (op_name, "result_is_constant"))
-    {
-      XSRETURN_IV (op_result_is_constant);
-    }
-  if (strEQ (op_name, "result_is_undef"))
-    {
-      XSRETURN_IV (op_result_is_undef);
-    }
-  if (strEQ (op_name, "end_marker"))
-    {
-      XSRETURN_IV (op_end_marker);
+      if (op == op_data->op)
+	{
+	  XSRETURN_PV (op_data->name);
+	}
     }
   XSRETURN_UNDEF;
 }
