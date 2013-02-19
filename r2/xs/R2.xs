@@ -808,33 +808,36 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV** stack_results)
 
   v_wrapper->result = arg_0;
 
-  switch (status) {
-    STRLEN dummy;
-  case MARPA_STEP_RULE:
-  {
-    SV **p_ops_sv = av_fetch (v_wrapper->rule_semantics, marpa_v_rule(v), 0);
-    if (!p_ops_sv)
+  switch (status)
+    {
+      STRLEN dummy;
+    case MARPA_STEP_RULE:
       {
-	croak ("Problem in v->stack_step: rule %d is not registered",
-	       marpa_v_rule(v));
+	SV **p_ops_sv =
+	  av_fetch (v_wrapper->rule_semantics, marpa_v_rule (v), 0);
+	if (!p_ops_sv)
+	  {
+	    croak ("Problem in v->stack_step: rule %d is not registered",
+		   marpa_v_rule (v));
+	  }
+	ops = (UV *) SvPV (*p_ops_sv, dummy);
       }
-    ops = (UV *) SvPV (*p_ops_sv, dummy);
-  }
-  break;
-  case MARPA_STEP_TOKEN:
-  {
-    SV **p_ops_sv = av_fetch (v_wrapper->token_semantics, marpa_v_token(v), 0);
-    if (!p_ops_sv)
+      break;
+    case MARPA_STEP_TOKEN:
       {
-	croak ("Problem in v->stack_step: token %d is not registered",
-	       marpa_v_token(v));
+	SV **p_ops_sv =
+	  av_fetch (v_wrapper->token_semantics, marpa_v_token (v), 0);
+	if (!p_ops_sv)
+	  {
+	    croak ("Problem in v->stack_step: token %d is not registered",
+		   marpa_v_token (v));
+	  }
+	ops = (UV *) SvPV (*p_ops_sv, dummy);
       }
-    ops = (UV *) SvPV (*p_ops_sv, dummy);
-  }
-  default:
-  /* Never reached -- turns off warning about unitialized ops */
-  ops = NULL;
-  }
+    default:
+      /* Never reached -- turns off warning about unitialized ops */
+      ops = NULL;
+    }
 
   op_ix = 0;
   while (1)
@@ -890,7 +893,10 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV** stack_results)
 	    /* Increment ref count of values_av to de-mortalize it */
 	    SV *ref_to_values_av;
 
-	    if (!values_av) { values_av = (AV *) sv_2mortal ((SV *) newAV ()); }
+	    if (!values_av)
+	      {
+		values_av = (AV *) sv_2mortal ((SV *) newAV ());
+	      }
 	    ref_to_values_av = newRV_inc ((SV *) values_av);
 	    if (blessing)
 	      {
@@ -924,7 +930,10 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV** stack_results)
 	    int stack_ix;
 	    int increment = op_code == op_push_sequence ? 2 : 1;
 
-	    if (!values_av) { values_av = (AV *) sv_2mortal ((SV *) newAV ()); }
+	    if (!values_av)
+	      {
+		values_av = (AV *) sv_2mortal ((SV *) newAV ());
+	      }
 	    for (stack_ix = arg_0; stack_ix <= arg_n; stack_ix += increment)
 	      {
 		SV **p_sv = av_fetch (stack, stack_ix, 0);
@@ -945,7 +954,10 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV** stack_results)
 	    int offset = ops[op_ix++];
 	    SV **p_sv = av_fetch (stack, arg_0 + offset, 0);
 
-	    if (!values_av) { values_av = (AV *) sv_2mortal ((SV *) newAV ()); }
+	    if (!values_av)
+	      {
+		values_av = (AV *) sv_2mortal ((SV *) newAV ());
+	      }
 	    if (!p_sv)
 	      {
 		av_push (values_av, &PL_sv_undef);
@@ -957,7 +969,7 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV** stack_results)
 	  }
 	  break;
 
-	  case op_push_slr_range:
+	case op_push_slr_range:
 	  {
 	    Marpa_Earley_Set_ID earley_set;
 	    int start_location;
@@ -976,14 +988,14 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV** stack_results)
 	    earley_set =
 	      status ==
 	      MARPA_STEP_RULE ? marpa_v_rule_start_es_id (v) :
-		  marpa_v_token_start_es_id (v);
+	      marpa_v_token_start_es_id (v);
 	    slr_locations (slr, earley_set, &start_location, &end_location);
 	    av_push (values_av, newSViv ((IV) start_location));
 	    earley_set = marpa_v_es_id (v);
 	    slr_locations (slr, earley_set, &start_location, &end_location);
 	    av_push (values_av, newSViv ((IV) end_location));
 	  }
-	break;
+	  break;
 
 	case op_bless:
 	  {
@@ -994,25 +1006,44 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV** stack_results)
 	case op_callback:
 	  {
 	    const char *result_string = step_type_to_string (status);
-	    SV *ref_to_values_av;
+	    SV **p_stack_results = stack_results;
 
-	    if (!values_av) { values_av = (AV *) sv_2mortal ((SV *) newAV ()); }
-	    ref_to_values_av = sv_2mortal (newRV_inc ((SV *) values_av));
-	    if (blessing)
+	    /* For rules, create an array if we don't have one.
+	     * It is expected to be mortal.
+	     */
+	    if (status == MARPA_STEP_RULE && !values_av)
 	      {
-		SV **p_blessing_sv =
-		  av_fetch (v_wrapper->constants, blessing, 0);
-		if (p_blessing_sv && SvPOK (*p_blessing_sv))
-		  {
-		    STRLEN blessing_length;
-		    char *classname = SvPV (*p_blessing_sv, blessing_length);
-		    sv_bless (ref_to_values_av, gv_stashpv (classname, 1));
-		  }
+		values_av = (AV *) sv_2mortal ((SV *) newAV ());
 	      }
-	    *stack_results++ = sv_2mortal (newSVpv (result_string, 0));
-	    *stack_results++ = sv_2mortal (newSViv (marpa_v_rule(v)));
-	    *stack_results++ = ref_to_values_av;
-	    return 3;
+
+	    *p_stack_results++ = sv_2mortal (newSVpv (result_string, 0));
+	    *p_stack_results++ =
+	      sv_2mortal (newSViv
+			  (status ==
+			   MARPA_STEP_RULE ? marpa_v_rule (v) :
+			   marpa_v_token (v)));
+
+	    if (values_av)
+	      {
+		/* De-mortalize av_values */
+		SV *ref_to_values_av =
+		  sv_2mortal (newRV_inc ((SV *) values_av));
+		if (blessing)
+		  {
+		    SV **p_blessing_sv =
+		      av_fetch (v_wrapper->constants, blessing, 0);
+		    if (p_blessing_sv && SvPOK (*p_blessing_sv))
+		      {
+			STRLEN blessing_length;
+			char *classname =
+			  SvPV (*p_blessing_sv, blessing_length);
+			sv_bless (ref_to_values_av,
+				  gv_stashpv (classname, 1));
+		      }
+		  }
+		*p_stack_results++ = ref_to_values_av;
+	      }
+	    return p_stack_results - stack_results;
 	  }
 	  /* NOT REACHED */
 	default:
