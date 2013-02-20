@@ -2494,7 +2494,7 @@ PPCODE:
   Marpa_Symbol_ID token_id;
   Marpa_Rule_ID rule_id;
   const char *result_string;
-  const Marpa_Step_Type status = marpa_v_step (v);
+  const Marpa_Step_Type step_type = marpa_v_step (v);
 
   if (v_wrapper->mode == MARPA_XS_V_MODE_IS_INITIAL) {
     v_wrapper->mode = MARPA_XS_V_MODE_IS_RAW;
@@ -2505,11 +2505,11 @@ PPCODE:
        }
   }
   av_clear (v_wrapper->event_queue);
-  if (status == MARPA_STEP_INACTIVE)
+  if (step_type == MARPA_STEP_INACTIVE)
     {
       XSRETURN_EMPTY;
     }
-  if (status < 0)
+  if (step_type < 0)
     {
       const char *error_message = xs_g_error (v_wrapper->base);
       if (v_wrapper->base->throw)
@@ -2520,11 +2520,11 @@ PPCODE:
 	      (newSVpvf ("Problem in v->step(): %s", error_message)));
       XSRETURN (1);
     }
-  result_string = step_type_to_string (status);
+  result_string = step_type_to_string (step_type);
   if (!result_string)
     {
       char *error_message =
-	form ("Problem in v->step(): unknown step type %d", status);
+	form ("Problem in v->step(): unknown step type %d", step_type);
       set_error_from_string (v_wrapper->base, savepv(error_message));
       if (v_wrapper->base->throw)
 	{
@@ -2534,20 +2534,20 @@ PPCODE:
       XSRETURN (1);
     }
   XPUSHs (sv_2mortal (newSVpv (result_string, 0)));
-  if (status == MARPA_STEP_TOKEN)
+  if (step_type == MARPA_STEP_TOKEN)
     {
       token_id = marpa_v_token (v);
       XPUSHs (sv_2mortal (newSViv (token_id)));
       XPUSHs (sv_2mortal (newSViv (marpa_v_token_value (v))));
       XPUSHs (sv_2mortal (newSViv (marpa_v_result (v))));
     }
-  if (status == MARPA_STEP_NULLING_SYMBOL)
+  if (step_type == MARPA_STEP_NULLING_SYMBOL)
     {
       token_id = marpa_v_token (v);
       XPUSHs (sv_2mortal (newSViv (token_id)));
       XPUSHs (sv_2mortal (newSViv (marpa_v_result (v))));
     }
-  if (status == MARPA_STEP_RULE)
+  if (step_type == MARPA_STEP_RULE)
     {
       rule_id = marpa_v_rule (v);
       XPUSHs (sv_2mortal (newSViv (rule_id)));
@@ -2834,12 +2834,6 @@ stack_step( v_wrapper )
     V_Wrapper *v_wrapper;
 PPCODE:
 {
-  const Marpa_Value v = v_wrapper->v;
-  const char *result_string;
-  Marpa_Step_Type status;
-  AV *stack = v_wrapper->stack;
-  AV *token_values = v_wrapper->token_values;
-  AV *values_av = NULL;
 
   av_clear (v_wrapper->event_queue);
 
@@ -2854,234 +2848,46 @@ PPCODE:
 
   while (1)
     {
-      status = marpa_v_step (v);
-      if (status == MARPA_STEP_INACTIVE)
+      Marpa_Step_Type step_type = marpa_v_step (v_wrapper->v);
+      switch (step_type)
 	{
+	case MARPA_STEP_INACTIVE:
 	  XSRETURN_EMPTY;
-	}
-      if (status < 0)
-	{
-	  const char *error_message = xs_g_error (v_wrapper->base);
-	  if (v_wrapper->base->throw)
-	    {
-	      croak ("Problem in v_>stack_step(): %s", error_message);
-	    }
-	  XPUSHs (sv_2mortal
-		  (newSVpvf
-		   ("Problem in v_>stack_step(): %s", error_message)));
-	  XSRETURN (1);
-	}
-      result_string = step_type_to_string (status);
-      if (!result_string)
-	{
-	  char *error_message =
-	    form ("Problem in v->stack_step(): unknown step type %d", status);
-	  set_error_from_string (v_wrapper->base, savepv (error_message));
-	  if (v_wrapper->base->throw)
-	    {
-	      croak ("%s", error_message);
-	    }
-	  XPUSHs (sv_2mortal (newSVpv (error_message, 0)));
-	  XSRETURN (1);
-	}
 
-      if (status == MARPA_STEP_TOKEN)
-	{
-	  IV token_id = marpa_v_token (v);
-	  IV token_value_ix = marpa_v_token_value (v);
-	  IV result_ix = v_wrapper->result = marpa_v_result (v);
-
-	  UV *token_ops;
-	  int op_ix;
-	  UV blessing = 0;
-
+	  /* NOTREACHED */
+	case MARPA_STEP_RULE:
+	case MARPA_STEP_NULLING_SYMBOL:
+	case MARPA_STEP_TOKEN:
 	  {
-	    STRLEN dummy;
-	    SV **p_ops_sv =
-	      av_fetch (v_wrapper->token_semantics, token_id, 0);
-	    if (!p_ops_sv)
+	    int ix;
+	    SV *stack_results[3];
+	    int stack_offset = v_do_stack_ops (v_wrapper, stack_results);
+	    if (stack_offset < 0)
 	      {
-		croak
-		  ("Problem in v->stack_step: token %ld is not registered",
-		   (long) token_id);
+		goto NEXT_STEP;
 	      }
-	    token_ops = (UV *) SvPV (*p_ops_sv, dummy);
+	    for (ix = 0; ix < stack_offset; ix++)
+	      {
+		XPUSHs (stack_results[ix]);
+	      }
+	    XSRETURN (stack_offset);
 	  }
+	  /* NOTREACHED */
 
-	  /* Create a values_av or, if there is one,
-	   * clear the old values out.
-	   * It's mortal, so it will go away unless we
-	   * de-mortalize it.
+	default:
+	  /* Default is just return the step_type string and let the upper
+	   * layer deal with it.
 	   */
-	  if (!values_av)
-	    {
-	      values_av = (AV *) sv_2mortal ((SV *) newAV ());
-	    }
-	  av_clear (values_av);
-
-	  op_ix = 0;
-	  while (1)
-	    {
-	      UV op_code = token_ops[op_ix++];
-
-	      switch (op_code)
-		{
-
-		case 0:
-		  goto NEXT_STEP;
-
-		case op_push_token_value:
-		  {
-		    SV **p_token_value_sv;
-
-		    p_token_value_sv =
-		      av_fetch (token_values, token_value_ix, 0);
-		    if (p_token_value_sv)
-		      {
-			av_push (values_av,
-				 SvREFCNT_inc_NN (*p_token_value_sv));
-		      }
-		    else
-		      {
-			av_push (values_av, &PL_sv_undef);
-		      }
-		  }
-		  break;
-
-		case op_push_slr_range:
-		  {
-		    Marpa_Earley_Set_ID earley_set;
-		    int start_location;
-		    int end_location;
-		    Scanless_R *slr = v_wrapper->slr;
-		    if (!slr)
-		      {
-			croak
-			  ("Problem in v->stack_step: 'push_slr_range' op attempted when no slr is set");
-		      }
-		    earley_set = marpa_v_es_id (v);
-		    slr_locations(slr, earley_set, &start_location, &end_location);
-		    av_push (values_av, newSViv((IV)start_location));
-		    av_push (values_av, newSViv((IV)end_location));
-		  }
-		  break;
-		
-		case op_bless:
-		  {
-		    blessing = token_ops[op_ix++];
-		  }
-		  break;
-
-		case op_result_is_token_value:
-		  {
-		    SV **p_token_value_sv;
-
-		    p_token_value_sv =
-		      av_fetch (token_values, token_value_ix, 0);
-		    if (p_token_value_sv)
-		      {
-			SV *token_value_sv = newSVsv (*p_token_value_sv);
-			SV **stored_sv =
-			  av_store (stack, result_ix, token_value_sv);
-			if (!stored_sv)
-			  {
-			    SvREFCNT_dec (token_value_sv);
-			  }
-		      }
-		    else
-		      {
-			av_store (stack, result_ix, &PL_sv_undef);
-		      }
-
-		    if (v_wrapper->trace_values)
-		      {
-			AV *event;
-			SV *event_data[4];
-			event_data[0] = newSVpv (result_string, 0);
-			event_data[1] = newSViv (token_id);
-			event_data[2] = newSViv (token_value_ix);
-			event_data[3] = newSViv (v_wrapper->result);
-			event = av_make (Dim (event_data), event_data);
-			av_push (v_wrapper->event_queue,
-				 newRV_noinc ((SV *) event));
-		      }
-
-		  }
-		  goto NEXT_STEP;
-		case op_result_is_array:
-		  {
-		    SV **stored_av;
-		    /* Increment ref count of values_av to de-mortalize it */
-		    SV *ref_to_values_av = newRV_inc ((SV *) values_av);
-		    if (blessing)
-		      {
-			SV **p_blessing_sv =
-			  av_fetch (v_wrapper->constants, blessing, 0);
-			if (p_blessing_sv && SvPOK (*p_blessing_sv))
-			  {
-			    STRLEN blessing_length;
-			    char *classname =
-			      SvPV (*p_blessing_sv, blessing_length);
-			    sv_bless (ref_to_values_av,
-				      gv_stashpv (classname, 1));
-			  }
-		      }
-		    blessing = 0;
-		    stored_av = av_store (stack, result_ix, ref_to_values_av);
-
-		    /* Clear the way for a new values AV
-		     * The mortal refcount held by this pointer will be
-		     * decremented eventually
-		     */
-		    values_av = NULL;
-		    /* If the new RV did not get stored properly,
-		     * decrement its ref count
-		     */
-		    if (!stored_av)
-		      {
-			/* This should not happen */
-			SvREFCNT_dec (ref_to_values_av);
-			av_fill (stack, result_ix - 1);
-			croak
-			  ("Internal error: Could not write to stack at %s %d",
-			   __FILE__, __LINE__);
-			goto NEXT_STEP;
-		      }
-		    av_fill (stack, result_ix);
-
-		  }
-		  goto NEXT_STEP;
-		default:
-		  croak
-		    ("Problem in v->stack_step: Unimplemented op code: %lu",
-		     (unsigned long) op_code);
-		}
-	    }
-
-	  goto NEXT_STEP;
+	  {
+	    const char *step_type_string = step_type_to_string (step_type);
+	    if (!step_type_string)
+	      {
+		step_type_string = "Unknown";
+	      }
+	    XPUSHs (sv_2mortal (newSVpv (step_type_string, 0)));
+	    XSRETURN (1);
+	  }
 	}
-
-	if (status == MARPA_STEP_RULE || status == MARPA_STEP_NULLING_SYMBOL)
-	{
-	  int ix;
-	  SV *stack_results[3];
-	  int stack_offset = v_do_stack_ops (v_wrapper, stack_results);
-	  if (stack_offset < 0)
-	    {
-	      goto NEXT_STEP;
-	    }
-	  for (ix = 0; ix < stack_offset; ix++)
-	    {
-	      XPUSHs (stack_results[ix]);
-	    }
-	  XSRETURN (stack_offset);
-	}
-
-      /* Default is just return the status string and let the upper
-       * layer deal with it.
-       */
-      XPUSHs (sv_2mortal (newSVpv (result_string, 0)));
-      XSRETURN (1);
 
     NEXT_STEP:;
       if (v_wrapper->trace_values)
