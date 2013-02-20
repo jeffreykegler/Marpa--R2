@@ -876,8 +876,9 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
 	  av_fetch (v_wrapper->nulling_semantics, marpa_v_token (v), 0);
 	if (!p_ops_sv)
 	  {
-	    croak ("Problem in v->stack_step: nulling symbol %d is not registered",
-		   marpa_v_token (v));
+	    croak
+	      ("Problem in v->stack_step: nulling symbol %d is not registered",
+	       marpa_v_token (v));
 	  }
 	ops = (UV *) SvPV (*p_ops_sv, dummy);
       }
@@ -904,43 +905,41 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
 	  }
 	  return -1;
 
-		case op_result_is_constant:
+	case op_result_is_constant:
+	  {
+	    IV constant_ix = ops[op_ix++];
+	    SV **p_constant_sv;
+
+	    p_constant_sv = av_fetch (v_wrapper->constants, constant_ix, 0);
+	    if (p_constant_sv)
+	      {
+		SV *constant_sv = newSVsv (*p_constant_sv);
+		SV **stored_sv = av_store (stack, result_ix, constant_sv);
+		if (!stored_sv)
 		  {
-		    IV constant_ix = ops[op_ix++];
-		    SV **p_constant_sv;
-
-		    p_constant_sv =
-		      av_fetch (v_wrapper->constants, constant_ix, 0);
-		    if (p_constant_sv)
-		      {
-			SV *constant_sv = newSVsv (*p_constant_sv);
-			SV **stored_sv =
-			  av_store (stack, result_ix, constant_sv);
-			if (!stored_sv)
-			  {
-			    SvREFCNT_dec (constant_sv);
-			  }
-		      }
-		    else
-		      {
-			av_store (stack, result_ix, &PL_sv_undef);
-		      }
-
-		    if (v_wrapper->trace_values)
-		      {
-			AV *event;
-			SV *event_data[3];
-			const char *result_string = step_type_to_string (status);
-			if (!result_string) result_string = "Unknown";
-			event_data[0] = newSVpv (result_string, 0);
-			event_data[1] = newSViv (marpa_v_token(v));
-			event_data[2] = newSViv (result_ix);
-			event = av_make (Dim (event_data), event_data);
-			av_push (v_wrapper->event_queue,
-				 newRV_noinc ((SV *) event));
-		      }
+		    SvREFCNT_dec (constant_sv);
 		  }
-	return -1;
+	      }
+	    else
+	      {
+		av_store (stack, result_ix, &PL_sv_undef);
+	      }
+
+	    if (v_wrapper->trace_values)
+	      {
+		AV *event;
+		SV *event_data[3];
+		const char *result_string = step_type_to_string (status);
+		if (!result_string)
+		  result_string = "Unknown";
+		event_data[0] = newSVpv (result_string, 0);
+		event_data[1] = newSViv (marpa_v_token (v));
+		event_data[2] = newSViv (result_ix);
+		event = av_make (Dim (event_data), event_data);
+		av_push (v_wrapper->event_queue, newRV_noinc ((SV *) event));
+	      }
+	  }
+	  return -1;
 
 	case op_result_is_rhs_n:
 	  {
