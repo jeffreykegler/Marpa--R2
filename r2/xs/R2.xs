@@ -829,7 +829,7 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
   dTHX;
   AV *stack = v_wrapper->stack;
   const Marpa_Value v = v_wrapper->v;
-  const Marpa_Step_Type status = marpa_v_step_type (v);
+  const Marpa_Step_Type step_type = marpa_v_step_type (v);
   IV result_ix = marpa_v_result (v);
   UV *ops;
   int op_ix;
@@ -843,7 +843,7 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
 
   v_wrapper->result = result_ix;
 
-  switch (status)
+  switch (step_type)
     {
       STRLEN dummy;
     case MARPA_STEP_RULE:
@@ -925,11 +925,11 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
 		av_store (stack, result_ix, &PL_sv_undef);
 	      }
 
-	    if (v_wrapper->trace_values)
+	    if (v_wrapper->trace_values && step_type == MARPA_STEP_TOKEN)
 	      {
 		AV *event;
 		SV *event_data[3];
-		const char *result_string = step_type_to_string (status);
+		const char *result_string = step_type_to_string (step_type);
 		if (!result_string)
 		  result_string = "Unknown";
 		event_data[0] = newSVpv (result_string, 0);
@@ -947,7 +947,7 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
 	    SV **p_sv;
 	    UV stack_ix = ops[op_ix++];
 
-	    if (status != MARPA_STEP_RULE)
+	    if (step_type != MARPA_STEP_RULE)
 	      {
 		goto BAD_OP;
 	      }
@@ -1019,7 +1019,7 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
 	    int stack_ix;
 	    int increment = op_code == op_push_sequence ? 2 : 1;
 
-	    if (status == MARPA_STEP_TOKEN)
+	    if (step_type == MARPA_STEP_TOKEN)
 	      {
 		goto BAD_OP;
 	      }
@@ -1029,7 +1029,7 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
 		values_av = (AV *) sv_2mortal ((SV *) newAV ());
 	      }
 
-	    if (status == MARPA_STEP_RULE)
+	    if (step_type == MARPA_STEP_RULE)
 	      {
 		const int arg_n = marpa_v_arg_n (v);
 		for (stack_ix = result_ix; stack_ix <= arg_n;
@@ -1050,23 +1050,29 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
 	  break;
 
 	case op_push_one:
-	  {
-	    int offset = ops[op_ix++];
-	    SV **p_sv = av_fetch (stack, result_ix + offset, 0);
+	{
+	  int offset;
+	  SV **p_sv;
 
-	    if (!values_av)
-	      {
-		values_av = (AV *) sv_2mortal ((SV *) newAV ());
-	      }
-	    if (!p_sv)
-	      {
-		av_push (values_av, &PL_sv_undef);
-	      }
-	    else
-	      {
-		av_push (values_av, SvREFCNT_inc_simple_NN (*p_sv));
-	      }
-	  }
+	  if (step_type != MARPA_STEP_RULE)
+	    {
+	      goto BAD_OP;
+	    }
+	  offset = ops[op_ix++];
+	  p_sv = av_fetch (stack, result_ix + offset, 0);
+	  if (!values_av)
+	    {
+	      values_av = (AV *) sv_2mortal ((SV *) newAV ());
+	    }
+	  if (!p_sv)
+	    {
+	      av_push (values_av, &PL_sv_undef);
+	    }
+	  else
+	    {
+	      av_push (values_av, SvREFCNT_inc_simple_NN (*p_sv));
+	    }
+	}
 	  break;
 
 	case op_push_slr_range:
@@ -1086,7 +1092,7 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
 		  ("Problem in v->stack_step: 'push_slr_range' op attempted when no slr is set");
 	      }
 	    earley_set =
-	      status ==
+	      step_type ==
 	      MARPA_STEP_RULE ? marpa_v_rule_start_es_id (v) :
 	      marpa_v_token_start_es_id (v);
 	    slr_locations (slr, earley_set, &start_location, &end_location);
@@ -1105,21 +1111,30 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
 
 	case op_callback:
 	  {
-	    const char *result_string = step_type_to_string (status);
+	    const char *result_string = step_type_to_string (step_type);
 	    SV **p_stack_results = stack_results;
 
-	    /* For rules, create an array if we don't have one.
-	     * It is expected to be mortal.
-	     */
-	    if (status == MARPA_STEP_RULE && !values_av)
-	      {
-		values_av = (AV *) sv_2mortal ((SV *) newAV ());
-	      }
+switch (step_type)
+  {
+  case MARPA_STEP_RULE:
+    /* For rules, create an array if we don't have one.
+     * It is expected to be mortal.
+     */
+    if (!values_av)
+      {
+	values_av = (AV *) sv_2mortal ((SV *) newAV ());
+      }
+    break;
+  case MARPA_STEP_NULLING_SYMBOL:
+    break;
+  default:
+    goto BAD_OP;
+  }
 
 	    *p_stack_results++ = sv_2mortal (newSVpv (result_string, 0));
 	    *p_stack_results++ =
 	      sv_2mortal (newSViv
-			  (status ==
+			  (step_type ==
 			   MARPA_STEP_RULE ? marpa_v_rule (v) :
 			   marpa_v_token (v)));
 
@@ -1149,13 +1164,13 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
 	default:
 	BAD_OP:
 	  {
-	    const char *status_string = step_type_to_string (status);
-	    if (!status_string)
-	      status_string = "Unknown";
+	    const char *step_type_string = step_type_to_string (step_type);
+	    if (!step_type_string)
+	      step_type_string = "Unknown";
 	    croak
-	      ("Bad op code (%lu, '%s') in v->stack_step, status '%s'",
+	      ("Bad op code (%lu, '%s') in v->stack_step, step_type '%s'",
 	       (unsigned long) op_code, op_to_op_name (op_code),
-	       status_string);
+	       step_type_string);
 	  }
 	}
     }
