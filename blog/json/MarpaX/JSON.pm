@@ -33,11 +33,8 @@ value        ::= string
                | 'false'               action => do_true
                | 'null'                action => ::undef
 
-#
-# Test new syntax
-# array        ::= ('[' ']')               action => []
 
-array        ::= ('[' ']')               action => ::array
+array        ::= ('[' ']')               action => []
                | ('[') elements (']')
 
 elements     ::= value+                separator => <comma>

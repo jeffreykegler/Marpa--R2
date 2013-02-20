@@ -829,10 +829,12 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
         # Determine the "fate" of the array of child values
         my $array_fate;
         ARRAY_FATE: {
-            if ( $semantics eq '::array' ) {
+            if ( $semantics eq '::array'
+                or ( substr $semantics, 0, 1 ) eq '[' )
+            {
                 $array_fate = $op_result_is_array;
                 last ARRAY_FATE;
-            }
+            } ## end if ( $semantics eq '::array' or ( substr $semantics,...))
 
             if ( defined $closure
                 && ( ref $closure ne 'SCALAR' || defined ${$closure} ) )
