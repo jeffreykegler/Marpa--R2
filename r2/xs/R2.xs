@@ -824,14 +824,13 @@ static void slr_locations (Scanless_R * slr, Marpa_Earley_Set_ID earley_set,
 			   int *p_start, int *p_end);
 
 static int
-v_do_stack_ops (V_Wrapper * v_wrapper, SV** stack_results)
+v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
 {
   dTHX;
   AV *stack = v_wrapper->stack;
   const Marpa_Value v = v_wrapper->v;
   const Marpa_Step_Type status = marpa_v_step_type (v);
-  IV arg_0 = marpa_v_arg_0 (v);
-  IV arg_n = marpa_v_arg_n (v);
+  IV result_ix = marpa_v_result (v);
   UV *ops;
   int op_ix;
   UV blessing = 0;
@@ -842,7 +841,7 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV** stack_results)
    */
   AV *values_av = NULL;
 
-  v_wrapper->result = arg_0;
+  v_wrapper->result = result_ix;
 
   switch (status)
     {
@@ -888,7 +887,7 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV** stack_results)
 
 	case op_result_is_undef:
 	  {
-	    av_fill (stack, -1 + arg_0);
+	    av_fill (stack, -1 + result_ix);
 	  }
 	  return -1;
 
@@ -898,28 +897,32 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV** stack_results)
 	    SV **p_sv;
 	    UV stack_ix = ops[op_ix++];
 
+	    if (status != MARPA_STEP_RULE)
+	      {
+		goto BAD_OP;
+	      }
 	    if (stack_ix == 0)
 	      {
 		/* Special-cased for two reasons --
 		 * it's common and can be optimized.
 		 */
-		av_fill (stack, arg_0);
+		av_fill (stack, result_ix);
 		return -1;
 	      }
-	    p_sv = av_fetch (stack, arg_0 + stack_ix, 0);
+	    p_sv = av_fetch (stack, result_ix + stack_ix, 0);
 	    if (!p_sv)
 	      {
-		av_fill (stack, arg_0 - 1);
+		av_fill (stack, result_ix - 1);
 		return -1;
 	      }
-	    stored_av = av_store (stack, arg_0, SvREFCNT_inc_NN (*p_sv));
+	    stored_av = av_store (stack, result_ix, SvREFCNT_inc_NN (*p_sv));
 	    if (!stored_av)
 	      {
 		SvREFCNT_dec (*p_sv);
-		av_fill (stack, arg_0 - 1);
+		av_fill (stack, result_ix - 1);
 		return -1;
 	      }
-	    av_fill (stack, arg_0);
+	    av_fill (stack, result_ix);
 	  }
 	  return -1;
 
@@ -945,7 +948,7 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV** stack_results)
 		    sv_bless (ref_to_values_av, gv_stashpv (classname, 1));
 		  }
 	      }
-	    stored_av = av_store (stack, arg_0, ref_to_values_av);
+	    stored_av = av_store (stack, result_ix, ref_to_values_av);
 
 	    /* If the new RV did not get stored properly,
 	     * decrement its ref count
@@ -953,10 +956,10 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV** stack_results)
 	    if (!stored_av)
 	      {
 		SvREFCNT_dec (ref_to_values_av);
-		av_fill (stack, arg_0 - 1);
+		av_fill (stack, result_ix - 1);
 		return -1;
 	      }
-	    av_fill (stack, arg_0);
+	    av_fill (stack, result_ix);
 	  }
 	  return -1;
 
@@ -966,20 +969,31 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV** stack_results)
 	    int stack_ix;
 	    int increment = op_code == op_push_sequence ? 2 : 1;
 
+	    if (status == MARPA_STEP_TOKEN)
+	      {
+		goto BAD_OP;
+	      }
+
 	    if (!values_av)
 	      {
 		values_av = (AV *) sv_2mortal ((SV *) newAV ());
 	      }
-	    for (stack_ix = arg_0; stack_ix <= arg_n; stack_ix += increment)
+
+	    if (status == MARPA_STEP_RULE)
 	      {
-		SV **p_sv = av_fetch (stack, stack_ix, 0);
-		if (!p_sv)
+		const int arg_n = marpa_v_arg_n (v);
+		for (stack_ix = result_ix; stack_ix <= arg_n;
+		     stack_ix += increment)
 		  {
-		    av_push (values_av, &PL_sv_undef);
-		  }
-		else
-		  {
-		    av_push (values_av, SvREFCNT_inc_simple_NN (*p_sv));
+		    SV **p_sv = av_fetch (stack, stack_ix, 0);
+		    if (!p_sv)
+		      {
+			av_push (values_av, &PL_sv_undef);
+		      }
+		    else
+		      {
+			av_push (values_av, SvREFCNT_inc_simple_NN (*p_sv));
+		      }
 		  }
 	      }
 	  }
@@ -988,7 +1002,7 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV** stack_results)
 	case op_push_one:
 	  {
 	    int offset = ops[op_ix++];
-	    SV **p_sv = av_fetch (stack, arg_0 + offset, 0);
+	    SV **p_sv = av_fetch (stack, result_ix + offset, 0);
 
 	    if (!values_av)
 	      {
@@ -1083,9 +1097,16 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV** stack_results)
 	  }
 	  /* NOT REACHED */
 	default:
-	  croak
-	    ("Problem in v->stack_step: Unimplemented op code: %lu",
-	     (unsigned long) op_code);
+	BAD_OP:
+	  {
+	    const char *status_string = step_type_to_string (status);
+	    if (!status_string)
+	      status_string = "Unknown";
+	    croak
+	      ("Bad op code (%lu, '%s') in v->stack_step, status '%s'",
+	       (unsigned long) op_code, op_to_op_name (op_code),
+	       status_string);
+	  }
 	}
     }
 
