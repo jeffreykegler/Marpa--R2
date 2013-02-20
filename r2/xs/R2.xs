@@ -325,6 +325,19 @@ static Marpa_XS_OP_Data marpa_op_data[] = {
   { -1, (char *)NULL}
 };
 
+static const char* op_to_op_name(enum marpa_op op)
+{
+  Marpa_XS_OP_Data *op_data = marpa_op_data;
+  for (op_data = marpa_op_data; op_data->name; op_data++)
+    {
+      if (op == op_data->op)
+	{
+	  return op_data->name;
+	}
+    }
+  return "unknown";
+}
+
 /* Static grammar methods */
 
 #define SET_G_WRAPPER_FROM_G_SV(g_wrapper, g_sv) { \
@@ -1328,16 +1341,8 @@ op_name( op_as_iv )
      IV op_as_iv;
 PPCODE:
 {
-  enum marpa_op op = (enum marpa_op)op_as_iv;
-  Marpa_XS_OP_Data *op_data = marpa_op_data;
-  for (op_data = marpa_op_data; op_data->name; op_data++)
-    {
-      if (op == op_data->op)
-	{
-	  XSRETURN_PV (op_data->name);
-	}
-    }
-  XSRETURN_UNDEF;
+  const enum marpa_op op = (enum marpa_op)op_as_iv;
+  XSRETURN_PV (op_to_op_name(op));
 }
 
 MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin::G
