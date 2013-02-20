@@ -150,9 +150,4 @@ sub do_true {
     return $_[0] eq 'true';
 }
 
-sub do_join {
-    shift;
-    return join '', @_;
-}
-
 1;

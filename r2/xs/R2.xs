@@ -1262,7 +1262,7 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
  * -4: Exhausted, but lexemes remain.
  */
 static IV 
-slr_stub_alternative(Scanless_R *slr, Marpa_Symbol_ID lexeme,
+slr_alternative(Scanless_R *slr, Marpa_Symbol_ID lexeme,
     IV attempted)
 {
   dTHX;
@@ -1358,7 +1358,7 @@ slr_stub_alternative(Scanless_R *slr, Marpa_Symbol_ID lexeme,
  * -4: Exhausted, but lexemes remain.
  */
 static IV 
-slr_stub_alternatives(Scanless_R *slr,
+slr_alternatives(Scanless_R *slr,
   IV*lexemes_found, IV*lexemes_attempted)
 {
   dTHX;
@@ -1399,7 +1399,7 @@ slr_stub_alternatives(Scanless_R *slr,
 
 	  /* -2 means a discarded item */
 	  if (g1_lexeme <= -2) goto NEXT_REPORT_ITEM;
-	  return_value = slr_stub_alternative(slr, g1_lexeme, *lexemes_attempted);
+	  return_value = slr_alternative(slr, g1_lexeme, *lexemes_attempted);
 	  if (return_value == -4) { return return_value; }
 	  (*lexemes_attempted)++;
 	  NEXT_REPORT_ITEM: ;
@@ -4585,7 +4585,7 @@ PPCODE:
 	}
 
       result =
-	slr_stub_alternatives (slr, &lexemes_found, &lexemes_attempted);
+	slr_alternatives (slr, &lexemes_found, &lexemes_attempted);
       if (result == -4)
 	{
 	  XSRETURN_PV ("R0 exhausted before end");
@@ -4634,31 +4634,6 @@ r1_earleme_complete_result (slr)
 PPCODE:
 {
   XPUSHs (sv_2mortal (newSViv ((IV) slr->r1_earleme_complete_result)));
-}
-
-void
-stub_alternative( slr, lexeme, attempted )
-    Scanless_R *slr;
-     Marpa_Symbol_ID lexeme;
-     IV attempted;
-PPCODE:
-{
-  IV return_value;
-  return_value = slr_stub_alternative(slr, lexeme, attempted);
-  XSRETURN_IV(return_value);
-}
-
-void
-stub_alternatives( slr )
-    Scanless_R *slr;
-PPCODE:
-{
-  IV lexemes_found;
-  IV lexemes_attempted;
-  IV return_value = slr_stub_alternatives(slr, &lexemes_found, &lexemes_attempted);
-  XPUSHs (sv_2mortal (newSViv ((IV) return_value)));
-  XPUSHs (sv_2mortal (newSViv ((IV) lexemes_found)));
-  XPUSHs (sv_2mortal (newSViv ((IV) lexemes_attempted)));
 }
 
 void
