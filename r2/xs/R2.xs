@@ -570,8 +570,13 @@ u_read(Unicode_Stream *stream)
 	  codepoint_length = 1;
 	}
       if (trace_g0 >= 1) {
-          warn("Thin::U::read() Reading codepoint 0x%04x at pos %d",
-	    (int)codepoint, (int)stream->perl_pos);
+		AV *event;
+		SV *event_data[3];
+		event_data[0] = newSVpv ("reading codepoint", 0);
+		event_data[1] = newSViv ((IV)codepoint);
+		event_data[2] = newSViv ((IV)stream->perl_pos);
+		event = av_make (Dim (event_data), event_data);
+		av_push (stream->event_queue, newRV_noinc ((SV *) event));
       }
       {
 	STRLEN dummy;
@@ -628,27 +633,24 @@ u_read(Unicode_Stream *stream)
 		      }
 		    value = (int) ops[++op_ix];
 		    length = (int) ops[++op_ix];
-		    if (trace_g0 >= 1)
-		      {
-			warn ("Thin::U::read() alternative(%p, %d, %d, %d)", (void *) r,
-			      symbol_id, value, length);
-		      }
 		result = marpa_r_alternative (r, symbol_id, value, length);
 		switch (result)
 		  {
 		  case MARPA_ERR_UNEXPECTED_TOKEN_ID:
-		    if (0) {
-		       warn("input_read_string unexpected token: %d,%d,%d",
-			 symbol_id, value, length);
-		    }
 		    /* This guarantees that later, if we fall below
 		     * the minimum number of tokens accepted,
 		     * we have one of them as an example
 		     */
 		    stream->input_symbol_id = symbol_id;
 		    if (trace_g0 >= 1) {
-			warn("Thin::U::read() Rejected codepoint 0x%04lx at pos %d as symbol %d",
-			  (unsigned long)codepoint, (int)stream->perl_pos, symbol_id);
+			AV *event;
+			SV *event_data[4];
+			event_data[0] = newSVpv ("rejected codepoint", 0);
+			event_data[1] = newSViv ((IV)codepoint);
+			event_data[2] = newSViv ((IV)stream->perl_pos);
+			event_data[3] = newSViv ((IV)symbol_id);
+			event = av_make (Dim (event_data), event_data);
+			av_push (stream->event_queue, newRV_noinc ((SV *) event));
 		    }
 		    if (!ignore_rejection)
 		      {
@@ -658,8 +660,14 @@ u_read(Unicode_Stream *stream)
 		    break;
 		  case MARPA_ERR_NONE:
 		    if (trace_g0 >= 1) {
-			warn("Thin::U::read() Accepted codepoint 0x%04lx at pos %d as symbol %d",
-			  (unsigned long)codepoint, (int)stream->perl_pos, symbol_id);
+			AV *event;
+			SV *event_data[4];
+			event_data[0] = newSVpv ("accepted codepoint", 0);
+			event_data[1] = newSViv ((IV)codepoint);
+			event_data[2] = newSViv ((IV)stream->perl_pos);
+			event_data[3] = newSViv ((IV)symbol_id);
+			event = av_make (Dim (event_data), event_data);
+			av_push (stream->event_queue, newRV_noinc ((SV *) event));
 		    }
 		    tokens_accepted++;
 		    break;
@@ -2129,6 +2137,14 @@ PPCODE:
   XPUSHs (sv_2mortal (newSViv (level)));
 }
 
+void
+event( stream )
+     Unicode_Stream *stream;
+PPCODE:
+{
+    SV* event = av_shift(stream->event_queue);
+    XPUSHs (sv_2mortal (event));
+}
 
 void
 ignore_rejection( stream, boolean )
@@ -4645,8 +4661,11 @@ event(slr)
     Scanless_R *slr;
 PPCODE:
 {
-    SV* event = av_shift(slr->event_queue);
-    XPUSHs (sv_2mortal (event));
+  Unicode_Stream *stream = slr->stream;
+  SV *event =
+    (av_len (stream->event_queue) >=
+     0) ? av_shift (stream->event_queue) : av_shift (slr->event_queue);
+  XPUSHs (sv_2mortal (event));
 }
 
 void
