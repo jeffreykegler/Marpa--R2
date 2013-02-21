@@ -67,7 +67,8 @@ BEGIN {
     P_INPUT_STRING
 
     TRACE_FILE_HANDLE
-    TRACE_TERMINALS
+    TRACE_G0
+    TRACE_LEXEMES
     READ_STRING_ERROR
 
 END_OF_STRUCTURE
@@ -1274,7 +1275,8 @@ sub Marpa::R2::Scanless::G::_source_to_hash {
 
 my %recce_options = map { ($_, 1) } qw{
     grammar
-    trace_terminals
+    trace_lexemes
+    trace_g0
     trace_values
     trace_file_handle
 };
@@ -1321,8 +1323,8 @@ sub Marpa::R2::Scanless::R::new {
     if ( defined( my $value = $args->{'trace_file_handle'} ) ) {
         $self->[Marpa::R2::Inner::Scanless::R::TRACE_FILE_HANDLE] = $value;
     }
-    if ( defined( my $value = $args->{'trace_terminals'} ) ) {
-        $self->[Marpa::R2::Inner::Scanless::R::TRACE_TERMINALS] = $value;
+    if ( defined( my $value = $args->{'trace_lexemes'} ) ) {
+        $self->[Marpa::R2::Inner::Scanless::R::TRACE_LEXEMES] = $value;
     }
 
     $self->[Marpa::R2::Inner::Scanless::R::GRAMMAR] = $grammar;
@@ -1378,11 +1380,11 @@ sub Marpa::R2::Scanless::R::read {
     } ## end if ( ( my $ref_type = ref $p_string ) ne 'SCALAR' )
     $self->[Marpa::R2::Inner::Scanless::R::P_INPUT_STRING] = $p_string;
 
-    my $trace_terminals =
-        $self->[Marpa::R2::Inner::Scanless::R::TRACE_TERMINALS];
+    my $trace_lexemes =
+        $self->[Marpa::R2::Inner::Scanless::R::TRACE_LEXEMES];
 
     my $thin_self = $self->[Marpa::R2::Inner::Scanless::R::C];
-    $thin_self->trace_terminals($trace_terminals) if $trace_terminals;
+    $thin_self->trace_lexemes($trace_lexemes) if $trace_lexemes;
     my $stream  = $thin_self->stream();
     my $grammar = $self->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
     my $thick_lex_grammar =

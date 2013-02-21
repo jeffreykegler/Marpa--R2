@@ -98,7 +98,7 @@ typedef struct {
      G_Wrapper* g1_wrapper;
      AV* event_queue;
      int trace_level;
-     int trace_terminals;
+     int trace_lexemes;
      STRLEN start_of_lexeme;
      STRLEN end_of_lexeme;
      int please_start_lex_recce;
@@ -1277,7 +1277,7 @@ slr_alternative(Scanless_R *slr, Marpa_Symbol_ID lexeme,
   int result;
   Marpa_Recce r1 = slr->r1;
   int trace_level = slr->trace_level;
-  int trace_terminals = slr->trace_terminals;
+  int trace_lexemes = slr->trace_lexemes;
   Marpa_Earley_Set_ID latest_earley_set = marpa_r_latest_earley_set (r1);
   STRLEN start_pos = slr->start_of_lexeme;
   STRLEN end_pos = slr->end_of_lexeme;
@@ -1301,7 +1301,7 @@ slr_alternative(Scanless_R *slr, Marpa_Symbol_ID lexeme,
 	    ("slr->read() R1 Rejected unexpected symbol %d at pos %d",
 	     lexeme, (int) slr->stream->perl_pos);
 	}
-	if (trace_terminals) {
+	if (trace_lexemes) {
 	    AV* event;
 	    SV* event_data[4];
 	    event_data[0] = newSVpvs("unexpected");
@@ -1320,7 +1320,7 @@ slr_alternative(Scanless_R *slr, Marpa_Symbol_ID lexeme,
 	    ("slr->read() R1 Rejected duplicate symbol %d at pos %d",
 	     lexeme, (int) slr->stream->perl_pos);
 	}
-	if (trace_terminals) {
+	if (trace_lexemes) {
 	    AV* event;
 	    SV* event_data[4];
 	    event_data[0] = newSVpvs("duplicate");
@@ -1339,7 +1339,7 @@ slr_alternative(Scanless_R *slr, Marpa_Symbol_ID lexeme,
 	    ("slr->read() R1 Accepted symbol %d at pos %d",
 	     lexeme, (int) slr->stream->perl_pos);
 	}
-	if (trace_terminals) {
+	if (trace_lexemes) {
 	    AV* event;
 	    SV* event_data[4];
 	    event_data[0] = newSVpvs("accepted");
@@ -4446,7 +4446,7 @@ PPCODE:
   Newx (slr, 1, Scanless_R);
 
   slr->trace_level = 0;
-  slr->trace_terminals = 0;
+  slr->trace_lexemes = 0;
 
   # Copy and take references to the "parent objects",
   # the ones responsible for holding references.
@@ -4511,16 +4511,16 @@ PPCODE:
 }
 
 void
-trace_terminals( slr, level )
+trace_lexemes( slr, level )
     Scanless_R *slr;
     int level;
 PPCODE:
 {
-  IV old_level = slr->trace_terminals;
-  slr->trace_terminals = level;
+  IV old_level = slr->trace_lexemes;
+  slr->trace_lexemes = level;
   if (slr->trace_level) {
-    /* Note that we use *trace_level*, not *trace_terminals* to control warning.
-     * We never warn() for trace_terminals, just report events.
+    /* Note that we use *trace_level*, not *trace_lexemes* to control warning.
+     * We never warn() for trace_lexemes, just report events.
      */
     warn("Changing SLR trace terminals level from %d to %d", (int)old_level, (int)level);
   }
@@ -4629,7 +4629,7 @@ PPCODE:
 	    }
 	}
 
-      if (slr->trace_terminals)
+      if (slr->trace_lexemes)
 	{
 	  XSRETURN_PV ("trace");
 	}
