@@ -64,7 +64,6 @@ typedef struct {
      */
      STRLEN input_offset; /* byte position, ignoring Unicode */
      SV* input;
-     int input_debug; /* debug level for input */
      Marpa_Symbol_ID input_symbol_id;
      UV codepoint; /* For error returns */
      HV* per_codepoint_ops;
@@ -73,7 +72,8 @@ typedef struct {
      /* The minimum number of tokens that must
        be accepted at an earleme */
      IV minimum_accepted;
-     IV trace; /* trace level */
+     IV trace_g0; /* trace level */
+     AV* event_queue;
 } Unicode_Stream;
 
 typedef struct {
@@ -415,7 +415,6 @@ static Unicode_Stream* u_new(SV* g_sv)
   IV tmp = SvIV ((SV *) SvRV (g_sv));
   G_Wrapper *g_wrapper = INT2PTR (G_Wrapper *, tmp);
   Newx (stream, 1, Unicode_Stream);
-  stream->trace = 0;
   stream->g0_wrapper = g_wrapper;
   stream->r0 = NULL;
   /* Hold a ref to the grammar SV we were called with --
@@ -427,11 +426,12 @@ static Unicode_Stream* u_new(SV* g_sv)
   stream->input = newSVpvn ("", 0);
   stream->perl_pos = 0;
   stream->input_offset = 0;
-  stream->input_debug = 0;
   stream->input_symbol_id = -1;
   stream->per_codepoint_ops = newHV ();
   stream->ignore_rejection = 1;
   stream->minimum_accepted = 1;
+  stream->trace_g0 = 0;
+  stream->event_queue = newAV ();
   return stream;
 }
 
@@ -443,6 +443,7 @@ static void u_destroy(Unicode_Stream *stream)
     {
       marpa_r_unref (r0);
     }
+  SvREFCNT_dec (stream->event_queue);
   SvREFCNT_dec (stream->input);
   SvREFCNT_dec (stream->per_codepoint_ops);
   SvREFCNT_dec (stream->g0_sv);
@@ -515,8 +516,7 @@ u_read(Unicode_Stream *stream)
   STRLEN len;
   int input_is_utf8;
 
-  const IV trace_level = stream->trace;
-  int input_debug = stream->input_debug;
+  const IV trace_g0 = stream->trace_g0;
   Marpa_Recognizer r = stream->r0;
 
   if (!r) {
@@ -569,7 +569,7 @@ u_read(Unicode_Stream *stream)
 	  codepoint = (UV) input[stream->input_offset];
 	  codepoint_length = 1;
 	}
-      if (trace_level >= 1) {
+      if (trace_g0 >= 1) {
           warn("Thin::U::read() Reading codepoint 0x%04x at pos %d",
 	    (int)codepoint, (int)stream->perl_pos);
       }
@@ -628,7 +628,7 @@ u_read(Unicode_Stream *stream)
 		      }
 		    value = (int) ops[++op_ix];
 		    length = (int) ops[++op_ix];
-		    if (trace_level >= 1)
+		    if (trace_g0 >= 1)
 		      {
 			warn ("Thin::U::read() alternative(%p, %d, %d, %d)", (void *) r,
 			      symbol_id, value, length);
@@ -637,7 +637,7 @@ u_read(Unicode_Stream *stream)
 		switch (result)
 		  {
 		  case MARPA_ERR_UNEXPECTED_TOKEN_ID:
-		    if (input_debug > 0) {
+		    if (0) {
 		       warn("input_read_string unexpected token: %d,%d,%d",
 			 symbol_id, value, length);
 		    }
@@ -646,7 +646,7 @@ u_read(Unicode_Stream *stream)
 		     * we have one of them as an example
 		     */
 		    stream->input_symbol_id = symbol_id;
-		    if (trace_level >= 1) {
+		    if (trace_g0 >= 1) {
 			warn("Thin::U::read() Rejected codepoint 0x%04lx at pos %d as symbol %d",
 			  (unsigned long)codepoint, (int)stream->perl_pos, symbol_id);
 		    }
@@ -657,7 +657,7 @@ u_read(Unicode_Stream *stream)
 		      }
 		    break;
 		  case MARPA_ERR_NONE:
-		    if (trace_level >= 1) {
+		    if (trace_g0 >= 1) {
 			warn("Thin::U::read() Accepted codepoint 0x%04lx at pos %d as symbol %d",
 			  (unsigned long)codepoint, (int)stream->perl_pos, symbol_id);
 		    }
@@ -2114,7 +2114,7 @@ PPCODE:
 }
 
 void
-trace( stream, level )
+trace_g0( stream, level )
      Unicode_Stream *stream;
     int level;
 PPCODE:
@@ -2124,8 +2124,8 @@ PPCODE:
       /* Always thrown */
       croak ("Problem in u->trace(%d): argument must be greater than 0", level);
     }
-  warn ("Setting Marpa scannerless stream trace level to %d", level);
-  stream->trace = level;
+  warn ("Setting Marpa scannerless stream G0 trace level to %d", level);
+  stream->trace_g0 = level;
   XPUSHs (sv_2mortal (newSViv (level)));
 }
 
@@ -2239,7 +2239,9 @@ read( stream )
      Unicode_Stream *stream;
 PPCODE:
 {
-  const int return_value = u_read(stream);
+  int return_value;
+  av_clear(stream->event_queue);
+  return_value = u_read(stream);
   XSRETURN_IV(return_value);
 }
 
@@ -4548,9 +4550,12 @@ read(slr)
 PPCODE:
 {
   int result = 0;		/* Hold various results */
+  Unicode_Stream *stream = slr->stream;
 
   slr->stream_read_result = 0;
   slr->r1_earleme_complete_result = 0;
+  av_clear(stream->event_queue);
+
   while (1)
     {
       IV lexemes_found = 0;
@@ -4558,7 +4563,6 @@ PPCODE:
 
       if (slr->please_start_lex_recce)
 	{
-	  Unicode_Stream *stream = slr->stream;
 	  STRLEN input_length = SvCUR (stream->input);
 
 	  slr->start_of_lexeme = slr->end_of_lexeme;
@@ -4574,7 +4578,7 @@ PPCODE:
 
       av_clear (slr->event_queue);
 
-      result = slr->stream_read_result = u_read (slr->stream);
+      result = slr->stream_read_result = u_read (stream);
       if (result == -2)
 	{
 	  XSRETURN_PV ("unregistered char");
