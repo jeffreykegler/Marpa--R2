@@ -4511,6 +4511,24 @@ PPCODE:
 }
 
 void
+trace_g0( slr, new_level )
+    Scanless_R *slr;
+    int new_level;
+PPCODE:
+{
+  Unicode_Stream *stream = slr->stream;
+  IV old_level = stream->trace_g0;
+  stream->trace_g0 = new_level;
+  if (slr->trace_level) {
+    /* Note that we use *trace_level*, not *trace_g0* to control warning.
+     * We never warn() for trace_lexemes, just report events.
+     */
+    warn("Changing SLR g0 trace level from %d to %d", (int)old_level, (int)new_level);
+  }
+  XSRETURN_IV(old_level);
+}
+
+void
 trace_lexemes( slr, level )
     Scanless_R *slr;
     int level;
@@ -4629,7 +4647,7 @@ PPCODE:
 	    }
 	}
 
-      if (slr->trace_lexemes)
+      if (slr->trace_lexemes || stream->trace_g0)
 	{
 	  XSRETURN_PV ("trace");
 	}

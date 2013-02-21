@@ -654,7 +654,7 @@ sub Marpa::R2::Scanless::R::last_completed_range {
     my @sought_rules =
         grep { $thin_g1_grammar->rule_lhs($_) == $symbol_id; }
         0 .. $thin_g1_grammar->highest_rule_id();
-    die "Looking for completion of non-existent rule lhs: $symbol_name"
+    Marpa::R2::exception( "Looking for completion of non-existent rule lhs: $symbol_name")
         if not scalar @sought_rules;
     my $latest_earley_set = $thin_g1_recce->latest_earley_set();
     my $earley_set        = $latest_earley_set;
@@ -1323,6 +1323,9 @@ sub Marpa::R2::Scanless::R::new {
     if ( defined( my $value = $args->{'trace_file_handle'} ) ) {
         $self->[Marpa::R2::Inner::Scanless::R::TRACE_FILE_HANDLE] = $value;
     }
+    if ( defined( my $value = $args->{'trace_g0'} ) ) {
+        $self->[Marpa::R2::Inner::Scanless::R::TRACE_G0] = $value;
+    }
     if ( defined( my $value = $args->{'trace_lexemes'} ) ) {
         $self->[Marpa::R2::Inner::Scanless::R::TRACE_LEXEMES] = $value;
     }
@@ -1358,6 +1361,13 @@ sub Marpa::R2::Scanless::R::trace {
     return $stream->trace($level);
 }
 
+sub Marpa::R2::Scanless::R::trace_g0 {
+    my ($self, $level) = @_;
+    $level //= 1;
+    my $stream = $self->stream();
+    return $stream->trace_g0($level);
+}
+
 sub Marpa::R2::Scanless::R::error {
     my ($self) = @_;
     return $self->[Marpa::R2::Inner::Scanless::R::READ_STRING_ERROR];
@@ -1381,10 +1391,14 @@ sub Marpa::R2::Scanless::R::read {
     $self->[Marpa::R2::Inner::Scanless::R::P_INPUT_STRING] = $p_string;
 
     my $trace_lexemes =
-        $self->[Marpa::R2::Inner::Scanless::R::TRACE_LEXEMES];
+        $self->[Marpa::R2::Inner::Scanless::R::TRACE_LEXEMES] // 0;
+    my $trace_g0 =
+        $self->[Marpa::R2::Inner::Scanless::R::TRACE_G0] // 0;
+    my $i_am_tracing = $trace_lexemes || $trace_g0;
 
     my $thin_self = $self->[Marpa::R2::Inner::Scanless::R::C];
     $thin_self->trace_lexemes($trace_lexemes) if $trace_lexemes;
+    $thin_self->trace_g0($trace_g0) if $trace_g0;
     my $stream  = $thin_self->stream();
     my $grammar = $self->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
     my $thick_lex_grammar =
@@ -1427,7 +1441,7 @@ sub Marpa::R2::Scanless::R::read {
 
         last OUTER_READ if not $problem_code;
 
-        if ( $problem_code eq 'trace' ) {
+        if ($i_am_tracing) {
             while ( my $event = $thin_self->event() ) {
                 my ( $status, $lexeme_start_pos, $lexeme_end_pos, $g1_lexeme )
                     = @{$event};
@@ -1446,8 +1460,9 @@ sub Marpa::R2::Scanless::R::read {
                     $g1_tracer->symbol_name($g1_lexeme),
                     qq{; value="$raw_token_value"};
             } ## end while ( my $event = $thin_self->event() )
-            next OUTER_READ;
-        } ## end if ( $problem_code eq 'trace' )
+        } ## end if ($i_am_tracing)
+
+        next OUTER_READ if $problem_code eq 'trace';
 
         if ( $problem_code eq 'unregistered char' ) {
 
