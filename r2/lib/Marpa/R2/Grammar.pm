@@ -26,7 +26,7 @@ no warnings qw(recursion qw);
 use strict;
 
 use vars qw($VERSION $STRING_VERSION);
-$VERSION        = '2.047_004';
+$VERSION        = '2.047_005';
 $STRING_VERSION = $VERSION;
 ## no critic(BuiltinFunctions::ProhibitStringyEval)
 $VERSION = eval $VERSION;
@@ -1278,6 +1278,7 @@ sub add_user_rule {
         $separator_id = $separator->[Marpa::R2::Internal::Symbol::ID];
     } ## end if ( defined $separator_name )
 
+    $grammar_c->throw_set(0);
     my $original_rule_id = $grammar_c->sequence_new(
         $lhs_id,
         $rhs_ids[0],
@@ -1286,7 +1287,8 @@ sub add_user_rule {
             min       => $min,
         }
     );
-    if ( not defined $original_rule_id ) {
+    $grammar_c->throw_set(1);
+    if ( not defined $original_rule_id or $original_rule_id < 0) {
         my $rule_description = "$lhs_name -> " . ( join q{ }, @{$rhs_names} );
         my ( $error_code, $error_string ) = $grammar_c->error();
         $error_code //= -1;
