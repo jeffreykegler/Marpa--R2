@@ -4593,7 +4593,7 @@ PPCODE:
 
   slr->stream_read_result = 0;
   slr->r1_earleme_complete_result = 0;
-  av_clear(stream->event_queue);
+  av_clear (stream->event_queue);
 
   while (1)
     {
@@ -4613,23 +4613,24 @@ PPCODE:
 
 	  slr->please_start_lex_recce = 0;
 	  u_r0_clear (stream);
-      if (trace_g0 >= 1) {
-		AV *event;
-		SV *event_data[2];
-		event_data[0] = newSVpv ("g0 restarted recognizer", 0);
-		event_data[1] = newSViv ((IV)slr->start_of_lexeme);
-		event = av_make (Dim (event_data), event_data);
-		av_push (stream->event_queue, newRV_noinc ((SV *) event));
-      }
+	  if (trace_g0 >= 1)
+	    {
+	      AV *event;
+	      SV *event_data[2];
+	      event_data[0] = newSVpv ("g0 restarted recognizer", 0);
+	      event_data[1] = newSViv ((IV) slr->start_of_lexeme);
+	      event = av_make (Dim (event_data), event_data);
+	      av_push (stream->event_queue, newRV_noinc ((SV *) event));
+	    }
 	}
 
       av_clear (slr->event_queue);
 
       result = slr->stream_read_result = u_read (stream);
       if (result == -4)
-      {
+	{
 	  XSRETURN_PV ("trace");
-      }
+	}
       if (result == -2)
 	{
 	  XSRETURN_PV ("unregistered char");
@@ -4639,8 +4640,7 @@ PPCODE:
 	  XSRETURN_PV ("R0 read() problem");
 	}
 
-      result =
-	slr_alternatives (slr, &lexemes_found, &lexemes_attempted);
+      result = slr_alternatives (slr, &lexemes_found, &lexemes_attempted);
       if (result == -4)
 	{
 	  XSRETURN_PV ("R0 exhausted before end");
