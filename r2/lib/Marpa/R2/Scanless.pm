@@ -1536,16 +1536,15 @@ sub Marpa::R2::Scanless::R::read {
                 my ( $symbol_id, $re ) = @{$entry};
                 if ( chr($codepoint) =~ $re ) {
 
-                    # if ( $recce->[Marpa::R2::Internal::Recognizer::TRACE_SL] )
-                    if (0) {
-                        say {$Marpa::R2::Inner::Scanless::TRACE_FILE_HANDLE}
+                    if ($trace_lexemes) {
+                        say {$trace_file_handle}
                             'Registering character ',
                             ( sprintf 'U+%04x', $codepoint ),
                             " as symbol $symbol_id: ",
                             $g0_tracer->symbol_name($symbol_id)
                             or
                             Marpa::R2::exception("Could not say(): $ERRNO");
-                    } ## end if (0)
+                    } ## end if ($trace_lexemes)
                     push @ops, $op_alternative, $symbol_id, 0, 1;
                 } ## end if ( chr($codepoint) =~ $re )
             } ## end for my $entry ( @{$class_table} )

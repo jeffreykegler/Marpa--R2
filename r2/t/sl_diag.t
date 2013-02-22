@@ -147,16 +147,28 @@ END_OF_EXPECTED_OUTPUT
     Test::More::is( $actual_value, $expected_value,
         qq{Value of "$test_string"} );
     Test::More::is( $trace_output, <<'END_OF_OUTPUT', qq{Trace output} );
+Registering character U+002b as symbol 5: [[\+]]
+Registering character U+002b as symbol 19: [[^\x{A}\x{B}\x{C}\x{D}\x{2028}\x{2029}]]
 Found lexeme @0-1: [Lex-1]; value="+"
 Found lexeme @1-2: [Lex-1]; value="+"
 Found lexeme @2-3: [Lex-1]; value="+"
+Registering character U+0020 as symbol 10: [[\s]]
+Registering character U+0020 as symbol 19: [[^\x{A}\x{B}\x{C}\x{D}\x{2028}\x{2029}]]
+Registering character U+0031 as symbol 7: [[\d]]
+Registering character U+0031 as symbol 19: [[^\x{A}\x{B}\x{C}\x{D}\x{2028}\x{2029}]]
 Found lexeme @4-5: Number; value="1"
+Registering character U+0032 as symbol 7: [[\d]]
+Registering character U+0032 as symbol 19: [[^\x{A}\x{B}\x{C}\x{D}\x{2028}\x{2029}]]
 Found lexeme @6-7: Number; value="2"
+Registering character U+0033 as symbol 7: [[\d]]
+Registering character U+0033 as symbol 19: [[^\x{A}\x{B}\x{C}\x{D}\x{2028}\x{2029}]]
 Found lexeme @8-9: Number; value="3"
 Found lexeme @10-11: [Lex-1]; value="+"
 Found lexeme @12-13: [Lex-1]; value="+"
 Found lexeme @14-15: Number; value="1"
 Found lexeme @16-17: Number; value="2"
+Registering character U+0034 as symbol 7: [[\d]]
+Registering character U+0034 as symbol 19: [[^\x{A}\x{B}\x{C}\x{D}\x{2028}\x{2029}]]
 Found lexeme @18-19: Number; value="4"
 END_OF_OUTPUT
 } ## end for my $test_data (@tests_data)
