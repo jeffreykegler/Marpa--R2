@@ -1405,7 +1405,7 @@ sub Marpa::R2::Scanless::R::read {
     my $grammar = $self->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
     my $thick_lex_grammar =
         $grammar->[Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMAR];
-    my $lex_tracer = $thick_lex_grammar->tracer();
+    my $g0_tracer = $thick_lex_grammar->tracer();
 
     # Defaults to non-existent symbol
     my $g0_discard_symbol_id =
@@ -1488,6 +1488,34 @@ sub Marpa::R2::Scanless::R::read {
                         "G0 reading codepoint $char_desc at position $position";
                     next EVENT;
                 } ## end if ( $status eq 'g0 reading codepoint' )
+                if ( $status eq 'g0 accepted codepoint' ) {
+                    my ( undef, $codepoint, $position, $token_id ) =
+                        @{$event};
+                    my $char      = chr $codepoint;
+                    my @char_desc = ();
+                    push @char_desc, qq{"$char"}
+                        if $char =~ /[\p{IsGraph}]/xms;
+                    push @char_desc, ( sprintf "0x%04d", $codepoint );
+                    my $char_desc = join " ", @char_desc;
+                    my $symbol_name = $g0_tracer->symbol_name($token_id);
+                    say {$trace_file_handle}
+                        "G0 codepoint $char_desc accepted as <$symbol_name> at position $position";
+                    next EVENT;
+                } ## end if ( $status eq 'g0 accepted codepoint' )
+                if ( $status eq 'g0 rejected codepoint' ) {
+                    my ( undef, $codepoint, $position, $token_id ) =
+                        @{$event};
+                    my $char      = chr $codepoint;
+                    my @char_desc = ();
+                    push @char_desc, qq{"$char"}
+                        if $char =~ /[\p{IsGraph}]/xms;
+                    push @char_desc, ( sprintf "0x%04d", $codepoint );
+                    my $char_desc = join " ", @char_desc;
+                    my $symbol_name = $g0_tracer->symbol_name($token_id);
+                    say {$trace_file_handle}
+                        "G0 codepoint $char_desc rejected as <$symbol_name> at position $position";
+                    next EVENT;
+                } ## end if ( $status eq 'g0 rejected codepoint' )
                 say {$trace_file_handle} 'Event: ', join " ", @{$event};
                 next EVENT;
             } ## end EVENT: while ( my $event = $thin_self->event() )
@@ -1514,7 +1542,7 @@ sub Marpa::R2::Scanless::R::read {
                             'Registering character ',
                             ( sprintf 'U+%04x', $codepoint ),
                             " as symbol $symbol_id: ",
-                            $lex_tracer->symbol_name($symbol_id)
+                            $g0_tracer->symbol_name($symbol_id)
                             or
                             Marpa::R2::exception("Could not say(): $ERRNO");
                     } ## end if (0)
