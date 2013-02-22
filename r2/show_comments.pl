@@ -48,24 +48,23 @@ my $rules = <<'END_OF_GRAMMAR';
 text ::= <text segment>*
 <text segment> ::= <C style comment>
 
-:discard ~ <comment free text>
-<comment free text> ~ <slash free text>
-<slash free text> ~ <non slash>+
-<non slash> ~ [^/]
+:discard ~ <slash free text>
+<slash free text> ~ [^/]+
 :discard ~ <lone slash>
 <lone slash> ~ '/'
 :discard ~ <unmatched comment start>
 <unmatched comment start> ~ '/*'
-<C style comment> ~ '/*' <comment interior> <final star sequence> '/'
-<comment interior> ~ <comment interior segment>*
-<comment interior segment> ~ <star free text>
-<comment interior segment> ~ <interior star sequence>
-<star free text> ~ <non star>+
-<non star> ~ [^*]
-<interior star sequence> ~ <star sequence> <not slash or star>
-<not slash or star> ~ [^*\x{002f}]
-<final star sequence> ~ <star sequence>
-<star sequence> ~ [*]+
+<C style comment> ~ '/*' <comment interior> '*/'
+<comment interior> ~
+    <optional non stars>
+    <optional star prefixed segments>
+    <optional pre final stars>
+<optional non stars> ~ [^*]*
+<optional star prefixed segments> ~ <star prefixed segment>*
+<star prefixed segment> ~ <stars> [^/*] <star free text>
+<stars> ~ [*]+
+<star free text> ~ [^*]+
+<optional pre final stars> ~ [*]*
 END_OF_GRAMMAR
 
 my $grammar = Marpa::R2::Scanless::G->new(
