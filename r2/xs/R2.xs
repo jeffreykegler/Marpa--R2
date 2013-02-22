@@ -507,6 +507,7 @@ u_r0_new (Unicode_Stream * stream)
  * -1: a character was rejected, when rejection is not being ignored
  * -2: an unregistered character was found
  * -3: earleme_complete() reported an exhausted parse.
+ * -4: we are tracing, character by character
  */
 static int
 u_read(Unicode_Stream *stream)
@@ -730,6 +731,9 @@ u_read(Unicode_Stream *stream)
       if (return_value)
 	{
 	  return return_value;
+	}
+	if (trace_g0) {
+	   return -4;
 	}
     }
   return 0;
@@ -4622,6 +4626,10 @@ PPCODE:
       av_clear (slr->event_queue);
 
       result = slr->stream_read_result = u_read (stream);
+      if (result == -4)
+      {
+	  XSRETURN_PV ("trace");
+      }
       if (result == -2)
 	{
 	  XSRETURN_PV ("unregistered char");

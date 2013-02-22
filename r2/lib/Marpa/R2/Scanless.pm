@@ -1469,7 +1469,7 @@ sub Marpa::R2::Scanless::R::read {
                     my $raw_token_value = substr ${$p_string},
                         $lexeme_start_pos,
                         $lexeme_end_pos - $lexeme_start_pos;
-                    say {$trace_file_handle} 'Found lexeme @',
+                    say {$trace_file_handle} 'Rejected lexeme @',
                         $lexeme_start_pos,
                         q{-},
                         $lexeme_end_pos, q{: },
