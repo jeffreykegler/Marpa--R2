@@ -1390,6 +1390,8 @@ sub Marpa::R2::Scanless::R::read {
     } ## end if ( ( my $ref_type = ref $p_string ) ne 'SCALAR' )
     $self->[Marpa::R2::Inner::Scanless::R::P_INPUT_STRING] = $p_string;
 
+    my $trace_file_handle =
+        $self->[Marpa::R2::Inner::Scanless::R::TRACE_FILE_HANDLE];
     my $trace_lexemes =
         $self->[Marpa::R2::Inner::Scanless::R::TRACE_LEXEMES] // 0;
     my $trace_g0 =
@@ -1442,24 +1444,53 @@ sub Marpa::R2::Scanless::R::read {
         last OUTER_READ if not $problem_code;
 
         if ($i_am_tracing) {
-            while ( my $event = $thin_self->event() ) {
-                my ( $status, $lexeme_start_pos, $lexeme_end_pos, $g1_lexeme )
-                    = @{$event};
-                my $raw_token_value = substr ${$p_string},
-                    $lexeme_start_pos,
-                    $lexeme_end_pos - $lexeme_start_pos;
-                my $status_desc =
-                    $status eq 'accepted'
-                    ? 'Found'
-                    : "Rejected $status";
-                say {
-                    $self->[Marpa::R2::Inner::Scanless::R::TRACE_FILE_HANDLE]
-                    } $status_desc, ' lexeme @', $lexeme_start_pos,
-                    q{-},
-                    $lexeme_end_pos, q{: },
-                    $g1_tracer->symbol_name($g1_lexeme),
-                    qq{; value="$raw_token_value"};
-            } ## end while ( my $event = $thin_self->event() )
+            EVENT: while ( my $event = $thin_self->event() ) {
+                my ($status) = $event->[0] // 'undefined event status';
+                if ( $status eq 'g1 accepted lexeme' ) {
+                    my ( undef, $lexeme_start_pos, $lexeme_end_pos,
+                        $g1_lexeme )
+                        = @{$event};
+                    my $raw_token_value = substr ${$p_string},
+                        $lexeme_start_pos,
+                        $lexeme_end_pos - $lexeme_start_pos;
+                    say {$trace_file_handle} 'Found lexeme @',
+                        $lexeme_start_pos,
+                        q{-},
+                        $lexeme_end_pos, q{: },
+                        $g1_tracer->symbol_name($g1_lexeme),
+                        qq{; value="$raw_token_value"};
+                    next EVENT;
+                } ## end if ( $status eq 'g1 accepted lexeme' )
+                if ( $status eq 'g1 rejected lexeme' ) {
+                    my ( undef, $lexeme_start_pos, $lexeme_end_pos,
+                        $g1_lexeme )
+                        = @{$event};
+                    my $raw_token_value = substr ${$p_string},
+                        $lexeme_start_pos,
+                        $lexeme_end_pos - $lexeme_start_pos;
+                    say {$trace_file_handle} 'Found lexeme @',
+                        $lexeme_start_pos,
+                        q{-},
+                        $lexeme_end_pos, q{: },
+                        $g1_tracer->symbol_name($g1_lexeme),
+                        qq{; value="$raw_token_value"};
+                    next EVENT;
+                } ## end if ( $status eq 'g1 rejected lexeme' )
+                if ( $status eq 'g0 reading codepoint' ) {
+                    my ( undef, $codepoint, $position ) = @{$event};
+                    my $char      = chr $codepoint;
+                    my @char_desc = ();
+                    push @char_desc, qq{"$char"}
+                        if $char =~ /[\p{IsGraph}]/xms;
+                    push @char_desc, ( sprintf "0x%04d", $codepoint );
+                    my $char_desc = join " ", @char_desc;
+                    say {$trace_file_handle}
+                        "G0 reading codepoint $char_desc at position $position";
+                    next EVENT;
+                } ## end if ( $status eq 'g0 reading codepoint' )
+                say {$trace_file_handle} 'Event: ', join " ", @{$event};
+                next EVENT;
+            } ## end EVENT: while ( my $event = $thin_self->event() )
         } ## end if ($i_am_tracing)
 
         next OUTER_READ if $problem_code eq 'trace';
@@ -1519,6 +1550,8 @@ sub Marpa::R2::Scanless::R::read_problem {
         $grammar->[Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMAR];
     my $lex_tracer       = $thick_lex_grammar->tracer();
     my $stream  = $thin_self->stream();
+
+    my $trace_file_handle  = $self->[ Marpa::R2::Inner::Scanless::R::TRACE_FILE_HANDLE];
 
     my $thick_g1_recce =
         $self->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];

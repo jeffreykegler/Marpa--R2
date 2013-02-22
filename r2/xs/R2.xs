@@ -569,15 +569,6 @@ u_read(Unicode_Stream *stream)
 	  codepoint = (UV) input[stream->input_offset];
 	  codepoint_length = 1;
 	}
-      if (trace_g0 >= 1) {
-		AV *event;
-		SV *event_data[3];
-		event_data[0] = newSVpv ("reading codepoint", 0);
-		event_data[1] = newSViv ((IV)codepoint);
-		event_data[2] = newSViv ((IV)stream->perl_pos);
-		event = av_make (Dim (event_data), event_data);
-		av_push (stream->event_queue, newRV_noinc ((SV *) event));
-      }
       {
 	STRLEN dummy;
 	SV **p_ops_sv =
@@ -589,6 +580,15 @@ u_read(Unicode_Stream *stream)
 	    return -2;
 	  }
 	ops = (UV *)SvPV (*p_ops_sv, dummy);
+      }
+      if (trace_g0 >= 1) {
+		AV *event;
+		SV *event_data[3];
+		event_data[0] = newSVpv ("g0 reading codepoint", 0);
+		event_data[1] = newSViv ((IV)codepoint);
+		event_data[2] = newSViv ((IV)stream->perl_pos);
+		event = av_make (Dim (event_data), event_data);
+		av_push (stream->event_queue, newRV_noinc ((SV *) event));
       }
 	
       /* ops[0] is codepoint */
@@ -645,7 +645,7 @@ u_read(Unicode_Stream *stream)
 		    if (trace_g0 >= 1) {
 			AV *event;
 			SV *event_data[4];
-			event_data[0] = newSVpv ("rejected codepoint", 0);
+			event_data[0] = newSVpv ("g0 rejected codepoint", 0);
 			event_data[1] = newSViv ((IV)codepoint);
 			event_data[2] = newSViv ((IV)stream->perl_pos);
 			event_data[3] = newSViv ((IV)symbol_id);
@@ -662,7 +662,7 @@ u_read(Unicode_Stream *stream)
 		    if (trace_g0 >= 1) {
 			AV *event;
 			SV *event_data[4];
-			event_data[0] = newSVpv ("accepted codepoint", 0);
+			event_data[0] = newSVpv ("g0 accepted codepoint", 0);
 			event_data[1] = newSViv ((IV)codepoint);
 			event_data[2] = newSViv ((IV)stream->perl_pos);
 			event_data[3] = newSViv ((IV)symbol_id);
@@ -939,7 +939,7 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
 		SV *event_data[3];
 		const char *result_string = step_type_to_string (step_type);
 		if (!result_string)
-		  result_string = "Unknown";
+		  result_string = "valuator unknown step";
 		event_data[0] = newSVpv (result_string, 0);
 		event_data[1] = newSViv (marpa_v_token (v));
 		event_data[2] = newSViv (result_ix);
@@ -1226,7 +1226,7 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
 		const char *step_type_string =
 		  step_type_to_string (step_type);
 		if (!step_type_string)
-		  step_type_string = "Unknown";
+		  step_type_string = "token value written to tos";
 		event_data[0] = newSVpv (step_type_string, 0);
 		event_data[1] = newSViv (marpa_v_token (v));
 		event_data[2] = newSViv (marpa_v_token_value (v));
@@ -1304,7 +1304,7 @@ slr_alternative(Scanless_R *slr, Marpa_Symbol_ID lexeme,
 	if (trace_lexemes) {
 	    AV* event;
 	    SV* event_data[4];
-	    event_data[0] = newSVpvs("unexpected");
+	    event_data[0] = newSVpvs("g1 unexpected lexeme");
 	    event_data[1] = newSViv(start_pos); /* start */
 	    event_data[2] = newSViv(end_pos); /* end */
 	    event_data[3] = newSViv(lexeme); /* lexeme */
@@ -1323,7 +1323,7 @@ slr_alternative(Scanless_R *slr, Marpa_Symbol_ID lexeme,
 	if (trace_lexemes) {
 	    AV* event;
 	    SV* event_data[4];
-	    event_data[0] = newSVpvs("duplicate");
+	    event_data[0] = newSVpvs("g1 duplicate lexeme");
 	    event_data[1] = newSViv(start_pos); /* start */
 	    event_data[2] = newSViv(end_pos); /* end */
 	    event_data[3] = newSViv(lexeme); /* lexeme */
@@ -1342,7 +1342,7 @@ slr_alternative(Scanless_R *slr, Marpa_Symbol_ID lexeme,
 	if (trace_lexemes) {
 	    AV* event;
 	    SV* event_data[4];
-	    event_data[0] = newSVpvs("accepted");
+	    event_data[0] = newSVpvs("g1 accepted lexeme");
 	    event_data[1] = newSViv(start_pos); /* start */
 	    event_data[2] = newSViv(end_pos); /* end */
 	    event_data[3] = newSViv(lexeme); /* lexeme */
@@ -2471,7 +2471,7 @@ PPCODE:
   {
     AV *event;
     SV *event_data[3];
-    event_data[0] = newSVpvs ("trace level");
+    event_data[0] = newSVpvs ("valuator trace level");
     event_data[1] = newSViv (old_level);
     event_data[2] = newSViv (level);
     event = av_make (Dim (event_data), event_data);
