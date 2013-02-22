@@ -1444,6 +1444,7 @@ sub Marpa::R2::Scanless::R::read {
         last OUTER_READ if not $problem_code;
 
         if ($i_am_tracing) {
+
             EVENT: while ( my $event = $thin_self->event() ) {
                 my ($status) = $event->[0] // 'undefined event status';
                 if ( $status eq 'g1 accepted lexeme' ) {
@@ -1482,7 +1483,7 @@ sub Marpa::R2::Scanless::R::read {
                     my @char_desc = ();
                     push @char_desc, qq{"$char"}
                         if $char =~ /[\p{IsGraph}]/xms;
-                    push @char_desc, ( sprintf "0x%04d", $codepoint );
+                    push @char_desc, ( sprintf "0x%04x", $codepoint );
                     my $char_desc = join " ", @char_desc;
                     say {$trace_file_handle}
                         "G0 reading codepoint $char_desc at position $position";
@@ -1495,7 +1496,7 @@ sub Marpa::R2::Scanless::R::read {
                     my @char_desc = ();
                     push @char_desc, qq{"$char"}
                         if $char =~ /[\p{IsGraph}]/xms;
-                    push @char_desc, ( sprintf "0x%04d", $codepoint );
+                    push @char_desc, ( sprintf "0x%04x", $codepoint );
                     my $char_desc = join " ", @char_desc;
                     my $symbol_name = $g0_tracer->symbol_name($token_id);
                     say {$trace_file_handle}
@@ -1509,7 +1510,7 @@ sub Marpa::R2::Scanless::R::read {
                     my @char_desc = ();
                     push @char_desc, qq{"$char"}
                         if $char =~ /[\p{IsGraph}]/xms;
-                    push @char_desc, ( sprintf "0x%04d", $codepoint );
+                    push @char_desc, ( sprintf "0x%04x", $codepoint );
                     my $char_desc = join " ", @char_desc;
                     my $symbol_name = $g0_tracer->symbol_name($token_id);
                     say {$trace_file_handle}
@@ -1525,6 +1526,16 @@ sub Marpa::R2::Scanless::R::read {
                 say {$trace_file_handle} 'Event: ', join " ", @{$event};
                 next EVENT;
             } ## end EVENT: while ( my $event = $thin_self->event() )
+
+            if ( $trace_g0 > 2 ) {
+                my $stream_pos = $stream->pos();
+                my $current_r0 = $stream->recce();
+                print {$trace_file_handle}
+                    qq{\n=== Progress report at position $stream_pos\n},
+                    $g0_tracer->progress_report($current_r0),
+                    qq{=== End of progress report for position $stream_pos\n\n};
+            } ## end if ( $trace_g0 > 2 )
+
         } ## end if ($i_am_tracing)
 
         next OUTER_READ if $problem_code eq 'trace';
