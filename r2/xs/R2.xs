@@ -4499,14 +4499,14 @@ PPCODE:
 }
 
 void
-trace( slr, level )
+trace( slr, new_level )
     Scanless_R *slr;
-    int level;
+    int new_level;
 PPCODE:
 {
   IV old_level = slr->trace_level;
-  slr->trace_level = level;
-  warn("Changing SLR trace level from %d to %d", (int)old_level, (int)level);
+  slr->trace_level = new_level;
+  warn("Changing SLR trace level from %d to %d", (int)old_level, (int)new_level);
   XSRETURN_IV(old_level);
 }
 
@@ -4529,18 +4529,18 @@ PPCODE:
 }
 
 void
-trace_lexemes( slr, level )
+trace_lexemes( slr, new_level )
     Scanless_R *slr;
-    int level;
+    int new_level;
 PPCODE:
 {
   IV old_level = slr->trace_lexemes;
-  slr->trace_lexemes = level;
+  slr->trace_lexemes = new_level;
   if (slr->trace_level) {
     /* Note that we use *trace_level*, not *trace_lexemes* to control warning.
      * We never warn() for trace_lexemes, just report events.
      */
-    warn("Changing SLR trace terminals level from %d to %d", (int)old_level, (int)level);
+    warn("Changing SLR trace_lexemes level from %d to %d", (int)old_level, (int)new_level);
   }
   XSRETURN_IV(old_level);
 }
@@ -4585,6 +4585,7 @@ PPCODE:
 {
   int result = 0;		/* Hold various results */
   Unicode_Stream *stream = slr->stream;
+  int trace_g0 = stream->trace_g0;
 
   slr->stream_read_result = 0;
   slr->r1_earleme_complete_result = 0;
@@ -4608,6 +4609,14 @@ PPCODE:
 
 	  slr->please_start_lex_recce = 0;
 	  u_r0_clear (stream);
+      if (trace_g0 >= 1) {
+		AV *event;
+		SV *event_data[2];
+		event_data[0] = newSVpv ("g0 restarted recognizer", 0);
+		event_data[1] = newSViv ((IV)slr->start_of_lexeme);
+		event = av_make (Dim (event_data), event_data);
+		av_push (stream->event_queue, newRV_noinc ((SV *) event));
+      }
 	}
 
       av_clear (slr->event_queue);

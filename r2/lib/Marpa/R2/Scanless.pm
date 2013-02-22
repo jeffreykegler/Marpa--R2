@@ -1516,6 +1516,12 @@ sub Marpa::R2::Scanless::R::read {
                         "G0 codepoint $char_desc rejected as <$symbol_name> at position $position";
                     next EVENT;
                 } ## end if ( $status eq 'g0 rejected codepoint' )
+                if ( $status eq 'g0 restarted recognizer' ) {
+                    my ( undef, $position ) = @{$event};
+                    say {$trace_file_handle}
+                        "G0 restarted recognizer at position $position";
+                    next EVENT;
+                }
                 say {$trace_file_handle} 'Event: ', join " ", @{$event};
                 next EVENT;
             } ## end EVENT: while ( my $event = $thin_self->event() )
