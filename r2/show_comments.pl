@@ -78,8 +78,8 @@ sub calculate {
     my ($p_string) = @_;
 
     my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar,
-    trace_lexemes => 99,
-    trace_g0 => 99
+    # trace_lexemes => 99,
+    # trace_g0 => 99
     } );
 
     my $self = bless { grammar => $grammar }, 'My_Actions';
