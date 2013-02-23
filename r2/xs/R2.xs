@@ -1268,14 +1268,8 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
 
 /* Static SLR methods */
 
-/*
- * Return values:
- * 0 OK.
- * -4: Exhausted, but lexemes remain.
- */
-static IV 
-slr_alternative(Scanless_R *slr, Marpa_Symbol_ID lexeme,
-    IV attempted)
+static void
+slr_alternative (Scanless_R * slr, Marpa_Symbol_ID lexeme, IV attempted)
 {
   dTHX;
   int result;
@@ -1286,14 +1280,15 @@ slr_alternative(Scanless_R *slr, Marpa_Symbol_ID lexeme,
   STRLEN start_pos = slr->start_of_lexeme;
   STRLEN end_pos = slr->end_of_lexeme;
 
-  if (!attempted) {
-       if (marpa_r_is_exhausted(r1)) { return -4; }
-       /* Set values for Earley set n-1 to positions of lexeme --
-        * that way we use set 0, and we can record position of a last,
-	* rejected lexeme.
-	*/
-       marpa_r_latest_earley_set_values_set(r1, start_pos, INT2PTR(void*, end_pos));
-  }
+  if (!attempted)
+    {
+      /* Set values for Earley set n-1 to positions of lexeme --
+       * that way we use set 0, and we can record position of a last,
+       * rejected lexeme.
+       */
+      marpa_r_latest_earley_set_values_set (r1, start_pos,
+					    INT2PTR (void *, end_pos));
+    }
   result = marpa_r_alternative (r1, lexeme, latest_earley_set + 1, 1);
   switch (result)
     {
@@ -1305,17 +1300,18 @@ slr_alternative(Scanless_R *slr, Marpa_Symbol_ID lexeme,
 	    ("slr->read() R1 Rejected unexpected symbol %d at pos %d",
 	     lexeme, (int) slr->stream->perl_pos);
 	}
-	if (trace_lexemes) {
-	    AV* event;
-	    SV* event_data[4];
-	    event_data[0] = newSVpvs("g1 unexpected lexeme");
-	    event_data[1] = newSViv(start_pos); /* start */
-	    event_data[2] = newSViv(end_pos); /* end */
-	    event_data[3] = newSViv(lexeme); /* lexeme */
-	    event = av_make(Dim(event_data), event_data);
-	    av_push(slr->event_queue, newRV_noinc((SV*)event));
+      if (trace_lexemes)
+	{
+	  AV *event;
+	  SV *event_data[4];
+	  event_data[0] = newSVpvs ("g1 unexpected lexeme");
+	  event_data[1] = newSViv (start_pos);	/* start */
+	  event_data[2] = newSViv (end_pos);	/* end */
+	  event_data[3] = newSViv (lexeme);	/* lexeme */
+	  event = av_make (Dim (event_data), event_data);
+	  av_push (slr->event_queue, newRV_noinc ((SV *) event));
 	}
-      return 0;
+      return;
 
     case MARPA_ERR_DUPLICATE_TOKEN:
       if (trace_level >= 1)
@@ -1324,17 +1320,18 @@ slr_alternative(Scanless_R *slr, Marpa_Symbol_ID lexeme,
 	    ("slr->read() R1 Rejected duplicate symbol %d at pos %d",
 	     lexeme, (int) slr->stream->perl_pos);
 	}
-	if (trace_lexemes) {
-	    AV* event;
-	    SV* event_data[4];
-	    event_data[0] = newSVpvs("g1 duplicate lexeme");
-	    event_data[1] = newSViv(start_pos); /* start */
-	    event_data[2] = newSViv(end_pos); /* end */
-	    event_data[3] = newSViv(lexeme); /* lexeme */
-	    event = av_make(Dim(event_data), event_data);
-	    av_push(slr->event_queue, newRV_noinc((SV*)event));
+      if (trace_lexemes)
+	{
+	  AV *event;
+	  SV *event_data[4];
+	  event_data[0] = newSVpvs ("g1 duplicate lexeme");
+	  event_data[1] = newSViv (start_pos);	/* start */
+	  event_data[2] = newSViv (end_pos);	/* end */
+	  event_data[3] = newSViv (lexeme);	/* lexeme */
+	  event = av_make (Dim (event_data), event_data);
+	  av_push (slr->event_queue, newRV_noinc ((SV *) event));
 	}
-      return 0;
+      return;
 
     case MARPA_ERR_NONE:
       if (trace_level >= 1)
@@ -1343,17 +1340,18 @@ slr_alternative(Scanless_R *slr, Marpa_Symbol_ID lexeme,
 	    ("slr->read() R1 Accepted symbol %d at pos %d",
 	     lexeme, (int) slr->stream->perl_pos);
 	}
-	if (trace_lexemes) {
-	    AV* event;
-	    SV* event_data[4];
-	    event_data[0] = newSVpvs("g1 accepted lexeme");
-	    event_data[1] = newSViv(start_pos); /* start */
-	    event_data[2] = newSViv(end_pos); /* end */
-	    event_data[3] = newSViv(lexeme); /* lexeme */
-	    event = av_make(Dim(event_data), event_data);
-	    av_push(slr->event_queue, newRV_noinc((SV*)event));
+      if (trace_lexemes)
+	{
+	  AV *event;
+	  SV *event_data[4];
+	  event_data[0] = newSVpvs ("g1 accepted lexeme");
+	  event_data[1] = newSViv (start_pos);	/* start */
+	  event_data[2] = newSViv (end_pos);	/* end */
+	  event_data[3] = newSViv (lexeme);	/* lexeme */
+	  event = av_make (Dim (event_data), event_data);
+	  av_push (slr->event_queue, newRV_noinc ((SV *) event));
 	}
-      return 0;
+      return;
 
     }
 
@@ -1361,7 +1359,7 @@ slr_alternative(Scanless_R *slr, Marpa_Symbol_ID lexeme,
     ("Problem SLR->read() failed on symbol id %d at position %d: %s",
      lexeme, (int) slr->stream->perl_pos, xs_g_error (slr->g1_wrapper));
   /* NOTREACHED */
-  return 0;
+  return;
 }
 
 /*
@@ -1375,8 +1373,10 @@ slr_alternatives(Scanless_R *slr,
 {
   dTHX;
   int return_value;
+  int lexemes_discarded = 0;
   Marpa_Recce r0;
   Marpa_Earley_Set_ID earley_set;
+  int r1_is_exhausted = marpa_r_is_exhausted(slr->r1);
 
   r0 = slr->stream->r0;
   if (!r0)
@@ -1410,10 +1410,29 @@ slr_alternatives(Scanless_R *slr,
 	  slr->end_of_lexeme = slr->start_of_lexeme + earley_set;
 
 	  /* -2 means a discarded item */
-	  if (g1_lexeme <= -2) goto NEXT_REPORT_ITEM;
-	  return_value = slr_alternative(slr, g1_lexeme, *lexemes_attempted);
-	  if (return_value == -4) { return return_value; }
-	  (*lexemes_attempted)++;
+	  if (g1_lexeme <= -2) {
+	    lexemes_discarded++;
+	    if (slr->trace_lexemes) {
+    AV *event;
+    SV *event_data[2];
+    event_data[0] = newSVpvs ("discarded lexeme");
+    /* We do not have the lexeme, but we have the 
+     * g0 rule.
+     * Let the upper level figure things out.
+     */
+    event_data[1] = newSViv (rule_id);
+    event = av_make (Dim (event_data), event_data);
+    av_push (slr->event_queue, newRV_noinc ((SV *) event));
+	    }
+	    goto NEXT_REPORT_ITEM;
+	  }
+	  /* We don't try to read lexemes into an exhasuted
+	   * R1 -- we only are looking for discardable tokens.
+	   */
+	  if (!r1_is_exhausted) {
+	    slr_alternative(slr, g1_lexeme, *lexemes_attempted);
+	    (*lexemes_attempted)++;
+	  }
 	  NEXT_REPORT_ITEM: ;
       }
       NO_MORE_REPORT_ITEMS: ;
@@ -1424,6 +1443,14 @@ slr_alternatives(Scanless_R *slr,
        */
   }
   LEXEMES_FOUND: ;
+  /* If
+   * 1) we reached the longest tokens match (or no match)
+   * 2) no tokens were discarded, and
+   * 3) r1 is exhausted, then
+   * r1 was exhausted with unconsumed tokens.
+   * Report that as an error.
+   */
+  if (r1_is_exhausted && !lexemes_discarded) { return -4; }
   return 0;
 }
 
