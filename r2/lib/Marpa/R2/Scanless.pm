@@ -1523,6 +1523,15 @@ sub Marpa::R2::Scanless::R::read {
                         "G0 restarted recognizer at position $position";
                     next EVENT;
                 }
+                if ( $status eq 'discarded lexeme' ) {
+                    my ( undef, $g0_rule_id, $start, $end ) = @{$event};
+                    my ( undef, @rhs ) =
+                        map { Marpa::R2::Grammar::original_symbol_name($_) }
+                        $g0_tracer->rule($g0_rule_id);
+                    say {$trace_file_handle} 'Discarded lexeme @',
+                        "$start-$end: ", join " ", @rhs;
+                    next EVENT;
+                } ## end if ( $status eq 'discarded lexeme' )
                 say {$trace_file_handle} 'Event: ', join " ", @{$event};
                 next EVENT;
             } ## end EVENT: while ( my $event = $thin_self->event() )

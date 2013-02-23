@@ -1367,82 +1367,98 @@ slr_alternative (Scanless_R * slr, Marpa_Symbol_ID lexeme, IV attempted)
  * 0 OK.
  * -4: Exhausted, but lexemes remain.
  */
-static IV 
-slr_alternatives(Scanless_R *slr,
-  IV*lexemes_found, IV*lexemes_attempted)
+static IV
+slr_alternatives (Scanless_R * slr, IV * lexemes_found,
+		  IV * lexemes_attempted)
 {
   dTHX;
   int return_value;
   int lexemes_discarded = 0;
   Marpa_Recce r0;
   Marpa_Earley_Set_ID earley_set;
-  int r1_is_exhausted = marpa_r_is_exhausted(slr->r1);
+  int r1_is_exhausted = marpa_r_is_exhausted (slr->r1);
 
   r0 = slr->stream->r0;
   if (!r0)
     {
       croak ("Problem in slr->read(): No R0 at %s %d", __FILE__, __LINE__);
     }
-  earley_set = marpa_r_latest_earley_set(r0);
+  earley_set = marpa_r_latest_earley_set (r0);
   *lexemes_attempted = 0;
   *lexemes_found = 0;
-  while (earley_set > 0) {
-      return_value = marpa_r_progress_report_start(r0, earley_set);
-      if (return_value < 0) {
-	   croak ("Problem in marpa_r_progress_report_start(%p, %ld): %s",
-	       (void*)r0, (unsigned long)earley_set, xs_g_error (slr->g0_wrapper));
-      }
-      while (1) {
+  while (earley_set > 0)
+    {
+      return_value = marpa_r_progress_report_start (r0, earley_set);
+      if (return_value < 0)
+	{
+	  croak ("Problem in marpa_r_progress_report_start(%p, %ld): %s",
+		 (void *) r0, (unsigned long) earley_set,
+		 xs_g_error (slr->g0_wrapper));
+	}
+      while (1)
+	{
 	  Marpa_Symbol_ID g1_lexeme;
-          int dot_position;
+	  int dot_position;
 	  Marpa_Earley_Set_ID origin;
-	  Marpa_Rule_ID rule_id = marpa_r_progress_item(r0, &dot_position, &origin);
-	  if (rule_id <= -2) {
-	   croak ("Problem in marpa_r_progress_item(): %s",
-	        xs_g_error (slr->g0_wrapper));
-	  }
-	  if (rule_id == -1) goto NO_MORE_REPORT_ITEMS;
-	  if (origin < 0) goto NEXT_REPORT_ITEM;
-	  if (dot_position != -1) goto NEXT_REPORT_ITEM;
+	  Marpa_Rule_ID rule_id =
+	    marpa_r_progress_item (r0, &dot_position, &origin);
+	  if (rule_id <= -2)
+	    {
+	      croak ("Problem in marpa_r_progress_item(): %s",
+		     xs_g_error (slr->g0_wrapper));
+	    }
+	  if (rule_id == -1)
+	    goto NO_MORE_REPORT_ITEMS;
+	  if (origin < 0)
+	    goto NEXT_REPORT_ITEM;
+	  if (dot_position != -1)
+	    goto NEXT_REPORT_ITEM;
 	  g1_lexeme = slr->slg->g0_rule_to_g1_lexeme[rule_id];
-	  if (g1_lexeme == -1) goto NEXT_REPORT_ITEM;
+	  if (g1_lexeme == -1)
+	    goto NEXT_REPORT_ITEM;
 	  (*lexemes_found)++;
 	  slr->end_of_lexeme = slr->start_of_lexeme + earley_set;
 
 	  /* -2 means a discarded item */
-	  if (g1_lexeme <= -2) {
-	    lexemes_discarded++;
-	    if (slr->trace_lexemes) {
-    AV *event;
-    SV *event_data[2];
-    event_data[0] = newSVpvs ("discarded lexeme");
-    /* We do not have the lexeme, but we have the 
-     * g0 rule.
-     * Let the upper level figure things out.
-     */
-    event_data[1] = newSViv (rule_id);
-    event = av_make (Dim (event_data), event_data);
-    av_push (slr->event_queue, newRV_noinc ((SV *) event));
+	  if (g1_lexeme <= -2)
+	    {
+	      lexemes_discarded++;
+	      if (slr->trace_lexemes)
+		{
+		  AV *event;
+		  SV *event_data[4];
+		  event_data[0] = newSVpvs ("discarded lexeme");
+		  /* We do not have the lexeme, but we have the 
+		   * g0 rule.
+		   * Let the upper level figure things out.
+		   */
+		  event_data[1] = newSViv (rule_id);
+		  event_data[2] = newSViv (slr->start_of_lexeme);
+		  event_data[3] = newSViv (slr->end_of_lexeme);
+		  event = av_make (Dim (event_data), event_data);
+		  av_push (slr->event_queue, newRV_noinc ((SV *) event));
+		}
+	      goto NEXT_REPORT_ITEM;
 	    }
-	    goto NEXT_REPORT_ITEM;
-	  }
 	  /* We don't try to read lexemes into an exhasuted
 	   * R1 -- we only are looking for discardable tokens.
 	   */
-	  if (!r1_is_exhausted) {
-	    slr_alternative(slr, g1_lexeme, *lexemes_attempted);
-	    (*lexemes_attempted)++;
-	  }
-	  NEXT_REPORT_ITEM: ;
-      }
-      NO_MORE_REPORT_ITEMS: ;
-      if (*lexemes_found) goto LEXEMES_FOUND;
+	  if (!r1_is_exhausted)
+	    {
+	      slr_alternative (slr, g1_lexeme, *lexemes_attempted);
+	      (*lexemes_attempted)++;
+	    }
+	NEXT_REPORT_ITEM:;
+	}
+    NO_MORE_REPORT_ITEMS:;
+      if (*lexemes_found)
+	goto LEXEMES_FOUND;
       earley_set--;
       /* Zero length lexemes are not of interest, so we do *not*
        * search the 0'th Earley set.
        */
-  }
-  LEXEMES_FOUND: ;
+    }
+
   /* If
    * 1) we reached the longest tokens match (or no match)
    * 2) no tokens were discarded, and
@@ -1450,7 +1466,11 @@ slr_alternatives(Scanless_R *slr,
    * r1 was exhausted with unconsumed tokens.
    * Report that as an error.
    */
-  if (r1_is_exhausted && !lexemes_discarded) { return -4; }
+  LEXEMES_FOUND:;
+  if (r1_is_exhausted && !lexemes_discarded)
+    {
+      return -4;
+    }
   return 0;
 }
 
