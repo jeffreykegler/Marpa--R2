@@ -2248,7 +2248,7 @@ PPCODE:
   STRLEN op_ix;
   STRLEN dummy;
   IV *ops;
-  SV *ops_sv = newSV (op_count * sizeof (UV));
+  SV *ops_sv = newSV (op_count * sizeof (ops[0]));
   SvPOK_on (ops_sv);
   ops = (IV *) SvPV (ops_sv, dummy);
   ops[0] = codepoint;
@@ -2687,7 +2687,7 @@ PPCODE:
 	      ("Internal error in v->stack_mode_set(): av_fetch(%p,%ld,1) failed",
 	       (void *) av, (long) ix);
 	  }
-	sv_setpvn (*p_sv, (char *) ops, sizeof (ops));
+	sv_setpvn (*p_sv, (char *) ops, Dim(ops)*sizeof (ops[0]));
       }
   }
 
@@ -2708,7 +2708,7 @@ PPCODE:
 	      ("Internal error in v->stack_mode_set(): av_fetch(%p,%ld,1) failed",
 	       (void *) av, (long) ix);
 	  }
-	sv_setpvn (*p_sv, (char *) ops, sizeof (ops));
+	sv_setpvn (*p_sv, (char *) ops, Dim(ops) *sizeof (ops[0]));
       }
   }
 
@@ -2729,7 +2729,7 @@ PPCODE:
 	      ("Internal error in v->stack_mode_set(): av_fetch(%p,%ld,1) failed",
 	       (void *) av, (long) ix);
 	  }
-	sv_setpvn (*p_sv, (char *) ops, sizeof (ops));
+	sv_setpvn (*p_sv, (char *) ops, Dim(ops)*sizeof (ops[0]));
       }
   }
 
@@ -2756,7 +2756,7 @@ PPCODE:
     }
 
   /* Leave room for final 0 */
-  ops_sv = newSV ((op_count+1) * sizeof (UV));
+  ops_sv = newSV ((op_count+1) * sizeof (ops[0]));
 
   SvPOK_on (ops_sv);
   ops = (IV *) SvPV (ops_sv, dummy);
@@ -2790,7 +2790,7 @@ PPCODE:
     }
 
   /* Leave room for final 0 */
-  ops_sv = newSV ((op_count+1) * sizeof (UV));
+  ops_sv = newSV ((op_count+1) * sizeof (ops[0]));
 
   SvPOK_on (ops_sv);
   ops = (IV *) SvPV (ops_sv, dummy);
