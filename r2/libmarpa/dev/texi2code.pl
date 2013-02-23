@@ -370,7 +370,7 @@ say {$codes_c} <<'COMMENT';
  * In particular, it lacks definitions of its structures.
  * To compile this code, you must include it in a larger file.
  * Applications may prefer to read it as a text file.
- */;
+ */
 COMMENT
 
 say {$codes_c}

@@ -534,7 +534,7 @@ u_read(Unicode_Stream *stream)
       STRLEN codepoint_length = 1;
       STRLEN op_ix;
       STRLEN op_count;
-      UV *ops;
+      IV *ops;
       IV ignore_rejection = stream->ignore_rejection;
       IV minimum_accepted = stream->minimum_accepted;
       int tokens_accepted = 0;
@@ -580,7 +580,7 @@ u_read(Unicode_Stream *stream)
 	    stream->codepoint = codepoint;
 	    return -2;
 	  }
-	ops = (UV *)SvPV (*p_ops_sv, dummy);
+	ops = (IV *)SvPV (*p_ops_sv, dummy);
       }
       if (trace_g0 >= 1) {
 		AV *event;
@@ -596,7 +596,7 @@ u_read(Unicode_Stream *stream)
       op_count = ops[1];
       for (op_ix = 2; op_ix < op_count; op_ix++)
 	{
-	  UV op_code = ops[op_ix];
+	  IV op_code = ops[op_ix];
 	  switch (op_code)
 	    {
 	    case op_report_rejection:
@@ -843,7 +843,7 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
   const Marpa_Value v = v_wrapper->v;
   const Marpa_Step_Type step_type = marpa_v_step_type (v);
   IV result_ix = marpa_v_result (v);
-  UV *ops;
+  IV *ops;
   int op_ix;
   UV blessing = 0;
 
@@ -867,7 +867,7 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
 	    croak ("Problem in v->stack_step: rule %d is not registered",
 		   marpa_v_rule (v));
 	  }
-	ops = (UV *) SvPV (*p_ops_sv, dummy);
+	ops = (IV *) SvPV (*p_ops_sv, dummy);
       }
       break;
     case MARPA_STEP_TOKEN:
@@ -879,7 +879,7 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
 	    croak ("Problem in v->stack_step: token %d is not registered",
 		   marpa_v_token (v));
 	  }
-	ops = (UV *) SvPV (*p_ops_sv, dummy);
+	ops = (IV *) SvPV (*p_ops_sv, dummy);
       }
       break;
     case MARPA_STEP_NULLING_SYMBOL:
@@ -892,7 +892,7 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
 	      ("Problem in v->stack_step: nulling symbol %d is not registered",
 	       marpa_v_token (v));
 	  }
-	ops = (UV *) SvPV (*p_ops_sv, dummy);
+	ops = (IV *) SvPV (*p_ops_sv, dummy);
       }
       break;
     default:
@@ -903,7 +903,7 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
   op_ix = 0;
   while (1)
     {
-      UV op_code = ops[op_ix++];
+      IV op_code = ops[op_ix++];
 
       switch (op_code)
 	{
@@ -912,6 +912,7 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
 	  return -1;
 
 	case op_result_is_undef:
+	RESULT_IS_UNDEF:
 	  {
 	    av_fill (stack, -1 + result_ix);
 	  }
@@ -957,11 +958,12 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
 	  {
 	    SV **stored_av;
 	    SV **p_sv;
-	    UV stack_ix = ops[op_ix++];
+	    IV stack_ix = ops[op_ix++];
+	    IV fetch_ix;
 
 	    if (step_type != MARPA_STEP_RULE)
 	      {
-		goto BAD_OP;
+		goto RESULT_IS_UNDEF;
 	      }
 	    if (stack_ix == 0)
 	      {
@@ -971,7 +973,13 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
 		av_fill (stack, result_ix);
 		return -1;
 	      }
-	    p_sv = av_fetch (stack, result_ix + stack_ix, 0);
+	    if (stack_ix > 0) {
+	       fetch_ix = result_ix + stack_ix;
+	    } else {
+	       fetch_ix = marpa_v_arg_n (v) - stack_ix + 1;
+	       if (fetch_ix < result_ix) { goto RESULT_IS_UNDEF; }
+	    }
+	    p_sv = av_fetch (stack, fetch_ix, 0);
 	    if (!p_sv)
 	      {
 		av_fill (stack, result_ix - 1);
@@ -2239,10 +2247,10 @@ PPCODE:
   const STRLEN op_count = items;
   STRLEN op_ix;
   STRLEN dummy;
-  UV *ops;
+  IV *ops;
   SV *ops_sv = newSV (op_count * sizeof (UV));
   SvPOK_on (ops_sv);
-  ops = (UV *) SvPV (ops_sv, dummy);
+  ops = (IV *) SvPV (ops_sv, dummy);
   ops[0] = codepoint;
   ops[1] = op_count;
   for (op_ix = 2; op_ix < op_count; op_ix++)
@@ -2663,7 +2671,7 @@ PPCODE:
 
   {
     int ix;
-    UV ops[3];
+    IV ops[3];
     const int highest_rule_id = marpa_g_highest_rule_id (g);
     AV *av = v_wrapper->rule_semantics;
     av_extend (av, highest_rule_id);
@@ -2685,7 +2693,7 @@ PPCODE:
 
   { /* Set the default nulling symbol semantics */
     int ix;
-    UV ops[2];
+    IV ops[2];
     const int highest_symbol_id = marpa_g_highest_symbol_id (g);
     AV *av = v_wrapper->nulling_semantics;
     av_extend (av, highest_symbol_id);
@@ -2706,7 +2714,7 @@ PPCODE:
 
   { /* Set the default token semantics */
     int ix;
-    UV ops[2];
+    IV ops[2];
     const int highest_symbol_id = marpa_g_highest_symbol_id (g);
     AV *av = v_wrapper->token_semantics;
     av_extend (av, highest_symbol_id);
@@ -2738,7 +2746,7 @@ PPCODE:
   const STRLEN op_count = items - 2;
   STRLEN op_ix;
   STRLEN dummy;
-  UV *ops;
+  IV *ops;
   SV *ops_sv;
   AV *rule_semantics = v_wrapper->rule_semantics;
 
@@ -2751,7 +2759,7 @@ PPCODE:
   ops_sv = newSV ((op_count+1) * sizeof (UV));
 
   SvPOK_on (ops_sv);
-  ops = (UV *) SvPV (ops_sv, dummy);
+  ops = (IV *) SvPV (ops_sv, dummy);
   for (op_ix = 0; op_ix < op_count; op_ix++)
     {
       ops[op_ix] = SvUV (ST (op_ix+2));
@@ -2772,7 +2780,7 @@ PPCODE:
   const STRLEN op_count = items - 2;
   STRLEN op_ix;
   STRLEN dummy;
-  UV *ops;
+  IV *ops;
   SV *ops_sv;
   AV *token_semantics = v_wrapper->token_semantics;
 
@@ -2785,10 +2793,10 @@ PPCODE:
   ops_sv = newSV ((op_count+1) * sizeof (UV));
 
   SvPOK_on (ops_sv);
-  ops = (UV *) SvPV (ops_sv, dummy);
+  ops = (IV *) SvPV (ops_sv, dummy);
   for (op_ix = 0; op_ix < op_count; op_ix++)
     {
-      ops[op_ix] = SvUV (ST (op_ix+2));
+      ops[op_ix] = SvIV (ST (op_ix+2));
     }
   ops[op_ix] = 0;
   if (!av_store (token_semantics, (I32) token_id, ops_sv)) {
@@ -2806,7 +2814,7 @@ PPCODE:
   const STRLEN op_count = items - 2;
   STRLEN op_ix;
   STRLEN dummy;
-  UV *ops;
+  IV *ops;
   SV *ops_sv;
   AV *nulling_semantics = v_wrapper->nulling_semantics;
 
@@ -2816,13 +2824,13 @@ PPCODE:
     }
 
   /* Leave room for final 0 */
-  ops_sv = newSV ((op_count+1) * sizeof (UV));
+  ops_sv = newSV ((op_count+1) * sizeof (ops[0]));
 
   SvPOK_on (ops_sv);
-  ops = (UV *) SvPV (ops_sv, dummy);
+  ops = (IV *) SvPV (ops_sv, dummy);
   for (op_ix = 0; op_ix < op_count; op_ix++)
     {
-      ops[op_ix] = SvUV (ST (op_ix+2));
+      ops[op_ix] = SvIV (ST (op_ix+2));
     }
   ops[op_ix] = 0;
   if (!av_store (nulling_semantics, (I32) symbol_id, ops_sv)) {
@@ -4714,7 +4722,6 @@ PPCODE:
 
       if (lexemes_attempted)
 	{
-	  G_Wrapper *g1_wrapper = slr->g1_wrapper;
 	  slr->g1_wrapper->throw = 0;
 	  result = slr->r1_earleme_complete_result =
 	    marpa_r_earleme_complete (slr->r1);
@@ -4770,7 +4777,6 @@ locations(slr, earley_set)
     IV earley_set;
 PPCODE:
 {
-  int result = 0;
   int start_position;
   int end_position;
   slr_locations(slr, earley_set, &start_position, &end_position);
