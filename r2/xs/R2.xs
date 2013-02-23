@@ -1430,7 +1430,7 @@ slr_alternatives (Scanless_R * slr, IV * lexemes_found,
 		  event_data[0] = newSVpvs ("discarded lexeme");
 		  /* We do not have the lexeme, but we have the 
 		   * g0 rule.
-		   * Let the upper level figure things out.
+		   * The upper level will have to figure things out.
 		   */
 		  event_data[1] = newSViv (rule_id);
 		  event_data[2] = newSViv (slr->start_of_lexeme);
@@ -1443,11 +1443,25 @@ slr_alternatives (Scanless_R * slr, IV * lexemes_found,
 	  /* We don't try to read lexemes into an exhasuted
 	   * R1 -- we only are looking for discardable tokens.
 	   */
-	  if (!r1_is_exhausted)
+	  if (r1_is_exhausted)
 	    {
-	      slr_alternative (slr, g1_lexeme, *lexemes_attempted);
-	      (*lexemes_attempted)++;
+	      if (slr->trace_lexemes)
+		{
+		  AV *event;
+		  SV *event_data[4];
+		  event_data[0] = newSVpvs ("ignored lexeme");
+		  event_data[1] = newSViv (g1_lexeme);
+		  event_data[2] = newSViv (slr->start_of_lexeme);
+		  event_data[3] = newSViv (slr->end_of_lexeme);
+		  event = av_make (Dim (event_data), event_data);
+		  av_push (slr->event_queue, newRV_noinc ((SV *) event));
+		}
+	      goto NEXT_REPORT_ITEM;
 	    }
+
+	  /* trace_lexemes done inside slr_alternative */
+	  slr_alternative (slr, g1_lexeme, *lexemes_attempted);
+	  (*lexemes_attempted)++;
 	NEXT_REPORT_ITEM:;
 	}
     NO_MORE_REPORT_ITEMS:;
@@ -1463,10 +1477,10 @@ slr_alternatives (Scanless_R * slr, IV * lexemes_found,
    * 1) we reached the longest tokens match (or no match)
    * 2) no tokens were discarded, and
    * 3) r1 is exhausted, then
-   * r1 was exhausted with unconsumed tokens.
+   * r1 was exhausted with unconsumed text.
    * Report that as an error.
    */
-  LEXEMES_FOUND:;
+LEXEMES_FOUND:;
   if (r1_is_exhausted && !lexemes_discarded)
     {
       return -4;

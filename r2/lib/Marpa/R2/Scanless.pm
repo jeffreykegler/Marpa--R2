@@ -1454,7 +1454,7 @@ sub Marpa::R2::Scanless::R::read {
                     my $raw_token_value = substr ${$p_string},
                         $lexeme_start_pos,
                         $lexeme_end_pos - $lexeme_start_pos;
-                    say {$trace_file_handle} 'Found lexeme @',
+                    say {$trace_file_handle} 'Accepted lexeme @',
                         $lexeme_start_pos,
                         q{-},
                         $lexeme_end_pos, q{: },
@@ -1532,6 +1532,14 @@ sub Marpa::R2::Scanless::R::read {
                         "$start-$end: ", join " ", @rhs;
                     next EVENT;
                 } ## end if ( $status eq 'discarded lexeme' )
+                if ( $status eq 'ignored lexeme' ) {
+                    my ( undef, $g1_symbol_id, $start, $end ) = @{$event};
+                    my $lexeme = Marpa::R2::Grammar::original_symbol_name(
+                        $g1_tracer->symbol_name($g1_symbol_id) );
+                    say {$trace_file_handle} 'Ignored lexeme @',
+                        "$start-$end: $lexeme";
+                    next EVENT;
+                } ## end if ( $status eq 'ignored lexeme' )
                 say {$trace_file_handle} 'Event: ', join " ", @{$event};
                 next EVENT;
             } ## end EVENT: while ( my $event = $thin_self->event() )
