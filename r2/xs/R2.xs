@@ -289,10 +289,10 @@ enum marpa_op
   op_earleme_complete,
   op_ignore_rejection,
   op_noop,
-  op_push_all,
   op_push_one,
+  op_push_undef,
   op_push_sequence,
-  op_push_token_value,
+  op_push_values,
   op_push_slr_range,
   op_report_rejection,
   op_result_is_array,
@@ -304,18 +304,18 @@ enum marpa_op
 
 typedef struct { enum marpa_op op; const char *name; } Marpa_XS_OP_Data;
 static Marpa_XS_OP_Data marpa_op_data[] = {
-{  op_end_marker, "end_marker" },
 {  op_alternative, "alternative" },
 {  op_bless, "bless" },
 {  op_callback, "callback" },
 {  op_earleme_complete, "earleme_complete" },
+{  op_end_marker, "end_marker" },
 {  op_ignore_rejection, "ignore_rejection" },
 {  op_noop, "noop" },
-{  op_push_all, "push_all" },
 {  op_push_one, "push_one" },
 {  op_push_sequence, "push_sequence" },
-{  op_push_token_value, "push_token_value" },
 {  op_push_slr_range, "push_slr_range" },
+{  op_push_undef, "push_undef" },
+{  op_push_values, "push_values" },
 {  op_report_rejection, "report_rejection" },
 {  op_result_is_array, "result_is_array" },
 {  op_result_is_constant, "result_is_constant" },
@@ -1033,25 +1033,38 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
 	  }
 	  return -1;
 
-	case op_push_all:
+	case op_push_values:
 	case op_push_sequence:
 	  {
-	    int stack_ix;
-	    int increment = op_code == op_push_sequence ? 2 : 1;
-
-	    if (step_type == MARPA_STEP_TOKEN)
-	      {
-		goto BAD_OP;
-	      }
 
 	    if (!values_av)
 	      {
 		values_av = (AV *) sv_2mortal ((SV *) newAV ());
 	      }
 
-	    if (step_type == MARPA_STEP_RULE)
+	    switch (step_type) {
+	    case MARPA_STEP_TOKEN:
 	      {
+	    SV **p_token_value_sv;
+	    p_token_value_sv =
+	      av_fetch (v_wrapper->token_values, marpa_v_token_value (v), 0);
+	    if (p_token_value_sv)
+	      {
+		av_push (values_av, SvREFCNT_inc_NN (*p_token_value_sv));
+	      }
+	    else
+	      {
+		av_push (values_av, &PL_sv_undef);
+	      }
+	  }
+	  break;
+
+	    case MARPA_STEP_RULE:
+	      {
+		int stack_ix;
 		const int arg_n = marpa_v_arg_n (v);
+		int increment = op_code == op_push_sequence ? 2 : 1;
+
 		for (stack_ix = result_ix; stack_ix <= arg_n;
 		     stack_ix += increment)
 		  {
@@ -1066,8 +1079,23 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
 		      }
 		  }
 	      }
+	    break;
+
+	    default: goto PUSH_UNDEF;
+	  }
 	  }
 	  break;
+
+	case op_push_undef:
+	{
+	   PUSH_UNDEF: ;
+	    if (!values_av)
+	      {
+		values_av = (AV *) sv_2mortal ((SV *) newAV ());
+	      }
+	    av_push (values_av, &PL_sv_undef);
+	}
+	break;
 
 	case op_push_one:
 	  {
@@ -1076,14 +1104,14 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
 
 	    if (step_type != MARPA_STEP_RULE)
 	      {
-		goto BAD_OP;
+		goto PUSH_UNDEF;
 	      }
-	    offset = ops[op_ix++];
-	    p_sv = av_fetch (stack, result_ix + offset, 0);
 	    if (!values_av)
 	      {
 		values_av = (AV *) sv_2mortal ((SV *) newAV ());
 	      }
+	    offset = ops[op_ix++];
+	    p_sv = av_fetch (stack, result_ix + offset, 0);
 	    if (!p_sv)
 	      {
 		av_push (values_av, &PL_sv_undef);
@@ -1182,30 +1210,6 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
 	  }
 	  /* NOT REACHED */
 
-	case op_push_token_value:
-	  {
-	    SV **p_token_value_sv;
-
-	    if (step_type != MARPA_STEP_TOKEN)
-	      {
-		goto BAD_OP;
-	      }
-	    if (!values_av)
-	      {
-		values_av = (AV *) sv_2mortal ((SV *) newAV ());
-	      }
-	    p_token_value_sv =
-	      av_fetch (v_wrapper->token_values, marpa_v_token_value (v), 0);
-	    if (p_token_value_sv)
-	      {
-		av_push (values_av, SvREFCNT_inc_NN (*p_token_value_sv));
-	      }
-	    else
-	      {
-		av_push (values_av, &PL_sv_undef);
-	      }
-	  }
-	  break;
 
 	case op_result_is_token_value:
 	  {
@@ -2675,7 +2679,7 @@ PPCODE:
     const int highest_rule_id = marpa_g_highest_rule_id (g);
     AV *av = v_wrapper->rule_semantics;
     av_extend (av, highest_rule_id);
-    ops[0] = op_push_all;
+    ops[0] = op_push_values;
     ops[1] = op_callback;
     ops[2] = 0;
     for (ix = 0; ix <= highest_rule_id; ix++)

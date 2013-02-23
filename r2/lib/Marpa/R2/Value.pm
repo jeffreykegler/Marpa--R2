@@ -779,10 +779,9 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
     state $op_bless              = Marpa::R2::Thin::op('bless');
     state $op_callback           = Marpa::R2::Thin::op('callback');
-    state $op_push_all           = Marpa::R2::Thin::op('push_all');
+    state $op_push_values           = Marpa::R2::Thin::op('push_values');
     state $op_push_one           = Marpa::R2::Thin::op('push_one');
     state $op_push_sequence      = Marpa::R2::Thin::op('push_sequence');
-    state $op_push_token_value      = Marpa::R2::Thin::op('push_token_value');
     state $op_result_is_array    = Marpa::R2::Thin::op('result_is_array');
     state $op_result_is_constant = Marpa::R2::Thin::op('result_is_constant');
     state $op_result_is_rhs_n    = Marpa::R2::Thin::op('result_is_rhs_n');
@@ -907,7 +906,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
         if ($is_sequence) {
             my $push_op =
-                $is_discard_sequence ? $op_push_sequence : $op_push_all;
+                $is_discard_sequence ? $op_push_sequence : $op_push_values;
             $value->rule_register( $rule_id, $push_op, @bless_ops,
                 $array_fate );
             next RULE;
@@ -1015,7 +1014,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
         my $constant_ix = $value->constant_register($blessing);
         $value->token_register( $lexeme_id, $op_bless, $constant_ix,
-            $op_push_token_value, $op_result_is_array );
+            $op_push_values, $op_result_is_array );
 
     } ## end for my $lexeme_id ( grep { defined $symbol_resolutions...})
 
