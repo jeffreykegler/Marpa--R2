@@ -912,7 +912,6 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
 	  return -1;
 
 	case op_result_is_undef:
-	RESULT_IS_UNDEF:
 	  {
 	    av_fill (stack, -1 + result_ix);
 	  }
@@ -958,14 +957,15 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
 	  {
 	    SV **stored_av;
 	    SV **p_sv;
-	    IV stack_ix = ops[op_ix++];
+	    IV stack_offset = ops[op_ix++];
 	    IV fetch_ix;
 
 	    if (step_type != MARPA_STEP_RULE)
 	      {
-		goto RESULT_IS_UNDEF;
+		av_fill (stack, result_ix - 1);
+		return -1;
 	      }
-	    if (stack_ix == 0)
+	    if (stack_offset == 0)
 	      {
 		/* Special-cased for two reasons --
 		 * it's common and can be optimized.
@@ -973,12 +973,23 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
 		av_fill (stack, result_ix);
 		return -1;
 	      }
-	    if (stack_ix > 0) {
-	       fetch_ix = result_ix + stack_ix;
-	    } else {
-	       fetch_ix = marpa_v_arg_n (v) - stack_ix + 1;
-	       if (fetch_ix < result_ix) { goto RESULT_IS_UNDEF; }
-	    }
+	    if (stack_offset > 0)
+	      {
+		fetch_ix = result_ix + stack_offset;
+		if (fetch_ix > marpa_v_arg_n (v)) {
+		    av_fill (stack, result_ix - 1);
+		    return -1;
+		}
+	      }
+	    else
+	      {
+		fetch_ix = marpa_v_arg_n (v) - stack_offset + 1;
+		if (fetch_ix < result_ix)
+		  {
+		    av_fill (stack, result_ix - 1);
+		    return -1;
+		  }
+	      }
 	    p_sv = av_fetch (stack, fetch_ix, 0);
 	    if (!p_sv)
 	      {
@@ -1042,60 +1053,64 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
 		values_av = (AV *) sv_2mortal ((SV *) newAV ());
 	      }
 
-	    switch (step_type) {
-	    case MARPA_STEP_TOKEN:
+	    switch (step_type)
 	      {
-	    SV **p_token_value_sv;
-	    p_token_value_sv =
-	      av_fetch (v_wrapper->token_values, marpa_v_token_value (v), 0);
-	    if (p_token_value_sv)
-	      {
-		av_push (values_av, SvREFCNT_inc_NN (*p_token_value_sv));
-	      }
-	    else
-	      {
-		av_push (values_av, &PL_sv_undef);
-	      }
-	  }
-	  break;
+	      case MARPA_STEP_TOKEN:
+		{
+		  SV **p_token_value_sv;
+		  p_token_value_sv =
+		    av_fetch (v_wrapper->token_values,
+			      marpa_v_token_value (v), 0);
+		  if (p_token_value_sv)
+		    {
+		      av_push (values_av,
+			       SvREFCNT_inc_NN (*p_token_value_sv));
+		    }
+		  else
+		    {
+		      av_push (values_av, &PL_sv_undef);
+		    }
+		}
+		break;
 
-	    case MARPA_STEP_RULE:
-	      {
-		int stack_ix;
-		const int arg_n = marpa_v_arg_n (v);
-		int increment = op_code == op_push_sequence ? 2 : 1;
+	      case MARPA_STEP_RULE:
+		{
+		  int stack_ix;
+		  const int arg_n = marpa_v_arg_n (v);
+		  int increment = op_code == op_push_sequence ? 2 : 1;
 
-		for (stack_ix = result_ix; stack_ix <= arg_n;
-		     stack_ix += increment)
-		  {
-		    SV **p_sv = av_fetch (stack, stack_ix, 0);
-		    if (!p_sv)
-		      {
-			av_push (values_av, &PL_sv_undef);
-		      }
-		    else
-		      {
-			av_push (values_av, SvREFCNT_inc_simple_NN (*p_sv));
-		      }
-		  }
+		  for (stack_ix = result_ix; stack_ix <= arg_n;
+		       stack_ix += increment)
+		    {
+		      SV **p_sv = av_fetch (stack, stack_ix, 0);
+		      if (!p_sv)
+			{
+			  av_push (values_av, &PL_sv_undef);
+			}
+		      else
+			{
+			  av_push (values_av, SvREFCNT_inc_simple_NN (*p_sv));
+			}
+		    }
+		}
+		break;
+
+	      default:
+		goto PUSH_UNDEF;
 	      }
-	    break;
-
-	    default: goto PUSH_UNDEF;
-	  }
 	  }
 	  break;
 
 	case op_push_undef:
-	{
-	   PUSH_UNDEF: ;
+	  {
+	  PUSH_UNDEF:;
 	    if (!values_av)
 	      {
 		values_av = (AV *) sv_2mortal ((SV *) newAV ());
 	      }
 	    av_push (values_av, &PL_sv_undef);
-	}
-	break;
+	  }
+	  break;
 
 	case op_push_one:
 	  {
