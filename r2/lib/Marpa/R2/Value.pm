@@ -785,6 +785,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
     state $op_result_is_array    = Marpa::R2::Thin::op('result_is_array');
     state $op_result_is_constant = Marpa::R2::Thin::op('result_is_constant');
     state $op_result_is_rhs_n    = Marpa::R2::Thin::op('result_is_rhs_n');
+    state $op_result_is_n_of_sequence    = Marpa::R2::Thin::op('result_is_n_of_sequence');
     state $op_result_is_undef    = Marpa::R2::Thin::op('result_is_undef');
 
     my @work_list = ();
@@ -871,35 +872,38 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
             last PROCESS_SINGLETON if not defined $singleton;
 
             my $singleton_element = $singleton;
-            if ($is_sequence) {
-                if ($is_discard_sequence) {
-                    $singleton_element = $singleton * 2;
-                }
+            if ($is_discard_sequence) {
+                $value->rule_register( $rule_id, $op_result_is_n_of_sequence,
+                    $singleton_element );
+                next WORK_ITEM;
             }
-            else {
-                my @elements =
-                    grep { $mask->[$_] } 0 .. ( $rule_length - 1 );
-                if ( not scalar @elements ) {
-                    my $original_semantics = $semantics_by_rule_id->[$rule_id];
-                    Marpa::R2::exception(
-                        qq{Impossible semantics for empty rule: },
-                        $grammar->brief_rule($rule_id),
-                        "\n",
-                        qq{    Semantics were specified as "$original_semantics"\n}
-                    );
-                } ## end if ( not scalar @elements )
-                $singleton_element = $elements[$singleton];
+            if ($is_sequence) {
+                $value->rule_register( $rule_id, $op_result_is_rhs_n,
+                    $singleton_element );
+                next WORK_ITEM;
+            }
+            my @elements =
+                grep { $mask->[$_] } 0 .. ( $rule_length - 1 );
+            if ( not scalar @elements ) {
+                my $original_semantics = $semantics_by_rule_id->[$rule_id];
+                Marpa::R2::exception(
+                    qq{Impossible semantics for empty rule: },
+                    $grammar->brief_rule($rule_id),
+                    "\n",
+                    qq{    Semantics were specified as "$original_semantics"\n}
+                );
+            } ## end if ( not scalar @elements )
+            $singleton_element = $elements[$singleton];
 
-                if ( not defined $singleton_element ) {
-                    my $original_semantics = $semantics_by_rule_id->[$rule_id];
-                    Marpa::R2::exception(
-                        qq{Impossible semantics for rule: },
-                        $grammar->brief_rule($rule_id),
-                        "\n",
-                        qq{    Semantics were specified as "$original_semantics"\n}
-                    );
-                } ## end if ( not defined $singleton_element )
-            } ## end else [ if ($is_sequence) ]
+            if ( not defined $singleton_element ) {
+                my $original_semantics = $semantics_by_rule_id->[$rule_id];
+                Marpa::R2::exception(
+                    qq{Impossible semantics for rule: },
+                    $grammar->brief_rule($rule_id),
+                    "\n",
+                    qq{    Semantics were specified as "$original_semantics"\n}
+                );
+            } ## end if ( not defined $singleton_element )
             $value->rule_register( $rule_id, $op_result_is_rhs_n,
                 $singleton_element );
             next WORK_ITEM;
