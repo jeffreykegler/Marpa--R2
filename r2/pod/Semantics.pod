@@ -153,45 +153,6 @@ To allow Marpa to help you to spot non-existent values,
 the "C<::undef>" reserved action name should be preferred
 for indicating a constant whose value is a Perl C<undef>.
 
-=head2 ::whatever
-
-In informal terms, a "whatever" value
-is one which does not matter --
-for example, because that value is never used.
-Specifying values as "whatever" allows Marpa to make
-certain optimizations.
-For a more precise description,
-see L</"Valued and unvalued symbols">.
-
-=head1 Valued and unvalued symbols
-
-An unvalued (or
-"whatever") symbol can have any value
-that is assignable to a Perl
-scalar.
-Other than that,
-the value of an unvalued symbol is unspecified
-and unpredictable.
-It may be constant, or may vary from instance to instance.
-If it varies it may do so randomly or according to a pattern.
-"Whatever" values will usually only be appropriate for cases
-where the application does not care what the value is.
-
-The semantics of unvalued symbols is very efficient to implement,
-and by default symbols are unvalued.
-The "C<::whatever>" reserved action name can be used
-to explicitly specify that a rule's LHS,
-and therefore the rule, is unvalued.
-
-A "whatever" value may happen to be identical to any other value,
-and therefore "whatever" values cannot be reliably
-disinguished from other
-results.
-For this reason, whenever a rule is unvalued,
-all rules with the same LHS must also be unvalued.
-Where this is not the case,
-Marpa throws an exception.
-
 =head1 Nodes
 
 =head2 Token nodes
@@ -203,13 +164,7 @@ Tokens always have a B<token symbol>.
 At lexing time,
 they can be assigned a B<token value>.
 If no token value is assigned at lex time,
-the token value has an "whatever" value.
-A "whatever" value is one that
-cannot be relied on.
-It may, for example,
-vary from instance to instance,
-either randomly or according to an
-arbitrary pattern.
+the value of the token is a Perl C<undef>.
 
 =head2 Rule nodes
 
@@ -234,7 +189,7 @@ If the action is a rule evaluation closure,
 its return value becomes the value of the node.
 If there is no action for a
 rule node,
-the rule node has a "whatever" value.
+the value of the rule node is a Perl C<undef>.
 
 =head2 Sequence rule nodes
 
@@ -447,7 +402,7 @@ resolving an action based on that named argument.
 the C<default_action> named argument of the grammar,
 if one is defined.
 
-=item * Defaulting to a "whatever" value.
+=item * Defaulting to a Perl C<undef> value.
 
 =back
 

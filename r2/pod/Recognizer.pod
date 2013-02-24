@@ -240,10 +240,7 @@ C<read> takes two arguments: a B<token name> and a B<token value>.
 The token name is required.
 It must be the name of a valid terminal symbol.
 The token value is optional.
-It defaults to a "whatever" value.
-Here "whatever" means the value may vary from instance
-to instance,
-and cannot be relied on in any way.
+It defaults to a Perl C<undef>.
 For details about terminal symbols,
 see L<Marpa::R2::Grammar/"Terminals">.
 
@@ -271,14 +268,6 @@ For other failures,
 including an attempt to C<read> a token
 into an exhausted parser,
 Marpa throws an exception.
-
-Note that passing an explicit C<undef> as the token value
-argument is
-quite different from omitting it.
-If the token value is omitted, it is a "whatever" value,
-one which could be anything.
-If it is C<undef>, then the token value
-is always a Perl C<undef>.
 
 =head2 set()
 

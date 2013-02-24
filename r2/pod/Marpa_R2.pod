@@ -335,7 +335,7 @@ it can be omitted.
 In the calculator example, the values of the
 "C<Add>"
 and "C<Multiply>" tokens are never used,
-and are allowed to default to a "whatever" value.
+and are allowed to default to an undefined value.
 
 =head2 Marpa::R2::Recognizer::value
 
@@ -496,8 +496,7 @@ Rules with no action specified for them take their
 semantics from the C<default_action> named argument.
 If there is no default action for a grammar,
 rules with no action specified for them
-return a "whatever" value --
-an arbitrary value which should not be used.
+return a Perl C<undef>.
 
 =head1 Example 2: an ambiguous parse
 

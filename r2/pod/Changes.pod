@@ -139,7 +139,6 @@ The C<::undef> reserved action name can be used instead.
 =head2 Actions names beginning with "C<::>" are reserved
 
 Action names which start with "C<::>" are reserved.
-"C<::whatever>" explicitly requests "whatever" semantics.
 "C<::undef>" is a safe way of specify a constant whose
 value is C<undef>.
 Use of a reserved name which has not yet been defined causes
@@ -159,8 +158,10 @@ now causes an exception.
 =head2 The token value argument of read() has changed
 
 The Marpa::R2 recognizer's C<read()> method differs from its Marpa::XS
-equivalent.  In Marpa::R2, If C<read()>'s token value argument is
-omitted, then the token value will be a "whatever" value.  If C<read()>'s
+equivalent.
+In Marpa::R2, If C<read()>'s token value argument is
+omitted, then the token value will be an undefined value.
+If C<read()>'s
 token value is given explicitly, then that explicit value will be
 the value of the token.  In particular, an explicit C<undef> token
 value argument will behave differently from an omitted token value
@@ -172,8 +173,10 @@ C<read> method|Marpa::R2::Recognizer/"read">.
 The Marpa::R2 recognizer's C<alternative()> method differs from its
 Marpa::XS equivalent.  Its token value argument must now be a
 reference to the token value, not the token value itself, as in
-Marpa::XS.  If alternative's token value argument is omitted or a
-C<undef>, then the token has a "whatever" value.  If alternative's
+Marpa::XS.
+If alternative's token value argument is omitted or a
+C<undef>, then the token has an undefined value.
+If alternative's
 token value argument is reference to C<undef>, then the value
 of the token is a Perl C<undef>.  For details, see L<the documentation
 of the C<alternative> method|Marpa::R2::Advanced::Models/"alternative">.
@@ -207,31 +210,6 @@ In Marpa::R2, all internal rules and symbols
 are now completely
 invisible to the user,
 even in the tools for debugging grammars.
-
-=head2 The semantics now defaults to "whatever" values
-
-In Marpa::XS, the default value
-for rules, null values, and token values,
-was a Perl C<undef>.
-In Marpa::R2, rules, null values and token values
-now default to a "whatever" value.
-A "whatever" value is guaranteed to be one of
-the Perl values which is assignable to a scalar.
-Otherwise, its value is unspecified.
-"Whatever" values will usually only be appropriate
-when the application simply does not care what
-the value is.
-
-The motivation for the change is efficiency.
-When Marpa::R2 knows that a value on its evaluation
-stack is a "whatever" value,
-it implements the logic to create it as a no-op.
-Real applications allow "whatever" values surprisingly
-often.
-According to the author's
-sense of the typical application mix,
-this one change makes
-Marpa::R2 20% faster than Marpa::XS.
 
 =head2 By default, the non-LHS symbols are the terminals
 
