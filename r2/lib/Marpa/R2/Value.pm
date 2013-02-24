@@ -86,17 +86,17 @@ sub Marpa::R2::Internal::Recognizer::resolve_action {
         $recce->[Marpa::R2::Internal::Recognizer::TRACE_ACTIONS];
 
     # A reserved closure name;
-    return [ '', undef, '::whatever' ] if not defined $closure_name;
+    return [ q{}, undef, '::whatever' ] if not defined $closure_name;
 
-        if ( $closure_name eq '' ) {
-            return qq{The action string cannot be the empty string};
+        if ( $closure_name eq q{} ) {
+            return q{The action string cannot be the empty string};
         }
 
-    return [ '', \undef, $closure_name ] if $closure_name eq '::undef';
+    return [ q{}, \undef, $closure_name ] if $closure_name eq '::undef';
     if (   substr( $closure_name, 0, 2 ) eq q{::}
         or substr( $closure_name, 0, 1 ) eq '[' )
     {
-        return [ '', undef, $closure_name ];
+        return [ q{}, undef, $closure_name ];
     }
 
     if ( my $closure = $closures->{$closure_name} ) {
@@ -106,7 +106,7 @@ sub Marpa::R2::Internal::Recognizer::resolve_action {
                 or Marpa::R2::exception('Could not print to trace file');
         }
 
-        return [ $closure_name, $closure, '' ];
+        return [ $closure_name, $closure, q{} ];
     } ## end if ( my $closure = $closures->{$closure_name} )
 
     my $fully_qualified_name;
@@ -168,7 +168,7 @@ sub Marpa::R2::Internal::Recognizer::resolve_action {
                 'to ', $fully_qualified_name, "\n"
                 or Marpa::R2::exception('Could not print to trace file');
         } ## end if ($trace_actions)
-        return [ $fully_qualified_name, $closure, '' ];
+        return [ $fully_qualified_name, $closure, q{} ];
     } ## end if ( defined $closure )
 
     my $error =
@@ -190,7 +190,7 @@ sub Marpa::R2::Internal::Recognizer::add_blessing {
     # untouched
     return $resolution if ref $resolution ne 'ARRAY';
     my ( $closure_name, $closure, $semantics ) = @{$resolution};
-    return [ $closure_name, $closure, $semantics, '' ]
+    return [ $closure_name, $closure, $semantics, q{} ]
         if not defined $blessing;
 
     # Now figure out the blessings
@@ -301,12 +301,12 @@ sub Marpa::R2::Internal::Recognizer::default_semantics {
         my $blessing  = $symbol->[Marpa::R2::Internal::Symbol::BLESSING];
         next SYMBOL if not defined $blessing;
         next SYMBOL if $blessing eq '::undef';
-        if ( $blessing =~ m/\A [:][:] / ) {
+        if ( $blessing =~ m/\A [:][:] /xms ) {
             my $symbol_name = $tracer->symbol_name($symbol_id);
             Marpa::R2::exception(
                 qq{Symbol "$symbol_name" has unknown blessing: "$blessing"});
         }
-        if ( $blessing =~ m/ [:][:] / ) {
+        if ( $blessing =~ m/ [:][:] /xms ) {
             $symbol_resolutions[$symbol_id] = [$blessing];
             next SYMBOL;
         }
@@ -329,7 +329,7 @@ sub Marpa::R2::Internal::Recognizer::brief_rule_list {
     my ($recce, $rule_ids) = @_;
     my $grammar        = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my @brief_rules = map { $grammar->brief_rule($_) } @{$rule_ids};
-    my $text = join q{}, map { q{    } . $_ . "\n" } @brief_rules ;
+    return join q{}, map { q{    } . $_ . "\n" } @brief_rules ;
 }
 
 sub Marpa::R2::Internal::Recognizer::semantics_set {
@@ -377,7 +377,7 @@ sub Marpa::R2::Internal::Recognizer::semantics_set {
                 )
             {
                 Marpa::R2::exception(
-                    qq{Unknown semantics for rule },
+                    q{Unknown semantics for rule },
                     $grammar->brief_rule($rule_id),
                     "\n",
                     qq{    Semantics were specified as "$semantics"\n}
@@ -386,7 +386,7 @@ sub Marpa::R2::Internal::Recognizer::semantics_set {
 
             $closure_by_rule_id[$rule_id] = $closure;
 
-            if (    $blessing ne ''
+            if (    $blessing ne q{}
                 and not $closure
                 and $semantics ne '::dwim'
                 and $semantics ne '::array'
@@ -395,7 +395,7 @@ sub Marpa::R2::Internal::Recognizer::semantics_set {
             {
                 Marpa::R2::exception(
                     qq{Cannot bless rule when the semantics are "$semantics"},
-                    qq{  Rule is: },
+                    q{  Rule is: },
                     $grammar->brief_rule($rule_id),
                     "\n",
                     qq{  Blessing is "$blessing"\n},
@@ -429,8 +429,8 @@ sub Marpa::R2::Internal::Recognizer::semantics_set {
                 'Symbol "',
                 $grammar->symbol_name($problem_lhs_id),
                 qq{ has both "whatever" semantics and "real" semantics\n},
-                qq{  Mixing "real" (non-"whatever") and "whatever" semantics is not allowed.},
-                qq{  The problem is that there is no way to tell them apart.},
+                q{  Mixing "real" (non-"whatever") and "whatever" semantics is not allowed.},
+                q{  The problem is that there is no way to tell them apart.},
                 qq{  The rules involved are:\n},
                 brief_rule_list( $recce, \@problem_rule_ids )
             );
@@ -811,7 +811,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
         my $blessing    = $blessing_by_rule_id->[$rule_id];
 
         $semantics = '[values]' if not defined $semantics;
-        $semantics = '[values]' if $semantics eq '';
+        $semantics = '[values]' if $semantics eq q{};
 
         if ( $semantics eq '::dwim' ) {
             DWIM: {
@@ -819,7 +819,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                 my $mask        = $rule->[Marpa::R2::Internal::Rule::MASK];
                 my $mask_count  = scalar grep {$_} @{$mask};
                 my $is_sequence = defined $grammar_c->sequence_min($rule_id);
-                if ( $blessing ne '' or $is_sequence or $mask_count > 1 ) {
+                if ( $blessing ne q{} or $is_sequence or $mask_count > 1 ) {
                     $semantics = '::array';
                     last DWIM;
                 }
@@ -935,7 +935,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                     my $original_semantics =
                         $semantics_by_rule_id->[$rule_id];
                     Marpa::R2::exception(
-                        qq{Impossible semantics for empty rule: },
+                        q{Impossible semantics for empty rule: },
                         $grammar->brief_rule($rule_id),
                         "\n",
                         qq{    Semantics were specified as "$original_semantics"\n}
@@ -947,7 +947,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                     my $original_semantics =
                         $semantics_by_rule_id->[$rule_id];
                     Marpa::R2::exception(
-                        qq{Impossible semantics for rule: },
+                        q{Impossible semantics for rule: },
                         $grammar->brief_rule($rule_id),
                         "\n",
                         qq{    Semantics were specified as "$original_semantics"\n}
@@ -1108,8 +1108,10 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                     next EVENT;
                 } ## end if ( $event_type eq 'MARPA_STEP_TOKEN' )
                 say {$Marpa::R2::Internal::TRACE_FH} join q{ },
-                    "value event:",
-                    map { $_ // 'undef' } $event_type, @event_data;
+                    'value event:',
+                    map { $_ // 'undef' } $event_type, @event_data
+                        or
+                        Marpa::R2::exception('say to trace handle failed');
             } ## end EVENT: while (1)
 
             if ( $trace_values >= 3 ) {
