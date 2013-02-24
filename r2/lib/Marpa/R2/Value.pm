@@ -787,6 +787,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
     state $op_result_is_rhs_n    = Marpa::R2::Thin::op('result_is_rhs_n');
     state $op_result_is_undef    = Marpa::R2::Thin::op('result_is_undef');
 
+    my @work_list = ();
     RULE: for my $rule_id ( $grammar->rule_ids() ) {
         my $result = $value->rule_is_valued_set( $rule_id, 1 );
         if ( not $result ) {
@@ -798,12 +799,14 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
             );
         } ## end if ( not $result )
 
-        my $closure = $closure_by_rule_id->[$rule_id];
-        my $semantics = $semantics_by_rule_id->[$rule_id];
-        my $original_semantics = $semantics;
-
         my $blessing = $blessing_by_rule_id->[$rule_id];
+        my $semantics = $semantics_by_rule_id->[$rule_id];
+        push @work_list, [ $rule_id, undef, $semantics, $blessing ];
+    }
 
+    RULE: for my $work_item ( @work_list ) {
+        my ($rule_id, undef, $semantics, $blessing) = @{$work_item};
+        my $closure = $closure_by_rule_id->[$rule_id];
         my $rule                = $rules->[$rule_id];
         my $mask                = $rule->[Marpa::R2::Internal::Rule::MASK];
         my $mask_count          = scalar grep {$_} @{$mask};
@@ -868,6 +871,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                 my @elements =
                     grep { $mask->[$_] } 0 .. ( $rule_length - 1 );
                 if ( not scalar @elements ) {
+                    my $original_semantics = $semantics_by_rule_id->[$rule_id];
                     Marpa::R2::exception(
                         qq{Impossible semantics for empty rule: },
                         $grammar->brief_rule($rule_id),
@@ -878,6 +882,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                 $singleton_element = $elements[$singleton];
 
                 if ( not defined $singleton_element ) {
+                    my $original_semantics = $semantics_by_rule_id->[$rule_id];
                     Marpa::R2::exception(
                         qq{Impossible semantics for rule: },
                         $grammar->brief_rule($rule_id),
