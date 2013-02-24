@@ -828,6 +828,16 @@ sub Marpa::R2::Grammar::brief_rule {
     return ( join q{ }, "$rule_id:", $lhs, '->', @rhs ) . $quantifier;
 } ## end sub Marpa::R2::Grammar::brief_rule
 
+sub Marpa::R2::Grammar::brief_original_rule {
+    my ( $grammar, $rule_id ) = @_;
+    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
+    my $tracer = $grammar->[Marpa::R2::Internal::Grammar::TRACER];
+    my ( $lhs, @rhs ) = $tracer->rule($rule_id);
+    my $minimum = $grammar_c->sequence_min($rule_id);
+    my $quantifier = defined $minimum ? $minimum <= 0 ? q{*} : q{+} : q{};
+    return ( join q{ }, "$rule_id:", $lhs, '->', @rhs ) . $quantifier;
+} ## end sub Marpa::R2::Grammar::brief_original_rule
+
 sub Marpa::R2::Grammar::show_rule {
     my ( $grammar, $rule ) = @_;
 

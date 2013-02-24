@@ -423,17 +423,29 @@ sub Marpa::R2::Internal::Recognizer::semantics_set {
             my $problem_lhs_id = pop @problem_lhs_ids;
 
             my @problem_rule_ids =
-                grep { $problem_lhs_id == grammar_c->rule_lhs($_) }
+                grep { $problem_lhs_id == $grammar_c->rule_lhs($_) }
                 $grammar->rule_ids();
-            Marpa::R2::exception(
-                'Symbol "',
-                $grammar->symbol_name($problem_lhs_id),
-                qq{ has both "whatever" semantics and "real" semantics\n},
-                q{  Mixing "real" (non-"whatever") and "whatever" semantics is not allowed.},
-                q{  The problem is that there is no way to tell them apart.},
-                qq{  The rules involved are:\n},
-                brief_rule_list( $recce, \@problem_rule_ids )
-            );
+            my $message =
+                  'Symbol "'
+                . $grammar->symbol_name($problem_lhs_id)
+                . qq{ has both "whatever" semantics and "real" semantics\n}
+                . qq{  Mixing "real" (non-"whatever") and "whatever" semantics is not allowed.\n}
+                . qq{  The problem is that there is no way to tell them apart.\n}
+                . q{  Here are the } . ( scalar @problem_rule_ids )
+                . " rules involved.\n";
+            for my $rule_ix ( 0 .. $#problem_rule_ids ) {
+                my $problem_rule_id = $problem_rule_ids[$rule_ix];
+                my $grammar =
+                    $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
+                $message
+                    .= qq{Rule $rule_ix:\n}
+                    . $grammar->brief_rule($problem_rule_id) . "\n"
+                    . q{  Rule (internal): }
+                    . $grammar->brief_original_rule($problem_rule_id) . "\n"
+                    . q{  Semantics: }
+                    . $semantics_by_rule_id[$problem_rule_id] . "\n";
+            } ## end for my $rule_ix ( 0 .. $#problem_rule_ids )
+            Marpa::R2::exception($message);
         } ## end if ( scalar @problem_lhs_ids )
     } ## end CHECK_FOR_WHATEVER_CONFLICT
 
@@ -519,7 +531,9 @@ sub Marpa::R2::Internal::Recognizer::semantics_set {
                 qq{  can have more than one semantics\n},
                 qq{  Marpa needs there to be only one semantics\n},
                 qq{  The rules involved are:\n},
-                brief_rule_list( $recce, $rule_ids ),
+                Marpa::R2::Internal::Recognizer::brief_rule_list(
+                    $recce, $rule_ids
+                )
             );
         } ## end OTHER_RESOLUTION: for my $other_resolution (@other_resolutions)
 
