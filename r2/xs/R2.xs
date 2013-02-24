@@ -298,6 +298,7 @@ enum marpa_op
   op_result_is_array,
   op_result_is_constant,
   op_result_is_rhs_n,
+  op_result_is_n_of_sequence,
   op_result_is_token_value,
   op_result_is_undef
 };
@@ -320,6 +321,7 @@ static Marpa_XS_OP_Data marpa_op_data[] = {
 {  op_result_is_array, "result_is_array" },
 {  op_result_is_constant, "result_is_constant" },
 {  op_result_is_rhs_n, "result_is_rhs_n" },
+{  op_result_is_n_of_sequence, "result_is_n_of_sequence" },
 {  op_result_is_token_value, "result_is_token_value" },
 {  op_result_is_undef, "result_is_undef" },
   { -1, (char *)NULL}
@@ -954,6 +956,7 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
 	  return -1;
 
 	case op_result_is_rhs_n:
+	case op_result_is_n_of_sequence:
 	  {
 	    SV **stored_av;
 	    SV **p_sv;
@@ -967,21 +970,43 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
 	      }
 	    if (stack_offset == 0)
 	      {
-		/* Special-cased for 3 reasons --
+		/* Special-cased for 4 reasons --
 		 * it's common, it's reference count handling is
-		 * a special case and it can be optimized.
+		 * a special case and it can be easily and highly optimized.
 		 */
 		av_fill (stack, result_ix);
 		return -1;
 	      }
-	    if (stack_offset > 0)
+
+	    /* Determine index of SV to fetch */
+	    if (op_code == op_result_is_rhs_n)
 	      {
-		fetch_ix = result_ix + stack_offset;
+		if (stack_offset > 0)
+		  {
+		    fetch_ix = result_ix + stack_offset;
+		  }
+		else
+		  {
+		    fetch_ix = marpa_v_arg_n (v) + 1 - stack_offset;
+		  }
 	      }
 	    else
-	      {
-		fetch_ix = marpa_v_arg_n (v) - stack_offset + 1;
+	      {			/* sequence */
+		int item_ix;
+		if (stack_offset >= 0)
+		  {
+		    item_ix = stack_offset;
+		  }
+		else
+		  {
+		    int item_count =
+		      (marpa_v_arg_n (v) - marpa_v_arg_0 (v)) / 2 + 1;
+		    item_ix = (item_count + stack_offset);
+		  }
+		  fetch_ix = result_ix + item_ix * 2;
 	      }
+
+	    /* Bounds check fetch ix */
 	    if (fetch_ix > marpa_v_arg_n (v) || fetch_ix < result_ix)
 	      {
 		/* return an undef */
