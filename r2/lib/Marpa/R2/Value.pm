@@ -1033,6 +1033,16 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                     Marpa::R2::exception("Cannot say to trace file handle");
             }
             if ( defined $symbol_id ) {
+
+        my $result = $value->symbol_is_valued_set( $symbol_id, 1 );
+        if ( not $result ) {
+            my $lexeme_name = $grammar->symbol_name($symbol_id);
+            Marpa::R2::exception(
+                qq{Cannot assign values to symbol "$lexeme_name"},
+                q{because it was already treated as an unvalued symbol}
+            );
+        } ## end if ( not $result )
+
                 $value->nulling_symbol_register( $symbol_id, @ops );
                 say {$trace_file_handle} "Registering semantics for symbol: ",
                     $grammar->symbol_name($symbol_id),
