@@ -799,30 +799,37 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
             );
         } ## end if ( not $result )
 
-        my $blessing = $blessing_by_rule_id->[$rule_id];
         my $semantics = $semantics_by_rule_id->[$rule_id];
-        my $rule                = $rules->[$rule_id];
-        my $mask                = $rule->[Marpa::R2::Internal::Rule::MASK];
-        my $mask_count          = scalar grep {$_} @{$mask};
-        my $is_sequence         = defined $grammar_c->sequence_min($rule_id);
+        my $blessing    = $blessing_by_rule_id->[$rule_id];
 
-        DWIM: {
-            last DWIM if $semantics ne '::dwim';
-            if ( $blessing ne '' or $is_sequence or $mask_count > 1 ) {
-                $semantics = '::array';
-                last DWIM;
-            }
-            if ( $is_sequence or $mask_count == 1 ) {
-                $semantics = '::first';
-                last DWIM;
-            }
-            $semantics = '::undef';
-        } ## end DWIM:
+        $semantics = '[values]' if not defined $semantics;
+        $semantics = '[values]' if $semantics eq '';
+
+        if ( $semantics eq '::dwim' ) {
+            DWIM: {
+                my $rule        = $rules->[$rule_id];
+                my $mask        = $rule->[Marpa::R2::Internal::Rule::MASK];
+                my $mask_count  = scalar grep {$_} @{$mask};
+                my $is_sequence = defined $grammar_c->sequence_min($rule_id);
+                if ( $blessing ne '' or $is_sequence or $mask_count > 1 ) {
+                    $semantics = '::array';
+                    last DWIM;
+                }
+                if ( $is_sequence or $mask_count == 1 ) {
+                    $semantics = '::first';
+                    last DWIM;
+                }
+                $semantics = '::undef';
+            } ## end DWIM:
+        } ## end if ( $semantics eq '::dwim' )
+
+        $semantics = '[values]' if $semantics eq '::array';
+        $semantics = '::undef' if $semantics eq '::whatever';
 
         push @work_list, [ $rule_id, undef, $semantics, $blessing ];
     }
 
-    RULE: for my $work_item ( @work_list ) {
+    WORK_ITEM: for my $work_item ( @work_list ) {
         my ($rule_id, undef, $semantics, $blessing) = @{$work_item};
         my $closure = $closure_by_rule_id->[$rule_id];
         my $rule                = $rules->[$rule_id];
@@ -835,13 +842,6 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
         # Determine the "fate" of the array of child values
         my $array_fate;
         ARRAY_FATE: {
-            if ( $semantics eq '::array'
-                or ( substr $semantics, 0, 1 ) eq '[' )
-            {
-                $array_fate = $op_result_is_array;
-                last ARRAY_FATE;
-            } ## end if ( $semantics eq '::array' or ( substr $semantics,...))
-
             if ( defined $closure
                 && ( ref $closure ne 'SCALAR' || defined ${$closure} ) )
             {
@@ -849,11 +849,16 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                 last ARRAY_FATE;
 
             } ## end if ( defined $closure && ( ref $closure ne 'SCALAR' ...))
+
+            if ( ( substr $semantics, 0, 1 ) eq '[' ) {
+                $array_fate = $op_result_is_array;
+                last ARRAY_FATE;
+            }
         } ## end ARRAY_FATE:
 
-        if ( $semantics eq '::undef' or $semantics eq '::whatever' ) {
+        if ( $semantics eq '::undef' ) {
             $value->rule_register( $rule_id, $op_result_is_undef );
-            next RULE;
+            next WORK_ITEM;
         }
 
         PROCESS_SINGLETON: {
@@ -897,12 +902,12 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
             } ## end else [ if ($is_sequence) ]
             $value->rule_register( $rule_id, $op_result_is_rhs_n,
                 $singleton_element );
-            next RULE;
+            next WORK_ITEM;
         } ## end PROCESS_SINGLETON:
 
         if ( not defined $array_fate ) {
             $value->rule_register( $rule_id, $op_result_is_undef );
-            next RULE;
+            next WORK_ITEM;
         }
 
         # if here, $array_fate is defined
@@ -918,41 +923,47 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                 $is_discard_sequence ? $op_push_sequence : $op_push_values;
             $value->rule_register( $rule_id, $push_op, @bless_ops,
                 $array_fate );
-            next RULE;
+            next WORK_ITEM;
         } ## end if ($is_sequence)
+
+        # temporary, while developing
+        die "Semantics: $semantics" if (substr $semantics , 0, 1 ) ne '[';
 
         my @push_ops = ();
         SET_PUSH_OPS: {
-        if ( ( substr $semantics, 0, 1 ) eq '[' ) {
-            my $array_descriptor = substr $semantics, 1, -2;
-            RESULT_DESCRIPTOR:
-            for my $result_descriptor ( split /[,]/xms, $array_descriptor ) {
-                if ( $result_descriptor eq 'start' ) {
-                    # push @push_ops, $op_push_start;
-                    next RESULT_DESCRIPTOR;
-                }
-                if ( $result_descriptor eq 'end' ) {
+            if ( ( substr $semantics, 0, 1 ) eq '[' ) {
+                my $array_descriptor = substr $semantics, 1, -1;
+                RESULT_DESCRIPTOR:
+                for my $result_descriptor ( split /[,]/xms,
+                    $array_descriptor )
+                {
+                    # if ( $result_descriptor eq 'start' ) {
+                    # # push @push_ops, $op_push_start;
+                    # next RESULT_DESCRIPTOR;
+                    # }
+                    # if ( $result_descriptor eq 'end' ) {
                     # push @push_ops, $op_push_end;
-                    next RESULT_DESCRIPTOR;
-                }
-                if ( $result_descriptor eq 'values' ) {
-                    # push @push_ops, $op_push_values;
-                    next RESULT_DESCRIPTOR;
-                }
-                Marpa::R2::exception(
-                    qq{Unknown result descriptor: "$result_descriptor"\n},
-                    qq{  The full semantics were "$semantics"}
-                );
-            } ## end RESULT_DESCRIPTOR: for my $result_descriptor ( split /[,]/xms, ...)
-            last SET_PUSH_OPS;
-        } ## end if ( ( substr $semantics, 0, 1 ) eq '[' ) (])
+                    # next RESULT_DESCRIPTOR;
+                    # }
+                    if ( $result_descriptor eq 'values' ) {
+                        if ( $rule_length > 0 ) {
+                            push @push_ops, map {
+                                $mask->[$_]
+                                    ? ( $op_push_one, $_ )
+                                    : ()
+                            } 0 .. $rule_length - 1;
+                        } ## end if ( $rule_length > 0 )
+                        next RESULT_DESCRIPTOR;
+                    } ## end if ( $result_descriptor eq 'values' )
+                    Marpa::R2::exception(
+                        qq{Unknown result descriptor: "$result_descriptor"\n},
+                        qq{  The full semantics were "$semantics"}
+                    );
+                } ## end RESULT_DESCRIPTOR: for my $result_descriptor ( split /[,]/xms, ...)
+                last SET_PUSH_OPS;
+            } ## end if ( ( substr $semantics, 0, 1 ) eq '[' ) (])
 
-        if ( $rule_length > 0 ) {
-            push @push_ops,
-                map { $mask->[$_] ? ( $op_push_one, $_ ) : () }
-                0 .. $rule_length - 1;
-        }
-        }
+        } ## end SET_PUSH_OPS:
         $value->rule_register( $rule_id, @push_ops, @bless_ops, $array_fate );
 
     } ## end RULE: for my $rule_id ( $grammar->rule_ids() )

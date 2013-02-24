@@ -1119,7 +1119,9 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
 		break;
 
 	      default:
-		goto PUSH_UNDEF;
+	      case MARPA_STEP_NULLING_SYMBOL:
+		/* A no-op : push nothing */
+		break;
 	      }
 	  }
 	  break;
