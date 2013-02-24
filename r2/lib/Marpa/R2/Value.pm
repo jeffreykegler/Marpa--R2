@@ -52,7 +52,7 @@ sub Marpa::R2::Recognizer::semantics_set {
     my $grammar = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
 
     # set the defaults
-    local $Marpa::R2::Internal::TRACE_FH = my $trace_fh =
+    local $Marpa::R2::Internal::TRACE_FH =
         $recce->[Marpa::R2::Internal::Recognizer::TRACE_FILE_HANDLE] =
         $grammar->[Marpa::R2::Internal::Grammar::TRACE_FILE_HANDLE];
 
@@ -696,6 +696,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
     my $order   = $recce->[Marpa::R2::Internal::Recognizer::O_C];
     my $tree    = $recce->[Marpa::R2::Internal::Recognizer::T_C];
     my $grammar = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
+    my $trace_file_handle = $recce->[Marpa::R2::Internal::Recognizer::TRACE_FILE_HANDLE];
     my $token_values =
         $recce->[Marpa::R2::Internal::Recognizer::TOKEN_VALUES];
     my $grammar_c    = $grammar->[Marpa::R2::Internal::Grammar::C];
@@ -855,8 +856,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
         # Determine the "fate" of the array of child values
         my $array_fate;
         ARRAY_FATE: {
-            if ( defined $closure
-                && ( ref $closure ne 'SCALAR' || defined ${$closure} ) )
+            if ( defined $closure and  ref $closure eq 'CODE' )
             {
                 $array_fate = $op_callback;
                 last ARRAY_FATE;
@@ -1022,57 +1022,28 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
             @ops = ( @push_ops, @bless_ops, $array_fate );
         } ## end SET_OPS:
 
-        $value->rule_register( $rule_id, @ops );
+        if ( defined $rule_id ) {
+            $value->rule_register( $rule_id, @ops );
+            {
+                say {$trace_file_handle} "Registering semantics for rule: ",
+                    $grammar->brief_rule($rule_id),
+                    "\n", "  Semantics are ", join q{ },
+                    ( map { Marpa::R2::Thin::op_name($_) } @ops )
+                    or
+                    Marpa::R2::exception("Cannot say to trace file handle");
+            }
+            if ( defined $symbol_id ) {
+                $value->nulling_symbol_register( $symbol_id, @ops );
+                say {$trace_file_handle} "Registering semantics for symbol: ",
+                    $grammar->symbol_name($symbol_id),
+                    "\n", "  Semantics are ", join q{ },
+                    map { Marpa::R2::Thin::op_name($_) } @ops
+                    or
+                    Marpa::R2::exception("Cannot say to trace file handle");
+            } ## end if ( defined $symbol_id )
+        } ## end if ( defined $rule_id )
 
     } ## end WORK_ITEM: for my $work_item (@work_list)
-
-    TOKEN:
-    for my $token_id ( grep { defined $null_values->[$_] }
-        0 .. $#{$null_values} )
-    {
-        my $result = $value->symbol_is_valued_set( $token_id, 1 );
-        if ( not $result ) {
-            my $token_name = $grammar->symbol_name($token_id);
-            Marpa::R2::exception(
-                qq{Cannot assign values to symbol "$token_name"},
-                q{because it was already treated as an unvalued symbol}
-            );
-        } ## end if ( not $result )
-
-        my $semantic_rule_id = $null_values->[$token_id];
-        my $closure_ref      = $closure_by_rule_id->[$semantic_rule_id];
-        next TOKEN if not defined $closure_ref;
-        my $ref_type = Scalar::Util::reftype $closure_ref;
-
-        if ( $ref_type eq 'SCALAR' ) {
-            my $closure = ${$closure_ref};
-            next TOKEN if not defined $closure;
-            my $constant_ix = $value->constant_register($closure);
-            $value->nulling_symbol_register( $token_id,
-                $op_result_is_constant, $constant_ix );
-            next TOKEN;
-        } ## end if ( $ref_type eq 'SCALAR' )
-        if ( $ref_type eq 'CODE' ) {
-            $value->nulling_symbol_register( $token_id, $op_callback );
-            next TOKEN;
-        }
-        if (   $ref_type eq 'REF'
-            or $ref_type eq 'LVALUE'
-            or $ref_type eq 'VSTRING' )
-        {
-            my $constant_ix =
-                $value->constant_register( $token_id, ${$closure_ref} );
-            $value->nulling_symbol_register( $token_id,
-                $op_result_is_constant, $constant_ix );
-            next TOKEN;
-        } ## end if ( $ref_type eq 'REF' or $ref_type eq 'LVALUE' or ...)
-        my $token_name = $grammar->symbol_name($token_id);
-        Marpa::R2::exception(
-            qq{Nulling value of symbol <$token_name> is of type '$ref_type'\n},
-            qq{  '$ref_type' is not an allowed type\n}
-        );
-
-    } ## end for my $token_id ( grep { defined $null_values->[$_] ...})
 
     LEXEME:
     for my $lexeme_id ( grep { defined $blessing_by_symbol_id->[$_] }
