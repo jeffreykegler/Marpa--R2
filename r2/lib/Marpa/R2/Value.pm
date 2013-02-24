@@ -788,6 +788,13 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
     state $op_result_is_n_of_sequence    = Marpa::R2::Thin::op('result_is_n_of_sequence');
     state $op_result_is_undef    = Marpa::R2::Thin::op('result_is_undef');
 
+    my @nulling_symbol_by_semantic_rule;
+    NULLING_SYMBOL: for my $nulling_symbol (0 .. $#{$null_values}) {
+         my $semantic_rule = $null_values->[$nulling_symbol];
+         next NULLING_SYMBOL if not defined $semantic_rule;
+        $nulling_symbol_by_semantic_rule[$semantic_rule] = $nulling_symbol;
+    }
+
     my @work_list = ();
     RULE: for my $rule_id ( $grammar->rule_ids() ) {
         my $result = $value->rule_is_valued_set( $rule_id, 1 );
@@ -861,10 +868,40 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
         my @ops = ();
 
         SET_OPS: {
+
             if ( $semantics eq '::undef' ) {
                 @ops = ($op_result_is_undef);
                 last SET_OPS;
             }
+
+    DO_CONSTANT: {
+        my $thingy_ref = $closure_by_rule_id->[$rule_id];
+        last DO_CONSTANT if not defined $thingy_ref;
+        my $ref_type = Scalar::Util::reftype $thingy_ref;
+        last DO_CONSTANT if not $ref_type;
+        last DO_CONSTANT if $ref_type eq 'CODE';
+        if ( $ref_type eq 'SCALAR' ) {
+            my $thingy = ${$thingy_ref};
+            if ( not defined $thingy ) {
+                @ops = ($op_result_is_undef);
+                last SET_OPS;
+            }
+            my $constant_ix = $value->constant_register($thingy);
+            @ops = ( $op_result_is_constant, $constant_ix );
+            last SET_OPS;
+        } ## end if ( $ref_type eq 'SCALAR' )
+        if (   $ref_type eq 'REF'
+            or $ref_type eq 'LVALUE'
+            or $ref_type eq 'VSTRING' )
+        {
+            my $constant_ix =
+                $value->constant_register( ${$thingy_ref} );
+            @ops = ( $op_result_is_constant, $constant_ix );
+                last SET_OPS;
+        } ## end if ( $ref_type eq 'REF' or $ref_type eq 'LVALUE' or ...)
+    } ## end DO_CONSTANT:
+
+    # After this point, any closure will be a ref to 'CODE'
 
             PROCESS_SINGLETON: {
                 my $singleton;
