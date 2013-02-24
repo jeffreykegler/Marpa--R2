@@ -838,8 +838,9 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
         push @work_list, [ $rule_id, undef, $semantics, $blessing ];
     }
 
+    my @nulling_closures;
     WORK_ITEM: for my $work_item ( @work_list ) {
-        my ($rule_id, undef, $semantics, $blessing) = @{$work_item};
+        my ($rule_id, $symbol_id, $semantics, $blessing) = @{$work_item};
         my $closure = $closure_by_rule_id->[$rule_id];
         my $rule                = $rules->[$rule_id];
         my $rule_length         = $grammar_c->rule_length($rule_id);
@@ -847,6 +848,9 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
         my $is_sequence         = defined $grammar_c->sequence_min($rule_id);
         my $is_discard_sequence = $is_sequence
             && $rule->[Marpa::R2::Internal::Rule::DISCARD_SEPARATION];
+
+        $symbol_id = $nulling_symbol_by_semantic_rule[$rule_id]
+            if defined $rule_id and not defined $symbol_id;
 
         # Determine the "fate" of the array of child values
         my $array_fate;
@@ -879,7 +883,11 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
         last DO_CONSTANT if not defined $thingy_ref;
         my $ref_type = Scalar::Util::reftype $thingy_ref;
         last DO_CONSTANT if not $ref_type;
-        last DO_CONSTANT if $ref_type eq 'CODE';
+        if ($ref_type eq 'CODE') {
+            # Set the nulling closure is this is the nulling symbol of a rule
+            $nulling_closures[$symbol_id] = $thingy_ref if defined $symbol_id and defined $rule_id;
+            last DO_CONSTANT ;
+            }
         if ( $ref_type eq 'SCALAR' ) {
             my $thingy = ${$thingy_ref};
             if ( not defined $thingy ) {
@@ -1016,7 +1024,6 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
     } ## end RULE: for my $rule_id ( $grammar->rule_ids() )
 
-    my @nulling_closures;
     TOKEN:
     for my $token_id ( grep { defined $null_values->[$_] }
         0 .. $#{$null_values} )
@@ -1045,7 +1052,6 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
         } ## end if ( $ref_type eq 'SCALAR' )
         if ( $ref_type eq 'CODE' ) {
             $value->nulling_symbol_register( $token_id, $op_callback );
-            $nulling_closures[$token_id] = $closure_ref;
             next TOKEN;
         }
         if (   $ref_type eq 'REF'
