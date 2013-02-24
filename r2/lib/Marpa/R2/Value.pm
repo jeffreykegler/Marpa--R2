@@ -801,19 +801,10 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
         my $blessing = $blessing_by_rule_id->[$rule_id];
         my $semantics = $semantics_by_rule_id->[$rule_id];
-        push @work_list, [ $rule_id, undef, $semantics, $blessing ];
-    }
-
-    RULE: for my $work_item ( @work_list ) {
-        my ($rule_id, undef, $semantics, $blessing) = @{$work_item};
-        my $closure = $closure_by_rule_id->[$rule_id];
         my $rule                = $rules->[$rule_id];
         my $mask                = $rule->[Marpa::R2::Internal::Rule::MASK];
         my $mask_count          = scalar grep {$_} @{$mask};
-        my $rule_length         = $grammar_c->rule_length($rule_id);
         my $is_sequence         = defined $grammar_c->sequence_min($rule_id);
-        my $is_discard_sequence = $is_sequence
-            && $rule->[Marpa::R2::Internal::Rule::DISCARD_SEPARATION];
 
         DWIM: {
             last DWIM if $semantics ne '::dwim';
@@ -827,6 +818,19 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
             }
             $semantics = '::undef';
         } ## end DWIM:
+
+        push @work_list, [ $rule_id, undef, $semantics, $blessing ];
+    }
+
+    RULE: for my $work_item ( @work_list ) {
+        my ($rule_id, undef, $semantics, $blessing) = @{$work_item};
+        my $closure = $closure_by_rule_id->[$rule_id];
+        my $rule                = $rules->[$rule_id];
+        my $rule_length         = $grammar_c->rule_length($rule_id);
+        my $mask                = $rule->[Marpa::R2::Internal::Rule::MASK];
+        my $is_sequence         = defined $grammar_c->sequence_min($rule_id);
+        my $is_discard_sequence = $is_sequence
+            && $rule->[Marpa::R2::Internal::Rule::DISCARD_SEPARATION];
 
         # Determine the "fate" of the array of child values
         my $array_fate;
