@@ -967,8 +967,9 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
 	      }
 	    if (stack_offset == 0)
 	      {
-		/* Special-cased for two reasons --
-		 * it's common and can be optimized.
+		/* Special-cased for 3 reasons --
+		 * it's common, it's reference count handling is
+		 * a special case and it can be optimized.
 		 */
 		av_fill (stack, result_ix);
 		return -1;
@@ -976,19 +977,16 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
 	    if (stack_offset > 0)
 	      {
 		fetch_ix = result_ix + stack_offset;
-		if (fetch_ix > marpa_v_arg_n (v)) {
-		    av_fill (stack, result_ix - 1);
-		    return -1;
-		}
 	      }
 	    else
 	      {
 		fetch_ix = marpa_v_arg_n (v) - stack_offset + 1;
-		if (fetch_ix < result_ix)
-		  {
-		    av_fill (stack, result_ix - 1);
-		    return -1;
-		  }
+	      }
+	    if (fetch_ix > marpa_v_arg_n (v) || fetch_ix < result_ix)
+	      {
+		/* return an undef */
+		av_fill (stack, result_ix - 1);
+		return -1;
 	      }
 	    p_sv = av_fetch (stack, fetch_ix, 0);
 	    if (!p_sv)
@@ -1225,14 +1223,14 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
 	  }
 	  /* NOT REACHED */
 
-
 	case op_result_is_token_value:
 	  {
 	    SV **p_token_value_sv;
 
 	    if (step_type != MARPA_STEP_TOKEN)
 	      {
-		goto BAD_OP;
+		av_fill (stack, result_ix - 1);
+		return -1;
 	      }
 	    p_token_value_sv =
 	      av_fetch (v_wrapper->token_values, marpa_v_token_value (v), 0);
@@ -1247,7 +1245,8 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
 	      }
 	    else
 	      {
-		av_store (stack, result_ix, &PL_sv_undef);
+		av_fill (stack, result_ix - 1);
+		return -1;
 	      }
 
 	    if (v_wrapper->trace_values)
