@@ -20,7 +20,7 @@ use strict;
 use warnings;
 
 use vars qw($VERSION $STRING_VERSION);
-$VERSION        = '2.047_006';
+$VERSION        = '2.047_007';
 $STRING_VERSION = $VERSION;
 ## no critic(BuiltinFunctions::ProhibitStringyEval)
 $VERSION = eval $VERSION;
@@ -68,7 +68,7 @@ BEGIN {
 
     TRACE_FILE_HANDLE
     TRACE_G0
-    TRACE_LEXEMES
+    TRACE_TERMINALS
     READ_STRING_ERROR
 
 END_OF_STRUCTURE
@@ -1025,6 +1025,7 @@ sub Marpa::R2::Scanless::G::_source_to_hash {
     my $tree  = Marpa::R2::Thin::T->new($order);
     $tree->next();
     my $valuator = Marpa::R2::Thin::V->new($tree);
+    $valuator->valued_force();
     $valuator->slr_set($thin_meta_recce);
     my @actions_by_rule_id;
 
@@ -1034,7 +1035,6 @@ sub Marpa::R2::Scanless::G::_source_to_hash {
     for my $rule_id ( grep { $thin_meta_g1_grammar->rule_length($_); }
         0 .. $thin_meta_g1_grammar->highest_rule_id() )
     {
-        $valuator->rule_is_valued_set( $rule_id, 1 );
         my ( $lhs, @rhs ) =
             map { Marpa::R2::Grammar::original_symbol_name($_) }
             $meta_g1_tracer->rule($rule_id);
@@ -1275,7 +1275,7 @@ sub Marpa::R2::Scanless::G::_source_to_hash {
 
 my %recce_options = map { ($_, 1) } qw{
     grammar
-    trace_lexemes
+    trace_terminals
     trace_g0
     trace_values
     trace_file_handle
@@ -1326,8 +1326,8 @@ sub Marpa::R2::Scanless::R::new {
     if ( defined( my $value = $args->{'trace_g0'} ) ) {
         $self->[Marpa::R2::Inner::Scanless::R::TRACE_G0] = $value;
     }
-    if ( defined( my $value = $args->{'trace_lexemes'} ) ) {
-        $self->[Marpa::R2::Inner::Scanless::R::TRACE_LEXEMES] = $value;
+    if ( defined( my $value = $args->{'trace_terminals'} ) ) {
+        $self->[Marpa::R2::Inner::Scanless::R::TRACE_TERMINALS] = $value;
     }
 
     $self->[Marpa::R2::Inner::Scanless::R::GRAMMAR] = $grammar;
@@ -1392,14 +1392,14 @@ sub Marpa::R2::Scanless::R::read {
 
     my $trace_file_handle =
         $self->[Marpa::R2::Inner::Scanless::R::TRACE_FILE_HANDLE];
-    my $trace_lexemes =
-        $self->[Marpa::R2::Inner::Scanless::R::TRACE_LEXEMES] // 0;
+    my $trace_terminals =
+        $self->[Marpa::R2::Inner::Scanless::R::TRACE_TERMINALS] // 0;
     my $trace_g0 =
         $self->[Marpa::R2::Inner::Scanless::R::TRACE_G0] // 0;
-    my $i_am_tracing = $trace_lexemes || $trace_g0;
+    my $i_am_tracing = $trace_terminals || $trace_g0;
 
     my $thin_self = $self->[Marpa::R2::Inner::Scanless::R::C];
-    $thin_self->trace_lexemes($trace_lexemes) if $trace_lexemes;
+    $thin_self->trace_terminals($trace_terminals) if $trace_terminals;
     $thin_self->trace_g0($trace_g0) if $trace_g0;
     my $stream  = $thin_self->stream();
     my $grammar = $self->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
@@ -1570,7 +1570,7 @@ sub Marpa::R2::Scanless::R::read {
                 my ( $symbol_id, $re ) = @{$entry};
                 if ( chr($codepoint) =~ $re ) {
 
-                    if ($trace_lexemes) {
+                    if ($trace_terminals) {
                         say {$trace_file_handle}
                             'Registering character ',
                             ( sprintf 'U+%04x', $codepoint ),
@@ -1578,7 +1578,7 @@ sub Marpa::R2::Scanless::R::read {
                             $g0_tracer->symbol_name($symbol_id)
                             or
                             Marpa::R2::exception("Could not say(): $ERRNO");
-                    } ## end if ($trace_lexemes)
+                    } ## end if ($trace_terminals)
                     push @ops, $op_alternative, $symbol_id, 0, 1;
                 } ## end if ( chr($codepoint) =~ $re )
             } ## end for my $entry ( @{$class_table} )

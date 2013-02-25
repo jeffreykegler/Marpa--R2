@@ -26,7 +26,7 @@ no warnings qw(recursion qw);
 use strict;
 
 use vars qw($VERSION $STRING_VERSION);
-$VERSION        = '2.047_006';
+$VERSION        = '2.047_007';
 $STRING_VERSION = $VERSION;
 ## no critic(BuiltinFunctions::ProhibitStringyEval)
 $VERSION = eval $VERSION;
@@ -827,6 +827,16 @@ sub Marpa::R2::Grammar::brief_rule {
     my $quantifier = defined $minimum ? $minimum <= 0 ? q{*} : q{+} : q{};
     return ( join q{ }, "$rule_id:", $lhs, '->', @rhs ) . $quantifier;
 } ## end sub Marpa::R2::Grammar::brief_rule
+
+sub Marpa::R2::Grammar::brief_original_rule {
+    my ( $grammar, $rule_id ) = @_;
+    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
+    my $tracer = $grammar->[Marpa::R2::Internal::Grammar::TRACER];
+    my ( $lhs, @rhs ) = $tracer->rule($rule_id);
+    my $minimum = $grammar_c->sequence_min($rule_id);
+    my $quantifier = defined $minimum ? $minimum <= 0 ? q{*} : q{+} : q{};
+    return ( join q{ }, "$rule_id:", $lhs, '->', @rhs ) . $quantifier;
+} ## end sub Marpa::R2::Grammar::brief_original_rule
 
 sub Marpa::R2::Grammar::show_rule {
     my ( $grammar, $rule ) = @_;

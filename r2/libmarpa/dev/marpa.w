@@ -12986,8 +12986,7 @@ Marpa_Nook_ID _marpa_v_nook(Marpa_Value public_v)
     lbv_copy (v->t_obs, Valued_Locked_BV_of_B (b), xsy_count);
 }
 
-@ The settings here overrides the value
-set with the grammar.
+@
 @<Function definitions@> =
 int marpa_v_symbol_is_valued(
     Marpa_Value public_v,
@@ -13002,7 +13001,9 @@ int marpa_v_symbol_is_valued(
     return lbv_bit_test(XSY_is_Valued_BV_of_V(v), xsy_id);
 }
 
-@ @<Function definitions@> =
+@ The setting here overrides the value
+set with the grammar.
+@<Function definitions@> =
 PRIVATE int symbol_is_valued_set (
     VALUE v, XSYID xsy_id, int value)
 {
@@ -13041,6 +13042,32 @@ int marpa_v_symbol_is_valued_set (
     @<Fail if |xsy_id| is malformed@>@;
     @<Soft fail if |xsy_id| does not exist@>@;
     return symbol_is_valued_set(v, xsy_id, value);
+}
+
+@ Force all symbols to be locked as valued.
+Return failure if that is not possible.
+@<Function definitions@> =
+int
+marpa_v_valued_force (Marpa_Value public_v)
+{
+  const VALUE v = (VALUE)public_v;
+  @<Return |-2| on failure@>@;
+  XSYID xsy_count;
+  XSYID xsy_id;
+  @<Unpack value objects@>@;
+  @<Fail if fatal error@>@;
+  xsy_count = XSY_Count_of_G (g);
+  for (xsy_id = 0; xsy_id < xsy_count; xsy_id++)
+    {
+      if (UNLIKELY (!lbv_bit_test (XSY_is_Valued_BV_of_V (v), xsy_id) &&
+		    lbv_bit_test (Valued_Locked_BV_of_V (v), xsy_id)))
+	{
+	  return failure_indicator;
+	}
+      lbv_bit_set (Valued_Locked_BV_of_V (v), xsy_id);
+      lbv_bit_set (XSY_is_Valued_BV_of_V (v), xsy_id);
+    }
+  return xsy_count;
 }
 
 @ @<Function definitions@> =

@@ -194,6 +194,7 @@ Design notes
 
 Work in Progress
 
+* Experimental methods::        
 * Untested methods::            
 
 @end detailmenu
@@ -4774,17 +4775,45 @@ in Libmarpa.
 @chapter Work in Progress
 
 @menu
+* Experimental methods::        
 * Untested methods::            
 @end menu
 
-@node Untested methods,  , Work in Progress, Work in Progress
+@node Experimental methods, Untested methods, Work in Progress, Work in Progress
+@section Experimental methods
+
+The methods of this section are not in the external interface,
+because they are experimental.
+Their fate is uncertain.
+Users should regard these methods
+as unsupported.
+
+@deftypefun int marpa_v_valued_force ( @
+    Marpa_Value @var{v})
+
+This methods locks the valued status of all symbols
+to 1, indicated that the symbol is valued.
+If this is not possible, for example because one of
+the grammar's symbols already is locked at a valued 
+status of 0,
+failure is returned.
+
+Return value: On success, a non-negative number.
+On failure, returns @minus{}2,
+and sets the error code to an appropriate
+value, which will never be
+@code{MARPA_ERR_NONE}.
+
+@end deftypefun
+
+@node Untested methods,  , Experimental methods, Work in Progress
 @section Untested methods
 
 The methods of this section are not in the external interface,
 because they have not been adequately tested.
 Their fate is uncertain.
 Users should regard these methods
-as experimental and unsupported.
+as unsupported.
 
 @deftypefun Marpa_Rank marpa_g_default_rank ( @
     Marpa_Grammar @var{g})

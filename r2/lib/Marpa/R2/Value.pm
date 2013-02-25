@@ -20,7 +20,7 @@ use warnings;
 use strict;
 
 use vars qw($VERSION $STRING_VERSION);
-$VERSION        = '2.047_006';
+$VERSION        = '2.047_007';
 $STRING_VERSION = $VERSION;
 ## no critic (BuiltinFunctions::ProhibitStringyEval)
 $VERSION = eval $VERSION;
@@ -357,19 +357,15 @@ sub Marpa::R2::Internal::Recognizer::semantics_set {
             q{}
         };
 
-        my @rules_by_lhs;
-        my @whatevers_by_lhs;
         RULE:
         for my $rule_id ( $grammar->rule_ids() ) {
             my ( $new_resolution, $closure, $semantics, $blessing ) =
                 @{ $rule_resolutions->[$rule_id] };
             my $lhs_id = $grammar_c->rule_lhs($rule_id);
-            $rules_by_lhs[$lhs_id]++;
 
             # Normalize array semantics
             $semantics =~ s/ //gxms if ( substr $semantics, 0, 1 ) eq '[';
 
-            $whatevers_by_lhs[$lhs_id]++ if $semantics eq '::whatever';
             $semantics_by_rule_id[$rule_id] = $semantics;
             $blessing_by_rule_id[$rule_id]  = $blessing;
 
@@ -405,36 +401,6 @@ sub Marpa::R2::Internal::Recognizer::semantics_set {
 
         } ## end RULE: for my $rule_id ( $grammar->rule_ids() )
 
-        # Because a "whatever" resolution can be *anything*, it cannot
-        # be used along with a non-whatever resolution.  That is because
-        # you could never be sure that what seems to be
-        # a valid non-whatever resolution is not something random from
-        # a whatever resolution
-
-        # Look for LHS id has more than one rule with whatever semantics
-        # and at least one rule without "whatever" semantics.
-        my @problem_lhs_ids = grep {
-                    $whatevers_by_lhs[$_]
-                and $whatevers_by_lhs[$_] != $rules_by_lhs[$_]
-        } ( 0 .. $#whatevers_by_lhs );
-        if ( scalar @problem_lhs_ids ) {
-
-            # Just report for one of them
-            my $problem_lhs_id = pop @problem_lhs_ids;
-
-            my @problem_rule_ids =
-                grep { $problem_lhs_id == grammar_c->rule_lhs($_) }
-                $grammar->rule_ids();
-            Marpa::R2::exception(
-                'Symbol "',
-                $grammar->symbol_name($problem_lhs_id),
-                qq{ has both "whatever" semantics and "real" semantics\n},
-                q{  Mixing "real" (non-"whatever") and "whatever" semantics is not allowed.},
-                q{  The problem is that there is no way to tell them apart.},
-                qq{  The rules involved are:\n},
-                brief_rule_list( $recce, \@problem_rule_ids )
-            );
-        } ## end if ( scalar @problem_lhs_ids )
     } ## end CHECK_FOR_WHATEVER_CONFLICT
 
     # A LHS can be nullable via more than one rule,
@@ -519,7 +485,9 @@ sub Marpa::R2::Internal::Recognizer::semantics_set {
                 qq{  can have more than one semantics\n},
                 qq{  Marpa needs there to be only one semantics\n},
                 qq{  The rules involved are:\n},
-                brief_rule_list( $recce, $rule_ids ),
+                Marpa::R2::Internal::Recognizer::brief_rule_list(
+                    $recce, $rule_ids
+                )
             );
         } ## end OTHER_RESOLUTION: for my $other_resolution (@other_resolutions)
 
@@ -769,6 +737,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
     my $blessing_by_symbol_id = $rule_resolutions->{blessing_by_symbol};
 
     my $value = Marpa::R2::Thin::V->new($tree);
+    $value->valued_force();
     if ( my $slr = $recce->[Marpa::R2::Internal::Recognizer::SLR] ) {
         $value->set_slr($slr);
     }
@@ -798,15 +767,6 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
     my @work_list = ();
     RULE: for my $rule_id ( $grammar->rule_ids() ) {
-        my $result = $value->rule_is_valued_set( $rule_id, 1 );
-        if ( not $result ) {
-            my $lhs_id   = $grammar_c->rule_lhs($rule_id);
-            my $lhs_name = $grammar->symbol_name($lhs_id);
-            Marpa::R2::exception(
-                qq{Cannot assign values to rule $rule_id (lhs is "$lhs_name") },
-                q{because the LHS was already treated as an unvalued symbol}
-            );
-        } ## end if ( not $result )
 
         my $semantics = $semantics_by_rule_id->[$rule_id];
         my $blessing  = $blessing_by_rule_id->[$rule_id];
@@ -1023,7 +983,6 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
         } ## end SET_OPS:
 
         if ( defined $rule_id ) {
-            $value->rule_register( $rule_id, @ops );
             {
                 say {$trace_file_handle} "Registering semantics for rule: ",
                     $grammar->brief_rule($rule_id),
@@ -1033,15 +992,6 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                     Marpa::R2::exception("Cannot say to trace file handle");
             }
             if ( defined $symbol_id ) {
-
-        my $result = $value->symbol_is_valued_set( $symbol_id, 1 );
-        if ( not $result ) {
-            my $lexeme_name = $grammar->symbol_name($symbol_id);
-            Marpa::R2::exception(
-                qq{Cannot assign values to symbol "$lexeme_name"},
-                q{because it was already treated as an unvalued symbol}
-            );
-        } ## end if ( not $result )
 
                 $value->nulling_symbol_register( $symbol_id, @ops );
                 say {$trace_file_handle} "Registering semantics for symbol: ",
@@ -1059,14 +1009,6 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
     for my $lexeme_id ( grep { defined $blessing_by_symbol_id->[$_] }
         0 .. $#{$blessing_by_symbol_id} )
     {
-        my $result = $value->symbol_is_valued_set( $lexeme_id, 1 );
-        if ( not $result ) {
-            my $lexeme_name = $grammar->symbol_name($lexeme_id);
-            Marpa::R2::exception(
-                qq{Cannot assign values to symbol "$lexeme_name"},
-                q{because it was already treated as an unvalued symbol}
-            );
-        } ## end if ( not $result )
 
         my ($blessing) = $blessing_by_symbol_id->[$lexeme_id];
 

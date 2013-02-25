@@ -20,7 +20,7 @@ use strict;
 use warnings;
 
 use vars qw($VERSION $STRING_VERSION);
-$VERSION        = '2.047_006';
+$VERSION        = '2.047_007';
 $STRING_VERSION = $VERSION;
 ## no critic(BuiltinFunctions::ProhibitStringyEval)
 $VERSION = eval $VERSION;
@@ -429,6 +429,7 @@ sub parse_rules {
     my $tree  = Marpa::R2::Thin::T->new($order);
     $tree->next();
     my $valuator = Marpa::R2::Thin::V->new($tree);
+    $valuator->valued_force();
     $valuator->slr_set($thin_meta_slr);
     my @actions_by_rule_id;
 
@@ -438,7 +439,6 @@ sub parse_rules {
     for my $rule_id ( grep { $thin_meta_g1_grammar->rule_length($_); }
         0 .. $thin_meta_g1_grammar->highest_rule_id() )
     {
-        $valuator->rule_is_valued_set( $rule_id, 1 );
         my ( $lhs, @rhs ) =
             map { Marpa::R2::Grammar::original_symbol_name($_) }
             $meta_g1_tracer->rule($rule_id);

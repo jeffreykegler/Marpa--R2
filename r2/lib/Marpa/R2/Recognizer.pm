@@ -21,7 +21,7 @@ use strict;
 use English qw( -no_match_vars );
 
 use vars qw($VERSION $STRING_VERSION);
-$VERSION        = '2.047_006';
+$VERSION        = '2.047_007';
 $STRING_VERSION = $VERSION;
 ## no critic(BuiltinFunctions::ProhibitStringyEval)
 $VERSION = eval $VERSION;
@@ -164,8 +164,9 @@ sub Marpa::R2::Recognizer::new {
     $recce->[Marpa::R2::Internal::Recognizer::RANKING_METHOD] = 'none';
     $recce->[Marpa::R2::Internal::Recognizer::MAX_PARSES]     = 0;
 
-    # First position is reserved for undef
-    $recce->[Marpa::R2::Internal::Recognizer::TOKEN_VALUES] = [undef];
+    # First position is not used because 0 indicates an unvalued token.
+    # Second position is reserved for undef.
+    $recce->[Marpa::R2::Internal::Recognizer::TOKEN_VALUES] = [undef, undef];
 
     $recce->reset_evaluation();
 
@@ -607,12 +608,7 @@ sub Marpa::R2::Recognizer::show_progress {
 sub Marpa::R2::Recognizer::read {
     my $arg_count = scalar @_;
     my ( $recce, $symbol_name, $value ) = @_;
-    if ( $arg_count > 2 ) {
-        return if not $recce->alternative( $symbol_name, \$value );
-    }
-    else {
-        return if not $recce->alternative($symbol_name);
-    }
+    return if not $recce->alternative( $symbol_name, \$value );
     return $recce->earleme_complete();
 } ## end sub Marpa::R2::Recognizer::read
 
@@ -648,7 +644,7 @@ sub Marpa::R2::Recognizer::alternative {
             qq{alternative(): symbol "$symbol_name" does not exist});
     }
 
-    my $value_ix = 0;
+    my $value_ix = 1; # undef
     SET_VALUE_IX: {
         last SET_VALUE_IX if not defined $value_ref;
         my $ref_type = ref $value_ref;
@@ -659,10 +655,13 @@ sub Marpa::R2::Recognizer::alternative {
             Marpa::R2::exception('alternative(): value must be undef or ref');
         } ## end if ( $ref_type ne 'SCALAR' and $ref_type ne 'REF' and...)
         $value_ix = scalar @{$token_values};
-        push @{$token_values}, ${$value_ref};
+	my $value = ${$value_ref};
+	last SET_VALUE_IX if not defined $value;
+        push @{$token_values}, $value;
     } ## end SET_VALUE_IX:
     $length //= 1;
 
+    # value_ix is *never* zero.
     my $result = $recce_c->alternative( $symbol_id, $value_ix, $length );
 
     my $trace_terminals =
