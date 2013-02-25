@@ -86,7 +86,7 @@ sub Marpa::R2::Internal::Recognizer::resolve_action {
         $recce->[Marpa::R2::Internal::Recognizer::TRACE_ACTIONS];
 
     # A reserved closure name;
-    return [ q{}, undef, '::undef' ] if not defined $closure_name;
+    return [ q{}, undef, '::default' ] if not defined $closure_name;
 
     if ( $closure_name eq q{} ) {
         return q{The action string cannot be the empty string};
@@ -106,7 +106,7 @@ sub Marpa::R2::Internal::Recognizer::resolve_action {
                 or Marpa::R2::exception('Could not print to trace file');
         }
 
-        return [ $closure_name, $closure, q{} ];
+        return [ $closure_name, $closure, '::array' ];
     } ## end if ( my $closure = $closures->{$closure_name} )
 
     my $fully_qualified_name;
@@ -169,7 +169,7 @@ sub Marpa::R2::Internal::Recognizer::resolve_action {
                 'to ', $fully_qualified_name, "\n"
                 or Marpa::R2::exception('Could not print to trace file');
         } ## end if ($trace_actions)
-        return [ $fully_qualified_name, $closure, q{} ];
+        return [ $fully_qualified_name, $closure, '::array' ];
     } ## end if ( defined $closure )
 
     my $error =
@@ -244,9 +244,9 @@ sub Marpa::R2::Internal::Recognizer::default_semantics {
 
     my $rule_resolutions = [];
 
-    RULE: for my $rule ( @{$rules} ) {
+    RULE: for my $rule_id ( $grammar->rule_ids() ) {
 
-        my $rule_id = $rule->[Marpa::R2::Internal::Rule::ID];
+        my $rule = $rules->[$rule_id];
 
         if ( my $action = $rule->[Marpa::R2::Internal::Rule::ACTION_NAME] ) {
             my $resolution = Marpa::R2::Internal::Recognizer::add_blessing(
@@ -773,9 +773,6 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
         my $semantics = $semantics_by_rule_id->[$rule_id];
         my $blessing  = $blessing_by_rule_id->[$rule_id];
 
-        $semantics = '[values]' if not defined $semantics;
-        $semantics = '[values]' if $semantics eq q{};
-
         if ( $semantics eq '::dwim' ) {
             DWIM: {
                 my $rule        = $rules->[$rule_id];
@@ -794,6 +791,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
             } ## end DWIM:
         } ## end if ( $semantics eq '::dwim' )
 
+        $semantics = '::undef'  if $semantics eq '::default';
         $semantics = '[values]' if $semantics eq '::array';
         $semantics = '::undef'  if $semantics eq '::whatever';
         $semantics = '::rhs0'   if $semantics eq '::first';
