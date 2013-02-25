@@ -994,7 +994,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
             if ( defined $symbol_id ) {
 
                 $value->nulling_symbol_register( $symbol_id, @ops );
-                say {$trace_file_handle} "Registering semantics for symbol: ",
+                say {$trace_file_handle} "Registering semantics for nulling symbol: ",
                     $grammar->symbol_name($symbol_id),
                     "\n", "  Semantics are ", join q{ },
                     map { Marpa::R2::Thin::op_name($_) } @ops
