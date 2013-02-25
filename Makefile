@@ -1,4 +1,4 @@
-# Copyright 2011 Jeffrey Kegler
+# Copyright 2013 Jeffrey Kegler
 # This file is part of Marpa::R2.  Marpa::R2 is free software: you can
 # redistribute it and/or modify it under the terms of the GNU Lesser
 # General Public License as published by the Free Software Foundation,
@@ -30,10 +30,8 @@ full_test: etc_make
 	    ./Build disttest; \
 	) 2>&1 | tee full_test.out
 
-r2/xs/general_pattern.xsh: r2/xs/gp_generate.pl
-	(cd r2/xs; perl gp_generate.pl general_pattern.xsh)
-
-install: r2/xs/general_pattern.xsh
+install:
+	(cd r2/xs && make)
 	test -d r2/libmarpa_dist || mkdir r2/libmarpa_dist
 	test -d r2/libmarpa_doc_dist || mkdir r2/libmarpa_doc_dist
 	(cd r2 && sh c_to_dist.sh)
