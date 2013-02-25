@@ -194,6 +194,14 @@ sub Marpa::R2::Internal::Recognizer::add_blessing {
     return [ $closure_name, $closure, $semantics, q{} ]
         if not defined $blessing;
 
+    $semantics = '::array' if $semantics eq '::default';
+    CHECK_SEMANTICS: {
+        last CHECK_SEMANTICS if $semantics eq '::dwim';
+        last CHECK_SEMANTICS if $semantics eq '::array';
+        last CHECK_SEMANTICS if substr $semantics, 0, 1 eq '[';
+        return qq{Attempt to bless, but improper semantics: "$semantics"};
+    }
+
     # Now figure out the blessings
     my $bless_package =
         $grammar->[Marpa::R2::Internal::Grammar::BLESS_PACKAGE];
@@ -246,43 +254,57 @@ sub Marpa::R2::Internal::Recognizer::default_semantics {
 
     RULE: for my $rule_id ( $grammar->rule_ids() ) {
 
-        my $rule = $rules->[$rule_id];
+        my $rule   = $rules->[$rule_id];
+        my $action = $rule->[Marpa::R2::Internal::Rule::ACTION_NAME];
 
-        if ( my $action = $rule->[Marpa::R2::Internal::Rule::ACTION_NAME] ) {
-            my $resolution = Marpa::R2::Internal::Recognizer::add_blessing(
-                $recce,
-                Marpa::R2::Internal::Recognizer::resolve_action(
-                    $recce, $action
-                ),
-                $rule->[Marpa::R2::Internal::Rule::BLESSING]
-            );
+        my $rule_resolution;
+        DETERMINE_RULE_RESOLUTION: {
+            if ($action) {
+                $rule_resolution =
+                    Marpa::R2::Internal::Recognizer::add_blessing(
+                    $recce,
+                    Marpa::R2::Internal::Recognizer::resolve_action(
+                        $recce, $action
+                    ),
+                    $rule->[Marpa::R2::Internal::Rule::BLESSING]
+                    );
 
-            Marpa::R2::exception(
-                qq{Could not resolve action name: "$action"},
-                q{  }, ( $resolution // 'Failed to resolve action' ) )
-                if not ref $resolution;
-            $rule_resolutions->[$rule_id] = $resolution;
-            next RULE;
-        } ## end if ( my $action = $rule->[...])
+                last DETERMINE_RULE_RESOLUTION;
+            } ## end if ($action)
 
-        if (    $default_empty_action
-            and $grammar_c->rule_length($rule_id) == 0 )
-        {
-            $rule_resolutions->[$rule_id] =
-                Marpa::R2::Internal::Recognizer::add_blessing(
-                $recce,
-                $default_empty_action_resolution,
-                $rule->[Marpa::R2::Internal::Rule::BLESSING]
-                );
-            next RULE;
-        } ## end if ( $default_empty_action and $grammar_c->rule_length...)
+            if (    $default_empty_action
+                and $grammar_c->rule_length($rule_id) == 0 )
+            {
+                $rule_resolution =
+                    Marpa::R2::Internal::Recognizer::add_blessing(
+                    $recce,
+                    $default_empty_action_resolution,
+                    $rule->[Marpa::R2::Internal::Rule::BLESSING]
+                    );
+                last DETERMINE_RULE_RESOLUTION;
+            } ## end if ( $default_empty_action and $grammar_c->rule_length...)
 
-        $rule_resolutions->[$rule_id] =
-            Marpa::R2::Internal::Recognizer::add_blessing( $recce,
-            $default_action_resolution,
-            $rule->[Marpa::R2::Internal::Rule::BLESSING] );
+            $rule_resolution =
+                Marpa::R2::Internal::Recognizer::add_blessing( $recce,
+                $default_action_resolution,
+                $rule->[Marpa::R2::Internal::Rule::BLESSING] );
 
-    } ## end RULE: for my $rule ( @{$rules} )
+            last DETERMINE_RULE_RESOLUTION;
+        } ## end DETERMINE_RULE_RESOLUTION:
+
+        if ( not ref $rule_resolution ) {
+            my $message =
+                  "Could not resolve action\n"
+                . q{  Rule was }
+                . $grammar->brief_rule($rule_id) . "\n";
+            $message .= qq{  Action was specified as "$action"\n}
+                if defined $action;
+            $message .= qq{  $rule_resolution\n} if defined $rule_resolution;
+            Marpa::R2::exception($message);
+        } ## end if ( not ref $rule_resolution )
+        $rule_resolutions->[$rule_id] = $rule_resolution;
+
+    } ## end RULE: for my $rule_id ( $grammar->rule_ids() )
 
     if ( $trace_actions >= 2 ) {
         RULE: for my $rule_id ( 0 .. $#{$rules} ) {
@@ -306,7 +328,7 @@ sub Marpa::R2::Internal::Recognizer::default_semantics {
         if ( $blessing =~ m/\A [:][:] /xms ) {
             my $symbol_name = $tracer->symbol_name($symbol_id);
             Marpa::R2::exception(
-                qq{Symbol "$symbol_name" has unknown blessing: "$blessing"});
+                qq{Symbol "$symbol_name" has unknown blessing: "$blessing"} );
         }
         if ( $blessing =~ m/ [:][:] /xms ) {
             $symbol_resolutions[$symbol_id] = [$blessing];
@@ -324,6 +346,7 @@ sub Marpa::R2::Internal::Recognizer::default_semantics {
     } ## end SYMBOL: for my $symbol_id ( 0 .. $#{$symbols} )
 
     return ( $rule_resolutions, \@symbol_resolutions );
+
 } ## end sub Marpa::R2::Internal::Recognizer::default_semantics
 
 # For diagnostics
