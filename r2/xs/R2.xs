@@ -98,7 +98,7 @@ typedef struct {
      G_Wrapper* g1_wrapper;
      AV* event_queue;
      int trace_level;
-     int trace_lexemes;
+     int trace_terminals;
      STRLEN start_of_lexeme;
      STRLEN end_of_lexeme;
      int please_start_lex_recce;
@@ -1328,7 +1328,7 @@ slr_alternative (Scanless_R * slr, Marpa_Symbol_ID lexeme, IV attempted)
   int result;
   Marpa_Recce r1 = slr->r1;
   int trace_level = slr->trace_level;
-  int trace_lexemes = slr->trace_lexemes;
+  int trace_terminals = slr->trace_terminals;
   Marpa_Earley_Set_ID latest_earley_set = marpa_r_latest_earley_set (r1);
   STRLEN start_pos = slr->start_of_lexeme;
   STRLEN end_pos = slr->end_of_lexeme;
@@ -1353,7 +1353,7 @@ slr_alternative (Scanless_R * slr, Marpa_Symbol_ID lexeme, IV attempted)
 	    ("slr->read() R1 Rejected unexpected symbol %d at pos %d",
 	     lexeme, (int) slr->stream->perl_pos);
 	}
-      if (trace_lexemes)
+      if (trace_terminals)
 	{
 	  AV *event;
 	  SV *event_data[4];
@@ -1373,7 +1373,7 @@ slr_alternative (Scanless_R * slr, Marpa_Symbol_ID lexeme, IV attempted)
 	    ("slr->read() R1 Rejected duplicate symbol %d at pos %d",
 	     lexeme, (int) slr->stream->perl_pos);
 	}
-      if (trace_lexemes)
+      if (trace_terminals)
 	{
 	  AV *event;
 	  SV *event_data[4];
@@ -1393,7 +1393,7 @@ slr_alternative (Scanless_R * slr, Marpa_Symbol_ID lexeme, IV attempted)
 	    ("slr->read() R1 Accepted symbol %d at pos %d",
 	     lexeme, (int) slr->stream->perl_pos);
 	}
-      if (trace_lexemes)
+      if (trace_terminals)
 	{
 	  AV *event;
 	  SV *event_data[4];
@@ -1476,7 +1476,7 @@ slr_alternatives (Scanless_R * slr, IV * lexemes_found,
 	  if (g1_lexeme <= -2)
 	    {
 	      lexemes_discarded++;
-	      if (slr->trace_lexemes)
+	      if (slr->trace_terminals)
 		{
 		  AV *event;
 		  SV *event_data[4];
@@ -1498,7 +1498,7 @@ slr_alternatives (Scanless_R * slr, IV * lexemes_found,
 	   */
 	  if (r1_is_exhausted)
 	    {
-	      if (slr->trace_lexemes)
+	      if (slr->trace_terminals)
 		{
 		  AV *event;
 		  SV *event_data[4];
@@ -1512,7 +1512,7 @@ slr_alternatives (Scanless_R * slr, IV * lexemes_found,
 	      goto NEXT_REPORT_ITEM;
 	    }
 
-	  /* trace_lexemes done inside slr_alternative */
+	  /* trace_terminals done inside slr_alternative */
 	  slr_alternative (slr, g1_lexeme, *lexemes_attempted);
 	  (*lexemes_attempted)++;
 	NEXT_REPORT_ITEM:;
@@ -4564,7 +4564,7 @@ PPCODE:
   Newx (slr, 1, Scanless_R);
 
   slr->trace_level = 0;
-  slr->trace_lexemes = 0;
+  slr->trace_terminals = 0;
 
   # Copy and take references to the "parent objects",
   # the ones responsible for holding references.
@@ -4639,7 +4639,7 @@ PPCODE:
   stream->trace_g0 = new_level;
   if (slr->trace_level) {
     /* Note that we use *trace_level*, not *trace_g0* to control warning.
-     * We never warn() for trace_lexemes, just report events.
+     * We never warn() for trace_terminals, just report events.
      */
     warn("Changing SLR g0 trace level from %d to %d", (int)old_level, (int)new_level);
   }
@@ -4647,18 +4647,18 @@ PPCODE:
 }
 
 void
-trace_lexemes( slr, new_level )
+trace_terminals( slr, new_level )
     Scanless_R *slr;
     int new_level;
 PPCODE:
 {
-  IV old_level = slr->trace_lexemes;
-  slr->trace_lexemes = new_level;
+  IV old_level = slr->trace_terminals;
+  slr->trace_terminals = new_level;
   if (slr->trace_level) {
-    /* Note that we use *trace_level*, not *trace_lexemes* to control warning.
-     * We never warn() for trace_lexemes, just report events.
+    /* Note that we use *trace_level*, not *trace_terminals* to control warning.
+     * We never warn() for trace_terminals, just report events.
      */
-    warn("Changing SLR trace_lexemes level from %d to %d", (int)old_level, (int)new_level);
+    warn("Changing SLR trace_terminals level from %d to %d", (int)old_level, (int)new_level);
   }
   XSRETURN_IV(old_level);
 }
@@ -4777,7 +4777,7 @@ PPCODE:
 	    }
 	}
 
-      if (slr->trace_lexemes || stream->trace_g0)
+      if (slr->trace_terminals || stream->trace_g0)
 	{
 	  XSRETURN_PV ("trace");
 	}
