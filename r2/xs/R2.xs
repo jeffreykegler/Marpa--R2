@@ -907,6 +907,20 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
     {
       IV op_code = ops[op_ix++];
 
+      if (v_wrapper->trace_values > 2)
+	{
+	  AV *event;
+	  SV *event_data[3];
+	  const char *result_string = step_type_to_string (step_type);
+	  if (!result_string)
+	    result_string = "valuator unknown step";
+	  event_data[0] = newSVpvs ("starting op");
+	  event_data[1] = newSVpv (result_string, 0);
+	  event_data[2] = newSVpv (op_to_op_name (op_code), 0);
+	  event = av_make (Dim (event_data), event_data);
+	  av_push (v_wrapper->event_queue, newRV_noinc ((SV *) event));
+	}
+
       switch (op_code)
 	{
 
@@ -1128,29 +1142,29 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
 
 	case op_push_undef:
 	  {
-	  PUSH_UNDEF:;
 	    if (!values_av)
 	      {
 		values_av = (AV *) sv_2mortal ((SV *) newAV ());
 	      }
 	    av_push (values_av, &PL_sv_undef);
 	  }
-	  break;
+	  goto NEXT_OP_CODE;
 
 	case op_push_one:
 	  {
 	    int offset;
 	    SV **p_sv;
 
-	    if (step_type != MARPA_STEP_RULE)
-	      {
-		goto PUSH_UNDEF;
-	      }
+	    offset = ops[op_ix++];
 	    if (!values_av)
 	      {
 		values_av = (AV *) sv_2mortal ((SV *) newAV ());
 	      }
-	    offset = ops[op_ix++];
+	    if (step_type != MARPA_STEP_RULE)
+	      {
+		av_push (values_av, &PL_sv_undef);
+		goto NEXT_OP_CODE;
+	      }
 	    p_sv = av_fetch (stack, result_ix + offset, 0);
 	    if (!p_sv)
 	      {
@@ -1161,7 +1175,7 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
 		av_push (values_av, SvREFCNT_inc_simple_NN (*p_sv));
 	      }
 	  }
-	  break;
+	  goto NEXT_OP_CODE;
 
 	case op_push_slr_range:
 	  {
@@ -1307,6 +1321,9 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
 	       step_type_string);
 	  }
 	}
+
+	NEXT_OP_CODE: ; /* continue while(1) loop */
+
     }
 
   return -1;
