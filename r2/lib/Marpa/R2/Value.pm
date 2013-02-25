@@ -86,7 +86,7 @@ sub Marpa::R2::Internal::Recognizer::resolve_action {
         $recce->[Marpa::R2::Internal::Recognizer::TRACE_ACTIONS];
 
     # A reserved closure name;
-    return [ q{}, undef, '::whatever' ] if not defined $closure_name;
+    return [ q{}, undef, '::undef' ] if not defined $closure_name;
 
     if ( $closure_name eq q{} ) {
         return q{The action string cannot be the empty string};
@@ -352,6 +352,8 @@ sub Marpa::R2::Internal::Recognizer::semantics_set {
     # Set the arrays, and perform various checks on the resolutions
     # we received
     {
+        # ::whatever is deprecated and has been removed from the docs
+        # it is now equivalent to ::undef
         state $allowed_semantics = {
             map { ; ( $_, 1 ) } qw(::array ::dwim ::undef ::first ::whatever),
             q{}
