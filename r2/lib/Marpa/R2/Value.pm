@@ -736,6 +736,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
     my $blessing_by_symbol_id = $rule_resolutions->{blessing_by_symbol};
 
     my $value = Marpa::R2::Thin::V->new($tree);
+    $value->valued_force();
     if ( my $slr = $recce->[Marpa::R2::Internal::Recognizer::SLR] ) {
         $value->set_slr($slr);
     }
@@ -765,15 +766,6 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
     my @work_list = ();
     RULE: for my $rule_id ( $grammar->rule_ids() ) {
-        my $result = $value->rule_is_valued_set( $rule_id, 1 );
-        if ( not $result ) {
-            my $lhs_id   = $grammar_c->rule_lhs($rule_id);
-            my $lhs_name = $grammar->symbol_name($lhs_id);
-            Marpa::R2::exception(
-                qq{Cannot assign values to rule $rule_id (lhs is "$lhs_name") },
-                q{because the LHS was already treated as an unvalued symbol}
-            );
-        } ## end if ( not $result )
 
         my $semantics = $semantics_by_rule_id->[$rule_id];
         my $blessing  = $blessing_by_rule_id->[$rule_id];
@@ -998,14 +990,6 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
     for my $token_id ( grep { defined $null_values->[$_] }
         0 .. $#{$null_values} )
     {
-        my $result = $value->symbol_is_valued_set( $token_id, 1 );
-        if ( not $result ) {
-            my $token_name = $grammar->symbol_name($token_id);
-            Marpa::R2::exception(
-                qq{Cannot assign values to symbol "$token_name"},
-                q{because it was already treated as an unvalued symbol}
-            );
-        } ## end if ( not $result )
 
         my $semantic_rule_id = $null_values->[$token_id];
         my $closure_ref      = $closure_by_rule_id->[$semantic_rule_id];
@@ -1046,14 +1030,6 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
     for my $lexeme_id ( grep { defined $blessing_by_symbol_id->[$_] }
         0 .. $#{$blessing_by_symbol_id} )
     {
-        my $result = $value->symbol_is_valued_set( $lexeme_id, 1 );
-        if ( not $result ) {
-            my $lexeme_name = $grammar->symbol_name($lexeme_id);
-            Marpa::R2::exception(
-                qq{Cannot assign values to symbol "$lexeme_name"},
-                q{because it was already treated as an unvalued symbol}
-            );
-        } ## end if ( not $result )
 
         my ($blessing) = $blessing_by_symbol_id->[$lexeme_id];
 
