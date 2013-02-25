@@ -983,23 +983,24 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
         } ## end SET_OPS:
 
         if ( defined $rule_id ) {
-            if (0) {
+            $value->rule_register( $rule_id, @ops );
+            if ($trace_values > 2) {
                 say {$trace_file_handle} "Registering semantics for rule: ",
                     $grammar->brief_rule($rule_id),
                     "\n", "  Semantics are ", join q{ },
-                    ( map { Marpa::R2::Thin::op_name($_) } @ops )
+                        (map { Marpa::R2::Thin::op_name($_) . '=' . $_ } @ops)
                     or
                     Marpa::R2::exception("Cannot say to trace file handle");
             } ## end if (0)
             if ( defined $symbol_id ) {
 
                 $value->nulling_symbol_register( $symbol_id, @ops );
-                if (0) {
+                if ($trace_values > 2) {
                     say {$trace_file_handle}
                         "Registering semantics for nulling symbol: ",
                         $grammar->symbol_name($symbol_id),
                         "\n", "  Semantics are ", join q{ },
-                        map { Marpa::R2::Thin::op_name($_) } @ops
+                        (map { Marpa::R2::Thin::op_name($_) . '=' . $_ } @ops)
                         or Marpa::R2::exception(
                         "Cannot say to trace file handle");
                 } ## end if (0)
