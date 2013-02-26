@@ -206,9 +206,21 @@ our $PROTO_ALTERNATIVE;
 BEGIN { $PROTO_ALTERNATIVE = __PACKAGE__; }
 
 sub combine {
-    for my $item (@_) {
-    }
-}
+    my ( $class, @hashes ) = @_;
+    my $self = bless {}, $class;
+    for my $hash_to_add (@hashes) {
+        for my $key ( keys %{$hash_to_add} ) {
+            Marpa::R2::exception(
+                'duplicate key in ',
+                $PROTO_ALTERNATIVE,
+                "::combine(): $key"
+            ) if exists $self->{$key};
+
+            $self->{$key} = $hash_to_add->{$key};
+        } ## end for my $key ( keys %{$hash_to_add} )
+    } ## end for my $hash_to_add (@hashes)
+    return $self;
+} ## end sub combine
 
 package Marpa::R2::Internal::MetaG_Nodes::kwc_ws_star;
 sub evaluate { return create_internal_symbol($_[1], $_[0]->[0]) }
@@ -385,14 +397,12 @@ package Marpa::R2::Internal::MetaG_Nodes::adverb_item;
 sub evaluate {
     my ( $values ) = @_;
     my $child = $values->[2]->evaluate();
-    say STDERR __LINE__, ' ', Data::Dumper::Dumper($child);
     return bless $child, $PROTO_ALTERNATIVE;
 }
 
-# package Marpa::R2::Internal::MetaG_Nodes::adverb_list;
-# sub evaluate {
-    # my ( $values ) = @_;
-    # my (undef, undef, $first_adverb_item, @remaining_adverb_items ) = @{$values};
-    # return bless [], $PROTO_ALTERNATIVE if not defined $first_adverb_item;
-    # return $first_adverb_item->combine(@remaining_adverb_items);
-# }
+package Marpa::R2::Internal::MetaG_Nodes::adverb_list;
+sub evaluate {
+    my ( $values ) = @_;
+    my (@adverb_items ) = map { $_->evaluate() } @{$values};
+    return Marpa::R2::Internal::Meta_AST::Proto_Alternative->combine( @adverb_items);
+}
