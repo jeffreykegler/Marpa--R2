@@ -461,6 +461,24 @@ sub do_default_rule {
     return [];
 } ## end sub do_default_rule
 
+sub do_lexeme_rule {
+    my ( $self, $lhs, undef, $adverb_list ) = @_;
+    $self->{lexeme_adverbs} = {};
+    ADVERB: for my $key ( keys %{$adverb_list} ) {
+        my $value = $adverb_list->{$key};
+        if ( $key eq 'action' ) {
+            $self->{lexeme_adverbs}->{$key} = $value;
+            next ADVERB;
+        }
+        if ( $key eq 'bless' ) {
+            $self->{lexeme_adverbs}->{$key} = $value;
+            next ADVERB;
+        }
+        Marpa::R2::exception(qq{"$key" adverb not allowed in lexeme rule"});
+    } ## end ADVERB: for my $key ( keys %{$adverb_list} )
+    return [];
+} ## end sub do_lexeme_rule
+
 ## no critic(Subroutines::ProhibitManyArgs)
 sub do_quantified_rule {
     my ( $self, $lhs, $op_declare, $rhs, $quantifier, $adverb_list ) = @_;
@@ -612,6 +630,7 @@ my %hashed_closures = (
     do_discard_rule              => \&do_discard_rule,
     do_empty_rule                => \&do_empty_rule,
     do_default_rule                => \&do_default_rule,
+    do_lexeme_rule                => \&do_lexeme_rule,
     do_bless_lexemes                => \&do_bless_lexemes,
     do_lhs                       => \&do_lhs,
     do_op_declare_bnf            => \&do_op_declare_bnf,
@@ -961,6 +980,7 @@ my %actions_by_lhs_symbol = (
     'priority rule'                  => 'do_priority_rule',
     'empty rule'                     => 'do_empty_rule',
     'default rule'                     => 'do_default_rule',
+    'lexeme rule'                     => 'do_lexeme_rule',
     'bless lexemes statement'                     => 'do_bless_lexemes',
     'quantified rule'                => 'do_quantified_rule',
     'discard rule'                   => 'do_discard_rule',
@@ -1056,6 +1076,7 @@ sub Marpa::R2::Scanless::G::_source_to_hash {
         my $rule = $meta_g1_rules->[$rule_id];
         $action = $rule->[Marpa::R2::Internal::Rule::ACTION_NAME];
         $action = undef if $action eq '::dwim';    # temporary hack
+        $action = undef if (substr $action, 0, 1) eq '[';    # temporary hack
         next RULE if not defined $action;
         $actions_by_rule_id[$rule_id] = $action;
     } ## end for my $rule_id ( grep { $thin_meta_g1_grammar->rule_length...})

@@ -235,7 +235,7 @@ sub Marpa::R2::Internal::Recognizer::add_blessing {
     CHECK_SEMANTICS: {
         last CHECK_SEMANTICS if $semantics eq '::dwim';
         last CHECK_SEMANTICS if $semantics eq '::array';
-        last CHECK_SEMANTICS if substr $semantics, 0, 1 eq '[';
+        last CHECK_SEMANTICS if (substr $semantics, 0, 1) eq '[';
         return qq{Attempt to bless, but improper semantics: "$semantics"};
     }
 

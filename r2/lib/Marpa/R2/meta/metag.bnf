@@ -13,7 +13,8 @@
 # General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 
-:default ::= action => ::dwim bless => ::lhs
+:default ::= action => [range,values] bless => ::lhs
+:lexeme ::= action => [range,value] bless => ::name
 
 :start ::= rules
 rules ::= rule+
