@@ -227,7 +227,7 @@ use constant RECOGNIZER_OPTIONS => [
         }
 ];
 
-sub Marpa::R2::Recognizer::set_slr {
+sub Marpa::R2::Recognizer::slr_set {
     my ($recce, $slr) = @_;
     return $recce->[Marpa::R2::Internal::Recognizer::SLR] = $slr;
 }

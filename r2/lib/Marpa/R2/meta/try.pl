@@ -220,11 +220,20 @@ sub evaluate {
 }
 
 package Marpa::R2::Internal::MetaG_Nodes::single_symbol;
-sub evaluate { return $_[0]->[0]->evaluate(); }
+sub evaluate {
+my ($self) = @_;
+return $self->[2];
+}
 package Marpa::R2::Internal::MetaG_Nodes::symbol;
-sub evaluate { return $_[0]->[0]->evaluate() ; }
+sub evaluate {
+my ($self) = @_;
+return $self->[2];
+}
 package Marpa::R2::Internal::MetaG_Nodes::symbol_name;
-sub evaluate { return $_[0]->[0]->evaluate(); }
+sub evaluate {
+my ($self) = @_;
+return $self->[2];
+}
 
 package Marpa::R2::Internal::MetaG_Nodes::character_class;
 
@@ -243,7 +252,10 @@ sub evaluate { return Marpa::R2::Internal::MetaG::Symbol->new( $_[0]->[0] ); }
 sub Marpa::R2::Internal::MetaG_Nodes::reserved_blessing_name::name
 { return $_[0]->[0]; }
 sub Marpa::R2::Internal::MetaG_Nodes::blessing_name::name
-{ return $_[0]->[0]->name(); }
+{
+my ($self) = @_;
+return $self->[2];
+}
 sub Marpa::R2::Internal::MetaG_Nodes::standard_name::name
 { return $_[0]->[0]; }
 
@@ -280,7 +292,7 @@ sub evaluate {
 package Marpa::R2::Internal::MetaG_Nodes::rhs_primary;
 
 sub evaluate {
-    my ( $values, $self ) = @_;
+    my ( undef, undef, $values, $self ) = @_;
     my @symbol_lists = map { $_->evaluate() } @{$values};
     return Marpa::R2::Inner::Scanless::Symbol_List->new( @symbol_lists );
 }
@@ -316,7 +328,8 @@ package Marpa::R2::Internal::MetaG_Nodes::blessing;
 
 sub evaluate {
     my ( $values ) = @_;
-    return bless { bless => $values->[0]->name() }, $PROTO_ALTERNATIVE;
+    my (undef, undef, $child) = @{$values};
+    return bless { bless => $child->name() }, $PROTO_ALTERNATIVE;
 }
 
 package Marpa::R2::Internal::MetaG_Nodes::right_association;

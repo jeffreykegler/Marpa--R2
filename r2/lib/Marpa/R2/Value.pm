@@ -793,7 +793,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
     my $value = Marpa::R2::Thin::V->new($tree);
     $value->valued_force();
     if ( my $slr = $recce->[Marpa::R2::Internal::Recognizer::SLR] ) {
-        $value->set_slr($slr);
+        $value->slr_set($slr);
     }
     local $Marpa::R2::Internal::Context::VALUATOR = $value;
     value_trace( $value, $trace_values ? 1 : 0 );
@@ -1133,10 +1133,10 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                     or Marpa::R2::exception('say to trace handle failed');
             } ## end EVENT: while (1)
 
-            if ( $trace_values >= 3 ) {
+            if ( $trace_values >= 9 ) {
                 for my $i ( reverse 0 .. $value->highest_index ) {
                     printf {$Marpa::R2::Internal::TRACE_FH}
-                        'Stack position %3d:', $i
+                        "Stack position %3d:\n", $i,
                         or
                         Marpa::R2::exception('print to trace handle failed');
                     print {$Marpa::R2::Internal::TRACE_FH} q{ },
@@ -1145,7 +1145,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                         or
                         Marpa::R2::exception('print to trace handle failed');
                 } ## end for my $i ( reverse 0 .. $value->highest_index )
-            } ## end if ( $trace_values >= 3 )
+            } ## end if ( $trace_values >= 9 )
 
         } ## end if ($trace_values)
 

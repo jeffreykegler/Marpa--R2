@@ -1368,9 +1368,11 @@ sub Marpa::R2::Scanless::R::new {
 
     $thick_g1_recce->semantics_set();
 
-    $self->[Marpa::R2::Inner::Scanless::R::C] = Marpa::R2::Thin::SLR->new(
+    my $thin_self = Marpa::R2::Thin::SLR->new(
         $grammar->[Marpa::R2::Inner::Scanless::G::C],
         $thick_g1_recce->thin() );
+    $self->[Marpa::R2::Inner::Scanless::R::C] = $thin_self;
+    $thick_g1_recce->slr_set($thin_self);
 
     return $self;
 } ## end sub Marpa::R2::Scanless::R::new
