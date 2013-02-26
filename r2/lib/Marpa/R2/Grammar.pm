@@ -38,6 +38,7 @@ BEGIN {
     :package=Marpa::R2::Internal::Symbol
     ID { Unique ID }
     BLESSING
+    LEXEME_SEMANTICS
 
 END_OF_STRUCTURE
     Marpa::R2::offset($structure);

@@ -198,6 +198,9 @@ sub Marpa::R2::Internal::Recognizer::resolve_lexeme_semantics {
         $grammar->[Marpa::R2::Internal::Grammar::BLESS_PACKAGE];
     my $symbol = $symbols->[$lexeme_id];
 
+    my $semantics = $symbol->[Marpa::R2::Internal::Symbol::LEXEME_SEMANTICS];
+    $semantics = "::default" if not defined $semantics;
+
     my $blessing = $symbol->[Marpa::R2::Internal::Symbol::BLESSING];
     return ['::undef'] if not defined $blessing;
     return ['::undef'] if $blessing eq '::undef';
