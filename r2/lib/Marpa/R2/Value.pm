@@ -183,6 +183,40 @@ sub Marpa::R2::Internal::Recognizer::resolve_action {
 
 } ## end sub Marpa::R2::Internal::Recognizer::resolve_action
 
+
+# Elaborate the semantics for a lexeme.  "Resolve" may not be quite
+# the right term, since (at least right now) closures are not
+# involved.
+sub Marpa::R2::Internal::Recognizer::resolve_lexeme_semantics {
+    my ( $recce, $lexeme_id ) = @_;
+    my $grammar = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
+    my $symbols = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
+    my $tracer    = $grammar->[Marpa::R2::Internal::Grammar::TRACER];
+    my $trace_actions =
+        $recce->[Marpa::R2::Internal::Recognizer::TRACE_ACTIONS];
+    my $bless_package =
+        $grammar->[Marpa::R2::Internal::Grammar::BLESS_PACKAGE];
+    my $symbol = $symbols->[$lexeme_id];
+
+    my $blessing = $symbol->[Marpa::R2::Internal::Symbol::BLESSING];
+    return ['::undef'] if not defined $blessing;
+    return ['::undef'] if $blessing eq '::undef';
+    if ( $blessing =~ m/\A [:][:] /xms ) {
+        my $lexeme_name = $tracer->symbol_name($lexeme_id);
+        return qq{Symbol "$lexeme_name" has unknown blessing: "$blessing"};
+    }
+    if ( $blessing =~ m/ [:][:] /xms ) {
+        return [$blessing];
+    }
+    if ( not defined $bless_package ) {
+        my $lexeme_name = $tracer->symbol_name($lexeme_id);
+        return
+            qq{Symbol "$lexeme_name" needs a blessing package, but grammar has none\n}
+            . qq{  The blessing for "$lexeme_name" was "$blessing"\n};
+    } ## end if ( not defined $bless_package )
+    return [ $bless_package . q{::} . $blessing ];
+} ## end sub Marpa::R2::Internal::Recognizer::resolve_symbol_semantics
+
 sub Marpa::R2::Internal::Recognizer::add_blessing {
     my ( $recce, $resolution, $blessing ) = @_;
     my $grammar = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
@@ -317,35 +351,25 @@ sub Marpa::R2::Internal::Recognizer::default_semantics {
         } ## end RULE: for my $rule_id ( 0 .. $#{$rules} )
     } ## end if ( $trace_actions >= 2 )
 
-    my @symbol_resolutions = ();
-    my $bless_package =
-        $grammar->[Marpa::R2::Internal::Grammar::BLESS_PACKAGE];
-    SYMBOL: for my $symbol_id ( 0 .. $#{$symbols} ) {
-        my $symbol   = $symbols->[$symbol_id];
-        my $blessing = $symbol->[Marpa::R2::Internal::Symbol::BLESSING];
-        next SYMBOL if not defined $blessing;
-        next SYMBOL if $blessing eq '::undef';
-        if ( $blessing =~ m/\A [:][:] /xms ) {
-            my $symbol_name = $tracer->symbol_name($symbol_id);
-            Marpa::R2::exception(
-                qq{Symbol "$symbol_name" has unknown blessing: "$blessing"} );
-        }
-        if ( $blessing =~ m/ [:][:] /xms ) {
-            $symbol_resolutions[$symbol_id] = [$blessing];
-            next SYMBOL;
-        }
-        if ( not defined $bless_package ) {
-            my $symbol_name = $tracer->symbol_name($symbol_id);
-            Marpa::R2::exception(
-                qq{Symbol "$symbol_name" needs a blessing package, but grammar has none\n},
-                qq{  The blessing for "$symbol_name" was "$blessing"\n},
-            );
-        } ## end if ( not defined $bless_package )
-        $symbol_resolutions[$symbol_id] =
-            [ $bless_package . q{::} . $blessing ];
-    } ## end SYMBOL: for my $symbol_id ( 0 .. $#{$symbols} )
+    my @lexeme_resolutions = ();
+    SYMBOL: for my $lexeme_id ( 0 .. $#{$symbols} ) {
+        my $lexeme_resolution =
+            Marpa::R2::Internal::Recognizer::resolve_lexeme_semantics( $recce,
+            $lexeme_id );
+        if ( not ref $lexeme_resolution ) {
+            my $message =
+                  "Could not determine lexeme's semantics\n"
+                . q{  Lexeme was }
+                . $grammar->symbol_name($lexeme_id) . "\n";
+            $message .= qq{  $lexeme_resolution\n}
+                if defined $lexeme_resolution;
+            Marpa::R2::exception($message);
+        } ## end if ( not ref $lexeme_resolution )
+        $lexeme_resolutions[$lexeme_id] = $lexeme_resolution;
 
-    return ( $rule_resolutions, \@symbol_resolutions );
+    } ## end SYMBOL: for my $lexeme_id ( 0 .. $#{$symbols} )
+
+    return ( $rule_resolutions, \@lexeme_resolutions );
 
 } ## end sub Marpa::R2::Internal::Recognizer::default_semantics
 
@@ -546,8 +570,7 @@ sub Marpa::R2::Internal::Recognizer::semantics_set {
         \@null_symbol_closures;
 
     # set the symbol resolutions
-    my @blessing_by_symbol_id =
-        map { ref $_ eq 'ARRAY' ? $_->[0] : undef } @{$symbol_resolutions};
+    my @blessing_by_symbol_id = map { $_->[0] } @{$symbol_resolutions};
     $resolution_data{blessing_by_symbol} = \@blessing_by_symbol_id;
 
     return ( $recce->[Marpa::R2::Internal::Recognizer::RULE_RESOLUTIONS] =
@@ -1038,6 +1061,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
     {
 
         my ($blessing) = $blessing_by_symbol_id->[$lexeme_id];
+        next LEXEME if $blessing eq '::undef';
 
         my $constant_ix = $value->constant_register($blessing);
         $value->token_register( $lexeme_id, $op_bless, $constant_ix,
