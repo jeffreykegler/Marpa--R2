@@ -802,6 +802,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
     state $op_bless              = Marpa::R2::Thin::op('bless');
     state $op_callback           = Marpa::R2::Thin::op('callback');
+    state $op_push_token_value   = Marpa::R2::Thin::op('push_token_value');
     state $op_push_values        = Marpa::R2::Thin::op('push_values');
     state $op_push_one           = Marpa::R2::Thin::op('push_one');
     state $op_push_sequence      = Marpa::R2::Thin::op('push_sequence');
@@ -853,17 +854,19 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
     my @nulling_closures;
     WORK_ITEM: for my $work_item (@work_list) {
-        my ( $rule_id, $symbol_id, $semantics, $blessing ) = @{$work_item};
-        my $closure             = $closure_by_rule_id->[$rule_id];
-        my $rule                = $rules->[$rule_id];
-        my $rule_length         = $grammar_c->rule_length($rule_id);
-        my $mask                = $rule->[Marpa::R2::Internal::Rule::MASK];
-        my $is_sequence         = defined $grammar_c->sequence_min($rule_id);
-        my $is_discard_sequence = $is_sequence
-            && $rule->[Marpa::R2::Internal::Rule::DISCARD_SEPARATION];
+        my ( $rule_id, $lexeme_id, $semantics, $blessing ) = @{$work_item};
 
-        $symbol_id = $nulling_symbol_by_semantic_rule[$rule_id]
-            if defined $rule_id and not defined $symbol_id;
+        my ( $closure, $rule, $rule_length, $is_sequence_rule,
+            $is_discard_sequence_rule, $nulling_symbol_id );
+        if ( defined $rule_id ) {
+            $nulling_symbol_id = $nulling_symbol_by_semantic_rule[$rule_id];
+            $closure           = $closure_by_rule_id->[$rule_id];
+            $rule              = $rules->[$rule_id];
+            $rule_length       = $grammar_c->rule_length($rule_id);
+            $is_sequence_rule  = defined $grammar_c->sequence_min($rule_id);
+            $is_discard_sequence_rule = $is_sequence_rule
+                && $rule->[Marpa::R2::Internal::Rule::DISCARD_SEPARATION];
+        } ## end if ( defined $rule_id )
 
         # Determine the "fate" of the array of child values
         my $array_fate;
@@ -891,6 +894,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
             }
 
             DO_CONSTANT: {
+                last DO_CONSTANT if not defined $rule_id;
                 my $thingy_ref = $closure_by_rule_id->[$rule_id];
                 last DO_CONSTANT if not defined $thingy_ref;
                 my $ref_type = Scalar::Util::reftype $thingy_ref;
@@ -898,8 +902,8 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                 if ( $ref_type eq 'CODE' ) {
 
                     # Set the nulling closure is this is the nulling symbol of a rule
-                    $nulling_closures[$symbol_id] = $thingy_ref
-                        if defined $symbol_id and defined $rule_id;
+                    $nulling_closures[$nulling_symbol_id] = $thingy_ref
+                        if defined $nulling_symbol_id and defined $rule_id;
                     last DO_CONSTANT;
                 } ## end if ( $ref_type eq 'CODE' )
                 if ( $ref_type eq 'SCALAR' ) {
@@ -925,24 +929,27 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
             # After this point, any closure will be a ref to 'CODE'
 
-            PROCESS_SINGLETON: {
+            PROCESS_SINGLETON_RESULT: {
                 my $singleton;
-                if ( $semantics =~ m/\A [:][:] rhs (\d+)  \z/xms ) {
+                if ( defined $rule_id
+                    and $semantics =~ m/\A [:][:] rhs (\d+)  \z/xms )
+                {
                     $singleton = $1 + 0;
                 }
 
-                last PROCESS_SINGLETON if not defined $singleton;
+                last PROCESS_SINGLETON_RESULT if not defined $singleton;
 
                 my $singleton_element = $singleton;
-                if ($is_discard_sequence) {
+                if ($is_discard_sequence_rule) {
                     @ops =
                         ( $op_result_is_n_of_sequence, $singleton_element );
                     last SET_OPS;
                 }
-                if ($is_sequence) {
+                if ($is_sequence_rule) {
                     @ops = ( $op_result_is_rhs_n, $singleton_element );
                     last SET_OPS;
                 }
+                my $mask = $rule->[Marpa::R2::Internal::Rule::MASK];
                 my @elements =
                     grep { $mask->[$_] } 0 .. ( $rule_length - 1 );
                 if ( not scalar @elements ) {
@@ -969,7 +976,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                 } ## end if ( not defined $singleton_element )
                 @ops = ( $op_result_is_rhs_n, $singleton_element );
                 last SET_OPS;
-            } ## end PROCESS_SINGLETON:
+            } ## end PROCESS_SINGLETON_RESULT:
 
             if ( not defined $array_fate ) {
                 @ops = ($op_result_is_undef);
@@ -984,17 +991,17 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                 push @bless_ops, $op_bless, $constant_ix;
             }
 
-            if ($is_sequence) {
+            if ($is_sequence_rule) {
                 my $push_op =
-                      $is_discard_sequence
+                      $is_discard_sequence_rule
                     ? $op_push_sequence
                     : $op_push_values;
                 @ops = ( $push_op, @bless_ops, $array_fate );
                 last SET_OPS;
-            } ## end if ($is_sequence)
+            } ## end if ($is_sequence_rule)
 
             # temporary, while developing
-            die "Semantics: $semantics" if ( substr $semantics, 0, 1 ) ne '[';
+            # die "Semantics: $semantics" if ( substr $semantics, 0, 1 ) ne '[';
 
             my @push_ops = ();
             SET_PUSH_OPS: {
@@ -1004,15 +1011,15 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                     for my $result_descriptor ( split /[,]/xms,
                         $array_descriptor )
                     {
-                        # if ( $result_descriptor eq 'start' ) {
-                        # # push @push_ops, $op_push_start;
-                        # next RESULT_DESCRIPTOR;
-                        # }
-                        # if ( $result_descriptor eq 'end' ) {
-                        # push @push_ops, $op_push_end;
-                        # next RESULT_DESCRIPTOR;
-                        # }
-                        if ( $result_descriptor eq 'values' ) {
+                        if (   $result_descriptor eq 'values'
+                            or $result_descriptor eq 'value' )
+                        {
+                            if ( defined $lexeme_id ) {
+                                push @push_ops, $op_push_token_value;
+                                next RESULT_DESCRIPTOR;
+                            }
+                            my $mask =
+                                $rule->[Marpa::R2::Internal::Rule::MASK];
                             if ( $rule_length > 0 ) {
                                 push @push_ops, map {
                                     $mask->[$_]
@@ -1021,43 +1028,42 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                                 } 0 .. $rule_length - 1;
                             } ## end if ( $rule_length > 0 )
                             next RESULT_DESCRIPTOR;
-                        } ## end if ( $result_descriptor eq 'values' )
+                        } ## end if ( $result_descriptor eq 'values' or ...)
                         Marpa::R2::exception(
                             qq{Unknown result descriptor: "$result_descriptor"\n},
                             qq{  The full semantics were "$semantics"}
                         );
                     } ## end RESULT_DESCRIPTOR: for my $result_descriptor ( split /[,]/xms, ...)
-                    last SET_PUSH_OPS;
                 } ## end if ( ( substr $semantics, 0, 1 ) eq '[' ) (])
-
             } ## end SET_PUSH_OPS:
+
             @ops = ( @push_ops, @bless_ops, $array_fate );
         } ## end SET_OPS:
 
         if ( defined $rule_id ) {
             $value->rule_register( $rule_id, @ops );
-            if ($trace_values > 2) {
+            if ( $trace_values > 2 ) {
                 say {$trace_file_handle} "Registering semantics for rule: ",
                     $grammar->brief_rule($rule_id),
                     "\n", "  Semantics are ", join q{ },
-                        (map { Marpa::R2::Thin::op_name($_) . '=' . $_ } @ops)
+                    ( map { Marpa::R2::Thin::op_name($_) . '=' . $_ } @ops )
                     or
                     Marpa::R2::exception("Cannot say to trace file handle");
-            } ## end if (0)
-            if ( defined $symbol_id ) {
-
-                $value->nulling_symbol_register( $symbol_id, @ops );
-                if ($trace_values > 2) {
-                    say {$trace_file_handle}
-                        "Registering semantics for nulling symbol: ",
-                        $grammar->symbol_name($symbol_id),
-                        "\n", "  Semantics are ", join q{ },
-                        (map { Marpa::R2::Thin::op_name($_) . '=' . $_ } @ops)
-                        or Marpa::R2::exception(
-                        "Cannot say to trace file handle");
-                } ## end if (0)
-            } ## end if ( defined $symbol_id )
+            } ## end if ( $trace_values > 2 )
         } ## end if ( defined $rule_id )
+
+        if ( defined $nulling_symbol_id ) {
+            $value->nulling_symbol_register( $nulling_symbol_id, @ops );
+            if ( $trace_values > 2 ) {
+                say {$trace_file_handle}
+                    "Registering semantics for nulling symbol: ",
+                    $grammar->symbol_name($nulling_symbol_id),
+                    "\n", "  Semantics are ", join q{ },
+                    ( map { Marpa::R2::Thin::op_name($_) . '=' . $_ } @ops )
+                    or
+                    Marpa::R2::exception("Cannot say to trace file handle");
+            } ## end if ( $trace_values > 2 )
+        } ## end if ( defined $nulling_symbol_id )
 
     } ## end WORK_ITEM: for my $work_item (@work_list)
 
