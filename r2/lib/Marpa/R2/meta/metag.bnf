@@ -104,7 +104,7 @@ boolean ~ [01]
 
 <array descriptor> ~ '[' <result item descriptor list> ']'
 <result item descriptor list> ~ <result item descriptor>* separator => [,]
-<result item descriptor> ~ 'start' | 'end' | 'value' | 'values'
+<result item descriptor> ~ 'range' | 'value' | 'values'
 
 <kwc ws star> ~ ':ws*'
 <kwc ws plus> ~ ':ws+'
@@ -117,12 +117,16 @@ boolean ~ [01]
 <single quoted string> ~ ['] <string without single quote or vertical space> [']
 <string without single quote or vertical space> ~ [^'\x{0A}\x{0B}\x{0C}\x{0D}\x{0085}\x{2028}\x{2029}]+
 
-<character class> ~ '[' <cc string> ']'
-<cc string> ~ <cc character>+
-<cc character> ~ <escaped cc character> | <safe cc character>
-<escaped cc character> ~ '\' <horizontal character>
+<character class> ~ '[' <cc elements> ']'
+<cc elements> ~ <cc element>+
+<cc element> ~ <safe cc character>
 # hex 5d is right square bracket
 <safe cc character> ~ [^\x{5d}\x{0A}\x{0B}\x{0C}\x{0D}\x{0085}\x{2028}\x{2029}]
+<cc element> ~ <escaped cc character>
+<escaped cc character> ~ '\' <horizontal character>
+<cc element> ~ <posix char class>
+<posix char class> ~ '[:' <colon free text> ':]'
+<colon free text> ~ [^:]+
 
 # a horizontal character is any character that is not vertical space
 <horizontal character> ~ [^\x{A}\x{B}\x{C}\x{D}\x{2028}\x{2029}]
