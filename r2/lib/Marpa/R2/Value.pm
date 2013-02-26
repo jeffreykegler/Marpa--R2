@@ -811,6 +811,8 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
     state $op_result_is_rhs_n    = Marpa::R2::Thin::op('result_is_rhs_n');
     state $op_result_is_n_of_sequence =
         Marpa::R2::Thin::op('result_is_n_of_sequence');
+    state $op_result_is_token_value =
+        Marpa::R2::Thin::op('result_is_token_value');
     state $op_result_is_undef = Marpa::R2::Thin::op('result_is_undef');
 
     my @nulling_symbol_by_semantic_rule;
@@ -851,6 +853,21 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
         push @work_list, [ $rule_id, undef, $semantics, $blessing ];
     } ## end RULE: for my $rule_id ( $grammar->rule_ids() )
+
+    RULE: for my $lexeme_id ( 0 .. $#{$symbols} ) {
+
+        my $semantics = $semantics_by_lexeme_id->[$lexeme_id];
+        my $blessing  = $blessing_by_lexeme_id->[$lexeme_id];
+
+        $semantics = '::array'
+            if $semantics eq '::dwim' and $blessing ne '::undef';
+        $semantics = '::value' if $semantics eq '::dwim';
+        $semantics = '::value' if $semantics eq '::default';
+        $semantics = '[value]' if $semantics eq '::array';
+        $semantics = '::undef' if $semantics eq '::whatever';
+
+        push @work_list, [ undef, $lexeme_id, $semantics, $blessing ];
+    } ## end RULE: for my $lexeme_id ( 0 .. $#{$symbols} )
 
     my @nulling_closures;
     WORK_ITEM: for my $work_item (@work_list) {
@@ -929,10 +946,17 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
             # After this point, any closure will be a ref to 'CODE'
 
+            if ( defined $lexeme_id and $semantics eq '::value') {
+                @ops = ( $op_result_is_token_value );
+                last SET_OPS;
+            }
+
             PROCESS_SINGLETON_RESULT: {
+                last PROCESS_SINGLETON_RESULT if not defined $rule_id;
+
                 my $singleton;
-                if ( defined $rule_id
-                    and $semantics =~ m/\A [:][:] rhs (\d+)  \z/xms )
+                if ( 
+                    $semantics =~ m/\A [:][:] rhs (\d+)  \z/xms )
                 {
                     $singleton = $1 + 0;
                 }
@@ -986,7 +1010,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
             # if here, $array_fate is defined
 
             my @bless_ops = ();
-            if ($blessing) {
+            if ($blessing ne '::undef') {
                 my $constant_ix = $value->constant_register($blessing);
                 push @bless_ops, $op_bless, $constant_ix;
             }
@@ -1065,19 +1089,20 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
             } ## end if ( $trace_values > 2 )
         } ## end if ( defined $nulling_symbol_id )
 
+        if ( defined $lexeme_id ) {
+            $value->token_register( $lexeme_id, @ops );
+            if ( $trace_values > 2 ) {
+                say {$trace_file_handle}
+                    "Registering semantics for lexeme: ",
+                    $grammar->symbol_name($lexeme_id),
+                    "\n", "  Semantics are ", join q{ },
+                    ( map { Marpa::R2::Thin::op_name($_) . '=' . $_ } @ops )
+                    or
+                    Marpa::R2::exception("Cannot say to trace file handle");
+            } ## end if ( $trace_values > 2 )
+        } ## end if ( defined $lexeme_id )
+
     } ## end WORK_ITEM: for my $work_item (@work_list)
-
-    LEXEME:
-    for my $lexeme_id ( 0 .. $#{$symbols}) {
-
-        my $blessing = $blessing_by_lexeme_id->[$lexeme_id];
-        next LEXEME if $blessing eq '::undef';
-
-        my $constant_ix = $value->constant_register($blessing);
-        $value->token_register( $lexeme_id, $op_bless, $constant_ix,
-            $op_push_values, $op_result_is_array );
-
-    } ## end for my $lexeme_id ( grep { defined $blessing_by_lexeme_id...})
 
     STEP: while (1) {
         my ( $value_type, @value_data ) = $value->stack_step();
