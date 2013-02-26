@@ -205,7 +205,10 @@ package Marpa::R2::Internal::Meta_AST::Proto_Alternative;
 our $PROTO_ALTERNATIVE;
 BEGIN { $PROTO_ALTERNATIVE = __PACKAGE__; }
 
-package Marpa::R2::Internal::MetaG_Nodes::single_symbol;
+sub combine {
+    for my $item (@_) {
+    }
+}
 
 package Marpa::R2::Internal::MetaG_Nodes::kwc_ws_star;
 sub evaluate { return create_internal_symbol($_[1], $_[0]->[0]) }
@@ -224,12 +227,18 @@ sub evaluate {
 my ($self) = @_;
 return $self->[2];
 }
+
 package Marpa::R2::Internal::MetaG_Nodes::symbol;
 sub evaluate {
 my ($self) = @_;
 return $self->[2];
 }
 package Marpa::R2::Internal::MetaG_Nodes::symbol_name;
+sub evaluate {
+my ($self) = @_;
+return $self->[2];
+}
+package Marpa::R2::Internal::MetaG_Nodes::action_name;
 sub evaluate {
 my ($self) = @_;
 return $self->[2];
@@ -324,6 +333,14 @@ sub evaluate {
     return bless { rhs => $list}, $PROTO_ALTERNATIVE;
 }
 
+package Marpa::R2::Internal::MetaG_Nodes::action;
+
+sub evaluate {
+    my ( $values ) = @_;
+    my (undef, undef, $child) = @{$values};
+    return bless { action => $child->evaluate() }, $PROTO_ALTERNATIVE;
+}
+
 package Marpa::R2::Internal::MetaG_Nodes::blessing;
 
 sub evaluate {
@@ -353,5 +370,29 @@ sub evaluate {
 package Marpa::R2::Internal::MetaG_Nodes::proper_specification;
 sub evaluate {
     my ( $values ) = @_;
-    return bless { proper => $values->[0] }, $PROTO_ALTERNATIVE;
+    my $child = $values->[2];
+    return bless { proper => $child }, $PROTO_ALTERNATIVE;
 }
+
+package Marpa::R2::Internal::MetaG_Nodes::separator_specification;
+sub evaluate {
+    my ( $values ) = @_;
+    my $child = $values->[2];
+    return bless { separator => $child->evaluate() }, $PROTO_ALTERNATIVE;
+}
+
+package Marpa::R2::Internal::MetaG_Nodes::adverb_item;
+sub evaluate {
+    my ( $values ) = @_;
+    my $child = $values->[2]->evaluate();
+    say STDERR __LINE__, ' ', Data::Dumper::Dumper($child);
+    return bless $child, $PROTO_ALTERNATIVE;
+}
+
+# package Marpa::R2::Internal::MetaG_Nodes::adverb_list;
+# sub evaluate {
+    # my ( $values ) = @_;
+    # my (undef, undef, $first_adverb_item, @remaining_adverb_items ) = @{$values};
+    # return bless [], $PROTO_ALTERNATIVE if not defined $first_adverb_item;
+    # return $first_adverb_item->combine(@remaining_adverb_items);
+# }
