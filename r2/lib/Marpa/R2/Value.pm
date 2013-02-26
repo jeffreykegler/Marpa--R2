@@ -806,6 +806,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
     state $op_push_values        = Marpa::R2::Thin::op('push_values');
     state $op_push_one           = Marpa::R2::Thin::op('push_one');
     state $op_push_sequence      = Marpa::R2::Thin::op('push_sequence');
+    state $op_push_slr_range     = Marpa::R2::Thin::op('push_slr_range');
     state $op_result_is_array    = Marpa::R2::Thin::op('result_is_array');
     state $op_result_is_constant = Marpa::R2::Thin::op('result_is_constant');
     state $op_result_is_rhs_n    = Marpa::R2::Thin::op('result_is_rhs_n');
@@ -869,6 +870,9 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
         push @work_list, [ undef, $lexeme_id, $semantics, $blessing ];
     } ## end RULE: for my $lexeme_id ( 0 .. $#{$symbols} )
 
+    # Registering operations is postponed to this point, because
+    # the valuator must exist for this to happen.  In the future,
+    # it may be best to have a separate semantics object.
     my @nulling_closures;
     WORK_ITEM: for my $work_item (@work_list) {
         my ( $rule_id, $lexeme_id, $semantics, $blessing ) = @{$work_item};
@@ -1035,6 +1039,10 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                     for my $result_descriptor ( split /[,]/xms,
                         $array_descriptor )
                     {
+                        if (   $result_descriptor eq 'range' ) {
+                                push @push_ops, $op_push_slr_range;
+                                next RESULT_DESCRIPTOR;
+                        }
                         if (   $result_descriptor eq 'values'
                             or $result_descriptor eq 'value' )
                         {
