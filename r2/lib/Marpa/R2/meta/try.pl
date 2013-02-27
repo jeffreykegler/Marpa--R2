@@ -298,6 +298,11 @@ return $self->[2];
 sub Marpa::R2::Internal::MetaG_Nodes::standard_name::name
 { return $_[0]->[0]; }
 
+sub Marpa::R2::Internal::MetaG_Nodes::lhs::evaluate {
+    my ($values) = @_;
+    return $values->[2]->evaluate();
+}
+
 sub Marpa::R2::Internal::MetaG_Nodes::op_declare::name {
     my ($values) = @_;
     return $values->[2];
@@ -498,6 +503,51 @@ sub evaluate {
 
 sub g0_evaluate {
     my ( $values, $parse ) = @_;
-    $DB::single = 1;
-    return;
-}
+    my ( $start, $end, $lhs, $op_declare, $priorities ) = @{$values};
+    return bless [
+        dev        => 'g0 partial',
+        lhs        => $lhs->evaluate(),
+        priorities => [ map { $_->g0_evaluate($parse) } @{$priorities} ]
+    ], __PACKAGE__;
+} ## end sub g0_evaluate
+
+package Marpa::R2::Internal::MetaG_Nodes::alternatives;
+sub evaluate {
+    my ( $values, $parse ) = @_;
+    return
+        bless [
+        map { Marpa::R2::Internal::MetaAST::dwim_evaluate( $_, $parse ) }
+            @{$values} ],
+        __PACKAGE__;
+} ## end sub evaluate
+
+sub g0_evaluate {
+    my ( $values, $parse ) = @_;
+    return bless [
+        dev        => 'g0 partial',
+        children => [ map { $_->g0_evaluate($parse) } @{$values} ]
+    ], __PACKAGE__;
+} ## end sub g0_evaluate
+
+package Marpa::R2::Internal::MetaG_Nodes::alternative;
+sub evaluate {
+    my ( $values, $parse ) = @_;
+    return
+        bless [
+        map { Marpa::R2::Internal::MetaAST::dwim_evaluate( $_, $parse ) }
+            @{$values} ],
+        __PACKAGE__;
+} ## end sub evaluate
+
+sub g0_evaluate {
+    my ( $values, $parse ) = @_;
+    my ( undef, undef, $rhs, $adverbs ) = @{$values};
+    return bless [
+        dev => 'g0 partial',
+        rhs => Marpa::R2::Internal::MetaAST::dwim_evaluate( $rhs, $parse ),
+        adverbs =>
+            Marpa::R2::Internal::MetaAST::dwim_evaluate( $adverbs, $parse ),
+        ],
+        __PACKAGE__;
+} ## end sub g0_evaluate
+
