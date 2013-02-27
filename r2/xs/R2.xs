@@ -1197,7 +1197,7 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
 	      step_type ==
 	      MARPA_STEP_RULE ? marpa_v_rule_start_es_id (v) :
 	      marpa_v_token_start_es_id (v);
-	    slr_locations (slr, earley_set, &start_location, &end_location);
+	    slr_locations (slr, earley_set+1, &start_location, &end_location);
 	    av_push (values_av, newSViv ((IV) start_location));
 	    earley_set = marpa_v_es_id (v);
 	    slr_locations (slr, earley_set, &start_location, &end_location);

@@ -47,7 +47,7 @@ my $ast_ref =
     Marpa::R2::Scanless::G->_source_to_ast( $bnf );
 die "_source_to_ast did not return an AST" if not ref $ast_ref eq 'REF';
 my $parse = {};
-say "Original AST = \n", Data::Dumper::Dumper($ast_ref);
+# say "Original AST = \n", Data::Dumper::Dumper($ast_ref);
 say "Evaluated AST = \n", Data::Dumper::Dumper(evaluate(${$ast_ref}, $parse));
 say "self object = \n", Data::Dumper::Dumper($parse);
 
