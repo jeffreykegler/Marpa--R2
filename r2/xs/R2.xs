@@ -1339,7 +1339,7 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
 /* Static SLR methods */
 
 static void
-slr_alternative (Scanless_R * slr, Marpa_Symbol_ID lexeme, IV attempted)
+slr_alternative (Scanless_R * slr, Marpa_Symbol_ID lexeme)
 {
   dTHX;
   int result;
@@ -1350,15 +1350,6 @@ slr_alternative (Scanless_R * slr, Marpa_Symbol_ID lexeme, IV attempted)
   STRLEN start_pos = slr->start_of_lexeme;
   STRLEN end_pos = slr->end_of_lexeme;
 
-  if (!attempted)
-    {
-      /* Set values for Earley set n-1 to positions of lexeme --
-       * that way we use set 0, and we can record position of a last,
-       * rejected lexeme.
-       */
-      marpa_r_latest_earley_set_values_set (r1, start_pos,
-					    INT2PTR (void *, end_pos));
-    }
   result = marpa_r_alternative (r1, lexeme, latest_earley_set + 1, 1);
   switch (result)
     {
@@ -1530,7 +1521,7 @@ slr_alternatives (Scanless_R * slr, IV * lexemes_found,
 	    }
 
 	  /* trace_terminals done inside slr_alternative */
-	  slr_alternative (slr, g1_lexeme, *lexemes_attempted);
+	  slr_alternative (slr, g1_lexeme);
 	  (*lexemes_attempted)++;
 	NEXT_REPORT_ITEM:;
 	}
@@ -1576,7 +1567,7 @@ slr_locations (Scanless_R * slr, Marpa_Earley_Set_ID earley_set, int *p_start,
     {
       void *end_pos;
       result =
-	marpa_r_earley_set_values (slr->r1, earley_set - 1, p_start,
+	marpa_r_earley_set_values (slr->r1, earley_set, p_start,
 				   &end_pos);
       *p_end = (int) PTR2IV (end_pos);
     }
@@ -4792,6 +4783,8 @@ PPCODE:
 	    {
 	      XSRETURN_PV ("R1 earleme_complete() problem");
 	    }
+      marpa_r_latest_earley_set_values_set (slr->r1, slr->start_of_lexeme,
+					    INT2PTR (void *, slr->end_of_lexeme));
 	}
 
       if (slr->trace_terminals || stream->trace_g0)
