@@ -53,22 +53,25 @@ my $ast_ref =
 die "_source_to_ast did not return an AST" if not ref $ast_ref eq 'REF';
 my $parse = bless { p_source => $bnf }, $META_AST;
 # say "Original AST = \n", Data::Dumper::Dumper($ast_ref);
-say "Evaluated AST = \n", Data::Dumper::Dumper(evaluate(${$ast_ref}, $parse));
+say "Evaluated AST = \n", Data::Dumper::Dumper(dwim_evaluate(${$ast_ref}, $parse));
 say "self object = \n", Data::Dumper::Dumper($parse);
 
 exit 0;
 
-sub evaluate {
-    my ($value, $parse) = @_;
+sub dwim_evaluate {
+    my ( $value, $parse ) = @_;
     return $value if not defined $value;
-    if (Scalar::Util::blessed($value)) {
-	return $value->evaluate($parse) if $value->can('evaluate');
-	return bless [ map { evaluate($_, $parse) } @{$value} ], ref $value if Scalar::Util::reftype($value) eq 'ARRAY';
-	return $value;
-    }
-    return [ map { evaluate($_, $parse) } @{$value} ] if ref $value eq 'ARRAY';
+    if ( Scalar::Util::blessed($value) ) {
+        return $value->evaluate($parse) if $value->can('evaluate');
+        return bless [ map { dwim_evaluate( $_, $parse ) } @{$value} ],
+            ref $value
+            if Scalar::Util::reftype($value) eq 'ARRAY';
+        return $value;
+    } ## end if ( Scalar::Util::blessed($value) )
+    return [ map { dwim_evaluate( $_, $parse ) } @{$value} ]
+        if ref $value eq 'ARRAY';
     return $value;
-} ## end sub evaluate
+} ## end sub dwim_evaluate
 
 sub sort_bnf {
     my $cmp = $a->{lhs} cmp $b->{lhs};
@@ -295,6 +298,10 @@ return $self->[2];
 sub Marpa::R2::Internal::MetaG_Nodes::standard_name::name
 { return $_[0]->[0]; }
 
+sub Marpa::R2::Internal::MetaG_Nodes::op_declare::name {
+    my ($values) = @_;
+    return $values->[2];
+}
 
 package Marpa::R2::Internal::MetaG_Nodes::bracketed_name;
 
@@ -475,3 +482,22 @@ sub evaluate {
     } ## end ADVERB: for my $key ( keys %{$adverb_list} )
     return undef;
 } ## end sub evaluate
+
+package Marpa::R2::Internal::MetaG_Nodes::priority_rule;
+sub evaluate {
+    my ( $values, $parse ) = @_;
+    my ( $start, $end, $lhs, $op_declare, $priorities ) =
+        @{$values};
+    return $values->g0_evaluate($parse) if $op_declare->name() ne q{::=};
+    return
+        bless [
+        map { Marpa::R2::Internal::MetaAST::dwim_evaluate( $_, $parse ) }
+            @{$values} ],
+        __PACKAGE__;
+} ## end sub evaluate
+
+sub g0_evaluate {
+    my ( $values, $parse ) = @_;
+    $DB::single = 1;
+    return;
+}
