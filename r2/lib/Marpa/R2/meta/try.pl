@@ -43,24 +43,25 @@ my $result           = Getopt::Long::GetOptions(
 die "usage $PROGRAM_NAME [--help] file ...\n" if $help_flag;
 
 my $bnf           = do { local $RS = undef; \(<>) };
-my $parse_result =
+my $ast_ref =
     Marpa::R2::Scanless::G->_source_to_ast( $bnf );
-die "_source_to_ast did not return an AST" if not ref $parse_result eq 'REF';
-my $self = {};
-say "ast result = \n", Data::Dumper::Dumper(evaluate(${$parse_result}, $self));
-say "self object = \n", Data::Dumper::Dumper($self);
+die "_source_to_ast did not return an AST" if not ref $ast_ref eq 'REF';
+my $parse = {};
+say "Original AST = \n", Data::Dumper::Dumper($ast_ref);
+say "Evaluated AST = \n", Data::Dumper::Dumper(evaluate(${$ast_ref}, $parse));
+say "self object = \n", Data::Dumper::Dumper($parse);
 
 exit 0;
 
 sub evaluate {
-    my ($value, $self) = @_;
+    my ($value, $parse) = @_;
     return $value if not defined $value;
     if (Scalar::Util::blessed($value)) {
-	return $value->evaluate($self) if $value->can('evaluate');
-	return bless [ map { evaluate($_, $self) } @{$value} ], ref $value if Scalar::Util::reftype($value) eq 'ARRAY';
+	return $value->evaluate($parse) if $value->can('evaluate');
+	return bless [ map { evaluate($_, $parse) } @{$value} ], ref $value if Scalar::Util::reftype($value) eq 'ARRAY';
 	return $value;
     }
-    return [ map { evaluate($_, $self) } @{$value} ] if ref $value eq 'ARRAY';
+    return [ map { evaluate($_, $parse) } @{$value} ] if ref $value eq 'ARRAY';
     return $value;
 } ## end sub evaluate
 
@@ -79,11 +80,11 @@ sub sort_bnf {
 } ## end sub sort_bnf
 
 my %cooked_parse_result = (
-    is_lexeme         => $parse_result->{is_lexeme},
-    character_classes => $parse_result->{character_classes}
+    is_lexeme         => $ast_ref->{is_lexeme},
+    character_classes => $ast_ref->{character_classes}
 );
 for my $rule_set (qw(lex_rules g1_rules)) {
-    my $aoh        = $parse_result->{$rule_set};
+    my $aoh        = $ast_ref->{$rule_set};
     my $sorted_aoh = [ sort sort_bnf @{$aoh} ];
     $cooked_parse_result{$rule_set} = $sorted_aoh;
 }
@@ -116,8 +117,8 @@ sub to_symbol_list {
 }
 
 sub create_internal_symbol {
-    my ($self, $symbol_name) = @_;
-    $self->{needs_symbol}->{$symbol_name} = 1;
+    my ($parse, $symbol_name) = @_;
+    $parse->{needs_symbol}->{$symbol_name} = 1;
     my $symbol = Marpa::R2::Internal::MetaG::Symbol->new($symbol_name);
     return $symbol;
 }
@@ -230,8 +231,9 @@ package Marpa::R2::Internal::MetaG_Nodes::kwc_ws;
 sub evaluate { return create_internal_symbol($_[1], $_[0]->[0]) }
 package Marpa::R2::Internal::MetaG_Nodes::kwc_any;
 sub evaluate {
+    my ($values, $parse) = @_;
     return Marpa::R2::Internal::MetaG::Symbol::assign_symbol_by_char_class(
-        $_[1], '[\p{Cn}\P{Cn}]', $_[0]->[0] );
+        $parse, '[\p{Cn}\P{Cn}]', $values->[0] );
 }
 
 package Marpa::R2::Internal::MetaG_Nodes::single_symbol;
@@ -259,10 +261,10 @@ return $self->[2];
 package Marpa::R2::Internal::MetaG_Nodes::character_class;
 
 sub evaluate {
-    my ( $values, $self ) = @_;
+    my ( $values, $parse ) = @_;
     my $symbol =
         Marpa::R2::Internal::MetaG::Symbol::assign_symbol_by_char_class(
-        $self, $values->[0] );
+        $parse, $values->[0] );
     $symbol->lexical_set();
     return $symbol;
 } ## end sub evaluate
@@ -297,12 +299,12 @@ sub evaluate {
 package Marpa::R2::Internal::MetaG_Nodes::single_quoted_string;
 
 sub evaluate {
-    my ($values, $self ) = @_;
+    my ($values, $parse ) = @_;
     my $string = $values->[0];
     my @symbols = ();
     for my $char_class ( map { '[' . (quotemeta $_) . ']' } split //xms, substr $string, 1, -1) {
         my $symbol = Marpa::R2::Internal::MetaG::Symbol::assign_symbol_by_char_class(
-        $self, $char_class);
+        $parse, $char_class);
         push @symbols, $symbol;
     }
     my $list = Marpa::R2::Internal::Meta_AST::Symbol_List->new(@symbols);
@@ -313,24 +315,24 @@ sub evaluate {
 package Marpa::R2::Internal::MetaG_Nodes::rhs_primary;
 
 sub evaluate {
-    my ( undef, undef, $values, $self ) = @_;
-    my @symbol_lists = map { $_->evaluate() } @{$values};
+    my ( undef, undef, $values, $parse ) = @_;
+    my @symbol_lists = map { $_->evaluate($parse) } @{$values};
     return Marpa::R2::Inner::Scanless::Symbol_List->new( @symbol_lists );
 }
 
 package Marpa::R2::Internal::MetaG_Nodes::rhs_primary_list;
 
 sub evaluate {
-    my ( $values, $self ) = @_;
-    my @symbol_lists = map { $_->evaluate() } @{$values};
+    my ( $values, $parse ) = @_;
+    my @symbol_lists = map { $_->evaluate($parse) } @{$values};
     return Marpa::R2::Inner::Scanless::Symbol_List->new( @symbol_lists );
 }
 
 package Marpa::R2::Internal::MetaG_Nodes::parenthesized_rhs_primary_list;
 
 sub evaluate {
-    my ( $values, $self ) = @_;
-    my @symbol_lists = map { $_->evaluate() } @{$values};
+    my ( $values, $parse ) = @_;
+    my @symbol_lists = map { $_->evaluate($parse) } @{$values};
     my $list = Marpa::R2::Inner::Scanless::Symbol_List->new( @symbol_lists);
     $list->hidden_set();
     return $list;
@@ -339,8 +341,8 @@ sub evaluate {
 package Marpa::R2::Internal::MetaG_Nodes::rhs;
 
 sub evaluate {
-    my ( $values, $self ) = @_;
-    my @symbol_lists = map { $_->evaluate() } @{$values};
+    my ( $values, $parse ) = @_;
+    my @symbol_lists = map { $_->evaluate($parse) } @{$values};
     my $list = Marpa::R2::Inner::Scanless::Symbol_List->new( @symbol_lists);
     return bless { rhs => $list}, $PROTO_ALTERNATIVE;
 }
@@ -348,9 +350,9 @@ sub evaluate {
 package Marpa::R2::Internal::MetaG_Nodes::action;
 
 sub evaluate {
-    my ( $values ) = @_;
+    my ( $values, $parse ) = @_;
     my (undef, undef, $child) = @{$values};
-    return bless { action => $child->evaluate() }, $PROTO_ALTERNATIVE;
+    return bless { action => $child->evaluate($parse) }, $PROTO_ALTERNATIVE;
 }
 
 package Marpa::R2::Internal::MetaG_Nodes::blessing;
@@ -388,21 +390,21 @@ sub evaluate {
 
 package Marpa::R2::Internal::MetaG_Nodes::separator_specification;
 sub evaluate {
-    my ( $values ) = @_;
+    my ( $values, $parse ) = @_;
     my $child = $values->[2];
-    return bless { separator => $child->evaluate() }, $PROTO_ALTERNATIVE;
+    return bless { separator => $child->evaluate($parse) }, $PROTO_ALTERNATIVE;
 }
 
 package Marpa::R2::Internal::MetaG_Nodes::adverb_item;
 sub evaluate {
-    my ( $values ) = @_;
-    my $child = $values->[2]->evaluate();
+    my ( $values, $parse ) = @_;
+    my $child = $values->[2]->evaluate($parse);
     return bless $child, $PROTO_ALTERNATIVE;
 }
 
 package Marpa::R2::Internal::MetaG_Nodes::adverb_list;
 sub evaluate {
-    my ( $values ) = @_;
-    my (@adverb_items ) = map { $_->evaluate() } @{$values};
+    my ( $values, $parse ) = @_;
+    my (@adverb_items ) = map { $_->evaluate($parse) } @{$values};
     return Marpa::R2::Internal::Meta_AST::Proto_Alternative->combine( @adverb_items);
 }

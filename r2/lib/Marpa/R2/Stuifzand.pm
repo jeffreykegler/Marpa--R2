@@ -77,10 +77,6 @@ use English qw( -no_match_vars );
 # Prefixed with '[:' -- a reserved symbol, one which in the
 # grammars start with a colon.
 # These are their own 'original'.
-# The names tend to be suggested by the corresponding
-# symbols in Perl 6.  Among them:
-#     [:$] -- end of input
-#     [:|w] -- word boundary
 #
 # Of the form '[Lex-42]' - where for '42' any other
 # decimal number can be subsituted.  Anonymous lexicals.

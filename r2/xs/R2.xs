@@ -1375,8 +1375,8 @@ slr_alternative (Scanless_R * slr, Marpa_Symbol_ID lexeme, IV attempted)
 	  AV *event;
 	  SV *event_data[4];
 	  event_data[0] = newSVpvs ("g1 unexpected lexeme");
-	  event_data[1] = newSViv (start_pos);	/* start */
-	  event_data[2] = newSViv (end_pos);	/* end */
+	  event_data[1] = newSViv (slr->start_of_lexeme);	/* start */
+	  event_data[2] = newSViv (slr->end_of_lexeme);	/* end */
 	  event_data[3] = newSViv (lexeme);	/* lexeme */
 	  event = av_make (Dim (event_data), event_data);
 	  av_push (slr->event_queue, newRV_noinc ((SV *) event));
@@ -1395,8 +1395,8 @@ slr_alternative (Scanless_R * slr, Marpa_Symbol_ID lexeme, IV attempted)
 	  AV *event;
 	  SV *event_data[4];
 	  event_data[0] = newSVpvs ("g1 duplicate lexeme");
-	  event_data[1] = newSViv (start_pos);	/* start */
-	  event_data[2] = newSViv (end_pos);	/* end */
+	  event_data[1] = newSViv (slr->start_of_lexeme);	/* start */
+	  event_data[2] = newSViv (slr->end_of_lexeme);	/* end */
 	  event_data[3] = newSViv (lexeme);	/* lexeme */
 	  event = av_make (Dim (event_data), event_data);
 	  av_push (slr->event_queue, newRV_noinc ((SV *) event));
@@ -1415,8 +1415,8 @@ slr_alternative (Scanless_R * slr, Marpa_Symbol_ID lexeme, IV attempted)
 	  AV *event;
 	  SV *event_data[4];
 	  event_data[0] = newSVpvs ("g1 accepted lexeme");
-	  event_data[1] = newSViv (start_pos);	/* start */
-	  event_data[2] = newSViv (end_pos);	/* end */
+	  event_data[1] = newSViv (slr->start_of_lexeme);	/* start */
+	  event_data[2] = newSViv (slr->end_of_lexeme);	/* end */
 	  event_data[3] = newSViv (lexeme);	/* lexeme */
 	  event = av_make (Dim (event_data), event_data);
 	  av_push (slr->event_queue, newRV_noinc ((SV *) event));
@@ -4854,39 +4854,6 @@ PPCODE:
   STRLEN end_of_lexeme = slr->end_of_lexeme;
   XPUSHs (sv_2mortal (newSViv ((IV) slr->start_of_lexeme)));
   XPUSHs (sv_2mortal (newSViv ((IV)end_of_lexeme)));
-}
-
-  # Eliminate after converstion?
-void
-lexeme_locations_set (slr, start, end)
-     Scanless_R *slr;
-     STRLEN start;
-     STRLEN end;
-PPCODE:
-{
-  Unicode_Stream *stream = slr->stream;
-  STRLEN input_length = SvCUR (stream->input);
-  if (end < start)
-    {
-      croak
-	("Problem in slr->lexeme_locations_set(): start (%lu) is after the end (%lu)",
-	 (unsigned long) start, (unsigned long) end);
-    }
-  if (start > input_length)
-    {
-      croak
-	("Problem in slr->lexeme_locations_set(): new pos = %lu, but start = %lu",
-	 (unsigned long) input_length, (unsigned long) start);
-    }
-  if (end > input_length)
-    {
-      croak
-	("Problem in slr->lexeme_locations_set(): new pos = %lu, but end = %lu",
-	 (unsigned long) input_length, (unsigned long) end);
-    }
-  slr->start_of_lexeme = start;
-  slr->end_of_lexeme = end;
-  XSRETURN_YES;
 }
 
 INCLUDE: general_pattern.xsh
