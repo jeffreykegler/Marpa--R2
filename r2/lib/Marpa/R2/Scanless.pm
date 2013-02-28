@@ -203,7 +203,7 @@ sub rhs_normalize {
 } ## end sub rhs_normalize
 
 sub bless_hash_rule {
-    my ( $self, $hash_rule, $blessing ) = @_;
+    my ( $self, $hash_rule, $blessing, $original_lhs ) = @_;
     my $grammar_level = $Marpa::R2::Inner::Scanless::GRAMMAR_LEVEL;
     return if $grammar_level == 0;
     $blessing //= $self->{default_adverbs}->[$grammar_level]->{bless};
@@ -211,26 +211,21 @@ sub bless_hash_rule {
     FIND_BLESSING: {
         last FIND_BLESSING if $blessing =~ /\A [\w] /xms;
         return if $blessing eq '::undef';
+        # Rule may be half-formed, but assume with have lhs
         my $lhs = $hash_rule->{lhs};
-        my @rhs = $hash_rule->{rhs};
         if ( $blessing eq '::lhs' ) {
-            $blessing = $lhs;
+            $blessing = $original_lhs;
             if ( $blessing =~ / [^ [:alnum:]] /xms ) {
                 Marpa::R2::exception(
                     qq{"::lhs" blessing only allowed if LHS is whitespace and alphanumerics\n},
-                    qq{   LHS was <$lhs>\n},
-                    qq{   Rule was <$lhs> ::= },
-                    join q{ },
-                    map { '<' . $_ . '>' } @rhs
+                    qq{   LHS was <$original_lhs>\n}
                 );
             } ## end if ( $blessing =~ / [^ [:alnum:]] /xms )
             $blessing =~ s/[ ]/_/gxms;
             last FIND_BLESSING;
         } ## end if ( $blessing eq '::lhs' )
         Marpa::R2::exception(
-            qq{Unknown blessing "$blessing"\n},
-            qq{   Rule was <$lhs> ::= },
-            join q{ }, map { '<' . $_ . '>' } @rhs
+            qq{Unknown blessing "$blessing"\n}
         );
     } ## end FIND_BLESSING:
     $hash_rule->{bless} = $blessing;
@@ -283,7 +278,7 @@ sub do_priority_rule {
                     $lhs, '")'
                 );
             } ## end if ( defined $blessing and ...)
-            $self->bless_hash_rule( \%hash_rule, $blessing );
+            $self->bless_hash_rule( \%hash_rule, $blessing, $lhs );
 
             push @{$rules}, \%hash_rule;
         } ## end for my $alternative ( @{ $priorities->[0] } )
@@ -352,7 +347,7 @@ sub do_priority_rule {
                 '")'
             );
         } ## end if ( defined $blessing and ...)
-        $self->bless_hash_rule( \%new_xs_rule, $blessing );
+        $self->bless_hash_rule( \%new_xs_rule, $blessing, $lhs );
 
         my $next_priority = $priority + 1;
         $next_priority = 0 if $next_priority >= $priority_count;
@@ -426,7 +421,7 @@ sub do_empty_rule {
             '")'
         );
     } ## end if ( defined $blessing )
-    $self->bless_hash_rule(\%rule, $blessing);
+    $self->bless_hash_rule(\%rule, $blessing, $lhs);
 
     # mask not needed
     if ( $op_declare eq q{::=} ) {
@@ -523,7 +518,7 @@ sub do_quantified_rule {
             '")'
         );
     } ## end if ( defined $blessing )
-    $self->bless_hash_rule(\%sequence_rule, $blessing);
+    $self->bless_hash_rule(\%sequence_rule, $blessing, $lhs);
 
     if ($op_declare eq q{::=}) {
         return \@rules;
