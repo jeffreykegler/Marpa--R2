@@ -456,8 +456,9 @@ sub do_default_rule {
     return [];
 } ## end sub do_default_rule
 
-sub do_lexeme_rule {
-    my ( $self, $lhs, undef, $adverb_list ) = @_;
+sub do_lexeme_default_statement {
+    $DB::single = 1;
+    my ( $self, $adverb_list ) = @_;
     $self->{lexeme_default_adverbs} = {};
     ADVERB: for my $key ( keys %{$adverb_list} ) {
         my $value = $adverb_list->{$key};
@@ -469,10 +470,11 @@ sub do_lexeme_rule {
             $self->{lexeme_default_adverbs}->{$key} = $value;
             next ADVERB;
         }
-        Marpa::R2::exception(qq{"$key" adverb not allowed as lexeme default"});
+        Marpa::R2::exception(
+            qq{"$key" adverb not allowed as lexeme default"});
     } ## end ADVERB: for my $key ( keys %{$adverb_list} )
     return [];
-} ## end sub do_lexeme_rule
+} ## end sub do_lexeme_default_statement
 
 ## no critic(Subroutines::ProhibitManyArgs)
 sub do_quantified_rule {
@@ -625,8 +627,7 @@ my %hashed_closures = (
     do_discard_rule              => \&do_discard_rule,
     do_empty_rule                => \&do_empty_rule,
     do_default_rule                => \&do_default_rule,
-    do_lexeme_rule                => \&do_lexeme_rule,
-    do_bless_lexemes                => \&do_bless_lexemes,
+    do_lexeme_default_statement                => \&do_lexeme_default_statement,
     do_lhs                       => \&do_lhs,
     do_op_declare_bnf            => \&do_op_declare_bnf,
     do_op_declare_match          => \&do_op_declare_match,
@@ -975,7 +976,7 @@ my %actions_by_lhs_symbol = (
     'priority rule'                  => 'do_priority_rule',
     'empty rule'                     => 'do_empty_rule',
     'default rule'                     => 'do_default_rule',
-    'lexeme rule'                     => 'do_lexeme_rule',
+    'lexeme default statement'                     => 'do_lexeme_default_statement',
     'quantified rule'                => 'do_quantified_rule',
     'discard rule'                   => 'do_discard_rule',
     priorities                       => 'do_discard_separators',
@@ -1109,6 +1110,9 @@ sub Marpa::R2::Scanless::G::_source_to_hash {
                 # No-op -- value is arg 0
                 next STEP;
             }
+
+            $DB::single = 1;
+
             my $hashed_closure = $hashed_closures{$action};
             if ( defined $hashed_closure ) {
                 $stack[$arg_0] = $hashed_closure->( $inner_self, @args );

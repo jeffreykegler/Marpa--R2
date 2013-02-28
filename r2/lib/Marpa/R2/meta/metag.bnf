@@ -14,7 +14,7 @@
 # http://www.gnu.org/licenses/.
 
 :default ::= action => [range,values] bless => ::lhs
-:lexeme ::= action => [range,value] bless => ::name
+lexeme default = action => [range,value] bless => ::name
 
 :start ::= statements
 statements ::= statement+
@@ -22,10 +22,10 @@ statement ::= <statement body>
 statement ::= <statement body> ';'
 <statement body> ::= <start rule> | <empty rule>
   | <priority rule> | <quantified rule> | <discard rule> | <default rule>
-  | <lexeme rule>
+  | <lexeme default statement>
 <start rule> ::= (':start' <op declare bnf>) symbol
 <default rule> ::= ':default' <op declare bnf> <adverb list>
-<lexeme rule> ::= ':lexeme' <op declare bnf> <adverb list>
+<lexeme default statement> ::= ('lexeme' 'default' '=') <adverb list>
 <priority rule> ::= lhs <op declare> priorities
 <empty rule> ::= lhs <op declare> <adverb list>
 <quantified rule> ::= lhs <op declare> <single symbol> quantifier <adverb list>
