@@ -458,18 +458,18 @@ sub do_default_rule {
 
 sub do_lexeme_rule {
     my ( $self, $lhs, undef, $adverb_list ) = @_;
-    $self->{lexeme_adverbs} = {};
+    $self->{lexeme_default_adverbs} = {};
     ADVERB: for my $key ( keys %{$adverb_list} ) {
         my $value = $adverb_list->{$key};
         if ( $key eq 'action' ) {
-            $self->{lexeme_adverbs}->{$key} = $value;
+            $self->{lexeme_default_adverbs}->{$key} = $value;
             next ADVERB;
         }
         if ( $key eq 'bless' ) {
-            $self->{lexeme_adverbs}->{$key} = $value;
+            $self->{lexeme_default_adverbs}->{$key} = $value;
             next ADVERB;
         }
-        Marpa::R2::exception(qq{"$key" adverb not allowed in lexeme rule"});
+        Marpa::R2::exception(qq{"$key" adverb not allowed as lexeme default"});
     } ## end ADVERB: for my $key ( keys %{$adverb_list} )
     return [];
 } ## end sub do_lexeme_rule
@@ -976,7 +976,6 @@ my %actions_by_lhs_symbol = (
     'empty rule'                     => 'do_empty_rule',
     'default rule'                     => 'do_default_rule',
     'lexeme rule'                     => 'do_lexeme_rule',
-    'bless lexemes statement'                     => 'do_bless_lexemes',
     'quantified rule'                => 'do_quantified_rule',
     'discard rule'                   => 'do_discard_rule',
     priorities                       => 'do_discard_separators',
@@ -1247,24 +1246,35 @@ sub Marpa::R2::Scanless::G::_source_to_hash {
         $lex_rhs{$_} = 1 for @{ $lex_rule->{rhs} };
     }
 
-    my $bless_lexemes = $inner_self->{bless_lexemes};
+    my $lexeme_default_adverbs = $inner_self->{lexeme_default_adverbs};
     my $g1_symbols    = {};
     my %is_lexeme =
         map { ( $_, 1 ); } grep { not $lex_rhs{$_} } keys %lex_lhs;
-    if ($bless_lexemes) {
+    if ( my $lexeme_default_adverbs = $inner_self->{lexeme_default_adverbs} )
+    {
+        my $blessing = $lexeme_default_adverbs->{bless};
+        my $action   = $lexeme_default_adverbs->{action};
         LEXEME: for my $lexeme ( keys %is_lexeme ) {
             next LEXEME if $lexeme =~ m/ \] \z/xms;
-            if ( $lexeme =~ / [^ [:alnum:]] /xms ) {
-                Marpa::R2::exception(
-                    qq{Lexeme blessing only allowed if lexeme name is whitespace and alphanumerics\n},
-                    qq{   Problematic lexeme was <$lexeme>\n}
-                );
-            } ## end if ( $lexeme =~ / [^ [:alnum:]] /xms )
-            my $blessing = $lexeme;
-            $blessing =~ s/[ ]/_/gxms;
-            $g1_symbols->{$lexeme}->{bless} = $blessing;
+            DETERMINE_BLESSING: {
+                last DETERMINE_BLESSING if not $blessing;
+                if ( $blessing eq '::name' ) {
+                    if ( $lexeme =~ / [^ [:alnum:]] /xms ) {
+                        Marpa::R2::exception(
+                            qq{Lexeme blessing by '::name' only allowed if lexeme name is whitespace and alphanumerics\n},
+                            qq{   Problematic lexeme was <$lexeme>\n}
+                        );
+                    } ## end if ( $lexeme =~ / [^ [:alnum:]] /xms )
+                    my $blessing = $lexeme;
+                    $blessing =~ s/[ ]/_/gxms;
+                    $g1_symbols->{$lexeme}->{bless} = $blessing;
+                    last DETERMINE_BLESSING;
+                } ## end if ( $blessing eq '::name' )
+                $g1_symbols->{$lexeme}->{bless} = $blessing;
+            } ## end DETERMINE_BLESSING:
+            $g1_symbols->{$lexeme}->{semantics} = $action;
         } ## end LEXEME: for my $lexeme ( keys %is_lexeme )
-    } ## end if ($bless_lexemes)
+    } ## end if ( my $lexeme_default_adverbs = $inner_self->{...})
     $inner_self->{is_lexeme}  = \%is_lexeme;
     $inner_self->{g1_symbols} = $g1_symbols;
 

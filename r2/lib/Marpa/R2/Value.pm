@@ -802,7 +802,6 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
     state $op_bless              = Marpa::R2::Thin::op('bless');
     state $op_callback           = Marpa::R2::Thin::op('callback');
-    state $op_push_token_value   = Marpa::R2::Thin::op('push_token_value');
     state $op_push_values        = Marpa::R2::Thin::op('push_values');
     state $op_push_one           = Marpa::R2::Thin::op('push_one');
     state $op_push_sequence      = Marpa::R2::Thin::op('push_sequence');
@@ -1047,7 +1046,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                             or $result_descriptor eq 'value' )
                         {
                             if ( defined $lexeme_id ) {
-                                push @push_ops, $op_push_token_value;
+                                push @push_ops, $op_push_values;
                                 next RESULT_DESCRIPTOR;
                             }
                             my $mask =

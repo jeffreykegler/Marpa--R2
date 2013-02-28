@@ -986,6 +986,11 @@ sub assign_symbol {
     my $symbol = shadow_symbol( $grammar, $symbol_id );
 
     PROPERTY: for my $property ( sort keys %{$options} ) {
+        if ( $property eq 'semantics' ) {
+            my $value = $options->{$property};
+            $symbol->[Marpa::R2::Internal::Symbol::LEXEME_SEMANTICS] = $value;
+            next PROPERTY;
+        }
         if ( $property eq 'bless' ) {
             my $value = $options->{$property};
             $symbol->[Marpa::R2::Internal::Symbol::BLESSING] = $value;

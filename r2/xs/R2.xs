@@ -1619,7 +1619,7 @@ PPCODE:
 	  XSRETURN_IV ((IV) op_data->op);
 	}
     }
-  XSRETURN_UNDEF;
+  croak("Problem with Marpa::R2::Thin->op('%s'): No such op", op_name);
 }
 
  # This search is not optimized.  This list is short
