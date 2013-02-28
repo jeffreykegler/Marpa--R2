@@ -16,11 +16,11 @@
 :default ::= action => [range,values] bless => ::lhs
 :lexeme ::= action => [range,value] bless => ::name
 
-:start ::= rules
-rules ::= rule+
-rule ::= <rule body>
-rule ::= <rule body> ';'
-<rule body> ::= <start rule> | <empty rule>
+:start ::= statements
+statements ::= statement+
+statement ::= <statement body>
+statement ::= <statement body> ';'
+<statement body> ::= <start rule> | <empty rule>
   | <priority rule> | <quantified rule> | <discard rule> | <default rule>
   | <lexeme rule>
 <start rule> ::= (':start' <op declare bnf>) symbol

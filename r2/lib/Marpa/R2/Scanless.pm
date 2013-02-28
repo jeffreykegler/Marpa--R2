@@ -149,7 +149,7 @@ package Marpa::R2::Inner::Scanless;
 
 use English qw( -no_match_vars );
 
-sub do_rules {
+sub do_statements {
     shift;
     return [ map { @{$_} } @_ ];
 }
@@ -636,7 +636,7 @@ my %hashed_closures = (
     do_priority_rule             => \&do_priority_rule,
     do_quantified_rule           => \&do_quantified_rule,
     do_rhs                       => \&do_rhs,
-    do_rules                     => \&do_rules,
+    do_statements                     => \&do_statements,
     do_separator_specification   => \&do_separator_specification,
     do_single_quoted_string      => \&do_single_quoted_string,
     do_start_rule                => \&do_start_rule,
@@ -970,7 +970,7 @@ my %actions_by_lhs_symbol = (
     lhs                              => 'do_lhs',
     'rhs primary list'               => 'do_rhs_primary_list',
     'parenthesized rhs primary list' => 'do_parenthesized_rhs_primary_list',
-    rules                            => 'do_rules',
+    statements                            => 'do_statements',
     'start rule'                     => 'do_start_rule',
     'priority rule'                  => 'do_priority_rule',
     'empty rule'                     => 'do_empty_rule',
@@ -1270,6 +1270,12 @@ sub Marpa::R2::Scanless::G::_source_to_hash {
                     $g1_symbols->{$lexeme}->{bless} = $blessing;
                     last DETERMINE_BLESSING;
                 } ## end if ( $blessing eq '::name' )
+                if ( $blessing =~ / [^\w] /xms ) {
+                    Marpa::R2::exception(
+                        qq{Blessing lexeme as '$blessing' is not allowed\n},
+                        qq{   Problematic lexeme was <$lexeme>\n}
+                    );
+                }
                 $g1_symbols->{$lexeme}->{bless} = $blessing;
             } ## end DETERMINE_BLESSING:
             $g1_symbols->{$lexeme}->{semantics} = $action;
