@@ -295,22 +295,6 @@ sub evaluate {
     return Marpa::R2::Internal::MetaG::Symbol->new($bracketed_name);
 } ## end sub evaluate
 
-package Marpa::R2::Internal::MetaG_Nodes::single_quoted_string;
-
-sub evaluate {
-    my ($values, $parse ) = @_;
-    my $string = $values->[0];
-    my @symbols = ();
-    for my $char_class ( map { '[' . (quotemeta $_) . ']' } split //xms, substr $string, 1, -1) {
-        my $symbol = Marpa::R2::Internal::MetaG::Symbol::assign_symbol_by_char_class(
-        $parse, $char_class);
-        push @symbols, $symbol;
-    }
-    my $list = Marpa::R2::Internal::Meta_AST::Symbol_List->new(@symbols);
-    $list->lexical_set();
-    return $list;
-}
-
 package Marpa::R2::Internal::MetaG_Nodes::rhs_primary_list;
 
 sub evaluate {
@@ -545,13 +529,13 @@ sub evaluate {
 
 sub g0_evaluate {
     my ( $values, $parse ) = @_;
-    # die Data::Dumper::Dumper($values);
     return bless [
-        dev => 'g0 partial',
-        children =>
-            [ map { $values->[$_]->g0_evaluate($parse) } 0 .. $#{$values} ]
+        dev      => 'g0 partial',
+        children => [
+            map { Marpa::R2::Internal::MetaAST::dwim_evaluate( $_, $parse ) }
+                @{$values}
         ],
-        __PACKAGE__;
+    ];
 } ## end sub g0_evaluate
 
 package Marpa::R2::Internal::MetaG_Nodes::single_symbol;
@@ -624,4 +608,55 @@ sub evaluate {
     $symbol->lexical_set();
     return $symbol;
 } ## end sub evaluate
+
+sub g0_evaluate {
+    my ( $values, $parse ) = @_;
+    return $values;
+}
+
+package Marpa::R2::Internal::MetaG_Nodes::single_quoted_string;
+sub evaluate {
+    my ( $values, $parse ) = @_;
+    my ( undef, undef, $string ) = @{$values};
+    my @symbols = ();
+    for my $char_class (
+        map { '[' . ( quotemeta $_ ) . ']' } split //xms,
+        substr $string,
+        1, -1
+        )
+    {
+        my $symbol = Marpa::R2::Internal::MetaG::Symbol::assign_symbol_by_char_class( $parse, $char_class);
+        push @symbols, $symbol;
+    } ## end for my $char_class ( map { '[' . ( quotemeta $_ ) . ']'...})
+    my $list = Marpa::R2::Inner::Scanless::Symbol_List->new(@symbols);
+    my $lexical_lhs_index = $parse->{lexical_lhs_index}++;
+    my $lexical_lhs       = "[Lex-$lexical_lhs_index]";
+    my %lexical_rule      = (
+        lhs  => $lexical_lhs,
+        rhs  => [ $list->names() ],
+        mask => [ $list->mask() ],
+    );
+    push @{ $parse->{g0_rules} }, \%lexical_rule;
+    my $g1_symbol = Marpa::R2::Inner::Scanless::Symbol->new($lexical_lhs);
+    return $g1_symbol;
+} ## end sub evaluate
+
+sub g0_evaluate {
+    my ( $values, $parse ) = @_;
+    my ( undef, undef, $string ) = @{$values};
+    my @symbols = ();
+    for my $char_class (
+        map { '[' . ( quotemeta $_ ) . ']' } split //xms,
+        substr $string,
+        1, -1
+        )
+    {
+        my $symbol =
+            Marpa::R2::Internal::MetaG::Symbol::assign_symbol_by_char_class(
+            $parse, $char_class );
+        push @symbols, $symbol;
+    } ## end for my $char_class ( map { '[' . ( quotemeta $_ ) . ']'...})
+    my $list = Marpa::R2::Inner::Scanless::Symbol_List->new(@symbols);
+    return $list;
+}
 
