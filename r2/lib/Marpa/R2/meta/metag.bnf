@@ -56,10 +56,6 @@ action ::= ('action' '=>') <action name>
 lhs ::= <symbol name>
 rhs ::= <rhs primary>+
 <rhs primary> ::= <single symbol>
-<rhs primary> ::= <kwc ws star>
-<rhs primary> ::= <kwc ws plus>
-<rhs primary> ::= <kwc ws>
-<rhs primary> ::= <kwc any>
 <rhs primary> ::= <single quoted string>
 <rhs primary> ::= <parenthesized rhs primary list>
 <parenthesized rhs primary list> ::= ('(') <rhs primary list> (')')
@@ -106,11 +102,6 @@ boolean ~ [01]
 <array descriptor> ~ '[' <result item descriptor list> ']'
 <result item descriptor list> ~ <result item descriptor>* separator => [,]
 <result item descriptor> ~ 'range' | 'value' | 'values'
-
-<kwc ws star> ~ ':ws*'
-<kwc ws plus> ~ ':ws+'
-<kwc ws> ~ ':ws'
-<kwc any> ~ ':any'
 
 # In single quotes strings and character classes
 # no escaping or internal newlines, and disallow empty string
