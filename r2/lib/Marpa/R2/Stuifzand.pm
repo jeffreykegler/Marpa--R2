@@ -264,20 +264,6 @@ sub create_hidden_internal_symbol {
     return $symbol;
 }
 
-sub do_any {
-    Marpa::R2::exception( ':any not allowed unless grammar is scannerless');
-}
-
-sub do_ws {
-    Marpa::R2::exception( ':ws not allowed unless grammar is scannerless');
-}
-sub do_ws_star {
-    Marpa::R2::exception( ':ws* not allowed unless grammar is scannerless');
-}
-sub do_ws_plus {
-    Marpa::R2::exception( ':ws+ not allowed unless grammar is scannerless');
-}
-
 sub do_symbol {
     shift;
     return Marpa::R2::Internal::Stuifzand::Symbol->new( $_[0] );
@@ -318,7 +304,6 @@ sub do_op_plus_quantifier { return q{+} }
 
 my %hashed_closures = (
     do_adverb_list               => \&do_adverb_list,
-    do_any                       => \&do_any,
     do_character_class           => \&do_character_class,
     do_discard_rule              => \&do_discard_rule,
     do_empty_rule                => \&do_empty_rule,
@@ -337,9 +322,6 @@ my %hashed_closures = (
     do_start_rule                => \&do_start_rule,
     do_symbol                    => \&do_symbol,
     do_rhs_primary_list               => \&do_rhs_primary_list,
-    do_ws                        => \&do_ws,
-    do_ws_plus                   => \&do_ws_plus,
-    do_ws_star                   => \&do_ws_star,
 );
 
 sub last_rule {
@@ -352,10 +334,6 @@ sub last_rule {
 # Applied first.  If a rule has only one RHS symbol,
 # and the key is it, the value is the action.
 my %actions_by_rhs_symbol = (
-    'kwc ws star'          => 'do_ws_star',
-    'kwc ws plus'          => 'do_ws_plus',
-    'kwc ws'               => 'do_ws',
-    'kwc any'              => 'do_any',
     'single quoted string' => 'do_single_quoted_string',
     'character class'      => 'do_character_class',
     'bracketed name'       => 'do_bracketed_name',

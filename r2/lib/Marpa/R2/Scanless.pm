@@ -156,7 +156,6 @@ sub do_statements {
 
 sub do_start_rule {
     my ( $self, $rhs ) = @_;
-    my @ws                = ();
     my $normalized_rhs    = $self->rhs_normalize($rhs);
     return [
         {   lhs    => '[:start]',
@@ -534,7 +533,6 @@ sub do_quantified_rule {
 
 sub create_internal_symbol {
     my ($self, $symbol_name) = @_;
-    $self->{needs_symbol}->{$symbol_name} = 1;
     my $symbol = Marpa::R2::Inner::Scanless::Symbol->new($symbol_name);
     return $symbol;
 }
@@ -560,16 +558,6 @@ sub assign_symbol_by_char_class {
     } ## end if ( not defined $hash_entry )
     return $symbol;
 } ## end sub assign_symbol_by_char_class
-
-sub do_any {
-    my $self = shift;
-    my $symbol_name = '[:any]';
-    return assign_symbol_by_char_class( $self, '[\p{Cn}\P{Cn}]', $symbol_name );
-}
-
-sub do_ws { return create_internal_symbol($_[0], '[:ws]') }
-sub do_ws_star { return create_internal_symbol($_[0], '[:ws*]') }
-sub do_ws_plus { return create_internal_symbol($_[0], '[:ws+]') }
 
 sub do_symbol {
     shift;
@@ -622,7 +610,6 @@ sub do_op_plus_quantifier { return q{+} }
 
 my %hashed_closures = (
     do_adverb_list               => \&do_adverb_list,
-    do_any                       => \&do_any,
     do_character_class           => \&do_character_class,
     do_discard_rule              => \&do_discard_rule,
     do_empty_rule                => \&do_empty_rule,
@@ -643,9 +630,6 @@ my %hashed_closures = (
     do_start_rule                => \&do_start_rule,
     do_symbol                    => \&do_symbol,
     do_rhs_primary_list               => \&do_rhs_primary_list,
-    do_ws                        => \&do_ws,
-    do_ws_plus                   => \&do_ws_plus,
-    do_ws_star                   => \&do_ws_star,
 );
 
 # Given a scanless
@@ -950,10 +934,6 @@ sub Marpa::R2::Scanless::G::show_rules {
 # Applied first.  If a rule has only one RHS symbol,
 # and the key is it, the value is the action.
 my %actions_by_rhs_symbol = (
-    'kwc ws star'          => 'do_ws_star',
-    'kwc ws plus'          => 'do_ws_plus',
-    'kwc ws'               => 'do_ws',
-    'kwc any'              => 'do_any',
     'single quoted string' => 'do_single_quoted_string',
     'character class'      => 'do_character_class',
     'bracketed name'       => 'do_bracketed_name',
@@ -1189,57 +1169,6 @@ sub Marpa::R2::Scanless::G::_source_to_hash {
 
     my $g1_rules = $inner_self->{g1_rules} = $stack[0];
     my $g0_rules = $inner_self->{g0_rules};
-
-    my @ws_rules = ();
-    if ( defined $inner_self->{needs_symbol} ) {
-        my %needed = %{ $inner_self->{needs_symbol} };
-        my %seen   = ();
-        undef $inner_self->{needs_symbol};
-        NEEDED_SYMBOL_LOOP: while (1) {
-            my @needed_symbols =
-                sort grep { !$seen{$_} } keys %needed;
-            last NEEDED_SYMBOL_LOOP if not @needed_symbols;
-            SYMBOL: for my $needed_symbol (@needed_symbols) {
-                $seen{$needed_symbol} = 1;
-                if ( $needed_symbol eq '[:ws+]' ) {
-                    push @ws_rules,
-                        {
-                        lhs => $needed_symbol,
-                        rhs => ['[:Space]'],
-                        min => 1
-                        };
-                    $needed{'[:Space]'} = 1;
-                    next SYMBOL;
-                } ## end if ( $needed_symbol eq '[:ws+]' )
-                if ( $needed_symbol eq '[:ws*]' ) {
-                    push @ws_rules,
-                        {
-                        lhs => $needed_symbol,
-                        rhs => ['[:Space]'],
-                        min => 0
-                        };
-                    $needed{'[:Space]'} = 1;
-                    next SYMBOL;
-                } ## end if ( $needed_symbol eq '[:ws*]' )
-                if ( $needed_symbol eq '[:ws]' ) {
-                    push @ws_rules, { lhs => '[:ws]', rhs => ['[:ws+]'], };
-                    $needed{'[:ws+]'} = 1;
-                    next SYMBOL;
-                }
-                if ( $needed_symbol eq '[:Space]' ) {
-                    my $true_ws = assign_symbol_by_char_class( $inner_self,
-                        '[\p{White_Space}]' );
-                    push @ws_rules,
-                        {
-                        lhs => '[:Space]',
-                        rhs => [ $true_ws->name() ],
-                        };
-                } ## end if ( $needed_symbol eq '[:Space]' )
-            } ## end SYMBOL: for my $needed_symbol (@needed_symbols)
-        } ## end NEEDED_SYMBOL_LOOP: while (1)
-    } ## end if ( defined $inner_self->{needs_symbol} )
-
-    push @{$g1_rules}, @ws_rules;
 
     $inner_self->{g1_rules}  = $g1_rules;
     $inner_self->{g0_rules} = $g0_rules;
