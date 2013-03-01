@@ -559,12 +559,20 @@ package Marpa::R2::Internal::MetaG_Nodes::character_class;
 
 sub evaluate {
     my ( $values, $parse ) = @_;
-    return $values if $parse->{grammar_level} == 0;
     my $symbol =
         Marpa::R2::Internal::MetaG::Symbol::assign_symbol_by_char_class(
         $parse, $values->[2] );
-    $symbol->lexical_set();
-    return $symbol;
+    return $symbol if $parse->{grammar_level} <= 0;
+    my $lexical_lhs_index = $parse->{lexical_lhs_index}++;
+    my $lexical_lhs       = "[Lex-$lexical_lhs_index]";
+    my %lexical_rule      = (
+        lhs  => $lexical_lhs,
+        rhs  => [ $symbol->names() ],
+        mask => [ $symbol->mask() ],
+    );
+    push @{ $parse->{g0_rules} }, \%lexical_rule;
+    my $g1_symbol = Marpa::R2::Inner::Scanless::Symbol->new($lexical_lhs);
+    return $g1_symbol;
 } ## end sub evaluate
 
 package Marpa::R2::Internal::MetaG_Nodes::single_quoted_string;
