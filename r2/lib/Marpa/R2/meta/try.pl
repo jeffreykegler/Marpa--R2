@@ -89,9 +89,18 @@ sub sort_bnf {
     return 0;
 } ## end sub sort_bnf
 
+my %stripped_character_classes = ();
+{
+    my $character_classes = $parse_result->{character_classes};
+    for my $symbol_name ( sort keys %{$character_classes} ) {
+        my ($re) = @{$character_classes->{$symbol_name}};
+        $stripped_character_classes{$symbol_name} = $re;
+    }
+}
+
 my %cooked_parse_result = (
     is_lexeme         => $parse_result->{is_lexeme},
-    character_classes => $parse_result->{character_classes}
+    character_classes => \%stripped_character_classes
 );
 
 for my $rule_set (qw(g0_rules g1_rules)) {
@@ -147,7 +156,7 @@ sub create_internal_symbol {
 sub assign_symbol_by_char_class {
     my ( $self, $char_class, $symbol_name ) = @_;
 
-    # default symbol name always start with TWO left square brackets
+    # character class symbol name always start with TWO left square brackets
     $symbol_name //= '[' . $char_class . ']';
     $self->{character_classes} //= {};
     my $cc_hash    = $self->{character_classes};
@@ -241,20 +250,6 @@ sub combine {
     } ## end for my $hash_to_add (@hashes)
     return $self;
 } ## end sub combine
-
-package Marpa::R2::Internal::MetaG_Nodes::kwc_ws_star;
-sub evaluate { return create_internal_symbol($_[1], $_[0]->[0]) }
-package Marpa::R2::Internal::MetaG_Nodes::kwc_ws_plus;
-sub evaluate { return create_internal_symbol($_[1], $_[0]->[0]) }
-package Marpa::R2::Internal::MetaG_Nodes::kwc_ws;
-sub evaluate { return create_internal_symbol($_[1], $_[0]->[0]) }
-package Marpa::R2::Internal::MetaG_Nodes::kwc_any;
-sub evaluate {
-    my ($values, $parse) = @_;
-    return Marpa::R2::Internal::MetaG::Symbol::assign_symbol_by_char_class(
-        $parse, '[\p{Cn}\P{Cn}]', $values->[0] );
-}
-
 
 package Marpa::R2::Internal::MetaG_Nodes::action_name;
 sub evaluate {
@@ -607,7 +602,7 @@ sub evaluate {
     my ( $values, $parse ) = @_;
     my $symbol =
         Marpa::R2::Internal::MetaG::Symbol::assign_symbol_by_char_class(
-        $parse, $values->[0] );
+        $parse, $values->[2] );
     $symbol->lexical_set();
     return $symbol;
 } ## end sub evaluate
