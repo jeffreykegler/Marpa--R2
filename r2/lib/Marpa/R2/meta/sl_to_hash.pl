@@ -63,7 +63,7 @@ my %cooked_parse_result = (
     character_classes => $parse_result->{character_classes}
 );
 
-for my $rule_set (qw(lex_rules g1_rules)) {
+for my $rule_set (qw(g0_rules g1_rules)) {
     my $aoh        = $parse_result->{$rule_set};
     my $sorted_aoh = [ sort sort_bnf @{$aoh} ];
     $cooked_parse_result{$rule_set} = $sorted_aoh;

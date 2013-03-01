@@ -51,12 +51,10 @@ my $bnf           = do { local $RS = undef; \(<>) };
 my $ast_ref =
     Marpa::R2::Scanless::G->_source_to_ast( $bnf );
 die "_source_to_ast did not return an AST" if not ref $ast_ref eq 'REF';
-my $parse = bless { p_source => $bnf }, $META_AST;
+my $parse_result = bless { p_source => $bnf }, $META_AST;
 # say "Original AST = \n", Data::Dumper::Dumper($ast_ref);
-say "Evaluated AST = \n", Data::Dumper::Dumper(dwim_evaluate(${$ast_ref}, $parse));
-say "self object = \n", Data::Dumper::Dumper($parse);
-
-exit 0;
+say "Evaluated AST = \n", Data::Dumper::Dumper(dwim_evaluate(${$ast_ref}, $parse_result));
+# say "self object = \n", Data::Dumper::Dumper($parse_result);
 
 sub dwim_evaluate {
     my ( $value, $parse ) = @_;
@@ -91,7 +89,8 @@ my %cooked_parse_result = (
     is_lexeme         => $ast_ref->{is_lexeme},
     character_classes => $ast_ref->{character_classes}
 );
-for my $rule_set (qw(lex_rules g1_rules)) {
+
+for my $rule_set (qw(g0_rules g1_rules)) {
     my $aoh        = $ast_ref->{$rule_set};
     my $sorted_aoh = [ sort sort_bnf @{$aoh} ];
     $cooked_parse_result{$rule_set} = $sorted_aoh;

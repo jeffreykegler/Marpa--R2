@@ -170,7 +170,7 @@ sub do_discard_rule {
     my ( $self, $rhs ) = @_;
     local $Marpa::R2::Inner::Scanless::GRAMMAR_LEVEL = 0;
     my $normalized_rhs = $self->rhs_normalize($rhs);
-    push @{$self->{lex_rules}}, { lhs => '[:discard]', rhs => [$normalized_rhs->name()] };
+    push @{$self->{g0_rules}}, { lhs => '[:discard]', rhs => [$normalized_rhs->name()] };
     return [];
 } ## end sub do_discard_rule
 
@@ -188,7 +188,7 @@ sub rhs_normalize {
             rhs  => [ $symbols->names() ],
             mask => [ $symbols->mask() ],
         );
-        push @{ $self->{lex_rules} }, \%lexical_rule;
+        push @{ $self->{g0_rules} }, \%lexical_rule;
         my $g1_symbol = Marpa::R2::Inner::Scanless::Symbol->new($lexical_lhs);
         $g1_symbol->hidden_set() if $is_hidden;
         return $g1_symbol;
@@ -238,7 +238,7 @@ sub do_priority_rule {
     my @working_rules          = ();
 
     my @xs_rules = ();
-    my $rules = $op_declare eq q{::=} ? \@xs_rules : $self->{lex_rules};
+    my $rules = $op_declare eq q{::=} ? \@xs_rules : $self->{g0_rules};
     local $Marpa::R2::Inner::Scanless::GRAMMAR_LEVEL = 0 if not $op_declare eq q{::=};
     my $grammar_level = $Marpa::R2::Inner::Scanless::GRAMMAR_LEVEL;
 
@@ -427,7 +427,7 @@ sub do_empty_rule {
     if ( $op_declare eq q{::=} ) {
         return [\%rule];
     }
-    push @{ $self->{lex_rules} }, \%rule;
+    push @{ $self->{g0_rules} }, \%rule;
     return [];
 } ## end sub do_empty_rule
 
@@ -525,7 +525,7 @@ sub do_quantified_rule {
     if ($op_declare eq q{::=}) {
         return \@rules;
     } else {
-       push @{$self->{lex_rules}}, @rules;
+       push @{$self->{g0_rules}}, @rules;
        return [];
     }
 
@@ -832,7 +832,7 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
     my %lex_args = ();
     $lex_args{trace_file_handle} =
         $self->[Marpa::R2::Inner::Scanless::G::TRACE_FILE_HANDLE] // \*STDERR;
-    $lex_args{rules} = $hashed_source->{lex_rules};
+    $lex_args{rules} = $hashed_source->{g0_rules};
     state $lex_target_symbol = '[:start_lex]';
     $lex_args{start} = $lex_target_symbol;
     $lex_args{'_internal_'} = 1;
@@ -998,7 +998,7 @@ sub Marpa::R2::Scanless::G::_source_to_hash {
     local $Marpa::R2::Inner::Scanless::GRAMMAR_LEVEL = 1;
     my $inner_self = bless {
         self              => $self,
-        lex_rules         => [],
+        g0_rules         => [],
         lexical_lhs_index => 0,
         },
         __PACKAGE__;
@@ -1188,7 +1188,7 @@ sub Marpa::R2::Scanless::G::_source_to_hash {
     } ## end STEP: while (1)
 
     my $g1_rules = $inner_self->{g1_rules} = $stack[0];
-    my $lex_rules = $inner_self->{lex_rules};
+    my $g0_rules = $inner_self->{g0_rules};
 
     my @ws_rules = ();
     if ( defined $inner_self->{needs_symbol} ) {
@@ -1242,10 +1242,10 @@ sub Marpa::R2::Scanless::G::_source_to_hash {
     push @{$g1_rules}, @ws_rules;
 
     $inner_self->{g1_rules}  = $g1_rules;
-    $inner_self->{lex_rules} = $lex_rules;
+    $inner_self->{g0_rules} = $g0_rules;
     my %lex_lhs = ();
     my %lex_rhs = ();
-    for my $lex_rule ( @{$lex_rules} ) {
+    for my $lex_rule ( @{$g0_rules} ) {
         $lex_lhs{ $lex_rule->{lhs} } = 1;
         $lex_rhs{$_} = 1 for @{ $lex_rule->{rhs} };
     }
@@ -1294,7 +1294,7 @@ sub Marpa::R2::Scanless::G::_source_to_hash {
         Marpa::R2::exception( 'Unproductive lexical symbols: ',
             join q{ }, @unproductive );
     }
-    push @{ $inner_self->{lex_rules} },
+    push @{ $inner_self->{g0_rules} },
         map { ; { lhs => '[:start_lex]', rhs => [$_] } } sort keys %is_lexeme;
 
     my $raw_cc = $inner_self->{character_classes};
