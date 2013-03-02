@@ -54,25 +54,9 @@ my $parse_result = bless {
     g1_rules => []
 }, $META_AST;
 
-# say "Original AST = \n", Data::Dumper::Dumper($ast_ref);
-my $ast = dwim_evaluate( ${$ast_ref}, $parse_result );
+my $ast = $ast_ref->dwim_evaluate( $parse_result );
 
 # say STDERR "self object = \n", Data::Dumper::Dumper($parse_result);
-
-sub dwim_evaluate {
-    my ( $value, $parse ) = @_;
-    return $value if not defined $value;
-    if ( Scalar::Util::blessed($value) ) {
-        return $value->evaluate($parse) if $value->can('evaluate');
-        return bless [ map { dwim_evaluate( $_, $parse ) } @{$value} ],
-            ref $value
-            if Scalar::Util::reftype($value) eq 'ARRAY';
-        return $value;
-    } ## end if ( Scalar::Util::blessed($value) )
-    return [ map { dwim_evaluate( $_, $parse ) } @{$value} ]
-        if ref $value eq 'ARRAY';
-    return $value;
-} ## end sub dwim_evaluate
 
 sub sort_bnf {
     my $cmp = $a->{lhs} cmp $b->{lhs};

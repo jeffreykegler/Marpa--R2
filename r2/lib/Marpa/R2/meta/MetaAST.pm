@@ -41,9 +41,11 @@ sub new {
     my $thick_meta_g1_recce = $meta_recce->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
     my $thick_g1_recce = $meta_recce->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
 
-    return bless $meta_recce->value(), $class;
+    my $value_ref = $meta_recce->value();
+    Marpa::R2::exception("Parse of BNF/Scanless source failed") if not defined $value_ref;
+    return bless ${$value_ref}, $class;
 
-} ## end sub rules_add
+}
 
 sub dwim_evaluate {
     my ( $value, $parse ) = @_;
