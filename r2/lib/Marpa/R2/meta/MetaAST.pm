@@ -19,7 +19,12 @@ use 5.010;
 use strict;
 use warnings;
 
-say STDERR "Trial ", __FILE__;
+use vars qw($VERSION $STRING_VERSION);
+$VERSION        = '2.047_007';
+$STRING_VERSION = $VERSION;
+## no critic(BuiltinFunctions::ProhibitStringyEval)
+$VERSION = eval $VERSION;
+## use critic
 
 sub Marpa::R2::Scanless::G::_source_to_ast {
     my ( $self, $p_rules_source ) = @_;

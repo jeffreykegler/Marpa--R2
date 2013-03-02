@@ -31,7 +31,7 @@ use autodie;
 use lib '../../../';
 use lib '../../../../blib/arch';
 use Marpa::R2;
-BEGIN { require './Try.pm'; }
+BEGIN { require './MetaAST.pm'; }
 
 use Getopt::Long;
 my $verbose          = 1;
@@ -181,9 +181,7 @@ sub names          { return $_[0]->{name} }
 sub is_hidden      { return $_[0]->{is_hidden} }
 sub are_all_hidden { return $_[0]->{is_hidden} }
 
-sub is_lexical { return shift->{is_lexical} // 0 }
 sub hidden_set  { return shift->{is_hidden}  = 1; }
-sub lexical_set { return shift->{is_lexical} = 1; }
 sub mask { return shift->is_hidden() ? 0 : 1 }
 
 sub symbols      { return $_[0]; }
@@ -213,9 +211,6 @@ sub hidden_set {
     $_->hidden_set() for @{ shift->{symbol_lists} };
     return 0;
 }
-
-sub is_lexical { return shift->{is_lexical} // 0 }
-sub lexical_set { return shift->{is_lexical} = 1; }
 
 sub mask {
     return
