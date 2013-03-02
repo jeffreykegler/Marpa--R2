@@ -54,8 +54,8 @@ sub ast_to_hash {
         g0_rules => [],
         g1_rules => []
     };
-    $ast->dwim_evaluate($parse);
-    return $parse;
+    my $new_ast = $ast->dwim_evaluate($parse);
+    return $parse, $new_ast;
 }
 
 sub dwim_evaluate {

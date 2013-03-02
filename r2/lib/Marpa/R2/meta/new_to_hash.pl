@@ -36,10 +36,12 @@ BEGIN { require './MetaAST.pm'; }
 use Getopt::Long;
 my $verbose       = 1;
 my $help_flag     = 0;
-my $dump_ast_flag = 0;
+my $ast_before_flag = 0;
+my $ast_after_flag = 0;
 my $result        = Getopt::Long::GetOptions(
     'help'     => \$help_flag,
-    'dump_ast' => \$dump_ast_flag
+    'ast_before' => \$ast_before_flag,
+    'ast_after' => \$ast_after_flag
 );
 die "usage $PROGRAM_NAME [--help] file ...\n" if $help_flag;
 
@@ -50,11 +52,15 @@ package main;
 
 my $bnf = do { local $RS = undef; \(<>) };
 my $ast = Marpa::R2::Internal::MetaAST->new($bnf);
-if ($dump_ast_flag) {
+if ($ast_before_flag) {
    say Data::Dumper::Dumper($ast);
    exit 0;
 }
-my $parse_result = $ast->ast_to_hash($bnf);
+my ($parse_result, $ast_after) = $ast->ast_to_hash($bnf);
+if ($ast_after_flag) {
+   say Data::Dumper::Dumper($ast_after);
+   exit 0;
+}
 
 
 sub sort_bnf {
