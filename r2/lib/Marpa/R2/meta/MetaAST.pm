@@ -77,36 +77,23 @@ package Marpa::R2::Internal::MetaAST::Symbol;
 
 use English qw( -no_match_vars );
 
-# Make the child argument into a symbol, if it is
-# not one already
-sub evaluate { return $_[0] }
-
 sub new {
-    my ( $class, $self, $hide ) = @_;
-    return bless { name => ( '' . $self ), is_hidden => ( $hide // 0 ) },
-        $class
-        if ref $self eq q{};
-    return $self;
-} ## end sub new
-
-sub to_symbol_list {
-    Marpa::R2::Internal::MetaAST::Symbol_List->new(@_);
+    my ( $class, $name, $hide ) = @_;
+    return bless { name => ( '' . $name ), mask => [ $hide ? 1 : 0 ] }, $class;
 }
-
-sub create_internal_symbol {
-    my ( $parse, $symbol_name ) = @_;
-    $parse->{needs_symbol}->{$symbol_name} = 1;
-    my $symbol = Marpa::R2::Internal::MetaAST::Symbol->new($symbol_name);
-    return $symbol;
-} ## end sub create_internal_symbol
+sub is_symbol { return 1 }
+sub name      { return shift->{name} }
+sub names     { return [ shift->{name} ] }
+sub mask      { return shift->{mask} }
+sub hide      { my ( $self, $hide ) = @_; $self->{mask} = [ $hide ? 1 : 0 ] }
 
 # Return the character class symbol name,
 # after ensuring everything is set up properly
 sub assign_symbol_by_char_class {
-    my ( $self, $char_class, $symbol_name ) = @_;
+    my ( $self, $char_class ) = @_;
 
     # character class symbol name always start with TWO left square brackets
-    $symbol_name //= '[' . $char_class . ']';
+    my $symbol_name = '[' . $char_class . ']';
     $self->{character_classes} //= {};
     my $cc_hash = $self->{character_classes};
     my ( undef, $symbol ) = $cc_hash->{$symbol_name};
@@ -116,60 +103,36 @@ sub assign_symbol_by_char_class {
             Carp::croak( 'Bad Character class: ',
                 $char_class, "\n", 'Perl said ', $EVAL_ERROR );
         }
-        $symbol = create_internal_symbol( $self, $symbol_name );
+        $symbol = Marpa::R2::Internal::MetaAST::Symbol->new($symbol_name);
         $cc_hash->{$symbol_name} = [ $regex, $symbol ];
     } ## end if ( not defined $symbol )
     return $symbol;
 } ## end sub assign_symbol_by_char_class
 
-sub is_symbol      { return 1 }
-sub name           { return $_[0]->{name} }
-sub names          { return $_[0]->{name} }
-sub is_hidden      { return $_[0]->{is_hidden} }
-sub are_all_hidden { return $_[0]->{is_hidden} }
-
-sub hidden_set  { return shift->{is_hidden}  = 1; }
-sub mask { return shift->is_hidden() ? 0 : 1 }
-
-sub symbols      { return $_[0]; }
-sub symbol_lists { return $_[0]; }
-
 package Marpa::R2::Internal::MetaAST::Symbol_List;
 
-sub new { my $class = shift; return bless { symbol_lists => [@_] }, $class }
+sub new {
+    my ( $class, @lists ) = @_;
+    my $self = {};
+    $self->{names} = [ map { @{ $_->names() } } @lists ];
+    $self->{mask}  = [ map { @{ $_->mask() } } @lists ];
+    return bless $self, $class;
+} ## end sub new
 sub is_symbol { return 0 }
-
-sub to_symbol_list { $_[0]; }
-
-sub names {
-    return map { $_->names() } @{ shift->{symbol_lists} };
+sub name {
+    my ($self) = @_;
+    my $names = $self->{names};
+    Marpa::R2::exception( "list->name() on symbol list of length ",
+        scalar @{$names} )
+        if scalar @{$names} != 1;
+    return $self->{names}->[0];
+} ## end sub name
+sub names { return shift->{names} }
+sub mask { return shift->{mask} }
+sub hide {
+    my ( $self, $hide ) = @_;
+    $self->{mask} = [ map { $hide ? 1 : 0 } @{ $self->{mask} } ];
 }
-
-sub are_all_hidden {
-    $_->is_hidden() || return 0 for @{ shift->{symbol_lists} };
-    return 1;
-}
-
-sub is_hidden {
-    return map { $_->is_hidden() } @{ shift->{symbol_lists} };
-}
-
-sub hidden_set {
-    $_->hidden_set() for @{ shift->{symbol_lists} };
-    return 0;
-}
-
-sub mask {
-    return
-        map { $_ ? 0 : 1 } map { $_->is_hidden() } @{ shift->{symbol_lists} };
-}
-
-sub symbols {
-    return map { $_->symbols() } @{ shift->{symbol_lists} };
-}
-
-# The "unflattened" list, which may contain other lists
-sub symbol_lists { return @{ shift->{symbol_lists} }; }
 
 package Marpa::R2::Internal::MetaAST::Proto_Alternative;
 
@@ -250,11 +213,32 @@ sub Marpa::R2::Internal::MetaAST_Nodes::bracketed_name::name {
     return $bracketed_name;
 } ## end sub evaluate
 
-package Marpa::R2::Internal::MetaAST_Nodes::rhs_primary_list;
+sub Marpa::R2::Internal::MetaAST_Nodes::parenthesized_rhs_primary_list::evaluate {
+    my ( $data, $parse ) = @_;
+    my (undef, undef, @values) = @{$data};
+    my @symbol_lists = map { $_->evaluate($parse); } @values;
+    my $flattened_list = Marpa::R2::Internal::MetaAST::Symbol_List->new(@symbol_lists);
+    $flattened_list->hide();
+    return $flattened_list;
+}
 
-sub evaluate {
-    my ( $values, $parse ) = @_;
-    my @symbol_lists = map { $_->evaluate($parse) } @{$values};
+sub Marpa::R2::Internal::MetaAST_Nodes::rhs::evaluate {
+    my ( $data, $parse ) = @_;
+    my @symbol_lists = map { $_->evaluate($parse) } @{$data};
+    return Marpa::R2::Internal::MetaAST::Symbol_List->new(@symbol_lists);
+}
+
+sub Marpa::R2::Internal::MetaAST_Nodes::rhs_primary::evaluate {
+    my ( $data, $parse ) = @_;
+    my (undef, undef, @values) = @{$data};
+    my @symbol_lists = map { $_->evaluate($parse) } @values;
+    return Marpa::R2::Internal::MetaAST::Symbol_List->new(@symbol_lists);
+}
+
+sub Marpa::R2::Internal::MetaAST_Nodes::rhs_primary_list::evaluate {
+    my ( $data, $parse ) = @_;
+    my (undef, undef, @values) = @{$data};
+    my @symbol_lists = map { $_->evaluate($parse) } @values;
     return Marpa::R2::Internal::MetaAST::Symbol_List->new(@symbol_lists);
 }
 
@@ -382,7 +366,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::discard_rule::evaluate {
     my ( $start, $end, $symbol ) = @{$values};
     local $parse->{grammar_level} = 0;
     push @{ $parse->{g0_rules} },
-        { lhs => '[:discard]', rhs => [ $symbol->evaluate()->name() ] };
+        { lhs => '[:discard]', rhs => $symbol->names($parse) };
     return undef;
 } ## end sub Marpa::R2::Internal::MetaAST_Nodes::discard_rule::evaluate
 
@@ -436,38 +420,17 @@ sub evaluate {
         __PACKAGE__;
 } ## end sub evaluate
 
-package Marpa::R2::Internal::MetaAST_Nodes::rhs;
-
-sub evaluate {
+sub Marpa::R2::Internal::MetaAST_Nodes::single_symbol::names {
     my ( $values, $parse ) = @_;
-    return
-        bless [
-        map { Marpa::R2::Internal::MetaAST::dwim_evaluate( $_, $parse ) }
-            @{$values} ],
-        __PACKAGE__;
-} ## end sub evaluate
+    my ( undef, undef, $symbol ) = @{$values};
+    return $symbol->names($parse);
+}
 
-package Marpa::R2::Internal::MetaAST_Nodes::rhs_primary;
-
-sub evaluate {
+sub Marpa::R2::Internal::MetaAST_Nodes::single_symbol::name {
     my ( $values, $parse ) = @_;
-    return
-        bless [
-        map { Marpa::R2::Internal::MetaAST::dwim_evaluate( $_, $parse ) }
-            @{$values} ],
-        __PACKAGE__;
-} ## end sub evaluate
-
-package Marpa::R2::Internal::MetaAST_Nodes::parenthesized_rhs_primary_list;
-
-sub evaluate {
-    my ( $values, $parse ) = @_;
-    return
-        bless [
-        map { Marpa::R2::Internal::MetaAST::dwim_evaluate( $_, $parse ) }
-            @{$values} ],
-        __PACKAGE__;
-} ## end sub evaluate
+    my ( undef, undef, $symbol ) = @{$values};
+    return $symbol->name($parse);
+}
 
 sub Marpa::R2::Internal::MetaAST_Nodes::single_symbol::evaluate {
     my ( $values, $parse ) = @_;
@@ -481,11 +444,17 @@ sub Marpa::R2::Internal::MetaAST_Nodes::Symbol::evaluate {
     return $symbol->evaluate($parse);
 }
 
-sub Marpa::R2::Internal::MetaAST_Nodes::symbol::name { my ($self) = @_; return $self->[2]; }
+sub Marpa::R2::Internal::MetaAST_Nodes::symbol::name { my ($self) = @_; return $self->[2]->name(); }
+sub Marpa::R2::Internal::MetaAST_Nodes::symbol::names { my ($self) = @_; return $self->[2]->names(); }
 sub Marpa::R2::Internal::MetaAST_Nodes::symbol_name::evaluate {
 my ($self) = @_; return $self->[2]; }
 sub Marpa::R2::Internal::MetaAST_Nodes::symbol_name::name {
-my ($self, $parse) = @_; return $self->evaluate($parse)->name($parse); }
+my ($self, $parse) = @_;
+return $self->evaluate($parse)->name($parse); }
+sub Marpa::R2::Internal::MetaAST_Nodes::symbol_name::names {
+    my ($self, $parse) = @_;
+   return [$self->name($parse)];
+}
 
 package Marpa::R2::Internal::MetaAST_Nodes::adverb_list;
 
@@ -497,30 +466,31 @@ sub evaluate {
 } ## end sub evaluate
 
 sub Marpa::R2::Internal::MetaAST_Nodes::character_class::name {
-my ($self, $parse) = @_; return $self->evaluate($parse)->name($parse); }
+    my ( $self, $parse ) = @_;
+    return $self->evaluate($parse)->name($parse);
+}
 
 sub Marpa::R2::Internal::MetaAST_Nodes::character_class::evaluate {
     my ( $values, $parse ) = @_;
     my $symbol =
         Marpa::R2::Internal::MetaAST::Symbol::assign_symbol_by_char_class(
         $parse, $values->[2] );
-    $DB::single = defined $parse->{grammar_level} ? 0 : 1;
     return $symbol if $parse->{grammar_level} <= 0;
+    $DB::single = 1;
     my $lexical_lhs_index = $parse->{lexical_lhs_index}++;
     my $lexical_lhs       = "[Lex-$lexical_lhs_index]";
     my %lexical_rule      = (
         lhs  => $lexical_lhs,
-        rhs  => [ $symbol->names() ],
-        mask => [ $symbol->mask() ],
+        rhs  => $symbol->names(),
+        mask => $symbol->mask(),
     );
     push @{ $parse->{g0_rules} }, \%lexical_rule;
     my $g1_symbol = Marpa::R2::Internal::MetaAST::Symbol->new($lexical_lhs);
     return $g1_symbol;
 } ## end sub Marpa::R2::Internal::MetaAST_Nodes::character_class::evaluate
 
-package Marpa::R2::Internal::MetaAST_Nodes::single_quoted_string;
-
-sub evaluate {
+sub Marpa::R2::Internal::MetaAST_Nodes::single_quoted_string::evaluate
+{
     my ( $values, $parse ) = @_;
     my ( undef, undef, $string ) = @{$values};
     my @symbols = ();
@@ -537,12 +507,13 @@ sub evaluate {
     } ## end for my $char_class ( map { '[' . ( quotemeta $_ ) . ']'...})
     my $list = Marpa::R2::Internal::MetaAST::Symbol_List->new(@symbols);
     return $list if $parse->{grammar_level} <= 0;
+    $DB::single = 1;
     my $lexical_lhs_index = $parse->{lexical_lhs_index}++;
     my $lexical_lhs       = "[Lex-$lexical_lhs_index]";
     my %lexical_rule      = (
         lhs  => $lexical_lhs,
-        rhs  => [ $list->names() ],
-        mask => [ $list->mask() ],
+        rhs  => $list->names(),
+        mask => $list->mask(),
     );
     push @{ $parse->{g0_rules} }, \%lexical_rule;
     my $g1_symbol = Marpa::R2::Internal::MetaAST::Symbol->new($lexical_lhs);
