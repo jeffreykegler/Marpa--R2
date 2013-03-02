@@ -256,11 +256,10 @@ sub evaluate {
     return $self->[2];
 }
 
-package Marpa::R2::Internal::MetaG_Nodes::bare_name;
-sub evaluate { return Marpa::R2::Internal::MetaG::Symbol->new( $_[0]->[0] ); }
+sub Marpa::R2::Internal::MetaG_Nodes::bare_name::name { return $_[0]->[2] }
 
 sub Marpa::R2::Internal::MetaG_Nodes::reserved_blessing_name::name {
-    return $_[0]->[0];
+    return $_[0]->[2];
 }
 
 sub Marpa::R2::Internal::MetaG_Nodes::blessing_name::name {
@@ -269,7 +268,7 @@ sub Marpa::R2::Internal::MetaG_Nodes::blessing_name::name {
 }
 
 sub Marpa::R2::Internal::MetaG_Nodes::standard_name::name {
-    return $_[0]->[0];
+    return $_[0]->[2];
 }
 
 sub Marpa::R2::Internal::MetaG_Nodes::lhs::evaluate {
@@ -292,9 +291,7 @@ sub Marpa::R2::Internal::MetaG_Nodes::op_declare_bnf::op {
     return $values->[2];
 }
 
-package Marpa::R2::Internal::MetaG_Nodes::bracketed_name;
-
-sub evaluate {
+sub Marpa::R2::Internal::MetaG_Nodes::bracketed_name::name {
     my ($children) = @_;
     my $bracketed_name = $children->[0];
 
@@ -302,7 +299,7 @@ sub evaluate {
     $bracketed_name =~ s/\A [<] \s*//xms;
     $bracketed_name =~ s/ \s* [>] \z//xms;
     $bracketed_name =~ s/ \s+ / /gxms;
-    return Marpa::R2::Internal::MetaG::Symbol->new($bracketed_name);
+    return $bracketed_name;
 } ## end sub evaluate
 
 package Marpa::R2::Internal::MetaG_Nodes::rhs_primary_list;
@@ -432,6 +429,15 @@ sub evaluate {
     return undef;
 } ## end sub evaluate
 
+sub Marpa::R2::Internal::MetaG_Nodes::discard_rule::evaluate {
+    my ( $values, $parse ) = @_;
+    my ( $start, $end, $symbol ) = @{$values};
+    local $parse->{grammar_level} = 0;
+    push @{ $parse->{g0_rules} },
+        { lhs => '[:discard]', rhs => [ $symbol->evaluate()->name() ] };
+    return undef;
+} ## end sub Marpa::R2::Internal::MetaG_Nodes::discard_rule::evaluate
+
 package Marpa::R2::Internal::MetaG_Nodes::quantified_rule;
 sub evaluate {
     my ( $values, $parse ) = @_;
@@ -515,27 +521,17 @@ sub evaluate {
         __PACKAGE__;
 } ## end sub evaluate
 
-package Marpa::R2::Internal::MetaG_Nodes::single_symbol;
-
-sub evaluate {
+sub Marpa::R2::Internal::MetaG_Nodes::single_symbol::evaluate {
     my ( $values, $parse ) = @_;
-    return
-        bless [
-        map { Marpa::R2::Internal::MetaAST::dwim_evaluate( $_, $parse ) }
-            @{$values} ],
-        __PACKAGE__;
-} ## end sub evaluate
+    my ( undef, undef, $symbol ) = @{$values};
+    return $symbol->evaluate();
+}
 
-package Marpa::R2::Internal::MetaG_Nodes::symbol;
-
-sub evaluate {
+sub Marpa::R2::Internal::MetaG_Nodes::symbol::evaluate {
     my ( $values, $parse ) = @_;
-    return
-        bless [
-        map { Marpa::R2::Internal::MetaAST::dwim_evaluate( $_, $parse ) }
-            @{$values} ],
-        __PACKAGE__;
-} ## end sub evaluate
+    my ( undef, undef, $symbol ) = @{$values};
+    return $symbol->evaluate();
+}
 
 package Marpa::R2::Internal::MetaG_Nodes::symbol_name;
 
