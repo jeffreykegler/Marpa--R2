@@ -219,8 +219,8 @@ sub Marpa::R2::Internal::MetaAST_Nodes::standard_name::name {
 }
 
 sub Marpa::R2::Internal::MetaAST_Nodes::lhs::evaluate {
-    my ($values) = @_;
-    return $values->[2]->evaluate();
+    my ($values, $parse) = @_;
+    return $values->[2]->evaluate($parse);
 }
 
 sub Marpa::R2::Internal::MetaAST_Nodes::op_declare::op {
@@ -471,7 +471,7 @@ sub evaluate {
 sub Marpa::R2::Internal::MetaAST_Nodes::single_symbol::evaluate {
     my ( $values, $parse ) = @_;
     my ( undef, undef, $symbol ) = @{$values};
-    return Marpa::R2::Internal::MetaAST::Symbol->new($symbol->name());
+    return Marpa::R2::Internal::MetaAST::Symbol->new($symbol->name($parse));
 }
 
 sub Marpa::R2::Internal::MetaAST_Nodes::Symbol::evaluate {
@@ -484,7 +484,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::symbol::name { my ($self) = @_; return $
 sub Marpa::R2::Internal::MetaAST_Nodes::symbol_name::evaluate {
 my ($self) = @_; return $self->[2]; }
 sub Marpa::R2::Internal::MetaAST_Nodes::symbol_name::name {
-my ($self) = @_; return $self->evaluate()->name(); }
+my ($self, $parse) = @_; return $self->evaluate($parse)->name($parse); }
 
 package Marpa::R2::Internal::MetaAST_Nodes::adverb_list;
 
@@ -496,15 +496,14 @@ sub evaluate {
 } ## end sub evaluate
 
 sub Marpa::R2::Internal::MetaAST_Nodes::character_class::name {
-my ($self) = @_; return $self->evaluate()->name(); }
+my ($self, $parse) = @_; return $self->evaluate($parse)->name($parse); }
 
-package Marpa::R2::Internal::MetaAST_Nodes::character_class;
-
-sub evaluate {
+sub Marpa::R2::Internal::MetaAST_Nodes::character_class::evaluate {
     my ( $values, $parse ) = @_;
     my $symbol =
         Marpa::R2::Internal::MetaAST::Symbol::assign_symbol_by_char_class(
         $parse, $values->[2] );
+    $DB::single = defined $parse->{grammar_level} ? 0 : 1;
     return $symbol if $parse->{grammar_level} <= 0;
     my $lexical_lhs_index = $parse->{lexical_lhs_index}++;
     my $lexical_lhs       = "[Lex-$lexical_lhs_index]";
@@ -516,7 +515,7 @@ sub evaluate {
     push @{ $parse->{g0_rules} }, \%lexical_rule;
     my $g1_symbol = Marpa::R2::Internal::MetaAST::Symbol->new($lexical_lhs);
     return $g1_symbol;
-} ## end sub evaluate
+} ## end sub Marpa::R2::Internal::MetaAST_Nodes::character_class::evaluate
 
 package Marpa::R2::Internal::MetaAST_Nodes::single_quoted_string;
 
