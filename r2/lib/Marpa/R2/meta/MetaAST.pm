@@ -47,6 +47,17 @@ sub new {
 
 }
 
+sub ast_to_hash {
+    my ($ast, $bnf_source) = @_;
+    my $parse = bless {
+        p_source => $bnf_source,
+        g0_rules => [],
+        g1_rules => []
+    };
+    $ast->dwim_evaluate($parse);
+    return $parse;
+}
+
 sub dwim_evaluate {
     my ( $value, $parse ) = @_;
     return $value if not defined $value;

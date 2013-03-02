@@ -46,15 +46,8 @@ BEGIN { $META_AST = __PACKAGE__; }
 package main;
 
 my $bnf = do { local $RS = undef; \(<>) };
-my $ast_ref = Marpa::R2::Internal::MetaAST->new($bnf);
-
-my $parse_result = bless {
-    p_source => $bnf,
-    g0_rules => [],
-    g1_rules => []
-}, $META_AST;
-
-my $ast = $ast_ref->dwim_evaluate( $parse_result );
+my $ast = Marpa::R2::Internal::MetaAST->new($bnf);
+my $parse_result = $ast->ast_to_hash($bnf);
 
 # say STDERR "self object = \n", Data::Dumper::Dumper($parse_result);
 
