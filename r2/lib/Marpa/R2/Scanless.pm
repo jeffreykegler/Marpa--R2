@@ -696,7 +696,7 @@ sub Marpa::R2::Internal::Scanless::meta_grammar {
 
     my $self = bless [], 'Marpa::R2::Scanless::G';
     $self->[Marpa::R2::Inner::Scanless::G::TRACE_FILE_HANDLE] = \*STDERR;
-    $self->[Marpa::R2::Inner::Scanless::G::BLESS_PACKAGE] = 'Marpa::R2::Internal::MetaG_Nodes';
+    $self->[Marpa::R2::Inner::Scanless::G::BLESS_PACKAGE] = 'Marpa::R2::Internal::MetaAST_Nodes';
     state $hashed_metag = Marpa::R2::Internal::MetaG::hashed_grammar();
     $self->_hash_to_runtime($hashed_metag);
 
