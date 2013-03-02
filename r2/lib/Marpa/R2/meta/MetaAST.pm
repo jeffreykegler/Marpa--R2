@@ -78,14 +78,14 @@ package Marpa::R2::Internal::MetaAST::Symbol;
 use English qw( -no_match_vars );
 
 sub new {
-    my ( $class, $name, $hide ) = @_;
-    return bless { name => ( '' . $name ), mask => [ $hide ? 1 : 0 ] }, $class;
+    my ( $class, $name ) = @_;
+    return bless { name => ( '' . $name ), mask => [ 1 ] }, $class;
 }
 sub is_symbol { return 1 }
 sub name      { return shift->{name} }
 sub names     { return [ shift->{name} ] }
 sub mask      { return shift->{mask} }
-sub hide      { my ( $self, $hide ) = @_; $self->{mask} = [ $hide ? 1 : 0 ] }
+sub mask_set      { my ( $self, $mask ) = @_; $mask //= 1; $self->{mask} = [ $mask ] }
 
 # Return the character class symbol name,
 # after ensuring everything is set up properly
@@ -129,9 +129,9 @@ sub name {
 } ## end sub name
 sub names { return shift->{names} }
 sub mask { return shift->{mask} }
-sub hide {
-    my ( $self, $hide ) = @_;
-    $self->{mask} = [ map { $hide ? 1 : 0 } @{ $self->{mask} } ];
+sub mask_set {
+    my ( $self, $mask ) = @_;
+    $self->{mask} = [ map { $mask } @{ $self->{mask} } ];
 }
 
 package Marpa::R2::Internal::MetaAST::Proto_Alternative;
@@ -165,6 +165,7 @@ sub Marpa::R2::Internal::MetaAST::bless_hash_rule {
     return if $grammar_level == 0;
     $blessing //= $parse->{default_adverbs}->[$grammar_level]->{bless};
     return if not defined $blessing;
+    $DB::single = 1;
     FIND_BLESSING: {
         last FIND_BLESSING if $blessing =~ /\A [\w] /xms;
         return if $blessing eq '::undef';
@@ -189,14 +190,16 @@ sub Marpa::R2::Internal::MetaAST::bless_hash_rule {
     return 1;
 } ## end sub bless_hash_rule
 
-package Marpa::R2::Internal::MetaAST_Nodes::action_name;
-
-sub evaluate {
+sub Marpa::R2::Internal::MetaAST_Nodes::action_name::name {
     my ($self) = @_;
     return $self->[2];
 }
 
 sub Marpa::R2::Internal::MetaAST_Nodes::bare_name::name { return $_[0]->[2] }
+
+sub Marpa::R2::Internal::MetaAST_Nodes::array_descriptor::name {
+    return $_[0]->[2];
+}
 
 sub Marpa::R2::Internal::MetaAST_Nodes::reserved_blessing_name::name {
     return $_[0]->[2];
@@ -254,7 +257,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::parenthesized_rhs_primary_list::evaluate
     my (undef, undef, @values) = @{$data};
     my @symbol_lists = map { $_->evaluate($parse); } @values;
     my $flattened_list = Marpa::R2::Internal::MetaAST::Symbol_List->new(@symbol_lists);
-    $flattened_list->hide();
+    $flattened_list->mask_set(0);
     return $flattened_list;
 }
 
@@ -283,7 +286,7 @@ package Marpa::R2::Internal::MetaAST_Nodes::action;
 sub evaluate {
     my ( $values, $parse ) = @_;
     my ( undef, undef, $child ) = @{$values};
-    return bless { action => $child->evaluate($parse) }, $PROTO_ALTERNATIVE;
+    return bless { action => $child->name($parse) }, $PROTO_ALTERNATIVE;
 }
 
 package Marpa::R2::Internal::MetaAST_Nodes::blessing;
@@ -328,7 +331,7 @@ package Marpa::R2::Internal::MetaAST_Nodes::separator_specification;
 sub evaluate {
     my ( $values, $parse ) = @_;
     my $child = $values->[2];
-    return bless { separator => $child->evaluate($parse) },
+    return bless { separator => $child->name($parse) },
         $PROTO_ALTERNATIVE;
 } ## end sub evaluate
 
@@ -356,11 +359,11 @@ sub evaluate {
     ADVERB: for my $key ( keys %{$adverb_list} ) {
         my $value = $adverb_list->{$key};
         if ( $key eq 'action' ) {
-            $default_adverbs{$key} = $value;
+            $default_adverbs{$key} = $value->name();
             next ADVERB;
         }
         if ( $key eq 'bless' ) {
-            $default_adverbs{$key} = $value;
+            $default_adverbs{$key} = $value->name();
             next ADVERB;
         }
         Marpa::R2::exception(qq{"$key" adverb not allowed in default rule"});
@@ -413,7 +416,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::quantified_rule::evaluate {
     my $grammar_level = $op_declare->op() eq q{::=} ? 1 : 0;
     local $Marpa::R2::Internal::GRAMMAR_LEVEL = $grammar_level;
 
-    my %adverb_list = @{$proto_adverb_list};
+    my $adverb_list = $proto_adverb_list->evaluate($parse);
     my $default_adverbs = $parse->{default_adverbs}->[$grammar_level];
 
     # Some properties of the sequence rule will not be altered
@@ -425,16 +428,17 @@ sub Marpa::R2::Internal::MetaAST_Nodes::quantified_rule::evaluate {
 
     my @rules = ( \%sequence_rule );
 
-    my $original_separator = $adverb_list{separator};
+    my $original_separator = $adverb_list->{separator};
 
     # mask not needed
-    $sequence_rule{lhs}       = $lhs->name();
+    my $lhs_name       = $lhs->name();
+    $sequence_rule{lhs}       = $lhs_name;
     $sequence_rule{separator} = $original_separator
         if defined $original_separator;
-    my $proper = $adverb_list{proper};
+    my $proper = $adverb_list->{proper};
     $sequence_rule{proper} = $proper if defined $proper;
 
-    my $action = $adverb_list{action} // $default_adverbs->{action};
+    my $action = $adverb_list->{action} // $default_adverbs->{action};
     if ( defined $action ) {
         Marpa::R2::exception(
             'actions not allowed in lexical rules (rules LHS was "',
@@ -443,7 +447,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::quantified_rule::evaluate {
         $sequence_rule{action} = $action;
     } ## end if ( defined $action )
 
-    my $blessing = $adverb_list{bless};
+    my $blessing = $adverb_list->{bless};
     if ( defined $blessing
         and $grammar_level <= 0 )
     {
@@ -451,7 +455,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::quantified_rule::evaluate {
             'bless option not allowed in lexical rules (rules LHS was "',
             $lhs, '")' );
     } ## end if ( defined $blessing and $grammar_level <= 0 )
-    $parse->bless_hash_rule( \%sequence_rule, $blessing, $lhs );
+    $parse->bless_hash_rule( \%sequence_rule, $blessing, $lhs_name );
 
     if ( $grammar_level > 0 ) {
         push @{ $parse->{g1_rules} }, @rules;
