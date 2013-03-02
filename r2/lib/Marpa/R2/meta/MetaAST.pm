@@ -220,7 +220,8 @@ sub Marpa::R2::Internal::MetaAST_Nodes::standard_name::name {
 
 sub Marpa::R2::Internal::MetaAST_Nodes::lhs::evaluate {
     my ($values, $parse) = @_;
-    return $values->[2]->evaluate($parse);
+    my (undef, undef, $symbol) = @{$values};
+    return Marpa::R2::Internal::MetaAST::Symbol->new($symbol->name($parse));
 }
 
 sub Marpa::R2::Internal::MetaAST_Nodes::op_declare::op {
