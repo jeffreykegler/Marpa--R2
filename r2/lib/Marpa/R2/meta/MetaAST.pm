@@ -323,8 +323,12 @@ package Marpa::R2::Internal::MetaAST_Nodes::proper_specification;
 sub evaluate {
     my ($values) = @_;
     my $child = $values->[2];
-    return bless { proper => $child }, $PROTO_ALTERNATIVE;
+    return bless { proper => $child->value() }, $PROTO_ALTERNATIVE;
 } ## end sub evaluate
+
+sub Marpa::R2::Internal::MetaAST_Nodes::boolean::value {
+   return $_[0]->[2];
+}
 
 package Marpa::R2::Internal::MetaAST_Nodes::separator_specification;
 
