@@ -26,8 +26,8 @@ $STRING_VERSION = $VERSION;
 $VERSION = eval $VERSION;
 ## use critic
 
-sub Marpa::R2::Scanless::G::_source_to_ast {
-    my ( $self, $p_rules_source ) = @_;
+sub new {
+    my ( $class, $p_rules_source ) = @_;
 
     my $meta_recce = Marpa::R2::Internal::Scanless::meta_recce();
     my $meta_grammar = $meta_recce->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
@@ -41,6 +41,22 @@ sub Marpa::R2::Scanless::G::_source_to_ast {
     my $thick_meta_g1_recce = $meta_recce->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
     my $thick_g1_recce = $meta_recce->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
 
-    return $meta_recce->value();
+    return bless $meta_recce->value(), $class;
 
 } ## end sub rules_add
+
+sub dwim_evaluate {
+    my ( $value, $parse ) = @_;
+    return $value if not defined $value;
+    if ( Scalar::Util::blessed($value) ) {
+        return $value->evaluate($parse) if $value->can('evaluate');
+        return bless [ map { dwim_evaluate( $_, $parse ) } @{$value} ],
+            ref $value
+            if Scalar::Util::reftype($value) eq 'ARRAY';
+        return $value;
+    } ## end if ( Scalar::Util::blessed($value) )
+    return [ map { dwim_evaluate( $_, $parse ) } @{$value} ]
+        if ref $value eq 'ARRAY';
+    return $value;
+} ## end sub dwim_evaluate
+

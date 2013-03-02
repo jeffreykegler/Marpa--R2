@@ -43,11 +43,11 @@ die "usage $PROGRAM_NAME [--help] file ...\n" if $help_flag;
 package Marpa::R2::Internal::MetaAST;
 our $META_AST;
 BEGIN { $META_AST = __PACKAGE__; }
-use English qw( -no_match_vars );
+package main;
 
 my $bnf = do { local $RS = undef; \(<>) };
-my $ast_ref = Marpa::R2::Scanless::G->_source_to_ast($bnf);
-die "_source_to_ast did not return an AST" if not ref $ast_ref eq 'REF';
+my $ast_ref = Marpa::R2::Internal::MetaAST->new($bnf);
+
 my $parse_result = bless {
     p_source => $bnf,
     g0_rules => [],
@@ -292,8 +292,8 @@ sub Marpa::R2::Internal::MetaG_Nodes::op_declare_bnf::op {
 }
 
 sub Marpa::R2::Internal::MetaG_Nodes::bracketed_name::name {
-    my ($children) = @_;
-    my $bracketed_name = $children->[0];
+    my ($values) = @_;
+    my (undef, undef, $bracketed_name) = @{$values};
 
     # normalize whitespace
     $bracketed_name =~ s/\A [<] \s*//xms;
@@ -524,13 +524,13 @@ sub evaluate {
 sub Marpa::R2::Internal::MetaG_Nodes::single_symbol::evaluate {
     my ( $values, $parse ) = @_;
     my ( undef, undef, $symbol ) = @{$values};
-    return $symbol->evaluate();
+    return $symbol->evaluate($parse);
 }
 
 sub Marpa::R2::Internal::MetaG_Nodes::symbol::evaluate {
     my ( $values, $parse ) = @_;
     my ( undef, undef, $symbol ) = @{$values};
-    return $symbol->evaluate();
+    return $symbol->evaluate($parse);
 }
 
 package Marpa::R2::Internal::MetaG_Nodes::symbol_name;
