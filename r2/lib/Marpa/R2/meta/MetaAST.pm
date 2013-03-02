@@ -73,7 +73,7 @@ sub dwim_evaluate {
     return $value;
 } ## end sub dwim_evaluate
 
-package Marpa::R2::Internal::MetaG::Symbol;
+package Marpa::R2::Internal::MetaAST::Symbol;
 
 use English qw( -no_match_vars );
 
@@ -90,13 +90,13 @@ sub new {
 } ## end sub new
 
 sub to_symbol_list {
-    Marpa::R2::Internal::Meta_AST::Symbol_List->new(@_);
+    Marpa::R2::Internal::MetaAST::Symbol_List->new(@_);
 }
 
 sub create_internal_symbol {
     my ( $parse, $symbol_name ) = @_;
     $parse->{needs_symbol}->{$symbol_name} = 1;
-    my $symbol = Marpa::R2::Internal::MetaG::Symbol->new($symbol_name);
+    my $symbol = Marpa::R2::Internal::MetaAST::Symbol->new($symbol_name);
     return $symbol;
 } ## end sub create_internal_symbol
 
@@ -134,7 +134,7 @@ sub mask { return shift->is_hidden() ? 0 : 1 }
 sub symbols      { return $_[0]; }
 sub symbol_lists { return $_[0]; }
 
-package Marpa::R2::Internal::Meta_AST::Symbol_List;
+package Marpa::R2::Internal::MetaAST::Symbol_List;
 
 sub new { my $class = shift; return bless { symbol_lists => [@_] }, $class }
 sub is_symbol { return 0 }
@@ -171,7 +171,7 @@ sub symbols {
 # The "unflattened" list, which may contain other lists
 sub symbol_lists { return @{ shift->{symbol_lists} }; }
 
-package Marpa::R2::Internal::Meta_AST::Proto_Alternative;
+package Marpa::R2::Internal::MetaAST::Proto_Alternative;
 
 # This class is for pieces of RHS alternatives, as they are
 # being constructed
@@ -196,49 +196,49 @@ sub combine {
     return $self;
 } ## end sub combine
 
-package Marpa::R2::Internal::MetaG_Nodes::action_name;
+package Marpa::R2::Internal::MetaAST_Nodes::action_name;
 
 sub evaluate {
     my ($self) = @_;
     return $self->[2];
 }
 
-sub Marpa::R2::Internal::MetaG_Nodes::bare_name::name { return $_[0]->[2] }
+sub Marpa::R2::Internal::MetaAST_Nodes::bare_name::name { return $_[0]->[2] }
 
-sub Marpa::R2::Internal::MetaG_Nodes::reserved_blessing_name::name {
+sub Marpa::R2::Internal::MetaAST_Nodes::reserved_blessing_name::name {
     return $_[0]->[2];
 }
 
-sub Marpa::R2::Internal::MetaG_Nodes::blessing_name::name {
+sub Marpa::R2::Internal::MetaAST_Nodes::blessing_name::name {
     my ($self) = @_;
     return $self->[2];
 }
 
-sub Marpa::R2::Internal::MetaG_Nodes::standard_name::name {
+sub Marpa::R2::Internal::MetaAST_Nodes::standard_name::name {
     return $_[0]->[2];
 }
 
-sub Marpa::R2::Internal::MetaG_Nodes::lhs::evaluate {
+sub Marpa::R2::Internal::MetaAST_Nodes::lhs::evaluate {
     my ($values) = @_;
     return $values->[2]->evaluate();
 }
 
-sub Marpa::R2::Internal::MetaG_Nodes::op_declare::op {
+sub Marpa::R2::Internal::MetaAST_Nodes::op_declare::op {
     my ($values) = @_;
     return $values->[2]->op();
 }
 
-sub Marpa::R2::Internal::MetaG_Nodes::op_declare_match::op {
+sub Marpa::R2::Internal::MetaAST_Nodes::op_declare_match::op {
     my ($values) = @_;
     return $values->[2];
 }
 
-sub Marpa::R2::Internal::MetaG_Nodes::op_declare_bnf::op {
+sub Marpa::R2::Internal::MetaAST_Nodes::op_declare_bnf::op {
     my ($values) = @_;
     return $values->[2];
 }
 
-sub Marpa::R2::Internal::MetaG_Nodes::bracketed_name::name {
+sub Marpa::R2::Internal::MetaAST_Nodes::bracketed_name::name {
     my ($values) = @_;
     my (undef, undef, $bracketed_name) = @{$values};
 
@@ -249,15 +249,15 @@ sub Marpa::R2::Internal::MetaG_Nodes::bracketed_name::name {
     return $bracketed_name;
 } ## end sub evaluate
 
-package Marpa::R2::Internal::MetaG_Nodes::rhs_primary_list;
+package Marpa::R2::Internal::MetaAST_Nodes::rhs_primary_list;
 
 sub evaluate {
     my ( $values, $parse ) = @_;
     my @symbol_lists = map { $_->evaluate($parse) } @{$values};
-    return Marpa::R2::Inner::Scanless::Symbol_List->new(@symbol_lists);
+    return Marpa::R2::Internal::MetaAST::Symbol_List->new(@symbol_lists);
 }
 
-package Marpa::R2::Internal::MetaG_Nodes::action;
+package Marpa::R2::Internal::MetaAST_Nodes::action;
 
 sub evaluate {
     my ( $values, $parse ) = @_;
@@ -265,7 +265,7 @@ sub evaluate {
     return bless { action => $child->evaluate($parse) }, $PROTO_ALTERNATIVE;
 }
 
-package Marpa::R2::Internal::MetaG_Nodes::blessing;
+package Marpa::R2::Internal::MetaAST_Nodes::blessing;
 
 sub evaluate {
     my ($values) = @_;
@@ -273,28 +273,28 @@ sub evaluate {
     return bless { bless => $child->name() }, $PROTO_ALTERNATIVE;
 }
 
-package Marpa::R2::Internal::MetaG_Nodes::right_association;
+package Marpa::R2::Internal::MetaAST_Nodes::right_association;
 
 sub evaluate {
     my ($values) = @_;
     return bless { assoc => 'R' }, $PROTO_ALTERNATIVE;
 }
 
-package Marpa::R2::Internal::MetaG_Nodes::left_association;
+package Marpa::R2::Internal::MetaAST_Nodes::left_association;
 
 sub evaluate {
     my ($values) = @_;
     return bless { assoc => 'L' }, $PROTO_ALTERNATIVE;
 }
 
-package Marpa::R2::Internal::MetaG_Nodes::group_association;
+package Marpa::R2::Internal::MetaAST_Nodes::group_association;
 
 sub evaluate {
     my ($values) = @_;
     return bless { assoc => 'G' }, $PROTO_ALTERNATIVE;
 }
 
-package Marpa::R2::Internal::MetaG_Nodes::proper_specification;
+package Marpa::R2::Internal::MetaAST_Nodes::proper_specification;
 
 sub evaluate {
     my ($values) = @_;
@@ -302,7 +302,7 @@ sub evaluate {
     return bless { proper => $child }, $PROTO_ALTERNATIVE;
 } ## end sub evaluate
 
-package Marpa::R2::Internal::MetaG_Nodes::separator_specification;
+package Marpa::R2::Internal::MetaAST_Nodes::separator_specification;
 
 sub evaluate {
     my ( $values, $parse ) = @_;
@@ -311,7 +311,7 @@ sub evaluate {
         $PROTO_ALTERNATIVE;
 } ## end sub evaluate
 
-package Marpa::R2::Internal::MetaG_Nodes::adverb_item;
+package Marpa::R2::Internal::MetaAST_Nodes::adverb_item;
 
 sub evaluate {
     my ( $values, $parse ) = @_;
@@ -319,7 +319,7 @@ sub evaluate {
     return bless $child, $PROTO_ALTERNATIVE;
 } ## end sub evaluate
 
-package Marpa::R2::Internal::MetaG_Nodes::default_rule;
+package Marpa::R2::Internal::MetaAST_Nodes::default_rule;
 
 sub evaluate {
     my ( $values, $parse ) = @_;
@@ -347,7 +347,7 @@ sub evaluate {
     return undef;
 } ## end sub evaluate
 
-package Marpa::R2::Internal::MetaG_Nodes::lexeme_rule;
+package Marpa::R2::Internal::MetaAST_Nodes::lexeme_rule;
 
 sub evaluate {
     my ( $values, $parse ) = @_;
@@ -376,16 +376,16 @@ sub evaluate {
     return undef;
 } ## end sub evaluate
 
-sub Marpa::R2::Internal::MetaG_Nodes::discard_rule::evaluate {
+sub Marpa::R2::Internal::MetaAST_Nodes::discard_rule::evaluate {
     my ( $values, $parse ) = @_;
     my ( $start, $end, $symbol ) = @{$values};
     local $parse->{grammar_level} = 0;
     push @{ $parse->{g0_rules} },
         { lhs => '[:discard]', rhs => [ $symbol->evaluate()->name() ] };
     return undef;
-} ## end sub Marpa::R2::Internal::MetaG_Nodes::discard_rule::evaluate
+} ## end sub Marpa::R2::Internal::MetaAST_Nodes::discard_rule::evaluate
 
-package Marpa::R2::Internal::MetaG_Nodes::quantified_rule;
+package Marpa::R2::Internal::MetaAST_Nodes::quantified_rule;
 sub evaluate {
     my ( $values, $parse ) = @_;
     my ( undef, undef, undef, $op_declare ) = @{$values};
@@ -398,7 +398,7 @@ sub evaluate {
         __PACKAGE__;
 } ## end sub evaluate
 
-package Marpa::R2::Internal::MetaG_Nodes::priority_rule;
+package Marpa::R2::Internal::MetaAST_Nodes::priority_rule;
 
 sub evaluate {
     my ( $values, $parse ) = @_;
@@ -412,7 +412,7 @@ sub evaluate {
         __PACKAGE__;
 }
 
-package Marpa::R2::Internal::MetaG_Nodes::alternatives;
+package Marpa::R2::Internal::MetaAST_Nodes::alternatives;
 
 sub evaluate {
     my ( $values, $parse ) = @_;
@@ -423,7 +423,7 @@ sub evaluate {
         __PACKAGE__;
 } ## end sub evaluate
 
-package Marpa::R2::Internal::MetaG_Nodes::alternative;
+package Marpa::R2::Internal::MetaAST_Nodes::alternative;
 
 sub evaluate {
     my ( $values, $parse ) = @_;
@@ -435,7 +435,7 @@ sub evaluate {
         __PACKAGE__;
 } ## end sub evaluate
 
-package Marpa::R2::Internal::MetaG_Nodes::rhs;
+package Marpa::R2::Internal::MetaAST_Nodes::rhs;
 
 sub evaluate {
     my ( $values, $parse ) = @_;
@@ -446,7 +446,7 @@ sub evaluate {
         __PACKAGE__;
 } ## end sub evaluate
 
-package Marpa::R2::Internal::MetaG_Nodes::rhs_primary;
+package Marpa::R2::Internal::MetaAST_Nodes::rhs_primary;
 
 sub evaluate {
     my ( $values, $parse ) = @_;
@@ -457,7 +457,7 @@ sub evaluate {
         __PACKAGE__;
 } ## end sub evaluate
 
-package Marpa::R2::Internal::MetaG_Nodes::parenthesized_rhs_primary_list;
+package Marpa::R2::Internal::MetaAST_Nodes::parenthesized_rhs_primary_list;
 
 sub evaluate {
     my ( $values, $parse ) = @_;
@@ -468,37 +468,42 @@ sub evaluate {
         __PACKAGE__;
 } ## end sub evaluate
 
-sub Marpa::R2::Internal::MetaG_Nodes::single_symbol::evaluate {
+sub Marpa::R2::Internal::MetaAST_Nodes::single_symbol::evaluate {
+    my ( $values, $parse ) = @_;
+    my ( undef, undef, $symbol ) = @{$values};
+    return Marpa::R2::Internal::MetaAST::Symbol->new($symbol->name());
+}
+
+sub Marpa::R2::Internal::MetaAST_Nodes::Symbol::evaluate {
     my ( $values, $parse ) = @_;
     my ( undef, undef, $symbol ) = @{$values};
     return $symbol->evaluate($parse);
 }
 
-sub Marpa::R2::Internal::MetaG_Nodes::symbol::evaluate {
-    my ( $values, $parse ) = @_;
-    my ( undef, undef, $symbol ) = @{$values};
-    return $symbol->evaluate($parse);
-}
+sub Marpa::R2::Internal::MetaAST_Nodes::symbol::name { my ($self) = @_; return $self->[2]; }
+sub Marpa::R2::Internal::MetaAST_Nodes::symbol_name::evaluate {
+my ($self) = @_; return $self->[2]; }
+sub Marpa::R2::Internal::MetaAST_Nodes::symbol_name::name {
+my ($self) = @_; return $self->evaluate()->name(); }
 
-package Marpa::R2::Internal::MetaG_Nodes::symbol_name;
-
-sub evaluate    { my ($self) = @_; return $self->[2]; }
-
-package Marpa::R2::Internal::MetaG_Nodes::adverb_list;
+package Marpa::R2::Internal::MetaAST_Nodes::adverb_list;
 
 sub evaluate {
     my ( $values, $parse ) = @_;
     my (@adverb_items) = map { $_->evaluate($parse) } @{$values};
-    return Marpa::R2::Internal::Meta_AST::Proto_Alternative->combine(
+    return Marpa::R2::Internal::MetaAST::Proto_Alternative->combine(
         @adverb_items);
 } ## end sub evaluate
 
-package Marpa::R2::Internal::MetaG_Nodes::character_class;
+sub Marpa::R2::Internal::MetaAST_Nodes::character_class::name {
+my ($self) = @_; return $self->evaluate()->name(); }
+
+package Marpa::R2::Internal::MetaAST_Nodes::character_class;
 
 sub evaluate {
     my ( $values, $parse ) = @_;
     my $symbol =
-        Marpa::R2::Internal::MetaG::Symbol::assign_symbol_by_char_class(
+        Marpa::R2::Internal::MetaAST::Symbol::assign_symbol_by_char_class(
         $parse, $values->[2] );
     return $symbol if $parse->{grammar_level} <= 0;
     my $lexical_lhs_index = $parse->{lexical_lhs_index}++;
@@ -509,11 +514,11 @@ sub evaluate {
         mask => [ $symbol->mask() ],
     );
     push @{ $parse->{g0_rules} }, \%lexical_rule;
-    my $g1_symbol = Marpa::R2::Inner::Scanless::Symbol->new($lexical_lhs);
+    my $g1_symbol = Marpa::R2::Internal::MetaAST::Symbol->new($lexical_lhs);
     return $g1_symbol;
 } ## end sub evaluate
 
-package Marpa::R2::Internal::MetaG_Nodes::single_quoted_string;
+package Marpa::R2::Internal::MetaAST_Nodes::single_quoted_string;
 
 sub evaluate {
     my ( $values, $parse ) = @_;
@@ -526,11 +531,11 @@ sub evaluate {
         )
     {
         my $symbol =
-            Marpa::R2::Internal::MetaG::Symbol::assign_symbol_by_char_class(
+            Marpa::R2::Internal::MetaAST::Symbol::assign_symbol_by_char_class(
             $parse, $char_class );
         push @symbols, $symbol;
     } ## end for my $char_class ( map { '[' . ( quotemeta $_ ) . ']'...})
-    my $list = Marpa::R2::Inner::Scanless::Symbol_List->new(@symbols);
+    my $list = Marpa::R2::Internal::MetaAST::Symbol_List->new(@symbols);
     return $list if $parse->{grammar_level} <= 0;
     my $lexical_lhs_index = $parse->{lexical_lhs_index}++;
     my $lexical_lhs       = "[Lex-$lexical_lhs_index]";
@@ -540,7 +545,7 @@ sub evaluate {
         mask => [ $list->mask() ],
     );
     push @{ $parse->{g0_rules} }, \%lexical_rule;
-    my $g1_symbol = Marpa::R2::Inner::Scanless::Symbol->new($lexical_lhs);
+    my $g1_symbol = Marpa::R2::Internal::MetaAST::Symbol->new($lexical_lhs);
     return $g1_symbol;
 } ## end sub evaluate
 
