@@ -264,8 +264,14 @@ sub Marpa::R2::Internal::MetaAST_Nodes::parenthesized_rhs_primary_list::evaluate
 sub Marpa::R2::Internal::MetaAST_Nodes::rhs::evaluate {
     my ( $data, $parse ) = @_;
     my @symbol_lists = map { $_->evaluate($parse) } @{$data};
-    return Marpa::R2::Internal::MetaAST::Symbol_List->new(@symbol_lists);
-}
+    my $flattened_list =
+        Marpa::R2::Internal::MetaAST::Symbol_List->new(@symbol_lists);
+    return bless {
+        rhs  => $flattened_list->names(),
+        mask => $flattened_list->mask()
+        },
+        $PROTO_ALTERNATIVE;
+} ## end sub Marpa::R2::Internal::MetaAST_Nodes::rhs::evaluate
 
 sub Marpa::R2::Internal::MetaAST_Nodes::rhs_primary::evaluate {
     my ( $data, $parse ) = @_;
@@ -501,11 +507,7 @@ package Marpa::R2::Internal::MetaAST_Nodes::alternative;
 sub evaluate {
     my ( $values, $parse ) = @_;
     my ( undef, undef, $rhs, $adverbs ) = @{$values};
-    return bless [
-        rhs     => $rhs->evaluate($parse),
-        adverbs => $adverbs->evaluate($parse),
-        ],
-        __PACKAGE__;
+    return Marpa::R2::Internal::MetaAST::Proto_Alternative->combine( map { $_->evaluate() } $rhs, $adverbs);
 } ## end sub evaluate
 
 sub Marpa::R2::Internal::MetaAST_Nodes::single_symbol::names {
