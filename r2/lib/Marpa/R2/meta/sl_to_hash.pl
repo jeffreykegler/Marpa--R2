@@ -63,6 +63,14 @@ my %cooked_parse_result = (
     character_classes => $parse_result->{character_classes}
 );
 
+my $g0_rules = $parse_result->{g0_rules};
+RULE: for my $ix (0 .. $#{ $g0_rules}) {
+    my $rule = $g0_rules->[$ix];
+    my $mask = $rule->{mask};
+    next RULE if not defined $mask;
+    $rule->{mask} = [ map {;1} @{$mask} ];
+}
+
 for my $rule_set (qw(g0_rules g1_rules)) {
     my $aoh        = $parse_result->{$rule_set};
     my $sorted_aoh = [ sort sort_bnf @{$aoh} ];
