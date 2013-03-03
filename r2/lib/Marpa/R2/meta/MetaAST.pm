@@ -140,8 +140,6 @@ sub dwim_evaluate {
 
 package Marpa::R2::Internal::MetaAST::Symbol;
 
-use English qw( -no_match_vars );
-
 sub new {
     my ( $class, $name ) = @_;
     return bless { name => ( '' . $name ), mask => [ 1 ] }, $class;
@@ -152,29 +150,9 @@ sub names     { return [ shift->{name} ] }
 sub mask      { return shift->{mask} }
 sub mask_set      { my ( $self, $mask ) = @_; $mask //= 1; $self->{mask} = [ $mask ] }
 
-# Return the character class symbol name,
-# after ensuring everything is set up properly
-sub assign_symbol_by_char_class {
-    my ( $self, $char_class ) = @_;
-
-    # character class symbol name always start with TWO left square brackets
-    my $symbol_name = '[' . $char_class . ']';
-    $self->{character_classes} //= {};
-    my $cc_hash = $self->{character_classes};
-    my ( undef, $symbol ) = $cc_hash->{$symbol_name};
-    if ( not defined $symbol ) {
-        my $regex;
-        if ( not defined eval { $regex = qr/$char_class/xms; 1; } ) {
-            Carp::croak( 'Bad Character class: ',
-                $char_class, "\n", 'Perl said ', $EVAL_ERROR );
-        }
-        $symbol = Marpa::R2::Internal::MetaAST::Symbol->new($symbol_name);
-        $cc_hash->{$symbol_name} = [ $regex, $symbol ];
-    } ## end if ( not defined $symbol )
-    return $symbol;
-} ## end sub assign_symbol_by_char_class
-
 package Marpa::R2::Internal::MetaAST::Symbol_List;
+
+use English qw( -no_match_vars );
 
 sub new {
     my ( $class, @lists ) = @_;
@@ -183,6 +161,31 @@ sub new {
     $self->{mask}  = [ map { @{ $_->mask() } } @lists ];
     return bless $self, $class;
 } ## end sub new
+
+# Return the character class symbol name,
+# after ensuring everything is set up properly
+sub new_from_char_class {
+    my ( $class, $parse, $char_class ) = @_;
+
+    # character class symbol name always start with TWO left square brackets
+    my $symbol_name = '[' . $char_class . ']';
+    $parse->{character_classes} //= {};
+    my $cc_hash = $parse->{character_classes};
+    my ( undef, $symbol ) = $cc_hash->{$symbol_name};
+    if ( not defined $symbol ) {
+        my $regex;
+        if ( not defined eval { $regex = qr/$char_class/xms; 1; } ) {
+            Carp::croak( 'Bad Character class: ',
+                $char_class, "\n", 'Perl said ', $EVAL_ERROR );
+        }
+        $symbol =
+            Marpa::R2::Internal::MetaAST::Symbol_List->new(
+            Marpa::R2::Internal::MetaAST::Symbol->new($symbol_name) );
+        $cc_hash->{$symbol_name} = [ $regex, $symbol ];
+    } ## end if ( not defined $symbol )
+    return $symbol;
+} ## end sub new_from_char_class
+
 sub is_symbol { return 0 }
 sub name {
     my ($self) = @_;
@@ -860,7 +863,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::character_class::name {
 sub Marpa::R2::Internal::MetaAST_Nodes::character_class::evaluate {
     my ( $values, $parse ) = @_;
     my $symbol =
-        Marpa::R2::Internal::MetaAST::Symbol::assign_symbol_by_char_class(
+        Marpa::R2::Internal::MetaAST::Symbol_List->new_from_char_class(
         $parse, $values->[2] );
     return $symbol if $Marpa::R2::Internal::GRAMMAR_LEVEL <= 0;
     my $lexical_lhs_index = $parse->{lexical_lhs_index}++;
@@ -887,7 +890,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::single_quoted_string::evaluate {
         )
     {
         my $symbol =
-            Marpa::R2::Internal::MetaAST::Symbol::assign_symbol_by_char_class(
+            Marpa::R2::Internal::MetaAST::Symbol_List->new_from_char_class(
             $parse, $char_class );
         push @symbols, $symbol;
     } ## end for my $char_class ( map { '[' . ( quotemeta $_ ) . ']'...})
