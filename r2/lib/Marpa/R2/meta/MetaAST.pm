@@ -154,6 +154,11 @@ package Marpa::R2::Internal::MetaAST::Symbol_List;
 
 use English qw( -no_match_vars );
 
+sub new {
+    my ( $class, $name ) = @_;
+    return bless { names => [ '' . $name ], mask => [1] }, $class;
+}
+
 sub combine {
     my ( $class, @lists ) = @_;
     my $self = {};
@@ -179,8 +184,7 @@ sub new_from_char_class {
                 $char_class, "\n", 'Perl said ', $EVAL_ERROR );
         }
         $symbol =
-            Marpa::R2::Internal::MetaAST::Symbol_List->combine(
-            Marpa::R2::Internal::MetaAST::Symbol->new($symbol_name) );
+            Marpa::R2::Internal::MetaAST::Symbol_List->new($symbol_name);
         $cc_hash->{$symbol_name} = [ $regex, $symbol ];
     } ## end if ( not defined $symbol )
     return $symbol;
@@ -817,7 +821,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::single_symbol::name {
 sub Marpa::R2::Internal::MetaAST_Nodes::single_symbol::evaluate {
     my ( $values, $parse ) = @_;
     my ( undef, undef, $symbol ) = @{$values};
-    return Marpa::R2::Internal::MetaAST::Symbol->new($symbol->name($parse));
+    return Marpa::R2::Internal::MetaAST::Symbol_List->new($symbol->name($parse));
 }
 
 sub Marpa::R2::Internal::MetaAST_Nodes::Symbol::evaluate {
@@ -875,7 +879,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::character_class::evaluate {
         [1],
     );
     push @{ $parse->{g0_rules} }, \%lexical_rule;
-    my $g1_symbol = Marpa::R2::Internal::MetaAST::Symbol->new($lexical_lhs);
+    my $g1_symbol = Marpa::R2::Internal::MetaAST::Symbol_List->new($lexical_lhs);
     return $g1_symbol;
 } ## end sub Marpa::R2::Internal::MetaAST_Nodes::character_class::evaluate
 
@@ -905,7 +909,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::single_quoted_string::evaluate {
         mask => [ map { ; 1 } @{$lexical_rhs} ]
     );
     push @{ $parse->{g0_rules} }, \%lexical_rule;
-    my $g1_symbol = Marpa::R2::Internal::MetaAST::Symbol->new($lexical_lhs);
+    my $g1_symbol = Marpa::R2::Internal::MetaAST::Symbol_List->new($lexical_lhs);
     return $g1_symbol;
 } ## end sub Marpa::R2::Internal::MetaAST_Nodes::single_quoted_string::evaluate
 
