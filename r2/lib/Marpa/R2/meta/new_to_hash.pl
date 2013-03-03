@@ -77,18 +77,10 @@ sub sort_bnf {
     return 0;
 } ## end sub sort_bnf
 
-my %stripped_character_classes = ();
-{
-    my $character_classes = $parse_result->{character_classes};
-    for my $symbol_name ( sort keys %{$character_classes} ) {
-        my ($re) = @{ $character_classes->{$symbol_name} };
-        $stripped_character_classes{$symbol_name} = $re;
-    }
-}
-
 my %cooked_parse_result = (
     is_lexeme         => $parse_result->{is_lexeme},
-    character_classes => \%stripped_character_classes
+    character_classes => $parse_result->{character_classes},
+    g1_symbols => $parse_result->{g1_symbols},
 );
 
 for my $rule_set (qw(g0_rules g1_rules)) {
