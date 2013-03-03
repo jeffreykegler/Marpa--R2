@@ -125,68 +125,11 @@ sub ast_to_hash {
     return $parse;
 } ## end sub ast_to_hash
 
-package Marpa::R2::Internal::MetaAST::Symbol_List;
-
-use English qw( -no_match_vars );
-
-sub new {
-    my ( $class, $name ) = @_;
-    return bless { names => [ '' . $name ], mask => [1] }, $class;
-}
-
-sub combine {
-    my ( $class, @lists ) = @_;
-    my $self = {};
-    $self->{names} = [ map { @{ $_->names() } } @lists ];
-    $self->{mask}  = [ map { @{ $_->mask() } } @lists ];
-    return bless $self, $class;
-} ## end sub new
-
-# Return the character class symbol name,
-# after ensuring everything is set up properly
-sub new_from_char_class {
-    my ( $class, $parse, $char_class ) = @_;
-
-    # character class symbol name always start with TWO left square brackets
-    my $symbol_name = '[' . $char_class . ']';
-    $parse->{character_classes} //= {};
-    my $cc_hash = $parse->{character_classes};
-    my ( undef, $symbol ) = $cc_hash->{$symbol_name};
-    if ( not defined $symbol ) {
-        my $regex;
-        if ( not defined eval { $regex = qr/$char_class/xms; 1; } ) {
-            Carp::croak( 'Bad Character class: ',
-                $char_class, "\n", 'Perl said ', $EVAL_ERROR );
-        }
-        $symbol =
-            Marpa::R2::Internal::MetaAST::Symbol_List->new($symbol_name);
-        $cc_hash->{$symbol_name} = [ $regex, $symbol ];
-    } ## end if ( not defined $symbol )
-    return $symbol;
-} ## end sub new_from_char_class
-
-sub name {
-    my ($self) = @_;
-    my $names = $self->{names};
-    Marpa::R2::exception( "list->name() on symbol list of length ",
-        scalar @{$names} )
-        if scalar @{$names} != 1;
-    return $self->{names}->[0];
-} ## end sub name
-sub names { return shift->{names} }
-sub mask { return shift->{mask} }
-sub mask_set {
-    my ( $self, $mask ) = @_;
-    $self->{mask} = [ map { $mask } @{ $self->{mask} } ];
-}
-
-package Marpa::R2::Internal::MetaAST::Proto_Alternative;
-my $PROTO_ALTERNATIVE = __PACKAGE__;
-
 # This class is for pieces of RHS alternatives, as they are
 # being constructed
+my $PROTO_ALTERNATIVE = 'Marpa::R2::Internal::MetaAST::Proto_Alternative';
 
-sub combine {
+sub Marpa::R2::Internal::MetaAST::Proto_Alternative::combine {
     my ( $class, @hashes ) = @_;
     my $self = bless {}, $class;
     for my $hash_to_add (@hashes) {
@@ -336,75 +279,56 @@ sub Marpa::R2::Internal::MetaAST_Nodes::rhs_primary_list::evaluate {
     return Marpa::R2::Internal::MetaAST::Symbol_List->combine(@symbol_lists);
 }
 
-package Marpa::R2::Internal::MetaAST_Nodes::action;
-
-sub evaluate {
+sub Marpa::R2::Internal::MetaAST_Nodes::action::evaluate {
     my ( $values, $parse ) = @_;
     my ( undef, undef, $child ) = @{$values};
     return bless { action => $child->name($parse) }, $PROTO_ALTERNATIVE;
 }
 
-package Marpa::R2::Internal::MetaAST_Nodes::blessing;
-
-sub evaluate {
+sub Marpa::R2::Internal::MetaAST_Nodes::blessing::evaluate {
     my ($values, $parse) = @_;
     my ( undef, undef, $child ) = @{$values};
     return bless { bless => $child->name($parse) }, $PROTO_ALTERNATIVE;
 }
 
-package Marpa::R2::Internal::MetaAST_Nodes::right_association;
-
-sub evaluate {
+sub Marpa::R2::Internal::MetaAST_Nodes::right_association::evaluate {
     my ($values) = @_;
     return bless { assoc => 'R' }, $PROTO_ALTERNATIVE;
 }
 
-package Marpa::R2::Internal::MetaAST_Nodes::left_association;
-
-sub evaluate {
+sub Marpa::R2::Internal::MetaAST_Nodes::left_association::evaluate {
     my ($values) = @_;
     return bless { assoc => 'L' }, $PROTO_ALTERNATIVE;
 }
 
-package Marpa::R2::Internal::MetaAST_Nodes::group_association;
-
-sub evaluate {
+sub Marpa::R2::Internal::MetaAST_Nodes::group_association::evaluate {
     my ($values) = @_;
     return bless { assoc => 'G' }, $PROTO_ALTERNATIVE;
 }
 
-package Marpa::R2::Internal::MetaAST_Nodes::proper_specification;
-
-sub evaluate {
+sub Marpa::R2::Internal::MetaAST_Nodes::proper_specification::evaluate {
     my ($values) = @_;
     my $child = $values->[2];
     return bless { proper => $child->value() }, $PROTO_ALTERNATIVE;
-} ## end sub evaluate
+}
 
 sub Marpa::R2::Internal::MetaAST_Nodes::boolean::value {
    return $_[0]->[2];
 }
 
-package Marpa::R2::Internal::MetaAST_Nodes::separator_specification;
-
-sub evaluate {
+sub Marpa::R2::Internal::MetaAST_Nodes::separator_specification::evaluate {
     my ( $values, $parse ) = @_;
     my $child = $values->[2];
-    return bless { separator => $child->name($parse) },
-        $PROTO_ALTERNATIVE;
-} ## end sub evaluate
+    return bless { separator => $child->name($parse) }, $PROTO_ALTERNATIVE;
+}
 
-package Marpa::R2::Internal::MetaAST_Nodes::adverb_item;
-
-sub evaluate {
+sub Marpa::R2::Internal::MetaAST_Nodes::adverb_item::evaluate {
     my ( $values, $parse ) = @_;
     my $child = $values->[2]->evaluate($parse);
     return bless $child, $PROTO_ALTERNATIVE;
-} ## end sub evaluate
+}
 
-package Marpa::R2::Internal::MetaAST_Nodes::default_rule;
-
-sub evaluate {
+sub Marpa::R2::Internal::MetaAST_Nodes::default_rule::evaluate {
     my ( $values, $parse ) = @_;
     my ( undef, undef, undef, $op_declare, $raw_adverb_list ) =
         @{$values};
@@ -678,13 +602,6 @@ sub Marpa::R2::Internal::MetaAST_Nodes::lexeme_rule::evaluate {
     return undef;
 } ## end sub evaluate
 
-sub Marpa::R2::Internal::MetaAST_Nodes::statements::evaluate {
-    my ( $data, $parse ) = @_;
-    my ( undef, undef, @statements ) = @{$data};
-    $_->evaluate($parse) for @statements;
-    return undef;
-}
-
 sub Marpa::R2::Internal::MetaAST_Nodes::statement::evaluate {
     my ( $data, $parse ) = @_;
     my ( undef, undef, $statement_body ) = @{$data};
@@ -785,9 +702,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::alternatives::evaluate {
         ref $values;
 }
 
-package Marpa::R2::Internal::MetaAST_Nodes::alternative;
-
-sub evaluate {
+sub Marpa::R2::Internal::MetaAST_Nodes::alternative::evaluate {
     my ( $values, $parse ) = @_;
     my ( undef, undef, $rhs, $adverbs ) = @{$values};
     return Marpa::R2::Internal::MetaAST::Proto_Alternative->combine( map { $_->evaluate($parse) } $rhs, $adverbs);
@@ -836,9 +751,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::symbol_name::names {
    return [$self->name($parse)];
 }
 
-package Marpa::R2::Internal::MetaAST_Nodes::adverb_list;
-
-sub evaluate {
+sub Marpa::R2::Internal::MetaAST_Nodes::adverb_list::evaluate {
     my ( $data, $parse ) = @_;
     my ( undef, undef, @raw_items ) = @{$data};
     my (@adverb_items) = map { $_->evaluate($parse) } @raw_items;
@@ -899,6 +812,61 @@ sub Marpa::R2::Internal::MetaAST_Nodes::single_quoted_string::evaluate {
     my $g1_symbol = Marpa::R2::Internal::MetaAST::Symbol_List->new($lexical_lhs);
     return $g1_symbol;
 } ## end sub Marpa::R2::Internal::MetaAST_Nodes::single_quoted_string::evaluate
+
+package Marpa::R2::Internal::MetaAST::Symbol_List;
+
+use English qw( -no_match_vars );
+
+sub new {
+    my ( $class, $name ) = @_;
+    return bless { names => [ '' . $name ], mask => [1] }, $class;
+}
+
+sub combine {
+    my ( $class, @lists ) = @_;
+    my $self = {};
+    $self->{names} = [ map { @{ $_->names() } } @lists ];
+    $self->{mask}  = [ map { @{ $_->mask() } } @lists ];
+    return bless $self, $class;
+} ## end sub new
+
+# Return the character class symbol name,
+# after ensuring everything is set up properly
+sub new_from_char_class {
+    my ( $class, $parse, $char_class ) = @_;
+
+    # character class symbol name always start with TWO left square brackets
+    my $symbol_name = '[' . $char_class . ']';
+    $parse->{character_classes} //= {};
+    my $cc_hash = $parse->{character_classes};
+    my ( undef, $symbol ) = $cc_hash->{$symbol_name};
+    if ( not defined $symbol ) {
+        my $regex;
+        if ( not defined eval { $regex = qr/$char_class/xms; 1; } ) {
+            Carp::croak( 'Bad Character class: ',
+                $char_class, "\n", 'Perl said ', $EVAL_ERROR );
+        }
+        $symbol =
+            Marpa::R2::Internal::MetaAST::Symbol_List->new($symbol_name);
+        $cc_hash->{$symbol_name} = [ $regex, $symbol ];
+    } ## end if ( not defined $symbol )
+    return $symbol;
+} ## end sub new_from_char_class
+
+sub name {
+    my ($self) = @_;
+    my $names = $self->{names};
+    Marpa::R2::exception( "list->name() on symbol list of length ",
+        scalar @{$names} )
+        if scalar @{$names} != 1;
+    return $self->{names}->[0];
+} ## end sub name
+sub names { return shift->{names} }
+sub mask { return shift->{mask} }
+sub mask_set {
+    my ( $self, $mask ) = @_;
+    $self->{mask} = [ map { $mask } @{ $self->{mask} } ];
+}
 
 1;
 
