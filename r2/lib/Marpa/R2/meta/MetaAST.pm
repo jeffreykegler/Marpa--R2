@@ -138,18 +138,6 @@ sub dwim_evaluate {
     return $value;
 } ## end sub dwim_evaluate
 
-package Marpa::R2::Internal::MetaAST::Symbol;
-
-sub new {
-    my ( $class, $name ) = @_;
-    return bless { name => ( '' . $name ), mask => [ 1 ] }, $class;
-}
-sub is_symbol { return 1 }
-sub name      { return shift->{name} }
-sub names     { return [ shift->{name} ] }
-sub mask      { return shift->{mask} }
-sub mask_set      { my ( $self, $mask ) = @_; $mask //= 1; $self->{mask} = [ $mask ] }
-
 package Marpa::R2::Internal::MetaAST::Symbol_List;
 
 use English qw( -no_match_vars );
@@ -190,7 +178,6 @@ sub new_from_char_class {
     return $symbol;
 } ## end sub new_from_char_class
 
-sub is_symbol { return 0 }
 sub name {
     my ($self) = @_;
     my $names = $self->{names};
@@ -207,12 +194,11 @@ sub mask_set {
 }
 
 package Marpa::R2::Internal::MetaAST::Proto_Alternative;
+my $PROTO_ALTERNATIVE = __PACKAGE__;
 
 # This class is for pieces of RHS alternatives, as they are
 # being constructed
 
-our $PROTO_ALTERNATIVE;
-BEGIN { $PROTO_ALTERNATIVE = __PACKAGE__; }
 
 sub combine {
     my ( $class, @hashes ) = @_;
