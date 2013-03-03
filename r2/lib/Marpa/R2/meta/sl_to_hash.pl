@@ -34,14 +34,11 @@ use Getopt::Long;
 my $verbose          = 1;
 my $help_flag        = 0;
 my $scannerless_flag = 1;
-my $result           = Getopt::Long::GetOptions(
-    'help'      => \$help_flag,
-);
+my $result           = Getopt::Long::GetOptions( 'help' => \$help_flag, );
 die "usage $PROGRAM_NAME [--help] file ...\n" if $help_flag;
 
-my $bnf           = do { local $RS = undef; \(<>) };
-my $parse_result =
-    Marpa::R2::Scanless::G->_source_to_hash( $bnf );
+my $bnf = do { local $RS = undef; \(<>) };
+my $parse_result = Marpa::R2::Scanless::G->_source_to_hash($bnf);
 
 sub sort_bnf {
     my $cmp = $a->{lhs} cmp $b->{lhs};
@@ -50,7 +47,7 @@ sub sort_bnf {
     my $b_rhs_length = scalar @{ $b->{rhs} };
     $cmp = $a_rhs_length <=> $b_rhs_length;
     return $cmp if $cmp;
-    for my $ix ( 0 .. ($a_rhs_length-1) ) {
+    for my $ix ( 0 .. ( $a_rhs_length - 1 ) ) {
         $cmp = $a->{rhs}->[$ix] cmp $b->{rhs}->[$ix];
         return $cmp if $cmp;
     }
@@ -64,12 +61,12 @@ my %cooked_parse_result = (
 );
 
 my $g0_rules = $parse_result->{g0_rules};
-RULE: for my $ix (0 .. $#{ $g0_rules}) {
+RULE: for my $ix ( 0 .. $#{$g0_rules} ) {
     my $rule = $g0_rules->[$ix];
     my $mask = $rule->{mask};
     next RULE if not defined $mask;
-    $rule->{mask} = [ map {;1} @{$mask} ];
-}
+    $rule->{mask} = [ map { ; 1 } @{$mask} ];
+} ## end RULE: for my $ix ( 0 .. $#{$g0_rules} )
 
 for my $rule_set (qw(g0_rules g1_rules)) {
     my $aoh        = $parse_result->{$rule_set};
