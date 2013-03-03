@@ -54,7 +54,9 @@ sub ast_to_hash {
         g0_rules => [],
         g1_rules => []
     };
-    my $new_ast = $ast->dwim_evaluate($parse);
+
+    my (undef, undef, @statements) = @{$ast};
+    $_->evaluate($parse) for @statements;
 
     my $g1_rules = $parse->{g1_rules};
     my $g0_rules = $parse->{g0_rules};
@@ -120,23 +122,8 @@ sub ast_to_hash {
     }
     $parse->{character_classes} = \%stripped_character_classes;
 
-    return $parse, $new_ast;
+    return $parse;
 } ## end sub ast_to_hash
-
-sub dwim_evaluate {
-    my ( $value, $parse ) = @_;
-    return $value if not defined $value;
-    if ( Scalar::Util::blessed($value) ) {
-        return $value->evaluate($parse) if $value->can('evaluate');
-        return bless [ map { dwim_evaluate( $_, $parse ) } @{$value} ],
-            ref $value
-            if Scalar::Util::reftype($value) eq 'ARRAY';
-        return $value;
-    } ## end if ( Scalar::Util::blessed($value) )
-    return [ map { dwim_evaluate( $_, $parse ) } @{$value} ]
-        if ref $value eq 'ARRAY';
-    return $value;
-} ## end sub dwim_evaluate
 
 package Marpa::R2::Internal::MetaAST::Symbol_List;
 
@@ -198,7 +185,6 @@ my $PROTO_ALTERNATIVE = __PACKAGE__;
 
 # This class is for pieces of RHS alternatives, as they are
 # being constructed
-
 
 sub combine {
     my ( $class, @hashes ) = @_;
@@ -692,6 +678,26 @@ sub Marpa::R2::Internal::MetaAST_Nodes::lexeme_rule::evaluate {
     return undef;
 } ## end sub evaluate
 
+sub Marpa::R2::Internal::MetaAST_Nodes::statements::evaluate {
+    my ( $data, $parse ) = @_;
+    my ( undef, undef, @statements ) = @{$data};
+    $_->evaluate($parse) for @statements;
+    return undef;
+}
+
+sub Marpa::R2::Internal::MetaAST_Nodes::statement::evaluate {
+    my ( $data, $parse ) = @_;
+    my ( undef, undef, $statement_body ) = @{$data};
+    $statement_body->evaluate($parse);
+    return undef;
+}
+
+sub Marpa::R2::Internal::MetaAST_Nodes::statement_body::evaluate {
+    my ( $data, $parse ) = @_;
+    my ( undef, undef, $statement ) = @{$data};
+    $statement->evaluate($parse);
+    return undef;
+}
 
 sub Marpa::R2::Internal::MetaAST_Nodes::start_rule::evaluate {
     my ( $values, $parse ) = @_;
@@ -773,16 +779,11 @@ sub Marpa::R2::Internal::MetaAST_Nodes::quantified_rule::evaluate {
 
 } ## end sub Marpa::R2::Internal::MetaAST_Nodes::quantified_rule::evaluate
 
-package Marpa::R2::Internal::MetaAST_Nodes::alternatives;
-
-sub evaluate {
+sub Marpa::R2::Internal::MetaAST_Nodes::alternatives::evaluate {
     my ( $values, $parse ) = @_;
-    return
-        bless [
-        map { Marpa::R2::Internal::MetaAST::dwim_evaluate( $_, $parse ) }
-            @{$values} ],
-        __PACKAGE__;
-} ## end sub evaluate
+    return bless [ map { $_->evaluate( $_, $parse ) } @{$values} ],
+        ref $values;
+}
 
 package Marpa::R2::Internal::MetaAST_Nodes::alternative;
 

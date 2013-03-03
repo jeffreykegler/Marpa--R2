@@ -37,11 +37,9 @@ use Getopt::Long;
 my $verbose       = 1;
 my $help_flag     = 0;
 my $ast_before_flag = 0;
-my $ast_after_flag = 0;
 my $result        = Getopt::Long::GetOptions(
     'help'     => \$help_flag,
     'ast_before' => \$ast_before_flag,
-    'ast_after' => \$ast_after_flag
 );
 die "usage $PROGRAM_NAME [--help] file ...\n" if $help_flag;
 
@@ -56,12 +54,7 @@ if ($ast_before_flag) {
    say Data::Dumper::Dumper($ast);
    exit 0;
 }
-my ($parse_result, $ast_after) = $ast->ast_to_hash($bnf);
-if ($ast_after_flag) {
-   say Data::Dumper::Dumper($ast_after);
-   exit 0;
-}
-
+my $parse_result = $ast->ast_to_hash($bnf);
 
 sub sort_bnf {
     my $cmp = $a->{lhs} cmp $b->{lhs};
