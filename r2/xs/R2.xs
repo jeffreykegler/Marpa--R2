@@ -898,7 +898,7 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
       }
       break;
     default:
-      /* Never reached -- turns off warning about unitialized ops */
+      /* Never reached -- turns off warning about uninitialized ops */
       ops = NULL;
     }
 
@@ -1017,7 +1017,7 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
 		      (marpa_v_arg_n (v) - marpa_v_arg_0 (v)) / 2 + 1;
 		    item_ix = (item_count + stack_offset);
 		  }
-		  fetch_ix = result_ix + item_ix * 2;
+		fetch_ix = result_ix + item_ix * 2;
 	      }
 
 	    /* Bounds check fetch ix */
@@ -1179,7 +1179,6 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
 
 	case op_push_slr_range:
 	  {
-	    Marpa_Earley_Set_ID earley_set;
 	    int start_location;
 	    int end_location;
 	    Scanless_R *slr = v_wrapper->slr;
@@ -1193,23 +1192,58 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
 		croak
 		  ("Problem in v->stack_step: 'push_slr_range' op attempted when no slr is set");
 	      }
-	    earley_set =
-	      step_type ==
-	      MARPA_STEP_RULE ? marpa_v_rule_start_es_id (v) :
-	      marpa_v_token_start_es_id (v);
-	    slr_locations (slr, earley_set+1, &start_location, &end_location);
-	    av_push (values_av, newSViv ((IV) start_location));
-	    earley_set = marpa_v_es_id (v);
-	    slr_locations (slr, earley_set, &start_location, &end_location);
-	    av_push (values_av, newSViv ((IV) end_location));
+	    switch (step_type)
+	      {
+	      case MARPA_STEP_NULLING_SYMBOL:
+		{
+		  Marpa_Earley_Set_ID earley_set =
+		    marpa_v_token_start_es_id (v);
+		  slr_locations (slr, earley_set, &start_location,
+				 &end_location);
+		}
+		goto NEXT_OP_CODE;
+	      case MARPA_STEP_RULE:
+		{
+		  int dummy;
+		  Marpa_Earley_Set_ID start_earley_set =
+		    marpa_v_rule_start_es_id (v);
+		  Marpa_Earley_Set_ID end_earley_set = marpa_v_es_id (v);
+		  slr_locations (slr, start_earley_set + 1, &start_location,
+				 &dummy);
+		  av_push (values_av, newSViv ((IV) start_location));
+		  slr_locations (slr, end_earley_set, &dummy, &end_location);
+		  av_push (values_av, newSViv ((IV) end_location));
+		}
+		goto NEXT_OP_CODE;
+	      case MARPA_STEP_TOKEN:
+		{
+		  int dummy;
+		  Marpa_Earley_Set_ID start_earley_set =
+		    marpa_v_token_start_es_id (v);
+		  Marpa_Earley_Set_ID end_earley_set = marpa_v_es_id (v);
+		  slr_locations (slr, start_earley_set + 1, &start_location,
+				 &dummy);
+		  av_push (values_av, newSViv ((IV) start_location));
+		  slr_locations (slr, end_earley_set, &dummy, &end_location);
+		  av_push (values_av, newSViv ((IV) end_location));
+		}
+		goto NEXT_OP_CODE;
+	      default:
+		{
+		  croak
+		    ("Problem in v->stack_step: Range requested for improper step type: %s",
+		     step_type_to_string (step_type));
+		}
+	      }
 	  }
-	  break;
+	  /* Not reached */
+	  goto NEXT_OP_CODE;
 
 	case op_bless:
 	  {
 	    blessing = ops[op_ix++];
 	  }
-	  break;
+	  goto NEXT_OP_CODE;
 
 	case op_callback:
 	  {
@@ -1322,7 +1356,7 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
 	  }
 	}
 
-	NEXT_OP_CODE: ; /* continue while(1) loop */
+    NEXT_OP_CODE:;		/* continue while(1) loop */
 
     }
 
