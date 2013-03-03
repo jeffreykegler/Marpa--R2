@@ -381,9 +381,204 @@ sub evaluate {
     return undef;
 } ## end sub evaluate
 
-package Marpa::R2::Internal::MetaAST_Nodes::lexeme_rule;
+sub Marpa::R2::Internal::MetaAST_Nodes::priority_rule::evaluate {
+    my ( $values, $parse ) = @_;
+    my ( undef, undef, $raw_lhs, $op_declare, $priorities ) = @{$values};
+    my $grammar_level = $op_declare->op() eq q{::=} ? 1 : 0;
+    local $Marpa::R2::Internal::GRAMMAR_LEVEL = $grammar_level;
+    my $lhs = $raw_lhs->name();
 
-sub evaluate {
+    my $priority_count = scalar @{$priorities};
+    my @working_rules  = ();
+
+    my $rules = $grammar_level >= 1 ? $parse->{g1_rules} : $parse->{g0_rules};
+
+    my $default_adverbs = $parse->{default_adverbs}->[$grammar_level];
+
+    if ( $priority_count <= 1 ) {
+        ## If there is only one priority
+        for my $alternative ( @{ $priorities->[0] } ) {
+            my ( undef, undef, $raw_rhs, $raw_adverb_list ) = @{$alternative};
+            my $proto_rule = $raw_rhs->evaluate();
+            my $adverb_list = $raw_adverb_list->evaluate();
+            my @rhs_names = @{ $proto_rule->{rhs} };
+            my @mask      = @{ $proto_rule->{mask} };
+            if ( $grammar_level <= 0 and grep { !$_ } @mask ) {
+                Marpa::R2::exception(
+                    'hidden symbols are not allowed in lexical rules (rules LHS was "',
+                    $lhs->name(), '")'
+                );
+            } ## end if ( $grammar_level <= 0 and grep { !$_ } @mask )
+            my %hash_rule =
+                ( lhs => $lhs, rhs => \@rhs_names, mask => \@mask );
+
+            my $action = $adverb_list->{action} // $default_adverbs->{action};
+            if ( defined $action ) {
+                Marpa::R2::exception(
+                    'actions not allowed in lexical rules (rules LHS was "',
+                    $lhs, '")' )
+                    if $grammar_level <= 0;
+                $hash_rule{action} = $action;
+            } ## end if ( defined $action )
+
+            my $blessing = $adverb_list->{bless};
+            if ( defined $blessing
+                and $grammar_level <= 0 )
+            {
+                Marpa::R2::exception(
+                    'bless option not allowed in lexical rules (rules LHS was "',
+                    $lhs, '")'
+                );
+            } ## end if ( defined $blessing and $grammar_level <= 0 )
+            $parse->bless_hash_rule( \%hash_rule, $blessing, $lhs );
+
+            push @{$rules}, \%hash_rule;
+        } ## end for my $alternative ( @{ $priorities->[0] } )
+        return 'consumed trivial priority rule';
+    } ## end if ( $priority_count <= 1 )
+
+    for my $priority_ix ( 0 .. $priority_count - 1 ) {
+        my $priority = $priority_count - ( $priority_ix + 1 );
+        for my $alternative ( @{ $priorities->[$priority_ix] } ) {
+            push @working_rules, [ $priority, @{$alternative} ];
+        }
+    } ## end for my $priority_ix ( 0 .. $priority_count - 1 )
+
+    # Default mask (all ones) is OK for this rule
+    my @arg0_action = ();
+    @arg0_action = ( action => '::first' ) if $grammar_level > 0;
+    push @{$rules},
+        { lhs => $lhs, rhs => [ $lhs . '[prec0]' ], @arg0_action }, (
+        map {
+            ;
+            {   lhs => ( $lhs . '[prec' . ( $_ - 1 ) . ']' ),
+                rhs => [ $lhs . '[prec' . $_ . ']' ],
+                @arg0_action
+            }
+        } 1 .. $priority_count - 1
+        );
+    RULE: for my $working_rule (@working_rules) {
+        my ( $priority, $rhs, $adverb_list ) = @{$working_rule};
+        my $assoc   = $adverb_list->{assoc} // 'L';
+        my @new_rhs = $rhs->names();
+        my @arity   = grep { $new_rhs[$_] eq $lhs } 0 .. $#new_rhs;
+        my $length  = scalar @new_rhs;
+
+        my $current_exp = $lhs . '[prec' . $priority . ']';
+        my @mask        = $rhs->mask();
+        if ( $grammar_level <= 0 and grep { !$_ } @mask ) {
+            Marpa::R2::exception(
+                'hidden symbols are not allowed in lexical rules (rules LHS was "',
+                $lhs, '")'
+            );
+        } ## end if ( $grammar_level <= 0 and grep { !$_ } @mask )
+        my %new_xs_rule = ( lhs => $current_exp );
+        $new_xs_rule{mask} = \@mask;
+
+        my $action = $adverb_list->{action} // $default_adverbs->{action};
+        if ( defined $action ) {
+            Marpa::R2::exception(
+                'actions not allowed in lexical rules (rules LHS was "',
+                $lhs, '")' )
+                if $grammar_level <= 0;
+            $new_xs_rule{action} = $action;
+        } ## end if ( defined $action )
+
+        my $blessing = $adverb_list->{bless};
+        if ( defined $blessing
+            and $grammar_level <= 0 )
+        {
+            Marpa::R2::exception(
+                'bless option not allowed in lexical rules (rules LHS was "',
+                $lhs, '")'
+            );
+        } ## end if ( defined $blessing and $grammar_level <= 0 )
+        $parse->bless_hash_rule( \%new_xs_rule, $blessing, $lhs );
+
+        my $next_priority = $priority + 1;
+        $next_priority = 0 if $next_priority >= $priority_count;
+        my $next_exp = $lhs . '[prec' . $next_priority . ']';
+
+        if ( not scalar @arity ) {
+            $new_xs_rule{rhs} = \@new_rhs;
+            push @{$rules}, \%new_xs_rule;
+            next RULE;
+        }
+
+        if ( scalar @arity == 1 ) {
+            die 'Unnecessary unit rule in priority rule' if $length == 1;
+            $new_rhs[ $arity[0] ] = $current_exp;
+        }
+        DO_ASSOCIATION: {
+            if ( $assoc eq 'L' ) {
+                $new_rhs[ $arity[0] ] = $current_exp;
+                for my $rhs_ix ( @arity[ 1 .. $#arity ] ) {
+                    $new_rhs[$rhs_ix] = $next_exp;
+                }
+                last DO_ASSOCIATION;
+            } ## end if ( $assoc eq 'L' )
+            if ( $assoc eq 'R' ) {
+                $new_rhs[ $arity[-1] ] = $current_exp;
+                for my $rhs_ix ( @arity[ 0 .. $#arity - 1 ] ) {
+                    $new_rhs[$rhs_ix] = $next_exp;
+                }
+                last DO_ASSOCIATION;
+            } ## end if ( $assoc eq 'R' )
+            if ( $assoc eq 'G' ) {
+                for my $rhs_ix ( @arity[ 0 .. $#arity ] ) {
+                    $new_rhs[$rhs_ix] = $lhs . '[prec0]';
+                }
+                last DO_ASSOCIATION;
+            } ## end if ( $assoc eq 'G' )
+            die qq{Unknown association type: "$assoc"};
+        } ## end DO_ASSOCIATION:
+
+        $new_xs_rule{rhs} = \@new_rhs;
+        push @{$rules}, \%new_xs_rule;
+    } ## end RULE: for my $working_rule (@working_rules)
+    return 'consumed priority rule';
+} ## end sub Marpa::R2::Internal::MetaAST_Nodes::priority_rule::evaluate
+
+sub Marpa::R2::Internal::MetaAST_Nodes::empty_rule::evaluate {
+    my ( $values, $parse ) = @_;
+    my ( undef, undef, $lhs, $op_declare, $adverb_list ) = @{$values};
+    my $grammar_level = $op_declare->op() eq q{::=} ? 1 : 0;
+    local $Marpa::R2::Internal::GRAMMAR_LEVEL = $grammar_level;
+
+    my %rule = ( lhs => $lhs, rhs => [] );
+
+    my $default_adverbs = $parse->{default_adverbs}->[$grammar_level];
+
+    my $action = $adverb_list->{action} // $default_adverbs->{action};
+    if ( defined $action ) {
+        Marpa::R2::exception(
+            'actions not allowed in lexical rules (rules LHS was "',
+            $lhs, '")' )
+            if $grammar_level <= 0;
+        $rule{action} = $action;
+    } ## end if ( defined $action )
+
+    my $blessing = $adverb_list->{bless};
+    if ( defined $blessing
+        and $grammar_level <= 0 )
+    {
+        Marpa::R2::exception(
+            'bless option not allowed in lexical rules (rules LHS was "',
+            $lhs, '")' );
+    } ## end if ( defined $blessing and $grammar_level <= 0 )
+    $parse->bless_hash_rule( \%rule, $blessing, $lhs );
+
+    # mask not needed
+    if ( $grammar_level >= 1 ) {
+        push @{ $parse->{g1_rules} }, \%rule;
+    }
+    else {
+        push @{ $parse->{g0_rules} }, \%rule;
+    }
+    return 'consumed empty rule';
+} ## end Marpa::R2::Internal::MetaAST_Nodes::empty_rule::evaluate
+
+sub Marpa::R2::Internal::MetaAST_Nodes::lexeme_rule::evaluate {
     my ( $values, $parse ) = @_;
     my ( $start, $end, undef, $op_declare, $unevaluated_adverb_list ) =
         @{$values};
@@ -476,20 +671,6 @@ sub Marpa::R2::Internal::MetaAST_Nodes::quantified_rule::evaluate {
     return 'quantified rule consumed';
 
 } ## end sub Marpa::R2::Internal::MetaAST_Nodes::quantified_rule::evaluate
-
-package Marpa::R2::Internal::MetaAST_Nodes::priority_rule;
-
-sub evaluate {
-    my ( $values, $parse ) = @_;
-    my ( $start, $end, $lhs, $op_declare, $priorities ) = @{$values};
-    my $grammar_level = $op_declare->op() eq q{::=} ? 1 : 0;
-    local $Marpa::R2::Internal::GRAMMAR_LEVEL = $grammar_level;
-    return bless [
-        lhs        => $lhs->evaluate(),
-        priorities => [ map { $_->evaluate($parse) } @{$priorities} ]
-        ],
-        __PACKAGE__;
-}
 
 package Marpa::R2::Internal::MetaAST_Nodes::alternatives;
 
