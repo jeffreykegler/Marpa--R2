@@ -154,7 +154,7 @@ package Marpa::R2::Internal::MetaAST::Symbol_List;
 
 use English qw( -no_match_vars );
 
-sub new {
+sub combine {
     my ( $class, @lists ) = @_;
     my $self = {};
     $self->{names} = [ map { @{ $_->names() } } @lists ];
@@ -179,7 +179,7 @@ sub new_from_char_class {
                 $char_class, "\n", 'Perl said ', $EVAL_ERROR );
         }
         $symbol =
-            Marpa::R2::Internal::MetaAST::Symbol_List->new(
+            Marpa::R2::Internal::MetaAST::Symbol_List->combine(
             Marpa::R2::Internal::MetaAST::Symbol->new($symbol_name) );
         $cc_hash->{$symbol_name} = [ $regex, $symbol ];
     } ## end if ( not defined $symbol )
@@ -328,7 +328,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::parenthesized_rhs_primary_list::evaluate
     my ( $data, $parse ) = @_;
     my (undef, undef, @values) = @{$data};
     my @symbol_lists = map { $_->evaluate($parse); } @values;
-    my $flattened_list = Marpa::R2::Internal::MetaAST::Symbol_List->new(@symbol_lists);
+    my $flattened_list = Marpa::R2::Internal::MetaAST::Symbol_List->combine(@symbol_lists);
     $flattened_list->mask_set(0);
     return $flattened_list;
 }
@@ -338,7 +338,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::rhs::evaluate {
     my (undef, undef, @values) = @{$data};
     my @symbol_lists = map { $_->evaluate($parse) } @values;
     my $flattened_list =
-        Marpa::R2::Internal::MetaAST::Symbol_List->new(@symbol_lists);
+        Marpa::R2::Internal::MetaAST::Symbol_List->combine(@symbol_lists);
     return bless {
         rhs  => $flattened_list->names($parse),
         mask => $flattened_list->mask()
@@ -350,14 +350,14 @@ sub Marpa::R2::Internal::MetaAST_Nodes::rhs_primary::evaluate {
     my ( $data, $parse ) = @_;
     my (undef, undef, @values) = @{$data};
     my @symbol_lists = map { $_->evaluate($parse) } @values;
-    return Marpa::R2::Internal::MetaAST::Symbol_List->new(@symbol_lists);
+    return Marpa::R2::Internal::MetaAST::Symbol_List->combine(@symbol_lists);
 }
 
 sub Marpa::R2::Internal::MetaAST_Nodes::rhs_primary_list::evaluate {
     my ( $data, $parse ) = @_;
     my (undef, undef, @values) = @{$data};
     my @symbol_lists = map { $_->evaluate($parse) } @values;
-    return Marpa::R2::Internal::MetaAST::Symbol_List->new(@symbol_lists);
+    return Marpa::R2::Internal::MetaAST::Symbol_List->combine(@symbol_lists);
 }
 
 package Marpa::R2::Internal::MetaAST_Nodes::action;
@@ -894,7 +894,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::single_quoted_string::evaluate {
             $parse, $char_class );
         push @symbols, $symbol;
     } ## end for my $char_class ( map { '[' . ( quotemeta $_ ) . ']'...})
-    my $list = Marpa::R2::Internal::MetaAST::Symbol_List->new(@symbols);
+    my $list = Marpa::R2::Internal::MetaAST::Symbol_List->combine(@symbols);
     return $list if $Marpa::R2::Internal::GRAMMAR_LEVEL <= 0;
     my $lexical_lhs_index = $parse->{lexical_lhs_index}++;
     my $lexical_lhs       = "[Lex-$lexical_lhs_index]";
