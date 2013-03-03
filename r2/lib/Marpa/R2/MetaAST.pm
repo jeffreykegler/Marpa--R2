@@ -438,8 +438,10 @@ sub Marpa::R2::Internal::MetaAST_Nodes::priority_rule::evaluate {
 
     for my $priority_ix ( 0 .. $priority_count - 1 ) {
         my $priority = $priority_count - ( $priority_ix + 1 );
-        for my $alternative ( @{ $priorities[$priority_ix] } ) {
-            push @working_rules, [ $priority, @{$alternative} ];
+        my (undef, undef, @alternatives) = @{ $priorities[$priority_ix] } ;
+        for my $alternative ( @alternatives) {
+            my ( undef, undef, $rhs, $adverb_list ) = @{$alternative};
+            push @working_rules, [ $priority, $rhs, $adverb_list ];
         }
     } ## end for my $priority_ix ( 0 .. $priority_count - 1 )
 
@@ -457,14 +459,16 @@ sub Marpa::R2::Internal::MetaAST_Nodes::priority_rule::evaluate {
         } 1 .. $priority_count - 1
         );
     RULE: for my $working_rule (@working_rules) {
-        my ( $priority, $rhs, $adverb_list ) = @{$working_rule};
+        my ( $priority, $raw_rhs, $raw_adverb_list ) = @{$working_rule};
+        my $adverb_list = $raw_adverb_list->evaluate($parse);
+        my $rhs = $raw_rhs->evaluate($parse);
         my $assoc   = $adverb_list->{assoc} // 'L';
-        my @new_rhs = $rhs->names($parse);
+        my @new_rhs = $rhs->{rhs};
         my @arity   = grep { $new_rhs[$_] eq $lhs } 0 .. $#new_rhs;
         my $length  = scalar @new_rhs;
 
         my $current_exp = $lhs . '[prec' . $priority . ']';
-        my @mask        = $rhs->mask();
+        my @mask        = $rhs->{mask};
         if ( $grammar_level <= 0 and grep { !$_ } @mask ) {
             Marpa::R2::exception(
                 'hidden symbols are not allowed in lexical rules (rules LHS was "',
@@ -778,7 +782,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::character_class::evaluate {
     my %lexical_rule      = (
         lhs  => $lexical_lhs,
         rhs  => $lexical_rhs,
-        [1],
+        mask => [1],
     );
     push @{ $parse->{g0_rules} }, \%lexical_rule;
     my $g1_symbol = Marpa::R2::Internal::MetaAST::Symbol_List->new($lexical_lhs);

@@ -803,8 +803,9 @@ state $grammar_options = { map { ($_, 1) } qw(
             "  It must be a ref to a string\n"
         );
     } ## end if ( $ref_type ne 'SCALAR' )
-    my $hashed_source = $self->_source_to_hash( $rules_source );
-    $self->_hash_to_runtime($hashed_source);
+    my $ast = Marpa::R2::Internal::MetaAST->new($rules_source);
+    my $hashed_ast = $ast->ast_to_hash($rules_source);
+    $self->_hash_to_runtime($hashed_ast);
 
     return $self;
 
