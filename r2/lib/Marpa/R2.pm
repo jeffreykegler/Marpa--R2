@@ -50,10 +50,13 @@ eval {
 @Marpa::R2::CARP_NOT = ();
 for my $start (qw(Marpa::R2)) {
     for my $middle ( q{}, '::Internal' ) {
-        for my $end ( q{}, qw(::MetaG ::Scanless ::Stuifzand ::Recognizer ::Callback ::Grammar ::Value) ) {
+        for my $end ( q{},
+            qw(::MetaG ::MetaAST ::Scanless ::Stuifzand ::Recognizer ::Callback ::Grammar ::Value)
+            )
+        {
             push @Marpa::R2::CARP_NOT, $start . $middle . $end;
-        }
-    }
+        } ## end for my $end ( q{}, ...)
+    } ## end for my $middle ( q{}, '::Internal' )
 } ## end for my $start (qw(Marpa::R2))
 PACKAGE: for my $package (@Marpa::R2::CARP_NOT) {
     no strict 'refs';
@@ -113,6 +116,10 @@ require Marpa::R2::MetaG;
 require Marpa::R2::Scanless;
 ( $version_result = version_ok($Marpa::R2::Scanless::VERSION) )
     and die 'Marpa::R2::Scanless::VERSION ', $version_result;
+
+require Marpa::R2::MetaAST;
+( $version_result = version_ok($Marpa::R2::MetaAST::VERSION) )
+    and die 'Marpa::R2::MetaAST::VERSION ', $version_result;
 
 require Marpa::R2::Stuifzand;
 ( $version_result = version_ok($Marpa::R2::Stuifzand::VERSION) )

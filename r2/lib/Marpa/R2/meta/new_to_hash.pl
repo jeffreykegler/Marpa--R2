@@ -29,7 +29,6 @@ use autodie;
 use lib '../../../';
 use lib '../../../../blib/arch';
 use Marpa::R2;
-BEGIN { require './MetaAST.pm'; }
 
 use Getopt::Long;
 my $verbose         = 1;

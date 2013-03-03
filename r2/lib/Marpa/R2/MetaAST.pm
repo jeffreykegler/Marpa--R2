@@ -13,7 +13,7 @@
 # General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 
-package Marpa::R2::Internal::MetaAST;
+package Marpa::R2::MetaAST;
 
 use 5.010;
 use strict;
@@ -25,6 +25,8 @@ $STRING_VERSION = $VERSION;
 ## no critic(BuiltinFunctions::ProhibitStringyEval)
 $VERSION = eval $VERSION;
 ## use critic
+
+package Marpa::R2::Internal::MetaAST;
 
 sub new {
     my ( $class, $p_rules_source ) = @_;
