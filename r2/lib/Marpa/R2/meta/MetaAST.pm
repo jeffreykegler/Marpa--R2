@@ -67,7 +67,6 @@ sub ast_to_hash {
 
     my $lexeme_default_adverbs = $parse->{lexeme_default_adverbs};
     my $g1_symbols             = {};
-    $DB::single = 1;
     my %is_lexeme =
         map { ( $_, 1 ); } grep { not $lex_rhs{$_} } keys %lex_lhs;
     if ( my $lexeme_default_adverbs = $parse->{lexeme_default_adverbs} ) {
@@ -231,7 +230,6 @@ sub Marpa::R2::Internal::MetaAST::bless_hash_rule {
     return if $grammar_level == 0;
     $blessing //= $parse->{default_adverbs}->[$grammar_level]->{bless};
     return if not defined $blessing;
-    $DB::single = 1;
     FIND_BLESSING: {
         last FIND_BLESSING if $blessing =~ /\A [\w] /xms;
         return if $blessing eq '::undef';
@@ -328,7 +326,6 @@ sub Marpa::R2::Internal::MetaAST_Nodes::parenthesized_rhs_primary_list::evaluate
     my (undef, undef, @values) = @{$data};
     my @symbol_lists = map { $_->evaluate($parse); } @values;
     my $flattened_list = Marpa::R2::Internal::MetaAST::Symbol_List->new(@symbol_lists);
-    $DB::single = 1;
     $flattened_list->mask_set(0);
     return $flattened_list;
 }
