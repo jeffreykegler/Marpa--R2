@@ -949,8 +949,8 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
             # After this point, any closure will be a ref to 'CODE'
 
-            if ( defined $lexeme_id and $semantics eq '::value') {
-                @ops = ( $op_result_is_token_value );
+            if ( defined $lexeme_id and $semantics eq '::value' ) {
+                @ops = ($op_result_is_token_value);
                 last SET_OPS;
             }
 
@@ -958,9 +958,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                 last PROCESS_SINGLETON_RESULT if not defined $rule_id;
 
                 my $singleton;
-                if ( 
-                    $semantics =~ m/\A [:][:] rhs (\d+)  \z/xms )
-                {
+                if ( $semantics =~ m/\A [:][:] rhs (\d+)  \z/xms ) {
                     $singleton = $1 + 0;
                 }
 
@@ -1013,62 +1011,52 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
             # if here, $array_fate is defined
 
             my @bless_ops = ();
-            if ($blessing ne '::undef') {
+            if ( $blessing ne '::undef' ) {
                 my $constant_ix = $value->constant_register($blessing);
                 push @bless_ops, $op_bless, $constant_ix;
             }
 
-            if ($is_sequence_rule) {
-                my $push_op =
-                      $is_discard_sequence_rule
-                    ? $op_push_sequence
-                    : $op_push_values;
-                @ops = ( $push_op, @bless_ops, $array_fate );
-                last SET_OPS;
-            } ## end if ($is_sequence_rule)
-
-            # temporary, while developing
-            # die "Semantics: $semantics" if ( substr $semantics, 0, 1 ) ne '[';
+            Marpa::R2::exception(qq{Unknown semantics: "$semantics"})
+                if ( substr $semantics, 0, 1 ) ne '[';
 
             my @push_ops = ();
-            SET_PUSH_OPS: {
-                if ( ( substr $semantics, 0, 1 ) eq '[' ) {
-                    my $array_descriptor = substr $semantics, 1, -1;
-                    RESULT_DESCRIPTOR:
-                    for my $result_descriptor ( split /[,]/xms,
-                        $array_descriptor )
-                    {
-                        if (   $result_descriptor eq 'range' ) {
-                                push @push_ops, $op_push_slr_range;
-                                next RESULT_DESCRIPTOR;
-                        }
-                        if (   $result_descriptor eq 'values'
-                            or $result_descriptor eq 'value' )
-                        {
-                            if ( defined $lexeme_id ) {
-                                push @push_ops, $op_push_values;
-                                next RESULT_DESCRIPTOR;
-                            }
-                            my $mask =
-                                $rule->[Marpa::R2::Internal::Rule::MASK];
-                            if ( $rule_length > 0 ) {
-                                push @push_ops, map {
-                                    $mask->[$_]
-                                        ? ( $op_push_one, $_ )
-                                        : ()
-                                } 0 .. $rule_length - 1;
-                            } ## end if ( $rule_length > 0 )
-                            next RESULT_DESCRIPTOR;
-                        } ## end if ( $result_descriptor eq 'values' or ...)
-                        Marpa::R2::exception(
-                            qq{Unknown result descriptor: "$result_descriptor"\n},
-                            qq{  The full semantics were "$semantics"}
-                        );
-                    } ## end RESULT_DESCRIPTOR: for my $result_descriptor ( split /[,]/xms, ...)
-                } ## end if ( ( substr $semantics, 0, 1 ) eq '[' ) (])
-            } ## end SET_PUSH_OPS:
-
+            my $array_descriptor = substr $semantics, 1, -1;
+            RESULT_DESCRIPTOR:
+            for my $result_descriptor ( split /[,]/xms, $array_descriptor ) {
+                if ( $result_descriptor eq 'range' ) {
+                    push @push_ops, $op_push_slr_range;
+                    next RESULT_DESCRIPTOR;
+                }
+                if (   $result_descriptor eq 'values'
+                    or $result_descriptor eq 'value' )
+                {
+                    if ( defined $lexeme_id ) {
+                        push @push_ops, $op_push_values;
+                        next RESULT_DESCRIPTOR;
+                    }
+                    if ($is_sequence_rule) {
+                        my $push_op =
+                              $is_discard_sequence_rule
+                            ? $op_push_sequence
+                            : $op_push_values;
+                        push @push_ops, $push_op;
+                        next RESULT_DESCRIPTOR;
+                    } ## end if ($is_sequence_rule)
+                    my $mask = $rule->[Marpa::R2::Internal::Rule::MASK];
+                    if ( $rule_length > 0 ) {
+                        push @push_ops,
+                            map { $mask->[$_] ? ( $op_push_one, $_ ) : () }
+                            0 .. $rule_length - 1;
+                    }
+                    next RESULT_DESCRIPTOR;
+                } ## end if ( $result_descriptor eq 'values' or ...)
+                Marpa::R2::exception(
+                    qq{Unknown result descriptor: "$result_descriptor"\n},
+                    qq{  The full semantics were "$semantics"}
+                );
+            } ## end RESULT_DESCRIPTOR: for my $result_descriptor ( split /[,]/xms, ...)
             @ops = ( @push_ops, @bless_ops, $array_fate );
+
         } ## end SET_OPS:
 
         if ( defined $rule_id ) {

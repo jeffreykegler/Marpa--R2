@@ -1555,8 +1555,7 @@ slr_locations (Scanless_R * slr, Marpa_Earley_Set_ID earley_set, int *p_start,
 {
   dTHX;
   int result = 0;
-  /* We need to fake the values for Earley set 0,
-   *  since we are using it to store the values for Earley set 1.
+  /* We fake the values for Earley set 0,
    */
   if (earley_set <= 0)
     {
@@ -1567,13 +1566,13 @@ slr_locations (Scanless_R * slr, Marpa_Earley_Set_ID earley_set, int *p_start,
     {
       void *end_pos;
       result =
-	marpa_r_earley_set_values (slr->r1, earley_set, p_start,
-				   &end_pos);
+	marpa_r_earley_set_values (slr->r1, earley_set, p_start, &end_pos);
       *p_end = (int) PTR2IV (end_pos);
     }
   if (result < 0)
     {
-      croak ("failure in slr->location(): %s", xs_g_error (slr->g1_wrapper));
+      croak ("failure in slr->location(%d): %s", earley_set,
+	     xs_g_error (slr->g1_wrapper));
     }
 }
 
