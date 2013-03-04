@@ -72,8 +72,7 @@ sub last_rule {
 }
 
 sub parse_rules {
-    my ( $thick_grammar, $p_rules_source ) = @_;
-    $DB::single = 1;
+    my ( $p_rules_source ) = @_;
     my $self       = {};
     my $ast        = Marpa::R2::Internal::MetaAST->new($p_rules_source);
     my $hashed_ast = $ast->ast_to_hash($p_rules_source);

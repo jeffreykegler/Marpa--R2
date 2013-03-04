@@ -356,22 +356,9 @@ sub Marpa::R2::Grammar::set {
                 )
                 if $grammar->[Marpa::R2::Internal::Grammar::INTERFACE] ne
                     'stuifzand';
-            Marpa::R2::exception(
-                qq{Attempt to use the BNF interface with a grammar that is already using the standard interface\n},
-                q{  Mixing the BNF and standard interface is not allowed},
-                )
-                if $grammar->[Marpa::R2::Internal::Grammar::INTERFACE] ne
-                    'stuifzand';
             my $parse_result =
-                Marpa::R2::Internal::Stuifzand::parse_rules( $grammar,
+                Marpa::R2::Internal::Stuifzand::parse_rules( 
                 $stuifzand_source );
-            my $character_classes = $parse_result->{character_classes};
-            Marpa::R2::exception(
-                qq{Attempt to use character class with a grammar that is not scannerless\n},
-            ) if defined $character_classes;
-            $grammar->[Marpa::R2::Internal::Grammar::CHARACTER_CLASSES] =
-                $character_classes
-                if defined $character_classes;
             for my $rule ( @{ $parse_result->{rules} } ) {
                 add_user_rule( $grammar, $rule );
             }
