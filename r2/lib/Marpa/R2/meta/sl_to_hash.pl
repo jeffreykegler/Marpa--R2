@@ -31,14 +31,22 @@ use lib '../../../../blib/arch';
 use Marpa::R2;
 
 use Getopt::Long;
-my $verbose          = 1;
-my $help_flag        = 0;
-my $scannerless_flag = 1;
-my $result           = Getopt::Long::GetOptions( 'help' => \$help_flag, );
+my $verbose         = 1;
+my $help_flag       = 0;
+my $ast_before_flag = 0;
+my $result          = Getopt::Long::GetOptions(
+    'help'       => \$help_flag,
+    'ast_before' => \$ast_before_flag,
+);
 die "usage $PROGRAM_NAME [--help] file ...\n" if $help_flag;
 
 my $bnf = do { local $RS = undef; \(<>) };
-my $parse_result = Marpa::R2::Scanless::G->_source_to_hash($bnf);
+my $ast = Marpa::R2::Internal::MetaAST->new($bnf);
+if ($ast_before_flag) {
+    say Data::Dumper::Dumper($ast);
+    exit 0;
+}
+my $parse_result = $ast->ast_to_hash($bnf);
 
 sub sort_bnf {
     my $cmp = $a->{lhs} cmp $b->{lhs};
@@ -56,17 +64,9 @@ sub sort_bnf {
 
 my %cooked_parse_result = (
     is_lexeme         => $parse_result->{is_lexeme},
+    character_classes => $parse_result->{character_classes},
     g1_symbols        => $parse_result->{g1_symbols},
-    character_classes => $parse_result->{character_classes}
 );
-
-my $g0_rules = $parse_result->{g0_rules};
-RULE: for my $ix ( 0 .. $#{$g0_rules} ) {
-    my $rule = $g0_rules->[$ix];
-    my $mask = $rule->{mask};
-    next RULE if not defined $mask;
-    $rule->{mask} = [ map { ; 1 } @{$mask} ];
-} ## end RULE: for my $ix ( 0 .. $#{$g0_rules} )
 
 for my $rule_set (qw(g0_rules g1_rules)) {
     my $aoh        = $parse_result->{$rule_set};
