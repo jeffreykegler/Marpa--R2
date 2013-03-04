@@ -6,7 +6,7 @@
    "dynamic_config" : 1,
    "generated_by" : "Module::Build version 0.4003, CPAN::Meta::Converter version 2.120921",
    "license" : [
-      "unknown"
+      "open_source"
    ],
    "meta-spec" : {
       "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
@@ -199,6 +199,9 @@
    },
    "release_status" : "testing",
    "resources" : {
+      "license" : [
+         "http://opensource.org/licenses/lgpl-license.php"
+      ],
       "repository" : {
          "url" : "git://github.com/jeffreykegler/Marpa-R2.git"
       }

@@ -16,7 +16,7 @@ configure_requires:
   Test::More: 0.94
 dynamic_config: 1
 generated_by: 'Module::Build version 0.4003, CPAN::Meta::Converter version 2.120921'
-license: unknown
+license: open_source
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
   version: 1.4
@@ -149,5 +149,6 @@ requires:
   List::Util: 1.21
   Scalar::Util: 1.21
 resources:
+  license: http://opensource.org/licenses/lgpl-license.php
   repository: git://github.com/jeffreykegler/Marpa-R2.git
 version: 2.047_009
