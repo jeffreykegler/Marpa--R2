@@ -463,7 +463,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::priority_rule::evaluate {
         my $adverb_list = $raw_adverb_list->evaluate($parse);
         my $rhs = $raw_rhs->evaluate($parse);
         my $assoc   = $adverb_list->{assoc} // 'L';
-        my @new_rhs = $rhs->{rhs};
+        my @new_rhs = @{$rhs->{rhs}};
         my @arity   = grep { $new_rhs[$_] eq $lhs } 0 .. $#new_rhs;
         my $length  = scalar @new_rhs;
 
