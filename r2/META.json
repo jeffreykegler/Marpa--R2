@@ -170,7 +170,7 @@
       },
       "Marpa::R2::MetaAST" : {
          "file" : "lib/Marpa/R2/MetaAST.pm",
-         "version" : "2.047_007"
+         "version" : "2.047_008"
       },
       "Marpa::R2::MetaG" : {
          "file" : "lib/Marpa/R2/MetaG.pm",
