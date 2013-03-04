@@ -94,11 +94,12 @@ lhs
 op_declare
 op_declare_bnf
 parenthesized_rhs_primary_list
-priority_rule
 priorities
+priority_rule
 proper_specification
 quantified_rule
 quantifier
+reserved_action_name
 reserved_blessing_name
 rhs
 rhs_primary

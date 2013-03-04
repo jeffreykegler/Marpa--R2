@@ -827,6 +827,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
         my $semantics = $semantics_by_rule_id->[$rule_id];
         my $blessing  = $blessing_by_rule_id->[$rule_id];
+        $blessing = '::undef' if not $blessing;
 
         if ( $semantics eq '::dwim' ) {
             DWIM: {
@@ -834,7 +835,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                 my $mask        = $rule->[Marpa::R2::Internal::Rule::MASK];
                 my $mask_count  = scalar grep {$_} @{$mask};
                 my $is_sequence = defined $grammar_c->sequence_min($rule_id);
-                if ( $blessing ne q{} or $is_sequence or $mask_count > 1 ) {
+                if ( $blessing ne '::undef' or $is_sequence or $mask_count > 1 ) {
                     $semantics = '::array';
                     last DWIM;
                 }
@@ -858,6 +859,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
         my $semantics = $semantics_by_lexeme_id->[$lexeme_id];
         my $blessing  = $blessing_by_lexeme_id->[$lexeme_id];
+        $blessing = '::undef' if not $blessing;
 
         $semantics = '::array'
             if $semantics eq '::dwim' and $blessing ne '::undef';
