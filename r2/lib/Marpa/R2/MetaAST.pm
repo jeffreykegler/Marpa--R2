@@ -468,7 +468,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::priority_rule::evaluate {
         my $length  = scalar @new_rhs;
 
         my $current_exp = $lhs . '[prec' . $priority . ']';
-        my @mask        = $rhs->{mask};
+        my @mask        = @{ $rhs->{mask} };
         if ( $grammar_level <= 0 and grep { !$_ } @mask ) {
             Marpa::R2::exception(
                 'hidden symbols are not allowed in lexical rules (rules LHS was "',
