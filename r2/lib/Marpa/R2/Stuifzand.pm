@@ -114,6 +114,8 @@ symbol
 symbol_name
 );
 
+
+$node_status{'Marpa::R2::Internal::MetaAST'} = q{};
 $node_status{character_class} = "Character classes are not allowed";
 $node_status{discard_rule} = ":discard rules are not allowed";
 $node_status{single_quoted_string} = "Quoted strings are not allowed";
@@ -132,52 +134,55 @@ sub Marpa::R2::Internal::Stuifzand::check_ast {
     return if not $ref_type;
     $ref_type =~ s/\A Marpa::R2::Internal::MetaAST_Nodes:: //xms;
     my $report_error = 0;
-    my $node_status = $node_status{$ref_type};
-    Marpa::R2::exception(
-        "Internal error: Unknown AST node in Stuifzand grammar\n",
-        qq{  Node was of type "$ref_type"\n} )
-        if not defined $node_status;
-    # "Normal" meaning other than error reporting
+    my $problem = $node_status{$ref_type};
+    my $catch_error = $catch_error_node{$ref_type};
+    return qq{Internal error: Unknown AST node (type "$ref_type") in Stuifzand grammar}
+        if not defined $problem;
+    # "Normal" meaning other than catching errors 
     NORMAL_PROCESSING: {
-        if ($node_status) {
-            die "$node_status\n" if not $catch_error_node{$ref_type};
+        if ($problem) {
+            return $problem if not $catch_error_node{$ref_type};
             last NORMAL_PROCESSING;
         }
-        if ( $catch_error_node{$ref_type} ) {
-            return if eval {
-                Marpa::R2::Internal::Stuifzand::check_ast($_)
-                    for @{$node};
-                1;
-            };
-            $node_status = $EVAL_ERROR;
-            last NORMAL_PROCESSING;
-        } ## end if ( $catch_error_node{$ref_type} )
-        Marpa::R2::Internal::Stuifzand::check_ast($_) for @{$node};
+        for my $sub_node ( @{$node} ) {
+            $problem = Marpa::R2::Internal::Stuifzand::check_ast($sub_node);
+            if ($problem) {
+                return $problem if not $catch_error;
+                last NORMAL_PROCESSING;
+            }
+        } ## end for my $sub_node ( @{$node} )
         return;
     } ## end NORMAL_PROCESSING:
 
-    # If we are here, we are doing error processing
+    # If we are here, we are catching an error 
         my ( $start, $end ) = @{$node};
-        my $problem_text = substr ${$Marpa::R2::Internal::P_SOURCE}, $start,
+        my $problem_was_here = substr ${$Marpa::R2::Internal::P_SOURCE}, $start,
             ($end-$start+1);
-        chomp $problem_text;
-        chomp $node_status;
+        chomp $problem_was_here;
+        chomp $problem;
         Marpa::R2::exception(
             "Stuifzand (BNF) interface grammar is using a disallowed feature\n",
-            q{  } . $node_status . "\n",
+            q{  } . $problem . "\n",
             "  Problem was in the following text:\n",
-            $problem_text,
+            $problem_was_here,
             "\n"
         );
 } ## end sub Marpa::R2::Internal::Stuifzand::check_ast
 
 sub parse_rules {
-    my ( $p_rules_source ) = @_;
-    my $self       = {};
-    my $ast        = Marpa::R2::Internal::MetaAST->new($p_rules_source);
+    my ($p_rules_source) = @_;
+    my $self             = {};
+    my $ast              = Marpa::R2::Internal::MetaAST->new($p_rules_source);
     {
-    local $Marpa::R2::Internal::P_SOURCE = $p_rules_source;
-    Marpa::R2::Internal::Stuifzand::check_ast($_) for @{$ast};
+        local $Marpa::R2::Internal::P_SOURCE = $p_rules_source;
+        my $problem = Marpa::R2::Internal::Stuifzand::check_ast($ast);
+        ## Uncaught problem -- should not happen
+        if ($problem) {
+            Marpa::R2::exception(
+                "Stuifzand (BNF) interface grammar has a problem\n",
+                q{  } . $problem . "\n",
+            );
+        } ## end if ($problem)
     }
     my $hashed_ast = $ast->ast_to_hash($p_rules_source);
     $self->{rules} = $hashed_ast->{g1_rules};
