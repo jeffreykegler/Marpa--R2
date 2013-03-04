@@ -544,11 +544,12 @@ sub Marpa::R2::Internal::MetaAST_Nodes::priority_rule::evaluate {
 
 sub Marpa::R2::Internal::MetaAST_Nodes::empty_rule::evaluate {
     my ( $values, $parse ) = @_;
-    my ( undef, undef, $lhs, $op_declare, $adverb_list ) = @{$values};
+    my ( undef, undef, $lhs, $op_declare, $raw_adverb_list ) = @{$values};
     my $grammar_level = $op_declare->op() eq q{::=} ? 1 : 0;
     local $Marpa::R2::Internal::GRAMMAR_LEVEL = $grammar_level;
 
-    my %rule = ( lhs => $lhs, rhs => [] );
+    my %rule = ( lhs => $lhs->name($parse), rhs => [] );
+    my $adverb_list = $raw_adverb_list->evaluate($parse);
 
     my $default_adverbs = $parse->{default_adverbs}->[$grammar_level];
 
