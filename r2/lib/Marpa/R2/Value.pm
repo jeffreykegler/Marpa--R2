@@ -572,11 +572,64 @@ sub Marpa::R2::Internal::Recognizer::semantics_set {
     $recce->[Marpa::R2::Internal::Recognizer::NULL_VALUES] =
         \@null_symbol_closures;
 
+    my @semantics_by_lexeme = ();
+    my @blessing_by_lexeme = ();
+    # Check the lexeme semantics
+    {
+        # ::whatever is deprecated and has been removed from the docs
+        # it is now equivalent to ::undef
+        LEXEME: for my $lexeme_id ( 0 .. $#{$symbols} ) {
+
+            my ( $semantics, $blessing ) =
+                @{ $lexeme_resolutions->[$lexeme_id] };
+            CHECK_SEMANTICS: {
+                if ( not $semantics ) {
+                    $semantics = '::default';
+                    last CHECK_SEMANTICS;
+                }
+                if ( ( substr $semantics, 0, 1 ) eq '[' ) {
+                    $semantics =~ s/ //gxms;
+                    last CHECK_SEMANTICS;
+                }
+                state $allowed_semantics =
+                    { map { ; ( $_, 1 ) }
+                        qw(::array ::dwim ::undef ::default ) };
+
+                if ( not $allowed_semantics->{$semantics} ) {
+                    Marpa::R2::exception(
+                        q{Unknown semantics for lexeme },
+                        $grammar->symbol_name($lexeme_id),
+                        "\n",
+                        qq{    Semantics were specified as "$semantics"\n}
+                    );
+                } ## end if ( not $allowed_semantics->{$semantics} )
+
+            } ## end CHECK_SEMANTICS:
+            CHECK_BLESSING: {
+                if ( not $blessing ) {
+                    $blessing = '::undef';
+                    last CHECK_BLESSING;
+                }
+                last CHECK_BLESSING if $blessing eq '::undef';
+                last CHECK_BLESSING
+                    if $blessing =~ /\A [A-Za-z] [:\w]* \z /xms;
+                Marpa::R2::exception(
+                    q{Unknown blessing for lexeme },
+                    $grammar->symbol_name($lexeme_id),
+                    "\n",
+                    qq{    Blessing as specified as "$blessing"\n}
+                );
+            } ## end CHECK_BLESSING:
+            $semantics_by_lexeme[$lexeme_id] = $semantics;
+            $blessing_by_lexeme[$lexeme_id]  = $blessing;
+
+        } ## end LEXEME: for my $lexeme_id ( 0 .. $#{$symbols} )
+
+    }
+
     # set the symbol resolutions
-    $resolution_data{semantics_by_lexeme} =
-        [ map { $_->[0] } @{$lexeme_resolutions} ];
-    $resolution_data{blessing_by_lexeme} =
-        [ map { $_->[1] } @{$lexeme_resolutions} ];
+    $resolution_data{semantics_by_lexeme} = \@semantics_by_lexeme;
+    $resolution_data{blessing_by_lexeme} = \@blessing_by_lexeme;
 
     return ( $recce->[Marpa::R2::Internal::Recognizer::RULE_RESOLUTIONS] =
             \%resolution_data );
@@ -859,14 +912,12 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
         my $semantics = $semantics_by_lexeme_id->[$lexeme_id];
         my $blessing  = $blessing_by_lexeme_id->[$lexeme_id];
-        $blessing = '::undef' if not $blessing;
 
         $semantics = '::array'
             if $semantics eq '::dwim' and $blessing ne '::undef';
         $semantics = '::value' if $semantics eq '::dwim';
         $semantics = '::value' if $semantics eq '::default';
         $semantics = '[value]' if $semantics eq '::array';
-        $semantics = '::undef' if $semantics eq '::whatever';
 
         push @work_list, [ undef, $lexeme_id, $semantics, $blessing ];
     } ## end RULE: for my $lexeme_id ( 0 .. $#{$symbols} )
