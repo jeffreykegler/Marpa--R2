@@ -34,6 +34,8 @@
          "Marpa::R2::Display",
          "Marpa::R2::Inner",
          "Marpa::R2::Internal",
+         "Marpa::R2::MetaAST",
+         "Marpa::R2::MetaG",
          "Marpa::R2::Stuifzand"
       ],
       "package" : [
@@ -44,6 +46,8 @@
          "Marpa::R2::Display",
          "Marpa::R2::Inner",
          "Marpa::R2::Internal",
+         "Marpa::R2::MetaAST",
+         "Marpa::R2::MetaG",
          "Marpa::R2::Stuifzand",
          "Marpa::R2::Thin::Trace"
       ]
