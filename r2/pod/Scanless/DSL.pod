@@ -223,54 +223,6 @@ If the rule has no children, the array will be empty.
 For a lexeme, the array will be of length one,
 and will contain the token value.
 
-=item * C<::dwim>
-
-This is the "do what I mean action".
-One of its intended uses to is the
-creation of an AST,
-in a form that is convenient to traverse and evaluate,
-but that avoids trivial and useless nodes,
-
-If the action of a lexeme is C<::dwim>
-and the lexeme is not blessed,
-the value of the lexeme
-will be its token value.
-If the lexeme is blessed,
-its value will be an array of length one,
-the only element of which is the token value.
-
-For a rule, the C<::dwim> action
-is equivalent to one of the other reserved word actions,
-as determined by applying the following criteria, in sequence:
-
-=over 4
-
-=item *
-
-If the action is for a
-rule that is blessed, C<::dwim> is equivalent to C<::array>.
-
-=item *
-
-If the action is for a sequence rule, C<::dwim> is equivalent to C<::array>.
-
-=item *
-
-If the action is for a rule with two or more children,
-C<::dwim> is equivalent to C<::array>.
-
-=item *
-
-If the action is for a rule with one child,
-C<::dwim> is equivalent to C<::first>.
-
-=item *
-
-If the action is for a rule with no children,
-C<::dwim> is equivalent to C<::undef>.
-
-=back 
-
 =item * C<::first>
 
 The value of the semantics is that of the rule's first child.
