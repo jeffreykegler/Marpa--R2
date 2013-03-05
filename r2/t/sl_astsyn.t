@@ -34,9 +34,8 @@ use Marpa::R2::Test;
 use Marpa::R2;
 
 my $grammar = Marpa::R2::Scanless::G->new(
-    {   
-        bless_package => 'My_Nodes',
-        source          => \(<<'END_OF_SOURCE'),
+    {   bless_package => 'My_Nodes',
+        source        => \(<<'END_OF_SOURCE'),
 :default ::= action => [values] bless => ::lhs
 lexeme default = action => [range,value] bless => ::name
 

@@ -20,28 +20,31 @@ Marpa::R2::Scanless::DSL - The DSL for the Scanless interface
 =head1 Synopsis
 
 =for Marpa::R2::Display
-name: Scanless grammar synopsis
+name: SLIF DSL synopsis
 partial: 1
 normalize-whitespace: 1
 
+    use Marpa::R2;
+
     my $grammar = Marpa::R2::Scanless::G->new(
-        {   
-            action_object  => 'My_Actions',
-            default_action => 'do_first_arg',
-            source          => \(<<'END_OF_SOURCE'),
+        {   bless_package => 'My_Nodes',
+            source        => \(<<'END_OF_SOURCE'),
+    :default ::= action => [values] bless => ::lhs
+    lexeme default = action => [range,value] bless => ::name
+
     :start ::= Script
-    Script ::= Expression+ separator => comma action => do_script
+    Script ::= Expression+ separator => comma
     comma ~ [,]
     Expression ::=
-        Number
-        | '(' Expression ')' action => do_parens assoc => group
-       || Expression '**' Expression action => do_pow assoc => right
-       || Expression '*' Expression action => do_multiply
-        | Expression '/' Expression action => do_divide
-       || Expression '+' Expression action => do_add
-        | Expression '-' Expression action => do_subtract
-    Number ~ [\d]+
+        Number bless => primary
+        | '(' Expression ')' bless => paren assoc => group
+       || Expression '**' Expression bless => exponentiate assoc => right
+       || Expression '*' Expression bless => multiply
+        | Expression '/' Expression bless => divide
+       || Expression '+' Expression bless => add
+        | Expression '-' Expression bless => subtract
 
+    Number ~ [\d]+
     :discard ~ whitespace
     whitespace ~ [\s]+
     # allow comments
@@ -91,7 +94,25 @@ A lexical rule cannot have an C<action> adverb.
 
 =head1 Default pseudo-rule
 
+=for Marpa::R2::Display
+name: SLIF DSL synopsis
+partial: 1
+normalize-whitespace: 1
+
+    :default ::= action => [values] bless => ::lhs
+
+=for Marpa::R2::Display::End
+
 =head1 Lexeme default statement
+
+=for Marpa::R2::Display
+name: SLIF DSL synopsis
+partial: 1
+normalize-whitespace: 1
+
+    lexeme default = action => [range,value] bless => ::name
+
+=for Marpa::R2::Display::End
 
 The lexeme default statement is a "statement",
 instead of a "rule".
@@ -210,7 +231,14 @@ the result of a default.
 
 =head2 Array descriptor actions
 
-    [range,values]
+=for Marpa::R2::Display
+name: SLIF DSL synopsis
+partial: 1
+normalize-whitespace: 1
+
+    lexeme default = action => [range,value] bless => ::name
+
+=for Marpa::R2::Display::End
 
 If the value of an action adverb begins with a left square bracket,
 it is an array descriptor.

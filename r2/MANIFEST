@@ -92,8 +92,8 @@ lib/Marpa/R2.pm
 lib/Marpa/R2/.gitignore
 lib/Marpa/R2/Grammar.pm
 lib/Marpa/R2/Internal.pm
-lib/Marpa/R2/MetaG.pm
 lib/Marpa/R2/MetaAST.pm
+lib/Marpa/R2/MetaG.pm
 lib/Marpa/R2/Recognizer.pm
 lib/Marpa/R2/Scanless.pm
 lib/Marpa/R2/Stuifzand.pm
@@ -214,6 +214,7 @@ pod/Marpa_R2.pod
 pod/Progress.pod
 pod/Recognizer.pod
 pod/Scanless.pod
+pod/Scanless/DSL.pod
 pod/Scanless/G.pod
 pod/Scanless/R.pod
 pod/Semantics.pod
@@ -276,6 +277,7 @@ t/rewrite.t
 t/sequence.t
 t/sequence2.t
 t/sl_ast.t
+t/sl_astsyn.t
 t/sl_diag.t
 t/sl_dsl.t
 t/sl_exhaust.t
