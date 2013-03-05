@@ -31,17 +31,15 @@ use Marpa::R2::Test;
 use Marpa::R2;
 
 my $grammar = Marpa::R2::Scanless::G->new(
-    {   
-        action_object  => 'My_Actions',
-        bless_package => 'My_Nodes',
-        default_action => '::dwim',
-        source          => \(<<'END_OF_SOURCE'),
+    {   bless_package => 'My_Nodes',
+        source        => \(<<'END_OF_SOURCE'),
+:default ::= action => ::array bless => ::lhs
 :start ::= Script
 Script ::= Expression+ separator => comma bless => script
 comma ~ [,]
 Expression ::=
-    Number
-    | ('(') Expression (')') assoc => group
+    Number bless => primary
+    | ('(') Expression (')') assoc => group bless => parens
    || Expression ('**') Expression assoc => right bless => power
    || Expression ('*') Expression bless => multiply
     | Expression ('/') Expression bless => divide
@@ -118,45 +116,15 @@ sub my_parser {
     my ( $grammar, $p_input_string ) = @_;
 
     my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
-    my $self = bless { grammar => $grammar }, 'My_Actions';
-    $self->{recce} = $recce;
-    local $My_Actions::SELF = $self;
 
-    if ( not defined eval { $recce->read($p_input_string); 1 }
-        )
-    {
-        ## Add last expression found, and rethrow
-        my $eval_error = $EVAL_ERROR;
-        chomp $eval_error;
-        die $self->show_last_expression(), "\n", $eval_error, "\n";
-    } ## end if ( not defined eval { $event_count = $recce->read...})
-
+    $recce->read($p_input_string);
     my $value_ref = $recce->value();
     if ( not defined $value_ref ) {
-        die $self->show_last_expression(), "\n",
-            "No parse was found, after reading the entire input\n";
+        die "No parse was found, after reading the entire input\n";
     }
-
-    return ${$value_ref};
+    return ${$value_ref}->doit();
 
 } ## end sub my_parser
-
-sub doit {
-    my ($value) = @_;
-    my $ref_type = ref $value;
-    my $is_my_node = substr( $ref_type, 0, 10 ) eq 'My_Nodes::';
-    if ($is_my_node) {
-        my $method = $value->can('doit');
-        if ( defined $method ) {
-            my @children = map { doit($_); } @{$value};
-            return $method->(@children);
-        }
-    } ## end if ($is_my_node)
-    return [ map { doit($_) } @{$value} ]
-        if $is_my_node
-            or $ref_type eq 'ARRAY';
-    return $value;
-} ## end sub doit
 
 my @tests = (
     [   '42*2+7/3, 42*(2+7)/3, 2**7-3, 2**(7-3)' =>
@@ -171,47 +139,46 @@ my @tests = (
 
 for my $test (@tests) {
     my ( $input, $output_re ) = @{$test};
-    my $value = my_parser( $grammar, \$input );
-    my $result = doit($value);
+    my $result = my_parser( $grammar, \$input );
     Test::More::like( $result, $output_re, 'Value of scannerless parse' );
 }
 
-package My_Nodes::script;
-
-sub doit { return join q{ },  @_; }
-
-package My_Nodes::add;
-
-sub doit { my ($a, $b) = @_; return $a+$b; }
-
-package My_Nodes::subtract;
-
-sub doit { my ($a, $b) = @_; return $a-$b; }
-
-package My_Nodes::multiply;
-
-sub doit { my ($a, $b) = @_; return $a*$b; }
-
-package My_Nodes::divide;
-
-sub doit { my ($a, $b) = @_; return $a/$b; }
-
-package My_Nodes::power;
-
-sub doit { my ($a, $b) = @_; return $a**$b; }
-
-package My_Actions;
-
-our $SELF;
-sub new { return $SELF }
-
-sub show_last_expression {
+sub My_Nodes::script::doit {
     my ($self) = @_;
-    my $recce = $self->{recce};
-    my ( $start, $end ) = $recce->last_completed_range('Expression');
-    return 'No expression was successfully parsed' if not defined $start;
-    my $last_expression = $recce->range_to_string( $start, $end );
-    return "Last expression successfully parsed was: $last_expression";
-} ## end sub show_last_expression
+    return join q{ }, map { $_->doit() } @{$self};
+}
+
+sub My_Nodes::add::doit {
+    my ($self) = @_;
+    my ( $a, $b ) = @{$self};
+    return $a->doit() + $b->doit();
+}
+
+sub My_Nodes::subtract::doit {
+    my ($self) = @_;
+    my ( $a, $b ) = @{$self};
+    return $a->doit() - $b->doit();
+}
+
+sub My_Nodes::multiply::doit {
+    my ($self) = @_;
+    my ( $a, $b ) = @{$self};
+    return $a->doit() * $b->doit();
+}
+
+sub My_Nodes::divide::doit {
+    my ($self) = @_;
+    my ( $a, $b ) = @{$self};
+    return $a->doit() / $b->doit();
+}
+
+sub My_Nodes::primary::doit { return $_[0]->[0]; }
+sub My_Nodes::parens::doit  { return $_[0]->[0]->doit(); }
+
+sub My_Nodes::power::doit {
+    my ($self) = @_;
+    my ( $a, $b ) = @{$self};
+    return $a->doit()**$b->doit();
+}
 
 # vim: expandtab shiftwidth=4:

@@ -86,7 +86,7 @@ sub Marpa::R2::Internal::Recognizer::resolve_action {
         $recce->[Marpa::R2::Internal::Recognizer::TRACE_ACTIONS];
 
     # A reserved closure name;
-    return [ q{}, undef, '::default' ] if not defined $closure_name;
+    return [ q{}, undef, '::!default' ] if not defined $closure_name;
 
     if ( $closure_name eq q{} ) {
         return q{The action string cannot be the empty string};
@@ -199,7 +199,7 @@ sub Marpa::R2::Internal::Recognizer::resolve_lexeme_semantics {
     my $symbol = $symbols->[$lexeme_id];
 
     my $semantics = $symbol->[Marpa::R2::Internal::Symbol::LEXEME_SEMANTICS];
-    $semantics = "::default" if not defined $semantics;
+    $semantics = "::!default" if not defined $semantics;
 
     my $blessing = $symbol->[Marpa::R2::Internal::Symbol::BLESSING];
     return [$semantics, '::undef'] if not defined $blessing;
@@ -231,9 +231,8 @@ sub Marpa::R2::Internal::Recognizer::add_blessing {
     return [ $closure_name, $closure, $semantics, q{} ]
         if not defined $blessing;
 
-    $semantics = '::array' if $semantics eq '::default';
+    $semantics = '::array' if $semantics eq '::!default';
     CHECK_SEMANTICS: {
-        last CHECK_SEMANTICS if $semantics eq '::dwim';
         last CHECK_SEMANTICS if $semantics eq '::array';
         last CHECK_SEMANTICS if (substr $semantics, 0, 1) eq '[';
         return qq{Attempt to bless, but improper semantics: "$semantics"};
@@ -405,7 +404,7 @@ sub Marpa::R2::Internal::Recognizer::semantics_set {
         # ::whatever is deprecated and has been removed from the docs
         # it is now equivalent to ::undef
         state $allowed_semantics = {
-            map { ; ( $_, 1 ) } qw(::array ::dwim ::undef ::first ::whatever),
+            map { ; ( $_, 1 ) } qw(::array ::undef ::first ::whatever),
             q{}
         };
 
@@ -438,7 +437,6 @@ sub Marpa::R2::Internal::Recognizer::semantics_set {
 
             if (    $blessing ne '::undef'
                 and not $closure
-                and $semantics ne '::dwim'
                 and $semantics ne '::array'
                 and ( substr $semantics, 0, 1 ) ne '[' )
             {
@@ -585,7 +583,7 @@ sub Marpa::R2::Internal::Recognizer::semantics_set {
                 @{ $lexeme_resolutions->[$lexeme_id] };
             CHECK_SEMANTICS: {
                 if ( not $semantics ) {
-                    $semantics = '::default';
+                    $semantics = '::!default';
                     last CHECK_SEMANTICS;
                 }
                 if ( ( substr $semantics, 0, 1 ) eq '[' ) {
@@ -594,7 +592,7 @@ sub Marpa::R2::Internal::Recognizer::semantics_set {
                 }
                 state $allowed_semantics =
                     { map { ; ( $_, 1 ) }
-                        qw(::array ::dwim ::undef ::default ) };
+                        qw(::array ::undef ::!default ) };
 
                 if ( not $allowed_semantics->{$semantics} ) {
                     Marpa::R2::exception(
@@ -882,25 +880,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
         my $semantics = $semantics_by_rule_id->[$rule_id];
         my $blessing  = $blessing_by_rule_id->[$rule_id];
 
-        if ( $semantics eq '::dwim' ) {
-            DWIM: {
-                my $rule        = $rules->[$rule_id];
-                my $mask        = $rule->[Marpa::R2::Internal::Rule::MASK];
-                my $mask_count  = scalar grep {$_} @{$mask};
-                my $is_sequence = defined $grammar_c->sequence_min($rule_id);
-                if ( $blessing ne '::undef' or $is_sequence or $mask_count > 1 ) {
-                    $semantics = '::array';
-                    last DWIM;
-                }
-                if ( $mask_count == 1 ) {
-                    $semantics = '::first';
-                    last DWIM;
-                }
-                $semantics = '::undef';
-            } ## end DWIM:
-        } ## end if ( $semantics eq '::dwim' )
-
-        $semantics = '::undef'  if $semantics eq '::default';
+        $semantics = '::undef'  if $semantics eq '::!default';
         $semantics = '[values]' if $semantics eq '::array';
         $semantics = '::undef'  if $semantics eq '::whatever';
         $semantics = '::rhs0'   if $semantics eq '::first';
@@ -913,10 +893,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
         my $semantics = $semantics_by_lexeme_id->[$lexeme_id];
         my $blessing  = $blessing_by_lexeme_id->[$lexeme_id];
 
-        $semantics = '::array'
-            if $semantics eq '::dwim' and $blessing ne '::undef';
-        $semantics = '::value' if $semantics eq '::dwim';
-        $semantics = '::value' if $semantics eq '::default';
+        $semantics = '::value' if $semantics eq '::!default';
         $semantics = '[value]' if $semantics eq '::array';
 
         push @work_list, [ undef, $lexeme_id, $semantics, $blessing ];
