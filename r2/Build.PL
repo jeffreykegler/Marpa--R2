@@ -98,6 +98,8 @@ my @no_index_namespace_inclusive = qw(
         Marpa::R2::Display
         Marpa::R2::Inner
         Marpa::R2::Internal
+        Marpa::R2::MetaAST
+        Marpa::R2::MetaG
         Marpa::R2::Stuifzand
         );
 
