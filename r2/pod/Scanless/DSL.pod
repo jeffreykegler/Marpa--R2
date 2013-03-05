@@ -108,6 +108,119 @@ depend on where in the source file it occurs.
 
 Only one lexeme default statement is allowed in a file.
 
+=head1 C<action> adverb
+
+=head1 Word actions
+
+If the action value is a
+a Perl word (a string of alphanumerics or underscores),
+it will be interpreted as the action name,
+as described for
+L<the C<action> named argument of rule descriptors|Marpa::R2::Grammar/"action">.
+A rule with a word action is allowed to have a bless adverb,
+but as of this writing the blessing will have no effect.
+
+=head1 Reserved actions
+
+If the action value begins with a double colon ("C<::>"),
+it is a reserved word action.
+For rules, the following are recognized:
+
+=over 4
+
+=item * C<::array>
+
+The value of the semantics is an array containing the
+values of each of its children.
+If the rule has no children, the array will be empty.
+
+=item * C<::dwim>
+
+This is the "do what I mean action".
+The intent is to create an AST
+structure that avoids trivial and useless nodes,
+but that is also convenient to traverse and evaluate.
+The C<::dwim> action
+is equivalent to one of the other reserved word actions,
+as determined by applying the following criteria, in sequence:
+
+=over 4
+
+=item *
+
+If the rule is blessed, C<::dwim> is equivalent to C<::array>.
+
+=item *
+
+If the rule is a sequence rule, C<::dwim> is equivalent to C<::array>.
+
+=item *
+
+If the rule has two or more children, C<::dwim> is equivalent to C<::array>.
+
+=item *
+
+If the rule has one child, C<::dwim> is equivalent to C<::first>.
+
+=item *
+
+If the rule has no children, C<::dwim> is equivalent to C<::undef>.
+
+=back 
+
+=item * C<::first>
+
+The value of the semantics is that of the rule's first child.
+If there is no such child, the value is a Perl C<undef>.
+It is a fatal error if a bless action
+is applied to a rule with a C<::first> action.
+This is the case even when either or both adverbs are
+the result of a default.
+
+=item * C<::undef>
+
+The value of the semantics is 
+a Perl C<undef>.
+It is a fatal error if a bless action
+is applied to a rule with a C<::undef> action.
+This is the case even when either or both adverbs are
+the result of a default.
+
+=back
+
+=head2 Array descriptor actions
+
+C<[range,values]>
+
+=head1 C<bless> adverb
+
+The C<bless> adverb causes the result of the semantics to be
+blessed into the class indicated by the value of the adverb.
+with being blessed.
+C<bless> adverb causes the result of the semantics to be
+
+If the value begins with a double colon ("C<::>"), it is a
+reserved value.
+The bless adverb for
+rules allows only one reserved value: C<::lhs>.
+A reserved value of C<::lhs> causes the result to be blessed into
+a class named based on the LHS of the rule.
+The class will be the name of the LHS with whitespace (as already
+normalized for the symbol name) changed to an underscore.
+When a C<::lhs> bless value applies to a rule, it is a fatal
+error if the LHS contains anything other than an alphanumeric
+or whitespace.
+In particular, the LHS cannot already contain an underscore ("C<_>").
+
+The bless adverb for lexemes allows only one
+reserved value: C<::name>.
+A reserved value of C<::name> causes the result to be blessed into
+a class named based on the name of the rule.
+The class is derived from the symbol name in the same way,
+and subject to the same restrictions,
+as described above for deriving a class name from the LHS
+of a rule.
+
 =head1 Discard rules
 
 A discard rule is a rule whose LHS is
