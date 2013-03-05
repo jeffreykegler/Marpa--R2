@@ -419,6 +419,7 @@ sub Marpa::R2::Internal::Recognizer::semantics_set {
             $semantics =~ s/ //gxms if ( substr $semantics, 0, 1 ) eq '[';
 
             $semantics_by_rule_id[$rule_id] = $semantics;
+            $blessing = '::undef' if not $blessing;
             $blessing_by_rule_id[$rule_id]  = $blessing;
 
             if (    not $allowed_semantics->{$semantics}
@@ -435,7 +436,7 @@ sub Marpa::R2::Internal::Recognizer::semantics_set {
 
             $closure_by_rule_id[$rule_id] = $closure;
 
-            if (    $blessing ne q{}
+            if (    $blessing ne '::undef'
                 and not $closure
                 and $semantics ne '::dwim'
                 and $semantics ne '::array'
@@ -880,7 +881,6 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
         my $semantics = $semantics_by_rule_id->[$rule_id];
         my $blessing  = $blessing_by_rule_id->[$rule_id];
-        $blessing = '::undef' if not $blessing;
 
         if ( $semantics eq '::dwim' ) {
             DWIM: {
