@@ -103,6 +103,17 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
+The default pseudo-rule changes the defaults for
+rule adverbs.
+Currently only the defaults for
+the C<action> and C<bless> adverbs
+can be changed in this way.
+There may be more than one default pseudo-rule,
+and their scope is lexical.
+Each default pseudo-rule creates a completely new
+set of defaults -- if an adverb is not specified,
+it returns to the original default.
+
 =head1 Lexeme default statement
 
 =for Marpa::R2::Display
@@ -133,7 +144,13 @@ Only one lexeme default statement is allowed in a file.
 
 =head1 C<action> adverb
 
-=head1 Word actions
+The C<action> adverb specifies the semantics for a rule
+or lexeme.
+The default value of the semantics for a rule is a Perl C<undef>.
+The default value of a lexeme is 
+its literal value in the input stream, as a string.
+
+=head2 Word actions
 
 If the action value is a
 a Perl word (a string of alphanumerics or underscores),
@@ -144,10 +161,10 @@ A rule with a word action is allowed to have a bless adverb,
 but as of this writing the blessing will have no effect.
 Word actions are not allowed for for lexemes.
 
-=head1 Reserved actions
+=head2 Reserved actions
 
 If the action value begins with a double colon ("C<::>"),
-it is a reserved word action.
+it is a reserved action.
 For rules, the following are recognized:
 
 =over 4
