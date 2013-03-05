@@ -49,6 +49,13 @@ sub new {
 
 }
 
+sub substring {
+    my ($parse, $start, $end) = @_;
+    my $string = substr ${$parse->{p_source}}, $start, ($end-$start+1);
+    chomp $string;
+    return $string;
+}
+
 sub ast_to_hash {
     my ( $ast, $bnf_source ) = @_;
     my $parse = bless {
@@ -80,6 +87,7 @@ sub ast_to_hash {
             next LEXEME if $lexeme =~ m/ \] \z/xms;
             DETERMINE_BLESSING: {
                 last DETERMINE_BLESSING if not $blessing;
+                last DETERMINE_BLESSING if $blessing eq '::undef';
                 if ( $blessing eq '::name' ) {
                     if ( $lexeme =~ / [^ [:alnum:]] /xms ) {
                         Marpa::R2::exception(
@@ -363,13 +371,18 @@ sub Marpa::R2::Internal::MetaAST_Nodes::default_rule::evaluate {
 
 sub Marpa::R2::Internal::MetaAST_Nodes::lexeme_default_statement::evaluate {
     my ( $data, $parse ) = @_;
-    my ( undef, undef, $raw_adverb_list ) = @{$data};
+    my ( $start, $end, $raw_adverb_list ) = @{$data};
     local $Marpa::R2::Internal::GRAMMAR_LEVEL = 1;
 
     my $adverb_list = $raw_adverb_list->evaluate($parse);
-    if (exists $parse->{lexeme_default_adverbs}) {
-        Marpa::R2::exception(qq{More than one lexeme default statement is not allowed});
-    }
+    if ( exists $parse->{lexeme_default_adverbs} ) {
+        my $problem_rule = $parse->substring( $start, $end );
+        Marpa::R2::exception(
+            qq{More than one lexeme default statement is not allowed\n},
+            qq{  This was the rule that caused the problem:\n},
+            qq{  $problem_rule\n}
+        );
+    } ## end if ( exists $parse->{lexeme_default_adverbs} )
     $parse->{lexeme_default_adverbs} = {};
     ADVERB: for my $key ( keys %{$adverb_list} ) {
         my $value = $adverb_list->{$key};

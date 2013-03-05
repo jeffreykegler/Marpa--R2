@@ -67,7 +67,6 @@ normalize-whitespace: 1
 This page is the reference for domain-specific language at
 the center
 of Marpa's Scanless interface (SLIF).
-
 The format of
 Scanless domain-specific language (DSL) is
 L<that of
@@ -83,9 +82,9 @@ on the other hand, between rules and lexemes.
 G1 rules have a semantics,
 which can be specified as described
 in this document.
-
 G0 rules simply recognize symbols in the input.
 G0 rules do not have a semantics.
+
 Top-level G0 rules correspond to a string in the input,
 but when it is a value,
 this string is actually seen as the value of a lexeme.
@@ -118,7 +117,8 @@ can be used between the LHS and RHS of a rule,
 instead of the BNF operator.
 Rules which use the match operator are G0 rules.
 Discard rules must be G0 rules.
-A lexical rule cannot have an C<action> adverb.
+A lexical rule cannot have an C<action> adverb or a
+C<bless> adverb.
 
 =head1 Default pseudo-rule
 
@@ -133,11 +133,8 @@ normalize-whitespace: 1
 
 The default pseudo-rule changes the defaults for
 rule adverbs.
-The default pseudo-rule must be a G1 rule,
-and it changes the defaults only for other G1 rules.
 Default pseudo-rules do not affect the defaults for G0 rules
 or for lexemes.
-
 There may be more than one default pseudo-rule.
 The scope of default pseudo-rules is lexical, applying only to rules
 that appear afterwards in the DSL source.
@@ -147,7 +144,8 @@ the C<action> and C<bless> adverbs
 can be changed with a default pseudo-rule.
 Each default pseudo-rule creates a completely new
 set of defaults -- if an adverb is not specified,
-it returns to the original default.
+it is reset to its original default, the one it had
+before any default pseudo-rules were encountered.
 
 =head1 Lexeme default statement
 
@@ -161,7 +159,7 @@ normalize-whitespace: 1
 =for Marpa::R2::Display::End
 
 The lexeme default statement changes the defaults for
-rule adverbs.
+lexeme adverbs.
 It only changes the defaults for lexemes,
 and does not affect rules.
 
@@ -176,7 +174,7 @@ Statements
 are signified by the assignment operator ("C<=>"),
 and their effect is global.
 The effect of a statement does not
-depend on where in the source file it occurs.
+depend on where in the DSL source file it occurs.
 
 At this writing the lexeme default statement is only way to
 specify the semantics of lexemes.
@@ -201,9 +199,21 @@ a Perl word (a string of alphanumerics or underscores),
 it will be interpreted as the action name,
 as described for
 L<the C<action> named argument of rule descriptors|Marpa::R2::Grammar/"action">.
-A rule with a word action is allowed to have a bless adverb,
-but as of this writing the blessing will have no effect.
 Word actions are not allowed for lexemes.
+
+Ordinarily, the arguments to the semantic closure are the per-parse-tree
+variable,
+followed by values of the rule's child nodes,
+in the order in which they occurred in the input stream.
+However,
+if a rule with a word action is blessed,
+in order to allowing the blessing to have an effect,
+it is treated differently.
+If the rule is blessed, its semantic closure will always have
+exactly two arguments.
+The first will be the per-parse-tree variable.
+The second will be a blessed array that contains
+the child values in input-stream order.
 
 =head2 Reserved actions
 
@@ -330,8 +340,8 @@ The C<::lhs> blessing is most useful in a default rule.
 
 The bless adverb for lexemes allows only one
 reserved value: C<::name>.
-A reserved value of C<::name> causes the result to be blessed into
-a class whose name is based on the name of the rule.
+A reserved value of C<::name> causes the value of the lexeme to be blessed into
+a class whose name is based on the name of the lexeme.
 The class is derived from the symbol name in the same way,
 and subject to the same restrictions,
 as described above for deriving a class name from the LHS
@@ -340,6 +350,15 @@ The C<::name> reserved blessing is most useful in
 the lexeme default rule.
 
 =head1 Discard rules
+
+=for Marpa::R2::Display
+name: SLIF DSL synopsis
+partial: 1
+normalize-whitespace: 1
+
+    :discard ~ whitespace
+
+=for Marpa::R2::Display::End
 
 A discard rule is a rule whose LHS is
 the C<:discard> pseudo-symbol,
@@ -352,6 +371,22 @@ it is not passed as a lexeme to the G1 parser, but is
 (as the name suggests) discarded.
 
 =head1 Single quoted strings
+
+=for Marpa::R2::Display
+name: SLIF DSL synopsis
+partial: 1
+normalize-whitespace: 1
+
+    Expression ::=
+        Number bless => primary
+        | '(' Expression ')' bless => paren assoc => group
+       || Expression '**' Expression bless => exponentiate assoc => right
+       || Expression '*' Expression bless => multiply
+        | Expression '/' Expression bless => divide
+       || Expression '+' Expression bless => add
+        | Expression '-' Expression bless => subtract
+
+=for Marpa::R2::Display::End
 
 Single quotes can be used in prioritized
 rules to indicate character strings.
@@ -382,6 +417,15 @@ to interpret.
 
 =head1 Character classes
 
+=for Marpa::R2::Display
+name: SLIF DSL synopsis
+partial: 1
+normalize-whitespace: 1
+
+    <vertical space char> ~ [\x{A}\x{B}\x{C}\x{D}\x{2028}\x{2029}]
+
+=for Marpa::R2::Display::End
+
 A character class in square brackets ("C<[]>")
 can be used in a RHS alternative of a prioritized rule,
 or on the RHS of a quantified rule or a discard rule.
@@ -405,7 +449,7 @@ interpreted by Perl, but this involves minimal overhead
 when the parse is of any length.
 Each character class is
 passed to Perl to interpret exactly once and the result is
-memoized in a C structure for future use.
+memoized in a C language structure for future use.
 
 =head1 Copyright and License
 
