@@ -102,8 +102,12 @@ completely separate from that of rules.
 =head1 Structural rule
 
 The BNF operator ("C<::=>")
-has the same function as before,
-but in addition it indicates that the rule is
+has the same function as
+in 
+L<the Stuifzand (BNF)
+interface|Marpa::R2::BNF>,
+but in the SLIF it plays an additional role;
+It indicates that the rule is
 a G1 rule.
 Start rules must be G1 rules.
 
@@ -129,11 +133,18 @@ normalize-whitespace: 1
 
 The default pseudo-rule changes the defaults for
 rule adverbs.
+The default pseudo-rule must be a G1 rule,
+and it changes the defaults only for other G1 rules.
+Default pseudo-rules do not affect the defaults for G0 rules
+or for lexemes.
+
+There may be more than one default pseudo-rule.
+The scope of default pseudo-rules is lexical, applying only to rules
+that appear afterwards in the DSL source.
+
 Currently only the defaults for
 the C<action> and C<bless> adverbs
-can be changed in this way.
-There may be more than one default pseudo-rule,
-and their scope is lexical.
+can be changed with a default pseudo-rule.
 Each default pseudo-rule creates a completely new
 set of defaults -- if an adverb is not specified,
 it returns to the original default.
@@ -148,6 +159,11 @@ normalize-whitespace: 1
     lexeme default = action => [range,value] bless => ::name
 
 =for Marpa::R2::Display::End
+
+The lexeme default statement changes the defaults for
+rule adverbs.
+It only changes the defaults for lexemes,
+and does not affect rules.
 
 The lexeme default statement is a "statement",
 instead of a "rule".
@@ -168,11 +184,15 @@ Only one lexeme default statement is allowed in a file.
 
 =head1 C<action> adverb
 
-The C<action> adverb specifies the semantics for a rule
-or lexeme.
-The default value of the semantics for a rule is a Perl C<undef>.
+The C<action> adverb specifies the semantics for a G1 rule
+or a lexeme, as described below.
+The default value of a G1 rule is a Perl C<undef>.
+The C<action> adverb is not allowed for G0 rules,
+which have no default value.
+
 The default value of a lexeme is 
 its literal value in the input stream, as a string.
+This is called the B<token value> of the lexeme.
 
 =head2 Word actions
 
@@ -183,7 +203,7 @@ as described for
 L<the C<action> named argument of rule descriptors|Marpa::R2::Grammar/"action">.
 A rule with a word action is allowed to have a bless adverb,
 but as of this writing the blessing will have no effect.
-Word actions are not allowed for for lexemes.
+Word actions are not allowed for lexemes.
 
 =head2 Reserved actions
 
@@ -195,25 +215,29 @@ For rules, the following are recognized:
 
 =item * C<::array>
 
-The value of the semantics is an array.
+The value of the rule or lexeme is an array.
 For a rule, the array will
-containg the
-values of each of its children.
+contain the
+values of each of its children, in left-to-right order.
 If the rule has no children, the array will be empty.
 For a lexeme, the array will be of length one,
-and contain the token value.
+and will contain the token value.
 
 =item * C<::dwim>
 
 This is the "do what I mean action".
-The intent is to create an AST
-structure that avoids trivial and useless nodes,
-but that is also convenient to traverse and evaluate.
+One of its intended uses to is the
+creation of an AST,
+in a form that is convenient to traverse and evaluate,
+but that avoids trivial and useless nodes,
 
-If the action of a lexeme is C<::dwim>, the value of the lexeme
-will be its token value if the lexeme is not blessed.
-If the lexeme is blessed, its value will be an array of length
-one, the only element of which is the token value.
+If the action of a lexeme is C<::dwim>
+and the lexeme is not blessed,
+the value of the lexeme
+will be its token value.
+If the lexeme is blessed,
+its value will be an array of length one,
+the only element of which is the token value.
 
 For a rule, the C<::dwim> action
 is equivalent to one of the other reserved word actions,
@@ -285,17 +309,20 @@ If the value of an action adverb begins with a left square bracket,
 it is an array descriptor.
 An array descriptor is a comma separated list of zero or more array
 descriptor items.
-The value of the lexeme or rule will be an array, with contents
-as determined by the array descriptor items.
-The lists will be placed in the array in the order
+
+The value of the lexeme or rule will be an array.
+The contents of the array will be a series of lists,
+as specified by the array descriptor items.
+These lists will occur in the array in the order
 specified.
 If no array descriptor items are specified, the value
 of the lexeme or rule will be an empty array.
 
 Currently there are only two array descriptor items.
-The C<range> array descriptor item will put a list two elements
-into the array indicates the location in the input stream
+The C<range> array descriptor item will put a list
+into the array that indicates the location in the input stream
 of the rule or lexeme.
+The list will contain two elements.
 The first element will be the start position,
 and the second will be the end position.
 
@@ -304,7 +331,8 @@ the C<values> array descriptor item indicates a list containing
 the values of
 the rule's children, in left-to-right order.
 For a lexeme, 
-the C<value> array descriptor item will be a single element --
+the C<value> array descriptor item indicates a list
+containing a single element,
 the token value of the lexeme.
 
 C<::array> is equivalent to C<[values]>.
@@ -318,29 +346,31 @@ will do exactly the same thing.
 
 The C<bless> adverb causes the result of the semantics to be
 blessed into the class indicated by the value of the adverb.
-If the adverb value is a Perl word
+The value of C<bless> adverb is called the B<blessing>.
+If the blessing is a Perl word
 (a string of alphanumerics or underscores),
 the name of the class will be formed by prepending
 the value of L<the C<bless_package>
-named argument|Marpa::R2::Scanless::G/"bless_package">.
+named argument|Marpa::R2::Scanless::G/"bless_package">, followed
+by a double colon ("C<::>").
 
-If the value begins with a double colon ("C<::>"), it is a
-reserved value.
-A bless value of C<::undef> means no blessing, and this is the
-default for both rules and lexemes.
+If the blessing begins with a double colon ("C<::>"), it is a
+reserved blessing.
+A blessing of C<::undef> means that the rule or lexeme will not be blessed.
+No blessing is the default for both rules and lexemes.
 If any rule or lexeme of a SLIF grammar has
-a bless value other than C<::undef>,
+a blessing other than C<::undef>,
 a C<bless_package> is required,
 and failure to specify one results in
 a fatal error.
 
 The bless adverb for
-rules allows one additional reserved value: C<::lhs>.
-A reserved value of C<::lhs> causes the result to be blessed into
-a class named based on the LHS of the rule.
+rules allows one additional reserved blessing: C<::lhs>.
+A blessing of C<::lhs> causes the result to be blessed into
+a class whose name is based on the LHS of the rule.
 The class will be the name of the LHS with whitespace (as already
 normalized for the symbol name) changed to an underscore.
-When a C<::lhs> bless value applies to a rule, it is a fatal
+When a C<::lhs> blessing value applies to a rule, it is a fatal
 error if the LHS contains anything other than an alphanumeric
 or whitespace.
 In particular, the LHS cannot already contain an underscore ("C<_>").
@@ -349,7 +379,7 @@ The C<::lhs> blessing is most useful in a default rule.
 The bless adverb for lexemes allows only one
 reserved value: C<::name>.
 A reserved value of C<::name> causes the result to be blessed into
-a class named based on the name of the rule.
+a class whose name is based on the name of the rule.
 The class is derived from the symbol name in the same way,
 and subject to the same restrictions,
 as described above for deriving a class name from the LHS
