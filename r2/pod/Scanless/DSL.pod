@@ -69,11 +69,35 @@ the center
 of Marpa's Scanless interface (SLIF).
 
 The format of
-Scanless source strings is
+Scanless domain-specific language (DSL) is
 L<that of
 BNF source strings|Marpa::R2::BNF>,
-with the following changes
-and extensions:
+with changes
+and extensions as described in this document.
+
+=head1 G0, G1 and lexemes
+
+In reading this document, it is important to keep in mind
+the distinction, on one hand, between G0 and G1 rules and,
+on the other hand, between rules and lexemes.
+G1 rules have a semantics,
+which can be specified as described
+in this document.
+
+G0 rules simply recognize symbols in the input.
+G0 rules do not have a semantics.
+Top-level G0 rules correspond to a string in the input,
+but when it is a value,
+this string is actually seen as the value of a lexeme.
+The G0 grammar can be thought of as similar
+in behavior to a set of regular expressions
+with the lexemes being seen as similar to named captures.
+
+Lexemes are the symbols which form the interface between
+G1 and G0.  They also have a semantics, which can
+be specified as described below.
+The semantics of lexemes is
+completely separate from that of rules.
 
 =head1 Structural rule
 
