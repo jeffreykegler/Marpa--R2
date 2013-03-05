@@ -242,7 +242,7 @@ C<::array> is equivalent to C<[values]>.
 The C<value> and C<values> array descriptor items are synonyms,
 and may be used interchangeably for both rules and lexemes.
 This means that, for both lexemes and rules,
-the actions C<[values]>, C<[value] and C<::array>
+the actions C<[values]>, C<[value]> and C<::array>
 will do exactly the same thing.
 
 =head1 C<bless> adverb
@@ -252,15 +252,18 @@ blessed into the class indicated by the value of the adverb.
 If the adverb value is a Perl word
 (a string of alphanumerics or underscores),
 the name of the class will be formed by prepending
-the value of the C<bless_package> named argument.
+the value of L<the C<bless_package>
+named argument|Marpa::R2::Scanless::G/"bless_package">.
 
 If the value begins with a double colon ("C<::>"), it is a
 reserved value.
 A bless value of C<::undef> means no blessing, and this is the
 default for both rules and lexemes.
-If a bless value other than C<::undef> is specified,
-C<bless_package> must also be specified,
-otherwise a fatal error resuls.
+If any rule or lexeme of a SLIF grammar has
+a bless value other than C<::undef>,
+a C<bless_package> is required,
+and failure to specify one results in
+a fatal error.
 
 The bless adverb for
 rules allows one additional reserved value: C<::lhs>.
