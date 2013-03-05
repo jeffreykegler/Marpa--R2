@@ -44,13 +44,13 @@ lexeme default = action => [range,value] bless => ::name
 Script ::= Expression+ separator => comma
 comma ~ [,]
 Expression ::=
-    Number
-    | '(' Expression ')' assoc => group
-   || Expression '**' Expression assoc => right
-   || Expression '*' Expression
-    | Expression '/' Expression
-   || Expression '+' Expression
-    | Expression '-' Expression
+    Number bless => primary
+    | '(' Expression ')' bless => paren assoc => group
+   || Expression '**' Expression bless => exponentiate assoc => right
+   || Expression '*' Expression bless => multiply
+    | Expression '/' Expression bless => divide
+   || Expression '+' Expression bless => add
+    | Expression '-' Expression bless => subtract
 
 Number ~ [\d]+
 :discard ~ whitespace
@@ -102,20 +102,18 @@ sub my_parser {
 
 } ## end sub my_parser
 
-sub traverse 
-{
+sub traverse {
     my ($node) = @_;
     return if not defined $node;
-    if ( Scalar::Util::blessed($node) and $node->can('doit') ) {
-        return $node->doit();
-    }
     my $reftype = Scalar::Util::reftype($node);
     return $node if not $reftype;
-    if ( $reftype eq 'ARRAY' ) {
-        return [ map { traverse($_) } @{$node} ];
+    return $node if $reftype ne 'ARRAY';
+    if ( Scalar::Util::blessed($node) ) {
+        return $node->doit() if $node->can('doit');
+        return bless [ map { traverse($_) } @{$node} ], ref $node;
     }
-    return $node;
-}
+    return [ map { traverse($_) } @{$node} ];
+} ## end sub traverse
 
 my @tests = (
     [   '42*2+7/3, 42*(2+7)/3, 2**7-3, 2**(7-3)' =>
@@ -139,14 +137,30 @@ package My_Nodes;
 our $SELF;
 sub new { return $SELF }
 
-sub My_Nodes::Number::doit { return $_[2] }
-sub My_Nodes::parens    { shift; return $_[1] }
-sub My_Nodes::add       { shift; return $_[0] + $_[2] }
-sub My_Nodes::subtract  { shift; return $_[0] - $_[2] }
-sub My_Nodes::multiply  { shift; return $_[0] * $_[2] }
-sub My_Nodes::divide    { shift; return $_[0] / $_[2] }
-sub My_Nodes::pow       { shift; return $_[0]**$_[2] }
-sub My_Nodes::first_arg { shift; return shift; }
-sub My_Nodes::script    { shift; return join q{ }, @_ }
+sub My_Nodes::primary::doit { return $_[0]->[0]->doit() }
+sub My_Nodes::Number::doit { return $_[0]->[2] }
+sub My_Nodes::paren::doit    { my ($self) = @_; $self->[1]->doit() }
+sub My_Nodes::add::doit    { my ($self) = @_;
+$self->[0]->doit()
++ $self->[2]->doit()
+}
+sub My_Nodes::subtract::doit    { my ($self) = @_;
+$self->[0]->doit()
+- $self->[2]->doit()
+}
+sub My_Nodes::multiply::doit    { my ($self) = @_;
+$self->[0]->doit()
+* $self->[2]->doit()
+}
+sub My_Nodes::divide::doit    { my ($self) = @_;
+$self->[0]->doit()
+/ $self->[2]->doit()
+}
+sub My_Nodes::exponentiate::doit    { my ($self) = @_;
+$self->[0]->doit()
+** $self->[2]->doit()
+}
+
+sub My_Nodes::Script::doit    { my ($self) = @_; return join q{ }, map { $_->doit() } @{$self} }
 
 # vim: expandtab shiftwidth=4:
