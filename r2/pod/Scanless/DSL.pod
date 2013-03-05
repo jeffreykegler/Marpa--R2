@@ -219,7 +219,7 @@ the child values in input-stream order.
 
 If the action value begins with a double colon ("C<::>"),
 it is a reserved action.
-For rules, the following are recognized:
+The following are recognized:
 
 =over 4
 
@@ -235,7 +235,7 @@ and will contain the token value.
 
 =item * C<::first>
 
-The value of the semantics is that of the rule's first child.
+The value of the rule is that of the rule's first child.
 If there is no such child, the value is a Perl C<undef>.
 
 It is a fatal error if a bless action
@@ -247,7 +247,7 @@ with a lexeme.
 
 =item * C<::undef>
 
-The value of the semantics is 
+The value of the rule or lexeme is 
 a Perl C<undef>.
 It is a fatal error if a bless action
 is applied to a rule with a C<::undef> action.
