@@ -80,12 +80,7 @@ my $show_rules_output = $grammar->show_rules();
 sub my_parser {
     my ( $grammar, $p_input_string ) = @_;
 
-# Marpa::R2::Display
-# name: Scanless recognizer synopsis
-
     my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
-    my $self = bless { grammar => $grammar }, 'My_Actions';
-    $self->{recce} = $recce;
 
  $recce->read($p_input_string);
 
@@ -93,12 +88,7 @@ sub my_parser {
     if ( not defined $value_ref ) {
         die "No parse was found, after reading the entire input\n";
     }
-    say STDERR Data::Dumper::Dumper(traverse(${$value_ref}));
-    die Data::Dumper::Dumper($value_ref);
-
-# Marpa::R2::Display::End
-
-    return ${$value_ref};
+    return traverse(${$value_ref});
 
 } ## end sub my_parser
 
@@ -138,29 +128,37 @@ our $SELF;
 sub new { return $SELF }
 
 sub My_Nodes::primary::doit { return $_[0]->[0]->doit() }
-sub My_Nodes::Number::doit { return $_[0]->[2] }
-sub My_Nodes::paren::doit    { my ($self) = @_; $self->[1]->doit() }
-sub My_Nodes::add::doit    { my ($self) = @_;
-$self->[0]->doit()
-+ $self->[2]->doit()
-}
-sub My_Nodes::subtract::doit    { my ($self) = @_;
-$self->[0]->doit()
-- $self->[2]->doit()
-}
-sub My_Nodes::multiply::doit    { my ($self) = @_;
-$self->[0]->doit()
-* $self->[2]->doit()
-}
-sub My_Nodes::divide::doit    { my ($self) = @_;
-$self->[0]->doit()
-/ $self->[2]->doit()
-}
-sub My_Nodes::exponentiate::doit    { my ($self) = @_;
-$self->[0]->doit()
-** $self->[2]->doit()
+sub My_Nodes::Number::doit  { return $_[0]->[2] }
+sub My_Nodes::paren::doit   { my ($self) = @_; $self->[1]->doit() }
+
+sub My_Nodes::add::doit {
+    my ($self) = @_;
+    $self->[0]->doit() + $self->[2]->doit();
 }
 
-sub My_Nodes::Script::doit    { my ($self) = @_; return join q{ }, map { $_->doit() } @{$self} }
+sub My_Nodes::subtract::doit {
+    my ($self) = @_;
+    $self->[0]->doit() - $self->[2]->doit();
+}
+
+sub My_Nodes::multiply::doit {
+    my ($self) = @_;
+    $self->[0]->doit() * $self->[2]->doit();
+}
+
+sub My_Nodes::divide::doit {
+    my ($self) = @_;
+    $self->[0]->doit() / $self->[2]->doit();
+}
+
+sub My_Nodes::exponentiate::doit {
+    my ($self) = @_;
+    $self->[0]->doit()**$self->[2]->doit();
+}
+
+sub My_Nodes::Script::doit {
+    my ($self) = @_;
+    return join q{ }, map { $_->doit() } @{$self};
+}
 
 # vim: expandtab shiftwidth=4:
