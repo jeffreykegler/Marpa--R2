@@ -1225,9 +1225,16 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                     local $SIG{__WARN__} = sub {
                         push @warnings, [ $_[0], ( caller 0 ) ];
                     };
+                    local $Marpa::R2::Context::rule = $rule_id;
 
+                    if ( Scalar::Util::blessed($values) ) {
+                        $eval_ok = eval {
+                            $result = $closure->( $action_object, $values );
+                            1;
+                        };
+                        last DO_EVAL;
+                    } ## end if ( Scalar::Util::blessed($values) )
                     $eval_ok = eval {
-                        local $Marpa::R2::Context::rule = $rule_id;
                         $result = $closure->( $action_object, @{$values} );
                         1;
                     };
