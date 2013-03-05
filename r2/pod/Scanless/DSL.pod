@@ -106,6 +106,8 @@ and their effect is global.
 The effect of a statement does not
 depend on where in the source file it occurs.
 
+At this writing the lexeme default statement is only way to
+specify the semantics of lexemes.
 Only one lexeme default statement is allowed in a file.
 
 =head1 C<action> adverb
@@ -119,6 +121,7 @@ as described for
 L<the C<action> named argument of rule descriptors|Marpa::R2::Grammar/"action">.
 A rule with a word action is allowed to have a bless adverb,
 but as of this writing the blessing will have no effect.
+Word actions are not allowed for for lexemes.
 
 =head1 Reserved actions
 
@@ -130,9 +133,13 @@ For rules, the following are recognized:
 
 =item * C<::array>
 
-The value of the semantics is an array containing the
+The value of the semantics is an array.
+For a rule, the array will
+containg the
 values of each of its children.
 If the rule has no children, the array will be empty.
+For a lexeme, the array will be of length one,
+and contain the token value.
 
 =item * C<::dwim>
 
@@ -140,7 +147,13 @@ This is the "do what I mean action".
 The intent is to create an AST
 structure that avoids trivial and useless nodes,
 but that is also convenient to traverse and evaluate.
-The C<::dwim> action
+
+If the action of a lexeme is C<::dwim>, the value of the lexeme
+will be its token value if the lexeme is not blessed.
+If the lexeme is blessed, its value will be an array of length
+one, the only element of which is the token value.
+
+For a rule, the C<::dwim> action
 is equivalent to one of the other reserved word actions,
 as determined by applying the following criteria, in sequence:
 
@@ -148,23 +161,27 @@ as determined by applying the following criteria, in sequence:
 
 =item *
 
-If the rule is blessed, C<::dwim> is equivalent to C<::array>.
+If the action is for a
+rule that is blessed, C<::dwim> is equivalent to C<::array>.
 
 =item *
 
-If the rule is a sequence rule, C<::dwim> is equivalent to C<::array>.
+If the action is for a sequence rule, C<::dwim> is equivalent to C<::array>.
 
 =item *
 
-If the rule has two or more children, C<::dwim> is equivalent to C<::array>.
+If the action is for a rule with two or more children,
+C<::dwim> is equivalent to C<::array>.
 
 =item *
 
-If the rule has one child, C<::dwim> is equivalent to C<::first>.
+If the action is for a rule with one child,
+C<::dwim> is equivalent to C<::first>.
 
 =item *
 
-If the rule has no children, C<::dwim> is equivalent to C<::undef>.
+If the action is for a rule with no children,
+C<::dwim> is equivalent to C<::undef>.
 
 =back 
 
@@ -172,10 +189,13 @@ If the rule has no children, C<::dwim> is equivalent to C<::undef>.
 
 The value of the semantics is that of the rule's first child.
 If there is no such child, the value is a Perl C<undef>.
+
 It is a fatal error if a bless action
 is applied to a rule with a C<::first> action.
 This is the case even when either or both adverbs are
 the result of a default.
+It is also a fatal error to use C<::first> action
+with a lexeme.
 
 =item * C<::undef>
 
@@ -190,7 +210,35 @@ the result of a default.
 
 =head2 Array descriptor actions
 
-C<[range,values]>
+    [range,values]
+
+If the value of an action adverb begins with a left square bracket,
+it is an array descriptor.
+An array descriptor is a comma separated list of zero or more array
+descriptor items.
+The value of the lexeme or rule will be an array, with contents
+as determined by the array descriptor items.
+The lists will be placed in the array in the order
+specified.
+If no array descriptor items are specified, the value
+of the lexeme or rule will be an empty array.
+
+Currently there are only two array descriptor items.
+The C<range> array descriptor item will put a list two elements
+into the array indicates the location in the input stream
+of the rule or lexeme.
+The first element will be the start position,
+and the second will be the end position.
+
+For a rule,
+the C<values> array descriptor item indicates a list containing
+the values of
+the rule's children, in left-to-right order.
+For a lexeme, 
+the C<value> array descriptor item will be a single element --
+the token value of the lexeme.
+The C<value> and C<values> array descriptor items are synonyms,
+and may be used interchangeably for both rules and lexemes.
 
 =head1 C<bless> adverb
 
