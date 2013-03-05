@@ -19,7 +19,7 @@
 use 5.010;
 use strict;
 use warnings;
-use Test::More tests => 4;
+use Test::More tests => 3;
 use English qw( -no_match_vars );
 use Scalar::Util;
 
@@ -82,28 +82,15 @@ sub my_parser {
 
     my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
 
- $recce->read($p_input_string);
+    $recce->read($p_input_string);
 
     my $value_ref = $recce->value();
     if ( not defined $value_ref ) {
         die "No parse was found, after reading the entire input\n";
     }
-    return traverse(${$value_ref});
+    return ${$value_ref}->doit();
 
 } ## end sub my_parser
-
-sub traverse {
-    my ($node) = @_;
-    return if not defined $node;
-    my $reftype = Scalar::Util::reftype($node);
-    return $node if not $reftype;
-    return $node if $reftype ne 'ARRAY';
-    if ( Scalar::Util::blessed($node) ) {
-        return $node->doit() if $node->can('doit');
-        return bless [ map { traverse($_) } @{$node} ], ref $node;
-    }
-    return [ map { traverse($_) } @{$node} ];
-} ## end sub traverse
 
 my @tests = (
     [   '42*2+7/3, 42*(2+7)/3, 2**7-3, 2**(7-3)' =>
