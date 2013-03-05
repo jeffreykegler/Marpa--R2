@@ -207,8 +207,8 @@ followed by values of the rule's child nodes,
 in the order in which they occurred in the input stream.
 However,
 if a rule with a word action is blessed,
-in order to allowing the blessing to have an effect,
-it is treated differently.
+in order to allow the blessing to take effect,
+the arguments to a semantics closure are formed differently.
 If the rule is blessed, its semantic closure will always have
 exactly two arguments.
 The first will be the per-parse-tree variable.
