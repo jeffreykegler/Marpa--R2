@@ -15,7 +15,11 @@
 
 Revision history for Marpa::R2
 
+2.047_011
 2.047_010
+
+    * Release candidate
+
 2.047_009
 2.047_008
 2.047_007
@@ -26,7 +30,8 @@ Revision history for Marpa::R2
 2.047_002
 2.047_001
 
-     * Added blessed nodes and AST's
+     * Extended SLIF semantics -- added blessed nodes
+       and arrays, to support AST's
 
 2.047_000
 

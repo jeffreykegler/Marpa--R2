@@ -20,7 +20,7 @@ use warnings;
 use strict;
 
 use vars qw($VERSION $STRING_VERSION);
-$VERSION        = '2.047_010';
+$VERSION        = '2.047_011';
 $STRING_VERSION = $VERSION;
 ## no critic (BuiltinFunctions::ProhibitStringyEval)
 $VERSION = eval $VERSION;
@@ -417,13 +417,16 @@ sub Marpa::R2::Internal::Recognizer::semantics_set {
             # Normalize array semantics
             $semantics =~ s/ //gxms if ( substr $semantics, 0, 1 ) eq '[';
 
+            say STDERR $semantics;
+            $DB::single = 1 if $semantics eq '::dwim';
+
             $semantics_by_rule_id[$rule_id] = $semantics;
             $blessing = '::undef' if not $blessing;
             $blessing_by_rule_id[$rule_id]  = $blessing;
 
             if (    not $allowed_semantics->{$semantics}
                 and not $semantics =~ m/ \A rhs \d+ \z /xms
-                and not( substr $semantics, 0, 1 ) eq '[' )
+                and '[' ne substr $semantics, 0, 1 )
             {
                 Marpa::R2::exception(
                     q{Unknown semantics for rule },
