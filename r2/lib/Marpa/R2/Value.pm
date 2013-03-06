@@ -403,10 +403,6 @@ sub Marpa::R2::Internal::Recognizer::semantics_set {
     {
         # ::whatever is deprecated and has been removed from the docs
         # it is now equivalent to ::undef
-        state $allowed_semantics = {
-            map { ; ( $_, 1 ) } qw(::array ::undef ::first ::whatever),
-            q{}
-        };
 
         RULE:
         for my $rule_id ( $grammar->rule_ids() ) {
@@ -414,27 +410,37 @@ sub Marpa::R2::Internal::Recognizer::semantics_set {
                 @{ $rule_resolutions->[$rule_id] };
             my $lhs_id = $grammar_c->rule_lhs($rule_id);
 
-            # Normalize array semantics
-            $semantics =~ s/ //gxms if ( substr $semantics, 0, 1 ) eq '[';
+            REFINE_SEMANTICS: {
 
-            say STDERR $semantics;
-            $DB::single = 1 if $semantics eq '::dwim';
+                if ('[' eq substr $semantics,
+                    0, 1 and ']' eq substr $semantics,
+                    -1, 1
+                    )
+                {
+                    # Normalize array semantics
+                    $semantics =~ s/ //gxms;
+                    last REFINE_SEMANTICS;
+                } ## end if ( '[' eq substr $semantics, 0, 1 and ']' eq ...)
 
-            $semantics_by_rule_id[$rule_id] = $semantics;
-            $blessing = '::undef' if not $blessing;
-            $blessing_by_rule_id[$rule_id]  = $blessing;
+                state $allowed_semantics = {
+                    map { ; ( $_, 1 ) } qw(::array ::undef ::first ::whatever ::!default),
+                    q{}
+                };
+                last REFINE_SEMANTICS if $allowed_semantics->{$semantics};
+                last REFINE_SEMANTICS if $semantics =~ m/ \A rhs \d+ \z /xms;
 
-            if (    not $allowed_semantics->{$semantics}
-                and not $semantics =~ m/ \A rhs \d+ \z /xms
-                and '[' ne substr $semantics, 0, 1 )
-            {
                 Marpa::R2::exception(
                     q{Unknown semantics for rule },
                     $grammar->brief_rule($rule_id),
                     "\n",
                     qq{    Semantics were specified as "$semantics"\n}
                 );
-            } ## end if ( not $allowed_semantics->{$semantics} and not ...)
+
+            } ## end REFINE_SEMANTICS:
+
+            $semantics_by_rule_id[$rule_id] = $semantics;
+            $blessing = '::undef' if not $blessing;
+            $blessing_by_rule_id[$rule_id] = $blessing;
 
             $closure_by_rule_id[$rule_id] = $closure;
 
