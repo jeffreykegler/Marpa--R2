@@ -1,6 +1,10 @@
 package MarpaX::JSON;
+
+use 5.010;
 use strict;
-use Marpa::R2 2.039_000;
+use warnings;
+
+use Marpa::R2 2.047_011;
 
 sub new {
     my ($class) = @_;
@@ -10,8 +14,8 @@ sub new {
     $self->{grammar} = Marpa::R2::Scanless::G->new(
         {
             action_object  => 'MarpaX::JSON::Actions',
-            default_action => '::dwim',
             source         => \(<<'END_OF_SOURCE'),
+:default ::= action => ::first
 
 :start       ::= json
 
@@ -19,16 +23,16 @@ json         ::= object
                | array
 
 object       ::= '{' '}'               action => do_empty_object
-               | '{' members '}'       action => do_object
+               | ('{') members ('}')       action => do_object
 
-members      ::= pair+                 separator => <comma>
+members      ::= pair+                 action => ::array separator => <comma>
 
-pair         ::= string (':') value
+pair         ::= string (':') value action => ::array
 
 value        ::= string
                | object
                | number
-               | array
+               | array action => ::array
                | 'true'                action => do_true
                | 'false'               action => do_true
                | 'null'                action => ::undef
@@ -120,8 +124,10 @@ sub do_empty_object {
 }
 
 sub do_object {
-    shift;
-    return { map { @$_ } @{$_[1]} };
+    my (undef, $members) = @_;
+    use Data::Dumper;
+    say STDERR Data::Dumper::Dumper($members);
+    return { map { @{$_} } @{$members} };
 }
 
 sub do_string {
