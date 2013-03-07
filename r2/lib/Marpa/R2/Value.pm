@@ -975,6 +975,14 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                     @ops = ( $op_result_is_constant, $constant_ix );
                     last SET_OPS;
                 } ## end if ( $ref_type eq 'SCALAR' )
+                if (   $ref_type eq 'HASH'
+                    or $ref_type eq 'ARRAY' )
+                {
+                    # For hash and array, do not de-reference
+                    my $constant_ix = $value->constant_register($thingy_ref);
+                    @ops = ( $op_result_is_constant, $constant_ix );
+                    last SET_OPS;
+                } ## end if ( $ref_type eq 'HASH' or $ref_type eq 'ARRAY' )
                 if (   $ref_type eq 'REF'
                     or $ref_type eq 'LVALUE'
                     or $ref_type eq 'VSTRING' )
@@ -984,6 +992,9 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                     @ops = ( $op_result_is_constant, $constant_ix );
                     last SET_OPS;
                 } ## end if ( $ref_type eq 'REF' or $ref_type eq 'LVALUE' or ...)
+                Marpa::R2::exception(
+                    qq{Constant action is not of an allowed type.\n},
+                    q{  Rule was }, $grammar->brief_rule($rule_id), "\n" );
             } ## end DO_CONSTANT:
 
             # After this point, any closure will be a ref to 'CODE'
