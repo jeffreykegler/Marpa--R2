@@ -119,9 +119,7 @@ sub new {
     return bless {}, $class;
 }
 
-sub do_empty_object {
-    return {};
-}
+our $do_empty_object = {};
 
 sub do_object {
     my (undef, $members) = @_;
