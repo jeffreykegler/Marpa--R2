@@ -32,16 +32,16 @@ pair         ::= string (':') value action => ::array
 value        ::= string
                | object
                | number
-               | array action => ::array
+               | array
                | 'true'                action => do_true
                | 'false'               action => do_true
                | 'null'                action => ::undef
 
 
 array        ::= ('[' ']')               action => []
-               | ('[') elements (']')
+               | ('[') elements (']') 
 
-elements     ::= value+                separator => <comma>
+elements     ::= value+                action => ::array separator => <comma>
 
 number         ~ int
                | int frac
@@ -126,7 +126,6 @@ sub do_empty_object {
 sub do_object {
     my (undef, $members) = @_;
     use Data::Dumper;
-    say STDERR Data::Dumper::Dumper($members);
     return { map { @{$_} } @{$members} };
 }
 

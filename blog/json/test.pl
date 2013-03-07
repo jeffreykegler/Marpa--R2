@@ -13,8 +13,11 @@ say STDERR "Using Marpa::R2 ", $Marpa::R2::VERSION;
 my $data = MarpaX::JSON::parse_json(q${"test":"1"}$);
 is($data->{test}, 1);
 
-$data = MarpaX::JSON::parse_json(q${"test":[1,2,3]}$);
-is_deeply($data->{test}, [1,2,3]);
+{
+    my $test = q${"test":[1,2,3]}$;
+    $data = MarpaX::JSON::parse_json(q${"test":[1,2,3]}$);
+    is_deeply( $data->{test}, [ 1, 2, 3 ], $test );
+}
 
 $data = MarpaX::JSON::parse_json(q${"test":true}$);
 is($data->{test}, 1);
