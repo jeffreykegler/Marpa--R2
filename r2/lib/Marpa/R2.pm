@@ -47,22 +47,6 @@ eval {
     1;
 } or Carp::croak("Could not load XS version of Marpa::R2: $EVAL_ERROR");
 
-@Marpa::R2::CARP_NOT = ();
-for my $start (qw(Marpa::R2)) {
-    for my $middle ( q{}, '::Internal' ) {
-        for my $end ( q{},
-            qw(::MetaG ::MetaAST ::Scanless ::Stuifzand ::Recognizer ::Callback ::Grammar ::Value)
-            )
-        {
-            push @Marpa::R2::CARP_NOT, $start . $middle . $end;
-        } ## end for my $end ( q{}, ...)
-    } ## end for my $middle ( q{}, '::Internal' )
-} ## end for my $start (qw(Marpa::R2))
-PACKAGE: for my $package (@Marpa::R2::CARP_NOT) {
-    no strict 'refs';
-    next PACKAGE if $package eq 'Marpa';
-    *{ $package . q{::CARP_NOT} } = \@Marpa::R2::CARP_NOT;
-}
 
 if ( not $ENV{'MARPA_AUTHOR_TEST'} ) {
     $Marpa::R2::DEBUG = 0;

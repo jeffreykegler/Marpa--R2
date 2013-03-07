@@ -27,24 +27,17 @@ $STRING_VERSION = $VERSION;
 $VERSION = eval $VERSION;
 ## use critic
 
-*Marpa::R2::exception = \&Carp::croak;
+$Carp::Internal{ 'Marpa::R2' } = 1;
 
-sub Marpa::R2::internal_error {
-    Carp::confess(
-        "Internal Marpa::R2 Error: This could be a bug in Marpa::R2\n", @_ );
+sub Marpa::R2::exception {
+    CALLER: for ( my $i = 0; 1; $i++) {
+        my ($package ) = caller($i);
+	last CALLER if not $package;
+	last CALLER if not 'Marpa::R2::' eq substr $package, 0, 11;
+	$Carp::Internal{ $package } = 1;
+    }
+    Carp::croak(@_);
 }
-
-# Perl critic at present is not smart about underscores
-# in hex numbers
-## no critic (ValuesAndExpressions::RequireNumberSeparators)
-use constant N_FORMAT_MASK     => 0xffff_ffff;
-use constant N_FORMAT_HIGH_BIT => 0x8000_0000;
-## use critic
-
-# Also used as mask, so must be 2**n-1
-# Perl critic at present is not smart about underscores
-# in hex numbers
-use constant N_FORMAT_MAX => 0x7fff_ffff;
 
 sub Marpa::R2::offset {
     my (@desc) = @_;
