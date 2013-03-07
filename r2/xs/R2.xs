@@ -2360,7 +2360,7 @@ PPCODE:
   stream->perl_pos = 0;
   stream->input_offset = 0;
   /* Get our own copy and coerce it to a PV.
-   * Stealing in OK, magic is not.
+   * Stealing is OK, magic is not.
    */
   SvSetSV (stream->input, string);
   SvPV_force_nomg (stream->input, length);
