@@ -30,7 +30,7 @@ normalize-whitespace: 1
         {   bless_package => 'My_Nodes',
             source        => \(<<'END_OF_SOURCE'),
     :default ::= action => [values] bless => ::lhs
-    lexeme default = action => [range,value] bless => ::name
+    lexeme default = action => [start,length,value] bless => ::name
 
     :start ::= Script
     Script ::= Expression+ separator => comma
@@ -154,7 +154,7 @@ name: SLIF DSL synopsis
 partial: 1
 normalize-whitespace: 1
 
-    lexeme default = action => [range,value] bless => ::name
+    lexeme default = action => [start,length,value] bless => ::name
 
 =for Marpa::R2::Display::End
 
@@ -263,7 +263,7 @@ name: SLIF DSL synopsis
 partial: 1
 normalize-whitespace: 1
 
-    lexeme default = action => [range,value] bless => ::name
+    lexeme default = action => [start,length,value] bless => ::name
 
 =for Marpa::R2::Display::End
 
@@ -277,13 +277,12 @@ specified.
 If no array descriptor items are specified, the value
 of the lexeme or rule will be an empty array.
 
-Currently there are only two array descriptor items.
-The C<range> array descriptor item will put a list
-into the array that indicates the location in the input stream
-of the rule or lexeme.
-The list will contain two elements.
-The first element will be the start position,
-and the second will be the end position.
+The C<start> array descriptor item will put
+the start location of the rule or lexeme into the array.
+The C<length> array descriptor item will put
+the length (in parse locations) of the rule or lexeme into the array.
+Length in locations is defined such that the end location
+is always start location plus length.
 
 For a rule,
 the C<values> array descriptor item indicates a list containing
