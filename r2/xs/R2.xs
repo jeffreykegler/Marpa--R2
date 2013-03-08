@@ -294,7 +294,6 @@ enum marpa_op
   op_push_undef,
   op_push_sequence,
   op_push_values,
-  op_push_slr_range,
   op_push_start_location,
   op_report_rejection,
   op_result_is_array,
@@ -317,7 +316,6 @@ static Marpa_XS_OP_Data marpa_op_data[] = {
 {  op_push_length, "push_length" },
 {  op_push_one, "push_one" },
 {  op_push_sequence, "push_sequence" },
-{  op_push_slr_range, "push_slr_range" },
 {  op_push_start_location, "push_start_location" },
 {  op_push_undef, "push_undef" },
 {  op_push_values, "push_values" },
@@ -1179,68 +1177,6 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
 		av_push (values_av, SvREFCNT_inc_simple_NN (*p_sv));
 	      }
 	  }
-	  goto NEXT_OP_CODE;
-
-	case op_push_slr_range:
-	  {
-	    int start_location;
-	    int end_location;
-	    Scanless_R *slr = v_wrapper->slr;
-
-	    if (!values_av)
-	      {
-		values_av = (AV *) sv_2mortal ((SV *) newAV ());
-	      }
-	    if (!slr)
-	      {
-		croak
-		  ("Problem in v->stack_step: 'push_slr_range' op attempted when no slr is set");
-	      }
-	    switch (step_type)
-	      {
-	      case MARPA_STEP_NULLING_SYMBOL:
-		{
-		  Marpa_Earley_Set_ID earley_set =
-		    marpa_v_token_start_es_id (v);
-		  slr_locations (slr, earley_set, &start_location,
-				 &end_location);
-		}
-		goto NEXT_OP_CODE;
-	      case MARPA_STEP_RULE:
-		{
-		  int dummy;
-		  Marpa_Earley_Set_ID start_earley_set =
-		    marpa_v_rule_start_es_id (v);
-		  Marpa_Earley_Set_ID end_earley_set = marpa_v_es_id (v);
-		  slr_locations (slr, start_earley_set + 1, &start_location,
-				 &dummy);
-		  av_push (values_av, newSViv ((IV) start_location));
-		  slr_locations (slr, end_earley_set, &dummy, &end_location);
-		  av_push (values_av, newSViv ((IV) end_location));
-		}
-		goto NEXT_OP_CODE;
-	      case MARPA_STEP_TOKEN:
-		{
-		  int dummy;
-		  Marpa_Earley_Set_ID start_earley_set =
-		    marpa_v_token_start_es_id (v);
-		  Marpa_Earley_Set_ID end_earley_set = marpa_v_es_id (v);
-		  slr_locations (slr, start_earley_set + 1, &start_location,
-				 &dummy);
-		  av_push (values_av, newSViv ((IV) start_location));
-		  slr_locations (slr, end_earley_set, &dummy, &end_location);
-		  av_push (values_av, newSViv ((IV) end_location));
-		}
-		goto NEXT_OP_CODE;
-	      default:
-		{
-		  croak
-		    ("Problem in v->stack_step: Range requested for improper step type: %s",
-		     step_type_to_string (step_type));
-		}
-	      }
-	  }
-	  /* Not reached */
 	  goto NEXT_OP_CODE;
 
 	case op_push_start_location:

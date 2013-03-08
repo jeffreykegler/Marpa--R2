@@ -868,7 +868,6 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
     state $op_push_length   = Marpa::R2::Thin::op('push_length');
     state $op_push_start_location =
         Marpa::R2::Thin::op('push_start_location');
-    state $op_push_slr_range     = Marpa::R2::Thin::op('push_slr_range');
     state $op_result_is_array    = Marpa::R2::Thin::op('result_is_array');
     state $op_result_is_constant = Marpa::R2::Thin::op('result_is_constant');
     state $op_result_is_rhs_n    = Marpa::R2::Thin::op('result_is_rhs_n');
@@ -1081,10 +1080,6 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                 }
                 if ( $result_descriptor eq 'length' ) {
                     push @push_ops, $op_push_length;
-                    next RESULT_DESCRIPTOR;
-                }
-                if ( $result_descriptor eq 'range' ) {
-                    push @push_ops, $op_push_slr_range;
                     next RESULT_DESCRIPTOR;
                 }
                 if (   $result_descriptor eq 'values'
