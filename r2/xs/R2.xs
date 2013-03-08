@@ -1321,7 +1321,7 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
 		  slr_locations (slr, end_earley_set, &dummy, &end_location);
 		  length = end_location - start_location;
 		}
-		goto NEXT_OP_CODE;
+		break;
 	      default:
 		croak
 		  ("Problem in v->stack_step: Range requested for improper step type: %s",
@@ -1329,8 +1329,8 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
 	      }
 	    av_push (values_av, newSViv ((IV) length));
 	  }
-
 	  goto NEXT_OP_CODE;
+
 	case op_bless:
 	  {
 	    blessing = ops[op_ix++];
