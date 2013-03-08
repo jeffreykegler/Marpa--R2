@@ -105,7 +105,7 @@ Computing value for rule: 3: F -> F MultOp F
 Test Warning 1 at <LOCATION>
 * WARNING MESSAGE NUMBER 1:
 Test Warning 2 at <LOCATION>
-* ONE PLACE TO LOOK FOR THE PROBLEM IS IN THE CODE at <LOCATION>
+Marpa::R2 exception at <LOCATION>
 __END__
 
 | expected default_action run phase warning
@@ -118,7 +118,7 @@ Computing value for rule: 8: trailer -> Text
 Test Warning 1 at <LOCATION>
 * WARNING MESSAGE NUMBER 1:
 Test Warning 2 at <LOCATION>
-* ONE PLACE TO LOOK FOR THE PROBLEM IS IN THE CODE at <LOCATION>
+Marpa::R2 exception at <LOCATION>
 __END__
 
 | bad code run phase error
@@ -136,7 +136,7 @@ __END__
 Computing value for rule: 3: F -> F MultOp F
 * THIS WAS THE FATAL ERROR MESSAGE:
 Illegal division by zero at <LOCATION>
-* ONE PLACE TO LOOK FOR THE PROBLEM IS IN THE CODE at <LOCATION>
+Marpa::R2 exception at <LOCATION>
 __END__
 
 | expected default_action run phase error
@@ -146,7 +146,7 @@ __END__
 Computing value for rule: 8: trailer -> Text
 * THIS WAS THE FATAL ERROR MESSAGE:
 Illegal division by zero at <LOCATION>
-* ONE PLACE TO LOOK FOR THE PROBLEM IS IN THE CODE at <LOCATION>
+Marpa::R2 exception at <LOCATION>
 __END__
 
 | bad code run phase die
@@ -164,7 +164,7 @@ __END__
 Computing value for rule: 3: F -> F MultOp F
 * THIS WAS THE FATAL ERROR MESSAGE:
 test call to die at <LOCATION>
-* ONE PLACE TO LOOK FOR THE PROBLEM IS IN THE CODE at <LOCATION>
+Marpa::R2 exception at <LOCATION>
 __END__
 
 | expected default_action run phase die
@@ -174,7 +174,7 @@ __END__
 Computing value for rule: 8: trailer -> Text
 * THIS WAS THE FATAL ERROR MESSAGE:
 test call to die at <LOCATION>
-* ONE PLACE TO LOOK FOR THE PROBLEM IS IN THE CODE at <LOCATION>
+Marpa::R2 exception at <LOCATION>
 __END__
 
 END_OF_TEST_DATA

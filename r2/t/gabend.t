@@ -60,10 +60,16 @@ sub test_grammar {
     };
     my $eval_error = $EVAL_ERROR;
     defined $trace_result and close $memory;
-    if ($eval_ok) {
-        Test::More::fail("Failed to catch problem: $test_name");
-    }
-    elsif ( index( $eval_error, $expected_error ) < 0 ) {
+    DETERMINE_TEST_RESULT: {
+        if ($eval_ok) {
+            Test::More::fail("Failed to catch problem: $test_name");
+            last DETERMINE_TEST_RESULT;
+        }
+        $eval_error =~ s/ ^ Marpa::R2 \s+ exception \s+ at \s+ .* \z //xms;
+        if ( $eval_error eq $expected_error ) {
+            Test::More::pass("Successfully caught problem: $test_name");
+            last DETERMINE_TEST_RESULT;
+        }
         my $diag_message =
             "Failed to find expected message, was expecting:\n";
         my $temp;
@@ -76,12 +82,11 @@ sub test_grammar {
         $temp =~ s/^/=== /xmsg;
         chomp $temp;
         $diag_message .= "$temp\n";
+
+        # $diag_message =~ s/^Marpa::R2 \s+ exception \s+ at .* $//xms;
         Test::More::diag($diag_message);
         Test::More::fail("Unexpected message: $test_name");
-    } ## end elsif ( index( $eval_error, $expected_error ) < 0 )
-    else {
-        Test::More::pass("Successfully caught problem: $test_name");
-    }
+    } ## end DETERMINE_TEST_RESULT:
     return if not defined $trace_result;
     if ( index( $trace, $trace_result ) < 0 ) {
         my $diag_message =
@@ -124,7 +129,7 @@ test_grammar(
     'counted nullable',
     $counted_nullable_grammar,
     qq{Nullable symbol "Seq" is on rhs of counted rule\n}
-        . q{Counted nullables confuse Marpa -- please rewrite the grammar}
+        . qq{Counted nullables confuse Marpa -- please rewrite the grammar\n}
 );
 
 my $duplicate_rule_grammar = {
@@ -141,7 +146,7 @@ my $duplicate_rule_grammar = {
     start => 'Top',
 };
 test_grammar( 'duplicate rule',
-    $duplicate_rule_grammar, 'Duplicate rule: Dup -> Item ' );
+    $duplicate_rule_grammar, qq{Duplicate rule: Dup -> Item\n} );
 
 my $unique_lhs_grammar = {
     rules => [
@@ -158,7 +163,7 @@ my $unique_lhs_grammar = {
     start => 'Top',
 };
 test_grammar( 'unique_lhs',
-    $unique_lhs_grammar, 'LHS of sequence rule would not be unique: Dup -> Item ' );
+    $unique_lhs_grammar, qq{LHS of sequence rule would not be unique: Dup -> Item\n} );
 
 my $nulling_terminal_grammar = {
     rules => [
@@ -172,14 +177,17 @@ my $nulling_terminal_grammar = {
 test_grammar(
     'nulling terminal grammar',
     $nulling_terminal_grammar,
-    'Nulling symbol "Bad" is also a terminal'
+    <<'END_OF_MESSAGE'
+Nulling symbol "Bad" is also a terminal
+A terminal symbol cannot also be a nulling symbol
+END_OF_MESSAGE
 );
 
 my $no_start_grammar = {
     rules     => [ { lhs => 'Top', rhs => ['Bad'] }, ],
     terminals => ['Bad'],
 };
-test_grammar( 'no start symbol', $no_start_grammar, 'No start symbol' );
+test_grammar( 'no start symbol', $no_start_grammar, "No start symbol specified in grammar\n" );
 
 my $start_not_lhs_grammar = {
     rules     => [ { lhs => 'Top', rhs => ['Bad'] }, ],
@@ -187,7 +195,7 @@ my $start_not_lhs_grammar = {
     start     => 'Bad',
 };
 test_grammar( 'start symbol not on lhs',
-    $start_not_lhs_grammar, 'Start symbol "Bad" not on LHS of any rule' );
+    $start_not_lhs_grammar, qq{Start symbol "Bad" not on LHS of any rule\n} );
 
 my $unproductive_start_grammar = {
     rules => [
@@ -202,7 +210,7 @@ my $unproductive_start_grammar = {
 test_grammar(
     'unproductive start symbol',
     $unproductive_start_grammar,
-    'Unproductive start symbol: "Bad"'
+    qq{Unproductive start symbol: "Bad"\n}
 );
 
 1;    # In case used as "do" file

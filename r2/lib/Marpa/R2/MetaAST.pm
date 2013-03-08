@@ -67,7 +67,22 @@ sub ast_to_hash {
     };
 
     my (undef, undef, @statements) = @{$ast};
-    $_->evaluate($parse) for @statements;
+
+    # This is the last ditch exception catcher
+    # It forces all Marpa exceptions to be die's,
+    # then catches them and rethrows using Carp.
+    #
+    # The plan is to use die(), with higher levels
+    # catching and re-die()'ing after adding
+    # helpful location information.  After the
+    # re-throw it is caught here and passed to
+    # Carp.
+    my $eval_ok = eval {
+        local $Marpa::R2::JUST_DIE = 1;
+        $_->evaluate($parse) for @statements;
+        1;
+    };
+    Marpa::R2::exception($EVAL_ERROR) if not $eval_ok;
 
     my $g1_rules = $parse->{g1_rules};
     my $g0_rules = $parse->{g0_rules};

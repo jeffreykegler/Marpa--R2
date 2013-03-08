@@ -30,13 +30,16 @@ $VERSION = eval $VERSION;
 $Carp::Internal{ 'Marpa::R2' } = 1;
 
 sub Marpa::R2::exception {
+    my $exception = join q{}, @_;
+    $exception =~ s/ \n* \z /\n/xms;
+    die($exception) if $Marpa::R2::JUST_DIE;
     CALLER: for ( my $i = 0; 1; $i++) {
         my ($package ) = caller($i);
 	last CALLER if not $package;
 	last CALLER if not 'Marpa::R2::' eq substr $package, 0, 11;
 	$Carp::Internal{ $package } = 1;
     }
-    Carp::croak(@_);
+    Carp::croak($exception, q{Marpa::R2 exception});
 }
 
 sub Marpa::R2::offset {

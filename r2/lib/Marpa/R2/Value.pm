@@ -763,7 +763,6 @@ sub code_problems {
         push @msg, $fatal_error_message;
     } ## end if ($fatal_error)
 
-    push @msg, q{* ONE PLACE TO LOOK FOR THE PROBLEM IS IN THE CODE};
     Marpa::R2::exception(@msg);
 
     # this is to keep perlcritic happy
