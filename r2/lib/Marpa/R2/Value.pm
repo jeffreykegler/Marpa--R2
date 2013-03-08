@@ -860,11 +860,14 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
     $value->trace_values($trace_values);
     $value->stack_mode_set($token_values);
 
-    state $op_bless              = Marpa::R2::Thin::op('bless');
-    state $op_callback           = Marpa::R2::Thin::op('callback');
-    state $op_push_values        = Marpa::R2::Thin::op('push_values');
-    state $op_push_one           = Marpa::R2::Thin::op('push_one');
-    state $op_push_sequence      = Marpa::R2::Thin::op('push_sequence');
+    state $op_bless         = Marpa::R2::Thin::op('bless');
+    state $op_callback      = Marpa::R2::Thin::op('callback');
+    state $op_push_values   = Marpa::R2::Thin::op('push_values');
+    state $op_push_one      = Marpa::R2::Thin::op('push_one');
+    state $op_push_sequence = Marpa::R2::Thin::op('push_sequence');
+    state $op_push_length   = Marpa::R2::Thin::op('push_length');
+    state $op_push_start_location =
+        Marpa::R2::Thin::op('push_start_location');
     state $op_push_slr_range     = Marpa::R2::Thin::op('push_slr_range');
     state $op_result_is_array    = Marpa::R2::Thin::op('result_is_array');
     state $op_result_is_constant = Marpa::R2::Thin::op('result_is_constant');
@@ -1072,6 +1075,14 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
             my $array_descriptor = substr $semantics, 1, -1;
             RESULT_DESCRIPTOR:
             for my $result_descriptor ( split /[,]/xms, $array_descriptor ) {
+                if ( $result_descriptor eq 'start' ) {
+                    push @push_ops, $op_push_start_location;
+                    next RESULT_DESCRIPTOR;
+                }
+                if ( $result_descriptor eq 'length' ) {
+                    push @push_ops, $op_push_length;
+                    next RESULT_DESCRIPTOR;
+                }
                 if ( $result_descriptor eq 'range' ) {
                     push @push_ops, $op_push_slr_range;
                     next RESULT_DESCRIPTOR;
