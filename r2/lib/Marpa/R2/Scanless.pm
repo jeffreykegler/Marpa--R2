@@ -151,7 +151,7 @@ use English qw( -no_match_vars );
 
 sub Marpa::R2::Scanless::R::last_completed_range {
     my ( $self, $symbol_name ) = @_;
-    my ($start, $length) = $self->last_completed_substring($symbol_name);
+    my ($start, $length) = $self->last_completed($symbol_name);
     return if not defined $start;
     my $end = $start + $length;
     return ($start, $end);
@@ -163,7 +163,7 @@ sub Marpa::R2::Scanless::R::last_completed_range {
 # and length
 # of the last such symbol completed,
 # undef if there was none.
-sub Marpa::R2::Scanless::R::last_completed_substring {
+sub Marpa::R2::Scanless::R::last_completed {
     my ( $self, $symbol_name ) = @_;
     my $grammar = $self->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
     my $thick_g1_grammar =
@@ -205,18 +205,24 @@ sub Marpa::R2::Scanless::R::last_completed_substring {
     return ( $first_origin, ($earley_set-$first_origin) );
 } ## end sub Marpa::R2::Scanless::R::last_completed_range
 
-# Given a scanless recognizer and
-# and two earley sets, return the input string
 sub Marpa::R2::Scanless::R::range_to_string {
     my ( $self, $start_earley_set, $end_earley_set ) = @_;
+    return $self->substring($start_earley_set, $end_earley_set-$start_earley_set);
+}
+
+# Given a scanless recognizer and
+# and two earley sets, return the input string
+sub Marpa::R2::Scanless::R::substring {
+    my ( $self, $start_earley_set, $length ) = @_;
     return if not defined $start_earley_set;
-    my $thin_self  = $self->[Marpa::R2::Inner::Scanless::R::C];
-    my ($start_position) = $thin_self->locations($start_earley_set+1);
-    my (undef, $end_position) = $thin_self->locations($end_earley_set);
-    my $p_input   = $self->[Marpa::R2::Inner::Scanless::R::P_INPUT_STRING];
+    my $thin_self = $self->[Marpa::R2::Inner::Scanless::R::C];
+    my ($start_position) = $thin_self->locations( $start_earley_set + 1 );
+    my ( undef, $end_position ) =
+        $thin_self->locations( $start_earley_set + $length );
+    my $p_input = $self->[Marpa::R2::Inner::Scanless::R::P_INPUT_STRING];
     return substr ${$p_input}, $start_position,
         ( $end_position - $start_position );
-} ## end sub Marpa::R2::Scanless::R::range_to_string
+} ## end sub Marpa::R2::Scanless::R::substring
 
 sub Marpa::R2::Internal::Scanless::meta_grammar {
 
