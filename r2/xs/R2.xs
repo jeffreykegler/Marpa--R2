@@ -836,8 +836,8 @@ v_create_stack(V_Wrapper* v_wrapper)
   return 0;
 }
 
-static void slr_locations (Scanless_R * slr, Marpa_Earley_Set_ID earley_set,
-			   int *p_start, int *p_end);
+static void slr_span (Scanless_R * slr, Marpa_Earley_Set_ID earley_set,
+			   int *p_start, int *p_length);
 
 static int
 v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
@@ -1211,7 +1211,7 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
 		  ("Problem in v->stack_step: Range requested for improper step type: %s",
 		   step_type_to_string (step_type));
 	      }
-	    slr_locations (slr, start_earley_set, &start_location,
+	    slr_span (slr, start_earley_set, &start_location,
 			   &dummy);
 	    av_push (values_av, newSViv ((IV) start_location));
 	  }
@@ -1238,26 +1238,24 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
 		break;
 	      case MARPA_STEP_RULE:
 		{
-		  int start_location, end_location, dummy;
+		  int first_start_location, last_start_location, last_length, dummy;
 		  Marpa_Earley_Set_ID start_earley_set =
 		    marpa_v_rule_start_es_id (v);
 		  Marpa_Earley_Set_ID end_earley_set = marpa_v_es_id (v);
-		  slr_locations (slr, start_earley_set + 1, &start_location,
-				 &dummy);
-		  slr_locations (slr, end_earley_set, &dummy, &end_location);
-		  length = end_location - start_location;
+		  slr_span (slr, start_earley_set + 1, &first_start_location, &dummy);
+		  slr_span (slr, end_earley_set, &last_start_location, &last_length);
+		  length = (last_start_location + last_length) - first_start_location;
 		}
 		break;
 	      case MARPA_STEP_TOKEN:
 		{
-		  int start_location, end_location, dummy;
+		  int first_start_location, last_start_location, last_length, dummy;
 		  Marpa_Earley_Set_ID start_earley_set =
 		    marpa_v_token_start_es_id (v);
 		  Marpa_Earley_Set_ID end_earley_set = marpa_v_es_id (v);
-		  slr_locations (slr, start_earley_set + 1, &start_location,
-				 &dummy);
-		  slr_locations (slr, end_earley_set, &dummy, &end_location);
-		  length = end_location - start_location;
+		  slr_span (slr, start_earley_set + 1, &first_start_location, &dummy);
+		  slr_span (slr, end_earley_set, &last_start_location, &last_length);
+		  length = (last_start_location + last_length) - first_start_location;
 		}
 		break;
 	      default:
@@ -1614,8 +1612,8 @@ LEXEMES_FOUND:;
 }
 
 static void
-slr_locations (Scanless_R * slr, Marpa_Earley_Set_ID earley_set, int *p_start,
-	       int *p_end)
+slr_span (Scanless_R * slr, Marpa_Earley_Set_ID earley_set, int *p_start,
+	       int *p_length)
 {
   dTHX;
   int result = 0;
@@ -1624,18 +1622,19 @@ slr_locations (Scanless_R * slr, Marpa_Earley_Set_ID earley_set, int *p_start,
   if (earley_set <= 0)
     {
       *p_start = 0;
-      *p_end = 0;
+      *p_length = 0;
     }
   else
     {
-      void *end_pos;
+      void *length_as_ptr;
       result =
-	marpa_r_earley_set_values (slr->r1, earley_set, p_start, &end_pos);
-      *p_end = (int) PTR2IV (end_pos);
+	marpa_r_earley_set_values (slr->r1, earley_set, p_start,
+				   &length_as_ptr);
+      *p_length = (int) PTR2IV (length_as_ptr);
     }
   if (result < 0)
     {
-      croak ("failure in slr->locations(%d): %s", earley_set,
+      croak ("failure in slr->span(%d): %s", earley_set,
 	     xs_g_error (slr->g1_wrapper));
     }
 }
@@ -4838,6 +4837,8 @@ PPCODE:
 
       if (lexemes_attempted)
 	{
+	  const int lexeme_start = slr->start_of_lexeme;
+	  const int lexeme_length = slr->end_of_lexeme - lexeme_start;
 	  slr->g1_wrapper->throw = 0;
 	  result = slr->r1_earleme_complete_result =
 	    marpa_r_earleme_complete (slr->r1);
@@ -4846,8 +4847,8 @@ PPCODE:
 	    {
 	      XSRETURN_PV ("R1 earleme_complete() problem");
 	    }
-      marpa_r_latest_earley_set_values_set (slr->r1, slr->start_of_lexeme,
-					    INT2PTR (void *, slr->end_of_lexeme));
+	  marpa_r_latest_earley_set_values_set (slr->r1, lexeme_start,
+						INT2PTR (void *, lexeme_length));
 	}
 
       if (slr->trace_terminals || stream->trace_g0)
@@ -4890,26 +4891,26 @@ PPCODE:
 }
 
 void
-locations(slr, earley_set)
+span(slr, earley_set)
     Scanless_R *slr;
     IV earley_set;
 PPCODE:
 {
   int start_position;
-  int end_position;
-  slr_locations(slr, earley_set, &start_position, &end_position);
+  int length;
+  slr_span(slr, earley_set, &start_position, &length);
   XPUSHs (sv_2mortal (newSViv ((IV) start_position)));
-  XPUSHs (sv_2mortal (newSViv ((IV) end_position)));
+  XPUSHs (sv_2mortal (newSViv ((IV) length)));
 }
 
 void
-lexeme_locations (slr)
+lexeme_span (slr)
      Scanless_R *slr;
 PPCODE:
 {
-  STRLEN end_of_lexeme = slr->end_of_lexeme;
+  STRLEN length = slr->end_of_lexeme - slr->start_of_lexeme;
   XPUSHs (sv_2mortal (newSViv ((IV) slr->start_of_lexeme)));
-  XPUSHs (sv_2mortal (newSViv ((IV)end_of_lexeme)));
+  XPUSHs (sv_2mortal (newSViv ((IV) length)));
 }
 
 INCLUDE: general_pattern.xsh
