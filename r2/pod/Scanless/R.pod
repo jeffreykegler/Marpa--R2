@@ -75,9 +75,9 @@ normalize-whitespace: 1
     sub show_last_expression {
         my ($self) = @_;
         my $recce = $self->{recce};
-        my ( $start, $end ) = $recce->last_completed('Expression');
+        my ( $start, $length ) = $recce->last_completed('Expression');
         return 'No expression was successfully parsed' if not defined $start;
-        my $last_expression = $recce->substring( $start, $end );
+        my $last_expression = $recce->substring( $start, $length );
         return "Last expression successfully parsed was: $last_expression";
     } ## end sub show_last_expression
 

@@ -196,9 +196,9 @@ sub do_script    { shift; return join q{ }, @_ }
 sub show_last_expression {
     my ($self) = @_;
     my $recce = $self->{recce};
-    my ( $start, $end ) = $recce->last_completed_range('Expression');
+    my ( $start, $length ) = $recce->last_completed('Expression');
     return 'No expression was successfully parsed' if not defined $start;
-    my $last_expression = $recce->range_to_string( $start, $end );
+    my $last_expression = $recce->substring( $start, $length );
     return "Last expression successfully parsed was: $last_expression";
 } ## end sub show_last_expression
 
