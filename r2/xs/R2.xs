@@ -1262,18 +1262,20 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
 	    switch (step_type)
 	      {
 	      case MARPA_STEP_RULE:
-		start_earley_set = marpa_v_rule_start_es_id (v);
+		start_earley_set = marpa_v_rule_start_es_id (v) + 1;
 		break;
 	      case MARPA_STEP_NULLING_SYMBOL:
-	      case MARPA_STEP_TOKEN:
 		start_earley_set = marpa_v_token_start_es_id (v);
+		break;
+	      case MARPA_STEP_TOKEN:
+		start_earley_set = marpa_v_token_start_es_id (v) + 1;
 		break;
 	      default:
 		croak
 		  ("Problem in v->stack_step: Range requested for improper step type: %s",
 		   step_type_to_string (step_type));
 	      }
-	    slr_locations (slr, start_earley_set + 1, &start_location,
+	    slr_locations (slr, start_earley_set, &start_location,
 			   &dummy);
 	    av_push (values_av, newSViv ((IV) start_location));
 	  }
@@ -1697,7 +1699,7 @@ slr_locations (Scanless_R * slr, Marpa_Earley_Set_ID earley_set, int *p_start,
     }
   if (result < 0)
     {
-      croak ("failure in slr->location(%d): %s", earley_set,
+      croak ("failure in slr->locations(%d): %s", earley_set,
 	     xs_g_error (slr->g1_wrapper));
     }
 }
