@@ -149,12 +149,21 @@ package Marpa::R2::Inner::Scanless;
 
 use English qw( -no_match_vars );
 
+sub Marpa::R2::Scanless::R::last_completed_range {
+    my ( $self, $symbol_name ) = @_;
+    my ($start, $length) = $self->last_completed_substring($symbol_name);
+    return if not defined $start;
+    my $end = $start + $length;
+    return ($start, $end);
+}
+
 # Given a scanless
 # recognizer and a symbol,
-# return the start and end earley sets
+# return the start earley set
+# and length
 # of the last such symbol completed,
 # undef if there was none.
-sub Marpa::R2::Scanless::R::last_completed_range {
+sub Marpa::R2::Scanless::R::last_completed_substring {
     my ( $self, $symbol_name ) = @_;
     my $grammar = $self->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
     my $thick_g1_grammar =
@@ -193,7 +202,7 @@ sub Marpa::R2::Scanless::R::last_completed_range {
         $earley_set--;
     } ## end EARLEY_SET: while ( $earley_set >= 0 )
     return if $earley_set < 0;
-    return ( $first_origin, $earley_set );
+    return ( $first_origin, ($earley_set-$first_origin) );
 } ## end sub Marpa::R2::Scanless::R::last_completed_range
 
 # Given a scanless recognizer and
