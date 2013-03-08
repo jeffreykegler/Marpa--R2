@@ -1,5 +1,3 @@
-lib/Marpa/R2.xs
-lib/Marpa/R2/MetaG.pm
 lib/Marpa/R2/Scanless.pm
 lib/Marpa/R2/Stuifzand.pm
 lib/Marpa/R2/Value.pm

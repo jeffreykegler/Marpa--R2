@@ -64,13 +64,6 @@ sub Marpa::R2::Grammar::original_symbol_name {
    return shift;
 }
 
-sub last_rule {
-   my ($meta_recce) = @_;
-   my ($start, $end) = $meta_recce->last_completed_range( 'rule' );
-   return 'No rule was completed' if not defined $start;
-   return $meta_recce->range_to_string( $start, $end);
-}
-
 my %node_status =
     map { ; ($_ , q{} ) }
     qw(

@@ -174,12 +174,13 @@ sub Marpa::R2::Scanless::R::last_completed {
     my $g1_tracer       = $thick_g1_grammar->tracer();
     my $thin_g1_grammar = $thick_g1_grammar->thin();
     my $symbol_id       = $g1_tracer->symbol_by_name($symbol_name);
-    Marpa::R2::exception("Bad symbol in last_completed_range(): $symbol_name")
+    Marpa::R2::exception("Bad symbol in last_completed(): $symbol_name")
         if not defined $symbol_id;
     my @sought_rules =
         grep { $thin_g1_grammar->rule_lhs($_) == $symbol_id; }
         0 .. $thin_g1_grammar->highest_rule_id();
-    Marpa::R2::exception( "Looking for completion of non-existent rule lhs: $symbol_name")
+    Marpa::R2::exception(
+        "Looking for completion of non-existent rule lhs: $symbol_name")
         if not scalar @sought_rules;
     my $latest_earley_set = $thin_g1_recce->latest_earley_set();
     my $earley_set        = $latest_earley_set;
@@ -202,8 +203,8 @@ sub Marpa::R2::Scanless::R::last_completed {
         $earley_set--;
     } ## end EARLEY_SET: while ( $earley_set >= 0 )
     return if $earley_set < 0;
-    return ( $first_origin, ($earley_set-$first_origin) );
-} ## end sub Marpa::R2::Scanless::R::last_completed_range
+    return ( $first_origin, ( $earley_set - $first_origin ) );
+} ## end sub Marpa::R2::Scanless::R::last_completed
 
 sub Marpa::R2::Scanless::R::range_to_string {
     my ( $self, $start_earley_set, $end_earley_set ) = @_;
@@ -248,13 +249,6 @@ sub Marpa::R2::Internal::Scanless::meta_recce {
     my $self = Marpa::R2::Scanless::R->new($hash_args);
     return $self;
 } ## end sub Marpa::R2::Internal::Scanless::meta_recce
-
-sub Marpa::R2::Scanless::R::last_rule {
-   my ($meta_recce) = @_;
-   my ($start, $end) = $meta_recce->last_completed_range( 'rule' );
-   return 'No rule was completed' if not defined $start;
-   return $meta_recce->range_to_string( $start, $end);
-}
 
 sub Marpa::R2::Scanless::G::new {
     my ( $class, $args ) = @_;
