@@ -109,9 +109,12 @@ An action can be
 
 =over 4
 
-=item * A Perl closure.
+=item * A reference to a Perl closure.
+This must be in the form of a reference whose type,
+as returned by C<ref>, is C<CODE>.
 When this is associated with a rule,
-it is called a B<rule evaluation closure>.
+the Perl closure
+is called a B<rule evaluation closure>.
 The closure will be called to produce the value of
 the action.
 
@@ -119,8 +122,18 @@ the action.
 type, as returned by C<ref>, is C<SCALAR>.
 The constant will be the value of the action.
 
-=item * One of a series of special action, as described
-under
+=item * A reference to an array,
+that is, a reference whose
+type, as returned by C<ref>, is C<ARRAY>.
+The constant will be a reference to that array.
+
+=item * A reference to a hash,
+that is, a reference whose
+type, as returned by C<ref>, is C<HASH>.
+The constant will be a reference to that hash.
+
+=item * A special, reserved, action name,
+as described under
 L<Reserved Action Names|/"Tree Traversal Phase">.
 
 =back
