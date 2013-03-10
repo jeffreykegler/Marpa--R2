@@ -63,6 +63,11 @@ typedef struct {
 } R_Wrapper;
 
 typedef struct {
+    int next_offset;
+    int linecol;
+} Pos_Entry;
+
+typedef struct {
      G_Wrapper* g0_wrapper;
      /* Need to keep a copy of the G0 SV in order to properly "wrap"
       * a recognizer.
@@ -85,6 +90,9 @@ typedef struct {
      IV minimum_accepted;
      IV trace_g0; /* trace level */
      AV* event_queue;
+     Pos_Entry* pos_db;
+     int pos_db_logical_size;
+     int pos_db_physical_size;
 } Unicode_Stream;
 
 typedef struct {
@@ -2396,14 +2404,61 @@ string_set( stream, string )
      SVREF string;
 PPCODE:
 {
-  STRLEN length; /* set, but not used */
+  U8* p;
+  U8* start_of_string;
+  U8* end_of_string;
+  int input_is_utf8;
+  STRLEN length;
   stream->perl_pos = 0;
   stream->input_offset = 0;
   /* Get our own copy and coerce it to a PV.
    * Stealing is OK, magic is not.
    */
   SvSetSV (stream->input, string);
-  SvPV_force_nomg (stream->input, length);
+  start_of_string = (U8*)SvPV_force_nomg (stream->input, length);
+  end_of_string = start_of_string + length;
+  input_is_utf8 = SvUTF8 (stream->input);
+
+  stream->pos_db_logical_size = 0;
+  /* This original buffer size is sub-optimal,
+   * but for now it tests the reallocation logic.
+   */
+  stream->pos_db_physical_size = 16;
+  Newx (stream->pos_db, stream->pos_db_physical_size, Pos_Entry);
+
+  for (p = start_of_string; p < end_of_string; ) {
+      STRLEN codepoint_length;
+      UV codepoint;
+      if (input_is_utf8)
+	{
+	  codepoint = utf8_to_uvchr_buf (p, end_of_string, &codepoint_length);
+	  /* Perl API documents that return value is 0 and length is -1 on error,
+	   * "if possible".  length can be, and is, in fact unsigned.
+	   * I deal with this by noting that 0 is a valid UTF8 char but should
+	   * have a length of 1, when valid.
+	   */
+	  if (codepoint == 0 && codepoint_length != 1)
+	    {
+	      croak
+		("Problem in stream->string_set(): invalid UTF8 character");
+	    }
+	}
+      else
+	{
+	  codepoint = (UV) * p;
+	  codepoint_length = 1;
+	}
+      /* Ensure that there is enough space */
+      if (stream->pos_db_logical_size >= stream->pos_db_physical_size)
+	{
+	  stream->pos_db_physical_size *= 2;
+	  stream->pos_db =
+	    Renew (stream->pos_db, stream->pos_db_physical_size, Pos_Entry);
+	}
+      p += codepoint_length;
+      stream->pos_db[stream->pos_db_logical_size++].next_offset =
+	p - start_of_string;
+    }
 }
 
 void
