@@ -19,6 +19,7 @@
 #include <EXTERN.h>
 #include <perl.h>
 #include <XSUB.h>
+#include "ppport.h"
 
 #include "config.h"
 #include "marpa.h"
@@ -1719,7 +1720,7 @@ PPCODE:
       throw = throw_sv && SvTRUE (throw_sv);
     }
     break;
-    default: croak_xs_usage (cv, "class, arg_hash");
+    croak("Usage: Marpa::R2::Thin:G::new(class, arg_hash)");
     case 2:
       {
 	I32 retlen;

@@ -250,7 +250,7 @@ sub process_xs {
     # .c -> .o
     my $v = $self->dist_version;
     $self->verbose() and say "compiling $spec->{c_file}";
-    my @new_ccflags = ( '-I', $libmarpa_build_dir );
+    my @new_ccflags = ( '-I', $libmarpa_build_dir, '-I', 'xs' );
     if ( $self->config('cc') eq 'gcc' ) {
 	## -W instead of -Wextra is case the GCC is pre 3.0.0
         push @new_ccflags, qw( -Wall -Wno-unused-variable -W
