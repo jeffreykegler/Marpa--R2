@@ -24,6 +24,16 @@
 #include "config.h"
 #include "marpa.h"
 
+
+/* utf8_to_uvchr is deprecated in 5.16, but
+ * utf8_to_uvchr_buf is not available before 5.16
+ * If I need to get fancier, I should look at Dumper.xs
+ * in Data::Dumper
+ */
+#if PERL_VERSION <= 15 && ! defined(utf8_to_uvchr_buf)
+#define utf8_to_uvchr_buf(s, send, p_length) (utf8_to_uvchr(s, p_length))
+#endif
+
 typedef SV* SVREF;
 
 #undef Dim
@@ -518,20 +528,21 @@ static int
 u_read(Unicode_Stream *stream)
 {
   dTHX;
-  U8* input;
+  U8 *input;
   STRLEN len;
   int input_is_utf8;
 
   const IV trace_g0 = stream->trace_g0;
   Marpa_Recognizer r = stream->r0;
 
-  if (!r) {
-      r = u_r0_new(stream);
+  if (!r)
+    {
+      r = u_r0_new (stream);
       if (!r)
 	croak ("Problem in u_read(): %s", xs_g_error (stream->g0_wrapper));
-  }
+    }
   input_is_utf8 = SvUTF8 (stream->input);
-  input = (U8*)SvPV (stream->input, len);
+  input = (U8 *) SvPV (stream->input, len);
   for (;;)
     {
       int return_value = 0;
@@ -548,27 +559,19 @@ u_read(Unicode_Stream *stream)
       if (input_is_utf8)
 	{
 
-  /* utf8_to_uvchr is deprecated in 5.16, but
-   * utf8_to_uvchr_buf is not available before 5.16
-   * If I need to get fancier, I should look at Dumper.xs
-   * in Data::Dumper
-   */
-#if PERL_VERSION <= 15 && ! defined(utf8_to_uvchr_buf)
-	  codepoint = utf8_to_uvchr(input+stream->input_offset, &codepoint_length);
-#else
 	  codepoint =
-	  utf8_to_uvchr_buf (input + stream->input_offset, input + len,
-			     &codepoint_length);
-#endif
+	    utf8_to_uvchr_buf (input + stream->input_offset, input + len,
+			       &codepoint_length);
 
 	  /* Perl API documents that return value is 0 and length is -1 on error,
 	   * "if possible".  length can be, and is, in fact unsigned.
 	   * I deal with this by noting that 0 is a valid UTF8 char but should
 	   * have a length of 1, when valid.
 	   */
-	  if (codepoint == 0 && codepoint_length != 1) {
-	    croak ("Problem in r->read_string(): invalid UTF8 character");
-	  }
+	  if (codepoint == 0 && codepoint_length != 1)
+	    {
+	      croak ("Problem in r->read_string(): invalid UTF8 character");
+	    }
 	}
       else
 	{
@@ -579,24 +582,25 @@ u_read(Unicode_Stream *stream)
 	STRLEN dummy;
 	SV **p_ops_sv =
 	  hv_fetch (stream->per_codepoint_ops, (char *) &codepoint,
-		    (I32)sizeof (codepoint), 0);
+		    (I32) sizeof (codepoint), 0);
 	if (!p_ops_sv)
 	  {
 	    stream->codepoint = codepoint;
 	    return -2;
 	  }
-	ops = (IV *)SvPV (*p_ops_sv, dummy);
+	ops = (IV *) SvPV (*p_ops_sv, dummy);
       }
-      if (trace_g0 >= 1) {
-		AV *event;
-		SV *event_data[3];
-		event_data[0] = newSVpv ("g0 reading codepoint", 0);
-		event_data[1] = newSViv ((IV)codepoint);
-		event_data[2] = newSViv ((IV)stream->perl_pos);
-		event = av_make (Dim (event_data), event_data);
-		av_push (stream->event_queue, newRV_noinc ((SV *) event));
-      }
-	
+      if (trace_g0 >= 1)
+	{
+	  AV *event;
+	  SV *event_data[3];
+	  event_data[0] = newSVpv ("g0 reading codepoint", 0);
+	  event_data[1] = newSViv ((IV) codepoint);
+	  event_data[2] = newSViv ((IV) stream->perl_pos);
+	  event = av_make (Dim (event_data), event_data);
+	  av_push (stream->event_queue, newRV_noinc ((SV *) event));
+	}
+
       /* ops[0] is codepoint */
       op_count = ops[1];
       for (op_ix = 2; op_ix < op_count; op_ix++)
@@ -606,13 +610,13 @@ u_read(Unicode_Stream *stream)
 	    {
 	    case op_report_rejection:
 	      {
-		 ignore_rejection = 0;
-	         break;
+		ignore_rejection = 0;
+		break;
 	      }
 	    case op_ignore_rejection:
 	      {
-		 ignore_rejection = 1;
-	         break;
+		ignore_rejection = 1;
+		break;
 	      }
 	    case op_alternative:
 	      {
@@ -630,15 +634,15 @@ u_read(Unicode_Stream *stream)
 		       (unsigned long) op_ix);
 		  }
 		symbol_id = (int) ops[op_ix];
-		    if (op_ix + 2 >= op_count)
-		      {
-			croak
-			  ("Missing operand for op code (0x%lx); codepoint=0x%lx, op_ix=0x%lx",
-			   (unsigned long) op_code, (unsigned long) codepoint,
-			   (unsigned long) op_ix);
-		      }
-		    value = (int) ops[++op_ix];
-		    length = (int) ops[++op_ix];
+		if (op_ix + 2 >= op_count)
+		  {
+		    croak
+		      ("Missing operand for op code (0x%lx); codepoint=0x%lx, op_ix=0x%lx",
+		       (unsigned long) op_code, (unsigned long) codepoint,
+		       (unsigned long) op_ix);
+		  }
+		value = (int) ops[++op_ix];
+		length = (int) ops[++op_ix];
 		result = marpa_r_alternative (r, symbol_id, value, length);
 		switch (result)
 		  {
@@ -648,16 +652,18 @@ u_read(Unicode_Stream *stream)
 		     * we have one of them as an example
 		     */
 		    stream->input_symbol_id = symbol_id;
-		    if (trace_g0 >= 1) {
+		    if (trace_g0 >= 1)
+		      {
 			AV *event;
 			SV *event_data[4];
 			event_data[0] = newSVpv ("g0 rejected codepoint", 0);
-			event_data[1] = newSViv ((IV)codepoint);
-			event_data[2] = newSViv ((IV)stream->perl_pos);
-			event_data[3] = newSViv ((IV)symbol_id);
+			event_data[1] = newSViv ((IV) codepoint);
+			event_data[2] = newSViv ((IV) stream->perl_pos);
+			event_data[3] = newSViv ((IV) symbol_id);
 			event = av_make (Dim (event_data), event_data);
-			av_push (stream->event_queue, newRV_noinc ((SV *) event));
-		    }
+			av_push (stream->event_queue,
+				 newRV_noinc ((SV *) event));
+		      }
 		    if (!ignore_rejection)
 		      {
 			stream->codepoint = codepoint;
@@ -665,16 +671,18 @@ u_read(Unicode_Stream *stream)
 		      }
 		    break;
 		  case MARPA_ERR_NONE:
-		    if (trace_g0 >= 1) {
+		    if (trace_g0 >= 1)
+		      {
 			AV *event;
 			SV *event_data[4];
 			event_data[0] = newSVpv ("g0 accepted codepoint", 0);
-			event_data[1] = newSViv ((IV)codepoint);
-			event_data[2] = newSViv ((IV)stream->perl_pos);
-			event_data[3] = newSViv ((IV)symbol_id);
+			event_data[1] = newSViv ((IV) codepoint);
+			event_data[2] = newSViv ((IV) stream->perl_pos);
+			event_data[3] = newSViv ((IV) symbol_id);
 			event = av_make (Dim (event_data), event_data);
-			av_push (stream->event_queue, newRV_noinc ((SV *) event));
-		    }
+			av_push (stream->event_queue,
+				 newRV_noinc ((SV *) event));
+		      }
 		    tokens_accepted++;
 		    break;
 		  default:
@@ -683,7 +691,8 @@ u_read(Unicode_Stream *stream)
 		    croak
 		      ("Problem alternative() failed at char ix %d; symbol id %d; codepoint 0x%lx\n"
 		       "Problem in r->input_string_read(), alternative() failed: %s",
-		       (int)stream->perl_pos, symbol_id, (unsigned long)codepoint,
+		       (int) stream->perl_pos, symbol_id,
+		       (unsigned long) codepoint,
 		       xs_g_error (stream->g0_wrapper));
 		  }
 	      }
@@ -691,11 +700,12 @@ u_read(Unicode_Stream *stream)
 	    case op_earleme_complete:
 	      {
 		int result;
-		if (tokens_accepted < minimum_accepted) {
+		if (tokens_accepted < minimum_accepted)
+		  {
 		    stream->codepoint = codepoint;
 		    return -1;
-		}
-		marpa_r_latest_earley_set_value_set (r, (int)codepoint);
+		  }
+		marpa_r_latest_earley_set_value_set (r, (int) codepoint);
 		result = marpa_r_earleme_complete (r);
 		if (result > 0)
 		  {
@@ -727,7 +737,7 @@ u_read(Unicode_Stream *stream)
 	    }
 	}
     ADVANCE_ONE_CHAR:;
-	stream->input_offset += codepoint_length;
+      stream->input_offset += codepoint_length;
       stream->perl_pos++;
       /* This logic does not allow a return value of 0,
        * which is reserved for a indicating a full
@@ -737,8 +747,9 @@ u_read(Unicode_Stream *stream)
 	{
 	  return return_value;
 	}
-	if (trace_g0) {
-	   return -4;
+      if (trace_g0)
+	{
+	  return -4;
 	}
     }
   return 0;
@@ -1639,7 +1650,6 @@ slr_span (Scanless_R * slr, Marpa_Earley_Set_ID earley_set, int *p_start,
 	     xs_g_error (slr->g1_wrapper));
     }
 }
-
 MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin
 
 PROTOTYPES: DISABLE
