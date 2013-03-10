@@ -259,7 +259,7 @@ my %files_by_type = (
         \&ignored,    # not source, and not clear how to add license at top
     'META.yml' =>
         \&ignored,    # not source, and not clear how to add license at top
-    'ppport.h'       => \&ignored,    # copied from CPAN, just leave it alone
+    'xs/ppport.h'       => \&ignored,    # copied from CPAN, just leave it alone
     'COPYING.LESSER' => \&ignored,    # GNU license text, leave it alone
     'etc/copy_from_stage'              => \&license_problems_in_perl_file,
     'html/script/marpa_r2_html_fmt'    => \&license_problems_in_perl_file,

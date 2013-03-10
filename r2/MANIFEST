@@ -227,7 +227,6 @@ pod/Tracing.pod
 pod/Vocabulary.pod
 pperl/Marpa/R2/Perl.pm
 pperl/Marpa/R2/Perl/.gitignore
-ppport.h
 t/.gitignore
 t/00-load.t
 t/ah2.t
@@ -297,3 +296,4 @@ xs/Makefile
 xs/R2.xs
 xs/general_pattern.xsh
 xs/gp_generate.pl
+xs/ppport.h
