@@ -453,6 +453,9 @@ static Unicode_Stream* u_new(SV* g_sv)
   stream->r0_sv = NULL;
   stream->input = newSVpvn ("", 0);
   stream->perl_pos = 0;
+  stream->pos_db = 0;
+  stream->pos_db_logical_size = -1;
+  stream->pos_db_physical_size = -1;
   stream->input_symbol_id = -1;
   stream->per_codepoint_ops = newHV ();
   stream->ignore_rejection = 1;
@@ -471,6 +474,7 @@ static void u_destroy(Unicode_Stream *stream)
       marpa_r_unref (r0);
     }
   SvREFCNT_dec (stream->event_queue);
+  Safefree(stream->pos_db);
   SvREFCNT_dec (stream->input);
   SvREFCNT_dec (stream->per_codepoint_ops);
   SvREFCNT_dec (stream->g0_sv);
