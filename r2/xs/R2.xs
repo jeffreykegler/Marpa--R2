@@ -63,7 +63,7 @@ typedef struct {
 } R_Wrapper;
 
 typedef struct {
-    int next_offset;
+    int next_offset; /* Offset of *NEXT* codepoint */
     int linecol;
 } Pos_Entry;
 
@@ -75,10 +75,11 @@ typedef struct {
      SV* g0_sv;
      Marpa_Recce r0;
      SV* r0_sv;
-     STRLEN perl_pos; /* character position, taking into account Unicode
+     /* character position, taking into account Unicode
          Equivalent to Perl pos()
+	 One past last actual position indicates past-end-of-string
      */
-     STRLEN input_offset; /* byte position, ignoring Unicode */
+     int perl_pos;
      SV* input;
      Marpa_Symbol_ID input_symbol_id;
      UV codepoint; /* For error returns */
@@ -94,6 +95,10 @@ typedef struct {
      int pos_db_logical_size;
      int pos_db_physical_size;
 } Unicode_Stream;
+
+#undef OFFSET_OF_STREAM
+#define OFFSET_OF_STREAM(stream) \
+  ((stream)->perl_pos > 0 ? (stream)->pos_db[(stream)->perl_pos - 1].next_offset : 0)
 
 typedef struct {
      SV* g0_sv;
@@ -448,7 +453,6 @@ static Unicode_Stream* u_new(SV* g_sv)
   stream->r0_sv = NULL;
   stream->input = newSVpvn ("", 0);
   stream->perl_pos = 0;
-  stream->input_offset = 0;
   stream->input_symbol_id = -1;
   stream->per_codepoint_ops = newHV ();
   stream->ignore_rejection = 1;
@@ -562,14 +566,15 @@ u_read(Unicode_Stream *stream)
       IV ignore_rejection = stream->ignore_rejection;
       IV minimum_accepted = stream->minimum_accepted;
       int tokens_accepted = 0;
-      if (stream->input_offset >= len)
+      if (stream->perl_pos >= stream->pos_db_logical_size)
 	break;
+
       if (input_is_utf8)
 	{
 
 	  codepoint =
-	    utf8_to_uvchr_buf (input + stream->input_offset, input + len,
-			       &codepoint_length);
+	    utf8_to_uvchr_buf (input + OFFSET_OF_STREAM (stream),
+			       input + len, &codepoint_length);
 
 	  /* Perl API documents that return value is 0 and length is -1 on error,
 	   * "if possible".  length can be, and is, in fact unsigned.
@@ -583,9 +588,10 @@ u_read(Unicode_Stream *stream)
 	}
       else
 	{
-	  codepoint = (UV) input[stream->input_offset];
+	  codepoint = (UV) input[OFFSET_OF_STREAM (stream)];
 	  codepoint_length = 1;
 	}
+
       {
 	STRLEN dummy;
 	SV **p_ops_sv =
@@ -745,7 +751,6 @@ u_read(Unicode_Stream *stream)
 	    }
 	}
     ADVANCE_ONE_CHAR:;
-      stream->input_offset += codepoint_length;
       stream->perl_pos++;
       /* This logic does not allow a return value of 0,
        * which is reserved for a indicating a full
@@ -764,78 +769,21 @@ u_read(Unicode_Stream *stream)
 }
 
 static STRLEN
-u_pos_set(Unicode_Stream* stream, STRLEN new_pos)
+u_pos_set (Unicode_Stream * stream, int new_pos)
 {
-  /* *SAFELY* change the position
-   * This requires care in UTF8
-   * Returns the position *BEFORE* the call
-   */
   dTHX;
   U8 *input;
   int input_is_utf8;
   STRLEN len;
   const STRLEN old_pos = stream->perl_pos;
 
-  /* Zero position is easy special case */
-  if (new_pos == 0) {
-      stream->input_offset = new_pos;
-      stream->perl_pos = new_pos;
-      return old_pos;
-  }
-
-  /* Same as current position is another easy special case */
-  if (new_pos == old_pos) {
-      return old_pos;
-  }
-
-  input_is_utf8 = SvUTF8 (stream->input);
-  input = (U8 *) SvPV (stream->input, len);
-  if (input_is_utf8)
+  /* OK to set pos to last codepoint + 1 */
+  if (new_pos < 0 || new_pos > stream->pos_db_logical_size)
     {
-      /* I am required to *know* that the "hop" is inside the string,
-       * which apparently can have Perl extensions -- it is *Perl* utf8, not
-       * standard UTF8.  The only safe thing
-       * to use the Perl API to hop one codepoint at a time,
-       * which is basically how utf8_hop() does it anyway.
-       */
-      IV hop = new_pos - old_pos;
-      U8 *p_current = input + stream->input_offset;
-      U8 *end_of_input = input + len;
-      while (hop > 0)
-	{
-	  if (p_current >= end_of_input)
-	    {
-	      croak
-		("Problem in stream->pos_set(): Attempt to set position after end of utf8 string");
-	    }
-	  p_current = utf8_hop (p_current, 1);
-	  hop--;
-	}
-      while (hop < 0)
-	{
-	  if (p_current <= input)
-	    {
-	      croak
-		("Problem in stream->pos_set(): Attempt to set position before start of utf8 string");
-	    }
-	  p_current = utf8_hop (p_current, -1);
-	  hop++;
-	}
-      stream->input_offset = p_current - input;
-      stream->perl_pos = new_pos;
+      croak ("Problem in stream->pos_set(): new pos = %ld, but length = %ld",
+	     (long) new_pos, (long) stream->pos_db_logical_size);
     }
-  else
-    {
-      /* STRLEN is assumed to be unsigned so no check for less than zero */
-      if (new_pos >= len)
-	{
-	  croak
-	    ("Problem in stream->pos_set(): new pos = %ld, but length = %ld",
-	     (long) new_pos, (long) len);
-	}
-      stream->input_offset = new_pos;
-      stream->perl_pos = new_pos;
-    }
+  stream->perl_pos = new_pos;
   return old_pos;
 }
 
@@ -2410,7 +2358,6 @@ PPCODE:
   int input_is_utf8;
   STRLEN length;
   stream->perl_pos = 0;
-  stream->input_offset = 0;
   /* Get our own copy and coerce it to a PV.
    * Stealing is OK, magic is not.
    */
@@ -2486,17 +2433,9 @@ PPCODE:
 }
 
 void
-offset( stream )
-     Unicode_Stream *stream;
-PPCODE:
-{
-  XSRETURN_IV(stream->input_offset);
-}
-
-void
 pos_set( stream, new_pos )
      Unicode_Stream *stream;
-     STRLEN new_pos;
+     int new_pos;
 PPCODE:
 {
   const STRLEN old_pos = u_pos_set(stream, new_pos);
@@ -4856,7 +4795,7 @@ PPCODE:
 
 	  slr->start_of_lexeme = slr->end_of_lexeme;
 	  u_pos_set (stream, slr->start_of_lexeme);
-	  if (stream->input_offset >= input_length)
+	  if (stream->perl_pos >= stream->pos_db_logical_size)
 	    {
 	      XSRETURN_PV ("");
 	    }
