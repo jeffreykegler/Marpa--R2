@@ -15,32 +15,12 @@
 
 Revision history for Marpa::R2
 
-2.047_012
+2.048000 Sun Mar 10 17:59:11 PDT 2013
 
-    * Release candidate
+     * New options (blessed arrays) allow direct generation
+       of AST's from SLIF
 
-2.047_011
-2.047_010
-2.047_009
-2.047_008
-2.047_007
-2.047_006
-2.047_005
-2.047_004
-2.047_003
-2.047_002
-2.047_001
-
-     * Extended SLIF semantics -- added blessed nodes
-       and arrays, to support AST's
-
-2.047_000
-
-     * New series of developer's releases
-
-     * Working on speedup of valuator.
-
-     * A release candidate
+     * Optimization of valuator and SLIF
 
 2.046000 Wed Feb  6 08:24:05 PST 2013
 
