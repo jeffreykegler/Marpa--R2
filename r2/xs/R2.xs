@@ -809,6 +809,10 @@ v_create_stack(V_Wrapper* v_wrapper)
 
 static void slr_es_to_span (Scanless_R * slr, Marpa_Earley_Set_ID earley_set,
 			   int *p_start, int *p_length);
+static void
+slr_es_to_literal_span (Scanless_R * slr,
+			Marpa_Earley_Set_ID start_earley_set, int length,
+			int *p_start, int *p_length);
 
 static int
 v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
@@ -1169,20 +1173,18 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
 	    switch (step_type)
 	      {
 	      case MARPA_STEP_RULE:
-		start_earley_set = marpa_v_rule_start_es_id (v) + 1;
+		start_earley_set = marpa_v_rule_start_es_id (v);
 		break;
 	      case MARPA_STEP_NULLING_SYMBOL:
-		start_earley_set = marpa_v_token_start_es_id (v);
-		break;
 	      case MARPA_STEP_TOKEN:
-		start_earley_set = marpa_v_token_start_es_id (v) + 1;
+		start_earley_set = marpa_v_token_start_es_id (v);
 		break;
 	      default:
 		croak
 		  ("Problem in v->stack_step: Range requested for improper step type: %s",
 		   step_type_to_string (step_type));
 	      }
-	    slr_es_to_span (slr, start_earley_set, &start_location,
+	    slr_es_to_literal_span (slr, start_earley_set, 0, &start_location,
 			   &dummy);
 	    av_push (values_av, newSViv ((IV) start_location));
 	  }
@@ -1616,8 +1618,6 @@ slr_es_to_literal_span (Scanless_R * slr,
 			int *p_start, int *p_length)
 {
   dTHX;
-  int libmarpa_result;
-  void *length_as_ptr;
   const Marpa_Recce r1 = slr->r1;
   const Marpa_Earley_Set_ID latest_earley_set =
     marpa_r_latest_earley_set (r1);
@@ -1628,42 +1628,17 @@ slr_es_to_literal_span (Scanless_R * slr,
       *p_length = 0;
       return;
     }
-  libmarpa_result =
-    marpa_r_earley_set_values (r1, start_earley_set + 1, p_start,
-			       &length_as_ptr);
-  if (libmarpa_result < 0)
+  slr_es_to_span (slr, start_earley_set + 1, p_start, p_length);
+  if (length == 0)
+    *p_length = 0;
+  if (length > 1)
     {
-      croak ("failure in slr->slr_es_to_literal_span(%ld,%ld,%p,%p): %s",
-	     (long) start_earley_set, (long) length, p_start, p_length,
-	     xs_g_error (slr->g1_wrapper));
+      int last_lexeme_start_position;
+      int last_lexeme_length;
+      slr_es_to_span (slr, start_earley_set + 1, &last_lexeme_start_position,
+		      &last_lexeme_length);
+      *p_length = last_lexeme_start_position + last_lexeme_length - *p_start;
     }
-  switch (length)
-    {
-    case 0:
-      *p_length = 0;
-      return;
-    case 1:
-      *p_length = (int) PTR2IV (length_as_ptr);
-      return;
-    default:
-      {
-	int last_start_position;
-	libmarpa_result =
-	  marpa_r_earley_set_values (r1, start_earley_set + length,
-				     &last_start_position, &length_as_ptr);
-	if (libmarpa_result < 0)
-	  {
-	    croak
-	      ("failure in slr->slr_es_to_literal_span(%ld,%ld,%p,%p): %s",
-	       (long) start_earley_set, (long) length, p_start, p_length,
-	       xs_g_error (slr->g1_wrapper));
-	  }
-	*p_length =
-	  last_start_position + (int) PTR2IV (length_as_ptr) - *p_start;
-	return;
-      }
-    }
-
 }
 
 MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin
