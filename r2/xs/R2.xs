@@ -1068,33 +1068,35 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
 	  return -1;
 
 	case op_push_token_literal:
-{
-  Scanless_R *slr = v_wrapper->slr;
-  if (!values_av)
-    {
-      values_av = (AV *) sv_2mortal ((SV *) newAV ());
-    }
-  if (!slr)
-    {
-      croak
-	("Problem in v->stack_step: 'push_token_literal' op attempted when no slr is set");
-    }
-  if (step_type == MARPA_STEP_TOKEN)
-    {
-      SV *sv;
-      int dummy;
-      Marpa_Earley_Set_ID start_earley_set = marpa_v_token_start_es_id (v);
-      Marpa_Earley_Set_ID end_earley_set = marpa_v_es_id (v);
-      sv =
-	slr_es_span_to_literal_sv (slr, start_earley_set,
-				   end_earley_set - start_earley_set);
-      av_push (values_av, sv);
-    }
-  else
-    {
-      av_push (values_av, &PL_sv_undef);
-    }
-}
+	  {
+	    Scanless_R *slr = v_wrapper->slr;
+	    if (!values_av)
+	      {
+		values_av = (AV *) sv_2mortal ((SV *) newAV ());
+	      }
+	    if (!slr)
+	      {
+		croak
+		  ("Problem in v->stack_step: 'push_token_literal' op attempted when no slr is set");
+	      }
+	    if (step_type == MARPA_STEP_TOKEN)
+	      {
+		SV *sv;
+		int dummy;
+		Marpa_Earley_Set_ID start_earley_set =
+		  marpa_v_token_start_es_id (v);
+		Marpa_Earley_Set_ID end_earley_set = marpa_v_es_id (v);
+		sv =
+		  slr_es_span_to_literal_sv (slr, start_earley_set,
+					     end_earley_set -
+					     start_earley_set);
+		av_push (values_av, sv);
+	      }
+	    else
+	      {
+		av_push (values_av, &PL_sv_undef);
+	      }
+	  }
 	  break;
 
 	case op_push_values:
@@ -1224,57 +1226,59 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
 		   step_type_to_string (step_type));
 	      }
 	    slr_es_to_literal_span (slr, start_earley_set, 0, &start_location,
-			   &dummy);
+				    &dummy);
 	    av_push (values_av, newSViv ((IV) start_location));
 	  }
 	  goto NEXT_OP_CODE;
 
 	case op_push_length:
-{
-  int length;
-  Scanless_R *slr = v_wrapper->slr;
+	  {
+	    int length;
+	    Scanless_R *slr = v_wrapper->slr;
 
-  if (!values_av)
-    {
-      values_av = (AV *) sv_2mortal ((SV *) newAV ());
-    }
-  if (!slr)
-    {
-      croak
-	("Problem in v->stack_step: 'push_length' op attempted when no slr is set");
-    }
-  switch (step_type)
-    {
-    case MARPA_STEP_NULLING_SYMBOL:
-      length = 0;
-      break;
-    case MARPA_STEP_RULE:
-      {
-	int dummy;
-	Marpa_Earley_Set_ID start_earley_set = marpa_v_rule_start_es_id (v);
-	Marpa_Earley_Set_ID end_earley_set = marpa_v_es_id (v);
-	slr_es_to_literal_span (slr, start_earley_set,
-				end_earley_set - start_earley_set, &dummy,
-				&length);
-      }
-      break;
-    case MARPA_STEP_TOKEN:
-      {
-	int dummy;
-	Marpa_Earley_Set_ID start_earley_set = marpa_v_token_start_es_id (v);
-	Marpa_Earley_Set_ID end_earley_set = marpa_v_es_id (v);
-	slr_es_to_literal_span (slr, start_earley_set,
-				end_earley_set - start_earley_set, &dummy,
-				&length);
-      }
-      break;
-    default:
-      croak
-	("Problem in v->stack_step: Range requested for improper step type: %s",
-	 step_type_to_string (step_type));
-    }
-  av_push (values_av, newSViv ((IV) length));
-}
+	    if (!values_av)
+	      {
+		values_av = (AV *) sv_2mortal ((SV *) newAV ());
+	      }
+	    if (!slr)
+	      {
+		croak
+		  ("Problem in v->stack_step: 'push_length' op attempted when no slr is set");
+	      }
+	    switch (step_type)
+	      {
+	      case MARPA_STEP_NULLING_SYMBOL:
+		length = 0;
+		break;
+	      case MARPA_STEP_RULE:
+		{
+		  int dummy;
+		  Marpa_Earley_Set_ID start_earley_set =
+		    marpa_v_rule_start_es_id (v);
+		  Marpa_Earley_Set_ID end_earley_set = marpa_v_es_id (v);
+		  slr_es_to_literal_span (slr, start_earley_set,
+					  end_earley_set - start_earley_set,
+					  &dummy, &length);
+		}
+		break;
+	      case MARPA_STEP_TOKEN:
+		{
+		  int dummy;
+		  Marpa_Earley_Set_ID start_earley_set =
+		    marpa_v_token_start_es_id (v);
+		  Marpa_Earley_Set_ID end_earley_set = marpa_v_es_id (v);
+		  slr_es_to_literal_span (slr, start_earley_set,
+					  end_earley_set - start_earley_set,
+					  &dummy, &length);
+		}
+		break;
+	      default:
+		croak
+		  ("Problem in v->stack_step: Range requested for improper step type: %s",
+		   step_type_to_string (step_type));
+	      }
+	    av_push (values_av, newSViv ((IV) length));
+	  }
 	  goto NEXT_OP_CODE;
 
 	case op_bless:
@@ -1337,35 +1341,36 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
 	  /* NOT REACHED */
 
 	case op_result_is_token_literal:
-{
-  Scanless_R *slr = v_wrapper->slr;
-  if (step_type != MARPA_STEP_TOKEN)
-    {
-      av_fill (stack, result_ix - 1);
-      return -1;
-    }
-  if (!slr)
-    {
-      croak
-	("Problem in v->stack_step: 'result_is_token_literal' op attempted when no slr is set");
-    }
-  {
-    SV **stored_sv;
-    SV *token_literal_sv;
-    int dummy;
-    Marpa_Earley_Set_ID start_earley_set = marpa_v_token_start_es_id (v);
-    Marpa_Earley_Set_ID end_earley_set = marpa_v_es_id (v);
-    token_literal_sv =
-      slr_es_span_to_literal_sv (slr, start_earley_set,
-				 end_earley_set - start_earley_set);
-    stored_sv = av_store (stack, result_ix, token_literal_sv);
-    if (!stored_sv)
-      {
-	SvREFCNT_dec (token_literal_sv);
-      }
-  }
-}
-	return -1;
+	  {
+	    Scanless_R *slr = v_wrapper->slr;
+	    if (step_type != MARPA_STEP_TOKEN)
+	      {
+		av_fill (stack, result_ix - 1);
+		return -1;
+	      }
+	    if (!slr)
+	      {
+		croak
+		  ("Problem in v->stack_step: 'result_is_token_literal' op attempted when no slr is set");
+	      }
+	    {
+	      SV **stored_sv;
+	      SV *token_literal_sv;
+	      int dummy;
+	      Marpa_Earley_Set_ID start_earley_set =
+		marpa_v_token_start_es_id (v);
+	      Marpa_Earley_Set_ID end_earley_set = marpa_v_es_id (v);
+	      token_literal_sv =
+		slr_es_span_to_literal_sv (slr, start_earley_set,
+					   end_earley_set - start_earley_set);
+	      stored_sv = av_store (stack, result_ix, token_literal_sv);
+	      if (!stored_sv)
+		{
+		  SvREFCNT_dec (token_literal_sv);
+		}
+	    }
+	  }
+	  return -1;
 
 	case op_result_is_token_value:
 	  {
