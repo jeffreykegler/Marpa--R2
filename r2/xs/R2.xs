@@ -96,9 +96,11 @@ typedef struct {
      int pos_db_physical_size;
 } Unicode_Stream;
 
+#undef POS_TO_OFFSET
+#define POS_TO_OFFSET(stream, pos) \
+  ((pos) > 0 ? (stream)->pos_db[(pos) - 1].next_offset : 0)
 #undef OFFSET_OF_STREAM
-#define OFFSET_OF_STREAM(stream) \
-  ((stream)->perl_pos > 0 ? (stream)->pos_db[(stream)->perl_pos - 1].next_offset : 0)
+#define OFFSET_OF_STREAM(stream) POS_TO_OFFSET((stream), (stream)->perl_pos)
 
 typedef struct {
      SV* g0_sv;
@@ -1637,6 +1639,32 @@ slr_es_to_literal_span (Scanless_R * slr,
 		      &last_lexeme_length);
       *p_length = last_lexeme_start_position + last_lexeme_length - *p_start;
     }
+}
+
+static SV*
+slr_es_to_literal_sv (Scanless_R * slr,
+			Marpa_Earley_Set_ID start_earley_set, int length)
+{
+  dTHX;
+  if (length > 0)
+    {
+      int length_in_bytes;
+      int length_in_positions;
+      int start_offset;
+      int start_position;
+      STRLEN dummy;
+      Unicode_Stream *stream = slr->stream;
+      char *input = SvPV (stream->input, dummy);
+      slr_es_to_literal_span (slr,
+			      start_earley_set, length,
+			      &start_position, &length_in_positions);
+      start_offset = POS_TO_OFFSET (stream, start_position);
+      length_in_bytes =
+	POS_TO_OFFSET (stream,
+		       start_position + length_in_positions) - start_offset;
+      return newSVpvn (input + start_offset, length_in_bytes);
+    }
+  return newSVpvn ("", 0);
 }
 
 MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin
