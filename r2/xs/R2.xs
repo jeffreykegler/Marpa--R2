@@ -1610,6 +1610,63 @@ slr_span (Scanless_R * slr, Marpa_Earley_Set_ID earley_set, int *p_start,
 	     xs_g_error (slr->g1_wrapper));
     }
 }
+
+static void
+slr_es_to_literal_span (Scanless_R * slr,
+			Marpa_Earley_Set_ID start_earley_set, int length,
+			int *p_start, int *p_length)
+{
+  dTHX;
+  int libmarpa_result;
+  void *length_as_ptr;
+  const Marpa_Recce r1 = slr->r1;
+  const Marpa_Earley_Set_ID latest_earley_set =
+    marpa_r_latest_earley_set (r1);
+  if (start_earley_set >= latest_earley_set)
+    {
+      /* Should only happen if length == 0 */
+      *p_start = slr->stream->pos_db_logical_size;
+      *p_length = 0;
+      return;
+    }
+  libmarpa_result =
+    marpa_r_earley_set_values (r1, start_earley_set + 1, p_start,
+			       &length_as_ptr);
+  if (libmarpa_result < 0)
+    {
+      croak ("failure in slr->slr_es_to_literal_span(%ld,%ld,%p,%p): %s",
+	     (long) start_earley_set, (long) length, p_start, p_length,
+	     xs_g_error (slr->g1_wrapper));
+    }
+  switch (length)
+    {
+    case 0:
+      *p_length = 0;
+      return;
+    case 1:
+      *p_length = (int) PTR2IV (length_as_ptr);
+      return;
+    default:
+      {
+	int last_start_position;
+	libmarpa_result =
+	  marpa_r_earley_set_values (r1, start_earley_set + length,
+				     &last_start_position, &length_as_ptr);
+	if (libmarpa_result < 0)
+	  {
+	    croak
+	      ("failure in slr->slr_es_to_literal_span(%ld,%ld,%p,%p): %s",
+	       (long) start_earley_set, (long) length, p_start, p_length,
+	       xs_g_error (slr->g1_wrapper));
+	  }
+	*p_length =
+	  last_start_position + (int) PTR2IV (length_as_ptr) - *p_start;
+	return;
+      }
+    }
+
+}
+
 MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin
 
 PROTOTYPES: DISABLE
