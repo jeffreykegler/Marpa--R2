@@ -986,17 +986,7 @@ sub character_describe {
 sub Marpa::R2::Scanless::R::value {
 
     my ($self) = @_;
-    my $thin_self  = $self->[Marpa::R2::Inner::Scanless::R::C];
     my $thick_g1_recce = $self->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
-    # dummy up the token values
-    my $p_input   = $self->[Marpa::R2::Inner::Scanless::R::P_INPUT_STRING];
-    my @token_values = ('');
-    my $latest_earley_set = $thick_g1_recce->latest_earley_set();
-    for (my $earley_set = 1 ; $earley_set <= $latest_earley_set; $earley_set++) {
-        my ($start_position, $length) = $thin_self->span($earley_set);
-        push @token_values, substr ${$p_input}, $start_position, $length;
-    }
-    $thick_g1_recce->[Marpa::R2::Internal::Recognizer::TOKEN_VALUES] = \@token_values;
     my $thick_g1_value = $thick_g1_recce->value();
     return $thick_g1_value;
 } ## end sub Marpa::R2::Scanless::R::value
