@@ -852,9 +852,8 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
     my $value = Marpa::R2::Thin::V->new($tree);
     $value->valued_force();
-    if ( my $slr = $recce->[Marpa::R2::Internal::Recognizer::SLR] ) {
-        $value->slr_set($slr);
-    }
+    my $slr = $recce->[Marpa::R2::Internal::Recognizer::SLR];
+    if ($slr) { $value->slr_set($slr); }
     local $Marpa::R2::Internal::Context::VALUATOR = $value;
     value_trace( $value, $trace_values ? 1 : 0 );
     $value->trace_values($trace_values);
@@ -862,17 +861,20 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
     state $op_bless         = Marpa::R2::Thin::op('bless');
     state $op_callback      = Marpa::R2::Thin::op('callback');
-    state $op_push_values   = Marpa::R2::Thin::op('push_values');
+    state $op_push_length   = Marpa::R2::Thin::op('push_length');
     state $op_push_one      = Marpa::R2::Thin::op('push_one');
     state $op_push_sequence = Marpa::R2::Thin::op('push_sequence');
-    state $op_push_length   = Marpa::R2::Thin::op('push_length');
     state $op_push_start_location =
         Marpa::R2::Thin::op('push_start_location');
+    state $op_push_token_literal = Marpa::R2::Thin::op('push_token_literal');
+    state $op_push_values        = Marpa::R2::Thin::op('push_values');
     state $op_result_is_array    = Marpa::R2::Thin::op('result_is_array');
     state $op_result_is_constant = Marpa::R2::Thin::op('result_is_constant');
-    state $op_result_is_rhs_n    = Marpa::R2::Thin::op('result_is_rhs_n');
     state $op_result_is_n_of_sequence =
         Marpa::R2::Thin::op('result_is_n_of_sequence');
+    state $op_result_is_rhs_n = Marpa::R2::Thin::op('result_is_rhs_n');
+    state $op_result_is_token_literal =
+        Marpa::R2::Thin::op('result_is_token_literal');
     state $op_result_is_token_value =
         Marpa::R2::Thin::op('result_is_token_value');
     state $op_result_is_undef = Marpa::R2::Thin::op('result_is_undef');
@@ -1001,9 +1003,12 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
             # After this point, any closure will be a ref to 'CODE'
 
             if ( defined $lexeme_id and $semantics eq '::value' ) {
-                @ops = ($op_result_is_token_value);
+                @ops =
+                    ( $slr
+                    ? $op_result_is_token_literal
+                    : $op_result_is_token_value );
                 last SET_OPS;
-            }
+            } ## end if ( defined $lexeme_id and $semantics eq '::value' )
 
             PROCESS_SINGLETON_RESULT: {
                 last PROCESS_SINGLETON_RESULT if not defined $rule_id;
@@ -1086,7 +1091,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                     or $result_descriptor eq 'value' )
                 {
                     if ( defined $lexeme_id ) {
-                        push @push_ops, $op_push_values;
+                        push @push_ops, defined $slr ? $op_push_token_literal : $op_push_values;
                         next RESULT_DESCRIPTOR;
                     }
                     if ($is_sequence_rule) {
