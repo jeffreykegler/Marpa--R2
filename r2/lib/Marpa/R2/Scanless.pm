@@ -665,6 +665,36 @@ sub Marpa::R2::Scanless::R::read {
                         qq{; value="$raw_token_value"};
                     next EVENT;
                 } ## end if ( $status eq 'g1 rejected lexeme' )
+                if ( $status eq 'g1 duplicate lexeme' ) {
+                    my ( undef, $lexeme_start_pos, $lexeme_end_pos,
+                        $g1_lexeme )
+                        = @{$event};
+                    my $raw_token_value = substr ${$p_string},
+                        $lexeme_start_pos,
+                        $lexeme_end_pos - $lexeme_start_pos;
+                    say {$trace_file_handle} 'Rejected as duplicate lexeme @',
+                        $lexeme_start_pos,
+                        q{-},
+                        $lexeme_end_pos, q{: },
+                        $g1_tracer->symbol_name($g1_lexeme),
+                        qq{; value="$raw_token_value"};
+                    next EVENT;
+                } ## end if ( $status eq 'g1 rejected lexeme' )
+                if ( $status eq 'g1 attempting lexeme' ) {
+                    my ( undef, $lexeme_start_pos, $lexeme_end_pos,
+                        $g1_lexeme )
+                        = @{$event};
+                    my $raw_token_value = substr ${$p_string},
+                        $lexeme_start_pos,
+                        $lexeme_end_pos - $lexeme_start_pos;
+                    say {$trace_file_handle} 'Attempting to read lexeme @',
+                        $lexeme_start_pos,
+                        q{-},
+                        $lexeme_end_pos, q{: },
+                        $g1_tracer->symbol_name($g1_lexeme),
+                        qq{; value="$raw_token_value"};
+                    next EVENT;
+                } ## end if ( $status eq 'g1 rejected lexeme' )
                 if ( $status eq 'g0 reading codepoint' ) {
                     my ( undef, $codepoint, $position ) = @{$event};
                     my $char      = chr $codepoint;

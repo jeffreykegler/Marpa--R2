@@ -1458,6 +1458,17 @@ slr_alternative (Scanless_R * slr, Marpa_Symbol_ID lexeme)
   STRLEN start_pos = slr->start_of_lexeme;
   STRLEN end_pos = slr->end_of_lexeme;
 
+      if (trace_terminals > 2)
+	{
+	  AV *event;
+	  SV *event_data[4];
+	  event_data[0] = newSVpvs ("g1 attempting lexeme");
+	  event_data[1] = newSViv (slr->start_of_lexeme);	/* start */
+	  event_data[2] = newSViv (slr->end_of_lexeme);	/* end */
+	  event_data[3] = newSViv (lexeme);	/* lexeme */
+	  event = av_make (Dim (event_data), event_data);
+	  av_push (slr->event_queue, newRV_noinc ((SV *) event));
+	}
   result = marpa_r_alternative (r1, lexeme, latest_earley_set + 1, 1);
   switch (result)
     {
@@ -1578,7 +1589,7 @@ slr_alternatives (Scanless_R * slr, IV * lexemes_found,
 	    }
 	  if (rule_id == -1)
 	    goto NO_MORE_REPORT_ITEMS;
-	  if (origin < 0)
+	  if (origin != 0)
 	    goto NEXT_REPORT_ITEM;
 	  if (dot_position != -1)
 	    goto NEXT_REPORT_ITEM;

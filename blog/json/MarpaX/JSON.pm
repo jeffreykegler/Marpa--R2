@@ -68,22 +68,8 @@ string       ::= lstring               action => do_string
 
 lstring        ~ quote in_string quote
 quote          ~ ["]
-
 in_string      ~ in_string_char*
-
-in_string_char  ~ [^"\\]
-                | '\' '"'
-                | '\' 'b'
-                | '\' 'f'
-                | '\' 't'
-                | '\' 'n'
-                | '\' 'r'
-                | '\' 'u' four_hex_digits
-                | '\' '/'
-                | '\\'
-
-four_hex_digits ~ hex_digit hex_digit hex_digit hex_digit
-hex_digit       ~ [0-9a-fA-F]
+in_string_char  ~ [^"] | '\"'
 
 comma          ~ ','
 
@@ -129,13 +115,11 @@ sub do_object {
 
 sub do_string {
     shift;
-    my $s = $_[0];
+    my $s = substr $_[0], 1, -1;
 
-    $s =~ s/^"//;
-    $s =~ s/"$//;
+    return $s if 0 > index $s, '\\';
 
     $s =~ s/\\u([0-9A-Fa-f]{4})/chr(hex($1))/eg;
-
     $s =~ s/\\n/\n/g;
     $s =~ s/\\r/\r/g;
     $s =~ s/\\b/\b/g;
