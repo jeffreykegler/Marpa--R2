@@ -1,0 +1,16 @@
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   fun:malloc
+   fun:Perl_safesysmalloc
+   fun:Perl_savepv
+   fun:Perl_gv_init
+   fun:Perl_gv_fetchpvn_flags
+   fun:Perl_gv_fetchsv
+   fun:Perl_ck_rvconst
+   fun:Perl_newUNOP
+   fun:Perl_newCVREF
+   fun:Perl_yylex
+   fun:Perl_yyparse
+   obj:/usr/bin/perl
+}
