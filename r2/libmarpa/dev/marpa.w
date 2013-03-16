@@ -4984,7 +4984,7 @@ PRIVATE_NOT_INLINE int AHFA_state_cmp(
    while ((p_working_state = DQUEUE_NEXT(states, AHFA_Object))) {
        @<Process an AHFA state from the working stack@>@;
    }
-   ahfas_of_g = g->t_AHFA = DQUEUE_BASE(states, AHFA_Object); /* ``Steals"
+   g->t_AHFA = DQUEUE_BASE(states, AHFA_Object); /* ``Steals"
        the |DQUEUE|'s data */
    ahfa_count_of_g = AHFA_Count_of_G(g) = DQUEUE_END(states);
    @<Resize the transitions@>@;
@@ -5005,7 +5005,6 @@ PRIVATE_NOT_INLINE int AHFA_state_cmp(
     AHFA* singleton_duplicates;
    DQUEUE_DECLARE(states);
   int ahfa_count_of_g;
-  AHFA ahfas_of_g;
 
 @ @<Initialize locals for creating AHFA states@> =
     @<Initialize duplicates data structures@>@;
@@ -8430,7 +8429,6 @@ PRIVATE int alternative_insert(RECCE r, ALT new_alternative)
 @<Function definitions@> = int marpa_r_start_input(Marpa_Recognizer r)
 {
     ES set0;
-    EIM item;
     EIK_Object key;
     AHFA state;
   @<Unpack recognizer objects@>@;
@@ -8455,11 +8453,11 @@ PRIVATE int alternative_insert(RECCE r, ALT new_alternative)
     key.t_origin = set0;
     key.t_state = state;
     key.t_set = set0;
-    item = earley_item_create(r, key);
+    earley_item_create(r, key);
     state = Empty_Transition_of_AHFA(state);
     if (state) {
 	key.t_state = state;
-	item = earley_item_create(r, key);
+	earley_item_create(r, key);
     } 
     postdot_items_create(r, bv_ok_for_chain, set0);
     earley_set_update_items(r, set0);
