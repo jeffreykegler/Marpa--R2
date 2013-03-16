@@ -8432,14 +8432,16 @@ PRIVATE int alternative_insert(RECCE r, ALT new_alternative)
     EIK_Object key;
     AHFA state;
   @<Unpack recognizer objects@>@;
+  @<Return |-2| on failure@>@;
+  @<Fail if recognizer started@>@;
+  {
     @<Declare |marpa_r_start_input| locals@>@;
-    @<Return |-2| on failure@>@;
-    @<Fail if recognizer started@>@;
     Current_Earleme_of_R(r) = 0;
     @<Set up terminal-related boolean vectors@>@;
     G_EVENTS_CLEAR(g);
     if (G_is_Trivial(g)) {
 	@<Set |r| exhausted@>@;
+	goto CLEANUP;
 	return 1;
     }
     Input_Phase_of_R(r) = R_DURING_INPUT;
@@ -8462,8 +8464,10 @@ PRIVATE int alternative_insert(RECCE r, ALT new_alternative)
     postdot_items_create(r, bv_ok_for_chain, set0);
     earley_set_update_items(r, set0);
     r->t_is_using_leo = r->t_use_leo_flag;
+    CLEANUP: ;
     @<Destroy |marpa_r_start_input| locals@>@;
-    return 1;
+  }
+  return 1;
 }
 
 @ @<Declare |marpa_r_start_input| locals@> =
