@@ -8428,19 +8428,21 @@ PRIVATE int alternative_insert(RECCE r, ALT new_alternative)
 @** Starting recognizer input.
 @<Function definitions@> = int marpa_r_start_input(Marpa_Recognizer r)
 {
+    int return_value = 1;
     ES set0;
     EIK_Object key;
     AHFA state;
   @<Unpack recognizer objects@>@;
+  @<Return |-2| on failure@>@;
+  @<Fail if recognizer started@>@;
+  {
     @<Declare |marpa_r_start_input| locals@>@;
-    @<Return |-2| on failure@>@;
-    @<Fail if recognizer started@>@;
     Current_Earleme_of_R(r) = 0;
     @<Set up terminal-related boolean vectors@>@;
     G_EVENTS_CLEAR(g);
     if (G_is_Trivial(g)) {
 	@<Set |r| exhausted@>@;
-	return 1;
+	goto CLEANUP;
     }
     Input_Phase_of_R(r) = R_DURING_INPUT;
     psar_reset(Dot_PSAR_of_R(r));
@@ -8462,8 +8464,10 @@ PRIVATE int alternative_insert(RECCE r, ALT new_alternative)
     postdot_items_create(r, bv_ok_for_chain, set0);
     earley_set_update_items(r, set0);
     r->t_is_using_leo = r->t_use_leo_flag;
+    CLEANUP: ;
     @<Destroy |marpa_r_start_input| locals@>@;
-    return 1;
+  }
+  return return_value;
 }
 
 @ @<Declare |marpa_r_start_input| locals@> =
@@ -8771,11 +8775,12 @@ marpa_r_earleme_complete(Marpa_Recognizer r)
    */
   EARLEME return_value = -2;
 
-  int count_of_expected_terminals;
-  @<Declare |marpa_r_earleme_complete| locals@>@;
   @<Fail if recognizer not accepting input@>@;
-  G_EVENTS_CLEAR(g);
-  psar_dealloc(Dot_PSAR_of_R(r));
+  {
+    int count_of_expected_terminals;
+    @<Declare |marpa_r_earleme_complete| locals@>@;
+    G_EVENTS_CLEAR(g);
+    psar_dealloc(Dot_PSAR_of_R(r));
     bv_clear (r->t_bv_isyid_is_expected);
     @<Initialize |current_earleme|@>@;
     @<Return 0 if no alternatives@>@;
@@ -8784,7 +8789,7 @@ marpa_r_earleme_complete(Marpa_Recognizer r)
     @<Pre-populate the completion stack@>@;
     while ((cause_p = DSTACK_POP(r->t_completion_stack, EIM))) {
       EIM cause = *cause_p;
-        @<Add new Earley items for |cause|@>@;
+	@<Add new Earley items for |cause|@>@;
     }
     postdot_items_create(r, bv_ok_for_chain, current_earley_set);
 
@@ -8792,14 +8797,15 @@ marpa_r_earleme_complete(Marpa_Recognizer r)
     if (count_of_expected_terminals <= 0
 	&& Earleme_of_ES (current_earley_set) >= Furthest_Earleme_of_R (r))
       { /* If no terminals are expected, and there are no Earley items in
-           uncompleted Earley sets, we can make no further progress.
+	   uncompleted Earley sets, we can make no further progress.
 	   The parse is ``exhausted". */
 	@<Set |r| exhausted@>@;
       }
-    earley_set_update_items(r, current_earley_set);
-  return_value = G_EVENT_COUNT(g);
-  CLEANUP: ;
-  @<Destroy |marpa_r_earleme_complete| locals@>@;
+      earley_set_update_items(r, current_earley_set);
+    return_value = G_EVENT_COUNT(g);
+    CLEANUP: ;
+    @<Destroy |marpa_r_earleme_complete| locals@>@;
+  }
   return return_value;
 }
 
