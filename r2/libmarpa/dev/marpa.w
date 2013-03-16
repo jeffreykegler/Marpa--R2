@@ -8428,6 +8428,7 @@ PRIVATE int alternative_insert(RECCE r, ALT new_alternative)
 @** Starting recognizer input.
 @<Function definitions@> = int marpa_r_start_input(Marpa_Recognizer r)
 {
+    int return_value = 1;
     ES set0;
     EIK_Object key;
     AHFA state;
@@ -8442,7 +8443,6 @@ PRIVATE int alternative_insert(RECCE r, ALT new_alternative)
     if (G_is_Trivial(g)) {
 	@<Set |r| exhausted@>@;
 	goto CLEANUP;
-	return 1;
     }
     Input_Phase_of_R(r) = R_DURING_INPUT;
     psar_reset(Dot_PSAR_of_R(r));
@@ -8467,7 +8467,7 @@ PRIVATE int alternative_insert(RECCE r, ALT new_alternative)
     CLEANUP: ;
     @<Destroy |marpa_r_start_input| locals@>@;
   }
-  return 1;
+  return return_value;
 }
 
 @ @<Declare |marpa_r_start_input| locals@> =
