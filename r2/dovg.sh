@@ -1,4 +1,4 @@
-ls t/*.t |
+ls t/*.t html/t/*.t |
 while read t
 do echo $t |
   perl -Ilib -Iblib/arch \
