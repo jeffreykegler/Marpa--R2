@@ -39,7 +39,17 @@ necessary.
 
 =head2 New arguments to C<Marpa::R2::Scanless::R::read()>.
 
-Add two optional parameters to C<Marpa::R2::Scanless::R::read()>.
+The C<Marpa::R2::Scanless::R::read()> method remains,
+but has two additional arguments,
+so that it can be called as
+C<< $slr->read($input_string, $start, $length) >>.
+The two new arguments, C<$start> and C<$length> are optional.
+
+The first, C<$input_string>, argument is as before.
+As a reminder, this first argument sets the input string for the SLIF.
+The input string can only be set once for a Scanless recognizer
+and cannot be changed once set.
+
 In C<< $slr->read($input_string, $start, $length) >>,
 C<$start> is the position in the input string to begin at,
 and C<$length> is the number of codepoints to read.
@@ -48,12 +58,6 @@ C<$start> defaults to the "current" position,
 and C<$length> defaults to -1, so that the default
 In C<< $slr->read($input_string) >> continues to behave as currently implemented.
 
-The C<read()> method advances the current position to C<$start+$length>.
-where C<$length> is negative.
-If C<$length> is negative, the current_position is C<$start+$non_negative_length>, where
-unless C<$non_negative_length> is negative.
-
-The current position is initialized to pos 0.
 
 =head2 New return value for C<Marpa::R2::Scanless::R::read()>
 
@@ -66,12 +70,15 @@ as defined in the next section.
 The B<current position in the input stream>, more usually simply
 called the B<current position>, is a position in the input string
 as specified to the C<read()> call.
-It begins at 0.
 In this interface, it does not necessarily advance -- the scan
 of the input string can jump around.
-There are only two guarantees:
+Here are the guarantees:
 
 =over 4
+
+=item *
+
+The current position is initially 0.
 
 =item *
 
