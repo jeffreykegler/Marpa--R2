@@ -40,57 +40,75 @@ necessary.
 =head2 Extending C<Marpa::R2::Scanless::R::read()>.
 
 Add two optional parameters to C<Marpa::R2::Scanless::R::read()>.
-In C<$slr->read(input_string, start, length)>,
-c<start> is the position in the input string to begin at,
-and C<length> is the number of codepoints to read.
+In C<< $slr->read($input_string, $start, $length) >>,
+C<$start> is the position in the input string to begin at,
+and C<$length> is the number of codepoints to read.
 Negative lengths follow the usual convention so that -1 is the length of the input string.
-C<start> defaults to the "current" position,
-and C<length> defaults to -1, so that the default
-In C<$slr->read(input_string)> continues to behave as currently implemented.
+C<$start> defaults to the "current" position,
+and C<$length> defaults to -1, so that the default
+In C<< $slr->read($input_string) >> continues to behave as currently implemented.
 
-The C<read> method advances the current position to C<start+length>.
+The C<read> method advances the current position to C<$start+$length>.
 The current position is initialized to pos 0.
 
-=head2 A new C<$slr->g1_alternative(symbol, value)> method
+=head2 A new C<< $slr->g1_alternative($symbol, $value) >> method
 
-Add a C<$slr->g1_alternative(symbol, value)>
+Add a C<< $slr->g1_alternative($symbol, $value) >>
 method.
 This bypasses G0, reading an alternative directly into G1 with symbol name symbol, lexeme value value.
 
-=head2 C<$slr->g1_lexeme_complete(start, length)>
+=head2 C<< $slr->g1_lexeme_complete($start, $length) >>
 
-Add a C<$slr->g1_lexeme_complete(start, length)> method,
+Add a C<< $slr->g1_lexeme_complete($start, $length) >> method,
 corresponding to an C<earleme_complete()> for G1.
-Current position will be moved to C<start+length>.
+Current position will be moved to C<$start+$length>.
 
-=head2 C<$slr->g1_read_lexeme(symbol, value, start, length)>
+=head2 C<< $slr->g1_read_lexeme($symbol_name, $value, $start, $length) >
 
-Add a C<$slr->g1_read_lexeme(symbol, value, start, length)> method,
-which is the equivalent of C<$slr->g1_alternative(symbol, value)>,
-followed by C<$slr->g1_lexeme_complete(start, length)>.
+Add a C<< $slr->g1_read_lexeme($symbol_name, $value, $start, $length) >> method,
+which is the equivalent of C<< $slr->g1_alternative($symbol, $value) >>,
+followed by C<< $slr->g1_lexeme_complete(start, length) >>.
 
 =head2 Jumping around in the input string
 
 If only for error message purposes,
 all lexemes correspond to a span of the input string, but this correspondence need only be conceptual.
 For example, you could put some sort of error message in the first 42 characters, start the main reading after them with
-C<$slr->read(42)>,
-and read all your custom lexemes with C<$slr->g1_read_lexeme(symbol, value, 0, 42)>.
+C<< $slr->read($input_string, 42) >>,
+and read all your custom lexemes with C<< $slr->g1_read_lexeme($symbol_name, $value, 0, 42) >>.
 
 =head2 The C<break> adverb
 
-In the SLIF DSL, add a C<break> adverb for lexemes.
+In the
+SLIF DSL, adverbs will have a new C<break> adverb.
 If C<break> is set, a C<Marpa::R2::Scanless::R::read()> will stop when that lexeme is encountered.
-If the value of C<break> is reject, the lexeme will not actually be read and current position will be set to the position where the lexeme started.
-If the value of C<break> is accept, the lexeme will be read and current position will be set to the position where the lexeme ended.
-If the value of C<break> is skip, the lexeme will not be read and current position will be set to the position where the lexeme ended.
+Possible values of C<break> are:
+
+=over 4
+
+=item C<accept>
+
+The lexeme is read.
+Current position is set to the position where the lexeme ended.
+
+=item C<reject>
+
+The lexeme is B<not> read.
+Current position is set to the position where the lexeme started.
+
+=item C<skip>
+
+The lexeme is B<not> read.
+Current position is set to the position where the lexeme ended.
+
+=back
 
 =head2 The current position
 
 An important part of this interface is its idea of
 "current" position, which has been referred to several times above.
-Current position can be queried with C<$slr->pos()>
-and set with C<$slr->pos_set()>.
+Current position can be queried with C<< $slr->pos() >>
+and set with C<< $slr->pos_set($new_pos) >>.
 
 =head1 Capabilities
 
