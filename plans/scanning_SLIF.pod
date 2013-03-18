@@ -56,7 +56,7 @@ It also allows internal and external scanners to take turns reading
 the input string.
 
 The other tools can be arbitrarily powerful.
-Techncially, in this interface, they will always
+Technically, in this interface, they will always
 be "children" of a "parent"
 Marpa parser,
 but the boundary between scanning and parsing is malleable
@@ -193,7 +193,7 @@ will be moved to C<$start+$length>.
 
 =head2 New C<< $slr->g1_read_lexeme($symbol_name, $value, $start, $length) >> method
 
-A new C<< $slr->g1_read_lexeme($symbol_name, $value, $start, $length) >> method,
+A new C<< $slr->g1_read_lexeme($symbol_name, $value, $start, $length) >> method
 will be the equivalent of
 
     $slr->g1_alternative($symbol, $value)
@@ -238,12 +238,12 @@ will be to cause a fatal error if the declared lexeme
 is not a lexeme
 according to the previous rules.
 Applications may find this behavior useful for debugging,
-and for documentating their gramamrs.
+and for documentating their grammars.
 
 =head2 The C<break> adverb
 
 The new
-C<:lexeme> pseudo-rules of the SLIF DSL,
+C<:lexeme> pseudo-rules of the SLIF DSL
 will allow a new C<break> adverb.
 If C<break> is set, a C<Marpa::R2::Scanless::R::read()> will stop when that lexeme is encountered.
 Possible values of C<break> are C<accept>, C<reject> and C<skip>.
