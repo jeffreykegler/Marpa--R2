@@ -15,9 +15,13 @@
 
 Revision history for Marpa::R2
 
-2.049_000
+2.051_000
  
      * New series of developer's versions
+
+2.050000 Mon Mar 18 08:59:04 PDT 2013
+ 
+     * Optimizations
 
 2.048000 Sun Mar 10 17:59:11 PDT 2013
 
