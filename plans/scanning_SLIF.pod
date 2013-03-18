@@ -15,10 +15,9 @@
 
 =head1 Name
 
-SLIF Scanning - Adding external scanning to the SLIF interface
+External SLIF Scanning - External scanning for the Scanless interface
 
 =head1 About this document
-
 
 In this document, use of the Scanless interface's
 (SLIF's) internal scanner is called
@@ -33,14 +32,14 @@ The term "scanless" interface is from the parsing
 literature.
 It is sometimes criticized as misleading because,
 of course, an internal scanner is a scanner.
+
 But in the parsing theory literature,
 the context of the term is the classic strict definition
 of parsing, which required a separate, external scanner as
 a previous phase.
-A "scannerless" parser was one which did not require
-a separate, external scanner because,
-at least in effect, it had one that was internal
-or "built-in".
+In that context,
+"scannerless parser" meant a parser which did not require
+a separate, external scanner.
 
 =head1 Design goals
 
@@ -194,19 +193,21 @@ will be moved to C<$start+$length>.
 
 =head2 New C<< $slr->g1_read_lexeme($symbol_name, $value, $start, $length) >> method
 
-Add a C<< $slr->g1_read_lexeme($symbol_name, $value, $start, $length) >> method,
-which is the equivalent of C<< $slr->g1_alternative($symbol, $value) >>,
-followed by C<< $slr->g1_lexeme_complete($start, $length) >>.
-Current position in the input stream
-will be moved to C<$start+$length>.
+A new C<< $slr->g1_read_lexeme($symbol_name, $value, $start, $length) >> method,
+will be the equivalent of
+
+    $slr->g1_alternative($symbol, $value)
+    $slr->g1_lexeme_complete($start, $length)
+
+Current position in the input stream will be moved to C<$start+$length>.
 
 =head2 The input string
 
 For error message purposes,
 even external lexemes are required to correspond to a span of the input string.
-If an applications uses external lexemes which have
+If an application uses external lexemes which have
 no natural relationship
-to a span of the input string, it must arrange an artifical one.
+to a span of the input string, it must arrange an artificial relationship.
 
 One way to do this is to have a artificial preamble to the real text.
 For example, the first 7 characters of the input string could be
@@ -237,24 +238,41 @@ will be to cause a fatal error if the declared lexeme
 is not a lexeme
 according to the previous rules.
 Applications may find this behavior useful for debugging,
-and for documentatiing their gramamrs.
+and for documentating their gramamrs.
 
 =head2 The C<break> adverb
 
-C<:lexeme> pseudo-rules
-The SLIF DSL, adverbs will have a new C<break> adverb.
+The new
+C<:lexeme> pseudo-rules of the SLIF DSL,
+will allow a new C<break> adverb.
 If C<break> is set, a C<Marpa::R2::Scanless::R::read()> will stop when that lexeme is encountered.
 Possible values of C<break> are C<accept>, C<reject> and C<skip>.
-If the value of C<break> is C<accept>, the lexeme is read, otherwise it is not read.
+If the value of C<break> is C<accept>, the lexeme is read by G1.
+Otherwise, the lexeme will be discarded.
 
-If at a given G1 parse location,
-one of the values of C<break> is either C<accept> or C<skip>,
-the current position in the input stream will be at the position 
+Multiple lexemes may be found at a single G1 parse location,
+and these may have any mixture of C<break> adverbs.
+The following rules govern the location of the current position
+in the input stream when internal scanning is broken off
+because of one or more lexemes with a C<break> setting:
+
+=over 4
+
+=item *
+
+If the C<break> value
+of any of the lexemes causing the break is either C<accept> or C<skip>,
+the current position in the input stream will be the position 
 where the lexeme ended.
-If at a given G1 parse location,
-all of the values of C<break> are C<reject>,
-the current position in the input stream will be at the position
+
+=item *
+
+If the C<break> value
+of all of the lexemes causing the break is C<reject>,
+the current position in the input stream will be the position 
 where the lexeme started.
+
+=back
 
 =head1 Capabilities
 
@@ -293,7 +311,7 @@ Both can be performed in an external scanner.
 =head2 Sub-parsers
 
 An external scanner could, in fact, be a sub-parser.
-The sub-parser could, be another, more specialized,
+The sub-parser could be another, more specialized,
 Marpa grammar.
 Or it could be another grammar
 that is thought to
