@@ -42,9 +42,9 @@ a separate, external scanner because,
 at least in effect, it had one that was internal
 or "built-in".
 
-=head1 Design considerations
+=head1 Design goals
 
-The interface is designed so that it to be
+The interface is designed to be
 implemented more quickly than more fully featured alternatives:
 It is low-level
 but open-ended.
@@ -58,7 +58,7 @@ the input string.
 
 The other tools can be arbitrarily powerful.
 Techncially, in this interface, they will always
-be "subgrammars" of a "parent"
+be "children" of a "parent"
 Marpa parser,
 but the boundary between scanning and parsing is malleable
 enough that,
@@ -219,7 +219,7 @@ Lexemes corresponding to the artificial preamble would be read
 with method calls similar to
 C<< $slr->g1_read_lexeme($symbol_name, $value, 0, 42) >>.
 
-=head1 Breaking away from of the internal scan
+=head1 Breaking away from the internal scan
 
 =head2 C<:lexeme> psueudo-rules
 
@@ -258,31 +258,47 @@ where the lexeme started.
 
 =head1 Capabilities
 
+The intent of the design is that possibilities
+for external scanning be extremely open-ended.
+The following ideas are intended to be suggestive
+rather than exhaustive.
+
 =head2 Replacing the Stuifzand (BNF) interface
 
-Once the SLIF allows the user to provide their own scanner,
-the separate Stuifzand (BNF) interface will
-no longer serve any purpose,
-and will be de-emphasized.
+In a pedantic sense, the SLIF must always start off
+with the internal scanner,
+but it can end the internal scan after zero codepoints,
+One way to do this is with the following code:
 
-=head2 Backtracking and lookahead
+    $slr->read($input_string, 0, 0)
 
-Most of the desire to backtrack and perform lookahead for Marpa
+Once an application has switched to external scanning,
+it need never switch back.
+This means that a separate Stuifzand (BNF) interface
+no longer serves any purpose.
+The BNF interface will be de-emphasized,
+and the documentation
+rearranged to reflect this.
+
+=head2 Lookahead and backtracking
+
+Most of the desire to use lookahead and backtracking
+with Marpa
 comes from an underappreciation of its capabilities.
-Nonetheless, there are some situations where backtracking
-and/or lookahead is genuinely useful with Marpa.
-And the ability to backtrack and look ahead will keep
-programmers used to weaker parsers in their "comfort zone".
+Nonetheless, there are some situations where
+lookahead and/or backtracking could be genuinely useful
+in combination with Marpa.
+Both can be performed in an external scanner.
 
-=head2 Subgrammars
+=head2 Sub-parsers
 
-The scanner could, in fact, be a subgrammar.
-The subgrammar could, be another, specialized,
+An external scanner could, in fact, be a sub-parser.
+The sub-parser could, be another, more specialized,
 Marpa grammar.
 Or it could be another grammar
 that is thought to
 work better for portions of the
-parse, hooked up as a "subgrammar".
+parse, hooked up as a sub-parser.
 For example, the application could switch back and forth
 between Marpa and regular expressions,
 or between Marpa and recursive descent.
@@ -291,14 +307,10 @@ or between Marpa and recursive descent.
 
 Currently the G0 grammar cannot perform actions -- it can only
 recognize literal lexemes.
-As a special case of subgrammar use,
+As a special case of sub-parser use,
 another Marpa parser can be hooked up
 that performs actions and returns the result to
 the parent grammar via C<g1_read>.
-
-=head2 Other possibilities
-
-The interface is in fact open-ended.
 
 =head1 Copyright and License
 
