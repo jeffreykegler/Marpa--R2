@@ -13,7 +13,7 @@
 # General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 
-=head1 NAME
+=head1 Name
 
 SLIF Scanning - Proposed SLIF interface for custom scanners
 
@@ -22,7 +22,7 @@ SLIF Scanning - Proposed SLIF interface for custom scanners
 This is an outline of a proposed extension to the Scanless interface (SLIF)
 that will allow it to support an application's customized scanning.
 Scanning can be handed over entirely to the application,
-and they can switch back and forth.
+or the SLIF and the application can takes turns doing the scanning.
 
 =head1 Design considerations
 
@@ -30,7 +30,7 @@ The interface is designed so that it could be
 implemented fairly quickly.
 The interface is low-level
 and open-ended.
-Tt allows the user to bring in, or to create,
+It allows the user to bring in, or to create,
 powerful scanning tools to supplement the SLIF's scanning,
 and even to augment Marpa's parsing, if that is thought
 necessary.
@@ -43,11 +43,11 @@ The C<Marpa::R2::Scanless::R::read()> method remains,
 but has two additional arguments,
 so that it can be called as
 C<< $slr->read($input_string, $start, $length) >>.
-The two new arguments, C<$start> and C<$length> are optional.
+The two new arguments, C<$start> and C<$length>, are optional.
 
-The first, C<$input_string>, argument is as before.
+The first argument, C<$input_string>, is as before.
 As a reminder, this first argument sets the input string for the SLIF.
-The input string can only be set once for a Scanless recognizer
+The input string can only be set once for an SLIF recognizer
 and cannot be changed once set.
 
 In C<< $slr->read($input_string, $start, $length) >>,
@@ -68,28 +68,9 @@ as defined in the next section.
 =head2 Current position
 
 The B<current position in the input stream>, more usually simply
-called the B<current position>, is a position in the input string
-as specified to the C<read()> call.
-In this interface, it does not necessarily advance -- the scan
-of the input string can jump around.
-Here are the guarantees:
-
-=over 4
-
-=item *
-
-The current position is initially 0.
-
-=item *
-
-The current position will never be negative.
-
-=item *
-
-The current position will never be greater than the length of the
-input string.
-
-=back
+called the B<current position>, is a position in the input string.
+(As a reminder, the input string is specified to the C<read()> call,
+and cannot be changed once set.)
 
 Positions are zero-based, so that position 0 points to the first
 character, if it exists.
@@ -98,13 +79,73 @@ indicates "end of string",
 and does
 not point to any character.
 
+In this interface, when the current position
+moves, it does not necessarily advance -- it
+can skip forward,
+or be 
+can be positioned to an earlier location.
+It can revisit the same locations as many time as the
+application specifies.
+
+Here are the guarantees:
+
+=over 4
+
+=item *
+
+Initially, the current position is 0.
+
+=item *
+
+The current position will never be negative.
+
+=item *
+
+The current position will never be past the "end of string".
+
+=back
+
+After the C<read()> method, the current position will indicate how far
+in the input stream C<read()> actually read.
+
+=over 4
+
+=item *
+
+As already stated, the current position will never advance past
+the end of string.
+
+=item *
+
+If a non-negative C<$length> argument was specified to C<read()>,
+C<read()> will not read past a current position of C<$start+$length>.
+
+=item *
+
+If a negative C<$length> argument was specified to C<read()>,
+C<read()> will not read past a current position of
+C<$length + 1 + length $input_string>.
+
+=item *
+
+The application can specify that the read will
+"break" when it encounters certain lexemes,
+as specified below.
+
+=item *
+
+An abend
+in the C<read()> will cause the current position to
+be an unspecified value.
+
+=back
+
 =head2 A new C<< $slr->resume($start, $length) >> method
 
 =head2 A new C<< $slr->g1_alternative($symbol, $value) >> method
 
-Add a C<< $slr->g1_alternative($symbol, $value) >>
-method.
-This bypasses G0, reading an alternative directly into G1 with symbol name C<$symbol>,
+The C<< $slr->g1_alternative($symbol, $value) >> method
+bypasses G0, reading an alternative directly into G1 with symbol name C<$symbol>,
 lexeme value C<$value>.
 
 =head2 A new C<< $slr->g1_lexeme_complete($start, $length) >> method
@@ -146,8 +187,6 @@ If at a given G1 parse location,
 all of the values of C<break> are C<reject>,
 the current position in the input stream will be at the position
 where the lexeme started.
-
-=back
 
 =head2 The current position
 
