@@ -88,11 +88,15 @@ The current position will never be negative.
 
 The current position will never be greater than the length of the
 input string.
-A current position equal to the length of the input string points
-to a location just past the last character,
-and indicates "end of string".
 
 =back
+
+Positions are zero-based, so that position 0 points to the first
+character, if it exists.
+A current position equal to the length of the input string
+indicates "end of string",
+and does
+not point to any character.
 
 =head2 A new C<< $slr->resume($start, $length) >> method
 
