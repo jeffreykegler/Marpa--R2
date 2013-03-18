@@ -33,30 +33,39 @@ The term "scanless" interface is from the parsing
 literature.
 It is sometimes criticized as misleading because,
 of course, an internal scanner is a scanner.
-For the parsing theory literature,
+But in the parsing theory literature,
 the context of the term is the classic strict definition
 of parsing, which required a separate, external scanner as
 a previous phase.
-A "scannerless" parser was one which did not require.
-a separate, external scanner.
+A "scannerless" parser was one which did not require
+a separate, external scanner because,
+at least in effect, it had one that was internal
+or "built-in".
 
 =head1 Design considerations
 
-The interface is designed so that it could be
-implemented fairly quickly.
-The interface is low-level
-and open-ended.
-It allows the user to bring in, or to create,
-powerful scanning tools to supplement the SLIF's scanning,
-and even to augment Marpa's parsing, if that is thought
-necessary.
+The interface is designed so that it to be
+implemented more quickly than more fully featured alternatives:
+It is low-level
+but open-ended.
 
+This interface allows the user to bring in, or to create,
+other scanning tools.
 The interface allows the SLIF's internal scanner to by completely bypassed
 in favor of an external scanner.
 It also allows internal and external scanners to take turns reading
 the input string.
 
-=head1 The proposed interface
+The other tools can be arbitrarily powerful.
+Techncially, in this interface, they will always
+be "subgrammars" of a "parent"
+Marpa parser,
+but the boundary between scanning and parsing is malleable
+enough that,
+if an application thinks it necessary,
+Marpa and the other tools can in effect share the task of parsing.
+
+=head1 Methods for internal scanning
 
 =head2 Changes to C<Marpa::R2::Scanless::R::read()>.
 
@@ -87,9 +96,6 @@ as defined in the next section.
 
 The B<current position in the input stream>, more usually simply
 called the B<current position>, is a position in the input string.
-(As a reminder, the input string is specified to the C<read()> call,
-and cannot be changed once set.)
-
 Positions are zero-based, so that position 0 points to the first
 character, if it exists.
 A current position equal to the length of the input string
@@ -100,10 +106,10 @@ not point to any character.
 In this interface, when the current position
 moves, it does not necessarily advance -- it
 can skip forward,
-or be 
-can be positioned to an earlier location.
-It can revisit the same locations as many time as the
-application specifies.
+or can be positioned to an earlier location.
+The application can skip sections of the input string.
+The application is also free to
+revisit spans of the input string as often as it wants.
 
 Here are the guarantees:
 
@@ -123,7 +129,10 @@ The current position will never be past the "end of string".
 
 =back
 
-=head1 How internal scanning works
+Current position can be queried with C<< $slr->pos() >>
+and set with C<< $slr->pos_set($new_pos) >>.
+
+=head2 How internal scanning works
 
 After the C<read()> method, the current position will indicate how far
 in the input stream C<read()> actually read.
@@ -165,7 +174,10 @@ be an unspecified value.
 The C<< $slr->resume($start, $length) >> method resumes
 the SLIF's internal scanning.
 The scan continues as specified by C<$start> and C<$length>,
-according to the rules
+according to the rules for internal scanning,
+as described above.
+
+=head1 Methods for external scanning
 
 =head2 New C<< $slr->g1_alternative($symbol, $value) >> method
 
@@ -191,9 +203,10 @@ will be moved to C<$start+$length>.
 =head2 The input string
 
 For error message purposes,
-all lexemes are required to correspond to a span of the input string.
-Applications which want to use lexemes which do not have a natural relationship
-to a span of the input string must arrange one.
+even external lexemes are required to correspond to a span of the input string.
+If an applications uses external lexemes which have
+no natural relationship
+to a span of the input string, it must arrange an artifical one.
 
 One way to do this is to have a artificial preamble to the real text.
 For example, the first 7 characters of the input string could be
@@ -205,6 +218,8 @@ C<< $slr->read($input_string, 7) >>.
 Lexemes corresponding to the artificial preamble would be read
 with method calls similar to
 C<< $slr->g1_read_lexeme($symbol_name, $value, 0, 42) >>.
+
+=head1 Breaking away from of the internal scan
 
 =head2 C<:lexeme> psueudo-rules
 
@@ -240,13 +255,6 @@ If at a given G1 parse location,
 all of the values of C<break> are C<reject>,
 the current position in the input stream will be at the position
 where the lexeme started.
-
-=head2 The current position
-
-An important part of this interface is its idea of
-"current" position, which has been referred to several times above.
-Current position can be queried with C<< $slr->pos() >>
-and set with C<< $slr->pos_set($new_pos) >>.
 
 =head1 Capabilities
 
