@@ -48,8 +48,14 @@ C<$start> defaults to the "current" position,
 and C<$length> defaults to -1, so that the default
 In C<< $slr->read($input_string) >> continues to behave as currently implemented.
 
-The C<read> method advances the current position to C<$start+$length>.
+The C<read()> method advances the current position to C<$start+$length>.
+where C<$length> is negative.
+If C<$length> is negative, the current_position is C<$start+$non_negative_length>, where
+unless C<$non_negative_length> is negative.
+
 The current position is initialized to pos 0.
+
+=head2 A new C<< $slr->resume($start, $length) >> method
 
 =head2 A new C<< $slr->g1_alternative($symbol, $value) >> method
 
@@ -57,7 +63,7 @@ Add a C<< $slr->g1_alternative($symbol, $value) >>
 method.
 This bypasses G0, reading an alternative directly into G1 with symbol name symbol, lexeme value value.
 
-=head2 C<< $slr->g1_lexeme_complete($start, $length) >>
+=head2 A new C<< $slr->g1_lexeme_complete($start, $length) >> method
 
 Add a C<< $slr->g1_lexeme_complete($start, $length) >> method,
 corresponding to an C<earleme_complete()> for G1.
@@ -67,7 +73,7 @@ Current position will be moved to C<$start+$length>.
 
 Add a C<< $slr->g1_read_lexeme($symbol_name, $value, $start, $length) >> method,
 which is the equivalent of C<< $slr->g1_alternative($symbol, $value) >>,
-followed by C<< $slr->g1_lexeme_complete(start, length) >>.
+followed by C<< $slr->g1_lexeme_complete($start, $length) >>.
 
 =head2 Jumping around in the input string
 
@@ -134,7 +140,8 @@ The scanner could, in fact, be a subgrammar.
 The subgrammar could, be another, specialized,
 Marpa grammar.
 Or it could be another grammar
-that is work better for portions of the
+that is thought to
+work better for portions of the
 parse, hooked up as a "subgrammar".
 For example, the application could switch back and forth
 between Marpa and regular expressions,
