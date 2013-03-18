@@ -37,9 +37,7 @@ necessary.
 
 =head1 Details of the proposed interface
 
-=over 4
-
-=item 1
+=head2 Extending C<Marpa::R2::Scanless::R::read()>.
 
 Add two optional parameters to C<Marpa::R2::Scanless::R::read()>.
 In C<$slr->read(input_string, start, length)>,
@@ -53,25 +51,25 @@ In C<$slr->read(input_string)> continues to behave as currently implemented.
 The C<read> method advances the current position to C<start+length>.
 The current position is initialized to pos 0.
 
-=item 2
+=head2 A new C<$slr->g1_alternative(symbol, value)> method
 
 Add a C<$slr->g1_alternative(symbol, value)>
 method.
 This bypasses G0, reading an alternative directly into G1 with symbol name symbol, lexeme value value.
 
-=item 3
+=head2 C<$slr->g1_lexeme_complete(start, length)>
 
 Add a C<$slr->g1_lexeme_complete(start, length)> method,
 corresponding to an C<earleme_complete()> for G1.
 Current position will be moved to C<start+length>.
 
-=item 4
+=head2 C<$slr->g1_read_lexeme(symbol, value, start, length)>
 
 Add a C<$slr->g1_read_lexeme(symbol, value, start, length)> method,
 which is the equivalent of C<$slr->g1_alternative(symbol, value)>,
 followed by C<$slr->g1_lexeme_complete(start, length)>.
 
-=item 5
+=head2 Jumping around in the input string
 
 If only for error message purposes,
 all lexemes correspond to a span of the input string, but this correspondence need only be conceptual.
@@ -79,7 +77,7 @@ For example, you could put some sort of error message in the first 42 characters
 C<$slr->read(42)>,
 and read all your custom lexemes with C<$slr->g1_read_lexeme(symbol, value, 0, 42)>.
 
-=item 6
+=head2 The C<break> adverb
 
 In the SLIF DSL, add a C<break> adverb for lexemes.
 If C<break> is set, a C<Marpa::R2::Scanless::R::read()> will stop when that lexeme is encountered.
@@ -87,12 +85,12 @@ If the value of C<break> is reject, the lexeme will not actually be read and cur
 If the value of C<break> is accept, the lexeme will be read and current position will be set to the position where the lexeme ended.
 If the value of C<break> is skip, the lexeme will not be read and current position will be set to the position where the lexeme ended.
 
-=item 7
+=head2 The current position
 
+An important part of this interface is its idea of
+"current" position, which has been referred to several times above.
 Current position can be queried with C<$slr->pos()>
 and set with C<$slr->pos_set()>.
-
-=back
 
 =head1 Capabilities
 
@@ -133,7 +131,7 @@ another Marpa parser can be hooked up
 that performs actions and returns the result to
 the parent grammar via C<g1_read>.
 
-=head3 Other possibilities
+=head2 Other possibilities
 
 The interface is in fact open-ended.
 
