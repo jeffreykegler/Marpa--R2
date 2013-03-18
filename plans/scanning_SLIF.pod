@@ -15,14 +15,30 @@
 
 =head1 Name
 
-SLIF Scanning - Proposed SLIF interface for custom scanners
+SLIF Scanning - Adding external scanning to the SLIF interface
 
 =head1 About this document
 
-This is an outline of a proposed extension to the Scanless interface (SLIF)
-that will allow it to support an application's customized scanning.
-Scanning can be handed over entirely to the application,
-or the SLIF and the application can takes turns doing the scanning.
+
+In this document, use of the Scanless interface's
+(SLIF's) internal scanner is called
+B<internal scanning>.
+The current SLIF only allows internal scanning.
+This document describes an interface that allows the use
+of an B<external scanner>.
+Use of the external scanner is called
+B<external scanning>.
+
+The term "scanless" interface is from the parsing
+literature.
+It is sometimes criticized as misleading because,
+of course, an internal scanner is a scanner.
+For the parsing theory literature,
+the context of the term is the classic strict definition
+of parsing, which required a separate, external scanner as
+a previous phase.
+A "scannerless" parser was one which did not require.
+a separate, external scanner.
 
 =head1 Design considerations
 
@@ -35,9 +51,14 @@ powerful scanning tools to supplement the SLIF's scanning,
 and even to augment Marpa's parsing, if that is thought
 necessary.
 
+The interface allows the SLIF's internal scanner to by completely bypassed
+in favor of an external scanner.
+It also allows internal and external scanners to take turns reading
+the input string.
+
 =head1 The proposed interface
 
-=head2 New arguments to C<Marpa::R2::Scanless::R::read()>.
+=head2 Changes to C<Marpa::R2::Scanless::R::read()>.
 
 The C<Marpa::R2::Scanless::R::read()> method remains,
 but has two additional arguments,
@@ -57,9 +78,6 @@ Negative lengths follow the usual convention so that -1 is the length of the inp
 C<$start> defaults to the "current" position,
 and C<$length> defaults to -1, so that the default
 In C<< $slr->read($input_string) >> continues to behave as currently implemented.
-
-
-=head2 New return value for C<Marpa::R2::Scanless::R::read()>
 
 At present C<read()> is documented as returning a non-negative integer.
 In this interface, its return value will be the new current position,
@@ -105,6 +123,8 @@ The current position will never be past the "end of string".
 
 =back
 
+=head1 How internal scanning works
+
 After the C<read()> method, the current position will indicate how far
 in the input stream C<read()> actually read.
 
@@ -140,22 +160,27 @@ be an unspecified value.
 
 =back
 
-=head2 A new C<< $slr->resume($start, $length) >> method
+=head2 New C<< $slr->resume($start, $length) >> method
 
-=head2 A new C<< $slr->g1_alternative($symbol, $value) >> method
+The C<< $slr->resume($start, $length) >> method resumes
+the SLIF's internal scanning.
+The scan continues as specified by C<$start> and C<$length>,
+according to the rules
+
+=head2 New C<< $slr->g1_alternative($symbol, $value) >> method
 
 The C<< $slr->g1_alternative($symbol, $value) >> method
 bypasses G0, reading an alternative directly into G1 with symbol name C<$symbol>,
 lexeme value C<$value>.
 
-=head2 A new C<< $slr->g1_lexeme_complete($start, $length) >> method
+=head2 New C<< $slr->g1_lexeme_complete($start, $length) >> method
 
 A new C<< $slr->g1_lexeme_complete($start, $length) >> method will
 correspond to an C<earleme_complete()> for G1.
 Current position in the input stream
 will be moved to C<$start+$length>.
 
-=head2 A new C<< $slr->g1_read_lexeme($symbol_name, $value, $start, $length) >> method
+=head2 New C<< $slr->g1_read_lexeme($symbol_name, $value, $start, $length) >> method
 
 Add a C<< $slr->g1_read_lexeme($symbol_name, $value, $start, $length) >> method,
 which is the equivalent of C<< $slr->g1_alternative($symbol, $value) >>,
@@ -163,18 +188,46 @@ followed by C<< $slr->g1_lexeme_complete($start, $length) >>.
 Current position in the input stream
 will be moved to C<$start+$length>.
 
-=head2 Jumping around in the input string
+=head2 The input string
 
-If only for error message purposes,
-all lexemes correspond to a span of the input string, but this correspondence need only be conceptual.
-For example, you could put some sort of error message in the first 42 characters, start the main reading after them with
-C<< $slr->read($input_string, 42) >>,
-and read all your custom lexemes with C<< $slr->g1_read_lexeme($symbol_name, $value, 0, 42) >>.
+For error message purposes,
+all lexemes are required to correspond to a span of the input string.
+Applications which want to use lexemes which do not have a natural relationship
+to a span of the input string must arrange one.
+
+One way to do this is to have a artificial preamble to the real text.
+For example, the first 7 characters of the input string could be
+the artificial preamble containing the characters "C<NO TEXT>",
+which is then followed by what the application considers
+the "real" text.
+In this case, the first C<read()> could take the form
+C<< $slr->read($input_string, 7) >>.
+Lexemes corresponding to the artificial preamble would be read
+with method calls similar to
+C<< $slr->g1_read_lexeme($symbol_name, $value, 0, 42) >>.
+
+=head2 C<:lexeme> psueudo-rules
+
+      :lexeme ::= variable break => reject
+
+The SLIF DSL will be extended to include lexeme pseudo-rules.
+Initially, their purpose would be to support the C<break> adverb,
+as described in the next section.
+
+As a side effect, the C<:lexeme> will allow applications to declare
+symbols to be lexemes.
+The previous definition of lexeme will continue to apply,
+so that the only effect of these "lexeme declarations"
+will be to cause a fatal error if the declared lexeme
+is not a lexeme
+according to the previous rules.
+Applications may find this behavior useful for debugging,
+and for documentatiing their gramamrs.
 
 =head2 The C<break> adverb
 
-In the
-SLIF DSL, adverbs will have a new C<break> adverb.
+C<:lexeme> pseudo-rules
+The SLIF DSL, adverbs will have a new C<break> adverb.
 If C<break> is set, a C<Marpa::R2::Scanless::R::read()> will stop when that lexeme is encountered.
 Possible values of C<break> are C<accept>, C<reject> and C<skip>.
 If the value of C<break> is C<accept>, the lexeme is read, otherwise it is not read.
