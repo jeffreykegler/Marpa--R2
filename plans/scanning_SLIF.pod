@@ -61,19 +61,23 @@ The current position is initialized to pos 0.
 
 Add a C<< $slr->g1_alternative($symbol, $value) >>
 method.
-This bypasses G0, reading an alternative directly into G1 with symbol name symbol, lexeme value value.
+This bypasses G0, reading an alternative directly into G1 with symbol name C<$symbol>,
+lexeme value C<$value>.
 
 =head2 A new C<< $slr->g1_lexeme_complete($start, $length) >> method
 
-Add a C<< $slr->g1_lexeme_complete($start, $length) >> method,
-corresponding to an C<earleme_complete()> for G1.
-Current position will be moved to C<$start+$length>.
+A new C<< $slr->g1_lexeme_complete($start, $length) >> method will
+correspond to an C<earleme_complete()> for G1.
+Current position in the input stream
+will be moved to C<$start+$length>.
 
-=head2 C<< $slr->g1_read_lexeme($symbol_name, $value, $start, $length) >
+=head2 A new C<< $slr->g1_read_lexeme($symbol_name, $value, $start, $length) >> method
 
 Add a C<< $slr->g1_read_lexeme($symbol_name, $value, $start, $length) >> method,
 which is the equivalent of C<< $slr->g1_alternative($symbol, $value) >>,
 followed by C<< $slr->g1_lexeme_complete($start, $length) >>.
+Current position in the input stream
+will be moved to C<$start+$length>.
 
 =head2 Jumping around in the input string
 
