@@ -35,9 +35,9 @@ powerful scanning tools to supplement the SLIF's scanning,
 and even to augment Marpa's parsing, if that is thought
 necessary.
 
-=head1 Details of the proposed interface
+=head1 The proposed interface
 
-=head2 Extending C<Marpa::R2::Scanless::R::read()>.
+=head2 New arguments to C<Marpa::R2::Scanless::R::read()>.
 
 Add two optional parameters to C<Marpa::R2::Scanless::R::read()>.
 In C<< $slr->read($input_string, $start, $length) >>,
@@ -54,6 +54,38 @@ If C<$length> is negative, the current_position is C<$start+$non_negative_length
 unless C<$non_negative_length> is negative.
 
 The current position is initialized to pos 0.
+
+=head2 New return value for C<Marpa::R2::Scanless::R::read()>
+
+At present C<read()> is documented as returning a non-negative integer.
+In this interface, its return value will be the new current position,
+as defined in the next section.
+
+=head2 Current position
+
+The B<current position in the input stream>, more usually simply
+called the B<current position>, is a position in the input string
+as specified to the C<read()> call.
+It begins at 0.
+In this interface, it does not necessarily advance -- the scan
+of the input string can jump around.
+There are only two guarantees:
+
+=over 4
+
+=item *
+
+The current position will never be negative.
+
+=item *
+
+The current position will never be greater than the length of the
+input string.
+A current position equal to the length of the input string points
+to a location just past the last character,
+and indicates "end of string".
+
+=back
 
 =head2 A new C<< $slr->resume($start, $length) >> method
 
@@ -92,24 +124,17 @@ and read all your custom lexemes with C<< $slr->g1_read_lexeme($symbol_name, $va
 In the
 SLIF DSL, adverbs will have a new C<break> adverb.
 If C<break> is set, a C<Marpa::R2::Scanless::R::read()> will stop when that lexeme is encountered.
-Possible values of C<break> are:
+Possible values of C<break> are C<accept>, C<reject> and C<skip>.
+If the value of C<break> is C<accept>, the lexeme is read, otherwise it is not read.
 
-=over 4
-
-=item C<accept>
-
-The lexeme is read.
-Current position is set to the position where the lexeme ended.
-
-=item C<reject>
-
-The lexeme is B<not> read.
-Current position is set to the position where the lexeme started.
-
-=item C<skip>
-
-The lexeme is B<not> read.
-Current position is set to the position where the lexeme ended.
+If at a given G1 parse location,
+one of the values of C<break> is either C<accept> or C<skip>,
+the current position in the input stream will be at the position 
+where the lexeme ended.
+If at a given G1 parse location,
+all of the values of C<break> are C<reject>,
+the current position in the input stream will be at the position
+where the lexeme started.
 
 =back
 
