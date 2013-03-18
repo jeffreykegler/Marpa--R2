@@ -1,0 +1,164 @@
+# Copyright 2013 Jeffrey Kegler
+# This file is part of Marpa::R2.  Marpa::R2 is free software: you can
+# redistribute it and/or modify it under the terms of the GNU Lesser
+# General Public License as published by the Free Software Foundation,
+# either version 3 of the License, or (at your option) any later version.
+#
+# Marpa::R2 is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser
+# General Public License along with Marpa::R2.  If not, see
+# http://www.gnu.org/licenses/.
+
+=head1 NAME
+
+SLIF Scanning - Proposed SLIF interface for custom scanners
+
+=head1 About this document
+
+This is an outline of a proposed extension to the Scanless interface (SLIF)
+that will allow it to support an application's customized scanning.
+Scanning can be handed over entirely to the application,
+and they can switch back and forth.
+
+=head1 Design considerations
+
+The interface is designed so that it could be
+implemented fairly quickly.
+The interface is low-level
+and open-ended.
+Tt allows the user to bring in, or to create,
+powerful scanning tools to supplement the SLIF's scanning,
+and even to augment Marpa's parsing, if that is thought
+necessary.
+
+=head1 Details of the proposed interface
+
+=over 4
+
+=item 1
+
+Add two optional parameters to C<Marpa::R2::Scanless::R::read()>.
+In C<$slr->read(input_string, start, length)>,
+c<start> is the position in the input string to begin at,
+and C<length> is the number of codepoints to read.
+Negative lengths follow the usual convention so that -1 is the length of the input string.
+C<start> defaults to the "current" position,
+and C<length> defaults to -1, so that the default
+In C<$slr->read(input_string)> continues to behave as currently implemented.
+
+The C<read> method advances the current position to C<start+length>.
+The current position is initialized to pos 0.
+
+=item 2
+
+Add a C<$slr->g1_alternative(symbol, value)>
+method.
+This bypasses G0, reading an alternative directly into G1 with symbol name symbol, lexeme value value.
+
+=item 3
+
+Add a C<$slr->g1_lexeme_complete(start, length)> method,
+corresponding to an C<earleme_complete()> for G1.
+Current position will be moved to C<start+length>.
+
+=item 4
+
+Add a C<$slr->g1_read_lexeme(symbol, value, start, length)> method,
+which is the equivalent of C<$slr->g1_alternative(symbol, value)>,
+followed by C<$slr->g1_lexeme_complete(start, length)>.
+
+=item 5
+
+If only for error message purposes,
+all lexemes correspond to a span of the input string, but this correspondence need only be conceptual.
+For example, you could put some sort of error message in the first 42 characters, start the main reading after them with
+C<$slr->read(42)>,
+and read all your custom lexemes with C<$slr->g1_read_lexeme(symbol, value, 0, 42)>.
+
+=item 6
+
+In the SLIF DSL, add a C<break> adverb for lexemes.
+If C<break> is set, a C<Marpa::R2::Scanless::R::read()> will stop when that lexeme is encountered.
+If the value of C<break> is reject, the lexeme will not actually be read and current position will be set to the position where the lexeme started.
+If the value of C<break> is accept, the lexeme will be read and current position will be set to the position where the lexeme ended.
+If the value of C<break> is skip, the lexeme will not be read and current position will be set to the position where the lexeme ended.
+
+=item 7
+
+Current position can be queried with C<$slr->pos()>
+and set with C<$slr->pos_set()>.
+
+=back
+
+=head1 Capabilities
+
+=head2 Replacing the Stuifzand (BNF) interface
+
+Once the SLIF allows the user to provide their own scanner,
+the separate Stuifzand (BNF) interface will
+no longer serve any purpose,
+and will be de-emphasized.
+
+=head2 Backtracking and lookahead
+
+Most of the desire to backtrack and perform lookahead for Marpa
+comes from an underappreciation of its capabilities.
+Nonetheless, there are some situations where backtracking
+and/or lookahead is genuinely useful with Marpa.
+And the ability to backtrack and look ahead will keep
+programmers used to weaker parsers in their "comfort zone".
+
+=head2 Subgrammars
+
+The scanner could, in fact, be a subgrammar.
+The subgrammar could, be another, specialized,
+Marpa grammar.
+Or it could be another grammar
+that is work better for portions of the
+parse, hooked up as a "subgrammar".
+For example, the application could switch back and forth
+between Marpa and regular expressions,
+or between Marpa and recursive descent.
+
+=head2 G0 actions
+
+Currently the G0 grammar cannot perform actions -- it can only
+recognize literal lexemes.
+As a special case of subgrammar use,
+another Marpa parser can be hooked up
+that performs actions and returns the result to
+the parent grammar via C<g1_read>.
+
+=head3 Other possibilities
+
+The interface is in fact open-ended.
+
+=head1 Copyright and License
+
+=for Marpa::R2::Display
+ignore: 1
+
+  Copyright 2013 Jeffrey Kegler
+  This file is part of Marpa::R2.  Marpa::R2 is free software: you can
+  redistribute it and/or modify it under the terms of the GNU Lesser
+  General Public License as published by the Free Software Foundation,
+  either version 3 of the License, or (at your option) any later version.
+
+  Marpa::R2 is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser
+  General Public License along with Marpa::R2.  If not, see
+  http://www.gnu.org/licenses/.
+
+=for Marpa::R2::Display::End
+
+=cut
+
+# vim: expandtab shiftwidth=4:
