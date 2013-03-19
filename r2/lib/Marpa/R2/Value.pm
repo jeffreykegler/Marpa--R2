@@ -159,6 +159,15 @@ sub Marpa::R2::Internal::Recognizer::resolve_action {
             $type = 'SCALAR';
             last TYPE;
         }
+
+        # Re other symbol tables entries:
+        # We ignore ARRAY and HASH because they anything
+        # we resolve to is a potential array entry, something
+        # that not possible for arrays and hashes except
+        # indirectly, via references.
+        # FORMAT is deprecated.
+        # IO and GLOB seem too abstruse at the moment.
+
         $closure = undef;
     } ## end TYPE:
 
@@ -960,7 +969,16 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                 my $thingy_ref = $closure_by_rule_id->[$rule_id];
                 last DO_CONSTANT if not defined $thingy_ref;
                 my $ref_type = Scalar::Util::reftype $thingy_ref;
-                last DO_CONSTANT if not $ref_type;
+                if ( $ref_type eq q{} ) {
+                    Marpa::R2::exception(
+                        qq{An action resolved to a scalar.\n},
+                        qq{  This is not allowed.\n},
+                        qq{  A constant action must be a reference.\n},
+                        q{  Rule was },
+                        $grammar->brief_rule($rule_id),
+                        "\n"
+                    );
+                } ## end if ( $ref_type eq q{} )
                 if ( $ref_type eq 'CODE' ) {
 
                     # Set the nulling closure is this is the nulling symbol of a rule
@@ -986,18 +1004,13 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                     @ops = ( $op_result_is_constant, $constant_ix );
                     last SET_OPS;
                 } ## end if ( $ref_type eq 'HASH' or $ref_type eq 'ARRAY' )
-                if (   $ref_type eq 'REF'
-                    or $ref_type eq 'LVALUE'
-                    or $ref_type eq 'VSTRING' )
-                {
-                    my $constant_ix =
-                        $value->constant_register( ${$thingy_ref} );
-                    @ops = ( $op_result_is_constant, $constant_ix );
-                    last SET_OPS;
-                } ## end if ( $ref_type eq 'REF' or $ref_type eq 'LVALUE' or ...)
                 Marpa::R2::exception(
                     qq{Constant action is not of an allowed type.\n},
-                    q{  Rule was }, $grammar->brief_rule($rule_id), "\n" );
+                    qq{  It was of type reference to $ref_type.\n},
+                    q{  Rule was },
+                    $grammar->brief_rule($rule_id),
+                    "\n"
+                );
             } ## end DO_CONSTANT:
 
             # After this point, any closure will be a ref to 'CODE'
