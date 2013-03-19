@@ -567,6 +567,12 @@ A Marpa action can be a Perl object which is a reference.
 A reference action may have come via name resolution,
 or it might be the result of explicit resolution.
 
+While it is possible to modify the values pointed to
+by a reference, the effect will be global,
+this is deprecated as bad practice.
+Reference actions, and their referents, should be treated
+as read-only.
+
 In the following, let C<$action_ref> be the action reference.
 Reference actions are handled based on type,
 ignoring any blessing as class objects.
@@ -603,6 +609,39 @@ C<$action_ref>.
 The effect is roughly the same as if an action
 name had resolved to a closure which returned
 C<$action_ref>.
+
+=head2 Modifying Perl object actions
+
+It is important to note multiple invocations
+of C<$action_ref> will
+always point to the same contents,
+and that any modification will be
+seen by other invocations.
+In other words, the modification will have global
+effect.
+For this reason modifying the referents of
+reference actions is deprecated.
+
+For example,
+assume that actions are in a package named C<My_Nodes>,
+which contains a hash reference named C<empty_hash>, 
+
+=for Marpa::R2::Display
+ignore: 1
+
+        our $empty_hash = {};
+
+=for Marpa::R2::Display::End
+
+It can be tempting, in building objects which are hashes,
+to start with C<$empty_hash> and add contents.
+C<$empty_hash> points to a single hash object,
+which will shared by all nodes, with all nodes seeing
+each other's changes.
+Worse, all Marpa parsers which use the same C<My_Nodes>
+namespace will also share the same hash object.
+When not simply a mistake,
+this is usually bad programming practice.
 
 =head2 Visibility of Perl object actions
 
