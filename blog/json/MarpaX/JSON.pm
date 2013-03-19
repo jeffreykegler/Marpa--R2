@@ -22,10 +22,9 @@ sub new {
 json         ::= object
                | array
 
-object       ::= '{' '}'               action => do_empty_object
-               | ('{') members ('}')       action => do_object
+object       ::= ('{') members ('}')       action => do_object
 
-members      ::= pair+                 action => ::array separator => <comma>
+members      ::= pair*                 action => ::array separator => <comma>
 
 pair         ::= string (':') value action => ::array
 
@@ -104,8 +103,6 @@ sub new {
     my ($class) = @_;
     return bless {}, $class;
 }
-
-our $do_empty_object = {};
 
 sub do_object {
     my (undef, $members) = @_;
