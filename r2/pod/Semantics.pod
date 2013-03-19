@@ -96,75 +96,23 @@ call it to produce the actual result.
 
 =back
 
+An action name is either reserved,
+or resolves to a Perl object.
+When it resolves to a Perl object,
+that object is usually a Perl closure -- code.
+If the Perl object action is code,
+it is a rule evaluation closure, and will be
+called to produce the result.
+When a Perl object action is some other kind of object,
+its treatment is
+L<as described
+below|/"Reference actions">.
+
 An action name
 and action is also used
 to create the per-parse-tree variable,
 as L<described
 below|/"The per-parse-tree variable">.
-
-=head1 Actions
-
-Action names resolve to actions.
-An action can be
-
-=over 4
-
-=item * A reference to a Perl closure.
-This must be in the form of a reference whose type,
-as returned by C<ref>, is C<CODE>.
-When this is associated with a rule,
-the Perl closure
-is called a B<rule evaluation closure>.
-The closure will be called to produce the value of
-the action.
-
-=item * A scalar constant, that is one whose
-type, as returned by C<ref>, is C<SCALAR>.
-The constant will be the value of the action.
-
-=item * A reference to an array,
-that is, a reference whose
-type, as returned by C<ref>, is C<ARRAY>.
-The constant will be a reference to that array.
-
-=item * A reference to a hash,
-that is, a reference whose
-type, as returned by C<ref>, is C<HASH>.
-The constant will be a reference to that hash.
-
-=item * A special, reserved, action name,
-as described under
-L<Reserved Action Names|/"Tree Traversal Phase">.
-
-=back
-
-It is important to note that,
-when Perl closures are used for the semantics,
-they must be visible in the scope where the semantics are
-B<resolved>.
-The action names are usually B<specified> with the grammar,
-but action B<resolution> takes place
-in the recognizer's
-L<C<value>|Marpa::R2::Recognizer/"value">
-and
-L<C<reset_evaluation>|Marpa::R2::Recognizer/"reset_evaluation">
-methods.
-This can sometimes be a source of confusion,
-because if a Perl closure is visible when the
-action is specified,
-but goes out of scope before the action name is resolved,
-resolution will fail.
-
-=head1 Reserved action names
-
-=head2 ::undef
-
-A constant whose value is a Perl C<undef>.
-Perl is unable to distinguish reliably between a
-non-existent value and scalars with an C<undef> value.
-To allow Marpa to help you to spot non-existent values,
-the "C<::undef>" reserved action name should be preferred
-for indicating a constant whose value is a Perl C<undef>.
 
 =head1 Nodes
 
@@ -449,12 +397,23 @@ C<action_object> named argument of the Marpa grammar.
 
 =back
 
-=head2 Resolution of reserved action names
+=head2 Reserved action names
 
-If the action name begins with the two characters "C<::>",
-then it is a reserved action name and must be resolved as such.
-Reserved action names were L<described
-above|/"Reserved action names">.
+Action names that begin with a double colon ("C<::>") are reserved.
+At present only the C<::undef> reserved action is documented for
+use outside of the DSL-based interfaces.
+
+=head3 ::undef
+
+A constant whose value is a Perl C<undef>.
+Perl is unable to distinguish reliably between a
+non-existent value and scalars with an C<undef> value.
+This makes it impossible to reliably distinguish
+resolutions
+to a Perl C<undef> from resolution problems.
+The "C<::undef>" reserved action name should 
+be preferred for
+indicating a constant whose value is a Perl C<undef>.
 
 =head2 Explicit resolution
 
@@ -463,7 +422,8 @@ allows the user to directly control the mapping from action names
 to actions.
 The value of the C<closures> named argument
 is a reference to a hash whose keys are
-action names and whose hash values are CODE refs.
+action names and whose hash values are references.
+Typically (but not always) these will be C<CODE> refs.
 
 If an action name is the key of an entry in the C<closures> hash,
 it resolves to the closure referenced by the value part of that hash entry.
@@ -472,7 +432,7 @@ called B<explicit resolution>.
 
 When explicit resolution is the only kind of resolution that is wanted,
 it is best to pick a name that is very unlikely to be the name
-of a Perl closure.
+of a Perl object.
 Many of
 L<Marpa::HTML>'s action names
 are intended for explicit resolution only.
@@ -505,7 +465,7 @@ if the
 C<action_object> grammar named argument is defined,
 Marpa uses it as the package name.
 Once Marpa has fully qualified the action name,
-Marpa looks for a Perl closure with that name.
+Marpa looks for a Perl object with that name.
 
 Marpa will not attempt to resolve an action name
 that it cannot fully qualify.
@@ -532,7 +492,7 @@ is to require that the programmer be specific about action names.
 This can be an inconvenience, but Marpa prefers this to
 silently executing unintended code.
 
-But if  the user wants to leave the
+If the user wants to leave the
 rule evaluation closures in the C<main> namespace,
 she can specify
 C<"main">
@@ -542,6 +502,126 @@ it can be good practice to keep
 the rule evaluation closures
 in their own namespace,
 particularly if the application is not small.
+
+=head2 Perl object actions
+
+Actions divide into two types:
+reserved actions and Perl object actions.
+A Perl object action is a actual Perl object of some type:
+either code or a reference.
+
+A Perl object action may come either from resolution
+of an action name,
+or from explicit resolution.
+If it came from explicit resolution,
+it will always be a reference.
+
+In simplified terms,
+if a Perl object action comes from resolution of
+an action name,
+and
+there is a Perl closure of that name, the Perl
+closure is the resolution.
+If there is a reference with that name
+it is resolved
+L<as described for Perl reference
+actions|/"Reference actions">.
+If there is some other scalar with that name,
+it is a fatal error.
+All other Perl objects with that name are ignored.
+
+More precisely, the resolution depends the lookup
+of the action name in the Perl symbol table:
+
+=over 4
+
+=item * 
+
+If there is a C<CODE> entry,
+that entry is the resolution.
+
+=item * 
+
+If there is a C<SCALAR> entry,
+and it is a reference,
+it is resolved
+L<as described for Perl reference
+actions|/"Reference actions">.
+
+=item * 
+
+If there is a C<SCALAR> entry,
+and it is not a reference,
+it is a fatal error.
+
+=item * 
+
+If there is no C<SCALAR> entry and no C<CODE> entry,
+it will be considered a failure to resolve.
+
+=back
+
+=head2 Reference actions
+
+A Marpa action can be a Perl object which is a reference.
+A reference action may have come via name resolution,
+or it might be the result of explicit resolution.
+
+In the following, let C<$action_ref> be the action reference.
+Reference actions are handled based on type,
+ignoring any blessing as class objects.
+This would be the reftype as returned
+by C<Scalar::Util::reftype $action_ref>.
+
+If the reftype is C<CODE>,
+the resolution is to the Perl closure.
+The effect is the same as if an action name
+had resolved directly to a closure with the same
+name.
+The Perl closure,
+also called a B<rule evaluation closure>,
+will be called to produce the value of
+the action.
+
+If the reftype is C<SCALAR>,
+the resolution is to its de-referenced value,
+C<${$action_ref}>.
+The effect is roughly the same as if an action
+name had resolved to a closure which returned
+C<${$action_ref}>.
+
+If the reftype is C<ARRAY>,
+the resolution is to the original reference,
+C<$action_ref>.
+The effect is roughly the same as if an action
+name had resolved to a closure which returned
+C<$action_ref>.
+
+If the reftype is C<HASH>,
+the resolution is to the original reference,
+C<$action_ref>.
+The effect is roughly the same as if an action
+name had resolved to a closure which returned
+C<$action_ref>.
+
+=head2 Visibility of Perl object actions
+
+It is important to note that,
+when Perl closures are used for the semantics,
+they must be visible in the scope where the semantics are
+B<resolved>.
+The action names are usually B<specified> with the grammar,
+but action B<resolution> takes place
+in the recognizer's
+L<C<value>|Marpa::R2::Recognizer/"value">
+and
+L<C<reset_evaluation>|Marpa::R2::Recognizer/"reset_evaluation">
+methods.
+This can sometimes be a source of confusion,
+because if a Perl closure is visible when the
+action is specified,
+but goes out of scope before the action name is resolved,
+resolution will fail.
 
 =head1 The per-parse-tree variable
 

@@ -1004,6 +1004,11 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                     @ops = ( $op_result_is_constant, $constant_ix );
                     last SET_OPS;
                 } ## end if ( $ref_type eq 'HASH' or $ref_type eq 'ARRAY' )
+
+                # When I implement ref to 'REF', I probably should not
+                # de-reference, because of confusion if it becomes a
+                # REF to CODE.
+
                 Marpa::R2::exception(
                     qq{Constant action is not of an allowed type.\n},
                     qq{  It was of type reference to $ref_type.\n},
