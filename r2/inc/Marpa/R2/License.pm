@@ -254,49 +254,13 @@ sub check_tag {
 } ## end sub check_tag
 
 my %files_by_type = (
+    'COPYING.LESSER' => \&ignored,    # GNU license text, leave it alone
     'LICENSE' => \&license_problems_in_license_file,
     'META.json' =>
         \&ignored,    # not source, and not clear how to add license at top
     'META.yml' =>
         \&ignored,    # not source, and not clear how to add license at top
-    'xs/ppport.h'       => \&ignored,    # copied from CPAN, just leave it alone
-    'COPYING.LESSER' => \&ignored,    # GNU license text, leave it alone
-    'etc/copy_from_stage'              => \&license_problems_in_perl_file,
-    'html/script/marpa_r2_html_fmt'    => \&license_problems_in_perl_file,
-    'html/script/marpa_r2_html_score'  => \&license_problems_in_perl_file,
-    'html/t/no_tang.html'              => \&ignored,
-    'html/t/test.html'                 => \&ignored,
-    'html/t/fmt_t_data/expected1.html' => \&ignored,
-    'html/t/fmt_t_data/expected2.html' => \&ignored,
-    'html/t/fmt_t_data/input1.html'    => \&trivial,
-    'html/t/fmt_t_data/input2.html'    => \&trivial,
-    'html/t/fmt_t_data/score_expected1.html' => \&trivial,
-    'html/t/fmt_t_data/score_expected2.html' => \&trivial,
-    'Makefile.PL'                            => \&trivial,
-    'libmarpa/VERSION'                       => \&trivial,
-    'libmarpa/dev/README'                    => \&trivial,
-    'libmarpa/dev/VERSION.in'                => \&trivial,
-    'libmarpa/dev/api.texi'                 => \&license_problems_in_fdl_file,
-    'libmarpa/dev/internal.texi'            => \&license_problems_in_fdl_file,
-    'libmarpa_doc_dist/api.texi'            => \&license_problems_in_fdl_file,
-    'libmarpa_doc_dist/internal.texi'       => \&license_problems_in_fdl_file,
-    'libmarpa_doc_dist/version_i.texi'      => \&trivial,
-    'libmarpa_doc_dist/version.texi'        => \&trivial,
-    'libmarpa/dev/copyright_page_license.w' => \&copyright_page,
-    'libmarpa/dev/cwebmac.tex' =>
-        \&ignored,    # originally from Cweb, leave it alone
-
-     ## GNU license text, leave it alone
-    'libmarpa_doc_dist/fdl-1.3.texi'        => \&ignored,
-    'libmarpa/dev/doc_dist/fdl-1.3.texi' => \&ignored,  
-    'libmarpa/dev/doc_dist/lgpl-3.0.texi' => \&ignored, 
-    'libmarpa_doc_dist/lgpl-3.0.texi'       => \&ignored, 
-
-    'libmarpa/stage/config.h.in' =>
-        check_tag( 'Generated from configure.ac by autoheader', 250 ),
-    'libmarpa/test/Makefile'            => \&trivial,
-    'libmarpa/test/README'              => \&trivial,
-    'libmarpa/test/dev/install-sh'      => \&check_X_copyright,
+    'Makefile.PL'                       => \&trivial,
     'README'                            => \&trivial,
     'TODO'                              => \&trivial,
     'author.t/accept_tidy'              => \&trivial,
@@ -304,7 +268,43 @@ my %files_by_type = (
     'author.t/perltidyrc'               => \&trivial,
     'author.t/spelling_exceptions.list' => \&trivial,
     'author.t/tidy1'                    => \&trivial,
-    't/etc/wall_proof.txt'              => \&cc_a_nd,
+    'dovg.sh'                           => \&trivial,
+    'etc/copy_from_stage'               => \&license_problems_in_perl_file,
+    'html/script/marpa_r2_html_fmt'     => \&license_problems_in_perl_file,
+    'html/script/marpa_r2_html_score'   => \&license_problems_in_perl_file,
+    'html/t/fmt_t_data/expected1.html'  => \&ignored,
+    'html/t/fmt_t_data/expected2.html'  => \&ignored,
+    'html/t/fmt_t_data/input1.html'     => \&trivial,
+    'html/t/fmt_t_data/input2.html'     => \&trivial,
+    'html/t/fmt_t_data/score_expected1.html' => \&trivial,
+    'html/t/fmt_t_data/score_expected2.html' => \&trivial,
+    'html/t/no_tang.html'                    => \&ignored,
+    'html/t/test.html'                       => \&ignored,
+    'libmarpa/VERSION'                       => \&trivial,
+    'libmarpa/dev/README'                    => \&trivial,
+    'libmarpa/dev/VERSION.in'                => \&trivial,
+    'libmarpa/dev/api.texi'                 => \&license_problems_in_fdl_file,
+    'libmarpa/dev/copyright_page_license.w' => \&copyright_page,
+    'libmarpa/dev/cwebmac.tex' =>
+        \&ignored,    # originally from Cweb, leave it alone
+    'libmarpa/dev/doc_dist/fdl-1.3.texi'  => \&ignored,
+    'libmarpa/dev/doc_dist/lgpl-3.0.texi' => \&ignored,
+    'libmarpa/dev/internal.texi'          => \&license_problems_in_fdl_file,
+    'libmarpa/stage/config.h.in' =>
+        check_tag( 'Generated from configure.ac by autoheader', 250 ),
+    'libmarpa/test/Makefile'       => \&trivial,
+    'libmarpa/test/README'         => \&trivial,
+    'libmarpa/test/dev/install-sh' => \&check_X_copyright,
+    'libmarpa_doc_dist/api.texi'   => \&license_problems_in_fdl_file,
+    'libmarpa_doc_dist/fdl-1.3.texi' =>
+        \&ignored,    ## GNU license text, leave it alone
+    'libmarpa_doc_dist/internal.texi'  => \&license_problems_in_fdl_file,
+    'libmarpa_doc_dist/lgpl-3.0.texi'  => \&ignored,
+    'libmarpa_doc_dist/version.texi'   => \&trivial,
+    'libmarpa_doc_dist/version_i.texi' => \&trivial,
+    'my_suppressions'                  => \&trivial,
+    't/etc/wall_proof.txt'             => \&cc_a_nd,
+    'xs/ppport.h' => \&ignored,    # copied from CPAN, just leave it alone
 );
 
 # Common files in the GNU distributions
