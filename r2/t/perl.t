@@ -562,7 +562,7 @@ if (1) {
 ## no critic (Subroutines::RequireArgUnpacking)
 sub test {
 
-    my $input = Data::Dumper->new(@_)->Purity(1)->Sortkeys(1)->Dumpxs;
+    my $input = Data::Dumper->new(@_)->Purity(1)->Sortkeys(1)->Dump;
 
     # Table by type and name of data
     # All data is kept as refs.
@@ -595,7 +595,7 @@ sub test {
     } ## end for my $type ( sort keys %SYMTAB )
     my $output =
         Data::Dumper->new( \@pointers, \@names )->Purity(1)->Sortkeys(1)
-        ->Dumpxs;
+        ->Dump;
     Test::More::is( $output, $input );
     return;
 
