@@ -50,10 +50,12 @@ but open-ended.
 
 This interface allows the user to bring in, or to create,
 other scanning tools.
-The interface allows the SLIF's internal scanner to by completely bypassed
-in favor of an external scanner.
-It also allows internal and external scanners to take turns reading
+The interface allows
+internal and external scanners to take turns reading
 the input string.
+It also allows
+an external scanner to
+bypass the SLIF's internal scanner completely.
 
 The other tools can be arbitrarily powerful.
 Technically, in this interface, they will always
@@ -128,9 +130,6 @@ The current position will never be past the "end of string".
 
 =back
 
-Current position can be queried with C<< $slr->pos() >>
-and set with C<< $slr->pos_set($new_pos) >>.
-
 =head2 How internal scanning works
 
 After the C<read()> method, the current position will indicate how far
@@ -146,18 +145,18 @@ the end of string.
 =item *
 
 If a non-negative C<$length> argument was specified to C<read()>,
-C<read()> will not read past a current position of C<$start+$length>.
+C<read()> will pause when the current position is C<$start+$length>.
 
 =item *
 
 If a negative C<$length> argument was specified to C<read()>,
-C<read()> will not read past a current position of
+C<read()> will pause when the current position is
 C<$length + 1 + length $input_string>.
 
 =item *
 
 The application can specify that the read will
-"break" when it encounters certain lexemes,
+"pause" when it encounters certain lexemes,
 as specified below.
 
 =item *
@@ -172,9 +171,11 @@ be an unspecified value.
 
 The C<< $slr->resume($start, $length) >> method resumes
 the SLIF's internal scanning.
-The scan continues as specified by C<$start> and C<$length>,
+The scan continues as specified by C<$start> and C<$length>.
+The next pause in internal scanning will take place
 according to the rules for internal scanning,
-as described above.
+L<as described
+above|/"How internal scanning works">.
 
 =head1 Methods for external scanning
 
@@ -218,16 +219,39 @@ In this case, the first C<read()> could take the form
 C<< $slr->read($input_string, 7) >>.
 Lexemes corresponding to the artificial preamble would be read
 with method calls similar to
-C<< $slr->g1_read_lexeme($symbol_name, $value, 0, 42) >>.
+C<< $slr->g1_read_lexeme($symbol_name, $value, 0, 7) >>.
 
-=head1 Breaking away from the internal scan
+=head1 Positions in the input string
+
+=head2 New C<< $slr->pause_span() >> method
+
+    my ($start, $length) = $slr->pause_span()
+
+Most applications will want to be guided by the current position,
+but current position depends on whether or not the lexeme was read
+or not, which may be inconvenient for some applications.
+The values returned by C<pause_span()> are
+unaffected by whether or not the lexeme which caused
+the pause was actually read,
+and are unaffected by the current position of
+the input stream.
+
+=head2 New C<< $slr->pos() >> method
+
+Queries the current position.
+
+=head2 New C<< $slr->pos_set($new_pos) >> method
+
+Changes the current position to C<$new_pos>.
+
+=head1 Pausing the internal scan
 
 =head2 C<:lexeme> psueudo-rules
 
-      :lexeme ::= variable break => reject
+      :lexeme ::= variable pause => before
 
 The SLIF DSL will be extended to include lexeme pseudo-rules.
-Initially, their purpose would be to support the C<break> adverb,
+Initially, their purpose would be to support the C<pause> adverb,
 as described in the next section.
 
 As a side effect, the C<:lexeme> will allow applications to declare
@@ -240,35 +264,39 @@ according to the previous rules.
 Applications may find this behavior useful for debugging,
 and for documentating their grammars.
 
-=head2 The C<break> adverb
+=head2 The C<pause> adverb
 
 The new
 C<:lexeme> pseudo-rules of the SLIF DSL
-will allow a new C<break> adverb.
-If C<break> is set, a C<Marpa::R2::Scanless::R::read()> will stop when that lexeme is encountered.
-Possible values of C<break> are C<accept>, C<reject> and C<skip>.
-If the value of C<break> is C<accept>, the lexeme is read by G1.
-Otherwise, the lexeme will be discarded.
+will allow a new C<pause> adverb.
+If C<pause> is set, a C<Marpa::R2::Scanless::R::read()> will pause when that lexeme is encountered.
+For a pause to occur at a lexeme, it must potentially be acceptable to G1,
+but whether or not it is actually read depends on the value of the C<pause>
+adverb.
+
+Possible values of C<pause> are C<before> and C<after>.
+If the value of C<pause> is C<after>, the lexeme is read by G1.
+If the value of C<pause> is C<before>, the lexeme is not read by G1.
 
 Multiple lexemes may be found at a single G1 parse location,
-and these may have any mixture of C<break> adverbs.
+and these may have any mixture of C<pause> adverbs.
 The following rules govern the location of the current position
 in the input stream when internal scanning is broken off
-because of one or more lexemes with a C<break> setting:
+because of one or more lexemes with a C<pause> setting:
 
 =over 4
 
 =item *
 
-If the C<break> value
-of any of the lexemes causing the break is either C<accept> or C<skip>,
+If the C<pause> value
+of any of the lexemes causing the pause is either C<after>,
 the current position in the input stream will be the position 
 where the lexeme ended.
 
 =item *
 
-If the C<break> value
-of all of the lexemes causing the break is C<reject>,
+If the C<pause> value
+of all of the lexemes causing the pause is C<before>,
 the current position in the input stream will be the position 
 where the lexeme started.
 
@@ -285,13 +313,13 @@ rather than exhaustive.
 
 In a pedantic sense, the SLIF must always start off
 with the internal scanner,
-but it can end the internal scan after zero codepoints,
+but it can pause the internal scan after zero codepoints,
 One way to do this is with the following code:
 
     $slr->read($input_string, 0, 0)
 
-Once an application has switched to external scanning,
-it need never switch back.
+When an application pauses internal scanning,
+it never needs to resume it.
 This means that a separate Stuifzand (BNF) interface
 no longer serves any purpose.
 The BNF interface will be de-emphasized,
