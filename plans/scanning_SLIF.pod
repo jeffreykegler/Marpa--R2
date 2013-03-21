@@ -32,7 +32,6 @@ The term "scanless" interface is from the parsing
 literature.
 It is sometimes criticized as misleading because,
 of course, an internal scanner is a scanner.
-
 But in the parsing theory literature,
 the context of the term is the classic strict definition
 of parsing, which required a separate, external scanner as
@@ -156,7 +155,7 @@ C<$length + 1 + length $input_string>.
 =item *
 
 The application can specify that the read will
-"pause" when it encounters certain lexemes,
+pause when it encounters certain lexemes,
 as specified below.
 
 =item *
@@ -250,11 +249,12 @@ Changes the current position to C<$new_pos>.
 
       :lexeme ::= variable pause => before
 
-The SLIF DSL will be extended to include lexeme pseudo-rules.
+The SLIF DSL will be extended to include C<:lexeme> pseudo-rules.
 Initially, their purpose would be to support the C<pause> adverb,
 as described in the next section.
 
-As a side effect, the C<:lexeme> will allow applications to declare
+As a side effect, C<:lexeme> pseudo-rules
+will allow applications to declare
 symbols to be lexemes.
 The previous definition of lexeme will continue to apply,
 so that the only effect of these "lexeme declarations"
@@ -281,7 +281,7 @@ If the value of C<pause> is C<before>, the lexeme is not read by G1.
 Multiple lexemes may be found at a single G1 parse location,
 and these may have any mixture of C<pause> adverbs.
 The following rules govern the location of the current position
-in the input stream when internal scanning is broken off
+in the input stream when internal scanning is paused
 because of one or more lexemes with a C<pause> setting:
 
 =over 4
@@ -289,7 +289,7 @@ because of one or more lexemes with a C<pause> setting:
 =item *
 
 If the C<pause> value
-of any of the lexemes causing the pause is either C<after>,
+of any of the lexemes causing the pause is C<after>,
 the current position in the input stream will be the position 
 where the lexeme ended.
 
