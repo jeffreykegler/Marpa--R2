@@ -17,8 +17,11 @@ if ( not defined $micro ) {
     die "bump_version Cannot handle new version number: $LATEST";
 }
 $major += 0;
-$micro += 0;
 $minor += 0;
+$micro += 0;
+my $libmarpa_major = $major;
+my $libmarpa_minor = $minor+100;
+my $libmarpa_micro = $micro+100;
 
 my @versioned_files = split /\n/xms, <<'END_OF_LIST';
 r2/html/lib/Marpa/R2/HTML.pm
@@ -43,6 +46,24 @@ for my $versioned_file (@versioned_files) {
     print $out $file;
 } ## end for my $versioned_file (@versioned_files)
 
+{
+    # Update the version of Libmarpa that XS is expecting
+    my $expecting_file = 'r2/xs/R2.xs';
+    say STDERR $expecting_file;
+    my $file = do { local ( @ARGV, $/ ) = ($expecting_file); <> };
+    $file =~ s{
+    ^ [#]define \s+ EXPECTED_LIBMARPA_MAJOR \s [^\n]* $}
+    {#define EXPECTED_LIBMARPA_MAJOR $libmarpa_major}xms;
+    $file =~ s{
+    ^ [#]define \s+ EXPECTED_LIBMARPA_MINOR \s [^\n]* $}
+    {#define EXPECTED_LIBMARPA_MINOR $libmarpa_minor}xms;
+    $file =~ s{
+    ^ [#]define \s+ EXPECTED_LIBMARPA_MICRO \s [^\n]* $}
+    {#define EXPECTED_LIBMARPA_MICRO $libmarpa_micro}xms;
+    open my $out, '>', $expecting_file;
+    print $out $file;
+}
+
 for my $configure_ac_file (
     qw(
     r2/libmarpa/dev/dist/configure.ac
@@ -54,13 +75,13 @@ for my $configure_ac_file (
     my $file = do { local ( @ARGV, $/ ) = ($configure_ac_file); <> };
     $file =~ s{
     ( m4_define [(] [\[] marpa_major_version [\]] [,] \s* [\[] )  \d+ ( [\]] )
-  }{$1${major}$2}xms;
+  }{$1${libmarpa_major}$2}xms;
     $file =~ s{
     ( m4_define [(] [\[] marpa_minor_version [\]] [,] \s* [\[] )  \d+ ( [\]] )
-  }{$1${minor}$2}xms;
+  }{$1${libmarpa_minor}$2}xms;
     $file =~ s{
     ( m4_define [(] [\[] marpa_micro_version [\]] [,] \s* [\[] )  \d+ ( [\]] )
-  }{$1${micro}$2}xms;
+  }{$1${libmarpa_micro}$2}xms;
     open my $out, '>', $configure_ac_file;
     print $out $file;
 } ## end for my $configure_ac_file ( qw( r2/libmarpa/dev/dist/configure.ac...))
