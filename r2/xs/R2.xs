@@ -1751,6 +1751,10 @@ slr_es_span_to_literal_sv (Scanless_R * slr,
   return newSVpvn ("", 0);
 }
 
+#define EXPECTED_LIBMARPA_MAJOR 4
+#define EXPECTED_LIBMARPA_MINOR 0
+#define EXPECTED_LIBMARPA_MICRO 2
+
 MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin
 
 PROTOTYPES: DISABLE
@@ -1808,6 +1812,18 @@ PPCODE:
   XSRETURN_PV (op_to_op_name(op));
 }
 
+void
+version()
+PPCODE:
+{
+    unsigned int version[3];
+    int result = marpa_version(version);
+    if (result < 0) { XSRETURN_UNDEF; }
+    XPUSHs (sv_2mortal (newSViv (version[0])));
+    XPUSHs (sv_2mortal (newSViv (version[1])));
+    XPUSHs (sv_2mortal (newSViv (version[2])));
+}
+
 MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin::G
 
 void
@@ -1863,6 +1879,21 @@ PPCODE:
 	  }
       }
     }
+
+  {
+    unsigned int version[3];
+    error_code = marpa_version (version);
+    if (error_code != MARPA_ERR_NONE
+	|| version[0] != EXPECTED_LIBMARPA_MAJOR
+	|| version[1] != EXPECTED_LIBMARPA_MINOR
+	|| version[2] != EXPECTED_LIBMARPA_MICRO)
+      {
+	croak
+	  ("Problem in $g->new(): want Libmarpa %d.%d.%d, using Libmarpa %d.%d.%d",
+	   EXPECTED_LIBMARPA_MAJOR, EXPECTED_LIBMARPA_MINOR,
+	   EXPECTED_LIBMARPA_MICRO, version[0], version[1], version[2]);
+      }
+  }
 
   error_code =
     marpa_check_version (MARPA_MAJOR_VERSION, MARPA_MINOR_VERSION,

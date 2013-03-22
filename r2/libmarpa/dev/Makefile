@@ -57,6 +57,7 @@ STAGE_FILES = \
     ../stage/private.h \
     ../stage/avl.c \
     ../stage/NEWS \
+    ../stage/VERSION.in \
     ../stage/README \
     ../stage/ChangeLog \
     ../stage/COPYING.LESSER \
@@ -152,6 +153,9 @@ marpa.pdf: marpa.tex cwebmac.tex
 	cp $? $@
 
 ../stage/README: dist/README
+	cp $? $@
+
+../stage/VERSION.in: dist/VERSION.in
 	cp $? $@
 
 ../stage/NEWS: dist/NEWS
