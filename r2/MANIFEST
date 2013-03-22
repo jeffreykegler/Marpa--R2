@@ -151,6 +151,7 @@ libmarpa_dist/Makefile.am
 libmarpa_dist/Makefile.in
 libmarpa_dist/NEWS
 libmarpa_dist/README
+libmarpa_dist/VERSION
 libmarpa_dist/VERSION.in
 libmarpa_dist/aclocal.m4
 libmarpa_dist/avl.c
