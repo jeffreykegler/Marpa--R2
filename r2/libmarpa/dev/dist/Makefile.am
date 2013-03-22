@@ -22,7 +22,7 @@ noinst_LTLIBRARIES = libmarpa.la
 libmarpa_la_SOURCES = marpa_obs.c marpa.c marpa_obs.h private.h \
     marpa_util.h marpa_api.h marpa.h avl.c avl.h
 nodist_libmarpa_la_SOURCES = marpa_config.h
-EXTRA_DIST = codes.h codes.c
+EXTRA_DIST = codes.h codes.c VERSION
 libmarpa_la_LIBADD = $(LIBOBJS)
 include_HEADERS = marpa.h marpa_api.h marpa_util.h
 nodist_include_HEADERS = marpa_config.h
