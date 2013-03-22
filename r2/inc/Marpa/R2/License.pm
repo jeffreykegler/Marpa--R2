@@ -285,6 +285,7 @@ my %files_by_type = (
     'libmarpa/dev/VERSION.in'                => \&trivial,
     'libmarpa/dev/api.texi'                 => \&license_problems_in_fdl_file,
     'libmarpa/dev/dist/VERSION.in'          => \&trivial,
+    'libmarpa_dist/VERSION'                 => \&trivial,
     'libmarpa_dist/VERSION.in'              => \&trivial,
     'libmarpa/dev/copyright_page_license.w' => \&copyright_page,
     'libmarpa/dev/cwebmac.tex' =>
