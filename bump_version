@@ -19,7 +19,7 @@ if ( not defined $micro ) {
 $major += 0;
 $minor += 0;
 $micro += 0;
-my $libmarpa_major = $major;
+my $libmarpa_major = $major+3;
 my $libmarpa_minor = $minor+100;
 my $libmarpa_micro = $micro+100;
 
