@@ -1451,26 +1451,6 @@ slr_alternative (Scanless_R * slr, Marpa_Symbol_ID lexeme)
   switch (result)
     {
 
-    case MARPA_ERR_UNEXPECTED_TOKEN_ID:
-      if (trace_level >= 1)
-	{
-	  warn
-	    ("slr->read() R1 Rejected unexpected symbol %d at pos %d",
-	     lexeme, (int) slr->stream->perl_pos);
-	}
-      if (trace_terminals)
-	{
-	  AV *event;
-	  SV *event_data[4];
-	  event_data[0] = newSVpvs ("g1 unexpected lexeme");
-	  event_data[1] = newSViv (slr->start_of_lexeme);	/* start */
-	  event_data[2] = newSViv (slr->end_of_lexeme);	/* end */
-	  event_data[3] = newSViv (lexeme);	/* lexeme */
-	  event = av_make (Dim (event_data), event_data);
-	  av_push (slr->event_queue, newRV_noinc ((SV *) event));
-	}
-      return;
-
     case MARPA_ERR_DUPLICATE_TOKEN:
       if (trace_level >= 1)
 	{
@@ -1530,7 +1510,6 @@ slr_alternatives (Scanless_R * slr, IV * lexemes_found,
 		  IV * lexemes_attempted)
 {
   dTHX;
-  int return_value;
   int lexemes_discarded = 0;
   Marpa_Recce r0;
   Marpa_Earley_Set_ID earley_set;
@@ -1546,6 +1525,8 @@ slr_alternatives (Scanless_R * slr, IV * lexemes_found,
   *lexemes_found = 0;
   while (earley_set > 0)
     {
+      int is_expected;
+      int return_value;
       return_value = marpa_r_progress_report_start (r0, earley_set);
       if (return_value < 0)
 	{
@@ -1617,9 +1598,38 @@ slr_alternatives (Scanless_R * slr, IV * lexemes_found,
 	      goto NEXT_REPORT_ITEM;
 	    }
 
-	  /* trace_terminals done inside slr_alternative */
-	  slr_alternative (slr, g1_lexeme);
 	  (*lexemes_attempted)++;
+	  is_expected = marpa_r_terminal_is_expected (slr->r1, g1_lexeme);
+	  if (is_expected < 0)
+	    {
+	      croak ("Problem in marpa_r_terminal_is_expected(%p, %ld): %s",
+		     (void *) slr->r1, (long) g1_lexeme,
+		     xs_g_error (slr->g0_wrapper));
+	    }
+	  if (!is_expected)
+	    {
+	      if (slr->trace_level >= 1)
+		{
+		  warn
+		    ("slr->read() R1 Rejected unexpected symbol %d at pos %d",
+		     g1_lexeme, (int) slr->stream->perl_pos);
+		}
+	      if (slr->trace_terminals)
+		{
+		  AV *event;
+		  SV *event_data[4];
+		  event_data[0] = newSVpvs ("g1 unexpected lexeme");
+		  event_data[1] = newSViv (slr->start_of_lexeme);	/* start */
+		  event_data[2] = newSViv (slr->end_of_lexeme);	/* end */
+		  event_data[3] = newSViv (g1_lexeme);	/* lexeme */
+		  event = av_make (Dim (event_data), event_data);
+		  av_push (slr->event_queue, newRV_noinc ((SV *) event));
+		}
+	      goto NEXT_REPORT_ITEM;
+	    }
+
+	  /* trace_terminals also done inside slr_alternative */
+	  slr_alternative (slr, g1_lexeme);
 	NEXT_REPORT_ITEM:;
 	}
     NO_MORE_REPORT_ITEMS:;

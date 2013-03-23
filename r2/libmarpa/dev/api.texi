@@ -2609,11 +2609,16 @@ On failure, @minus{}2.
     Marpa_Symbol_ID @var{symbol_id})
 
 Return values on success:
-Non-zero if @var{symbol_id} is the
+If @var{symbol_id} is the
 ID of a valid terminal symbol that is expected at
-the current earleme, zero otherwise.
-If @var{symbol_id} is the ID of a valid symbol
-that is not a terminal, returns zero.
+the current earleme,
+a number greater than zero.
+If @var{symbol_id} is the
+ID of a valid terminal symbol that is
+@strong{not} expected at
+the current earleme, or
+if @var{symbol_id} is the ID of a valid symbol
+that is not a terminal, zero.
 
 Failure cases:
 Returns @minus{}2 on failure.
