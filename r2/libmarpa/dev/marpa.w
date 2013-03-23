@@ -719,7 +719,6 @@ int marpa_g_highest_symbol_id(Marpa_Grammar g) {
 
 @ Symbol by ID.
 @d XSY_by_ID(id) (*DSTACK_INDEX (g->t_xsy_stack, XSY, (id)))
-@d SYM_by_ID(id) XSY_by_ID(id)
 
 @ Adds the symbol to the list of symbols kept by the Grammar
 object.
@@ -1210,7 +1209,7 @@ int marpa_g_symbol_is_start( Marpa_Grammar g, Marpa_Symbol_ID xsy_id)
     @<Fail if fatal error@>@;
     @<Fail if |xsy_id| is malformed@>@;
     @<Soft fail if |xsy_id| does not exist@>@;
-   return SYM_by_ID(xsy_id)->t_is_start;
+   return XSY_by_ID(xsy_id)->t_is_start;
 }
 
 @*0 Symbol rank.
@@ -1229,7 +1228,7 @@ int marpa_g_symbol_rank(Marpa_Grammar g,
     @<Fail if fatal error@>@;
     @<Fail if |xsy_id| is malformed@>@;
     @<Fail if |xsy_id| does not exist@>@;
-    xsy = SYM_by_ID (xsy_id);
+    xsy = XSY_by_ID (xsy_id);
     return Rank_of_XSY(xsy);
 }
 @ @<Function definitions@> =
@@ -1243,7 +1242,7 @@ Marpa_Grammar g, Marpa_Symbol_ID xsy_id, Marpa_Rank rank)
     @<Fail if precomputed@>@;
     @<Fail if |xsy_id| is malformed@>@;
     @<Fail if |xsy_id| does not exist@>@;
-    xsy = SYM_by_ID (xsy_id);
+    xsy = XSY_by_ID (xsy_id);
     if (UNLIKELY (rank < MINIMUM_RANK))
       {
 	MARPA_ERROR (MARPA_ERR_RANK_TOO_LOW);
@@ -1288,7 +1287,7 @@ int _marpa_g_symbol_is_semantic(
     @<Return |-2| on failure@>@;
     @<Fail if |xsy_id| is malformed@>@;
     @<Soft fail if |xsy_id| does not exist@>@;
-    return SYM_is_Semantic(SYM_by_ID(xsy_id));
+    return SYM_is_Semantic(XSY_by_ID(xsy_id));
 }
 
 @*0 Nulling symbol has semantics?.
@@ -1316,7 +1315,7 @@ int marpa_g_symbol_is_valued(
     @<Return |-2| on failure@>@;
     @<Fail if |xsy_id| is malformed@>@;
     @<Soft fail if |xsy_id| does not exist@>@;
-    return XSY_is_Valued(SYM_by_ID(xsy_id));
+    return XSY_is_Valued(XSY_by_ID(xsy_id));
 }
 
 @ @<Function definitions@> =
@@ -1327,7 +1326,7 @@ int marpa_g_symbol_is_valued_set(
   @<Return |-2| on failure@>@;
     @<Fail if |xsy_id| is malformed@>@;
     @<Soft fail if |xsy_id| does not exist@>@;
-  symbol = SYM_by_ID (xsy_id);
+  symbol = XSY_by_ID (xsy_id);
   if (UNLIKELY (value < 0 || value > 1))
     {
       MARPA_ERROR (MARPA_ERR_INVALID_BOOLEAN);
@@ -1378,7 +1377,7 @@ Marpa_Symbol_ID xsy_id)
     @<Fail if fatal error@>@;
     @<Fail if |xsy_id| is malformed@>@;
     @<Soft fail if |xsy_id| does not exist@>@;
-    return SYM_by_ID(xsy_id)->t_is_counted;
+    return XSY_by_ID(xsy_id)->t_is_counted;
 }
 
 @*0 Symbol is nulling?.
@@ -1395,7 +1394,7 @@ int marpa_g_symbol_is_nulling(Marpa_Grammar g, Marpa_Symbol_ID xsy_id)
     @<Fail if not precomputed@>@;
     @<Fail if |xsy_id| is malformed@>@;
     @<Soft fail if |xsy_id| does not exist@>@;
-    return SYM_is_Nulling(SYM_by_ID(xsy_id));
+    return SYM_is_Nulling(XSY_by_ID(xsy_id));
 }
 
 @*0 Symbol is nullable?.
@@ -1412,7 +1411,7 @@ int marpa_g_symbol_is_nullable(Marpa_Grammar g, Marpa_Symbol_ID xsy_id)
     @<Fail if not precomputed@>@;
     @<Fail if |xsy_id| is malformed@>@;
     @<Soft fail if |xsy_id| does not exist@>@;
-    return XSY_is_Nullable(SYM_by_ID(xsy_id));
+    return XSY_is_Nullable(XSY_by_ID(xsy_id));
 }
 
 @*0 Symbol is terminal?.
@@ -1430,7 +1429,7 @@ symbol->t_is_terminal = 0;
 symbol->t_is_locked_terminal = 0;
 @ @d XSY_is_Terminal(symbol) ((symbol)->t_is_terminal)
 @ @d SYM_is_Locked_Terminal(symbol) ((symbol)->t_is_locked_terminal)
-@d SYMID_is_Terminal(id) (XSY_is_Terminal(SYM_by_ID(id)))
+@d SYMID_is_Terminal(id) (XSY_is_Terminal(XSY_by_ID(id)))
 @<Function definitions@> =
 int marpa_g_symbol_is_terminal(Marpa_Grammar g,
 Marpa_Symbol_ID xsy_id)
@@ -1451,7 +1450,7 @@ Marpa_Grammar g, Marpa_Symbol_ID xsy_id, int value)
     @<Fail if precomputed@>@;
     @<Fail if |xsy_id| is malformed@>@;
     @<Soft fail if |xsy_id| does not exist@>@;
-    symbol = SYM_by_ID (xsy_id);
+    symbol = XSY_by_ID (xsy_id);
     if (UNLIKELY (value < 0 || value > 1))
       {
 	MARPA_ERROR (MARPA_ERR_INVALID_BOOLEAN);
@@ -1930,7 +1929,7 @@ marpa_g_rule_new (Marpa_Grammar g,
       }
   }
   {
-    const SYM lhs = SYM_by_ID(lhs_id);
+    const SYM lhs = XSY_by_ID(lhs_id);
     if (UNLIKELY (SYM_is_Sequence_LHS (lhs)))
       {
 	MARPA_ERROR (MARPA_ERR_SEQUENCE_LHS_NOT_UNIQUE);
@@ -1983,11 +1982,11 @@ int min, int flags )
     {
       XRL_is_Proper_Separation (original_rule) = 1;
     }
-  SYM_is_Sequence_LHS (SYM_by_ID (lhs_id)) = 1;
-  SYM_by_ID (rhs_id)->t_is_counted = 1;
+  SYM_is_Sequence_LHS (XSY_by_ID (lhs_id)) = 1;
+  XSY_by_ID (rhs_id)->t_is_counted = 1;
   if (separator_id >= 0)
     {
-      SYM_by_ID (separator_id)->t_is_counted = 1;
+      XSY_by_ID (separator_id)->t_is_counted = 1;
     }
 }
 
@@ -2007,7 +2006,7 @@ int min, int flags )
       goto FAILURE;
     }
   {
-    const SYM lhs = SYM_by_ID (lhs_id);
+    const SYM lhs = XSY_by_ID (lhs_id);
     if (UNLIKELY (SYM_is_LHS (lhs)))
       {
 	MARPA_ERROR (MARPA_ERR_SEQUENCE_LHS_NOT_UNIQUE);
@@ -2921,7 +2920,7 @@ While at it, set a flag to indicate if there are empty rules.
       MARPA_ERROR (MARPA_ERR_INVALID_START_SYMBOL);
       goto FAILURE;
     }
-  if (UNLIKELY(!SYM_is_LHS (SYM_by_ID (start_xsy_id))))
+  if (UNLIKELY(!SYM_is_LHS (XSY_by_ID (start_xsy_id))))
     {
       MARPA_ERROR (MARPA_ERR_START_NOT_LHS);
       goto FAILURE;
@@ -3081,7 +3080,7 @@ and a flag which indicates if there are any.
   bv_not (terminal_v, lhs_v);
   for (symid = 0; symid < pre_census_xsy_count; symid++)
     {
-      SYM symbol = SYM_by_ID (symid);
+      SYM symbol = XSY_by_ID (symid);
       if (SYM_is_Locked_Terminal (symbol))
 	{
 	  /* If marked by the user, leave the symbol
@@ -3154,7 +3153,7 @@ RULEID** xrl_list_x_lh_sym = NULL;
 	for (symid = (SYMID) min;
 	     symid <= (SYMID) max; symid++)
 	  {
-	    SYM symbol = SYM_by_ID (symid);
+	    SYM symbol = XSY_by_ID (symid);
 	    symbol->t_is_productive = 1;
 	  }
       }
@@ -3234,11 +3233,11 @@ Therefore there is no code to free it.
       for (symid = (SYMID) min;
 	   symid <= (SYMID) max; symid++)
 	{
-	  SYM symbol = SYM_by_ID (symid);
+	  SYM symbol = XSY_by_ID (symid);
 	  symbol->t_is_accessible = 1;
 	}
     }
-    SYM_by_ID(start_xsy_id)->t_is_accessible = 1;
+    XSY_by_ID(start_xsy_id)->t_is_accessible = 1;
 }
 
 @ A symbol is nulling if and only if it is an LHS symbol which does not
@@ -3258,7 +3257,7 @@ reach a terminal symbol.
 		  matrix_row (reach_matrix, (unsigned int) productive_id));
 	  if (bv_is_empty (reaches_terminal_v))
 	    {
-	      const SYM symbol = SYM_by_ID (productive_id);
+	      const SYM symbol = XSY_by_ID (productive_id);
 	      SYM_is_Nulling (symbol) = 1;
 	      if (UNLIKELY (XSY_is_Terminal (symbol)))
 		{
@@ -3357,7 +3356,7 @@ if (0)
   const ISY lhs_isy = ISY_by_XSYID(lhs_id);
   const ISYID lhs_isyid = ID_of_ISY(lhs_isy);
 
-  const ISY internal_lhs_isy = isy_new (g, SYM_by_ID(lhs_id));
+  const ISY internal_lhs_isy = isy_new (g, XSY_by_ID(lhs_id));
   const ISYID internal_lhs_isyid = ID_of_ISY(internal_lhs_isy);
 
   const SYMID rhs_id = RHS_ID_of_RULE (rule, 0);
@@ -3573,7 +3572,7 @@ into multiple CHAF rules.
   for (rhs_ix = 0; rhs_ix < rewrite_xrl_length; rhs_ix++)
     {
       Marpa_Symbol_ID symid = RHS_ID_of_RULE (rule, rhs_ix);
-      SYM symbol = SYM_by_ID (symid);
+      SYM symbol = XSY_by_ID (symid);
       if (SYM_is_Nulling (symbol))
 	continue;		/* Do nothing for nulling symbols */
       if (SYM_is_Nullable(symbol))
@@ -3623,7 +3622,7 @@ factor_positions = my_obstack_new(obs_precompute, int, g->t_max_rule_length);
 @ @<Create a CHAF virtual symbol@> =
 {
   const SYMID chaf_xrl_lhs_id = LHS_ID_of_XRL(chaf_xrl);
-  chaf_virtual_isy = isy_new (g, SYM_by_ID(chaf_xrl_lhs_id));
+  chaf_virtual_isy = isy_new (g, XSY_by_ID(chaf_xrl_lhs_id));
   chaf_virtual_isyid = ID_of_ISY(chaf_virtual_isy);
 }
 
@@ -4075,7 +4074,7 @@ This is such a common rewrite that it has a special name
 in the literature --- it is called ``augmenting the grammar".
 @ @<Augment grammar |g|@> =
 {
-    const XSY start_xsy = SYM_by_ID(start_xsy_id);
+    const XSY start_xsy = XSY_by_ID(start_xsy_id);
     if (LIKELY(!SYM_is_Nulling(start_xsy))) {
 	@<Set up a new proper start rule@>@;
     }
@@ -4199,7 +4198,7 @@ unit transitions are not in general reflexive.
 	      nonnulling_id = RHS_ID_of_RULE (rule, rhs_ix);
 	      if (!bv_bit_test (nullable_v, nonnulling_id))
 		continue;
-	      if (SYM_is_Nulling (SYM_by_ID (nonnulling_id)))
+	      if (SYM_is_Nulling (XSY_by_ID (nonnulling_id)))
 		continue;
 	      /* |nonnulling_id| is a proper nullable */
 	      @<For |nonnulling_id|, set to,from rule bit
@@ -8582,7 +8581,7 @@ Marpa_Earleme marpa_r_alternative(
 }
 
 @ @<|marpa_alternative| initial check for failure conditions@> = {
-    const XSY_Const token = SYM_by_ID(token_xsy_id);
+    const XSY_Const token = XSY_by_ID(token_xsy_id);
     if (length <= 0) {
 	MARPA_ERROR(MARPA_ERR_TOKEN_LENGTH_LE_ZERO);
 	return MARPA_ERR_TOKEN_LENGTH_LE_ZERO;
@@ -11285,7 +11284,7 @@ Marpa_Bocage marpa_b_new(Marpa_Recognizer r,
     @<Set |end_of_parse_earley_set| and |end_of_parse_earleme|@>@;
     if (end_of_parse_earleme == 0)
       {
-	if (!XSY_is_Nullable (SYM_by_ID (g->t_start_xsy_id)))
+	if (!XSY_is_Nullable (XSY_by_ID (g->t_start_xsy_id)))
 	  goto NO_PARSE;
 	B_is_Nulling (b) = 1;
 	return b;
