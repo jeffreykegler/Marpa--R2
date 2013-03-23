@@ -724,10 +724,10 @@ int marpa_g_highest_symbol_id(Marpa_Grammar g) {
 object.
 @<Function definitions@> =
 PRIVATE
-void symbol_add( GRAMMAR g, SYM symbol)
+void symbol_add( GRAMMAR g, XSY symbol)
 {
-    const SYMID new_id = DSTACK_LENGTH((g)->t_xsy_stack);
-    *DSTACK_PUSH((g)->t_xsy_stack, SYM) = symbol;
+    const XSYID new_id = DSTACK_LENGTH((g)->t_xsy_stack);
+    *DSTACK_PUSH((g)->t_xsy_stack, XSY) = symbol;
     symbol->t_symbol_id = new_id;
 }
 
@@ -1162,11 +1162,9 @@ marpa_g_error_clear (Marpa_Grammar g)
 typedef int Marpa_Symbol_ID;
 @ @<Private typedefs@> =
 typedef Marpa_Symbol_ID XSYID;
-typedef XSYID SYMID;
 @ @<Private incomplete structures@> =
 struct s_xsy;
 typedef struct s_xsy* XSY;
-typedef XSY SYM;
 typedef const struct s_xsy* XSY_Const;
 
 @ @<Private structures@> =
@@ -1178,14 +1176,13 @@ struct s_xsy {
 
 @*0 ID.
 @d ID_of_XSY(xsy) ((xsy)->t_symbol_id)
-@d ID_of_SYM(sym) ID_of_XSY(sym)
 @<Int aligned symbol elements@> = XSYID t_symbol_id;
 
 @ @<Function definitions@> =
-PRIVATE SYM
+PRIVATE XSY
 symbol_new (GRAMMAR g)
 {
-  SYM symbol = my_obstack_new (g->t_obs, struct s_xsy, 1);
+  XSY symbol = my_obstack_new (g->t_obs, struct s_xsy, 1);
   @<Initialize symbol elements @>@;
   symbol_add (g, symbol);
   return symbol;
@@ -1195,8 +1192,8 @@ symbol_new (GRAMMAR g)
 Marpa_Symbol_ID
 marpa_g_symbol_new (Marpa_Grammar g)
 {
-  const SYM symbol = symbol_new (g);
-  return ID_of_SYM(symbol);
+  const XSY symbol = symbol_new (g);
+  return ID_of_XSY(symbol);
 }
 
 @*0 Symbol is start?.
@@ -1222,7 +1219,7 @@ symbol->t_rank = Default_Rank_of_G(g);
 int marpa_g_symbol_rank(Marpa_Grammar g,
   Marpa_Symbol_ID xsy_id)
 {
-    SYM xsy;
+    XSY xsy;
     @<Return |-2| on failure@>@;
     clear_error(g);
     @<Fail if fatal error@>@;
@@ -1235,7 +1232,7 @@ int marpa_g_symbol_rank(Marpa_Grammar g,
 int marpa_g_symbol_rank_set(
 Marpa_Grammar g, Marpa_Symbol_ID xsy_id, Marpa_Rank rank)
 {
-    SYM xsy;
+    XSY xsy;
     @<Return |-2| on failure@>@;
     clear_error(g);
     @<Fail if fatal error@>@;
@@ -1260,25 +1257,24 @@ Marpa_Grammar g, Marpa_Symbol_ID xsy_id, Marpa_Rank rank)
 Is this (external) symbol on the LHS of any rule,
 whether sequence or BNF.
 @d XSY_is_LHS(xsy) ((xsy)->t_is_lhs)
-@d SYM_is_LHS(symbol) XSY_is_LHS(symbol)
 @<Bit aligned symbol elements@> = unsigned int t_is_lhs:1;
 @ @<Initialize symbol elements@> =
-    SYM_is_LHS(symbol) = 0;
+    XSY_is_LHS(symbol) = 0;
 
 @*0 Symbol is sequence LHS?.
 Is this (external) symbol on the LHS of a sequence rule?
-@d SYM_is_Sequence_LHS(symbol) ((symbol)->t_is_sequence_lhs)
+@d XSY_is_Sequence_LHS(xsy) ((xsy)->t_is_sequence_lhs)
 @<Bit aligned symbol elements@> = unsigned int t_is_sequence_lhs:1;
 @ @<Initialize symbol elements@> =
-    SYM_is_Sequence_LHS(symbol) = 0;
+    XSY_is_Sequence_LHS(symbol) = 0;
 
 @*0 Symbol has semantics?.
 Can the symbol have a user-specified semantics?
 Symbols are semantic by default.
-@d SYM_is_Semantic(symbol) ((symbol)->t_is_semantic)
+@d XSY_is_Semantic(xsy) ((xsy)->t_is_semantic)
 @<Bit aligned symbol elements@> = unsigned int t_is_semantic:1;
 @ @<Initialize symbol elements@> =
-    SYM_is_Semantic(symbol) = 1;
+    XSY_is_Semantic(symbol) = 1;
 @ @<Function definitions@> =
 int _marpa_g_symbol_is_semantic(
     Marpa_Grammar g,
@@ -1287,7 +1283,7 @@ int _marpa_g_symbol_is_semantic(
     @<Return |-2| on failure@>@;
     @<Fail if |xsy_id| is malformed@>@;
     @<Soft fail if |xsy_id| does not exist@>@;
-    return SYM_is_Semantic(XSY_by_ID(xsy_id));
+    return XSY_is_Semantic(XSY_by_ID(xsy_id));
 }
 
 @*0 Nulling symbol has semantics?.
@@ -1322,7 +1318,7 @@ int marpa_g_symbol_is_valued(
 int marpa_g_symbol_is_valued_set(
     Marpa_Grammar g, Marpa_Symbol_ID xsy_id, int value)
 {
-  SYM symbol;
+  XSY symbol;
   @<Return |-2| on failure@>@;
     @<Fail if |xsy_id| is malformed@>@;
     @<Soft fail if |xsy_id| does not exist@>@;
@@ -1344,7 +1340,6 @@ int marpa_g_symbol_is_valued_set(
 
 @*0 Symbol is accessible?.
 @d XSY_is_Accessible(xsy) ((xsy)->t_is_accessible)
-@d SYM_is_Accessible(sym) XSY_is_Accessible(sym)
 @<Bit aligned symbol elements@> = unsigned int t_is_accessible:1;
 @ @<Initialize symbol elements@> =
 symbol->t_is_accessible = 0;
@@ -1382,7 +1377,6 @@ Marpa_Symbol_ID xsy_id)
 
 @*0 Symbol is nulling?.
 @d XSY_is_Nulling(sym) ((sym)->t_is_nulling)
-@d SYM_is_Nulling(sym) XSY_is_Nulling(sym)
 @<Bit aligned symbol elements@> = unsigned int t_is_nulling:1;
 @ @<Initialize symbol elements@> =
 symbol->t_is_nulling = 0;
@@ -1394,12 +1388,11 @@ int marpa_g_symbol_is_nulling(Marpa_Grammar g, Marpa_Symbol_ID xsy_id)
     @<Fail if not precomputed@>@;
     @<Fail if |xsy_id| is malformed@>@;
     @<Soft fail if |xsy_id| does not exist@>@;
-    return SYM_is_Nulling(XSY_by_ID(xsy_id));
+    return XSY_is_Nulling(XSY_by_ID(xsy_id));
 }
 
 @*0 Symbol is nullable?.
 @d XSY_is_Nullable(sym) ((sym)->t_is_nullable)
-@d SYM_is_Nullable(sym) XSY_is_Nullable(sym)
 @<Bit aligned symbol elements@> = unsigned int t_is_nullable:1;
 @ @<Initialize symbol elements@> =
 symbol->t_is_nullable = 0;
@@ -1428,8 +1421,8 @@ unsigned int t_is_locked_terminal:1;
 symbol->t_is_terminal = 0;
 symbol->t_is_locked_terminal = 0;
 @ @d XSY_is_Terminal(symbol) ((symbol)->t_is_terminal)
-@ @d SYM_is_Locked_Terminal(symbol) ((symbol)->t_is_locked_terminal)
-@d SYMID_is_Terminal(id) (XSY_is_Terminal(XSY_by_ID(id)))
+@ @d XSY_is_Locked_Terminal(symbol) ((symbol)->t_is_locked_terminal)
+@d XSYID_is_Terminal(id) (XSY_is_Terminal(XSY_by_ID(id)))
 @<Function definitions@> =
 int marpa_g_symbol_is_terminal(Marpa_Grammar g,
 Marpa_Symbol_ID xsy_id)
@@ -1438,13 +1431,13 @@ Marpa_Symbol_ID xsy_id)
     @<Fail if fatal error@>@;
     @<Fail if |xsy_id| is malformed@>@;
     @<Soft fail if |xsy_id| does not exist@>@;
-    return SYMID_is_Terminal(xsy_id);
+    return XSYID_is_Terminal(xsy_id);
 }
 @ @<Function definitions@> =
 int marpa_g_symbol_is_terminal_set(
 Marpa_Grammar g, Marpa_Symbol_ID xsy_id, int value)
 {
-    SYM symbol;
+    XSY symbol;
     @<Return |-2| on failure@>@;
     @<Fail if fatal error@>@;
     @<Fail if precomputed@>@;
@@ -1456,19 +1449,18 @@ Marpa_Grammar g, Marpa_Symbol_ID xsy_id, int value)
 	MARPA_ERROR (MARPA_ERR_INVALID_BOOLEAN);
 	return failure_indicator;
       }
-    if (UNLIKELY (SYM_is_Locked_Terminal (symbol))
+    if (UNLIKELY (XSY_is_Locked_Terminal (symbol))
 	&& XSY_is_Terminal (symbol) != value)
       {
 	MARPA_ERROR (MARPA_ERR_TERMINAL_IS_LOCKED);
 	return failure_indicator;
       }
-    SYM_is_Locked_Terminal (symbol) = 1;
+    XSY_is_Locked_Terminal (symbol) = 1;
     return XSY_is_Terminal (symbol) = value;
 }
 
 @*0 Symbol is productive?.
 @d XSY_is_Productive(xsy) ((xsy)->t_is_productive)
-@d SYM_is_Productive(xsy) XSY_is_Productive(xsy)
 @<Bit aligned symbol elements@> = unsigned int t_is_productive:1;
 @ @<Initialize symbol elements@> =
 symbol->t_is_productive = 0;
@@ -1554,10 +1546,10 @@ The nulling alias will have a new symbol ID.
 The return value is a pointer to the nulling alias.
 @ @<Function definitions@> =
 PRIVATE
-ISY symbol_alias_create(GRAMMAR g, SYM symbol)
+ISY symbol_alias_create(GRAMMAR g, XSY symbol)
 {
     ISY alias_isy = isy_new(g, symbol);
-    SYM_is_Nulling(symbol) = 0;
+    XSY_is_Nulling(symbol) = 0;
     XSY_is_Nullable(symbol) = 1;
     ISY_is_Nulling(alias_isy) = 1;
     return alias_isy;
@@ -1821,7 +1813,7 @@ It is big,
 and it is used in a lot of places.
 @<Function definitions@> =
 PRIVATE
-  XRL xrl_start (GRAMMAR g, const SYMID lhs, const SYMID * rhs, int length)
+  XRL xrl_start (GRAMMAR g, const XSYID lhs, const XSYID * rhs, int length)
 {
   XRL xrl;
   const int sizeof_xrl = offsetof (struct s_xrl, t_symbols) +
@@ -1851,7 +1843,7 @@ XRL xrl_finish(GRAMMAR g, XRL rule)
 
 PRIVATE_NOT_INLINE
 RULE rule_new(GRAMMAR g,
-const SYMID lhs, const SYMID *rhs, int length)
+const XSYID lhs, const XSYID *rhs, int length)
 {
     RULE rule = xrl_start(g, lhs, rhs, length);
     xrl_finish(g, rule);
@@ -1920,7 +1912,7 @@ marpa_g_rule_new (Marpa_Grammar g,
     int rh_index;
     for (rh_index = 0; rh_index < length; rh_index++)
       {
-	const SYMID rhs_id = rhs_ids[rh_index];
+	const XSYID rhs_id = rhs_ids[rh_index];
 	if (UNLIKELY (!xsy_id_is_valid (g, rhs_id)))
 	  {
 	    MARPA_ERROR (MARPA_ERR_INVALID_SYMBOL_ID);
@@ -1929,8 +1921,8 @@ marpa_g_rule_new (Marpa_Grammar g,
       }
   }
   {
-    const SYM lhs = XSY_by_ID(lhs_id);
-    if (UNLIKELY (SYM_is_Sequence_LHS (lhs)))
+    const XSY lhs = XSY_by_ID(lhs_id);
+    if (UNLIKELY (XSY_is_Sequence_LHS (lhs)))
       {
 	MARPA_ERROR (MARPA_ERR_SEQUENCE_LHS_NOT_UNIQUE);
 	return failure_indicator;
@@ -1982,7 +1974,7 @@ int min, int flags )
     {
       XRL_is_Proper_Separation (original_rule) = 1;
     }
-  SYM_is_Sequence_LHS (XSY_by_ID (lhs_id)) = 1;
+  XSY_is_Sequence_LHS (XSY_by_ID (lhs_id)) = 1;
   XSY_by_ID (rhs_id)->t_is_counted = 1;
   if (separator_id >= 0)
     {
@@ -2006,8 +1998,8 @@ int min, int flags )
       goto FAILURE;
     }
   {
-    const SYM lhs = XSY_by_ID (lhs_id);
-    if (UNLIKELY (SYM_is_LHS (lhs)))
+    const XSY lhs = XSY_by_ID (lhs_id);
+    if (UNLIKELY (XSY_is_LHS (lhs)))
       {
 	MARPA_ERROR (MARPA_ERR_SEQUENCE_LHS_NOT_UNIQUE);
 	goto FAILURE;
@@ -2294,7 +2286,7 @@ a separator (the two cases are not distinguished).
 Rule IDs which do not exist and
 other failures are hard failures.
 @d Separator_of_XRL(rule) ((rule)->t_separator_id)
-@<Bit aligned rule elements@> = SYMID t_separator_id;
+@<Bit aligned rule elements@> = XSYID t_separator_id;
 @ @<Initialize rule elements@> =
 Separator_of_XRL(rule) = -1;
 @ @<Function definitions@> =
@@ -2920,7 +2912,7 @@ While at it, set a flag to indicate if there are empty rules.
       MARPA_ERROR (MARPA_ERR_INVALID_START_SYMBOL);
       goto FAILURE;
     }
-  if (UNLIKELY(!SYM_is_LHS (XSY_by_ID (start_xsy_id))))
+  if (UNLIKELY(!XSY_is_LHS (XSY_by_ID (start_xsy_id))))
     {
       MARPA_ERROR (MARPA_ERR_START_NOT_LHS);
       goto FAILURE;
@@ -2934,7 +2926,7 @@ XSYID start_xsy_id = g->t_start_xsy_id;
 @<Private structures@> =
 struct sym_rule_pair
 {
-  SYMID t_symid;
+  XSYID t_symid;
   RULEID t_ruleid;
 };
 
@@ -2992,7 +2984,7 @@ PRIVATE_NOT_INLINE int sym_rule_cmp(
 
       if (is_sequence)
 	{
-	  const SYMID separator_id = Separator_of_XRL(rule);
+	  const XSYID separator_id = Separator_of_XRL(rule);
 	  if (Minimum_of_XRL (rule) <= 0)
 	    {
 	      bv_bit_set (empty_lhs_v, (unsigned int) lhs_id);
@@ -3024,7 +3016,7 @@ PRIVATE_NOT_INLINE int sym_rule_cmp(
   {
     AVL_TRAV traverser;
     struct sym_rule_pair *pair;
-    SYMID seen_symid = -1;
+    XSYID seen_symid = -1;
     RULEID *const rule_data_base =
       my_obstack_new (obs_precompute, RULEID, External_Size_of_G (g));
     RULEID *p_rule_data = rule_data_base;
@@ -3034,7 +3026,7 @@ PRIVATE_NOT_INLINE int sym_rule_cmp(
     for (pair = _marpa_avl_t_first (traverser); pair;
 	 pair = (struct sym_rule_pair*)_marpa_avl_t_next (traverser))
       {
-	const SYMID current_symid = pair->t_symid;
+	const XSYID current_symid = pair->t_symid;
 	while (seen_symid < current_symid)
 	  xrl_list_x_rh_sym[++seen_symid] = p_rule_data;
 	*p_rule_data++ = pair->t_ruleid;
@@ -3047,7 +3039,7 @@ PRIVATE_NOT_INLINE int sym_rule_cmp(
   {
     AVL_TRAV traverser;
     struct sym_rule_pair *pair;
-    SYMID seen_symid = -1;
+    XSYID seen_symid = -1;
     RULEID *const rule_data_base =
       my_obstack_new (obs_precompute, RULEID, xrl_count);
     RULEID *p_rule_data = rule_data_base;
@@ -3058,7 +3050,7 @@ PRIVATE_NOT_INLINE int sym_rule_cmp(
     for (pair = _marpa_avl_t_first (traverser); pair;
 	pair = (struct sym_rule_pair *) _marpa_avl_t_next (traverser))
       {
-	const SYMID current_symid = pair->t_symid;
+	const XSYID current_symid = pair->t_symid;
 	while (seen_symid < current_symid)
 	  xrl_list_x_lh_sym[++seen_symid] = p_rule_data;
 	*p_rule_data++ = pair->t_ruleid;
@@ -3075,13 +3067,13 @@ already marked as terminal,
 and a flag which indicates if there are any.
 @<Census terminals@> =
 {
-  SYMID symid;
+  XSYID symid;
   terminal_v = bv_obs_create (obs_precompute, pre_census_xsy_count);
   bv_not (terminal_v, lhs_v);
   for (symid = 0; symid < pre_census_xsy_count; symid++)
     {
-      SYM symbol = XSY_by_ID (symid);
-      if (SYM_is_Locked_Terminal (symbol))
+      XSY symbol = XSY_by_ID (symid);
+      if (XSY_is_Locked_Terminal (symbol))
 	{
 	  /* If marked by the user, leave the symbol
 	     as set by the user, and update the boolean vector */
@@ -3146,14 +3138,14 @@ RULEID** xrl_list_x_lh_sym = NULL;
   rhs_closure (g, productive_v, xrl_list_x_rh_sym);
   {
     unsigned int min, max, start;
-    SYMID symid;
+    XSYID symid;
     for (start = 0; bv_scan (productive_v, start, &min, &max);
 	 start = max + 2)
       {
-	for (symid = (SYMID) min;
-	     symid <= (SYMID) max; symid++)
+	for (symid = (XSYID) min;
+	     symid <= (XSYID) max; symid++)
 	  {
-	    SYM symbol = XSY_by_ID (symid);
+	    XSY symbol = XSY_by_ID (symid);
 	    symbol->t_is_productive = 1;
 	  }
       }
@@ -3195,7 +3187,7 @@ where many of the right hand sides repeat symbols.
   for (rule_id = 0; rule_id < xrl_count; rule_id++)
     {
       XRL rule = XRL_by_ID (rule_id);
-      SYMID lhs_id = LHS_ID_of_RULE (rule);
+      XSYID lhs_id = LHS_ID_of_RULE (rule);
       unsigned int rhs_ix, rule_length = Length_of_XRL (rule);
       for (rhs_ix = 0; rhs_ix < rule_length; rhs_ix++)
 	{
@@ -3205,7 +3197,7 @@ where many of the right hand sides repeat symbols.
 	}
       if (XRL_is_Sequence (rule))
 	{
-	  const SYMID separator_id = Separator_of_XRL (rule);
+	  const XSYID separator_id = Separator_of_XRL (rule);
 	  if (separator_id >= 0)
 	    {
 	      matrix_bit_set (reach_matrix,
@@ -3227,13 +3219,13 @@ Therefore there is no code to free it.
   Bit_Vector accessible_v =
     matrix_row (reach_matrix, (unsigned int) start_xsy_id);
   unsigned int min, max, start;
-  SYMID symid;
+  XSYID symid;
   for (start = 0; bv_scan (accessible_v, start, &min, &max); start = max + 2)
     {
-      for (symid = (SYMID) min;
-	   symid <= (SYMID) max; symid++)
+      for (symid = (XSYID) min;
+	   symid <= (XSYID) max; symid++)
 	{
-	  SYM symbol = XSY_by_ID (symid);
+	  XSY symbol = XSY_by_ID (symid);
 	  symbol->t_is_accessible = 1;
 	}
     }
@@ -3249,16 +3241,16 @@ reach a terminal symbol.
   unsigned int min, max, start;
   for (start = 0; bv_scan (lhs_v, start, &min, &max); start = max + 2)
     {
-      SYMID productive_id;
-      for (productive_id = (SYMID) min;
-	   productive_id <= (SYMID) max; productive_id++)
+      XSYID productive_id;
+      for (productive_id = (XSYID) min;
+	   productive_id <= (XSYID) max; productive_id++)
 	{
 	  bv_and (reaches_terminal_v, terminal_v,
 		  matrix_row (reach_matrix, (unsigned int) productive_id));
 	  if (bv_is_empty (reaches_terminal_v))
 	    {
-	      const SYM symbol = XSY_by_ID (productive_id);
-	      SYM_is_Nulling (symbol) = 1;
+	      const XSY symbol = XSY_by_ID (productive_id);
+	      XSY_is_Nulling (symbol) = 1;
 	      if (UNLIKELY (XSY_is_Terminal (symbol)))
 		{
 		  nulling_terminal_found = 1;
@@ -3352,18 +3344,18 @@ if (0)
 @** The sequence rewrite.
 @<Rewrite sequence |rule| into BNF@> =
 {
-  const SYMID lhs_id = LHS_ID_of_RULE (rule);
+  const XSYID lhs_id = LHS_ID_of_RULE (rule);
   const ISY lhs_isy = ISY_by_XSYID(lhs_id);
   const ISYID lhs_isyid = ID_of_ISY(lhs_isy);
 
   const ISY internal_lhs_isy = isy_new (g, XSY_by_ID(lhs_id));
   const ISYID internal_lhs_isyid = ID_of_ISY(internal_lhs_isy);
 
-  const SYMID rhs_id = RHS_ID_of_RULE (rule, 0);
+  const XSYID rhs_id = RHS_ID_of_RULE (rule, 0);
   const ISY rhs_isy = ISY_by_XSYID(rhs_id);
   const ISYID rhs_isyid = ID_of_ISY(rhs_isy);
 
-  const SYMID separator_id = Separator_of_XRL (rule);
+  const XSYID separator_id = Separator_of_XRL (rule);
   ISYID separator_isyid = -1;
   if (separator_id >= 0) {
     const ISY separator_isy = ISY_by_XSYID(separator_id) ;
@@ -3572,10 +3564,10 @@ into multiple CHAF rules.
   for (rhs_ix = 0; rhs_ix < rewrite_xrl_length; rhs_ix++)
     {
       Marpa_Symbol_ID symid = RHS_ID_of_RULE (rule, rhs_ix);
-      SYM symbol = XSY_by_ID (symid);
-      if (SYM_is_Nulling (symbol))
+      XSY symbol = XSY_by_ID (symid);
+      if (XSY_is_Nulling (symbol))
 	continue;		/* Do nothing for nulling symbols */
-      if (SYM_is_Nullable(symbol))
+      if (XSY_is_Nullable(symbol))
 	{
 	  /* If a proper nullable, record its position */
 	  factor_positions[factor_count++] = rhs_ix;
@@ -3621,7 +3613,7 @@ factor_positions = my_obstack_new(obs_precompute, int, g->t_max_rule_length);
 
 @ @<Create a CHAF virtual symbol@> =
 {
-  const SYMID chaf_xrl_lhs_id = LHS_ID_of_XRL(chaf_xrl);
+  const XSYID chaf_xrl_lhs_id = LHS_ID_of_XRL(chaf_xrl);
   chaf_virtual_isy = isy_new (g, XSY_by_ID(chaf_xrl_lhs_id));
   chaf_virtual_isyid = ID_of_ISY(chaf_virtual_isy);
 }
@@ -4075,7 +4067,7 @@ in the literature --- it is called ``augmenting the grammar".
 @ @<Augment grammar |g|@> =
 {
     const XSY start_xsy = XSY_by_ID(start_xsy_id);
-    if (LIKELY(!SYM_is_Nulling(start_xsy))) {
+    if (LIKELY(!XSY_is_Nulling(start_xsy))) {
 	@<Set up a new proper start rule@>@;
     }
 }
@@ -4174,7 +4166,7 @@ unit transitions are not in general reflexive.
   for (rule_id = 0; rule_id < xrl_count; rule_id++)
     {
       XRL rule = XRL_by_ID (rule_id);
-      SYMID nonnulling_id = -1;
+      XSYID nonnulling_id = -1;
       int nonnulling_count = 0;
       int rhs_ix, rule_length;
       rule_length = Length_of_XRL (rule);
@@ -4198,7 +4190,7 @@ unit transitions are not in general reflexive.
 	      nonnulling_id = RHS_ID_of_RULE (rule, rhs_ix);
 	      if (!bv_bit_test (nullable_v, nonnulling_id))
 		continue;
-	      if (SYM_is_Nulling (XSY_by_ID (nonnulling_id)))
+	      if (XSY_is_Nulling (XSY_by_ID (nonnulling_id)))
 		continue;
 	      /* |nonnulling_id| is a proper nullable */
 	      @<For |nonnulling_id|, set to,from rule bit
@@ -5982,7 +5974,7 @@ int _marpa_g_AHFA_state_transitions(Marpa_Grammar g,
     @<Return |-2| on failure@>@;
     AHFA from_ahfa_state;
     TRANS* transitions;
-    SYMID isyid;
+    XSYID isyid;
     int isy_count;
     int ix = 0;
     const int max_ix = buffer_size / sizeof(*buffer);
@@ -6036,7 +6028,7 @@ AHFAID _marpa_g_AHFA_state_empty_transition(Marpa_Grammar g,
   g->t_bv_isyid_is_terminal = bv_obs_create (g->t_obs, isy_count);
   for (xsy_id = 0; xsy_id < xsy_count; xsy_id++)
     {
-      if (SYMID_is_Terminal (xsy_id))
+      if (XSYID_is_Terminal (xsy_id))
 	{
 	  /* A terminal might have no corresponding ISY.
 	    Currently that can happen if it is not accessible */
@@ -7454,7 +7446,7 @@ postdot item.
 Marpa_Symbol_ID
 _marpa_r_next_postdot_item_trace (Marpa_Recognizer r)
 {
-  const SYMID no_more_postdot_symbols = -1;
+  const XSYID no_more_postdot_symbols = -1;
   @<Return |-2| on failure@>@;
   ES current_set = r->t_trace_earley_set;
   PIM pim;
@@ -10944,7 +10936,7 @@ int _marpa_b_and_node_symbol(Marpa_Bocage b,
   @<Check |and_node_id|; set |and_node|@>@;
   {
     const OR cause_or = Cause_OR_of_AND (and_node);
-    const SYMID symbol_id =
+    const XSYID symbol_id =
       OR_is_Token (cause_or) ? ISYID_of_OR (cause_or) : -1;
     return symbol_id;
   }
@@ -13816,7 +13808,7 @@ rhs_closure (GRAMMAR g, Bit_Vector bv, XRLID ** xrl_list_x_rh_sym)
     }
   while ((top_of_stack = FSTACK_POP (stack)))
     {
-      const SYMID xsy_id = *top_of_stack;
+      const XSYID xsy_id = *top_of_stack;
       XRLID *p_xrl = xrl_list_x_rh_sym[xsy_id];
       const XRLID *p_one_past_rules = xrl_list_x_rh_sym[xsy_id + 1];
       for (; p_xrl < p_one_past_rules; p_xrl++)
@@ -13825,7 +13817,7 @@ rhs_closure (GRAMMAR g, Bit_Vector bv, XRLID ** xrl_list_x_rh_sym)
 	  const XRL rule = XRL_by_ID (rule_id);
 	  int rule_length;
 	  int rh_ix;
-	  const SYMID lhs_id = LHS_ID_of_XRL (rule);
+	  const XSYID lhs_id = LHS_ID_of_XRL (rule);
 
 	  const int is_sequence = XRL_is_Sequence (rule);
 
@@ -13851,7 +13843,7 @@ rhs_closure (GRAMMAR g, Bit_Vector bv, XRLID ** xrl_list_x_rh_sym)
 	   */
 	  if (is_sequence && Minimum_of_XRL (rule) >= 2)
 	    {
-	      SYMID separator_id = Separator_of_XRL (rule);
+	      XSYID separator_id = Separator_of_XRL (rule);
 	      if (separator_id >= 0)
 		{
 		  if (!bv_bit_test (bv, (unsigned int) separator_id))
