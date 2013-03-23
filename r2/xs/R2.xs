@@ -84,7 +84,6 @@ typedef struct {
      Marpa_Symbol_ID input_symbol_id;
      UV codepoint; /* For error returns */
      HV* per_codepoint_ops;
-     IV ignore_rejection;
 
      /* The minimum number of tokens that must
        be accepted at an earleme */
@@ -313,7 +312,6 @@ enum marpa_op
   op_bless,
   op_callback,
   op_earleme_complete,
-  op_ignore_rejection,
   op_noop,
   op_push_one,
   op_push_length,
@@ -322,7 +320,6 @@ enum marpa_op
   op_push_token_literal,
   op_push_values,
   op_push_start_location,
-  op_report_rejection,
   op_result_is_array,
   op_result_is_constant,
   op_result_is_rhs_n,
@@ -339,7 +336,6 @@ static Marpa_XS_OP_Data marpa_op_data[] = {
 {  op_callback, "callback" },
 {  op_earleme_complete, "earleme_complete" },
 {  op_end_marker, "end_marker" },
-{  op_ignore_rejection, "ignore_rejection" },
 {  op_noop, "noop" },
 {  op_push_length, "push_length" },
 {  op_push_one, "push_one" },
@@ -348,7 +344,6 @@ static Marpa_XS_OP_Data marpa_op_data[] = {
 {  op_push_undef, "push_undef" },
 {  op_push_token_literal, "push_token_literal" },
 {  op_push_values, "push_values" },
-{  op_report_rejection, "report_rejection" },
 {  op_result_is_array, "result_is_array" },
 {  op_result_is_constant, "result_is_constant" },
 {  op_result_is_n_of_sequence, "result_is_n_of_sequence" },
@@ -464,7 +459,6 @@ static Unicode_Stream* u_new(SV* g_sv)
   stream->pos_db_physical_size = -1;
   stream->input_symbol_id = -1;
   stream->per_codepoint_ops = newHV ();
-  stream->ignore_rejection = 1;
   stream->minimum_accepted = 1;
   stream->trace_g0 = 0;
   stream->event_queue = newAV ();
@@ -541,7 +535,7 @@ u_r0_new (Unicode_Stream * stream)
 /* Return values:
  * 1 or greater: an event count, as returned by earleme complete.
  * 0: success: a full reading of the input, with nothing to report.
- * -1: a character was rejected, when rejection is not being ignored
+ * -1: a character was rejected
  * -2: an unregistered character was found
  * -3: earleme_complete() reported an exhausted parse.
  * -4: we are tracing, character by character
@@ -573,7 +567,6 @@ u_read(Unicode_Stream *stream)
       STRLEN op_ix;
       STRLEN op_count;
       IV *ops;
-      IV ignore_rejection = stream->ignore_rejection;
       IV minimum_accepted = stream->minimum_accepted;
       int tokens_accepted = 0;
       if (stream->perl_pos >= stream->pos_db_logical_size)
@@ -632,16 +625,6 @@ u_read(Unicode_Stream *stream)
 	  IV op_code = ops[op_ix];
 	  switch (op_code)
 	    {
-	    case op_report_rejection:
-	      {
-		ignore_rejection = 0;
-		break;
-	      }
-	    case op_ignore_rejection:
-	      {
-		ignore_rejection = 1;
-		break;
-	      }
 	    case op_alternative:
 	      {
 		int result;
@@ -687,11 +670,6 @@ u_read(Unicode_Stream *stream)
 			event = av_make (Dim (event_data), event_data);
 			av_push (stream->event_queue,
 				 newRV_noinc ((SV *) event));
-		      }
-		    if (!ignore_rejection)
-		      {
-			stream->codepoint = codepoint;
-			return -1;
 		      }
 		    break;
 		  case MARPA_ERR_NONE:
@@ -2475,16 +2453,6 @@ PPCODE:
 {
     SV* event = av_shift(stream->event_queue);
     XPUSHs (sv_2mortal (event));
-}
-
-void
-ignore_rejection( stream, boolean )
-     Unicode_Stream *stream;
-     IV boolean;
-PPCODE:
-{
-     stream->ignore_rejection = boolean ? 1 : 0;
-     XSRETURN_IV(stream->ignore_rejection);
 }
 
 void
