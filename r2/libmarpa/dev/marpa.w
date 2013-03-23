@@ -6345,11 +6345,12 @@ int marpa_r_terminals_expected(Marpa_Recognizer r, Marpa_Symbol_ID* buffer)
 int marpa_r_terminal_is_expected(Marpa_Recognizer r,
 Marpa_Symbol_ID xsy_id)
 {
+    @<Return |-2| on failure@>@;
+   @<Unpack recognizer objects@>@;
    XSY xsy;
    ISYID isyid;
-   @<Unpack recognizer objects@>@;
-    @<Return |-2| on failure@>@;
     @<Fail if fatal error@>@;
+    @<Fail if recognizer not started@>@;
     @<Fail if |xsy_id| is malformed@>@;
     @<Fail if |xsy_id| does not exist@>@;
     xsy = XSY_by_ID(xsy_id);

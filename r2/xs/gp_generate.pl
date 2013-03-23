@@ -196,15 +196,16 @@ say {$out} gp_generate(qw(earleme Marpa_Earley_Set_ID ordinal));
 say {$out} gp_generate(qw(earleme_complete));
 say {$out} gp_generate(qw(earley_item_warning_threshold));
 say {$out} gp_generate(qw(earley_item_warning_threshold_set int too_many_earley_items));
-say {$out} gp_generate(qw(furthest_earleme));
 say {$out} gp_generate(qw(earley_set_value Marpa_Earley_Set_ID ordinal));
-say {$out} gp_generate(qw(latest_earley_set_value_set int value));
-say {$out} gp_generate(qw(is_exhausted));
 say {$out} gp_generate(qw(expected_symbol_event_set Marpa_Symbol_ID xsyid int value));
+say {$out} gp_generate(qw(furthest_earleme));
+say {$out} gp_generate(qw(is_exhausted));
 say {$out} gp_generate(qw(latest_earley_set));
+say {$out} gp_generate(qw(latest_earley_set_value_set int value));
 say {$out} gp_generate(qw(progress_report_finish));
 say {$out} gp_generate(qw(progress_report_start Marpa_Earley_Set_ID ordinal));
 say {$out} gp_generate(qw(start_input));
+say {$out} gp_generate(qw(terminal_is_expected Marpa_Symbol_ID xsyid));
 
 # Nothing (as yet) in bocage class
 
