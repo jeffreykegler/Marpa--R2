@@ -2572,6 +2572,19 @@ if it is the ID of an nulling, inaccessible for unproductive symbol;
 or on other failure.
 @end deftypefun
 
+@deftypefun int marpa_r_is_exhausted (Marpa_Recognizer @var{r})
+A parser is ``exhausted'' if it cannot accept any more input.
+Both successful and failed parses can be exhausted.
+In many grammars,
+the parse is always exhausted as soon as it succeeds.
+Good parses may also exist at earlemes prior to the
+current one.
+
+Return value:
+1 if the parser is exhausted, 0 otherwise.
+Always succeeds.
+@end deftypefun
+
 @deftypefun int marpa_r_terminals_expected ( @
     Marpa_Recognizer @var{r}, @
     Marpa_Symbol_ID* @var{buffer})
@@ -2591,17 +2604,22 @@ in @var{buffer}.
 On failure, @minus{}2.
 @end deftypefun
 
-@deftypefun int marpa_r_is_exhausted (Marpa_Recognizer @var{r})
-A parser is ``exhausted'' if it cannot accept any more input.
-Both successful and failed parses can be exhausted.
-In many grammars,
-the parse is always exhausted as soon as it succeeds.
-Good parses may also exist at earlemes prior to the
-current one.
+@deftypefun int marpa_r_terminal_is_expected ( @
+    Marpa_Recognizer @var{r}, @
+    Marpa_Symbol_ID @var{symbol_id})
 
-Return value:
-1 if the parser is exhausted, 0 otherwise.
-Always succeeds.
+Return values on success:
+Non-zero if @var{symbol_id} is the
+ID of a valid terminal symbol that is expected at
+the current earleme, zero otherwise.
+If @var{symbol_id} is the ID of a valid symbol
+that is not a terminal, returns zero.
+
+Failure cases:
+Returns @minus{}2 on failure.
+It is a failure
+if @var{symbol_id} is not the ID of a valid
+symbol.
 @end deftypefun
 
 @node Progress reports, Bocage methods, Recognizer methods, Top

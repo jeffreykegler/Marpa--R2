@@ -1420,8 +1420,8 @@ unsigned int t_is_locked_terminal:1;
 @ @<Initialize symbol elements@> =
 symbol->t_is_terminal = 0;
 symbol->t_is_locked_terminal = 0;
-@ @d XSY_is_Terminal(symbol) ((symbol)->t_is_terminal)
-@ @d XSY_is_Locked_Terminal(symbol) ((symbol)->t_is_locked_terminal)
+@ @d XSY_is_Terminal(xsy) ((xsy)->t_is_terminal)
+@ @d XSY_is_Locked_Terminal(xsy) ((xsy)->t_is_locked_terminal)
 @d XSYID_is_Terminal(id) (XSY_is_Terminal(XSY_by_ID(id)))
 @<Function definitions@> =
 int marpa_g_symbol_is_terminal(Marpa_Grammar g,
@@ -6340,6 +6340,24 @@ int marpa_r_terminals_expected(Marpa_Recognizer r, Marpa_Symbol_ID* buffer)
 	  }
       }
     return ix;
+}
+@ @<Function definitions@> =
+int marpa_r_terminal_is_expected(Marpa_Recognizer r,
+Marpa_Symbol_ID xsy_id)
+{
+   XSY xsy;
+   ISYID isyid;
+   @<Unpack recognizer objects@>@;
+    @<Return |-2| on failure@>@;
+    @<Fail if fatal error@>@;
+    @<Fail if |xsy_id| is malformed@>@;
+    @<Fail if |xsy_id| does not exist@>@;
+    xsy = XSY_by_ID(xsy_id);
+    if (UNLIKELY(!XSY_is_Terminal(xsy))) {
+	return 0;
+    }
+    isyid = ISYID_of_XSY(xsy);
+    return bv_bit_test (r->t_bv_isyid_is_expected, isyid);
 }
 
 @*0 Expected symbol is event?.
