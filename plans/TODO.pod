@@ -88,6 +88,28 @@ and even when handled well, makes debugging harder for the
 application.
 It is for this reason that action names are used in Marpa.
 
+=head2 More syntax for RHS subexpressions
+
+There are various suggestions for RHS sub-expressions,
+which share a common issue.
+There's a hidden tradeoff for cool syntax --
+it usually involves grammar rewrites internally,
+and a lot of internal rules,
+would make the tracing and debugging output more
+mysterious.
+
+People don't get grammars right the first time,
+and I currently think it better to force the application
+to spread things over multiple lines.
+That way,
+when the tracing and debugging reports about a rule,
+the programmer knows what that rule is
+because the programmer wrote that rule out himself.
+
+I am currently pleasantly surprised at how well Marpa
+users cope with the current level of rule rewriting.
+Nonetheless, I do not want to push my luck.
+
 =head1 Copyright and License
 
 =for Marpa::R2::Display
