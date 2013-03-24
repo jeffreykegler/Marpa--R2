@@ -241,7 +241,7 @@ Returns the current position.
 
 =head1 Pausing the internal scan
 
-=head2 C<:lexeme> psueudo-rules
+=head2 C<:lexeme> pseudo-rules
 
       :lexeme ::= variable pause => before
 
