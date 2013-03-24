@@ -108,7 +108,8 @@ to spread things over multiple lines.
 That way,
 when the tracing and debugging reports about a rule,
 the programmer knows what that rule is
-because the programmer wrote that rule out himself.
+because the programmer wrote the rules out himself,
+long-hand.
 
 I am currently pleasantly surprised at how well Marpa
 users cope with the current level of rule rewriting.
