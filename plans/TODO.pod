@@ -39,6 +39,55 @@ and of the same length.
 A high lexeme priority will not make the G1 grammar
 accept a lexeme that it would otherwise reject.
 
+=head1 Dubious
+
+This is a list of ideas with real merit,
+but also with issues.
+The issues are described for each.
+I will not prioritize any item on this list until
+I've figured out how to deal with the issue.
+
+=head2 '?' quantifier for SLIF rules
+
+Example
+
+    lhs ::= optional_symbol?
+
+This is a natural addition to the Kleene star ("C<*>")and plus sign ("C<+>").
+The issue is that this would be implemented as a rewrite into two rules,
+like so:
+
+    lhs ::= optional_symbol
+    lhs ::= # empty
+
+If I create the rules internally, there's a problem in describing 
+them for tracing and debugging.
+This issue does not exist if the user writes the rules himself.
+I take the naming issue very seriously, because Marpa's tracing
+and debugging ability is one of its important advantages.
+
+=head2 Perl anonymous subroutines as SLIF actions
+
+Allowing Perl anonymous subs
+as semantics
+would tie the SLIF more heavily to Perl
+than I am inclined to at this point.
+In particular, I am not sure, whether there should be
+a default semantics,
+and whether if there is one it
+should be Perl or something more targeted.
+
+A disadvantage of allowing Perl code is that problems
+(compile-time warnings,
+compile-time errors,
+run-time warnings,
+run-time exceptions
+and run-time errors) all must be handled inside Marpa.
+This is hard to handle well,
+and even when handled well, makes debugging harder for the
+application.
+It is for this reason that action names are used in Marpa.
+
 =head1 Copyright and License
 
 =for Marpa::R2::Display
