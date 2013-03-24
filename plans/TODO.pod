@@ -1,0 +1,66 @@
+# Copyright 2013 Jeffrey Kegler
+# This file is part of Marpa::R2.  Marpa::R2 is free software: you can
+# redistribute it and/or modify it under the terms of the GNU Lesser
+# General Public License as published by the Free Software Foundation,
+# either version 3 of the License, or (at your option) any later version.
+#
+# Marpa::R2 is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser
+# General Public License along with Marpa::R2.  If not, see
+# http://www.gnu.org/licenses/.
+
+=head1 Name
+
+Marpa::R2 To Do -- "To Do" list for Marpa
+
+=head1 About this document
+
+This is more notes to myself than a road map.
+Items mentioned may be removed, changed, re-ranked, etc.
+
+=head1 Items to do
+
+=head2 Add lexeme priorities
+
+In the SLIF, allow lexemes to be prioritized.
+When G1 is accepting lexemes, all lexemes not of the
+highest priority will be discarded.
+Since multiple lexemes may have the same priority,
+the result will not necessarily be unique.
+
+Lexeme priorites will have an effect only at the
+point where the G1 grammar is choosing among acceptable
+lexemes with the same start location
+and of the same length.
+A high lexeme priority will not make the G1 grammar
+accept a lexeme that it would otherwise reject.
+
+=head1 Copyright and License
+
+=for Marpa::R2::Display
+ignore: 1
+
+  Copyright 2013 Jeffrey Kegler
+  This file is part of Marpa::R2.  Marpa::R2 is free software: you can
+  redistribute it and/or modify it under the terms of the GNU Lesser
+  General Public License as published by the Free Software Foundation,
+  either version 3 of the License, or (at your option) any later version.
+
+  Marpa::R2 is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser
+  General Public License along with Marpa::R2.  If not, see
+  http://www.gnu.org/licenses/.
+
+=for Marpa::R2::Display::End
+
+=cut
+
+# vim: expandtab shiftwidth=4:

@@ -237,11 +237,7 @@ the input stream.
 
 =head2 New C<< $slr->pos() >> method
 
-Queries the current position.
-
-=head2 New C<< $slr->pos_set($new_pos) >> method
-
-Changes the current position to C<$new_pos>.
+Returns the current position.
 
 =head1 Pausing the internal scan
 
