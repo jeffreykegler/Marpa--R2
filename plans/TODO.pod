@@ -93,10 +93,14 @@ It is for this reason that action names are used in Marpa.
 There are various suggestions for RHS sub-expressions,
 which share a common issue.
 There's a hidden tradeoff for cool syntax --
-it usually involves grammar rewrites internally,
-and a lot of internal rules,
-would make the tracing and debugging output more
-mysterious.
+it usually involves grammar rewrites internally.
+In the tracing and debugging output,
+internal rules
+need programmatically-concocted names
+for special symbols,
+and these are hard to read.
+Users find symbol names easier to read if they named
+the symbols themselves.
 
 People don't get grammars right the first time,
 and I currently think it better to force the application
