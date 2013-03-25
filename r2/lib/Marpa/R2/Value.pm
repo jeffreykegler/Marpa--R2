@@ -866,7 +866,11 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
     local $Marpa::R2::Internal::Context::VALUATOR = $value;
     value_trace( $value, $trace_values ? 1 : 0 );
     $value->trace_values($trace_values);
-    $value->stack_mode_set($token_values);
+    $value->stack_mode_set();
+    TOKEN_IX: for (my $token_ix = 2; $token_ix <= $#{$token_values}; $token_ix++) {
+        my $token_value = $token_values->[$token_ix];
+        $value->token_value_set($token_ix, $token_value) if defined $token_value;
+    }
 
     state $op_bless         = Marpa::R2::Thin::op('bless');
     state $op_callback      = Marpa::R2::Thin::op('callback');

@@ -159,7 +159,7 @@ typedef struct
   SV *base_sv;
   G_Wrapper *base;
   AV *event_queue;
-  AV *token_values;
+  HV *token_values;
   AV *stack;
   IV trace_values;
   int mode;			/* 'raw' or 'stack' */
@@ -1091,9 +1091,11 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
 	      case MARPA_STEP_TOKEN:
 		{
 		  SV **p_token_value_sv;
-		  p_token_value_sv =
-		    av_fetch (v_wrapper->token_values,
-			      marpa_v_token_value (v), 0);
+		  int token_value = marpa_v_token_value (v);
+		  p_token_value_sv = hv_fetch (
+		    v_wrapper->token_values,
+		     (char *) &token_value,
+		    (I32) sizeof (token_value), 0);
 		  if (p_token_value_sv)
 		    {
 		      av_push (values_av,
@@ -1353,14 +1355,17 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
 	case op_result_is_token_value:
 	  {
 	    SV **p_token_value_sv;
+	    int token_value = marpa_v_token_value (v);
 
 	    if (step_type != MARPA_STEP_TOKEN)
 	      {
 		av_fill (stack, result_ix - 1);
 		return -1;
 	      }
-	    p_token_value_sv =
-	      av_fetch (v_wrapper->token_values, marpa_v_token_value (v), 0);
+		  p_token_value_sv = hv_fetch (
+		    v_wrapper->token_values,
+		     (char *) &token_value,
+		    (I32) sizeof (token_value), 0);
 	    if (p_token_value_sv)
 	      {
 		SV *token_value_sv = newSVsv (*p_token_value_sv);
@@ -2761,7 +2766,7 @@ PPCODE:
   v_wrapper->base = t_wrapper->base;
   v_wrapper->v = v;
   v_wrapper->event_queue = newAV ();
-  v_wrapper->token_values = NULL;
+  v_wrapper->token_values = newHV ();
   v_wrapper->stack = NULL;
   v_wrapper->mode = MARPA_XS_V_MODE_IS_INITIAL;
   v_wrapper->result = 0;
@@ -2799,10 +2804,7 @@ PPCODE:
     {
       SvREFCNT_dec (v_wrapper->stack);
     }
-  if (v_wrapper->token_values)
-    {
-      SvREFCNT_dec (v_wrapper->token_values);
-    }
+  SvREFCNT_dec (v_wrapper->token_values);
   marpa_v_unref (v);
   Safefree (v_wrapper);
 }
@@ -2825,6 +2827,24 @@ PPCODE:
     av_push (v_wrapper->event_queue, newRV_noinc ((SV *) event));
   }
   XSRETURN_IV (old_level);
+}
+
+void
+token_value_set( v_wrapper, token_ix, token_value )
+    V_Wrapper *v_wrapper;
+    int token_ix;
+    SV* token_value;
+PPCODE:
+{
+  if (token_ix < 2)
+    {
+      croak
+	("Problem in v->token_value_set(): token_value cannot be set for index %ld",
+	 (long) token_ix);
+    }
+  hv_store (v_wrapper->token_values, (char *) &token_ix,
+	    sizeof (token_ix), token_value, 0);
+  SvREFCNT_inc (token_value);
 }
 
 void
@@ -2922,9 +2942,8 @@ PPCODE:
 }
 
 void
-stack_mode_set( v_wrapper, token_values )
+stack_mode_set( v_wrapper )
     V_Wrapper *v_wrapper;
-    AV* token_values;
 PPCODE:
 {
   Marpa_Grammar g = v_wrapper->base->g;
@@ -2940,8 +2959,6 @@ PPCODE:
       croak ("Problem in v->stack_mode_set(): Could not create stack");
     }
 
-  v_wrapper->token_values = token_values;
-  SvREFCNT_inc (token_values);
 
   {
     int ix;
