@@ -2519,23 +2519,24 @@ PPCODE:
 }
 
 void
-string_set( stream, string )
+string_set( stream, string, start_pos, length )
      Unicode_Stream *stream;
      SVREF string;
+     int start_pos;
+     int length;
 PPCODE:
 {
   U8* p;
   U8* start_of_string;
   U8* end_of_string;
   int input_is_utf8;
-  STRLEN length;
-  stream->perl_pos = 0;
+  STRLEN pv_length;
   /* Get our own copy and coerce it to a PV.
    * Stealing is OK, magic is not.
    */
   SvSetSV (stream->input, string);
-  start_of_string = (U8*)SvPV_force_nomg (stream->input, length);
-  end_of_string = start_of_string + length;
+  start_of_string = (U8*)SvPV_force_nomg (stream->input, pv_length);
+  end_of_string = start_of_string + pv_length;
   input_is_utf8 = SvUTF8 (stream->input);
 
   stream->pos_db_logical_size = 0;
@@ -2578,6 +2579,25 @@ PPCODE:
       stream->pos_db[stream->pos_db_logical_size++].next_offset =
 	p - start_of_string;
     }
+
+  /* Set positions */
+  stream->perl_pos = start_pos;
+  if (stream->perl_pos < 0) {
+       stream->perl_pos += stream->pos_db_logical_size;
+  }
+  if (stream->perl_pos < 0 || stream->perl_pos > stream->pos_db_logical_size)
+  {
+      croak ("Bad start position in stream->string_set(): %ld", (long)start_pos);
+  }
+  if (length < 0) {
+    stream->end_pos = stream->pos_db_logical_size + length + 1;
+  } else {
+    stream->end_pos = stream->perl_pos + length;
+  }
+  if (stream->end_pos < 0 || stream->end_pos > stream->pos_db_logical_size)
+  {
+      croak ("Bad length in stream->string_set(): %ld", (long)length);
+  }
 }
 
 void
