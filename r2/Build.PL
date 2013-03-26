@@ -33,7 +33,9 @@ my @packages_for_perl_autoconf = qw( Config::AutoConf ExtUtils::MakeMaker );
 
 my %configure_requires =
     map { ( $_, $Marpa::R2::VERSION_FOR_CONFIG{$_} ) }
-    qw( Module::Build Scalar::Util List::Util Carp Data::Dumper ExtUtils::CBuilder Test::More ),
+    qw( CPAN::Meta::Converter Carp Data::Dumper
+    ExtUtils::CBuilder List::Util Module::Build
+    Scalar::Util Test::More),
     @packages_for_perl_autoconf;
 my %requires =
     map { ( $_, $Marpa::R2::VERSION_FOR_CONFIG{$_} ) }
@@ -52,18 +54,22 @@ my %pod_files = ();
         $pod_file =~ s/ \s* [#] .* \z //xms;
         next LINE if not $pod_file =~ / [.] pod \z /xms;
         next LINE if $pod_file =~ m{ libmarpa [/] dev [/] old_pod [/] }xms;
-        if ( ( my $destfile = $pod_file ) =~ s{ \A pod [/] }{lib/Marpa/R2/}xms ) {
+        if ( ( my $destfile = $pod_file )
+            =~ s{ \A pod [/] }{lib/Marpa/R2/}xms )
+        {
             $pod_files{$pod_file} = $destfile;
-	    next LINE;
-        }
-        if ( ( my $destfile = $pod_file ) =~ s{ \A html [/] pod [/] }{lib/Marpa/R2/}xms ) {
+            next LINE;
+        } ## end if ( ( my $destfile = $pod_file ) =~ ...)
+        if ( ( my $destfile = $pod_file )
+            =~ s{ \A html [/] pod [/] }{lib/Marpa/R2/}xms )
+        {
             $pod_files{$pod_file} = $destfile;
-	    next LINE;
-        }
-	die "Failed to rename POD file: $pod_file";
-    } ## end for my $pod_file (@pod_files)
+            next LINE;
+        } ## end if ( ( my $destfile = $pod_file ) =~ ...)
+        die "Failed to rename POD file: $pod_file";
+    } ## end LINE: for my $pod_file (@pod_files)
 }
-$pod_files{'pod/Marpa_R2.pod'} = 'lib/Marpa/R2.pod';
+$pod_files{'pod/Marpa_R2.pod'}  = 'lib/Marpa/R2.pod';
 $pod_files{'html/pod/HTML.pod'} = 'lib/Marpa/R2/HTML.pod';
 
 my %pm_files = ();
@@ -91,17 +97,17 @@ for my $pm_file (qw(Version.pm Installed.pm)) {
 }
 
 my @no_index_namespace_inclusive = qw(
-        Marpa::R2::HTML
-        Marpa::R2::Value
-        Marpa::R2::Perl
-        Marpa::R2::Test
-        Marpa::R2::Display
-        Marpa::R2::Inner
-        Marpa::R2::Internal
-        Marpa::R2::MetaAST
-        Marpa::R2::MetaG
-        Marpa::R2::Stuifzand
-        );
+    Marpa::R2::HTML
+    Marpa::R2::Value
+    Marpa::R2::Perl
+    Marpa::R2::Test
+    Marpa::R2::Display
+    Marpa::R2::Inner
+    Marpa::R2::Internal
+    Marpa::R2::MetaAST
+    Marpa::R2::MetaG
+    Marpa::R2::Stuifzand
+);
 
 my @files_to_cleanup = (
     'lib/Marpa/R2/Version.pm',   'pperl/Marpa/R2/Perl/Version.pm',
