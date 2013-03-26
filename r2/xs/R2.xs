@@ -5089,6 +5089,15 @@ PPCODE:
   XPUSHs (sv_2mortal (newSViv ((IV) length)));
 }
 
+void
+g1_alternative(slr, symbol_id, value)
+    Scanless_R *slr;
+    Marpa_Symbol_ID symbol_id;
+    SV* value;
+PPCODE:
+{
+}
+
 INCLUDE: general_pattern.xsh
 
 BOOT:
