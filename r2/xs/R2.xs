@@ -80,6 +80,8 @@ typedef struct {
 	 One past last actual position indicates past-end-of-string
      */
      int perl_pos;
+     /* Location (exclusive) at which to stop reading */
+     int end_pos;
      SV* input;
      Marpa_Symbol_ID input_symbol_id;
      UV codepoint; /* For error returns */
@@ -456,6 +458,7 @@ static Unicode_Stream* u_new(SV* g_sv)
   stream->r0_sv = NULL;
   stream->input = newSVpvn ("", 0);
   stream->perl_pos = 0;
+  stream->end_pos = 0;
   stream->pos_db = 0;
   stream->pos_db_logical_size = -1;
   stream->pos_db_physical_size = -1;
@@ -549,6 +552,7 @@ u_read(Unicode_Stream *stream)
   U8 *input;
   STRLEN len;
   int input_is_utf8;
+  int input_length;
 
   const IV trace_g0 = stream->trace_g0;
   Marpa_Recognizer r = stream->r0;
@@ -571,7 +575,7 @@ u_read(Unicode_Stream *stream)
       IV *ops;
       IV minimum_accepted = stream->minimum_accepted;
       int tokens_accepted = 0;
-      if (stream->perl_pos >= stream->pos_db_logical_size)
+      if (stream->perl_pos >= stream->end_pos)
 	break;
 
       if (input_is_utf8)
@@ -757,22 +761,29 @@ u_read(Unicode_Stream *stream)
   return 0;
 }
 
+/* Assumes caller has made sure the start_pos and
+ * length are OK */
+/* It is OK to set pos to last codepoint + 1 */
 static STRLEN
-u_pos_set (Unicode_Stream * stream, int new_pos)
+u_pos_set (Unicode_Stream * stream, int start_pos, int length)
 {
   dTHX;
   U8 *input;
-  int input_is_utf8;
+  int input_is_utf8 = SvUTF8 (stream->input);
   STRLEN len;
   const STRLEN old_pos = stream->perl_pos;
+  const STRLEN input_length = stream->pos_db_logical_size;
+  int end_pos;
 
-  /* OK to set pos to last codepoint + 1 */
-  if (new_pos < 0 || new_pos > stream->pos_db_logical_size)
-    {
-      croak ("Problem in stream->pos_set(): new pos = %ld, but length = %ld",
-	     (long) new_pos, (long) stream->pos_db_logical_size);
-    }
-  stream->perl_pos = new_pos;
+  if (start_pos < 0) {
+      start_pos = input_length + start_pos;
+  }
+  stream->perl_pos = start_pos;
+  if (length < 0) {
+      stream->end_pos = input_length + length + 1;
+  } else {
+    stream->end_pos = start_pos + length;
+  }
   return old_pos;
 }
 
@@ -2594,23 +2605,13 @@ PPCODE:
 }
 
 void
-pos_set( stream, new_pos )
-     Unicode_Stream *stream;
-     int new_pos;
-PPCODE:
-{
-  const STRLEN old_pos = u_pos_set(stream, new_pos);
-  u_r0_clear(stream);
-  XSRETURN_IV (old_pos);
-}
-
-void
 read( stream )
      Unicode_Stream *stream;
 PPCODE:
 {
   int return_value;
   av_clear(stream->event_queue);
+  u_pos_set(stream, 0, -1);
   return_value = u_read(stream);
   XSRETURN_IV(return_value);
 }
@@ -4978,7 +4979,7 @@ PPCODE:
 	  STRLEN input_length = SvCUR (stream->input);
 
 	  slr->start_of_lexeme = slr->end_of_lexeme;
-	  u_pos_set (stream, slr->start_of_lexeme);
+	  u_pos_set (stream, slr->start_of_lexeme, -1);
 	  if (stream->perl_pos >= stream->pos_db_logical_size)
 	    {
 	      XSRETURN_PV ("");
