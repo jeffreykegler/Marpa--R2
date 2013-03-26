@@ -122,6 +122,8 @@ typedef struct {
      G_Wrapper* g0_wrapper;
      G_Wrapper* g1_wrapper;
      AV* event_queue;
+     HV* token_values;
+     int next_token_ix;
      int trace_level;
      int trace_terminals;
      STRLEN start_of_lexeme;
@@ -2859,6 +2861,11 @@ PPCODE:
     }
   SvREFCNT_inc (slr);
   v_wrapper->slr = slr;
+  # Throw away the current token values hash
+  # and steal ownership of the one in the SLR
+  SvREFCNT_dec (v_wrapper->token_values);
+  v_wrapper->token_values = slr->token_values;
+  slr->token_values = NULL;
 }
 
 void
@@ -4830,6 +4837,8 @@ PPCODE:
   slr->start_of_lexeme = 0;
   slr->end_of_lexeme = 0;
   slr->event_queue = newAV();
+  slr->token_values = newHV ();
+  slr->next_token_ix = 2;
 
   {
     SV* g0_sv = slg->g0_sv;
@@ -4858,8 +4867,12 @@ PPCODE:
   SvREFCNT_dec (slr->stream_sv);
   SvREFCNT_dec (slr->slg_sv);
   SvREFCNT_dec (slr->r1_sv);
-  SvREFCNT_dec ((SV*)slr->event_queue);
-  Safefree(slr);
+  SvREFCNT_dec ((SV *) slr->event_queue);
+  if (slr->token_values)
+    {
+      SvREFCNT_dec ((SV *) slr->token_values);
+    }
+  Safefree (slr);
 }
 
 void
@@ -5090,12 +5103,16 @@ PPCODE:
 }
 
 void
-g1_alternative(slr, symbol_id, value)
+g1_alternative (slr, symbol_id, token_value)
     Scanless_R *slr;
     Marpa_Symbol_ID symbol_id;
-    SV* value;
+    SV* token_value;
 PPCODE:
 {
+  int token_ix = slr->next_token_ix++;
+  hv_store (slr->token_values, (char *) &token_ix,
+	    sizeof (token_ix), token_value, 0);
+  SvREFCNT_inc (token_value);
 }
 
 INCLUDE: general_pattern.xsh
