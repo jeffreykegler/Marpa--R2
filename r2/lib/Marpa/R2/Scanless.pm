@@ -562,8 +562,10 @@ sub Marpa::R2::Scanless::R::error {
 }
 
 sub Marpa::R2::Scanless::R::read {
-    my ( $self, $p_string ) = @_;
+    my ( $self, $p_string, $start_pos, $length ) = @_;
 
+    $start_pos //= 0;
+    $length //= -1;
     Marpa::R2::exception(
         "Multiple read()'s tried on a scannerless recognizer\n",
         '  Currently only a single scannerless read is allowed'
@@ -611,7 +613,7 @@ sub Marpa::R2::Scanless::R::read {
         $grammar->[Marpa::R2::Inner::Scanless::G::CHARACTER_CLASS_TABLE];
 
     my $length_of_string = length ${$p_string};
-    $stream->string_set($p_string, 0, -1);
+    $stream->string_set($p_string, $start_pos, $length);
     OUTER_READ: while (1) {
 
         # These values are used for diagnostics,

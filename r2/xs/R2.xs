@@ -4999,7 +4999,6 @@ PPCODE:
 	  STRLEN input_length = SvCUR (stream->input);
 
 	  slr->start_of_lexeme = slr->end_of_lexeme;
-	  u_pos_set (stream, slr->start_of_lexeme, -1);
 	  if (stream->perl_pos >= stream->pos_db_logical_size)
 	    {
 	      XSRETURN_PV ("");
