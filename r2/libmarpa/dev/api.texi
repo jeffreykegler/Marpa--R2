@@ -2349,6 +2349,11 @@ the parse will prove excessive.
 A parse is ``exhausted'' when it can accept no more
 input.
 This can happen both on success and on failure.
+Note that the failure due to parse exhaustion
+only means failure
+at the current earleme.
+There may be successful parses
+at earlier earlemes.
 
 If a parse is exhausted, but successful,
 an event with the event code
@@ -2393,12 +2398,6 @@ no alternatives were added at the current earleme
 and, second,
 that call left the current
 earleme equal to the furthest earleme.
-
-Note that the failure due to parse exhaustion
-only means failure
-at the current earleme.
-There may be successful parses
-at earlier earlemes.
 
 Return value:  On success, the number of events generated.
 On failure, @minus{}2.
