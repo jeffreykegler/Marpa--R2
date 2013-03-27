@@ -133,6 +133,7 @@ typedef struct {
      int please_start_lex_recce;
      int stream_read_result;
      int r1_earleme_complete_result;
+     int throw;
 } Scanless_R;
 
 typedef struct marpa_b Bocage;
@@ -4829,6 +4830,7 @@ PPCODE:
     }
   Newx (slr, 1, Scanless_R);
 
+  slr->throw = 1;
   slr->trace_level = 0;
   slr->trace_terminals = 0;
 
@@ -4886,6 +4888,14 @@ PPCODE:
       SvREFCNT_dec ((SV *) slr->token_values);
     }
   Safefree (slr);
+}
+
+void throw_set(slr, throw_setting)
+    Scanless_R *slr;
+    int throw_setting;
+PPCODE:
+{
+  slr->throw = throw_setting;
 }
 
 void
@@ -5125,7 +5135,11 @@ PPCODE:
 	    sizeof (token_ix), token_value, 0);
   SvREFCNT_inc (token_value);
   result = marpa_r_alternative (slr->r1, symbol_id, token_ix, 1);
-  XSRETURN_IV (result);
+  if (result == MARPA_ERR_NONE || !slr->throw)
+    {
+      XSRETURN_IV (result);
+    }
+  croak ("Problem in slr->g1_alternative(): %s", xs_g_error (slr->g1_wrapper));
 }
 
 void
@@ -5154,6 +5168,10 @@ PPCODE:
 						     (stream->end_pos -
 						      stream->perl_pos)));
     }
+  if ( result < 0 && slr->throw ) {
+    croak( "Problem in slr->g1_lexeme_complete(): %s",
+     xs_g_error( slr->g1_wrapper ));
+  }
   XSRETURN_IV (result);
 }
 
