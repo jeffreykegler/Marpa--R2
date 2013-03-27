@@ -2581,18 +2581,10 @@ PPCODE:
     }
 
   /* Set positions */
-  stream->perl_pos = start_pos;
-  if (stream->perl_pos < 0) {
-       stream->perl_pos += stream->pos_db_logical_size;
-  }
+  u_pos_set(stream, start_pos, length);
   if (stream->perl_pos < 0 || stream->perl_pos > stream->pos_db_logical_size)
   {
       croak ("Bad start position in stream->string_set(): %ld", (long)start_pos);
-  }
-  if (length < 0) {
-    stream->end_pos = stream->pos_db_logical_size + length + 1;
-  } else {
-    stream->end_pos = stream->perl_pos + length;
   }
   if (stream->end_pos < 0 || stream->end_pos > stream->pos_db_logical_size)
   {
@@ -5048,10 +5040,8 @@ PPCODE:
 	{
 	  const int lexeme_start = slr->start_of_lexeme;
 	  const int lexeme_length = slr->end_of_lexeme - lexeme_start;
-	  slr->g1_wrapper->throw = 0;
 	  result = slr->r1_earleme_complete_result =
 	    marpa_r_earleme_complete (slr->r1);
-	  slr->g1_wrapper->throw = 1;
 	  if (result < 0)
 	    {
 	      XSRETURN_PV ("R1 earleme_complete() problem");
@@ -5129,10 +5119,42 @@ g1_alternative (slr, symbol_id, token_value)
     SV* token_value;
 PPCODE:
 {
+  int result;
   int token_ix = slr->next_token_ix++;
   hv_store (slr->token_values, (char *) &token_ix,
 	    sizeof (token_ix), token_value, 0);
   SvREFCNT_inc (token_value);
+  result = marpa_r_alternative (slr->r1, symbol_id, token_ix, 1);
+  XSRETURN_IV (result);
+}
+
+void
+g1_lexeme_complete (slr, start_pos, length)
+    Scanless_R *slr;
+    int start_pos;
+    int length;
+PPCODE:
+{
+  int result;
+  Unicode_Stream *stream = slr->stream;
+  u_pos_set (stream, start_pos, length);
+  if (stream->perl_pos < 0 || stream->perl_pos > stream->pos_db_logical_size)
+    {
+      croak ("Bad start position for lexeme: %ld", (long) start_pos);
+    }
+  if (stream->end_pos < 0 || stream->end_pos > stream->pos_db_logical_size)
+    {
+      croak ("Bad length for lexeme: %ld", (long) length);
+    }
+  result = marpa_r_earleme_complete (slr->r1);
+  if (result >= 0)
+    {
+      marpa_r_latest_earley_set_values_set (slr->r1, stream->perl_pos,
+					    INT2PTR (void *,
+						     (stream->end_pos -
+						      stream->perl_pos)));
+    }
+  XSRETURN_IV (result);
 }
 
 INCLUDE: general_pattern.xsh
