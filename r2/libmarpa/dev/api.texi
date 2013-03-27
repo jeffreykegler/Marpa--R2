@@ -2375,23 +2375,26 @@ occurs if and only if
 no alternatives
 were accepted at the current earleme.
 
-When variable length tokens are in use,
-things are slightly more complicated.
+The circumstances under which
+failure due to parse exhaustion occurs
+are slightly more complicated
+when variable length tokens are in use.
 Informally,
-A parse will not fail due to exhaustion as long
+a parse will never fail due to exhaustion as long
 as it is possible that a token
 ending at some future
 earleme will continue the parse.
 More precisely,
-failure due to parse exhaustion occurs 
-if and only if 
-no alternatives were added at the current earleme,
-and 
-the call to 
-@code{marpa_r_earleme_complete()} left the current
+a call to 
+@code{marpa_r_earleme_complete()} fails
+due to parse exhaustion
+if and only if, first,
+no alternatives were added at the current earleme
+and, second,
+that call left the current
 earleme equal to the furthest earleme.
 
-Note that the failure due to parse exhaustino
+Note that the failure due to parse exhaustion
 only means failure
 at the current earleme.
 There may be successful parses
