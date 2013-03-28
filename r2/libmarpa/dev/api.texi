@@ -909,20 +909,38 @@ Here are some useful facts about the earleme variables that will always be the c
 no matter which of the input models is in use.
 
 @itemize
-@item The current earleme is greater than
+@item The current earleme is always greater than
 or equal to the latest earleme.
-@item The furthest earleme is greater than
+@item The furthest earleme is always greater than
 or equal to the latest earleme.
-@item If the parser is not exhausted,
-the furthest earleme is always greater than
-or equal to the current earleme.
-@item In an exhausted parser,
-the furthest earleme is always less than
-or equal to the current earleme.
 @item If the furthest earleme is greater than the current earleme,
 the parser is not exhausted.
-@item For the furthest earleme to be less than the current earleme,
-the parser must be exhausted.
+@item If the furthest earleme is less than the current earleme,
+the parser is exhausted.
+@end itemize
+
+If the parser is not exhausted,
+the following will always be true,
+no matter which of the input models is in use.
+
+@itemize
+@item 
+The furthest earleme is greater than
+or equal to the current earleme.
+@end itemize
+
+In an exhausted parser, the following will always be true,
+no matter which of the input models is in use.
+
+@itemize
+@item 
+The furthest earleme is less than
+or equal to the current earleme.
+@item If 
+the furthest earleme is equal to the current earleme,
+the parse was successful at the current earleme.
+@item If the furthest earleme is less than the current earleme,
+the parse failed at the current earleme.
 @end itemize
 
 @node Terminals,  , Earlemes, Input
