@@ -5186,15 +5186,35 @@ PPCODE:
   result = marpa_r_earleme_complete (slr->r1);
   if (result >= 0)
     {
+      /* All events except MARPA_EVENT_EARLEY_ITEM_THRESHOLD are ignored,
+       * and even that is ignored except on success.
+       * It causes a warning which can be turned off by raising
+       * the Earley item warning threshold.
+       */
+      int event_ix;
+      for (event_ix = 0; event_ix < result; event_ix++)
+	{
+	  Marpa_Event event;
+	  const int event_type = marpa_g_event (slr->g1_wrapper->g, &event,
+						event_ix);
+	  if (event_type == MARPA_EVENT_EARLEY_ITEM_THRESHOLD)
+	    {
+	      warn
+		("Marpa: Scanless G1 Earley item count (%ld) exceeds warning threshold",
+		 (long) marpa_g_event_value (&event));
+	      break;		/* No need to look at more events */
+	    }
+	}
       marpa_r_latest_earley_set_values_set (slr->r1, stream->perl_pos,
 					    INT2PTR (void *,
 						     (stream->end_pos -
 						      stream->perl_pos)));
     }
-  if ( result < 0 && slr->throw ) {
-    croak( "Problem in slr->g1_lexeme_complete(): %s",
-     xs_g_error( slr->g1_wrapper ));
-  }
+  if (result < 0 && slr->throw)
+    {
+      croak ("Problem in slr->g1_lexeme_complete(): %s",
+	     xs_g_error (slr->g1_wrapper));
+    }
   XSRETURN_IV (result);
 }
 

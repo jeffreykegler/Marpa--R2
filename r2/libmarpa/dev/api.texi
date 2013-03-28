@@ -620,7 +620,7 @@ the value of the latest earleme is
 same as the value of the current earleme.
 After every call to the @code{marpa_r_earleme_complete()} method
 that does @strong{not} add a token,
-the value of the lastest earleme is unchanged
+the value of the latest earleme is unchanged
 from its value before the call.
 
 @node The significances of the earleme variables, The initial earleme settings, The earleme variables, Earlemes
@@ -3817,8 +3817,10 @@ Suggested message: "This symbol is a counted nullable".
 @end deftypevr
 
 @deftypevr Macro int MARPA_EVENT_EARLEY_ITEM_THRESHOLD
-The user-settable Earley item threshold was exceeded.
-Event value: Undefined.
+This event indicates the current Earley item count
+exceeded a
+user-settable threshold.
+Event value: The current Earley item count.
 Suggested message: "Too many Earley items".
 @end deftypevr
 
