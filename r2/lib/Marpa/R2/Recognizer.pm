@@ -164,9 +164,10 @@ sub Marpa::R2::Recognizer::new {
     $recce->[Marpa::R2::Internal::Recognizer::RANKING_METHOD] = 'none';
     $recce->[Marpa::R2::Internal::Recognizer::MAX_PARSES]     = 0;
 
-    # First position is not used because 0 indicates an unvalued token.
-    # Second position is reserved for undef.
-    $recce->[Marpa::R2::Internal::Recognizer::TOKEN_VALUES] = [undef, undef];
+    # Position 0 is not used because 0 indicates an unvalued token.
+    # Position 1 is reserved for undef.
+    # Position 2 is reserved for literal tokens (used in SLIF).
+    $recce->[Marpa::R2::Internal::Recognizer::TOKEN_VALUES] = [undef, undef, undef];
 
     $recce->reset_evaluation();
 

@@ -137,6 +137,9 @@ typedef struct {
      int throw;
 } Scanless_R;
 
+#define TOKEN_VALUE_IS_UNDEF (1)
+#define TOKEN_VALUE_IS_LITERAL (2)
+
 typedef struct marpa_b Bocage;
 typedef struct {
      Marpa_Bocage b;
@@ -323,14 +326,12 @@ enum marpa_op
   op_push_length,
   op_push_undef,
   op_push_sequence,
-  op_push_token_literal,
   op_push_values,
   op_push_start_location,
   op_result_is_array,
   op_result_is_constant,
   op_result_is_rhs_n,
   op_result_is_n_of_sequence,
-  op_result_is_token_literal,
   op_result_is_token_value,
   op_result_is_undef
 };
@@ -348,13 +349,11 @@ static Marpa_XS_OP_Data marpa_op_data[] = {
 {  op_push_sequence, "push_sequence" },
 {  op_push_start_location, "push_start_location" },
 {  op_push_undef, "push_undef" },
-{  op_push_token_literal, "push_token_literal" },
 {  op_push_values, "push_values" },
 {  op_result_is_array, "result_is_array" },
 {  op_result_is_constant, "result_is_constant" },
 {  op_result_is_n_of_sequence, "result_is_n_of_sequence" },
 {  op_result_is_rhs_n, "result_is_rhs_n" },
-{  op_result_is_token_literal, "result_is_token_literal" },
 {  op_result_is_token_value, "result_is_token_value" },
 {  op_result_is_undef, "result_is_undef" },
   { -1, (char *)NULL}
@@ -1065,38 +1064,6 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
 	  }
 	  return -1;
 
-	case op_push_token_literal:
-	  {
-	    Scanless_R *slr = v_wrapper->slr;
-	    if (!values_av)
-	      {
-		values_av = (AV *) sv_2mortal ((SV *) newAV ());
-	      }
-	    if (!slr)
-	      {
-		croak
-		  ("Problem in v->stack_step: 'push_token_literal' op attempted when no slr is set");
-	      }
-	    if (step_type == MARPA_STEP_TOKEN)
-	      {
-		SV *sv;
-		int dummy;
-		Marpa_Earley_Set_ID start_earley_set =
-		  marpa_v_token_start_es_id (v);
-		Marpa_Earley_Set_ID end_earley_set = marpa_v_es_id (v);
-		sv =
-		  slr_es_span_to_literal_sv (slr, start_earley_set,
-					     end_earley_set -
-					     start_earley_set);
-		av_push (values_av, sv);
-	      }
-	    else
-	      {
-		av_push (values_av, &PL_sv_undef);
-	      }
-	  }
-	  break;
-
 	case op_push_values:
 	case op_push_sequence:
 	  {
@@ -1112,6 +1079,22 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
 		{
 		  SV **p_token_value_sv;
 		  int token_value = marpa_v_token_value (v);
+	    Scanless_R* slr = v_wrapper->slr;
+	    if (slr && token_value == TOKEN_VALUE_IS_LITERAL)
+	      {
+		SV *sv;
+		int dummy;
+		Marpa_Earley_Set_ID start_earley_set =
+		  marpa_v_token_start_es_id (v);
+		Marpa_Earley_Set_ID end_earley_set = marpa_v_es_id (v);
+		sv =
+		  slr_es_span_to_literal_sv (slr, start_earley_set,
+					     end_earley_set -
+					     start_earley_set);
+		av_push (values_av, sv);
+		break;
+	      }
+		  /* If token value is NOT literal */
 		  p_token_value_sv = hv_fetch (
 		    v_wrapper->token_values,
 		     (char *) &token_value,
@@ -1234,7 +1217,7 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
 	case op_push_length:
 	  {
 	    int length;
-	    Scanless_R *slr = v_wrapper->slr;
+	    Scanless_R* slr = v_wrapper->slr;
 
 	    if (!values_av)
 	      {
@@ -1340,19 +1323,18 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
 	  }
 	  /* NOT REACHED */
 
-	case op_result_is_token_literal:
+	case op_result_is_token_value:
 	  {
+	    SV **p_token_value_sv;
 	    Scanless_R *slr = v_wrapper->slr;
+	    int token_value = marpa_v_token_value (v);
+
 	    if (step_type != MARPA_STEP_TOKEN)
 	      {
 		av_fill (stack, result_ix - 1);
 		return -1;
 	      }
-	    if (!slr)
-	      {
-		croak
-		  ("Problem in v->stack_step: 'result_is_token_literal' op attempted when no slr is set");
-	      }
+	      if (slr && token_value == TOKEN_VALUE_IS_LITERAL)
 	    {
 	      SV **stored_sv;
 	      SV *token_literal_sv;
@@ -1368,20 +1350,10 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
 		{
 		  SvREFCNT_dec (token_literal_sv);
 		}
-	    }
-	  }
 	  return -1;
+	    }
 
-	case op_result_is_token_value:
-	  {
-	    SV **p_token_value_sv;
-	    int token_value = marpa_v_token_value (v);
 
-	    if (step_type != MARPA_STEP_TOKEN)
-	      {
-		av_fill (stack, result_ix - 1);
-		return -1;
-	      }
 		  p_token_value_sv = hv_fetch (
 		    v_wrapper->token_values,
 		     (char *) &token_value,
@@ -1472,7 +1444,7 @@ slr_alternative (Scanless_R * slr, Marpa_Symbol_ID lexeme)
 	  event = av_make (Dim (event_data), event_data);
 	  av_push (slr->event_queue, newRV_noinc ((SV *) event));
 	}
-  result = marpa_r_alternative (r1, lexeme, latest_earley_set + 1, 1);
+  result = marpa_r_alternative (r1, lexeme, TOKEN_VALUE_IS_LITERAL, 1);
   switch (result)
     {
 
@@ -4859,7 +4831,7 @@ PPCODE:
   slr->end_of_lexeme = 0;
   slr->event_queue = newAV();
   slr->token_values = newHV ();
-  slr->next_token_ix = 2;
+  slr->next_token_ix = TOKEN_VALUE_IS_LITERAL+2;
 
   {
     SV* g0_sv = slg->g0_sv;
