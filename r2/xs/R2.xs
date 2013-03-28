@@ -469,6 +469,7 @@ static Unicode_Stream* u_new(SV* g_sv)
   stream->minimum_accepted = 1;
   stream->trace_g0 = 0;
   stream->event_queue = newAV ();
+  stream->too_many_earley_items = -1;
   return stream;
 }
 
