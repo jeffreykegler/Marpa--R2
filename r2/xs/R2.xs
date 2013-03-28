@@ -1079,26 +1079,25 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
 		{
 		  SV **p_token_value_sv;
 		  int token_value = marpa_v_token_value (v);
-	    Scanless_R* slr = v_wrapper->slr;
-	    if (slr && token_value == TOKEN_VALUE_IS_LITERAL)
-	      {
-		SV *sv;
-		int dummy;
-		Marpa_Earley_Set_ID start_earley_set =
-		  marpa_v_token_start_es_id (v);
-		Marpa_Earley_Set_ID end_earley_set = marpa_v_es_id (v);
-		sv =
-		  slr_es_span_to_literal_sv (slr, start_earley_set,
-					     end_earley_set -
-					     start_earley_set);
-		av_push (values_av, sv);
-		break;
-	      }
+		  Scanless_R *slr = v_wrapper->slr;
+		  if (slr && token_value == TOKEN_VALUE_IS_LITERAL)
+		    {
+		      SV *sv;
+		      int dummy;
+		      Marpa_Earley_Set_ID start_earley_set =
+			marpa_v_token_start_es_id (v);
+		      Marpa_Earley_Set_ID end_earley_set = marpa_v_es_id (v);
+		      sv =
+			slr_es_span_to_literal_sv (slr, start_earley_set,
+						   end_earley_set -
+						   start_earley_set);
+		      av_push (values_av, sv);
+		      break;
+		    }
 		  /* If token value is NOT literal */
-		  p_token_value_sv = hv_fetch (
-		    v_wrapper->token_values,
-		     (char *) &token_value,
-		    (I32) sizeof (token_value), 0);
+		  p_token_value_sv = hv_fetch (v_wrapper->token_values,
+					       (char *) &token_value,
+					       (I32) sizeof (token_value), 0);
 		  if (p_token_value_sv)
 		    {
 		      av_push (values_av,
@@ -1217,7 +1216,7 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
 	case op_push_length:
 	  {
 	    int length;
-	    Scanless_R* slr = v_wrapper->slr;
+	    Scanless_R *slr = v_wrapper->slr;
 
 	    if (!values_av)
 	      {
@@ -1334,30 +1333,30 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
 		av_fill (stack, result_ix - 1);
 		return -1;
 	      }
-	      if (slr && token_value == TOKEN_VALUE_IS_LITERAL)
-	    {
-	      SV **stored_sv;
-	      SV *token_literal_sv;
-	      int dummy;
-	      Marpa_Earley_Set_ID start_earley_set =
-		marpa_v_token_start_es_id (v);
-	      Marpa_Earley_Set_ID end_earley_set = marpa_v_es_id (v);
-	      token_literal_sv =
-		slr_es_span_to_literal_sv (slr, start_earley_set,
-					   end_earley_set - start_earley_set);
-	      stored_sv = av_store (stack, result_ix, token_literal_sv);
-	      if (!stored_sv)
-		{
-		  SvREFCNT_dec (token_literal_sv);
-		}
-	  return -1;
-	    }
+	    if (slr && token_value == TOKEN_VALUE_IS_LITERAL)
+	      {
+		SV **stored_sv;
+		SV *token_literal_sv;
+		int dummy;
+		Marpa_Earley_Set_ID start_earley_set =
+		  marpa_v_token_start_es_id (v);
+		Marpa_Earley_Set_ID end_earley_set = marpa_v_es_id (v);
+		token_literal_sv =
+		  slr_es_span_to_literal_sv (slr, start_earley_set,
+					     end_earley_set -
+					     start_earley_set);
+		stored_sv = av_store (stack, result_ix, token_literal_sv);
+		if (!stored_sv)
+		  {
+		    SvREFCNT_dec (token_literal_sv);
+		  }
+		return -1;
+	      }
 
 
-		  p_token_value_sv = hv_fetch (
-		    v_wrapper->token_values,
-		     (char *) &token_value,
-		    (I32) sizeof (token_value), 0);
+	    p_token_value_sv = hv_fetch (v_wrapper->token_values,
+					 (char *) &token_value,
+					 (I32) sizeof (token_value), 0);
 	    if (p_token_value_sv)
 	      {
 		SV *token_value_sv = newSVsv (*p_token_value_sv);
