@@ -461,6 +461,7 @@ sub Marpa::R2::Scanless::G::show_rules {
 
 my %recce_options = map { ($_, 1) } qw{
     grammar
+    too_many_earley_items
     trace_terminals
     trace_g0
     trace_values
@@ -515,6 +516,13 @@ sub Marpa::R2::Scanless::R::new {
     if ( defined( my $value = $args->{'trace_terminals'} ) ) {
         $self->[Marpa::R2::Inner::Scanless::R::TRACE_TERMINALS] = $value;
     }
+    my $too_many_earley_items = -1;
+    if ( defined( my $value = $args->{'too_many_earley_items'} ) ) {
+        $too_many_earley_items = $value;
+        if ($too_many_earley_items < 0) {
+            Marpa::R2::exception(qq{The "too_many_earley_items" option must be greater than or equal to 0});
+        }
+    }
 
     $self->[Marpa::R2::Inner::Scanless::R::GRAMMAR] = $grammar;
     my $thick_lex_grammar =
@@ -526,7 +534,7 @@ sub Marpa::R2::Scanless::R::new {
         $grammar->[Marpa::R2::Inner::Scanless::G::THICK_G1_GRAMMAR];
     my %g1_recce_args = ( grammar => $thick_g1_grammar );
     $g1_recce_args{$_} = $args->{$_}
-        for qw( trace_values trace_file_handle );
+        for qw( trace_values trace_file_handle too_many_earley_items );
     my $thick_g1_recce =
         $self->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE] =
         Marpa::R2::Recognizer->new( \%g1_recce_args );
@@ -536,6 +544,8 @@ sub Marpa::R2::Scanless::R::new {
     my $thin_self = Marpa::R2::Thin::SLR->new(
         $grammar->[Marpa::R2::Inner::Scanless::G::C],
         $thick_g1_recce->thin() );
+    $thin_self->earley_item_warning_threshold_set($too_many_earley_items)
+       if $too_many_earley_items >= 0;
     $self->[Marpa::R2::Inner::Scanless::R::C] = $thin_self;
     $thick_g1_recce->slr_set($thin_self);
 

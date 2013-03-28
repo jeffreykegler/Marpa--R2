@@ -95,6 +95,7 @@ typedef struct {
      Pos_Entry* pos_db;
      int pos_db_logical_size;
      int pos_db_physical_size;
+     int too_many_earley_items;
 } Unicode_Stream;
 
 #undef POS_TO_OFFSET
@@ -560,9 +561,13 @@ u_read(Unicode_Stream *stream)
 
   if (!r)
     {
+      const int too_many_earley_items = stream->too_many_earley_items;
       r = u_r0_new (stream);
       if (!r)
 	croak ("Problem in u_read(): %s", xs_g_error (stream->g0_wrapper));
+      if (too_many_earley_items >= 0) {
+	marpa_r_earley_item_warning_threshold_set(r, too_many_earley_items);
+      }
     }
   input_is_utf8 = SvUTF8 (stream->input);
   input = (U8 *) SvPV (stream->input, len);
@@ -4943,6 +4948,23 @@ PPCODE:
     warn("Changing SLR trace_terminals level from %d to %d", (int)old_level, (int)new_level);
   }
   XSRETURN_IV(old_level);
+}
+
+void
+earley_item_warning_threshold( slr )
+    Scanless_R *slr;
+PPCODE:
+{
+  XSRETURN_IV(slr->stream->too_many_earley_items);
+}
+
+void
+earley_item_warning_threshold_set( slr, too_many_earley_items )
+    Scanless_R *slr;
+    int too_many_earley_items;
+PPCODE:
+{
+  slr->stream->too_many_earley_items = too_many_earley_items;
 }
 
  #  Always returns the same SV for a given Scanless recce object -- 

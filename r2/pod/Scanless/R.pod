@@ -111,6 +111,44 @@ a C<grammar> named argument.  Its
 value must be
 a Scanless grammar object.
 
+=head2 too_many_earley_items
+
+The C<too_many_earley_items> argument is optional,
+and very few applications will need it.
+If specified, it sets the B<Earley item warning threshold> to
+a value other than its default.
+If an Earley set becomes larger than the
+Earley item warning threshold,
+a recognizer event is generated,
+and
+a warning is printed to the trace file handle.
+
+Marpa parses from any BNF,
+and can handle grammars and inputs which produce large
+Earley sets.
+But parsing that involves large Earley sets can be slow.
+Large Earley sets
+are something most applications can,
+and will wish to, avoid.
+
+By default, Marpa calculates
+an Earley item warning threshold
+for the G1 recognizer
+based on the size of the
+G1 grammar,
+and for each G0 recognizer based on the size
+of the G0 grammar.
+If the
+Earley item warning threshold is changed from its default,
+the change applies to both G0 and G1 -- currently
+there is no way to set them separately.
+
+The default threshold will never be less than 100.
+If the Earley item warning threshold is set to 0,
+no recognizer event is generated,
+and
+warnings about large Earley sets are turned off.
+
 =head2 trace_terminals
 
 If non-zero, traces the lexemes --

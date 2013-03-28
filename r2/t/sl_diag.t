@@ -86,7 +86,8 @@ sub my_parser {
     my $recce = Marpa::R2::Scanless::R->new(
         {   grammar           => $grammar,
             trace_terminals   => 1,
-            trace_file_handle => $trace_fh
+            trace_file_handle => $trace_fh,
+            too_many_earley_items => 100, # test this
         }
     );
     $self->{recce} = $recce;
