@@ -1039,6 +1039,13 @@ sub Marpa::R2::Scanless::R::show_progress {
      goto &Marpa::R2::Recognizer::show_progress;
 }
 
+# Returns 0 on unthrown failure, >0 on success
+sub Marpa::R2::Scanless::R::earleme_complete {
+    my ($recce) = @_;
+    my $recce_c = $recce->[Marpa::R2::Internal::Recognizer::C];
+    return $recce_c->g1_lexeme_complete();
+}
+
 1;
 
 # vim: expandtab shiftwidth=4:

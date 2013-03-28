@@ -5165,24 +5165,14 @@ PPCODE:
   croak ("Problem in slr->g1_alternative(): %s", xs_g_error (slr->g1_wrapper));
 }
 
+ # Returns 1 on success, 0 on unthrown failure
 void
-g1_lexeme_complete (slr, start_pos, length)
+g1_lexeme_complete (slr)
     Scanless_R *slr;
-    int start_pos;
-    int length;
 PPCODE:
 {
   int result;
   Unicode_Stream *stream = slr->stream;
-  u_pos_set (stream, start_pos, length);
-  if (stream->perl_pos < 0 || stream->perl_pos > stream->pos_db_logical_size)
-    {
-      croak ("Bad start position for lexeme: %ld", (long) start_pos);
-    }
-  if (stream->end_pos < 0 || stream->end_pos > stream->pos_db_logical_size)
-    {
-      croak ("Bad length for lexeme: %ld", (long) length);
-    }
   result = marpa_r_earleme_complete (slr->r1);
   if (result >= 0)
     {
@@ -5209,13 +5199,14 @@ PPCODE:
 					    INT2PTR (void *,
 						     (stream->end_pos -
 						      stream->perl_pos)));
+      XSRETURN_IV(1);
     }
-  if (result < 0 && slr->throw)
+  if (slr->throw)
     {
       croak ("Problem in slr->g1_lexeme_complete(): %s",
 	     xs_g_error (slr->g1_wrapper));
     }
-  XSRETURN_IV (result);
+  XSRETURN_IV(0);
 }
 
 INCLUDE: general_pattern.xsh
