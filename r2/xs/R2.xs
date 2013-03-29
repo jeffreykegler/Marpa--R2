@@ -125,8 +125,7 @@ typedef struct {
      G_Wrapper* g0_wrapper;
      G_Wrapper* g1_wrapper;
      AV* event_queue;
-     HV* token_values;
-     int next_token_ix;
+     AV* token_values;
      int trace_level;
      int trace_terminals;
      STRLEN start_of_lexeme;
@@ -168,7 +167,7 @@ typedef struct
   SV *base_sv;
   G_Wrapper *base;
   AV *event_queue;
-  HV *token_values;
+  AV *token_values;
   AV *stack;
   IV trace_values;
   int mode;			/* 'raw' or 'stack' */
@@ -1078,9 +1077,9 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
 	      case MARPA_STEP_TOKEN:
 		{
 		  SV **p_token_value_sv;
-		  int token_value = marpa_v_token_value (v);
+		  int token_ix = marpa_v_token_value (v);
 		  Scanless_R *slr = v_wrapper->slr;
-		  if (slr && token_value == TOKEN_VALUE_IS_LITERAL)
+		  if (slr && token_ix == TOKEN_VALUE_IS_LITERAL)
 		    {
 		      SV *sv;
 		      int dummy;
@@ -1095,9 +1094,7 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
 		      break;
 		    }
 		  /* If token value is NOT literal */
-		  p_token_value_sv = hv_fetch (v_wrapper->token_values,
-					       (char *) &token_value,
-					       (I32) sizeof (token_value), 0);
+		  p_token_value_sv = av_fetch (v_wrapper->token_values, (I32) token_ix, 0);
 		  if (p_token_value_sv)
 		    {
 		      av_push (values_av,
@@ -1326,14 +1323,14 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
 	  {
 	    SV **p_token_value_sv;
 	    Scanless_R *slr = v_wrapper->slr;
-	    int token_value = marpa_v_token_value (v);
+	    int token_ix = marpa_v_token_value (v);
 
 	    if (step_type != MARPA_STEP_TOKEN)
 	      {
 		av_fill (stack, result_ix - 1);
 		return -1;
 	      }
-	    if (slr && token_value == TOKEN_VALUE_IS_LITERAL)
+	    if (slr && token_ix == TOKEN_VALUE_IS_LITERAL)
 	      {
 		SV **stored_sv;
 		SV *token_literal_sv;
@@ -1354,9 +1351,7 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
 	      }
 
 
-	    p_token_value_sv = hv_fetch (v_wrapper->token_values,
-					 (char *) &token_value,
-					 (I32) sizeof (token_value), 0);
+	    p_token_value_sv = av_fetch (v_wrapper->token_values, (I32) token_ix, 0);
 	    if (p_token_value_sv)
 	      {
 		SV *token_value_sv = newSVsv (*p_token_value_sv);
@@ -2759,7 +2754,8 @@ PPCODE:
   v_wrapper->base = t_wrapper->base;
   v_wrapper->v = v;
   v_wrapper->event_queue = newAV ();
-  v_wrapper->token_values = newHV ();
+  v_wrapper->token_values = newAV ();
+  av_extend(v_wrapper->token_values , 3);
   v_wrapper->stack = NULL;
   v_wrapper->mode = MARPA_XS_V_MODE_IS_INITIAL;
   v_wrapper->result = 0;
@@ -2829,15 +2825,17 @@ token_value_set( v_wrapper, token_ix, token_value )
     SV* token_value;
 PPCODE:
 {
-  if (token_ix < 2)
+  if (token_ix <= TOKEN_VALUE_IS_LITERAL)
     {
       croak
 	("Problem in v->token_value_set(): token_value cannot be set for index %ld",
 	 (long) token_ix);
     }
-  hv_store (v_wrapper->token_values, (char *) &token_ix,
-	    sizeof (token_ix), token_value, 0);
   SvREFCNT_inc (token_value);
+  if (!av_store (v_wrapper->token_values, (I32)token_ix, token_value))
+  {
+    SvREFCNT_dec (token_value);
+  }
 }
 
 void
@@ -4829,8 +4827,8 @@ PPCODE:
   slr->start_of_lexeme = 0;
   slr->end_of_lexeme = 0;
   slr->event_queue = newAV();
-  slr->token_values = newHV ();
-  slr->next_token_ix = TOKEN_VALUE_IS_LITERAL+2;
+  slr->token_values = newAV ();
+  av_extend(slr->token_values , 3);
 
   {
     SV* g0_sv = slg->g0_sv;
@@ -5124,10 +5122,10 @@ g1_alternative (slr, symbol_id, token_value)
 PPCODE:
 {
   int result;
-  int token_ix = slr->next_token_ix++;
-  hv_store (slr->token_values, (char *) &token_ix,
-	    sizeof (token_ix), token_value, 0);
+  int token_ix;
   SvREFCNT_inc (token_value);
+  av_push (slr->token_values, token_value);
+  token_ix = av_len(slr->token_values);
   result = marpa_r_alternative (slr->r1, symbol_id, token_ix, 1);
   if (result == MARPA_ERR_NONE || !slr->throw)
     {
