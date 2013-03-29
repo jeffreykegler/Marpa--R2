@@ -14,7 +14,7 @@
 # General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 
-# Synopsis for Scannerless version of Stuizand interface
+# Synopsis for Scannerless interface
 
 use 5.010;
 use strict;
