@@ -24,6 +24,12 @@
 #include "config.h"
 #include "marpa.h"
 
+/* This kind of pointer comparison is not portable per C89,
+ * but but the Perl source depends
+ * on it throughout, and there is no other way to do it.
+ */
+#undef IS_PERL_UNDEF
+#define IS_PERL_UNDEF(x) ((x) == &PL_sv_undef)
 
 /* utf8_to_uvchr is deprecated in 5.16, but
  * utf8_to_uvchr_buf is not available before 5.16
@@ -5114,24 +5120,48 @@ PPCODE:
   XPUSHs (sv_2mortal (newSViv ((IV) length)));
 }
 
+ # Variable arg as opposed to a ref,
+ # because there seems to be no
+ # easy, forward-compatible way
+ # to determine whether the de-referenced value will cause
+ # a "bizarre copy" error.
 void
-g1_alternative (slr, symbol_id, token_value)
+g1_alternative (slr, symbol_id, ...)
     Scanless_R *slr;
     Marpa_Symbol_ID symbol_id;
-    SV* token_value;
 PPCODE:
 {
   int result;
   int token_ix;
-  SvREFCNT_inc (token_value);
-  av_push (slr->token_values, token_value);
-  token_ix = av_len(slr->token_values);
+  switch (items)
+    {
+    case 2:
+      token_ix = TOKEN_VALUE_IS_LITERAL;	/* default */
+      break;
+    case 3:
+      {
+	SV *token_value = ST (2);
+	if (IS_PERL_UNDEF (token_value))
+	  {
+	    token_ix = TOKEN_VALUE_IS_UNDEF;	/* default */
+	    break;
+	  }
+	av_push (slr->token_values, newSVsv (token_value));
+	token_ix = av_len (slr->token_values);
+      }
+      break;
+    default:
+      croak
+	("Usage: Marpa::R2::Thin::SLR::g1_alternative(slr, symbol_id, [value])");
+    }
+
   result = marpa_r_alternative (slr->r1, symbol_id, token_ix, 1);
   if (result == MARPA_ERR_NONE || !slr->throw)
     {
       XSRETURN_IV (result);
     }
-  croak ("Problem in slr->g1_alternative(): %s", xs_g_error (slr->g1_wrapper));
+  croak ("Problem in slr->g1_alternative(): %s",
+	 xs_g_error (slr->g1_wrapper));
 }
 
  # Returns 1 on success, 0 on unthrown failure
