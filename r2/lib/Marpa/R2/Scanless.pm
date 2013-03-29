@@ -1039,11 +1039,51 @@ sub Marpa::R2::Scanless::R::show_progress {
      goto &Marpa::R2::Recognizer::show_progress;
 }
 
+sub Marpa::R2::Scanless::R::alternative {
+    my ( $slr, $symbol_name, @value ) = @_;
+    my $thin_slr = $slr->[Marpa::R2::Inner::Scanless::R::C];
+
+    Marpa::R2::exception(
+        "slr->alternative(): symbol name is undefined\n",
+        "    The symbol name cannot be undefined\n"
+    ) if not defined $symbol_name;
+
+    my $grammar = $slr->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
+    my $thick_g1_grammar =
+        $grammar->[Marpa::R2::Inner::Scanless::G::THICK_G1_GRAMMAR];
+    my $g1_tracer = $thick_g1_grammar->tracer();
+    my $symbol_id = $g1_tracer->symbol_by_name($symbol_name);
+    if ( not defined $symbol_id ) {
+        Marpa::R2::exception(
+            qq{slr->alternative(): symbol "$symbol_name" does not exist});
+    }
+
+    my $result = $thin_slr->g1_alternative( $symbol_id, @value );
+    return 1 if $result == $Marpa::R2::Error::NONE;
+
+    # The last two are perhaps unnecessary or arguable,
+    # but they preserve compatibility with Marpa::XS
+    return
+        if $result == $Marpa::R2::Error::UNEXPECTED_TOKEN_ID
+            || $result == $Marpa::R2::Error::NO_TOKEN_EXPECTED_HERE
+            || $result == $Marpa::R2::Error::INACCESSIBLE_TOKEN;
+
+    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
+    Marpa::R2::exception( $grammar_c->error() );
+} ## end sub Marpa::R2::Scanless::R::alternative
+
 # Returns 0 on unthrown failure, >0 on success
-sub Marpa::R2::Scanless::R::earleme_complete {
-    my ($recce) = @_;
-    my $recce_c = $recce->[Marpa::R2::Internal::Recognizer::C];
-    return $recce_c->g1_lexeme_complete();
+sub Marpa::R2::Scanless::R::lexeme_complete {
+    my ($slr) = @_;
+    my $thin_slr = $slr->[Marpa::R2::Inner::Scanless::R::C];
+    return $thin_slr->g1_lexeme_complete();
+}
+
+sub Marpa::R2::Scanless::R::g1_read {
+    my ( $slr, $symbol_name, @value ) = @_;
+    my $thin_slr = $slr->[Marpa::R2::Inner::Scanless::R::C];
+    return if not $thin_slr->g1_alternative( $symbol_name, @value );
+    return $thin_slr->g1_lexeme_complete();
 }
 
 1;
