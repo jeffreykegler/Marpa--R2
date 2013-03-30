@@ -341,6 +341,11 @@ state $grammar_options = { map { ($_, 1) } qw(
 sub Marpa::R2::Scanless::G::_hash_to_runtime {
     my ( $self, $hashed_source ) = @_;
 
+    my @g0_lexeme_names = keys %{ $hashed_source->{is_lexeme} };
+    Marpa::R2::exception( "There are no lexemes\n",
+        "  An SLIF grammar must have at least one lexeme\n" )
+        if not scalar @g0_lexeme_names;
+
     my %lex_args = ();
     $lex_args{trace_file_handle} =
         $self->[Marpa::R2::Inner::Scanless::G::TRACE_FILE_HANDLE] // \*STDERR;
@@ -352,7 +357,6 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
     $lex_grammar->precompute();
     my $lex_tracer      = $lex_grammar->tracer();
     my $g0_thin         = $lex_tracer->grammar();
-    my @g0_lexeme_names = keys %{ $hashed_source->{is_lexeme} };
     $self->[Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMAR] = $lex_grammar;
     my $character_class_hash = $hashed_source->{character_classes};
     my @class_table          = ();
@@ -584,7 +588,7 @@ sub Marpa::R2::Scanless::R::read {
     if ( ( my $ref_type = ref $p_string ) ne 'SCALAR' ) {
         my $desc = $ref_type ? "a ref to $ref_type" : 'not a ref';
         Marpa::R2::exception(
-            qq{Arg to scanless_r->read() is $desc\n"},
+            qq{Arg to scanless_r->read() is $desc\n},
             '  It should be a ref to scalar'
         );
     } ## end if ( ( my $ref_type = ref $p_string ) ne 'SCALAR' )

@@ -42,6 +42,16 @@ Expression ::=
     | Expression (<op divide>) Expression bless => divide
    || Expression (<op add>) Expression bless => add
     | Expression (<op subtract>) Expression bless => subtract
+Number ~ unicorn
+<op comma> ~ unicorn
+<op lparen> ~ unicorn
+<op rparen> ~ unicorn
+<op pow> ~ unicorn
+<op times> ~ unicorn
+<op divide> ~ unicorn
+<op add> ~ unicorn
+<op subtract> ~ unicorn
+unicorn ~ [^\s\S]
 END_OF_SOURCE
     }
 );
@@ -62,7 +72,7 @@ my @terminals = (
 sub my_parser {
     my ( $grammar, $string ) = @_;
     my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
-    $recce->read($string, 0, 0);
+    $recce->read(\$string, 0, 0);
     my $length        = length $string;
     my $last_position = 0;
     pos $string = $last_position;

@@ -5194,18 +5194,22 @@ PPCODE:
 	      break;		/* No need to look at more events */
 	    }
 	}
-      marpa_r_latest_earley_set_values_set (slr->r1, stream->perl_pos,
-					    INT2PTR (void *,
-						     (stream->end_pos -
-						      stream->perl_pos)));
-      XSRETURN_IV(1);
+      {
+	const int lexeme_start = slr->start_of_lexeme;
+	const int lexeme_length = slr->end_of_lexeme - lexeme_start;
+	stream->perl_pos = slr->end_of_lexeme;
+	marpa_r_latest_earley_set_values_set (slr->r1, lexeme_start,
+					      INT2PTR (void *,
+						       lexeme_length));
+      }
+      XSRETURN_IV (1);
     }
   if (slr->throw)
     {
       croak ("Problem in slr->g1_lexeme_complete(): %s",
 	     xs_g_error (slr->g1_wrapper));
     }
-  XSRETURN_IV(0);
+  XSRETURN_IV (0);
 }
 
 INCLUDE: general_pattern.xsh
