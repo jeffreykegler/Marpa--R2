@@ -84,7 +84,7 @@ sub my_parser {
             my ( $token_name, $regex, $long_name ) = @{$t};
             next TOKEN_TYPE if not $string =~ m/\G($regex)/gcxms;
             my $lexeme = $1;
-            next TOKEN if defined $recce->lexeme_read( $token_name, $last_position, (length $lexeme), $lexeme );
+            next TOKEN if defined $recce->lexeme_read( $token_name, $last_position, (length $lexeme) );
             die
                 qq{Parser rejected token "$long_name" at position $last_position, before "},
                 substr( $string, $last_position, 40 ), q{"};
