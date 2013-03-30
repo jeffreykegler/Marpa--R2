@@ -2757,7 +2757,7 @@ PPCODE:
   v_wrapper->v = v;
   v_wrapper->event_queue = newAV ();
   v_wrapper->token_values = newAV ();
-  av_extend(v_wrapper->token_values , 3);
+  av_fill(v_wrapper->token_values , TOKEN_VALUE_IS_LITERAL);
   v_wrapper->stack = NULL;
   v_wrapper->mode = MARPA_XS_V_MODE_IS_INITIAL;
   v_wrapper->result = 0;
@@ -4830,7 +4830,7 @@ PPCODE:
   slr->end_of_lexeme = 0;
   slr->event_queue = newAV();
   slr->token_values = newAV ();
-  av_extend(slr->token_values , 3);
+  av_fill(slr->token_values , TOKEN_VALUE_IS_LITERAL);
 
   {
     SV* g0_sv = slg->g0_sv;

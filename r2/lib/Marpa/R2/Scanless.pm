@@ -1085,9 +1085,8 @@ sub Marpa::R2::Scanless::R::lexeme_complete {
 
 sub Marpa::R2::Scanless::R::lexeme_read {
     my ( $slr, $symbol_name, $start, $length, @value ) = @_;
-    my $thin_slr = $slr->[Marpa::R2::Inner::Scanless::R::C];
-    return if not $thin_slr->g1_alternative( $symbol_name, @value );
-    return $thin_slr->g1_lexeme_complete($start, $length);
+    return if not $slr->lexeme_alternative( $symbol_name, @value );
+    return $slr->lexeme_complete($start, $length);
 }
 
 1;
