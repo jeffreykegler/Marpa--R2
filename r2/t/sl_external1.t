@@ -35,9 +35,9 @@ my $grammar = Marpa::R2::Scanless::G->new(
 :start ::= Script
 Script ::= Expression+ separator => <op comma> bless => script
 Expression ::=
-    Number
+    Number bless => primary
     | (<op lparen>) Expression (<op rparen>) bless => parens assoc => group
-   || Expression (<op pow>) Expression bless => pow assoc => right
+   || Expression (<op pow>) Expression bless => power assoc => right
    || Expression (<op times>) Expression bless => multiply
     | Expression (<op divide>) Expression bless => divide
    || Expression (<op add>) Expression bless => add
@@ -45,8 +45,6 @@ Expression ::=
 END_OF_SOURCE
     }
 );
-
-$grammar->precompute();
 
 my @terminals = (
     [ Number   => qr/\d+/xms,    "Number" ],

@@ -1039,7 +1039,7 @@ sub Marpa::R2::Scanless::R::show_progress {
      goto &Marpa::R2::Recognizer::show_progress;
 }
 
-sub Marpa::R2::Scanless::R::alternative {
+sub Marpa::R2::Scanless::R::lexeme_alternative {
     my ( $slr, $symbol_name, @value ) = @_;
     my $thin_slr = $slr->[Marpa::R2::Inner::Scanless::R::C];
 
@@ -1079,7 +1079,7 @@ sub Marpa::R2::Scanless::R::lexeme_complete {
     return $thin_slr->g1_lexeme_complete();
 }
 
-sub Marpa::R2::Scanless::R::g1_read {
+sub Marpa::R2::Scanless::R::lexeme_read {
     my ( $slr, $symbol_name, @value ) = @_;
     my $thin_slr = $slr->[Marpa::R2::Inner::Scanless::R::C];
     return if not $thin_slr->g1_alternative( $symbol_name, @value );
