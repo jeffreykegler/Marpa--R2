@@ -285,6 +285,7 @@ t/sl_astsyn.t
 t/sl_diag.t
 t/sl_dsl.t
 t/sl_exhaust.t
+t/sl_external1.t
 t/sl_gsyn.t
 t/sl_prefix.t
 t/sl_syn.t

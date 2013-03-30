@@ -779,12 +779,8 @@ static STRLEN
 u_pos_set (Unicode_Stream * stream, int start_pos, int length)
 {
   dTHX;
-  U8 *input;
-  int input_is_utf8 = SvUTF8 (stream->input);
-  STRLEN len;
   const STRLEN old_pos = stream->perl_pos;
   const STRLEN input_length = stream->pos_db_logical_size;
-  int end_pos;
 
   if (start_pos < 0) {
       start_pos = input_length + start_pos;
@@ -5166,12 +5162,39 @@ PPCODE:
 
  # Returns 1 on success, 0 on unthrown failure
 void
-g1_lexeme_complete (slr)
+g1_lexeme_complete (slr, start_pos_arg, length_arg)
     Scanless_R *slr;
+    int start_pos_arg;
+    int length_arg;
 PPCODE:
 {
   int result;
   Unicode_Stream *stream = slr->stream;
+  const int old_pos = stream->perl_pos;
+  const int input_length = stream->pos_db_logical_size;
+  int start_pos;
+  int lexeme_length;
+
+  start_pos =
+    start_pos_arg < 0 ? input_length + start_pos_arg : start_pos_arg;
+  if (start_pos < 0 || start_pos > input_length)
+    {
+      croak ("Bad start position in slr->g1_lexeme_complete(): %ld",
+	     (long) start_pos_arg);
+    }
+  stream->perl_pos = start_pos;
+
+  {
+    const int end_pos =
+      length_arg < 0 ? input_length + length_arg + 1 : start_pos + length_arg;
+    if (end_pos < 0 || end_pos > input_length)
+      {
+	croak ("Bad length in slr->g1_lexeme_complete(): %ld",
+	       (long) length_arg);
+      }
+    lexeme_length = end_pos - start_pos;
+  }
+
   result = marpa_r_earleme_complete (slr->r1);
   if (result >= 0)
     {
@@ -5195,12 +5218,10 @@ PPCODE:
 	    }
 	}
       {
-	const int lexeme_start = slr->start_of_lexeme;
-	const int lexeme_length = slr->end_of_lexeme - lexeme_start;
-	stream->perl_pos = slr->end_of_lexeme;
-	marpa_r_latest_earley_set_values_set (slr->r1, lexeme_start,
+	marpa_r_latest_earley_set_values_set (slr->r1, start_pos,
 					      INT2PTR (void *,
 						       lexeme_length));
+	stream->perl_pos = start_pos + lexeme_length;
       }
       XSRETURN_IV (1);
     }
