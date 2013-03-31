@@ -1502,6 +1502,129 @@ slr_alternative (Scanless_R * slr, Marpa_Symbol_ID lexeme)
 }
 
 /*
+ * Try to discard lexemes.
+ * It is assumed this is because R1 is exhausted and we
+ * are checking for uncomsumed text.
+ * Return values:
+ * 0 OK.
+ * -4: Exhausted, but lexemes remain.
+ */
+static IV
+slr_discard (Scanless_R * slr)
+{
+  dTHX;
+  int lexemes_discarded = 0;
+  int lexemes_found = 0;
+  Marpa_Recce r0;
+  Marpa_Earley_Set_ID earley_set;
+
+  r0 = slr->stream->r0;
+  if (!r0)
+    {
+      croak ("Problem in slr->read(): No R0 at %s %d", __FILE__, __LINE__);
+    }
+  earley_set = marpa_r_latest_earley_set (r0);
+  while (earley_set > 0)
+    {
+      int is_expected;
+      int return_value;
+      return_value = marpa_r_progress_report_start (r0, earley_set);
+      if (return_value < 0)
+	{
+	  croak ("Problem in marpa_r_progress_report_start(%p, %ld): %s",
+		 (void *) r0, (unsigned long) earley_set,
+		 xs_g_error (slr->g0_wrapper));
+	}
+      while (1)
+	{
+	  Marpa_Symbol_ID g1_lexeme;
+	  int dot_position;
+	  Marpa_Earley_Set_ID origin;
+	  Marpa_Rule_ID rule_id =
+	    marpa_r_progress_item (r0, &dot_position, &origin);
+	  if (rule_id <= -2)
+	    {
+	      croak ("Problem in marpa_r_progress_item(): %s",
+		     xs_g_error (slr->g0_wrapper));
+	    }
+	  if (rule_id == -1)
+	    goto NO_MORE_REPORT_ITEMS;
+	  if (origin != 0)
+	    goto NEXT_REPORT_ITEM;
+	  if (dot_position != -1)
+	    goto NEXT_REPORT_ITEM;
+	  g1_lexeme = slr->slg->g0_rule_to_g1_lexeme[rule_id];
+	  if (g1_lexeme == -1)
+	    goto NEXT_REPORT_ITEM;
+	  lexemes_found++;
+	  slr->end_of_lexeme = slr->start_of_lexeme + earley_set;
+
+	  /* -2 means a discarded item */
+	  if (g1_lexeme <= -2)
+	    {
+	      lexemes_discarded++;
+	      if (slr->trace_terminals)
+		{
+		  AV *event;
+		  SV *event_data[4];
+		  event_data[0] = newSVpvs ("discarded lexeme");
+		  /* We do not have the lexeme, but we have the 
+		   * g0 rule.
+		   * The upper level will have to figure things out.
+		   */
+		  event_data[1] = newSViv (rule_id);
+		  event_data[2] = newSViv (slr->start_of_lexeme);
+		  event_data[3] = newSViv (slr->end_of_lexeme);
+		  event = av_make (Dim (event_data), event_data);
+		  av_push (slr->event_queue, newRV_noinc ((SV *) event));
+		}
+	      /* If there is discarded item, we are fine,
+	       * and can return success.
+	       */
+	      return 0;
+	    }
+
+	  /*
+	   * Ignore everything else.
+	   * We don't try to read lexemes into an exhausted
+	   * R1 -- we only are looking for discardable tokens.
+	   */
+	  if (slr->trace_terminals)
+	    {
+	      AV *event;
+	      SV *event_data[4];
+	      event_data[0] = newSVpvs ("ignored lexeme");
+	      event_data[1] = newSViv (g1_lexeme);
+	      event_data[2] = newSViv (slr->start_of_lexeme);
+	      event_data[3] = newSViv (slr->end_of_lexeme);
+	      event = av_make (Dim (event_data), event_data);
+	      av_push (slr->event_queue, newRV_noinc ((SV *) event));
+	    }
+	NEXT_REPORT_ITEM:;
+	}
+    NO_MORE_REPORT_ITEMS:;
+      if (lexemes_found)
+	{
+	  /* We found a lexeme at this location and we are not allowed
+	   * to discard this input.
+	   * Return failure.
+	   */
+	  return -4;
+	}
+      earley_set--;
+      /* Zero length lexemes are not of interest, so we do *not*
+       * search the 0'th Earley set.
+       */
+    }
+
+  /* If we are here we either found no lexemes anywhere in the input,
+   * and therefore none which can be discarded.
+   * Return failure.
+   */
+  return -4;
+}
+
+/*
  * Return values:
  * 0 OK.
  * -4: Exhausted, but lexemes remain.
@@ -5054,18 +5177,21 @@ PPCODE:
 	{
 	  XSRETURN_PV ("R0 read() problem");
 	}
-
+      if ( marpa_r_is_exhausted (slr->r1) ) {
+          int discard_result = slr_discard (slr);
+	  if (discard_result < 0) {
+	    XSRETURN_PV ("R0 exhausted before end");
+	  }
+      } else {
       result =
 	slr_alternatives (slr, &lexemes_found, &lexemes_attempted,
 			  &lexemes_acceptable);
-      if (result == -4)
-	{
-	  XSRETURN_PV ("R0 exhausted before end");
-	}
-      if (!lexemes_found)
-	{
-	  XSRETURN_PV ("no lexeme");
-	}
+	if (!lexemes_found)
+	  {
+	    XSRETURN_PV ("no lexeme");
+	  }
+      }
+
       slr->please_start_lex_recce = 1;	/* We found a lexeme, so must restart r0 */
 
       if (lexemes_attempted && !lexemes_acceptable)
