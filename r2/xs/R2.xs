@@ -110,6 +110,13 @@ typedef struct {
 #undef OFFSET_OF_STREAM
 #define OFFSET_OF_STREAM(stream) POS_TO_OFFSET((stream), (stream)->perl_pos)
 
+struct lexeme_properties {
+     int priority;
+     unsigned int forgiving:1;
+     unsigned int pause:1;
+     unsigned int pause_after:1;
+};
+
 typedef struct {
      SV* g0_sv;
      SV* g1_sv;
@@ -118,6 +125,7 @@ typedef struct {
      Marpa_Grammar g0;
      Marpa_Grammar g1;
     Marpa_Symbol_ID* g0_rule_to_g1_lexeme;
+    struct lexeme_properties * g1_lexeme_properties;
 } Scanless_G;
 
 typedef struct {
@@ -4694,6 +4702,17 @@ PPCODE:
 	slg->g0_rule_to_g1_lexeme[rule] = -1;
       }
   }
+  {
+    Marpa_Symbol_ID symbol_id;
+    Marpa_Symbol_ID g1_symbol_count = marpa_g_highest_symbol_id (slg->g1) + 1;
+    Newx (slg->g1_lexeme_properties, g1_symbol_count, struct lexeme_properties);
+    for (symbol_id = 0; symbol_id < g1_symbol_count; symbol_id++) {
+        slg->g1_lexeme_properties[symbol_id].priority = 0;
+        slg->g1_lexeme_properties[symbol_id].forgiving = 0;
+        slg->g1_lexeme_properties[symbol_id].pause = 0;
+        slg->g1_lexeme_properties[symbol_id].pause_after = 0;
+    }
+  }
 
   new_sv = sv_newmortal ();
   sv_setref_pv (new_sv, scanless_g_class_name, (void *) slg);
@@ -4708,6 +4727,7 @@ PPCODE:
   SvREFCNT_dec (slg->g0_sv);
   SvREFCNT_dec (slg->g1_sv);
   Safefree(slg->g0_rule_to_g1_lexeme);
+  Safefree(slg->g1_lexeme_properties);
   Safefree(slg);
 }
 
