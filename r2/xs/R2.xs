@@ -1508,7 +1508,9 @@ slr_alternative (Scanless_R * slr, Marpa_Symbol_ID lexeme)
  */
 static IV
 slr_alternatives (Scanless_R * slr, IV * lexemes_found,
-		  IV * lexemes_attempted)
+		  IV * lexemes_attempted,
+		  IV * lexemes_acceptable
+		  )
 {
   dTHX;
   int lexemes_discarded = 0;
@@ -1522,6 +1524,7 @@ slr_alternatives (Scanless_R * slr, IV * lexemes_found,
       croak ("Problem in slr->read(): No R0 at %s %d", __FILE__, __LINE__);
     }
   earley_set = marpa_r_latest_earley_set (r0);
+  *lexemes_acceptable = 0;
   *lexemes_attempted = 0;
   *lexemes_found = 0;
   while (earley_set > 0)
@@ -1628,6 +1631,8 @@ slr_alternatives (Scanless_R * slr, IV * lexemes_found,
 		}
 	      goto NEXT_REPORT_ITEM;
 	    }
+	  (*lexemes_acceptable)++;
+
 
 	  /* trace_terminals also done inside slr_alternative */
 	  slr_alternative (slr, g1_lexeme);
@@ -5009,6 +5014,7 @@ PPCODE:
     {
       IV lexemes_found = 0;
       IV lexemes_attempted = 0;
+      IV lexemes_acceptable = 0;
 
       if (slr->please_start_lex_recce)
 	{
@@ -5049,7 +5055,9 @@ PPCODE:
 	  XSRETURN_PV ("R0 read() problem");
 	}
 
-      result = slr_alternatives (slr, &lexemes_found, &lexemes_attempted);
+      result =
+	slr_alternatives (slr, &lexemes_found, &lexemes_attempted,
+			  &lexemes_acceptable);
       if (result == -4)
 	{
 	  XSRETURN_PV ("R0 exhausted before end");
@@ -5060,7 +5068,11 @@ PPCODE:
 	}
       slr->please_start_lex_recce = 1;	/* We found a lexeme, so must restart r0 */
 
-      if (lexemes_attempted)
+      if (lexemes_attempted && !lexemes_acceptable)
+	{
+	  XSRETURN_PV ("no lexemes accepted");
+	}
+      if (lexemes_acceptable)
 	{
 	  const int lexeme_start = slr->start_of_lexeme;
 	  const int lexeme_length = slr->end_of_lexeme - lexeme_start;
@@ -5068,10 +5080,12 @@ PPCODE:
 	    marpa_r_earleme_complete (slr->r1);
 	  if (result < 0)
 	    {
-	      XSRETURN_PV ("R1 earleme_complete() problem");
+	      croak ("Problem in marpa_r_earleme_complete(): %s",
+		     xs_g_error (slr->g1_wrapper));
 	    }
 	  marpa_r_latest_earley_set_values_set (slr->r1, lexeme_start,
-						INT2PTR (void *, lexeme_length));
+						INT2PTR (void *,
+							 lexeme_length));
 	}
 
       if (slr->trace_terminals || stream->trace_g0)

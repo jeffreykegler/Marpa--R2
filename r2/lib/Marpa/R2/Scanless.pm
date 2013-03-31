@@ -878,9 +878,9 @@ sub Marpa::R2::Scanless::R::read_problem {
             $g0_status = $thin_self->stream_read_result();
             last CODE_TO_PROBLEM;
         }
-        if ( $problem_code eq 'R1 earleme_complete() problem' ) {
-            $problem = undef; # let $g1_status do the work
-            $g1_status = $thin_self->r1_earleme_complete_result();
+        if ( $problem_code eq 'no lexemes accepted' ) {
+            my ($lexeme_start) = $thin_self->lexeme_span();
+            $problem = "No lexemes accepted at position $lexeme_start";
             last CODE_TO_PROBLEM;
         }
         $problem = 'Unrecognized problem code: ' . $problem_code;
@@ -974,7 +974,7 @@ sub Marpa::R2::Scanless::R::read_problem {
             ? ( substr ${$p_string}, $last_pos - 72, 72 )
             : ( substr ${$p_string}, 0, $last_pos );
         $read_string_error =
-              "Error in Scanless read: G1 $desc\n"
+              "Error in SLIF G1 read: $desc\n"
             . "* Error was at string position: $last_pos\n"
             . "* String before error:\n"
             . Marpa::R2::escape_string( $prefix, -72 ) . "\n"
@@ -992,7 +992,7 @@ sub Marpa::R2::Scanless::R::read_problem {
             : ( substr ${$p_string}, 0, $pos );
 
         $read_string_error =
-              "Error in Scanless read: G1 $desc\n"
+              "Error in SLIF G1 read: $desc\n"
             . "* Error was at string position: $pos, and at character $char_desc\n"
             . "* String before error:\n"
             . Marpa::R2::escape_string( $prefix, -72 ) . "\n"
@@ -1002,7 +1002,7 @@ sub Marpa::R2::Scanless::R::read_problem {
     } ## end elsif ( $pos < $length_of_string )
     else {
         $read_string_error =
-              "Error in Scanless read: G1 $desc\n"
+              "Error in SLIF G1 read: $desc\n"
             . "* Error was at end of string\n"
             . "* String before error:\n"
             . Marpa::R2::escape_string( ${$p_string}, -72 ) . "\n";
