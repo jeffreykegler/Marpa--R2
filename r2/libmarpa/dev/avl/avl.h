@@ -95,6 +95,7 @@ void *_marpa_avl_assert_delete (AVL_TREE , void *);
 
 /* Table traverser functions. */
 AVL_TRAV _marpa_avl_t_init (AVL_TREE );
+AVL_TRAV _marpa_avl_t_reset (AVL_TRAV );
 void *_marpa_avl_t_first (AVL_TRAV );
 void *_marpa_avl_t_last ( AVL_TRAV );
 void *_marpa_avl_t_find ( AVL_TRAV , void *);

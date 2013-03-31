@@ -2689,6 +2689,21 @@ To destroy a progress report,
 freeing the memory it uses,
 call the @code{marpa_r_progress_report_finish()} method.
 
+@deftypefun int marpa_r_progress_report_reset ( @
+  Marpa_Recognizer @var{r})
+Resets the progress report.
+Assumes a report of the progress has already been initialized
+at some Earley set
+for recognizer @var{r},
+with 
+@code{marpa_r_progress_report_start()}.
+The reset progress report will
+be positioned before its first item.
+
+Return value: On success, a non-negative value.
+On failure, @minus{}2.
+@end deftypefun
+
 @deftypefun int marpa_r_progress_report_start ( @
   Marpa_Recognizer @var{r}, @
   Marpa_Earley_Set_ID @var{set_id})

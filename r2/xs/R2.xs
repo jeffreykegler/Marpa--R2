@@ -1580,7 +1580,7 @@ slr_alternatives (Scanless_R * slr, IV * lexemes_found,
 		}
 	      goto NEXT_REPORT_ITEM;
 	    }
-	  /* We don't try to read lexemes into an exhasuted
+	  /* We don't try to read lexemes into an exhausted
 	   * R1 -- we only are looking for discardable tokens.
 	   */
 	  if (r1_is_exhausted)

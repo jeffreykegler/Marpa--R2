@@ -447,6 +447,14 @@ AVL_TRAV _marpa_avl_t_init (AVL_TREE tree)
   return trav;
 }
 
+/* Initializes |trav| for use with |tree|
+   and selects the null node. */
+AVL_TRAV _marpa_avl_t_reset (AVL_TRAV trav)
+{
+  trav_reset(trav);
+  return trav;
+}
+
 /* Selects and returns a pointer to the least-valued item.
    Returns |NULL| if |tree| contains no nodes. */
 void *

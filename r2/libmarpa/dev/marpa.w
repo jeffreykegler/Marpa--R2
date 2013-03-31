@@ -11079,6 +11079,19 @@ int marpa_r_progress_report_start(
     return marpa_avl_count (report_tree);
   }
 }
+@ Start the progress report again.
+@<Function definitions@> =
+int marpa_r_progress_report_reset( Marpa_Recognizer r)
+{
+  @<Return |-2| on failure@>@;
+  AVL_TRAV traverser = r->t_progress_report_traverser;
+  @<Unpack recognizer objects@>@;
+  @<Fail if fatal error@>@;
+  @<Fail if recognizer not started@>@;
+  @<Fail if no |traverser|@>@;
+  _marpa_avl_t_reset(traverser);
+  return 1;
+}
 
 @ @<Do the progress report for |earley_item|@> =
 {
