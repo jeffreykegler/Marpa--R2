@@ -1639,7 +1639,6 @@ slr_alternatives (Scanless_R * slr, IV * lexemes_found,
   int lexemes_discarded = 0;
   Marpa_Recce r0;
   Marpa_Earley_Set_ID earley_set;
-  int r1_is_exhausted = marpa_r_is_exhausted (slr->r1);
 
   r0 = slr->stream->r0;
   if (!r0)
@@ -1706,24 +1705,6 @@ slr_alternatives (Scanless_R * slr, IV * lexemes_found,
 		}
 	      goto NEXT_REPORT_ITEM;
 	    }
-	  /* We don't try to read lexemes into an exhausted
-	   * R1 -- we only are looking for discardable tokens.
-	   */
-	  if (r1_is_exhausted)
-	    {
-	      if (slr->trace_terminals)
-		{
-		  AV *event;
-		  SV *event_data[4];
-		  event_data[0] = newSVpvs ("ignored lexeme");
-		  event_data[1] = newSViv (g1_lexeme);
-		  event_data[2] = newSViv (slr->start_of_lexeme);
-		  event_data[3] = newSViv (slr->end_of_lexeme);
-		  event = av_make (Dim (event_data), event_data);
-		  av_push (slr->event_queue, newRV_noinc ((SV *) event));
-		}
-	      goto NEXT_REPORT_ITEM;
-	    }
 
 	  (*lexemes_attempted)++;
 	  is_expected = marpa_r_terminal_is_expected (slr->r1, g1_lexeme);
@@ -1762,26 +1743,15 @@ slr_alternatives (Scanless_R * slr, IV * lexemes_found,
 	NEXT_REPORT_ITEM:;
 	}
     NO_MORE_REPORT_ITEMS:;
-      if (*lexemes_found)
-	goto LEXEMES_FOUND;
+      if (*lexemes_found) {
+         return 0;
+      }
       earley_set--;
       /* Zero length lexemes are not of interest, so we do *not*
        * search the 0'th Earley set.
        */
     }
 
-  /* If
-   * 1) we reached the longest tokens match (or no match)
-   * 2) no tokens were discarded, and
-   * 3) r1 is exhausted, then
-   * r1 was exhausted with unconsumed text.
-   * Report that as an error.
-   */
-LEXEMES_FOUND:;
-  if (r1_is_exhausted && !lexemes_discarded)
-    {
-      return -4;
-    }
   return 0;
 }
 
