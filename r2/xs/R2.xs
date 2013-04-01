@@ -1739,24 +1739,12 @@ slr_alternatives (Scanless_R * slr)
 	  if (dot_position != -1)
 	    goto NEXT_PASS2_REPORT_ITEM;
 	  g1_lexeme = slr->slg->g0_rule_to_g1_lexeme[rule_id];
-	  if (g1_lexeme == -1)
+	  /* Skip to next if the completion
+	   * is not actually a read-able lexeme
+	   */
+	  if (g1_lexeme < 0) {
 	    goto NEXT_PASS2_REPORT_ITEM;
-	  slr->end_of_lexeme = slr->start_of_lexeme + earley_set;
-
-	  /* -2 means a discarded item */
-	  if (g1_lexeme <= -2)
-	    {
-	      goto NEXT_PASS2_REPORT_ITEM;
-	    }
-
-	  is_expected = marpa_r_terminal_is_expected (slr->r1, g1_lexeme);
-	  if (is_expected <= 0)
-	    {
-	      /* Assume that error were caught when the same call was made
-	       * above.
-	       */
-	      goto NEXT_PASS2_REPORT_ITEM;
-	    }
+	  }
 
 {
   Marpa_Recce r1 = slr->r1;
