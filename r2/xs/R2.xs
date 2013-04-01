@@ -26,7 +26,7 @@
 
 /* This kind of pointer comparison is not portable per C89,
  * but but the Perl source depends
- * on it throughout, and there is no other way to do it.
+ * on it throughout, and there seems to be no other way to do it.
  */
 #undef IS_PERL_UNDEF
 #define IS_PERL_UNDEF(x) ((x) == &PL_sv_undef)
@@ -1626,17 +1626,19 @@ slr_discard (Scanless_R * slr)
 
 /*
  * Return values:
- * 0 OK.
- * -4: Exhausted, but lexemes remain.
+ * NULL OK.
+ * Otherwise, a string containing the error.
+ * The string must be a constant in static space.
  */
-static IV
-slr_alternatives (Scanless_R * slr, IV * lexemes_found,
+static const char*
+slr_alternatives (Scanless_R * slr,
 		  IV * lexemes_attempted,
 		  IV * lexemes_acceptable
 		  )
 {
   dTHX;
   int lexemes_discarded = 0;
+  int lexemes_found = 0;
   Marpa_Recce r0;
   Marpa_Earley_Set_ID earley_set;
 
@@ -1648,7 +1650,6 @@ slr_alternatives (Scanless_R * slr, IV * lexemes_found,
   earley_set = marpa_r_latest_earley_set (r0);
   *lexemes_acceptable = 0;
   *lexemes_attempted = 0;
-  *lexemes_found = 0;
   while (earley_set > 0)
     {
       int is_expected;
@@ -1681,7 +1682,7 @@ slr_alternatives (Scanless_R * slr, IV * lexemes_found,
 	  g1_lexeme = slr->slg->g0_rule_to_g1_lexeme[rule_id];
 	  if (g1_lexeme == -1)
 	    goto NEXT_REPORT_ITEM;
-	  (*lexemes_found)++;
+	  lexemes_found++;
 	  slr->end_of_lexeme = slr->start_of_lexeme + earley_set;
 
 	  /* -2 means a discarded item */
@@ -1743,7 +1744,7 @@ slr_alternatives (Scanless_R * slr, IV * lexemes_found,
 	NEXT_REPORT_ITEM:;
 	}
     NO_MORE_REPORT_ITEMS:;
-      if (*lexemes_found) {
+      if (lexemes_found) {
          return 0;
       }
       earley_set--;
@@ -1752,7 +1753,7 @@ slr_alternatives (Scanless_R * slr, IV * lexemes_found,
        */
     }
 
-  return 0;
+  return "no lexeme";
 }
 
 static void
@@ -5153,12 +5154,12 @@ PPCODE:
 	    XSRETURN_PV ("R0 exhausted before end");
 	  }
       } else {
-      result =
-	slr_alternatives (slr, &lexemes_found, &lexemes_attempted,
+      const char *result_string =
+	slr_alternatives (slr, &lexemes_attempted,
 			  &lexemes_acceptable);
-	if (!lexemes_found)
+	if (result_string)
 	  {
-	    XSRETURN_PV ("no lexeme");
+	    XSRETURN_PV (result_string);
 	  }
       }
 
