@@ -1668,6 +1668,7 @@ slr_alternatives (Scanless_R * slr,
 	  int discarded = 0;
 	  int rejected = 0;
 	  int unforgiven = 0;
+	  int acceptable = 0;
 	  int is_priority_set = 0;
 	  int priority;
 	  int is_before_pause_priority_set = 0;
@@ -1748,6 +1749,7 @@ slr_alternatives (Scanless_R * slr,
 		}
 
 	      /* If we are here, the lexeme will be accepted */
+	      acceptable++;
 
 	      {
 		int lexeme_priority = lexeme_properties->priority;
@@ -1769,6 +1771,18 @@ slr_alternatives (Scanless_R * slr,
 	    NEXT_PASS1_REPORT_ITEM:;
 	    }
 	END_OF_PASS1:;
+
+	if (!acceptable) {
+	    if (unforgiven) {
+	        *lexemes_attempted = 1;
+		return 0;
+	    }
+	    if (discarded) {
+		return 0;
+	    }
+	    goto LOOK_AT_PREVIOUS_EARLEME;
+	}
+
 	}
       while (0);
 
@@ -1834,6 +1848,7 @@ slr_alternatives (Scanless_R * slr,
 	{
 	  return 0;
 	}
+      LOOK_AT_PREVIOUS_EARLEME:
       earley_set--;
       /* Zero length lexemes are not of interest, so we do *not*
        * search the 0'th Earley set.
