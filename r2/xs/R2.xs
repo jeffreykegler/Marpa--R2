@@ -1696,6 +1696,7 @@ slr_alternatives (Scanless_R * slr,
 	      g1_lexeme = slr->slg->g0_rule_to_g1_lexeme[rule_id];
 	      if (g1_lexeme == -1)
 		goto NEXT_PASS1_REPORT_ITEM;
+	  slr->end_of_lexeme = slr->start_of_lexeme + earley_set;
 	      /* -2 means a discarded item */
 	      if (g1_lexeme <= -2)
 		{
@@ -1789,21 +1790,6 @@ slr_alternatives (Scanless_R * slr,
 	  if (g1_lexeme <= -2)
 	    {
 	      lexemes_discarded++;
-	      if (slr->trace_terminals)
-		{
-		  AV *event;
-		  SV *event_data[4];
-		  event_data[0] = newSVpvs ("discarded lexeme");
-		  /* We do not have the lexeme, but we have the 
-		   * g0 rule.
-		   * The upper level will have to figure things out.
-		   */
-		  event_data[1] = newSViv (rule_id);
-		  event_data[2] = newSViv (slr->start_of_lexeme);
-		  event_data[3] = newSViv (slr->end_of_lexeme);
-		  event = av_make (Dim (event_data), event_data);
-		  av_push (slr->event_queue, newRV_noinc ((SV *) event));
-		}
 	      goto NEXT_REPORT_ITEM;
 	    }
 
