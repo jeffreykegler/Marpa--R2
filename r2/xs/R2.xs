@@ -1727,6 +1727,23 @@ slr_alternatives (Scanless_R * slr,
 		    {
 		      unforgiven++;
 		    }
+	      if (slr->trace_level >= 1)
+		{
+		  warn
+		    ("slr->read() R1 Rejected unexpected symbol %d at pos %d",
+		     g1_lexeme, (int) slr->stream->perl_pos);
+		}
+	      if (slr->trace_terminals)
+		{
+		  AV *event;
+		  SV *event_data[4];
+		  event_data[0] = newSVpvs ("g1 unexpected lexeme");
+		  event_data[1] = newSViv (slr->start_of_lexeme);	/* start */
+		  event_data[2] = newSViv (slr->end_of_lexeme);	/* end */
+		  event_data[3] = newSViv (g1_lexeme);	/* lexeme */
+		  event = av_make (Dim (event_data), event_data);
+		  av_push (slr->event_queue, newRV_noinc ((SV *) event));
+		}
 		  goto NEXT_PASS1_REPORT_ITEM;
 		}
 
@@ -1803,23 +1820,6 @@ slr_alternatives (Scanless_R * slr,
 	    }
 	  if (!is_expected)
 	    {
-	      if (slr->trace_level >= 1)
-		{
-		  warn
-		    ("slr->read() R1 Rejected unexpected symbol %d at pos %d",
-		     g1_lexeme, (int) slr->stream->perl_pos);
-		}
-	      if (slr->trace_terminals)
-		{
-		  AV *event;
-		  SV *event_data[4];
-		  event_data[0] = newSVpvs ("g1 unexpected lexeme");
-		  event_data[1] = newSViv (slr->start_of_lexeme);	/* start */
-		  event_data[2] = newSViv (slr->end_of_lexeme);	/* end */
-		  event_data[3] = newSViv (g1_lexeme);	/* lexeme */
-		  event = av_make (Dim (event_data), event_data);
-		  av_push (slr->event_queue, newRV_noinc ((SV *) event));
-		}
 	      goto NEXT_REPORT_ITEM;
 	    }
 	  (*lexemes_acceptable)++;
