@@ -1563,6 +1563,7 @@ slr_alternatives (Scanless_R * slr)
 {
   dTHX;
   Marpa_Recce r0;
+  Marpa_Recce r1 = slr->r1;
   Marpa_Earley_Set_ID earley_set;
   const Scanless_G *slg = slr->slg;
 
@@ -1644,7 +1645,7 @@ slr_alternatives (Scanless_R * slr)
 		  goto NEXT_PASS1_REPORT_ITEM;
 		}
 	      lexeme_properties = slg->g1_lexeme_properties + g1_lexeme;
-	      is_expected = marpa_r_terminal_is_expected (slr->r1, g1_lexeme);
+	      is_expected = marpa_r_terminal_is_expected (r1, g1_lexeme);
 	      if (!is_expected)
 		{
 		  rejected++;
@@ -1719,126 +1720,128 @@ slr_alternatives (Scanless_R * slr)
 		 xs_g_error (slr->g0_wrapper));
 	}
 
-      do {
-      while (1)
+      do
 	{
-	  Marpa_Symbol_ID g1_lexeme;
-	  int dot_position;
-	  Marpa_Earley_Set_ID origin;
-	  Marpa_Rule_ID rule_id =
-	    marpa_r_progress_item (r0, &dot_position, &origin);
-	  if (rule_id <= -2)
+	  while (1)
 	    {
-	      croak ("Problem in marpa_r_progress_item(): %s",
-		     xs_g_error (slr->g0_wrapper));
-	    }
-	  if (rule_id == -1)
-	    goto END_OF_PASS2;
-	  if (origin != 0)
-	    goto NEXT_PASS2_REPORT_ITEM;
-	  if (dot_position != -1)
-	    goto NEXT_PASS2_REPORT_ITEM;
-	  g1_lexeme = slr->slg->g0_rule_to_g1_lexeme[rule_id];
-	  /* Skip to next if the completion
-	   * is not actually a read-able lexeme
-	   */
-	  if (g1_lexeme < 0) {
-	    goto NEXT_PASS2_REPORT_ITEM;
-	  }
+	      Marpa_Symbol_ID g1_lexeme;
+	      int dot_position;
+	      Marpa_Earley_Set_ID origin;
+	      Marpa_Rule_ID rule_id =
+		marpa_r_progress_item (r0, &dot_position, &origin);
+	      if (rule_id <= -2)
+		{
+		  croak ("Problem in marpa_r_progress_item(): %s",
+			 xs_g_error (slr->g0_wrapper));
+		}
+	      if (rule_id == -1)
+		goto END_OF_PASS2;
+	      if (origin != 0)
+		goto NEXT_PASS2_REPORT_ITEM;
+	      if (dot_position != -1)
+		goto NEXT_PASS2_REPORT_ITEM;
+	      g1_lexeme = slr->slg->g0_rule_to_g1_lexeme[rule_id];
+	      /* Skip to next if the completion
+	       * is not actually a read-able lexeme
+	       */
+	      if (g1_lexeme < 0)
+		{
+		  goto NEXT_PASS2_REPORT_ITEM;
+		}
 
-{
-  Marpa_Recce r1 = slr->r1;
+	      if (slr->trace_terminals > 2)
+		{
+		  AV *event;
+		  SV *event_data[4];
+		  event_data[0] = newSVpvs ("g1 attempting lexeme");
+		  event_data[1] = newSViv (slr->start_of_lexeme);	/* start */
+		  event_data[2] = newSViv (slr->end_of_lexeme);	/* end */
+		  event_data[3] = newSViv (g1_lexeme);	/* lexeme */
+		  event = av_make (Dim (event_data), event_data);
+		  av_push (slr->event_queue, newRV_noinc ((SV *) event));
+		}
+	      return_value =
+		marpa_r_alternative (r1, g1_lexeme, TOKEN_VALUE_IS_LITERAL,
+				     1);
+	      switch (return_value)
+		{
 
-      if (slr->trace_terminals > 2)
-	{
-	  AV *event;
-	  SV *event_data[4];
-	  event_data[0] = newSVpvs ("g1 attempting lexeme");
-	  event_data[1] = newSViv (slr->start_of_lexeme);	/* start */
-	  event_data[2] = newSViv (slr->end_of_lexeme);	/* end */
-	  event_data[3] = newSViv (g1_lexeme);	/* lexeme */
-	  event = av_make (Dim (event_data), event_data);
-	  av_push (slr->event_queue, newRV_noinc ((SV *) event));
-	}
-  return_value = marpa_r_alternative (r1, g1_lexeme, TOKEN_VALUE_IS_LITERAL, 1);
-  switch (return_value)
-    {
+		case MARPA_ERR_UNEXPECTED_TOKEN_ID:
+		  /* Rejected tokens were found in pass 1, but the
+		   * easiest way to filter these out is to just try them
+		   * and ignore the error
+		   */
+		  break;
 
-    case MARPA_ERR_UNEXPECTED_TOKEN_ID:
-       /* Rejected tokens were found in pass 1, but the
-        * easiest way to filter these out is to just try them
-        * and ignore the error
-	*/
-       break;
+		case MARPA_ERR_DUPLICATE_TOKEN:
+		  if (slr->trace_level >= 1)
+		    {
+		      warn
+			("slr->read() R1 Rejected duplicate symbol %d at pos %d",
+			 g1_lexeme, (int) slr->stream->perl_pos);
+		    }
+		  if (slr->trace_terminals)
+		    {
+		      AV *event;
+		      SV *event_data[4];
+		      event_data[0] = newSVpvs ("g1 duplicate lexeme");
+		      event_data[1] = newSViv (slr->start_of_lexeme);	/* start */
+		      event_data[2] = newSViv (slr->end_of_lexeme);	/* end */
+		      event_data[3] = newSViv (g1_lexeme);	/* lexeme */
+		      event = av_make (Dim (event_data), event_data);
+		      av_push (slr->event_queue, newRV_noinc ((SV *) event));
+		    }
+		  break;
 
-    case MARPA_ERR_DUPLICATE_TOKEN:
-      if (slr->trace_level >= 1)
-	{
-	  warn
-	    ("slr->read() R1 Rejected duplicate symbol %d at pos %d",
-	     g1_lexeme, (int) slr->stream->perl_pos);
-	}
-      if (slr->trace_terminals)
-	{
-	  AV *event;
-	  SV *event_data[4];
-	  event_data[0] = newSVpvs ("g1 duplicate lexeme");
-	  event_data[1] = newSViv (slr->start_of_lexeme);	/* start */
-	  event_data[2] = newSViv (slr->end_of_lexeme);	/* end */
-	  event_data[3] = newSViv (g1_lexeme);	/* lexeme */
-	  event = av_make (Dim (event_data), event_data);
-	  av_push (slr->event_queue, newRV_noinc ((SV *) event));
-	}
-      break;
+		case MARPA_ERR_NONE:
+		  if (slr->trace_level >= 1)
+		    {
+		      warn
+			("slr->read() R1 Accepted symbol %d at pos %d",
+			 g1_lexeme, (int) slr->stream->perl_pos);
+		    }
+		  if (slr->trace_terminals)
+		    {
+		      AV *event;
+		      SV *event_data[4];
+		      event_data[0] = newSVpvs ("g1 accepted lexeme");
+		      event_data[1] = newSViv (slr->start_of_lexeme);	/* start */
+		      event_data[2] = newSViv (slr->end_of_lexeme);	/* end */
+		      event_data[3] = newSViv (g1_lexeme);	/* lexeme */
+		      event = av_make (Dim (event_data), event_data);
+		      av_push (slr->event_queue, newRV_noinc ((SV *) event));
+		    }
+		  break;
 
-    case MARPA_ERR_NONE:
-      if (slr->trace_level >= 1)
-	{
-	  warn
-	    ("slr->read() R1 Accepted symbol %d at pos %d",
-	     g1_lexeme, (int) slr->stream->perl_pos);
-	}
-      if (slr->trace_terminals)
-	{
-	  AV *event;
-	  SV *event_data[4];
-	  event_data[0] = newSVpvs ("g1 accepted lexeme");
-	  event_data[1] = newSViv (slr->start_of_lexeme);	/* start */
-	  event_data[2] = newSViv (slr->end_of_lexeme);	/* end */
-	  event_data[3] = newSViv (g1_lexeme);	/* lexeme */
-	  event = av_make (Dim (event_data), event_data);
-	  av_push (slr->event_queue, newRV_noinc ((SV *) event));
-	}
-      break;
-
-      default:
-  croak
-    ("Problem SLR->read() failed on symbol id %d at position %d: %s",
-     g1_lexeme, (int) slr->stream->perl_pos, xs_g_error (slr->g1_wrapper));
-  /* NOTREACHED */
-
-    }
-
-}
-	NEXT_PASS2_REPORT_ITEM:;
-	}
-	END_OF_PASS2: ;
-	{
-	  const int lexeme_start = slr->start_of_lexeme;
-	  const int lexeme_length = slr->end_of_lexeme - lexeme_start;
-	  int result = slr->r1_earleme_complete_result =
-	    marpa_r_earleme_complete (slr->r1);
-	  if (result < 0)
-	    {
-	      croak ("Problem in marpa_r_earleme_complete(): %s",
+		default:
+		  croak
+		    ("Problem SLR->read() failed on symbol id %d at position %d: %s",
+		     g1_lexeme, (int) slr->stream->perl_pos,
 		     xs_g_error (slr->g1_wrapper));
+		  /* NOTREACHED */
+
+		}
+
+	    NEXT_PASS2_REPORT_ITEM:;
 	    }
-	  marpa_r_latest_earley_set_values_set (slr->r1, lexeme_start,
-						INT2PTR (void *,
-							 lexeme_length));
+	END_OF_PASS2:;
+	  {
+	    const int lexeme_start = slr->start_of_lexeme;
+	    const int lexeme_length = slr->end_of_lexeme - lexeme_start;
+	    int result = slr->r1_earleme_complete_result =
+	      marpa_r_earleme_complete (r1);
+	    if (result < 0)
+	      {
+		croak ("Problem in marpa_r_earleme_complete(): %s",
+		       xs_g_error (slr->g1_wrapper));
+	      }
+	    marpa_r_latest_earley_set_values_set (r1, lexeme_start,
+						  INT2PTR (void *,
+							   lexeme_length));
+	  }
+	  return 0;
 	}
-	return 0;
-	} while (0);
+      while (0);
 
     LOOK_AT_PREVIOUS_EARLEME:
       earley_set--;
@@ -1846,7 +1849,6 @@ slr_alternatives (Scanless_R * slr)
 
   return "no lexeme";
 }
-
 static void
 slr_es_to_span (Scanless_R * slr, Marpa_Earley_Set_ID earley_set, int *p_start,
 	       int *p_length)
