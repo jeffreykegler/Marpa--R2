@@ -1638,7 +1638,6 @@ slr_alternatives (Scanless_R * slr,
 		  IV * lexemes_attempted, IV * lexemes_acceptable)
 {
   dTHX;
-  int lexemes_found = 0;
   Marpa_Recce r0;
   Marpa_Earley_Set_ID earley_set;
   const Scanless_G *slg = slr->slg;
@@ -1808,21 +1807,20 @@ slr_alternatives (Scanless_R * slr,
 		     xs_g_error (slr->g0_wrapper));
 	    }
 	  if (rule_id == -1)
-	    goto NO_MORE_REPORT_ITEMS;
+	    return 0;
 	  if (origin != 0)
-	    goto NEXT_REPORT_ITEM;
+	    goto NEXT_PASS2_REPORT_ITEM;
 	  if (dot_position != -1)
-	    goto NEXT_REPORT_ITEM;
+	    goto NEXT_PASS2_REPORT_ITEM;
 	  g1_lexeme = slr->slg->g0_rule_to_g1_lexeme[rule_id];
 	  if (g1_lexeme == -1)
-	    goto NEXT_REPORT_ITEM;
-	  lexemes_found++;
+	    goto NEXT_PASS2_REPORT_ITEM;
 	  slr->end_of_lexeme = slr->start_of_lexeme + earley_set;
 
 	  /* -2 means a discarded item */
 	  if (g1_lexeme <= -2)
 	    {
-	      goto NEXT_REPORT_ITEM;
+	      goto NEXT_PASS2_REPORT_ITEM;
 	    }
 
 	  (*lexemes_attempted)++;
@@ -1832,19 +1830,15 @@ slr_alternatives (Scanless_R * slr,
 	      /* Assume that error were caught when the same call was made
 	       * above.
 	       */
-	      goto NEXT_REPORT_ITEM;
+	      goto NEXT_PASS2_REPORT_ITEM;
 	    }
 	  (*lexemes_acceptable)++;
 
 	  /* trace_terminals also done inside slr_alternative */
 	  slr_alternative (slr, g1_lexeme);
-	NEXT_REPORT_ITEM:;
+	NEXT_PASS2_REPORT_ITEM:;
 	}
-    NO_MORE_REPORT_ITEMS:;
-      if (lexemes_found)
-	{
-	  return 0;
-	}
+
     LOOK_AT_PREVIOUS_EARLEME:
       earley_set--;
       /* Zero length lexemes are not of interest, so we do *not*
