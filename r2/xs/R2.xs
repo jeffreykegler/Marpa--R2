@@ -1662,6 +1662,34 @@ slr_alternatives (Scanless_R * slr,
 		 xs_g_error (slr->g0_wrapper));
 	}
       while (1)
+      {
+	  int dot_position;
+	  Marpa_Earley_Set_ID origin;
+	  Marpa_Rule_ID rule_id =
+	    marpa_r_progress_item (r0, &dot_position, &origin);
+	  if (rule_id <= -2)
+	    {
+	      croak ("Problem in marpa_r_progress_item(): %s",
+		     xs_g_error (slr->g0_wrapper));
+	    }
+	  if (rule_id == -1)
+	    goto END_OF_PASS1;
+	  if (origin != 0)
+	    goto NEXT_PASS1_REPORT_ITEM;
+	  if (dot_position != -1)
+	    goto NEXT_PASS1_REPORT_ITEM;
+	  NEXT_PASS1_REPORT_ITEM: ;
+      }
+      END_OF_PASS1: ;
+
+      return_value = marpa_r_progress_report_reset(r0);
+	  if (return_value <= -2)
+	    {
+	      croak ("Problem in marpa_r_progress_report_reset(): %s",
+		     xs_g_error (slr->g0_wrapper));
+	    }
+
+      while (1)
 	{
 	  Marpa_Symbol_ID g1_lexeme;
 	  int dot_position;
