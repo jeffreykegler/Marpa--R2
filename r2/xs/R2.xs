@@ -1650,6 +1650,10 @@ slr_alternatives (Scanless_R * slr,
   earley_set = marpa_r_latest_earley_set (r0);
   *lexemes_acceptable = 0;
   *lexemes_attempted = 0;
+
+  /* Zero length lexemes are not of interest, so we do *not*
+   * search the 0'th Earley set.
+   */
   while (earley_set > 0)
     {
       int is_expected;
@@ -1793,6 +1797,7 @@ slr_alternatives (Scanless_R * slr,
 		 xs_g_error (slr->g0_wrapper));
 	}
 
+      do {
       while (1)
 	{
 	  Marpa_Symbol_ID g1_lexeme;
@@ -1806,7 +1811,7 @@ slr_alternatives (Scanless_R * slr,
 		     xs_g_error (slr->g0_wrapper));
 	    }
 	  if (rule_id == -1)
-	    return 0;
+	    goto END_OF_PASS2;
 	  if (origin != 0)
 	    goto NEXT_PASS2_REPORT_ITEM;
 	  if (dot_position != -1)
@@ -1837,12 +1842,26 @@ slr_alternatives (Scanless_R * slr,
 	  slr_alternative (slr, g1_lexeme);
 	NEXT_PASS2_REPORT_ITEM:;
 	}
+	END_OF_PASS2: ;
+	{
+	  const int lexeme_start = slr->start_of_lexeme;
+	  const int lexeme_length = slr->end_of_lexeme - lexeme_start;
+	  int result = slr->r1_earleme_complete_result =
+	    marpa_r_earleme_complete (slr->r1);
+	  if (result < 0)
+	    {
+	      croak ("Problem in marpa_r_earleme_complete(): %s",
+		     xs_g_error (slr->g1_wrapper));
+	    }
+	  marpa_r_latest_earley_set_values_set (slr->r1, lexeme_start,
+						INT2PTR (void *,
+							 lexeme_length));
+	}
+	return 0;
+	} while (0);
 
     LOOK_AT_PREVIOUS_EARLEME:
       earley_set--;
-      /* Zero length lexemes are not of interest, so we do *not*
-       * search the 0'th Earley set.
-       */
     }
 
   return "no lexeme";
@@ -5257,21 +5276,6 @@ PPCODE:
 
       slr->please_start_lex_recce = 1;	/* We found a lexeme, so must restart r0 */
 
-      if (lexemes_acceptable)
-	{
-	  const int lexeme_start = slr->start_of_lexeme;
-	  const int lexeme_length = slr->end_of_lexeme - lexeme_start;
-	  result = slr->r1_earleme_complete_result =
-	    marpa_r_earleme_complete (slr->r1);
-	  if (result < 0)
-	    {
-	      croak ("Problem in marpa_r_earleme_complete(): %s",
-		     xs_g_error (slr->g1_wrapper));
-	    }
-	  marpa_r_latest_earley_set_values_set (slr->r1, lexeme_start,
-						INT2PTR (void *,
-							 lexeme_length));
-	}
 
       if (slr->trace_terminals || stream->trace_g0)
 	{
