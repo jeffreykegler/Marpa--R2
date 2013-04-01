@@ -1774,8 +1774,7 @@ slr_alternatives (Scanless_R * slr,
 	    {
 	      if (unforgiven)
 		{
-		  *lexemes_attempted = 1;
-		  return 0;
+		  return "no lexemes accepted";
 		}
 	      if (discarded)
 		{
@@ -5258,10 +5257,6 @@ PPCODE:
 
       slr->please_start_lex_recce = 1;	/* We found a lexeme, so must restart r0 */
 
-      if (lexemes_attempted && !lexemes_acceptable)
-	{
-	  XSRETURN_PV ("no lexemes accepted");
-	}
       if (lexemes_acceptable)
 	{
 	  const int lexeme_start = slr->start_of_lexeme;
