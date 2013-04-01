@@ -1634,8 +1634,7 @@ slr_discard (Scanless_R * slr)
  * The string must be a constant in static space.
  */
 static const char *
-slr_alternatives (Scanless_R * slr,
-		  IV * lexemes_attempted, IV * lexemes_acceptable)
+slr_alternatives (Scanless_R * slr)
 {
   dTHX;
   Marpa_Recce r0;
@@ -1648,8 +1647,6 @@ slr_alternatives (Scanless_R * slr,
       croak ("Problem in slr->read(): No R0 at %s %d", __FILE__, __LINE__);
     }
   earley_set = marpa_r_latest_earley_set (r0);
-  *lexemes_acceptable = 0;
-  *lexemes_attempted = 0;
 
   /* Zero length lexemes are not of interest, so we do *not*
    * search the 0'th Earley set.
@@ -1827,7 +1824,6 @@ slr_alternatives (Scanless_R * slr,
 	      goto NEXT_PASS2_REPORT_ITEM;
 	    }
 
-	  (*lexemes_attempted)++;
 	  is_expected = marpa_r_terminal_is_expected (slr->r1, g1_lexeme);
 	  if (is_expected <= 0)
 	    {
@@ -1836,7 +1832,6 @@ slr_alternatives (Scanless_R * slr,
 	       */
 	      goto NEXT_PASS2_REPORT_ITEM;
 	    }
-	  (*lexemes_acceptable)++;
 
 	  /* trace_terminals also done inside slr_alternative */
 	  slr_alternative (slr, g1_lexeme);
@@ -5217,10 +5212,6 @@ PPCODE:
 
   while (1)
     {
-      IV lexemes_found = 0;
-      IV lexemes_attempted = 0;
-      IV lexemes_acceptable = 0;
-
       if (slr->please_start_lex_recce)
 	{
 	  STRLEN input_length = SvCUR (stream->input);
@@ -5259,23 +5250,24 @@ PPCODE:
 	{
 	  XSRETURN_PV ("R0 read() problem");
 	}
-      if ( marpa_r_is_exhausted (slr->r1) ) {
-          int discard_result = slr_discard (slr);
-	  if (discard_result < 0) {
-	    XSRETURN_PV ("R0 exhausted before end");
-	  }
-      } else {
-      const char *result_string =
-	slr_alternatives (slr, &lexemes_attempted,
-			  &lexemes_acceptable);
-	if (result_string)
-	  {
-	    XSRETURN_PV (result_string);
-	  }
-      }
+      if (marpa_r_is_exhausted (slr->r1))
+	{
+	  int discard_result = slr_discard (slr);
+	  if (discard_result < 0)
+	    {
+	      XSRETURN_PV ("R0 exhausted before end");
+	    }
+	}
+      else
+	{
+	  const char *result_string = slr_alternatives (slr);
+	  if (result_string)
+	    {
+	      XSRETURN_PV (result_string);
+	    }
+	}
 
       slr->please_start_lex_recce = 1;	/* We found a lexeme, so must restart r0 */
-
 
       if (slr->trace_terminals || stream->trace_g0)
 	{
