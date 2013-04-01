@@ -31,6 +31,9 @@
 #undef IS_PERL_UNDEF
 #define IS_PERL_UNDEF(x) ((x) == &PL_sv_undef)
 
+#undef MAX
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
+
 /* utf8_to_uvchr is deprecated in 5.16, but
  * utf8_to_uvchr_buf is not available before 5.16
  * If I need to get fancier, I should look at Dumper.xs
@@ -1630,17 +1633,16 @@ slr_discard (Scanless_R * slr)
  * Otherwise, a string containing the error.
  * The string must be a constant in static space.
  */
-static const char*
+static const char *
 slr_alternatives (Scanless_R * slr,
-		  IV * lexemes_attempted,
-		  IV * lexemes_acceptable
-		  )
+		  IV * lexemes_attempted, IV * lexemes_acceptable)
 {
   dTHX;
   int lexemes_discarded = 0;
   int lexemes_found = 0;
   Marpa_Recce r0;
   Marpa_Earley_Set_ID earley_set;
+  const Scanless_G *slg = slr->slg;
 
   r0 = slr->stream->r0;
   if (!r0)
@@ -1661,33 +1663,103 @@ slr_alternatives (Scanless_R * slr,
 		 (void *) r0, (unsigned long) earley_set,
 		 xs_g_error (slr->g0_wrapper));
 	}
-      while (1)
-      {
-	  int dot_position;
-	  Marpa_Earley_Set_ID origin;
-	  Marpa_Rule_ID rule_id =
-	    marpa_r_progress_item (r0, &dot_position, &origin);
-	  if (rule_id <= -2)
+      do
+	{			/* pass 1 -- do-block executed only once */
+	  int discarded = 0;
+	  int rejected = 0;
+	  int unforgiven = 0;
+	  int is_priority_set = 0;
+	  int priority;
+	  int is_before_pause_priority_set = 0;
+	  int before_pause_priority;
+	  while (1)
 	    {
-	      croak ("Problem in marpa_r_progress_item(): %s",
-		     xs_g_error (slr->g0_wrapper));
-	    }
-	  if (rule_id == -1)
-	    goto END_OF_PASS1;
-	  if (origin != 0)
-	    goto NEXT_PASS1_REPORT_ITEM;
-	  if (dot_position != -1)
-	    goto NEXT_PASS1_REPORT_ITEM;
-	  NEXT_PASS1_REPORT_ITEM: ;
-      }
-      END_OF_PASS1: ;
+	      struct lexeme_properties* lexeme_properties;
+	      Marpa_Symbol_ID g1_lexeme;
+	      int lexeme_priority;
+	      int is_expected;
+	      int dot_position;
+	      Marpa_Earley_Set_ID origin;
+	      Marpa_Rule_ID rule_id =
+		marpa_r_progress_item (r0, &dot_position, &origin);
+	      if (rule_id <= -2)
+		{
+		  croak ("Problem in marpa_r_progress_item(): %s",
+			 xs_g_error (slr->g0_wrapper));
+		}
+	      if (rule_id == -1)
+		goto END_OF_PASS1;
+	      if (origin != 0)
+		goto NEXT_PASS1_REPORT_ITEM;
+	      if (dot_position != -1)
+		goto NEXT_PASS1_REPORT_ITEM;
+	      g1_lexeme = slr->slg->g0_rule_to_g1_lexeme[rule_id];
+	      if (g1_lexeme == -1)
+		goto NEXT_PASS1_REPORT_ITEM;
+	      /* -2 means a discarded item */
+	      if (g1_lexeme <= -2)
+		{
+		  discarded++;
+		  if (slr->trace_terminals)
+		    {
+		      AV *event;
+		      SV *event_data[4];
+		      event_data[0] = newSVpvs ("discarded lexeme");
+		      /* We do not have the lexeme, but we have the 
+		       * g0 rule.
+		       * The upper level will have to figure things out.
+		       */
+		      event_data[1] = newSViv (rule_id);
+		      event_data[2] = newSViv (slr->start_of_lexeme);
+		      event_data[3] = newSViv (slr->end_of_lexeme);
+		      event = av_make (Dim (event_data), event_data);
+		      av_push (slr->event_queue, newRV_noinc ((SV *) event));
+		    }
+		  goto NEXT_PASS1_REPORT_ITEM;
+		}
+	      lexeme_properties = slg->g1_lexeme_properties + g1_lexeme;
+	      is_expected = marpa_r_terminal_is_expected (slr->r1, g1_lexeme);
+	      if (!is_expected)
+		{
+		  rejected++;
+		  if (!lexeme_properties->forgiving)
+		    {
+		      unforgiven++;
+		    }
+		  goto NEXT_PASS1_REPORT_ITEM;
+		}
 
-      return_value = marpa_r_progress_report_reset(r0);
-	  if (return_value <= -2)
-	    {
-	      croak ("Problem in marpa_r_progress_report_reset(): %s",
-		     xs_g_error (slr->g0_wrapper));
+	      /* If we are here, the lexeme will be accepted */
+
+	      {
+		int lexeme_priority = lexeme_properties->priority;
+		priority =
+		  is_priority_set ? MAX (lexeme_priority,
+					 priority) : lexeme_priority;
+		is_priority_set = 1;
+
+		if (lexeme_properties->pause &&
+		    !lexeme_properties->pause_after)
+		  {
+		    before_pause_priority = is_before_pause_priority_set ?
+		      MAX (lexeme_properties->priority,
+			   before_pause_priority) : lexeme_priority;
+		    is_before_pause_priority_set = 1;
+		  }
+	      }
+
+	    NEXT_PASS1_REPORT_ITEM:;
 	    }
+	END_OF_PASS1:;
+	}
+      while (0);
+
+      return_value = marpa_r_progress_report_reset (r0);
+      if (return_value <= -2)
+	{
+	  croak ("Problem in marpa_r_progress_report_reset(): %s",
+		 xs_g_error (slr->g0_wrapper));
+	}
 
       while (1)
 	{
@@ -1772,9 +1844,10 @@ slr_alternatives (Scanless_R * slr,
 	NEXT_REPORT_ITEM:;
 	}
     NO_MORE_REPORT_ITEMS:;
-      if (lexemes_found) {
-         return 0;
-      }
+      if (lexemes_found)
+	{
+	  return 0;
+	}
       earley_set--;
       /* Zero length lexemes are not of interest, so we do *not*
        * search the 0'th Earley set.
