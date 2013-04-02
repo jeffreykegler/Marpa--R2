@@ -602,10 +602,10 @@ sub Marpa::R2::Scanless::R::read {
         $self->[Marpa::R2::Inner::Scanless::R::TRACE_G0] // 0;
     my $i_am_tracing = $trace_terminals || $trace_g0;
 
-    my $thin_self = $self->[Marpa::R2::Inner::Scanless::R::C];
-    $thin_self->trace_terminals($trace_terminals) if $trace_terminals;
-    $thin_self->trace_g0($trace_g0) if $trace_g0;
-    my $stream  = $thin_self->stream();
+    my $thin_slr = $self->[Marpa::R2::Inner::Scanless::R::C];
+    $thin_slr->trace_terminals($trace_terminals) if $trace_terminals;
+    $thin_slr->trace_g0($trace_g0) if $trace_g0;
+    my $stream  = $thin_slr->stream();
     my $grammar = $self->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
     my $thick_lex_grammar =
         $grammar->[Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMAR];
@@ -643,13 +643,13 @@ sub Marpa::R2::Scanless::R::read {
         # -7 means a lex read problem not in another category
         # -8 means an G1 earleme complete problem
 
-        my $problem_code    = $thin_self->read();
+        my $problem_code    = $thin_slr->read();
 
         last OUTER_READ if not $problem_code;
 
         if ($i_am_tracing) {
 
-            EVENT: while ( my $event = $thin_self->event() ) {
+            EVENT: while ( my $event = $thin_slr->event() ) {
                 my ($status) = $event->[0] // 'undefined event status';
                 if ( $status eq 'g1 accepted lexeme' ) {
                     my ( undef, $lexeme_start_pos, $lexeme_end_pos,
@@ -776,7 +776,7 @@ sub Marpa::R2::Scanless::R::read {
                 } ## end if ( $status eq 'ignored lexeme' )
                 say {$trace_file_handle} 'Event: ', join " ", @{$event};
                 next EVENT;
-            } ## end EVENT: while ( my $event = $thin_self->event() )
+            } ## end EVENT: while ( my $event = $thin_slr->event() )
 
             if ( $trace_g0 > 2 ) {
                 my $stream_pos = $stream->pos();

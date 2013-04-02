@@ -151,6 +151,9 @@ typedef struct {
      int stream_read_result;
      int r1_earleme_complete_result;
      int throw;
+     int pause_at_location;
+     int start_of_pause_lexeme;
+     int end_of_pause_lexeme;
 } Scanless_R;
 
 #define TOKEN_VALUE_IS_UNDEF (1)
@@ -1579,6 +1582,17 @@ slr_alternatives (Scanless_R * slr)
    */
   while (earley_set > 0)
     {
+      /* The is_X booleans indicate whether the priorities are defined.
+       * They are also initialized to 0, but only to silence the GCC
+       * warning.  Their value must be considered undefined unless
+       * the corresponding boolean is set.
+       */
+      int is_priority_set = 0;
+      int priority = 0;
+      int is_before_pause_priority_set = 0;
+      int before_pause_priority = 0;
+      int is_after_pause_priority_set = 0;
+      int after_pause_priority = 0;
       int is_expected;
       int return_value;
       return_value = marpa_r_progress_report_start (r0, earley_set);
@@ -1593,11 +1607,6 @@ slr_alternatives (Scanless_R * slr)
 	  int discarded = 0;
 	  int rejected = 0;
 	  int unforgiven = 0;
-	  int acceptable = 0;
-	  int is_priority_set = 0;
-	  int priority;
-	  int is_before_pause_priority_set = 0;
-	  int before_pause_priority;
 	  while (1)
 	    {
 	      struct lexeme_properties *lexeme_properties;
@@ -1674,7 +1683,6 @@ slr_alternatives (Scanless_R * slr)
 		}
 
 	      /* If we are here, the lexeme will be accepted */
-	      acceptable++;
 
 	      {
 		int lexeme_priority = lexeme_properties->priority;
@@ -1683,13 +1691,22 @@ slr_alternatives (Scanless_R * slr)
 					 priority) : lexeme_priority;
 		is_priority_set = 1;
 
-		if (lexeme_properties->pause &&
-		    !lexeme_properties->pause_after)
+		if (lexeme_properties->pause)
 		  {
-		    before_pause_priority = is_before_pause_priority_set ?
-		      MAX (lexeme_properties->priority,
-			   before_pause_priority) : lexeme_priority;
-		    is_before_pause_priority_set = 1;
+		    if (lexeme_properties->pause_after)
+		      {
+			after_pause_priority = is_after_pause_priority_set ?
+			  MAX (lexeme_properties->priority,
+			       after_pause_priority) : lexeme_priority;
+			is_after_pause_priority_set = 1;
+		      }
+		    else
+		      {
+			before_pause_priority = is_before_pause_priority_set ?
+			  MAX (lexeme_properties->priority,
+			       before_pause_priority) : lexeme_priority;
+			is_before_pause_priority_set = 1;
+		      }
 		  }
 	      }
 
@@ -1697,7 +1714,7 @@ slr_alternatives (Scanless_R * slr)
 	    }
 	END_OF_PASS1:;
 
-	  if (!acceptable)
+	  if (!is_priority_set)
 	    {
 	      if (unforgiven)
 		{
@@ -1713,6 +1730,16 @@ slr_alternatives (Scanless_R * slr)
 	}
       while (0);
 
+      /* If here, a lexeme has been accepted and priority is set
+       */
+      if (is_before_pause_priority_set && before_pause_priority >= priority)
+	{
+	  slr->pause_at_location = slr->start_of_lexeme;
+	  slr->start_of_pause_lexeme = slr->start_of_lexeme;
+	  slr->end_of_pause_lexeme = slr->end_of_lexeme;
+	  return 0;
+	}
+
       return_value = marpa_r_progress_report_reset (r0);
       if (return_value <= -2)
 	{
@@ -1724,6 +1751,8 @@ slr_alternatives (Scanless_R * slr)
 	{
 	  while (1)
 	    {
+	      int lexeme_priority;
+	      struct lexeme_properties *lexeme_properties;
 	      Marpa_Symbol_ID g1_lexeme;
 	      int dot_position;
 	      Marpa_Earley_Set_ID origin;
@@ -1745,6 +1774,15 @@ slr_alternatives (Scanless_R * slr)
 	       * is not actually a read-able lexeme
 	       */
 	      if (g1_lexeme < 0)
+		{
+		  goto NEXT_PASS2_REPORT_ITEM;
+		}
+
+	      /* Now that we know the lexeme, make sure it has
+	       * sufficient priority
+	       */
+	      lexeme_properties = slg->g1_lexeme_properties + g1_lexeme;
+	      if (lexeme_properties->priority < priority)
 		{
 		  goto NEXT_PASS2_REPORT_ITEM;
 		}
@@ -1825,20 +1863,24 @@ slr_alternatives (Scanless_R * slr)
 	    NEXT_PASS2_REPORT_ITEM:;
 	    }
 	END_OF_PASS2:;
-	  {
-	    const int lexeme_start = slr->start_of_lexeme;
-	    const int lexeme_length = slr->end_of_lexeme - lexeme_start;
-	    int result = slr->r1_earleme_complete_result =
-	      marpa_r_earleme_complete (r1);
-	    if (result < 0)
-	      {
-		croak ("Problem in marpa_r_earleme_complete(): %s",
-		       xs_g_error (slr->g1_wrapper));
-	      }
-	    marpa_r_latest_earley_set_values_set (r1, lexeme_start,
-						  INT2PTR (void *,
-							   lexeme_length));
-	  }
+	  return_value = slr->r1_earleme_complete_result =
+	    marpa_r_earleme_complete (r1);
+	  if (return_value < 0)
+	    {
+	      croak ("Problem in marpa_r_earleme_complete(): %s",
+		     xs_g_error (slr->g1_wrapper));
+	    }
+	  marpa_r_latest_earley_set_values_set (r1, slr->start_of_lexeme,
+						INT2PTR (void *,
+							 (slr->end_of_lexeme -
+							  slr->start_of_lexeme)));
+	  if (is_after_pause_priority_set && after_pause_priority >= priority)
+	    {
+	      slr->pause_at_location = slr->start_of_lexeme;
+	      slr->start_of_pause_lexeme = slr->start_of_lexeme;
+	      slr->end_of_pause_lexeme = slr->end_of_lexeme;
+	    }
+
 	  return 0;
 	}
       while (0);
@@ -1849,6 +1891,7 @@ slr_alternatives (Scanless_R * slr)
 
   return "no lexeme";
 }
+
 static void
 slr_es_to_span (Scanless_R * slr, Marpa_Earley_Set_ID earley_set, int *p_start,
 	       int *p_length)
@@ -5057,6 +5100,9 @@ PPCODE:
   slr->please_start_lex_recce = 1;
   slr->stream_read_result = 0;
   slr->r1_earleme_complete_result = 0;
+  slr->pause_at_location = -1;
+  slr->start_of_pause_lexeme = -1;
+  slr->end_of_pause_lexeme = -1;
 
   new_sv = sv_newmortal ();
   sv_setref_pv (new_sv, scanless_r_class_name, (void *) slr);
@@ -5195,6 +5241,9 @@ PPCODE:
 
   slr->stream_read_result = 0;
   slr->r1_earleme_complete_result = 0;
+  slr->pause_at_location = -1;
+  slr->start_of_pause_lexeme = -1;
+  slr->end_of_pause_lexeme = -1;
   av_clear (stream->event_queue);
 
   while (1)
