@@ -31,7 +31,7 @@ package Marpa::R2::Internal::MetaAST;
 use English qw( -no_match_vars );
 
 sub new {
-    my ( $class, $p_rules_source ) = @_;
+    my ( $class, $p_rules_source, $parse ) = @_;
 
     my $meta_recce = Marpa::R2::Internal::Scanless::meta_recce();
     my $meta_grammar = $meta_recce->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
@@ -47,6 +47,7 @@ sub new {
 
     my $value_ref = $meta_recce->value();
     Marpa::R2::exception("Parse of BNF/Scanless source failed") if not defined $value_ref;
+    $parse->{meta_recce} = $meta_recce if defined $parse;
     return bless ${$value_ref}, $class;
 
 }
@@ -59,12 +60,11 @@ sub substring {
 }
 
 sub ast_to_hash {
-    my ( $ast, $bnf_source ) = @_;
-    my $parse = bless {
-        p_source => $bnf_source,
-        g0_rules => [],
-        g1_rules => []
-    };
+    my ( $ast, $bnf_source, $parse ) = @_;
+    $parse->{p_source} = $bnf_source;
+    $parse->{g0_rules} = [];
+    $parse->{g1_rules} = [];
+    bless $parse, 'Marpa::R2::Internal::MetaAST::Parse';
 
     my (undef, undef, @statements) = @{$ast};
 
@@ -170,7 +170,7 @@ sub Marpa::R2::Internal::MetaAST::Proto_Alternative::combine {
     return $self;
 } ## end sub Marpa::R2::Internal::MetaAST::Proto_Alternative::combine
 
-sub Marpa::R2::Internal::MetaAST::bless_hash_rule {
+sub Marpa::R2::Internal::MetaAST::Parse::bless_hash_rule {
     my ( $parse, $hash_rule, $blessing, $original_lhs ) = @_;
     my $grammar_level = $Marpa::R2::Internal::GRAMMAR_LEVEL;
     return if $grammar_level == 0;
@@ -674,15 +674,20 @@ sub Marpa::R2::Internal::MetaAST_Nodes::empty_rule::evaluate {
 
 sub Marpa::R2::Internal::MetaAST_Nodes::lexeme_rule::evaluate {
     my ( $values, $parse ) = @_;
-    my ( $start, $length, undef, $op_declare, $unevaluated_adverb_list ) =
+    my ( $start, $length, undef, $op_declare, $symbol, $unevaluated_adverb_list ) =
         @{$values};
+
+    {
+    my ($line, $column) =  $parse->line_column($start);
+    die "lexeme rule not yet implemented\n",
+        "  Location was line $line, column $column\n",
+        "  Rule was ", $parse->substring( $start, $length )  ;
+    }
+
     Marpa::R2::exception( "lexeme rule not allowed in G0\n",
-        "  Rule was ", $parse->positions_to_string( $start, $length ) )
+        "  Rule was ", $parse->substring( $start, $length ) )
         if $op_declare->op() ne q{::=};
     my $adverb_list = $unevaluated_adverb_list->evaluate($parse);
-
-    # A default rule clears the previous default
-    $parse->{default_lexeme_adverbs} = {};
 
     ADVERB: for my $key ( keys %{$adverb_list} ) {
         my $value = $adverb_list->{$key};
@@ -694,7 +699,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::lexeme_rule::evaluate {
             $parse->{default_lexeme_adverbs}->{$key} = $value;
             next ADVERB;
         }
-        Marpa::R2::exception(qq{"$key" adverb not allowed in default rule"});
+        Marpa::R2::exception(qq{"$key" adverb not allowed in lexeme rule"});
     } ## end ADVERB: for my $key ( keys %{$adverb_list} )
     return undef;
 } ## end sub evaluate

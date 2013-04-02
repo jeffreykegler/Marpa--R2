@@ -41,12 +41,13 @@ my $result          = Getopt::Long::GetOptions(
 die "usage $PROGRAM_NAME [--help] file ...\n" if $help_flag;
 
 my $bnf = do { local $RS = undef; \(<>) };
-my $ast = Marpa::R2::Internal::MetaAST->new($bnf);
+my $parse = {};
+my $ast = Marpa::R2::Internal::MetaAST->new($bnf, $parse);
 if ($ast_before_flag) {
     say Data::Dumper::Dumper($ast);
     exit 0;
 }
-my $parse_result = $ast->ast_to_hash($bnf);
+my $parse_result = $ast->ast_to_hash($bnf, $parse);
 
 sub sort_bnf {
     my $cmp = $a->{lhs} cmp $b->{lhs};
