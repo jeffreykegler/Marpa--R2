@@ -151,7 +151,6 @@ typedef struct {
      int stream_read_result;
      int r1_earleme_complete_result;
      int throw;
-     int pause_at_location;
      int start_of_pause_lexeme;
      int end_of_pause_lexeme;
 } Scanless_R;
@@ -1569,8 +1568,9 @@ slr_alternatives (Scanless_R * slr)
   Marpa_Recce r1 = slr->r1;
   Marpa_Earley_Set_ID earley_set;
   const Scanless_G *slg = slr->slg;
+  Unicode_Stream *stream = slr->stream;
 
-  r0 = slr->stream->r0;
+  r0 = stream->r0;
   if (!r0)
     {
       croak ("Problem in slr->read(): No R0 at %s %d", __FILE__, __LINE__);
@@ -1666,7 +1666,7 @@ slr_alternatives (Scanless_R * slr)
 		    {
 		      warn
 			("slr->read() R1 Rejected unexpected symbol %d at pos %d",
-			 g1_lexeme, (int) slr->stream->perl_pos);
+			 g1_lexeme, (int) stream->perl_pos);
 		    }
 		  if (slr->trace_terminals)
 		    {
@@ -1734,7 +1734,7 @@ slr_alternatives (Scanless_R * slr)
        */
       if (is_before_pause_priority_set && before_pause_priority >= priority)
 	{
-	  slr->pause_at_location = slr->start_of_lexeme;
+	  stream->perl_pos = slr->start_of_lexeme;
 	  slr->start_of_pause_lexeme = slr->start_of_lexeme;
 	  slr->end_of_pause_lexeme = slr->end_of_lexeme;
 	  return 0;
@@ -1816,7 +1816,7 @@ slr_alternatives (Scanless_R * slr)
 		    {
 		      warn
 			("slr->read() R1 Rejected duplicate symbol %d at pos %d",
-			 g1_lexeme, (int) slr->stream->perl_pos);
+			 g1_lexeme, (int) stream->perl_pos);
 		    }
 		  if (slr->trace_terminals)
 		    {
@@ -1836,7 +1836,7 @@ slr_alternatives (Scanless_R * slr)
 		    {
 		      warn
 			("slr->read() R1 Accepted symbol %d at pos %d",
-			 g1_lexeme, (int) slr->stream->perl_pos);
+			 g1_lexeme, (int) stream->perl_pos);
 		    }
 		  if (slr->trace_terminals)
 		    {
@@ -1854,7 +1854,7 @@ slr_alternatives (Scanless_R * slr)
 		default:
 		  croak
 		    ("Problem SLR->read() failed on symbol id %d at position %d: %s",
-		     g1_lexeme, (int) slr->stream->perl_pos,
+		     g1_lexeme, (int) stream->perl_pos,
 		     xs_g_error (slr->g1_wrapper));
 		  /* NOTREACHED */
 
@@ -1876,7 +1876,7 @@ slr_alternatives (Scanless_R * slr)
 							  slr->start_of_lexeme)));
 	  if (is_after_pause_priority_set && after_pause_priority >= priority)
 	    {
-	      slr->pause_at_location = slr->start_of_lexeme;
+	      stream->perl_pos = slr->end_of_lexeme;
 	      slr->start_of_pause_lexeme = slr->start_of_lexeme;
 	      slr->end_of_pause_lexeme = slr->end_of_lexeme;
 	    }
@@ -5100,7 +5100,6 @@ PPCODE:
   slr->please_start_lex_recce = 1;
   slr->stream_read_result = 0;
   slr->r1_earleme_complete_result = 0;
-  slr->pause_at_location = -1;
   slr->start_of_pause_lexeme = -1;
   slr->end_of_pause_lexeme = -1;
 
@@ -5241,7 +5240,6 @@ PPCODE:
 
   slr->stream_read_result = 0;
   slr->r1_earleme_complete_result = 0;
-  slr->pause_at_location = -1;
   slr->start_of_pause_lexeme = -1;
   slr->end_of_pause_lexeme = -1;
   av_clear (stream->event_queue);
