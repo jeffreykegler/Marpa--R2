@@ -74,6 +74,11 @@ typedef struct {
 typedef struct {
     int next_offset; /* Offset of *NEXT* codepoint */
     int linecol;
+    /* Lines are 1-based, columns are zero-based and negated.
+     * In the first column (column 0), linecol is the 1-based line number.
+     * In subsequenct columns, linecol is -n, where n i the 0-based column
+     * number.
+     */
 } Pos_Entry;
 
 typedef struct {
@@ -2748,6 +2753,14 @@ PPCODE:
   U8* start_of_string;
   U8* end_of_string;
   int input_is_utf8;
+
+  /* Initialized to a Unicode non-character.  In fact, anything
+   * but a CR would do here.
+   */
+  UV previous_codepoint = 0xFDD0;
+  int next_line = 1;
+  int next_column = 0;
+
   STRLEN pv_length;
   /* Get our own copy and coerce it to a PV.
    * Stealing is OK, magic is not.
@@ -2758,10 +2771,9 @@ PPCODE:
   input_is_utf8 = SvUTF8 (stream->input);
 
   stream->pos_db_logical_size = 0;
-  /* This original buffer size is sub-optimal,
-   * but for now it tests the reallocation logic.
+  /* This original buffer size my be too small.
    */
-  stream->pos_db_physical_size = 16;
+  stream->pos_db_physical_size = 1024;
   Newx (stream->pos_db, stream->pos_db_physical_size, Pos_Entry);
 
   for (p = start_of_string; p < end_of_string; ) {
@@ -2794,8 +2806,27 @@ PPCODE:
 	    Renew (stream->pos_db, stream->pos_db_physical_size, Pos_Entry);
 	}
       p += codepoint_length;
-      stream->pos_db[stream->pos_db_logical_size++].next_offset =
+      stream->pos_db[stream->pos_db_logical_size].next_offset =
 	p - start_of_string;
+
+	/* The definition of newline here follows the Unicode standard TR13 */
+      if (codepoint == 0x0a && previous_codepoint == 0x0d) {
+	stream->pos_db[stream->pos_db_logical_size].linecol =
+	  stream->pos_db[stream->pos_db_logical_size-1].linecol - 1;
+      } else {
+	stream->pos_db[stream->pos_db_logical_size].linecol = next_column ? next_column : next_line;
+      }
+      switch (codepoint) {
+      case 0x0a: case 0x0b: case 0x0c: case 0x0d:
+      case 0x85: case 0x2028: case 0x2029:
+          next_line++;
+	  next_column = 0;
+	  break;
+      default:
+          next_column--;
+      }
+      stream->pos_db_logical_size++;
+      previous_codepoint = codepoint;
     }
 
   /* Set positions */
@@ -5363,6 +5394,40 @@ PPCODE:
   STRLEN length = slr->end_of_lexeme - slr->start_of_lexeme;
   XPUSHs (sv_2mortal (newSViv ((IV) slr->start_of_lexeme)));
   XPUSHs (sv_2mortal (newSViv ((IV) length)));
+}
+
+ # Return values are 1-based, as is the tradition */
+void
+line_column(slr, pos)
+     Scanless_R *slr;
+     IV pos;
+PPCODE:
+{
+  Unicode_Stream *stream = slr->stream;
+  int line = 1;
+  int column = 1;
+  int linecol;
+  if (pos < 0)
+    {
+      pos = stream->perl_pos;
+    }
+  if (pos > stream->pos_db_logical_size)
+    {
+      croak ("Problem in slr->line_column(%ld): position out of range",
+	     (long) pos);
+    }
+  linecol = stream->pos_db[stream->pos_db_logical_size].linecol;
+  if (linecol >= 0)
+    {				/* Zero should not happen */
+      line = linecol;
+    }
+  else
+    {
+      line = stream->pos_db[stream->pos_db_logical_size + linecol].linecol;
+      column = -linecol + 1;
+    }
+  XPUSHs (sv_2mortal (newSViv ((IV) line)));
+  XPUSHs (sv_2mortal (newSViv ((IV) column)));
 }
 
  # Variable arg as opposed to a ref,

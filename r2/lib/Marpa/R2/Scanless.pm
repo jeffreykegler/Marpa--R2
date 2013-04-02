@@ -838,13 +838,13 @@ sub Marpa::R2::Scanless::R::read_problem {
 
     die 'No problem_code in slr->read_problem()' if not $problem_code;
 
-    my $thin_self  = $self->[Marpa::R2::Inner::Scanless::R::C];
+    my $thin_slr  = $self->[Marpa::R2::Inner::Scanless::R::C];
     my $grammar = $self->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
 
     my $thick_lex_grammar =
         $grammar->[Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMAR];
     my $lex_tracer       = $thick_lex_grammar->tracer();
-    my $stream  = $thin_self->stream();
+    my $stream  = $thin_slr->stream();
 
     my $trace_file_handle  = $self->[ Marpa::R2::Inner::Scanless::R::TRACE_FILE_HANDLE];
 
@@ -863,23 +863,23 @@ sub Marpa::R2::Scanless::R::read_problem {
     my $g1_status = 0;
     CODE_TO_PROBLEM: {
         if ( $problem_code eq 'R0 exhausted before end' ) {
-            my ($lexeme_start_pos) = $thin_self->lexeme_span();
+            my ($lexeme_start_pos) = $thin_slr->lexeme_span();
             $problem =
                 "Parse exhausted, but lexemes remain, at position $lexeme_start_pos\n";
             last CODE_TO_PROBLEM;
         }
         if ( $problem_code eq 'no lexeme' ) {
-            my ($lexeme_start) = $thin_self->lexeme_span();
+            my ($lexeme_start) = $thin_slr->lexeme_span();
             $problem = "No lexeme found at position $lexeme_start";
             last CODE_TO_PROBLEM;
         }
         if ( $problem_code eq 'R0 read() problem' ) {
             $problem = undef; # let $g0_status do the work
-            $g0_status = $thin_self->stream_read_result();
+            $g0_status = $thin_slr->stream_read_result();
             last CODE_TO_PROBLEM;
         }
         if ( $problem_code eq 'no lexemes accepted' ) {
-            my ($lexeme_start) = $thin_self->lexeme_span();
+            my ($lexeme_start) = $thin_slr->lexeme_span();
             $problem = "No lexemes accepted at position $lexeme_start";
             last CODE_TO_PROBLEM;
         }
@@ -900,7 +900,7 @@ sub Marpa::R2::Scanless::R::read_problem {
                 )
             {
                 my ( $event_type, $value ) =
-                    $thin_self->g0()->event($event_ix);
+                    $thin_slr->g0()->event($event_ix);
                 if ( $event_type eq 'MARPA_EVENT_EARLEY_ITEM_THRESHOLD' ) {
                     $desc
                         .= "Lexer: Earley item count ($value) exceeds warning threshold\n";
@@ -931,7 +931,7 @@ sub Marpa::R2::Scanless::R::read_problem {
             last DESC;
         }
         if ($g1_status) {
-            my $true_event_count = $thin_self->g1()->event_count();
+            my $true_event_count = $thin_slr->g1()->event_count();
             EVENT:
             for (
                 my $event_ix = 0;
@@ -940,7 +940,7 @@ sub Marpa::R2::Scanless::R::read_problem {
                 )
             {
                 my ( $event_type, $value ) =
-                    $thin_self->g1()->event($event_ix);
+                    $thin_slr->g1()->event($event_ix);
                 if ( $event_type eq 'MARPA_EVENT_EARLEY_ITEM_THRESHOLD' ) {
                     $desc
                         .= "G1 grammar: Earley item count ($value) exceeds warning threshold\n";
@@ -959,7 +959,7 @@ sub Marpa::R2::Scanless::R::read_problem {
             last DESC;
         } ## end if ($g1_status)
         if ( $g1_status < 0 ) {
-            $desc = 'G1 error: ' . $thin_self->g1()->error();
+            $desc = 'G1 error: ' . $thin_slr->g1()->error();
             last DESC;
         }
     } ## end DESC:
@@ -967,45 +967,47 @@ sub Marpa::R2::Scanless::R::read_problem {
     if ($g1_status) {
         my $latest_earley_set = $thin_g1_recce->latest_earley_set();
         my ( $start_location, $length ) =
-            $thin_self->span($latest_earley_set);
+            $thin_slr->span($latest_earley_set);
+        my ($line, $column) = $thin_slr->line_column($pos);
         my $last_pos = $start_location + $length;
         my $prefix =
-            $last_pos >= 72
-            ? ( substr ${$p_string}, $last_pos - 72, 72 )
+            $last_pos >= 50
+            ? ( substr ${$p_string}, $last_pos - 50, 50 )
             : ( substr ${$p_string}, 0, $last_pos );
         $read_string_error =
               "Error in SLIF G1 read: $desc\n"
-            . "* Error was at string position: $last_pos\n"
-            . "* String before error:\n"
-            . Marpa::R2::escape_string( $prefix, -72 ) . "\n"
-            . "* String after error:\n"
+            . "* Error was at line $line, column $column\n"
+            . "* String before error: "
+            . Marpa::R2::escape_string( $prefix, -50 ) . "\n"
+            . "* String after error: "
             . Marpa::R2::escape_string(
-            ( substr ${$p_string}, $last_pos, 72 ), 72 )
+            ( substr ${$p_string}, $last_pos, 50 ), 50 )
             . "\n";
     } ## end if ($g1_status)
     elsif ( $pos < $length_of_string ) {
         my $char = substr ${$p_string}, $pos, 1;
         my $char_desc = character_describe($char);
+        my ($line, $column) = $thin_slr->line_column($pos);
         my $prefix =
-            $pos >= 72
-            ? ( substr ${$p_string}, $pos - 72, 72 )
+            $pos >= 50
+            ? ( substr ${$p_string}, $pos - 50, 50 )
             : ( substr ${$p_string}, 0, $pos );
 
         $read_string_error =
               "Error in SLIF G1 read: $desc\n"
-            . "* Error was at string position: $pos, and at character $char_desc\n"
-            . "* String before error:\n"
-            . Marpa::R2::escape_string( $prefix, -72 ) . "\n"
-            . "* String after error:\n"
-            . Marpa::R2::escape_string( ( substr ${$p_string}, $pos, 72 ), 72 )
+            . "* Error was at line $line, column $column, and at character $char_desc\n"
+            . "* String before error: "
+            . Marpa::R2::escape_string( $prefix, -50 ) . "\n"
+            . "* String after error: "
+            . Marpa::R2::escape_string( ( substr ${$p_string}, $pos, 50 ), 50 )
             . "\n";
     } ## end elsif ( $pos < $length_of_string )
     else {
         $read_string_error =
               "Error in SLIF G1 read: $desc\n"
             . "* Error was at end of string\n"
-            . "* String before error:\n"
-            . Marpa::R2::escape_string( ${$p_string}, -72 ) . "\n";
+            . "* String before error: "
+            . Marpa::R2::escape_string( ${$p_string}, -50 ) . "\n";
     } ## end else [ if ($g1_status) ]
     $self->[Marpa::R2::Inner::Scanless::R::READ_STRING_ERROR] =
         $read_string_error;
