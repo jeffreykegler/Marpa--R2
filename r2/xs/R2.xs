@@ -5416,14 +5416,14 @@ PPCODE:
       croak ("Problem in slr->line_column(%ld): position out of range",
 	     (long) pos);
     }
-  linecol = stream->pos_db[stream->pos_db_logical_size].linecol;
+  linecol = stream->pos_db[pos].linecol;
   if (linecol >= 0)
     {				/* Zero should not happen */
       line = linecol;
     }
   else
     {
-      line = stream->pos_db[stream->pos_db_logical_size + linecol].linecol;
+      line = stream->pos_db[pos + linecol].linecol;
       column = -linecol + 1;
     }
   XPUSHs (sv_2mortal (newSViv ((IV) line)));

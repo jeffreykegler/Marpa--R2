@@ -128,7 +128,7 @@ my $grammar2 = Marpa::R2::Scanless::G->new(
 statement ::= (<say keyword>) expression | expression
 expression ::=
     number bless => primary
-    variable bless => primary
+   | variable bless => primary
    || Expression ('+') Expression bless => add
 number ~ [\d]+
 variable ~ [[:alpha:]] <optional word characters>
