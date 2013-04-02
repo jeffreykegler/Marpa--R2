@@ -22,7 +22,7 @@ statement ::= <statement body>
 statement ::= <statement body> ';'
 <statement body> ::= <start rule> | <empty rule>
   | <priority rule> | <quantified rule> | <discard rule> | <default rule>
-  | <lexeme default statement>
+  | <lexeme default statement> | <lexeme rule>
 <start rule> ::= (':start' <op declare bnf>) symbol
 <default rule> ::= ':default' <op declare bnf> <adverb list>
 <lexeme default statement> ::= ('lexeme' 'default' '=') <adverb list>
@@ -30,6 +30,7 @@ statement ::= <statement body> ';'
 <empty rule> ::= lhs <op declare> <adverb list>
 <quantified rule> ::= lhs <op declare> <single symbol> quantifier <adverb list>
 <discard rule> ::= (':discard' <op declare match>) <single symbol>
+<lexeme rule> ::= (':discard' <op declare>) <single symbol> <adverb list>
 <op declare> ::= <op declare bnf> | <op declare match>
 priorities ::= alternatives+
     separator => <op loosen> proper => 1
@@ -40,7 +41,8 @@ alternative ::= rhs <adverb list>
 <adverb item> ::=
       action
     | <left association> | <right association> | <group association>
-    | <separator specification> | <proper specification>
+    | <separator specification> | <proper specification> | <rank specification>
+    | <priority specification> | <pause specification> | <forgiving specification>
     | blessing
 
 action ::= ('action' '=>') <action name>
@@ -49,6 +51,10 @@ action ::= ('action' '=>') <action name>
 <group association> ::= ('assoc' '=>' 'group')
 <separator specification> ::= ('separator' '=>') <single symbol>
 <proper specification> ::= ('proper' '=>') boolean
+<rank specification> ::= ('rank' '=>') <signed integer>
+<priority specification> ::= ('priority' '=>') <signed integer>
+<pause specification> ::= ('pause' '=>') <before or after>
+<forgiving specification> ::= ('forgiving' '=>') boolean
 <blessing> ::= ('bless' '=>') <blessing name>
 <blessing name> ::= <standard name>
 <blessing name> ::= <reserved blessing name>
@@ -88,8 +94,14 @@ whitespace ~ [\s]+
 <op loosen> ~ '||'
 <op equal priority> ~ '|'
 quantifier ::= '*' | '+'
+<before or after> ~ 'before' | 'after'
+
+<signed integer> ~ <integer> | <sign> <integer>
+<sign> ~ [+-]
+<integer> ~ [\d]+
 
 boolean ~ [01]
+
 <reserved action name> ~ '::' <one or more word characters>
 <reserved blessing name> ~ '::' <one or more word characters>
 <one or more word characters> ~ [\w]+
