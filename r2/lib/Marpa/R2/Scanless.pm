@@ -1094,6 +1094,16 @@ sub Marpa::R2::Scanless::R::lexeme_read {
     return $slr->lexeme_complete($start, $length);
 }
 
+sub Marpa::R2::Scanless::R::line_column {
+    my ($slr, $pos) = @_;
+    my $thin_slr = $slr->[Marpa::R2::Inner::Scanless::R::C];
+    if (not defined $pos) {
+        my $stream  = $thin_slr->stream();
+        $pos = $stream->pos();
+    }
+    return $thin_slr->line_column($pos);
+}
+
 1;
 
 # vim: expandtab shiftwidth=4:

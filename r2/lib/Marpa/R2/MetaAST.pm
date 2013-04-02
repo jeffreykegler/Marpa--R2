@@ -52,7 +52,7 @@ sub new {
 
 }
 
-sub substring {
+sub Marpa::R2::Internal::MetaAST::Parse::substring {
     my ($parse, $start, $length) = @_;
     my $string = substr ${$parse->{p_source}}, $start, $length;
     chomp $string;
@@ -678,7 +678,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::lexeme_rule::evaluate {
         @{$values};
 
     {
-    my ($line, $column) =  $parse->line_column($start);
+    my ($line, $column) =  $parse->{meta_recce}->line_column($start);
     die "lexeme rule not yet implemented\n",
         "  Location was line $line, column $column\n",
         "  Rule was ", $parse->substring( $start, $length )  ;
