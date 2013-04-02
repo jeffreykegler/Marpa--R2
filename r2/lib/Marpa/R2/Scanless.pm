@@ -889,7 +889,7 @@ sub Marpa::R2::Scanless::R::read_problem {
     my $desc;
     DESC: {
         if (defined $problem) {
-            $desc .= "$problem\n";
+            $desc .= "$problem";
         }
         if ( $g0_status > 0 ) {
             EVENT:
@@ -902,17 +902,18 @@ sub Marpa::R2::Scanless::R::read_problem {
                 my ( $event_type, $value ) =
                     $thin_slr->g0()->event($event_ix);
                 if ( $event_type eq 'MARPA_EVENT_EARLEY_ITEM_THRESHOLD' ) {
-                    $desc
-                        .= "Lexer: Earley item count ($value) exceeds warning threshold\n";
+                    $desc = join "\n", $desc, 
+                        "Lexer: Earley item count ($value) exceeds warning threshold";
                     next EVENT;
                 }
                 if ( $event_type eq 'MARPA_EVENT_SYMBOL_EXPECTED' ) {
-                    $desc .= "Unexpected lexer event: $event_type "
-                        . $lex_tracer->symbol_name($value) . "\n";
+                    $desc = join "\n", $desc, 
+                    "Unexpected lexer event: $event_type " . $lex_tracer->symbol_name($value);
                     next EVENT;
                 }
                 if ( $event_type eq 'MARPA_EVENT_EXHAUSTED' ) {
-                    $desc .= "Unexpected lexer event: $event_type\n";
+                    $desc = join "\n", $desc, 
+                     "Unexpected lexer event: $event_type";
                     next EVENT;
                 }
             } ## end EVENT: for ( my $event_ix = 0; $event_ix < $g0_status...)
@@ -942,17 +943,17 @@ sub Marpa::R2::Scanless::R::read_problem {
                 my ( $event_type, $value ) =
                     $thin_slr->g1()->event($event_ix);
                 if ( $event_type eq 'MARPA_EVENT_EARLEY_ITEM_THRESHOLD' ) {
-                    $desc
-                        .= "G1 grammar: Earley item count ($value) exceeds warning threshold\n";
+                    $desc = join "\n", $desc,
+                        "G1 grammar: Earley item count ($value) exceeds warning threshold\n";
                     next EVENT;
                 }
                 if ( $event_type eq 'MARPA_EVENT_SYMBOL_EXPECTED' ) {
-                    $desc .= "Unexpected G1 grammar event: $event_type "
-                        . $g1_tracer->symbol_name($value) . "\n";
+                    $desc = join "\n", $desc,
+                     "Unexpected G1 grammar event: $event_type " . $g1_tracer->symbol_name($value);
                     next EVENT;
                 }
                 if ( $event_type eq 'MARPA_EVENT_EXHAUSTED' ) {
-                    $desc .= 'Parse exhausted';
+                    $desc = join "\n", $desc, 'Parse exhausted';
                     next EVENT;
                 }
             } ## end EVENT: for ( my $event_ix = 0; $event_ix < ...)
@@ -960,6 +961,7 @@ sub Marpa::R2::Scanless::R::read_problem {
         } ## end if ($g1_status)
         if ( $g1_status < 0 ) {
             $desc = 'G1 error: ' . $thin_slr->g1()->error();
+            chomp $desc;
             last DESC;
         }
     } ## end DESC:

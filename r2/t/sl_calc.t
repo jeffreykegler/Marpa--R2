@@ -132,7 +132,7 @@ expression ::=
    || Expression ('+') Expression bless => add
 number ~ [\d]+
 variable ~ [[:alpha:]] <optional word characters>
-<optional word characters> ~ [[:alnum]]*
+<optional word characters> ~ [[:alnum:]]*
 <say keyword> ~ 'say'
 
 :lexeme ::= <say keyword> priority => 1
