@@ -129,8 +129,14 @@ boolean ~ [01]
 <cc element> ~ <escaped cc character>
 <escaped cc character> ~ '\' <horizontal character>
 <cc element> ~ <posix char class>
-<posix char class> ~ '[:' <colon free text> ':]'
-<colon free text> ~ [^:]+
+<cc element> ~ <negated posix char class>
+
+# [=xyz=] and [.xyz.] are parsed by Perl, but then currently cause an exception.
+# Catching Perl exceptions is inconvenient for Marpa,
+# so we reject them syntactically instead.
+<posix char class> ~ '[:' <posix char class name> ':]'
+<negated posix char class> ~ '[:^' <posix char class name> ':]'
+<posix char class name> ~ [[:alnum:]]+
 
 # a horizontal character is any character that is not vertical space
 <horizontal character> ~ [^\x{A}\x{B}\x{C}\x{D}\x{2028}\x{2029}]

@@ -353,7 +353,17 @@ sub Marpa::R2::Internal::MetaAST_Nodes::proper_specification::evaluate {
     return bless { proper => $child->value() }, $PROTO_ALTERNATIVE;
 }
 
+sub Marpa::R2::Internal::MetaAST_Nodes::priority_specification::evaluate {
+    my ($values) = @_;
+    my $child = $values->[2];
+    return bless { priority => $child->value() }, $PROTO_ALTERNATIVE;
+}
+
 sub Marpa::R2::Internal::MetaAST_Nodes::boolean::value {
+   return $_[0]->[2];
+}
+
+sub Marpa::R2::Internal::MetaAST_Nodes::signed_integer::value {
    return $_[0]->[2];
 }
 
