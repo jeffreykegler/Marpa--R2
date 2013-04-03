@@ -812,6 +812,47 @@ u_pos_set (Unicode_Stream * stream, int start_pos, int length)
   return old_pos;
 }
 
+static SV *
+u_pos_span_to_literal_sv (Unicode_Stream * stream,
+			  int start_pos, int length_in_positions)
+{
+  dTHX;
+  STRLEN dummy;
+  char *input = SvPV (stream->input, dummy);
+  int start_offset = POS_TO_OFFSET (stream, start_pos);
+  int length_in_bytes =
+    POS_TO_OFFSET (stream,
+		   start_pos + length_in_positions) - start_offset;
+  return newSVpvn (input + start_offset, length_in_bytes);
+}
+
+static SV*
+u_substring (Unicode_Stream * stream, const char *name, int start_pos_arg,
+	     int length_arg)
+{
+  dTHX;
+  int start_pos;
+  int end_pos;
+  const int input_length = stream->pos_db_logical_size;
+  int substring_length;
+
+  start_pos =
+    start_pos_arg < 0 ? input_length + start_pos_arg : start_pos_arg;
+  if (start_pos < 0 || start_pos > input_length)
+    {
+      croak ("Bad start position in %s: %ld", name, (long) start_pos_arg);
+    }
+
+  end_pos =
+    length_arg < 0 ? input_length + length_arg + 1 : start_pos + length_arg;
+  if (end_pos < 0 || end_pos > input_length)
+    {
+      croak ("Bad length in %s: %ld", name, (long) length_arg);
+    }
+  substring_length = end_pos - start_pos;
+  return u_pos_span_to_literal_sv (stream, start_pos, substring_length);
+}
+
 /* Static valuator methods */
 
 /* Return -1 on failure due to wrong mode */
@@ -1961,9 +2002,7 @@ slr_es_span_to_literal_sv (Scanless_R * slr,
   dTHX;
   if (length > 0)
     {
-      int length_in_bytes;
       int length_in_positions;
-      int start_offset;
       int start_position;
       STRLEN dummy;
       Unicode_Stream *stream = slr->stream;
@@ -1971,11 +2010,7 @@ slr_es_span_to_literal_sv (Scanless_R * slr,
       slr_es_to_literal_span (slr,
 			      start_earley_set, length,
 			      &start_position, &length_in_positions);
-      start_offset = POS_TO_OFFSET (stream, start_position);
-      length_in_bytes =
-	POS_TO_OFFSET (stream,
-		       start_position + length_in_positions) - start_offset;
-      return newSVpvn (input + start_offset, length_in_bytes);
+      return u_pos_span_to_literal_sv(stream, start_position, length_in_positions);
     }
   return newSVpvn ("", 0);
 }
@@ -2755,7 +2790,7 @@ PPCODE:
   int input_is_utf8;
 
   /* Initialized to a Unicode non-character.  In fact, anything
-   * but a CR would do here.
+   * but a CR would work here.
    */
   UV previous_codepoint = 0xFDD0;
   int next_line = 1;
@@ -2847,6 +2882,17 @@ pos( stream )
 PPCODE:
 {
   XSRETURN_IV(stream->perl_pos);
+}
+
+void
+substring(stream, start_pos, length)
+    Unicode_Stream *stream;
+    int start_pos;
+    int length;
+PPCODE:
+{
+  SV* literal_sv = u_substring(stream, "stream->substring()", start_pos, length);
+  XPUSHs (sv_2mortal (literal_sv));
 }
 
 void
@@ -5258,6 +5304,18 @@ stream( slr )
 PPCODE:
 {
   XPUSHs (sv_2mortal (SvREFCNT_inc_NN ( slr->stream_sv)));
+}
+
+void
+substring(slr, start_pos, length)
+    Scanless_R *slr;
+    int start_pos;
+    int length;
+PPCODE:
+{
+  Unicode_Stream *stream = slr->stream;
+  SV* literal_sv = u_substring(stream, "slr->substring()", start_pos, length);
+  XPUSHs (sv_2mortal (literal_sv));
 }
 
 void

@@ -332,7 +332,7 @@ state $grammar_options = { map { ($_, 1) } qw(
     } ## end if ( $ref_type ne 'SCALAR' )
     my $parse = {};
     my $ast = Marpa::R2::Internal::MetaAST->new($rules_source, $parse);
-    my $hashed_ast = $ast->ast_to_hash($rules_source, $parse);
+    my $hashed_ast = $ast->ast_to_hash($parse);
     $self->_hash_to_runtime($hashed_ast);
 
     return $self;

@@ -54,14 +54,15 @@ sub new {
 
 sub Marpa::R2::Internal::MetaAST::Parse::substring {
     my ($parse, $start, $length) = @_;
-    my $string = substr ${$parse->{p_source}}, $start, $length;
+    my $meta_slr = $parse->{meta_recce};
+    my $thin_meta_slr = $meta_slr->[Marpa::R2::Inner::Scanless::R::C];
+    my $string = $thin_meta_slr->substring($start, $length);
     chomp $string;
     return $string;
 }
 
 sub ast_to_hash {
-    my ( $ast, $bnf_source, $parse ) = @_;
-    $parse->{p_source} = $bnf_source;
+    my ( $ast, $parse ) = @_;
     $parse->{g0_rules} = [];
     $parse->{g1_rules} = [];
     bless $parse, 'Marpa::R2::Internal::MetaAST::Parse';
@@ -681,7 +682,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::lexeme_rule::evaluate {
     my ($line, $column) =  $parse->{meta_recce}->line_column($start);
     die "lexeme rule not yet implemented\n",
         "  Location was line $line, column $column\n",
-        "  Rule was ", $parse->substring( $start, $length )  ;
+        "  Rule was ", $parse->substring( $start, $length ), "\n"  ;
     }
 
     Marpa::R2::exception( "lexeme rule not allowed in G0\n",

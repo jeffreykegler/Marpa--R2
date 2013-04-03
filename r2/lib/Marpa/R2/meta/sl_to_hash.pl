@@ -47,7 +47,7 @@ if ($ast_before_flag) {
     say Data::Dumper::Dumper($ast);
     exit 0;
 }
-my $parse_result = $ast->ast_to_hash($bnf, $parse);
+my $parse_result = $ast->ast_to_hash($parse);
 
 sub sort_bnf {
     my $cmp = $a->{lhs} cmp $b->{lhs};
