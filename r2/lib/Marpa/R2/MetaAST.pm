@@ -692,7 +692,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::lexeme_rule::evaluate {
     ADVERB: for my $key ( keys %{$adverb_list} ) {
         my $value = $adverb_list->{$key};
         if ( $key eq 'priority' ) {
-            $declarations{$key} = $value->evaluate();
+            $declarations{$key} = $value + 0;
             next ADVERB;
         }
         if ( $key eq 'pause' ) {
