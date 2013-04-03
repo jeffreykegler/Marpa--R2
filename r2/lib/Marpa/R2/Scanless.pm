@@ -979,10 +979,10 @@ sub Marpa::R2::Scanless::R::read_problem {
             : ( substr ${$p_string}, 0, $last_pos );
         $read_string_error =
               "Error in SLIF G1 read: $desc\n"
-            . "* Error was at line $line, column $column\n"
             . "* String before error: "
             . Marpa::R2::escape_string( $prefix, -50 ) . "\n"
-            . "* String after error: "
+            . "* The error was at line $line, column $column, ...\n"
+            . "* here: "
             . Marpa::R2::escape_string(
             ( substr ${$p_string}, $last_pos, 50 ), 50 )
             . "\n";
@@ -998,17 +998,17 @@ sub Marpa::R2::Scanless::R::read_problem {
 
         $read_string_error =
               "Error in SLIF G1 read: $desc\n"
-            . "* Error was at line $line, column $column, and at character $char_desc\n"
             . "* String before error: "
             . Marpa::R2::escape_string( $prefix, -50 ) . "\n"
-            . "* String after error: "
+            . "* The error  was at line $line, column $column, and at character $char_desc, ...\n"
+            . "* here: "
             . Marpa::R2::escape_string( ( substr ${$p_string}, $pos, 50 ), 50 )
             . "\n";
     } ## end elsif ( $pos < $length_of_string )
     else {
         $read_string_error =
               "Error in SLIF G1 read: $desc\n"
-            . "* Error was at end of string\n"
+            . "* Error was at end of input\n"
             . "* String before error: "
             . Marpa::R2::escape_string( ${$p_string}, -50 ) . "\n";
     } ## end else [ if ($g1_status) ]

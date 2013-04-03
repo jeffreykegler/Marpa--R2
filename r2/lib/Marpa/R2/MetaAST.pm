@@ -675,35 +675,49 @@ sub Marpa::R2::Internal::MetaAST_Nodes::empty_rule::evaluate {
 
 sub Marpa::R2::Internal::MetaAST_Nodes::lexeme_rule::evaluate {
     my ( $values, $parse ) = @_;
-    my ( $start, $length, undef, $op_declare, $symbol, $unevaluated_adverb_list ) =
-        @{$values};
+    my ( $start, $length, $symbol, $unevaluated_adverb_list ) = @{$values};
 
     {
-    my ($line, $column) =  $parse->{meta_recce}->line_column($start);
-    die "lexeme rule not yet implemented\n",
-        "  Location was line $line, column $column\n",
-        "  Rule was ", $parse->substring( $start, $length ), "\n"  ;
+        my ( $line, $column ) = $parse->{meta_recce}->line_column($start);
+        die "lexeme rule not yet implemented\n",
+            "  Location was line $line, column $column\n",
+            "  Rule was ", $parse->substring( $start, $length ), "\n";
     }
 
-    Marpa::R2::exception( "lexeme rule not allowed in G0\n",
-        "  Rule was ", $parse->substring( $start, $length ) )
-        if $op_declare->op() ne q{::=};
-    my $adverb_list = $unevaluated_adverb_list->evaluate($parse);
+    my $symbol_name  = $symbol->name();
+    my $declarations = $parse->{lexeme_declarations}->{$symbol_name};
+    if ( defined $declarations ) {
+        my ( $line, $column ) = $parse->{meta_recce}->line_column($start);
+        die "Duplicate lexeme rule for <$symbol_name>\n",
+            "  Only one lexeme rule is allowed for each symbol\n",
+            "  Location was line $line, column $column\n",
+            "  Rule was ", $parse->substring( $start, $length ), "\n";
+    } ## end if ( defined $declarations )
 
+    my $adverb_list = $unevaluated_adverb_list->doit();
+    my %declarations;
     ADVERB: for my $key ( keys %{$adverb_list} ) {
         my $value = $adverb_list->{$key};
-        if ( $key eq 'action' ) {
-            $parse->{default_lexeme_adverbs}->{$key} = $value;
+        if ( $key eq 'priority' ) {
+            $declarations{$key} = $value->doit();
             next ADVERB;
         }
-        if ( $key eq 'bless' ) {
-            $parse->{default_lexeme_adverbs}->{$key} = $value;
+        if ( $key eq 'pause' ) {
+            $declarations{$key} = $value->doit();
             next ADVERB;
         }
-        Marpa::R2::exception(qq{"$key" adverb not allowed in lexeme rule"});
+        if ( $key eq 'forgiving' ) {
+            $declarations{$key} = $value->doit();
+            next ADVERB;
+        }
+        my ( $line, $column ) = $parse->{meta_recce}->line_column($start);
+        die qq{"$key" adverb not allowed in lexeme rule"\n},
+            "  Location was line $line, column $column\n",
+            "  Rule was ", $parse->substring( $start, $length ), "\n";
     } ## end ADVERB: for my $key ( keys %{$adverb_list} )
+    $parse->{lexeme_declarations}->{$symbol_name} = \%declarations;
     return undef;
-} ## end sub evaluate
+} ## end sub Marpa::R2::Internal::MetaAST_Nodes::lexeme_rule::evaluate
 
 sub Marpa::R2::Internal::MetaAST_Nodes::statement::evaluate {
     my ( $data, $parse ) = @_;
