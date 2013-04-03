@@ -135,7 +135,7 @@ variable ~ [[:alpha:]] <optional word characters>
 <optional word characters> ~ [[:alnum:]]*
 <say keyword> ~ 'say'
 
-:lexeme ::= <say keyword> priority => 1
+:lexeme ~ <say keyword> priority => 1
 
 :discard ~ whitespace
 whitespace ~ [\s]+

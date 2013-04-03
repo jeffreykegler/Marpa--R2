@@ -677,13 +677,6 @@ sub Marpa::R2::Internal::MetaAST_Nodes::lexeme_rule::evaluate {
     my ( $values, $parse ) = @_;
     my ( $start, $length, $symbol, $unevaluated_adverb_list ) = @{$values};
 
-    {
-        my ( $line, $column ) = $parse->{meta_recce}->line_column($start);
-        die "lexeme rule not yet implemented\n",
-            "  Location was line $line, column $column\n",
-            "  Rule was ", $parse->substring( $start, $length ), "\n";
-    }
-
     my $symbol_name  = $symbol->name();
     my $declarations = $parse->{lexeme_declarations}->{$symbol_name};
     if ( defined $declarations ) {
@@ -694,20 +687,20 @@ sub Marpa::R2::Internal::MetaAST_Nodes::lexeme_rule::evaluate {
             "  Rule was ", $parse->substring( $start, $length ), "\n";
     } ## end if ( defined $declarations )
 
-    my $adverb_list = $unevaluated_adverb_list->doit();
+    my $adverb_list = $unevaluated_adverb_list->evaluate();
     my %declarations;
     ADVERB: for my $key ( keys %{$adverb_list} ) {
         my $value = $adverb_list->{$key};
         if ( $key eq 'priority' ) {
-            $declarations{$key} = $value->doit();
+            $declarations{$key} = $value->evaluate();
             next ADVERB;
         }
         if ( $key eq 'pause' ) {
-            $declarations{$key} = $value->doit();
+            $declarations{$key} = $value->evaluate();
             next ADVERB;
         }
         if ( $key eq 'forgiving' ) {
-            $declarations{$key} = $value->doit();
+            $declarations{$key} = $value->evaluate();
             next ADVERB;
         }
         my ( $line, $column ) = $parse->{meta_recce}->line_column($start);
