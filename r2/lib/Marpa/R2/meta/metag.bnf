@@ -30,7 +30,7 @@ statement ::= <statement body> ';'
 <empty rule> ::= lhs <op declare> <adverb list>
 <quantified rule> ::= lhs <op declare> <single symbol> quantifier <adverb list>
 <discard rule> ::= (':discard' <op declare match>) <single symbol>
-<lexeme rule> ::= (':lexeme' <op declare>) symbol <adverb list>
+<lexeme rule> ::= (':lexeme' <op declare match>) symbol <adverb list>
 <op declare> ::= <op declare bnf> | <op declare match>
 priorities ::= alternatives+
     separator => <op loosen> proper => 1
