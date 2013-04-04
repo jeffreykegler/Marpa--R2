@@ -133,7 +133,14 @@ expression ::=
 number ~ [\d]+
 variable ~ [[:alpha:]] <optional word characters>
 <optional word characters> ~ [[:alnum:]]*
+
+# Marpa::R2::Display
+# name: SLIF DSL synopsis
+
 :lexeme ~ <say keyword> priority => 1
+
+# Marpa::R2::Display::End
+
 <say keyword> ~ 'say'
 sign ~ [+-]
 :discard ~ whitespace

@@ -180,6 +180,23 @@ At this writing the lexeme default statement is only way to
 specify the semantics of lexemes.
 Only one lexeme default statement is allowed in a file.
 
+=head1 Lexeme pseudo-rule
+
+=for Marpa::R2::Display
+name: SLIF DSL synopsis
+partial: 1
+normalize-whitespace: 1
+
+    :lexeme ~ <say keyword> priority => 1
+
+=for Marpa::R2::Display::End
+
+The C<:lexeme> pseudo-rule allows adverbs to be used to
+change the treatment of a lexeme.
+Currently the only adverb allowed in a C<:lexeme> rule
+is L<the C<priority>
+adverb|/C<priority> adverb>.
+
 =head1 C<action> adverb
 
 The C<action> adverb specifies the semantics for a G1 rule
@@ -191,6 +208,65 @@ which have no default value.
 The default value of a lexeme is 
 its literal value in the input stream, as a string.
 This is called the B<token value> of the lexeme.
+
+=head1 C<priority> adverb
+
+The C<priority> adverb is only allowed in
+L<a C<:lexeme>
+pseudo-rule|/"Lexeme pseudo-rule">.
+It sets the lexeme priority for the lexeme.
+Priority must be an integer.
+It may be negative.
+The default priority is zero.
+
+Where more than one lexeme can be accepted at
+a location, the lexeme priority limits the lexemes
+that will be considered.
+Only lexemes with the highest priority are considered.
+If several lexemes have the same priority,
+all of them will be accepted.
+
+The only effect of the lexeme priority
+is on the choice
+of lexemes when
+
+=over 4
+
+=item * all of them would be accepted;
+
+=item * all started at the same string location;
+
+=item * all end at the same string location; and therefore
+
+=item * all have the same length.
+
+=back
+
+Lexeme priorities only have
+an effect when lexemes are accepted.
+For example, suppose that "C<say>" can be both
+a keyword (C<< <say keyword> >>),
+and a variable name (C<< <variable> >>).
+
+Suppose further that
+the grammar specifies that C<< <say keyword> >> has a priority of 1,
+and C<< <variable> >> is left at the default priority of 0.
+When G0 finds a occurrence of "C<say>",
+where both the C<say> keyword and a variable name would
+be accepted by G1, then only the C<say> keyword is read by G1,
+because of the priorities.
+But suppose that G1 is not accepting
+C<< <say keyword> >>.
+Since only lexeme priorites of acceptable lexemes are considered,
+C<< <variable> >>
+has the highest priority,
+and "C<say>" is read as a
+C<< <variable> >>
+token.
+One effect of this is that
+high-priority lexemes will not cause a parse to
+become exhausted as long as another lexeme is acceptable, even if the
+acceptable lexeme is of lower priority.
 
 =head2 Word actions
 
