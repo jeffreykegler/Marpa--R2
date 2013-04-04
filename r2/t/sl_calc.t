@@ -123,13 +123,14 @@ do_test('Calculator 3', $calculator_grammar,
 my $grammar2 = Marpa::R2::Scanless::G->new(
     {   bless_package => 'My_Nodes',
         source        => \(<<'END_OF_SOURCE'),
-:default ::= action => ::array bless => ::lhs
+:default ::= action => ::array
 :start ::= statement
-statement ::= (<say keyword>) expression | expression
+statement ::= (<say keyword>) expression bless => statement
+    | expression bless => statement
 expression ::=
     number bless => primary
    | variable bless => primary
-   || Expression ('+') Expression bless => add
+   || expression ('+') expression bless => add
 number ~ [\d]+
 variable ~ [[:alpha:]] <optional word characters>
 <optional word characters> ~ [[:alnum:]]*
@@ -163,6 +164,7 @@ sub My_Nodes::script::doit {
     my ($self) = @_;
     return join q{ }, map { $_->doit() } @{$self};
 }
+sub My_Nodes::statement::doit { return $_[0]->[0]->doit(); }
 
 sub My_Nodes::add::doit {
     my ($self) = @_;
@@ -188,7 +190,10 @@ sub My_Nodes::divide::doit {
     return $a->doit() / $b->doit();
 }
 
-sub My_Nodes::primary::doit { return $_[0]->[0]; }
+sub My_Nodes::primary::doit {
+    my ($self) = @_;
+    return $self->[0];
+}
 sub My_Nodes::parens::doit  { return $_[0]->[0]->doit(); }
 
 sub My_Nodes::power::doit {
