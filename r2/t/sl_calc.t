@@ -120,32 +120,50 @@ do_test('Calculator 3', $calculator_grammar,
        '15329 + 42 * 290 * 711, 42*3+7, 3*3+4* 4' =>
             qr/ \s* 8675309 \s+ 133 \s+ 25 \s* /xms);
 
-my $grammar2 = Marpa::R2::Scanless::G->new(
-    {   bless_package => 'My_Nodes',
-        source        => \(<<'END_OF_SOURCE'),
+my $fixed_part_of_priority_grammar = <<'FIXED_PART';
 :default ::= action => ::array
 :start ::= statement
 statement ::= (<say keyword>) expression bless => statement
     | expression bless => statement
 expression ::=
     number bless => primary
-   | variable bless => primary
+   | variable bless => variable
+   || sign expression bless => unary_sign
    || expression ('+') expression bless => add
 number ~ [\d]+
 variable ~ [[:alpha:]] <optional word characters>
 <optional word characters> ~ [[:alnum:]]*
 <say keyword> ~ 'say'
-
-:lexeme ~ <say keyword> priority => 1
-
+sign ~ [+-]
 :discard ~ whitespace
 whitespace ~ [\s]+
-END_OF_SOURCE
-    }
+FIXED_PART
+
+do_test(
+    'Priority test 1',
+    Marpa::R2::Scanless::G->new(
+        {   bless_package => 'My_Nodes',
+            source        => \(
+                $fixed_part_of_priority_grammar
+                    . q{:lexeme ~ <say keyword> priority => 1}
+            )
+        }
+    ),
+    'say + 42' => qr/ 42 /xms
 );
 
-do_test('Priority test 1', $grammar2,
-       'say 42' => qr/ to \s+ do /xms);
+do_test(
+    'Priority test 2',
+    Marpa::R2::Scanless::G->new(
+        {   bless_package => 'My_Nodes',
+            source        => \(
+                $fixed_part_of_priority_grammar
+                    . q{:lexeme ~ <say keyword> priority => -1}
+            )
+        }
+    ),
+    'say + 42' => qr/ 41 /xms
+);
 
 sub do_test {
     my ( $name, $grammar, $input, $output_re, $args ) = @_;
@@ -188,6 +206,18 @@ sub My_Nodes::divide::doit {
     my ($self) = @_;
     my ( $a, $b ) = @{$self};
     return $a->doit() / $b->doit();
+}
+
+sub My_Nodes::unary_sign::doit {
+    my ($self) = @_;
+    my ( $sign, $expression ) = @{$self};
+    my $unsigned_result = $expression->doit();
+    return $sign eq '+' ? $unsigned_result : -$unsigned_result;
+} ## end sub My_Nodes::unary_sign::doit
+
+sub My_Nodes::variable::doit {
+    # no symbol table right now
+    return -1;
 }
 
 sub My_Nodes::primary::doit {
