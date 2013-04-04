@@ -5084,36 +5084,90 @@ PPCODE:
     {
       croak
 	("Problem in slg->g0_rule_to_g1_lexeme_set(%ld, %ld): rule ID was %ld, but highest G0 rule ID = %ld",
-	 (unsigned long) g0_rule,
-	 (unsigned long) g1_lexeme,
-	 (unsigned long) g0_rule,
-	 (unsigned long) g1_lexeme);
+	 (long) g0_rule,
+	 (long) g1_lexeme,
+	 (long) g0_rule,
+	 (long) highest_g0_rule_id);
     }
     if (g1_lexeme > highest_g1_symbol_id) 
     {
       croak
 	("Problem in slg->g0_rule_to_g1_lexeme_set(%ld, %ld): symbol ID was %ld, but highest G1 symbol ID = %ld",
-	 (unsigned long) g0_rule,
-	 (unsigned long) g1_lexeme,
-	 (unsigned long) g0_rule,
-	 (unsigned long) g1_lexeme);
+	 (long) g0_rule,
+	 (long) g1_lexeme,
+	 (long) g0_rule,
+	 (long) highest_g1_symbol_id);
     }
     if (g0_rule < -2) {
       croak
 	("Problem in slg->g0_rule_to_g1_lexeme_set(%ld, %ld): rule ID was %ld, a disallowed value",
-	 (unsigned long) g0_rule,
-	 (unsigned long) g1_lexeme,
-	 (unsigned long) g0_rule);
+	 (long) g0_rule,
+	 (long) g1_lexeme,
+	 (long) g0_rule);
     }
     if (g1_lexeme < -2) {
       croak
 	("Problem in slg->g0_rule_to_g1_lexeme_set(%ld, %ld): symbol ID was %ld, a disallowed value",
-	 (unsigned long) g0_rule,
-	 (unsigned long) g1_lexeme,
-	 (unsigned long) g1_lexeme);
+	 (long) g0_rule,
+	 (long) g1_lexeme,
+	 (long) g1_lexeme);
     }
   slg->g0_rule_to_g1_lexeme[g0_rule] = g1_lexeme;
   XSRETURN_YES;
+}
+
+void
+g1_lexeme_priority_set( slg, g1_lexeme, priority )
+    Scanless_G *slg;
+    Marpa_Symbol_ID g1_lexeme;
+    int priority;
+PPCODE:
+{
+  Marpa_Symbol_ID highest_g1_symbol_id = marpa_g_highest_symbol_id (slg->g1);
+    if (g1_lexeme > highest_g1_symbol_id) 
+    {
+      croak
+	("Problem in slg->g1_lexeme_priority_set(%ld, %ld): symbol ID was %ld, but highest G1 symbol ID = %ld",
+	 (long) g1_lexeme,
+	 (long) priority,
+	 (long) g1_lexeme,
+	 (long) highest_g1_symbol_id
+	 );
+    }
+    if (g1_lexeme < 0) {
+      croak
+	("Problem in slg->g0_rule_to_g1_lexeme_set(%ld, %ld): symbol ID was %ld, a disallowed value",
+	 (long) g1_lexeme,
+	 (long) priority,
+	 (long) g1_lexeme);
+    }
+  slg->g1_lexeme_properties[g1_lexeme].priority = priority;
+  XSRETURN_YES;
+}
+
+void
+g1_lexeme_priority( slg, g1_lexeme )
+    Scanless_G *slg;
+    Marpa_Symbol_ID g1_lexeme;
+PPCODE:
+{
+  Marpa_Symbol_ID highest_g1_symbol_id = marpa_g_highest_symbol_id (slg->g1);
+    if (g1_lexeme > highest_g1_symbol_id) 
+    {
+      croak
+	("Problem in slg->g1_lexeme_priority(%ld): symbol ID was %ld, but highest G1 symbol ID = %ld",
+	 (long) g1_lexeme,
+	 (long) g1_lexeme,
+	 (long) highest_g1_symbol_id
+	 );
+    }
+    if (g1_lexeme < 0) {
+      croak
+	("Problem in slg->g0_rule_to_g1_lexeme_set(%ld): symbol ID was %ld, a disallowed value",
+	 (long) g1_lexeme,
+	 (long) g1_lexeme);
+    }
+  XSRETURN_IV( slg->g1_lexeme_properties[g1_lexeme].priority);
 }
 
 MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin::SLR
