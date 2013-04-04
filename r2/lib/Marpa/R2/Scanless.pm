@@ -342,7 +342,8 @@ state $grammar_options = { map { ($_, 1) } qw(
 sub Marpa::R2::Scanless::G::_hash_to_runtime {
     my ( $self, $hashed_source ) = @_;
 
-    my @g0_lexeme_names = keys %{ $hashed_source->{is_lexeme} };
+    my $g0_lexeme_by_name = $hashed_source->{is_lexeme};
+    my @g0_lexeme_names   = keys %{$g0_lexeme_by_name};
     Marpa::R2::exception( "There are no lexemes\n",
         "  An SLIF grammar must have at least one lexeme\n" )
         if not scalar @g0_lexeme_names;
@@ -356,8 +357,8 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
     $lex_args{'_internal_'} = 1;
     my $lex_grammar = Marpa::R2::Grammar->new( \%lex_args );
     $lex_grammar->precompute();
-    my $lex_tracer      = $lex_grammar->tracer();
-    my $g0_thin         = $lex_tracer->grammar();
+    my $lex_tracer = $lex_grammar->tracer();
+    my $g0_thin    = $lex_tracer->grammar();
     $self->[Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMAR] = $lex_grammar;
     my $character_class_hash = $hashed_source->{character_classes};
     my @class_table          = ();
@@ -432,6 +433,28 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
     my $thin_slg = $self->[Marpa::R2::Inner::Scanless::G::C] =
         Marpa::R2::Thin::SLG->new( $lex_tracer->grammar(),
         $g1_tracer->grammar() );
+
+    my $lexeme_declarations = $hashed_source->{lexeme_declarations};
+    for my $lexeme_name ( keys %{$lexeme_declarations} ) {
+        Marpa::R2::exception(
+            "Symbol <$lexeme_name> is declared as a lexeme, but it is not used as one.\n"
+        ) if not $g0_lexeme_by_name->{$lexeme_name};
+        my $declarations = $lexeme_declarations->{$lexeme_name};
+        my $g1_lexeme    = $g1_tracer->symbol_by_name($lexeme_name);
+        ADVERB: for my $key ( keys %{$declarations} ) {
+            my $value = $declarations->{$key};
+            if ( $key eq 'priority' ) {
+                $thin_slg->g1_lexeme_priority_set( $g1_lexeme, $value );
+                next ADVERB;
+            }
+            if ( $key eq 'pause' ) {
+                next ADVERB;
+            }
+            if ( $key eq 'forgiving' ) {
+                next ADVERB;
+            }
+        } ## end ADVERB: for my $key ( keys %{$declarations} )
+    } ## end for my $lexeme_name ( keys %{$lexeme_declarations} )
 
     my @g0_rule_to_g1_lexeme;
     RULE_ID: for my $rule_id ( 0 .. $g0_thin->highest_rule_id() ) {
