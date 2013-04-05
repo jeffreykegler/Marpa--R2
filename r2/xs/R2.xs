@@ -726,9 +726,9 @@ u_read(Unicode_Stream *stream)
 		    stream->codepoint = codepoint;
 		    stream->input_symbol_id = symbol_id;
 		    croak
-		      ("Problem alternative() failed at char ix %d; symbol id %d; codepoint 0x%lx\n"
-		       "Problem in r->input_string_read(), alternative() failed: %s",
-		       (int) stream->perl_pos, symbol_id,
+		      ("Problem alternative() failed at char ix %ld; symbol id %ld; codepoint 0x%lx\n"
+		       "Problem in u_read(), alternative() failed: %s",
+		       (long) stream->perl_pos, (long)symbol_id,
 		       (unsigned long) codepoint,
 		       xs_g_error (stream->g0_wrapper));
 		  }
@@ -761,7 +761,7 @@ u_read(Unicode_Stream *stream)
 		if (result < 0)
 		  {
 		    croak
-		      ("Problem in r->input_string_read(), earleme_complete() failed: %s",
+		      ("Problem in r->u_read(), earleme_complete() failed: %s",
 		       xs_g_error (stream->g0_wrapper));
 		  }
 	      }
