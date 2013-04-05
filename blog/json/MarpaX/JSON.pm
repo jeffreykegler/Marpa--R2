@@ -65,6 +65,8 @@ e              ~ 'e'
 
 string       ::= lstring               action => do_string
 
+:lexeme ~ lstring pause => before
+
 lstring        ~ quote in_string quote
 quote          ~ ["]
 in_string      ~ in_string_char*
@@ -84,8 +86,14 @@ END_OF_SOURCE
 
 sub parse {
     my ($self, $string) = @_;
-    my $re = Marpa::R2::Scanless::R->new( { grammar => $self->{grammar} } );
-    $re->read(\$string);
+    my $re = Marpa::R2::Scanless::R->new( { grammar => $self->{grammar},
+       trace_g0 => 99, trace_terminals => 99,
+    } );
+    my $length = length $string;
+    $DB::single = 1;
+    for ( my $pos = $re->read(\$string); $pos < $length; $pos = $re->resume()) {
+       say $pos;
+    }
     my $value_ref = $re->value();
     return ${$value_ref};
 }
