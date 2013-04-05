@@ -2792,11 +2792,9 @@ PPCODE:
 }
 
 void
-string_set( stream, string, start_pos, length )
+string_set( stream, string )
      Unicode_Stream *stream;
      SVREF string;
-     int start_pos;
-     int length;
 PPCODE:
 {
   U8* p;
@@ -2878,9 +2876,7 @@ PPCODE:
       stream->pos_db_logical_size++;
       previous_codepoint = codepoint;
     }
-
-  /* Set positions */
-  u_pos_set(stream, "stream->string_set", start_pos, length);
+  XSRETURN_YES;
 }
 
 void

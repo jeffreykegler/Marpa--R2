@@ -651,7 +651,8 @@ sub Marpa::R2::Scanless::R::read {
     my $class_table =
         $grammar->[Marpa::R2::Inner::Scanless::G::CHARACTER_CLASS_TABLE];
 
-    $stream->string_set($p_string, $start_pos, $length);
+    $stream->string_set($p_string);
+    $stream->pos_set($start_pos, $length);
     OUTER_READ: while (1) {
 
         # These values are used for diagnostics,
