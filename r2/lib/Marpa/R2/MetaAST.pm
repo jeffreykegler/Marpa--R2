@@ -690,17 +690,28 @@ sub Marpa::R2::Internal::MetaAST_Nodes::lexeme_rule::evaluate {
     my $adverb_list = $unevaluated_adverb_list->evaluate();
     my %declarations;
     ADVERB: for my $key ( keys %{$adverb_list} ) {
-        my $value = $adverb_list->{$key};
+        my $raw_value = $adverb_list->{$key};
         if ( $key eq 'priority' ) {
-            $declarations{$key} = $value + 0;
+            $declarations{$key} = $raw_value + 0;
             next ADVERB;
         }
         if ( $key eq 'pause' ) {
-            $declarations{$key} = $value->evaluate();
-            next ADVERB;
-        }
+            my $value = $raw_value->evaluate();
+            if ( $value eq 'before' ) {
+                $declarations{$key} = -1;
+                next ADVERB;
+            }
+            if ( $value eq 'after' ) {
+                $declarations{$key} = 1;
+                next ADVERB;
+            }
+            my ( $line, $column ) = $parse->{meta_recce}->line_column($start);
+            die qq{Bad value for "pause" adverb: "$value"},
+                "  Location was line $line, column $column\n",
+                "  Rule was ", $parse->substring( $start, $length ), "\n";
+        } ## end if ( $key eq 'pause' )
         if ( $key eq 'forgiving' ) {
-            $declarations{$key} = $value->evaluate();
+            $declarations{$key} = $raw_value->evaluate();
             next ADVERB;
         }
         my ( $line, $column ) = $parse->{meta_recce}->line_column($start);

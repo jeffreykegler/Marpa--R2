@@ -448,6 +448,7 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
                 next ADVERB;
             }
             if ( $key eq 'pause' ) {
+                $thin_slg->g1_lexeme_pause_set( $g1_lexeme, $value );
                 next ADVERB;
             }
             if ( $key eq 'forgiving' ) {
