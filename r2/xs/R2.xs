@@ -158,6 +158,7 @@ typedef struct {
      int throw;
      int start_of_pause_lexeme;
      int end_of_pause_lexeme;
+     Marpa_Symbol_ID pause_lexeme;
 } Scanless_R;
 
 #define TOKEN_VALUE_IS_UNDEF (1)
@@ -1650,9 +1651,9 @@ slr_alternatives (Scanless_R * slr)
        */
       int is_priority_set = 0;
       int priority = 0;
-      int is_before_pause_priority_set = 0;
+      Marpa_Symbol_ID before_pause_lexeme = -1;
       int before_pause_priority = 0;
-      int is_after_pause_priority_set = 0;
+      Marpa_Symbol_ID after_pause_lexeme = -1;
       int after_pause_priority = 0;
       int is_expected;
       int return_value;
@@ -1756,17 +1757,17 @@ slr_alternatives (Scanless_R * slr)
 		  {
 		    if (lexeme_properties->pause_after)
 		      {
-			after_pause_priority = is_after_pause_priority_set ?
+			after_pause_priority = after_pause_lexeme >= 0 ?
 			  MAX (lexeme_properties->priority,
 			       after_pause_priority) : lexeme_priority;
-			is_after_pause_priority_set = 1;
+			after_pause_lexeme = g1_lexeme;
 		      }
 		    else
 		      {
-			before_pause_priority = is_before_pause_priority_set ?
+			before_pause_priority = before_pause_lexeme >= 0 ?
 			  MAX (lexeme_properties->priority,
 			       before_pause_priority) : lexeme_priority;
-			is_before_pause_priority_set = 1;
+			before_pause_lexeme = g1_lexeme;
 		      }
 		  }
 	      }
@@ -1793,11 +1794,12 @@ slr_alternatives (Scanless_R * slr)
 
       /* If here, a lexeme has been accepted and priority is set
        */
-      if (is_before_pause_priority_set && before_pause_priority >= priority)
+      if (before_pause_lexeme >= 0 && before_pause_priority >= priority)
 	{
 	  stream->perl_pos = slr->start_of_lexeme;
 	  slr->start_of_pause_lexeme = slr->start_of_lexeme;
 	  slr->end_of_pause_lexeme = slr->end_of_lexeme;
+	  slr->pause_lexeme = before_pause_lexeme;
 	  return "pause";
 	}
 
@@ -1935,11 +1937,12 @@ slr_alternatives (Scanless_R * slr)
 						INT2PTR (void *,
 							 (slr->end_of_lexeme -
 							  slr->start_of_lexeme)));
-	  if (is_after_pause_priority_set && after_pause_priority >= priority)
+	  if (after_pause_lexeme >= 0 && after_pause_priority >= priority)
 	    {
 	      stream->perl_pos = slr->end_of_lexeme;
 	      slr->start_of_pause_lexeme = slr->start_of_lexeme;
 	      slr->end_of_pause_lexeme = slr->end_of_lexeme;
+	      slr->pause_lexeme = after_pause_lexeme;
 	      return "pause";
 	    }
 
@@ -5297,6 +5300,7 @@ PPCODE:
   slr->r1_earleme_complete_result = 0;
   slr->start_of_pause_lexeme = -1;
   slr->end_of_pause_lexeme = -1;
+  slr->pause_lexeme = -1;
 
   new_sv = sv_newmortal ();
   sv_setref_pv (new_sv, scanless_r_class_name, (void *) slr);
@@ -5470,6 +5474,7 @@ PPCODE:
   slr->r1_earleme_complete_result = 0;
   slr->start_of_pause_lexeme = -1;
   slr->end_of_pause_lexeme = -1;
+  slr->pause_lexeme = -1;
   av_clear (stream->event_queue);
 
   while (1)
@@ -5557,6 +5562,21 @@ r1_earleme_complete_result (slr)
 PPCODE:
 {
   XPUSHs (sv_2mortal (newSViv ((IV) slr->r1_earleme_complete_result)));
+}
+
+void
+paused_at (slr)
+     Scanless_R *slr;
+PPCODE:
+{
+  Marpa_Symbol_ID pause_lexeme = slr->pause_lexeme;
+  if (pause_lexeme < 0)
+    {
+      XSRETURN_UNDEF;
+    }
+  XPUSHs (sv_2mortal (newSViv ((IV) slr->start_of_pause_lexeme)));
+  XPUSHs (sv_2mortal (newSViv ((IV) slr->end_of_pause_lexeme)));
+  XPUSHs (sv_2mortal (newSViv ((IV) pause_lexeme)));
 }
 
 void
