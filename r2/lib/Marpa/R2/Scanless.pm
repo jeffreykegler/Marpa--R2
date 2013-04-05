@@ -651,8 +651,7 @@ sub Marpa::R2::Scanless::R::resume {
     $thin_slr->trace_terminals($trace_terminals) if $trace_terminals;
     $thin_slr->trace_g0($trace_g0)               if $trace_g0;
 
-    my $stream = $thin_slr->stream();
-    $stream->pos_set( $start_pos, $length );
+    $thin_slr->pos_set( $start_pos, $length );
 
     OUTER_READ: while (1) {
 
@@ -660,6 +659,8 @@ sub Marpa::R2::Scanless::R::resume {
 
         last OUTER_READ if not $problem_code;
         last OUTER_READ if $problem_code eq 'pause';
+
+        my $stream = $thin_slr->stream();
 
         if ($i_am_tracing) {
 
@@ -867,7 +868,7 @@ sub Marpa::R2::Scanless::R::resume {
 
     } ## end OUTER_READ: while (1)
 
-    return $stream->pos();
+    return $thin_slr->pos();
 } ## end sub Marpa::R2::Scanless::R::resume
 
 ## From here, recovery is a matter for the caller,

@@ -790,8 +790,6 @@ u_read(Unicode_Stream *stream)
   return 0;
 }
 
-/* Assumes caller has made sure the start_pos and
- * length are OK */
 /* It is OK to set pos to last codepoint + 1 */
 static STRLEN
 u_pos_set (Unicode_Stream * stream, const char* name, int start_pos_arg, int length_arg)
@@ -823,6 +821,8 @@ u_pos_set (Unicode_Stream * stream, const char* name, int start_pos_arg, int len
   }
 
   new_perl_pos = new_perl_pos;
+  stream->perl_pos = new_perl_pos;
+  new_end_pos = new_end_pos;
   stream->end_pos = new_end_pos;
   return old_perl_pos;
 }
@@ -2877,18 +2877,6 @@ PPCODE:
       stream->pos_db_logical_size++;
       previous_codepoint = codepoint;
     }
-  XSRETURN_YES;
-}
-
-void
-pos_set( stream, start_pos, length )
-     Unicode_Stream *stream;
-     int start_pos;
-     int length;
-PPCODE:
-{
-  /* Set positions */
-  u_pos_set(stream, "stream->pos_set", start_pos, length);
   XSRETURN_YES;
 }
 
@@ -5437,6 +5425,27 @@ PPCODE:
 }
 
 void
+pos( slr )
+    Scanless_R *slr;
+PPCODE:
+{
+  Unicode_Stream *stream = slr->stream;
+  XSRETURN_IV(stream->perl_pos);
+}
+
+void
+pos_set( slr, start_pos, length )
+    Scanless_R *slr;
+     int start_pos;
+     int length;
+PPCODE:
+{
+  Unicode_Stream *stream = slr->stream;
+  u_pos_set(stream, "stream->pos_set", start_pos, length);
+  XSRETURN_YES;
+}
+
+void
 substring(slr, start_pos, length)
     Scanless_R *slr;
     int start_pos;
@@ -5469,11 +5478,12 @@ PPCODE:
 	{
 	  STRLEN input_length = SvCUR (stream->input);
 
-	  slr->start_of_lexeme = slr->end_of_lexeme;
 	  if (stream->perl_pos >= stream->end_pos)
-	    {
-	      XSRETURN_PV ("");
-	    }
+	  {
+	    XSRETURN_PV ("");
+	  }
+
+	  slr->start_of_lexeme = slr->end_of_lexeme;
 
 	  slr->please_start_lex_recce = 0;
 	  u_r0_clear (stream);
@@ -5506,6 +5516,7 @@ PPCODE:
       if (marpa_r_is_exhausted (slr->r1))
 	{
 	  int discard_result = slr_discard (slr);
+  slr->please_start_lex_recce = 1;
 	  if (discard_result < 0)
 	    {
 	      XSRETURN_PV ("R0 exhausted before end");
@@ -5514,13 +5525,12 @@ PPCODE:
       else
 	{
 	  const char *result_string = slr_alternatives (slr);
+  slr->please_start_lex_recce = 1;
 	  if (result_string)
 	    {
 	      XSRETURN_PV (result_string);
 	    }
 	}
-
-      slr->please_start_lex_recce = 1;	/* We found a lexeme, so must restart r0 */
 
       if (slr->trace_terminals || stream->trace_g0)
 	{
