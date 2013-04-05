@@ -5136,7 +5136,7 @@ PPCODE:
     }
     if (g1_lexeme < 0) {
       croak
-	("Problem in slg->g0_rule_to_g1_lexeme_set(%ld, %ld): symbol ID was %ld, a disallowed value",
+	("Problem in slg->g1_lexeme_priority(%ld, %ld): symbol ID was %ld, a disallowed value",
 	 (long) g1_lexeme,
 	 (long) priority,
 	 (long) g1_lexeme);
@@ -5163,11 +5163,71 @@ PPCODE:
     }
     if (g1_lexeme < 0) {
       croak
-	("Problem in slg->g0_rule_to_g1_lexeme_set(%ld): symbol ID was %ld, a disallowed value",
+	("Problem in slg->g1_lexeme_priority(%ld): symbol ID was %ld, a disallowed value",
 	 (long) g1_lexeme,
 	 (long) g1_lexeme);
     }
   XSRETURN_IV( slg->g1_lexeme_properties[g1_lexeme].priority);
+}
+
+void
+g1_lexeme_pause_set( slg, g1_lexeme, pause )
+    Scanless_G *slg;
+    Marpa_Symbol_ID g1_lexeme;
+    int pause;
+PPCODE:
+{
+  Marpa_Symbol_ID highest_g1_symbol_id = marpa_g_highest_symbol_id (slg->g1);
+    if (g1_lexeme > highest_g1_symbol_id) 
+    {
+      croak
+	("Problem in slg->g1_lexeme_pause_set(%ld, %ld): symbol ID was %ld, but highest G1 symbol ID = %ld",
+	 (long) g1_lexeme,
+	 (long) pause,
+	 (long) g1_lexeme,
+	 (long) highest_g1_symbol_id
+	 );
+    }
+    if (g1_lexeme < 0) {
+      croak
+	("Problem in slg->lexeme_pause_set(%ld, %ld): symbol ID was %ld, a disallowed value",
+	 (long) g1_lexeme,
+	 (long) pause,
+	 (long) g1_lexeme);
+    }
+    if (pause < -1 || pause > 1) {
+      croak
+	("Problem in slg->lexeme_pause_set(%ld, %ld): value of pause must be -1,0 or 1",
+	 (long) g1_lexeme,
+	 (long) pause);
+    }
+  slg->g1_lexeme_properties[g1_lexeme].pause = pause;
+  XSRETURN_YES;
+}
+
+void
+g1_lexeme_pause( slg, g1_lexeme )
+    Scanless_G *slg;
+    Marpa_Symbol_ID g1_lexeme;
+PPCODE:
+{
+  Marpa_Symbol_ID highest_g1_symbol_id = marpa_g_highest_symbol_id (slg->g1);
+    if (g1_lexeme > highest_g1_symbol_id) 
+    {
+      croak
+	("Problem in slg->g1_lexeme_pause(%ld): symbol ID was %ld, but highest G1 symbol ID = %ld",
+	 (long) g1_lexeme,
+	 (long) g1_lexeme,
+	 (long) highest_g1_symbol_id
+	 );
+    }
+    if (g1_lexeme < 0) {
+      croak
+	("Problem in slg->g1_lexeme_pause(%ld): symbol ID was %ld, a disallowed value",
+	 (long) g1_lexeme,
+	 (long) g1_lexeme);
+    }
+  XSRETURN_IV( slg->g1_lexeme_properties[g1_lexeme].pause);
 }
 
 MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin::SLR
