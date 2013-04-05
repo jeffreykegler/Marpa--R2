@@ -794,22 +794,37 @@ u_read(Unicode_Stream *stream)
  * length are OK */
 /* It is OK to set pos to last codepoint + 1 */
 static STRLEN
-u_pos_set (Unicode_Stream * stream, int start_pos, int length)
+u_pos_set (Unicode_Stream * stream, const char* name, int start_pos_arg, int length_arg)
 {
   dTHX;
-  const STRLEN old_pos = stream->perl_pos;
+  const STRLEN old_perl_pos = stream->perl_pos;
   const STRLEN input_length = stream->pos_db_logical_size;
+  int new_perl_pos;
+  int new_end_pos;
 
-  if (start_pos < 0) {
-      start_pos = input_length + start_pos;
-  }
-  stream->perl_pos = start_pos;
-  if (length < 0) {
-      stream->end_pos = input_length + length + 1;
+  if (start_pos_arg < 0) {
+      new_perl_pos = input_length + start_pos_arg;
   } else {
-    stream->end_pos = start_pos + length;
+      new_perl_pos = start_pos_arg;
   }
-  return old_pos;
+  if (new_perl_pos < 0 || new_perl_pos > stream->pos_db_logical_size)
+  {
+      croak ("Bad start position in %s(): %ld", name, (long)start_pos_arg);
+  }
+
+  if (length_arg < 0) {
+      new_end_pos = input_length + length_arg + 1;
+  } else {
+    new_end_pos = new_perl_pos + length_arg;
+  }
+  if (new_end_pos < 0 || new_end_pos > stream->pos_db_logical_size)
+  {
+      croak ("Bad length in %s(): %ld", name, (long)length_arg);
+  }
+
+  new_perl_pos = new_perl_pos;
+  stream->end_pos = new_end_pos;
+  return old_perl_pos;
 }
 
 static SV *
@@ -2865,15 +2880,19 @@ PPCODE:
     }
 
   /* Set positions */
-  u_pos_set(stream, start_pos, length);
-  if (stream->perl_pos < 0 || stream->perl_pos > stream->pos_db_logical_size)
-  {
-      croak ("Bad start position in stream->string_set(): %ld", (long)start_pos);
-  }
-  if (stream->end_pos < 0 || stream->end_pos > stream->pos_db_logical_size)
-  {
-      croak ("Bad length in stream->string_set(): %ld", (long)length);
-  }
+  u_pos_set(stream, "stream->string_set", start_pos, length);
+}
+
+void
+pos_set( stream, start_pos, length )
+     Unicode_Stream *stream;
+     int start_pos;
+     int length;
+PPCODE:
+{
+  /* Set positions */
+  u_pos_set(stream, "stream->pos_set", start_pos, length);
+  XSRETURN_YES;
 }
 
 void
@@ -2918,7 +2937,7 @@ PPCODE:
 {
   int return_value;
   av_clear(stream->event_queue);
-  u_pos_set(stream, 0, -1);
+  u_pos_set(stream, "stream->read", 0, -1);
   return_value = u_read(stream);
   XSRETURN_IV(return_value);
 }
