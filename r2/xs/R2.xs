@@ -1798,7 +1798,7 @@ slr_alternatives (Scanless_R * slr)
 	  stream->perl_pos = slr->start_of_lexeme;
 	  slr->start_of_pause_lexeme = slr->start_of_lexeme;
 	  slr->end_of_pause_lexeme = slr->end_of_lexeme;
-	  return 0;
+	  return "pause";
 	}
 
       return_value = marpa_r_progress_report_reset (r0);
@@ -1940,6 +1940,7 @@ slr_alternatives (Scanless_R * slr)
 	      stream->perl_pos = slr->end_of_lexeme;
 	      slr->start_of_pause_lexeme = slr->start_of_lexeme;
 	      slr->end_of_pause_lexeme = slr->end_of_lexeme;
+	      return "pause";
 	    }
 
 	  return 0;

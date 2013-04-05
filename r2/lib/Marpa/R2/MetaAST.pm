@@ -354,10 +354,20 @@ sub Marpa::R2::Internal::MetaAST_Nodes::proper_specification::evaluate {
     return bless { proper => $child->value() }, $PROTO_ALTERNATIVE;
 }
 
+sub Marpa::R2::Internal::MetaAST_Nodes::pause_specification::evaluate {
+    my ($values) = @_;
+    my $child = $values->[2];
+    return bless { pause => $child->value() }, $PROTO_ALTERNATIVE;
+}
+
 sub Marpa::R2::Internal::MetaAST_Nodes::priority_specification::evaluate {
     my ($values) = @_;
     my $child = $values->[2];
     return bless { priority => $child->value() }, $PROTO_ALTERNATIVE;
+}
+
+sub Marpa::R2::Internal::MetaAST_Nodes::before_or_after::value {
+   return $_[0]->[2];
 }
 
 sub Marpa::R2::Internal::MetaAST_Nodes::boolean::value {
@@ -696,17 +706,16 @@ sub Marpa::R2::Internal::MetaAST_Nodes::lexeme_rule::evaluate {
             next ADVERB;
         }
         if ( $key eq 'pause' ) {
-            my $value = $raw_value->evaluate();
-            if ( $value eq 'before' ) {
+            if ( $raw_value eq 'before' ) {
                 $declarations{$key} = -1;
                 next ADVERB;
             }
-            if ( $value eq 'after' ) {
+            if ( $raw_value eq 'after' ) {
                 $declarations{$key} = 1;
                 next ADVERB;
             }
             my ( $line, $column ) = $parse->{meta_recce}->line_column($start);
-            die qq{Bad value for "pause" adverb: "$value"},
+            die qq{Bad value for "pause" adverb: "$raw_value"},
                 "  Location was line $line, column $column\n",
                 "  Rule was ", $parse->substring( $start, $length ), "\n";
         } ## end if ( $key eq 'pause' )

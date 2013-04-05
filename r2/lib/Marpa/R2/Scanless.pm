@@ -659,6 +659,7 @@ sub Marpa::R2::Scanless::R::resume {
         my $problem_code = $thin_slr->read();
 
         last OUTER_READ if not $problem_code;
+        last OUTER_READ if $problem_code eq 'pause';
 
         if ($i_am_tracing) {
 
