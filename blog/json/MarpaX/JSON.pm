@@ -63,7 +63,7 @@ e              ~ 'e'
                | 'E+'
                | 'E-'
 
-string       ::= lstring               action => do_string
+string       ::= lstring
 
 :lexeme ~ lstring pause => before
 
@@ -92,7 +92,10 @@ sub parse {
     my $length = length $string;
     $DB::single = 1;
     for ( my $pos = $re->read(\$string); $pos < $length; $pos = $re->resume()) {
-       say $pos;
+       my ($start, $length) = $re->pause_span();
+       my $value = substr $string, $start+1, $length-2;
+       say STDERR join " ", $start, $length, $value;
+       $re->lexeme_read('lstring', $start, $length, $value);
     }
     my $value_ref = $re->value();
     return ${$value_ref};
