@@ -5565,7 +5565,7 @@ PPCODE:
 }
 
 void
-paused_locations (slr)
+pause_locations (slr)
      Scanless_R *slr;
 PPCODE:
 {

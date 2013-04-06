@@ -1133,6 +1133,23 @@ sub Marpa::R2::Scanless::R::lexeme_read {
     return $slr->lexeme_complete($start, $length);
 }
 
+sub Marpa::R2::Scanless::R::pause_locations {
+    my ( $slr) = @_;
+    my $thin_slr = $slr->[Marpa::R2::Inner::Scanless::R::C];
+    return $thin_slr->pause_locations();
+}
+
+sub Marpa::R2::Scanless::R::pause_lexeme {
+    my ($slr)    = @_;
+    my $thin_slr = $slr->[Marpa::R2::Inner::Scanless::R::C];
+    my $grammar  = $slr->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
+    my $thick_g1_grammar =
+        $grammar->[Marpa::R2::Inner::Scanless::G::THICK_G1_GRAMMAR];
+    my $g1_tracer = $thick_g1_grammar->tracer();
+    my $symbol = $thin_slr->pause_lexeme();
+    return $g1_tracer->symbol_name($symbol);
+} ## end sub Marpa::R2::Scanless::R::pause_lexeme
+
 sub Marpa::R2::Scanless::R::line_column {
     my ($slr, $pos) = @_;
     my $thin_slr = $slr->[Marpa::R2::Inner::Scanless::R::C];
