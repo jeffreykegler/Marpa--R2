@@ -1133,10 +1133,10 @@ sub Marpa::R2::Scanless::R::lexeme_read {
     return $slr->lexeme_complete($start, $length);
 }
 
-sub Marpa::R2::Scanless::R::pause_locations {
+sub Marpa::R2::Scanless::R::pause_span {
     my ( $slr) = @_;
     my $thin_slr = $slr->[Marpa::R2::Inner::Scanless::R::C];
-    return $thin_slr->pause_locations();
+    return $thin_slr->pause_span();
 }
 
 sub Marpa::R2::Scanless::R::pause_lexeme {

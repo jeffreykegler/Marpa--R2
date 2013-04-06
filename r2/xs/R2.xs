@@ -5565,17 +5565,20 @@ PPCODE:
 }
 
 void
-pause_locations (slr)
+pause_span (slr)
      Scanless_R *slr;
 PPCODE:
 {
+  int length;
   Marpa_Symbol_ID pause_lexeme = slr->pause_lexeme;
   if (pause_lexeme < 0)
     {
       XSRETURN_UNDEF;
     }
   XPUSHs (sv_2mortal (newSViv ((IV) slr->start_of_pause_lexeme)));
-  XPUSHs (sv_2mortal (newSViv ((IV) slr->end_of_pause_lexeme)));
+  XPUSHs (sv_2mortal
+	  (newSViv
+	   ((IV) slr->end_of_pause_lexeme - slr->start_of_pause_lexeme)));
 }
 
 void
