@@ -5497,7 +5497,7 @@ PPCODE:
 	      AV *event;
 	      SV *event_data[2];
 	      event_data[0] = newSVpv ("g0 restarted recognizer", 0);
-	      event_data[1] = newSViv ((IV) slr->start_of_lexeme);
+	      event_data[1] = newSViv ((IV) stream->perl_pos);
 	      event = av_make (Dim (event_data), event_data);
 	      av_push (stream->event_queue, newRV_noinc ((SV *) event));
 	    }
