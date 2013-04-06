@@ -86,16 +86,13 @@ END_OF_SOURCE
 
 sub parse {
     my ($self, $string) = @_;
-    my $re = Marpa::R2::Scanless::R->new( { grammar => $self->{grammar},
-       trace_g0 => 99, trace_terminals => 99,
-    } );
+    my $re = Marpa::R2::Scanless::R->new( { grammar => $self->{grammar} } );
     my $length = length $string;
-    $DB::single = 1;
     for ( my $pos = $re->read(\$string); $pos < $length; $pos = $re->resume()) {
        my ($start, $length) = $re->pause_span();
        my $value = substr $string, $start+1, $length-2;
-       say STDERR join " ", $start, $length, $value;
-       $re->lexeme_read('lstring', $start, $length, $value);
+       $value = decode_string($value) if -1 != index $value, '\\';
+       $re->lexeme_read('lstring', $start, $length, $value) // die;
     }
     my $value_ref = $re->value();
     return ${$value_ref};
@@ -105,6 +102,22 @@ sub parse_json {
     my ($string) = @_;
     my $parser = MarpaX::JSON->new();
     return $parser->parse($string);
+}
+
+sub decode_string {
+    my ($s) = @_;
+
+    $s =~ s/\\u([0-9A-Fa-f]{4})/chr(hex($1))/eg;
+    $s =~ s/\\n/\n/g;
+    $s =~ s/\\r/\r/g;
+    $s =~ s/\\b/\b/g;
+    $s =~ s/\\f/\f/g;
+    $s =~ s/\\t/\t/g;
+    $s =~ s/\\\\/\\/g;
+    $s =~ s{\\/}{/}g;
+    $s =~ s{\\"}{"}g;
+
+    return $s;
 }
 
 package MarpaX::JSON::Actions;
@@ -119,25 +132,6 @@ sub do_object {
     my (undef, $members) = @_;
     use Data::Dumper;
     return { map { @{$_} } @{$members} };
-}
-
-sub do_string {
-    shift;
-    my $s = substr $_[0], 1, -1;
-
-    return $s if 0 > index $s, '\\';
-
-    $s =~ s/\\u([0-9A-Fa-f]{4})/chr(hex($1))/eg;
-    $s =~ s/\\n/\n/g;
-    $s =~ s/\\r/\r/g;
-    $s =~ s/\\b/\b/g;
-    $s =~ s/\\f/\f/g;
-    $s =~ s/\\t/\t/g;
-    $s =~ s/\\\\/\\/g;
-    $s =~ s{\\/}{/}g;
-    $s =~ s{\\"}{"}g;
-
-    return $s;
 }
 
 sub do_true {
