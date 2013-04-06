@@ -635,8 +635,6 @@ sub Marpa::R2::Scanless::R::read {
 
 sub Marpa::R2::Scanless::R::resume {
     my ( $self, $start_pos, $length ) = @_;
-    $start_pos //= 0;
-    $length    //= -1;
     Marpa::R2::exception(
         "Attempt to resume an SLIF recce which has no string set\n",
         '  The string should be set first using read()'

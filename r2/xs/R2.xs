@@ -5438,13 +5438,15 @@ PPCODE:
 }
 
 void
-pos_set( slr, start_pos, length )
+pos_set( slr, start_pos_sv, length_sv )
     Scanless_R *slr;
-     int start_pos;
-     int length;
+     SV* start_pos_sv;
+     SV* length_sv;
 PPCODE:
 {
   Unicode_Stream *stream = slr->stream;
+  int start_pos = SvIOK(start_pos_sv) ? SvIV(start_pos_sv) : stream->perl_pos;
+  int length = SvIOK(length_sv) ? SvIV(length_sv) : -1;
   u_pos_set(stream, "stream->pos_set", start_pos, length);
   XSRETURN_YES;
 }
