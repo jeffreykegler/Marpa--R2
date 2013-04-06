@@ -693,7 +693,7 @@ sub Marpa::R2::Scanless::R::resume {
                         qq{; value="$raw_token_value"};
                     next EVENT;
                 } ## end if ( $status eq 'g1 accepted lexeme' )
-                if ( $status eq 'g1 rejected lexeme' ) {
+                if ( $status eq 'g1 unexpected lexeme' ) {
                     my ( undef, $lexeme_start_pos, $lexeme_end_pos,
                         $g1_lexeme )
                         = @{$event};
