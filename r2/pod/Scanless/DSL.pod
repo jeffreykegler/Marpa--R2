@@ -132,34 +132,7 @@ Discard rules must be G0 rules.
 A lexical rule cannot have an C<action> adverb or a
 C<bless> adverb.
 
-=head1 Rules in general
-
-The Stuifzand format consists of rule declarations.
-Each rule declaration consists of, in order:
-
-=over 4
-
-=item * A left hand side (LHS).
-This will be a
-symbol or a pseudo-symbol.
-
-=item * The declaration operator ("C<::=>").
-
-=item * A right hand side (RHS).
-For each type of rule,
-the RHS will be described in detail below.
-In the case of empty rules,
-the RHS will be empty.
-
-=item * An adverb list.
-Each adverb consists of a keyword,
-the adverb operator ("C<< => >>"),
-and the adverb's value.
-The adverb list may be zero length.
-
-=back
-
-=head2 Symbol names
+=head1 Symbol names
 
 Symbol names can be either "bare" or enclosed in angle brackets.
 Bare symbol names must consist entirely of Perl word characters
@@ -217,6 +190,33 @@ is C<< <op comma> >>.
 The actual name of a symbol
 is the string inside the brackets of its
 normalized form.
+
+=head1 Rules in general
+
+The Stuifzand format consists of rule declarations.
+Each rule declaration consists of, in order:
+
+=over 4
+
+=item * A left hand side (LHS).
+This will be a
+symbol or a pseudo-symbol.
+
+=item * The declaration operator ("C<::=>").
+
+=item * A right hand side (RHS).
+For each type of rule,
+the RHS will be described in detail below.
+In the case of empty rules,
+the RHS will be empty.
+
+=item * An adverb list.
+Each adverb consists of a keyword,
+the adverb operator ("C<< => >>"),
+and the adverb's value.
+The adverb list may be zero length.
+
+=back
 
 =head2 Types of rules
 
@@ -311,26 +311,68 @@ and the adverb's value.
 The keyword must be one of those described in this section.
 The adverb's value must be as described for each keyword.
 
-=head2 action
-
-The value of the C<action> keyword
-must be a Perl word (a string of alphanumerics
-or underscores).
-It will be interpreted as the action name,
-as described for
-L<the C<action> named argument of rule descriptors|Marpa::R2::Grammar/"action">.
-
-=head1 C<action> adverb
+=head1 action
 
 The C<action> adverb specifies the semantics for a G1 rule
 or a lexeme, as described below.
 The default value of a G1 rule is a Perl C<undef>.
 The C<action> adverb is not allowed for G0 rules,
 which have no default value.
+The possible values of actions are described in
+L<their own section/"Actions">.
 
 The default value of a lexeme is 
 its literal value in the input stream, as a string.
 This is called the B<token value> of the lexeme.
+
+=head1 C<bless> adverb
+
+The C<bless> adverb causes the result of the semantics to be
+blessed into the class indicated by the value of the adverb.
+The value of a C<bless> adverb is called a B<blessing>.
+If the blessing is a Perl word
+(a string of alphanumerics or underscores),
+the name of the class will be formed by prepending
+the value of L<the C<bless_package>
+named argument|Marpa::R2::Scanless::G/"bless_package">, followed
+by a double colon ("C<::>").
+
+If the blessing begins with a double colon ("C<::>"), it is a
+reserved blessing.
+A blessing of C<::undef> means that the rule or lexeme will not be blessed.
+By default, both
+rules and lexemes are not blessed.
+If any rule or lexeme of a SLIF grammar has
+a blessing other than C<::undef>,
+a C<bless_package> is required,
+and failure to specify one results in
+a fatal error.
+
+The bless adverb for
+rules allows one additional reserved blessing: C<::lhs>.
+A blessing of C<::lhs> causes the result to be blessed into
+a class whose name is based on the LHS of the rule.
+The class will be the name of the LHS with whitespace
+changed to an underscore.
+(As a reminder, the whitespace in symbol names will have been normalized,
+with leading and trailing whitespace removed,
+and all other whitespace sequences changed to a single ASCII space.)
+When a C<::lhs> blessing value applies to a rule, it is a fatal
+error if the LHS contains anything other than alphanumerics
+and whitespace.
+In particular, the LHS cannot already contain an underscore ("C<_>").
+The C<::lhs> blessing is most useful in a default rule.
+
+The bless adverb for lexemes allows only one
+reserved value: C<::name>.
+A reserved value of C<::name> causes the value of the lexeme to be blessed into
+a class whose name is based on the name of the lexeme.
+The class is derived from the symbol name in the same way,
+and subject to the same restrictions,
+as described above for deriving a class name from the LHS
+of a rule.
+The C<::name> reserved blessing is most useful in
+the lexeme default rule.
 
 =head1 C<priority> adverb
 
@@ -602,55 +644,6 @@ and may be used interchangeably for both rules and lexemes.
 This means that, for both lexemes and rules,
 the actions C<[values]>, C<[value]> and C<::array>
 will do exactly the same thing.
-
-=head1 C<bless> adverb
-
-The C<bless> adverb causes the result of the semantics to be
-blessed into the class indicated by the value of the adverb.
-The value of a C<bless> adverb is called a B<blessing>.
-If the blessing is a Perl word
-(a string of alphanumerics or underscores),
-the name of the class will be formed by prepending
-the value of L<the C<bless_package>
-named argument|Marpa::R2::Scanless::G/"bless_package">, followed
-by a double colon ("C<::>").
-
-If the blessing begins with a double colon ("C<::>"), it is a
-reserved blessing.
-A blessing of C<::undef> means that the rule or lexeme will not be blessed.
-By default, both
-rules and lexemes are not blessed.
-If any rule or lexeme of a SLIF grammar has
-a blessing other than C<::undef>,
-a C<bless_package> is required,
-and failure to specify one results in
-a fatal error.
-
-The bless adverb for
-rules allows one additional reserved blessing: C<::lhs>.
-A blessing of C<::lhs> causes the result to be blessed into
-a class whose name is based on the LHS of the rule.
-The class will be the name of the LHS with whitespace
-changed to an underscore.
-(As a reminder, the whitespace in symbol names will have been normalized,
-with leading and trailing whitespace removed,
-and all other whitespace sequences changed to a single ASCII space.)
-When a C<::lhs> blessing value applies to a rule, it is a fatal
-error if the LHS contains anything other than alphanumerics
-and whitespace.
-In particular, the LHS cannot already contain an underscore ("C<_>").
-The C<::lhs> blessing is most useful in a default rule.
-
-The bless adverb for lexemes allows only one
-reserved value: C<::name>.
-A reserved value of C<::name> causes the value of the lexeme to be blessed into
-a class whose name is based on the name of the lexeme.
-The class is derived from the symbol name in the same way,
-and subject to the same restrictions,
-as described above for deriving a class name from the LHS
-of a rule.
-The C<::name> reserved blessing is most useful in
-the lexeme default rule.
 
 =head1 Discard rules
 
