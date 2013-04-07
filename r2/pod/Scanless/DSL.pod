@@ -110,28 +110,6 @@ be specified as described below.
 The semantics of lexemes is
 completely separate from that of rules.
 
-=head1 Structural rules
-
-The BNF operator ("C<::=>")
-has the same function as
-in 
-L<the Stuifzand (BNF)
-interface|Marpa::R2::BNF>,
-but in the SLIF it plays an additional role;
-It indicates that the rule is
-a G1 rule.
-Start rules must be G1 rules.
-
-=head1 Lexical rules
-
-The match operator ("C<~>")
-can be used between the LHS and RHS of a rule,
-instead of the BNF operator.
-Rules which use the match operator are G0 rules.
-Discard rules must be G0 rules.
-A lexical rule cannot have an C<action> adverb or a
-C<bless> adverb.
-
 =head1 Symbol names
 
 Symbol names can be either "bare" or enclosed in angle brackets.
@@ -190,6 +168,109 @@ is C<< <op comma> >>.
 The actual name of a symbol
 is the string inside the brackets of its
 normalized form.
+
+=head1 Single quoted strings
+
+=for Marpa::R2::Display
+name: SLIF DSL synopsis
+partial: 1
+normalize-whitespace: 1
+
+    Expression ::=
+        Number bless => primary
+        | '(' Expression ')' bless => paren assoc => group
+       || Expression '**' Expression bless => exponentiate assoc => right
+       || Expression '*' Expression bless => multiply
+        | Expression '/' Expression bless => divide
+       || Expression '+' Expression bless => add
+        | Expression '-' Expression bless => subtract
+
+=for Marpa::R2::Display::End
+
+Single quotes can be used in prioritized
+rules to indicate character strings.
+The characters inside the single quote
+will be matched in the input, literally and one-for-one.
+Single quoted strings can contain any characters with
+the exception of
+single quotes and vertical whitespace.
+
+Single quoted strings do not allow "escaped" characters.
+A backslash ("C<\>") represents itself and has no effect
+on the interpretation of the next character.
+If a rule needs to match one of the forbidden characters
+(single quote or vertical whitespace), it must use a
+character class.
+
+Single quoted strings are always interpreted at the
+G0 level, but they may be used in either structural
+or lexical rules.
+When a single quoted string is used in a structural rule,
+Marpa creates a virtual G0 rule on behalf of the application.
+This is handy, but it does have a real disadvantage --
+the name of the virtual rule's LHS
+will be one assigned automatically by Marpa.
+When tracing and debugging parses and grammars,
+these virtual LHS's can be harder for a programmer
+to interpret.
+
+=head1 Character classes
+
+=for Marpa::R2::Display
+name: SLIF DSL synopsis
+partial: 1
+normalize-whitespace: 1
+
+    <vertical space char> ~ [\x{A}\x{B}\x{C}\x{D}\x{2028}\x{2029}]
+
+=for Marpa::R2::Display::End
+
+A character class in square brackets ("C<[]>")
+can be used in a RHS alternative of a prioritized rule,
+or on the RHS of a quantified rule or a discard rule.
+Marpa character classes may contain anything acceptable to Perl,
+and follow the same escaping conventions as Perl's character classes.
+
+Character classes are always interpreted at the
+G0 level, but they may be used in either structural
+or lexical rules.
+When a character class is used in a structural rule,
+Marpa creates a virtual G0 rule on behalf of the application.
+This is handy, but it does have a real disadvantage --
+the name of the virtual rule's LHS
+will be one assigned automatically by Marpa.
+When tracing and debugging parses and grammars,
+these virtual LHS's can be harder for a programmer
+to interpret.
+
+An implementation note: character classes are
+interpreted by Perl, but this involves minimal overhead
+when the parse is of any length.
+Each character class is
+passed to Perl to interpret exactly once and the result is
+memoized in a C language structure for future use.
+
+=head1 Structural rules
+
+The BNF operator ("C<::=>")
+has the same function as
+in 
+L<the Stuifzand (BNF)
+interface|Marpa::R2::BNF>,
+but in the SLIF it plays an additional role;
+It indicates that the rule is
+a G1 rule.
+Start rules must be G1 rules.
+
+=head1 Lexical rules
+
+The match operator ("C<~>")
+can be used between the LHS and RHS of a rule,
+instead of the BNF operator.
+Rules which use the match operator are G0 rules.
+Discard rules must be G0 rules.
+A lexical rule cannot have an C<action> adverb or a
+C<bless> adverb.
 
 =head1 Rules in general
 
@@ -665,87 +746,6 @@ and may be used interchangeably for both rules and lexemes.
 This means that, for both lexemes and rules,
 the actions C<[values]>, C<[value]> and C<::array>
 will do exactly the same thing.
-
-=head1 Single quoted strings
-
-=for Marpa::R2::Display
-name: SLIF DSL synopsis
-partial: 1
-normalize-whitespace: 1
-
-    Expression ::=
-        Number bless => primary
-        | '(' Expression ')' bless => paren assoc => group
-       || Expression '**' Expression bless => exponentiate assoc => right
-       || Expression '*' Expression bless => multiply
-        | Expression '/' Expression bless => divide
-       || Expression '+' Expression bless => add
-        | Expression '-' Expression bless => subtract
-
-=for Marpa::R2::Display::End
-
-Single quotes can be used in prioritized
-rules to indicate character strings.
-The characters inside the single quote
-will be matched in the input, literally and one-for-one.
-Single quoted strings can contain any characters with
-the exception of
-single quotes and vertical whitespace.
-
-Single quoted strings do not allow "escaped" characters.
-A backslash ("C<\>") represents itself and has no effect
-on the interpretation of the next character.
-If a rule needs to match one of the forbidden characters
-(single quote or vertical whitespace), it must use a
-character class.
-
-Single quoted strings are always interpreted at the
-G0 level, but they may be used in either structural
-or lexical rules.
-When a single quoted string is used in a structural rule,
-Marpa creates a virtual G0 rule on behalf of the application.
-This is handy, but it does have a real disadvantage --
-the name of the virtual rule's LHS
-will be one assigned automatically by Marpa.
-When tracing and debugging parses and grammars,
-these virtual LHS's can be harder for a programmer
-to interpret.
-
-=head1 Character classes
-
-=for Marpa::R2::Display
-name: SLIF DSL synopsis
-partial: 1
-normalize-whitespace: 1
-
-    <vertical space char> ~ [\x{A}\x{B}\x{C}\x{D}\x{2028}\x{2029}]
-
-=for Marpa::R2::Display::End
-
-A character class in square brackets ("C<[]>")
-can be used in a RHS alternative of a prioritized rule,
-or on the RHS of a quantified rule or a discard rule.
-Marpa character classes may contain anything acceptable to Perl,
-and follow the same escaping conventions as Perl's character classes.
-
-Character classes are always interpreted at the
-G0 level, but they may be used in either structural
-or lexical rules.
-When a character class is used in a structural rule,
-Marpa creates a virtual G0 rule on behalf of the application.
-This is handy, but it does have a real disadvantage --
-the name of the virtual rule's LHS
-will be one assigned automatically by Marpa.
-When tracing and debugging parses and grammars,
-these virtual LHS's can be harder for a programmer
-to interpret.
-
-An implementation note: character classes are
-interpreted by Perl, but this involves minimal overhead
-when the parse is of any length.
-Each character class is
-passed to Perl to interpret exactly once and the result is
-memoized in a C language structure for future use.
 
 =head1 Precedence
 
