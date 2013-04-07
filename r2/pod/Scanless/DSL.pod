@@ -505,6 +505,16 @@ The default value of a lexeme is
 its literal value in the input stream, as a string.
 This is called the B<token value> of the lexeme.
 
+=head2 assoc
+
+The C<assoc> adverb is only valid in a prioritized rule.
+Its value must be one of
+C<left>,
+C<right> or
+C<group>.
+Its effect will be as described
+L<below|/"Precedence">.
+
 =head2 bless
 
 The C<bless> adverb causes the result of the semantics to be
@@ -613,29 +623,19 @@ high-priority lexemes will not cause a parse to
 become exhausted as long as another lexeme is acceptable, even if the
 acceptable lexeme is of lower priority.
 
-=head2 assoc
-
-The C<assoc> adverb is only valid in a prioritized rule.
-Its value must be one of
-C<left>,
-C<right> or
-C<group>.
-Its effect will be as described
-L<below|/"Precedence">.
-
-=head2 separator
-
-The C<separator> keyword is only valid for a quantified right side,
-and its value must be a symbol of the grammar.
-It will be used as the separator,
-L<as described for sequence rules|Marpa::R2::Grammar/"Sequence rules">.
-
 =head2 proper
 
 The C<proper> keyword is only valid for a quantified right side,
 and its value must be a boolean,
 in the form of a binary digit (C<0> or C<1>).
 It indicates proper or Perl separation,
+L<as described for sequence rules|Marpa::R2::Grammar/"Sequence rules">.
+
+=head2 separator
+
+The C<separator> keyword is only valid for a quantified right side,
+and its value must be a symbol of the grammar.
+It will be used as the separator,
 L<as described for sequence rules|Marpa::R2::Grammar/"Sequence rules">.
 
 =head1 Actions
