@@ -431,7 +431,7 @@ before any default pseudo-rules were encountered.
 =head1 Lexeme pseudo-rules
 
 =for Marpa::R2::Display
-name: SLIF DSL synopsis
+name: SLIF lexeme rule synopsis
 partial: 1
 normalize-whitespace: 1
 

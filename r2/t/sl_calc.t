@@ -135,7 +135,7 @@ variable ~ [[:alpha:]] <optional word characters>
 <optional word characters> ~ [[:alnum:]]*
 
 # Marpa::R2::Display
-# name: SLIF DSL synopsis
+# name: SLIF lexeme rule synopsis
 
 :lexeme ~ <say keyword> priority => 1
 

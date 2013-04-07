@@ -74,7 +74,7 @@ sub my_parser {
     my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
 
 # Marpa::R2::Display
-# name: external SLIF read example
+# name: SLIF external read example
 
     $recce->read(\$string, 0, 0);
 
