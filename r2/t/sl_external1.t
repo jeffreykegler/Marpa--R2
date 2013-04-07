@@ -72,7 +72,14 @@ my @terminals = (
 sub my_parser {
     my ( $grammar, $string ) = @_;
     my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
+
+# Marpa::R2::Display
+# name: external SLIF read example
+
     $recce->read(\$string, 0, 0);
+
+# Marpa::R2::Display::End
+
     my $length        = length $string;
     my $last_position = 0;
     pos $string = $last_position;

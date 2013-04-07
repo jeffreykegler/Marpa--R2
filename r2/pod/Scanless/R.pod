@@ -225,13 +225,51 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
+=for Marpa::R2::Display
+name: SLIF external read example
+partial: 1
+normalize-whitespace: 1
+
+    $recce->read(\$string, 0, 0);
+
+=for Marpa::R2::Display::End
+
 Given a pointer to an input string,
 parses it according to the grammar.
-Currently only a single call to C<read()>
+Only a single call to C<read()>
 is allowed for a scanless
 recognizer.
-On success, returns a non-negative integer.
+
+C<read()> recognizes
+optional second and third arguments.
+The second argument is a position in the input string
+at which internal scanning will start.
+The third argument is the length of the section
+of the input string to be scanned before pausing.
+A negative start location is a location counted
+from the end, so that -1 means start at the last
+character, -2 at the second to last, etc.
+The default start position is zero.
+
+A negative length means that internal scanning
+should pause at a location counted from the end,
+so that -1 means continue to the end of the string,
+-2 means pause before the last character of the string,
+etc.  The default length is -1.
+
+One important case is where start location and length
+are both specified as zero.
+This pauses internal scanning immediately and can be
+used to hand control over completely to an external
+scanner.
+
 On failure, throws an exception.
+The call is considered successful
+if it ended because a parse was found,
+or because internal scanning was paused.
+On success, C<read()> returns the location in the input
+string before which internal scanning ended.
+This value may be zero.
 
 =head2 show_progress()
 

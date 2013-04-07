@@ -556,6 +556,38 @@ of a rule.
 The C<::name> reserved blessing is most useful in
 the lexeme default rule.
 
+=head2 pause
+
+The C<pause> adverb applies only to lexemes.
+If the value of pause is C<before>,
+Marpa will "pause" internal scanning before
+that lexeme.
+No lexemes will be read at that position.
+
+If the value of pause is C<after>,
+all appicable lexemes at that position will
+be read by G1,
+and internal scanning will pause immediately
+afterwards.
+(Note that,
+as of this writing,
+the C<after> pause value is untested.)
+
+A pause value has no effect if G1 would reject
+that lexeme at that location.
+A pause value also has no effect
+if its lexeme has
+a lexeme priority lower than
+the highest lexeme priority.
+
+At the same priority,
+an pause value of C<before> overrides any
+pause values of C<after> at the same location.
+If pause values of 
+both C<before> and <after> could apply at a
+at a location, only "C<before>" pause will
+take effect.
+
 =head2 priority
 
 The C<priority> adverb is only allowed in
