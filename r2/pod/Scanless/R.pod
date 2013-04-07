@@ -171,48 +171,7 @@ Trace output and warning messages
 go to the trace file handle.
 By default the trace file handle is C<STDERR>.
 
-=head1 Methods
-
-=head2 last_completed()
-
-=for Marpa::R2::Display
-name: Scanless recognizer diagnostics
-partial: 1
-normalize-whitespace: 1
-
-    my ( $start, $length ) = $recce->last_completed('Expression');
-
-=for Marpa::R2::Display::End
-
-Given the name of a symbol,
-returns the start location and
-length of the most recent match.
-The length is in parse locations,
-so that the end location will
-always be the start location plus the length.
-
-If there was more than one most recent match, it returns
-the longest.
-If there was no match, returns the empty array in array context
-and a Perl false in scalar context.
-
-=head2 last_completed_range()
-
-Use of this method is discouraged in favor of 
-L</"last_completed()">.
-Given the name of a symbol,
-returns the start and end locations of most recent match.
-If there was more than one most recent match, it returns
-the longest.
-If there was no match, returns the empty array in array context
-and a Perl false in scalar context.
-
-=head2 range_to_string()
-
-Use of this method is discouraged in favor of 
-L</"substring()">.
-Given a start and an end location, returns the substring of the input
-string that is between the two.
+=head1 Mutators
 
 =head2 read()
 
@@ -271,6 +230,64 @@ On success, C<read()> returns the location in the input
 string before which internal scanning ended.
 This value may be zero.
 
+=head2 value()
+
+=for Marpa::R2::Display
+name: Scanless recognizer synopsis
+partial: 1
+normalize-whitespace: 1
+
+    my $value_ref = $recce->value();
+
+=for Marpa::R2::Display::End
+
+Has the same effect as a C<value()> call
+on the G1 recognizer.
+See L<Marpa::R2::Recognizer/"value()">.
+
+=head1 Trace methods
+
+=head2 last_completed()
+
+=for Marpa::R2::Display
+name: Scanless recognizer diagnostics
+partial: 1
+normalize-whitespace: 1
+
+    my ( $start, $length ) = $recce->last_completed('Expression');
+
+=for Marpa::R2::Display::End
+
+Given the name of a symbol,
+returns the start location and
+length of the most recent match.
+The length is in parse locations,
+so that the end location will
+always be the start location plus the length.
+
+If there was more than one most recent match, it returns
+the longest.
+If there was no match, returns the empty array in array context
+and a Perl false in scalar context.
+
+=head2 last_completed_range()
+
+Use of this method is discouraged in favor of 
+L</"last_completed()">.
+Given the name of a symbol,
+returns the start and end locations of most recent match.
+If there was more than one most recent match, it returns
+the longest.
+If there was no match, returns the empty array in array context
+and a Perl false in scalar context.
+
+=head2 range_to_string()
+
+Use of this method is discouraged in favor of 
+L</"substring()">.
+Given a start and an end location, returns the substring of the input
+string that is between the two.
+
 =head2 show_progress()
 
 =for Marpa::R2::Display
@@ -303,21 +320,6 @@ The length is in locations,
 so that the end location is always start location
 plus length.
 A length of zero will produce a zero-length string.
-
-=head2 value()
-
-=for Marpa::R2::Display
-name: Scanless recognizer synopsis
-partial: 1
-normalize-whitespace: 1
-
-    my $value_ref = $recce->value();
-
-=for Marpa::R2::Display::End
-
-Has the same effect as a C<value()> call
-on the G1 recognizer.
-See L<Marpa::R2::Recognizer/"value()">.
 
 =head1 Copyright and License
 

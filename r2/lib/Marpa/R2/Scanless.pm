@@ -206,11 +206,15 @@ sub Marpa::R2::Scanless::R::last_completed {
     return ( $first_origin, ( $earley_set - $first_origin ) );
 } ## end sub Marpa::R2::Scanless::R::last_completed
 
+# In terms of earley sets.
+# Kept for backward compatibiity
 sub Marpa::R2::Scanless::R::range_to_string {
     my ( $self, $start_earley_set, $end_earley_set ) = @_;
     return $self->substring($start_earley_set, $end_earley_set-$start_earley_set);
 }
 
+# Substring in terms of earley sets.
+# Necessary for the use of show_progress()
 # Given a scanless recognizer and
 # and two earley sets, return the input string
 sub Marpa::R2::Scanless::R::substring {
@@ -225,6 +229,15 @@ sub Marpa::R2::Scanless::R::substring {
     my $p_input = $self->[Marpa::R2::Inner::Scanless::R::P_INPUT_STRING];
     return substr ${$p_input}, $first_start_position, $length_in_characters;
 } ## end sub Marpa::R2::Scanless::R::substring
+
+# Substring in terms of locations in the input stream
+# This is the one users will be most interested in.
+sub Marpa::R2::Scanless::R::substr {
+    my ( $slr, $start_pos, $length ) = @_;
+    my $thin_slr = $slr->[Marpa::R2::Inner::Scanless::R::C];
+    my $stream = $thin_slr->stream();
+    $stream->substring( $start_pos, $length );
+}
 
 sub Marpa::R2::Internal::Scanless::meta_grammar {
 
