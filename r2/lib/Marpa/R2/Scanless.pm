@@ -232,7 +232,7 @@ sub Marpa::R2::Scanless::R::substring {
 
 # Substring in terms of locations in the input stream
 # This is the one users will be most interested in.
-sub Marpa::R2::Scanless::R::substr {
+sub Marpa::R2::Scanless::R::literal {
     my ( $slr, $start_pos, $length ) = @_;
     my $thin_slr = $slr->[Marpa::R2::Inner::Scanless::R::C];
     my $stream = $thin_slr->stream();

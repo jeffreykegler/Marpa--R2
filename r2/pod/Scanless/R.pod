@@ -244,7 +244,7 @@ This value may be zero.
 
 =head2 resume()
 
-=head2 substr()
+=head2 literal()
 
 =head2 value()
 
