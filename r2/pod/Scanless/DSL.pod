@@ -110,7 +110,9 @@ be specified as described below.
 The semantics of lexemes is
 completely separate from that of rules.
 
-=head1 Symbol names
+=head1 Tokens
+
+=head2 Symbol names
 
 Symbol names can be either "bare" or enclosed in angle brackets.
 Bare symbol names must consist entirely of Perl word characters
@@ -169,7 +171,7 @@ The actual name of a symbol
 is the string inside the brackets of its
 normalized form.
 
-=head1 Single quoted strings
+=head2 Single quoted strings
 
 =for Marpa::R2::Display
 name: SLIF DSL synopsis
@@ -214,7 +216,7 @@ When tracing and debugging parses and grammars,
 these virtual LHS's can be harder for a programmer
 to interpret.
 
-=head1 Character classes
+=head2 Character classes
 
 =for Marpa::R2::Display
 name: SLIF DSL synopsis
@@ -250,7 +252,9 @@ Each character class is
 passed to Perl to interpret exactly once and the result is
 memoized in a C language structure for future use.
 
-=head1 Structural rules
+=head1 Rules by level
+
+=head2 Structural rules
 
 The BNF operator ("C<::=>")
 has the same function as
@@ -262,7 +266,7 @@ It indicates that the rule is
 a G1 rule.
 Start rules must be G1 rules.
 
-=head1 Lexical rules
+=head2 Lexical rules
 
 The match operator ("C<~>")
 can be used between the LHS and RHS of a rule,
@@ -272,10 +276,9 @@ Discard rules must be G0 rules.
 A lexical rule cannot have an C<action> adverb or a
 C<bless> adverb.
 
-=head1 Rules in general
+=head1 Rules by form
 
-The Stuifzand format consists of rule declarations.
-Each rule declaration consists of, in order:
+Every rule declaration consists of, in order:
 
 =over 4
 
@@ -298,8 +301,6 @@ and the adverb's value.
 The adverb list may be zero length.
 
 =back
-
-=head1 Types of rules
 
 Rules are of four kinds:
 the start rule,
@@ -325,14 +326,14 @@ many of them taking
 a simple form like that in the display
 above.
 
-=head1 Start rule
+=head2 Start rule
 
 Every source string should have a start rule.
 The LHS of this rule is the C<:start> pseudo-symbol.
 The RHS must be a single symbol name.
 The start rule does not accept any adverbs.
 
-=head1 Empty rules
+=head2 Empty rules
 
 An empty rule is a rule with an empty RHS.
 An empty right hand side is what the name suggests: no symbols
@@ -341,7 +342,7 @@ An action adverb is allowed in an empty rule,
 but no others.
 A empty rule makes its LHS symbol a nullable symbol.
 
-=head1 Quantified rules
+=head2 Quantified rules
 
 A rule is quantified if
 its RHS consists of a single symbol name,
@@ -353,7 +354,7 @@ indicating, respectively, that the sequence rule has a minimum length
 of 0 or 1.
 Quantified rules allow adverbs.
 
-=head1 Prioritized rules
+=head2 Prioritized rules
 
 Any rule which is not a start rule,
 and not empty or quantified, is considered prioritized.
@@ -382,7 +383,7 @@ A set of parentheses may contain more than one symbol,
 in which case the entire sequence of symbols is hidden,
 as if they had been enclosed in parentheses individually.
 
-=head1 Discard rules
+=head2 Discard rules
 
 =for Marpa::R2::Display
 name: SLIF DSL synopsis
@@ -403,7 +404,7 @@ When a discarded symbol is recognized,
 it is not passed as a lexeme to the G1 parser, but is
 (as the name suggests) discarded.
 
-=head1 Default pseudo-rules
+=head1 Default pseudo-rule
 
 =for Marpa::R2::Display
 name: SLIF DSL synopsis
@@ -430,7 +431,7 @@ set of defaults -- if an adverb is not specified,
 it is reset to its original default, the one it had
 before any default pseudo-rules were encountered.
 
-=head1 Lexeme pseudo-rule
+=head1 Lexeme pseudo-rules
 
 =for Marpa::R2::Display
 name: SLIF DSL synopsis
