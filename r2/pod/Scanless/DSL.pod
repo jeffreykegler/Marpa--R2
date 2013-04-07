@@ -64,19 +64,17 @@ normalize-whitespace: 1
 
 =head1 About this document
 
-This page is the reference for domain-specific language at
-the center
+This is the reference document reference for
+the domain-specific language (DSL)
 of Marpa's Scanless interface (SLIF).
-The Stuifzand interface allows the grammar to be specified using
-a string whose text is written in a variation of BNF.
-The SLIF is
-an example of a domain-specific language (DSL).
-The DSL of this document can (and has been) used to specify other
-DSL's, and therefore can be seen as a "meta-DSL".
+The SLIF's DSL is
+an extension of BNF.
+The SLIF DSL is used to specify other
+DSL's, and is therefore a "meta-DSL".
 
 =head1 The structure of SLIF source strings
 
-The DSL source consists of a series of rules,
+The SLIF source string consists of a series of rules,
 pseudo-rules and statements.
 These are made up of tokens,
 as described below.
@@ -110,9 +108,7 @@ be specified as described below.
 The semantics of lexemes is
 completely separate from that of rules.
 
-=head1 Tokens
-
-=head2 Symbol names
+=head1 Symbol names
 
 Symbol names can be either "bare" or enclosed in angle brackets.
 Bare symbol names must consist entirely of Perl word characters
@@ -137,7 +133,10 @@ including newlines.
 This allows very long symbol names to be line wrapped,
 if necessary.
 
-Unlike angle brackets, the whitespace does become part of the symbol name,
+Unlike the angle brackets,
+the whitespace in a bracketed symbol token
+B<does> become part of
+of the symbol name,
 but it does so in a "normalized" form.
 Leading and trailing whitespace in the name is discarded,
 and all other whitespace sequences are converted to a single ASCII
@@ -167,9 +166,13 @@ ignore: 1
 will all be regarded as the same symbol name.
 The normalized form of that symbol name
 is C<< <op comma> >>.
-The actual name of a symbol
-is the string inside the brackets of its
+The actual name of every symbol
+is its
 normalized form.
+Symbol names are often
+displayed between angle brackets,
+regardless of whether the symbol was originally
+in the bare or bracketed form.
 
 =head2 Single quoted strings
 
@@ -252,31 +255,23 @@ Each character class is
 passed to Perl to interpret exactly once and the result is
 memoized in a C language structure for future use.
 
-=head1 Rules by level
-
-=head2 Structural rules
+=head1 Rules and statements
 
 The BNF operator ("C<::=>")
-has the same function as
-in 
-L<the Stuifzand (BNF)
-interface|Marpa::R2::BNF>,
-but in the SLIF it plays an additional role;
-It indicates that the rule is
+indicates that the rule is
 a G1 rule.
-Start rules must be G1 rules.
-
-=head2 Lexical rules
-
 The match operator ("C<~>")
 can be used between the LHS and RHS of a rule,
 instead of the BNF operator.
 Rules which use the match operator are G0 rules.
-Discard rules must be G0 rules.
-A lexical rule cannot have an C<action> adverb or a
-C<bless> adverb.
+The effect of a rule will sometimes vary,
+depending on its lexical position in the DSL source.
 
-=head1 Rules by form
+Statements
+are signified by the assignment operator ("C<=>").
+Their effect is global, never lexical.
+The location of a statement in the DSL source
+will never affect the result.
 
 Every rule declaration consists of, in order:
 
@@ -302,12 +297,10 @@ The adverb list may be zero length.
 
 =back
 
-Rules are of four kinds:
-the start rule,
-empty rules,
-quantified rules
-and prioritized rules.
-A rule like the following,
+Note that most rules are classified as "prioritized rules",
+although the prioritization may be trivial.
+For example,
+a rule like the following,
 
 =for Marpa::R2::Display
 ignore: 1
@@ -317,14 +310,16 @@ ignore: 1
 =for Marpa::R2::Display::End
 
 whose RHS consists only of a sequence of symbols,
-is treated as a
-prioritized rule with only one alternative
-and only one priority.
+is a prioritized rule.
+The prioritization is trivial --
+there is only one priority,
+and in fact only one alternative within
+that priority.
 In a typical large grammar,
 most rules are prioritized rules,
-many of them taking
-a simple form like that in the display
-above.
+many of them trivially prioritized.
+
+=head2 Rules by form
 
 =head2 Start rule
 
@@ -332,6 +327,7 @@ Every source string should have a start rule.
 The LHS of this rule is the C<:start> pseudo-symbol.
 The RHS must be a single symbol name.
 The start rule does not accept any adverbs.
+Start rules must be G1 rules.
 
 =head2 Empty rules
 
@@ -356,9 +352,9 @@ Quantified rules allow adverbs.
 
 =head2 Prioritized rules
 
-Any rule which is not a start rule,
-and not empty or quantified, is considered prioritized.
-The prioritization may be simple, consisting only of a
+Any rule that is not a start rule,
+and that is not empty or quantified, is considered prioritized.
+The prioritization is often trivial, consisting only of a
 single priority level.
 
 Each prioritized right hand side consists of one or more right hand alternatives
@@ -403,8 +399,9 @@ symbol, but one which is not a lexeme.
 When a discarded symbol is recognized,
 it is not passed as a lexeme to the G1 parser, but is
 (as the name suggests) discarded.
+Discard rules must be G0 rules.
 
-=head1 Default pseudo-rule
+=head1 Default pseudo-rules
 
 =for Marpa::R2::Display
 name: SLIF DSL synopsis
@@ -425,7 +422,7 @@ that appear afterwards in the DSL source.
 
 Currently only the defaults for
 the C<action> and C<bless> adverbs
-can be changed with a default pseudo-rule.
+can be specified in a default pseudo-rule.
 Each default pseudo-rule creates a completely new
 set of defaults -- if an adverb is not specified,
 it is reset to its original default, the one it had
@@ -444,9 +441,11 @@ normalize-whitespace: 1
 
 The C<:lexeme> pseudo-rule allows adverbs to be used to
 change the treatment of a lexeme.
-Currently the only adverb allowed in a C<:lexeme> rule
-is L<the C<priority>
-adverb|/C<priority> adverb>.
+The only adverbs allowed in a C<:lexeme> rule
+are
+L<C<priority>|/"priority">
+and
+L<C<pause>|/"pause">.
 
 =head1 Lexeme default statement
 
@@ -463,29 +462,13 @@ The lexeme default statement changes the defaults for
 lexeme adverbs.
 It only changes the defaults for lexemes,
 and does not affect rules.
-
-The lexeme default statement is a "statement",
-instead of a "rule".
-Rules
-are signified by the BNF operator ("C<::=>")
-or the match operator ("C<~>"),
-and their effect depends on their
-lexical position.
-Statements
-are signified by the assignment operator ("C<=>"),
-and their effect is global.
-The effect of a statement does not
-depend on where in the DSL source file it occurs.
-
-At this writing the lexeme default statement is only way to
-specify the semantics of lexemes.
+Only the defaults for
+the C<action> and C<bless> adverbs
+can be specified in a lexeme default pseudo-rule.
 Only one lexeme default statement is allowed in a file.
 
 =head1 Adverbs
 
-Adverbs are allowed for empty rules, quantifiied rules,
-and for the right hand side alternatives in prioritized rules.
-Adverbs must occur after the symbols.
 Adverbs consist of a keyword, the adverb operator ("C<< => >>"),
 and the adverb's value.
 The keyword must be one of those described in this section.
@@ -495,6 +478,8 @@ The adverb's value must be as described for each keyword.
 
 The C<action> adverb specifies the semantics for a G1 rule
 or a lexeme, as described below.
+The C<action> adverb may also appear in a default pseudo-rule.
+
 The default value of a G1 rule is a Perl C<undef>.
 The C<action> adverb is not allowed for G0 rules,
 which have no default value.
@@ -519,6 +504,8 @@ L<below|/"Precedence">.
 
 The C<bless> adverb causes the result of the semantics to be
 blessed into the class indicated by the value of the adverb.
+A G0 rules cannot have a C<bless> adverb.
+
 The value of a C<bless> adverb is called a B<blessing>.
 If the blessing is a Perl word
 (a string of alphanumerics or underscores),
@@ -599,10 +586,14 @@ of lexemes when
 
 Lexeme priorities only have
 an effect when lexemes are accepted.
+The intent of this scheme is avoid situations where a lexeme
+with a high priority is rejected, and causes a parse to fail,
+even though another lower priority lexeme is acceptable
+and would allow the parse to continue.
+
 For example, suppose that "C<say>" can be both
 a keyword (C<< <say keyword> >>),
 and a variable name (C<< <variable> >>).
-
 Suppose further that
 the grammar specifies that C<< <say keyword> >> has a priority of 1,
 and C<< <variable> >> is left at the default priority of 0.
@@ -610,18 +601,16 @@ When G0 finds a occurrence of "C<say>",
 where both the C<say> keyword and a variable name would
 be accepted by G1, then only the C<say> keyword is read by G1,
 because of the priorities.
-But suppose that G1 is not accepting
-C<< <say keyword> >>.
+
+But, suppose instead that the parse is at a location
+where G1 is not accepting
+the C<< <say keyword> >>.
 Since only lexeme priorites of acceptable lexemes are considered,
-C<< <variable> >>
+C<< <variable> >> lexeme
 has the highest priority,
-and "C<say>" is read as a
+and the literal string "C<say>" will be read as a
 C<< <variable> >>
 token.
-One effect of this is that
-high-priority lexemes will not cause a parse to
-become exhausted as long as another lexeme is acceptable, even if the
-acceptable lexeme is of lower priority.
 
 =head2 proper
 
@@ -649,14 +638,16 @@ as described for
 L<the C<action> named argument of rule descriptors|Marpa::R2::Grammar/"action">.
 Word actions are not allowed for lexemes.
 
+Typically, a word action is resolved to a Perl closure, called the B<semantic closure>.
 Ordinarily, the arguments to the semantic closure are the per-parse-tree
 variable,
 followed by values of the rule's child nodes,
 in the order in which they occurred in the input stream.
+
 However,
 if a rule with a word action is blessed,
 in order to allow the blessing to take effect,
-the arguments to a semantics closure are formed differently.
+the arguments to a semantic closure are formed differently.
 If the rule is blessed, its semantic closure will always have
 exactly two arguments.
 The first will be the per-parse-tree variable.
@@ -690,7 +681,7 @@ It is a fatal error if a blessing
 is applied to a rule with a C<::first> action.
 This is the case even when either or both adverbs are
 the result of a default.
-It is also a fatal error to use C<::first> action
+It is also a fatal error to use a C<::first> action
 with a lexeme.
 
 =item * C<::undef>
@@ -796,8 +787,8 @@ C<Expression> occurs twice, and therefore the arity is 2.
 C<< <op pow> >> is considered to be an operator.
 
 Because for this purpose an operator is defined as anything that
-is not an operand, some symbols are considered operators
-that would not be in the traditional approach.
+is not an operand, Marpa treats some symbols as operators
+that would not be considered operators in the traditional approach.
 For example,
 in the RHS alternative
 
@@ -860,9 +851,9 @@ and is ignored.
 
 =head2 Symbol names
 
-The BNF interface may rewrite its symbol names internally.
+The SLIF may rewrite its symbol names internally.
 Here we call the name by which a symbol is specified in the
-BNF interface string its "external symbol name",
+SLIF source string its "external symbol name",
 and its name as rewritten, its "internal symbol name".
 In many cases, Marpa::R2 makes sure the user sees only
 the external names of symbols.
@@ -876,11 +867,11 @@ internal names may sometimes
 be appropriate.
 Marpa::R2's use of external and internal symbol names
 is evolving.
-When the Stuifzand interface is used,
+When the SLIF is used,
 except as documented in this section,
 the user may see either the internal or external form
 of a symbol's name.
-Also, the exact form of the internal name is
+Additionally, the exact form of the internal name is
 subject to change.
 
 =head2 Precedence: the good news
