@@ -790,7 +790,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::quantified_rule::evaluate {
 
     my $action;
     my $blessing;
-    my $original_separator;
+    my $separator;
     my $proper;
     ADVERB: for my $key ( keys %{$adverb_list} ) {
         my $value = $adverb_list->{$key};
@@ -807,7 +807,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::quantified_rule::evaluate {
             next ADVERB;
         }
         if ( $key eq 'separator' ) {
-            $original_separator = $adverb_list->{$key};
+            $separator = $adverb_list->{$key};
             next ADVERB;
         }
         my ( $line, $column ) = $parse->{meta_recce}->line_column($start);
@@ -815,14 +815,12 @@ sub Marpa::R2::Internal::MetaAST_Nodes::quantified_rule::evaluate {
             "  Rule was ", $parse->substring( $start, $length ), "\n";
     } ## end ADVERB: for my $key ( keys %{$adverb_list} )
 
-    my $original_separator = $adverb_list->{separator};
-
     # mask not needed
     my $lhs_name       = $lhs->name($parse);
     $sequence_rule{lhs}       = $lhs_name;
 
-    $sequence_rule{separator} = $original_separator
-        if defined $original_separator;
+    $sequence_rule{separator} = $separator
+        if defined $separator;
     $sequence_rule{proper} = $proper if defined $proper;
 
     $action //= $default_adverbs->{action};
@@ -834,6 +832,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::quantified_rule::evaluate {
         $sequence_rule{action} = $action;
     } ## end if ( defined $action )
 
+    $blessing //= $default_adverbs->{bless};
     if ( defined $blessing
         and $grammar_level <= 0 )
     {
