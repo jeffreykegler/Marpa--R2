@@ -95,18 +95,20 @@ in this document.
 G0 rules simply recognize symbols in the input.
 G0 rules do not have a semantics.
 
-Top-level G0 rules correspond to a string in the input,
-but when it is a value,
-this string is actually seen as the value of a lexeme.
+Top-level G0 rules correspond to a string in the input.
+The top-level G0 rules are seen by G1 as lexemes,
+and the string to which a top-level G0 rule
+corresponds becomes the default value of the lexeme.
 The G0 grammar can be thought of as similar
 in behavior to a set of regular expressions
 with the lexemes being seen as similar to named captures.
 
 Lexemes are the symbols which form the interface between
-G1 and G0.  They also have a semantics, which can
-be specified as described below.
+G1 and G0.  Lexemes, like G1 rules, have a semantics.
 The semantics of lexemes is
-completely separate from that of rules.
+specified separately from the
+semantics of G1 rules,
+as described below.
 
 =head1 Symbol names
 
@@ -318,8 +320,6 @@ that priority.
 In a typical large grammar,
 most rules are prioritized rules,
 many of them trivially prioritized.
-
-=head2 Rules by form
 
 =head2 Start rule
 
