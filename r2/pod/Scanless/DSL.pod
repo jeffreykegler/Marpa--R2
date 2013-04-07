@@ -174,7 +174,7 @@ normalized form.
 Symbol names are often
 displayed between angle brackets,
 regardless of whether the symbol was originally
-in the bare or bracketed form.
+specified in bracketed form.
 
 =head2 Single quoted strings
 
