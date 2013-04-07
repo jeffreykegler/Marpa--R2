@@ -175,7 +175,6 @@ sub Marpa::R2::Internal::MetaAST::Parse::bless_hash_rule {
     my ( $parse, $hash_rule, $blessing, $original_lhs ) = @_;
     my $grammar_level = $Marpa::R2::Internal::GRAMMAR_LEVEL;
     return if $grammar_level == 0;
-    $blessing //= $parse->{default_adverbs}->[$grammar_level]->{bless};
     return if not defined $blessing;
     FIND_BLESSING: {
         last FIND_BLESSING if $blessing =~ /\A [\w] /xms;
@@ -506,7 +505,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::priority_rule::evaluate {
                 $hash_rule{action} = $action;
             } ## end if ( defined $action )
 
-            my $blessing = $adverb_list->{bless};
+            my $blessing = $adverb_list->{bless} // $default_adverbs->{bless};
             if ( defined $blessing
                 and $grammar_level <= 0 )
             {
@@ -589,7 +588,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::priority_rule::evaluate {
             $new_xs_rule{action} = $action;
         } ## end if ( defined $action )
 
-        my $blessing = $adverb_list->{bless};
+        my $blessing = $adverb_list->{bless} // $default_adverbs->{bless};
         if ( defined $blessing
             and $grammar_level <= 0 )
         {
@@ -664,7 +663,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::empty_rule::evaluate {
         $rule{action} = $action;
     } ## end if ( defined $action )
 
-    my $blessing = $adverb_list->{bless};
+    my $blessing = $adverb_list->{bless} // $default_adverbs->{bless};
     if ( defined $blessing
         and $grammar_level <= 0 )
     {
@@ -833,8 +832,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::quantified_rule::evaluate {
     } ## end if ( defined $action )
 
     $blessing //= $default_adverbs->{bless};
-    if ( defined $blessing
-        and $grammar_level <= 0 )
+    if ( defined $blessing and $grammar_level <= 0 )
     {
         Marpa::R2::exception(
             'bless option not allowed in lexical rules (rules LHS was "',
