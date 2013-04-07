@@ -301,7 +301,28 @@ A set of parentheses may contain more than one symbol,
 in which case the entire sequence of symbols is hidden,
 as if they had been enclosed in parentheses individually.
 
-=head1 Default pseudo-rule
+=head1 Discard rules
+
+=for Marpa::R2::Display
+name: SLIF DSL synopsis
+partial: 1
+normalize-whitespace: 1
+
+    :discard ~ whitespace
+
+=for Marpa::R2::Display::End
+
+A discard rule is a rule whose LHS is
+the C<:discard> pseudo-symbol,
+and whose RHS is a single symbol name,
+called the B<discarded symbol>.
+These rules indicate that the discarded symbol is a top-level G0
+symbol, but one which is not a lexeme.
+When a discarded symbol is recognized,
+it is not passed as a lexeme to the G1 parser, but is
+(as the name suggests) discarded.
+
+=head1 Default pseudo-rules
 
 =for Marpa::R2::Display
 name: SLIF DSL synopsis
@@ -327,6 +348,23 @@ Each default pseudo-rule creates a completely new
 set of defaults -- if an adverb is not specified,
 it is reset to its original default, the one it had
 before any default pseudo-rules were encountered.
+
+=head1 Lexeme pseudo-rule
+
+=for Marpa::R2::Display
+name: SLIF DSL synopsis
+partial: 1
+normalize-whitespace: 1
+
+    :lexeme ~ <say keyword> priority => 1
+
+=for Marpa::R2::Display::End
+
+The C<:lexeme> pseudo-rule allows adverbs to be used to
+change the treatment of a lexeme.
+Currently the only adverb allowed in a C<:lexeme> rule
+is L<the C<priority>
+adverb|/C<priority> adverb>.
 
 =head1 Lexeme default statement
 
@@ -360,23 +398,6 @@ depend on where in the DSL source file it occurs.
 At this writing the lexeme default statement is only way to
 specify the semantics of lexemes.
 Only one lexeme default statement is allowed in a file.
-
-=head1 Lexeme pseudo-rule
-
-=for Marpa::R2::Display
-name: SLIF DSL synopsis
-partial: 1
-normalize-whitespace: 1
-
-    :lexeme ~ <say keyword> priority => 1
-
-=for Marpa::R2::Display::End
-
-The C<:lexeme> pseudo-rule allows adverbs to be used to
-change the treatment of a lexeme.
-Currently the only adverb allowed in a C<:lexeme> rule
-is L<the C<priority>
-adverb|/C<priority> adverb>.
 
 =head1 Adverbs
 
@@ -644,27 +665,6 @@ and may be used interchangeably for both rules and lexemes.
 This means that, for both lexemes and rules,
 the actions C<[values]>, C<[value]> and C<::array>
 will do exactly the same thing.
-
-=head1 Discard rules
-
-=for Marpa::R2::Display
-name: SLIF DSL synopsis
-partial: 1
-normalize-whitespace: 1
-
-    :discard ~ whitespace
-
-=for Marpa::R2::Display::End
-
-A discard rule is a rule whose LHS is
-the C<:discard> pseudo-symbol,
-and whose RHS is a single symbol name,
-called the B<discarded symbol>.
-These rules indicate that the discarded symbol is a top-level G0
-symbol, but one which is not a lexeme.
-When a discarded symbol is recognized,
-it is not passed as a lexeme to the G1 parser, but is
-(as the name suggests) discarded.
 
 =head1 Single quoted strings
 
