@@ -283,7 +283,7 @@ Every rule declaration consists of, in order:
 This will be a
 symbol or a pseudo-symbol.
 
-=item * The declaration operator ("C<::=>").
+=item * A declaration operator ("C<::=>" or "C<~>").
 
 =item * A right hand side (RHS).
 For each type of rule,
@@ -317,9 +317,9 @@ The prioritization is trivial --
 there is only one priority,
 and in fact only one alternative within
 that priority.
-In a typical large grammar,
-most rules are prioritized rules,
-many of them trivially prioritized.
+In typical grammars,
+most rules will be prioritized rules,
+and many of them will be trivially prioritized.
 
 =head2 Start rule
 
@@ -504,7 +504,12 @@ L<below|/"Precedence">.
 
 The C<bless> adverb causes the result of the semantics to be
 blessed into the class indicated by the value of the adverb.
-A G0 rules cannot have a C<bless> adverb.
+The C<bless> adverb is allowed for alternatives of prioritized G1 rules,
+quantified G1 rules,
+and lexemes.
+The C<bless> adverb is also allowed for the default lexeme statement
+and the default pseudo-rule.
+A G0 rule cannot have a C<bless> adverb.
 
 The value of a C<bless> adverb is called a B<blessing>.
 If the blessing is a Perl word
