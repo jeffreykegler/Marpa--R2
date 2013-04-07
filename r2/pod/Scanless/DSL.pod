@@ -67,12 +67,24 @@ normalize-whitespace: 1
 This page is the reference for domain-specific language at
 the center
 of Marpa's Scanless interface (SLIF).
-The format of
-Scanless domain-specific language (DSL) is
-L<that of
-BNF source strings|Marpa::R2::BNF>,
-with changes
-and extensions as described in this document.
+The Stuifzand interface allows the grammar to be specified using
+a string whose text is written in a variation of BNF.
+The SLIF is
+an example of a domain-specific language (DSL).
+The DSL of this document can (and has been) used to specify other
+DSL's, and therefore can be seen as a "meta-DSL".
+
+=head1 The structure of SLIF source strings
+
+The DSL source consists of a series of rules,
+pseudo-rules and statements.
+These are made up of tokens,
+as described below.
+Whitespace separates tokens, but is otherwise ignored.
+
+A hash ("C<#>") character starts a comment,
+which continues to the end of the line.
+Comments are equivalent to whitespace.
 
 =head1 G0, G1 and lexemes
 
@@ -98,7 +110,7 @@ be specified as described below.
 The semantics of lexemes is
 completely separate from that of rules.
 
-=head1 Structural rule
+=head1 Structural rules
 
 The BNF operator ("C<::=>")
 has the same function as
@@ -110,7 +122,7 @@ It indicates that the rule is
 a G1 rule.
 Start rules must be G1 rules.
 
-=head1 Lexical rule
+=head1 Lexical rules
 
 The match operator ("C<~>")
 can be used between the LHS and RHS of a rule,
@@ -119,6 +131,290 @@ Rules which use the match operator are G0 rules.
 Discard rules must be G0 rules.
 A lexical rule cannot have an C<action> adverb or a
 C<bless> adverb.
+
+=head1 Rules in general
+
+The Stuifzand format consists of rule declarations.
+Each rule declaration consists of, in order:
+
+=over 4
+
+=item * A left hand side (LHS).
+This will be a
+symbol or a pseudo-symbol.
+
+=item * The declaration operator ("C<::=>").
+
+=item * A right hand side (RHS).
+For each type of rule,
+the RHS will be described in detail below.
+In the case of empty rules,
+the RHS will be empty.
+
+=item * An adverb list.
+Each adverb consists of a keyword,
+the adverb operator ("C<< => >>"),
+and the adverb's value.
+The adverb list may be zero length.
+
+=back
+
+=head2 Symbol names
+
+Symbol names can be either "bare" or enclosed in angle brackets.
+Bare symbol names must consist entirely of Perl word characters
+(alphanumerics, plus the underscore).
+The angle brackets, if used, serve to "quote"
+the symbol name,
+and will not be part of the symbol name.
+
+If angle brackets are used, symbol names may also contain whitespace,
+as in
+
+=for Marpa::R2::Display
+ignore: 1
+
+    <op comma>
+
+=for Marpa::R2::Display::End
+
+A whitespace sequence inside angle brackets can
+include any whitespace character that is legal in Perl,
+including newlines.
+This allows very long symbol names to be line wrapped,
+if necessary.
+
+Unlike angle brackets, the whitespace does become part of the symbol name,
+but it does so in a "normalized" form.
+Leading and trailing whitespace in the name is discarded,
+and all other whitespace sequences are converted to a single ASCII
+space character.
+This means that
+
+=for Marpa::R2::Display
+ignore: 1
+
+    < op comma  >
+    <op   comma>
+    <     op comma>
+
+=for Marpa::R2::Display::End
+
+and even
+
+
+=for Marpa::R2::Display
+ignore: 1
+
+    <op
+    comma>
+
+=for Marpa::R2::Display::End
+
+will all be regarded as the same symbol name.
+The normalized form of that symbol name
+is C<< <op comma> >>.
+The actual name of a symbol
+is the string inside the brackets of its
+normalized form.
+
+=head2 Types of rules
+
+Rules are of four kinds:
+the start rule,
+empty rules,
+quantified rules
+and prioritized rules.
+A rule like the following,
+
+=for Marpa::R2::Display
+ignore: 1
+
+    a ::= b c d
+
+=for Marpa::R2::Display::End
+
+whose RHS consists only of a sequence of symbols,
+is treated as a
+prioritized rule with only one alternative
+and only one priority.
+In a typical large grammar,
+most rules are prioritized rules,
+many of them taking
+a simple form like that in the display
+above.
+
+=head2 Start rule
+
+Every source string should have a start rule.
+The LHS of this rule is the C<:start> pseudo-symbol.
+The RHS must be a single symbol name.
+The start rule does not accept any adverbs.
+
+=head2 Empty rules
+
+An empty rule is a rule with an empty RHS.
+An empty right hand side is what the name suggests: no symbols
+or punctuation.
+An action adverb is allowed in an empty rule,
+but no others.
+A empty rule makes its LHS symbol a nullable symbol.
+
+=head2 Quantified rules
+
+A rule is quantified if
+its RHS consists of a single symbol name,
+followed by a "quantifier".
+The quantifer is either
+a star ("C<*>"),
+or a plus sign ("C<+>")
+indicating, respectively, that the sequence rule has a minimum length
+of 0 or 1.
+Quantified rules allow adverbs.
+
+=head2 Prioritized rules
+
+Any rule which is not a start rule,
+and not empty or quantified, is considered prioritized.
+The prioritization may be simple, consisting only of a
+single priority level.
+
+Each prioritized right hand side consists of one or more right hand alternatives
+(called "alternatives" for brevity).
+An alternative is a series of one or more symbols,
+followed by zero or more adverbs.
+
+The alternatives are separated by single or double "or" symbols.
+This means the alternatives in a prioritized right hand side proceed
+from tightest (highest) priority to loosest.
+The double "or" symbol ("C<||>") is the "loosen" operator --
+the alternatives after it
+have a looser (lower) priority than the alternatives before it.
+The single "or" symbol ("C<|>") is the ordinary "alternative" operator --
+alternatives on each side of it have the same priority.
+Associativity is specified using adverbs, as described below.
+
+Within an alternative, symbols may be enclosed in parentheses.
+A symbol enclosed in parentheses is hidden from
+L<Marpa's semantics|Marpa::R2::Semantics>.
+A set of parentheses may contain more than one symbol,
+in which case the entire sequence of symbols is hidden,
+as if they had been enclosed in parentheses individually.
+
+=head1 Adverbs
+
+Adverbs are allowed for empty rules, quantifiied rules,
+and for the right hand side alternatives in prioritized rules.
+Adverbs must occur after the symbols.
+Adverbs consist of a keyword, the adverb operator ("C<< => >>"),
+and the adverb's value.
+The keyword must be one of those described in this section.
+The adverb's value must be as described for each keyword.
+
+=head2 action
+
+The value of the C<action> keyword
+must be a Perl word (a string of alphanumerics
+or underscores).
+It will be interpreted as the action name,
+as described for
+L<the C<action> named argument of rule descriptors|Marpa::R2::Grammar/"action">.
+
+=head1 C<action> adverb
+
+The C<action> adverb specifies the semantics for a G1 rule
+or a lexeme, as described below.
+The default value of a G1 rule is a Perl C<undef>.
+The C<action> adverb is not allowed for G0 rules,
+which have no default value.
+
+The default value of a lexeme is 
+its literal value in the input stream, as a string.
+This is called the B<token value> of the lexeme.
+
+=head1 C<priority> adverb
+
+The C<priority> adverb is only allowed in
+L<a C<:lexeme>
+pseudo-rule|/"Lexeme pseudo-rule">.
+It sets the lexeme priority for the lexeme.
+Priority must be an integer.
+It may be negative.
+The default priority is zero.
+
+Where more than one lexeme can be accepted at
+a location, the lexeme priority limits the lexemes
+that will be considered.
+Only lexemes with the highest priority are considered.
+If several lexemes have the same priority,
+all of them will be accepted.
+
+The only effect of the lexeme priority
+is on the choice
+of lexemes when
+
+=over 4
+
+=item * all of them would be accepted;
+
+=item * all started at the same string location;
+
+=item * all end at the same string location; and therefore
+
+=item * all have the same length.
+
+=back
+
+Lexeme priorities only have
+an effect when lexemes are accepted.
+For example, suppose that "C<say>" can be both
+a keyword (C<< <say keyword> >>),
+and a variable name (C<< <variable> >>).
+
+Suppose further that
+the grammar specifies that C<< <say keyword> >> has a priority of 1,
+and C<< <variable> >> is left at the default priority of 0.
+When G0 finds a occurrence of "C<say>",
+where both the C<say> keyword and a variable name would
+be accepted by G1, then only the C<say> keyword is read by G1,
+because of the priorities.
+But suppose that G1 is not accepting
+C<< <say keyword> >>.
+Since only lexeme priorites of acceptable lexemes are considered,
+C<< <variable> >>
+has the highest priority,
+and "C<say>" is read as a
+C<< <variable> >>
+token.
+One effect of this is that
+high-priority lexemes will not cause a parse to
+become exhausted as long as another lexeme is acceptable, even if the
+acceptable lexeme is of lower priority.
+
+=head2 assoc
+
+The C<assoc> adverb is only valid in a prioritized rule.
+Its value must be one of
+C<left>,
+C<right> or
+C<group>.
+Its effect will be as described
+L<below|/"Precedence">.
+
+=head2 separator
+
+The C<separator> keyword is only valid for a quantified right side,
+and its value must be a symbol of the grammar.
+It will be used as the separator,
+L<as described for sequence rules|Marpa::R2::Grammar/"Sequence rules">.
+
+=head2 proper
+
+The C<proper> keyword is only valid for a quantified right side,
+and its value must be a boolean,
+in the form of a binary digit (C<0> or C<1>).
+It indicates proper or Perl separation,
+L<as described for sequence rules|Marpa::R2::Grammar/"Sequence rules">.
 
 =head1 Default pseudo-rule
 
@@ -197,76 +493,7 @@ Currently the only adverb allowed in a C<:lexeme> rule
 is L<the C<priority>
 adverb|/C<priority> adverb>.
 
-=head1 C<action> adverb
-
-The C<action> adverb specifies the semantics for a G1 rule
-or a lexeme, as described below.
-The default value of a G1 rule is a Perl C<undef>.
-The C<action> adverb is not allowed for G0 rules,
-which have no default value.
-
-The default value of a lexeme is 
-its literal value in the input stream, as a string.
-This is called the B<token value> of the lexeme.
-
-=head1 C<priority> adverb
-
-The C<priority> adverb is only allowed in
-L<a C<:lexeme>
-pseudo-rule|/"Lexeme pseudo-rule">.
-It sets the lexeme priority for the lexeme.
-Priority must be an integer.
-It may be negative.
-The default priority is zero.
-
-Where more than one lexeme can be accepted at
-a location, the lexeme priority limits the lexemes
-that will be considered.
-Only lexemes with the highest priority are considered.
-If several lexemes have the same priority,
-all of them will be accepted.
-
-The only effect of the lexeme priority
-is on the choice
-of lexemes when
-
-=over 4
-
-=item * all of them would be accepted;
-
-=item * all started at the same string location;
-
-=item * all end at the same string location; and therefore
-
-=item * all have the same length.
-
-=back
-
-Lexeme priorities only have
-an effect when lexemes are accepted.
-For example, suppose that "C<say>" can be both
-a keyword (C<< <say keyword> >>),
-and a variable name (C<< <variable> >>).
-
-Suppose further that
-the grammar specifies that C<< <say keyword> >> has a priority of 1,
-and C<< <variable> >> is left at the default priority of 0.
-When G0 finds a occurrence of "C<say>",
-where both the C<say> keyword and a variable name would
-be accepted by G1, then only the C<say> keyword is read by G1,
-because of the priorities.
-But suppose that G1 is not accepting
-C<< <say keyword> >>.
-Since only lexeme priorites of acceptable lexemes are considered,
-C<< <variable> >>
-has the highest priority,
-and "C<say>" is read as a
-C<< <variable> >>
-token.
-One effect of this is that
-high-priority lexemes will not cause a parse to
-become exhausted as long as another lexeme is acceptable, even if the
-acceptable lexeme is of lower priority.
+=head1 Actions
 
 =head2 Word actions
 
@@ -527,6 +754,184 @@ Each character class is
 passed to Perl to interpret exactly once and the result is
 memoized in a C language structure for future use.
 
+=head1 Precedence
+
+Marpa's precedence is a generalization beyond the traditional ideas of precedence.
+Traditional precedence parsing required
+the classification of operators as postfix, infix, etc.
+Marpa's precedence parsing is NOT based on
+the special treatment of operators.
+
+For the purpose of precedence,
+an operand is an occurrence in a RHS alternative
+of the LHS symbol.
+An operator is considered to be anything 
+that is not an operand.
+The arity of an alternative is the number of operands that
+it contains.
+All arities are allowed, from zero to the arbitrary
+number imposed by system limits such as memory and file size.
+
+For example, in the synopsis, the LHS symbol is
+C<Expression>.  The alternative
+
+=for Marpa::R2::Display
+name: Stuifzand Synopsis
+partial: 1
+normalize-whitespace: 1
+
+        (<op lparen>) Expression (<op rparen>)
+
+=for Marpa::R2::Display::End
+
+contains one occurrence of C<Expression> and therefore has an arity of one.
+The C<< <op lparen> >> and C<< <op rparen> >> are considered operators.
+
+In the RHS alternative
+
+=for Marpa::R2::Display
+name: Stuifzand Synopsis
+partial: 1
+normalize-whitespace: 1
+
+       Expression (<op pow>) Expression
+
+=for Marpa::R2::Display::End
+
+C<Expression> occurs twice, and therefore the arity is 2.
+C<< <op pow> >> is considered to be an operator.
+
+Because for this purpose an operator is defined as anything that
+is not an operand, some symbols are considered operators
+that would not be in the traditional approach.
+For example,
+in the RHS alternative
+
+=for Marpa::R2::Display
+name: Stuifzand Synopsis
+partial: 1
+normalize-whitespace: 1
+
+       Number
+
+=for Marpa::R2::Display::End
+
+there are no occurrences of C<Expression>, so that the alternative
+has an arity of zero -- it is nullary.
+The symbol C<Number> is considered to be an operator.
+
+An alternative with arity 0 is nullary.
+Precedence and associativity
+are meaningless in this
+case and will be ignored.
+
+An alternative with arity 1 is unary.
+Precedence will have effect,
+but left and right associativity will not.
+
+An alternative with arity 2 is binary.
+Precedence will have effect,
+and left and right associativity will behave
+in the traditional way,
+The traditional behavior for binary alternatives
+is exactly as described next for the I<N>-ary case.
+
+An alternative with an arity of I<N>,
+where I<N> is 2 or greater, is I<N>-ary.
+Precedence will have effect.
+For left associativity,
+only the leftmost operand of an I<N>-ary alternative
+associates -- operands
+after the first will have the
+next-tightest priority level.
+For right associativity,
+only the rightmost operand of an I<N>-ary alternative
+associates -- all operands
+except the last
+will have the next-tightest priority level.
+
+Marpa also allows "group" associativity.
+In "group" associativity, all operands associate
+at the loosest (lowest) priority.
+That is, in an alternative with group associativity,
+each operand may be a full expression of the kind
+defined by the prioritized rule.
+"Group" associativity is used, for example,
+in implementing the traditional function of parentheses
+in Marpa.
+Group associativity is meaningless for nullary alternatives,
+and is ignored.
+
+=head1 Caveats
+
+=head2 Symbol names
+
+The BNF interface may rewrite its symbol names internally.
+Here we call the name by which a symbol is specified in the
+BNF interface string its "external symbol name",
+and its name as rewritten, its "internal symbol name".
+In many cases, Marpa::R2 makes sure the user sees only
+the external names of symbols.
+For example,
+L<the C<rule()> Grammar method|Marpa::R2::Grammar/"rule()">
+returns external symbol names.
+
+However,
+for some purposes, such as tracing grammars, the use of
+internal names may sometimes
+be appropriate.
+Marpa::R2's use of external and internal symbol names
+is evolving.
+When the Stuifzand interface is used,
+except as documented in this section,
+the user may see either the internal or external form
+of a symbol's name.
+Also, the exact form of the internal name is
+subject to change.
+
+=head2 Precedence: the good news
+
+Marpa's generalization of precedence works
+for all grammars that
+can be defined by prioritized rules.
+It is efficient (linear) for all grammars that could be
+parsed by the traditional precedence parsing methods.
+Marpa also allows you to define alternatives
+not allowed by traditional methods.
+Many of these are useful,
+and most of the useful ones can be parsed efficiently.
+
+=head2 Precedence and ambiguous grammars
+
+Because of the many forms of recursion allowed,
+it is possible
+to define highly ambiguous grammars using the precedence mechanism.
+This can occur even by accident.
+
+The user should especially be careful with
+right hand side alternatives in
+which all the symbols are operands.
+These can be useful.
+For example, an implicit operation can be defined using
+an binary alternative with no non-operands,
+and this could implement, for example,
+the standard notation for concatenation or multiplication.
+But to do this efficiently
+requires either avoiding ambiguity,
+or controlling its use carefully.
+
+Marpa does catch the case where an alternative consists
+only of a single operand -- a "unit rule".
+This causes a fatal error.
+Unit rules are easy to define by accident in
+the Stuifzand interface.
+The author knows of no practical use for them,
+and their presence in a grammar is usually
+unintentional.
+Note that, in the event an application
+does find a use for a grammar with unit rules,
+Marpa's standard interface can parse it.
+
 =head1 Copyright and License
 
 =for Marpa::R2::Display
@@ -557,4 +962,3 @@ ignore: 1
 #   fill-column: 100
 # End:
 # vim: expandtab shiftwidth=4:
-
