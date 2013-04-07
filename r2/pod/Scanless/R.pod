@@ -173,6 +173,18 @@ By default the trace file handle is C<STDERR>.
 
 =head1 Mutators
 
+=head2 lexeme_alternative()
+
+=head2 lexeme_complete()
+
+=head2 lexeme_read()
+
+=head2 line_column()
+
+=head2 pause_lexeme()
+
+=head2 pause_span()
+
 =head2 read()
 
 =for Marpa::R2::Display
@@ -229,6 +241,10 @@ or because internal scanning was paused.
 On success, C<read()> returns the location in the input
 string before which internal scanning ended.
 This value may be zero.
+
+=head2 resume()
+
+=head2 substr()
 
 =head2 value()
 
