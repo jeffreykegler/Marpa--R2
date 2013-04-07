@@ -218,7 +218,7 @@ The adverb list may be zero length.
 
 =back
 
-=head2 Types of rules
+=head1 Types of rules
 
 Rules are of four kinds:
 the start rule,
@@ -244,14 +244,14 @@ many of them taking
 a simple form like that in the display
 above.
 
-=head2 Start rule
+=head1 Start rule
 
 Every source string should have a start rule.
 The LHS of this rule is the C<:start> pseudo-symbol.
 The RHS must be a single symbol name.
 The start rule does not accept any adverbs.
 
-=head2 Empty rules
+=head1 Empty rules
 
 An empty rule is a rule with an empty RHS.
 An empty right hand side is what the name suggests: no symbols
@@ -260,7 +260,7 @@ An action adverb is allowed in an empty rule,
 but no others.
 A empty rule makes its LHS symbol a nullable symbol.
 
-=head2 Quantified rules
+=head1 Quantified rules
 
 A rule is quantified if
 its RHS consists of a single symbol name,
@@ -272,7 +272,7 @@ indicating, respectively, that the sequence rule has a minimum length
 of 0 or 1.
 Quantified rules allow adverbs.
 
-=head2 Prioritized rules
+=head1 Prioritized rules
 
 Any rule which is not a start rule,
 and not empty or quantified, is considered prioritized.
@@ -301,6 +301,83 @@ A set of parentheses may contain more than one symbol,
 in which case the entire sequence of symbols is hidden,
 as if they had been enclosed in parentheses individually.
 
+=head1 Default pseudo-rule
+
+=for Marpa::R2::Display
+name: SLIF DSL synopsis
+partial: 1
+normalize-whitespace: 1
+
+    :default ::= action => [values] bless => ::lhs
+
+=for Marpa::R2::Display::End
+
+The default pseudo-rule changes the defaults for
+rule adverbs.
+Default pseudo-rules do not affect the defaults for G0 rules
+or for lexemes.
+There may be more than one default pseudo-rule.
+The scope of default pseudo-rules is lexical, applying only to rules
+that appear afterwards in the DSL source.
+
+Currently only the defaults for
+the C<action> and C<bless> adverbs
+can be changed with a default pseudo-rule.
+Each default pseudo-rule creates a completely new
+set of defaults -- if an adverb is not specified,
+it is reset to its original default, the one it had
+before any default pseudo-rules were encountered.
+
+=head1 Lexeme default statement
+
+=for Marpa::R2::Display
+name: SLIF DSL synopsis
+partial: 1
+normalize-whitespace: 1
+
+    lexeme default = action => [start,length,value] bless => ::name
+
+=for Marpa::R2::Display::End
+
+The lexeme default statement changes the defaults for
+lexeme adverbs.
+It only changes the defaults for lexemes,
+and does not affect rules.
+
+The lexeme default statement is a "statement",
+instead of a "rule".
+Rules
+are signified by the BNF operator ("C<::=>")
+or the match operator ("C<~>"),
+and their effect depends on their
+lexical position.
+Statements
+are signified by the assignment operator ("C<=>"),
+and their effect is global.
+The effect of a statement does not
+depend on where in the DSL source file it occurs.
+
+At this writing the lexeme default statement is only way to
+specify the semantics of lexemes.
+Only one lexeme default statement is allowed in a file.
+
+=head1 Lexeme pseudo-rule
+
+=for Marpa::R2::Display
+name: SLIF DSL synopsis
+partial: 1
+normalize-whitespace: 1
+
+    :lexeme ~ <say keyword> priority => 1
+
+=for Marpa::R2::Display::End
+
+The C<:lexeme> pseudo-rule allows adverbs to be used to
+change the treatment of a lexeme.
+Currently the only adverb allowed in a C<:lexeme> rule
+is L<the C<priority>
+adverb|/C<priority> adverb>.
+
 =head1 Adverbs
 
 Adverbs are allowed for empty rules, quantifiied rules,
@@ -311,7 +388,7 @@ and the adverb's value.
 The keyword must be one of those described in this section.
 The adverb's value must be as described for each keyword.
 
-=head1 action
+=head2 action
 
 The C<action> adverb specifies the semantics for a G1 rule
 or a lexeme, as described below.
@@ -325,7 +402,7 @@ The default value of a lexeme is
 its literal value in the input stream, as a string.
 This is called the B<token value> of the lexeme.
 
-=head1 C<bless> adverb
+=head2 bless
 
 The C<bless> adverb causes the result of the semantics to be
 blessed into the class indicated by the value of the adverb.
@@ -374,7 +451,7 @@ of a rule.
 The C<::name> reserved blessing is most useful in
 the lexeme default rule.
 
-=head1 C<priority> adverb
+=head2 priority
 
 The C<priority> adverb is only allowed in
 L<a C<:lexeme>
@@ -457,83 +534,6 @@ and its value must be a boolean,
 in the form of a binary digit (C<0> or C<1>).
 It indicates proper or Perl separation,
 L<as described for sequence rules|Marpa::R2::Grammar/"Sequence rules">.
-
-=head1 Default pseudo-rule
-
-=for Marpa::R2::Display
-name: SLIF DSL synopsis
-partial: 1
-normalize-whitespace: 1
-
-    :default ::= action => [values] bless => ::lhs
-
-=for Marpa::R2::Display::End
-
-The default pseudo-rule changes the defaults for
-rule adverbs.
-Default pseudo-rules do not affect the defaults for G0 rules
-or for lexemes.
-There may be more than one default pseudo-rule.
-The scope of default pseudo-rules is lexical, applying only to rules
-that appear afterwards in the DSL source.
-
-Currently only the defaults for
-the C<action> and C<bless> adverbs
-can be changed with a default pseudo-rule.
-Each default pseudo-rule creates a completely new
-set of defaults -- if an adverb is not specified,
-it is reset to its original default, the one it had
-before any default pseudo-rules were encountered.
-
-=head1 Lexeme default statement
-
-=for Marpa::R2::Display
-name: SLIF DSL synopsis
-partial: 1
-normalize-whitespace: 1
-
-    lexeme default = action => [start,length,value] bless => ::name
-
-=for Marpa::R2::Display::End
-
-The lexeme default statement changes the defaults for
-lexeme adverbs.
-It only changes the defaults for lexemes,
-and does not affect rules.
-
-The lexeme default statement is a "statement",
-instead of a "rule".
-Rules
-are signified by the BNF operator ("C<::=>")
-or the match operator ("C<~>"),
-and their effect depends on their
-lexical position.
-Statements
-are signified by the assignment operator ("C<=>"),
-and their effect is global.
-The effect of a statement does not
-depend on where in the DSL source file it occurs.
-
-At this writing the lexeme default statement is only way to
-specify the semantics of lexemes.
-Only one lexeme default statement is allowed in a file.
-
-=head1 Lexeme pseudo-rule
-
-=for Marpa::R2::Display
-name: SLIF DSL synopsis
-partial: 1
-normalize-whitespace: 1
-
-    :lexeme ~ <say keyword> priority => 1
-
-=for Marpa::R2::Display::End
-
-The C<:lexeme> pseudo-rule allows adverbs to be used to
-change the treatment of a lexeme.
-Currently the only adverb allowed in a C<:lexeme> rule
-is L<the C<priority>
-adverb|/C<priority> adverb>.
 
 =head1 Actions
 
