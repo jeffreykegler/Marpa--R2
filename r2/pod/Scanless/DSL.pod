@@ -334,7 +334,8 @@ Start rules must be G1 rules.
 An empty rule is a rule with an empty RHS.
 An empty right hand side is what the name suggests: no symbols
 or punctuation.
-An action adverb is allowed in an empty rule,
+The C<action> and
+C<bless> adverbs are allowed with empty rules,
 but no others.
 A empty rule makes its LHS symbol a nullable symbol.
 
@@ -348,7 +349,10 @@ a star ("C<*>"),
 or a plus sign ("C<+>")
 indicating, respectively, that the sequence rule has a minimum length
 of 0 or 1.
-Quantified rules allow adverbs.
+Quantified rules allow the C<action>,
+C<bless>,
+C<proper> and
+C<separator> adverbs.
 
 =head2 Prioritized rules
 
@@ -361,6 +365,10 @@ Each prioritized right hand side consists of one or more right hand alternatives
 (called "alternatives" for brevity).
 An alternative is a series of one or more symbols,
 followed by zero or more adverbs.
+The 
+C<action>,
+C<assoc> and
+C<bless> adverbs are allowed.
 
 The alternatives are separated by single or double "or" symbols.
 This means the alternatives in a prioritized right hand side proceed
@@ -400,6 +408,7 @@ When a discarded symbol is recognized,
 it is not passed as a lexeme to the G1 parser, but is
 (as the name suggests) discarded.
 Discard rules must be G0 rules.
+No adverbs are allowed.
 
 =head1 Default pseudo-rules
 
