@@ -67,22 +67,6 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
-=for Marpa::R2::Display
-name: Scanless recognizer diagnostics
-partial: 1
-normalize-whitespace: 1
-
-    sub show_last_expression {
-        my ($self) = @_;
-        my $recce = $self->{recce};
-        my ( $g1_start, $g1_length ) = $recce->last_completed('Expression');
-        return 'No expression was successfully parsed' if not defined $g1_start;
-        my $last_expression = $recce->substring( $g1_start, $g1_length );
-        return "Last expression successfully parsed was: $last_expression";
-    } ## end sub show_last_expression
-
-=for Marpa::R2::Display::End
-
 =head1 About this document
 
 This page is the reference document for the recognizer objects
@@ -658,8 +642,6 @@ the most recent pause.
 The pause span is initially undefined
 and it is reset to undefined at the beginning of
 each call to the C<read()> or C<resume()> methods.
-C<pause_span()> returns a Perl C<undef> if
-the pause span is undefined.
 
 A pause is not always caused by a lexeme -- the internal
 scanning may be paused
@@ -667,15 +649,35 @@ because of the length argument of an internal scanning method.
 When the most recent pause was not caused by a lexeme,
 no span can be associated with it,
 and the pause span is undefined.
+C<pause_span()> returns a Perl C<undef> if
+the pause span is undefined.
 
 =head1 Trace methods
+
+=for Marpa::R2::Display
+name: Scanless recognizer diagnostics
+partial: 1
+normalize-whitespace: 1
+
+    sub show_last_expression {
+        my ($self) = @_;
+        my $recce = $self->{recce};
+        my ( $g1_start, $g1_length ) = $recce->last_completed('Expression');
+        return 'No expression was successfully parsed' if not defined $g1_start;
+        my $last_expression = $recce->substring( $g1_start, $g1_length );
+        return "Last expression successfully parsed was: $last_expression";
+    } ## end sub show_last_expression
+
+=for Marpa::R2::Display::End
 
 =head2 G1 locations
 
 This section on trace methods often 
 describes location in terms of 
 G1 Earley sets.
-There are B<not> input stream locations.
+G! Earley set locations are B<not>
+the same as
+input stream locations.
 G1 Earley set location
 is more often called simply G1 location.
 
@@ -683,12 +685,6 @@ G1 length is length in Earley sets.
 For a G1 span, its
 G1 end location will
 always be the G1 start location plus the G1 length.
-
-There is no method to convert G1 location to
-input stream locations --
-because Marpa allows scanning to retrace sections of
-the input stream, G1 locations do not necessarily translate
-to locations in the input stream.
 
 =head2 last_completed()
 
@@ -741,8 +737,9 @@ normalize-whitespace: 1
 Has the same effect as a C<show_progress()> call
 on the G1 recognizer.
 See L<Marpa::R2::Recognizer/"show_progress()">.
-If location is specified, it must be specified
-in terms of G1 location.
+If locations are specified as arguments to
+C<show_progress()>, they need to be 
+G1 locations.
 
 =head2 substring()
 
