@@ -248,6 +248,10 @@ END_OF_SOURCE
 
 sub parse {
     my ($self, $string) = @_;
+
+# Marpa::R2::Display
+# name: SLIF read/resume example
+
     my $re = Marpa::R2::Scanless::R->new( { grammar => $self->{grammar} } );
     my $length = length $string;
     for ( my $pos = $re->read(\$string); $pos < $length; $pos = $re->resume()) {
@@ -258,6 +262,9 @@ sub parse {
     }
     my $value_ref = $re->value();
     return ${$value_ref};
+
+# Marpa::R2::Display::End
+
 }
 
 sub parse_json {

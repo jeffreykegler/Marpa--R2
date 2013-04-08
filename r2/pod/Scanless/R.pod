@@ -186,8 +186,31 @@ The current location will never be past the "end of string".
 
 =head1 How internal scanning works
 
-After the C<read()> method, the current location will indicate how far
-in the input stream C<read()> actually read.
+The SLIF always starts scanning with scanning using the C<read()>
+method.
+Pedantically, this means scanning always begins with an internal
+scanning phase,
+but that first phase may be of zero length,
+and after than internal scanning does not have to be resumed.
+
+Internal scanning is resumed with the C<resume()> method.
+Both the C<read()> and C<resume()> methods require the application
+to specify a span in the input stream.
+The C<read()> method sets the input stream,
+and that input stream is the one used by all C<resume()> method calls
+for that recognizer.
+
+In what follows, the term "internal scanning method"
+refers to either the C<read()> or the C<resume()> method.
+After an internal scanning method,
+the current location will indicate how far
+in the input stream the internal scanning method actually read.
+If the internal scanning method was paused, the current
+location will be the one before which it paused.
+If the internal scanning method reached the end of string,
+the current location will be the end of string.
+The return value of the C<read()> and the C<resume()> method is
+the current location.
 
 =over 4
 
@@ -198,25 +221,27 @@ the end of string.
 
 =item *
 
-If a non-negative C<$length> argument was specified to C<read()>,
-C<read()> will pause when the current location is C<$start+$length>.
+If its C<$length> argument was non-negative,
+an internal scanning method
+will pause when the current location is C<$start+$length>.
 
 =item *
 
-If a negative C<$length> argument was specified to C<read()>,
-C<read()> will pause when the current location is
+If its C<$length> argument was negative,
+an internal scanning method
+will pause when the current location is
 C<$length + 1 + length $input_string>.
 
 =item *
 
-The application can specify that the read will
-pause when it encounters certain lexemes,
-using the C<pause> adverb.
+An internal scanning method
+will pause when it encounters certain lexemes,
+as specified in the DSL with the C<pause> adverb.
 
 =item *
 
 An abend
-in the C<read()> method causes the current location to
+in an internal scanning method causes the current location to
 be an unspecified value.
 
 =back
@@ -417,7 +442,7 @@ The C<lexeme_alternative()> method
 allows an external scanner to read
 ambiguous tokens.
 Most applications 
-will prefer the simple lexeme_read().
+will prefer the simpler C<lexeme_read()>.
 
 C<lexeme_alternative()> takes one or two argument.
 The first, required, argument is the name of a symbol to be read
@@ -461,7 +486,7 @@ normalize-whitespace: 1
 
 The C<lexeme_alternative()> allows an external scanner to read
 ambiguous tokens.
-Most applications will prefer the simple lexeme_read().
+Most applications will prefer the simpler C<lexeme_read()>.
 
 The C<lexeme_complete()>
 requires two arguments,
@@ -481,6 +506,15 @@ The location of the tokens in the input stream will be as
 indicated by 
 
 =head2 lexeme_read()
+
+=for Marpa::R2::Display
+name: SLIF read/resume example
+partial: 1
+normalize-whitespace: 1
+
+       $re->lexeme_read('lstring', $start, $length, $value) // die;
+
+=for Marpa::R2::Display::End
 
 =for Marpa::R2::Display
 ignore: 1
@@ -503,6 +537,24 @@ Current location in the input stream will be moved to C<$start+$length>.
 
 =head2 resume()
 
+=for Marpa::R2::Display
+name: SLIF read/resume example
+partial: 1
+normalize-whitespace: 1
+
+    my $re = Marpa::R2::Scanless::R->new( { grammar => $self->{grammar} } );
+    my $length = length $string;
+    for ( my $pos = $re->read(\$string); $pos < $length; $pos = $re->resume()) {
+       my ($start, $length) = $re->pause_span();
+       my $value = substr $string, $start+1, $length-2;
+       $value = decode_string($value) if -1 != index $value, '\\';
+       $re->lexeme_read('lstring', $start, $length, $value) // die;
+    }
+    my $value_ref = $re->value();
+    return ${$value_ref};
+
+=for Marpa::R2::Display::End
+
 The C<resume()> method resumes
 the SLIF's internal scanning,
 as specified by C<$start> and C<$length>.
@@ -515,11 +567,106 @@ above|/"How internal scanning works">.
 
 =head2 line_column()
 
+The C<line_column()> method accepts one, optional, argument,
+a location in the input stream.
+It returns the line and column of that location.
+The location defaults to the current location.
+
+Numbering of lines and columns is 1-based,
+following UNIX editor tradition.
+A line is considered to end with any newline sequence
+as defined in the
+Unicode Specification 4.0.0, Section 5.8.
+Specifically, a line ends with one of the following:
+
+=over 4
+
+=item *
+
+a LF (line feed U+000A);
+
+=item * 
+
+a CR (carriage return, U+000D), when it is not followed by a LF;
+
+=item *
+
+a CRLF sequence (U+000D,U+000A);
+
+=item *
+
+a NEL (next line, U+0085);
+
+=item *
+
+a VT (vertical tab, U+000B);
+
+=item *
+
+a FF (form feed, U+000C);
+
+=item *
+
+a LS (line separator, U+2028) or
+
+=item *
+
+a PS (paragraph separator, U+2029).
+
+=back
+
 =head2 literal()
+
+The C<literal()> method accepts two arguments,
+the start location and length of a span in the
+input stream.
+It returns the substring of the input stream
+corresponding to that span.
 
 =head2 pause_lexeme()
 
+The C<pause_lexeme()> method accepts no arguments,
+and returns the name of the lexeme which caused the most
+recent pause.
+The pause lexeme is initially undefined
+and it is reset to undefined at the beginning of
+each call to the C<read()> or C<resume()> methods.
+
+A pause is not always caused by a lexeme -- it may be
+caused by the length argument of an internal scanning method.
+If the most recent pause was not caused by a lexeme,
+the pause lexeme is undefined.
+C<pause_lexeme()) returns a Perl C<undef> if
+the pause lexeme is undefined.
+
 =head2 pause_span()
+
+=for Marpa::R2::Display
+name: SLIF read/resume example
+partial: 1
+normalize-whitespace: 1
+
+   my ($start, $length) = $re->pause_span();
+
+=for Marpa::R2::Display::End
+
+The C<pause_span()> method accepts no arguments,
+and returns the "pause span" as a 2-element array.
+The "pause span" is
+the start location and length of the lexeme which caused
+the most recent pause.
+The pause span is initially undefined
+and it is reset to undefined at the beginning of
+each call to the C<read()> or C<resume()> methods.
+C<pause_span()) returns a Perl C<undef> if
+the pause span is undefined.
+
+A pause is not always caused by a lexeme -- the internal
+scanning may be paused
+because of the length argument of an internal scanning method.
+When the most recent pause was not caused by a lexeme,
+no span can be associated with it,
+and the pause span is undefined.
 
 =head1 Trace methods
 
