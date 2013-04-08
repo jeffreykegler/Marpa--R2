@@ -88,6 +88,58 @@ normalize-whitespace: 1
 This page is the reference document for the recognizer objects
 of Marpa's Scanless interface.
 
+=head1 Locations
+
+=head2 Input stream locations
+
+In this document, the word "location" refers
+to location in the input stream,
+unless otherwise specified.
+
+=head2 Negative locations
+
+Several methods allow locations and lengths to be specified
+as negative numbers.
+A negative location is a location counted
+from the end, so that -1 means the
+last location of the string,
+-2 the second to last location, etc.
+A negative length assumes that a start location
+has been specified and indicates a distance to a location
+counted from the end.
+A length of -1 indicates the distance to the end of the string,
+-2 indicates the distance to the character just before the
+end of the string,
+etc.
+
+For example, suppose that we are dealing with input stream locations.
+The span "C<-1, -1>" indicates the substring consisting
+of the last character of input stream.
+the span "C<-2, -1>" indicates the substring consisting
+of the last two characters of the input stream.
+The span "C<-2, 1>" indicates the substring consisting
+of the second to last character of the input stream.
+
+=head2 G1 locations
+
+This section on trace methods often 
+describes location in terms of 
+G1 Earley sets.
+There are B<not> input stream locations.
+G1 Earley set location
+is more often called simply G1 location.
+
+G1 length is length in Earley sets.
+For a G1 span, its
+G1 end location will
+always be the G1 start location plus the G1 length.
+
+There is no method to convert G1 location to
+input stream locations --
+because Marpa allows scanning to retrace sections of
+the input stream, G1 locations do not necessarily translate
+to locations in the input stream.
+
 =head1 Constructor
 
 =for Marpa::R2::Display
@@ -201,20 +253,14 @@ recognizer.
 
 C<read()> recognizes
 optional second and third arguments.
-The second argument is a position in the input string
+The second argument is a location in the input string
 at which internal scanning will start.
 The third argument is the length of the section
 of the input string to be scanned before pausing.
-A negative start location is a location counted
-from the end, so that -1 means start at the last
-character, -2 at the second to last, etc.
-The default start position is zero.
-
-A negative length means that internal scanning
-should pause at a location counted from the end,
-so that -1 means continue to the end of the string,
--2 means pause before the last character of the string,
-etc.  The default length is -1.
+The default start location is zero.
+The default length is -1.
+Negative locations and lengths have the standard
+interpretation, as L<described above|/"Negative locations">.
 
 One important case is where start location and length
 are both specified as zero.
@@ -249,7 +295,85 @@ See L<Marpa::R2::Recognizer/"value()">.
 
 =head2 lexeme_alternative()
 
+=for Marpa::R2::Display
+name: SLIF lexeme_alternative() example
+partial: 1
+normalize-whitespace: 1
+
+            if ( not defined $recce->lexeme_alternative($token_name) ) {
+                die
+                    qq{Parser rejected token "$long_name" at position $start_of_lexeme, before "},
+                    substr( $string, $start_of_lexeme, 40 ), q{"};
+            }
+
+=for Marpa::R2::Display::End
+
+The C<lexeme_alternative()> method
+allows an external scanner to read
+ambiguous tokens.
+Most applications 
+will prefer the simple lexeme_read().
+
+C<lexeme_alternative()> takes one or two argument.
+The first, required, argument is the name of a symbol to be read
+at the current location.
+The second, optional, argument is the value of the symbol.
+
+Any number of tokens may be read using C<lexeme_alternative()>
+without advancing the current location.
+This allows an application to use ambiguous tokens.
+To complete the reading at a location,
+and advance the current location to the next location,
+use the C<lexeme_complete()> method.
+
+If the value argument is omitted,
+the token's value will a string
+which contains the corresponding substring
+of the input stream.
+(The token's location in the input stream will be set
+by the lexeme_complete() method.)
+Omitting the value argument does not have the same
+effect as passing an explicit Perl C<undef>.
+If the second argument is an explicit Perl C<undef>,
+the value of the lexeme will be a Perl C<undef>.
+
+On success, returns a non-negative number.
+Returns undef if the token was rejected.
+Failures are thrown as exceptions.
+
 =head2 lexeme_complete()
+
+=for Marpa::R2::Display
+name: SLIF lexeme_alternative() example
+partial: 1
+normalize-whitespace: 1
+
+            next TOKEN
+                if $recce->lexeme_complete( $start_of_lexeme,
+                        ( length $lexeme ) );
+
+=for Marpa::R2::Display::End
+
+The C<lexeme_alternative()> allows an external scanner to read
+ambiguous tokens.
+Most applications will prefer the simple lexeme_read().
+
+The C<lexeme_complete()>
+requires two arguments,
+a input stream start location and a length.
+Negative values are allowed and are interpreted
+as L<described above|/"Negative locations">.
+This span will be treated as the section of the input stream
+that corresponds to the tokens read at the current location.
+This correspondence may be artificial, but a span must
+always be specified.
+
+The C<lexeme_complete()>
+method completes the reading of
+alternative tokens at the current location,
+and advances the current location by one.
+The location of the tokens in the input stream will be as
+indicated by 
 
 =head2 lexeme_read()
 
@@ -266,28 +390,6 @@ See L<Marpa::R2::Recognizer/"value()">.
 =head2 pause_span()
 
 =head1 Trace methods
-
-=head2 G1 locations
-
-In this document, the word "location" refers
-to location in the input stream,
-unless otherwise specified.
-This section on trace methods often specifies
-otherwise -- in particular, it often
-describes location in terms of 
-G1 Earley sets.
-This is more often called simply G1 location.
-
-G1 length is length in Earley sets.
-For a G1 span, its
-G1 end location will
-always be the G1 start location plus the G1 length.
-
-There is no method to convert G1 location to
-input stream locations --
-because Marpa allows scanning to retrace sections of
-the input stream, G1 locations do not necessarily translate
-to locations in the input stream.
 
 =head2 last_completed()
 

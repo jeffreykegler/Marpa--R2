@@ -76,27 +76,37 @@ sub my_parser {
 # Marpa::R2::Display
 # name: SLIF external read example
 
-    $recce->read(\$string, 0, 0);
+    $recce->read( \$string, 0, 0 );
 
 # Marpa::R2::Display::End
 
-    my $length        = length $string;
-    my $last_position = 0;
-    pos $string = $last_position;
+    my $length = length $string;
+    pos $string = 0;
     TOKEN: while (1) {
-        $last_position = pos $string;
-        last TOKEN if $last_position >= $length;
+        my $start_of_lexeme = pos $string;
+        last TOKEN if $start_of_lexeme >= $length;
         next TOKEN if $string =~ m/\G\s+/gcxms;    # skip whitespace
         TOKEN_TYPE: for my $t (@terminals) {
             my ( $token_name, $regex, $long_name ) = @{$t};
             next TOKEN_TYPE if not $string =~ m/\G($regex)/gcxms;
             my $lexeme = $1;
-            next TOKEN if defined $recce->lexeme_read( $token_name, $last_position, (length $lexeme) );
-            die
-                qq{Parser rejected token "$long_name" at position $last_position, before "},
-                substr( $string, $last_position, 40 ), q{"};
+
+# Marpa::R2::Display
+# name: SLIF lexeme_alternative() example
+
+            if ( not defined $recce->lexeme_alternative($token_name) ) {
+                die
+                    qq{Parser rejected token "$long_name" at position $start_of_lexeme, before "},
+                    substr( $string, $start_of_lexeme, 40 ), q{"};
+            }
+            next TOKEN
+                if $recce->lexeme_complete( $start_of_lexeme,
+                        ( length $lexeme ) );
+
+# Marpa::R2::Display::End
+
         } ## end TOKEN_TYPE: for my $t (@terminals)
-        die qq{No token found at position $last_position, before "},
+        die qq{No token found at position $start_of_lexeme, before "},
             substr( $string, pos $string, 40 ), q{"};
     } ## end TOKEN: while (1)
     my $value_ref = $recce->value();
