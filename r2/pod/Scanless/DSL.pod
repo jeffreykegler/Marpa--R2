@@ -285,17 +285,26 @@ symbol or a pseudo-symbol.
 
 =item * A declaration operator ("C<::=>" or "C<~>").
 
-=item * A right hand side (RHS).
-For each type of rule,
-the RHS will be described in detail below.
-In the case of empty rules,
-the RHS will be empty.
+=item * A right side declaration.
 
-=item * An adverb list.
+=back
+
+For each type of rule,
+the right side declaration is described in detail below.
+Among the things a right side declaration may contain are:
+
+=over 4
+
+=item * Zero or more RHS alernatives.
+A RHS alternative is a series of RHS primaries,
+where a RHS primary may be a symbol name,
+a character class,
+or a single quoted string.
+
+=item * An list of zero or more adverbs.
 Each adverb consists of a keyword,
 the adverb operator ("C<< => >>"),
 and the adverb's value.
-The adverb list may be zero length.
 
 =back
 
