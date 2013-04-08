@@ -636,7 +636,7 @@ A pause is not always caused by a lexeme -- it may be
 caused by the length argument of an internal scanning method.
 If the most recent pause was not caused by a lexeme,
 the pause lexeme is undefined.
-C<pause_lexeme()) returns a Perl C<undef> if
+C<pause_lexeme()> returns a Perl C<undef> if
 the pause lexeme is undefined.
 
 =head2 pause_span()
@@ -658,7 +658,7 @@ the most recent pause.
 The pause span is initially undefined
 and it is reset to undefined at the beginning of
 each call to the C<read()> or C<resume()> methods.
-C<pause_span()) returns a Perl C<undef> if
+C<pause_span()> returns a Perl C<undef> if
 the pause span is undefined.
 
 A pause is not always caused by a lexeme -- the internal
