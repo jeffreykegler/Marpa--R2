@@ -465,6 +465,16 @@ L<C<priority>|/"priority">
 and
 L<C<pause>|/"pause">.
 
+As a side effect, a C<:lexeme> pseudo-rules
+declares that a symbol is a lexeme.
+This declaration does not "force" lexeme status --
+if the symbol does not meet the criteria for a lexeme
+based on its use in G0 and G1 rules,
+the result will be a fatal error.
+Applications may find the ability to "declare"
+lexemes useful for debugging,
+and for documentating grammars.
+
 =head1 Lexeme default statement
 
 =for Marpa::R2::Display
