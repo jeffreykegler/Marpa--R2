@@ -211,12 +211,12 @@ C<$length + 1 + length $input_string>.
 
 The application can specify that the read will
 pause when it encounters certain lexemes,
-as specified below.
+using the C<pause> adverb.
 
 =item *
 
 An abend
-in the C<read()> will cause the current location to
+in the C<read()> method causes the current location to
 be an unspecified value.
 
 =back
@@ -225,15 +225,19 @@ be an unspecified value.
 
 For error message purposes,
 even external lexemes are required to correspond to a span of the input string.
-If an application uses external lexemes which have
-no natural relationship
-to a span of the input string, it must arrange an artificial relationship.
+It may be the case that an application find it useful to
+add lexemes that
+have no natural relationship
+to a span of the input string.
+Using an external scanner, an application can read these lexemes,
+but it must set up a relationship to the input stream,
+even if that relationship is completely artificial.
 
-One way to do this is to have a artificial preamble to the real text.
-For example, the first 7 characters of the input string could be
-the artificial preamble containing the characters "C<NO TEXT>",
-which is then followed by what the application considers
-the "real" text.
+One way to do this is to put a artificial preamble in front of
+the input stream.
+For example, the first 7 characters of the input stream could be
+an preamble containing the characters "C<NO TEXT>".
+This preamble could be immediately followed by the "real" text.
 In this case, the initial call to the C<read()> method
 could take the form
 C<< $slr->read($input_string, 7) >>.
@@ -252,7 +256,7 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
-The C<new()> method is the constructor for Scanless recognizers.
+The C<new()> method is the constructor for SLIF recognizers.
 An example of its use is L<above|/"Synopsis">.
 The C<new()> constructor accepts a hash of named arguments.
 The following named arguments are allowed:
@@ -262,7 +266,7 @@ The following named arguments are allowed:
 The C<new> method is required to have
 a C<grammar> named argument.  Its
 value must be
-a Scanless grammar object.
+an SLIF grammar object.
 
 =head2 too_many_earley_items
 
