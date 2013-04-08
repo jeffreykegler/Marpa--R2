@@ -75,9 +75,9 @@ normalize-whitespace: 1
     sub show_last_expression {
         my ($self) = @_;
         my $recce = $self->{recce};
-        my ( $start, $length ) = $recce->last_completed('Expression');
-        return 'No expression was successfully parsed' if not defined $start;
-        my $last_expression = $recce->substring( $start, $length );
+        my ( $g1_start, $g1_length ) = $recce->last_completed('Expression');
+        return 'No expression was successfully parsed' if not defined $g1_start;
+        my $last_expression = $recce->substring( $g1_start, $g1_length );
         return "Last expression successfully parsed was: $last_expression";
     } ## end sub show_last_expression
 
@@ -171,19 +171,7 @@ Trace output and warning messages
 go to the trace file handle.
 By default the trace file handle is C<STDERR>.
 
-=head1 Mutators
-
-=head2 lexeme_alternative()
-
-=head2 lexeme_complete()
-
-=head2 lexeme_read()
-
-=head2 line_column()
-
-=head2 pause_lexeme()
-
-=head2 pause_span()
+=head1 Basic mutators
 
 =head2 read()
 
@@ -242,10 +230,6 @@ On success, C<read()> returns the location in the input
 string before which internal scanning ended.
 This value may be zero.
 
-=head2 resume()
-
-=head2 literal()
-
 =head2 value()
 
 =for Marpa::R2::Display
@@ -261,7 +245,49 @@ Has the same effect as a C<value()> call
 on the G1 recognizer.
 See L<Marpa::R2::Recognizer/"value()">.
 
+=head1 Mutators for external scanning
+
+=head2 lexeme_alternative()
+
+=head2 lexeme_complete()
+
+=head2 lexeme_read()
+
+=head2 resume()
+
+=head1 Accessors
+
+=head2 line_column()
+
+=head2 literal()
+
+=head2 pause_lexeme()
+
+=head2 pause_span()
+
 =head1 Trace methods
+
+=head2 G1 locations
+
+In this document, the word "location" refers
+to location in the input stream,
+unless otherwise specified.
+This section on trace methods often specifies
+otherwise -- in particular, it often
+describes location in terms of 
+G1 Earley sets.
+This is more often called simply G1 location.
+
+G1 length is length in Earley sets.
+For a G1 span, its
+G1 end location will
+always be the G1 start location plus the G1 length.
+
+There is no method to convert G1 location to
+input stream locations --
+because Marpa allows scanning to retrace sections of
+the input stream, G1 locations do not necessarily translate
+to locations in the input stream.
 
 =head2 last_completed()
 
@@ -270,17 +296,13 @@ name: Scanless recognizer diagnostics
 partial: 1
 normalize-whitespace: 1
 
-    my ( $start, $length ) = $recce->last_completed('Expression');
+    my ( $g1_start, $g1_length ) = $recce->last_completed('Expression');
 
 =for Marpa::R2::Display::End
 
 Given the name of a symbol,
-returns the start location and
-length of the most recent match.
-The length is in parse locations,
-so that the end location will
-always be the start location plus the length.
-
+returns the start G1 location and
+G1 length of the most recent match.
 If there was more than one most recent match, it returns
 the longest.
 If there was no match, returns the empty array in array context
@@ -291,7 +313,7 @@ and a Perl false in scalar context.
 Use of this method is discouraged in favor of 
 L</"last_completed()">.
 Given the name of a symbol,
-returns the start and end locations of most recent match.
+returns the G1 start and G1 end locations of most recent match.
 If there was more than one most recent match, it returns
 the longest.
 If there was no match, returns the empty array in array context
@@ -301,7 +323,7 @@ and a Perl false in scalar context.
 
 Use of this method is discouraged in favor of 
 L</"substring()">.
-Given a start and an end location, returns the substring of the input
+Given a G1 start and a G1 end location, returns the substring of the input
 string that is between the two.
 
 =head2 show_progress()
@@ -318,6 +340,8 @@ normalize-whitespace: 1
 Has the same effect as a C<show_progress()> call
 on the G1 recognizer.
 See L<Marpa::R2::Recognizer/"show_progress()">.
+If location is specified, it must be specified
+in terms of G1 location.
 
 =head2 substring()
 
@@ -326,15 +350,12 @@ name: Scanless recognizer diagnostics
 partial: 1
 normalize-whitespace: 1
 
-    my $last_expression = $recce->substring( $start, $length );
+    my $last_expression = $recce->substring( $g1_start, $g1_length );
 
 =for Marpa::R2::Display::End
 
-Given a start location and its length, returns a substring of the input
+Given a G1 start location and its G1 length, returns a substring of the input
 string.
-The length is in locations,
-so that the end location is always start location
-plus length.
 A length of zero will produce a zero-length string.
 
 =head1 Copyright and License
