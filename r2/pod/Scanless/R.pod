@@ -111,8 +111,7 @@ A negative location is a location counted
 from the end, so that -1 means location before the
 last character of the string,
 -2 the location before the second to last character of a string, etc.
-A negative length assumes that a start location
-has been specified and indicates a distance to a location
+A negative length indicates a distance to a location
 counted from the end.
 A length of -1 indicates the distance to the end of the string,
 -2 indicates the distance to the location just before
@@ -133,7 +132,7 @@ second to last character of the input stream.
 
 In addition to input stream location,
 the SLIF also tracks G1 location.
-G1 location starts as zero,
+G1 location starts at zero,
 and increases by exactly one as each lexeme is read.
 G1 location is usually not the same
 as input stream location.
@@ -223,15 +222,13 @@ the current location will be EOS.
 The return value of the C<read()> and the C<resume()> method is
 the current location.
 
-Internal scanning ends when one of the following occurs:
+The following is a list of the events which cause
+internal scanning to pause or to end.
+More than one of these events may occur at a location,
+in which case the
+one listed first is the one that applies.
 
 =over 4
-
-=item *
-
-Scanning always ends at EOS.
-A scan that reaches EOS
-is not considered a pause.
 
 =item *
 
@@ -239,9 +236,15 @@ An internal scanning method
 will pause when it encounters certain lexemes,
 as specified in the DSL using the C<pause> adverb.
 The pause lexeme will be the one of those which caused
-the pause (it may not be unique).
+the pause.
+(A pause can be caused by more than one lexeme.)
 The pause span will be the span of the input stream
-occupied by that lexeme.
+occupied by the pause lexeme.
+
+=item *
+
+Scanning always ends at EOS.
+Reaching EOS is not considered a pause.
 
 =item *
 
@@ -257,13 +260,6 @@ an internal scanning method
 will pause when the current location is
 C<$length + 1 + length $input_string>.
 The pause lexeme and pause span will be undefined.
-
-=item *
-
-An abend
-in an internal scanning method causes the current location to
-be an unspecified value.
-An abend is not considered a pause.
 
 =back
 
@@ -340,8 +336,8 @@ based on the size of the
 G1 grammar,
 and for each G0 recognizer based on the size
 of the G0 grammar.
-The default threshold will never be less than 100.
-This default is the result of considerable experience
+The default thresholds will never be less than 100.
+The default is the result of considerable experience
 and almost all users will be happy with it.
 
 If the
@@ -428,7 +424,7 @@ The call is considered successful
 if it ended because a parse was found,
 or because internal scanning was paused.
 On success, C<read()> returns the location in the input
-stream before which internal scanning ended.
+stream at which internal scanning ended.
 This value may be zero.
 
 =head2 value()
@@ -541,8 +537,15 @@ The second and third arguments specify the span in the input
 stream to be associated with the lexeme.
 The last argument indicates its value.
 
-The second and third arguments are respectively,
+The second and third arguments are, respectively,
 the start and length of a span in the input stream.
+The start defaults to the current location.
+If the pause span is defined,
+and the start of the pause lexeme is
+the same as the current location,
+length defaults to the length of the pause span.
+Otherwise length defaults to -1.
+
 Negative values are allowed and are interpreted
 as L<described above|/"Negative locations">.
 This span will be treated as the section of the input stream
@@ -557,7 +560,7 @@ containing the corresponding substring
 of the input stream.
 Omitting the value argument does not have the same
 effect as passing an explicit Perl C<undef>.
-If the second argument is an explicit Perl C<undef>,
+If the value argument is an explicit Perl C<undef>,
 the value of the lexeme will be a Perl C<undef>.
 
 =for Marpa::R2::Display
@@ -639,7 +642,7 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
-The C<line_column()> method accepts one, optional, argument,
+The C<line_column()> method accepts one, optional, argument:
 a location in the input stream.
 The location defaults to the current location.
 It returns the corresponding line and column position,
@@ -725,6 +728,21 @@ The pause lexeme is initially undefined
 and it is reset to undefined at the beginning of
 each call to the C<read()> or C<resume()> methods.
 
+
+More than one lexeme may cause a pause.
+When this is the case,
+all the causal lexemes will be
+acceptable to the G1 grammar,
+and all the causal lexemes will have
+the same lexeme priority.
+When more than one lexeme causes a pause,
+the choice of pause
+lexeme is arbitary.
+Applications may not rely on a particular choice,
+or on that choice being repeated,
+even when the choice is made
+in similar or identical circumstances.
+
 Not every pause is caused by a lexeme.
 A pause often occurs because
 of the length argument of an internal scanning method.
@@ -753,20 +771,7 @@ The pause span is initially undefined
 and it is reset to undefined at the beginning of
 each call to the C<read()> or C<resume()> methods.
 
-More than one lexeme may cause a pause.
-For this to be the case, both lexemes must be
-acceptable to the G1 grammar,
-and both must have
-same lexeme priority.
-When more than one lexeme causes a pause,
-the choice of pause
-lexeme is arbitary.
-Applications may not rely on a particular choice,
-or on that choice being repeated,
-even when the choice is made
-in similar or identical circumstances.
-
-A pause is not always caused by a lexeme -- the internal
+A pause is not always caused by a lexeme -- internal
 scanning may be paused
 because of the length argument of an internal scanning method.
 When the most recent pause was not caused by a lexeme,
