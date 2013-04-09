@@ -334,8 +334,8 @@ sub trace_json {
     my $length = length $string;
     for ( my $pos = $re->read(\$string); $pos < $length; $pos = $re->resume()) {
        my ($start, $length) = $re->pause_span();
-       my $lexeme = $re->pause_lexeme();
        my ($line, $column) = $re->line_column($start);
+       my $lexeme = $re->pause_lexeme();
        my $literal_string = $re->literal($start, $length);
        $trace_desc .= qq{Line $line, column $column, lexeme <$lexeme>, literal "$literal_string"\n};
        my $value = substr $string, $start+1, $length-2;
