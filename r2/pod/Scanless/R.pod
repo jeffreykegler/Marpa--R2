@@ -580,13 +580,15 @@ C<resume()> return a Perl C<undef>.
 
 =head2 line_column()
 
-# Marpa::R2::Display
-# name: SLIF trace example
+=for Marpa::R2::Display
+name: SLIF trace example
+partial: 1
+normalize-whitespace: 1
 
        my ($start, $length) = $re->pause_span();
        my ($line, $column) = $re->line_column($start);
 
-# Marpa::R2::Display::End
+=for Marpa::R2::Display::End
 
 The C<line_column()> method accepts one, optional, argument,
 a location in the input stream.
@@ -641,12 +643,14 @@ a PS (paragraph separator, U+2029).
 
 =head2 literal()
 
-# Marpa::R2::Display
-# name: SLIF trace example
+=for Marpa::R2::Display
+name: SLIF trace example
+partial: 1
+normalize-whitespace: 1
 
    my $literal_string = $re->literal($start, $length);
 
-# Marpa::R2::Display::End
+=for Marpa::R2::Display::End
 
 The C<literal()> method accepts two arguments,
 the start location and length of a span in the
@@ -656,12 +660,14 @@ corresponding to that span.
 
 =head2 pause_lexeme()
 
-# Marpa::R2::Display
-# name: SLIF trace example
+=for Marpa::R2::Display
+name: SLIF trace example
+partial: 1
+normalize-whitespace: 1
 
    my $lexeme = $re->pause_lexeme();
 
-# Marpa::R2::Display::End
+=for Marpa::R2::Display::End
 
 The C<pause_lexeme()> method accepts no arguments,
 and returns the name of the lexeme which caused the most
