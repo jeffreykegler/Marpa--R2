@@ -5722,12 +5722,10 @@ PPCODE:
   const int old_pos = stream->perl_pos;
   const int input_length = stream->pos_db_logical_size;
 
-  int start_pos = SvIOK (start_pos_sv) ? SvIV (start_pos_sv)
-    : slr->start_of_pause_lexeme >= 0 ? slr->start_of_pause_lexeme
-    : stream->perl_pos;
+  int start_pos = SvIOK (start_pos_sv) ? SvIV (start_pos_sv) : stream->perl_pos;
 
   int lexeme_length = SvIOK (length_sv) ? SvIV (length_sv)
-    : slr->end_of_pause_lexeme >= 0 ? slr->end_of_pause_lexeme : -1;
+    : stream->perl_pos == slr->start_of_pause_lexeme ? (slr->end_of_pause_lexeme - slr->start_of_pause_lexeme) : -1;
 
   start_pos = start_pos < 0 ? input_length + start_pos : start_pos;
   if (start_pos < 0 || start_pos > input_length)
