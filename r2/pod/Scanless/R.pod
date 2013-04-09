@@ -380,7 +380,7 @@ normalize-whitespace: 1
 =for Marpa::R2::Display::End
 
 Given a pointer to an input string,
-parses it according to the grammar.
+C<read()> parses it according to the grammar.
 Only a single call to C<read()>
 is allowed for a scanless
 recognizer.
@@ -396,11 +396,10 @@ The default length is -1.
 Negative locations and lengths have the standard
 interpretation, as L<described above|/"Negative locations">.
 
-One important case is where start location and length
-are both specified as zero.
+Start location and length can both be zero.
 This pauses internal scanning immediately and can be
-used to hand control over completely to an external
-scanner.
+used to hand complete control of scanning
+over an external scanner.
 
 On failure, throws an exception.
 The call is considered successful
@@ -457,8 +456,8 @@ The value argument is interpreted as described for C<lexeme_read()>.
 Any number of tokens may be read using C<lexeme_alternative()>
 without advancing the current location.
 This allows an application to use ambiguous tokens.
-To complete the reading at a location,
-and advance the current location to the next location,
+To complete reading at a G1 location,
+and advance the current G1 location to the next G1 location,
 use the C<lexeme_complete()> method.
 
 On success, returns a non-negative number.
@@ -531,8 +530,8 @@ always be specified.
 
 The fourth argument specifies the value of the lexeme.
 If the value argument is omitted,
-the token's value will a string
-which contains the corresponding substring
+the token's value will be the string
+containing the corresponding substring
 of the input stream.
 Omitting the value argument does not have the same
 effect as passing an explicit Perl C<undef>.
