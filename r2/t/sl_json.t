@@ -20,7 +20,7 @@
 use 5.010;
 use strict;
 use warnings;
-use Test::More tests => 13;
+use Test::More tests => 14;
 use English qw( -no_match_vars );
 use Scalar::Util qw(blessed);
 
@@ -123,7 +123,7 @@ is_deeply($data, {
     }
 }, 'is_deeply test');
 
-$data = MarpaX::JSON::parse_json(<<'JSON');
+my $big_test = <<'JSON';
 {
     "source" : "<a href=\"http://janetter.net/\" rel=\"nofollow\">Janetter</a>",
     "entities" : {
@@ -160,6 +160,55 @@ $data = MarpaX::JSON::parse_json(<<'JSON');
     }
 }
 JSON
+$data = MarpaX::JSON::parse_json($big_test);
+
+my $trace = MarpaX::JSON::trace_json($big_test);
+is($trace, <<'END_OF_EXPECTED_TRACE');
+Line 2, column 5, lexeme <lstring>, literal ""source""
+Line 2, column 16, lexeme <lstring>, literal ""<a href=\"http://janetter.net/\" rel=\"nofollow\">Janetter</a>""
+Line 3, column 5, lexeme <lstring>, literal ""entities""
+Line 4, column 9, lexeme <lstring>, literal ""user_mentions""
+Line 5, column 17, lexeme <lstring>, literal ""name""
+Line 5, column 26, lexeme <lstring>, literal ""James Governor""
+Line 6, column 17, lexeme <lstring>, literal ""screen_name""
+Line 6, column 33, lexeme <lstring>, literal ""moankchips""
+Line 7, column 17, lexeme <lstring>, literal ""indices""
+Line 8, column 17, lexeme <lstring>, literal ""id_str""
+Line 8, column 28, lexeme <lstring>, literal ""61233""
+Line 9, column 17, lexeme <lstring>, literal ""id""
+Line 11, column 9, lexeme <lstring>, literal ""media""
+Line 12, column 9, lexeme <lstring>, literal ""hashtags""
+Line 13, column 9, lexeme <lstring>, literal ""urls""
+Line 15, column 5, lexeme <lstring>, literal ""in_reply_to_status_id_str""
+Line 15, column 35, lexeme <lstring>, literal ""281400879465238529""
+Line 16, column 5, lexeme <lstring>, literal ""geo""
+Line 18, column 5, lexeme <lstring>, literal ""id_str""
+Line 18, column 16, lexeme <lstring>, literal ""281405942321532929""
+Line 19, column 5, lexeme <lstring>, literal ""in_reply_to_user_id""
+Line 20, column 5, lexeme <lstring>, literal ""text""
+Line 20, column 14, lexeme <lstring>, literal ""@monkchips Ouch. Some regrets are harsher than others.""
+Line 21, column 5, lexeme <lstring>, literal ""id""
+Line 22, column 5, lexeme <lstring>, literal ""in_reply_to_status_id""
+Line 23, column 5, lexeme <lstring>, literal ""created_at""
+Line 23, column 20, lexeme <lstring>, literal ""Wed Dec 19 14:29:39 +0000 2012""
+Line 24, column 5, lexeme <lstring>, literal ""in_reply_to_screen_name""
+Line 24, column 33, lexeme <lstring>, literal ""monkchips""
+Line 25, column 5, lexeme <lstring>, literal ""in_reply_to_user_id_str""
+Line 25, column 33, lexeme <lstring>, literal ""61233""
+Line 26, column 5, lexeme <lstring>, literal ""user""
+Line 27, column 9, lexeme <lstring>, literal ""name""
+Line 27, column 18, lexeme <lstring>, literal ""Sarah Bourne""
+Line 28, column 9, lexeme <lstring>, literal ""screen_name""
+Line 28, column 25, lexeme <lstring>, literal ""sarahebourne""
+Line 29, column 9, lexeme <lstring>, literal ""protected""
+Line 30, column 9, lexeme <lstring>, literal ""id_str""
+Line 30, column 20, lexeme <lstring>, literal ""16010789""
+Line 31, column 9, lexeme <lstring>, literal ""profile_image_url_https""
+Line 31, column 37, lexeme <lstring>, literal ""https://si0.twimg.com/profile_images/638441870/Snapshot-of-sb_normal.jpg""
+Line 32, column 9, lexeme <lstring>, literal ""id""
+Line 33, column 9, lexeme <lstring>, literal ""verified""
+END_OF_EXPECTED_TRACE
+
 
 $data = MarpaX::JSON::parse_json(<<'JSON');
 { "test":  "\u2603" }
@@ -271,6 +320,32 @@ sub parse_json {
     my ($string) = @_;
     my $parser = MarpaX::JSON->new();
     return $parser->parse($string);
+}
+
+sub trace_json {
+    my ($string) = @_;
+    my $parser = MarpaX::JSON->new();
+    my $trace_desc = q{};
+
+# Marpa::R2::Display
+# name: SLIF trace example
+
+    my $re = Marpa::R2::Scanless::R->new( { grammar => $parser->{grammar} } );
+    my $length = length $string;
+    for ( my $pos = $re->read(\$string); $pos < $length; $pos = $re->resume()) {
+       my ($start, $length) = $re->pause_span();
+       my $lexeme = $re->pause_lexeme();
+       my ($line, $column) = $re->line_column($start);
+       my $literal_string = $re->literal($start, $length);
+       $trace_desc .= qq{Line $line, column $column, lexeme <$lexeme>, literal "$literal_string"\n};
+       my $value = substr $string, $start+1, $length-2;
+       $value = decode_string($value) if -1 != index $value, '\\';
+       $re->lexeme_read('lstring', $start, $length, $value) // die;
+    }
+    return $trace_desc;
+
+# Marpa::R2::Display::End
+
 }
 
 sub decode_string {
