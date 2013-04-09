@@ -753,6 +753,19 @@ The pause span is initially undefined
 and it is reset to undefined at the beginning of
 each call to the C<read()> or C<resume()> methods.
 
+More than one lexeme may cause a pause.
+For this to be the case, both lexemes must be
+acceptable to the G1 grammar,
+and both must have
+same lexeme priority.
+When more than one lexeme causes a pause,
+the choice of pause
+lexeme is arbitary.
+Applications may not rely on a particular choice,
+or on that choice being repeated,
+even when the choice is made
+in similar or identical circumstances.
+
 A pause is not always caused by a lexeme -- the internal
 scanning may be paused
 because of the length argument of an internal scanning method.
