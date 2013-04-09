@@ -432,6 +432,7 @@ C<lexeme_alternative()> takes one or two argument.
 The first, required, argument is the name of a symbol to be read
 at the current location.
 The second, optional, argument is the value of the symbol.
+The value argument is interpreted as described for C<lexeme_read()>.
 
 Any number of tokens may be read using C<lexeme_alternative()>
 without advancing the current location.
@@ -439,17 +440,6 @@ This allows an application to use ambiguous tokens.
 To complete the reading at a location,
 and advance the current location to the next location,
 use the C<lexeme_complete()> method.
-
-If the value argument is omitted,
-the token's value will a string
-which contains the corresponding substring
-of the input stream.
-(The token's location in the input stream will be set
-by the lexeme_complete() method.)
-Omitting the value argument does not have the same
-effect as passing an explicit Perl C<undef>.
-If the second argument is an explicit Perl C<undef>,
-the value of the lexeme will be a Perl C<undef>.
 
 On success, returns a non-negative number.
 Returns undef if the token was rejected.
@@ -475,19 +465,13 @@ Most applications will prefer the simpler C<lexeme_read()>.
 The C<lexeme_complete()>
 requires two arguments,
 a input stream start location and a length.
-Negative values are allowed and are interpreted
-as L<described above|/"Negative locations">.
-This span will be treated as the section of the input stream
-that corresponds to the tokens read at the current location.
-This correspondence may be artificial, but a span must
-always be specified.
+These are interpreted as described for the
+corresponding arguments to C<lexeme_read()>.
 
 The C<lexeme_complete()>
 method completes the reading of
 alternative tokens at the current location,
 and advances the current location by one.
-The location of the tokens in the input stream will be as
-indicated by 
 
 =head2 lexeme_read()
 
@@ -496,9 +480,37 @@ name: SLIF read/resume example
 partial: 1
 normalize-whitespace: 1
 
-       $re->lexeme_read('lstring', $start, $length, $value) // die;
+   $re->lexeme_read('lstring', $start, $length, $value) // die;
 
 =for Marpa::R2::Display::End
+
+The C<read()> method performs internal scanning,
+L<as described
+above|/"How internal scanning works">.
+It takes four arguments, only the first of which is required.
+The first argument is the lexeme's symbol name.
+The second and third arguments specify the span in the input
+stream to be associated with the lexeme.
+The last argument indicates its value.
+
+The second and third arguments are respectively,
+the start and length of a span in the input stream.
+Negative values are allowed and are interpreted
+as L<described above|/"Negative locations">.
+This span will be treated as the section of the input stream
+that corresponds to the tokens read at the current location.
+This correspondence may be artificial, but a span must
+always be specified.
+
+The fourth argument specifies the value of the lexeme.
+If the value argument is omitted,
+the token's value will a string
+which contains the corresponding substring
+of the input stream.
+Omitting the value argument does not have the same
+effect as passing an explicit Perl C<undef>.
+If the second argument is an explicit Perl C<undef>,
+the value of the lexeme will be a Perl C<undef>.
 
 =for Marpa::R2::Display
 ignore: 1
@@ -517,7 +529,13 @@ ignore: 1
 
 =for Marpa::R2::Display::End
 
-Current location in the input stream will be moved to C<$start+$length>.
+Current location in the input stream is moved
+to the place where C<read()> paused or,
+if it never pauses,
+to C<$start+$length>.
+
+On success, C<read()> returns the new current location.
+On unthrown failure, it returns a Perl C<undef>.
 
 =head2 resume()
 
