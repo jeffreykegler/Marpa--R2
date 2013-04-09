@@ -113,7 +113,7 @@ as negative numbers.
 A negative location is a location counted
 from the end, so that -1 means location before the
 last character of the string,
--2 the position before the second to last character of a string, etc.
+-2 the location before the second to last character of a string, etc.
 A negative length assumes that a start location
 has been specified and indicates a distance to a location
 counted from the end.
@@ -589,8 +589,8 @@ normalize-whitespace: 1
 =for Marpa::R2::Display::End
 
 The C<resume()> method takes two arguments,
-a start position and a length.
-The default start position is the current position.
+a start location and a length.
+The default start location is the current location.
 The default length is -1.
 Negative arguments are interpreted
 as L<described above|/"Negative locations">.
@@ -601,9 +601,9 @@ L<as described
 above|/"How internal scanning works">.
 
 On success, C<resume()> moves
-the current position to where it paused,
+the current location to where it paused,
 or to the EOS.
-The return value is the new current position.
+The return value is the new current location.
 On unthrown failure,
 C<resume()> return a Perl C<undef>.
 
