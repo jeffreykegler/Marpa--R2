@@ -196,14 +196,15 @@ The current location will never be greater than EOS.
 
 =head1 How internal scanning works
 
-The SLIF always starts scanning with scanning using the C<read()>
+The SLIF always starts scanning using the C<read()>
 method.
-Pedantically, this means scanning always begins with an internal
-scanning phase,
-but that first phase may be of zero length,
-and after than internal scanning does not have to be resumed.
+Pedantically, this means scanning always begins with a phase
+of internal scanning.
+But that first phase may be of zero length,
+and after that,
+internal scanning does not have to be resumed.
 
-Internal scanning is resumed with the C<resume()> method.
+Internal scanning can be resumed with the C<resume()> method.
 Both the C<read()> and C<resume()> methods require the application
 to specify a span in the input stream.
 The C<read()> method sets the input stream,
@@ -222,17 +223,32 @@ the current location will be EOS.
 The return value of the C<read()> and the C<resume()> method is
 the current location.
 
+Internal scanning ends when one of the following occurs:
+
 =over 4
 
 =item *
 
-As already stated, the current location will never advance past EOS.
+Scanning always ends at EOS.
+A scan that reaches EOS
+is not considered a pause.
+
+=item *
+
+An internal scanning method
+will pause when it encounters certain lexemes,
+as specified in the DSL using the C<pause> adverb.
+The pause lexeme will be the one of those which caused
+the pause (it may not be unique).
+The pause span will be the span of the input stream
+occupied by that lexeme.
 
 =item *
 
 If its C<$length> argument was non-negative,
-an internal scanning method
+internal scanning
 will pause when the current location is C<$start+$length>.
+The pause lexeme and pause span will be undefined.
 
 =item *
 
@@ -240,18 +256,14 @@ If its C<$length> argument was negative,
 an internal scanning method
 will pause when the current location is
 C<$length + 1 + length $input_string>.
-
-=item *
-
-An internal scanning method
-will pause when it encounters certain lexemes,
-as specified in the DSL with the C<pause> adverb.
+The pause lexeme and pause span will be undefined.
 
 =item *
 
 An abend
 in an internal scanning method causes the current location to
 be an unspecified value.
+An abend is not considered a pause.
 
 =back
 
