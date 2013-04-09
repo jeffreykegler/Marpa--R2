@@ -252,21 +252,18 @@ be an unspecified value.
 
 =head1 The input string
 
-For error message purposes,
+For error message and other purposes,
 even external lexemes are required to correspond to a span of the input string.
-It may be the case that an application find it useful to
-add lexemes that
-have no natural relationship
-to a span of the input string.
-Using an external scanner, an application can read these lexemes,
-but it must set up a relationship to the input stream,
+An external scanner
+must set up a relationship to the input stream,
 even if that relationship is completely artificial.
 
 One way to do this is to put a artificial preamble in front of
 the input stream.
 For example, the first 7 characters of the input stream could be
 an preamble containing the characters "C<NO TEXT>".
-This preamble could be immediately followed by the "real" text.
+This preamble could be immediately followed by what is seen as the text
+from a more natural point of view.
 In this case, the initial call to the C<read()> method
 could take the form
 C<< $slr->read($input_string, 7) >>.
@@ -286,8 +283,10 @@ normalize-whitespace: 1
 =for Marpa::R2::Display::End
 
 The C<new()> method is the constructor for SLIF recognizers.
-An example of its use is L<above|/"Synopsis">.
 The C<new()> constructor accepts a hash of named arguments.
+The C<grammar> named argument is required.
+All other named arguments are optional.
+
 The following named arguments are allowed:
 
 =head2 grammar
@@ -310,9 +309,9 @@ and
 a warning is printed to the trace file handle.
 
 Marpa parses from any BNF,
-and can handle grammars and inputs which produce large
+and can handle grammars and inputs which produce very large
 Earley sets.
-But parsing that involves large Earley sets can be slow.
+But parsing that involves very large Earley sets can be slow.
 Large Earley sets
 are something most applications can,
 and will wish to, avoid.
@@ -324,16 +323,22 @@ based on the size of the
 G1 grammar,
 and for each G0 recognizer based on the size
 of the G0 grammar.
+The default threshold will never be less than 100.
+This default is the result of considerable experience
+and almost all users will be happy with it.
+
 If the
 Earley item warning threshold is changed from its default,
 the change applies to both G0 and G1 -- currently
 there is no way to set them separately.
-
-The default threshold will never be less than 100.
 If the Earley item warning threshold is set to 0,
 no recognizer event is generated,
 and
 warnings about large Earley sets are turned off.
+An Earley item threshold warning almost always
+indicates a serious issue,
+and turning these warnings off will
+rarely be what an application wants.
 
 =head2 trace_terminals
 
@@ -342,7 +347,7 @@ those tokens passed from the G0 parser to
 the G1 parser.
 This named argument is the best way to follow
 what the G0 parser is doing,
-but it is also very helpful for tracing the G1 parser.
+and it is also very helpful for tracing the G1 parser.
 
 =head2 trace_values
 
