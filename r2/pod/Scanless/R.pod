@@ -157,18 +157,17 @@ The B<current location in the input stream>, more usually simply
 called the B<current location>, is a location in the input stream.
 Locations are zero-based, so that location 0 points to the first
 character, if it exists.
-A current location equal to the length of the input string
-indicates "end of string",
-and does
-not point to any character.
+A current location equal to the length of the input stream
+indicates EOS (end of stream).
+The EOS location does not point to any character.
 
-In this interface, when the current location
+In this interface, when the current input stream location
 moves, it does not necessarily advance -- it
 can skip forward,
 or can be positioned to an earlier location.
-The application can skip sections of the input string.
+The application can skip sections of the input stream.
 The application is also free to
-revisit spans of the input string as often as it wants.
+revisit spans of the input stream as often as it wants.
 
 Here are the guarantees:
 
@@ -184,7 +183,7 @@ The current location will never be negative.
 
 =item *
 
-The current location will never be past the "end of string".
+The current location will never be past EOS.
 
 =back
 
@@ -210,9 +209,9 @@ After an internal scanning method,
 the current location will indicate how far
 in the input stream the internal scanning method actually read.
 If the internal scanning method was paused, the current
-location will be the one before which it paused.
-If the internal scanning method reached the end of string,
-the current location will be the end of string.
+location will be the one at which it paused.
+If the internal scanning method reaches EOS,
+the current location will be EOS.
 The return value of the C<read()> and the C<resume()> method is
 the current location.
 
@@ -220,8 +219,7 @@ the current location.
 
 =item *
 
-As already stated, the current location will never advance past
-the end of string.
+As already stated, the current location will never advance past EOS.
 
 =item *
 
@@ -250,10 +248,10 @@ be an unspecified value.
 
 =back
 
-=head1 The input string
+=head1 The input stream
 
 For error message and other purposes,
-even external lexemes are required to correspond to a span of the input string.
+even external lexemes are required to correspond to a span of the input stream.
 An external scanner
 must set up a relationship to the input stream,
 even if that relationship is completely artificial.
@@ -384,7 +382,7 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
-Given a pointer to an input string,
+Given a pointer to an input stream,
 C<read()> parses it according to the grammar.
 Only a single call to C<read()>
 is allowed for a scanless
@@ -392,10 +390,10 @@ recognizer.
 
 C<read()> recognizes
 optional second and third arguments.
-The second argument is a location in the input string
+The second argument is a location in the input stream
 at which internal scanning will start.
 The third argument is the length of the section
-of the input string to be scanned before pausing.
+of the input stream to be scanned before pausing.
 The default start location is zero.
 The default length is -1.
 Negative locations and lengths have the standard
@@ -411,7 +409,7 @@ The call is considered successful
 if it ended because a parse was found,
 or because internal scanning was paused.
 On success, C<read()> returns the location in the input
-string before which internal scanning ended.
+stream before which internal scanning ended.
 This value may be zero.
 
 =head2 value()
@@ -535,7 +533,7 @@ always be specified.
 
 The fourth argument specifies the value of the lexeme.
 If the value argument is omitted,
-the token's value will be the string
+the token's value will be a string
 containing the corresponding substring
 of the input stream.
 Omitting the value argument does not have the same
@@ -798,7 +796,7 @@ and a Perl false in scalar context.
 Use of this method is discouraged in favor of 
 L</"substring()">.
 Given a G1 start and a G1 end location, returns the substring of the input
-string that is between the two.
+stream that is between the two.
 
 =head2 show_progress()
 
@@ -830,7 +828,7 @@ normalize-whitespace: 1
 =for Marpa::R2::Display::End
 
 Given a G1 start location and its G1 length, returns a substring of the input
-string.
+stream.
 A length of zero will produce a zero-length string.
 
 =head1 Copyright and License
