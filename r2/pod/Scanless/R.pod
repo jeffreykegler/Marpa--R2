@@ -70,7 +70,30 @@ normalize-whitespace: 1
 =head1 About this document
 
 This page is the reference document for the recognizer objects
-of Marpa's Scanless interface.
+of Marpa's SLIF (Scanless interface).
+
+=head1 Internal and external scanning
+
+The Scanless interface is so-called because
+it does not require the application to supply a scanner (lexer).
+The SLIF contains its own lexer,
+one whose use is integrated into
+its syntax.
+In this document, use of the SLIF's
+internal scanner is called
+B<internal scanning>.
+
+The SLIF allows applications that find it useful to
+do their own scanning.
+When an application
+bypasses the SLIF's internal scanner
+and does its own scanning,
+this document calls it
+B<external scanning>.
+An application can use
+external scanning to supplement internal 
+scanning,
+or to replace the SLIF's internal scanner entirely.
 
 =head1 Locations
 
@@ -88,22 +111,23 @@ tracing methods.
 Several methods allow locations and lengths to be specified
 as negative numbers.
 A negative location is a location counted
-from the end, so that -1 means the
-last location of the string,
--2 the second to last location, etc.
+from the end, so that -1 means location before the
+last character of the string,
+-2 the position before the second to last character of a string, etc.
 A negative length assumes that a start location
 has been specified and indicates a distance to a location
 counted from the end.
 A length of -1 indicates the distance to the end of the string,
--2 indicates the distance to the character just before the
-end of the string,
+-2 indicates the distance to the location just before
+the last character
+of the string,
 etc.
 
 For example, suppose that we are dealing with input stream locations.
 The span (C<0, -1>) is the entire input stream.
 The span (C<-1, -1>) is the
 last character of input stream.
-the span (C<-2, -1>) is the
+The span (C<-2, -1>) is the
 last two characters of the input stream.
 The span (C<-2, 1>) is the 
 second to last character of the input stream.
@@ -127,29 +151,6 @@ with ambiguous terminals,
 and to a greater degree when tracing the G1 grammar.
 (For those more familiar with Marpa's internals,
 the G1 location is the G1 Earley set index.)
-
-=head1 Internal and external scanning
-
-The SLIF (Scanless interface) is so-called because
-it does not require the application to supply a scanner (lexer).
-The SLIF contains its own lexer,
-one whose use is integrated into
-its syntax.
-In this document, use of the SLIF's
-internal scanner is called
-B<internal scanning>.
-
-The SLIF allows applications that find it useful to
-do their own scanning.
-When an application
-bypasses the SLIF's internal scanner
-and does its own scanning,
-this document calls it
-B<external scanning>.
-An application can use
-external scanning to supplement internal 
-scanning,
-or it can bypass the SLIF's internal scanner entirely.
 
 =head1 Current location
 
