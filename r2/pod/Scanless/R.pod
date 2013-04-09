@@ -102,9 +102,6 @@ or to replace the SLIF's internal scanner entirely.
 In this document, the word "location" refers
 to location in the input stream
 unless otherwise specified.
-Another idea of location, G1 location,
-also exists, but its use is restricted to
-tracing methods.
 
 =head2 Negative locations
 
@@ -154,15 +151,24 @@ the G1 location is the G1 Earley set index.)
 
 =head1 Current location
 
-The B<current location in the input stream>, more usually simply
-called the B<current location>, is a location in the input stream.
-Locations are zero-based, so that location 0 points to the first
-character, if it exists.
+The SLIF tracks
+the B<current location in the input stream>, more usually simply
+called the B<current location>.
+Locations are zero-based, so that location 0 is the start
+of the input stream.
+A location is said to B<point> to the character after it,
+if there is such a character.
+For example,
+location 0 points to the first character of the input stream,
+unless the stream is of zero length,
+in which case there is no first character.
+
 A current location equal to the length of the input stream
 indicates EOS (end of stream).
-The EOS location does not point to any character.
+In a zero length stream, location 0 is EOS.
+The EOS location never points to a character.
 
-In this interface, when the current input stream location
+In the SLIF, when the current input stream location
 moves, it does not necessarily advance -- it
 can skip forward,
 or can be positioned to an earlier location.
@@ -184,7 +190,7 @@ The current location will never be negative.
 
 =item *
 
-The current location will never be past EOS.
+The current location will never be greater than EOS.
 
 =back
 
