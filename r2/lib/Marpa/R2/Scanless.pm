@@ -503,6 +503,7 @@ sub Marpa::R2::Scanless::G::show_rules {
 
 my %recce_options = map { ($_, 1) } qw{
     grammar
+    ranking_method
     too_many_earley_items
     trace_terminals
     trace_g0
@@ -576,7 +577,7 @@ sub Marpa::R2::Scanless::R::new {
         $grammar->[Marpa::R2::Inner::Scanless::G::THICK_G1_GRAMMAR];
     my %g1_recce_args = ( grammar => $thick_g1_grammar );
     $g1_recce_args{$_} = $args->{$_}
-        for qw( trace_values trace_file_handle too_many_earley_items );
+        for qw( ranking_method trace_values trace_file_handle too_many_earley_items );
     my $thick_g1_recce =
         $self->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE] =
         Marpa::R2::Recognizer->new( \%g1_recce_args );
