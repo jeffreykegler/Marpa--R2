@@ -19,25 +19,31 @@ Marpa::R2 To Do -- "To Do" list for Marpa
 
 =head1 About this document
 
-This is more notes to myself than a road map.
-Items mentioned may be removed, changed, re-ranked, etc.
+The primary purpose of this document is to act as notes
+to myself.
+Statements made in this document should in no sense be
+taken as commitments.
+Items mentioned may be removed, changed, re-ranked, etc., etc.
+arbitrarily, suddenly and without notice.
 
 =head1 Items to do
 
-=head2 Add lexeme priorities
+=head2 Add Events on completion
 
-In the SLIF, allow lexemes to be prioritized.
-When G1 is accepting lexemes, all lexemes not of the
-highest priority will be discarded.
-Since multiple lexemes may have the same priority,
-the result will not necessarily be unique.
-
-Lexeme priorites will have an effect only at the
-point where the G1 grammar is choosing among acceptable
-lexemes with the same start location
-and of the same length.
-A high lexeme priority will not make the G1 grammar
-accept a lexeme that it would otherwise reject.
+Events in the Marpa context
+are essentially an efficient way of repeating
+some kind of check.
+Currently, Marpa::R2 allows terminals to be marked
+to create an "event" when they are expected.
+I want to add a capability to mark symbols so that they
+cause an event on completion.
+The main obstacle to this is dealing with Leo items --
+a naive approach to detecting Leo completions undoes
+the efficiencies of the Leo algorithm, and would
+make Marpa O(n**2) for certain grammars.
+The implementation must both detect all completions
+B<AND> preserve the time complexity improvements from
+the Leo algorithm.
 
 =head1 Dubious
 

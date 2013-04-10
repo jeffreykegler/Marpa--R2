@@ -77,7 +77,7 @@ I will sometimes call the lexical level, G0,
 and will sometimes call the structural level, G1.
 It is important to realize
 that the difference between G0 and G1 is one
-of level of descripton and
+of level of description and
 NOT one of precision or exactness.
 A structural description of Perl's C<use> statement,
 much like the one I showed above,
