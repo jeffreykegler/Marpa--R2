@@ -15,7 +15,11 @@
 
 Revision history for Marpa::R2
 
+2.051_007
 2.051_006
+
+    * Release candidate.
+
 2.051_005
 
     * Add SLIF pause/resume, 
