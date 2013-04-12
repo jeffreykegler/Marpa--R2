@@ -309,6 +309,28 @@ a C<grammar> named argument.  Its
 value must be
 an SLIF grammar object.
 
+=head2 ranking_method
+
+The value must be a string:
+one of "C<none>",
+"C<rule>",
+or "C<high_rule_only>".
+When the value is "C<none>", Marpa returns the parse results
+in arbitrary order.
+This is the default.
+The C<ranking_method> named argument is not allowed
+once evaluation has begun.
+
+The "C<rule>"
+and "C<high_rule_only>" ranking methods
+allows the user
+to control the order
+in which parse results are returned by
+the C<value> method,
+and to exclude some parse results from the parse series.
+For details, see L<the document
+on parse order|Marpa::R2::Semantics::Order>.
+
 =head2 too_many_earley_items
 
 The C<too_many_earley_items> argument is optional,
