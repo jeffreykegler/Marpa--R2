@@ -365,6 +365,12 @@ sub Marpa::R2::Internal::MetaAST_Nodes::priority_specification::evaluate {
     return bless { priority => $child->value() }, $PROTO_ALTERNATIVE;
 }
 
+sub Marpa::R2::Internal::MetaAST_Nodes::rank_specification::evaluate {
+    my ($values) = @_;
+    my $child = $values->[2];
+    return bless { rank => $child->value() }, $PROTO_ALTERNATIVE;
+}
+
 sub Marpa::R2::Internal::MetaAST_Nodes::before_or_after::value {
    return $_[0]->[2];
 }

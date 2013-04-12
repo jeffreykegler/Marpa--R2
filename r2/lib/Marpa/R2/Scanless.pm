@@ -627,7 +627,7 @@ sub Marpa::R2::Scanless::R::read {
     if ( ( my $ref_type = ref $p_string ) ne 'SCALAR' ) {
         my $desc = $ref_type ? "a ref to $ref_type" : 'not a ref';
         Marpa::R2::exception(
-            qq{Arg to scanless_r->read() is $desc\n},
+            qq{Arg to Marpa::R2::Scanless::R::read() is $desc\n},
             '  It should be a ref to scalar'
         );
     } ## end if ( ( my $ref_type = ref $p_string ) ne 'SCALAR' )
