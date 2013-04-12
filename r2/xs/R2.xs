@@ -2339,7 +2339,7 @@ PPCODE:
 		{
 		  char *error_message =
 		    form ("sequence_new(): min cannot be less than 0");
-		  set_error_from_string (g_wrapper, savepv(error_message));
+		  set_error_from_string (g_wrapper, savepv (error_message));
 		  if (g_wrapper->throw)
 		    {
 		      croak ("%s", error_message);
@@ -2349,11 +2349,13 @@ PPCODE:
 		      XSRETURN_UNDEF;
 		    }
 		}
-		if (raw_min > INT_MAX) {
+	      if (raw_min > INT_MAX)
+		{
 		  /* IV can be larger than int */
 		  char *error_message =
-		    form ("sequence_new(): min cannot be greater than %d", INT_MAX);
-		  set_error_from_string (g_wrapper, savepv(error_message));
+		    form ("sequence_new(): min cannot be greater than %d",
+			  INT_MAX);
+		  set_error_from_string (g_wrapper, savepv (error_message));
 		  if (g_wrapper->throw)
 		    {
 		      croak ("%s", error_message);
@@ -2363,7 +2365,7 @@ PPCODE:
 		      XSRETURN_UNDEF;
 		    }
 		}
-	      min = (int)raw_min;
+	      min = (int) raw_min;
 	      continue;
 	    }
 	  if ((*key == 'p') && strnEQ (key, "proper", (unsigned) retlen))
@@ -2374,14 +2376,14 @@ PPCODE:
 	    }
 	  if ((*key == 's') && strnEQ (key, "separator", (unsigned) retlen))
 	    {
-	      separator = (Marpa_Symbol_ID)SvIV (arg_value);
+	      separator = (Marpa_Symbol_ID) SvIV (arg_value);
 	      continue;
 	    }
 	  {
 	    char *error_message =
 	      form ("unknown argument to sequence_new(): %.*s", (int) retlen,
 		    key);
-	    set_error_from_string (g_wrapper, savepv(error_message));
+	    set_error_from_string (g_wrapper, savepv (error_message));
 	    if (g_wrapper->throw)
 	      {
 		croak ("%s", error_message);
@@ -2396,8 +2398,14 @@ PPCODE:
   new_rule_id = marpa_g_sequence_new (g, lhs, rhs, separator, min, flags);
   if (new_rule_id < 0 && g_wrapper->throw)
     {
-      croak ("Problem in g->sequence_new(%d, %d, ...): %s", lhs, rhs,
-	     xs_g_error (g_wrapper));
+      switch (marpa_g_error (g, NULL))
+	{
+	case MARPA_ERR_SEQUENCE_LHS_NOT_UNIQUE:
+	  croak ("Problem in g->sequence_new(): %s", xs_g_error (g_wrapper));
+	default:
+	  croak ("Problem in g->sequence_new(%d, %d, ...): %s", lhs, rhs,
+		 xs_g_error (g_wrapper));
+	}
     }
   XPUSHs (sv_2mortal (newSViv (new_rule_id)));
 }
