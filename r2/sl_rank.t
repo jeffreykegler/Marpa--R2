@@ -31,10 +31,11 @@ use lib 'inc';
 use Marpa::R2::Test;
 use Marpa::R2;
 
-sub zero { return '0' }
-sub one  { return '1' }
+sub My_Actions::new { return {} };
+sub My_Actions::zero { return '0' }
+sub My_Actions::one  { return '1' }
 
-sub start_rule_action {
+sub My_Actions::start_rule_action {
     shift;
     return join q{}, @_;
 }
@@ -43,7 +44,7 @@ sub start_rule_action {
 
     my $grammar = Marpa::R2::Scanless::G->new(
     {
-    action_object => 'main',
+    action_object => 'My_Actions',
     source => \(<<'END_OF_GRAMMAR'),
 :start ::= S
 S ::= digit digit digit digit action => start_rule_action
@@ -62,12 +63,12 @@ my @counting_up =
 my $recce = Marpa::R2::Scanless::R->new(
     { grammar => $grammar, ranking_method => 'rule' } );
 
-$recce->read('tttt');
+$recce->read(\'tttt');
 
 my $i = 0;
 while ( my $result = $recce->value() ) {
     my $got      = ${$result};
-    my $expected = $counting_up[$i];
+    my $expected = reverse $counting_up[$i];
     Test::More::is( $got, $expected, "counting up $i" );
     $i++;
 } ## end while ( my $result = $recce->value() )

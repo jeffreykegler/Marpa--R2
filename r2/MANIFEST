@@ -276,7 +276,6 @@ t/pascal.t
 t/perl.t
 t/rabend.t
 t/randal.t
-t/rank.t
 t/rewrite.t
 t/sequence.t
 t/sequence2.t
@@ -290,6 +289,7 @@ t/sl_external1.t
 t/sl_gsyn.t
 t/sl_json.t
 t/sl_prefix.t
+t/sl_rank.t
 t/sl_syn.t
 t/stuifzand.t
 t/syn_engine.t
