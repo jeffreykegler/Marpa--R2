@@ -20,7 +20,7 @@ use strict;
 package Marpa::R2::HTML::Callback;
 
 use vars qw( $VERSION $STRING_VERSION );
-$VERSION = '2.051_008';
+$VERSION = '2.051_009';
 $STRING_VERSION = $VERSION;
 ## use critic (BuiltinFunctions::ProhibitStringyEval)
 $VERSION = eval $VERSION;

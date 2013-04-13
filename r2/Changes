@@ -15,7 +15,11 @@
 
 Revision history for Marpa::R2
 
+2.051_009
 2.051_008
+
+   * Release candidate
+
 2.051_007
 
    * Add rank adverb to SLIF
