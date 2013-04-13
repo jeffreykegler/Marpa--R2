@@ -5709,10 +5709,13 @@ PPCODE:
     }
 
   result = marpa_r_alternative (slr->r1, symbol_id, token_ix, 1);
-  if (result == MARPA_ERR_NONE || !slr->throw)
-    {
+  switch (result) {
+  case MARPA_ERR_NONE:
+  case MARPA_ERR_DUPLICATE_TOKEN:
+  case MARPA_ERR_UNEXPECTED_TOKEN_ID:
       XSRETURN_IV (result);
-    }
+  }
+  if (!slr->throw) { XSRETURN_IV (result); }
   croak ("Problem in slr->g1_alternative(): %s",
 	 xs_g_error (slr->g1_wrapper));
 }
