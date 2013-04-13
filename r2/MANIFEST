@@ -291,13 +291,13 @@ t/sl_json.t
 t/sl_prefix.t
 t/sl_rank.t
 t/sl_syn.t
+t/sl_wall.t
 t/stuifzand.t
 t/syn_engine.t
 t/syn_stuifzand.t
 t/thin_eq.t
 t/timeflies.t
 t/use.t
-t/wall.t
 typemap
 xs/.gitignore
 xs/Makefile

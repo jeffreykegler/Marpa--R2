@@ -41,7 +41,9 @@ use Marpa::R2;
 
 ## no critic (Subroutines::RequireArgUnpacking)
 
-sub minus {
+sub My_Actions::new { return {} }
+
+sub My_Actions::minus {
     shift;
     my ( $right_string, $right_value ) = ( $_[2] =~ /^(.*)==(.*)$/xms );
     my ( $left_string,  $left_value )  = ( $_[0] =~ /^(.*)==(.*)$/xms );
@@ -49,30 +51,30 @@ sub minus {
     return '(' . $left_string . q{-} . $right_string . ')==' . $value;
 } ## end sub minus
 
-sub postfix_decr {
+sub My_Actions::postfix_decr {
     shift;
     my ( $string, $value ) = ( $_[0] =~ /^(.*)==(.*)$/xms );
     return '(' . $string . q{--} . ')==' . $value--;
 }
 
-sub prefix_decr {
+sub My_Actions::prefix_decr {
     shift;
     my ( $string, $value ) = ( $_[2] =~ /^(.*)==(.*)$/xms );
     return '(' . q{--} . $string . ')==' . --$value;
 }
 
-sub negation {
+sub My_Actions::negation {
     shift;
     my ( $string, $value ) = ( $_[1] =~ /^(.*)==(.*)$/xms );
     return '(' . q{-} . $string . ')==' . -$value;
 }
 
-sub number {
+sub My_Actions::number {
     shift;
     return "$_[0]==$_[0]";
 }
 
-sub default_action {
+sub My_Actions::default_action {
     shift;
     my $v_count = scalar @_;
     return q{}   if $v_count <= 0;
@@ -82,36 +84,35 @@ sub default_action {
 
 ## use critic
 
-my $g = Marpa::R2::Grammar->new(
-    {   start   => 'E',
-        actions => 'main',
-        rules   => [
-            [ 'E', [qw/E Minus E/],     'minus' ],
-            [ 'E', [qw/E Minus Minus/], 'postfix_decr' ],
-            [ 'E', [qw/Minus Minus E/], 'prefix_decr' ],
-            [ 'E', [qw/Minus E/],       'negation', ],
-            [ 'E', [qw/Number/],        'number' ],
-        ],
-        default_action => 'default_action'
+my $g = Marpa::R2::Scanless::G->new(
+    {   
+        action_object => 'My_Actions',
+        source    => \(<<'END_OF_SOURCE'),
+:start ::= E
+:default ::= action => default_action
+E ::= 
+      E Minus E action => minus
+    | E Minus Minus action => postfix_decr
+    | Minus Minus E action => prefix_decr
+    | Minus E action => negation
+    | Number action => number
+Number ~ [0-9]
+Minus ~ '-'
+END_OF_SOURCE
     }
 );
 
 my @expected = qw(0 1 1 3 4 8 12 21 33 55 88 144 232 );
-
-$g->precompute();
 
 for my $n ( 1 .. 12 ) {
 
     # Set max_parses just in case there's an infinite loop.
     # This is for debugging, after all
     my $recce =
-        Marpa::R2::Recognizer->new( { grammar => $g, max_parses => 300 } );
-    $recce->read( 'Number', 6, 1 );
-    for my $i (1 .. $n) {
-            $recce->read( 'Minus', q{-}, 1 );
-    }
-    $recce->read( 'Number', 1, 1 );
-
+        Marpa::R2::Scanless::R->new( { grammar => $g, max_parses => 300 } );
+    $recce->read( \'6-', 0, 1 );
+    $recce->resume( 1, 1 ) for 1 .. $n;
+    $recce->resume( 0, 1 );
     my $parse_count = 0;
     while ( $recce->value() ) { $parse_count++; }
     Marpa::R2::Test::is( $expected[$n], $parse_count,
@@ -121,9 +122,4 @@ for my $n ( 1 .. 12 ) {
 
 1;    # In case used as "do" file
 
-# Local Variables:
-#   mode: cperl
-#   cperl-indent-level: 4
-#   fill-column: 100
-# End:
 # vim: expandtab shiftwidth=4:
