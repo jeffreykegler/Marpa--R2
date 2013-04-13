@@ -550,9 +550,7 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
-The C<read()> method performs internal scanning,
-L<as described
-above|/"How internal scanning works">.
+The C<lexeme_read()> method reads a single, unambiguous, lexeme.
 It takes four arguments, only the first of which is required.
 The first argument is the lexeme's symbol name.
 The second and third arguments specify the span in the input
@@ -608,8 +606,11 @@ if it never pauses,
 to C<$start+$length>.
 Current G1 location is advanced by one.
 
+B<Return value>:
 On success, C<read()> returns the new current location.
-On unthrown failure, it returns a Perl C<undef>.
+This will never be location zero, because lexemes cannot be zero length.
+If the token was rejected, returns a Perl C<undef>.
+On other unthrown failure, returns 0.
 
 =head2 resume()
 
