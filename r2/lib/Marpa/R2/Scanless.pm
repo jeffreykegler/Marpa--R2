@@ -666,7 +666,6 @@ sub Marpa::R2::Scanless::R::resume {
         my $problem_code = $thin_slr->read();
 
         last OUTER_READ if not $problem_code;
-        last OUTER_READ if $problem_code eq 'pause';
 
         my $stream = $thin_slr->stream();
 
@@ -824,6 +823,7 @@ sub Marpa::R2::Scanless::R::resume {
 
         } ## end if ($i_am_tracing)
 
+        last OUTER_READ if $problem_code eq 'pause';
         next OUTER_READ if $problem_code eq 'trace';
 
         if ( $problem_code eq 'unregistered char' ) {
