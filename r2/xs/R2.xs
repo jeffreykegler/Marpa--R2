@@ -5216,6 +5216,7 @@ g1_lexeme_pause_set( slg, g1_lexeme, pause )
 PPCODE:
 {
   Marpa_Symbol_ID highest_g1_symbol_id = marpa_g_highest_symbol_id (slg->g1);
+    struct lexeme_properties * properties = slg->g1_lexeme_properties + g1_lexeme;
     if (g1_lexeme > highest_g1_symbol_id) 
     {
       croak
@@ -5233,13 +5234,25 @@ PPCODE:
 	 (long) pause,
 	 (long) g1_lexeme);
     }
-    if (pause < -1 || pause > 1) {
+    switch (pause) {
+    case 0:
+        properties->pause = 0;
+        properties->pause_after = 0;
+	break;
+    case 1:
+        properties->pause = 1;
+        properties->pause_after = 1;
+	break;
+    case -1:
+        properties->pause = 1;
+        properties->pause_after = 0;
+	break;
+    default:
       croak
 	("Problem in slg->lexeme_pause_set(%ld, %ld): value of pause must be -1,0 or 1",
 	 (long) g1_lexeme,
 	 (long) pause);
     }
-  slg->g1_lexeme_properties[g1_lexeme].pause = pause;
   XSRETURN_YES;
 }
 
