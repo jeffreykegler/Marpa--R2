@@ -46,9 +46,8 @@ BEGIN {
     G0_DISCARD_SYMBOL_ID
     MASK_BY_RULE_ID
 
+    G1_ARGS
     TRACE_FILE_HANDLE
-    DEFAULT_ACTION
-    ACTION_OBJECT
     BLESS_PACKAGE
 
 END_OF_STRUCTURE
@@ -293,43 +292,37 @@ sub Marpa::R2::Scanless::G::new {
     # unproductive_ok
     # warnings
 
-state $grammar_options = { map { ($_, 1) } qw(
-    action_object
-    bless_package
-    default_action
-    source
-    trace_file_handle
-) };
-
-    if (my @bad_options =
-        grep { not defined $grammar_options->{$_} } keys %{$args}
-        )
-    {
+    my $rules_source;
+    $self->[Marpa::R2::Inner::Scanless::G::G1_ARGS] = {};
+    ARG: for my $arg_name ( keys %{$args} ) {
+        my $value = $args->{$arg_name};
+        if ( $arg_name eq 'trace_file_handle' ) {
+            $self->[Marpa::R2::Inner::Scanless::G::TRACE_FILE_HANDLE] =
+                $value;
+            next ARG;
+        }
+        if ( $arg_name eq 'action_object' ) {
+            $self->[Marpa::R2::Inner::Scanless::G::G1_ARGS]->{$arg_name} = $value;
+            next ARG;
+        }
+        if ( $arg_name eq 'bless_package' ) {
+            $self->[Marpa::R2::Inner::Scanless::G::BLESS_PACKAGE] = $value;
+            next ARG;
+        }
+        if ( $arg_name eq 'default_action' ) {
+            $self->[Marpa::R2::Inner::Scanless::G::G1_ARGS]->{$arg_name} = $value;
+            next ARG;
+        }
+        if ( $arg_name eq 'source' ) {
+            $rules_source = $value;
+            next ARG;
+        }
         Carp::croak(
-            "$G_PACKAGE does not know some of option(s) given to it:\n",
-            '   The option(s) not recognized were ',
-            ( join q{ }, map { q{"} . $_ . q{"} } @bad_options ),
-            "\n"
+            "$G_PACKAGE does not know one of the options given to it:\n",
+            qq{   The options not recognized was "$arg_name"\n}
         );
-    } ## end if ( my @bad_options = grep { not defined $grammar_options...})
+    } ## end ARG: for my $arg_name ( keys %{$args} )
 
-    if ( defined( my $value = $args->{'trace_file_handle'} ) ) {
-        $self->[Marpa::R2::Inner::Scanless::G::TRACE_FILE_HANDLE] = $value;
-    }
-
-    if ( defined( my $value = $args->{'action_object'} ) ) {
-        $self->[Marpa::R2::Inner::Scanless::G::ACTION_OBJECT] = $value;
-    }
-
-    if ( defined( my $value = $args->{'bless_package'} ) ) {
-        $self->[Marpa::R2::Inner::Scanless::G::BLESS_PACKAGE] = $value;
-    }
-
-    if ( defined( my $value = $args->{'default_action'} ) ) {
-        $self->[Marpa::R2::Inner::Scanless::G::DEFAULT_ACTION] = $value;
-    }
-
-    my $rules_source = $args->{'source'};
     if ( not defined $rules_source ) {
         Marpa::R2::exception(
             'Marpa::R2::Scanless::G::new() called without a "source" argument'
@@ -387,21 +380,18 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
         \@class_table;
 
     # The G1 grammar
-    my %g1_args = ();
-    $g1_args{trace_file_handle} =
+    my $g1_args = 
+        $self->[Marpa::R2::Inner::Scanless::G::G1_ARGS];
+    $g1_args->{trace_file_handle} =
         $self->[Marpa::R2::Inner::Scanless::G::TRACE_FILE_HANDLE] // \*STDERR;
-    $g1_args{action_object} =
-        $self->[Marpa::R2::Inner::Scanless::G::ACTION_OBJECT];
-    $g1_args{bless_package} =
+    $g1_args->{bless_package} =
         $self->[Marpa::R2::Inner::Scanless::G::BLESS_PACKAGE];
-    $g1_args{default_action} =
-        $self->[Marpa::R2::Inner::Scanless::G::DEFAULT_ACTION];
-    $g1_args{rules}   = $hashed_source->{g1_rules};
-    $g1_args{symbols} = $hashed_source->{g1_symbols};
+    $g1_args->{rules}   = $hashed_source->{g1_rules};
+    $g1_args->{symbols} = $hashed_source->{g1_symbols};
     state $g1_target_symbol = '[:start]';
-    $g1_args{start} = $g1_target_symbol;
-    $g1_args{'_internal_'} = 1;
-    my $thick_g1_grammar = Marpa::R2::Grammar->new( \%g1_args );
+    $g1_args->{start} = $g1_target_symbol;
+    $g1_args->{'_internal_'} = 1;
+    my $thick_g1_grammar = Marpa::R2::Grammar->new( $g1_args );
     $thick_g1_grammar->precompute();
     my $g1_tracer = $thick_g1_grammar->tracer();
     my $g1_thin   = $g1_tracer->grammar();
@@ -501,16 +491,6 @@ sub Marpa::R2::Scanless::G::show_rules {
     return $text;
 }
 
-my %recce_options = map { ($_, 1) } qw{
-    grammar
-    ranking_method
-    too_many_earley_items
-    trace_terminals
-    trace_g0
-    trace_values
-    trace_file_handle
-};
-
 sub Marpa::R2::Scanless::R::new {
     my ( $class, $args ) = @_;
 
@@ -538,34 +518,51 @@ sub Marpa::R2::Scanless::R::new {
     $self->[Marpa::R2::Inner::Scanless::R::TRACE_FILE_HANDLE] =
         $grammar->[Marpa::R2::Inner::Scanless::G::TRACE_FILE_HANDLE];
 
-    if (my @bad_options =
-        grep { not defined $recce_options{$_} } keys %{$args}
-        )
-    {
-        Marpa::R2::exception(
-            "$G_PACKAGE does not know some of option(s) given to it:\n",
-            '   The option(s) not recognized were ',
-            ( join q{ }, map { q{"} . $_ . q{"} } @bad_options ),
-            "\n"
-        );
-    } ## end if ( my @bad_options = grep { not defined $recce_options...})
-
-    if ( defined( my $value = $args->{'trace_file_handle'} ) ) {
-        $self->[Marpa::R2::Inner::Scanless::R::TRACE_FILE_HANDLE] = $value;
-    }
-    if ( defined( my $value = $args->{'trace_g0'} ) ) {
-        $self->[Marpa::R2::Inner::Scanless::R::TRACE_G0] = $value;
-    }
-    if ( defined( my $value = $args->{'trace_terminals'} ) ) {
-        $self->[Marpa::R2::Inner::Scanless::R::TRACE_TERMINALS] = $value;
-    }
-    my $too_many_earley_items = -1;
-    if ( defined( my $value = $args->{'too_many_earley_items'} ) ) {
-        $too_many_earley_items = $value;
-        if ($too_many_earley_items < 0) {
-            Marpa::R2::exception(qq{The "too_many_earley_items" option must be greater than or equal to 0});
+    my $g1_recce_args = {};
+    $g1_recce_args->{too_many_earley_items} = -1;
+    ARG: for my $arg_name ( keys %{$args} ) {
+        my $value = $args->{$arg_name};
+        next ARG if $arg_name eq 'grammar'; # already handled
+        if ( $arg_name eq 'max_parses' ) {
+            $g1_recce_args->{$arg_name} = $value;
+            next ARG;
         }
-    }
+        if ( $arg_name eq 'too_many_earley_items' ) {
+            if ( $value < 0 ) {
+                Marpa::R2::exception(
+                    qq{The "too_many_earley_items" option must be greater than or equal to 0}
+                );
+            }
+            $g1_recce_args->{$arg_name} = $value;
+            next ARG;
+        } ## end if ( $arg_name eq 'too_many_earley_items' )
+        if ( $arg_name eq 'trace_file_handle' ) {
+            $g1_recce_args->{$arg_name} = $value;
+            $self->[Marpa::R2::Inner::Scanless::R::TRACE_FILE_HANDLE] =
+                $value;
+            next ARG;
+        }
+        if ( $arg_name eq 'trace_g0' ) {
+            $self->[Marpa::R2::Inner::Scanless::R::TRACE_G0] = $value;
+            next ARG;
+        }
+        if ( $arg_name eq 'trace_terminals' ) {
+            $self->[Marpa::R2::Inner::Scanless::R::TRACE_TERMINALS] = $value;
+            next ARG;
+        }
+        if ( $arg_name eq 'ranking_method' ) {
+            $g1_recce_args->{$arg_name} = $value;
+            next ARG;
+        }
+        if ( $arg_name eq 'trace_values' ) {
+            $g1_recce_args->{$arg_name} = $value;
+            next ARG;
+        }
+        Marpa::R2::exception(
+            "$R_PACKAGE does not know one of options given to it:\n",
+            qq{   The options not recognized was "$arg_name"\n}
+        );
+    } ## end for my $arg_name ( keys %{$args} )
 
     $self->[Marpa::R2::Inner::Scanless::R::GRAMMAR] = $grammar;
     my $thick_lex_grammar =
@@ -575,18 +572,17 @@ sub Marpa::R2::Scanless::R::new {
 
     my $thick_g1_grammar =
         $grammar->[Marpa::R2::Inner::Scanless::G::THICK_G1_GRAMMAR];
-    my %g1_recce_args = ( grammar => $thick_g1_grammar );
-    $g1_recce_args{$_} = $args->{$_}
-        for qw( ranking_method trace_values trace_file_handle too_many_earley_items );
+    $g1_recce_args->{grammar} = $thick_g1_grammar;
     my $thick_g1_recce =
         $self->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE] =
-        Marpa::R2::Recognizer->new( \%g1_recce_args );
+        Marpa::R2::Recognizer->new( $g1_recce_args );
 
     $thick_g1_recce->semantics_set();
 
     my $thin_self = Marpa::R2::Thin::SLR->new(
         $grammar->[Marpa::R2::Inner::Scanless::G::C],
         $thick_g1_recce->thin() );
+    my $too_many_earley_items = $g1_recce_args->{too_many_earley_items};
     $thin_self->earley_item_warning_threshold_set($too_many_earley_items)
        if $too_many_earley_items >= 0;
     $self->[Marpa::R2::Inner::Scanless::R::C] = $thin_self;
