@@ -5498,7 +5498,7 @@ PPCODE:
 	    XSRETURN_PV ("");
 	  }
 
-	  slr->start_of_lexeme = slr->end_of_lexeme;
+	  slr->start_of_lexeme = stream->perl_pos;
 
 	  slr->please_start_lex_recce = 0;
 	  u_r0_clear (stream);
