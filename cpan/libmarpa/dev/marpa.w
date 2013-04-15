@@ -474,11 +474,11 @@ be added.
 These stand in for a Leo chain of one or more Earley tems.
 Leo items can stand in for all the Earley items of a right
 recursion,
-and it is the use of Leo items which makes this algorithm |O(n)|
+and it is the use of Leo items which makes this algorithm $O(n)$
 for all LR-regular grammars.
 In an Earley implementation
 without Leo items, a parse with right recursion
-can have the time comlexity |O(n^2)|.
+can have the time complexity $O(n^2)$.
 \li LIM: Leo item.
 \li \_Object: Suffix indicating that the type is of an
 actual object, and not a pointer as is usually the case.
@@ -487,20 +487,20 @@ actual object, and not a pointer as is usually the case.
 the beginning of one.
 \li pp: A Pointer to pointer.  Often as |_pp|, as the end of a variable name.
 \li R, r: Recognizer.
-\li RECCE, recce: Recognizer.  Originally military slang for a
+\li RECCE, recce: Recognizer.  Originally British military slang for a
 reconnaissance.
 \li -s, -es: Plural.  Note that the |es| suffix is often used even when
 it is not good English, because it is easier to spot in text.
 For example, the plural of |ES| is |ESes|.
-\li |s_|: Prefix for a structure tag.  Cweb does not C code format well
+\li |s_|: Prefix for a structure tag.  Cweb does not format C code well
 unless tag names are distinct from other names.
-\li |t_|: Prefix for an element tag.  Cweb does not C code format well
+\li |t_|: Prefix for an element tag.  Cweb does not format C code well
 unless tag names are distinct from others.
 Since each structure and union in C has a different namespace,
 this does not suffice to make different tags unique, but it does
 suffice to let Cweb distinguish tags from other items, and that is the
 object.
-\li |u_|: Prefix for a union tag.  Cweb does not C code format well
+\li |u_|: Prefix for a union tag.  Cweb does not format C code well
 unless tag names are distinct from other names.
 
 @** Maintenance notes.
@@ -7266,55 +7266,6 @@ Marpa_AHFA_State_ID _marpa_r_leo_base_state(Marpa_Recognizer r)
   base_earley_item = Base_EIM_of_LIM(LIM_of_PIM(postdot_item));
   return AHFAID_of_EIM(base_earley_item);
 }
-
-@ This function
-returns the ``Leo expansion AHFA" of the current trace Leo item.
-The {\bf Leo expansion AHFA} is the AHFA
-of the {\bf Leo expansion Earley item}.
-for this Leo item.
-{\bf Leo expansion Earley items}, when
-the context makes the meaning clear,
-are also called {\bf Leo expansion items}
-or simply {\bf Leo expansions}.
-@ Every Leo item has a unique Leo expansion Earley item,
-because for this purpose
-the process of
-Leo expansion is seen from a non-recursive point of view.
-In practice, Leo expansion is recursive,
-andl creation of the Leo expansion Earley item for
-one Leo item
-implies
-the Leo expansion of all of the predecessors of that
-Leo item.
-@ Note that expansion of the Leo item at the top
-of a Leo path is not needed---%
-if a Leo item is the predecessor in
-a Leo source for a Leo completion item,
-the Leo completion item is the expansion of that Leo item.
-@ @<Function definitions@> =
-Marpa_AHFA_State_ID _marpa_r_leo_expansion_ahfa(Marpa_Recognizer r)
-{
-    const EARLEME pim_is_not_a_leo_item = -1;
-    @<Return |-2| on failure@>@;
-    const PIM postdot_item = r->t_trace_postdot_item;
-  @<Unpack recognizer objects@>@;
-    @<Fail if not trace-safe@>@;
-    if (!postdot_item)
-      {
-	MARPA_ERROR (MARPA_ERR_NO_TRACE_PIM);
-	return failure_indicator;
-      }
-    if (!EIM_of_PIM (postdot_item))
-      {
-	const LIM leo_item = LIM_of_PIM (postdot_item);
-	const EIM base_earley_item = Base_EIM_of_LIM (leo_item);
-	const ISYID postdot_isyid = Postdot_ISYID_of_LIM (leo_item);
-	const AHFA to_ahfa = To_AHFA_of_EIM_by_ISYID (base_earley_item, postdot_isyid);
-	return ID_of_AHFA(to_ahfa);
-      }
-    return pim_is_not_a_leo_item;
-}
-
 
 @** Postdot item (PIM) code.
 Postdot items are entries in an index,
