@@ -8,7 +8,7 @@ use English qw( -no_match_vars );
 use IPC::Cmd;
 
 chomp( my $LATEST =
-        qx(grep '^[0-9]' r2/Changes | head -1 | awk '{print \$1}') );
+        qx(grep '^[0-9]' cpan/Changes | head -1 | awk '{print \$1}') );
 
 warn "Bumping -> $LATEST\n";
 
@@ -24,18 +24,18 @@ my $libmarpa_minor = $minor+100;
 my $libmarpa_micro = $micro+100;
 
 my @versioned_files = split /\n/xms, <<'END_OF_LIST';
-r2/html/lib/Marpa/R2/HTML.pm
-r2/html/lib/Marpa/R2/HTML/Callback.pm
-r2/lib/Marpa/R2.pm
-r2/lib/Marpa/R2/Grammar.pm
-r2/lib/Marpa/R2/Internal.pm
-r2/lib/Marpa/R2/MetaAST.pm
-r2/lib/Marpa/R2/MetaG.pm
-r2/lib/Marpa/R2/Recognizer.pm
-r2/lib/Marpa/R2/Scanless.pm
-r2/lib/Marpa/R2/Stuifzand.pm
-r2/lib/Marpa/R2/Thin/Trace.pm
-r2/lib/Marpa/R2/Value.pm
+cpan/html/lib/Marpa/R2/HTML.pm
+cpan/html/lib/Marpa/R2/HTML/Callback.pm
+cpan/lib/Marpa/R2.pm
+cpan/lib/Marpa/R2/Grammar.pm
+cpan/lib/Marpa/R2/Internal.pm
+cpan/lib/Marpa/R2/MetaAST.pm
+cpan/lib/Marpa/R2/MetaG.pm
+cpan/lib/Marpa/R2/Recognizer.pm
+cpan/lib/Marpa/R2/Scanless.pm
+cpan/lib/Marpa/R2/Stuifzand.pm
+cpan/lib/Marpa/R2/Thin/Trace.pm
+cpan/lib/Marpa/R2/Value.pm
 END_OF_LIST
 
 for my $versioned_file (@versioned_files) {
@@ -48,7 +48,7 @@ for my $versioned_file (@versioned_files) {
 
 {
     # Update the version of Libmarpa that XS is expecting
-    my $expecting_file = 'r2/xs/R2.xs';
+    my $expecting_file = 'cpan/xs/R2.xs';
     say STDERR $expecting_file;
     my $file = do { local ( @ARGV, $/ ) = ($expecting_file); <> };
     $file =~ s{
@@ -66,8 +66,8 @@ for my $versioned_file (@versioned_files) {
 
 for my $configure_ac_file (
     qw(
-    r2/libmarpa/dev/dist/configure.ac
-    r2/libmarpa/dev/doc_dist/configure.ac
+    cpan/libmarpa/dev/dist/configure.ac
+    cpan/libmarpa/dev/doc_dist/configure.ac
     )
     )
 {
@@ -84,9 +84,9 @@ for my $configure_ac_file (
   }{$1${libmarpa_micro}$2}xms;
     open my $out, '>', $configure_ac_file;
     print $out $file;
-} ## end for my $configure_ac_file ( qw( r2/libmarpa/dev/dist/configure.ac...))
+} ## end for my $configure_ac_file ( qw( cpan/libmarpa/dev/dist/configure.ac...))
 
-chdir 'r2';
+chdir 'cpan';
 die qq{"perl Build.PL" failed: $!}
     if not IPC::Cmd::run(
             command => [ $EXECUTABLE_NAME, 'Build.PL' ],

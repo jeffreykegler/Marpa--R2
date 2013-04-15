@@ -18,10 +18,10 @@
 dummy: 
 
 basic_test:
-	(cd r2 && ./Build test)
+	(cd cpan && ./Build test)
 
 full_test: etc_make
-	(cd r2; \
+	(cd cpan; \
 	    ./Build realclean; \
 	    perl Build.PL; \
 	    ./Build; \
@@ -31,17 +31,17 @@ full_test: etc_make
 	) 2>&1 | tee full_test.out
 
 install:
-	(cd r2/xs && make)
-	test -d r2/libmarpa_dist || mkdir r2/libmarpa_dist
-	test -d r2/libmarpa_doc_dist || mkdir r2/libmarpa_doc_dist
-	(cd r2 && sh c_to_dist.sh)
-	(cd r2 && perl Build.PL)
-	(cd r2 && ./Build distmeta)
-	(cd r2 && ./Build code)
+	(cd cpan/xs && make)
+	test -d cpan/libmarpa_dist || mkdir cpan/libmarpa_dist
+	test -d cpan/libmarpa_doc_dist || mkdir cpan/libmarpa_doc_dist
+	(cd cpan && sh c_to_dist.sh)
+	(cd cpan && perl Build.PL)
+	(cd cpan && ./Build distmeta)
+	(cd cpan && ./Build code)
 
 fullinstall: install
-	-mkdir r2/libmarpa/test/dev/m4
-	(cd r2/libmarpa/test/dev && autoreconf -ivf)
-	-mkdir r2/libmarpa/test/work
-	(cd r2/libmarpa/test/work && sh ../dev/configure)
-	(cd r2/libmarpa/test/work && make)
+	-mkdir cpan/libmarpa/test/dev/m4
+	(cd cpan/libmarpa/test/dev && autoreconf -ivf)
+	-mkdir cpan/libmarpa/test/work
+	(cd cpan/libmarpa/test/work && sh ../dev/configure)
+	(cd cpan/libmarpa/test/work && make)
