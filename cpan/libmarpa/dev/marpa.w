@@ -4900,6 +4900,25 @@ int _marpa_g_AHFA_state_is_predict(Marpa_Grammar g,
     return AHFA_is_Predicted(state);
 }
 
+@*0 The ISY right derivation matrix.
+The ISY right derivation matrix is used in determining which
+states are Leo completions.
+The bit for the $(|isy1|, |isy2|)$ duple is set if and only
+if |isy1| right derives a sentential form whose rightmost
+non-null symbol is |isy2|.
+Trivial derivations are included --
+the bit is set if $|isy1| = |isy2|$.
+
+@ @<Construct right derivation matrix@> = {
+    isy_right_derivation_matrix =
+	matrix_obs_create (obs_precompute, isy_count, isy_count);
+    @<Initialize the right derivation matrix@>@/
+    transitive_closure(isy_right_derivation_matrix);
+}
+
+@ @<Initialize the right derivation matrix@> = {
+}
+
 @*0 Leo LHS symbol.
 The Leo LHS symbol is the LHS of the AHFA state's rule,
 if that state can be a Leo completion.
@@ -4922,7 +4941,7 @@ Marpa_Symbol_ID _marpa_g_AHFA_state_leo_lhs_symbol(Marpa_Grammar g,
     return Leo_LHS_ISYID_of_AHFA(state);
 }
 
-@*0 Internal accessors.
+@*0 Sorting AHFA states.
 @ The ordering of the AHFA states can be arbitrarily chosen
 to be efficient to compute.
 The only requirement is that states with identical sets
@@ -4971,6 +4990,7 @@ PRIVATE_NOT_INLINE int AHFA_state_cmp(
     @<Declare locals for creating AHFA states@>@;
     @<Initialize locals for creating AHFA states@>@;
    @<Construct prediction matrix@>@;
+   @<Construct right derivation matrix@>@;
    @<Construct initial AHFA states@>@;
    while ((p_working_state = DQUEUE_NEXT(states, AHFA_Object))) {
        @<Process an AHFA state from the working stack@>@;
@@ -4989,6 +5009,7 @@ PRIVATE_NOT_INLINE int AHFA_state_cmp(
    const unsigned int initial_no_of_states = 2*AIM_Count_of_G(g);
    AIM AHFA_item_0_p = g->t_AHFA_items;
    Bit_Matrix prediction_matrix;
+   Bit_Matrix isy_right_derivation_matrix;
    IRL* irl_by_sort_key = my_new(IRL, irl_count);
   Bit_Vector per_ahfa_complete_v = bv_obs_create (obs_precompute, isy_count);
   Bit_Vector per_ahfa_postdot_v = bv_obs_create (obs_precompute, isy_count);
@@ -5590,12 +5611,12 @@ states.
 @ @<Construct prediction matrix@> = {
     Bit_Matrix isy_by_isy_matrix =
 	matrix_obs_create (obs_precompute, isy_count, isy_count);
-    @<Initialize the symbol-by-symbol matrix@>@/
+    @<Initialize the isy-by-isy prediction matrix@>@/
     transitive_closure(isy_by_isy_matrix);
     @<Create the prediction matrix from the symbol-by-symbol matrix@>@/
 }
 
-@ @<Initialize the symbol-by-symbol matrix@> =
+@ @<Initialize the isy-by-isy prediction matrix@> =
 {
   IRLID irl_id;
   ISYID isyid;
