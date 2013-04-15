@@ -1110,9 +1110,8 @@ sub Marpa::R2::Scanless::R::value {
 } ## end sub Marpa::R2::Scanless::R::value
 
 sub Marpa::R2::Scanless::R::show_progress {
-     # Make the thick recognizer the new "self"
-     $_[0] = $_[0]->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
-     goto &Marpa::R2::Recognizer::show_progress;
+     my ($self, @args) = @_;
+     $self->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE]->show_progress(@args);
 }
 
 sub Marpa::R2::Scanless::R::lexeme_alternative {
