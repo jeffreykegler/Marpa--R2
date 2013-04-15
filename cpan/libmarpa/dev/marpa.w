@@ -2037,7 +2037,7 @@ And shorthand is counter-productive when it makes
 you lose track of what you are trying to say.
 @ @<Function definitions@> =
 PRIVATE_NOT_INLINE int
-duplicate_rule_cmp (const void *ap, const void *bp, void *param UNUSED)
+duplicate_rule_cmp (const void *ap, const void *bp, void *param @,@, UNUSED)
 {
   XRL xrl1 = (XRL) ap;
   XRL xrl2 = (XRL) bp;
@@ -2765,7 +2765,7 @@ symbol_instance_of_ahfa_item_get (AIM aim)
   int position = Position_of_AIM (aim);
   const int null_count = Null_Count_of_AIM(aim);
   if (position < 0 || position - null_count > 0) {
-      /* If this AHFA item is not a predictiion */
+      /* If this AHFA item is not a prediction */
       const IRL irl = IRL_of_AIM (aim);
       position = Position_of_AIM(aim-1);
       return SYMI_of_IRL(irl) + position;
@@ -2934,7 +2934,7 @@ struct sym_rule_pair
 PRIVATE_NOT_INLINE int sym_rule_cmp(
     const void* ap,
     const void* bp,
-    void *param UNUSED)
+    void *param @,@, UNUSED)
 {
     const struct sym_rule_pair * pair_a = (struct sym_rule_pair *)ap;
     const struct sym_rule_pair * pair_b = (struct sym_rule_pair *)bp;
@@ -4942,7 +4942,7 @@ indexed by the ID of their only AHFA item.
 PRIVATE_NOT_INLINE int AHFA_state_cmp(
     const void* ap,
     const void* bp,
-    void *param UNUSED)
+    void *param @,@, UNUSED)
 {
     AIM* items_a;
     AIM* items_b;
@@ -5269,7 +5269,7 @@ a start rule completion, and it is a
 @
 Assuming this is a 1-item completion, mark this state as
 a Leo completion if the last non-nulling symbol is on a LHS.
-(This eliminates rule which end in a terminal-only symbol from
+(This eliminates rules which end in a terminal-only symbol from
 consideration in the Leo logic.)
 We know that there is a non-nulling symbol, because there is
 one is every non-nulling rule, the only non-nulling rule will
@@ -9502,7 +9502,7 @@ instead a source link is added to the present Earley item.
 An AHFA state may contain completions for more than one LHS,
 but that is rare in practical use, and the number of completed
 LHS symbols in the exceptions remains low.
-The very complex perl AHFA contains 271 states with completions.
+The very complex Perl AHFA contains 271 states with completions.
 Of these 268 have only one completed symbol.
 The other three AHFA states complete only two different LHS symbols.
 Two states have completions with both
@@ -9516,8 +9516,9 @@ These HTML grammars can differ from each other.
 because Marpa takes the HTML input into account when
 generating the grammar.
 In my HTML test suite,
-of the 14,782 of the AHFA states, every
-single one has only one completed LHS symbol.
+every single one
+of the 14,782 AHFA states
+has only one completed LHS symbol.
 
 @*0 CHAF duplicate and-nodes.
 There are three ways in which the same and-node can occur multiple
@@ -10741,10 +10742,10 @@ predecessor.  Set |or_node| to 0 if there is none.
   psar_destroy (and_psar);
 }
 
-@ I think the and PSL's and or PSL's are not actually used at the
+@ I think the and-PSL's and or-PSL's are not actually used at the
 same time, so the same field might be used for both.
 More significantly, a simple $O(n^2)$ sort of the 
-draft and-nodes would spot duplicates more efficiently in 99%
+draft and-nodes would spot duplicates more efficiently in 99\%
 of cases, although it would not be $O(n)$ as the PSL's are.
 The best of both worlds could be had by using the sort when
 there are less than, say, 7 and-nodes, and the PSL's otherwise.
@@ -10752,7 +10753,7 @@ there are less than, say, 7 and-nodes, and the PSL's otherwise.
 The PSL is not needed to find the draft and-nodes -- it's
 essentially just a boolean to indicate whether it exists.
 But "stale" booleans must still be detected.
-The solutiion adopted is to put the parent or-node
+The solution adopted is to put the parent or-node
 into the PSL.
 If the PSL contains the current parent or-node,
 the draft and-node is a duplicate within that or-node.
@@ -11028,7 +11029,7 @@ static const struct marpa_progress_item progress_report_not_ready = { -2, -2, -2
 PRIVATE_NOT_INLINE int report_item_cmp (
     const void* ap,
     const void* bp,
-    void *param UNUSED)
+    void *param @,@, UNUSED)
 {
     const struct marpa_progress_item* const report_a = ap;
     const struct marpa_progress_item* const report_b = bp;
@@ -11270,7 +11271,7 @@ struct marpa_bocage {
 
 @ @<Unpack bocage objects@> =
     const INPUT input = I_of_B(b);
-    const GRAMMAR g UNUSED = G_of_I(input);
+    const GRAMMAR g @,@, UNUSED = G_of_I(input);
 
 @*0 The bocage obstack.
 An obstack with the lifetime of the bocage.
@@ -11830,23 +11831,6 @@ int marpa_o_high_rank_only( Marpa_Order o)
 This function
 sets the order in which the and-nodes of an
 or-node are used.
-It is an error if an and-node ID is not the 
-immediate child of the specified or-node,
-or if the and-node is specified twice,
-or if an ordering has already been specified for
-the or-node.
-@ For a given bocage,
-this function may not be used to order
-the same or-node more than once.
-In other words, after you have once specified an order
-for the and-nodes within an or-node,
-you cannot change it.
-Some applications might find this inconvenient,
-and will have to resort to their own buffering
-to prevent multiple changes.
-But most applications won't care, and
-will benefit from the faster memory allocation
-this restriction allows.
 
 @ Using a boolean vector for
 the index of an and-node within an or-node,
@@ -12825,7 +12809,7 @@ My current best bound on the
 worst case for virtual stack size is as follows.
 \par
 The virtual stack only grows once for each virtual
-rules.
+rule.
 To be virtual, a rule must divide into a least two
 "real" or rewritten, rules, so worst case is half
 of all applications of real rules grow the virtual
@@ -13240,11 +13224,10 @@ for the rule.
 @ @<Perform evaluation steps@> =
 {
     AND and_nodes;
-    /* flag to indicate whether the arguments of
+    int pop_arguments = 1; /* flag to indicate whether the arguments of
        a rule should be popped off the stack.  Coming
        into this loop that is always the case -- if
        no rule was executed, this is a no-op. */
-    int pop_arguments = 1;
     @<Unpack value objects@>@;
     @<Fail if fatal error@>@;
     and_nodes = ANDs_of_B(B_of_O(o));
@@ -14897,8 +14880,8 @@ void marpa_debug_level_set( int level )
 A function to print a descriptive tag for
 an Earley item.
 @<Debug function prototypes@> =
-static const char* eim_tag_safe(char *buffer, EIM eim) UNUSED;
-static const char* eim_tag(EIM eim) UNUSED;
+static const char* eim_tag_safe(char *buffer, EIM eim) @,@, UNUSED;
+static const char* eim_tag(EIM eim) @,@, UNUSED;
 @ It is passed a buffer to keep it thread-safe.
 @<Debug function definitions@> =
 static const char *
@@ -14922,8 +14905,8 @@ eim_tag (EIM eim)
 A function to print a descriptive tag for
 an Leo item.
 @<Debug function prototypes@> =
-static char* lim_tag_safe (char *buffer, LIM lim) UNUSED;
-static char* lim_tag (LIM lim) UNUSED;
+static char* lim_tag_safe (char *buffer, LIM lim) @,@, UNUSED;
+static char* lim_tag (LIM lim) @,@, UNUSED;
 @ This function is passed a buffer to keep it thread-safe.
 be made thread-safe.
 @<Debug function definitions@> =
@@ -14948,8 +14931,8 @@ an or-node item.
 One is thread-safe, the other is
 more convenient but not thread-safe.
 @<Debug function prototypes@> =
-static const char* or_tag_safe(char *buffer, OR or) UNUSED;
-static const char* or_tag(OR or) UNUSED;
+static const char* or_tag_safe(char *buffer, OR or) @,@, UNUSED;
+static const char* or_tag(OR or) @,@, UNUSED;
 @ It is passed a buffer to keep it thread-safe.
 @<Debug function definitions@> =
 static const char *
@@ -14980,8 +14963,8 @@ The other uses a global buffer,
 which is not thread-safe, but
 convenient when debugging in a non-threaded environment.
 @<Debug function prototypes@> =
-static const char* aim_tag_safe(char *buffer, AIM aim) UNUSED;
-static const char* aim_tag(AIM aim) UNUSED;
+static const char* aim_tag_safe(char *buffer, AIM aim) @,@, UNUSED;
+static const char* aim_tag(AIM aim) @,@, UNUSED;
 @ @<Debug function definitions@> =
 static const char *
 aim_tag_safe (char * buffer, AIM aim)
