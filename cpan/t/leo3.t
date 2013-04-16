@@ -73,12 +73,12 @@ END_OF_STRING
 Marpa::R2::Test::is( $grammar->show_AHFA, <<'END_OF_STRING', 'Leo166 AHFA' );
 * S0:
 S['] -> . S
- <S> => S2; leo(S['])
+ <S> => S2
 * S1: predict
 S -> . a A
 S -> . a A[]
  <a> => S3; S4
-* S2: leo-c
+* S2:
 S['] -> S .
 * S3:
 S -> a . A
