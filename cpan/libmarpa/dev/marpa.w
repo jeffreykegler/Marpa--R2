@@ -2612,6 +2612,12 @@ int _marpa_g_irl_is_virtual_rhs(
     return IRL_has_Virtual_RHS(IRL_by_ID(irl_id));
 }
 
+@*0 IRL is right recursive?.
+@d IRL_is_Right_Recursive(irl) ((irl)->t_is_right_recursive)
+@<Bit aligned IRL elements@> = unsigned int t_is_right_recursive:1;
+@ @<Initialize IRL elements@> =
+IRL_is_Right_Recursive(irl) = 0;
+
 @*0 Rule real symbol count.
 This is another data element used for the ``internal semantics" --
 the logic to reassemble results of rewritten rules so that they
@@ -4914,6 +4920,7 @@ the bit is set if $|isy1| = |isy2|$.
 	matrix_obs_create (obs_precompute, isy_count, isy_count);
     @<Initialize the right derivation matrix@>@/
     transitive_closure(isy_right_derivation_matrix);
+    @<Mark the right recursive IRLs@>@/
 }
 
 @ @<Initialize the right derivation matrix@> =
@@ -4935,6 +4942,33 @@ one non-nulling symbol in each IRL. */
 	      matrix_bit_set (isy_right_derivation_matrix,
 			      (unsigned int) LHSID_of_IRL (irl),
 			      (unsigned int) rh_isyid);
+	      break;
+	    }
+	}
+    }
+}
+
+@ @<Mark the right recursive IRLs@> =
+{
+  IRLID irl_id;
+  for (irl_id = 0; irl_id < irl_count; irl_id++)
+    {
+      const IRL irl = IRL_by_ID (irl_id);
+      int rhs_ix;
+      for (rhs_ix = Length_of_IRL (irl) - 1; rhs_ix > 0; rhs_ix--)
+	{
+	  const ISYID rh_isyid = RHSID_of_IRL (irl, rhs_ix);
+	  if (!ISY_is_Nulling (ISY_by_ID (rh_isyid)))
+	    {
+/* Does the last non-nulling symbol right derive the LHS?
+If so, the rule is right recursive.
+(There is at least one non-nulling symbol in each IRL.) */
+	      if (matrix_bit_test (isy_right_derivation_matrix,
+				   (unsigned int) rh_isyid,
+				   (unsigned int) LHSID_of_IRL (irl)))
+		{
+		  IRL_is_Right_Recursive (irl) = 1;
+		}
 	      break;
 	    }
 	}
