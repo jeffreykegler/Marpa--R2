@@ -4931,7 +4931,7 @@ the bit is set if $|isy1| = |isy2|$.
       const IRL irl = IRL_by_ID(irl_id);
       int rhs_ix;
       for (rhs_ix = Length_of_IRL(irl) - 1;
-	  rhs_ix > 0;
+	  rhs_ix >= 0;
 	  rhs_ix-- )
 	{ @/@,
 /* LHS right dervies the last non-nulling symbol.  There is at least
@@ -4955,7 +4955,7 @@ one non-nulling symbol in each IRL. */
     {
       const IRL irl = IRL_by_ID (irl_id);
       int rhs_ix;
-      for (rhs_ix = Length_of_IRL (irl) - 1; rhs_ix > 0; rhs_ix--)
+      for (rhs_ix = Length_of_IRL (irl) - 1; rhs_ix >= 0; rhs_ix--)
 	{
 	  const ISYID rh_isyid = RHSID_of_IRL (irl, rhs_ix);
 	  if (!ISY_is_Nulling (ISY_by_ID (rh_isyid)))
@@ -5288,12 +5288,12 @@ a start rule completion, and it is a
 @<Create a 1-item discovered AHFA state@> = {
     AHFA p_new_state;
     AIM* new_state_item_list;
-    AIM single_item_p = item_list[first_working_item_ix];
-    Marpa_AHFA_Item_ID single_item_id;
+    AIM working_aim_p = item_list[first_working_item_ix];
+    Marpa_AHFA_Item_ID working_aim_id;
     ISYID postdot_isyid;
-    single_item_p++;		// Transition to next item for this rule
-    single_item_id = single_item_p - AHFA_item_0_p;
-    p_new_state = singleton_duplicates[single_item_id];
+    working_aim_p++;		// Transition to next item for this rule
+    working_aim_id = working_aim_p - AHFA_item_0_p;
+    p_new_state = singleton_duplicates[working_aim_id];
     if (p_new_state)
       {				/* Do not add, this is a duplicate */
 	transition_add (obs_precompute, p_working_state, working_isyid, p_new_state);
@@ -5302,16 +5302,16 @@ a start rule completion, and it is a
     p_new_state = DQUEUE_PUSH (states, AHFA_Object);
     /* Create a new AHFA state */
     AHFA_initialize(p_new_state);
-    singleton_duplicates[single_item_id] = p_new_state;
+    singleton_duplicates[working_aim_id] = p_new_state;
     new_state_item_list = p_new_state->t_items =
 	my_obstack_alloc (g->t_obs, sizeof (AIM));
-    new_state_item_list[0] = single_item_p;
+    new_state_item_list[0] = working_aim_p;
     p_new_state->t_item_count = 1;
     AHFA_is_Predicted(p_new_state) = 0;
     p_new_state->t_key.t_id = p_new_state - DQUEUE_BASE (states, AHFA_Object);
     TRANSs_of_AHFA(p_new_state) = transitions_new(g, isy_count);
     transition_add (obs_precompute, p_working_state, working_isyid, p_new_state);
-    postdot_isyid = Postdot_ISYID_of_AIM(single_item_p);
+    postdot_isyid = Postdot_ISYID_of_AIM(working_aim_p);
     if (postdot_isyid >= 0)
       {
 	ISYID* p_postdot_isyidary = Postdot_ISYIDAry_of_AHFA(p_new_state) =
@@ -5330,7 +5330,7 @@ a start rule completion, and it is a
       }
     else
       {
-	ISYID lhs_isyid = LHS_ISYID_of_AIM(single_item_p);
+	ISYID lhs_isyid = LHS_ISYID_of_AIM(working_aim_p);
 	ISYID* complete_isyids = my_obstack_alloc (g->t_obs, sizeof (ISYID));
 	*complete_isyids = lhs_isyid;
 	Complete_ISYIDs_of_AHFA(p_new_state) = complete_isyids;
@@ -5345,37 +5345,13 @@ a start rule completion, and it is a
 
 @
 Assuming this is a 1-item completion, mark this state as
-a Leo completion if the last non-nulling symbol is on a LHS.
-(This eliminates rules which end in a terminal-only symbol from
-consideration in the Leo logic.)
-We know that there is a non-nulling symbol, because there is
-one is every non-nulling rule, the only non-nulling rule will
-be in AHFA state 0, and AHFA state 0 is
-handled as a special cases.
-\par
-As a note, the current logic makes an item an Leo completion
-if the last non-nulling symbol is on a LHS.
-With a bit more trouble, I could determine
-which rules are right-recursive.
-I would need to compute a transitive closure on the relationship
-``X right-derives Y" and then consider a state to be
-a Leo completion
-only if the LHS of the rule in its only item right-derives its
-last non-nulling symbol.
-
-@ The expression below takes the first (and only) item in
-the current state, and finds its closest previous non-nulling
-symbol.
-This will be the postdot symbol of the AHFA item just prior,
-which can be found by simply decrementing the pointer.
-If the predot symbol of an item is on the LHS of any rule,
-then that state is a Leo completion.
+a Leo completion if the rule is right recursive.
+This is an enhancement from Leo 1991.
 @<If this state can be a Leo completion,
 set the Leo completion symbol to |lhs_id|@> =
 {
-  AIM previous_ahfa_item = single_item_p - 1;
-  ISYID predot_isyid = Postdot_ISYID_of_AIM (previous_ahfa_item);
-  if (ISY_is_LHS(ISY_by_ID (predot_isyid)))
+  const IRL aim_irl = IRL_of_AIM (working_aim_p);
+  if (IRL_is_Right_Recursive(aim_irl))
     {
       Leo_LHS_ISYID_of_AHFA (p_new_state) = lhs_isyid;
     }
