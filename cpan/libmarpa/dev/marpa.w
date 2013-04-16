@@ -4916,7 +4916,29 @@ the bit is set if $|isy1| = |isy2|$.
     transitive_closure(isy_right_derivation_matrix);
 }
 
-@ @<Initialize the right derivation matrix@> = {
+@ @<Initialize the right derivation matrix@> =
+{
+  IRLID irl_id;
+  for (irl_id = 0; irl_id < irl_count; irl_id++)
+    {
+      const IRL irl = IRL_by_ID(irl_id);
+      int rhs_ix;
+      for (rhs_ix = Length_of_IRL(irl) - 1;
+	  rhs_ix > 0;
+	  rhs_ix-- )
+	{ @/@,
+/* LHS right dervies the last non-nulling symbol.  There is at least
+one non-nulling symbol in each IRL. */
+	  const ISYID rh_isyid = RHSID_of_IRL (irl, rhs_ix);
+	  if (!ISY_is_Nulling (ISY_by_ID (rh_isyid)))
+	    {
+	      matrix_bit_set (isy_right_derivation_matrix,
+			      (unsigned int) LHSID_of_IRL (irl),
+			      (unsigned int) rh_isyid);
+	      break;
+	    }
+	}
+    }
 }
 
 @*0 Leo LHS symbol.
