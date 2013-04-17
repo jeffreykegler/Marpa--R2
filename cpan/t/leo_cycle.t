@@ -87,12 +87,12 @@ END_OF_STRING
 my $expected_ahfa_output = <<'END_OF_STRING';
 * S0:
 S['] -> . S
- <S> => S2; leo(S['])
+ <S> => S2
 * S1: predict
 S -> . a A
 S -> . a A[]
  <a> => S3; S4
-* S2: leo-c
+* S2:
 S['] -> S .
 * S3:
 S -> a . A

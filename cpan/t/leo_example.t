@@ -136,7 +136,7 @@ my $show_AHFA_output = $grammar->show_AHFA();
 Marpa::R2::Test::is( $show_AHFA_output, <<'END_AHFA', 'Leo Example AHFA' );
 * S0:
 Statement['] -> . Statement
- <Statement> => S2; leo(Statement['])
+ <Statement> => S2
 * S1: predict
 Statement -> . Expression
 Expression -> . Lvalue AssignOp Expression
@@ -145,12 +145,12 @@ Expression -> . Lvalue MinusAssignOp Expression
 Expression -> . Lvalue MultiplyAssignOp Expression
 Expression -> . Variable
 Lvalue -> . Variable
- <Expression> => S3; leo(Statement)
+ <Expression> => S3
  <Lvalue> => S4
  <Variable> => S5
-* S2: leo-c
+* S2:
 Statement['] -> Statement .
-* S3: leo-c
+* S3:
 Statement -> Expression .
 * S4:
 Expression -> Lvalue . AssignOp Expression
