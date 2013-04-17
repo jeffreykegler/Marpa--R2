@@ -167,13 +167,13 @@ Marpa::R2::Test::is( ${$actual_ref},
     <<'END_AHFA', 'Ambiguous Equation AHFA' );
 * S0:
 E['] -> . E
- <E> => S2; leo(E['])
+ <E> => S2
 * S1: predict
 E -> . E Op E
 E -> . Number
  <E> => S3
  <Number> => S4
-* S2: leo-c
+* S2:
 E['] -> E .
 * S3:
 E -> E . Op E

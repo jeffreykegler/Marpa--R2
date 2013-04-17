@@ -68,7 +68,7 @@ Marpa::R2::Test::is( $grammar->show_AHFA,
     <<'END_OF_STRING', 'duplicate parse AHFA' );
 * S0:
 S['] -> . S
- <S> => S2; leo(S['])
+ <S> => S2
 * S1: predict
 S -> . p p S[R0:2]
 S -> . p p[] S[R0:2]
@@ -78,11 +78,11 @@ S[R0:2] -> . p n
 S[R0:2] -> p[] . n
 p -> . a
 n -> . a
- <S[R0:2]> => S7; leo(S)
+ <S[R0:2]> => S7
  <a> => S3
- <n> => S6; leo(S[R0:2])
+ <n> => S6
  <p> => S4; S5
-* S2: leo-c
+* S2:
 S['] -> S .
 * S3:
 p -> a .
@@ -93,7 +93,7 @@ S -> p p[] . S[R0:2]
 S -> p[] p . S[R0:2]
 S[R0:2] -> p . n
  <S[R0:2]> => S10
- <n> => S9; leo(S[R0:2])
+ <n> => S9
  <p> => S5; S8
 * S5: predict
 S[R0:2] -> . p n
@@ -101,27 +101,27 @@ S[R0:2] -> p[] . n
 p -> . a
 n -> . a
  <a> => S3
- <n> => S6; leo(S[R0:2])
+ <n> => S6
  <p> => S11; S12
-* S6: leo-c
+* S6:
 S[R0:2] -> p[] n .
-* S7: leo-c
+* S7:
 S -> p[] p[] S[R0:2] .
 * S8:
 S -> p p . S[R0:2]
- <S[R0:2]> => S13; leo(S)
-* S9: leo-c
+ <S[R0:2]> => S13
+* S9:
 S[R0:2] -> p n .
 * S10:
 S -> p p[] S[R0:2] .
 S -> p[] p S[R0:2] .
 * S11:
 S[R0:2] -> p . n
- <n> => S9; leo(S[R0:2])
+ <n> => S9
 * S12: predict
 n -> . a
  <a> => S14
-* S13: leo-c
+* S13:
 S -> p p S[R0:2] .
 * S14:
 n -> a .

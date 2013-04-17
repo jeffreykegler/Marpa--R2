@@ -106,7 +106,7 @@ Marpa::R2::Test::is( $show_AHFA_output,
     <<'END_AHFA', 'Implementation Example AHFA' );
 * S0:
 Expression['] -> . Expression
- <Expression> => S2; leo(Expression['])
+ <Expression> => S2
 * S1: predict
 Expression -> . Term
 Term -> . Factor
@@ -116,7 +116,7 @@ Factor -> . Factor Multiply Factor
  <Factor> => S4
  <Number> => S5
  <Term> => S3
-* S2: leo-c
+* S2:
 Expression['] -> Expression .
 * S3:
 Expression -> Term .
