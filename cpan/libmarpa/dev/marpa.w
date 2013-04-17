@@ -5132,7 +5132,8 @@ PRIVATE_NOT_INLINE int AHFA_state_cmp(
 NEXT_AHFA_STATE:;
 }
 
-@ @<Resize the transitions@> =
+@ Here is where the final transitions are allocated.
+@<Resize the transitions@> =
 {
      int ahfa_id;
      for (ahfa_id = 0; ahfa_id < ahfa_count_of_g; ahfa_id++) {
@@ -5155,7 +5156,14 @@ NEXT_AHFA_STATE:;
 	}
 }
 
-@ @<Populate the completed symbol data in the transitions@> =
+@ Earlier we counted the number of completions,
+recorded it in |LV_Completion_Count_of_TRANS|,
+allocated the space,
+and then zeroed |LV_Completion_Count_of_TRANS|.
+Here we actually copy the data in,
+incrementing
+|LV_Completion_Count_of_TRANS| as we do.
+@<Populate the completed symbol data in the transitions@> =
 {
      int ahfa_id;
      for (ahfa_id = 0; ahfa_id < ahfa_count_of_g; ahfa_id++) {
@@ -6002,7 +6010,11 @@ void transition_add(struct obstack *obstack, AHFA from_ahfa, ISYID isyid, AHFA t
     return;
 }
 
-@ @<Function definitions@> =
+@ The completion data is populated in two stages.
+First a count is kept, so that the array can be properly sized.
+Once all the counts are complete,
+the array is populated.
+@<Function definitions@> =
 PRIVATE
 void completion_count_inc(struct obstack *obstack, AHFA from_ahfa, ISYID isyid)
 {
