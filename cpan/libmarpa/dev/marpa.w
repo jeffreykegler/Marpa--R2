@@ -4751,12 +4751,10 @@ PRIVATE void AHFA_initialize(AHFA ahfa)
 }
 
 @*0 Complete symbols container.
-@ @d Complete_ISYIDs_of_AHFA(state) ((state)->t_complete_isyids)
-@d Complete_ISY_Count_of_AHFA(state) ((state)->t_complete_isy_count)
-@<Int aligned AHFA state elements@> =
-unsigned int t_complete_isy_count;
+@ @d Complete_ISYID_of_AHFA(state, ix) Item_of_CIL((state)->t_complete_isyids, (ix))
+@d Complete_ISY_Count_of_AHFA(state) Count_of_CIL((state)->t_complete_isyids)
 @ @<Widely aligned AHFA state elements@> =
-ISYID* t_complete_isyids;
+CIL t_complete_isyids;
 
 @*0 AHFA item container.
 @ @d AIMs_of_AHFA(ahfa) ((ahfa)->t_items)
@@ -5240,6 +5238,7 @@ _marpa_avl_destroy(duplicates);
   AHFA p_initial_state = DQUEUE_PUSH (states, AHFA_Object);
   const IRL start_irl = g->t_start_irl;
   ISYID *postdot_isyidary;
+  CIL complete_isyids;
   AIM start_item;
   ISYID postdot_isyid;
   AIM *item_list = my_obstack_alloc (g->t_obs, sizeof (AIM));
@@ -5257,7 +5256,8 @@ _marpa_avl_destroy(duplicates);
     my_obstack_alloc (g->t_obs, sizeof (ISYID));
   postdot_isyid = Postdot_ISYID_of_AIM (start_item);
   *postdot_isyidary = postdot_isyid;
-  Complete_ISY_Count_of_AHFA (p_initial_state) = 0;
+  complete_isyids = p_initial_state->t_complete_isyids = my_obstack_alloc(g->t_obs, Sizeof_CIL(0));
+  Count_of_CIL (complete_isyids) = 0;
   p_initial_state->t_empty_transition = create_predicted_AHFA_state (g,
 			       matrix_row (prediction_matrix,
 					   (unsigned int) postdot_isyid),
@@ -5324,6 +5324,7 @@ a start rule completion, and it is a
       {
 	ISYID* p_postdot_isyidary = Postdot_ISYIDAry_of_AHFA(p_new_state) =
 	  my_obstack_alloc (g->t_obs, sizeof (ISYID));
+	p_new_state->t_complete_isyids = my_obstack_alloc(g->t_obs, Sizeof_CIL(0));
 	Complete_ISY_Count_of_AHFA(p_new_state) = 0;
 	Postdot_ISY_Count_of_AHFA(p_new_state) = 1;
 	*p_postdot_isyidary = postdot_isyid;
@@ -5339,11 +5340,12 @@ a start rule completion, and it is a
     else
       {
 	ISYID lhs_isyid = LHS_ISYID_of_AIM(working_aim_p);
-	ISYID* complete_isyids = my_obstack_alloc (g->t_obs, sizeof (ISYID));
-	*complete_isyids = lhs_isyid;
-	Complete_ISYIDs_of_AHFA(p_new_state) = complete_isyids;
-	completion_count_inc(obs_precompute, p_new_state, lhs_isyid);
+
+	p_new_state->t_complete_isyids = my_obstack_alloc(g->t_obs, Sizeof_CIL(1));
 	Complete_ISY_Count_of_AHFA(p_new_state) = 1;
+	Complete_ISYID_of_AHFA(p_new_state, 0) = lhs_isyid;
+	completion_count_inc(obs_precompute, p_new_state, lhs_isyid);
+
 	Postdot_ISY_Count_of_AHFA(p_new_state) = 0;
 	p_new_state->t_empty_transition = NULL;
 	@<If this state can be a Leo completion,
@@ -5509,7 +5511,6 @@ of minimum sizes.
 {
   int item_ix;
   int no_of_postdot_isys;
-  int no_of_complete_symbols;
   bv_clear(per_ahfa_complete_v);
   bv_clear(per_ahfa_postdot_v);
   for (item_ix = 0; item_ix < no_of_items_in_new_state; item_ix++)
@@ -5544,15 +5545,13 @@ of minimum sizes.
 	    }
 	}
     }
-  if ((no_of_complete_symbols =
-       Complete_ISY_Count_of_AHFA (p_new_state) = bv_count (per_ahfa_complete_v)))
     {
       unsigned int min, max, start;
-      ISYID *complete_isyids = my_obstack_alloc (g->t_obs,
-						 no_of_complete_symbols *
-						 sizeof (ISYID));
-      ISYID *p_isyid = complete_isyids;
-      Complete_ISYIDs_of_AHFA (p_new_state) = complete_isyids;
+      int isy_ix = 0;
+    const int complete_isyid_count = bv_count (per_ahfa_complete_v);
+      p_new_state->t_complete_isyids =
+	my_obstack_alloc(g->t_obs, Sizeof_CIL(complete_isyid_count));
+     Complete_ISY_Count_of_AHFA (p_new_state) = complete_isyid_count;
       for (start = 0; bv_scan (per_ahfa_complete_v, start, &min, &max);
 	   start = max + 2)
 	{
@@ -5560,7 +5559,8 @@ of minimum sizes.
 	  for (complete_isyid = (ISYID) min;
 	       complete_isyid <= (ISYID) max; complete_isyid++)
 	    {
-	      *p_isyid++ = complete_isyid;
+	      Complete_ISYID_of_AHFA(p_new_state, isy_ix) = complete_isyid;
+	      isy_ix++;
 	    }
 	}
     }
@@ -5802,6 +5802,7 @@ create_predicted_AHFA_state(
      AIM* item_list_working_buffer
      )
 {
+  CIL complete_isyids;
   AHFA p_new_state;
   int item_list_ix = 0;
   int no_of_items_in_new_state = bv_count (prediction_rule_vector);
@@ -5850,6 +5851,8 @@ create_predicted_AHFA_state(
   AHFA_is_Predicted (p_new_state) = 1;
   p_new_state->t_empty_transition = NULL;
   TRANSs_of_AHFA (p_new_state) = transitions_new (g, ISY_Count_of_G(g));
+    complete_isyids =
+	p_new_state->t_complete_isyids = my_obstack_alloc(g->t_obs, Sizeof_CIL(0));
   Complete_ISY_Count_of_AHFA (p_new_state) = 0;
   @<Calculate postdot symbols for predicted state@>@;
   return p_new_state;
@@ -6904,8 +6907,8 @@ The only awkwardness takes place
 when the second source is added, and the first one must
 be recopied to make way for pointers to the linked lists.
 @d EIM_FATAL_THRESHOLD (INT_MAX/4)
-@d Complete_ISYIDs_of_EIM(item) 
-    Complete_ISYIDs_of_AHFA(AHFA_of_EIM(item))
+@d Complete_ISYID_of_EIM(item, ix) 
+    Complete_ISYID_of_AHFA(AHFA_of_EIM(item), (ix))
 @d Complete_ISY_Count_of_EIM(item)
     Complete_ISY_Count_of_AHFA(AHFA_of_EIM(item))
 @d Leo_LHS_ISYID_of_EIM(eim) Leo_LHS_ISYID_of_AHFA(AHFA_of_EIM(eim))
@@ -8927,13 +8930,12 @@ The return value means success, with no events.
 add those Earley items it ``causes".
 @<Add new Earley items for |cause|@> =
 {
-  ISYID *complete_isyids = Complete_ISYIDs_of_EIM (cause);
   int count = Complete_ISY_Count_of_EIM (cause);
   ES middle = Origin_of_EIM (cause);
   int isy_ix;
   for (isy_ix = 0; isy_ix < count; isy_ix++)
     {
-      ISYID complete_isyid = complete_isyids[isy_ix];
+      ISYID complete_isyid = Complete_ISYID_of_EIM(cause, isy_ix);
       @<Add new Earley items for |complete_isyid| and |cause|@>@;
     }
 }
@@ -13361,6 +13363,16 @@ for the rule.
 	if ( V_is_Trace(v)) break;
     }
 }
+
+@** Counted Integer lists (CIL).
+As a structure,
+almost not worth bothering with,
+except they go into an AVL's.
+@d Count_of_CIL(cil) (cil[0])
+@d Item_of_CIL(cil, ix) (cil[1+(ix)])
+@d Sizeof_CIL(ix) (sizeof(int) * (1+(ix)))
+@<Private typedefs@> =
+typedef int *CIL;
 
 @** Lightweight boolean vectors (LBV).
 These macros and functions assume that the 
