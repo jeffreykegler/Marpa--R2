@@ -134,7 +134,7 @@ Marpa::R2::Test::is( $grammar->show_AHFA,
     <<'END_AHFA', 'Minuses Equation AHFA' );
 * S0:
 E['] -> . E
- <E> => S2; leo(E['])
+ <E> => S2
 * S1: predict
 E -> . E Minus E
 E -> . E MinusMinus
@@ -145,7 +145,7 @@ E -> . Number
  <Minus> => S1; S3
  <MinusMinus> => S1; S4
  <Number> => S5
-* S2: leo-c
+* S2:
 E['] -> E .
 * S3:
 E -> Minus . E
