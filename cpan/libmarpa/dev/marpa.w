@@ -13364,15 +13364,67 @@ for the rule.
     }
 }
 
-@** Counted Integer lists (CIL).
+@** Counted integer lists (CIL).
 As a structure,
 almost not worth bothering with,
 except they go into an AVL's.
+The first |int| is a count, and purists might insist
+on a struct instead of an array.
+A struct would reflect the logical structure more
+accurately.
+But would it make the actual code 
+less readable, not more,
+which I believe has to be the object.
 @d Count_of_CIL(cil) (cil[0])
 @d Item_of_CIL(cil, ix) (cil[1+(ix)])
 @d Sizeof_CIL(ix) (sizeof(int) * (1+(ix)))
-@<Private typedefs@> =
-typedef int *CIL;
+@ An obstack for the actual data, and a tree
+for the lookups.
+@<Private structures@> =
+struct s_cil_arena {
+    struct obstack* t_obs;
+    AVL_TREE t_avl;
+};
+@ @<Private typedefs@> =
+typedef int* CIL;
+typedef struct s_cil_arena CILAR_Object;
+typedef CILAR_Object* CILAR;
+@ @<Function definitions@> =
+PRIVATE void
+cilar_init (const CILAR cilar)
+{
+  cilar->t_obs = my_obstack_init;
+  cilar->t_avl = _marpa_avl_create (cil_cmp, NULL, 0);
+}
+@ @<Function definitions@> =
+PRIVATE void cilar_destroy(const CILAR cilar)
+{
+  _marpa_avl_destroy (cilar->t_avl );
+  my_obstack_free(cilar->t_obs);
+}
+@ @<Function definitions@> =
+PRIVATE_NOT_INLINE int
+cil_cmp (const void *ap, const void *bp, void *param @,@, UNUSED)
+{
+  int ix;
+  CIL cil1 = (CIL) ap;
+  CIL cil2 = (CIL) bp;
+  int count1 = Count_of_CIL (cil1);
+  int count2 = Count_of_CIL (cil2);
+  if (count1 != count2)
+    {
+      return count1 > count2 ? 1 : -1;
+    }
+  for (ix = 0; ix < count1; ix++)
+    {
+      const int item1 = Item_of_CIL (cil1, ix);
+      const int item2 = Item_of_CIL (cil2, ix);
+      if (item1 == item2)
+	continue;
+      return item1 > item2 ? 1 : -1;
+    }
+  return 0;
+}
 
 @** Lightweight boolean vectors (LBV).
 These macros and functions assume that the 
