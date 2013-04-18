@@ -15,33 +15,9 @@
 
 Revision history for Marpa::R2
 
-2.051_010
-2.051_009
-2.051_008
+2.052000
 
-   * Release candidate
-
-2.051_007
-
-   * Add rank adverb to SLIF
-
-2.051_006
-
-    * Release candidate.
-
-2.051_005
-
-    * Add SLIF pause/resume, 
-
-    * Add :lexeme pseudo-rule w/ priority adverb.
-
-2.051_004
-2.051_003
-2.051_002
-2.051_001
-2.051_000
- 
-     * New series of developer's versions
+    * Add rank adverb, external scanning to SLIF
 
 2.050000 Mon Mar 18 08:59:04 PDT 2013
  
