@@ -1087,6 +1087,20 @@ g->t_xrl_obs = my_obstack_begin(0, alignof(struct s_xrl));
 my_obstack_free(g->t_obs);
 my_obstack_free(g->t_xrl_obs);
 
+@*0 The grammar constant integer list arena.
+Keeps constant integer lists with the same lifetime
+as the grammar.
+This arena is one of the grammar objects
+shared by all objects based on this grammar,
+something to be noted if grammars are ever to be shared
+by multiple threads.
+@<Widely aligned grammar elements@> =
+CILAR_Object t_cilar;
+@ @<Initialize grammar elements@> =
+cilar_init(&(g)->t_cilar);
+@ @<Destroy grammar elements@> =
+cilar_destroy(&(g)->t_cilar);
+
 @*0 The "is OK" word.
 The grammar needs a flag for a fatal error.
 This is an |int| for defensive coding reasons.
@@ -13367,7 +13381,7 @@ for the rule.
 @** Counted integer lists (CIL).
 As a structure,
 almost not worth bothering with,
-except they go into an AVL's.
+if it were not for its use in CILAR's.
 The first |int| is a count, and purists might insist
 on a struct instead of an array.
 A struct would reflect the logical structure more
@@ -13378,17 +13392,42 @@ which I believe has to be the object.
 @d Count_of_CIL(cil) (cil[0])
 @d Item_of_CIL(cil, ix) (cil[1+(ix)])
 @d Sizeof_CIL(ix) (sizeof(int) * (1+(ix)))
+@ @<Private typedefs@> =
+typedef int* CIL;
+
+@** Counted integer list arena (CILAR).
+These implement an especially efficient memory allocation scheme.
+Libmarpa needs many copies of integer lists,
+where the integers are symbol ID's, rule ID's, etc.
+The same ones are used again and again.
+The CILAR allows them to be allocated once and reused.
+\par
+The CILAR is a software implementation
+of memory which is both random-access
+and content-addressable.
+Content-addressability saves space -- when the
+contents are identical they can be reused.
+The content-addressability is implemented in software
+(as an AVL).
+While lookup is not slow
+the intention is that the content-addressability will used
+infrequently --
+once created or found the CIL will be memoized
+for random-access through a pointer.
+
 @ An obstack for the actual data, and a tree
 for the lookups.
-@<Private structures@> =
+@<Private utility structures@> =
 struct s_cil_arena {
     struct obstack* t_obs;
     AVL_TREE t_avl;
 };
-@ @<Private typedefs@> =
-typedef int* CIL;
 typedef struct s_cil_arena CILAR_Object;
-typedef CILAR_Object* CILAR;
+
+@ @<Private incomplete structures@> =
+struct s_cil_arena;
+@ @<Private typedefs@> =
+typedef struct s_cil_arena* CILAR;
 @ @<Function definitions@> =
 PRIVATE void
 cilar_init (const CILAR cilar)
