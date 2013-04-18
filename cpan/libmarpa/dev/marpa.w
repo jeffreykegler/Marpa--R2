@@ -13441,6 +13441,36 @@ PRIVATE void cilar_destroy(const CILAR cilar)
   _marpa_avl_destroy (cilar->t_avl );
   my_obstack_free(cilar->t_obs);
 }
+@ Returns a pointer to a CIL that is identical
+to the CIL-in-progress --
+the one being built on the obstack.
+The returned CIL will be in memory that will
+persist for the life of the CILAR.
+If the CIL-in-progress already exists in the CILAR,
+it is rejected and a pointer to the already existing
+CIL is returned.
+If
+the CIL-in-progress does not already exist in the CILAR,
+the CIL-in-progress is added to the CILAR,
+and a pointer to the CIL-in-progress is returned.
+@<Function definitions@> =
+PRIVATE CIL cil_finish(CILAR cilar)
+{
+    CIL cil_in_progress = (CIL)my_obstack_base(cilar->t_obs);
+    CIL found_cil = _marpa_avl_insert (cilar->t_avl, cil_in_progress);
+    if (found_cil) {
+        my_obstack_reject (cilar->t_obs);
+	return found_cil;
+    }
+    return cil_in_progress;
+}
+@ Reserve room for a CIL, and return a pointer to it.
+@<Function definitions@> =
+PRIVATE CIL cil_reserve(CILAR cilar, int length)
+{
+    return (CIL)my_obstack_reserve(cilar->t_obs, length);
+}
+
 @ @<Function definitions@> =
 PRIVATE_NOT_INLINE int
 cil_cmp (const void *ap, const void *bp, void *param @,@, UNUSED)

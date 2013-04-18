@@ -130,7 +130,8 @@ struct obstack * _marpa_obs_begin ( int size, int alignment)
 /* Allocate a new current chunk for the obstack *H
    on the assumption that LENGTH bytes need to be added
    to the current object, or a new object of length LENGTH allocated.
-   Copies any partial object from the end of the old chunk
+   Unlike original GNU obstacks, does *NOT*
+   copy any partial object from the end of the old chunk
    to the beginning of the new one.  */
 
 void

@@ -141,12 +141,6 @@ void _marpa_obs_free (struct obstack *__obstack);
 # define obstack_room(h)		\
  (unsigned) ((h)->chunk_limit - (h)->next_free)
 
-# define obstack_empty_p(h) \
- ((h)->chunk->prev == 0							\
-  && (h)->next_free == __BPTR_ALIGN ((char *) (h)->chunk,		\
-				    (h)->chunk->contents,		\
-				    (h)->alignment_mask))
-
 #if MARPA_OBSTACK_DEBUG
 #define NEED_CHUNK(h, length) (1)
 #else
