@@ -14051,8 +14051,12 @@ and include ``hidden words" before the pointer.
 @ Note that |typedef|'s for |Bit_Matrix|
 and |Bit_Vector| are identical.
 @s Bit_Matrix int
-@<Private typedefs@> =
-typedef Bit_Vector_Word* Bit_Matrix;
+@ @<Private structures@> =
+struct s_bit_matrix {
+    int t_row_count;
+    Bit_Vector_Word t_row_data[1];
+};
+typedef struct s_bit_matrix* Bit_Matrix;
 
 @*0 Create a boolean matrix.
 @ Here the pointer returned is the actual start of the
@@ -14065,12 +14069,13 @@ PRIVATE Bit_Matrix matrix_obs_create(struct obstack *obs, unsigned int rows, uns
     const unsigned int bv_data_words = bv_bits_to_size(columns);
     const unsigned int row_bytes = (bv_data_words + bv_hiddenwords) * sizeof(Bit_Vector_Word);
     const unsigned int bv_mask = bv_bits_to_unused_mask(columns);
-    const size_t allocation_size = row_bytes * rows;
-    Bit_Vector_Word* matrix_addr = my_obstack_alloc(obs, allocation_size);
+    const int sizeof_matrix = offsetof (struct s_bit_matrix, t_row_data) + (rows) * row_bytes;
+    Bit_Matrix matrix_addr = my_obstack_alloc(obs, sizeof_matrix);
+    matrix_addr->t_row_count = rows;
     unsigned int row;
     for (row = 0; row < rows; row++) {
 	const unsigned int row_start = row*(bv_data_words+bv_hiddenwords);
-	Bit_Vector_Word* p_current_word = matrix_addr + row_start;
+	Bit_Vector_Word* p_current_word = matrix_addr->t_row_data + row_start;
 	int data_word_counter = bv_data_words;
 	*p_current_word++ = columns;
 	*p_current_word++ = bv_data_words;
@@ -14078,6 +14083,23 @@ PRIVATE Bit_Matrix matrix_obs_create(struct obstack *obs, unsigned int rows, uns
 	while (data_word_counter--) *p_current_word++ = 0;
     }
     return matrix_addr;
+}
+
+@*0 Clear a boolean matrix.
+@<Function definitions@> =
+PRIVATE void matrix_clear(Bit_Matrix matrix)
+{
+    Bit_Vector row;
+    int row_ix;
+    const int row_count = matrix->t_row_count;
+    Bit_Vector row0 = matrix->t_row_data + bv_hiddenwords;
+    unsigned int words_per_row = BV_SIZE(row0)+bv_hiddenwords;
+    row_ix=0; row = row0;
+    while (row_ix < row_count) {
+	bv_clear(row);
+        row_ix++;
+	row += words_per_row;
+    }
 }
 
 @*0 Find the number of columns in a boolean matrix.
@@ -14089,8 +14111,8 @@ idea internally of how many rows it has.
 @<Function definitions@> =
 PRIVATE int matrix_columns(Bit_Matrix matrix)
 {
-    Bit_Vector row0 = matrix+bv_hiddenwords;
-     return BV_BITS(row0);
+    Bit_Vector row0 = matrix->t_row_data + bv_hiddenwords;
+    return BV_BITS(row0);
 }
 
 @*0 Find a row of a boolean matrix.
@@ -14105,7 +14127,7 @@ hidden words offset.
 @<Function definitions@> =
 PRIVATE Bit_Vector matrix_row(Bit_Matrix matrix, unsigned int row)
 {
-    Bit_Vector row0 = matrix+bv_hiddenwords;
+    Bit_Vector row0 = matrix->t_row_data + bv_hiddenwords;
     unsigned int words_per_row = BV_SIZE(row0)+bv_hiddenwords;
     return row0 + row*words_per_row;
 }
