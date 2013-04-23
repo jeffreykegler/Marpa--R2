@@ -5252,7 +5252,6 @@ _marpa_avl_destroy(duplicates);
   AHFA p_initial_state = DQUEUE_PUSH (states, AHFA_Object);
   const IRL start_irl = g->t_start_irl;
   ISYID *postdot_isyidary;
-  CIL complete_isyids;
   AIM start_item;
   ISYID postdot_isyid;
   AIM *item_list = my_obstack_alloc (g->t_obs, sizeof (AIM));
@@ -5270,8 +5269,8 @@ _marpa_avl_destroy(duplicates);
     my_obstack_alloc (g->t_obs, sizeof (ISYID));
   postdot_isyid = Postdot_ISYID_of_AIM (start_item);
   *postdot_isyidary = postdot_isyid;
-  complete_isyids = p_initial_state->t_complete_isyids = my_obstack_alloc(g->t_obs, Sizeof_CIL(0));
-  Count_of_CIL (complete_isyids) = 0;
+  cil_reserve(&g->t_cilar, 0);
+  p_initial_state->t_complete_isyids = cil_finish (&g->t_cilar);
   p_initial_state->t_empty_transition = create_predicted_AHFA_state (g,
 			       matrix_row (prediction_matrix,
 					   (unsigned int) postdot_isyid),
@@ -13468,7 +13467,9 @@ PRIVATE CIL cil_finish(CILAR cilar)
 @<Function definitions@> =
 PRIVATE CIL cil_reserve(CILAR cilar, int length)
 {
-    return (CIL)my_obstack_reserve(cilar->t_obs, length);
+    CIL cil = (CIL)my_obstack_reserve(cilar->t_obs, sizeof(int)*(length+1));
+    Count_of_CIL(cil) = length;
+    return cil;
 }
 
 @ @<Function definitions@> =
