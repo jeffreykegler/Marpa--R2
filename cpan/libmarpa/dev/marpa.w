@@ -5562,9 +5562,7 @@ of minimum sizes.
       unsigned int min, max, start;
       int isy_ix = 0;
     const int complete_isyid_count = bv_count (per_ahfa_complete_v);
-      p_new_state->t_complete_isyids =
-	my_obstack_alloc(g->t_obs, Sizeof_CIL(complete_isyid_count));
-     Complete_ISY_Count_of_AHFA (p_new_state) = complete_isyid_count;
+	CIL new_cil = cil_reserve(&g->t_cilar, complete_isyid_count);
       for (start = 0; bv_scan (per_ahfa_complete_v, start, &min, &max);
 	   start = max + 2)
 	{
@@ -5572,10 +5570,11 @@ of minimum sizes.
 	  for (complete_isyid = (ISYID) min;
 	       complete_isyid <= (ISYID) max; complete_isyid++)
 	    {
-	      Complete_ISYID_of_AHFA(p_new_state, isy_ix) = complete_isyid;
+	      Item_of_CIL(new_cil, isy_ix) = complete_isyid;
 	      isy_ix++;
 	    }
 	}
+	p_new_state->t_complete_isyids = cil_finish (&g->t_cilar);
     }
 }
 
