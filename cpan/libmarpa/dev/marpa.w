@@ -5337,8 +5337,8 @@ a start rule completion, and it is a
       {
 	ISYID* p_postdot_isyidary = Postdot_ISYIDAry_of_AHFA(p_new_state) =
 	  my_obstack_alloc (g->t_obs, sizeof (ISYID));
-	p_new_state->t_complete_isyids = my_obstack_alloc(g->t_obs, Sizeof_CIL(0));
-	Complete_ISY_Count_of_AHFA(p_new_state) = 0;
+	cil_reserve(&g->t_cilar, 0);
+	p_new_state->t_complete_isyids = cil_finish (&g->t_cilar);
 	Postdot_ISY_Count_of_AHFA(p_new_state) = 1;
 	*p_postdot_isyidary = postdot_isyid;
     /* If the sole item is not a completion
@@ -5353,10 +5353,10 @@ a start rule completion, and it is a
     else
       {
 	ISYID lhs_isyid = LHS_ISYID_of_AIM(working_aim_p);
-
-	p_new_state->t_complete_isyids = my_obstack_alloc(g->t_obs, Sizeof_CIL(1));
-	Complete_ISY_Count_of_AHFA(p_new_state) = 1;
-	Complete_ISYID_of_AHFA(p_new_state, 0) = lhs_isyid;
+	CIL new_cil;
+	new_cil = cil_reserve(&g->t_cilar, 1);
+	Item_of_CIL(new_cil, 0) = lhs_isyid;
+	p_new_state->t_complete_isyids = cil_finish (&g->t_cilar);
 	completion_count_inc(obs_precompute, p_new_state, lhs_isyid);
 
 	Postdot_ISY_Count_of_AHFA(p_new_state) = 0;
@@ -5866,7 +5866,8 @@ create_predicted_AHFA_state(
   TRANSs_of_AHFA (p_new_state) = transitions_new (g, ISY_Count_of_G(g));
     complete_isyids =
 	p_new_state->t_complete_isyids = my_obstack_alloc(g->t_obs, Sizeof_CIL(0));
-  Complete_ISY_Count_of_AHFA (p_new_state) = 0;
+  cil_reserve(&g->t_cilar, 0);
+  p_new_state->t_complete_isyids = cil_finish (&g->t_cilar);
   @<Calculate postdot symbols for predicted state@>@;
   return p_new_state;
 }
@@ -13461,13 +13462,16 @@ PRIVATE CIL cil_finish(CILAR cilar)
         my_obstack_reject (cilar->t_obs);
 	return found_cil;
     }
-    return cil_in_progress;
+    return (CIL)my_obstack_finish(cilar->t_obs);
 }
+
 @ Reserve room for a CIL, and return a pointer to it.
 @<Function definitions@> =
 PRIVATE CIL cil_reserve(CILAR cilar, int length)
 {
-    CIL cil = (CIL)my_obstack_reserve(cilar->t_obs, sizeof(int)*(length+1));
+    CIL cil;
+    my_obstack_reserve(cilar->t_obs, sizeof(int)*(length+1));
+    cil = (CIL)my_obstack_base(cilar->t_obs);
     Count_of_CIL(cil) = length;
     return cil;
 }
