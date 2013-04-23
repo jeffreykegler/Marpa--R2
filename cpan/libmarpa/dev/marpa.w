@@ -5037,16 +5037,16 @@ one non-nulling symbol in each IRL. */
 	  const ISYID lh_isyid = LHSID_of_IRL (irl);
 	  Bit_Vector bv_recursive_isyids =
 	    matrix_row (isy_by_right_isy_matrix, (unsigned long) lh_isyid);
-	  const int complete_isyid_count = bv_count (bv_recursive_isyids);
-	  CIL new_cil = cil_reserve (&g->t_cilar, complete_isyid_count);
+	  const int recursion_isyid_count = bv_count (bv_recursive_isyids);
+	  CIL new_cil = cil_reserve (&g->t_cilar, recursion_isyid_count);
 	  for (start = 0; bv_scan (bv_recursive_isyids, start, &min, &max);
 	       start = max + 2)
 	    {
-	      ISYID complete_isyid;
-	      for (complete_isyid = (ISYID) min;
-		   complete_isyid <= (ISYID) max; complete_isyid++)
+	      ISYID recursion_isyid;
+	      for (recursion_isyid = (ISYID) min;
+		   recursion_isyid <= (ISYID) max; recursion_isyid++)
 		{
-		  Item_of_CIL (new_cil, isy_ix) = complete_isyid;
+		  Item_of_CIL (new_cil, isy_ix) = recursion_isyid;
 		  isy_ix++;
 		}
 	    }
