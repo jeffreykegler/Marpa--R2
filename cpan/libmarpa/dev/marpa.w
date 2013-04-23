@@ -2626,11 +2626,18 @@ int _marpa_g_irl_is_virtual_rhs(
     return IRL_has_Virtual_RHS(IRL_by_ID(irl_id));
 }
 
-@*0 IRL is right recursive?.
+@*0 IRL right recursion status.
 @d IRL_is_Right_Recursive(irl) ((irl)->t_is_right_recursive)
 @<Bit aligned IRL elements@> = unsigned int t_is_right_recursive:1;
 @ @<Initialize IRL elements@> =
-IRL_is_Right_Recursive(irl) = 0;
+  IRL_is_Right_Recursive(irl) = 0;
+
+@ @d Recursion_ISYID_of_IRL(irl, ix) Item_of_CIL((irl)->t_recursion_isyids, (ix))
+@d Recursion_ISY_Count_of_IRL(irl) Count_of_CIL((irl)->t_recursion_isyids)
+@ @<Widely aligned IRL elements@> =
+CIL t_recursion_isyids;
+@ @<Initialize IRL elements@> =
+  irl->t_recursion_isyids = 0;
 
 @*0 Rule real symbol count.
 This is another data element used for the ``internal semantics" --
@@ -4936,6 +4943,7 @@ the bit is set if $|isy1| = |isy2|$.
     matrix_clear(isy_by_right_isy_matrix);
     @<Initialize the |isy_by_right_isy_matrix| for right recursions@>@/
     transitive_closure(isy_by_right_isy_matrix);
+    @<Set the recursion ISYIDs for each IRL@>@/
 }
 
 @ @<Initialize the |isy_by_right_isy_matrix| for right derivations@> =
@@ -4996,7 +5004,7 @@ If so, the rule is right recursive.
   for (irl_id = 0; irl_id < irl_count; irl_id++)
     {
       const IRL irl = IRL_by_ID(irl_id);
-      if (IRL_is_Right_Recursive(irl)) { continue; }
+      if (!IRL_is_Right_Recursive(irl)) { continue; }
       int rhs_ix;
       for (rhs_ix = Length_of_IRL(irl) - 1;
 	  rhs_ix >= 0;
@@ -5012,6 +5020,37 @@ one non-nulling symbol in each IRL. */
 			      (unsigned int) rh_isyid);
 	      break;
 	    }
+	}
+    }
+}
+
+@ @<Set the recursion ISYIDs for each IRL@> =
+{
+  IRLID irl_id;
+  for (irl_id = 0; irl_id < irl_count; irl_id++)
+    {
+      const IRL irl = IRL_by_ID (irl_id);
+      if (IRL_is_Right_Recursive (irl))
+	{
+	  unsigned int min, max, start;
+	  int isy_ix = 0;
+	  const ISYID lh_isyid = LHSID_of_IRL (irl);
+	  Bit_Vector bv_recursive_isyids =
+	    matrix_row (isy_by_right_isy_matrix, (unsigned long) lh_isyid);
+	  const int complete_isyid_count = bv_count (bv_recursive_isyids);
+	  CIL new_cil = cil_reserve (&g->t_cilar, complete_isyid_count);
+	  for (start = 0; bv_scan (bv_recursive_isyids, start, &min, &max);
+	       start = max + 2)
+	    {
+	      ISYID complete_isyid;
+	      for (complete_isyid = (ISYID) min;
+		   complete_isyid <= (ISYID) max; complete_isyid++)
+		{
+		  Item_of_CIL (new_cil, isy_ix) = complete_isyid;
+		  isy_ix++;
+		}
+	    }
+	  irl->t_recursion_isyids = cil_finish (&g->t_cilar);
 	}
     }
 }
