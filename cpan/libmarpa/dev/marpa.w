@@ -4928,14 +4928,15 @@ Trivial derivations are included --
 the bit is set if $|isy1| = |isy2|$.
 
 @ @<Construct right derivation matrix@> = {
-    isy_right_derivation_matrix =
+    isy_by_right_isy_matrix =
 	matrix_obs_create (obs_precompute, isy_count, isy_count);
-    @<Initialize the right derivation matrix@>@/
-    transitive_closure(isy_right_derivation_matrix);
+    @<Initialize the |isy_by_right_isy_matrix| for right derivations@>@/
+    transitive_closure(isy_by_right_isy_matrix);
     @<Mark the right recursive IRLs@>@/
+    matrix_clear(isy_by_right_isy_matrix);
 }
 
-@ @<Initialize the right derivation matrix@> =
+@ @<Initialize the |isy_by_right_isy_matrix| for right derivations@> =
 {
   IRLID irl_id;
   for (irl_id = 0; irl_id < irl_count; irl_id++)
@@ -4951,7 +4952,7 @@ one non-nulling symbol in each IRL. */
 	  const ISYID rh_isyid = RHSID_of_IRL (irl, rhs_ix);
 	  if (!ISY_is_Nulling (ISY_by_ID (rh_isyid)))
 	    {
-	      matrix_bit_set (isy_right_derivation_matrix,
+	      matrix_bit_set (isy_by_right_isy_matrix,
 			      (unsigned int) LHSID_of_IRL (irl),
 			      (unsigned int) rh_isyid);
 	      break;
@@ -4975,7 +4976,7 @@ one non-nulling symbol in each IRL. */
 /* Does the last non-nulling symbol right derive the LHS?
 If so, the rule is right recursive.
 (There is at least one non-nulling symbol in each IRL.) */
-	      if (matrix_bit_test (isy_right_derivation_matrix,
+	      if (matrix_bit_test (isy_by_right_isy_matrix,
 				   (unsigned int) rh_isyid,
 				   (unsigned int) LHSID_of_IRL (irl)))
 		{
@@ -5077,7 +5078,7 @@ PRIVATE_NOT_INLINE int AHFA_state_cmp(
    const unsigned int initial_no_of_states = 2*AIM_Count_of_G(g);
    AIM AHFA_item_0_p = g->t_AHFA_items;
    Bit_Matrix prediction_matrix;
-   Bit_Matrix isy_right_derivation_matrix;
+   Bit_Matrix isy_by_right_isy_matrix;
    IRL* irl_by_sort_key = my_new(IRL, irl_count);
   Bit_Vector per_ahfa_complete_v = bv_obs_create (obs_precompute, isy_count);
   Bit_Vector per_ahfa_postdot_v = bv_obs_create (obs_precompute, isy_count);
@@ -5661,14 +5662,14 @@ The symbol-by-rule matrix will be used in constructing the prediction
 states.
 
 @ @<Construct prediction matrix@> = {
-    Bit_Matrix isy_by_isy_matrix =
+    Bit_Matrix prediction_isy_by_isy_matrix =
 	matrix_obs_create (obs_precompute, isy_count, isy_count);
-    @<Initialize the isy-by-isy prediction matrix@>@/
-    transitive_closure(isy_by_isy_matrix);
+    @<Initialize the |prediction_isy_by_isy_matrix|@>@/
+    transitive_closure(prediction_isy_by_isy_matrix);
     @<Create the prediction matrix from the symbol-by-symbol matrix@>@/
 }
 
-@ @<Initialize the isy-by-isy prediction matrix@> =
+@ @<Initialize the |prediction_isy_by_isy_matrix|@> =
 {
   IRLID irl_id;
   ISYID isyid;
@@ -5677,7 +5678,7 @@ states.
       /* If a symbol appears on a LHS, it predicts itself. */
       ISY isy = ISY_by_ID (isyid);
       if (!ISY_is_LHS(isy)) continue;
-      matrix_bit_set (isy_by_isy_matrix, (unsigned int) isyid, (unsigned int) isyid);
+      matrix_bit_set (prediction_isy_by_isy_matrix, (unsigned int) isyid, (unsigned int) isyid);
     }
   for (irl_id = 0; irl_id < irl_count; irl_id++)
     {
@@ -5691,7 +5692,9 @@ states.
 	continue;
       /* Set a bit in the matrix */
       from_isyid = LHS_ISYID_of_AIM (item);
-      matrix_bit_set (isy_by_isy_matrix, (unsigned int) from_isyid, (unsigned int) to_isyid);
+      matrix_bit_set (prediction_isy_by_isy_matrix,
+	(unsigned int) from_isyid,
+	(unsigned int) to_isyid);
     }
 }
 
@@ -5779,7 +5782,7 @@ which can be used to index the rules in a boolean vector.
       unsigned int min, max, start;
       for (start = 0;
 	   bv_scan (matrix_row
-		    (isy_by_isy_matrix, (unsigned int) from_isyid),
+		    (prediction_isy_by_isy_matrix, (unsigned int) from_isyid),
 		    start, &min, &max); start = max + 2)
 	{
 	  ISYID to_isyid;
