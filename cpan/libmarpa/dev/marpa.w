@@ -2632,7 +2632,13 @@ int _marpa_g_irl_is_virtual_rhs(
 @ @<Initialize IRL elements@> =
   IRL_is_Right_Recursive(irl) = 0;
 
-@ @d Recursion_ISYID_of_IRL(irl, ix) Item_of_CIL((irl)->t_recursion_isyids, (ix))
+@ The full set of LHS ISYID's,
+taking into account possible right recursion due
+to Leo items.
+When a rule is not right recursive,
+this set will always contain a single element,
+the LHS ISYID's.
+@d Recursion_ISYID_of_IRL(irl, ix) Item_of_CIL((irl)->t_recursion_isyids, (ix))
 @d Recursion_ISY_Count_of_IRL(irl) Count_of_CIL((irl)->t_recursion_isyids)
 @ @<Widely aligned IRL elements@> =
 CIL t_recursion_isyids;
@@ -5003,9 +5009,9 @@ If so, the rule is right recursive.
   IRLID irl_id;
   for (irl_id = 0; irl_id < irl_count; irl_id++)
     {
+      int rhs_ix;
       const IRL irl = IRL_by_ID(irl_id);
       if (!IRL_is_Right_Recursive(irl)) { continue; }
-      int rhs_ix;
       for (rhs_ix = Length_of_IRL(irl) - 1;
 	  rhs_ix >= 0;
 	  rhs_ix-- )
@@ -5030,28 +5036,35 @@ one non-nulling symbol in each IRL. */
   for (irl_id = 0; irl_id < irl_count; irl_id++)
     {
       const IRL irl = IRL_by_ID (irl_id);
-      if (IRL_is_Right_Recursive (irl))
+      const ISYID lhs_isyid = LHSID_of_IRL (irl);
+      if (!IRL_is_Right_Recursive (irl))
 	{
-	  unsigned int min, max, start;
-	  int isy_ix = 0;
-	  const ISYID lh_isyid = LHSID_of_IRL (irl);
-	  Bit_Vector bv_recursive_isyids =
-	    matrix_row (isy_by_right_isy_matrix, (unsigned long) lh_isyid);
-	  const int recursion_isyid_count = bv_count (bv_recursive_isyids);
-	  CIL new_cil = cil_reserve (&g->t_cilar, recursion_isyid_count);
-	  for (start = 0; bv_scan (bv_recursive_isyids, start, &min, &max);
-	       start = max + 2)
-	    {
-	      ISYID recursion_isyid;
-	      for (recursion_isyid = (ISYID) min;
-		   recursion_isyid <= (ISYID) max; recursion_isyid++)
-		{
-		  Item_of_CIL (new_cil, isy_ix) = recursion_isyid;
-		  isy_ix++;
-		}
-	    }
+	  CIL new_cil = cil_reserve (&g->t_cilar, 1);
+	  Item_of_CIL (new_cil, 0) = lhs_isyid;
 	  irl->t_recursion_isyids = cil_finish (&g->t_cilar);
+	  continue;
 	}
+      {
+	/* If here, IRL is right recursive */
+	unsigned int min, max, start;
+	int isy_ix = 0;
+	Bit_Vector bv_recursive_isyids =
+	  matrix_row (isy_by_right_isy_matrix, (unsigned long) lhs_isyid);
+	const int recursion_isyid_count = bv_count (bv_recursive_isyids);
+	CIL new_cil = cil_reserve (&g->t_cilar, recursion_isyid_count);
+	for (start = 0; bv_scan (bv_recursive_isyids, start, &min, &max);
+	     start = max + 2)
+	  {
+	    ISYID recursion_isyid;
+	    for (recursion_isyid = (ISYID) min;
+		 recursion_isyid <= (ISYID) max; recursion_isyid++)
+	      {
+		Item_of_CIL (new_cil, isy_ix) = recursion_isyid;
+		isy_ix++;
+	      }
+	  }
+	irl->t_recursion_isyids = cil_finish (&g->t_cilar);
+      }
     }
 }
 
@@ -14136,13 +14149,13 @@ the ``hidden words".
 @<Function definitions@> =
 PRIVATE Bit_Matrix matrix_obs_create(struct obstack *obs, unsigned int rows, unsigned int columns)
 {
+    unsigned int row;
     const unsigned int bv_data_words = bv_bits_to_size(columns);
     const unsigned int row_bytes = (bv_data_words + bv_hiddenwords) * sizeof(Bit_Vector_Word);
     const unsigned int bv_mask = bv_bits_to_unused_mask(columns);
     const int sizeof_matrix = offsetof (struct s_bit_matrix, t_row_data) + (rows) * row_bytes;
     Bit_Matrix matrix_addr = my_obstack_alloc(obs, sizeof_matrix);
     matrix_addr->t_row_count = rows;
-    unsigned int row;
     for (row = 0; row < rows; row++) {
 	const unsigned int row_start = row*(bv_data_words+bv_hiddenwords);
 	Bit_Vector_Word* p_current_word = matrix_addr->t_row_data + row_start;
