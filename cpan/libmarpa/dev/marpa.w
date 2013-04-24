@@ -4783,6 +4783,15 @@ PRIVATE void AHFA_initialize(AHFA ahfa)
 @ @<Widely aligned AHFA state elements@> =
 CIL t_complete_isyids;
 
+@*0 Recursion symbols container.
+Contains the ISYID's of all complete LHS's,
+and of all LHS's of rules that will be reached via expansion
+of a Leo path.
+@ @d Recursion_ISYID_of_AHFA(state, ix) Item_of_CIL((state)->t_recursion_isyids, (ix))
+@d Recursion_ISY_Count_of_AHFA(state) Count_of_CIL((state)->t_recursion_isyids)
+@ @<Widely aligned AHFA state elements@> =
+CIL t_recursion_isyids;
+
 @*0 AHFA item container.
 @ @d AIMs_of_AHFA(ahfa) ((ahfa)->t_items)
 @d AIM_of_AHFA_by_AEX(ahfa, aex) (AIMs_of_AHFA(ahfa)[aex])
@@ -5351,7 +5360,9 @@ _marpa_avl_destroy(duplicates);
   postdot_isyid = Postdot_ISYID_of_AIM (start_item);
   *postdot_isyidary = postdot_isyid;
   cil_reserve(&g->t_cilar, 0);
-  p_initial_state->t_complete_isyids = cil_finish (&g->t_cilar);
+  p_initial_state->t_recursion_isyids =
+    p_initial_state->t_complete_isyids =
+    cil_finish (&g->t_cilar);
   p_initial_state->t_empty_transition = create_predicted_AHFA_state (g,
 			       matrix_row (prediction_matrix,
 					   (unsigned int) postdot_isyid),
@@ -5419,7 +5430,8 @@ a start rule completion, and it is a
 	ISYID* p_postdot_isyidary = Postdot_ISYIDAry_of_AHFA(p_new_state) =
 	  my_obstack_alloc (g->t_obs, sizeof (ISYID));
 	cil_reserve(&g->t_cilar, 0);
-	p_new_state->t_complete_isyids = cil_finish (&g->t_cilar);
+	p_new_state->t_recursion_isyids =
+	  p_new_state->t_complete_isyids = cil_finish (&g->t_cilar);
 	Postdot_ISY_Count_of_AHFA(p_new_state) = 1;
 	*p_postdot_isyidary = postdot_isyid;
     /* If the sole item is not a completion
@@ -5437,7 +5449,9 @@ a start rule completion, and it is a
 	CIL new_cil;
 	new_cil = cil_reserve(&g->t_cilar, 1);
 	Item_of_CIL(new_cil, 0) = lhs_isyid;
-	p_new_state->t_complete_isyids = cil_finish (&g->t_cilar);
+	p_new_state->t_recursion_isyids =
+	  p_new_state->t_complete_isyids =
+	  cil_finish (&g->t_cilar);
 	completion_count_inc(obs_precompute, p_new_state, lhs_isyid);
 
 	Postdot_ISY_Count_of_AHFA(p_new_state) = 0;
@@ -5593,15 +5607,16 @@ of minimum sizes.
   AHFA_initialize (p_new_state);
   AHFA_is_Predicted (p_new_state) = 0;
   TRANSs_of_AHFA (p_new_state) = transitions_new (g, isy_count);
-  @<Calculate complete and postdot symbols for discovered
-    state@>@;
+  @<Calculate complete and postdot symbols
+    for discovered state with 2+ items@>@;
   transition_add (obs_precompute, p_working_state, working_isyid,
 		  p_new_state);
-  @<Calculate the predicted rule vector for this
-    state and add the predicted AHFA state@>@;
+  @<Calculate the predicted rule vector for
+    state with 2+ items, and add the predicted AHFA state@>@;
 }
 
-@ @<Calculate complete and postdot symbols for discovered state@> =
+@ @<Calculate complete and postdot symbols
+for discovered state with 2+ items@> =
 {
   int item_ix;
   int no_of_postdot_isys;
@@ -5673,8 +5688,8 @@ assign_AHFA_state (AHFA sought_state, AVL_TREE duplicates)
   return state_found;
 }
 
-@ @<Calculate the predicted rule vector for this state
-and add the predicted AHFA state@> =
+@ @<Calculate the predicted rule vector for
+    state with 2+ items, and add the predicted AHFA state@> =
 {
   int item_ix;
   ISYID postdot_isyid = -1;	// Initialized to prevent GCC warning
