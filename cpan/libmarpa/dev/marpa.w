@@ -5097,7 +5097,8 @@ one non-nulling symbol in each IRL. */
 		isy_ix++;
 	      }
 	  }
-	irl->t_event_isyids = cil_finish (&g->t_cilar);
+	cil_confirm (&g->t_cilar, isy_ix);
+	irl->t_event_isyids = cil_finish(&g->t_cilar);
       }
     }
 }
@@ -6506,26 +6507,21 @@ No complete or predicted Earley item will be found after the current earleme.
 unsigned int marpa_r_furthest_earleme(Marpa_Recognizer r)
 { return Furthest_Earleme_of_R(r); }
 
-@*0 Are completion events in use?.
-Are any symbol completion events active.
-This flag is used to protect recognizer that do not
+@*0 Active completion event count.
+The count of unmasked XSY completion events.
+This count is used to protect recognizers that do not
 use completion events from their overhead.
-All these have to do is check this flag.
-\par
-The flag is set if any XSY events
-were initialized and are unmasked.
-It is unset if there were no XSY events or all
-of them are masked.
+All these have to do is check the count against zero.
 There is no aggressive
 attempt to optimize on a more fine-grained
 basis --
 for recognizer which actually do use completion events,
 a few instructions per Earley item of overhead is
 considered reasonable.
-@ @<Bit aligned recognizer elements@> =
-unsigned int t_are_completion_events_in_use:1;
+@ @<Int aligned recognizer elements@> =
+int t_active_completion_event_count;
 @ @<Initialize recognizer elements@> =
-  r->t_are_completion_events_in_use = 1;
+  r->t_active_completion_event_count = 1;
 
 @*0 Expected symbol boolean vector.
 A boolean vector by symbol ID,
