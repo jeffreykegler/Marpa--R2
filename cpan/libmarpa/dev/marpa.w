@@ -1077,6 +1077,13 @@ be overwritten by code using the obstack for other objects.
 A side benefit is that the dedicated
 XRL obstack can be specially
 aligned.
+\par
+The method obstack is intended for temporaries that
+are used in external methods.
+Data in this obstack exists for the life of the method
+call.
+This obstack is cleared on exit from a method.
+
 @<Widely aligned grammar elements@> =
 struct obstack* t_obs;
 struct obstack* t_xrl_obs;
@@ -4813,8 +4820,8 @@ Contains the ISYID's of all complete LHS's
 where the LHS is an event ISYID.
 This includes all LHS's of rules that will be reached via expansion
 of a Leo path.
-@ @d Event_ISYID_of_AHFA(state, ix) Item_of_CIL((state)->t_event_isyids, (ix))
-@d Event_ISY_Count_of_AHFA(state) Count_of_CIL((state)->t_event_isyids)
+@ @d Completion_Event_ISYID_of_AHFA(state, ix) Item_of_CIL((state)->t_event_isyids, (ix))
+@d Completion_Event_ISY_Count_of_AHFA(state) Count_of_CIL((state)->t_event_isyids)
 @ @<Widely aligned AHFA state elements@> =
 CIL t_event_isyids;
 
@@ -8985,7 +8992,10 @@ marpa_r_earleme_complete(Marpa_Recognizer r)
 	   The parse is ``exhausted". */
 	@<Set |r| exhausted@>@;
       }
-      earley_set_update_items(r, current_earley_set);
+    earley_set_update_items(r, current_earley_set);
+    if (r->t_active_completion_event_count > 0) {
+        @<Trigger completion events@>@;
+    }
     return_value = G_EVENT_COUNT(g);
     CLEANUP: ;
     @<Destroy |marpa_r_earleme_complete| locals@>@;
@@ -8993,11 +9003,16 @@ marpa_r_earleme_complete(Marpa_Recognizer r)
   return return_value;
 }
 
-@ @<Declare |marpa_r_earleme_complete| locals@> =
+@ Currently, |earleme_complete_obs| is only used for completion events,
+and so should only be initialized if they in use.
+But I expect to use it for other purposes.
+@<Declare |marpa_r_earleme_complete| locals@> =
     const ISYID isy_count = ISY_Count_of_G(g);
     Bit_Vector bv_ok_for_chain = bv_create(isy_count);
+    struct obstack* const earleme_complete_obs = my_obstack_init;
 @ @<Destroy |marpa_r_earleme_complete| locals@> =
     bv_free(bv_ok_for_chain);
+    my_obstack_free( earleme_complete_obs );
 
 @ @<Initialize |current_earleme|@> = {
   current_earleme = ++(Current_Earleme_of_R(r));
@@ -9163,6 +9178,31 @@ add those Earley items it ``causes".
 	@<Push effect onto completion stack@>@;
       }
     leo_link_add (r, effect, leo_item, cause);
+}
+
+@ @<Trigger completion events@> =
+{
+  int eim_ix, isy_ix;
+  EIM *eims = EIMs_of_ES (current_earley_set);
+  Bit_Vector lbv_is_xsy_event_triggered =
+    lbv_obs_new0 (earleme_complete_obs, XSY_Count_of_G(g));
+  int working_earley_item_count = Work_EIM_Count_of_R (r);
+  for (eim_ix = 0; eim_ix < working_earley_item_count; eim_ix++)
+    {
+      EIM eim = eims[eim_ix];
+      int event_isy_count = Completion_Event_ISY_Count_of_EIM (eim);
+      for (isy_ix = 0; isy_ix < event_isy_count; isy_ix++)
+	{
+	  ISYID event_isyid = Completion_Event_ISYID_of_EIM (eim, isy_ix);
+	  ISY event_isy = ISY_by_ID(event_isyid);
+	  XSY event_xsy = Source_XSY_of_ISY (event_isy);
+	  XSYID event_xsyid = ID_of_XSY (event_xsy);
+	  @/@, /* When I implement event masking, the test will go here */
+	  @/@, /* If we have already triggered an event for this xsy, continue */
+	  if (lbv_bit_test (lbv_is_xsy_event_triggered, event_xsyid)) continue;
+	  lbv_bit_set (lbv_is_xsy_event_triggered, event_xsyid);
+	}
+    }
 }
 
 @ @<Function definitions@> =
