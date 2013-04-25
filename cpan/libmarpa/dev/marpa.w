@@ -6506,6 +6506,27 @@ No complete or predicted Earley item will be found after the current earleme.
 unsigned int marpa_r_furthest_earleme(Marpa_Recognizer r)
 { return Furthest_Earleme_of_R(r); }
 
+@*0 Are completion events in use?.
+Are any symbol completion events active.
+This flag is used to protect recognizer that do not
+use completion events from their overhead.
+All these have to do is check this flag.
+\par
+The flag is set if any XSY events
+were initialized and are unmasked.
+It is unset if there were no XSY events or all
+of them are masked.
+There is no aggressive
+attempt to optimize on a more fine-grained
+basis --
+for recognizer which actually do use completion events,
+a few instructions per Earley item of overhead is
+considered reasonable.
+@ @<Bit aligned recognizer elements@> =
+unsigned int t_are_completion_events_in_use:1;
+@ @<Initialize recognizer elements@> =
+  r->t_are_completion_events_in_use = 1;
+
 @*0 Expected symbol boolean vector.
 A boolean vector by symbol ID,
 with the bits set if the symbol is expected
@@ -7047,6 +7068,10 @@ be recopied to make way for pointers to the linked lists.
     Complete_ISYID_of_AHFA(AHFA_of_EIM(item), (ix))
 @d Complete_ISY_Count_of_EIM(item)
     Complete_ISY_Count_of_AHFA(AHFA_of_EIM(item))
+@d Completion_Event_ISYID_of_EIM(item, ix) 
+    Completion_Event_ISYID_of_AHFA(AHFA_of_EIM(item), (ix))
+@d Completion_Event_ISY_Count_of_EIM(item)
+    Completion_Event_ISY_Count_of_AHFA(AHFA_of_EIM(item))
 @d Leo_LHS_ISYID_of_EIM(eim) Leo_LHS_ISYID_of_AHFA(AHFA_of_EIM(eim))
 @ It might be slightly faster if this boolean is memoized in the Earley item
 when the Earley item is initialized.
