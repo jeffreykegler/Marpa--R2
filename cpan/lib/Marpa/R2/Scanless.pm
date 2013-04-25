@@ -1024,6 +1024,10 @@ sub Marpa::R2::Scanless::R::read_problem {
                     $desc = join "\n", $desc, 'Parse exhausted';
                     next EVENT;
                 }
+                $value //= 'undef';
+                my $desc_line = qq{Unknown event: "$event_type"; event value = $value\n};
+                $desc = join "\n", $desc, $desc_line;
+                next EVENT;
             } ## end EVENT: for ( my $event_ix = 0; $event_ix < ...)
             last DESC;
         } ## end if ($g1_status)
