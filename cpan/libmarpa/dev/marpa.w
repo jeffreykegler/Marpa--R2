@@ -5077,7 +5077,7 @@ one non-nulling symbol in each IRL. */
 	  irl->t_event_isyids =
 	  ISYID_is_Completion_Event (lhs_isyid) ? cil_singleton (&g->t_cilar,
 								 lhs_isyid) :
-	  cil_empty ();
+	  cil_empty (&g->t_cilar);
 	  continue;
 	}
       {
@@ -13635,17 +13635,17 @@ PRIVATE CIL cil_reserve(CILAR cilar, int length)
 @<Function definitions@> =
 PRIVATE CIL cil_empty(CILAR cilar)
 {
-    CIL new_cil = cil_reserve(&g->t_cilar, 0);
-    return cil_finish (&g->t_cilar);
+    cil_reserve(cilar, 0);
+    return cil_finish (cilar);
 }
 
 @ Return a singleton CIL from a CILAR.
 @<Function definitions@> =
 PRIVATE CIL cil_singleton(CILAR cilar, int element)
 {
-    CIL new_cil = cil_reserve (&g->t_cilar, 1);
-    Item_of_CIL (new_cil, 0) = element;
-    return cil_finish (&g->t_cilar);
+  CIL new_cil = cil_reserve (cilar, 1);
+  Item_of_CIL (new_cil, 0) = element;
+  return cil_finish (cilar);
 }
 
 @ @<Function definitions@> =
