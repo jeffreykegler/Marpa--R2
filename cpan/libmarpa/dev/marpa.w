@@ -1719,6 +1719,7 @@ is a corresponding XSY,
 and it is a potential event.
 Masking of events will be done at the XSY level.
 @d ISY_is_Completion_Event(isy) ((isy)->t_isy_is_completion_event)
+@d ISYID_is_Completion_Event(isy) ISY_is_Completion_Event(ISY_by_ID(isy))
 @<Bit aligned ISY elements@> = unsigned int t_isy_is_completion_event:1;
 @ @<Initialize ISY elements@> = ISY_is_Completion_Event(isy) = 0;
 
@@ -5073,9 +5074,10 @@ one non-nulling symbol in each IRL. */
       const ISYID lhs_isyid = LHSID_of_IRL (irl);
       if (!IRL_is_Right_Recursive (irl))
 	{
-	  CIL new_cil = cil_reserve (&g->t_cilar, 1);
-	  Item_of_CIL (new_cil, 0) = lhs_isyid;
-	  irl->t_event_isyids = cil_finish (&g->t_cilar);
+	  irl->t_event_isyids =
+	  ISYID_is_Completion_Event (lhs_isyid) ? cil_singleton (&g->t_cilar,
+								 lhs_isyid) :
+	  cil_empty ();
 	  continue;
 	}
       {
@@ -5385,10 +5387,9 @@ _marpa_avl_destroy(duplicates);
     my_obstack_alloc (g->t_obs, sizeof (ISYID));
   postdot_isyid = Postdot_ISYID_of_AIM (start_item);
   *postdot_isyidary = postdot_isyid;
-  cil_reserve(&g->t_cilar, 0);
   p_initial_state->t_event_isyids =
     p_initial_state->t_complete_isyids =
-    cil_finish (&g->t_cilar);
+    cil_empty (&g->t_cilar);
   p_initial_state->t_empty_transition = create_predicted_AHFA_state (g,
 			       matrix_row (prediction_matrix,
 					   (unsigned int) postdot_isyid),
@@ -5455,9 +5456,8 @@ a start rule completion, and it is a
       {
 	ISYID* p_postdot_isyidary = Postdot_ISYIDAry_of_AHFA(p_new_state) =
 	  my_obstack_alloc (g->t_obs, sizeof (ISYID));
-	cil_reserve(&g->t_cilar, 0);
 	p_new_state->t_event_isyids =
-	  p_new_state->t_complete_isyids = cil_finish (&g->t_cilar);
+	  p_new_state->t_complete_isyids = cil_empty (&g->t_cilar);
 	Postdot_ISY_Count_of_AHFA(p_new_state) = 1;
 	*p_postdot_isyidary = postdot_isyid;
     /* If the sole item is not a completion
@@ -5472,12 +5472,11 @@ a start rule completion, and it is a
     else
       {
 	ISYID lhs_isyid = LHS_ISYID_of_AIM(working_aim_p);
-	CIL new_cil;
-	new_cil = cil_reserve(&g->t_cilar, 1);
-	Item_of_CIL(new_cil, 0) = lhs_isyid;
 	p_new_state->t_event_isyids =
-	  p_new_state->t_complete_isyids =
-	  cil_finish (&g->t_cilar);
+	ISYID_is_Completion_Event (lhs_isyid) ? cil_singleton (&g->t_cilar,
+							       lhs_isyid) :
+	cil_empty (&g->t_cilar);
+	p_new_state->t_complete_isyids = cil_singleton(&g->t_cilar, lhs_isyid);
 	completion_count_inc(obs_precompute, p_new_state, lhs_isyid);
 
 	Postdot_ISY_Count_of_AHFA(p_new_state) = 0;
@@ -5989,8 +5988,7 @@ create_predicted_AHFA_state(
   TRANSs_of_AHFA (p_new_state) = transitions_new (g, ISY_Count_of_G(g));
     complete_isyids =
 	p_new_state->t_complete_isyids = my_obstack_alloc(g->t_obs, Sizeof_CIL(0));
-  cil_reserve(&g->t_cilar, 0);
-  p_new_state->t_complete_isyids = cil_finish (&g->t_cilar);
+  p_new_state->t_complete_isyids = cil_empty (&g->t_cilar);
   @<Calculate postdot symbols for predicted state@>@;
   return p_new_state;
 }
@@ -13631,6 +13629,23 @@ PRIVATE CIL cil_reserve(CILAR cilar, int length)
     cil = (CIL)my_obstack_base(cilar->t_obs);
     Count_of_CIL(cil) = length;
     return cil;
+}
+
+@ Return the empty CIL from a CILAR.
+@<Function definitions@> =
+PRIVATE CIL cil_empty(CILAR cilar)
+{
+    CIL new_cil = cil_reserve(&g->t_cilar, 0);
+    return cil_finish (&g->t_cilar);
+}
+
+@ Return a singleton CIL from a CILAR.
+@<Function definitions@> =
+PRIVATE CIL cil_singleton(CILAR cilar, int element)
+{
+    CIL new_cil = cil_reserve (&g->t_cilar, 1);
+    Item_of_CIL (new_cil, 0) = element;
+    return cil_finish (&g->t_cilar);
 }
 
 @ @<Function definitions@> =
