@@ -2632,18 +2632,20 @@ int _marpa_g_irl_is_virtual_rhs(
 @ @<Initialize IRL elements@> =
   IRL_is_Right_Recursive(irl) = 0;
 
-@ The full set of LHS ISYID's,
-taking into account possible right recursion due
+@*0 IRL event ISYID list.
+@ The full set of ISYID's for which completion of this IRL
+causes a completion event.
+This set takes into account possible right recursion due
 to Leo items.
 When a rule is not right recursive,
-this set will always contain a single element,
+this set will always contain at most a single element,
 the LHS ISYID's.
-@d Recursion_ISYID_of_IRL(irl, ix) Item_of_CIL((irl)->t_recursion_isyids, (ix))
-@d Recursion_ISY_Count_of_IRL(irl) Count_of_CIL((irl)->t_recursion_isyids)
+@d Event_ISYID_of_IRL(irl, ix) Item_of_CIL((irl)->t_event_isyids, (ix))
+@d Event_ISY_Count_of_IRL(irl) Count_of_CIL((irl)->t_event_isyids)
 @ @<Widely aligned IRL elements@> =
-CIL t_recursion_isyids;
+CIL t_event_isyids;
 @ @<Initialize IRL elements@> =
-  irl->t_recursion_isyids = 0;
+  irl->t_event_isyids = 0;
 
 @*0 Rule real symbol count.
 This is another data element used for the ``internal semantics" --
@@ -4783,14 +4785,15 @@ PRIVATE void AHFA_initialize(AHFA ahfa)
 @ @<Widely aligned AHFA state elements@> =
 CIL t_complete_isyids;
 
-@*0 Recursion symbols container.
-Contains the ISYID's of all complete LHS's,
-and of all LHS's of rules that will be reached via expansion
+@*0 Event symbols container.
+Contains the ISYID's of all complete LHS's
+where the LHS is an event ISYID.
+This includes all LHS's of rules that will be reached via expansion
 of a Leo path.
-@ @d Recursion_ISYID_of_AHFA(state, ix) Item_of_CIL((state)->t_recursion_isyids, (ix))
-@d Recursion_ISY_Count_of_AHFA(state) Count_of_CIL((state)->t_recursion_isyids)
+@ @d Event_ISYID_of_AHFA(state, ix) Item_of_CIL((state)->t_event_isyids, (ix))
+@d Event_ISY_Count_of_AHFA(state) Count_of_CIL((state)->t_event_isyids)
 @ @<Widely aligned AHFA state elements@> =
-CIL t_recursion_isyids;
+CIL t_event_isyids;
 
 @*0 AHFA item container.
 @ @d AIMs_of_AHFA(ahfa) ((ahfa)->t_items)
@@ -5050,7 +5053,7 @@ one non-nulling symbol in each IRL. */
 	{
 	  CIL new_cil = cil_reserve (&g->t_cilar, 1);
 	  Item_of_CIL (new_cil, 0) = lhs_isyid;
-	  irl->t_recursion_isyids = cil_finish (&g->t_cilar);
+	  irl->t_event_isyids = cil_finish (&g->t_cilar);
 	  continue;
 	}
       {
@@ -5072,7 +5075,7 @@ one non-nulling symbol in each IRL. */
 		isy_ix++;
 	      }
 	  }
-	irl->t_recursion_isyids = cil_finish (&g->t_cilar);
+	irl->t_event_isyids = cil_finish (&g->t_cilar);
       }
     }
 }
@@ -5360,7 +5363,7 @@ _marpa_avl_destroy(duplicates);
   postdot_isyid = Postdot_ISYID_of_AIM (start_item);
   *postdot_isyidary = postdot_isyid;
   cil_reserve(&g->t_cilar, 0);
-  p_initial_state->t_recursion_isyids =
+  p_initial_state->t_event_isyids =
     p_initial_state->t_complete_isyids =
     cil_finish (&g->t_cilar);
   p_initial_state->t_empty_transition = create_predicted_AHFA_state (g,
@@ -5430,7 +5433,7 @@ a start rule completion, and it is a
 	ISYID* p_postdot_isyidary = Postdot_ISYIDAry_of_AHFA(p_new_state) =
 	  my_obstack_alloc (g->t_obs, sizeof (ISYID));
 	cil_reserve(&g->t_cilar, 0);
-	p_new_state->t_recursion_isyids =
+	p_new_state->t_event_isyids =
 	  p_new_state->t_complete_isyids = cil_finish (&g->t_cilar);
 	Postdot_ISY_Count_of_AHFA(p_new_state) = 1;
 	*p_postdot_isyidary = postdot_isyid;
@@ -5449,7 +5452,7 @@ a start rule completion, and it is a
 	CIL new_cil;
 	new_cil = cil_reserve(&g->t_cilar, 1);
 	Item_of_CIL(new_cil, 0) = lhs_isyid;
-	p_new_state->t_recursion_isyids =
+	p_new_state->t_event_isyids =
 	  p_new_state->t_complete_isyids =
 	  cil_finish (&g->t_cilar);
 	completion_count_inc(obs_precompute, p_new_state, lhs_isyid);
