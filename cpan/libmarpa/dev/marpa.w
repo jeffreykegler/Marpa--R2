@@ -9201,6 +9201,7 @@ add those Earley items it ``causes".
 	  @/@, /* If we have already triggered an event for this xsy, continue */
 	  if (lbv_bit_test (lbv_is_xsy_event_triggered, event_xsyid)) continue;
 	  lbv_bit_set (lbv_is_xsy_event_triggered, event_xsyid);
+	  int_event_new (g, MARPA_EVENT_SYMBOL_COMPLETED, event_xsyid);
 	}
     }
 }

@@ -3883,8 +3883,21 @@ Event value: The ID of the symbol.
 Suggested message: "This symbol is a nulling terminal".
 @end deftypevr
 
+@deftypevr Macro int MARPA_EVENT_SYMBOL_COMPLETED
+The recognizer can be set to generate an event 
+a symbol is completed
+using its @code{marpa_r_completed_symbol_event_set()}
+method.
+(A symbol is "completed" if and only if any rule with that symbol
+as its LHS is completed.)
+This event code indicates that one of those events
+occurred.
+Event value: The ID of the completed symbol.
+Suggested message: "Completed symbol".
+@end deftypevr
+
 @deftypevr Macro int MARPA_EVENT_SYMBOL_EXPECTED
-The recognizer can be set to generate an events when a
+The recognizer can be set to generate an event when a
 symbol is expected
 using its @code{marpa_r_expected_symbol_event_set()}
 method.
