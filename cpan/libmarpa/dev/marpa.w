@@ -1473,7 +1473,7 @@ Marpa_Grammar g, Marpa_Symbol_ID xsy_id, int value)
     return XSY_is_Terminal (symbol) = value;
 }
 
-@*0 Symbol is productive?.
+@*0 XSY is productive?.
 @d XSY_is_Productive(xsy) ((xsy)->t_is_productive)
 @<Bit aligned symbol elements@> = unsigned int t_is_productive:1;
 @ @<Initialize symbol elements@> =
@@ -1490,6 +1490,12 @@ int marpa_g_symbol_is_productive(
     @<Soft fail if |xsy_id| does not exist@>@;
     return XSY_is_Productive(XSY_by_ID(xsy_id));
 }
+
+@*0 XSY is completion event?.
+@d XSY_is_Completion_Event(xsy) ((xsy)->t_is_completion_event)
+@<Bit aligned symbol elements@> = unsigned int t_is_completion_event:1;
+@ @<Initialize symbol elements@> =
+symbol->t_is_completion_event = 1;
 
 @*0 Primary internal equivalent.
 This is the internal
@@ -1622,9 +1628,10 @@ A source symbol must be specified.
 PRIVATE ISY
 isy_new(GRAMMAR g, XSY source)
 {
-  const ISY new_isy = isy_start(g);
-  Source_XSY_of_ISY(new_isy) = source;
-  Rank_of_ISY(new_isy) = ISY_Rank_by_XSY(source);
+  const ISY new_isy = isy_start (g);
+  Source_XSY_of_ISY (new_isy) = source;
+  Rank_of_ISY (new_isy) = ISY_Rank_by_XSY (source);
+  ISY_is_Completion_Event (new_isy) = XSY_is_Completion_Event (source);
   return new_isy;
 }
 
@@ -1634,10 +1641,11 @@ An XSY must be specified.
 PRIVATE ISY
 isy_clone(GRAMMAR g, XSY xsy)
 {
-  const ISY new_isy = isy_start(g);
-  Source_XSY_of_ISY(new_isy) = xsy;
-  Rank_of_ISY(new_isy) = ISY_Rank_by_XSY(xsy);
-  ISY_is_Nulling(new_isy) = XSY_is_Nulling(xsy);
+  const ISY new_isy = isy_start (g);
+  Source_XSY_of_ISY (new_isy) = xsy;
+  Rank_of_ISY (new_isy) = ISY_Rank_by_XSY (xsy);
+  ISY_is_Completion_Event (new_isy) = XSY_is_Completion_Event (xsy);
+  ISY_is_Nulling (new_isy) = XSY_is_Nulling (xsy);
   return new_isy;
 }
 
@@ -1699,6 +1707,20 @@ int _marpa_g_isy_is_nulling(Marpa_Grammar g, Marpa_ISY_ID isy_id)
   @<Fail if |isy_id| is invalid@>@;
   return ISY_is_Nulling(ISY_by_ID(isy_id));
 }
+
+@*0 ISY is completion event?.
+Is completion of this ISY an event?
+Conceptually, events are actually by XSY, so if this
+bit is set, it implies there is
+a source XSY.
+More precisely,
+an ISY is a completion event if and only if there
+is a corresponding XSY,
+and it is a potential event.
+Masking of events will be done at the XSY level.
+@d ISY_is_Completion_Event(isy) ((isy)->t_isy_is_completion_event)
+@<Bit aligned ISY elements@> = unsigned int t_isy_is_completion_event:1;
+@ @<Initialize ISY elements@> = ISY_is_Completion_Event(isy) = 0;
 
 @*0 Source XSY.
 This is the external
@@ -13563,6 +13585,20 @@ PRIVATE CIL cil_finish(CILAR cilar)
 	return found_cil;
     }
     return (CIL)my_obstack_finish(cilar->t_obs);
+}
+
+@ Confirm the size of an CIL, and return a pointer to it.
+It is up to the caller to ensure that this CIL was the
+subject of a previous |cil_reserve| call, with
+a length greater than or equal to that of the current one.
+@<Function definitions@> =
+PRIVATE CIL cil_confirm(CILAR cilar, int length)
+{
+    CIL cil;
+    my_obstack_confirm_fast(cilar->t_obs, sizeof(int)*(length+1));
+    cil = (CIL)my_obstack_base(cilar->t_obs);
+    Count_of_CIL(cil) = length;
+    return cil;
 }
 
 @ Reserve room for a CIL, and return a pointer to it.
