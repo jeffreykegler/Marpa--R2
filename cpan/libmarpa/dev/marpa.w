@@ -949,6 +949,15 @@ can tell if there is a boolean vector to be freed.
 @<Widely aligned grammar elements@> = Bit_Vector t_bv_isyid_is_terminal;
 @ @<Initialize grammar elements@> = g->t_bv_isyid_is_terminal = NULL;
 
+@*0 Completion event boolean vector.
+A boolean vector, with bits sets if there is an event
+on completion of a rule with that symbol on the LHS.
+At grammar initialization, this vector cannot be sized.
+It is initialized to |NULL| so that the destructor
+can tell if there is a boolean vector to be freed.
+@<Widely aligned grammar elements@> = Bit_Vector t_lbv_xsyid_is_completion_event;
+@ @<Initialize grammar elements@> = g->t_lbv_xsyid_is_completion_event = NULL;
+
 @*0 The event stack.
 Events are designed to be fast,
 but are at the moment
@@ -1500,6 +1509,7 @@ int marpa_g_symbol_is_productive(
 
 @*0 XSY is completion event?.
 @d XSY_is_Completion_Event(xsy) ((xsy)->t_is_completion_event)
+@d XSYID_is_Completion_Event(xsyid) XSY_is_Completion_Event(XSY_by_ID(xsyid))
 @<Bit aligned symbol elements@> = unsigned int t_is_completion_event:1;
 @ @<Initialize symbol elements@> =
 symbol->t_is_completion_event = 1;
@@ -2888,6 +2898,7 @@ int marpa_g_precompute(Marpa_Grammar g)
 	@<Create AHFA items@>@;
 	@<Create AHFA states@>@;
 	@<Populate the terminal boolean vector@>@;
+	@<Populate the completion event boolean vector@>@;
     }
     g->t_is_precomputed = 1;
     if (g->t_has_cycle)
@@ -6264,6 +6275,20 @@ AHFAID _marpa_g_AHFA_state_empty_transition(Marpa_Grammar g,
     }
 }
 
+@** Populating the symbol completion event boolean vector.
+@<Populate the completion event boolean vector@> =
+{
+  int xsyid;
+  g->t_lbv_xsyid_is_completion_event = bv_obs_create (g->t_obs, xsy_count);
+  for (xsyid = 0; xsyid < xsy_count; xsyid++)
+    {
+      if (XSYID_is_Completion_Event (xsyid))
+	{
+	  lbv_bit_set (g->t_lbv_xsyid_is_completion_event, xsyid);
+	}
+    }
+}
+
 @** Input (I, INPUT) code.
 |INPUT| is a "hidden" class.
 It is manipulated
@@ -6538,7 +6563,7 @@ considered reasonable.
 @ @<Int aligned recognizer elements@> =
 int t_active_completion_event_count;
 @ @<Initialize recognizer elements@> =
-  r->t_active_completion_event_count = 1;
+  r->t_active_completion_event_count = 0;
 
 @*0 Expected symbol boolean vector.
 A boolean vector by symbol ID,
@@ -11566,9 +11591,9 @@ Marpa_Bocage marpa_b_new(Marpa_Recognizer r,
     LBV t_valued_locked_bv;
 
 @ @<Initialize bocage elements@> =
-  Valued_BV_of_B (b) = lbv_copy (b->t_obs, r->t_valued, xsy_count);
+  Valued_BV_of_B (b) = lbv_clone (b->t_obs, r->t_valued, xsy_count);
   Valued_Locked_BV_of_B (b) =
-    lbv_copy (b->t_obs, r->t_valued_locked, xsy_count);
+    lbv_clone (b->t_obs, r->t_valued_locked, xsy_count);
 
 @ @<Declare bocage locals@> =
 const GRAMMAR g = G_of_R(r);
@@ -13218,9 +13243,9 @@ Marpa_Nook_ID _marpa_v_nook(Marpa_Value public_v)
 
 @ @<Initialize value elements@> =
 {
-  XSY_is_Valued_BV_of_V (v) = lbv_copy (v->t_obs, Valued_BV_of_B (b), xsy_count);
+  XSY_is_Valued_BV_of_V (v) = lbv_clone (v->t_obs, Valued_BV_of_B (b), xsy_count);
   Valued_Locked_BV_of_V (v) =
-    lbv_copy (v->t_obs, Valued_Locked_BV_of_B (b), xsy_count);
+    lbv_clone (v->t_obs, Valued_Locked_BV_of_B (b), xsy_count);
 }
 
 @
@@ -13748,18 +13773,36 @@ PRIVATE int lbv_bits_to_size(int bits)
     return (bits+(lbv_wordbits-1))/lbv_wordbits;
 }
 
-@*0 Create a zeroed LBV on an obstack.
+@*0 Create an unitialized LBV on an obstack.
 @<Function definitions@> =
 PRIVATE Bit_Vector
-lbv_obs_new0 (struct obstack *obs, int bits)
+lbv_obs_new (struct obstack *obs, int bits)
 {
   int size = lbv_bits_to_size (bits);
   LBV lbv = my_obstack_new (obs, LBW, size);
+  return lbv;
+}
+
+@*0 Zero an LBV.
+@<Function definitions@> =
+PRIVATE Bit_Vector
+lbv_zero (Bit_Vector lbv, int bits)
+{
+  int size = lbv_bits_to_size (bits);
   if (size > 0) {
       LBW *addr = lbv;
       while (size--) *addr++ = 0u;
   }
   return lbv;
+}
+
+@*0 Create a zeroed LBV on an obstack.
+@<Function definitions@> =
+PRIVATE Bit_Vector
+lbv_obs_new0 (struct obstack *obs, int bits)
+{
+  LBV lbv = lbv_obs_new(obs, bits);
+  return lbv_zero(lbv, bits);
 }
 
 @*0 Basic LBV operations.
@@ -13772,9 +13815,9 @@ lbv_obs_new0 (struct obstack *obs, int bits)
 @d lbv_bit_test(lbv, bit)
   ((*lbv_w ((lbv), (bit)) & lbv_b (bit)) != 0U)
 
-@*0 Copy an LBV.
+@*0 Clone an LBV onto an obstack.
 @<Function definitions@> =
-PRIVATE LBV lbv_copy(
+PRIVATE LBV lbv_clone(
   struct obstack* obs, LBV old_lbv, int bits)
 {
   int size = lbv_bits_to_size (bits);
