@@ -2673,7 +2673,7 @@ symbol.
 @node Untested recognizer methods,  , Other parse status methods, Recognizer methods
 @section Untested recognizer methods
 
-@deftypefun int marpa_r_completion_symbol_activate( @
+@deftypefun int marpa_r_completion_symbol_activate ( @
   Marpa_Recognizer @var{r}, @
   Marpa_Symbol_ID @var{sym_id}, @
   int @var{reactivate} )

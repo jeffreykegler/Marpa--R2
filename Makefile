@@ -18,11 +18,9 @@
 dummy: 
 
 releng: install full_test
-	(cd cpan; \
-	  ./Build distcheck; \
-	  ./Build dist; \
-	  git status; \
-	) 2>&1 | tee releng.out
+	cd cpan && ./Build distcheck
+	cd cpan && ./Build dist
+	git status
 
 basic_test:
 	(cd cpan && ./Build test)
