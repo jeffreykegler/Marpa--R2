@@ -13,9 +13,16 @@
 # General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 
-.PHONY: dummy basic_test full_test etc_make install cpan_dist_files
+.PHONY: dummy basic_test full_test etc_make install cpan_dist_files releng
 
 dummy: 
+
+releng: install full_test
+	(cd cpan; \
+	  ./Build distcheck; \
+	  ./Build dist; \
+	  git status; \
+	) 2>&1 | tee releng.out
 
 basic_test:
 	(cd cpan && ./Build test)
