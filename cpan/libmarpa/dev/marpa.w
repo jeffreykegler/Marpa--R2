@@ -6549,7 +6549,7 @@ No complete or predicted Earley item will be found after the current earleme.
 unsigned int marpa_r_furthest_earleme(Marpa_Recognizer r)
 { return Furthest_Earleme_of_R(r); }
 
-@*0 Active completion event count.
+@*0 Completion event variables.
 The count of unmasked XSY completion events.
 This count is used to protect recognizers that do not
 use completion events from their overhead.
@@ -6560,10 +6560,15 @@ basis --
 for recognizer which actually do use completion events,
 a few instructions per Earley item of overhead is
 considered reasonable.
+@ @<Widely aligned recognizer elements@> =
+Bit_Vector t_lbv_xsyid_completion_event_is_active;
 @ @<Int aligned recognizer elements@> =
 int t_active_completion_event_count;
 @ @<Initialize recognizer elements@> =
-  r->t_active_completion_event_count = 0;
+r->t_lbv_xsyid_completion_event_is_active =
+  lbv_clone (r->t_obs, g->t_lbv_xsyid_is_completion_event, XSY_Count_of_G(g));
+r->t_active_completion_event_count =
+  bv_count ( g->t_lbv_xsyid_is_completion_event);
 
 @*0 Expected symbol boolean vector.
 A boolean vector by symbol ID,
@@ -6633,13 +6638,6 @@ an event should be created.
 @ @<Initialize recognizer elements@> = 
   r->t_isy_expected_is_event = lbv_obs_new0(r->t_obs, isy_count);
 @ Returns |-2| if there was a failure.
-The buffer is expected to be large enough to hold
-the result.
-This will be the case if the length of the buffer
-is greater than or equal to the number of symbols
-in the grammar.
-@ For the moment, at least, it is a no-op if there is
-no internal symbol.
 @<Function definitions@> =
 int marpa_r_expected_symbol_event_set(Marpa_Recognizer r, Marpa_Symbol_ID xsy_id, int value)
 {
@@ -6671,6 +6669,51 @@ int marpa_r_expected_symbol_event_set(Marpa_Recognizer r, Marpa_Symbol_ID xsy_id
       lbv_bit_clear(r->t_isy_expected_is_event, isyid);
     }
     return value;
+}
+
+@*0 Deactivate symbol completed events.
+@ Allows a recognizer to deactivate and
+reactivate symbol completed events.
+A |boolean| value of 1 indicates reactivate,
+a boolean value of 0 indicates deactivate.
+To be reactivated, the symbol must have been
+set up for completion events in the grammar.
+Success occurs non-trivially
+if the bit can be set to the new value.
+Success occurs
+trivially if it was already set as specified.
+Any other result is a failure.
+On success, returns the new value.
+Returns |-2| if there was a failure.
+@<Function definitions@> =
+int marpa_r_completion_symbol_activate(Marpa_Recognizer r, Marpa_Symbol_ID xsy_id, int reactivate)
+{
+    @<Return |-2| on failure@>@;
+    @<Unpack recognizer objects@>@;
+    @<Fail if fatal error@>@;
+    @<Fail if |xsy_id| is malformed@>@;
+    @<Soft fail if |xsy_id| does not exist@>@;
+    switch (reactivate) {
+    case 0:
+	if (lbv_bit_test(r->t_lbv_xsyid_completion_event_is_active, xsy_id)) {
+	  lbv_bit_clear(r->t_lbv_xsyid_completion_event_is_active, xsy_id) ;
+	  r->t_active_completion_event_count--;
+	}
+        return 0;
+    case 1:
+	if (!lbv_bit_test(g->t_lbv_xsyid_is_completion_event, xsy_id)) {
+	  /* An attempt to activate a completion event on a symbol which
+	  was not set up for them. */
+	  MARPA_ERROR (MARPA_ERR_SYMBOL_IS_NOT_COMPLETION_EVENT);
+	}
+	if (!lbv_bit_test(r->t_lbv_xsyid_completion_event_is_active, xsy_id)) {
+	  lbv_bit_set(r->t_lbv_xsyid_completion_event_is_active, xsy_id) ;
+	  r->t_active_completion_event_count++;
+	}
+        return 1;
+    }
+    MARPA_ERROR (MARPA_ERR_INVALID_BOOLEAN);
+    return failure_indicator;
 }
 
 @*0 Leo-related booleans.
@@ -9234,7 +9277,8 @@ add those Earley items it ``causes".
 	  ISY event_isy = ISY_by_ID(event_isyid);
 	  XSY event_xsy = Source_XSY_of_ISY (event_isy);
 	  XSYID event_xsyid = ID_of_XSY (event_xsy);
-	  @/@, /* When I implement event masking, the test will go here */
+	  if (!lbv_bit_test (r->t_lbv_xsyid_completion_event_is_active, event_xsyid))
+	    continue;
 	  @/@, /* If we have already triggered an event for this xsy, continue */
 	  if (lbv_bit_test (lbv_is_xsy_event_triggered, event_xsyid)) continue;
 	  lbv_bit_set (lbv_is_xsy_event_triggered, event_xsyid);

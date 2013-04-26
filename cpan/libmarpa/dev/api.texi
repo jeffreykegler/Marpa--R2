@@ -133,6 +133,7 @@ Recognizer methods
 * Recognizer life cycle mutators::  
 * Location accessors::          
 * Other parse status methods::  
+* Untested recognizer methods::  
 
 Bocage methods
 
@@ -2126,6 +2127,7 @@ On failure, @minus{}2.
 * Recognizer life cycle mutators::  
 * Location accessors::          
 * Other parse status methods::  
+* Untested recognizer methods::  
 @end menu
 
 @node Recognizer overview, Recognizer constructor, Recognizer methods, Recognizer methods
@@ -2560,7 +2562,7 @@ Return value: On success, returns a non-negative integer.
 On failure, returns @minus{}2.
 @end deftypefun
 
-@node Other parse status methods,  , Location accessors, Recognizer methods
+@node Other parse status methods, Untested recognizer methods, Location accessors, Recognizer methods
 @section Other parse status methods
 
 @deftypefun int marpa_r_earley_item_warning_threshold (Marpa_Recognizer @var{r})
@@ -2666,6 +2668,42 @@ Returns @minus{}2 on failure.
 It is a failure
 if @var{symbol_id} is not the ID of a valid
 symbol.
+@end deftypefun
+
+@node Untested recognizer methods,  , Other parse status methods, Recognizer methods
+@section Untested recognizer methods
+
+@deftypefun int marpa_r_completion_symbol_activate( @
+  Marpa_Recognizer @var{r}, @
+  Marpa_Symbol_ID @var{sym_id}, @
+  int @var{reactivate} )
+
+Allows the user to deactivate and reactivate symbol completion
+events in the recognizer.
+If @var{reactivate} is zero, the event is deactivated.
+If @var{reactivate} is one, the event is activated.
+
+Symbol completion events are active by default if
+the symbol was set up for completion events in the
+grammar.
+If a symbol was not set up for completion events in
+the grammar, symbol completion events are inactive
+by default and any attempt to change that is a fatal error.
+
+Success cases:
+On success,
+the method returns the value of @var{reactivate}.
+The method succeeds trivially
+if the symbol is already set as indicated by
+@var{reactivate}.
+
+Failure cases:
+If the active status
+of the
+completion event for @var{sym_id}
+cannot be set as indicated by @var{reactivate},
+the method fails.
+On failure, @minus{}2 is returned.
 @end deftypefun
 
 @node Progress reports, Bocage methods, Recognizer methods, Top
@@ -4467,6 +4505,18 @@ not even the null string.
 Presumably, an error in writing the grammar.
 Numeric value: 73.
 Suggested message: "Start symbol not on LHS of any rule".
+@end deftypevr
+
+@deftypevr Macro int MARPA_ERR_SYMBOL_IS_NOT_COMPLETION_EVENT
+An attempt was made to use a symbol in
+a way that requires it to be
+set up for completion events,
+but the symbol was not set
+set up for completion events.
+The archtypal case is an attempt to active completion
+events for the symbol in the recognizer.
+Numeric value: 92.
+Suggested message: "Symbol is not set up for completion events".
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_SYMBOL_VALUED_CONFLICT
