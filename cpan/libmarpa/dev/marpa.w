@@ -1512,7 +1512,7 @@ int marpa_g_symbol_is_productive(
 @d XSYID_is_Completion_Event(xsyid) XSY_is_Completion_Event(XSY_by_ID(xsyid))
 @<Bit aligned symbol elements@> = unsigned int t_is_completion_event:1;
 @ @<Initialize symbol elements@> =
-symbol->t_is_completion_event = 1;
+symbol->t_is_completion_event = 0;
 
 @*0 Primary internal equivalent.
 This is the internal
