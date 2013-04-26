@@ -1513,6 +1513,34 @@ int marpa_g_symbol_is_productive(
 @<Bit aligned symbol elements@> = unsigned int t_is_completion_event:1;
 @ @<Initialize symbol elements@> =
 symbol->t_is_completion_event = 0;
+@ @<Function definitions@> =
+int marpa_g_symbol_is_completion_event(Marpa_Grammar g,
+Marpa_Symbol_ID xsy_id)
+{
+    @<Return |-2| on failure@>@;
+    @<Fail if fatal error@>@;
+    @<Fail if |xsy_id| is malformed@>@;
+    @<Soft fail if |xsy_id| does not exist@>@;
+    return XSYID_is_Completion_Event(xsy_id);
+}
+@ @<Function definitions@> =
+int marpa_g_symbol_is_completion_event_set(
+Marpa_Grammar g, Marpa_Symbol_ID xsy_id, int value)
+{
+    XSY symbol;
+    @<Return |-2| on failure@>@;
+    @<Fail if fatal error@>@;
+    @<Fail if precomputed@>@;
+    @<Fail if |xsy_id| is malformed@>@;
+    @<Soft fail if |xsy_id| does not exist@>@;
+    symbol = XSY_by_ID (xsy_id);
+    switch (value) {
+    case 0: case 1:
+      return XSY_is_Completion_Event (symbol) = value;
+    }
+    MARPA_ERROR (MARPA_ERR_INVALID_BOOLEAN);
+    return failure_indicator;
+}
 
 @*0 Primary internal equivalent.
 This is the internal

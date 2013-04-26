@@ -1504,6 +1504,59 @@ such symbol, -1.
 If the grammar is not precomputed, or on other failure, @minus{}2.
 @end deftypefun
 
+@deftypefun int marpa_g_symbol_is_completion_event ( @
+    Marpa_Grammar @var{g}, @
+    Marpa_Symbol_ID @var{sym_id})
+@deftypefunx int marpa_g_symbol_is_completion_event_set ( @
+    Marpa_Grammar @var{g}, @
+    Marpa_Symbol_ID @var{sym_id}, @
+ int @var{value})
+
+Libmarpa can generate an 
+@code{MARPA_EVENT_SYMBOL_COMPLETED}
+event whenever the symbol is completed.
+A symbol is said to be @strong{completed}
+when a non-nulling rule with
+that symbol on its LHS is completed.
+
+For completion events to occur, the symbol must be marked
+as a completion event symbol.
+The @code{marpa_g_symbol_is_completion_event_set()} function
+marks symbol @var{sym_id} as a completion event symbol
+if @var{value} is 1,
+and unmarks it
+it as a completion event symbol if @var{value} is 0.
+The @code{marpa_g_symbol_is_completion_event()} method
+returns the current value of the completion event marking
+for symbol @var{sym_id}.
+
+Nulled rules and symbols will never cause completion events.
+Nullable symbols
+may be marked as completion event symbols,
+but this will have an effect only when the symbol
+is not nulled.
+Nulling symbols
+may be marked as completion event symbols,
+but no completion events will ever be generated
+for a nulling symbol.
+
+The completion event marking cannot be changed once
+the grammar is precomputed.
+However, if a symbol is marked as a completion event symbol,
+it can be deactivated
+and reactivated in the recognizer.
+
+Success: On success, 1 if symbol @var{sym_id}
+is a completion event symbol after the
+call, 0 otherwise.
+
+Failures:
+If @var{sym_id} is well-formed, but there is no
+such symbol, -1.
+if the grammar @var{g} is precomputed;
+or on other failure, @minus{}2.
+@end deftypefun
+
 @deftypefun int marpa_g_symbol_is_nullable ( @
   Marpa_Grammar g, Marpa_Symbol_ID sym_id)
 A symbol is @dfn{nullable} if it sometimes produces the empty string.
