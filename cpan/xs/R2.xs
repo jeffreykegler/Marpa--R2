@@ -5780,9 +5780,12 @@ PPCODE:
   result = marpa_r_earleme_complete (slr->r1);
   if (result >= 0)
     {
-      /* All events except MARPA_EVENT_EARLEY_ITEM_THRESHOLD are ignored,
-       * and even that is ignored except on success.
-       * It causes a warning which can be turned off by raising
+      /* All events are ignored on faiulre
+       * On success, all except MARPA_EVENT_EARLEY_ITEM_THRESHOLD and
+       * MARPA_EVENT_SYMBOL_COMPLETED are ignored.
+       *
+       * The warning raised for MARPA_EVENT_EARLEY_ITEM_THRESHOLD 
+       * can be turned off by raising
        * the Earley item warning threshold.
        */
       int event_ix;
@@ -5796,7 +5799,12 @@ PPCODE:
 	      warn
 		("Marpa: Scanless G1 Earley item count (%ld) exceeds warning threshold",
 		 (long) marpa_g_event_value (&event));
-	      break;		/* No need to look at more events */
+	    }
+	  if (event_type == MARPA_EVENT_SYMBOL_COMPLETED)
+	    {
+	      warn
+		("Marpa: Scanless G1 symbol completed %ld",
+		 (long) marpa_g_event_value (&event));
 	    }
 	}
       {

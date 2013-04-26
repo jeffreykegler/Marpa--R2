@@ -5479,11 +5479,10 @@ a start rule completion, and it is a
     else
       {
 	ISYID lhs_isyid = LHS_ISYID_of_AIM(working_aim_p);
-	p_new_state->t_event_isyids =
-	ISYID_is_Completion_Event (lhs_isyid) ? cil_singleton (&g->t_cilar,
-							       lhs_isyid) :
-	cil_empty (&g->t_cilar);
 	p_new_state->t_complete_isyids = cil_singleton(&g->t_cilar, lhs_isyid);
+	p_new_state->t_event_isyids = ISYID_is_Completion_Event (lhs_isyid)
+	  ? p_new_state->t_complete_isyids 
+	  : cil_empty (&g->t_cilar);
 	completion_count_inc(obs_precompute, p_new_state, lhs_isyid);
 
 	Postdot_ISY_Count_of_AHFA(p_new_state) = 0;
@@ -5703,6 +5702,22 @@ for discovered state with 2+ items@> =
 	    }
 	}
 	p_new_state->t_complete_isyids = cil_finish (&g->t_cilar);
+    }
+    {
+	int isy_ix;
+	int complete_isyid_count = Complete_ISY_Count_of_AHFA (p_new_state);
+	CIL new_cil = cil_reserve (&g->t_cilar, complete_isyid_count);
+	int new_isy_ix = 0;
+	for (isy_ix = 0; isy_ix < complete_isyid_count; isy_ix++)
+	  {
+	    ISYID complete_isyid = Complete_ISYID_of_AHFA (p_new_state, isy_ix);
+	    if (!ISYID_is_Completion_Event (complete_isyid))
+	      continue;
+	    Item_of_CIL (new_cil, new_isy_ix) = complete_isyid;
+	    new_isy_ix++;
+	  }
+	cil_confirm (&g->t_cilar, new_isy_ix);
+	p_new_state->t_event_isyids = cil_finish (&g->t_cilar);
     }
 }
 
@@ -5944,7 +5959,6 @@ create_predicted_AHFA_state(
      AIM* item_list_working_buffer
      )
 {
-  CIL complete_isyids;
   AHFA p_new_state;
   int item_list_ix = 0;
   int no_of_items_in_new_state = bv_count (prediction_rule_vector);
@@ -5993,9 +6007,7 @@ create_predicted_AHFA_state(
   AHFA_is_Predicted (p_new_state) = 1;
   p_new_state->t_empty_transition = NULL;
   TRANSs_of_AHFA (p_new_state) = transitions_new (g, ISY_Count_of_G(g));
-    complete_isyids =
-	p_new_state->t_complete_isyids = my_obstack_alloc(g->t_obs, Sizeof_CIL(0));
-  p_new_state->t_complete_isyids = cil_empty (&g->t_cilar);
+  p_new_state->t_event_isyids = p_new_state->t_complete_isyids = cil_empty (&g->t_cilar);
   @<Calculate postdot symbols for predicted state@>@;
   return p_new_state;
 }
@@ -9186,7 +9198,7 @@ add those Earley items it ``causes".
   EIM *eims = EIMs_of_ES (current_earley_set);
   Bit_Vector lbv_is_xsy_event_triggered =
     lbv_obs_new0 (earleme_complete_obs, XSY_Count_of_G(g));
-  int working_earley_item_count = Work_EIM_Count_of_R (r);
+  int working_earley_item_count = EIM_Count_of_ES(current_earley_set);
   for (eim_ix = 0; eim_ix < working_earley_item_count; eim_ix++)
     {
       EIM eim = eims[eim_ix];
