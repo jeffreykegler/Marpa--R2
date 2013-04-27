@@ -211,6 +211,10 @@ sub Marpa::R2::Internal::MetaAST_Nodes::action_name::name {
     return $self->[2]->name($parse);
 }
 
+sub Marpa::R2::Internal::MetaAST_Nodes::event_name::name {
+    my ( $self, $parse ) = @_;
+    return $self->[2]->name($parse);
+}
 
 sub Marpa::R2::Internal::MetaAST_Nodes::array_descriptor::name {
     return $_[0]->[2];
@@ -972,6 +976,15 @@ sub Marpa::R2::Internal::MetaAST_Nodes::quantified_rule::evaluate {
     return 'quantified rule consumed';
 
 } ## end sub Marpa::R2::Internal::MetaAST_Nodes::quantified_rule::evaluate
+
+sub Marpa::R2::Internal::MetaAST_Nodes::completion_event_declaration::evaluate {
+    my ( $values, $parse ) = @_;
+    my ( $start, $length, $raw_event_name, $raw_symbol_name) = @{$values};
+    my $event_name = $raw_event_name->name();
+    my $symbol_name = $raw_symbol_name->name();
+    push @{$parse->{completion_events}}, [ $event_name, $symbol_name ];
+    return undef;
+} ## end sub evaluate
 
 sub Marpa::R2::Internal::MetaAST_Nodes::alternatives::evaluate {
     my ( $values, $parse ) = @_;

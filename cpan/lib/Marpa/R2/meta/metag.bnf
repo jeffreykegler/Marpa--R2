@@ -23,7 +23,7 @@ statement ::= <statement body> ';'
 <statement body> ::= <start rule> | <empty rule>
   | <priority rule> | <quantified rule> | <discard rule> | <default rule>
   | <lexeme default statement> | <lexeme rule>
-  | <event declaration>
+  | <completion event declaration>
 <start rule> ::= (':start' <op declare bnf>) symbol
 <default rule> ::= ':default' <op declare bnf> <adverb list>
 <lexeme default statement> ::= ('lexeme' 'default' '=') <adverb list>
@@ -32,7 +32,7 @@ statement ::= <statement body> ';'
 <quantified rule> ::= lhs <op declare> <single symbol> quantifier <adverb list>
 <discard rule> ::= (':discard' <op declare match>) <single symbol>
 <lexeme rule> ::= (':lexeme' <op declare match>) symbol <adverb list>
-<event declaration> ::= 'event' <event name> '=' 'completed' <symbol name>
+<completion event declaration> ::= ('event') <event name> ('=' 'completed') <symbol name>
 <op declare> ::= <op declare bnf> | <op declare match>
 priorities ::= alternatives+
     separator => <op loosen> proper => 1

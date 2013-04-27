@@ -33,6 +33,7 @@ text ::= <text segment>*
 <text segment> ::= <parenthesized text>
 <text segment> ::= <word>
 <parenthesized text> ::= '(' text ')'
+event subtext = completed <parenthesized text>
 
 word ~ [\w]+
 :discard ~ whitespace
