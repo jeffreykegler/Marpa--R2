@@ -2031,8 +2031,8 @@ slr_es_to_literal_span (Scanless_R * slr,
     {
       int last_lexeme_start_position;
       int last_lexeme_length;
-      slr_es_to_span (slr, start_earley_set + 1, &last_lexeme_start_position,
-		      &last_lexeme_length);
+      slr_es_to_span (slr, start_earley_set + length,
+	&last_lexeme_start_position, &last_lexeme_length);
       *p_length = last_lexeme_start_position + last_lexeme_length - *p_start;
     }
 }

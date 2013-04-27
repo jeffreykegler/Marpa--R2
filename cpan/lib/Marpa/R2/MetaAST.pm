@@ -982,7 +982,15 @@ sub Marpa::R2::Internal::MetaAST_Nodes::completion_event_declaration::evaluate {
     my ( $start, $length, $raw_event_name, $raw_symbol_name) = @{$values};
     my $event_name = $raw_event_name->name();
     my $symbol_name = $raw_symbol_name->name();
-    push @{$parse->{completion_events}}, [ $event_name, $symbol_name ];
+    my $completion_events = $parse->{completion_events} //= {};
+    if (defined $completion_events->{$symbol_name}) {
+        my ($line, $column) = $parse->{meta_recce}->line_column($start);
+        die qq{Completion event for symbol "$symbol_name" declared twice\n},
+            qq{  That is not allowed\n},
+            "  Second declaration was ", $parse->substring( $start, $length ), "\n",
+            "  Problem occurred at line $line, column $column\n";
+    }
+    $completion_events->{$symbol_name} = $event_name;
     return undef;
 } ## end sub evaluate
 
