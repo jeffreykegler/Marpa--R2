@@ -405,7 +405,7 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
                 "Completion event defined for non-existent symbol: $symbol_name\n"
             );
         }
-        $g1_thin->marpa_g_symbol_is_completion_event_set( $symbol_id, 1 );
+        $g1_thin->symbol_is_completion_event_set( $symbol_id, 1 );
         $self->[Marpa::R2::Inner::Scanless::G::COMPLETION_EVENT_BY_ID]
             ->[$symbol_id] = $completion_events_by_name->{$symbol_name};
     } ## end for my $symbol_name ( keys %{$completion_events_by_name...})
