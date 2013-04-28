@@ -47,6 +47,7 @@ BEGIN {
     MASK_BY_RULE_ID
 
     G1_ARGS
+    COMPLETION_EVENT_BY_ID
     TRACE_FILE_HANDLE
     BLESS_PACKAGE
 
@@ -392,9 +393,24 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
     $g1_args->{start} = $g1_target_symbol;
     $g1_args->{'_internal_'} = 1;
     my $thick_g1_grammar = Marpa::R2::Grammar->new( $g1_args );
-    $thick_g1_grammar->precompute();
     my $g1_tracer = $thick_g1_grammar->tracer();
     my $g1_thin   = $g1_tracer->grammar();
+    my $completion_events_by_name = $hashed_source->{completion_events};
+    my $completion_events_by_id =
+        $self->[Marpa::R2::Inner::Scanless::G::COMPLETION_EVENT_BY_ID] = [];
+    for my $symbol_name ( keys %{$completion_events_by_name} ) {
+        my $symbol_id = $g1_tracer->symbol_by_name($symbol_name);
+        if ( not defined $symbol_id ) {
+            Marpa::R2::exception(
+                "Completion event defined for non-existent symbol: $symbol_name\n"
+            );
+        }
+        $g1_thin->marpa_g_symbol_is_completion_event_set( $symbol_id, 1 );
+        $self->[Marpa::R2::Inner::Scanless::G::COMPLETION_EVENT_BY_ID]
+            ->[$symbol_id] = $completion_events_by_name->{$symbol_name};
+    } ## end for my $symbol_name ( keys %{$completion_events_by_name...})
+
+    $thick_g1_grammar->precompute();
     my @g0_lexeme_to_g1_symbol;
     my @g1_symbol_to_g0_lexeme;
     $g0_lexeme_to_g1_symbol[$_] = -1 for 0 .. $g1_thin->highest_symbol_id();
