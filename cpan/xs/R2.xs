@@ -2030,6 +2030,7 @@ slr_alternatives (Scanless_R * slr)
 	      return "pause";
 	    }
 
+	  if (av_len(slr->event_queue) >= 0) return "event";
 	  return 0;
 	}
       while (0);

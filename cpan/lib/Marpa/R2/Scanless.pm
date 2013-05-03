@@ -877,6 +877,7 @@ sub Marpa::R2::Scanless::R::resume {
         } ## end if ( $trace_g0 > 2 )
 
         last OUTER_READ if $problem_code eq 'pause';
+        next OUTER_READ if $problem_code eq 'event';
         next OUTER_READ if $problem_code eq 'trace';
 
         if ( $problem_code eq 'unregistered char' ) {
