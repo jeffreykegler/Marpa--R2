@@ -1955,7 +1955,7 @@ slr_alternatives (Scanless_R * slr)
 	      croak ("Problem in marpa_r_earleme_complete(): %s",
 		     xs_g_error (slr->g1_wrapper));
 	    }
-	  if (return_value > 1)
+	  if (return_value > 0)
 	    {
 	      int event_ix;
 	      Marpa_Grammar g1 = slr->g1_wrapper->g;

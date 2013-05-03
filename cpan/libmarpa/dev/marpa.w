@@ -990,11 +990,7 @@ typedef struct s_g_event GEV_Object;
 @<Widely aligned grammar elements@> =
 DSTACK_DECLARE(t_events);
 @
-{\bf To Do}: @^To Do@>
-The value of |INITIAL_G_EVENTS_CAPACITY| is 1 for testing while this
-code is being developed.
-Once the code is stable it should be increased.
-@d INITIAL_G_EVENTS_CAPACITY 1
+@d INITIAL_G_EVENTS_CAPACITY (1024/sizeof(int))
 @<Initialize grammar elements@> =
 DSTACK_INIT(g->t_events, GEV_Object, INITIAL_G_EVENTS_CAPACITY);
 @ @<Destroy grammar elements@> = DSTACK_DESTROY(g->t_events);
