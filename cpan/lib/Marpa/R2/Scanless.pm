@@ -70,6 +70,7 @@ BEGIN {
     TRACE_G0
     TRACE_TERMINALS
     READ_STRING_ERROR
+    EVENTS
 
 END_OF_STRUCTURE
     Marpa::R2::offset($structure);
@@ -675,6 +676,7 @@ sub Marpa::R2::Scanless::R::resume {
     $thin_slr->trace_g0($trace_g0)               if $trace_g0;
 
     $thin_slr->pos_set( $start_pos, $length );
+    $self->[Marpa::R2::Inner::Scanless::R::EVENTS] = [];
 
     OUTER_READ: while (1) {
 
@@ -682,9 +684,11 @@ sub Marpa::R2::Scanless::R::resume {
 
         last OUTER_READ if not $problem_code;
 
+        my $pause = $problem_code eq 'pause';
+
         my $stream = $thin_slr->stream();
 
-        EVENT: while ( my $event = $thin_slr->event()  ) {
+        EVENT: while ( my $event = $thin_slr->event() ) {
             my ( $event_type, @event_data ) = @{$event};
             if ( $event_type eq ':trace' ) {
 
@@ -851,13 +855,25 @@ sub Marpa::R2::Scanless::R::resume {
                 next EVENT;
             } ## end if ( $event_type eq ':trace' )
 
-            {
-                # Unknown event
-                my $trace_file_handle =
-                    $self->[Marpa::R2::Inner::Scanless::R::TRACE_FILE_HANDLE];
-            say {$trace_file_handle} 'Unknown event: ', join " ", $event_type, @event_data;
-            next EVENT;
-            }
+            if ( $event_type eq 'symbol completed' ) {
+                my ($completed_symbol_id) = @event_data;
+                my $thick_g1_recce =
+                    $self->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+                my $thick_g1_grammar = $thick_g1_recce->grammar();
+                my $g1_tracer        = $thick_g1_grammar->tracer();
+                push @{ $self->[Marpa::R2::Inner::Scanless::R::EVENTS] },
+                    [
+                    $event_type, $g1_tracer->symbol_name($completed_symbol_id)
+                    ];
+                $pause = 1;
+                next EVENT;
+            } ## end if ( $event_type eq 'symbol completed' )
+
+            # Unknown event
+            my $trace_file_handle =
+                $self->[Marpa::R2::Inner::Scanless::R::TRACE_FILE_HANDLE];
+            say {$trace_file_handle} 'Unknown event: ', join " ", $event_type,
+                @event_data;
 
         } ## end EVENT: while ( my $event = $thin_slr->event() )
 
@@ -876,7 +892,7 @@ sub Marpa::R2::Scanless::R::resume {
                 qq{=== End of progress report for position $stream_pos\n\n};
         } ## end if ( $trace_g0 > 2 )
 
-        last OUTER_READ if $problem_code eq 'pause';
+        last OUTER_READ if $pause;
         next OUTER_READ if $problem_code eq 'event';
         next OUTER_READ if $problem_code eq 'trace';
 
@@ -932,6 +948,11 @@ sub Marpa::R2::Scanless::R::resume {
 
     return $thin_slr->pos();
 } ## end sub Marpa::R2::Scanless::R::resume
+
+sub Marpa::R2::Scanless::R::events {
+    my ($self ) = @_;
+    return $self->[Marpa::R2::Inner::Scanless::R::EVENTS];
+}
 
 ## From here, recovery is a matter for the caller,
 ## if it is possible at all

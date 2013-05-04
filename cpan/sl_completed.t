@@ -47,7 +47,18 @@ my $grammar = Marpa::R2::Scanless::G->new(
 my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
 
 my $input = q{42 ( hi 42 hi ) 7 11};
-$recce->read(\$input);
+my $length  = length $input;
+my $pos = $recce->read(\$input);
+READ: for ( ; $pos < $length; $pos = $recce->resume() ) {
+    for my $event ( @{ $recce->events() } ) {
+        my ($type) = @{$event};
+        if ( $type eq 'sybmol completed' ) {
+            say 'Completion event: ', $type;
+            next EVENT;
+        }
+        die "Unknown event: ", Data::Dumper::Dumper($event);
+    } ## end for my $event ( @{ $recce->event() } )
+} ## end READ: for ( ; $pos < $length; $recce->resume() )
 my $value_ref = $recce->value();
 if ( not defined $value_ref ) {
     die "No parse\n";
