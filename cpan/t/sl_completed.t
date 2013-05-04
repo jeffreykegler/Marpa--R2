@@ -32,7 +32,7 @@ text ::= <text segment>* action => OK
 <text segment> ::= subtext
 <text segment> ::= <word>
 subtext ::= '(' text ')'
-event subtext = completed subtext
+event subtext = completed <subtext>
 
 word ~ [\w]+
 :discard ~ whitespace
