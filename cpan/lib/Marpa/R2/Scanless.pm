@@ -857,13 +857,12 @@ sub Marpa::R2::Scanless::R::resume {
 
             if ( $event_type eq 'symbol completed' ) {
                 my ($completed_symbol_id) = @event_data;
-                my $thick_g1_recce =
-                    $self->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
-                my $thick_g1_grammar = $thick_g1_recce->grammar();
-                my $g1_tracer        = $thick_g1_grammar->tracer();
+                my $slg = $self->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
+                my $completion_event_by_id = $slg
+                    ->[Marpa::R2::Inner::Scanless::G::COMPLETION_EVENT_BY_ID];
                 push @{ $self->[Marpa::R2::Inner::Scanless::R::EVENTS] },
                     [
-                    $event_type, $g1_tracer->symbol_name($completed_symbol_id)
+                    $completion_event_by_id->[$completed_symbol_id]
                     ];
                 $pause = 1;
                 next EVENT;

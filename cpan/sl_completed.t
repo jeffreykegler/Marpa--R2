@@ -51,12 +51,8 @@ my $length  = length $input;
 my $pos = $recce->read(\$input);
 READ: for ( ; $pos < $length; $pos = $recce->resume() ) {
     for my $event ( @{ $recce->events() } ) {
-        my ($type) = @{$event};
-        if ( $type eq 'sybmol completed' ) {
-            say 'Completion event: ', $type;
-            next EVENT;
-        }
-        die "Unknown event: ", Data::Dumper::Dumper($event);
+        my ($name) = @{$event};
+        say "Event: $name";
     } ## end for my $event ( @{ $recce->event() } )
 } ## end READ: for ( ; $pos < $length; $recce->resume() )
 my $value_ref = $recce->value();
