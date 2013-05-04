@@ -27,13 +27,12 @@ use Marpa::R2::Test;
 use Marpa::R2;
 
 my $rules = <<'END_OF_GRAMMAR';
-:default ::= action => ::array
 :start ::= text
-text ::= <text segment>*
-<text segment> ::= <parenthesized text>
+text ::= <text segment>* action => OK
+<text segment> ::= subtext
 <text segment> ::= <word>
-<parenthesized text> ::= '(' text ')'
-event subtext = completed <parenthesized text>
+subtext ::= '(' text ')'
+event subtext = completed subtext
 
 word ~ [\w]+
 :discard ~ whitespace
@@ -41,7 +40,7 @@ whitespace ~ [\s]+
 END_OF_GRAMMAR
 
 my $grammar = Marpa::R2::Scanless::G->new(
-    {   source          => \$rules }
+    {   action_object => 'My_Actions', source          => \$rules }
 );
 
 my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
@@ -53,6 +52,7 @@ READ: for ( ; $pos < $length; $pos = $recce->resume() ) {
     for my $event ( @{ $recce->events() } ) {
         my ($name) = @{$event};
         say "Event: $name";
+        say "subtext: ", show_last_subtext($recce);
     } ## end for my $event ( @{ $recce->event() } )
 } ## end READ: for ( ; $pos < $length; $recce->resume() )
 my $value_ref = $recce->value();
@@ -60,7 +60,18 @@ if ( not defined $value_ref ) {
     die "No parse\n";
 }
 my $actual_value = ${$value_ref};
-say Data::Dumper::Dumper($actual_value);
-Test::More::is( $actual_value, q{}, qq{Value for "$input"} );
+Test::More::is( $actual_value, q{1792}, qq{Value for "$input"} );
+
+sub show_last_subtext {
+    my ($slr) = @_;
+    my ( $start, $end ) = $slr->last_completed_range('subtext');
+    return 'No expression was successfully parsed' if not defined $start;
+    return $slr->range_to_string( $start, $end );
+}
+
+package My_Actions;
+
+sub OK { return 1792 };
+sub new { return {}; }
 
 # vim: expandtab shiftwidth=4:
