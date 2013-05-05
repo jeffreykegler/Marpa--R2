@@ -7798,23 +7798,26 @@ Marpa_AHFA_State_ID _marpa_r_postdot_item_symbol(Marpa_Recognizer r)
 
 
 @** Source objects.
-These are distinguished by context.
+Nothing internally distinguishes the various source objects
+by type.
+It is assumed that their type will be known from
+the context in which they are used.
 @*0 The relationship between Leo items and ambiguity.
 The relationship between Leo items and ambiguous sources bears
 some explaining.
 Leo sources must be unique, but only when their predecessor's
 Earley set is considered.
 That is, for every pairing of Earley item and Earley set,
-if there be only one Leo source in that Earley item
+there is only one Leo source in that Earley item
 with a predecessor in that Earley set.
 But there may be other sources (both Leo and non-Leo),
 a long as their predecessors
 are in different Earley sets.
 @ One way to look at these Leo ambiguities is as different
 ``factorings" of the Earley item.
-Assume the last (or transition) symbol of an Earley item
-is a token.
-An Earley item will often have both a predecessor and a token,
+Call the last (or transition) symbol of an Earley item
+its ``cause".
+An Earley item will often have both a predecessor and a cause,
 and these can ``factor", or divide up, the distance between
 an Earley item's origin and its current set in different ways.
 @ The Earley item can have only one origin,
@@ -7823,34 +7826,18 @@ But that transition symbol does not have to start at the origin
 and can start anywhere between the origin and the current
 set of the Earley item.
 For example, for an Earley item at earleme 14, with its origin at 10,
-tokens may start at earlemes 10, 11, 12 and 13.
-Each may have its own Leo source.
+there may be no predecessor in which case the ``cause" starts at 10.
+Or there may be a predecessor, in which case
+the ``cause" may start at earlemes 11, 12 or 13.
+This different divisions between the (possibly null) predecessor
+and the ``cause" are ``factorings" of the Earley item.
+@ Each factoring may have its own Leo source.
 At those earlemes without a Leo source, there may be any number
 of non-Leo sources.
-@ In this way, an Earley item with a Leo source can be ambiguous.
-The discussion above assumed the final symbol was a token.
-The situation for completion Earley items is similar,
-and these also can both have a Leo source and 
-be ambiguous.
 @*0 Optimization.
 There will be a lot of these structures in a long
-parse, so space optimization is important.
-I have some latitude in the number of linked lists
-in a ambiguous source.
-If an |int| is the same size as a |void*|,
-then space for three |void*| in ambiguous sources
-comes ``free".
-If |void*| is $n$ bytes larger than an |int|,
-then each unambiguous source uses $n$ bytes
-more than it has to, although there are
-compensating improvements in
-speed and simplicity.
-Any programmer trying to take advantage
-of architectures where |int|
-is shorter than |void*| will need to
-assure herself that the space she saves in 
-the |ambiguous_source| struct was not simply wasted
-by alignment within structures or during memory allocation.
+parse, so space optimization gets an unusual amount of
+attention in the source links.
 @d Next_SRCL_of_SRCL(link) ((link)->t_next)
 @ @<Private typedefs@> =
 struct s_source;
@@ -7952,25 +7939,25 @@ token_link_add (RECCE r,
   LV_First_Token_SRCL_of_EIM (item) = new_link;
 }
 
-@
+@ Duplicate completion links can occur.
 Each possible cause
 link is only visited once.
-It may be paired with several different predecessors.
+But a cause link may be paired with several different predecessors.
 Each cause may complete several different LHS symbols
 and Marpa will seek predecessors for each at
 the parent location.
 Two different completed LHS symbols might be postdot
 symbols for the same predecessor Earley item.
 For this reason,
-predecessor-cause pairs
-might not be unique
-within an Earley item.
+the same predecessor-cause pair
+may be chosen more than once.
 @ Since a completion link consists entirely of
-the predecessor-cause pair, this means duplicate
-completion links are possible.
+the predecessor-cause pair, a duplicate
+predecessor-cause pair means a duplicate
+completion link.
 The maximum possible number of such duplicates is the
 number of complete LHS symbols for the current AHFA state.
-This is alway a constant and typically a small one,
+This is always a constant and typically a small one,
 but it is also typically larger than 1.
 @ This is not an issue for unambiguous parsing.
 It {\bf is} an issue for iterating ambiguous parses.

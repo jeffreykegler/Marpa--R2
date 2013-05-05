@@ -64,13 +64,21 @@ sub do_test {
     my $length = length $string;
     my $pos    = $recce->read( \$string );
     READ: while (1) {
-        for my $event ( @{ $recce->events() } ) {
+        EVENT: for (
+            my $event_ix = 0;
+            my $event    = $recce->event($event_ix);
+            $event_ix++
+            )
+        {
             my ($name) = @{$event};
-            push @actual_events, show_last_subtext($recce);
-        }
+            if ( $name eq 'subtext' ) {
+                push @actual_events, show_last_subtext($recce);
+                next EVENT;
+            }
+        } ## end for ( my $event_ix = 0; my $event = $recce->event($event_ix...))
         last READ if $pos >= $length;
-        $pos = $recce->resume($pos) ;
-    } ## end READ: for ( ; $pos < $length; $pos = $recce->resume() )
+        $pos = $recce->resume($pos);
+    } ## end READ: while (1)
     my $value_ref = $recce->value();
     if ( not defined $value_ref ) {
         die "No parse\n";
