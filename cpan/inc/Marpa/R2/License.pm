@@ -260,7 +260,6 @@ my %files_by_type = (
         \&ignored,    # not source, and not clear how to add license at top
     'META.yml' =>
         \&ignored,    # not source, and not clear how to add license at top
-    'Makefile.PL'                       => \&trivial,
     'README'                            => \&trivial,
     'TODO'                              => \&trivial,
     'author.t/accept_tidy'              => \&trivial,

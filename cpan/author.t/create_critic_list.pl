@@ -20,9 +20,7 @@ use warnings;
 use English qw( -no_match_vars );
 use Fatal qw( open close );
 
-my %exclude = map { ( $_, 1 ) } qw(
-    Makefile.PL
-);
+my %exclude = map { ( $_, 1 ) } qw();
 
 open my $manifest, '<', '../MANIFEST'
     or Marpa::R2::exception("open of ../MANIFEST failed: $ERRNO");

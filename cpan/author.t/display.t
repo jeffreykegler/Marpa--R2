@@ -38,12 +38,8 @@ my $options_result = GetOptions( 'warnings' => \$warnings );
 Marpa::R2::exception("$PROGRAM_NAME options parsing failed")
     if not $options_result;
 
-my %exclude = map { ( $_, 1 ) } qw(
-    Makefile.PL
-);
-
-my @additional_files = qw(
-);
+my %exclude = map { ( $_, 1 ) } qw();
+my @additional_files = qw();
 
 my @test_files = @ARGV;
 my $debug_mode = scalar @test_files;
