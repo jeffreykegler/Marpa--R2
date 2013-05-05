@@ -83,7 +83,7 @@ Specifies the name of a Perl package.
 The package is used
 for blessing node values into a Perl class,
 in conjunction with the
-L<C<bless> adverb|Marpa::R2::DSL/"C<bless> adverb">.
+L<C<bless> adverb|Marpa::R2::Scanless::DSL/"bless">.
 
 =head2 default_action
 

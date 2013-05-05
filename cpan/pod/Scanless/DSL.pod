@@ -543,7 +543,7 @@ The default value of a G1 rule is a Perl C<undef>.
 The C<action> adverb is not allowed for G0 rules,
 which have no default value.
 The possible values of actions are described in
-L<their own section/"Actions">.
+L<their own section|/"Actions">.
 
 The default value of a lexeme is 
 its literal value in the input stream, as a string.
