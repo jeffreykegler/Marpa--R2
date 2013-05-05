@@ -64,7 +64,7 @@ normalize-whitespace: 1
 
 =head1 About this document
 
-This is the reference document reference for
+This is the reference document for
 the domain-specific language (DSL)
 of Marpa's Scanless interface (SLIF).
 The SLIF's DSL is
@@ -419,7 +419,7 @@ it is not passed as a lexeme to the G1 parser, but is
 Discard rules must be G0 rules.
 No adverbs are allowed.
 
-=head1 Default pseudo-rules
+=head2 Default pseudo-rules
 
 =for Marpa::R2::Display
 name: SLIF DSL synopsis
@@ -446,7 +446,7 @@ set of defaults -- if an adverb is not specified,
 it is reset to its original default, the one it had
 before any default pseudo-rules were encountered.
 
-=head1 Lexeme pseudo-rules
+=head2 Lexeme pseudo-rules
 
 =for Marpa::R2::Display
 name: SLIF lexeme rule synopsis
@@ -475,7 +475,7 @@ Applications may find the ability to "declare"
 lexemes useful for debugging,
 and for documentating grammars.
 
-=head1 Lexeme default statement
+=head2 Lexeme default statement
 
 =for Marpa::R2::Display
 name: SLIF DSL synopsis
@@ -494,6 +494,37 @@ Only the defaults for
 the C<action> and C<bless> adverbs
 can be specified in a lexeme default pseudo-rule.
 Only one lexeme default statement is allowed in a file.
+
+=head2 Completion event statement
+
+=for Marpa::R2::Display
+name: SLIF completed event statement synopsis
+partial: 1
+normalize-whitespace: 1
+
+    event subtext = completed <subtext>
+
+=for Marpa::R2::Display::End
+
+The completion event default statement sets up a symbol
+so that an named event occurs for every "symbol completion".
+A "symbol completion" named event
+occurs whenever a rule with that symbol on
+its LHS is fully recognized in the parse.
+
+(The idea is that "symbol completion" occurs when the
+rule, and therefore its LHS, is "complete".)
+Note that, as a special case,
+a zero length or null rule is never considered
+"complete",
+and that therefore it is never a symbol completion
+when a symbol is zero length, or "nulled".
+
+Named events pause internal scanning, as described in
+L<Marpa::R2::Scanless::R>.
+They may be queried using
+L<the Scanless recognizer's event()
+method|Marpa::R2::Scanless::R/"event()">.
 
 =head1 Adverbs
 

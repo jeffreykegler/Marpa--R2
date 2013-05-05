@@ -32,7 +32,12 @@ text ::= <text segment>* action => OK
 <text segment> ::= subtext
 <text segment> ::= <word>
 subtext ::= '(' text ')'
+# Marpa::R2::Display
+# name: SLIF completed event statement synopsis
+
 event subtext = completed <subtext>
+
+# Marpa::R2::Display::End
 
 word ~ [\w]+
 :discard ~ whitespace
@@ -60,26 +65,33 @@ sub show_last_subtext {
 sub do_test {
     my ( $slg, $string, $expected_events ) = @_;
     my @actual_events;
-    my $recce  = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
+    my $slr  = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
     my $length = length $string;
-    my $pos    = $recce->read( \$string );
+    my $pos    = $slr->read( \$string );
     READ: while (1) {
+
+# Marpa::R2::Display
+# name: SLR event() method synopsis
+
         EVENT: for (
             my $event_ix = 0;
-            my $event    = $recce->event($event_ix);
+            my $event    = $slr->event($event_ix);
             $event_ix++
             )
         {
             my ($name) = @{$event};
             if ( $name eq 'subtext' ) {
-                push @actual_events, show_last_subtext($recce);
+                push @actual_events, show_last_subtext($slr);
                 next EVENT;
             }
-        } ## end for ( my $event_ix = 0; my $event = $recce->event($event_ix...))
+        } ## end for ( my $event_ix = 0; my $event = $slr->event($event_ix...))
+
+# Marpa::R2::Display::End
+
         last READ if $pos >= $length;
-        $pos = $recce->resume($pos);
+        $pos = $slr->resume($pos);
     } ## end READ: while (1)
-    my $value_ref = $recce->value();
+    my $value_ref = $slr->value();
     if ( not defined $value_ref ) {
         die "No parse\n";
     }

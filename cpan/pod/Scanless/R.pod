@@ -261,6 +261,17 @@ will pause when the current location is
 C<$length + 1 + length $input_string>.
 The pause lexeme and pause span will be undefined.
 
+=item *
+
+Named events pause internal scanning.
+Named events are specified in the SLIF DSL,
+for example by the L<the completion event
+statement|Marpa::R2::DSL/"Completion event statement">.
+Named events will always have an event name,
+and may be queried using the
+L<the Scanless recognizer's event()
+method|/"event()">,
+
 =back
 
 =head1 The input stream
@@ -652,6 +663,43 @@ On unthrown failure,
 C<resume()> return a Perl C<undef>.
 
 =head1 Accessors
+
+=head2 event()
+
+=for Marpa::R2::Display
+name: SLR event() method synopsis
+normalize-whitespace: 1
+
+        EVENT: for (
+            my $event_ix = 0;
+            my $event    = $slr->event($event_ix);
+            $event_ix++
+            )
+        {
+            my ($name) = @{$event};
+            if ( $name eq 'subtext' ) {
+                push @actual_events, show_last_subtext($slr);
+                next EVENT;
+            }
+        } ## end for ( my $event_ix = 0; my $event = $slr->event($event_ix...))
+
+=for Marpa::R2::Display::End
+
+The C<event()> method accepts one, required, argument,
+an event index.
+It returns a descriptor of
+the named event with that index, or a Perl C<undef>
+if there is no such event.
+
+The named event descriptor is a reference to an array of one
+or more elements.
+The first element of every named event descriptor is a string
+containing the name of the event.
+
+The other elements of the named event descriptor will
+be as described for each kind of event.
+One example of a named event is L<a symbol completion
+event|Marpa::R2::Scanless::DSL/"Completion event statement">.
 
 =head2 line_column()
 
