@@ -506,18 +506,20 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
-The completion event default statement sets up a symbol
-so that an named event occurs for every "symbol completion".
-A "symbol completion" named event
+The completion event statement sets up a symbol
+so that a named event occurs for all
+of its "symbol completions".
+A "symbol completion"
 occurs whenever a rule with that symbol on
 its LHS is fully recognized in the parse.
-
 (The idea is that "symbol completion" occurs when the
 rule, and therefore its LHS, is "complete".)
+
 Note that, as a special case,
 a zero length or null rule is never considered
 "complete",
-and that therefore it is never a symbol completion
+As a consequence,
+it is never a symbol completion
 when a symbol is zero length, or "nulled".
 
 Named events pause internal scanning, as described in

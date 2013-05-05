@@ -265,12 +265,12 @@ The pause lexeme and pause span will be undefined.
 
 Named events pause internal scanning.
 Named events are specified in the SLIF DSL,
-for example by the L<the completion event
+for example by L<the completion event
 statement|Marpa::R2::DSL/"Completion event statement">.
 Named events will always have an event name,
 and may be queried using the
 L<the Scanless recognizer's event()
-method|/"event()">,
+method|/"event()">.
 
 =back
 
@@ -498,10 +498,14 @@ ambiguous tokens.
 Most applications 
 will prefer the simpler C<lexeme_read()>.
 
-C<lexeme_alternative()> takes one or two argument.
-The first, required, argument is the name of a symbol to be read
+C<lexeme_alternative()> takes one or two arguments.
+The first required argument,
+which is required,
+is the name of a symbol to be read
 at the current location.
-The second, optional, argument is the value of the symbol.
+The second argument,
+which is optional,
+is the value of the symbol.
 The value argument is interpreted as described for C<lexeme_read()>.
 
 Any number of tokens may be read using C<lexeme_alternative()>
@@ -685,7 +689,7 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
-The C<event()> method accepts one, required, argument,
+The C<event()> method requires one argument,
 an event index.
 It returns a descriptor of
 the named event with that index, or a Perl C<undef>
