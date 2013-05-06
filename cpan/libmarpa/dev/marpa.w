@@ -7250,8 +7250,14 @@ the Earley set.
 struct s_earley_item;
 typedef struct s_earley_item* EIM;
 typedef const struct s_earley_item* EIM_Const;
+typedef struct s_extended_earley_item* EIMX;
 struct s_earley_item_key;
 typedef struct s_earley_item_key* EIK;
+@ @d EIM_is_Extended(eim) ((eim)->is_extended_eim)
+@ @d EIM_at_Completion_Event_Closure(eim) ((eim)->at_completion_event_closure)
+@<Bit aligned Earley item elements@> =
+    unsigned int is_extended_eim:1;
+    unsigned int at_completion_event_closure:1;
 
 @ @<Earley item structure@> =
 struct s_earley_item_key {
@@ -7267,6 +7273,16 @@ struct s_earley_item {
      @<Bit aligned Earley item elements@>@/
 };
 typedef struct s_earley_item EIM_Object;
+@ The Earley item, extended for special cases.
+Right now the only such special case is where
+completion events are complex and need to be
+tracked on a per-EIM basis.
+@<Earley item structure@> =
+struct s_extended_earley_item {
+     EIM_Object t_basic_eim;
+     CIL t_completion_event_isyids;
+};
+typedef struct s_earley_item EIMX_Object;
 
 @*0 Constructor.
 Find an Earley item object, creating it if it does not exist.
@@ -7286,6 +7302,8 @@ PRIVATE EIM earley_item_create(const RECCE r,
   const int count = ++EIM_Count_of_ES(set);
   @<Check count against Earley item thresholds@>@;
   new_item = my_obstack_alloc (r->t_obs, sizeof (*new_item));
+  EIM_at_Completion_Event_Closure(new_item) = 1;
+  EIM_is_Extended(new_item) = 0;
   new_item->t_key = key;
   new_item->t_source_type = NO_SOURCE;
   Ord_of_EIM(new_item) = count - 1;
