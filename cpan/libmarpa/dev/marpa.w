@@ -2700,16 +2700,14 @@ int _marpa_g_irl_is_virtual_rhs(
 @
 If the completions can be determined from the IRL ID
 alone, completions are said to be simple.
-If Leo logic is in use,
-and the history of the parse also affects the completions,
+If the history of the parse also affects the completions,
 completions are said to be complex.
-The |t_has_complex_completion| bit indicates whether
+The |t_has_complex_completions| bit indicates whether
 completions are complex or simple.
 Completions are only complex when the IRL is indirectly right
-recursive and the Leo logic is in use.
+recursive.
 But an IRL may be indirectly right recursive,
-and use Leo logic,
-but still have simple completions.
+and still have simple completions.
 @
 |t_event_isyids| is always
 the set of ISYID's for which completion of this IRL
@@ -2717,10 +2715,7 @@ causes a completion event,
 taking into account
 possible right recursions due
 to Leo items.
-@ The value of
-|t_direct_event_isyids| is only set if completions are
-complex.
-|t_direct_event_isyids| is the list of completions,
+@ |t_direct_event_isyids| is the list of completions,
 taking into account only the IRL itself,
 and ignoring completions due to right recursion.
 |t_direct_event_isyids| will contain at most a single element,
@@ -2732,14 +2727,14 @@ the ISYID of the IRL's LHS.
 @d Direct_Event_ISY_Count_of_IRL(irl) 
   Count_of_CIL((irl)->t_direct_event_isyids)
 @ @<Bit aligned IRL elements@> =
-   unsigned int t_has_complex_completion:1;
+   unsigned int t_has_complex_completions:1;
 @ @<Widely aligned IRL elements@> =
 CIL t_event_isyids;
 CIL t_direct_event_isyids;
 @ @<Initialize IRL elements@> =
   irl->t_event_isyids = 0;
   irl->t_direct_event_isyids = 0;
-  irl->t_has_complex_completion = 0;
+  irl->t_has_complex_completions = 0;
 
 @*0 Rule real symbol count.
 This is another data element used for the ``internal semantics" --
@@ -5144,13 +5139,14 @@ one non-nulling symbol in each IRL. */
     {
       const IRL irl = IRL_by_ID (irl_id);
       const ISYID lhs_isyid = LHSID_of_IRL (irl);
-      if (!IRL_is_Right_Recursive (irl))
-	{
-	  irl->t_event_isyids =
+      irl->t_direct_event_isyids =
 	    ISYID_is_Completion_Event (lhs_isyid) ? cil_singleton (&g->
 								   t_cilar,
 								   lhs_isyid)
 	    : cil_empty (&g->t_cilar);
+      if (!IRL_is_Right_Recursive (irl))
+	{
+	  irl->t_event_isyids = irl->t_direct_event_isyids;
 	  continue;
 	}
       {
@@ -5177,6 +5173,9 @@ one non-nulling symbol in each IRL. */
 	  }
 	cil_confirm (&g->t_cilar, isy_ix);
 	irl->t_event_isyids = cil_finish (&g->t_cilar);
+	if (cil_cmp(irl->t_direct_event_isyids, irl->t_event_isyids, 0)) {
+	  irl->t_has_complex_completions = 1;
+	}
       }
     }
 }
