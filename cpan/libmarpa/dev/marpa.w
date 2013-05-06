@@ -2726,6 +2726,7 @@ the ISYID of the IRL's LHS.
   Item_of_CIL((irl)->t_direct_event_isyids, (ix))
 @d Direct_Event_ISY_Count_of_IRL(irl) 
   Count_of_CIL((irl)->t_direct_event_isyids)
+@d IRL_has_Complex_Completions(irl) ((irl)->t_has_complex_completions)
 @ @<Bit aligned IRL elements@> =
    unsigned int t_has_complex_completions:1;
 @ @<Widely aligned IRL elements@> =
@@ -5562,7 +5563,8 @@ a start rule completion, and it is a
 	const ISYID lhs_isyid = LHS_ISYID_of_AIM(working_aim_p);
 	const IRL irl = IRL_of_AIM(working_aim_p);
 	p_new_state->t_complete_isyids = cil_singleton(&g->t_cilar, lhs_isyid);
-	p_new_state->t_direct_event_isyids = 0;
+	p_new_state->t_direct_event_isyids = IRL_has_Complex_Completions(irl) ?
+	    irl->t_direct_event_isyids : NULL;
 	p_new_state->t_event_isyids = irl->t_event_isyids;
 	completion_count_inc(obs_precompute, p_new_state, lhs_isyid);
 
