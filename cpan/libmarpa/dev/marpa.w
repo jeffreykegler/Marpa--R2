@@ -2697,19 +2697,46 @@ int _marpa_g_irl_is_virtual_rhs(
   IRL_is_Right_Recursive(irl) = 0;
 
 @*0 IRL event ISYID list.
-@ The full set of ISYID's for which completion of this IRL
-causes a completion event.
-This set takes into account possible right recursion due
+@
+If the completions can be determined from the IRL ID
+alone, completions are said to be simple.
+If the history of the parse also affects the completions,
+completions are said to be complex.
+The |t_has_complex_completion| bit indicates whether
+completions are complex or simple.
+Completions are only complex when the IRL is right
+recursive, but not all right recursive rules
+have complex completions.
+@
+|t_event_isyids| is always
+the set of ISYID's for which completion of this IRL
+causes a completion event,
+taking into account
+possible right recursions due
 to Leo items.
-When a rule is not right recursive,
-this set will always contain at most a single element,
-the LHS ISYID's.
+@ The value of
+|t_direct_event_isyids| is only set if completions are
+complex.
+|t_direct_event_isyids| is the list of completions,
+taking into account only the IRL itself,
+and ignoring completions due to right recursion.
+|t_direct_event_isyids| will contain at most a single element,
+the ISYID of the IRL's LHS.
 @d Event_ISYID_of_IRL(irl, ix) Item_of_CIL((irl)->t_event_isyids, (ix))
 @d Event_ISY_Count_of_IRL(irl) Count_of_CIL((irl)->t_event_isyids)
+@d Direct_Event_ISYID_of_IRL(irl, ix) 
+  Item_of_CIL((irl)->t_direct_event_isyids, (ix))
+@d Direct_Event_ISY_Count_of_IRL(irl) 
+  Count_of_CIL((irl)->t_direct_event_isyids)
+@ @<Bit aligned IRL elements@> =
+   unsigned int t_has_complex_completion:1;
 @ @<Widely aligned IRL elements@> =
 CIL t_event_isyids;
+CIL t_direct_event_isyids;
 @ @<Initialize IRL elements@> =
   irl->t_event_isyids = 0;
+  irl->t_direct_event_isyids = 0;
+  irl->t_has_complex_completion = 0;
 
 @*0 Rule real symbol count.
 This is another data element used for the ``internal semantics" --
