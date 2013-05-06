@@ -5813,10 +5813,13 @@ PPCODE:
   const int old_pos = stream->perl_pos;
   const int input_length = stream->pos_db_logical_size;
 
-  int start_pos = SvIOK (start_pos_sv) ? SvIV (start_pos_sv) : stream->perl_pos;
+  int start_pos =
+    SvIOK (start_pos_sv) ? SvIV (start_pos_sv) : stream->perl_pos;
 
   int lexeme_length = SvIOK (length_sv) ? SvIV (length_sv)
-    : stream->perl_pos == slr->start_of_pause_lexeme ? (slr->end_of_pause_lexeme - slr->start_of_pause_lexeme) : -1;
+    : stream->perl_pos ==
+    slr->start_of_pause_lexeme ? (slr->end_of_pause_lexeme -
+				  slr->start_of_pause_lexeme) : -1;
 
   start_pos = start_pos < 0 ? input_length + start_pos : start_pos;
   if (start_pos < 0 || start_pos > input_length)
@@ -5829,7 +5832,8 @@ PPCODE:
 
   {
     const int end_pos =
-      lexeme_length < 0 ? input_length + lexeme_length + 1 : start_pos + lexeme_length;
+      lexeme_length <
+      0 ? input_length + lexeme_length + 1 : start_pos + lexeme_length;
     if (end_pos < 0 || end_pos > input_length)
       {
 	/* Undef length_sv should not cause error */
@@ -5843,8 +5847,8 @@ PPCODE:
   if (result >= 0)
     {
       /* All events are ignored on faiulre
-       * On success, all except MARPA_EVENT_EARLEY_ITEM_THRESHOLD and
-       * MARPA_EVENT_SYMBOL_COMPLETED are ignored.
+       * On success, all except MARPA_EVENT_EARLEY_ITEM_THRESHOLD
+       * are ignored.
        *
        * The warning raised for MARPA_EVENT_EARLEY_ITEM_THRESHOLD 
        * can be turned off by raising
@@ -5862,19 +5866,11 @@ PPCODE:
 		("Marpa: Scanless G1 Earley item count (%ld) exceeds warning threshold",
 		 (long) marpa_g_event_value (&event));
 	    }
-	  if (event_type == MARPA_EVENT_SYMBOL_COMPLETED)
-	    {
-	      warn
-		("Marpa: Scanless G1 symbol completed %ld",
-		 (long) marpa_g_event_value (&event));
-	    }
+	  /* Ignore MARPA_EVENT_SYMBOL_COMPLETED event */
 	}
-      {
-	marpa_r_latest_earley_set_values_set (slr->r1, start_pos,
-					      INT2PTR (void *,
-						       lexeme_length));
-	stream->perl_pos = start_pos + lexeme_length;
-      }
+      marpa_r_latest_earley_set_values_set (slr->r1, start_pos,
+					    INT2PTR (void *, lexeme_length));
+      stream->perl_pos = start_pos + lexeme_length;
       XSRETURN_IV (1);
     }
   if (slr->throw)
