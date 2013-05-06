@@ -2700,13 +2700,16 @@ int _marpa_g_irl_is_virtual_rhs(
 @
 If the completions can be determined from the IRL ID
 alone, completions are said to be simple.
-If the history of the parse also affects the completions,
+If Leo logic is in use,
+and the history of the parse also affects the completions,
 completions are said to be complex.
 The |t_has_complex_completion| bit indicates whether
 completions are complex or simple.
-Completions are only complex when the IRL is right
-recursive, but not all right recursive rules
-have complex completions.
+Completions are only complex when the IRL is indirectly right
+recursive and the Leo logic is in use.
+But an IRL may be indirectly right recursive,
+and use Leo logic,
+but still have simple completions.
 @
 |t_event_isyids| is always
 the set of ISYID's for which completion of this IRL
@@ -5144,9 +5147,10 @@ one non-nulling symbol in each IRL. */
       if (!IRL_is_Right_Recursive (irl))
 	{
 	  irl->t_event_isyids =
-	  ISYID_is_Completion_Event (lhs_isyid) ? cil_singleton (&g->t_cilar,
-								 lhs_isyid) :
-	  cil_empty (&g->t_cilar);
+	    ISYID_is_Completion_Event (lhs_isyid) ? cil_singleton (&g->
+								   t_cilar,
+								   lhs_isyid)
+	    : cil_empty (&g->t_cilar);
 	  continue;
 	}
       {
@@ -5164,12 +5168,15 @@ one non-nulling symbol in each IRL. */
 	    for (recursion_isyid = (ISYID) min;
 		 recursion_isyid <= (ISYID) max; recursion_isyid++)
 	      {
-		Item_of_CIL (new_cil, isy_ix) = recursion_isyid;
-		isy_ix++;
+		if (ISYID_is_Completion_Event (recursion_isyid))
+		  {
+		    Item_of_CIL (new_cil, isy_ix) = recursion_isyid;
+		    isy_ix++;
+		  }
 	      }
 	  }
 	cil_confirm (&g->t_cilar, isy_ix);
-	irl->t_event_isyids = cil_finish(&g->t_cilar);
+	irl->t_event_isyids = cil_finish (&g->t_cilar);
       }
     }
 }
