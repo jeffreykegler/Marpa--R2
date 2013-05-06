@@ -4882,8 +4882,19 @@ This includes all LHS's of rules that will be reached via expansion
 of a Leo path.
 @ @d Completion_Event_ISYID_of_AHFA(state, ix) Item_of_CIL((state)->t_event_isyids, (ix))
 @d Completion_Event_ISY_Count_of_AHFA(state) Count_of_CIL((state)->t_event_isyids)
+@ @d Direct_Completion_Event_ISYID_of_AHFA(state, ix)
+  Item_of_CIL((state)->t_direct_event_isyids, (ix))
+@d Direct_Completion_Event_ISY_Count_of_AHFA(state)
+  Count_of_CIL((state)->t_direct_event_isyids)
 @ @<Widely aligned AHFA state elements@> =
 CIL t_event_isyids;
+CIL t_direct_event_isyids;
+@ If the |t_direct_event_isyids| element is at its initial value of |NULL|,
+that indicates the AHFA has simple completions.
+(Simple completions are those which can be determined directly from the AHFA state ID,
+with knowing the history of the parse.)
+Otherwise, completions are complex.
+@d AHFA_has_Complex_Completions(state) (state)->t_direct_event_isyids)
 
 @*0 AHFA item container.
 @ @d AIMs_of_AHFA(ahfa) ((ahfa)->t_items)
@@ -5462,6 +5473,7 @@ _marpa_avl_destroy(duplicates);
     my_obstack_alloc (g->t_obs, sizeof (ISYID));
   postdot_isyid = Postdot_ISYID_of_AIM (start_item);
   *postdot_isyidary = postdot_isyid;
+  p_initial_state->t_direct_event_isyids = 0;
   p_initial_state->t_event_isyids =
     p_initial_state->t_complete_isyids =
     cil_empty (&g->t_cilar);
@@ -5531,6 +5543,7 @@ a start rule completion, and it is a
       {
 	ISYID* p_postdot_isyidary = Postdot_ISYIDAry_of_AHFA(p_new_state) =
 	  my_obstack_alloc (g->t_obs, sizeof (ISYID));
+	p_new_state->t_direct_event_isyids = 0;
 	p_new_state->t_event_isyids =
 	  p_new_state->t_complete_isyids = cil_empty (&g->t_cilar);
 	Postdot_ISY_Count_of_AHFA(p_new_state) = 1;
@@ -5548,6 +5561,7 @@ a start rule completion, and it is a
       {
 	ISYID lhs_isyid = LHS_ISYID_of_AIM(working_aim_p);
 	p_new_state->t_complete_isyids = cil_singleton(&g->t_cilar, lhs_isyid);
+	p_new_state->t_direct_event_isyids = 0;
 	p_new_state->t_event_isyids = ISYID_is_Completion_Event (lhs_isyid)
 	  ? p_new_state->t_complete_isyids 
 	  : cil_empty (&g->t_cilar);
@@ -5785,6 +5799,7 @@ for discovered state with 2+ items@> =
 	    new_isy_ix++;
 	  }
 	cil_confirm (&g->t_cilar, new_isy_ix);
+	p_new_state->t_direct_event_isyids = 0;
 	p_new_state->t_event_isyids = cil_finish (&g->t_cilar);
     }
 }
@@ -6075,6 +6090,7 @@ create_predicted_AHFA_state(
   AHFA_is_Predicted (p_new_state) = 1;
   p_new_state->t_empty_transition = NULL;
   TRANSs_of_AHFA (p_new_state) = transitions_new (g, ISY_Count_of_G(g));
+  p_new_state->t_direct_event_isyids = 0;
   p_new_state->t_event_isyids = p_new_state->t_complete_isyids = cil_empty (&g->t_cilar);
   @<Calculate postdot symbols for predicted state@>@;
   return p_new_state;
