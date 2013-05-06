@@ -7301,7 +7301,7 @@ PRIVATE EIM earley_item_create(const RECCE r,
   const ES set = key.t_set;
   const int count = ++EIM_Count_of_ES(set);
   @<Check count against Earley item thresholds@>@;
-  new_item = my_obstack_alloc (r->t_obs, sizeof (*new_item));
+  new_item = my_obstack_new (r->t_obs, struct s_earley_item, 1);
   EIM_at_Completion_Event_Closure(new_item) = 1;
   EIM_is_Extended(new_item) = 0;
   new_item->t_key = key;
