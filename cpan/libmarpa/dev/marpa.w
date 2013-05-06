@@ -5559,12 +5559,11 @@ a start rule completion, and it is a
       }
     else
       {
-	ISYID lhs_isyid = LHS_ISYID_of_AIM(working_aim_p);
+	const ISYID lhs_isyid = LHS_ISYID_of_AIM(working_aim_p);
+	const IRL irl = IRL_of_AIM(working_aim_p);
 	p_new_state->t_complete_isyids = cil_singleton(&g->t_cilar, lhs_isyid);
 	p_new_state->t_direct_event_isyids = 0;
-	p_new_state->t_event_isyids = ISYID_is_Completion_Event (lhs_isyid)
-	  ? p_new_state->t_complete_isyids 
-	  : cil_empty (&g->t_cilar);
+	p_new_state->t_event_isyids = irl->t_event_isyids;
 	completion_count_inc(obs_precompute, p_new_state, lhs_isyid);
 
 	Postdot_ISY_Count_of_AHFA(p_new_state) = 0;
