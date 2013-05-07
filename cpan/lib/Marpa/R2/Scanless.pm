@@ -1204,6 +1204,7 @@ sub Marpa::R2::Scanless::R::lexeme_alternative {
 sub Marpa::R2::Scanless::R::lexeme_complete {
     my ($slr, $start, $length) = @_;
     my $thin_slr = $slr->[Marpa::R2::Inner::Scanless::R::C];
+    $slr->[Marpa::R2::Inner::Scanless::R::EVENTS] = [];
     my $return_value = $thin_slr->g1_lexeme_complete($start, $length);
     Marpa::R2::Inner::Scanless::convert_libmarpa_events($slr);
     return $return_value;
@@ -1211,7 +1212,6 @@ sub Marpa::R2::Scanless::R::lexeme_complete {
 
 sub Marpa::R2::Scanless::R::lexeme_read {
     my ( $slr, $symbol_name, $start, $length, @value ) = @_;
-    $slr->[Marpa::R2::Inner::Scanless::R::EVENTS] = [];
     return if not $slr->lexeme_alternative( $symbol_name, @value );
     return $slr->lexeme_complete($start, $length);
 }
