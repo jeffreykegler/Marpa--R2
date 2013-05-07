@@ -7255,9 +7255,11 @@ typedef struct s_extended_earley_item* EIMX;
 struct s_earley_item_key;
 typedef struct s_earley_item_key* EIK;
 @ @d EIM_is_Extended(eim) ((eim)->is_extended_eim)
+@ @d EIM_has_Complex_Completions(eim) ((eim)->has_complex_completions)
 @ @d EIM_at_Completion_Event_Closure(eim) ((eim)->at_completion_event_closure)
 @<Bit aligned Earley item elements@> =
     unsigned int is_extended_eim:1;
+    unsigned int has_complex_completions:1;
     unsigned int at_completion_event_closure:1;
 
 @ @<Earley item structure@> =
@@ -7295,7 +7297,6 @@ These are not worth optimizing for.
 PRIVATE EIM earley_item_create(const RECCE r,
     const EIK_Object key)
 {
-  AHFA ahfa;
   @<Return |NULL| on failure@>@;
   @<Unpack recognizer objects@>@;
   EIM new_item;
@@ -7308,10 +7309,12 @@ PRIVATE EIM earley_item_create(const RECCE r,
     new_item = (EIM)new_eimx;
     /* While developing, start with full set */
     new_eimx->t_completion_event_isyids = key.t_state->t_event_isyids;
+    EIM_has_Complex_Completions(new_item) = 1;
     EIM_at_Completion_Event_Closure(new_item) = 0;
     EIM_is_Extended(new_item) = 1;
   } else {
     new_item = my_obstack_new (r->t_obs, struct s_earley_item, 1);
+    EIM_has_Complex_Completions(new_item) = 0;
     EIM_at_Completion_Event_Closure(new_item) = 1;
     EIM_is_Extended(new_item) = 0;
   }
@@ -9361,10 +9364,17 @@ add those Earley items it ``causes".
   int working_earley_item_count = EIM_Count_of_ES(current_earley_set);
   for (eim_ix = 0; eim_ix < working_earley_item_count; eim_ix++)
     {
+      int event_isy_count;
+      CIL cil;
       const EIM eim = eims[eim_ix];
-      const AHFA ahfa = AHFA_of_EIM(eim);
-      const CIL cil = Completion_Event_CIL_of_AHFA (ahfa);
-      const int event_isy_count = Count_of_CIL (cil);
+      if (EIM_has_Complex_Completions(eim)) {
+	const EIMX eimx = (EIMX)eim;
+        cil = eimx->t_completion_event_isyids;
+      } else {
+	const AHFA ahfa = AHFA_of_EIM(eim);
+	cil = Completion_Event_CIL_of_AHFA (ahfa);
+      }
+      event_isy_count = Count_of_CIL (cil);
       for (isy_ix = 0; isy_ix < event_isy_count; isy_ix++)
 	{
 	  ISYID event_isyid = Item_of_CIL (cil, isy_ix);
