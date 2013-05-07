@@ -4895,7 +4895,8 @@ that indicates the AHFA has simple completions.
 (Simple completions are those which can be determined directly from the AHFA state ID,
 with knowing the history of the parse.)
 Otherwise, completions are complex.
-@d AHFA_has_Complex_Completions(state) (state)->t_direct_event_isyids)
+@d AHFA_has_Complex_Completions(state)
+  ((state)->t_direct_event_isyids)
 
 @*0 AHFA item container.
 @ @d AIMs_of_AHFA(ahfa) ((ahfa)->t_items)
@@ -7239,9 +7240,7 @@ the Earley set.
 @d Ord_of_EIM(item) ((item)->t_ordinal)
 @d Earleme_of_EIM(item) Earleme_of_ES(ES_of_EIM(item))
 @d AHFAID_of_EIM(item) (ID_of_AHFA(AHFA_of_EIM(item)))
-@d EIK_of_EIM(item) ((EIK)(item))
-@d AHFA_of_EIK(eik) ((eik)->t_state)
-@d AHFA_of_EIM(item) (AHFA_of_EIK(EIK_of_EIM(item)))
+@d AHFA_of_EIM(item) ((item)->t_key.t_state)
 @d AIM_Count_of_EIM(item) (AIM_Count_of_AHFA(AHFA_of_EIM(item)))
 @d Origin_Earleme_of_EIM(item) (Earleme_of_ES(Origin_of_EIM(item)))
 @d Origin_Ord_of_EIM(item) (Ord_of_ES(Origin_of_EIM(item)))
@@ -7296,6 +7295,7 @@ These are not worth optimizing for.
 PRIVATE EIM earley_item_create(const RECCE r,
     const EIK_Object key)
 {
+  AHFA ahfa;
   @<Return |NULL| on failure@>@;
   @<Unpack recognizer objects@>@;
   EIM new_item;
@@ -7303,9 +7303,18 @@ PRIVATE EIM earley_item_create(const RECCE r,
   const ES set = key.t_set;
   const int count = ++EIM_Count_of_ES(set);
   @<Check count against Earley item thresholds@>@;
-  new_item = my_obstack_new (r->t_obs, struct s_earley_item, 1);
-  EIM_at_Completion_Event_Closure(new_item) = 1;
-  EIM_is_Extended(new_item) = 0;
+  if (AHFA_has_Complex_Completions(key.t_state)) {
+    const EIMX new_eimx = my_obstack_new (r->t_obs, struct s_extended_earley_item, 1);
+    new_item = (EIM)new_eimx;
+    /* While developing, start with full set */
+    new_eimx->t_completion_event_isyids = key.t_state->t_event_isyids;
+    EIM_at_Completion_Event_Closure(new_item) = 0;
+    EIM_is_Extended(new_item) = 1;
+  } else {
+    new_item = my_obstack_new (r->t_obs, struct s_earley_item, 1);
+    EIM_at_Completion_Event_Closure(new_item) = 1;
+    EIM_is_Extended(new_item) = 0;
+  }
   new_item->t_key = key;
   new_item->t_source_type = NO_SOURCE;
   Ord_of_EIM(new_item) = count - 1;
