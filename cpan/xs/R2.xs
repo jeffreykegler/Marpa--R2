@@ -1621,6 +1621,60 @@ slr_discard (Scanless_R * slr)
   return -4;
 }
 
+/* Assumes it is called
+ after a successful marpa_r_earleme_complete() */
+static void
+slr_convert_events (Scanless_R * slr)
+{
+  dTHX;
+  int event_ix;
+  Marpa_Grammar g1 = slr->g1_wrapper->g;
+  const int event_count = marpa_g_event_count (g1);
+  for (event_ix = 0; event_ix < event_count; event_ix++)
+    {
+      Marpa_Event marpa_event;
+      Marpa_Event_Type event_type =
+	marpa_g_event (g1, &marpa_event, event_ix);
+      switch (event_type)
+	{
+	  {
+	case MARPA_EVENT_EXHAUSTED:
+	    /* Do nothing about exhaustion on success */
+	    break;
+	case MARPA_EVENT_SYMBOL_COMPLETED:
+	    {
+	      AV *event;
+	      SV *event_data[2];
+	      Marpa_Symbol_ID completed_symbol =
+		marpa_g_event_value (&marpa_event);
+	      event_data[0] = newSVpvs ("symbol completed");
+	      event_data[1] = newSViv (completed_symbol);
+	      event = av_make (Dim (event_data), event_data);
+	      av_push (slr->event_queue, newRV_noinc ((SV *) event));
+	    }
+	    break;
+	default:
+	    {
+	      AV *event;
+	      const char *result_string = event_type_to_string (event_type);
+	      SV *event_data[2];
+	      event_data[0] = newSVpvs ("g1 event");
+	      if (!result_string)
+		{
+		  result_string =
+		    form ("event(%d): unknown event code, %d", event_ix,
+			  event_type);
+		}
+	      event_data[1] = newSVpvn (result_string, 0);
+	      event = av_make (Dim (event_data), event_data);
+	      av_push (slr->event_queue, newRV_noinc ((SV *) event));
+	    }
+	    break;
+	  }
+	}
+    }
+}
+
 /*
  * Return values:
  * NULL OK.
@@ -1955,55 +2009,7 @@ slr_alternatives (Scanless_R * slr)
 	      croak ("Problem in marpa_r_earleme_complete(): %s",
 		     xs_g_error (slr->g1_wrapper));
 	    }
-	  if (return_value > 0)
-	    {
-	      int event_ix;
-	      Marpa_Grammar g1 = slr->g1_wrapper->g;
-	      const int event_count = marpa_g_event_count (g1);
-	      for (event_ix = 0; event_ix < event_count; event_ix++)
-		{
-		  Marpa_Event marpa_event;
-		  Marpa_Event_Type event_type = marpa_g_event (g1, &marpa_event, event_ix);
-		  switch (event_type) {
-		    {
-		    case MARPA_EVENT_EXHAUSTED:
-		      /* Do nothing about exhaustion on success */
-		      break;
-		    case MARPA_EVENT_SYMBOL_COMPLETED:
-		      {
-			AV *event;
-			SV *event_data[2];
-			Marpa_Symbol_ID completed_symbol = marpa_g_event_value(&marpa_event);
-			event_data[0] = newSVpvs ("symbol completed");
-			event_data[1] = newSViv (completed_symbol);
-			event = av_make (Dim (event_data), event_data);
-			av_push (slr->event_queue,
-				 newRV_noinc ((SV *) event));
-		      }
-		      break;
-		    default:
-		      {
-			AV *event;
-			const char *result_string =
-			  event_type_to_string (event_type);
-			SV *event_data[2];
-			event_data[0] = newSVpvs ("g1 event");
-			if (!result_string)
-			  {
-			    result_string =
-			      form ("event(%d): unknown event code, %d", event_ix,
-				    event_type);
-			  }
-			event_data[1] = newSVpvn (result_string, 0);
-			event = av_make (Dim (event_data), event_data);
-			av_push (slr->event_queue,
-				 newRV_noinc ((SV *) event));
-		      }
-		      break;
-		    }
-		}
-	    }
-	  }
+	  if (return_value > 0) { slr_convert_events(slr); }
 
 	  marpa_r_latest_earley_set_values_set (r1, slr->start_of_lexeme,
 						INT2PTR (void *,
