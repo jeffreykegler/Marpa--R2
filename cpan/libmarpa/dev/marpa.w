@@ -9520,19 +9520,6 @@ At this point there are no Leo items.
 }
 
 @ {\bf To Do}: @^To Do@>
-Right now Leo items are created even where there is no
-right-recursion.  This follows Leo's original algorithm.
-It might be better to restrict the Leo logic to symbols
-which actually right-recurse,
-eliminating the overhead of tracking the others.
-The tradeoff is that the Leo logic may save some space,
-even in the absense of right recursion.
-It may be a good idea to allow it to be configured,
-with a flag determining whether the Leo logic (if enabled
-at all) is used for all LHS symbols,
-or only where there is right recursion.
-
-@ {\bf To Do}: @^To Do@>
 Memoize the |TRANS| pointer in the Leo items?
 
 @ This code creates the Earley indexes in the PIM workarea.
