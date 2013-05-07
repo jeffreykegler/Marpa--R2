@@ -4871,8 +4871,12 @@ PRIVATE void AHFA_initialize(AHFA ahfa)
 }
 
 @*0 Complete symbols container.
-@ @d Complete_ISYID_of_AHFA(state, ix) Item_of_CIL((state)->t_complete_isyids, (ix))
-@d Complete_ISY_Count_of_AHFA(state) Count_of_CIL((state)->t_complete_isyids)
+@
+@d Completion_Event_CIL_of_AHFA(state) ((state)->t_complete_isyids)
+@d Complete_ISYID_of_AHFA(state, ix)
+  Item_of_CIL(Completion_Event_CIL_of_AHFA(state), (ix))
+@d Complete_ISY_Count_of_AHFA(state)
+  Count_of_CIL(Completion_Event_CIL_of_AHFA(state))
 @ @<Widely aligned AHFA state elements@> =
 CIL t_complete_isyids;
 
@@ -7222,10 +7226,6 @@ be recopied to make way for pointers to the linked lists.
     Complete_ISYID_of_AHFA(AHFA_of_EIM(item), (ix))
 @d Complete_ISY_Count_of_EIM(item)
     Complete_ISY_Count_of_AHFA(AHFA_of_EIM(item))
-@d Completion_Event_ISYID_of_EIM(item, ix) 
-    Completion_Event_ISYID_of_AHFA(AHFA_of_EIM(item), (ix))
-@d Completion_Event_ISY_Count_of_EIM(item)
-    Completion_Event_ISY_Count_of_AHFA(AHFA_of_EIM(item))
 @d Leo_LHS_ISYID_of_EIM(eim) Leo_LHS_ISYID_of_AHFA(AHFA_of_EIM(eim))
 @ It might be slightly faster if this boolean is memoized in the Earley item
 when the Earley item is initialized.
@@ -9361,11 +9361,13 @@ add those Earley items it ``causes".
   int working_earley_item_count = EIM_Count_of_ES(current_earley_set);
   for (eim_ix = 0; eim_ix < working_earley_item_count; eim_ix++)
     {
-      EIM eim = eims[eim_ix];
-      int event_isy_count = Completion_Event_ISY_Count_of_EIM (eim);
+      const EIM eim = eims[eim_ix];
+      const AHFA ahfa = AHFA_of_EIM(eim);
+      const CIL cil = Completion_Event_CIL_of_AHFA (ahfa);
+      const int event_isy_count = Count_of_CIL (cil);
       for (isy_ix = 0; isy_ix < event_isy_count; isy_ix++)
 	{
-	  ISYID event_isyid = Completion_Event_ISYID_of_EIM (eim, isy_ix);
+	  ISYID event_isyid = Item_of_CIL (cil, isy_ix);
 	  ISY event_isy = ISY_by_ID(event_isyid);
 	  XSY event_xsy = Source_XSY_of_ISY (event_isy);
 	  XSYID event_xsyid = ID_of_XSY (event_xsy);
