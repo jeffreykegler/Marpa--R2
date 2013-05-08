@@ -396,6 +396,7 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
     my $thick_g1_grammar = Marpa::R2::Grammar->new( $g1_args );
     my $g1_tracer = $thick_g1_grammar->tracer();
     my $g1_thin   = $g1_tracer->grammar();
+
     my $completion_events_by_name = $hashed_source->{completion_events};
     my $completion_events_by_id =
         $self->[Marpa::R2::Inner::Scanless::G::COMPLETION_EVENT_BY_ID] = [];
@@ -406,6 +407,7 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
                 "Completion event defined for non-existent symbol: $symbol_name\n"
             );
         }
+        # Must be done before precomputation
         $g1_thin->symbol_is_completion_event_set( $symbol_id, 1 );
         $self->[Marpa::R2::Inner::Scanless::G::COMPLETION_EVENT_BY_ID]
             ->[$symbol_id] = $completion_events_by_name->{$symbol_name};
@@ -476,6 +478,15 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
             }
         } ## end ADVERB: for my $key ( keys %{$declarations} )
     } ## end for my $lexeme_name ( keys %{$lexeme_declarations} )
+
+    # Now that we know the lexemes, check attempts to defined a
+    # completion event for one
+    for my $symbol_name ( keys %{$completion_events_by_name} ) {
+        Marpa::R2::exception(
+            "A completion event is declared for <$symbol_name>, but it is a G1 lexeme.\n",
+            "  Completion events are only valid for symbols on the LHS of G1 rules.\n"
+        ) if $g0_lexeme_by_name->{$symbol_name};
+    }
 
     my @g0_rule_to_g1_lexeme;
     RULE_ID: for my $rule_id ( 0 .. $g0_thin->highest_rule_id() ) {
