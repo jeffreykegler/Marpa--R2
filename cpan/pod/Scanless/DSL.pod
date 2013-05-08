@@ -522,9 +522,17 @@ As a consequence,
 it is never a symbol completion
 when a symbol is zero length, or "nulled".
 
-Named events pause internal scanning, as described in
-L<Marpa::R2::Scanless::R>.
-They may be queried using
+Named completion events can occur during the
+L<the Scanless recognizer's read()|Marpa::R2:Scanless::R/"read()">,
+L<resume()|Marpa::R2:Scanless::R/"resume()">,
+L<lexeme_complete()|Marpa::R2:Scanless::R/"lexeme_complete()">,
+and L<lexeme_read()|Marpa::R2:Scanless::R/"lexeme_read()">
+methods.
+When they occur
+in L<the Scanless recognizer's read()|Marpa::R2:Scanless::R/"read()">,
+and L<resume()|Marpa::R2:Scanless::R/"resume()"> methods,
+they pause internal scanning.
+Named events may be queried using
 L<the Scanless recognizer's event()
 method|Marpa::R2::Scanless::R/"event()">.
 
@@ -620,6 +628,16 @@ the lexeme default rule.
 =head2 pause
 
 The C<pause> adverb applies only to lexemes.
+Pauses take effect during
+L<the Scanless recognizer's read()|Marpa::R2:Scanless::R/"read()">
+and L<resume()|Marpa::R2:Scanless::R/"resume()"> methods.
+They cause internal scanning
+to be suspended, or "paused", before
+or after the specified lexeme.
+Internal scanning can be resumed with
+L<the Scanless recognizer's resume()
+method|Marpa::R2:Scanless::R/"read()">.
+
 If the value of pause is C<before>,
 Marpa will "pause" internal scanning before
 that lexeme.
@@ -645,7 +663,7 @@ At the same priority,
 an pause value of C<before> overrides any
 pause values of C<after> at the same location.
 If pause values of 
-both C<before> and <after> could apply at a
+both C<before> and C<after> could apply at a
 at a location, only "C<before>" pause will
 take effect.
 

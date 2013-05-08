@@ -266,7 +266,7 @@ The pause lexeme and pause span will be undefined.
 Named events pause internal scanning.
 Named events are specified in the SLIF DSL,
 for example by L<the completion event
-statement|Marpa::R2::DSL/"Completion event statement">.
+statement|Marpa::R2::Scanless::DSL/"Completion event statement">.
 Named events will always have an event name,
 and may be queried using the
 L<the Scanless recognizer's event()
@@ -450,7 +450,18 @@ interpretation, as L<described above|/"Negative locations">.
 Start location and length can both be zero.
 This pauses internal scanning immediately and can be
 used to hand complete control of scanning
-over an external scanner.
+over to an external scanner.
+
+L<Completion named events|Marpa::R2::Scanless::DSL/"Completion event statement">
+can occur during the C<read()> method.
+When a named event occurs, 
+the C<read()> method pauses.
+Named events can be queried using
+L<the Scanless recognizer's event()
+method|/"event()">.
+The C<read()> method also
+pauses as specified with the
+L<Scanless DSL's pause adverb|Marpa::R2::Scanless::DSL/"pause">.
 
 On failure, throws an exception.
 The call is considered successful
@@ -546,10 +557,17 @@ The C<lexeme_complete()>
 method completes the reading of
 alternative tokens at the current G1 location,
 and advances the current G1 location by one.
-
 Current location in the input stream is moved
 to the location after the new lexeme,
 as indicated by the arguments.
+
+L<Completion named events|Marpa::R2::Scanless::DSL/"Completion event statement">
+can occur during the C<lexeme_complete()> method.
+Named events can be queried using
+L<the Scanless recognizer's event()
+method|/"event()">.
+
+B<Return value:>
 On success, C<lexeme_complete()> returns a number greater
 than 0.
 On unthrown failure, C<lexeme_complete()> returns 0.
@@ -621,6 +639,12 @@ if it never pauses,
 to C<$start+$length>.
 Current G1 location is advanced by one.
 
+L<Completion named events|Marpa::R2::Scanless::DSL/"Completion event statement">
+can occur during the C<lexeme_read()> method.
+Named events can be queried using
+L<the Scanless recognizer's event()
+method|/"event()">.
+
 B<Return value>:
 On success, C<read()> returns the new current location.
 This will never be location zero, because lexemes cannot be zero length.
@@ -658,6 +682,17 @@ The C<resume()> method resumes
 the SLIF's internal scanning,
 L<as described
 above|/"How internal scanning works">.
+
+L<Completion named events|Marpa::R2::Scanless::DSL/"Completion event statement">
+can occur during the C<resume()> method.
+When a named event occurs, 
+the C<resume()> method pauses.
+Named events can be queried using
+L<the Scanless recognizer's event()
+method|/"event()">.
+The C<resume()> method also
+pauses as specified with the
+L<Scanless DSL's pause adverb|Marpa::R2::Scanless::DSL/"pause">.
 
 On success, C<resume()> moves
 the current location to where it paused,
@@ -699,6 +734,16 @@ The named event descriptor is a reference to an array of one
 or more elements.
 The first element of every named event descriptor is a string
 containing the name of the event.
+
+Events occur during the
+L<the Scanless recognizer's read()|/"read()">,
+L<resume()|/"resume()">,
+L<lexeme_complete()|/"lexeme_complete()">,
+and L<lexeme_read()|/"lexeme_read()">
+methods.
+Any Scanless recognizer mutator may clear events,
+so that they should be read soon after the method
+call that generates them.
 
 The other elements of the named event descriptor will
 be as described for each kind of event.
