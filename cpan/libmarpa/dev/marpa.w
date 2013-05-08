@@ -7601,7 +7601,6 @@ with a |NULL| Earley item pointer.
 @d Predecessor_LIM_of_LIM(leo) ((leo)->t_predecessor)
 @d Base_EIM_of_LIM(leo) ((leo)->t_base)
 @d ES_of_LIM(leo) ((leo)->t_set)
-@d Chain_Length_of_LIM(leo) ((leo)->t_chain_length)
 @d Earleme_of_LIM(lim) Earleme_of_ES(ES_of_LIM(lim))
 @<Private incomplete structures@> =
 struct s_leo_item;
@@ -7614,7 +7613,6 @@ struct s_leo_item {
      LIM t_predecessor;
      EIM t_base;
      ES t_set;
-     int t_chain_length;
 };
 typedef struct s_leo_item LIM_Object;
 
@@ -9432,7 +9430,7 @@ PRIVATE void r_update_earley_sets(RECCE r)
 }
 
 @** Create the postdot items.
-@ This function inserts regular (non-Leo) postdot items into
+@ This function inserts regular and Leo postdot items into
 the postdot list.
 Not inlined, because of its size, and because it is used
 twice -- once in initializing the Earley set 0,
@@ -9450,12 +9448,10 @@ But Leo items are always optional,
 and may not be worth it for Earley set 0.
 @ {\bf Further Research}: @^Further Research@>
 Another look at the degree and kind
-of memoization here will be in order
-once the question of when to use Leo items
-(right recursion or per Leo's original paper?)
-is completely settled.
-This will require making the Leo behavior configurable
-and running benchmarks.
+of memoization here is in order
+now that I use Leo items only in cases of
+an actual right recursion.
+This may require running benchmarks.
 @<Widely aligned recognizer elements@> =
   Bit_Vector t_bv_lim_symbols;
   Bit_Vector t_bv_pim_symbols;
@@ -9573,7 +9569,6 @@ once it is populated.
     EIM_of_PIM(new_lim) = NULL;
     Predecessor_LIM_of_LIM(new_lim) = NULL;
     Origin_of_LIM(new_lim) = NULL;
-    Chain_Length_of_LIM(new_lim) = -1;
     Top_AHFA_of_LIM(new_lim) = base_to_ahfa;
     Base_EIM_of_LIM(new_lim) = leo_base;
     ES_of_LIM(new_lim) = current_earley_set;
@@ -9814,8 +9809,6 @@ for (lim_chain_ix--; lim_chain_ix >= 0; lim_chain_ix--) {
 {
   Predecessor_LIM_of_LIM (lim_to_process) = predecessor_lim;
   Origin_of_LIM (lim_to_process) = Origin_of_LIM (predecessor_lim);
-  Chain_Length_of_LIM (lim_to_process) =
-    Chain_Length_of_LIM (lim_to_process) + 1;
   Top_AHFA_of_LIM (lim_to_process) = Top_AHFA_of_LIM (predecessor_lim);
 }
 
@@ -9835,7 +9828,6 @@ of the base EIM.
 @<Populate |lim_to_process| from its base Earley item@> = {
   EIM base_eim = Base_EIM_of_LIM(lim_to_process);
   Origin_of_LIM (lim_to_process) = Origin_of_EIM (base_eim);
-  Chain_Length_of_LIM(lim_to_process) =  0;
 }
 
 @ @<Copy PIM workarea to postdot item array@> = {
