@@ -13873,6 +13873,59 @@ PRIVATE CIL cil_singleton(CILAR cilar, int element)
   return cil_finish (cilar);
 }
 
+@ Merge two CIL's into a new one.
+Merging a single int into a CIL is a common
+special-case, but for now we do not think the
+optimization is worth it.
+Also, this method trades unneeded obstack block
+allocations for CPU speed.
+In the usual case,
+the size of the merged CIL
+is a tiny fraction of the size of the obstack's
+memory blocks,
+the extra allocations are rare
+and
+the memory fragmentation minimal,
+while the CPU saving is substantial.
+If larger CIL's are common,
+this routine could be rewritten
+(or the obstack's memory blocks could simply be
+increased in size.)
+@<Function definitions@> =
+PRIVATE CIL cil_merge(CILAR cilar, CIL cil1, CIL cil2)
+{
+  CIL new_cil = cil_reserve (cilar, Count_of_CIL (cil1) + Count_of_CIL (cil2));
+  int new_cil_ix = 0;
+  int cil1_ix = 0;
+  int cil2_ix = 0;
+  const int cil1_count = Count_of_CIL (cil1);
+  const int cil2_count = Count_of_CIL (cil2);
+  while (cil1_ix < cil1_count && cil2_ix < cil2_count)
+    {
+      const int item1 = Item_of_CIL (cil1, cil1_ix);
+      const int item2 = Item_of_CIL (cil2, cil2_ix);
+      if (item1 < item2)
+	{
+	  Item_of_CIL (new_cil, new_cil_ix) = item1;
+	  cil1_ix++;
+	  new_cil_ix++;
+	  continue;
+	}
+      if (item2 < item1)
+	{
+	  Item_of_CIL (new_cil, new_cil_ix) = item2;
+	  cil2_ix++;
+	  new_cil_ix++;
+	  continue;
+	}
+      Item_of_CIL (new_cil, new_cil_ix) = item1;
+      cil1_ix++;
+      cil2_ix++;
+      new_cil_ix++;
+    }
+  return cil_confirm (cilar, new_cil_ix);
+}
+
 @ @<Function definitions@> =
 PRIVATE_NOT_INLINE int
 cil_cmp (const void *ap, const void *bp, void *param @,@, UNUSED)
