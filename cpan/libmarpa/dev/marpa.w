@@ -7256,16 +7256,8 @@ the Earley set.
 struct s_earley_item;
 typedef struct s_earley_item* EIM;
 typedef const struct s_earley_item* EIM_Const;
-typedef struct s_extended_earley_item* EIMX;
 struct s_earley_item_key;
 typedef struct s_earley_item_key* EIK;
-@ @d EIM_is_Extended(eim) ((eim)->is_extended_eim)
-@ @d EIM_has_Nondirect_Completion(eim) ((eim)->has_nondirect_completions)
-@ @d EIM_at_Completion_Event_Closure(eim) ((eim)->at_completion_event_closure)
-@<Bit aligned Earley item elements@> =
-    unsigned int is_extended_eim:1;
-    unsigned int has_nondirect_completions:1;
-    unsigned int at_completion_event_closure:1;
 
 @ @<Earley item structure@> =
 struct s_earley_item_key {
@@ -7281,17 +7273,6 @@ struct s_earley_item {
      @<Bit aligned Earley item elements@>@/
 };
 typedef struct s_earley_item EIM_Object;
-@ The Earley item, extended for special cases.
-Right now the only such special case is where
-completion events are complex and need to be
-tracked on a per-EIM basis.
-@d Completion_Event_CIL_of_EIMX(eimx) ((eimx)->t_completion_event_isyids)
-@<Earley item structure@> =
-struct s_extended_earley_item {
-     EIM_Object t_basic_eim;
-     CIL t_completion_event_isyids;
-};
-typedef struct s_earley_item EIMX_Object;
 
 @*0 Constructor.
 Find an Earley item object, creating it if it does not exist.
@@ -7310,20 +7291,7 @@ PRIVATE EIM earley_item_create(const RECCE r,
   const ES set = key.t_set;
   const int count = ++EIM_Count_of_ES(set);
   @<Check count against Earley item thresholds@>@;
-  if (AHFA_has_Nondirect_Completion(key.t_state)) {
-    const EIMX new_eimx = my_obstack_new (r->t_obs, struct s_extended_earley_item, 1);
-    new_item = (EIM)new_eimx;
-    /* While developing, start with full set */
-    Completion_Event_CIL_of_EIMX(new_eimx) = Indirect_Completion_Event_CIL_of_AHFA(key.t_state);
-    EIM_has_Nondirect_Completion(new_item) = 1;
-    EIM_at_Completion_Event_Closure(new_item) = 0;
-    EIM_is_Extended(new_item) = 1;
-  } else {
-    new_item = my_obstack_new (r->t_obs, struct s_earley_item, 1);
-    EIM_has_Nondirect_Completion(new_item) = 0;
-    EIM_at_Completion_Event_Closure(new_item) = 1;
-    EIM_is_Extended(new_item) = 0;
-  }
+  new_item = my_obstack_new (r->t_obs, struct s_earley_item, 1);
   new_item->t_key = key;
   new_item->t_source_type = NO_SOURCE;
   Ord_of_EIM(new_item) = count - 1;
@@ -9372,33 +9340,75 @@ add those Earley items it ``causes".
   int eim_ix, isy_ix;
   EIM *eims = EIMs_of_ES (current_earley_set);
   Bit_Vector lbv_is_xsy_event_triggered =
-    lbv_obs_new0 (earleme_complete_obs, XSY_Count_of_G(g));
-  int working_earley_item_count = EIM_Count_of_ES(current_earley_set);
+    lbv_obs_new0 (earleme_complete_obs, XSY_Count_of_G (g));
+  int working_earley_item_count = EIM_Count_of_ES (current_earley_set);
   for (eim_ix = 0; eim_ix < working_earley_item_count; eim_ix++)
     {
-      int event_isy_count;
-      CIL cil;
+      SRCL source_link = NULL;
+      CIL cil = NULL;
       const EIM eim = eims[eim_ix];
-      if (EIM_has_Nondirect_Completion(eim)) {
-	const EIMX eimx = (EIMX)eim;
-        cil = eimx->t_completion_event_isyids;
-      } else {
-	const AHFA ahfa = AHFA_of_EIM(eim);
-	cil = Indirect_Completion_Event_CIL_of_AHFA (ahfa);
-      }
-      event_isy_count = Count_of_CIL (cil);
-      for (isy_ix = 0; isy_ix < event_isy_count; isy_ix++)
+      const AHFA ahfa = AHFA_of_EIM (eim);
+      const SRCL first_leo_source_link = First_Leo_SRCL_of_EIM (eim);
+      if (first_leo_source_link)
 	{
-	  ISYID event_isyid = Item_of_CIL (cil, isy_ix);
-	  ISY event_isy = ISY_by_ID(event_isyid);
-	  XSY event_xsy = Source_XSY_of_ISY (event_isy);
-	  XSYID event_xsyid = ID_of_XSY (event_xsy);
-	  if (!lbv_bit_test (r->t_lbv_xsyid_completion_event_is_active, event_xsyid))
-	    continue;
-	  @/@, /* If we have already triggered an event for this xsy, continue */
-	  if (lbv_bit_test (lbv_is_xsy_event_triggered, event_xsyid)) continue;
-	  lbv_bit_set (lbv_is_xsy_event_triggered, event_xsyid);
-	  int_event_new (g, MARPA_EVENT_SYMBOL_COMPLETED, event_xsyid);
+	  SRCL setup_source_link;
+	  for (setup_source_link = first_leo_source_link; setup_source_link;
+	       setup_source_link = Next_SRCL_of_SRCL (setup_source_link))
+	    {
+	      const LIM lim = LIM_of_SRCL (setup_source_link);
+	      if (LIM_at_Completion_Event_Closure (lim))
+		{
+		  /* One of the Leo links is at completion closure, so unset
+		     |first_leo_source_link| and set |cil| to the full
+		     list of completions, direct and indirect. */
+		  cil = Indirect_Completion_Event_CIL_of_AHFA (ahfa);
+		}
+	    }
+	  if (!cil)
+	    {
+	      source_link = first_leo_source_link;
+	      cil = CIL_of_LIM (LIM_of_SRCL (source_link));
+	    }
+	}
+      else
+	{
+	  /* If there were no Leo source links, just do direct completions
+	     of this AHFA */
+	  cil = Direct_Completion_Event_CIL_of_AHFA (ahfa);
+	}
+      while (1)
+	{			/* Loop ends after first pass if |source_link == NULL| */
+	  const int event_isy_count = Count_of_CIL (cil);
+	  for (isy_ix = 0; isy_ix < event_isy_count; isy_ix++)
+	    {
+	      ISYID event_isyid = Item_of_CIL (cil, isy_ix);
+	      ISY event_isy = ISY_by_ID (event_isyid);
+	      XSY event_xsy = Source_XSY_of_ISY (event_isy);
+	      XSYID event_xsyid = ID_of_XSY (event_xsy);
+	      if (!lbv_bit_test
+		  (r->t_lbv_xsyid_completion_event_is_active, event_xsyid))
+		continue;
+	      /* If we have already triggered an event for this xsy, continue */
+	      if (lbv_bit_test (lbv_is_xsy_event_triggered, event_xsyid))
+		continue;
+	      lbv_bit_set (lbv_is_xsy_event_triggered, event_xsyid);
+	      int_event_new (g, MARPA_EVENT_SYMBOL_COMPLETED, event_xsyid);
+	    }
+	  @/@, @/@,
+	  /* Now try to iterate to another CIL.  This will only work
+				   if we have a source link we are iterating, and if it is not at the
+				   end of the iteration. */
+	    if (!source_link)
+	    break;
+	  source_link = Next_SRCL_of_SRCL (source_link);
+	  if (!source_link)
+	    break;
+	  @/@, @/@,
+	  /* Above, we traversed the source links looking for
+				   null CIL's.
+				   Had there been any, we would have set |source_link| to null.
+				   So we know that the CIL will not be null here. */
+	    cil = CIL_of_LIM (LIM_of_SRCL (source_link));
 	}
     }
 }
