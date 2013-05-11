@@ -900,6 +900,29 @@ and the pause span is undefined.
 C<pause_span()> returns a Perl C<undef> if
 the pause span is undefined.
 
+=head2 progress()
+
+Returns an array that describes the progress
+of a parse
+at a location.
+With no argument, C<progress()> reports progress at
+the current location.
+If a G1 location is
+given as its argument,
+C<progress()> reports progress at that location.
+This method is the SLIF's equivalent of
+the C<progress()> method of recognizer objects
+in the standard interface.
+Details on progress reports can be found in
+L<their own document|Marpa::R2::Progress>.
+
+The progress reports returned by
+the C<progress()> method
+identify rules by their G1 rule ID.
+G1 rules IDs can be converted to a list of the rule's
+symbols using the L<C<rule()> method
+of the SLIF grammar|Marpa::R2::Scanless::G/"rule()">.
+
 =head1 Trace methods
 
 =for Marpa::R2::Display

@@ -106,6 +106,30 @@ Trace output and warning messages
 go to the trace file handle.
 By default the trace file handle is C<STDERR>.
 
+=head1 Accessor
+
+=head2 rule()
+
+Given a G1 rule ID as its argument,
+returns an array containing the
+names of the symbols of that rule.
+The C<rule()> method
+returns a Perl false if no G1 rule with that rule ID exists.
+If the rule ID exists,
+C<rule()> returns a list of one or more symbol names.
+The first symbol name will be that of
+the rule's LHS symbol.
+The rest of the list will be the names of the rule's
+RHS symbols, in order.
+
+The SLIF C<rule()> corresponds to the C<rule()> method
+of grammars in Marpa's standard interface.
+The SLIF's C<rule()> method is useful in
+combination with
+the SLIF's
+of L<the progress method|Marpa::R2::Scanless::R/progress()>,
+whose output identifies rules by rule ID.
+
 =head1 Trace method
 
 =head2 show_rules()
