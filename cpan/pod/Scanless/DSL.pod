@@ -636,7 +636,7 @@ to be suspended, or "paused", before
 or after the specified lexeme.
 Internal scanning can be resumed with
 L<the Scanless recognizer's resume()
-method|Marpa::R2:Scanless::R/"read()">.
+method|Marpa::R2:Scanless::R/"resume()">.
 
 If the value of pause is C<before>,
 Marpa will "pause" internal scanning before
