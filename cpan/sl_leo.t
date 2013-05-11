@@ -46,12 +46,25 @@ A ::= B
 B ::= C
 C ::= S
 S ::=
+event have_A = completed <A>
+event have_B = completed <B>
+event have_C = completed <C>
+event have_S = completed <S>
 END_OF_DSL
     }
 );
 
 my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
-$recce->read(\"aaa");
+my $input = 'aaa';
+my $pos = $recce->read(\$input);
+READ: while (1) {
+    for (my $ix = 0; my $event = $recce->event($ix); $ix++) {
+        my ($event_name) = @{$event};
+        say "$pos $event_name";
+    }
+    last READ if $pos >= length $input;
+    $pos = $recce->resume();
+}
 my $value_ref = $recce->value();
 my $value = $value_ref ? ${$value_ref} : 'No parse';
 Marpa::R2::Test::is( $value, 'aaa', 'Leo SLIF parse' );
