@@ -2712,12 +2712,12 @@ CIL t_indirect_completion_event_isyids;
 @ @<Initialize IRL elements@> =
   Direct_Completion_Event_CIL_of_IRL(irl) = NULL;
   Indirect_Completion_Event_CIL_of_IRL(irl) = NULL;
-  IRL_has_Nondirect_Completions(irl) = 0;
+  IRL_has_Nondirect_Completion(irl) = 0;
 @ Nondirect event completions are indirect event completions which are
 not direct event completions.
 They may be though of as ``proper" indirect event completions.
 Only right recursive IRL's will have nondirect event completions.
-@d IRL_has_Nondirect_Completions(irl) ((irl)->t_has_nondirect_completions)
+@d IRL_has_Nondirect_Completion(irl) ((irl)->t_has_nondirect_completions)
 @<Bit aligned IRL elements@> =
    unsigned int t_has_nondirect_completions:1;
 
@@ -4885,7 +4885,7 @@ not direct completions.
   Item_of_CIL(Indirect_Completion_Event_CIL_of_AHFA(state), (ix))
 @d Indirect_Completion_Event_ISY_Count_of_AHFA(state)
   Count_of_CIL(Indirect_Completion_Event_CIL_of_AHFA(state))
-@d AHFA_has_Nondirect_Completions(state)
+@d AHFA_has_Nondirect_Completion(state)
   ((state)->t_has_nondirect_completions)
 @ @<Widely aligned AHFA state elements@> =
 CIL t_indirect_completion_event_isyids;
@@ -5186,7 +5186,7 @@ one non-nulling symbol in each IRL. */
 	    (Indirect_Completion_Event_CIL_of_IRL (irl),
 	     Direct_Completion_Event_CIL_of_IRL (irl), 0))
 	  {
-	    IRL_has_Nondirect_Completions (irl) = 1;
+	    IRL_has_Nondirect_Completion (irl) = 1;
 	  }
       }
     }
@@ -5474,7 +5474,7 @@ _marpa_avl_destroy(duplicates);
     my_obstack_alloc (g->t_obs, sizeof (ISYID));
   postdot_isyid = Postdot_ISYID_of_AIM (start_item);
   *postdot_isyidary = postdot_isyid;
-  AHFA_has_Nondirect_Completions(p_initial_state) = 0;
+  AHFA_has_Nondirect_Completion(p_initial_state) = 0;
   Direct_Completion_Event_CIL_of_AHFA(p_initial_state) =
     Indirect_Completion_Event_CIL_of_AHFA(p_initial_state) =
     Completion_CIL_of_AHFA(p_initial_state) =
@@ -5545,7 +5545,7 @@ a start rule completion, and it is a
       {
 	ISYID* p_postdot_isyidary = Postdot_ISYIDAry_of_AHFA(p_new_state) =
 	  my_obstack_alloc (g->t_obs, sizeof (ISYID));
-	AHFA_has_Nondirect_Completions(p_new_state) = 0;
+	AHFA_has_Nondirect_Completion(p_new_state) = 0;
 	Completion_CIL_of_AHFA(p_new_state)
 	= Direct_Completion_Event_CIL_of_AHFA(p_new_state)
 	= Indirect_Completion_Event_CIL_of_AHFA(p_new_state)
@@ -7260,7 +7260,7 @@ typedef struct s_extended_earley_item* EIMX;
 struct s_earley_item_key;
 typedef struct s_earley_item_key* EIK;
 @ @d EIM_is_Extended(eim) ((eim)->is_extended_eim)
-@ @d EIM_has_Nondirect_Completions(eim) ((eim)->has_nondirect_completions)
+@ @d EIM_has_Nondirect_Completion(eim) ((eim)->has_nondirect_completions)
 @ @d EIM_at_Completion_Event_Closure(eim) ((eim)->at_completion_event_closure)
 @<Bit aligned Earley item elements@> =
     unsigned int is_extended_eim:1;
@@ -7310,17 +7310,17 @@ PRIVATE EIM earley_item_create(const RECCE r,
   const ES set = key.t_set;
   const int count = ++EIM_Count_of_ES(set);
   @<Check count against Earley item thresholds@>@;
-  if (AHFA_has_Nondirect_Completions(key.t_state)) {
+  if (AHFA_has_Nondirect_Completion(key.t_state)) {
     const EIMX new_eimx = my_obstack_new (r->t_obs, struct s_extended_earley_item, 1);
     new_item = (EIM)new_eimx;
     /* While developing, start with full set */
     Completion_Event_CIL_of_EIMX(new_eimx) = Indirect_Completion_Event_CIL_of_AHFA(key.t_state);
-    EIM_has_Nondirect_Completions(new_item) = 1;
+    EIM_has_Nondirect_Completion(new_item) = 1;
     EIM_at_Completion_Event_Closure(new_item) = 0;
     EIM_is_Extended(new_item) = 1;
   } else {
     new_item = my_obstack_new (r->t_obs, struct s_earley_item, 1);
-    EIM_has_Nondirect_Completions(new_item) = 0;
+    EIM_has_Nondirect_Completion(new_item) = 0;
     EIM_at_Completion_Event_Closure(new_item) = 1;
     EIM_is_Extended(new_item) = 0;
   }
@@ -7625,13 +7625,8 @@ typedef struct s_leo_item LIM_Object;
 
 @ The CIL is |NULL| if the LIM is at a completion
 closure (by far the most common case).
-@d LV_CIL_of_LIM(lim) ((lim)->t_cil)
+@d CIL_of_LIM(lim) ((lim)->t_cil)
 @d LIM_at_Completion_Event_Closure(lim) (!(lim)->t_cil)
-@d RV_CIL_of_LIM(lim) (
-    LIM_at_Completion_Event_Closure(lim) ?
-    Indirect_Completion_Events_of_AHFA(Top_AHFA_of_LIM(lim)) :
-    (lim)->t_cil;
-)
 @<Widely aligned LIM elements@> =
     CIL t_cil;
 
@@ -9384,7 +9379,7 @@ add those Earley items it ``causes".
       int event_isy_count;
       CIL cil;
       const EIM eim = eims[eim_ix];
-      if (EIM_has_Nondirect_Completions(eim)) {
+      if (EIM_has_Nondirect_Completion(eim)) {
 	const EIMX eimx = (EIMX)eim;
         cil = eimx->t_completion_event_isyids;
       } else {
@@ -9588,7 +9583,7 @@ once it is populated.
     EIM_of_PIM(new_lim) = NULL;
     Predecessor_LIM_of_LIM(new_lim) = NULL;
     Origin_of_LIM(new_lim) = NULL;
-    LV_CIL_of_LIM(new_lim) = NULL;
+    CIL_of_LIM(new_lim) = NULL;
     Top_AHFA_of_LIM(new_lim) = base_to_ahfa;
     Base_EIM_of_LIM(new_lim) = leo_base;
     ES_of_LIM(new_lim) = current_earley_set;
@@ -9827,9 +9822,34 @@ for (lim_chain_ix--; lim_chain_ix >= 0; lim_chain_ix--) {
 
 @ @<Populate |lim_to_process| from |predecessor_lim|@> =
 {
+  const AHFA top_AHFA = Top_AHFA_of_LIM (predecessor_lim);
+  Top_AHFA_of_LIM (lim_to_process) = top_AHFA;
   Predecessor_LIM_of_LIM (lim_to_process) = predecessor_lim;
   Origin_of_LIM (lim_to_process) = Origin_of_LIM (predecessor_lim);
-  Top_AHFA_of_LIM (lim_to_process) = Top_AHFA_of_LIM (predecessor_lim);
+  @/@, /* If the AHFA has non-direct completions ... */
+  if (AHFA_has_Nondirect_Completion (top_AHFA))
+    {
+      const CIL predecessor_cil = CIL_of_LIM (predecessor_lim);
+      @/@, /* and the predecessor LIM was not at completion closure ... */
+      if (predecessor_cil)
+	{
+	  CIL new_cil = cil_merge (&g->t_cilar, predecessor_cil,
+				   Direct_Completion_Event_CIL_of_AHFA
+				   (top_AHFA));
+	  @/@, /* and adding this completion does not bring the new LIM
+	  to completion closure ... */
+	  if (cil_cmp (new_cil,
+	    Indirect_Completion_Event_CIL_of_AHFA (top_AHFA),
+	    0)
+	    )
+	    {
+	  @/@, /* Set the CIL for this LIM to the completion CIL.
+	  Otherwise, leave it at the default of |NULL|, which indicated
+	  the LIM is at completion closure. */
+	      CIL_of_LIM (lim_to_process) = new_cil;
+	    }
+	}
+    }
 }
 
 @ If we have reached this code, either we do not have a predecessor
@@ -9846,8 +9866,14 @@ The predecessor LIM was initialized to |NULL|,
 and the top AHFA to-state was initialized to the AHFA to-state
 of the base EIM.
 @<Populate |lim_to_process| from its base Earley item@> = {
+  const AHFA top_AHFA = Top_AHFA_of_LIM(lim_to_process);
   EIM base_eim = Base_EIM_of_LIM(lim_to_process);
   Origin_of_LIM (lim_to_process) = Origin_of_EIM (base_eim);
+  @/@, /* CIL defaults to |NULL|, meaning LIM is at completion closure */
+  if (AHFA_has_Nondirect_Completion(top_AHFA))
+  {
+       CIL_of_LIM(lim_to_process) = Direct_Completion_Event_CIL_of_AHFA(top_AHFA);
+  }
 }
 
 @ @<Copy PIM workarea to postdot item array@> = {
