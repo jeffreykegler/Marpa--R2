@@ -47,7 +47,6 @@ B ::= C
 C ::= S
 S ::=
 event have_A = completed <A>
-event have_B = completed <B>
 event have_C = completed <C>
 event have_S = completed <S>
 END_OF_DSL
