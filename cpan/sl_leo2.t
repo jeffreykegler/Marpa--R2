@@ -21,7 +21,7 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 7;
+use Test::More tests => 6;
 
 use lib 'inc';
 use Marpa::R2::Test;
@@ -64,23 +64,56 @@ END_OF_DSL
 );
 
 # Reaches closure
-do_test($grammar, 'x = x += x -= x *= x /= x');
+do_test($grammar, 'x = x += x -= x *= x /= x',
+<<'END_OF_HISTORY'
+plain
+add plain
+add plain subtract
+add multiply plain subtract
+add divide multiply plain subtract
+END_OF_HISTORY
+);
 
 # Reaches closure and continues
-do_test($grammar, 'x = x += x -= x *= x /= x = x += x -= x *= x /= x');
+do_test($grammar, 'x = x += x -= x *= x /= x = x += x -= x *= x /= x',
+<<'END_OF_HISTORY'
+plain
+add plain
+add plain subtract
+add multiply plain subtract
+add divide multiply plain subtract
+add divide multiply plain subtract
+add divide multiply plain subtract
+add divide multiply plain subtract
+add divide multiply plain subtract
+add divide multiply plain subtract
+END_OF_HISTORY
+);
 
 # Never reaches closure
-do_test($grammar, 'x = x += x -= x = x += x -= x');
+do_test($grammar, 'x = x += x -= x = x += x -= x',
+<<'END_OF_HISTORY'
+plain
+add plain
+add plain subtract
+add plain subtract
+add plain subtract
+add plain subtract
+END_OF_HISTORY
+);
 
 sub do_test {
-    my ( $grammar, $input ) = @_;
+    my ( $grammar, $input, $expected_history ) = @_;
     my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
+    my $event_history;
     my $pos = $recce->read( \$input );
     READ: while (1) {
+        my @event_names;
         for ( my $ix = 0; my $event = $recce->event($ix); $ix++ ) {
-            my ($event_name) = @{$event};
-            say "$pos $event_name";
+            push @event_names, @{$event};
         }
+        $event_history .= join q{ }, sort @event_names;
+        $event_history .= "\n";
         last READ if $pos >= length $input;
         $pos = $recce->resume();
     } ## end READ: while (1)
@@ -88,6 +121,7 @@ sub do_test {
     my $value = $value_ref ? ${$value_ref} : 'No parse';
     ( my $expected = $input ) =~ s/\s//gxms;
     Marpa::R2::Test::is( $value, $expected, "Leo SLIF parse of $expected" );
+    Marpa::R2::Test::is( $event_history, $expected_history, "Event history of $expected" );
 } ## end sub do_test
 
 # vim: expandtab shiftwidth=4:
