@@ -15,6 +15,12 @@
 
 Revision history for Marpa::R2
 
+2.053_009
+
+   * Release candidate
+
+   * Added completion events
+
 2.053_008
 2.053_007
 2.053_006
@@ -22,9 +28,6 @@ Revision history for Marpa::R2
 2.053_004
 2.053_003
 2.053_002
-
-   * Added completion events
-
 2.053_001
 2.053_000
 
