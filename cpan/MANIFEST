@@ -288,6 +288,8 @@ t/sl_exhaust.t
 t/sl_external1.t
 t/sl_gsyn.t
 t/sl_json.t
+t/sl_leo.t
+t/sl_leo2.t
 t/sl_prefix.t
 t/sl_rank.t
 t/sl_syn.t
