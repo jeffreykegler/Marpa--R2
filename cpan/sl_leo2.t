@@ -63,8 +63,13 @@ END_OF_DSL
     }
 );
 
+do_test($grammar, 'x = x += x -= x *= x /= x');
+do_test($grammar, 'x = x += x -= x *= x /= x = x += x -= x *= x /= x');
+do_test($grammar, 'x = x += x -= x = x += x -= x');
+
+sub do_test {
+my ($grammar, $input) = @_;
 my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
-my $input = 'x = x += x -= x *= x /= x';
 my $pos = $recce->read(\$input);
 READ: while (1) {
     for (my $ix = 0; my $event = $recce->event($ix); $ix++) {
@@ -76,6 +81,8 @@ READ: while (1) {
 }
 my $value_ref = $recce->value();
 my $value = $value_ref ? ${$value_ref} : 'No parse';
-Marpa::R2::Test::is( $value, 'aaa', 'Leo SLIF parse' );
+(my $expected = $input) =~ s/\s//gxms;
+Marpa::R2::Test::is( $value, $expected, "Leo SLIF parse of $expected" );
+}
 
 # vim: expandtab shiftwidth=4:
