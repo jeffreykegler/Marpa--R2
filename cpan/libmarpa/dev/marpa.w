@@ -13963,7 +13963,7 @@ PRIVATE CIL cil_merge(CILAR cilar, CIL cil1, CIL cil2)
 {
   const int cil1_count = Count_of_CIL (cil1);
   const int cil2_count = Count_of_CIL (cil2);
-  MARPA_DEBUG4("%s: cil_merge counts %d, $d", STRLOC, cil1_count, cil2_count);
+  MARPA_DEBUG4("%s: cil_merge counts %d, %d", STRLOC, cil1_count, cil2_count);
   CIL new_cil = cil_reserve (cilar, cil1_count+cil2_count);
   int new_cil_ix = 0;
   int cil1_ix = 0;
