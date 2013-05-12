@@ -9339,8 +9339,8 @@ add those Earley items it ``causes".
 {
   int eim_ix, isy_ix;
   EIM *eims = EIMs_of_ES (current_earley_set);
-  Bit_Vector lbv_is_xsy_event_triggered =
-    lbv_obs_new0 (earleme_complete_obs, XSY_Count_of_G (g));
+  XSYID xsy_count = XSY_Count_of_G (g);
+  Bit_Vector bv_xsy_event_trigger = bv_obs_create (earleme_complete_obs, xsy_count);
   int working_earley_item_count = EIM_Count_of_ES (current_earley_set);
   for (eim_ix = 0; eim_ix < working_earley_item_count; eim_ix++)
     {
@@ -9385,14 +9385,7 @@ add those Earley items it ``causes".
 	      ISY event_isy = ISY_by_ID (event_isyid);
 	      XSY event_xsy = Source_XSY_of_ISY (event_isy);
 	      XSYID event_xsyid = ID_of_XSY (event_xsy);
-	      if (!lbv_bit_test
-		  (r->t_lbv_xsyid_completion_event_is_active, event_xsyid))
-		continue;
-	      /* If we have already triggered an event for this xsy, continue */
-	      if (lbv_bit_test (lbv_is_xsy_event_triggered, event_xsyid))
-		continue;
-	      lbv_bit_set (lbv_is_xsy_event_triggered, event_xsyid);
-	      int_event_new (g, MARPA_EVENT_SYMBOL_COMPLETED, event_xsyid);
+	      bv_bit_set (bv_xsy_event_trigger, event_xsyid);
 	    }
 	  @/@, @/@,
 	  /* Now try to iterate to another CIL.  This will only work
@@ -9409,6 +9402,23 @@ add those Earley items it ``causes".
 				   Had there been any, we would have set |source_link| to null.
 				   So we know that the CIL will not be null here. */
 	    cil = CIL_of_LIM (LIM_of_SRCL (source_link));
+	}
+    }
+    {
+      unsigned int min, max, start;
+      for (start = 0; bv_scan (bv_xsy_event_trigger, start, &min, &max);
+	   start = max + 2)
+	{
+	  XSYID event_xsyid;
+	  for (event_xsyid = (ISYID) min; event_xsyid <= (ISYID) max;
+	       event_xsyid++)
+	    {
+	      if (lbv_bit_test
+		  (r->t_lbv_xsyid_completion_event_is_active, event_xsyid))
+		{
+		  int_event_new (g, MARPA_EVENT_SYMBOL_COMPLETED, event_xsyid);
+		}
+	    }
 	}
     }
 }
