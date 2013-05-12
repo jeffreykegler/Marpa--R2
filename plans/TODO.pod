@@ -28,22 +28,10 @@ arbitrarily, suddenly and without notice.
 
 =head1 Items to do
 
-=head2 Add Events on completion
+=head2 Progress methods, etc.
 
-Events in the Marpa context
-are essentially an efficient way of repeating
-some kind of check.
-Currently, Marpa::R2 allows terminals to be marked
-to create an "event" when they are expected.
-I want to add a capability to mark symbols so that they
-cause an event on completion.
-The main obstacle to this is dealing with Leo items --
-a naive approach to detecting Leo completions undoes
-the efficiencies of the Leo algorithm, and would
-make Marpa O(n**2) for certain grammars.
-The implementation must both detect all completions
-B<AND> preserve the time complexity improvements from
-the Leo algorithm.
+Document SLIF show_progress(), latest_g1_location().
+Document negative arg to progress() for both SLIF and OMIF.
 
 =head1 Dubious
 
