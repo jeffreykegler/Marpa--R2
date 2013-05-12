@@ -9858,8 +9858,8 @@ but may be worthwhile even so.
       @/@, /* and the predecessor LIM was not at completion closure ... */
       if (predecessor_cil)
 	{
-	  CIL new_cil = cil_merge (&g->t_cilar, predecessor_cil,
-	  cil_singleton(&g->t_cilar, Postdot_ISYID_of_LIM(lim_to_process)));
+	  CIL cil_for_this_completion = cil_singleton(&g->t_cilar, Postdot_ISYID_of_LIM(lim_to_process));
+	  CIL new_cil = cil_merge (&g->t_cilar, predecessor_cil, cil_for_this_completion);
 	  @/@, /* and adding this completion does not bring the new LIM
 	  to completion closure ... */
 	  if (cil_cmp (new_cil,
