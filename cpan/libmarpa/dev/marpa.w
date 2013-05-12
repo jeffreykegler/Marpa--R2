@@ -5567,6 +5567,7 @@ a start rule completion, and it is a
 	const IRL irl = IRL_of_AIM(working_aim_p);
 	const ISYID lhs_isyid = LHSID_of_IRL(irl);
 	Completion_CIL_of_AHFA(p_new_state) = cil_singleton(&g->t_cilar, lhs_isyid);
+	AHFA_has_Nondirect_Completion(p_new_state) = IRL_has_Nondirect_Completion(irl);
 	Direct_Completion_Event_CIL_of_AHFA(p_new_state) = 
 	    Direct_Completion_Event_CIL_of_IRL(irl);
 	Indirect_Completion_Event_CIL_of_AHFA(p_new_state) = 
@@ -13940,12 +13941,12 @@ increased in size.)
 @<Function definitions@> =
 PRIVATE CIL cil_merge(CILAR cilar, CIL cil1, CIL cil2)
 {
-  CIL new_cil = cil_reserve (cilar, Count_of_CIL (cil1) + Count_of_CIL (cil2));
+  const int cil1_count = Count_of_CIL (cil1);
+  const int cil2_count = Count_of_CIL (cil2);
+  CIL new_cil = cil_reserve (cilar, cil1_count+cil2_count);
   int new_cil_ix = 0;
   int cil1_ix = 0;
   int cil2_ix = 0;
-  const int cil1_count = Count_of_CIL (cil1);
-  const int cil2_count = Count_of_CIL (cil2);
   while (cil1_ix < cil1_count && cil2_ix < cil2_count)
     {
       const int item1 = Item_of_CIL (cil1, cil1_ix);
