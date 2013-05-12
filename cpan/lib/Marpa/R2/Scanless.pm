@@ -1183,6 +1183,11 @@ sub Marpa::R2::Scanless::R::progress {
      $self->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE]->progress(@args);
 }
 
+sub Marpa::R2::Scanless::R::latest_g1_location {
+     my ($self) = @_;
+     $self->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE]->latest_earley_set();
+}
+
 sub Marpa::R2::Scanless::G::rule {
      my ($self, @args) = @_;
      $self->[Marpa::R2::Inner::Scanless::G::THICK_G1_GRAMMAR]->rule(@args);

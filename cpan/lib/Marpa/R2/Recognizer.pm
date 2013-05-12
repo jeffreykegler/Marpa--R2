@@ -506,6 +506,9 @@ sub Marpa::R2::Recognizer::progress {
     my ( $recce, $ordinal ) = @_;
     my $recce_c = $recce->[Marpa::R2::Internal::Recognizer::C];
     $ordinal = $recce->latest_earley_set() if not defined $ordinal;
+    if ($ordinal < 0) {
+        $ordinal = $recce->latest_earley_set() + 1 - $ordinal;
+    }
     my $result = [];
     $recce_c->progress_report_start($ordinal);
     ITEM: while (1) {
