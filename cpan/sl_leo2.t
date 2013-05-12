@@ -40,14 +40,23 @@ my $grammar = Marpa::R2::Scanless::G->new(
     { 
         default_action => 'main::default_action',
         source => \(<<'END_OF_DSL'),
-:start ::= <assignment>
-<assignment> ::= 'x'
-|| 'x' '/=' <assignment>
-|| 'x' '*=' <assignment>
-|| 'x' '-=' <assignment>
-|| 'x' '+=' <assignment>
-|| 'x' '=' <assignment>
-event assignment = completed <assignment>
+:start ::= <expression>
+<expression> ::= 'x' | <assignment>
+<assignment> ::= <divide assignment>
+<assignment> ::= <multiply assignment>
+<assignment> ::= <add assignment>
+<assignment> ::= <subtract assignment>
+<assignment> ::= <plain assignment>
+<divide assignment> ::= 'x' '/=' <expression>
+<multiply assignment> ::= 'x' '*=' <expression>
+<add assignment> ::= 'x' '+=' <expression>
+<subtract assignment> ::= 'x' '-=' <expression>
+<plain assignment> ::= 'x' '=' <expression>
+event divide = completed <divide assignment>
+event multiply = completed <multiply assignment>
+event subtract = completed <subtract assignment>
+event add = completed <add assignment>
+event plain = completed <plain assignment>
 :discard ~ whitespace
 whitespace ~ [\s]*
 END_OF_DSL
