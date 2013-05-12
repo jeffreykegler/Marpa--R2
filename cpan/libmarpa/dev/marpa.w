@@ -9852,24 +9852,14 @@ but may be worthwhile even so.
   Predecessor_LIM_of_LIM (lim_to_process) = predecessor_lim;
   Origin_of_LIM (lim_to_process) = Origin_of_LIM (predecessor_lim);
   @/@, /* If the AHFA has non-direct completions ... */
-    MARPA_DEBUG2("%s", STRLOC);
   if (AHFA_has_Nondirect_Completion (top_AHFA))
     {
       const CIL predecessor_cil = CIL_of_LIM (predecessor_lim);
       @/@, /* and the predecessor LIM was not at completion closure ... */
-    MARPA_DEBUG2("%s", STRLOC);
       if (predecessor_cil)
 	{
 	  CIL new_cil = cil_merge (&g->t_cilar, predecessor_cil,
 	  cil_singleton(&g->t_cilar, Postdot_ISYID_of_LIM(lim_to_process)));
-    MARPA_DEBUG3("%s; CIL count, direct=%d", STRLOC,
-				   Count_of_CIL(Direct_Completion_Event_CIL_of_AHFA
-				   (top_AHFA)));
-    MARPA_DEBUG3("%s; CIL count, indirect=%d", STRLOC,
-				   Count_of_CIL(Indirect_Completion_Event_CIL_of_AHFA
-				   (top_AHFA)));
-    MARPA_DEBUG4("%s; CIL counts, predecessor=%d, new_cil=%d",
-      STRLOC, Count_of_CIL(predecessor_cil), Count_of_CIL(new_cil));
 	  @/@, /* and adding this completion does not bring the new LIM
 	  to completion closure ... */
 	  if (cil_cmp (new_cil,
@@ -9877,20 +9867,13 @@ but may be worthwhile even so.
 	    0)
 	    )
 	    {
-    MARPA_DEBUG2("%s", STRLOC);
 	  @/@, /* Set the CIL for this LIM to the completion CIL.
 	  Otherwise, leave it at the default of |NULL|, which indicated
 	  the LIM is at completion closure. */
 	      CIL_of_LIM (lim_to_process) = new_cil;
 	    }
 	}
-    MARPA_DEBUG2("%s", STRLOC);
     }
-    MARPA_DEBUG5("%s: lim %s, CIL of LIM %p, count = %d",
-    STRLOC, lim_tag(lim_to_process),
-     CIL_of_LIM(lim_to_process),
-     (CIL_of_LIM(lim_to_process) ? Count_of_CIL(CIL_of_LIM(lim_to_process)) : -1)
-     );
 }
 
 @ If we have reached this code, either we do not have a predecessor
@@ -13963,7 +13946,6 @@ PRIVATE CIL cil_merge(CILAR cilar, CIL cil1, CIL cil2)
 {
   const int cil1_count = Count_of_CIL (cil1);
   const int cil2_count = Count_of_CIL (cil2);
-  MARPA_DEBUG4("%s: cil_merge counts %d, %d", STRLOC, cil1_count, cil2_count);
   CIL new_cil = cil_reserve (cilar, cil1_count+cil2_count);
   int new_cil_ix = 0;
   int cil1_ix = 0;
@@ -13975,20 +13957,17 @@ PRIVATE CIL cil_merge(CILAR cilar, CIL cil1, CIL cil2)
       if (item1 < item2)
 	{
 	  Item_of_CIL (new_cil, new_cil_ix) = item1;
-  MARPA_DEBUG4("%s: cil_merge added item %d from cil1 at %d", STRLOC, item1, new_cil_ix);
 	  cil1_ix++;
 	  new_cil_ix++;
 	  continue;
 	}
       if (item2 < item1)
 	{
-  MARPA_DEBUG4("%s: cil_merge added item %d from cil2 at %d", STRLOC, item2, new_cil_ix);
 	  Item_of_CIL (new_cil, new_cil_ix) = item2;
 	  cil2_ix++;
 	  new_cil_ix++;
 	  continue;
 	}
-  MARPA_DEBUG4("%s: cil_merge added item %d in both cil1,cil2 at %d", STRLOC, item1, new_cil_ix);
       Item_of_CIL (new_cil, new_cil_ix) = item1;
       cil1_ix++;
       cil2_ix++;
@@ -14006,7 +13985,6 @@ PRIVATE CIL cil_merge(CILAR cilar, CIL cil1, CIL cil2)
       cil2_ix++;
       new_cil_ix++;
   }
-  MARPA_DEBUG3("%s: cil_merge merged count %d", STRLOC, new_cil_ix);
   return cil_confirm (cilar, new_cil_ix);
 }
 
