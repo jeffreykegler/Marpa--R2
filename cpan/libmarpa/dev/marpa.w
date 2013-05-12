@@ -13985,7 +13985,8 @@ PRIVATE CIL cil_merge(CILAR cilar, CIL cil1, CIL cil2)
       cil2_ix++;
       new_cil_ix++;
   }
-  return cil_confirm (cilar, new_cil_ix);
+  cil_confirm (cilar, new_cil_ix);
+  return cil_finish (cilar);
 }
 
 @ @<Function definitions@> =
