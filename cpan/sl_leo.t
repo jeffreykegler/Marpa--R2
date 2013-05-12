@@ -46,26 +46,30 @@ A ::= B
 B ::= C
 C ::= S
 S ::=
-event have_A = completed <A>
-event have_C = completed <C>
-event have_S = completed <S>
+event A = completed <A>
+event C = completed <C>
+event S = completed <S>
 END_OF_DSL
     }
 );
 
-my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
-my $input = 'aaa';
-my $pos = $recce->read(\$input);
+my $recce         = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
+my $input         = 'aaa';
+my $event_history = q{};
+my $pos           = $recce->read( \$input );
 READ: while (1) {
-    for (my $ix = 0; my $event = $recce->event($ix); $ix++) {
-        my ($event_name) = @{$event};
-        say "$pos $event_name";
+    my @event_names;
+    for ( my $ix = 0; my $event = $recce->event($ix); $ix++ ) {
+        push @event_names, @{$event};
     }
+    $event_history .= join q{ }, sort @event_names;
+    $event_history .= "\n";
     last READ if $pos >= length $input;
     $pos = $recce->resume();
-}
+} ## end READ: while (1)
 my $value_ref = $recce->value();
 my $value = $value_ref ? ${$value_ref} : 'No parse';
-Marpa::R2::Test::is( $value, 'aaa', 'Leo SLIF parse' );
+Marpa::R2::Test::is( $value,         'aaa', 'Leo SLIF parse' );
+Marpa::R2::Test::is( $event_history, "S\nC S\nA C S\n",    'Event history' );
 
 # vim: expandtab shiftwidth=4:

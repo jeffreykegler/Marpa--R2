@@ -63,26 +63,31 @@ END_OF_DSL
     }
 );
 
+# Reaches closure
 do_test($grammar, 'x = x += x -= x *= x /= x');
+
+# Reaches closure and continues
 do_test($grammar, 'x = x += x -= x *= x /= x = x += x -= x *= x /= x');
+
+# Never reaches closure
 do_test($grammar, 'x = x += x -= x = x += x -= x');
 
 sub do_test {
-my ($grammar, $input) = @_;
-my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
-my $pos = $recce->read(\$input);
-READ: while (1) {
-    for (my $ix = 0; my $event = $recce->event($ix); $ix++) {
-        my ($event_name) = @{$event};
-        say "$pos $event_name";
-    }
-    last READ if $pos >= length $input;
-    $pos = $recce->resume();
-}
-my $value_ref = $recce->value();
-my $value = $value_ref ? ${$value_ref} : 'No parse';
-(my $expected = $input) =~ s/\s//gxms;
-Marpa::R2::Test::is( $value, $expected, "Leo SLIF parse of $expected" );
-}
+    my ( $grammar, $input ) = @_;
+    my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
+    my $pos = $recce->read( \$input );
+    READ: while (1) {
+        for ( my $ix = 0; my $event = $recce->event($ix); $ix++ ) {
+            my ($event_name) = @{$event};
+            say "$pos $event_name";
+        }
+        last READ if $pos >= length $input;
+        $pos = $recce->resume();
+    } ## end READ: while (1)
+    my $value_ref = $recce->value();
+    my $value = $value_ref ? ${$value_ref} : 'No parse';
+    ( my $expected = $input ) =~ s/\s//gxms;
+    Marpa::R2::Test::is( $value, $expected, "Leo SLIF parse of $expected" );
+} ## end sub do_test
 
 # vim: expandtab shiftwidth=4:
