@@ -9841,7 +9841,11 @@ for (lim_chain_ix--; lim_chain_ix >= 0; lim_chain_ix--) {
     predecessor_lim = lim_to_process;
 }
 
-@ @<Populate |lim_to_process| from |predecessor_lim|@> =
+@ Instead of |cil_merge|, a new routine which inserted a single
+|int| into a CIL would be faster.
+The logic is only used for indirect right recursions,
+but may be worthwhile even so.
+@<Populate |lim_to_process| from |predecessor_lim|@> =
 {
   const AHFA top_AHFA = Top_AHFA_of_LIM (predecessor_lim);
   Top_AHFA_of_LIM (lim_to_process) = top_AHFA;
@@ -9857,8 +9861,7 @@ for (lim_chain_ix--; lim_chain_ix >= 0; lim_chain_ix--) {
       if (predecessor_cil)
 	{
 	  CIL new_cil = cil_merge (&g->t_cilar, predecessor_cil,
-				   Direct_Completion_Event_CIL_of_AHFA
-				   (top_AHFA));
+	  cil_singleton(&g->t_cilar, Postdot_ISYID_of_LIM(lim_to_process)));
     MARPA_DEBUG3("%s; CIL count, direct=%d", STRLOC,
 				   Count_of_CIL(Direct_Completion_Event_CIL_of_AHFA
 				   (top_AHFA)));
@@ -13991,6 +13994,18 @@ PRIVATE CIL cil_merge(CILAR cilar, CIL cil1, CIL cil2)
       cil2_ix++;
       new_cil_ix++;
     }
+  while (cil1_ix < cil1_count ) {
+      const int item1 = Item_of_CIL (cil1, cil1_ix);
+      Item_of_CIL (new_cil, new_cil_ix) = item1;
+      cil1_ix++;
+      new_cil_ix++;
+  }
+  while (cil2_ix < cil2_count ) {
+      const int item2 = Item_of_CIL (cil2, cil2_ix);
+      Item_of_CIL (new_cil, new_cil_ix) = item2;
+      cil2_ix++;
+      new_cil_ix++;
+  }
   MARPA_DEBUG3("%s: cil_merge merged count %d", STRLOC, new_cil_ix);
   return cil_confirm (cilar, new_cil_ix);
 }
