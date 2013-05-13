@@ -503,12 +503,34 @@ END_OF_STRUCTURE
 } ## end BEGIN
 
 sub Marpa::R2::Recognizer::progress {
-    my ( $recce, $ordinal ) = @_;
+    my ( $recce, $ordinal_arg ) = @_;
     my $recce_c = $recce->[Marpa::R2::Internal::Recognizer::C];
-    $ordinal = $recce->latest_earley_set() if not defined $ordinal;
-    if ($ordinal < 0) {
-        $ordinal = $recce->latest_earley_set() + 1 + $ordinal;
-    }
+    my $latest_earley_set = $recce->latest_earley_set();
+    my $ordinal;
+    SET_ORDINAL: {
+        if ( not defined $ordinal_arg ) {
+            $ordinal = $latest_earley_set;
+            last SET_ORDINAL;
+        }
+        if ( $ordinal_arg > $latest_earley_set ) {
+            Marpa::R2::exception(
+                qq{Argument out of bounds in recce->progress($ordinal_arg)\n},
+                qq{   Argument specifies Earley set after the latest Earley set 0\n},
+                qq{   The latest Earley set is Earley set $latest_earley_set\n}
+            );
+        } ## end if ( $ordinal_arg > $latest_earley_set )
+        if ( $ordinal_arg >= 0 ) {
+            $ordinal = $ordinal_arg;
+            last SET_ORDINAL;
+        }
+
+        # If we are here, $ordinal_arg < 0
+        $ordinal = $latest_earley_set + 1 + $ordinal_arg;
+        Marpa::R2::exception(
+            qq{Argument out of bounds in recce->progress($ordinal_arg)\n},
+            qq{   Argument specifies Earley set before Earley set 0\n}
+        ) if $ordinal < 0;
+    } ## end SET_ORDINAL:
     my $result = [];
     $recce_c->progress_report_start($ordinal);
     ITEM: while (1) {
