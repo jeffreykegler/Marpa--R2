@@ -18,7 +18,7 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 7;
+use Test::More tests => 12;
 
 use English qw( -no_match_vars );
 use Fatal qw( open close );
@@ -160,6 +160,11 @@ Marpa::R2::Test::is( Data::Dumper::Dumper($report0),
 
 # Marpa::R2::Display::End
 
+# Try again with negative index
+$report0 = $recce->progress(-4);
+Marpa::R2::Test::is( Data::Dumper::Dumper($report0),
+    $expected_report0, 'progress report at location -4' );
+
 my $report1 = $recce->progress(1);
 
 # Marpa::R2::Display
@@ -175,6 +180,11 @@ Marpa::R2::Test::is( Data::Dumper::Dumper($report1),
 
 # Marpa::R2::Display::End
 
+# Try again with negative index
+$report1 = $recce->progress(-3);
+Marpa::R2::Test::is( Data::Dumper::Dumper($report1),
+    $expected_report1, 'progress report at location -3' );
+
 my $report2 = $recce->progress(2);
 
 # Marpa::R2::Display
@@ -189,6 +199,11 @@ Marpa::R2::Test::is( Data::Dumper::Dumper($report2),
     $expected_report2, 'progress report at location 2' );
 
 # Marpa::R2::Display::End
+
+# Try again with negative index
+$report2 = $recce->progress(-2);
+Marpa::R2::Test::is( Data::Dumper::Dumper($report2),
+    $expected_report2, 'progress report at location -2' );
 
 # Marpa::R2::Display
 # name: progress() example
@@ -209,6 +224,16 @@ Marpa::R2::Test::is( Data::Dumper::Dumper($latest_report),
     $expected_report3, 'progress report at location 3' );
 
 # Marpa::R2::Display::End
+
+# Try latest report again with explicit index
+my $report3 = $recce->progress(3);
+Marpa::R2::Test::is( Data::Dumper::Dumper($report3),
+    $expected_report3, 'progress report at location 3' );
+
+# Try latest report again with negative index
+$latest_report = $recce->progress(-1);
+Marpa::R2::Test::is( Data::Dumper::Dumper($latest_report),
+    $expected_report3, 'progress report at location -1' );
 
 # Marpa::R2::Display
 # name: Debug Example Trace Output
