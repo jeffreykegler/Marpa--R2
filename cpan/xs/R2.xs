@@ -2141,8 +2141,8 @@ slr_es_span_to_literal_sv (Scanless_R * slr,
 }
 
 #define EXPECTED_LIBMARPA_MAJOR 5
-#define EXPECTED_LIBMARPA_MINOR 153
-#define EXPECTED_LIBMARPA_MICRO 110
+#define EXPECTED_LIBMARPA_MINOR 154
+#define EXPECTED_LIBMARPA_MICRO 100
 
 MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin
 
