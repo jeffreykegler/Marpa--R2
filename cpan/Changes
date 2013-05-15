@@ -15,6 +15,10 @@
 
 Revision history for Marpa::R2
 
+2.055_000
+
+   * New series of developer's releases.
+
 2.054000 Wed May 15 12:54:00 PDT 2013
 
    * Added completion events
