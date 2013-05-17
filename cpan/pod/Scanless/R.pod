@@ -1008,6 +1008,15 @@ normalize-whitespace: 1
 Given a G1 start location and its G1 length, returns a substring of the input
 stream.
 A length of zero will produce a zero-length string.
+The logic for determining the string assumes that the application read forward
+smoothly in the range of G1 locations from C<$g1_start> to C<$g1_start+$g1_length>.
+
+If the application jumped around in the input
+in the range of G1 locations from C<$g1_start> to C<$g1_start+$g1_length>,
+the returned substring may omit
+all or portions of the input stream,
+or it may include skipped portions of the input stream which were skipped,
+or both.
 
 =head1 Deprecated methods
 
