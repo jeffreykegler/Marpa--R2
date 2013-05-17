@@ -131,9 +131,7 @@ my $build = Marpa::R2::Build_Me->new(
         'html/script/marpa_r2_html_score',
     ],
     xs_files   => { 'xs/R2.xs' => 'lib/Marpa/R2.xs' },
-    meta_merge => {
-        resources =>
-            { repository => 'git://github.com/jeffreykegler/Marpa-R2.git', },
+    meta_add => {
         no_index => {
             directory => [
                 qw( pperl tool libmarpa author.t
@@ -147,6 +145,10 @@ my $build = Marpa::R2::Build_Me->new(
             package =>
                 [ @no_index_namespace_inclusive, 'Marpa::R2::Thin::Trace' ],
         }
+    },
+    meta_merge => {
+        resources =>
+            { repository => 'git://github.com/jeffreykegler/Marpa-R2.git', },
     },
     pod_files          => \%pod_files,
     license            => 'lgpl',

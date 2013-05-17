@@ -651,9 +651,41 @@ sub ACTION_licensecheck {
     }
 } ## end sub ACTION_licensecheck
 
+sub ACTION_metacheck {
+    my $self = shift;
+
+    # does not check CPAN::Meta
+    # version -- assumes updated with Module::Build
+    # this should only be run when making distributions 
+    # not on install, so we don't have to be too paranoid
+    require CPAN::Meta;
+
+    my $marpa_version = $self->dist_version();
+    my $meta = CPAN::Meta->load_file($self->metafile());
+    my $provides = $meta->{provides};
+    my @metacheck_problems = ();
+    PROVIDED: for my $provided_name (keys %{$provides}) {
+      my $provided_version = $provides->{$provided_name}->{version};
+      if (not defined $provided_version) {
+          push @metacheck_problems, "No version for $provided_name\n";
+	  next PROVIDED;
+      }
+      if ($provided_version ne $marpa_version) {
+          push @metacheck_problems,
+	  "Version of $provided_name is $provided_version, but Marpa version is $marpa_version\n";
+      }
+    }
+    if (@metacheck_problems) {
+        print {*STDERR} join q{}, @metacheck_problems
+            or die "Cannot print: $ERRNO";
+        die 'Fatal error due to META file issues';
+    }
+}
+
 sub ACTION_distcheck {
     my $self = shift;
     $self->ACTION_licensecheck();
+    $self->ACTION_metacheck();
     return $self->SUPER::ACTION_distcheck;
 } ## end sub ACTION_distcheck
 
