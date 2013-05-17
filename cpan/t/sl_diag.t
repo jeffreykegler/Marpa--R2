@@ -20,7 +20,7 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 5;
+use Test::More tests => 6;
 use English qw( -no_match_vars );
 use lib 'inc';
 use Marpa::R2::Test;
@@ -197,17 +197,44 @@ END_OF_OUTPUT
         [ 5, 0,  11 ]
     ];
 
+# Marpa::R2::Display
+# name: Scanless progress() synopsis
+
     my $progress_output = $recce->progress();
+
+# Marpa::R2::Display::End
 
     Test::More::is_deeply( $progress_output, $expected_progress_output,
         qq{Scanless progress()} );
 
+# Marpa::R2::Display
+# name: Scanless latest_g1_location() synopsis
+
+    my $latest_g1_location = $recce->latest_g1_location();
+
+# Marpa::R2::Display::End
+
+    Test::More::is( $latest_g1_location, 11, qq{Scanless latest_g1_location()} );
+
     # Test translation from G1 location to input stream spans
     my %location_seen = ();
-    my @spans =
-        map { [ $_, $recce->g1_location_to_span( $_ + 0 ) ]; }
+    my @spans         = ();
+    for my $g1_location (
         sort { $a <=> $b }
-        grep { !$location_seen{$_}++; } map { $_->[-1] } @{$progress_output};
+        grep { !$location_seen{$_}++; } map { $_->[-1] } @{$progress_output}
+        )
+    {
+
+# Marpa::R2::Display
+# name: Scanless g1_location_to_span() synopsis
+
+        my ( $span_start, $span_length ) =
+            $recce->g1_location_to_span($g1_location);
+
+# Marpa::R2::Display::End
+
+        push @spans, [ $g1_location, $span_start, $span_length ];
+    } ## end for my $g1_location ( sort { $a <=> $b } grep { !$location_seen...})
 
     # One result for each unique G1 location in progress report
     # Format of each result is [g1_location, span_start, span_length]
