@@ -20,17 +20,16 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 3;
+use Test::More tests => 5;
 use English qw( -no_match_vars );
 use lib 'inc';
 use Marpa::R2::Test;
 use Marpa::R2;
 
 my $prefix_grammar = Marpa::R2::Scanless::G->new(
-    {
-        action_object        => 'My_Actions',
+    {   action_object  => 'My_Actions',
         default_action => 'do_arg0',
-        source          => \(<<'END_OF_RULES'),
+        source         => \(<<'END_OF_RULES'),
 :start ::= Script
 Script ::= Calculation* action => do_list
 Calculation ::= Expression | ('say') Expression
@@ -56,9 +55,10 @@ END_OF_RULES
 package My_Actions;
 our $SELF;
 sub new { return $SELF }
+
 sub do_list {
-    my ($self, @results) = @_;
-    return +(scalar @results) . ' results: ' . join q{ }, @results;
+    my ( $self, @results ) = @_;
+    return +( scalar @results ) . ' results: ' . join q{ }, @results;
 }
 
 sub do_add  { shift; return $_[0] + $_[1] }
@@ -84,10 +84,10 @@ sub my_parser {
     my $trace_output = q{};
     open my $trace_fh, q{>}, \$trace_output;
     my $recce = Marpa::R2::Scanless::R->new(
-        {   grammar           => $grammar,
-            trace_terminals   => 1,
-            trace_file_handle => $trace_fh,
-            too_many_earley_items => 100, # test this
+        {   grammar               => $grammar,
+            trace_terminals       => 1,
+            trace_file_handle     => $trace_fh,
+            too_many_earley_items => 100,         # test this
         }
     );
     $self->{recce} = $recce;
@@ -113,7 +113,7 @@ sub my_parser {
 } ## end sub my_parser
 
 my @tests_data = (
-    [ '+++ 1 2 3 + + 1 2 4',     '1 results: 13', 'Parse OK', 'entire input' ],
+    [ '+++ 1 2 3 + + 1 2 4', '1 results: 13', 'Parse OK', 'entire input' ],
 );
 
 TEST:
@@ -147,7 +147,8 @@ END_OF_EXPECTED_OUTPUT
 
     Marpa::R2::Test::is( $actual_value, $expected_value,
         qq{Value of "$test_string"} );
-    Marpa::R2::Test::is( $trace_output, <<'END_OF_OUTPUT', qq{Trace output for "$test_string"} );
+    Marpa::R2::Test::is( $trace_output,
+        <<'END_OF_OUTPUT', qq{Trace output for "$test_string"} );
 Registering character U+002b as symbol 5: [[\+]]
 Registering character U+002b as symbol 19: [[^\x{A}\x{B}\x{C}\x{D}\x{2028}\x{2029}]]
 Accepted lexeme @0-1: [Lex-1]; value="+"
@@ -180,6 +181,41 @@ Registering character U+0034 as symbol 19: [[^\x{A}\x{B}\x{C}\x{D}\x{2028}\x{202
 Discarded lexeme @17-18: whitespace
 Accepted lexeme @18-19: Number; value="4"
 END_OF_OUTPUT
-} ## end for my $test_data (@tests_data)
+
+    my $expected_progress_output = [
+        [ 0, -1, 0 ],
+        [ 1, -1, 0 ],
+        [ 2, -1, 0 ],
+        [ 4, -1, 10 ],
+        [ 5, -1, 0 ],
+        [ 5, -1, 6 ],
+        [ 5, -1, 10 ],
+        [ 1, 0,  0 ],
+        [ 2, 0,  11 ],
+        [ 3, 0,  11 ],
+        [ 4, 0,  11 ],
+        [ 5, 0,  11 ]
+    ];
+
+    my $progress_output = $recce->progress();
+
+    Test::More::is_deeply( $progress_output, $expected_progress_output,
+        qq{Scanless progress()} );
+
+    # Test translation from G1 location to input stream spans
+    my %location_seen = ();
+    my @spans =
+        map { [ $_, $recce->g1_location_to_span( $_ + 0 ) ]; }
+        sort { $a <=> $b }
+        grep { !$location_seen{$_}++; } map { $_->[-1] } @{$progress_output};
+
+    # One result for each unique G1 location in progress report
+    # Format of each result is [g1_location, span_start, span_length]
+    my $expected_spans =
+        [ [ 0, 0, 0 ], [ 6, 8, 1 ], [ 10, 16, 1 ], [ 11, 18, 1 ] ];
+    Test::More::is_deeply( \@spans, $expected_spans,
+        qq{Scanless g1_location_to_span()} );
+
+} ## end TEST: for my $test_data (@tests_data)
 
 # vim: expandtab shiftwidth=4:

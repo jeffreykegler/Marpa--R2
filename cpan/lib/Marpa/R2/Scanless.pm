@@ -231,6 +231,12 @@ sub Marpa::R2::Scanless::R::substring {
     return substr ${$p_input}, $first_start_position, $length_in_characters;
 } ## end sub Marpa::R2::Scanless::R::substring
 
+sub Marpa::R2::Scanless::R::g1_location_to_span {
+    my ( $self, $g1_location ) = @_;
+    my $thin_self = $self->[Marpa::R2::Inner::Scanless::R::C];
+    return $thin_self->span( $g1_location );
+}
+
 # Substring in terms of locations in the input stream
 # This is the one users will be most interested in.
 sub Marpa::R2::Scanless::R::literal {
