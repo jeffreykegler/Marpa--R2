@@ -750,6 +750,61 @@ be as described for each kind of event.
 One example of a named event is L<a symbol completion
 event|Marpa::R2::Scanless::DSL/"Completion event statement">.
 
+=head2 g1_location_to_span()
+
+=for Marpa::R2::Display
+name: Scanless g1_location_to_span() synopsis
+
+        my ( $span_start, $span_length ) =
+            $recce->g1_location_to_span($g1_location);
+
+=for Marpa::R2::Display::End
+
+Returns an B<array> of two elements, representing a span in the input stream.
+The first element of the array is the start of span, and the second is its length.
+In situations where the input stream location
+corresponding to G1 location is thought of
+as a single number,
+it will usually be considered to be the end of the span:
+C<$span_start+$span_length>.
+As a special case,
+the input stream span for G1 location 0 is always (0,0).
+
+=head2 last_completed()
+
+=for Marpa::R2::Display
+name: Scanless recognizer diagnostics
+partial: 1
+normalize-whitespace: 1
+
+    sub show_last_expression {
+        my ($self) = @_;
+        my $recce = $self->{recce};
+        my ( $g1_start, $g1_length ) = $recce->last_completed('Expression');
+        return 'No expression was successfully parsed' if not defined $g1_start;
+        my $last_expression = $recce->substring( $g1_start, $g1_length );
+        return "Last expression successfully parsed was: $last_expression";
+    } ## end sub show_last_expression
+
+=for Marpa::R2::Display::End
+
+=for Marpa::R2::Display
+name: Scanless recognizer diagnostics
+partial: 1
+normalize-whitespace: 1
+
+    my ( $g1_start, $g1_length ) = $recce->last_completed('Expression');
+
+=for Marpa::R2::Display::End
+
+Given the name of a symbol,
+returns the start G1 location and
+G1 length of the most recent match.
+If there was more than one most recent match, it returns
+the longest.
+If there was no match, returns the empty array in array context
+and a Perl false in scalar context.
+
 =head2 line_column()
 
 =for Marpa::R2::Display
@@ -938,43 +993,6 @@ identify rules by their G1 rule ID.
 G1 rules IDs can be converted to a list of the rule's
 symbols using the L<C<rule()> method
 of the SLIF grammar|Marpa::R2::Scanless::G/"rule()">.
-
-=head1 Trace methods
-
-=for Marpa::R2::Display
-name: Scanless recognizer diagnostics
-partial: 1
-normalize-whitespace: 1
-
-    sub show_last_expression {
-        my ($self) = @_;
-        my $recce = $self->{recce};
-        my ( $g1_start, $g1_length ) = $recce->last_completed('Expression');
-        return 'No expression was successfully parsed' if not defined $g1_start;
-        my $last_expression = $recce->substring( $g1_start, $g1_length );
-        return "Last expression successfully parsed was: $last_expression";
-    } ## end sub show_last_expression
-
-=for Marpa::R2::Display::End
-
-=head2 last_completed()
-
-=for Marpa::R2::Display
-name: Scanless recognizer diagnostics
-partial: 1
-normalize-whitespace: 1
-
-    my ( $g1_start, $g1_length ) = $recce->last_completed('Expression');
-
-=for Marpa::R2::Display::End
-
-Given the name of a symbol,
-returns the start G1 location and
-G1 length of the most recent match.
-If there was more than one most recent match, it returns
-the longest.
-If there was no match, returns the empty array in array context
-and a Perl false in scalar context.
 
 =head2 show_progress()
 
