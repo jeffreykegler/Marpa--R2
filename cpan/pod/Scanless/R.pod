@@ -902,6 +902,13 @@ the pause span is undefined.
 
 =head2 progress()
 
+=for Marpa::R2::Display
+name: Scanless progress() synopsis
+
+    my $progress_output = $recce->progress();
+
+=for Marpa::R2::Display::End
+
 Returns an array that describes the progress
 of a parse
 at a location.
@@ -910,8 +917,17 @@ the current location.
 If a G1 location is
 given as its argument,
 C<progress()> reports progress at that location.
-This method is the SLIF's equivalent of
-the C<progress()> method of recognizer objects
+The G1 location may be negative.
+An argument of I<-X>
+will be interpreted as location I<N+X+1>, where I<N> is
+the current location.
+This means that an argument of -1 indicates the current G1 location,
+an argument of -2 indicates the G1 location just before
+the current one, etc.
+
+The SLIF C<progress> method is the equivalent of
+the identically named
+C<progress()> method for C<Marpa::R2::Recognizer> objects
 in the standard interface.
 Details on progress reports can be found in
 L<their own document|Marpa::R2::Progress>.
@@ -960,24 +976,6 @@ the longest.
 If there was no match, returns the empty array in array context
 and a Perl false in scalar context.
 
-=head2 last_completed_range()
-
-Use of this method is discouraged in favor of 
-L</"last_completed()">.
-Given the name of a symbol,
-returns the G1 start and G1 end locations of most recent match.
-If there was more than one most recent match, it returns
-the longest.
-If there was no match, returns the empty array in array context
-and a Perl false in scalar context.
-
-=head2 range_to_string()
-
-Use of this method is discouraged in favor of 
-L</"substring()">.
-Given a G1 start and a G1 end location, returns the substring of the input
-stream that is between the two.
-
 =head2 show_progress()
 
 =for Marpa::R2::Display
@@ -1010,6 +1008,38 @@ normalize-whitespace: 1
 Given a G1 start location and its G1 length, returns a substring of the input
 stream.
 A length of zero will produce a zero-length string.
+
+=head1 Deprecated methods
+
+=head2 last_completed_range()
+
+Use of this method is discouraged in favor of 
+L</"last_completed()">.
+Given the name of a symbol,
+returns the G1 start and G1 end locations of most recent match.
+If there was more than one most recent match, it returns
+the longest.
+If there was no match, returns the empty array in array context
+and a Perl false in scalar context.
+
+=head2 range_to_string()
+
+Use of this method is discouraged in favor of 
+L</"substring()">.
+Given a G1 start and a G1 end location, returns the substring of the input
+stream that is between the two.
+
+The C<range_to_string()> method assumes that
+the application
+moves continuously forward in the input stream, without jumping
+forward or backward.
+This may not necessarily be the case --
+applications may choose to jump around in the input
+arbitrarily, using the C<resume()> method.
+When a application does not read continuously forward,
+C<range_to_string()>
+will produce unspecified results, and this is one reason why
+its use is discouraged.
 
 =head1 Copyright and License
 

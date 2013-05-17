@@ -601,6 +601,15 @@ normalize-whitespace: 1
 Given the parse location (Earley set ID) as its argument,
 the C<progress()> recognizer method returns a reference
 to an array of "report items".
+The parse location may be negative.
+An argument of I<-X>
+will be interpreted as location I<N+X+1>, where I<N> is
+the latest Earley set.
+This means that an argument of -1 indicates the latest
+Earley set,
+an argument of -2 indicates the Earley set just before
+the latest one, etc.
+
 Each report item is a triple: an array of three elements.
 The three elements are, in order,
 rule ID, dot position, and origin.

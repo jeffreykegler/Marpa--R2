@@ -227,6 +227,9 @@ sub Marpa::R2::Scanless::R::substring {
         $thin_self->span( $start_earley_set + $length_in_parse_locations );
     my $length_in_characters =
         ( $last_start_position + $last_length ) - $first_start_position;
+    # Negative lengths are quite possible if the application has jumped around in
+    # the input.
+    return q{} if $length_in_characters <= 0;
     my $p_input = $self->[Marpa::R2::Inner::Scanless::R::P_INPUT_STRING];
     return substr ${$p_input}, $first_start_position, $length_in_characters;
 } ## end sub Marpa::R2::Scanless::R::substring
