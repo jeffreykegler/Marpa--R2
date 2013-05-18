@@ -20,7 +20,7 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 6;
+use Test::More tests => 7;
 use English qw( -no_match_vars );
 use lib 'inc';
 use Marpa::R2::Test;
@@ -207,14 +207,17 @@ END_OF_OUTPUT
     Test::More::is_deeply( $progress_output, $expected_progress_output,
         qq{Scanless progress()} );
 
-# Marpa::R2::Display
-# name: Scanless latest_g1_location() synopsis
-
     my $latest_g1_location = $recce->latest_g1_location();
+    Test::More::is( $latest_g1_location, 11, qq{Scanless latest_g1_location()} );
+
+# Marpa::R2::Display
+# name: Scanless current_g1_location() synopsis
+
+    my $current_g1_location = $recce->current_g1_location();
 
 # Marpa::R2::Display::End
 
-    Test::More::is( $latest_g1_location, 11, qq{Scanless latest_g1_location()} );
+    Test::More::is( $current_g1_location, 11, qq{Scanless current_g1_location()} );
 
     # Test translation from G1 location to input stream spans
     my %location_seen = ();

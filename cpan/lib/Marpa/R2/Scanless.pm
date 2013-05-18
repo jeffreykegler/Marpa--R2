@@ -1192,7 +1192,14 @@ sub Marpa::R2::Scanless::R::progress {
      $self->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE]->progress(@args);
 }
 
+# Latest and current G1 location are the same
 sub Marpa::R2::Scanless::R::latest_g1_location {
+     my ($self) = @_;
+     $self->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE]->latest_earley_set();
+}
+
+# Latest and current G1 location are the same
+sub Marpa::R2::Scanless::R::current_g1_location {
      my ($self) = @_;
      $self->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE]->latest_earley_set();
 }

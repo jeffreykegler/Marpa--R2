@@ -703,6 +703,17 @@ C<resume()> return a Perl C<undef>.
 
 =head1 Accessors
 
+=head2 current_g1_location()
+
+=for Marpa::R2::Display
+name: Scanless current_g1_location() synopsis
+
+    my $current_g1_location = $recce->current_g1_location();
+
+=for Marpa::R2::Display::End
+
+Returns the current G1 location.
+
 =head2 event()
 
 =for Marpa::R2::Display
