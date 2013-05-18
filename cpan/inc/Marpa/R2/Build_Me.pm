@@ -689,6 +689,40 @@ sub ACTION_distcheck {
     return $self->SUPER::ACTION_distcheck;
 } ## end sub ACTION_distcheck
 
+sub ACTION_distmeta {
+    my $self         = shift;
+    my $return_value = $self->SUPER::ACTION_distmeta;
+
+    # does not check CPAN::Meta
+    # version -- assumes updated with Module::Build
+    # this should only be run when making distributions
+    # not on install, so we don't have to be too paranoid
+    require CPAN::Meta;
+
+    my $meta   = CPAN::Meta->load_file( $self->metafile() );
+    my @delete = ();
+    for my $provided ( keys %{ $meta->{provides} } ) {
+        push @delete, $provided if $provided =~ m/\AMarpa::R2::Inner::/xms;
+        push @delete, $provided if $provided =~ m/\AMarpa::R2::Internal::/xms;
+        push @delete, $provided if $provided =~ m/\AMarpa::R2::HTML::Internal::/xms;
+        push @delete, $provided if $provided =~ m/::Internal\z/xms;
+    }
+    if (@delete) {
+        for my $deletion (@delete) {
+            delete $meta->{provides}->{$deletion};
+        }
+	if (defined $meta->{dynamic_config}) {
+	  # Make sure this stays numeric
+	  $meta->{dynamic_config} = $meta->{dynamic_config}+0;
+	}
+        $meta->save( 'META.yml', { version => '1.4' } );
+        $meta->save('META.json');
+        $self->log_info('Revised META.yml and META.json');
+    } ## end if (@delete)
+
+    return $return_value;
+} ## end sub ACTION_distmeta
+
 sub ACTION_dist {
     my $self = shift;
     open my $fh, q{<}, 'Changes';
