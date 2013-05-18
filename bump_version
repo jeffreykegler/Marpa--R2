@@ -25,7 +25,11 @@ my $libmarpa_micro = $micro+100;
 
 my @versioned_files = split /\n/xms, <<'END_OF_LIST';
 cpan/html/lib/Marpa/R2/HTML.pm
+cpan/html/lib/Marpa/R2/HTML.pm
 cpan/html/lib/Marpa/R2/HTML/Callback.pm
+cpan/html/lib/Marpa/R2/HTML/Config.pm
+cpan/html/lib/Marpa/R2/HTML/Config/Compile.pm
+cpan/html/tool/lib/Marpa/R2/HTML/Test/Util.pm
 cpan/lib/Marpa/R2.pm
 cpan/lib/Marpa/R2/Grammar.pm
 cpan/lib/Marpa/R2/Internal.pm

@@ -106,10 +106,12 @@
          "version" : "2.055_000"
       },
       "Marpa::R2::HTML::Config" : {
-         "file" : "html/lib/Marpa/R2/HTML/Config.pm"
+         "file" : "html/lib/Marpa/R2/HTML/Config.pm",
+         "version" : "2.000_000"
       },
       "Marpa::R2::HTML::Config::Compile" : {
-         "file" : "html/lib/Marpa/R2/HTML/Config/Compile.pm"
+         "file" : "html/lib/Marpa/R2/HTML/Config/Compile.pm",
+         "version" : "2.000_000"
       },
       "Marpa::R2::MetaAST" : {
          "file" : "lib/Marpa/R2/MetaAST.pm",

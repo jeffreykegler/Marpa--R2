@@ -18,8 +18,15 @@ package Marpa::R2::HTML::Config::Compile;
 use 5.010;
 use strict;
 use warnings;
-use Data::Dumper;
 
+use vars qw($VERSION $STRING_VERSION);
+$VERSION        = '2.000_000';
+$STRING_VERSION = $VERSION;
+## no critic(BuiltinFunctions::ProhibitStringyEval)
+$VERSION = eval $VERSION;
+## use critic
+
+use Data::Dumper;
 use English qw( -no_match_vars );
 
 use Marpa::R2::HTML::Config::Core;

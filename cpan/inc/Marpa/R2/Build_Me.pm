@@ -717,7 +717,7 @@ sub ACTION_distmeta {
 	}
         $meta->save( 'META.yml', { version => '1.4' } );
         $meta->save('META.json');
-        $self->log_info('Revised META.yml and META.json');
+        $self->log_info("Revised META.yml and META.json\n");
     } ## end if (@delete)
 
     return $return_value;
