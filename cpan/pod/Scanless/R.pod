@@ -99,6 +99,10 @@ or to replace the SLIF's internal scanner entirely.
 
 =head2 Input stream locations
 
+An input stream location is the offset of a codepoint in the
+input stream.
+When the input stream is being treated as a string,
+input stream location corresponds to Perl's C<pos()> location.
 In this document, the word "location" refers
 to location in the input stream
 unless otherwise specified.
@@ -771,15 +775,24 @@ name: Scanless g1_location_to_span() synopsis
 
 =for Marpa::R2::Display::End
 
-Returns an B<array> of two elements, representing a span in the input stream.
-The first element of the array is the start of span, and the second is its length.
-In situations where the input stream location
-corresponding to G1 location is thought of
-as a single number,
-it will usually be considered to be the end of the span:
-C<$span_start+$span_length>.
+G1 locations do not correspond to a single input stream
+location, but to a span of them.
+The C<g1_location_to_span()> method
+returns an B<array> of two elements, representing a span in the input stream.
+The first element of the array is the input stream location
+where the span starts.
+The second element of the array is the length of the span.
 As a special case,
 the input stream span for G1 location 0 is always (0,0).
+
+Sometimes it is convenient to think of
+G1 location as corresponding to a single input stream location.
+When this is the case,
+what is usually intended is the last input stream location
+of the span.
+The last input stream location
+of the span
+will always be C<$span_start+$span_length>.
 
 =head2 last_completed()
 
@@ -810,7 +823,7 @@ normalize-whitespace: 1
 
 Given the name of a symbol,
 returns the start G1 location and
-G1 length of the most recent match.
+the length in G1 locations of the most recent match.
 If there was more than one most recent match, it returns
 the longest.
 If there was no match, returns the empty array in array context
@@ -831,7 +844,7 @@ normalize-whitespace: 1
 The C<line_column()> method accepts one, optional, argument:
 a location in the input stream.
 The location defaults to the current location.
-It returns the corresponding line and column position,
+C<line_column()> returns the corresponding line and column position,
 as a 2-element array.
 The first element of the array is the line position,
 and the second element is the column position.
@@ -982,12 +995,12 @@ With no argument, C<progress()> reports progress at
 the current location.
 If a G1 location is
 given as its argument,
-C<progress()> reports progress at that location.
+C<progress()> reports progress at that G1 location.
 The G1 location may be negative.
 An argument of I<-X>
 will be interpreted as location I<N+X+1>, where I<N> is
-the current location.
-This means that an argument of -1 indicates the current G1 location,
+the current G1 location.
+In other words, an argument of -1 indicates the current G1 location,
 an argument of -2 indicates the G1 location just before
 the current one, etc.
 
@@ -1034,18 +1047,45 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
-Given a G1 start location and its G1 length, returns a substring of the input
+Given a G1 span -- that is, a G1 start location and a length in G1 locations --
+the C<substring()> method
+returns a substring of the input
 stream.
-A length of zero will produce a zero-length string.
-The logic for determining the string assumes that the application read forward
-smoothly in the range of G1 locations from C<$g1_start> to C<$g1_start+$g1_length>.
+A G1 length of zero will produce the zero-length string.
 
-If the application jumped around in the input
-in the range of G1 locations from C<$g1_start> to C<$g1_start+$g1_length>,
-the returned substring may omit
-all or portions of the input stream,
-or it may include skipped portions of the input stream which were skipped,
-or both.
+The substring of the input stream is determined on the assumption
+that the application,
+while reading
+the sequence of G1 locations from
+C<$g1_start> to C<$g1_start+$g1_length>,
+read forward smoothly in the input stream.
+This is the usual case, but applications are free
+to jump around in the input stream.
+
+Here,
+in precise terms,
+is how C<substring()> determines the string to be returned:
+The string
+will start at the first input stream location in the span for
+G1 location C<$g1_start+1>.
+The end of the string will be at
+the last input stream location in the span for
+G1 location C<$g1_start+$g1_length>.
+When an application moves backward in the input,
+the end of the string,
+as calculated above,
+may be before the start of the string.
+When the end of a string is before its start,
+C<substring()> returns the zero-length string.
+
+Applications are free to skip forward in the stream,
+jump backward,
+reread the same input multiple times, etc., etc.
+Applications which do such things,
+but which also
+wants to associate spans of G1 locations with the input stream,
+will need to reassemble the input based on their own ideas.
+The L</"literal()"> method can assist in this process.
 
 =head1 Deprecated methods
 
@@ -1054,30 +1094,33 @@ or both.
 Use of this method is discouraged in favor of 
 L</"last_completed()">.
 Given the name of a symbol,
-returns the G1 start and G1 end locations of most recent match.
-If there was more than one most recent match, it returns
-the longest.
-If there was no match, returns the empty array in array context
+C<last_completed_range()>
+returns the G1 start and G1 end locations of the most recent match.
+If there was more than one most recent match,
+C<last_completed_range()>
+returns the longest.
+If there was no match,
+C<last_completed_range()>
+returns the empty array in array context
 and a Perl false in scalar context.
 
 =head2 range_to_string()
 
 Use of this method is discouraged in favor of 
 L</"substring()">.
-Given a G1 start and a G1 end location, returns the substring of the input
-stream that is between the two.
-
-The C<range_to_string()> method assumes that
-the application
-moves continuously forward in the input stream, without jumping
-forward or backward.
-This may not necessarily be the case --
-applications may choose to jump around in the input
-arbitrarily, using the C<resume()> method.
-When a application does not read continuously forward,
+Given a G1 start and a G1 end location,
 C<range_to_string()>
-will produce unspecified results, and this is one reason why
-its use is discouraged.
+returns the substring of the input
+stream that is between the two.
+The C<range_to_string()> method 
+assumes that
+the application read forward smoothly in the input stream,
+while reading
+the sequence of G1 locations.
+When that is not the case,
+C<range_to_string()> behaves in
+much the same way as described above
+for L</"substring()">.
 
 =head1 Copyright and License
 
