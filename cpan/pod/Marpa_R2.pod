@@ -21,6 +21,7 @@ Marpa::R2 - Release 2 of Marpa
 
 =for Marpa::R2::Display
 name: Landing page synopsis
+normalize-whitespace: 1
 
     use Marpa::R2;
 
@@ -89,70 +90,50 @@ in semi-tutorial fashion.
 Marpa's advanced features, and full reference details of all features,
 can be found in L<the other Marpa API documents|/"Other documents">.
 
-=head2 The three phases
-
-A parser needs to:
-
-=over
-
-=item * Accept a grammar.
-
-=item * Read input.
-
-=item * Return values from the parses,
-according to a semantics.
-
-=back
-
-In Marpa these three tasks
-are, for the most part, distinct phases.
-Grammars are
-L<C<Marpa::R2::Grammar>|Marpa::R2::Grammar> objects.
-The reading of input and the evaluation of the parse
-according to the semantics is performed by
-L<C<Marpa::R2::Recognizer>|Marpa::R2::Recognizer> objects.
-
-=head1 Example 1: a simple calculator
+=head1 A simple calculator
 
 The synopsis shows the code for a very simple calculator.
 It handles only
 addition and multiplication of integers.
 This section explains, line by line, how it works.
 
-=head2 Marpa::R2::Grammar::new
+=head2 Marpa::R2::Scanless::G::new
 
 =for Marpa::R2::Display
-name: Engine Synopsis Unambiguous Parse
+name: Landing page synopsis
 partial: 1
 normalize-whitespace: 1
 
-    my $grammar = Marpa::R2::Grammar->new(
-        {   start   => 'Expression',
-            actions => 'My_Actions',
+    my $grammar = Marpa::R2::Scanless::G->new(
+        {   action_object  => 'My_Nodes',
             default_action => 'first_arg',
-            rules   => [
-                { lhs => 'Expression', rhs => [qw/Term/] },
-                { lhs => 'Term', rhs => [qw/Factor/] },
-                { lhs => 'Factor', rhs => [qw/Number/] },
-                { lhs => 'Term', rhs => [qw/Term Add Term/], action => 'do_add' },
-                {   lhs    => 'Factor',
-                    rhs    => [qw/Factor Multiply Factor/],
-                    action => 'do_multiply'
-                },
-            ],
+            source         => \(<<'END_OF_SOURCE'),
+    :start ::= Expression
+    Expression ::= Term
+    Term ::=
+          Factor
+        | Term '+' Term action => do_add
+    Factor ::=
+          Number
+        | Factor '*' Factor action => do_multiply
+          Number ~ digits
+          digits ~ [\d]+
+          :discard ~ whitespace
+          whitespace ~ [\s]+
+    END_OF_SOURCE
         }
     );
 
 =for Marpa::R2::Display::End
 
-Marpa grammars are
-L<C<Marpa::R2::Grammar>|Marpa::R2::Grammar> objects.
+SLIF grammars are
+L<C<Marpa::R2::Scanless:G>|Marpa::R2::Scanless::G> objects.
 They are created
 with the
-L<Marpa::R2::Grammar::new|Marpa::R2::Grammar/"new">
+L<Marpa::R2::Scanless:G::new|Marpa::R2::Scanless::G/"new">
 constructor.
 The arguments to
-L<Marpa::R2::Grammar::new|Marpa::R2::Grammar/"new">
+L<Marpa::R2::Scanless::G::new|Marpa::R2::Scanless::G/"new">
 are references to
 hashes of named arguments.
 In the key/value pairs of these hashes,
@@ -168,7 +149,7 @@ value of the named argument.
 =head3 The start named argument
 
 =for Marpa::R2::Display
-name: Engine Synopsis Unambiguous Parse
+name: Landing page synopsis
 partial: 1
 normalize-whitespace: 1
 
@@ -183,7 +164,7 @@ a string containing the name of the grammar's start symbol.
 =head3 Named arguments for the semantics
 
 =for Marpa::R2::Display
-name: Engine Synopsis Unambiguous Parse
+name: Landing page synopsis
 partial: 1
 normalize-whitespace: 1
 
@@ -214,7 +195,7 @@ with no action of their own.
 =head3 The rules named argument
 
 =for Marpa::R2::Display
-name: Engine Synopsis Unambiguous Parse
+name: Landing page synopsis
 partial: 1
 normalize-whitespace: 1
 
@@ -268,79 +249,50 @@ to a Perl closure that
 implements
 the rule's semantics.
 
-=head2 Marpa::R2::Grammar::precompute
+=head2 Marpa::R2::Scanless::R::new
 
 =for Marpa::R2::Display
-name: Engine Synopsis Unambiguous Parse
+name: Landing page synopsis
 partial: 1
 normalize-whitespace: 1
 
-    $grammar->precompute();
+    my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
 
 =for Marpa::R2::Display::End
 
-Before a Marpa grammar object can be used by a Marpa recognizer,
-it must be B<precomputed>.
-Precomputation compiles data structures that the recognizer will need.
-
-=head2 Marpa::R2::Recognizer::new
-
-=for Marpa::R2::Display
-name: Engine Synopsis Unambiguous Parse
-partial: 1
-normalize-whitespace: 1
-
-    my $recce = Marpa::R2::Recognizer->new( { grammar => $grammar } );
-
-=for Marpa::R2::Display::End
-
-C<Marpa::R2::Recognizer::new> creates a new recognizer.
+C<Marpa::R2::Scanless::R::new> creates a new SLIF recognizer.
 Its arguments are references to hashes of named arguments.
 In this example the only named argument is
 the required argument: "C<grammar>".
 The value of the
 C<grammar>
-named argument must be a precomputed Marpa
+named argument must be a Marpa SLIF
 grammar.
 
-=head2 Marpa::R2::Recognizer::read
+=head2 Marpa::R2::Scanless::R::read
 
 =for Marpa::R2::Display
-name: Engine Synopsis Unambiguous Parse
+name: Landing page synopsis
 partial: 1
 normalize-whitespace: 1
 
-    $recce->read( 'Number', 42 );
-    $recce->read('Multiply');
-    $recce->read( 'Number', 1 );
-    $recce->read('Add');
-    $recce->read( 'Number', 7 );
+    my $input = '42 * 1 + 7';
+    $recce->read( \$input );
 
 =for Marpa::R2::Display::End
 
-The C<Marpa::R2::Recognizer::read> method takes two arguments,
-a B<token name> and a B<token value>.
-The token name must be the name
-of a valid terminal symbol in the grammar.
-By default symbols are valid as terminal symbols,
-if and only if they do NOT occur on the LHS of
-any rule.
+To parse a string,
+we use 
+the C<Marpa::R2::Scanless::R::read()> method.
+In its simplest form,
+as here,
+the C<Marpa::R2::Scanless::R::read()> takes a reference
+to a string containing the input stream as its argument.
 
-The B<token value>
-must be a Perl scalar, but otherwise its form
-and semantics
-are entirely up to the application.
-If the token value is never used,
-it can be omitted.
-In the calculator example, the values of the
-"C<Add>"
-and "C<Multiply>" tokens are never used,
-and are allowed to default to an undefined value.
-
-=head2 Marpa::R2::Recognizer::value
+=head2 Marpa::R2::Scanless::R::value
 
 =for Marpa::R2::Display
-name: Engine Synopsis Unambiguous Parse
+name: Landing page synopsis
 partial: 1
 normalize-whitespace: 1
 
@@ -349,17 +301,17 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
-The C<Marpa::R2::Recognizer::value> method returns
+The C<Marpa::R2::Scanless::R::value()> method returns
 a reference to the parse result's value,
 if there was a parse result.
 If there was no parse result,
-C<Marpa::R2::Recognizer::value>
+C<Marpa::R2::Scanless::R::value()>
 returns
 C<undef>.
 
 =head2 Resolving the semantics
 
-The first thing C<Marpa::R2::Recognizer::value> needs to do is
+The first thing C<Marpa::R2::Scanless::R::value()> needs to do is
 to resolve the semantics.
 B<Resolving the semantics> means
 mapping the action names into actions.
@@ -372,7 +324,7 @@ Marpa will look for actions
 in that package.
 
 =for Marpa::R2::Display
-name: Engine Synopsis Unambiguous Parse
+name: Landing page synopsis
 partial: 1
 normalize-whitespace: 1
 
@@ -381,7 +333,7 @@ normalize-whitespace: 1
 =for Marpa::R2::Display::End
 
 =for Marpa::R2::Display
-name: Engine Synopsis Unambiguous Parse
+name: Landing page synopsis
 partial: 1
 normalize-whitespace: 1
 flatten: 1
@@ -397,7 +349,7 @@ So Marpa looks for a closure whose fully qualified name is C<My_Actions::do_mult
 which it finds:
 
 =for Marpa::R2::Display
-name: Engine Synopsis Unambiguous Parse
+name: Landing page synopsis
 partial: 1
 normalize-whitespace: 1
 
@@ -412,7 +364,7 @@ Rules do not always have C<action> properties.
 That is the case with these rules in this example:
 
 =for Marpa::R2::Display
-name: Engine Synopsis Unambiguous Parse
+name: Landing page synopsis
 partial: 1
 normalize-whitespace: 1
 
@@ -429,7 +381,7 @@ the default action,
 as described next.
 
 =for Marpa::R2::Display
-name: Engine Synopsis Unambiguous Parse
+name: Landing page synopsis
 partial: 1
 normalize-whitespace: 1
 
@@ -448,7 +400,7 @@ C<My_Actions::first_arg>.
 =head2 Actions
 
 =for Marpa::R2::Display
-name: Engine Synopsis Unambiguous Parse
+name: Landing page synopsis
 partial: 1
 normalize-whitespace: 1
 
@@ -457,7 +409,7 @@ normalize-whitespace: 1
 =for Marpa::R2::Display::End
 
 =for Marpa::R2::Display
-name: Engine Synopsis Unambiguous Parse
+name: Landing page synopsis
 partial: 1
 normalize-whitespace: 1
 
@@ -500,7 +452,7 @@ return a Perl C<undef>.
 
 =head1 Errors and exceptions
 
-Methods in the Marpa API do not return errors.
+Methods in the Marpa API usually do not return errors.
 When there are errors,
 Marpa API methods throw an exception.
 
@@ -526,13 +478,28 @@ DBI, LWP and Moose.
 
 =head1 Other documents
 
-This document gives a semi-tutorial overview of the entire Marpa API.
-For full details on Marpa's grammar objects and their methods,
-see the
-L<Marpa::R2::Grammar> document.
-For full details on Marpa's recognizer objects and their methods,
-see the
-L<Marpa::R2::Recognizer> document.
+This document gives a semi-tutorial overview of Marpa's Scanless interface (SLIF).
+To learn more, it may be best to start with
+L<the overview of Marpa's
+SLIF|Marpa::R2::Scanless>.
+
+Marpa has two other interfaces which may be of interest.
+An older, more traditional, interface
+is the named argument inteface (NAIF) for the Marpa parse engine.
+The NAIF is a middle level interface which used Perl calls
+instead of a DSL.
+The NAIF is more low level than
+L<the Scanless interface
+(SLIF)|Marpa::R2::Scanless>,
+which uses a domain-specific language.
+
+There is also the L<the thin
+interface|<Marpa::R2::Advanced::Thin>,
+which provides direct access to the underlying
+Libmarpa C library.
+The thin interface offers efficient access to the full power of the
+Marpa parse engine,
+but it requires the application to do a lot more of the work itself.
 
 L<Marpa::R2::Vocabulary> is intended as a quick refresher in
 parsing terminology,
