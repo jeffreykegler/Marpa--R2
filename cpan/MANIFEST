@@ -295,6 +295,7 @@ t/sl_leo2.t
 t/sl_prefix.t
 t/sl_rank.t
 t/sl_syn.t
+t/sl_topsyn.t
 t/sl_wall.t
 t/stuifzand.t
 t/syn_engine.t
