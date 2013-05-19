@@ -71,10 +71,10 @@ normalize-whitespace: 1
 
 =head1 About this document
 
-This document contains a top-level overview
-and tutorial
-for the named argument inteface (NAIF) for the Marpa parse engine.
-The NAIF in a middle level interface.
+This document contains a top-level overview of,
+and tutorial for,
+the named argument inteface (NAIF) for the Marpa parse engine.
+The NAIF is a middle level interface.
 It is more low level than
 L<the Scanless interface
 (SLIF)|Marpa::R2::Scanless>,
