@@ -51,421 +51,122 @@ normalize-whitespace: 1
 
 This page is the reference for the Marpa's "BNF interface",
 also called its "Stuifzand interface".
-The Stuifzand interface allows the grammar to be specified using
-a string whose text is written in a variation of BNF.
-BNF source strings are specified using the 
+Use of the Stuifzand interface is now discouraged,
+in favor of L<the SLIF
+interface|Marpa::R2::Scanless>.
+Almost all of the functionality of
+the Stuifzand interface can be duplicated
+in the SLIF interface by switching immediately
+to external scanning,
+and never switching back to internal scanning.
+To switch immediately to external scanning in the SLIF,
+specify a length of zero for its initial
+L<C<read()>|Marpa::R2::Scanless::R/"read()">.
+For more details, see the
+L<document for the SLIF
+itself|Marpa::R2::Scanless>.
+
+=head1 The source string
+
+Stuifzand interface  source strings are specified using the 
 L<the C<source> named argument of Marpa::R2's grammars|Marpa::R2::Grammar/"source">.
 BNF source strings perform the functions of
-the C<rules> and C<start> named arguments of Marpa grammars.
+the
+L<C<rules>|Marpa::R2::Grammar/"rules">
+and the
+L<C<start>|Marpa::R2::Grammar/"start">
+named arguments of Marpa grammars.
 When
 the C<source> named argument is used to specify a grammar,
 the C<rules> and C<start> named arguments should not be used,
 and vice versa.
+The syntax for the Stuifzand interface's source string is the
+same as
+L<the syntax for the SLIF
+DSL|Marpa::R2::Scanless::DSL>,
+except that features and syntax not relevant to the Stuifzand
+interface are not supported.
 
-The Stuifzand interface is
-an example of a domain-specific language (DSL).
-The DSL of this document can (and has been) used to specify other
-DSL's, and therefore can be seen as a "meta-DSL".
+Everything related to G0 grammars is unsupported.
+G0 grammars do not exist in the Stuifzand interface.
+Lexemes, character classes and quoted strings all implicitly
+require a G0 grammar to exist
+and therefore, they also are not supported.
 
-=head1 The source string
+Since the Stuifzand interface does not implement internal
+scanning,
+everything to do with internal scanning is unsupported.
+Events and pauses are the most visible of these features.
 
-=head2 Structure
+In most cases,
+when features have introduced after the SLIF replaced
+the Stuifzand interface
+as Marpa's primary interface,
+those features have been retro-ported
+if they make sense in the Stuifzand context.
+However, this will necessarily always be the case in
+the future.
 
-Whitespace separates tokens, but is otherwise ignored.
-Comments are equivalent to whitespace.
-A hash ("C<#>") character starts a comment,
-which continues to the end of the line.
-
-The Stuifzand format consists of rule declarations.
-Each rule declaration consists of, in order:
+Specifically, here is a list of the unsupported SLIF DSL features.
 
 =over 4
 
-=item * A left hand side (LHS).
-This will be a
-symbol or a pseudo-symbol.
+=item * Character classes
 
-=item * The declaration operator ("C<::=>").
+These implicitly use the G0 grammar.
 
-=item * A right hand side (RHS).
-For each type of rule,
-the RHS will be described in detail below.
-In the case of empty rules,
-the RHS will be empty.
+=item * Quoted strings
 
-=item * An adverb list.
-Each adverb consists of a keyword,
-the adverb operator ("C<< => >>"),
-and the adverb's value.
-The adverb list may be zero length.
+These implicitly use the G0 grammar.
+
+=item * Discard rules
+
+C<:discard> rules control the behavior of the G0 grammar.
+
+=item * The lexeme and lexeme default statements
+
+The C<:lexeme> pseudo-rule and
+the lexeme default statement define the behavior of
+lexemes.
+Lexemes in the SLIF sense
+do not exist in the Stuifzand interface.
+
+=item * G0 rules
+
+Rules with the tilde declarator ("C<~>") defined G0 rules.
+
+=item * Event declarations
+
+Events exist to pause the SLIF internal scanning.
+
+=item * The pause adverb
+
+The pause adverb exists to pause the SLIF internal scanning.
+
+=item * The priority adverb
+
+The priority adverb defines lexeme priorities.
+Lexemes in the SLIF sense
+do not exist in the Stuifzand interface.
+
+=item * Actions specified as array descriptors
+
+Actions specified as array descriptors, for example,
+
+=for Marpa::R2::Display
+ignore: 1
+
+    action => [start,length,value]
+
+=for Marpa::R2::Display::End
+
+exist primarily to support lexeme semantics.
+They can also specify rule semantics,
+but their functionality has not been retro-ported
+to the Stuifzand interface,
+and probably never will be.
 
 =back
-
-=head2 Symbol names
-
-Symbol names can be either "bare" or enclosed in angle brackets.
-Bare symbol names must consist entirely of Perl word characters
-(alphanumerics, plus the underscore).
-The angle brackets, if used, serve to "quote"
-the symbol name,
-and will not be part of the symbol name.
-
-If angle brackets are used, symbol names may also contain whitespace,
-as in
-
-=for Marpa::R2::Display
-ignore: 1
-
-    <op comma>
-
-=for Marpa::R2::Display::End
-
-A whitespace sequence inside angle brackets can
-include any whitespace character that is legal in Perl,
-including newlines.
-This allows very long symbol names to be line wrapped,
-if necessary.
-
-Unlike angle brackets, the whitespace does become part of the symbol name,
-but it does so in a "normalized" form.
-Leading and trailing whitespace in the name is discarded,
-and all other whitespace sequences are converted to a single ASCII
-space character.
-This means that
-
-=for Marpa::R2::Display
-ignore: 1
-
-    < op comma  >
-    <op   comma>
-    <     op comma>
-
-=for Marpa::R2::Display::End
-
-and even
-
-
-=for Marpa::R2::Display
-ignore: 1
-
-    <op
-    comma>
-
-=for Marpa::R2::Display::End
-
-will all be regarded as the same symbol name.
-The normalized form of that symbol name
-is C<< <op comma> >>.
-The actual name of a symbol
-is the string inside the brackets of its
-normalized form.
-
-=head2 Types of rules
-
-Rules are of four kinds:
-the start rule,
-empty rules,
-quantified rules
-and prioritized rules.
-A rule like the following,
-
-=for Marpa::R2::Display
-ignore: 1
-
-    a ::= b c d
-
-=for Marpa::R2::Display::End
-
-whose RHS consists only of a sequence of symbols,
-is treated as a
-prioritized rule with only one alternative
-and only one priority.
-In a typical large grammar,
-most rules are prioritized rules,
-many of them taking
-a simple form like that in the display
-above.
-
-=head2 Start rule
-
-Every source string should have a start rule.
-The LHS of this rule is the C<:start> pseudo-symbol.
-The RHS must be a single symbol name.
-The start rule does not accept any adverbs.
-
-=head2 Empty rules
-
-An empty rule is a rule with an empty RHS.
-An empty right hand side is what the name suggests: no symbols
-or punctuation.
-An action adverb is allowed in an empty rule,
-but no others.
-A empty rule makes its LHS symbol a nullable symbol.
-
-=head2 Quantified rules
-
-A rule is quantified if
-its RHS consists of a single symbol name,
-followed by a "quantifier".
-The quantifer is either
-a star ("C<*>"),
-or a plus sign ("C<+>")
-indicating, respectively, that the sequence rule has a minimum length
-of 0 or 1.
-Quantified rules allow adverbs.
-
-=head2 Prioritized rules
-
-Any rule which is not a start rule,
-and not empty or quantified, is considered prioritized.
-The prioritization may be simple, consisting only of a
-single priority level.
-
-Each prioritized right hand side consists of one or more right hand alternatives
-(called "alternatives" for brevity).
-An alternative is a series of one or more symbols,
-followed by zero or more adverbs.
-
-The alternatives are separated by single or double "or" symbols.
-This means the alternatives in a prioritized right hand side proceed
-from tightest (highest) priority to loosest.
-The double "or" symbol ("C<||>") is the "loosen" operator --
-the alternatives after it
-have a looser (lower) priority than the alternatives before it.
-The single "or" symbol ("C<|>") is the ordinary "alternative" operator --
-alternatives on each side of it have the same priority.
-Associativity is specified using adverbs, as described below.
-
-Within an alternative, symbols may be enclosed in parentheses.
-A symbol enclosed in parentheses is hidden from
-L<Marpa's semantics|Marpa::R2::Semantics>.
-A set of parentheses may contain more than one symbol,
-in which case the entire sequence of symbols is hidden,
-as if they had been enclosed in parentheses individually.
-
-=head2 Adverbs
-
-Adverbs are allowed for empty rules, quantifiied rules,
-and for the right hand side alternatives in prioritized rules.
-Adverbs must occur after the symbols.
-Adverbs consist of a keyword, the adverb operator ("C<< => >>"),
-and the adverb's value.
-The keyword must be one of those described in this section.
-The adverb's value must be as described for each keyword.
-
-=head3 action
-
-The value of the C<action> keyword
-must be a Perl word (a string of alphanumerics
-or underscores).
-It will be interpreted as the action name,
-as described for
-L<the C<action> named argument of rule descriptors|Marpa::R2::Grammar/"action">.
-
-=head3 assoc
-
-The C<assoc> adverb is only valid in a prioritized rule.
-Its value must be one of
-C<left>,
-C<right> or
-C<group>.
-Its effect will be as described
-L<below|/"Precedence">.
-
-=head3 separator
-
-The C<separator> keyword is only valid for a quantified right side,
-and its value must be a symbol of the grammar.
-It will be used as the separator,
-L<as described for sequence rules|Marpa::R2::Grammar/"Sequence rules">.
-
-=head3 proper
-
-The C<proper> keyword is only valid for a quantified right side,
-and its value must be a boolean,
-in the form of a binary digit (C<0> or C<1>).
-It indicates proper or Perl separation,
-L<as described for sequence rules|Marpa::R2::Grammar/"Sequence rules">.
-
-=head1 Precedence
-
-Marpa's precedence is a generalization beyond the traditional ideas of precedence.
-Traditional precedence parsing required
-the classification of operators as postfix, infix, etc.
-Marpa's precedence parsing is NOT based on
-the special treatment of operators.
-
-For the purpose of precedence,
-an operand is an occurrence in a RHS alternative
-of the LHS symbol.
-An operator is considered to be anything 
-that is not an operand.
-The arity of an alternative is the number of operands that
-it contains.
-All arities are allowed, from zero to the arbitrary
-number imposed by system limits such as memory and file size.
-
-For example, in the synopsis, the LHS symbol is
-C<Expression>.  The alternative
-
-=for Marpa::R2::Display
-name: Stuifzand Synopsis
-partial: 1
-normalize-whitespace: 1
-
-        (<op lparen>) Expression (<op rparen>)
-
-=for Marpa::R2::Display::End
-
-contains one occurrence of C<Expression> and therefore has an arity of one.
-The C<< <op lparen> >> and C<< <op rparen> >> are considered operators.
-
-In the RHS alternative
-
-=for Marpa::R2::Display
-name: Stuifzand Synopsis
-partial: 1
-normalize-whitespace: 1
-
-       Expression (<op pow>) Expression
-
-=for Marpa::R2::Display::End
-
-C<Expression> occurs twice, and therefore the arity is 2.
-C<< <op pow> >> is considered to be an operator.
-
-Because for this purpose an operator is defined as anything that
-is not an operand, some symbols are considered operators
-that would not be in the traditional approach.
-For example,
-in the RHS alternative
-
-=for Marpa::R2::Display
-name: Stuifzand Synopsis
-partial: 1
-normalize-whitespace: 1
-
-       Number
-
-=for Marpa::R2::Display::End
-
-there are no occurrences of C<Expression>, so that the alternative
-has an arity of zero -- it is nullary.
-The symbol C<Number> is considered to be an operator.
-
-An alternative with arity 0 is nullary.
-Precedence and associativity
-are meaningless in this
-case and will be ignored.
-
-An alternative with arity 1 is unary.
-Precedence will have effect,
-but left and right associativity will not.
-
-An alternative with arity 2 is binary.
-Precedence will have effect,
-and left and right associativity will behave
-in the traditional way,
-The traditional behavior for binary alternatives
-is exactly as described next for the I<N>-ary case.
-
-An alternative with an arity of I<N>,
-where I<N> is 2 or greater, is I<N>-ary.
-Precedence will have effect.
-For left associativity,
-only the leftmost operand of an I<N>-ary alternative
-associates -- operands
-after the first will have the
-next-tightest priority level.
-For right associativity,
-only the rightmost operand of an I<N>-ary alternative
-associates -- all operands
-except the last
-will have the next-tightest priority level.
-
-Marpa also allows "group" associativity.
-In "group" associativity, all operands associate
-at the loosest (lowest) priority.
-That is, in an alternative with group associativity,
-each operand may be a full expression of the kind
-defined by the prioritized rule.
-"Group" associativity is used, for example,
-in implementing the traditional function of parentheses
-in Marpa.
-Group associativity is meaningless for nullary alternatives,
-and is ignored.
-
-=head1 Caveats
-
-=head2 Symbol names
-
-The BNF interface may rewrite its symbol names internally.
-Here we call the name by which a symbol is specified in the
-BNF interface string its "external symbol name",
-and its name as rewritten, its "internal symbol name".
-In many cases, Marpa::R2 makes sure the user sees only
-the external names of symbols.
-For example,
-L<the C<rule()> Grammar method|Marpa::R2::Grammar/"rule()">
-returns external symbol names.
-
-However,
-for some purposes, such as tracing grammars, the use of
-internal names may sometimes
-be appropriate.
-Marpa::R2's use of external and internal symbol names
-is evolving.
-When the Stuifzand interface is used,
-except as documented in this section,
-the user may see either the internal or external form
-of a symbol's name.
-Also, the exact form of the internal name is
-subject to change.
-
-=head2 Precedence: the good news
-
-Marpa's generalization of precedence works
-for all grammars that
-can be defined by prioritized rules.
-It is efficient (linear) for all grammars that could be
-parsed by the traditional precedence parsing methods.
-Marpa also allows you to define alternatives
-not allowed by traditional methods.
-Many of these are useful,
-and most of the useful ones can be parsed efficiently.
-
-=head2 Precedence and ambiguous grammars
-
-Because of the many forms of recursion allowed,
-it is possible
-to define highly ambiguous grammars using the precedence mechanism.
-This can occur even by accident.
-
-The user should especially be careful with
-right hand side alternatives in
-which all the symbols are operands.
-These can be useful.
-For example, an implicit operation can be defined using
-an binary alternative with no non-operands,
-and this could implement, for example,
-the standard notation for concatenation or multiplication.
-But to do this efficiently
-requires either avoiding ambiguity,
-or controlling its use carefully.
-
-Marpa does catch the case where an alternative consists
-only of a single operand -- a "unit rule".
-This causes a fatal error.
-Unit rules are easy to define by accident in
-the Stuifzand interface.
-The author knows of no practical use for them,
-and their presence in a grammar is usually
-unintentional.
-Note that, in the event an application
-does find a use for a grammar with unit rules,
-Marpa's standard interface can parse it.
-
-=for Marpa::R2::Display::End
    
 =head1 Copyright and License
 
