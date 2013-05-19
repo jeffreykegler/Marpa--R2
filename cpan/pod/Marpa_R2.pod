@@ -479,9 +479,14 @@ DBI, LWP and Moose.
 =head1 Other documents
 
 This document gives a semi-tutorial overview of Marpa's Scanless interface (SLIF).
-To learn more, it may be best to start with
-L<the overview of Marpa's
-SLIF|Marpa::R2::Scanless>.
+For more details about the SLIF,
+there is an
+L<overview|Marpa::R2::Scanless>,
+and pages describing
+L<its DSL|Marpa::R2::Scanless::DSL>,
+L<its grammar methods|Marpa::R2::Scanless:G>,
+and
+L<its recognizer methods|Marpa::R2::Scanless:R>.
 
 Marpa has two other interfaces which may be of interest.
 An older, more traditional, interface
