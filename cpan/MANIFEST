@@ -215,6 +215,7 @@ pod/BNF.pod
 pod/Changes.pod
 pod/Grammar.pod
 pod/Marpa_R2.pod
+pod/NAIF.pod
 pod/Progress.pod
 pod/Recognizer.pod
 pod/Scanless.pod
