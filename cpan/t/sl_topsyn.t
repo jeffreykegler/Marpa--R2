@@ -33,9 +33,9 @@ use Marpa::R2::Test;
 use Marpa::R2;
 
 my $grammar = Marpa::R2::Scanless::G->new(
-    {   action_object        => 'My_Nodes',
+    {   action_object  => 'My_Nodes',
         default_action => 'first_arg',
-        source => \(<<'END_OF_SOURCE'),
+        source         => \(<<'END_OF_SOURCE'),
 :start ::= Expression
 Expression ::= Term
 Term ::=
@@ -54,7 +54,7 @@ END_OF_SOURCE
 
 my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
 my $input = '42 * 1 + 7';
-$recce->read(\$input);
+$recce->read( \$input );
 
 my $value_ref = $recce->value;
 my $value = $value_ref ? ${$value_ref} : 'No Parse';
