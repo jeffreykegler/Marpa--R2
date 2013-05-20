@@ -160,7 +160,7 @@ L<SLIF's domain-specific language|Marpa::R2::Scanless:DSL>
 In this example, the DSL consists of several rules
 and pseudo-rules.
 
-=head3 The start pseudo-rule
+=head2 The start pseudo-rule
 
 =for Marpa::R2::Display
 name: Landing page synopsis
@@ -174,7 +174,7 @@ normalize-whitespace: 1
 The C<start> pseudo-rule is is required.
 Its right hand side (RHS) is the grammar's start symbol.
 
-=head3 A G1 rule
+=head2 A G1 rule
 
 Next follows a G1, or structural rule.
 Structural rules are the kinds of rules typically seen in BNF --
@@ -208,7 +208,7 @@ symbol, "C<Term>".
 
 The BNF operator ("C<::=>") is what makes this rule
 a G1 (structural) rule.
-Later we will see lexcial rules, which will use
+Later we will see lexical rules, which will use
 the match operator ("C<~>").
 
 =head2 More complicated G1 rules
@@ -246,7 +246,7 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
-=head3 G0 rules
+=head2 G0 rules
 
 The structural rules define the high-level structure of the grammar,
 and ignore details of whitespace, comments, etc.
