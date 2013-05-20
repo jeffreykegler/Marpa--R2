@@ -15,7 +15,7 @@
 
 =head1 Name
 
-Marpa::R2::BNF - BNF Interface
+Marpa::R2::BNF - BNF Interface (obsoleted)
 
 =head1 Synopsis
 
