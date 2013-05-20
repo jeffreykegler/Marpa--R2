@@ -15,6 +15,10 @@
 
 Revision history for Marpa::R2
 
+2.055_004
+
+   * Remove all uses of given, when and smartmatch.
+
 2.055_003
 
    * Rearrange POD to make SLIF primary interface
