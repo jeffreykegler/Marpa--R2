@@ -15,7 +15,7 @@
 
 =head1 NAME
 
-Marpa::R2 - Marpa named argument interface (NAIF)
+Marpa::R2::NAIF - Marpa named argument interface (NAIF)
 
 =head1 Synopsis
 
@@ -74,6 +74,11 @@ normalize-whitespace: 1
 This document contains a top-level overview of,
 and tutorial for,
 the named argument inteface (NAIF) for the Marpa parse engine.
+If you are a new to Marpa, you want to start with
+L<the tutorial for the
+the Scanless interface (SLIF)|Marpa::R2>
+instead.
+
 The NAIF is a middle level interface.
 It is more low level than
 L<the Scanless interface
