@@ -15,6 +15,14 @@
 
 Revision history for Marpa::R2
 
+2.055_003
+
+   * Rearrange POD to make SLIF primary interface
+
+   * Fix bug found by Jean-Damien: combining
+     ambiguity and SLIF external scanning caused
+     segment violation.
+     
 2.055_002
 2.055_001
 2.055_000
