@@ -180,29 +180,6 @@ sub Marpa::R2::Grammar::thin_symbol {
         ->symbol_by_name($symbol_name);
 }
 
-use constant GRAMMAR_OPTIONS => [
-    qw{
-        _internal_
-        action_object
-        actions
-        bless_package
-        infinite_action
-        default_action
-        default_empty_action
-        default_rank
-        inaccessible_ok
-        rule_name_required
-        rules
-        source
-        start
-        symbols
-        terminals
-        trace_file_handle
-        unproductive_ok
-        warnings
-        }
-];
-
 sub Marpa::R2::Grammar::set {
     my ( $grammar, @arg_hashes ) = @_;
 
@@ -224,14 +201,38 @@ sub Marpa::R2::Grammar::set {
                 "Marpa::R2::Grammar expects args as ref to HASH, got ref to $ref_type instead"
             );
         }
+
+        state $grammar_options = {
+            map { ( $_, 1 ) }
+                qw{ _internal_
+                action_object
+                actions
+                bless_package
+                infinite_action
+                default_action
+                default_empty_action
+                default_rank
+                inaccessible_ok
+                rule_name_required
+                rules
+                source
+                start
+                symbols
+                terminals
+                trace_file_handle
+                unproductive_ok
+                warnings
+                }
+        };
+
         if (my @bad_options =
-            grep { not $_ ~~ Marpa::R2::Internal::Grammar::GRAMMAR_OPTIONS }
+            grep { not exists $grammar_options->{$_} }
             keys %{$args}
             )
         {
             Carp::croak( 'Unknown option(s) for Marpa::R2::Grammar: ',
                 join q{ }, @bad_options );
-        } ## end if ( my @bad_options = grep { not $_ ~~ ...})
+        } ## end if ( my @bad_options = grep { not exists $grammar_options...})
 
         # First pass options: These affect processing of other
         # options and are expected to take force for the other
@@ -392,9 +393,11 @@ sub Marpa::R2::Grammar::set {
                     '"infinite_action" option is useless after grammar is precomputed'
                     or Marpa::R2::exception("Could not print: $ERRNO");
             }
+            state $allowed_values =
+                { map { ( $_, 1 ) } qw(warn quiet fatal) };
             Marpa::R2::exception(
                 q{infinite_action must be 'warn', 'quiet' or 'fatal'})
-                if not $value ~~ [qw(warn quiet fatal)];
+                if not exists $allowed_values->{$value};
             $grammar->[Marpa::R2::Internal::Grammar::INFINITE_ACTION] =
                 $value;
         } ## end if ( defined( my $value = $args->{'infinite_action'}...))
