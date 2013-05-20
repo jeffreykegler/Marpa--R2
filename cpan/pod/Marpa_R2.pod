@@ -529,6 +529,33 @@ Marpa API methods throw an exception.
 Classes in Marpa's API's are not designed to
 be inherited.
 
+=head1 Threads
+
+When used in a thread-safe Perl, Marpa::R2 should be thread-safe,
+with one important restriction:
+All Marpa objects have a base grammar and all objects which share
+a base grammar write to it.
+All Marpa objects which share a base grammar must created
+and used in the same
+thread.
+
+All Marpa objects are either grammars,
+or created from other Marpa objects.
+When a Marpa object is created from another Marpa object,
+it inherits the base grammar.
+Marpa grammars are their own base grammar.
+
+This restriction may be lifted someday, but
+in practice it does not seem onerous.
+Note that what cannot be shared between
+threads is a base grammar B<object> --
+you can use
+the same grammar in different
+threads by creating base grammar
+that are exact
+copies of each,
+one base grammar per thread.
+
 =head1 The Marpa:: namespace
 
 The C<Marpa::> top-level namespace is reserved.
