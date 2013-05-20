@@ -27,7 +27,7 @@ normalize-whitespace: 1
 
     my $grammar = Marpa::R2::Scanless::G->new(
         {   action_object  => 'My_Nodes',
-            default_action => 'first_arg',
+            default_action => '::first',
             source         => \(<<'END_OF_SOURCE'),
     :start ::= Expression
     Expression ::= Term
@@ -104,7 +104,7 @@ normalize-whitespace: 1
 
     my $grammar = Marpa::R2::Scanless::G->new(
         {   action_object  => 'My_Nodes',
-            default_action => 'first_arg',
+            default_action => '::first',
             source         => \(<<'END_OF_SOURCE'),
     :start ::= Expression
     Expression ::= Term
@@ -514,7 +514,7 @@ name: Landing page synopsis
 partial: 1
 normalize-whitespace: 1
 
-    sub new { return {}; }
+    sub My_Nodes::new { return {}; }
 
 =for Marpa::R2::Display::End
 
