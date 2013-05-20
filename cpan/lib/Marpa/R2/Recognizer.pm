@@ -205,29 +205,6 @@ sub Marpa::R2::Recognizer::thin {
     $_[0]->[Marpa::R2::Internal::Recognizer::C];
 }
 
-use constant RECOGNIZER_OPTIONS => [
-    qw{
-        closures
-        end
-        event_if_expected
-        leo
-        max_parses
-        ranking_method
-        too_many_earley_items
-        trace_actions
-        trace_and_nodes
-        trace_bocage
-        trace_earley_sets
-        trace_fh
-        trace_file_handle
-        trace_or_nodes
-        trace_tasks
-        trace_terminals
-        trace_values
-        warnings
-        }
-];
-
 sub Marpa::R2::Recognizer::slr_set {
     my ($recce, $slr) = @_;
     return $recce->[Marpa::R2::Internal::Recognizer::SLR] = $slr;
@@ -262,16 +239,39 @@ sub Marpa::R2::Recognizer::set {
                 ' instead'
             );
         } ## end if ( not $ref_type or $ref_type ne 'HASH' )
-        if (my @bad_options =
-            grep {
-                not $_ ~~ Marpa::R2::Internal::Recognizer::RECOGNIZER_OPTIONS
-            }
-            keys %{$args}
-            )
-        {
-            Carp::croak( 'Unknown option(s) for Marpa::R2 Recognizer: ',
-                join q{ }, @bad_options );
-        } ## end if ( my @bad_options = grep { not $_ ~~ ...})
+
+	state $recognizer_options = {
+	    map { ( $_, 1 ) }
+		qw(
+		closures
+		end
+		event_if_expected
+		leo
+		max_parses
+		ranking_method
+		too_many_earley_items
+		trace_actions
+		trace_and_nodes
+		trace_bocage
+		trace_earley_sets
+		trace_fh
+		trace_file_handle
+		trace_or_nodes
+		trace_tasks
+		trace_terminals
+		trace_values
+		warnings
+		)
+	};
+
+	if (my @bad_options =
+	    grep { not exists $recognizer_options->{$_} }
+	    keys %{$args}
+	    )
+	{
+	    Carp::croak( 'Unknown option(s) for Marpa::R2 Recognizer: ',
+		join q{ }, @bad_options );
+	} ## end if ( my @bad_options = grep { not exists $recognizer_options...})
 
         if ( defined( my $value = $args->{'event_if_expected'} ) ) {
             ## It could be allowed, but it is not needed and this is simpler
@@ -295,12 +295,12 @@ sub Marpa::R2::Recognizer::set {
                 Marpa::R2::exception(
                     q{Cannot change ranking method once parsing has started});
             }
-            my @ranking_methods = qw(high_rule_only rule none);
+            state $ranking_methods = { map { ($_, 0) } qw(high_rule_only rule none) };
             Marpa::R2::exception(
                 qq{ranking_method value is $value (should be one of },
-                ( join q{, }, map { q{'} . $_ . q{'} } @ranking_methods ),
+                ( join q{, }, map { q{'} . $_ . q{'} } keys %{$ranking_methods} ),
                 ')' )
-                if not $value ~~ \@ranking_methods;
+                if not exists $ranking_methods->{$value};
             $recce->[Marpa::R2::Internal::Recognizer::RANKING_METHOD] =
                 $value;
         } ## end if ( defined( my $value = $args->{'ranking_method'} ...))
