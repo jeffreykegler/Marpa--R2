@@ -194,16 +194,17 @@ sub add_handlers {
             or ( $element, $pseudoclass ) =
             ( $specifier =~ /\A ([^:]*) [:] (.*) \z/oxms )
             or $element = $specifier;
-        if ($pseudoclass
-            and not $pseudoclass ~~ [
+        state $allowed_pseudclasseses =
+            { map { ( $_, 1 ) }
                 qw(TOP PI DECL COMMENT PROLOG TRAILER WHITESPACE CDATA PCDATA CRUFT)
-            ]
-            )
+            };
+        if ( $pseudoclass
+            and not exists $allowed_pseudoclasses->{$pseudoclass} )
         {
             Marpa::R2::exception(
                 qq{pseudoclass "$pseudoclass" is not known:\n},
                 "Specifier was $specifier\n" );
-        } ## end if ( $pseudoclass and not $pseudoclass ~~ [ ...])
+        } ## end if ( $pseudoclass and not exists $allowed_pseudoclasses...)
         if ( $pseudoclass and $element ) {
             Marpa::R2::exception(
                 qq{pseudoclass "$pseudoclass" may not have an element specified:\n},
@@ -248,17 +249,17 @@ sub create {
             if ( $option eq 'handlers' ) {
                 add_handlers_from_hashes( $self, $option_hash->{$option} );
             }
-            if (not $option ~~ [
+            state $allowed_options = {
+                map { ( $_, 1 ) }
                     qw(trace_fh trace_values trace_handlers
-                        trace_conflicts
-                        trace_terminals trace_cruft
-			dump_AHFA dump_config compile
-			)
-                ]
-                )
-            {
+                    trace_conflicts
+                    trace_terminals trace_cruft
+                    dump_AHFA dump_config compile
+                    )
+            };
+            if ( not exists $allowed_options->{$option} ) {
                 Marpa::R2::exception("unknown option: $option");
-            } ## end if ( not $option ~~ [ ...])
+            }
             $self->{$option} = $option_hash->{$option};
         } ## end OPTION: for my $option ( keys %{$option_hash} )
     } ## end ARG: for my $arg (@_)
@@ -672,7 +673,9 @@ sub parse {
         for my $symbol_id ( 0 .. $highest_symbol_id ) {
             my $symbol_name = $tracer->symbol_name($symbol_id);
             next SYMBOL if not 0 == index $symbol_name, 'E_';
-            next SYMBOL if $symbol_name ~~ [qw(E_body E_html)];
+            next SYMBOL
+                if $symbol_name eq 'E_body'
+                    or $symbol_name eq 'E_html';
             push @non_final_end_tag_ids, $symbol_id;
         } ## end SYMBOL: for my $symbol_id ( 0 .. $highest_symbol_id )
 
