@@ -540,9 +540,9 @@ and used in the same
 thread.
 
 All Marpa objects are either grammars,
-or created from other Marpa objects.
+or are created from other Marpa objects.
 When a Marpa object is created from another Marpa object,
-it inherits the base grammar.
+the child Marpa object inherits the base grammar of its parent object.
 Marpa grammars are their own base grammar.
 
 This restriction may be lifted someday, but
@@ -553,7 +553,7 @@ you can use
 the same grammar in different
 threads by creating base grammar
 that are exact
-copies of each,
+copies of each other,
 one base grammar per thread.
 
 =head1 The Marpa:: namespace
