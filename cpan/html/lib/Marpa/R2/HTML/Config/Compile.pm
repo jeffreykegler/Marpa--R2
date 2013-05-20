@@ -741,7 +741,7 @@ sub compile {
 
     DESC: for my $rubies_desc ( keys %ruby_config ) {
         my $candidates = $ruby_config{$rubies_desc};
-        next DESC if '</*>' ~~ $candidates;
+        next DESC if grep { '</*>' eq $_ } @{$candidates};
         $ruby_config{$rubies_desc} = [ @{$candidates}, '</*>' ];
     }
 

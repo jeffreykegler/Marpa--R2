@@ -251,16 +251,22 @@ sub run_test {
     ### e_op_action default: $e_op_action
     ### e_number_action default: $e_number_action
 
-    while ( my ( $arg, $value ) = each %{$args} ) {
-        given ( lc $arg ) {
-            when ('e_op_action')     { $e_op_action     = $value }
-            when ('e_number_action') { $e_number_action = $value }
-            when ('default_action')  { $default_action  = $value }
-            default {
-                die "unknown argument to run_test: $arg";
-            }
-        } ## end given
-    } ## end while ( my ( $arg, $value ) = each %{$args} )
+    ARG: while ( my ( $arg, $value ) = each %{$args} ) {
+        my $run_test_arg = lc $arg;
+        if ( $run_test_arg eq 'e_op_action' ) {
+            $e_op_action = $value;
+            next ARG;
+        }
+        if ( $run_test_arg eq 'e_number_action' ) {
+            $e_number_action = $value;
+            next ARG;
+        }
+        if ( $run_test_arg eq 'default_action' ) {
+            $default_action = $value;
+            next ARG;
+        }
+        die "unknown argument to run_test: $arg";
+    } ## end ARG: while ( my ( $arg, $value ) = each %{$args} )
 
     ### e_op_action: $e_op_action
     ### e_number_action: $e_number_action

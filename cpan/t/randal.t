@@ -211,20 +211,21 @@ TEST: for my $test_data (@test_data) {
 # Marpa::R2::Display::End
 
         TOKEN: for my $token ( @{$terminals_expected} ) {
-            next TOKEN if $token ~~ @expected_symbols;
+            next TOKEN if grep { $token eq $_ } @expected_symbols;
             $terminals_expected_matches_events = 0;
             Test::More::diag( $token, ' not in events() at pos ', $pos );
         }
 
         TOKEN: for my $token (@expected_symbols) {
-            next TOKEN if $token ~~ @{$terminals_expected};
+            next TOKEN if grep { $token eq $_ } @{$terminals_expected};
             $terminals_expected_matches_events = 0;
             Test::More::diag( $token, ' not in terminals_expected() at pos ',
                 $pos );
         } ## end TOKEN: for my $token (@expected_symbols)
 
         TOKEN_TYPE: while ( my ( $token, $regex ) = each %regexes ) {
-            next TOKEN_TYPE if not $token ~~ $terminals_expected;
+            next TOKEN_TYPE
+                if not grep { $token eq $_ } @{$terminals_expected};
             pos $test_input = $pos;
             next TOKEN_TYPE
                 if not $test_input =~ m{ \G \s* (?<match>$regex) }xgms;

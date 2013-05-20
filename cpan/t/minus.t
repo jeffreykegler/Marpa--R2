@@ -68,10 +68,8 @@ sub number {
 
 sub default_action {
     shift;
-    given ( scalar @_ ) {
-        when ( $_ <= 0 ) { return q{} }
-        when (1)         { return $_[0] }
-    };
+    return q{} if scalar @_ <= 0;
+    return $_[0] if scalar @_ == 1;
     return '(' . join( q{;}, @_ ) . ')';
 } ## end sub default_action
 
