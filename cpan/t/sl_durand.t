@@ -63,8 +63,9 @@ my @values = ();
 while (my $value_ref = $recce->value()) {
    push @values, ${$value_ref};
 }
-say STDERR "Values: ", join " ", @values;
-# Test::More::is( $value, 49, 'Landing page synopsis value' );
+my $expected_values = '19 19 25 29 31 36 36 37 37 42 45 56 72 72';
+my $actual_values = join " ", sort @values;
+Test::More::is( $actual_values, $expected_values, 'Values for Durand test' );
 
 package My_Nodes;
 
