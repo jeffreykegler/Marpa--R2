@@ -29,7 +29,7 @@ sub usage
 }
 
 my $help_flag              = 0;
-my @avoid_whitespace_flags = qw(comment yes no);
+my $allowed_avoid_whitespace_flags = { map { ( $_, 1) } qw(comment yes no) };
 my $avoid_whitespace_flag  = 'yes';
 local $main::ADDED_TAG_COMMENT_FLAG = 1;
 my $ws_ok_before_end_tag_flag = 0;
@@ -57,10 +57,11 @@ usage()
     'trace-values' => \$trace_values_flag,
     );
 usage() if $help_flag or scalar @ARGV > 1;
-if ( not $avoid_whitespace_flag ~~ \@avoid_whitespace_flags ) {
+
+if ( not $allowed_avoid_whitespace_flags->{$avoid_whitespace_flag} ) {
     die "Bad avoid-whitespace flag\n",
         'avoid-whitespace must be one of the following: ', join q{ },
-        @avoid_whitespace_flags;
+        keys %{$allowed_avoid_whitespace_flags};
 }
 
 my $locator = shift;

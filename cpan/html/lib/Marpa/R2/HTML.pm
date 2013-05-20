@@ -194,7 +194,7 @@ sub add_handlers {
             or ( $element, $pseudoclass ) =
             ( $specifier =~ /\A ([^:]*) [:] (.*) \z/oxms )
             or $element = $specifier;
-        state $allowed_pseudclasseses =
+        state $allowed_pseudoclasses =
             { map { ( $_, 1 ) }
                 qw(TOP PI DECL COMMENT PROLOG TRAILER WHITESPACE CDATA PCDATA CRUFT)
             };
