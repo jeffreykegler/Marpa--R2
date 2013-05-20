@@ -14,8 +14,9 @@
 # General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 
-# Test ambiquity with SLIF
-# Reproduce bug found by Jean-Damien
+# Regression test for bug found by Jean-Damien
+# The problem was with ambiguous SLIF parses when
+# used together with values from an external scanner
 
 use 5.010;
 use strict;
