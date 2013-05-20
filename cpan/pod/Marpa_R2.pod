@@ -52,21 +52,17 @@ normalize-whitespace: 1
     my $value_ref = $recce->value;
     my $value = $value_ref ? ${$value_ref} : 'No Parse';
 
-    package My_Nodes;
+    sub My_Nodes::new { return {}; }
 
-    sub new { return {}; }
-
-    sub do_add {
+    sub My_Nodes::do_add {
         my ( undef, $t1, undef, $t2 ) = @_;
         return $t1 + $t2;
     }
 
-    sub do_multiply {
+    sub My_Nodes::do_multiply {
         my ( undef, $t1, undef, $t2 ) = @_;
         return $t1 * $t2;
     }
-
-    sub first_arg { shift; return shift; }
 
 =for Marpa::R2::Display::End
 
@@ -394,9 +390,15 @@ C<Marpa::R2::Scanless::R::value()>
 returns
 C<undef>.
 
-=head2 Resolving the semantics
+We have yet to describe how the Marpa SLIF computes the value
+of a parse.
+In fact,
+up to this point,
+we have been skipping everything that had to do
+with semantics.
+Now it is time to go back to those features.
 
-=head3 Named arguments for the semantics
+=head2 Semantics
 
 =for Marpa::R2::Display
 name: Landing page synopsis
@@ -404,64 +406,48 @@ partial: 1
 normalize-whitespace: 1
 
             action_object  => 'My_Nodes',
-            default_action => 'first_arg',
+            default_action => '::first',
 
 =for Marpa::R2::Display::End
 
-The C<actions> and C<default_action> named arguments specify
-semantics.
-Their argument values are strings,
-which acquire their semantics during evaluation.
+The C<action_object> named argument specifies the package where the semantics closures are found,
+in this example, the C<My_Nodes> package.
+The C<default_action> named argument indicates the action to be used
+when nothing else specifies the semantics for a closure.
+In this example the default semantics are a "reserved action" named "C<::first>".
+(The initial double colon indicates a reserved action.)
+The "C<::first>" action indicates that the value of a rule is the value
+of its first child.
 
-Evaluation will be described later.
-Peeking ahead,
-C<actions> provides the name
-of a Perl package where Marpa will look for
-its B<actions>.
-The C<default_action> named argument
-will be interpreted
-as an B<action name> in that package.
-This action name will resolve to an action --
-a Perl closure that implements semantics.
-The action specified by C<default_action>
-is used as the action for rules
-with no action of their own.
-
-The first thing C<Marpa::R2::Scanless::R::value()> needs to do is
-to resolve the semantics.
-B<Resolving the semantics> means
-mapping the action names into actions.
-B<Actions> are Perl
-closures which directly implement semantics.
-In this example,
-the C<actions> named argument is specified.
-C<actions> is a Perl package name.
-Marpa will look for actions
-in that package.
+The semantics for a RHS alternative are specified with the
+C<action> adverb.
+We've already seen the C<action> adverb twice, but skipped over it.
+Here it is again, in context:
 
 =for Marpa::R2::Display
 name: Landing page synopsis
 partial: 1
 normalize-whitespace: 1
 
-    actions => 'My_Actions',
+    Term ::=
+          Factor
+        | Term '+' Term action => do_add
+    Factor ::=
+          Number
+        | Factor '*' Factor action => do_multiply
 
 =for Marpa::R2::Display::End
 
-=for Marpa::R2::Display
-name: Landing page synopsis
-partial: 1
-normalize-whitespace: 1
-flatten: 1
+The action for the second RHS alternative defining C<Term> is C<do_add>,
+and the action for the second RHS alternative defining C<Factor> is C<do_multiply>.
+To implement these actions, we need to "resolve" their names --
+map the action names into 
+the Perl closures which actually carry out the semantics.
 
-    { lhs => 'Factor', rhs => [qw/Factor Multiply Factor/], action => 'do_multiply' },
-
-=for Marpa::R2::Display::End
-
-For example, the C<action> property for the above rule
-is "C<do_multiply>" and the C<actions> named argument to the grammar
-was "C<My_Actions>".
-So Marpa looks for a closure whose fully qualified name is C<My_Actions::do_multiply>,
+The C<actions_object> specified the package where we can find the actions:
+"C<My_Nodes>".
+So, to resolve the C<do_multiply> action,
+Marpa looks for a closure whose fully qualified name is C<My_Nodes::do_multiply>,
 which it finds:
 
 =for Marpa::R2::Display
@@ -469,79 +455,36 @@ name: Landing page synopsis
 partial: 1
 normalize-whitespace: 1
 
-    sub My_Actions::do_multiply {
+    sub My_Nodes::do_multiply {
         my ( undef, $t1, undef, $t2 ) = @_;
         return $t1 * $t2;
     }
 
 =for Marpa::R2::Display::End
 
-Rules do not always have C<action> properties.
-That is the case with these rules in this example:
+The C<do_add> action is resolved
+to a Perl semantic closure
+in much the same way:
 
 =for Marpa::R2::Display
 name: Landing page synopsis
 partial: 1
 normalize-whitespace: 1
 
-    { lhs => 'Expression', rhs => [qw/Term/] },
-    { lhs => 'Term', rhs => [qw/Factor/] },
-    { lhs => 'Factor', rhs => [qw/Number/] },
-
-=for Marpa::R2::Display::End
-
-The rules in the above display have no action names.
-When a rule has no action name,
-Marpa will fall back to trying to use
-the default action,
-as described next.
-
-=for Marpa::R2::Display
-name: Landing page synopsis
-partial: 1
-normalize-whitespace: 1
-
-    default_action => 'first_arg',
-
-=for Marpa::R2::Display::End
-
-The C<default_action> named argument is resolved in the same way
-as are the C<action> properties of the
-rules.
-In this example,
-default_action is specified as "C<first_arg>"
-and resolves to
-C<My_Actions::first_arg>.
-
-=head2 Actions
-
-=for Marpa::R2::Display
-name: Landing page synopsis
-partial: 1
-normalize-whitespace: 1
-
-    sub My_Actions::first_arg { shift; return shift; }
-
-=for Marpa::R2::Display::End
-
-=for Marpa::R2::Display
-name: Landing page synopsis
-partial: 1
-normalize-whitespace: 1
-
-    sub My_Actions::do_add {
+    sub My_Nodes::do_add {
         my ( undef, $t1, undef, $t2 ) = @_;
         return $t1 + $t2;
     }
 
 =for Marpa::R2::Display::End
 
-Value actions are Perl closures used as callbacks.
-Value actions are called when nodes in a parse tree are evaluated.
-A value action receives one or more arguments.
+The Perl semantic closures are callbacks.
+They are called as nodes in a parse tree are evaluated.
+
+Each Perl semantic closure is called with one or more arguments.
 The first argument to a value action is always a per-parse-tree
 object, which the callbacks can use as a scratchpad.
-In these examples, the per-parse-tree object is not used.
+In this example, the per-parse-tree object is not used.
 
 For a non-empty rule,
 the second and any subsequent arguments to the callback are
@@ -560,11 +503,20 @@ The exception is the value for the start rule.
 The return value for the start rule becomes
 the parse result.
 
-Rules with no action specified for them take their
-semantics from the C<default_action> named argument.
-If there is no default action for a grammar,
-rules with no action specified for them
-return a Perl C<undef>.
+Finally, C<actions_object> requires the package it specifies to
+be a class, in the sense that it must have a C<new> constructor.
+The value returned by the C<new> constructor is the per-parse-tree
+object which, as mentioned, is not used in this example.
+Here is our definition of C<My_Nodes::new>:
+
+=for Marpa::R2::Display
+name: Landing page synopsis
+partial: 1
+normalize-whitespace: 1
+
+    sub new { return {}; }
+
+=for Marpa::R2::Display::End
 
 =head1 Errors and exceptions
 

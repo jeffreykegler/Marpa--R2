@@ -34,7 +34,7 @@ use Marpa::R2;
 
 my $grammar = Marpa::R2::Scanless::G->new(
     {   action_object  => 'My_Nodes',
-        default_action => 'first_arg',
+        default_action => '::first',
         source         => \(<<'END_OF_SOURCE'),
 :start ::= Expression
 Expression ::= Term
@@ -59,21 +59,17 @@ $recce->read( \$input );
 my $value_ref = $recce->value;
 my $value = $value_ref ? ${$value_ref} : 'No Parse';
 
-package My_Nodes;
+sub My_Nodes::new { return {}; }
 
-sub new { return {}; }
-
-sub do_add {
+sub My_Nodes::do_add {
     my ( undef, $t1, undef, $t2 ) = @_;
     return $t1 + $t2;
 }
 
-sub do_multiply {
+sub My_Nodes::do_multiply {
     my ( undef, $t1, undef, $t2 ) = @_;
     return $t1 * $t2;
 }
-
-sub first_arg { shift; return shift; }
 
 # Marpa::R2::Display::End
 
