@@ -3293,11 +3293,13 @@ PPCODE:
     }
   SvREFCNT_inc (slr);
   v_wrapper->slr = slr;
+
   # Throw away the current token values hash
-  # and steal ownership of the one in the SLR
   SvREFCNT_dec (v_wrapper->token_values);
+
+  # Take a reference to the one in the SLR
   v_wrapper->token_values = slr->token_values;
-  slr->token_values = NULL;
+  SvREFCNT_inc (v_wrapper->token_values);
 }
 
 void
