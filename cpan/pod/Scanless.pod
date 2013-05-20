@@ -114,15 +114,23 @@ normalize-whitespace: 1
 
 =head1 About this document
 
-This document is intended for readers already familiar with
-Marpa::R2's BNF (Stuifzand) interface.
-It is an introduction to Marpa's Scanless interface,
-dealing with the concepts behind the interface.
-The reference documentation for the
-scanless interface is in two separate documents,
-L<one dealing with scanless grammar objects|Marpa::R2::Scanless::G>
+This document
+is an introduction and overview
+to Marpa's Scanless interface (SLIF).
+Marpa::R2's top-level page has
+L<an SLIF tutorial in Marpa's top-level page|Marpa::R2>.
+If you are new to Marpa or its SLIF,
+you probably want to start with that.
+
+This document follows up on the tutorial,
+looking more deeply and carefully at the concepts
+behind the SLIF.
+Separate documents provide
+the reference documentation for
+L<Scanless grammar objects|Marpa::R2::Scanless::G>,
+L<Scanless recognizer objects|Marpa::R2::Scanless::R>
 and
-L<one dealing with scanless recognizer objects|Marpa::R2::Scanless::R>.
+L<the Scanless DSL|Marpa::R2::Scanless::DSL>.
 
 =head1 The two levels of language description
 
