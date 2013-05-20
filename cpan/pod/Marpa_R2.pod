@@ -79,23 +79,25 @@ grammar can be written in BNF.
 That includes recursive grammars,
 ambiguous grammars, infinitely ambiguous grammars and
 grammars with useless or empty productions.
+Marpa does both left- and right-recursion in linear time --
+in fact if a grammar is in any class currently
+in practical, Marpa will parse it in linear time.
 
-This document contains a top-level overview
-of the API for the Marpa parse engine.
-The two examples in this document
-show the typical flows of Marpa method calls.
-This document will use these examples
-to describe the basic features of Marpa
-in semi-tutorial fashion.
-Marpa's advanced features, and full reference details of all features,
-can be found in L<the other Marpa API documents|/"Other documents">.
+This document centers around a short tutorial
+of the Scanless interface (SLIF),
+the interface most suitable for beginner's and
+for many advanced uses as well.
+
 
 =head1 A simple calculator
 
 The synopsis shows the code for a very simple calculator.
 It handles only
 addition and multiplication of integers.
-This section explains, line by line, how it works.
+The sections which follow explain, line by line, how it works.
+The explanation will assume that the reader
+understands BNF and the basics of grammars,
+such as what a grammar's start symbol is.
 
 =head2 Marpa::R2::Scanless::G::new
 
@@ -126,6 +128,7 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
+The code first creates a new SLIF grammar.
 SLIF grammars are
 L<C<Marpa::R2::Scanless:G>|Marpa::R2::Scanless::G> objects.
 They are created
@@ -146,108 +149,190 @@ hash value
 is the
 value of the named argument.
 
-=head3 The start named argument
+In what follows, we will look at all the arguments of
+this call to the 
+L<Marpa::R2::Scanless:G::new|Marpa::R2::Scanless::G/"new">
+method in detail.
+First let's look at the C<source> argument.
+Its value is a reference to a string in the
+L<SLIF's domain-specific language|Marpa::R2::Scanless:DSL>
+(DSL).
+In this example, the DSL consists of several rules
+and pseudo-rules.
+
+=head3 The start pseudo-rule
 
 =for Marpa::R2::Display
 name: Landing page synopsis
 partial: 1
 normalize-whitespace: 1
 
-    start => 'Expression',
+    :start ::= Expression
 
 =for Marpa::R2::Display::End
 
-The C<start> named argument is required.
-Its value is
-a string containing the name of the grammar's start symbol.
+The C<start> pseudo-rule is is required.
+Its right hand side (RHS) is the grammar's start symbol.
 
-=head3 Named arguments for the semantics
+=head3 A G1 rule
+
+Next follows a G1, or structural rule.
+Structural rules are the kinds of rules typically seen in BNF --
+they describe the symbols which provide the structure of the grammar,
+but leave out details of whitespace.
+
+The SLIF also handles the lexical details in this example,
+but it does it via G0 rules,
+which we will see shortly.
 
 =for Marpa::R2::Display
 name: Landing page synopsis
 partial: 1
 normalize-whitespace: 1
 
-            actions => 'My_Actions',
-            default_action => 'first_arg',
+    Expression ::= Term
 
 =for Marpa::R2::Display::End
 
-The C<actions> and C<default_action> named arguments specify
-semantics.
-Their argument values are strings,
-which acquire their semantics during evaluation.
+As is normal for BNF rules, this rule consists of 
+a left hand side symbol ("C<Expression>"),
+the BNF operator ("C<::=>")
+and a series of right hand side (RHS) symbols.
+There is always exactly one left hand side (LHS)
+symbol.
+There may be any number of RHS symbols.
+In the case of an empty rule,
+the number of RHS symbols would be zero.
+In this rule, there is one RHS
+symbol, "C<Term>".
 
-Evaluation will be described later.
-Peeking ahead,
-C<actions> provides the name
-of a Perl package where Marpa will look for
-its B<actions>.
-The C<default_action> named argument
-will be interpreted
-as an B<action name> in that package.
-This action name will resolve to an action --
-a Perl closure that implements semantics.
-The action specified by C<default_action>
-is used as the action for rules
-with no action of their own.
+The BNF operator ("C<::=>") is what makes this rule
+a G1 (structural) rule.
+Later we will see lexcial rules, which will use
+the match operator ("C<~>").
 
-=head3 The rules named argument
+=head2 More complicated G1 rules
 
 =for Marpa::R2::Display
 name: Landing page synopsis
 partial: 1
 normalize-whitespace: 1
 
-    rules => [
-        { lhs => 'Expression', rhs => [qw/Term/] },
-        { lhs => 'Term',       rhs => [qw/Factor/] },
-        { lhs => 'Factor',     rhs => [qw/Number/] },
-        { lhs => 'Term', rhs => [qw/Term Add Term/], action => 'do_add' },
-        {   lhs    => 'Factor',
-            rhs    => [qw/Factor Multiply Factor/],
-            action => 'do_multiply'
-        },
-    ],
+    Term ::=
+          Factor
+        | Term '+' Term action => do_add
 
 =for Marpa::R2::Display::End
 
-The value of the
-C<rules> named argument is a reference to an array of
-B<rule descriptors>.
-In this example, all the rule descriptors are in the "long" form --
-they are references to hashes of B<rule properties>.
-In each key/value pair of a rule descriptor hash, the key is
-the name of a rule property, and the hash value is the value of
-that rule property.
+This rule says that a C<Term> may be one of two
+alternatives: either a C<Factor>
+or two C<Term>'s separated by an addition operator.
+The second alternative has an
+C<action> adverb associated with it.
+We'll explain its purpose shortly.
 
-=head4 The lhs property
+Immediately following is another G1 rule defining
+a C<Factor>.  It is very similar in form
+to the one for C<Term>.
 
-The value of the C<lhs> rule property must be a string containing
-the name of the rule's left hand side symbol.
-Every Marpa rule must have a left hand side symbol.
+=for Marpa::R2::Display
+name: Landing page synopsis
+partial: 1
+normalize-whitespace: 1
 
-=head4 The rhs property
+    Factor ::=
+          Number
+        | Factor '*' Factor action => do_multiply
 
-The value of the C<rhs> property is a reference to
-an array of strings containing
-names of the rule's right hand symbols,
-in order.
-This array may be zero length, in which case
-this is an B<empty rule> --
-a rule with no symbols on the right hand side.
-There are no empty rules in this example.
+=for Marpa::R2::Display::End
 
-=head4 The action property
+=head3 G0 rules
 
-The value of the C<action> rule property is a string.
-Peeking ahead, each C<action> property string
-will be interpreted
-as an action name.
-This action name will be resolved
-to a Perl closure that
-implements
-the rule's semantics.
+The structural rules define the high-level structure of the grammar,
+and ignore details of whitespace, comments, etc.
+Now we look at how the low-level, lexical issues are handled.
+This very simple calculator language does not allow comments,
+but it does define whitespace.
+
+=for Marpa::R2::Display
+name: Landing page synopsis
+partial: 1
+normalize-whitespace: 1
+
+          :discard ~ whitespace
+          whitespace ~ [\s]+
+
+=for Marpa::R2::Display::End
+
+The C<:discard> rule is a pseudo-rule, which tells Marpa to use whatever
+it matches to separate G1 symbols,
+but otherwise to ignore it -- to "discard" it.
+C<whitespace> is defined in the next rule as a sequence of one or more spaces.
+
+Note the match operator ("C<~>") in the rule defining whitespace.
+It says that Marpa should interpret this rule is lexical and
+should be interpreted exactly as written, character
+by character.
+
+The C<whitespace> rule is a special kind of rule in two respects.
+First, its RHS is following by a quanitifer ("C<+>"), which makes it
+a sequence rule.
+Aside from the quantifier,
+sequence rules may only have a single symbol or character class on their RHS.
+The plus quanitifer ("C<+>") means a sequence of one or more items.
+The star quanitifer ("C<*>") is also allowed, and it indicates a sequence of
+zero or more items.
+
+The whitespace items are defined by a character class: C<[\s]>.
+Marpa supports the same character classes, and the same character class syntax,
+as Perl does.
+
+The next pair of G0 rules define the C<Number> symbol
+
+=for Marpa::R2::Display
+name: Landing page synopsis
+partial: 1
+normalize-whitespace: 1
+
+          Number ~ digits
+          digits ~ [\d]+
+
+=for Marpa::R2::Display::End
+
+The above two rules say that a C<Number> is a sequence of one or more digits.
+C<Number> is a lexeme -- a G1 symbol which is defined and recognized at the lexical
+(G0) level.
+In this example, there are three other lexemes:
+C<whitespace>, and the addition and multiplication operators.
+
+We've already looked at
+the C<whitespace> lexeme, which will be discarded without being seen by G1.
+The addition and multiplication operators were defined with single quoted strings
+in the G1 rules.  As a reminder, here's the rule for C<Term> again:
+
+=for Marpa::R2::Display
+name: Landing page synopsis
+partial: 1
+normalize-whitespace: 1
+
+    Term ::=
+          Factor
+        | Term '+' Term action => do_add
+
+=for Marpa::R2::Display::End
+
+In the above rule, the single-quoted string C<'+'> implicitly defines a G0 lexeme.
+Something similar happens with the C<'*'> string in the rule for a C<Factor>.
+
+The SLIF's lexer mostly "does what you mean".
+While the input is being read, it looks for all lexemes defined in the DSL.
+The search is a longest tokens match, if mulitple tokens could match,
+the longest match is the winner.
+Marpa tolerates ambiguity,
+so one feature special to Marpa is that it is a longest B<tokens> match --
+if more than one token is longest, all of them are considered in the parse.
+The logic of SLIF lexing is described with more precision in the
+L<SLIF overview document|Marpa::R2::Scanless>.
 
 =head2 Marpa::R2::Scanless::R::new
 
@@ -310,6 +395,37 @@ returns
 C<undef>.
 
 =head2 Resolving the semantics
+
+=head3 Named arguments for the semantics
+
+=for Marpa::R2::Display
+name: Landing page synopsis
+partial: 1
+normalize-whitespace: 1
+
+            action_object  => 'My_Nodes',
+            default_action => 'first_arg',
+
+=for Marpa::R2::Display::End
+
+The C<actions> and C<default_action> named arguments specify
+semantics.
+Their argument values are strings,
+which acquire their semantics during evaluation.
+
+Evaluation will be described later.
+Peeking ahead,
+C<actions> provides the name
+of a Perl package where Marpa will look for
+its B<actions>.
+The C<default_action> named argument
+will be interpreted
+as an B<action name> in that package.
+This action name will resolve to an action --
+a Perl closure that implements semantics.
+The action specified by C<default_action>
+is used as the action for rules
+with no action of their own.
 
 The first thing C<Marpa::R2::Scanless::R::value()> needs to do is
 to resolve the semantics.
