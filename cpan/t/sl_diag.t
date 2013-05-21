@@ -26,7 +26,6 @@ use lib 'inc';
 use Marpa::R2::Test;
 use Marpa::R2;
 
-# Make sure we fail with tainted data
 my $grammar = <<'END_OF_RULES';
 :start ::= Script
 Script ::= Calculation* action => do_list
@@ -48,8 +47,11 @@ whitespace ~ [\s]+
 <hash comment char> ~ [^\x{A}\x{B}\x{C}\x{D}\x{2028}\x{2029}]
 END_OF_RULES
 
+# $^X is always tainted
 my $tainted_grammar = $grammar . '# ' . $^X;
 
+# Make sure we fail with tainted data
+# -T flag was set on first line for this script
 my $eval_ok = eval {  Marpa::R2::Scanless::G->new({ source => \$tainted_grammar }); 1; };
 Test::More::ok(!$eval_ok, "Tainted grammar fails");
 
