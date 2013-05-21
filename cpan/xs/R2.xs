@@ -2928,6 +2928,14 @@ PPCODE:
   int next_column = 0;
 
   STRLEN pv_length;
+
+  /* Fail fast with a tainted input string */
+  if (SvTAINTED(string)) {
+      croak
+	("Problem in v->string_set(): Attempt to use a tainted input string with Marpa::R2\n"
+	"Marpa::R2 is insecure for use with tainted data\n");
+  }
+
   /* Get our own copy and coerce it to a PV.
    * Stealing is OK, magic is not.
    */
@@ -3583,6 +3591,11 @@ PPCODE:
       croak
 	("Problem in v->constant_register(): valuator is not in stack mode");
     }
+  if (SvTAINTED(sv)) {
+      croak
+	("Problem in v->constant_register(): Attempt to register a tainted constant with Marpa::R2\n"
+	"Marpa::R2 is insecure for use with tainted data\n");
+  }
 
   av_push (constants, SvREFCNT_inc_simple_NN (sv));
   XSRETURN_IV (av_len (constants));
