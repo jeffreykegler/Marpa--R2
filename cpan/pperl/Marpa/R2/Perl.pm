@@ -1108,7 +1108,9 @@ sub Marpa::R2::Perl::earleme_complete {
     my $grammar_c = $grammar->thin();
 
     if ( $parser->{in_prefix} ) {
-        if ( 'target_start_marker' ~~ $parser->{terminals_expected} ) {
+        if ( grep { $_ eq 'target_start_marker' }
+            @{ $parser->{terminals_expected} } )
+        {
             $recce->alternative('target_start_marker');
         }
         $recce->alternative('non_perl_token');
@@ -1238,7 +1240,7 @@ sub read_PPI_token {
             my $expected_tokens = $parser->{terminals_expected};
             my $token_found;
             TYPE: for my $type (@potential_types) {
-                next TYPE if not $type ~~ $expected_tokens;
+                next TYPE if not grep { $_ eq $type } @{$expected_tokens};
                 $token_found = 1;
                 defined $recce->alternative( $type, \$content, 1 )
                     or token_not_accepted( $token, $type, $content, 1 );
@@ -1257,7 +1259,7 @@ sub read_PPI_token {
             my @potential_types = qw(ADDOP UMINUS);
             my $token_found;
             TYPE: for my $type (@potential_types) {
-                next TYPE if not $type ~~ $expected_tokens;
+                next TYPE if not grep { $_ eq $type } @{$expected_tokens};
                 $token_found = 1;
                 defined $recce->alternative( $type, \$content, 1 )
                     or token_not_accepted( $token, $type, $content, 1 );
@@ -1285,7 +1287,7 @@ sub read_PPI_token {
             if ((   not defined $Marpa::R2::Perl::LAST_PERL_TYPE
                     or $Marpa::R2::Perl::LAST_PERL_TYPE ne 'SEMI'
                 )
-                and 'SEMI' ~~ $expected_tokens
+                and ( grep { 'SEMI' eq $_ } @{$expected_tokens} )
                 )
             {
                 defined $recce->alternative( 'SEMI', \q{;} )
