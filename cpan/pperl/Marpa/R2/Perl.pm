@@ -1057,7 +1057,7 @@ sub Marpa::R2::Perl::read_tokens {
 
     my @recce_args = ();
     HASH_ARG: while ( my ( $arg, $value ) = each %{$hash_arg} ) {
-        if ( $arg ~~ \@RECCE_NAMED_ARGUMENTS ) {
+        if ( grep { $_ eq $arg } @RECCE_NAMED_ARGUMENTS ) {
             push @recce_args, $arg, $value;
             next HASH_ARG;
         }
