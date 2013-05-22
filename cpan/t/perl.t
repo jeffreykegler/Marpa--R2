@@ -188,21 +188,47 @@ sub do_argexpr {
     my ( undef, $argexpr, undef, $term ) = @_;
     my $argexpr_ref = coerce_to_R($argexpr);
     my @result;
-    given ( Scalar::Util::reftype $argexpr_ref) {
-        when ('REF')    { push @result, ${$argexpr_ref} }
-        when ('SCALAR') { push @result, ${$argexpr_ref} }
-        when ('ARRAY')  { push @result, @{$argexpr_ref} }
-        when ('HASH')   { push @result, %{$argexpr_ref} }
-        default         { die "Unknown argexpr type: $_" }
-    } ## end given
+    PROCESS_BY_REFTYPE: {
+        my $reftype = Scalar::Util::reftype $argexpr_ref;
+        if ( $reftype eq 'REF' ) {
+            push @result, ${$argexpr_ref};
+            last PROCESS_BY_REFTYPE;
+        }
+        if ( $reftype eq 'SCALAR' ) {
+            push @result, ${$argexpr_ref};
+            last PROCESS_BY_REFTYPE;
+        }
+        if ( $reftype eq 'ARRAY' ) {
+            push @result, @{$argexpr_ref};
+            last PROCESS_BY_REFTYPE;
+        }
+        if ( $reftype eq 'HASH' ) {
+            push @result, %{$argexpr_ref};
+            last PROCESS_BY_REFTYPE;
+        }
+        die "Unknown argexpr type: $_";
+    } ## end PROCESS_BY_REFTYPE:
     my $term_ref = coerce_to_R($term);
-    given ( Scalar::Util::reftype $term_ref) {
-        when ('REF')    { push @result, ${$term_ref} }
-        when ('SCALAR') { push @result, ${$term_ref} }
-        when ('ARRAY')  { push @result, @{$term_ref} }
-        when ('HASH')   { push @result, %{$term_ref} }
-        default         { die "Unknown term type: $_" }
-    } ## end given
+    PROCESS_BY_REFTYPE: {
+        my $reftype = Scalar::Util::reftype $term_ref;
+        if ( $reftype eq 'REF' ) {
+            push @result, ${$term_ref};
+            last PROCESS_BY_REFTYPE;
+        }
+        if ( $reftype eq 'SCALAR' ) {
+            push @result, ${$term_ref};
+            last PROCESS_BY_REFTYPE;
+        }
+        if ( $reftype eq 'ARRAY' ) {
+            push @result, @{$term_ref};
+            last PROCESS_BY_REFTYPE;
+        }
+        if ( $reftype eq 'HASH' ) {
+            push @result, %{$term_ref};
+            last PROCESS_BY_REFTYPE;
+        }
+        die "Unknown term type: $_";
+    } ## end PROCESS_BY_REFTYPE:
     return [ 'L', \\@result ];
 } ## end sub do_argexpr
 
@@ -247,13 +273,26 @@ sub do_anon_array {
     my ( undef, undef, $expr ) = @_;
     my $value_ref = coerce_to_R($expr);
     my @result    = ();
-    given ( Scalar::Util::reftype $value_ref) {
-        when ('SCALAR') { push @result, ${$value_ref} }
-        when ('REF')    { push @result, ${$value_ref} }
-        when ('ARRAY')  { push @result, @{$value_ref} }
-        when ('HASH')   { push @result, %{$value_ref} }
-        default         { die "Unknown expr type: $_" }
-    } ## end given
+    PROCESS_BY_REFTYPE: {
+        my $reftype = Scalar::Util::reftype $value_ref;
+        if ( $reftype eq 'SCALAR' ) {
+            push @result, ${$value_ref};
+            last PROCESS_BY_REFTYPE;
+        }
+        if ( $reftype eq 'REF' ) {
+            push @result, ${$value_ref};
+            last PROCESS_BY_REFTYPE;
+        }
+        if ( $reftype eq 'ARRAY' ) {
+            push @result, @{$value_ref};
+            last PROCESS_BY_REFTYPE;
+        }
+        if ( $reftype eq 'HASH' ) {
+            push @result, %{$value_ref};
+            last PROCESS_BY_REFTYPE;
+        }
+        die "Unknown expr type: ref to $_";
+    } ## end PROCESS_BY_REFTYPE:
     return [ 'L', \\[@result] ];
 } ## end sub do_anon_array
 
@@ -265,19 +304,20 @@ sub do_anon_hash {
     my ( undef, undef, $expr ) = @_;
     my $value_ref = coerce_to_R($expr);
     my $result;
-    given ( Scalar::Util::reftype $value_ref) {
-        when ('REF') {
-            die 'expr for anon hash cannot be REF'
+    PROCESS_BY_REFTYPE: {
+        my $reftype = Scalar::Util::reftype $value_ref;
+        die 'expr for anon hash cannot be REF'    if $reftype eq 'REF';
+        die 'expr for anon hash cannot be SCALAR' if $reftype eq 'SCALAR';
+        if ( $reftype eq 'ARRAY' ) {
+            $result = { @{$value_ref} };
+            last PROCESS_BY_REFTYPE;
         }
-        when ('SCALAR') {
-            die 'expr for anon hash cannot be SCALAR'
+        if ( $reftype eq 'HASH' ) {
+            $result = \%{$value_ref};
+            last PROCESS_BY_REFTYPE;
         }
-        when ('ARRAY') {
-            $result = { @{$value_ref} }
-        }
-        when ('HASH') { $result = \%{$value_ref} }
-        default { die "Unknown expr type: $_" }
-    } ## end given
+        die "Unknown expr type: ref to $_";
+    } ## end PROCESS_BY_REFTYPE:
     return [ 'R', \$result ];
 } ## end sub do_anon_hash
 
