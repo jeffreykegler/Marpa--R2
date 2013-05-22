@@ -353,7 +353,7 @@ In this example the only named argument is
 the required argument: "C<grammar>".
 The value of the
 C<grammar>
-named argument must be a Marpa SLIF
+named argument must be a Marpa::R2 SLIF
 grammar.
 
 =head2 Marpa::R2::Scanless::R::read
@@ -420,7 +420,8 @@ and their "leaves" at the bottom.
 In Marpa::R2's SLIF, the "leaves" are the symbols
 that the G1 (structural) rules share with the G0 (lexical)
 rules.
-The symbols by G0 and G1 those lexemes which are not
+The symbols shared by G0 and G1
+are those lexemes which are not
 discarded.
 In this example, the lexemes visible to G1 are
 C<Number> and the two operators which specified
@@ -430,17 +431,17 @@ and
 "C<*>".
 
 Following tradition,
-Marpa assign all the nodes of the tree values,
+Marpa assigns values to the nodes of the tree,
 by starting with the leaves.
 Marpa's "leaves" will always be G0 symbols,
 and their value by default is the literal
 value at their location in the input stream.
 In the case of the two operators described
 by quoted string,
-their value is that quoted string.
+the value is that quoted string.
 That is, the value of 'C<+>' is
 'C<+>',
-That is, the value of 'C<*>' is
+and the value of 'C<*>' is
 'C<*>'.
 The value of C<Number> will be the portion
 of the input that matched the C<[\d]+>
@@ -464,14 +465,15 @@ exception.
 
 The one exception, the node with a LHS symbol
 that does not become a RHS
-symbol is value of the top (or "root") node.
-The value of the top node becaomes the
+symbol,
+is the value of the top (or "root") node.
+The value of the top node becomes the
 value of the parse,
 and this is the parse result value
 to which the C<value()> method
 returns a reference.
 
-Previously we skipped over the named argument to the SLIF grammar
+Previously we skipped over the named arguments to the SLIF grammar
 constructor which dealt with semantics.
 We are now ready to look at them.
 
@@ -489,7 +491,7 @@ Each non-leaf node determines its value with an action.
 The C<default_action> named argument indicates the default action.
 Often actions are Perl functions, which in this context are
 called Perl semantic closures.
-The <action_object> named argument specified a package that is used
+The C<action_object> named argument specified a package that is used
 to find the Perl semantic closures.
 
 In this example the default semantics,
@@ -498,7 +500,7 @@ come from a "reserved action" named "C<::first>".
 (The initial double colon indicates a reserved action.)
 The "C<::first>" action indicates that the value of a rule is to be
 the value of its first child,
-that is, the value corresponding to the first symbol of the rules RHS.
+that is, the value corresponding to the first symbol of the rule's RHS.
 (In the case of an empty rule, the value would be a Perl C<undef>).
 
 The other way we specify semantics in this example
@@ -518,10 +520,6 @@ normalize-whitespace: 1
         | Term '+' Term action => do_add
     Factor ::=
           Number
-These two
-we 
-The C<action_object> named argument specifies the package where the semantics closures are found,
-in this example, the C<My_Nodes> package.
         | Factor '*' Factor action => do_multiply
 
 =for Marpa::R2::Display::End
@@ -567,7 +565,7 @@ normalize-whitespace: 1
 =for Marpa::R2::Display::End
 
 The Perl semantic closures are callbacks.
-They are called as nodes in a parse tree are evaluated.
+They are called as each node in a parse tree is evaluated.
 
 Each Perl semantic closure is called with one or more arguments.
 The first argument to a value action is always a per-parse-tree
@@ -586,11 +584,11 @@ The exception is the value for the start rule.
 The return value for the start rule becomes
 the parse result.
 
-As a final note, C<actions_object> requires the package it specifies to
-be a class, in the sense that it must have a C<new> constructor.
+As a final note, C<actions_object> named argument
+requires the package it specifies to
+have a C<new> constructor.
 The value returned by the C<new> constructor is the per-parse-tree
 object which, as mentioned, is not used in this example.
-Here is our definition of C<My_Nodes::new>:
 
 =for Marpa::R2::Display
 name: Landing page synopsis
@@ -616,16 +614,15 @@ be inherited.
 
 When used in a thread-safe Perl, Marpa::R2 should be thread-safe,
 with one important restriction:
-All Marpa objects have a base grammar and all objects which share
+All Marpa objects have a base grammar and all objects that share
 a base grammar write to it.
-All Marpa objects which share a base grammar must created
-and used in the same
-thread.
+All Marpa objects that share a base grammar must be created
+and used within a single thread.
 
 All Marpa objects are either grammars,
 or are created from other Marpa objects.
 When a Marpa object is created from another Marpa object,
-the child Marpa object inherits the base grammar of its parent object.
+the newly created Marpa object inherits the base grammar of its parent object.
 Marpa grammars are their own base grammar.
 
 This restriction may be lifted someday, but
@@ -634,7 +631,7 @@ Note that what cannot be shared between
 threads is a base grammar B<object> --
 you can use
 the same grammar in different
-threads by creating base grammar
+threads by creating base grammars
 that are exact
 copies of each other,
 one base grammar per thread.
