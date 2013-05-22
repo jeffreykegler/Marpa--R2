@@ -495,7 +495,7 @@ The C<action_object> named argument specified a package that is used
 to find the Perl semantic closures.
 
 In this example the default semantics,
-as specified by the C<default_action> named
+as specified by the C<default_action> named argument,
 come from a "reserved action" named "C<::first>".
 (The initial double colon indicates a reserved action.)
 The "C<::first>" action indicates that the value of a rule is to be
@@ -505,7 +505,7 @@ that is, the value corresponding to the first symbol of the rule's RHS.
 
 The other way we specify semantics in this example
 is by using an
-C<action> adverb.
+C<action> adverb
 for a RHS alternative.
 We've seen the C<action> adverb twice, but skipped over it.
 Now it is time to look at it.
