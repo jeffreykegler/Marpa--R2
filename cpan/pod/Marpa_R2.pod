@@ -149,7 +149,13 @@ In what follows, we will look at all the arguments of
 this call to the 
 L<Marpa::R2::Scanless:G::new|Marpa::R2::Scanless::G/"new">
 method in detail.
-First let's look at the C<source> argument.
+The first two named arguments,
+C<action_object> and C<default_action> deal with the
+semantics,
+and it's best to delay talking about them until
+we get into the semantics, below.
+
+But the C<source> argument is an excellent place to start.
 Its value is a reference to a string in the
 L<SLIF's domain-specific language|Marpa::R2::Scanless:DSL>
 (DSL).
