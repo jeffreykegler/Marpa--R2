@@ -406,6 +406,75 @@ Now it is time to go back to those features.
 
 =head2 Semantics
 
+The value of the parse result, as returned via the C<value()> method,
+is determined by the parse's B<semantics>.
+Marpa's semantics are the traditional ones:
+The parse that results from repeatedly applying G1 rules to the input
+is seen as a tree.
+(The G1 rules are called structural because they give this tree
+its structure.)
+Parse trees are usually drawn upside-down
+with their root at the top,
+and their "leaves" at the bottom.
+
+In Marpa::R2's SLIF, the "leaves" are the symbols
+that the G1 (structural) rules share with the G0 (lexical)
+rules.
+The symbols by G0 and G1 those lexemes which are not
+discarded.
+In this example, the lexemes visible to G1 are
+C<Number> and the two operators which specified
+with a quoted string:
+"C<+>"
+and
+"C<*>".
+
+Following tradition,
+Marpa assign all the nodes of the tree values,
+by starting with the leaves.
+Marpa's "leaves" will always be G0 symbols,
+and their value by default is the literal
+value at their location in the input stream.
+In the case of the two operators described
+by quoted string,
+their value is that quoted string.
+That is, the value of 'C<+>' is
+'C<+>',
+That is, the value of 'C<*>' is
+'C<*>'.
+The value of C<Number> will be the portion
+of the input that matched the C<[\d]+>
+pattern.
+
+Starting with the values for leaves,
+Marpa::R2 moves recursively
+"up" the tree to its root,
+assigning a value to each node of the tree
+based on the value of its child nodes.
+Each non-leaf node corresponds to a G1 rule,
+and the children of the non-leaf node
+correspond to the RHS symbols
+of the rule.
+When the non-leaf node is valued, its value becomes
+the value of its LHS symbol,
+and this value will become
+the value of
+a RHS symbol of another node with one
+exception.
+
+The one exception, the node with a LHS symbol
+that does not become a RHS
+symbol is value of the top (or "root") node.
+The value of the top node becaomes the
+value of the parse,
+and this is the parse result value
+to which the C<value()> method
+returns a reference.
+
+Previously we skipped over the named argument to the SLIF grammar
+constructor which dealt with semantics.
+We are now ready to look at them.
+
 =for Marpa::R2::Display
 name: Landing page synopsis
 partial: 1
@@ -416,19 +485,28 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
-The C<action_object> named argument specifies the package where the semantics closures are found,
-in this example, the C<My_Nodes> package.
-The C<default_action> named argument indicates the action to be used
-when nothing else specifies the semantics for a closure.
-In this example the default semantics are a "reserved action" named "C<::first>".
-(The initial double colon indicates a reserved action.)
-The "C<::first>" action indicates that the value of a rule is the value
-of its first child.
+Each non-leaf node determines its value with an action.
+The C<default_action> named argument indicates the default action.
+Often actions are Perl functions, which in this context are
+called Perl semantic closures.
+The <action_object> named argument specified a package that is used
+to find the Perl semantic closures.
 
-The semantics for a RHS alternative are specified with the
+In this example the default semantics,
+as specified by the C<default_action> named
+come from a "reserved action" named "C<::first>".
+(The initial double colon indicates a reserved action.)
+The "C<::first>" action indicates that the value of a rule is to be
+the value of its first child,
+that is, the value corresponding to the first symbol of the rules RHS.
+(In the case of an empty rule, the value would be a Perl C<undef>).
+
+The other way we specify semantics in this example
+is by using an
 C<action> adverb.
-We've already seen the C<action> adverb twice, but skipped over it.
-Here it is again, in context:
+for a RHS alternative.
+We've seen the C<action> adverb twice, but skipped over it.
+Now it is time to look at it.
 
 =for Marpa::R2::Display
 name: Landing page synopsis
@@ -440,6 +518,10 @@ normalize-whitespace: 1
         | Term '+' Term action => do_add
     Factor ::=
           Number
+These two
+we 
+The C<action_object> named argument specifies the package where the semantics closures are found,
+in this example, the C<My_Nodes> package.
         | Factor '*' Factor action => do_multiply
 
 =for Marpa::R2::Display::End
@@ -491,13 +573,8 @@ Each Perl semantic closure is called with one or more arguments.
 The first argument to a value action is always a per-parse-tree
 object, which the callbacks can use as a scratchpad.
 In this example, the per-parse-tree object is not used.
-
-For a non-empty rule,
-the second and any subsequent arguments to the callback are
-the values,
-in lexical order,
-of the symbols on the right hand side of
-the rule.
+The remaining arguments will be the values of the node's "children" --
+in other words, the values computed for each of its RHS symbols, in order.
 If the action is for an empty rule,
 the per-parse-tree object will be its only argument.
 
@@ -509,7 +586,7 @@ The exception is the value for the start rule.
 The return value for the start rule becomes
 the parse result.
 
-Finally, C<actions_object> requires the package it specifies to
+As a final note, C<actions_object> requires the package it specifies to
 be a class, in the sense that it must have a C<new> constructor.
 The value returned by the C<new> constructor is the per-parse-tree
 object which, as mentioned, is not used in this example.
