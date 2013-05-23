@@ -15,24 +15,16 @@
 
 Revision history for Marpa::R2
 
-2.055_004
-
-   * Remove all uses of given, when and smartmatch.
-
-2.055_003
+2.056000 Wed May 22 17:38:03 PDT 2013
 
    * Rearrange POD to make SLIF primary interface
+
+   * Added accessors to Scanless::R
 
    * Fix bug found by Jean-Damien: combining
      ambiguity and SLIF external scanning caused
      segment violation.
      
-2.055_002
-2.055_001
-2.055_000
-
-   * New series of developer's releases.
-
 2.054000 Wed May 15 12:54:00 PDT 2013
 
    * Added completion events
