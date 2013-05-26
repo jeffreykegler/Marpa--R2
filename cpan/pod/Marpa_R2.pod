@@ -610,6 +610,15 @@ Marpa API methods throw an exception.
 Classes in Marpa's API's are not designed to
 be inherited.
 
+=head1 Tainted data
+
+Marpa::R2 exists to allow its input to alter execution in
+flexible and powerful ways.
+Marpa should not be used with untrusted input.
+In Perl' s taint mode, it is a fatal error to use Marpa's SLIF
+with a tainted grammar, a tainted input string,
+or tainted token values.
+
 =head1 Threads
 
 When used in a thread-safe Perl, Marpa::R2 should be thread-safe,

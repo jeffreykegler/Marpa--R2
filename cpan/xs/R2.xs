@@ -5815,6 +5815,12 @@ PPCODE:
 	    token_ix = TOKEN_VALUE_IS_UNDEF;	/* default */
 	    break;
 	  }
+	/* Fail fast with a tainted input token value */
+	if (SvTAINTED(token_value)) {
+	    croak
+	      ("Problem in Marpa::R2: Attempt to use a tainted token value\n"
+	      "Marpa::R2 is insecure for use with tainted data\n");
+	}
 	av_push (slr->token_values, newSVsv (token_value));
 	token_ix = av_len (slr->token_values);
       }
