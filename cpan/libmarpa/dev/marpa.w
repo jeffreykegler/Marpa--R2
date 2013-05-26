@@ -2940,6 +2940,7 @@ int marpa_g_precompute(Marpa_Grammar g)
 	MARPA_ERROR (MARPA_ERR_GRAMMAR_HAS_CYCLE);
 	goto FAILURE;
       }
+    @<Reinitialize the CILAR@>@;
     return_value = 0;
     goto CLEANUP;
     FAILURE:;
@@ -6373,6 +6374,18 @@ AHFAID _marpa_g_AHFA_state_empty_transition(Marpa_Grammar g,
 	}
     }
 }
+
+@ Reinitialize the CILAR, because its size requirement may vary wildly
+bewteen a base grammar and its recognizers.
+A large allocation may be required in the grammar, which
+thereafter would be wasted space.
+@<Reinitialize the CILAR@> =
+{ cilar_reinit(&g->t_cilar); }
+@ {\bf To Do}: @^To Do@>
+Perhaps someday there should be a CILAR for each recognizer.
+This probably is an issue to be dealt with,
+when adding the ability
+to clone grammars.
 
 @** Input (I, INPUT) code.
 |INPUT| is a "hidden" class.
@@ -13794,225 +13807,6 @@ for the rule.
     }
 }
 
-@** Counted integer lists (CIL).
-As a structure,
-almost not worth bothering with,
-if it were not for its use in CILAR's.
-The first |int| is a count, and purists might insist
-on a struct instead of an array.
-A struct would reflect the logical structure more
-accurately.
-But would it make the actual code 
-less readable, not more,
-which I believe has to be the object.
-@d Count_of_CIL(cil) (cil[0])
-@d Item_of_CIL(cil, ix) (cil[1+(ix)])
-@d Sizeof_CIL(ix) (sizeof(int) * (1+(ix)))
-@ @<Private typedefs@> =
-typedef int* CIL;
-
-@** Counted integer list arena (CILAR).
-These implement an especially efficient memory allocation scheme.
-Libmarpa needs many copies of integer lists,
-where the integers are symbol ID's, rule ID's, etc.
-The same ones are used again and again.
-The CILAR allows them to be allocated once and reused.
-\par
-The CILAR is a software implementation
-of memory which is both random-access
-and content-addressable.
-Content-addressability saves space -- when the
-contents are identical they can be reused.
-The content-addressability is implemented in software
-(as an AVL).
-While lookup is not slow
-the intention is that the content-addressability will used
-infrequently --
-once created or found the CIL will be memoized
-for random-access through a pointer.
-
-@ An obstack for the actual data, and a tree
-for the lookups.
-@<Private utility structures@> =
-struct s_cil_arena {
-    struct obstack* t_obs;
-    AVL_TREE t_avl;
-};
-typedef struct s_cil_arena CILAR_Object;
-
-@ @<Private incomplete structures@> =
-struct s_cil_arena;
-@ @<Private typedefs@> =
-typedef struct s_cil_arena* CILAR;
-@ @<Function definitions@> =
-PRIVATE void
-cilar_init (const CILAR cilar)
-{
-  cilar->t_obs = my_obstack_init;
-  cilar->t_avl = _marpa_avl_create (cil_cmp, NULL, 0);
-}
-@ @<Function definitions@> =
-PRIVATE void cilar_destroy(const CILAR cilar)
-{
-  _marpa_avl_destroy (cilar->t_avl );
-  my_obstack_free(cilar->t_obs);
-}
-@ Returns a pointer to a CIL that is identical
-to the CIL-in-progress --
-the one being built on the obstack.
-The returned CIL will be in memory that will
-persist for the life of the CILAR.
-If the CIL-in-progress already exists in the CILAR,
-it is rejected and a pointer to the already existing
-CIL is returned.
-If
-the CIL-in-progress does not already exist in the CILAR,
-the CIL-in-progress is added to the CILAR,
-and a pointer to the CIL-in-progress is returned.
-@<Function definitions@> =
-PRIVATE CIL cil_finish(CILAR cilar)
-{
-    CIL cil_in_progress = (CIL)my_obstack_base(cilar->t_obs);
-    CIL found_cil = _marpa_avl_insert (cilar->t_avl, cil_in_progress);
-    if (found_cil) {
-        my_obstack_reject (cilar->t_obs);
-	return found_cil;
-    }
-    return (CIL)my_obstack_finish(cilar->t_obs);
-}
-
-@ Confirm the size of an CIL, and return a pointer to it.
-It is up to the caller to ensure that this CIL was the
-subject of a previous |cil_reserve| call, with
-a length greater than or equal to that of the current one.
-@<Function definitions@> =
-PRIVATE CIL cil_confirm(CILAR cilar, int length)
-{
-    CIL cil;
-    my_obstack_confirm_fast(cilar->t_obs, sizeof(int)*(length+1));
-    cil = (CIL)my_obstack_base(cilar->t_obs);
-    Count_of_CIL(cil) = length;
-    return cil;
-}
-
-@ Reserve room for a CIL, and return a pointer to it.
-@<Function definitions@> =
-PRIVATE CIL cil_reserve(CILAR cilar, int length)
-{
-    CIL cil;
-    my_obstack_reserve(cilar->t_obs, sizeof(int)*(length+1));
-    cil = (CIL)my_obstack_base(cilar->t_obs);
-    Count_of_CIL(cil) = length;
-    return cil;
-}
-
-@ Return the empty CIL from a CILAR.
-@<Function definitions@> =
-PRIVATE CIL cil_empty(CILAR cilar)
-{
-    cil_reserve(cilar, 0);
-    return cil_finish (cilar);
-}
-
-@ Return a singleton CIL from a CILAR.
-@<Function definitions@> =
-PRIVATE CIL cil_singleton(CILAR cilar, int element)
-{
-  CIL new_cil = cil_reserve (cilar, 1);
-  Item_of_CIL (new_cil, 0) = element;
-  return cil_finish (cilar);
-}
-
-@ Merge two CIL's into a new one.
-Merging a single int into a CIL is a common
-special-case, but for now we do not think the
-optimization is worth it.
-Also, this method trades unneeded obstack block
-allocations for CPU speed.
-In the usual case,
-the size of the merged CIL
-is a tiny fraction of the size of the obstack's
-memory blocks,
-the extra allocations are rare
-and
-the memory fragmentation minimal,
-while the CPU saving is substantial.
-If larger CIL's are common,
-this routine could be rewritten
-(or the obstack's memory blocks could simply be
-increased in size.)
-@<Function definitions@> =
-PRIVATE CIL cil_merge(CILAR cilar, CIL cil1, CIL cil2)
-{
-  const int cil1_count = Count_of_CIL (cil1);
-  const int cil2_count = Count_of_CIL (cil2);
-  CIL new_cil = cil_reserve (cilar, cil1_count+cil2_count);
-  int new_cil_ix = 0;
-  int cil1_ix = 0;
-  int cil2_ix = 0;
-  while (cil1_ix < cil1_count && cil2_ix < cil2_count)
-    {
-      const int item1 = Item_of_CIL (cil1, cil1_ix);
-      const int item2 = Item_of_CIL (cil2, cil2_ix);
-      if (item1 < item2)
-	{
-	  Item_of_CIL (new_cil, new_cil_ix) = item1;
-	  cil1_ix++;
-	  new_cil_ix++;
-	  continue;
-	}
-      if (item2 < item1)
-	{
-	  Item_of_CIL (new_cil, new_cil_ix) = item2;
-	  cil2_ix++;
-	  new_cil_ix++;
-	  continue;
-	}
-      Item_of_CIL (new_cil, new_cil_ix) = item1;
-      cil1_ix++;
-      cil2_ix++;
-      new_cil_ix++;
-    }
-  while (cil1_ix < cil1_count ) {
-      const int item1 = Item_of_CIL (cil1, cil1_ix);
-      Item_of_CIL (new_cil, new_cil_ix) = item1;
-      cil1_ix++;
-      new_cil_ix++;
-  }
-  while (cil2_ix < cil2_count ) {
-      const int item2 = Item_of_CIL (cil2, cil2_ix);
-      Item_of_CIL (new_cil, new_cil_ix) = item2;
-      cil2_ix++;
-      new_cil_ix++;
-  }
-  cil_confirm (cilar, new_cil_ix);
-  return cil_finish (cilar);
-}
-
-@ @<Function definitions@> =
-PRIVATE_NOT_INLINE int
-cil_cmp (const void *ap, const void *bp, void *param @,@, UNUSED)
-{
-  int ix;
-  CIL cil1 = (CIL) ap;
-  CIL cil2 = (CIL) bp;
-  int count1 = Count_of_CIL (cil1);
-  int count2 = Count_of_CIL (cil2);
-  if (count1 != count2)
-    {
-      return count1 > count2 ? 1 : -1;
-    }
-  for (ix = 0; ix < count1; ix++)
-    {
-      const int item1 = Item_of_CIL (cil1, ix);
-      const int item2 = Item_of_CIL (cil2, ix);
-      if (item1 == item2)
-	continue;
-      return item1 > item2 ? 1 : -1;
-    }
-  return 0;
-}
-
 @** Lightweight boolean vectors (LBV).
 These macros and functions assume that the 
 caller remembers the boolean vector's length.
@@ -14871,6 +14665,236 @@ struct s_dqueue;
 typedef struct s_dqueue* DQUEUE;
 @ @<Private structures@> =
 struct s_dqueue { int t_current; struct s_dstack t_stack; };
+
+@** Counted integer lists (CIL).
+As a structure,
+almost not worth bothering with,
+if it were not for its use in CILAR's.
+The first |int| is a count, and purists might insist
+on a struct instead of an array.
+A struct would reflect the logical structure more
+accurately.
+But would it make the actual code 
+less readable, not more,
+which I believe has to be the object.
+@d Count_of_CIL(cil) (cil[0])
+@d Item_of_CIL(cil, ix) (cil[1+(ix)])
+@d Sizeof_CIL(ix) (sizeof(int) * (1+(ix)))
+@ @<Private typedefs@> =
+typedef int* CIL;
+
+@** Counted integer list arena (CILAR).
+These implement an especially efficient memory allocation scheme.
+Libmarpa needs many copies of integer lists,
+where the integers are symbol ID's, rule ID's, etc.
+The same ones are used again and again.
+The CILAR allows them to be allocated once and reused.
+\par
+The CILAR is a software implementation
+of memory which is both random-access
+and content-addressable.
+Content-addressability saves space -- when the
+contents are identical they can be reused.
+The content-addressability is implemented in software
+(as an AVL).
+While lookup is not slow
+the intention is that the content-addressability will used
+infrequently --
+once created or found the CIL will be memoized
+for random-access through a pointer.
+
+@ An obstack for the actual data, and a tree
+for the lookups.
+@<Private utility structures@> =
+struct s_cil_arena {
+    struct obstack* t_obs;
+    AVL_TREE t_avl;
+    DSTACK_DECLARE(t_buffer);
+};
+typedef struct s_cil_arena CILAR_Object;
+
+@ @<Private incomplete structures@> =
+struct s_cil_arena;
+@ @<Private typedefs@> =
+typedef struct s_cil_arena* CILAR;
+@ @<Function definitions@> =
+PRIVATE void
+cilar_init (const CILAR cilar)
+{
+  cilar->t_obs = my_obstack_init;
+  cilar->t_avl = _marpa_avl_create (cil_cmp, NULL, 0);
+  DSTACK_INIT2(cilar->t_buffer, int);
+}
+@ @<Function definitions@> =
+PRIVATE void
+cilar_reinit (const CILAR cilar)
+{
+  DSTACK_DESTROY(cilar->t_buffer);
+  DSTACK_INIT2(cilar->t_buffer, int);
+}
+
+@ @<Function definitions@> =
+PRIVATE void cilar_destroy(const CILAR cilar)
+{
+  _marpa_avl_destroy (cilar->t_avl );
+  my_obstack_free(cilar->t_obs);
+  DSTACK_DESTROY((cilar->t_buffer));
+}
+@ Returns a pointer to a CIL that is identical
+to the CIL-in-progress --
+the one being built on the obstack.
+The returned CIL will be in memory that will
+persist for the life of the CILAR.
+If the CIL-in-progress already exists in the CILAR,
+it is rejected and a pointer to the already existing
+CIL is returned.
+If
+the CIL-in-progress does not already exist in the CILAR,
+the CIL-in-progress is added to the CILAR,
+and a pointer to the CIL-in-progress is returned.
+@<Function definitions@> =
+PRIVATE CIL cil_finish(CILAR cilar)
+{
+    CIL cil_in_progress = (CIL)my_obstack_base(cilar->t_obs);
+    CIL found_cil = _marpa_avl_insert (cilar->t_avl, cil_in_progress);
+    if (found_cil) {
+        my_obstack_reject (cilar->t_obs);
+	return found_cil;
+    }
+    return (CIL)my_obstack_finish(cilar->t_obs);
+}
+
+@ Confirm the size of an CIL, and return a pointer to it.
+It is up to the caller to ensure that this CIL was the
+subject of a previous |cil_reserve| call, with
+a length greater than or equal to that of the current one.
+@<Function definitions@> =
+PRIVATE CIL cil_confirm(CILAR cilar, int length)
+{
+    CIL cil;
+    my_obstack_confirm_fast(cilar->t_obs, sizeof(int)*(length+1));
+    cil = (CIL)my_obstack_base(cilar->t_obs);
+    Count_of_CIL(cil) = length;
+    return cil;
+}
+
+@ Reserve room for a CIL, and return a pointer to it.
+@<Function definitions@> =
+PRIVATE CIL cil_reserve(CILAR cilar, int length)
+{
+    CIL cil;
+    my_obstack_reserve(cilar->t_obs, sizeof(int)*(length+1));
+    cil = (CIL)my_obstack_base(cilar->t_obs);
+    Count_of_CIL(cil) = length;
+    return cil;
+}
+
+@ Return the empty CIL from a CILAR.
+@<Function definitions@> =
+PRIVATE CIL cil_empty(CILAR cilar)
+{
+    cil_reserve(cilar, 0);
+    return cil_finish (cilar);
+}
+
+@ Return a singleton CIL from a CILAR.
+@<Function definitions@> =
+PRIVATE CIL cil_singleton(CILAR cilar, int element)
+{
+  CIL new_cil = cil_reserve (cilar, 1);
+  Item_of_CIL (new_cil, 0) = element;
+  return cil_finish (cilar);
+}
+
+@ Merge two CIL's into a new one.
+Merging a single int into a CIL is a common
+special-case, but for now we do not think the
+optimization is worth it.
+Also, this method trades unneeded obstack block
+allocations for CPU speed.
+In the usual case,
+the size of the merged CIL
+is a tiny fraction of the size of the obstack's
+memory blocks,
+the extra allocations are rare
+and
+the memory fragmentation minimal,
+while the CPU saving is substantial.
+If larger CIL's are common,
+this routine could be rewritten
+(or the obstack's memory blocks could simply be
+increased in size.)
+@<Function definitions@> =
+PRIVATE CIL cil_merge(CILAR cilar, CIL cil1, CIL cil2)
+{
+  const int cil1_count = Count_of_CIL (cil1);
+  const int cil2_count = Count_of_CIL (cil2);
+  CIL new_cil = cil_reserve (cilar, cil1_count+cil2_count);
+  int new_cil_ix = 0;
+  int cil1_ix = 0;
+  int cil2_ix = 0;
+  while (cil1_ix < cil1_count && cil2_ix < cil2_count)
+    {
+      const int item1 = Item_of_CIL (cil1, cil1_ix);
+      const int item2 = Item_of_CIL (cil2, cil2_ix);
+      if (item1 < item2)
+	{
+	  Item_of_CIL (new_cil, new_cil_ix) = item1;
+	  cil1_ix++;
+	  new_cil_ix++;
+	  continue;
+	}
+      if (item2 < item1)
+	{
+	  Item_of_CIL (new_cil, new_cil_ix) = item2;
+	  cil2_ix++;
+	  new_cil_ix++;
+	  continue;
+	}
+      Item_of_CIL (new_cil, new_cil_ix) = item1;
+      cil1_ix++;
+      cil2_ix++;
+      new_cil_ix++;
+    }
+  while (cil1_ix < cil1_count ) {
+      const int item1 = Item_of_CIL (cil1, cil1_ix);
+      Item_of_CIL (new_cil, new_cil_ix) = item1;
+      cil1_ix++;
+      new_cil_ix++;
+  }
+  while (cil2_ix < cil2_count ) {
+      const int item2 = Item_of_CIL (cil2, cil2_ix);
+      Item_of_CIL (new_cil, new_cil_ix) = item2;
+      cil2_ix++;
+      new_cil_ix++;
+  }
+  cil_confirm (cilar, new_cil_ix);
+  return cil_finish (cilar);
+}
+
+@ @<Function definitions@> =
+PRIVATE_NOT_INLINE int
+cil_cmp (const void *ap, const void *bp, void *param @,@, UNUSED)
+{
+  int ix;
+  CIL cil1 = (CIL) ap;
+  CIL cil2 = (CIL) bp;
+  int count1 = Count_of_CIL (cil1);
+  int count2 = Count_of_CIL (cil2);
+  if (count1 != count2)
+    {
+      return count1 > count2 ? 1 : -1;
+    }
+  for (ix = 0; ix < count1; ix++)
+    {
+      const int item1 = Item_of_CIL (cil1, ix);
+      const int item2 = Item_of_CIL (cil2, ix);
+      if (item1 == item2)
+	continue;
+      return item1 > item2 ? 1 : -1;
+    }
+  return 0;
+}
 
 @** Per-Earley-set list (PSL) code.
 There are several cases where Marpa needs to
