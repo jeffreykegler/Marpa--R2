@@ -14717,20 +14717,31 @@ typedef struct s_cil_arena CILAR_Object;
 struct s_cil_arena;
 @ @<Private typedefs@> =
 typedef struct s_cil_arena* CILAR;
-@ @<Function definitions@> =
+@
+{\bf To Do}: @^To Do@> The initial capacity of the CILAR dstack
+is absurdly small, in order to test the logic during development.
+Once things settle, |DSTACK_INIT| should be changed to
+|DSTACK_INIT2|.
+@d CAPACITY_OF_CILAR(cilar) (CAPACITY_OF_DSTACK(cilar->t_buffer)-1)
+@<Function definitions@> =
 PRIVATE void
 cilar_init (const CILAR cilar)
 {
   cilar->t_obs = my_obstack_init;
   cilar->t_avl = _marpa_avl_create (cil_cmp, NULL, 0);
-  DSTACK_INIT2(cilar->t_buffer, int);
+  DSTACK_INIT(cilar->t_buffer, int, 2);
 }
-@ @<Function definitions@> =
+@
+{\bf To Do}: @^To Do@> The initial capacity of the CILAR dstack
+is absurdly small, in order to test the logic during development.
+Once things settle, |DSTACK_INIT| should be changed to
+|DSTACK_INIT2|.
+@<Function definitions@> =
 PRIVATE void
 cilar_reinit (const CILAR cilar)
 {
   DSTACK_DESTROY(cilar->t_buffer);
-  DSTACK_INIT2(cilar->t_buffer, int);
+  DSTACK_INIT(cilar->t_buffer, int, 2);
 }
 
 @ @<Function definitions@> =
