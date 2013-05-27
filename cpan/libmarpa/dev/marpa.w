@@ -14602,7 +14602,7 @@ resizings unnecessary.
 @d DSTACK_CLEAR(this) ((this).t_count = 0)
 @d DSTACK_PUSH(this, type) (
       (UNLIKELY((this).t_count >= (this).t_capacity)
-      ? dstack_resize(&(this), sizeof(type))
+      ? dstack_resize2(&(this), sizeof(type))
       : 0),
      ((type *)(this).t_base+(this).t_count++)
    )
@@ -14632,11 +14632,24 @@ struct s_dstack { int t_count; int t_capacity; void * t_base; };
 @ Not inline because |DSTACK|'s should be initialized so that
 resizings are uncommon or even exceptional events.
 @<Function definitions@> =
-PRIVATE_NOT_INLINE void * dstack_resize(struct s_dstack* this, size_t type_bytes)
+PRIVATE_NOT_INLINE void * dstack_resize2(struct s_dstack* this, size_t type_bytes)
 {
-    this->t_capacity *= 2;
-    this->t_base = my_realloc(this->t_base, this->t_capacity*type_bytes);
-    return this->t_base;
+    return dstack_resize(this, type_bytes, this->t_capacity*2);
+}
+
+@ Not inline because |DSTACK|'s should be initialized so that
+resizings are uncommon or even exceptional events.
+@d DSTACK_RESIZE(this, type, new_size) (dstack_resize((this), sizeof(type), (new_size)))
+@<Function definitions@> =
+PRIVATE void * dstack_resize(struct s_dstack* this, size_t type_bytes, int new_size)
+{
+  if (new_size < this->t_capacity)
+    {				/* We do not shrink the stack
+				   in this method */
+      this->t_capacity = new_size;
+      this->t_base = my_realloc (this->t_base, new_size * type_bytes);
+    }
+  return this->t_base;
 }
 
 @*0 Dynamic queues.
@@ -14815,6 +14828,45 @@ PRIVATE CIL cil_singleton(CILAR cilar, int element)
   CIL new_cil = cil_reserve (cilar, 1);
   Item_of_CIL (new_cil, 0) = element;
   return cil_finish (cilar);
+}
+
+@ Add the CIL in the buffer to the
+CILAR.  The CIL may already be in the CILAR,
+in which case this method finds the current entry.
+@<Function definitions@> =
+PRIVATE CIL cil_buffer_add(CILAR cilar)
+{
+
+  CIL cil_in_buffer = DSTACK_BASE (cilar->t_buffer, int);
+  CIL found_cil = _marpa_avl_find (cilar->t_avl, cil_in_buffer);
+  if (!found_cil)
+    {
+      int i;
+      const int cil_size_in_ints = Count_of_CIL (cil_in_buffer) + 1;
+      found_cil = my_obstack_new (cilar->t_obs, int, cil_size_in_ints);
+      for (i = 0; i < cil_size_in_ints; i++)
+	{			/* Assumes that the CIL's are |int*| */
+	  found_cil[i] = cil_in_buffer[i];
+	}
+      _marpa_avl_insert (cilar->t_avl, found_cil);
+    }
+  return found_cil;
+}
+
+@ Make sure that the CIL buffer is large enough
+to hold |element_count| elements.
+@<Function definitions@> =
+PRIVATE CIL cil_buffer_reserve(CILAR cilar, int element_count)
+{
+  const int desired_dstack_capacity = element_count + 1;	/* One extra for the count word */
+  const int old_dstack_capacity = DSTACK_CAPACITY (cilar->t_buffer);
+  if (old_dstack_capacity < desired_dstack_capacity)
+    {
+      const int target_capacity =
+	MAX (old_dstack_capacity * 2, desired_dstack_capacity);
+      DSTACK_RESIZE (&(cilar->t_buffer), int, target_capacity);
+    }
+  return DSTACK_BASE (cilar->t_buffer, int);
 }
 
 @ Merge two CIL's into a new one.
