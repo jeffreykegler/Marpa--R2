@@ -32,6 +32,10 @@ arbitrarily, suddenly and without notice.
 
 =head2 Allow event masking by SLIF external scanners.
 
+=head2 Allow lexeme pauses to be reported as events.
+This mechanism will allow there to be multiple lexeme
+pause events.
+
 =head1 Dubious
 
 This is a list of ideas with real merit,
