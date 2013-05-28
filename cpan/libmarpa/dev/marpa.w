@@ -5782,7 +5782,7 @@ for discovered state with 2+ items@> =
     unsigned int min, max, start;
     int isy_ix = 0;
     const int complete_isyid_count = bv_count (per_ahfa_complete_v);
-    CIL new_cil = cil_reserve (&g->t_cilar, complete_isyid_count);
+    CIL new_cil = cil_buffer_reserve (&g->t_cilar, complete_isyid_count);
     for (start = 0; bv_scan (per_ahfa_complete_v, start, &min, &max);
 	 start = max + 2)
       {
@@ -5794,12 +5794,13 @@ for discovered state with 2+ items@> =
 	    isy_ix++;
 	  }
       }
-    Completion_CIL_of_AHFA (p_new_state) = cil_finish (&g->t_cilar);
+    Count_of_CIL(new_cil) = isy_ix;
+    Completion_CIL_of_AHFA (p_new_state) = cil_buffer_add (&g->t_cilar);
   }
   {
     int isy_ix;
     int complete_isyid_count = Complete_ISY_Count_of_AHFA (p_new_state);
-    CIL new_cil = cil_reserve (&g->t_cilar, complete_isyid_count);
+    CIL new_cil = cil_buffer_reserve (&g->t_cilar, complete_isyid_count);
     int new_isy_ix = 0;
     for (isy_ix = 0; isy_ix < complete_isyid_count; isy_ix++)
       {
@@ -5809,10 +5810,10 @@ for discovered state with 2+ items@> =
 	Item_of_CIL (new_cil, new_isy_ix) = complete_isyid;
 	new_isy_ix++;
       }
-    cil_confirm (&g->t_cilar, new_isy_ix);
+    Count_of_CIL(new_cil) = new_isy_ix;
     Direct_Completion_Event_CIL_of_AHFA (p_new_state) =
       Indirect_Completion_Event_CIL_of_AHFA (p_new_state) =
-      cil_finish (&g->t_cilar);
+      cil_buffer_add (&g->t_cilar);
   }
 }
 
@@ -14765,54 +14766,6 @@ PRIVATE void cilar_destroy(const CILAR cilar)
   _marpa_avl_destroy (cilar->t_avl );
   my_obstack_free(cilar->t_obs);
   DSTACK_DESTROY((cilar->t_buffer));
-}
-@ Returns a pointer to a CIL that is identical
-to the CIL-in-progress --
-the one being built on the obstack.
-The returned CIL will be in memory that will
-persist for the life of the CILAR.
-If the CIL-in-progress already exists in the CILAR,
-it is rejected and a pointer to the already existing
-CIL is returned.
-If
-the CIL-in-progress does not already exist in the CILAR,
-the CIL-in-progress is added to the CILAR,
-and a pointer to the CIL-in-progress is returned.
-@<Function definitions@> =
-PRIVATE CIL cil_finish(CILAR cilar)
-{
-    CIL cil_in_progress = (CIL)my_obstack_base(cilar->t_obs);
-    CIL found_cil = _marpa_avl_insert (cilar->t_avl, cil_in_progress);
-    if (found_cil) {
-        my_obstack_reject (cilar->t_obs);
-	return found_cil;
-    }
-    return (CIL)my_obstack_finish(cilar->t_obs);
-}
-
-@ Confirm the size of an CIL, and return a pointer to it.
-It is up to the caller to ensure that this CIL was the
-subject of a previous |cil_reserve| call, with
-a length greater than or equal to that of the current one.
-@<Function definitions@> =
-PRIVATE CIL cil_confirm(CILAR cilar, int length)
-{
-    CIL cil;
-    my_obstack_confirm_fast(cilar->t_obs, sizeof(int)*(length+1));
-    cil = (CIL)my_obstack_base(cilar->t_obs);
-    Count_of_CIL(cil) = length;
-    return cil;
-}
-
-@ Reserve room for a CIL, and return a pointer to it.
-@<Function definitions@> =
-PRIVATE CIL cil_reserve(CILAR cilar, int length)
-{
-    CIL cil;
-    my_obstack_reserve(cilar->t_obs, sizeof(int)*(length+1));
-    cil = (CIL)my_obstack_base(cilar->t_obs);
-    Count_of_CIL(cil) = length;
-    return cil;
 }
 
 @ Return the empty CIL from a CILAR.
