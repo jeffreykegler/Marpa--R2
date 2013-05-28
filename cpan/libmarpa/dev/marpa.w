@@ -14836,7 +14836,10 @@ PRIVATE CIL cil_singleton(CILAR cilar, int element)
 }
 
 @ Add the CIL in the buffer to the
-CILAR.  The CIL may already be in the CILAR,
+CILAR.
+This method
+is optimized for the case where the CIL
+is alread in the CIL,
 in which case this method finds the current entry.
 @<Function definitions@> =
 PRIVATE CIL cil_buffer_add(CILAR cilar)
@@ -14897,7 +14900,7 @@ PRIVATE CIL cil_merge(CILAR cilar, CIL cil1, CIL cil2)
 {
   const int cil1_count = Count_of_CIL (cil1);
   const int cil2_count = Count_of_CIL (cil2);
-  CIL new_cil = cil_reserve (cilar, cil1_count+cil2_count);
+  CIL new_cil = cil_buffer_reserve (cilar, cil1_count+cil2_count);
   int new_cil_ix = 0;
   int cil1_ix = 0;
   int cil2_ix = 0;
@@ -14936,8 +14939,8 @@ PRIVATE CIL cil_merge(CILAR cilar, CIL cil1, CIL cil2)
       cil2_ix++;
       new_cil_ix++;
   }
-  cil_confirm (cilar, new_cil_ix);
-  return cil_finish (cilar);
+  Count_of_CIL(new_cil) = new_cil_ix;
+  return cil_buffer_add (cilar);
 }
 
 @ @<Function definitions@> =
