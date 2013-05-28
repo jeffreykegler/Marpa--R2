@@ -9855,35 +9855,36 @@ for (lim_chain_ix--; lim_chain_ix >= 0; lim_chain_ix--) {
     predecessor_lim = lim_to_process;
 }
 
-@ Instead of |cil_merge|, a new routine which inserted a single
-|int| into a CIL would be faster.
-The logic is only used for indirect right recursions,
-but may be worthwhile even so.
-@<Populate |lim_to_process| from |predecessor_lim|@> =
+@ @<Populate |lim_to_process| from |predecessor_lim|@> =
 {
   const AHFA top_AHFA = Top_AHFA_of_LIM (predecessor_lim);
   Top_AHFA_of_LIM (lim_to_process) = top_AHFA;
   Predecessor_LIM_of_LIM (lim_to_process) = predecessor_lim;
   Origin_of_LIM (lim_to_process) = Origin_of_LIM (predecessor_lim);
-  @/@, /* If the AHFA has non-direct completions ... */
   if (AHFA_has_Nondirect_Completion (top_AHFA))
     {
+      /* If the AHFA has non-direct completions ... */
       const CIL predecessor_cil = CIL_of_LIM (predecessor_lim);
-      @/@, /* and the predecessor LIM was not at completion closure ... */
       if (predecessor_cil)
 	{
-	  CIL cil_for_this_completion = cil_singleton(&g->t_cilar, Postdot_ISYID_of_LIM(lim_to_process));
-	  CIL new_cil = cil_merge (&g->t_cilar, predecessor_cil, cil_for_this_completion);
-	  @/@, /* and adding this completion does not bring the new LIM
-	  to completion closure ... */
-	  if (cil_cmp (new_cil,
-	    Indirect_Completion_Event_CIL_of_AHFA (top_AHFA),
-	    0)
-	    )
+	  /* and if the predecessor LIM was not at completion closure ... */
+	  ISYID isyid_to_merge = Postdot_ISYID_of_LIM (lim_to_process);
+	  CIL new_cil =
+	    cil_merge_one (&g->t_cilar, predecessor_cil, isyid_to_merge);
+	  /* and adding this completion does not bring the new LIM
+	     to completion closure ... */
+	  if (!new_cil)
+	    {			/* The postdot ISYID was already in the predecessor CIL,
+				   so just copy that CIL to the LIM we are processing. */
+	      CIL_of_LIM (lim_to_process) = predecessor_cil;
+	    }
+	  else if (cil_cmp (new_cil,
+			    Indirect_Completion_Event_CIL_of_AHFA (top_AHFA),
+			    0))
 	    {
-	  @/@, /* Set the CIL for this LIM to the completion CIL.
-	  Otherwise, leave it at the default of |NULL|, which indicated
-	  the LIM is at completion closure. */
+	      /* Set the CIL for this LIM to the completion CIL.
+	         Otherwise, leave it at the default of |NULL|, which indicated
+	         the LIM is at completion closure. */
 	      CIL_of_LIM (lim_to_process) = new_cil;
 	    }
 	}
@@ -14831,23 +14832,9 @@ PRIVATE CIL cil_buffer_reserve(CILAR cilar, int element_count)
 }
 
 @ Merge two CIL's into a new one.
-Merging a single int into a CIL is a common
-special-case, but for now we do not think the
-optimization is worth it.
-Also, this method trades unneeded obstack block
+Not used at this point.
+This method trades unneeded obstack block
 allocations for CPU speed.
-In the usual case,
-the size of the merged CIL
-is a tiny fraction of the size of the obstack's
-memory blocks,
-the extra allocations are rare
-and
-the memory fragmentation minimal,
-while the CPU saving is substantial.
-If larger CIL's are common,
-this routine could be rewritten
-(or the obstack's memory blocks could simply be
-increased in size.)
 @<Function definitions@> =
 PRIVATE CIL cil_merge(CILAR cilar, CIL cil1, CIL cil2)
 {
@@ -14893,6 +14880,46 @@ PRIVATE CIL cil_merge(CILAR cilar, CIL cil1, CIL cil2)
       new_cil_ix++;
   }
   Count_of_CIL(new_cil) = new_cil_ix;
+  return cil_buffer_add (cilar);
+}
+
+@ Merge |int new_element| into an
+a CIL already in the CILAR.
+Optimized for the case where the CIL already includes
+|new_element|,
+in which case it returns |NULL|.
+@<Function definitions@> =
+PRIVATE CIL cil_merge_one(CILAR cilar, CIL cil, int new_element)
+{
+  const int cil_count = Count_of_CIL (cil);
+  CIL new_cil = cil_buffer_reserve (cilar, cil_count + 1);
+  int new_cil_ix = 0;
+  int cil_ix = 0;
+  while (cil_ix < cil_count)
+    {
+      const int cil_item = Item_of_CIL (cil, cil_ix);
+      if (cil_item == new_element)
+	{
+	  /* |new_element| is already in |cil|, so we just return |cil|.
+	     It is OK to abandon the CIL in progress */
+	  return NULL;
+	}
+      if (cil_item > new_element)
+	break;
+      Item_of_CIL (new_cil, new_cil_ix) = cil_item;
+      cil_ix++;
+      new_cil_ix++;
+    }
+  Item_of_CIL (new_cil, new_cil_ix) = new_element;
+  new_cil_ix++;
+  while (cil_ix < cil_count)
+    {
+      const int cil_item = Item_of_CIL (cil, cil_ix);
+      Item_of_CIL (new_cil, new_cil_ix) = cil_item;
+      cil_ix++;
+      new_cil_ix++;
+    }
+  Count_of_CIL (new_cil) = new_cil_ix;
   return cil_buffer_add (cilar);
 }
 
