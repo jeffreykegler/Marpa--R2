@@ -14743,6 +14743,7 @@ cilar_init (const CILAR cilar)
   cilar->t_obs = my_obstack_init;
   cilar->t_avl = _marpa_avl_create (cil_cmp, NULL, 0);
   DSTACK_INIT(cilar->t_buffer, int, 2);
+  *DSTACK_INDEX(cilar->t_buffer, int, 0) = 0;
 }
 @
 {\bf To Do}: @^To Do@> The initial capacity of the CILAR dstack
@@ -14755,6 +14756,7 @@ cilar_reinit (const CILAR cilar)
 {
   DSTACK_DESTROY(cilar->t_buffer);
   DSTACK_INIT(cilar->t_buffer, int, 2);
+  *DSTACK_INDEX(cilar->t_buffer, int, 0) = 0;
 }
 
 @ @<Function definitions@> =
@@ -14817,8 +14819,8 @@ PRIVATE CIL cil_reserve(CILAR cilar, int length)
 @<Function definitions@> =
 PRIVATE CIL cil_empty(CILAR cilar)
 {
-    cil_reserve(cilar, 0);
-    return cil_finish (cilar);
+  *DSTACK_INDEX (cilar->t_buffer, int, 0) = 0;	/* We assume there is enough room */
+  return cil_buffer_add (cilar);
 }
 
 @ Return a singleton CIL from a CILAR.
