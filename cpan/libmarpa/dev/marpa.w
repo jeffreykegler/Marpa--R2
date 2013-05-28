@@ -14643,7 +14643,7 @@ resizings are uncommon or even exceptional events.
 @<Function definitions@> =
 PRIVATE void * dstack_resize(struct s_dstack* this, size_t type_bytes, int new_size)
 {
-  if (new_size < this->t_capacity)
+  if (new_size > this->t_capacity)
     {				/* We do not shrink the stack
 				   in this method */
       this->t_capacity = new_size;
