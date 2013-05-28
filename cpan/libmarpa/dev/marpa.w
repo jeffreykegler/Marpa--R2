@@ -14819,7 +14819,8 @@ PRIVATE CIL cil_reserve(CILAR cilar, int length)
 @<Function definitions@> =
 PRIVATE CIL cil_empty(CILAR cilar)
 {
-  *DSTACK_INDEX (cilar->t_buffer, int, 0) = 0;	/* We assume there is enough room */
+  CIL cil = DSTACK_BASE (cilar->t_buffer, int);	/* We assume there is enough room */
+  Count_of_CIL(cil) = 0;
   return cil_buffer_add (cilar);
 }
 
@@ -14827,9 +14828,11 @@ PRIVATE CIL cil_empty(CILAR cilar)
 @<Function definitions@> =
 PRIVATE CIL cil_singleton(CILAR cilar, int element)
 {
-  CIL new_cil = cil_reserve (cilar, 1);
-  Item_of_CIL (new_cil, 0) = element;
-  return cil_finish (cilar);
+  CIL cil = DSTACK_BASE (cilar->t_buffer, int);
+  Count_of_CIL(cil) = 1;
+  Item_of_CIL(cil, 0) = element;
+  /* We assume there is enough room in the CIL buffer for a singleton */
+  return cil_buffer_add (cilar);
 }
 
 @ Add the CIL in the buffer to the
