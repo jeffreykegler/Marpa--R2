@@ -1539,6 +1539,26 @@ Marpa_Grammar g, Marpa_Symbol_ID xsy_id, int value)
     return failure_indicator;
 }
 
+@*0 Prediction Event CIL.
+@d Prediction_Event_CIL_of_XSYID(xsyid) (XSY_by_ID(xsyid)->t_direct_completion_event_isyids)
+@<Widely aligned XSY elements@> =
+  CIL t_prediction_event_xsyids;
+@ The prediction event XSYIDs include all the symbols nullified by an XSY.
+A nullable symbol always nullifies itself.
+It may nullify additional XSY's through derivations of nulled rules.
+The issue of ambiguous derivations is dealt with by including all
+nulled derivations.
+If XSY |xsy1| can nullify XSY |xsy2|, then it does.
+@ Initialized to NULL, but must be populated with a CIL if there are
+any prediction events.
+For non-nullable XSY's, this will be the empty CIL.
+@ {\bf To Do}: @^To Do@>
+Need to add the logic to not populate these CIL's if there are
+no prediction events.
+Right now the prediction event CIL's are always populated.
+@<Initialize IRL elements@> =
+  Prediction_Event_CIL_of_IRL(irl) = NULL;
+
 @*0 Primary internal equivalent.
 This is the internal
 equivalent of the external symbol.
@@ -3470,6 +3490,9 @@ Change so that this runs only if there are prediction events.
 {
   XSYID xsyid;
   XRLID xrlid;
+  CIL buffer_cil;
+  int nullable_xsy_count = 0; /* Use this to make sure we
+  have enough CILAR buffer space */
   Bit_Matrix nullification_matrix =
     matrix_obs_create (obs_precompute, (unsigned int) pre_census_xsy_count,
 		       (unsigned int) pre_census_xsy_count);
@@ -3477,6 +3500,7 @@ Change so that this runs only if there are prediction events.
     {				/* Every nullable symbol symbol nullifies itself */
       if (!XSYID_is_Nullable (xsyid))
 	continue;
+      nullable_xsy_count;
       matrix_bit_set (nullification_matrix, (unsigned int) xsyid,
 		      (unsigned int) xsyid);
     }
@@ -3496,6 +3520,24 @@ Change so that this runs only if there are prediction events.
 	}
     }
   transitive_closure (nullification_matrix);
+  for (xsyid = 0; xsyid < pre_census_xsy_count; xsyid++) {
+    unsigned int min, max, start;
+    Bit_Vector bv_nullifications_by_to_xsy = matrix_row (nullification_matrix, (unsigned long) xsyid);
+    int cil_ix = 0;
+    CIL new_cil = cil_buffer_reserve (&g->t_cilar, nullable_xsyid_count);
+    for (start = 0; bv_scan (bv_nullifications_by_to_xsy, start, &min, &max);
+	 start = max + 2)
+      {
+	XSYID to_xsyid;
+	for (to_xsyid = (xSYID) min; to_xsyid <= (XSYID) max; to_xsyid++)
+	  {
+	    Item_of_CIL (new_cil, cil_ix) = to_xsyid;
+	    cil_ix++;
+	  }
+      }
+    Count_of_CIL(new_cil) = cil_ix;
+    Prediction_Event_CIL_of_XSYID(xsy) = cil_buffer_add (&g->t_cilar);
+  }
 }
 
 @** The sequence rewrite.
