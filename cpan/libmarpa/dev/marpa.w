@@ -1418,7 +1418,8 @@ int marpa_g_symbol_is_nulling(Marpa_Grammar g, Marpa_Symbol_ID xsy_id)
 }
 
 @*0 Symbol is nullable?.
-@d XSY_is_Nullable(sym) ((sym)->t_is_nullable)
+@d XSY_is_Nullable(xsy) ((xsy)->t_is_nullable)
+@d XSYID_is_Nullable(xsyid) XSY_is_Nullable(XSY_by_ID(xsyid))
 @<Bit aligned symbol elements@> = unsigned int t_is_nullable:1;
 @ @<Initialize symbol elements@> =
 symbol->t_is_nullable = 0;
@@ -1430,7 +1431,7 @@ int marpa_g_symbol_is_nullable(Marpa_Grammar g, Marpa_Symbol_ID xsy_id)
     @<Fail if not precomputed@>@;
     @<Fail if |xsy_id| is malformed@>@;
     @<Soft fail if |xsy_id| does not exist@>@;
-    return XSY_is_Nullable(XSY_by_ID(xsy_id));
+    return XSYID_is_Nullable(xsy_id);
 }
 
 @*0 Symbol is terminal?.
@@ -2982,7 +2983,9 @@ more than a single pass of the diagnostics.
 (As of this writing, I personally have yet to encounter such a case.)
 The upside is that in the more frequent cases, the user is spared
 a lot of useless diagnostics.
-
+@ {\bf To Do}: @^To Do@>
+Change so that nullification CIls are
+populated only if there are prediction events.
 @<Perform census of grammar |g|@> =
 {
     @<Census symbols@>@;
@@ -2995,6 +2998,9 @@ a lot of useless diagnostics.
     @<Census nulling symbols@>@;
     @<Classify rules@>@;
     @<Mark valued symbols@>@;
+    if (1) {
+      @<Populate nullification CILs@>@;
+    }
 }
 
 @ @<Declare precompute variables@> =
@@ -3451,6 +3457,46 @@ if (0)
 	  }
       }
   }
+
+@ An XSY $A$ nullifies XSY $B$ if the fact
+that |A| is nulled implies that |B| is nulled as well.
+This may happen trivially -- a nullable symbol
+nullifies itself.
+And it may happen through a nullable derivation.
+The derivation may be ambiguous -- in other words,
+|A| nullfies |B| if a nulled |B| can be derived from a nulled |A|.
+Change so that this runs only if there are prediction events.
+@<Populate nullification CILs@> = 
+{
+  XSYID xsyid;
+  XRLID xrlid;
+  Bit_Matrix nullification_matrix =
+    matrix_obs_create (obs_precompute, (unsigned int) pre_census_xsy_count,
+		       (unsigned int) pre_census_xsy_count);
+  for (xsyid = 0; xsyid < pre_census_xsy_count; xsyid++)
+    {				/* Every nullable symbol symbol nullifies itself */
+      if (!XSYID_is_Nullable (xsyid))
+	continue;
+      matrix_bit_set (nullification_matrix, (unsigned int) xsyid,
+		      (unsigned int) xsyid);
+    }
+  for (xrlid = 0; xrlid < xrl_count; xrlid++)
+    {
+      int rh_ix;
+      XRL xrl = XRL_by_ID (xrlid);
+      const XSYID lhs_id = LHS_ID_of_XRL (xrl);
+      if (XRL_is_Nullable (xrl))
+	{
+	  for (rh_ix = 0; rh_ix < Length_of_XRL (xrl); rh_ix++)
+	    {
+	      const XSYID rhs_id = RHS_ID_of_XRL (xrl, rh_ix);
+	      matrix_bit_set (nullification_matrix, (unsigned int) lhs_id,
+			      (unsigned int) rhs_id);
+	    }
+	}
+    }
+  transitive_closure (nullification_matrix);
+}
 
 @** The sequence rewrite.
 @<Rewrite sequence |rule| into BNF@> =
