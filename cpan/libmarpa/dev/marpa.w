@@ -3494,10 +3494,12 @@ Change so that this runs only if there are prediction events.
   XRLID xrlid;
   int nullable_xsy_count = 0;	/* Use this to make sure we
 				   have enough CILAR buffer space */
-  struct obstack *obs_scratch = my_obstack_init; /* An obstack just for the
-  matrix, which is large and very temporary */
+  void* matrix_buffer = my_malloc(matrix_sizeof(
+     (unsigned int) pre_census_xsy_count,
+		       (unsigned int) pre_census_xsy_count)); /* This
+  matrix is large and very temporary, so it does not go on the obstack */
   Bit_Matrix nullification_matrix =
-    matrix_obs_create (obs_scratch, (unsigned int) pre_census_xsy_count,
+    matrix_buffer_create (matrix_buffer, (unsigned int) pre_census_xsy_count,
 		       (unsigned int) pre_census_xsy_count);
   for (xsyid = 0; xsyid < pre_census_xsy_count; xsyid++)
     {				/* Every nullable symbol symbol nullifies itself */
@@ -3544,7 +3546,7 @@ Change so that this runs only if there are prediction events.
       Count_of_CIL (new_cil) = cil_ix;
       Nulled_Event_CIL_of_XSYID (xsyid) = cil_buffer_add (&g->t_cilar);
     }
-    my_obstack_free (obs_scratch);
+    my_free(matrix_buffer);
 }
 
 @** The sequence rewrite.
