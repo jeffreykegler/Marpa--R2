@@ -1542,7 +1542,7 @@ Marpa_Grammar g, Marpa_Symbol_ID xsy_id, int value)
 @*0 Prediction Event CIL.
 @d Prediction_Event_CIL_of_XSY(xsy) ((xsy)->t_prediction_event_xsyids)
 @d Prediction_Event_CIL_of_XSYID(xsyid)
-  Prediction_Event_CIL_of_XSY(ID_of_XSY(xsyid))
+  Prediction_Event_CIL_of_XSY(XSY_by_ID(xsyid))
 @<Widely aligned XSY elements@> =
   CIL t_prediction_event_xsyids;
 @ The prediction event XSYIDs include all the symbols nullified by an XSY.
@@ -3492,7 +3492,6 @@ Change so that this runs only if there are prediction events.
 {
   XSYID xsyid;
   XRLID xrlid;
-  CIL buffer_cil;
   int nullable_xsy_count = 0;	/* Use this to make sure we
 				   have enough CILAR buffer space */
   Bit_Matrix nullification_matrix =
@@ -3735,20 +3734,20 @@ is not already aliased, alias it.
   XSYID xsy_id;
   for (xsy_id = 0; xsy_id < pre_census_xsy_count; xsy_id++)
     {
-      const XSY xsy = XSY_by_ID (xsy_id);
-      if (UNLIKELY (!xsy->t_is_accessible))
+      const XSY xsy_to_clone = XSY_by_ID (xsy_id);
+      if (UNLIKELY (!xsy_to_clone->t_is_accessible))
 	continue;
-      if (UNLIKELY (!xsy->t_is_productive))
+      if (UNLIKELY (!xsy_to_clone->t_is_productive))
 	continue;
-      ISY_of_XSY(xsy) = isy_clone (g, xsy);
-      if (XSY_is_Nulling (xsy))
+      ISY_of_XSY(xsy_to_clone) = isy_clone (g, xsy_to_clone);
+      if (XSY_is_Nulling (xsy_to_clone))
 	{
-	  Nulling_ISY_of_XSY(xsy) = ISY_of_XSY(xsy);
+	  Nulling_ISY_of_XSY(xsy_to_clone) = ISY_of_XSY(xsy_to_clone);
 	  continue;
 	}
-      if (XSY_is_Nullable (xsy))
+      if (XSY_is_Nullable (xsy_to_clone))
 	{
-	  Nulling_ISY_of_XSY(xsy) = symbol_alias_create (g, xsy);
+	  Nulling_ISY_of_XSY(xsy_to_clone) = symbol_alias_create (g, xsy_to_clone);
 	}
     }
 }
