@@ -14487,14 +14487,13 @@ typedef struct s_bit_matrix* Bit_Matrix;
 This is {\bf not} the case with vectors, whose pointer is offset for
 the ``hidden words".
 @<Function definitions@> =
-PRIVATE Bit_Matrix matrix_obs_create(struct obstack *obs, unsigned int rows, unsigned int columns)
+PRIVATE Bit_Matrix matrix_buffer_create(void *buffer, unsigned int rows, unsigned int columns)
 {
     unsigned int row;
     const unsigned int bv_data_words = bv_bits_to_size(columns);
-    const unsigned int row_bytes = (bv_data_words + bv_hiddenwords) * sizeof(Bit_Vector_Word);
     const unsigned int bv_mask = bv_bits_to_unused_mask(columns);
-    const int sizeof_matrix = offsetof (struct s_bit_matrix, t_row_data) + (rows) * row_bytes;
-    Bit_Matrix matrix_addr = my_obstack_alloc(obs, sizeof_matrix);
+
+    Bit_Matrix matrix_addr = buffer;
     matrix_addr->t_row_count = rows;
     for (row = 0; row < rows; row++) {
 	const unsigned int row_start = row*(bv_data_words+bv_hiddenwords);
@@ -14506,6 +14505,25 @@ PRIVATE Bit_Matrix matrix_obs_create(struct obstack *obs, unsigned int rows, uns
 	while (data_word_counter--) *p_current_word++ = 0;
     }
     return matrix_addr;
+}
+
+@*0 Size a boolean matrix in bytes.
+@ @<Function definitions@> =
+PRIVATE size_t matrix_sizeof(unsigned int rows, unsigned int columns)
+{
+    unsigned int row;
+    const unsigned int bv_data_words = bv_bits_to_size(columns);
+    const unsigned int row_bytes = (bv_data_words + bv_hiddenwords) * sizeof(Bit_Vector_Word);
+    return offsetof (struct s_bit_matrix, t_row_data) + (rows) * row_bytes;
+}
+
+@*0 Create a boolean matrix on an obstack.
+@ @<Function definitions@> =
+PRIVATE Bit_Matrix matrix_obs_create(struct obstack *obs, unsigned int rows, unsigned int columns)
+{
+  Bit_Matrix matrix_addr =
+    my_obstack_alloc (obs, matrix_sizeof (rows, columns));
+  return matrix_buffer_create (matrix_addr, rows, columns);
 }
 
 @*0 Clear a boolean matrix.
