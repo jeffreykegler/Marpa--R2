@@ -1195,23 +1195,23 @@ typedef const struct s_xsy* XSY_Const;
 
 @ @<Private structures@> =
 struct s_xsy {
-    @<Widely aligned symbol elements@>@;
-    @<Int aligned symbol elements@>@;
-    @<Bit aligned symbol elements@>@;
+    @<Widely aligned XSY elements@>@;
+    @<Int aligned XSY elements@>@;
+    @<Bit aligned XSY elements@>@;
 };
 
 @*0 ID.
 @d ID_of_XSY(xsy) ((xsy)->t_symbol_id)
-@<Int aligned symbol elements@> = XSYID t_symbol_id;
+@<Int aligned XSY elements@> = XSYID t_symbol_id;
 
 @ @<Function definitions@> =
 PRIVATE XSY
 symbol_new (GRAMMAR g)
 {
-  XSY symbol = my_obstack_new (g->t_obs, struct s_xsy, 1);
-  @<Initialize symbol elements @>@;
-  symbol_add (g, symbol);
-  return symbol;
+  XSY xsy = my_obstack_new (g->t_obs, struct s_xsy, 1);
+  @<Initialize XSY elements @>@;
+  symbol_add (g, xsy);
+  return xsy;
 }
 
 @ @<Function definitions@> =
@@ -1223,8 +1223,8 @@ marpa_g_symbol_new (Marpa_Grammar g)
 }
 
 @*0 Symbol is start?.
-@<Bit aligned symbol elements@> = unsigned int t_is_start:1;
-@ @<Initialize symbol elements@> = symbol->t_is_start = 0;
+@<Bit aligned XSY elements@> = unsigned int t_is_start:1;
+@ @<Initialize XSY elements@> = xsy->t_is_start = 0;
 @ @<Function definitions@> =
 int marpa_g_symbol_is_start( Marpa_Grammar g, Marpa_Symbol_ID xsy_id) 
 {
@@ -1236,10 +1236,10 @@ int marpa_g_symbol_is_start( Marpa_Grammar g, Marpa_Symbol_ID xsy_id)
 }
 
 @*0 Symbol rank.
-@<Int aligned symbol elements@> = 
+@<Int aligned XSY elements@> = 
   Marpa_Rank t_rank;
-@ @<Initialize symbol elements@> =
-symbol->t_rank = Default_Rank_of_G(g);
+@ @<Initialize XSY elements@> =
+xsy->t_rank = Default_Rank_of_G(g);
 @ @d Rank_of_XSY(symbol) ((symbol)->t_rank)
 @<Function definitions@> =
 int marpa_g_symbol_rank(Marpa_Grammar g,
@@ -1283,24 +1283,24 @@ Marpa_Grammar g, Marpa_Symbol_ID xsy_id, Marpa_Rank rank)
 Is this (external) symbol on the LHS of any rule,
 whether sequence or BNF.
 @d XSY_is_LHS(xsy) ((xsy)->t_is_lhs)
-@<Bit aligned symbol elements@> = unsigned int t_is_lhs:1;
-@ @<Initialize symbol elements@> =
-    XSY_is_LHS(symbol) = 0;
+@<Bit aligned XSY elements@> = unsigned int t_is_lhs:1;
+@ @<Initialize XSY elements@> =
+    XSY_is_LHS(xsy) = 0;
 
 @*0 Symbol is sequence LHS?.
 Is this (external) symbol on the LHS of a sequence rule?
 @d XSY_is_Sequence_LHS(xsy) ((xsy)->t_is_sequence_lhs)
-@<Bit aligned symbol elements@> = unsigned int t_is_sequence_lhs:1;
-@ @<Initialize symbol elements@> =
-    XSY_is_Sequence_LHS(symbol) = 0;
+@<Bit aligned XSY elements@> = unsigned int t_is_sequence_lhs:1;
+@ @<Initialize XSY elements@> =
+    XSY_is_Sequence_LHS(xsy) = 0;
 
 @*0 Symbol has semantics?.
 Can the symbol have a user-specified semantics?
 Symbols are semantic by default.
 @d XSY_is_Semantic(xsy) ((xsy)->t_is_semantic)
-@<Bit aligned symbol elements@> = unsigned int t_is_semantic:1;
-@ @<Initialize symbol elements@> =
-    XSY_is_Semantic(symbol) = 1;
+@<Bit aligned XSY elements@> = unsigned int t_is_semantic:1;
+@ @<Initialize XSY elements@> =
+    XSY_is_Semantic(xsy) = 1;
 @ @<Function definitions@> =
 int _marpa_g_symbol_is_semantic(
     Marpa_Grammar g,
@@ -1322,12 +1322,12 @@ a symbol -- that is, the semantics
 is arbitrary.
 @d XSY_is_Valued(symbol) ((symbol)->t_is_valued)
 @d XSY_is_Valued_Locked(symbol) ((symbol)->t_is_valued_locked)
-@<Bit aligned symbol elements@> =
+@<Bit aligned XSY elements@> =
   unsigned int t_is_valued:1;
   unsigned int t_is_valued_locked:1;
-@ @<Initialize symbol elements@> =
-  XSY_is_Valued(symbol) = 0;
-  XSY_is_Valued_Locked(symbol) = 0;
+@ @<Initialize XSY elements@> =
+  XSY_is_Valued(xsy) = 0;
+  XSY_is_Valued_Locked(xsy) = 0;
 
 @ @<Function definitions@> =
 int marpa_g_symbol_is_valued(
@@ -1366,9 +1366,9 @@ int marpa_g_symbol_is_valued_set(
 
 @*0 Symbol is accessible?.
 @d XSY_is_Accessible(xsy) ((xsy)->t_is_accessible)
-@<Bit aligned symbol elements@> = unsigned int t_is_accessible:1;
-@ @<Initialize symbol elements@> =
-symbol->t_is_accessible = 0;
+@<Bit aligned XSY elements@> = unsigned int t_is_accessible:1;
+@ @<Initialize XSY elements@> =
+xsy->t_is_accessible = 0;
 @ The trace accessor returns the boolean value.
 Right now this function uses a pointer
 to the symbol function.
@@ -1387,9 +1387,9 @@ int marpa_g_symbol_is_accessible(Marpa_Grammar g, Marpa_Symbol_ID xsy_id)
 }
 
 @*0 Symbol is counted?.
-@<Bit aligned symbol elements@> = unsigned int t_is_counted:1;
-@ @<Initialize symbol elements@> =
-symbol->t_is_counted = 0;
+@<Bit aligned XSY elements@> = unsigned int t_is_counted:1;
+@ @<Initialize XSY elements@> =
+xsy->t_is_counted = 0;
 @ @<Function definitions@> =
 int marpa_g_symbol_is_counted(Marpa_Grammar g,
 Marpa_Symbol_ID xsy_id)
@@ -1403,9 +1403,9 @@ Marpa_Symbol_ID xsy_id)
 
 @*0 Symbol is nulling?.
 @d XSY_is_Nulling(sym) ((sym)->t_is_nulling)
-@<Bit aligned symbol elements@> = unsigned int t_is_nulling:1;
-@ @<Initialize symbol elements@> =
-symbol->t_is_nulling = 0;
+@<Bit aligned XSY elements@> = unsigned int t_is_nulling:1;
+@ @<Initialize XSY elements@> =
+xsy->t_is_nulling = 0;
 @ @<Function definitions@> =
 int marpa_g_symbol_is_nulling(Marpa_Grammar g, Marpa_Symbol_ID xsy_id)
 {
@@ -1420,9 +1420,9 @@ int marpa_g_symbol_is_nulling(Marpa_Grammar g, Marpa_Symbol_ID xsy_id)
 @*0 Symbol is nullable?.
 @d XSY_is_Nullable(xsy) ((xsy)->t_is_nullable)
 @d XSYID_is_Nullable(xsyid) XSY_is_Nullable(XSY_by_ID(xsyid))
-@<Bit aligned symbol elements@> = unsigned int t_is_nullable:1;
-@ @<Initialize symbol elements@> =
-symbol->t_is_nullable = 0;
+@<Bit aligned XSY elements@> = unsigned int t_is_nullable:1;
+@ @<Initialize XSY elements@> =
+xsy->t_is_nullable = 0;
 @ @<Function definitions@> =
 int marpa_g_symbol_is_nullable(Marpa_Grammar g, Marpa_Symbol_ID xsy_id)
 {
@@ -1441,12 +1441,12 @@ It distinguishes those
 terminal settings that will
 be overwritten by the default
 from those should not be.
-@<Bit aligned symbol elements@> =
+@<Bit aligned XSY elements@> =
 unsigned int t_is_terminal:1;
 unsigned int t_is_locked_terminal:1;
-@ @<Initialize symbol elements@> =
-symbol->t_is_terminal = 0;
-symbol->t_is_locked_terminal = 0;
+@ @<Initialize XSY elements@> =
+xsy->t_is_terminal = 0;
+xsy->t_is_locked_terminal = 0;
 @ @d XSY_is_Terminal(xsy) ((xsy)->t_is_terminal)
 @ @d XSY_is_Locked_Terminal(xsy) ((xsy)->t_is_locked_terminal)
 @d XSYID_is_Terminal(id) (XSY_is_Terminal(XSY_by_ID(id)))
@@ -1488,9 +1488,9 @@ Marpa_Grammar g, Marpa_Symbol_ID xsy_id, int value)
 
 @*0 XSY is productive?.
 @d XSY_is_Productive(xsy) ((xsy)->t_is_productive)
-@<Bit aligned symbol elements@> = unsigned int t_is_productive:1;
-@ @<Initialize symbol elements@> =
-symbol->t_is_productive = 0;
+@<Bit aligned XSY elements@> = unsigned int t_is_productive:1;
+@ @<Initialize XSY elements@> =
+xsy->t_is_productive = 0;
 @ @<Function definitions@> =
 int marpa_g_symbol_is_productive(
     Marpa_Grammar g,
@@ -1507,9 +1507,9 @@ int marpa_g_symbol_is_productive(
 @*0 XSY is completion event?.
 @d XSY_is_Completion_Event(xsy) ((xsy)->t_is_completion_event)
 @d XSYID_is_Completion_Event(xsyid) XSY_is_Completion_Event(XSY_by_ID(xsyid))
-@<Bit aligned symbol elements@> = unsigned int t_is_completion_event:1;
-@ @<Initialize symbol elements@> =
-symbol->t_is_completion_event = 0;
+@<Bit aligned XSY elements@> = unsigned int t_is_completion_event:1;
+@ @<Initialize XSY elements@> =
+xsy->t_is_completion_event = 0;
 @ @<Function definitions@> =
 int marpa_g_symbol_is_completion_event(Marpa_Grammar g,
 Marpa_Symbol_ID xsy_id)
@@ -1540,7 +1540,9 @@ Marpa_Grammar g, Marpa_Symbol_ID xsy_id, int value)
 }
 
 @*0 Prediction Event CIL.
-@d Prediction_Event_CIL_of_XSYID(xsyid) (XSY_by_ID(xsyid)->t_direct_completion_event_isyids)
+@d Prediction_Event_CIL_of_XSY(xsy) ((xsy)->t_prediction_event_xsyids)
+@d Prediction_Event_CIL_of_XSYID(xsyid)
+  Prediction_Event_CIL_of_XSY(ID_of_XSY(xsyid))
 @<Widely aligned XSY elements@> =
   CIL t_prediction_event_xsyids;
 @ The prediction event XSYIDs include all the symbols nullified by an XSY.
@@ -1556,8 +1558,8 @@ For non-nullable XSY's, this will be the empty CIL.
 Need to add the logic to not populate these CIL's if there are
 no prediction events.
 Right now the prediction event CIL's are always populated.
-@<Initialize IRL elements@> =
-  Prediction_Event_CIL_of_IRL(irl) = NULL;
+@<Initialize XSY elements@> =
+  Prediction_Event_CIL_of_XSY(xsy) = NULL;
 
 @*0 Primary internal equivalent.
 This is the internal
@@ -1571,8 +1573,8 @@ it is the non-nullable ISY.
 |ISYID_by_XSYID(xsy_id)| to ensure that
 |ISY_of_XSY(xsy)| exists.
 @d ISYID_by_XSYID(xsy_id) ID_of_ISY(ISY_of_XSY(XSY_by_ID(xsy_id)))
-@<Widely aligned symbol elements@> = ISY t_isy_equivalent;
-@ @<Initialize symbol elements@> = ISY_of_XSY(symbol) = NULL;
+@<Widely aligned XSY elements@> = ISY t_isy_equivalent;
+@ @<Initialize XSY elements@> = ISY_of_XSY(xsy) = NULL;
 @ @<Function definitions@> =
 Marpa_ISY_ID _marpa_g_xsy_isy(
     Marpa_Grammar g,
@@ -1603,8 +1605,8 @@ there is no nulling internal equivalent.
 |Nulling_ISYID_by_XSYID(xsy_id)| to ensure that
 |Nulling_ISY_of_XSY(xsy)| exists.
 @d Nulling_ISYID_by_XSYID(xsy) ID_of_ISY(XSY_by_ID(xsy)->t_nulling_isy)
-@<Widely aligned symbol elements@> = ISY t_nulling_isy;
-@ @<Initialize symbol elements@> = Nulling_ISY_of_XSY(symbol) = NULL;
+@<Widely aligned XSY elements@> = ISY t_nulling_isy;
+@ @<Initialize XSY elements@> = Nulling_ISY_of_XSY(xsy) = NULL;
 @ @<Function definitions@> =
 Marpa_ISY_ID _marpa_g_xsy_nulling_isy(
     Marpa_Grammar g,
@@ -3491,8 +3493,8 @@ Change so that this runs only if there are prediction events.
   XSYID xsyid;
   XRLID xrlid;
   CIL buffer_cil;
-  int nullable_xsy_count = 0; /* Use this to make sure we
-  have enough CILAR buffer space */
+  int nullable_xsy_count = 0;	/* Use this to make sure we
+				   have enough CILAR buffer space */
   Bit_Matrix nullification_matrix =
     matrix_obs_create (obs_precompute, (unsigned int) pre_census_xsy_count,
 		       (unsigned int) pre_census_xsy_count);
@@ -3520,24 +3522,27 @@ Change so that this runs only if there are prediction events.
 	}
     }
   transitive_closure (nullification_matrix);
-  for (xsyid = 0; xsyid < pre_census_xsy_count; xsyid++) {
-    unsigned int min, max, start;
-    Bit_Vector bv_nullifications_by_to_xsy = matrix_row (nullification_matrix, (unsigned long) xsyid);
-    int cil_ix = 0;
-    CIL new_cil = cil_buffer_reserve (&g->t_cilar, nullable_xsyid_count);
-    for (start = 0; bv_scan (bv_nullifications_by_to_xsy, start, &min, &max);
-	 start = max + 2)
-      {
-	XSYID to_xsyid;
-	for (to_xsyid = (xSYID) min; to_xsyid <= (XSYID) max; to_xsyid++)
-	  {
-	    Item_of_CIL (new_cil, cil_ix) = to_xsyid;
-	    cil_ix++;
-	  }
-      }
-    Count_of_CIL(new_cil) = cil_ix;
-    Prediction_Event_CIL_of_XSYID(xsy) = cil_buffer_add (&g->t_cilar);
-  }
+  for (xsyid = 0; xsyid < pre_census_xsy_count; xsyid++)
+    {
+      unsigned int min, max, start;
+      Bit_Vector bv_nullifications_by_to_xsy =
+	matrix_row (nullification_matrix, (unsigned long) xsyid);
+      int cil_ix = 0;
+      CIL new_cil = cil_buffer_reserve (&g->t_cilar, nullable_xsyid_count);
+      for (start = 0;
+	   bv_scan (bv_nullifications_by_to_xsy, start, &min, &max);
+	   start = max + 2)
+	{
+	  XSYID to_xsyid;
+	  for (to_xsyid = (xSYID) min; to_xsyid <= (XSYID) max; to_xsyid++)
+	    {
+	      Item_of_CIL (new_cil, cil_ix) = to_xsyid;
+	      cil_ix++;
+	    }
+	}
+      Count_of_CIL (new_cil) = cil_ix;
+      Prediction_Event_CIL_of_XSYID (xsy) = cil_buffer_add (&g->t_cilar);
+    }
 }
 
 @** The sequence rewrite.
