@@ -1539,27 +1539,27 @@ Marpa_Grammar g, Marpa_Symbol_ID xsy_id, int value)
     return failure_indicator;
 }
 
-@*0 Prediction Event CIL.
-@d Prediction_Event_CIL_of_XSY(xsy) ((xsy)->t_prediction_event_xsyids)
-@d Prediction_Event_CIL_of_XSYID(xsyid)
-  Prediction_Event_CIL_of_XSY(XSY_by_ID(xsyid))
+@*0 Nulled Event CIL.
+@d Nulled_Event_CIL_of_XSY(xsy) ((xsy)->t_nulled_event_xsyids)
+@d Nulled_Event_CIL_of_XSYID(xsyid)
+  Nulled_Event_CIL_of_XSY(XSY_by_ID(xsyid))
 @<Widely aligned XSY elements@> =
-  CIL t_prediction_event_xsyids;
-@ The prediction event XSYIDs include all the symbols nullified by an XSY.
+  CIL t_nulled_event_xsyids;
+@ The nulled event XSYIDs include all the symbols nullified by an XSY.
 A nullable symbol always nullifies itself.
 It may nullify additional XSY's through derivations of nulled rules.
 The issue of ambiguous derivations is dealt with by including all
 nulled derivations.
 If XSY |xsy1| can nullify XSY |xsy2|, then it does.
 @ Initialized to NULL, but must be populated with a CIL if there are
-any prediction events.
+any nulled events.
 For non-nullable XSY's, this will be the empty CIL.
 @ {\bf To Do}: @^To Do@>
 Need to add the logic to not populate these CIL's if there are
-no prediction events.
-Right now the prediction event CIL's are always populated.
+no nulled events.
+Right now the nulled event CIL's are always populated.
 @<Initialize XSY elements@> =
-  Prediction_Event_CIL_of_XSY(xsy) = NULL;
+  Nulled_Event_CIL_of_XSY(xsy) = NULL;
 
 @*0 Primary internal equivalent.
 This is the internal
@@ -3494,8 +3494,10 @@ Change so that this runs only if there are prediction events.
   XRLID xrlid;
   int nullable_xsy_count = 0;	/* Use this to make sure we
 				   have enough CILAR buffer space */
+  struct obstack *obs_scratch = my_obstack_init; /* An obstack just for the
+  matrix, which is large and very temporary */
   Bit_Matrix nullification_matrix =
-    matrix_obs_create (obs_precompute, (unsigned int) pre_census_xsy_count,
+    matrix_obs_create (obs_scratch, (unsigned int) pre_census_xsy_count,
 		       (unsigned int) pre_census_xsy_count);
   for (xsyid = 0; xsyid < pre_census_xsy_count; xsyid++)
     {				/* Every nullable symbol symbol nullifies itself */
@@ -3540,8 +3542,9 @@ Change so that this runs only if there are prediction events.
 	    }
 	}
       Count_of_CIL (new_cil) = cil_ix;
-      Prediction_Event_CIL_of_XSYID (xsyid) = cil_buffer_add (&g->t_cilar);
+      Nulled_Event_CIL_of_XSYID (xsyid) = cil_buffer_add (&g->t_cilar);
     }
+    my_obstack_free (obs_scratch);
 }
 
 @** The sequence rewrite.
