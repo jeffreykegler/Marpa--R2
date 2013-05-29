@@ -2956,6 +2956,8 @@ int marpa_g_precompute(Marpa_Grammar g)
 	@<Create AHFA states@>@;
 	@<Populate the terminal boolean vector@>@;
 	@<Populate the completion event boolean vector@>@;
+	@<Populate the prediction
+	  and nulled symbol CILs@>@;
     }
     g->t_is_precomputed = 1;
     if (g->t_has_cycle)
@@ -6469,6 +6471,37 @@ AHFAID _marpa_g_AHFA_state_empty_transition(Marpa_Grammar g,
       if (XSYID_is_Completion_Event (xsyid))
 	{
 	  lbv_bit_set (g->t_lbv_xsyid_is_completion_event, xsyid);
+	}
+    }
+}
+
+@ @<Populate the prediction and nulled symbol CILs@> =
+{
+  AHFAID ahfaid;
+  const AHFAID ahfa_count_of_g = AHFA_Count_of_G (g);
+  const LBV lbv_predicted_xsyid = lbv_obs_new0 (obs_precompute, xsy_count);
+  /* The bit vectors go
+     on the precompute method's obstack.  Their are large-ish and have a short lifetime, but
+     we are nearly at the end anyway */
+  for (ahfaid = 0; ahfaid < ahfa_count_of_g; ahfaid++)
+    {
+      AIMID aimid;
+      const AHFA ahfa = AHFA_of_G_by_ID (g, ahfaid);
+      const int ahfa_item_count = AIM_Count_of_AHFA(ahfa);
+      for (aimid = 0; aimid < (AIMID) ahfa_item_count; aimid++)
+	{
+	  const AIM aim = AIM_by_ID (aimid);
+	  const ISYID postdot_isyid = Postdot_ISYID_of_AIM (aim);
+	  if (postdot_isyid >= 0)
+	    {
+	      const ISY isy = ISY_by_ID (postdot_isyid);
+	      const XSY xsy = Source_XSY_of_ISY (isy);
+	      if (xsy)
+		{
+		  const XSYID xsyid = ID_of_XSY (xsy);
+		  lbv_bit_set (lbv_predicted_xsyid, xsyid);
+		}
+	    }
 	}
     }
 }
