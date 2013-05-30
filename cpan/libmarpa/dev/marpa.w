@@ -14546,7 +14546,6 @@ PRIVATE Bit_Matrix matrix_buffer_create(void *buffer, unsigned int rows, unsigne
 @ @<Function definitions@> =
 PRIVATE size_t matrix_sizeof(unsigned int rows, unsigned int columns)
 {
-    unsigned int row;
     const unsigned int bv_data_words = bv_bits_to_size(columns);
     const unsigned int row_bytes = (bv_data_words + bv_hiddenwords) * sizeof(Bit_Vector_Word);
     return offsetof (struct s_bit_matrix, t_row_data) + (rows) * row_bytes;
@@ -14961,6 +14960,52 @@ PRIVATE CIL cil_buffer_add(CILAR cilar)
       _marpa_avl_insert (cilar->t_avl, found_cil);
     }
   return found_cil;
+}
+
+@ Add a CIL taken from a bit vector
+to the CILAR.
+This method
+is optimized for the case where the CIL
+is already in the CIL,
+in which case this method finds the current entry.
+The CILAR buffer is used,
+so its current contents will be destroyed.
+@<Function definitions@> =
+PRIVATE CIL cil_bv_add(CILAR cilar, Bit_Vector bv)
+{
+  unsigned int min, max, start = 0;
+  cil_buffer_clear (cilar);
+  for (start = 0; bv_scan (bv, start, &min, &max); start = max + 2)
+    {
+      int new_item;
+      for (new_item = (int) min; new_item <= (int) max; new_item++)
+	{
+	  cil_buffer_push (cilar, new_item);
+	}
+    }
+  return cil_buffer_add (cilar);
+}
+
+@ Clear the CILAR buffer.
+@<Function definitions@> =
+PRIVATE CIL cil_buffer_clear(CILAR cilar)
+{
+  CIL cil_in_buffer = DSTACK_BASE (cilar->t_buffer, int);
+  Count_of_CIL (cil_in_buffer) = 0;
+  return cil_in_buffer;
+}
+
+@ Push an |int| onto the end of the CILAR buffer.
+It is up to the caller to ensure the buffer is sorted
+when and if added to the CILAR.
+@<Function definitions@> =
+PRIVATE CIL cil_buffer_push(CILAR cilar, int new_item)
+{
+  DSTACK dstack = &cilar->t_buffer;
+  CIL cil_in_buffer = DSTACK_BASE (*dstack, int);
+  *DSTACK_PUSH(*dstack, int) = new_item;
+  Count_of_CIL (cil_in_buffer)++;
+  return cil_in_buffer;
 }
 
 @ Make sure that the CIL buffer is large enough
