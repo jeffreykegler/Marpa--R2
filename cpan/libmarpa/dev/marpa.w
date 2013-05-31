@@ -3529,24 +3529,10 @@ Change so that this runs only if there are prediction events.
   transitive_closure (nullification_matrix);
   for (xsyid = 0; xsyid < pre_census_xsy_count; xsyid++)
     {
-      unsigned int min, max, start;
       Bit_Vector bv_nullifications_by_to_xsy =
 	matrix_row (nullification_matrix, (unsigned long) xsyid);
-      int cil_ix = 0;
-      CIL new_cil = cil_buffer_reserve (&g->t_cilar, nullable_xsy_count);
-      for (start = 0;
-	   bv_scan (bv_nullifications_by_to_xsy, start, &min, &max);
-	   start = max + 2)
-	{
-	  XSYID to_xsyid;
-	  for (to_xsyid = (XSYID) min; to_xsyid <= (XSYID) max; to_xsyid++)
-	    {
-	      Item_of_CIL (new_cil, cil_ix) = to_xsyid;
-	      cil_ix++;
-	    }
-	}
-      Count_of_CIL (new_cil) = cil_ix;
-      Nulled_Event_CIL_of_XSYID (xsyid) = cil_buffer_add (&g->t_cilar);
+      Nulled_Event_CIL_of_XSYID (xsyid) = 
+	cil_bv_add(&g->t_cilar, bv_nullifications_by_to_xsy);
     }
     my_free(matrix_buffer);
 }
