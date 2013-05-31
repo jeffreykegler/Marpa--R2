@@ -5858,25 +5858,7 @@ for discovered state with 2+ items@> =
 	    }
 	}
     }
-  {
-    unsigned int min, max, start;
-    int isy_ix = 0;
-    const int complete_isyid_count = bv_count (per_ahfa_complete_v);
-    CIL new_cil = cil_buffer_reserve (&g->t_cilar, complete_isyid_count);
-    for (start = 0; bv_scan (per_ahfa_complete_v, start, &min, &max);
-	 start = max + 2)
-      {
-	ISYID complete_isyid;
-	for (complete_isyid = (ISYID) min;
-	     complete_isyid <= (ISYID) max; complete_isyid++)
-	  {
-	    Item_of_CIL (new_cil, isy_ix) = complete_isyid;
-	    isy_ix++;
-	  }
-      }
-    Count_of_CIL(new_cil) = isy_ix;
-    Completion_CIL_of_AHFA (p_new_state) = cil_buffer_add (&g->t_cilar);
-  }
+  Completion_CIL_of_AHFA (p_new_state) = cil_bv_add (&g->t_cilar, per_ahfa_complete_v);
   {
     int isy_ix;
     int complete_isyid_count = Complete_ISY_Count_of_AHFA (p_new_state);
@@ -14975,9 +14957,11 @@ when and if added to the CILAR.
 @<Function definitions@> =
 PRIVATE CIL cil_buffer_push(CILAR cilar, int new_item)
 {
+  CIL cil_in_buffer;
   DSTACK dstack = &cilar->t_buffer;
-  CIL cil_in_buffer = DSTACK_BASE (*dstack, int);
-  *DSTACK_PUSH(*dstack, int) = new_item;
+  *DSTACK_PUSH (*dstack, int) = new_item;
+  cil_in_buffer = DSTACK_BASE (*dstack, int);	/* Note that the buffer CIL might have been moved
+						   by the |DSTACK_PUSH| */
   Count_of_CIL (cil_in_buffer)++;
   return cil_in_buffer;
 }
