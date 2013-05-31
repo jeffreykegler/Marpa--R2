@@ -5250,7 +5250,6 @@ one non-nulling symbol in each IRL. */
 	const CILAR cilar = &g->t_cilar;
 	Bit_Vector bv_recursive_isyids =
 	  matrix_row (isy_by_right_isy_matrix, (unsigned long) lhs_isyid);
-	const int recursion_isyid_count = bv_count (bv_recursive_isyids);
 	cil_buffer_clear(cilar);
 	for (start = 0; bv_scan (bv_recursive_isyids, start, &min, &max);
 	     start = max + 2)
@@ -14964,7 +14963,6 @@ PRIVATE CIL cil_bv_add(CILAR cilar, Bit_Vector bv)
 PRIVATE void cil_buffer_clear(CILAR cilar)
 {
   const DSTACK dstack = &cilar->t_buffer;
-  const CIL cil_in_buffer = DSTACK_BASE (*dstack, int);
   DSTACK_CLEAR(*dstack);
   *DSTACK_PUSH(*dstack, int) = 0; /* Has same effect as 
   |Count_of_CIL (cil_in_buffer) = 0|, except that it sets
