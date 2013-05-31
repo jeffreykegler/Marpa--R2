@@ -5247,11 +5247,11 @@ one non-nulling symbol in each IRL. */
       {
 	/* If here, IRL is right recursive */
 	unsigned int min, max, start;
-	int isy_ix = 0;
+	const CILAR cilar = &g->t_cilar;
 	Bit_Vector bv_recursive_isyids =
 	  matrix_row (isy_by_right_isy_matrix, (unsigned long) lhs_isyid);
 	const int recursion_isyid_count = bv_count (bv_recursive_isyids);
-	CIL new_cil = cil_buffer_reserve (&g->t_cilar, recursion_isyid_count);
+	cil_buffer_clear(cilar);
 	for (start = 0; bv_scan (bv_recursive_isyids, start, &min, &max);
 	     start = max + 2)
 	  {
@@ -5259,14 +5259,10 @@ one non-nulling symbol in each IRL. */
 	    for (recursion_isyid = (ISYID) min;
 		 recursion_isyid <= (ISYID) max; recursion_isyid++)
 	      {
-		if (ISYID_is_Completion_Event (recursion_isyid))
-		  {
-		    Item_of_CIL (new_cil, isy_ix) = recursion_isyid;
-		    isy_ix++;
-		  }
+		if (!ISYID_is_Completion_Event (recursion_isyid)) continue;
+		cil_buffer_push(cilar, recursion_isyid);
 	      }
 	  }
-	Count_of_CIL(new_cil) = isy_ix;
 	Indirect_Completion_Event_CIL_of_IRL (irl) = cil_buffer_add (&g->t_cilar);
 	if (cil_cmp
 	    (Indirect_Completion_Event_CIL_of_IRL (irl),
