@@ -14713,20 +14713,13 @@ to a size convenient for the memory allocator.
 Right now this is hard-wired to 1024, but I should
 use the better calculation made by the obstack code.
 @d DSTACK_DECLARE(this) struct s_dstack this
-@d DSTACK_INIT2(this, type)
-(
-    ((this).t_count = 0),
-    ((sizeof(this)/1024 <= 0)
-         ? (((this).t_capacity = 1), ((this).t_base = my_malloc(sizeof(this))))
-         : (((this).t_capacity = sizeof(this)/1024),
-	     ((this).t_base = my_malloc(1024)))
-     )
-)
 @d DSTACK_INIT(this, type, initial_size)
 (
     ((this).t_count = 0),
     ((this).t_base = my_new(type, ((this).t_capacity = (initial_size))))
 )
+@d DSTACK_INIT2(this, type)
+    DSTACK_INIT((this), type, MAX(4, 1024/sizeof(this)))
 
 @ |DSTACK_SAFE| is for cases where the dstack is not
 immediately initialized to a useful value,
