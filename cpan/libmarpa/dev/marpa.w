@@ -1792,6 +1792,7 @@ This is the external
 ``source'' of the internal symbol --
 the external symbol that it is derived from.
 @d Source_XSY_of_ISY(isy) ((isy)->t_source_xsy)
+@d Source_XSY_of_ISYID(isyid) (Source_XSY_of_ISY(ISY_by_ID(isyid)))
 @<Widely aligned ISY elements@> = XSY t_source_xsy;
 @ @<Initialize ISY elements@> = Source_XSY_of_ISY(isy) = NULL;
 @ @<Function definitions@> =
@@ -1802,7 +1803,7 @@ Marpa_Rule_ID _marpa_g_source_xsy(
     XSY source_xsy;
     @<Return |-2| on failure@>@;
     @<Fail if |isy_id| is invalid@>@;
-    source_xsy = Source_XSY_of_ISY(ISY_by_ID(isy_id));
+    source_xsy = Source_XSY_of_ISYID(isy_id);
     return source_xsy ? ID_of_XSY(source_xsy) : -1;
 }
 
@@ -6440,10 +6441,8 @@ AHFAID _marpa_g_AHFA_state_empty_transition(Marpa_Grammar g,
 {
   AHFAID ahfaid;
   const AHFAID ahfa_count_of_g = AHFA_Count_of_G (g);
-  const LBV lbv_predicted_xsyid = lbv_obs_new0 (obs_precompute, xsy_count);
-  /* The bit vectors go
-     on the precompute method's obstack.  Their are large-ish and have a short lifetime, but
-     we are nearly at the end anyway */
+  const LBV bv_predicted_xsyid = bv_create( xsy_count);
+  const LBV bv_nulled_xsyid = bv_create( xsy_count);
   for (ahfaid = 0; ahfaid < ahfa_count_of_g; ahfaid++)
     {
       AIMID aimid;
@@ -6451,17 +6450,27 @@ AHFAID _marpa_g_AHFA_state_empty_transition(Marpa_Grammar g,
       const int ahfa_item_count = AIM_Count_of_AHFA(ahfa);
       for (aimid = 0; aimid < (AIMID) ahfa_item_count; aimid++)
 	{
+	  int rhs_ix;
+	  int raw_position;
 	  const AIM aim = AIM_by_ID (aimid);
 	  const ISYID postdot_isyid = Postdot_ISYID_of_AIM (aim);
+	  const IRL irl = IRL_of_AIM(aim);
+	  raw_position = Position_of_AIM(aim);
+	  if (raw_position < 0) {
+	     raw_position = Length_of_IRL(irl);
+	  }
 	  if (postdot_isyid >= 0)
 	    {
-	      const ISY isy = ISY_by_ID (postdot_isyid);
-	      const XSY xsy = Source_XSY_of_ISY (isy);
+	      const XSY xsy = Source_XSY_of_ISYID (postdot_isyid);
 	      if (xsy)
 		{
 		  const XSYID xsyid = ID_of_XSY (xsy);
-		  lbv_bit_set (lbv_predicted_xsyid, xsyid);
+		  bv_bit_set (bv_predicted_xsyid, xsyid);
 		}
+	    }
+	    for (rhs_ix = raw_position - Null_Count_of_AIM(aim); rhs_ix < raw_position; rhs_ix++) {
+	        const ISYID rhs_isyid = RHSID_of_IRL(irl, rhs_ix);
+		const XSY xsy = Source_XSY_of_ISYID(rhs_isyid);
 	    }
 	}
     }
@@ -6790,8 +6799,7 @@ int marpa_r_terminals_expected(Marpa_Recognizer r, Marpa_Symbol_ID* buffer)
 	ISYID isyid;
 	for (isyid = (ISYID) min; isyid <= (ISYID) max; isyid++)
 	  {
-	    const ISY isy = ISY_by_ID(isyid);
-	    const XSY xsy = Source_XSY_of_ISY(isy);
+	    const XSY xsy = Source_XSY_of_ISYID(isyid);
 	    buffer[ix++] = ID_of_XSY(xsy);
 	  }
       }
@@ -9488,8 +9496,7 @@ add those Earley items it ``causes".
 	  for (isy_ix = 0; isy_ix < event_isy_count; isy_ix++)
 	    {
 	      ISYID event_isyid = Item_of_CIL (cil, isy_ix);
-	      ISY event_isy = ISY_by_ID (event_isyid);
-	      XSY event_xsy = Source_XSY_of_ISY (event_isy);
+	      XSY event_xsy = Source_XSY_of_ISYID (event_isyid);
 	      XSYID event_xsyid = ID_of_XSY (event_xsy);
 	      bv_bit_set (bv_xsy_event_trigger, event_xsyid);
 	    }
@@ -10018,8 +10025,7 @@ of the base EIM.
 	for (isyid = (ISYID)min; isyid <= (ISYID) max; isyid++) {
             PIM this_pim = r->t_pim_workarea[isyid];
 	    if (lbv_bit_test(r->t_isy_expected_is_event, isyid)) {
-	      ISY isy = ISY_by_ID(isyid);
-	      XSY xsy = Source_XSY_of_ISY(isy);
+	      XSY xsy = Source_XSY_of_ISYID(isyid);
 	      int_event_new (g, MARPA_EVENT_SYMBOL_EXPECTED, ID_of_XSY(xsy));
 	    }
 	    if (this_pim) postdot_array[postdot_array_ix++] = this_pim;
@@ -13826,17 +13832,15 @@ for the rule.
 	    Arg_0_of_V (v) = ++Arg_N_of_V (v);
 	    if (token_type == VALUED_TOKEN_OR_NODE)
 	      {
-		const ISY token_isy = ISY_by_ID (token_isyid);
 		const OR predecessor = Predecessor_OR_of_AND (and_node);
-		XSYID_of_V (v) = ID_of_XSY (Source_XSY_of_ISY (token_isy));
+		XSYID_of_V (v) = ID_of_XSY (Source_XSY_of_ISYID (token_isyid));
 		Token_Start_of_V (v) =
 		  predecessor ? ES_Ord_of_OR (predecessor) : Origin_Ord_of_OR (or);
 		Token_Value_of_V (v) = Value_of_TOK (token);
 	      }
 	    else if (token_type == NULLING_TOKEN_OR_NODE)
 	      {
-		const ISY token_isy = ISY_by_ID (token_isyid);
-		const XSY source_xsy = Source_XSY_of_ISY(token_isy);
+		const XSY source_xsy = Source_XSY_of_ISYID(token_isyid);
 		const XSYID source_xsy_id = ID_of_XSY(source_xsy);
 		if (bv_bit_test (XSY_is_Valued_BV_of_V (v), source_xsy_id))
 		  {
