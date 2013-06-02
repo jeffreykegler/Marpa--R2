@@ -12974,7 +12974,7 @@ set the bit) and return 1.
 @<Function definitions@> =
 PRIVATE int tree_or_node_try(TREE tree, ORID or_node_id)
 {
-    return !bv_bit_test_and_set(tree->t_or_node_in_use, (unsigned int)or_node_id);
+    return !bv_bit_test_then_set(tree->t_or_node_in_use, (unsigned int)or_node_id);
 }
 @ Release the and-node by unsetting its bit.
 @<Function definitions@> =
@@ -14232,10 +14232,13 @@ PRIVATE int bv_bit_test(Bit_Vector vector, unsigned int bit)
 }
 
 @*0 Test and set a boolean vector bit.
-Ensure that a bit is set and returning its value to the call.
+Ensure that a bit is set.
+Return its previous value to the call,
+so that the return value is 1 if the call had no effect,
+zero otherwise.
 @<Function definitions@> =
 PRIVATE int
-bv_bit_test_and_set (Bit_Vector vector, unsigned int bit)
+bv_bit_test_then_set (Bit_Vector vector, unsigned int bit)
 {
   Bit_Vector addr = vector + (bit / bv_wordbits);
   unsigned int mask = bv_lsb << (bit % bv_wordbits);
