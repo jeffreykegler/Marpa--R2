@@ -9491,71 +9491,50 @@ add those Earley items it ``causes".
 
 @ @<Trigger events@> =
 {
-  int eim_ix, isy_ix;
+  int eim_ix;
   EIM *eims = EIMs_of_ES (current_earley_set);
   XSYID xsy_count = XSY_Count_of_G (g);
   Bit_Vector bv_xsy_event_trigger = bv_obs_create (earleme_complete_obs, xsy_count);
   Bit_Vector bv_isy_event_trigger = bv_obs_create (earleme_complete_obs, isy_count);
   int working_earley_item_count = EIM_Count_of_ES (current_earley_set);
-  for (eim_ix = 0; eim_ix < working_earley_item_count; eim_ix++)
-    {
-      SRCL source_link = NULL;
-      CIL cil = NULL;
-      const EIM eim = eims[eim_ix];
-      const AHFA ahfa = AHFA_of_EIM (eim);
-      const SRCL first_leo_source_link = First_Leo_SRCL_of_EIM (eim);
-      if (first_leo_source_link)
-	{
-	  SRCL setup_source_link;
-	  for (setup_source_link = first_leo_source_link; setup_source_link;
-	       setup_source_link = Next_SRCL_of_SRCL (setup_source_link))
-	    {
-	      const LIM lim = LIM_of_SRCL (setup_source_link);
-	      if (LIM_at_Completion_Event_Closure (lim))
-		{
-		  /* One of the Leo links is at completion closure, so unset
-		     |first_leo_source_link| and set |cil| to the full
-		     list of completions, direct and indirect. */
-		  cil = Indirect_Completion_Event_CIL_of_AHFA (ahfa);
-		}
-	    }
-	  if (!cil)
-	    {
-	      source_link = first_leo_source_link;
-	      cil = CIL_of_LIM (LIM_of_SRCL (source_link));
-	    }
-	}
-      else
-	{
-	  /* If there were no Leo source links, just do direct completions
-	     of this AHFA */
-	  cil = Direct_Completion_Event_CIL_of_AHFA (ahfa);
-	}
-      while (1)
-	{			/* Loop ends after first pass if |source_link == NULL| */
-	  const int event_isy_count = Count_of_CIL (cil);
-	  for (isy_ix = 0; isy_ix < event_isy_count; isy_ix++)
-	    {
-	      const ISYID event_isyid = Item_of_CIL (cil, isy_ix);
-	      bv_bit_set (bv_isy_event_trigger, event_isyid);
-	    }
-	  @/@, @/@,
-	  /* Now try to iterate to another CIL.  This will only work
-				   if we have a source link we are iterating, and if it is not at the
-				   end of the iteration. */
-	    if (!source_link)
-	    break;
-	  source_link = Next_SRCL_of_SRCL (source_link);
-	  if (!source_link)
-	    break;
-	  @/@, @/@,
-	  /* Above, we traversed the source links looking for
-				   null CIL's.
-				   Had there been any, we would have set |source_link| to null.
-				   So we know that the CIL will not be null here. */
-	    cil = CIL_of_LIM (LIM_of_SRCL (source_link));
-	}
-    }
+
+for (eim_ix = 0; eim_ix < working_earley_item_count; eim_ix++)
+{
+  SRCL source_link = NULL;
+  const EIM eim = eims[eim_ix];
+  const AHFA ahfa = AHFA_of_EIM (eim);
+  {
+    /* First do the ISYs for the top AHFA */
+    int isy_ix;
+    const CIL cil = Direct_Completion_Event_CIL_of_AHFA (ahfa);
+    const int event_isy_count = Count_of_CIL (cil);
+    for (isy_ix = 0; isy_ix < event_isy_count; isy_ix++)
+      {
+	const ISYID event_isyid = Item_of_CIL (cil, isy_ix);
+	bv_bit_set (bv_isy_event_trigger, event_isyid);
+      }
+  }
+  {
+    /* Now do the ISYs for any Leo links */
+    const SRCL first_leo_source_link = First_Leo_SRCL_of_EIM (eim);
+    SRCL setup_source_link;
+    for (setup_source_link = first_leo_source_link; setup_source_link;
+	 setup_source_link = Next_SRCL_of_SRCL (setup_source_link))
+      {
+	int isy_ix;
+	const LIM lim = LIM_of_SRCL (setup_source_link);
+	const CIL cil =
+	  LIM_at_Completion_Event_Closure (lim) ?
+	  Indirect_Completion_Event_CIL_of_AHFA (ahfa) : CIL_of_LIM (lim);
+	const int event_isy_count = Count_of_CIL (cil);
+	for (isy_ix = 0; isy_ix < event_isy_count; isy_ix++)
+	  {
+	    const ISYID event_isyid = Item_of_CIL (cil, isy_ix);
+	    bv_bit_set (bv_isy_event_trigger, event_isyid);
+	  }
+      }
+  }
+}
     {
       unsigned int min, max, start;
 
@@ -9567,9 +9546,10 @@ add those Earley items it ``causes".
 	       event_isyid++)
 	    {
 	      XSY event_xsy = Source_XSY_of_ISYID (event_isyid);
-	      if (!event_xsy) continue;
-	      XSYID event_xsyid = ID_of_XSY (event_xsy);
-	      bv_bit_set (bv_xsy_event_trigger, event_xsyid);
+	      if (event_xsy) {
+		XSYID event_xsyid = ID_of_XSY (event_xsy);
+		bv_bit_set (bv_xsy_event_trigger, event_xsyid);
+	      }
 	    }
 	}
 
