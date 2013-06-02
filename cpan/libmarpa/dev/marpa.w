@@ -6793,10 +6793,10 @@ considered reasonable.
 @ @<Widely aligned recognizer elements@> =
 Bit_Vector t_lbv_xsyid_completion_event_is_active;
 @ @<Int aligned recognizer elements@> =
-int t_active_completion_event_count;
+int t_active_event_count;
 @ @<Initialize recognizer elements@> =
 r->t_lbv_xsyid_completion_event_is_active = NULL;
-r->t_active_completion_event_count = 0;
+r->t_active_event_count = 0;
 
 @*0 Expected symbol boolean vector.
 A boolean vector by symbol ID,
@@ -6924,7 +6924,7 @@ int marpa_r_completion_symbol_activate(Marpa_Recognizer r, Marpa_Symbol_ID xsy_i
     case 0:
 	if (lbv_bit_test(r->t_lbv_xsyid_completion_event_is_active, xsy_id)) {
 	  lbv_bit_clear(r->t_lbv_xsyid_completion_event_is_active, xsy_id) ;
-	  r->t_active_completion_event_count--;
+	  r->t_active_event_count--;
 	}
         return 0;
     case 1:
@@ -6935,7 +6935,7 @@ int marpa_r_completion_symbol_activate(Marpa_Recognizer r, Marpa_Symbol_ID xsy_i
 	}
 	if (!lbv_bit_test(r->t_lbv_xsyid_completion_event_is_active, xsy_id)) {
 	  lbv_bit_set(r->t_lbv_xsyid_completion_event_is_active, xsy_id) ;
-	  r->t_active_completion_event_count++;
+	  r->t_active_event_count++;
 	}
         return 1;
     }
@@ -8933,7 +8933,7 @@ PRIVATE int alternative_insert(RECCE r, ALT new_alternative)
     }
     r->t_lbv_xsyid_completion_event_is_active =
       lbv_clone (r->t_obs, g->t_lbv_xsyid_is_completion_event, xsy_count);
-    r->t_active_completion_event_count =
+    r->t_active_event_count =
       bv_count ( g->t_lbv_xsyid_is_completion_event);
     Input_Phase_of_R(r) = R_DURING_INPUT;
     psar_reset(Dot_PSAR_of_R(r));
@@ -9293,8 +9293,8 @@ marpa_r_earleme_complete(Marpa_Recognizer r)
 	@<Set |r| exhausted@>@;
       }
     earley_set_update_items(r, current_earley_set);
-    if (r->t_active_completion_event_count > 0) {
-        @<Trigger completion events@>@;
+    if (r->t_active_event_count > 0) {
+        @<Trigger events@>@;
     }
     return_value = G_EVENT_COUNT(g);
     CLEANUP: ;
@@ -9480,7 +9480,7 @@ add those Earley items it ``causes".
     leo_link_add (r, effect, leo_item, cause);
 }
 
-@ @<Trigger completion events@> =
+@ @<Trigger events@> =
 {
   int eim_ix, isy_ix;
   EIM *eims = EIMs_of_ES (current_earley_set);
