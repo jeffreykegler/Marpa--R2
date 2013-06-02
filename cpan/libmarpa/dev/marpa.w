@@ -9495,6 +9495,7 @@ add those Earley items it ``causes".
   EIM *eims = EIMs_of_ES (current_earley_set);
   XSYID xsy_count = XSY_Count_of_G (g);
   Bit_Vector bv_xsy_event_trigger = bv_obs_create (earleme_complete_obs, xsy_count);
+  Bit_Vector bv_isy_event_trigger = bv_obs_create (earleme_complete_obs, isy_count);
   int working_earley_item_count = EIM_Count_of_ES (current_earley_set);
   for (eim_ix = 0; eim_ix < working_earley_item_count; eim_ix++)
     {
@@ -9535,10 +9536,8 @@ add those Earley items it ``causes".
 	  const int event_isy_count = Count_of_CIL (cil);
 	  for (isy_ix = 0; isy_ix < event_isy_count; isy_ix++)
 	    {
-	      ISYID event_isyid = Item_of_CIL (cil, isy_ix);
-	      XSY event_xsy = Source_XSY_of_ISYID (event_isyid);
-	      XSYID event_xsyid = ID_of_XSY (event_xsy);
-	      bv_bit_set (bv_xsy_event_trigger, event_xsyid);
+	      const ISYID event_isyid = Item_of_CIL (cil, isy_ix);
+	      bv_bit_set (bv_isy_event_trigger, event_isyid);
 	    }
 	  @/@, @/@,
 	  /* Now try to iterate to another CIL.  This will only work
@@ -9559,6 +9558,21 @@ add those Earley items it ``causes".
     }
     {
       unsigned int min, max, start;
+
+      for (start = 0; bv_scan (bv_isy_event_trigger, start, &min, &max);
+	   start = max + 2)
+	{
+	  XSYID event_isyid;
+	  for (event_isyid = (ISYID) min; event_isyid <= (ISYID) max;
+	       event_isyid++)
+	    {
+	      XSY event_xsy = Source_XSY_of_ISYID (event_isyid);
+	      if (!event_xsy) continue;
+	      XSYID event_xsyid = ID_of_XSY (event_xsy);
+	      bv_bit_set (bv_xsy_event_trigger, event_xsyid);
+	    }
+	}
+
       for (start = 0; bv_scan (bv_xsy_event_trigger, start, &min, &max);
 	   start = max + 2)
 	{
