@@ -5288,17 +5288,25 @@ one non-nulling symbol in each IRL. */
     }
 }
 
-@*0 Leo LHS symbol.
-The Leo LHS symbol is the LHS of the AHFA state's rule,
+@*0 Leo IRL and LHS.
+The Leo IRL of an AHFA is its rule,
 if that state can be a Leo completion.
 Otherwise it is |-1|.
+(There will be only one if it is a Leo completion.)
+The Leo LHS symbol is the LHS of the Leo IRL,
+-1 if there is no Leo IRL.
 The value of the Leo completion symbol is used to
 determine if an Earley item
 with this AHFA state is eligible to be a Leo completion.
 @d Leo_LHS_ISYID_of_AHFA(state) ((state)->t_leo_lhs_isyid)
-@d AHFA_is_Leo_Completion(state) (Leo_LHS_ISYID_of_AHFA(state) >= 0)
-@ @<Int aligned AHFA state elements@> = ISYID t_leo_lhs_isyid;
-@ @<Initialize AHFA@> = Leo_LHS_ISYID_of_AHFA(ahfa) = -1;
+@d Leo_IRLID_of_AHFA(state) ((state)->t_leo_irlid)
+@d AHFA_is_Leo_Completion(state) (Leo_IRLID_of_AHFA(state) >= 0)
+@ @<Int aligned AHFA state elements@> =
+  ISYID t_leo_lhs_isyid;
+  IRLID t_leo_irlid;
+@ @<Initialize AHFA@> =
+  Leo_LHS_ISYID_of_AHFA(ahfa) = -1;
+  Leo_IRLID_of_AHFA(ahfa) = -1;
 @ @<Function definitions@> =
 Marpa_Symbol_ID _marpa_g_AHFA_state_leo_lhs_symbol(Marpa_Grammar g,
 	Marpa_AHFA_State_ID AHFA_state_id) {
@@ -5688,6 +5696,7 @@ set the Leo completion symbol to |lhs_id|@> =
   if (IRL_is_Right_Recursive(aim_irl))
     {
       Leo_LHS_ISYID_of_AHFA (p_new_state) = lhs_isyid;
+      Leo_IRLID_of_AHFA (p_new_state) = ID_of_IRL(aim_irl);
     }
 }
 
@@ -7376,7 +7385,7 @@ be recopied to make way for pointers to the linked lists.
     Complete_ISYID_of_AHFA(AHFA_of_EIM(item), (ix))
 @d Complete_ISY_Count_of_EIM(item)
     Complete_ISY_Count_of_AHFA(AHFA_of_EIM(item))
-@d Leo_LHS_ISYID_of_EIM(eim) Leo_LHS_ISYID_of_AHFA(AHFA_of_EIM(eim))
+@d Leo_IRLID_of_EIM(eim) Leo_IRLID_of_AHFA(AHFA_of_EIM(eim))
 @ It might be slightly faster if this boolean is memoized in the Earley item
 when the Earley item is initialized.
 @d Earley_Item_is_Completion(item)
@@ -14831,7 +14840,8 @@ which I believe has to be the object.
 @d Count_of_CIL(cil) (cil[0])
 @d Item_of_CIL(cil, ix) (cil[1+(ix)])
 @d Sizeof_CIL(ix) (sizeof(int) * (1+(ix)))
-@ @<Private typedefs@> =
+@ @s CIL int
+@<Private typedefs@> =
 typedef int* CIL;
 
 @** Counted integer list arena (CILAR).
@@ -14866,7 +14876,8 @@ typedef struct s_cil_arena CILAR_Object;
 
 @ @<Private incomplete structures@> =
 struct s_cil_arena;
-@ @<Private typedefs@> =
+@ @s CILAR int
+@<Private typedefs@> =
 typedef struct s_cil_arena* CILAR;
 @
 {\bf To Do}: @^To Do@> The initial capacity of the CILAR dstack
