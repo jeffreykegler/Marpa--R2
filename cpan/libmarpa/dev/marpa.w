@@ -2734,14 +2734,10 @@ CIL t_indirect_completion_event_isyids;
 @ @<Initialize IRL elements@> =
   Direct_Completion_Event_CIL_of_IRL(irl) = NULL;
   Indirect_Completion_Event_CIL_of_IRL(irl) = NULL;
-  IRL_has_Nondirect_Completion(irl) = 0;
 @ Nondirect event completions are indirect event completions which are
 not direct event completions.
 They may be though of as ``proper" indirect event completions.
 Only right recursive IRL's will have nondirect event completions.
-@d IRL_has_Nondirect_Completion(irl) ((irl)->t_has_nondirect_completions)
-@<Bit aligned IRL elements@> =
-   unsigned int t_has_nondirect_completions:1;
 
 @*0 Rule real symbol count.
 This is another data element used for the ``internal semantics" --
@@ -4987,13 +4983,13 @@ not direct completions.
 @d Indirect_Completion_Event_ISY_Count_of_AHFA(state)
   Count_of_CIL(Indirect_Completion_Event_CIL_of_AHFA(state))
 @d AHFA_has_Nondirect_Completion(state)
-  ((state)->t_has_nondirect_completions)
+  (Count_of_CIL(Direct_Completion_Event_CIL_of_AHFA(state))
+  != Count_of_CIL(Indirect_Completion_Event_CIL_of_AHFA(state)))
+
 @ @<Widely aligned AHFA state elements@> =
 CIL t_indirect_completion_event_isyids;
 CIL t_direct_completion_event_isyids;
 CIL t_complete_isyids;
-@ @<Bit aligned AHFA state elements@> =
-   unsigned int t_has_nondirect_completions:1;
 
 @*0 AHFA item container.
 @ @d AIMs_of_AHFA(ahfa) ((ahfa)->t_items)
@@ -5278,12 +5274,6 @@ one non-nulling symbol in each IRL. */
 	      }
 	  }
 	Indirect_Completion_Event_CIL_of_IRL (irl) = cil_buffer_add (&g->t_cilar);
-	if (cil_cmp
-	    (Indirect_Completion_Event_CIL_of_IRL (irl),
-	     Direct_Completion_Event_CIL_of_IRL (irl), 0))
-	  {
-	    IRL_has_Nondirect_Completion (irl) = 1;
-	  }
       }
     }
 }
@@ -5578,7 +5568,6 @@ _marpa_avl_destroy(duplicates);
     my_obstack_alloc (g->t_obs, sizeof (ISYID));
   postdot_isyid = Postdot_ISYID_of_AIM (start_item);
   *postdot_isyidary = postdot_isyid;
-  AHFA_has_Nondirect_Completion(p_initial_state) = 0;
   Direct_Completion_Event_CIL_of_AHFA(p_initial_state) =
     Indirect_Completion_Event_CIL_of_AHFA(p_initial_state) =
     Completion_CIL_of_AHFA(p_initial_state) =
@@ -5649,7 +5638,6 @@ a start rule completion, and it is a
       {
 	ISYID* p_postdot_isyidary = Postdot_ISYIDAry_of_AHFA(p_new_state) =
 	  my_obstack_alloc (g->t_obs, sizeof (ISYID));
-	AHFA_has_Nondirect_Completion(p_new_state) = 0;
 	Completion_CIL_of_AHFA(p_new_state)
 	= Direct_Completion_Event_CIL_of_AHFA(p_new_state)
 	= Indirect_Completion_Event_CIL_of_AHFA(p_new_state)
@@ -5671,7 +5659,6 @@ a start rule completion, and it is a
 	const IRL irl = IRL_of_AIM(working_aim_p);
 	const ISYID lhs_isyid = LHSID_of_IRL(irl);
 	Completion_CIL_of_AHFA(p_new_state) = cil_singleton(&g->t_cilar, lhs_isyid);
-	AHFA_has_Nondirect_Completion(p_new_state) = IRL_has_Nondirect_Completion(irl);
 	Direct_Completion_Event_CIL_of_AHFA(p_new_state) = 
 	    Direct_Completion_Event_CIL_of_IRL(irl);
 	Indirect_Completion_Event_CIL_of_AHFA(p_new_state) = 
@@ -9500,7 +9487,6 @@ add those Earley items it ``causes".
 
 for (eim_ix = 0; eim_ix < working_earley_item_count; eim_ix++)
 {
-  SRCL source_link = NULL;
   const EIM eim = eims[eim_ix];
   const AHFA ahfa = AHFA_of_EIM (eim);
   {
