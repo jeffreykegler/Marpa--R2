@@ -1539,10 +1539,10 @@ Marpa_Grammar g, Marpa_Symbol_ID xsy_id, int value)
     return failure_indicator;
 }
 
-@*0 Nulled CIL.
-@d Nulled_CIL_of_XSY(xsy) ((xsy)->t_nulled_event_xsyids)
-@d Nulled_CIL_of_XSYID(xsyid)
-  Nulled_CIL_of_XSY(XSY_by_ID(xsyid))
+@*0 Nulled XSYIDs.
+@d Nulled_XSYIDs_of_XSY(xsy) ((xsy)->t_nulled_event_xsyids)
+@d Nulled_XSYIDs_of_XSYID(xsyid)
+  Nulled_XSYIDs_of_XSY(XSY_by_ID(xsyid))
 @<Widely aligned XSY elements@> =
   CIL t_nulled_event_xsyids;
 @ The nulled XSYIDs include all the symbols nullified by an XSY.
@@ -1557,7 +1557,7 @@ Need to add the logic to not populate these CIL's if there are
 no nulled events.
 Right now the nulled event CIL's are always populated.
 @<Initialize XSY elements@> =
-  Nulled_CIL_of_XSY(xsy) = NULL;
+  Nulled_XSYIDs_of_XSY(xsy) = NULL;
 
 @*0 Primary internal equivalent.
 This is the internal
@@ -3522,7 +3522,7 @@ Change so that this runs only if there are prediction events.
     {
       Bit_Vector bv_nullifications_by_to_xsy =
 	matrix_row (nullification_matrix, (unsigned long) xsyid);
-      Nulled_CIL_of_XSYID (xsyid) = 
+      Nulled_XSYIDs_of_XSYID (xsyid) = 
 	cil_bv_add(&g->t_cilar, bv_nullifications_by_to_xsy);
     }
     my_free(matrix_buffer);
@@ -4931,21 +4931,15 @@ PRIVATE void AHFA_initialize(AHFA ahfa)
     @<Initialize AHFA@>@;
 }
 
-@*0 Nulled and prediction events containers.
+@*0 XSYID Events.
 @
-@d Nulled_CIL_of_AHFA(state) ((state)->t_nulled_isyids)
-@d Nulled_ISYID_of_AHFA(state, ix)
-  Item_of_CIL(Nulled_CIL_of_AHFA(state), (ix))
-@d Nulled_ISY_Count_of_AHFA(state)
-  Count_of_CIL(Nulled_CIL_of_AHFA(state))
-@d Prediction_CIL_of_AHFA(state) ((state)->t_prediction_isyids)
-@d Prediction_ISYID_of_AHFA(state, ix)
-  Item_of_CIL(Prediction_CIL_of_AHFA(state), (ix))
-@d Prediction_ISY_Count_of_AHFA(state)
-  Count_of_CIL(Prediction_CIL_of_AHFA(state))
+@d Completion_XSYIDs_of_AHFA(state) ((state)->t_completion_xsyids)
+@d Nulled_XSYIDs_of_AHFA(state) ((state)->t_nulled_xsyids)
+@d Prediction_XSYIDs_of_AHFA(state) ((state)->t_prediction_xsyids)
 @ @<Widely aligned AHFA state elements@> =
-  CIL t_nulled_isyids;
-  CIL t_prediction_isyids;
+  CIL t_completion_xsyids;
+  CIL t_nulled_xsyids;
+  CIL t_prediction_xsyids;
 
 @*0 Complete symbols container.
 @
@@ -6441,6 +6435,7 @@ AHFAID _marpa_g_AHFA_state_empty_transition(Marpa_Grammar g,
 {
   AHFAID ahfaid;
   const AHFAID ahfa_count_of_g = AHFA_Count_of_G (g);
+  const LBV bv_completion_xsyid = bv_create (xsy_count);
   const LBV bv_prediction_xsyid = bv_create (xsy_count);
   const LBV bv_nulled_xsyid = bv_create (xsy_count);
   const CILAR cilar = &g->t_cilar;
@@ -6452,13 +6447,18 @@ AHFAID _marpa_g_AHFA_state_empty_transition(Marpa_Grammar g,
       for (aimid = 0; aimid < (AIMID) ahfa_item_count; aimid++)
 	{
 	  int rhs_ix;
-	  int raw_position;
 	  const AIM aim = AIM_by_ID (aimid);
 	  const ISYID postdot_isyid = Postdot_ISYID_of_AIM (aim);
 	  const IRL irl = IRL_of_AIM (aim);
-	  raw_position = Position_of_AIM (aim);
-	  if (raw_position < 0)
-	    {
+	  int raw_position = Position_of_AIM (aim);
+	  if (raw_position <  0) {			// Completion
+	      const ISYID lhs_isyid = LHS_ISYID_of_AIM (aim);
+	      const XSY xsy = Source_XSY_of_ISYID (lhs_isyid);
+	      if (xsy)
+		{
+		  const XSYID xsyid = ID_of_XSY (xsy);
+		  bv_bit_set (bv_completion_xsyid, xsyid);
+		}
 	      raw_position = Length_of_IRL (irl);
 	    }
 	  if (postdot_isyid >= 0)
@@ -6476,7 +6476,7 @@ AHFAID _marpa_g_AHFA_state_empty_transition(Marpa_Grammar g,
 	      int cil_ix;
 	      const ISYID rhs_isyid = RHSID_of_IRL (irl, rhs_ix);
 	      const XSY xsy = Source_XSY_of_ISYID (rhs_isyid);
-	      const CIL nulled_xsyids = Nulled_CIL_of_XSY (xsy);
+	      const CIL nulled_xsyids = Nulled_XSYIDs_of_XSY (xsy);
 	      const int cil_count = Count_of_CIL (nulled_xsyids);
 	      for (cil_ix = 0; cil_ix < cil_count; cil_ix++)
 		{
@@ -6486,9 +6486,13 @@ AHFAID _marpa_g_AHFA_state_empty_transition(Marpa_Grammar g,
 		}
 	    }
 	}
-      Nulled_CIL_of_AHFA (ahfa) = cil_bv_add (cilar, bv_nulled_xsyid);
-      Prediction_CIL_of_AHFA (ahfa) = cil_bv_add (cilar, bv_prediction_xsyid);
+      Completion_XSYIDs_of_AHFA (ahfa) =
+	cil_bv_add (cilar, bv_completion_xsyid);
+      Nulled_XSYIDs_of_AHFA (ahfa) = cil_bv_add (cilar, bv_nulled_xsyid);
+      Prediction_XSYIDs_of_AHFA (ahfa) =
+	cil_bv_add (cilar, bv_prediction_xsyid);
     }
+  bv_free (bv_completion_xsyid);
   bv_free (bv_prediction_xsyid);
   bv_free (bv_nulled_xsyid);
 }
