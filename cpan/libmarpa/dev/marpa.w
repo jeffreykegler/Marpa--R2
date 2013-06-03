@@ -2734,10 +2734,6 @@ CIL t_indirect_completion_event_isyids;
 @ @<Initialize IRL elements@> =
   Direct_Completion_Event_CIL_of_IRL(irl) = NULL;
   Indirect_Completion_Event_CIL_of_IRL(irl) = NULL;
-@ Nondirect event completions are indirect event completions which are
-not direct event completions.
-They may be though of as ``proper" indirect event completions.
-Only right recursive IRL's will have nondirect event completions.
 
 @*0 Rule real symbol count.
 This is another data element used for the ``internal semantics" --
@@ -4962,9 +4958,6 @@ that are direct results of the rules contained in the current AHFA state.
 Indirect completion events include all possible completions,
 including indirect ones found through right recursion
 and Leo items.
-Nondirect completion are properly indirect completions --
-indirect completions which are
-not direct completions.
 @d Completion_CIL_of_AHFA(state) ((state)->t_complete_isyids)
 @d Complete_ISYID_of_AHFA(state, ix)
   Item_of_CIL(Completion_CIL_of_AHFA(state), (ix))
@@ -4982,9 +4975,6 @@ not direct completions.
   Item_of_CIL(Indirect_Completion_Event_CIL_of_AHFA(state), (ix))
 @d Indirect_Completion_Event_ISY_Count_of_AHFA(state)
   Count_of_CIL(Indirect_Completion_Event_CIL_of_AHFA(state))
-@d AHFA_has_Nondirect_Completion(state)
-  (Count_of_CIL(Direct_Completion_Event_CIL_of_AHFA(state))
-  != Count_of_CIL(Indirect_Completion_Event_CIL_of_AHFA(state)))
 
 @ @<Widely aligned AHFA state elements@> =
 CIL t_indirect_completion_event_isyids;
@@ -7732,10 +7722,7 @@ struct s_leo_item {
 };
 typedef struct s_leo_item LIM_Object;
 
-@ The CIL is |NULL| if the LIM is at a completion
-closure (by far the most common case).
-@d CIL_of_LIM(lim) ((lim)->t_cil)
-@d LIM_at_Completion_Event_Closure(lim) (!(lim)->t_cil)
+@ @d CIL_of_LIM(lim) ((lim)->t_cil)
 @<Widely aligned LIM elements@> =
     CIL t_cil;
 
@@ -9509,9 +9496,7 @@ for (eim_ix = 0; eim_ix < working_earley_item_count; eim_ix++)
       {
 	int isy_ix;
 	const LIM lim = LIM_of_SRCL (setup_source_link);
-	const CIL cil =
-	  LIM_at_Completion_Event_Closure (lim) ?
-	  Indirect_Completion_Event_CIL_of_AHFA (ahfa) : CIL_of_LIM (lim);
+	const CIL cil = CIL_of_LIM (lim);
 	const int event_isy_count = Count_of_CIL (cil);
 	for (isy_ix = 0; isy_ix < event_isy_count; isy_ix++)
 	  {
@@ -9975,38 +9960,15 @@ for (lim_chain_ix--; lim_chain_ix >= 0; lim_chain_ix--) {
 
 @ @<Populate |lim_to_process| from |predecessor_lim|@> =
 {
+  CIL new_cil;
   const AHFA top_AHFA = Top_AHFA_of_LIM (predecessor_lim);
+  const CIL predecessor_cil = CIL_of_LIM (predecessor_lim);
+  const ISYID isyid_to_merge = Postdot_ISYID_of_LIM (lim_to_process);
   Top_AHFA_of_LIM (lim_to_process) = top_AHFA;
   Predecessor_LIM_of_LIM (lim_to_process) = predecessor_lim;
   Origin_of_LIM (lim_to_process) = Origin_of_LIM (predecessor_lim);
-  if (AHFA_has_Nondirect_Completion (top_AHFA))
-    {
-      /* If the AHFA has non-direct completions ... */
-      const CIL predecessor_cil = CIL_of_LIM (predecessor_lim);
-      if (predecessor_cil)
-	{
-	  /* and if the predecessor LIM was not at completion closure ... */
-	  ISYID isyid_to_merge = Postdot_ISYID_of_LIM (lim_to_process);
-	  CIL new_cil =
-	    cil_merge_one (&g->t_cilar, predecessor_cil, isyid_to_merge);
-	  /* and adding this completion does not bring the new LIM
-	     to completion closure ... */
-	  if (!new_cil)
-	    {			/* The postdot ISYID was already in the predecessor CIL,
-				   so just copy that CIL to the LIM we are processing. */
-	      CIL_of_LIM (lim_to_process) = predecessor_cil;
-	    }
-	  else if (cil_cmp (new_cil,
-			    Indirect_Completion_Event_CIL_of_AHFA (top_AHFA),
-			    0))
-	    {
-	      /* Set the CIL for this LIM to the completion CIL.
-	         Otherwise, leave it at the default of |NULL|, which indicated
-	         the LIM is at completion closure. */
-	      CIL_of_LIM (lim_to_process) = new_cil;
-	    }
-	}
-    }
+  new_cil = cil_merge_one (&g->t_cilar, predecessor_cil, isyid_to_merge);
+  CIL_of_LIM (lim_to_process) = new_cil ? new_cil : predecessor_cil;
 }
 
 @ If we have reached this code, either we do not have a predecessor
@@ -10026,11 +9988,7 @@ of the base EIM.
   const AHFA top_AHFA = Top_AHFA_of_LIM(lim_to_process);
   EIM base_eim = Base_EIM_of_LIM(lim_to_process);
   Origin_of_LIM (lim_to_process) = Origin_of_EIM (base_eim);
-  @/@, /* CIL defaults to |NULL|, meaning LIM is at completion closure */
-  if (AHFA_has_Nondirect_Completion(top_AHFA))
-  {
-       CIL_of_LIM(lim_to_process) = Direct_Completion_Event_CIL_of_AHFA(top_AHFA);
-  }
+ CIL_of_LIM(lim_to_process) = Direct_Completion_Event_CIL_of_AHFA(top_AHFA);
 }
 
 @ @<Copy PIM workarea to postdot item array@> = {
