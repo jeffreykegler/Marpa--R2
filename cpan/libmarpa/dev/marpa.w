@@ -2949,6 +2949,7 @@ int marpa_g_precompute(Marpa_Grammar g)
 	@<Populate the completion event boolean vector@>@;
 	@<Populate the prediction
 	  and nulled symbol CILs@>@;
+	@<Mark the event AHFAs@>@;
     }
     g->t_is_precomputed = 1;
     if (g->t_has_cycle)
@@ -4882,9 +4883,6 @@ happens as a side effect.
 Because prediction states follow a very different distribution from
 discovered states, they have their own hash for checking duplicates.
 
-@<Public typedefs@> =
-typedef int Marpa_AHFA_State_ID;
-
 @ {\bf Estimating the number of AHFA States}: Based on the numbers given previously
 for Perl and HTML,
 $2s$ is a good high-ball estimate of the number of AHFA states for
@@ -4907,8 +4905,12 @@ The three possibilities just enumerated exhaust the possibilities for AHFA state
 The total is ${s \over 2} + {s \over 2} + s = 2s$.
 Typically, the number of AHFA states should be less than this estimate.
 
-@d AHFA_of_G_by_ID(g, id) ((g)->t_AHFA+(id))
-@<Private incomplete structures@> = struct s_AHFA_state;
+@<Public typedefs@> =
+typedef int Marpa_AHFA_State_ID;
+@ @<Private typedefs@> =
+typedef struct s_AHFA_state* AHFA;
+typedef int AHFAID;
+@ @<Private incomplete structures@> = struct s_AHFA_state;
 @ @<Private structures@> =
 struct s_AHFA_state_key {
     Marpa_AHFA_State_ID t_id;
@@ -5035,12 +5037,23 @@ AHFA state could be a Leo base.
 unsigned int t_is_potential_leo_base:1;
 @ @<Initialize AHFA@> = AHFA_is_Potential_Leo_Base(ahfa) = 0;
 
-@ @<Private typedefs@> =
-typedef struct s_AHFA_state* AHFA;
-typedef int AHFAID;
 
+@*0 Is there an event for this AHFA?.
+@ This boolean indicates whether the
+AHFA state has an event.
+This is useful for various optimizations --
+the event processing can ignore AHFA states
+without events.
+@d AHFA_has_Event(ahfa) ((ahfa)->t_has_event)
+@ @<Bit aligned AHFA state elements@> =
+unsigned int t_has_event:1;
+@ @<Initialize AHFA@> = AHFA_has_Event(ahfa) = 0;
+
+@*0 AHFA container in grammar.
 @ @<Widely aligned grammar elements@> = struct s_AHFA_state* t_AHFA;
 @
+@d AHFA_of_G_by_ID(g, id) ((g)->t_AHFA+(id))
+@d AHFA_by_ID(id) (g->t_AHFA+(id))
 @d AHFA_Count_of_G(g) ((g)->t_AHFA_len)
 @<Int aligned grammar elements@> = int t_AHFA_len;
 @ @<Initialize grammar elements@> =
@@ -6495,6 +6508,18 @@ AHFAID _marpa_g_AHFA_state_empty_transition(Marpa_Grammar g,
   bv_free (bv_completion_xsyid);
   bv_free (bv_prediction_xsyid);
   bv_free (bv_nulled_xsyid);
+}
+
+@ @<Mark the event AHFAs@> =
+{
+    AHFAID ahfa_id;
+    for (ahfa_id = 0; ahfa_id < AHFA_Count_of_G(g); ahfa_id++) {
+        const AHFA ahfa = AHFA_by_ID(ahfa_id);
+	if (Count_of_CIL(Completion_XSYIDs_of_AHFA(ahfa)) > 0) {
+	    AHFA_has_Event(ahfa) = 1;
+	    continue;
+	}
+    }
 }
 
 @ Reinitialize the CILAR, because its size requirement may vary wildly
@@ -13898,6 +13923,7 @@ the trailing bits are correct.
 @d lbv_wordbits (sizeof(LBW)*8u)
 @d lbv_lsb (1u)
 @d lbv_msb (1u << (lbv_wordbits-1u))
+@s LBV int
 @<Private typedefs@> =
 typedef unsigned int LBW;
 typedef LBW* LBV;
