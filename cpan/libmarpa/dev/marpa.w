@@ -5038,16 +5038,27 @@ unsigned int t_is_potential_leo_base:1;
 @ @<Initialize AHFA@> = AHFA_is_Potential_Leo_Base(ahfa) = 0;
 
 
-@*0 Is there an event for this AHFA?.
-@ This boolean indicates whether the
-AHFA state has an event.
-This is useful for various optimizations --
+@*0 Event data.
+A boolean tracks whether this is an
+"event AHFA", that is, whether there is
+an event for this AHFA,
+In this context, the subset of event AHFAs in an
+AHFA's right recursion group is called an
+"event group".
+A counter tracks the number of AHFAs in
+this AHFA's event group.
+These data are used in various optimizations --
 the event processing can ignore AHFA states
 without events.
 @d AHFA_has_Event(ahfa) ((ahfa)->t_has_event)
+@d Event_Group_Size_of_AHFA(ahfa) ((ahfa)->t_event_group_size)
 @ @<Bit aligned AHFA state elements@> =
 unsigned int t_has_event:1;
-@ @<Initialize AHFA@> = AHFA_has_Event(ahfa) = 0;
+@ @<Int aligned AHFA state elements@> =
+int t_event_group_size;
+@ @<Initialize AHFA@> =
+  AHFA_has_Event(ahfa) = 0;
+  Event_Group_Size_of_AHFA(ahfa) = 0;
 
 @*0 AHFA container in grammar.
 @ @<Widely aligned grammar elements@> = struct s_AHFA_state* t_AHFA;
@@ -6518,6 +6529,46 @@ AHFAID _marpa_g_AHFA_state_empty_transition(Marpa_Grammar g,
 	if (Count_of_CIL(Completion_XSYIDs_of_AHFA(ahfa)) > 0) {
 	    AHFA_has_Event(ahfa) = 1;
 	    continue;
+	}
+    }
+}
+
+@ @<Calculate AHFA Event Group Sizes@> =
+{
+  const AHFAID ahfa_count_of_g = AHFA_Count_of_G (g);
+  AHFAID outer_ahfa_id;
+  for (outer_ahfa_id = 0; outer_ahfa_id < ahfa_count_of_g; outer_ahfa_id++)
+    {
+      AHFAID inner_ahfa_id;
+      ISLID outer_isyid;
+      const AHFA outer_ahfa = AHFA_by_ID (outer_ahfa_id);
+      If (AHFA_has_Event (outer_ahfa))
+      {
+	Event_Group_Size_of_AHFA (ahfa)++;
+      }
+      /* Note that
+         an AHFA, even if it is not itself an event AHFA,
+         may be in a non-empty AHFA event group.  */
+      outer_isyid = Leo_LHS_ISYID_of_AHFA (ahfa);
+      if (outer_isyid < 0)
+	continue;		/* This AHFA is not a Leo completion,
+				   so we are done. */
+      for (inner_ahfa_id = 0; inner_ahfa_id < ahfa_count_of_g;
+	   inner_ahfa_id++)
+	{
+	  AHFA inner_ahfa;
+	  IRLID inner_irlid;
+	  if (inner_ahfa_id == outer_ahfa_id)
+	    continue;		/* We already counted this AHFA
+				   itself, if applicable */
+	  inner_ahfa = AHFA_by_ID (inner_ahfa_id);
+	  if (!AHFA_has_Event (inner_ahfa))
+	    continue;		/* Not in the group, because it
+				   is not an event AHFA */
+	  inner_isyid = Leo_ISYID_of_AHFA (ahfa);
+	  if (inner_isyid < 0)
+	    continue;		/* This AHFA is not a Leo completion,
+				   so we are done. */
 	}
     }
 }
