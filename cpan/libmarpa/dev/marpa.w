@@ -5039,23 +5039,29 @@ unsigned int t_is_potential_leo_base:1;
 @*0 Event data.
 A boolean tracks whether this is an
 "event AHFA", that is, whether there is
-an event for this AHFA,
+an event for this AHFA itself.
+Even an non-event AHFA may be part of an
+"event group".
 In this context, the subset of event AHFAs in an
 AHFA's right recursion group is called an
 "event group".
-A counter tracks the number of AHFAs in
-this AHFA's event group.
 These data are used in various optimizations --
 the event processing can ignore AHFA states
 without events.
-@d AHFA_has_Event(ahfa) ((ahfa)->t_has_event)
 @d Event_Group_Size_of_AHFA(ahfa) ((ahfa)->t_event_group_size)
-@ @<Bit aligned AHFA state elements@> =
-unsigned int t_has_event:1;
-@ @<Int aligned AHFA state elements@> =
+@d Event_AHFAIDs_of_AHFA(ahfa) ((ahfa)->t_event_ahfaids)
+@d AHFA_has_Event(ahfa) (Count_of_CIL(Event_AHFAIDs_of_AHFA(ahfa)) != 0)
+@ This CIL is at most of size 1.
+It is either the singleton containing the AHFA's
+own ID, or the empty CIL.
+@<Widely aligned AHFA state elements@> =
+CIL t_event_ahfaids;
+@ A counter tracks the number of AHFAs in
+this AHFA's event group.
+@<Int aligned AHFA state elements@> =
 int t_event_group_size;
 @ @<Initialize AHFA@> =
-  AHFA_has_Event(ahfa) = 0;
+  Event_AHFAIDs_of_AHFA(ahfa) = NULL;
   Event_Group_Size_of_AHFA(ahfa) = 0;
 
 @*0 AHFA container in grammar.
@@ -6476,7 +6482,7 @@ AHFAID _marpa_g_AHFA_state_empty_transition(Marpa_Grammar g,
 	  if (raw_position <  0) {			// Completion
 	      const ISYID lhs_isyid = LHS_ISYID_of_AIM (aim);
 	      const XSY xsy = Source_XSY_of_ISYID (lhs_isyid);
-	      if (xsy)
+	      if (xsy && XSY_is_Completion_Event(xsy))
 		{
 		  const XSYID xsyid = ID_of_XSY (xsy);
 		  bv_bit_set (bv_completion_xsyid, xsyid);
@@ -6521,13 +6527,15 @@ AHFAID _marpa_g_AHFA_state_empty_transition(Marpa_Grammar g,
 
 @ @<Mark the event AHFAs@> =
 {
-    AHFAID ahfa_id;
-    for (ahfa_id = 0; ahfa_id < AHFA_Count_of_G(g); ahfa_id++) {
-        const AHFA ahfa = AHFA_by_ID(ahfa_id);
-	if (Count_of_CIL(Completion_XSYIDs_of_AHFA(ahfa)) > 0) {
-	    AHFA_has_Event(ahfa) = 1;
-	    continue;
-	}
+  AHFAID ahfa_id;
+  for (ahfa_id = 0; ahfa_id < AHFA_Count_of_G (g); ahfa_id++)
+    {
+      const CILAR cilar = &g->t_cilar;
+      const AHFA ahfa = AHFA_by_ID (ahfa_id);
+      const int ahfa_is_event =
+	Count_of_CIL (Completion_XSYIDs_of_AHFA (ahfa));
+      Event_AHFAIDs_of_AHFA (ahfa) =
+	ahfa_is_event ? cil_singleton (cilar, ahfa_id) : cil_empty (cilar);
     }
 }
 
@@ -9542,77 +9550,81 @@ add those Earley items it ``causes".
 
 @ @<Trigger events@> =
 {
+  unsigned int min, max, start;
   int eim_ix;
-  EIM *eims = EIMs_of_ES (current_earley_set);
-  XSYID xsy_count = XSY_Count_of_G (g);
-  Bit_Vector bv_xsy_event_trigger = bv_obs_create (earleme_complete_obs, xsy_count);
-  Bit_Vector bv_isy_event_trigger = bv_obs_create (earleme_complete_obs, isy_count);
-  int working_earley_item_count = EIM_Count_of_ES (current_earley_set);
+  const EIM *eims = EIMs_of_ES (current_earley_set);
+  const XSYID xsy_count = XSY_Count_of_G (g);
+  const AHFAID ahfa_count = AHFA_Count_of_G (g);
+  Bit_Vector bv_xsy_event_trigger =
+    bv_obs_create (earleme_complete_obs, xsy_count);
+  Bit_Vector bv_ahfa_event_trigger =
+    bv_obs_create (earleme_complete_obs, ahfa_count);
+  const int working_earley_item_count = EIM_Count_of_ES (current_earley_set);
 
-for (eim_ix = 0; eim_ix < working_earley_item_count; eim_ix++)
-{
-  const EIM eim = eims[eim_ix];
-  const AHFA ahfa = AHFA_of_EIM (eim);
-  {
-    /* First do the ISYs for the top AHFA */
-    int isy_ix;
-    const CIL cil = Direct_Completion_Event_CIL_of_AHFA (ahfa);
-    const int event_isy_count = Count_of_CIL (cil);
-    for (isy_ix = 0; isy_ix < event_isy_count; isy_ix++)
+  for (eim_ix = 0; eim_ix < working_earley_item_count; eim_ix++)
+    {
+      const EIM eim = eims[eim_ix];
+      const AHFA top_ahfa = AHFA_of_EIM (eim);
+      const AHFAID top_ahfaid = ID_of_AHFA (top_ahfa);
+      if (AHFA_has_Event (top_ahfa))
+	{			/* Note that we go on to look at the Leo path, even if
+				   the top AHFA is not an event AHFA */
+	  bv_bit_set (bv_ahfa_event_trigger, top_ahfaid);
+	}
       {
-	const ISYID event_isyid = Item_of_CIL (cil, isy_ix);
-	bv_bit_set (bv_isy_event_trigger, event_isyid);
-      }
-  }
-  {
-    /* Now do the ISYs for any Leo links */
-    const SRCL first_leo_source_link = First_Leo_SRCL_of_EIM (eim);
-    SRCL setup_source_link;
-    for (setup_source_link = first_leo_source_link; setup_source_link;
-	 setup_source_link = Next_SRCL_of_SRCL (setup_source_link))
-      {
-	int isy_ix;
-	const LIM lim = LIM_of_SRCL (setup_source_link);
-	const CIL cil = CIL_of_LIM (lim);
-	const int event_isy_count = Count_of_CIL (cil);
-	for (isy_ix = 0; isy_ix < event_isy_count; isy_ix++)
+	/* Now do the ISYs for any Leo links */
+	const SRCL first_leo_source_link = First_Leo_SRCL_of_EIM (eim);
+	SRCL setup_source_link;
+	for (setup_source_link = first_leo_source_link; setup_source_link;
+	     setup_source_link = Next_SRCL_of_SRCL (setup_source_link))
 	  {
-	    const ISYID event_isyid = Item_of_CIL (cil, isy_ix);
-	    bv_bit_set (bv_isy_event_trigger, event_isyid);
+	    int cil_ix;
+	    const LIM lim = LIM_of_SRCL (setup_source_link);
+	    const CIL event_ahfaids = CIL_of_LIM (lim);
+	    const int event_ahfa_count = Count_of_CIL (event_ahfaids);
+	    for (cil_ix = 0; cil_ix < event_ahfa_count; cil_ix++)
+	      {
+		const ISYID leo_path_ahfaid =
+		  Item_of_CIL (event_ahfaids, cil_ix);
+		bv_bit_set (bv_ahfa_event_trigger, leo_path_ahfaid);
+		/* No need to test if AHFA is an event AHFA --
+		   all paths in the LIM's CIL will be */
+	      }
 	  }
       }
-  }
-}
-    {
-      unsigned int min, max, start;
+    }
 
-      for (start = 0; bv_scan (bv_isy_event_trigger, start, &min, &max);
-	   start = max + 2)
+  for (start = 0; bv_scan (bv_ahfa_event_trigger, start, &min, &max);
+       start = max + 2)
+    {
+      XSYID event_ahfaid;
+      for (event_ahfaid = (ISYID) min; event_ahfaid <= (ISYID) max;
+	   event_ahfaid++)
 	{
-	  XSYID event_isyid;
-	  for (event_isyid = (ISYID) min; event_isyid <= (ISYID) max;
-	       event_isyid++)
+	  int cil_ix;
+	  const AHFA event_ahfa = AHFA_by_ID (event_ahfaid);
+	  const CIL completion_xsyids =
+	    Completion_XSYIDs_of_AHFA (event_ahfa);
+	  const int event_xsy_count = Count_of_CIL (completion_xsyids);
+	  for (cil_ix = 0; cil_ix < event_xsy_count; cil_ix++)
 	    {
-	      XSY event_xsy = Source_XSY_of_ISYID (event_isyid);
-	      if (event_xsy) {
-		XSYID event_xsyid = ID_of_XSY (event_xsy);
-		bv_bit_set (bv_xsy_event_trigger, event_xsyid);
-	      }
+	      XSYID event_xsyid = Item_of_CIL (completion_xsyids, cil_ix);
+	      bv_bit_set (bv_xsy_event_trigger, event_xsyid);
 	    }
 	}
+    }
 
-      for (start = 0; bv_scan (bv_xsy_event_trigger, start, &min, &max);
-	   start = max + 2)
+  for (start = 0; bv_scan (bv_xsy_event_trigger, start, &min, &max);
+       start = max + 2)
+    {
+      XSYID event_xsyid;
+      for (event_xsyid = (ISYID) min; event_xsyid <= (ISYID) max;
+	   event_xsyid++)
 	{
-	  XSYID event_xsyid;
-	  for (event_xsyid = (ISYID) min; event_xsyid <= (ISYID) max;
-	       event_xsyid++)
+	  if (lbv_bit_test
+	      (r->t_lbv_xsyid_completion_event_is_active, event_xsyid))
 	    {
-	      if (lbv_bit_test
-		  (r->t_lbv_xsyid_completion_event_is_active, event_xsyid))
-		{
-		  int_event_new (g, MARPA_EVENT_SYMBOL_COMPLETED, event_xsyid);
-		}
+	      int_event_new (g, MARPA_EVENT_SYMBOL_COMPLETED, event_xsyid);
 	    }
 	}
     }
@@ -10041,14 +10053,18 @@ Optimize using the AHFA Event group size.
 This code is executed very often.
 @<Populate |lim_to_process| from |predecessor_lim|@> =
 {
-  CIL new_cil;
+  CIL new_cil = NULL;
   const AHFA top_AHFA = Top_AHFA_of_LIM (predecessor_lim);
   const CIL predecessor_cil = CIL_of_LIM (predecessor_lim);
-  const ISYID isyid_to_merge = Postdot_ISYID_of_LIM (lim_to_process);
+  const EIM base_eim = Base_EIM_of_LIM(lim_to_process);
+  const AHFA base_ahfa = AHFA_of_EIM(base_eim);
+  const CIL base_event_ahfaids = Event_AHFAIDs_of_AHFA(base_ahfa);
   Top_AHFA_of_LIM (lim_to_process) = top_AHFA;
   Predecessor_LIM_of_LIM (lim_to_process) = predecessor_lim;
   Origin_of_LIM (lim_to_process) = Origin_of_LIM (predecessor_lim);
-  new_cil = cil_merge_one (&g->t_cilar, predecessor_cil, isyid_to_merge);
+  if (Count_of_CIL(base_event_ahfaids)) {
+    new_cil = cil_merge_one (&g->t_cilar, predecessor_cil, Item_of_CIL(base_event_ahfaids, 1));
+  }
   CIL_of_LIM (lim_to_process) = new_cil ? new_cil : predecessor_cil;
 }
 
@@ -10067,9 +10083,9 @@ and the top AHFA to-state was initialized to the AHFA to-state
 of the base EIM.
 @<Populate |lim_to_process| from its base Earley item@> = {
   const AHFA top_AHFA = Top_AHFA_of_LIM(lim_to_process);
-  EIM base_eim = Base_EIM_of_LIM(lim_to_process);
+  const EIM base_eim = Base_EIM_of_LIM(lim_to_process);
   Origin_of_LIM (lim_to_process) = Origin_of_EIM (base_eim);
- CIL_of_LIM(lim_to_process) = Direct_Completion_Event_CIL_of_AHFA(top_AHFA);
+  CIL_of_LIM(lim_to_process) = Event_AHFAIDs_of_AHFA(top_AHFA);
 }
 
 @ @<Copy PIM workarea to postdot item array@> = {
