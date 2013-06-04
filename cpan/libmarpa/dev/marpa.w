@@ -1552,10 +1552,9 @@ The issue of ambiguous derivations is dealt with by including all
 nulled derivations.
 If XSY |xsy1| can nullify XSY |xsy2|, then it does.
 For non-nullable XSY's, this will be the empty CIL.
-@ {\bf To Do}: @^To Do@>
-Need to add the logic to not populate these CIL's if there are
-no nulled events.
-Right now the nulled event CIL's are always populated.
+If there are
+no nulled events,
+the nulled event CIL's will be populated with the empty CIL.
 @<Initialize XSY elements@> =
   Nulled_XSYIDs_of_XSY(xsy) = NULL;
 
@@ -1780,6 +1779,8 @@ an ISY is a completion event if and only if there
 is a corresponding XSY,
 and it is a potential event.
 Masking of events will be done at the XSY level.
+@ {\bf To Do}: @^To Do@>
+Still needed?
 @d ISY_is_Completion_Event(isy) ((isy)->t_isy_is_completion_event)
 @d ISYID_is_Completion_Event(isy) ISY_is_Completion_Event(ISY_by_ID(isy))
 @<Bit aligned ISY elements@> = unsigned int t_isy_is_completion_event:1;
@@ -2967,7 +2968,6 @@ int marpa_g_precompute(Marpa_Grammar g)
     my_obstack_free (obs_precompute);
     return return_value;
 }
-@ {\bf To Do}: @^To Do@>
 
 @** The grammar census.
 
@@ -3000,9 +3000,6 @@ more than a single pass of the diagnostics.
 (As of this writing, I personally have yet to encounter such a case.)
 The upside is that in the more frequent cases, the user is spared
 a lot of useless diagnostics.
-@ {\bf To Do}: @^To Do@>
-Change so that nullification CIls are
-populated only if there are prediction events.
 @<Perform census of grammar |g|@> =
 {
     @<Census symbols@>@;
@@ -7067,7 +7064,7 @@ be unset, while the external flag may be set or unset, as the user
 decided.
 After Earley set 0 is complete, both booleans will have the same value.
 @ {\bf To Do}: @^To Do@>
-Once the null parse is special-cased, one boolean may suffice.
+Now that the null parse is special-cased, one boolean may suffice.
 @<Bit aligned recognizer elements@> =
 unsigned int t_use_leo_flag:1;
 unsigned int t_is_using_leo:1;
@@ -10038,7 +10035,11 @@ for (lim_chain_ix--; lim_chain_ix >= 0; lim_chain_ix--) {
     predecessor_lim = lim_to_process;
 }
 
-@ @<Populate |lim_to_process| from |predecessor_lim|@> =
+@
+{\bf To Do}: @^To Do@>
+Optimize using the AHFA Event group size.
+This code is executed very often.
+@<Populate |lim_to_process| from |predecessor_lim|@> =
 {
   CIL new_cil;
   const AHFA top_AHFA = Top_AHFA_of_LIM (predecessor_lim);
