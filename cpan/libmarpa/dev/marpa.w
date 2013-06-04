@@ -2950,6 +2950,7 @@ int marpa_g_precompute(Marpa_Grammar g)
 	@<Populate the prediction
 	  and nulled symbol CILs@>@;
 	@<Mark the event AHFAs@>@;
+	@<Calculate AHFA Event Group Sizes@>@;
     }
     g->t_is_precomputed = 1;
     if (g->t_has_cycle)
@@ -5384,7 +5385,6 @@ PRIVATE_NOT_INLINE int AHFA_state_cmp(
    const unsigned int initial_no_of_states = 2*AIM_Count_of_G(g);
    AIM AHFA_item_0_p = g->t_AHFA_items;
    Bit_Matrix prediction_matrix;
-   Bit_Matrix isy_by_right_isy_matrix;
    IRL* irl_by_sort_key = my_new(IRL, irl_count);
   Bit_Vector per_ahfa_complete_v = bv_obs_create (obs_precompute, isy_count);
   Bit_Vector per_ahfa_postdot_v = bv_obs_create (obs_precompute, isy_count);
@@ -5718,6 +5718,7 @@ be if written 100\% using indexes.
   const ISYID isy_count = ISY_Count_of_G(g);
   const XSYID xsy_count = XSY_Count_of_G(g);
   IRLID** irl_list_x_lh_isy = NULL;
+  Bit_Matrix isy_by_right_isy_matrix;
 
 @ Initialized based on the capacity of the XRL stack, rather
 than its length, as a convenient way to deal with issues
@@ -6540,35 +6541,34 @@ AHFAID _marpa_g_AHFA_state_empty_transition(Marpa_Grammar g,
   for (outer_ahfa_id = 0; outer_ahfa_id < ahfa_count_of_g; outer_ahfa_id++)
     {
       AHFAID inner_ahfa_id;
-      ISLID outer_isyid;
       const AHFA outer_ahfa = AHFA_by_ID (outer_ahfa_id);
-      If (AHFA_has_Event (outer_ahfa))
-      {
-	Event_Group_Size_of_AHFA (ahfa)++;
-      }
-      /* Note that
-         an AHFA, even if it is not itself an event AHFA,
+      /* There is no test that |outer_ahfa|
+         is an event AHFA.
+         An AHFA, even if it is not itself an event AHFA,
          may be in a non-empty AHFA event group.  */
-      outer_isyid = Leo_LHS_ISYID_of_AHFA (ahfa);
+      const ISYID outer_isyid = Leo_LHS_ISYID_of_AHFA (outer_ahfa);
       if (outer_isyid < 0)
 	continue;		/* This AHFA is not a Leo completion,
 				   so we are done. */
       for (inner_ahfa_id = 0; inner_ahfa_id < ahfa_count_of_g;
 	   inner_ahfa_id++)
 	{
-	  AHFA inner_ahfa;
-	  IRLID inner_irlid;
-	  if (inner_ahfa_id == outer_ahfa_id)
-	    continue;		/* We already counted this AHFA
-				   itself, if applicable */
-	  inner_ahfa = AHFA_by_ID (inner_ahfa_id);
+	  IRLID inner_isyid;
+	  const AHFA inner_ahfa = AHFA_by_ID (inner_ahfa_id);
 	  if (!AHFA_has_Event (inner_ahfa))
 	    continue;		/* Not in the group, because it
-				   is not an event AHFA */
-	  inner_isyid = Leo_ISYID_of_AHFA (ahfa);
+				   is not an event AHFA. */
+	  inner_isyid = Leo_LHS_ISYID_of_AHFA (inner_ahfa);
 	  if (inner_isyid < 0)
 	    continue;		/* This AHFA is not a Leo completion,
 				   so we are done. */
+	  if (matrix_bit_test (isy_by_right_isy_matrix,
+			       (unsigned int) outer_isyid,
+			       (unsigned int) inner_isyid))
+	    {
+	      Event_Group_Size_of_AHFA (outer_ahfa)++;	/* |inner_ahfa == outer_ahfa|
+							   does not need to treated as special case */
+	    }
 	}
     }
 }
