@@ -62,7 +62,7 @@ READ: while (1) {
     for ( my $ix = 0; my $event = $recce->event($ix); $ix++ ) {
         push @event_names, @{$event};
     }
-    $event_history .= join q{ }, sort @event_names;
+    $event_history .= join q{ }, $pos, sort @event_names;
     $event_history .= "\n";
     last READ if $pos >= length $input;
     $pos = $recce->resume();
@@ -70,6 +70,6 @@ READ: while (1) {
 my $value_ref = $recce->value();
 my $value = $value_ref ? ${$value_ref} : 'No parse';
 Marpa::R2::Test::is( $value,         'aaa', 'Leo SLIF parse' );
-Marpa::R2::Test::is( $event_history, "S\nC S\nA C S\n",    'Event history' );
+Marpa::R2::Test::is( $event_history, "1 S\n2 A C S\n3 A C S\n",    'Event history' );
 
 # vim: expandtab shiftwidth=4:
