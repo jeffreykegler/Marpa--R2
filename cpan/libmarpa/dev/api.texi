@@ -3998,6 +3998,20 @@ Event value: The ID of the expected symbol.
 Suggested message: "Expecting symbol".
 @end deftypevr
 
+
+@deftypevr Macro int MARPA_EVENT_SYMBOL_NULLED
+The recognizer can be set to generate an event when a
+symbol is nulled -- that is, recognized as a
+zero-length symbol.
+To set an nulled symbol event,
+use the recognizer's @code{marpa_r_nulled_symbol_event_set()}
+method.
+This event code indicates that a nulled symbol event
+occurred.
+Event value: The ID of the nulled symbol.
+Suggested message: "Symbol was nulled".
+@end deftypevr
+
 @node Error methods macros and codes, Design notes, Events, Top
 @chapter Error methods, macros and codes
 

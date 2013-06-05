@@ -949,14 +949,18 @@ can tell if there is a boolean vector to be freed.
 @<Widely aligned grammar elements@> = Bit_Vector t_bv_isyid_is_terminal;
 @ @<Initialize grammar elements@> = g->t_bv_isyid_is_terminal = NULL;
 
-@*0 Completion event boolean vector.
+@*0 Event boolean vectors.
 A boolean vector, with bits sets if there is an event
 on completion of a rule with that symbol on the LHS.
 At grammar initialization, this vector cannot be sized.
 It is initialized to |NULL| so that the destructor
 can tell if there is a boolean vector to be freed.
-@<Widely aligned grammar elements@> = Bit_Vector t_lbv_xsyid_is_completion_event;
-@ @<Initialize grammar elements@> = g->t_lbv_xsyid_is_completion_event = NULL;
+@<Widely aligned grammar elements@> =
+  Bit_Vector t_lbv_xsyid_is_completion_event;
+  Bit_Vector t_lbv_xsyid_is_nulled_event;
+@ @<Initialize grammar elements@> =
+  g->t_lbv_xsyid_is_completion_event = NULL;
+  g->t_lbv_xsyid_is_nulled_event = NULL;
 
 @*0 The event stack.
 Events are designed to be fast,
@@ -1539,6 +1543,14 @@ Marpa_Grammar g, Marpa_Symbol_ID xsy_id, int value)
     return failure_indicator;
 }
 
+@*0 XSY is nulled event?.
+@d XSY_is_Nulled_Event(xsy) ((xsy)->t_is_nulled_event)
+@d XSYID_is_Nulled_Event(xsyid) XSY_is_Nulled_Event(XSY_by_ID(xsyid))
+@<Bit aligned XSY elements@> = unsigned int t_is_nulled_event:1;
+@ @<Initialize XSY elements@> =
+xsy->t_is_nulled_event = 0;
+
+@ @<Function definitions@> =
 @*0 Nulled XSYIDs.
 @d Nulled_XSYIDs_of_XSY(xsy) ((xsy)->t_nulled_event_xsyids)
 @d Nulled_XSYIDs_of_XSYID(xsyid)
@@ -2911,7 +2923,7 @@ int marpa_g_precompute(Marpa_Grammar g)
 	@<Create AHFA items@>@;
 	@<Create AHFA states@>@;
 	@<Populate the terminal boolean vector@>@;
-	@<Populate the completion event boolean vector@>@;
+	@<Populate the event boolean vectors@>@;
 	@<Populate the prediction
 	  and nulled symbol CILs@>@;
 	@<Mark the event AHFAs@>@;
@@ -6330,16 +6342,21 @@ AHFAID _marpa_g_AHFA_state_empty_transition(Marpa_Grammar g,
     }
 }
 
-@** Populating the symbol completion event boolean vector.
-@<Populate the completion event boolean vector@> =
+@** Populating the event boolean vectors.
+@<Populate the event boolean vectors@> =
 {
   int xsyid;
   g->t_lbv_xsyid_is_completion_event = bv_obs_create (g->t_obs, xsy_count);
+  g->t_lbv_xsyid_is_nulled_event = bv_obs_create (g->t_obs, xsy_count);
   for (xsyid = 0; xsyid < xsy_count; xsyid++)
     {
       if (XSYID_is_Completion_Event (xsyid))
 	{
 	  lbv_bit_set (g->t_lbv_xsyid_is_completion_event, xsyid);
+	}
+      if (XSYID_is_Nulled_Event (xsyid))
+	{
+	  lbv_bit_set (g->t_lbv_xsyid_is_nulled_event, xsyid);
 	}
     }
 }
@@ -6747,10 +6764,10 @@ No complete or predicted Earley item will be found after the current earleme.
 unsigned int marpa_r_furthest_earleme(Marpa_Recognizer r)
 { return Furthest_Earleme_of_R(r); }
 
-@*0 Completion event variables.
-The count of unmasked XSY completion events.
+@*0 Event variables.
+The count of unmasked XSY events.
 This count is used to protect recognizers that do not
-use completion events from their overhead.
+use events from their overhead.
 All these have to do is check the count against zero.
 There is no aggressive
 attempt to optimize on a more fine-grained
@@ -6760,10 +6777,12 @@ a few instructions per Earley item of overhead is
 considered reasonable.
 @ @<Widely aligned recognizer elements@> =
 Bit_Vector t_lbv_xsyid_completion_event_is_active;
+Bit_Vector t_lbv_xsyid_nulled_event_is_active;
 @ @<Int aligned recognizer elements@> =
 int t_active_event_count;
 @ @<Initialize recognizer elements@> =
 r->t_lbv_xsyid_completion_event_is_active = NULL;
+r->t_lbv_xsyid_nulled_event_is_active = NULL;
 r->t_active_event_count = 0;
 
 @*0 Expected symbol boolean vector.
@@ -8893,8 +8912,11 @@ PRIVATE int alternative_insert(RECCE r, ALT new_alternative)
     }
     r->t_lbv_xsyid_completion_event_is_active =
       lbv_clone (r->t_obs, g->t_lbv_xsyid_is_completion_event, xsy_count);
+    r->t_lbv_xsyid_nulled_event_is_active =
+      lbv_clone (r->t_obs, g->t_lbv_xsyid_is_nulled_event, xsy_count);
     r->t_active_event_count =
-      bv_count ( g->t_lbv_xsyid_is_completion_event);
+      bv_count ( g->t_lbv_xsyid_is_completion_event)
+      + bv_count ( g->t_lbv_xsyid_is_nulled_event) ;
     Input_Phase_of_R(r) = R_DURING_INPUT;
     psar_reset(Dot_PSAR_of_R(r));
     @<Allocate recognizer containers@>@;
@@ -9447,7 +9469,9 @@ add those Earley items it ``causes".
   const EIM *eims = EIMs_of_ES (current_earley_set);
   const XSYID xsy_count = XSY_Count_of_G (g);
   const AHFAID ahfa_count = AHFA_Count_of_G (g);
-  Bit_Vector bv_xsy_event_trigger =
+  Bit_Vector bv_completion_event_trigger =
+    bv_obs_create (earleme_complete_obs, xsy_count);
+  Bit_Vector bv_nulled_event_trigger =
     bv_obs_create (earleme_complete_obs, xsy_count);
   Bit_Vector bv_ahfa_event_trigger =
     bv_obs_create (earleme_complete_obs, ahfa_count);
@@ -9487,25 +9511,35 @@ add those Earley items it ``causes".
 
   for (start = 0; bv_scan (bv_ahfa_event_trigger, start, &min, &max);
        start = max + 2)
+{
+  XSYID event_ahfaid;
+  for (event_ahfaid = (ISYID) min; event_ahfaid <= (ISYID) max;
+       event_ahfaid++)
     {
-      XSYID event_ahfaid;
-      for (event_ahfaid = (ISYID) min; event_ahfaid <= (ISYID) max;
-	   event_ahfaid++)
-	{
-	  int cil_ix;
-	  const AHFA event_ahfa = AHFA_by_ID (event_ahfaid);
-	  const CIL completion_xsyids =
-	    Completion_XSYIDs_of_AHFA (event_ahfa);
-	  const int event_xsy_count = Count_of_CIL (completion_xsyids);
-	  for (cil_ix = 0; cil_ix < event_xsy_count; cil_ix++)
-	    {
-	      XSYID event_xsyid = Item_of_CIL (completion_xsyids, cil_ix);
-	      bv_bit_set (bv_xsy_event_trigger, event_xsyid);
-	    }
-	}
+      int cil_ix;
+      const AHFA event_ahfa = AHFA_by_ID (event_ahfaid);
+      {
+	const CIL completion_xsyids = Completion_XSYIDs_of_AHFA (event_ahfa);
+	const int event_xsy_count = Count_of_CIL (completion_xsyids);
+	for (cil_ix = 0; cil_ix < event_xsy_count; cil_ix++)
+	  {
+	    XSYID event_xsyid = Item_of_CIL (completion_xsyids, cil_ix);
+	    bv_bit_set (bv_completion_event_trigger, event_xsyid);
+	  }
+      }
+      {
+	const CIL nulled_xsyids = Nulled_XSYIDs_of_AHFA (event_ahfa);
+	const int event_xsy_count = Count_of_CIL (nulled_xsyids);
+	for (cil_ix = 0; cil_ix < event_xsy_count; cil_ix++)
+	  {
+	    XSYID event_xsyid = Item_of_CIL (nulled_xsyids, cil_ix);
+	    bv_bit_set (bv_nulled_event_trigger, event_xsyid);
+	  }
+      }
     }
+}
 
-  for (start = 0; bv_scan (bv_xsy_event_trigger, start, &min, &max);
+  for (start = 0; bv_scan (bv_completion_event_trigger, start, &min, &max);
        start = max + 2)
     {
       XSYID event_xsyid;
@@ -9516,6 +9550,20 @@ add those Earley items it ``causes".
 	      (r->t_lbv_xsyid_completion_event_is_active, event_xsyid))
 	    {
 	      int_event_new (g, MARPA_EVENT_SYMBOL_COMPLETED, event_xsyid);
+	    }
+	}
+    }
+  for (start = 0; bv_scan (bv_nulled_event_trigger, start, &min, &max);
+       start = max + 2)
+    {
+      XSYID event_xsyid;
+      for (event_xsyid = (ISYID) min; event_xsyid <= (ISYID) max;
+	   event_xsyid++)
+	{
+	  if (lbv_bit_test
+	      (r->t_lbv_xsyid_nulled_event_is_active, event_xsyid))
+	    {
+	      int_event_new (g, MARPA_EVENT_SYMBOL_NULLED, event_xsyid);
 	    }
 	}
     }
