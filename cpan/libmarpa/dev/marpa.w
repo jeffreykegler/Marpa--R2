@@ -6425,7 +6425,8 @@ if (raw_position < 0)
       const CILAR cilar = &g->t_cilar;
       const AHFA ahfa = AHFA_by_ID (ahfa_id);
       const int ahfa_is_event =
-	Count_of_CIL (Completion_XSYIDs_of_AHFA (ahfa));
+	Count_of_CIL (Completion_XSYIDs_of_AHFA (ahfa))
+	|| Count_of_CIL (Nulled_XSYIDs_of_AHFA (ahfa));
       Event_AHFAIDs_of_AHFA (ahfa) =
 	ahfa_is_event ? cil_singleton (cilar, ahfa_id) : cil_empty (cilar);
     }
