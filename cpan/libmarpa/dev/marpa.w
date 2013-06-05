@@ -1692,7 +1692,6 @@ isy_new(GRAMMAR g, XSY source)
   const ISY new_isy = isy_start (g);
   Source_XSY_of_ISY (new_isy) = source;
   Rank_of_ISY (new_isy) = ISY_Rank_by_XSY (source);
-  ISY_is_Completion_Event (new_isy) = XSY_is_Completion_Event (source);
   return new_isy;
 }
 
@@ -1705,7 +1704,6 @@ isy_clone(GRAMMAR g, XSY xsy)
   const ISY new_isy = isy_start (g);
   Source_XSY_of_ISY (new_isy) = xsy;
   Rank_of_ISY (new_isy) = ISY_Rank_by_XSY (xsy);
-  ISY_is_Completion_Event (new_isy) = XSY_is_Completion_Event (xsy);
   ISY_is_Nulling (new_isy) = XSY_is_Nulling (xsy);
   return new_isy;
 }
@@ -1768,23 +1766,6 @@ int _marpa_g_isy_is_nulling(Marpa_Grammar g, Marpa_ISY_ID isy_id)
   @<Fail if |isy_id| is invalid@>@;
   return ISY_is_Nulling(ISY_by_ID(isy_id));
 }
-
-@*0 ISY is completion event?.
-Is completion of this ISY an event?
-Conceptually, events are actually by XSY, so if this
-bit is set, it implies there is
-a source XSY.
-More precisely,
-an ISY is a completion event if and only if there
-is a corresponding XSY,
-and it is a potential event.
-Masking of events will be done at the XSY level.
-@ {\bf To Do}: @^To Do@>
-Still needed?
-@d ISY_is_Completion_Event(isy) ((isy)->t_isy_is_completion_event)
-@d ISYID_is_Completion_Event(isy) ISY_is_Completion_Event(ISY_by_ID(isy))
-@<Bit aligned ISY elements@> = unsigned int t_isy_is_completion_event:1;
-@ @<Initialize ISY elements@> = ISY_is_Completion_Event(isy) = 0;
 
 @*0 Source XSY.
 This is the external
@@ -2718,23 +2699,6 @@ int _marpa_g_irl_is_virtual_rhs(
 @<Bit aligned IRL elements@> = unsigned int t_is_right_recursive:1;
 @ @<Initialize IRL elements@> =
   IRL_is_Right_Recursive(irl) = 0;
-
-@*0 IRL completion ISYID lists.
-@ Direct completion events take into account only the current IRL,
-and ignore the effects of right recursion.
-There will be at most one direct completion event ISYID,
-the ISYID of the IRL's LHS.
-@d Direct_Completion_Event_CIL_of_IRL(irl) ((irl)->t_direct_completion_event_isyids)
-@<Widely aligned IRL elements@> =
-CIL t_direct_completion_event_isyids;
-@ Indirect completion events include the direct completion events,
-as well as any completions which may occur due to right recursion.
-@d Indirect_Completion_Event_CIL_of_IRL(irl) ((irl)->t_indirect_completion_event_isyids)
-@<Widely aligned IRL elements@> =
-CIL t_indirect_completion_event_isyids;
-@ @<Initialize IRL elements@> =
-  Direct_Completion_Event_CIL_of_IRL(irl) = NULL;
-  Indirect_Completion_Event_CIL_of_IRL(irl) = NULL;
 
 @*0 Rule real symbol count.
 This is another data element used for the ``internal semantics" --
@@ -4957,18 +4921,6 @@ and Leo items.
   Item_of_CIL(Completion_CIL_of_AHFA(state), (ix))
 @d Complete_ISY_Count_of_AHFA(state)
   Count_of_CIL(Completion_CIL_of_AHFA(state))
-@d Direct_Completion_Event_CIL_of_AHFA(state)
-  ((state)->t_direct_completion_event_isyids)
-@d Direct_Completion_Event_ISYID_of_AHFA(state, ix)
-  Item_of_CIL(Direct_Completion_Event_CIL_of_AHFA(state), (ix))
-@d Direct_Completion_Event_ISY_Count_of_AHFA(state)
-  Count_of_CIL(Direct_Completion_Event_CIL_of_AHFA(state))
-@d Indirect_Completion_Event_CIL_of_AHFA(state)
-  ((state)->t_indirect_completion_event_isyids)
-@d Indirect_Completion_Event_ISYID_of_AHFA(state, ix)
-  Item_of_CIL(Indirect_Completion_Event_CIL_of_AHFA(state), (ix))
-@d Indirect_Completion_Event_ISY_Count_of_AHFA(state)
-  Count_of_CIL(Indirect_Completion_Event_CIL_of_AHFA(state))
 
 @ @<Widely aligned AHFA state elements@> =
 CIL t_indirect_completion_event_isyids;
@@ -5169,7 +5121,6 @@ the bit is set if $|isy1| = |isy2|$.
     matrix_clear(isy_by_right_isy_matrix);
     @<Initialize the |isy_by_right_isy_matrix| for right recursions@>@/
     transitive_closure(isy_by_right_isy_matrix);
-    @<Set the recursion ISYIDs for each IRL@>@/
 }
 
 @ @<Initialize the |isy_by_right_isy_matrix| for right derivations@> =
@@ -5247,46 +5198,6 @@ one non-nulling symbol in each IRL. */
 	      break;
 	    }
 	}
-    }
-}
-
-@ @<Set the recursion ISYIDs for each IRL@> =
-{
-  IRLID irl_id;
-  for (irl_id = 0; irl_id < irl_count; irl_id++)
-    {
-      const IRL irl = IRL_by_ID (irl_id);
-      const ISYID lhs_isyid = LHSID_of_IRL (irl);
-      Direct_Completion_Event_CIL_of_IRL (irl) =
-	ISYID_is_Completion_Event (lhs_isyid) ? cil_singleton (&g->t_cilar,
-							       lhs_isyid)
-	: cil_empty (&g->t_cilar);
-      if (!IRL_is_Right_Recursive (irl))
-	{
-	  Indirect_Completion_Event_CIL_of_IRL (irl) =
-	    Direct_Completion_Event_CIL_of_IRL (irl);
-	    continue;
-	}
-      {
-	/* If here, IRL is right recursive */
-	unsigned int min, max, start;
-	const CILAR cilar = &g->t_cilar;
-	Bit_Vector bv_recursive_isyids =
-	  matrix_row (isy_by_right_isy_matrix, (unsigned long) lhs_isyid);
-	cil_buffer_clear(cilar);
-	for (start = 0; bv_scan (bv_recursive_isyids, start, &min, &max);
-	     start = max + 2)
-	  {
-	    ISYID recursion_isyid;
-	    for (recursion_isyid = (ISYID) min;
-		 recursion_isyid <= (ISYID) max; recursion_isyid++)
-	      {
-		if (!ISYID_is_Completion_Event (recursion_isyid)) continue;
-		cil_buffer_push(cilar, recursion_isyid);
-	      }
-	  }
-	Indirect_Completion_Event_CIL_of_IRL (irl) = cil_buffer_add (&g->t_cilar);
-      }
     }
 }
 
@@ -5579,9 +5490,7 @@ _marpa_avl_destroy(duplicates);
     my_obstack_alloc (g->t_obs, sizeof (ISYID));
   postdot_isyid = Postdot_ISYID_of_AIM (start_item);
   *postdot_isyidary = postdot_isyid;
-  Direct_Completion_Event_CIL_of_AHFA(p_initial_state) =
-    Indirect_Completion_Event_CIL_of_AHFA(p_initial_state) =
-    Completion_CIL_of_AHFA(p_initial_state) =
+  Completion_CIL_of_AHFA(p_initial_state) =
     cil_empty (&g->t_cilar);
   p_initial_state->t_empty_transition = create_predicted_AHFA_state (g,
 			       matrix_row (prediction_matrix,
@@ -5650,8 +5559,6 @@ a start rule completion, and it is a
 	ISYID* p_postdot_isyidary = Postdot_ISYIDAry_of_AHFA(p_new_state) =
 	  my_obstack_alloc (g->t_obs, sizeof (ISYID));
 	Completion_CIL_of_AHFA(p_new_state)
-	= Direct_Completion_Event_CIL_of_AHFA(p_new_state)
-	= Indirect_Completion_Event_CIL_of_AHFA(p_new_state)
 	  = cil_empty (&g->t_cilar);
 	Postdot_ISY_Count_of_AHFA(p_new_state) = 1;
 	*p_postdot_isyidary = postdot_isyid;
@@ -5670,10 +5577,6 @@ a start rule completion, and it is a
 	const IRL irl = IRL_of_AIM(working_aim_p);
 	const ISYID lhs_isyid = LHSID_of_IRL(irl);
 	Completion_CIL_of_AHFA(p_new_state) = cil_singleton(&g->t_cilar, lhs_isyid);
-	Direct_Completion_Event_CIL_of_AHFA(p_new_state) = 
-	    Direct_Completion_Event_CIL_of_IRL(irl);
-	Indirect_Completion_Event_CIL_of_AHFA(p_new_state) = 
-	    Indirect_Completion_Event_CIL_of_IRL(irl);
 	completion_count_inc(obs_precompute, p_new_state, lhs_isyid);
 
 	Postdot_ISY_Count_of_AHFA(p_new_state) = 0;
@@ -5882,22 +5785,6 @@ for discovered state with 2+ items@> =
 	}
     }
   Completion_CIL_of_AHFA (p_new_state) = cil_bv_add (&g->t_cilar, per_ahfa_complete_v);
-  {
-    int isy_ix;
-    int complete_isyid_count = Complete_ISY_Count_of_AHFA (p_new_state);
-    CILAR cilar = &g->t_cilar;
-    cil_buffer_clear (cilar);
-    for (isy_ix = 0; isy_ix < complete_isyid_count; isy_ix++)
-      {
-	ISYID complete_isyid = Complete_ISYID_of_AHFA (p_new_state, isy_ix);
-	if (!ISYID_is_Completion_Event (complete_isyid))
-	  continue;
-	cil_buffer_push (cilar, complete_isyid);
-      }
-    Direct_Completion_Event_CIL_of_AHFA (p_new_state) =
-      Indirect_Completion_Event_CIL_of_AHFA (p_new_state) =
-      cil_buffer_add (&g->t_cilar);
-  }
 }
 
 @ Find the AHFA state in the argument,
@@ -6186,9 +6073,7 @@ create_predicted_AHFA_state(
   AHFA_is_Predicted (p_new_state) = 1;
   p_new_state->t_empty_transition = NULL;
   TRANSs_of_AHFA (p_new_state) = transitions_new (g, ISY_Count_of_G(g));
-  Completion_CIL_of_AHFA(p_new_state) = 
-    Direct_Completion_Event_CIL_of_AHFA(p_new_state) = 
-    Indirect_Completion_Event_CIL_of_AHFA(p_new_state) = cil_empty (&g->t_cilar);
+  Completion_CIL_of_AHFA(p_new_state) = cil_empty (&g->t_cilar);
   @<Calculate postdot symbols for predicted state@>@;
   return p_new_state;
 }
@@ -8884,13 +8769,8 @@ typedef struct s_alternative ALT_Object;
 @ @<Widely aligned recognizer elements@> =
 DSTACK_DECLARE(t_alternatives);
 @
-{\bf To Do}: @^To Do@>
-The value of |INITIAL_ALTERNATIVES_CAPACITY| is 1 for testing while this
-code is being developed.
-Once the code is stable it should be increased.
-@d INITIAL_ALTERNATIVES_CAPACITY 1
 @<Initialize recognizer elements@> =
-DSTACK_INIT(r->t_alternatives, ALT_Object, INITIAL_ALTERNATIVES_CAPACITY);
+DSTACK_INIT2(r->t_alternatives, ALT_Object);
 @ @<Destroy recognizer elements@> = DSTACK_DESTROY(r->t_alternatives);
 
 @ This functions returns the index at which to insert a new
