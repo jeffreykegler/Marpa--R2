@@ -1533,6 +1533,9 @@ Marpa_Grammar g, Marpa_Symbol_ID xsy_id, int value)
     xsy = XSY_by_ID (xsy_id);
     switch (value) {
     case 0: case 1:
+
+      MARPA_DEBUG4("%s: Setting XSY %d completion event flag to %d", STRLOC,
+           xsy_id, value);
       return XSY_is_Completion_Event (xsy) = value;
     }
     MARPA_ERROR (MARPA_ERR_INVALID_BOOLEAN);
@@ -2926,6 +2929,7 @@ int marpa_g_precompute(Marpa_Grammar g)
     @<Fail if no rules@>@;
     @<Fail if precomputed@>@;
     @<Fail if bad start symbol@>@;
+    MARPA_DEBUG2("%s", STRLOC);
     // After this point, errors are not recoverable
     @<Clear rule duplication tree@>@;
     // Phase 1: census the external grammar
@@ -6467,28 +6471,48 @@ AHFAID _marpa_g_AHFA_state_empty_transition(Marpa_Grammar g,
   const LBV bv_prediction_xsyid = bv_create (xsy_count);
   const LBV bv_nulled_xsyid = bv_create (xsy_count);
   const CILAR cilar = &g->t_cilar;
+  MARPA_DEBUG2("%s", STRLOC);
   for (ahfaid = 0; ahfaid < ahfa_count_of_g; ahfaid++)
     {
-      AIMID aimid;
+  MARPA_DEBUG3("%s, loop at AHFA %d", STRLOC, ahfaid);
+      AEX aex;
       const AHFA ahfa = AHFA_of_G_by_ID (g, ahfaid);
       const int ahfa_item_count = AIM_Count_of_AHFA (ahfa);
-      for (aimid = 0; aimid < (AIMID) ahfa_item_count; aimid++)
+  bv_clear (bv_completion_xsyid);
+  bv_clear (bv_prediction_xsyid);
+  bv_clear (bv_nulled_xsyid);
+      for (aex = 0; aex < (AEX) ahfa_item_count; aex++)
 	{
+  MARPA_DEBUG3("%s, loop at AEX %d", STRLOC, aex);
 	  int rhs_ix;
-	  const AIM aim = AIM_by_ID (aimid);
+	  const AIM aim = AIM_of_AHFA_by_AEX (ahfa, aex);
+  MARPA_DEBUG3("%s, AIM %s", STRLOC, aim_tag(aim));
 	  const ISYID postdot_isyid = Postdot_ISYID_of_AIM (aim);
 	  const IRL irl = IRL_of_AIM (aim);
+  MARPA_DEBUG3("%s, loop at IRL %d", STRLOC, ID_of_IRL(irl));
 	  int raw_position = Position_of_AIM (aim);
-	  if (raw_position <  0) {			// Completion
-	      const ISYID lhs_isyid = LHS_ISYID_of_AIM (aim);
-	      const XSY xsy = Source_XSY_of_ISYID (lhs_isyid);
-	      if (xsy && XSY_is_Completion_Event(xsy))
-		{
-		  const XSYID xsyid = ID_of_XSY (xsy);
-		  bv_bit_set (bv_completion_xsyid, xsyid);
-		}
-	      raw_position = Length_of_IRL (irl);
-	    }
+if (raw_position < 0)
+  {				// Completion
+  MARPA_DEBUG2("%s", STRLOC);
+    raw_position = Length_of_IRL (irl);
+    if (!IRL_has_Virtual_LHS (irl))
+      {				// Completion
+	const ISY lhs = LHS_of_IRL (irl);
+	const XSY xsy = Source_XSY_of_ISY (lhs);
+	MARPA_DEBUG4 ("%s: xsy=%p completion?=%d", STRLOC, (void *) xsy,
+		      XSY_is_Completion_Event (xsy));
+	MARPA_DEBUG4 ("%s: xsyid=%d completion?=%d", STRLOC,
+		      (xsy ? ID_of_XSY (xsy) : -1),
+		      XSY_is_Completion_Event (xsy));
+	if (XSY_is_Completion_Event (xsy))
+	  {
+	    const XSYID xsyid = ID_of_XSY (xsy);
+	    MARPA_DEBUG3 ("%s: Setting completion bit for XSYID: %d", STRLOC,
+			  xsyid);
+	    bv_bit_set (bv_completion_xsyid, xsyid);
+	  }
+      }
+  }
 	  if (postdot_isyid >= 0)
 	    {
 	      const XSY xsy = Source_XSY_of_ISYID (postdot_isyid);
@@ -9561,14 +9585,20 @@ add those Earley items it ``causes".
     bv_obs_create (earleme_complete_obs, ahfa_count);
   const int working_earley_item_count = EIM_Count_of_ES (current_earley_set);
 
+		  MARPA_DEBUG2("%s", STRLOC);
+
   for (eim_ix = 0; eim_ix < working_earley_item_count; eim_ix++)
     {
       const EIM eim = eims[eim_ix];
       const AHFA top_ahfa = AHFA_of_EIM (eim);
       const AHFAID top_ahfaid = ID_of_AHFA (top_ahfa);
+
+		  MARPA_DEBUG3("%s: Checking events for AHFA %d", STRLOC, top_ahfaid);
+
       if (AHFA_has_Event (top_ahfa))
 	{			/* Note that we go on to look at the Leo path, even if
 				   the top AHFA is not an event AHFA */
+		  MARPA_DEBUG3("%s: Setting event bit for AHFA: %d", STRLOC, top_ahfaid);
 	  bv_bit_set (bv_ahfa_event_trigger, top_ahfaid);
 	}
       {
@@ -9582,6 +9612,9 @@ add those Earley items it ``causes".
 	    const LIM lim = LIM_of_SRCL (setup_source_link);
 	    const CIL event_ahfaids = CIL_of_LIM (lim);
 	    const int event_ahfa_count = Count_of_CIL (event_ahfaids);
+
+		  MARPA_DEBUG3("%s: (Leo) %d events for CIL", STRLOC, event_ahfa_count);
+
 	    for (cil_ix = 0; cil_ix < event_ahfa_count; cil_ix++)
 	      {
 		const ISYID leo_path_ahfaid =
@@ -9589,6 +9622,7 @@ add those Earley items it ``causes".
 		bv_bit_set (bv_ahfa_event_trigger, leo_path_ahfaid);
 		/* No need to test if AHFA is an event AHFA --
 		   all paths in the LIM's CIL will be */
+		  MARPA_DEBUG3("%s: (Leo) Setting event bit for AHFA: %d", STRLOC, leo_path_ahfaid);
 	      }
 	  }
       }
@@ -9609,6 +9643,7 @@ add those Earley items it ``causes".
 	  for (cil_ix = 0; cil_ix < event_xsy_count; cil_ix++)
 	    {
 	      XSYID event_xsyid = Item_of_CIL (completion_xsyids, cil_ix);
+		  MARPA_DEBUG3("%s: Setting event bit for XSY: %d", STRLOC, event_xsyid);
 	      bv_bit_set (bv_xsy_event_trigger, event_xsyid);
 	    }
 	}
@@ -9621,9 +9656,11 @@ add those Earley items it ``causes".
       for (event_xsyid = (ISYID) min; event_xsyid <= (ISYID) max;
 	   event_xsyid++)
 	{
+		  MARPA_DEBUG3("%s: Test if event is active for XSY: %d", STRLOC, event_xsyid);
 	  if (lbv_bit_test
 	      (r->t_lbv_xsyid_completion_event_is_active, event_xsyid))
 	    {
+		  MARPA_DEBUG3("%s: Triggering event for XSY: %d", STRLOC, event_xsyid);
 	      int_event_new (g, MARPA_EVENT_SYMBOL_COMPLETED, event_xsyid);
 	    }
 	}
