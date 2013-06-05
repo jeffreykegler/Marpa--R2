@@ -1286,6 +1286,13 @@ sub Marpa::R2::Scanless::R::line_column {
     return $thin_slr->line_column($pos);
 }
 
+# Internal methods, not to be documented
+
+sub Marpa::R2::Scanless::G::thick_g1_grammar {
+    my ($slg) = @_;
+    return $slg->[Marpa::R2::Inner::Scanless::G::THICK_G1_GRAMMAR];
+}
+
 1;
 
 # vim: expandtab shiftwidth=4:

@@ -1524,16 +1524,16 @@ Marpa_Symbol_ID xsy_id)
 int marpa_g_symbol_is_completion_event_set(
 Marpa_Grammar g, Marpa_Symbol_ID xsy_id, int value)
 {
-    XSY symbol;
+    XSY xsy;
     @<Return |-2| on failure@>@;
     @<Fail if fatal error@>@;
     @<Fail if precomputed@>@;
     @<Fail if |xsy_id| is malformed@>@;
     @<Soft fail if |xsy_id| does not exist@>@;
-    symbol = XSY_by_ID (xsy_id);
+    xsy = XSY_by_ID (xsy_id);
     switch (value) {
     case 0: case 1:
-      return XSY_is_Completion_Event (symbol) = value;
+      return XSY_is_Completion_Event (xsy) = value;
     }
     MARPA_ERROR (MARPA_ERR_INVALID_BOOLEAN);
     return failure_indicator;

@@ -1378,7 +1378,7 @@ sub Marpa::R2::Grammar::error {
 
 # INTERNAL OK AFTER HERE _marpa_
 
-sub Marpa::R2::Grammar::show_ISY {
+sub Marpa::R2::Grammar::show_isy {
     my ( $grammar, $isy_id ) = @_;
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
     my $tracer    = $grammar->[Marpa::R2::Internal::Grammar::TRACER];
@@ -1396,17 +1396,17 @@ sub Marpa::R2::Grammar::show_ISY {
 
     return $text;
 
-} ## end sub Marpa::R2::Grammar::show_ISY
+} ## end sub Marpa::R2::Grammar::show_isy
 
-sub Marpa::R2::Grammar::show_ISYs {
+sub Marpa::R2::Grammar::show_isys {
     my ($grammar) = @_;
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
     my $text      = q{};
     for my $isy_id ( 0 .. $grammar_c->_marpa_g_isy_count() - 1 ) {
-        $text .= $grammar->show_ISY($isy_id);
+        $text .= $grammar->show_isy($isy_id);
     }
     return $text;
-} ## end sub Marpa::R2::Grammar::show_ISYs
+} ## end sub Marpa::R2::Grammar::show_isys
 
 sub Marpa::R2::Grammar::brief_irl {
     my ( $grammar, $irl_id ) = @_;
@@ -1424,7 +1424,7 @@ sub Marpa::R2::Grammar::brief_irl {
     return $text;
 } ## end sub Marpa::R2::Grammar::brief_irl
 
-sub Marpa::R2::Grammar::show_IRLs {
+sub Marpa::R2::Grammar::show_irls {
     my ($grammar) = @_;
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
     my $text      = q{};
@@ -1432,7 +1432,7 @@ sub Marpa::R2::Grammar::show_IRLs {
         $text .= $grammar->brief_irl($irl_id) . "\n";
     }
     return $text;
-} ## end sub Marpa::R2::Grammar::show_IRLs
+} ## end sub Marpa::R2::Grammar::show_irls
 
 sub Marpa::R2::Grammar::rule_is_used {
     my ( $grammar, $rule_id ) = @_;

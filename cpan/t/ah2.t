@@ -70,7 +70,7 @@ Marpa::R2::Test::is( $grammar->show_symbols,
 3: E, nulling
 EOS
 
-Marpa::R2::Test::is( $grammar->show_ISYs,
+Marpa::R2::Test::is( $grammar->show_isys,
     <<'EOS', 'Aycock/Horspool ISYs' );
 0: S
 1: S[], nulling
