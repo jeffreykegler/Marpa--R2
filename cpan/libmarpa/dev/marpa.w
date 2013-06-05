@@ -10088,31 +10088,36 @@ for (lim_chain_ix--; lim_chain_ix >= 0; lim_chain_ix--) {
     predecessor_lim = lim_to_process;
 }
 
-@
-{\bf To Do}: @^To Do@>
-Optimize using the AHFA Event group size.
-This code is executed very often.
-@<Populate |lim_to_process| from |predecessor_lim|@> =
+@ @<Populate |lim_to_process| from |predecessor_lim|@> =
 {
-  CIL new_cil = NULL;
-  const AHFA top_AHFA = Top_AHFA_of_LIM (predecessor_lim);
-  const AHFA base_to_ahfa = Top_AHFA_of_LIM (lim_to_process);	/* The base to-AHFA
-								   was memoized as a potential Top AHFA for this LIM.
-								   It will be overwritten shortly */
+  const AHFA top_ahfa = Top_AHFA_of_LIM (predecessor_lim);
   const CIL predecessor_cil = CIL_of_LIM (predecessor_lim);
-  const CIL base_to_ahfa_event_ahfaids = Event_AHFAIDs_of_AHFA (base_to_ahfa);
-  Top_AHFA_of_LIM (lim_to_process) = top_AHFA;
-  MARPA_DEBUG4 ("%s: Populating LIM; top, base to-AHFA = %d, %d", STRLOC,
-		top_AHFA, base_to_ahfa);
+  CIL_of_LIM (lim_to_process) = predecessor_cil;	/* Initialize to be
+							   just the predcessor's list of AHFA IDs.
+							   Overwrite if we need to add another. */
   Predecessor_LIM_of_LIM (lim_to_process) = predecessor_lim;
   Origin_of_LIM (lim_to_process) = Origin_of_LIM (predecessor_lim);
-  if (Count_of_CIL (base_to_ahfa_event_ahfaids))
-    {
-      new_cil =
-	cil_merge_one (&g->t_cilar, predecessor_cil,
-		       Item_of_CIL (base_to_ahfa_event_ahfaids, 0));
+  if (Event_Group_Size_of_AHFA (top_ahfa) > Count_of_CIL (predecessor_cil))
+    {				/* Might we need to add another AHFA ID? */
+      const AHFA base_to_ahfa = Top_AHFA_of_LIM (lim_to_process);	/* The base to-AHFA
+									   was memoized as a potential Top AHFA for this LIM.
+									   It will be overwritten shortly */
+      const CIL base_to_ahfa_event_ahfaids =
+	Event_AHFAIDs_of_AHFA (base_to_ahfa);
+      MARPA_DEBUG4 ("%s: Populating LIM; top, base to-AHFA = %d, %d", STRLOC,
+		    top_ahfa, base_to_ahfa);
+      if (Count_of_CIL (base_to_ahfa_event_ahfaids))
+	{
+	  CIL new_cil = cil_merge_one (&g->t_cilar, predecessor_cil,
+				       Item_of_CIL
+				       (base_to_ahfa_event_ahfaids, 0));
+	  if (new_cil)
+	    {
+	      CIL_of_LIM (lim_to_process) = new_cil;
+	    }
+	}
     }
-  CIL_of_LIM (lim_to_process) = new_cil ? new_cil : predecessor_cil;
+  Top_AHFA_of_LIM (lim_to_process) = top_ahfa;
 }
 
 @ If we have reached this code, either we do not have a predecessor
