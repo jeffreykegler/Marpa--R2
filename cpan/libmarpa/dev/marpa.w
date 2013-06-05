@@ -6576,9 +6576,13 @@ if (raw_position < 0)
          An AHFA, even if it is not itself an event AHFA,
          may be in a non-empty AHFA event group.  */
       const ISYID outer_isyid = Leo_LHS_ISYID_of_AHFA (outer_ahfa);
-      if (outer_isyid < 0)
+      if (outer_isyid < 0) {
+	  if (AHFA_has_Event (outer_ahfa)) {
+	      Event_Group_Size_of_AHFA (outer_ahfa) = 1;
+	  }
 	continue;		/* This AHFA is not a Leo completion,
 				   so we are done. */
+       }
       for (inner_ahfa_id = 0; inner_ahfa_id < ahfa_count_of_g;
 	   inner_ahfa_id++)
 	{
@@ -6596,7 +6600,7 @@ if (raw_position < 0)
 			       (unsigned int) inner_isyid))
 	    {
 	      Event_Group_Size_of_AHFA (outer_ahfa)++;	/* |inner_ahfa == outer_ahfa|
-							   does not need to treated as special case */
+							   is not treated as special case */
 	    }
 	}
     }
@@ -10092,16 +10096,22 @@ This code is executed very often.
 {
   CIL new_cil = NULL;
   const AHFA top_AHFA = Top_AHFA_of_LIM (predecessor_lim);
+  const AHFA base_to_ahfa = Top_AHFA_of_LIM (lim_to_process);	/* The base to-AHFA
+								   was memoized as a potential Top AHFA for this LIM.
+								   It will be overwritten shortly */
   const CIL predecessor_cil = CIL_of_LIM (predecessor_lim);
-  const EIM base_eim = Base_EIM_of_LIM(lim_to_process);
-  const AHFA base_ahfa = AHFA_of_EIM(base_eim);
-  const CIL base_event_ahfaids = Event_AHFAIDs_of_AHFA(base_ahfa);
+  const CIL base_to_ahfa_event_ahfaids = Event_AHFAIDs_of_AHFA (base_to_ahfa);
   Top_AHFA_of_LIM (lim_to_process) = top_AHFA;
+  MARPA_DEBUG4 ("%s: Populating LIM; top, base to-AHFA = %d, %d", STRLOC,
+		top_AHFA, base_to_ahfa);
   Predecessor_LIM_of_LIM (lim_to_process) = predecessor_lim;
   Origin_of_LIM (lim_to_process) = Origin_of_LIM (predecessor_lim);
-  if (Count_of_CIL(base_event_ahfaids)) {
-    new_cil = cil_merge_one (&g->t_cilar, predecessor_cil, Item_of_CIL(base_event_ahfaids, 1));
-  }
+  if (Count_of_CIL (base_to_ahfa_event_ahfaids))
+    {
+      new_cil =
+	cil_merge_one (&g->t_cilar, predecessor_cil,
+		       Item_of_CIL (base_to_ahfa_event_ahfaids, 0));
+    }
   CIL_of_LIM (lim_to_process) = new_cil ? new_cil : predecessor_cil;
 }
 
