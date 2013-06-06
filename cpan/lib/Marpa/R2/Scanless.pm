@@ -48,6 +48,7 @@ BEGIN {
 
     G1_ARGS
     COMPLETION_EVENT_BY_ID
+    NULLED_EVENT_BY_ID
     TRACE_FILE_HANDLE
     BLESS_PACKAGE
 
@@ -422,6 +423,23 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
             ->[$symbol_id] = $completion_events_by_name->{$symbol_name};
     } ## end for my $symbol_name ( keys %{$completion_events_by_name...})
 
+    my $nulled_events_by_name = $hashed_source->{nulled_events};
+    my $nulled_events_by_id =
+        $self->[Marpa::R2::Inner::Scanless::G::NULLED_EVENT_BY_ID] = [];
+    for my $symbol_name ( keys %{$nulled_events_by_name} ) {
+        my $symbol_id = $g1_tracer->symbol_by_name($symbol_name);
+        if ( not defined $symbol_id ) {
+            Marpa::R2::exception(
+                "nulled event defined for non-existent symbol: $symbol_name\n"
+            );
+        }
+
+        # Must be done before precomputation
+        $g1_thin->symbol_is_nulled_event_set( $symbol_id, 1 );
+        $self->[Marpa::R2::Inner::Scanless::G::NULLED_EVENT_BY_ID]
+            ->[$symbol_id] = $nulled_events_by_name->{$symbol_name};
+    } ## end for my $symbol_name ( keys %{$nulled_events_by_name} )
+
     $thick_g1_grammar->precompute();
     my @g0_lexeme_to_g1_symbol;
     my @g1_symbol_to_g0_lexeme;
@@ -489,11 +507,17 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
     } ## end for my $lexeme_name ( keys %{$lexeme_declarations} )
 
     # Now that we know the lexemes, check attempts to defined a
-    # completion event for one
+    # completion or a nulled event for one
     for my $symbol_name ( keys %{$completion_events_by_name} ) {
         Marpa::R2::exception(
             "A completion event is declared for <$symbol_name>, but it is a G1 lexeme.\n",
             "  Completion events are only valid for symbols on the LHS of G1 rules.\n"
+        ) if $g0_lexeme_by_name->{$symbol_name};
+    }
+    for my $symbol_name ( keys %{$nulled_events_by_name} ) {
+        Marpa::R2::exception(
+            "A nulled event is declared for <$symbol_name>, but it is a G1 lexeme.\n",
+            "  nulled events are only valid for symbols on the LHS of G1 rules.\n"
         ) if $g0_lexeme_by_name->{$symbol_name};
     }
 
@@ -851,6 +875,17 @@ sub Marpa::R2::Inner::Scanless::convert_libmarpa_events {
                 $slg->[Marpa::R2::Inner::Scanless::G::COMPLETION_EVENT_BY_ID];
             push @{ $self->[Marpa::R2::Inner::Scanless::R::EVENTS] },
                 [ $completion_event_by_id->[$completed_symbol_id] ];
+            $pause = 1;
+            next EVENT;
+        } ## end if ( $event_type eq 'symbol completed' )
+
+        if ( $event_type eq 'symbol nulled' ) {
+            my ($nulled_symbol_id) = @event_data;
+            my $slg = $self->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
+            my $nulled_event_by_id =
+                $slg->[Marpa::R2::Inner::Scanless::G::NULLED_EVENT_BY_ID];
+            push @{ $self->[Marpa::R2::Inner::Scanless::R::EVENTS] },
+                [ $nulled_event_by_id->[$nulled_symbol_id] ];
             $pause = 1;
             next EVENT;
         } ## end if ( $event_type eq 'symbol completed' )

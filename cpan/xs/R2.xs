@@ -1712,6 +1712,18 @@ slr_convert_events (Scanless_R * slr)
 	      av_push (slr->event_queue, newRV_noinc ((SV *) event));
 	    }
 	    break;
+	case MARPA_EVENT_SYMBOL_NULLED:
+	    {
+	      AV *event;
+	      SV *event_data[2];
+	      Marpa_Symbol_ID nulled_symbol =
+		marpa_g_event_value (&marpa_event);
+	      event_data[0] = newSVpvs ("symbol nulled");
+	      event_data[1] = newSViv (nulled_symbol);
+	      event = av_make (Dim (event_data), event_data);
+	      av_push (slr->event_queue, newRV_noinc ((SV *) event));
+	    }
+	    break;
 	case MARPA_EVENT_EARLEY_ITEM_THRESHOLD:
 	    /* All events are ignored on faiulre
 	     * On success, all except MARPA_EVENT_EARLEY_ITEM_THRESHOLD

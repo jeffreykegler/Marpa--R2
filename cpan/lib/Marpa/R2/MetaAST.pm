@@ -994,6 +994,23 @@ sub Marpa::R2::Internal::MetaAST_Nodes::completion_event_declaration::evaluate {
     return undef;
 } ## end sub evaluate
 
+sub Marpa::R2::Internal::MetaAST_Nodes::nulled_event_declaration::evaluate {
+    my ( $values, $parse ) = @_;
+    my ( $start, $length, $raw_event_name, $raw_symbol_name) = @{$values};
+    my $event_name = $raw_event_name->name();
+    my $symbol_name = $raw_symbol_name->name();
+    my $nulled_events = $parse->{nulled_events} //= {};
+    if (defined $nulled_events->{$symbol_name}) {
+        my ($line, $column) = $parse->{meta_recce}->line_column($start);
+        die qq{nulled event for symbol "$symbol_name" declared twice\n},
+            qq{  That is not allowed\n},
+            "  Second declaration was ", $parse->substring( $start, $length ), "\n",
+            "  Problem occurred at line $line, column $column\n";
+    }
+    $nulled_events->{$symbol_name} = $event_name;
+    return undef;
+} ## end sub evaluate
+
 sub Marpa::R2::Internal::MetaAST_Nodes::alternatives::evaluate {
     my ( $values, $parse ) = @_;
     return bless [ map { $_->evaluate( $_, $parse ) } @{$values} ],
