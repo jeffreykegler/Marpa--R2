@@ -268,9 +268,9 @@ The pause lexeme and pause span will be undefined.
 =item *
 
 Named events pause internal scanning.
-Named events are specified in the SLIF DSL,
-for example by L<the completion event
-statement|Marpa::R2::Scanless::DSL/"Completion event statement">.
+Named events are
+L<described in the SLIF
+DSL|Marpa::R2::Scanless::DSL/"Named event statement">.
 Named events will always have an event name,
 and may be queried using the
 L<the Scanless recognizer's event()

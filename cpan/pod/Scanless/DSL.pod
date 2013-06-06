@@ -495,7 +495,7 @@ the C<action> and C<bless> adverbs
 can be specified in a lexeme default pseudo-rule.
 Only one lexeme default statement is allowed in a file.
 
-=head2 Completion event statement
+=head2 Named event statement
 
 =for Marpa::R2::Display
 name: SLIF completed event statement synopsis
@@ -506,21 +506,48 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
-The completion event statement sets up a symbol
-so that a named event occurs for all
-of its "symbol completions".
-A "symbol completion"
+=for Marpa::R2::Display
+name: SLIF nulled event statement synopsis
+partial: 1
+normalize-whitespace: 1
+
+    event 'A[]' = nulled <A>
+
+=for Marpa::R2::Display::End
+
+The named event statement sets up a symbol
+so that a named event occurs either it is either
+completed or nulled.
+(For the purpose of named events,
+a nulled symbol is not considered "completed",
+so that at most one of the two events can occur
+for any symbol instance.)
+
+A "completed" event
 occurs whenever a rule with that symbol on
 its LHS is fully recognized in the parse.
 (The idea is that "symbol completion" occurs when the
 rule, and therefore its LHS, is "complete".)
+Again, a null rule will never cause a completion event.
 
-Note that, as a special case,
-a zero length or null rule is never considered
-"complete",
-As a consequence,
-it is never a symbol completion
-when a symbol is zero length, or "nulled".
+A "nulled" event occurs whenever a zero-length symbol is
+recognized.
+Null symbols may derive other null symbols,
+and these derivations may be ambiguous.
+Ambiguous or not,
+all such derivations caused "nulled" events.
+
+The name of an event may be either a bare name,
+or enclosed in single quotes.
+A bare event name must be one or more word characters,
+starting with an alphabetic character.
+A single quoted event name may contain any character
+except a single quote or vertical space.
+The whitespace in single quoted event names is normalized
+in similar fashion to the normalization of symbol names --
+leading and trailing whitespace is removed,
+and all sequences of internal whitespace are changed to
+a single ASCII space character.
 
 Named completion events can occur during the
 L<the Scanless recognizer's read()|Marpa::R2::Scanless::R/"read()">,
