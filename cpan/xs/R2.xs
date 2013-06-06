@@ -1673,14 +1673,14 @@ slr_convert_events (Scanless_R * slr)
 	      AV *event;
 	      const char *result_string = event_type_to_string (event_type);
 	      SV *event_data[2];
-	      event_data[0] = newSVpvs ("g1 event");
+	      event_data[0] = newSVpvs ("unknown g1 event");
 	      if (!result_string)
 		{
 		  result_string =
 		    form ("event(%d): unknown event code, %d", event_ix,
 			  event_type);
 		}
-	      event_data[1] = newSVpvn (result_string, 0);
+	      event_data[1] = newSVpv (result_string, 0);
 	      event = av_make (Dim (event_data), event_data);
 	      av_push (slr->event_queue, newRV_noinc ((SV *) event));
 	    }

@@ -855,11 +855,16 @@ sub Marpa::R2::Inner::Scanless::convert_libmarpa_events {
             next EVENT;
         } ## end if ( $event_type eq 'symbol completed' )
 
+        if ( $event_type eq 'unknown g1 event' ) {
+            Marpa::R2::exception(
+             (join " ", 'Unknown event:', @event_data)
+            );
+        }
+
         # Unknown event
-        my $trace_file_handle =
-            $self->[Marpa::R2::Inner::Scanless::R::TRACE_FILE_HANDLE];
-        say {$trace_file_handle} 'Unknown event: ', join " ", $event_type,
-            @event_data;
+        Marpa::R2::exception(
+         (join " ", 'Unknown event:', $event_type, @event_data)
+        );
 
     } ## end EVENT: while ( my $event = $thin_slr->event() )
     return $pause;
@@ -1093,10 +1098,9 @@ sub Marpa::R2::Scanless::R::read_problem {
                     $desc = join "\n", $desc, 'Parse exhausted';
                     next EVENT;
                 }
-                $value //= 'undef';
-                my $desc_line = qq{Unknown event: "$event_type"; event value = $value\n};
-                $desc = join "\n", $desc, $desc_line;
-                next EVENT;
+                Marpa::R2::exception( $desc, "\n",
+                    qq{Unknown event: "$event_type"; event value = $value\n}
+                );
             } ## end EVENT: for ( my $event_ix = 0; $event_ix < ...)
             last DESC;
         } ## end if ($g1_status)
