@@ -563,6 +563,65 @@ u_r0_new (Unicode_Stream * stream)
   return r0;
 }
 
+/* Assumes it is called
+ after a successful marpa_r_earleme_complete()
+ Return value is count of non-fatal events --
+ it will always be greater than zero.
+ */
+static int
+u_convert_events (Unicode_Stream * stream)
+{
+  dTHX;
+  int event_ix;
+  int non_fatal_event_count = 0;
+  Marpa_Grammar g = stream->g0_wrapper->g;
+  const int event_count = marpa_g_event_count (g);
+  for (event_ix = 0; event_ix < event_count; event_ix++)
+    {
+      Marpa_Event marpa_event;
+      Marpa_Event_Type event_type =
+	marpa_g_event (g, &marpa_event, event_ix);
+      switch (event_type)
+	{
+	  {
+	case MARPA_EVENT_EXHAUSTED:
+	    /* Do nothing about exhaustion on success */
+	    non_fatal_event_count++;
+	    break;
+	case MARPA_EVENT_EARLEY_ITEM_THRESHOLD:
+	    /* All events are ignored on faiulre
+	     * On success, all except MARPA_EVENT_EARLEY_ITEM_THRESHOLD
+	     * are ignored.
+	     *
+	     * The warning raised for MARPA_EVENT_EARLEY_ITEM_THRESHOLD 
+	     * can be turned off by raising
+	     * the Earley item warning threshold.
+	     */
+	    {
+	      warn
+		("Marpa: stream Earley item count (%ld) exceeds warning threshold",
+		 (long) marpa_g_event_value (&marpa_event));
+	      non_fatal_event_count++;
+	    }
+	    break;
+	default:
+	    {
+	      const char *result_string = event_type_to_string (event_type);
+	      if (result_string)
+		{
+		  croak ("unexpected stream grammar event: %s",
+			 result_string);
+		}
+	      croak ("stream grammar event with unknown event code, %d",
+		     event_type);
+	    }
+	    break;
+	  }
+	}
+    }
+    return non_fatal_event_count;
+}
+
 /* Return values:
  * 1 or greater: an event count, as returned by earleme complete.
  * 0: success: a full reading of the input, with nothing to report.
@@ -749,7 +808,7 @@ u_read(Unicode_Stream *stream)
 		result = marpa_r_earleme_complete (r);
 		if (result > 0)
 		  {
-		    return_value = result;
+		    return_value = u_convert_events( stream );
 		    /* Advance one character before returning */
 		    goto ADVANCE_ONE_CHAR;
 		  }
