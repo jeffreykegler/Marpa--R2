@@ -72,7 +72,11 @@ READ: while (1) {
 } ## end READ: while (1)
 my $value_ref = $recce->value();
 my $value = $value_ref ? ${$value_ref} : 'No parse';
-Marpa::R2::Test::is( $value,         'aaa', 'Leo SLIF parse' );
-Marpa::R2::Test::is( $event_history, "1 S\n2 A C S\n3 A C S\n",    'Event history' );
+Marpa::R2::Test::is( $value,         'aaa',           'Leo SLIF parse' );
+Marpa::R2::Test::is( $event_history, <<'END_OF_TEXT', 'Event history' );
+1 A[] C[] S S[]
+2 A A[] C C[] S S[]
+3 A A[] C C[] S S[]
+END_OF_TEXT
 
 # vim: expandtab shiftwidth=4:

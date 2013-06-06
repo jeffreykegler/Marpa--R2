@@ -276,6 +276,17 @@ sub Marpa::R2::Internal::MetaAST_Nodes::bracketed_name::name {
     return $bracketed_name;
 } ## end sub evaluate
 
+sub Marpa::R2::Internal::MetaAST_Nodes::single_quoted_name::name {
+    my ($values) = @_;
+    my (undef, undef, $single_quoted_name) = @{$values};
+
+    # normalize whitespace
+    $single_quoted_name =~ s/\A ['] \s*//xms;
+    $single_quoted_name =~ s/ \s* ['] \z//xms;
+    $single_quoted_name =~ s/ \s+ / /gxms;
+    return $single_quoted_name;
+} ## end sub evaluate
+
 sub Marpa::R2::Internal::MetaAST_Nodes::parenthesized_rhs_primary_list::evaluate {
     my ( $data, $parse ) = @_;
     my (undef, undef, @values) = @{$data};
@@ -1137,12 +1148,6 @@ sub Marpa::R2::Internal::MetaAST_Nodes::single_quoted_string::evaluate {
     push @{ $parse->{g0_rules} }, \%lexical_rule;
     my $g1_symbol = Marpa::R2::Internal::MetaAST::Symbol_List->new($lexical_lhs);
     return $g1_symbol;
-} ## end sub Marpa::R2::Internal::MetaAST_Nodes::single_quoted_string::evaluate
-
-sub Marpa::R2::Internal::MetaAST_Nodes::single_quoted_name::name {
-    my ( $values, $parse ) = @_;
-    my ( undef, undef, $string ) = @{$values};
-    return substr $string, 1, -1;
 } ## end sub Marpa::R2::Internal::MetaAST_Nodes::single_quoted_string::evaluate
 
 package Marpa::R2::Internal::MetaAST::Symbol_List;
