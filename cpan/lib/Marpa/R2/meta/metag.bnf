@@ -24,6 +24,7 @@ statement ::= <statement body> ';'
   | <priority rule> | <quantified rule> | <discard rule> | <default rule>
   | <lexeme default statement> | <lexeme rule>
   | <completion event declaration>
+  | <nulled event declaration>
 <start rule> ::= (':start' <op declare bnf>) symbol
 <default rule> ::= ':default' <op declare bnf> <adverb list>
 <lexeme default statement> ::= ('lexeme' 'default' '=') <adverb list>
@@ -33,6 +34,7 @@ statement ::= <statement body> ';'
 <discard rule> ::= (':discard' <op declare match>) <single symbol>
 <lexeme rule> ::= (':lexeme' <op declare match>) symbol <adverb list>
 <completion event declaration> ::= ('event') <event name> ('=' 'completed') <symbol name>
+<nulled event declaration> ::= ('event') <event name> ('=' 'nulled') <symbol name>
 <op declare> ::= <op declare bnf> | <op declare match>
 priorities ::= alternatives+
     separator => <op loosen> proper => 1
@@ -58,7 +60,7 @@ action ::= ('action' '=>') <action name>
 <pause specification> ::= ('pause' '=>') <before or after>
 <forgiving specification> ::= ('forgiving' '=>') boolean
 <blessing> ::= ('bless' '=>') <blessing name>
-<event name> ::= <standard name>
+<event name> ::= <standard name> | <single quoted name>
 <blessing name> ::= <standard name>
 <blessing name> ::= <reserved blessing name>
 
@@ -123,6 +125,7 @@ boolean ~ [01]
 # no escaping or internal newlines, and disallow empty string
 
 <single quoted string> ~ ['] <string without single quote or vertical space> [']
+<single quoted name> ~ ['] <string without single quote or vertical space> [']
 <string without single quote or vertical space> ~ [^'\x{0A}\x{0B}\x{0C}\x{0D}\x{0085}\x{2028}\x{2029}]+
 
 <character class> ~ '[' <cc elements> ']'

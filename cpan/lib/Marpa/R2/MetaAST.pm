@@ -1139,6 +1139,12 @@ sub Marpa::R2::Internal::MetaAST_Nodes::single_quoted_string::evaluate {
     return $g1_symbol;
 } ## end sub Marpa::R2::Internal::MetaAST_Nodes::single_quoted_string::evaluate
 
+sub Marpa::R2::Internal::MetaAST_Nodes::single_quoted_name::name {
+    my ( $values, $parse ) = @_;
+    my ( undef, undef, $string ) = @{$values};
+    return substr $string, 1, -1;
+} ## end sub Marpa::R2::Internal::MetaAST_Nodes::single_quoted_string::evaluate
+
 package Marpa::R2::Internal::MetaAST::Symbol_List;
 
 use English qw( -no_match_vars );

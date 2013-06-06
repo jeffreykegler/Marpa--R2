@@ -49,6 +49,9 @@ S ::=
 event A = completed <A>
 event C = completed <C>
 event S = completed <S>
+event 'A[]' = nulled <A>
+event 'C[]' = nulled <C>
+event 'S[]' = nulled <S>
 END_OF_DSL
     }
 );
