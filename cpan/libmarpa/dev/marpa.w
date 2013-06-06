@@ -1549,6 +1549,35 @@ Marpa_Grammar g, Marpa_Symbol_ID xsy_id, int value)
 @<Bit aligned XSY elements@> = unsigned int t_is_nulled_event:1;
 @ @<Initialize XSY elements@> =
 xsy->t_is_nulled_event = 0;
+@ @<Function definitions@> =
+int marpa_g_symbol_is_nulled_event(Marpa_Grammar g,
+Marpa_Symbol_ID xsy_id)
+{
+    @<Return |-2| on failure@>@;
+    @<Fail if fatal error@>@;
+    @<Fail if |xsy_id| is malformed@>@;
+    @<Soft fail if |xsy_id| does not exist@>@;
+    return XSYID_is_Nulled_Event(xsy_id);
+}
+@ @<Function definitions@> =
+int marpa_g_symbol_is_nulled_event_set(
+Marpa_Grammar g, Marpa_Symbol_ID xsy_id, int value)
+{
+    XSY xsy;
+    @<Return |-2| on failure@>@;
+    @<Fail if fatal error@>@;
+    @<Fail if precomputed@>@;
+    @<Fail if |xsy_id| is malformed@>@;
+    @<Soft fail if |xsy_id| does not exist@>@;
+    xsy = XSY_by_ID (xsy_id);
+    switch (value) {
+    case 0: case 1:
+      return XSY_is_Nulled_Event (xsy) = value;
+    }
+    MARPA_ERROR (MARPA_ERR_INVALID_BOOLEAN);
+    return failure_indicator;
+}
+
 
 @ @<Function definitions@> =
 @*0 Nulled XSYIDs.

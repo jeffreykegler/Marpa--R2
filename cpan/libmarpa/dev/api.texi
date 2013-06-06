@@ -1557,6 +1557,64 @@ if the grammar @var{g} is precomputed;
 or on other failure, @minus{}2.
 @end deftypefun
 
+@deftypefun int marpa_g_symbol_is_nulled_event ( @
+    Marpa_Grammar @var{g}, @
+    Marpa_Symbol_ID @var{sym_id})
+@deftypefunx int marpa_g_symbol_is_nulled_event_set ( @
+    Marpa_Grammar @var{g}, @
+    Marpa_Symbol_ID @var{sym_id}, @
+ int @var{value})
+
+Libmarpa can generate an 
+@code{MARPA_EVENT_SYMBOL_NULLED}
+event whenever the symbol is nulled.
+A symbol is said to be @strong{nulled}
+when a zero length instance of that symbol
+is recognized.
+
+For nulled events to occur, the symbol must be marked
+as a nulled event symbol.
+The @code{marpa_g_symbol_is_nulled_event_set()} function
+marks symbol @var{sym_id} as a nulled event symbol
+if @var{value} is 1,
+and unmarks it
+it as a nulled event symbol if @var{value} is 0.
+The @code{marpa_g_symbol_is_nulled_event()} method
+returns the current value of the nulled event marking
+for symbol @var{sym_id}.
+
+When a symbol is recognized, it can generate
+a nulled event or a completion event,
+but recognition of a single instance of a symbol will
+generate at most one or the other event -- never
+both.
+Symbols recognized 
+as zero length can only generate nulled events.
+Symbols recognized 
+as non-zero in length can only generate completed events.
+
+Zero length derivations can be ambiguous.
+When a zero length symbol is recognized,
+all of its zero-length derviations are also considered to be
+recognized.
+
+The nulled event marking cannot be changed once
+the grammar is precomputed.
+However, if a symbol is marked as a nulled event symbol,
+it can be deactivated
+and reactivated in the recognizer.
+
+Success: On success, 1 if symbol @var{sym_id}
+is a nulled event symbol after the
+call, 0 otherwise.
+
+Failures:
+If @var{sym_id} is well-formed, but there is no
+such symbol, -1.
+if the grammar @var{g} is precomputed;
+or on other failure, @minus{}2.
+@end deftypefun
+
 @deftypefun int marpa_g_symbol_is_nullable ( @
   Marpa_Grammar g, Marpa_Symbol_ID sym_id)
 A symbol is @dfn{nullable} if it sometimes produces the empty string.
@@ -2755,6 +2813,39 @@ If the active status
 of the
 completion event for @var{sym_id}
 cannot be set as indicated by @var{reactivate},
+the method fails.
+On failure, @minus{}2 is returned.
+@end deftypefun
+
+@deftypefun int marpa_r_nulled_symbol_activate ( @
+  Marpa_Recognizer @var{r}, @
+  Marpa_Symbol_ID @var{sym_id}, @
+  int @var{boolean} )
+
+Allows the user to deactivate and reactivate symbol nulled
+events in the recognizer.
+If @var{boolean} is zero, the event is deactivated.
+If @var{boolean} is one, the event is activated.
+
+Symbol nulled events are active by default if
+the symbol was set up for nulled events in the
+grammar.
+If a symbol was not set up for nulled events in
+the grammar, symbol nulled events are inactive
+by default and any attempt to change that is a fatal error.
+
+Success cases:
+On success,
+the method returns the value of @var{boolean}.
+The method succeeds trivially
+if the symbol is already set as indicated by
+@var{boolean}.
+
+Failure cases:
+If the active status
+of the
+nulled event for @var{sym_id}
+cannot be set as indicated by @var{boolean},
 the method fails.
 On failure, @minus{}2 is returned.
 @end deftypefun
