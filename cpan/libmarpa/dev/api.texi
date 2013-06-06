@@ -4671,10 +4671,26 @@ a way that requires it to be
 set up for completion events,
 but the symbol was not set
 set up for completion events.
-The archtypal case is an attempt to active completion
+The archtypal case is an attempt to activate completion
 events for the symbol in the recognizer.
+The archtypal case is an attempt to activate a completion
+event in the recognizer for
+a symbol that is not set up as a completion event.
 Numeric value: 92.
 Suggested message: "Symbol is not set up for completion events".
+@end deftypevr
+
+@deftypevr Macro int MARPA_ERR_SYMBOL_IS_NOT_NULLED_EVENT
+An attempt was made to use a symbol in
+a way that requires it to be
+set up for nulled events,
+but the symbol was not set
+set up for nulled events.
+The archtypal case is an attempt to activate a nulled
+events in the recognizer for
+a symbol that is not set up as a nulled event.
+Numeric value: 93.
+Suggested message: "Symbol is not set up for nulled events".
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_SYMBOL_VALUED_CONFLICT

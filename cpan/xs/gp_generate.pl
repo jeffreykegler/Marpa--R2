@@ -176,8 +176,12 @@ say {$out} gp_generate(qw(sequence_separator Marpa_Rule_ID rule_id));
 say {$out} gp_generate(qw(start_symbol));
 say {$out} gp_generate(qw(start_symbol_set Marpa_Symbol_ID id));
 say {$out} gp_generate(qw(symbol_is_accessible Marpa_Symbol_ID symbol_id ));
+say {$out} gp_generate(qw(symbol_is_completion_event Marpa_Symbol_ID sym_id));
+say {$out} gp_generate(qw(symbol_is_completion_event_set Marpa_Symbol_ID sym_id int value));
 say {$out} gp_generate(qw(symbol_is_counted Marpa_Symbol_ID symbol_id ));
 say {$out} gp_generate(qw(symbol_is_nullable Marpa_Symbol_ID symbol_id ));
+say {$out} gp_generate(qw(symbol_is_nulled_event Marpa_Symbol_ID sym_id));
+say {$out} gp_generate(qw(symbol_is_nulled_event_set Marpa_Symbol_ID sym_id int value));
 say {$out} gp_generate(qw(symbol_is_nulling Marpa_Symbol_ID symbol_id ));
 say {$out} gp_generate(qw(symbol_is_productive Marpa_Symbol_ID symbol_id));
 say {$out} gp_generate(qw(symbol_is_start Marpa_Symbol_ID symbol_id));
@@ -186,13 +190,12 @@ say {$out} gp_generate(qw(symbol_is_terminal_set Marpa_Symbol_ID symbol_id int b
 say {$out} gp_generate(qw(symbol_is_valued Marpa_Symbol_ID symbol_id));
 say {$out} gp_generate(qw(symbol_is_valued_set Marpa_Symbol_ID symbol_id int boolean));
 say {$out} gp_generate(qw(symbol_new));
-say {$out} gp_generate(qw(symbol_is_completion_event Marpa_Symbol_ID sym_id));
-say {$out} gp_generate(qw(symbol_is_completion_event_set Marpa_Symbol_ID sym_id int value));
 
 $main::CLASS_LETTER   = 'r';
 $main::LIBMARPA_CLASS = 'Marpa_Recognizer';
 print {$out} 'MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin::R', "\n\n";
 
+say {$out} gp_generate(qw(completion_symbol_activate Marpa_Symbol_ID sym_id int reactivate));
 say {$out} gp_generate(qw(current_earleme));
 say {$out} gp_generate(qw(earleme Marpa_Earley_Set_ID ordinal));
 say {$out} gp_generate(qw(earleme_complete));
@@ -203,8 +206,8 @@ say {$out} gp_generate(qw(expected_symbol_event_set Marpa_Symbol_ID xsyid int va
 say {$out} gp_generate(qw(furthest_earleme));
 say {$out} gp_generate(qw(is_exhausted));
 say {$out} gp_generate(qw(latest_earley_set));
-say {$out} gp_generate(qw(completion_symbol_activate Marpa_Symbol_ID sym_id int reactivate));
 say {$out} gp_generate(qw(latest_earley_set_value_set int value));
+say {$out} gp_generate(qw(nulled_symbol_activate Marpa_Symbol_ID sym_id int reactivate));
 say {$out} gp_generate(qw(progress_report_finish));
 say {$out} gp_generate(qw(progress_report_start Marpa_Earley_Set_ID ordinal));
 say {$out} gp_generate(qw(start_input));
