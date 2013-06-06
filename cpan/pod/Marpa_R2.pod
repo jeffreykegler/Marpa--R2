@@ -147,7 +147,7 @@ value of the named argument.
 
 In what follows, we will look at all the arguments of
 this call to the 
-L<Marpa::R2::Scanless:G::new|Marpa::R2::Scanless::G/"new">
+L<Marpa::R2::Scanless::G::new()|Marpa::R2::Scanless::G/"new">
 method in detail.
 The first two named arguments,
 C<action_object> and C<default_action> deal with the
@@ -157,7 +157,7 @@ we get into the semantics, below.
 
 But the C<source> argument is an excellent place to start.
 Its value is a reference to a string in the
-L<SLIF's domain-specific language|Marpa::R2::Scanless:DSL>
+L<SLIF's domain-specific language|Marpa::R2::Scanless::DSL>
 (DSL).
 In this example, the DSL consists of several rules
 and pseudo-rules.
@@ -668,9 +668,9 @@ there is an
 L<overview|Marpa::R2::Scanless>,
 and pages describing
 L<its DSL|Marpa::R2::Scanless::DSL>,
-L<its grammar methods|Marpa::R2::Scanless:G>,
+L<its grammar methods|Marpa::R2::Scanless::G>,
 and
-L<its recognizer methods|Marpa::R2::Scanless:R>.
+L<its recognizer methods|Marpa::R2::Scanless::R>.
 
 Marpa has two other interfaces which may be of interest.
 An older, more traditional, interface
