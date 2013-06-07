@@ -15,9 +15,13 @@
 
 Revision history for Marpa::R2
 
+2.057_004
+
+   * Added nulled, predicted events
+
 2.057_003
 
-   * Added nulled events
+   * Release candidate
 
 2.057_002
 2.057_001
