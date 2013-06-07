@@ -25,6 +25,7 @@ statement ::= <statement body> ';'
   | <lexeme default statement> | <lexeme rule>
   | <completion event declaration>
   | <nulled event declaration>
+  | <prediction event declaration>
 <start rule> ::= (':start' <op declare bnf>) symbol
 <default rule> ::= ':default' <op declare bnf> <adverb list>
 <lexeme default statement> ::= ('lexeme' 'default' '=') <adverb list>
@@ -35,6 +36,7 @@ statement ::= <statement body> ';'
 <lexeme rule> ::= (':lexeme' <op declare match>) symbol <adverb list>
 <completion event declaration> ::= ('event') <event name> ('=' 'completed') <symbol name>
 <nulled event declaration> ::= ('event') <event name> ('=' 'nulled') <symbol name>
+<prediction event declaration> ::= ('event') <event name> ('=' 'predicted') <symbol name>
 <op declare> ::= <op declare bnf> | <op declare match>
 priorities ::= alternatives+
     separator => <op loosen> proper => 1

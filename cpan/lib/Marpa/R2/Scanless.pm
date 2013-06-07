@@ -49,6 +49,7 @@ BEGIN {
     G1_ARGS
     COMPLETION_EVENT_BY_ID
     NULLED_EVENT_BY_ID
+    PREDICTION_EVENT_BY_ID
     TRACE_FILE_HANDLE
     BLESS_PACKAGE
 
@@ -439,6 +440,23 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
         $self->[Marpa::R2::Inner::Scanless::G::NULLED_EVENT_BY_ID]
             ->[$symbol_id] = $nulled_events_by_name->{$symbol_name};
     } ## end for my $symbol_name ( keys %{$nulled_events_by_name} )
+
+    my $prediction_events_by_name = $hashed_source->{prediction_events};
+    my $prediction_events_by_id =
+        $self->[Marpa::R2::Inner::Scanless::G::PREDICTION_EVENT_BY_ID] = [];
+    for my $symbol_name ( keys %{$prediction_events_by_name} ) {
+        my $symbol_id = $g1_tracer->symbol_by_name($symbol_name);
+        if ( not defined $symbol_id ) {
+            Marpa::R2::exception(
+                "prediction event defined for non-existent symbol: $symbol_name\n"
+            );
+        }
+
+        # Must be done before precomputation
+        $g1_thin->symbol_is_prediction_event_set( $symbol_id, 1 );
+        $self->[Marpa::R2::Inner::Scanless::G::PREDICTION_EVENT_BY_ID]
+            ->[$symbol_id] = $prediction_events_by_name->{$symbol_name};
+    } ## end for my $symbol_name ( keys %{$prediction_events_by_name} )
 
     $thick_g1_grammar->precompute();
     my @g0_lexeme_to_g1_symbol;
@@ -888,7 +906,18 @@ sub Marpa::R2::Inner::Scanless::convert_libmarpa_events {
                 [ $nulled_event_by_id->[$nulled_symbol_id] ];
             $pause = 1;
             next EVENT;
-        } ## end if ( $event_type eq 'symbol completed' )
+        } ## end if ( $event_type eq 'symbol nulled' )
+
+        if ( $event_type eq 'symbol predicted' ) {
+            my ($predicted_symbol_id) = @event_data;
+            my $slg = $self->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
+            my $prediction_event_by_id =
+                $slg->[Marpa::R2::Inner::Scanless::G::PREDICTION_EVENT_BY_ID];
+            push @{ $self->[Marpa::R2::Inner::Scanless::R::EVENTS] },
+                [ $prediction_event_by_id->[$predicted_symbol_id] ];
+            $pause = 1;
+            next EVENT;
+        } ## end if ( $event_type eq 'symbol predicted' )
 
         if ( $event_type eq 'unknown g1 event' ) {
             Marpa::R2::exception(
