@@ -20,7 +20,7 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 10;
+use Test::More tests => 2;
 use English qw( -no_match_vars );
 use lib 'inc';
 use Marpa::R2::Test;
@@ -86,12 +86,35 @@ event 'k[]' = nulled K
 event 'l[]' = nulled L
 END_OF_GRAMMAR
 
+my $all_events = <<'END_OF_EVENTS';
+1 a
+1 ^b
+2 b
+2 ^c
+3 c
+3 ^d
+4 d
+4 e[]
+4 ^f
+5 f
+5 g[]
+5 ^h
+6 h
+6 ^i
+7 i
+7 ^j
+8 j
+8 k[]
+8 ^l
+9 l
+END_OF_EVENTS
+
 my $grammar = Marpa::R2::Scanless::G->new(
     {   action_object => 'My_Actions', source          => \$rules }
 );
 
 
-do_test($grammar, q{abcdfhijl}, [ '' ]);
+do_test( $grammar, q{abcdfhijl}, $all_events );
 
 sub show_last_subtext {
     my ($slr) = @_;
@@ -102,29 +125,22 @@ sub show_last_subtext {
 
 sub do_test {
     my ( $slg, $string, $expected_events ) = @_;
-    my @actual_events;
-    my $slr  = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
+    my $actual_events = q{};
+    my $slr    = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
     my $length = length $string;
     my $pos    = $slr->read( \$string );
     READ: while (1) {
 
-# Marpa::R2::Display
-# name: SLR event() method synopsis
-
-        EVENT: for (
+        EVENT:
+        for (
             my $event_ix = 0;
             my $event    = $slr->event($event_ix);
             $event_ix++
             )
         {
             my ($name) = @{$event};
-            if ( $name eq 'subtext' ) {
-                push @actual_events, show_last_subtext($slr);
-                next EVENT;
-            }
-        } ## end for ( my $event_ix = 0; my $event = $slr->event($event_ix...))
-
-# Marpa::R2::Display::End
+            $actual_events .= "$pos $name\n";
+        } ## end EVENT: for ( my $event_ix = 0; my $event = $slr->event(...))
 
         last READ if $pos >= $length;
         $pos = $slr->resume($pos);
@@ -135,7 +151,8 @@ sub do_test {
     }
     my $actual_value = ${$value_ref};
     Test::More::is( $actual_value, q{1792}, qq{Value for "$string"} );
-    Test::More::is_deeply( \@actual_events, $expected_events, qq{Events for "$string"} );
+    Marpa::R2::Test::is( $actual_events, $expected_events,
+        qq{Events for "$string"} );
 } ## end sub do_test
 
 package My_Actions;
