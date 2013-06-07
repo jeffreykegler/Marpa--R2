@@ -525,26 +525,34 @@ normalize-whitespace: 1
 =for Marpa::R2::Display::End
 
 The named event statement sets up a symbol
-so that a named event occurs either it is either
-completed or nulled.
-(For the purpose of named events,
-a nulled symbol is not considered "completed",
-so that at most one of the two events can occur
-for any symbol instance.)
+so that a named event is triggered
+when some condition occurs at a location.
+Named events
+can be defined to occur when
+a symbol is predicted,
+when a symbol is completed,
+or 
+when a symbol is nulled.
 
 A "completed" event
 occurs whenever a rule with that symbol on
 its LHS is fully recognized in the parse.
 (The idea is that "symbol completion" occurs when the
 rule, and therefore its LHS, is "complete".)
-Again, a null rule will never cause a completion event.
+For the purpose of "completed" events,
+a nulled symbol is not considered "complete",
+and "completed" events will not be triggered
+for a zero-length instance of a symbol.
 
-A "nulled" event occurs whenever a zero-length symbol is
-recognized.
+A "nulled" event occurs whenever a zero-length symbol instance
+is recognized.
 Null symbols may derive other null symbols,
 and these derivations may be ambiguous.
 Ambiguous or not,
-all such derivations caused "nulled" events.
+all such derivations cause "nulled" events.
+Again, nulled events and completed events are mutually
+exclusive -- a nulled, or zero-length, symbol is not considered
+"complete" for this purpose.
 
 A "predicted" event occurs at any location where a symbol would
 be accepted by the recognizer.
@@ -554,7 +562,7 @@ input.
 
 As a special case, named events are never generated at location 0,
 the start of parsing.
-These events would typically be ignored.
+Location 0 events would typically be ignored.
 When not ignored, they are often special cases.
 Since at location 0, there has been no input, the set of
 events generated a location 0
