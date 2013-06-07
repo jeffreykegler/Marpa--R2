@@ -1512,7 +1512,7 @@ If the grammar is not precomputed, or on other failure, @minus{}2.
     Marpa_Symbol_ID @var{sym_id}, @
  int @var{value})
 
-Libmarpa can generate an 
+Libmarpa can be set up to generate an 
 @code{MARPA_EVENT_SYMBOL_COMPLETED}
 event whenever the symbol is completed.
 A symbol is said to be @strong{completed}
@@ -1539,6 +1539,9 @@ Nulling symbols
 may be marked as completion event symbols,
 but no completion events will ever be generated
 for a nulling symbol.
+Note that this implies at no completion event will
+ever be generated at earleme 0,
+the start of parsing.
 
 The completion event marking cannot be changed once
 the grammar is precomputed.
@@ -1565,8 +1568,8 @@ or on other failure, @minus{}2.
     Marpa_Symbol_ID @var{sym_id}, @
  int @var{value})
 
-Libmarpa can generate an 
-@code{MARPA_EVENT_SYMBOL_NULLED}
+Libmarpa can set up to generate
+an @code{MARPA_EVENT_SYMBOL_NULLED}
 event whenever the symbol is nulled.
 A symbol is said to be @strong{nulled}
 when a zero length instance of that symbol
@@ -1582,6 +1585,11 @@ it as a nulled event symbol if @var{value} is 0.
 The @code{marpa_g_symbol_is_nulled_event()} method
 returns the current value of the nulled event marking
 for symbol @var{sym_id}.
+
+Note that Earleme 0 is a exception.
+It is possible for a symbol to be nulled at
+earleme 0, the start of parsing,
+but no nulled symbol event will be generated.
 
 When a symbol is recognized, it can generate
 a nulled event or a completion event,
@@ -1646,6 +1654,54 @@ Return value: On success, 1 if symbol @var{sym_id} is productive, 0 if not.  If 
 If @var{sym_id} is well-formed, but there is no
 such symbol, -1.
 is not precomputed, or on other failure, @minus{}2.
+@end deftypefun
+
+@deftypefun int marpa_g_symbol_is_prediction_event ( @
+    Marpa_Grammar @var{g}, @
+    Marpa_Symbol_ID @var{sym_id})
+@deftypefunx int marpa_g_symbol_is_prediction_event_set ( @
+    Marpa_Grammar @var{g}, @
+    Marpa_Symbol_ID @var{sym_id}, @
+ int @var{value})
+
+Libmarpa can be set up
+to generate a
+@code{MARPA_EVENT_SYMBOL_PREDICTED}
+event when a symbol is predicted.
+A symbol is said to be @strong{predicted}
+when a it is acceptable at the current
+earleme according to the grammar.
+
+Note that Earleme 0 is a exception.
+Predicted symbol events are not generated
+for symbols predicted at the start of parsing.
+
+For predicted events to occur, the symbol must be marked
+as a predicted event symbol.
+The @code{marpa_g_symbol_is_predicted_event_set()} function
+marks symbol @var{sym_id} as a predicted event symbol
+if @var{value} is 1,
+and unmarks it
+it as a predicted event symbol if @var{value} is 0.
+The @code{marpa_g_symbol_is_predicted_event()} method
+returns the current value of the predicted event marking
+for symbol @var{sym_id}.
+
+The predicted event marking cannot be changed once
+the grammar is precomputed.
+However, if a symbol is marked as a predicted event symbol,
+it can be deactivated
+and reactivated in the recognizer.
+
+Success: On success, 1 if symbol @var{sym_id}
+is a predicted event symbol after the
+call, 0 otherwise.
+
+Failures:
+If @var{sym_id} is well-formed, but there is no
+such symbol, -1.
+if the grammar @var{g} is precomputed;
+or on other failure, @minus{}2.
 @end deftypefun
 
 @deftypefun int marpa_g_symbol_is_start ( Marpa_Grammar @var{g}, @
@@ -4103,6 +4159,19 @@ Event value: The ID of the nulled symbol.
 Suggested message: "Symbol was nulled".
 @end deftypevr
 
+@deftypevr Macro int MARPA_EVENT_SYMBOL_PREDICTED
+The recognizer can be set to generate an event when a
+symbol is predicted -- that is, recognized as a
+zero-length symbol.
+To set an predicted symbol event,
+use the recognizer's @code{marpa_r_predicted_symbol_event_set()}
+method.
+This event code indicates that a predicted symbol event
+occurred.
+Event value: The ID of the predicted symbol.
+Suggested message: "Symbol was predicted".
+@end deftypevr
+
 @node Error methods macros and codes, Design notes, Events, Top
 @chapter Error methods, macros and codes
 
@@ -4691,6 +4760,19 @@ events in the recognizer for
 a symbol that is not set up as a nulled event.
 Numeric value: 93.
 Suggested message: "Symbol is not set up for nulled events".
+@end deftypevr
+
+@deftypevr Macro int MARPA_ERR_SYMBOL_IS_NOT_PREDICTION_EVENT
+An attempt was made to use a symbol in
+a way that requires it to be
+set up for predictino events,
+but the symbol was not set
+set up for predictino events.
+The archtypal case is an attempt to activate a prediction
+event in the recognizer for
+a symbol that is not set up as a prediction event.
+Numeric value: 94.
+Suggested message: "Symbol is not set up for prediction events".
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_SYMBOL_VALUED_CONFLICT

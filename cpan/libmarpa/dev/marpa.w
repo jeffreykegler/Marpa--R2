@@ -1578,6 +1578,40 @@ Marpa_Grammar g, Marpa_Symbol_ID xsy_id, int value)
     return failure_indicator;
 }
 
+@*0 XSY is prediction event?.
+@d XSY_is_Prediction_Event(xsy) ((xsy)->t_is_prediction_event)
+@d XSYID_is_Prediction_Event(xsyid) XSY_is_Prediction_Event(XSY_by_ID(xsyid))
+@<Bit aligned XSY elements@> = unsigned int t_is_prediction_event:1;
+@ @<Initialize XSY elements@> =
+xsy->t_is_prediction_event = 0;
+@ @<Function definitions@> =
+int marpa_g_symbol_is_prediction_event(Marpa_Grammar g,
+Marpa_Symbol_ID xsy_id)
+{
+    @<Return |-2| on failure@>@;
+    @<Fail if fatal error@>@;
+    @<Fail if |xsy_id| is malformed@>@;
+    @<Soft fail if |xsy_id| does not exist@>@;
+    return XSYID_is_Prediction_Event(xsy_id);
+}
+@ @<Function definitions@> =
+int marpa_g_symbol_is_prediction_event_set(
+Marpa_Grammar g, Marpa_Symbol_ID xsy_id, int value)
+{
+    XSY xsy;
+    @<Return |-2| on failure@>@;
+    @<Fail if fatal error@>@;
+    @<Fail if precomputed@>@;
+    @<Fail if |xsy_id| is malformed@>@;
+    @<Soft fail if |xsy_id| does not exist@>@;
+    xsy = XSY_by_ID (xsy_id);
+    switch (value) {
+    case 0: case 1:
+      return XSY_is_Prediction_Event (xsy) = value;
+    }
+    MARPA_ERROR (MARPA_ERR_INVALID_BOOLEAN);
+    return failure_indicator;
+}
 
 @ @<Function definitions@> =
 @*0 Nulled XSYIDs.
@@ -6996,6 +7030,51 @@ int marpa_r_nulled_symbol_activate(Marpa_Recognizer r, Marpa_Symbol_ID xsy_id, i
 	}
 	if (!lbv_bit_test(r->t_lbv_xsyid_nulled_event_is_active, xsy_id)) {
 	  lbv_bit_set(r->t_lbv_xsyid_nulled_event_is_active, xsy_id) ;
+	  r->t_active_event_count++;
+	}
+        return 1;
+    }
+    MARPA_ERROR (MARPA_ERR_INVALID_BOOLEAN);
+    return failure_indicator;
+}
+
+@*0 Deactivate and reactivate symbol prediction events.
+@ Allows a recognizer to deactivate and
+reactivate symbol prediction events.
+A |boolean| value of 1 indicates reactivate,
+a boolean value of 0 indicates deactivate.
+To be reactivated, the symbol must have been
+set up for prediction events in the grammar.
+Success occurs non-trivially
+if the bit can be set to the new value.
+Success occurs
+trivially if it was already set as specified.
+Any other result is a failure.
+On success, returns the new value.
+Returns |-2| if there was a failure.
+@<Function definitions@> =
+int marpa_r_prediction_symbol_activate(Marpa_Recognizer r, Marpa_Symbol_ID xsy_id, int reactivate)
+{
+    @<Return |-2| on failure@>@;
+    @<Unpack recognizer objects@>@;
+    @<Fail if fatal error@>@;
+    @<Fail if |xsy_id| is malformed@>@;
+    @<Soft fail if |xsy_id| does not exist@>@;
+    switch (reactivate) {
+    case 0:
+	if (lbv_bit_test(r->t_lbv_xsyid_prediction_event_is_active, xsy_id)) {
+	  lbv_bit_clear(r->t_lbv_xsyid_prediction_event_is_active, xsy_id) ;
+	  r->t_active_event_count--;
+	}
+        return 0;
+    case 1:
+	if (!lbv_bit_test(g->t_lbv_xsyid_is_prediction_event, xsy_id)) {
+	  /* An attempt to activate a prediction event on a symbol which
+	  was not set up for them. */
+	  MARPA_ERROR (MARPA_ERR_SYMBOL_IS_NOT_PREDICTION_EVENT);
+	}
+	if (!lbv_bit_test(r->t_lbv_xsyid_prediction_event_is_active, xsy_id)) {
+	  lbv_bit_set(r->t_lbv_xsyid_prediction_event_is_active, xsy_id) ;
 	  r->t_active_event_count++;
 	}
         return 1;
