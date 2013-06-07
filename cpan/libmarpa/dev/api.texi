@@ -2906,6 +2906,39 @@ the method fails.
 On failure, @minus{}2 is returned.
 @end deftypefun
 
+@deftypefun int marpa_r_prediction_symbol_activate ( @
+  Marpa_Recognizer @var{r}, @
+  Marpa_Symbol_ID @var{sym_id}, @
+  int @var{boolean} )
+
+Allows the user to deactivate and reactivate symbol prediction
+events in the recognizer.
+If @var{boolean} is zero, the event is deactivated.
+If @var{boolean} is one, the event is activated.
+
+Symbol prediction events are active by default if
+the symbol was set up for prediction events in the
+grammar.
+If a symbol was not set up for prediction events in
+the grammar, symbol prediction events are inactive
+by default and any attempt to change that is a fatal error.
+
+Success cases:
+On success,
+the method returns the value of @var{boolean}.
+The method succeeds trivially
+if the symbol is already set as indicated by
+@var{boolean}.
+
+Failure cases:
+If the active status
+of the
+prediction event for @var{sym_id}
+cannot be set as indicated by @var{boolean},
+the method fails.
+On failure, @minus{}2 is returned.
+@end deftypefun
+
 @node Progress reports, Bocage methods, Recognizer methods, Top
 @chapter Progress reports
 
