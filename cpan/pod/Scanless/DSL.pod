@@ -515,6 +515,15 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
+=for Marpa::R2::Display
+name: SLIF predicted event statement synopsis
+partial: 1
+normalize-whitespace: 1
+
+    event '^a' = predicted A
+
+=for Marpa::R2::Display::End
+
 The named event statement sets up a symbol
 so that a named event occurs either it is either
 completed or nulled.
@@ -537,6 +546,34 @@ and these derivations may be ambiguous.
 Ambiguous or not,
 all such derivations caused "nulled" events.
 
+A "predicted" event occurs at any location where a symbol would
+be accepted by the recognizer.
+It can be thought of as occurring when a symbol is "expected".
+The expectation may or may not come true, depending on future
+input.
+
+As a special case, named events are never generated at location 0,
+the start of parsing.
+These events would typically be ignored.
+When not ignored, they are often special cases.
+Since at location 0, there has been no input, the set of
+events generated a location 0
+will always be constant, depending only on the grammar.
+The absence of location 0 named events,
+when there is processing required,
+can be dealt with as the processing of a fixed set of events
+at the beginning of parsing.
+
+Completed and nulled events may not be defined
+for symbols that are lexemes, but lexemes are allowed to be predicted
+events.
+A predicted event which is a lexeme is different from a lexeme pause.
+The lexeme pause will not occur unless that the lexeme is actually
+found in the input.
+A predicted event, on the other hand, is
+as the name suggests, only a prediction.
+The predicted symbol may or not actually be found in the input.
+
 The name of an event may be either a bare name,
 or enclosed in single quotes.
 A bare event name must be one or more word characters,
@@ -548,6 +585,9 @@ in similar fashion to the normalization of symbol names --
 leading and trailing whitespace is removed,
 and all sequences of internal whitespace are changed to
 a single ASCII space character.
+Names containing single quotes (which, in any case,
+are impossible to add using
+current syntax) are reserved.
 
 Named completion events can occur during the
 L<the Scanless recognizer's read()|Marpa::R2::Scanless::R/"read()">,
