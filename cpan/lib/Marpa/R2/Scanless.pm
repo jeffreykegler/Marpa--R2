@@ -730,7 +730,7 @@ sub Marpa::R2::Inner::Scanless::convert_libmarpa_events {
     my $stream   = $thin_slr->stream();
     EVENT: while ( my $event = $thin_slr->event() ) {
         my ( $event_type, @event_data ) = @{$event};
-        if ( $event_type eq ':trace' ) {
+        if ( $event_type eq q{'trace} ) {
 
             my $trace_file_handle =
                 $self->[Marpa::R2::Inner::Scanless::R::TRACE_FILE_HANDLE];
@@ -884,7 +884,7 @@ sub Marpa::R2::Inner::Scanless::convert_libmarpa_events {
             } ## end if ( $status eq 'ignored lexeme' )
             say {$trace_file_handle} 'Trace event: ', join " ", @event_data;
             next EVENT;
-        } ## end if ( $event_type eq ':trace' )
+        } ## end if ( $event_type eq q{'trace} )
 
         if ( $event_type eq 'symbol completed' ) {
             my ($completed_symbol_id) = @event_data;

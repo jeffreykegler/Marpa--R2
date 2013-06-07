@@ -706,7 +706,7 @@ u_read(Unicode_Stream *stream)
 	{
 	  AV *event;
 	  SV *event_data[4];
-	  event_data[0] = newSVpvs (":trace");
+	  event_data[0] = newSVpvs ("'trace");
 	  event_data[1] = newSVpvs ("g0 reading codepoint");
 	  event_data[2] = newSViv ((IV) codepoint);
 	  event_data[3] = newSViv ((IV) stream->perl_pos);
@@ -759,7 +759,7 @@ u_read(Unicode_Stream *stream)
 		      {
 			AV *event;
 			SV *event_data[5];
-			event_data[0] = newSVpvs (":trace");
+			event_data[0] = newSVpvs ("'trace");
 			event_data[1] = newSVpvs ("g0 rejected codepoint");
 			event_data[2] = newSViv ((IV) codepoint);
 			event_data[3] = newSViv ((IV) stream->perl_pos);
@@ -774,7 +774,7 @@ u_read(Unicode_Stream *stream)
 		      {
 			AV *event;
 			SV *event_data[5];
-			event_data[0] = newSVpvs (":trace");
+			event_data[0] = newSVpvs ("'trace");
 			event_data[1] = newSVpvs ("g0 accepted codepoint");
 			event_data[2] = newSViv ((IV) codepoint);
 			event_data[3] = newSViv ((IV) stream->perl_pos);
@@ -1621,7 +1621,7 @@ slr_discard (Scanless_R * slr)
 		{
 		  AV *event;
 		  SV *event_data[5];
-		  event_data[0] = newSVpvs (":trace");
+		  event_data[0] = newSVpvs ("'trace");
 		  event_data[1] = newSVpvs ("discarded lexeme");
 		  /* We do not have the lexeme, but we have the 
 		   * g0 rule.
@@ -1648,7 +1648,7 @@ slr_discard (Scanless_R * slr)
 	    {
 	      AV *event;
 	      SV *event_data[5];
-	      event_data[0] = newSVpvs (":trace");
+	      event_data[0] = newSVpvs ("'trace");
 	      event_data[1] = newSVpvs ("ignored lexeme");
 	      event_data[2] = newSViv (g1_lexeme);
 	      event_data[3] = newSViv (slr->start_of_lexeme);
@@ -1859,7 +1859,7 @@ slr_alternatives (Scanless_R * slr)
 		    {
 		      AV *event;
 		      SV *event_data[5];
-		      event_data[0] = newSVpvs (":trace");
+		      event_data[0] = newSVpvs ("'trace");
 		      event_data[1] = newSVpvs ("discarded lexeme");
 		      /* We do not have the lexeme, but we have the 
 		       * g0 rule.
@@ -1892,7 +1892,7 @@ slr_alternatives (Scanless_R * slr)
 		    {
 		      AV *event;
 		      SV *event_data[5];
-		      event_data[0] = newSVpvs (":trace");
+		      event_data[0] = newSVpvs ("'trace");
 		      event_data[1] = newSVpvs ("g1 unexpected lexeme");
 		      event_data[2] = newSViv (slr->start_of_lexeme);	/* start */
 		      event_data[3] = newSViv (slr->end_of_lexeme);	/* end */
@@ -1963,7 +1963,7 @@ slr_alternatives (Scanless_R * slr)
 	    {
 	      AV *event;
 	      SV *event_data[5];
-	      event_data[0] = newSVpvs (":trace");
+	      event_data[0] = newSVpvs ("'trace");
 	      event_data[1] = newSVpvs ("g1 pausing before lexeme");
 	      event_data[2] = newSViv (slr->start_of_pause_lexeme);	/* start */
 	      event_data[3] = newSViv (slr->end_of_pause_lexeme);	/* end */
@@ -2025,7 +2025,7 @@ slr_alternatives (Scanless_R * slr)
 		{
 		  AV *event;
 		  SV *event_data[5];
-		  event_data[0] = newSVpvs (":trace");
+		  event_data[0] = newSVpvs ("'trace");
 		  event_data[1] = newSVpvs ("g1 attempting lexeme");
 		  event_data[2] = newSViv (slr->start_of_lexeme);	/* start */
 		  event_data[3] = newSViv (slr->end_of_lexeme);	/* end */
@@ -2057,7 +2057,7 @@ slr_alternatives (Scanless_R * slr)
 		    {
 		      AV *event;
 		      SV *event_data[5];
-		      event_data[0] = newSVpvs (":trace");
+		      event_data[0] = newSVpvs ("'trace");
 		      event_data[1] = newSVpvs ("g1 duplicate lexeme");
 		      event_data[2] = newSViv (slr->start_of_lexeme);	/* start */
 		      event_data[3] = newSViv (slr->end_of_lexeme);	/* end */
@@ -2078,7 +2078,7 @@ slr_alternatives (Scanless_R * slr)
 		    {
 		      AV *event;
 		      SV *event_data[5];
-		      event_data[0] = newSVpvs (":trace");
+		      event_data[0] = newSVpvs ("'trace");
 		      event_data[1] = newSVpvs ("g1 accepted lexeme");
 		      event_data[2] = newSViv (slr->start_of_lexeme);	/* start */
 		      event_data[3] = newSViv (slr->end_of_lexeme);	/* end */
@@ -2123,7 +2123,7 @@ slr_alternatives (Scanless_R * slr)
 		{
 		  AV *event;
 		  SV *event_data[5];
-		  event_data[0] = newSVpvs (":trace");
+		  event_data[0] = newSVpvs ("'trace");
 		  event_data[1] = newSVpvs ("g1 pausing after lexeme");
 		  event_data[2] = newSViv (slr->start_of_pause_lexeme);	/* start */
 		  event_data[3] = newSViv (slr->end_of_pause_lexeme);	/* end */
