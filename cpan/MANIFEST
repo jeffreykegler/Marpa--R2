@@ -286,6 +286,7 @@ t/sl_completed.t
 t/sl_diag.t
 t/sl_dsl.t
 t/sl_durand.t
+t/sl_event.t
 t/sl_exhaust.t
 t/sl_external1.t
 t/sl_fullsyn.t
