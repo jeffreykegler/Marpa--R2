@@ -137,8 +137,16 @@ sub do_test {
     my $actual_events = q{};
     my $slr    = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
     if (defined $reactivate_events) {
+
+# Marpa::R2::Display
+# name: SLIF activate() method synopsis
+
         $slr->activate($_, 0) for @events;
+
+# Marpa::R2::Display::End
+
         $slr->activate($_) for @{$reactivate_events};
+
     }
     my $length = length $string;
     my $pos    = $slr->read( \$string );

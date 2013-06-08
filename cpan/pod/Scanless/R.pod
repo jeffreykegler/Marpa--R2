@@ -492,6 +492,45 @@ See L<Marpa::R2::Recognizer/"value()">.
 
 =head1 Mutators for external scanning
 
+=head2 activate()
+
+=for Marpa::R2::Display
+name: SLIF activate() method synopsis
+partial: 1
+normalize-whitespace: 1
+
+        $slr->activate($_, 0) for @events;
+
+=for Marpa::R2::Display::End
+
+The C<activate()> method allows the recognizer to deactivate and reactivate named
+events.
+Named events allow the recognizer to stop for external scanning at conveniently
+defined locations.
+Named events can be defined for the prediction and completion of non-zero-length symbols,
+and nulled events can be defined to trigger when zero-length symbols are
+recognized.
+
+The C<activate()> method takes two arguments.
+The first is the name of an event, and the second (optional) argument is
+0 or 1.
+If the argument is 0, the event is deactivated.
+If the argument is 1, the event is reactivated.
+An argument of 1 is the default but,
+since an SLIF recognizer always starts with all defined events
+activated,
+0 will probably be more common as the second argument to
+C<activate()>
+
+The overhead imposed by events
+can be reduced by using the C<activate()> method.
+But making many calls to the
+the C<activate()> method purely for efficiency
+purposes will be counter-productive.
+Also, deactivated events still impose
+some overhead, so if an event is never used
+it should be commented out in the SLIF DSL.
+
 =head2 lexeme_alternative()
 
 =for Marpa::R2::Display
@@ -749,6 +788,12 @@ The named event descriptor is a reference to an array of one
 or more elements.
 The first element of every named event descriptor is a string
 containing the name of the event.
+There may be
+other elements of a named event descriptor,
+as described for the type of named event.
+Named events are
+L<described in the SLIF
+DSL|Marpa::R2::Scanless::DSL/"Named event statement">.
 
 Events occur during the
 L<the Scanless recognizer's read()|/"read()">,
@@ -756,14 +801,21 @@ L<resume()|/"resume()">,
 L<lexeme_complete()|/"lexeme_complete()">,
 and L<lexeme_read()|/"lexeme_read()">
 methods.
-Any Scanless recognizer mutator may clear events,
-so that they should be read soon after the method
-call that generates them.
+Any subsequence call
+to an SLIF recognizer mutator may clear the list
+of triggered events,
+The assumption is that
+an application interested in events
+will call the
+the C<event()> method almost as soon as
+control is returned to it.
 
-The other elements of the named event descriptor will
-be as described for each kind of event.
-One example of a named event is L<a symbol completion
-event|Marpa::R2::Scanless::DSL/"Completion event statement">.
+Applications may find it convenient to
+turn specific events off,
+temporarily or permanently.
+Events may be activated or deactivated
+with the SLIF recognizer's
+L<activate() method|/"activate()">.
 
 =head2 g1_location_to_span()
 
