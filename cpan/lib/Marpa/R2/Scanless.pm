@@ -677,10 +677,14 @@ sub Marpa::R2::Scanless::R::new {
     $thin_self->earley_item_warning_threshold_set($too_many_earley_items)
        if $too_many_earley_items >= 0;
     $self->[Marpa::R2::Inner::Scanless::R::C] = $thin_self;
-    $thick_g1_recce->slr_set($thin_self);
+    $thick_g1_recce->slr_set($self);
 
     return $self;
 } ## end sub Marpa::R2::Scanless::R::new
+
+sub Marpa::R2::Scanless::R::thin {
+    return $_[0]->[Marpa::R2::Inner::Scanless::R::C];
+}
 
 sub Marpa::R2::Scanless::R::trace {
     my ($self, $level) = @_;

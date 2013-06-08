@@ -862,7 +862,9 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
     my $value = Marpa::R2::Thin::V->new($tree);
     $value->valued_force();
     my $slr = $recce->[Marpa::R2::Internal::Recognizer::SLR];
-    if ($slr) { $value->slr_set($slr); }
+    if ($slr) {
+        $value->slr_set($slr->thin());
+    }
     else {
         TOKEN_IX: for (my $token_ix = 2; $token_ix <= $#{$token_values}; $token_ix++) {
             my $token_value = $token_values->[$token_ix];
