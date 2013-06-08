@@ -50,7 +50,7 @@ BEGIN {
     PREDICTION_EVENT_BY_ID
     TRACE_FILE_HANDLE
     BLESS_PACKAGE
-    SYMBOL_IDS_BY_EVENT_TYPE_AND_NAME
+    SYMBOL_IDS_BY_EVENT_NAME_AND_TYPE
 
 END_OF_STRUCTURE
     Marpa::R2::offset($structure);
@@ -392,8 +392,7 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
         \@class_table;
 
     # The G1 grammar
-    my $g1_args = 
-        $self->[Marpa::R2::Inner::Scanless::G::G1_ARGS];
+    my $g1_args = $self->[Marpa::R2::Inner::Scanless::G::G1_ARGS];
     $g1_args->{trace_file_handle} =
         $self->[Marpa::R2::Inner::Scanless::G::TRACE_FILE_HANDLE] // \*STDERR;
     $g1_args->{bless_package} =
@@ -403,13 +402,13 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
     state $g1_target_symbol = '[:start]';
     $g1_args->{start} = $g1_target_symbol;
     $g1_args->{'_internal_'} = 1;
-    my $thick_g1_grammar = Marpa::R2::Grammar->new( $g1_args );
-    my $g1_tracer = $thick_g1_grammar->tracer();
-    my $g1_thin   = $g1_tracer->grammar();
+    my $thick_g1_grammar = Marpa::R2::Grammar->new($g1_args);
+    my $g1_tracer        = $thick_g1_grammar->tracer();
+    my $g1_thin          = $g1_tracer->grammar();
 
-    my $symbol_ids_by_event_type_and_name = {};
-    $self->[Marpa::R2::Inner::Scanless::G::SYMBOL_IDS_BY_EVENT_TYPE_AND_NAME] =
-        $symbol_ids_by_event_type_and_name;
+    my $symbol_ids_by_event_name_and_type = {};
+    $self->[Marpa::R2::Inner::Scanless::G::SYMBOL_IDS_BY_EVENT_NAME_AND_TYPE]
+        = $symbol_ids_by_event_name_and_type;
 
     my $completion_events_by_name = $hashed_source->{completion_events};
     my $completion_events_by_id =
@@ -427,7 +426,8 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
         $g1_thin->symbol_is_completion_event_set( $symbol_id, 1 );
         $self->[Marpa::R2::Inner::Scanless::G::COMPLETION_EVENT_BY_ID]
             ->[$symbol_id] = $completion_events_by_name->{$symbol_name};
-        push @{ $symbol_ids_by_event_type_and_name->{completion} }, $symbol_id;
+        push @{ $symbol_ids_by_event_name_and_type->{$event_name}
+                ->{completion} }, $symbol_id;
     } ## end for my $symbol_name ( keys %{$completion_events_by_name...})
 
     my $nulled_events_by_name = $hashed_source->{nulled_events};
@@ -446,7 +446,8 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
         $g1_thin->symbol_is_nulled_event_set( $symbol_id, 1 );
         $self->[Marpa::R2::Inner::Scanless::G::NULLED_EVENT_BY_ID]
             ->[$symbol_id] = $nulled_events_by_name->{$symbol_name};
-        push @{ $symbol_ids_by_event_type_and_name->{nulled} }, $symbol_id;
+        push @{ $symbol_ids_by_event_name_and_type->{$event_name}->{nulled} },
+            $symbol_id;
     } ## end for my $symbol_name ( keys %{$nulled_events_by_name} )
 
     my $prediction_events_by_name = $hashed_source->{prediction_events};
@@ -465,7 +466,8 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
         $g1_thin->symbol_is_prediction_event_set( $symbol_id, 1 );
         $self->[Marpa::R2::Inner::Scanless::G::PREDICTION_EVENT_BY_ID]
             ->[$symbol_id] = $prediction_events_by_name->{$symbol_name};
-        push @{ $symbol_ids_by_event_type_and_name->{prediction} }, $symbol_id;
+        push @{ $symbol_ids_by_event_name_and_type->{$event_name}
+                ->{prediction} }, $symbol_id;
     } ## end for my $symbol_name ( keys %{$prediction_events_by_name...})
 
     $thick_g1_grammar->precompute();
@@ -541,13 +543,13 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
             "A completion event is declared for <$symbol_name>, but it is a G1 lexeme.\n",
             "  Completion events are only valid for symbols on the LHS of G1 rules.\n"
         ) if $g0_lexeme_by_name->{$symbol_name};
-    }
+    } ## end for my $symbol_name ( keys %{$completion_events_by_name...})
     for my $symbol_name ( keys %{$nulled_events_by_name} ) {
         Marpa::R2::exception(
             "A nulled event is declared for <$symbol_name>, but it is a G1 lexeme.\n",
             "  nulled events are only valid for symbols on the LHS of G1 rules.\n"
         ) if $g0_lexeme_by_name->{$symbol_name};
-    }
+    } ## end for my $symbol_name ( keys %{$nulled_events_by_name} )
 
     my @g0_rule_to_g1_lexeme;
     RULE_ID: for my $rule_id ( 0 .. $g0_thin->highest_rule_id() ) {
@@ -1371,10 +1373,10 @@ sub Marpa::R2::Scanless::R::activate {
     my $thick_g1_recce =
         $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
     my $thin_g1_recce   = $thick_g1_recce->thin();
-    my $event_symbol_ids = $slg->[Marpa::R2::Inner::Scanless::G::SYMBOL_IDS_BY_EVENT_TYPE_AND_NAME];
-    $thin_g1_recce->completion_symbol_activate($_, $activate) for @{$event_symbol_ids->{completion}};
-    $thin_g1_recce->nulled_symbol_activate($_, $activate) for @{$event_symbol_ids->{nulled}};
-    $thin_g1_recce->prediction_symbol_activate($_, $activate) for @{$event_symbol_ids->{prediction}};
+    my $event_symbol_ids_by_type = $slg->[Marpa::R2::Inner::Scanless::G::SYMBOL_IDS_BY_EVENT_NAME_AND_TYPE]->{$event_name};
+    $thin_g1_recce->completion_symbol_activate($_, $activate) for @{$event_symbol_ids_by_type->{completion}};
+    $thin_g1_recce->nulled_symbol_activate($_, $activate) for @{$event_symbol_ids_by_type->{nulled}};
+    $thin_g1_recce->prediction_symbol_activate($_, $activate) for @{$event_symbol_ids_by_type->{prediction}};
 }
 
 # Internal methods, not to be documented
