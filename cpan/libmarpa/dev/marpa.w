@@ -9103,6 +9103,7 @@ PRIVATE int alternative_insert(RECCE r, ALT new_alternative)
     postdot_items_create(r, bv_ok_for_chain, set0);
     earley_set_update_items(r, set0);
     r->t_is_using_leo = r->t_use_leo_flag;
+    trigger_events(r);
     CLEANUP: ;
     @<Destroy |marpa_r_start_input| locals@>@;
   }
