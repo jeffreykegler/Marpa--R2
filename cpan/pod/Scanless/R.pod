@@ -810,6 +810,13 @@ will call
 the C<event()> method almost as soon as
 control is returned to it.
 
+Named events are returned in order by type.
+Completion events are first.
+They are followed by the nulled events.
+These are in turn followed by prediction events.
+Within each type,
+the order of events is arbitrary.
+
 Applications may find it convenient to
 turn specific events off,
 temporarily or permanently.

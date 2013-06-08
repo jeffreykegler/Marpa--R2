@@ -87,15 +87,18 @@ event 'k[]' = nulled K
 event 'l[]' = nulled L
 END_OF_GRAMMAR
 
+# This test the order of events
+# No more than one of each event type per line
+# so that order is non-arbitrary
 my $all_events_expected = <<'END_OF_EVENTS';
-1 ^b a
-2 ^c b
-3 ^d c
-4 ^f d e[]
-5 ^h f g[]
-6 ^i h
-7 ^j i
-8 ^l j k[]
+1 a ^b
+2 b ^c
+3 c ^d
+4 d e[] ^f
+5 f g[] ^h
+6 h ^i
+7 i ^j
+8 j k[] ^l
 9 l
 END_OF_EVENTS
 
@@ -164,7 +167,7 @@ sub do_test {
             push @actual_events, $name;
         } ## end EVENT: for ( my $event_ix = 0; my $event = $slr->event(...))
         if (@actual_events) {
-            $actual_events .= join q{ }, $pos, sort @actual_events;
+            $actual_events .= join q{ }, $pos, @actual_events;
             $actual_events .= "\n";
         }
         last READ if $pos >= $length;
