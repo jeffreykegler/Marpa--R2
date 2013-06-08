@@ -801,12 +801,12 @@ L<resume()|/"resume()">,
 L<lexeme_complete()|/"lexeme_complete()">,
 and L<lexeme_read()|/"lexeme_read()">
 methods.
-Any subsequence call
+Any subsequent call
 to an SLIF recognizer mutator may clear the list
 of triggered events,
 The assumption is that
 an application interested in events
-will call the
+will call
 the C<event()> method almost as soon as
 control is returned to it.
 
