@@ -9442,7 +9442,7 @@ marpa_r_earleme_complete(Marpa_Recognizer r)
       }
     earley_set_update_items(r, current_earley_set);
     if (r->t_active_event_count > 0) {
-        @<Trigger events@>@;
+        trigger_events(r);
     }
     return_value = G_EVENT_COUNT(g);
     CLEANUP: ;
@@ -9628,21 +9628,25 @@ add those Earley items it ``causes".
     leo_link_add (r, effect, leo_item, cause);
 }
 
-@ @<Trigger events@> =
+@ @<Function definitions@> =
+PRIVATE void trigger_events(RECCE r)
 {
+  const GRAMMAR g = G_of_R (r);
+  const ES current_earley_set = Latest_ES_of_R (r);
   unsigned int min, max, start;
   int eim_ix;
+  struct obstack *const trigger_events_obs = my_obstack_init;
   const EIM *eims = EIMs_of_ES (current_earley_set);
   const XSYID xsy_count = XSY_Count_of_G (g);
   const AHFAID ahfa_count = AHFA_Count_of_G (g);
   Bit_Vector bv_completion_event_trigger =
-    bv_obs_create (earleme_complete_obs, xsy_count);
+    bv_obs_create (trigger_events_obs, xsy_count);
   Bit_Vector bv_nulled_event_trigger =
-    bv_obs_create (earleme_complete_obs, xsy_count);
+    bv_obs_create (trigger_events_obs, xsy_count);
   Bit_Vector bv_prediction_event_trigger =
-    bv_obs_create (earleme_complete_obs, xsy_count);
+    bv_obs_create (trigger_events_obs, xsy_count);
   Bit_Vector bv_ahfa_event_trigger =
-    bv_obs_create (earleme_complete_obs, ahfa_count);
+    bv_obs_create (trigger_events_obs, ahfa_count);
   const int working_earley_item_count = EIM_Count_of_ES (current_earley_set);
   for (eim_ix = 0; eim_ix < working_earley_item_count; eim_ix++)
     {
@@ -9679,42 +9683,44 @@ add those Earley items it ``causes".
 
   for (start = 0; bv_scan (bv_ahfa_event_trigger, start, &min, &max);
        start = max + 2)
-{
-  XSYID event_ahfaid;
-  for (event_ahfaid = (ISYID) min; event_ahfaid <= (ISYID) max;
-       event_ahfaid++)
     {
-      int cil_ix;
-      const AHFA event_ahfa = AHFA_by_ID (event_ahfaid);
-      {
-	const CIL completion_xsyids = Completion_XSYIDs_of_AHFA (event_ahfa);
-	const int event_xsy_count = Count_of_CIL (completion_xsyids);
-	for (cil_ix = 0; cil_ix < event_xsy_count; cil_ix++)
+      XSYID event_ahfaid;
+      for (event_ahfaid = (ISYID) min; event_ahfaid <= (ISYID) max;
+	   event_ahfaid++)
+	{
+	  int cil_ix;
+	  const AHFA event_ahfa = AHFA_by_ID (event_ahfaid);
 	  {
-	    XSYID event_xsyid = Item_of_CIL (completion_xsyids, cil_ix);
-	    bv_bit_set (bv_completion_event_trigger, event_xsyid);
+	    const CIL completion_xsyids =
+	      Completion_XSYIDs_of_AHFA (event_ahfa);
+	    const int event_xsy_count = Count_of_CIL (completion_xsyids);
+	    for (cil_ix = 0; cil_ix < event_xsy_count; cil_ix++)
+	      {
+		XSYID event_xsyid = Item_of_CIL (completion_xsyids, cil_ix);
+		bv_bit_set (bv_completion_event_trigger, event_xsyid);
+	      }
 	  }
-      }
-      {
-	const CIL nulled_xsyids = Nulled_XSYIDs_of_AHFA (event_ahfa);
-	const int event_xsy_count = Count_of_CIL (nulled_xsyids);
-	for (cil_ix = 0; cil_ix < event_xsy_count; cil_ix++)
 	  {
-	    XSYID event_xsyid = Item_of_CIL (nulled_xsyids, cil_ix);
-	    bv_bit_set (bv_nulled_event_trigger, event_xsyid);
+	    const CIL nulled_xsyids = Nulled_XSYIDs_of_AHFA (event_ahfa);
+	    const int event_xsy_count = Count_of_CIL (nulled_xsyids);
+	    for (cil_ix = 0; cil_ix < event_xsy_count; cil_ix++)
+	      {
+		XSYID event_xsyid = Item_of_CIL (nulled_xsyids, cil_ix);
+		bv_bit_set (bv_nulled_event_trigger, event_xsyid);
+	      }
 	  }
-      }
-      {
-	const CIL prediction_xsyids = Prediction_XSYIDs_of_AHFA (event_ahfa);
-	const int event_xsy_count = Count_of_CIL (prediction_xsyids);
-	for (cil_ix = 0; cil_ix < event_xsy_count; cil_ix++)
 	  {
-	    XSYID event_xsyid = Item_of_CIL (prediction_xsyids, cil_ix);
-	    bv_bit_set (bv_prediction_event_trigger, event_xsyid);
+	    const CIL prediction_xsyids =
+	      Prediction_XSYIDs_of_AHFA (event_ahfa);
+	    const int event_xsy_count = Count_of_CIL (prediction_xsyids);
+	    for (cil_ix = 0; cil_ix < event_xsy_count; cil_ix++)
+	      {
+		XSYID event_xsyid = Item_of_CIL (prediction_xsyids, cil_ix);
+		bv_bit_set (bv_prediction_event_trigger, event_xsyid);
+	      }
 	  }
-      }
+	}
     }
-}
 
   for (start = 0; bv_scan (bv_completion_event_trigger, start, &min, &max);
        start = max + 2)
@@ -9742,6 +9748,7 @@ add those Earley items it ``causes".
 	    {
 	      int_event_new (g, MARPA_EVENT_SYMBOL_NULLED, event_xsyid);
 	    }
+
 	}
     }
   for (start = 0; bv_scan (bv_prediction_event_trigger, start, &min, &max);
@@ -9758,6 +9765,7 @@ add those Earley items it ``causes".
 	    }
 	}
     }
+  my_obstack_free (trigger_events_obs);
 }
 
 @ @<Function definitions@> =
