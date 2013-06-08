@@ -554,11 +554,16 @@ Again, nulled events and completed events are mutually
 exclusive -- a nulled, or zero-length, symbol is not considered
 "complete" for this purpose.
 
-A "predicted" event occurs at any location where a symbol would
-be accepted by the recognizer.
+A "predicted" event occurs at any location where a non-zero length
+symbol would be accepted by the recognizer.
 It can be thought of as occurring when a symbol is "expected".
 The expectation may or may not come true, depending on future
 input.
+Because there is no physical distinction between expecting
+a zero-length symbol,
+and actually seeing one,
+"predicted" events are not generated for symbols which
+are only expected in zero-length form.
 
 As a special case, named events are never generated at location 0,
 the start of parsing.

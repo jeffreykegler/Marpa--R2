@@ -87,25 +87,14 @@ event 'l[]' = nulled L
 END_OF_GRAMMAR
 
 my $all_events = <<'END_OF_EVENTS';
-1 a
-1 ^b
-2 b
-2 ^c
-3 c
-3 ^d
-4 d
-4 e[]
-4 ^f
-5 f
-5 g[]
-5 ^h
-6 h
-6 ^i
-7 i
-7 ^j
-8 j
-8 k[]
-8 ^l
+1 ^b a
+2 ^c b
+3 ^d c
+4 ^f d e[]
+5 ^h f g[]
+6 ^i h
+7 ^j i
+8 ^l j k[]
 9 l
 END_OF_EVENTS
 
@@ -131,6 +120,7 @@ sub do_test {
     my $pos    = $slr->read( \$string );
     READ: while (1) {
 
+        my @actual_events = ();
         EVENT:
         for (
             my $event_ix = 0;
@@ -139,8 +129,10 @@ sub do_test {
             )
         {
             my ($name) = @{$event};
-            $actual_events .= "$pos $name\n";
+            push @actual_events, $name;
         } ## end EVENT: for ( my $event_ix = 0; my $event = $slr->event(...))
+        $actual_events .= join q{ }, $pos, sort @actual_events;
+        $actual_events .= "\n";
 
         last READ if $pos >= $length;
         $pos = $slr->resume($pos);
