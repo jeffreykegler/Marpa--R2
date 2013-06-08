@@ -28,9 +28,7 @@ $VERSION = eval $VERSION;
 
 # The grammars and recognizers are numbered starting
 # with the lexer, which is grammar 0 -- G0.
-# The "higher level" grammar is G1.
-# In theory, this scheme could be extended to more than
-# two layers.
+# The "higher level", structural, grammar is G1.
 
 BEGIN {
     my $structure = <<'END_OF_STRUCTURE';
@@ -52,6 +50,7 @@ BEGIN {
     PREDICTION_EVENT_BY_ID
     TRACE_FILE_HANDLE
     BLESS_PACKAGE
+    SYMBOL_IDS_BY_EVENT_NAME_BY_TYPE
 
 END_OF_STRUCTURE
     Marpa::R2::offset($structure);
@@ -408,27 +407,35 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
     my $g1_tracer = $thick_g1_grammar->tracer();
     my $g1_thin   = $g1_tracer->grammar();
 
+    my $symbol_ids_by_event_name_by_type = {};
+    $self->[Marpa::R2::Inner::Scanless::G::SYMBOL_IDS_BY_EVENT_NAME_BY_TYPE] =
+        $symbol_ids_by_event_name_by_type;
+
     my $completion_events_by_name = $hashed_source->{completion_events};
     my $completion_events_by_id =
         $self->[Marpa::R2::Inner::Scanless::G::COMPLETION_EVENT_BY_ID] = [];
     for my $symbol_name ( keys %{$completion_events_by_name} ) {
-        my $symbol_id = $g1_tracer->symbol_by_name($symbol_name);
+        my $event_name = $completion_events_by_name->{$symbol_name};
+        my $symbol_id  = $g1_tracer->symbol_by_name($symbol_name);
         if ( not defined $symbol_id ) {
             Marpa::R2::exception(
                 "Completion event defined for non-existent symbol: $symbol_name\n"
             );
         }
+
         # Must be done before precomputation
         $g1_thin->symbol_is_completion_event_set( $symbol_id, 1 );
         $self->[Marpa::R2::Inner::Scanless::G::COMPLETION_EVENT_BY_ID]
             ->[$symbol_id] = $completion_events_by_name->{$symbol_name};
+        push @{ $symbol_ids_by_event_name_by_type->{completion} }, $symbol_id;
     } ## end for my $symbol_name ( keys %{$completion_events_by_name...})
 
     my $nulled_events_by_name = $hashed_source->{nulled_events};
     my $nulled_events_by_id =
         $self->[Marpa::R2::Inner::Scanless::G::NULLED_EVENT_BY_ID] = [];
     for my $symbol_name ( keys %{$nulled_events_by_name} ) {
-        my $symbol_id = $g1_tracer->symbol_by_name($symbol_name);
+        my $event_name = $nulled_events_by_name->{$symbol_name};
+        my $symbol_id  = $g1_tracer->symbol_by_name($symbol_name);
         if ( not defined $symbol_id ) {
             Marpa::R2::exception(
                 "nulled event defined for non-existent symbol: $symbol_name\n"
@@ -439,13 +446,15 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
         $g1_thin->symbol_is_nulled_event_set( $symbol_id, 1 );
         $self->[Marpa::R2::Inner::Scanless::G::NULLED_EVENT_BY_ID]
             ->[$symbol_id] = $nulled_events_by_name->{$symbol_name};
+        push @{ $symbol_ids_by_event_name_by_type->{nulled} }, $symbol_id;
     } ## end for my $symbol_name ( keys %{$nulled_events_by_name} )
 
     my $prediction_events_by_name = $hashed_source->{prediction_events};
     my $prediction_events_by_id =
         $self->[Marpa::R2::Inner::Scanless::G::PREDICTION_EVENT_BY_ID] = [];
     for my $symbol_name ( keys %{$prediction_events_by_name} ) {
-        my $symbol_id = $g1_tracer->symbol_by_name($symbol_name);
+        my $event_name = $prediction_events_by_name->{$symbol_name};
+        my $symbol_id  = $g1_tracer->symbol_by_name($symbol_name);
         if ( not defined $symbol_id ) {
             Marpa::R2::exception(
                 "prediction event defined for non-existent symbol: $symbol_name\n"
@@ -456,7 +465,8 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
         $g1_thin->symbol_is_prediction_event_set( $symbol_id, 1 );
         $self->[Marpa::R2::Inner::Scanless::G::PREDICTION_EVENT_BY_ID]
             ->[$symbol_id] = $prediction_events_by_name->{$symbol_name};
-    } ## end for my $symbol_name ( keys %{$prediction_events_by_name} )
+        push @{ $symbol_ids_by_event_name_by_type->{prediction} }, $symbol_id;
+    } ## end for my $symbol_name ( keys %{$prediction_events_by_name...})
 
     $thick_g1_grammar->precompute();
     my @g0_lexeme_to_g1_symbol;
