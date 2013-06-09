@@ -25,8 +25,8 @@
 #include "marpa.h"
 
 /* This kind of pointer comparison is not portable per C89,
- * but but the Perl source depends
- * on it throughout, and there seems to be no other way to do it.
+ * but the Perl source depends on it throughout,
+ * and there seems to be no other way to do it.
  */
 #undef IS_PERL_UNDEF
 #define IS_PERL_UNDEF(x) ((x) == &PL_sv_undef)
@@ -67,6 +67,7 @@ typedef struct {
      Marpa_Recce r;
      Marpa_Symbol_ID* terminals_buffer;
      SV* base_sv;
+     AV* event_queue;
      G_Wrapper* base;
      unsigned int ruby_slippers:1;
 } R_Wrapper;
@@ -146,7 +147,6 @@ typedef struct {
      Marpa_Recce r1;
      G_Wrapper* g0_wrapper;
      G_Wrapper* g1_wrapper;
-     AV* event_queue;
      AV* token_values;
      int trace_level;
      int trace_terminals;
@@ -444,6 +444,7 @@ r_wrap( Marpa_Recce r, SV* g_sv)
   SvREFCNT_inc (g_sv);
   r_wrapper->base_sv = g_sv;
   r_wrapper->base = g_wrapper;
+  r_wrapper->event_queue = newAV();
   return r_wrapper;
 }
 
@@ -457,6 +458,7 @@ r_unwrap (R_Wrapper * r_wrapper)
   Marpa_Recce r = r_wrapper->r;
   /* The wrapper should always have had a ref to its base grammar's SV */
   SvREFCNT_dec (r_wrapper->base_sv);
+  SvREFCNT_dec ((SV *) r_wrapper->event_queue);
   Safefree (r_wrapper->terminals_buffer);
   Safefree (r_wrapper);
   /* The wrapper should always have had a ref to the Libmarpa recce */
@@ -1631,7 +1633,7 @@ slr_discard (Scanless_R * slr)
 		  event_data[3] = newSViv (slr->start_of_lexeme);
 		  event_data[4] = newSViv (slr->end_of_lexeme);
 		  event = av_make (Dim (event_data), event_data);
-		  av_push (slr->event_queue, newRV_noinc ((SV *) event));
+		  av_push (slr->r1_wrapper->event_queue, newRV_noinc ((SV *) event));
 		}
 	      /* If there is discarded item, we are fine,
 	       * and can return success.
@@ -1654,7 +1656,7 @@ slr_discard (Scanless_R * slr)
 	      event_data[3] = newSViv (slr->start_of_lexeme);
 	      event_data[4] = newSViv (slr->end_of_lexeme);
 	      event = av_make (Dim (event_data), event_data);
-	      av_push (slr->event_queue, newRV_noinc ((SV *) event));
+	      av_push (slr->r1_wrapper->event_queue, newRV_noinc ((SV *) event));
 	    }
 	NEXT_REPORT_ITEM:;
 	}
@@ -1709,7 +1711,7 @@ slr_convert_events (Scanless_R * slr)
 	      event_data[0] = newSVpvs ("symbol completed");
 	      event_data[1] = newSViv (completed_symbol);
 	      event = av_make (Dim (event_data), event_data);
-	      av_push (slr->event_queue, newRV_noinc ((SV *) event));
+	      av_push (slr->r1_wrapper->event_queue, newRV_noinc ((SV *) event));
 	    }
 	    break;
 	case MARPA_EVENT_SYMBOL_NULLED:
@@ -1721,7 +1723,7 @@ slr_convert_events (Scanless_R * slr)
 	      event_data[0] = newSVpvs ("symbol nulled");
 	      event_data[1] = newSViv (nulled_symbol);
 	      event = av_make (Dim (event_data), event_data);
-	      av_push (slr->event_queue, newRV_noinc ((SV *) event));
+	      av_push (slr->r1_wrapper->event_queue, newRV_noinc ((SV *) event));
 	    }
 	    break;
 	case MARPA_EVENT_SYMBOL_PREDICTED:
@@ -1733,7 +1735,7 @@ slr_convert_events (Scanless_R * slr)
 	      event_data[0] = newSVpvs ("symbol predicted");
 	      event_data[1] = newSViv (predicted_symbol);
 	      event = av_make (Dim (event_data), event_data);
-	      av_push (slr->event_queue, newRV_noinc ((SV *) event));
+	      av_push (slr->r1_wrapper->event_queue, newRV_noinc ((SV *) event));
 	    }
 	    break;
 	case MARPA_EVENT_EARLEY_ITEM_THRESHOLD:
@@ -1765,7 +1767,7 @@ slr_convert_events (Scanless_R * slr)
 		}
 	      event_data[1] = newSVpv (result_string, 0);
 	      event = av_make (Dim (event_data), event_data);
-	      av_push (slr->event_queue, newRV_noinc ((SV *) event));
+	      av_push (slr->r1_wrapper->event_queue, newRV_noinc ((SV *) event));
 	    }
 	    break;
 	  }
@@ -1869,7 +1871,7 @@ slr_alternatives (Scanless_R * slr)
 		      event_data[3] = newSViv (slr->start_of_lexeme);
 		      event_data[4] = newSViv (slr->end_of_lexeme);
 		      event = av_make (Dim (event_data), event_data);
-		      av_push (slr->event_queue, newRV_noinc ((SV *) event));
+		      av_push (slr->r1_wrapper->event_queue, newRV_noinc ((SV *) event));
 		    }
 		  goto NEXT_PASS1_REPORT_ITEM;
 		}
@@ -1898,7 +1900,7 @@ slr_alternatives (Scanless_R * slr)
 		      event_data[3] = newSViv (slr->end_of_lexeme);	/* end */
 		      event_data[4] = newSViv (g1_lexeme);	/* lexeme */
 		      event = av_make (Dim (event_data), event_data);
-		      av_push (slr->event_queue, newRV_noinc ((SV *) event));
+		      av_push (slr->r1_wrapper->event_queue, newRV_noinc ((SV *) event));
 		    }
 		  goto NEXT_PASS1_REPORT_ITEM;
 		}
@@ -1969,7 +1971,7 @@ slr_alternatives (Scanless_R * slr)
 	      event_data[3] = newSViv (slr->end_of_pause_lexeme);	/* end */
 	      event_data[4] = newSViv (slr->pause_lexeme);	/* lexeme */
 	      event = av_make (Dim (event_data), event_data);
-	      av_push (slr->event_queue, newRV_noinc ((SV *) event));
+	      av_push (slr->r1_wrapper->event_queue, newRV_noinc ((SV *) event));
 	    }
 	  return "pause";
 	}
@@ -2031,7 +2033,7 @@ slr_alternatives (Scanless_R * slr)
 		  event_data[3] = newSViv (slr->end_of_lexeme);	/* end */
 		  event_data[4] = newSViv (g1_lexeme);	/* lexeme */
 		  event = av_make (Dim (event_data), event_data);
-		  av_push (slr->event_queue, newRV_noinc ((SV *) event));
+		  av_push (slr->r1_wrapper->event_queue, newRV_noinc ((SV *) event));
 		}
 	      return_value =
 		marpa_r_alternative (r1, g1_lexeme, TOKEN_VALUE_IS_LITERAL,
@@ -2063,7 +2065,7 @@ slr_alternatives (Scanless_R * slr)
 		      event_data[3] = newSViv (slr->end_of_lexeme);	/* end */
 		      event_data[4] = newSViv (g1_lexeme);	/* lexeme */
 		      event = av_make (Dim (event_data), event_data);
-		      av_push (slr->event_queue, newRV_noinc ((SV *) event));
+		      av_push (slr->r1_wrapper->event_queue, newRV_noinc ((SV *) event));
 		    }
 		  break;
 
@@ -2084,7 +2086,7 @@ slr_alternatives (Scanless_R * slr)
 		      event_data[3] = newSViv (slr->end_of_lexeme);	/* end */
 		      event_data[4] = newSViv (g1_lexeme);	/* lexeme */
 		      event = av_make (Dim (event_data), event_data);
-		      av_push (slr->event_queue, newRV_noinc ((SV *) event));
+		      av_push (slr->r1_wrapper->event_queue, newRV_noinc ((SV *) event));
 		    }
 		  break;
 
@@ -2129,12 +2131,12 @@ slr_alternatives (Scanless_R * slr)
 		  event_data[3] = newSViv (slr->end_of_pause_lexeme);	/* end */
 		  event_data[4] = newSViv (slr->pause_lexeme);	/* lexeme */
 		  event = av_make (Dim (event_data), event_data);
-		  av_push (slr->event_queue, newRV_noinc ((SV *) event));
+		  av_push (slr->r1_wrapper->event_queue, newRV_noinc ((SV *) event));
 		}
 	      return "pause";
 	    }
 
-	  if (av_len(slr->event_queue) >= 0) return "event";
+	  if (av_len(slr->r1_wrapper->event_queue) >= 0) return "event";
 	  return 0;
 	}
       while (0);
@@ -5488,7 +5490,6 @@ PPCODE:
 
   slr->start_of_lexeme = 0;
   slr->end_of_lexeme = 0;
-  slr->event_queue = newAV();
   slr->token_values = newAV ();
   av_fill(slr->token_values , TOKEN_VALUE_IS_LITERAL);
 
@@ -5522,7 +5523,6 @@ PPCODE:
   SvREFCNT_dec (slr->stream_sv);
   SvREFCNT_dec (slr->slg_sv);
   SvREFCNT_dec (slr->r1_sv);
-  SvREFCNT_dec ((SV *) slr->event_queue);
   if (slr->token_values)
     {
       SvREFCNT_dec ((SV *) slr->token_values);
@@ -5712,7 +5712,7 @@ PPCODE:
 	    }
 	}
 
-      av_clear (slr->event_queue);
+      av_clear (slr->r1_wrapper->event_queue);
 
       result = slr->stream_read_result = u_read (stream);
       if (result == -4)
@@ -5811,7 +5811,7 @@ PPCODE:
   Unicode_Stream *stream = slr->stream;
   SV *event =
     (av_len (stream->event_queue) >=
-     0) ? av_shift (stream->event_queue) : av_shift (slr->event_queue);
+     0) ? av_shift (stream->event_queue) : av_shift (slr->r1_wrapper->event_queue);
   XPUSHs (sv_2mortal (event));
 }
 
@@ -5968,7 +5968,7 @@ PPCODE:
     lexeme_length = end_pos - start_pos;
   }
 
-  av_clear (slr->event_queue);
+  av_clear (slr->r1_wrapper->event_queue);
   result = marpa_r_earleme_complete (slr->r1);
   if (result >= 0)
     {
