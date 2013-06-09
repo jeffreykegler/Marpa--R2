@@ -213,7 +213,6 @@ say {$out} gp_generate(qw(nulled_symbol_activate Marpa_Symbol_ID sym_id int reac
 say {$out} gp_generate(qw(prediction_symbol_activate Marpa_Symbol_ID sym_id int reactivate));
 say {$out} gp_generate(qw(progress_report_finish));
 say {$out} gp_generate(qw(progress_report_start Marpa_Earley_Set_ID ordinal));
-say {$out} gp_generate(qw(start_input));
 say {$out} gp_generate(qw(terminal_is_expected Marpa_Symbol_ID xsyid));
 
 # Nothing (as yet) in bocage class
