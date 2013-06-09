@@ -91,6 +91,7 @@ END_OF_GRAMMAR
 # No more than one of each event type per line
 # so that order is non-arbitrary
 my $all_events_expected = <<'END_OF_EVENTS';
+0 ^a
 1 a ^b
 2 b ^c
 3 c ^d
@@ -116,15 +117,18 @@ my $grammar = Marpa::R2::Scanless::G->new(
 );
 
 
+my $location_0_event = qq{0 ^a\n} ;
+
 # Test of all events
 do_test( "all events", $grammar, q{abcdfhijl}, $all_events_expected );
 
 # Now deactivate all events
-do_test( "all events deactivated", $grammar, q{abcdfhijl}, '', [] );
+do_test( "all events deactivated", $grammar, q{abcdfhijl}, $location_0_event, [] );
 
 # Now deactivate all events, and turn them back on, one at a time
-for my $event (@events) {
-    my $expected_events = $pos_by_event{$event} . " $event\n";
+EVENT: for my $event (@events) {
+    next EVENT if $event eq '^a'; # Location 0 events cannot be deactivated
+    my $expected_events = $location_0_event . $pos_by_event{$event} . " $event\n";
     do_test( qq{event "$event" reactivated}, $grammar, q{abcdfhijl}, $expected_events, [$event] );
 }
 

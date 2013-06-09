@@ -678,6 +678,8 @@ sub Marpa::R2::Scanless::R::new {
     $thin_self->earley_item_warning_threshold_set($too_many_earley_items)
        if $too_many_earley_items >= 0;
     $self->[Marpa::R2::Inner::Scanless::R::C] = $thin_self;
+    $self->[Marpa::R2::Inner::Scanless::R::EVENTS] = [];
+    Marpa::R2::Inner::Scanless::convert_libmarpa_events($self);
 
     return $self;
 } ## end sub Marpa::R2::Scanless::R::new
@@ -734,6 +736,9 @@ sub Marpa::R2::Scanless::R::read {
     my $stream  = $thin_slr->stream();
 
     $stream->string_set($p_string);
+
+    return 0 if @{ $self->[Marpa::R2::Inner::Scanless::R::EVENTS]  };
+
     return $self->resume($start_pos, $length);
 
 } ## end sub Marpa::R2::Scanless::R::read
