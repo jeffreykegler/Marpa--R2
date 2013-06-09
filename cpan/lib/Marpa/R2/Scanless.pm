@@ -664,6 +664,7 @@ sub Marpa::R2::Scanless::R::new {
     my $thick_g1_grammar =
         $grammar->[Marpa::R2::Inner::Scanless::G::THICK_G1_GRAMMAR];
     $g1_recce_args->{grammar} = $thick_g1_grammar;
+    $g1_recce_args->{'_slr'} = $self;
     my $thick_g1_recce =
         $self->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE] =
         Marpa::R2::Recognizer->new( $g1_recce_args );
@@ -677,7 +678,6 @@ sub Marpa::R2::Scanless::R::new {
     $thin_self->earley_item_warning_threshold_set($too_many_earley_items)
        if $too_many_earley_items >= 0;
     $self->[Marpa::R2::Inner::Scanless::R::C] = $thin_self;
-    $thick_g1_recce->slr_set($self);
 
     return $self;
 } ## end sub Marpa::R2::Scanless::R::new

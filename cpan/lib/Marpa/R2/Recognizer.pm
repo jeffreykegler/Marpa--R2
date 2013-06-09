@@ -140,8 +140,11 @@ sub Marpa::R2::Recognizer::new {
             my $boolean = $value ? 1 : 0;
             $recce->use_leo_set($boolean);
             delete $arg_hash->{leo};
-            last ARG_HASH;
-        } ## end if ( defined( my $value = $arg_hash->{'leo'} ) )
+        }
+        if ( defined( my $value = $arg_hash->{'_slr'} ) ) {
+            $recce->[Marpa::R2::Internal::Recognizer::SLR] = $value;
+            delete $arg_hash->{_slr};
+        }
     } ## end ARG_HASH: for my $arg_hash (@arg_hashes)
 
     ARG_HASH: for my $arg_hash (@arg_hashes) {
@@ -203,11 +206,6 @@ sub Marpa::R2::Recognizer::grammar {
 
 sub Marpa::R2::Recognizer::thin {
     $_[0]->[Marpa::R2::Internal::Recognizer::C];
-}
-
-sub Marpa::R2::Recognizer::slr_set {
-    my ($recce, $slr) = @_;
-    return $recce->[Marpa::R2::Internal::Recognizer::SLR] = $slr;
 }
 
 sub Marpa::R2::Recognizer::reset_evaluation {
