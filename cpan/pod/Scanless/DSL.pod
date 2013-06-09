@@ -565,18 +565,6 @@ and actually seeing one,
 "predicted" events are not generated for symbols which
 are only expected in zero-length form.
 
-As a special case, named events are never generated at location 0,
-the start of parsing.
-Location 0 events would typically be ignored.
-When not ignored, they are often special cases.
-Since at location 0, there has been no input, the set of
-events generated a location 0
-will always be constant, depending only on the grammar.
-The absence of location 0 named events,
-when there is processing required,
-can be dealt with as the processing of a fixed set of events
-at the beginning of parsing.
-
 Completed and nulled events may not be defined
 for symbols that are lexemes, but lexemes are allowed to be predicted
 events.
