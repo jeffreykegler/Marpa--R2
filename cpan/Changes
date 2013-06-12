@@ -15,21 +15,11 @@
 
 Revision history for Marpa::R2
 
-2.057_006
-
-   * Release candidate
+2.058000
 
    * Added nulled and predicted events;
-     and event deactivation and reactivation.
 
-2.057_005
-2.057_004
-2.057_003
-2.057_002
-2.057_001
-2.057_000
-
-   * New series of developer's releases.
+   * Added event deactivation and reactivation.
 
 2.056000 Wed May 22 17:38:03 PDT 2013
 
