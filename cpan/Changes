@@ -17,6 +17,8 @@ Revision history for Marpa::R2
 
 2.059_000
 
+   * Fix bug found by Nate Glenn on stackoverflow.
+
    * New series of developer's releases.
 
 2.058000 Tue Jun 11 18:31:57 PDT 2013
