@@ -2112,6 +2112,7 @@ slr_alternatives (Scanless_R * slr)
 	      croak ("Problem in marpa_r_earleme_complete(): %s",
 		     xs_g_error (slr->g1_wrapper));
 	    }
+	      stream->perl_pos = slr->end_of_lexeme;
 	  if (return_value > 0) { r_convert_events(slr->r1_wrapper); }
 
 	  marpa_r_latest_earley_set_values_set (r1, slr->start_of_lexeme,
@@ -2120,7 +2121,6 @@ slr_alternatives (Scanless_R * slr)
 							  slr->start_of_lexeme)));
 	  if (after_pause_lexeme >= 0 && after_pause_priority >= priority)
 	    {
-	      stream->perl_pos = slr->end_of_lexeme;
 	      slr->start_of_pause_lexeme = slr->start_of_lexeme;
 	      slr->end_of_pause_lexeme = slr->end_of_lexeme;
 	      slr->pause_lexeme = after_pause_lexeme;
@@ -5723,9 +5723,10 @@ PPCODE:
 	  if (trace_g0 >= 1)
 	    {
 	      AV *event;
-	      SV *event_data[2];
-	      event_data[0] = newSVpv ("g0 restarted recognizer", 0);
-	      event_data[1] = newSViv ((IV) stream->perl_pos);
+	      SV *event_data[3];
+	      event_data[0] = newSVpvs ("'trace");
+	      event_data[1] = newSVpv ("g0 restarted recognizer", 0);
+	      event_data[2] = newSViv ((IV) stream->perl_pos);
 	      event = av_make (Dim (event_data), event_data);
 	      av_push (stream->event_queue, newRV_noinc ((SV *) event));
 	    }
