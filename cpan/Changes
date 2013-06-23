@@ -15,11 +15,9 @@
 
 Revision history for Marpa::R2
 
-2.059_000
+2.060000 Sat Jun 22 17:56:20 PDT 2013
 
-   * Fix bug found by Nate Glenn on stackoverflow.
-
-   * New series of developer's releases.
+   * Fix bug in SLIF lexing
 
 2.058000 Tue Jun 11 18:31:57 PDT 2013
 
