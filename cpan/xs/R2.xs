@@ -161,7 +161,7 @@ typedef struct {
      int start_of_pause_lexeme;
      int end_of_pause_lexeme;
      Marpa_Symbol_ID pause_lexeme;
-     struct lexeme_properties** lexeme_buffer;
+     Marpa_Symbol_ID* lexeme_buffer;
 } Scanless_R;
 
 #define TOKEN_VALUE_IS_UNDEF (1)
@@ -5572,7 +5572,7 @@ PPCODE:
   slr->end_of_pause_lexeme = -1;
   slr->pause_lexeme = -1;
   slr->lexeme_buffer = NULL;
-  Newx (slr->lexeme_buffer, slg->lexeme_count, struct lexeme_properties*);
+  Newx (slr->lexeme_buffer, slg->lexeme_count, Marpa_Symbol_ID);
 
   new_sv = sv_newmortal ();
   sv_setref_pv (new_sv, scanless_r_class_name, (void *) slr);
