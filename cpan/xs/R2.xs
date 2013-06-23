@@ -161,7 +161,7 @@ typedef struct {
      int start_of_pause_lexeme;
      int end_of_pause_lexeme;
      Marpa_Symbol_ID pause_lexeme;
-     struct lexeme_properties* lexeme_buffer;
+     struct lexeme_properties** lexeme_buffer;
 } Scanless_R;
 
 #define TOKEN_VALUE_IS_UNDEF (1)
@@ -5492,17 +5492,13 @@ PPCODE:
       Marpa_Rule_ID rule_id;
       const Marpa_Rule_ID g0_rule_count =
 	marpa_g_highest_rule_id (slg->g0) + 1;
-      slg->lexeme_count = 0;	/* Do I need to keep this count? 
-				   Or could it be local to this method?
-				 */
+      slg->lexeme_count = 0;
       slg->precomputed = 1;
       for (rule_id = 0; rule_id < g0_rule_count; rule_id++)
 	{
 	  if (slg->g0_rule_to_g1_lexeme[rule_id] >= 0)
 	    slg->lexeme_count++;
 	}
-      Newx (slr->lexeme_buffer, struct lexeme_properties *,
-	    slg->lexeme_count);
     }
   XSRETURN_IV (1);
 }
@@ -5576,6 +5572,7 @@ PPCODE:
   slr->end_of_pause_lexeme = -1;
   slr->pause_lexeme = -1;
   slr->lexeme_buffer = NULL;
+  Newx (slr->lexeme_buffer, slg->lexeme_count, struct lexeme_properties*);
 
   new_sv = sv_newmortal ();
   sv_setref_pv (new_sv, scanless_r_class_name, (void *) slr);
