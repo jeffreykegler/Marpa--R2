@@ -584,7 +584,8 @@ The exception is the value for the start rule.
 The return value for the start rule becomes
 the parse result.
 
-As a final note, C<actions_object> named argument
+As a final note,
+the C<actions_object> named argument
 requires the package it specifies to
 have a C<new> constructor.
 The value returned by the C<new> constructor is the per-parse-tree

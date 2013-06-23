@@ -44,10 +44,10 @@ Term ::=
 Factor ::=
       Number
     | Factor '*' Factor action => do_multiply
-      Number ~ digits
-      digits ~ [\d]+
-      :discard ~ whitespace
-      whitespace ~ [\s]+
+Number ~ digits
+digits ~ [\d]+
+:discard ~ whitespace
+whitespace ~ [\s]+
 END_OF_SOURCE
     }
 );

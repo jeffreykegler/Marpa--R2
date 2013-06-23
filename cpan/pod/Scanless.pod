@@ -187,7 +187,7 @@ much like the one I showed above,
 is in Perl's source code (C<perly.y>),
 along with many other, similar,
 structural-level descriptions.
-These that are used
+These are used to
 generate the production parser for Perl so,
 clearly, structural level descriptions are every bit
 as much a precision instrument as regular expressions.
@@ -196,7 +196,7 @@ as much a precision instrument as regular expressions.
 
 In order to focus on very basic issues,
 I will use as an example,
-an very simple language with a very simple semantics.
+a very simple language with a very simple semantics.
 The language consists of decimal digits and ASCII spaces.
 The semantics will treat it as a series of integers to be added.
 
