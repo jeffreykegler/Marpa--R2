@@ -134,6 +134,8 @@ typedef struct {
      Marpa_Grammar g0;
      Marpa_Grammar g1;
     Marpa_Symbol_ID* g0_rule_to_g1_lexeme;
+    int lexeme_count;
+    int precomputed;
     struct lexeme_properties * g1_lexeme_properties;
 } Scanless_G;
 
@@ -5226,6 +5228,7 @@ PPCODE:
   SET_G_WRAPPER_FROM_G_SV(slg->g1_wrapper, g1_sv)
   slg->g0 = slg->g0_wrapper->g;
   slg->g1 = slg->g1_wrapper->g;
+  slg->precomputed = 0;
 
   {
     Marpa_Rule_ID rule;
@@ -5302,37 +5305,37 @@ PPCODE:
 {
   Marpa_Rule_ID highest_g0_rule_id = marpa_g_highest_rule_id (slg->g0);
   Marpa_Symbol_ID highest_g1_symbol_id = marpa_g_highest_symbol_id (slg->g1);
-    if (g0_rule > highest_g0_rule_id) 
+  if (slg->precomputed)
+    {
+      croak
+	("slg->g0_rule_to_g1_lexeme_set(%ld, %ld) called after SLG is precomputed",
+	 (long) g0_rule, (long) g1_lexeme);
+    }
+  if (g0_rule > highest_g0_rule_id)
     {
       croak
 	("Problem in slg->g0_rule_to_g1_lexeme_set(%ld, %ld): rule ID was %ld, but highest G0 rule ID = %ld",
 	 (long) g0_rule,
-	 (long) g1_lexeme,
-	 (long) g0_rule,
-	 (long) highest_g0_rule_id);
+	 (long) g1_lexeme, (long) g0_rule, (long) highest_g0_rule_id);
     }
-    if (g1_lexeme > highest_g1_symbol_id) 
+  if (g1_lexeme > highest_g1_symbol_id)
     {
       croak
 	("Problem in slg->g0_rule_to_g1_lexeme_set(%ld, %ld): symbol ID was %ld, but highest G1 symbol ID = %ld",
 	 (long) g0_rule,
-	 (long) g1_lexeme,
-	 (long) g0_rule,
-	 (long) highest_g1_symbol_id);
+	 (long) g1_lexeme, (long) g0_rule, (long) highest_g1_symbol_id);
     }
-    if (g0_rule < -2) {
+  if (g0_rule < -2)
+    {
       croak
 	("Problem in slg->g0_rule_to_g1_lexeme_set(%ld, %ld): rule ID was %ld, a disallowed value",
-	 (long) g0_rule,
-	 (long) g1_lexeme,
-	 (long) g0_rule);
+	 (long) g0_rule, (long) g1_lexeme, (long) g0_rule);
     }
-    if (g1_lexeme < -2) {
+  if (g1_lexeme < -2)
+    {
       croak
 	("Problem in slg->g0_rule_to_g1_lexeme_set(%ld, %ld): symbol ID was %ld, a disallowed value",
-	 (long) g0_rule,
-	 (long) g1_lexeme,
-	 (long) g1_lexeme);
+	 (long) g0_rule, (long) g1_lexeme, (long) g1_lexeme);
     }
   slg->g0_rule_to_g1_lexeme[g0_rule] = g1_lexeme;
   XSRETURN_YES;
@@ -5346,6 +5349,12 @@ g1_lexeme_priority_set( slg, g1_lexeme, priority )
 PPCODE:
 {
   Marpa_Symbol_ID highest_g1_symbol_id = marpa_g_highest_symbol_id (slg->g1);
+    if (slg->precomputed)
+      {
+	croak
+	  ("slg->lexeme_priority_set(%ld, %ld) called after SLG is precomputed",
+	   (long) g1_lexeme, (long) priority);
+      }
     if (g1_lexeme > highest_g1_symbol_id) 
     {
       croak
@@ -5401,6 +5410,12 @@ PPCODE:
 {
   Marpa_Symbol_ID highest_g1_symbol_id = marpa_g_highest_symbol_id (slg->g1);
     struct lexeme_properties * properties = slg->g1_lexeme_properties + g1_lexeme;
+    if (slg->precomputed)
+      {
+	croak
+	  ("slg->lexeme_puase_set(%ld, %ld) called after SLG is precomputed",
+	   (long) g1_lexeme, (long) pause);
+      }
     if (g1_lexeme > highest_g1_symbol_id) 
     {
       croak
@@ -5465,6 +5480,27 @@ PPCODE:
   XSRETURN_IV( slg->g1_lexeme_properties[g1_lexeme].pause);
 }
 
+void
+precompute( slg )
+    Scanless_G *slg;
+PPCODE:
+{
+  /* Ensure that I can call this multiple times safely */
+  if (!slg->precomputed)
+    {
+      Marpa_Rule_ID rule_id;
+      const Marpa_Rule_ID g0_rule_count = marpa_g_highest_rule_id (slg->g0) + 1;
+      slg->lexeme_count = 0;
+      slg->precomputed = 1;
+      for (rule_id = 0; rule_id < g0_rule_count; rule_id++)
+	{
+	  if (slg->g0_rule_to_g1_lexeme[rule_id] >= 0)
+	    slg->lexeme_count++;
+	}
+    }
+  XSRETURN_IV (1);
+}
+
 MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin::SLR
 
 void
@@ -5503,6 +5539,11 @@ PPCODE:
   # hold references to them
   SET_R_WRAPPER_FROM_R_SV(slr->r1_wrapper, r1_sv);
   SET_SLG_FROM_SLG_SV(slg, slg_sv);
+  if (!slg->precomputed)
+    {
+      croak
+	("Problem in u->new(): Attempted to create SLIF recce from unprecomputed SLIF grammar");
+    }
   slr->slg = slg;
   slr->r1 = slr->r1_wrapper->r;
   SET_G_WRAPPER_FROM_G_SV(slr->g1_wrapper, slr->r1_wrapper->base_sv);
