@@ -29,10 +29,12 @@ arbitrarily, suddenly and without notice.
 =head1 Items to do
 
 =head2 Allow lexeme pauses to be reported as events.
+
 This mechanism will allow there to be multiple lexeme
 pause events.
 
 =head2 Allow direct initialization of the per-parse object of the SLIF recognizer
+
 To create a per-parse object of the SLIF recognizer, you can specify
 a class in which a constructor is located, but you cannot provide an
 object directly.  There are workarounds, but
