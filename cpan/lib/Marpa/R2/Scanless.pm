@@ -544,20 +544,17 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
                     $lexeme_after_events_by_name->{$lexeme_name} =
                         $event_name;
                     $lexeme_after_events_by_id->[$g1_lexeme_id] = $event_name;
-                    push @{ $symbol_ids_by_event_name_and_type->{$event_name}
-                            ->{lexeme_after} }, $g1_lexeme_id;
-                } ## end if ( $pause_value == 1 )
+                }
                 if ( $pause_value == -1 ) {
-
-                    # $pause_type eq 'before' -- the syntax should have ensured this is
-                    # the only other possibility
+                    ## $pause_type eq 'before' -- the syntax should have ensured this is
+                    ## the only other possibility
                     $lexeme_before_events_by_name->{$lexeme_name} =
                         $event_name;
                     $lexeme_before_events_by_id->[$g1_lexeme_id] =
                         $event_name;
-                    push @{ $symbol_ids_by_event_name_and_type->{$event_name}
-                            ->{lexeme_before} }, $g1_lexeme_id;
                 } ## end if ( $pause_value == -1 )
+                push @{ $symbol_ids_by_event_name_and_type->{$event_name}
+                        ->{lexeme} }, $g1_lexeme_id;
             } ## end if ( defined( my $event_name = $declarations->{'event'...}))
         } ## end if ( defined $pause_value )
 
@@ -1423,6 +1420,7 @@ sub Marpa::R2::Scanless::R::activate {
     $thin_g1_recce->completion_symbol_activate($_, $activate) for @{$event_symbol_ids_by_type->{completion}};
     $thin_g1_recce->nulled_symbol_activate($_, $activate) for @{$event_symbol_ids_by_type->{nulled}};
     $thin_g1_recce->prediction_symbol_activate($_, $activate) for @{$event_symbol_ids_by_type->{prediction}};
+    $thin_g1_recce->lexeme_event_activate($_, $activate) for @{$event_symbol_ids_by_type->{lexeme}};
 }
 
 # Internal methods, not to be documented
