@@ -5432,15 +5432,15 @@ PPCODE:
 	 (long) g1_lexeme);
     }
     switch (pause) {
-    case 0:
+    case 0: /* No pause */
         properties->pause = 0;
         properties->pause_after = 0;
 	break;
-    case 1:
+    case 1: /* Pause after */
         properties->pause = 1;
         properties->pause_after = 1;
 	break;
-    case -1:
+    case -1: /* Pause before */
         properties->pause = 1;
         properties->pause_after = 0;
 	break;

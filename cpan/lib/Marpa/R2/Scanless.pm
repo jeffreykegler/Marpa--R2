@@ -48,6 +48,8 @@ BEGIN {
     COMPLETION_EVENT_BY_ID
     NULLED_EVENT_BY_ID
     PREDICTION_EVENT_BY_ID
+    LEXEME_BEFORE_EVENT_BY_ID
+    LEXEME_AFTER_EVENT_BY_ID
     TRACE_FILE_HANDLE
     BLESS_PACKAGE
     SYMBOL_IDS_BY_EVENT_NAME_AND_TYPE
@@ -470,6 +472,14 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
                 ->{prediction} }, $symbol_id;
     } ## end for my $symbol_name ( keys %{$prediction_events_by_name...})
 
+    my $lexeme_before_events_by_name = {};
+    my $lexeme_before_events_by_id =
+        $self->[Marpa::R2::Inner::Scanless::G::LEXEME_BEFORE_EVENT_BY_ID] =
+        [];
+    my $lexeme_after_events_by_name = {};
+    my $lexeme_after_events_by_id =
+        $self->[Marpa::R2::Inner::Scanless::G::LEXEME_AFTER_EVENT_BY_ID] = [];
+
     $thick_g1_grammar->precompute();
     my @g0_lexeme_to_g1_symbol;
     my @g1_symbol_to_g0_lexeme;
@@ -518,22 +528,39 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
         Marpa::R2::exception(
             "Symbol <$lexeme_name> is declared as a lexeme, but it is not used as one.\n"
         ) if not $g0_lexeme_by_name->{$lexeme_name};
+
         my $declarations = $lexeme_declarations->{$lexeme_name};
-        my $g1_lexeme    = $g1_tracer->symbol_by_name($lexeme_name);
-        ADVERB: for my $key ( keys %{$declarations} ) {
-            my $value = $declarations->{$key};
-            if ( $key eq 'priority' ) {
-                $thin_slg->g1_lexeme_priority_set( $g1_lexeme, $value );
-                next ADVERB;
-            }
-            if ( $key eq 'pause' ) {
-                $thin_slg->g1_lexeme_pause_set( $g1_lexeme, $value );
-                next ADVERB;
-            }
-            if ( $key eq 'forgiving' ) {
-                next ADVERB;
-            }
-        } ## end ADVERB: for my $key ( keys %{$declarations} )
+        my $g1_lexeme_id = $g1_tracer->symbol_by_name($lexeme_name);
+
+        if ( defined( my $value = $declarations->{priority} ) ) {
+            $thin_slg->g1_lexeme_priority_set( $g1_lexeme_id, $value );
+        }
+        my $pause_value = $declarations->{pause};
+        if ( defined $pause_value ) {
+            $thin_slg->g1_lexeme_pause_set( $g1_lexeme_id, $pause_value );
+
+            if ( defined( my $event_name = $declarations->{'event'} ) ) {
+                if ( $pause_value == 1 ) {
+                    $lexeme_after_events_by_name->{$lexeme_name} =
+                        $event_name;
+                    $lexeme_after_events_by_id->[$g1_lexeme_id] = $event_name;
+                    push @{ $symbol_ids_by_event_name_and_type->{$event_name}
+                            ->{lexeme_after} }, $g1_lexeme_id;
+                } ## end if ( $pause_value == 1 )
+                if ( $pause_value == -1 ) {
+
+                    # $pause_type eq 'before' -- the syntax should have ensured this is
+                    # the only other possibility
+                    $lexeme_before_events_by_name->{$lexeme_name} =
+                        $event_name;
+                    $lexeme_before_events_by_id->[$g1_lexeme_id] =
+                        $event_name;
+                    push @{ $symbol_ids_by_event_name_and_type->{$event_name}
+                            ->{lexeme_before} }, $g1_lexeme_id;
+                } ## end if ( $pause_value == -1 )
+            } ## end if ( defined( my $event_name = $declarations->{'event'...}))
+        } ## end if ( defined $pause_value )
+
     } ## end for my $lexeme_name ( keys %{$lexeme_declarations} )
 
     # Now that we know the lexemes, check attempts to defined a
