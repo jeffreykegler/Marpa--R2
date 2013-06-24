@@ -1815,7 +1815,9 @@ slr_alternatives (Scanless_R * slr)
        * the corresponding boolean is set.
        */
       int is_priority_set = 0;
-      int priority = 0;
+      int current_lexeme_priority = 0;
+      int lexemes_in_buffer = 0;
+
       Marpa_Symbol_ID before_pause_lexeme = -1;
       int before_pause_priority = 0;
       Marpa_Symbol_ID after_pause_lexeme = -1;
@@ -1838,7 +1840,7 @@ slr_alternatives (Scanless_R * slr)
 	    {
 	      struct lexeme_properties *lexeme_properties;
 	      Marpa_Symbol_ID g1_lexeme;
-	      int lexeme_priority;
+	      int this_lexeme_priority;
 	      int is_expected;
 	      int dot_position;
 	      Marpa_Earley_Set_ID origin;
@@ -1877,7 +1879,8 @@ slr_alternatives (Scanless_R * slr)
 		      event_data[3] = newSViv (slr->start_of_lexeme);
 		      event_data[4] = newSViv (slr->end_of_lexeme);
 		      event = av_make (Dim (event_data), event_data);
-		      av_push (slr->r1_wrapper->event_queue, newRV_noinc ((SV *) event));
+		      av_push (slr->r1_wrapper->event_queue,
+			       newRV_noinc ((SV *) event));
 		    }
 		  goto NEXT_PASS1_REPORT_ITEM;
 		}
@@ -1906,41 +1909,48 @@ slr_alternatives (Scanless_R * slr)
 		      event_data[3] = newSViv (slr->end_of_lexeme);	/* end */
 		      event_data[4] = newSViv (g1_lexeme);	/* lexeme */
 		      event = av_make (Dim (event_data), event_data);
-		      av_push (slr->r1_wrapper->event_queue, newRV_noinc ((SV *) event));
+		      av_push (slr->r1_wrapper->event_queue,
+			       newRV_noinc ((SV *) event));
 		    }
 		  goto NEXT_PASS1_REPORT_ITEM;
 		}
 
-	      /* If we are here, the lexeme will be accepted */
+	      /* If we are here, the lexeme will be accepted  by the grammar,
+	       * but we do not yet know about priority
+	       */
 
-	      {
-		int lexeme_priority = lexeme_properties->priority;
-		priority =
-		  is_priority_set ? MAX (lexeme_priority,
-					 priority) : lexeme_priority;
-		is_priority_set = 1;
+	      this_lexeme_priority = lexeme_properties->priority;
+	      if (is_priority_set
+		  && this_lexeme_priority < current_lexeme_priority)
+		{
+		  goto NEXT_PASS1_REPORT_ITEM;
+		}
 
-		if (lexeme_properties->pause)
-		  {
-		    if (lexeme_properties->pause_after)
-		      {
-			after_pause_priority = after_pause_lexeme >= 0 ?
-			  MAX (lexeme_properties->priority,
-			       after_pause_priority) : lexeme_priority;
-			after_pause_lexeme = g1_lexeme;
-		      }
-		    else
-		      {
-			before_pause_priority = before_pause_lexeme >= 0 ?
-			  MAX (lexeme_properties->priority,
-			       before_pause_priority) : lexeme_priority;
-			before_pause_lexeme = g1_lexeme;
-		      }
-		  }
-	      }
+	      if (!is_priority_set
+		  || this_lexeme_priority > current_lexeme_priority)
+		{
+		  lexemes_in_buffer = 0;
+		  current_lexeme_priority = this_lexeme_priority;
+		  is_priority_set = 1;
+		  after_pause_lexeme = before_pause_lexeme = -1;
+		}
 
-	    NEXT_PASS1_REPORT_ITEM:;
+	      if (lexeme_properties->pause)
+		{
+		  if (lexeme_properties->pause_after)
+		    {
+		      after_pause_priority = current_lexeme_priority;
+		      after_pause_lexeme = g1_lexeme;
+		    }
+		  else
+		    {
+		      before_pause_priority = current_lexeme_priority;
+		      before_pause_lexeme = g1_lexeme;
+		    }
+		}
+	NEXT_PASS1_REPORT_ITEM:;
 	    }
+
 	END_OF_PASS1:;
 
 	  if (!is_priority_set)
@@ -1961,7 +1971,7 @@ slr_alternatives (Scanless_R * slr)
 
       /* If here, a lexeme has been accepted and priority is set
        */
-      if (before_pause_lexeme >= 0 && before_pause_priority >= priority)
+      if (before_pause_lexeme >= 0 && before_pause_priority >= current_lexeme_priority)
 	{
 	  stream->perl_pos = slr->start_of_lexeme;
 	  slr->start_of_pause_lexeme = slr->start_of_lexeme;
@@ -1977,7 +1987,8 @@ slr_alternatives (Scanless_R * slr)
 	      event_data[3] = newSViv (slr->end_of_pause_lexeme);	/* end */
 	      event_data[4] = newSViv (slr->pause_lexeme);	/* lexeme */
 	      event = av_make (Dim (event_data), event_data);
-	      av_push (slr->r1_wrapper->event_queue, newRV_noinc ((SV *) event));
+	      av_push (slr->r1_wrapper->event_queue,
+		       newRV_noinc ((SV *) event));
 	    }
 	  return "pause";
 	}
@@ -2024,7 +2035,7 @@ slr_alternatives (Scanless_R * slr)
 	       * sufficient priority
 	       */
 	      lexeme_properties = slg->g1_lexeme_properties + g1_lexeme;
-	      if (lexeme_properties->priority < priority)
+	      if (lexeme_properties->priority < current_lexeme_priority)
 		{
 		  goto NEXT_PASS2_REPORT_ITEM;
 		}
@@ -2039,7 +2050,8 @@ slr_alternatives (Scanless_R * slr)
 		  event_data[3] = newSViv (slr->end_of_lexeme);	/* end */
 		  event_data[4] = newSViv (g1_lexeme);	/* lexeme */
 		  event = av_make (Dim (event_data), event_data);
-		  av_push (slr->r1_wrapper->event_queue, newRV_noinc ((SV *) event));
+		  av_push (slr->r1_wrapper->event_queue,
+			   newRV_noinc ((SV *) event));
 		}
 	      return_value =
 		marpa_r_alternative (r1, g1_lexeme, TOKEN_VALUE_IS_LITERAL,
@@ -2071,7 +2083,8 @@ slr_alternatives (Scanless_R * slr)
 		      event_data[3] = newSViv (slr->end_of_lexeme);	/* end */
 		      event_data[4] = newSViv (g1_lexeme);	/* lexeme */
 		      event = av_make (Dim (event_data), event_data);
-		      av_push (slr->r1_wrapper->event_queue, newRV_noinc ((SV *) event));
+		      av_push (slr->r1_wrapper->event_queue,
+			       newRV_noinc ((SV *) event));
 		    }
 		  break;
 
@@ -2092,7 +2105,8 @@ slr_alternatives (Scanless_R * slr)
 		      event_data[3] = newSViv (slr->end_of_lexeme);	/* end */
 		      event_data[4] = newSViv (g1_lexeme);	/* lexeme */
 		      event = av_make (Dim (event_data), event_data);
-		      av_push (slr->r1_wrapper->event_queue, newRV_noinc ((SV *) event));
+		      av_push (slr->r1_wrapper->event_queue,
+			       newRV_noinc ((SV *) event));
 		    }
 		  break;
 
@@ -2115,14 +2129,18 @@ slr_alternatives (Scanless_R * slr)
 	      croak ("Problem in marpa_r_earleme_complete(): %s",
 		     xs_g_error (slr->g1_wrapper));
 	    }
-	      stream->perl_pos = slr->end_of_lexeme;
-	  if (return_value > 0) { r_convert_events(slr->r1_wrapper); }
+	  stream->perl_pos = slr->end_of_lexeme;
+	  if (return_value > 0)
+	    {
+	      r_convert_events (slr->r1_wrapper);
+	    }
 
 	  marpa_r_latest_earley_set_values_set (r1, slr->start_of_lexeme,
 						INT2PTR (void *,
 							 (slr->end_of_lexeme -
-							  slr->start_of_lexeme)));
-	  if (after_pause_lexeme >= 0 && after_pause_priority >= priority)
+							  slr->
+							  start_of_lexeme)));
+	  if (after_pause_lexeme >= 0 && after_pause_priority >= current_lexeme_priority)
 	    {
 	      slr->start_of_pause_lexeme = slr->start_of_lexeme;
 	      slr->end_of_pause_lexeme = slr->end_of_lexeme;
@@ -2137,12 +2155,14 @@ slr_alternatives (Scanless_R * slr)
 		  event_data[3] = newSViv (slr->end_of_pause_lexeme);	/* end */
 		  event_data[4] = newSViv (slr->pause_lexeme);	/* lexeme */
 		  event = av_make (Dim (event_data), event_data);
-		  av_push (slr->r1_wrapper->event_queue, newRV_noinc ((SV *) event));
+		  av_push (slr->r1_wrapper->event_queue,
+			   newRV_noinc ((SV *) event));
 		}
 	      return "pause";
 	    }
 
-	  if (av_len(slr->r1_wrapper->event_queue) >= 0) return "event";
+	  if (av_len (slr->r1_wrapper->event_queue) >= 0)
+	    return "event";
 	  return 0;
 	}
       while (0);
