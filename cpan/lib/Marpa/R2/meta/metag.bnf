@@ -60,7 +60,7 @@ action ::= ('action' '=>') <action name>
 <rank specification> ::= ('rank' '=>') <signed integer>
 <priority specification> ::= ('priority' '=>') <signed integer>
 <pause specification> ::= ('pause' '=>') <before or after>
-<event specification> ::= ('event' '=>') boolean
+<event specification> ::= ('event' '=>') <event name>
 <blessing> ::= ('bless' '=>') <blessing name>
 <event name> ::= <standard name> | <single quoted name>
 <blessing name> ::= <standard name>
