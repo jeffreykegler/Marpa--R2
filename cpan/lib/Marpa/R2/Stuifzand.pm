@@ -122,7 +122,9 @@ $node_status{array_descriptor} = "Actions in the form of array descriptors are n
 $node_status{op_declare_match} = "G0 rules are not allowed";
 $node_status{priority_specification} = "The priority adverb is not allowed";
 $node_status{pause_specification} = "The pause adverb is not allowed";
-$node_status{forgiving_specification} = qq{The "forgiving" adverb is not allowed};
+# 'forgiving' was never documented and may be eliminated
+# $node_status{forgiving_specification} = qq{The "forgiving" adverb is not allowed};
+$node_status{event_specification} = qq{The "event" adverb is not allowed};
 
 my %catch_error_node = 
     map { ; ($_ , 1 ) }

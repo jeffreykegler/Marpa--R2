@@ -1817,7 +1817,6 @@ slr_alternatives (Scanless_R * slr)
       int is_priority_set = 0;
       int current_lexeme_priority = 0;
       int lexemes_in_buffer = 0;
-      int pause_after_lexeme = 0;
 
       int is_expected;
       int return_value;
@@ -1984,12 +1983,23 @@ slr_alternatives (Scanless_R * slr)
 	      av_push (slr->r1_wrapper->event_queue,
 		       newRV_noinc ((SV *) event));
 	    }
+	    {
+	      AV *event;
+	      SV *event_data[4];
+	      event_data[0] = newSVpvs ("before lexeme");
+	      event_data[1] = newSViv (slr->pause_lexeme);	/* lexeme */
+	      event_data[2] = newSViv (slr->start_of_pause_lexeme);	/* start */
+	      event_data[3] = newSViv (slr->end_of_pause_lexeme);	/* end */
+	      event = av_make (Dim (event_data), event_data);
+	      av_push (slr->r1_wrapper->event_queue,
+		       newRV_noinc ((SV *) event));
+	    }
 	}
     }
   if (g1_lexeme >= 0)
     {
       stream->perl_pos = slr->start_of_lexeme;
-      return "pause";
+      return "event";
     }
 }
 
@@ -2079,26 +2089,34 @@ slr_alternatives (Scanless_R * slr)
 
 	      }
 
-	    if (lexeme_properties->pause && lexeme_properties->pause_after)
-	      {
-		slr->start_of_pause_lexeme = slr->start_of_lexeme;
-		slr->end_of_pause_lexeme = slr->end_of_lexeme;
-		slr->pause_lexeme = g1_lexeme;
-		if (slr->trace_terminals > 2)
-		  {
-		    AV *event;
-		    SV *event_data[5];
-		    event_data[0] = newSVpvs ("'trace");
-		    event_data[1] = newSVpvs ("g1 pausing after lexeme");
-		    event_data[2] = newSViv (slr->start_of_pause_lexeme);	/* start */
-		    event_data[3] = newSViv (slr->end_of_pause_lexeme);	/* end */
-		    event_data[4] = newSViv (g1_lexeme);	/* lexeme */
-		    event = av_make (Dim (event_data), event_data);
-		    av_push (slr->r1_wrapper->event_queue,
-			     newRV_noinc ((SV *) event));
-		  }
-		pause_after_lexeme = 1;
-	      }
+if (lexeme_properties->pause && lexeme_properties->pause_after)
+  {
+    slr->start_of_pause_lexeme = slr->start_of_lexeme;
+    slr->end_of_pause_lexeme = slr->end_of_lexeme;
+    slr->pause_lexeme = g1_lexeme;
+    if (slr->trace_terminals > 2)
+      {
+	AV *event;
+	SV *event_data[5];
+	event_data[0] = newSVpvs ("'trace");
+	event_data[1] = newSVpvs ("g1 pausing after lexeme");
+	event_data[2] = newSViv (slr->start_of_pause_lexeme);	/* start */
+	event_data[3] = newSViv (slr->end_of_pause_lexeme);	/* end */
+	event_data[4] = newSViv (g1_lexeme);	/* lexeme */
+	event = av_make (Dim (event_data), event_data);
+	av_push (slr->r1_wrapper->event_queue, newRV_noinc ((SV *) event));
+      }
+    {
+      AV *event;
+      SV *event_data[4];
+      event_data[0] = newSVpvs ("after lexeme");
+      event_data[1] = newSViv (slr->pause_lexeme);	/* lexeme */
+      event_data[2] = newSViv (slr->start_of_pause_lexeme);	/* start */
+      event_data[3] = newSViv (slr->end_of_pause_lexeme);	/* end */
+      event = av_make (Dim (event_data), event_data);
+      av_push (slr->r1_wrapper->event_queue, newRV_noinc ((SV *) event));
+    }
+  }
 
 	  }
 
@@ -2121,8 +2139,6 @@ slr_alternatives (Scanless_R * slr)
 						       (slr->end_of_lexeme -
 							slr->
 							start_of_lexeme)));
-	if (pause_after_lexeme)
-	  return "pause";
 	if (av_len (slr->r1_wrapper->event_queue) >= 0)
 	  return "event";
 	return 0;

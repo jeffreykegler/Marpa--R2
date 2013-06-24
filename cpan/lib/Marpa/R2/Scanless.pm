@@ -941,6 +941,16 @@ sub Marpa::R2::Inner::Scanless::convert_libmarpa_events {
             next EVENT;
         } ## end if ( $event_type eq 'symbol predicted' )
 
+        if ( $event_type eq 'before lexeme' ) {
+            $pause = 1;
+            next EVENT;
+        }
+
+        if ( $event_type eq 'after lexeme' ) {
+            $pause = 1;
+            next EVENT;
+        }
+
         if ( $event_type eq 'unknown g1 event' ) {
             Marpa::R2::exception(
              (join " ", 'Unknown event:', @event_data)
@@ -978,9 +988,8 @@ sub Marpa::R2::Scanless::R::resume {
 
         my $problem_code = $thin_slr->read();
         last OUTER_READ if not $problem_code;
-        my $pause = $problem_code eq 'pause';
         my $stream = $thin_slr->stream();
-        $pause = 1 if Marpa::R2::Inner::Scanless::convert_libmarpa_events($self);
+        my $pause = Marpa::R2::Inner::Scanless::convert_libmarpa_events($self);
 
         if ( $trace_g0 > 2 ) {
             my $stream_pos = $stream->pos();
