@@ -1993,11 +1993,9 @@ slr_alternatives (Scanless_R * slr)
 	    }
 	    {
 	      AV *event;
-	      SV *event_data[4];
+	      SV *event_data[2];
 	      event_data[0] = newSVpvs ("before lexeme");
 	      event_data[1] = newSViv (slr->pause_lexeme);	/* lexeme */
-	      event_data[2] = newSViv (slr->start_of_pause_lexeme);	/* start */
-	      event_data[3] = newSViv (slr->end_of_pause_lexeme);	/* end */
 	      event = av_make (Dim (event_data), event_data);
 	      av_push (slr->r1_wrapper->event_queue,
 		       newRV_noinc ((SV *) event));
@@ -2116,11 +2114,9 @@ if (lexeme_r_properties->pause_after_active)
       }
     {
       AV *event;
-      SV *event_data[4];
+      SV *event_data[2];
       event_data[0] = newSVpvs ("after lexeme");
       event_data[1] = newSViv (slr->pause_lexeme);	/* lexeme */
-      event_data[2] = newSViv (slr->start_of_pause_lexeme);	/* start */
-      event_data[3] = newSViv (slr->end_of_pause_lexeme);	/* end */
       event = av_make (Dim (event_data), event_data);
       av_push (slr->r1_wrapper->event_queue, newRV_noinc ((SV *) event));
     }

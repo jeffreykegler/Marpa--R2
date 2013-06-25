@@ -71,8 +71,8 @@ for (
     $pos = $recce->resume($pos)
     )
 {
-    EVENT: for my $event ( @{$recce->events()} ) {
-        my ( $name, $start_pos, $end_pos ) = @{$event};
+    EVENT: for my $event ( @{ $recce->events() } ) {
+        my ($name) = @{$event};
         if ( $name eq 'expecting text' ) {
             my $text_length = $last_string_length;
             $recce->lexeme_read( 'text', $pos, $text_length );
@@ -80,13 +80,13 @@ for (
             next EVENT;
         } ## end if ( $name eq 'expecting text' )
         if ( $name eq 'string length' ) {
-            $last_string_length =
-                $recce->literal( $start_pos, $end_pos - $start_pos ) + 0;
+            my ( $start_pos, $length ) = $recce->pause_span();
+            $last_string_length = $recce->literal( $start_pos, $length ) + 0;
             $pos = $end_pos;
             next EVENT;
         } ## end if ( $name eq 'string length' )
         die "Unexpected event: ", join q{ }, @{$event};
-    } ## end for my $event ( $recce->events() )
+    } ## end EVENT: for my $event ( @{ $recce->events() } )
 } ## end INPUT: for ( my $pos = $recce->read( \$input ); $pos < $input_length...)
 
 my $result = $recce->value();

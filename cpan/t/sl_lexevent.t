@@ -115,10 +115,11 @@ sub do_test {
     READ: while (1) {
         my @actual_events = ();
         my $event_name;
-        my $end_of_lexeme;
         EVENT:
         for my $event ( @{ $slr->events() } ) {
-            ( $event_name, undef, $end_of_lexeme ) = @{$event};
+            my ($event_name) = @{$event};
+            die "Unexpected event: $event_name"
+                if not $event_name =~ m/\A (before|after) \s [abcd] \z/xms;
             ACTIVATION_LOGIC: {
                 last ACTIVATION_LOGIC if $test eq 'all';
                 if ( $test eq 'once' ) {
@@ -132,11 +133,12 @@ sub do_test {
                 } ## end if ( $test eq 'seq' )
             } ## end ACTIVATION_LOGIC:
             push @actual_events, $event_name;
-        } ## end EVENT: for my $event ( @{ $slr->events() } )
+        } ## end for my $event ( @{ $slr->events() } )
         if (@actual_events) {
             $actual_events .= join q{ }, $pos, @actual_events;
             $actual_events .= "\n";
-            $pos = $end_of_lexeme;
+            my ( $start_of_lexeme, $length_of_lexeme ) = $slr->pause_span();
+            $pos = $start_of_lexeme + $length_of_lexeme;
         }
         last READ if $pos >= $length;
         $pos = $slr->resume($pos);

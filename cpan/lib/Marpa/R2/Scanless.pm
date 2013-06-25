@@ -950,12 +950,12 @@ sub Marpa::R2::Inner::Scanless::convert_libmarpa_events {
 
         if ( $event_type eq 'before lexeme' or $event_type eq 'after lexeme' )
         {
-            my ( $lexeme_id, $start_pos, $end_pos ) = @event_data;
+            my ( $lexeme_id ) = @event_data;
             my $slg = $self->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
             my $lexeme_event_by_id =
                 $slg->[Marpa::R2::Inner::Scanless::G::LEXEME_EVENT_BY_ID];
             push @{ $self->[Marpa::R2::Inner::Scanless::R::EVENTS] },
-                [ $lexeme_event_by_id->[$lexeme_id], $start_pos, $end_pos ];
+                [ $lexeme_event_by_id->[$lexeme_id] ];
             $pause = 1;
             next EVENT;
         } ## end if ( $event_type eq 'lexeme before' or $event_type eq...)
