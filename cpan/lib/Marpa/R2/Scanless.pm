@@ -1305,6 +1305,11 @@ sub Marpa::R2::Scanless::R::progress {
      $self->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE]->progress(@args);
 }
 
+sub Marpa::R2::Scanless::R::terminals_expected {
+     my ($self) = @_;
+     $self->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE]->terminals_expected();
+}
+
 # Latest and current G1 location are the same
 sub Marpa::R2::Scanless::R::latest_g1_location {
      my ($self) = @_;

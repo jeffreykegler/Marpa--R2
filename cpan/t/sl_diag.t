@@ -20,7 +20,7 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 8;
+use Test::More tests => 9;
 use English qw( -no_match_vars );
 use lib 'inc';
 use Marpa::R2::Test;
@@ -145,13 +145,26 @@ for my $test_data (@tests_data) {
     my ($test_string,     $expected_value,
         $expected_result, $expected_last_expression
     ) = @{$test_data};
-    my ( $recce, $actual_value, $trace_output ) =
+    my ( $slr, $actual_value, $trace_output ) =
         my_parser( $prefix_grammar, $test_string );
+
+# Marpa::R2::Display
+# name: Scanless terminals_expected() synopsis
+
+    my @terminals_expected = @{$slr->terminals_expected()};
+
+# Marpa::R2::Display::End
+
+    Marpa::R2::Test::is(
+        ( join q{ }, @terminals_expected ),
+        '[Lex-0] Number [Lex-1]',
+        qq{SLIF terminals_expected()}
+    );
 
 # Marpa::R2::Display
 # name: Scanless show_progress() synopsis
 
-    my $show_progress_output = $recce->show_progress();
+    my $show_progress_output = $slr->show_progress();
 
 # Marpa::R2::Display::End
 
@@ -224,20 +237,20 @@ END_OF_OUTPUT
 # Marpa::R2::Display
 # name: Scanless progress() synopsis
 
-    my $progress_output = $recce->progress();
+    my $progress_output = $slr->progress();
 
 # Marpa::R2::Display::End
 
     Test::More::is_deeply( $progress_output, $expected_progress_output,
         qq{Scanless progress()} );
 
-    my $latest_g1_location = $recce->latest_g1_location();
+    my $latest_g1_location = $slr->latest_g1_location();
     Test::More::is( $latest_g1_location, 11, qq{Scanless latest_g1_location()} );
 
 # Marpa::R2::Display
 # name: Scanless current_g1_location() synopsis
 
-    my $current_g1_location = $recce->current_g1_location();
+    my $current_g1_location = $slr->current_g1_location();
 
 # Marpa::R2::Display::End
 
@@ -256,7 +269,7 @@ END_OF_OUTPUT
 # name: Scanless g1_location_to_span() synopsis
 
         my ( $span_start, $span_length ) =
-            $recce->g1_location_to_span($g1_location);
+            $slr->g1_location_to_span($g1_location);
 
 # Marpa::R2::Display::End
 

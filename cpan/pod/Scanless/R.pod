@@ -758,7 +758,7 @@ C<resume()> return a Perl C<undef>.
 =for Marpa::R2::Display
 name: Scanless current_g1_location() synopsis
 
-    my $current_g1_location = $recce->current_g1_location();
+    my $current_g1_location = $slr->current_g1_location();
 
 =for Marpa::R2::Display::End
 
@@ -853,7 +853,7 @@ L<activate() method|/"activate()">.
 name: Scanless g1_location_to_span() synopsis
 
         my ( $span_start, $span_length ) =
-            $recce->g1_location_to_span($g1_location);
+            $slr->g1_location_to_span($g1_location);
 
 =for Marpa::R2::Display::End
 
@@ -1066,7 +1066,7 @@ the pause span is undefined.
 =for Marpa::R2::Display
 name: Scanless progress() synopsis
 
-    my $progress_output = $recce->progress();
+    my $progress_output = $slr->progress();
 
 =for Marpa::R2::Display::End
 
@@ -1107,7 +1107,7 @@ name: Scanless show_progress() synopsis
 partial: 1
 normalize-whitespace: 1
 
-    my $show_progress_output = $recce->show_progress();
+    my $show_progress_output = $slr->show_progress();
 
 =for Marpa::R2::Display::End
 
@@ -1168,6 +1168,25 @@ but which also
 wants to associate spans of G1 locations with the input stream,
 will need to reassemble the input based on their own ideas.
 The L</"literal()"> method can assist in this process.
+
+=head2 terminals_expected()
+
+=for Marpa::R2::Display
+name: Scanless terminals_expected() synopsis
+normalize-whitespace: 1
+
+    my @terminals_expected = @{$slr->terminals_expected()};
+
+=for Marpa::R2::Display::End
+
+Returns a reference to a list of strings, where the strings are the
+names of the lexemes acceptable at the current location.
+The presence of a lexeme in this list means
+that lexeme will be acceptable in the next call of the C<resume()> method.
+
+This is highly useful for Ruby Slippers parsing.
+A more fine-tuned approach is to identify the lexemes of interest
+and create "predicted symbol" events for them.
 
 =head1 Deprecated methods
 
