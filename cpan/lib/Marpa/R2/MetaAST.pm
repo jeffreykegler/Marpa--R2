@@ -362,6 +362,12 @@ sub Marpa::R2::Internal::MetaAST_Nodes::group_association::evaluate {
     return bless { assoc => 'G' }, $PROTO_ALTERNATIVE;
 }
 
+sub Marpa::R2::Internal::MetaAST_Nodes::event_specification::evaluate {
+    my ($values) = @_;
+    my $child = $values->[2];
+    return bless { event => $child->name() }, $PROTO_ALTERNATIVE;
+}
+
 sub Marpa::R2::Internal::MetaAST_Nodes::proper_specification::evaluate {
     my ($values) = @_;
     my $child = $values->[2];
