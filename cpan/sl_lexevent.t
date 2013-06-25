@@ -58,8 +58,37 @@ my $grammar = Marpa::R2::Scanless::G->new(
     {   action_object => 'My_Actions', source          => \$rules }
 );
 
+my %expected_events;
+$expected_events{'all'} = <<'END_OF_EVENTS';
+0 before a\n
+1 before a
+3 after b
+4 after b
+5 after b
+5 before c
+6 before c
+7 before c
+9 after d
+9 before a
+10 before a
+11 before a
+13 after b
+13 before c
+14 before c
+16 after d
+17 after d
+18 after d
+19 after d
+19 before a
+21 after b
+21 before c
+23 after d
+END_OF_EVENTS
+$expected_events{'once'} = $expected_events{'all'};
+$expected_events{'seq'} = $expected_events{'all'};
+
 sub do_test {
-    my ($test_type) = @_;
+    my ($test) = @_;
 state $string        = q{aabbbcccdaaabccddddabcd};
 state $length        = length $string;
     my $slr           = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
@@ -74,11 +103,11 @@ state $length        = length $string;
         for my $event ( @{ $slr->events() } ) {
             ( $event_name, undef, $end_of_lexeme ) = @{$event};
             ACTIVATION_LOGIC: {
-                last ACTIVATION_LOGIC if $test_type eq 'all';
-                if ($test_type eq 'once') {
+                last ACTIVATION_LOGIC if $test eq 'all';
+                if ($test eq 'once') {
                    $slr->activate($event_name, 0);
                 }
-                if ($test_type eq 'seq') {
+                if ($test eq 'seq') {
                    $slr->activate($deactivated_event_name, 1) if defined $deactivated_event_name;
                    $slr->activate($event_name, 0);
                    $deactivated_event_name = $event_name;
@@ -100,10 +129,10 @@ state $length        = length $string;
     }
     my $actual_value = ${$value_ref};
     Test::More::is( $actual_value, q{1792},
-        qq{Value for lexeme named event test} );
+        qq{Value for test "$test"} );
     my $expected_events = q{};
-    Marpa::R2::Test::is( $actual_events, $expected_events,
-        qq{Events for lexeme named event test} );
+    Marpa::R2::Test::is( $actual_events, $expected_events{$test},
+        qq{Events for test "$test"} );
 } ## end sub do_test
 
 do_test('all');
