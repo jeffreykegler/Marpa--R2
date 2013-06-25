@@ -802,10 +802,10 @@ L<pause_lexeme() method|Marpa::R2::Scanless::R/"pause_lexeme()">
 will return only one of them, chosen arbitrarily, whereas
 the 
 L<events() method|Marpa::R2::Scanless::R/"events()">
-will return all of them.
+will return all of the named events.
 This is one of the reasons that applications
-are encouraged to always specify lexeme pause events
-as named events.
+are strongly encouraged to specify a name for every lexeme pause event
+using the C<event> adverb.
 
 =head2 priority
 

@@ -165,11 +165,10 @@ sub do_test {
 # name: SLIF events() method synopsis
 
         EVENT:
-        for my $event ( $slr->events() ) {
-        {
+        for my $event ( @{ $slr->events() } ) {
             my ($name) = @{$event};
             push @actual_events, $name;
-        } ## end EVENT: for ( my $event_ix = 0; my $event = $slr->event(...))
+        }
 
 # Marpa::R2::Display::End
 
