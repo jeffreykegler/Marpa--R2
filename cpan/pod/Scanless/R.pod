@@ -769,34 +769,50 @@ Returns the current G1 location.
 =for Marpa::R2::Display
 name: SLR event() method synopsis
 normalize-whitespace: 1
+partial: 1
 
-        EVENT: for (
-            my $event_ix = 0;
             my $event    = $slr->event($event_ix);
-            $event_ix++
-            )
-        {
-            my ($name) = @{$event};
-            if ( $name eq 'subtext' ) {
-                push @actual_events, show_last_subtext($slr);
-                next EVENT;
-            }
-        } ## end for ( my $event_ix = 0; my $event = $slr->event($event_ix...))
 
 =for Marpa::R2::Display::End
 
+Use of this method is discouraged in favor of the more efficient
+L<events() method|/"events()">.
 The C<event()> method requires one argument,
 an event index.
 It returns a descriptor of
 the named event with that index, or a Perl C<undef>
 if there is no such event.
+For more details on events, see the 
+L<description of the events() method|/"events()">.
 
-The named event descriptor is a reference to an array of one
-or more elements.
+=head2 events()
+
+=for Marpa::R2::Display
+name: SLIF events() method synopsis
+normalize-whitespace: 1
+
+        EVENT:
+        for my $event ( $slr->events() ) {
+        {
+            my ($name) = @{$event};
+            push @actual_events, $name;
+        } ## end EVENT: for ( my $event_ix = 0; my $event = $slr->event(...))
+
+=for Marpa::R2::Display::End
+
+The C<events()> method takes no arguments,
+and returns an array of event descriptors.
+It returns the empty array
+if there were no event.
+
+Each named event descriptor is a reference to an array of one,
+and potentially more, elements.
 The first element of every named event descriptor is a string
-containing the name of the event.
-There may be
+containing the name of the event,
+and this is typically the only element.
+In certain cases, there could be
 other elements of a named event descriptor,
+which will be
 as described for the type of named event.
 Named events are
 L<described in the SLIF
@@ -814,7 +830,7 @@ of triggered events,
 The assumption is that
 an application interested in events
 will call
-the C<event()> method almost as soon as
+the C<events()> method almost as soon as
 control is returned to it.
 
 Named events are returned in order by type.

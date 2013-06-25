@@ -160,16 +160,19 @@ sub do_test {
     READ: while (1) {
 
         my @actual_events = ();
+
+# Marpa::R2::Display
+# name: SLIF events() method synopsis
+
         EVENT:
-        for (
-            my $event_ix = 0;
-            my $event    = $slr->event($event_ix);
-            $event_ix++
-            )
+        for my $event ( $slr->events() ) {
         {
             my ($name) = @{$event};
             push @actual_events, $name;
         } ## end EVENT: for ( my $event_ix = 0; my $event = $slr->event(...))
+
+# Marpa::R2::Display::End
+
         if (@actual_events) {
             $actual_events .= join q{ }, $pos, @actual_events;
             $actual_events .= "\n";
