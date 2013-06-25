@@ -762,7 +762,7 @@ be read by G1,
 and internal scanning will pause immediately
 afterwards.
 
-A lexeme pause events does not occur, and has no effect, if
+A lexeme pause event does not occur, and has no effect, if
 
 =over 4
 
