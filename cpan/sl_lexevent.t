@@ -85,7 +85,20 @@ $expected_events{'all'} = <<'END_OF_EVENTS';
 23 after d
 END_OF_EVENTS
 $expected_events{'once'} = $expected_events{'all'};
-$expected_events{'seq'} = $expected_events{'all'};
+$expected_events{'seq'} = <<'END_OF_EVENTS';
+0 before a
+3 after b
+5 before c
+9 after d
+9 before a
+13 after b
+13 before c
+16 after d
+19 before a
+21 after b
+21 before c
+23 after d
+END_OF_EVENTS
 
 sub do_test {
     my ($test) = @_;
