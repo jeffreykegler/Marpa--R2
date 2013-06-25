@@ -48,8 +48,7 @@ BEGIN {
     COMPLETION_EVENT_BY_ID
     NULLED_EVENT_BY_ID
     PREDICTION_EVENT_BY_ID
-    LEXEME_BEFORE_EVENT_BY_ID
-    LEXEME_AFTER_EVENT_BY_ID
+    LEXEME_EVENT_BY_ID
     TRACE_FILE_HANDLE
     BLESS_PACKAGE
     SYMBOL_IDS_BY_EVENT_NAME_AND_TYPE
@@ -472,13 +471,9 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
                 ->{prediction} }, $symbol_id;
     } ## end for my $symbol_name ( keys %{$prediction_events_by_name...})
 
-    my $lexeme_before_events_by_name = {};
-    my $lexeme_before_events_by_id =
-        $self->[Marpa::R2::Inner::Scanless::G::LEXEME_BEFORE_EVENT_BY_ID] =
+    my $lexeme_events_by_id =
+        $self->[Marpa::R2::Inner::Scanless::G::LEXEME_EVENT_BY_ID] =
         [];
-    my $lexeme_after_events_by_name = {};
-    my $lexeme_after_events_by_id =
-        $self->[Marpa::R2::Inner::Scanless::G::LEXEME_AFTER_EVENT_BY_ID] = [];
 
     $thick_g1_grammar->precompute();
     my @g0_lexeme_to_g1_symbol;
@@ -540,19 +535,7 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
             $thin_slg->g1_lexeme_pause_set( $g1_lexeme_id, $pause_value );
 
             if ( defined( my $event_name = $declarations->{'event'} ) ) {
-                if ( $pause_value == 1 ) {
-                    $lexeme_after_events_by_name->{$lexeme_name} =
-                        $event_name;
-                    $lexeme_after_events_by_id->[$g1_lexeme_id] = $event_name;
-                }
-                if ( $pause_value == -1 ) {
-                    ## $pause_type eq 'before' -- the syntax should have ensured this is
-                    ## the only other possibility
-                    $lexeme_before_events_by_name->{$lexeme_name} =
-                        $event_name;
-                    $lexeme_before_events_by_id->[$g1_lexeme_id] =
-                        $event_name;
-                } ## end if ( $pause_value == -1 )
+                $lexeme_events_by_id->[$g1_lexeme_id] = $event_name;
                 push @{ $symbol_ids_by_event_name_and_type->{$event_name}
                         ->{lexeme} }, $g1_lexeme_id;
             } ## end if ( defined( my $event_name = $declarations->{'event'...}))
@@ -965,15 +948,17 @@ sub Marpa::R2::Inner::Scanless::convert_libmarpa_events {
             next EVENT;
         } ## end if ( $event_type eq 'symbol predicted' )
 
-        if ( $event_type eq 'before lexeme' ) {
+        if ( $event_type eq 'before lexeme' or $event_type eq 'after lexeme' )
+        {
+            my ( $lexeme_id, $start_pos, $end_pos ) = @event_data;
+            my $slg = $self->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
+            my $lexeme_event_by_id =
+                $slg->[Marpa::R2::Inner::Scanless::G::LEXEME_EVENT_BY_ID];
+            push @{ $self->[Marpa::R2::Inner::Scanless::R::EVENTS] },
+                [ $lexeme_event_by_id->[$lexeme_id], $start_pos, $end_pos ];
             $pause = 1;
             next EVENT;
-        }
-
-        if ( $event_type eq 'after lexeme' ) {
-            $pause = 1;
-            next EVENT;
-        }
+        } ## end if ( $event_type eq 'lexeme before' or $event_type eq...)
 
         if ( $event_type eq 'unknown g1 event' ) {
             Marpa::R2::exception(
