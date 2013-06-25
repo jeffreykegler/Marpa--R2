@@ -1402,6 +1402,7 @@ sub Marpa::R2::Scanless::R::line_column {
 sub Marpa::R2::Scanless::R::activate {
     my ($slr, $event_name, $activate) = @_;
     my $slg = $slr->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
+    my $thin_slr = $slr->[Marpa::R2::Inner::Scanless::R::C];
     $activate //= 1;
     my $thick_g1_recce =
         $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
@@ -1410,7 +1411,7 @@ sub Marpa::R2::Scanless::R::activate {
     $thin_g1_recce->completion_symbol_activate($_, $activate) for @{$event_symbol_ids_by_type->{completion}};
     $thin_g1_recce->nulled_symbol_activate($_, $activate) for @{$event_symbol_ids_by_type->{nulled}};
     $thin_g1_recce->prediction_symbol_activate($_, $activate) for @{$event_symbol_ids_by_type->{prediction}};
-    $thin_g1_recce->lexeme_event_activate($_, $activate) for @{$event_symbol_ids_by_type->{lexeme}};
+    $thin_slr->lexeme_event_activate($_, $activate) for @{$event_symbol_ids_by_type->{lexeme}};
 }
 
 # Internal methods, not to be documented

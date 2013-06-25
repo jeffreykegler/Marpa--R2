@@ -21,7 +21,7 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 44;
+use Test::More tests => 6;
 use English qw( -no_match_vars );
 use lib 'inc';
 use Marpa::R2::Test;
@@ -58,38 +58,51 @@ my $grammar = Marpa::R2::Scanless::G->new(
     {   action_object => 'My_Actions', source          => \$rules }
 );
 
-my $string        = q{aabbbcccdaaabccddddabcd};
-my $actual_events = q{};
-my $slr           = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
-my $length        = length $string;
-my $pos           = $slr->read( \$string );
-READ: while (1) {
+sub do_test {
+    my ($test_type) = @_;
+state $string        = q{aabbbcccdaaabccddddabcd};
+state $length        = length $string;
+    my $slr           = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
+    my $pos           = $slr->read( \$string );
+    my $actual_events = q{};
+    READ: while (1) {
+        my @actual_events = ();
+        my $event_name;
+        my $end_of_lexeme;
+        EVENT:
+        for my $event ( @{ $slr->events() } ) {
+            ( $event_name, undef, $end_of_lexeme ) = @{$event};
+            ACTIVATION_LOGIC: {
+                last ACTIVATION_LOGIC if $test_type eq 'all';
+                if ($test_type eq 'once') {
+                   $slr->activate($event_name, 0);
+                }
+            }
+            push @actual_events, $event_name;
+        }
+        if (@actual_events) {
+            $actual_events .= join q{ }, $pos, @actual_events;
+            $actual_events .= "\n";
+        }
+        say STDERR "pos=$pos eol=$end_of_lexeme";
+        $pos = $end_of_lexeme // $pos;
+        last READ if $pos >= $length;
+        $pos = $slr->resume($pos);
+    } ## end READ: while (1)
+    my $value_ref = $slr->value();
+    if ( not defined $value_ref ) {
+        die "No parse\n";
+    }
+    my $actual_value = ${$value_ref};
+    Test::More::is( $actual_value, q{1792},
+        qq{Value for lexeme named event test} );
+    my $expected_events = q{};
+    Marpa::R2::Test::is( $actual_events, $expected_events,
+        qq{Events for lexeme named event test} );
+} ## end sub do_test
 
-    my @actual_events = ();
-    my $event_name;
-    my $end_of_lexeme;
-    EVENT:
-    for my $event (@{$slr->events()}) {
-        ($event_name, undef, $end_of_lexeme) = @{$event};
-        push @actual_events, $event_name;
-    }
-    if (@actual_events) {
-        $actual_events .= join q{ }, $pos, @actual_events;
-        $actual_events .= "\n";
-    }
-    say STDERR "pos=$pos eol=$end_of_lexeme";
-    $pos = $end_of_lexeme // $pos;
-    last READ if $pos >= $length;
-    $pos = $slr->resume($pos);
-} ## end READ: while (1)
-my $value_ref = $slr->value();
-if ( not defined $value_ref ) {
-    die "No parse\n";
-}
-my $actual_value = ${$value_ref};
-Test::More::is( $actual_value, q{1792}, qq{Value for lexeme named event test} );
-my $expected_events = q{};
-Marpa::R2::Test::is( $actual_events, $expected_events, qq{Events for lexeme named event test} );
+do_test('all');
+do_test('once');
 
 package My_Actions;
 
