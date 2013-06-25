@@ -757,7 +757,7 @@ sub Marpa::R2::Inner::Scanless::convert_libmarpa_events {
     my $pause    = 0;
     my $thin_slr = $self->[Marpa::R2::Inner::Scanless::R::C];
     my $stream   = $thin_slr->stream();
-    EVENT: while ( my $event = $thin_slr->event() ) {
+    EVENT: for my $event ( $thin_slr->events() ) {
         my ( $event_type, @event_data ) = @{$event};
         if ( $event_type eq q{'trace} ) {
 
@@ -1075,6 +1075,11 @@ sub Marpa::R2::Scanless::R::resume {
 sub Marpa::R2::Scanless::R::event {
     my ($self, $event_ix) = @_;
     return $self->[Marpa::R2::Inner::Scanless::R::EVENTS]->[$event_ix];
+}
+
+sub Marpa::R2::Scanless::R::events {
+    my ($self) = @_;
+    return $self->[Marpa::R2::Inner::Scanless::R::EVENTS];
 }
 
 ## From here, recovery is a matter for the caller,

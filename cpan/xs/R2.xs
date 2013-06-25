@@ -5881,6 +5881,27 @@ PPCODE:
 }
 
 void
+events(slr)
+    Scanless_R *slr;
+PPCODE:
+{
+  Unicode_Stream *stream = slr->stream;
+  int i;
+  const int stream_queue_length = av_len (stream->event_queue);
+  const int slr_queue_length = av_len (slr->r1_wrapper->event_queue);
+  for (i = 0; i <= stream_queue_length; i++)
+    {
+    SV *event = av_shift (stream->event_queue);
+      XPUSHs (sv_2mortal (event));
+    }
+  for (i = 0; i <= slr_queue_length; i++)
+    {
+      SV *event = av_shift (slr->r1_wrapper->event_queue);
+      XPUSHs (sv_2mortal (event));
+    }
+}
+
+void
 span(slr, earley_set)
     Scanless_R *slr;
     IV earley_set;
