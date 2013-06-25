@@ -801,7 +801,7 @@ The
 L<pause_lexeme() method|Marpa::R2::Scanless::R/"pause_lexeme()">
 will return only one of them, chosen arbitrarily, whereas
 the 
-L<events() method|Marpa::R2::Scanless::R/"events()">.
+L<events() method|Marpa::R2::Scanless::R/"events()">
 will return all of them.
 This is one of the reasons that applications
 are encouraged to always specify lexeme pause events
