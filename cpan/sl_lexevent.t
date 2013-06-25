@@ -29,7 +29,7 @@ use Marpa::R2;
 
 my $rules = <<'END_OF_GRAMMAR';
 :start ::= sequence
-sequence ::= char*
+sequence ::= char* action => OK
 char ::= a | b | c | d
 a ~ 'a'
 b ~ 'b'
@@ -65,6 +65,7 @@ state $length        = length $string;
     my $slr           = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
     my $pos           = $slr->read( \$string );
     my $actual_events = q{};
+    my $deactivated_event_name;
     READ: while (1) {
         my @actual_events = ();
         my $event_name;
@@ -77,15 +78,19 @@ state $length        = length $string;
                 if ($test_type eq 'once') {
                    $slr->activate($event_name, 0);
                 }
+                if ($test_type eq 'seq') {
+                   $slr->activate($deactivated_event_name, 1) if defined $deactivated_event_name;
+                   $slr->activate($event_name, 0);
+                   $deactivated_event_name = $event_name;
+                }
             }
             push @actual_events, $event_name;
         }
         if (@actual_events) {
             $actual_events .= join q{ }, $pos, @actual_events;
             $actual_events .= "\n";
+            $pos = $end_of_lexeme;
         }
-        say STDERR "pos=$pos eol=$end_of_lexeme";
-        $pos = $end_of_lexeme // $pos;
         last READ if $pos >= $length;
         $pos = $slr->resume($pos);
     } ## end READ: while (1)
@@ -103,6 +108,7 @@ state $length        = length $string;
 
 do_test('all');
 do_test('once');
+do_test('seq');
 
 package My_Actions;
 
