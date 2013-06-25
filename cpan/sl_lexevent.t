@@ -60,7 +60,7 @@ my $grammar = Marpa::R2::Scanless::G->new(
 
 my %expected_events;
 $expected_events{'all'} = <<'END_OF_EVENTS';
-0 before a\n
+0 before a
 1 before a
 3 after b
 4 after b
@@ -84,7 +84,12 @@ $expected_events{'all'} = <<'END_OF_EVENTS';
 21 before c
 23 after d
 END_OF_EVENTS
-$expected_events{'once'} = $expected_events{'all'};
+$expected_events{'once'} = <<'END_OF_EVENTS';
+0 before a
+3 after b
+5 before c
+9 after d
+END_OF_EVENTS
 $expected_events{'seq'} = <<'END_OF_EVENTS';
 0 before a
 3 after b
