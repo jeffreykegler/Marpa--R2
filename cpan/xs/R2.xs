@@ -5869,18 +5869,6 @@ PPCODE:
 }
 
 void
-event(slr)
-    Scanless_R *slr;
-PPCODE:
-{
-  Unicode_Stream *stream = slr->stream;
-  SV *event =
-    (av_len (stream->event_queue) >=
-     0) ? av_shift (stream->event_queue) : av_shift (slr->r1_wrapper->event_queue);
-  XPUSHs (sv_2mortal (event));
-}
-
-void
 events(slr)
     Scanless_R *slr;
 PPCODE:
