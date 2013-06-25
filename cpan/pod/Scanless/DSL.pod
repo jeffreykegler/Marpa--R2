@@ -693,7 +693,43 @@ of a rule.
 The C<::name> reserved blessing is most useful in
 the lexeme default rule.
 
+=head2 event
+
+=for Marpa::R2::Display
+name: SLIF named lexeme event synopsis
+normalize-whitespace: 1
+
+    :lexeme ~ <a> pause => before event => 'before a'
+    :lexeme ~ <b> pause => after event => 'after b'
+    :lexeme ~ <c> pause => before event => 'before c'
+    :lexeme ~ <d> pause => after event => 'after d'
+
+=for Marpa::R2::Display::End
+
+The C<event> adverb applies only to lexemes.
+It turns a lexeme's pause into a named event,
+using the name specified as its value.
+Applications are encouraged to turn all lexeme
+pause's into named events,
+using the C<event> adverb.
+The allowed event names are as described
+for the L<named event statement|"Named event statement">.
+
+It is a fatal error to specify the C<event> adverb
+if the C<pause> adverb is not also specified.
+
 =head2 pause
+
+=for Marpa::R2::Display
+name: SLIF named lexeme event synopsis
+normalize-whitespace: 1
+
+    :lexeme ~ <a> pause => before event => 'before a'
+    :lexeme ~ <b> pause => after event => 'after b'
+    :lexeme ~ <c> pause => before event => 'before c'
+    :lexeme ~ <d> pause => after event => 'after d'
+
+=for Marpa::R2::Display::End
 
 The C<pause> adverb applies only to lexemes.
 Pauses take effect during
@@ -706,6 +742,15 @@ Internal scanning can be resumed with
 L<the Scanless recognizer's resume()
 method|Marpa::R2::Scanless::R/"resume()">.
 
+Applications are encouraged to name every lexeme pause
+using the L<event adverb|/"event">.
+If this is done, lexeme pauses can be queried using the
+SLIF recognizer's
+L<events() method|Marpa::R2::Scanless::R/"events()">.
+Unnamed lexeme pauses must be queried using the
+SLIF recognizer's
+L<pause_lexeme() method|Marpa::R2::Scanless::R/"pause_lexeme()">.
+
 If the value of pause is C<before>,
 Marpa will "pause" internal scanning before
 that lexeme.
@@ -716,24 +761,51 @@ all appicable lexemes at that position will
 be read by G1,
 and internal scanning will pause immediately
 afterwards.
-(Note that,
-as of this writing,
-the C<after> pause value is untested.)
 
-A pause value has no effect if G1 would reject
-that lexeme at that location.
-A pause value also has no effect
-if its lexeme has
+A lexeme pause events does not occur, and has no effect, if
+
+=over 4
+
+=item *
+
+It is deactivated.  Deactivation and reactivation of events is
+done with the SLIF recognizer's
+L<activate() method|Marpa::R2::Scanless::R/"activate()">
+
+=item *
+
+The G1 grammar would reject that lexeme at that location.
+
+=item *
+
+It has
 a lexeme priority lower than
 the highest lexeme priority.
 
+=item *
+
 At the same priority,
-an pause value of C<before> overrides any
-pause values of C<after> at the same location.
-If pause values of 
-both C<before> and C<after> could apply at a
-at a location, only "C<before>" pause will
-take effect.
+it has a pause value of C<after>,
+when another lexeme pause occurs
+which has a 
+pause value of C<before>.
+In other words, pausing before a lexeme prevents Marpa
+from pausing
+after another lexeme at the same location.
+
+=back
+
+Even with the above restrictions,
+there can be more than one lexeme pause event at a location.
+The
+L<pause_lexeme() method|Marpa::R2::Scanless::R/"pause_lexeme()">
+will return only one of them, chosen arbitrarily, whereas
+the 
+L<events() method|Marpa::R2::Scanless::R/"events()">.
+will return all of them.
+This is one of the reasons that applications
+are encouraged to always specify lexeme pause events
+as named events.
 
 =head2 priority
 
