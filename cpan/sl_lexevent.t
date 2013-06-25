@@ -55,8 +55,7 @@ my $events_expected = <<'END_OF_EVENTS';
 END_OF_EVENTS
 
 my $grammar = Marpa::R2::Scanless::G->new(
-    {   action_object => 'My_Actions', source          => \$rules }
-);
+    { action_object => 'My_Actions', source => \$rules } );
 
 my %expected_events;
 $expected_events{'all'} = <<'END_OF_EVENTS';
@@ -107,10 +106,10 @@ END_OF_EVENTS
 
 sub do_test {
     my ($test) = @_;
-state $string        = q{aabbbcccdaaabccddddabcd};
-state $length        = length $string;
-    my $slr           = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
-    my $pos           = $slr->read( \$string );
+    state $string = q{aabbbcccdaaabccddddabcd};
+    state $length = length $string;
+    my $slr = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
+    my $pos = $slr->read( \$string );
     my $actual_events = q{};
     my $deactivated_event_name;
     READ: while (1) {
@@ -122,17 +121,18 @@ state $length        = length $string;
             ( $event_name, undef, $end_of_lexeme ) = @{$event};
             ACTIVATION_LOGIC: {
                 last ACTIVATION_LOGIC if $test eq 'all';
-                if ($test eq 'once') {
-                   $slr->activate($event_name, 0);
+                if ( $test eq 'once' ) {
+                    $slr->activate( $event_name, 0 );
                 }
-                if ($test eq 'seq') {
-                   $slr->activate($deactivated_event_name, 1) if defined $deactivated_event_name;
-                   $slr->activate($event_name, 0);
-                   $deactivated_event_name = $event_name;
-                }
-            }
+                if ( $test eq 'seq' ) {
+                    $slr->activate( $deactivated_event_name, 1 )
+                        if defined $deactivated_event_name;
+                    $slr->activate( $event_name, 0 );
+                    $deactivated_event_name = $event_name;
+                } ## end if ( $test eq 'seq' )
+            } ## end ACTIVATION_LOGIC:
             push @actual_events, $event_name;
-        }
+        } ## end EVENT: for my $event ( @{ $slr->events() } )
         if (@actual_events) {
             $actual_events .= join q{ }, $pos, @actual_events;
             $actual_events .= "\n";
@@ -146,8 +146,7 @@ state $length        = length $string;
         die "No parse\n";
     }
     my $actual_value = ${$value_ref};
-    Test::More::is( $actual_value, q{1792},
-        qq{Value for test "$test"} );
+    Test::More::is( $actual_value, q{1792}, qq{Value for test "$test"} );
     my $expected_events = q{};
     Marpa::R2::Test::is( $actual_events, $expected_events{$test},
         qq{Events for test "$test"} );
