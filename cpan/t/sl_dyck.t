@@ -82,7 +82,7 @@ for (
         if ( $name eq 'string length' ) {
             my ( $start_pos, $length ) = $recce->pause_span();
             $last_string_length = $recce->literal( $start_pos, $length ) + 0;
-            $pos = $end_pos;
+            $pos = $start_pos + $length;
             next EVENT;
         } ## end if ( $name eq 'string length' )
         die "Unexpected event: ", join q{ }, @{$event};
