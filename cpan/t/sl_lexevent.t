@@ -21,7 +21,7 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 6;
+use Test::More tests => 8;
 use English qw( -no_match_vars );
 use lib 'inc';
 use Marpa::R2::Test;
@@ -118,6 +118,7 @@ sub do_test {
         EVENT:
         for my $event ( @{ $slr->events() } ) {
             my ($event_name) = @{$event};
+            die "event name is undef" if not defined $event_name;
             die "Unexpected event: $event_name"
                 if not $event_name =~ m/\A (before|after) \s [abcd] \z/xms;
             ACTIVATION_LOGIC: {
@@ -139,6 +140,10 @@ sub do_test {
             $actual_events .= "\n";
             my ( $start_of_lexeme, $length_of_lexeme ) = $slr->pause_span();
             $pos = $start_of_lexeme + $length_of_lexeme;
+        } elsif (my $pause_lexeme = $slr->pause_lexeme()) {
+            $actual_events .= "unnamed\n";
+            my ( $start_of_lexeme, $length_of_lexeme ) = $slr->pause_span();
+            $pos = $start_of_lexeme + $length_of_lexeme;
         }
         last READ if $pos >= $length;
         $pos = $slr->resume($pos);
@@ -157,6 +162,13 @@ sub do_test {
 do_test('all');
 do_test('once');
 do_test('seq');
+
+# Once again, but with unnamed events
+$expected_events{'all'} =~ s/^ [^\n]+ $/unnamed/gxms;
+$rules =~ s/^ ([:] lexeme \s [^\n]* ) \s+ event \s* [=][>] [^\n]* $/$1/gxms;
+$grammar = Marpa::R2::Scanless::G->new(
+    { action_object => 'My_Actions', source => \$rules } );
+do_test('all');
 
 package My_Actions;
 
