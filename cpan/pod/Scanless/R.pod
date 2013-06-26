@@ -219,62 +219,82 @@ refers to either the C<read()> or the C<resume()> method.
 After an internal scanning method,
 the current location will indicate how far
 in the input stream the internal scanning method actually read.
-If the internal scanning method was paused, the current
+If the internal scanning method paused before EOS,
+the current
 location will be the one at which it paused.
-If the internal scanning method reaches EOS,
+If the internal scanning method pauses at EOS,
 the current location will be EOS.
 The return value of the C<read()> and the C<resume()> method is
 the current location.
 
-The following is a list of the events which cause
-internal scanning to pause or to end.
-More than one of these events may occur at a location,
-in which case the
-one listed first is the one that applies.
+=head2 EOS
+
+The location of EOS depends on the
+C<$start> and C<$length> arguments
+to the last
+internal scanning method,
+and on the length of the input string.
 
 =over 4
 
 =item *
 
-An internal scanning method
-will pause when it encounters certain lexemes,
-as specified in the DSL using the C<pause> adverb.
-The pause lexeme will be the one of those which caused
-the pause.
-(A pause can be caused by more than one lexeme.)
-The pause span will be the span of the input stream
-occupied by the pause lexeme.
+If the C<$length> argument of the last internal scanning method was
+non-negative,
+EOS will be at C<$start+$length>.
 
 =item *
 
-Scanning always ends at EOS.
-Reaching EOS is not considered a pause.
-
-=item *
-
-If its C<$length> argument was non-negative,
-internal scanning
-will pause when the current location is C<$start+$length>.
-The pause lexeme and pause span will be undefined.
-
-=item *
-
-If its C<$length> argument was negative,
-an internal scanning method
-will pause when the current location is
+If the C<$length> argument was negative,
+EOS will be at
 C<$length + 1 + length $input_string>.
-The pause lexeme and pause span will be undefined.
 
 =item *
 
-Named events pause internal scanning.
+The default length for the internal scanning methods is always -1,
+so that the default EOS is always at
+C<length $input_string>,
+the end of the input string.
+
+=back
+
+=head2 Pauses in internal scanning
+
+When a C<read()> and the C<resume()> method pauses,
+one of more of the following occurred.
+
+=over 4
+
+=item * A named event
+
+One or more named events may have triggered.
 Named events are
-L<described in the SLIF
-DSL|Marpa::R2::Scanless::DSL/"Named event statement">.
-Named events will always have an event name,
-and may be queried using the
-L<the Scanless recognizer's event()
-method|/"event()">.
+created by
+L<named event statements|Marpa::R2::Scanless::DSL/"Named event statement">.
+They can also be created by
+L<lexeme pseudo-rules|Marpa::R2::Scanless::DSL/"Lexeme pseudo-rules">.
+Named events may be queried using
+L<the events() method()|/"events()">.
+
+=item * A unnamed lexeme pause event
+
+A lexeme pause that is not a named event may have triggered.
+Lexeme pauses are created by
+L<lexeme pseudo-rules|Marpa::R2::Scanless::DSL/"Lexeme pseudo-rules">.
+Applications can always name lexeme pause events, using the
+L<event adverb|Marpa::R2::Scanless::DSL/"event">,
+and are strongly encouraged to do so.
+If all lexeme pauses are named,
+the check for unnamed events can be omitted.
+The presence or absence of an unnamed lexeme pause event
+may be checked for using
+L<the lexeme_pause() method|/"lexeme_pause()">.
+
+=item * EOS
+
+EOS may have been reached.
+This may be checked for by comparing the current location
+with the expected EOS.
 
 =back
 
