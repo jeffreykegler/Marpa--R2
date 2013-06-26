@@ -15,6 +15,10 @@
 
 Revision history for Marpa::R2
 
+2.061_002
+
+   * Fix problem with unnamed lexeme events
+
 2.061_001
 
    * Added SLIF expected_terminals(), events() methods;
