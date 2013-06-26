@@ -570,7 +570,7 @@ of a higher level interface, such as
 @code{Marpa::R2},
 or @code{Marpa::R3},
 or from Marpa's
-@uref{https://github.com/downloads/jeffreykegler/Marpa-theory/recce.pdf, theory document}.
+@uref{https://docs.google.com/file/d/0B9_mR_M2zOc4Ni1zSW5IYzk3TGc/edit?usp=sharing, theory document}.
 
 As a reminder,
 in Libmarpa a location is called a @dfn{earleme}.
