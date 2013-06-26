@@ -15,6 +15,12 @@
 
 Revision history for Marpa::R2
 
+2.061_001
+
+   * Added SLIF expected_terminals(), events() methods;
+     Lexemes pauses can be now be named events, and
+     as named events can be deactivated and reactivated
+
 2.061_000
 
    * New series of developer's releases.
