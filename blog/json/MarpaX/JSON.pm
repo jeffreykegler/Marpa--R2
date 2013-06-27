@@ -63,22 +63,10 @@ e              ~ 'e'
                | 'E+'
                | 'E-'
 
-string       ::= <complex string>
-string       ::= <simple string>
+:lexeme ~ string pause => before event => 'before string'
 
-:lexeme ~ <complex string> pause => before event => 'before complex string'
-:lexeme ~ <simple string> pause => before event => 'before simple string'
-
-# complex string contains at least one backslashed char
-<complex string> ~ quote <simple string chars> <backslashed char> <complex string chars> quote
-<complex string chars> ~ <complex string char>+
-<complex string char> ~ <simple string char> | <backslashed char>
-<simple string> ~ quote <simple string chars> quote
-<simple string chars> ~ <simple string char>*
-quote ~ ["]
-backslash      ~ [\x5c]
-<backslashed char> ~ backslash [\d\D]
-<simple string char> ~ [^"\x5c]
+# Just look for the first double quote, and do the rest in the external scanner
+string ~ ["]
 
 comma          ~ ','
 
@@ -104,22 +92,17 @@ sub parse {
     {
         for my $event ( @{$re->events()} ) {
             my ($event_name) = @{$event};
+            if ( $event_name eq 'before string' ) {
+		my $eos = index $string, q{"}, $pos + 1;
+		while ((substr $string, $eos - 1, 1) eq '\\') {
 	      $DB::single = 1;
-            if ( $event_name eq 'before simple string' ) {
-                my ( $start, $length ) = $re->pause_span();
-                my $value = substr $string, $start + 1, $length - 2;
-		# say STDERR "$event_name value=$value";
-                $re->lexeme_read( 'simple string', $start, $length, $value ) // die;
-                $pos = $start + $length;
-                next READ;
-	    }
-            if ( $event_name eq 'before complex string' ) {
-                my ( $start, $length ) = $re->pause_span();
-                my $value = substr $string, $start + 1, $length - 2;
-		# say STDERR "$event_name value=$value";
-                $value = decode_string($value);
-                $re->lexeme_read( 'complex string', $start, $length, $value ) // die;
-                $pos = $start + $length;
+		  $eos = index $string, q{"}, $eos + 1;
+		}
+		my $value = substr $string, $pos+1, $eos - $pos - 1;
+		# say STDERR qq{string is '$value'};
+                $value = decode_string($value) if 0 >= index $value, '\\';
+                $re->lexeme_read( 'string', $pos, $eos - $pos + 1, $value ) // die;
+                $pos = $eos + 1;
                 next READ;
             } ## end if ( $event_name eq 'before complex string' )
         } ## end EVENT: for my $event ( $re->events() )

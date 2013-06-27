@@ -2,7 +2,6 @@ use 5.010;
 
 use Benchmark;
 
-use autodie;
 # use JSON::XS;
 use JSON::PP 'decode_json';
 use lib '.';
