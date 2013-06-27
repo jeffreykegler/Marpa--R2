@@ -2,10 +2,10 @@ use 5.010;
 use Test::More;
 use Test::Exception;
 use lib '.';
-use lib '../../r2/lib';
-use lib '../../r2/blib/arch';
+use lib '../../cpan/lib';
+use lib '../../cpan/blib/arch';
 use lib 'lib';
-use Marpa::R2;
+use Marpa::R2 2.060_002;
 use MarpaX::JSON;
 
 say STDERR "Using Marpa::R2 ", $Marpa::R2::VERSION;

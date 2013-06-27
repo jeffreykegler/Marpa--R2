@@ -1,8 +1,8 @@
 use 5.010;
 
 use lib '.';
-use lib '../../r2/lib';
-use lib '../../r2/blib/arch';
+use lib '../../cpan/lib';
+use lib '../../cpan/blib/arch';
 use Marpa::R2;
 use MarpaX::JSON;
 use Data::Dumper;
