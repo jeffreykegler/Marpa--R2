@@ -63,14 +63,22 @@ e              ~ 'e'
                | 'E+'
                | 'E-'
 
-string       ::= lstring
+string       ::= <complex string>
+string       ::= <simple string>
 
-:lexeme ~ lstring pause => before
+:lexeme ~ <complex string> pause => before event => 'before complex string'
+:lexeme ~ <simple string> pause => before event => 'before simple string'
 
-lstring        ~ quote in_string quote
-quote          ~ ["]
-in_string      ~ in_string_char*
-in_string_char  ~ [^"] | '\"'
+# complex string contains at least one backslashed char
+<complex string> ~ quote <simple string chars> <backslashed char> <complex string chars> quote
+<complex string chars> ~ <complex string char>+
+<complex string char> ~ <simple string char> | <backslashed char>
+<simple string> ~ quote <simple string chars> quote
+<simple string chars> ~ <simple string char>*
+quote ~ ["]
+backslash      ~ [\x5c]
+<backslashed char> ~ backslash [\d\D]
+<simple string char> ~ [^"\x5c]
 
 comma          ~ ','
 
@@ -88,12 +96,35 @@ sub parse {
     my ($self, $string) = @_;
     my $re = Marpa::R2::Scanless::R->new( { grammar => $self->{grammar} } );
     my $length = length $string;
-    for ( my $pos = $re->read(\$string); $pos < $length; $pos = $re->resume()) {
-       my ($start, $length) = $re->pause_span();
-       my $value = substr $string, $start+1, $length-2;
-       $value = decode_string($value) if -1 != index $value, '\\';
-       $re->lexeme_read('lstring', $start, $length, $value) // die;
-    }
+    READ: for (
+        my $pos = $re->read( \$string );
+        $pos < $length;
+        $pos = $re->resume($pos)
+        )
+    {
+        for my $event ( @{$re->events()} ) {
+            my ($event_name) = @{$event};
+	      $DB::single = 1;
+            if ( $event_name eq 'before simple string' ) {
+                my ( $start, $length ) = $re->pause_span();
+                my $value = substr $string, $start + 1, $length - 2;
+		# say STDERR "$event_name value=$value";
+                $re->lexeme_read( 'simple string', $start, $length, $value ) // die;
+                $pos = $start + $length;
+                next READ;
+	    }
+            if ( $event_name eq 'before complex string' ) {
+                my ( $start, $length ) = $re->pause_span();
+                my $value = substr $string, $start + 1, $length - 2;
+		# say STDERR "$event_name value=$value";
+                $value = decode_string($value);
+                $re->lexeme_read( 'complex string', $start, $length, $value ) // die;
+                $pos = $start + $length;
+                next READ;
+            } ## end if ( $event_name eq 'before complex string' )
+        } ## end EVENT: for my $event ( $re->events() )
+	die "Paused but no event";
+    } ## end for ( my $pos = $re->read( \$string ); $pos < $length...)
     my $value_ref = $re->value();
     return ${$value_ref};
 }
