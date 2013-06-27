@@ -100,7 +100,7 @@ sub parse {
 		}
 		my $value = substr $string, $pos+1, $eos - $pos - 1;
 		# say STDERR qq{string is '$value'};
-                $value = decode_string($value) if 0 >= index $value, '\\';
+                $value = decode_string($value) if (index $value, '\\') >= 0;
                 $re->lexeme_read( 'string', $pos, $eos - $pos + 1, $value ) // die;
                 $pos = $eos + 1;
                 next READ;
