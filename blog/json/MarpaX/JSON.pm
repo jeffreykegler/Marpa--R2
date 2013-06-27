@@ -161,7 +161,6 @@ sub new {
 
 sub do_object {
     my (undef, $members) = @_;
-    use Data::Dumper;
     return { map { @{$_} } @{$members} };
 }
 
