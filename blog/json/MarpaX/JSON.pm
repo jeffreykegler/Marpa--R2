@@ -4,7 +4,7 @@ use 5.010;
 use strict;
 use warnings;
 
-use Marpa::R2 2.047_011;
+use Marpa::R2 2.060000;
 
 sub new {
     my ($class) = @_;
@@ -12,10 +12,8 @@ sub new {
     my $self = bless {}, $class;
 
     $self->{grammar} = Marpa::R2::Scanless::G->new(
-        {
-            action_object  => 'MarpaX::JSON::Actions',
-	    bless_package => 'My_Nodes',
-            source         => \(<<'END_OF_SOURCE'),
+        {  bless_package => 'My_Nodes',
+            source        => \(<<'END_OF_SOURCE'),
 :default ::= action => ::array
 
 :start       ::= json
@@ -84,41 +82,42 @@ END_OF_SOURCE
         }
     );
     return $self;
-}
+} ## end sub new
 
 sub eval_json {
     my ($thing) = @_;
     my $type = ref $thing;
-    if ($type eq 'REF') {
-        return \eval_json(${$thing});
+    if ( $type eq 'REF' ) {
+        return \eval_json( ${$thing} );
     }
-    if ($type eq 'ARRAY') {
+    if ( $type eq 'ARRAY' ) {
         return [ map { eval_json($_) } @{$thing} ];
     }
-    if ($type eq 'My_Nodes::string') {
+    if ( $type eq 'My_Nodes::string' ) {
         my $string = substr $thing->[0], 1, -1;
-	return decode_string($string) if (index $string, '\\') >= 0;
-	return $string;
+        return decode_string($string) if ( index $string, '\\' ) >= 0;
+        return $string;
     }
-    if ($type eq 'My_Nodes::hash') {
-	return { map { eval_json($_->[0]), eval_json($_->[1]) } @{$thing->[0]} };
+    if ( $type eq 'My_Nodes::hash' ) {
+        return { map { eval_json( $_->[0] ), eval_json( $_->[1] ) }
+                @{ $thing->[0] } };
     }
-    return 1 if $type eq 'My_Nodes::true';
+    return 1  if $type eq 'My_Nodes::true';
     return '' if $type eq 'My_Nodes::false';
     return $thing;
-}
+} ## end sub eval_json
 
 sub parse {
-    my ($self, $string) = @_;
+    my ( $self, $string ) = @_;
     my $re = Marpa::R2::Scanless::R->new( { grammar => $self->{grammar} } );
     my $length = length $string;
-    my $pos = $re->read( \$string );
+    my $pos    = $re->read( \$string );
     die "Read short of end: $pos vs. $length" if $pos < $length;
     my $value_ref = $re->value();
     die "Parse failed" if not defined $value_ref;
     $value_ref = eval_json($value_ref);
     return ${$value_ref};
-}
+} ## end sub parse
 
 sub parse_json {
     my ($string) = @_;
@@ -140,24 +139,6 @@ sub decode_string {
     $s =~ s{\\"}{"}g;
 
     return $s;
-}
-
-package MarpaX::JSON::Actions;
-use strict;
-
-sub new {
-    my ($class) = @_;
-    return bless {}, $class;
-}
-
-sub do_object {
-    my (undef, $members) = @_;
-    return { map { @{$_} } @{$members} };
-}
-
-sub do_true {
-    shift;
-    return $_[0] eq 'true';
-}
+} ## end sub decode_string
 
 1;
