@@ -100,7 +100,6 @@ END_OF_SOURCE
 sub eval_json {
     my ($thing) = @_;
     my $type = ref $thing;
-    say STDERR $type;
     if ($type eq 'REF') {
         return \eval_json(${$thing});
     }

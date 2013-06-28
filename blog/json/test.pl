@@ -42,8 +42,6 @@ is($data->{test}, '1.25e4', '1.25e4');
 $data = MarpaX::JSON::parse_json(q$[]$);
 is_deeply($data, [], '[]');
 
-exit 0;
-
 $data = MarpaX::JSON::parse_json(<<'JSON');
 [
       {
