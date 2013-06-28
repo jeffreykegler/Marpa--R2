@@ -14,33 +14,34 @@ sub new {
     $self->{grammar} = Marpa::R2::Scanless::G->new(
         {
             action_object  => 'MarpaX::JSON::Actions',
+	    bless_package => 'My_Nodes',
             source         => \(<<'END_OF_SOURCE'),
-:default ::= action => ::first
+:default ::= action => ::array
 
 :start       ::= json
 
-json         ::= object
-               | array
+json         ::= object action => ::first
+               | array action => ::first
 
-object       ::= ('{') members ('}')       action => do_object
+object       ::= ('{') members ('}') bless => object
 
-members      ::= pair*                 action => ::array separator => <comma>
+members      ::= pair*                 separator => <comma>
 
-pair         ::= string (':') value action => ::array
+pair         ::= string (':') value
 
-value        ::= string
-               | object
-               | number
-               | array
-               | 'true'                action => do_true
-               | 'false'               action => do_true
-               | 'null'                action => ::undef
+value        ::= string action => ::first
+               | object action => ::first
+               | number action => ::first
+               | array action => ::first
+               | 'true' action => ::first
+               | 'false' action => ::first
+               | 'null' action => ::first
 
 
-array        ::= ('[' ']')               action => []
-               | ('[') elements (']') 
+array        ::= ('[' ']')
+               | ('[') elements (']') action => ::first
 
-elements     ::= value+                action => ::array separator => <comma>
+elements     ::= value+                separator => <comma>
 
 number         ~ int
                | int frac
@@ -63,11 +64,27 @@ e              ~ 'e'
                | 'E+'
                | 'E-'
 
-:lexeme ~ string pause => before event => 'before string'
-
-# Just look for the first double quote, and do the rest in the external scanner
-string ~ ["]
-
+string ::= lstring bless => string
+ 
+lstring ~ quote in_string quote
+quote ~ ["]
+  
+in_string ~ in_string_char*
+   
+in_string_char ~ [^"\\]
+   | '\' '"'
+   | '\' 'b'
+   | '\' 'f'
+   | '\' 't'
+   | '\' 'n'
+   | '\' 'r'
+   | '\' 'u' four_hex_digits
+   | '\' '/'
+   | '\\'
+    
+four_hex_digits ~ hex_digit hex_digit hex_digit hex_digit
+hex_digit ~ [0-9a-fA-F]
+     
 comma          ~ ','
 
 :discard       ~ whitespace
@@ -84,30 +101,8 @@ sub parse {
     my ($self, $string) = @_;
     my $re = Marpa::R2::Scanless::R->new( { grammar => $self->{grammar} } );
     my $length = length $string;
-    READ: for (
-        my $pos = $re->read( \$string );
-        $pos < $length;
-        $pos = $re->resume($pos)
-        )
-    {
-        for my $event ( @{$re->events()} ) {
-            my ($event_name) = @{$event};
-            if ( $event_name eq 'before string' ) {
-		my $eos = index $string, q{"}, $pos + 1;
-		while ((substr $string, $eos - 1, 1) eq '\\') {
-	      $DB::single = 1;
-		  $eos = index $string, q{"}, $eos + 1;
-		}
-		my $value = substr $string, $pos+1, $eos - $pos - 1;
-		# say STDERR qq{string is '$value'};
-                $value = decode_string($value) if (index $value, '\\') >= 0;
-                $re->lexeme_read( 'string', $pos, $eos - $pos + 1, $value ) // die;
-                $pos = $eos + 1;
-                next READ;
-            } ## end if ( $event_name eq 'before complex string' )
-        } ## end EVENT: for my $event ( $re->events() )
-	die "Paused but no event";
-    } ## end for ( my $pos = $re->read( \$string ); $pos < $length...)
+    my $pos = $re->read( \$string );
+    die "Read short of end: $pos vs. $length" if $pos < $length;
     my $value_ref = $re->value();
     return ${$value_ref};
 }
