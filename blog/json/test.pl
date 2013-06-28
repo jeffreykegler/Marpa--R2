@@ -12,7 +12,6 @@ say STDERR "Using Marpa::R2 ", $Marpa::R2::VERSION;
 
 my $data = MarpaX::JSON::parse_json(q${"test":"1"}$);
 say Data::Dumper::Dumper($data); 
-exit 0;
 is($data->{test}, 1);
 
 {
@@ -20,8 +19,6 @@ is($data->{test}, 1);
     $data = MarpaX::JSON::parse_json(q${"test":[1,2,3]}$);
     is_deeply( $data->{test}, [ 1, 2, 3 ], $test );
 }
-
-exit 0;
 
 $data = MarpaX::JSON::parse_json(q${"test":true}$);
 is($data->{test}, 1);
@@ -44,6 +41,8 @@ is($data->{test}, '1.25e4', '1.25e4');
 
 $data = MarpaX::JSON::parse_json(q$[]$);
 is_deeply($data, [], '[]');
+
+exit 0;
 
 $data = MarpaX::JSON::parse_json(<<'JSON');
 [

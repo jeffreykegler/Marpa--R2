@@ -33,9 +33,9 @@ value        ::= string action => ::first
                | object action => ::first
                | number action => ::first
                | array action => ::first
-               | 'true' action => ::first
-               | 'false' action => ::first
-               | 'null' action => ::first
+               | 'true' bless => true
+               | 'false' bless => false
+               | 'null' action => ::undef
 
 
 array        ::= ('[' ']')
@@ -115,6 +115,8 @@ sub eval_json {
     if ($type eq 'My_Nodes::hash') {
 	return { map { eval_json($_->[0]), eval_json($_->[1]) } @{$thing->[0]} };
     }
+    return 1 if $type eq 'My_Nodes::true';
+    return '' if $type eq 'My_Nodes::false';
     return $thing;
 }
 
@@ -126,8 +128,8 @@ sub parse {
     die "Read short of end: $pos vs. $length" if $pos < $length;
     my $value_ref = $re->value();
     die "Parse failed" if not defined $value_ref;
-    my $value = eval_json($value_ref);
-    return $value;
+    $value_ref = eval_json($value_ref);
+    return ${$value_ref};
 }
 
 sub parse_json {
