@@ -64,27 +64,16 @@ e              ~ 'e'
                | 'E+'
                | 'E-'
 
-string ::= lstring bless => string
- 
-lstring ~ quote in_string quote
+string ::= <string lexeme> bless => string
+
+<string lexeme> ~ quote <string contents> quote
+# This cheats -- it recognizers a superset of legal JSON strings.
+# The bad ones can sorted out later, as desired
 quote ~ ["]
-  
-in_string ~ in_string_char*
-   
-in_string_char ~ [^"\\]
-   | '\' '"'
-   | '\' 'b'
-   | '\' 'f'
-   | '\' 't'
-   | '\' 'n'
-   | '\' 'r'
-   | '\' 'u' four_hex_digits
-   | '\' '/'
-   | '\\'
+<string contents> ~ <string char>*
+<string char> ~ [^"\\] | '\' <any char>
+<any char> ~ [\d\D]
     
-four_hex_digits ~ hex_digit hex_digit hex_digit hex_digit
-hex_digit ~ [0-9a-fA-F]
-     
 comma          ~ ','
 
 :discard       ~ whitespace
