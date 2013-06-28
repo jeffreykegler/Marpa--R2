@@ -11,7 +11,6 @@ use MarpaX::JSON;
 say STDERR "Using Marpa::R2 ", $Marpa::R2::VERSION;
 
 my $data = MarpaX::JSON::parse_json(q${"test":"1"}$);
-say Data::Dumper::Dumper($data); 
 is($data->{test}, 1);
 
 {
