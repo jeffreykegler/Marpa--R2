@@ -23,7 +23,7 @@ sub new {
 json         ::= object action => ::first
                | array action => ::first
 
-object       ::= ('{') members ('}') bless => object
+object       ::= ('{') members ('}') bless => hash
 
 members      ::= pair*                 separator => <comma>
 
@@ -97,6 +97,27 @@ END_OF_SOURCE
     return $self;
 }
 
+sub eval_json {
+    my ($thing) = @_;
+    my $type = ref $thing;
+    say STDERR $type;
+    if ($type eq 'REF') {
+        return \eval_json(${$thing});
+    }
+    if ($type eq 'ARRAY') {
+        return [ map { eval_json($_) } @{$thing} ];
+    }
+    if ($type eq 'My_Nodes::string') {
+        my $string = substr $thing->[0], 1, -1;
+	return decode_string($string) if (index $string, '\\') >= 0;
+	return $string;
+    }
+    if ($type eq 'My_Nodes::hash') {
+	return { map { eval_json($_->[0]), eval_json($_->[1]) } @{$thing->[0]} };
+    }
+    return $thing;
+}
+
 sub parse {
     my ($self, $string) = @_;
     my $re = Marpa::R2::Scanless::R->new( { grammar => $self->{grammar} } );
@@ -104,7 +125,9 @@ sub parse {
     my $pos = $re->read( \$string );
     die "Read short of end: $pos vs. $length" if $pos < $length;
     my $value_ref = $re->value();
-    return ${$value_ref};
+    die "Parse failed" if not defined $value_ref;
+    my $value = eval_json($value_ref);
+    return $value;
 }
 
 sub parse_json {
