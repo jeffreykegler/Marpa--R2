@@ -51,11 +51,7 @@ my $input = 'child::book';
 sub my_parser {
     my ( $grammar, $string ) = @_;
 
-    my $self = bless { grammar => $grammar }, 'My_Actions';
-
     my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
-    $self->{recce} = $recce;
-    my ( $parse_value, $parse_status );
 
     if ( not defined eval { $recce->read( \$string ); 1 } ) {
         my $abbreviated_error = $EVAL_ERROR;
@@ -74,7 +70,7 @@ sub my_parser {
 my @tests_data = (
     [   $glenn_grammar,
         'child::book',
-        [ 'child', '::', 'book' ],
+        [ 'child', q{::}, 'book' ],
         'Parse OK',
         'Nate Glenn bug regression'
     ],
