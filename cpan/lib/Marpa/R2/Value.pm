@@ -1371,9 +1371,19 @@ sub Marpa::R2::Recognizer::value
         "  Recognition done only as far as location $last_completed_earleme\n"
     ) if $furthest_earleme > $last_completed_earleme;
 
-    my $tree = $recce->[Marpa::R2::Internal::Recognizer::T_C];
+    my $bocage = $recce->[Marpa::R2::Internal::Recognizer::B_C];
+    my $tree;
 
-    if ($tree) {
+    if ($bocage) {
+
+        $tree = $recce->[Marpa::R2::Internal::Recognizer::T_C];
+
+        # If we have a bocage, we are initialized
+        if ( not $tree ) {
+
+            # No tree means we are in ASF mode
+            Marpa::R2::exception("value() called for recognizer in ASF mode");
+        }
         my $max_parses =
             $recce->[Marpa::R2::Internal::Recognizer::MAX_PARSES];
         my $parse_count = $tree->parse_count();
@@ -1382,11 +1392,12 @@ sub Marpa::R2::Recognizer::value
                 "Maximum parse count ($max_parses) exceeded");
         }
 
-    } ## end if ($tree)
+    } ## end if ($bocage)
     else {
+    # No bocage, therefor not initialized
 
         $grammar_c->throw_set(0);
-        my $bocage = $recce->[Marpa::R2::Internal::Recognizer::B_C] =
+        $bocage = $recce->[Marpa::R2::Internal::Recognizer::B_C] =
             Marpa::R2::Thin::B->new( $recce_c, ( $parse_set_arg // -1 ) );
         $grammar_c->throw_set(1);
 

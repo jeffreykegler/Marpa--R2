@@ -33,11 +33,11 @@ $VERSION = eval $VERSION;
 
 sub Marpa::R2::Scanless::R::asf {
     my ( $slr, @arg_hashes ) = @_;
-    my $slg      = $slr->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
-    my $thin_slr = $slr->[Marpa::R2::Inner::Scanless::R::C];
-    my $recce    = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
-    my $grammar    = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
-    my $recce_c = $recce->[Marpa::R2::Internal::Recognizer::C];
+    my $slg       = $slr->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
+    my $thin_slr  = $slr->[Marpa::R2::Inner::Scanless::R::C];
+    my $recce     = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+    my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
+    my $recce_c   = $recce->[Marpa::R2::Internal::Recognizer::C];
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
     my $choice_blessing = 'choice';
 
@@ -55,10 +55,11 @@ sub Marpa::R2::Scanless::R::asf {
     die "No parse" if not defined $bocage;
 
     my $rule_resolutions =
+        $recce->[Marpa::R2::Internal::Recognizer::RULE_RESOLUTIONS] =
         Marpa::R2::Internal::Recognizer::semantics_set( $recce,
         Marpa::R2::Internal::Recognizer::default_semantics($recce) );
 
-    return \[ $recce->show_bocage ];
+    return \[ $bocage->_marpa_b_top_or_node(), $recce->show_bocage ];
 } ## end sub Marpa::R2::Scanless::R::asf
 
 1;
