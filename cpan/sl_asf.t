@@ -54,7 +54,7 @@ sub my_parser {
         $abbreviated_error =~ s/^Error \s+ in \s+ string_read: \s+ //xms;
         return 'No parse', $abbreviated_error;
     } ## end if ( not defined eval { $recce->read( \$string ); 1 ...})
-    my $value_ref = $recce->value();
+    my $value_ref = $recce->asf();
     if ( not defined $value_ref ) {
         return 'No parse', 'Input read to end but no parse';
     }

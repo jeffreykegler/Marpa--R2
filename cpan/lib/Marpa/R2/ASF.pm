@@ -43,7 +43,7 @@ sub Marpa::R2::Scanless::R::asf {
         Marpa::R2::Internal::Recognizer::semantics_set( $recce,
         Marpa::R2::Internal::Recognizer::default_semantics($recce) );
 
-    return [];
+    return \[];
 } ## end sub Marpa::R2::Scanless::R::asf
 
 1;
