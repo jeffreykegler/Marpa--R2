@@ -47,8 +47,14 @@ sub Marpa::R2::Scanless::R::asf {
         }
     }
 
+    # We use the bocage to make sure that conflicting evaluations
+    # are not being tried at once
+    my $bocage = $recce->[Marpa::R2::Internal::Recognizer::B_C];
+    Marpa::R2::exception(
+        "Attempt to create an ASF for a recognizer that is already being valued"
+    ) if $bocage;
     $grammar_c->throw_set(0);
-    my $bocage = $recce->[Marpa::R2::Internal::Recognizer::B_C] =
+    $bocage = $recce->[Marpa::R2::Internal::Recognizer::B_C] =
         Marpa::R2::Thin::B->new( $recce_c, -1 );
     $grammar_c->throw_set(1);
 
@@ -59,7 +65,10 @@ sub Marpa::R2::Scanless::R::asf {
         Marpa::R2::Internal::Recognizer::semantics_set( $recce,
         Marpa::R2::Internal::Recognizer::default_semantics($recce) );
 
-    return \[ $bocage->_marpa_b_top_or_node(), $recce->show_bocage ];
+    my $top_or_node =  $bocage->_marpa_b_top_or_node();
+    return \[ "Top or node = $top_or_node",
+    $recce->or_node_tag($top_or_node),
+    $recce->show_bocage ];
 } ## end sub Marpa::R2::Scanless::R::asf
 
 1;
