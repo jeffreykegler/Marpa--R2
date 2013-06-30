@@ -109,4 +109,8 @@ require Marpa::R2::Stuifzand;
 ( $version_result = version_ok($Marpa::R2::Stuifzand::VERSION) )
     and die 'Marpa::R2::Stuifzand::VERSION ', $version_result;
 
+require Marpa::R2::ASF;
+( $version_result = version_ok($Marpa::R2::ASF::VERSION) )
+    and die 'Marpa::R2::ASF::VERSION ', $version_result;
+
 1;
