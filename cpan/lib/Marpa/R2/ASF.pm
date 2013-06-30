@@ -26,11 +26,19 @@ $STRING_VERSION = $VERSION;
 $VERSION = eval $VERSION;
 ## use critic
 
+# The code in this file, for now, breaks "the rules".  It makes use
+# of internal methods not documented as part of Libmarpa.
+# It is intended to create documented Libmarpa methods to underlie
+# this interface, and rewrite it to use them
+
 sub Marpa::R2::Scanless::R::asf {
     my ( $slr, @arg_hashes ) = @_;
     my $slg      = $slr->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
     my $thin_slr = $slr->[Marpa::R2::Inner::Scanless::R::C];
     my $recce    = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+    my $grammar    = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
+    my $recce_c = $recce->[Marpa::R2::Internal::Recognizer::C];
+    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
     my $choice_blessing = 'choice';
 
     for my $args (@arg_hashes) {
@@ -39,11 +47,18 @@ sub Marpa::R2::Scanless::R::asf {
         }
     }
 
+    $grammar_c->throw_set(0);
+    my $bocage = $recce->[Marpa::R2::Internal::Recognizer::B_C] =
+        Marpa::R2::Thin::B->new( $recce_c, -1 );
+    $grammar_c->throw_set(1);
+
+    die "No parse" if not defined $bocage;
+
     my $rule_resolutions =
         Marpa::R2::Internal::Recognizer::semantics_set( $recce,
         Marpa::R2::Internal::Recognizer::default_semantics($recce) );
 
-    return \[];
+    return \[ $recce->show_bocage ];
 } ## end sub Marpa::R2::Scanless::R::asf
 
 1;
