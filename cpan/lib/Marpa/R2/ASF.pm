@@ -31,6 +31,20 @@ $VERSION = eval $VERSION;
 # It is intended to create documented Libmarpa methods to underlie
 # this interface, and rewrite it to use them
 
+package Marpa::R2::Internal::ASF;
+
+sub or_node_expand {
+    my ( $recce, $or_node_id ) = @_;
+    my $bocage = $recce->[Marpa::R2::Internal::Recognizer::B_C];
+    return [
+        "OR=" . $recce->or_node_tag($or_node_id),
+        map { $recce->and_node_tag($_) } (
+            $bocage->_marpa_b_or_node_first_and($or_node_id)
+                .. $bocage->_marpa_b_or_node_last_and($or_node_id)
+        )
+    ];
+} ## end sub or_node_expand
+
 sub Marpa::R2::Scanless::R::asf {
     my ( $slr, @arg_hashes ) = @_;
     my $slg       = $slr->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
@@ -65,10 +79,8 @@ sub Marpa::R2::Scanless::R::asf {
         Marpa::R2::Internal::Recognizer::semantics_set( $recce,
         Marpa::R2::Internal::Recognizer::default_semantics($recce) );
 
-    my $top_or_node =  $bocage->_marpa_b_top_or_node();
-    return \[ "Top or node = $top_or_node",
-    $recce->or_node_tag($top_or_node),
-    $recce->show_bocage ];
+    my $top_or_node = $bocage->_marpa_b_top_or_node();
+    return \[ or_node_expand( $recce, $top_or_node ), $recce->show_bocage ];
 } ## end sub Marpa::R2::Scanless::R::asf
 
 1;
