@@ -33,6 +33,33 @@ $VERSION = eval $VERSION;
 
 package Marpa::R2::Internal::ASF;
 
+sub or_node_flatten {
+    my ( $recce, $or_node_id ) = @_;
+    my $bocage   = $recce->[Marpa::R2::Internal::Recognizer::B_C];
+    my @choices;
+    for my $and_node_id ( $bocage->_marpa_b_or_node_first_and($or_node_id)
+        .. $bocage->_marpa_b_or_node_last_and($or_node_id) )
+    {
+        my @choice = ();
+        my $predecessor_id =
+            $bocage->_marpa_b_and_node_predecessor($and_node_id);
+        push @choice, $predecessor_id if defined $predecessor_id;
+        if ( defined (my $cause_id = $bocage->_marpa_b_and_node_cause($and_node_id)) ) {
+            push @choice, $cause_id;
+        }
+        else {
+            my $token_id = $bocage->_marpa_b_and_node_symbol($and_node_id);
+            push @choice,
+                [
+                "TOKEN=$token_id",
+                $bocage->_marpa_b_and_node_token($and_node_id)
+                ];
+        } ## end else [ if ( my $cause_id = $bocage->_marpa_b_and_node_cause...)]
+        push @choices, \@choice;
+    } ## end for my $and_node_id ( $bocage->_marpa_b_or_node_first_and...)
+    return \@choices;
+}
+
 sub or_node_expand {
     my ( $recce, $or_node_id ) = @_;
     my $grammar  = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
@@ -40,29 +67,12 @@ sub or_node_expand {
     my $irl_id   = $bocage->_marpa_b_or_node_irl($or_node_id);
     my $irl_desc = $grammar->brief_irl($irl_id);
     my @children = ();
-    for my $and_node_id ( $bocage->_marpa_b_or_node_first_and($or_node_id)
-        .. $bocage->_marpa_b_or_node_last_and($or_node_id) )
-    {
-        my $predecessor_id =
-            $bocage->_marpa_b_and_node_predecessor($and_node_id);
-        my @or_pair = (
-            $predecessor_id
-            ? or_node_expand( $recce, $predecessor_id )
-            : undef
-        );
-        if ( defined (my $cause_id = $bocage->_marpa_b_and_node_cause($and_node_id)) ) {
-            push @or_pair, or_node_expand( $recce, $cause_id );
-        }
-        else {
-            my $token_id = $bocage->_marpa_b_and_node_symbol($and_node_id);
-            push @or_pair,
-                [
-                "TOKEN=$token_id",
-                $bocage->_marpa_b_and_node_token($and_node_id)
-                ];
-        } ## end else [ if ( my $cause_id = $bocage->_marpa_b_and_node_cause...)]
-        push @children, \@or_pair;
-    } ## end for my $and_node_id ( $bocage->_marpa_b_or_node_first_and...)
+    my $choices  = or_node_flatten( $recce, $or_node_id );
+    for my $choice ( @{$choices} ) {
+        push @children,
+            [ map { ref $_ eq 'ARRAY' ? $_ : or_node_expand( $recce, $_ ) }
+                @{$choice} ];
+    }
     return [ "OR=" . $recce->or_node_tag($or_node_id), $irl_desc,
         \@children ];
 } ## end sub or_node_expand
