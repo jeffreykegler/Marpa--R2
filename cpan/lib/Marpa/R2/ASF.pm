@@ -119,9 +119,14 @@ sub or_node_expand {
             [ map { ref $_ eq 'ARRAY' ? $_ : or_node_expand( $recce, $_ ) }
                 @{$choice} ];
     }
-    return [ "OR=" . $recce->or_node_tag($or_node_id), $irl_desc,
+    my $choice_count = scalar @children;
+    if ($choice_count <= 1) {
+        return $children[0];
+    }
+    return bless [ "OR=" . $recce->or_node_tag($or_node_id), $irl_desc,
         ("choice count = " . scalar @children),
-        @children ];
+        @children ],
+            $recce->[Marpa::R2::Internal::Recognizer::CHOICE_CLASS];
 } ## end sub or_node_expand
 
 sub Marpa::R2::Scanless::R::asf {
@@ -132,10 +137,11 @@ sub Marpa::R2::Scanless::R::asf {
     my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my $recce_c   = $recce->[Marpa::R2::Internal::Recognizer::C];
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
-    my $choice_blessing = 'choice';
+    my $choice_blessing = 'My_ASF::choice';
 
     for my $args (@arg_hashes) {
         if ( defined( my $value = $args->{choice} ) ) {
+            $recce->[Marpa::R2::Internal::Recognizer::CHOICE_CLASS] =
             $choice_blessing = $value;
         }
     }

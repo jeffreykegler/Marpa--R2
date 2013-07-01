@@ -41,7 +41,9 @@ BEGIN {
     GRAMMAR { the grammar used }
     FINISHED
     TOKEN_VALUES
+
     SLR { the associated SLR, if there is one }
+    CHOICE_CLASS { the choice class, for an ASF }
 
     TRACE_FILE_HANDLE
 
