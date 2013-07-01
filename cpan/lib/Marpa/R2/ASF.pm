@@ -35,30 +35,40 @@ package Marpa::R2::Internal::ASF;
 
 sub or_node_flatten {
     my ( $recce, $or_node_id ) = @_;
-    my $bocage   = $recce->[Marpa::R2::Internal::Recognizer::B_C];
+    my $bocage = $recce->[Marpa::R2::Internal::Recognizer::B_C];
     my @choices;
     for my $and_node_id ( $bocage->_marpa_b_or_node_first_and($or_node_id)
         .. $bocage->_marpa_b_or_node_last_and($or_node_id) )
     {
         my @choice = ();
+        my $proto_choices =
+            [ [] ];    # a single empty list of or-node IDs is the default
         my $predecessor_id =
             $bocage->_marpa_b_and_node_predecessor($and_node_id);
-        push @choice, $predecessor_id if defined $predecessor_id;
-        if ( defined (my $cause_id = $bocage->_marpa_b_and_node_cause($and_node_id)) ) {
-            push @choice, $cause_id;
+        if ( defined $predecessor_id ) {
+            $proto_choices = or_node_flatten( $recce, $predecessor_id );
         }
+        my $next_choice;
+        if (defined(
+                my $cause_id = $bocage->_marpa_b_and_node_cause($and_node_id)
+            )
+            )
+        {
+            $next_choice = $cause_id;
+        } ## end if ( defined( my $cause_id = $bocage...))
         else {
             my $token_id = $bocage->_marpa_b_and_node_symbol($and_node_id);
-            push @choice,
-                [
+            $next_choice = [
                 "TOKEN=$token_id",
                 $bocage->_marpa_b_and_node_token($and_node_id)
-                ];
-        } ## end else [ if ( my $cause_id = $bocage->_marpa_b_and_node_cause...)]
-        push @choices, \@choice;
+            ];
+        } ## end else [ if ( defined( my $cause_id = $bocage...))]
+        for my $proto_choice ( @{$proto_choices} ) {
+            push @choices, [ @{$proto_choice}, $next_choice ];
+        }
     } ## end for my $and_node_id ( $bocage->_marpa_b_or_node_first_and...)
     return \@choices;
-}
+} ## end sub or_node_flatten
 
 sub or_node_expand {
     my ( $recce, $or_node_id ) = @_;
