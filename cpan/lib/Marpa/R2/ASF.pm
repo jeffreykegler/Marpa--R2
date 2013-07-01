@@ -43,41 +43,34 @@ sub symbol_make {
 
 sub irl_extend {
     my ( $recce, $or_node_id ) = @_;
-    my $grammar  = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
+    my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
-    my $bocage = $recce->[Marpa::R2::Internal::Recognizer::B_C];
+    my $bocage    = $recce->[Marpa::R2::Internal::Recognizer::B_C];
+    my $irl_id    = $bocage->_marpa_b_or_node_irl($or_node_id);
+    return or_node_flatten( $recce, $or_node_id )
+        if not $grammar_c->_marpa_g_irl_is_virtual_rhs($irl_id);
     my @choices;
-    my $irl_id   = $bocage->_marpa_b_or_node_irl($or_node_id);
-    if ( $grammar_c->_marpa_g_irl_is_virtual_rhs($irl_id) ) {
-        for my $and_node_id ( $bocage->_marpa_b_or_node_first_and($or_node_id)
-            .. $bocage->_marpa_b_or_node_last_and($or_node_id) )
-        {
-            my $predecessor_id = $bocage->_marpa_b_and_node_predecessor($and_node_id);
-             # If not defined, one choice, an empty series of node ID's
-            my $left_choices = defined $predecessor_id ? or_node_flatten( $recce, $predecessor_id ) : [[]];
-            my $cause_id = $bocage->_marpa_b_and_node_cause($and_node_id);
-            my $right_choices = irl_extend( $recce, $cause_id );
-            for my $left_choice (@{$left_choices}) {
-                for my $right_choice (@{$right_choices}) {
-                   push @choices, [ @{$left_choice}, @{$right_choice} ];
-                }
-            }
-        }
-        return \@choices;
-    }
-    # Not a virtual RHS
-    AND_NODE: for my $and_node_id ( $bocage->_marpa_b_or_node_first_and($or_node_id)
+    for my $and_node_id ( $bocage->_marpa_b_or_node_first_and($or_node_id)
         .. $bocage->_marpa_b_or_node_last_and($or_node_id) )
     {
+        my $predecessor_id =
+            $bocage->_marpa_b_and_node_predecessor($and_node_id);
+
+        # If not defined, one choice, an empty series of node ID's
+        my $left_choices =
+            defined $predecessor_id
+            ? or_node_flatten( $recce, $predecessor_id )
+            : [ [] ];
         my $cause_id = $bocage->_marpa_b_and_node_cause($and_node_id);
-        if (not defined $cause_id) {
-           push @choices, [ symbol_make($recce, $and_node_id) ];
-           next AND_NODE;
+        my $right_choices = irl_extend( $recce, $cause_id );
+        for my $left_choice ( @{$left_choices} ) {
+            for my $right_choice ( @{$right_choices} ) {
+                push @choices, [ @{$left_choice}, @{$right_choice} ];
+            }
         }
-        push @choices, @{or_node_flatten($recce, $cause_id)};
-    }
+    } ## end for my $and_node_id ( $bocage->_marpa_b_or_node_first_and...)
     return \@choices;
-}
+} ## end sub irl_extend
 
 sub or_node_flatten {
     my ( $recce, $or_node_id ) = @_;
