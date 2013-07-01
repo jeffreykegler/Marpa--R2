@@ -33,6 +33,52 @@ $VERSION = eval $VERSION;
 
 package Marpa::R2::Internal::ASF;
 
+sub symbol_make {
+    my ( $recce, $and_node_id ) = @_;
+    my $bocage   = $recce->[Marpa::R2::Internal::Recognizer::B_C];
+    my $token_id = $bocage->_marpa_b_and_node_symbol($and_node_id);
+    return [ "TOKEN=$token_id",
+        $bocage->_marpa_b_and_node_token($and_node_id) ];
+} ## end sub symbol_make
+
+sub irl_extend {
+    my ( $recce, $or_node_id ) = @_;
+    my $grammar  = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
+    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
+    my $bocage = $recce->[Marpa::R2::Internal::Recognizer::B_C];
+    my @choices;
+    my $irl_id   = $bocage->_marpa_b_or_node_irl($or_node_id);
+    if ( $grammar_c->_marpa_g_irl_is_virtual_rhs($irl_id) ) {
+        for my $and_node_id ( $bocage->_marpa_b_or_node_first_and($or_node_id)
+            .. $bocage->_marpa_b_or_node_last_and($or_node_id) )
+        {
+            my $predecessor_id = $bocage->_marpa_b_and_node_predecessor($and_node_id);
+             # If not defined, one choice, an empty series of node ID's
+            my $left_choices = defined $predecessor_id ? or_node_flatten( $recce, $predecessor_id ) : [[]];
+            my $cause_id = $bocage->_marpa_b_and_node_cause($and_node_id);
+            my $right_choices = irl_extend( $recce, $cause_id );
+            for my $left_choice (@{$left_choices}) {
+                for my $right_choice (@{$right_choices}) {
+                   push @choices, [ @{$left_choice}, @{$right_choice} ];
+                }
+            }
+        }
+        return \@choices;
+    }
+    # Not a virtual RHS
+    AND_NODE: for my $and_node_id ( $bocage->_marpa_b_or_node_first_and($or_node_id)
+        .. $bocage->_marpa_b_or_node_last_and($or_node_id) )
+    {
+        my $cause_id = $bocage->_marpa_b_and_node_cause($and_node_id);
+        if (not defined $cause_id) {
+           push @choices, [ symbol_make($recce, $and_node_id) ];
+           next AND_NODE;
+        }
+        push @choices, @{or_node_flatten($recce, $cause_id)};
+    }
+    return \@choices;
+}
+
 sub or_node_flatten {
     my ( $recce, $or_node_id ) = @_;
     my $bocage = $recce->[Marpa::R2::Internal::Recognizer::B_C];
@@ -58,10 +104,7 @@ sub or_node_flatten {
         } ## end if ( defined( my $cause_id = $bocage...))
         else {
             my $token_id = $bocage->_marpa_b_and_node_symbol($and_node_id);
-            $next_choice = [
-                "TOKEN=$token_id",
-                $bocage->_marpa_b_and_node_token($and_node_id)
-            ];
+            $next_choice = symbol_make($recce, $and_node_id);
         } ## end else [ if ( defined( my $cause_id = $bocage...))]
         for my $proto_choice ( @{$proto_choices} ) {
             push @choices, [ @{$proto_choice}, $next_choice ];
@@ -77,7 +120,7 @@ sub or_node_expand {
     my $irl_id   = $bocage->_marpa_b_or_node_irl($or_node_id);
     my $irl_desc = $grammar->brief_irl($irl_id);
     my @children = ();
-    my $choices  = or_node_flatten( $recce, $or_node_id );
+    my $choices  = irl_extend( $recce, $or_node_id );
     for my $choice ( @{$choices} ) {
         push @children,
             [ map { ref $_ eq 'ARRAY' ? $_ : or_node_expand( $recce, $_ ) }
