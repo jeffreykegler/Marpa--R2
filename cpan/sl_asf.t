@@ -40,8 +40,6 @@ END_OF_SOURCE
     }
 );
 
-my $input = 'aaaa';
-
 sub my_parser {
     my ( $grammar, $string ) = @_;
     my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar } );

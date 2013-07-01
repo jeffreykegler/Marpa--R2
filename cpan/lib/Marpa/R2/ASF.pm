@@ -84,6 +84,7 @@ sub or_node_expand {
                 @{$choice} ];
     }
     return [ "OR=" . $recce->or_node_tag($or_node_id), $irl_desc,
+        ("choice count = " . scalar @children),
         @children ];
 } ## end sub or_node_expand
 
