@@ -84,7 +84,7 @@ sub or_node_expand {
                 @{$choice} ];
     }
     return [ "OR=" . $recce->or_node_tag($or_node_id), $irl_desc,
-        \@children ];
+        @children ];
 } ## end sub or_node_expand
 
 sub Marpa::R2::Scanless::R::asf {
