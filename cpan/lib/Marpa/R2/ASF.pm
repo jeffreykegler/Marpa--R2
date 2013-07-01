@@ -35,14 +35,26 @@ package Marpa::R2::Internal::ASF;
 
 sub or_node_expand {
     my ( $recce, $or_node_id ) = @_;
-    my $bocage = $recce->[Marpa::R2::Internal::Recognizer::B_C];
-    return [
-        "OR=" . $recce->or_node_tag($or_node_id),
-        map { $recce->and_node_tag($_) } (
-            $bocage->_marpa_b_or_node_first_and($or_node_id)
-                .. $bocage->_marpa_b_or_node_last_and($or_node_id)
-        )
-    ];
+    my $bocage   = $recce->[Marpa::R2::Internal::Recognizer::B_C];
+    my @children = ();
+    for my $and_node_id ( $bocage->_marpa_b_or_node_first_and($or_node_id)
+        .. $bocage->_marpa_b_or_node_last_and($or_node_id) )
+    {
+        my $predecessor_id =
+            $bocage->_marpa_b_and_node_predecessor($and_node_id);
+        my @or_pair =
+            ( $predecessor_id
+            ? or_node_expand( $recce, $predecessor_id )
+            : undef );
+        if ( my $cause_id = $bocage->_marpa_b_and_node_cause($and_node_id) ) {
+            push @or_pair, or_node_expand( $recce, $cause_id );
+        }
+        else {
+            push @or_pair, $bocage->_marpa_b_and_node_symbol($and_node_id);
+        }
+        push @children, \@or_pair;
+    } ## end for my $and_node_id ( $bocage->_marpa_b_or_node_first_and...)
+    return [ "OR=" . $recce->or_node_tag($or_node_id), \@children ];
 } ## end sub or_node_expand
 
 sub Marpa::R2::Scanless::R::asf {

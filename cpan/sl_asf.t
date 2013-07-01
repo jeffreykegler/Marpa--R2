@@ -63,7 +63,8 @@ sub my_parser {
 
 my @tests_data = (
     [   $asf_grammar,
-        'aaaa',
+        # 'aaaa',
+        'aa',
         [],
         'Parse OK',
         'ASF test'
