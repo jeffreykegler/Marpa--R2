@@ -45,16 +45,19 @@ if ($stdin_flag) {
 
 my $rules = <<'END_OF_GRAMMAR';
 :default ::= action => ::array
-:start ::= root
-root ::= lexeme+
+:start ::= <my start>
+<my start> ::= root trailer
+root ::=
+trailer ::= lexeme+
+lexeme ::= word
+lexeme ::= comma
+lexeme ::= colon
+lexeme ::= period
 
-lexeme ~ word
 word ~ [\w']+
-lexeme ~ ','
-lexeme ~ ':'
-:discard ~ whitespace
-whitespace ~ [\s]+
-:discard ~ [.]
+comma ~ ','
+colon ~ ':'
+period ~ '.'
 END_OF_GRAMMAR
 
 my $grammar = Marpa::R2::Scanless::G->new(
@@ -96,7 +99,8 @@ LEXEME: while ( 1 ) {
 
     # Space forward
     $quotation =~ m/ \G ( [\s]* ) /gxms;
-    last LEXEME if pos $quotation >= $quote_length ;
+    my $start = pos $quotation;
+    last LEXEME if $start >= $quote_length ;
     my ($match) = ($quotation =~ m/ \G ( [\w']+ ) /gxmsc);
     if (defined $match) {
         say STDERR qq{Found "$match" at }, pos $quotation;
@@ -106,11 +110,11 @@ LEXEME: while ( 1 ) {
     my $punctuation = $punctuation{ $next_char };
     die qq{Unknown char ("$next_char") at pos }, (pos $quotation), " in quote"
         if not  defined $punctuation ;
-    say STDERR qq{Found "$punctuation" at }, pos $quotation;
+    $recce->lexeme_alternative($punctuation, $next_char);
+    $recce->lexeme_complete($start, 1);
+    say STDERR qq{Found "$punctuation" at $start};
     pos $quotation = (pos $quotation) + 1;
 } ## end LEXEME: while ( pos $quotation < $quote_length )
-
-exit 0;
 
 my $parse_count = 0;
 VALUE: while ( my $value_ref = $recce->value() ) {
