@@ -37,8 +37,12 @@ sub symbol_make {
     my ( $recce, $and_node_id ) = @_;
     my $bocage   = $recce->[Marpa::R2::Internal::Recognizer::B_C];
     my $token_id = $bocage->_marpa_b_and_node_symbol($and_node_id);
-    return [ "TOKEN=$token_id",
-        $bocage->_marpa_b_and_node_token($and_node_id) ];
+    my $value_ix = $bocage->_marpa_b_and_node_token($and_node_id);
+    my $symbol_blessing =
+        $recce->[Marpa::R2::Internal::Recognizer::ASF_SYMBOL_BLESSINGS]->[$token_id];
+    my $value =
+        $recce->[Marpa::R2::Internal::Recognizer::TOKEN_VALUES]->[$value_ix];
+    return bless [ $value ], $symbol_blessing;
 } ## end sub symbol_make
 
 sub irl_extend {
@@ -112,7 +116,8 @@ sub or_node_expand {
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
     my $bocage    = $recce->[Marpa::R2::Internal::Recognizer::B_C];
     my $irl_id    = $bocage->_marpa_b_or_node_irl($or_node_id);
-    my $xrl_id    = $grammar_c->_marpa_g_irl_semantic_equivalent($irl_id);
+    my $xrl_id    = $grammar_c->_marpa_g_source_xrl($irl_id);
+    die "No xrl for irl ", $grammar->brief_irl($irl_id) if not defined $xrl_id;
     my $rule_blessing =
         $recce->[Marpa::R2::Internal::Recognizer::ASF_RULE_BLESSINGS]->[$xrl_id];
     my $irl_desc = $grammar->brief_irl($irl_id);
@@ -210,8 +215,12 @@ sub Marpa::R2::Scanless::R::asf {
         Marpa::R2::Internal::Recognizer::semantics_set( $recce,
         Marpa::R2::Internal::Recognizer::default_semantics($recce) );
 
-    my $top_or_node = $bocage->_marpa_b_top_or_node();
-    return \[ or_node_expand( $recce, $top_or_node ), $recce->show_bocage ];
+    my $augment_or_node_id = $bocage->_marpa_b_top_or_node();
+    my $augment_and_node_id = $bocage->_marpa_b_or_node_first_and($augment_or_node_id);
+    my $augment2_or_node_id = $bocage->_marpa_b_and_node_cause($augment_and_node_id);
+    my $augment2_and_node_id = $bocage->_marpa_b_or_node_first_and($augment2_or_node_id);
+    my $start_or_node_id = $bocage->_marpa_b_and_node_cause($augment2_and_node_id);
+    return \[ or_node_expand( $recce, $start_or_node_id ), $recce->show_bocage() ];
 } ## end sub Marpa::R2::Scanless::R::asf
 
 1;
