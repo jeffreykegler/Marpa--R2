@@ -44,14 +44,14 @@ if ($stdin_flag) {
 }
 
 my $rules = <<'END_OF_GRAMMAR';
-:default ::= action = ::array
+:default ::= action => ::array
 :start ::= root
-root ::= word+
-sentence ::= 
+root ::= lexeme+
 
+lexeme ~ word
 word ~ [\w']+
-comma ~ ','
-colon ~ ':'
+lexeme ~ ','
+lexeme ~ ':'
 :discard ~ whitespace
 whitespace ~ [\s]+
 :discard ~ [.]
@@ -91,8 +91,8 @@ my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar, trace_terminals 
 $recce->read(\$quotation);
 
 my $parse_count = 0;
-while ( my $value_ref = $recce->value() ) {
-    say Data::Dumper::Dumper($value_ref} );
+VALUE: while ( my $value_ref = $recce->value() ) {
+    say Data::Dumper::Dumper($value_ref );
     $parse_count++;
     last VALUE;
 }
@@ -102,5 +102,133 @@ say 'Parse count: ', $parse_count;
 package My_Actions;
 our $SELF;
 sub new { return $SELF }
+
+my $lexeme_data = <<'END_OF_DATA';
+'s/POS
+,/,
+./.
+:/:
+Creator/NN
+a/DT
+abstract/JJ
+adequately/RB
+agencies/NNS
+all/DT
+alone/RB
+amidst/NN
+and/CC
+are/VBP
+as/IN
+as/RB
+beauty/NN
+body/NN
+but/CC
+can/MD
+changes/NNS
+completeness/NNS
+connexion/NN
+consciously/JJ
+constitutes/VBZ
+creation/NN
+deeper/JJR
+do/VBP
+effectually/RB
+entitle/VBP
+especial/JJ
+explicit/JJ
+express/VB
+facilitate/VB
+facts/NNS
+first/JJ
+for/IN
+forms/NNS
+going/VBG
+great/JJ
+his/PRP$
+human/JJ
+immediate/JJ
+immutable/JJ
+in/IN
+instrument/NN
+interest/NN
+interminably/RB
+into/IN
+intrinsic/NNS
+invisibly/JJ
+is/VBZ
+it/PRP
+its/PRP$
+language/NN
+live/VBP
+logical/JJ
+man/NN
+math/NN
+mathematical/JJ
+merely/RB
+mind/NN
+minds/NNS
+most/RBS
+mutual/JJ
+natural/JJ
+not/RB
+of/IN
+on/IN
+or/CC
+other/JJ
+our/PRP$
+perceptions/NNS
+physical/JJ
+place/NN
+possessing/VBG
+practical/JJ
+principles/NNS
+profound/JJ
+prominent/JJ
+race/NN
+read/VB
+regard/VB
+regarded/VBN
+relationship/NN
+remembered/VBN
+science/NN
+something/NN
+symmetry/NN
+tend/VB
+that/DT
+that/IN
+that/WDT
+the/DT
+their/PRP$
+them/PRP
+thing/NN
+things/NNS
+think/VBP
+this/DT
+those/DT
+through/IN
+thus/RB
+to/TO
+together/RB
+translation/NN
+truth/NN
+truths/NNS
+unceasing/VBG
+unconsciously/JJ
+vast/JJ
+view/VBP
+visibly/JJ
+we/PRP
+weak/JJ
+when/WRB
+which/WDT
+who/WP
+whole/NN
+whose/WP$
+will/MD
+with/IN
+works/NNS
+world/NN
+yet/RB
+END_OF_DATA
 
 # vim: expandtab shiftwidth=4:
