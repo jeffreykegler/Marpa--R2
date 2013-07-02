@@ -129,132 +129,129 @@ package My_Actions;
 our $SELF;
 sub new { return $SELF }
 
-my $lexeme_data = <<'END_OF_DATA';
-'s/POS
-,/,
-./.
-:/:
-Creator/NN
-a/DT
-abstract/JJ
-adequately/RB
-agencies/NNS
-all/DT
-alone/RB
-amidst/NN
-and/CC
-are/VBP
-as/IN
-as/RB
-beauty/NN
-body/NN
-but/CC
-can/MD
-changes/NNS
-completeness/NNS
-connexion/NN
-consciously/JJ
-constitutes/VBZ
-creation/NN
-deeper/JJR
-do/VBP
-effectually/RB
-entitle/VBP
-especial/JJ
-explicit/JJ
-express/VB
-facilitate/VB
-facts/NNS
-first/JJ
-for/IN
-forms/NNS
-going/VBG
-great/JJ
-his/PRP$
-human/JJ
-immediate/JJ
-immutable/JJ
-in/IN
-instrument/NN
-interest/NN
-interminably/RB
-into/IN
-intrinsic/NNS
-invisibly/JJ
-is/VBZ
-it/PRP
-its/PRP$
-language/NN
-live/VBP
-logical/JJ
-man/NN
-math/NN
-mathematical/JJ
-merely/RB
-mind/NN
-minds/NNS
-most/RBS
-mutual/JJ
-natural/JJ
-not/RB
-of/IN
-on/IN
-or/CC
-other/JJ
-our/PRP$
-perceptions/NNS
-physical/JJ
-place/NN
-possessing/VBG
-practical/JJ
-principles/NNS
-profound/JJ
-prominent/JJ
-race/NN
-read/VB
-regard/VB
-regarded/VBN
-relationship/NN
-remembered/VBN
-science/NN
-something/NN
-symmetry/NN
-tend/VB
-that/DT
-that/IN
-that/WDT
-the/DT
-their/PRP$
-them/PRP
-thing/NN
-things/NNS
-think/VBP
-this/DT
-those/DT
-through/IN
-thus/RB
-to/TO
-together/RB
-translation/NN
-truth/NN
-truths/NNS
-unceasing/VBG
-unconsciously/JJ
-vast/JJ
-view/VBP
-visibly/JJ
-we/PRP
-weak/JJ
-when/WRB
-which/WDT
-who/WP
-whole/NN
-whose/WP$
-will/MD
-with/IN
-works/NNS
-world/NN
-yet/RB
-END_OF_DATA
+my %lexeme_data = ();
+
+push @{$lexeme_data{"'s"}}, 'POS';
+push @{$lexeme_data{'Creator'}}, 'NN';
+push @{$lexeme_data{'a'}}, 'DT';
+push @{$lexeme_data{'abstract'}}, 'JJ';
+push @{$lexeme_data{'adequately'}}, 'RB';
+push @{$lexeme_data{'agencies'}}, 'NNS';
+push @{$lexeme_data{'all'}}, 'DT';
+push @{$lexeme_data{'alone'}}, 'RB';
+push @{$lexeme_data{'amidst'}}, 'NN';
+push @{$lexeme_data{'and'}}, 'CC';
+push @{$lexeme_data{'are'}}, 'VBP';
+push @{$lexeme_data{'as'}}, 'IN';
+push @{$lexeme_data{'as'}}, 'RB';
+push @{$lexeme_data{'beauty'}}, 'NN';
+push @{$lexeme_data{'body'}}, 'NN';
+push @{$lexeme_data{'but'}}, 'CC';
+push @{$lexeme_data{'can'}}, 'MD';
+push @{$lexeme_data{'changes'}}, 'NNS';
+push @{$lexeme_data{'completeness'}}, 'NNS';
+push @{$lexeme_data{'connexion'}}, 'NN';
+push @{$lexeme_data{'consciously'}}, 'JJ';
+push @{$lexeme_data{'constitutes'}}, 'VBZ';
+push @{$lexeme_data{'creation'}}, 'NN';
+push @{$lexeme_data{'deeper'}}, 'JJR';
+push @{$lexeme_data{'do'}}, 'VBP';
+push @{$lexeme_data{'effectually'}}, 'RB';
+push @{$lexeme_data{'entitle'}}, 'VBP';
+push @{$lexeme_data{'especial'}}, 'JJ';
+push @{$lexeme_data{'explicit'}}, 'JJ';
+push @{$lexeme_data{'express'}}, 'VB';
+push @{$lexeme_data{'facilitate'}}, 'VB';
+push @{$lexeme_data{'facts'}}, 'NNS';
+push @{$lexeme_data{'first'}}, 'JJ';
+push @{$lexeme_data{'for'}}, 'IN';
+push @{$lexeme_data{'forms'}}, 'NNS';
+push @{$lexeme_data{'going'}}, 'VBG';
+push @{$lexeme_data{'great'}}, 'JJ';
+push @{$lexeme_data{'his'}}, 'PRP_S';
+push @{$lexeme_data{'human'}}, 'JJ';
+push @{$lexeme_data{'immediate'}}, 'JJ';
+push @{$lexeme_data{'immutable'}}, 'JJ';
+push @{$lexeme_data{'in'}}, 'IN';
+push @{$lexeme_data{'instrument'}}, 'NN';
+push @{$lexeme_data{'interest'}}, 'NN';
+push @{$lexeme_data{'interminably'}}, 'RB';
+push @{$lexeme_data{'into'}}, 'IN';
+push @{$lexeme_data{'intrinsic'}}, 'NNS';
+push @{$lexeme_data{'invisibly'}}, 'JJ';
+push @{$lexeme_data{'is'}}, 'VBZ';
+push @{$lexeme_data{'it'}}, 'PRP';
+push @{$lexeme_data{'its'}}, 'PRP_S';
+push @{$lexeme_data{'language'}}, 'NN';
+push @{$lexeme_data{'live'}}, 'VBP';
+push @{$lexeme_data{'logical'}}, 'JJ';
+push @{$lexeme_data{'man'}}, 'NN';
+push @{$lexeme_data{'math'}}, 'NN';
+push @{$lexeme_data{'mathematical'}}, 'JJ';
+push @{$lexeme_data{'merely'}}, 'RB';
+push @{$lexeme_data{'mind'}}, 'NN';
+push @{$lexeme_data{'minds'}}, 'NNS';
+push @{$lexeme_data{'most'}}, 'RBS';
+push @{$lexeme_data{'mutual'}}, 'JJ';
+push @{$lexeme_data{'natural'}}, 'JJ';
+push @{$lexeme_data{'not'}}, 'RB';
+push @{$lexeme_data{'of'}}, 'IN';
+push @{$lexeme_data{'on'}}, 'IN';
+push @{$lexeme_data{'or'}}, 'CC';
+push @{$lexeme_data{'other'}}, 'JJ';
+push @{$lexeme_data{'our'}}, 'PRP_S';
+push @{$lexeme_data{'perceptions'}}, 'NNS';
+push @{$lexeme_data{'physical'}}, 'JJ';
+push @{$lexeme_data{'place'}}, 'NN';
+push @{$lexeme_data{'possessing'}}, 'VBG';
+push @{$lexeme_data{'practical'}}, 'JJ';
+push @{$lexeme_data{'principles'}}, 'NNS';
+push @{$lexeme_data{'profound'}}, 'JJ';
+push @{$lexeme_data{'prominent'}}, 'JJ';
+push @{$lexeme_data{'race'}}, 'NN';
+push @{$lexeme_data{'read'}}, 'VB';
+push @{$lexeme_data{'regard'}}, 'VB';
+push @{$lexeme_data{'regarded'}}, 'VBN';
+push @{$lexeme_data{'relationship'}}, 'NN';
+push @{$lexeme_data{'remembered'}}, 'VBN';
+push @{$lexeme_data{'science'}}, 'NN';
+push @{$lexeme_data{'something'}}, 'NN';
+push @{$lexeme_data{'symmetry'}}, 'NN';
+push @{$lexeme_data{'tend'}}, 'VB';
+push @{$lexeme_data{'that'}}, 'DT';
+push @{$lexeme_data{'that'}}, 'IN';
+push @{$lexeme_data{'that'}}, 'WDT';
+push @{$lexeme_data{'the'}}, 'DT';
+push @{$lexeme_data{'their'}}, 'PRP_S';
+push @{$lexeme_data{'them'}}, 'PRP';
+push @{$lexeme_data{'thing'}}, 'NN';
+push @{$lexeme_data{'things'}}, 'NNS';
+push @{$lexeme_data{'think'}}, 'VBP';
+push @{$lexeme_data{'this'}}, 'DT';
+push @{$lexeme_data{'those'}}, 'DT';
+push @{$lexeme_data{'through'}}, 'IN';
+push @{$lexeme_data{'thus'}}, 'RB';
+push @{$lexeme_data{'to'}}, 'TO';
+push @{$lexeme_data{'together'}}, 'RB';
+push @{$lexeme_data{'translation'}}, 'NN';
+push @{$lexeme_data{'truth'}}, 'NN';
+push @{$lexeme_data{'truths'}}, 'NNS';
+push @{$lexeme_data{'unceasing'}}, 'VBG';
+push @{$lexeme_data{'unconsciously'}}, 'JJ';
+push @{$lexeme_data{'vast'}}, 'JJ';
+push @{$lexeme_data{'view'}}, 'VBP';
+push @{$lexeme_data{'visibly'}}, 'JJ';
+push @{$lexeme_data{'we'}}, 'PRP';
+push @{$lexeme_data{'weak'}}, 'JJ';
+push @{$lexeme_data{'when'}}, 'WRB';
+push @{$lexeme_data{'which'}}, 'WDT';
+push @{$lexeme_data{'who'}}, 'WP';
+push @{$lexeme_data{'whole'}}, 'NN';
+push @{$lexeme_data{'whose'}}, 'WP_S';
+push @{$lexeme_data{'will'}}, 'MD';
+push @{$lexeme_data{'with'}}, 'IN';
+push @{$lexeme_data{'works'}}, 'NNS';
+push @{$lexeme_data{'world'}}, 'NN';
+push @{$lexeme_data{'yet'}}, 'RB';
 
 # vim: expandtab shiftwidth=4:
