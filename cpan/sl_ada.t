@@ -88,7 +88,7 @@ END_OF_QUOTATION
 
 my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar, trace_terminals => 99 } );
 
-my %punctuation = ( q{,} => 'comma' );
+my %punctuation = ( q{,} => 'comma', q{:} => 'colon' );
 my $quote_length = length $quotation;
 $recce->read(\$quotation, 0, 0);
 $quotation =~ m/  [^\s] /xmsg;
