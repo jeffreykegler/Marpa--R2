@@ -1136,6 +1136,11 @@ sub Marpa::R2::Internal::MetaAST_Nodes::character_class::name {
     my ( $self, $parse ) = @_;
     return $self->evaluate($parse)->name($parse);
 }
+sub Marpa::R2::Internal::MetaAST_Nodes::character_class::names {
+    my ($self, $parse) = @_;
+   return [$self->name($parse)];
+}
+
 
 sub Marpa::R2::Internal::MetaAST_Nodes::character_class::evaluate {
     my ( $values, $parse ) = @_;
