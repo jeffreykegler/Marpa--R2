@@ -43,7 +43,9 @@ BEGIN {
     TOKEN_VALUES
 
     SLR { the associated SLR, if there is one }
-    CHOICE_CLASS { the choice class, for an ASF }
+    ASF_CHOICE_CLASS { the choice class, for an ASF }
+    ASF_RULE_BLESSINGS
+    ASF_SYMBOL_BLESSINGS
 
     TRACE_FILE_HANDLE
 
@@ -212,12 +214,15 @@ sub Marpa::R2::Recognizer::thin {
 
 sub Marpa::R2::Recognizer::reset_evaluation {
     my ($recce) = @_;
-    $recce->[Marpa::R2::Internal::Recognizer::B_C]              = undef;
-    $recce->[Marpa::R2::Internal::Recognizer::O_C]              = undef;
-    $recce->[Marpa::R2::Internal::Recognizer::T_C]              = undef;
-    $recce->[Marpa::R2::Internal::Recognizer::RULE_RESOLUTIONS] = undef;
-    $recce->[Marpa::R2::Internal::Recognizer::NULL_VALUES]      = undef;
-    $recce->[Marpa::R2::Internal::Recognizer::EVENTS]           = [];
+    $recce->[Marpa::R2::Internal::Recognizer::B_C]                 = undef;
+    $recce->[Marpa::R2::Internal::Recognizer::O_C]                 = undef;
+    $recce->[Marpa::R2::Internal::Recognizer::T_C]                 = undef;
+    $recce->[Marpa::R2::Internal::Recognizer::RULE_RESOLUTIONS]    = undef;
+    $recce->[Marpa::R2::Internal::Recognizer::NULL_VALUES]         = undef;
+    $recce->[Marpa::R2::Internal::Recognizer::EVENTS]              = [];
+    $recce->[Marpa::R2::Internal::Recognizer::ASF_CHOICE_CLASS]    = [];
+    $recce->[Marpa::R2::Internal::Recognizer::ASF_RULE_BLESSINGS]   = [];
+    $recce->[Marpa::R2::Internal::Recognizer::ASF_SYMBOL_BLESSINGS] = [];
     return;
 } ## end sub Marpa::R2::Recognizer::reset_evaluation
 
