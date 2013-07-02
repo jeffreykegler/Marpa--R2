@@ -22,7 +22,7 @@ use warnings;
 use English qw( -no_match_vars );
 use GetOpt::Long;
 
-use Marpa::R2 2.040000;
+use Marpa::R2;
 
 sub usage {
 
@@ -44,43 +44,21 @@ if ($stdin_flag) {
 }
 
 my $rules = <<'END_OF_GRAMMAR';
-:start ::= sentence
-sentence ::= subject unimplemented
-subject ::= <noun phrase> appositives
-appositives ::= <noun phrase>*
-<noun phrase> ::= <pro form>
-<noun phrase> ::= <adjectives> <noun>
-<adjectives> ::= <adjective>*
-<noun phrase> ::= <relative clause>
-<relative clause> ::= <pro form> <verb phrase> <object>
-<verb phrase> ::= <auxiliary verbs> <main verb>
-<auxiliary verbs> ::= <auxiliary verb>*
-<object> ::= <noun phrase>
-unimplemented ::= word+
+:default ::= action = ::array
+:start ::= root
+root ::= word+
+sentence ::= 
 
-<pro form> ~ 'those' | 'who'
-<main verb> ~ 'view'
-<auxiliary verb> ~ 'will'
-<noun> ~ 'science'
-<adjective> ~ 'mathematical'
 word ~ [\w']+
+comma ~ ','
+colon ~ ':'
 :discard ~ whitespace
 whitespace ~ [\s]+
-:discard ~ [,:.]
-# allow comments
-:discard ~ <hash comment>
-<hash comment> ~ <terminated hash comment> | <unterminated
-   final hash comment>
-<terminated hash comment> ~ '#' <hash comment body> <vertical space char>
-<unterminated final hash comment> ~ '#' <hash comment body>
-<hash comment body> ~ <hash comment char>*
-<vertical space char> ~ [\x{A}\x{B}\x{C}\x{D}\x{2028}\x{2029}]
-<hash comment char> ~ [^\x{A}\x{B}\x{C}\x{D}\x{2028}\x{2029}]
+:discard ~ [.]
 END_OF_GRAMMAR
 
 my $grammar = Marpa::R2::Scanless::G->new(
     {   action_object  => 'My_Actions',
-        default_action => 'do_what_i_mean',
         source         => \$rules,
     }
 );
@@ -112,49 +90,17 @@ my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar, trace_terminals 
 
 $recce->read(\$quotation);
 
-sub unimplemented_count {
-    my ($arg) = @_;
-    return 0 if ref $arg ne 'ARRAY';
-    my ($type, @rest) = @{$arg};
-    return scalar @rest if $type eq 'unimplemented';
-    return List::Util::sum 0, map { unimplemented_count($_) } @rest;
-}
-
 my $parse_count = 0;
-my $best_so_far;
-my $best_result;
-
 while ( my $value_ref = $recce->value() ) {
+    say Data::Dumper::Dumper($value_ref} );
     $parse_count++;
-    my $unimplemented_count = unimplemented_count(${$value_ref});
-    if (not defined $best_so_far or $unimplemented_count < $best_so_far) {
-        $best_so_far = $unimplemented_count;
-        $best_result = $value_ref;
-    }
+    last VALUE;
 }
-say Data::Dumper::Dumper( ${$best_result} );
+
 say 'Parse count: ', $parse_count;
 
 package My_Actions;
 our $SELF;
 sub new { return $SELF }
-
-sub do_what_i_mean {
-    my $self = shift;
-    my @children = grep { defined } @_;
-    my $child_count = scalar @children;
-    my $raw_child_count = scalar @_;
-    return undef if not $child_count;
-    if ($raw_child_count == 1 and $child_count == 1 and not ref $children[0]) {
-        my (undef, $rhs) = $Marpa::R2::Context::grammar->rule($Marpa::R2::Context::rule);
-        return [ $rhs =>
-         [$Marpa::R2::Context::grammar->rule($Marpa::R2::Context::rule)],
-        $children[0] ];
-    }
-    my ($lhs) = $Marpa::R2::Context::grammar->rule($Marpa::R2::Context::rule);
-    return [ $lhs, 
-         [$Marpa::R2::Context::grammar->rule($Marpa::R2::Context::rule)],
-     @children ];
-}
 
 # vim: expandtab shiftwidth=4:
