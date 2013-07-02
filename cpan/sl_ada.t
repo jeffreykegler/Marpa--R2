@@ -88,15 +88,16 @@ END_OF_QUOTATION
 
 my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar, trace_terminals => 99 } );
 
-my %punctuation = ( q{,} => 'comma', q{:} => 'colon' );
+my %punctuation = ( q{,} => 'comma', q{:} => 'colon', q{.} => 'period' );
 my $quote_length = length $quotation;
 $recce->read(\$quotation, 0, 0);
 $quotation =~ m/  [^\s] /xmsg;
-LEXEME: while ( pos $quotation < $quote_length ) {
+LEXEME: while ( 1 ) {
 
     # Space forward
     $quotation =~ m/ \G ( [\s]* ) /gxms;
-    my ($match) = ($quotation =~ m/ \G ( [\w]+ ) /gxmsc);
+    last LEXEME if pos $quotation >= $quote_length ;
+    my ($match) = ($quotation =~ m/ \G ( [\w']+ ) /gxmsc);
     if (defined $match) {
         say STDERR qq{Found "$match" at }, pos $quotation;
         next LEXEME;
