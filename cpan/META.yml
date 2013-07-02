@@ -63,7 +63,7 @@ provides:
     version: 2.063_000
   Marpa::R2::ASF:
     file: lib/Marpa/R2/ASF.pm
-    version: 2.061_002
+    version: 2.063_000
   Marpa::R2::Grammar:
     file: lib/Marpa/R2/Grammar.pm
     version: 2.063_000
