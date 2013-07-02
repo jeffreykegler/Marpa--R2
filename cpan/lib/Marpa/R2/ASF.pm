@@ -18,6 +18,7 @@ package Marpa::R2::ASF;
 use 5.010;
 use strict;
 use warnings;
+no warnings qw(recursion);
 
 use vars qw($VERSION $STRING_VERSION);
 $VERSION        = '2.061_002';
@@ -35,14 +36,18 @@ package Marpa::R2::Internal::ASF;
 
 sub symbol_make {
     my ( $recce, $and_node_id ) = @_;
-    my $bocage   = $recce->[Marpa::R2::Internal::Recognizer::B_C];
-    my $token_id = $bocage->_marpa_b_and_node_symbol($and_node_id);
-    my $value_ix = $bocage->_marpa_b_and_node_token($and_node_id);
+    my $grammar      = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
+    my $grammar_c    = $grammar->[Marpa::R2::Internal::Grammar::C];
+    my $bocage       = $recce->[Marpa::R2::Internal::Recognizer::B_C];
+    my $token_isy_id = $bocage->_marpa_b_and_node_symbol($and_node_id);
+    my $token_id     = $grammar_c->_marpa_g_source_xsy($token_isy_id);
+    my $value_ix     = $bocage->_marpa_b_and_node_token($and_node_id);
     my $symbol_blessing =
-        $recce->[Marpa::R2::Internal::Recognizer::ASF_SYMBOL_BLESSINGS]->[$token_id];
+        $recce->[Marpa::R2::Internal::Recognizer::ASF_SYMBOL_BLESSINGS]
+        ->[$token_id];
     my $value =
         $recce->[Marpa::R2::Internal::Recognizer::TOKEN_VALUES]->[$value_ix];
-    return bless [ $value ], $symbol_blessing;
+    return bless [$value], $symbol_blessing;
 } ## end sub symbol_make
 
 sub irl_extend {
@@ -101,8 +106,8 @@ sub or_node_flatten {
         } ## end if ( defined( my $cause_id = $bocage...))
         else {
             my $token_id = $bocage->_marpa_b_and_node_symbol($and_node_id);
-            $next_choice = symbol_make($recce, $and_node_id);
-        } ## end else [ if ( defined( my $cause_id = $bocage...))]
+            $next_choice = symbol_make( $recce, $and_node_id );
+        }
         for my $proto_choice ( @{$proto_choices} ) {
             push @choices, [ @{$proto_choice}, $next_choice ];
         }
@@ -117,19 +122,19 @@ sub or_node_expand {
     my $bocage    = $recce->[Marpa::R2::Internal::Recognizer::B_C];
     my $irl_id    = $bocage->_marpa_b_or_node_irl($or_node_id);
     my $xrl_id    = $grammar_c->_marpa_g_source_xrl($irl_id);
-    die "No xrl for irl ", $grammar->brief_irl($irl_id) if not defined $xrl_id;
     my $rule_blessing =
-        $recce->[Marpa::R2::Internal::Recognizer::ASF_RULE_BLESSINGS]->[$xrl_id];
+        $recce->[Marpa::R2::Internal::Recognizer::ASF_RULE_BLESSINGS]
+        ->[$xrl_id];
     my $irl_desc = $grammar->brief_irl($irl_id);
     my @children = ();
     my $choices  = irl_extend( $recce, $or_node_id );
 
     for my $choice ( @{$choices} ) {
         push @children,
-            bless [ map { ref $_ ? $_ : or_node_expand( $recce, $_ ) } @{$choice} ],
-            $rule_blessing
-            ;
-    }
+            bless [ map { ref $_ ? $_ : or_node_expand( $recce, $_ ) }
+                @{$choice} ],
+            $rule_blessing;
+    } ## end for my $choice ( @{$choices} )
     my $choice_count = scalar @children;
     if ( $choice_count <= 1 ) {
         return $children[0];
@@ -164,15 +169,16 @@ sub Marpa::R2::Scanless::R::asf {
     for my $args (@arg_hashes) {
         if ( defined( my $value = $args->{choice} ) ) {
             $recce->[Marpa::R2::Internal::Recognizer::ASF_CHOICE_CLASS] =
-            $choice_blessing = $value;
+                $choice_blessing = $value;
         }
         if ( defined( my $value = $args->{force} ) ) {
             $force = $value;
         }
-    }
+    } ## end for my $args (@arg_hashes)
 
-    Marpa::R2::exception(q{The "force" named argument must be specified with the $slr->asf() method})
-        if not defined $force;
+    Marpa::R2::exception(
+        q{The "force" named argument must be specified with the $slr->asf() method}
+    ) if not defined $force;
 
     my @rule_blessing   = ();
     my $highest_rule_id = $grammar_c->highest_rule_id();
@@ -192,8 +198,10 @@ sub Marpa::R2::Scanless::R::asf {
         $symbol_blessing[$symbol_id] = join q{::}, $force,
             normalize_asf_blessing($name);
     } ## end for ( my $symbol_id = 0; $symbol_id <= $highest_symbol_id...)
-    $recce->[Marpa::R2::Internal::Recognizer::ASF_RULE_BLESSINGS] = \@rule_blessing;
-    $recce->[Marpa::R2::Internal::Recognizer::ASF_SYMBOL_BLESSINGS] = \@symbol_blessing;
+    $recce->[Marpa::R2::Internal::Recognizer::ASF_RULE_BLESSINGS] =
+        \@rule_blessing;
+    $recce->[Marpa::R2::Internal::Recognizer::ASF_SYMBOL_BLESSINGS] =
+        \@symbol_blessing;
 
     $DB::single = 1;
 
@@ -216,11 +224,16 @@ sub Marpa::R2::Scanless::R::asf {
         Marpa::R2::Internal::Recognizer::default_semantics($recce) );
 
     my $augment_or_node_id = $bocage->_marpa_b_top_or_node();
-    my $augment_and_node_id = $bocage->_marpa_b_or_node_first_and($augment_or_node_id);
-    my $augment2_or_node_id = $bocage->_marpa_b_and_node_cause($augment_and_node_id);
-    my $augment2_and_node_id = $bocage->_marpa_b_or_node_first_and($augment2_or_node_id);
-    my $start_or_node_id = $bocage->_marpa_b_and_node_cause($augment2_and_node_id);
-    return \[ or_node_expand( $recce, $start_or_node_id ), $recce->show_bocage() ];
+    my $augment_and_node_id =
+        $bocage->_marpa_b_or_node_first_and($augment_or_node_id);
+    my $augment2_or_node_id =
+        $bocage->_marpa_b_and_node_cause($augment_and_node_id);
+    my $augment2_and_node_id =
+        $bocage->_marpa_b_or_node_first_and($augment2_or_node_id);
+    my $start_or_node_id =
+        $bocage->_marpa_b_and_node_cause($augment2_and_node_id);
+    return \[ or_node_expand( $recce, $start_or_node_id ),
+        $recce->show_bocage() ];
 } ## end sub Marpa::R2::Scanless::R::asf
 
 1;
