@@ -75,7 +75,7 @@ NP ::= NN
 NP ::= NN comma NN CC JJ NNS
 NP ::= NP PP
 NP ::= NP SBAR
-NP ::= NP colon NP comma
+NP ::= NP colon NP comma rank => 1
 NP ::= NP comma CC NP
 NP ::= NP comma CONJP NP
 NP ::= NP comma SBAR
@@ -191,7 +191,8 @@ will regard with especial interest all that can tend to facilitate
 the translation of its principles into explicit practical forms.
 END_OF_QUOTATION
 
-my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar, trace_terminals => 99 } );
+my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar,
+        ranking_method => 'high_rule_only' } );
 
 my %punctuation = ( q{,} => 'comma', q{:} => 'colon', q{.} => 'period' );
 my $lexeme_data = setup_lexemes();
@@ -227,13 +228,17 @@ LEXEME: while ( 1 ) {
 } ## end LEXEME: while ( pos $quotation < $quote_length )
 
 my $parse_count = 0;
+
+# my $tree = $recce->asf( {choice => 'choix', force => 'My_ASF'} );
+# say Data::Dumper::Dumper($tree );
+
 VALUE: while ( my $value_ref = $recce->value() ) {
-    say Data::Dumper::Dumper($value_ref );
     $parse_count++;
+    say Data::Dumper::Dumper($value_ref );
     last VALUE;
 }
 
-say 'Parse count: ', $parse_count;
+# say 'Parse count: ', $parse_count;
 
 sub setup_lexemes {
     my %lexeme_data = ();
