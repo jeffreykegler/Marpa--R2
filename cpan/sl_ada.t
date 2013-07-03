@@ -48,10 +48,11 @@ my $rules = <<'END_OF_GRAMMAR';
 lexeme default = action => [value] bless => ::name
 :start ::= <my start>
 <my start> ::= root trailer
-root ::= NP colon NP SBAR
+root ::= NP colon NP comma
 ADJP ::= JJ CC JJ
 ADJP ::= RB JJR
 ADVP ::= RB
+ADVP ::= RBS
 ADVP ::= ADVP PP
 ADVP ::= ADVP CC ADVP
 ADVP ::= ADVP comma ADVP
@@ -76,6 +77,7 @@ NP ::= NP comma SBAR comma
 NP ::= NP comma CONJP NP
 NP ::= NP PP
 NP ::= NP SBAR
+NP ::= <PRP S> NN POS NNS
 NP ::= PRP
 PP ::= ADVP IN NP
 PP ::= IN NP
@@ -102,6 +104,7 @@ VP ::= VBP NP
 VP ::= VBZ NP
 VP ::= VBZ VP
 VP ::= VBP NP PP
+VP ::= ADVP VB NP
 VP ::= VBP PP PP
 VP ::= VBP ADVP VP
 VP ::= MD ADVP VP
@@ -194,7 +197,7 @@ LEXEME: while ( 1 ) {
     $quotation =~ m/ \G ( [\s]* ) /gxms;
     my $start = pos $quotation;
     last LEXEME if $start >= $quote_length ;
-    my ($match) = ($quotation =~ m/ \G ( [']? [\w]+ ) /gxmsc);
+    my ($match) = ($quotation =~ m/ \G ( [']? [[:alnum:]]+ ) /gxmsc);
     if ( defined $match ) {
         my $lexemes = $lexeme_data->{ lc $match };
         die qq{Unknown lexeme "$match"} if not defined $lexemes;
@@ -202,7 +205,8 @@ LEXEME: while ( 1 ) {
             $recce->lexeme_alternative($lexeme, $match);
             # say STDERR qq{Found "$match" as "$lexeme" at }, pos $quotation;
         }
-        $recce->lexeme_complete($start, (pos $quotation) - $start);
+        $recce->lexeme_complete($start, length $match);
+        pos $quotation = $start + length $match;
         next LEXEME;
     } ## end if ( defined $match )
     my $next_char = substr $quotation, ( pos $quotation ), 1 ;
