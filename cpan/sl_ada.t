@@ -229,8 +229,10 @@ LEXEME: while ( 1 ) {
 
 my $parse_count = 0;
 
-# my $tree = $recce->asf( {choice => 'choix', force => 'My_ASF'} );
-# say Data::Dumper::Dumper($tree );
+my $tree = $recce->asf( {choice => 'choix', force => 'My_ASF'} );
+say Data::Dumper::Dumper($tree );
+
+exit 0;
 
 VALUE: while ( my $value_ref = $recce->value() ) {
     $parse_count++;
