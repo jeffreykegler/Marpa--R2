@@ -32,10 +32,9 @@ my $asf_grammar = Marpa::R2::Scanless::G->new(
             :default ::= action => ::array
             :start ::= sequence
             sequence ::= item+
-            item ::= triple | pair | singleton
+            item ::= pair | singleton
             singleton ::= 'a'
             pair ::= item item
-            triple ::= item item item
 END_OF_SOURCE
     }
 );
@@ -59,15 +58,79 @@ sub my_parser {
     return [ return ${$value_ref}, 'Parse OK' ];
 } ## end sub my_parser
 
-my @tests_data = (
-    [   $asf_grammar,
-        # 'aaa',
-        'aa',
-        [],
-        'Parse OK',
-        'ASF test'
+
+my $expected_output = 
+bless(
+    [   'OR=R1:1@0-2',
+        '1: sequence -> sequence[Seq]',
+        'choice count = 2',
+        bless(
+            [   bless(
+                    [   bless(
+                            [   bless(
+                                    [   bless(
+                                            [   bless(
+                                                    [ undef ],
+                                                    'My_ASF::_Lex_0_'
+                                                )
+                                            ],
+                                            'My_ASF::singleton'
+                                        )
+                                    ],
+                                    'My_ASF::item'
+                                ),
+                                bless(
+                                    [   bless(
+                                            [   bless(
+                                                    [ undef ],
+                                                    'My_ASF::_Lex_0_'
+                                                )
+                                            ],
+                                            'My_ASF::singleton'
+                                        )
+                                    ],
+                                    'My_ASF::item'
+                                )
+                            ],
+                            'My_ASF::pair'
+                        )
+                    ],
+                    'My_ASF::item'
+                )
+            ],
+            'My_ASF::sequence'
+        ),
+        bless(
+            [   bless(
+                    [   bless(
+                            [   bless(
+                                    [ bless( [ undef ], 'My_ASF::_Lex_0_' ) ],
+                                    'My_ASF::singleton'
+                                )
+                            ],
+                            'My_ASF::item'
+                        )
+                    ],
+                    'My_ASF::sequence'
+                ),
+                bless(
+                    [ bless( [ undef ], 'My_ASF::_Lex_0_' ) ],
+                    'My_ASF::singleton'
+                )
+            ],
+            'My_ASF::sequence'
+        )
     ],
+    'choix'
 );
+
+my @tests_data = 
+    [   $asf_grammar,
+        'aa',
+        $expected_output,
+        'Parse OK',
+        "ASF test, length=2"
+    ] ;
 
 TEST:
 for my $test_data (@tests_data) {
@@ -76,9 +139,9 @@ for my $test_data (@tests_data) {
         = @{$test_data};
     my ( $actual_value, $actual_result ) =
         my_parser( $grammar, $test_string );
-    Test::More::is(
-        Data::Dumper::Dumper( \$actual_value ),
-        Data::Dumper::Dumper( \$expected_value ),
+    Test::More::is_deeply(
+         $actual_value ,
+         $expected_value ,
         qq{Value of $test_name}
     );
     Test::More::is( $actual_result, $expected_result,
