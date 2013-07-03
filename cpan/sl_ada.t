@@ -45,16 +45,19 @@ if ($stdin_flag) {
 
 my $rules = <<'END_OF_GRAMMAR';
 :default ::= action => ::array bless => ::lhs
+lexeme default = action => [value] bless => ::name
 :start ::= <my start>
 <my start> ::= root trailer
-root ::= NP WP
+root ::= NP WHNP VBP NP
+WHNP ::= WP
 NP ::= DT
+NP ::= JJ NN
 
 trailer ::= lexeme+
 lexeme ::= CC | DT | IN | JJ | JJR | MD | NN | NNS |
-    POS | PRP | PRP_S | RB | RBS | TO |
+    POS | PRP | <PRP S> | RB | RBS | TO |
     VB | VBG | VBN | VBP | VBZ |
-    WDT | WP | WP_S | WRB
+    WDT | WP | <WP S> | WRB
 
 lexeme ::= comma
 lexeme ::= colon
@@ -70,7 +73,7 @@ NN ~ never
 NNS ~ never
 POS ~ never
 PRP ~ never
-PRP_S ~ never
+<PRP S> ~ never
 RB ~ never
 RBS ~ never
 TO ~ never
@@ -81,7 +84,7 @@ VBP ~ never
 VBZ ~ never
 WDT ~ never
 WP ~ never
-WP_S ~ never
+<WP S> ~ never
 WRB ~ never
 
 never ~ [^\d\D]
@@ -202,7 +205,7 @@ sub setup_lexemes {
     push @{ $lexeme_data{'forms'} },         'NNS';
     push @{ $lexeme_data{'going'} },         'VBG';
     push @{ $lexeme_data{'great'} },         'JJ';
-    push @{ $lexeme_data{'his'} },           'PRP_S';
+    push @{ $lexeme_data{'his'} },           'PRP S';
     push @{ $lexeme_data{'human'} },         'JJ';
     push @{ $lexeme_data{'immediate'} },     'JJ';
     push @{ $lexeme_data{'immutable'} },     'JJ';
@@ -215,7 +218,7 @@ sub setup_lexemes {
     push @{ $lexeme_data{'invisibly'} },     'JJ';
     push @{ $lexeme_data{'is'} },            'VBZ';
     push @{ $lexeme_data{'it'} },            'PRP';
-    push @{ $lexeme_data{'its'} },           'PRP_S';
+    push @{ $lexeme_data{'its'} },           'PRP S';
     push @{ $lexeme_data{'language'} },      'NN';
     push @{ $lexeme_data{'live'} },          'VBP';
     push @{ $lexeme_data{'logical'} },       'JJ';
@@ -233,7 +236,7 @@ sub setup_lexemes {
     push @{ $lexeme_data{'on'} },            'IN';
     push @{ $lexeme_data{'or'} },            'CC';
     push @{ $lexeme_data{'other'} },         'JJ';
-    push @{ $lexeme_data{'our'} },           'PRP_S';
+    push @{ $lexeme_data{'our'} },           'PRP S';
     push @{ $lexeme_data{'perceptions'} },   'NNS';
     push @{ $lexeme_data{'physical'} },      'JJ';
     push @{ $lexeme_data{'place'} },         'NN';
@@ -256,7 +259,7 @@ sub setup_lexemes {
     push @{ $lexeme_data{'that'} },          'IN';
     push @{ $lexeme_data{'that'} },          'WDT';
     push @{ $lexeme_data{'the'} },           'DT';
-    push @{ $lexeme_data{'their'} },         'PRP_S';
+    push @{ $lexeme_data{'their'} },         'PRP S';
     push @{ $lexeme_data{'them'} },          'PRP';
     push @{ $lexeme_data{'thing'} },         'NN';
     push @{ $lexeme_data{'things'} },        'NNS';
@@ -281,7 +284,7 @@ sub setup_lexemes {
     push @{ $lexeme_data{'which'} },         'WDT';
     push @{ $lexeme_data{'who'} },           'WP';
     push @{ $lexeme_data{'whole'} },         'NN';
-    push @{ $lexeme_data{'whose'} },         'WP_S';
+    push @{ $lexeme_data{'whose'} },         'WP S';
     push @{ $lexeme_data{'will'} },          'MD';
     push @{ $lexeme_data{'with'} },          'IN';
     push @{ $lexeme_data{'works'} },         'NNS';
