@@ -50,12 +50,13 @@ lexeme default = action => [value] bless => ::name
 <my start> ::= root trailer
 root ::= NP WHNP S CONJP VBG NP PP comma WHADVP NP VBZ VBN IN NP VBZ NP WHPP ADVP NP MD
     ADVP VB NP 
-    WHNP comma ADVP comma ADVP
+    WHNP comma ADVP comma VP
 ADJP ::= JJ CC JJ
 ADJP ::= RB JJR
 ADVP ::= RB
 ADVP ::= ADVP PP
 ADVP ::= ADVP CC ADVP
+ADVP ::= ADVP comma ADVP
 CONJP ::= RB RB IN
 CONJP ::= CC RB
 NP ::= <PRP S> NN
@@ -66,13 +67,16 @@ NP ::= DT JJ NN
 NP ::= DT JJ NNS
 NP ::= DT ADJP NN
 NP ::= DT NN
+NP ::= DT NNS
 NP ::= DT VBG NNS
 NP ::= JJ NN
+NP ::= NN
 NP ::= NP comma CC NP
 NP ::= NN comma NN CC JJ NNS
 NP ::= NP comma SBAR comma
 NP ::= NP comma CONJP NP
 NP ::= NP PP
+NP ::= NP SBAR
 NP ::= PRP
 PP ::= ADVP IN NP
 PP ::= IN NP
@@ -83,8 +87,10 @@ S ::= NP VP
 S ::= VP
 SBAR ::= WHADVP S
 SBAR ::= WHNP S
+SBAR ::= S
 VP ::= VBG PP
 VP ::= VBN PP PP
+VP ::= VBP NP
 VP ::= VBP NP PP
 VP ::= VBP ADVP VP
 WHADVP ::= WRB
