@@ -47,13 +47,14 @@ my $rules = <<'END_OF_GRAMMAR';
 :default ::= action => ::array
 :start ::= <my start>
 <my start> ::= root trailer
-root ::= CC | DT | IN | JJ | JJR | MD | NN | NNS |
+root ::= DT
+
+trailer ::= lexeme+
+lexeme ::= CC | DT | IN | JJ | JJR | MD | NN | NNS |
     POS | PRP | PRP_S | RB | RBS | TO |
     VB | VBG | VBN | VBP | VBZ |
     WDT | WP | WP_S | WRB
 
-trailer ::= lexeme+
-lexeme ::= word
 lexeme ::= comma
 lexeme ::= colon
 lexeme ::= period
@@ -83,7 +84,6 @@ WP_S ~ never
 WRB ~ never
 
 never ~ [^\d\D]
-word ~ [\w']+
 comma ~ ','
 colon ~ ':'
 period ~ '.'
@@ -135,7 +135,6 @@ LEXEME: while ( 1 ) {
     if ( defined $match ) {
         my $lexemes = $lexeme_data->{ lc $match };
         die qq{Unknown lexeme "$match"} if not defined $lexemes;
-        $recce->lexeme_alternative('word', $match);
         for my $lexeme ( @{$lexemes} ) {
             $recce->lexeme_alternative($lexeme, $match);
             say STDERR qq{Found "$match" as "$lexeme" at }, pos $quotation;
