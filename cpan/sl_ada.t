@@ -49,8 +49,7 @@ lexeme default = action => [value] bless => ::name
 :start ::= <my start>
 <my start> ::= root trailer
 root ::= NP WHNP S CONJP VBG NP PP comma WHADVP NP VBZ VBN IN NP VBZ NP WHPP ADVP NP MD
-    ADVP VB NP 
-    WHNP comma ADVP comma VP
+    ADVP VB NP
 ADJP ::= JJ CC JJ
 ADJP ::= RB JJR
 ADVP ::= RB
@@ -87,6 +86,7 @@ S ::= NP VP
 S ::= VP
 SBAR ::= WHADVP S
 SBAR ::= WHNP S
+SBAR ::= WHNP comma ADVP comma S
 SBAR ::= S
 VP ::= VBG PP
 VP ::= VBN PP PP
