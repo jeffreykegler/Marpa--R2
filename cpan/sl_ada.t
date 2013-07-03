@@ -55,6 +55,12 @@ NP ::= JJ NN
 CONJP ::= RB RB IN
 NP ::= DT JJ NN
 ADJP ::= JJ CC JJ
+NP ::= NP comma SBAR comma
+SBAR ::= WHNP S
+S ::= NP VP
+VP ::= VBN PP PP
+VP ::= VBP NP PP
+PP ::= IN NP
 
 trailer ::= lexeme+
 lexeme ::= CC | DT | IN | JJ | JJR | MD | NN | NNS |
