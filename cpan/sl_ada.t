@@ -44,10 +44,11 @@ if ($stdin_flag) {
 }
 
 my $rules = <<'END_OF_GRAMMAR';
-:default ::= action => ::array
+:default ::= action => ::array bless => ::lhs
 :start ::= <my start>
 <my start> ::= root trailer
-root ::= DT
+root ::= NP WP
+NP ::= DT
 
 trailer ::= lexeme+
 lexeme ::= CC | DT | IN | JJ | JJR | MD | NN | NNS |
@@ -90,7 +91,8 @@ period ~ '.'
 END_OF_GRAMMAR
 
 my $grammar = Marpa::R2::Scanless::G->new(
-    {   action_object  => 'My_Actions',
+    {   action_object  => 'My_Nodes',
+        bless_package => 'My_Nodes',
         source         => \$rules,
     }
 );
@@ -137,7 +139,7 @@ LEXEME: while ( 1 ) {
         die qq{Unknown lexeme "$match"} if not defined $lexemes;
         for my $lexeme ( @{$lexemes} ) {
             $recce->lexeme_alternative($lexeme, $match);
-            say STDERR qq{Found "$match" as "$lexeme" at }, pos $quotation;
+            # say STDERR qq{Found "$match" as "$lexeme" at }, pos $quotation;
         }
         $recce->lexeme_complete($start, (pos $quotation) - $start);
         next LEXEME;
@@ -148,7 +150,7 @@ LEXEME: while ( 1 ) {
         if not  defined $punctuation ;
     $recce->lexeme_alternative($punctuation, $next_char);
     $recce->lexeme_complete($start, 1);
-    say STDERR qq{Found "$punctuation" at $start};
+    # say STDERR qq{Found "$punctuation" at $start};
     pos $quotation = (pos $quotation) + 1;
 } ## end LEXEME: while ( pos $quotation < $quote_length )
 
@@ -288,7 +290,7 @@ sub setup_lexemes {
     return \%lexeme_data;
 } ## end sub setup_lexemes
 
-package My_Actions;
+package My_Nodes;
 our $SELF;
 sub new { return $SELF }
 
