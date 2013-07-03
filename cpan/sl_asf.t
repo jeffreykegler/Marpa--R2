@@ -61,8 +61,7 @@ sub my_parser {
 
 my $expected_output = 
 bless(
-    [   'OR=R1:1@0-2',
-        '1: sequence -> sequence[Seq]',
+    [ '1: sequence -> item+',
         'choice count = 2',
         bless(
             [   bless(

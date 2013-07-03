@@ -132,26 +132,29 @@ sub or_node_expand {
     my $rule_blessing =
         $recce->[Marpa::R2::Internal::Recognizer::ASF_RULE_BLESSINGS]
         ->[$xrl_id];
-    my $irl_desc = $grammar->brief_irl($irl_id);
     my @children = ();
 
     $memoized_expansions //= [];
     my $expansion = $memoized_expansions->[$or_node_id];
     return $expansion if defined $expansion;
     for my $choice ( @{$expanded_or_node} ) {
-        push @children,
-            bless [ map { ref $_ ? $_ : or_node_expand( $recce, $_, $memoized_expansions ) }
-                @{$choice} ],
+        push @children, bless [
+            map {
+                ref $_
+                    ? $_
+                    : or_node_expand( $recce, $_, $memoized_expansions )
+            } @{$choice}
+            ],
             $rule_blessing;
     } ## end for my $choice ( @{$expanded_or_node} )
     my $choice_count = scalar @children;
     if ( $choice_count <= 1 ) {
         return $children[0];
     }
-    $expansion = $memoized_expansions->[$or_node_id] =
-    bless [
-        "OR=" . $recce->or_node_tag($or_node_id), $irl_desc,
-        ( "choice count = " . scalar @children ), @children
+    $expansion = $memoized_expansions->[$or_node_id] = bless [
+        $grammar->brief_rule($xrl_id),
+        ( "choice count = " . scalar @children ),
+        @children
         ],
         $recce->[Marpa::R2::Internal::Recognizer::ASF_CHOICE_CLASS];
     return $expansion;
@@ -213,8 +216,6 @@ sub Marpa::R2::Scanless::R::asf {
         \@rule_blessing;
     $recce->[Marpa::R2::Internal::Recognizer::ASF_SYMBOL_BLESSINGS] =
         \@symbol_blessing;
-
-    $DB::single = 1;
 
     # We use the bocage to make sure that conflicting evaluations
     # are not being tried at once
