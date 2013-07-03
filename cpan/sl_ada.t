@@ -48,10 +48,11 @@ my $rules = <<'END_OF_GRAMMAR';
 lexeme default = action => [value] bless => ::name
 :start ::= <my start>
 <my start> ::= root trailer
-root ::= NP WHNP S
+root ::= NP WHNP S CONJP
 ADJP ::= JJ CC JJ
 ADVP ::= RB
 CONJP ::= RB RB IN
+CONJP ::= CC RB
 NP ::= <PRP S> NN
 NP ::= ADJP NNS
 NP ::= DT
