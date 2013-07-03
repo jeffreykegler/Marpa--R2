@@ -117,6 +117,10 @@ sub or_node_flatten {
 
 sub or_node_expand {
     my ( $recce, $or_node_id ) = @_;
+    my $memoized_or_nodes =
+        $recce->[Marpa::R2::Internal::Recognizer::ASF_OR_NODES];
+    my $expanded_or_node = $memoized_or_nodes->[$or_node_id];
+    return $expanded_or_node if defined $expanded_or_node;
     my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
     my $bocage    = $recce->[Marpa::R2::Internal::Recognizer::B_C];
@@ -139,11 +143,12 @@ sub or_node_expand {
     if ( $choice_count <= 1 ) {
         return $children[0];
     }
-    return bless [
+    $expanded_or_node = $memoized_or_nodes->[$or_node_id] = bless [
         "OR=" . $recce->or_node_tag($or_node_id), $irl_desc,
         ( "choice count = " . scalar @children ), @children
         ],
         $recce->[Marpa::R2::Internal::Recognizer::ASF_CHOICE_CLASS];
+    return $expanded_or_node;
 } ## end sub or_node_expand
 
 sub normalize_asf_blessing {
@@ -232,8 +237,7 @@ sub Marpa::R2::Scanless::R::asf {
         $bocage->_marpa_b_or_node_first_and($augment2_or_node_id);
     my $start_or_node_id =
         $bocage->_marpa_b_and_node_cause($augment2_and_node_id);
-    return \[ or_node_expand( $recce, $start_or_node_id ),
-        $recce->show_bocage() ];
+    return \or_node_expand( $recce, $start_or_node_id );
 } ## end sub Marpa::R2::Scanless::R::asf
 
 1;
