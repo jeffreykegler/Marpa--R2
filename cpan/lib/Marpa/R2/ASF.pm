@@ -116,11 +116,14 @@ sub or_node_flatten {
 } ## end sub or_node_flatten
 
 sub or_node_expand {
-    my ( $recce, $or_node_id ) = @_;
+    my ( $recce, $or_node_id, $memoized_expansions ) = @_;
     my $memoized_or_nodes =
         $recce->[Marpa::R2::Internal::Recognizer::ASF_OR_NODES];
     my $expanded_or_node = $memoized_or_nodes->[$or_node_id];
-    return $expanded_or_node if defined $expanded_or_node;
+    if ( not defined $expanded_or_node ) {
+        $expanded_or_node = $memoized_or_nodes->[$or_node_id] =
+            irl_extend( $recce, $or_node_id );
+    }
     my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
     my $bocage    = $recce->[Marpa::R2::Internal::Recognizer::B_C];
@@ -131,24 +134,27 @@ sub or_node_expand {
         ->[$xrl_id];
     my $irl_desc = $grammar->brief_irl($irl_id);
     my @children = ();
-    my $choices  = irl_extend( $recce, $or_node_id );
 
-    for my $choice ( @{$choices} ) {
+    $memoized_expansions //= [];
+    my $expansion = $memoized_expansions->[$or_node_id];
+    return $expansion if defined $expansion;
+    for my $choice ( @{$expanded_or_node} ) {
         push @children,
-            bless [ map { ref $_ ? $_ : or_node_expand( $recce, $_ ) }
+            bless [ map { ref $_ ? $_ : or_node_expand( $recce, $_, $memoized_expansions ) }
                 @{$choice} ],
             $rule_blessing;
-    } ## end for my $choice ( @{$choices} )
+    } ## end for my $choice ( @{$expanded_or_node} )
     my $choice_count = scalar @children;
     if ( $choice_count <= 1 ) {
         return $children[0];
     }
-    $expanded_or_node = $memoized_or_nodes->[$or_node_id] = bless [
+    $expansion = $memoized_expansions->[$or_node_id] =
+    bless [
         "OR=" . $recce->or_node_tag($or_node_id), $irl_desc,
         ( "choice count = " . scalar @children ), @children
         ],
         $recce->[Marpa::R2::Internal::Recognizer::ASF_CHOICE_CLASS];
-    return $expanded_or_node;
+    return $expansion;
 } ## end sub or_node_expand
 
 sub normalize_asf_blessing {
