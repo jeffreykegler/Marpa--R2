@@ -69,7 +69,7 @@ bless(
                             [   bless(
                                     [   bless(
                                             [   bless(
-                                                    [ undef ],
+                                                    [ 5, undef ],
                                                     'My_ASF::_Lex_0_'
                                                 )
                                             ],
@@ -81,7 +81,7 @@ bless(
                                 bless(
                                     [   bless(
                                             [   bless(
-                                                    [ undef ],
+                                                    [ 5, undef ],
                                                     'My_ASF::_Lex_0_'
                                                 )
                                             ],
@@ -103,7 +103,7 @@ bless(
             [   bless(
                     [   bless(
                             [   bless(
-                                    [ bless( [ undef ], 'My_ASF::_Lex_0_' ) ],
+                                    [ bless( [ 5, undef ], 'My_ASF::_Lex_0_' ) ],
                                     'My_ASF::singleton'
                                 )
                             ],
@@ -113,7 +113,7 @@ bless(
                     'My_ASF::sequence'
                 ),
                 bless(
-                    [ bless( [ undef ], 'My_ASF::_Lex_0_' ) ],
+                    [ bless( [ 5, undef ], 'My_ASF::_Lex_0_' ) ],
                     'My_ASF::singleton'
                 )
             ],

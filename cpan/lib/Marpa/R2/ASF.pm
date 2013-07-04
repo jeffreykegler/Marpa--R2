@@ -47,7 +47,7 @@ sub symbol_make {
         ->[$token_id];
     my $value =
         $recce->[Marpa::R2::Internal::Recognizer::TOKEN_VALUES]->[$value_ix];
-    return bless [$value], $symbol_blessing;
+    return bless [$token_id, $value], $symbol_blessing;
 } ## end sub symbol_make
 
 sub irl_extend {
@@ -283,6 +283,16 @@ sub Marpa::R2::Scanless::R::choicepoint_literal {
     my $current_es = $bocage->_marpa_b_or_node_set($choicepoint);
     return $slr->substring($origin_es, $current_es - $origin_es);
 } ## end sub Marpa::R2::Scanless::R::choicepoint_literal
+
+sub Marpa::R2::Scanless::R::choicepoint_rule {
+    my ( $slr, $choicepoint ) = @_;
+    my $recce     = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+    my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
+    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
+    my $bocage    = $recce->[Marpa::R2::Internal::Recognizer::B_C];
+    my $irl_id    = $bocage->_marpa_b_or_node_irl($choicepoint);
+    return $grammar_c->_marpa_g_source_xrl($irl_id);
+} ## end sub Marpa::R2::Scanless::R::choicepoint_rule
 
 1;
 

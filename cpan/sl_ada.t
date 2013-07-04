@@ -14,7 +14,7 @@
 # General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 
-# Demo of scannerless parsing -- a calculator DSL
+# Demo of abstract syntax forest -- An Ada Lovelace quoote
 
 use 5.010;
 use strict;
@@ -161,12 +161,13 @@ colon ~ ':'
 period ~ '.'
 END_OF_GRAMMAR
 
-my $grammar = Marpa::R2::Scanless::G->new(
+my $slg = Marpa::R2::Scanless::G->new(
     {   action_object  => 'My_Nodes',
         bless_package => 'My_Nodes',
         source         => \$rules,
     }
 );
+my $g1_grammar = $slg->thick_g1_grammar();
 
 my $quotation = <<'END_OF_QUOTATION';
 Those who view mathematical science,
@@ -191,14 +192,14 @@ will regard with especial interest all that can tend to facilitate
 the translation of its principles into explicit practical forms.
 END_OF_QUOTATION
 
-my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar,
+my $slr = Marpa::R2::Scanless::R->new( { grammar => $slg,
         ranking_method => 'high_rule_only' } );
 
 my %punctuation = ( q{,} => 'comma', q{:} => 'colon', q{.} => 'period' );
 my $lexeme_data = setup_lexemes();
 # die Data::Dumper::Dumper($lexeme_data);
 my $quote_length = length $quotation;
-$recce->read(\$quotation, 0, 0);
+$slr->read(\$quotation, 0, 0);
 LEXEME: while ( 1 ) {
 
     # Space forward
@@ -210,10 +211,10 @@ LEXEME: while ( 1 ) {
         my $lexemes = $lexeme_data->{ lc $match };
         die qq{Unknown lexeme "$match"} if not defined $lexemes;
         for my $lexeme ( @{$lexemes} ) {
-            $recce->lexeme_alternative($lexeme, $match);
+            $slr->lexeme_alternative($lexeme, $match);
             # say STDERR qq{Found "$match" as "$lexeme" at }, pos $quotation;
         }
-        $recce->lexeme_complete($start, length $match);
+        $slr->lexeme_complete($start, length $match);
         pos $quotation = $start + length $match;
         next LEXEME;
     } ## end if ( defined $match )
@@ -221,56 +222,56 @@ LEXEME: while ( 1 ) {
     my $punctuation = $punctuation{ $next_char };
     die qq{Unknown char ("$next_char") at pos }, (pos $quotation), " in quote"
         if not  defined $punctuation ;
-    $recce->lexeme_alternative($punctuation, $next_char);
-    $recce->lexeme_complete($start, 1);
+    $slr->lexeme_alternative($punctuation, $next_char);
+    $slr->lexeme_complete($start, 1);
     # say STDERR qq{Found "$punctuation" at $start};
     pos $quotation = (pos $quotation) + 1;
 } ## end LEXEME: while ( pos $quotation < $quote_length )
 
-$recce->asf_init( {choice => 'My_ASF::choix', force => 'My_ASF'} );
-my $top_choicepoint = $recce->top_choicepoint();
+if (1) {
+    my $asf_ref = $slr->asf( {choice => 'My_ASF::choix', force => 'My_ASF'} );
+    die "No parse" if not defined $asf_ref;
+    my $asf = ${$asf_ref};
+    # say STDERR Data::Dumper::Dumper($asf);
+    say STDERR Data::Dumper::Dumper(prune_asf($asf));
+    exit 0;
+}
+
+exit 0;
+
+sub prune_asf {
+    my ($node) = @_;
+    my $type = ref $node;
+    say STDERR $type;
+    return $node if (substr $type, 0, 8) ne 'My_ASF::';
+    $node = $node->[-1] if $type eq 'My_ASF::choix';
+    return bless [ map { prune_asf($_) } @{$node} ], ref $node;
+}
+
+$slr->asf_init( {choice => 'My_ASF::choix', force => 'My_ASF'} );
+my $top_choicepoint = $slr->top_choicepoint();
 say STDERR $top_choicepoint;
 my @worklist = ( $top_choicepoint) ;
 CHOICEPOINT: while ( my $choicepoint = pop @worklist) {
-    my $choices = $recce->choices($choicepoint);
+    my $choices = $slr->choices($choicepoint);
     # say STDERR Data::Dumper::Dumper($choices);
     if (scalar @{$choices} <= 1) {
         push @worklist, grep { ref $_ eq '' } @{$choices->[0]};
         next CHOICEPOINT;
     }
-    say STDERR Data::Dumper::Dumper($choices);
-    say STDERR $recce->choicepoint_literal($choicepoint);
+    for my $choice (@{$choices}) {
+        for my $child (@{$choice}) {
+             my $type = ref $child ;
+             if ($type ne '') {
+                say STDERR "Token: ", join q{,}, $type, @{$child};
+             }
+            my $rule_id = $slr->choicepoint_rule($child);
+            say STDERR "Rule: ", $g1_grammar->brief_rule($rule_id);
+        }
+    }
+    say STDERR $slr->choicepoint_literal($choicepoint);
 }
 
-exit 0;
-
-my $parse_count = 0;
-
-my $asf_ref = $recce->asf( {choice => 'My_ASF::choix', force => 'My_ASF'} );
-die "No parse" if not defined $asf_ref;
-# say Data::Dumper::Dumper($tree );
-say STDERR show_ambiguities ($recce, ${$asf_ref} );
-
-sub show_ambiguities {
-    my ($slr, $tree_node) = @_;
-    return if not defined $tree_node;
-    my $type = ref $tree_node;
-    say STDERR $type;
-    if ($type eq '') {
-        chomp $tree_node;
-        say STDERR "scalar: $tree_node";
-        return;
-    }
-    if ($type eq 'My_ASF::choix') {
-        say STDERR "Choix: ", join " ", @{$tree_node};
-        return;
-    }
-    for my $child (@{$tree_node}) {
-        show_ambiguities($slr, $child);
-    }
-}
-
-# say 'Parse count: ', $parse_count;
 
 sub setup_lexemes {
     my %lexeme_data = ();
