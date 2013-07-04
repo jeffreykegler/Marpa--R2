@@ -17,6 +17,8 @@ Revision history for Marpa::R2
 
 2.063_000
 
+   * Fix SEGV when terminal is unused.
+
    * New series of developer's releases.
 
 2.062000 Tue Jul  2 08:23:53 PDT 2013
