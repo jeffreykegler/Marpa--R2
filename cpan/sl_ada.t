@@ -227,17 +227,37 @@ LEXEME: while ( 1 ) {
     pos $quotation = (pos $quotation) + 1;
 } ## end LEXEME: while ( pos $quotation < $quote_length )
 
-my $parse_count = 0;
-
-my $tree = $recce->asf( {choice => 'choix', force => 'My_ASF'} );
-say Data::Dumper::Dumper($tree );
+my $top_choicepoint = $recce->top_choicepoint();
+say STDERR $top_choicepoint;
+say STDERR Data::Dumper::Dumper($recce->choices($top_choicepoint));
+say STDERR $recce->choicepoint_literal($top_choicepoint);
 
 exit 0;
 
-VALUE: while ( my $value_ref = $recce->value() ) {
-    $parse_count++;
-    say Data::Dumper::Dumper($value_ref );
-    last VALUE;
+my $parse_count = 0;
+
+my $asf_ref = $recce->asf( {choice => 'My_ASF::choix', force => 'My_ASF'} );
+die "No parse" if not defined $asf_ref;
+# say Data::Dumper::Dumper($tree );
+say STDERR show_ambiguities ($recce, ${$asf_ref} );
+
+sub show_ambiguities {
+    my ($slr, $tree_node) = @_;
+    return if not defined $tree_node;
+    my $type = ref $tree_node;
+    say STDERR $type;
+    if ($type eq '') {
+        chomp $tree_node;
+        say STDERR "scalar: $tree_node";
+        return;
+    }
+    if ($type eq 'My_ASF::choix') {
+        say STDERR "Choix: ", join " ", @{$tree_node};
+        return;
+    }
+    for my $child (@{$tree_node}) {
+        show_ambiguities($slr, $child);
+    }
 }
 
 # say 'Parse count: ', $parse_count;

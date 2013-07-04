@@ -185,8 +185,8 @@ sub Marpa::R2::Scanless::R::asf {
     my $thin_slr  = $slr->[Marpa::R2::Inner::Scanless::R::C];
     my $recce     = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
     my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
-    my $recce_c   = $recce->[Marpa::R2::Internal::Recognizer::C];
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
+    my $recce_c   = $recce->[Marpa::R2::Internal::Recognizer::C];
     my $choice_blessing = 'My_ASF::choice';
     my $force;
 
@@ -227,24 +227,33 @@ sub Marpa::R2::Scanless::R::asf {
     $recce->[Marpa::R2::Internal::Recognizer::ASF_SYMBOL_BLESSINGS] =
         \@symbol_blessing;
 
-    # We use the bocage to make sure that conflicting evaluations
-    # are not being tried at once
-    my $bocage = $recce->[Marpa::R2::Internal::Recognizer::B_C];
-    Marpa::R2::exception(
-        "Attempt to create an ASF for a recognizer that is already being valued"
-    ) if $bocage;
-    $grammar_c->throw_set(0);
-    $bocage = $recce->[Marpa::R2::Internal::Recognizer::B_C] =
-        Marpa::R2::Thin::B->new( $recce_c, -1 );
-    $grammar_c->throw_set(1);
-
-    die "No parse" if not defined $bocage;
 
     my $rule_resolutions =
         $recce->[Marpa::R2::Internal::Recognizer::RULE_RESOLUTIONS] =
         Marpa::R2::Internal::Recognizer::semantics_set( $recce,
         Marpa::R2::Internal::Recognizer::default_semantics($recce) );
 
+    my $start_or_node_id = $slr->top_choicepoint();
+    return \or_node_expand( $recce, $start_or_node_id );
+} ## end sub Marpa::R2::Scanless::R::asf
+
+# No check for conflicting usage -- value(), asf(), etc.
+# at this point
+sub Marpa::R2::Scanless::R::top_choicepoint {
+    my ($slr)   = @_;
+    my $recce   = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+
+    my $bocage = $recce->[Marpa::R2::Internal::Recognizer::B_C];
+    if ( not $bocage ) {
+        my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
+        my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
+        my $recce_c = $recce->[Marpa::R2::Internal::Recognizer::C];
+        $grammar_c->throw_set(0);
+        $bocage = $recce->[Marpa::R2::Internal::Recognizer::B_C] =
+            Marpa::R2::Thin::B->new( $recce_c, -1 );
+        $grammar_c->throw_set(1);
+        die "No parse" if not defined $bocage;
+    } ## end if ( not $bocage )
     my $augment_or_node_id = $bocage->_marpa_b_top_or_node();
     my $augment_and_node_id =
         $bocage->_marpa_b_or_node_first_and($augment_or_node_id);
@@ -252,10 +261,23 @@ sub Marpa::R2::Scanless::R::asf {
         $bocage->_marpa_b_and_node_cause($augment_and_node_id);
     my $augment2_and_node_id =
         $bocage->_marpa_b_or_node_first_and($augment2_or_node_id);
-    my $start_or_node_id =
-        $bocage->_marpa_b_and_node_cause($augment2_and_node_id);
-    return \or_node_expand( $recce, $start_or_node_id );
-} ## end sub Marpa::R2::Scanless::R::asf
+    return $bocage->_marpa_b_and_node_cause($augment2_and_node_id);
+} ## end sub Marpa::R2::Scanless::R::top_choicepoint
+
+sub Marpa::R2::Scanless::R::choices {
+    my ( $slr, $choicepoint ) = @_;
+    my $recce = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+    return choices( $recce, $choicepoint );
+}
+
+sub Marpa::R2::Scanless::R::choicepoint_literal {
+    my ( $slr, $choicepoint ) = @_;
+    my $recce  = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+    my $bocage = $recce->[Marpa::R2::Internal::Recognizer::B_C];
+    my $origin_es = $bocage->_marpa_b_or_node_origin($choicepoint);
+    my $current_es = $bocage->_marpa_b_or_node_set($choicepoint);
+    return $slr->substring($origin_es, $current_es - $origin_es);
+} ## end sub Marpa::R2::Scanless::R::choicepoint_literal
 
 1;
 
