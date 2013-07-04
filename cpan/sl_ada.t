@@ -227,10 +227,20 @@ LEXEME: while ( 1 ) {
     pos $quotation = (pos $quotation) + 1;
 } ## end LEXEME: while ( pos $quotation < $quote_length )
 
+$recce->asf_init( {choice => 'My_ASF::choix', force => 'My_ASF'} );
 my $top_choicepoint = $recce->top_choicepoint();
 say STDERR $top_choicepoint;
-say STDERR Data::Dumper::Dumper($recce->choices($top_choicepoint));
-say STDERR $recce->choicepoint_literal($top_choicepoint);
+my @worklist = ( $top_choicepoint) ;
+CHOICEPOINT: while ( my $choicepoint = pop @worklist) {
+    my $choices = $recce->choices($choicepoint);
+    # say STDERR Data::Dumper::Dumper($choices);
+    if (scalar @{$choices} <= 1) {
+        push @worklist, grep { ref $_ eq '' } @{$choices->[0]};
+        next CHOICEPOINT;
+    }
+    say STDERR Data::Dumper::Dumper($choices);
+    say STDERR $recce->choicepoint_literal($choicepoint);
+}
 
 exit 0;
 

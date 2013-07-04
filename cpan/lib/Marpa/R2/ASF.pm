@@ -179,7 +179,8 @@ sub normalize_asf_blessing {
     return $name;
 } ## end sub normalize_asf_blessing
 
-sub Marpa::R2::Scanless::R::asf {
+sub Marpa::R2::Scanless::R::asf_init {
+
     my ( $slr, @arg_hashes ) = @_;
     my $slg       = $slr->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
     my $thin_slr  = $slr->[Marpa::R2::Inner::Scanless::R::C];
@@ -227,12 +228,16 @@ sub Marpa::R2::Scanless::R::asf {
     $recce->[Marpa::R2::Internal::Recognizer::ASF_SYMBOL_BLESSINGS] =
         \@symbol_blessing;
 
-
     my $rule_resolutions =
         $recce->[Marpa::R2::Internal::Recognizer::RULE_RESOLUTIONS] =
         Marpa::R2::Internal::Recognizer::semantics_set( $recce,
         Marpa::R2::Internal::Recognizer::default_semantics($recce) );
+} ## end sub Marpa::R2::Scanless::R::asf_init
 
+sub Marpa::R2::Scanless::R::asf {
+    my ( $slr, @arg_hashes ) = @_;
+    my $recce     = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+    $slr->asf_init(@arg_hashes);
     my $start_or_node_id = $slr->top_choicepoint();
     return \or_node_expand( $recce, $start_or_node_id );
 } ## end sub Marpa::R2::Scanless::R::asf
