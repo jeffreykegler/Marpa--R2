@@ -61,8 +61,7 @@ sub my_parser {
 
 my $expected_output = 
 bless(
-    [ '1: sequence -> item+',
-        'choice count = 2',
+    [ 11,
         bless(
             [   bless(
                     [   bless(

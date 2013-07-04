@@ -164,11 +164,7 @@ sub or_node_expand {
     if ( $choice_count <= 1 ) {
         return $children[0];
     }
-    $expansion = $memoized_expansions->[$or_node_id] = bless [
-        $grammar->brief_rule($xrl_id),
-        ( "choice count = " . scalar @children ),
-        @children
-        ],
+    $expansion = $memoized_expansions->[$or_node_id] = bless [ $or_node_id, @children ],
         $recce->[Marpa::R2::Internal::Recognizer::ASF_CHOICE_CLASS];
     return $expansion;
 } ## end sub or_node_expand
