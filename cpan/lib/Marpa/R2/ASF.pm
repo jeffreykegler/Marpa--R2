@@ -115,15 +115,25 @@ sub or_node_flatten {
     return \@choices;
 } ## end sub or_node_flatten
 
+# Return choices in XRL terms
+# The memoization is vital for efficiency -- without it the
+# algorithm quickly and easily goes very non-linear
+sub choices {
+    my ( $recce, $or_node_id ) = @_;
+    my $memoized_or_nodes =
+        $recce->[Marpa::R2::Internal::Recognizer::ASF_OR_NODES];
+    my $choices = $memoized_or_nodes->[$or_node_id];
+    return $choices if defined $choices;
+    $choices = $memoized_or_nodes->[$or_node_id] =
+            irl_extend( $recce, $or_node_id );
+    return $choices;
+}
+
 sub or_node_expand {
     my ( $recce, $or_node_id, $memoized_expansions ) = @_;
     my $memoized_or_nodes =
         $recce->[Marpa::R2::Internal::Recognizer::ASF_OR_NODES];
-    my $expanded_or_node = $memoized_or_nodes->[$or_node_id];
-    if ( not defined $expanded_or_node ) {
-        $expanded_or_node = $memoized_or_nodes->[$or_node_id] =
-            irl_extend( $recce, $or_node_id );
-    }
+    my $choices = choices($recce, $or_node_id);
     my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
     my $bocage    = $recce->[Marpa::R2::Internal::Recognizer::B_C];
@@ -137,7 +147,7 @@ sub or_node_expand {
     $memoized_expansions //= [];
     my $expansion = $memoized_expansions->[$or_node_id];
     return $expansion if defined $expansion;
-    for my $choice ( @{$expanded_or_node} ) {
+    for my $choice ( @{$choices} ) {
         push @children, bless [
             map {
                 ref $_
