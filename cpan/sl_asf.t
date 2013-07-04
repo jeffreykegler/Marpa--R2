@@ -69,7 +69,7 @@ bless(
                             [   bless(
                                     [   bless(
                                             [   bless(
-                                                    [ 5, undef ],
+                                                    [ -1, 0 ],
                                                     'My_ASF::_Lex_0_'
                                                 )
                                             ],
@@ -81,7 +81,7 @@ bless(
                                 bless(
                                     [   bless(
                                             [   bless(
-                                                    [ 5, undef ],
+                                                    [ -1, 5 ],
                                                     'My_ASF::_Lex_0_'
                                                 )
                                             ],
@@ -103,7 +103,7 @@ bless(
             [   bless(
                     [   bless(
                             [   bless(
-                                    [ bless( [ 5, undef ], 'My_ASF::_Lex_0_' ) ],
+                                    [ bless( [ -1, 0 ], 'My_ASF::_Lex_0_' ) ],
                                     'My_ASF::singleton'
                                 )
                             ],
@@ -113,7 +113,7 @@ bless(
                     'My_ASF::sequence'
                 ),
                 bless(
-                    [ bless( [ 5, undef ], 'My_ASF::_Lex_0_' ) ],
+                    [ bless( [ -1, 5 ], 'My_ASF::_Lex_0_' ) ],
                     'My_ASF::singleton'
                 )
             ],
@@ -138,6 +138,7 @@ for my $test_data (@tests_data) {
         = @{$test_data};
     my ( $actual_value, $actual_result ) =
         my_parser( $grammar, $test_string );
+    say Data::Dumper::Dumper($actual_value);
     Test::More::is_deeply(
          $actual_value ,
          $expected_value ,

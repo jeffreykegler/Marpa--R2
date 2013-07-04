@@ -41,13 +41,16 @@ sub symbol_make {
     my $bocage       = $recce->[Marpa::R2::Internal::Recognizer::B_C];
     my $token_isy_id = $bocage->_marpa_b_and_node_symbol($and_node_id);
     my $token_id     = $grammar_c->_marpa_g_source_xsy($token_isy_id);
-    my $value_ix     = $bocage->_marpa_b_and_node_token($and_node_id);
     my $symbol_blessing =
         $recce->[Marpa::R2::Internal::Recognizer::ASF_SYMBOL_BLESSINGS]
         ->[$token_id];
-    my $value =
-        $recce->[Marpa::R2::Internal::Recognizer::TOKEN_VALUES]->[$value_ix];
-    return bless [$token_id, $value], $symbol_blessing;
+
+    # my $value_ix     = $bocage->_marpa_b_and_node_token($and_node_id);
+    # my $value =
+        # $recce->[Marpa::R2::Internal::Recognizer::TOKEN_VALUES]->[$value_ix];
+
+    return bless [-1, $and_node_id], $symbol_blessing;
+
 } ## end sub symbol_make
 
 sub irl_extend {
