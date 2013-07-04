@@ -6903,7 +6903,7 @@ Marpa_Symbol_ID xsy_id)
     @<Return |-2| on failure@>@;
    @<Unpack recognizer objects@>@;
    XSY xsy;
-   ISYID isyid;
+   ISY isy;
     @<Fail if fatal error@>@;
     @<Fail if recognizer not started@>@;
     @<Fail if |xsy_id| is malformed@>@;
@@ -6912,8 +6912,9 @@ Marpa_Symbol_ID xsy_id)
     if (UNLIKELY(!XSY_is_Terminal(xsy))) {
 	return 0;
     }
-    isyid = ISYID_of_XSY(xsy);
-    return bv_bit_test (r->t_bv_isyid_is_expected, isyid);
+    isy = ISY_of_XSY(xsy);
+    if (UNLIKELY(!isy)) return 0; /* It may be an unused terminal */
+    return bv_bit_test (r->t_bv_isyid_is_expected, ID_of_ISY(isy));
 }
 
 @*0 Expected symbol is event?.
