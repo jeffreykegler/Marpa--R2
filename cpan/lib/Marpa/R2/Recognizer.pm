@@ -43,9 +43,6 @@ BEGIN {
     TOKEN_VALUES
 
     SLR { the associated SLR, if there is one }
-    ASF_CHOICE_CLASS { the choice class, for an ASF }
-    ASF_RULE_BLESSINGS
-    ASF_SYMBOL_BLESSINGS
     ASF_OR_NODES { memoized or-nodes }
 
     TRACE_FILE_HANDLE
@@ -221,9 +218,6 @@ sub Marpa::R2::Recognizer::reset_evaluation {
     $recce->[Marpa::R2::Internal::Recognizer::RULE_RESOLUTIONS]    = undef;
     $recce->[Marpa::R2::Internal::Recognizer::NULL_VALUES]         = undef;
     $recce->[Marpa::R2::Internal::Recognizer::EVENTS]              = [];
-    $recce->[Marpa::R2::Internal::Recognizer::ASF_CHOICE_CLASS]    = [];
-    $recce->[Marpa::R2::Internal::Recognizer::ASF_RULE_BLESSINGS]   = [];
-    $recce->[Marpa::R2::Internal::Recognizer::ASF_SYMBOL_BLESSINGS] = [];
     $recce->[Marpa::R2::Internal::Recognizer::ASF_OR_NODES] = [];
     return;
 } ## end sub Marpa::R2::Recognizer::reset_evaluation

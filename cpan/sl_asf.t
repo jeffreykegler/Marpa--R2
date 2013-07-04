@@ -41,20 +41,22 @@ END_OF_SOURCE
 
 sub my_parser {
     my ( $grammar, $string ) = @_;
-    my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
+    my $slr = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
     my ( $parse_value, $parse_status );
 
-    if ( not defined eval { $recce->read( \$string ); 1 } ) {
+    if ( not defined eval { $slr->read( \$string ); 1 } ) {
         my $abbreviated_error = $EVAL_ERROR;
         chomp $abbreviated_error;
         $abbreviated_error =~ s/\n.*//xms;
         $abbreviated_error =~ s/^Error \s+ in \s+ string_read: \s+ //xms;
         return 'No parse', $abbreviated_error;
-    } ## end if ( not defined eval { $recce->read( \$string ); 1 ...})
-    my $value_ref = $recce->asf( { choice => 'choix', force => 'My_ASF' } );
+    } ## end if ( not defined eval { $slr->read( \$string ); 1 ...})
+    my $value_ref = $slr->raw_asf( { choice => 'choix', force => 'My_ASF' } );
+    say Data::Dumper::Dumper( ${$value_ref});
     if ( not defined $value_ref ) {
         return 'No parse', 'Input read to end but no parse';
     }
+    # say Data::Dumper::Dumper(label_asf($slr, ${$value_ref}));
     return [ return ${$value_ref}, 'Parse OK' ];
 } ## end sub my_parser
 
@@ -137,7 +139,6 @@ for my $test_data (@tests_data) {
         = @{$test_data};
     my ( $actual_value, $actual_result ) =
         my_parser( $grammar, $test_string );
-    say Data::Dumper::Dumper($actual_value);
     Test::More::is_deeply(
          $actual_value ,
          $expected_value ,
@@ -146,5 +147,22 @@ for my $test_data (@tests_data) {
     Test::More::is( $actual_result, $expected_result,
         qq{Result of $test_name} );
 } ## end TEST: for my $test_data (@tests_data)
+
+sub label_asf {
+    my ( $slr, $asf_node ) = @_;
+    my $type           = ref $asf_node;
+    say STDERR "type= ", $type;
+    return $asf_node if not $type;
+    my $choicepoint_id = $asf_node->[0];
+    my $desc;
+    if ( $choicepoint_id >= 0 ) {
+        $desc = $slr->brief_rule( $slr->choicepoint_rule($choicepoint_id) );
+    }
+    else {
+        my $token_id = $asf_node->[1];
+        $desc = "Token: $token_id";
+    }
+    return bless [ $desc, map { label_asf($slr, $_) } @{$asf_node} ], $type;
+} ## end sub label_asf
 
 # vim: expandtab shiftwidth=4:
