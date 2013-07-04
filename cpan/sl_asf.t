@@ -63,11 +63,11 @@ my $expected_output =
 bless(
     [ 11,
         bless(
-            [   bless(
-                    [   bless(
-                            [   bless(
-                                    [   bless(
-                                            [   bless(
+            [   11, bless(
+                    [   9, bless(
+                            [   8, bless(
+                                    [   1, bless(
+                                            [   0, bless(
                                                     [ -1, 0 ],
                                                     'My_ASF::_Lex_0_'
                                                 )
@@ -78,8 +78,8 @@ bless(
                                     'My_ASF::item'
                                 ),
                                 bless(
-                                    [   bless(
-                                            [   bless(
+                                    [   6, bless(
+                                            [   5, bless(
                                                     [ -1, 5 ],
                                                     'My_ASF::_Lex_0_'
                                                 )
@@ -99,10 +99,10 @@ bless(
             'My_ASF::sequence'
         ),
         bless(
-            [   bless(
-                    [   bless(
-                            [   bless(
-                                    [ bless( [ -1, 0 ], 'My_ASF::_Lex_0_' ) ],
+            [   11, bless(
+                    [   2, bless(
+                            [   1, bless(
+                                    [ 0, bless( [ -1, 0 ], 'My_ASF::_Lex_0_' ) ],
                                     'My_ASF::singleton'
                                 )
                             ],
@@ -112,7 +112,7 @@ bless(
                     'My_ASF::sequence'
                 ),
                 bless(
-                    [ bless( [ -1, 5 ], 'My_ASF::_Lex_0_' ) ],
+                    [ 5, bless( [ -1, 5 ], 'My_ASF::_Lex_0_' ) ],
                     'My_ASF::singleton'
                 )
             ],

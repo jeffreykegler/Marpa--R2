@@ -152,6 +152,7 @@ sub or_node_expand {
     return $expansion if defined $expansion;
     for my $choice ( @{$choices} ) {
         push @children, bless [
+            $or_node_id,
             map {
                 ref $_
                     ? $_
