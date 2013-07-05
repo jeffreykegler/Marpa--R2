@@ -235,12 +235,14 @@ if (1) {
     my $blessed_asf = $slr->bless_asf( $asf, {choice => 'My_ASF::choix', force => 'My_ASF'} );
     # say STDERR Data::Dumper::Dumper($blessed_asf);
     my $pruned_asf = prune_asf($slr, $blessed_asf );
+    $Data::Dumper::Maxdepth = 5;
     say STDERR Data::Dumper::Dumper($pruned_asf);
     exit 0;
 }
 
 sub prune_asf {
     my ( $slr, $asf, $data ) = @_;
+    $data //= { ambiguity_shown => 0 };
     my $tag       = $asf->[0];
     my $recce     = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
     my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
@@ -251,7 +253,6 @@ sub prune_asf {
 
         # Return trivial choice as is, but recurse
         my ( $choicepoint_id, $desc, @children ) = @{$asf};
-        say STDERR "trivial ", $desc;
         my $type = ref $asf;
         return bless [
             $choicepoint_id,
@@ -263,10 +264,11 @@ sub prune_asf {
     } ## end if ( $tag >= 0 )
     if ( $tag == -2 ) {
 
+        show_ambiguity( $slr, $asf, $data ) if not $data->{ambiguity_shown};
+        $data->{ambiguity_shown} = 1;
         # Pick one of multiple choice
         # and recurse
         my ( $tag, $choicepoint_id, $desc, @choices ) = @{$asf};
-        say STDERR "choices x ", (scalar @choices), ": ", $desc;
         my $choice = $choices[-1];
         my $type   = ref $choice;
         return bless [
@@ -280,32 +282,28 @@ sub prune_asf {
     die "Unknown tag in prune_asf: $tag";
 } ## end sub prune_asf
 
-exit 0;
-
-$slr->asf_init( {choice => 'My_ASF::choix', force => 'My_ASF'} );
-my $top_choicepoint = $slr->top_choicepoint();
-say STDERR $top_choicepoint;
-my @worklist = ( $top_choicepoint) ;
-CHOICEPOINT: while ( my $choicepoint = pop @worklist) {
-    my $choices = $slr->choices($choicepoint);
-    # say STDERR Data::Dumper::Dumper($choices);
-    if (scalar @{$choices} <= 1) {
-        push @worklist, grep { ref $_ eq '' } @{$choices->[0]};
-        next CHOICEPOINT;
-    }
-    for my $choice (@{$choices}) {
-        for my $child (@{$choice}) {
-             my $type = ref $child ;
-             if ($type ne '') {
-                say STDERR "Token: ", join q{,}, $type, @{$child};
-             }
+sub show_ambiguity {
+    my ( $slr, $asf, $data ) = @_;
+    my ( $tag, $choicepoint_id, $desc ) = @{$asf};
+    my $choices = $slr->choices( $choicepoint_id );
+    say STDERR "=== ", (scalar @{$choices}), " choices for this text ===";
+    say STDERR $slr->choicepoint_literal($choicepoint_id),
+    say STDERR "=== END OF TEXT ===";
+    # say STDERR Data::Dumper::Dumper( $slr->choices( $choicepoint_id ) );
+    for my $choice_ix (0 .. $#{$choices}) {
+        my $choice = $choices->[$choice_ix] ;
+        say STDERR "=== CHOICE $choice_ix ===";
+        for my $child_ix (0 .. $#{$choice}) {
+            my $child = $choice->[$child_ix];
             my $rule_id = $slr->choicepoint_rule($child);
-            say STDERR "Rule: ", $g1_grammar->brief_rule($rule_id);
+            say STDERR "  === CHILD $child_ix, Rule ", $slr->brief_rule($rule_id), " ===";
+            say STDERR $slr->choicepoint_literal($child),
         }
     }
-    say STDERR $slr->choicepoint_literal($choicepoint);
+    say STDERR "=== END OF CHOICES ===";
 }
 
+exit 0;
 
 sub setup_lexemes {
     my %lexeme_data = ();
