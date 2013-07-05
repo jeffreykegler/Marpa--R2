@@ -20,7 +20,7 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 2;
+use Test::More tests => 11;
 
 use lib 'inc';
 use Marpa::R2::Test;
@@ -70,8 +70,9 @@ for my $input_token (qw(2 * 1 + 3 * 4 + 5)) {
           $input_token eq '+' ? 'Add'
         : $input_token eq '*' ? 'Multiply'
         :                       'Number';
-    $recce->lexeme_read( $token_type, $pos, 1, $input_token );
+    my $return_value = $recce->lexeme_read( $token_type, $pos, 1, $input_token );
     $pos++;
+    Test::More::is( $return_value, $pos, "Return value of lexeme_read() is $pos" );
 } ## end for my $input_token (qw(2 * 1 + 3 * 4 + 5))
 
 my @values = ();

@@ -1372,7 +1372,7 @@ sub Marpa::R2::Scanless::R::lexeme_alternative {
     Marpa::R2::exception( $grammar_c->error() );
 } ## end sub Marpa::R2::Scanless::R::lexeme_alternative
 
-# Returns 0 on unthrown failure, >0 on success
+# Returns 0 on unthrown failure, current location on success
 sub Marpa::R2::Scanless::R::lexeme_complete {
     my ( $slr, $start, $length ) = @_;
     my $thin_slr = $slr->[Marpa::R2::Inner::Scanless::R::C];
@@ -1382,11 +1382,12 @@ sub Marpa::R2::Scanless::R::lexeme_complete {
     return $return_value;
 } ## end sub Marpa::R2::Scanless::R::lexeme_complete
 
+# Returns 0 on unthrown failure, current location on success,
+# undef if lexeme not accepted.
 sub Marpa::R2::Scanless::R::lexeme_read {
     my ( $slr, $symbol_name, $start, $length, @value ) = @_;
     return if not $slr->lexeme_alternative( $symbol_name, @value );
-    return 0 if not $slr->lexeme_complete( $start, $length );
-    return $slr->[Marpa::R2::Inner::Scanless::R::C]->pos();
+    return $slr->lexeme_complete( $start, $length );
 }
 
 sub Marpa::R2::Scanless::R::pause_span {
