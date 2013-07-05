@@ -638,8 +638,10 @@ L<the Scanless recognizer's event()
 method|/"event()">.
 
 B<Return value:>
-On success, C<lexeme_complete()> returns a number greater
-than 0.
+On success, C<lexeme_complete()>
+returns the new current location.
+This will never be location zero, because a succesful
+call of C<lexeme_complete()> always advances the location.
 On unthrown failure, C<lexeme_complete()> returns 0.
 
 =head2 lexeme_read()
