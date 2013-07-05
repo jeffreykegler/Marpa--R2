@@ -49,18 +49,21 @@ $EXPECTED_ASF->[3][1] = $EXPECTED_ASF->[2][0][1][2][1];
 
 our $EXPECTED_BLESSED_ASF = bless(
     [   -1, 11,
+        'Rule 1: sequence -> item+',
         [   bless(
                 [   9,
+                    'Rule 2: item -> pair',
                     bless(
                         [   8,
+                            'Rule 5: pair -> item item',
                             bless(
                                 [   1,
+                                    'Rule 3: item -> singleton',
                                     bless(
                                         [   0,
+                                            'Rule 4: singleton -> [Lex-0]',
                                             bless(
-                                                [ -1,
-                                                'Token: [Lex-0]',
-                                                0 ],
+                                                [ -1, 'Token: [Lex-0]', 0 ],
                                                 'My_ASF::_Lex_0_'
                                             )
                                         ],
@@ -71,12 +74,12 @@ our $EXPECTED_BLESSED_ASF = bless(
                             ),
                             bless(
                                 [   6,
+                                    'Rule 3: item -> singleton',
                                     bless(
                                         [   5,
+                                            'Rule 4: singleton -> [Lex-0]',
                                             bless(
-                                                [ -1,
-                                                'Token: [Lex-0]',
-                                                5 ],
+                                                [ -1, 'Token: [Lex-0]', 5 ],
                                                 'My_ASF::_Lex_0_'
                                             )
                                         ],
@@ -93,13 +96,18 @@ our $EXPECTED_BLESSED_ASF = bless(
             )
         ],
         'My_ASF::sequence',
-        [ bless( [ 2, [] ], 'My_ASF::sequence' ), [] ],
+        [   bless(
+                [ 2, 'Rule 1: sequence -> item+', [] ],
+                'My_ASF::sequence'
+            ),
+            []
+        ],
         'My_ASF::sequence'
     ],
     'choix'
 );
-$EXPECTED_BLESSED_ASF->[4][0][1] = $EXPECTED_BLESSED_ASF->[2][0][1][1];
-$EXPECTED_BLESSED_ASF->[4][1] = $EXPECTED_BLESSED_ASF->[2][0][1][2][1];
+$EXPECTED_BLESSED_ASF->[5][0][2] = $EXPECTED_BLESSED_ASF->[3][0][2][2];
+$EXPECTED_BLESSED_ASF->[5][1] = $EXPECTED_BLESSED_ASF->[3][0][2][3][2];
 
 my $slr = Marpa::R2::Scanless::R->new( { grammar => $slg } );
 my ( $parse_value, $parse_status );

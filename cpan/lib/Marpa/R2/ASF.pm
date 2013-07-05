@@ -226,9 +226,10 @@ sub bless_asf {
         return $blessed_node if defined $blessed_node;
         my $irl_id        = $bocage->_marpa_b_or_node_irl($checkpoint_id);
         my $xrl_id        = $grammar_c->_marpa_g_source_xrl($irl_id);
+        my $desc = 'Rule ' . $grammar->brief_rule($xrl_id);
         my $rule_blessing = $data->{rule_blessings}->[$xrl_id];
         $blessed_node =
-            bless [ $checkpoint_id,
+            bless [ $checkpoint_id, $desc,
             map { bless_asf( $slr, $_, $data ) } @children ],
             $rule_blessing;
         $data->{blessed_nodes}->[$checkpoint_id] = $blessed_node;
@@ -240,15 +241,15 @@ sub bless_asf {
         return $blessed_node if defined $blessed_node;
         my $irl_id          = $bocage->_marpa_b_or_node_irl($checkpoint_id);
         my $xrl_id          = $grammar_c->_marpa_g_source_xrl($irl_id);
+        my $desc = 'Rule ' . $grammar->brief_rule($xrl_id);
         my $rule_blessing   = $data->{rule_blessings}->[$xrl_id];
         my @blessed_choices = ();
-        $DB::single = 1;
         for my $choice (@choices) {
             push @blessed_choices,
                 [ map { bless_asf( $slr, $_, $data ) } @{$choice} ],
                 $rule_blessing;
         }
-        $blessed_node = bless [ -1, $checkpoint_id, @blessed_choices ],
+        $blessed_node = bless [ -1, $checkpoint_id, $desc, @blessed_choices ],
             $data->{choice_blessing};
         $data->{blessed_nodes}->[$checkpoint_id] = $blessed_node;
         return $blessed_node;
