@@ -15,7 +15,6 @@
 
 # Temporary
 ^sl_ada[.]t$
-^sl_asf[.]t$
 ^sl_metaasf[.]t$
 
 # Permanent
