@@ -5995,7 +5995,7 @@ PPCODE:
 	 xs_g_error (slr->g1_wrapper));
 }
 
- # Returns 1 on success, 0 on unthrown failure
+ # Returns current position on success, 0 on unthrown failure
 void
 g1_lexeme_complete (slr, start_pos_sv, length_sv)
     Scanless_R *slr;
@@ -6046,7 +6046,7 @@ PPCODE:
       marpa_r_latest_earley_set_values_set (slr->r1, start_pos,
 					    INT2PTR (void *, lexeme_length));
       stream->perl_pos = start_pos + lexeme_length;
-      XSRETURN_IV (1);
+      XSRETURN_IV (stream->perl_pos);
     }
   if (slr->throw)
     {
