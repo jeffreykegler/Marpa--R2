@@ -1385,7 +1385,8 @@ sub Marpa::R2::Scanless::R::lexeme_complete {
 sub Marpa::R2::Scanless::R::lexeme_read {
     my ( $slr, $symbol_name, $start, $length, @value ) = @_;
     return if not $slr->lexeme_alternative( $symbol_name, @value );
-    return $slr->lexeme_complete( $start, $length );
+    return 0 if not $slr->lexeme_complete( $start, $length );
+    return $slr->[Marpa::R2::Inner::Scanless::R::C]->pos();
 }
 
 sub Marpa::R2::Scanless::R::pause_span {
