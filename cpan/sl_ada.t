@@ -233,9 +233,52 @@ if (1) {
     die "No parse" if not defined $asf_ref;
     my $asf = ${$asf_ref};
     my $blessed_asf = $slr->bless_asf( $asf, {choice => 'My_ASF::choix', force => 'My_ASF'} );
-    say STDERR Data::Dumper::Dumper($blessed_asf);
+    # say STDERR Data::Dumper::Dumper($blessed_asf);
+    my $pruned_asf = prune_asf($slr, $blessed_asf );
+    say STDERR Data::Dumper::Dumper($pruned_asf);
     exit 0;
 }
+
+sub prune_asf {
+    my ( $slr, $asf, $data ) = @_;
+    my $tag       = $asf->[0];
+    my $recce     = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+    my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
+    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
+    my $bocage    = $recce->[Marpa::R2::Internal::Recognizer::B_C];
+    return $asf if $tag == -1;    # Return token as is
+    if ( $tag >= 0 ) {
+
+        # Return trivial choice as is, but recurse
+        my ( $choicepoint_id, $desc, @children ) = @{$asf};
+        say STDERR "trivial ", $desc;
+        my $type = ref $asf;
+        return bless [
+            $choicepoint_id,
+            $desc,
+            $slr->choicepoint_literal($choicepoint_id),
+            map { prune_asf( $slr, $_, $data ) } @children
+            ],
+            $type;
+    } ## end if ( $tag >= 0 )
+    if ( $tag == -2 ) {
+
+        # Pick one of multiple choice
+        # and recurse
+        my ( $tag, $choicepoint_id, $desc, @choices ) = @{$asf};
+        say STDERR "choices x ", (scalar @choices), ": ", $desc;
+        my $choice = $choices[-1];
+        my $type   = ref $choice;
+        return bless [
+            $choicepoint_id,
+            $desc,
+            $slr->choicepoint_literal($choicepoint_id),
+            map { prune_asf( $slr, $_, $data ) } @{$choice}
+            ],
+            $type;
+    } ## end if ( $tag == -2 )
+    die "Unknown tag in prune_asf: $tag";
+} ## end sub prune_asf
 
 exit 0;
 
