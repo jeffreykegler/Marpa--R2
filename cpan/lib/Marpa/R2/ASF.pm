@@ -34,18 +34,6 @@ $VERSION = eval $VERSION;
 
 package Marpa::R2::Internal::ASF;
 
-sub symbol_make {
-    my ( $recce, $and_node_id ) = @_;
-    my $grammar      = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
-    my $grammar_c    = $grammar->[Marpa::R2::Internal::Grammar::C];
-    my $bocage       = $recce->[Marpa::R2::Internal::Recognizer::B_C];
-    my $token_isy_id = $bocage->_marpa_b_and_node_symbol($and_node_id);
-    my $token_id     = $grammar_c->_marpa_g_source_xsy($token_isy_id);
-
-    return [-1, $and_node_id];
-
-} ## end sub symbol_make
-
 sub irl_extend {
     my ( $recce, $or_node_id ) = @_;
     my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
@@ -102,7 +90,7 @@ sub or_node_flatten {
         } ## end if ( defined( my $cause_id = $bocage...))
         else {
             my $token_id = $bocage->_marpa_b_and_node_symbol($and_node_id);
-            $next_choice = symbol_make( $recce, $and_node_id );
+            $next_choice = [ -1, $and_node_id ];
         }
         for my $proto_choice ( @{$proto_choices} ) {
             push @choices, [ @{$proto_choice}, $next_choice ];
@@ -220,23 +208,50 @@ sub Marpa::R2::Scanless::R::raw_asf {
 sub bless_asf {
     my ( $slr, $asf, $data ) = @_;
     my $tag = $asf->[0];
-    if ( $tag == -2 ) {
-        my $token_id        = $asf->[1];
+    my $recce     = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+    my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
+    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
+    my $bocage    = $recce->[Marpa::R2::Internal::Recognizer::B_C];
+    if ( $tag == -1 ) {
+        my $and_node_id        = $asf->[1];
+        my $token_isy_id = $bocage->_marpa_b_and_node_symbol($and_node_id);
+        my $token_id     = $grammar_c->_marpa_g_source_xsy($token_isy_id);
         my $symbol_blessing = $data->{symbol_blessings}->[$token_id];
         return bless $asf, $symbol_blessing;
     }
     if ( $tag >= 0 ) {
-        my $checkpoint_id = $tag;
-        my $recce     = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
-        my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
-        my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
-        my $bocage    = $recce->[Marpa::R2::Internal::Recognizer::B_C];
-        my $irl_id    = $bocage->_marpa_b_or_node_irl($checkpoint_id);
-        my $xrl_id    = $grammar_c->_marpa_g_source_xrl($irl_id);
+        my ( $checkpoint_id, @children ) = @{$asf};
+        my $blessed_node = $data->{blessed_nodes}->[$checkpoint_id];
+        return $blessed_node if defined $blessed_node;
+        my $irl_id        = $bocage->_marpa_b_or_node_irl($checkpoint_id);
+        my $xrl_id        = $grammar_c->_marpa_g_source_xrl($irl_id);
         my $rule_blessing = $data->{rule_blessings}->[$xrl_id];
-        return bless $asf, $rule_blessing;
-    }
-    return $asf;
+        $blessed_node =
+            bless [ $checkpoint_id,
+            map { bless_asf( $slr, $_, $data ) } @children ],
+            $rule_blessing;
+        $data->{blessed_nodes}->[$checkpoint_id] = $blessed_node;
+        return $blessed_node;
+    } ## end if ( $tag >= 0 )
+    if ( $tag == -2 ) {
+        my ( $tag, $checkpoint_id, @choices ) = @{$asf};
+        my $blessed_node = $data->{blessed_nodes}->[$checkpoint_id];
+        return $blessed_node if defined $blessed_node;
+        my $irl_id          = $bocage->_marpa_b_or_node_irl($checkpoint_id);
+        my $xrl_id          = $grammar_c->_marpa_g_source_xrl($irl_id);
+        my $rule_blessing   = $data->{rule_blessings}->[$xrl_id];
+        my @blessed_choices = ();
+        for my $choice (@choices) {
+            push @blessed_choices,
+                [ map { bless_asf( $slr, $_, $data ) } @{$choice} ],
+                $rule_blessing;
+        }
+        $blessed_node = bless [ -1, $checkpoint_id, @blessed_choices ],
+            $data->{choice_blessing};
+        $data->{blessed_nodes}->[$checkpoint_id] = $blessed_node;
+        return $blessed_node;
+    } ## end if ( $tag == -1 )
+    die "Unknown tag in bless_asf: $tag";
 } ## end sub bless_asf
 
 sub Marpa::R2::Scanless::R::bless_asf {

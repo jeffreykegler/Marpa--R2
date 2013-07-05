@@ -51,13 +51,15 @@ sub my_parser {
         $abbreviated_error =~ s/^Error \s+ in \s+ string_read: \s+ //xms;
         return 'No parse', $abbreviated_error;
     } ## end if ( not defined eval { $slr->read( \$string ); 1 ...})
-    my $value_ref = $slr->raw_asf( { choice => 'choix', force => 'My_ASF' } );
-    say Data::Dumper::Dumper( ${$value_ref});
-    if ( not defined $value_ref ) {
+    my $asf_ref = $slr->raw_asf();
+    if ( not defined $asf_ref ) {
         return 'No parse', 'Input read to end but no parse';
     }
-    # say Data::Dumper::Dumper(label_asf($slr, ${$value_ref}));
-    return [ return ${$value_ref}, 'Parse OK' ];
+    my $asf = ${$asf_ref};
+    say Data::Dumper::Dumper( $asf);
+    my $blessed_asf = $slr->bless_asf( $asf, { choice => 'choix', force => 'My_ASF' } );
+    say Data::Dumper::Dumper($blessed_asf);
+    return [ return $blessed_asf, 'Parse OK' ];
 } ## end sub my_parser
 
 
