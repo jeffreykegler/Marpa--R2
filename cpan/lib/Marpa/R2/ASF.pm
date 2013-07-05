@@ -249,7 +249,7 @@ sub bless_asf {
                 bless [ map { bless_asf( $slr, $_, $data ) } @{$choice} ],
                 $rule_blessing;
         }
-        $blessed_node = bless [ -1, $checkpoint_id, $desc, @blessed_choices ],
+        $blessed_node = bless [ -2, $checkpoint_id, $desc, @blessed_choices ],
             $data->{choice_blessing};
         $data->{blessed_nodes}->[$checkpoint_id] = $blessed_node;
         return $blessed_node;

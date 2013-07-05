@@ -48,7 +48,7 @@ $EXPECTED_ASF->[3][0][1] = $EXPECTED_ASF->[2][0][1][1];
 $EXPECTED_ASF->[3][1] = $EXPECTED_ASF->[2][0][1][2][1];
 
 my $expected_blessed_asf = bless(
-    [   -1, 11,
+    [   -2, 11,
         'Rule 1: sequence -> item+',
         bless(
             [   bless(
@@ -139,7 +139,7 @@ my $expected_blessed_asf = bless(
             'My_ASF::sequence'
         )
     ],
-    'choix'
+    'MyASF::choix'
     );
 
 my $slr = Marpa::R2::Scanless::R->new( { grammar => $slg } );
@@ -159,7 +159,7 @@ if ( not defined $asf_ref ) {
 my $actual_asf = ${$asf_ref};
 
 my $actual_blessed_asf =
-    $slr->bless_asf( $actual_asf, { choice => 'choix', force => 'My_ASF' } );
+    $slr->bless_asf( $actual_asf, { choice => 'My_ASF::choix', force => 'My_ASF' } );
 
 # $Data::Dumper::Purity = 1;
 # $Data::Dumper::Terse = 1;
