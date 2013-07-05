@@ -229,24 +229,15 @@ LEXEME: while ( 1 ) {
 } ## end LEXEME: while ( pos $quotation < $quote_length )
 
 if (1) {
-    my $asf_ref = $slr->asf( {choice => 'My_ASF::choix', force => 'My_ASF'} );
+    my $asf_ref = $slr->raw_asf();
     die "No parse" if not defined $asf_ref;
     my $asf = ${$asf_ref};
-    # say STDERR Data::Dumper::Dumper($asf);
-    say STDERR Data::Dumper::Dumper(prune_asf($asf));
+    my $blessed_asf = $slr->bless_asf( $asf, {choice => 'My_ASF::choix', force => 'My_ASF'} );
+    say STDERR Data::Dumper::Dumper($blessed_asf);
     exit 0;
 }
 
 exit 0;
-
-sub prune_asf {
-    my ($node) = @_;
-    my $type = ref $node;
-    say STDERR $type;
-    return $node if (substr $type, 0, 8) ne 'My_ASF::';
-    $node = $node->[-1] if $type eq 'My_ASF::choix';
-    return bless [ map { prune_asf($_) } @{$node} ], ref $node;
-}
 
 $slr->asf_init( {choice => 'My_ASF::choix', force => 'My_ASF'} );
 my $top_choicepoint = $slr->top_choicepoint();
