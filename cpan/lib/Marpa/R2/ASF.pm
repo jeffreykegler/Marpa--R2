@@ -134,7 +134,7 @@ sub or_node_expand {
     } ## end for my $choice ( @{$choices} )
     my $choice_count = scalar @children;
     if ( $choice_count == 1 ) {
-        $expansion = [ $or_node_id, $children[0] ];
+        $expansion = [ $or_node_id, @{$children[0]} ];
     }
     else {
         $expansion = [ -2, $or_node_id, @children ];
@@ -241,6 +241,7 @@ sub bless_asf {
         my $xrl_id          = $grammar_c->_marpa_g_source_xrl($irl_id);
         my $rule_blessing   = $data->{rule_blessings}->[$xrl_id];
         my @blessed_choices = ();
+        $DB::single = 1;
         for my $choice (@choices) {
             push @blessed_choices,
                 [ map { bless_asf( $slr, $_, $data ) } @{$choice} ],
