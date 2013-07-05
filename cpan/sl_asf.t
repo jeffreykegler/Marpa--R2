@@ -58,7 +58,9 @@ our $EXPECTED_BLESSED_ASF = bless(
                                     bless(
                                         [   0,
                                             bless(
-                                                [ -1, 0 ],
+                                                [ -1,
+                                                'Token: [Lex-0]',
+                                                0 ],
                                                 'My_ASF::_Lex_0_'
                                             )
                                         ],
@@ -72,7 +74,9 @@ our $EXPECTED_BLESSED_ASF = bless(
                                     bless(
                                         [   5,
                                             bless(
-                                                [ -1, 5 ],
+                                                [ -1,
+                                                'Token: [Lex-0]',
+                                                5 ],
                                                 'My_ASF::_Lex_0_'
                                             )
                                         ],

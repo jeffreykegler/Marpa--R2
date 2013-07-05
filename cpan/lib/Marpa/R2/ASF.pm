@@ -213,11 +213,12 @@ sub bless_asf {
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
     my $bocage    = $recce->[Marpa::R2::Internal::Recognizer::B_C];
     if ( $tag == -1 ) {
-        my $and_node_id        = $asf->[1];
+        my (undef, $and_node_id)        = @{$asf};
         my $token_isy_id = $bocage->_marpa_b_and_node_symbol($and_node_id);
         my $token_id     = $grammar_c->_marpa_g_source_xsy($token_isy_id);
+        my $token_name = $grammar->symbol_name($token_id);
         my $symbol_blessing = $data->{symbol_blessings}->[$token_id];
-        return bless $asf, $symbol_blessing;
+        return bless [ -1, "Token: $token_name", $and_node_id ], $symbol_blessing;
     }
     if ( $tag >= 0 ) {
         my ( $checkpoint_id, @children ) = @{$asf};
