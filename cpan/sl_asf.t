@@ -40,88 +40,60 @@ END_OF_SOURCE
 );
 
 our $EXPECTED_ASF = [
-  -2,
-  11,
-  [
-    [
-      9,
-      [
-        8,
-        [
-          1,
-          [
-            0,
-            [
-              -1,
-              0
-            ]
-          ]
-        ],
-        [
-          6,
-          [
-            5,
-            [
-              -1,
-              5
-            ]
-          ]
-        ]
-      ]
-    ]
-  ],
-  [
-    [
-      2,
-      []
-    ],
-    []
-  ]
+    -2, 11,
+    [ [ 9, [ 8, [ 1, [ 0, [ -1, 0 ] ] ], [ 6, [ 5, [ -1, 5 ] ] ] ] ] ],
+    [ [ 2, [] ], [] ]
 ];
 $EXPECTED_ASF->[3][0][1] = $EXPECTED_ASF->[2][0][1][1];
 $EXPECTED_ASF->[3][1] = $EXPECTED_ASF->[2][0][1][2][1];
 
-our $EXPECTED_BLESSED_ASF = bless( [
-         -1,
-         11,
-         [
-           bless( [
-                    9,
-                    bless( [
-                             8,
-                             bless( [
-                                      1,
-                                      bless( [
-                                               0,
-                                               bless( [
-                                                        -1,
-                                                        0
-                                                      ], 'My_ASF::_Lex_0_' )
-                                             ], 'My_ASF::singleton' )
-                                    ], 'My_ASF::item' ),
-                             bless( [
-                                      6,
-                                      bless( [
-                                               5,
-                                               bless( [
-                                                        -1,
-                                                        5
-                                                      ], 'My_ASF::_Lex_0_' )
-                                             ], 'My_ASF::singleton' )
-                                    ], 'My_ASF::item' )
-                           ], 'My_ASF::pair' )
-                  ], 'My_ASF::item' )
-         ],
-         'My_ASF::sequence',
-         [
-           bless( [
-                    2,
-                    []
-                  ], 'My_ASF::sequence' ),
-           []
-         ],
-         'My_ASF::sequence'
-       ], 'choix' );
+our $EXPECTED_BLESSED_ASF = bless(
+    [   -1, 11,
+        [   bless(
+                [   9,
+                    bless(
+                        [   8,
+                            bless(
+                                [   1,
+                                    bless(
+                                        [   0,
+                                            bless(
+                                                [ -1, 0 ],
+                                                'My_ASF::_Lex_0_'
+                                            )
+                                        ],
+                                        'My_ASF::singleton'
+                                    )
+                                ],
+                                'My_ASF::item'
+                            ),
+                            bless(
+                                [   6,
+                                    bless(
+                                        [   5,
+                                            bless(
+                                                [ -1, 5 ],
+                                                'My_ASF::_Lex_0_'
+                                            )
+                                        ],
+                                        'My_ASF::singleton'
+                                    )
+                                ],
+                                'My_ASF::item'
+                            )
+                        ],
+                        'My_ASF::pair'
+                    )
+                ],
+                'My_ASF::item'
+            )
+        ],
+        'My_ASF::sequence',
+        [ bless( [ 2, [] ], 'My_ASF::sequence' ), [] ],
+        'My_ASF::sequence'
+    ],
+    'choix'
+);
 $EXPECTED_BLESSED_ASF->[4][0][1] = $EXPECTED_BLESSED_ASF->[2][0][1][1];
 $EXPECTED_BLESSED_ASF->[4][1] = $EXPECTED_BLESSED_ASF->[2][0][1][2][1];
 
@@ -134,22 +106,18 @@ if ( not defined eval { $slr->read( \'aa' ); 1 } ) {
     $abbreviated_error =~ s/\n.*//xms;
     $abbreviated_error =~ s/^Error \s+ in \s+ string_read: \s+ //xms;
     return 'No parse', $abbreviated_error;
-} ## end if ( not defined eval { $slr->read( \$string ); 1 } )
+} ## end if ( not defined eval { $slr->read( \'aa' ); 1 } )
 my $asf_ref = $slr->raw_asf();
 if ( not defined $asf_ref ) {
     return 'No parse', 'Input read to end but no parse';
 }
 my $actual_asf = ${$asf_ref};
 
-$Data::Dumper::Purity = 1;
-$Data::Dumper::Terse = 1;
-say Data::Dumper::Dumper( $actual_asf);
 my $actual_blessed_asf =
     $slr->bless_asf( $actual_asf, { choice => 'choix', force => 'My_ASF' } );
 
-say Data::Dumper::Dumper($actual_blessed_asf);
-
 Test::More::is_deeply( $actual_asf, $EXPECTED_ASF, 'ASF' );
-Test::More::is_deeply( $actual_blessed_asf, $EXPECTED_BLESSED_ASF, 'Blessed ASF' );
+Test::More::is_deeply( $actual_blessed_asf, $EXPECTED_BLESSED_ASF,
+    'Blessed ASF' );
 
 # vim: expandtab shiftwidth=4:
