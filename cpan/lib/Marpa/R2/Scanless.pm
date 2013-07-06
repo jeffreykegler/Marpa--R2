@@ -795,7 +795,7 @@ sub Marpa::R2::Inner::Scanless::convert_libmarpa_events {
                     $lexeme_end_pos, q{: },
                     $g1_tracer->symbol_name($g1_lexeme),
                     qq{; value="$raw_token_value"}
-                            or Marpa::R2::exception("Could not say(): $ERRNO");
+                    or Marpa::R2::exception("Could not say(): $ERRNO");
                 next EVENT;
             } ## end if ( $status eq 'g1 accepted lexeme' )
             if ( $status eq 'g1 unexpected lexeme' ) {
@@ -810,7 +810,7 @@ sub Marpa::R2::Inner::Scanless::convert_libmarpa_events {
                     $lexeme_end_pos, q{: },
                     $g1_tracer->symbol_name($g1_lexeme),
                     qq{; value="$raw_token_value"}
-                            or Marpa::R2::exception("Could not say(): $ERRNO");
+                    or Marpa::R2::exception("Could not say(): $ERRNO");
                 next EVENT;
             } ## end if ( $status eq 'g1 unexpected lexeme' )
             if ( $status eq 'g1 duplicate lexeme' ) {
@@ -826,7 +826,7 @@ sub Marpa::R2::Inner::Scanless::convert_libmarpa_events {
                     $lexeme_end_pos, q{: },
                     $g1_tracer->symbol_name($g1_lexeme),
                     qq{; value="$raw_token_value"}
-                            or Marpa::R2::exception("Could not say(): $ERRNO");
+                    or Marpa::R2::exception("Could not say(): $ERRNO");
                 next EVENT;
             } ## end if ( $status eq 'g1 duplicate lexeme' )
             if ( $status eq 'g1 attempting lexeme' ) {
@@ -842,7 +842,7 @@ sub Marpa::R2::Inner::Scanless::convert_libmarpa_events {
                     $lexeme_end_pos, q{: },
                     $g1_tracer->symbol_name($g1_lexeme),
                     qq{; value="$raw_token_value"}
-                            or Marpa::R2::exception("Could not say(): $ERRNO");
+                    or Marpa::R2::exception("Could not say(): $ERRNO");
                 next EVENT;
             } ## end if ( $status eq 'g1 attempting lexeme' )
             if ( $status eq 'g0 reading codepoint' ) {
@@ -855,7 +855,7 @@ sub Marpa::R2::Inner::Scanless::convert_libmarpa_events {
                 my $char_desc = join q{ }, @char_desc;
                 say {$trace_file_handle}
                     "G0 reading codepoint $char_desc at position $position"
-                            or Marpa::R2::exception("Could not say(): $ERRNO");
+                    or Marpa::R2::exception("Could not say(): $ERRNO");
                 next EVENT;
             } ## end if ( $status eq 'g0 reading codepoint' )
             if ( $status eq 'g0 accepted codepoint' ) {
@@ -869,7 +869,7 @@ sub Marpa::R2::Inner::Scanless::convert_libmarpa_events {
                 my $symbol_name = $g0_tracer->symbol_name($token_id);
                 say {$trace_file_handle}
                     "G0 codepoint $char_desc accepted as <$symbol_name> at position $position"
-                            or Marpa::R2::exception("Could not say(): $ERRNO");
+                    or Marpa::R2::exception("Could not say(): $ERRNO");
                 next EVENT;
             } ## end if ( $status eq 'g0 accepted codepoint' )
             if ( $status eq 'g0 rejected codepoint' ) {
@@ -883,14 +883,14 @@ sub Marpa::R2::Inner::Scanless::convert_libmarpa_events {
                 my $symbol_name = $g0_tracer->symbol_name($token_id);
                 say {$trace_file_handle}
                     "G0 codepoint $char_desc rejected as <$symbol_name> at position $position"
-                            or Marpa::R2::exception("Could not say(): $ERRNO");
+                    or Marpa::R2::exception("Could not say(): $ERRNO");
                 next EVENT;
             } ## end if ( $status eq 'g0 rejected codepoint' )
             if ( $status eq 'g0 restarted recognizer' ) {
                 my ( undef, $position ) = @event_data;
                 say {$trace_file_handle}
                     "G0 restarted recognizer at position $position"
-                            or Marpa::R2::exception("Could not say(): $ERRNO");
+                    or Marpa::R2::exception("Could not say(): $ERRNO");
                 next EVENT;
             } ## end if ( $status eq 'g0 restarted recognizer' )
             if ( $status eq 'discarded lexeme' ) {
@@ -900,7 +900,7 @@ sub Marpa::R2::Inner::Scanless::convert_libmarpa_events {
                     $g0_tracer->rule($g0_rule_id);
                 say {$trace_file_handle} 'Discarded lexeme @',
                     "$start-$end: ", join q{ }, @rhs
-                            or Marpa::R2::exception("Could not say(): $ERRNO");
+                    or Marpa::R2::exception("Could not say(): $ERRNO");
                 next EVENT;
             } ## end if ( $status eq 'discarded lexeme' )
             if ( $status eq 'g1 pausing before lexeme' ) {
@@ -910,7 +910,7 @@ sub Marpa::R2::Inner::Scanless::convert_libmarpa_events {
                     $g1_tracer->symbol_name($lexeme_id) );
                 say {$trace_file_handle} 'Paused before lexeme @',
                     "$start-$end: <$lexeme_name>"
-                            or Marpa::R2::exception("Could not say(): $ERRNO");
+                    or Marpa::R2::exception("Could not say(): $ERRNO");
                 next EVENT;
             } ## end if ( $status eq 'g1 pausing before lexeme' )
             if ( $status eq 'g1 pausing after lexeme' ) {
@@ -920,7 +920,7 @@ sub Marpa::R2::Inner::Scanless::convert_libmarpa_events {
                     $g1_tracer->symbol_name($lexeme_id) );
                 say {$trace_file_handle} 'Paused after lexeme @',
                     "$start-$end: <$lexeme_name>"
-                            or Marpa::R2::exception("Could not say(): $ERRNO");
+                    or Marpa::R2::exception("Could not say(): $ERRNO");
                 next EVENT;
             } ## end if ( $status eq 'g1 pausing after lexeme' )
             if ( $status eq 'ignored lexeme' ) {
@@ -929,11 +929,11 @@ sub Marpa::R2::Inner::Scanless::convert_libmarpa_events {
                     $g1_tracer->symbol_name($g1_symbol_id) );
                 say {$trace_file_handle} 'Ignored lexeme @',
                     "$start-$end: $lexeme"
-                            or Marpa::R2::exception("Could not say(): $ERRNO");
+                    or Marpa::R2::exception("Could not say(): $ERRNO");
                 next EVENT;
             } ## end if ( $status eq 'ignored lexeme' )
             say {$trace_file_handle} 'Trace event: ', join q{ }, @event_data
-                            or Marpa::R2::exception("Could not say(): $ERRNO");
+                or Marpa::R2::exception("Could not say(): $ERRNO");
             next EVENT;
         } ## end if ( $event_type eq q{'trace} )
 
@@ -975,9 +975,10 @@ sub Marpa::R2::Inner::Scanless::convert_libmarpa_events {
             my ($lexeme_id) = @event_data;
             my $slg = $self->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
             my $lexeme_event =
-                $slg->[Marpa::R2::Inner::Scanless::G::LEXEME_EVENT_BY_ID]->[$lexeme_id];
+                $slg->[Marpa::R2::Inner::Scanless::G::LEXEME_EVENT_BY_ID]
+                ->[$lexeme_id];
             push @{ $self->[Marpa::R2::Inner::Scanless::R::EVENTS] },
-                [ $lexeme_event ]
+                [$lexeme_event]
                 if defined $lexeme_event;
             $pause = 1;
             next EVENT;
@@ -1325,7 +1326,8 @@ sub Marpa::R2::Scanless::R::show_progress {
 
 sub Marpa::R2::Scanless::R::progress {
     my ( $self, @args ) = @_;
-    return $self->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE]->progress(@args);
+    return $self->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE]
+        ->progress(@args);
 }
 
 sub Marpa::R2::Scanless::R::terminals_expected {

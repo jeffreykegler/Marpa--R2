@@ -333,14 +333,14 @@ sub trace_json {
     my $re = Marpa::R2::Scanless::R->new( { grammar => $parser->{grammar} } );
     my $length = length $string;
     for ( my $pos = $re->read(\$string); $pos < $length; $pos = $re->resume()) {
-       my ($start, $length) = $re->pause_span();
+       my ($start, $span_length) = $re->pause_span();
        my ($line, $column) = $re->line_column($start);
        my $lexeme = $re->pause_lexeme();
-       my $literal_string = $re->literal($start, $length);
+       my $literal_string = $re->literal($start, $span_length);
        $trace_desc .= qq{Line $line, column $column, lexeme <$lexeme>, literal "$literal_string"\n};
-       my $value = substr $string, $start+1, $length-2;
-       $value = decode_string($value) if -1 != index $value, '\\';
-       $re->lexeme_read('lstring', $start, $length, $value) // die;
+       my $value = substr $string, $start+1, $span_length-2;
+       $value = decode_string($value) if -1 != index $value, q{\\};
+       $re->lexeme_read('lstring', $start, $span_length, $value) // die;
     }
     return $trace_desc;
 
@@ -351,18 +351,18 @@ sub trace_json {
 sub decode_string {
     my ($s) = @_;
 
-    $s =~ s/\\u([0-9A-Fa-f]{4})/chr(hex($1))/eg;
-    $s =~ s/\\n/\n/g;
-    $s =~ s/\\r/\r/g;
-    $s =~ s/\\b/\b/g;
-    $s =~ s/\\f/\f/g;
-    $s =~ s/\\t/\t/g;
-    $s =~ s/\\\\/\\/g;
-    $s =~ s{\\/}{/}g;
-    $s =~ s{\\"}{"}g;
+    $s =~ s/\\u([0-9A-Fa-f]{4})/chr(hex($1))/egxms;
+    $s =~ s/\\n/\n/gxms;
+    $s =~ s/\\r/\r/gxms;
+    $s =~ s/\\b/\b/gxms;
+    $s =~ s/\\f/\f/gxms;
+    $s =~ s/\\t/\t/gxms;
+    $s =~ s/\\\\/\\/gxms;
+    $s =~ s{\\/}{/}gxms;
+    $s =~ s{\\"}{"}gxms;
 
     return $s;
-}
+} ## end sub decode_string
 
 package MarpaX::JSON::Actions;
 use strict;
