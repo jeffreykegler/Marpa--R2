@@ -104,7 +104,7 @@ sub my_parser {
 my @tests_data = (
     [ '+++ 1 2 3 + + 1 2 4',     '1 results: 13', 'Parse OK', 'entire input' ],
     [ 'say + 1 2',               '1 results: 3', 'Parse OK', 'entire input' ],
-    [ '+ 1 say 2',               'No parse', 'Error in SLIF G1 read: No lexemes accepted at position 4', '1' ],
+    [ '+ 1 say 2',               'No parse', 'Error in SLIF G1 read: No lexemes accepted at line 1, column 5', '1' ],
     [ '+ 1 2 3 + + 1 2 4',       '3 results: 3 3 7', 'Parse OK', 'entire input' ],
     [ '+++',                     'No parse', 'Input read to end but no parse', 'none' ],
     [ '++1 2++',                 'No parse', 'Input read to end but no parse', '+1 2' ],

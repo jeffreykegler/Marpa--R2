@@ -762,22 +762,22 @@ sub Marpa::R2::Scanless::R::read {
 
 # Return 1 if internal scanning should pause
 sub Marpa::R2::Inner::Scanless::convert_libmarpa_events {
-    my ($self)   = @_;
+    my ($slr)   = @_;
     my $pause    = 0;
-    my $thin_slr = $self->[Marpa::R2::Inner::Scanless::R::C];
+    my $thin_slr = $slr->[Marpa::R2::Inner::Scanless::R::C];
     my $stream   = $thin_slr->stream();
     EVENT: for my $event ( $thin_slr->events() ) {
         my ( $event_type, @event_data ) = @{$event};
         if ( $event_type eq q{'trace} ) {
 
             my $trace_file_handle =
-                $self->[Marpa::R2::Inner::Scanless::R::TRACE_FILE_HANDLE];
+                $slr->[Marpa::R2::Inner::Scanless::R::TRACE_FILE_HANDLE];
             my $thick_g1_recce =
-                $self->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+                $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
             my $thin_g1_recce    = $thick_g1_recce->thin();
             my $thick_g1_grammar = $thick_g1_recce->grammar();
             my $g1_tracer        = $thick_g1_grammar->tracer();
-            my $grammar = $self->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
+            my $grammar = $slr->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
             my $thick_lex_grammar =
                 $grammar->[Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMAR];
             my $g0_tracer = $thick_lex_grammar->tracer();
@@ -853,8 +853,9 @@ sub Marpa::R2::Inner::Scanless::convert_libmarpa_events {
                     if $char =~ /[\p{IsGraph}]/xms;
                 push @char_desc, ( sprintf '0x%04x', $codepoint );
                 my $char_desc = join q{ }, @char_desc;
+                my ($line, $column) = $slr->line_column($position);
                 say {$trace_file_handle}
-                    "G0 reading codepoint $char_desc at position $position"
+                    "G0 reading codepoint $char_desc at line $line, column $column"
                     or Marpa::R2::exception("Could not say(): $ERRNO");
                 next EVENT;
             } ## end if ( $status eq 'g0 reading codepoint' )
@@ -867,8 +868,9 @@ sub Marpa::R2::Inner::Scanless::convert_libmarpa_events {
                 push @char_desc, ( sprintf '0x%04x', $codepoint );
                 my $char_desc = join q{ }, @char_desc;
                 my $symbol_name = $g0_tracer->symbol_name($token_id);
+                my ($line, $column) = $slr->line_column($position);
                 say {$trace_file_handle}
-                    "G0 codepoint $char_desc accepted as <$symbol_name> at position $position"
+                    "G0 codepoint $char_desc accepted as <$symbol_name> at line $line, column $column"
                     or Marpa::R2::exception("Could not say(): $ERRNO");
                 next EVENT;
             } ## end if ( $status eq 'g0 accepted codepoint' )
@@ -881,15 +883,17 @@ sub Marpa::R2::Inner::Scanless::convert_libmarpa_events {
                 push @char_desc, ( sprintf '0x%04x', $codepoint );
                 my $char_desc = join q{ }, @char_desc;
                 my $symbol_name = $g0_tracer->symbol_name($token_id);
+                my ($line, $column) = $slr->line_column($position);
                 say {$trace_file_handle}
-                    "G0 codepoint $char_desc rejected as <$symbol_name> at position $position"
+                    "G0 codepoint $char_desc rejected as <$symbol_name> at line $line, column $column"
                     or Marpa::R2::exception("Could not say(): $ERRNO");
                 next EVENT;
             } ## end if ( $status eq 'g0 rejected codepoint' )
             if ( $status eq 'g0 restarted recognizer' ) {
                 my ( undef, $position ) = @event_data;
+                my ($line, $column) = $slr->line_column($position);
                 say {$trace_file_handle}
-                    "G0 restarted recognizer at position $position"
+                    "G0 restarted recognizer at line $line, column $column"
                     or Marpa::R2::exception("Could not say(): $ERRNO");
                 next EVENT;
             } ## end if ( $status eq 'g0 restarted recognizer' )
@@ -939,10 +943,10 @@ sub Marpa::R2::Inner::Scanless::convert_libmarpa_events {
 
         if ( $event_type eq 'symbol completed' ) {
             my ($completed_symbol_id) = @event_data;
-            my $slg = $self->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
+            my $slg = $slr->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
             my $completion_event_by_id =
                 $slg->[Marpa::R2::Inner::Scanless::G::COMPLETION_EVENT_BY_ID];
-            push @{ $self->[Marpa::R2::Inner::Scanless::R::EVENTS] },
+            push @{ $slr->[Marpa::R2::Inner::Scanless::R::EVENTS] },
                 [ $completion_event_by_id->[$completed_symbol_id] ];
             $pause = 1;
             next EVENT;
@@ -950,10 +954,10 @@ sub Marpa::R2::Inner::Scanless::convert_libmarpa_events {
 
         if ( $event_type eq 'symbol nulled' ) {
             my ($nulled_symbol_id) = @event_data;
-            my $slg = $self->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
+            my $slg = $slr->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
             my $nulled_event_by_id =
                 $slg->[Marpa::R2::Inner::Scanless::G::NULLED_EVENT_BY_ID];
-            push @{ $self->[Marpa::R2::Inner::Scanless::R::EVENTS] },
+            push @{ $slr->[Marpa::R2::Inner::Scanless::R::EVENTS] },
                 [ $nulled_event_by_id->[$nulled_symbol_id] ];
             $pause = 1;
             next EVENT;
@@ -961,10 +965,10 @@ sub Marpa::R2::Inner::Scanless::convert_libmarpa_events {
 
         if ( $event_type eq 'symbol predicted' ) {
             my ($predicted_symbol_id) = @event_data;
-            my $slg = $self->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
+            my $slg = $slr->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
             my $prediction_event_by_id =
                 $slg->[Marpa::R2::Inner::Scanless::G::PREDICTION_EVENT_BY_ID];
-            push @{ $self->[Marpa::R2::Inner::Scanless::R::EVENTS] },
+            push @{ $slr->[Marpa::R2::Inner::Scanless::R::EVENTS] },
                 [ $prediction_event_by_id->[$predicted_symbol_id] ];
             $pause = 1;
             next EVENT;
@@ -973,11 +977,11 @@ sub Marpa::R2::Inner::Scanless::convert_libmarpa_events {
         if ( $event_type eq 'before lexeme' or $event_type eq 'after lexeme' )
         {
             my ($lexeme_id) = @event_data;
-            my $slg = $self->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
+            my $slg = $slr->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
             my $lexeme_event =
                 $slg->[Marpa::R2::Inner::Scanless::G::LEXEME_EVENT_BY_ID]
                 ->[$lexeme_id];
-            push @{ $self->[Marpa::R2::Inner::Scanless::R::EVENTS] },
+            push @{ $slr->[Marpa::R2::Inner::Scanless::R::EVENTS] },
                 [$lexeme_event]
                 if defined $lexeme_event;
             $pause = 1;
@@ -1032,10 +1036,11 @@ sub Marpa::R2::Scanless::R::resume {
             my $thick_lex_grammar =
                 $grammar->[Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMAR];
             my $g0_tracer = $thick_lex_grammar->tracer();
+            my ($line, $column) = $self->line_column($stream_pos);
             print {$trace_file_handle}
-                qq{\n=== Progress report at position $stream_pos\n},
+                qq{\n=== Progress report at line $line, column $column\n},
                 $g0_tracer->progress_report($current_r0),
-                qq{=== End of progress report for position $stream_pos\n\n}
+                qq{=== End of progress report at line $line, column $column\n},
                 or Marpa::R2::exception("Cannot print(): $ERRNO");
         } ## end if ( $trace_g0 > 2 )
 
@@ -1139,14 +1144,16 @@ sub Marpa::R2::Scanless::R::read_problem {
     my $g1_status = 0;
     CODE_TO_PROBLEM: {
         if ( $problem_code eq 'R0 exhausted before end' ) {
-            my ($lexeme_start_pos) = $thin_slr->lexeme_span();
+            my ($lexeme_start) = $thin_slr->lexeme_span();
+            my ($line, $column) = $self->line_column( $lexeme_start );
             $problem =
-                "Parse exhausted, but lexemes remain, at position $lexeme_start_pos\n";
+                "Parse exhausted, but lexemes remain, at line $line, column $column\n";
             last CODE_TO_PROBLEM;
         } ## end if ( $problem_code eq 'R0 exhausted before end' )
         if ( $problem_code eq 'no lexeme' ) {
             my ($lexeme_start) = $thin_slr->lexeme_span();
-            $problem = "No lexeme found at position $lexeme_start";
+            my ($line, $column) = $self->line_column( $lexeme_start );
+            $problem = "No lexeme found at line $line, column $column";
             last CODE_TO_PROBLEM;
         }
         if ( $problem_code eq 'R0 read() problem' ) {
@@ -1156,7 +1163,8 @@ sub Marpa::R2::Scanless::R::read_problem {
         }
         if ( $problem_code eq 'no lexemes accepted' ) {
             my ($lexeme_start) = $thin_slr->lexeme_span();
-            $problem = "No lexemes accepted at position $lexeme_start";
+            my ($line, $column) = $self->line_column( $lexeme_start );
+            $problem = "No lexemes accepted at line $line, column $column";
             last CODE_TO_PROBLEM;
         }
         $problem = 'Unrecognized problem code: ' . $problem_code;
