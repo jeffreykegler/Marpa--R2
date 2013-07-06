@@ -718,7 +718,7 @@ L<the Scanless recognizer's event()
 method|/"event()">.
 
 B<Return value>:
-On success, C<read()> returns the new current location.
+On success, C<lexeme_read()> returns the new current location.
 This will never be location zero, because lexemes cannot be zero length.
 If the token was rejected, returns a Perl C<undef>.
 On other unthrown failure, returns 0.

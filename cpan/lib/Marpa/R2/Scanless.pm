@@ -1274,7 +1274,7 @@ sub Marpa::R2::Scanless::R::read_problem {
               "Error in SLIF G1 read: $desc\n"
             . '* String before error: '
             . Marpa::R2::escape_string( $prefix, -50 ) . "\n"
-            . "* The error  was at line $line, column $column, and at character $char_desc, ...\n"
+            . "* The error was at line $line, column $column, and at character $char_desc, ...\n"
             . '* here: '
             . Marpa::R2::escape_string( ( substr ${$p_string}, $pos, 50 ),
             50 )
