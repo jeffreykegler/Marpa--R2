@@ -299,6 +299,64 @@ sub Marpa::R2::Scanless::R::choices {
     return choices( $recce, $choicepoint );
 }
 
+sub asf_ambiguities {
+    my ( $slr, $choicepoint_id, $data ) = @_;
+    my $was_node_seen = $data->{was_node_seen};
+    return if $was_node_seen->[$choicepoint_id];
+    $was_node_seen->[$choicepoint_id] = 1;
+    my $recce     = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+    my $bocage    = $recce->[Marpa::R2::Internal::Recognizer::B_C];
+    my $choices = $slr->choices($choicepoint_id);
+    my $is_node_ambiguous = $data->{is_node_ambiguous};
+    my $last_choice_ix = $#{$choices};
+    if ( $last_choice_ix > 0 ) {
+        my $choice_0 = $choices->[0];
+        $is_node_ambiguous->[$choicepoint_id] = 1;
+        my $choice_0_last_child_ix = $#{$choice_0};
+        for my $choice_ix ( 1 .. $last_choice_ix ) {
+            my $choice                 = $choices->[$choice_ix];
+            my $choice_n_last_child_ix = $#{$choice};
+            return if $choice_0_last_child_ix != $choice_n_last_child_ix;
+        }
+
+        # If here, all choices have the same child count
+        # For every medial (that is, non-initial) origin ...
+        for my $child_ix ( 1 .. $choice_0_last_child_ix ) {
+            my $choice_0_origin = $bocage->_marpa_b_or_node_origin($choice_0->[$child_ix]);
+            for my $choice_ix ( 1 .. $last_choice_ix ) {
+                my $child           = $choices->[$choice_ix]->[$child_ix];
+                my $choice_n_origin;
+                if (not ref $child) {
+                    $choice_n_origin = $bocage->_marpa_b_or_node_origin($child);
+                } else {
+                    my (undef, $and_node_id ) = @{$child};
+                    die("Not yet implemented");
+                    $choice_n_origin = $bocage->_marpa_b_or_node_origin($child);
+                }
+                return if $choice_0_origin != $choice_n_origin;
+            }
+        } ## end for my $child_ix ( 1 .. $choice_0_last_child_ix )
+    } ## end if ( $last_choice_ix > 0 )
+
+    for my $choice (@{$choices}) {
+         CHILD: for my $child (@{$choice}) {
+	     next CHILD if ref $child;
+	     asf_ambiguities($slr, $child, $data);
+	 }
+    }
+}
+
+# Return a list of ambiguous checkpoint ID's.
+# Once an ambiguity is found, its subtree is not explored further.
+sub Marpa::R2::Scanless::R::asf_ambiguities {
+    my ( $slr, $asf, @arg_hashes ) = @_;
+    my %data = ();
+    my $is_node_ambiguous = $data{is_node_ambiguous} = [];
+    $data{was_node_seen} = [];
+    asf_ambiguities($slr, $asf, \%data);
+    return [ grep { $is_node_ambiguous->[$_] } 0 .. $#{$is_node_ambiguous} ];
+}
+
 sub Marpa::R2::Scanless::R::choicepoint_literal {
     my ( $slr, $choicepoint ) = @_;
     my $recce  = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
