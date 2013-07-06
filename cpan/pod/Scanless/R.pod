@@ -940,7 +940,7 @@ name: SLIF trace example
 partial: 1
 normalize-whitespace: 1
 
-       my ($start, $length) = $re->pause_span();
+       my ($start, $span_length) = $re->pause_span();
        my ($line, $column) = $re->line_column($start);
 
 =for Marpa::R2::Display::End
@@ -1003,7 +1003,7 @@ name: SLIF trace example
 partial: 1
 normalize-whitespace: 1
 
-   my $literal_string = $re->literal($start, $length);
+   my $literal_string = $re->literal($start, $span_length);
 
 =for Marpa::R2::Display::End
 
