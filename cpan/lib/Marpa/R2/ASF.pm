@@ -299,16 +299,44 @@ sub Marpa::R2::Scanless::R::choices {
     return choices( $recce, $choicepoint );
 }
 
+sub token_es_span {
+    my ( $slr, $and_node_id ) = @_;
+    my $recce     = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+    my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
+    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
+    my $bocage    = $recce->[Marpa::R2::Internal::Recognizer::B_C];
+    my $predecessor_id = $bocage->_marpa_b_and_node_predecessor($and_node_id);
+    my $parent_or_node_id = $bocage->_marpa_b_and_node_parent($and_node_id);
+    my ( $origin_es, $current_es ) = or_node_es_span($parent_or_node_id);
+    if ($predecessor_id) {
+        $origin_es = $bocage->_marpa_b_or_node_set($predecessor_id);
+    }
+    return $origin_es, $current_es - $origin_es;
+} ## end sub token_es_span
+
+sub or_child_current_set {
+    my ( $slr, $or_child, $data ) = @_;
+    my $recce   = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+    my $bocage  = $recce->[Marpa::R2::Internal::Recognizer::B_C];
+    if (ref $or_child) {
+        # switch the parent in for the or-node
+        my (undef, $and_node_id) = @{$or_child};
+        $or_child = $bocage->_marpa_b_and_node_parent($and_node_id);
+    }
+    return $bocage->_marpa_b_or_node_set($or_child);
+}
+
 sub asf_ambiguities {
     my ( $slr, $choicepoint_id, $data ) = @_;
     my $was_node_seen = $data->{was_node_seen};
     return if $was_node_seen->[$choicepoint_id];
     $was_node_seen->[$choicepoint_id] = 1;
-    my $recce     = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
-    my $bocage    = $recce->[Marpa::R2::Internal::Recognizer::B_C];
+    my $recce   = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+    my $bocage  = $recce->[Marpa::R2::Internal::Recognizer::B_C];
     my $choices = $slr->choices($choicepoint_id);
     my $is_node_ambiguous = $data->{is_node_ambiguous};
-    my $last_choice_ix = $#{$choices};
+    my $last_choice_ix    = $#{$choices};
+
     if ( $last_choice_ix > 0 ) {
         my $choice_0 = $choices->[0];
         $is_node_ambiguous->[$choicepoint_id] = 1;
@@ -320,31 +348,26 @@ sub asf_ambiguities {
         }
 
         # If here, all choices have the same child count
-        # For every medial (that is, non-initial) origin ...
+        # For every medial location (that is, current child location,
+        # except for # the last child).
         for my $child_ix ( 1 .. $choice_0_last_child_ix ) {
-            my $choice_0_origin = $bocage->_marpa_b_or_node_origin($choice_0->[$child_ix]);
+            die("Not yet implemented");
+            my $choice_0_medial =
+                or_child_current_set( $choice_0->[$child_ix] );
             for my $choice_ix ( 1 .. $last_choice_ix ) {
-                my $child           = $choices->[$choice_ix]->[$child_ix];
-                my $choice_n_origin;
-                if (not ref $child) {
-                    $choice_n_origin = $bocage->_marpa_b_or_node_origin($child);
-                } else {
-                    my (undef, $and_node_id ) = @{$child};
-                    die("Not yet implemented");
-                    $choice_n_origin = $bocage->_marpa_b_or_node_origin($child);
-                }
-                return if $choice_0_origin != $choice_n_origin;
+                my $child = $choices->[$choice_ix]->[$child_ix];
+                return if $choice_0_medial != or_child_current_set($child);
             }
         } ## end for my $child_ix ( 1 .. $choice_0_last_child_ix )
     } ## end if ( $last_choice_ix > 0 )
 
-    for my $choice (@{$choices}) {
-         CHILD: for my $child (@{$choice}) {
-	     next CHILD if ref $child;
-	     asf_ambiguities($slr, $child, $data);
-	 }
-    }
-}
+    for my $choice ( @{$choices} ) {
+        CHILD: for my $child ( @{$choice} ) {
+            next CHILD if ref $child;
+            asf_ambiguities( $slr, $child, $data );
+        }
+    } ## end for my $choice ( @{$choices} )
+} ## end sub asf_ambiguities
 
 # Return a list of ambiguous checkpoint ID's.
 # Once an ambiguity is found, its subtree is not explored further.
@@ -357,13 +380,18 @@ sub Marpa::R2::Scanless::R::asf_ambiguities {
     return [ grep { $is_node_ambiguous->[$_] } 0 .. $#{$is_node_ambiguous} ];
 }
 
-sub Marpa::R2::Scanless::R::choicepoint_literal {
+sub Marpa::R2::Scanless::R::or_node_es_span {
     my ( $slr, $choicepoint ) = @_;
     my $recce  = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
     my $bocage = $recce->[Marpa::R2::Internal::Recognizer::B_C];
     my $origin_es = $bocage->_marpa_b_or_node_origin($choicepoint);
     my $current_es = $bocage->_marpa_b_or_node_set($choicepoint);
-    return $slr->substring($origin_es, $current_es - $origin_es);
+    return $origin_es, $current_es - $origin_es;
+}
+
+sub Marpa::R2::Scanless::R::choicepoint_literal {
+    my ( $slr, $choicepoint ) = @_;
+    return $slr->substring($slr->or_node_es_span($choicepoint));
 } ## end sub Marpa::R2::Scanless::R::choicepoint_literal
 
 sub Marpa::R2::Scanless::R::choicepoint_rule {
