@@ -213,13 +213,16 @@ sub bless_asf {
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
     my $bocage    = $recce->[Marpa::R2::Internal::Recognizer::B_C];
     if ( $tag == -1 ) {
-        my (undef, $and_node_id)        = @{$asf};
-        my $token_isy_id = $bocage->_marpa_b_and_node_symbol($and_node_id);
-        my $token_id     = $grammar_c->_marpa_g_source_xsy($token_isy_id);
-        my $token_name = $grammar->symbol_name($token_id);
+        my ( undef, $and_node_id ) = @{$asf};
+        my $token_isy_id    = $bocage->_marpa_b_and_node_symbol($and_node_id);
+        my $token_id        = $grammar_c->_marpa_g_source_xsy($token_isy_id);
+        my $token_name      = $grammar->symbol_name($token_id);
         my $symbol_blessing = $data->{symbol_blessings}->[$token_id];
-        return bless [ -1, "Token: $token_name", $and_node_id ], $symbol_blessing;
-    }
+        return bless [
+            -1,           "Token: $token_name",
+            $and_node_id, $slr->token_literal($and_node_id)
+        ], $symbol_blessing;
+    } ## end if ( $tag == -1 )
     if ( $tag >= 0 ) {
         my ( $checkpoint_id, @children ) = @{$asf};
         my $blessed_node = $data->{blessed_nodes}->[$checkpoint_id];
@@ -307,11 +310,12 @@ sub token_es_span {
     my $bocage    = $recce->[Marpa::R2::Internal::Recognizer::B_C];
     my $predecessor_id = $bocage->_marpa_b_and_node_predecessor($and_node_id);
     my $parent_or_node_id = $bocage->_marpa_b_and_node_parent($and_node_id);
-    my ( $origin_es, $current_es ) = or_node_es_span($parent_or_node_id);
     if ($predecessor_id) {
-        $origin_es = $bocage->_marpa_b_or_node_set($predecessor_id);
-    }
-    return $origin_es, $current_es - $origin_es;
+        my $origin_es  = $bocage->_marpa_b_or_node_set($predecessor_id);
+        my $current_es = $bocage->_marpa_b_or_node_set($parent_or_node_id);
+        return ( $origin_es, $current_es - $origin_es );
+    } ## end if ($predecessor_id)
+    return or_node_es_span( $slr, $parent_or_node_id );
 } ## end sub token_es_span
 
 sub or_child_current_set {
@@ -380,18 +384,25 @@ sub Marpa::R2::Scanless::R::asf_ambiguities {
     return [ grep { $is_node_ambiguous->[$_] } 0 .. $#{$is_node_ambiguous} ];
 }
 
-sub Marpa::R2::Scanless::R::or_node_es_span {
+sub or_node_es_span {
     my ( $slr, $choicepoint ) = @_;
-    my $recce  = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
-    my $bocage = $recce->[Marpa::R2::Internal::Recognizer::B_C];
-    my $origin_es = $bocage->_marpa_b_or_node_origin($choicepoint);
+    my $recce      = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+    my $bocage     = $recce->[Marpa::R2::Internal::Recognizer::B_C];
+    my $origin_es  = $bocage->_marpa_b_or_node_origin($choicepoint);
     my $current_es = $bocage->_marpa_b_or_node_set($choicepoint);
     return $origin_es, $current_es - $origin_es;
-}
+} ## end sub or_node_es_span
 
 sub Marpa::R2::Scanless::R::choicepoint_literal {
     my ( $slr, $choicepoint ) = @_;
-    return $slr->substring($slr->or_node_es_span($choicepoint));
+    return $slr->substring(or_node_es_span($slr, $choicepoint));
+} ## end sub Marpa::R2::Scanless::R::choicepoint_literal
+
+sub Marpa::R2::Scanless::R::token_literal {
+    my ( $slr, $token_id ) = @_;
+    my ($start, $length) = token_es_span($slr, $token_id);
+    return '' if $length == 0;
+    return $slr->substring($start, $length);
 } ## end sub Marpa::R2::Scanless::R::choicepoint_literal
 
 sub Marpa::R2::Scanless::R::choicepoint_rule {

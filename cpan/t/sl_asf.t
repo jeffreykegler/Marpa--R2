@@ -65,7 +65,7 @@ my $expected_blessed_asf = bless(
                                                 'Rule 4: singleton -> [Lex-0]',
                                                 bless(
                                                     [   -1, 'Token: [Lex-0]',
-                                                        0
+                                                        0, 'a'
                                                     ],
                                                     'My_ASF::_Lex_0_'
                                                 )
@@ -83,7 +83,7 @@ my $expected_blessed_asf = bless(
                                                 'Rule 4: singleton -> [Lex-0]',
                                                 bless(
                                                     [   -1, 'Token: [Lex-0]',
-                                                        5
+                                                        5, 'a'
                                                     ],
                                                     'My_ASF::_Lex_0_'
                                                 )
@@ -113,7 +113,7 @@ my $expected_blessed_asf = bless(
                                     [   0,
                                         'Rule 4: singleton -> [Lex-0]',
                                         bless(
-                                            [ -1, 'Token: [Lex-0]', 0 ],
+                                            [ -1, 'Token: [Lex-0]', 0, 'a' ],
                                             'My_ASF::_Lex_0_'
                                         )
                                     ],
@@ -129,7 +129,7 @@ my $expected_blessed_asf = bless(
                     [   5,
                         'Rule 4: singleton -> [Lex-0]',
                         bless(
-                            [ -1, 'Token: [Lex-0]', 5 ],
+                            [ -1, 'Token: [Lex-0]', 5, 'a' ],
                             'My_ASF::_Lex_0_'
                         )
                     ],
@@ -140,7 +140,7 @@ my $expected_blessed_asf = bless(
         )
     ],
     'MyASF::choix'
-    );
+);
 
 my $slr = Marpa::R2::Scanless::R->new( { grammar => $slg } );
 my ( $parse_value, $parse_status );
@@ -159,7 +159,8 @@ if ( not defined $asf_ref ) {
 my $actual_asf = ${$asf_ref};
 
 my $actual_blessed_asf =
-    $slr->bless_asf( $actual_asf, { choice => 'My_ASF::choix', force => 'My_ASF' } );
+    $slr->bless_asf( $actual_asf,
+    { choice => 'My_ASF::choix', force => 'My_ASF' } );
 
 # $Data::Dumper::Purity = 1;
 # $Data::Dumper::Terse = 1;
