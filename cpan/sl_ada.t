@@ -229,53 +229,57 @@ LEXEME: while ( 1 ) {
 } ## end LEXEME: while ( pos $quotation < $quote_length )
 
 if (1) {
-    my $asf_ref = $slr->raw_asf();
+    my $asf = Marpa::R2::Scanless::ASF->new(
+        { slr => $slr, choice => 'My_ASF::choix', force => 'My_ASF' } );
+    my $asf_ref = $asf->raw();
     die "No parse" if not defined $asf_ref;
-    my $asf = ${$asf_ref};
-    my $blessed_asf = $slr->bless_asf( $asf, {choice => 'My_ASF::choix', force => 'My_ASF'} );
+    my $raw_forest = ${$asf_ref};
+    my $blessed_asf = $asf->bless( $raw_forest );
+
     # say STDERR Data::Dumper::Dumper($blessed_asf);
-    my $pruned_asf = prune_asf($slr, $blessed_asf );
+    my $pruned_asf = prune_asf( $asf, $blessed_asf );
+
     # $Data::Dumper::Maxdepth = 5;
     say STDERR Data::Dumper::Dumper($pruned_asf);
     exit 0;
-}
+} ## end if (1)
 
 sub prune_asf {
-    my ( $slr, $asf, $data ) = @_;
+    my ( $asf, $tree, $data ) = @_;
     $data //= { ambiguity_shown => 0 };
-    my $tag       = $asf->[0];
+    my $tag       = $tree->[0];
     my $recce     = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
     my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
     my $bocage    = $recce->[Marpa::R2::Internal::Recognizer::B_C];
-    return $asf if $tag == -1;    # Return token as is
+    return $tree if $tag == -1;    # Return token as is
     if ( $tag >= 0 ) {
 
         # Return trivial choice as is, but recurse
-        my ( $choicepoint_id, $desc, @children ) = @{$asf};
-        my $type = ref $asf;
+        my ( $choicepoint_id, $desc, @children ) = @{$tree};
+        my $type = ref $tree;
         return bless [
             $choicepoint_id,
             $desc,
-            $slr->choicepoint_literal($choicepoint_id),
-            map { prune_asf( $slr, $_, $data ) } @children
+            $asf->choicepoint_literal($choicepoint_id),
+            map { prune_asf( $asf, $_, $data ) } @children
             ],
             $type;
     } ## end if ( $tag >= 0 )
     if ( $tag == -2 ) {
 
-        show_ambiguity( $slr, $asf, $data ) if not $data->{ambiguity_shown};
+        show_ambiguity( $asf, $tree, $data ) if not $data->{ambiguity_shown};
         $data->{ambiguity_shown} = 1;
         # Pick one of multiple choice
         # and recurse
-        my ( $tag, $choicepoint_id, $desc, @choices ) = @{$asf};
+        my ( $tag, $choicepoint_id, $desc, @choices ) = @{$tree};
         my $choice = $choices[-1];
         my $type   = ref $choice;
         return bless [
             $choicepoint_id,
             $desc,
-            $slr->choicepoint_literal($choicepoint_id),
-            map { prune_asf( $slr, $_, $data ) } @{$choice}
+            $asf->choicepoint_literal($choicepoint_id),
+            map { prune_asf( $asf, $_, $data ) } @{$choice}
             ],
             $type;
     } ## end if ( $tag == -2 )
