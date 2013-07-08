@@ -240,7 +240,9 @@ if (1) {
     say "Ambiguities: ", join " ", @{$ambiguities};
     for my $ambiguity (@{$ambiguities}) {
         say "=== Ambiguous choicepoint: $ambiguity ===";
-            say $asf->choicepoint_literal($ambiguity),
+            say $asf->choicepoint_literal($ambiguity);
+            say "---";
+            show_ambiguity( $asf, $ambiguity );
     }
     say "=========";
     exit 0;
@@ -275,11 +277,11 @@ sub prune_asf {
     } ## end if ( $tag >= 0 )
     if ( $tag == -2 ) {
 
-        show_ambiguity( $asf, $tree, $data ) if not $data->{ambiguity_shown};
+        my ( $tag, $choicepoint_id, $desc, @choices ) = @{$tree};
+        show_ambiguity( $asf, $choicepoint_id ) if not $data->{ambiguity_shown};
         $data->{ambiguity_shown} = 1;
         # Pick one of multiple choice
         # and recurse
-        my ( $tag, $choicepoint_id, $desc, @choices ) = @{$tree};
         my $choice = $choices[-1];
         my $type   = ref $choice;
         return bless [
@@ -294,24 +296,27 @@ sub prune_asf {
 } ## end sub prune_asf
 
 sub show_ambiguity {
-    my ( $slr, $asf, $data ) = @_;
-    my ( $tag, $choicepoint_id, $desc ) = @{$asf};
-    my $choices = $slr->choices( $choicepoint_id );
-    say STDERR "=== ", (scalar @{$choices}), " choices for this text ===";
-    say STDERR $slr->choicepoint_literal($choicepoint_id),
-    say STDERR "=== END OF TEXT ===";
-    # say STDERR Data::Dumper::Dumper( $slr->choices( $choicepoint_id ) );
+    my ( $asf, $choicepoint_id ) = @_;
+    my $choices = $asf->choices( $choicepoint_id );
+    say "=== ", (scalar @{$choices}), " choices for this text ===";
+    say $asf->choicepoint_literal($choicepoint_id),
+    say "=== END OF TEXT ===";
+    # say Data::Dumper::Dumper( $asf->choices( $choicepoint_id ) );
     for my $choice_ix (0 .. $#{$choices}) {
         my $choice = $choices->[$choice_ix] ;
-        say STDERR "=== CHOICE $choice_ix ===";
-        for my $child_ix (0 .. $#{$choice}) {
+        say "=== CHOICE $choice_ix ===";
+        CHILD: for my $child_ix (0 .. $#{$choice}) {
             my $child = $choice->[$child_ix];
-            my $rule_id = $slr->choicepoint_rule($child);
-            say STDERR "  === CHILD $child_ix, Rule ", $slr->brief_rule($rule_id), " ===";
-            say STDERR $slr->choicepoint_literal($child),
+            if (ref $child) {
+                say "  === TOKEN CHILD ", Data::Dumper::Dumper($child);
+                next CHILD;
+            }
+            my $rule_id = $asf->choicepoint_rule($child);
+            say "  === CHILD $child_ix, Rule ", $asf->brief_rule($rule_id), " ===";
+            say $asf->choicepoint_literal($child),
         }
     }
-    say STDERR "=== END OF CHOICES ===";
+    say "=== END OF CHOICES ===";
 }
 
 exit 0;
