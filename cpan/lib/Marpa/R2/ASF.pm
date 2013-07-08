@@ -171,6 +171,7 @@ sub Marpa::R2::Scanless::ASF::new {
 
     my $choice_blessing = 'My_ASF::choice';
     my $force;
+    my $default_blessing;
     my $slr;
 
     for my $args (@arg_hashes) {
@@ -183,6 +184,9 @@ sub Marpa::R2::Scanless::ASF::new {
         if ( defined( my $value = $args->{force} ) ) {
             $force = $value;
         }
+        if ( defined( my $value = $args->{default} ) ) {
+            $default_blessing = $value;
+        }
     } ## end for my $args (@arg_hashes)
 
     Marpa::R2::exception(
@@ -191,8 +195,9 @@ sub Marpa::R2::Scanless::ASF::new {
     $asf->[Marpa::R2::Internal::Scanless::ASF::SLR] = $slr;
 
     Marpa::R2::exception(
-        q{The "force" named argument must be specified with the Marpa::R2::Scanless::ASF::new method}
-    ) if not defined $force;
+        q{The "force" or "default" named argument must be specified },
+        {with the Marpa::R2::Scanless::ASF::new method}
+    ) if not defined $force and not defined $default_blessing;
 
     my $slg       = $slr->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
     my $thin_slr  = $slr->[Marpa::R2::Inner::Scanless::R::C];
@@ -222,22 +227,56 @@ sub Marpa::R2::Scanless::ASF::new {
         die "No parse" if not defined $bocage;
     } ## end if ( not $bocage )
 
+    my $rule_resolutions =
+        $recce->[Marpa::R2::Internal::Recognizer::RULE_RESOLUTIONS]
+        // Marpa::R2::Internal::Recognizer::semantics_set( $recce,
+        Marpa::R2::Internal::Recognizer::default_semantics($recce) );
+
+    my $default_blessing_by_rule_id   = $rule_resolutions->{blessing};
+    my $default_blessing_by_lexeme_id = $rule_resolutions->{blessing_by_lexeme};
+
     my @rule_blessing   = ();
     my $highest_rule_id = $grammar_c->highest_rule_id();
-    for ( my $rule_id = 0; $rule_id <= $highest_rule_id; $rule_id++ ) {
+    RULE: for ( my $rule_id = 0; $rule_id <= $highest_rule_id; $rule_id++ ) {
         my $lhs_id = $grammar_c->rule_lhs($rule_id);
         my $name   = Marpa::R2::Grammar::original_symbol_name(
             $grammar->symbol_name($lhs_id) );
-        $rule_blessing[$rule_id] = join q{::}, $force,
+        if ( defined $force ) {
+            $rule_blessing[$rule_id] = join q{::}, $force,
+                normalize_asf_blessing($name);
+            next RULE;
+        }
+        if (defined(
+                my $blessing = $default_blessing_by_rule_id->[$rule_id]
+            )
+            )
+        {
+            $rule_blessing[$rule_id] = $blessing;
+            next RULE;
+        } ## end if ( defined( my $blessing = $default_blessing_by_rule_id...))
+        $rule_blessing[$rule_id] = join q{::}, $default_blessing,
             normalize_asf_blessing($name);
-    } ## end for ( my $rule_id = 0; $rule_id <= $highest_rule_id; ...)
+    } ## end RULE: for ( my $rule_id = 0; $rule_id <= $highest_rule_id; ...)
     my @symbol_blessing   = ();
     my $highest_symbol_id = $grammar_c->highest_symbol_id();
-    for ( my $symbol_id = 0; $symbol_id <= $highest_symbol_id; $symbol_id++ )
+    SYMBOL: for ( my $symbol_id = 0; $symbol_id <= $highest_symbol_id; $symbol_id++ )
     {
         my $name = Marpa::R2::Grammar::original_symbol_name(
             $grammar->symbol_name($symbol_id) );
-        $symbol_blessing[$symbol_id] = join q{::}, $force,
+        if ( defined $force ) {
+            $symbol_blessing[$symbol_id] = join q{::}, $force,
+                normalize_asf_blessing($name);
+            next SYMBOL;
+        }
+        if (defined(
+                my $blessing = $default_blessing_by_lexeme_id->[$symbol_id]
+            )
+            )
+        {
+            $symbol_blessing[$symbol_id] = $blessing;
+            next SYMBOL;
+        } ## end if ( defined( my $blessing = $default_blessing_by_lexeme_id...))
+        $symbol_blessing[$symbol_id] = join q{::}, $default_blessing,
             normalize_asf_blessing($name);
     } ## end for ( my $symbol_id = 0; $symbol_id <= $highest_symbol_id...)
     $asf->[Marpa::R2::Internal::Scanless::ASF::RULE_BLESSING] =
