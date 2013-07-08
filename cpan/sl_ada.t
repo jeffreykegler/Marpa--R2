@@ -77,7 +77,7 @@ NP ::= NP PP
 NP ::= NP SBAR
 NP ::= NP colon NP comma rank => 1
 NP ::= NP comma CC NP
-NP ::= NP comma CONJP NP
+NP ::= NP comma CONJP NP bless => cherry1
 NP ::= NP comma SBAR
 NP ::= NP comma SBAR comma
 NP ::= PRP
@@ -230,7 +230,7 @@ LEXEME: while ( 1 ) {
 
 if (1) {
     my $asf = Marpa::R2::Scanless::ASF->new(
-        { slr => $slr, choice => 'My_ASF::choix', force => 'My_ASF' } );
+        { slr => $slr, choice => 'My_ASF::choix', default => 'My_ASF' } );
     my $asf_ref = $asf->raw();
     die "No parse" if not defined $asf_ref;
     my $raw_forest = ${$asf_ref};
