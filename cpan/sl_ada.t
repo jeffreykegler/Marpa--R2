@@ -77,7 +77,7 @@ NP ::= NP PP
 NP ::= NP SBAR
 NP ::= NP colon NP comma rank => 1
 NP ::= NP comma CC NP
-NP ::= NP comma CONJP NP bless => cherry1
+NP ::= NP comma CONJP NP
 NP ::= NP comma SBAR
 NP ::= NP comma SBAR comma
 NP ::= PRP
