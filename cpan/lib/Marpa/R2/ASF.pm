@@ -43,6 +43,7 @@ BEGIN {
     CHOICE_BLESSING
     RULE_BLESSING
     SYMBOL_BLESSING
+    CHOICEPOINT_IS_FACTORED
 
 END_OF_STRUCTURE
     Marpa::R2::offset($structure);
@@ -438,11 +439,56 @@ sub or_child_current_set {
     return $bocage->_marpa_b_or_node_set($or_child);
 } ## end sub or_child_current_set
 
+sub is_factored {
+    my ( $asf, $choicepoint_id ) = @_;
+
+    # Initially, guess that node is factored
+    my $is_factored_by_choicepoint =
+        $asf->[Marpa::R2::Internal::Scanless::ASF::CHOICEPOINT_IS_FACTORED];
+    if (defined(
+            my $is_factored = $is_factored_by_choicepoint->[$choicepoint_id]
+        )
+        )
+    {
+        return $is_factored;
+    } ## end if ( defined( my $is_factored = $is_factored_by_choicepoint...))
+
+    my $choices = $asf->choices($choicepoint_id);
+    return $is_factored_by_choicepoint->[$choicepoint_id] = 0
+        if scalar @{$choices} <= 1;
+
+    my $choice_0               = $choices->[0];
+    my $choice_0_last_child_ix = $#{$choice_0};
+
+    # At this point, default to factored
+    $is_factored_by_choicepoint->[$choicepoint_id] = 1;
+    for my $choice_ix ( 1 .. $#{$choices} ) {
+        my $choice                 = $choices->[$choice_ix];
+        my $choice_n_last_child_ix = $#{$choice};
+        return 1 if $choice_0_last_child_ix != $choice_n_last_child_ix;
+    }
+
+    # If here, all choices have the same child count
+    # For every medial location (that is, current child location,
+    # except for # the last child).
+    for my $child_ix ( 1 .. $choice_0_last_child_ix ) {
+        my $choice_0_medial =
+            or_child_current_set( $asf, $choice_0->[$child_ix] );
+        for my $choice_ix ( 1 .. $#{$choices} ) {
+            my $child = $choices->[$choice_ix]->[$child_ix];
+            return 1
+                if $choice_0_medial != or_child_current_set( $asf, $child );
+        }
+    } ## end for my $child_ix ( 1 .. $choice_0_last_child_ix )
+
+    # No factoring found, so reverse the default
+    return $is_factored_by_choicepoint->[$choicepoint_id] = 0;
+} ## end sub is_factored
+
 sub ambiguities {
     my ( $asf, $choicepoint_id, $data ) = @_;
-    my $slr   = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
-    my $was_node_seen = $data->{was_node_seen};
-    my $is_node_factored = $data->{is_node_factored};
+    my $slr              = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
+    my $was_node_seen    = $data->{was_node_seen};
     return if $was_node_seen->[$choicepoint_id];
     $was_node_seen->[$choicepoint_id] = 1;
     my $recce   = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
@@ -452,48 +498,34 @@ sub ambiguities {
     my $last_choice_ix    = $#{$choices};
 
     if ( $last_choice_ix > 0 ) {
-        my $choice_0 = $choices->[0];
         $is_node_ambiguous->[$choicepoint_id] = 1;
-        $is_node_factored->[$choicepoint_id] = 1;
+        return if is_factored( $asf, $choicepoint_id );
+        my $choice_0 = $choices->[0];
+
         # Initially, guess that node is factored
-        my $choice_0_last_child_ix = $#{$choice_0};
-        for my $choice_ix ( 1 .. $last_choice_ix ) {
-            my $choice                 = $choices->[$choice_ix];
-            my $choice_n_last_child_ix = $#{$choice};
-            return if $choice_0_last_child_ix != $choice_n_last_child_ix;
-        }
 
-        # If here, all choices have the same child count
-        # For every medial location (that is, current child location,
-        # except for # the last child).
-        for my $child_ix ( 1 .. $choice_0_last_child_ix ) {
-            my $choice_0_medial =
-                or_child_current_set( $asf, $choice_0->[$child_ix] );
-            for my $choice_ix ( 1 .. $last_choice_ix ) {
-                my $child = $choices->[$choice_ix]->[$child_ix];
-                return if $choice_0_medial != or_child_current_set($asf, $child);
-            }
-        } ## end for my $child_ix ( 1 .. $choice_0_last_child_ix )
-
-        # If here, we might be ambiguous but we are
+        # If here, we are ambiguous but
         # not factored
         # Recurse through any children identical in all factors
-        CHILD: for my $child_ix ( 1 .. $choice_0_last_child_ix ) {
+        CHILD: for my $child_ix ( 1 .. $#{$choice_0} ) {
             my $choice_0_child = $choice_0->[$child_ix];
+
             # If it's a token, don't recurse for this child --
             # either these children are all tokens, or else they
             # are not identical in all factors
             next CHILD if ref $choice_0_child;
             for my $choice_ix ( 1 .. $last_choice_ix ) {
                 my $child = $choices->[$choice_ix]->[$child_ix];
+
                 # Not identical in all factors
                 next CHILD if $child != $choice_0_child;
-            }
-            # The choice 0 child is in all factors
-            ambiguities( $asf, $choice_0_child, $data );
-        }
+            } ## end for my $choice_ix ( 1 .. $last_choice_ix )
 
-        $is_node_factored->[$choicepoint_id] = 0;
+            # For this choice, the child is the same in all factors --
+            # recurse through it
+            ambiguities( $asf, $choice_0_child, $data );
+        } ## end CHILD: for my $child_ix ( 1 .. $choice_0_last_child_ix )
+
         return;
     } ## end if ( $last_choice_ix > 0 )
 
@@ -503,7 +535,8 @@ sub ambiguities {
             ambiguities( $asf, $child, $data );
         }
     } ## end for my $choice ( @{$choices} )
-}
+    return;
+} ## end sub ambiguities
 
 # Return a list of ambiguous checkpoint ID's.
 # Once an ambiguity is found, its subtree is not explored further.
@@ -513,7 +546,6 @@ sub Marpa::R2::Scanless::ASF::ambiguities {
     my %data              = ();
     my $is_node_ambiguous = $data{is_node_ambiguous} = [];
     $data{was_node_seen} = [];
-    $data{is_node_factored} = [];
     ambiguities( $asf, $asf->top_choicepoint(), \%data );
     return [ grep { $is_node_ambiguous->[$_] } 0 .. $#{$is_node_ambiguous} ];
 }
