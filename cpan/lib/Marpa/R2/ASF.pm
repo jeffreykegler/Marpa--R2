@@ -474,11 +474,28 @@ sub ambiguities {
                 return if $choice_0_medial != or_child_current_set($asf, $child);
             }
         } ## end for my $child_ix ( 1 .. $choice_0_last_child_ix )
-    } ## end if ( $last_choice_ix > 0 )
 
-    # If here, we might be ambiguous but we are
-    # not factored
-    $is_node_factored->[$choicepoint_id] = 0;
+        # If here, we might be ambiguous but we are
+        # not factored
+        # Recurse through any children identical in all factors
+        CHILD: for my $child_ix ( 1 .. $choice_0_last_child_ix ) {
+            my $choice_0_child = $choice_0->[$child_ix];
+            # If it's a token, don't recurse for this child --
+            # either these children are all tokens, or else they
+            # are not identical in all factors
+            next CHILD if ref $choice_0_child;
+            for my $choice_ix ( 1 .. $last_choice_ix ) {
+                my $child = $choices->[$choice_ix]->[$child_ix];
+                # Not identical in all factors
+                next CHILD if $child != $choice_0_child;
+            }
+            # The choice 0 child is in all factors
+            ambiguities( $asf, $choice_0_child, $data );
+        }
+
+        $is_node_factored->[$choicepoint_id] = 0;
+        return;
+    } ## end if ( $last_choice_ix > 0 )
 
     for my $choice ( @{$choices} ) {
         CHILD: for my $child ( @{$choice} ) {

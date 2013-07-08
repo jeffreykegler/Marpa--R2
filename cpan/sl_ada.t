@@ -236,7 +236,13 @@ if (1) {
     my $raw_forest = ${$asf_ref};
     my $blessed_asf = $asf->bless( $raw_forest );
 
-    say "Ambiguities: ", join " ", @{$asf->ambiguities()};
+    my $ambiguities =  $asf->ambiguities();
+    say "Ambiguities: ", join " ", @{$ambiguities};
+    for my $ambiguity (@{$ambiguities}) {
+        say "=== Ambiguous choicepoint: $ambiguity ===";
+            say $asf->choicepoint_literal($ambiguity),
+    }
+    say "=========";
     exit 0;
     # say STDERR Data::Dumper::Dumper($blessed_asf);
     my $pruned_asf = prune_asf( $asf, $blessed_asf );
