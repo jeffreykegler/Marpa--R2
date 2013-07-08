@@ -236,12 +236,13 @@ if (1) {
     my $raw_forest = ${$asf_ref};
     my $blessed_asf = $asf->bless( $raw_forest );
 
+    say "Ambiguities: ", join " ", @{$asf->ambiguities()};
+    exit 0;
     # say STDERR Data::Dumper::Dumper($blessed_asf);
     my $pruned_asf = prune_asf( $asf, $blessed_asf );
 
     # $Data::Dumper::Maxdepth = 5;
     say STDERR Data::Dumper::Dumper($pruned_asf);
-    exit 0;
 } ## end if (1)
 
 sub prune_asf {

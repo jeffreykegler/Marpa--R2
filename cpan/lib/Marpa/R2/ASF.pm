@@ -425,7 +425,7 @@ sub token_es_span {
 } ## end sub token_es_span
 
 sub or_child_current_set {
-    my ( $asf, $or_child, $data ) = @_;
+    my ( $asf, $or_child ) = @_;
     my $slr    = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
     my $recce  = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
     my $bocage = $recce->[Marpa::R2::Internal::Recognizer::B_C];
@@ -438,21 +438,24 @@ sub or_child_current_set {
     return $bocage->_marpa_b_or_node_set($or_child);
 } ## end sub or_child_current_set
 
-sub asf_ambiguities {
+sub ambiguities {
     my ( $asf, $choicepoint_id, $data ) = @_;
     my $slr   = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
     my $was_node_seen = $data->{was_node_seen};
+    my $is_node_factored = $data->{is_node_factored};
     return if $was_node_seen->[$choicepoint_id];
     $was_node_seen->[$choicepoint_id] = 1;
     my $recce   = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
     my $bocage  = $recce->[Marpa::R2::Internal::Recognizer::B_C];
-    my $choices = $slr->choices($choicepoint_id);
+    my $choices = $asf->choices($choicepoint_id);
     my $is_node_ambiguous = $data->{is_node_ambiguous};
     my $last_choice_ix    = $#{$choices};
 
     if ( $last_choice_ix > 0 ) {
         my $choice_0 = $choices->[0];
         $is_node_ambiguous->[$choicepoint_id] = 1;
+        $is_node_factored->[$choicepoint_id] = 1;
+        # Initially, guess that node is factored
         my $choice_0_last_child_ix = $#{$choice_0};
         for my $choice_ix ( 1 .. $last_choice_ix ) {
             my $choice                 = $choices->[$choice_ix];
@@ -464,35 +467,39 @@ sub asf_ambiguities {
         # For every medial location (that is, current child location,
         # except for # the last child).
         for my $child_ix ( 1 .. $choice_0_last_child_ix ) {
-            die("Not yet implemented");
             my $choice_0_medial =
-                or_child_current_set( $choice_0->[$child_ix] );
+                or_child_current_set( $asf, $choice_0->[$child_ix] );
             for my $choice_ix ( 1 .. $last_choice_ix ) {
                 my $child = $choices->[$choice_ix]->[$child_ix];
-                return if $choice_0_medial != or_child_current_set($child);
+                return if $choice_0_medial != or_child_current_set($asf, $child);
             }
         } ## end for my $child_ix ( 1 .. $choice_0_last_child_ix )
     } ## end if ( $last_choice_ix > 0 )
 
+    # If here, we might be ambiguous but we are
+    # not factored
+    $is_node_factored->[$choicepoint_id] = 0;
+
     for my $choice ( @{$choices} ) {
         CHILD: for my $child ( @{$choice} ) {
             next CHILD if ref $child;
-            asf_ambiguities( $slr, $child, $data );
+            ambiguities( $asf, $child, $data );
         }
     } ## end for my $choice ( @{$choices} )
-} ## end sub asf_ambiguities
+}
 
 # Return a list of ambiguous checkpoint ID's.
 # Once an ambiguity is found, its subtree is not explored further.
-sub Marpa::R2::Scanless::ASF::asf_ambiguities {
+sub Marpa::R2::Scanless::ASF::ambiguities {
     my ( $asf, $tree, @arg_hashes ) = @_;
     my $slr               = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
     my %data              = ();
     my $is_node_ambiguous = $data{is_node_ambiguous} = [];
     $data{was_node_seen} = [];
-    asf_ambiguities( $asf, $tree, \%data );
+    $data{is_node_factored} = [];
+    ambiguities( $asf, $asf->top_choicepoint(), \%data );
     return [ grep { $is_node_ambiguous->[$_] } 0 .. $#{$is_node_ambiguous} ];
-} ## end sub Marpa::R2::Scanless::ASF::asf_ambiguities
+}
 
 sub or_node_es_span {
     my ( $asf, $choicepoint ) = @_;
