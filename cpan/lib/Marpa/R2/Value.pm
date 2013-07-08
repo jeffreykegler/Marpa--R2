@@ -1394,7 +1394,7 @@ sub Marpa::R2::Recognizer::value
 
     } ## end if ($bocage)
     else {
-    # No bocage, therefor not initialized
+    # No bocage, therefore not initialized
 
         $grammar_c->throw_set(0);
         $bocage = $recce->[Marpa::R2::Internal::Recognizer::B_C] =

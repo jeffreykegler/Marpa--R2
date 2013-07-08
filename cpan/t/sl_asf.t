@@ -152,15 +152,15 @@ if ( not defined eval { $slr->read( \'aa' ); 1 } ) {
     $abbreviated_error =~ s/^Error \s+ in \s+ string_read: \s+ //xms;
     return 'No parse', $abbreviated_error;
 } ## end if ( not defined eval { $slr->read( \'aa' ); 1 } )
-my $asf_ref = $slr->raw_asf();
+my $asf = Marpa::R2::Scanless::ASF->new(
+    { slr => $slr, choice => 'My_ASF::choix', force => 'My_ASF' } );
+my $asf_ref = $asf->raw();
 if ( not defined $asf_ref ) {
     return 'No parse', 'Input read to end but no parse';
 }
 my $actual_asf = ${$asf_ref};
 
-my $actual_blessed_asf =
-    $slr->bless_asf( $actual_asf,
-    { choice => 'My_ASF::choix', force => 'My_ASF' } );
+my $actual_blessed_asf = $asf->bless($actual_asf);
 
 # $Data::Dumper::Purity = 1;
 # $Data::Dumper::Terse = 1;

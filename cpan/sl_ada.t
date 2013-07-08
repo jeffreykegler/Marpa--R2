@@ -235,7 +235,7 @@ if (1) {
     my $blessed_asf = $slr->bless_asf( $asf, {choice => 'My_ASF::choix', force => 'My_ASF'} );
     # say STDERR Data::Dumper::Dumper($blessed_asf);
     my $pruned_asf = prune_asf($slr, $blessed_asf );
-    $Data::Dumper::Maxdepth = 5;
+    # $Data::Dumper::Maxdepth = 5;
     say STDERR Data::Dumper::Dumper($pruned_asf);
     exit 0;
 }
