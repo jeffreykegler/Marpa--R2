@@ -1,0 +1,34 @@
+Ambiguities: 1093 1091
+=== 5 SYMBOLIC CHOICES for this text ===
+Those who view mathematical science,
+not merely as a vast body of abstract and immutable truths,
+whose intrinsic beauty,
+symmetry and logical completeness,
+when regarded in their connexion together as a whole,
+entitle them to a prominent place in the interest of all profound
+and logical minds,
+but as possessing a yet deeper interest for the human race,
+when it is remembered that this science constitutes the language
+through which alone we can adequately express the great facts of
+the natural world,
+and those unceasing changes of mutual relationship which,
+visibly or invisibly,
+consciously or unconsciously to our immediate physical perceptions,
+are interminably going on in the agencies of the creation we live amidst:
+those who thus think on mathematical truth as the instrument through
+which the weak mind of man can most effectually read his Creator's
+works,
+=== END OF TEXT ===
+  === RULE: 32: NP -> NP comma SBAR
+  === RULE: 30: NP -> NP comma CC NP
+  === RULE: 27: NP -> NP PP
+  === RULE: 28: NP -> NP SBAR
+  === RULE: 29: NP -> NP colon NP comma
+=== END OF SYMBOLIC CHOICES ===
+=== 2 SYMBOLIC CHOICES for this text ===
+all that can tend to facilitate
+the translation of its principles into explicit practical forms
+=== END OF TEXT ===
+  === RULE: 28: NP -> NP SBAR
+  === RULE: 27: NP -> NP PP
+=== END OF SYMBOLIC CHOICES ===
