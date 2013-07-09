@@ -291,26 +291,31 @@ sub prune_asf {
     die "Unknown tag in prune_asf: $tag";
 } ## end sub prune_asf
 
+sub show_ambiguity_instance {
+    my ( $asf, $child ) = @_;
+    if ( ref $child ) {
+        say "  === TOKEN ", Data::Dumper::Dumper($child);
+        return;
+    }
+    my $rule_id = $asf->choicepoint_rule($child);
+    say "  === RULE: ", $asf->brief_rule($rule_id);
+    return;
+} ## end sub show_ambiguity_instance
+
 sub show_ambiguity {
     my ( $asf, $choicepoint_id ) = @_;
     my $choices = $asf->choices( $choicepoint_id );
     if ( !$asf->is_factored($choicepoint_id) ) {
-        my $rule_id = $asf->choicepoint_rule($choicepoint_id);
+        my $rule_id        = $asf->choicepoint_rule($choicepoint_id);
         my $choices_by_rhs = $asf->choices_by_rhs($choicepoint_id);
         for my $rhs_choice_ix ( 0 .. $#{$choices_by_rhs} ) {
             my $rhs_choices = $choices_by_rhs->[$rhs_choice_ix];
             next if $#{$rhs_choices} <= 0;
-            say "=== ", (scalar @{$choices}), " symbolic choices for this text ===";
-            say $asf->child_literal($rhs_choices->[0]);
+            say "=== ", ( scalar @{$choices} ),
+                " symbolic choices for this text ===";
+            say $asf->child_literal( $rhs_choices->[0] );
             say "=== END OF TEXT ===";
-            CHILD: for my $child ( @{$rhs_choices} ) {
-                if ( ref $child ) {
-                    say "  === TOKEN ", Data::Dumper::Dumper($child);
-                    next CHILD;
-                }
-                my $rule_id = $asf->choicepoint_rule($child);
-                say "  === RULE: ", $asf->brief_rule($rule_id);
-            } ## end CHILD: for my $child ( @{$rhs_choices} )
+            show_ambiguity_instance( $asf, $_ ) for @{$rhs_choices};
             say "=== END OF SYMBOLIC CHOICES ===";
         } ## end for my $rhs_choice_ix ( 0 .. $#{$choices_by_rhs} )
         return;

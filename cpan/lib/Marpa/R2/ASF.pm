@@ -442,7 +442,6 @@ sub or_child_current_set {
 sub Marpa::R2::Scanless::ASF::is_factored {
     my ( $asf, $choicepoint_id ) = @_;
 
-    # Initially, guess that node is factored
     my $is_factored_by_choicepoint =
         $asf->[Marpa::R2::Internal::Scanless::ASF::CHOICEPOINT_IS_FACTORED];
     if (defined(
