@@ -642,6 +642,11 @@ sub Marpa::R2::Scanless::ASF::brief_rule {
     return $grammar->brief_rule($rule_id);
 } ## end sub Marpa::R2::Scanless::ASF::brief_rule
 
+sub Marpa::R2::Scanless::ASF::brief_rule {
+    my ( $asf, $rule_id ) = @_;
+    return $asf->[Marpa::R2::Internal::Scanless::ASF::RULE_BLESSING]->[$rule_id];
+}
+
 1;
 
 # vim: expandtab shiftwidth=4:
