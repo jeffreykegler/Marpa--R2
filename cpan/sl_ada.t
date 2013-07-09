@@ -75,7 +75,7 @@ NP ::= NN
 NP ::= NN comma NN CC JJ NNS
 NP ::= NP PP
 NP ::= NP SBAR
-NP ::= NP colon NP comma rank => 1
+NP ::= NP colon NP comma bless => cherry1
 NP ::= NP comma CC NP
 NP ::= NP comma CONJP NP
 NP ::= NP comma SBAR
@@ -287,7 +287,13 @@ sub prune_asf {
 } ## end sub prune_asf
 
 sub pick_choice {
-    my ( $asf, $tree, $data ) = @_;
+    my ( $asf, $rcp ) = @_;
+    my $choices = $asf->choices( $rcp );
+    return 0 if scalar @{$choices} == 1;
+    for my $choice_ix ( 0 .. $#{$choices} ) {
+        my $choice = $choices->[$choice_ix];
+        return $choice_ix if  grep { $asf->cp_blessing($_) eq 'My_Nodes::cherry1' } @{$choice};
+    }
     return undef;
 }
 
@@ -345,7 +351,7 @@ sub show_ambiguity_instance {
         say "  === TOKEN ", Data::Dumper::Dumper($child);
         return;
     }
-    my $rule_id = $asf->choicepoint_rule($child);
+    my $rule_id = $asf->cp_rule($child);
     say "  === RULE: ", $asf->brief_rule($rule_id);
     return;
 } ## end sub show_ambiguity_instance
@@ -355,7 +361,7 @@ sub show_ambiguity {
     my @recurse_mask = ();
     my $choices = $asf->choices( $choicepoint_id );
     if ( !$asf->is_factored($choicepoint_id) ) {
-        my $rule_id        = $asf->choicepoint_rule($choicepoint_id);
+        my $rule_id        = $asf->cp_rule($choicepoint_id);
         my $choices_by_rhs = $asf->choices_by_rhs($choicepoint_id);
         CHOICE: for my $rhs_choice_ix ( 0 .. $#{$choices_by_rhs} ) {
             my $rhs_choices = $choices_by_rhs->[$rhs_choice_ix];
@@ -385,7 +391,7 @@ sub show_ambiguity {
                 say "  === TOKEN CHILD ", Data::Dumper::Dumper($child);
                 next CHILD;
             }
-            my $rule_id = $asf->choicepoint_rule($child);
+            my $rule_id = $asf->cp_rule($child);
             say "  === CHILD $child_ix, Rule ", $asf->brief_rule($rule_id), " ===";
             say $asf->choicepoint_literal($child),
         }

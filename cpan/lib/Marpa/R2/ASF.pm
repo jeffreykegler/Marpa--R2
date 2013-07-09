@@ -623,8 +623,9 @@ sub Marpa::R2::Scanless::ASF::child_literal {
     return $asf->token_literal($token_id);
 } ## end sub Marpa::R2::Scanless::ASF::child_literal
 
-sub Marpa::R2::Scanless::ASF::choicepoint_rule {
+sub Marpa::R2::Scanless::ASF::cp_rule {
     my ( $asf, $choicepoint ) = @_;
+    return undef if ref $choicepoint;
     my $slr       = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
     my $recce     = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
     my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
@@ -632,7 +633,7 @@ sub Marpa::R2::Scanless::ASF::choicepoint_rule {
     my $bocage    = $recce->[Marpa::R2::Internal::Recognizer::B_C];
     my $irl_id    = $bocage->_marpa_b_or_node_irl($choicepoint);
     return $grammar_c->_marpa_g_source_xrl($irl_id);
-} ## end Marpa::R2::Scanless::ASF::choicepoint_rule
+} ## end sub Marpa::R2::Scanless::ASF::cp_rule
 
 sub Marpa::R2::Scanless::ASF::brief_rule {
     my ( $asf, $rule_id ) = @_;
@@ -642,10 +643,24 @@ sub Marpa::R2::Scanless::ASF::brief_rule {
     return $grammar->brief_rule($rule_id);
 } ## end sub Marpa::R2::Scanless::ASF::brief_rule
 
-sub Marpa::R2::Scanless::ASF::brief_rule {
-    my ( $asf, $rule_id ) = @_;
-    return $asf->[Marpa::R2::Internal::Scanless::ASF::RULE_BLESSING]->[$rule_id];
-}
+sub Marpa::R2::Scanless::ASF::cp_blessing {
+    my ( $asf, $cp ) = @_;
+    if ( ref $cp ) {
+        my ( undef, $and_node_id ) = @{$cp};
+        my $slr       = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
+        my $recce     = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+        my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
+        my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
+        my $bocage    = $recce->[Marpa::R2::Internal::Recognizer::B_C];
+        my $token_isy_id = $bocage->_marpa_b_and_node_symbol($and_node_id);
+        my $token_id     = $grammar_c->_marpa_g_source_xsy($token_isy_id);
+        return $asf->[Marpa::R2::Internal::Scanless::ASF::SYMBOL_BLESSING]
+            ->[$token_id];
+    } ## end if ( ref $cp )
+    my $rule_id = $asf->cp_rule($cp);
+    return $asf->[Marpa::R2::Internal::Scanless::ASF::RULE_BLESSING]
+        ->[$rule_id];
+} ## end sub Marpa::R2::Scanless::ASF::cp_blessing
 
 1;
 
