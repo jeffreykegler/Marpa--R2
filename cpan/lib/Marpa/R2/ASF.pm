@@ -583,8 +583,15 @@ sub Marpa::R2::Scanless::ASF::ambiguities {
     my $is_node_ambiguous = $data{is_node_ambiguous} = [];
     $data{was_node_seen} = [];
     ambiguities( $asf, $asf->top_choicepoint(), \%data );
-    return [ grep { $is_node_ambiguous->[$_] } 0 .. $#{$is_node_ambiguous} ];
-}
+    my $recce      = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+    my $bocage     = $recce->[Marpa::R2::Internal::Recognizer::B_C];
+    my @sorted_ambiguities =
+        map  { $_->[1] }
+        sort { $a->[0] <=> $b->[0] }
+        map  { [ $bocage->_marpa_b_or_node_origin($_), $_ ] }
+        grep { $is_node_ambiguous->[$_] } 0 .. $#{$is_node_ambiguous};
+    return \@sorted_ambiguities;
+} ## end sub Marpa::R2::Scanless::ASF::ambiguities
 
 sub or_node_es_span {
     my ( $asf, $choicepoint ) = @_;
