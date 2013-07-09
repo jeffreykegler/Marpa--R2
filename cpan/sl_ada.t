@@ -228,26 +228,21 @@ LEXEME: while ( 1 ) {
     pos $quotation = (pos $quotation) + 1;
 } ## end LEXEME: while ( pos $quotation < $quote_length )
 
-if (1) {
-    my $asf = Marpa::R2::Scanless::ASF->new(
-        { slr => $slr, choice => 'My_ASF::choix', default => 'My_ASF' } );
-    my $asf_ref = $asf->raw();
-    die "No parse" if not defined $asf_ref;
-    my $raw_forest = ${$asf_ref};
-    my $blessed_asf = $asf->bless( $raw_forest );
-
-    my $ambiguities =  $asf->ambiguities();
-    say "Ambiguities: ", join " ", @{$ambiguities};
-    for my $ambiguity (@{$ambiguities}) {
-        show_ambiguity( $asf, $ambiguity );
+my $asf = Marpa::R2::Scanless::ASF->new(
+    {   slr     => $slr,
+        choice  => 'My_ASF::choix',
+        default => 'My_ASF'
     }
-    exit 0;
-    # say STDERR Data::Dumper::Dumper($blessed_asf);
-    my $pruned_asf = prune_asf( $asf, $blessed_asf );
+);
+my $asf_ref = $asf->raw();
+die "No parse" if not defined $asf_ref;
+my $raw_forest  = ${$asf_ref};
+# my $blessed_asf = $asf->bless($raw_forest);
 
-    # $Data::Dumper::Maxdepth = 5;
-    say STDERR Data::Dumper::Dumper($pruned_asf);
-} ## end if (1)
+my $ambiguities = $asf->ambiguities();
+say "Ambiguities: ", join " ", @{$ambiguities};
+
+explore_asf( $asf, $raw_forest );
 
 sub prune_asf {
     my ( $asf, $tree, $data ) = @_;
@@ -291,6 +286,59 @@ sub prune_asf {
     die "Unknown tag in prune_asf: $tag";
 } ## end sub prune_asf
 
+sub pick_choice {
+    my ( $asf, $tree, $data ) = @_;
+    return undef;
+}
+
+sub explore_asf {
+    my ( $asf, $tree, $data ) = @_;
+    $data //= { seen => [] };
+    my $seen      = $data->{seen};
+    my $tag       = $tree->[0];
+    return $tree if $tag == -1;    # Return token as is
+
+    if ( $tag >= 0 ) {
+
+        # Return trivial choice as is, but recurse
+        my ( $choicepoint_id, @children ) = @{$tree};
+        $seen->[$choicepoint_id] = 1;
+        return [
+            $choicepoint_id, map { explore_asf( $asf, $_, $data ) } @children
+        ];
+    } ## end if ( $tag >= 0 )
+    if ( $tag == -2 ) {
+
+        my ( $tag, $choicepoint_id, @choices ) = @{$tree};
+        return $tree if $seen->[$choicepoint_id] ;
+        $seen->[$choicepoint_id] = 1;
+        my $pick = pick_choice( $asf, $choicepoint_id );
+        if ( not defined $pick ) {
+            my $recurse_mask = show_ambiguity( $asf, $choicepoint_id );
+            return $tree if not defined $recurse_mask;
+            my $choice   = $choices[-1];
+            my @new_node = ($choicepoint_id);
+            CHOICE: for my $choice_ix ( 0 .. $#{$choice} ) {
+                if ( $recurse_mask->[$choice_ix] ) {
+                    push @new_node,
+                        explore_asf( $asf, $choice->[$choice_ix], $data );
+                    next CHOICE;
+                }
+                push @new_node, $choice->[$choice_ix];
+            } ## end CHOICE: for my $choice_ix ( 0 .. $#{$choice} )
+            return \@new_node;
+        } ## end if ( not defined $pick )
+
+        # Pick one of multiple choice
+        # and recurse
+        my $choice = $choices[$pick];
+        return [
+            $choicepoint_id, map { explore_asf( $asf, $_, $data ) } @{$choice}
+        ];
+    } ## end if ( $tag == -2 )
+    die "Unknown tag in explore_asf: $tag";
+} ## end sub explore_asf
+
 sub show_ambiguity_instance {
     my ( $asf, $child ) = @_;
     if ( ref $child ) {
@@ -304,13 +352,18 @@ sub show_ambiguity_instance {
 
 sub show_ambiguity {
     my ( $asf, $choicepoint_id ) = @_;
+    my @recurse_mask = ();
     my $choices = $asf->choices( $choicepoint_id );
     if ( !$asf->is_factored($choicepoint_id) ) {
         my $rule_id        = $asf->choicepoint_rule($choicepoint_id);
         my $choices_by_rhs = $asf->choices_by_rhs($choicepoint_id);
-        for my $rhs_choice_ix ( 0 .. $#{$choices_by_rhs} ) {
+        CHOICE: for my $rhs_choice_ix ( 0 .. $#{$choices_by_rhs} ) {
             my $rhs_choices = $choices_by_rhs->[$rhs_choice_ix];
-            next if $#{$rhs_choices} <= 0;
+            if ($#{$rhs_choices} <= 0) {
+                push @recurse_mask, 1;
+                next CHOICE;
+            }
+            push @recurse_mask, 0;
             say "=== ", ( scalar @{$choices} ),
                 " SYMBOLIC CHOICES for this text ===";
             say $asf->child_literal( $rhs_choices->[0] );
@@ -318,7 +371,7 @@ sub show_ambiguity {
             show_ambiguity_instance( $asf, $_ ) for @{$rhs_choices};
             say "=== END OF SYMBOLIC CHOICES ===";
         } ## end for my $rhs_choice_ix ( 0 .. $#{$choices_by_rhs} )
-        return;
+        return \@recurse_mask;
     } ## end if ( !$asf->is_factored($choicepoint_id) )
     say "=== ", (scalar @{$choices}), " factorings for this text ===";
     say $asf->choicepoint_literal($choicepoint_id),
@@ -338,9 +391,8 @@ sub show_ambiguity {
         }
     }
     say "=== END OF FACTORINGS ===";
+    return;
 }
-
-exit 0;
 
 sub setup_lexemes {
     my %lexeme_data = ();
