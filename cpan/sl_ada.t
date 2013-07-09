@@ -312,7 +312,7 @@ sub show_ambiguity {
             my $rhs_choices = $choices_by_rhs->[$rhs_choice_ix];
             next if $#{$rhs_choices} <= 0;
             say "=== ", ( scalar @{$choices} ),
-                " symbolic choices for this text ===";
+                " SYMBOLIC CHOICES for this text ===";
             say $asf->child_literal( $rhs_choices->[0] );
             say "=== END OF TEXT ===";
             show_ambiguity_instance( $asf, $_ ) for @{$rhs_choices};
