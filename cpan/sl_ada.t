@@ -239,12 +239,8 @@ if (1) {
     my $ambiguities =  $asf->ambiguities();
     say "Ambiguities: ", join " ", @{$ambiguities};
     for my $ambiguity (@{$ambiguities}) {
-        say "=== Ambiguous choicepoint: $ambiguity ===";
-            say $asf->choicepoint_literal($ambiguity);
-            say "---";
-            show_ambiguity( $asf, $ambiguity );
+        show_ambiguity( $asf, $ambiguity );
     }
-    say "=========";
     exit 0;
     # say STDERR Data::Dumper::Dumper($blessed_asf);
     my $pruned_asf = prune_asf( $asf, $blessed_asf );
@@ -298,34 +294,33 @@ sub prune_asf {
 sub show_ambiguity {
     my ( $asf, $choicepoint_id ) = @_;
     my $choices = $asf->choices( $choicepoint_id );
-    say "=== ", (scalar @{$choices}), " choices for this text ===";
-    say $asf->choicepoint_literal($choicepoint_id),
-    say "=== END OF TEXT ===";
-    # say Data::Dumper::Dumper( $asf->choices( $choicepoint_id ) );
     if ( !$asf->is_factored($choicepoint_id) ) {
         my $rule_id = $asf->choicepoint_rule($choicepoint_id);
-        say "  === RHS AMBIGUITY, Rule ", $asf->brief_rule($rule_id), " ===";
         my $choices_by_rhs = $asf->choices_by_rhs($choicepoint_id);
-        say "Choices by RHS: ", Data::Dumper::Dumper($choices_by_rhs);
         for my $rhs_choice_ix ( 0 .. $#{$choices_by_rhs} ) {
             my $rhs_choices = $choices_by_rhs->[$rhs_choice_ix];
             next if $#{$rhs_choices} <= 0;
+            say "=== ", (scalar @{$choices}), " symbolic choices for this text ===";
+            say $asf->child_literal($rhs_choices->[0]);
+            say "=== END OF TEXT ===";
             CHILD: for my $child ( @{$rhs_choices} ) {
                 if ( ref $child ) {
-                    say "  === TOKEN for RHS $rhs_choice_ix ",
-                        Data::Dumper::Dumper($child);
+                    say "  === TOKEN ", Data::Dumper::Dumper($child);
                     next CHILD;
                 }
                 my $rule_id = $asf->choicepoint_rule($child);
-                say "  === RULE for RHS $rhs_choice_ix ",
-                    $asf->brief_rule($rule_id), " ===";
+                say "  === RULE: ", $asf->brief_rule($rule_id);
             } ## end CHILD: for my $child ( @{$rhs_choices} )
+            say "=== END OF SYMBOLIC CHOICES ===";
         } ## end for my $rhs_choice_ix ( 0 .. $#{$choices_by_rhs} )
         return;
     } ## end if ( !$asf->is_factored($choicepoint_id) )
+    say "=== ", (scalar @{$choices}), " factorings for this text ===";
+    say $asf->choicepoint_literal($choicepoint_id),
+    say "=== END OF TEXT ===";
     for my $choice_ix (0 .. $#{$choices}) {
         my $choice = $choices->[$choice_ix] ;
-        say "=== CHOICE $choice_ix ===";
+        say "=== FACTORING $choice_ix ===";
         CHILD: for my $child_ix (0 .. $#{$choice}) {
             my $child = $choice->[$child_ix];
             if (ref $child) {
@@ -337,7 +332,7 @@ sub show_ambiguity {
             say $asf->choicepoint_literal($child),
         }
     }
-    say "=== END OF CHOICES ===";
+    say "=== END OF FACTORINGS ===";
 }
 
 exit 0;

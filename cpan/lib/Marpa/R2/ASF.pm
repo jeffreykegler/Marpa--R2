@@ -611,30 +611,37 @@ sub Marpa::R2::Scanless::ASF::choicepoint_literal {
 
 sub Marpa::R2::Scanless::ASF::token_literal {
     my ( $asf, $token_id ) = @_;
-    my $slr   = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
-    my ($start, $length) = token_es_span($asf, $token_id);
+    my $slr = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
+    my ( $start, $length ) = token_es_span( $asf, $token_id );
     return '' if $length == 0;
-    return $slr->substring($start, $length);
-} ## end sub Marpa::R2::Scanless::R::choicepoint_literal
+    return $slr->substring( $start, $length );
+} ## end sub Marpa::R2::Scanless::ASF::token_literal
+
+sub Marpa::R2::Scanless::ASF::child_literal {
+    my ( $asf, $child ) = @_;
+    return $asf->choicepoint_literal($child) if not ref $child;
+    my ( undef, $token_id ) = @{$child};
+    return $asf->token_literal($token_id);
+} ## end sub Marpa::R2::Scanless::ASF::child_literal
 
 sub Marpa::R2::Scanless::ASF::choicepoint_rule {
     my ( $asf, $choicepoint ) = @_;
-    my $slr   = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
+    my $slr       = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
     my $recce     = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
     my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
     my $bocage    = $recce->[Marpa::R2::Internal::Recognizer::B_C];
     my $irl_id    = $bocage->_marpa_b_or_node_irl($choicepoint);
     return $grammar_c->_marpa_g_source_xrl($irl_id);
-} ## end sub Marpa::R2::Scanless::R::choicepoint_rule
+} ## end Marpa::R2::Scanless::ASF::choicepoint_rule
 
 sub Marpa::R2::Scanless::ASF::brief_rule {
     my ( $asf, $rule_id ) = @_;
-    my $slr   = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
-    my $recce     = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
-    my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
+    my $slr     = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
+    my $recce   = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+    my $grammar = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     return $grammar->brief_rule($rule_id);
-}
+} ## end sub Marpa::R2::Scanless::ASF::brief_rule
 
 1;
 
