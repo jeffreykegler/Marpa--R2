@@ -14,7 +14,7 @@
 # General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 
-# Demo of abstract syntax forest -- An Ada Lovelace quoote
+# Demo of abstract syntax forest -- An Ada Lovelace quote
 
 use 5.010;
 use strict;
@@ -302,6 +302,27 @@ sub show_ambiguity {
     say $asf->choicepoint_literal($choicepoint_id),
     say "=== END OF TEXT ===";
     # say Data::Dumper::Dumper( $asf->choices( $choicepoint_id ) );
+    if ( !$asf->is_factored($choicepoint_id) ) {
+        my $rule_id = $asf->choicepoint_rule($choicepoint_id);
+        say "  === RHS AMBIGUITY, Rule ", $asf->brief_rule($rule_id), " ===";
+        my $choices_by_rhs = $asf->choices_by_rhs($choicepoint_id);
+        say "Choices by RHS: ", Data::Dumper::Dumper($choices_by_rhs);
+        for my $rhs_choice_ix ( 0 .. $#{$choices_by_rhs} ) {
+            my $rhs_choices = $choices_by_rhs->[$rhs_choice_ix];
+            next if $#{$rhs_choices} <= 0;
+            CHILD: for my $child ( @{$rhs_choices} ) {
+                if ( ref $child ) {
+                    say "  === TOKEN for RHS $rhs_choice_ix ",
+                        Data::Dumper::Dumper($child);
+                    next CHILD;
+                }
+                my $rule_id = $asf->choicepoint_rule($child);
+                say "  === RULE for RHS $rhs_choice_ix ",
+                    $asf->brief_rule($rule_id), " ===";
+            } ## end CHILD: for my $child ( @{$rhs_choices} )
+        } ## end for my $rhs_choice_ix ( 0 .. $#{$choices_by_rhs} )
+        return;
+    } ## end if ( !$asf->is_factored($choicepoint_id) )
     for my $choice_ix (0 .. $#{$choices}) {
         my $choice = $choices->[$choice_ix] ;
         say "=== CHOICE $choice_ix ===";

@@ -439,7 +439,7 @@ sub or_child_current_set {
     return $bocage->_marpa_b_or_node_set($or_child);
 } ## end sub or_child_current_set
 
-sub is_factored {
+sub Marpa::R2::Scanless::ASF::is_factored {
     my ( $asf, $choicepoint_id ) = @_;
 
     # Initially, guess that node is factored
@@ -485,6 +485,42 @@ sub is_factored {
     return $is_factored_by_choicepoint->[$choicepoint_id] = 0;
 } ## end sub is_factored
 
+sub Marpa::R2::Scanless::ASF::choices_by_rhs {
+    my ( $asf, $choicepoint_id ) = @_;
+    my @choices_by_rhs = ();
+    # Get choices first to ensure is-factored boolean is set
+    my $choices = $asf->choices($choicepoint_id);
+    Marpa::R2::exception(
+        "Choices by RHS requested for factored choicepoint $choicepoint_id")
+        if $asf->is_factored($choicepoint_id);
+    my $choice_0 = $choices->[0];
+
+    CHILD: for my $child_ix ( 0 .. $#{$choice_0} ) {
+        my @tags = ();
+        CHOICE: for my $choice_ix ( 0 .. $#{$choices} ) {
+            my $child = $choices->[$choice_ix]->[$child_ix];
+            my $tag;
+            if ( ref $child ) {
+                my ( undef, $and_node_id ) = @{$child};
+                push @tags, "A$and_node_id";
+                next CHOICE;
+            }
+            push @tags, $child;
+        } ## end CHOICE: for my $choice_ix ( 0 .. ${$choices} )
+        my %seen = ();
+        TAG: for my $tag ( grep { !$seen{$_}++ } @tags ) {
+            if ( ( substr $tag, 0, 1 ) eq 'A' ) {
+                push @{ $choices_by_rhs[$child_ix] },
+                    [ -1, 0 + ( substr $tag, 1 ) ];
+                next TAG;
+            }
+            push @{ $choices_by_rhs[$child_ix] }, $tag + 0;
+        } ## end for my $tag ( grep { !$seen{$_} } @tags )
+    } ## end CHILD: for my $child_ix ( 0 .. $#{$choice_0} )
+    return \@choices_by_rhs;
+
+} ## end sub choices_by_rhs
+
 sub ambiguities {
     my ( $asf, $choicepoint_id, $data ) = @_;
     my $slr              = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
@@ -499,7 +535,7 @@ sub ambiguities {
 
     if ( $last_choice_ix > 0 ) {
         $is_node_ambiguous->[$choicepoint_id] = 1;
-        return if is_factored( $asf, $choicepoint_id );
+        return if $asf->is_factored( $choicepoint_id );
         my $choice_0 = $choices->[0];
 
         # Initially, guess that node is factored
