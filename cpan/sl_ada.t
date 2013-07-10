@@ -286,7 +286,6 @@ sub prune_asf {
     die "Unknown tag in prune_asf: $tag";
 } ## end sub prune_asf
 
-
 sub pick_choice {
     state $cherry_picks = { '0.172' => 'My_Nodes::cherry1', };
     my ( $asf, $rcp ) = @_;
@@ -305,47 +304,42 @@ sub pick_choice {
 sub explore_asf {
     my ( $asf, $tree, $data ) = @_;
     $data //= { seen => [] };
-    my $seen      = $data->{seen};
-    my $tag       = $tree->[0];
-    return $tree if $tag == -1;    # Return token as is
+    my $seen = $data->{seen};
+    my $tag  = $tree->[0];
+    return if $tag == -1;    # Return token as is
 
     if ( $tag >= 0 ) {
 
         # Return trivial choice as is, but recurse
         my ( $choicepoint_id, @children ) = @{$tree};
         $seen->[$choicepoint_id] = 1;
-        return [
-            $choicepoint_id, map { explore_asf( $asf, $_, $data ) } @children
-        ];
+        explore_asf( $asf, $_, $data ) for @children;
+        return;
     } ## end if ( $tag >= 0 )
     if ( $tag == -2 ) {
 
         my ( $tag, $choicepoint_id, @choices ) = @{$tree};
-        return $tree if $seen->[$choicepoint_id] ;
+        return $tree if $seen->[$choicepoint_id];
         $seen->[$choicepoint_id] = 1;
         my $pick = pick_choice( $asf, $choicepoint_id );
         if ( not defined $pick ) {
             my $recurse_mask = show_ambiguity( $asf, $choicepoint_id );
             return $tree if not defined $recurse_mask;
-            my $choice   = $choices[-1];
-            my @new_node = ($choicepoint_id);
+            my $choice = $choices[-1];
             CHOICE: for my $choice_ix ( 0 .. $#{$choice} ) {
                 if ( $recurse_mask->[$choice_ix] ) {
-                    push @new_node,
-                        explore_asf( $asf, $choice->[$choice_ix], $data );
+                    explore_asf( $asf, $choice->[$choice_ix], $data );
                     next CHOICE;
                 }
-                push @new_node, $choice->[$choice_ix];
             } ## end CHOICE: for my $choice_ix ( 0 .. $#{$choice} )
-            return \@new_node;
+            return;
         } ## end if ( not defined $pick )
 
         # Pick one of multiple choice
         # and recurse
         my $choice = $choices[$pick];
-        return [
-            $choicepoint_id, map { explore_asf( $asf, $_, $data ) } @{$choice}
-        ];
+        explore_asf( $asf, $_, $data ) for @{$choice};
+        return;
     } ## end if ( $tag == -2 )
     die "Unknown tag in explore_asf: $tag";
 } ## end sub explore_asf
