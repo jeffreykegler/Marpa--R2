@@ -237,7 +237,7 @@ my $asf = Marpa::R2::Scanless::ASF->new(
 my $asf_ref = $asf->raw();
 die "No parse" if not defined $asf_ref;
 my $raw_forest  = ${$asf_ref};
-# my $blessed_asf = $asf->bless($raw_forest);
+my $blessed_asf = $asf->bless($raw_forest);
 
 my $ambiguities = $asf->ambiguities();
 say "Ambiguities: ", join " ", @{$ambiguities};
@@ -286,11 +286,26 @@ sub prune_asf {
     die "Unknown tag in prune_asf: $tag";
 } ## end sub prune_asf
 
+sub dump_cp {
+    my ( $asf, $rcp ) = @_;
+    my $forest_ref = $asf->raw($rcp);
+    die "No parse" if not defined $forest_ref;
+    local $Data::Dumper::Maxdepth = 3;
+    say Data::Dumper::Dumper( $asf->bless( ${$forest_ref} ) );
+} ## end sub dump_cp
+
 sub pick_choice {
-    state $cherry_picks = { '0.172' => 'My_Nodes::cherry1', };
+    state $cherry_picks = {
+    '0.172' => 'My_Nodes::cherry1',
+    # '153.19' => &dump_cp,
+    };
     my ( $asf, $rcp ) = @_;
     my $desc = join q{.}, $asf->cp_span($rcp);
     my $cherry_pick = $cherry_picks->{$desc};
+    if (ref $cherry_pick eq 'CODE') {
+        $cherry_pick->($asf, $rcp);
+        return undef;
+    }
     return undef if not defined $cherry_pick;
     my $choices = $asf->choices( $rcp );
     return 0 if scalar @{$choices} == 1;

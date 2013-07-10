@@ -292,11 +292,11 @@ sub Marpa::R2::Scanless::ASF::new {
 } ## end sub Marpa::R2::Scanless::ASF::new
 
 sub Marpa::R2::Scanless::ASF::raw {
-    my ($asf) = @_;
+    my ($asf, $start_rcp) = @_;
     my $slr   = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
     my $recce = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
-    my $start_or_node_id = $asf->top_choicepoint();
-    return \or_node_expand( $recce, $start_or_node_id );
+    $start_rcp //= $asf->top_choicepoint();
+    return \or_node_expand( $recce, $start_rcp );
 } ## end sub Marpa::R2::Scanless::ASF::raw_asf
 
 sub bless_asf {
