@@ -242,7 +242,7 @@ my $blessed_asf = $asf->bless($raw_forest);
 my $ambiguities = $asf->ambiguities();
 say "Ambiguities: ", join " ", @{$ambiguities};
 
-explore_asf( $asf, $raw_forest );
+explore_cp( $asf );
 
 sub prune_asf {
     my ( $asf, $tree, $data ) = @_;
@@ -315,6 +315,39 @@ sub pick_choice {
     }
     return undef;
 }
+
+sub explore_cp {
+    my ( $asf, $cp, $data ) = @_;
+    return if ref $cp;    # Do nothing if token
+    $cp //= $asf->top_choicepoint();
+
+    $data //= { seen => [] };
+    my $seen = $data->{seen};
+    return if $seen->[$cp];
+    $seen->[$cp] = 1;
+
+    my $choices = $asf->choices($cp);
+    my $pick = scalar @{$choices} <= 1 ? 0 : pick_choice( $asf, $cp );
+    if ( defined $pick ) {
+        my $choice = $choices->[$pick];
+        explore_cp( $asf, $_, $data ) for @{$choice};
+        return;
+    }
+    my $recurse_mask = show_ambiguity( $asf, $cp );
+    if ( defined $recurse_mask ) {
+        for my $choice ( @{$choices} ) {
+            CHOICE: for my $choice_ix ( 0 .. $#{$choice} ) {
+                if ( $recurse_mask->[$choice_ix] ) {
+                    explore_cp( $asf, $_->[$choice_ix], $data )
+                        for @{$choices};
+                    next CHOICE;
+                }
+            } ## end CHOICE: for my $choice_ix ( 0 .. $#{$choice} )
+        } ## end for my $choice ( @{$choices} )
+    } ## end if ( defined $recurse_mask )
+    return;
+
+} ## end sub explore_cp
 
 sub explore_asf {
     my ( $asf, $tree, $data ) = @_;
