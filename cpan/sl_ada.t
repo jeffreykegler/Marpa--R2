@@ -241,16 +241,21 @@ say "Ambiguities: ", join " ", @{$ambiguities};
 explore_cp( $asf );
 
 sub dump_cp {
-    my ( $asf, $rcp ) = @_;
-    my $forest_ref = $asf->raw($rcp);
-    die "No parse" if not defined $forest_ref;
-    say Data::Dumper::Dumper( $asf->bless( ${$forest_ref} ) );
-} ## end sub dump_cp
+    my ( $asf, $cp, $depth ) = @_;
+    if (defined (my $symbol = $asf->cp_symbol($cp))) {
+        return [ $symbol, $asf->cp_literal( $cp ) ];
+    }
+}
+
+sub generate_dump_cp {
+    my ($depth) = @_
+    return sub { return dump_cp ($asf, $rcp, $depth) }
+} ## end sub generate_dump_cp
 
 sub pick_choice {
     state $cherry_picks = {
      '0.172' => 'My_Nodes::cherry1',
-     '153.19' => \&dump_cp,
+     # '153.19' => generate_dump_cp(3),
     };
     my ( $asf, $rcp ) = @_;
     my $desc = join q{.}, $asf->cp_span($rcp);
@@ -308,8 +313,7 @@ sub show_ambiguity_instance {
         say "  === TOKEN ", Data::Dumper::Dumper($child);
         return;
     }
-    my $rule_id = $asf->cp_rule($child);
-    say "  === RULE: ", $asf->brief_rule($rule_id);
+    say "  === RULE: ", $asf->cp_brief($child);
     return;
 } ## end sub show_ambiguity_instance
 
@@ -319,7 +323,6 @@ sub show_ambiguity {
     my $choices = $asf->choices( $choicepoint_id );
     my $desc = join q{.}, $asf->cp_span($choicepoint_id);
     if ( !$asf->is_factored($choicepoint_id) ) {
-        my $rule_id        = $asf->cp_rule($choicepoint_id);
         my $choices_by_rhs = $asf->choices_by_rhs($choicepoint_id);
         CHOICE: for my $rhs_choice_ix ( 0 .. $#{$choices_by_rhs} ) {
             my $rhs_choices = $choices_by_rhs->[$rhs_choice_ix];
@@ -349,8 +352,7 @@ sub show_ambiguity {
                 say "  === TOKEN CHILD ", Data::Dumper::Dumper($child);
                 next CHILD;
             }
-            my $rule_id = $asf->cp_rule($child);
-            say "  === CHILD $child_ix, Rule ", $asf->brief_rule($rule_id), " ===";
+            say "  === CHILD $child_ix, Rule ", $asf->cp_brief($child), " ===";
             say $asf->choicepoint_literal($child),
         }
     }
