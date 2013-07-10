@@ -616,6 +616,13 @@ sub Marpa::R2::Scanless::ASF::token_literal {
     return $slr->substring( $start, $length );
 } ## end sub Marpa::R2::Scanless::ASF::token_literal
 
+sub Marpa::R2::Scanless::ASF::cp_span {
+    my ( $asf, $cp ) = @_;
+    return or_node_es_span($asf, $cp) if not ref $cp;
+    my ( undef, $and_node_id ) = @{$cp};
+    return token_es_span( $asf, $and_node_id );
+}
+
 sub Marpa::R2::Scanless::ASF::child_literal {
     my ( $asf, $child ) = @_;
     return $asf->choicepoint_literal($child) if not ref $child;

@@ -286,13 +286,18 @@ sub prune_asf {
     die "Unknown tag in prune_asf: $tag";
 } ## end sub prune_asf
 
+
 sub pick_choice {
+    state $cherry_picks = { '0.172' => 'My_Nodes::cherry1', };
     my ( $asf, $rcp ) = @_;
+    my $desc = join q{.}, $asf->cp_span($rcp);
+    my $cherry_pick = $cherry_picks->{$desc};
+    return undef if not defined $cherry_pick;
     my $choices = $asf->choices( $rcp );
     return 0 if scalar @{$choices} == 1;
     for my $choice_ix ( 0 .. $#{$choices} ) {
         my $choice = $choices->[$choice_ix];
-        return $choice_ix if  grep { $asf->cp_blessing($_) eq 'My_Nodes::cherry1' } @{$choice};
+        return $choice_ix if  grep { $asf->cp_blessing($_) eq $cherry_pick } @{$choice};
     }
     return undef;
 }
@@ -360,6 +365,7 @@ sub show_ambiguity {
     my ( $asf, $choicepoint_id ) = @_;
     my @recurse_mask = ();
     my $choices = $asf->choices( $choicepoint_id );
+    my $desc = join q{.}, $asf->cp_span($choicepoint_id);
     if ( !$asf->is_factored($choicepoint_id) ) {
         my $rule_id        = $asf->cp_rule($choicepoint_id);
         my $choices_by_rhs = $asf->choices_by_rhs($choicepoint_id);
@@ -370,12 +376,12 @@ sub show_ambiguity {
                 next CHOICE;
             }
             push @recurse_mask, 0;
-            say "=== ", ( scalar @{$choices} ),
+            say "=== $desc ", ( scalar @{$choices} ),
                 " SYMBOLIC CHOICES for this text ===";
             say $asf->child_literal( $rhs_choices->[0] );
             say "=== END OF TEXT ===";
             show_ambiguity_instance( $asf, $_ ) for @{$rhs_choices};
-            say "=== END OF SYMBOLIC CHOICES ===";
+            say "=== $desc END OF SYMBOLIC CHOICES ===";
         } ## end for my $rhs_choice_ix ( 0 .. $#{$choices_by_rhs} )
         return \@recurse_mask;
     } ## end if ( !$asf->is_factored($choicepoint_id) )
@@ -384,7 +390,7 @@ sub show_ambiguity {
     say "=== END OF TEXT ===";
     for my $choice_ix (0 .. $#{$choices}) {
         my $choice = $choices->[$choice_ix] ;
-        say "=== FACTORING $choice_ix ===";
+        say "=== $desc FACTORING $choice_ix ===";
         CHILD: for my $child_ix (0 .. $#{$choice}) {
             my $child = $choice->[$child_ix];
             if (ref $child) {
@@ -396,7 +402,7 @@ sub show_ambiguity {
             say $asf->choicepoint_literal($child),
         }
     }
-    say "=== END OF FACTORINGS ===";
+    say "=== $desc END OF FACTORINGS ===";
     return;
 }
 
