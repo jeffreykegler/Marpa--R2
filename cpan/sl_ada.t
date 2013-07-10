@@ -248,8 +248,8 @@ sub dump_cp {
 }
 
 sub generate_dump_cp {
-    my ($depth) = @_
-    return sub { return dump_cp ($asf, $rcp, $depth) }
+    my ($depth) = @_;
+    return sub { my ($asf, $rcp) = @_ ; return dump_cp ($asf, $rcp, $depth) }
 } ## end sub generate_dump_cp
 
 sub pick_choice {
