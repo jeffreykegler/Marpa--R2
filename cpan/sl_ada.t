@@ -234,70 +234,23 @@ my $asf = Marpa::R2::Scanless::ASF->new(
         default => 'My_ASF'
     }
 );
-my $asf_ref = $asf->raw();
-die "No parse" if not defined $asf_ref;
-my $raw_forest  = ${$asf_ref};
-my $blessed_asf = $asf->bless($raw_forest);
 
 my $ambiguities = $asf->ambiguities();
 say "Ambiguities: ", join " ", @{$ambiguities};
 
 explore_cp( $asf );
 
-sub prune_asf {
-    my ( $asf, $tree, $data ) = @_;
-    $data //= { ambiguity_shown => 0 };
-    my $tag       = $tree->[0];
-    my $recce     = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
-    my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
-    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
-    my $bocage    = $recce->[Marpa::R2::Internal::Recognizer::B_C];
-    return $tree if $tag == -1;    # Return token as is
-    if ( $tag >= 0 ) {
-
-        # Return trivial choice as is, but recurse
-        my ( $choicepoint_id, $desc, @children ) = @{$tree};
-        my $type = ref $tree;
-        return bless [
-            $choicepoint_id,
-            $desc,
-            $asf->choicepoint_literal($choicepoint_id),
-            map { prune_asf( $asf, $_, $data ) } @children
-            ],
-            $type;
-    } ## end if ( $tag >= 0 )
-    if ( $tag == -2 ) {
-
-        my ( $tag, $choicepoint_id, $desc, @choices ) = @{$tree};
-        show_ambiguity( $asf, $choicepoint_id ) if not $data->{ambiguity_shown};
-        $data->{ambiguity_shown} = 1;
-        # Pick one of multiple choice
-        # and recurse
-        my $choice = $choices[-1];
-        my $type   = ref $choice;
-        return bless [
-            $choicepoint_id,
-            $desc,
-            $asf->choicepoint_literal($choicepoint_id),
-            map { prune_asf( $asf, $_, $data ) } @{$choice}
-            ],
-            $type;
-    } ## end if ( $tag == -2 )
-    die "Unknown tag in prune_asf: $tag";
-} ## end sub prune_asf
-
 sub dump_cp {
     my ( $asf, $rcp ) = @_;
     my $forest_ref = $asf->raw($rcp);
     die "No parse" if not defined $forest_ref;
-    local $Data::Dumper::Maxdepth = 3;
     say Data::Dumper::Dumper( $asf->bless( ${$forest_ref} ) );
 } ## end sub dump_cp
 
 sub pick_choice {
     state $cherry_picks = {
-    '0.172' => 'My_Nodes::cherry1',
-    # '153.19' => &dump_cp,
+     '0.172' => 'My_Nodes::cherry1',
+     '153.19' => \&dump_cp,
     };
     my ( $asf, $rcp ) = @_;
     my $desc = join q{.}, $asf->cp_span($rcp);
@@ -348,49 +301,6 @@ sub explore_cp {
     return;
 
 } ## end sub explore_cp
-
-sub explore_asf {
-    my ( $asf, $tree, $data ) = @_;
-    $data //= { seen => [] };
-    my $seen = $data->{seen};
-    my $tag  = $tree->[0];
-    return if $tag == -1;    # Return token as is
-
-    if ( $tag >= 0 ) {
-
-        # Return trivial choice as is, but recurse
-        my ( $choicepoint_id, @children ) = @{$tree};
-        $seen->[$choicepoint_id] = 1;
-        explore_asf( $asf, $_, $data ) for @children;
-        return;
-    } ## end if ( $tag >= 0 )
-    if ( $tag == -2 ) {
-
-        my ( $tag, $choicepoint_id, @choices ) = @{$tree};
-        return $tree if $seen->[$choicepoint_id];
-        $seen->[$choicepoint_id] = 1;
-        my $pick = pick_choice( $asf, $choicepoint_id );
-        if ( not defined $pick ) {
-            my $recurse_mask = show_ambiguity( $asf, $choicepoint_id );
-            return $tree if not defined $recurse_mask;
-            my $choice = $choices[-1];
-            CHOICE: for my $choice_ix ( 0 .. $#{$choice} ) {
-                if ( $recurse_mask->[$choice_ix] ) {
-                    explore_asf( $asf, $choice->[$choice_ix], $data );
-                    next CHOICE;
-                }
-            } ## end CHOICE: for my $choice_ix ( 0 .. $#{$choice} )
-            return;
-        } ## end if ( not defined $pick )
-
-        # Pick one of multiple choice
-        # and recurse
-        my $choice = $choices[$pick];
-        explore_asf( $asf, $_, $data ) for @{$choice};
-        return;
-    } ## end if ( $tag == -2 )
-    die "Unknown tag in explore_asf: $tag";
-} ## end sub explore_asf
 
 sub show_ambiguity_instance {
     my ( $asf, $child ) = @_;
