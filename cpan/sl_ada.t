@@ -245,27 +245,31 @@ sub dump_cp {
     if (defined (my $symbol = $asf->cp_token_name($cp))) {
         return [ $symbol, $asf->cp_literal( $cp ) ];
     }
-    my ($lhs) = $asf->cp_rule($cp);
+    my $brief_rule = $asf->cp_brief($cp);
     if ($depth <= 0) {
-        return [ $lhs, $asf->cp_literal( $cp ) ];
+        return [ $brief_rule, $asf->cp_literal( $cp ) ];
     }
     my $choices = $asf->choices( $cp );
     my @return_value = ( (scalar @{$choices} . ' Choices') );
     for my $choice (@{$choices}) {
-        push @return_value, [ $lhs, [ map { dump_cp( $asf, $_, $depth - 1) } @{$choice} ] ];
+        push @return_value, [ $brief_rule, [ map { dump_cp( $asf, $_, $depth - 1) } @{$choice} ] ];
     }
     return \@return_value;
 }
 
 sub generate_dump_cp {
     my ($depth) = @_;
-    return sub { my ($asf, $cp) = @_ ; return dump_cp ($asf, $cp, $depth) }
+    return sub {
+        my ( $asf, $cp ) = @_;
+        my $result = dump_cp( $asf, $cp, $depth );
+        say Data::Dumper::Dumper($result);
+    };
 } ## end sub generate_dump_cp
 
 sub pick_choice {
     state $cherry_picks = {
      '0.172' => 'My_Nodes::cherry1',
-     # '153.19' => generate_dump_cp(3),
+     '153.19' => generate_dump_cp(2),
     };
     my ( $asf, $rcp ) = @_;
     my $desc = join q{.}, $asf->cp_span($rcp);
