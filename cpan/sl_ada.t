@@ -199,7 +199,7 @@ for IN
 forms NNS
 going VBG
 great JJ
-his PRP S
+his PRP$
 human JJ
 immediate JJ
 immutable JJ
@@ -212,7 +212,7 @@ intrinsic NNS
 invisibly RB
 is VBZ
 it PRP
-its PRP S
+its PRP$
 language NN
 live VBP
 logical JJ
@@ -230,7 +230,7 @@ of IN
 on IN
 or CC
 other JJ
-our PRP S
+our PRP$
 perceptions NNS
 physical JJ
 place NN
@@ -251,7 +251,7 @@ symmetry NN
 tend VB
 that DT IN WDT
 the DT
-their PRP S
+their PRP$
 them PRP
 thing NN
 things NNS
@@ -276,7 +276,7 @@ when WRB
 which WDT
 who WP
 whole NN
-whose WP S
+whose WP$
 will MD
 with IN
 works NNS
@@ -567,6 +567,7 @@ sub setup_lexemes {
         chomp $line;
         my ( $lexeme, @tags ) = split /\s/xms, $line;
         for my $tag (@tags) {
+            $tag =~ s/ [\$] \z/ S/xms;
             push @{ $lexeme_data{$lexeme} }, $tag;
         }
     } ## end for my $line ( split /\n/, $lexeme_source )
