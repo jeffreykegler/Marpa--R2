@@ -15,20 +15,10 @@
 
 Revision history for Marpa::R2
 
-2.063_002
+2.064000 Thu Jul 11 09:10:54 PDT 2013
 
-   * Release candidate
-
-   * Fix bug in return value of lexeme_read()
-
-2.063_001
-2.063_000
-
-   * Release candidate
-
-   * Fix SEGV when terminal is unused.
-
-   * New series of developer's releases.
+   * Fix bug in return value of lexeme_read();
+     Fix SEGV when terminal symbol is unused.
 
 2.062000 Tue Jul  2 08:23:53 PDT 2013
 
