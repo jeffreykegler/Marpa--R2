@@ -260,20 +260,24 @@ for my $desc ( keys %choices_to_dump )
 
 sub dump_cp {
     my ( $asf, $cp, $depth ) = @_;
-    if (defined (my $symbol = $asf->cp_token_name($cp))) {
-        return [ $symbol, $asf->cp_literal( $cp ) ];
+    if ( defined( my $symbol = $asf->cp_token_name($cp) ) ) {
+        return [ $symbol, $asf->cp_literal($cp) ];
     }
     my $brief_rule = $asf->cp_brief($cp);
-    if ($depth <= 0) {
-        return [ $brief_rule, $asf->cp_literal( $cp ) ];
+    if ( $depth <= 0 ) {
+        return [ $brief_rule, $asf->cp_literal($cp) ];
     }
-    my $choices = $asf->choices( $cp );
-    my @return_value = ( (scalar @{$choices} . ' Choices') );
-    for my $choice (@{$choices}) {
-        push @return_value, [ $brief_rule, [ map { dump_cp( $asf, $_, $depth - 1) } @{$choice} ] ];
-    }
+    my $choices = $asf->choices($cp);
+    my @return_value = ( ( scalar @{$choices} . ' Choices' ) );
+    for my $choice ( @{$choices} ) {
+        push @return_value,
+            [
+            $brief_rule,
+            [ map { dump_cp( $asf, $_, $depth - 1 ) } @{$choice} ]
+            ];
+    } ## end for my $choice ( @{$choices} )
     return \@return_value;
-}
+} ## end sub dump_cp
 
 sub penn_cp {
     my ( $asf, $cp, $depth ) = @_;
@@ -335,10 +339,6 @@ sub pick_choice {
     my ( $asf, $rcp ) = @_;
     my $desc = cp_to_desc($asf, $rcp);
     my $cherry_pick = $cherry_picks->{$desc};
-    if (ref $cherry_pick eq 'CODE') {
-        $cherry_pick->($asf, $rcp);
-        return undef;
-    }
     return undef if not defined $cherry_pick;
     my $choices = $asf->choices( $rcp );
     return 0 if scalar @{$choices} == 1;
@@ -351,8 +351,8 @@ sub pick_choice {
 
 sub explore_cp {
     my ( $asf, $cp, $data ) = @_;
-    return if ref $cp;    # Do nothing if token
     $cp //= $asf->top_choicepoint();
+    return if $asf->cp_is_token( $cp );    # Do nothing if token
 
     $data //= { seen => [] };
     my $seen = $data->{seen};
@@ -384,8 +384,8 @@ sub explore_cp {
 
 sub show_ambiguity_instance {
     my ( $asf, $child ) = @_;
-    if ( ref $child ) {
-        say "  === TOKEN ", Data::Dumper::Dumper($child);
+    if ( defined( my $token_name = $asf->cp_token_name($child) ) ) {
+        say "  === TOKEN $token_name ===";
         return;
     }
     say "  === RULE: ", $asf->cp_brief($child);
@@ -425,8 +425,8 @@ sub show_ambiguity {
         say "=== $desc FACTORING $choice_ix ===";
         CHILD: for my $child_ix (0 .. $#{$choice}) {
             my $child = $choice->[$child_ix];
-            if (ref $child) {
-                say "  === TOKEN CHILD ", Data::Dumper::Dumper($child);
+            if ( defined( my $token_name = $asf->cp_token_name($child) ) ) {
+                say "  === TOKEN CHILD: $token_name ===";
                 next CHILD;
             }
             say "  === CHILD $child_ix, Rule ", $asf->cp_brief($child), " ===";

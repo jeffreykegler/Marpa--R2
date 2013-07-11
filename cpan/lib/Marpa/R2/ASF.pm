@@ -646,6 +646,11 @@ sub Marpa::R2::Scanless::ASF::cp_rule {
     return $grammar->rule($rule_id);
 } ## end sub Marpa::R2::Scanless::ASF::cp_rule_id
 
+sub Marpa::R2::Scanless::ASF::cp_is_token {
+    my ( $asf, $cp ) = @_;
+    return ref $cp ? 1 : undef;
+}
+
 sub Marpa::R2::Scanless::ASF::cp_token_name {
     my ( $asf, $cp ) = @_;
     return undef if not ref $cp;
