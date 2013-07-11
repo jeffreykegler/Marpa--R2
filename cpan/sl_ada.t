@@ -243,7 +243,7 @@ explore_cp( $asf );
 
 # Description is key, value is dump level
 my %choices_to_dump = (
-     '157.15' => 9,
+     '157.15' => 999,
 );
 for my $desc ( keys %choices_to_dump )
 {
@@ -251,8 +251,7 @@ for my $desc ( keys %choices_to_dump )
     my $cp_list    = $desc_to_cp_list{$desc};
     die "No CP list for desc $desc" if not defined $cp_list;
     for my $cp ( @{$cp_list} ) {
-        my $tree = dump_cp( $asf, $cp, $dump_level );
-        local $Data::Dumper::Indent = 1;
+        my $tree = penn_str( $asf, $cp, $dump_level );
         say
             "Dump of $desc, choicepoint $cp to level $dump_level\n",
             Data::Dumper::Dumper($tree);
@@ -275,6 +274,52 @@ sub dump_cp {
     }
     return \@return_value;
 }
+
+sub penn_cp {
+    my ( $asf, $cp, $depth ) = @_;
+    if (defined (my $symbol = $asf->cp_token_name($cp))) {
+        return [ $symbol, $asf->cp_literal( $cp ) ];
+    }
+    my ($lhs) = $asf->cp_rule($cp);
+    if ($depth <= 0) {
+        return [ $lhs, $asf->cp_literal( $cp ) ];
+    }
+    my $choices = $asf->choices( $cp );
+    my @return_value = ( 'Choices: ' . (scalar @{$choices} ) );
+    for my $choice (@{$choices}) {
+        push @return_value, [ $lhs, [ map { penn_cp( $asf, $_, $depth - 1) } @{$choice} ] ];
+    }
+    return \@return_value;
+}
+
+sub penn_str {
+    my ( $asf, $cp, $depth ) = @_;
+    if ( defined( my $symbol = $asf->cp_token_name($cp) ) ) {
+        return [ "($symbol " . $asf->cp_literal($cp) . ')' ];
+    }
+    my ($lhs) = $asf->cp_rule($cp);
+    if ( $depth <= 0 ) {
+        return [ "($lhs " . $asf->cp_literal($cp) . ')' ];
+    }
+    my $choices      = $asf->choices($cp);
+    my @return_value = ();
+    for my $choice ( @{$choices} ) {
+        my @choices_so_far = ('');
+        for my $child_cp ( @{$choice} ) {
+            my @left_choices = @choices_so_far;
+            @choices_so_far = ();
+            my $right_choices = penn_str( $asf, $child_cp, $depth - 1 );
+            for my $left_choice (@left_choices) {
+                for my $right_choice (@{$right_choices}) {
+                    push @choices_so_far, join q{ }, $left_choice,
+                        $right_choice;
+                }
+            } ## end for my $left_choice (@current_choices)
+        } ## end for my $child_cp ( @{$choice} )
+        push @return_value, map { "($lhs " . $_ . ')' } @choices_so_far;
+    } ## end for my $choice ( @{$choices} )
+    return \@return_value;
+} ## end sub penn_str
 
 sub cp_to_desc {
     my ( $asf, $cp ) = @_;
