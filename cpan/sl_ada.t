@@ -238,7 +238,26 @@ my $asf = Marpa::R2::Scanless::ASF->new(
 my $ambiguities = $asf->ambiguities();
 say "Ambiguities: ", join " ", @{$ambiguities};
 
+my %desc_to_cp_list = ();
 explore_cp( $asf );
+
+# Description is key, value is dump level
+my %choices_to_dump = (
+     '157.15' => 9,
+);
+for my $desc ( keys %choices_to_dump )
+{
+    my $dump_level = $choices_to_dump{$desc};
+    my $cp_list    = $desc_to_cp_list{$desc};
+    die "No CP list for desc $desc" if not defined $cp_list;
+    for my $cp ( @{$cp_list} ) {
+        my $tree = dump_cp( $asf, $cp, $dump_level );
+        local $Data::Dumper::Indent = 1;
+        say
+            "Dump of $desc, choicepoint $cp to level $dump_level\n",
+            Data::Dumper::Dumper($tree);
+    } ## end for my $cp ( @{$cp_list} )
+}
 
 sub dump_cp {
     my ( $asf, $cp, $depth ) = @_;
@@ -257,22 +276,19 @@ sub dump_cp {
     return \@return_value;
 }
 
-sub generate_dump_cp {
-    my ($depth) = @_;
-    return sub {
-        my ( $asf, $cp ) = @_;
-        my $result = dump_cp( $asf, $cp, $depth );
-        say Data::Dumper::Dumper($result);
-    };
-} ## end sub generate_dump_cp
+sub cp_to_desc {
+    my ( $asf, $cp ) = @_;
+    my $desc = join q{.}, $asf->cp_span($cp);
+    push @{$desc_to_cp_list{$desc}}, $cp;
+    return $desc;
+}
 
 sub pick_choice {
     state $cherry_picks = {
      '0.172' => 'My_Nodes::cherry1',
-     '153.19' => generate_dump_cp(2),
     };
     my ( $asf, $rcp ) = @_;
-    my $desc = join q{.}, $asf->cp_span($rcp);
+    my $desc = cp_to_desc($asf, $rcp);
     my $cherry_pick = $cherry_picks->{$desc};
     if (ref $cherry_pick eq 'CODE') {
         $cherry_pick->($asf, $rcp);
@@ -335,28 +351,30 @@ sub show_ambiguity {
     my ( $asf, $choicepoint_id ) = @_;
     my @recurse_mask = ();
     my $choices = $asf->choices( $choicepoint_id );
-    my $desc = join q{.}, $asf->cp_span($choicepoint_id);
     if ( !$asf->is_factored($choicepoint_id) ) {
         my $choices_by_rhs = $asf->choices_by_rhs($choicepoint_id);
-        CHOICE: for my $rhs_choice_ix ( 0 .. $#{$choices_by_rhs} ) {
-            my $rhs_choices = $choices_by_rhs->[$rhs_choice_ix];
-            if ($#{$rhs_choices} <= 0) {
+        CHOICE: for my $rhs_ix ( 0 .. $#{$choices_by_rhs} ) {
+            my $choices_at_rhs_ix = $choices_by_rhs->[$rhs_ix];
+            if ( $#{$choices_at_rhs_ix} <= 0 ) {
                 push @recurse_mask, 1;
                 next CHOICE;
             }
             push @recurse_mask, 0;
+            my $first_choice = $choices_at_rhs_ix->[0];
+            my $desc = cp_to_desc($asf, $first_choice);
             say "=== $desc ", ( scalar @{$choices} ),
                 " SYMBOLIC CHOICES for this text ===";
-            say $asf->cp_literal( $rhs_choices->[0] );
+            say $asf->cp_literal($first_choice);
             say "=== END OF TEXT ===";
-            show_ambiguity_instance( $asf, $_ ) for @{$rhs_choices};
+            show_ambiguity_instance( $asf, $_ ) for @{$choices_at_rhs_ix};
             say "=== $desc END OF SYMBOLIC CHOICES ===";
-        } ## end for my $rhs_choice_ix ( 0 .. $#{$choices_by_rhs} )
+        } ## end CHOICE: for my $rhs_ix ( 0 .. $#{$choices_by_rhs} )
         return \@recurse_mask;
     } ## end if ( !$asf->is_factored($choicepoint_id) )
     say "=== ", (scalar @{$choices}), " factorings for this text ===";
     say $asf->choicepoint_literal($choicepoint_id),
     say "=== END OF TEXT ===";
+    my $desc = cp_to_desc($asf, $choicepoint_id);
     for my $choice_ix (0 .. $#{$choices}) {
         my $choice = $choices->[$choice_ix] ;
         say "=== $desc FACTORING $choice_ix ===";
