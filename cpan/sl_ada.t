@@ -242,14 +242,24 @@ explore_cp( $asf );
 
 sub dump_cp {
     my ( $asf, $cp, $depth ) = @_;
-    if (defined (my $symbol = $asf->cp_symbol($cp))) {
+    if (defined (my $symbol = $asf->cp_token_name($cp))) {
         return [ $symbol, $asf->cp_literal( $cp ) ];
     }
+    my ($lhs) = $asf->cp_rule($cp);
+    if ($depth <= 0) {
+        return [ $lhs, $asf->cp_literal( $cp ) ];
+    }
+    my $choices = $asf->choices( $cp );
+    my @return_value = ( (scalar @{$choices} . ' Choices') );
+    for my $choice (@{$choices}) {
+        push @return_value, [ $lhs, [ map { dump_cp( $asf, $_, $depth - 1) } @{$choice} ] ];
+    }
+    return \@return_value;
 }
 
 sub generate_dump_cp {
     my ($depth) = @_;
-    return sub { my ($asf, $rcp) = @_ ; return dump_cp ($asf, $rcp, $depth) }
+    return sub { my ($asf, $cp) = @_ ; return dump_cp ($asf, $cp, $depth) }
 } ## end sub generate_dump_cp
 
 sub pick_choice {
@@ -333,7 +343,7 @@ sub show_ambiguity {
             push @recurse_mask, 0;
             say "=== $desc ", ( scalar @{$choices} ),
                 " SYMBOLIC CHOICES for this text ===";
-            say $asf->child_literal( $rhs_choices->[0] );
+            say $asf->cp_literal( $rhs_choices->[0] );
             say "=== END OF TEXT ===";
             show_ambiguity_instance( $asf, $_ ) for @{$rhs_choices};
             say "=== $desc END OF SYMBOLIC CHOICES ===";

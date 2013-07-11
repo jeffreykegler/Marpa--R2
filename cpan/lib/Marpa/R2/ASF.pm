@@ -311,13 +311,12 @@ sub bless_asf {
         my ( undef, $and_node_id ) = @{$tree};
         my $token_isy_id = $bocage->_marpa_b_and_node_symbol($and_node_id);
         my $token_id     = $grammar_c->_marpa_g_source_xsy($token_isy_id);
-        my $token_name   = $grammar->symbol_name($token_id);
         my $symbol_blessing =
             $asf->[Marpa::R2::Internal::Scanless::ASF::SYMBOL_BLESSING]
             ->[$token_id];
         return bless [
-            -1,           "Token: $token_name",
-            $and_node_id, $asf->token_literal($and_node_id)
+            -1, ( 'Token: ' . $asf->cp_token_name($tree) ),
+            $and_node_id, $asf->cp_literal($tree)
         ], $symbol_blessing;
     } ## end if ( $tag == -1 )
     if ( $tag >= 0 ) {
@@ -602,19 +601,18 @@ sub or_node_es_span {
     return $origin_es, $current_es - $origin_es;
 } ## end sub or_node_es_span
 
-sub Marpa::R2::Scanless::ASF::choicepoint_literal {
-    my ( $asf, $choicepoint ) = @_;
+sub Marpa::R2::Scanless::ASF::cp_literal {
+    my ( $asf, $cp ) = @_;
+    if (ref $cp) {
+        my (undef, $and_node_id) = @{$cp};
+        my $slr = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
+        my ( $start, $length ) = token_es_span( $asf, $and_node_id );
+        return '' if $length == 0;
+        return $slr->substring( $start, $length );
+    }
     my $slr   = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
-    return $slr->substring(or_node_es_span($asf, $choicepoint));
+    return $slr->substring(or_node_es_span($asf, $cp));
 } ## end sub Marpa::R2::Scanless::R::choicepoint_literal
-
-sub Marpa::R2::Scanless::ASF::token_literal {
-    my ( $asf, $token_id ) = @_;
-    my $slr = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
-    my ( $start, $length ) = token_es_span( $asf, $token_id );
-    return '' if $length == 0;
-    return $slr->substring( $start, $length );
-} ## end sub Marpa::R2::Scanless::ASF::token_literal
 
 sub Marpa::R2::Scanless::ASF::cp_span {
     my ( $asf, $cp ) = @_;
@@ -622,13 +620,6 @@ sub Marpa::R2::Scanless::ASF::cp_span {
     my ( undef, $and_node_id ) = @{$cp};
     return token_es_span( $asf, $and_node_id );
 }
-
-sub Marpa::R2::Scanless::ASF::child_literal {
-    my ( $asf, $child ) = @_;
-    return $asf->choicepoint_literal($child) if not ref $child;
-    my ( undef, $token_id ) = @{$child};
-    return $asf->token_literal($token_id);
-} ## end sub Marpa::R2::Scanless::ASF::child_literal
 
 sub Marpa::R2::Scanless::ASF::cp_rule_id {
     my ( $asf, $choicepoint ) = @_;
@@ -655,22 +646,31 @@ sub Marpa::R2::Scanless::ASF::cp_rule {
     return $grammar->rule($rule_id);
 } ## end sub Marpa::R2::Scanless::ASF::cp_rule_id
 
-sub Marpa::R2::Scanless::ASF::cp_brief {
+sub Marpa::R2::Scanless::ASF::cp_token_name {
     my ( $asf, $cp ) = @_;
-    my $slr     = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
-    my $recce   = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
-    my $grammar = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
-    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
-    my $bocage  = $recce->[Marpa::R2::Internal::Recognizer::B_C];
-    if (not ref $cp) {
-        my $irl_id    = $bocage->_marpa_b_or_node_irl($cp);
-        my $rule_id   = $grammar_c->_marpa_g_source_xrl($irl_id);
-        return $grammar->brief_rule($rule_id);
-    }
+    return undef if not ref $cp;
     my ( undef, $and_node_id ) = @{$cp};
+    my $slr       = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
+    my $recce     = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+    my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
+    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
+    my $bocage    = $recce->[Marpa::R2::Internal::Recognizer::B_C];
     my $token_isy_id = $bocage->_marpa_b_and_node_symbol($and_node_id);
     my $token_id     = $grammar_c->_marpa_g_source_xsy($token_isy_id);
     return $grammar->symbol_name($token_id);
+}
+
+sub Marpa::R2::Scanless::ASF::cp_brief {
+    my ( $asf, $cp ) = @_;
+    return $asf->cp_token_name($cp) if ref $cp;
+    my $slr       = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
+    my $recce     = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+    my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
+    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
+    my $bocage    = $recce->[Marpa::R2::Internal::Recognizer::B_C];
+    my $irl_id  = $bocage->_marpa_b_or_node_irl($cp);
+    my $rule_id = $grammar_c->_marpa_g_source_xrl($irl_id);
+    return $grammar->brief_rule($rule_id);
 } ## end sub Marpa::R2::Scanless::ASF::cp_brief
 
 sub Marpa::R2::Scanless::ASF::cp_blessing {
@@ -687,7 +687,7 @@ sub Marpa::R2::Scanless::ASF::cp_blessing {
         return $asf->[Marpa::R2::Internal::Scanless::ASF::SYMBOL_BLESSING]
             ->[$token_id];
     } ## end if ( ref $cp )
-    my $rule_id = $asf->cp_rule($cp);
+    my $rule_id = $asf->cp_rule_id($cp);
     return $asf->[Marpa::R2::Internal::Scanless::ASF::RULE_BLESSING]
         ->[$rule_id];
 } ## end sub Marpa::R2::Scanless::ASF::cp_blessing
