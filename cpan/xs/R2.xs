@@ -5947,6 +5947,8 @@ PPCODE:
  # easy, forward-compatible way
  # to determine whether the de-referenced value will cause
  # a "bizarre copy" error.
+ # 
+ # All errors are returned, not thrown
 void
 g1_alternative (slr, symbol_id, ...)
     Scanless_R *slr;
@@ -5984,15 +5986,7 @@ PPCODE:
     }
 
   result = marpa_r_alternative (slr->r1, symbol_id, token_ix, 1);
-  switch (result) {
-  case MARPA_ERR_NONE:
-  case MARPA_ERR_DUPLICATE_TOKEN:
-  case MARPA_ERR_UNEXPECTED_TOKEN_ID:
-      XSRETURN_IV (result);
-  }
-  if (!slr->throw) { XSRETURN_IV (result); }
-  croak ("Problem in slr->g1_alternative(): %s",
-	 xs_g_error (slr->g1_wrapper));
+  XSRETURN_IV (result);
 }
 
  # Returns current position on success, 0 on unthrown failure

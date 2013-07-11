@@ -1373,10 +1373,10 @@ sub Marpa::R2::Scanless::R::lexeme_alternative {
         "    The symbol name cannot be undefined\n"
     ) if not defined $symbol_name;
 
-    my $grammar = $slr->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
-    my $thick_g1_grammar =
-        $grammar->[Marpa::R2::Inner::Scanless::G::THICK_G1_GRAMMAR];
-    my $g1_tracer = $thick_g1_grammar->tracer();
+    my $slg = $slr->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
+    my $g1_grammar =
+        $slg->[Marpa::R2::Inner::Scanless::G::THICK_G1_GRAMMAR];
+    my $g1_tracer = $g1_grammar->tracer();
     my $symbol_id = $g1_tracer->symbol_by_name($symbol_name);
     if ( not defined $symbol_id ) {
         Marpa::R2::exception(
@@ -1393,8 +1393,7 @@ sub Marpa::R2::Scanless::R::lexeme_alternative {
             || $result == $Marpa::R2::Error::NO_TOKEN_EXPECTED_HERE
             || $result == $Marpa::R2::Error::INACCESSIBLE_TOKEN;
 
-    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
-    Marpa::R2::exception( $grammar_c->error() );
+    Marpa::R2::exception( qq{Problem reading symbol "$symbol_name": }, (scalar $g1_grammar->error()) );
 } ## end sub Marpa::R2::Scanless::R::lexeme_alternative
 
 # Returns 0 on unthrown failure, current location on success
