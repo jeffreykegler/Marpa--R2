@@ -668,6 +668,10 @@ sub Marpa::R2::Scanless::R::new {
             $g1_recce_args->{$arg_name} = $value;
             next ARG;
         }
+        if ( $arg_name eq 'trace_actions' ) {
+            $g1_recce_args->{$arg_name} = $value;
+            next ARG;
+        }
         Marpa::R2::exception(
             "$R_PACKAGE does not know one of options given to it:\n",
             qq{   The options not recognized was "$arg_name"\n}
