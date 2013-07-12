@@ -144,7 +144,7 @@ typedef struct {
     struct lexeme_g_properties * g1_lexeme_properties;
 } Scanless_G;
 
-typedef struct {
+typedef struct{
      SV* slg_sv;
      SV* r1_sv;
      SV* stream_sv;
@@ -6036,11 +6036,25 @@ PPCODE:
   result = marpa_r_earleme_complete (slr->r1);
   if (result >= 0)
     {
-     r_convert_events(slr->r1_wrapper);
+      r_convert_events (slr->r1_wrapper);
       marpa_r_latest_earley_set_values_set (slr->r1, start_pos,
 					    INT2PTR (void *, lexeme_length));
       stream->perl_pos = start_pos + lexeme_length;
       XSRETURN_IV (stream->perl_pos);
+    }
+  if (result == -2)
+    {
+      const Marpa_Error_Code error =
+	marpa_g_error (slr->g1_wrapper->g, NULL);
+      if (error == MARPA_ERR_PARSE_EXHAUSTED)
+	{
+	  AV *event;
+	  SV *event_data[1];
+	  event_data[0] = newSVpvs ("no acceptable input");
+	  event = av_make (Dim (event_data), event_data);
+	  av_push (slr->r1_wrapper->event_queue, newRV_noinc ((SV *) event));
+	}
+      XSRETURN_IV (0);
     }
   if (slr->throw)
     {
