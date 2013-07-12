@@ -999,7 +999,6 @@ my $libmarpa_trace_event_handlers = {
     },
 };
 
-
 my $libmarpa_event_handlers = {
     q{'trace} => sub {
         my ( $slr, $event ) = @_;
@@ -1015,7 +1014,63 @@ my $libmarpa_event_handlers = {
         } ## end else [ if ( defined $handler ) ]
         return 0;
     },
+
+    'symbol completed' => sub {
+        my ( $slr, $event ) = @_;
+        my (undef, $completed_symbol_id) = @{$event};
+        my $slg = $slr->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
+        my $completion_event_by_id =
+            $slg->[Marpa::R2::Inner::Scanless::G::COMPLETION_EVENT_BY_ID];
+        push @{ $slr->[Marpa::R2::Inner::Scanless::R::EVENTS] },
+            [ $completion_event_by_id->[$completed_symbol_id] ];
+        return 1;
+    },
+
+    'symbol nulled' => sub {
+        my ( $slr, $event ) = @_;
+        my (undef, $nulled_symbol_id) = @{$event};
+        my $slg = $slr->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
+        my $nulled_event_by_id =
+            $slg->[Marpa::R2::Inner::Scanless::G::NULLED_EVENT_BY_ID];
+        push @{ $slr->[Marpa::R2::Inner::Scanless::R::EVENTS] },
+            [ $nulled_event_by_id->[$nulled_symbol_id] ];
+        return 1;
+    },
+
+    'symbol predicted' => sub {
+        my ( $slr, $event ) = @_;
+        my (undef, $predicted_symbol_id) = @{$event};
+        my $slg = $slr->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
+        my $prediction_event_by_id =
+            $slg->[Marpa::R2::Inner::Scanless::G::PREDICTION_EVENT_BY_ID];
+        push @{ $slr->[Marpa::R2::Inner::Scanless::R::EVENTS] },
+            [ $prediction_event_by_id->[$predicted_symbol_id] ];
+        return 1;
+    },
+
+    # 'after lexeme' is same -- copied over below
+    'before lexeme' => sub {
+        my ( $slr, $event ) = @_;
+        my (undef, $lexeme_id) = @{$event};
+        my $slg = $slr->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
+        my $lexeme_event =
+            $slg->[Marpa::R2::Inner::Scanless::G::LEXEME_EVENT_BY_ID]
+            ->[$lexeme_id];
+        push @{ $slr->[Marpa::R2::Inner::Scanless::R::EVENTS] },
+            [$lexeme_event]
+            if defined $lexeme_event;
+        return 1;
+    },
+
+    'unknown g1 event' => sub {
+        my ( $slr, $event ) = @_;
+        Marpa::R2::exception( ( join q{ }, 'Unknown event:', @{$event} ) );
+        return 0;
+    },
+
 };
+
+$libmarpa_event_handlers->{'after lexeme'} = $libmarpa_event_handlers->{'before lexeme'};
 
 # Return 1 if internal scanning should pause
 sub Marpa::R2::Inner::Scanless::convert_libmarpa_events {
@@ -1023,71 +1078,11 @@ sub Marpa::R2::Inner::Scanless::convert_libmarpa_events {
     my $pause    = 0;
     my $thin_slr = $slr->[Marpa::R2::Inner::Scanless::R::C];
     EVENT: for my $event ( $thin_slr->events() ) {
-        my ( $event_type, @event_data ) = @{$event};
-
-            $DB::single = 1;
-            my $handler = $libmarpa_event_handlers->{ $event_type };
-            if ( defined $handler ) {
-                $pause = $handler->( $slr, $event );
-                next EVENT;
-            }
-
-        if ( $event_type eq 'symbol completed' ) {
-            my ($completed_symbol_id) = @event_data;
-            my $slg = $slr->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
-            my $completion_event_by_id =
-                $slg->[Marpa::R2::Inner::Scanless::G::COMPLETION_EVENT_BY_ID];
-            push @{ $slr->[Marpa::R2::Inner::Scanless::R::EVENTS] },
-                [ $completion_event_by_id->[$completed_symbol_id] ];
-            $pause = 1;
-            next EVENT;
-        } ## end if ( $event_type eq 'symbol completed' )
-
-        if ( $event_type eq 'symbol nulled' ) {
-            my ($nulled_symbol_id) = @event_data;
-            my $slg = $slr->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
-            my $nulled_event_by_id =
-                $slg->[Marpa::R2::Inner::Scanless::G::NULLED_EVENT_BY_ID];
-            push @{ $slr->[Marpa::R2::Inner::Scanless::R::EVENTS] },
-                [ $nulled_event_by_id->[$nulled_symbol_id] ];
-            $pause = 1;
-            next EVENT;
-        } ## end if ( $event_type eq 'symbol nulled' )
-
-        if ( $event_type eq 'symbol predicted' ) {
-            my ($predicted_symbol_id) = @event_data;
-            my $slg = $slr->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
-            my $prediction_event_by_id =
-                $slg->[Marpa::R2::Inner::Scanless::G::PREDICTION_EVENT_BY_ID];
-            push @{ $slr->[Marpa::R2::Inner::Scanless::R::EVENTS] },
-                [ $prediction_event_by_id->[$predicted_symbol_id] ];
-            $pause = 1;
-            next EVENT;
-        } ## end if ( $event_type eq 'symbol predicted' )
-
-        if ( $event_type eq 'before lexeme' or $event_type eq 'after lexeme' )
-        {
-            my ($lexeme_id) = @event_data;
-            my $slg = $slr->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
-            my $lexeme_event =
-                $slg->[Marpa::R2::Inner::Scanless::G::LEXEME_EVENT_BY_ID]
-                ->[$lexeme_id];
-            push @{ $slr->[Marpa::R2::Inner::Scanless::R::EVENTS] },
-                [$lexeme_event]
-                if defined $lexeme_event;
-            $pause = 1;
-            next EVENT;
-        } ## end if ( $event_type eq 'before lexeme' or $event_type eq...)
-
-        if ( $event_type eq 'unknown g1 event' ) {
-            Marpa::R2::exception(
-                ( join q{ }, 'Unknown event:', @event_data ) );
-        }
-
-        # Unknown event
-        Marpa::R2::exception(
-            ( join q{ }, 'Unknown event:', $event_type, @event_data ) );
-
+        my ($event_type) = @{$event};
+        my $handler = $libmarpa_event_handlers->{$event_type};
+        Marpa::R2::exception( ( join q{ }, 'Unknown event:', @{$event} ) )
+            if not defined $handler;
+        $pause = 1 if $handler->( $slr, $event );
     } ## end EVENT: for my $event ( $thin_slr->events() )
     return $pause;
 } ## end sub Marpa::R2::Inner::Scanless::convert_libmarpa_events
