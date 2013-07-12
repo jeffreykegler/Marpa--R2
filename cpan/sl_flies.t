@@ -122,7 +122,7 @@ WHNP ::= WP
 WHPP ::= IN WHNP
 
 trailer ::= lexeme*
-lexeme ::= CC | DT | IN | JJ | JJR | MD | NN | NNS |
+lexeme ::= CC | DT | IN | JJ | JJR | MD | NN | NNS | NNP | NNPS
     POS | PRP | <PRP S> | RB | RBS | TO |
     VB | VBG | VBN | VBP | VBZ |
     WDT | WP | <WP S> | WRB
@@ -138,6 +138,8 @@ JJ ~ never
 JJR ~ never
 MD ~ never
 NN ~ never
+NNP ~ never
+NNPS ~ never
 NNS ~ never
 POS ~ never
 PRP ~ never
@@ -162,126 +164,19 @@ period ~ '.'
 END_OF_GRAMMAR
 
 my $lexeme_source =  <<'END_OF_SOURCE';
-'s POS
-creator NN
+I PRP
 a DT
-abstract JJ
-adequately RB
-agencies NNS
-all DT
-alone RB
-amidst NN
-and CC
-are VBP
-as IN
-as RB
-beauty NN
-body NN
-but CC
-can MD
-changes NNS
-completeness NNS
-connexion NN
-consciously RB
-constitutes VBZ
-creation NN
-deeper JJR
-do VBP
-effectually RB
-entitle VBP
-especial JJ
-explicit JJ
-express VB
-facilitate VB
-facts NNS
-first JJ
-for IN
-forms NNS
-going VBG
-great JJ
-his PRP$
-human JJ
-immediate JJ
-immutable JJ
-in IN
-instrument NN
-interest NN
-interminably RB
-into IN
-intrinsic NNS
-invisibly RB
-is VBZ
-it PRP
-its PRP$
-language NN
-live VBP
-logical JJ
-man NN
-math NN
-mathematical JJ
-merely RB
-mind NN
-minds NNS
-most RBS
-mutual JJ
-natural JJ
-not RB
-of IN
-on IN
-or CC
-other JJ
-our PRP$
-perceptions NNS
-physical JJ
-place NN
-possessing VBG
-practical JJ
-principles NNS
-profound JJ
-prominent JJ
-race NN
-read VB
-regard VB
-regarded VBN
-relationship NN
-remembered VBN
-science NN
-something NN
-symmetry NN
-tend VB
-that DT IN WDT
+an DT
+banana NN
+arrow NN
+biscuits NNS
+dog NN
+flies VBZ NNS
+fruit NN
+like IN
+sold VBD
 the DT
-their PRP$
-them PRP
-thing NN
-things NNS
-think VBP
-this DT
-those DT
-through IN
-thus RB
-to TO
-together RB
-translation NN
-truth NN
-truths NNS
-unceasing VBG
-unconsciously RB
-vast JJ
-view VBP
-visibly RB
-we PRP
-weak JJ
-when WRB
-which WDT
-who WP
-whole NN
-whose WP$
-will MD
-with IN
-works NNS
-world NN
-yet RB
+time NN VB
 END_OF_SOURCE
 
 my $slg = Marpa::R2::Scanless::G->new(
@@ -292,93 +187,68 @@ my $slg = Marpa::R2::Scanless::G->new(
 );
 my $g1_grammar = $slg->thick_g1_grammar();
 
-my $quotation = <<'END_OF_QUOTATION';
-Those who view mathematical science,
-not merely as a vast body of abstract and immutable truths,
-whose intrinsic beauty,
-symmetry and logical completeness,
-when regarded in their connexion together as a whole,
-entitle them to a prominent place in the interest of all profound
-and logical minds,
-but as possessing a yet deeper interest for the human race,
-when it is remembered that this science constitutes the language
-through which alone we can adequately express the great facts of
-the natural world,
-and those unceasing changes of mutual relationship which,
-visibly or invisibly,
-consciously or unconsciously to our immediate physical perceptions,
-are interminably going on in the agencies of the creation we live amidst:
-those who thus think on mathematical truth as the instrument through
-which the weak mind of man can most effectually read his Creator's
-works,
-will regard with especial interest all that can tend to facilitate
-the translation of its principles into explicit practical forms.
-END_OF_QUOTATION
-
 my $slr = Marpa::R2::Scanless::R->new( { grammar => $slg,
         ranking_method => 'high_rule_only' } );
 
 my %punctuation = ( q{,} => 'comma', q{:} => 'colon', q{.} => 'period' );
 my $lexeme_data = setup_lexemes($lexeme_source);
-# die Data::Dumper::Dumper($lexeme_data);
-my $quote_length = length $quotation;
-$slr->read(\$quotation, 0, 0);
-LEXEME: while ( 1 ) {
 
-    # Space forward
-    $quotation =~ m/ \G ( [\s]* ) /gxms;
-    my $start = pos $quotation;
-    last LEXEME if $start >= $quote_length ;
-    my ($match) = ($quotation =~ m/ \G ( [']? [[:alnum:]]+ ) /gxmsc);
-    if ( defined $match ) {
-        my $lexemes = $lexeme_data->{ lc $match };
-        die qq{Unknown lexeme "$match"} if not defined $lexemes;
-        for my $lexeme ( @{$lexemes} ) {
-            $slr->lexeme_alternative($lexeme, $match);
-            # say STDERR qq{Found "$match" as "$lexeme" at }, pos $quotation;
+for my $quotation (
+'Time flies like an arrow.',
+'Fruit flies like a banana.',
+'I sold the dog biscuits.')
+{
+    my $quote_length = length $quotation;
+    $slr->read( \$quotation, 0, 0 );
+
+    LEXEME: while (1) {
+
+        # Space forward
+        $quotation =~ m/ \G ( [\s]* ) /gxms;
+        my $start = pos $quotation;
+        last LEXEME if $start >= $quote_length;
+        my ($match) = ( $quotation =~ m/ \G ( [']? [[:alnum:]]+ ) /gxmsc );
+        if ( defined $match ) {
+            my $lexemes = $lexeme_data->{ lc $match };
+            die qq{Unknown lexeme "$match"} if not defined $lexemes;
+            for my $lexeme ( @{$lexemes} ) {
+                $slr->lexeme_alternative( $lexeme, $match );
+
+                # say STDERR qq{Found "$match" as "$lexeme" at }, pos $quotation;
+            }
+            $slr->lexeme_complete( $start, length $match );
+            pos $quotation = $start + length $match;
+            next LEXEME;
+        } ## end if ( defined $match )
+        my $next_char = substr $quotation, ( pos $quotation ), 1;
+        my $punctuation = $punctuation{$next_char};
+        die qq{Unknown char ("$next_char") at pos }, ( pos $quotation ),
+            " in quote"
+            if not defined $punctuation;
+        $slr->lexeme_alternative( $punctuation, $next_char );
+        $slr->lexeme_complete( $start, 1 );
+
+        # say STDERR qq{Found "$punctuation" at $start};
+        pos $quotation = ( pos $quotation ) + 1;
+    } ## end LEXEME: while (1)
+
+    my $asf = Marpa::R2::Scanless::ASF->new(
+        {   slr     => $slr,
+            choice  => 'My_ASF::choix',
+            default => 'My_ASF'
         }
-        $slr->lexeme_complete($start, length $match);
-        pos $quotation = $start + length $match;
-        next LEXEME;
-    } ## end if ( defined $match )
-    my $next_char = substr $quotation, ( pos $quotation ), 1 ;
-    my $punctuation = $punctuation{ $next_char };
-    die qq{Unknown char ("$next_char") at pos }, (pos $quotation), " in quote"
-        if not  defined $punctuation ;
-    $slr->lexeme_alternative($punctuation, $next_char);
-    $slr->lexeme_complete($start, 1);
-    # say STDERR qq{Found "$punctuation" at $start};
-    pos $quotation = (pos $quotation) + 1;
-} ## end LEXEME: while ( pos $quotation < $quote_length )
+    );
 
-my $asf = Marpa::R2::Scanless::ASF->new(
-    {   slr     => $slr,
-        choice  => 'My_ASF::choix',
-        default => 'My_ASF'
-    }
-);
-
+say ('=' x 30);
+say $quotation;
 my $ambiguities = $asf->ambiguities();
 say "Ambiguities: ", join " ", @{$ambiguities};
 
 my %desc_to_cp_list = ();
-explore_cp( $asf );
+for my $penn_string ( @{explore_cp( $asf )}) {
+   say $penn_string;
+}
 
-# Description is key, value is dump level
-my %choices_to_dump = (
-     '157.15' => 999,
-);
-for my $desc ( keys %choices_to_dump )
-{
-    my $dump_level = $choices_to_dump{$desc};
-    my $cp_list    = $desc_to_cp_list{$desc};
-    die "No CP list for desc $desc" if not defined $cp_list;
-    for my $cp ( @{$cp_list} ) {
-        my $tree = penn_str( $asf, $cp, $dump_level );
-        say
-            "Dump of $desc, choicepoint $cp to level $dump_level\n",
-            Data::Dumper::Dumper($tree);
-    } ## end for my $cp ( @{$cp_list} )
 }
 
 sub dump_cp {
@@ -447,63 +317,6 @@ sub penn_str {
     } ## end for my $choice ( @{$choices} )
     return \@return_value;
 } ## end sub penn_str
-
-sub cp_to_desc {
-    my ( $asf, $cp ) = @_;
-    my $desc = join q{.}, $asf->cp_span($cp);
-    push @{$desc_to_cp_list{$desc}}, $cp;
-    return $desc;
-}
-
-sub pick_choice {
-    state $cherry_picks = {
-     '0.172' => 'My_Nodes::cherry1',
-    };
-    my ( $asf, $rcp ) = @_;
-    my $desc = cp_to_desc($asf, $rcp);
-    my $cherry_pick = $cherry_picks->{$desc};
-    return undef if not defined $cherry_pick;
-    my $choices = $asf->choices( $rcp );
-    return 0 if scalar @{$choices} == 1;
-    for my $choice_ix ( 0 .. $#{$choices} ) {
-        my $choice = $choices->[$choice_ix];
-        return $choice_ix if  grep { $asf->cp_blessing($_) eq $cherry_pick } @{$choice};
-    }
-    return undef;
-}
-
-sub explore_cp {
-    my ( $asf, $cp, $data ) = @_;
-    $cp //= $asf->top_choicepoint();
-    return if $asf->cp_is_token( $cp );    # Do nothing if token
-
-    $data //= { seen => [] };
-    my $seen = $data->{seen};
-    return if $seen->[$cp];
-    $seen->[$cp] = 1;
-
-    my $choices = $asf->choices($cp);
-    my $pick = scalar @{$choices} <= 1 ? 0 : pick_choice( $asf, $cp );
-    if ( defined $pick ) {
-        my $choice = $choices->[$pick];
-        explore_cp( $asf, $_, $data ) for @{$choice};
-        return;
-    }
-    my $recurse_mask = show_ambiguity( $asf, $cp );
-    if ( defined $recurse_mask ) {
-        for my $choice ( @{$choices} ) {
-            CHOICE: for my $choice_ix ( 0 .. $#{$choice} ) {
-                if ( $recurse_mask->[$choice_ix] ) {
-                    explore_cp( $asf, $_->[$choice_ix], $data )
-                        for @{$choices};
-                    next CHOICE;
-                }
-            } ## end CHOICE: for my $choice_ix ( 0 .. $#{$choice} )
-        } ## end for my $choice ( @{$choices} )
-    } ## end if ( defined $recurse_mask )
-    return;
-
-} ## end sub explore_cp
 
 sub show_ambiguity_instance {
     my ( $asf, $child ) = @_;
