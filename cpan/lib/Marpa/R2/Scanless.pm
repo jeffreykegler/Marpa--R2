@@ -766,10 +766,9 @@ sub Marpa::R2::Scanless::R::read {
 
 my $libmarpa_trace_event_handlers = {
 
-
     'g1 accepted lexeme' => sub {
         my ( $slr, $event ) = @_;
-        my ( undef, $lexeme_start_pos, $lexeme_end_pos, $g1_lexeme ) =
+        my ( undef, undef, $lexeme_start_pos, $lexeme_end_pos, $g1_lexeme ) =
             @{$event};
     my $thin_slr = $slr->[Marpa::R2::Inner::Scanless::R::C];
         my $stream   = $thin_slr->stream();
@@ -791,7 +790,7 @@ my $libmarpa_trace_event_handlers = {
     },
     'g1 unexpected lexeme' => sub {
         my ( $slr, $event ) = @_;
-        my ( undef, $lexeme_start_pos, $lexeme_end_pos, $g1_lexeme ) =
+        my ( undef, undef, $lexeme_start_pos, $lexeme_end_pos, $g1_lexeme ) =
             @{$event};
     my $thin_slr = $slr->[Marpa::R2::Inner::Scanless::R::C];
         my $stream   = $thin_slr->stream();
@@ -813,7 +812,7 @@ my $libmarpa_trace_event_handlers = {
     },
     'g1 duplicate lexeme' => sub {
         my ( $slr, $event ) = @_;
-        my ( undef, $lexeme_start_pos, $lexeme_end_pos, $g1_lexeme ) =
+        my ( undef, undef, $lexeme_start_pos, $lexeme_end_pos, $g1_lexeme ) =
             @{$event};
     my $thin_slr = $slr->[Marpa::R2::Inner::Scanless::R::C];
         my $stream   = $thin_slr->stream();
@@ -836,7 +835,7 @@ my $libmarpa_trace_event_handlers = {
     },
     'g1 attempting lexeme' => sub {
         my ( $slr, $event ) = @_;
-        my ( undef, $lexeme_start_pos, $lexeme_end_pos, $g1_lexeme ) =
+        my ( undef, undef, $lexeme_start_pos, $lexeme_end_pos, $g1_lexeme ) =
             @{$event};
     my $thin_slr = $slr->[Marpa::R2::Inner::Scanless::R::C];
         my $stream   = $thin_slr->stream();
@@ -859,7 +858,7 @@ my $libmarpa_trace_event_handlers = {
     },
     'g0 reading codepoint' => sub {
         my ( $slr, $event ) = @_;
-        my ( undef, $codepoint, $position ) = @{$event};
+        my ( undef, undef, $codepoint, $position ) = @{$event};
         my $char      = chr $codepoint;
         my @char_desc = ();
         push @char_desc, qq{"$char"}
@@ -874,7 +873,7 @@ my $libmarpa_trace_event_handlers = {
     },
     'g0 accepted codepoint' => sub {
         my ( $slr, $event ) = @_;
-        my ( undef, $codepoint, $position, $token_id ) = @{$event};
+        my ( undef, undef, $codepoint, $position, $token_id ) = @{$event};
         my $char      = chr $codepoint;
         my @char_desc = ();
         push @char_desc, qq{"$char"}
@@ -893,7 +892,7 @@ my $libmarpa_trace_event_handlers = {
     },
     'g0 rejected codepoint' => sub {
         my ( $slr, $event ) = @_;
-        my ( undef, $codepoint, $position, $token_id ) = @{$event};
+        my ( undef, undef, $codepoint, $position, $token_id ) = @{$event};
         my $char      = chr $codepoint;
         my @char_desc = ();
         push @char_desc, qq{"$char"}
@@ -912,7 +911,7 @@ my $libmarpa_trace_event_handlers = {
     },
     'g0 restarted recognizer' => sub {
         my ( $slr,  $event )    = @_;
-        my ( undef, $position ) = @{$event};
+        my ( undef, undef, $position ) = @{$event};
         my ( $line, $column )   = $slr->line_column($position);
          my $trace_file_handle = $slr->[Marpa::R2::Inner::Scanless::R::TRACE_FILE_HANDLE];
         say {$trace_file_handle}
@@ -921,7 +920,7 @@ my $libmarpa_trace_event_handlers = {
     },
     'discarded lexeme' => sub {
         my ( $slr, $event ) = @_;
-        my ( undef, $g0_rule_id, $start, $end ) = @{$event};
+        my ( undef, undef, $g0_rule_id, $start, $end ) = @{$event};
     my $grammar = $slr->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
     my $thick_lex_grammar = $grammar->[Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMAR];
     my $g0_tracer = $thick_lex_grammar->tracer();
@@ -935,7 +934,7 @@ my $libmarpa_trace_event_handlers = {
     },
     'g1 pausing before lexeme' => sub {
         my ( $slr, $event ) = @_;
-        my ( undef, $start, $length, $lexeme_id ) = @{$event};
+        my ( undef, undef, $start, $length, $lexeme_id ) = @{$event};
         my $end         = $start + $length - 1;
      my $thick_g1_recce = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
      my $thin_g1_recce    = $thick_g1_recce->thin();
@@ -950,7 +949,7 @@ my $libmarpa_trace_event_handlers = {
         },
         'g1 pausing after lexeme' => sub {
         my ( $slr, $event ) = @_;
-        my ( undef, $start, $length, $lexeme_id ) = @{$event};
+        my ( undef, undef, $start, $length, $lexeme_id ) = @{$event};
         my $end         = $start + $length - 1;
      my $thick_g1_recce = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
      my $thin_g1_recce    = $thick_g1_recce->thin();
