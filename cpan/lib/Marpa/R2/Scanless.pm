@@ -999,6 +999,24 @@ my $libmarpa_trace_event_handlers = {
     },
 };
 
+
+my $libmarpa_event_handlers = {
+    q{'trace} => sub {
+        my ( $slr, $event ) = @_;
+        my $handler = $libmarpa_trace_event_handlers->{ $event->[1] };
+        if ( defined $handler ) {
+            $handler->( $slr, $event );
+        }
+        else {
+            my $trace_file_handle =
+                $slr->[Marpa::R2::Inner::Scanless::R::TRACE_FILE_HANDLE];
+            say {$trace_file_handle} 'Trace event: ', join q{ }, @{$event}
+                or Marpa::R2::exception("Could not say(): $ERRNO");
+        } ## end else [ if ( defined $handler ) ]
+        return 0;
+    },
+};
+
 # Return 1 if internal scanning should pause
 sub Marpa::R2::Inner::Scanless::convert_libmarpa_events {
     my ($slr)    = @_;
@@ -1006,20 +1024,13 @@ sub Marpa::R2::Inner::Scanless::convert_libmarpa_events {
     my $thin_slr = $slr->[Marpa::R2::Inner::Scanless::R::C];
     EVENT: for my $event ( $thin_slr->events() ) {
         my ( $event_type, @event_data ) = @{$event};
-        if ( $event_type eq q{'trace} ) {
-            my $handler = $libmarpa_trace_event_handlers->{ $event->[1] };
+
+            $DB::single = 1;
+            my $handler = $libmarpa_event_handlers->{ $event_type };
             if ( defined $handler ) {
-                $handler->( $slr, $event );
+                $pause = $handler->( $slr, $event );
+                next EVENT;
             }
-            else {
-                my $trace_file_handle =
-                    $slr->[Marpa::R2::Inner::Scanless::R::TRACE_FILE_HANDLE];
-                say {$trace_file_handle} 'Trace event: ', join q{ },
-                    @event_data
-                    or Marpa::R2::exception("Could not say(): $ERRNO");
-            } ## end else [ if ( defined $handler ) ]
-            next EVENT;
-        } ## end if ( $event_type eq q{'trace} )
 
         if ( $event_type eq 'symbol completed' ) {
             my ($completed_symbol_id) = @event_data;
