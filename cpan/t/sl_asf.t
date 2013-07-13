@@ -162,11 +162,6 @@ my $actual_asf = ${$asf_ref};
 
 my $actual_blessed_asf = $asf->bless($actual_asf);
 
-# $Data::Dumper::Purity = 1;
-# $Data::Dumper::Terse = 1;
-# $Data::Dumper::Deepcopy = 1;
-# say STDERR Data::Dumper::Dumper( $actual_blessed_asf );
-
 Test::More::is_deeply( $actual_asf, $EXPECTED_ASF, 'ASF' );
 Test::More::is_deeply( $actual_blessed_asf, $expected_blessed_asf,
     'Blessed ASF' );

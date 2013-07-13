@@ -216,17 +216,17 @@ for my $quotation (
 
                 # say STDERR qq{Found "$match" as "$lexeme" at }, pos $quotation;
             }
-            $slr->lexeme_complete( $start, length $match );
+            $slr->lexeme_complete( $start, length $match ) or die $slr->show_progress();
             pos $quotation = $start + length $match;
             next LEXEME;
         } ## end if ( defined $match )
         my $next_char = substr $quotation, ( pos $quotation ), 1;
         my $punctuation = $punctuation{$next_char};
         die qq{Unknown char ("$next_char") at pos }, ( pos $quotation ),
-            " in quote"
+            " in text"
             if not defined $punctuation;
         $slr->lexeme_alternative( $punctuation, $next_char );
-        $slr->lexeme_complete( $start, 1 );
+        $slr->lexeme_complete( $start, 1 ) or die $slr->show_progress();
 
         # say STDERR qq{Found "$punctuation" at $start};
         pos $quotation = ( pos $quotation ) + 1;

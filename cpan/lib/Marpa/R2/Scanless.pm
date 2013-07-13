@@ -1017,7 +1017,7 @@ my $libmarpa_event_handlers = {
 
     'symbol completed' => sub {
         my ( $slr, $event ) = @_;
-        my (undef, $completed_symbol_id) = @{$event};
+        my ( undef, $completed_symbol_id ) = @{$event};
         my $slg = $slr->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
         my $completion_event_by_id =
             $slg->[Marpa::R2::Inner::Scanless::G::COMPLETION_EVENT_BY_ID];
@@ -1027,8 +1027,8 @@ my $libmarpa_event_handlers = {
     },
 
     'symbol nulled' => sub {
-        my ( $slr, $event ) = @_;
-        my (undef, $nulled_symbol_id) = @{$event};
+        my ( $slr,  $event )            = @_;
+        my ( undef, $nulled_symbol_id ) = @{$event};
         my $slg = $slr->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
         my $nulled_event_by_id =
             $slg->[Marpa::R2::Inner::Scanless::G::NULLED_EVENT_BY_ID];
@@ -1039,7 +1039,7 @@ my $libmarpa_event_handlers = {
 
     'symbol predicted' => sub {
         my ( $slr, $event ) = @_;
-        my (undef, $predicted_symbol_id) = @{$event};
+        my ( undef, $predicted_symbol_id ) = @{$event};
         my $slg = $slr->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
         my $prediction_event_by_id =
             $slg->[Marpa::R2::Inner::Scanless::G::PREDICTION_EVENT_BY_ID];
@@ -1050,8 +1050,8 @@ my $libmarpa_event_handlers = {
 
     # 'after lexeme' is same -- copied over below
     'before lexeme' => sub {
-        my ( $slr, $event ) = @_;
-        my (undef, $lexeme_id) = @{$event};
+        my ( $slr,  $event )     = @_;
+        my ( undef, $lexeme_id ) = @{$event};
         my $slg = $slr->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
         my $lexeme_event =
             $slg->[Marpa::R2::Inner::Scanless::G::LEXEME_EVENT_BY_ID]
@@ -1068,6 +1068,10 @@ my $libmarpa_event_handlers = {
         return 0;
     },
 
+    'no acceptable input' => sub {
+        ## Do nothing at this point
+        return 0;
+    },
 };
 
 $libmarpa_event_handlers->{'after lexeme'} = $libmarpa_event_handlers->{'before lexeme'};
