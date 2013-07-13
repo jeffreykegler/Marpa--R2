@@ -98,7 +98,6 @@ sub ast_to_hash {
         $lex_rhs{$_} = 1 for @{ $lex_rule->{rhs} };
     }
 
-    my $lexeme_default_adverbs = $parse->{lexeme_default_adverbs};
     my $g1_symbols             = {};
     my %is_lexeme =
         map { ( $_, 1 ); } grep { not $lex_rhs{$_} } keys %lex_lhs;
