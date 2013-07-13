@@ -49,7 +49,7 @@ sub new {
         $meta_recce->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
 
     my $value_ref = $meta_recce->value();
-    Marpa::R2::exception("Parse of BNF/Scanless source failed")
+    Marpa::R2::exception('Parse of BNF/Scanless source failed')
         if not defined $value_ref;
     $parse->{meta_recce} = $meta_recce if defined $parse;
     return bless ${$value_ref}, $class;
@@ -117,17 +117,17 @@ sub ast_to_hash {
                             qq{   Problematic lexeme was <$lexeme>\n}
                         );
                     } ## end if ( $lexeme =~ / [^ [:alnum:]] /xms )
-                    my $blessing = $lexeme;
-                    $blessing =~ s/[ ]/_/gxms;
-                    $g1_symbols->{$lexeme}->{bless} = $blessing;
+                    my $blessing_by_name = $lexeme;
+                    $blessing_by_name =~ s/[ ]/_/gxms;
+                    $g1_symbols->{$lexeme}->{bless} = $blessing_by_name;
                     last DETERMINE_BLESSING;
                 } ## end if ( $blessing eq '::name' )
-                if ( $blessing =~ / [^\w] /xms ) {
+                if ( $blessing =~ / [\W] /xms ) {
                     Marpa::R2::exception(
                         qq{Blessing lexeme as '$blessing' is not allowed\n},
                         qq{   Problematic lexeme was <$lexeme>\n}
                     );
-                } ## end if ( $blessing =~ / [^\w] /xms )
+                } ## end if ( $blessing =~ / [\W] /xms )
                 $g1_symbols->{$lexeme}->{bless} = $blessing;
             } ## end DETERMINE_BLESSING:
             $g1_symbols->{$lexeme}->{semantics} = $action;
@@ -444,7 +444,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::default_rule::evaluate {
             next ADVERB;
         }
         die qq{Adverb "$key" not allowed in G$grammar_level default rule\n},
-            "  Rule was ", $parse->substring( $start, $length ), "\n";
+            '  Rule was ', $parse->substring( $start, $length ), "\n";
     } ## end ADVERB: for my $key ( keys %{$adverb_list} )
     ## no critic(Subroutines::ProhibitExplicitReturnUndef)
     return undef;
@@ -558,7 +558,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::priority_rule::evaluate {
                 my ( $line, $column ) =
                     $parse->{meta_recce}->line_column($start);
                 die qq{Adverb "$key" not allowed in an empty rule\n},
-                    "  Rule was ", $parse->substring( $start, $length ), "\n";
+                    '  Rule was ', $parse->substring( $start, $length ), "\n";
             } ## end ADVERB: for my $key ( keys %{$adverb_list} )
 
             $action //= $default_adverbs->{action};
@@ -678,7 +678,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::priority_rule::evaluate {
             }
             my ( $line, $column ) = $parse->{meta_recce}->line_column($start);
             die qq{Adverb "$key" not allowed in an empty rule\n},
-                "  Rule was ", $parse->substring( $start, $length ), "\n";
+                '  Rule was ', $parse->substring( $start, $length ), "\n";
         } ## end ADVERB: for my $key ( keys %{$adverb_list} )
 
         $assoc //= 'L';
@@ -790,7 +790,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::empty_rule::evaluate {
         }
         my ( $line, $column ) = $parse->{meta_recce}->line_column($start);
         die qq{Adverb "$key" not allowed in an empty rule\n},
-            "  Rule was ", $parse->substring( $start, $length ), "\n";
+            '  Rule was ', $parse->substring( $start, $length ), "\n";
     } ## end ADVERB: for my $key ( keys %{$adverb_list} )
 
     $action //= $default_adverbs->{action};
@@ -842,7 +842,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::lexeme_rule::evaluate {
         die "Duplicate lexeme rule for <$symbol_name>\n",
             "  Only one lexeme rule is allowed for each symbol\n",
             "  Location was line $line, column $column\n",
-            "  Rule was ", $parse->substring( $start, $length ), "\n";
+            '  Rule was ', $parse->substring( $start, $length ), "\n";
     } ## end if ( defined $declarations )
 
     my $adverb_list = $unevaluated_adverb_list->evaluate();
@@ -865,7 +865,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::lexeme_rule::evaluate {
             my ( $line, $column ) = $parse->{meta_recce}->line_column($start);
             die qq{Bad value for "pause" adverb: "$raw_value"},
                 "  Location was line $line, column $column\n",
-                "  Rule was ", $parse->substring( $start, $length ), "\n";
+                '  Rule was ', $parse->substring( $start, $length ), "\n";
         } ## end if ( $key eq 'pause' )
         if ( $key eq 'event' ) {
             $declarations{$key} = $raw_value;
@@ -874,7 +874,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::lexeme_rule::evaluate {
         my ( $line, $column ) = $parse->{meta_recce}->line_column($start);
         die qq{"$key" adverb not allowed in lexeme rule"\n},
             "  Location was line $line, column $column\n",
-            "  Rule was ", $parse->substring( $start, $length ), "\n";
+            '  Rule was ', $parse->substring( $start, $length ), "\n";
     } ## end ADVERB: for my $key ( keys %{$adverb_list} )
     if ( exists $declarations{'event'} and not exists $declarations{'pause'} )
     {
@@ -882,7 +882,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::lexeme_rule::evaluate {
         die
             qq{"event" adverb not allowed without "pause" adverb in lexeme rule"\n},
             "  Location was line $line, column $column\n",
-            "  Rule was ", $parse->substring( $start, $length ), "\n";
+            '  Rule was ', $parse->substring( $start, $length ), "\n";
     } ## end if ( exists $declarations{'event'} and not exists $declarations...)
     $parse->{lexeme_declarations}->{$symbol_name} = \%declarations;
     ## no critic(Subroutines::ProhibitExplicitReturnUndef)
@@ -978,7 +978,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::quantified_rule::evaluate {
         }
         my ( $line, $column ) = $parse->{meta_recce}->line_column($start);
         die qq{Adverb "$key" not allowed in quantified rule\n},
-            "  Rule was ", $parse->substring( $start, $length ), "\n";
+            '  Rule was ', $parse->substring( $start, $length ), "\n";
     } ## end ADVERB: for my $key ( keys %{$adverb_list} )
 
     # mask not needed
@@ -1036,7 +1036,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::completion_event_declaration::evaluate
         my ( $line, $column ) = $parse->{meta_recce}->line_column($start);
         die qq{Completion event for symbol "$symbol_name" declared twice\n},
             qq{  That is not allowed\n},
-            "  Second declaration was ", $parse->substring( $start, $length ),
+            '  Second declaration was ', $parse->substring( $start, $length ),
             "\n",
             "  Problem occurred at line $line, column $column\n";
     } ## end if ( defined $completion_events->{$symbol_name} )
