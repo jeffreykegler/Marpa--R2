@@ -446,6 +446,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::default_rule::evaluate {
         die qq{Adverb "$key" not allowed in G$grammar_level default rule\n},
             "  Rule was ", $parse->substring( $start, $length ), "\n";
     } ## end ADVERB: for my $key ( keys %{$adverb_list} )
+    ## no critic(Subroutines::ProhibitExplicitReturnUndef)
     return undef;
 } ## end sub Marpa::R2::Internal::MetaAST_Nodes::default_rule::evaluate
 
@@ -477,6 +478,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::lexeme_default_statement::evaluate {
         Marpa::R2::exception(
             qq{"$key" adverb not allowed as lexeme default"});
     } ## end ADVERB: for my $key ( keys %{$adverb_list} )
+    ## no critic(Subroutines::ProhibitExplicitReturnUndef)
     return undef;
 } ## end sub Marpa::R2::Internal::MetaAST_Nodes::lexeme_default_statement::evaluate
 
@@ -590,6 +592,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::priority_rule::evaluate {
 
             push @{$rules}, \%hash_rule;
         } ## end for my $alternative (@alternatives)
+        ## no critic(Subroutines::ProhibitExplicitReturnUndef)
         return undef;
     } ## end if ( $priority_count <= 1 )
 
@@ -638,7 +641,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::priority_rule::evaluate {
         my ( $priority, $rhs, $adverb_list ) = @{$working_rule};
         my @new_rhs = @{ $rhs->{rhs} };
         my @arity   = grep { $new_rhs[$_] eq $lhs } 0 .. $#new_rhs;
-        my $length  = scalar @new_rhs;
+        my $rhs_length  = scalar @new_rhs;
 
         my $current_exp = $lhs . '[prec' . $priority . ']';
         my @mask        = @{ $rhs->{mask} };
@@ -720,7 +723,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::priority_rule::evaluate {
         }
 
         if ( scalar @arity == 1 ) {
-            die 'Unnecessary unit rule in priority rule' if $length == 1;
+            die 'Unnecessary unit rule in priority rule' if $rhs_length == 1;
             $new_rhs[ $arity[0] ] = $current_exp;
         }
         DO_ASSOCIATION: {
@@ -750,6 +753,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::priority_rule::evaluate {
         $new_xs_rule{rhs} = \@new_rhs;
         push @{$rules}, \%new_xs_rule;
     } ## end RULE: for my $working_rule (@working_rules)
+    ## no critic(Subroutines::ProhibitExplicitReturnUndef)
     return undef;
 } ## end sub Marpa::R2::Internal::MetaAST_Nodes::priority_rule::evaluate
 
@@ -881,6 +885,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::lexeme_rule::evaluate {
             "  Rule was ", $parse->substring( $start, $length ), "\n";
     } ## end if ( exists $declarations{'event'} and not exists $declarations...)
     $parse->{lexeme_declarations}->{$symbol_name} = \%declarations;
+    ## no critic(Subroutines::ProhibitExplicitReturnUndef)
     return undef;
 } ## end sub Marpa::R2::Internal::MetaAST_Nodes::lexeme_rule::evaluate
 
@@ -888,6 +893,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::statement::evaluate {
     my ( $data, $parse ) = @_;
     my ( undef, undef, $statement_body ) = @{$data};
     $statement_body->evaluate($parse);
+    ## no critic(Subroutines::ProhibitExplicitReturnUndef)
     return undef;
 } ## end sub Marpa::R2::Internal::MetaAST_Nodes::statement::evaluate
 
@@ -895,6 +901,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::statement_body::evaluate {
     my ( $data, $parse ) = @_;
     my ( undef, undef, $statement ) = @{$data};
     $statement->evaluate($parse);
+    ## no critic(Subroutines::ProhibitExplicitReturnUndef)
     return undef;
 } ## end sub Marpa::R2::Internal::MetaAST_Nodes::statement_body::evaluate
 
@@ -908,6 +915,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::start_rule::evaluate {
         rhs    => $symbol->names($parse),
         action => '::first'
         };
+    ## no critic(Subroutines::ProhibitExplicitReturnUndef)
     return undef;
 } ## end sub Marpa::R2::Internal::MetaAST_Nodes::start_rule::evaluate
 
@@ -917,6 +925,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::discard_rule::evaluate {
     local $Marpa::R2::Internal::GRAMMAR_LEVEL = 0;
     push @{ $parse->{g0_rules} },
         { lhs => '[:discard]', rhs => $symbol->names($parse) };
+    ## no critic(Subroutines::ProhibitExplicitReturnUndef)
     return undef;
 } ## end sub Marpa::R2::Internal::MetaAST_Nodes::discard_rule::evaluate
 
@@ -1032,6 +1041,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::completion_event_declaration::evaluate
             "  Problem occurred at line $line, column $column\n";
     } ## end if ( defined $completion_events->{$symbol_name} )
     $completion_events->{$symbol_name} = $event_name;
+    ## no critic(Subroutines::ProhibitExplicitReturnUndef)
     return undef;
 } ## end sub Marpa::R2::Internal::MetaAST_Nodes::completion_event_declaration::evaluate
 
@@ -1045,11 +1055,12 @@ sub Marpa::R2::Internal::MetaAST_Nodes::nulled_event_declaration::evaluate {
         my ( $line, $column ) = $parse->{meta_recce}->line_column($start);
         die qq{nulled event for symbol "$symbol_name" declared twice\n},
             qq{  That is not allowed\n},
-            "  Second declaration was ", $parse->substring( $start, $length ),
+            '  Second declaration was ', $parse->substring( $start, $length ),
             "\n",
             "  Problem occurred at line $line, column $column\n";
     } ## end if ( defined $nulled_events->{$symbol_name} )
     $nulled_events->{$symbol_name} = $event_name;
+    ## no critic(Subroutines::ProhibitExplicitReturnUndef)
     return undef;
 } ## end sub Marpa::R2::Internal::MetaAST_Nodes::nulled_event_declaration::evaluate
 
@@ -1064,11 +1075,12 @@ sub Marpa::R2::Internal::MetaAST_Nodes::prediction_event_declaration::evaluate
         my ( $line, $column ) = $parse->{meta_recce}->line_column($start);
         die qq{prediction event for symbol "$symbol_name" declared twice\n},
             qq{  That is not allowed\n},
-            "  Second declaration was ", $parse->substring( $start, $length ),
+            '  Second declaration was ', $parse->substring( $start, $length ),
             "\n",
             "  Problem occurred at line $line, column $column\n";
     } ## end if ( defined $prediction_events->{$symbol_name} )
     $prediction_events->{$symbol_name} = $event_name;
+    ## no critic(Subroutines::ProhibitExplicitReturnUndef)
     return undef;
 } ## end sub Marpa::R2::Internal::MetaAST_Nodes::prediction_event_declaration::evaluate
 
@@ -1206,7 +1218,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::single_quoted_string::evaluate {
     my %lexical_rule      = (
         lhs  => $lexical_lhs,
         rhs  => $lexical_rhs,
-        mask => [ map { ; 1 } @{$lexical_rhs} ]
+        mask => [ map { ; 1 } @{$lexical_rhs} ],
     );
     push @{ $parse->{g0_rules} }, \%lexical_rule;
     my $g1_symbol =
@@ -1220,7 +1232,7 @@ use English qw( -no_match_vars );
 
 sub new {
     my ( $class, $name ) = @_;
-    return bless { names => [ '' . $name ], mask => [1] }, $class;
+    return bless { names => [ q{} . $name ], mask => [1] }, $class;
 }
 
 sub combine {
@@ -1257,7 +1269,7 @@ sub new_from_char_class {
 sub name {
     my ($self) = @_;
     my $names = $self->{names};
-    Marpa::R2::exception( "list->name() on symbol list of length ",
+    Marpa::R2::exception( 'list->name() on symbol list of length ',
         scalar @{$names} )
         if scalar @{$names} != 1;
     return $self->{names}->[0];
@@ -1267,7 +1279,7 @@ sub mask  { return shift->{mask} }
 
 sub mask_set {
     my ( $self, $mask ) = @_;
-    $self->{mask} = [ map {$mask} @{ $self->{mask} } ];
+    return $self->{mask} = [ map {$mask} @{ $self->{mask} } ];
 }
 
 1;
