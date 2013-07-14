@@ -205,6 +205,7 @@ sub normalize_asf_blessing {
     return $name;
 } ## end sub normalize_asf_blessing
 
+# Returns undef if no parse
 sub Marpa::R2::Scanless::ASF::new {
     my ( $class, @arg_hashes ) = @_;
     my $asf       = bless [], $class;
@@ -264,7 +265,7 @@ sub Marpa::R2::Scanless::ASF::new {
         $bocage = $recce->[Marpa::R2::Internal::Recognizer::B_C] =
             Marpa::R2::Thin::B->new( $recce_c, -1 );
         $grammar_c->throw_set(1);
-        die "No parse" if not defined $bocage;
+        return if not defined $bocage;
     } ## end if ( not $bocage )
 
     my $rule_resolutions =
@@ -335,7 +336,7 @@ sub Marpa::R2::Scanless::ASF::raw {
     my $slr   = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
     my $recce = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
     $start_rcp //= $asf->top_choicepoint();
-    return \or_node_expand( $recce, $start_rcp );
+    return or_node_expand( $recce, $start_rcp );
 } ## end sub Marpa::R2::Scanless::ASF::raw_asf
 
 sub bless_asf {
