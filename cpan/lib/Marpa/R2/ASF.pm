@@ -86,6 +86,7 @@ sub Marpa::R2::Scanless::ASF::first_factored_rhs {
             }
         }
     } ## end while ( defined( my $or_node_id = pop @worklist ) )
+    return \@final_and_nodes;
 } ## end sub Marpa::R2::Scanless::ASF::first_factored_rhs
 
 sub irl_extend {

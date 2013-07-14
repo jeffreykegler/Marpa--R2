@@ -48,18 +48,17 @@ if ( not defined eval { $slr->read( \'aaa' ); 1 } ) {
     $abbreviated_error =~ s/\n.*//xms;
     $abbreviated_error =~ s/^Error \s+ in \s+ string_read: \s+ //xms;
     return 'No parse', $abbreviated_error;
-} ## end if ( not defined eval { $slr->read( \'aa' ); 1 } )
+} ## end if ( not defined eval { $slr->read( \'aaa' ); 1 } )
 my $asf = Marpa::R2::Scanless::ASF->new(
     { slr => $slr, choice => 'My_ASF::choix', force => 'My_ASF' } );
-my $asf_ref = $asf->raw();
-if ( not defined $asf_ref ) {
+if ( not defined $asf ) {
     return 'No parse', 'Input read to end but no parse';
 }
-my $actual_asf = ${$asf_ref};
 
-my $actual_blessed_asf = $asf->bless($actual_asf);
+say STDERR Data::Dumper::Dumper($asf->first_factored_rhs($asf->top_choicepoint()));
 
-# say STDERR Data::Dumper::Dumper($actual_blessed_asf);
-say STDERR Data::Dumper::Dumper($actual_asf);
+# my $actual_asf         = $asf->raw();
+# my $actual_blessed_asf = $asf->bless($actual_asf);
+
 
 # vim: expandtab shiftwidth=4:
