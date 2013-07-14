@@ -238,6 +238,7 @@ for my $quotation (
             default => 'My_ASF'
         }
     );
+    die "No parse for ASF" if not defined $asf;
 
 say ('=' x 30);
 say $quotation;

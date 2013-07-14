@@ -357,6 +357,7 @@ my $asf = Marpa::R2::Scanless::ASF->new(
         default => 'My_ASF'
     }
 );
+die "No parse for ASF" if not defined $asf;
 
 my $ambiguities = $asf->ambiguities();
 say "Ambiguities: ", join " ", @{$ambiguities};
