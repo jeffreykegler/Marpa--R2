@@ -52,6 +52,42 @@ END_OF_STRUCTURE
 sub make_token_cp { return -($_[0] + 43); }
 sub unmake_token_cp { return -$_[0] - 43; }
 
+sub Marpa::R2::Scanless::ASF::first_factored_rhs {
+    my ( $asf, $checkpoint_id ) = @_;
+    Marpa::R2::exception("Cannot factor token") if $checkpoint_id < 0;
+    my $slr       = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
+    my $recce     = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+    my $bocage    = $recce->[Marpa::R2::Internal::Recognizer::B_C];
+    my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
+    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
+    my @worklist  = ($checkpoint_id);
+    my @final_and_nodes;
+    while ( defined( my $or_node_id = pop @worklist ) ) {
+        {
+            my $irl_id = $bocage->_marpa_b_or_node_irl($or_node_id);
+
+            # The first one may be undefined, because that ID comes from the
+            # user.  Otherwise this should never fail.
+            Marpa::R2::exception("Bad checkpoint_id: $checkpoint_id")
+                if not defined $irl_id;
+            if ( $grammar_c->_marpa_g_irl_is_virtual_rhs($irl_id) ) {
+                for my $and_node_id (
+                    $bocage->_marpa_b_or_node_first_and($or_node_id)
+                    .. $bocage->_marpa_b_or_node_last_and($or_node_id) )
+                {
+                    ## Virtual RHS, so we do not have to worry about tokens
+                    push @worklist, $bocage->_marpa_b_and_node_cause($and_node_id);
+                } ## end for my $and_node_id ( $bocage...)
+            } ## end if ( $grammar_c->_marpa_g_irl_is_virtual_rhs($irl_id...))
+            else {
+                push @final_and_nodes,
+                    $bocage->_marpa_b_or_node_first_and($or_node_id)
+                    .. $bocage->_marpa_b_or_node_last_and($or_node_id) ;
+            }
+        }
+    } ## end while ( defined( my $or_node_id = pop @worklist ) )
+} ## end sub Marpa::R2::Scanless::ASF::first_factored_rhs
+
 sub irl_extend {
     my ( $recce, $or_node_id ) = @_;
     my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
@@ -72,7 +108,7 @@ sub irl_extend {
             defined $predecessor_id
             ? or_node_flatten( $recce, $predecessor_id )
             : [ [] ];
-        my $cause_id = $bocage->_marpa_b_and_node_cause($and_node_id);
+    my $cause_id = $bocage->_marpa_b_and_node_cause($and_node_id);
         my $right_choices = irl_extend( $recce, $cause_id );
         for my $left_choice ( @{$left_choices} ) {
             for my $right_choice ( @{$right_choices} ) {
