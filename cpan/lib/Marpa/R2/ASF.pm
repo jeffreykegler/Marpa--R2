@@ -56,6 +56,11 @@ BEGIN {
     SYMBOL_BLESSING
     CHOICEPOINT_IS_FACTORED
 
+    { FAC_ indicates fields which would belong to separate factoring
+     object, if there was one }
+    FAC_CHAF_PREDECESSOR_BY_CAUSE
+    FAC_CHAF_CAUSE_IS_ACTIVE
+
 END_OF_STRUCTURE
     Marpa::R2::offset($structure);
 } ## end BEGIN
@@ -63,12 +68,31 @@ END_OF_STRUCTURE
 sub make_token_cp { return -($_[0] + 43); }
 sub unmake_token_cp { return -$_[0] - 43; }
 
+sub cmp_cause__choice_by_predecessors {
+    my ( $choice_a, $choice_b, $sorted_and_nodes ) = @_;
+    my ( $a_first_and_node, $a_last_and_node ) = @{$a};
+    my ( $b_first_and_node, $b_last_and_node ) = @{$b};
+    my $a_diff = $a_last_and_node - $a_first_and_node;
+    my $b_diff = $b_last_and_node - $b_first_and_node;
+    my $cmp    = $a_diff <=> $b_diff;
+    return $cmp if $cmp;
+    for ( my $node_ix = 0; $node_ix <= $a_diff; $node_ix++ ) {
+        my $a_predecessor_cp =
+            $sorted_and_nodes->[ $a_first_and_node + $node_ix ];
+        my $b_predecessor_cp =
+            $sorted_and_nodes->[ $b_first_and_node + $node_ix ];
+        my $cmp = $a_predecessor_cp <=> $b_predecessor_cp;
+        return $cmp if $cmp;
+    } ## end for ( my $node_ix = 0; $node_ix <= $a_diff; $node_ix++)
+    return 0;
+} ## end sub cmp_cause__choice_by_predecessors
+
 # Given a set of or-nodes, convert them to a CCL
 sub or_nodes_to_ccl {
     my ( $asf, $or_node_list ) = @_;
-    my $slr       = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
-    my $recce     = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
-    my $bocage    = $recce->[Marpa::R2::Internal::Recognizer::B_C];
+    my $slr    = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
+    my $recce  = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+    my $bocage = $recce->[Marpa::R2::Internal::Recognizer::B_C];
     my @and_node_id_list = map {
         $bocage->_marpa_b_or_node_first_and($_)
             .. $bocage->_marpa_b_or_node_last_and($_)
@@ -85,26 +109,33 @@ sub or_nodes_to_ccl {
         }
         push @and_nodes, [ $predecessor_cp, $cause_cp ];
     } ## end for my $and_node_id (@and_node_id_list)
-    my @sorted_and_nodes = sort { $a->[1] <=> $b->[1] || $a->[0] <=> $b->[0]; } @and_nodes;
-    my @predecessor_sets        = ();
-    my $current_predecessor_set = 0;
-    my $current_cause_cp = $sorted_and_nodes[0]->[1];
+    my @sorted_and_nodes =
+        sort { $a->[1] <=> $b->[1] || $a->[0] <=> $b->[0]; } @and_nodes;
+
+    # A cause choice is a set of and-nodes sharing the same cause
+    my @cause_choices        = ();
+    my $current_cause_choice = 0;
+    my $current_cause_cp     = $sorted_and_nodes[0]->[1];
     AND_NODE_IX:
     for (
-        my $and_node_ix = $current_predecessor_set + 1;
+        my $and_node_ix = $current_cause_choice + 1;
         $and_node_ix <= $#sorted_and_nodes;
         $and_node_ix++
         )
     {
-        my $current_cause_cp = $sorted_and_nodes[$current_predecessor_set]->[1];
-        my $this_cause_cp = $sorted_and_nodes[$and_node_ix]->[1];
+        my $current_cause_cp = $sorted_and_nodes[$current_cause_choice]->[1];
+        my $this_cause_cp    = $sorted_and_nodes[$and_node_ix]->[1];
         next AND_NODE_IX if $current_cause_cp == $this_cause_cp;
-        push @predecessor_sets,
-            [ $current_predecessor_set, $and_node_ix - 1 ];
+        push @cause_choices, [ $current_cause_choice, $and_node_ix - 1 ];
         $current_cause_cp = $this_cause_cp;
-    } ## end AND_NODE_IX: for ( my $and_node_ix = $current_predecessor_set + 1...)
-    push @predecessor_sets, [ $current_predecessor_set, $#sorted_and_nodes ];
-    return \@predecessor_sets;
+    } ## end AND_NODE_IX: for ( my $and_node_ix = $current_cause_choice + 1...)
+    push @cause_choices, [ $current_cause_choice, $#sorted_and_nodes ];
+
+    # Sort the cause choices by their predecessor sets
+    my @sorted_cause_choices = sort {
+        cmp_cause_choices_by_predecessors( $a, $b, \@sorted_and_nodes );
+    } ( 0 .. $#cause_choices );
+    return \@sorted_cause_choices;
 } ## end sub or_nodes_to_ccl
 
 sub Marpa::R2::Scanless::ASF::first_factored_rhs {
@@ -117,30 +148,38 @@ sub Marpa::R2::Scanless::ASF::first_factored_rhs {
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
     my @worklist  = ($checkpoint_id);
     my @final_or_nodes;
-    WORK_ITEM: while ( defined( my $or_node_id = pop @worklist ) ) {
-        {
-            my $irl_id = $bocage->_marpa_b_or_node_irl($or_node_id);
+    my $chaf_predecessor_by_cause =
+        $asf
+        ->[Marpa::R2::Internal::Scanless::ASF::FAC_CHAF_PREDECESSOR_BY_CAUSE]
+        = [];
 
-            # The first one may be undefined, because that ID comes from the
-            # user.  Otherwise this should never fail.
-            Marpa::R2::exception("Bad checkpoint_id: $checkpoint_id")
-                if not defined $irl_id;
-            if ( $grammar_c->_marpa_g_irl_is_virtual_rhs($irl_id) ) {
-                push @final_or_nodes, $or_node_id;
-                next WORK_ITEM;
-            }
-            for my $and_node_id (
-                $bocage->_marpa_b_or_node_first_and($or_node_id)
-                .. $bocage->_marpa_b_or_node_last_and($or_node_id) )
-            {
-                ## Virtual RHS, so we do not have to worry about tokens
-                push @worklist,
-                    $bocage->_marpa_b_and_node_cause($and_node_id);
-            } ## end for my $and_node_id ( $bocage...)
+    WORK_ITEM: while ( defined( my $or_node_id = pop @worklist ) ) {
+        my $irl_id = $bocage->_marpa_b_or_node_irl($or_node_id);
+
+        # The first one may be undefined, because that ID comes from the
+        # user.  Otherwise this should never fail.
+        Marpa::R2::exception("Bad checkpoint_id: $checkpoint_id")
+            if not defined $irl_id;
+        if ( $grammar_c->_marpa_g_irl_is_virtual_rhs($irl_id) ) {
+            push @final_or_nodes, $or_node_id;
+            next WORK_ITEM;
         }
+        for my $and_node_id ( $bocage->_marpa_b_or_node_first_and($or_node_id)
+            .. $bocage->_marpa_b_or_node_last_and($or_node_id) )
+        {
+
+            my $predecessor_id =
+                $bocage->_marpa_b_and_node_predecessor($and_node_id);
+            my $cause_id = $bocage->_marpa_b_and_node_cause($and_node_id);
+            push @{ $chaf_predecessor_by_cause->[$cause_id] }, $predecessor_id;
+            ## In C, use a bitmap to track active cause ID's?
+            ## Virtual RHS, so we do not have to worry about tokens
+            push @worklist, $cause_id;
+        } ## end for my $and_node_id ( $bocage->_marpa_b_or_node_first_and...)
     } ## end WORK_ITEM: while ( defined( my $or_node_id = pop @worklist ) )
     my $final_or_nodes_ref = \@final_or_nodes;
-    return [$final_or_nodes_ref, or_nodes_to_ccl( $asf, $final_or_nodes_ref ) ];
+    return [ $final_or_nodes_ref,
+        or_nodes_to_ccl( $asf, $final_or_nodes_ref ) ];
 } ## end sub Marpa::R2::Scanless::ASF::first_factored_rhs
 
 sub irl_extend {
