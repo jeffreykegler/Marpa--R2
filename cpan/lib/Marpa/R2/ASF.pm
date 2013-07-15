@@ -34,6 +34,17 @@ $VERSION = eval $VERSION;
 
 package Marpa::R2::Internal::ASF;
 
+# Terms
+#
+# Component -- the right hand side symbol in a particular rule instance
+# (The term "component" comes from Irons 1961 paper.)
+#
+# CCL (Factored Component Choice List): The list of choices for a component,
+# as factored by predecessors.
+#
+# Factored RHS: a sequence of CCL's, one for each RHS symbol.  The complete set of
+# factored RHS's for rule instance is a Rule Instance Factoring, or just "factoring".
+
 BEGIN {
     my $structure = <<'END_OF_STRUCTURE';
 
@@ -52,6 +63,50 @@ END_OF_STRUCTURE
 sub make_token_cp { return -($_[0] + 43); }
 sub unmake_token_cp { return -$_[0] - 43; }
 
+# Given a set of or-nodes, convert them to a CCL
+sub or_nodes_to_ccl {
+    my ( $asf, $or_node_list ) = @_;
+    my $slr       = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
+    my $recce     = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+    my $bocage    = $recce->[Marpa::R2::Internal::Recognizer::B_C];
+    my @and_node_id_list = map {
+        $bocage->_marpa_b_or_node_first_and($_)
+            .. $bocage->_marpa_b_or_node_last_and($_)
+    } @{$or_node_list};
+    my @and_nodes = ();
+    for my $and_node_id (@and_node_id_list) {
+        ## -1 if no predecessor
+        my $predecessor_cp =
+            $bocage->_marpa_b_and_node_predecessor($and_node_id) // -1;
+        my $cause_cp = $bocage->_marpa_b_and_node_cause($and_node_id);
+        if ( not defined $cause_cp ) {
+            my $token_id = $bocage->_marpa_b_and_node_symbol($and_node_id);
+            $cause_cp = make_token_cp($and_node_id);
+        }
+        push @and_nodes, [ $predecessor_cp, $cause_cp ];
+    } ## end for my $and_node_id (@and_node_id_list)
+    my @sorted_and_nodes = sort { $a->[1] <=> $b->[1] || $a->[0] <=> $b->[0]; } @and_nodes;
+    my @predecessor_sets        = ();
+    my $current_predecessor_set = 0;
+    my $current_cause_cp = $sorted_and_nodes[0]->[1];
+    AND_NODE_IX:
+    for (
+        my $and_node_ix = $current_predecessor_set + 1;
+        $and_node_ix <= $#sorted_and_nodes;
+        $and_node_ix++
+        )
+    {
+        my $current_cause_cp = $sorted_and_nodes[$current_predecessor_set]->[1];
+        my $this_cause_cp = $sorted_and_nodes[$and_node_ix]->[1];
+        next AND_NODE_IX if $current_cause_cp == $this_cause_cp;
+        push @predecessor_sets,
+            [ $current_predecessor_set, $and_node_ix - 1 ];
+        $current_cause_cp = $this_cause_cp;
+    } ## end AND_NODE_IX: for ( my $and_node_ix = $current_predecessor_set + 1...)
+    push @predecessor_sets, [ $current_predecessor_set, $#sorted_and_nodes ];
+    return \@predecessor_sets;
+} ## end sub or_nodes_to_ccl
+
 sub Marpa::R2::Scanless::ASF::first_factored_rhs {
     my ( $asf, $checkpoint_id ) = @_;
     Marpa::R2::exception("Cannot factor token") if $checkpoint_id < 0;
@@ -61,8 +116,8 @@ sub Marpa::R2::Scanless::ASF::first_factored_rhs {
     my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
     my @worklist  = ($checkpoint_id);
-    my @final_and_nodes;
-    while ( defined( my $or_node_id = pop @worklist ) ) {
+    my @final_or_nodes;
+    WORK_ITEM: while ( defined( my $or_node_id = pop @worklist ) ) {
         {
             my $irl_id = $bocage->_marpa_b_or_node_irl($or_node_id);
 
@@ -71,22 +126,21 @@ sub Marpa::R2::Scanless::ASF::first_factored_rhs {
             Marpa::R2::exception("Bad checkpoint_id: $checkpoint_id")
                 if not defined $irl_id;
             if ( $grammar_c->_marpa_g_irl_is_virtual_rhs($irl_id) ) {
-                for my $and_node_id (
-                    $bocage->_marpa_b_or_node_first_and($or_node_id)
-                    .. $bocage->_marpa_b_or_node_last_and($or_node_id) )
-                {
-                    ## Virtual RHS, so we do not have to worry about tokens
-                    push @worklist, $bocage->_marpa_b_and_node_cause($and_node_id);
-                } ## end for my $and_node_id ( $bocage...)
-            } ## end if ( $grammar_c->_marpa_g_irl_is_virtual_rhs($irl_id...))
-            else {
-                push @final_and_nodes,
-                    $bocage->_marpa_b_or_node_first_and($or_node_id)
-                    .. $bocage->_marpa_b_or_node_last_and($or_node_id) ;
+                push @final_or_nodes, $or_node_id;
+                next WORK_ITEM;
             }
+            for my $and_node_id (
+                $bocage->_marpa_b_or_node_first_and($or_node_id)
+                .. $bocage->_marpa_b_or_node_last_and($or_node_id) )
+            {
+                ## Virtual RHS, so we do not have to worry about tokens
+                push @worklist,
+                    $bocage->_marpa_b_and_node_cause($and_node_id);
+            } ## end for my $and_node_id ( $bocage...)
         }
-    } ## end while ( defined( my $or_node_id = pop @worklist ) )
-    return \@final_and_nodes;
+    } ## end WORK_ITEM: while ( defined( my $or_node_id = pop @worklist ) )
+    my $final_or_nodes_ref = \@final_or_nodes;
+    return [$final_or_nodes_ref, or_nodes_to_ccl( $asf, $final_or_nodes_ref ) ];
 } ## end sub Marpa::R2::Scanless::ASF::first_factored_rhs
 
 sub irl_extend {
