@@ -228,17 +228,16 @@ sub Marpa::R2::Scanless::ASF::first_factored_rhs {
             push @worklist, $cause_id;
         } ## end for my $and_node_id ( $bocage->_marpa_b_or_node_first_and...)
     } ## end WORK_ITEM: while ( defined( my $or_node_id = pop @worklist ) )
-    my $final_or_nodes_ref = \@final_or_nodes;
-    my @factoring = ( or_nodes_to_factor( $asf, $final_or_nodes_ref ) );
-    while (1) {
+    my @factoring = ( or_nodes_to_factor( $asf, \@final_or_nodes ) );
+    FACTOR: while (1) {
         my $current_factor = $factoring[$#factoring];
         my ($cartesians, $current_cartesian_ix) = @{$current_factor};
         my $current_cartesian = $cartesians->[$current_cartesian_ix];
-        my $predecessor_or_nodes = $current_cartesian->[0];
-        last FACTOR if not scalar @{$predecessor_or_nodes};
-        push @factoring, or_nodes_to_factor( $asf, $predecessor_or_nodes );
+        my @predecessor_or_nodes = grep { $_ >= 0 } @{$current_cartesian->[0]};
+        last FACTOR if not scalar @predecessor_or_nodes;
+        push @factoring, or_nodes_to_factor( $asf, \@predecessor_or_nodes );
     }
-    return [ $final_or_nodes_ref, \@factoring ];
+    return \@factoring;
 } ## end sub Marpa::R2::Scanless::ASF::first_factored_rhs
 
 sub irl_extend {
