@@ -149,7 +149,7 @@ sub or_nodes_to_factor {
     # Sort the cause choices by their predecessor sets
     my @sorted_symches =
         sort { cmp_symches_by_predecessors( $a, $b, \@sorted_and_nodes ); } @symches;
-    return \@sorted_symches;
+
     my @cartesians = ();
     my @current_cartesian = (
         [   map { $sorted_and_nodes[$_]->[0] }
