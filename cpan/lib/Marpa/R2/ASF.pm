@@ -84,7 +84,7 @@ sub make_token_cp { return -($_[0] + 43); }
 sub unmake_token_cp { return -$_[0] - 43; }
 
 sub cmp_symches_by_predecessors {
-    my ( $symch_a, $symch_b, $sorted_and_nodes ) = @_;
+    my ( $symch_a, $symch_b, $sorted_pairings ) = @_;
     my ( $a_first_and_node, $a_last_and_node ) = @{$a};
     my ( $b_first_and_node, $b_last_and_node ) = @{$b};
     my $a_diff = $a_last_and_node - $a_first_and_node;
@@ -93,10 +93,16 @@ sub cmp_symches_by_predecessors {
     return $cmp if $cmp;
     for ( my $node_ix = 0; $node_ix <= $a_diff; $node_ix++ ) {
         my $a_predecessor_cp =
-            $sorted_and_nodes->[ $a_first_and_node + $node_ix ]->[0];
+            $sorted_pairings->[ $a_first_and_node + $node_ix ]->[0];
         my $b_predecessor_cp =
-            $sorted_and_nodes->[ $b_first_and_node + $node_ix ]->[0];
-        my $cmp = $a_predecessor_cp <=> $b_predecessor_cp;
+            $sorted_pairings->[ $b_first_and_node + $node_ix ]->[0];
+        my $cmp = $a_predecessor_cp cmp $b_predecessor_cp;
+        return $cmp if $cmp;
+        $a_predecessor_cp =
+            $sorted_pairings->[ $a_first_and_node + $node_ix ]->[1];
+        $b_predecessor_cp =
+            $sorted_pairings->[ $b_first_and_node + $node_ix ]->[1];
+        $cmp = $a_predecessor_cp <=> $b_predecessor_cp;
         return $cmp if $cmp;
     } ## end for ( my $node_ix = 0; $node_ix <= $a_diff; $node_ix++)
     return 0;
@@ -104,7 +110,7 @@ sub cmp_symches_by_predecessors {
 
 # Given a set of or-nodes, convert them to a factor
 sub or_nodes_to_factor {
-    my ( $asf, $or_node_list ) = @_;
+    my ( $asf, $or_node_list, $chaf_predecessors ) = @_;
     my $slr    = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
     my $recce  = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
     my $bocage = $recce->[Marpa::R2::Internal::Recognizer::B_C];
@@ -112,81 +118,84 @@ sub or_nodes_to_factor {
         $bocage->_marpa_b_or_node_first_and($_)
             .. $bocage->_marpa_b_or_node_last_and($_)
     } @{$or_node_list};
-    my @and_nodes = ();
+    my @pairings = ();
     for my $and_node_id (@and_node_id_list) {
         ## -1 if no predecessor
         my $predecessor_cp =
-            $bocage->_marpa_b_and_node_predecessor($and_node_id) // -1;
+            $bocage->_marpa_b_and_node_predecessor($and_node_id);
         my $cause_cp = $bocage->_marpa_b_and_node_cause($and_node_id);
         if ( not defined $cause_cp ) {
             my $token_id = $bocage->_marpa_b_and_node_symbol($and_node_id);
             $cause_cp = make_token_cp($and_node_id);
         }
-        push @and_nodes, [ $predecessor_cp, $cause_cp ];
+        if ( not defined $predecessor_cp ) {
+            push @pairings, [ 'nil', -1, $cause_cp ];
+        }
+        else {
+            push @pairings, [ 'pred', $predecessor_cp, $cause_cp ];
+        }
     } ## end for my $and_node_id (@and_node_id_list)
-    my @sorted_and_nodes =
-        sort { $a->[1] <=> $b->[1] || $a->[0] <=> $b->[0]; } @and_nodes;
+    my @sorted_pairings =
+        sort {
+        $a->[2] <=> $b->[2] || $a->[0] cmp $b->[0] || $a->[1] <=> $b->[1];
+        } @pairings;
 
     # A symch is a set of and-nodes sharing the same component
     my @symches                = ();
     my $start_of_current_symch = 0;
-    my $current_component      = $sorted_and_nodes[0]->[1];
+    my $current_component      = $sorted_pairings[0]->[2];
     AND_NODE_IX:
     for (
         my $and_node_ix = $start_of_current_symch + 1;
-        $and_node_ix <= $#sorted_and_nodes;
+        $and_node_ix <= $#sorted_pairings;
         $and_node_ix++
         )
     {
-        my $this_component = $sorted_and_nodes[$and_node_ix]->[1];
+        my $this_component = $sorted_pairings[$and_node_ix]->[2];
         next AND_NODE_IX if $current_component == $this_component;
         push @symches, [ $start_of_current_symch, $and_node_ix - 1 ];
         $start_of_current_symch = $and_node_ix;
-        $current_component = $sorted_and_nodes[$start_of_current_symch]->[1];
+        $current_component = $sorted_pairings[$start_of_current_symch]->[2];
     } ## end AND_NODE_IX: for ( my $and_node_ix = $start_of_current_symch + 1;...)
-    push @symches, [ $start_of_current_symch, $#sorted_and_nodes ];
+    push @symches, [ $start_of_current_symch, $#sorted_pairings ];
 
     # Sort the cause choices by their predecessor sets
     my @sorted_symches =
-        sort { cmp_symches_by_predecessors( $a, $b, \@sorted_and_nodes ); } @symches;
+        sort { cmp_symches_by_predecessors( $a, $b, \@sorted_pairings ); }
+        @symches;
 
-    my @cartesians = ();
+    my @cartesians        = ();
     my @current_cartesian = (
-        [   map { $sorted_and_nodes[$_]->[0] }
-                ( $sorted_symches[0]->[0] .. $sorted_symches [0]->[1] )
+        [   map { $sorted_pairings[$_]->[1] }
+                grep { $sorted_pairings[$_]->[0] eq 'pred' }
+                ( $sorted_symches[0]->[0] .. $sorted_symches[0]->[1] )
         ],
-        [ $sorted_and_nodes[ $sorted_symches[0]->[0] ]->[1] ]
+        [ $sorted_pairings[ $sorted_symches[0]->[0] ]->[2] ]
     );
     my $current_symch = $sorted_symches[0];
     SYMCH_IX:
-    for (
-        my $symch_ix = 1;
-        $symch_ix <= $#sorted_symches;
-        $symch_ix++
-        )
-    {
+    for ( my $symch_ix = 1; $symch_ix <= $#sorted_symches; $symch_ix++ ) {
         my $this_symch = $sorted_symches[$symch_ix];
         if ( cmp_symches_by_predecessor( $current_symch, $this_symch ) ) {
             push @cartesians, \@current_cartesian;
             @current_cartesian = (
-                [   map { $sorted_and_nodes[$_]->[0] } (
+                [   map { $sorted_pairings[$_]->[1] }
+                   grep { $sorted_pairings[$_]->[0] eq 'pred' }
+                (
                         $sorted_symches[$symch_ix]->[0]
                             .. $sorted_symches[$symch_ix]->[1]
                     )
                 ],
-                [   $sorted_and_nodes[ $sorted_symches[$symch_ix]->[0] ]
-                        ->[1]
-                ]
+                [ $sorted_pairings[ $sorted_symches[$symch_ix]->[0] ]->[2] ]
             );
             $current_symch = $this_symch;
             next SYMCH_IX;
         } ## end if ( cmp_symches_by_predecessor( $current_symch, $this_symch...))
-        push @{$current_cartesian[1]}, 
-                   $sorted_and_nodes[ $sorted_symches[$symch_ix]->[0] ]
-                        ->[1];
-    }
+        push @{ $current_cartesian[1] },
+            $sorted_pairings[ $sorted_symches[$symch_ix]->[0] ]->[2];
+    } ## end SYMCH_IX: for ( my $symch_ix = 1; $symch_ix <= $#sorted_symches...)
     push @cartesians, \@current_cartesian;
-    return [\@cartesians, 0 ];;
+    return [ \@cartesians, 0 ];
 } ## end sub or_nodes_to_factor
 
 sub Marpa::R2::Scanless::ASF::first_factored_rhs {
@@ -199,7 +208,7 @@ sub Marpa::R2::Scanless::ASF::first_factored_rhs {
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
     my @worklist  = ($checkpoint_id);
     my @final_or_nodes;
-    my $chaf_predecessor_by_cause =
+    my $chaf_predecessors =
         $asf
         ->[Marpa::R2::Internal::Scanless::ASF::FAC_CHAF_PREDECESSOR_BY_CAUSE]
         = [];
@@ -222,20 +231,20 @@ sub Marpa::R2::Scanless::ASF::first_factored_rhs {
             my $predecessor_id =
                 $bocage->_marpa_b_and_node_predecessor($and_node_id);
             my $cause_id = $bocage->_marpa_b_and_node_cause($and_node_id);
-            push @{ $chaf_predecessor_by_cause->[$cause_id] }, $predecessor_id;
+            push @{ $chaf_predecessors->[$cause_id] }, $predecessor_id;
             ## In C, use a bitmap to track active cause ID's?
             ## Virtual RHS, so we do not have to worry about tokens
             push @worklist, $cause_id;
         } ## end for my $and_node_id ( $bocage->_marpa_b_or_node_first_and...)
     } ## end WORK_ITEM: while ( defined( my $or_node_id = pop @worklist ) )
-    my @factoring = ( or_nodes_to_factor( $asf, \@final_or_nodes ) );
+    my @factoring = ( or_nodes_to_factor( $asf, \@final_or_nodes , $chaf_predecessors ) );
     FACTOR: while (1) {
         my $current_factor = $factoring[$#factoring];
         my ($cartesians, $current_cartesian_ix) = @{$current_factor};
         my $current_cartesian = $cartesians->[$current_cartesian_ix];
         my @predecessor_or_nodes = grep { $_ >= 0 } @{$current_cartesian->[0]};
         last FACTOR if not scalar @predecessor_or_nodes;
-        push @factoring, or_nodes_to_factor( $asf, \@predecessor_or_nodes );
+        push @factoring, or_nodes_to_factor( $asf, \@predecessor_or_nodes, $chaf_predecessors  );
     }
     return \@factoring;
 } ## end sub Marpa::R2::Scanless::ASF::first_factored_rhs
