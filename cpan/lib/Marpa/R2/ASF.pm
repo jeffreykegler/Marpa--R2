@@ -36,14 +36,32 @@ package Marpa::R2::Internal::ASF;
 
 # Terms
 #
-# Component -- the right hand side symbol in a particular rule instance
+# Choicepoint -- a rule instance, which may be factored.  It is
+# a set of factorings.
+#
+# Factoring -- one possible factoring of a choicepint.  It is a sequence
+# of factors.
+#
+# Factor -- In a BNF rule, factor each factor corresponds to one of
+# the RHS symbols.  In a sequence rule, each factor corresponds to one item.
+# A factor is a set of symches.
+#
+# Symch (Symbolic choice) -- A set of one or more duples (pairings).
+# The 2nd part of each duple will be a "component choicepoint"
+# shared in common by all pairings in the symch.  The component
+# choicepoint is either a rule or token instance.
+#
+# Each pairing has a comp possible rule or token instance.  The
+# rule or token is called the component and is a specific choicepoint --
+# the "component choicepoint.  The component choicepoint may be unpaired
+# (no predecessor) or be pa a predecessor choicepoint.  The rule or token instance will
+# be a choicepoint, sometimes called the "cause".
 # (The term "component" comes from Irons 1961 paper.)
 #
-# CCL (Factored Component Choice List): The list of choices for a component,
-# as factored by predecessors.
+# Pair (or "pairing" or "choicepoint pairing") -- a duple of
+# predecessor choicepoint and component choicepoint.  Predecessor
+# choicepoint may be undefined.  If defined it is always a rule instance.
 #
-# Factored RHS: a sequence of CCL's, one for each RHS symbol.  The complete set of
-# factored RHS's for rule instance is a Rule Instance Factoring, or just "factoring".
 
 BEGIN {
     my $structure = <<'END_OF_STRUCTURE';
@@ -68,8 +86,8 @@ END_OF_STRUCTURE
 sub make_token_cp { return -($_[0] + 43); }
 sub unmake_token_cp { return -$_[0] - 43; }
 
-sub cmp_cause__choice_by_predecessors {
-    my ( $choice_a, $choice_b, $sorted_and_nodes ) = @_;
+sub cmp_symches_by_predecessors {
+    my ( $symch_a, $symch_b, $sorted_and_nodes ) = @_;
     my ( $a_first_and_node, $a_last_and_node ) = @{$a};
     my ( $b_first_and_node, $b_last_and_node ) = @{$b};
     my $a_diff = $a_last_and_node - $a_first_and_node;
@@ -78,17 +96,17 @@ sub cmp_cause__choice_by_predecessors {
     return $cmp if $cmp;
     for ( my $node_ix = 0; $node_ix <= $a_diff; $node_ix++ ) {
         my $a_predecessor_cp =
-            $sorted_and_nodes->[ $a_first_and_node + $node_ix ];
+            $sorted_and_nodes->[ $a_first_and_node + $node_ix ]->[0];
         my $b_predecessor_cp =
-            $sorted_and_nodes->[ $b_first_and_node + $node_ix ];
+            $sorted_and_nodes->[ $b_first_and_node + $node_ix ]->[0];
         my $cmp = $a_predecessor_cp <=> $b_predecessor_cp;
         return $cmp if $cmp;
     } ## end for ( my $node_ix = 0; $node_ix <= $a_diff; $node_ix++)
     return 0;
-} ## end sub cmp_cause__choice_by_predecessors
+} ## end sub cmp_symches_by_predecessors
 
-# Given a set of or-nodes, convert them to a CCL
-sub or_nodes_to_ccl {
+# Given a set of or-nodes, convert them to a factor
+sub or_nodes_to_factor {
     my ( $asf, $or_node_list ) = @_;
     my $slr    = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
     my $recce  = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
@@ -112,31 +130,30 @@ sub or_nodes_to_ccl {
     my @sorted_and_nodes =
         sort { $a->[1] <=> $b->[1] || $a->[0] <=> $b->[0]; } @and_nodes;
 
-    # A cause choice is a set of and-nodes sharing the same cause
-    my @cause_choices        = ();
-    my $current_cause_choice = 0;
-    my $current_cause_cp     = $sorted_and_nodes[0]->[1];
+    # A symch is a set of and-nodes sharing the same component
+    my @symches                = ();
+    my $start_of_current_symch = 0;
+    my $current_component      = $sorted_and_nodes[0]->[1];
     AND_NODE_IX:
     for (
-        my $and_node_ix = $current_cause_choice + 1;
+        my $and_node_ix = $start_of_current_symch + 1;
         $and_node_ix <= $#sorted_and_nodes;
         $and_node_ix++
         )
     {
-        my $current_cause_cp = $sorted_and_nodes[$current_cause_choice]->[1];
-        my $this_cause_cp    = $sorted_and_nodes[$and_node_ix]->[1];
-        next AND_NODE_IX if $current_cause_cp == $this_cause_cp;
-        push @cause_choices, [ $current_cause_choice, $and_node_ix - 1 ];
-        $current_cause_cp = $this_cause_cp;
-    } ## end AND_NODE_IX: for ( my $and_node_ix = $current_cause_choice + 1...)
-    push @cause_choices, [ $current_cause_choice, $#sorted_and_nodes ];
+        my $this_component = $sorted_and_nodes[$and_node_ix]->[1];
+        next AND_NODE_IX if $current_component == $this_component;
+        push @symches, [ $start_of_current_symch, $and_node_ix - 1 ];
+        $start_of_current_symch = $and_node_ix;
+        $current_component = $sorted_and_nodes[$start_of_current_symch]->[1];
+    } ## end AND_NODE_IX: for ( my $and_node_ix = $start_of_current_symch + 1;...)
+    push @symches, [ $start_of_current_symch, $#sorted_and_nodes ];
 
     # Sort the cause choices by their predecessor sets
-    my @sorted_cause_choices = sort {
-        cmp_cause_choices_by_predecessors( $a, $b, \@sorted_and_nodes );
-    } ( 0 .. $#cause_choices );
-    return \@sorted_cause_choices;
-} ## end sub or_nodes_to_ccl
+    my @sorted_symches =
+        sort { cmp_symches_by_predecessors( $a, $b, \@sorted_and_nodes ); } @symches;
+    return \@sorted_symches;
+} ## end sub or_nodes_to_factor
 
 sub Marpa::R2::Scanless::ASF::first_factored_rhs {
     my ( $asf, $checkpoint_id ) = @_;
@@ -179,7 +196,7 @@ sub Marpa::R2::Scanless::ASF::first_factored_rhs {
     } ## end WORK_ITEM: while ( defined( my $or_node_id = pop @worklist ) )
     my $final_or_nodes_ref = \@final_or_nodes;
     return [ $final_or_nodes_ref,
-        or_nodes_to_ccl( $asf, $final_or_nodes_ref ) ];
+        or_nodes_to_factor( $asf, $final_or_nodes_ref ) ];
 } ## end sub Marpa::R2::Scanless::ASF::first_factored_rhs
 
 sub irl_extend {
