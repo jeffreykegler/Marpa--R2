@@ -186,7 +186,7 @@ sub or_nodes_to_factor {
                         ->[1];
     }
     push @cartesians, \@current_cartesian;
-    return\@cartesians;
+    return [\@cartesians, 0 ];;
 } ## end sub or_nodes_to_factor
 
 sub Marpa::R2::Scanless::ASF::first_factored_rhs {
@@ -229,8 +229,16 @@ sub Marpa::R2::Scanless::ASF::first_factored_rhs {
         } ## end for my $and_node_id ( $bocage->_marpa_b_or_node_first_and...)
     } ## end WORK_ITEM: while ( defined( my $or_node_id = pop @worklist ) )
     my $final_or_nodes_ref = \@final_or_nodes;
-    return [ $final_or_nodes_ref,
-        or_nodes_to_factor( $asf, $final_or_nodes_ref ) ];
+    my @factoring = ( or_nodes_to_factor( $asf, $final_or_nodes_ref ) );
+    while (1) {
+        my $current_factor = $factoring[$#factoring];
+        my ($cartesians, $current_cartesian_ix) = @{$current_factor};
+        my $current_cartesian = $cartesians->[$current_cartesian_ix];
+        my $predecessor_or_nodes = $current_cartesian->[0];
+        last FACTOR if not scalar @{$predecessor_or_nodes};
+        push @factoring, or_nodes_to_factor( $asf, $predecessor_or_nodes );
+    }
+    return [ $final_or_nodes_ref, \@factoring ];
 } ## end sub Marpa::R2::Scanless::ASF::first_factored_rhs
 
 sub irl_extend {
