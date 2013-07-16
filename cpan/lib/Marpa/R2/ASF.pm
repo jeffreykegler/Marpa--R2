@@ -39,29 +39,26 @@ package Marpa::R2::Internal::ASF;
 # Choicepoint -- a rule instance, which may be factored.  It is
 # a set of factorings.
 #
-# Factoring -- one possible factoring of a choicepint.  It is a sequence
+# Full choicepoint expansion -- expansion of a choicepoint into sequences
+# of choicepoints, each an alternative for that choicepoint.
+#
+# Factoring -- one possible factoring of a choicepoint.  It is a sequence
 # of factors.
 #
 # Factor -- In a BNF rule, factor each factor corresponds to one of
 # the RHS symbols.  In a sequence rule, each factor corresponds to one item.
 # A factor is a set of symches.
 #
-# Symch (Symbolic choice) -- A set of one or more duples (pairings).
-# The 2nd part of each duple will be a "component choicepoint"
-# shared in common by all pairings in the symch.  The component
-# choicepoint is either a rule or token instance.
+# Symch (Symbolic choice) -- A set of one or more cartesians --
 #
-# Each pairing has a comp possible rule or token instance.  The
-# rule or token is called the component and is a specific choicepoint --
-# the "component choicepoint.  The component choicepoint may be unpaired
-# (no predecessor) or be pa a predecessor choicepoint.  The rule or token instance will
-# be a choicepoint, sometimes called the "cause".
+# Cartesian -- A pair of sets of choicepoints,
+# so called because every
+# pairing of choicepoints in the Cartesian product of the two
+# sets is allowed.  The first set contains the predecessor
+# choicepoints, and the second set contains the component choicepoints.
+# Predecessor choicepoints may be 'nil', but are never token instances.
+# Component choicepoint may be token instances, but are never 'nil'.
 # (The term "component" comes from Irons 1961 paper.)
-#
-# Pair (or "pairing" or "choicepoint pairing") -- a duple of
-# predecessor choicepoint and component choicepoint.  Predecessor
-# choicepoint may be undefined.  If defined it is always a rule instance.
-#
 
 BEGIN {
     my $structure = <<'END_OF_STRUCTURE';
@@ -153,6 +150,43 @@ sub or_nodes_to_factor {
     my @sorted_symches =
         sort { cmp_symches_by_predecessors( $a, $b, \@sorted_and_nodes ); } @symches;
     return \@sorted_symches;
+    my @cartesians = ();
+    my @current_cartesian = (
+        [   map { $sorted_and_nodes[$_]->[0] }
+                ( $sorted_symches[0]->[0] .. $sorted_symches [0]->[1] )
+        ],
+        [ $sorted_and_nodes[ $sorted_symches[0]->[0] ]->[1] ]
+    );
+    my $current_symch = $sorted_symches[0];
+    SYMCH_IX:
+    for (
+        my $symch_ix = 1;
+        $symch_ix <= $#sorted_symches;
+        $symch_ix++
+        )
+    {
+        my $this_symch = $sorted_symches[$symch_ix];
+        if ( cmp_symches_by_predecessor( $current_symch, $this_symch ) ) {
+            push @cartesians, \@current_cartesian;
+            @current_cartesian = (
+                [   map { $sorted_and_nodes[$_]->[0] } (
+                        $sorted_symches[$symch_ix]->[0]
+                            .. $sorted_symches[$symch_ix]->[1]
+                    )
+                ],
+                [   $sorted_and_nodes[ $sorted_symches[$symch_ix]->[0] ]
+                        ->[1]
+                ]
+            );
+            $current_symch = $this_symch;
+            next SYMCH_IX;
+        } ## end if ( cmp_symches_by_predecessor( $current_symch, $this_symch...))
+        push @{$current_cartesian[1]}, 
+                   $sorted_and_nodes[ $sorted_symches[$symch_ix]->[0] ]
+                        ->[1];
+    }
+    push @cartesians, \@current_cartesian;
+    return\@cartesians;
 } ## end sub or_nodes_to_factor
 
 sub Marpa::R2::Scanless::ASF::first_factored_rhs {
