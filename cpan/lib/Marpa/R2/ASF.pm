@@ -166,7 +166,7 @@ sub or_nodes_to_factor {
 
     my @cartesians        = ();
     my @current_cartesian = (
-        [   map { $sorted_pairings[$_]->[1] }
+        [], [   map { $sorted_pairings[$_]->[1] }
                 grep { $sorted_pairings[$_]->[0] eq 'pred' }
                 ( $sorted_symches[0]->[0] .. $sorted_symches[0]->[1] )
         ],
@@ -179,7 +179,7 @@ sub or_nodes_to_factor {
         if ( cmp_symches_by_predecessor( $current_symch, $this_symch ) ) {
             push @cartesians, \@current_cartesian;
             @current_cartesian = (
-                [   map { $sorted_pairings[$_]->[1] }
+                [], [   map { $sorted_pairings[$_]->[1] }
                    grep { $sorted_pairings[$_]->[0] eq 'pred' }
                 (
                         $sorted_symches[$symch_ix]->[0]
@@ -191,7 +191,7 @@ sub or_nodes_to_factor {
             $current_symch = $this_symch;
             next SYMCH_IX;
         } ## end if ( cmp_symches_by_predecessor( $current_symch, $this_symch...))
-        push @{ $current_cartesian[1] },
+        push @{ $current_cartesian[2] },
             $sorted_pairings[ $sorted_symches[$symch_ix]->[0] ]->[2];
     } ## end SYMCH_IX: for ( my $symch_ix = 1; $symch_ix <= $#sorted_symches...)
     push @cartesians, \@current_cartesian;
@@ -242,7 +242,7 @@ sub Marpa::R2::Scanless::ASF::first_factored_rhs {
         my $current_factor = $factoring[$#factoring];
         my ($cartesians, $current_cartesian_ix) = @{$current_factor};
         my $current_cartesian = $cartesians->[$current_cartesian_ix];
-        my @predecessor_or_nodes = grep { $_ >= 0 } @{$current_cartesian->[0]};
+        my @predecessor_or_nodes = @{$current_cartesian->[1]};
         last FACTOR if not scalar @predecessor_or_nodes;
         push @factoring, or_nodes_to_factor( $asf, \@predecessor_or_nodes, $chaf_predecessors  );
     }
