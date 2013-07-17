@@ -237,15 +237,24 @@ sub Marpa::R2::Scanless::ASF::first_factored_rhs {
             push @worklist, $cause_id;
         } ## end for my $and_node_id ( $bocage->_marpa_b_or_node_first_and...)
     } ## end WORK_ITEM: while ( defined( my $or_node_id = pop @worklist ) )
-    my @factoring = ( or_nodes_to_factor( $asf, \@final_or_nodes , $chaf_predecessors ) );
+    my @factoring = ( or_nodes_to_factor( $asf, \@final_or_nodes, $chaf_predecessors ) );
+    my $current_chaf_predecessor_or_nodes = [];
     FACTOR: while (1) {
         my $current_factor = $factoring[$#factoring];
-        my ($cartesians, $current_cartesian_ix) = @{$current_factor};
-        my $current_cartesian = $cartesians->[$current_cartesian_ix];
-        my @predecessor_or_nodes = @{$current_cartesian->[1]};
-        last FACTOR if not scalar @predecessor_or_nodes;
-        push @factoring, or_nodes_to_factor( $asf, \@predecessor_or_nodes, $chaf_predecessors  );
-    }
+        my ( $cartesians, $current_cartesian_ix ) = @{$current_factor};
+        my $current_cartesian    = $cartesians->[$current_cartesian_ix];
+        my $predecessor_or_nodes = $current_cartesian->[1];
+        $current_chaf_predecessor_or_nodes = $current_cartesian->[0]
+            if $#{$current_chaf_predecessor_or_nodes} < 0;
+        if ( $#{$predecessor_or_nodes} < 0 ) {
+            $predecessor_or_nodes = $current_chaf_predecessor_or_nodes;
+            last FACTOR if $#{$predecessor_or_nodes} < 0;
+            $current_chaf_predecessor_or_nodes = [];
+        }
+        push @factoring,
+            or_nodes_to_factor( $asf, $predecessor_or_nodes,
+            $chaf_predecessors );
+    } ## end FACTOR: while (1)
     return \@factoring;
 } ## end sub Marpa::R2::Scanless::ASF::first_factored_rhs
 
