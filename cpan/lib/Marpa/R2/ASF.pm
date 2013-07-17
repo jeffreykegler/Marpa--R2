@@ -85,8 +85,8 @@ sub unmake_token_cp { return -$_[0] - 43; }
 
 sub cmp_symches_by_predecessors {
     my ( $symch_a, $symch_b, $sorted_pairings, $chaf_predecessors ) = @_;
-    my ( $a_first_pairing, $a_last_pairing ) = @{$a};
-    my ( $b_first_pairing, $b_last_pairing ) = @{$b};
+    my ( $a_first_pairing, $a_last_pairing ) = @{$symch_a};
+    my ( $b_first_pairing, $b_last_pairing ) = @{$symch_b};
     my $a_diff = $a_last_pairing - $a_first_pairing;
     my $b_diff = $b_last_pairing - $b_first_pairing;
     my $cmp    = $a_diff <=> $b_diff;
@@ -181,35 +181,35 @@ sub or_nodes_to_factor {
         @symches;
 
     my @cartesians        = ();
-    my @current_cartesian = ();
+    my $current_cartesian;
     {
         my $first_cause_id = $sorted_pairings[ $sorted_symches[0]->[0] ]->[2];
         my $chaf_predecessors = $chaf_predecessors->[$first_cause_id] // [];
-        @current_cartesian =  (
+        $current_cartesian =  [
             $chaf_predecessors,
             [   map { $sorted_pairings[$_]->[1] }
                     grep { $sorted_pairings[$_]->[0] eq 'pred' }
                     ( $sorted_symches[0]->[0] .. $sorted_symches[0]->[1] )
             ],
             [$first_cause_id]
-        );
+        ];
     }
     my $current_symch = $sorted_symches[0];
     SYMCH_IX:
     for ( my $symch_ix = 1; $symch_ix <= $#sorted_symches; $symch_ix++ ) {
         my $this_symch = $sorted_symches[$symch_ix];
-        if (cmp_symches_by_predecessor(
+        if (cmp_symches_by_predecessors(
                 $current_symch,    $this_symch,
                 \@sorted_pairings, $chaf_predecessors
             )
             )
         {
-            push @cartesians, \@current_cartesian;
+            push @cartesians, $current_cartesian;
             my $first_cause_id =
                 $sorted_pairings[ $sorted_symches[$symch_ix]->[0] ]->[2];
             my $chaf_predecessors = $chaf_predecessors->[$first_cause_id]
                 // [];
-            @current_cartesian = (
+            $current_cartesian = [
                 $chaf_predecessors,
                 [   map { $sorted_pairings[$_]->[1] }
                         grep { $sorted_pairings[$_]->[0] eq 'pred' } (
@@ -218,14 +218,14 @@ sub or_nodes_to_factor {
                         )
                 ],
                 [$first_cause_id]
-            );
+            ];
             $current_symch = $this_symch;
             next SYMCH_IX;
-        } ## end if ( cmp_symches_by_predecessor( $current_symch, $this_symch...))
-        push @{ $current_cartesian[2] },
+        } ## end if ( cmp_symches_by_predecessors( $current_symch, $this_symch...))
+        push @{ $current_cartesian->[2] },
             $sorted_pairings[ $sorted_symches[$symch_ix]->[0] ]->[2];
     } ## end for ( my $symch_ix = 1; $symch_ix <= $#sorted_symches...)
-    push @cartesians, \@current_cartesian;
+    push @cartesians, $current_cartesian;
     return [ \@cartesians, 0 ];
 } ## end sub or_nodes_to_factor
 
@@ -252,7 +252,7 @@ sub Marpa::R2::Scanless::ASF::first_factored_rhs {
         # user.  Otherwise this should never fail.
         Marpa::R2::exception("Bad checkpoint_id: $checkpoint_id")
             if not defined $irl_id;
-        if ( $grammar_c->_marpa_g_irl_is_virtual_rhs($irl_id) ) {
+        if ( not $grammar_c->_marpa_g_irl_is_virtual_rhs($irl_id) ) {
             push @final_or_nodes, $or_node_id;
             next WORK_ITEM;
         }
@@ -273,7 +273,7 @@ sub Marpa::R2::Scanless::ASF::first_factored_rhs {
     for my $cause_id ( 0 .. $#chaf_links ) {
         my $predecessors = $chaf_links[$cause_id];
         if ( defined $predecessors ) {
-            $chaf_predecessors->[$cause_id] = grep { $predecessors->[$_] } (0 .. $#$predecessors);
+            $chaf_predecessors->[$cause_id] = [ grep { $predecessors->[$_] } (0 .. $#$predecessors) ];
         }
     } ## end for my $cause_id ( 0 .. $#$chaf_predecessors )
     my @factoring = ( or_nodes_to_factor( $asf, \@final_or_nodes, $chaf_predecessors ) );

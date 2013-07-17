@@ -1690,6 +1690,45 @@ sub Marpa::R2::Recognizer::show_or_nodes {
     return ( join "\n", @sorted_data ) . "\n";
 } ## end sub Marpa::R2::Recognizer::show_or_nodes
 
+# Not sorted and therefore not suitable for test suite
+sub Marpa::R2::Recognizer::verbose_or_nodes {
+    my ($recce) = @_;
+    my $text = q{};
+    OR_NODE:
+    for (
+        my $or_node_id = 0;
+        defined( my $or_node_desc = $recce->verbose_or_node($or_node_id) );
+        $or_node_id++
+        )
+    {
+        $text .= $or_node_desc;
+    } ## end OR_NODE: for ( my $or_node_id = 0; defined( my $or_node_desc =...))
+    return $text;
+} ## end sub Marpa::R2::Recognizer::verbose_or_nodes
+
+sub Marpa::R2::Recognizer::verbose_or_node {
+    my ( $recce, $or_node_id ) = @_;
+    my $recce_c = $recce->[Marpa::R2::Internal::Recognizer::C];
+    my $bocage  = $recce->[Marpa::R2::Internal::Recognizer::B_C];
+    my $origin  = $bocage->_marpa_b_or_node_origin($or_node_id);
+    return if not defined $origin;
+    my $grammar         = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
+    my $tracer          = $grammar->[Marpa::R2::Internal::Grammar::TRACER];
+    my $set             = $bocage->_marpa_b_or_node_set($or_node_id);
+    my $irl_id          = $bocage->_marpa_b_or_node_irl($or_node_id);
+    my $position        = $bocage->_marpa_b_or_node_position($or_node_id);
+    my $origin_earleme  = $recce_c->earleme($origin);
+    my $current_earleme = $recce_c->earleme($set);
+    my $text
+        .= "OR-node #$or_node_id: R$irl_id" . q{:}
+        . $position . q{@}
+        . $origin_earleme . q{-}
+        . $current_earleme . "\n";
+    $text .= ( q{ } x 4 )
+        . $tracer->show_dotted_irl( $irl_id, $position ) . "\n";
+    return $text;
+} ## end sub Marpa::R2::Recognizer::verbose_or_node
+
 sub Marpa::R2::Recognizer::show_nook {
     my ( $recce, $nook_id, $verbose ) = @_;
     my $recce_c = $recce->[Marpa::R2::Internal::Recognizer::C];

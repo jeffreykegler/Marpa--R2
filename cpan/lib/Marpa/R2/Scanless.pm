@@ -1563,6 +1563,11 @@ sub Marpa::R2::Scanless::G::thick_g1_grammar {
     return $slg->[Marpa::R2::Inner::Scanless::G::THICK_G1_GRAMMAR];
 }
 
+sub Marpa::R2::Scanless::R::thick_g1_recce {
+    my ($slr) = @_;
+    return $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+}
+
 1;
 
 # vim: expandtab shiftwidth=4:
