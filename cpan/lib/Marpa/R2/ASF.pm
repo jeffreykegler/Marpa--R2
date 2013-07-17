@@ -130,27 +130,31 @@ sub or_nodes_to_factor {
     my $slr    = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
     my $recce  = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
     my $bocage = $recce->[Marpa::R2::Internal::Recognizer::B_C];
-    my @and_node_id_list = map {
-        $bocage->_marpa_b_or_node_first_and($_)
-            .. $bocage->_marpa_b_or_node_last_and($_)
-    } @{$or_node_list};
     my @pairings = ();
-    for my $and_node_id (@and_node_id_list) {
-        ## -1 if no predecessor
-        my $predecessor_cp =
-            $bocage->_marpa_b_and_node_predecessor($and_node_id);
-        my $cause_cp = $bocage->_marpa_b_and_node_cause($and_node_id);
-        if ( not defined $cause_cp ) {
-            my $token_id = $bocage->_marpa_b_and_node_symbol($and_node_id);
-            $cause_cp = make_token_cp($and_node_id);
-        }
-        if ( not defined $predecessor_cp ) {
-            push @pairings, [ 'nil', -1, $cause_cp ];
-        }
-        else {
-            push @pairings, [ 'pred', $predecessor_cp, $cause_cp ];
-        }
-    } ## end for my $and_node_id (@and_node_id_list)
+    for my $parent_or_node_id ( @{$or_node_list} ) {
+        for my $and_node_id (
+            $bocage->_marpa_b_or_node_first_and($parent_or_node_id)
+            .. $bocage->_marpa_b_or_node_last_and($parent_or_node_id) )
+        {
+            ## -1 if no predecessor
+            my $predecessor_cp =
+                $bocage->_marpa_b_and_node_predecessor($and_node_id);
+            my $cause_cp = $bocage->_marpa_b_and_node_cause($and_node_id);
+            if ( not defined $cause_cp ) {
+                my $token_id =
+                    $bocage->_marpa_b_and_node_symbol($and_node_id);
+                $cause_cp = make_token_cp($and_node_id);
+            }
+            if ( not defined $predecessor_cp ) {
+                push @pairings, [ 'nil', -1, $cause_cp, $parent_or_node_id ];
+            }
+            else {
+                push @pairings,
+                    [ 'pred', $predecessor_cp, $cause_cp,
+                    $parent_or_node_id ];
+            }
+        } ## end for my $and_node_id ( $bocage->_marpa_b_or_node_first_and...)
+    } ## end for my $parent_or_node_id ( @{$or_node_list} )
     my @sorted_pairings =
         sort {
         $a->[2] <=> $b->[2] || $a->[0] cmp $b->[0] || $a->[1] <=> $b->[1];
