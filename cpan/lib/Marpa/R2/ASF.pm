@@ -262,8 +262,10 @@ sub Marpa::R2::Scanless::ASF::first_factored_rhs {
 
             my $predecessor_id =
                 $bocage->_marpa_b_and_node_predecessor($and_node_id);
+            ## This is the last and-node of a virtual RHS rule,
+            ## so the cause cannot be a token
             my $cause_id = $bocage->_marpa_b_and_node_cause($and_node_id);
-            $chaf_links[$cause_id][$predecessor_id] = 1;
+            $chaf_links[$cause_id][$or_node_id] = 1;
             ## In C, use a bitmap to track active cause ID's?
             ## Virtual RHS, so we do not have to worry about tokens
             push @worklist, $cause_id;
