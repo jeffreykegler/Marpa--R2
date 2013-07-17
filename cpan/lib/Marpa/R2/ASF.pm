@@ -84,27 +84,43 @@ sub make_token_cp { return -($_[0] + 43); }
 sub unmake_token_cp { return -$_[0] - 43; }
 
 sub cmp_symches_by_predecessors {
-    my ( $symch_a, $symch_b, $sorted_pairings ) = @_;
-    my ( $a_first_and_node, $a_last_and_node ) = @{$a};
-    my ( $b_first_and_node, $b_last_and_node ) = @{$b};
-    my $a_diff = $a_last_and_node - $a_first_and_node;
-    my $b_diff = $b_last_and_node - $b_first_and_node;
+    my ( $symch_a, $symch_b, $sorted_pairings, $chaf_predecessors ) = @_;
+    my ( $a_first_pairing, $a_last_pairing ) = @{$a};
+    my ( $b_first_pairing, $b_last_pairing ) = @{$b};
+    my $a_diff = $a_last_pairing - $a_first_pairing;
+    my $b_diff = $b_last_pairing - $b_first_pairing;
     my $cmp    = $a_diff <=> $b_diff;
     return $cmp if $cmp;
     for ( my $node_ix = 0; $node_ix <= $a_diff; $node_ix++ ) {
         my $a_predecessor_cp =
-            $sorted_pairings->[ $a_first_and_node + $node_ix ]->[0];
+            $sorted_pairings->[ $a_first_pairing + $node_ix ]->[0];
         my $b_predecessor_cp =
-            $sorted_pairings->[ $b_first_and_node + $node_ix ]->[0];
+            $sorted_pairings->[ $b_first_pairing + $node_ix ]->[0];
         my $cmp = $a_predecessor_cp cmp $b_predecessor_cp;
         return $cmp if $cmp;
         $a_predecessor_cp =
-            $sorted_pairings->[ $a_first_and_node + $node_ix ]->[1];
+            $sorted_pairings->[ $a_first_pairing + $node_ix ]->[1];
         $b_predecessor_cp =
-            $sorted_pairings->[ $b_first_and_node + $node_ix ]->[1];
+            $sorted_pairings->[ $b_first_pairing + $node_ix ]->[1];
         $cmp = $a_predecessor_cp <=> $b_predecessor_cp;
         return $cmp if $cmp;
     } ## end for ( my $node_ix = 0; $node_ix <= $a_diff; $node_ix++)
+    my $a_cause_id = $sorted_pairings->[ $a_first_pairing ] ->[2];
+    my $b_cause_id = $sorted_pairings->[ $b_first_pairing ] ->[2];
+    my $a_chaf_predecessors = [];
+    $a_chaf_predecessors = $chaf_predecessors->[$a_cause_id] if $a_cause_id >= 0;
+    my $b_chaf_predecessors = [];
+    $b_chaf_predecessors = $chaf_predecessors->[$b_cause_id] if $b_cause_id >= 0;
+    my $a_last_chaf_predecessor = $#{$a_chaf_predecessors};
+    my $b_last_chaf_predecessor = $#{$b_chaf_predecessors};
+    $cmp = $a_last_chaf_predecessor <=> $b_last_chaf_predecessor;
+    return $cmp if $cmp;
+    for my $predecessor_ix (0 .. $a_last_chaf_predecessor) {
+         my $a_predecessor_id = $a_chaf_predecessors->[$predecessor_ix];
+         my $b_predecessor_id = $b_chaf_predecessors->[$predecessor_ix];
+         $cmp = $a_predecessor_id <=> $b_predecessor_id;
+         return $cmp if $cmp;
+    }
     return 0;
 } ## end sub cmp_symches_by_predecessors
 
@@ -161,7 +177,7 @@ sub or_nodes_to_factor {
 
     # Sort the cause choices by their predecessor sets
     my @sorted_symches =
-        sort { cmp_symches_by_predecessors( $a, $b, \@sorted_pairings ); }
+        sort { cmp_symches_by_predecessors( $a, $b, \@sorted_pairings, $chaf_predecessors ); }
         @symches;
 
     my @cartesians        = ();
@@ -176,7 +192,7 @@ sub or_nodes_to_factor {
     SYMCH_IX:
     for ( my $symch_ix = 1; $symch_ix <= $#sorted_symches; $symch_ix++ ) {
         my $this_symch = $sorted_symches[$symch_ix];
-        if ( cmp_symches_by_predecessor( $current_symch, $this_symch ) ) {
+        if ( cmp_symches_by_predecessor( $current_symch, $this_symch, \@sorted_pairings, $chaf_predecessors ) ) {
             push @cartesians, \@current_cartesian;
             @current_cartesian = (
                 [], [   map { $sorted_pairings[$_]->[1] }
@@ -213,6 +229,7 @@ sub Marpa::R2::Scanless::ASF::first_factored_rhs {
         ->[Marpa::R2::Internal::Scanless::ASF::FAC_CHAF_PREDECESSOR_BY_CAUSE]
         = [];
 
+    my @chaf_links = ();
     WORK_ITEM: while ( defined( my $or_node_id = pop @worklist ) ) {
         my $irl_id = $bocage->_marpa_b_or_node_irl($or_node_id);
 
@@ -231,12 +248,19 @@ sub Marpa::R2::Scanless::ASF::first_factored_rhs {
             my $predecessor_id =
                 $bocage->_marpa_b_and_node_predecessor($and_node_id);
             my $cause_id = $bocage->_marpa_b_and_node_cause($and_node_id);
-            push @{ $chaf_predecessors->[$cause_id] }, $predecessor_id;
+            $chaf_links[$cause_id][$predecessor_id] = 1;
             ## In C, use a bitmap to track active cause ID's?
             ## Virtual RHS, so we do not have to worry about tokens
             push @worklist, $cause_id;
         } ## end for my $and_node_id ( $bocage->_marpa_b_or_node_first_and...)
     } ## end WORK_ITEM: while ( defined( my $or_node_id = pop @worklist ) )
+    # In the C code, do track CHAF cause/predecessor with linked lists?
+    for my $cause_id ( 0 .. $#chaf_links ) {
+        my $predecessors = $chaf_links[$cause_id];
+        if ( defined $predecessors ) {
+            $chaf_predecessors->[$cause_id] = grep { $predecessors->[$_] } (0 .. $#$predecessors);
+        }
+    } ## end for my $cause_id ( 0 .. $#$chaf_predecessors )
     my @factoring = ( or_nodes_to_factor( $asf, \@final_or_nodes, $chaf_predecessors ) );
     my $current_chaf_predecessor_or_nodes = [];
     FACTOR: while (1) {
