@@ -181,35 +181,50 @@ sub or_nodes_to_factor {
         @symches;
 
     my @cartesians        = ();
-    my @current_cartesian = (
-        [], [   map { $sorted_pairings[$_]->[1] }
-                grep { $sorted_pairings[$_]->[0] eq 'pred' }
-                ( $sorted_symches[0]->[0] .. $sorted_symches[0]->[1] )
-        ],
-        [ $sorted_pairings[ $sorted_symches[0]->[0] ]->[2] ]
-    );
+    my @current_cartesian = ();
+    {
+        my $first_cause_id = $sorted_pairings[ $sorted_symches[0]->[0] ]->[2];
+        my $chaf_predecessors = $chaf_predecessors->[$first_cause_id] // [];
+        @current_cartesian =  (
+            $chaf_predecessors,
+            [   map { $sorted_pairings[$_]->[1] }
+                    grep { $sorted_pairings[$_]->[0] eq 'pred' }
+                    ( $sorted_symches[0]->[0] .. $sorted_symches[0]->[1] )
+            ],
+            [$first_cause_id]
+        );
+    }
     my $current_symch = $sorted_symches[0];
     SYMCH_IX:
     for ( my $symch_ix = 1; $symch_ix <= $#sorted_symches; $symch_ix++ ) {
         my $this_symch = $sorted_symches[$symch_ix];
-        if ( cmp_symches_by_predecessor( $current_symch, $this_symch, \@sorted_pairings, $chaf_predecessors ) ) {
+        if (cmp_symches_by_predecessor(
+                $current_symch,    $this_symch,
+                \@sorted_pairings, $chaf_predecessors
+            )
+            )
+        {
             push @cartesians, \@current_cartesian;
+            my $first_cause_id =
+                $sorted_pairings[ $sorted_symches[$symch_ix]->[0] ]->[2];
+            my $chaf_predecessors = $chaf_predecessors->[$first_cause_id]
+                // [];
             @current_cartesian = (
-                [], [   map { $sorted_pairings[$_]->[1] }
-                   grep { $sorted_pairings[$_]->[0] eq 'pred' }
-                (
+                $chaf_predecessors,
+                [   map { $sorted_pairings[$_]->[1] }
+                        grep { $sorted_pairings[$_]->[0] eq 'pred' } (
                         $sorted_symches[$symch_ix]->[0]
                             .. $sorted_symches[$symch_ix]->[1]
-                    )
+                        )
                 ],
-                [ $sorted_pairings[ $sorted_symches[$symch_ix]->[0] ]->[2] ]
+                [$first_cause_id]
             );
             $current_symch = $this_symch;
             next SYMCH_IX;
         } ## end if ( cmp_symches_by_predecessor( $current_symch, $this_symch...))
         push @{ $current_cartesian[2] },
             $sorted_pairings[ $sorted_symches[$symch_ix]->[0] ]->[2];
-    } ## end SYMCH_IX: for ( my $symch_ix = 1; $symch_ix <= $#sorted_symches...)
+    } ## end for ( my $symch_ix = 1; $symch_ix <= $#sorted_symches...)
     push @cartesians, \@current_cartesian;
     return [ \@cartesians, 0 ];
 } ## end sub or_nodes_to_factor
