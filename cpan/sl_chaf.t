@@ -30,19 +30,19 @@ use Data::Dumper;
 my $slg = Marpa::R2::Scanless::G->new(
     {   source => \(<<'END_OF_SOURCE'),
             :start ::= quartet
-            quartet ::= a a a a
+            quartet ::= a a a
             a ::= nothing | 'a'
             nothing ::=
 END_OF_SOURCE
     }
 );
 
-# die $slg->thick_g1_grammar()->show_irls();
+say STDERR "IRL's:\n", $slg->thick_g1_grammar()->show_irls();
 
 my $slr = Marpa::R2::Scanless::R->new( { grammar => $slg } );
 my ( $parse_value, $parse_status );
 
-if ( not defined eval { $slr->read( \'aaa' ); 1 } ) {
+if ( not defined eval { $slr->read( \'aa' ); 1 } ) {
     my $abbreviated_error = $EVAL_ERROR;
     chomp $abbreviated_error;
     $abbreviated_error =~ s/\n.*//xms;
@@ -55,6 +55,7 @@ if ( not defined $asf ) {
     return 'No parse', 'Input read to end but no parse';
 }
 
+say STDERR "Or-nodes:\n", $slr->thick_g1_recce()->verbose_or_nodes();
 say STDERR Data::Dumper::Dumper($asf->first_factored_rhs($asf->top_choicepoint()));
 
 # my $actual_asf         = $asf->raw();

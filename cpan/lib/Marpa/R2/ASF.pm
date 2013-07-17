@@ -187,9 +187,11 @@ sub or_nodes_to_factor {
     my @cartesians        = ();
     my $current_cartesian;
     {
+        $DB::single = 1;
         my $first_pairing = $sorted_pairings[ $sorted_symches[0]->[0] ];
         my $first_cause_id = $first_pairing->[2];
         my $first_parent_id = $first_pairing->[3];
+            say "cause=$first_cause_id, parent=$first_parent_id, ", Data::Dumper::Dumper( $chaf_predecessors->[$first_parent_id]);
         my $chaf_predecessors = $chaf_predecessors->[$first_parent_id] // [];
         $current_cartesian =  [
             $chaf_predecessors,
@@ -211,9 +213,12 @@ sub or_nodes_to_factor {
             )
         {
             push @cartesians, $current_cartesian;
+            say STDERR "Pushing cartesian: ",
+                Data::Dumper::Dumper($current_cartesian);
             my $first_pairing = $sorted_pairings[ $sorted_symches[0]->[0] ];
         my $first_cause_id = $first_pairing->[2];
         my $first_parent_id = $first_pairing->[3];
+            say "cause=$first_cause_id, parent=$first_parent_id, ", Data::Dumper::Dumper( $chaf_predecessors->[$first_parent_id]);
             my $chaf_predecessors = $chaf_predecessors->[$first_parent_id]
                 // [];
             $current_cartesian = [
@@ -232,6 +237,7 @@ sub or_nodes_to_factor {
         push @{ $current_cartesian->[2] },
             $sorted_pairings[ $sorted_symches[$symch_ix]->[0] ]->[2];
     } ## end for ( my $symch_ix = 1; $symch_ix <= $#sorted_symches...)
+    say STDERR "Pushing cartesian: ", Data::Dumper::Dumper($current_cartesian);
     push @cartesians, $current_cartesian;
     return [ \@cartesians, 0 ];
 } ## end sub or_nodes_to_factor
@@ -261,6 +267,7 @@ sub Marpa::R2::Scanless::ASF::first_factored_rhs {
             if not defined $irl_id;
         if ( not $grammar_c->_marpa_g_irl_is_virtual_rhs($irl_id) ) {
             push @final_or_nodes, $or_node_id;
+            say STDERR "Final or-node: $or_node_id";
             next WORK_ITEM;
         } ## end if ( not $grammar_c->_marpa_g_irl_is_virtual_rhs($irl_id...))
         for my $and_node_id ( $bocage->_marpa_b_or_node_first_and($or_node_id)
@@ -272,7 +279,8 @@ sub Marpa::R2::Scanless::ASF::first_factored_rhs {
             ## This is the last and-node of a virtual RHS rule,
             ## so the cause cannot be a token
             my $cause_id = $bocage->_marpa_b_and_node_cause($and_node_id);
-            $chaf_links[$cause_id][$or_node_id] = 1;
+            say STDERR "Chaf link $or_node_id -> $cause_id";
+            $chaf_links[$cause_id][$predecessor_id] = 1;
             ## In C, use a bitmap to track active cause ID's?
             ## Virtual RHS, so we do not have to worry about tokens
             push @worklist, $cause_id;
@@ -285,6 +293,9 @@ sub Marpa::R2::Scanless::ASF::first_factored_rhs {
             $chaf_predecessors->[$cause_id] = [ grep { $predecessors->[$_] } (0 .. $#$predecessors) ];
         }
     } ## end for my $cause_id ( 0 .. $#$chaf_predecessors )
+    say STDERR "about to call or_nodes_to_factor with final or-nodes, chaf predecessors:\n",
+        Data::Dumper::Dumper($chaf_predecessors);
+    $DB::single = 1;
     my @factoring = ( or_nodes_to_factor( $asf, \@final_or_nodes, $chaf_predecessors ) );
     my $current_chaf_predecessor_or_nodes = [];
     FACTOR: while (1) {

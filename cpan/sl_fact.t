@@ -33,7 +33,7 @@ my $slg = Marpa::R2::Scanless::G->new(
             quartet ::= a b c d
             a ::= 'a'
             b ::= 'b'
-            c ::= 'c'
+            c ::= 
             d ::= 'd'
 END_OF_SOURCE
     }
@@ -44,7 +44,7 @@ say STDERR $slg->thick_g1_grammar()->show_irls();
 my $slr = Marpa::R2::Scanless::R->new( { grammar => $slg } );
 my ( $parse_value, $parse_status );
 
-if ( not defined eval { $slr->read( \'abcd' ); 1 } ) {
+if ( not defined eval { $slr->read( \'abd' ); 1 } ) {
     my $abbreviated_error = $EVAL_ERROR;
     chomp $abbreviated_error;
     $abbreviated_error =~ s/\n.*//xms;
