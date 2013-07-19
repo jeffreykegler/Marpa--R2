@@ -31,7 +31,7 @@ my $slg = Marpa::R2::Scanless::G->new(
     {   source => \(<<'END_OF_SOURCE'),
             :start ::= quartet
             quartet ::= item item
-            item ::= 'a' | 'aa'
+            item ::= 'a' | 'a' 'a'
 END_OF_SOURCE
     }
 );

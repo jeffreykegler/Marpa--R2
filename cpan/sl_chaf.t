@@ -56,6 +56,7 @@ if ( not defined $asf ) {
 }
 
 say STDERR "Or-nodes:\n", $slr->thick_g1_recce()->verbose_or_nodes();
+say STDERR "Top cp = ", Data::Dumper::Dumper($asf->top_choicepoint());
 say STDERR Data::Dumper::Dumper($asf->first_factored_rhs($asf->top_choicepoint()));
 
 # my $actual_asf         = $asf->raw();

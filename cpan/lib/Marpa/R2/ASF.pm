@@ -126,6 +126,7 @@ sub cmp_symches_by_predecessors {
 
 # Given a set of or-nodes, convert them to a factor
 sub or_nodes_to_factor {
+    $DB::single = 1;
     my ( $asf, $or_node_list, $chaf_predecessors ) = @_;
     my $slr    = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
     my $recce  = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
@@ -143,8 +144,10 @@ sub or_nodes_to_factor {
             if ( not defined $cause_cp ) {
                 my $token_id =
                     $bocage->_marpa_b_and_node_symbol($and_node_id);
+                say STDERR "cause is token $token_id";
                 $cause_cp = make_token_cp($and_node_id);
             }
+            say STDERR "and-node $and_node_id = [ ", ( $predecessor_cp // 'undef' ), "; $cause_cp ]";
             if ( not defined $predecessor_cp ) {
                 push @pairings, [ 'nil', -1, $cause_cp, $parent_or_node_id ];
             }
@@ -159,6 +162,8 @@ sub or_nodes_to_factor {
         sort {
         $a->[2] <=> $b->[2] || $a->[0] cmp $b->[0] || $a->[1] <=> $b->[1];
         } @pairings;
+
+    say STDERR "sorted_pairings = ", Data::Dumper::Dumper(\@sorted_pairings);
 
     # A symch is a set of and-nodes sharing the same component
     my @symches                = ();
@@ -187,7 +192,6 @@ sub or_nodes_to_factor {
     my @cartesians        = ();
     my $current_cartesian;
     {
-        $DB::single = 1;
         my $first_pairing = $sorted_pairings[ $sorted_symches[0]->[0] ];
         my $first_cause_id = $first_pairing->[2];
         my $first_parent_id = $first_pairing->[3];
@@ -295,7 +299,6 @@ sub Marpa::R2::Scanless::ASF::first_factored_rhs {
     } ## end for my $cause_id ( 0 .. $#$chaf_predecessors )
     say STDERR "about to call or_nodes_to_factor with final or-nodes, chaf predecessors:\n",
         Data::Dumper::Dumper($chaf_predecessors);
-    $DB::single = 1;
     my @factoring = ( or_nodes_to_factor( $asf, \@final_or_nodes, $chaf_predecessors ) );
     my $current_chaf_predecessor_or_nodes = [];
     FACTOR: while (1) {
@@ -310,6 +313,8 @@ sub Marpa::R2::Scanless::ASF::first_factored_rhs {
             last FACTOR if $#{$predecessor_or_nodes} < 0;
             $current_chaf_predecessor_or_nodes = [];
         }
+        say STDERR "about to call or_nodes_to_factor with or-nodes ",
+            Data::Dumper::Dumper($predecessor_or_nodes);
         push @factoring,
             or_nodes_to_factor( $asf, $predecessor_or_nodes,
             $chaf_predecessors );
@@ -659,10 +664,12 @@ sub Marpa::R2::Scanless::ASF::top_choicepoint {
         die "No parse" if not defined $bocage;
     } ## end if ( not $bocage )
     my $augment_or_node_id = $bocage->_marpa_b_top_or_node();
+    say STDERR "augment or-node = $augment_or_node_id";
     my $augment_and_node_id =
         $bocage->_marpa_b_or_node_first_and($augment_or_node_id);
     my $augment2_or_node_id =
         $bocage->_marpa_b_and_node_cause($augment_and_node_id);
+    say STDERR "augment 2 or-node = $augment2_or_node_id";
     my $augment2_and_node_id =
         $bocage->_marpa_b_or_node_first_and($augment2_or_node_id);
     return $bocage->_marpa_b_and_node_cause($augment2_and_node_id);
