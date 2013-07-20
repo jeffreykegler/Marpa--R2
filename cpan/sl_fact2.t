@@ -29,9 +29,9 @@ use Data::Dumper;
 
 my $slg = Marpa::R2::Scanless::G->new(
     {   source => \(<<'END_OF_SOURCE'),
-            :start ::= quartet
-            quartet ::= item item
-            item ::= 'a' | 'aa'
+            :start ::= trio
+            trio ::= item item
+            item ::= 'a' | 'a' 'a'
 END_OF_SOURCE
     }
 );
