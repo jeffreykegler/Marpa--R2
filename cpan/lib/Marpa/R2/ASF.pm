@@ -60,6 +60,29 @@ package Marpa::R2::Internal::ASF;
 # Component choicepoint may be token instances, but are never 'nil'.
 # (The term "component" comes from Irons 1961 paper.)
 
+# This is more complicated that it needs to be for the current implementation.
+# It allows for LHS terminals (implemented in Libmarpa but not allowed by the SLIF).
+# It also assumes that every or-node which can be constructed from preceding or-nodes
+# and the input will be present.  This is currently the case, but in the future
+# rules and/or symbols may have extra-syntactic conditions attached making this
+# assumption false.
+
+BEGIN {
+    my $structure = <<'END_OF_STRUCTURE';
+
+    :package=Marpa::R2::Internal::Scanless::Choicepoint
+
+    OR_NODE_IDS { array of the or-node IDs }
+    TOKEN_IDS { array of the token IDs }
+    EXTERNAL { boolean: should this choicepoint be visible outside the ASF code? }
+
+    { One of the or-node and token ID array will be non-empty.
+      Currently only one will be non-empty, but this may change if
+      the SLIF implements LHS terminals. }
+END_OF_STRUCTURE
+    Marpa::R2::offset($structure);
+}
+
 BEGIN {
     my $structure = <<'END_OF_STRUCTURE';
 
@@ -76,9 +99,59 @@ BEGIN {
     FAC_CHAF_PREDECESSOR_BY_CAUSE
     FAC_CHAF_CAUSE_IS_ACTIVE
 
+    CHOICEPOINTS_BY_TOKEN_ID
+    CHOICEPOINTS_BY_OR_NODE_ID
+
 END_OF_STRUCTURE
     Marpa::R2::offset($structure);
 } ## end BEGIN
+
+# Given the or-node IDs and token IDs, return the choicepoint,
+# creating one if necessary.  Default is internal.
+sub ensure_cp {
+    my ( $asf, $or_node_ids, $token_ids ) = @_;
+    my $choicepoints_by_token_id =
+        $asf->[Marpa::R2::Internal::Scanless::ASF::CHOICEPOINTS_BY_TOKEN_ID];
+    my $choicepoints_by_or_node_id = $asf
+        ->[Marpa::R2::Internal::Scanless::ASF::CHOICEPOINTS_BY_OR_NODE_ID];
+    my $token_id_count = scalar @{$token_ids};
+    FIND_CP: {
+        my $cp_candidates =
+              $token_id_count
+            ? $choicepoints_by_token_id->[ $token_ids->[0] ]
+            : $choicepoints_by_or_node_id->[ $or_node_ids->[0] ];
+        last FIND_CP if not defined $cp_candidates;
+        for my $cp_candidate ( @{$cp_candidates} ) {
+            my $candidate_token_ids = $cp_candidate
+                ->[Marpa::R2::Internal::Scanless::Choicepoint::TOKEN_IDS];
+            next CP_CANDIDATE
+                if scalar @{$token_ids} != scalar @{$candidate_token_ids};
+            for my $token_id ( @{$token_ids} ) {
+                next CP_CANDIDATE
+                    if not grep { $token_id == $_ } @{$candidate_token_ids};
+            }
+            my $candidate_or_node_ids = $cp_candidate
+                ->[Marpa::R2::Internal::Scanless::Choicepoint::OR_NODE_IDS];
+            next CP_CANDIDATE
+                if scalar @{$or_node_ids} != scalar @{$candidate_or_node_ids};
+            for my $or_node_id ( @{$or_node_ids} ) {
+                next CP_CANDIDATE
+                    if not grep { $or_node_id == $_ }
+                        @{$candidate_or_node_ids};
+            }
+            return $cp_candidate;
+        } ## end for my $cp_candidate ( @{$cp_candidates} )
+    } ## end FIND_CP:
+    return new_cp( $asf, $or_node_ids, $token_ids );
+} ## end sub ensure_cp
+
+sub new_cp {
+    my ( $asf, $or_node_ids, $token_ids ) = @_;
+    my $cp;
+    $cp->[Marpa::R2::Internal::Scanless::Choicepoint::OR_NODE_IDS] = $or_node_ids // [];
+    $cp->[Marpa::R2::Internal::Scanless::Choicepoint::TOKEN_IDS] = $token_ids // [];
+    return $cp;
+}
 
 sub make_token_cp { return -($_[0] + 43); }
 sub unmake_token_cp { return -$_[0] - 43; }
