@@ -57,7 +57,7 @@ if ( not defined $asf ) {
     return 'No parse', 'Input read to end but no parse';
 }
 
-say STDERR Data::Dumper::Dumper($asf->first_factored_rhs($asf->top_choicepoint()));
+say STDERR Data::Dumper::Dumper($asf->first_factored_rhs($asf->top()));
 
 # my $actual_asf         = $asf->raw();
 # my $actual_blessed_asf = $asf->bless($actual_asf);
