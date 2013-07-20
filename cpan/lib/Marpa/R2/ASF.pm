@@ -145,13 +145,79 @@ sub ensure_cp {
     return new_cp( $asf, $or_node_ids, $token_ids );
 } ## end sub ensure_cp
 
+# Sort with decreasing length as the major key
+sub cmp_cp_length_major {
+    my ($a, $b) = @_;
+}
+
 sub new_cp {
     my ( $asf, $or_node_ids, $token_ids ) = @_;
     my $cp;
-    $cp->[Marpa::R2::Internal::Scanless::Choicepoint::OR_NODE_IDS] = $or_node_ids // [];
-    $cp->[Marpa::R2::Internal::Scanless::Choicepoint::TOKEN_IDS] = $token_ids // [];
+    $cp->[Marpa::R2::Internal::Scanless::Choicepoint::OR_NODE_IDS] =
+        $or_node_ids // [];
+    $cp->[Marpa::R2::Internal::Scanless::Choicepoint::TOKEN_IDS] = $token_ids
+        // [];
+
+    ## In C use an insertion sort by decreasing length, and changes searches to
+    # that they give up once past the last possible choicepoint
+    for my $token_id ( @{$token_ids} ) {
+        push @{
+            $asf->[
+                Marpa::R2::Internal::Scanless::ASF::CHOICEPOINTS_BY_TOKEN_ID]
+            },
+            $token_id;
+    } ## end for my $token_id ( @{$token_ids} )
+    for my $or_node_id ( @{$or_node_ids} ) {
+        push @{
+            $asf->[
+                Marpa::R2::Internal::Scanless::ASF::CHOICEPOINTS_BY_OR_NODE_ID
+            ]
+            },
+            $or_node_id;
+    } ## end for my $or_node_id ( @{$or_node_ids} )
     return $cp;
-}
+} ## end sub new_cp
+
+# No check for conflicting usage -- value(), asf(), etc.
+# at this point
+sub Marpa::R2::Scanless::ASF::top {
+    my ($asf) = @_;
+    my $slr   = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
+    my $recce = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+
+    my $bocage = $recce->[Marpa::R2::Internal::Recognizer::B_C];
+    if ( not $bocage ) {
+        my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
+        my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
+        my $recce_c   = $recce->[Marpa::R2::Internal::Recognizer::C];
+        $grammar_c->throw_set(0);
+        $bocage = $recce->[Marpa::R2::Internal::Recognizer::B_C] =
+            Marpa::R2::Thin::B->new( $recce_c, -1 );
+        $grammar_c->throw_set(1);
+        die "No parse" if not defined $bocage;
+    } ## end if ( not $bocage )
+    my $augment_or_node_id = $bocage->_marpa_b_top_or_node();
+    my $augment_and_node_id =
+        $bocage->_marpa_b_or_node_first_and($augment_or_node_id);
+    my $augment2_or_node_id =
+        $bocage->_marpa_b_and_node_cause($augment_and_node_id);
+    my @token_ids;
+    my @or_node_ids;
+    AND_NODE: for my $augment2_and_node_id (
+        $bocage->_marpa_b_or_node_first_and($augment2_or_node_id)
+        .. $bocage->_marpa_b_or_node_last_and($augment2_or_node_id)) {
+      my $cause_id = $bocage->_marpa_b_and_node_cause($augment2_and_node_id);
+      if (defined $cause_id) {
+          push @or_node_ids, $cause_id;
+	  next AND_NODE;
+      }
+      my $token_id = $bocage->_marpa_b_and_node_symbol($augment2_and_node_id);
+      push @token_ids, $token_id;
+    }
+    my $new_cp = ensure_cp($asf, \@or_node_ids, \@token_ids);
+    $new_cp->[Marpa::R2::Internal::Scanless::Choicepoint::EXTERNAL] = 1;
+    return $new_cp;
+} ## end sub Marpa::R2::Scanless::ASF::top_choicepoint
 
 sub make_token_cp { return -($_[0] + 43); }
 sub unmake_token_cp { return -$_[0] - 43; }
@@ -316,14 +382,14 @@ sub or_nodes_to_factor {
 } ## end sub or_nodes_to_factor
 
 sub Marpa::R2::Scanless::ASF::first_factored_rhs {
-    my ( $asf, $checkpoint_id ) = @_;
-    Marpa::R2::exception("Cannot factor token") if $checkpoint_id < 0;
+    my ( $asf, $arg_cp ) = @_;
+    Marpa::R2::exception("Cannot factor token") if $arg_cp < 0;
     my $slr       = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
     my $recce     = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
     my $bocage    = $recce->[Marpa::R2::Internal::Recognizer::B_C];
     my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
-    my @worklist  = ($checkpoint_id);
+    my @or_node_worklist  = @{$arg_cp->[Marpa::R2::Internal::Scanless::Choicepoint::OR_NODE_IDS]};
     my @final_or_nodes;
     my $chaf_predecessors =
         $asf
@@ -331,12 +397,12 @@ sub Marpa::R2::Scanless::ASF::first_factored_rhs {
         = [];
 
     my @chaf_links = ();
-    WORK_ITEM: while ( defined( my $or_node_id = pop @worklist ) ) {
+    WORK_ITEM: while ( defined( my $or_node_id = pop @or_node_worklist ) ) {
         my $irl_id = $bocage->_marpa_b_or_node_irl($or_node_id);
 
         # The first one may be undefined, because that ID comes from the
         # user.  Otherwise this should never fail.
-        Marpa::R2::exception("Bad checkpoint_id: $checkpoint_id")
+        Marpa::R2::exception("Bad or-node ID: $or_node_id")
             if not defined $irl_id;
         if ( not $grammar_c->_marpa_g_irl_is_virtual_rhs($irl_id) ) {
             push @final_or_nodes, $or_node_id;
@@ -356,9 +422,9 @@ sub Marpa::R2::Scanless::ASF::first_factored_rhs {
             $chaf_links[$cause_id][$predecessor_id] = 1;
             ## In C, use a bitmap to track active cause ID's?
             ## Virtual RHS, so we do not have to worry about tokens
-            push @worklist, $cause_id;
+            push @or_node_worklist, $cause_id;
         } ## end for my $and_node_id ( $bocage->_marpa_b_or_node_first_and...)
-    } ## end WORK_ITEM: while ( defined( my $or_node_id = pop @worklist ) )
+    } ## end WORK_ITEM: while ( defined( my $or_node_id = pop @or_node_worklist ) )
     # In the C code, do track CHAF cause/predecessor with linked lists?
     for my $cause_id ( 0 .. $#chaf_links ) {
         my $predecessors = $chaf_links[$cause_id];
