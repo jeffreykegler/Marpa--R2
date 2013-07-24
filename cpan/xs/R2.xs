@@ -24,6 +24,8 @@
 #include "config.h"
 #include "marpa.h"
 
+#define MY_NAME "Marpa::R2"
+
 /* This kind of pointer comparison is not portable per C89,
  * but the Perl source depends on it throughout,
  * and there seems to be no other way to do it.
@@ -6111,5 +6113,32 @@ PPCODE:
 
 INCLUDE: general_pattern.xsh
 
+VERSIONCHECK: DISABLE
+
 BOOT:
+
+    /* The macro for checking version numbers, in trying to cover every case is over-complex,
+     * but it still has problems with precision, quote handling, etc.
+     * This code is specific to Marpa.
+     */
+    {
+      STRLEN dummy;
+      SV *version_from_argument = NULL;
+      char *string_version_from_argument;
+      if (items >= 2)
+	{
+	  version_from_argument = ST (1);
+	}
+      if (!version_from_argument)
+	{
+	  croak ("No version argument for XS load -- Marpa requires one");
+	}
+      string_version_from_argument = SvPV (version_from_argument, dummy);
+      if (!strEQ (string_version_from_argument, XS_VERSION))
+	{
+	  croak ("%s XS Version mismatch: %s was requested, but code is %s",
+		 MY_NAME, string_version_from_argument, XS_VERSION);
+	}
+    }
+
     marpa_debug_handler_set(marpa_r2_warn);
