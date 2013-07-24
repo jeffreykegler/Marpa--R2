@@ -29,8 +29,8 @@ use Data::Dumper;
 
 my $slg = Marpa::R2::Scanless::G->new(
     {   source => \(<<'END_OF_SOURCE'),
-            :start ::= quartet
-            quartet ::= item item
+            :start ::= trio
+            trio ::= item item
             item ::= 'a' | 'a' 'a'
 END_OF_SOURCE
     }
@@ -57,7 +57,7 @@ if ( not defined $asf ) {
     return 'No parse', 'Input read to end but no parse';
 }
 
-say STDERR Data::Dumper::Dumper($asf->first_factored_rhs($asf->top_choicepoint()));
+say STDERR Data::Dumper::Dumper($asf->first_factored_rhs($asf->top()));
 
 # my $actual_asf         = $asf->raw();
 # my $actual_blessed_asf = $asf->bless($actual_asf);

@@ -16,6 +16,11 @@
 # Temporary
 ^sl_ada[.]t$
 ^sl_metaasf[.]t$
+^ada[.]before$
+^sl_chaf[.]t$
+^sl_fact[.]t$
+^sl_fact2[.]t$
+^sl_flies[.]t$
 
 # Permanent
 /[.]gdb_history$

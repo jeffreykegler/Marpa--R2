@@ -53,6 +53,9 @@ BEGIN {
     BLESS_PACKAGE
     SYMBOL_IDS_BY_EVENT_NAME_AND_TYPE
 
+    { This saves a lot of time at points }
+    CACHE_RULEIDS_BY_LHS_NAME
+
 END_OF_STRUCTURE
     Marpa::R2::offset($structure);
 } ## end BEGIN
@@ -169,24 +172,31 @@ sub Marpa::R2::Scanless::R::last_completed_range {
 # of the last such symbol completed,
 # undef if there was none.
 sub Marpa::R2::Scanless::R::last_completed {
-    my ( $self, $symbol_name ) = @_;
-    my $grammar = $self->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
+    my ( $slr, $symbol_name ) = @_;
+    my $slg = $slr->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
     my $thick_g1_grammar =
-        $grammar->[Marpa::R2::Inner::Scanless::G::THICK_G1_GRAMMAR];
+        $slg->[Marpa::R2::Inner::Scanless::G::THICK_G1_GRAMMAR];
     my $thick_g1_recce =
-        $self->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
-    my $thin_g1_recce   = $thick_g1_recce->thin();
-    my $g1_tracer       = $thick_g1_grammar->tracer();
-    my $thin_g1_grammar = $thick_g1_grammar->thin();
-    my $symbol_id       = $g1_tracer->symbol_by_name($symbol_name);
-    Marpa::R2::exception("Bad symbol in last_completed(): $symbol_name")
-        if not defined $symbol_id;
-    my @sought_rules =
-        grep { $thin_g1_grammar->rule_lhs($_) == $symbol_id; }
-        0 .. $thin_g1_grammar->highest_rule_id();
-    Marpa::R2::exception(
-        "Looking for completion of non-existent rule lhs: $symbol_name")
-        if not scalar @sought_rules;
+        $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+    my $thin_g1_recce = $thick_g1_recce->thin();
+    my $sought_rules =
+        $slg->[Marpa::R2::Inner::Scanless::G::CACHE_RULEIDS_BY_LHS_NAME]
+        ->{$symbol_name};
+    if ( not defined $sought_rules ) {
+        my $g1_tracer       = $thick_g1_grammar->tracer();
+        my $thin_g1_grammar = $thick_g1_grammar->thin();
+        my $symbol_id       = $g1_tracer->symbol_by_name($symbol_name);
+        Marpa::R2::exception("Bad symbol in last_completed(): $symbol_name")
+            if not defined $symbol_id;
+        $sought_rules =
+            $slg->[Marpa::R2::Inner::Scanless::G::CACHE_RULEIDS_BY_LHS_NAME]
+            ->{$symbol_name} =
+            [ grep { $thin_g1_grammar->rule_lhs($_) == $symbol_id; }
+                0 .. $thin_g1_grammar->highest_rule_id() ];
+        Marpa::R2::exception(
+            "Looking for completion of non-existent rule lhs: $symbol_name")
+            if not scalar @{$sought_rules};
+    } ## end if ( not defined $sought_rules )
     my $latest_earley_set = $thin_g1_recce->latest_earley_set();
     my $earley_set        = $latest_earley_set;
 
@@ -199,7 +209,7 @@ sub Marpa::R2::Scanless::R::last_completed {
                 $thin_g1_recce->progress_item();
             last ITEM if not defined $rule_id;
             next ITEM if $dot_position != -1;
-            next ITEM if not scalar grep { $_ == $rule_id } @sought_rules;
+            next ITEM if not scalar grep { $_ == $rule_id } @{$sought_rules};
             next ITEM if $origin >= $first_origin;
             $first_origin = $origin;
         } ## end ITEM: while (1)
@@ -290,7 +300,8 @@ sub Marpa::R2::Scanless::G::new {
     my $self = [];
     bless $self, $class;
 
-    $self->[Marpa::R2::Inner::Scanless::G::TRACE_FILE_HANDLE] = *STDERR;
+    $self->[Marpa::R2::Inner::Scanless::G::TRACE_FILE_HANDLE]       = *STDERR;
+    $self->[Marpa::R2::Inner::Scanless::G::CACHE_RULEIDS_BY_LHS_NAME] = {};
 
     my $ref_type = ref $args;
     if ( not $ref_type ) {
