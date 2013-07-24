@@ -274,7 +274,7 @@ sub process_xs {
     my $ccflags = $self->config('ccflags');
     $self->config( ccflags => ( $ccflags . q{ } . join q{ }, @new_ccflags ) );
     $self->compile_c( $spec->{c_file},
-        defines => { VERSION => qq{"$v"}, XS_VERSION => qq{"$v"} } );
+        defines => { VERSION => $v, XS_VERSION => $v } );
 
     # archdir
     # Legacy mkpath(), for compatibility with Perl 5.10.0
