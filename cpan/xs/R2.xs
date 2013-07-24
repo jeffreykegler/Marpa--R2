@@ -24,15 +24,8 @@
 #include "config.h"
 #include "marpa.h"
 
-#undef MY_NAME
 #define MY_NAME "Marpa::R2"
 
-
-#undef STRINGIFY
-#undef EXPAND_AND_STRINGIFY
-#define STRINGIFY(str) #str
-#define EXPAND_AND_STRINGIFY(str) STRINGIFY(str)
- 
 /* This kind of pointer comparison is not portable per C89,
  * but the Perl source depends on it throughout,
  * and there seems to be no other way to do it.
@@ -6141,12 +6134,10 @@ BOOT:
 	  croak ("No version argument for XS load -- Marpa requires one");
 	}
       string_version_from_argument = SvPV (version_from_argument, dummy);
-      if (!strEQ (string_version_from_argument,
-		  EXPAND_AND_STRINGIFY (XS_VERSION)))
+      if (!strEQ (string_version_from_argument, XS_VERSION))
 	{
 	  croak ("%s XS Version mismatch: %s was requested, but code is %s",
-		 MY_NAME,
-		 string_version_from_argument, EXPAND_AND_STRINGIFY (XS_VERSION));
+		 MY_NAME, string_version_from_argument, XS_VERSION);
 	}
     }
 
