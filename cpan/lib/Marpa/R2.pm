@@ -13,7 +13,6 @@
 # General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 
-use XSLoader;
 package Marpa::R2;
 
 use 5.010;
@@ -36,7 +35,18 @@ use Marpa::R2::Version;
 $Marpa::R2::USING_XS = 1;
 $Marpa::R2::USING_PP = 0;
 
-XSLoader::load 'Marpa::R2' , $STRING_VERSION;
+eval {
+    require XSLoader;
+    XSLoader::load( 'Marpa::R2', $Marpa::R2::STRING_VERSION );
+    1;
+} or eval {
+    require DynaLoader;
+## no critic(ClassHierarchies::ProhibitExplicitISA)
+    push @ISA, 'DynaLoader';
+    Dynaloader::bootstrap Marpa::R2 $Marpa::R2::STRING_VERSION;
+    1;
+} or Carp::croak("Could not load XS version of Marpa::R2: $EVAL_ERROR");
+
 
 if ( not $ENV{'MARPA_AUTHOR_TEST'} ) {
     $Marpa::R2::DEBUG = 0;
