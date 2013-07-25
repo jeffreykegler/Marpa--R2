@@ -157,8 +157,8 @@ my $asf = Marpa::R2::Scanless::ASF->new(
 if ( not defined $asf ) {
     return 'No parse', 'Input read to end but no parse';
 }
-say Data::Dumper::Dumper($asf);
-say __LINE__;
+# say Data::Dumper::Dumper($asf);
+# say __LINE__;
 my $actual_asf = $asf->raw();
 
 my $actual_blessed_asf = $asf->bless($actual_asf);

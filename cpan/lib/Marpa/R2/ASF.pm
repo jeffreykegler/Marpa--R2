@@ -803,12 +803,12 @@ sub Marpa::R2::Scanless::ASF::top_choicepoint {
         die "No parse" if not defined $bocage;
     } ## end if ( not $bocage )
     my $augment_or_node_id = $bocage->_marpa_b_top_or_node();
-    say STDERR "augment or-node = $augment_or_node_id";
+    # say STDERR "augment or-node = $augment_or_node_id";
     my $augment_and_node_id =
         $bocage->_marpa_b_or_node_first_and($augment_or_node_id);
     my $augment2_or_node_id =
         $bocage->_marpa_b_and_node_cause($augment_and_node_id);
-    say STDERR "augment 2 or-node = $augment2_or_node_id";
+    # say STDERR "augment 2 or-node = $augment2_or_node_id";
     my $augment2_and_node_id =
         $bocage->_marpa_b_or_node_first_and($augment2_or_node_id);
     return $bocage->_marpa_b_and_node_cause($augment2_and_node_id);
