@@ -1,0 +1,304 @@
+valgrind --leak-check=full perl -Ilib -Iblib/arch -MMarpa::R2 -e'*M:: = *Marpa::R2::Scanless::; my $g = M::G->new({source => \q(:start ::= A A ::= [ ])}); M::R->new({grammar => $g}) for 1 .. 1E5' 
+==27773== Memcheck, a memory error detector
+==27773== Copyright (C) 2002-2011, and GNU GPL'd, by Julian Seward et al.
+==27773== Using Valgrind-3.7.0 and LibVEX; rerun with -h for copyright info
+==27773== Command: perl -Ilib -Iblib/arch -MMarpa::R2 -e*M::\ =\ *Marpa::R2::Scanless::;\ my\ $g\ =\ M::G-\>new({source\ =\>\ \\q(:start\ ::=\ A\ A\ ::=\ [\ ])});\ M::R-\>new({grammar\ =\>\ $g})\ for\ 1\ ..\ 1E5
+==27773== 
+^C==27773== 
+==27773== HEAP SUMMARY:
+==27773==     in use at exit: 60,390,403 bytes in 205,378 blocks
+==27773==   total heap usage: 451,325 allocs, 245,947 frees, 81,047,206 bytes allocated
+==27773== 
+==27773== 16 bytes in 1 blocks are possibly lost in loss record 224 of 2,490
+==27773==    at 0x402BE68: malloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==27773==    by 0x48BBECC: marpa_t_new (marpa.w:15696)
+==27773==    by 0x489A3EE: XS_Marpa__R2__Thin__T_new (R2.xs:3257)
+==27773==    by 0x80E7866: Perl_pp_entersub (in /usr/bin/perl)
+==27773==    by 0x80DEAD7: Perl_runops_standard (in /usr/bin/perl)
+==27773==    by 0x40AA4D2: (below main) (libc-start.c:226)
+==27773== 
+==27773== 124 bytes in 1 blocks are possibly lost in loss record 1,702 of 2,490
+==27773==    at 0x402BF52: realloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==27773==    by 0x48BA429: marpa_b_new (marpa.w:15713)
+==27773==    by 0x489AACD: XS_Marpa__R2__Thin__B_new (R2.xs:3175)
+==27773==    by 0x80E7866: Perl_pp_entersub (in /usr/bin/perl)
+==27773==    by 0x80DEAD7: Perl_runops_standard (in /usr/bin/perl)
+==27773==    by 0x40AA4D2: (below main) (libc-start.c:226)
+==27773== 
+==27773== 243 bytes in 3 blocks are definitely lost in loss record 1,828 of 2,490
+==27773==    at 0x402BE68: malloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==27773==    by 0x80C07C9: Perl_safesysmalloc (in /usr/bin/perl)
+==27773==    by 0x80C1647: Perl_savepv (in /usr/bin/perl)
+==27773==    by 0x807E4F3: Perl_gv_init (in /usr/bin/perl)
+==27773==    by 0x807EF51: Perl_gv_fetchpvn_flags (in /usr/bin/perl)
+==27773==    by 0x8080586: Perl_gv_fetchsv (in /usr/bin/perl)
+==27773==    by 0x8060CC2: Perl_ck_rvconst (in /usr/bin/perl)
+==27773==    by 0x8064FE0: Perl_newUNOP (in /usr/bin/perl)
+==27773==    by 0x8065883: Perl_newCVREF (in /usr/bin/perl)
+==27773==    by 0x808F856: Perl_yylex (in /usr/bin/perl)
+==27773==    by 0x809A57B: Perl_yyparse (in /usr/bin/perl)
+==27773==    by 0x811A1E2: ??? (in /usr/bin/perl)
+==27773== 
+==27773== 372 bytes in 1 blocks are possibly lost in loss record 1,895 of 2,490
+==27773==    at 0x402BE68: malloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==27773==    by 0x48BA6AE: marpa_b_new (marpa.w:15696)
+==27773==    by 0x489AACD: XS_Marpa__R2__Thin__B_new (R2.xs:3175)
+==27773==    by 0x80E7866: Perl_pp_entersub (in /usr/bin/perl)
+==27773==    by 0x80DEAD7: Perl_runops_standard (in /usr/bin/perl)
+==27773==    by 0x40AA4D2: (below main) (libc-start.c:226)
+==27773== 
+==27773== 2,657 (136 direct, 2,521 indirect) bytes in 1 blocks are definitely lost in loss record 2,169 of 2,490
+==27773==    at 0x402BE68: malloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==27773==    by 0x80C07C9: Perl_safesysmalloc (in /usr/bin/perl)
+==27773==    by 0x80C290F: Perl_my_setenv (in /usr/bin/perl)
+==27773==    by 0x80793BE: perl_parse (in /usr/bin/perl)
+==27773==    by 0x805E17A: main (in /usr/bin/perl)
+==27773== 
+==27773== 4,064 bytes in 1 blocks are possibly lost in loss record 2,231 of 2,490
+==27773==    at 0x402BE68: malloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==27773==    by 0x48BEAA3: _marpa_obs_newchunk (marpa.w:15696)
+==27773==    by 0x48A7F8F: marpa_g_rule_new (marpa.w:1980)
+==27773==    by 0x489CA8E: XS_Marpa__R2__Thin__G_rule_new (R2.xs:2494)
+==27773==    by 0x80E7866: Perl_pp_entersub (in /usr/bin/perl)
+==27773==    by 0x80DEAD7: Perl_runops_standard (in /usr/bin/perl)
+==27773==    by 0x40AA4D2: (below main) (libc-start.c:226)
+==27773== 
+==27773== 4,064 bytes in 1 blocks are possibly lost in loss record 2,232 of 2,490
+==27773==    at 0x402BE68: malloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==27773==    by 0x48BEAA3: _marpa_obs_newchunk (marpa.w:15696)
+==27773==    by 0x48A46E3: irl_start (marpa.w:2021)
+==27773==    by 0x48AD8CB: marpa_g_precompute (marpa.w:3633)
+==27773==    by 0x488A129: XS_Marpa__R2__Thin__G_precompute (general_pattern.xsh:117)
+==27773==    by 0x80E7866: Perl_pp_entersub (in /usr/bin/perl)
+==27773==    by 0x80DEAD7: Perl_runops_standard (in /usr/bin/perl)
+==27773==    by 0x40AA4D2: (below main) (libc-start.c:226)
+==27773== 
+==27773== 4,064 bytes in 1 blocks are possibly lost in loss record 2,233 of 2,490
+==27773==    at 0x402BE68: malloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==27773==    by 0x48BEAA3: _marpa_obs_newchunk (marpa.w:15696)
+==27773==    by 0x48A4D41: create_predicted_AHFA_state (marpa.w:6176)
+==27773==    by 0x48AE394: marpa_g_precompute (marpa.w:5572)
+==27773==    by 0x488A129: XS_Marpa__R2__Thin__G_precompute (general_pattern.xsh:117)
+==27773==    by 0x80E7866: Perl_pp_entersub (in /usr/bin/perl)
+==27773==    by 0x80DEAD7: Perl_runops_standard (in /usr/bin/perl)
+==27773==    by 0x40AA4D2: (below main) (libc-start.c:226)
+==27773== 
+==27773== 4,064 bytes in 1 blocks are possibly lost in loss record 2,234 of 2,490
+==27773==    at 0x402BE68: malloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==27773==    by 0x48BEAA3: _marpa_obs_newchunk (marpa.w:15696)
+==27773==    by 0x48BDF12: _marpa_avl_probe (avl.c:118)
+==27773==    by 0x48BE0B9: _marpa_avl_insert (avl.c:201)
+==27773==    by 0x48B023E: marpa_g_precompute (marpa.w:15154)
+==27773==    by 0x488A129: XS_Marpa__R2__Thin__G_precompute (general_pattern.xsh:117)
+==27773==    by 0x80E7866: Perl_pp_entersub (in /usr/bin/perl)
+==27773==    by 0x80DEAD7: Perl_runops_standard (in /usr/bin/perl)
+==27773==    by 0x40AA4D2: (below main) (libc-start.c:226)
+==27773== 
+==27773== 4,064 bytes in 1 blocks are possibly lost in loss record 2,235 of 2,490
+==27773==    at 0x402BE68: malloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==27773==    by 0x48BEAA3: _marpa_obs_newchunk (marpa.w:15696)
+==27773==    by 0x48B1020: marpa_g_precompute (marpa.w:5626)
+==27773==    by 0x488A129: XS_Marpa__R2__Thin__G_precompute (general_pattern.xsh:117)
+==27773==    by 0x80E7866: Perl_pp_entersub (in /usr/bin/perl)
+==27773==    by 0x80DEAD7: Perl_runops_standard (in /usr/bin/perl)
+==27773==    by 0x40AA4D2: (below main) (libc-start.c:226)
+==27773== 
+==27773== 4,064 bytes in 1 blocks are possibly lost in loss record 2,236 of 2,490
+==27773==    at 0x402BE68: malloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==27773==    by 0x48BEAA3: _marpa_obs_newchunk (marpa.w:15696)
+==27773==    by 0x48A4CF6: create_predicted_AHFA_state (marpa.w:6292)
+==27773==    by 0x48AF419: marpa_g_precompute (marpa.w:5907)
+==27773==    by 0x488A129: XS_Marpa__R2__Thin__G_precompute (general_pattern.xsh:117)
+==27773==    by 0x80E7866: Perl_pp_entersub (in /usr/bin/perl)
+==27773==    by 0x80DEAD7: Perl_runops_standard (in /usr/bin/perl)
+==27773==    by 0x40AA4D2: (below main) (libc-start.c:226)
+==27773== 
+==27773== 4,064 bytes in 1 blocks are possibly lost in loss record 2,237 of 2,490
+==27773==    at 0x402BE68: malloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==27773==    by 0x48BE9F9: _marpa_obs_begin (marpa.w:15696)
+==27773==    by 0x48BDB1C: _marpa_avl_create (avl.c:48)
+==27773==    by 0x48B7650: marpa_r_progress_report_start (marpa.w:11859)
+==27773==    by 0x48A09AF: XS_Marpa__R2__Thin__SLR_read (R2.xs:1829)
+==27773==    by 0x80E7866: Perl_pp_entersub (in /usr/bin/perl)
+==27773==    by 0x80DEAD7: Perl_runops_standard (in /usr/bin/perl)
+==27773==    by 0x40AA4D2: (below main) (libc-start.c:226)
+==27773== 
+==27773== 4,064 bytes in 1 blocks are possibly lost in loss record 2,238 of 2,490
+==27773==    at 0x402BE68: malloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==27773==    by 0x48BE9F9: _marpa_obs_begin (marpa.w:15696)
+==27773==    by 0x48B2287: marpa_r_new (marpa.w:7220)
+==27773==    by 0x48A0106: u_read (R2.xs:553)
+==27773==    by 0x48A06C3: XS_Marpa__R2__Thin__SLR_read (R2.xs:5778)
+==27773== 
+==27773== 4,064 bytes in 1 blocks are possibly lost in loss record 2,239 of 2,490
+==27773==    at 0x402BE68: malloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==27773==    by 0x48BE9F9: _marpa_obs_begin (marpa.w:15696)
+==27773==    by 0x48B24B2: marpa_r_new (marpa.w:6597)
+==27773==    by 0x48A0106: u_read (R2.xs:553)
+==27773==    by 0x48A06C3: XS_Marpa__R2__Thin__SLR_read (R2.xs:5778)
+==27773== 
+==27773== 4,064 bytes in 1 blocks are possibly lost in loss record 2,240 of 2,490
+==27773==    at 0x402BE68: malloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==27773==    by 0x48BE9F9: _marpa_obs_begin (marpa.w:15696)
+==27773==    by 0x48B2540: marpa_r_new (marpa.w:10421)
+==27773==    by 0x48A0106: u_read (R2.xs:553)
+==27773==    by 0x48A06C3: XS_Marpa__R2__Thin__SLR_read (R2.xs:5778)
+==27773== 
+==27773== 4,064 bytes in 1 blocks are possibly lost in loss record 2,241 of 2,490
+==27773==    at 0x402BE68: malloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==27773==    by 0x48BEAA3: _marpa_obs_newchunk (marpa.w:15696)
+==27773==    by 0x48A51E9: postdot_items_create (marpa.w:9885)
+==27773==    by 0x48B67B4: marpa_r_earleme_complete (marpa.w:9435)
+==27773==    by 0x48A1325: XS_Marpa__R2__Thin__SLR_read (R2.xs:2129)
+==27773==    by 0x80E7866: Perl_pp_entersub (in /usr/bin/perl)
+==27773==    by 0x80DEAD7: Perl_runops_standard (in /usr/bin/perl)
+==27773==    by 0x40AA4D2: (below main) (libc-start.c:226)
+==27773== 
+==27773== 4,064 bytes in 1 blocks are possibly lost in loss record 2,242 of 2,490
+==27773==    at 0x402BE68: malloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==27773==    by 0x48BEAA3: _marpa_obs_newchunk (marpa.w:15696)
+==27773==    by 0x48A51E9: postdot_items_create (marpa.w:9885)
+==27773==    by 0x48B67B4: marpa_r_earleme_complete (marpa.w:9435)
+==27773==    by 0x489FCDF: u_read (R2.xs:819)
+==27773==    by 0x48A06C3: XS_Marpa__R2__Thin__SLR_read (R2.xs:5778)
+==27773== 
+==27773== 4,064 bytes in 1 blocks are possibly lost in loss record 2,243 of 2,490
+==27773==    at 0x402BE68: malloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==27773==    by 0x48BE9F9: _marpa_obs_begin (marpa.w:15696)
+==27773==    by 0x48B7C41: marpa_b_new (marpa.w:12085)
+==27773==    by 0x489AACD: XS_Marpa__R2__Thin__B_new (R2.xs:3175)
+==27773==    by 0x80E7866: Perl_pp_entersub (in /usr/bin/perl)
+==27773==    by 0x80DEAD7: Perl_runops_standard (in /usr/bin/perl)
+==27773==    by 0x40AA4D2: (below main) (libc-start.c:226)
+==27773== 
+==27773== 8,128 bytes in 2 blocks are possibly lost in loss record 2,343 of 2,490
+==27773==    at 0x402BE68: malloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==27773==    by 0x48BEAA3: _marpa_obs_newchunk (marpa.w:15696)
+==27773==    by 0x48AACAA: marpa_g_precompute (marpa.w:1756)
+==27773==    by 0x488A129: XS_Marpa__R2__Thin__G_precompute (general_pattern.xsh:117)
+==27773==    by 0x80E7866: Perl_pp_entersub (in /usr/bin/perl)
+==27773==    by 0x80DEAD7: Perl_runops_standard (in /usr/bin/perl)
+==27773==    by 0x40AA4D2: (below main) (libc-start.c:226)
+==27773== 
+==27773== 8,128 bytes in 2 blocks are possibly lost in loss record 2,344 of 2,490
+==27773==    at 0x402BE68: malloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==27773==    by 0x48BEAA3: _marpa_obs_newchunk (marpa.w:15696)
+==27773==    by 0x48A4CF6: create_predicted_AHFA_state (marpa.w:6292)
+==27773==    by 0x48AEC92: marpa_g_precompute (marpa.w:5645)
+==27773==    by 0x488A129: XS_Marpa__R2__Thin__G_precompute (general_pattern.xsh:117)
+==27773==    by 0x80E7866: Perl_pp_entersub (in /usr/bin/perl)
+==27773==    by 0x80DEAD7: Perl_runops_standard (in /usr/bin/perl)
+==27773==    by 0x40AA4D2: (below main) (libc-start.c:226)
+==27773== 
+==27773== 12,192 bytes in 3 blocks are possibly lost in loss record 2,376 of 2,490
+==27773==    at 0x402BE68: malloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==27773==    by 0x48BEAA3: _marpa_obs_newchunk (marpa.w:15696)
+==27773==    by 0x48A46E3: irl_start (marpa.w:2021)
+==27773==    by 0x48B1BD2: marpa_g_precompute (marpa.w:2039)
+==27773==    by 0x488A129: XS_Marpa__R2__Thin__G_precompute (general_pattern.xsh:117)
+==27773==    by 0x80E7866: Perl_pp_entersub (in /usr/bin/perl)
+==27773==    by 0x80DEAD7: Perl_runops_standard (in /usr/bin/perl)
+==27773==    by 0x40AA4D2: (below main) (libc-start.c:226)
+==27773== 
+==27773== 16,256 bytes in 4 blocks are possibly lost in loss record 2,403 of 2,490
+==27773==    at 0x402BE68: malloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==27773==    by 0x48BE9F9: _marpa_obs_begin (marpa.w:15696)
+==27773==    by 0x48A6AA9: marpa_g_new (marpa.w:1102)
+==27773==    by 0x489D23B: XS_Marpa__R2__Thin__G_new (R2.xs:2385)
+==27773==    by 0x80E7866: Perl_pp_entersub (in /usr/bin/perl)
+==27773==    by 0x80DEAD7: Perl_runops_standard (in /usr/bin/perl)
+==27773==    by 0x40AA4D2: (below main) (libc-start.c:226)
+==27773== 
+==27773== 16,256 bytes in 4 blocks are possibly lost in loss record 2,404 of 2,490
+==27773==    at 0x402BE68: malloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==27773==    by 0x48BE9F9: _marpa_obs_begin (marpa.w:15696)
+==27773==    by 0x48A6AC0: marpa_g_new (marpa.w:1103)
+==27773==    by 0x489D23B: XS_Marpa__R2__Thin__G_new (R2.xs:2385)
+==27773==    by 0x80E7866: Perl_pp_entersub (in /usr/bin/perl)
+==27773==    by 0x80DEAD7: Perl_runops_standard (in /usr/bin/perl)
+==27773==    by 0x40AA4D2: (below main) (libc-start.c:226)
+==27773== 
+==27773== 16,256 bytes in 4 blocks are possibly lost in loss record 2,405 of 2,490
+==27773==    at 0x402BE68: malloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==27773==    by 0x48BE9F9: _marpa_obs_begin (marpa.w:15696)
+==27773==    by 0x48A6AD7: marpa_g_new (marpa.w:15086)
+==27773==    by 0x489D23B: XS_Marpa__R2__Thin__G_new (R2.xs:2385)
+==27773==    by 0x80E7866: Perl_pp_entersub (in /usr/bin/perl)
+==27773==    by 0x80DEAD7: Perl_runops_standard (in /usr/bin/perl)
+==27773==    by 0x40AA4D2: (below main) (libc-start.c:226)
+==27773== 
+==27773== 16,256 bytes in 4 blocks are possibly lost in loss record 2,406 of 2,490
+==27773==    at 0x402BE68: malloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==27773==    by 0x48BE9F9: _marpa_obs_begin (marpa.w:15696)
+==27773==    by 0x48BDB1C: _marpa_avl_create (avl.c:48)
+==27773==    by 0x48A6AF8: marpa_g_new (marpa.w:15087)
+==27773==    by 0x489D23B: XS_Marpa__R2__Thin__G_new (R2.xs:2385)
+==27773==    by 0x80E7866: Perl_pp_entersub (in /usr/bin/perl)
+==27773==    by 0x80DEAD7: Perl_runops_standard (in /usr/bin/perl)
+==27773==    by 0x40AA4D2: (below main) (libc-start.c:226)
+==27773== 
+==27773== 16,256 bytes in 4 blocks are possibly lost in loss record 2,407 of 2,490
+==27773==    at 0x402BE68: malloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==27773==    by 0x48BEAA3: _marpa_obs_newchunk (marpa.w:15696)
+==27773==    by 0x48AE7C1: marpa_g_precompute (marpa.w:5460)
+==27773==    by 0x488A129: XS_Marpa__R2__Thin__G_precompute (general_pattern.xsh:117)
+==27773==    by 0x80E7866: Perl_pp_entersub (in /usr/bin/perl)
+==27773==    by 0x80DEAD7: Perl_runops_standard (in /usr/bin/perl)
+==27773==    by 0x40AA4D2: (below main) (libc-start.c:226)
+==27773== 
+==27773== 69,088 bytes in 17 blocks are possibly lost in loss record 2,450 of 2,490
+==27773==    at 0x402BE68: malloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==27773==    by 0x48BEAA3: _marpa_obs_newchunk (marpa.w:15696)
+==27773==    by 0x48B0F0F: marpa_g_precompute (marpa.w:6292)
+==27773==    by 0x488A129: XS_Marpa__R2__Thin__G_precompute (general_pattern.xsh:117)
+==27773==    by 0x80E7866: Perl_pp_entersub (in /usr/bin/perl)
+==27773==    by 0x80DEAD7: Perl_runops_standard (in /usr/bin/perl)
+==27773==    by 0x40AA4D2: (below main) (libc-start.c:226)
+==27773== 
+==27773== 207,264 bytes in 51 blocks are possibly lost in loss record 2,467 of 2,490
+==27773==    at 0x402BE68: malloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==27773==    by 0x48BEAA3: _marpa_obs_newchunk (marpa.w:15696)
+==27773==    by 0x48B0FFB: marpa_g_precompute (marpa.w:6292)
+==27773==    by 0x488A129: XS_Marpa__R2__Thin__G_precompute (general_pattern.xsh:117)
+==27773==    by 0x80E7866: Perl_pp_entersub (in /usr/bin/perl)
+==27773==    by 0x80DEAD7: Perl_runops_standard (in /usr/bin/perl)
+==27773==    by 0x40AA4D2: (below main) (libc-start.c:226)
+==27773== 
+==27773== 13,472,160 bytes in 3,315 blocks are possibly lost in loss record 2,488 of 2,490
+==27773==    at 0x402BE68: malloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==27773==    by 0x48BE9F9: _marpa_obs_begin (marpa.w:15696)
+==27773==    by 0x48B2287: marpa_r_new (marpa.w:7220)
+==27773==    by 0x488EE4E: XS_Marpa__R2__Thin__R_new (R2.xs:2790)
+==27773==    by 0x80E7866: Perl_pp_entersub (in /usr/bin/perl)
+==27773==    by 0x80DEAD7: Perl_runops_standard (in /usr/bin/perl)
+==27773==    by 0x40AA4D2: (below main) (libc-start.c:226)
+==27773== 
+==27773== 13,472,160 bytes in 3,315 blocks are possibly lost in loss record 2,489 of 2,490
+==27773==    at 0x402BE68: malloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==27773==    by 0x48BE9F9: _marpa_obs_begin (marpa.w:15696)
+==27773==    by 0x48B24B2: marpa_r_new (marpa.w:6597)
+==27773==    by 0x488EE4E: XS_Marpa__R2__Thin__R_new (R2.xs:2790)
+==27773==    by 0x80E7866: Perl_pp_entersub (in /usr/bin/perl)
+==27773==    by 0x80DEAD7: Perl_runops_standard (in /usr/bin/perl)
+==27773==    by 0x40AA4D2: (below main) (libc-start.c:226)
+==27773== 
+==27773== 13,472,160 bytes in 3,315 blocks are possibly lost in loss record 2,490 of 2,490
+==27773==    at 0x402BE68: malloc (in /usr/lib/valgrind/vgpreload_memcheck-x86-linux.so)
+==27773==    by 0x48BE9F9: _marpa_obs_begin (marpa.w:15696)
+==27773==    by 0x48B2540: marpa_r_new (marpa.w:10421)
+==27773==    by 0x488EE4E: XS_Marpa__R2__Thin__R_new (R2.xs:2790)
+==27773==    by 0x80E7866: Perl_pp_entersub (in /usr/bin/perl)
+==27773==    by 0x80DEAD7: Perl_runops_standard (in /usr/bin/perl)
+==27773==    by 0x40AA4D2: (below main) (libc-start.c:226)
+==27773== 
+==27773== LEAK SUMMARY:
+==27773==    definitely lost: 379 bytes in 4 blocks
+==27773==    indirectly lost: 2,521 bytes in 32 blocks
+==27773==      possibly lost: 40,855,904 bytes in 10,056 blocks
+==27773==    still reachable: 19,531,599 bytes in 195,286 blocks
+==27773==         suppressed: 0 bytes in 0 blocks
+==27773== Reachable blocks (those to which a pointer was found) are not shown.
+==27773== To see them, rerun with: --leak-check=full --show-reachable=yes
+==27773== 
+==27773== For counts of detected and suppressed errors, rerun with: -v
+==27773== ERROR SUMMARY: 31 errors from 31 contexts (suppressed: 0 from 0)
