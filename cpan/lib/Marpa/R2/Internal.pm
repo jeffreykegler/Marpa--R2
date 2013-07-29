@@ -84,8 +84,12 @@ sub Marpa::R2::offset {
 
         Marpa::R2::exception("Unacceptable field name: $field")
             if $field =~ /[^A-Z0-9_]/xms;
-        my $field_name = $prefix . $field;
-        *{$field_name} = sub () {$offset};
+        local *Marpa::R2::Internal::_temp:: = $prefix;
+
+        package Marpa::R2::Internal::_temp;
+        no warnings;
+        constant->import( $field => $offset );
+
     } ## end for my $field (@fields)
     return 1;
 } ## end sub Marpa::R2::offset
