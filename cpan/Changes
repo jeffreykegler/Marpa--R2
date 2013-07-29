@@ -15,6 +15,10 @@
 
 Revision history for Marpa::R2
 
+2.065_003
+
+   * Fix for Perl 5.19.3
+
 2.065_002
 2.065_001
 2.065_000
