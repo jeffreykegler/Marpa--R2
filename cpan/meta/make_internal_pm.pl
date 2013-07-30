@@ -48,18 +48,15 @@ sub offset {
             }
         } ## end PROCESS_OPTION:
 
-        if ( $field !~ s/\A=//xms ) {
-            $offset++;
-	    say "constant->import( '$field' => $offset );"
-        }
 
-        if ( $field =~ / \A ( [^=]* ) = ( [0-9+-]* ) \z/xms ) {
-            $field  = $1;
-	    Marpa::R2::exception("Unacceptable field name: $field")
+	if ((substr $field, 0, 1) eq '=') {
+	    $field = substr $field, 1;
+	} else {
+	    $offset++;
+	}
+	die "Unacceptable field name: $field"
 	      if $field =~ /[^A-Z0-9_]/xms;
-            $offset = $2 + 0;
-	    say "constant->import( '$field' => $offset );"
-        }
+	say "constant->import( '$field' => $offset );"
 
     } ## end for my $field (@fields)
     return 1;
