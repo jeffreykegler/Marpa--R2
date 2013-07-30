@@ -36,6 +36,7 @@ full_test: etc_make
 	) 2>&1 | tee full_test.out
 
 install:
+	(cd cpan/meta && make all)
 	(cd cpan/xs && make)
 	test -d cpan/libmarpa_dist || mkdir cpan/libmarpa_dist
 	test -d cpan/libmarpa_doc_dist || mkdir cpan/libmarpa_doc_dist
