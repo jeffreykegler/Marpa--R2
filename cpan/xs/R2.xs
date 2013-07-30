@@ -536,8 +536,13 @@ static Marpa_Recce
 u_r0_new (Unicode_Stream * stream)
 {
   dTHX;
+  Marpa_Recce r0 = stream->r0;
   G_Wrapper *g0_wrapper = stream->g0_wrapper;
-  Marpa_Recce r0 = marpa_r_new (g0_wrapper->g);
+  if (r0)
+    {
+      marpa_r_unref (r0);
+    }
+  stream->r0 = r0 = marpa_r_new (g0_wrapper->g);
   if (!r0)
     {
       if (!g0_wrapper->throw)
@@ -557,7 +562,6 @@ u_r0_new (Unicode_Stream * stream)
 	return 0;
       }
   }
-  stream->r0 = r0;
   return r0;
 }
 
