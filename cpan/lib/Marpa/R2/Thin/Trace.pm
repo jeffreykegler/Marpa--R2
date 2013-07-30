@@ -135,6 +135,23 @@ sub progress_report {
     return $result;
 } ## end sub progress_report
 
+sub stream_progress_report {
+    my ( $self, $stream, $ordinal ) = @_;
+    my $result = q{};
+    $ordinal //= $stream->latest_earley_set();
+    $stream->progress_report_start($ordinal);
+    ITEM: while (1) {
+        my ( $rule_id, $dot_position, $origin ) = $stream->progress_item();
+        last ITEM if not defined $rule_id;
+        $result
+            .= q{@}
+            . $origin . q{: }
+            . $self->dotted_rule( $rule_id, $dot_position ) . "\n";
+    } ## end ITEM: while (1)
+    $stream->progress_report_finish();
+    return $result;
+} ## end sub progress_report
+
 sub show_dotted_irl {
     my ( $self, $irl_id, $dot_position ) = @_;
     my $grammar_c  = $self->{g};

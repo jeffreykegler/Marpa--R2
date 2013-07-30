@@ -89,7 +89,6 @@ typedef struct {
       */
      SV* g0_sv;
      Marpa_Recce r0;
-     SV* r0_sv;
      /* character position, taking into account Unicode
          Equivalent to Perl pos()
 	 One past last actual position indicates past-end-of-string
@@ -491,7 +490,6 @@ static Unicode_Stream* u_new(SV* g_sv)
    */
   SvREFCNT_inc (g_sv);
   stream->g0_sv = g_sv;
-  stream->r0_sv = NULL;
   stream->input = newSVpvn ("", 0);
   stream->perl_pos = 0;
   stream->end_pos = 0;
@@ -520,10 +518,6 @@ static void u_destroy(Unicode_Stream *stream)
   SvREFCNT_dec (stream->input);
   SvREFCNT_dec (stream->per_codepoint_ops);
   SvREFCNT_dec (stream->g0_sv);
-  if (stream->r0_sv)
-    {
-      SvREFCNT_dec (stream->r0_sv);
-    }
   Safefree (stream);
 }
 
@@ -531,16 +525,9 @@ static void
 u_r0_clear (Unicode_Stream * stream)
 {
   dTHX;
-  SV *r0_sv;
   Marpa_Recce r0 = stream->r0;
   if (!r0)
     return;
-  r0_sv = stream->r0_sv;
-  if (r0_sv)
-    {
-      SvREFCNT_dec (r0_sv);
-      stream->r0_sv = NULL;
-    }
   marpa_r_unref (r0);
   stream->r0 = NULL;
 }
@@ -2937,26 +2924,6 @@ PPCODE:
   u_destroy(stream);
 }
 
- #  Always returns the same SV for a given stream -- 
- #  it does not create a new one
- # 
-void
-recce( stream )
-    Unicode_Stream *stream;
-PPCODE:
-{
-  SV *r0_sv = stream->r0_sv;
-  if (!r0_sv)
-    {
-      R_Wrapper *r_wrapper = r_wrap (stream->r0, stream->g0_sv);
-      marpa_r_ref (stream->r0);
-      r0_sv = newSV (0);
-      sv_setref_pv (r0_sv, recce_c_class_name, (void *) r_wrapper);
-      stream->r0_sv = r0_sv;
-    }
-  XPUSHs (sv_2mortal (SvREFCNT_inc_simple_NN (r0_sv)));
-}
-
 void
 trace_g0( stream, level )
      Unicode_Stream *stream;
@@ -2980,6 +2947,81 @@ PPCODE:
 {
     SV* event = av_shift(stream->event_queue);
     XPUSHs (sv_2mortal (event));
+}
+
+void
+progress_report_start( stream, ordinal )
+    Unicode_Stream *stream;
+    Marpa_Earley_Set_ID ordinal;
+PPCODE:
+{
+  int gp_result;
+  G_Wrapper* g0_wrapper;
+  const Marpa_Recognizer recce = stream->r0;
+  if (!recce)
+    {
+      croak ("Problem in r->progress_item(): No G0 Recognizer");
+    }
+  g0_wrapper = stream->g0_wrapper;
+  gp_result = marpa_r_progress_report_start(recce, ordinal);
+  if ( gp_result == -1 ) { XSRETURN_UNDEF; }
+  if ( gp_result < 0 && g0_wrapper->throw ) {
+    croak( "Problem in r->progress_report_start(%d): %s",
+     ordinal, xs_g_error( g0_wrapper ));
+  }
+  XPUSHs (sv_2mortal (newSViv (gp_result)));
+}
+
+void
+progress_report_finish( stream )
+    Unicode_Stream *stream;
+PPCODE:
+{
+  int gp_result;
+  G_Wrapper* g0_wrapper;
+  const Marpa_Recognizer recce = stream->r0;
+  if (!recce)
+    {
+      croak ("Problem in r->progress_item(): No G0 Recognizer");
+    }
+  g0_wrapper = stream->g0_wrapper;
+  gp_result = marpa_r_progress_report_finish(recce);
+  if ( gp_result == -1 ) { XSRETURN_UNDEF; }
+  if ( gp_result < 0 && g0_wrapper->throw ) {
+    croak( "Problem in r->progress_report_finish(): %s",
+     xs_g_error( g0_wrapper ));
+  }
+  XPUSHs (sv_2mortal (newSViv (gp_result)));
+}
+
+void
+progress_item( stream )
+    Unicode_Stream *stream;
+PPCODE:
+{
+  Marpa_Rule_ID rule_id;
+  Marpa_Earley_Set_ID origin = -1;
+  int position = -1;
+  G_Wrapper* g0_wrapper;
+  const Marpa_Recognizer recce = stream->r0;
+  if (!recce)
+    {
+      croak ("Problem in r->progress_item(): No G0 Recognizer");
+    }
+  g0_wrapper = stream->g0_wrapper;
+  rule_id = marpa_r_progress_item (recce, &position, &origin);
+  if (rule_id == -1)
+    {
+      XSRETURN_UNDEF;
+    }
+  if (rule_id < 0 && g0_wrapper->throw)
+    {
+      croak ("Problem in r->progress_item(): %s",
+	     xs_g_error (g0_wrapper));
+    }
+  XPUSHs (sv_2mortal (newSViv (rule_id)));
+  XPUSHs (sv_2mortal (newSViv (position)));
+  XPUSHs (sv_2mortal (newSViv (origin)));
 }
 
 void

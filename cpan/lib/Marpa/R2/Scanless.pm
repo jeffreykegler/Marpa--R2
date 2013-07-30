@@ -1079,7 +1079,6 @@ sub Marpa::R2::Scanless::R::resume {
 
         if ( $trace_g0 > 2 ) {
             my $stream_pos = $stream->pos();
-            my $current_r0 = $stream->recce();
             my $trace_file_handle =
                 $self->[Marpa::R2::Inner::Scanless::R::TRACE_FILE_HANDLE];
             my $grammar = $self->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
@@ -1089,7 +1088,7 @@ sub Marpa::R2::Scanless::R::resume {
             my ( $line, $column ) = $self->line_column($stream_pos);
             print {$trace_file_handle}
                 qq{\n=== Progress report at line $line, column $column\n},
-                $g0_tracer->progress_report($current_r0),
+                $g0_tracer->stream_progress_report($stream),
                 qq{=== End of progress report at line $line, column $column\n},
                 or Marpa::R2::exception("Cannot print(): $ERRNO");
         } ## end if ( $trace_g0 > 2 )
