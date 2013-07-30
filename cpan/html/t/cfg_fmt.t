@@ -37,7 +37,7 @@ BEGIN {
 
 BEGIN { Marpa::R2::HTML::Test::Util::load_or_skip_all('HTML::Parser'); }
 
-BEGIN { Test::More::plan tests => 20; }
+BEGIN { Test::More::plan tests => 10; }
 
 use lib 'tool/lib';
 use Marpa::R2::Test;
@@ -60,7 +60,7 @@ sub run_one_test {
     );
     print {$cfg_fh} ${$config_ref};
     close $cfg_fh;
-    my ($output, $stderr) = Marpa::R2::HTML::Test::Util::run_with_stderr(
+    my $output = Marpa::R2::HTML::Test::Util::run_command(
         File::Spec->catfile( @script_dir, 'marpa_r2_html_fmt' ),
 	'--no-added-tag',
         '--compile=' . $test_config_name,
@@ -69,7 +69,6 @@ sub run_one_test {
 
     unlink $test_config_name, $html_file_name;
     Marpa::R2::Test::is( $output, ${$expected_ref}, $test_name );
-    Marpa::R2::Test::is( $stderr, q{}, "$test_name: stderr");
 } ## end sub run_one_test
 
 my $default_config = do {

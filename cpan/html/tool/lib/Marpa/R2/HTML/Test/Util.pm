@@ -15,8 +15,7 @@
 
 package Marpa::R2::HTML::Test::Util;
 
-# The original of this code was copied from Andy Lester's Ack
-# package
+# This code was based on study of the test suite in Andy Lester's Ack package
 
 use 5.010;
 use strict;
@@ -29,54 +28,26 @@ use Fatal qw(unlink open close);
 use Carp;
 use CPAN::Version;
 
-# capture stderr output into this file
-my $catcherr_file = 'stderr.log';
-
 sub is_win32 {
     return $OSNAME =~ /Win32/xms;
 }
 
-# capture-stderr is executing ack and storing the stderr output in
-# $catcherr_file in a portable way.
-#
-# The quoting of command line arguments depends on the OS
-sub build_command_line {
-    my (@args) = @_;
-
-    if ( is_win32() ) {
-        for (@args) {
-            s/(\\+)$/$1$1/xms;    # Double all trailing backslashes
-            s/"/\\"/gxms;         # Backslash all quotes
-            $_ = qq{"$_"};
-        }
-    } ## end if ( is_win32() )
-    else {
-        @args = map { quotemeta $_ } @args;
-    }
-
-    return "$EXECUTABLE_NAME -Ilib @args";
-
-} ## end sub build_command_line
+sub quotearg {
+    my ($arg) = @_;
+    return quotemeta $arg if not is_win32();
+    $arg =~ s/(\\+)$/$1$1/xms;    # Double all trailing backslashes
+    $arg =~ s/"/\\"/gxms;         # Backslash all quotes
+    return qq{"$arg"};
+} ## end sub quotearg
 
 sub run_command {
-    my ( $command, @args ) = @_;
-
-    my ( $stdout, $stderr ) = run_with_stderr( $command, @args );
-
-    Test::More::is( $stderr, q{},
-        "Should have no output to stderr: $command @args" )
-        or Test::More::diag("STDERR:\n$stderr");
-
-    return $stdout;
-} ## end sub run_command
-
-sub run_with_stderr {
-    my @args = @_;
-
-    my $cmd = build_command_line(@args);
+    my (@args)     = @_;
+    my $current_wd = Cwd::getcwd();
+    my $blib_arg   = '-Mblib=' . quotearg($current_wd);
+    my $command = join q{ }, $EXECUTABLE_NAME, $blib_arg, map { quotearg($_) } @args;
 
     ## no critic (InputOutput::ProhibitBacktickOperators)
-    my $stdout = `$cmd`;
+    my $stdout = `$command`;
     ## use critic
 
     my ( $sig, $core, $rc ) = (
@@ -85,9 +56,8 @@ sub run_with_stderr {
         ( $CHILD_ERROR >> 8 ),
     );
 
-    return ( $stdout, q{}, $rc );
-
-} ## end sub run_with_stderr
+    return $stdout;
+} ## end sub run_command
 
 # This method must be called *BEFORE* any test plan is
 # written -- it creates its own test plan

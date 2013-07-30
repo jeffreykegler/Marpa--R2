@@ -38,7 +38,7 @@ BEGIN {
 # even though we do not use it
 BEGIN { Marpa::R2::HTML::Test::Util::load_or_skip_all('HTML::Parser'); }
 
-use Test::More tests => 4;
+use Test::More tests => 2;
 
 use lib 'tool/lib';
 use lib 'html/tool/lib';
