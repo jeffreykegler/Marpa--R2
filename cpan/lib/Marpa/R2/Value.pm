@@ -1358,7 +1358,7 @@ sub Marpa::R2::Recognizer::value
     my $recce_c   = $recce->[Marpa::R2::Internal::Recognizer::C];
     my $order     = $recce->[Marpa::R2::Internal::Recognizer::O_C];
 
-    my $parse_set_arg = $recce->[Marpa::R2::Internal::Recognizer::END];
+    my $parse_set_arg = $recce->[Marpa::R2::Internal::Recognizer::END_OF_PARSE];
 
     local $Marpa::R2::Internal::TRACE_FH =
         $recce->[Marpa::R2::Internal::Recognizer::TRACE_FILE_HANDLE];

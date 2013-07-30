@@ -113,4 +113,17 @@ require Marpa::R2::ASF;
 ( $version_result = version_ok($Marpa::R2::ASF::VERSION) )
     and die 'Marpa::R2::ASF::VERSION ', $version_result;
 
+sub Marpa::R2::exception {
+    my $exception = join q{}, @_;
+    $exception =~ s/ \n* \z /\n/xms;
+    die($exception) if $Marpa::R2::JUST_DIE;
+    CALLER: for ( my $i = 0; 1; $i++) {
+        my ($package ) = caller($i);
+	last CALLER if not $package;
+	last CALLER if not 'Marpa::R2::' eq substr $package, 0, 11;
+	$Carp::Internal{ $package } = 1;
+    }
+    Carp::croak($exception, q{Marpa::R2 exception});
+}
+
 1;

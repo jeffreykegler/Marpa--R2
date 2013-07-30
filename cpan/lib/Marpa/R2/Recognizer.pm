@@ -27,59 +27,6 @@ $STRING_VERSION = $VERSION;
 $VERSION = eval $VERSION;
 ## use critic
 
-# Elements of the RECOGNIZER structure
-BEGIN {
-    my $structure = <<'END_OF_STRUCTURE';
-
-    :package=Marpa::R2::Internal::Recognizer
-
-    C { C structure for the recognizer }
-    B_C { C structure for the bocage }
-    O_C { C structure for the Marpa order object }
-    T_C { C structure for the Marpa tree iterator }
-
-    GRAMMAR { the grammar used }
-    FINISHED
-    TOKEN_VALUES
-
-    SLR { the associated SLR, if there is one }
-    ASF_OR_NODES { memoized or-nodes }
-
-    TRACE_FILE_HANDLE
-
-    END
-    CLOSURES
-    EVENT_IF_EXPECTED
-    MAX_PARSES
-    RANKING_METHOD
-    TRACE_ACTIONS
-    TRACE_AND_NODES
-    TRACE_BOCAGE
-    TRACE_EARLEY_SETS
-    TRACE_OR_NODES
-    TRACE_TASKS
-    TRACE_TERMINALS
-    TRACE_VALUES
-    TRACE_SL
-    WARNINGS
-
-    { The following fields must be reinitialized when
-    evaluation is reset }
-
-    RULE_RESOLUTIONS
-    SYMBOL_RESOLUTIONS
-    NULL_VALUES
-    EVENTS
-    READ_STRING_ERROR
-
-    { This is the end of the list of fields which
-    must be reinitialized when evaluation is reset }
-
-
-END_OF_STRUCTURE
-    Marpa::R2::offset($structure);
-} ## end BEGIN
-
 package Marpa::R2::Internal::Recognizer;
 
 use English qw( -no_match_vars );
@@ -405,7 +352,7 @@ sub Marpa::R2::Recognizer::set {
                 Marpa::R2::exception(
                     q{Cannot reset end once evaluation has started});
             }
-            $recce->[Marpa::R2::Internal::Recognizer::END] = $value;
+            $recce->[Marpa::R2::Internal::Recognizer::END_OF_PARSE] = $value;
         } ## end if ( defined( my $value = $args->{'end'} ) )
 
         if ( defined( my $value = $args->{'closures'} ) ) {
@@ -488,20 +435,6 @@ sub Marpa::R2::Recognizer::expected_symbol_event_set {
 sub Marpa::R2::Recognizer::strip { return 1; }
 
 # Viewing methods, for debugging
-
-BEGIN {
-    my $structure = <<'END_OF_STRUCTURE';
-
-    :package=Marpa::R2::Internal::Progress_Report
-
-    RULE_ID
-    POSITION
-    ORIGIN
-    CURRENT
-
-END_OF_STRUCTURE
-    Marpa::R2::offset($structure);
-} ## end BEGIN
 
 sub Marpa::R2::Recognizer::progress {
     my ( $recce, $ordinal_arg ) = @_;

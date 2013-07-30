@@ -55,6 +55,9 @@ html/lib/Marpa/R2/HTML/Config.pm
 html/lib/Marpa/R2/HTML/Config/Compile.pm
 html/lib/Marpa/R2/HTML/Config/Core.pm
 html/lib/Marpa/R2/HTML/Config/Default.pm
+html/lib/Marpa/R2/HTML/Internal.pm
+html/meta/Makefile
+html/meta/make_internal_pm.pl
 html/pod/HTML.pod
 html/pod/html_fmt.pod
 html/pod/html_score.pod
@@ -207,6 +210,8 @@ libmarpa_doc_dist/stamp-vti
 libmarpa_doc_dist/texinfo.tex
 libmarpa_doc_dist/version.texi
 libmarpa_doc_dist/version_i.texi
+meta/Makefile
+meta/make_internal_pm.pl
 my_suppressions
 pod/Acknowledgements.pod
 pod/Advanced/Bibliography.pod

@@ -35,6 +35,7 @@ package Marpa::R2::HTML::Internal;
 # Data::Dumper is used in tracing
 use Data::Dumper;
 
+use Marpa::R2::HTML::Internal;
 use Marpa::R2::HTML::Config;
 use Carp ();
 use HTML::Parser 3.69;
@@ -58,18 +59,6 @@ use Marpa::R2::Thin::Trace;
 
 # constants
 
-BEGIN {
-    my $structure = <<'END_OF_STRUCTURE';
-    :package=Marpa::R2::HTML::Internal::TDesc
-    TYPE
-    START_TOKEN
-    END_TOKEN
-    VALUE
-    RULE_ID
-END_OF_STRUCTURE
-    Marpa::R2::offset($structure);
-} ## end BEGIN
-
 use constant PHYSICAL_TOKEN      => 42;
 use constant RUBY_SLIPPERS_TOKEN => 43;
 
@@ -87,23 +76,6 @@ ERROR: for my $error_number ( 0 .. $#LIBMARPA_ERROR_NAMES ) {
         next ERROR;
     }
 } ## end ERROR: for my $error_number ( 0 .. $#LIBMARPA_ERROR_NAMES )
-
-BEGIN {
-    my $structure = <<'END_OF_STRUCTURE';
-    :package=Marpa::R2::HTML::Internal::Token
-    TOKEN_ID
-    =TAG_NAME
-    TYPE
-    LINE
-    COL
-    =COLUMN
-    START_OFFSET
-    END_OFFSET
-    IS_CDATA
-    ATTR
-END_OF_STRUCTURE
-    Marpa::R2::offset($structure);
-} ## end BEGIN
 
 use Marpa::R2::HTML::Callback;
 {

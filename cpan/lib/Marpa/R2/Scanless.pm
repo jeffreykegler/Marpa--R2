@@ -30,57 +30,6 @@ $VERSION = eval $VERSION;
 # with the lexer, which is grammar 0 -- G0.
 # The "higher level", structural, grammar is G1.
 
-BEGIN {
-    my $structure = <<'END_OF_STRUCTURE';
-
-    :package=Marpa::R2::Inner::Scanless::G
-
-    C { The thin version of this object }
-
-    THICK_LEX_GRAMMAR
-    THICK_G1_GRAMMAR
-    CHARACTER_CLASS_TABLE
-    G0_RULE_TO_G1_LEXEME
-    G0_DISCARD_SYMBOL_ID
-    MASK_BY_RULE_ID
-
-    G1_ARGS
-    COMPLETION_EVENT_BY_ID
-    NULLED_EVENT_BY_ID
-    PREDICTION_EVENT_BY_ID
-    LEXEME_EVENT_BY_ID
-    TRACE_FILE_HANDLE
-    BLESS_PACKAGE
-    SYMBOL_IDS_BY_EVENT_NAME_AND_TYPE
-
-    { This saves a lot of time at points }
-    CACHE_RULEIDS_BY_LHS_NAME
-
-END_OF_STRUCTURE
-    Marpa::R2::offset($structure);
-} ## end BEGIN
-
-BEGIN {
-    my $structure = <<'END_OF_STRUCTURE';
-
-    :package=Marpa::R2::Inner::Scanless::R
-
-    C { The thin version of this object }
-
-    GRAMMAR
-    THICK_G1_RECCE
-    P_INPUT_STRING
-
-    TRACE_FILE_HANDLE
-    TRACE_G0
-    TRACE_TERMINALS
-    READ_STRING_ERROR
-    EVENTS
-
-END_OF_STRUCTURE
-    Marpa::R2::offset($structure);
-} ## end BEGIN
-
 package Marpa::R2::Inner::Scanless;
 
 use Scalar::Util 'blessed';

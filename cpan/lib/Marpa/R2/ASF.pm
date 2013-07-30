@@ -67,45 +67,6 @@ package Marpa::R2::Internal::ASF;
 # rules and/or symbols may have extra-syntactic conditions attached making this
 # assumption false.
 
-BEGIN {
-    my $structure = <<'END_OF_STRUCTURE';
-
-    :package=Marpa::R2::Internal::Scanless::Choicepoint
-
-    OR_NODE_IDS { array of the or-node IDs }
-    TOKEN_IDS { array of the token IDs }
-    EXTERNAL { boolean: should this choicepoint be visible outside the ASF code? }
-
-    { One of the or-node and token ID array will be non-empty.
-      Currently only one will be non-empty, but this may change if
-      the SLIF implements LHS terminals. }
-END_OF_STRUCTURE
-    Marpa::R2::offset($structure);
-}
-
-BEGIN {
-    my $structure = <<'END_OF_STRUCTURE';
-
-    :package=Marpa::R2::Internal::Scanless::ASF
-
-    SLR { The underlying SLR }
-    CHOICE_BLESSING
-    RULE_BLESSING
-    SYMBOL_BLESSING
-    CHOICEPOINT_IS_FACTORED
-
-    { FAC_ indicates fields which would belong to separate factoring
-     object, if there was one }
-    FAC_CHAF_PREDECESSOR_BY_CAUSE
-    FAC_CHAF_CAUSE_IS_ACTIVE
-
-    CHOICEPOINTS_BY_TOKEN_ID
-    CHOICEPOINTS_BY_OR_NODE_ID
-
-END_OF_STRUCTURE
-    Marpa::R2::offset($structure);
-} ## end BEGIN
-
 # Given the or-node IDs and token IDs, return the choicepoint,
 # creating one if necessary.  Default is internal.
 sub ensure_cp {
