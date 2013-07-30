@@ -30,22 +30,22 @@ $VERSION = eval $VERSION;
 
 
 package Marpa::R2::HTML::Internal::TDesc;
-constant->import( 'TYPE' => 0 );
-constant->import( 'START_TOKEN' => 1 );
-constant->import( 'END_TOKEN' => 2 );
-constant->import( 'VALUE' => 3 );
-constant->import( 'RULE_ID' => 4 );
+use constant TYPE => 0;
+use constant START_TOKEN => 1;
+use constant END_TOKEN => 2;
+use constant VALUE => 3;
+use constant RULE_ID => 4;
 
 package Marpa::R2::HTML::Internal::Token;
-constant->import( 'TOKEN_ID' => 0 );
-constant->import( 'TAG_NAME' => 0 );
-constant->import( 'TYPE' => 1 );
-constant->import( 'LINE' => 2 );
-constant->import( 'COL' => 3 );
-constant->import( 'COLUMN' => 3 );
-constant->import( 'START_OFFSET' => 4 );
-constant->import( 'END_OFFSET' => 5 );
-constant->import( 'IS_CDATA' => 6 );
-constant->import( 'ATTR' => 7 );
+use constant TOKEN_ID => 0;
+use constant TAG_NAME => 0;
+use constant TYPE => 1;
+use constant LINE => 2;
+use constant COL => 3;
+use constant COLUMN => 3;
+use constant START_OFFSET => 4;
+use constant END_OFFSET => 5;
+use constant IS_CDATA => 6;
+use constant ATTR => 7;
 
 1;

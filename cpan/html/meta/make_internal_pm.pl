@@ -55,7 +55,7 @@ sub offset {
 	}
 	die "Unacceptable field name: $field"
 	      if $field =~ /[^A-Z0-9_]/xms;
-	say "constant->import( '$field' => $offset );"
+	say "use constant $field => $offset;"
 
     } ## end for my $field (@fields)
     return 1;
