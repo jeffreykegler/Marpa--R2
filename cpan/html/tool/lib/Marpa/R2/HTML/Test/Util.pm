@@ -27,6 +27,7 @@ use File::Spec;
 use Fatal qw(unlink open close);
 use Carp;
 use CPAN::Version;
+use Cwd;
 
 sub is_win32 {
     return $OSNAME =~ /Win32/xms;
