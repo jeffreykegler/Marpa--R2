@@ -15,6 +15,10 @@
 
 Revision history for Marpa::R2
 
+2.065_006
+
+   * Fix memory leak
+
 2.065_005
 
    * Fix for Perl 5.19.3

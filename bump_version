@@ -101,3 +101,7 @@ die qq{"perl Build.PL" failed: $!}
 die qq{"./Build distmeta" failed: $!}
     if
     not IPC::Cmd::run( command => [ './Build', 'distmeta' ], verbose => 1 );
+chdir 'meta';
+die qq{"make all" in cpan/meta/ directory failed: $!}
+    if
+    not IPC::Cmd::run( command => [ 'make', 'all' ], verbose => 1 );
