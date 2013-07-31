@@ -90,10 +90,6 @@ sub Marpa::R2::Recognizer::new {
             $recce->use_leo_set($boolean);
             delete $arg_hash->{leo};
         }
-        if ( defined( my $value = $arg_hash->{'_slr'} ) ) {
-            $recce->[Marpa::R2::Internal::Recognizer::SLR] = $value;
-            delete $arg_hash->{_slr};
-        }
     } ## end ARG_HASH: for my $arg_hash (@arg_hashes)
 
     ARG_HASH: for my $arg_hash (@arg_hashes) {

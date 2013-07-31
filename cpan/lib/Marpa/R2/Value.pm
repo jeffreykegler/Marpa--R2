@@ -780,7 +780,7 @@ sub code_problems {
 } ## end sub code_problems
 
 sub Marpa::R2::Internal::Recognizer::evaluate {
-    my ($recce) = @_;
+    my ($recce, $slr) = @_;
     my $recce_c = $recce->[Marpa::R2::Internal::Recognizer::C];
     my $bocage  = $recce->[Marpa::R2::Internal::Recognizer::B_C];
     my $order   = $recce->[Marpa::R2::Internal::Recognizer::O_C];
@@ -861,7 +861,6 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
     my $value = Marpa::R2::Thin::V->new($tree);
     $value->valued_force();
-    my $slr = $recce->[Marpa::R2::Internal::Recognizer::SLR];
     if ($slr) {
         $value->slr_set($slr->thin());
     }
@@ -1348,10 +1347,13 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 # Returns false if no parse
 sub Marpa::R2::Recognizer::value
 {    ## no critic (Subroutines::RequireArgUnpacking)
-    my ($recce) = @_;
+    my ($recce, $slr) = @_;
 
-    Marpa::R2::exception('Too many arguments to Marpa::R2::Recognizer::value')
-        if scalar @_ != 1;
+    if ( scalar @_ != 1 ) {
+        Marpa::R2::exception(
+            'Too many arguments to Marpa::R2::Recognizer::value')
+            if ref $slr ne 'Marpa::R2::Scanless::R';
+    }
 
     my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
@@ -1443,7 +1445,7 @@ sub Marpa::R2::Recognizer::value
     }
 
     return if not defined $tree->next();
-    return \Marpa::R2::Internal::Recognizer::evaluate($recce);
+    return \Marpa::R2::Internal::Recognizer::evaluate($recce, $slr);
 
 } ## end sub Marpa::R2::Recognizer::value
 

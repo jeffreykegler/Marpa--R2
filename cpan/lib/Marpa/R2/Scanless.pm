@@ -647,7 +647,6 @@ sub Marpa::R2::Scanless::R::new {
     my $thick_g1_grammar =
         $grammar->[Marpa::R2::Inner::Scanless::G::THICK_G1_GRAMMAR];
     $g1_recce_args->{grammar} = $thick_g1_grammar;
-    $g1_recce_args->{'_slr'} = $self;
     my $thick_g1_recce =
         $self->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE] =
         Marpa::R2::Recognizer->new($g1_recce_args);
@@ -1371,7 +1370,7 @@ sub Marpa::R2::Scanless::R::value {
     my ($self) = @_;
     my $thick_g1_recce =
         $self->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
-    my $thick_g1_value = $thick_g1_recce->value();
+    my $thick_g1_value = $thick_g1_recce->value($self);
     return $thick_g1_value;
 } ## end sub Marpa::R2::Scanless::R::value
 

@@ -179,7 +179,6 @@ __DATA__
     FINISHED
     TOKEN_VALUES
 
-    SLR { the associated SLR, if there is one }
     ASF_OR_NODES { memoized or-nodes }
 
     TRACE_FILE_HANDLE
