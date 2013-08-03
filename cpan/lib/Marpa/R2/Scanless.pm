@@ -1514,6 +1514,16 @@ sub Marpa::R2::Scanless::R::activate {
     return 1;
 } ## end sub Marpa::R2::Scanless::R::activate
 
+sub Marpa::R2::Scanless::G::g1_rule_ids {
+    my ($slg) = @_;
+    return $slg->[Marpa::R2::Inner::Scanless::G::THICK_G1_GRAMMAR]->rule_ids;
+}
+
+sub Marpa::R2::Scanless::G::g0_rule_ids {
+    my ($slg) = @_;
+    return $slg->[Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMAR]->rule_ids;
+}
+
 # Internal methods, not to be documented
 
 sub Marpa::R2::Scanless::G::thick_g1_grammar {
