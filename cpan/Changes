@@ -15,21 +15,13 @@
 
 Revision history for Marpa::R2
 
-2.065_006
-
-   * Fix memory leak
-
-2.065_005
-
-   * Fix for Perl 5.19.3
-
-2.065_004
-2.065_003
-2.065_002
-2.065_001
-2.065_000
+2.067_000
 
    * New series of developer's releases.
+
+2.066000 Fri Aug  2 17:34:47 PDT 2013
+
+   * Fix SLIF memory leak; fix for Perl 5.19.3
 
 2.064000 Thu Jul 11 09:10:54 PDT 2013
 
