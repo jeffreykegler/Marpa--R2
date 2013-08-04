@@ -786,27 +786,6 @@ name: Scanless current_g1_location() synopsis
 
 Returns the current G1 location.
 
-=head2 event()
-
-=for Marpa::R2::Display
-name: SLR event() method synopsis
-normalize-whitespace: 1
-partial: 1
-
-            my $event    = $slr->event($event_ix);
-
-=for Marpa::R2::Display::End
-
-Use of this method is discouraged in favor of the more efficient
-L<events() method|/"events()">.
-The C<event()> method requires one argument,
-an event index.
-It returns a descriptor of
-the named event with that index, or a Perl C<undef>
-if there is no such event.
-For more details on events, see the 
-L<description of the events() method|/"events()">.
-
 =head2 events()
 
 =for Marpa::R2::Display
@@ -1210,7 +1189,32 @@ This is highly useful for Ruby Slippers parsing.
 A more fine-tuned approach is to identify the lexemes of interest
 and create "predicted symbol" events for them.
 
-=head1 Deprecated methods
+=head1 Discouraged methods
+
+Methods in this section continue to be supported, but their use is
+discouraged in favor of other, better solutions.
+New applications should avoid using discouraged methods.
+
+=head2 event()
+
+=for Marpa::R2::Display
+name: SLR event() method synopsis
+normalize-whitespace: 1
+partial: 1
+
+            my $event    = $slr->event($event_ix);
+
+=for Marpa::R2::Display::End
+
+Use of this method is discouraged in favor of the more efficient
+L<events() method|/"events()">.
+The C<event()> method requires one argument,
+an event index.
+It returns a descriptor of
+the named event with that index, or a Perl C<undef>
+if there is no such event.
+For more details on events, see the 
+L<description of the events() method|/"events()">.
 
 =head2 last_completed_range()
 

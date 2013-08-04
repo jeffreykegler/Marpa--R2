@@ -1394,21 +1394,37 @@ sub Marpa::R2::Scanless::R::terminals_expected {
 
 # Latest and current G1 location are the same
 sub Marpa::R2::Scanless::R::latest_g1_location {
-    my ($self) = @_;
-    return $self->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE]
+    my ($slg) = @_;
+    return $slg->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE]
         ->latest_earley_set();
 }
 
 # Latest and current G1 location are the same
 sub Marpa::R2::Scanless::R::current_g1_location {
-    my ($self) = @_;
-    return $self->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE]
+    my ($slg) = @_;
+    return $slg->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE]
         ->latest_earley_set();
 }
 
 sub Marpa::R2::Scanless::G::rule {
-    my ( $self, @args ) = @_;
-    return $self->[Marpa::R2::Inner::Scanless::G::THICK_G1_GRAMMAR]
+    my ( $slg, @args ) = @_;
+    return $slg->[Marpa::R2::Inner::Scanless::G::THICK_G1_GRAMMAR]
+        ->rule(@args);
+}
+
+sub Marpa::R2::Scanless::G::g1_rule_ids {
+    my ($slg) = @_;
+    return $slg->[Marpa::R2::Inner::Scanless::G::THICK_G1_GRAMMAR]->rule_ids();
+}
+
+sub Marpa::R2::Scanless::G::g0_rule_ids {
+    my ($slg) = @_;
+    return $slg->[Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMAR]->rule_ids();
+}
+
+sub Marpa::R2::Scanless::G::g0_rule {
+    my ( $slg, @args ) = @_;
+    return $slg->[Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMAR]
         ->rule(@args);
 }
 
@@ -1513,16 +1529,6 @@ sub Marpa::R2::Scanless::R::activate {
         for @{ $event_symbol_ids_by_type->{lexeme} };
     return 1;
 } ## end sub Marpa::R2::Scanless::R::activate
-
-sub Marpa::R2::Scanless::G::g1_rule_ids {
-    my ($slg) = @_;
-    return $slg->[Marpa::R2::Inner::Scanless::G::THICK_G1_GRAMMAR]->rule_ids;
-}
-
-sub Marpa::R2::Scanless::G::g0_rule_ids {
-    my ($slg) = @_;
-    return $slg->[Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMAR]->rule_ids;
-}
 
 # Internal methods, not to be documented
 

@@ -307,6 +307,7 @@ t/sl_lexevent.t
 t/sl_prefix.t
 t/sl_rank.t
 t/sl_syn.t
+t/sl_tain.t
 t/sl_topsyn.t
 t/sl_wall.t
 t/stuifzand.t

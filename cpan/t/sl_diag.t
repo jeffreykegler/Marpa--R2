@@ -1,4 +1,4 @@
-#!perl -T
+#!perl
 # Copyright 2013 Jeffrey Kegler
 # This file is part of Marpa::R2.  Marpa::R2 is free software: you can
 # redistribute it and/or modify it under the terms of the GNU Lesser
@@ -20,7 +20,7 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 9;
+use Test::More tests => 10;
 use English qw( -no_match_vars );
 use lib 'inc';
 use Marpa::R2::Test;
@@ -47,33 +47,74 @@ whitespace ~ [\s]+
 <hash comment char> ~ [^\x{A}\x{B}\x{C}\x{D}\x{2028}\x{2029}]
 END_OF_RULES
 
-# $^X is always tainted
-my $tainted_grammar = $grammar . '# ' . $^X;
-
-# Make sure we fail with tainted data
-# -T flag was set on first line for this script
-my $eval_ok = eval {
-    Marpa::R2::Scanless::G->new( { source => \$tainted_grammar } );
-    1;
-};
-if ($eval_ok) {
-    Test::More::fail("Tainted grammar accepted -- that should not happen");
-}
-else {
-    my $eval_error = $EVAL_ERROR;
-    Test::More::like(
-        $eval_error,
-        qr/Attempt \s+ to \s+ use \s+ a \s+ tainted \s+ input \s+ string \s+ with \s+ Marpa::R2
-    \s+ Marpa::R2 \s+ is \s+ insecure \s+ for \s+ use \s+ with \s+ tainted \s+ data/xms,
-        "Tainted grammar detected and rejected"
-    );
-} ## end else [ if ($eval_ok) ]
-
-my $prefix_grammar = Marpa::R2::Scanless::G->new(
+my $slg = Marpa::R2::Scanless::G->new(
     {   action_object  => 'My_Actions',
         default_action => 'do_arg0',
         source => \$grammar,
     }
+);
+
+my $g0_rules_description;
+
+# Marpa::R2::Display
+# name: Scanless g0_rule() synopsis
+
+    my @g0_rule_ids = $slg->g0_rule_ids();
+    for my $g0_rule_id (@g0_rule_ids) {
+        $g0_rules_description .= "$g0_rule_id "
+            . ( join q{ }, map {"<$_>"} $slg->g0_rule($g0_rule_id) ) . "\n";
+    }
+
+# Marpa::R2::Display::End
+
+Marpa::R2::Test::is(
+    $g0_rules_description,
+    <<'END_OF_DESCRIPTION',
+0 <[Lex-0]> <[[s]]> <[[a]]> <[[y]]>
+1 <[Lex-1]> <[[\+]]>
+2 <Number> <[[\d]]>
+3 <[:discard]> <whitespace>
+4 <whitespace> <[[\s]]>
+5 <[:discard]> <hash comment>
+6 <hash comment> <terminated hash comment>
+7 <hash comment> <unterminated final hash comment>
+8 <terminated hash comment> <[[\#]]> <hash comment body> <vertical space char>
+9 <unterminated final hash comment> <[[\#]]> <hash comment body>
+10 <hash comment body> <hash comment char>
+11 <vertical space char> <[[\x{A}\x{B}\x{C}\x{D}\x{2028}\x{2029}]]>
+12 <hash comment char> <[[^\x{A}\x{B}\x{C}\x{D}\x{2028}\x{2029}]]>
+13 <[:start_lex]> <Number>
+14 <[:start_lex]> <[:discard]>
+15 <[:start_lex]> <[Lex-0]>
+16 <[:start_lex]> <[Lex-1]>
+END_OF_DESCRIPTION
+    'g0_rule_ids() and g0_rule()'
+);
+
+my $g1_rules_description;
+
+# Marpa::R2::Display
+# name: Scanless rule() synopsis
+
+    my @g1_rule_ids = $slg->g1_rule_ids();
+    for my $g1_rule_id (@g1_rule_ids) {
+        $g1_rules_description .= "$g1_rule_id "
+            . ( join q{ }, map { "<$_>" } $slg->rule($g1_rule_id) ) . "\n";
+    }
+
+# Marpa::R2::Display::End
+
+Marpa::R2::Test::is(
+    $g1_rules_description,
+    <<'END_OF_DESCRIPTION',
+0 <[:start]> <Script>
+1 <Script> <Calculation>
+2 <Calculation> <Expression>
+3 <Calculation> <[Lex-0]> <Expression>
+4 <Expression> <Number>
+5 <Expression> <[Lex-1]> <Expression> <Expression>
+END_OF_DESCRIPTION
+    'g1_rule_ids() and rule()'
 );
 
 package My_Actions;
@@ -146,7 +187,7 @@ for my $test_data (@tests_data) {
         $expected_result, $expected_last_expression
     ) = @{$test_data};
     my ( $slr, $actual_value, $trace_output ) =
-        my_parser( $prefix_grammar, $test_string );
+        my_parser( $slg, $test_string );
 
 # Marpa::R2::Display
 # name: Scanless terminals_expected() synopsis
