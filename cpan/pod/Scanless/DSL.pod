@@ -266,8 +266,9 @@ The match operator ("C<~>")
 can be used between the LHS and RHS of a rule,
 instead of the BNF operator.
 Rules which use the match operator are G0 rules.
-The effect of a rule will sometimes vary,
-depending on its lexical position in the DSL source.
+The effect of a rule is sometimes lexical --
+that is, the effect may vary depending
+on the position of the rule in the DSL source.
 
 Statements
 are signified by the assignment operator ("C<=>").
@@ -492,7 +493,7 @@ It only changes the defaults for lexemes,
 and does not affect rules.
 Only the defaults for
 the C<action> and C<bless> adverbs
-can be specified in a lexeme default pseudo-rule.
+can be specified in a lexeme default statement.
 Only one lexeme default statement is allowed in a file.
 
 =head2 Named event statement
