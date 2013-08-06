@@ -154,7 +154,7 @@ the value of the rule node is a Perl C<undef>.
 
 =head2 Sequence rule nodes
 
-Some rules are L<sequence rules|Marpa::R2::Grammar/"Sequence Rules">.
+Some rules are L<sequence rules|Marpa::R2::Grammar/"Sequence rules">.
 Sequence rule nodes are also rule nodes.
 Everything said above about rule nodes
 applies to sequence rule nodes.
@@ -188,6 +188,8 @@ an alternative.
 By default, if a sequence rule has separators,
 the separators are thrown away before
 the value action is called.
+(Separators are described in
+L<the section introducing sequence rules|Marpa::R2::Grammar/"Sequence rules">.)
 This means that separators do not appear in the C<@_> array
 of the rule evaluation closure which is the value action.
 If the value of the C<keep> rule property

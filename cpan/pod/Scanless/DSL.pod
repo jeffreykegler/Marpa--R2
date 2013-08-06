@@ -351,20 +351,47 @@ A empty rule makes its LHS symbol a nullable symbol.
 
 =head2 Quantified rules
 
-A rule is quantified if
-its RHS consists of a single symbol name,
+=for Marpa::R2::Display
+name: SLIF DSL synopsis
+partial: 1
+normalize-whitespace: 1
+
+    Script ::= Expression+ separator => comma
+
+=for Marpa::R2::Display::End
+
+A rule is a quantified rule if
+its RHS consists of a single symbol,
 followed by a "quantifier".
+A "single symbol" in this context is a symbol name or a character class.
 The quantifer is either
 a star ("C<*>"),
 or a plus sign ("C<+>")
 indicating, respectively, that the sequence rule has a minimum length
 of 0 or 1.
+
 Quantified rules allow the C<action>,
 C<bless>,
 C<proper> and
 C<separator> adverbs.
 
 =head2 Prioritized rules
+
+=for Marpa::R2::Display
+name: SLIF DSL synopsis
+partial: 1
+normalize-whitespace: 1
+
+    Expression ::=
+        Number bless => primary
+        | '(' Expression ')' bless => paren assoc => group
+       || Expression '**' Expression bless => exponentiate assoc => right
+       || Expression '*' Expression bless => multiply
+        | Expression '/' Expression bless => divide
+       || Expression '+' Expression bless => add
+        | Expression '-' Expression bless => subtract
+
+=for Marpa::R2::Display::End
 
 Any rule that is not a start rule,
 and that is not empty or quantified, is considered prioritized.
