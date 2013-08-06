@@ -106,9 +106,20 @@ Trace output and warning messages
 go to the trace file handle.
 By default the trace file handle is C<STDERR>.
 
-=head1 Accessor
+=head1 Accessors
 
 =head2 rule()
+
+=for Marpa::R2::Display
+name: Scanless rule() synopsis
+
+    my @g1_rule_ids = $slg->g1_rule_ids();
+    for my $g1_rule_id (@g1_rule_ids) {
+        $g1_rules_description .= "$g1_rule_id "
+            . ( join q{ }, map {"<$_>"} $slg->rule($g1_rule_id) ) . "\n";
+    }
+
+=for Marpa::R2::Display::End
 
 Given a G1 rule ID as its argument,
 returns an array containing the
@@ -121,16 +132,72 @@ The first symbol name will be that of
 the rule's LHS symbol.
 The rest of the list will be the names of the rule's
 RHS symbols, in order.
-
-The SLIF C<rule()> corresponds to the C<rule()> method
-of grammars in Marpa's standard interface.
 The SLIF's C<rule()> method is useful in
 combination with
 the SLIF's
 of L<the progress method|Marpa::R2::Scanless::R/progress()>,
 whose output identifies rules by rule ID.
 
-=head1 Trace method
+=head2 g1_rule_ids()
+
+=for Marpa::R2::Display
+name: Scanless rule() synopsis
+
+    my @g1_rule_ids = $slg->g1_rule_ids();
+    for my $g1_rule_id (@g1_rule_ids) {
+        $g1_rules_description .= "$g1_rule_id "
+            . ( join q{ }, map {"<$_>"} $slg->rule($g1_rule_id) ) . "\n";
+    }
+
+=for Marpa::R2::Display::End
+
+Returns a list of the G1 rule ID's.
+The symbols for these can be queried using the 
+L<the SLIF grammar's rule() method|"rule()">,
+
+=head1 Trace methods
+
+=head2 g0_rule()
+
+=for Marpa::R2::Display
+name: Scanless g0_rule() synopsis
+
+    my @g0_rule_ids = $slg->g0_rule_ids();
+    for my $g0_rule_id (@g0_rule_ids) {
+        $g0_rules_description .= "$g0_rule_id "
+            . ( join q{ }, map {"<$_>"} $slg->g0_rule($g0_rule_id) ) . "\n";
+    }
+
+=for Marpa::R2::Display::End
+
+Given a G0 rule ID as its argument,
+returns an array containing the
+names of the symbols of that rule.
+The C<g0_rule()> method
+returns a Perl false if no G0 rule with that rule ID exists.
+If the G0 rule ID exists,
+C<g0_rule()> returns a list of one or more symbol names.
+The first symbol name will be that of
+the rule's LHS symbol.
+The rest of the list will be the names of the rule's
+RHS symbols, in order.
+
+=head2 g0_rule_ids()
+
+=for Marpa::R2::Display
+name: Scanless g0_rule() synopsis
+
+    my @g0_rule_ids = $slg->g0_rule_ids();
+    for my $g0_rule_id (@g0_rule_ids) {
+        $g0_rules_description .= "$g0_rule_id "
+            . ( join q{ }, map {"<$_>"} $slg->g0_rule($g0_rule_id) ) . "\n";
+    }
+
+=for Marpa::R2::Display::End
+
+Returns a list of the G0 rule ID's.
+The symbols for these can be queried using the 
+L<the SLIF grammar's g0_rule() method|"g0_rule()">,
 
 =head2 show_rules()
 
