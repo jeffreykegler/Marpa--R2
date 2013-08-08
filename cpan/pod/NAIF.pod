@@ -656,8 +656,8 @@ Marpa's standard semantics are fully described in the
 L<Marpa::R2::Semantics> document.
 Techniques for tracing and for debugging your Marpa grammars
 are described in the
-L<Marpa::R2::Tracing> document and the
-L<Marpa::R2::Progress> document.
+L<Marpa::R2::NAIF::Tracing> document and the
+L<Marpa::R2::NAIF::Progress> document.
 For those with a theoretical bent,
 my sources, and other useful references, are described in
 L<Marpa::R2::Advanced::Bibliography>.

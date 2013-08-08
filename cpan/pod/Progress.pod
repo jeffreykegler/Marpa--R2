@@ -19,8 +19,8 @@ Marpa::R2::Progress - Progress reports on your parse
 
 =head1 About this document
 
-This document describes
-Marpa's progress reports.
+B<This document is under construction.>
+the progress reports for Marpa's SLIF interface.
 These allow an application to know
 exactly where it is in the parse at any
 point.

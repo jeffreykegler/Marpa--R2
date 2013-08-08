@@ -15,7 +15,7 @@
 
 =head1 NAME
 
-Marpa::R2::Tracing - Tracing your grammar
+Marpa::R2::NAIF::Tracing - Tracing your NAIF grammar
 
 =head1 Description
 
@@ -74,7 +74,7 @@ C<show_progress>
 should provide all the
 information necessary to
 debug an application's grammar.
-L<A separate document|Marpa::R2::Progress>
+L<A separate document|Marpa::R2::NAIF::Progress>
 explains how to interpret the progress reports.
 That document includes an
 example of the use of C<show_progress>

@@ -304,7 +304,7 @@ RHS symbols in order.
 Situations where
 Rule ID's are encountered include
 callbacks and
-use of L<the progress method|Marpa::R2::Progress/progress()>.
+use of L<the progress method|Marpa::R2::NAIF/Progress/progress()>.
 
 =head2 rule_ids()
 
@@ -320,7 +320,7 @@ Returns an array containing the valid rule IDs.
 Situations where
 Rule ID's are encountered include
 callbacks and
-use of L<the progress method|Marpa::R2::Progress/progress()>.
+use of L<the progress method|Marpa::R2::NAIF/Progress/progress()>.
 
 =head1 Trace accessors
 

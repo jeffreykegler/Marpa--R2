@@ -19,9 +19,10 @@ Marpa::R2::Tracing - Tracing your grammar
 
 =head1 Description
 
+B<This document is under construction.>
 This document is an overview of
 the techniques for tracing and
-debugging Marpa parses and grammars.
+debugging parses and grammars using Marpa's SLIF interface.
 
 =head1 Basic techniques
 

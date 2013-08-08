@@ -15,7 +15,7 @@
 
 =head1 NAME
 
-Marpa::R2::Recognizer - Marpa recognizers
+Marpa::R2::Recognizer - Marpa recognizers for the NAIF
 
 =head1 Synopsis
 
@@ -168,7 +168,7 @@ Given the location (Earley set ID) as its argument,
 returns an array that describes the parse progress
 at that location.
 Details on progress reports can be found in
-L<their own document|Marpa::R2::Progress>.
+L<their own document|Marpa::R2::NAIF::Progress>.
 
 =head2 terminals_expected()
 
@@ -405,7 +405,7 @@ A much fuller description,
 with an example,
 is in
 L<the document on debugging Marpa
-grammars|Marpa::R2::Progress>.
+grammars|Marpa::R2::NAIF::Progress>.
 
 =head1 Named arguments
 

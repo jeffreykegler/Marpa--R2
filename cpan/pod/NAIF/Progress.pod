@@ -15,7 +15,7 @@
 
 =head1 NAME
 
-Marpa::R2::Progress - Progress reports on your parse
+Marpa::R2::NAIF::Progress - Progress reports for the NAIF
 
 =head1 About this document
 
@@ -50,7 +50,7 @@ Readers specifically interested in debugging
 a grammar
 should read L<the document
 on tracing
-problems|Marpa::R2::Tracing> before
+problems|Marpa::R2::NAIF::Tracing> before
 reading this document.
 
 =head1 Introduction to Earley parsing
