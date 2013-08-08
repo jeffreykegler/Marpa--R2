@@ -1,0 +1,152 @@
+# Copyright 2013 Jeffrey Kegler
+# This file is part of Marpa::R2.  Marpa::R2 is free software: you can
+# redistribute it and/or modify it under the terms of the GNU Lesser
+# General Public License as published by the Free Software Foundation,
+# either version 3 of the License, or (at your option) any later version.
+#
+# Marpa::R2 is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser
+# General Public License along with Marpa::R2.  If not, see
+# http://www.gnu.org/licenses/.
+
+=head1 NAME
+
+Marpa::R2::Tracing - Tracing your grammar
+
+=head1 Description
+
+This document is an overview of
+the techniques for tracing and
+debugging Marpa parses and grammars.
+
+=head1 Basic techniques
+
+=head2 Check the input location where parsing failed
+
+If parsing failed in the recognizer,
+look at the input location where it happened.
+Compare the input against the grammar.
+This step is fairly obvious,
+but I include it because
+even experts (actually, especially experts)
+will sometimes overlook the obvious
+in a rush to use more advanced techniques.
+
+=head2 Turn on warnings
+
+Make sure that
+Marpa's C<warnings> named arguments
+for both the grammar and the recognizer
+are turned on.
+Warnings are on by default.
+
+=head2 Trace terminals
+
+Turn on the C<trace_terminals> recognizer named argument.
+This tells you which tokens the recognizer is looking for and which ones it thinks it found.
+If the problem is in lexing, C<trace_terminals> tells you the whole story.
+
+Even if the problem is not in the lexing,
+tracing terminals can tell you a lot.
+Marpa uses prediction-driven lexing.
+At any given parse location,
+Marpa is only looking
+for those tokens that it thinks
+could result in a successful parse.
+Examining the list of
+tokens that the recognizer is looking for
+can tell you a lot about
+what the recognizer thinks it has seen
+so far.
+
+=head2 Trace progress
+
+Tracing the recognizer's progress
+with
+C<show_progress>
+is most powerful tool available
+in the basic toolkit.
+C<show_progress>
+should provide all the
+information necessary to
+debug an application's grammar.
+L<A separate document|Marpa::R2::Progress>
+explains how to interpret the progress reports.
+That document includes an
+example of the use of C<show_progress>
+to debug an error in a grammar.
+
+=head2 Double check rules and symbols
+
+It sometimes helps to look carefully at the output of
+C<show_rules> and C<show_symbols>.
+Check if anything there is
+not what you expected.
+
+=head2 Other traces
+
+C<trace_actions> will show you how action names resolve to actions.
+Setting the C<trace_values> evaluator named argument to a trace level of 1
+traces the values of the parse tree nodes as they are pushed on, and
+popped off, the evaluation stack.
+
+=head2 Basic checklist
+
+A full investigation of a parse
+includes the following:
+
+=over 4
+
+=item * Make sure the C<warnings> option is turned on.  It is on by default.
+
+=item * Turn on the C<trace_terminals> recognizer named argument.
+
+=item * Run C<show_symbols> on the precomputed grammar.
+
+=item * Run C<show_rules> on the precomputed grammar.
+
+=item * Run C<show_progress> on the recognizer.
+
+=item * Turn on the C<trace_actions> evaluator named argument.
+
+=item * Set the C<trace_values> evaluator named argument to level 1.
+
+=back
+
+When considering how much tracing to turn on,
+remember that if the input text to the grammar is large,
+the outputs from
+C<trace_terminals>,
+C<show_progress>,
+and C<trace_values>
+will be very lengthy.
+You want to work with short inputs if at all possible.
+
+=head1 Copyright and License
+
+=for Marpa::R2::Display
+ignore: 1
+
+  Copyright 2013 Jeffrey Kegler
+  This file is part of Marpa::R2.  Marpa::R2 is free software: you can
+  redistribute it and/or modify it under the terms of the GNU Lesser
+  General Public License as published by the Free Software Foundation,
+  either version 3 of the License, or (at your option) any later version.
+
+  Marpa::R2 is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser
+  General Public License along with Marpa::R2.  If not, see
+  http://www.gnu.org/licenses/.
+
+=for Marpa::R2::Display::End
+
+=cut
+

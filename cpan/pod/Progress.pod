@@ -1,0 +1,894 @@
+# Copyright 2013 Jeffrey Kegler
+# This file is part of Marpa::R2.  Marpa::R2 is free software: you can
+# redistribute it and/or modify it under the terms of the GNU Lesser
+# General Public License as published by the Free Software Foundation,
+# either version 3 of the License, or (at your option) any later version.
+#
+# Marpa::R2 is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser
+# General Public License along with Marpa::R2.  If not, see
+# http://www.gnu.org/licenses/.
+
+=head1 NAME
+
+Marpa::R2::Progress - Progress reports on your parse
+
+=head1 About this document
+
+This document describes
+Marpa's progress reports.
+These allow an application to know
+exactly where it is in the parse at any
+point.
+For parse locations of the user's choosing,
+progress reports list all the rules in play,
+and indicate the location at which the rule started,
+and how far into the rule parsing has progressed.
+
+For those new to parsing, this "situational awareness"
+might seem to be a feature that they can expect
+from any servicable parser.
+In fact,
+situation awareness in most parsers is extremely limited,
+and it tends to be more limited in those
+parsers considered production quality.
+Marpa is not just unusual in the amount of feedback
+it offers the application,
+it breaks new ground.
+
+Progress reports are extremely useful in
+debugging grammars.
+Because debugging creates a
+clear "narrative",
+the detailed example in
+this document is a debugging situation.
+Readers specifically interested in debugging
+a grammar
+should read L<the document
+on tracing
+problems|Marpa::R2::Tracing> before
+reading this document.
+
+=head1 Introduction to Earley parsing
+
+To read the
+L<C<show_progress>|Marpa::R2::Recognizer/"show_progress">
+output, it is important to have a
+basic idea of what
+Earley items are,
+and of what the information in them means.
+Everything that the user needs to know
+is explained in this section.
+
+=head2 Dotted rules
+
+The idea behind Earley's algorithm is that you can
+parse by building a table of rules
+and where you are in those rules.
+"Where" means two things: location in the rule relative to the rule's
+symbols,
+and location relative to the parse's input stream.
+
+Let's look at an example of a rule in a context-free grammar.
+Here's the rule for assignment from the Perl distribution's C<perly.y>
+
+S<C<E<nbsp>E<nbsp>E<nbsp>E<nbsp>termbinop -E<gt> term ASSIGNOP term>>
+
+C<ASSIGNOP> is C<perly.y>'s internal name for
+the assignment operator.
+In plain Perl terms, this is the "C<=>" character.
+
+In parsing this rule, we can be at any of four possible locations.
+One location is at the beginning, before all of the symbols.
+The other three locations are immediately after each of the rule's
+three symbols.
+
+Within a rule, position relative to the symbols of the rule
+is traditionally indicated with a dot.  In fact, the symbol-relative
+rule position is very often called the B<dot location>.  Taken as
+a pair, a rule and a dot location are called a B<dotted rule>.
+
+Here's our rule with a dot location indicated:
+
+S<C<E<nbsp>E<nbsp>E<nbsp>E<nbsp>termbinop -E<gt> E<middot> term ASSIGNOP term>>
+
+The dot location in this dotted rule is at the beginning.
+A dot location at the beginning of a dotted rule means
+that we have not recognized any symbols in the rule yet.
+All we are doing is predicting that the rule will occur.
+A dotted rule with the dot before all of its symbols is called a B<prediction>
+or a B<predicted rule>.
+
+Here's another dotted rule:
+
+S<C<E<nbsp>E<nbsp>E<nbsp>E<nbsp>termbinop -E<gt> term E<middot> ASSIGNOP term>>
+
+In this dotted rule,
+we are saying we have seen a C<term>, but have not yet recognized
+an C<ASSIGNOP>.
+
+There's another special kind of dotted rule, a completion.
+A B<completion> (also called a B<completed rule>)
+is a dotted rule with the dot after all of the symbols.
+Here is the completion for the rule that we have been using as an example:
+
+S<C<E<nbsp>E<nbsp>E<nbsp>E<nbsp>termbinop -E<gt> term ASSIGNOP term E<middot>>>
+
+A completion indicates that a rule has been fully recognized.
+
+=head2 Earley items
+
+The dotted rules contain
+all but one piece of the information
+that Earley's algorithm
+needs to track.
+The missing piece is the second of the two "wheres": where in the input stream.
+To associate input stream location and dotted rules, Earley's algorithm uses what are now called Earley items.
+
+A convenient way to think of an B<Earley item> is as a triple, or 3-tuple,
+consisting of dotted rule, origin and current location.
+The B<origin> is the location in the input stream where the dotted rule starts.
+The B<current location> (also called the B<dot location>)
+is the location in the input stream which corresponds to the
+dot position.
+
+Two noteworthy consequences
+follow from the way in which origin and current location are defined.
+First,
+if a dotted rule is a prediction,
+then origin and current location will always be the same.
+Second,
+the input stream location where a rule ends is not tracked unless the
+dotted rule is a completion.
+In other cases,
+an Earley item does not tell us
+if a rule will
+ever be completed,
+much less at which location.
+
+=head1 The example
+
+For this example of debugging,
+I've taken a very common example
+of a grammar
+and deliberately introduced a problem.
+(All the code and the full trace outputs
+for this example are in the Appendix.)
+I've commented out the correct start rule:
+
+=for Marpa::R2::Display
+name: Debug Example Part 1
+partial: 1
+normalize-whitespace: 1
+
+        ## { lhs => 'Expression', rhs => [qw/Term/] },
+
+=for Marpa::R2::Display::End
+
+and replaced it with another start rule,
+one which will cause problems:
+
+=for Marpa::R2::Display
+name: Debug Example Part 1
+partial: 1
+normalize-whitespace: 1
+
+        { lhs => 'Expression', rhs => [qw/Factor/] },
+
+=for Marpa::R2::Display::End
+
+In what follows, we'll pretend we don't already know
+where the problem is,
+and use the Marpa diagnostics and tracing facilities
+to "discover" it.
+
+=head1 First warning
+
+Right off the bat, we get two warning messages:
+
+=for Marpa::R2::Display
+name: Debug Example Trace Output
+partial: 1
+normalize-whitespace: 1
+
+    Inaccessible symbol: Add
+    Inaccessible symbol: Term
+
+=for Marpa::R2::Display::End
+
+If we were alert, these would be enough to tell us there is
+a serious problem.
+"Inaccessible" symbols are symbols which cannot be reached
+from the start symbol.
+This means that the grammar will never produce them,
+and that parses will never find them in the input.
+
+Since C<Add> and C<Term> are both important symbols
+in our application,
+that should tell us our grammar has a serious problem.
+In fact,
+these warning messages would often be enough
+to point us to the error.
+But, in order to look at more of Marpa's
+tracing facilities, let's pretend we have not
+had our morning coffee,
+and that we miss the significance of these warning messages.
+
+=head1 Output from trace_terminals()
+
+Before looking at Marpa's progress reports,
+it is usually best to orient yourself by looking
+at the output from
+L<C<trace_terminals>|Marpa::R2::Recognizer/trace_terminals>.
+Typically, you will be interested in the last tokens
+to be accepted, and perhaps also
+in the tokens the recognizer was
+looking for when it didn't find what it wanted.
+Sometimes that information alone is enough to make it clear
+where the problem is.
+
+The full
+L<C<trace_terminals>|Marpa::R2::Recognizer/trace_terminals>
+output for this example is in the Appendix.
+We see that the recognizer seems to accept "C<42*1>" but it fails
+when it confronts the plus sign ("C<+>").
+The last two lines are:
+
+=for Marpa::R2::Display
+name: Debug Example Trace Output
+partial: 1
+normalize-whitespace: 1
+
+    Accepted "Number" at 2-3
+    Expecting "Multiply" at 3
+
+=for Marpa::R2::Display::End
+
+A note in passing: Marpa shows the location of the tokens it accepts
+as a range of locations.  For C<Number>, the range is "C<2-3>", indicating that
+the token starts at location 2 and ends at location 3.
+In its default input model, all tokens have length 1,
+so this is clearly information overkill.
+But Marpa allows other input models, and in those models the information
+about start and end location of the token is important.
+
+Returning to the problem at hand:
+We notice that at location 3 we are expecting a C<Multiply> operator,
+but not an C<Add> operator.
+That should strike us as strange,
+and send us back to the grammar.
+But for the sake of our example we will
+assume that we are slow on the uptake today,
+and that this does not clue us in.
+We move on.
+
+=head1 Output from show_progress()
+
+Marpa's most powerful tool for debugging
+grammars is its progress report, which
+shows the
+Earley items being worked on.
+In the Appendix, progress reports for the entire parse are shown.
+Our example in this document is a very small one,
+so that producing progress reports for the entire parse is
+a reasonable thing to do in this case.
+If a parse is at all large, you will usually need to be selective.
+
+The progress report that is usually of most interest is
+the one for the Earley set
+that you were working on when the error occurred.
+This is called the B<current location>.
+In our example the current location is location 3.
+By default,
+L<C<show_progress>|Marpa::R2::Recognizer/"show_progress">
+prints out only the progress reports for the current location.
+
+Here are the progress reports for the current location,
+location 3,
+from our example.
+
+=for Marpa::R2::Display
+name: Debug Example Progress Report
+partial: 1
+normalize-whitespace: 1
+
+      F0 @0-3 Expression -> Factor .
+      F2 @2-3 Factor -> Number .
+      R4:1 x2 @0,2-3 Factor -> Factor . Multiply Factor
+      F4 @0-3 Factor -> Factor Multiply Factor .
+
+=for Marpa::R2::Display::End
+
+=head2 Progress report lines
+
+The last field of
+each Progress Report line shows,
+in fully expanded form,
+the dotted rule we were working on.
+Since that is the most important information,
+it may be tempting to skip the rest of this section,
+and move directly forward with the debugging.
+
+In fact, you might want to do exactly that --
+skip to the beginning of the next section.
+What follows talks about the details of the format of the
+first few fields in each progress report line.
+These first few fields, while helpful,
+are also usually one or more of obvious in their meaning,
+not relevant to our example,
+and repetitive of information which can
+be deduced from other fields.
+
+=for Marpa::R2::Display
+name: Debug Example Progress Report
+partial: 1
+normalize-whitespace: 1
+
+      F0 @0-3 Expression -> Factor .
+
+=for Marpa::R2::Display::End
+
+Prefixed to the dotted rule are two fields: "C<F0 @0-3>".
+The "C<F0>" says that this is a completed or B<final> rule,
+and that it is rule number 0.
+The rule number is used in
+other tracing and debugging output,
+when displaying the whole rule would take too much space.
+In what follows we won't need the rule number.
+
+The "C<@0-3>" describes the location of the dotted rule in
+the parse.  In its simplest form, the location field is two
+location numbers, separated by a hyphen.
+The first location number is the origin, the place where Marpa
+first started recognizing the rule.
+The last location number is the dot location, the location location
+of the dot in a dotted rule.
+"C<@0-3>" say that this rule began at location 0, and that the
+dot is at location 3.
+
+The current location is location 3, and this is no coincidence.
+Whenever we are displaying the progress report for an location,
+all the progress report lines will have their dot location at
+that location.
+
+As an aside, notice that
+the left hand side symbol is C<Expression>.
+That is the start symbol.
+The presence of a completed start rule in our
+progress report indicates that if our input ended at location 3, it would be a valid sentence
+in the language of our grammar.
+
+Let's look at another progress report line:
+
+=for Marpa::R2::Display
+name: Debug Example Progress Report
+partial: 1
+normalize-whitespace: 1
+
+      R4:1 x2 @0,2-3 Factor -> Factor . Multiply Factor
+
+=for Marpa::R2::Display::End
+
+Here the "C<R4:1>" indicates that this is rule number 4
+(the "C<R>" stands for rule number) and that its dot
+position is after the first symbol on the right hand side.
+Symbol positions are numbered using the
+ordinal of the symbol just before the position.
+Symbols are numbered starting with 1, and
+symbol position 1 is the position immediately after
+symbol 1.
+
+The next field ("C<x2>") is new.
+It is a count.
+A progress report can contain multiple instances
+of the same dotted rule, and when there is more
+than one, a count field is included in
+the progress report line.
+Here the "C<x2>" indicates that there are two
+instances of C<Factor -E<gt> Factor . Multiply Factor> at
+this location.
+
+Multiple instances of a dotted rule
+will differ in their origin,
+and where they do, this is shown in
+the location field of the
+progress report line.
+Here the location field is "C<@0,2-3>",
+which indicates that one instance of this dotted rule has
+its origin at location 0, and the other has its origin
+at location 2.
+All instances reported on a single progress report line
+will always have the same dot location, and in this case
+it is location 3.
+
+Predicted rules also appear in progress reports:
+
+=for Marpa::R2::Display
+name: Debug Example Progress Report
+partial: 1
+normalize-whitespace: 1
+
+    P2 @2-2 Factor -> . Number
+
+=for Marpa::R2::Display::End
+
+Here the "C<P>" in the summary field means "predicted".
+As with much of the information in the summary field,
+this only repeats what is obvious from the full expansion
+of the dotted rule later in the line.
+But final (or completed) and predicted rules can be important
+and the initial C<"F"> and C<"P"> make these lines easy to spot.
+
+Notice that in the predicted rule,
+the origin is the same as the dot location.
+This will always be the case with predicted rules.
+
+For any given location,
+no predicted rule has more than one instance.
+For other dotted rules,
+there may be many instances of the dotted
+rule at a single location.
+In grammars with right recursion,
+the number of instances
+is limited only by the
+length of the recursion.
+The length of a recursion is limited primarily by
+the available memory.
+
+When there are many
+instances of a dotted rule at a single location,
+it is inconvenient to show all the origins in a comma-separated
+list.
+In that case the origins in the location field are shown as a
+range, with the earliest separated from the most recent
+by a "C<...>".
+The example in this document contains no lines with
+a large number of
+instances, but here is an example from another grammar.
+This is the progress report line for
+the completed rule in a right recursion of length 20.
+
+=for Marpa::R2::Display
+name: Debug Leo Example Progress Report
+partial: 1
+normalize-whitespace: 1
+
+    F1 x20 @0...19-20 Top_sequence -> Top Top_sequence .
+
+=for Marpa::R2::Display::End
+
+=head2 OK!  Now to find the bug
+
+Here again are progress reports
+at the location where things went wrong:
+
+=for Marpa::R2::Display
+name: Debug Example Progress Report
+partial: 1
+normalize-whitespace: 1
+
+      F0 @0-3 Expression -> Factor .
+      F2 @2-3 Factor -> Number .
+      R4:1 x2 @0,2-3 Factor -> Factor . Multiply Factor
+      F4 @0-3 Factor -> Factor Multiply Factor .
+
+=for Marpa::R2::Display::End
+
+We see that we have completed rules for C<Expression>, and C<Factor>,
+as expected.
+We also see two Earley items that show
+that we are in the process of building another C<Factor>,
+and that it is expecting a C<Multiply> symbol.
+This is not the rule we want, but it explains why the C<trace_terminals>
+output showed that the recognizer was expecting a
+C<Multiply> symbol.
+
+What we want to know is,
+why is the recognizer B<not> expecting an C<Add> symbol?
+Looking back at the grammar, we see that only one rule uses
+the C<Add> symbol: the rule "C<Term -E<gt> Term Add Term>".
+The next step is to look at the Earley items for this rule.
+But there is a problem.
+We don't find any.
+
+Next, we ask ourselves, what is the earliest place the
+"C<Term -E<gt> Term Add Term>" rule should be appearing?
+The answer is that
+there should be a prediction of "C<Term -E<gt> Term Add Term>" at location 0.
+So we look at the predictions at location 0.
+
+=for Marpa::R2::Display
+name: Debug Example Progress Report
+partial: 1
+normalize-whitespace: 1
+
+      P0 @0-0 Expression -> . Factor
+      P2 @0-0 Factor -> . Number
+      P4 @0-0 Factor -> . Factor Multiply Factor
+
+=for Marpa::R2::Display::End
+
+No "C<Term -E<gt> Term Add Term>" rule.
+We are never even predicting a
+"C<Term -E<gt> Term Add Term>" rule.
+We look back at the grammar, and start from
+the beginning.
+
+=for Marpa::R2::Display:
+name: Debug Example Part 1
+partial: 1
+normalize-whitespace: 1
+
+    { lhs     => 'Expression', rhs => [qw/Factor/] },
+    { lhs => 'Term',       rhs => [qw/Factor/] },
+    { lhs => 'Factor',     rhs => [qw/Number/] },
+    {   lhs    => 'Term',
+        rhs    => [qw/Term Add Term/],
+        action => 'do_add'
+    },
+    {   lhs    => 'Factor',
+        rhs    => [qw/Factor Multiply Factor/],
+        action => 'do_multiply'
+    },
+
+=for Marpa::R2::Display::End
+
+The start symbol is C<Expression> and
+we do see a rule with
+C<Expression>
+on the left hand side.
+C<Expression> in turn produces a C<Factor> symbol,
+and there are two rules
+with C<Factor> on the left
+hand side.
+
+But none of these rules ever produce a C<Term>.
+In fact, however far we follow the productions,
+no rule ever produces a C<Term>.
+At this point we see the problem:
+If we start at the start symbol,
+and follow the rules of our grammar, we will never get to a C<Term>
+symbol.
+Which is exactly what that first warning message was saying.
+
+Now that we know what is wrong,
+we can reread our grammar,
+and see that our C<Expression -E<gt> Factor> rule is wrong.
+It should be C<Expression -E<gt> Term>.
+Change that and the problem is fixed.
+
+=head1 Empty rules
+
+When a symbol is nulled in your parse,
+L<C<show_progress>|Marpa::R2::Recognizer/"show_progress">
+does not show its expansion into rules.
+This reduces clutter,
+and seems to be the intuitive way to treat nulled rules.
+
+=head1 Access to the "raw" progress report information
+
+This section deals with the C<progress()> recognizer method,
+which allows access to the raw progress report information.
+This method is not needed for typical debugging and tracing
+situations.
+It is intended for applications which want to leverage
+Marpa's "situational awareness" in innovative ways.
+
+=head2 progress()
+
+=for Marpa::R2::Display
+name: progress(0) example
+normalize-whitespace: 1
+
+    my $report0 = $recce->progress(0);
+
+=for Marpa::R2::Display::End
+
+Z<>
+
+=for Marpa::R2::Display
+name: progress() example
+normalize-whitespace: 1
+
+    my $latest_report = $recce->progress();
+
+=for Marpa::R2::Display::End
+
+Given the parse location (Earley set ID) as its argument,
+the C<progress()> recognizer method returns a reference
+to an array of "report items".
+The parse location may be negative.
+An argument of I<-X>
+will be interpreted as location I<N+X+1>, where I<N> is
+the latest Earley set.
+This means that an argument of -1 indicates the latest
+Earley set,
+an argument of -2 indicates the Earley set just before
+the latest one, etc.
+
+Each report item is a triple: an array of three elements.
+The three elements are, in order,
+rule ID, dot position, and origin.
+The data returned by the two displays above,
+as well as the data for the other parse locations
+in our example,
+are shown L<below|"progress() outputs">.
+
+The rule ID is the same number that Marpa uses
+to identify rules
+in tracing and debugging output.
+Given a rule ID, an application can find
+its LHS and RHS symbols using
+L<the grammar's C<rule()> method|Marpa::R2::Grammar/"rule">.
+
+Dot position is -1 for completions,
+and 0 for predictions.
+Where the report item is not for a completion or
+a prediction, dot position is I<N>,
+where I<N> is the number of RHS symbols
+successfully recognized at the parse location of
+the progress report.
+
+Origin is parse location (Earley set ID)
+at which the rule application reported by
+the report item began.
+For a prediction, origin will always be
+the same as the location of the parse report.
+
+=head2 Progress reports and efficiency
+
+When progress reports are used for production parsing,
+instead of just for debugging and tracing,
+efficiency considerations become significant.
+We will start with the good news.
+C<progress()> is implemented in C, so that the
+application can usually expect calls to
+C<progress()> to be extremely fast.
+
+Now, as to the potential bad news:
+Applications planning frequent use of calls
+to C<progress()> need to be aware that,
+where there is a right recursion at a parse location,
+C<progress()> needs to follow the entire chain
+of recursions to create the progress report.
+That this is happening will always be evident
+from the parse report itself,
+which will contain one report item
+for every completion in the right-recursive
+chain of completions.
+If an application tries to
+produce progress reports for a large number of parse locations,
+and these parse locations have long right recursive chains,
+it can prove computationally expensive.
+
+The efficiency consideration just mentioned
+for following right recursions
+is not an issue for left recursions.
+Left recursions only produce at most two report
+items per parse location
+and are extremely fast to process.
+It is also not an issue for
+Marpa's sequence rules, because sequence rules
+are implemented internally as left recursions.
+
+=head1 Appendix: full code and output for the example
+
+Below are the code, the trace outputs
+and the progress report
+for the example used in this
+document.
+
+=head2 Code
+
+=for Marpa::R2::Display:
+name: Debug Example Part 1
+perltidy: '-dcsc -sil=0'
+
+    my $grammar = Marpa::R2::Grammar->new(
+        {   start          => 'Expression',
+            actions        => 'My_Actions',
+            default_action => 'first_arg',
+            rules          => [
+                ## This is a deliberate error in the grammar
+                ## The next line should be:
+                ## { lhs => 'Expression', rhs => [qw/Term/] },
+                ## I have changed the Term to 'Factor' which
+                ## will cause problems.
+                { lhs => 'Expression', rhs => [qw/Factor/] },
+                { lhs => 'Term',       rhs => [qw/Factor/] },
+                { lhs => 'Factor',     rhs => [qw/Number/] },
+                {   lhs    => 'Term',
+                    rhs    => [qw/Term Add Term/],
+                    action => 'do_add'
+                },
+                {   lhs    => 'Factor',
+                    rhs    => [qw/Factor Multiply Factor/],
+                    action => 'do_multiply'
+                },
+            ],
+        }
+    );
+
+=for Marpa::R2::Display::End
+
+=for Marpa::R2::Display:
+name: Debug Example Part 2
+perltidy: '-dcsc -sil=0'
+
+    $grammar->precompute();
+
+    my @tokens = (
+        [ 'Number',   42 ],
+        [ 'Multiply', q{*} ],
+        [ 'Number',   1 ],
+        [ 'Add',      q{+} ],
+        [ 'Number',   7 ],
+    );
+
+    sub My_Actions::do_add {
+        my ( undef, $t1, undef, $t2 ) = @_;
+        return $t1 + $t2;
+    }
+
+    sub My_Actions::do_multiply {
+        my ( undef, $t1, undef, $t2 ) = @_;
+        return $t1 * $t2;
+    }
+
+    sub My_Actions::first_arg { shift; return shift; }
+
+    my $recce = Marpa::R2::Recognizer->new(
+        { grammar => $grammar, trace_terminals => 2 } );
+
+    my $token_ix = 0;
+
+    TOKEN: for my $token_and_value (@tokens) {
+        last TOKEN if not defined $recce->read( @{$token_and_value} );
+    }
+
+    $progress_report = $recce->show_progress( 0, -1 );
+
+=for Marpa::R2::Display::End
+
+=head2 Trace output
+
+=for Marpa::R2::Display
+name: Debug Example Trace Output
+remove-display-indent: 1
+remove-blank-last-line: 1
+
+    Inaccessible symbol: Add
+    Inaccessible symbol: Term
+    Setting trace_terminals option
+    Expecting "Number" at earleme 0
+    Accepted "Number" at 0-1
+    Expecting "Multiply" at 1
+    Accepted "Multiply" at 1-2
+    Expecting "Number" at 2
+    Accepted "Number" at 2-3
+    Expecting "Multiply" at 3
+    Rejected "Add" at 3-4
+
+=for Marpa::R2::Display::End
+
+Note the use of the term "earleme".
+If you are using the default input model,
+you can assume that earleme means "location":
+the earleme
+and the location will always be exactly the same.
+Advanced users, using alternative input models,
+may set it up so that earleme and location are
+two different things,
+and in that case the distinction will matter.
+
+=head2 show_progress() output
+
+=for Marpa::R2::Display
+name: Debug Example Progress Report
+remove-display-indent: 1
+remove-blank-last-line: 1
+
+    P0 @0-0 Expression -> . Factor
+    P2 @0-0 Factor -> . Number
+    P4 @0-0 Factor -> . Factor Multiply Factor
+    F0 @0-1 Expression -> Factor .
+    F2 @0-1 Factor -> Number .
+    R4:1 @0-1 Factor -> Factor . Multiply Factor
+    P2 @2-2 Factor -> . Number
+    P4 @2-2 Factor -> . Factor Multiply Factor
+    R4:2 @0-2 Factor -> Factor Multiply . Factor
+    F0 @0-3 Expression -> Factor .
+    F2 @2-3 Factor -> Number .
+    R4:1 x2 @0,2-3 Factor -> Factor . Multiply Factor
+    F4 @0-3 Factor -> Factor Multiply Factor .
+
+=for Marpa::R2::Display::End
+
+=head2 progress() outputs
+
+These section contains the output of the C<progress()>
+method -- the progress reports in their "raw" format.
+The output is shown in L<Data::Dumper> format,
+with C<Data::Dumper::Indent> set to 0
+and C<Data::Dumper::Terse> set to 1.
+
+The C<Data::Dumper> output from C<progress()> at location 0:
+
+=for Marpa::R2::Display
+name: progress() output at location 0
+remove-display-indent: 1
+remove-blank-last-line: 1
+
+    [[0,0,0],[2,0,0],[4,0,0]]
+
+=for Marpa::R2::Display::End
+
+The C<Data::Dumper> output from C<progress()> at location 1:
+
+=for Marpa::R2::Display
+name: progress() output at location 1
+remove-display-indent: 1
+remove-blank-last-line: 1
+
+    [[0,-1,0],[2,-1,0],[4,1,0]]
+
+=for Marpa::R2::Display::End
+
+The C<Data::Dumper> output from C<progress()> at location 2:
+
+=for Marpa::R2::Display
+name: progress() output at location 2
+remove-display-indent: 1
+remove-blank-last-line: 1
+
+    [[2,0,2],[4,0,2],[4,2,0]]
+
+=for Marpa::R2::Display::End
+
+The default C<progress()> output is for the latest Earley set,
+which is location 3 in our example.
+Here is the C<progress()> output for location 3.
+
+=for Marpa::R2::Display
+name: progress() output at location 3
+remove-display-indent: 1
+remove-blank-last-line: 1
+
+    [[0,-1,0],[2,-1,2],[4,-1,0],[4,1,0],[4,1,2]]
+
+=for Marpa::R2::Display::End
+
+=head1 Copyright and License
+
+=for Marpa::R2::Display
+ignore: 1
+
+  Copyright 2013 Jeffrey Kegler
+  This file is part of Marpa::R2.  Marpa::R2 is free software: you can
+  redistribute it and/or modify it under the terms of the GNU Lesser
+  General Public License as published by the Free Software Foundation,
+  either version 3 of the License, or (at your option) any later version.
+
+  Marpa::R2 is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser
+  General Public License along with Marpa::R2.  If not, see
+  http://www.gnu.org/licenses/.
+
+=for Marpa::R2::Display::End
+
+=cut
+
+# Local Variables:
+#   mode: cperl
+#   cperl-indent-level: 4
+#   fill-column: 100
+# End:
+# vim: expandtab shiftwidth=4:
