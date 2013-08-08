@@ -20,8 +20,15 @@ Marpa::R2::NAIF::Progress - Progress reports for the NAIF
 =head1 About this document
 
 This document describes
-Marpa's progress reports.
-These allow an application to know
+Marpa's progress reports for its named argument interface (NAIF).
+If you are a beginner,
+or are not sure which interface you are interested in,
+or do not know what the NAIF interfaces is,
+you probably are looking for
+L<the document on progress reports for the SLIF
+interface|Marpa::R2::Proggress>.
+
+Progress reports allow an application to know
 exactly where it is in the parse at any
 point.
 For parse locations of the user's choosing,

@@ -22,6 +22,13 @@ Marpa::R2::NAIF::Tracing - Tracing your NAIF grammar
 This document is an overview of
 the techniques for tracing and
 debugging Marpa parses and grammars.
+using its named argument interface (NAIF).
+If you are a beginner,
+or are not sure which interface you are interested in,
+or do not know what the NAIF interfaces is,
+you probably are looking for
+L<the document on tracing and debugging for the SLIF
+interface|Marpa::R2::Tracing>.
 
 =head1 Basic techniques
 
