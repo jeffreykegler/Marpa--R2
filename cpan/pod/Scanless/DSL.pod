@@ -1004,21 +1004,26 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
-An array descriptor is a comma separated list of zero or more array
-descriptor items, inside a pair of matching square brackets.
-The value of the lexeme or rule will be an array.
-The contents of the array will be a series of lists,
-as specified by the array descriptor items.
-These lists will occur in the array in the order
-specified.
-If no array descriptor items are specified, the value
-of the lexeme or rule will be an empty array.
+If an action is enclosed in square brackets, it is an B<array descriptor>,
+and the value of the lexeme or rule will be an array.
+Inside the array descriptor should a comma separated list of zero or more array
+descriptor items.
+The B<array descriptor items> are keywords that describe how the array is to be filled
+out.
 
-The C<start> array descriptor item will put
+If the array descriptor is an empty pair of square brackets ("C<[]>"),
+then there are zero array descriptor items,
+and the value will be an empty array.
+Otherwise the "array descriptor item" keywords are interpreted as lists
+and those lists are used to fill out the 
+array.
+A C<start> array descriptor item will put
 the start location of the rule or lexeme into the array.
 The C<length> array descriptor item will put
-the length (in parse locations) of the rule or lexeme into the array.
-Length in locations is defined such that the end location
+the length of the rule or lexeme into the array.
+The start location is an offset in the input string.
+Length is in characters
+and is defined such that the end location
 is always start location plus length.
 
 For a rule,
@@ -1036,6 +1041,22 @@ and may be used interchangeably for both rules and lexemes.
 This means that, for both lexemes and rules,
 the actions C<[values]>, C<[value]> and C<::array>
 will do exactly the same thing.
+
+The array descriptor item keywords fill out the array in
+the order in which they appear in the the array descriptor.
+For example, if we are dealing with a rule,
+and the array descriptor is "C<[start,length,value]>",
+then the return value is an reference to an array,
+whose length will vary, but which will be contain least
+three elements.
+The first element will be the start location in the
+input string of this rule instance,
+and the second will be its length.
+The remaining elements will be
+the values of the rule's RHS children,
+in lexical order,
+as computed according to the semantics
+of those children.
 
 =head1 Precedence
 
