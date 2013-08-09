@@ -242,7 +242,7 @@ It must be the name of a valid terminal symbol.
 The token value is optional.
 It defaults to a Perl C<undef>.
 For details about terminal symbols,
-see L<Marpa::R2::Grammar/"Terminals">.
+see L<Marpa::R2::NAIF::Grammar/"Terminals">.
 
 The parser may accept or reject the token.
 If the parser accepted the token,

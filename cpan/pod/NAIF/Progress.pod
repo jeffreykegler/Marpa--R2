@@ -630,7 +630,7 @@ to identify rules
 in tracing and debugging output.
 Given a rule ID, an application can find
 its LHS and RHS symbols using
-L<the grammar's C<rule()> method|Marpa::R2::Grammar/"rule">.
+L<the grammar's C<rule()> method|Marpa::R2::NAIF::Grammar/"rule">.
 
 Dot position is -1 for completions,
 and 0 for predictions.

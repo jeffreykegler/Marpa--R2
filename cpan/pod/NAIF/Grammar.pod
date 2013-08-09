@@ -225,10 +225,10 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
-C<Marpa::R2::Grammar::new>
+C<Marpa::R2::NAIF::Grammar::new>
 returns a new Marpa grammar object or throws an exception.
 The arguments to
-C<Marpa::R2::Grammar::new> are
+C<Marpa::R2::NAIF::Grammar::new> are
 references to hashes of named arguments.
 In each key/value pair of this hash,
 the hash key is the argument name

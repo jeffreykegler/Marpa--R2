@@ -225,7 +225,7 @@ of a rule,
 but this is now an option,
 and never the default.
 For more, see
-L<Marpa::R2::Grammar/"Terminal symbols">.
+L<Marpa::R2::NAIF::Grammar/"Terminal symbols">.
 
 =head2 The lhs_terminals grammar named argument has been eliminated
 
@@ -266,7 +266,7 @@ is not as severe a restriction as it might sound --
 while sequences cannot share the same LHS with other
 rules directly, they can do so indirectly.
 For details, see
-L<Marpa::R2::Grammar/"Duplicate rules">.
+L<Marpa::R2::NAIF::Grammar/"Duplicate rules">.
 
 In Marpa::XS, the definition of when a sequence
 was a duplicate was more liberal,

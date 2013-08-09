@@ -75,7 +75,7 @@ The following named arguments are allowed:
 
 Specifies the C<action_object> named argument that
 will be used for the G1 grammar.
-For details, see L<Marpa::R2::Grammar/"action_object">.
+For details, see L<Marpa::R2::NAIF::Grammar/"action_object">.
 
 =head2 bless_package
 
@@ -89,7 +89,7 @@ L<C<bless> adverb|Marpa::R2::Scanless::DSL/"bless">.
 
 Specifies the C<default_action> named argument that
 will be used for the G1 grammar.
-For details, see L<Marpa::R2::Grammar/"default_action">.
+For details, see L<Marpa::R2::NAIF::Grammar/"default_action">.
 
 =head2 source
 
@@ -210,10 +210,8 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
-The C<show_rules()> method is the equivalent of
-calling L<Marpa::R2::Grammar's show_rules()
-method|Marpa::R2::Grammar/"show_rules()">
-for both the G0 and G1 grammars.
+The C<show_rules()> method returns a descripton of
+the rules for both the G0 and G1 grammars.
 It is useful for showing the rules as they will
 appear in trace and debugging outputs.
 

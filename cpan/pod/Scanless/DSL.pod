@@ -901,8 +901,14 @@ token.
 The C<proper> keyword is only valid for a quantified right side,
 and its value must be a boolean,
 in the form of a binary digit (C<0> or C<1>).
-It indicates proper or Perl separation,
-L<as described for sequence rules|Marpa::R2::Grammar/"Sequence rules">.
+It is only relevant is a separator
+is defined and is 1 if proper separation
+is required, and 0 if Perl separation is allowed.
+"Perl separation" allows a final separator.
+"Proper separation" is so called, because it requires
+that separators be "proper" in the sense that they
+must actually separating
+sequence items.
 
 =head2 rank
 
@@ -922,8 +928,8 @@ see L<the document on parse order|Marpa::R2::Semantics::Order>.
 
 The C<separator> keyword is only valid for a quantified right side,
 and its value must be a symbol of the grammar.
-It will be used as the separator,
-L<as described for sequence rules|Marpa::R2::Grammar/"Sequence rules">.
+If specified, that symbol must separate items of the sequence.
+A separator symbol may not be nullable.
 
 =head1 Actions
 
@@ -933,7 +939,7 @@ If the action value is
 a Perl word (a string of alphanumerics or underscores),
 it will be interpreted as the action name,
 as described for
-L<the C<action> named argument of rule descriptors|Marpa::R2::Grammar/"action">.
+L<the C<action> named argument of rule descriptors|Marpa::R2::NAIF::Grammar/"action">.
 Word actions are not allowed for lexemes.
 
 Typically, a word action is resolved to a Perl closure, called the B<semantic closure>.
@@ -1177,7 +1183,7 @@ and its name as rewritten, its "internal symbol name".
 In many cases, Marpa::R2 makes sure the user sees only
 the external names of symbols.
 For example,
-L<the C<rule()> Grammar method|Marpa::R2::Grammar/"rule()">
+L<the SLIF grammar's C<rule()> method|Marpa::R2::Scanless::G/"rule()">
 returns external symbol names.
 
 However,

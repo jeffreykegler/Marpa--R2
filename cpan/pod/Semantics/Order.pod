@@ -206,7 +206,7 @@ with null symbols higher.
 
 The
 L<C<null_ranking> named
-argument for rules|Marpa::R2::Grammar/"null_ranking">
+argument for rules|Marpa::R2::NAIF::Grammar/"null_ranking">
 specifies which nulling variants are ranked high or low.
 Ranking of nulling variants is done left-to-right,
 with the null preference as indicated by the C<null_ranking>

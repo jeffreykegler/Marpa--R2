@@ -117,7 +117,7 @@ according to a semantics.
 In Marpa these three tasks
 are, for the most part, distinct phases.
 Grammars are
-L<C<Marpa::R2::Grammar>|Marpa::R2::Grammar> objects.
+L<C<Marpa::R2::Grammar>|Marpa::R2::NAIF::Grammar> objects.
 The reading of input and the evaluation of the parse
 according to the semantics is performed by
 L<C<Marpa::R2::Recognizer>|Marpa::R2::Recognizer> objects.
@@ -156,13 +156,13 @@ normalize-whitespace: 1
 =for Marpa::R2::Display::End
 
 Marpa grammars are
-L<C<Marpa::R2::Grammar>|Marpa::R2::Grammar> objects.
+L<C<Marpa::R2::Grammar>|Marpa::R2::NAIF::Grammar> objects.
 They are created
 with the
-L<Marpa::R2::Grammar::new|Marpa::R2::Grammar/"new">
+L<Marpa::R2::Grammar::new|Marpa::R2::NAIF::Grammar/"new">
 constructor.
 The arguments to
-L<Marpa::R2::Grammar::new|Marpa::R2::Grammar/"new">
+L<Marpa::R2::Grammar::new|Marpa::R2::NAIF::Grammar/"new">
 are references to
 hashes of named arguments.
 In the key/value pairs of these hashes,
@@ -643,7 +643,7 @@ DBI, LWP and Moose.
 This document gives a semi-tutorial overview of the entire Marpa NAIF API.
 For full details on Marpa's grammar objects and their methods,
 see the
-L<Marpa::R2::Grammar> document.
+L<Marpa::R2::NAIF::Grammar> document.
 For full details on Marpa's recognizer objects and their methods,
 see the
 L<Marpa::R2::Recognizer> document.
