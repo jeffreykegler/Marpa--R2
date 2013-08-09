@@ -15,7 +15,7 @@
 
 =head1 NAME
 
-Marpa::R2::NAIF::Tracing - Tracing your NAIF grammar
+Marpa::R2::NAIF::Tracing - Tracing a NAIF grammar
 
 =head1 Description
 
