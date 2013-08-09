@@ -1342,6 +1342,21 @@ sub Marpa::R2::Scanless::R::read_problem {
             . '* String before error: '
             . Marpa::R2::escape_string( ${$p_string}, -50 ) . "\n";
     } ## end else [ if ($g1_status) ]
+
+    if ( $self->[Marpa::R2::Inner::Scanless::R::TRACE_G0] ) {
+        my $stream_pos = $stream->pos();
+        my $trace_file_handle =
+            $self->[Marpa::R2::Inner::Scanless::R::TRACE_FILE_HANDLE];
+        my $grammar = $self->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
+        my $thick_lex_grammar =
+            $grammar->[Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMAR];
+        my $g0_tracer = $thick_lex_grammar->tracer();
+        my ( $line, $column ) = $self->line_column($stream_pos);
+        $read_string_error .=
+            qq{\n=== G0 Progress report at line $line, column $column\n} .
+            $g0_tracer->stream_progress_report($stream);
+    } ## end if ( $self->[Marpa::R2::Inner::Scanless::R::TRACE_G0...])
+
     $self->[Marpa::R2::Inner::Scanless::R::READ_STRING_ERROR] =
         $read_string_error;
     Marpa::R2::exception($read_string_error);
