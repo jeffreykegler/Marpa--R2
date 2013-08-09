@@ -53,7 +53,7 @@ and Aycock and Horspool seem unaware of Leo.
 =item 2010
 
 L<Marpa combines the Leo and Aycock-Horspool
-algorithms|"Kegler 2012">,
+algorithms|"Kegler 2013">,
 in the process making significant
 changes to both of them.
 The result preserves the
@@ -183,12 +183,12 @@ This is L<Grune and Jacobs 1990> updated.
 The bibliography for this book is available in enlarged form
 on the web: L<ftp://ftp.cs.vu.nl/pub/dick/PTAPG_2nd_Edition/CompleteList.pdf>.
 
-=head2 Kegler 2012
+=head2 Kegler 2013
 
 My writeup of the theory behind Marpa,
 with proofs of correctness and of my complexity claims
 is available online:
-L<http://cloud.github.com/downloads/jeffreykegler/Marpa-theory/recce.pdf>.
+L<https://docs.google.com/file/d/0B9_mR_M2zOc4Ni1zSW5IYzk3TGc/edit?usp=sharing>.
 
 =head2 Leo 1991
 

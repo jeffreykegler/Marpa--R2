@@ -87,7 +87,7 @@ which uses a domain-specific language.
 But it is higher level,
 and provides more features, than
 L<the thin
-interface|<Marpa::R2::Advanced::Thin>,
+interface|Marpa::R2::Advanced::Thin>,
 which provides direct access to the underlying
 Libmarpa C library.
 

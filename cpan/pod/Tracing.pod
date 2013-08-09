@@ -72,8 +72,7 @@ not what you expected.
 
 =head2 Other traces
 
-Setting the L<SLIF recognizer's C<trace_values> named argument|
-Marpa::R2::Scanless::R/"trace_values">
+Setting the L<SLIF recognizer's C<trace_values> named argument|Marpa::R2::Scanless::R/"trace_values">
 to a trace level of 1
 traces the values of the parse tree nodes as they are pushed on, and
 popped off, the evaluation stack.
