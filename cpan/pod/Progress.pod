@@ -56,7 +56,7 @@ reading this document.
 =head1 Introduction to Earley parsing
 
 To read the
-L<C<show_progress>|Marpa::R2::Recognizer/"show_progress">
+L<C<show_progress>|Marpa::R2::Scanless::R/"show_progress">
 output, it is important to have a
 basic idea of what
 Earley items are,
@@ -223,7 +223,7 @@ and that we miss the significance of these warning messages.
 Before looking at Marpa's progress reports,
 it is usually best to orient yourself by looking
 at the output from
-L<C<trace_terminals>|Marpa::R2::Recognizer/trace_terminals>.
+L<C<trace_terminals>|Marpa::R2::Scanless::R/trace_terminals>.
 Typically, you will be interested in the last tokens
 to be accepted, and perhaps also
 in the tokens the recognizer was
@@ -232,7 +232,7 @@ Sometimes that information alone is enough to make it clear
 where the problem is.
 
 The full
-L<C<trace_terminals>|Marpa::R2::Recognizer/trace_terminals>
+L<C<trace_terminals>|Marpa::R2::Scanless::R/trace_terminals>
 output for this example is in the Appendix.
 We see that the recognizer seems to accept "C<42*1>" but it fails
 when it confronts the plus sign ("C<+>").
@@ -284,7 +284,7 @@ that you were working on when the error occurred.
 This is called the B<current location>.
 In our example the current location is location 3.
 By default,
-L<C<show_progress>|Marpa::R2::Recognizer/"show_progress">
+L<C<show_progress>|Marpa::R2::Scanless::R/"show_progress">
 prints out only the progress reports for the current location.
 
 Here are the progress reports for the current location,
@@ -564,7 +564,7 @@ Change that and the problem is fixed.
 =head1 Empty rules
 
 When a symbol is nulled in your parse,
-L<C<show_progress>|Marpa::R2::Recognizer/"show_progress">
+L<C<show_progress>|Marpa::R2::Scanless::R/"show_progress">
 does not show its expansion into rules.
 This reduces clutter,
 and seems to be the intuitive way to treat nulled rules.

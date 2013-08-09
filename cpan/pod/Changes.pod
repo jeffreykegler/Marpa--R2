@@ -59,7 +59,7 @@ level,
 and other circumstances settable by the user.
 For more detail,
 see L<the documentation of recognizer's
-C<read> method|Marpa::R2::Recognizer/"read">.
+C<read> method|Marpa::R2::NAIF::Recognizer/"read">.
 
 =head2 Rule LHS's are no longer a source of action names
 
@@ -166,7 +166,7 @@ token value is given explicitly, then that explicit value will be
 the value of the token.  In particular, an explicit C<undef> token
 value argument will behave differently from an omitted token value
 argument.  For details, see L<the documentation of recognizer's
-C<read> method|Marpa::R2::Recognizer/"read">.
+C<read> method|Marpa::R2::NAIF::Recognizer/"read">.
 
 =head2 The token value argument of C<alternative()> has changed
 

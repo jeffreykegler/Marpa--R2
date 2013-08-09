@@ -28,13 +28,18 @@ each of which will have its own parse result.
 
 This document describes ways of controlling
 the order in which
-the recognizer's
-L<C<value>|Marpa::R2::Recognizer/"value">
-method
+the L<NAIF recognizer's C<value> method|Marpa::R2::NAIF::Recognizer/"value">
 evaluates the parse
-trees of an ambiguous parse.
+trees of an ambiguous parse;
 It also describes ways to exclude selected parse trees
 from the parse series.
+
+Almost all 
+of what is said in this document
+also applies to the L<SLIF recognizer's C<value> method|Marpa::R2::Scanless::R/"value">.
+Certain named arguments which control the parse order are present in the NAIF,
+but are not present in the SLIF,
+and this accounts for the differences between the two.
 
 =head2 Duplicate parses are eliminated
 
@@ -88,7 +93,7 @@ the parse series is traversed.
 
 By calling
 the recognizer's
-L<C<value>|Marpa::R2::Recognizer/"value">
+L<C<value>|Marpa::R2::NAIF::Recognizer/"value">
 method
 repeatedly,
 Marpa can produce all the parse results
@@ -96,13 +101,13 @@ in the current parse series.
 The default is for the parse results to be returned
 in an B<arbitrary parse order>.
 This corresponds to the "C<none>" value of
-L<the recognizer's C<ranking_method>|Marpa::R2::Recognizer/"ranking_method">
+L<the recognizer's C<ranking_method>|Marpa::R2::NAIF::Recognizer/"ranking_method">
 named argument.
 
 =head2 Ranking methods
 
 Marpa recognizer objects have L<a C<ranking_method> named
-argument|Marpa::R2::Recognizer/"ranking_method">,
+argument|Marpa::R2::NAIF::Recognizer/"ranking_method">,
 whose value can be the name of a ranking method,
 or "C<none>", indicating that the default ranking method is to
 be used.

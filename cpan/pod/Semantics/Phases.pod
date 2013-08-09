@@ -28,6 +28,13 @@ for example, those which exploit side effects.
 And some readers may also find this background material
 to be helpful.
 
+An advanced document,
+this is written on the assumption that the more low-level NAIF interface
+is in use.
+The SLIF uses the same code as the NAIF for evaluation
+and works in the same way,
+except that it hides even more of these details from the user.
+
 =head1 Parse trees, parse results and parse series
 
 As a reminder,
@@ -39,19 +46,19 @@ a series of zero or more parse trees,
 each with its own parse result.
 The first call to the
 L<the recognizer's C<value>
-method|Marpa::R2::Recognizer/"value">
+method|Marpa::R2::NAIF::Recognizer/"value">
 after the recognizer is created is the
 start of the first parse series.
 The first parse series continues until there is
 a call to the
 L<the C<reset_evaluation>
-method|Marpa::R2::Recognizer/"reset_evaluation">
+method|Marpa::R2::NAIF::Recognizer/"reset_evaluation">
 or until the recognizer is destroyed.
 Usually, an application is only interested in a single
 parse series.
 
 When the
-L<C<reset_evaluation>|Marpa::R2::Recognizer/"reset_evaluation">
+L<C<reset_evaluation>|Marpa::R2::NAIF::Recognizer/"reset_evaluation">
 method
 is called
 for a recognizer, it begins a new parse series.
@@ -59,7 +66,7 @@ The new parse series continues until
 there is another
 call to the
 L<the C<reset_evaluation>
-method|Marpa::R2::Recognizer/"reset_evaluation">,
+method|Marpa::R2::NAIF::Recognizer/"reset_evaluation">,
 or until the recognizer is destroyed.
 
 =head1 Summary of the phases

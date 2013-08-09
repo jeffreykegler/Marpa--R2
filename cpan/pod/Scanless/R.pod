@@ -423,7 +423,7 @@ and it is also very helpful for tracing the G1 parser.
 
 This named argument is passed on
 to the G1 recognizer.
-See L<Marpa::R2::Recognizer/"trace_values">
+See L<Marpa::R2::Scanless::R/"trace_values">
 
 =head2 trace_file_handle
 
@@ -508,7 +508,7 @@ normalize-whitespace: 1
 
 Has the same effect as a C<value()> call
 on the G1 recognizer.
-See L<Marpa::R2::Recognizer/"value()">.
+See L<Marpa::R2::NAIF::Recognizer/"value()">.
 
 =head1 Mutators for external scanning
 
@@ -1087,19 +1087,14 @@ In other words, an argument of -1 indicates the current G1 location,
 an argument of -2 indicates the G1 location just before
 the current one, etc.
 
-The SLIF C<progress> method is the equivalent of
-the identically named
-C<progress()> method for C<Marpa::R2::Recognizer> objects
-in the standard interface.
-Details on progress reports can be found in
-L<their own document|Marpa::R2::Progress>.
-
 The progress reports returned by
 the C<progress()> method
 identify rules by their G1 rule ID.
 G1 rules IDs can be converted to a list of the rule's
 symbols using the L<C<rule()> method
 of the SLIF grammar|Marpa::R2::Scanless::G/"rule()">.
+Details on progress reports can be found in
+L<their own document|Marpa::R2::Progress>.
 
 =head2 show_progress()
 
@@ -1112,12 +1107,46 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
-Has the same effect as a C<show_progress()> call
-on the G1 recognizer.
-See L<Marpa::R2::Recognizer/"show_progress()">.
+Shows the progress of the G1 parse.
+For a description of its output,
+see L<Marpa::R2::Progress>.
+
+With no arguments,
+the string contains reports for
+the current location.
 If locations are specified as arguments to
 C<show_progress()>, they need to be 
 G1 locations.
+
+With a single integer argument I<N>,
+the string contains reports for G1 location I<N>.
+With two numeric arguments, I<N> and I<M>, the arguments are interpreted
+as the start and end points of a range of G1 locations
+and the returned string contains
+reports for all locations in the range.
+
+If an argument is negative,
+I<-N>,
+it indicates
+the I<N>th location counting backward
+from the furthest location of the parse.
+For example, if 42 was the furthest G1 location,
+-1 would be G1 location 42 and -2 would be location 41.
+For example, the method call
+C<< $recce->show_progress(-3, -1) >>
+returns reports for the last three G1 locations of the parse.
+The method call C<< $recce->show_progress(0, -1) >>
+will print progress reports for the entire parse.
+
+Locations are G1 locations instead of string offsets,
+for two reasons.
+First, G1 parse state is only defined at the start of parsing,
+and at the end of a non-discarded lexeme.
+Therefore many strings offsets will not have a G1 parse state.
+Second, SLIF recognizers using external scanning are allowed
+to rescan the same string repeatedly.
+Therefore, a single string offset may have many
+G1 parse states.
 
 =head2 substring()
 
