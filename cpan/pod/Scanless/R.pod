@@ -421,9 +421,11 @@ and it is also very helpful for tracing the G1 parser.
 
 =head2 trace_values
 
-This named argument is passed on
-to the G1 recognizer.
-See L<Marpa::R2::Scanless::R/"trace_values">
+The trace_values named argument is a numeric trace level.  If the
+numeric trace level is 1, Marpa prints tracing information as values
+are computed in the evaluation stack.  A trace level of 0 turns
+value tracing off, which is the default. Traces are written to the
+trace file handle.
 
 =head2 trace_file_handle
 

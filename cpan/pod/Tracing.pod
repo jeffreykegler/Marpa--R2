@@ -19,7 +19,6 @@ Marpa::R2::Tracing - Tracing your grammar
 
 =head1 Description
 
-B<This document is under construction.>
 This document is an overview of
 the techniques for tracing and
 debugging parses and grammars using Marpa's SLIF interface.
@@ -37,32 +36,15 @@ even experts (actually, especially experts)
 will sometimes overlook the obvious
 in a rush to use more advanced techniques.
 
-=head2 Turn on warnings
-
-Make sure that
-Marpa's C<warnings> named arguments
-for both the grammar and the recognizer
-are turned on.
-Warnings are on by default.
-
 =head2 Trace terminals
 
-Turn on the C<trace_terminals> recognizer named argument.
+Set the L<C<trace_terminals> recognizer named
+argument|Marpa::R2::Scanless::R/"trace_terminals">
+to 1.
 This tells you which tokens the recognizer is looking for and which ones it thinks it found.
 If the problem is in lexing, C<trace_terminals> tells you the whole story.
-
 Even if the problem is not in the lexing,
 tracing terminals can tell you a lot.
-Marpa uses prediction-driven lexing.
-At any given parse location,
-Marpa is only looking
-for those tokens that it thinks
-could result in a successful parse.
-Examining the list of
-tokens that the recognizer is looking for
-can tell you a lot about
-what the recognizer thinks it has seen
-so far.
 
 =head2 Trace progress
 
@@ -84,14 +66,15 @@ to debug an error in a grammar.
 =head2 Double check rules and symbols
 
 It sometimes helps to look carefully at the output of
-C<show_rules> and C<show_symbols>.
+L<C<show_rules>|Marpa::R2::Scanless::G/"show_rules()">.
 Check if anything there is
 not what you expected.
 
 =head2 Other traces
 
-C<trace_actions> will show you how action names resolve to actions.
-Setting the C<trace_values> evaluator named argument to a trace level of 1
+Setting the L<SLIF recognizer's C<trace_values> named argument|
+Marpa::R2::Scanless::R/"trace_values">
+to a trace level of 1
 traces the values of the parse tree nodes as they are pushed on, and
 popped off, the evaluation stack.
 
@@ -102,17 +85,11 @@ includes the following:
 
 =over 4
 
-=item * Make sure the C<warnings> option is turned on.  It is on by default.
-
 =item * Turn on the C<trace_terminals> recognizer named argument.
-
-=item * Run C<show_symbols> on the precomputed grammar.
 
 =item * Run C<show_rules> on the precomputed grammar.
 
 =item * Run C<show_progress> on the recognizer.
-
-=item * Turn on the C<trace_actions> evaluator named argument.
 
 =item * Set the C<trace_values> evaluator named argument to level 1.
 
@@ -125,7 +102,7 @@ C<trace_terminals>,
 C<show_progress>,
 and C<trace_values>
 will be very lengthy.
-You want to work with short inputs if at all possible.
+You want to work with short inputs when possible.
 
 =head1 Copyright and License
 
