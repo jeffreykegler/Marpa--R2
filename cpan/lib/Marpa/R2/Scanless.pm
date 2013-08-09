@@ -1210,8 +1210,7 @@ sub Marpa::R2::Scanless::R::read_problem {
             last CODE_TO_PROBLEM;
         }
         if ( $problem_code eq 'no lexemes accepted' ) {
-            my ($lexeme_start) = $thin_slr->lexeme_span();
-            my ( $line, $column ) = $self->line_column($lexeme_start);
+            my ( $line, $column ) = $self->line_column($pos);
             $problem = "No lexemes accepted at line $line, column $column";
             last CODE_TO_PROBLEM;
         } ## end if ( $problem_code eq 'no lexemes accepted' )
@@ -1308,7 +1307,7 @@ sub Marpa::R2::Scanless::R::read_problem {
             ? ( substr ${$p_string}, $last_pos - 50, 50 )
             : ( substr ${$p_string}, 0, $last_pos );
         $read_string_error =
-              "Error in SLIF G1 read: $desc\n"
+              "Error in SLIF parse: $desc\n"
             . '* String before error: '
             . Marpa::R2::escape_string( $prefix, -50 ) . "\n"
             . "* The error was at line $line, column $column, ...\n"
@@ -1327,7 +1326,7 @@ sub Marpa::R2::Scanless::R::read_problem {
             : ( substr ${$p_string}, 0, $pos );
 
         $read_string_error =
-              "Error in SLIF G1 read: $desc\n"
+              "Error in SLIF parse: $desc\n"
             . '* String before error: '
             . Marpa::R2::escape_string( $prefix, -50 ) . "\n"
             . "* The error was at line $line, column $column, and at character $char_desc, ...\n"
@@ -1338,7 +1337,7 @@ sub Marpa::R2::Scanless::R::read_problem {
     } ## end elsif ( $pos < $length_of_string )
     else {
         $read_string_error =
-              "Error in SLIF G1 read: $desc\n"
+              "Error in SLIF parse: $desc\n"
             . "* Error was at end of input\n"
             . '* String before error: '
             . Marpa::R2::escape_string( ${$p_string}, -50 ) . "\n";

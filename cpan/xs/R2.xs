@@ -3168,6 +3168,19 @@ PPCODE:
 }
 
 void
+latest_earley_set( stream )
+     Unicode_Stream *stream;
+PPCODE:
+{
+  const Marpa_Recce r0 = stream->r0;
+  if (!stream->r0)
+    {
+      XSRETURN_UNDEF;
+    }
+  XSRETURN_IV (marpa_r_latest_earley_set (stream->r0));
+}
+
+void
 substring(stream, start_pos, length)
     Unicode_Stream *stream;
     int start_pos;
