@@ -15,7 +15,7 @@
 
 =head1 NAME
 
-Marpa::R2::Grammar - Marpa grammars
+Marpa::R2::NAIF::Grammar - NAIF grammars
 
 =head1 Synopsis
 
@@ -46,6 +46,15 @@ normalize-whitespace: 1
 =for Marpa::R2::Display::End
 
 =head1 Description
+
+This document describes grammars for Marpa's
+named argument interface (NAIF).
+If you are a beginner,
+or are not sure which interface you are interested in,
+or do not know what the NAIF interfaces is,
+you probably are looking for
+L<the document on grammars for the SLIF
+interface|Marpa::R2::Scanless::G>.
 
 To create a Marpa grammar object,
 use the C<new> method.

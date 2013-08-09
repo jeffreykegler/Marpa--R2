@@ -26,7 +26,7 @@ or are not sure which interface you are interested in,
 or do not know what the NAIF interfaces is,
 you probably are looking for
 L<the document on progress reports for the SLIF
-interface|Marpa::R2::Proggress>.
+interface|Marpa::R2::Progress>.
 
 Progress reports allow an application to know
 exactly where it is in the parse at any
