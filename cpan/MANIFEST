@@ -219,11 +219,13 @@ pod/Advanced/Models.pod
 pod/Advanced/Thin.pod
 pod/BNF.pod
 pod/Changes.pod
-pod/NAIF/Grammar.pod
 pod/Marpa_R2.pod
 pod/NAIF.pod
+pod/NAIF/Grammar.pod
 pod/NAIF/Progress.pod
 pod/NAIF/Recognizer.pod
+pod/NAIF/Tracing.pod
+pod/Progress.pod
 pod/Scanless.pod
 pod/Scanless/DSL.pod
 pod/Scanless/G.pod
@@ -235,7 +237,6 @@ pod/Semantics/Order.pod
 pod/Semantics/Phases.pod
 pod/Support.pod
 pod/Tracing.pod
-pod/NAIF/Tracing.pod
 pod/Vocabulary.pod
 pperl/Marpa/R2/Perl.pm
 pperl/Marpa/R2/Perl/.gitignore
