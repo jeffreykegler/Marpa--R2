@@ -1162,12 +1162,12 @@ sub Marpa::R2::Scanless::R::events {
 ## From here, recovery is a matter for the caller,
 ## if it is possible at all
 sub Marpa::R2::Scanless::R::read_problem {
-    my ( $self, $problem_code ) = @_;
+    my ( $slr, $problem_code ) = @_;
 
     die 'No problem_code in slr->read_problem()' if not $problem_code;
 
-    my $thin_slr = $self->[Marpa::R2::Inner::Scanless::R::C];
-    my $grammar  = $self->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
+    my $thin_slr = $slr->[Marpa::R2::Inner::Scanless::R::C];
+    my $grammar  = $slr->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
 
     my $thick_lex_grammar =
         $grammar->[Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMAR];
@@ -1175,16 +1175,16 @@ sub Marpa::R2::Scanless::R::read_problem {
     my $stream     = $thin_slr->stream();
 
     my $trace_file_handle =
-        $self->[Marpa::R2::Inner::Scanless::R::TRACE_FILE_HANDLE];
+        $slr->[Marpa::R2::Inner::Scanless::R::TRACE_FILE_HANDLE];
 
     my $thick_g1_recce =
-        $self->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+        $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
     my $thin_g1_recce    = $thick_g1_recce->thin();
     my $thick_g1_grammar = $thick_g1_recce->grammar();
     my $g1_tracer        = $thick_g1_grammar->tracer();
 
     my $pos      = $stream->pos();
-    my $p_string = $self->[Marpa::R2::Inner::Scanless::R::P_INPUT_STRING];
+    my $p_string = $slr->[Marpa::R2::Inner::Scanless::R::P_INPUT_STRING];
     my $length_of_string = length ${$p_string};
 
     my $problem;
@@ -1193,14 +1193,14 @@ sub Marpa::R2::Scanless::R::read_problem {
     CODE_TO_PROBLEM: {
         if ( $problem_code eq 'R0 exhausted before end' ) {
             my ($lexeme_start) = $thin_slr->lexeme_span();
-            my ( $line, $column ) = $self->line_column($lexeme_start);
+            my ( $line, $column ) = $slr->line_column($lexeme_start);
             $problem =
                 "Parse exhausted, but lexemes remain, at line $line, column $column\n";
             last CODE_TO_PROBLEM;
         } ## end if ( $problem_code eq 'R0 exhausted before end' )
         if ( $problem_code eq 'no lexeme' ) {
             my ($lexeme_start) = $thin_slr->lexeme_span();
-            my ( $line, $column ) = $self->line_column($lexeme_start);
+            my ( $line, $column ) = $slr->line_column($lexeme_start);
             $problem = "No lexeme found at line $line, column $column";
             last CODE_TO_PROBLEM;
         } ## end if ( $problem_code eq 'no lexeme' )
@@ -1210,7 +1210,8 @@ sub Marpa::R2::Scanless::R::read_problem {
             last CODE_TO_PROBLEM;
         }
         if ( $problem_code eq 'no lexemes accepted' ) {
-            my ( $line, $column ) = $self->line_column($pos);
+            my $problem_pos = $stream->problem_pos();
+            my ( $line, $column ) = $slr->line_column($problem_pos);
             $problem = "No lexemes accepted at line $line, column $column";
             last CODE_TO_PROBLEM;
         } ## end if ( $problem_code eq 'no lexemes accepted' )
@@ -1343,21 +1344,21 @@ sub Marpa::R2::Scanless::R::read_problem {
             . Marpa::R2::escape_string( ${$p_string}, -50 ) . "\n";
     } ## end else [ if ($g1_status) ]
 
-    if ( $self->[Marpa::R2::Inner::Scanless::R::TRACE_G0] ) {
+    if ( $slr->[Marpa::R2::Inner::Scanless::R::TRACE_G0] ) {
         my $stream_pos = $stream->pos();
         my $trace_file_handle =
-            $self->[Marpa::R2::Inner::Scanless::R::TRACE_FILE_HANDLE];
-        my $grammar = $self->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
+            $slr->[Marpa::R2::Inner::Scanless::R::TRACE_FILE_HANDLE];
+        my $grammar = $slr->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
         my $thick_lex_grammar =
             $grammar->[Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMAR];
         my $g0_tracer = $thick_lex_grammar->tracer();
-        my ( $line, $column ) = $self->line_column($stream_pos);
+        my ( $line, $column ) = $slr->line_column($stream_pos);
         $read_string_error .=
             qq{\n=== G0 Progress report at line $line, column $column\n} .
             $g0_tracer->stream_progress_report($stream);
-    } ## end if ( $self->[Marpa::R2::Inner::Scanless::R::TRACE_G0...])
+    } ## end if ( $slr->[Marpa::R2::Inner::Scanless::R::TRACE_G0...])
 
-    $self->[Marpa::R2::Inner::Scanless::R::READ_STRING_ERROR] =
+    $slr->[Marpa::R2::Inner::Scanless::R::READ_STRING_ERROR] =
         $read_string_error;
     Marpa::R2::exception($read_string_error);
 

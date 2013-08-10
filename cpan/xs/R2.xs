@@ -94,6 +94,8 @@ typedef struct {
 	 One past last actual position indicates past-end-of-string
      */
      int perl_pos;
+     /* Position of problem -- unspecifed if not returning a problem */
+     int problem_pos;
      /* Location (exclusive) at which to stop reading */
      int end_pos;
      SV* input;
@@ -492,6 +494,7 @@ static Unicode_Stream* u_new(SV* g_sv)
   stream->g0_sv = g_sv;
   stream->input = newSVpvn ("", 0);
   stream->perl_pos = 0;
+  stream->problem_pos = -1;
   stream->end_pos = 0;
   stream->pos_db = 0;
   stream->pos_db_logical_size = -1;
@@ -1939,6 +1942,7 @@ slr_alternatives (Scanless_R * slr)
 	    {
 	      if (unforgiven)
 		{
+		  stream->problem_pos = slr->start_of_lexeme;
 		  return "no lexemes accepted";
 		}
 	      if (discarded)
@@ -3164,6 +3168,17 @@ pos( stream )
 PPCODE:
 {
   XSRETURN_IV(stream->perl_pos);
+}
+
+void
+problem_pos( stream )
+     Unicode_Stream *stream;
+PPCODE:
+{
+  if (stream->problem_pos < 0) {
+     XSRETURN_UNDEF;
+  }
+  XSRETURN_IV(stream->problem_pos);
 }
 
 void
