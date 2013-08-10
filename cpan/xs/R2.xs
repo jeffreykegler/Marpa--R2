@@ -1940,14 +1940,14 @@ slr_alternatives (Scanless_R * slr)
 
 	  if (!is_priority_set)
 	    {
+	      if (discarded)
+		{
+		  return 0;
+		}
 	      if (unforgiven)
 		{
 		  stream->problem_pos = slr->start_of_lexeme;
 		  return "no lexemes accepted";
-		}
-	      if (discarded)
-		{
-		  return 0;
 		}
 	      goto LOOK_AT_PREVIOUS_EARLEME;
 	    }
