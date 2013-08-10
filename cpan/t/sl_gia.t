@@ -76,6 +76,38 @@ my @tests_data = (
     ],
 );
 
+my $durand_grammar1 = Marpa::R2::Scanless::G->new(
+    {   source => \(<<'END_OF_SOURCE'),
+:default ::= action => ::array
+:start ::= test
+test ::= TEST
+:lexeme ~ TEST
+TEST                  ~ '## Allowed in the input' NEWLINE
+WS                    ~ [ \t]
+WS_any                ~ WS*
+POUND                 ~ '#'
+_NEWLINE              ~ [\n]
+NOT_NEWLINE_any       ~ [^\n]*
+NEWLINE              ~ _NEWLINE
+COMMENT               ~ WS_any POUND NOT_NEWLINE_any _NEWLINE
+:discard              ~ COMMENT
+BLANKLINE             ~ WS_any _NEWLINE
+:discard              ~ BLANKLINE
+END_OF_SOURCE
+    }
+);
+
+push @tests_data, [
+    $durand_grammar1, <<INPUT,
+## Allowed in the input
+
+# Another comment
+INPUT
+    [ "## Allowed in the input\n" ],
+    'Parse OK',
+    'Jean-Damien Durand test of discard versus accepted'
+];
+
 TEST:
 for my $test_data (@tests_data) {
     my ( $grammar, $test_string, $expected_value, $expected_result,
