@@ -15,6 +15,12 @@
 
 Revision history for Marpa::R2
 
+2.067_002
+
+   *  Fix bug discovered by Jean-Damien Durand --
+      discarding lexemes should take precedence over rejecting
+      them.
+
 2.067_001
 
    *  Doc fixes
