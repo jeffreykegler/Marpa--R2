@@ -183,19 +183,40 @@ sub Marpa::R2::Scanless::R::range_to_string {
 # Given a scanless recognizer and
 # and two earley sets, return the input string
 sub Marpa::R2::Scanless::R::substring {
-    my ( $self, $start_earley_set, $length_in_parse_locations ) = @_;
-    return if not defined $start_earley_set;
-    my $thin_self = $self->[Marpa::R2::Inner::Scanless::R::C];
-    my ($first_start_position) = $thin_self->span( $start_earley_set + 1 );
+    my ( $slr, $start_earley_set, $length_in_parse_locations ) = @_;
+    return
+        if not defined $start_earley_set
+            or not defined $length_in_parse_locations;
+    my $thick_g1_recce =
+        $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+    my $thin_g1_recce     = $thick_g1_recce->thin();
+    my $latest_earley_set = $thin_g1_recce->latest_earley_set();
+
+    my $earley_set_for_first_position = $start_earley_set + 1;
+    my $earley_set_for_last_position =
+        $start_earley_set + $length_in_parse_locations;
+
+    die 'Error in $slr->substring(',
+        "$start_earley_set, $length_in_parse_locations", '): ',
+        "start ($start_earley_set) is at or after latest_earley_set ($latest_earley_set)"
+        if $earley_set_for_first_position > $latest_earley_set;
+    die 'Error in $slr->substring(',
+        "$start_earley_set, $length_in_parse_locations", '): ',
+        "end ( $start_earley_set + $length_in_parse_locations ) is after latest_earley_set ($latest_earley_set)"
+        if $earley_set_for_last_position > $latest_earley_set;
+
+    my $thin_slr = $slr->[Marpa::R2::Inner::Scanless::R::C];
+    my ($first_start_position) =
+        $thin_slr->span($earley_set_for_first_position);
     my ( $last_start_position, $last_length ) =
-        $thin_self->span( $start_earley_set + $length_in_parse_locations );
+        $thin_slr->span($earley_set_for_last_position);
     my $length_in_characters =
         ( $last_start_position + $last_length ) - $first_start_position;
 
     # Negative lengths are quite possible if the application has jumped around in
     # the input.
     return q{} if $length_in_characters <= 0;
-    my $p_input = $self->[Marpa::R2::Inner::Scanless::R::P_INPUT_STRING];
+    my $p_input = $slr->[Marpa::R2::Inner::Scanless::R::P_INPUT_STRING];
     return substr ${$p_input}, $first_start_position, $length_in_characters;
 } ## end sub Marpa::R2::Scanless::R::substring
 
@@ -738,7 +759,6 @@ my $libmarpa_trace_event_handlers = {
             $slr->[Marpa::R2::Inner::Scanless::R::TRACE_FILE_HANDLE];
         my $thick_g1_recce =
             $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
-        my $thin_g1_recce    = $thick_g1_recce->thin();
         my $thick_g1_grammar = $thick_g1_recce->grammar();
         my $g1_tracer        = $thick_g1_grammar->tracer();
         say {$trace_file_handle} 'Accepted lexeme @',
@@ -762,7 +782,6 @@ my $libmarpa_trace_event_handlers = {
             $slr->[Marpa::R2::Inner::Scanless::R::TRACE_FILE_HANDLE];
         my $thick_g1_recce =
             $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
-        my $thin_g1_recce    = $thick_g1_recce->thin();
         my $thick_g1_grammar = $thick_g1_recce->grammar();
         my $g1_tracer        = $thick_g1_grammar->tracer();
         say {$trace_file_handle} 'Rejected lexeme @',
@@ -786,7 +805,6 @@ my $libmarpa_trace_event_handlers = {
             $slr->[Marpa::R2::Inner::Scanless::R::TRACE_FILE_HANDLE];
         my $thick_g1_recce =
             $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
-        my $thin_g1_recce    = $thick_g1_recce->thin();
         my $thick_g1_grammar = $thick_g1_recce->grammar();
         my $g1_tracer        = $thick_g1_grammar->tracer();
         say {$trace_file_handle}
@@ -811,7 +829,6 @@ my $libmarpa_trace_event_handlers = {
             $slr->[Marpa::R2::Inner::Scanless::R::TRACE_FILE_HANDLE];
         my $thick_g1_recce =
             $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
-        my $thin_g1_recce    = $thick_g1_recce->thin();
         my $thick_g1_grammar = $thick_g1_recce->grammar();
         my $g1_tracer        = $thick_g1_grammar->tracer();
         say {$trace_file_handle}
@@ -913,7 +930,6 @@ my $libmarpa_trace_event_handlers = {
         my $end = $start + $length - 1;
         my $thick_g1_recce =
             $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
-        my $thin_g1_recce    = $thick_g1_recce->thin();
         my $thick_g1_grammar = $thick_g1_recce->grammar();
         my $g1_tracer        = $thick_g1_grammar->tracer();
         my $lexeme_name      = Marpa::R2::Grammar::original_symbol_name(
@@ -930,7 +946,6 @@ my $libmarpa_trace_event_handlers = {
         my $end = $start + $length - 1;
         my $thick_g1_recce =
             $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
-        my $thin_g1_recce    = $thick_g1_recce->thin();
         my $thick_g1_grammar = $thick_g1_recce->grammar();
         my $g1_tracer        = $thick_g1_grammar->tracer();
         my $lexeme_name      = Marpa::R2::Grammar::original_symbol_name(
@@ -946,7 +961,6 @@ my $libmarpa_trace_event_handlers = {
         my ( undef, undef, $g1_symbol_id, $start, $end ) = @{$event};
         my $thick_g1_recce =
             $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
-        my $thin_g1_recce    = $thick_g1_recce->thin();
         my $thick_g1_grammar = $thick_g1_recce->grammar();
         my $g1_tracer        = $thick_g1_grammar->tracer();
         my $lexeme           = Marpa::R2::Grammar::original_symbol_name(
