@@ -1815,7 +1815,6 @@ slr_alternatives (Scanless_R * slr)
       int current_lexeme_priority = 0;
       int lexemes_in_buffer = 0;
 
-      int is_expected;
       int return_value;
       return_value = marpa_r_progress_report_start (r0, earley_set);
       if (return_value < 0)
