@@ -21,7 +21,7 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 2;
+use Test::More tests => 6;
 use English qw( -no_match_vars );
 use lib 'inc';
 use Marpa::R2::Test;
@@ -106,6 +106,37 @@ INPUT
     [ "## Allowed in the input\n" ],
     'Parse OK',
     'Jean-Damien Durand test of discard versus accepted'
+];
+
+my $durand_grammar2 = Marpa::R2::Scanless::G->new(
+    {   source => \(<<'END_OF_SOURCE'),
+:default ::= action => ::array
+:start ::= test
+test ::= 'test input' NEWLINE
+WS                    ~ [ \t]
+WS_any                ~ WS*
+POUND                 ~ '#'
+_NEWLINE              ~ [\n]
+NOT_NEWLINE_any       ~ [^\n]*
+NEWLINE              ~ _NEWLINE
+COMMENT               ~ WS_any POUND NOT_NEWLINE_any _NEWLINE
+:discard              ~ COMMENT
+BLANKLINE             ~ WS_any _NEWLINE
+:discard              ~ BLANKLINE
+END_OF_SOURCE
+    }
+);
+
+push @tests_data, [
+    $durand_grammar2, <<INPUT,
+# Comment followed by a newline
+
+# Another comment
+test input
+INPUT
+    [ 'test input', "\n" ],
+    'Parse OK',
+    'Regression test of bug found by Jean-Damien Durand'
 ];
 
 TEST:
