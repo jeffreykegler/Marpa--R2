@@ -28,6 +28,8 @@ arbitrarily, suddenly and without notice.
 
 =head1 Items to do
 
+=head2 Allow lexemes to be specified as external
+
 =head2 Add case-insensitivity to strings
 
 This is very often wanted, and its absence is awkward to workaround.
