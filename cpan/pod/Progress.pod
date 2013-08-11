@@ -20,6 +20,7 @@ Marpa::R2::Progress - Progress reports on your parse
 =head1 About this document
 
 B<This document is under construction.>
+This document describes
 the progress reports for Marpa's SLIF interface.
 These allow an application to know
 exactly where it is in the parse at any
@@ -53,7 +54,7 @@ on tracing
 problems|Marpa::R2::Tracing> before
 reading this document.
 
-=head1 Introduction to Earley parsing
+=head1 Introduction to Earley items
 
 To read the
 L<C<show_progress>|Marpa::R2::Scanless::R/"show_progress">
@@ -66,6 +67,7 @@ is explained in this section.
 
 =head2 Dotted rules
 
+Marpa is based on Jay Earley's algorithm for parsing.
 The idea behind Earley's algorithm is that you can
 parse by building a table of rules
 and where you are in those rules.
@@ -124,10 +126,10 @@ A completion indicates that a rule has been fully recognized.
 
 The dotted rules contain
 all but one piece of the information
-that Earley's algorithm
+that Marpa
 needs to track.
 The missing piece is the second of the two "wheres": where in the input stream.
-To associate input stream location and dotted rules, Earley's algorithm uses what are now called Earley items.
+To associate input stream location and dotted rules, Marpa uses what are now called Earley items.
 
 A convenient way to think of an B<Earley item> is as a triple, or 3-tuple,
 consisting of dotted rule, origin and current location.
@@ -644,30 +646,34 @@ the same as the location of the parse report.
 When progress reports are used for production parsing,
 instead of just for debugging and tracing,
 efficiency considerations become significant.
-We will start with the good news.
-C<progress()> is implemented in C, so that the
-application can usually expect calls to
-C<progress()> to be extremely fast.
+Progress reports themselves are implemented in optimized C,
+and that logic is very fast.
+However, the use of progress reports usually implies considerable
+post-processing in Perl.
+It is almost always possible to use Marpa's named events instead
+of progress reports, and solutions using named events are usually
+better targeted, simpler and faster.
 
-Now, as to the potential bad news:
-Applications planning frequent use of calls
-to C<progress()> need to be aware that,
-where there is a right recursion at a parse location,
-C<progress()> needs to follow the entire chain
-of recursions to create the progress report.
-That this is happening will always be evident
+If you do decide to use progress reports in an application,
+you should be aware of the efficiency considerations when there
+are right recursions in the grammar.
+For most purposes,
+Marpa optimizes right recursions,
+so that they run in linear time.
+However, to create a progress report every potential right recursion must
+be fully unfolded, and the number of these grow quadratically with the length
+of the recursion.
+For a lengthy right recursion, this can have a big effect.
+
+If lengthy right recursions are being expanded,
+this will be evident
 from the parse report itself,
 which will contain one report item
 for every completion in the right-recursive
 chain of completions.
-If an application tries to
-produce progress reports for a large number of parse locations,
-and these parse locations have long right recursive chains,
-it can prove computationally expensive.
-
-The efficiency consideration just mentioned
+Note that the efficiency consideration just mentioned
 for following right recursions
-is not an issue for left recursions.
+is never an issue for left recursions.
 Left recursions only produce at most two report
 items per parse location
 and are extremely fast to process.
