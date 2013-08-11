@@ -35,8 +35,10 @@ my $progress_report = q{};
 # name: SLIF Debug Example Part 1
 
 my $slg = Marpa::R2::Scanless::G->new(
-    {  source => \(<<'END_OF_SOURCE')
-:default ::= action => ::array
+    {
+    bless_package => 'My_Nodes',
+    source => \(<<'END_OF_SOURCE')
+:default ::= action => ::array bless => ::lhs
 :start ::= statements
 statements ::= statement*
 statement ::= assignment | <numeric assignment>
