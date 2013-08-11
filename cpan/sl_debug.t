@@ -36,20 +36,27 @@ my $progress_report = q{};
 
 my $slg = Marpa::R2::Scanless::G->new(
     {  source => \(<<'END_OF_SOURCE')
+:default ::= action => ::array
 :start ::= statements
 statements ::= statement*
 statement ::= assignment | <numeric assignment>
 assignment ::= 'set' variable 'to' expression
 <numeric assignment> ::= variable '=' expression
 expression ::=
-       variable
+       variable | string
+    || 'string' '(' <numeric expression> ')'
     || expression '+' expression
 <numeric expression> ::=
        variable | number
-    || expression '+' expression
-    || expression '*' expression
+    || <numeric expression> '+' <numeric expression>
+    || <numeric expression> '*' <numeric expression>
 variable ~ [\w]+
 number ~ [\d]+
+string ~ ['] <string contents> [']
+<string contents> ~ [^'\x{0A}\x{0B}\x{0C}\x{0D}\x{0085}\x{2028}\x{2029}]+
+:discard ~ whitespace
+whitespace ~ [\s]+
+
 END_OF_SOURCE
 });
 
@@ -60,19 +67,21 @@ open my $trace_fh, q{>}, \( my $trace_output = q{} );
 ## use critic
 
 # Marpa::R2::Display
-# name: Grammar set Synopsis
+# name: SLIF Grammar set() Synopsis
 
 $slg->set( { trace_file_handle => $trace_fh } );
 
 # Marpa::R2::Display::End
 
 # Marpa::R2::Display
-# name: Debug Example Part 2
+# name: SLIF Debug Example Part 2
 
 my $slr = Marpa::R2::Scanless::R->new(
     { grammar => $slg } );
 
-die if not defined $slr->read( \'a = 8675309 + 42 * 711' );
+eval { $slr->read( \'a = 8675309 + 42 * 711' ); };
+
+say $EVAL_ERROR;
 
 $progress_report = $slr->show_progress( 0, -1 );
 
@@ -81,10 +90,12 @@ $progress_report = $slr->show_progress( 0, -1 );
 my $value_ref = $slr->value();
 my $value = $value_ref ? ${$value_ref} : 'No Parse';
 
+die Data::Dumper::Dumper($value);
+
 Test::More::is( $value, 42, 'value' );
 
 # Marpa::R2::Display
-# name: Debug Example Progress Report
+# name: SLIF Debug Example Progress Report
 # start-after-line: END_PROGRESS_REPORT
 # end-before-line: '^END_PROGRESS_REPORT$'
 
@@ -111,14 +122,14 @@ $Data::Dumper::Indent = 0;
 $Data::Dumper::Terse  = 1;
 
 # Marpa::R2::Display
-# name: progress(0) example
+# name: SLIF progress(0) example
 
 my $report0 = $slr->progress(0);
 
 # Marpa::R2::Display::End
 
 # Marpa::R2::Display
-# name: progress() output at location 0
+# name: SLIF progress() output at location 0
 # start-after-line: END_PROGRESS_REPORT
 # end-before-line: '^END_PROGRESS_REPORT$'
 
@@ -138,7 +149,7 @@ Marpa::R2::Test::is( Data::Dumper::Dumper($report0),
 my $report1 = $slr->progress(1);
 
 # Marpa::R2::Display
-# name: progress() output at location 1
+# name: SLIF progress() output at location 1
 # start-after-line: END_PROGRESS_REPORT
 # end-before-line: '^END_PROGRESS_REPORT$'
 
@@ -158,7 +169,7 @@ Marpa::R2::Test::is( Data::Dumper::Dumper($report1),
 my $report2 = $slr->progress(2);
 
 # Marpa::R2::Display
-# name: progress() output at location 2
+# name: SLIF progress() output at location 2
 # start-after-line: END_PROGRESS_REPORT
 # end-before-line: '^END_PROGRESS_REPORT$'
 
@@ -176,14 +187,14 @@ Marpa::R2::Test::is( Data::Dumper::Dumper($report2),
     $expected_report2, 'progress report at location -2' );
 
 # Marpa::R2::Display
-# name: progress() example
+# name: SLIF progress() example
 
 my $latest_report = $slr->progress();
 
 # Marpa::R2::Display::End
 
 # Marpa::R2::Display
-# name: progress() output at location 3
+# name: SLIF progress() output at location 3
 # start-after-line: END_PROGRESS_REPORT
 # end-before-line: '^END_PROGRESS_REPORT$'
 
@@ -206,7 +217,7 @@ Marpa::R2::Test::is( Data::Dumper::Dumper($latest_report),
     $expected_report3, 'progress report at location -1' );
 
 # Marpa::R2::Display
-# name: Debug Example Trace Output
+# name: SLIF Debug Example Trace Output
 # start-after-line: END_TRACE_OUTPUT
 # end-before-line: '^END_TRACE_OUTPUT$'
 

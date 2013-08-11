@@ -106,6 +106,19 @@ Trace output and warning messages
 go to the trace file handle.
 By default the trace file handle is C<STDERR>.
 
+=head1 Mutator
+
+=for Marpa::R2::Display
+name: SLIF grammar set() synopsis
+
+    $slg->set( { trace_file_handle => $trace_fh } );
+
+=for Marpa::R2::Display::End
+
+This method allows the named arguments to be changed after an SLIF
+grammar is created.
+Currently, the only argument that may be changed in C<trace_file_handle>.
+
 =head1 Accessors
 
 =head2 rule()
