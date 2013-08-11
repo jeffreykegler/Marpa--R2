@@ -298,11 +298,6 @@ sub Marpa::R2::Scanless::G::new {
     $self->[Marpa::R2::Inner::Scanless::G::G1_ARGS] = {};
     ARG: for my $arg_name ( keys %{$args} ) {
         my $value = $args->{$arg_name};
-        if ( $arg_name eq 'trace_file_handle' ) {
-            $self->[Marpa::R2::Inner::Scanless::G::TRACE_FILE_HANDLE] =
-                $value;
-            next ARG;
-        }
         if ( $arg_name eq 'action_object' ) {
             $self->[Marpa::R2::Inner::Scanless::G::G1_ARGS]->{$arg_name} =
                 $value;
@@ -321,10 +316,8 @@ sub Marpa::R2::Scanless::G::new {
             $rules_source = $value;
             next ARG;
         }
-        Carp::croak(
-            "$G_PACKAGE does not know one of the options given to it:\n",
-            qq{   The options not recognized was "$arg_name"\n}
-        );
+        $self->set( { $arg_name => $value });
+        next ARG;
     } ## end ARG: for my $arg_name ( keys %{$args} )
 
     if ( not defined $rules_source ) {
@@ -348,6 +341,48 @@ sub Marpa::R2::Scanless::G::new {
     return $self;
 
 } ## end sub Marpa::R2::Scanless::G::new
+
+sub Marpa::R2::Scanless::G::set {
+    my ( $slg, $args ) = @_;
+
+    my $ref_type = ref $args;
+    if ( not $ref_type ) {
+        Carp::croak(
+            "\$slg->set() expects args as ref to HASH; arg was non-reference"
+        );
+    }
+    if ( $ref_type ne 'HASH' ) {
+        Carp::croak(
+            "\$slg->set() expects args as ref to HASH, got ref to $ref_type instead"
+        );
+    }
+
+    # Other possible grammar options:
+    # actions
+    # default_empty_action
+    # default_rank
+    # inaccessible_ok
+    # symbols
+    # terminals
+    # unproductive_ok
+    # warnings
+
+    ARG: for my $arg_name ( keys %{$args} ) {
+        my $value = $args->{$arg_name};
+        if ( $arg_name eq 'trace_file_handle' ) {
+            $slg->[Marpa::R2::Inner::Scanless::G::TRACE_FILE_HANDLE] =
+                $value;
+            next ARG;
+        }
+        Carp::croak(
+            '$slg->set does not know one of the options given to it:',
+            qq{\n   The options not recognized was "$arg_name"\n}
+        );
+    } ## end ARG: for my $arg_name ( keys %{$args} )
+
+    return $slg;
+
+} ## end sub Marpa::R2::Scanless::G::set
 
 sub Marpa::R2::Scanless::G::_hash_to_runtime {
     my ( $self, $hashed_source ) = @_;
