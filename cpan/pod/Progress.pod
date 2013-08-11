@@ -30,21 +30,8 @@ progress reports list all the rules in play,
 and indicate the location at which the rule started,
 and how far into the rule parsing has progressed.
 
-For those new to parsing, this "situational awareness"
-might seem to be a feature that they can expect
-from any servicable parser.
-In fact,
-situation awareness in most parsers is extremely limited,
-and it tends to be more limited in those
-parsers considered production quality.
-Marpa is not just unusual in the amount of feedback
-it offers the application,
-it breaks new ground.
-
 Progress reports are extremely useful in
-debugging grammars.
-Because debugging creates a
-clear "narrative",
+debugging grammars and
 the detailed example in
 this document is a debugging situation.
 Readers specifically interested in debugging
