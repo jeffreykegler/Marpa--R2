@@ -82,8 +82,8 @@ $slg->set( { trace_file_handle => $trace_fh } );
 my $slr = Marpa::R2::Scanless::R->new(
     { grammar => $slg } );
 
-eval { $slr->read( \'a = 8675309 + 42 * 711' ); };
-
+my $test_input = 'a = 8675309 + 42 * 711' ;
+eval { $slr->read( \$test_input ) };
 say $EVAL_ERROR;
 
 $progress_report = $slr->show_progress( 0, -1 );
@@ -91,11 +91,24 @@ $progress_report = $slr->show_progress( 0, -1 );
 # Marpa::R2::Display::End
 
 my $value_ref = $slr->value();
-my $value = $value_ref ? ${$value_ref} : 'No Parse';
-
-say STDERR Data::Dumper::Dumper($value);
-
-Test::More::is( $value, 42, 'value' );
+my $expected_output = \bless( [
+                 bless( [
+                          bless( [
+                                   'a',
+                                   '=',
+                                   bless( [
+                                            bless( [
+                                                     '8675309'
+                                                   ], 'My_Nodes::expression' ),
+                                            '+',
+                                            bless( [
+                                                     '42'
+                                                   ], 'My_Nodes::expression' )
+                                          ], 'My_Nodes::expression' )
+                                 ], 'My_Nodes::numeric_assignment' )
+                        ], 'My_Nodes::statement' )
+               ], 'My_Nodes::statements' );
+Test::More::is_deeply( $value_ref, $expected_output, 'Value before fix' );
 
 # Marpa::R2::Display
 # name: SLIF Debug Example Progress Report
@@ -240,11 +253,56 @@ END_TRACE_OUTPUT
 
 # Marpa::R2::Display::End
 
-
 $slif_debug_source =~
-s{^ [<] numeric \s+ assignment [>] \s+ [:][:][=] \s+ variable \s+ ['][=]['] \s+ expression $}
-{<numeric assignment> ::= variable '=' <numeric expression>}xms;
-say $slif_debug_source;
+    s{^ [<] numeric \s+ assignment [>] \s+ [:][:][=] \s+ variable \s+ ['][=]['] \s+ expression $}
+    {<numeric assignment> ::= variable '=' <numeric expression>}xms;
+
+$slg = Marpa::R2::Scanless::G->new(
+    {
+    bless_package => 'My_Nodes',
+    source => \$slif_debug_source,
+});
+
+$slr = Marpa::R2::Scanless::R->new(
+    { grammar => $slg } );
+
+die if not defined $slr->read( \$test_input );
+$value_ref = $slr->value();
+my $expected_value_after_fix = \bless(
+    [   bless(
+            [   bless(
+                    [   'a', '=',
+                        bless(
+                            [   bless(
+                                    [   bless(
+                                            ['8675309'],
+                                            'My_Nodes::numeric_expression'
+                                        ),
+                                        '+',
+                                        bless(
+                                            ['42'],
+                                            'My_Nodes::numeric_expression'
+                                        )
+                                    ],
+                                    'My_Nodes::numeric_expression'
+                                ),
+                                '*',
+                                bless(
+                                    ['711'], 'My_Nodes::numeric_expression'
+                                )
+                            ],
+                            'My_Nodes::numeric_expression'
+                        )
+                    ],
+                    'My_Nodes::numeric_assignment'
+                )
+            ],
+            'My_Nodes::statement'
+        )
+    ],
+    'My_Nodes::statements'
+);
+Test::More::is_deeply($value_ref, $expected_value_after_fix, 'Value after fix');
 
 1;    # In case used as "do" file
 
