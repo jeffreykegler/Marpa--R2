@@ -84,11 +84,20 @@ my $slr = Marpa::R2::Scanless::R->new(
 
 my $test_input = 'a = 8675309 + 42 * 711' ;
 eval { $slr->read( \$test_input ) };
-say $EVAL_ERROR;
 
 $progress_report = $slr->show_progress( 0, -1 );
 
 # Marpa::R2::Display::End
+
+my $eval_error = $EVAL_ERROR;
+$eval_error =~ s/^(Marpa::R2 \s+ exception \s+ at) .*/$1\n/xms;
+Marpa::R2::Test::is($eval_error, <<'END_OF_TEXT', 'Error message before fix');
+Error in SLIF parse: No lexemes accepted at line 1, column 18
+* String before error: a = 8675309 + 42\s
+* The error was at line 1, column 18, and at character 0x002a '*', ...
+* here: * 711
+Marpa::R2 exception at
+END_OF_TEXT
 
 my $value_ref = $slr->value();
 my $expected_output = \bless( [
