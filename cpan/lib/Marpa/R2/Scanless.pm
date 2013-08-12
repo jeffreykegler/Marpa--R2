@@ -1233,6 +1233,7 @@ sub Marpa::R2::Scanless::R::read_problem {
     my $g1_tracer        = $thick_g1_grammar->tracer();
 
     my $pos      = $stream->pos();
+    my $problem_pos = $pos;
     my $p_string = $slr->[Marpa::R2::Inner::Scanless::R::P_INPUT_STRING];
     my $length_of_string = length ${$p_string};
 
@@ -1259,7 +1260,7 @@ sub Marpa::R2::Scanless::R::read_problem {
             last CODE_TO_PROBLEM;
         }
         if ( $problem_code eq 'no lexemes accepted' ) {
-            my $problem_pos = $stream->problem_pos();
+            $problem_pos = $stream->problem_pos();
             my ( $line, $column ) = $slr->line_column($problem_pos);
             $problem = "No lexemes accepted at line $line, column $column";
             last CODE_TO_PROBLEM;
@@ -1347,33 +1348,14 @@ sub Marpa::R2::Scanless::R::read_problem {
         }
     } ## end DESC:
     my $read_string_error;
-    if ($g1_status) {
-        my $latest_earley_set = $thin_g1_recce->latest_earley_set();
-        my ( $start_location, $length ) = $thin_slr->span($latest_earley_set);
-        my ( $line,           $column ) = $thin_slr->line_column($pos);
-        my $last_pos = $start_location + $length;
-        my $prefix =
-            $last_pos >= 50
-            ? ( substr ${$p_string}, $last_pos - 50, 50 )
-            : ( substr ${$p_string}, 0, $last_pos );
-        $read_string_error =
-              "Error in SLIF parse: $desc\n"
-            . '* String before error: '
-            . Marpa::R2::escape_string( $prefix, -50 ) . "\n"
-            . "* The error was at line $line, column $column, ...\n"
-            . '* here: '
-            . Marpa::R2::escape_string(
-            ( substr ${$p_string}, $last_pos, 50 ), 50 )
-            . "\n";
-    } ## end if ($g1_status)
-    elsif ( $pos < $length_of_string ) {
-        my $char = substr ${$p_string}, $pos, 1;
+    if ( $problem_pos < $length_of_string or $problem_pos < $length_of_string) {
+        my $char = substr ${$p_string}, $problem_pos, 1;
         my $char_desc = character_describe($char);
-        my ( $line, $column ) = $thin_slr->line_column($pos);
+        my ( $line, $column ) = $thin_slr->line_column($problem_pos);
         my $prefix =
-            $pos >= 50
-            ? ( substr ${$p_string}, $pos - 50, 50 )
-            : ( substr ${$p_string}, 0, $pos );
+            $problem_pos >= 50
+            ? ( substr ${$p_string}, $problem_pos - 50, 50 )
+            : ( substr ${$p_string}, 0, $problem_pos );
 
         $read_string_error =
               "Error in SLIF parse: $desc\n"
@@ -1381,10 +1363,10 @@ sub Marpa::R2::Scanless::R::read_problem {
             . Marpa::R2::escape_string( $prefix, -50 ) . "\n"
             . "* The error was at line $line, column $column, and at character $char_desc, ...\n"
             . '* here: '
-            . Marpa::R2::escape_string( ( substr ${$p_string}, $pos, 50 ),
+            . Marpa::R2::escape_string( ( substr ${$p_string}, $problem_pos, 50 ),
             50 )
             . "\n";
-    } ## end elsif ( $pos < $length_of_string )
+    } ## end elsif ( $problem_pos < $length_of_string )
     else {
         $read_string_error =
               "Error in SLIF parse: $desc\n"
