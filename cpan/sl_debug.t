@@ -34,10 +34,7 @@ my $progress_report = q{};
 # Marpa::R2::Display
 # name: SLIF Debug Example Part 1
 
-my $slg = Marpa::R2::Scanless::G->new(
-    {
-    bless_package => 'My_Nodes',
-    source => \(<<'END_OF_SOURCE')
+my $slif_debug_source = <<'END_OF_SOURCE';
 :default ::= action => ::array bless => ::lhs
 :start ::= statements
 statements ::= statement*
@@ -58,8 +55,12 @@ string ~ ['] <string contents> [']
 <string contents> ~ [^'\x{0A}\x{0B}\x{0C}\x{0D}\x{0085}\x{2028}\x{2029}]+
 :discard ~ whitespace
 whitespace ~ [\s]+
-
 END_OF_SOURCE
+
+my $slg = Marpa::R2::Scanless::G->new(
+    {
+    bless_package => 'My_Nodes',
+    source => \$slif_debug_source,
 });
 
 # Marpa::R2::Display::End
@@ -92,7 +93,7 @@ $progress_report = $slr->show_progress( 0, -1 );
 my $value_ref = $slr->value();
 my $value = $value_ref ? ${$value_ref} : 'No Parse';
 
-die Data::Dumper::Dumper($value);
+say STDERR Data::Dumper::Dumper($value);
 
 Test::More::is( $value, 42, 'value' );
 
@@ -238,6 +239,12 @@ Rejected "Add" at 3-4
 END_TRACE_OUTPUT
 
 # Marpa::R2::Display::End
+
+
+$slif_debug_source =~
+s{^ [<] numeric \s+ assignment [>] \s+ [:][:][=] \s+ variable \s+ ['][=]['] \s+ expression $}
+{<numeric assignment> ::= variable '=' <numeric expression>}xms;
+say $slif_debug_source;
 
 1;    # In case used as "do" file
 
