@@ -67,11 +67,13 @@ sub Marpa::R2::Internal::MetaAST::Parse::substring {
 
 sub ast_to_hash {
     my ( $ast ) = @_;
-    my $parse = {};
-    $parse->{g0_rules} = [];
-    $parse->{g1_rules} = [];
-    $parse->{meta_recce} = $ast->{meta_recce};
-    bless $parse, 'Marpa::R2::Internal::MetaAST::Parse';
+    my $hashed_ast = {};
+    $hashed_ast->{g0_rules} = [];
+    $hashed_ast->{g1_rules} = [];
+    my $g0_symbols = $hashed_ast->{g0_symbols} = {};
+    my $g1_symbols             = $hashed_ast->{g1_symbols} = {};
+    $hashed_ast->{meta_recce} = $ast->{meta_recce};
+    bless $hashed_ast, 'Marpa::R2::Internal::MetaAST::Parse';
 
     my ( undef, undef, @statements ) = @{$ast->{top_node}};
 
@@ -86,13 +88,13 @@ sub ast_to_hash {
     # Carp.
     my $eval_ok = eval {
         local $Marpa::R2::JUST_DIE = 1;
-        $_->evaluate($parse) for @statements;
+        $_->evaluate($hashed_ast) for @statements;
         1;
     };
     Marpa::R2::exception($EVAL_ERROR) if not $eval_ok;
 
-    my $g1_rules = $parse->{g1_rules};
-    my $g0_rules = $parse->{g0_rules};
+    my $g1_rules = $hashed_ast->{g1_rules};
+    my $g0_rules = $hashed_ast->{g0_rules};
     my %lex_lhs  = ();
     my %lex_rhs  = ();
     for my $lex_rule ( @{$g0_rules} ) {
@@ -100,10 +102,9 @@ sub ast_to_hash {
         $lex_rhs{$_} = 1 for @{ $lex_rule->{rhs} };
     }
 
-    my $g1_symbols             = {};
     my %is_lexeme =
         map { ( $_, 1 ); } grep { not $lex_rhs{$_} } keys %lex_lhs;
-    if ( my $lexeme_default_adverbs = $parse->{lexeme_default_adverbs} ) {
+    if ( my $lexeme_default_adverbs = $hashed_ast->{lexeme_default_adverbs} ) {
         my $blessing = $lexeme_default_adverbs->{bless};
         my $action   = $lexeme_default_adverbs->{action};
         LEXEME: for my $lexeme ( keys %is_lexeme ) {
@@ -133,9 +134,8 @@ sub ast_to_hash {
             } ## end DETERMINE_BLESSING:
             $g1_symbols->{$lexeme}->{semantics} = $action;
         } ## end LEXEME: for my $lexeme ( keys %is_lexeme )
-    } ## end if ( my $lexeme_default_adverbs = $parse->{...})
-    $parse->{is_lexeme}  = \%is_lexeme;
-    $parse->{g1_symbols} = $g1_symbols;
+    } ## end if ( my $lexeme_default_adverbs = $hashed_ast->{...})
+    $hashed_ast->{is_lexeme}  = \%is_lexeme;
 
     my @unproductive =
         grep { not $lex_lhs{$_} and not $_ =~ /\A \[\[ /xms } keys %lex_rhs;
@@ -143,19 +143,19 @@ sub ast_to_hash {
         Marpa::R2::exception( 'Unproductive lexical symbols: ',
             join q{ }, @unproductive );
     }
-    push @{ $parse->{g0_rules} },
+    push @{ $hashed_ast->{g0_rules} },
         map { ; { lhs => '[:start_lex]', rhs => [$_] } } sort keys %is_lexeme;
     my %stripped_character_classes = ();
     {
-        my $character_classes = $parse->{character_classes};
+        my $character_classes = $hashed_ast->{character_classes};
         for my $symbol_name ( sort keys %{$character_classes} ) {
             my ($re) = @{ $character_classes->{$symbol_name} };
             $stripped_character_classes{$symbol_name} = $re;
         }
     }
-    $parse->{character_classes} = \%stripped_character_classes;
+    $hashed_ast->{character_classes} = \%stripped_character_classes;
 
-    return $parse;
+    return $hashed_ast;
 } ## end sub ast_to_hash
 
 # This class is for pieces of RHS alternatives, as they are
