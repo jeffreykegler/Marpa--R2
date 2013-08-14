@@ -59,7 +59,7 @@ sub sort_bnf {
 my %cooked_parse_result = (
     is_lexeme         => $parse_result->{is_lexeme},
     character_classes => $parse_result->{character_classes},
-    g1_symbols        => $parse_result->{g1_symbols},
+    symbols        => $parse_result->{symbols},
 );
 
 for my $rule_set (qw(g0_rules g1_rules)) {

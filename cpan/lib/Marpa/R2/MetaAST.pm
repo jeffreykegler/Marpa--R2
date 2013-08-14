@@ -66,12 +66,13 @@ sub Marpa::R2::Internal::MetaAST::Parse::substring {
 } ## end sub Marpa::R2::Internal::MetaAST::Parse::substring
 
 sub ast_to_hash {
-    my ( $ast ) = @_;
+    my ($ast) = @_;
     my $hashed_ast = {};
     $hashed_ast->{g0_rules} = [];
     $hashed_ast->{g1_rules} = [];
     my $g0_symbols = $hashed_ast->{g0_symbols} = {};
-    my $g1_symbols             = $hashed_ast->{g1_symbols} = {};
+    my $g1_symbols = $hashed_ast->{symbols}->{G1} = {};
+
     $hashed_ast->{meta_recce} = $ast->{meta_recce};
     bless $hashed_ast, 'Marpa::R2::Internal::MetaAST::Parse';
 

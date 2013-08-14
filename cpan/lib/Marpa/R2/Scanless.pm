@@ -237,6 +237,8 @@ sub Marpa::R2::Internal::Scanless::meta_grammar {
     $self->[Marpa::R2::Inner::Scanless::G::BLESS_PACKAGE] =
         'Marpa::R2::Internal::MetaAST_Nodes';
     state $hashed_metag = Marpa::R2::Internal::MetaG::hashed_grammar();
+    $hashed_metag->{rules}->{G0} //= $hashed_metag->{g0_rules};
+    $hashed_metag->{rules}->{G1} //= $hashed_metag->{g1_rules};
     $self->_hash_to_runtime($hashed_metag);
 
     my $thick_g1_grammar =
@@ -419,7 +421,7 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
     $g1_args->{bless_package} =
         $self->[Marpa::R2::Inner::Scanless::G::BLESS_PACKAGE];
     $g1_args->{rules}   = $hashed_source->{g1_rules};
-    $g1_args->{symbols} = $hashed_source->{g1_symbols};
+    $g1_args->{symbols} = $hashed_source->{symbols}->{G1};
     state $g1_target_symbol = '[:start]';
     $g1_args->{start} = $g1_target_symbol;
     $g1_args->{'_internal_'} = 1;
