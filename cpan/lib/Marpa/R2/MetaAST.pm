@@ -68,8 +68,8 @@ sub Marpa::R2::Internal::MetaAST::Parse::substring {
 sub ast_to_hash {
     my ($ast) = @_;
     my $hashed_ast = {};
-    $hashed_ast->{g0_rules} = [];
-    $hashed_ast->{g1_rules} = [];
+    $hashed_ast->{rules}->{G0} = [];
+    $hashed_ast->{rules}->{G1} = [];
     my $g0_symbols = $hashed_ast->{g0_symbols} = {};
     my $g1_symbols = $hashed_ast->{symbols}->{G1} = {};
 
@@ -94,8 +94,7 @@ sub ast_to_hash {
     };
     Marpa::R2::exception($EVAL_ERROR) if not $eval_ok;
 
-    my $g1_rules = $hashed_ast->{g1_rules};
-    my $g0_rules = $hashed_ast->{g0_rules};
+    my $g0_rules = $hashed_ast->{rules}->{G0};
     my %lex_lhs  = ();
     my %lex_rhs  = ();
     for my $lex_rule ( @{$g0_rules} ) {
@@ -144,7 +143,7 @@ sub ast_to_hash {
         Marpa::R2::exception( 'Unproductive lexical symbols: ',
             join q{ }, @unproductive );
     }
-    push @{ $hashed_ast->{g0_rules} },
+    push @{ $hashed_ast->{rules}->{G0} },
         map { ; { lhs => '[:start_lex]', rhs => [$_] } } sort keys %is_lexeme;
     my %stripped_character_classes = ();
     {
@@ -496,7 +495,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::priority_rule::evaluate {
     my $priority_count = scalar @priorities;
     my @working_rules  = ();
 
-    my $rules = $subgrammar eq 'G1' ? $parse->{g1_rules} : $parse->{g0_rules};
+    my $rules = $parse->{rules}->{$subgrammar};
 
     my $default_adverbs = $parse->{default_adverbs}->{$subgrammar};
 
@@ -823,12 +822,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::empty_rule::evaluate {
     $parse->bless_hash_rule( \%rule, $blessing, $lhs );
 
     # mask not needed
-    if ( $subgrammar eq 'G1' ) {
-        push @{ $parse->{g1_rules} }, \%rule;
-    }
-    else {
-        push @{ $parse->{g0_rules} }, \%rule;
-    }
+    push @{ $parse->{rules}->{$subgrammar} }, \%rule;
     return 'consumed empty rule';
 } ## end sub Marpa::R2::Internal::MetaAST_Nodes::empty_rule::evaluate
 
@@ -910,7 +904,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::start_rule::evaluate {
     my ( $values, $parse ) = @_;
     my ( $start, $length, $symbol ) = @{$values};
     local $Marpa::R2::Internal::SUBGRAMMAR = 'G0';
-    push @{ $parse->{g1_rules} },
+    push @{ $parse->{rules}->{G1} },
         {
         lhs    => '[:start]',
         rhs    => $symbol->names($parse),
@@ -924,7 +918,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::discard_rule::evaluate {
     my ( $values, $parse ) = @_;
     my ( $start, $length, $symbol ) = @{$values};
     local $Marpa::R2::Internal::SUBGRAMMAR = 'G0';
-    push @{ $parse->{g0_rules} },
+    push @{ $parse->{rules}->{G0} },
         { lhs => '[:discard]', rhs => $symbol->names($parse) };
     ## no critic(Subroutines::ProhibitExplicitReturnUndef)
     return undef;
@@ -1016,12 +1010,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::quantified_rule::evaluate {
     }
     $parse->bless_hash_rule( \%sequence_rule, $blessing, $lhs_name );
 
-    if ( $subgrammar eq 'G1' ) {
-        push @{ $parse->{g1_rules} }, @rules;
-    }
-    else {
-        push @{ $parse->{g0_rules} }, @rules;
-    }
+    push @{ $parse->{rules}->{$subgrammar} }, @rules;
     return 'quantified rule consumed';
 
 } ## end sub Marpa::R2::Internal::MetaAST_Nodes::quantified_rule::evaluate
@@ -1190,7 +1179,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::character_class::evaluate {
         rhs  => $lexical_rhs,
         mask => [1],
     );
-    push @{ $parse->{g0_rules} }, \%lexical_rule;
+    push @{ $parse->{rules}->{G0} }, \%lexical_rule;
     my $g1_symbol =
         Marpa::R2::Internal::MetaAST::Symbol_List->new($lexical_lhs);
     return $g1_symbol;
@@ -1221,7 +1210,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::single_quoted_string::evaluate {
         rhs  => $lexical_rhs,
         mask => [ map { ; 1 } @{$lexical_rhs} ],
     );
-    push @{ $parse->{g0_rules} }, \%lexical_rule;
+    push @{ $parse->{rules}->{G0} }, \%lexical_rule;
     my $g1_symbol =
         Marpa::R2::Internal::MetaAST::Symbol_List->new($lexical_lhs);
     return $g1_symbol;

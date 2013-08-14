@@ -191,7 +191,7 @@ sub parse_rules {
         } ## end if ($problem)
     }
     my $hashed_ast = $ast->ast_to_hash();
-    $self->{rules} = $hashed_ast->{g1_rules};
+    $self->{rules} = $hashed_ast->{rules}->{G1};
     return $self;
 } ## end sub parse_rules
 

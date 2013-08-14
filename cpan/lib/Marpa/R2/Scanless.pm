@@ -392,7 +392,7 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
     my %lex_args = ();
     $lex_args{trace_file_handle} =
         $self->[Marpa::R2::Inner::Scanless::G::TRACE_FILE_HANDLE] // \*STDERR;
-    $lex_args{rules} = $hashed_source->{g0_rules};
+    $lex_args{rules} = $hashed_source->{rules}->{G0};
     state $lex_target_symbol = '[:start_lex]';
     $lex_args{start} = $lex_target_symbol;
     $lex_args{'_internal_'} = 1;
@@ -420,7 +420,7 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
         $self->[Marpa::R2::Inner::Scanless::G::TRACE_FILE_HANDLE] // \*STDERR;
     $g1_args->{bless_package} =
         $self->[Marpa::R2::Inner::Scanless::G::BLESS_PACKAGE];
-    $g1_args->{rules}   = $hashed_source->{g1_rules};
+    $g1_args->{rules}   = $hashed_source->{rules}->{G1};
     $g1_args->{symbols} = $hashed_source->{symbols}->{G1};
     state $g1_target_symbol = '[:start]';
     $g1_args->{start} = $g1_target_symbol;
