@@ -70,7 +70,7 @@ sub ast_to_hash {
     my $hashed_ast = {};
     $hashed_ast->{rules}->{G0} = [];
     $hashed_ast->{rules}->{G1} = [];
-    my $g0_symbols = $hashed_ast->{g0_symbols} = {};
+    my $g0_symbols = $hashed_ast->{symbols}->{G0} = {};
     my $g1_symbols = $hashed_ast->{symbols}->{G1} = {};
 
     $hashed_ast->{meta_recce} = $ast->{meta_recce};
@@ -1252,6 +1252,10 @@ sub char_class_to_symbol {
         $symbol =
             Marpa::R2::Internal::MetaAST::Symbol_List->new($symbol_name);
         $cc_hash->{$symbol_name} = [ $regex, $symbol ];
+        my $symbol_data = $parse->{symbols}->{$Marpa::R2::Internal::SUBGRAMMAR}->{$symbol_name};
+        $symbol_data->{dsl_name} = $regex;
+        $symbol_data->{display_form} = $regex;
+        $symbol_data->{description} = "Regex: $regex";
     } ## end if ( not defined $symbol )
     return $symbol;
 } ## end sub char_class_to_symbol
