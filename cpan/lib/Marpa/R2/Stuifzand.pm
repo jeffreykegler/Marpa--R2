@@ -103,6 +103,7 @@ single_symbol
 standard_name
 start_rule
 statement
+statements
 statement_body
 symbol
 symbol_name
@@ -133,7 +134,7 @@ my %catch_error_node =
 # This code goes to some trouble to report errors with a large enough contet
 # to be meaningful -- rules or alternatives
 
-sub Marpa::R2::Internal::Stuifzand::check_ast {
+sub Marpa::R2::Internal::Stuifzand::check_ast_node {
     my ($node) = @_;
     my $ref_type = ref $node;
     return if not $ref_type;
@@ -150,7 +151,7 @@ sub Marpa::R2::Internal::Stuifzand::check_ast {
             last NORMAL_PROCESSING;
         }
         for my $sub_node ( @{$node} ) {
-            $problem = Marpa::R2::Internal::Stuifzand::check_ast($sub_node);
+            $problem = Marpa::R2::Internal::Stuifzand::check_ast_node($sub_node);
             if ($problem) {
                 return $problem if not $catch_error;
                 last NORMAL_PROCESSING;
@@ -172,16 +173,15 @@ sub Marpa::R2::Internal::Stuifzand::check_ast {
             $problem_was_here,
             "\n"
         );
-} ## end sub Marpa::R2::Internal::Stuifzand::check_ast
+} ## end sub Marpa::R2::Internal::Stuifzand::check_ast_node
 
 sub parse_rules {
     my ($p_rules_source) = @_;
     my $self             = {};
-    my $parse = {};
-    my $ast              = Marpa::R2::Internal::MetaAST->new($p_rules_source, $parse);
+    my $ast              = Marpa::R2::Internal::MetaAST->new($p_rules_source);
     {
         local $Marpa::R2::Internal::P_SOURCE = $p_rules_source;
-        my $problem = Marpa::R2::Internal::Stuifzand::check_ast($ast);
+        my $problem = Marpa::R2::Internal::Stuifzand::check_ast_node($ast->{top_node});
         ## Uncaught problem -- should not happen
         if ($problem) {
             Marpa::R2::exception(
@@ -190,7 +190,7 @@ sub parse_rules {
             );
         } ## end if ($problem)
     }
-    my $hashed_ast = $ast->ast_to_hash($parse);
+    my $hashed_ast = $ast->ast_to_hash();
     $self->{rules} = $hashed_ast->{g1_rules};
     return $self;
 } ## end sub parse_rules

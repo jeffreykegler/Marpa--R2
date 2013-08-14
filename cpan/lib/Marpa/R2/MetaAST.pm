@@ -31,7 +31,7 @@ package Marpa::R2::Internal::MetaAST;
 use English qw( -no_match_vars );
 
 sub new {
-    my ( $class, $p_rules_source, $parse ) = @_;
+    my ( $class, $p_rules_source ) = @_;
 
     my $meta_recce   = Marpa::R2::Internal::Scanless::meta_recce();
     my $meta_grammar = $meta_recce->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
@@ -51,8 +51,8 @@ sub new {
     my $value_ref = $meta_recce->value();
     Marpa::R2::exception('Parse of BNF/Scanless source failed')
         if not defined $value_ref;
-    $parse->{meta_recce} = $meta_recce if defined $parse;
-    return bless ${$value_ref}, $class;
+    my $ast = { meta_recce => $meta_recce, top_node => ${$value_ref} };
+    return bless $ast, $class;
 
 } ## end sub new
 
@@ -66,12 +66,14 @@ sub Marpa::R2::Internal::MetaAST::Parse::substring {
 } ## end sub Marpa::R2::Internal::MetaAST::Parse::substring
 
 sub ast_to_hash {
-    my ( $ast, $parse ) = @_;
+    my ( $ast ) = @_;
+    my $parse = {};
     $parse->{g0_rules} = [];
     $parse->{g1_rules} = [];
+    $parse->{meta_recce} = $ast->{meta_recce};
     bless $parse, 'Marpa::R2::Internal::MetaAST::Parse';
 
-    my ( undef, undef, @statements ) = @{$ast};
+    my ( undef, undef, @statements ) = @{$ast->{top_node}};
 
     # This is the last ditch exception catcher
     # It forces all Marpa exceptions to be die's,

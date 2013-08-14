@@ -33,21 +33,14 @@ use Marpa::R2;
 use Getopt::Long;
 my $verbose         = 1;
 my $help_flag       = 0;
-my $ast_before_flag = 0;
 my $result          = Getopt::Long::GetOptions(
     'help'       => \$help_flag,
-    'ast_before' => \$ast_before_flag,
 );
 die "usage $PROGRAM_NAME [--help] file ...\n" if $help_flag;
 
 my $bnf = do { local $RS = undef; \(<>) };
-my $parse = {};
-my $ast = Marpa::R2::Internal::MetaAST->new($bnf, $parse);
-if ($ast_before_flag) {
-    say Data::Dumper::Dumper($ast);
-    exit 0;
-}
-my $parse_result = $ast->ast_to_hash($parse);
+my $ast = Marpa::R2::Internal::MetaAST->new($bnf);
+my $parse_result = $ast->ast_to_hash();
 
 sub sort_bnf {
     my $cmp = $a->{lhs} cmp $b->{lhs};
