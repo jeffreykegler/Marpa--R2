@@ -1167,13 +1167,15 @@ sub Marpa::R2::Internal::MetaAST_Nodes::character_class::names {
 
 sub Marpa::R2::Internal::MetaAST_Nodes::character_class::evaluate {
     my ( $values, $parse ) = @_;
-    my $symbol =
+    my $g0_symbol = do {
+        local $Marpa::R2::Internal::SUBGRAMMAR = 'G0';
         Marpa::R2::Internal::MetaAST::Symbol_List->char_class_to_symbol(
-        $parse, $values->[2] );
-    return $symbol if $Marpa::R2::Internal::SUBGRAMMAR eq 'G0';
+            $parse, $values->[2] );
+    };
+    return $g0_symbol if $Marpa::R2::Internal::SUBGRAMMAR eq 'G0';
     my $lexical_lhs_index = $parse->{lexical_lhs_index}++;
     my $lexical_lhs       = "[Lex-$lexical_lhs_index]";
-    my $lexical_rhs       = $symbol->names($parse);
+    my $lexical_rhs       = $g0_symbol->names($parse);
     my %lexical_rule      = (
         lhs  => $lexical_lhs,
         rhs  => $lexical_rhs,
@@ -1195,6 +1197,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::single_quoted_string::evaluate {
         1, -1
         )
     {
+        local $Marpa::R2::Internal::SUBGRAMMAR = 'G0';
         my $symbol =
             Marpa::R2::Internal::MetaAST::Symbol_List->char_class_to_symbol(
             $parse, $char_class );
@@ -1252,10 +1255,12 @@ sub char_class_to_symbol {
         $symbol =
             Marpa::R2::Internal::MetaAST::Symbol_List->new($symbol_name);
         $cc_hash->{$symbol_name} = [ $regex, $symbol ];
-        my $symbol_data = $parse->{symbols}->{$Marpa::R2::Internal::SUBGRAMMAR}->{$symbol_name};
-        $symbol_data->{dsl_name} = $regex;
+        my $symbol_data =
+            $parse->{symbols}->{$Marpa::R2::Internal::SUBGRAMMAR}
+            ->{$symbol_name} //= {};
+        $symbol_data->{dsl_name}     = $regex;
         $symbol_data->{display_form} = $regex;
-        $symbol_data->{description} = "Regex: $regex";
+        $symbol_data->{description}  = "Regex: $regex";
     } ## end if ( not defined $symbol )
     return $symbol;
 } ## end sub char_class_to_symbol

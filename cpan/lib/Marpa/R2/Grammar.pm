@@ -916,6 +916,18 @@ sub assign_symbol {
             $grammar_c->symbol_rank_set($symbol_id) = $value;
             next PROPERTY;
         } ## end if ( $property eq 'rank' )
+        if ( $property eq 'description' ) {
+            next PROPERTY;
+        }
+        if ( $property eq 'dsl_name' ) {
+            next PROPERTY;
+        }
+        if ( $property eq 'legacy_name' ) {
+            next PROPERTY;
+        }
+        if ( $property eq 'display_form' ) {
+            next PROPERTY;
+        }
         Marpa::R2::exception(qq{Unknown symbol property "$property"});
     } ## end PROPERTY: for my $property ( keys %{$options} )
 
@@ -933,12 +945,14 @@ sub assign_user_symbol {
         Marpa::R2::exception(
             "Symbol name was ref to $type; it must be a scalar string");
     }
-    my $final_symbol = substr $name, -1;
-    if ( $DEFAULT_SYMBOLS_RESERVED{$final_symbol} ) {
-        Marpa::R2::exception(
-            qq{Symbol name $name ends in "$final_symbol": that's not allowed}
-        );
-    }
+    if ( not $grammar->[Marpa::R2::Internal::Grammar::INTERNAL] ) {
+        my $final_symbol = substr $name, -1;
+        if ( $DEFAULT_SYMBOLS_RESERVED{$final_symbol} ) {
+            Marpa::R2::exception(
+                qq{Symbol name $name ends in "$final_symbol": that's not allowed}
+            );
+        }
+    } ## end if ( not $grammar->[Marpa::R2::Internal::Grammar::INTERNAL...])
     my $symbol = assign_symbol( $grammar, $name, $options );
 
     return $symbol;

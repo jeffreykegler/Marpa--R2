@@ -227,23 +227,23 @@ END_OF_EXPECTED_OUTPUT
         qq{Value of "$test_string"} );
     Marpa::R2::Test::is( $trace_output,
         <<'END_OF_OUTPUT', qq{Trace output for "$test_string"} );
-Registering character U+002b as symbol 5: [[\+]]
-Registering character U+002b as symbol 19: [[^\x{A}\x{B}\x{C}\x{D}\x{2028}\x{2029}]]
+Registering character U+002b as symbol 1: [[\+]]
+Registering character U+002b as symbol 5: [[^\x{A}\x{B}\x{C}\x{D}\x{2028}\x{2029}]]
 Accepted lexeme @0-1: [Lex-1]; value="+"
 Accepted lexeme @1-2: [Lex-1]; value="+"
 Accepted lexeme @2-3: [Lex-1]; value="+"
-Registering character U+0020 as symbol 10: [[\s]]
-Registering character U+0020 as symbol 19: [[^\x{A}\x{B}\x{C}\x{D}\x{2028}\x{2029}]]
-Registering character U+0031 as symbol 7: [[\d]]
-Registering character U+0031 as symbol 19: [[^\x{A}\x{B}\x{C}\x{D}\x{2028}\x{2029}]]
+Registering character U+0020 as symbol 3: [[\s]]
+Registering character U+0020 as symbol 5: [[^\x{A}\x{B}\x{C}\x{D}\x{2028}\x{2029}]]
+Registering character U+0031 as symbol 2: [[\d]]
+Registering character U+0031 as symbol 5: [[^\x{A}\x{B}\x{C}\x{D}\x{2028}\x{2029}]]
 Discarded lexeme @3-4: whitespace
 Accepted lexeme @4-5: Number; value="1"
-Registering character U+0032 as symbol 7: [[\d]]
-Registering character U+0032 as symbol 19: [[^\x{A}\x{B}\x{C}\x{D}\x{2028}\x{2029}]]
+Registering character U+0032 as symbol 2: [[\d]]
+Registering character U+0032 as symbol 5: [[^\x{A}\x{B}\x{C}\x{D}\x{2028}\x{2029}]]
 Discarded lexeme @5-6: whitespace
 Accepted lexeme @6-7: Number; value="2"
-Registering character U+0033 as symbol 7: [[\d]]
-Registering character U+0033 as symbol 19: [[^\x{A}\x{B}\x{C}\x{D}\x{2028}\x{2029}]]
+Registering character U+0033 as symbol 2: [[\d]]
+Registering character U+0033 as symbol 5: [[^\x{A}\x{B}\x{C}\x{D}\x{2028}\x{2029}]]
 Discarded lexeme @7-8: whitespace
 Accepted lexeme @8-9: Number; value="3"
 Discarded lexeme @9-10: whitespace
@@ -254,8 +254,8 @@ Discarded lexeme @13-14: whitespace
 Accepted lexeme @14-15: Number; value="1"
 Discarded lexeme @15-16: whitespace
 Accepted lexeme @16-17: Number; value="2"
-Registering character U+0034 as symbol 7: [[\d]]
-Registering character U+0034 as symbol 19: [[^\x{A}\x{B}\x{C}\x{D}\x{2028}\x{2029}]]
+Registering character U+0034 as symbol 2: [[\d]]
+Registering character U+0034 as symbol 5: [[^\x{A}\x{B}\x{C}\x{D}\x{2028}\x{2029}]]
 Discarded lexeme @17-18: whitespace
 Accepted lexeme @18-19: Number; value="4"
 END_OF_OUTPUT
