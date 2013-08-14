@@ -26,10 +26,6 @@ $STRING_VERSION = $VERSION;
 $VERSION = eval $VERSION;
 ## use critic
 
-# The grammars and recognizers are numbered starting
-# with the lexer, which is grammar 0 -- G0.
-# The "higher level", structural, grammar is G1.
-
 package Marpa::R2::Inner::Scanless;
 
 use Scalar::Util 'blessed';
@@ -37,7 +33,6 @@ use Scalar::Util 'blessed';
 # names of packages for strings
 our $G_PACKAGE = 'Marpa::R2::Scanless::G';
 our $R_PACKAGE = 'Marpa::R2::Scanless::R';
-our $GRAMMAR_LEVEL;
 our $TRACE_FILE_HANDLE;
 
 package Marpa::R2::Inner::Scanless::Symbol;

@@ -179,8 +179,7 @@ sub Marpa::R2::Internal::MetaAST::Proto_Alternative::combine {
 
 sub Marpa::R2::Internal::MetaAST::Parse::bless_hash_rule {
     my ( $parse, $hash_rule, $blessing, $original_lhs ) = @_;
-    my $grammar_level = $Marpa::R2::Internal::GRAMMAR_LEVEL;
-    return if $grammar_level == 0;
+    return if $Marpa::R2::Internal::SUBGRAMMAR eq 'G0';
     return if not defined $blessing;
     FIND_BLESSING: {
         last FIND_BLESSING if $blessing =~ /\A [\w] /xms;
@@ -427,24 +426,24 @@ sub Marpa::R2::Internal::MetaAST_Nodes::adverb_item::evaluate {
 sub Marpa::R2::Internal::MetaAST_Nodes::default_rule::evaluate {
     my ( $values, $parse ) = @_;
     my ( $start, $length, undef, $op_declare, $raw_adverb_list ) = @{$values};
-    my $grammar_level = $op_declare->op() eq q{::=} ? 1 : 0;
+    my $subgrammar = $op_declare->op() eq q{::=} ? 'G1' : 'G0';
     my $adverb_list = $raw_adverb_list->evaluate($parse);
 
     # A default rule clears the previous default
     my %default_adverbs = ();
-    $parse->{default_adverbs}->[$grammar_level] = \%default_adverbs;
+    $parse->{default_adverbs}->{$subgrammar} = \%default_adverbs;
 
     ADVERB: for my $key ( keys %{$adverb_list} ) {
         my $value = $adverb_list->{$key};
-        if ( $key eq 'action' and $grammar_level == 1 ) {
+        if ( $key eq 'action' and $subgrammar eq 'G1' ) {
             $default_adverbs{$key} = $adverb_list->{$key};
             next ADVERB;
         }
-        if ( $key eq 'bless' and $grammar_level == 1 ) {
+        if ( $key eq 'bless' and $subgrammar eq 'G1' ) {
             $default_adverbs{$key} = $adverb_list->{$key};
             next ADVERB;
         }
-        die qq{Adverb "$key" not allowed in G$grammar_level default rule\n},
+        die qq{Adverb "$key" not allowed in $subgrammar default rule\n},
             '  Rule was ', $parse->substring( $start, $length ), "\n";
     } ## end ADVERB: for my $key ( keys %{$adverb_list} )
     ## no critic(Subroutines::ProhibitExplicitReturnUndef)
@@ -454,7 +453,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::default_rule::evaluate {
 sub Marpa::R2::Internal::MetaAST_Nodes::lexeme_default_statement::evaluate {
     my ( $data, $parse ) = @_;
     my ( $start, $length, $raw_adverb_list ) = @{$data};
-    local $Marpa::R2::Internal::GRAMMAR_LEVEL = 1;
+    local $Marpa::R2::Internal::SUBGRAMMAR = 'G1';
 
     my $adverb_list = $raw_adverb_list->evaluate($parse);
     if ( exists $parse->{lexeme_default_adverbs} ) {
@@ -488,17 +487,17 @@ sub Marpa::R2::Internal::MetaAST_Nodes::priority_rule::evaluate {
     my ( $start, $length, $raw_lhs, $op_declare, $raw_priorities ) =
         @{$values};
 
-    my $grammar_level = $op_declare->op() eq q{::=} ? 1 : 0;
-    local $Marpa::R2::Internal::GRAMMAR_LEVEL = $grammar_level;
+    my $subgrammar = $op_declare->op() eq q{::=} ? 'G1' : 'G0';
+    local $Marpa::R2::Internal::SUBGRAMMAR = $subgrammar;
     my $lhs = $raw_lhs->name($parse);
 
     my ( undef, undef, @priorities ) = @{$raw_priorities};
     my $priority_count = scalar @priorities;
     my @working_rules  = ();
 
-    my $rules = $grammar_level >= 1 ? $parse->{g1_rules} : $parse->{g0_rules};
+    my $rules = $subgrammar eq 'G1' ? $parse->{g1_rules} : $parse->{g0_rules};
 
-    my $default_adverbs = $parse->{default_adverbs}->[$grammar_level];
+    my $default_adverbs = $parse->{default_adverbs}->{$subgrammar};
 
     if ( $priority_count <= 1 ) {
         ## If there is only one priority
@@ -526,7 +525,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::priority_rule::evaluate {
             } ## end if ( not $eval_ok )
             my @rhs_names = @{ $proto_rule->{rhs} };
             my @mask      = @{ $proto_rule->{mask} };
-            if ( $grammar_level <= 0 and grep { !$_ } @mask ) {
+            if ( $subgrammar eq 'G0' and grep { !$_ } @mask ) {
                 Marpa::R2::exception(
                     qq{hidden symbols are not allowed in lexical rules (rules LHS was "$lhs")}
                 );
@@ -567,7 +566,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::priority_rule::evaluate {
                 Marpa::R2::exception(
                     'actions not allowed in lexical rules (rules LHS was "',
                     $lhs, '")' )
-                    if $grammar_level <= 0;
+                    if $subgrammar eq 'G0';
                 $hash_rule{action} = $action;
             } ## end if ( defined $action )
 
@@ -576,19 +575,19 @@ sub Marpa::R2::Internal::MetaAST_Nodes::priority_rule::evaluate {
                 Marpa::R2::exception(
                     'ranks not allowed in lexical rules (rules LHS was "',
                     $lhs, '")' )
-                    if $grammar_level <= 0;
+                    if $subgrammar eq 'G0';
                 $hash_rule{rank} = $rank;
             } ## end if ( defined $rank )
 
             $blessing //= $default_adverbs->{bless};
             if ( defined $blessing
-                and $grammar_level <= 0 )
+                and $subgrammar eq 'G0' )
             {
                 Marpa::R2::exception(
                     'bless option not allowed in lexical rules (rules LHS was "',
                     $lhs, '")'
                 );
-            } ## end if ( defined $blessing and $grammar_level <= 0 )
+            } ## end if ( defined $blessing and $subgrammar eq 'G0' )
             $parse->bless_hash_rule( \%hash_rule, $blessing, $lhs );
 
             push @{$rules}, \%hash_rule;
@@ -627,7 +626,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::priority_rule::evaluate {
 
     # Default mask (all ones) is OK for this rule
     my @arg0_action = ();
-    @arg0_action = ( action => '::first' ) if $grammar_level > 0;
+    @arg0_action = ( action => '::first' ) if $subgrammar eq 'G1';
     push @{$rules},
         { lhs => $lhs, rhs => [ $lhs . '[prec0]' ], @arg0_action }, (
         map {
@@ -646,12 +645,12 @@ sub Marpa::R2::Internal::MetaAST_Nodes::priority_rule::evaluate {
 
         my $current_exp = $lhs . '[prec' . $priority . ']';
         my @mask        = @{ $rhs->{mask} };
-        if ( $grammar_level <= 0 and grep { !$_ } @mask ) {
+        if ( $subgrammar eq 'G0' and grep { !$_ } @mask ) {
             Marpa::R2::exception(
                 'hidden symbols are not allowed in lexical rules (rules LHS was "',
                 $lhs, '")'
             );
-        } ## end if ( $grammar_level <= 0 and grep { !$_ } @mask )
+        } ## end if ( $subgrammar eq 'G0' and grep { !$_ } @mask )
         my %new_xs_rule = ( lhs => $current_exp );
         $new_xs_rule{mask} = \@mask;
 
@@ -689,7 +688,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::priority_rule::evaluate {
             Marpa::R2::exception(
                 'actions not allowed in lexical rules (rules LHS was "',
                 $lhs, '")' )
-                if $grammar_level <= 0;
+                if $subgrammar eq 'G0';
             $new_xs_rule{action} = $action;
         } ## end if ( defined $action )
 
@@ -698,19 +697,19 @@ sub Marpa::R2::Internal::MetaAST_Nodes::priority_rule::evaluate {
             Marpa::R2::exception(
                 'ranks not allowed in lexical rules (rules LHS was "',
                 $lhs, '")' )
-                if $grammar_level <= 0;
+                if $subgrammar eq 'G0';
             $new_xs_rule{rank} = $rank;
         } ## end if ( defined $rank )
 
         $blessing //= $default_adverbs->{bless};
         if ( defined $blessing
-            and $grammar_level <= 0 )
+            and $subgrammar eq 'G0' )
         {
             Marpa::R2::exception(
                 'bless option not allowed in lexical rules (rules LHS was "',
                 $lhs, '")'
             );
-        } ## end if ( defined $blessing and $grammar_level <= 0 )
+        } ## end if ( defined $blessing and $subgrammar eq 'G0' )
         $parse->bless_hash_rule( \%new_xs_rule, $blessing, $lhs );
 
         my $next_priority = $priority + 1;
@@ -764,13 +763,13 @@ sub Marpa::R2::Internal::MetaAST_Nodes::empty_rule::evaluate {
         @{$values};
 
     my $lhs = $raw_lhs->name($parse);
-    my $grammar_level = $op_declare->op() eq q{::=} ? 1 : 0;
-    local $Marpa::R2::Internal::GRAMMAR_LEVEL = $grammar_level;
+    my $subgrammar = $op_declare->op() eq q{::=} ? 'G1' : 'G0';
+    local $Marpa::R2::Internal::SUBGRAMMAR = $subgrammar;
 
     my %rule = ( lhs => $lhs, rhs => [] );
     my $adverb_list = $raw_adverb_list->evaluate($parse);
 
-    my $default_adverbs = $parse->{default_adverbs}->[$grammar_level];
+    my $default_adverbs = $parse->{default_adverbs}->{$subgrammar};
 
     my $action;
     my $blessing;
@@ -799,7 +798,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::empty_rule::evaluate {
         Marpa::R2::exception(
             'actions not allowed in lexical rules (rules LHS was "',
             $lhs, '")' )
-            if $grammar_level <= 0;
+            if $subgrammar eq 'G0';
         $rule{action} = $action;
     } ## end if ( defined $action )
 
@@ -808,22 +807,22 @@ sub Marpa::R2::Internal::MetaAST_Nodes::empty_rule::evaluate {
         Marpa::R2::exception(
             'ranks not allowed in lexical rules (rules LHS was "',
             $lhs, '")' )
-            if $grammar_level <= 0;
+            if $subgrammar eq 'G0';
         $rule{rank} = $rank;
     } ## end if ( defined $rank )
 
     $blessing //= $default_adverbs->{bless};
     if ( defined $blessing
-        and $grammar_level <= 0 )
+        and $subgrammar eq 'G0' )
     {
         Marpa::R2::exception(
             'bless option not allowed in lexical rules (rules LHS was "',
             $lhs, '")' );
-    } ## end if ( defined $blessing and $grammar_level <= 0 )
+    } ## end if ( defined $blessing and $subgrammar eq 'G0' )
     $parse->bless_hash_rule( \%rule, $blessing, $lhs );
 
     # mask not needed
-    if ( $grammar_level >= 1 ) {
+    if ( $subgrammar eq 'G1' ) {
         push @{ $parse->{g1_rules} }, \%rule;
     }
     else {
@@ -909,7 +908,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::statement_body::evaluate {
 sub Marpa::R2::Internal::MetaAST_Nodes::start_rule::evaluate {
     my ( $values, $parse ) = @_;
     my ( $start, $length, $symbol ) = @{$values};
-    local $Marpa::R2::Internal::GRAMMAR_LEVEL = 0;
+    local $Marpa::R2::Internal::SUBGRAMMAR = 'G0';
     push @{ $parse->{g1_rules} },
         {
         lhs    => '[:start]',
@@ -923,7 +922,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::start_rule::evaluate {
 sub Marpa::R2::Internal::MetaAST_Nodes::discard_rule::evaluate {
     my ( $values, $parse ) = @_;
     my ( $start, $length, $symbol ) = @{$values};
-    local $Marpa::R2::Internal::GRAMMAR_LEVEL = 0;
+    local $Marpa::R2::Internal::SUBGRAMMAR = 'G0';
     push @{ $parse->{g0_rules} },
         { lhs => '[:discard]', rhs => $symbol->names($parse) };
     ## no critic(Subroutines::ProhibitExplicitReturnUndef)
@@ -935,11 +934,11 @@ sub Marpa::R2::Internal::MetaAST_Nodes::quantified_rule::evaluate {
     my ( $start, $length, $lhs, $op_declare, $rhs, $quantifier,
         $proto_adverb_list )
         = @{$values};
-    my $grammar_level = $op_declare->op() eq q{::=} ? 1 : 0;
-    local $Marpa::R2::Internal::GRAMMAR_LEVEL = $grammar_level;
+    my $subgrammar = $op_declare->op() eq q{::=} ? 'G1' : 'G0';
+    local $Marpa::R2::Internal::SUBGRAMMAR = $subgrammar;
 
     my $adverb_list     = $proto_adverb_list->evaluate($parse);
-    my $default_adverbs = $parse->{default_adverbs}->[$grammar_level];
+    my $default_adverbs = $parse->{default_adverbs}->{$subgrammar};
 
     # Some properties of the sequence rule will not be altered
     # no matter how complicated this gets
@@ -995,7 +994,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::quantified_rule::evaluate {
         Marpa::R2::exception(
             'actions not allowed in lexical rules (rules LHS was "',
             $lhs, '")' )
-            if $grammar_level <= 0;
+            if $subgrammar eq 'G0';
         $sequence_rule{action} = $action;
     } ## end if ( defined $action )
 
@@ -1004,19 +1003,19 @@ sub Marpa::R2::Internal::MetaAST_Nodes::quantified_rule::evaluate {
         Marpa::R2::exception(
             'ranks not allowed in lexical rules (rules LHS was "',
             $lhs, '")' )
-            if $grammar_level <= 0;
+            if $subgrammar eq 'G0';
         $sequence_rule{rank} = $rank;
     } ## end if ( defined $rank )
 
     $blessing //= $default_adverbs->{bless};
-    if ( defined $blessing and $grammar_level <= 0 ) {
+    if ( defined $blessing and $subgrammar eq 'G0' ) {
         Marpa::R2::exception(
             'bless option not allowed in lexical rules (rules LHS was "',
             $lhs, '")' );
     }
     $parse->bless_hash_rule( \%sequence_rule, $blessing, $lhs_name );
 
-    if ( $grammar_level > 0 ) {
+    if ( $subgrammar eq 'G1' ) {
         push @{ $parse->{g1_rules} }, @rules;
     }
     else {
@@ -1179,9 +1178,9 @@ sub Marpa::R2::Internal::MetaAST_Nodes::character_class::names {
 sub Marpa::R2::Internal::MetaAST_Nodes::character_class::evaluate {
     my ( $values, $parse ) = @_;
     my $symbol =
-        Marpa::R2::Internal::MetaAST::Symbol_List->new_from_char_class(
+        Marpa::R2::Internal::MetaAST::Symbol_List->char_class_to_symbol(
         $parse, $values->[2] );
-    return $symbol if $Marpa::R2::Internal::GRAMMAR_LEVEL <= 0;
+    return $symbol if $Marpa::R2::Internal::SUBGRAMMAR eq 'G0';
     my $lexical_lhs_index = $parse->{lexical_lhs_index}++;
     my $lexical_lhs       = "[Lex-$lexical_lhs_index]";
     my $lexical_rhs       = $symbol->names($parse);
@@ -1207,12 +1206,12 @@ sub Marpa::R2::Internal::MetaAST_Nodes::single_quoted_string::evaluate {
         )
     {
         my $symbol =
-            Marpa::R2::Internal::MetaAST::Symbol_List->new_from_char_class(
+            Marpa::R2::Internal::MetaAST::Symbol_List->char_class_to_symbol(
             $parse, $char_class );
         push @symbols, $symbol;
     } ## end for my $char_class ( map { '[' . ( quotemeta $_ ) . ']'...})
     my $list = Marpa::R2::Internal::MetaAST::Symbol_List->combine(@symbols);
-    return $list if $Marpa::R2::Internal::GRAMMAR_LEVEL <= 0;
+    return $list if $Marpa::R2::Internal::SUBGRAMMAR eq 'G0';
     my $lexical_lhs_index = $parse->{lexical_lhs_index}++;
     my $lexical_lhs       = "[Lex-$lexical_lhs_index]";
     my $lexical_rhs       = $list->names($parse);
@@ -1246,7 +1245,7 @@ sub combine {
 
 # Return the character class symbol name,
 # after ensuring everything is set up properly
-sub new_from_char_class {
+sub char_class_to_symbol {
     my ( $class, $parse, $char_class ) = @_;
 
     # character class symbol name always start with TWO left square brackets
@@ -1265,7 +1264,7 @@ sub new_from_char_class {
         $cc_hash->{$symbol_name} = [ $regex, $symbol ];
     } ## end if ( not defined $symbol )
     return $symbol;
-} ## end sub new_from_char_class
+} ## end sub char_class_to_symbol
 
 sub name {
     my ($self) = @_;
