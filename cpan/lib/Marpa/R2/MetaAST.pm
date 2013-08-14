@@ -628,11 +628,16 @@ sub Marpa::R2::Internal::MetaAST_Nodes::priority_rule::evaluate {
     my @arg0_action = ();
     @arg0_action = ( action => '::first' ) if $subgrammar eq 'G1';
     push @{$rules},
-        { lhs => $lhs, rhs => [ $lhs . '[prec0]' ], @arg0_action }, (
+        {
+        lhs => $lhs,
+        rhs => [ $parse->prioritized_symbol( $lhs, 0 ) ],
+        @arg0_action
+        },
+        (
         map {
             ;
-            {   lhs => ( $lhs . '[prec' . ( $_ - 1 ) . ']' ),
-                rhs => [ $lhs . '[prec' . $_ . ']' ],
+            {   lhs => $parse->prioritized_symbol( $lhs, $_ - 1 ),
+                rhs => [ $parse->prioritized_symbol( $lhs, $_ ) ],
                 @arg0_action
             }
         } 1 .. $priority_count - 1
@@ -643,8 +648,8 @@ sub Marpa::R2::Internal::MetaAST_Nodes::priority_rule::evaluate {
         my @arity   = grep { $new_rhs[$_] eq $lhs } 0 .. $#new_rhs;
         my $rhs_length  = scalar @new_rhs;
 
-        my $current_exp = $lhs . '[prec' . $priority . ']';
-        my @mask        = @{ $rhs->{mask} };
+        my $current_exp = $parse->prioritized_symbol( $lhs, $priority );
+        my @mask = @{ $rhs->{mask} };
         if ( $subgrammar eq 'G0' and grep { !$_ } @mask ) {
             Marpa::R2::exception(
                 'hidden symbols are not allowed in lexical rules (rules LHS was "',
@@ -714,7 +719,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::priority_rule::evaluate {
 
         my $next_priority = $priority + 1;
         $next_priority = 0 if $next_priority >= $priority_count;
-        my $next_exp = $lhs . '[prec' . $next_priority . ']';
+        my $next_exp = $parse->prioritized_symbol( $lhs, $next_priority);
 
         if ( not scalar @arity ) {
             $new_xs_rule{rhs} = \@new_rhs;
@@ -743,7 +748,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::priority_rule::evaluate {
             } ## end if ( $assoc eq 'R' )
             if ( $assoc eq 'G' ) {
                 for my $rhs_ix ( @arity[ 0 .. $#arity ] ) {
-                    $new_rhs[$rhs_ix] = $lhs . '[prec0]';
+                    $new_rhs[$rhs_ix] = $parse->prioritized_symbol( $lhs, 0 );
                 }
                 last DO_ASSOCIATION;
             } ## end if ( $assoc eq 'G' )
@@ -1264,6 +1269,25 @@ sub char_class_to_symbol {
     } ## end if ( not defined $symbol )
     return $symbol;
 } ## end sub char_class_to_symbol
+
+# Return the priotized symbol name,
+# after ensuring everything is set up properly
+sub Marpa::R2::Internal::MetaAST::Parse::prioritized_symbol {
+    my ( $parse, $base_symbol, $priority ) = @_;
+
+    # character class symbol name always start with TWO left square brackets
+    my $symbol_name = $base_symbol . '[' . $priority . ']';
+    my $symbol_data =
+        $parse->{symbols}->{$Marpa::R2::Internal::SUBGRAMMAR}->{$symbol_name};
+    return $symbol_name if defined $symbol_data;
+    $parse->{symbols}->{$Marpa::R2::Internal::SUBGRAMMAR}->{$symbol_name} = {
+        legacy_name  => $base_symbol,
+        dsl_name     => $base_symbol,
+        display_form => $base_symbol,
+        description  => "<$base_symbol> at priority $priority"
+    };
+    return $symbol_name;
+} ## end sub prioritized_symbol
 
 sub name {
     my ($self) = @_;
