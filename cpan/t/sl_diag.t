@@ -211,16 +211,16 @@ for my $test_data (@tests_data) {
 
     Marpa::R2::Test::is( $show_progress_output,
         <<'END_OF_EXPECTED_OUTPUT', qq{Scanless show_progess()} );
-F0 @0-11 [:start] -> Script .
-P1 @0-11 Script -> . Calculation*
-F1 @0-11 Script -> Calculation* .
-P2 @11-11 Calculation -> . Expression
-F2 @0-11 Calculation -> Expression .
-P3 @11-11 Calculation -> . [Lex-0] Expression
-P4 @11-11 Expression -> . Number
-F4 @10-11 Expression -> Number .
-P5 @11-11 Expression -> . [Lex-1] Expression Expression
-F5 x3 @0,6,10-11 Expression -> [Lex-1] Expression Expression .
+F0 @0-11 :start -> <Script> .
+P1 @0-11 <Script> -> . <Calculation> *
+F1 @0-11 <Script> -> <Calculation> * .
+P2 @11-11 <Calculation> -> . <Expression>
+F2 @0-11 <Calculation> -> <Expression> .
+P3 @11-11 <Calculation> -> . 'say' <Expression>
+P4 @11-11 <Expression> -> . <Number>
+F4 @10-11 <Expression> -> <Number> .
+P5 @11-11 <Expression> -> . '+' <Expression> <Expression>
+F5 x3 @0,6,10-11 <Expression> -> '+' <Expression> <Expression> .
 END_OF_EXPECTED_OUTPUT
 
     Marpa::R2::Test::is( $actual_value, $expected_value,

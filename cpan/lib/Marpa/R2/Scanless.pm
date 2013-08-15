@@ -625,7 +625,7 @@ sub Marpa::R2::Scanless::G::show_rules {
         } ## end ARG: for my $arg_name ( keys %{$arg_type} )
     } ## end if ( $arg_type eq 'HASH' )
     else {
-        $verbose = $arg_type + 0;
+        $verbose = defined $arg ? $arg + 0 : 0;
     }
     for my $subgrammar (@subgrammars) {
         my $thick_grammar;
@@ -1482,10 +1482,118 @@ sub Marpa::R2::Scanless::R::value {
 } ## end sub Marpa::R2::Scanless::R::value
 
 sub Marpa::R2::Scanless::R::show_progress {
-    my ( $self, @args ) = @_;
-    return $self->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE]
-        ->show_progress(@args);
+    my ( $slr, $start_ordinal, $end_ordinal ) = @_;
+    my $slg = $slr->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
+    my $recce = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+    my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
+    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
+
+    my $last_ordinal = $recce->latest_earley_set();
+
+    if ( not defined $start_ordinal ) {
+        $start_ordinal = $last_ordinal;
+    }
+    if ( $start_ordinal < 0 ) {
+        $start_ordinal += $last_ordinal + 1;
+    }
+    else {
+        if ( $start_ordinal < 0 or $start_ordinal > $last_ordinal ) {
+            return
+                "Marpa::PP::Recognizer::show_progress start index is $start_ordinal, "
+                . "must be in range 0-$last_ordinal";
+        }
+    } ## end else [ if ( $start_ordinal < 0 ) ]
+
+    if ( not defined $end_ordinal ) {
+        $end_ordinal = $start_ordinal;
+    }
+    else {
+        my $end_ordinal_argument = $end_ordinal;
+        if ( $end_ordinal < 0 ) {
+            $end_ordinal += $last_ordinal + 1;
+        }
+        if ( $end_ordinal < 0 ) {
+            return
+                "Marpa::PP::Recognizer::show_progress end index is $end_ordinal_argument, "
+                . sprintf ' must be in range %d-%d', -( $last_ordinal + 1 ),
+                $last_ordinal;
+        } ## end if ( $end_ordinal < 0 )
+    } ## end else [ if ( not defined $end_ordinal ) ]
+
+    my $text = q{};
+    for my $current_ordinal ( $start_ordinal .. $end_ordinal ) {
+        my $current_earleme     = $recce->earleme($current_ordinal);
+        my %by_rule_by_position = ();
+        for my $progress_item ( @{ $recce->progress($current_ordinal) } ) {
+            my ( $rule_id, $position, $origin ) = @{$progress_item};
+            if ( $position < 0 ) {
+                $position = $grammar_c->rule_length($rule_id);
+            }
+            $by_rule_by_position{$rule_id}->{$position}->{$origin}++;
+        } ## end for my $progress_item ( @{ $recce->progress($current_ordinal...)})
+
+        for my $rule_id ( sort { $a <=> $b } keys %by_rule_by_position ) {
+            my $by_position = $by_rule_by_position{$rule_id};
+            for my $position ( sort { $a <=> $b } keys %{$by_position} ) {
+                my $raw_origins   = $by_position->{$position};
+                my @origins       = sort { $a <=> $b } keys %{$raw_origins};
+                my $origins_count = scalar @origins;
+                my $origin_desc;
+                if ( $origins_count <= 3 ) {
+                    $origin_desc = join q{,}, @origins;
+                }
+                else {
+                    $origin_desc = $origins[0] . q{...} . $origins[-1];
+                }
+
+                my $rhs_length = $grammar_c->rule_length($rule_id);
+                my $item_text;
+
+                # flag indicating whether we need to show the dot in the rule
+                if ( $position >= $rhs_length ) {
+                    $item_text .= "F$rule_id";
+                }
+                elsif ($position) {
+                    $item_text .= "R$rule_id:$position";
+                }
+                else {
+                    $item_text .= "P$rule_id";
+                }
+                $item_text .= " x$origins_count" if $origins_count > 1;
+                $item_text
+                    .= q{ @} . $origin_desc . q{-} . $current_earleme . q{ };
+                $item_text
+                    .= $slg->show_dotted_rule( $rule_id, $position );
+                $text .= $item_text . "\n";
+            } ## end for my $position ( sort { $a <=> $b } keys %{...})
+        } ## end for my $rule_id ( sort { $a <=> $b } keys ...)
+
+    } ## end for my $current_ordinal ( $start_ordinal .. $end_ordinal)
+    return $text;
 }
+
+sub Marpa::R2::Scanless::G::show_dotted_rule {
+    my ( $slg, $rule_id, $dot_position ) = @_;
+    my $grammar =  $slg->[Marpa::R2::Inner::Scanless::G::THICK_G1_GRAMMAR];
+    my $tracer  = $grammar->tracer();
+    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
+    my ( $lhs, @rhs ) =
+    map { $grammar->symbol_in_display_form($_) } $tracer->rule_expand($rule_id);
+    my $rhs_length = scalar @rhs;
+
+    my $minimum = $grammar_c->sequence_min($rule_id);
+    my @quantifier = ();
+    if (defined $minimum) {
+        @quantifier = ($minimum <= 0 ? q{*} : q{+} );
+    }
+    $dot_position = 0 if $dot_position < 0;
+    if ($dot_position < $rhs_length) {
+        splice @rhs, $dot_position, 0, q{.};
+        return join q{ }, $lhs, q{->}, @rhs, @quantifier;
+    } else {
+        return join q{ }, $lhs, q{->}, @rhs, @quantifier, q{.};
+    }
+} ## end sub Marpa::R2::Grammar::show_dotted_rule
 
 sub Marpa::R2::Scanless::R::progress {
     my ( $self, @args ) = @_;
