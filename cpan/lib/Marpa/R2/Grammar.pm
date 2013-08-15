@@ -648,6 +648,17 @@ sub Marpa::R2::Grammar::show_problems {
     return "Grammar has no problems\n";
 } ## end sub Marpa::R2::Grammar::show_problems
 
+# Return DSL name of symbol
+# Does no checking
+sub Marpa::R2::Grammar::symbol_dsl_name {
+    my ( $grammar, $symbol_id ) = @_;
+    my $symbols   = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
+    my $symbol = $symbols->[$symbol_id];
+    return [Marpa::R2::Internal::Symbol::DSL_NAME];
+}
+
+# Return display form of symbol
+# Does lots of checking and makes use of alternatives.
 sub Marpa::R2::Grammar::symbol_in_display_form {
     my ( $grammar, $symbol_id ) = @_;
     my $symbols   = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
@@ -749,16 +760,6 @@ sub Marpa::R2::Grammar::brief_rule {
     return ( join q{ }, "$rule_id:", $lhs, '->', @rhs ) . $quantifier;
 } ## end sub Marpa::R2::Grammar::brief_rule
 
-sub Marpa::R2::Grammar::brief_original_rule {
-    my ( $grammar, $rule_id ) = @_;
-    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
-    my $tracer = $grammar->[Marpa::R2::Internal::Grammar::TRACER];
-    my ( $lhs, @rhs ) = $tracer->rule($rule_id);
-    my $minimum = $grammar_c->sequence_min($rule_id);
-    my $quantifier = defined $minimum ? $minimum <= 0 ? q{*} : q{+} : q{};
-    return ( join q{ }, "$rule_id:", $lhs, '->', @rhs ) . $quantifier;
-} ## end sub Marpa::R2::Grammar::brief_original_rule
-
 sub Marpa::R2::Grammar::show_rule {
     my ( $grammar, $rule ) = @_;
 
@@ -806,6 +807,7 @@ sub Marpa::R2::Grammar::rule_ids {
 sub Marpa::R2::Grammar::rule {
     my ( $grammar, $rule_id ) = @_;
     my $grammar_c   = $grammar->[Marpa::R2::Internal::Grammar::C];
+    my $symbols     = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
     my $rule_length = $grammar_c->rule_length($rule_id);
     return if not defined $rule_length;
     my @symbol_ids = ( $grammar_c->rule_lhs($rule_id) );
@@ -813,12 +815,13 @@ sub Marpa::R2::Grammar::rule {
         map { $grammar_c->rule_rhs( $rule_id, $_ ) }
         ( 0 .. $rule_length - 1 );
     my @symbol_names = ();
-    for my $symbol_id (@symbol_ids) {
+    SYMBOL_ID: for my $symbol_id (@symbol_ids) {
         ## The name of the symbols, before the BNF rewrites
-        push @symbol_names,
-            Marpa::R2::Grammar::original_symbol_name(
-            $grammar->symbol_name($symbol_id) );
-    } ## end for my $symbol_id (@symbol_ids)
+        my $name =
+            $symbols->[$symbol_id]->[Marpa::R2::Internal::Symbol::LEGACY_NAME]
+            // $grammar->symbol_name($symbol_id);
+        push @symbol_names, $name;
+    } ## end SYMBOL_ID: for my $symbol_id (@symbol_ids)
     return @symbol_names;
 } ## end sub Marpa::R2::Grammar::rule
 

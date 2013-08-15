@@ -88,6 +88,17 @@ sub rule {
     return ($lhs, @rhs);
 }
 
+# Expand a rule into a list of symbol IDs
+sub rule_expand {
+    my ( $self, $rule_id ) = @_;
+    my $grammar     = $self->{g};
+    my $rule_length = $grammar->rule_length($rule_id);
+    my $lhs         = ( $grammar->rule_lhs($rule_id) );
+    return ( $lhs,
+        map { $grammar->rule_rhs( $rule_id, $_ ) }
+            ( 0 .. $rule_length - 1 ) );
+} ## end sub rule_expand
+
 sub dotted_rule {
     my ( $self, $rule_id, $dot_position ) = @_;
     my $grammar     = $self->{g};

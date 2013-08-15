@@ -58,12 +58,6 @@ use English qw( -no_match_vars );
 # would conflict with the LHS of the sequence.
 # 
 
-# Undo any rewrite of the symbol name
-sub Marpa::R2::Grammar::original_symbol_name {
-   $_[0] =~ s/\[ prec \d+ \] \z//xms;
-   return shift;
-}
-
 my %node_status =
     map { ; ($_ , q{} ) }
     qw(

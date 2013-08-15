@@ -1016,10 +1016,10 @@ my $libmarpa_trace_event_handlers = {
         my $grammar = $slr->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
         my $thick_lex_grammar =
             $grammar->[Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMAR];
-        my $g0_tracer = $thick_lex_grammar->tracer();
-        my ( undef, @rhs ) =
-            map { Marpa::R2::Grammar::original_symbol_name($_) }
-            $g0_tracer->rule($g0_rule_id);
+        my $grammar_c = $thick_lex_grammar->[Marpa::R2::Internal::Grammar::C];
+        my $rule_length = $grammar_c->rule_length( $g0_rule_id );
+        my @rhs_ids = map { $grammar_c->rule_rhs( $g0_rule_id, $_ ) } (0 .. $rule_length - 1);
+        my @rhs = map { $thick_lex_grammar->symbol_in_display_form($_) } @rhs_ids;
         my $trace_file_handle =
             $slr->[Marpa::R2::Inner::Scanless::R::TRACE_FILE_HANDLE];
         say {$trace_file_handle} 'Discarded lexeme @',
@@ -1033,13 +1033,11 @@ my $libmarpa_trace_event_handlers = {
         my $thick_g1_recce =
             $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
         my $thick_g1_grammar = $thick_g1_recce->grammar();
-        my $g1_tracer        = $thick_g1_grammar->tracer();
-        my $lexeme_name      = Marpa::R2::Grammar::original_symbol_name(
-            $g1_tracer->symbol_name($lexeme_id) );
+        my $lexeme_name      = $thick_g1_grammar->symbol_in_display_form($lexeme_id);
         my $trace_file_handle =
             $slr->[Marpa::R2::Inner::Scanless::R::TRACE_FILE_HANDLE];
         say {$trace_file_handle} 'Paused before lexeme @',
-            "$start-$end: <$lexeme_name>"
+            "$start-$end: $lexeme_name"
             or Marpa::R2::exception("Could not say(): $ERRNO");
     },
     'g1 pausing after lexeme' => sub {
@@ -1049,13 +1047,11 @@ my $libmarpa_trace_event_handlers = {
         my $thick_g1_recce =
             $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
         my $thick_g1_grammar = $thick_g1_recce->grammar();
-        my $g1_tracer        = $thick_g1_grammar->tracer();
-        my $lexeme_name      = Marpa::R2::Grammar::original_symbol_name(
-            $g1_tracer->symbol_name($lexeme_id) );
+        my $lexeme_name      = $thick_g1_grammar->symbol_in_display_form($lexeme_id);
         my $trace_file_handle =
             $slr->[Marpa::R2::Inner::Scanless::R::TRACE_FILE_HANDLE];
         say {$trace_file_handle} 'Paused after lexeme @',
-            "$start-$end: <$lexeme_name>"
+            "$start-$end: $lexeme_name"
             or Marpa::R2::exception("Could not say(): $ERRNO");
     },
     'ignored lexeme' => sub {
@@ -1064,12 +1060,10 @@ my $libmarpa_trace_event_handlers = {
         my $thick_g1_recce =
             $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
         my $thick_g1_grammar = $thick_g1_recce->grammar();
-        my $g1_tracer        = $thick_g1_grammar->tracer();
-        my $lexeme           = Marpa::R2::Grammar::original_symbol_name(
-            $g1_tracer->symbol_name($g1_symbol_id) );
+        my $lexeme_name      = $thick_g1_grammar->symbol_in_display_form($g1_symbol_id);
         my $trace_file_handle =
             $slr->[Marpa::R2::Inner::Scanless::R::TRACE_FILE_HANDLE];
-        say {$trace_file_handle} 'Ignored lexeme @', "$start-$end: $lexeme"
+        say {$trace_file_handle} 'Ignored lexeme @', "$start-$end: $lexeme_name"
             or Marpa::R2::exception("Could not say(): $ERRNO");
     },
 };
