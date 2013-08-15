@@ -648,6 +648,19 @@ sub Marpa::R2::Grammar::show_problems {
     return "Grammar has no problems\n";
 } ## end sub Marpa::R2::Grammar::show_problems
 
+sub Marpa::R2::Grammar::symbol_in_display_form {
+    my ( $grammar, $symbol_id ) = @_;
+    my $symbols   = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
+    my $symbol = $symbols->[$symbol_id];
+    return "<!No symbol with ID $symbol_id!>" if not defined $symbol;
+    my $text = $symbol->[Marpa::R2::Internal::Symbol::DISPLAY_FORM];
+    return $text if defined $text;
+    $text = $symbol->[Marpa::R2::Internal::Symbol::DSL_NAME];
+    return "<$text>" if defined $text;
+    $text = $grammar->symbol_name($symbol_id);
+    return "<$text>";
+}
+
 sub Marpa::R2::Grammar::show_symbol {
     my ( $grammar, $symbol ) = @_;
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
@@ -917,15 +930,23 @@ sub assign_symbol {
             next PROPERTY;
         } ## end if ( $property eq 'rank' )
         if ( $property eq 'description' ) {
+            my $value = $options->{$property};
+            $symbol->[Marpa::R2::Internal::Symbol::DESCRIPTION] = $value;
             next PROPERTY;
         }
         if ( $property eq 'dsl_name' ) {
+            my $value = $options->{$property};
+            $symbol->[Marpa::R2::Internal::Symbol::DSL_NAME] = $value;
             next PROPERTY;
         }
         if ( $property eq 'legacy_name' ) {
+            my $value = $options->{$property};
+            $symbol->[Marpa::R2::Internal::Symbol::LEGACY_NAME] = $value;
             next PROPERTY;
         }
         if ( $property eq 'display_form' ) {
+            my $value = $options->{$property};
+            $symbol->[Marpa::R2::Internal::Symbol::DISPLAY_FORM] = $value;
             next PROPERTY;
         }
         Marpa::R2::exception(qq{Unknown symbol property "$property"});

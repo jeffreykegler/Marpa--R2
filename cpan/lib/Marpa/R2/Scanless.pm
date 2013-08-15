@@ -600,15 +600,87 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
 } ## end sub Marpa::R2::Scanless::G::_hash_to_runtime
 
 sub Marpa::R2::Scanless::G::show_rules {
-    my ($self) = @_;
-    my $thick_lex_grammar =
-        $self->[Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMAR];
-    my $text = "Lex (G0) Rules:\n";
-    $text .= $thick_lex_grammar->show_rules();
-    my $thick_g1_grammar =
-        $self->[Marpa::R2::Inner::Scanless::G::THICK_G1_GRAMMAR];
-    $text .= "G1 Rules:\n";
-    $text .= $thick_g1_grammar->show_rules();
+    my ( $self, $arg ) = @_;
+    my $text        = q{};
+    my $arg_type    = ref $arg;
+    my $verbose     = 0;
+    my @subgrammars = ( 'G1', 'G0' );
+    if ( $arg_type eq 'HASH' ) {
+        ARG: for my $arg_name ( keys %{$arg_type} ) {
+            my $value = $arg->{$arg_name};
+            if ( $arg_name eq 'verbose' ) {
+                $verbose = $value;
+                next ARG;
+            }
+            if ( $arg_name eq 'subgrammar' ) {
+                die 'Unknown subgrammar for $slg->show_rules(): ',
+                    qq{"$value"}
+                    unless $value eq 'G0'
+                        or $value eq 'G1';
+                @subgrammars = ($value);
+                next ARG;
+            } ## end if ( $arg_name eq 'subgrammar' )
+            die 'Unknown named argument for $slg->show_rules(): ',
+                qq{"$arg_name"};
+        } ## end ARG: for my $arg_name ( keys %{$arg_type} )
+    } ## end if ( $arg_type eq 'HASH' )
+    else {
+        $verbose = $arg_type + 0;
+    }
+    for my $subgrammar (@subgrammars) {
+        my $thick_grammar;
+        if ( $subgrammar eq 'G0' ) {
+            $text .= "Lex ($subgrammar) Rules:\n" if $verbose > 1;
+            $thick_grammar =
+                $self->[Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMAR];
+        }
+        else {
+            $text .= "$subgrammar Rules:\n" if $verbose > 1;
+            $thick_grammar =
+                $self->[Marpa::R2::Inner::Scanless::G::THICK_G1_GRAMMAR];
+        }
+
+        my $rules     = $thick_grammar->[Marpa::R2::Internal::Grammar::RULES];
+        my $grammar_c = $thick_grammar->[Marpa::R2::Internal::Grammar::C];
+
+        for my $rule ( @{$rules} ) {
+            my $rule_id = $rule->[Marpa::R2::Internal::Rule::ID];
+
+            my $minimum = $grammar_c->sequence_min($rule_id);
+            my @quantifier =
+                defined $minimum ? $minimum <= 0 ? (q{*}) : (q{+}) : ();
+            my $lhs_id = $grammar_c->rule_lhs($rule_id);
+            my $rule_length = $grammar_c->rule_length($rule_id);
+            my @rhs_ids =
+                map { $grammar_c->rule_rhs( $rule_id, $_ ) }
+                ( 0 .. $rule_length - 1 );
+            $text .= join q{ }, $subgrammar, "R$rule_id",
+                $thick_grammar->symbol_in_display_form($lhs_id),
+                '::=',
+                ( map { $thick_grammar->symbol_in_display_form($_) } @rhs_ids ),
+                @quantifier;
+            $text .= "\n";
+
+            if ( $verbose >= 2 ) {
+                my @comment = ();
+                $grammar_c->rule_length($rule_id) == 0
+                    and push @comment, 'empty';
+                $thick_grammar->rule_is_used($rule_id) or push @comment, '!used';
+                $grammar_c->rule_is_productive($rule_id)
+                    or push @comment, 'unproductive';
+                $grammar_c->rule_is_accessible($rule_id)
+                    or push @comment, 'inaccessible';
+                $rule->[Marpa::R2::Internal::Rule::DISCARD_SEPARATION]
+                    and push @comment, 'discard_sep';
+                if (@comment) {
+                    $text .= q{ } . ( join q{ }, q{/*}, @comment, q{*/} );
+                }
+            } ## end if ( $verbose >= 2 )
+
+        } ## end for my $rule ( @{$rules} )
+
+    } ## end for my $subgrammar (@subgrammars)
+
     return $text;
 } ## end sub Marpa::R2::Scanless::G::show_rules
 

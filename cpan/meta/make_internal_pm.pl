@@ -110,6 +110,10 @@ __DATA__
     ID { Unique ID }
     BLESSING
     LEXEME_SEMANTICS
+    DISPLAY_FORM
+    DSL_NAME
+    LEGACY_NAME
+    DESCRIPTION
 
     :package=Marpa::R2::Internal::Rule
 
@@ -119,6 +123,7 @@ __DATA__
     MASK { Semantic mask of RHS symbols }
     ACTION_NAME
     BLESSING
+    DESCRIPTION
 
     :package=Marpa::R2::Internal::Grammar
 
@@ -129,7 +134,10 @@ __DATA__
        indirection.
     }
     RULES { array of rule refs }
+    DESCRIPTION_BY_RULE
+
     SYMBOLS { array of symbol refs }
+
     ACTIONS { Default package in which to find actions }
     BLESS_PACKAGE { Default package into which nodes are blessed }
     DEFAULT_ACTION { Action for rules without one }

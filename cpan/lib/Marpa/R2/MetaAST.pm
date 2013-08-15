@@ -1172,14 +1172,14 @@ sub Marpa::R2::Internal::MetaAST_Nodes::character_class::names {
 
 sub Marpa::R2::Internal::MetaAST_Nodes::character_class::evaluate {
     my ( $values, $parse ) = @_;
+    my $character_class = $values->[2];
     my $g0_symbol = do {
         local $Marpa::R2::Internal::SUBGRAMMAR = 'G0';
         Marpa::R2::Internal::MetaAST::Symbol_List->char_class_to_symbol(
-            $parse, $values->[2] );
+            $parse, $character_class );
     };
     return $g0_symbol if $Marpa::R2::Internal::SUBGRAMMAR eq 'G0';
-    my $lexical_lhs_index = $parse->{lexical_lhs_index}++;
-    my $lexical_lhs       = "[Lex-$lexical_lhs_index]";
+    my $lexical_lhs       = $parse->internal_lexical_symbol($character_class);
     my $lexical_rhs       = $g0_symbol->names($parse);
     my %lexical_rule      = (
         lhs  => $lexical_lhs,
@@ -1210,8 +1210,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::single_quoted_string::evaluate {
     } ## end for my $char_class ( map { '[' . ( quotemeta $_ ) . ']'...})
     my $list = Marpa::R2::Internal::MetaAST::Symbol_List->combine(@symbols);
     return $list if $Marpa::R2::Internal::SUBGRAMMAR eq 'G0';
-    my $lexical_lhs_index = $parse->{lexical_lhs_index}++;
-    my $lexical_lhs       = "[Lex-$lexical_lhs_index]";
+    my $lexical_lhs       = $parse->internal_lexical_symbol($string);
     my $lexical_rhs       = $list->names($parse);
     my %lexical_rule      = (
         lhs  => $lexical_lhs,
@@ -1263,9 +1262,9 @@ sub char_class_to_symbol {
         my $symbol_data =
             $parse->{symbols}->{$Marpa::R2::Internal::SUBGRAMMAR}
             ->{$symbol_name} //= {};
-        $symbol_data->{dsl_name}     = $regex;
-        $symbol_data->{display_form} = $regex;
-        $symbol_data->{description}  = "Regex: $regex";
+        $symbol_data->{dsl_name}     = $char_class;
+        $symbol_data->{display_form} = "<$char_class>";
+        $symbol_data->{description}  = "Character class: $char_class";
     } ## end if ( not defined $symbol )
     return $symbol;
 } ## end sub char_class_to_symbol
@@ -1283,10 +1282,26 @@ sub Marpa::R2::Internal::MetaAST::Parse::prioritized_symbol {
     $parse->{symbols}->{$Marpa::R2::Internal::SUBGRAMMAR}->{$symbol_name} = {
         legacy_name  => $base_symbol,
         dsl_name     => $base_symbol,
-        display_form => $base_symbol,
+        display_form => "<$base_symbol>",
         description  => "<$base_symbol> at priority $priority"
     };
     return $symbol_name;
+} ## end sub prioritized_symbol
+
+# Return the priotized symbol name,
+# after ensuring everything is set up properly
+sub Marpa::R2::Internal::MetaAST::Parse::internal_lexical_symbol {
+    my ( $parse, $dsl_form ) = @_;
+
+    # character class symbol name always start with TWO left square brackets
+    my $lexical_lhs_index = $parse->{lexical_lhs_index}++;
+    my $lexical_symbol       = "[Lex-$lexical_lhs_index]";
+    $parse->{symbols}->{$Marpa::R2::Internal::SUBGRAMMAR}->{$lexical_symbol} = {
+        dsl_name     => $dsl_form,
+        display_form => $dsl_form,
+        description  => qq{Internal lexical symbol for "$dsl_form"}
+    };
+    return $lexical_symbol;
 } ## end sub prioritized_symbol
 
 sub name {
