@@ -143,8 +143,12 @@ sub ast_to_hash {
         Marpa::R2::exception( 'Unproductive lexical symbols: ',
             join q{ }, @unproductive );
     }
+    my $start_lhs = '[:start_lex]';
+    $hashed_ast->{symbols}->{G0}->{$start_lhs}->{display_form} = ':start_lex';
+    $hashed_ast->{symbols}->{G0}->{$start_lhs}->{description} =
+        'Internal G0 (lexical) start symbol';
     push @{ $hashed_ast->{rules}->{G0} },
-        map { ; { lhs => '[:start_lex]', rhs => [$_] } } sort keys %is_lexeme;
+        map { ; { lhs => $start_lhs, rhs => [$_] } } sort keys %is_lexeme;
     my %stripped_character_classes = ();
     {
         my $character_classes = $hashed_ast->{character_classes};
@@ -908,10 +912,17 @@ sub Marpa::R2::Internal::MetaAST_Nodes::statement_body::evaluate {
 sub Marpa::R2::Internal::MetaAST_Nodes::start_rule::evaluate {
     my ( $values, $parse ) = @_;
     my ( $start, $length, $symbol ) = @{$values};
-    local $Marpa::R2::Internal::SUBGRAMMAR = 'G0';
+    my $start_lhs = '[:start]';
+    $parse->symbol_names_set(
+        $start_lhs,
+        'G1',
+        {   display_form => ':start',
+            description  => 'Internal G1 start symbol'
+        }
+    );
     push @{ $parse->{rules}->{G1} },
         {
-        lhs    => '[:start]',
+        lhs    => $start_lhs,
         rhs    => $symbol->names($parse),
         action => '::first'
         };
@@ -922,9 +933,16 @@ sub Marpa::R2::Internal::MetaAST_Nodes::start_rule::evaluate {
 sub Marpa::R2::Internal::MetaAST_Nodes::discard_rule::evaluate {
     my ( $values, $parse ) = @_;
     my ( $start, $length, $symbol ) = @{$values};
-    local $Marpa::R2::Internal::SUBGRAMMAR = 'G0';
+    my $discard_lhs = '[:discard]';
+    $parse->symbol_names_set(
+        $discard_lhs,
+        'G0',
+        {   display_form => ':discard',
+            description  => 'Internal LHS for G0 discard'
+        }
+    );
     push @{ $parse->{rules}->{G0} },
-        { lhs => '[:discard]', rhs => $symbol->names($parse) };
+        { lhs => $discard_lhs, rhs => $symbol->names($parse) };
     ## no critic(Subroutines::ProhibitExplicitReturnUndef)
     return undef;
 } ## end sub Marpa::R2::Internal::MetaAST_Nodes::discard_rule::evaluate
@@ -1259,12 +1277,14 @@ sub char_class_to_symbol {
         $symbol =
             Marpa::R2::Internal::MetaAST::Symbol_List->new($symbol_name);
         $cc_hash->{$symbol_name} = [ $regex, $symbol ];
-        my $symbol_data =
-            $parse->{symbols}->{$Marpa::R2::Internal::SUBGRAMMAR}
-            ->{$symbol_name} //= {};
-        $symbol_data->{dsl_name}     = $char_class;
-        $symbol_data->{display_form} = "<$char_class>";
-        $symbol_data->{description}  = "Character class: $char_class";
+        $parse->symbol_names_set(
+            $symbol_name,
+            $Marpa::R2::Internal::SUBGRAMMAR,
+            {   dsl_name     => $char_class,
+                display_form => $char_class,
+                description  => "Character class: $char_class"
+            }
+        );
     } ## end if ( not defined $symbol )
     return $symbol;
 } ## end sub char_class_to_symbol
@@ -1312,8 +1332,8 @@ sub Marpa::R2::Internal::MetaAST::Parse::internal_lexeme {
         display_form => $dsl_form,
         description  => qq{Internal lexical symbol for "$dsl_form"}
     );
-    $parse->{symbols}->{G0}->{$lexical_symbol} = \%names;
-    $parse->{symbols}->{G1}->{$lexical_symbol} = \%names;
+    $parse->symbol_names_set($lexical_symbol, 'G0', \%names);
+    $parse->symbol_names_set($lexical_symbol, 'G1', \%names);
     return $lexical_symbol;
 } ## end sub prioritized_symbol
 
