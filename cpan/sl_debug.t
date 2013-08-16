@@ -37,7 +37,7 @@ my $progress_report = q{};
 my $slif_debug_source = <<'END_OF_SOURCE';
 :default ::= action => ::array bless => ::lhs
 :start ::= statements
-statements ::= statement*
+statements ::= statement *
 statement ::= assignment | <numeric assignment>
 assignment ::= 'set' variable 'to' expression
 <numeric assignment> ::= variable '=' expression
@@ -127,7 +127,7 @@ Test::More::is_deeply( $value_ref, $expected_output, 'Value before fix' );
 Marpa::R2::Test::is( $progress_report,
     <<'END_PROGRESS_REPORT', 'progress report' );
 P0 @0-0 :start -> . <statements>
-P1 @0-0 <statements> -> . <statement>*
+P1 @0-0 <statements> -> . <statement> *
 P2 @0-0 <statement> -> . <assignment>
 P3 @0-0 <statement> -> . <numeric assignment>
 P4 @0-0 <assignment> -> . 'set' <variable> 'to' <expression>
@@ -142,8 +142,8 @@ P10 @2-2 <expression> -> . <string>
 P11 @2-2 <expression> -> . 'string' '(' <numeric expression> ')'
 P12 @2-2 <expression> -> . <expression> '+' <expression>
 F0 @0-3 :start -> <statements> .
-P1 @0-3 <statements> -> . <statement>*
-F1 @0-3 <statements> -> <statement>* .
+P1 @0-3 <statements> -> . <statement> *
+F1 @0-3 <statements> -> <statement> * .
 P2 @3-3 <statement> -> . <assignment>
 P3 @3-3 <statement> -> . <numeric assignment>
 F3 @0-3 <statement> -> <numeric assignment> .
@@ -161,8 +161,8 @@ P10 @4-4 <expression> -> . <string>
 P11 @4-4 <expression> -> . 'string' '(' <numeric expression> ')'
 R12:2 @2-4 <expression> -> <expression> '+' . <expression>
 F0 @0-5 :start -> <statements> .
-P1 @0-5 <statements> -> . <statement>*
-F1 @0-5 <statements> -> <statement>* .
+P1 @0-5 <statements> -> . <statement> *
+F1 @0-5 <statements> -> <statement> * .
 P2 @5-5 <statement> -> . <assignment>
 P3 @5-5 <statement> -> . <numeric assignment>
 F3 @0-5 <statement> -> <numeric assignment> .
@@ -532,9 +532,201 @@ G0 R27 :start_lex ::= <variable>
   Internal symbols: <[:start_lex]> ::= <variable>
 END_OF_SHOW_RULES_OUTPUT
 
-my $show_symbols_output = $slg->show_symbols();
+my $show_symbols_output = $slg->show_symbols(3);
 Marpa::R2::Test::is( $show_symbols_output,
     <<'END_OF_SHOW_SYMBOLS_OUTPUT', 'SLIF show_symbols()' );
+G1 Symbols:
+G1 S0 :start -- Internal G1 start symbol
+  Internal name: <[:start]>
+G1 S1 'set' -- Internal lexical symbol for "'set'"
+  /* terminal */
+  Internal name: <[Lex-0]>
+  SLIF name: 'set'
+G1 S2 'to' -- Internal lexical symbol for "'to'"
+  /* terminal */
+  Internal name: <[Lex-1]>
+  SLIF name: 'to'
+G1 S3 '=' -- Internal lexical symbol for "'='"
+  /* terminal */
+  Internal name: <[Lex-2]>
+  SLIF name: '='
+G1 S4 'string' -- Internal lexical symbol for "'string'"
+  /* terminal */
+  Internal name: <[Lex-3]>
+  SLIF name: 'string'
+G1 S5 '(' -- Internal lexical symbol for "'('"
+  /* terminal */
+  Internal name: <[Lex-4]>
+  SLIF name: '('
+G1 S6 ')' -- Internal lexical symbol for "')'"
+  /* terminal */
+  Internal name: <[Lex-5]>
+  SLIF name: ')'
+G1 S7 '+' -- Internal lexical symbol for "'+'"
+  /* terminal */
+  Internal name: <[Lex-6]>
+  SLIF name: '+'
+G1 S8 '+' -- Internal lexical symbol for "'+'"
+  /* terminal */
+  Internal name: <[Lex-7]>
+  SLIF name: '+'
+G1 S9 '*' -- Internal lexical symbol for "'*'"
+  /* terminal */
+  Internal name: <[Lex-8]>
+  SLIF name: '*'
+G1 S10 <expression> -- <expression> at priority 0
+  Internal name: <expression[0]>
+  SLIF name: expression
+G1 S11 <expression> -- <expression> at priority 1
+  Internal name: <expression[1]>
+  SLIF name: expression
+G1 S12 <expression> -- <expression> at priority 2
+  Internal name: <expression[2]>
+  SLIF name: expression
+G1 S13 <numeric expression> -- <numeric expression> at priority 0
+  Internal name: <numeric expression[0]>
+  SLIF name: numeric expression
+G1 S14 <numeric expression> -- <numeric expression> at priority 1
+  Internal name: <numeric expression[1]>
+  SLIF name: numeric expression
+G1 S15 <numeric expression> -- <numeric expression> at priority 2
+  Internal name: <numeric expression[2]>
+  SLIF name: numeric expression
+G1 S16 <statements>
+  Internal name: <statements>
+G1 S17 <statement>
+  Internal name: <statement>
+G1 S18 <assignment>
+  Internal name: <assignment>
+G1 S19 <numeric assignment>
+  Internal name: <numeric assignment>
+G1 S20 <variable>
+  /* terminal */
+  Internal name: <variable>
+G1 S21 <expression>
+  Internal name: <expression>
+G1 S22 <numeric expression>
+  Internal name: <numeric expression>
+G1 S23 <string>
+  /* terminal */
+  Internal name: <string>
+G1 S24 <number>
+  /* terminal */
+  Internal name: <number>
+Lex (G0) Symbols:
+G0 S0 :discard -- Internal LHS for G0 discard
+  Internal name: <[:discard]>
+G0 S1 :start_lex -- Internal G0 (lexical) start symbol
+  Internal name: <[:start_lex]>
+G0 S2 'set' -- Internal lexical symbol for "'set'"
+  Internal name: <[Lex-0]>
+  SLIF name: 'set'
+G0 S3 'to' -- Internal lexical symbol for "'to'"
+  Internal name: <[Lex-1]>
+  SLIF name: 'to'
+G0 S4 '=' -- Internal lexical symbol for "'='"
+  Internal name: <[Lex-2]>
+  SLIF name: '='
+G0 S5 'string' -- Internal lexical symbol for "'string'"
+  Internal name: <[Lex-3]>
+  SLIF name: 'string'
+G0 S6 '(' -- Internal lexical symbol for "'('"
+  Internal name: <[Lex-4]>
+  SLIF name: '('
+G0 S7 ')' -- Internal lexical symbol for "')'"
+  Internal name: <[Lex-5]>
+  SLIF name: ')'
+G0 S8 '+' -- Internal lexical symbol for "'+'"
+  Internal name: <[Lex-6]>
+  SLIF name: '+'
+G0 S9 '+' -- Internal lexical symbol for "'+'"
+  Internal name: <[Lex-7]>
+  SLIF name: '+'
+G0 S10 '*' -- Internal lexical symbol for "'*'"
+  Internal name: <[Lex-8]>
+  SLIF name: '*'
+G0 S11 ['] -- Character class: [']
+  /* terminal */
+  Internal name: <[[']]>
+  SLIF name: [']
+G0 S12 [\(] -- Character class: [\(]
+  /* terminal */
+  Internal name: <[[\(]]>
+  SLIF name: [\(]
+G0 S13 [\)] -- Character class: [\)]
+  /* terminal */
+  Internal name: <[[\)]]>
+  SLIF name: [\)]
+G0 S14 [\*] -- Character class: [\*]
+  /* terminal */
+  Internal name: <[[\*]]>
+  SLIF name: [\*]
+G0 S15 [\+] -- Character class: [\+]
+  /* terminal */
+  Internal name: <[[\+]]>
+  SLIF name: [\+]
+G0 S16 [\=] -- Character class: [\=]
+  /* terminal */
+  Internal name: <[[\=]]>
+  SLIF name: [\=]
+G0 S17 [\d] -- Character class: [\d]
+  /* terminal */
+  Internal name: <[[\d]]>
+  SLIF name: [\d]
+G0 S18 [\s] -- Character class: [\s]
+  /* terminal */
+  Internal name: <[[\s]]>
+  SLIF name: [\s]
+G0 S19 [\w] -- Character class: [\w]
+  /* terminal */
+  Internal name: <[[\w]]>
+  SLIF name: [\w]
+G0 S20 [^'\x{0A}\x{0B}\x{0C}\x{0D}\x{0085}\x{2028}\x{2029}] -- Character class: [^'\x{0A}\x{0B}\x{0C}\x{0D}\x{0085}\x{2028}\x{2029}]
+  /* terminal */
+  Internal name: <[[^'\x{0A}\x{0B}\x{0C}\x{0D}\x{0085}\x{2028}\x{2029}]]>
+  SLIF name: [^'\x{0A}\x{0B}\x{0C}\x{0D}\x{0085}\x{2028}\x{2029}]
+G0 S21 [e] -- Character class: [e]
+  /* terminal */
+  Internal name: <[[e]]>
+  SLIF name: [e]
+G0 S22 [g] -- Character class: [g]
+  /* terminal */
+  Internal name: <[[g]]>
+  SLIF name: [g]
+G0 S23 [i] -- Character class: [i]
+  /* terminal */
+  Internal name: <[[i]]>
+  SLIF name: [i]
+G0 S24 [n] -- Character class: [n]
+  /* terminal */
+  Internal name: <[[n]]>
+  SLIF name: [n]
+G0 S25 [o] -- Character class: [o]
+  /* terminal */
+  Internal name: <[[o]]>
+  SLIF name: [o]
+G0 S26 [r] -- Character class: [r]
+  /* terminal */
+  Internal name: <[[r]]>
+  SLIF name: [r]
+G0 S27 [s] -- Character class: [s]
+  /* terminal */
+  Internal name: <[[s]]>
+  SLIF name: [s]
+G0 S28 [t] -- Character class: [t]
+  /* terminal */
+  Internal name: <[[t]]>
+  SLIF name: [t]
+G0 S29 <variable>
+  Internal name: <variable>
+G0 S30 <number>
+  Internal name: <number>
+G0 S31 <string>
+  Internal name: <string>
+G0 S32 <string contents>
+  Internal name: <string contents>
+G0 S33 <whitespace>
+  Internal name: <whitespace>
 END_OF_SHOW_SYMBOLS_OUTPUT
 
 1;    # In case used as "do" file

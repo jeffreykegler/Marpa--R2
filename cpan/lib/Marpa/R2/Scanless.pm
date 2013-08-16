@@ -684,12 +684,13 @@ sub Marpa::R2::Scanless::G::show_rules {
                     $text .= q{  }
                         . ( join q{ }, q{/*}, @comment, q{*/} ) . "\n";
                 }
-            } ## end if ( $verbose >= 2 )
-
-            if ( $verbose >= 3 ) {
 
                 $text .= "  Symbol IDs: <$lhs_id> ::= "
                     . ( join q{ }, map {"<$_>"} @rhs_ids ) . "\n";
+
+            } ## end if ( $verbose >= 2 )
+
+            if ( $verbose >= 3 ) {
 
                 my $tracer = $thick_grammar->tracer();
 
@@ -710,6 +711,102 @@ sub Marpa::R2::Scanless::G::show_rules {
 
     return $text;
 } ## end sub Marpa::R2::Scanless::G::show_rules
+
+sub Marpa::R2::Scanless::G::show_symbols {
+    my ( $self, $arg ) = @_;
+    my $text        = q{};
+    my $arg_type    = ref $arg;
+    my $verbose     = 0;
+    my @subgrammars = ( 'G1', 'G0' );
+    if ( $arg_type eq 'HASH' ) {
+        ARG: for my $arg_name ( keys %{$arg_type} ) {
+            my $value = $arg->{$arg_name};
+            if ( $arg_name eq 'verbose' ) {
+                $verbose = $value;
+                next ARG;
+            }
+            if ( $arg_name eq 'subgrammar' ) {
+                die 'Unknown subgrammar for $slg->show_rules(): ',
+                    qq{"$value"}
+                    unless $value eq 'G0'
+                        or $value eq 'G1';
+                @subgrammars = ($value);
+                next ARG;
+            } ## end if ( $arg_name eq 'subgrammar' )
+            die 'Unknown named argument for $slg->show_rules(): ',
+                qq{"$arg_name"};
+        } ## end ARG: for my $arg_name ( keys %{$arg_type} )
+    } ## end if ( $arg_type eq 'HASH' )
+    else {
+        $verbose = defined $arg ? $arg + 0 : 0;
+    }
+
+    for my $subgrammar (@subgrammars) {
+        my $thick_grammar;
+        if ( $subgrammar eq 'G0' ) {
+            $text .= "Lex ($subgrammar) Symbols:\n" if $verbose > 1;
+            $thick_grammar =
+                $self->[Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMAR];
+        }
+        else {
+            $text .= "$subgrammar Symbols:\n" if $verbose > 1;
+            $thick_grammar =
+                $self->[Marpa::R2::Inner::Scanless::G::THICK_G1_GRAMMAR];
+        }
+
+        my $symbols = $thick_grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
+        my $grammar_c = $thick_grammar->[Marpa::R2::Internal::Grammar::C];
+
+        for my $symbol ( @{$symbols} ) {
+            my $symbol_id = $symbol->[Marpa::R2::Internal::Symbol::ID];
+
+            $text .= join q{ }, $subgrammar, "S$symbol_id",
+                $thick_grammar->symbol_in_display_form($symbol_id);
+
+            my $description =
+                $symbol->[Marpa::R2::Internal::Symbol::DESCRIPTION];
+            if ($description) {
+                $text .= " -- $description";
+            }
+            $text .= "\n";
+
+            if ( $verbose >= 2 ) {
+
+                my @tag_list = ();
+                $grammar_c->symbol_is_productive($symbol_id)
+                    or push @tag_list, 'unproductive';
+                $grammar_c->symbol_is_accessible($symbol_id)
+                    or push @tag_list, 'inaccessible';
+                $grammar_c->symbol_is_nulling($symbol_id)
+                    and push @tag_list, 'nulling';
+                $grammar_c->symbol_is_terminal($symbol_id)
+                    and push @tag_list, 'terminal';
+
+                if (@tag_list) {
+                    $text .= q{  }
+                        . ( join q{ }, q{/*}, @tag_list, q{*/} ) . "\n";
+                }
+
+                my $tracer = $thick_grammar->tracer();
+                $text .= "  Internal name: <"
+                    . $tracer->symbol_name($symbol_id) . qq{>\n};
+
+            } ## end if ( $verbose >= 2 )
+
+            if ( $verbose >= 3 ) {
+
+                my $dsl_name =
+                    $symbol->[Marpa::R2::Internal::Symbol::DSL_NAME];
+                if ($dsl_name) { $text .= qq{  SLIF name: $dsl_name\n}; }
+
+            } ## end if ( $verbose >= 3 )
+
+        } ## end for my $symbol ( @{$symbols} )
+
+    } ## end for my $subgrammar (@subgrammars)
+
+    return $text;
+} ## end sub Marpa::R2::Scanless::G::show_symbols
 
 sub Marpa::R2::Scanless::R::new {
     my ( $class, $args ) = @_;
