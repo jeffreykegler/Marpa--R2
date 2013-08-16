@@ -133,7 +133,7 @@ normalize-whitespace: 1
     my @g1_rule_ids = $slg->g1_rule_ids();
     for my $g1_rule_id (@g1_rule_ids) {
         $g1_rules_description .= "$g1_rule_id "
-            . ( join q{ }, map { "<$_>" } $slg->rule($g1_rule_id) ) . "\n";
+            . ( join q{ }, map {"<$_>"} $slg->rule($g1_rule_id) ) . "\n";
     }
 
 =for Marpa::R2::Display::End
@@ -153,7 +153,7 @@ normalize-whitespace: 1
     my @g0_rule_ids = $slg->g0_rule_ids();
     for my $g0_rule_id (@g0_rule_ids) {
         $g0_rules_description .= "$g0_rule_id "
-            . ( join q{ }, map { "<$_>" } $slg->g0_rule($g0_rule_id) ) . "\n";
+            . ( join q{ }, map {"<$_>"} $slg->g0_rule($g0_rule_id) ) . "\n";
     }
 
 =for Marpa::R2::Display::End
@@ -179,7 +179,7 @@ normalize-whitespace: 1
     my @g0_rule_ids = $slg->g0_rule_ids();
     for my $g0_rule_id (@g0_rule_ids) {
         $g0_rules_description .= "$g0_rule_id "
-            . ( join q{ }, map { "<$_>" } $slg->g0_rule($g0_rule_id) ) . "\n";
+            . ( join q{ }, map {"<$_>"} $slg->g0_rule($g0_rule_id) ) . "\n";
     }
 
 =for Marpa::R2::Display::End
@@ -258,7 +258,7 @@ name: Scanless rule() synopsis
     my @g1_rule_ids = $slg->g1_rule_ids();
     for my $g1_rule_id (@g1_rule_ids) {
         $g1_rules_description .= "$g1_rule_id "
-            . ( join q{ }, map { "<$_>" } $slg->rule($g1_rule_id) ) . "\n";
+            . ( join q{ }, map {"<$_>"} $slg->rule($g1_rule_id) ) . "\n";
     }
 
 =for Marpa::R2::Display::End

@@ -99,7 +99,7 @@ my $g1_rules_description;
     my @g1_rule_ids = $slg->g1_rule_ids();
     for my $g1_rule_id (@g1_rule_ids) {
         $g1_rules_description .= "$g1_rule_id "
-            . ( join q{ }, map { "<$_>" } $slg->rule($g1_rule_id) ) . "\n";
+            . ( join q{ }, map {"<$_>"} $slg->rule($g1_rule_id) ) . "\n";
     }
 
 # Marpa::R2::Display::End
