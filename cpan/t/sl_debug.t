@@ -43,7 +43,7 @@ assignment ::= 'set' variable 'to' expression
 
 # This is a deliberate error in the grammar
 # The next line should be:
-# {<numeric assignment> ::= variable '=' <numeric expression>}xms;
+# <numeric assignment> ::= variable '=' <numeric expression>
 # I have changed the <numeric expression>  to <expression> which
 # will cause problems.
 <numeric assignment> ::= variable '=' expression

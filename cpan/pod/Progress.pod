@@ -139,73 +139,49 @@ if a rule will
 ever be completed,
 much less at which location.
 
-=head1 The example
+=head1 The problem
 
 For this example of debugging,
-I've taken a very common example
-of a grammar
+I have taken a very simple prototype of a string expression calculator
 and deliberately introduced a problem.
 (All the code and the full trace outputs
 for this example are in the Appendix.)
-I've commented out the correct start rule:
+I've commented out one of the correct rules:
 
 =for Marpa::R2::Display
 name: SLIF debug example, part 1
 partial: 1
 normalize-whitespace: 1
 
-        ## { lhs => 'Expression', rhs => [qw/Term/] },
+    # <numeric assignment> ::= variable '=' <numeric expression>
 
 =for Marpa::R2::Display::End
 
-and replaced it with another start rule,
-one which will cause problems:
+and replaced it with a altered one:
 
 =for Marpa::R2::Display
 name: SLIF debug example, part 1
 partial: 1
 normalize-whitespace: 1
 
-        { lhs => 'Expression', rhs => [qw/Factor/] },
+    <numeric assignment> ::= variable '=' expression
 
 =for Marpa::R2::Display::End
 
+This altered rule contains an mistake of the kind that is
+easy to make in actual practice.
+(In this case,
+a unlucky choice of naming conventions may have contributed.)
+The altered version will cause problems.
 In what follows, we'll pretend we don't already know
 where the problem is,
-and use the Marpa diagnostics and tracing facilities
+and that in desk-checking the grammar our eye does not
+spot the mistake, so
+that we need
+to use the Marpa diagnostics and tracing facilities
 to "discover" it.
 
-=head1 First warning
-
-Right off the bat, we get two warning messages:
-
-=for Marpa::R2::Display
-name: SLIF debug example trace output
-partial: 1
-normalize-whitespace: 1
-
-    Inaccessible symbol: Add
-    Inaccessible symbol: Term
-
-=for Marpa::R2::Display::End
-
-If we were alert, these would be enough to tell us there is
-a serious problem.
-"Inaccessible" symbols are symbols which cannot be reached
-from the start symbol.
-This means that the grammar will never produce them,
-and that parses will never find them in the input.
-
-Since C<Add> and C<Term> are both important symbols
-in our application,
-that should tell us our grammar has a serious problem.
-In fact,
-these warning messages would often be enough
-to point us to the error.
-But, in order to look at more of Marpa's
-tracing facilities, let's pretend we have not
-had our morning coffee,
-and that we miss the significance of these warning messages.
+=head1 The example
 
 =head1 Output from trace_terminals()
 
@@ -521,7 +497,7 @@ normalize-whitespace: 1
 
     # This is a deliberate error in the grammar
     # The next line should be:
-    # {<numeric assignment> ::= variable '=' <numeric expression>}xms;
+    # <numeric assignment> ::= variable '=' <numeric expression>
     # I have changed the <numeric expression>  to <expression> which
     # will cause problems.
     <numeric assignment> ::= variable '=' expression
@@ -715,7 +691,7 @@ perltidy: '-dcsc -sil=0'
 
     # This is a deliberate error in the grammar
     # The next line should be:
-    # {<numeric assignment> ::= variable '=' <numeric expression>}xms;
+    # <numeric assignment> ::= variable '=' <numeric expression>
     # I have changed the <numeric expression>  to <expression> which
     # will cause problems.
     <numeric assignment> ::= variable '=' expression
