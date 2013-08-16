@@ -410,6 +410,11 @@ my $show_rules_output = $slg->show_rules(3);
 
 # Marpa::R2::Display::End
 
+# Marpa::R2::Display
+# name: SLIF debug example show_rules() output
+# start-after-line: END_OF_SHOW_RULES_OUTPUT
+# end-before-line: '^END_OF_SHOW_RULES_OUTPUT$'
+
 Marpa::R2::Test::is( $show_rules_output,
     <<'END_OF_SHOW_RULES_OUTPUT', 'SLIF show_rules()' );
 G1 Rules:
@@ -589,12 +594,19 @@ G0 R27 :start_lex ::= <variable>
   Internal symbols: <[:start_lex]> ::= <variable>
 END_OF_SHOW_RULES_OUTPUT
 
+# Marpa::R2::Display::End
+
 # Marpa::R2::Display
 # name: SLIF show_symbols() synopsis
 
 my $show_symbols_output = $slg->show_symbols(3);
 
 # Marpa::R2::Display::End
+
+# Marpa::R2::Display
+# name: SLIF debug example show_symbols() output
+# start-after-line: END_OF_SHOW_SYMBOLS_OUTPUT
+# end-before-line: '^END_OF_SHOW_SYMBOLS_OUTPUT$'
 
 Marpa::R2::Test::is( $show_symbols_output,
     <<'END_OF_SHOW_SYMBOLS_OUTPUT', 'SLIF show_symbols()' );
@@ -791,6 +803,8 @@ G0 S32 <string contents>
 G0 S33 <whitespace>
   Internal name: <whitespace>
 END_OF_SHOW_SYMBOLS_OUTPUT
+
+# Marpa::R2::Display::End
 
 1;    # In case used as "do" file
 

@@ -680,7 +680,7 @@ document.
 
 =for Marpa::R2::Display:
 name: SLIF debug example, part 1
-perltidy: '-dcsc -sil=0'
+normalize-whitespace: 1
 
     my $slif_debug_source = <<'END_OF_SOURCE';
     :default ::= action => ::array bless => ::lhs
@@ -864,6 +864,177 @@ remove-blank-last-line: 1
     F9 @4-5 <expression> -> <variable> .
     R12:1 @2-5 <expression> -> <expression> . '+' <expression>
     F12 @2-5 <expression> -> <expression> '+' <expression> .
+
+=for Marpa::R2::Display::End
+
+=head2 show_rules() output
+
+This is the G1 portion of the C<show_rules()> output at verbosity level 3.
+In ordinary work, you'd use verbosity level 1 (the default),
+but the more verbose output is included here to illustrate the example.
+
+=for Marpa::R2::Display
+name: SLIF debug example show_rules() output
+remove-display-indent: 1
+remove-blank-last-line: 1
+partial: 1
+
+    G1 Rules:
+    G1 R0 :start ::= <statements>
+      Symbol IDs: <0> ::= <16>
+      Internal symbols: <[:start]> ::= <statements>
+    G1 R1 <statements> ::= <statement> *
+      Symbol IDs: <16> ::= <17>
+      Internal symbols: <statements> ::= <statement>
+    G1 R2 <statement> ::= <assignment>
+      Symbol IDs: <17> ::= <18>
+      Internal symbols: <statement> ::= <assignment>
+    G1 R3 <statement> ::= <numeric assignment>
+      Symbol IDs: <17> ::= <19>
+      Internal symbols: <statement> ::= <numeric assignment>
+    G1 R4 <assignment> ::= 'set' <variable> 'to' <expression>
+      Symbol IDs: <18> ::= <1> <20> <2> <21>
+      Internal symbols: <assignment> ::= <[Lex-0]> <variable> <[Lex-1]> <expression>
+    G1 R5 <numeric assignment> ::= <variable> '=' <numeric expression>
+      Symbol IDs: <19> ::= <20> <3> <22>
+      Internal symbols: <numeric assignment> ::= <variable> <[Lex-2]> <numeric expression>
+    G1 R6 <expression> ::= <expression>
+      Internal rule top priority rule for <expression>
+      Symbol IDs: <21> ::= <10>
+      Internal symbols: <expression> ::= <expression[0]>
+    G1 R7 <expression> ::= <expression>
+      Internal rule for symbol <expression> priority transition from 0 to 1
+      Symbol IDs: <10> ::= <11>
+      Internal symbols: <expression[0]> ::= <expression[1]>
+    G1 R8 <expression> ::= <expression>
+      Internal rule for symbol <expression> priority transition from 1 to 2
+      Symbol IDs: <11> ::= <12>
+      Internal symbols: <expression[1]> ::= <expression[2]>
+    G1 R9 <expression> ::= <variable>
+      Symbol IDs: <12> ::= <20>
+      Internal symbols: <expression[2]> ::= <variable>
+    G1 R10 <expression> ::= <string>
+      Symbol IDs: <12> ::= <23>
+      Internal symbols: <expression[2]> ::= <string>
+    G1 R11 <expression> ::= 'string' '(' <numeric expression> ')'
+      Symbol IDs: <11> ::= <4> <5> <22> <6>
+      Internal symbols: <expression[1]> ::= <[Lex-3]> <[Lex-4]> <numeric expression> <[Lex-5]>
+    G1 R12 <expression> ::= <expression> '+' <expression>
+      Symbol IDs: <10> ::= <10> <7> <11>
+      Internal symbols: <expression[0]> ::= <expression[0]> <[Lex-6]> <expression[1]>
+    G1 R13 <numeric expression> ::= <numeric expression>
+      Internal rule top priority rule for <numeric expression>
+      Symbol IDs: <22> ::= <13>
+      Internal symbols: <numeric expression> ::= <numeric expression[0]>
+    G1 R14 <numeric expression> ::= <numeric expression>
+      Internal rule for symbol <numeric expression> priority transition from 0 to 1
+      Symbol IDs: <13> ::= <14>
+      Internal symbols: <numeric expression[0]> ::= <numeric expression[1]>
+    G1 R15 <numeric expression> ::= <numeric expression>
+      Internal rule for symbol <numeric expression> priority transition from 1 to 2
+      Symbol IDs: <14> ::= <15>
+      Internal symbols: <numeric expression[1]> ::= <numeric expression[2]>
+    G1 R16 <numeric expression> ::= <variable>
+      Symbol IDs: <15> ::= <20>
+      Internal symbols: <numeric expression[2]> ::= <variable>
+    G1 R17 <numeric expression> ::= <number>
+      Symbol IDs: <15> ::= <24>
+      Internal symbols: <numeric expression[2]> ::= <number>
+    G1 R18 <numeric expression> ::= <numeric expression> '+' <numeric expression>
+      Symbol IDs: <14> ::= <14> <8> <15>
+      Internal symbols: <numeric expression[1]> ::= <numeric expression[1]> <[Lex-7]> <numeric expression[2]>
+    G1 R19 <numeric expression> ::= <numeric expression> '*' <numeric expression>
+      Symbol IDs: <13> ::= <13> <9> <14>
+      Internal symbols: <numeric expression[0]> ::= <numeric expression[0]> <[Lex-8]> <numeric expression[1]>
+
+=for Marpa::R2::Display::End
+
+=head2 show_symbols() output
+
+=for Marpa::R2::Display
+name: SLIF debug example show_symbols() output
+remove-display-indent: 1
+remove-blank-last-line: 1
+partial: 1
+
+    G1 Symbols:
+    G1 S0 :start -- Internal G1 start symbol
+      Internal name: <[:start]>
+    G1 S1 'set' -- Internal lexical symbol for "'set'"
+      /* terminal */
+      Internal name: <[Lex-0]>
+      SLIF name: 'set'
+    G1 S2 'to' -- Internal lexical symbol for "'to'"
+      /* terminal */
+      Internal name: <[Lex-1]>
+      SLIF name: 'to'
+    G1 S3 '=' -- Internal lexical symbol for "'='"
+      /* terminal */
+      Internal name: <[Lex-2]>
+      SLIF name: '='
+    G1 S4 'string' -- Internal lexical symbol for "'string'"
+      /* terminal */
+      Internal name: <[Lex-3]>
+      SLIF name: 'string'
+    G1 S5 '(' -- Internal lexical symbol for "'('"
+      /* terminal */
+      Internal name: <[Lex-4]>
+      SLIF name: '('
+    G1 S6 ')' -- Internal lexical symbol for "')'"
+      /* terminal */
+      Internal name: <[Lex-5]>
+      SLIF name: ')'
+    G1 S7 '+' -- Internal lexical symbol for "'+'"
+      /* terminal */
+      Internal name: <[Lex-6]>
+      SLIF name: '+'
+    G1 S8 '+' -- Internal lexical symbol for "'+'"
+      /* terminal */
+      Internal name: <[Lex-7]>
+      SLIF name: '+'
+    G1 S9 '*' -- Internal lexical symbol for "'*'"
+      /* terminal */
+      Internal name: <[Lex-8]>
+      SLIF name: '*'
+    G1 S10 <expression> -- <expression> at priority 0
+      Internal name: <expression[0]>
+      SLIF name: expression
+    G1 S11 <expression> -- <expression> at priority 1
+      Internal name: <expression[1]>
+      SLIF name: expression
+    G1 S12 <expression> -- <expression> at priority 2
+      Internal name: <expression[2]>
+      SLIF name: expression
+    G1 S13 <numeric expression> -- <numeric expression> at priority 0
+      Internal name: <numeric expression[0]>
+      SLIF name: numeric expression
+    G1 S14 <numeric expression> -- <numeric expression> at priority 1
+      Internal name: <numeric expression[1]>
+      SLIF name: numeric expression
+    G1 S15 <numeric expression> -- <numeric expression> at priority 2
+      Internal name: <numeric expression[2]>
+      SLIF name: numeric expression
+    G1 S16 <statements>
+      Internal name: <statements>
+    G1 S17 <statement>
+      Internal name: <statement>
+    G1 S18 <assignment>
+      Internal name: <assignment>
+    G1 S19 <numeric assignment>
+      Internal name: <numeric assignment>
+    G1 S20 <variable>
+      /* terminal */
+      Internal name: <variable>
+    G1 S21 <expression>
+      Internal name: <expression>
+    G1 S22 <numeric expression>
+      Internal name: <numeric expression>
+    G1 S23 <string>
+      /* terminal */
+      Internal name: <string>
+    G1 S24 <number>
+      /* terminal */
+      Internal name: <number>
 
 =for Marpa::R2::Display::End
 
