@@ -20,7 +20,7 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 12;
+use Test::More tests => 16;
 
 use English qw( -no_match_vars );
 use Fatal qw( open close );
@@ -289,6 +289,7 @@ Marpa::R2::Test::is( Data::Dumper::Dumper($latest_report),
 # end-before-line: '^END_TRACE_OUTPUT$'
 
 Marpa::R2::Test::is( $trace_output, <<'END_TRACE_OUTPUT', 'trace output' );
+Setting trace_values option
 Registering character U+0061 as symbol 19: [[\w]]
 Registering character U+0061 as symbol 20: [[^'\x{0A}\x{0B}\x{0C}\x{0D}\x{0085}\x{2028}\x{2029}]]
 Registering character U+0020 as symbol 18: [[\s]]

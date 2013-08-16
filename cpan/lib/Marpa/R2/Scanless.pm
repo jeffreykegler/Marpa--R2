@@ -837,6 +837,7 @@ sub Marpa::R2::Scanless::R::new {
 
     my $g1_recce_args = {};
     $g1_recce_args->{too_many_earley_items} = -1;
+    $g1_recce_args->{trace_file_handle} = $self->[Marpa::R2::Inner::Scanless::R::TRACE_FILE_HANDLE];
     ARG: for my $arg_name ( keys %{$args} ) {
         my $value = $args->{$arg_name};
         next ARG if $arg_name eq 'grammar';    # already handled
