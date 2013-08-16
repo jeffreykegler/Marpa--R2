@@ -15,6 +15,11 @@
 
 Revision history for Marpa::R2
 
+2.067_003
+
+   * Better debugging and tracing for SLIF,
+     and better documentation for it.
+
 2.067_002
 
    *  Fix bug discovered by Jean-Damien Durand --
