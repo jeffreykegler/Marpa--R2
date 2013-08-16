@@ -1033,7 +1033,7 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
     {
       IV op_code = ops[op_ix++];
 
-      if (v_wrapper->trace_values >= 2)
+      if (v_wrapper->trace_values >= 3)
 	{
 	  AV *event;
 	  SV *event_data[3];

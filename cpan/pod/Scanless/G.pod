@@ -215,7 +215,7 @@ L<the SLIF grammar's g0_rule() method|"g0_rule()">,
 =head2 show_rules()
 
 =for Marpa::R2::Display
-name: Scanless show_rules() synopsis
+name: SLIF show_rules() synopsis
 partial: 1
 normalize-whitespace: 1
 
@@ -224,9 +224,48 @@ normalize-whitespace: 1
 =for Marpa::R2::Display::End
 
 The C<show_rules()> method returns a descripton of
-the rules for both the G0 and G1 grammars.
-It is useful for showing the rules as they will
+the rules for all subgrammars
+(currently there are G0 and G1 subgrammars).
+It is useful for understanding the rules as they
 appear in trace and debugging outputs.
+To allow for improvements in Marpa::R2,
+the output of C<show_rules()> is subject to change.
+
+The first argument can be a numeric verbosity level.
+The default verbosity is 1, which is adequate for
+most purposes.
+A verbosity of 2 prints additional information useful
+for those new to SLIF tracing and debugging.
+A verbosity of 3 prints additional information for
+experts,
+for those new to SLIF tracing and debugging.
+=head2 show_symbols()
+
+=for Marpa::R2::Display
+name: SLIF show_symbols() synopsis
+partial: 1
+normalize-whitespace: 1
+
+    my $show_symbols_output = $grammar->show_symbols();
+
+=for Marpa::R2::Display::End
+
+The C<show_symbols()> method returns a descripton of
+the symbols for all subgrammars
+(currently there are G0 and G1 subgrammars).
+It is useful for understanding the symbols as they
+appear in trace and debugging outputs.
+To allow for improvements in Marpa::R2,
+the output of C<show_symbols()> is subject to change.
+
+The first argument can be a numeric verbosity level.
+The default verbosity is 1, which is adequate for
+most purposes.
+A verbosity of 2 prints additional information useful
+for those new to SLIF tracing and debugging.
+A verbosity of 3 prints additional information for
+experts,
+for those new to SLIF tracing and debugging.
 
 =head1 Copyright and License
 

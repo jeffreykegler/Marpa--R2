@@ -252,7 +252,7 @@ END_EARLEY_SETS
 
 my $trace_output;
 open my $trace_fh, q{>}, \$trace_output;
-$recce->set( { trace_fh => $trace_fh, trace_values => 1 } );
+$recce->set( { trace_fh => $trace_fh, trace_values => 2 } );
 my $value_ref = $recce->value();
 close $trace_fh;
 

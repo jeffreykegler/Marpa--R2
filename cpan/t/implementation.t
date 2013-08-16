@@ -198,7 +198,7 @@ Marpa::R2::Test::is( $show_earley_sets_output, $expected_earley_sets,
 
 my $trace_output;
 open my $trace_fh, q{>}, \$trace_output;
-$recce->set( { trace_fh => $trace_fh, trace_values => 1 } );
+$recce->set( { trace_fh => $trace_fh, trace_values => 2 } );
 $value_ref = $recce->value();
 $recce->set( { trace_fh => \*STDOUT, trace_values => 0 } );
 close $trace_fh;

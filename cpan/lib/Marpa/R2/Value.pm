@@ -1326,9 +1326,8 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
         if ( $value_type eq 'MARPA_STEP_TRACE' ) {
 
-            if ($trace_values) {
-                print {$Marpa::R2::Internal::TRACE_FH}
-                    trace_op( $grammar, $recce, $value, )
+            if ( my $trace_output = trace_op( $grammar, $recce, $value ) ) {
+                print {$Marpa::R2::Internal::TRACE_FH} $trace_output
                     or Marpa::R2::exception('Could not print to trace file');
             }
 
@@ -1854,7 +1853,12 @@ sub trace_stack_1 {
 sub trace_op {
 
     my ( $grammar, $recce, $value ) = @_;
+
     my $trace_output = q{};
+    my $trace_values = $recce->[Marpa::R2::Internal::Recognizer::TRACE_VALUES] // 0;
+
+    return $trace_output if not $trace_values >= 2;
+
     my $grammar_c    = $grammar->[Marpa::R2::Internal::Grammar::C];
     my $bocage       = $recce->[Marpa::R2::Internal::Recognizer::B_C];
     my $order        = $recce->[Marpa::R2::Internal::Recognizer::O_C];
