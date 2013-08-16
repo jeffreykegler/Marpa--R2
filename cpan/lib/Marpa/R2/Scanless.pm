@@ -627,6 +627,7 @@ sub Marpa::R2::Scanless::G::show_rules {
     else {
         $verbose = defined $arg ? $arg + 0 : 0;
     }
+
     for my $subgrammar (@subgrammars) {
         my $thick_grammar;
         if ( $subgrammar eq 'G0' ) {
@@ -649,7 +650,7 @@ sub Marpa::R2::Scanless::G::show_rules {
             my $minimum = $grammar_c->sequence_min($rule_id);
             my @quantifier =
                 defined $minimum ? $minimum <= 0 ? (q{*}) : (q{+}) : ();
-            my $lhs_id = $grammar_c->rule_lhs($rule_id);
+            my $lhs_id      = $grammar_c->rule_lhs($rule_id);
             my $rule_length = $grammar_c->rule_length($rule_id);
             my @rhs_ids =
                 map { $grammar_c->rule_rhs( $rule_id, $_ ) }
@@ -657,25 +658,51 @@ sub Marpa::R2::Scanless::G::show_rules {
             $text .= join q{ }, $subgrammar, "R$rule_id",
                 $thick_grammar->symbol_in_display_form($lhs_id),
                 '::=',
-                ( map { $thick_grammar->symbol_in_display_form($_) } @rhs_ids ),
+                ( map { $thick_grammar->symbol_in_display_form($_) }
+                    @rhs_ids ),
                 @quantifier;
             $text .= "\n";
 
             if ( $verbose >= 2 ) {
+
+                my $description =
+                    $rule->[Marpa::R2::Internal::Rule::DESCRIPTION];
+                $text .= "  $description\n" if $description;
                 my @comment = ();
                 $grammar_c->rule_length($rule_id) == 0
                     and push @comment, 'empty';
-                $thick_grammar->rule_is_used($rule_id) or push @comment, '!used';
+                $thick_grammar->rule_is_used($rule_id)
+                    or push @comment, '!used';
                 $grammar_c->rule_is_productive($rule_id)
                     or push @comment, 'unproductive';
                 $grammar_c->rule_is_accessible($rule_id)
                     or push @comment, 'inaccessible';
                 $rule->[Marpa::R2::Internal::Rule::DISCARD_SEPARATION]
                     and push @comment, 'discard_sep';
+
                 if (@comment) {
-                    $text .= q{ } . ( join q{ }, q{/*}, @comment, q{*/} );
+                    $text .= q{  }
+                        . ( join q{ }, q{/*}, @comment, q{*/} ) . "\n";
                 }
             } ## end if ( $verbose >= 2 )
+
+            if ( $verbose >= 3 ) {
+
+                $text .= "  Symbol IDs: <$lhs_id> ::= "
+                    . ( join q{ }, map {"<$_>"} @rhs_ids ) . "\n";
+
+                my $tracer = $thick_grammar->tracer();
+
+                $text
+                    .= "  Internal symbols: <"
+                    . $tracer->symbol_name($lhs_id)
+                    . q{> ::= }
+                    . (
+                    join q{ },
+                    map { '<' . $tracer->symbol_name($_) . '>' } @rhs_ids
+                    ) . "\n";
+
+            } ## end if ( $verbose >= 3 )
 
         } ## end for my $rule ( @{$rules} )
 

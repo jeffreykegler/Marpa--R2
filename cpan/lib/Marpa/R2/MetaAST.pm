@@ -1251,6 +1251,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::single_quoted_string::evaluate {
     my %lexical_rule      = (
         lhs  => $lexical_lhs,
         rhs  => $lexical_rhs,
+        description => "Internal rule for single-quoted string $string",
         mask => [ map { ; 1 } @{$lexical_rhs} ],
     );
     push @{ $parse->{rules}->{G0} }, \%lexical_rule;
