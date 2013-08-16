@@ -737,6 +737,55 @@ perltidy: '-dcsc -sil=0'
 
 =for Marpa::R2::Display::End
 
+=head2 Error message
+
+=for Marpa::R2::Display
+name: SLIF debug example error message
+partial: 1
+remove-display-indent: 1
+remove-blank-last-line: 1
+
+    Error in SLIF parse: No lexemes accepted at line 1, column 18
+    * String before error: a = 8675309 + 42\s
+    * The error was at line 1, column 18, and at character 0x002a '*', ...
+    * here: * 711
+
+=for Marpa::R2::Display::End
+
+=head2 Parse value at error location
+
+Note that where there is a parse error, there will
+not always be a parse value.
+But sometimes the parse is "successful" enough, in a technical sense,
+to produce a value, and in those cases examining the value can be
+helpful in determining what the parser thinks it has seen so far.
+
+=for Marpa::R2::Display
+name: SLIF debug example dump of value
+partial: 1
+normalize-whitespace: 1
+
+    my $value_ref = $slr->value();
+    my $expected_output = \bless( [
+                     bless( [
+                              bless( [
+                                       'a',
+                                       '=',
+                                       bless( [
+                                                bless( [
+                                                         '8675309'
+                                                       ], 'My_Nodes::expression' ),
+                                                '+',
+                                                bless( [
+                                                         '42'
+                                                       ], 'My_Nodes::expression' )
+                                              ], 'My_Nodes::expression' )
+                                     ], 'My_Nodes::numeric_assignment' )
+                            ], 'My_Nodes::statement' )
+               ], 'My_Nodes::statements' );
+
+=for Marpa::R2::Display::End
+
 =head2 Trace output
 
 =for Marpa::R2::Display

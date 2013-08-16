@@ -99,6 +99,11 @@ $progress_report = $slr->show_progress( 0, -1 );
 
 # Marpa::R2::Display::End
 
+# Marpa::R2::Display
+# name: SLIF debug example error message
+# start-after-line: END_OF_TEXT
+# end-before-line: '^END_OF_TEXT$'
+
 my $eval_error = $EVAL_ERROR;
 $eval_error =~ s/^(Marpa::R2 \s+ exception \s+ at) .*/$1\n/xms;
 Marpa::R2::Test::is($eval_error, <<'END_OF_TEXT', 'Error message before fix');
@@ -108,6 +113,12 @@ Error in SLIF parse: No lexemes accepted at line 1, column 18
 * here: * 711
 Marpa::R2 exception at
 END_OF_TEXT
+
+# Marpa::R2::Display::End
+
+
+# Marpa::R2::Display
+# name: SLIF debug example dump of value
 
 my $value_ref = $slr->value();
 my $expected_output = \bless( [
@@ -127,6 +138,9 @@ my $expected_output = \bless( [
                                  ], 'My_Nodes::numeric_assignment' )
                         ], 'My_Nodes::statement' )
                ], 'My_Nodes::statements' );
+
+# Marpa::R2::Display::End
+
 Test::More::is_deeply( $value_ref, $expected_output, 'Value before fix' );
 
 # Marpa::R2::Display

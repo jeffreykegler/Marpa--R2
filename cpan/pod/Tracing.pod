@@ -36,6 +36,19 @@ even experts (actually, especially experts)
 will sometimes overlook the obvious
 in a rush to use more advanced techniques.
 
+=head2 Dump the parse value
+
+Sometimes, even when there is a parse error, you can still evaluate the parse
+using the L<SLIF recognizer's C<value()>
+method|Marpa::R2::Scanless::R/"value()">.
+If you are fortunate enough to have a parse value at the point of failure,
+it can be an excellent way
+to determine what the parser thinks it has seen so far.
+Is more likely that there will be a parse value if you are
+using incremental development,
+and the parse values will be especially helpful
+if your parse values are AST's.
+
 =head2 Trace terminals
 
 Set the L<C<trace_terminals> recognizer named
@@ -88,6 +101,10 @@ includes the following:
 
 =over 4
 
+=item * Of course, the error message.
+
+=item * If the failed parse returns a value, a dump of that value.
+
 =item * Set the C<trace_terminals> recognizer named argument to level 1.
 
 =item * Run C<show_rules> on the SLIF grammar.
@@ -105,8 +122,9 @@ remember that if the input text to the grammar is large,
 the outputs from
 C<trace_terminals>,
 C<show_progress>,
-and C<trace_values>
-will be very lengthy.
+and C<trace_values>,
+and the dump of the parse value,
+can be very lengthy.
 You want to work with short inputs when possible.
 
 =head1 Copyright and License
