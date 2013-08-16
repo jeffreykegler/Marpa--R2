@@ -1409,7 +1409,7 @@ sub Marpa::R2::Scanless::R::read_problem {
         }
     } ## end DESC:
     my $read_string_error;
-    if ( $problem_pos < $length_of_string or $problem_pos < $length_of_string) {
+    if ( $problem_pos < $length_of_string) {
         my $char = substr ${$p_string}, $problem_pos, 1;
         my $char_desc = character_describe($char);
         my ( $line, $column ) = $thin_slr->line_column($problem_pos);

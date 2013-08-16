@@ -148,7 +148,9 @@ sub ast_to_hash {
     $hashed_ast->{symbols}->{G0}->{$start_lhs}->{description} =
         'Internal G0 (lexical) start symbol';
     push @{ $hashed_ast->{rules}->{G0} },
-        map { ; { lhs => $start_lhs, rhs => [$_] } } sort keys %is_lexeme;
+        map { ; {
+        description => "Internal lexical start rule for <$_>",
+        lhs => $start_lhs, rhs => [$_] } } sort keys %is_lexeme;
     my %stripped_character_classes = ();
     {
         my $character_classes = $hashed_ast->{character_classes};
@@ -635,13 +637,19 @@ sub Marpa::R2::Internal::MetaAST_Nodes::priority_rule::evaluate {
         {
         lhs => $lhs,
         rhs => [ $parse->prioritized_symbol( $lhs, 0 ) ],
-        @arg0_action
+        @arg0_action,
+        description => qq{Internal rule top priority rule for <$lhs>},
         },
         (
         map {
             ;
-            {   lhs => $parse->prioritized_symbol( $lhs, $_ - 1 ),
-                rhs => [ $parse->prioritized_symbol( $lhs, $_ ) ],
+            {   lhs         => $parse->prioritized_symbol( $lhs,   $_ - 1 ),
+                rhs         => [ $parse->prioritized_symbol( $lhs, $_ ) ],
+                description => (
+                    qq{Internal rule for symbol <$lhs> priority transition from }
+                        . ( $_ - 1 )
+                        . qq{ to $_}
+                ),
                 @arg0_action
             }
         } 1 .. $priority_count - 1
@@ -775,7 +783,9 @@ sub Marpa::R2::Internal::MetaAST_Nodes::empty_rule::evaluate {
     my $subgrammar = $op_declare->op() eq q{::=} ? 'G1' : 'G0';
     local $Marpa::R2::Internal::SUBGRAMMAR = $subgrammar;
 
-    my %rule = ( lhs => $lhs, rhs => [] );
+    my %rule = ( lhs => $lhs,
+    description => qq{Empty rule for <$lhs>},
+    rhs => [] );
     my $adverb_list = $raw_adverb_list->evaluate($parse);
 
     my $default_adverbs = $parse->{default_adverbs}->{$subgrammar};
@@ -941,8 +951,16 @@ sub Marpa::R2::Internal::MetaAST_Nodes::discard_rule::evaluate {
             description  => 'Internal LHS for G0 discard'
         }
     );
+    my $rhs = $symbol->names($parse);
     push @{ $parse->{rules}->{G0} },
-        { lhs => $discard_lhs, rhs => $symbol->names($parse) };
+        {
+        description => (
+            "Discard rule for " . join q{ },
+            map { '<' . $_ . '>' } @{$rhs}
+        ),
+        lhs => $discard_lhs,
+        rhs => $rhs
+        };
     ## no critic(Subroutines::ProhibitExplicitReturnUndef)
     return undef;
 } ## end sub Marpa::R2::Internal::MetaAST_Nodes::discard_rule::evaluate

@@ -1054,6 +1054,7 @@ sub add_user_rule {
     my $mask;
     my $proper_separation = 0;
     my $keep_separation   = 0;
+    my $description;
 
     OPTION: while ( my ( $option, $value ) = each %{$options} ) {
         if ( $option eq 'name' )   { $rule_name = $value; next OPTION; }
@@ -1077,6 +1078,7 @@ sub add_user_rule {
         }
         if ( $option eq 'keep' ) { $keep_separation = $value; next OPTION }
         if ( $option eq 'mask' ) { $mask = $value; next OPTION }
+        if ( $option eq 'description' ) { $description = $value; next OPTION }
         Marpa::R2::exception("Unknown user rule option: $option");
     } ## end OPTION: while ( my ( $option, $value ) = each %{$options} )
 
@@ -1222,6 +1224,10 @@ sub add_user_rule {
             $ordinary_rule->[Marpa::R2::Internal::Rule::BLESSING] = $blessing;
         }
 
+        if ( defined $description ) {
+            $ordinary_rule->[Marpa::R2::Internal::Rule::DESCRIPTION] = $description;
+        }
+
         return;
     }    # not defined $min
 
@@ -1279,8 +1285,11 @@ sub add_user_rule {
         $rules_by_name->{$rule_name} = $original_rule;
     }
     if ( defined $blessing ) {
-            $original_rule->[Marpa::R2::Internal::Rule::BLESSING] = $blessing;
-            }
+        $original_rule->[Marpa::R2::Internal::Rule::BLESSING] = $blessing;
+    }
+    if ( defined $description ) {
+        $original_rule->[Marpa::R2::Internal::Rule::DESCRIPTION] = $description;
+    }
 
     return;
 
