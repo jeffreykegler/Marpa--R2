@@ -518,7 +518,14 @@ normalize-whitespace: 1
     statements ::= statement *
     statement ::= assignment | <numeric assignment>
     assignment ::= 'set' variable 'to' expression
+
+    # This is a deliberate error in the grammar
+    # The next line should be:
+    # {<numeric assignment> ::= variable '=' <numeric expression>}xms;
+    # I have changed the <numeric expression>  to <expression> which
+    # will cause problems.
     <numeric assignment> ::= variable '=' expression
+
     expression ::=
            variable | string
         || 'string' '(' <numeric expression> ')'
@@ -540,6 +547,7 @@ normalize-whitespace: 1
         bless_package => 'My_Nodes',
         source => \$slif_debug_source,
     });
+
 
 =for Marpa::R2::Display::End
 
@@ -698,30 +706,41 @@ document.
 name: SLIF debug example, part 1
 perltidy: '-dcsc -sil=0'
 
-    my $grammar = Marpa::R2::Grammar->new(
-        {   start          => 'Expression',
-            actions        => 'My_Actions',
-            default_action => 'first_arg',
-            rules          => [
-                ## This is a deliberate error in the grammar
-                ## The next line should be:
-                ## { lhs => 'Expression', rhs => [qw/Term/] },
-                ## I have changed the Term to 'Factor' which
-                ## will cause problems.
-                { lhs => 'Expression', rhs => [qw/Factor/] },
-                { lhs => 'Term',       rhs => [qw/Factor/] },
-                { lhs => 'Factor',     rhs => [qw/Number/] },
-                {   lhs    => 'Term',
-                    rhs    => [qw/Term Add Term/],
-                    action => 'do_add'
-                },
-                {   lhs    => 'Factor',
-                    rhs    => [qw/Factor Multiply Factor/],
-                    action => 'do_multiply'
-                },
-            ],
-        }
-    );
+    my $slif_debug_source = <<'END_OF_SOURCE';
+    :default ::= action => ::array bless => ::lhs
+    :start ::= statements
+    statements ::= statement *
+    statement ::= assignment | <numeric assignment>
+    assignment ::= 'set' variable 'to' expression
+
+    # This is a deliberate error in the grammar
+    # The next line should be:
+    # {<numeric assignment> ::= variable '=' <numeric expression>}xms;
+    # I have changed the <numeric expression>  to <expression> which
+    # will cause problems.
+    <numeric assignment> ::= variable '=' expression
+
+    expression ::=
+           variable | string
+        || 'string' '(' <numeric expression> ')'
+        || expression '+' expression
+    <numeric expression> ::=
+           variable | number
+        || <numeric expression> '+' <numeric expression>
+        || <numeric expression> '*' <numeric expression>
+    variable ~ [\w]+
+    number ~ [\d]+
+    string ~ ['] <string contents> [']
+    <string contents> ~ [^'\x{0A}\x{0B}\x{0C}\x{0D}\x{0085}\x{2028}\x{2029}]+
+    :discard ~ whitespace
+    whitespace ~ [\s]+
+    END_OF_SOURCE
+
+    my $slg = Marpa::R2::Scanless::G->new(
+        {
+        bless_package => 'My_Nodes',
+        source => \$slif_debug_source,
+    });
 
 =for Marpa::R2::Display::End
 

@@ -40,7 +40,14 @@ my $slif_debug_source = <<'END_OF_SOURCE';
 statements ::= statement *
 statement ::= assignment | <numeric assignment>
 assignment ::= 'set' variable 'to' expression
+
+# This is a deliberate error in the grammar
+# The next line should be:
+# {<numeric assignment> ::= variable '=' <numeric expression>}xms;
+# I have changed the <numeric expression>  to <expression> which
+# will cause problems.
 <numeric assignment> ::= variable '=' expression
+
 expression ::=
        variable | string
     || 'string' '(' <numeric expression> ')'
