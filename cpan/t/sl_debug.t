@@ -32,7 +32,7 @@ use Data::Dumper;
 my $progress_report = q{};
 
 # Marpa::R2::Display
-# name: SLIF Debug Example Part 1
+# name: SLIF debug example, part 1
 
 my $slif_debug_source = <<'END_OF_SOURCE';
 :default ::= action => ::array bless => ::lhs
@@ -70,14 +70,14 @@ open my $trace_fh, q{>}, \( my $trace_output = q{} );
 ## use critic
 
 # Marpa::R2::Display
-# name: SLIF Grammar set() Synopsis
+# name: SLIF grammar set() synopsis
 
 $slg->set( { trace_file_handle => $trace_fh } );
 
 # Marpa::R2::Display::End
 
 # Marpa::R2::Display
-# name: SLIF Debug Example Part 2
+# name: SLIF debug example, part 2
 
 my $slr = Marpa::R2::Scanless::R->new(
     { grammar => $slg,
@@ -123,7 +123,7 @@ my $expected_output = \bless( [
 Test::More::is_deeply( $value_ref, $expected_output, 'Value before fix' );
 
 # Marpa::R2::Display
-# name: SLIF Debug Example Progress Report
+# name: SLIF debug example progress report
 # start-after-line: END_PROGRESS_REPORT
 # end-before-line: '^END_PROGRESS_REPORT$'
 
@@ -284,7 +284,7 @@ Marpa::R2::Test::is( Data::Dumper::Dumper($latest_report),
     $expected_report3, 'progress report at location -3' );
 
 # Marpa::R2::Display
-# name: SLIF Debug Example Trace Output
+# name: SLIF debug example trace output
 # start-after-line: END_TRACE_OUTPUT
 # end-before-line: '^END_TRACE_OUTPUT$'
 
@@ -396,7 +396,13 @@ my $expected_value_after_fix = \bless(
 );
 Test::More::is_deeply($value_ref, $expected_value_after_fix, 'Value after fix');
 
+# Marpa::R2::Display
+# name: SLIF show_rules() synopsis
+
 my $show_rules_output = $slg->show_rules(3);
+
+# Marpa::R2::Display::End
+
 Marpa::R2::Test::is( $show_rules_output,
     <<'END_OF_SHOW_RULES_OUTPUT', 'SLIF show_rules()' );
 G1 Rules:
@@ -576,7 +582,13 @@ G0 R27 :start_lex ::= <variable>
   Internal symbols: <[:start_lex]> ::= <variable>
 END_OF_SHOW_RULES_OUTPUT
 
+# Marpa::R2::Display
+# name: SLIF show_symbols() synopsis
+
 my $show_symbols_output = $slg->show_symbols(3);
+
+# Marpa::R2::Display::End
+
 Marpa::R2::Test::is( $show_symbols_output,
     <<'END_OF_SHOW_SYMBOLS_OUTPUT', 'SLIF show_symbols()' );
 G1 Symbols:

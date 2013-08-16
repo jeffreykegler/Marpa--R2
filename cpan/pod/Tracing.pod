@@ -66,9 +66,13 @@ to debug an error in a grammar.
 =head2 Double check rules and symbols
 
 It sometimes helps to look carefully at the output of
+L<C<show_symbols>|Marpa::R2::Scanless::G/"show_symbols()">
+and
 L<C<show_rules>|Marpa::R2::Scanless::G/"show_rules()">.
 Check if anything there is
 not what you expected.
+For thorough checking, it can be helpful to use a
+verbosity level higher than 1.
 
 =head2 Other traces
 
@@ -84,11 +88,13 @@ includes the following:
 
 =over 4
 
-=item * Turn on the C<trace_terminals> recognizer named argument.
+=item * Set the C<trace_terminals> recognizer named argument to level 1.
 
-=item * Run C<show_rules> on the precomputed grammar.
+=item * Run C<show_rules> on the SLIF grammar.
 
-=item * Run C<show_progress> on the recognizer.
+=item * Run C<show_symbols> on the SLIF grammar.
+
+=item * Run C<show_progress> on the SLIF recognizer.
 
 =item * Set the C<trace_values> evaluator named argument to level 1.
 

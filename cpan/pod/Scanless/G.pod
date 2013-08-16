@@ -108,8 +108,11 @@ By default the trace file handle is C<STDERR>.
 
 =head1 Mutator
 
+=head2 set()
+
 =for Marpa::R2::Display
 name: SLIF grammar set() synopsis
+normalize-whitespace: 1
 
     $slg->set( { trace_file_handle => $trace_fh } );
 
@@ -121,45 +124,16 @@ Currently, the only argument that may be changed in C<trace_file_handle>.
 
 =head1 Accessors
 
-=head2 rule()
-
-=for Marpa::R2::Display
-name: Scanless rule() synopsis
-
-    my @g1_rule_ids = $slg->g1_rule_ids();
-    for my $g1_rule_id (@g1_rule_ids) {
-        $g1_rules_description .= "$g1_rule_id "
-            . ( join q{ }, map {"<$_>"} $slg->rule($g1_rule_id) ) . "\n";
-    }
-
-=for Marpa::R2::Display::End
-
-Given a G1 rule ID as its argument,
-returns an array containing the
-names of the symbols of that rule.
-The C<rule()> method
-returns a Perl false if no G1 rule with that rule ID exists.
-If the rule ID exists,
-C<rule()> returns a list of one or more symbol names.
-The first symbol name will be that of
-the rule's LHS symbol.
-The rest of the list will be the names of the rule's
-RHS symbols, in order.
-The SLIF's C<rule()> method is useful in
-combination with
-the SLIF's
-of L<the progress method|Marpa::R2::Scanless::R/progress()>,
-whose output identifies rules by rule ID.
-
 =head2 g1_rule_ids()
 
 =for Marpa::R2::Display
 name: Scanless rule() synopsis
+normalize-whitespace: 1
 
     my @g1_rule_ids = $slg->g1_rule_ids();
     for my $g1_rule_id (@g1_rule_ids) {
         $g1_rules_description .= "$g1_rule_id "
-            . ( join q{ }, map {"<$_>"} $slg->rule($g1_rule_id) ) . "\n";
+            . ( join q{ }, map { "<$_>" } $slg->rule($g1_rule_id) ) . "\n";
     }
 
 =for Marpa::R2::Display::End
@@ -174,11 +148,12 @@ L<the SLIF grammar's rule() method|"rule()">,
 
 =for Marpa::R2::Display
 name: Scanless g0_rule() synopsis
+normalize-whitespace: 1
 
     my @g0_rule_ids = $slg->g0_rule_ids();
     for my $g0_rule_id (@g0_rule_ids) {
         $g0_rules_description .= "$g0_rule_id "
-            . ( join q{ }, map {"<$_>"} $slg->g0_rule($g0_rule_id) ) . "\n";
+            . ( join q{ }, map { "<$_>" } $slg->g0_rule($g0_rule_id) ) . "\n";
     }
 
 =for Marpa::R2::Display::End
@@ -199,11 +174,12 @@ RHS symbols, in order.
 
 =for Marpa::R2::Display
 name: Scanless g0_rule() synopsis
+normalize-whitespace: 1
 
     my @g0_rule_ids = $slg->g0_rule_ids();
     for my $g0_rule_id (@g0_rule_ids) {
         $g0_rules_description .= "$g0_rule_id "
-            . ( join q{ }, map {"<$_>"} $slg->g0_rule($g0_rule_id) ) . "\n";
+            . ( join q{ }, map { "<$_>" } $slg->g0_rule($g0_rule_id) ) . "\n";
     }
 
 =for Marpa::R2::Display::End
@@ -219,7 +195,7 @@ name: SLIF show_rules() synopsis
 partial: 1
 normalize-whitespace: 1
 
-    my $show_rules_output = $grammar->show_rules();
+    my $show_rules_output = $slg->show_rules(3);
 
 =for Marpa::R2::Display::End
 
@@ -239,6 +215,7 @@ for those new to SLIF tracing and debugging.
 A verbosity of 3 prints additional information for
 experts,
 for those new to SLIF tracing and debugging.
+
 =head2 show_symbols()
 
 =for Marpa::R2::Display
@@ -246,7 +223,7 @@ name: SLIF show_symbols() synopsis
 partial: 1
 normalize-whitespace: 1
 
-    my $show_symbols_output = $grammar->show_symbols();
+    my $show_symbols_output = $slg->show_symbols(3);
 
 =for Marpa::R2::Display::End
 
@@ -266,6 +243,42 @@ for those new to SLIF tracing and debugging.
 A verbosity of 3 prints additional information for
 experts,
 for those new to SLIF tracing and debugging.
+
+=head1 Discouraged methods
+
+Discouraged methods are those that
+continue to be supported, but their use is discouraged for one
+reason or another.
+
+=head2 rule()
+
+=for Marpa::R2::Display
+name: Scanless rule() synopsis
+
+    my @g1_rule_ids = $slg->g1_rule_ids();
+    for my $g1_rule_id (@g1_rule_ids) {
+        $g1_rules_description .= "$g1_rule_id "
+            . ( join q{ }, map { "<$_>" } $slg->rule($g1_rule_id) ) . "\n";
+    }
+
+=for Marpa::R2::Display::End
+
+Given a G1 rule ID as its argument,
+returns an array containing the
+names of the symbols of that rule.
+The C<rule()> method
+returns a Perl false if no G1 rule with that rule ID exists.
+If the rule ID exists,
+C<rule()> returns a list of one or more symbol names.
+The first symbol name will be that of
+the rule's LHS symbol.
+The rest of the list will be the names of the rule's
+RHS symbols, in order.
+The SLIF's C<rule()> method is useful in
+combination with
+the SLIF's
+of L<the progress method|Marpa::R2::Scanless::R/progress()>,
+whose output identifies rules by rule ID.
 
 =head1 Copyright and License
 

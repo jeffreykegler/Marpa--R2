@@ -150,7 +150,7 @@ for this example are in the Appendix.)
 I've commented out the correct start rule:
 
 =for Marpa::R2::Display
-name: Debug Example Part 1
+name: SLIF debug example, part 1
 partial: 1
 normalize-whitespace: 1
 
@@ -162,7 +162,7 @@ and replaced it with another start rule,
 one which will cause problems:
 
 =for Marpa::R2::Display
-name: Debug Example Part 1
+name: SLIF debug example, part 1
 partial: 1
 normalize-whitespace: 1
 
@@ -180,7 +180,7 @@ to "discover" it.
 Right off the bat, we get two warning messages:
 
 =for Marpa::R2::Display
-name: Debug Example Trace Output
+name: SLIF debug example trace output
 partial: 1
 normalize-whitespace: 1
 
@@ -228,7 +228,7 @@ when it confronts the plus sign ("C<+>").
 The last two lines are:
 
 =for Marpa::R2::Display
-name: Debug Example Trace Output
+name: SLIF debug example trace output
 partial: 1
 normalize-whitespace: 1
 
@@ -281,7 +281,7 @@ location 3,
 from our example.
 
 =for Marpa::R2::Display
-name: Debug Example Progress Report
+name: SLIF debug example progress report
 partial: 1
 normalize-whitespace: 1
 
@@ -313,7 +313,7 @@ and repetitive of information which can
 be deduced from other fields.
 
 =for Marpa::R2::Display
-name: Debug Example Progress Report
+name: SLIF debug example progress report
 partial: 1
 normalize-whitespace: 1
 
@@ -354,7 +354,7 @@ in the language of our grammar.
 Let's look at another progress report line:
 
 =for Marpa::R2::Display
-name: Debug Example Progress Report
+name: SLIF debug example progress report
 partial: 1
 normalize-whitespace: 1
 
@@ -397,7 +397,7 @@ it is location 3.
 Predicted rules also appear in progress reports:
 
 =for Marpa::R2::Display
-name: Debug Example Progress Report
+name: SLIF debug example progress report
 partial: 1
 normalize-whitespace: 1
 
@@ -442,7 +442,7 @@ This is the progress report line for
 the completed rule in a right recursion of length 20.
 
 =for Marpa::R2::Display
-name: Debug Leo Example Progress Report
+name: SLIF debug Leo example progress report
 partial: 1
 normalize-whitespace: 1
 
@@ -456,7 +456,7 @@ Here again are progress reports
 at the location where things went wrong:
 
 =for Marpa::R2::Display
-name: Debug Example Progress Report
+name: SLIF debug example progress report
 partial: 1
 normalize-whitespace: 1
 
@@ -491,7 +491,7 @@ there should be a prediction of "C<Term -E<gt> Term Add Term>" at location 0.
 So we look at the predictions at location 0.
 
 =for Marpa::R2::Display
-name: Debug Example Progress Report
+name: SLIF debug example progress report
 partial: 1
 normalize-whitespace: 1
 
@@ -508,21 +508,38 @@ We look back at the grammar, and start from
 the beginning.
 
 =for Marpa::R2::Display:
-name: Debug Example Part 1
+name: SLIF debug example, part 1
 partial: 1
 normalize-whitespace: 1
 
-    { lhs     => 'Expression', rhs => [qw/Factor/] },
-    { lhs => 'Term',       rhs => [qw/Factor/] },
-    { lhs => 'Factor',     rhs => [qw/Number/] },
-    {   lhs    => 'Term',
-        rhs    => [qw/Term Add Term/],
-        action => 'do_add'
-    },
-    {   lhs    => 'Factor',
-        rhs    => [qw/Factor Multiply Factor/],
-        action => 'do_multiply'
-    },
+    my $slif_debug_source = <<'END_OF_SOURCE';
+    :default ::= action => ::array bless => ::lhs
+    :start ::= statements
+    statements ::= statement *
+    statement ::= assignment | <numeric assignment>
+    assignment ::= 'set' variable 'to' expression
+    <numeric assignment> ::= variable '=' expression
+    expression ::=
+           variable | string
+        || 'string' '(' <numeric expression> ')'
+        || expression '+' expression
+    <numeric expression> ::=
+           variable | number
+        || <numeric expression> '+' <numeric expression>
+        || <numeric expression> '*' <numeric expression>
+    variable ~ [\w]+
+    number ~ [\d]+
+    string ~ ['] <string contents> [']
+    <string contents> ~ [^'\x{0A}\x{0B}\x{0C}\x{0D}\x{0085}\x{2028}\x{2029}]+
+    :discard ~ whitespace
+    whitespace ~ [\s]+
+    END_OF_SOURCE
+
+    my $slg = Marpa::R2::Scanless::G->new(
+        {
+        bless_package => 'My_Nodes',
+        source => \$slif_debug_source,
+    });
 
 =for Marpa::R2::Display::End
 
@@ -570,20 +587,20 @@ Marpa's "situational awareness" in innovative ways.
 =head2 progress()
 
 =for Marpa::R2::Display
-name: progress(0) example
+name: SLIF progress(0) example
 normalize-whitespace: 1
 
-    my $report0 = $recce->progress(0);
+    my $report0 = $slr->progress(0);
 
 =for Marpa::R2::Display::End
 
 Z<>
 
 =for Marpa::R2::Display
-name: progress() example
+name: SLIF progress() example
 normalize-whitespace: 1
 
-    my $latest_report = $recce->progress();
+    my $latest_report = $slr->progress();
 
 =for Marpa::R2::Display::End
 
@@ -678,7 +695,7 @@ document.
 =head2 Code
 
 =for Marpa::R2::Display:
-name: Debug Example Part 1
+name: SLIF debug example, part 1
 perltidy: '-dcsc -sil=0'
 
     my $grammar = Marpa::R2::Grammar->new(
@@ -709,62 +726,81 @@ perltidy: '-dcsc -sil=0'
 =for Marpa::R2::Display::End
 
 =for Marpa::R2::Display:
-name: Debug Example Part 2
+name: SLIF debug example, part 2
 perltidy: '-dcsc -sil=0'
 
-    $grammar->precompute();
+    my $slr = Marpa::R2::Scanless::R->new(
+        { grammar => $slg,
+        trace_terminals => 1,
+        trace_values => 1,
+        } );
 
-    my @tokens = (
-        [ 'Number',   42 ],
-        [ 'Multiply', q{*} ],
-        [ 'Number',   1 ],
-        [ 'Add',      q{+} ],
-        [ 'Number',   7 ],
-    );
+    my $test_input = 'a = 8675309 + 42 * 711' ;
+    eval { $slr->read( \$test_input ) };
 
-    sub My_Actions::do_add {
-        my ( undef, $t1, undef, $t2 ) = @_;
-        return $t1 + $t2;
-    }
-
-    sub My_Actions::do_multiply {
-        my ( undef, $t1, undef, $t2 ) = @_;
-        return $t1 * $t2;
-    }
-
-    sub My_Actions::first_arg { shift; return shift; }
-
-    my $recce = Marpa::R2::Recognizer->new(
-        { grammar => $grammar, trace_terminals => 2 } );
-
-    my $token_ix = 0;
-
-    TOKEN: for my $token_and_value (@tokens) {
-        last TOKEN if not defined $recce->read( @{$token_and_value} );
-    }
-
-    $progress_report = $recce->show_progress( 0, -1 );
+    $progress_report = $slr->show_progress( 0, -1 );
 
 =for Marpa::R2::Display::End
 
 =head2 Trace output
 
 =for Marpa::R2::Display
-name: Debug Example Trace Output
+name: SLIF debug example trace output
 remove-display-indent: 1
 remove-blank-last-line: 1
 
-    Inaccessible symbol: Add
-    Inaccessible symbol: Term
-    Setting trace_terminals option
-    Expecting "Number" at earleme 0
-    Accepted "Number" at 0-1
-    Expecting "Multiply" at 1
-    Accepted "Multiply" at 1-2
-    Expecting "Number" at 2
-    Accepted "Number" at 2-3
-    Expecting "Multiply" at 3
-    Rejected "Add" at 3-4
+    Setting trace_values option
+    Registering character U+0061 as symbol 19: [[\w]]
+    Registering character U+0061 as symbol 20: [[^'\x{0A}\x{0B}\x{0C}\x{0D}\x{0085}\x{2028}\x{2029}]]
+    Registering character U+0020 as symbol 18: [[\s]]
+    Registering character U+0020 as symbol 20: [[^'\x{0A}\x{0B}\x{0C}\x{0D}\x{0085}\x{2028}\x{2029}]]
+    Accepted lexeme @0-1: variable; value="a"
+    Registering character U+003d as symbol 16: [[\=]]
+    Registering character U+003d as symbol 20: [[^'\x{0A}\x{0B}\x{0C}\x{0D}\x{0085}\x{2028}\x{2029}]]
+    Discarded lexeme @1-2: <whitespace>
+    Accepted lexeme @2-3: [Lex-2]; value="="
+    Registering character U+0038 as symbol 17: [[\d]]
+    Registering character U+0038 as symbol 19: [[\w]]
+    Registering character U+0038 as symbol 20: [[^'\x{0A}\x{0B}\x{0C}\x{0D}\x{0085}\x{2028}\x{2029}]]
+    Discarded lexeme @3-4: <whitespace>
+    Registering character U+0036 as symbol 17: [[\d]]
+    Registering character U+0036 as symbol 19: [[\w]]
+    Registering character U+0036 as symbol 20: [[^'\x{0A}\x{0B}\x{0C}\x{0D}\x{0085}\x{2028}\x{2029}]]
+    Registering character U+0037 as symbol 17: [[\d]]
+    Registering character U+0037 as symbol 19: [[\w]]
+    Registering character U+0037 as symbol 20: [[^'\x{0A}\x{0B}\x{0C}\x{0D}\x{0085}\x{2028}\x{2029}]]
+    Registering character U+0035 as symbol 17: [[\d]]
+    Registering character U+0035 as symbol 19: [[\w]]
+    Registering character U+0035 as symbol 20: [[^'\x{0A}\x{0B}\x{0C}\x{0D}\x{0085}\x{2028}\x{2029}]]
+    Registering character U+0033 as symbol 17: [[\d]]
+    Registering character U+0033 as symbol 19: [[\w]]
+    Registering character U+0033 as symbol 20: [[^'\x{0A}\x{0B}\x{0C}\x{0D}\x{0085}\x{2028}\x{2029}]]
+    Registering character U+0030 as symbol 17: [[\d]]
+    Registering character U+0030 as symbol 19: [[\w]]
+    Registering character U+0030 as symbol 20: [[^'\x{0A}\x{0B}\x{0C}\x{0D}\x{0085}\x{2028}\x{2029}]]
+    Registering character U+0039 as symbol 17: [[\d]]
+    Registering character U+0039 as symbol 19: [[\w]]
+    Registering character U+0039 as symbol 20: [[^'\x{0A}\x{0B}\x{0C}\x{0D}\x{0085}\x{2028}\x{2029}]]
+    Rejected lexeme @4-11: number; value="8675309"
+    Accepted lexeme @4-11: variable; value="8675309"
+    Registering character U+002b as symbol 15: [[\+]]
+    Registering character U+002b as symbol 20: [[^'\x{0A}\x{0B}\x{0C}\x{0D}\x{0085}\x{2028}\x{2029}]]
+    Discarded lexeme @11-12: <whitespace>
+    Rejected lexeme @12-13: [Lex-7]; value="+"
+    Accepted lexeme @12-13: [Lex-6]; value="+"
+    Registering character U+0034 as symbol 17: [[\d]]
+    Registering character U+0034 as symbol 19: [[\w]]
+    Registering character U+0034 as symbol 20: [[^'\x{0A}\x{0B}\x{0C}\x{0D}\x{0085}\x{2028}\x{2029}]]
+    Discarded lexeme @13-14: <whitespace>
+    Registering character U+0032 as symbol 17: [[\d]]
+    Registering character U+0032 as symbol 19: [[\w]]
+    Registering character U+0032 as symbol 20: [[^'\x{0A}\x{0B}\x{0C}\x{0D}\x{0085}\x{2028}\x{2029}]]
+    Rejected lexeme @14-16: number; value="42"
+    Accepted lexeme @14-16: variable; value="42"
+    Registering character U+002a as symbol 14: [[\*]]
+    Registering character U+002a as symbol 20: [[^'\x{0A}\x{0B}\x{0C}\x{0D}\x{0085}\x{2028}\x{2029}]]
+    Discarded lexeme @16-17: <whitespace>
+    Rejected lexeme @17-18: [Lex-8]; value="*"
 
 =for Marpa::R2::Display::End
 
@@ -781,29 +817,65 @@ and in that case the distinction will matter.
 =head2 show_progress() output
 
 =for Marpa::R2::Display
-name: Debug Example Progress Report
+name: SLIF debug example progress report
 remove-display-indent: 1
 remove-blank-last-line: 1
 
-    P0 @0-0 Expression -> . Factor
-    P2 @0-0 Factor -> . Number
-    P4 @0-0 Factor -> . Factor Multiply Factor
-    F0 @0-1 Expression -> Factor .
-    F2 @0-1 Factor -> Number .
-    R4:1 @0-1 Factor -> Factor . Multiply Factor
-    P2 @2-2 Factor -> . Number
-    P4 @2-2 Factor -> . Factor Multiply Factor
-    R4:2 @0-2 Factor -> Factor Multiply . Factor
-    F0 @0-3 Expression -> Factor .
-    F2 @2-3 Factor -> Number .
-    R4:1 x2 @0,2-3 Factor -> Factor . Multiply Factor
-    F4 @0-3 Factor -> Factor Multiply Factor .
+    P0 @0-0 :start -> . <statements>
+    P1 @0-0 <statements> -> . <statement> *
+    P2 @0-0 <statement> -> . <assignment>
+    P3 @0-0 <statement> -> . <numeric assignment>
+    P4 @0-0 <assignment> -> . 'set' <variable> 'to' <expression>
+    P5 @0-0 <numeric assignment> -> . <variable> '=' <expression>
+    R5:1 @0-1 <numeric assignment> -> <variable> . '=' <expression>
+    R5:2 @0-2 <numeric assignment> -> <variable> '=' . <expression>
+    P6 @2-2 <expression> -> . <expression>
+    P7 @2-2 <expression> -> . <expression>
+    P8 @2-2 <expression> -> . <expression>
+    P9 @2-2 <expression> -> . <variable>
+    P10 @2-2 <expression> -> . <string>
+    P11 @2-2 <expression> -> . 'string' '(' <numeric expression> ')'
+    P12 @2-2 <expression> -> . <expression> '+' <expression>
+    F0 @0-3 :start -> <statements> .
+    P1 @0-3 <statements> -> . <statement> *
+    F1 @0-3 <statements> -> <statement> * .
+    P2 @3-3 <statement> -> . <assignment>
+    P3 @3-3 <statement> -> . <numeric assignment>
+    F3 @0-3 <statement> -> <numeric assignment> .
+    P4 @3-3 <assignment> -> . 'set' <variable> 'to' <expression>
+    P5 @3-3 <numeric assignment> -> . <variable> '=' <expression>
+    F5 @0-3 <numeric assignment> -> <variable> '=' <expression> .
+    F6 @2-3 <expression> -> <expression> .
+    F7 @2-3 <expression> -> <expression> .
+    F8 @2-3 <expression> -> <expression> .
+    F9 @2-3 <expression> -> <variable> .
+    R12:1 @2-3 <expression> -> <expression> . '+' <expression>
+    P8 @4-4 <expression> -> . <expression>
+    P9 @4-4 <expression> -> . <variable>
+    P10 @4-4 <expression> -> . <string>
+    P11 @4-4 <expression> -> . 'string' '(' <numeric expression> ')'
+    R12:2 @2-4 <expression> -> <expression> '+' . <expression>
+    F0 @0-5 :start -> <statements> .
+    P1 @0-5 <statements> -> . <statement> *
+    F1 @0-5 <statements> -> <statement> * .
+    P2 @5-5 <statement> -> . <assignment>
+    P3 @5-5 <statement> -> . <numeric assignment>
+    F3 @0-5 <statement> -> <numeric assignment> .
+    P4 @5-5 <assignment> -> . 'set' <variable> 'to' <expression>
+    P5 @5-5 <numeric assignment> -> . <variable> '=' <expression>
+    F5 @0-5 <numeric assignment> -> <variable> '=' <expression> .
+    F6 @2-5 <expression> -> <expression> .
+    F8 @4-5 <expression> -> <expression> .
+    F9 @4-5 <expression> -> <variable> .
+    R12:1 @2-5 <expression> -> <expression> . '+' <expression>
+    F12 @2-5 <expression> -> <expression> '+' <expression> .
 
 =for Marpa::R2::Display::End
 
 =head2 progress() outputs
 
-These section contains the output of the C<progress()>
+These section contains samples of
+the output of the C<progress()>
 method -- the progress reports in their "raw" format.
 The output is shown in L<Data::Dumper> format,
 with C<Data::Dumper::Indent> set to 0
@@ -812,46 +884,45 @@ and C<Data::Dumper::Terse> set to 1.
 The C<Data::Dumper> output from C<progress()> at location 0:
 
 =for Marpa::R2::Display
-name: progress() output at location 0
+name: SLIF progress() output at location 0
 remove-display-indent: 1
 remove-blank-last-line: 1
 
-    [[0,0,0],[2,0,0],[4,0,0]]
+    [[0,0,0],[1,0,0],[2,0,0],[3,0,0],[4,0,0],[5,0,0]]
 
 =for Marpa::R2::Display::End
 
 The C<Data::Dumper> output from C<progress()> at location 1:
 
 =for Marpa::R2::Display
-name: progress() output at location 1
+name: SLIF progress() output at location 1
 remove-display-indent: 1
 remove-blank-last-line: 1
 
-    [[0,-1,0],[2,-1,0],[4,1,0]]
+    [[5,1,0]]
 
 =for Marpa::R2::Display::End
 
 The C<Data::Dumper> output from C<progress()> at location 2:
 
 =for Marpa::R2::Display
-name: progress() output at location 2
+name: SLIF progress() output at location 2
 remove-display-indent: 1
 remove-blank-last-line: 1
 
-    [[2,0,2],[4,0,2],[4,2,0]]
+    [[6,0,2],[7,0,2],[8,0,2],[9,0,2],[10,0,2],[11,0,2],[12,0,2],[5,2,0]]
 
 =for Marpa::R2::Display::End
 
-The default C<progress()> output is for the latest Earley set,
-which is location 3 in our example.
-Here is the C<progress()> output for location 3.
+The default C<progress()> output is for the latest Earley set.
+Here is the C<progress()> output for the latest Earley set.
 
 =for Marpa::R2::Display
-name: progress() output at location 3
+name: SLIF progress() output at default location
 remove-display-indent: 1
 remove-blank-last-line: 1
 
-    [[0,-1,0],[2,-1,2],[4,-1,0],[4,1,0],[4,1,2]]
+    [[0,-1,0],[1,-1,0],[3,-1,0],[5,-1,0],[6,-1,2],[8,-1,4],[9,-1,4],[12,-1,2],[1,0,0],[2,0,5],[3,0,5],[4,0,5],[5,0,5],[12,1,2]]
 
 =for Marpa::R2::Display::End
 
