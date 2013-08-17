@@ -69,12 +69,7 @@ END_OF_SOURCE
 
 # Marpa::R2::Display::End
 
-# Marpa::R2::Display
-# name: Scanless show_rules() synopsis
-
 my $show_rules_output = $grammar->show_rules();
-
-# Marpa::R2::Display::End
 
 sub my_parser {
     my ( $grammar, $p_input_string ) = @_;

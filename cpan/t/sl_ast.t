@@ -30,7 +30,7 @@ use Marpa::R2::Test;
 
 use Marpa::R2;
 
-my $grammar = Marpa::R2::Scanless::G->new(
+my $slg = Marpa::R2::Scanless::G->new(
     {   bless_package => 'My_Nodes',
         source        => \(<<'END_OF_SOURCE'),
 :default ::= action => ::array bless => ::lhs
@@ -65,11 +65,11 @@ END_OF_SOURCE
 # Marpa::R2::Display
 # name: SLR show_rules() synopsis
 
-my $show_rules_output = $grammar->show_rules();
+my $show_rules_output = $slg->show_rules();
 
 # Marpa::R2::Display::End
 
-$show_rules_output .= $grammar->show_rules(1, 'G0');
+$show_rules_output .= $slg->show_rules(1, 'G0');
 
 Marpa::R2::Test::is( $show_rules_output,
     <<'END_OF_SHOW_RULES_OUTPUT', 'Scanless show_rules()' );
@@ -144,7 +144,7 @@ my @tests = (
 
 for my $test (@tests) {
     my ( $input, $output_re ) = @{$test};
-    my $result = my_parser( $grammar, \$input );
+    my $result = my_parser( $slg, \$input );
     Test::More::like( $result, $output_re, 'Value of scannerless parse' );
 }
 

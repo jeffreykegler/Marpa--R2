@@ -67,13 +67,7 @@ END_OF_SOURCE
 
 # Marpa::R2::Display::End
 
-# Marpa::R2::Display
-# name: Scanless show_rules() synopsis
-
 my $show_rules_output = $grammar->show_rules();
-
-# Marpa::R2::Display::End
-
 $show_rules_output .= $grammar->show_rules(1, 'G0');
 
 Marpa::R2::Test::is( $show_rules_output,

@@ -191,7 +191,7 @@ L<the SLIF grammar's g0_rule() method|"g0_rule()">,
 =head2 show_rules()
 
 =for Marpa::R2::Display
-name: SLIF show_rules() synopsis
+name: SLR show_rules() synopsis
 partial: 1
 normalize-whitespace: 1
 
@@ -200,11 +200,11 @@ normalize-whitespace: 1
 =for Marpa::R2::Display::End
 
 =for Marpa::R2::Display
-name: SLIF show_rules() synopsis with 2 args
+name: SLR show_rules() synopsis with 2 args
 partial: 1
 normalize-whitespace: 1
 
-    my $show_rules_output .= $slg->show_rules(3, 'G0');
+    $show_rules_output .= $slg->show_rules(3, 'G0');
 
 =for Marpa::R2::Display::End
 
@@ -234,7 +234,7 @@ name: SLIF show_symbols() synopsis
 partial: 1
 normalize-whitespace: 1
 
-    my $show_symbols_output .= $slg->show_symbols(3);
+    $show_symbols_output .= $slg->show_symbols(3);
 
 =for Marpa::R2::Display::End
 
@@ -243,7 +243,7 @@ name: SLIF show_symbols() synopsis
 partial: 1
 normalize-whitespace: 1
 
-    my $show_symbols_output .= $slg->show_symbols(3, 'G0');
+    $show_symbols_output .= $slg->show_symbols(3, 'G0');
 
 =for Marpa::R2::Display::End
 

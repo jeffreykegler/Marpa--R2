@@ -417,13 +417,14 @@ my $expected_value_after_fix = \bless(
 );
 Test::More::is_deeply($value_ref, $expected_value_after_fix, 'Value after fix');
 
-# Marpa::R2::Display
-# name: SLIF show_rules() synopsis
-
 my $show_rules_output;
 $show_rules_output .= "G1 Rules:\n";
 $show_rules_output .= $slg->show_rules(3);
 $show_rules_output .= "Lex (G0) Rules:\n";
+
+# Marpa::R2::Display
+# name: SLR show_rules() synopsis with 2 args
+
 $show_rules_output .= $slg->show_rules(3, 'G0');
 
 # Marpa::R2::Display::End
