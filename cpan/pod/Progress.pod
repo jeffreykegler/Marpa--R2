@@ -258,13 +258,13 @@ The progress report that is usually of most interest is
 the one for the Earley set
 that you were working on when the error occurred.
 This is called the B<current location>.
-In our example the current location is location 3.
+In our example the current location is location 5.
 By default,
 L<C<show_progress>|Marpa::R2::Scanless::R/"show_progress">
 prints out only the progress reports for the current location.
 
 Here are the progress reports for the current location,
-location 3,
+location 5,
 from our example.
 
 =for Marpa::R2::Display
@@ -272,10 +272,20 @@ name: SLIF debug example progress report
 partial: 1
 normalize-whitespace: 1
 
-      F0 @0-3 Expression -> Factor .
-      F2 @2-3 Factor -> Number .
-      R4:1 x2 @0,2-3 Factor -> Factor . Multiply Factor
-      F4 @0-3 Factor -> Factor Multiply Factor .
+        F0 @0-5 :start -> <statements> .
+        P1 @0-5 <statements> -> . <statement> *
+        F1 @0-5 <statements> -> <statement> * .
+        P2 @5-5 <statement> -> . <assignment>
+        P3 @5-5 <statement> -> . <numeric assignment>
+        F3 @0-5 <statement> -> <numeric assignment> .
+        P4 @5-5 <assignment> -> . 'set' <variable> 'to' <expression>
+        P5 @5-5 <numeric assignment> -> . <variable> '=' <expression>
+        F5 @0-5 <numeric assignment> -> <variable> '=' <expression> .
+        F6 @2-5 <expression> -> <expression> .
+        F8 @4-5 <expression> -> <expression> .
+        F9 @4-5 <expression> -> <variable> .
+        R12:1 @2-5 <expression> -> <expression> . '+' <expression>
+        F12 @2-5 <expression> -> <expression> '+' <expression> .
 
 =for Marpa::R2::Display::End
 
