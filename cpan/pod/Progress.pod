@@ -314,7 +314,7 @@ name: SLIF debug example progress report
 partial: 1
 normalize-whitespace: 1
 
-      F0 @0-3 Expression -> Factor .
+    F0 @0-5 :start -> <statements> .
 
 =for Marpa::R2::Display::End
 
@@ -449,32 +449,23 @@ normalize-whitespace: 1
 
 =head2 OK!  Now to find the bug
 
-Here again are progress reports
-at the location where things went wrong:
-
-=for Marpa::R2::Display
-name: SLIF debug example progress report
-partial: 1
-normalize-whitespace: 1
-
-      F0 @0-3 Expression -> Factor .
-      F2 @2-3 Factor -> Number .
-      R4:1 x2 @0,2-3 Factor -> Factor . Multiply Factor
-      F4 @0-3 Factor -> Factor Multiply Factor .
-
-=for Marpa::R2::Display::End
-
-We see that we have completed rules for C<Expression>, and C<Factor>,
+If we look again are progress reports
+at the location 5, the location where things went wrong:
+We see that we have completed rules for
+C<E<lt>expressionE<gt>>,
+C<E<lt>numeric assignmentE<gt>>,
+C<E<lt>statementE<gt>>,
+C<E<lt>statementsE<gt>>,
 as expected.
 We also see two Earley items that show
-that we are in the process of building another C<Factor>,
-and that it is expecting a C<Multiply> symbol.
+that we are in the process of building another C<expression>,
+and that it is expecting a 'C<+>' symbol.
 This is not the rule we want, but it explains why the C<trace_terminals>
 output showed that the recognizer was expecting a
-C<Multiply> symbol.
+'C<+>' symbol.
 
 What we want to know is,
-why is the recognizer B<not> expecting an C<Add> symbol?
+why is the recognizer B<not> expecting an 'C<*>' symbol?
 Looking back at the grammar, we see that only one rule uses
 the C<Add> symbol: the rule "C<Term -E<gt> Term Add Term>".
 The next step is to look at the Earley items for this rule.
