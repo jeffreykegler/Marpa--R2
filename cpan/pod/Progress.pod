@@ -272,20 +272,20 @@ name: SLIF debug example progress report
 partial: 1
 normalize-whitespace: 1
 
-        F0 @0-5 :start -> <statements> .
-        P1 @0-5 <statements> -> . <statement> *
-        F1 @0-5 <statements> -> <statement> * .
-        P2 @5-5 <statement> -> . <assignment>
-        P3 @5-5 <statement> -> . <numeric assignment>
-        F3 @0-5 <statement> -> <numeric assignment> .
-        P4 @5-5 <assignment> -> . 'set' <variable> 'to' <expression>
-        P5 @5-5 <numeric assignment> -> . <variable> '=' <expression>
-        F5 @0-5 <numeric assignment> -> <variable> '=' <expression> .
-        F6 @2-5 <expression> -> <expression> .
-        F8 @4-5 <expression> -> <expression> .
-        F9 @4-5 <expression> -> <variable> .
-        R12:1 @2-5 <expression> -> <expression> . '+' <expression>
-        F12 @2-5 <expression> -> <expression> '+' <expression> .
+    F0 @0-5 L1c1-16 :start -> <statements> .
+    P1 @0-5 L1c1-16 <statements> -> . <statement> *
+    F1 @0-5 L1c1-16 <statements> -> <statement> * .
+    P2 @5-5 L1c15-16 <statement> -> . <assignment>
+    P3 @5-5 L1c15-16 <statement> -> . <numeric assignment>
+    F3 @0-5 L1c1-16 <statement> -> <numeric assignment> .
+    P4 @5-5 L1c15-16 <assignment> -> . 'set' <variable> 'to' <expression>
+    P5 @5-5 L1c15-16 <numeric assignment> -> . <variable> '=' <expression>
+    F5 @0-5 L1c1-16 <numeric assignment> -> <variable> '=' <expression> .
+    F6 @2-5 L1c3-16 <expression> -> <expression> .
+    F8 @4-5 L1c13-16 <expression> -> <expression> .
+    F9 @4-5 L1c13-16 <expression> -> <variable> .
+    R12:1 @2-5 L1c3-16 <expression> -> <expression> . '+' <expression>
+    F12 @2-5 L1c3-16 <expression> -> <expression> '+' <expression> .
 
 =for Marpa::R2::Display::End
 
@@ -314,11 +314,11 @@ name: SLIF debug example progress report
 partial: 1
 normalize-whitespace: 1
 
-    F0 @0-5 :start -> <statements> .
+    F0 @0-5 L1c1-16 :start -> <statements> .
 
 =for Marpa::R2::Display::End
 
-Prefixed to the dotted rule are two fields: "C<F0 @0-3>".
+Prefixed to the dotted rule are three fields: "C<F0 @0-5 L1c1-16>".
 The "C<F0>" says that this is a completed or B<final> rule,
 and that it is rule number 0.
 The rule number is used in
@@ -326,27 +326,36 @@ other tracing and debugging output,
 when displaying the whole rule would take too much space.
 In what follows we won't need the rule number.
 
-The "C<@0-3>" describes the location of the dotted rule in
+The "C<@0-5>" describes the G1 location of the dotted rule in
 the parse.  In its simplest form, the location field is two
-location numbers, separated by a hyphen.
-The first location number is the origin, the place where Marpa
+G1 location numbers, separated by a hyphen.
+The first G1 location number is the origin, the place where Marpa
 first started recognizing the rule.
-The last location number is the dot location, the location location
+The last G1 location number is the dot location, the G1 location
 of the dot in a dotted rule.
-"C<@0-3>" say that this rule began at location 0, and that the
-dot is at location 3.
+"C<@0-3>" say that this rule began at G1 location 0, and that the
+dot is at G1 location 3.
 
-The current location is location 3, and this is no coincidence.
-Whenever we are displaying the progress report for an location,
+Following the G1 location is the range of positions in the input string:
+"C<L1c1-16>".
+This indicates that the origin of dotted rule is at line 1, column 1,
+and that its dot position is after line 1, column 16.
+
+The current location is G1 location 5,
+and this is no coincidence.
+Whenever we are displaying the progress report for a G1 location,
 all the progress report lines will have their dot location at
 that location.
 
 As an aside, notice that
-the left hand side symbol is C<Expression>.
-That is the start symbol.
+the left hand side symbol is C<:start>.
+That is the start pseudo-symbol.
 The presence of a completed start rule in our
-progress report indicates that if our input ended at location 3, it would be a valid sentence
+progress report indicates that if our input had ended at location 5,
+it would be a valid sentence
 in the language of our grammar.
+This will prove helpful -- it will allow us to look at the value
+of the parse at that point for debugging purposes.
 
 Let's look at another progress report line:
 
@@ -494,13 +503,6 @@ normalize-whitespace: 1
     :discard ~ whitespace
     whitespace ~ [\s]+
     END_OF_SOURCE
-
-    my $slg = Marpa::R2::Scanless::G->new(
-        {
-        bless_package => 'My_Nodes',
-        source => \$slif_debug_source,
-    });
-
 
 =for Marpa::R2::Display::End
 
@@ -867,54 +869,54 @@ name: SLIF debug example progress report
 remove-display-indent: 1
 remove-blank-last-line: 1
 
-    P0 @0-0 :start -> . <statements>
-    P1 @0-0 <statements> -> . <statement> *
-    P2 @0-0 <statement> -> . <assignment>
-    P3 @0-0 <statement> -> . <numeric assignment>
-    P4 @0-0 <assignment> -> . 'set' <variable> 'to' <expression>
-    P5 @0-0 <numeric assignment> -> . <variable> '=' <expression>
-    R5:1 @0-1 <numeric assignment> -> <variable> . '=' <expression>
-    R5:2 @0-2 <numeric assignment> -> <variable> '=' . <expression>
-    P6 @2-2 <expression> -> . <expression>
-    P7 @2-2 <expression> -> . <expression>
-    P8 @2-2 <expression> -> . <expression>
-    P9 @2-2 <expression> -> . <variable>
-    P10 @2-2 <expression> -> . <string>
-    P11 @2-2 <expression> -> . 'string' '(' <numeric expression> ')'
-    P12 @2-2 <expression> -> . <expression> '+' <expression>
-    F0 @0-3 :start -> <statements> .
-    P1 @0-3 <statements> -> . <statement> *
-    F1 @0-3 <statements> -> <statement> * .
-    P2 @3-3 <statement> -> . <assignment>
-    P3 @3-3 <statement> -> . <numeric assignment>
-    F3 @0-3 <statement> -> <numeric assignment> .
-    P4 @3-3 <assignment> -> . 'set' <variable> 'to' <expression>
-    P5 @3-3 <numeric assignment> -> . <variable> '=' <expression>
-    F5 @0-3 <numeric assignment> -> <variable> '=' <expression> .
-    F6 @2-3 <expression> -> <expression> .
-    F7 @2-3 <expression> -> <expression> .
-    F8 @2-3 <expression> -> <expression> .
-    F9 @2-3 <expression> -> <variable> .
-    R12:1 @2-3 <expression> -> <expression> . '+' <expression>
-    P8 @4-4 <expression> -> . <expression>
-    P9 @4-4 <expression> -> . <variable>
-    P10 @4-4 <expression> -> . <string>
-    P11 @4-4 <expression> -> . 'string' '(' <numeric expression> ')'
-    R12:2 @2-4 <expression> -> <expression> '+' . <expression>
-    F0 @0-5 :start -> <statements> .
-    P1 @0-5 <statements> -> . <statement> *
-    F1 @0-5 <statements> -> <statement> * .
-    P2 @5-5 <statement> -> . <assignment>
-    P3 @5-5 <statement> -> . <numeric assignment>
-    F3 @0-5 <statement> -> <numeric assignment> .
-    P4 @5-5 <assignment> -> . 'set' <variable> 'to' <expression>
-    P5 @5-5 <numeric assignment> -> . <variable> '=' <expression>
-    F5 @0-5 <numeric assignment> -> <variable> '=' <expression> .
-    F6 @2-5 <expression> -> <expression> .
-    F8 @4-5 <expression> -> <expression> .
-    F9 @4-5 <expression> -> <variable> .
-    R12:1 @2-5 <expression> -> <expression> . '+' <expression>
-    F12 @2-5 <expression> -> <expression> '+' <expression> .
+    P0 @0-0 L1c1 :start -> . <statements>
+    P1 @0-0 L1c1 <statements> -> . <statement> *
+    P2 @0-0 L1c1 <statement> -> . <assignment>
+    P3 @0-0 L1c1 <statement> -> . <numeric assignment>
+    P4 @0-0 L1c1 <assignment> -> . 'set' <variable> 'to' <expression>
+    P5 @0-0 L1c1 <numeric assignment> -> . <variable> '=' <expression>
+    R5:1 @0-1 L1c1 <numeric assignment> -> <variable> . '=' <expression>
+    R5:2 @0-2 L1c1-3 <numeric assignment> -> <variable> '=' . <expression>
+    P6 @2-2 L1c3 <expression> -> . <expression>
+    P7 @2-2 L1c3 <expression> -> . <expression>
+    P8 @2-2 L1c3 <expression> -> . <expression>
+    P9 @2-2 L1c3 <expression> -> . <variable>
+    P10 @2-2 L1c3 <expression> -> . <string>
+    P11 @2-2 L1c3 <expression> -> . 'string' '(' <numeric expression> ')'
+    P12 @2-2 L1c3 <expression> -> . <expression> '+' <expression>
+    F0 @0-3 L1c1-11 :start -> <statements> .
+    P1 @0-3 L1c1-11 <statements> -> . <statement> *
+    F1 @0-3 L1c1-11 <statements> -> <statement> * .
+    P2 @3-3 L1c5-11 <statement> -> . <assignment>
+    P3 @3-3 L1c5-11 <statement> -> . <numeric assignment>
+    F3 @0-3 L1c1-11 <statement> -> <numeric assignment> .
+    P4 @3-3 L1c5-11 <assignment> -> . 'set' <variable> 'to' <expression>
+    P5 @3-3 L1c5-11 <numeric assignment> -> . <variable> '=' <expression>
+    F5 @0-3 L1c1-11 <numeric assignment> -> <variable> '=' <expression> .
+    F6 @2-3 L1c3-11 <expression> -> <expression> .
+    F7 @2-3 L1c3-11 <expression> -> <expression> .
+    F8 @2-3 L1c3-11 <expression> -> <expression> .
+    F9 @2-3 L1c3-11 <expression> -> <variable> .
+    R12:1 @2-3 L1c3-11 <expression> -> <expression> . '+' <expression>
+    P8 @4-4 L1c13 <expression> -> . <expression>
+    P9 @4-4 L1c13 <expression> -> . <variable>
+    P10 @4-4 L1c13 <expression> -> . <string>
+    P11 @4-4 L1c13 <expression> -> . 'string' '(' <numeric expression> ')'
+    R12:2 @2-4 L1c3-13 <expression> -> <expression> '+' . <expression>
+    F0 @0-5 L1c1-16 :start -> <statements> .
+    P1 @0-5 L1c1-16 <statements> -> . <statement> *
+    F1 @0-5 L1c1-16 <statements> -> <statement> * .
+    P2 @5-5 L1c15-16 <statement> -> . <assignment>
+    P3 @5-5 L1c15-16 <statement> -> . <numeric assignment>
+    F3 @0-5 L1c1-16 <statement> -> <numeric assignment> .
+    P4 @5-5 L1c15-16 <assignment> -> . 'set' <variable> 'to' <expression>
+    P5 @5-5 L1c15-16 <numeric assignment> -> . <variable> '=' <expression>
+    F5 @0-5 L1c1-16 <numeric assignment> -> <variable> '=' <expression> .
+    F6 @2-5 L1c3-16 <expression> -> <expression> .
+    F8 @4-5 L1c13-16 <expression> -> <expression> .
+    F9 @4-5 L1c13-16 <expression> -> <variable> .
+    R12:1 @2-5 L1c3-16 <expression> -> <expression> . '+' <expression>
+    F12 @2-5 L1c3-16 <expression> -> <expression> '+' <expression> .
 
 =for Marpa::R2::Display::End
 

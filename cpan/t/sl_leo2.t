@@ -21,7 +21,7 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 6;
+use Test::More tests => 9;
 
 use lib 'inc';
 use Marpa::R2::Test;
@@ -90,6 +90,70 @@ add divide multiply plain subtract
 END_OF_HISTORY
 );
 
+# Reaches closure and continues
+my $test_slr = do_test($grammar,
+'x = x += x -= x *= x /= x = x += x -= x *= x /= x
+ = x = x = x = x = x = x = x = x = x = x',
+<<'END_OF_HISTORY'
+plain
+add plain
+add plain subtract
+add multiply plain subtract
+add divide multiply plain subtract
+add divide multiply plain subtract
+add divide multiply plain subtract
+add divide multiply plain subtract
+add divide multiply plain subtract
+add divide multiply plain subtract
+add divide multiply plain subtract
+add divide multiply plain subtract
+add divide multiply plain subtract
+add divide multiply plain subtract
+add divide multiply plain subtract
+add divide multiply plain subtract
+add divide multiply plain subtract
+add divide multiply plain subtract
+add divide multiply plain subtract
+add divide multiply plain subtract
+END_OF_HISTORY
+);
+
+my $show_progress_output = $test_slr->show_progress();
+
+# Marpa::R2::Display
+# name: SLIF Leo show_progress() example
+# start-after-line: END_OF_OUTPUT
+# end-before-line: '^END_OF_OUTPUT$'
+
+my $expected_show_progress_output = <<'END_OF_OUTPUT';
+F0 @0-41 L1c1-L2c40 :start -> <expression> .
+F1 @40-41 L2c38-40 <expression> -> 'x' .
+F2 x20 @0...38-41 L1c1-L2c40 <expression> -> <assignment> .
+F3 x2 @8,18-41 L1c17-L2c40 <assignment> -> <divide assignment> .
+F4 x2 @6,16-41 L1c12-L2c40 <assignment> -> <multiply assignment> .
+F5 x2 @2,12-41 L1c3-L2c40 <assignment> -> <add assignment> .
+F6 x2 @4,14-41 L1c7-L2c40 <assignment> -> <subtract assignment> .
+F7 x12 @0...38-41 L1c1-L2c40 <assignment> -> <plain assignment> .
+R8:1 @40-41 L2c38-40 <divide assignment> -> 'x' . '/=' <expression>
+F8 x2 @10,20-41 L1c22-L2c40 <divide assignment> -> 'x' '/=' <expression> .
+R9:1 @40-41 L2c38-40 <multiply assignment> -> 'x' . '*=' <expression>
+F9 x2 @8,18-41 L1c17-L2c40 <multiply assignment> -> 'x' '*=' <expression> .
+R10:1 @40-41 L2c38-40 <add assignment> -> 'x' . '+=' <expression>
+F10 x2 @4,14-41 L1c7-L2c40 <add assignment> -> 'x' '+=' <expression> .
+R11:1 @40-41 L2c38-40 <subtract assignment> -> 'x' . '-=' <expression>
+F11 x2 @6,16-41 L1c12-L2c40 <subtract assignment> -> 'x' '-=' <expression> .
+R12:1 @40-41 L2c38-40 <plain assignment> -> 'x' . '=' <expression>
+F12 x13 @0...40-41 L1c1-L2c40 <plain assignment> -> 'x' '=' <expression> .
+END_OF_OUTPUT
+
+# Marpa::R2::Display::End
+
+Marpa::R2::Test::is(
+    $show_progress_output,
+    $expected_show_progress_output,
+    "SLIF Leo show_progress() example"
+);
+
 # Never reaches closure
 do_test($grammar, 'x = x += x -= x = x += x -= x',
 <<'END_OF_HISTORY'
@@ -104,24 +168,25 @@ END_OF_HISTORY
 
 sub do_test {
     my ( $grammar, $input, $expected_history ) = @_;
-    my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
+    my $slr = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
     my $event_history;
-    my $pos = $recce->read( \$input );
+    my $pos = $slr->read( \$input );
     READ: while (1) {
         my @event_names;
-        for ( my $ix = 0; my $event = $recce->event($ix); $ix++ ) {
+        for ( my $ix = 0; my $event = $slr->event($ix); $ix++ ) {
             push @event_names, @{$event};
         }
         $event_history .= join q{ }, sort @event_names;
         $event_history .= "\n";
         last READ if $pos >= length $input;
-        $pos = $recce->resume();
+        $pos = $slr->resume();
     } ## end READ: while (1)
-    my $value_ref = $recce->value();
+    my $value_ref = $slr->value();
     my $value = $value_ref ? ${$value_ref} : 'No parse';
     ( my $expected = $input ) =~ s/\s//gxms;
     Marpa::R2::Test::is( $value, $expected, "Leo SLIF parse of $expected" );
     Marpa::R2::Test::is( $event_history, $expected_history, "Event history of $expected" );
+    return $slr;
 } ## end sub do_test
 
 # vim: expandtab shiftwidth=4:
