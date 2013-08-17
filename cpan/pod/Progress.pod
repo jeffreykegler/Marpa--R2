@@ -364,7 +364,7 @@ name: SLIF debug example progress report
 partial: 1
 normalize-whitespace: 1
 
-      R4:1 x2 @0,2-3 Factor -> Factor . Multiply Factor
+    R12:2 @2-4 L1c3-13 <expression> -> <expression> '+' . <expression>
 
 =for Marpa::R2::Display::End
 
@@ -377,29 +377,6 @@ Symbols are numbered starting with 1, and
 symbol position 1 is the position immediately after
 symbol 1.
 
-The next field ("C<x2>") is new.
-It is a count.
-A progress report can contain multiple instances
-of the same dotted rule, and when there is more
-than one, a count field is included in
-the progress report line.
-Here the "C<x2>" indicates that there are two
-instances of C<Factor -E<gt> Factor . Multiply Factor> at
-this location.
-
-Multiple instances of a dotted rule
-will differ in their origin,
-and where they do, this is shown in
-the location field of the
-progress report line.
-Here the location field is "C<@0,2-3>",
-which indicates that one instance of this dotted rule has
-its origin at location 0, and the other has its origin
-at location 2.
-All instances reported on a single progress report line
-will always have the same dot location, and in this case
-it is location 3.
-
 Predicted rules also appear in progress reports:
 
 =for Marpa::R2::Display
@@ -407,7 +384,7 @@ name: SLIF debug example progress report
 partial: 1
 normalize-whitespace: 1
 
-    P2 @2-2 Factor -> . Number
+    P3 @3-3 L1c5-11 <statement> -> . <numeric assignment>
 
 =for Marpa::R2::Display::End
 
@@ -421,6 +398,7 @@ and the initial C<"F"> and C<"P"> make these lines easy to spot.
 Notice that in the predicted rule,
 the origin is the same as the dot location.
 This will always be the case with predicted rules.
+
 =head2 OK!  Now to find the bug
 
 If we look again are progress reports
@@ -457,9 +435,12 @@ name: SLIF debug example progress report
 partial: 1
 normalize-whitespace: 1
 
-      P0 @0-0 Expression -> . Factor
-      P2 @0-0 Factor -> . Number
-      P4 @0-0 Factor -> . Factor Multiply Factor
+    P0 @0-0 L1c1 :start -> . <statements>
+    P1 @0-0 L1c1 <statements> -> . <statement> *
+    P2 @0-0 L1c1 <statement> -> . <assignment>
+    P3 @0-0 L1c1 <statement> -> . <numeric assignment>
+    P4 @0-0 L1c1 <assignment> -> . 'set' <variable> 'to' <expression>
+    P5 @0-0 L1c1 <numeric assignment> -> . <variable> '=' <expression>
 
 =for Marpa::R2::Display::End
 
@@ -589,16 +570,39 @@ The example in this document contains no lines with
 a large number of
 instances, but here is an example from another grammar.
 This is the progress report line for
-the completed rule in a right recursion of length 20.
+the completed rule in a right recursion of length 13.
 
 =for Marpa::R2::Display
-name: SLIF debug Leo example progress report
+name: SLIF Leo show_progress() example
 partial: 1
 normalize-whitespace: 1
 
-    F1 x20 @0...19-20 Top_sequence -> Top Top_sequence .
+    F12 x13 @0...40-41 L1c1-L2c40 <plain assignment> -> 'x' '=' <expression> .
 
 =for Marpa::R2::Display::End
+
+The next field ("C<x2>") is new.
+It is a count.
+A progress report can contain multiple instances
+of the same dotted rule, and when there is more
+than one, a count field is included in
+the progress report line.
+Here the "C<x2>" indicates that there are two
+instances of C<Factor -E<gt> Factor . Multiply Factor> at
+this location.
+
+Multiple instances of a dotted rule
+will differ in their origin,
+and where they do, this is shown in
+the location field of the
+progress report line.
+Here the location field is "C<@0,2-3>",
+which indicates that one instance of this dotted rule has
+its origin at location 0, and the other has its origin
+at location 2.
+All instances reported on a single progress report line
+will always have the same dot location, and in this case
+it is location 3.
 
 =head1 Access to the "raw" progress report information
 
