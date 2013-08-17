@@ -144,8 +144,6 @@ much less at which location.
 For this example of debugging,
 I have taken a very simple prototype of a string expression calculator
 and deliberately introduced a problem.
-(All the code and the full trace outputs
-for this example are in the Appendix.)
 I've commented out one of the correct rules:
 
 =for Marpa::R2::Display
@@ -168,6 +166,11 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
+For those readers who like to look ahead (and I encourage you to
+be one of those readers)
+all of the code and outputs for this example are collected in
+the L</"Appendix">.
+
 This altered rule contains an mistake of the kind that is
 easy to make in actual practice.
 (In this case,
@@ -182,6 +185,10 @@ to use the Marpa diagnostics and tracing facilities
 to "discover" it.
 
 =head1 The example
+
+=head1 The error message
+
+=head1 The value of the parse
 
 =head1 Output from trace_terminals()
 
@@ -199,17 +206,21 @@ where the problem is.
 The full
 L<C<trace_terminals>|Marpa::R2::Scanless::R/trace_terminals>
 output for this example is in the Appendix.
-We see that the recognizer seems to accept "C<42*1>" but it fails
-when it confronts the plus sign ("C<+>").
-The last two lines are:
+We see that the recognizer accepts the input as far
+as the multiplication sigh ("C<*>"),
+which it rejects.
+(In Marpa, a lexeme is "acceptable" if it fits the grammar
+and the input so far.
+A lexeme is rejected if it is not acceptable.)
+The last two lines of the C<trace_terminals> output are:
 
 =for Marpa::R2::Display
 name: SLIF debug example trace output
 partial: 1
 normalize-whitespace: 1
 
-    Accepted "Number" at 2-3
-    Expecting "Multiply" at 3
+    Discarded lexeme @16-17: <whitespace>
+    Rejected lexeme @17-18: [Lex-8]; value="*"
 
 =for Marpa::R2::Display::End
 
@@ -669,7 +680,7 @@ It is also not an issue for
 Marpa's sequence rules, because sequence rules
 are implemented internally as left recursions.
 
-=head1 Appendix: full code and output for the example
+=head1 Appendix
 
 Below are the code, the trace outputs
 and the progress report

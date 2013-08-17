@@ -521,16 +521,21 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
         if ( $g1_thin->symbol_is_terminal($symbol_id)
             and not defined $g1_symbol_to_g0_lexeme[$symbol_id] )
         {
-            my $symbol_name = $g1_tracer->symbol_name($symbol_id);
-            if ( $lex_tracer->symbol_by_name($symbol_name) ) {
+            my $internal_symbol_name = $g1_tracer->symbol_name($symbol_id);
+            my $symbol_in_display_form =
+                $thick_g1_grammar->symbol_in_display_form($symbol_id);
+            if ( $lex_tracer->symbol_by_name($internal_symbol_name) ) {
                 Marpa::R2::exception(
-                    "Symbol <$symbol_name> is a lexeme in G1, but not in G0.\n",
-                    "  This may be because <$symbol_name> was used on a RHS in G0.\n",
+                    "Symbol $symbol_in_display_form is a lexeme in G1, but not in G0.\n",
+                    qq{  The internal name for this symbol is $internal_symbol_name\n},
+                    "  This may be because $symbol_in_display_form was used on a RHS in G0.\n",
                     "  A lexeme cannot be used on the RHS of a G0 rule.\n"
                 );
             } ## end if ( $lex_tracer->symbol_by_name($symbol_name) )
-            Marpa::R2::exception( 'Unproductive symbol: ',
-                $g1_tracer->symbol_name($symbol_id) );
+            Marpa::R2::exception(
+                "Unproductive symbol: $symbol_in_display_form\n",
+                qq{\n  The internal name for this symbol is $internal_symbol_name\n},
+            );
         } ## end if ( $g1_thin->symbol_is_terminal($symbol_id) and not...)
     } ## end SYMBOL_ID: for my $symbol_id ( 0 .. $g1_thin->highest_symbol_id(...))
 
@@ -943,7 +948,7 @@ my $libmarpa_trace_event_handlers = {
             $lexeme_start_pos,
             q{-},
             $lexeme_end_pos, q{: },
-            $g1_tracer->symbol_name($g1_lexeme),
+            $thick_g1_grammar->symbol_in_display_form($g1_lexeme),
             qq{; value="$raw_token_value"}
             or Marpa::R2::exception("Could not say(): $ERRNO");
     },
@@ -966,7 +971,7 @@ my $libmarpa_trace_event_handlers = {
             $lexeme_start_pos,
             q{-},
             $lexeme_end_pos, q{: },
-            $g1_tracer->symbol_name($g1_lexeme),
+            $thick_g1_grammar->symbol_in_display_form($g1_lexeme),
             qq{; value="$raw_token_value"}
             or Marpa::R2::exception("Could not say(): $ERRNO");
     },
@@ -990,7 +995,7 @@ my $libmarpa_trace_event_handlers = {
             $lexeme_start_pos,
             q{-},
             $lexeme_end_pos, q{: },
-            $g1_tracer->symbol_name($g1_lexeme),
+            $thick_g1_grammar->symbol_in_display_form($g1_lexeme),
             qq{; value="$raw_token_value"}
             or Marpa::R2::exception("Could not say(): $ERRNO");
     },
@@ -1014,7 +1019,7 @@ my $libmarpa_trace_event_handlers = {
             $lexeme_start_pos,
             q{-},
             $lexeme_end_pos, q{: },
-            $g1_tracer->symbol_name($g1_lexeme),
+            $thick_g1_grammar->symbol_in_display_form($g1_lexeme),
             qq{; value="$raw_token_value"}
             or Marpa::R2::exception("Could not say(): $ERRNO");
     },
@@ -1047,12 +1052,12 @@ my $libmarpa_trace_event_handlers = {
         my $thick_lex_grammar =
             $grammar->[Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMAR];
         my $g0_tracer   = $thick_lex_grammar->tracer();
-        my $symbol_name = $g0_tracer->symbol_name($token_id);
+        my $symbol_in_display_form = $thick_lex_grammar->symbol_in_display_form($token_id),
         my ( $line, $column ) = $slr->line_column($position);
         my $trace_file_handle =
             $slr->[Marpa::R2::Inner::Scanless::R::TRACE_FILE_HANDLE];
         say {$trace_file_handle}
-            "G0 codepoint $char_desc accepted as <$symbol_name> at line $line, column $column"
+            "G0 codepoint $char_desc accepted as $symbol_in_display_form at line $line, column $column"
             or Marpa::R2::exception("Could not say(): $ERRNO");
     },
     'g0 rejected codepoint' => sub {
@@ -1068,12 +1073,12 @@ my $libmarpa_trace_event_handlers = {
         my $thick_lex_grammar =
             $grammar->[Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMAR];
         my $g0_tracer   = $thick_lex_grammar->tracer();
-        my $symbol_name = $g0_tracer->symbol_name($token_id);
+        my $symbol_in_display_form = $thick_lex_grammar->symbol_in_display_form($token_id),
         my ( $line, $column ) = $slr->line_column($position);
         my $trace_file_handle =
             $slr->[Marpa::R2::Inner::Scanless::R::TRACE_FILE_HANDLE];
         say {$trace_file_handle}
-            "G0 codepoint $char_desc rejected as <$symbol_name> at line $line, column $column"
+            "G0 codepoint $char_desc rejected as $symbol_in_display_form at line $line, column $column"
             or Marpa::R2::exception("Could not say(): $ERRNO");
     },
     'g0 restarted recognizer' => sub {
@@ -1290,6 +1295,7 @@ sub Marpa::R2::Scanless::R::resume {
 
             # Recover by registering character, if we can
             my $codepoint = $stream->codepoint();
+            my $character = chr($codepoint);
             my @ops;
             my $grammar = $self->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
             for my $entry (
@@ -1300,7 +1306,7 @@ sub Marpa::R2::Scanless::R::resume {
             {
 
                 my ( $symbol_id, $re ) = @{$entry};
-                if ( chr($codepoint) =~ $re ) {
+                if ( $character =~ $re ) {
 
                     if ($trace_terminals) {
                         my $thick_lex_grammar = $grammar->[
@@ -1308,16 +1314,19 @@ sub Marpa::R2::Scanless::R::resume {
                         my $g0_tracer         = $thick_lex_grammar->tracer();
                         my $trace_file_handle = $self->[
                             Marpa::R2::Inner::Scanless::R::TRACE_FILE_HANDLE];
+                        my $char_desc = sprintf 'U+%04x', $codepoint;
+                        if ( $character =~ m/[[:graph:]]+/ ) {
+                            $char_desc .= qq{ '$character'};
+                        }
                         say {$trace_file_handle}
-                            'Registering character ',
-                            ( sprintf 'U+%04x', $codepoint ),
-                            " as symbol $symbol_id: ",
-                            $g0_tracer->symbol_name($symbol_id)
+                            "Registering character $char_desc as symbol $symbol_id: ",
+                            $thick_lex_grammar->symbol_in_display_form(
+                            $symbol_id)
                             or
                             Marpa::R2::exception("Could not say(): $ERRNO");
                     } ## end if ($trace_terminals)
                     push @ops, $op_alternative, $symbol_id, 0, 1;
-                } ## end if ( chr($codepoint) =~ $re )
+                } ## end if ( $character =~ $re )
             } ## end for my $entry ( @{ $grammar->[...]})
 
             Marpa::R2::exception(

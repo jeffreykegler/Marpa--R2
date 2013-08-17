@@ -227,37 +227,37 @@ END_OF_EXPECTED_OUTPUT
         qq{Value of "$test_string"} );
     Marpa::R2::Test::is( $trace_output,
         <<'END_OF_OUTPUT', qq{Trace output for "$test_string"} );
-Registering character U+002b as symbol 5: [[\+]]
-Registering character U+002b as symbol 9: [[^\x{A}\x{B}\x{C}\x{D}\x{2028}\x{2029}]]
-Accepted lexeme @0-1: [Lex-1]; value="+"
-Accepted lexeme @1-2: [Lex-1]; value="+"
-Accepted lexeme @2-3: [Lex-1]; value="+"
-Registering character U+0020 as symbol 7: [[\s]]
-Registering character U+0020 as symbol 9: [[^\x{A}\x{B}\x{C}\x{D}\x{2028}\x{2029}]]
-Registering character U+0031 as symbol 6: [[\d]]
-Registering character U+0031 as symbol 9: [[^\x{A}\x{B}\x{C}\x{D}\x{2028}\x{2029}]]
+Registering character U+002b '+' as symbol 5: [\+]
+Registering character U+002b '+' as symbol 9: [^\x{A}\x{B}\x{C}\x{D}\x{2028}\x{2029}]
+Accepted lexeme @0-1: '+'; value="+"
+Accepted lexeme @1-2: '+'; value="+"
+Accepted lexeme @2-3: '+'; value="+"
+Registering character U+0020 as symbol 7: [\s]
+Registering character U+0020 as symbol 9: [^\x{A}\x{B}\x{C}\x{D}\x{2028}\x{2029}]
+Registering character U+0031 '1' as symbol 6: [\d]
+Registering character U+0031 '1' as symbol 9: [^\x{A}\x{B}\x{C}\x{D}\x{2028}\x{2029}]
 Discarded lexeme @3-4: <whitespace>
-Accepted lexeme @4-5: Number; value="1"
-Registering character U+0032 as symbol 6: [[\d]]
-Registering character U+0032 as symbol 9: [[^\x{A}\x{B}\x{C}\x{D}\x{2028}\x{2029}]]
+Accepted lexeme @4-5: <Number>; value="1"
+Registering character U+0032 '2' as symbol 6: [\d]
+Registering character U+0032 '2' as symbol 9: [^\x{A}\x{B}\x{C}\x{D}\x{2028}\x{2029}]
 Discarded lexeme @5-6: <whitespace>
-Accepted lexeme @6-7: Number; value="2"
-Registering character U+0033 as symbol 6: [[\d]]
-Registering character U+0033 as symbol 9: [[^\x{A}\x{B}\x{C}\x{D}\x{2028}\x{2029}]]
+Accepted lexeme @6-7: <Number>; value="2"
+Registering character U+0033 '3' as symbol 6: [\d]
+Registering character U+0033 '3' as symbol 9: [^\x{A}\x{B}\x{C}\x{D}\x{2028}\x{2029}]
 Discarded lexeme @7-8: <whitespace>
-Accepted lexeme @8-9: Number; value="3"
+Accepted lexeme @8-9: <Number>; value="3"
 Discarded lexeme @9-10: <whitespace>
-Accepted lexeme @10-11: [Lex-1]; value="+"
+Accepted lexeme @10-11: '+'; value="+"
 Discarded lexeme @11-12: <whitespace>
-Accepted lexeme @12-13: [Lex-1]; value="+"
+Accepted lexeme @12-13: '+'; value="+"
 Discarded lexeme @13-14: <whitespace>
-Accepted lexeme @14-15: Number; value="1"
+Accepted lexeme @14-15: <Number>; value="1"
 Discarded lexeme @15-16: <whitespace>
-Accepted lexeme @16-17: Number; value="2"
-Registering character U+0034 as symbol 6: [[\d]]
-Registering character U+0034 as symbol 9: [[^\x{A}\x{B}\x{C}\x{D}\x{2028}\x{2029}]]
+Accepted lexeme @16-17: <Number>; value="2"
+Registering character U+0034 '4' as symbol 6: [\d]
+Registering character U+0034 '4' as symbol 9: [^\x{A}\x{B}\x{C}\x{D}\x{2028}\x{2029}]
 Discarded lexeme @17-18: <whitespace>
-Accepted lexeme @18-19: Number; value="4"
+Accepted lexeme @18-19: <Number>; value="4"
 END_OF_OUTPUT
 
     my $expected_progress_output = [

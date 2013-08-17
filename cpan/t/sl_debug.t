@@ -311,57 +311,57 @@ Marpa::R2::Test::is( Data::Dumper::Dumper($latest_report),
 
 Marpa::R2::Test::is( $trace_output, <<'END_TRACE_OUTPUT', 'trace output' );
 Setting trace_values option
-Registering character U+0061 as symbol 19: [[\w]]
-Registering character U+0061 as symbol 20: [[^'\x{0A}\x{0B}\x{0C}\x{0D}\x{0085}\x{2028}\x{2029}]]
-Registering character U+0020 as symbol 18: [[\s]]
-Registering character U+0020 as symbol 20: [[^'\x{0A}\x{0B}\x{0C}\x{0D}\x{0085}\x{2028}\x{2029}]]
-Accepted lexeme @0-1: variable; value="a"
-Registering character U+003d as symbol 16: [[\=]]
-Registering character U+003d as symbol 20: [[^'\x{0A}\x{0B}\x{0C}\x{0D}\x{0085}\x{2028}\x{2029}]]
+Registering character U+0061 'a' as symbol 19: [\w]
+Registering character U+0061 'a' as symbol 20: [^'\x{0A}\x{0B}\x{0C}\x{0D}\x{0085}\x{2028}\x{2029}]
+Registering character U+0020 as symbol 18: [\s]
+Registering character U+0020 as symbol 20: [^'\x{0A}\x{0B}\x{0C}\x{0D}\x{0085}\x{2028}\x{2029}]
+Accepted lexeme @0-1: <variable>; value="a"
+Registering character U+003d '=' as symbol 16: [\=]
+Registering character U+003d '=' as symbol 20: [^'\x{0A}\x{0B}\x{0C}\x{0D}\x{0085}\x{2028}\x{2029}]
 Discarded lexeme @1-2: <whitespace>
-Accepted lexeme @2-3: [Lex-2]; value="="
-Registering character U+0038 as symbol 17: [[\d]]
-Registering character U+0038 as symbol 19: [[\w]]
-Registering character U+0038 as symbol 20: [[^'\x{0A}\x{0B}\x{0C}\x{0D}\x{0085}\x{2028}\x{2029}]]
+Accepted lexeme @2-3: '='; value="="
+Registering character U+0038 '8' as symbol 17: [\d]
+Registering character U+0038 '8' as symbol 19: [\w]
+Registering character U+0038 '8' as symbol 20: [^'\x{0A}\x{0B}\x{0C}\x{0D}\x{0085}\x{2028}\x{2029}]
 Discarded lexeme @3-4: <whitespace>
-Registering character U+0036 as symbol 17: [[\d]]
-Registering character U+0036 as symbol 19: [[\w]]
-Registering character U+0036 as symbol 20: [[^'\x{0A}\x{0B}\x{0C}\x{0D}\x{0085}\x{2028}\x{2029}]]
-Registering character U+0037 as symbol 17: [[\d]]
-Registering character U+0037 as symbol 19: [[\w]]
-Registering character U+0037 as symbol 20: [[^'\x{0A}\x{0B}\x{0C}\x{0D}\x{0085}\x{2028}\x{2029}]]
-Registering character U+0035 as symbol 17: [[\d]]
-Registering character U+0035 as symbol 19: [[\w]]
-Registering character U+0035 as symbol 20: [[^'\x{0A}\x{0B}\x{0C}\x{0D}\x{0085}\x{2028}\x{2029}]]
-Registering character U+0033 as symbol 17: [[\d]]
-Registering character U+0033 as symbol 19: [[\w]]
-Registering character U+0033 as symbol 20: [[^'\x{0A}\x{0B}\x{0C}\x{0D}\x{0085}\x{2028}\x{2029}]]
-Registering character U+0030 as symbol 17: [[\d]]
-Registering character U+0030 as symbol 19: [[\w]]
-Registering character U+0030 as symbol 20: [[^'\x{0A}\x{0B}\x{0C}\x{0D}\x{0085}\x{2028}\x{2029}]]
-Registering character U+0039 as symbol 17: [[\d]]
-Registering character U+0039 as symbol 19: [[\w]]
-Registering character U+0039 as symbol 20: [[^'\x{0A}\x{0B}\x{0C}\x{0D}\x{0085}\x{2028}\x{2029}]]
-Rejected lexeme @4-11: number; value="8675309"
-Accepted lexeme @4-11: variable; value="8675309"
-Registering character U+002b as symbol 15: [[\+]]
-Registering character U+002b as symbol 20: [[^'\x{0A}\x{0B}\x{0C}\x{0D}\x{0085}\x{2028}\x{2029}]]
+Registering character U+0036 '6' as symbol 17: [\d]
+Registering character U+0036 '6' as symbol 19: [\w]
+Registering character U+0036 '6' as symbol 20: [^'\x{0A}\x{0B}\x{0C}\x{0D}\x{0085}\x{2028}\x{2029}]
+Registering character U+0037 '7' as symbol 17: [\d]
+Registering character U+0037 '7' as symbol 19: [\w]
+Registering character U+0037 '7' as symbol 20: [^'\x{0A}\x{0B}\x{0C}\x{0D}\x{0085}\x{2028}\x{2029}]
+Registering character U+0035 '5' as symbol 17: [\d]
+Registering character U+0035 '5' as symbol 19: [\w]
+Registering character U+0035 '5' as symbol 20: [^'\x{0A}\x{0B}\x{0C}\x{0D}\x{0085}\x{2028}\x{2029}]
+Registering character U+0033 '3' as symbol 17: [\d]
+Registering character U+0033 '3' as symbol 19: [\w]
+Registering character U+0033 '3' as symbol 20: [^'\x{0A}\x{0B}\x{0C}\x{0D}\x{0085}\x{2028}\x{2029}]
+Registering character U+0030 '0' as symbol 17: [\d]
+Registering character U+0030 '0' as symbol 19: [\w]
+Registering character U+0030 '0' as symbol 20: [^'\x{0A}\x{0B}\x{0C}\x{0D}\x{0085}\x{2028}\x{2029}]
+Registering character U+0039 '9' as symbol 17: [\d]
+Registering character U+0039 '9' as symbol 19: [\w]
+Registering character U+0039 '9' as symbol 20: [^'\x{0A}\x{0B}\x{0C}\x{0D}\x{0085}\x{2028}\x{2029}]
+Rejected lexeme @4-11: <number>; value="8675309"
+Accepted lexeme @4-11: <variable>; value="8675309"
+Registering character U+002b '+' as symbol 15: [\+]
+Registering character U+002b '+' as symbol 20: [^'\x{0A}\x{0B}\x{0C}\x{0D}\x{0085}\x{2028}\x{2029}]
 Discarded lexeme @11-12: <whitespace>
-Rejected lexeme @12-13: [Lex-7]; value="+"
-Accepted lexeme @12-13: [Lex-6]; value="+"
-Registering character U+0034 as symbol 17: [[\d]]
-Registering character U+0034 as symbol 19: [[\w]]
-Registering character U+0034 as symbol 20: [[^'\x{0A}\x{0B}\x{0C}\x{0D}\x{0085}\x{2028}\x{2029}]]
+Rejected lexeme @12-13: '+'; value="+"
+Accepted lexeme @12-13: '+'; value="+"
+Registering character U+0034 '4' as symbol 17: [\d]
+Registering character U+0034 '4' as symbol 19: [\w]
+Registering character U+0034 '4' as symbol 20: [^'\x{0A}\x{0B}\x{0C}\x{0D}\x{0085}\x{2028}\x{2029}]
 Discarded lexeme @13-14: <whitespace>
-Registering character U+0032 as symbol 17: [[\d]]
-Registering character U+0032 as symbol 19: [[\w]]
-Registering character U+0032 as symbol 20: [[^'\x{0A}\x{0B}\x{0C}\x{0D}\x{0085}\x{2028}\x{2029}]]
-Rejected lexeme @14-16: number; value="42"
-Accepted lexeme @14-16: variable; value="42"
-Registering character U+002a as symbol 14: [[\*]]
-Registering character U+002a as symbol 20: [[^'\x{0A}\x{0B}\x{0C}\x{0D}\x{0085}\x{2028}\x{2029}]]
+Registering character U+0032 '2' as symbol 17: [\d]
+Registering character U+0032 '2' as symbol 19: [\w]
+Registering character U+0032 '2' as symbol 20: [^'\x{0A}\x{0B}\x{0C}\x{0D}\x{0085}\x{2028}\x{2029}]
+Rejected lexeme @14-16: <number>; value="42"
+Accepted lexeme @14-16: <variable>; value="42"
+Registering character U+002a '*' as symbol 14: [\*]
+Registering character U+002a '*' as symbol 20: [^'\x{0A}\x{0B}\x{0C}\x{0D}\x{0085}\x{2028}\x{2029}]
 Discarded lexeme @16-17: <whitespace>
-Rejected lexeme @17-18: [Lex-8]; value="*"
+Rejected lexeme @17-18: '*'; value="*"
 END_TRACE_OUTPUT
 
 # Marpa::R2::Display::End
