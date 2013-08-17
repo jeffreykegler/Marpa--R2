@@ -62,7 +62,14 @@ END_OF_SOURCE
     }
 );
 
+# Marpa::R2::Display
+# name: SLR show_rules() synopsis
+
 my $show_rules_output = $grammar->show_rules();
+
+# Marpa::R2::Display::End
+
+$show_rules_output .= $grammar->show_rules(1, 'G0');
 
 Marpa::R2::Test::is( $show_rules_output,
     <<'END_OF_SHOW_RULES_OUTPUT', 'Scanless show_rules()' );

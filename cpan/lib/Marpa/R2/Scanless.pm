@@ -600,210 +600,161 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
 } ## end sub Marpa::R2::Scanless::G::_hash_to_runtime
 
 sub Marpa::R2::Scanless::G::show_rules {
-    my ( $self, $arg ) = @_;
-    my $text        = q{};
-    my $arg_type    = ref $arg;
-    my $verbose     = 0;
-    my @subgrammars = ( 'G1', 'G0' );
-    if ( $arg_type eq 'HASH' ) {
-        ARG: for my $arg_name ( keys %{$arg_type} ) {
-            my $value = $arg->{$arg_name};
-            if ( $arg_name eq 'verbose' ) {
-                $verbose = $value;
-                next ARG;
-            }
-            if ( $arg_name eq 'subgrammar' ) {
-                die 'Unknown subgrammar for $slg->show_rules(): ',
-                    qq{"$value"}
-                    unless $value eq 'G0'
-                        or $value eq 'G1';
-                @subgrammars = ($value);
-                next ARG;
-            } ## end if ( $arg_name eq 'subgrammar' )
-            die 'Unknown named argument for $slg->show_rules(): ',
-                qq{"$arg_name"};
-        } ## end ARG: for my $arg_name ( keys %{$arg_type} )
-    } ## end if ( $arg_type eq 'HASH' )
-    else {
-        $verbose = defined $arg ? $arg + 0 : 0;
-    }
+    my ( $self, $verbose, $subgrammar ) = @_;
+    my $text     = q{};
+    $verbose    //= 0;
+    $subgrammar //= 'G1';
 
-    for my $subgrammar (@subgrammars) {
-        my $thick_grammar;
+    my $thick_grammar;
+    SUBGRAMMAR_SET: {
         if ( $subgrammar eq 'G0' ) {
-            $text .= "Lex ($subgrammar) Rules:\n" if $verbose > 1;
             $thick_grammar =
                 $self->[Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMAR];
+            last SUBGRAMMAR_SET;
         }
-        else {
-            $text .= "$subgrammar Rules:\n" if $verbose > 1;
+        if ( $subgrammar eq 'G1' ) {
             $thick_grammar =
                 $self->[Marpa::R2::Inner::Scanless::G::THICK_G1_GRAMMAR];
+            last SUBGRAMMAR_SET;
         }
+        Marpa::R2::exception(
+            q{Bad subgrammar in $slg->show_symbols(): "}, $subgrammar, q{"});
+    } ## end SUBGRAMMAR_SET:
 
-        my $rules     = $thick_grammar->[Marpa::R2::Internal::Grammar::RULES];
-        my $grammar_c = $thick_grammar->[Marpa::R2::Internal::Grammar::C];
+    my $rules     = $thick_grammar->[Marpa::R2::Internal::Grammar::RULES];
+    my $grammar_c = $thick_grammar->[Marpa::R2::Internal::Grammar::C];
 
-        for my $rule ( @{$rules} ) {
-            my $rule_id = $rule->[Marpa::R2::Internal::Rule::ID];
+    for my $rule ( @{$rules} ) {
+        my $rule_id = $rule->[Marpa::R2::Internal::Rule::ID];
 
-            my $minimum = $grammar_c->sequence_min($rule_id);
-            my @quantifier =
-                defined $minimum ? $minimum <= 0 ? (q{*}) : (q{+}) : ();
-            my $lhs_id      = $grammar_c->rule_lhs($rule_id);
-            my $rule_length = $grammar_c->rule_length($rule_id);
-            my @rhs_ids =
-                map { $grammar_c->rule_rhs( $rule_id, $_ ) }
-                ( 0 .. $rule_length - 1 );
-            $text .= join q{ }, $subgrammar, "R$rule_id",
-                $thick_grammar->symbol_in_display_form($lhs_id),
-                '::=',
-                ( map { $thick_grammar->symbol_in_display_form($_) }
-                    @rhs_ids ),
-                @quantifier;
-            $text .= "\n";
+        my $minimum = $grammar_c->sequence_min($rule_id);
+        my @quantifier =
+            defined $minimum ? $minimum <= 0 ? (q{*}) : (q{+}) : ();
+        my $lhs_id      = $grammar_c->rule_lhs($rule_id);
+        my $rule_length = $grammar_c->rule_length($rule_id);
+        my @rhs_ids =
+            map { $grammar_c->rule_rhs( $rule_id, $_ ) }
+            ( 0 .. $rule_length - 1 );
+        $text .= join q{ }, $subgrammar, "R$rule_id",
+            $thick_grammar->symbol_in_display_form($lhs_id),
+            '::=',
+            ( map { $thick_grammar->symbol_in_display_form($_) } @rhs_ids ),
+            @quantifier;
+        $text .= "\n";
 
-            if ( $verbose >= 2 ) {
+        if ( $verbose >= 2 ) {
 
-                my $description =
-                    $rule->[Marpa::R2::Internal::Rule::DESCRIPTION];
-                $text .= "  $description\n" if $description;
-                my @comment = ();
-                $grammar_c->rule_length($rule_id) == 0
-                    and push @comment, 'empty';
-                $thick_grammar->rule_is_used($rule_id)
-                    or push @comment, '!used';
-                $grammar_c->rule_is_productive($rule_id)
-                    or push @comment, 'unproductive';
-                $grammar_c->rule_is_accessible($rule_id)
-                    or push @comment, 'inaccessible';
-                $rule->[Marpa::R2::Internal::Rule::DISCARD_SEPARATION]
-                    and push @comment, 'discard_sep';
+            my $description = $rule->[Marpa::R2::Internal::Rule::DESCRIPTION];
+            $text .= "  $description\n" if $description;
+            my @comment = ();
+            $grammar_c->rule_length($rule_id) == 0
+                and push @comment, 'empty';
+            $thick_grammar->rule_is_used($rule_id)
+                or push @comment, '!used';
+            $grammar_c->rule_is_productive($rule_id)
+                or push @comment, 'unproductive';
+            $grammar_c->rule_is_accessible($rule_id)
+                or push @comment, 'inaccessible';
+            $rule->[Marpa::R2::Internal::Rule::DISCARD_SEPARATION]
+                and push @comment, 'discard_sep';
 
-                if (@comment) {
-                    $text .= q{  }
-                        . ( join q{ }, q{/*}, @comment, q{*/} ) . "\n";
-                }
+            if (@comment) {
+                $text .= q{  } . ( join q{ }, q{/*}, @comment, q{*/} ) . "\n";
+            }
 
-                $text .= "  Symbol IDs: <$lhs_id> ::= "
-                    . ( join q{ }, map {"<$_>"} @rhs_ids ) . "\n";
+            $text .= "  Symbol IDs: <$lhs_id> ::= "
+                . ( join q{ }, map {"<$_>"} @rhs_ids ) . "\n";
 
-            } ## end if ( $verbose >= 2 )
+        } ## end if ( $verbose >= 2 )
 
-            if ( $verbose >= 3 ) {
+        if ( $verbose >= 3 ) {
 
-                my $tracer = $thick_grammar->tracer();
+            my $tracer = $thick_grammar->tracer();
 
-                $text
-                    .= "  Internal symbols: <"
-                    . $tracer->symbol_name($lhs_id)
-                    . q{> ::= }
-                    . (
-                    join q{ },
-                    map { '<' . $tracer->symbol_name($_) . '>' } @rhs_ids
-                    ) . "\n";
+            $text
+                .= "  Internal symbols: <"
+                . $tracer->symbol_name($lhs_id)
+                . q{> ::= }
+                . (
+                join q{ },
+                map { '<' . $tracer->symbol_name($_) . '>' } @rhs_ids
+                ) . "\n";
 
-            } ## end if ( $verbose >= 3 )
+        } ## end if ( $verbose >= 3 )
 
-        } ## end for my $rule ( @{$rules} )
-
-    } ## end for my $subgrammar (@subgrammars)
+    } ## end for my $rule ( @{$rules} )
 
     return $text;
 } ## end sub Marpa::R2::Scanless::G::show_rules
 
 sub Marpa::R2::Scanless::G::show_symbols {
-    my ( $self, $arg ) = @_;
-    my $text        = q{};
-    my $arg_type    = ref $arg;
-    my $verbose     = 0;
-    my @subgrammars = ( 'G1', 'G0' );
-    if ( $arg_type eq 'HASH' ) {
-        ARG: for my $arg_name ( keys %{$arg_type} ) {
-            my $value = $arg->{$arg_name};
-            if ( $arg_name eq 'verbose' ) {
-                $verbose = $value;
-                next ARG;
-            }
-            if ( $arg_name eq 'subgrammar' ) {
-                die 'Unknown subgrammar for $slg->show_rules(): ',
-                    qq{"$value"}
-                    unless $value eq 'G0'
-                        or $value eq 'G1';
-                @subgrammars = ($value);
-                next ARG;
-            } ## end if ( $arg_name eq 'subgrammar' )
-            die 'Unknown named argument for $slg->show_rules(): ',
-                qq{"$arg_name"};
-        } ## end ARG: for my $arg_name ( keys %{$arg_type} )
-    } ## end if ( $arg_type eq 'HASH' )
-    else {
-        $verbose = defined $arg ? $arg + 0 : 0;
-    }
+    my ( $self, $verbose, $subgrammar ) = @_;
+    my $text = q{};
+    $verbose    //= 0;
+    $subgrammar //= 'G1';
 
-    for my $subgrammar (@subgrammars) {
-        my $thick_grammar;
+    my $thick_grammar;
+    SUBGRAMMAR_SET: {
         if ( $subgrammar eq 'G0' ) {
-            $text .= "Lex ($subgrammar) Symbols:\n" if $verbose > 1;
             $thick_grammar =
                 $self->[Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMAR];
+            last SUBGRAMMAR_SET;
         }
-        else {
-            $text .= "$subgrammar Symbols:\n" if $verbose > 1;
+        if ( $subgrammar eq 'G1' ) {
             $thick_grammar =
                 $self->[Marpa::R2::Inner::Scanless::G::THICK_G1_GRAMMAR];
+            last SUBGRAMMAR_SET;
         }
+        Marpa::R2::exception(
+            q{Bad subgrammar in $slg->show_symbols(): "}, $subgrammar, q{"});
+    } ## end SUBGRAMMAR_SET:
 
-        my $symbols = $thick_grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
-        my $grammar_c = $thick_grammar->[Marpa::R2::Internal::Grammar::C];
+    my $symbols   = $thick_grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
+    my $grammar_c = $thick_grammar->[Marpa::R2::Internal::Grammar::C];
 
-        for my $symbol ( @{$symbols} ) {
-            my $symbol_id = $symbol->[Marpa::R2::Internal::Symbol::ID];
+    for my $symbol ( @{$symbols} ) {
+        my $symbol_id = $symbol->[Marpa::R2::Internal::Symbol::ID];
 
-            $text .= join q{ }, $subgrammar, "S$symbol_id",
-                $thick_grammar->symbol_in_display_form($symbol_id);
+        $text .= join q{ }, $subgrammar, "S$symbol_id",
+            $thick_grammar->symbol_in_display_form($symbol_id);
 
-            my $description =
-                $symbol->[Marpa::R2::Internal::Symbol::DESCRIPTION];
-            if ($description) {
-                $text .= " -- $description";
+        my $description = $symbol->[Marpa::R2::Internal::Symbol::DESCRIPTION];
+        if ($description) {
+            $text .= " -- $description";
+        }
+        $text .= "\n";
+
+        if ( $verbose >= 2 ) {
+
+            my @tag_list = ();
+            $grammar_c->symbol_is_productive($symbol_id)
+                or push @tag_list, 'unproductive';
+            $grammar_c->symbol_is_accessible($symbol_id)
+                or push @tag_list, 'inaccessible';
+            $grammar_c->symbol_is_nulling($symbol_id)
+                and push @tag_list, 'nulling';
+            $grammar_c->symbol_is_terminal($symbol_id)
+                and push @tag_list, 'terminal';
+
+            if (@tag_list) {
+                $text
+                    .= q{  } . ( join q{ }, q{/*}, @tag_list, q{*/} ) . "\n";
             }
-            $text .= "\n";
 
-            if ( $verbose >= 2 ) {
+            my $tracer = $thick_grammar->tracer();
+            $text .= "  Internal name: <"
+                . $tracer->symbol_name($symbol_id) . qq{>\n};
 
-                my @tag_list = ();
-                $grammar_c->symbol_is_productive($symbol_id)
-                    or push @tag_list, 'unproductive';
-                $grammar_c->symbol_is_accessible($symbol_id)
-                    or push @tag_list, 'inaccessible';
-                $grammar_c->symbol_is_nulling($symbol_id)
-                    and push @tag_list, 'nulling';
-                $grammar_c->symbol_is_terminal($symbol_id)
-                    and push @tag_list, 'terminal';
+        } ## end if ( $verbose >= 2 )
 
-                if (@tag_list) {
-                    $text .= q{  }
-                        . ( join q{ }, q{/*}, @tag_list, q{*/} ) . "\n";
-                }
+        if ( $verbose >= 3 ) {
 
-                my $tracer = $thick_grammar->tracer();
-                $text .= "  Internal name: <"
-                    . $tracer->symbol_name($symbol_id) . qq{>\n};
+            my $dsl_name = $symbol->[Marpa::R2::Internal::Symbol::DSL_NAME];
+            if ($dsl_name) { $text .= qq{  SLIF name: $dsl_name\n}; }
 
-            } ## end if ( $verbose >= 2 )
+        } ## end if ( $verbose >= 3 )
 
-            if ( $verbose >= 3 ) {
-
-                my $dsl_name =
-                    $symbol->[Marpa::R2::Internal::Symbol::DSL_NAME];
-                if ($dsl_name) { $text .= qq{  SLIF name: $dsl_name\n}; }
-
-            } ## end if ( $verbose >= 3 )
-
-        } ## end for my $symbol ( @{$symbols} )
-
-    } ## end for my $subgrammar (@subgrammars)
+    } ## end for my $symbol ( @{$symbols} )
 
     return $text;
 } ## end sub Marpa::R2::Scanless::G::show_symbols

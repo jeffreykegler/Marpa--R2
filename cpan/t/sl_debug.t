@@ -420,7 +420,11 @@ Test::More::is_deeply($value_ref, $expected_value_after_fix, 'Value after fix');
 # Marpa::R2::Display
 # name: SLIF show_rules() synopsis
 
-my $show_rules_output = $slg->show_rules(3);
+my $show_rules_output;
+$show_rules_output .= "G1 Rules:\n";
+$show_rules_output .= $slg->show_rules(3);
+$show_rules_output .= "Lex (G0) Rules:\n";
+$show_rules_output .= $slg->show_rules(3, 'G0');
 
 # Marpa::R2::Display::End
 
@@ -613,7 +617,11 @@ END_OF_SHOW_RULES_OUTPUT
 # Marpa::R2::Display
 # name: SLIF show_symbols() synopsis
 
-my $show_symbols_output = $slg->show_symbols(3);
+my $show_symbols_output;
+$show_symbols_output .= "G1 Symbols:\n";
+$show_symbols_output .= $slg->show_symbols(3);
+$show_symbols_output .= "Lex (G0) Symbols:\n";
+$show_symbols_output .= $slg->show_symbols(3, 'G0');
 
 # Marpa::R2::Display::End
 

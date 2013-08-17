@@ -44,7 +44,7 @@ method|Marpa::R2::Scanless::R/"value()">.
 If you are fortunate enough to have a parse value at the point of failure,
 it can be an excellent way
 to determine what the parser thinks it has seen so far.
-Is more likely that there will be a parse value if you are
+It is more likely that there will be a parse value if you are
 using incremental development,
 and the parse values will be especially helpful
 if your parse values are AST's.
@@ -105,15 +105,27 @@ includes the following:
 
 =item * If the failed parse returns a value, a dump of that value.
 
-=item * Set the C<trace_terminals> recognizer named argument to level 1.
+=item * Set the 
+L<SLIF recognizer's C<trace_terminals> named
+argument|Marpa::R2::Scanless::R/"trace_terminals">
+to level 1.
 
-=item * Run C<show_rules> on the SLIF grammar.
+=item * Run 
+L<C<show_rules>|Marpa::R2::Scanless::G/"show_rules()">
+on the SLIF grammar.
 
-=item * Run C<show_symbols> on the SLIF grammar.
+=item * Run 
+L<C<show_symbols>|Marpa::R2::Scanless::G/"show_symbols()">
+on the SLIF grammar.
 
-=item * Run C<show_progress> on the SLIF recognizer.
+=item * Run
+L<C<show_progress()>|Marpa::R2::Progress>
+on the SLIF recognizer.
 
-=item * Set the C<trace_values> evaluator named argument to level 1.
+=item * Set the
+L<SLIF recognizer's C<trace_terminals> named
+argument|Marpa::R2::Scanless::R/"trace_terminals">
+to level 1.
 
 =back
 
