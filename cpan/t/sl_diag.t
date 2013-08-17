@@ -150,7 +150,7 @@ sub my_parser {
     open my $trace_fh, q{>}, \$trace_output;
     my $recce = Marpa::R2::Scanless::R->new(
         {   grammar               => $grammar,
-            trace_terminals       => 1,
+            trace_terminals       => 2,
             trace_file_handle     => $trace_fh,
             too_many_earley_items => 100,         # test this
         }

@@ -1313,7 +1313,7 @@ sub Marpa::R2::Scanless::R::resume {
                 my ( $symbol_id, $re ) = @{$entry};
                 if ( $character =~ $re ) {
 
-                    if ($trace_terminals) {
+                    if ($trace_terminals >= 2) {
                         my $thick_lex_grammar = $grammar->[
                             Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMAR];
                         my $g0_tracer         = $thick_lex_grammar->tracer();
