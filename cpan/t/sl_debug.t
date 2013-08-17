@@ -150,54 +150,54 @@ Test::More::is_deeply( $value_ref, $expected_output, 'Value before fix' );
 
 Marpa::R2::Test::is( $progress_report,
     <<'END_PROGRESS_REPORT', 'progress report' );
-P0 @0-0 :start -> . <statements>
-P1 @0-0 <statements> -> . <statement> *
-P2 @0-0 <statement> -> . <assignment>
-P3 @0-0 <statement> -> . <numeric assignment>
-P4 @0-0 <assignment> -> . 'set' <variable> 'to' <expression>
-P5 @0-0 <numeric assignment> -> . <variable> '=' <expression>
-R5:1 @0-1 <numeric assignment> -> <variable> . '=' <expression>
-R5:2 @0-2 <numeric assignment> -> <variable> '=' . <expression>
-P6 @2-2 <expression> -> . <expression>
-P7 @2-2 <expression> -> . <expression>
-P8 @2-2 <expression> -> . <expression>
-P9 @2-2 <expression> -> . <variable>
-P10 @2-2 <expression> -> . <string>
-P11 @2-2 <expression> -> . 'string' '(' <numeric expression> ')'
-P12 @2-2 <expression> -> . <expression> '+' <expression>
-F0 @0-3 :start -> <statements> .
-P1 @0-3 <statements> -> . <statement> *
-F1 @0-3 <statements> -> <statement> * .
-P2 @3-3 <statement> -> . <assignment>
-P3 @3-3 <statement> -> . <numeric assignment>
-F3 @0-3 <statement> -> <numeric assignment> .
-P4 @3-3 <assignment> -> . 'set' <variable> 'to' <expression>
-P5 @3-3 <numeric assignment> -> . <variable> '=' <expression>
-F5 @0-3 <numeric assignment> -> <variable> '=' <expression> .
-F6 @2-3 <expression> -> <expression> .
-F7 @2-3 <expression> -> <expression> .
-F8 @2-3 <expression> -> <expression> .
-F9 @2-3 <expression> -> <variable> .
-R12:1 @2-3 <expression> -> <expression> . '+' <expression>
-P8 @4-4 <expression> -> . <expression>
-P9 @4-4 <expression> -> . <variable>
-P10 @4-4 <expression> -> . <string>
-P11 @4-4 <expression> -> . 'string' '(' <numeric expression> ')'
-R12:2 @2-4 <expression> -> <expression> '+' . <expression>
-F0 @0-5 :start -> <statements> .
-P1 @0-5 <statements> -> . <statement> *
-F1 @0-5 <statements> -> <statement> * .
-P2 @5-5 <statement> -> . <assignment>
-P3 @5-5 <statement> -> . <numeric assignment>
-F3 @0-5 <statement> -> <numeric assignment> .
-P4 @5-5 <assignment> -> . 'set' <variable> 'to' <expression>
-P5 @5-5 <numeric assignment> -> . <variable> '=' <expression>
-F5 @0-5 <numeric assignment> -> <variable> '=' <expression> .
-F6 @2-5 <expression> -> <expression> .
-F8 @4-5 <expression> -> <expression> .
-F9 @4-5 <expression> -> <variable> .
-R12:1 @2-5 <expression> -> <expression> . '+' <expression>
-F12 @2-5 <expression> -> <expression> '+' <expression> .
+P0 @0-0 L1c1 :start -> . <statements>
+P1 @0-0 L1c1 <statements> -> . <statement> *
+P2 @0-0 L1c1 <statement> -> . <assignment>
+P3 @0-0 L1c1 <statement> -> . <numeric assignment>
+P4 @0-0 L1c1 <assignment> -> . 'set' <variable> 'to' <expression>
+P5 @0-0 L1c1 <numeric assignment> -> . <variable> '=' <expression>
+R5:1 @0-1 L1c1 <numeric assignment> -> <variable> . '=' <expression>
+R5:2 @0-2 L1c1-3 <numeric assignment> -> <variable> '=' . <expression>
+P6 @2-2 L1c3 <expression> -> . <expression>
+P7 @2-2 L1c3 <expression> -> . <expression>
+P8 @2-2 L1c3 <expression> -> . <expression>
+P9 @2-2 L1c3 <expression> -> . <variable>
+P10 @2-2 L1c3 <expression> -> . <string>
+P11 @2-2 L1c3 <expression> -> . 'string' '(' <numeric expression> ')'
+P12 @2-2 L1c3 <expression> -> . <expression> '+' <expression>
+F0 @0-3 L1c1-11 :start -> <statements> .
+P1 @0-3 L1c1-11 <statements> -> . <statement> *
+F1 @0-3 L1c1-11 <statements> -> <statement> * .
+P2 @3-3 L1c5-11 <statement> -> . <assignment>
+P3 @3-3 L1c5-11 <statement> -> . <numeric assignment>
+F3 @0-3 L1c1-11 <statement> -> <numeric assignment> .
+P4 @3-3 L1c5-11 <assignment> -> . 'set' <variable> 'to' <expression>
+P5 @3-3 L1c5-11 <numeric assignment> -> . <variable> '=' <expression>
+F5 @0-3 L1c1-11 <numeric assignment> -> <variable> '=' <expression> .
+F6 @2-3 L1c3-11 <expression> -> <expression> .
+F7 @2-3 L1c3-11 <expression> -> <expression> .
+F8 @2-3 L1c3-11 <expression> -> <expression> .
+F9 @2-3 L1c3-11 <expression> -> <variable> .
+R12:1 @2-3 L1c3-11 <expression> -> <expression> . '+' <expression>
+P8 @4-4 L1c13 <expression> -> . <expression>
+P9 @4-4 L1c13 <expression> -> . <variable>
+P10 @4-4 L1c13 <expression> -> . <string>
+P11 @4-4 L1c13 <expression> -> . 'string' '(' <numeric expression> ')'
+R12:2 @2-4 L1c3-13 <expression> -> <expression> '+' . <expression>
+F0 @0-5 L1c1-16 :start -> <statements> .
+P1 @0-5 L1c1-16 <statements> -> . <statement> *
+F1 @0-5 L1c1-16 <statements> -> <statement> * .
+P2 @5-5 L1c15-16 <statement> -> . <assignment>
+P3 @5-5 L1c15-16 <statement> -> . <numeric assignment>
+F3 @0-5 L1c1-16 <statement> -> <numeric assignment> .
+P4 @5-5 L1c15-16 <assignment> -> . 'set' <variable> 'to' <expression>
+P5 @5-5 L1c15-16 <numeric assignment> -> . <variable> '=' <expression>
+F5 @0-5 L1c1-16 <numeric assignment> -> <variable> '=' <expression> .
+F6 @2-5 L1c3-16 <expression> -> <expression> .
+F8 @4-5 L1c13-16 <expression> -> <expression> .
+F9 @4-5 L1c13-16 <expression> -> <variable> .
+R12:1 @2-5 L1c3-16 <expression> -> <expression> . '+' <expression>
+F12 @2-5 L1c3-16 <expression> -> <expression> '+' <expression> .
 END_PROGRESS_REPORT
 
 # Marpa::R2::Display::End
@@ -315,15 +315,15 @@ Registering character U+0061 'a' as symbol 19: [\w]
 Registering character U+0061 'a' as symbol 20: [^'\x{0A}\x{0B}\x{0C}\x{0D}\x{0085}\x{2028}\x{2029}]
 Registering character U+0020 as symbol 18: [\s]
 Registering character U+0020 as symbol 20: [^'\x{0A}\x{0B}\x{0C}\x{0D}\x{0085}\x{2028}\x{2029}]
-Accepted lexeme @0-1: <variable>; value="a"
+Accepted lexeme L1c1: <variable>; value="a"
 Registering character U+003d '=' as symbol 16: [\=]
 Registering character U+003d '=' as symbol 20: [^'\x{0A}\x{0B}\x{0C}\x{0D}\x{0085}\x{2028}\x{2029}]
-Discarded lexeme @1-2: <whitespace>
-Accepted lexeme @2-3: '='; value="="
+Discarded lexeme L1c2: <whitespace>
+Accepted lexeme L1c3: '='; value="="
 Registering character U+0038 '8' as symbol 17: [\d]
 Registering character U+0038 '8' as symbol 19: [\w]
 Registering character U+0038 '8' as symbol 20: [^'\x{0A}\x{0B}\x{0C}\x{0D}\x{0085}\x{2028}\x{2029}]
-Discarded lexeme @3-4: <whitespace>
+Discarded lexeme L1c4: <whitespace>
 Registering character U+0036 '6' as symbol 17: [\d]
 Registering character U+0036 '6' as symbol 19: [\w]
 Registering character U+0036 '6' as symbol 20: [^'\x{0A}\x{0B}\x{0C}\x{0D}\x{0085}\x{2028}\x{2029}]
@@ -342,26 +342,26 @@ Registering character U+0030 '0' as symbol 20: [^'\x{0A}\x{0B}\x{0C}\x{0D}\x{008
 Registering character U+0039 '9' as symbol 17: [\d]
 Registering character U+0039 '9' as symbol 19: [\w]
 Registering character U+0039 '9' as symbol 20: [^'\x{0A}\x{0B}\x{0C}\x{0D}\x{0085}\x{2028}\x{2029}]
-Rejected lexeme @4-11: <number>; value="8675309"
-Accepted lexeme @4-11: <variable>; value="8675309"
+Rejected lexeme L1c5-11: <number>; value="8675309"
+Accepted lexeme L1c5-11: <variable>; value="8675309"
 Registering character U+002b '+' as symbol 15: [\+]
 Registering character U+002b '+' as symbol 20: [^'\x{0A}\x{0B}\x{0C}\x{0D}\x{0085}\x{2028}\x{2029}]
-Discarded lexeme @11-12: <whitespace>
-Rejected lexeme @12-13: '+'; value="+"
-Accepted lexeme @12-13: '+'; value="+"
+Discarded lexeme L1c12: <whitespace>
+Rejected lexeme L1c13: '+'; value="+"
+Accepted lexeme L1c13: '+'; value="+"
 Registering character U+0034 '4' as symbol 17: [\d]
 Registering character U+0034 '4' as symbol 19: [\w]
 Registering character U+0034 '4' as symbol 20: [^'\x{0A}\x{0B}\x{0C}\x{0D}\x{0085}\x{2028}\x{2029}]
-Discarded lexeme @13-14: <whitespace>
+Discarded lexeme L1c14: <whitespace>
 Registering character U+0032 '2' as symbol 17: [\d]
 Registering character U+0032 '2' as symbol 19: [\w]
 Registering character U+0032 '2' as symbol 20: [^'\x{0A}\x{0B}\x{0C}\x{0D}\x{0085}\x{2028}\x{2029}]
-Rejected lexeme @14-16: <number>; value="42"
-Accepted lexeme @14-16: <variable>; value="42"
+Rejected lexeme L1c15-16: <number>; value="42"
+Accepted lexeme L1c15-16: <variable>; value="42"
 Registering character U+002a '*' as symbol 14: [\*]
 Registering character U+002a '*' as symbol 20: [^'\x{0A}\x{0B}\x{0C}\x{0D}\x{0085}\x{2028}\x{2029}]
-Discarded lexeme @16-17: <whitespace>
-Rejected lexeme @17-18: '*'; value="*"
+Discarded lexeme L1c17: <whitespace>
+Rejected lexeme L1c18: '*'; value="*"
 END_TRACE_OUTPUT
 
 # Marpa::R2::Display::End

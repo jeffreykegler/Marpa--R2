@@ -944,10 +944,9 @@ my $libmarpa_trace_event_handlers = {
             $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
         my $thick_g1_grammar = $thick_g1_recce->grammar();
         my $g1_tracer        = $thick_g1_grammar->tracer();
-        say {$trace_file_handle} 'Accepted lexeme @',
-            $lexeme_start_pos,
-            q{-},
-            $lexeme_end_pos, q{: },
+        say {$trace_file_handle} 'Accepted lexeme ',
+            input_range_describe( $slr, $lexeme_start_pos, $lexeme_end_pos-1 ),
+            q{: },
             $thick_g1_grammar->symbol_in_display_form($g1_lexeme),
             qq{; value="$raw_token_value"}
             or Marpa::R2::exception("Could not say(): $ERRNO");
@@ -967,10 +966,9 @@ my $libmarpa_trace_event_handlers = {
             $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
         my $thick_g1_grammar = $thick_g1_recce->grammar();
         my $g1_tracer        = $thick_g1_grammar->tracer();
-        say {$trace_file_handle} 'Rejected lexeme @',
-            $lexeme_start_pos,
-            q{-},
-            $lexeme_end_pos, q{: },
+        say {$trace_file_handle} 'Rejected lexeme ',
+            input_range_describe( $slr, $lexeme_start_pos, $lexeme_end_pos-1 ),
+            q{: },
             $thick_g1_grammar->symbol_in_display_form($g1_lexeme),
             qq{; value="$raw_token_value"}
             or Marpa::R2::exception("Could not say(): $ERRNO");
@@ -991,10 +989,9 @@ my $libmarpa_trace_event_handlers = {
         my $thick_g1_grammar = $thick_g1_recce->grammar();
         my $g1_tracer        = $thick_g1_grammar->tracer();
         say {$trace_file_handle}
-            'Rejected as duplicate lexeme @',
-            $lexeme_start_pos,
-            q{-},
-            $lexeme_end_pos, q{: },
+            'Rejected as duplicate lexeme ',
+            input_range_describe( $slr, $lexeme_start_pos, $lexeme_end_pos-1 ),
+            q{: },
             $thick_g1_grammar->symbol_in_display_form($g1_lexeme),
             qq{; value="$raw_token_value"}
             or Marpa::R2::exception("Could not say(): $ERRNO");
@@ -1015,10 +1012,9 @@ my $libmarpa_trace_event_handlers = {
         my $thick_g1_grammar = $thick_g1_recce->grammar();
         my $g1_tracer        = $thick_g1_grammar->tracer();
         say {$trace_file_handle}
-            'Attempting to read lexeme @',
-            $lexeme_start_pos,
-            q{-},
-            $lexeme_end_pos, q{: },
+            'Attempting to read lexeme ',
+            input_range_describe( $slr, $lexeme_start_pos, $lexeme_end_pos-1 ),
+            q{: },
             $thick_g1_grammar->symbol_in_display_form($g1_lexeme),
             qq{; value="$raw_token_value"}
             or Marpa::R2::exception("Could not say(): $ERRNO");
@@ -1051,9 +1047,10 @@ my $libmarpa_trace_event_handlers = {
         my $grammar = $slr->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
         my $thick_lex_grammar =
             $grammar->[Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMAR];
-        my $g0_tracer   = $thick_lex_grammar->tracer();
-        my $symbol_in_display_form = $thick_lex_grammar->symbol_in_display_form($token_id),
-        my ( $line, $column ) = $slr->line_column($position);
+        my $g0_tracer = $thick_lex_grammar->tracer();
+        my $symbol_in_display_form =
+            $thick_lex_grammar->symbol_in_display_form($token_id),
+            my ( $line, $column ) = $slr->line_column($position);
         my $trace_file_handle =
             $slr->[Marpa::R2::Inner::Scanless::R::TRACE_FILE_HANDLE];
         say {$trace_file_handle}
@@ -1072,9 +1069,10 @@ my $libmarpa_trace_event_handlers = {
         my $grammar = $slr->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
         my $thick_lex_grammar =
             $grammar->[Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMAR];
-        my $g0_tracer   = $thick_lex_grammar->tracer();
-        my $symbol_in_display_form = $thick_lex_grammar->symbol_in_display_form($token_id),
-        my ( $line, $column ) = $slr->line_column($position);
+        my $g0_tracer = $thick_lex_grammar->tracer();
+        my $symbol_in_display_form =
+            $thick_lex_grammar->symbol_in_display_form($token_id),
+            my ( $line, $column ) = $slr->line_column($position);
         my $trace_file_handle =
             $slr->[Marpa::R2::Inner::Scanless::R::TRACE_FILE_HANDLE];
         say {$trace_file_handle}
@@ -1098,13 +1096,16 @@ my $libmarpa_trace_event_handlers = {
         my $thick_lex_grammar =
             $grammar->[Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMAR];
         my $grammar_c = $thick_lex_grammar->[Marpa::R2::Internal::Grammar::C];
-        my $rule_length = $grammar_c->rule_length( $g0_rule_id );
-        my @rhs_ids = map { $grammar_c->rule_rhs( $g0_rule_id, $_ ) } (0 .. $rule_length - 1);
-        my @rhs = map { $thick_lex_grammar->symbol_in_display_form($_) } @rhs_ids;
+        my $rule_length = $grammar_c->rule_length($g0_rule_id);
+        my @rhs_ids =
+            map { $grammar_c->rule_rhs( $g0_rule_id, $_ ) }
+            ( 0 .. $rule_length - 1 );
+        my @rhs =
+            map { $thick_lex_grammar->symbol_in_display_form($_) } @rhs_ids;
         my $trace_file_handle =
             $slr->[Marpa::R2::Inner::Scanless::R::TRACE_FILE_HANDLE];
-        say {$trace_file_handle} 'Discarded lexeme @',
-            "$start-$end: ", join q{ }, @rhs
+        say {$trace_file_handle} 'Discarded lexeme ',
+            input_range_describe( $slr, $start, $end-1 ), q{: }, join q{ }, @rhs
             or Marpa::R2::exception("Could not say(): $ERRNO");
     },
     'g1 pausing before lexeme' => sub {
@@ -1114,11 +1115,12 @@ my $libmarpa_trace_event_handlers = {
         my $thick_g1_recce =
             $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
         my $thick_g1_grammar = $thick_g1_recce->grammar();
-        my $lexeme_name      = $thick_g1_grammar->symbol_in_display_form($lexeme_id);
+        my $lexeme_name =
+            $thick_g1_grammar->symbol_in_display_form($lexeme_id);
         my $trace_file_handle =
             $slr->[Marpa::R2::Inner::Scanless::R::TRACE_FILE_HANDLE];
-        say {$trace_file_handle} 'Paused before lexeme @',
-            "$start-$end: $lexeme_name"
+        say {$trace_file_handle} 'Paused before lexeme ',
+            input_range_describe( $slr, $start, $end-1 ), ": $lexeme_name"
             or Marpa::R2::exception("Could not say(): $ERRNO");
     },
     'g1 pausing after lexeme' => sub {
@@ -1128,11 +1130,12 @@ my $libmarpa_trace_event_handlers = {
         my $thick_g1_recce =
             $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
         my $thick_g1_grammar = $thick_g1_recce->grammar();
-        my $lexeme_name      = $thick_g1_grammar->symbol_in_display_form($lexeme_id);
+        my $lexeme_name =
+            $thick_g1_grammar->symbol_in_display_form($lexeme_id);
         my $trace_file_handle =
             $slr->[Marpa::R2::Inner::Scanless::R::TRACE_FILE_HANDLE];
-        say {$trace_file_handle} 'Paused after lexeme @',
-            "$start-$end: $lexeme_name"
+        say {$trace_file_handle} 'Paused after lexeme ',
+            input_range_describe( $slr, $start, $end-1 ), ": $lexeme_name"
             or Marpa::R2::exception("Could not say(): $ERRNO");
     },
     'ignored lexeme' => sub {
@@ -1141,10 +1144,12 @@ my $libmarpa_trace_event_handlers = {
         my $thick_g1_recce =
             $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
         my $thick_g1_grammar = $thick_g1_recce->grammar();
-        my $lexeme_name      = $thick_g1_grammar->symbol_in_display_form($g1_symbol_id);
+        my $lexeme_name =
+            $thick_g1_grammar->symbol_in_display_form($g1_symbol_id);
         my $trace_file_handle =
             $slr->[Marpa::R2::Inner::Scanless::R::TRACE_FILE_HANDLE];
-        say {$trace_file_handle} 'Ignored lexeme @', "$start-$end: $lexeme_name"
+        say {$trace_file_handle} 'Ignored lexeme ',
+            input_range_describe( $slr, $start, $end-1 ), ": $lexeme_name"
             or Marpa::R2::exception("Could not say(): $ERRNO");
     },
 };
@@ -1566,6 +1571,36 @@ sub Marpa::R2::Scanless::R::value {
     return $thick_g1_value;
 } ## end sub Marpa::R2::Scanless::R::value
 
+# Given a list of G1 locations, return the minimum span in the input string
+# that includes them all
+sub g1_locations_to_input_range {
+    my ( $slr, @g1_locations ) = @_;
+    my $thin_slr = $slr->[Marpa::R2::Inner::Scanless::R::C];
+    my $first_pos = $thin_slr->stream()->input_length();
+    my $last_pos = 0;
+    for my $g1_location (@g1_locations) {
+        my ( $input_start, $input_length ) = $thin_slr->span($g1_location);
+        my $input_end = $input_length ? $input_start + $input_length - 1 : $input_start;
+        $first_pos = $input_start if $input_start < $first_pos;
+        $last_pos = $input_end if $input_end > $last_pos;
+    } ## end for my $g1_location (@other_g1_locations)
+    return ($first_pos, $last_pos);
+}
+
+sub input_range_describe {
+    my ( $slr, $first_pos,  $last_pos )     = @_;
+    my ( $first_line, $first_column ) = $slr->line_column($first_pos);
+    my ( $last_line,  $last_column )  = $slr->line_column($last_pos);
+    if ( $first_line == $last_line ) {
+        return join q{}, 'L', $first_line, 'c', $first_column
+            if $first_column == $last_column;
+        return join q{}, 'L', $first_line, 'c', $first_column, '-',
+            $last_column;
+    } ## end if ( $first_line == $last_line )
+    return join q{}, 'L', $first_line, 'c', $first_column, '-L', $last_line,
+        'c', $last_column;
+} ## end sub input_range_describe
+
 sub Marpa::R2::Scanless::R::show_progress {
     my ( $slr, $start_ordinal, $end_ordinal ) = @_;
     my $slg = $slr->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
@@ -1631,10 +1666,15 @@ sub Marpa::R2::Scanless::R::show_progress {
                     $origin_desc = $origins[0] . q{...} . $origins[-1];
                 }
 
+                my $input_range = input_range_describe(
+                    $slr, g1_locations_to_input_range(
+                        $slr, $current_earleme, @origins
+                    )
+                );
+
                 my $rhs_length = $grammar_c->rule_length($rule_id);
                 my $item_text;
 
-                # flag indicating whether we need to show the dot in the rule
                 if ( $position >= $rhs_length ) {
                     $item_text .= "F$rule_id";
                 }
@@ -1645,8 +1685,7 @@ sub Marpa::R2::Scanless::R::show_progress {
                     $item_text .= "P$rule_id";
                 }
                 $item_text .= " x$origins_count" if $origins_count > 1;
-                $item_text
-                    .= q{ @} . $origin_desc . q{-} . $current_earleme . q{ };
+                $item_text .= q{ @} . $origin_desc . q{-} . $current_earleme . q{ } . $input_range . q{ };
                 $item_text
                     .= $slg->show_dotted_rule( $rule_id, $position );
                 $text .= $item_text . "\n";

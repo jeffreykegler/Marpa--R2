@@ -77,7 +77,7 @@ typedef struct {
     int linecol;
     /* Lines are 1-based, columns are zero-based and negated.
      * In the first column (column 0), linecol is the 1-based line number.
-     * In subsequenct columns, linecol is -n, where n i the 0-based column
+     * In subsequenct columns, linecol is -n, where n is the 0-based column
      * number.
      */
 } Pos_Entry;
@@ -3163,6 +3163,14 @@ PPCODE:
 }
 
 void
+input_length( stream )
+     Unicode_Stream *stream;
+PPCODE:
+{
+  XSRETURN_IV(stream->pos_db_logical_size);
+}
+
+void
 pos( stream )
      Unicode_Stream *stream;
 PPCODE:
@@ -5996,7 +6004,7 @@ PPCODE:
     {
       pos = stream->perl_pos;
     }
-  if (pos > stream->pos_db_logical_size)
+  if (pos >= stream->pos_db_logical_size)
     {
       croak ("Problem in slr->line_column(%ld): position out of range",
 	     (long) pos);
