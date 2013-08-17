@@ -186,16 +186,148 @@ to "discover" it.
 
 =head1 The example
 
+The example we will use is a prototype string calculator.
+It's extremely simple, to make the example easy to follow.
+But it can be seen as a realistic example,
+if it is thought of as a very
+early stages in the incremental development of something useful.
+
+=for Marpa::R2::Display
+name: SLIF debug example trace output
+partial: 1
+normalize-whitespace: 1
+
+    :default ::= action => ::array bless => ::lhs
+    :start ::= statements
+    statements ::= statement *
+    statement ::= assignment | <numeric assignment>
+    assignment ::= 'set' variable 'to' expression
+
+    # This is a deliberate error in the grammar
+    # The next line should be:
+    # <numeric assignment> ::= variable '=' <numeric expression>
+    # I have changed the <numeric expression>  to <expression> which
+    # will cause problems.
+    <numeric assignment> ::= variable '=' expression
+
+    expression ::=
+           variable | string
+        || 'string' '(' <numeric expression> ')'
+        || expression '+' expression
+    <numeric expression> ::=
+           variable | number
+        || <numeric expression> '+' <numeric expression>
+        || <numeric expression> '*' <numeric expression>
+    variable ~ [\w]+
+    number ~ [\d]+
+    string ~ ['] <string contents> [']
+    <string contents> ~ [^'\x{0A}\x{0B}\x{0C}\x{0D}\x{0085}\x{2028}\x{2029}]+
+    :discard ~ whitespace
+    whitespace ~ [\s]+
+
+=for Marpa::R2::Display::End
+
+At this stage of developing our string calculator,
+we have assignment, variables, constants, concatenation and conversion of
+numerics.
+For numerics, we have assignment, variables, constants, multiplication and addition.
+
+We decide that, since string expressions and variables are the "default", that in the
+grammar we'll name numeric assignment and expressions as such,
+but the we will just call string expressions, C<E<lt>expressionE<gt>>,
+and string assignments
+C<E<lt>assignment<gt>>.
+It seems like a good idea, but it can cause confusion,
+and for the sake of our example we pretend that it did.
+
 =head1 The error message
+
+If we try the following input,
+
+=for Marpa::R2::Display:
+name: SLIF debug example, part 2
+partial: 1
+normalize-whitespace: 1
+
+    my $test_input = 'a = 8675309 + 42 * 711' ;
+
+=for Marpa::R2::Display::End
+
+we will get this error message,
+
+=for Marpa::R2::Display
+name: SLIF debug example error message
+partial: 1
+normalize-whitespace: 1
+
+    Error in SLIF parse: No lexemes accepted at line 1, column 18
+    * String before error: a = 8675309 + 42\s
+    * The error was at line 1, column 18, and at character 0x002a '*', ...
+    * here: * 711
+
+=for Marpa::R2::Display::End
+
+The error message indicates that Marpa rejected the "C<*>" operator.
 
 =head1 The value of the parse
 
+In debugging this issue, we'll look at the value of the parse first.
+The parse value differs from the other other debugging aids we'll discuss.
+All the other debugging tools we use are always available, no matter
+how disastrous the parse.
+But if you have a problem parsing, you often won't get a parse value.
+
+So we're not going to rely on having a parse value.
+But our luck holds, and here's the dump.
+It's a nice to way to see
+what Marpa thinks the parse was so far.
+
+=for Marpa::R2::Display
+name: SLIF debug example dump of value
+partial: 1
+normalize-whitespace: 1
+
+    \bless(
+        [   bless(
+                [   bless(
+                        [   'a', '=',
+                            bless(
+                                [   bless(
+                                        [ '8675309' ],
+                                        'My_Nodes::expression'
+                                    ),
+                                    '+',
+                                    bless( [ '42' ], 'My_Nodes::expression' )
+                                ],
+                                'My_Nodes::expression'
+                            )
+                        ],
+                        'My_Nodes::numeric_assignment'
+                    )
+                ],
+                'My_Nodes::statement'
+            )
+        ],
+        'My_Nodes::statements'
+    );
+
+=for Marpa::R2::Display::End
+
+If we were perceptive, we might spot the error here.
+Our parse is not quite right, and that
+shows up in the outer C<My_Nodes::expression> --
+it should be
+C<My_Nodes::numeric_expression>.
+We'll assume we don't notice this.
+
+We'll also assume, in for the rest of the debugging, that we didn't see this.
+Since we don't always have a parse value, we don't want to rely on it.
+
 =head1 Output from trace_terminals()
 
-Before looking at Marpa's progress reports,
-it is usually best to orient yourself by looking
-at the output from
-L<C<trace_terminals>|Marpa::R2::Scanless::R/trace_terminals>.
+You can rely on getting the output from
+L<C<trace_terminals>|Marpa::R2::Scanless::R/trace_terminals>,
+and it is a good next place to check.
 Typically, you will be interested in the last tokens
 to be accepted, and perhaps also
 in the tokens the recognizer was
@@ -224,23 +356,12 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
-A note in passing: Marpa shows the location of the tokens it accepts
-as a range of locations.  For C<Number>, the range is "C<2-3>", indicating that
-the token starts at location 2 and ends at location 3.
-In its default input model, all tokens have length 1,
-so this is clearly information overkill.
-But Marpa allows other input models, and in those models the information
-about start and end location of the token is important.
-
-Returning to the problem at hand:
-We notice that at location 3 we are expecting a C<Multiply> operator,
-but not an C<Add> operator.
-That should strike us as strange,
-and send us back to the grammar.
-But for the sake of our example we will
-assume that we are slow on the uptake today,
-and that this does not clue us in.
-We move on.
+A note in passing: Marpa shows the string location of the tokens it accepts,
+discard and rejects.
+C<E<lt>whitespaceE<gt>> is supposed to be discarded
+and that was what happened at line 1, column 17.
+But the C<'*'> that was next in the input was rejected,
+and that was not supposed to happen.
 
 =head1 Output from show_progress()
 
@@ -799,7 +920,7 @@ remove-blank-last-line: 1
 
 =head2 Parse value at error location
 
-Note that where there is a parse error, there will
+Note that when there is a parse error, there will
 not always be a parse value.
 But sometimes the parse is "successful" enough, in a technical sense,
 to produce a value, and in those cases examining the value can be
