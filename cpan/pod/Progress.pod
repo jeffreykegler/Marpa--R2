@@ -688,26 +688,31 @@ seems to be the intuitive way to treat them.
 =head2 Input string ranges
 
 G1 locations run in a monotonic sequence, starting with 0.
-G1 never run backwards, and are never visited twice,
-and leave no gaps.
+G1 locations never run backwards, they are never visited twice,
+and they leave no gaps.
 
-Input string positions can do all of these things.
-An application is jump around in the input.
+Input string positions, on the other hand, can do all of these things.
+An application is allowed to jump around in the input.
 An input string position may be encountered more than once.
 It is quite possible to write your application so that it
 encounters, for example,
-line 42, column 7 before line 3, column 0.
+line 42 before line 7.
+And your application does not have to visit line 42 on its way from
+line 41 to line 43.
+For that matter,
+an application does not ever have to visit any position in its input.
 
-How to handle this when reporting input string ranges?
+How does Marpa deal with this when reporting input string ranges?
 Marpa always reports the minimum range that includes all the locations
 visited in the dotted rule.
-The range will always be reported in forward order, even if the location at
+The range is always reported in increasing numeric order,
+even when the location at
 the end of the range was visited before the string location
 at the beginning of the range.
 And, if necessary to include all visited input string positions, the range 
 may include input string positions which were not visited.
 
-Most applications move forward continuousluy in the input string,
+Most applications move forward continuously in the input string,
 and if yours is one of them, you don't have to worry about these issues.
 But if you do unusual things when reading the input,
 it helps to be aware of how input string ranges are reported by Marpa
@@ -716,36 +721,10 @@ when tracing and debugging.
 =head2 Multiple instances of dotted rules
 
 While it does not happen in our main example for this document,
-quite frequently a particular dotted rule will appear in the same Earley set
+a dotted rule can appear in the same Earley set
 more than once.
-When it does, it will look like this:
-
-Each instance may have its own span in the input string,
-and the input string range will include them all.
-
-In fact,
-instances of a single rule may appear many times -- hundreds or even thousands.
-In grammars with right recursion,
-the number of instances
-is limited only by the
-length of the recursion.
-The maximum length of a recursion in Marpa is limited primarily by
-the available memory.
-(Marpa uses a technique invented by Joop Leo to memoize and optimize right recursions
-while parsing, but they are expanded when generating progress reports.)
-
-When there are many
-instances of a dotted rule at a single location,
-it can be inconvenient to show all the origins in a comma-separated
-list.
-In that case the origins in the location field are shown as a
-range, with the earliest separated from the most recent
-by a "C<...>".
-The example in this document contains no lines with
-a large number of
-instances, but here is an example from another grammar.
-This is the progress report line for
-the completed rule in a right recursion of length 13.
+In fact, this happens frequently.
+When it does happen, the lines in the progress report will look like these
 
 =for Marpa::R2::Display
 name: SLIF Leo show_progress() example
@@ -756,28 +735,88 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
-The next field ("C<x2>") is new.
-It is a count.
-A progress report can contain multiple instances
-of the same dotted rule, and when there is more
-than one, a count field is included in
-the progress report line.
-Here the "C<x2>" indicates that there are two
-instances of C<Factor -E<gt> Factor . Multiply Factor> at
-this location.
+=for Marpa::R2::Display
+name: SLIF Leo show_progress() example
+partial: 1
+normalize-whitespace: 1
 
-Multiple instances of a dotted rule
-will differ in their origin,
-and where they do, this is shown in
-the location field of the
-progress report line.
-Here the location field is "C<@0,2-3>",
-which indicates that one instance of this dotted rule has
-its origin at location 0, and the other has its origin
-at location 2.
-All instances reported on a single progress report line
-will always have the same dot location, and in this case
-it is location 3.
+    F2 x20 @0...38-41 L1c1-L2c40 <expression> -> <assignment> .
+
+=for Marpa::R2::Display::End
+
+=for Marpa::R2::Display
+name: SLIF Leo show_progress() example
+partial: 1
+normalize-whitespace: 1
+
+    F7 x12 @0...38-41 L1c1-L2c40 <assignment> -> <plain assignment> .
+
+=for Marpa::R2::Display::End
+
+These are some of the progress report lines for
+the completed rule in a right recursion of length 13.
+The right recursion is indirect, from 
+C<E<lt>plain assignmentE<gt>> to
+C<E<lt>expression<gt>>, then to
+C<E<lt>assignmentE<gt>>,
+and then back again.
+
+In each of the three lines, notice that a new field appears second.
+This second field is variously
+"C<x13>", "C<x20>" or "C<x12>".
+These are counts,
+indicated the number of instances of that dotted rule at
+the dotted rule's G1 location.
+(In each of this lines, the G1 location is 41.)
+
+Instances of a single rule may appear many times -- hundreds or even thousands.
+In grammars with right recursion,
+the number of instances
+is limited only by the
+length of the recursion.
+The maximum length of a recursion in Marpa is limited primarily by
+the available memory.
+(Marpa uses a technique invented by Joop Leo to memoize and optimize right recursions
+while parsing, but they are expanded when generating progress reports.)
+
+Each instance may have its own span in the input string,
+and the input string range will include them all.
+When there are many
+instances of a dotted rule at a single location,
+the origins in the location field are shown as a
+range, with the earliest separated from the most recent
+by a "C<...>".
+For example, in the above,
+the first three fields
+"C<F7 x12 @0...38-41 L1c1-L2c40>" say
+that the dotted rule is rule 7, which has 12 instances.
+A 12 instances have their dot location at G1 location 41,
+but their origins are in the range from G1 location 0
+to G1 location 38.
+
+The last field in
+"C<F7 x12 @0...38-41 L1c1-L2c40>" is an input string range.
+"C<L1c1-L2c40>" says that
+input string positions visited by the
+the 12 instances start at line 1, column 1,
+and end at line 2, column 40.
+The input string range is the shortest range that includes
+all of the input string positions visited by any of the dotted rule instances.
+
+If there are only a few origins,
+Marpa may explicitly list them all.
+In the follow example, there are only 2 instances
+of this rule, both with a dot location of 41.
+Their origins are a G1 locations 8 and 18.
+
+=for Marpa::R2::Display
+name: SLIF Leo show_progress() example
+partial: 1
+normalize-whitespace: 1
+
+    F3 x2 @8,18-41 L1c17-L2c40 <assignment> -> <divide assignment> .
+
+=for Marpa::R2::Display::End
 
 =head1 Access to the "raw" progress report information
 
