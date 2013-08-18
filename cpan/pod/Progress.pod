@@ -193,7 +193,7 @@ if it is thought of as a very
 early stages in the incremental development of something useful.
 
 =for Marpa::R2::Display
-name: SLIF debug example trace output
+name: SLIF debug example, part 1
 partial: 1
 normalize-whitespace: 1
 
@@ -287,29 +287,23 @@ name: SLIF debug example dump of value
 partial: 1
 normalize-whitespace: 1
 
-    \bless(
-        [   bless(
-                [   bless(
-                        [   'a', '=',
-                            bless(
-                                [   bless(
-                                        [ '8675309' ],
-                                        'My_Nodes::expression'
-                                    ),
-                                    '+',
-                                    bless( [ '42' ], 'My_Nodes::expression' )
-                                ],
-                                'My_Nodes::expression'
-                            )
-                        ],
-                        'My_Nodes::numeric_assignment'
-                    )
-                ],
-                'My_Nodes::statement'
-            )
-        ],
-        'My_Nodes::statements'
-    );
+     \bless( [
+                     bless( [
+                              bless( [
+                                       'a',
+                                       '=',
+                                       bless( [
+                                                bless( [
+                                                         '8675309'
+                                                       ], 'My_Nodes::expression' ),
+                                                '+',
+                                                bless( [
+                                                         '42'
+                                                       ], 'My_Nodes::expression' )
+                                              ], 'My_Nodes::expression' )
+                                     ], 'My_Nodes::numeric_assignment' )
+                            ], 'My_Nodes::statement' )
+               ], 'My_Nodes::statements' );
 
 =for Marpa::R2::Display::End
 
@@ -454,7 +448,7 @@ The first G1 location number is the origin, the place where Marpa
 first started recognizing the rule.
 The last G1 location number is the dot location, the G1 location
 of the dot in a dotted rule.
-"C<@0-3>" say that this rule began at G1 location 0, and that the
+"C<@0-3>" says that this rule began at G1 location 0, and that the
 dot is at G1 location 3.
 
 Following the G1 location is the range of positions in the input string:
@@ -462,7 +456,7 @@ Following the G1 location is the range of positions in the input string:
 This indicates that the origin of dotted rule is at line 1, column 1,
 and that its dot position is after line 1, column 16.
 
-The current location is G1 location 5,
+The current location is also just after line 1, column 16, and at G1 location 5,
 and this is no coincidence.
 Whenever we are displaying the progress report for a G1 location,
 all the progress report lines will have their dot location at
@@ -475,8 +469,9 @@ The presence of a completed start rule in our
 progress report indicates that if our input had ended at location 5,
 it would be a valid sentence
 in the language of our grammar.
-This will prove helpful -- it will allow us to look at the value
-of the parse at that point for debugging purposes.
+(And it is because the input at G1 location 5 was a valid sentence of the grammar,
+that we were able to look at the value
+of the parse at location 5 for debugging purposes.)
 
 Let's look at another progress report line:
 
@@ -489,14 +484,14 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
-Here the "C<R4:1>" indicates that this is rule number 4
+Here the "C<R12:2>" indicates that this is rule number 12
 (the "C<R>" stands for rule number) and that its dot
-position is after the first symbol on the right hand side.
+position is after the second symbol on the right hand side.
 Symbol positions are numbered using the
 ordinal of the symbol just before the position.
 Symbols are numbered starting with 1, and
-symbol position 1 is the position immediately after
-symbol 1.
+symbol position 2 is the position immediately after
+symbol 2.
 
 Predicted rules also appear in progress reports:
 
@@ -515,7 +510,6 @@ this only repeats what is obvious from the full expansion
 of the dotted rule later in the line.
 But final (or completed) and predicted rules can be important
 and the initial C<"F"> and C<"P"> make these lines easy to spot.
-
 Notice that in the predicted rule,
 the origin is the same as the dot location.
 This will always be the case with predicted rules.
@@ -531,24 +525,47 @@ C<E<lt>statementE<gt>>,
 C<E<lt>statementsE<gt>>,
 as expected.
 We also see two Earley items that show
-that we are in the process of building another C<expression>,
+that we are in the process of building another C<E<lt>expressionE<gt>>,
 and that it is expecting a 'C<+>' symbol.
-This is not the rule we want, but it explains why the C<trace_terminals>
-output showed that the recognizer was expecting a
-'C<+>' symbol.
 
 What we want to know is,
 why is the recognizer B<not> expecting an 'C<*>' symbol?
 Looking back at the grammar, we see that only one rule uses
-the C<Add> symbol: the rule "C<Term -E<gt> Term Add Term>".
+the 'C<*>' symbol.
+Here it is as part of a prioritized rule in the DSL:
+
+=for Marpa::R2::Display
+name: SLIF debug example, part 1
+partial: 1
+normalize-whitespace: 1
+
+    <numeric expression> ::=
+           variable | number
+        || <numeric expression> '+' <numeric expression>
+        || <numeric expression> '*' <numeric expression>
+
+=for Marpa::R2::Display::End
+
+Here it is from the C<show_rules()> listing:
+
+=for Marpa::R2::Display
+name: SLIF debug example show_rules() output
+partial: 1
+normalize-whitespace: 1
+
+    G1 R19 <numeric expression> ::= <numeric expression> '*' <numeric expression>
+
+=for Marpa::R2::Display::End
+
+It's rule 19 in subgrammar G1, and for convenience we will call it R19.
 The next step is to look at the Earley items for this rule.
 But there is a problem.
 We don't find any.
 
-Next, we ask ourselves, what is the earliest place the
-"C<Term -E<gt> Term Add Term>" rule should be appearing?
+Next, we ask ourselves, what is the earliest place R19
+should be appearing?
 The answer is that
-there should be a prediction of "C<Term -E<gt> Term Add Term>" at location 0.
+there should be a prediction of R19 at location 0.
 So we look at the predictions at location 0.
 
 =for Marpa::R2::Display
@@ -565,74 +582,95 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
-No "C<Term -E<gt> Term Add Term>" rule.
-We are never even predicting a
-"C<Term -E<gt> Term Add Term>" rule.
-We look back at the grammar, and start from
-the beginning.
+Next we look through the the entire progress report, at all G1 locations,
+to see if R19 is predicted anywhere.
+No R19.  Not anywhere.
 
-=for Marpa::R2::Display:
+The LHS of R19 is C<E<lt>numeric expressionE<gt>>.
+We look in the progress report for dotted rules where 
+C<E<lt>numeric expressionE<gt>> is expected -- that is,
+dotted rules where C<E<lt>numeric expressionE<gt>> is not post-dot symbol.
+There are none.
+
+In the progress reports, 
+C<E<lt>numeric expressionE<gt>> occurs in only two instances.
+Here they are:
+
+=for Marpa::R2::Display
+name: SLIF debug example progress report
+partial: 1
+normalize-whitespace: 1
+
+    P11 @2-2 L1c3 <expression> -> . 'string' '(' <numeric expression> ')'
+
+=for Marpa::R2::Display::End
+
+=for Marpa::R2::Display
+name: SLIF debug example progress report
+partial: 1
+normalize-whitespace: 1
+
+    P11 @4-4 L1c13 <expression> -> . 'string' '(' <numeric expression> ')'
+
+=for Marpa::R2::Display::End
+
+In both cases these are predictions of a string operator, the operator we plan to
+use for converting numerics to strings.
+They are just predictions, predictions which go no further because there is no
+'C<string>' operator in our input.
+That's fine, but why no relevant occurrences of C<E<lt>numeric expressionE<gt>>?
+
+We look back at the grammar.
+Aside for the rule for the 'C<string>' operator,
+C<E<lt>numeric expressionE<gt>> on a RHS in two places.
+One is in the prioritized rule which defines
+C<E<lt>numeric expressionE<gt>>.
+
+=for Marpa::R2::Display
 name: SLIF debug example, part 1
 partial: 1
 normalize-whitespace: 1
 
-    my $slif_debug_source = <<'END_OF_SOURCE';
-    :default ::= action => ::array bless => ::lhs
-    :start ::= statements
-    statements ::= statement *
-    statement ::= assignment | <numeric assignment>
-    assignment ::= 'set' variable 'to' expression
-
-    # This is a deliberate error in the grammar
-    # The next line should be:
-    # <numeric assignment> ::= variable '=' <numeric expression>
-    # I have changed the <numeric expression>  to <expression> which
-    # will cause problems.
-    <numeric assignment> ::= variable '=' expression
-
-    expression ::=
-           variable | string
-        || 'string' '(' <numeric expression> ')'
-        || expression '+' expression
     <numeric expression> ::=
            variable | number
         || <numeric expression> '+' <numeric expression>
         || <numeric expression> '*' <numeric expression>
-    variable ~ [\w]+
-    number ~ [\d]+
-    string ~ ['] <string contents> [']
-    <string contents> ~ [^'\x{0A}\x{0B}\x{0C}\x{0D}\x{0085}\x{2028}\x{2029}]+
-    :discard ~ whitespace
-    whitespace ~ [\s]+
-    END_OF_SOURCE
 
 =for Marpa::R2::Display::End
 
-The start symbol is C<Expression> and
-we do see a rule with
-C<Expression>
-on the left hand side.
-C<Expression> in turn produces a C<Factor> symbol,
-and there are two rules
-with C<Factor> on the left
-hand side.
+This rule is fine -- it does not cause a prediction of a 
+C<E<lt>numeric expressionE<gt>> unless we already have a
+another prediction of a C<E<lt>numeric expressionE<gt>>,
+and it is not supposed to.
+That leaves one rule to look at, and it is one
+that was supposed to lead to the prediction of new
+C<E<lt>numeric expressionE<gt>> in our example.
 
-But none of these rules ever produce a C<Term>.
-In fact, however far we follow the productions,
-no rule ever produces a C<Term>.
-At this point we see the problem:
-If we start at the start symbol,
-and follow the rules of our grammar, we will never get to a C<Term>
-symbol.
-Which is exactly what that first warning message was saying.
+=for Marpa::R2::Display
+name: SLIF debug example, part 1
+partial: 1
+normalize-whitespace: 1
 
-Now that we know what is wrong,
-we can reread our grammar,
-and see that our C<Expression -E<gt> Factor> rule is wrong.
-It should be C<Expression -E<gt> Term>.
+    <numeric assignment> ::= variable '=' expression
+
+=for Marpa::R2::Display::End
+
+And now we see our problem.
+This rule is never leading to the prediction of a new
+C<E<lt>numeric expressionE<gt>>,
+because there is no
+C<E<lt>numeric expressionE<gt>> on its RHS.
+On the RHS, where we wrote C<E<lt>expressionE<gt>>,
+we should have written
+C<E<lt>numeric expressionE<gt>>.
 Change that and the problem is fixed.
 
 =head1 Complications
+
+We have concluded following our main example.
+This section discusses some aspects of debugging which did not
+arise in the example,
+and which might be unexpected.
 
 =head2 Empty rules
 
@@ -641,22 +679,38 @@ L<C<show_progress>|Marpa::R2::Scanless::R/"show_progress">
 show only the nulled symbol.
 It does not show the symbols expansion into rules,
 or any of its nulled child symbols.
+
 This reduces clutter,
-and seems to be the intuitive way to treat nulled rules.
+and usually one does not notice the missing nulled rules and symbols.
+Not showing these
+seems to be the intuitive way to treat them.
 
-=head2 Backward input string spans
+=head2 Input string ranges
 
-Range of G1 locations never run backwards.
-But an application is allowed to go back and forth in the input,
-so a range as reported in terms of the input string can run backwards.
-If it does, your progress report might report a range in the
-input string that runs, say, from line 42, column 7 to line 3, column 0.
+G1 locations run in a monotonic sequence, starting with 0.
+G1 never run backwards, and are never visited twice,
+and leave no gaps.
 
-Most applications always move forward in the input string,
-and if yours is one of them, you don't have to worry about backward
-input string ranges.
+Input string positions can do all of these things.
+An application is jump around in the input.
+An input string position may be encountered more than once.
+It is quite possible to write your application so that it
+encounters, for example,
+line 42, column 7 before line 3, column 0.
+
+How to handle this when reporting input string ranges?
+Marpa always reports the minimum range that includes all the locations
+visited in the dotted rule.
+The range will always be reported in forward order, even if the location at
+the end of the range was visited before the string location
+at the beginning of the range.
+And, if necessary to include all visited input string positions, the range 
+may include input string positions which were not visited.
+
+Most applications move forward continuousluy in the input string,
+and if yours is one of them, you don't have to worry about these issues.
 But if you do unusual things when reading the input,
-be aware they will be reflected in the ranges Marpa reports
+it helps to be aware of how input string ranges are reported by Marpa
 when tracing and debugging.
 
 =head2 Multiple instances of dotted rules
