@@ -200,7 +200,7 @@ The example we will use is a prototype string calculator.
 It's extremely simple, to make the example easy to follow.
 But it can be seen as a realistic example,
 if it is thought of as a very
-early stages in the incremental development of something useful.
+early stage in the incremental development of something useful.
 
 =for Marpa::R2::Display
 name: SLIF debug example, part 1
@@ -243,12 +243,12 @@ numerics.
 For numerics, we have assignment, variables, constants, multiplication and addition.
 
 We decide that, since string expressions and variables are the "default", that in the
-grammar we'll name numeric assignment and expressions as such,
-but the we will just call string expressions, C<E<lt>expressionE<gt>>,
-and string assignments
-C<E<lt>assignment<gt>>.
-It seems like a good idea, but it can cause confusion,
-and for the sake of our example we pretend that it did.
+grammar we'll make the symbol names for numeric assignment and expressions explicit:
+C<E<lt>numeric expressionE<gt>> and C<E<lt>numeric assignmentE<gt>>.
+But since strings are the default, we decide to call our string expressions simply C<E<lt>expressionE<gt>>,
+and to call our string assignments simply C<E<lt>assignmentE<gt>>.
+This seems like a good idea, but it is also likely to cause confusion.
+For the sake of our example we will pretend that it did.
 
 =head1 The error message
 
@@ -282,13 +282,13 @@ The error message indicates that Marpa rejected the "C<*>" operator.
 =head1 The value of the parse
 
 In debugging this issue, we'll look at the value of the parse first.
-The parse value differs from the other other debugging aids we'll discuss.
-All the other debugging tools we use are always available, no matter
-how disastrous the parse.
+The parse value differs from the other debugging aids we'll discuss.
+Every other debugging tool we will describe is always available,
+no matter how badly the parse failed.
 But if you have a problem parsing, you often won't get a parse value.
 
-So we're not going to rely on having a parse value.
-But our luck holds, and here's the dump.
+Our luck holds.
+Here's a dump of the parse value at the point of failure.
 It's a nice to way to see
 what Marpa thinks the parse was so far.
 
@@ -322,10 +322,11 @@ Our parse is not quite right, and that
 shows up in the outer C<My_Nodes::expression> --
 it should be
 C<My_Nodes::numeric_expression>.
-We'll assume we don't notice this.
+We'll assume that we don't notice this.
 
-We'll also assume, in for the rest of the debugging, that we didn't see this.
-Since we don't always have a parse value, we don't want to rely on it.
+In fact, in the following, we'll pretend we haven't seen the
+dump of the parse value.
+We can't always get a parse value, so we don't want to rely on it.
 
 =head1 Output from trace_terminals()
 
@@ -333,9 +334,7 @@ You can rely on getting the output from
 L<C<trace_terminals>|Marpa::R2::Scanless::R/trace_terminals>,
 and it is a good next place to check.
 Typically, you will be interested in the last tokens
-to be accepted, and perhaps also
-in the tokens the recognizer was
-looking for when it didn't find what it wanted.
+to be accepted.
 Sometimes that information alone is enough to make it clear
 where the problem is.
 
@@ -343,11 +342,12 @@ The full
 L<C<trace_terminals>|Marpa::R2::Scanless::R/trace_terminals>
 output for this example is in the Appendix.
 We see that the recognizer accepts the input as far
-as the multiplication sigh ("C<*>"),
+as the multiplication sign ("C<*>"),
 which it rejects.
-(In Marpa, a lexeme is "acceptable" if it fits the grammar
+In Marpa, a lexeme is "acceptable" if it fits the grammar
 and the input so far.
-A lexeme is rejected if it is not acceptable.)
+A lexeme is rejected if it is not acceptable.
+
 The last two lines of the C<trace_terminals> output are:
 
 =for Marpa::R2::Display
@@ -416,24 +416,6 @@ normalize-whitespace: 1
 
 =head2 Progress report lines
 
-The last field of
-each Progress Report line shows,
-in fully expanded form,
-the dotted rule we were working on.
-Since that is the most important information,
-it may be tempting to skip the rest of this section,
-and move directly forward with the debugging.
-
-In fact, you might want to do exactly that --
-skip to the beginning of the next section.
-What follows talks about the details of the format of the
-first few fields in each progress report line.
-These first few fields, while helpful,
-are also usually one or more of obvious in their meaning,
-not relevant to our example,
-and repetitive of information which can
-be deduced from other fields.
-
 =for Marpa::R2::Display
 name: SLIF debug example progress report
 partial: 1
@@ -443,15 +425,18 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
-Prefixed to the dotted rule are three fields: "C<F0 @0-5 L1c1-16>".
+The last field of
+each progress report line shows,
+in fully expanded form,
+the dotted rule we were working on.
+Prefixed to the dotted rule are three fields.
+In the example just above they are "C<F0 @0-5 L1c1-16>".
 The "C<F0>" says that this is a completed or B<final> rule,
 and that it is rule number 0.
-The rule number is used in
-other tracing and debugging output,
-when displaying the whole rule would take too much space.
-In what follows we won't need the rule number.
+The rule number is a convenient way to refer to a rule
+and is used when displaying the whole rule would take too much space.
 
-The "C<@0-5>" describes the G1 location of the dotted rule in
+The "C<@0-5>" describes the G1 locations of the dotted rule in
 the parse.  In its simplest form, the location field is two
 G1 location numbers, separated by a hyphen.
 The first G1 location number is the origin, the place where Marpa
@@ -515,11 +500,6 @@ normalize-whitespace: 1
 =for Marpa::R2::Display::End
 
 Here the "C<P>" in the summary field means "predicted".
-As with much of the information in the summary field,
-this only repeats what is obvious from the full expansion
-of the dotted rule later in the line.
-But final (or completed) and predicted rules can be important
-and the initial C<"F"> and C<"P"> make these lines easy to spot.
 Notice that in the predicted rule,
 the origin is the same as the dot location.
 This will always be the case with predicted rules.
@@ -592,6 +572,7 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
+No R19 predicted at G1 location 0.
 Next we look through the the entire progress report, at all G1 locations,
 to see if R19 is predicted anywhere.
 No R19.  Not anywhere.
@@ -599,11 +580,14 @@ No R19.  Not anywhere.
 The LHS of R19 is C<E<lt>numeric expressionE<gt>>.
 We look in the progress report for dotted rules where 
 C<E<lt>numeric expressionE<gt>> is expected -- that is,
-dotted rules where C<E<lt>numeric expressionE<gt>> is not post-dot symbol.
+dotted rules where C<E<lt>numeric expressionE<gt>> is the post-dot symbol.
 There are none.
 
+Next we look for places in the progress reports where
+C<E<lt>numeric expressionE<gt>> occurs at all,
+whether post-dot or not.
 In the progress reports, 
-C<E<lt>numeric expressionE<gt>> occurs in only two instances.
+C<E<lt>numeric expressionE<gt>> occurs in only two dotted rule instances.
 Here they are:
 
 =for Marpa::R2::Display
@@ -628,11 +612,11 @@ In both cases these are predictions of a string operator, the operator we plan t
 use for converting numerics to strings.
 They are just predictions, predictions which go no further because there is no
 'C<string>' operator in our input.
-That's fine, but why no relevant occurrences of C<E<lt>numeric expressionE<gt>>?
+That's fine, but why no other, more relevant, occurrences of C<E<lt>numeric expressionE<gt>>?
 
 We look back at the grammar.
 Aside for the rule for the 'C<string>' operator,
-C<E<lt>numeric expressionE<gt>> on a RHS in two places.
+C<E<lt>numeric expressionE<gt>> occurs on a RHS in two places.
 One is in the prioritized rule which defines
 C<E<lt>numeric expressionE<gt>>.
 
@@ -648,13 +632,15 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
-This rule is fine -- it does not cause a prediction of a 
-C<E<lt>numeric expressionE<gt>> unless we already have a
-another prediction of a C<E<lt>numeric expressionE<gt>>,
-and it is not supposed to.
-That leaves one rule to look at, and it is one
-that was supposed to lead to the prediction of new
-C<E<lt>numeric expressionE<gt>> in our example.
+This rule 
+will never put 
+C<E<lt>numeric expressionE<gt>> into the Earley items
+unless there is
+a C<E<lt>numeric expressionE<gt>> already there.
+But that is not its job.
+This rule is just fine and does not need fixing.
+
+That leaves one rule to look at.
 
 =for Marpa::R2::Display
 name: SLIF debug example, part 1
@@ -665,11 +651,15 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
+This rule is one that
+should lead to the prediction of a new
+C<E<lt>numeric expressionE<gt>> in our example.
 And now we see our problem.
 This rule is never leading to the prediction of a new
 C<E<lt>numeric expressionE<gt>>,
 because there is no
-C<E<lt>numeric expressionE<gt>> on its RHS.
+C<E<lt>numeric expressionE<gt>> on its RHS,
+or for that matter anywhere else in it.
 On the RHS, where we wrote C<E<lt>expressionE<gt>>,
 we should have written
 C<E<lt>numeric expressionE<gt>>.
@@ -677,7 +667,7 @@ Change that and the problem is fixed.
 
 =head1 Complications
 
-We have concluded following our main example.
+We have finished our main example.
 This section discusses some aspects of debugging which did not
 arise in the example,
 and which might be unexpected.
@@ -689,7 +679,6 @@ L<C<show_progress>|Marpa::R2::Scanless::R/"show_progress">
 show only the nulled symbol.
 It does not show the symbols expansion into rules,
 or any of its nulled child symbols.
-
 This reduces clutter,
 and usually one does not notice the missing nulled rules and symbols.
 Not showing these
@@ -730,8 +719,8 @@ when tracing and debugging.
 
 =head2 Multiple instances of dotted rules
 
-While it does not happen in our main example for this document,
-a dotted rule can appear in the same Earley set
+It does not happen in our main example for this document,
+but a dotted rule can appear in the same Earley set
 more than once.
 In fact, this happens frequently.
 When it does happen, the lines in the progress report will look like these
@@ -764,30 +753,28 @@ normalize-whitespace: 1
 =for Marpa::R2::Display::End
 
 These are some of the progress report lines for
-the completed rule in a right recursion of length 13.
-The right recursion is indirect, from 
-C<E<lt>plain assignmentE<gt>> to
-C<E<lt>expression<gt>>, then to
-C<E<lt>assignmentE<gt>>,
-and then back again.
+an indirect right recursion, one that recurses from
+a C<E<lt>plain assignmentE<gt>> symbol to
+an  C<E<lt>expressionE<gt>> symbol, and then to
+an C<E<lt>assignmentE<gt>> symbol,
+before completing the recursion by returning to
+a C<E<lt>plain assignmentE<gt>>.
 
 In each of the three lines, notice that a new field appears second.
 This second field is variously
 "C<x13>", "C<x20>" or "C<x12>".
 These are counts,
-indicated the number of instances of that dotted rule at
-the dotted rule's G1 location.
-(In each of this lines, the G1 location is 41.)
+indicating the number of instances of that dotted rule at
+the dotted rule's G1 dot location.
+Every dotted rule instance will have the same G1 location,
+but the instances may have many different origins -- hundreds or even more.
+In each of the three report lines above, the G1 dot location is 41.
 
-Instances of a single rule may appear many times -- hundreds or even thousands.
-In grammars with right recursion,
-the number of instances
-is limited only by the
-length of the recursion.
-The maximum length of a recursion in Marpa is limited primarily by
-the available memory.
-(Marpa uses a technique invented by Joop Leo to memoize and optimize right recursions
-while parsing, but they are expanded when generating progress reports.)
+Note that when parsing, Marpa handles the long series of Earley items
+generated by right recursions very efficiently.
+It uses a technique invented by Joop Leo to memoize and eliminate them.
+When a progress report is requested at a G1 location, the Leo-memoization
+is unfolded, and the full list of Earley items is reported.
 
 Each instance may have its own span in the input string,
 and the input string range will include them all.
@@ -796,9 +783,10 @@ instances of a dotted rule at a single location,
 the origins in the location field are shown as a
 range, with the earliest separated from the most recent
 by a "C<...>".
-For example, in the above,
-the first three fields
-"C<F7 x12 @0...38-41 L1c1-L2c40>" say
+For example, above,
+where the first four fields were
+"C<F7 x12 @0...38-41 L1c1-L2c40>",
+that tells us
 that the dotted rule is rule 7, which has 12 instances.
 All 12 instances have their dot location at G1 location 41,
 but their origins are in the range from G1 location 0
@@ -810,7 +798,7 @@ The last field in
 input string positions visited by the
 the 12 instances start at line 1, column 1,
 and end at line 2, column 40.
-The input string range is the shortest range that includes
+The reported input string range will be the shortest range that includes
 all of the input string positions visited by any of the dotted rule instances.
 
 If there are only a few origins,
@@ -894,7 +882,7 @@ where I<N> is the number of RHS symbols
 successfully recognized at the G1 location of
 the progress report.
 
-Origin is G1 location (Earley set ID)
+Origin is the G1 location (Earley set ID)
 at which the rule application reported by
 the report item began.
 For a prediction, origin will always be
@@ -920,9 +908,11 @@ For most purposes,
 Marpa optimizes right recursions,
 so that they run in linear time.
 However, to create a progress report every potential right recursion must
-be fully unfolded, and the number of these grow quadratically with the length
+be fully unfolded, and at each G1 location the number of these grows linearly with the length
 of the recursion.
-For a lengthy right recursion, this can have a big effect.
+If you are creating progress reports for more than a limited number of G1 locations,
+this means processing that can be quadratic in the length of the recursion.
+When a right recursion is lengthy, the impact on speed can be be very serious.
 
 If lengthy right recursions are being expanded,
 this will be evident
