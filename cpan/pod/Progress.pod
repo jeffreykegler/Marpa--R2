@@ -19,7 +19,6 @@ Marpa::R2::Progress - Progress reports on your parse
 
 =head1 About this document
 
-B<This document is under construction.>
 This document describes
 the progress reports for Marpa's SLIF interface.
 These allow an application to know
@@ -125,8 +124,19 @@ The B<current location> (also called the B<dot location>)
 is the location in the input stream which corresponds to the
 dot position.
 
+In Marpa terms,
+G1 location is location in terms of the G1 subgrammar's Earley sets.
+When the term "location" is used in this document, it means G1 location unless
+otherwise indicated.
+
+A user often finds it much more convenient to think in terms of line and column position in
+the input stream, instead of G1 location.
+Every G1 location corresponds to a range of positions in the input stream.
+When the term "position" is used in this document, it means input stream position,
+unless otherwise indicated.
+
 Two noteworthy consequences
-follow from the way in which origin and current location are defined.
+follow from the way in which origin and current G1 location are defined.
 First,
 if a dotted rule is a prediction,
 then origin and current location will always be the same.
@@ -249,7 +259,7 @@ name: SLIF debug example, part 2
 partial: 1
 normalize-whitespace: 1
 
-    my $test_input = 'a = 8675309 + 42 * 711' ;
+    my $test_input = 'a = 8675309 + 42 * 711';
 
 =for Marpa::R2::Display::End
 
@@ -350,7 +360,7 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
-A note in passing: Marpa shows the string location of the tokens it accepts,
+A note in passing: Marpa shows the input string position of the tokens it accepts,
 discard and rejects.
 C<E<lt>whitespaceE<gt>> is supposed to be discarded
 and that was what happened at line 1, column 17.
@@ -373,7 +383,7 @@ The progress report that is usually of most interest is
 the one for the Earley set
 that you were working on when the error occurred.
 This is called the B<current location>.
-In our example the current location is location 5.
+In our example the current location is G1 location 5.
 By default,
 L<C<show_progress>|Marpa::R2::Scanless::R/"show_progress">
 prints out only the progress reports for the current location.
@@ -460,7 +470,7 @@ The current location is also just after line 1, column 16, and at G1 location 5,
 and this is no coincidence.
 Whenever we are displaying the progress report for a G1 location,
 all the progress report lines will have their dot location at
-that location.
+that G1 location.
 
 As an aside, notice that
 the left hand side symbol is C<:start>.
@@ -703,11 +713,11 @@ For that matter,
 an application does not ever have to visit any position in its input.
 
 How does Marpa deal with this when reporting input string ranges?
-Marpa always reports the minimum range that includes all the locations
+Marpa always reports the minimum range that includes all the input string positions
 visited in the dotted rule.
 The range is always reported in increasing numeric order,
-even when the location at
-the end of the range was visited before the string location
+even when the position at
+the end of the range was visited before the input string position
 at the beginning of the range.
 And, if necessary to include all visited input string positions, the range 
 may include input string positions which were not visited.
@@ -790,7 +800,7 @@ For example, in the above,
 the first three fields
 "C<F7 x12 @0...38-41 L1c1-L2c40>" say
 that the dotted rule is rule 7, which has 12 instances.
-A 12 instances have their dot location at G1 location 41,
+All 12 instances have their dot location at G1 location 41,
 but their origins are in the range from G1 location 0
 to G1 location 38.
 
@@ -807,7 +817,9 @@ If there are only a few origins,
 Marpa may explicitly list them all.
 In the follow example, there are only 2 instances
 of this rule, both with a dot location of 41.
-Their origins are a G1 locations 8 and 18.
+Their origins are at G1 locations 8 and 18.
+The range of input string positions is from line 1, column 17
+to line 2, column 40.
 
 =for Marpa::R2::Display
 name: SLIF Leo show_progress() example
@@ -847,12 +859,12 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
-Given the parse location (Earley set ID) as its argument,
+Given the G1 location (Earley set ID) as its argument,
 the C<progress()> recognizer method returns a reference
 to an array of "report items".
-The parse location may be negative.
+The G1 location may be given as a negative number.
 An argument of I<-X>
-will be interpreted as location I<N+X+1>, where I<N> is
+will be interpreted as G1 location I<N+X+1>, where I<N> is
 the latest Earley set.
 This means that an argument of -1 indicates the latest
 Earley set,
@@ -863,7 +875,7 @@ Each report item is a triple: an array of three elements.
 The three elements are, in order,
 rule ID, dot position, and origin.
 The data returned by the two displays above,
-as well as the data for the other parse locations
+as well as the data for the other G1 locations
 in our example,
 are shown L<below|"progress() outputs">.
 
@@ -879,14 +891,14 @@ and 0 for predictions.
 Where the report item is not for a completion or
 a prediction, dot position is I<N>,
 where I<N> is the number of RHS symbols
-successfully recognized at the parse location of
+successfully recognized at the G1 location of
 the progress report.
 
-Origin is parse location (Earley set ID)
+Origin is G1 location (Earley set ID)
 at which the rule application reported by
 the report item began.
 For a prediction, origin will always be
-the same as the location of the parse report.
+the same as the G1 location of the parse report.
 
 =head2 Progress reports and efficiency
 
@@ -922,7 +934,7 @@ Note that the efficiency consideration just mentioned
 for following right recursions
 is never an issue for left recursions.
 Left recursions only produce at most two report
-items per parse location
+items per G1 location
 and are extremely fast to process.
 It is also not an issue for
 Marpa's sequence rules, because sequence rules
@@ -990,7 +1002,7 @@ perltidy: '-dcsc -sil=0'
         } );
 
     my $test_input = 'a = 8675309 + 42 * 711' ;
-    eval { $slr->read( \$test_input ) };
+    my $eval_error = $EVAL_ERROR if not eval { $slr->read( \$test_input ); 1 };
 
     $progress_report = $slr->show_progress( 0, -1 );
 
@@ -1069,16 +1081,6 @@ remove-blank-last-line: 1
     Rejected lexeme L1c18: '*'; value="*"
 
 =for Marpa::R2::Display::End
-
-Note the use of the term "earleme".
-If you are using the default input model,
-you can assume that earleme means "location":
-the earleme
-and the location will always be exactly the same.
-Advanced users, using alternative input models,
-may set it up so that earleme and location are
-two different things,
-and in that case the distinction will matter.
 
 =head2 show_progress() output
 
@@ -1318,7 +1320,7 @@ The output is shown in L<Data::Dumper> format,
 with C<Data::Dumper::Indent> set to 0
 and C<Data::Dumper::Terse> set to 1.
 
-The C<Data::Dumper> output from C<progress()> at location 0:
+The C<Data::Dumper> output from C<progress()> at G1 location 0:
 
 =for Marpa::R2::Display
 name: SLIF progress() output at location 0
@@ -1329,7 +1331,7 @@ remove-blank-last-line: 1
 
 =for Marpa::R2::Display::End
 
-The C<Data::Dumper> output from C<progress()> at location 1:
+The C<Data::Dumper> output from C<progress()> at G1 location 1:
 
 =for Marpa::R2::Display
 name: SLIF progress() output at location 1

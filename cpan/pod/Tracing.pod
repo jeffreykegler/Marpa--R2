@@ -49,6 +49,19 @@ using incremental development,
 and the parse values will be especially helpful
 if your parse values are AST's.
 
+If you are trying to run diagnostics on a failed parse,
+it is useful to catch the exception using C<eval>:
+
+=for Marpa::R2::Display:
+name: SLIF debug example, part 2
+partial: 1
+normalize-whitespace: 1
+
+    my $eval_error = $EVAL_ERROR if not eval { $slr->read( \$test_input ); 1 };
+    $progress_report = $slr->show_progress( 0, -1 );
+
+=for Marpa::R2::Display::End
+
 =head2 Trace terminals
 
 Set the L<C<trace_terminals> recognizer named
