@@ -379,7 +379,7 @@ sub Marpa::R2::Scanless::G::set {
 } ## end sub Marpa::R2::Scanless::G::set
 
 sub Marpa::R2::Scanless::G::_hash_to_runtime {
-    my ( $self, $hashed_source ) = @_;
+    my ( $slg, $hashed_source ) = @_;
 
     my $g0_lexeme_by_name = $hashed_source->{is_lexeme};
     my @g0_lexeme_names   = keys %{$g0_lexeme_by_name};
@@ -389,7 +389,7 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
 
     my %lex_args = ();
     $lex_args{trace_file_handle} =
-        $self->[Marpa::R2::Inner::Scanless::G::TRACE_FILE_HANDLE] // \*STDERR;
+        $slg->[Marpa::R2::Inner::Scanless::G::TRACE_FILE_HANDLE] // \*STDERR;
     $lex_args{rules} = $hashed_source->{rules}->{G0};
     $lex_args{symbols} = $hashed_source->{symbols}->{G0};
     state $lex_target_symbol = '[:start_lex]';
@@ -399,7 +399,7 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
     $lex_grammar->precompute();
     my $lex_tracer = $lex_grammar->tracer();
     my $g0_thin    = $lex_tracer->grammar();
-    $self->[Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMAR] = $lex_grammar;
+    $slg->[Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMAR] = $lex_grammar;
     my $character_class_hash = $hashed_source->{character_classes};
     my @class_table          = ();
 
@@ -410,15 +410,15 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
             $character_class_hash->{$class_symbol}
             ];
     } ## end for my $class_symbol ( sort keys %{$character_class_hash...})
-    $self->[Marpa::R2::Inner::Scanless::G::CHARACTER_CLASS_TABLE] =
+    $slg->[Marpa::R2::Inner::Scanless::G::CHARACTER_CLASS_TABLE] =
         \@class_table;
 
     # The G1 grammar
-    my $g1_args = $self->[Marpa::R2::Inner::Scanless::G::G1_ARGS];
+    my $g1_args = $slg->[Marpa::R2::Inner::Scanless::G::G1_ARGS];
     $g1_args->{trace_file_handle} =
-        $self->[Marpa::R2::Inner::Scanless::G::TRACE_FILE_HANDLE] // \*STDERR;
+        $slg->[Marpa::R2::Inner::Scanless::G::TRACE_FILE_HANDLE] // \*STDERR;
     $g1_args->{bless_package} =
-        $self->[Marpa::R2::Inner::Scanless::G::BLESS_PACKAGE];
+        $slg->[Marpa::R2::Inner::Scanless::G::BLESS_PACKAGE];
     $g1_args->{rules}   = $hashed_source->{rules}->{G1};
     $g1_args->{symbols} = $hashed_source->{symbols}->{G1};
     state $g1_target_symbol = '[:start]';
@@ -429,12 +429,12 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
     my $g1_thin          = $g1_tracer->grammar();
 
     my $symbol_ids_by_event_name_and_type = {};
-    $self->[Marpa::R2::Inner::Scanless::G::SYMBOL_IDS_BY_EVENT_NAME_AND_TYPE]
+    $slg->[Marpa::R2::Inner::Scanless::G::SYMBOL_IDS_BY_EVENT_NAME_AND_TYPE]
         = $symbol_ids_by_event_name_and_type;
 
     my $completion_events_by_name = $hashed_source->{completion_events};
     my $completion_events_by_id =
-        $self->[Marpa::R2::Inner::Scanless::G::COMPLETION_EVENT_BY_ID] = [];
+        $slg->[Marpa::R2::Inner::Scanless::G::COMPLETION_EVENT_BY_ID] = [];
     for my $symbol_name ( keys %{$completion_events_by_name} ) {
         my $event_name = $completion_events_by_name->{$symbol_name};
         my $symbol_id  = $g1_tracer->symbol_by_name($symbol_name);
@@ -446,7 +446,7 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
 
         # Must be done before precomputation
         $g1_thin->symbol_is_completion_event_set( $symbol_id, 1 );
-        $self->[Marpa::R2::Inner::Scanless::G::COMPLETION_EVENT_BY_ID]
+        $slg->[Marpa::R2::Inner::Scanless::G::COMPLETION_EVENT_BY_ID]
             ->[$symbol_id] = $completion_events_by_name->{$symbol_name};
         push @{ $symbol_ids_by_event_name_and_type->{$event_name}
                 ->{completion} }, $symbol_id;
@@ -454,7 +454,7 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
 
     my $nulled_events_by_name = $hashed_source->{nulled_events};
     my $nulled_events_by_id =
-        $self->[Marpa::R2::Inner::Scanless::G::NULLED_EVENT_BY_ID] = [];
+        $slg->[Marpa::R2::Inner::Scanless::G::NULLED_EVENT_BY_ID] = [];
     for my $symbol_name ( keys %{$nulled_events_by_name} ) {
         my $event_name = $nulled_events_by_name->{$symbol_name};
         my $symbol_id  = $g1_tracer->symbol_by_name($symbol_name);
@@ -466,7 +466,7 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
 
         # Must be done before precomputation
         $g1_thin->symbol_is_nulled_event_set( $symbol_id, 1 );
-        $self->[Marpa::R2::Inner::Scanless::G::NULLED_EVENT_BY_ID]
+        $slg->[Marpa::R2::Inner::Scanless::G::NULLED_EVENT_BY_ID]
             ->[$symbol_id] = $nulled_events_by_name->{$symbol_name};
         push @{ $symbol_ids_by_event_name_and_type->{$event_name}->{nulled} },
             $symbol_id;
@@ -474,7 +474,7 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
 
     my $prediction_events_by_name = $hashed_source->{prediction_events};
     my $prediction_events_by_id =
-        $self->[Marpa::R2::Inner::Scanless::G::PREDICTION_EVENT_BY_ID] = [];
+        $slg->[Marpa::R2::Inner::Scanless::G::PREDICTION_EVENT_BY_ID] = [];
     for my $symbol_name ( keys %{$prediction_events_by_name} ) {
         my $event_name = $prediction_events_by_name->{$symbol_name};
         my $symbol_id  = $g1_tracer->symbol_by_name($symbol_name);
@@ -486,14 +486,14 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
 
         # Must be done before precomputation
         $g1_thin->symbol_is_prediction_event_set( $symbol_id, 1 );
-        $self->[Marpa::R2::Inner::Scanless::G::PREDICTION_EVENT_BY_ID]
+        $slg->[Marpa::R2::Inner::Scanless::G::PREDICTION_EVENT_BY_ID]
             ->[$symbol_id] = $prediction_events_by_name->{$symbol_name};
         push @{ $symbol_ids_by_event_name_and_type->{$event_name}
                 ->{prediction} }, $symbol_id;
     } ## end for my $symbol_name ( keys %{$prediction_events_by_name...})
 
     my $lexeme_events_by_id =
-        $self->[Marpa::R2::Inner::Scanless::G::LEXEME_EVENT_BY_ID] = [];
+        $slg->[Marpa::R2::Inner::Scanless::G::LEXEME_EVENT_BY_ID] = [];
 
     $thick_g1_grammar->precompute();
     my @g0_lexeme_to_g1_symbol;
@@ -501,7 +501,7 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
     $g0_lexeme_to_g1_symbol[$_] = -1 for 0 .. $g1_thin->highest_symbol_id();
     state $discard_symbol_name = '[:discard]';
     my $g0_discard_symbol_id =
-        $self->[Marpa::R2::Inner::Scanless::G::G0_DISCARD_SYMBOL_ID] =
+        $slg->[Marpa::R2::Inner::Scanless::G::G0_DISCARD_SYMBOL_ID] =
         $lex_tracer->symbol_by_name($discard_symbol_name) // -1;
 
     LEXEME_NAME: for my $lexeme_name (@g0_lexeme_names) {
@@ -539,7 +539,7 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
         } ## end if ( $g1_thin->symbol_is_terminal($symbol_id) and not...)
     } ## end SYMBOL_ID: for my $symbol_id ( 0 .. $g1_thin->highest_symbol_id(...))
 
-    my $thin_slg = $self->[Marpa::R2::Inner::Scanless::G::C] =
+    my $thin_slg = $slg->[Marpa::R2::Inner::Scanless::G::C] =
         Marpa::R2::Thin::SLG->new( $lex_tracer->grammar(),
         $g1_tracer->grammar() );
 
@@ -595,36 +595,56 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
     } ## end RULE_ID: for my $rule_id ( 0 .. $g0_thin->highest_rule_id() )
 
     $thin_slg->precompute();
-    $self->[Marpa::R2::Inner::Scanless::G::G0_RULE_TO_G1_LEXEME] =
+    $slg->[Marpa::R2::Inner::Scanless::G::G0_RULE_TO_G1_LEXEME] =
         \@g0_rule_to_g1_lexeme;
-    $self->[Marpa::R2::Inner::Scanless::G::THICK_G1_GRAMMAR] =
+    $slg->[Marpa::R2::Inner::Scanless::G::THICK_G1_GRAMMAR] =
         $thick_g1_grammar;
 
     return 1;
 
 } ## end sub Marpa::R2::Scanless::G::_hash_to_runtime
 
+sub thick_subgrammar_by_name {
+    my ( $slg, $subgrammar ) = @_;
+    $subgrammar //= 'G1';
+    return $slg->[Marpa::R2::Inner::Scanless::G::THICK_G1_GRAMMAR]
+        if $subgrammar eq 'G1';
+    return $slg->[Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMAR]
+        if $subgrammar eq 'G0';
+    Marpa::R2::exception(qq{Bad subgrammar in Marpa"$subgrammar"});
+} ## end sub thick_subgrammar_by_name
+
+sub Marpa::R2::Scanless::G::symbol_name {
+    my ( $slg, $symbol_id, $subgrammar ) = @_;
+    return thick_subgrammar_by_name($slg, $subgrammar)->tracer()
+        ->symbol_name($symbol_id);
+}
+
+sub Marpa::R2::Scanless::G::symbol_display_form {
+    my ( $slg, $symbol_id, $subgrammar ) = @_;
+    return thick_subgrammar_by_name( $slg, $subgrammar )
+        ->symbol_in_display_form($symbol_id);
+}
+
+sub Marpa::R2::Scanless::G::symbol_dsl_name {
+    my ( $slg, $symbol_id, $subgrammar ) = @_;
+    return thick_subgrammar_by_name( $slg, $subgrammar )
+        ->symbol_dsl_name($symbol_id);
+}
+
+sub Marpa::R2::Scanless::G::symbol_description {
+    my ( $slg, $symbol_id, $subgrammar ) = @_;
+    return thick_subgrammar_by_name($slg, $subgrammar)
+        ->symbol_description($symbol_id);
+}
+
 sub Marpa::R2::Scanless::G::show_rules {
-    my ( $self, $verbose, $subgrammar ) = @_;
+    my ( $slg, $verbose, $subgrammar ) = @_;
     my $text     = q{};
     $verbose    //= 0;
     $subgrammar //= 'G1';
 
-    my $thick_grammar;
-    SUBGRAMMAR_SET: {
-        if ( $subgrammar eq 'G0' ) {
-            $thick_grammar =
-                $self->[Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMAR];
-            last SUBGRAMMAR_SET;
-        }
-        if ( $subgrammar eq 'G1' ) {
-            $thick_grammar =
-                $self->[Marpa::R2::Inner::Scanless::G::THICK_G1_GRAMMAR];
-            last SUBGRAMMAR_SET;
-        }
-        Marpa::R2::exception(
-            q{Bad subgrammar in $slg->show_symbols(): "}, $subgrammar, q{"});
-    } ## end SUBGRAMMAR_SET:
+    my $thick_grammar = thick_subgrammar_by_name($slg, $subgrammar);
 
     my $rules     = $thick_grammar->[Marpa::R2::Internal::Grammar::RULES];
     my $grammar_c = $thick_grammar->[Marpa::R2::Internal::Grammar::C];
@@ -693,26 +713,12 @@ sub Marpa::R2::Scanless::G::show_rules {
 } ## end sub Marpa::R2::Scanless::G::show_rules
 
 sub Marpa::R2::Scanless::G::show_symbols {
-    my ( $self, $verbose, $subgrammar ) = @_;
+    my ( $slg, $verbose, $subgrammar ) = @_;
     my $text = q{};
     $verbose    //= 0;
     $subgrammar //= 'G1';
 
-    my $thick_grammar;
-    SUBGRAMMAR_SET: {
-        if ( $subgrammar eq 'G0' ) {
-            $thick_grammar =
-                $self->[Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMAR];
-            last SUBGRAMMAR_SET;
-        }
-        if ( $subgrammar eq 'G1' ) {
-            $thick_grammar =
-                $self->[Marpa::R2::Inner::Scanless::G::THICK_G1_GRAMMAR];
-            last SUBGRAMMAR_SET;
-        }
-        Marpa::R2::exception(
-            q{Bad subgrammar in $slg->show_symbols(): "}, $subgrammar, q{"});
-    } ## end SUBGRAMMAR_SET:
+    my $thick_grammar = thick_subgrammar_by_name($slg, $subgrammar);
 
     my $symbols   = $thick_grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
     my $grammar_c = $thick_grammar->[Marpa::R2::Internal::Grammar::C];
@@ -1751,14 +1757,24 @@ sub Marpa::R2::Scanless::G::rule {
         ->rule(@args);
 }
 
+sub Marpa::R2::Scanless::G::rule_ids {
+    my ($slg, $subgrammar) = @_;
+    return thick_subgrammar_by_name($slg, $subgrammar)->rule_ids();
+}
+
+sub Marpa::R2::Scanless::G::symbol_ids {
+    my ($slg, $subgrammar) = @_;
+    return thick_subgrammar_by_name($slg, $subgrammar)->symbol_ids();
+}
+
 sub Marpa::R2::Scanless::G::g1_rule_ids {
     my ($slg) = @_;
-    return $slg->[Marpa::R2::Inner::Scanless::G::THICK_G1_GRAMMAR]->rule_ids();
+    return $slg->rule_ids();
 }
 
 sub Marpa::R2::Scanless::G::g0_rule_ids {
     my ($slg) = @_;
-    return $slg->[Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMAR]->rule_ids();
+    return $slg->rule_ids('G0');
 }
 
 sub Marpa::R2::Scanless::G::g0_rule {

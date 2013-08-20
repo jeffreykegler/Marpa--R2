@@ -654,7 +654,16 @@ sub Marpa::R2::Grammar::symbol_dsl_name {
     my ( $grammar, $symbol_id ) = @_;
     my $symbols   = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
     my $symbol = $symbols->[$symbol_id];
-    return [Marpa::R2::Internal::Symbol::DSL_NAME];
+    return $symbol->[Marpa::R2::Internal::Symbol::DSL_NAME];
+}
+
+# Return DSL name of symbol
+# Does no checking
+sub Marpa::R2::Grammar::symbol_description {
+    my ( $grammar, $symbol_id ) = @_;
+    my $symbols   = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
+    my $symbol = $symbols->[$symbol_id];
+    return $symbol->[Marpa::R2::Internal::Symbol::DESCRIPTION];
 }
 
 # Return display form of symbol
@@ -795,13 +804,22 @@ sub Marpa::R2::Grammar::show_rules {
     return $text;
 } ## end sub Marpa::R2::Grammar::show_rules
 
-# This logic tests for gaps in the rule numbering.
+# This logic deals with gaps in the rule numbering.
 # Currently there are none, but Libmarpa does not
 # guarantee this.
 sub Marpa::R2::Grammar::rule_ids {
     my ($grammar) = @_;
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
     return 0 .. $grammar_c->highest_rule_id();
+} ## end sub Marpa::R2::Grammar::rule_ids
+
+# This logic deals with gaps in the symbol numbering.
+# Currently there are none, but Libmarpa does not
+# guarantee this.
+sub Marpa::R2::Grammar::symbol_ids {
+    my ($grammar) = @_;
+    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
+    return 0 .. $grammar_c->highest_symbol_id();
 } ## end sub Marpa::R2::Grammar::rule_ids
 
 sub Marpa::R2::Grammar::rule {
