@@ -233,7 +233,7 @@ name: SLG symbol_display_form() 2 arg synopsis
 Given a symbol ID, returns the "display form" of the symbol.
 This is the symbol in a form thought most suitable for display in messages, etc.
 The display form is always defined.
-The display form of a symbol is useable as a name -- it is not necessarily unique,
+The display form of a symbol is not useable as a name -- it is not necessarily unique,
 and is subject to change.
 
 The first argument is the symbol ID.
@@ -263,12 +263,16 @@ name: SLG symbol_dsl_form() 2 arg synopsis
 =for Marpa::R2::Display::End
 
 Given a symbol ID, returns the "DSL form" of the symbol.
-This is the name of the symbol as specified by the user in the DSL
-for the grammar, as close to that as conveniently possible.
-The display form of a symbol is not useable
-as a name -- it is not necessarily unique,
+This is the name of the symbol in a form similar
+to the way it specified by the user in the DSL.
+If the symbol has an explicit name,
+the symbol's DSL form is same as its explici name.
+The DSL form may or may not be defined if a symbol does not have
+an explicit name.
+The DSL form of a symbol is not intended for use as a symbol name
+-- it is not necessarily unique,
+is not always defined,
 and it is subject to change.
-The DSL form may not be defined if the symbol did not appear explicitly in the DSL.
 
 The first argument is the symbol ID.
 A second, optional, argument is the subgrammar.
@@ -317,6 +321,21 @@ name: SLG symbol_name() 2 arg synopsis
     $text .= "G0 symbol number: $symbol_id  name: $name\n";
 
 =for Marpa::R2::Display::End
+
+Given a symbol ID, returns the name of the symbol.
+For every symbol ID, this method's return value will be defined
+and will be unique to that symbol ID,
+so that it is suitable for use as a symbol name.
+If a symbol has an explicit name, the return value will be
+the symbol's explicit name.
+If there is no explicit name, it will be the an internal name.
+Internal names are subject to change.
+
+The first argument is the symbol ID.
+A second, optional, argument is the subgrammar.
+Currently there are G0 and G1 subgrammars.
+The default subgrammar is G1.
+Returns undefined if the symbol does not exist.
 
 =head1 Trace methods
 

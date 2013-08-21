@@ -115,9 +115,11 @@ as described below.
 Symbol names can be either "bare" or enclosed in angle brackets.
 Bare symbol names must consist entirely of Perl word characters
 (alphanumerics, plus the underscore).
+Symbol names are case-sensitive.
+
 The angle brackets, if used, serve to "quote"
 the symbol name,
-and will not be part of the symbol name.
+and will not be part of the explicit symbol name.
 
 If angle brackets are used, symbol names may also contain whitespace,
 as in
@@ -138,7 +140,7 @@ if necessary.
 Unlike the angle brackets,
 the whitespace in a bracketed symbol token
 B<does> become part of
-of the symbol name,
+of the explicit symbol name,
 but it does so in a "normalized" form.
 Leading and trailing whitespace in the name is discarded,
 and all other whitespace sequences are converted to a single ASCII
@@ -166,15 +168,20 @@ ignore: 1
 =for Marpa::R2::Display::End
 
 will all be regarded as the same symbol name.
-The normalized form of that symbol name
-is C<< <op comma> >>.
-The actual name of every symbol
-is its
-normalized form.
-Symbol names are often
+The explicit form of that symbol name
+is C<< <op comma> >>, except that, again, the
+angle brackets are for clarity,
+and are not part of the explicity name.
+
+Explicit, reserved and internal symbol names are often
 displayed between angle brackets,
 regardless of whether the symbol was originally
 specified in bracketed form.
+
+There are cases in which a SLIF symbol needs to be 
+referred to by name in Perl code.
+In this cases, it is the symbols explicit name
+that is used.
 
 =head2 Single quoted strings
 

@@ -870,9 +870,13 @@ are shown L<below|"progress() outputs">.
 The rule ID is the same number that Marpa uses
 to identify rules
 in tracing and debugging output.
-Given a rule ID, an application can find
+Given a rule ID, an application can expand it into
 its LHS and RHS symbols using
-L<the grammar's C<rule()> method|Marpa::R2::Scanless::G/"rule">.
+L<the SLIF grammar's C<rule_expand()> method|Marpa::R2::Scanless::G/"rule_expand()">.
+Given a symbol ID,
+its name and other information can be found using
+L<other SLIF grammar
+methods|Marpa::R2::Scanless::G/"Accessors">.
 
 Dot position is -1 for completions,
 and 0 for predictions.
