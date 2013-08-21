@@ -654,7 +654,7 @@ sub Marpa::R2::Grammar::symbol_dsl_form {
     my ( $grammar, $symbol_id ) = @_;
     my $symbols   = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
     my $symbol = $symbols->[$symbol_id];
-    return $symbol->[Marpa::R2::Internal::Symbol::DSL_NAME];
+    return $symbol->[Marpa::R2::Internal::Symbol::DSL_FORM];
 }
 
 # Return description of symbol
@@ -675,7 +675,7 @@ sub Marpa::R2::Grammar::symbol_in_display_form {
     return "<!No symbol with ID $symbol_id!>" if not defined $symbol;
     my $text = $symbol->[Marpa::R2::Internal::Symbol::DISPLAY_FORM];
     return $text if defined $text;
-    $text = $symbol->[Marpa::R2::Internal::Symbol::DSL_NAME];
+    $text = $symbol->[Marpa::R2::Internal::Symbol::DSL_FORM];
     return "<$text>" if defined $text;
     $text = $grammar->symbol_name($symbol_id);
     return "<$text>";
@@ -952,7 +952,7 @@ sub assign_symbol {
         }
         if ( $property eq 'dsl_name' ) {
             my $value = $options->{$property};
-            $symbol->[Marpa::R2::Internal::Symbol::DSL_NAME] = $value;
+            $symbol->[Marpa::R2::Internal::Symbol::DSL_FORM] = $value;
             next PROPERTY;
         }
         if ( $property eq 'legacy_name' ) {

@@ -766,7 +766,7 @@ sub Marpa::R2::Scanless::G::show_symbols {
 
         if ( $verbose >= 3 ) {
 
-            my $dsl_form = $symbol->[Marpa::R2::Internal::Symbol::DSL_NAME];
+            my $dsl_form = $symbol->[Marpa::R2::Internal::Symbol::DSL_FORM];
             if ($dsl_form) { $text .= qq{  SLIF name: $dsl_form\n}; }
 
         } ## end if ( $verbose >= 3 )

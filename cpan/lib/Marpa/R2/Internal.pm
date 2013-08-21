@@ -34,7 +34,7 @@ use constant ID => 0;
 use constant BLESSING => 1;
 use constant LEXEME_SEMANTICS => 2;
 use constant DISPLAY_FORM => 3;
-use constant DSL_NAME => 4;
+use constant DSL_FORM => 4;
 use constant LEGACY_NAME => 5;
 use constant DESCRIPTION => 6;
 
