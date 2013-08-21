@@ -648,7 +648,7 @@ sub Marpa::R2::Grammar::show_problems {
     return "Grammar has no problems\n";
 } ## end sub Marpa::R2::Grammar::show_problems
 
-# Return DSL name of symbol
+# Return DSL form of symbol
 # Does no checking
 sub Marpa::R2::Grammar::symbol_dsl_form {
     my ( $grammar, $symbol_id ) = @_;
