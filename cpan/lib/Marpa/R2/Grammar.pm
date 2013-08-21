@@ -950,7 +950,7 @@ sub assign_symbol {
             $symbol->[Marpa::R2::Internal::Symbol::DESCRIPTION] = $value;
             next PROPERTY;
         }
-        if ( $property eq 'dsl_name' ) {
+        if ( $property eq 'dsl_form' ) {
             my $value = $options->{$property};
             $symbol->[Marpa::R2::Internal::Symbol::DSL_FORM] = $value;
             next PROPERTY;

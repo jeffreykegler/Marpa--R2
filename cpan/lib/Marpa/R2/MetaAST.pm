@@ -1299,7 +1299,7 @@ sub char_class_to_symbol {
         $parse->symbol_names_set(
             $symbol_name,
             $Marpa::R2::Internal::SUBGRAMMAR,
-            {   dsl_name     => $char_class,
+            {   dsl_form     => $char_class,
                 display_form => $char_class,
                 description  => "Character class: $char_class"
             }
@@ -1330,7 +1330,7 @@ sub Marpa::R2::Internal::MetaAST::Parse::prioritized_symbol {
         $symbol_name,
         $Marpa::R2::Internal::SUBGRAMMAR,
         {   legacy_name  => $base_symbol,
-            dsl_name     => $base_symbol,
+            dsl_form     => $base_symbol,
             display_form => "<$base_symbol>",
             description  => "<$base_symbol> at priority $priority"
         }
@@ -1347,7 +1347,7 @@ sub Marpa::R2::Internal::MetaAST::Parse::internal_lexeme {
     my $lexical_lhs_index = $parse->{lexical_lhs_index}++;
     my $lexical_symbol       = "[Lex-$lexical_lhs_index]";
     my %names = (
-        dsl_name     => $dsl_form,
+        dsl_form     => $dsl_form,
         display_form => $dsl_form,
         description  => qq{Internal lexical symbol for "$dsl_form"}
     );
