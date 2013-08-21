@@ -796,7 +796,13 @@ sub do_something { push @TEST_ARRAY, $_[0] }
 
 @TEST_ARRAY = ();
 
+# Marpa::R2::Display
+# name: SLG symbol_ids() 2 arg synopsis
+
 do_something($_) for $slg->symbol_ids('G0');
+
+# Marpa::R2::Display::End
+
 Marpa::R2::Test::is(
     ( join "\n", @TEST_ARRAY ),
     ( join "\n", 0 .. 33 ),
@@ -805,7 +811,13 @@ Marpa::R2::Test::is(
 
 @TEST_ARRAY = ();
 
+# Marpa::R2::Display
+# name: SLG symbol_ids() synopsis
+
 do_something($_) for $slg->symbol_ids();
+
+# Marpa::R2::Display::End
+
 Marpa::R2::Test::is(
     ( join "\n", @TEST_ARRAY ),
     ( join "\n", 0 .. 24 ),
@@ -814,7 +826,13 @@ Marpa::R2::Test::is(
 
 @TEST_ARRAY = ();
 
+# Marpa::R2::Display
+# name: SLG rule_ids() synopsis
+
 do_something($_) for $slg->rule_ids();
+
+# Marpa::R2::Display::End
+
 Marpa::R2::Test::is(
     ( join "\n", @TEST_ARRAY, '' ),
     ( join "\n", 0 .. 19, '' ),
@@ -822,7 +840,14 @@ Marpa::R2::Test::is(
 );
 
 @TEST_ARRAY = ();
+
+# Marpa::R2::Display
+# name: SLG rule_ids() 2 arg synopsis
+
 do_something($_) for $slg->rule_ids('G0');
+
+# Marpa::R2::Display::End
+
 Marpa::R2::Test::is(
     ( join "\n", @TEST_ARRAY, ''),
     ( join "\n", 0 .. 27, '' ),
@@ -833,20 +858,40 @@ my $text;
 
 for my $symbol_id ( $slg->symbol_ids() ) {
 
+# Marpa::R2::Display
+# name: SLG symbol_name() synopsis
+
     my $name = $slg->symbol_name($symbol_id);
     $text .= "symbol number: $symbol_id  name: $name\n";
+
+# Marpa::R2::Display::End
+
+# Marpa::R2::Display
+# name: SLG symbol_description() synopsis
 
     my $description = $slg->symbol_description($symbol_id)
         // '[No description]';
     $text .= "symbol number: $symbol_id  description $description\n";
 
+# Marpa::R2::Display::End
+
+# Marpa::R2::Display
+# name: SLG symbol_display_form() synopsis
+
     my $display_form = $slg->symbol_display_form($symbol_id);
     $text
         .= "symbol number: $symbol_id  name in display form: $display_form\n";
 
+# Marpa::R2::Display::End
+
+# Marpa::R2::Display
+# name: SLG symbol_dsl_form() synopsis
+
     my $dsl_name = $slg->symbol_dsl_name($symbol_id)
         // '[No name in DSL form]';
     $text .= "symbol number: $symbol_id  DSL name: $dsl_name\n";
+
+# Marpa::R2::Display::End
 
 } ## end for my $symbol_id ( $slg->symbol_ids() )
 
@@ -957,20 +1002,40 @@ $text = '';
 
 for my $symbol_id ( $slg->symbol_ids('G0') ) {
 
+# Marpa::R2::Display
+# name: SLG symbol_name() synopsis
+
     my $name = $slg->symbol_name( $symbol_id, 'G0' );
     $text .= "G0 symbol number: $symbol_id  name: $name\n";
+
+# Marpa::R2::Display::End
+
+# Marpa::R2::Display
+# name: SLG symbol_description() synopsis
 
     my $description = $slg->symbol_description( $symbol_id, 'G0' )
         // '[No description]';
     $text .= "G0 symbol number: $symbol_id  description $description\n";
 
+# Marpa::R2::Display::End
+
+# Marpa::R2::Display
+# name: SLG symbol_display_form() synopsis
+
     my $display_form = $slg->symbol_display_form( $symbol_id, 'G0' );
     $text
         .= "G0 symbol number: $symbol_id  name in display form: $display_form\n";
 
+# Marpa::R2::Display::End
+
+# Marpa::R2::Display
+# name: SLG symbol_dsl_name() synopsis
+
     my $dsl_name = $slg->symbol_dsl_name( $symbol_id, 'G0' )
         // '[No name in DSL form]';
     $text .= "G0 symbol number: $symbol_id  DSL name: $dsl_name\n";
+
+# Marpa::R2::Display::End
 
 } ## end for my $symbol_id ( $slg->symbol_ids('G0') )
 
