@@ -15,7 +15,7 @@
 
 =head1 NAME
 
-Marpa::R2::Semantics::Infinite - How Marpa deals with infinite ambiguity
+Marpa::R2::NAIF::Semantics::Infinite - How the NAIF deals with infinite ambiguity
 
 =head1 Infinitely ambiguous grammars
 

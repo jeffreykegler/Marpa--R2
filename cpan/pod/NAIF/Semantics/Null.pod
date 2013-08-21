@@ -15,7 +15,7 @@
 
 =head1 NAME
 
-Marpa::R2::Semantics::Null - How Marpa evaluates null rules and symbols
+Marpa::R2::NAIF::Semantics::Null - How the NAIF evaluates null rules and symbols
 
 =head1 Overview
 
@@ -33,7 +33,7 @@ called a B<null parse>.
 
 When evaluating a parse, nulled rules and symbols are
 assigned values as described
-L<in the semantics document|Marpa::R2::Semantics>.
+L<in the semantics document|Marpa::R2::NAIF::Semantics>.
 This document provides additional detail on the assignment
 of values to nulled symbols.
 

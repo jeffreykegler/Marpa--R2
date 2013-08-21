@@ -15,7 +15,7 @@
 
 =head1 NAME
 
-Marpa::R2::Semantics::Order - How Marpa ranks ambiguous parses
+Marpa::R2::NAIF::Semantics::Order - How the NAIF ranks ambiguous parses
 
 =head1 Description
 

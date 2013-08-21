@@ -174,7 +174,7 @@ a single Perl closure often results in
 simpler and more
 natural code.
 See L<the section on sequences in the semantics
-document|Marpa::R2::Semantics/"Sequence Rule Nodes">.
+document|Marpa::R2::NAIF::NAIF::Semantics/"Sequence Rule Nodes">.
 
 =head3 Caveats
 
@@ -440,7 +440,7 @@ The per-parse-tree variable is passed
 to rule evaluation closures,
 as their first argument.
 Details are in
-L<the document on semantics|Marpa::R2::Semantics>.
+L<the document on semantics|Marpa::R2::NAIF::Semantics>.
 
 =head2 actions
 
@@ -466,7 +466,7 @@ The C<actions> package is treated only as a package,
 and not as a class.
 Any C<new> constructor in the C<actions> package is ignored.
 Details are given in
-L<the document on semantics|Marpa::R2::Semantics>.
+L<the document on semantics|Marpa::R2::NAIF::Semantics>.
 
 =head2 default_action
 
@@ -483,7 +483,7 @@ The C<default_action> named argument specifies
 the value action name
 for rules without an L<C<action> property|/"action">.
 Details are given in
-L<the document on semantics|Marpa::R2::Semantics>.
+L<the document on semantics|Marpa::R2::NAIF::Semantics>.
 
 =head2 default_empty_action
 
@@ -491,7 +491,7 @@ The C<default_empty_action> named argument specifies
 the action for empty (zero length) rules
 which have no action specified explicitly.
 Details are given in
-L<the document on semantics|Marpa::R2::Semantics>.
+L<the document on semantics|Marpa::R2::NAIF::Semantics>.
 
 =head2 inaccessible_ok
 
@@ -676,7 +676,7 @@ that property.
 The value of the C<action> rule property is a string which
 specifies the semantics for the rule.
 For details, see
-L<the document on semantics|Marpa::R2::Semantics>.
+L<the document on semantics|Marpa::R2::NAIF::Semantics>.
 
 The semantics of nulling symbols are dealt with on a per-symbol
 basis, rather than a per-rule basis.
@@ -707,7 +707,7 @@ work of distinguishing
 sequence separators from sequence items
 is pushed into the semantic actions.
 For details about the semantics, see
-L<the document on semantics|Marpa::R2::Semantics>.
+L<the document on semantics|Marpa::R2::NAIF::Semantics>.
 
 =head2 lhs
 
@@ -753,7 +753,7 @@ This is the default,
 and is acceptable to most applications.
 For details on using the
 C<null_ranking> named argument,
-see L<the document on parse order|Marpa::R2::Semantics::Order>.
+see L<the document on parse order|Marpa::R2::NAIF::Semantics::Order>.
 
 =head2 proper
 
@@ -778,7 +778,7 @@ will always be allowed.
 C<rank> is 0 by default.
 For details on using the
 C<rank> named argument,
-see L<the document on parse order|Marpa::R2::Semantics::Order>.
+see L<the document on parse order|Marpa::R2::NAIF::Semantics::Order>.
 
 =head2 rhs
 

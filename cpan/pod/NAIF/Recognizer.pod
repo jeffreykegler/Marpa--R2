@@ -444,7 +444,7 @@ the C<closures> named argument is to
 allow anonymous
 subroutines to be semantic actions.
 For more details, see L<the document on
-semantics|Marpa::R2::Semantics>.
+semantics|Marpa::R2::NAIF::Semantics>.
 
 =head2 end
 
@@ -520,7 +520,7 @@ in which parse results are returned by
 the C<value> method,
 and to exclude some parse results from the parse series.
 For details, see L<the document
-on parse order|Marpa::R2::Semantics::Order>.
+on parse order|Marpa::R2::NAIF::Semantics::Order>.
 
 =head2 too_many_earley_items
 

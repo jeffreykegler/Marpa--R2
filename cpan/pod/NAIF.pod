@@ -652,8 +652,8 @@ L<Marpa::R2::Vocabulary> is intended as a quick refresher in
 parsing terminology,
 emphasizing how the standard terms are used
 in the Marpa context.
-Marpa's standard semantics are fully described in the
-L<Marpa::R2::Semantics> document.
+the NAIF's standard semantics are fully described in the
+L<Marpa::R2::NAIF::Semantics> document.
 Techniques for tracing and for debugging your Marpa grammars
 are described in the
 L<Marpa::R2::NAIF::Tracing> document and the

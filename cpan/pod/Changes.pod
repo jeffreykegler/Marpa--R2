@@ -123,7 +123,7 @@ of the nulled rules.
 This requires rule evaluation closures to be aware
 they might be called for nulled rules.
 But it greatly simplifies the semantics conceptually.
-For more detail, see L<Marpa::R2::Semantics::Null>.
+For more detail, see L<Marpa::R2::NAIF::Semantics::Null>.
 
 =head2 Actions can now be constants
 
@@ -296,7 +296,7 @@ For those considering programming with them,
 and evaluating parses from grammars with cycles,
 the semantics of cycles is now more closely specified.
 For details of the new semantics,
-see L<Marpa::R2::Semantics::Infinite>.
+see L<Marpa::R2::NAIF::Semantics::Infinite>.
 
 =head2 The range of values allowed for ranks has been clarified
 

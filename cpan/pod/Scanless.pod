@@ -400,9 +400,8 @@ With the exception of lexeme values,
 the semantics of the G1 grammar are exactly the
 same as for ordinary grammars.
 Actions may be specified for G1 rules and will
-behave in
-L<the same way as they do for
-ordinary grammars|Marpa::R2::Semantics>.
+behave as described in
+L<Marpa::R2::Semantics>.
 
 =head1 Implementation
 

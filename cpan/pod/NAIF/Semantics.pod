@@ -15,7 +15,7 @@
 
 =head1 NAME
 
-Marpa::R2::Semantics - How Marpa evaluates parses
+Marpa::R2::NAIF::Semantics - How the NAIF evaluates parses
 
 =head1 Synopsis
 
@@ -237,7 +237,7 @@ To fix the issue,
 the user can add an empty rule.
 For more details,
 see L<the document on
-null semantics|Marpa::R2::Semantics::Null>.
+null semantics|Marpa::R2::NAIF::Semantics::Null>.
 
 =head1 Action context
 
@@ -349,7 +349,7 @@ or until the recognizer is destroyed.
 Most applications will find that the order in which
 Marpa executes its semantics "just works".
 L<A separate
-document|Marpa::R2::Semantics::Phases>
+document|Marpa::R2::NAIF::Semantics::Phases>
 describes that order
 in detail.
 The details can matter in some applications,
@@ -761,7 +761,7 @@ with no duplication.
 By default, the order is arbitrary, but
 it is also possible to control the order.
 Details are in L<the document
-on parse order|Marpa::R2::Semantics::Order>.
+on parse order|Marpa::R2::NAIF::Semantics::Order>.
 
 =head1 Infinite loops
 
@@ -781,7 +781,7 @@ the values from the grammar's
 cycle-free parses.
 For those who want to know more,
 the details are in a L<separate
-document|Marpa::R2::Semantics::Infinite>.
+document|Marpa::R2::NAIF::Semantics::Infinite>.
 
 =head1 Copyright and License
 

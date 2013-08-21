@@ -15,7 +15,7 @@
 
 =head1 NAME
 
-Marpa::R2::Semantics::Phases - Details of parse evaluation
+Marpa::R2::NAIF::Semantics::Phases - Details of NAIF parse evaluation
 
 =head1 Overview of the semantic phases
 
