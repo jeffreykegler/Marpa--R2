@@ -1,0 +1,279 @@
+# Copyright 2013 Jeffrey Kegler
+# This file is part of Marpa::R2.  Marpa::R2 is free software: you can
+# redistribute it and/or modify it under the terms of the GNU Lesser
+# General Public License as published by the Free Software Foundation,
+# either version 3 of the License, or (at your option) any later version.
+#
+# Marpa::R2 is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser
+# General Public License along with Marpa::R2.  If not, see
+# http://www.gnu.org/licenses/.
+
+=head1 NAME
+
+Marpa::R2::Semantics::Order - How Marpa ranks ambiguous parses
+
+=head1 Description
+
+Marpa allows ambiguous parses.
+While an unambiguous parse can produce at most one parse tree
+and one parse result,
+an ambiguous parse will produce a parse series.
+A parse series is a sequence of parse trees,
+each of which will have its own parse result.
+
+This document describes ways of controlling
+the order in which
+the L<NAIF recognizer's C<value> method|Marpa::R2::NAIF::Recognizer/"value">
+evaluates the parse
+trees of an ambiguous parse;
+It also describes ways to exclude selected parse trees
+from the parse series.
+
+Almost all 
+of what is said in this document
+also applies to the L<SLIF recognizer's C<value> method|Marpa::R2::Scanless::R/"value">.
+Certain named arguments which control the parse order are present in the NAIF,
+but are not present in the SLIF,
+and this accounts for the differences between the two.
+
+=head2 Duplicate parses are eliminated
+
+When evaluating the parse trees in a parse series,
+Marpa never evaluates the same parse tree twice.
+What this means probably matches the programmer
+intuition of what it should mean.
+Marpa considers two parse trees to be the same if they are
+B<semantic equivalents>.
+
+Two parse trees are semantic equivalents if
+and only if
+a recursive, top-down evaluation of each
+applies
+the same rules
+in the same order
+at the same earleme locations.
+This definition implies that,
+given any deterministic semantics,
+two parse trees which are
+semantic equivalents
+will always produce the same parse result --
+hence the term.
+When the Marpa documentation refers to duplicate
+parses, it will mean that the two
+are semantic equivalents, unless otherwise
+stated.
+
+=head2 Default parse order
+
+In this document, the term
+B<arbitrary parse order>
+is used to mean an
+arbitrary choice among
+the strict total orders of
+the equivalence classes
+that contain the semantically equivalent parse trees.
+This set of equivalence classes is finite.
+
+Traversal of the parse trees in
+arbitrary parse order
+will be always be well-behaved
+in the sense
+that no two parse trees will be semantic duplicates,
+and no unique (semantic non-duplicate)
+parse tree will be omitted in it,
+No other property of arbitrary parse order is guaranteed.
+For example, the order may
+change each time
+the parse series is traversed.
+
+By calling
+the recognizer's
+L<C<value>|Marpa::R2::NAIF::Recognizer/"value">
+method
+repeatedly,
+Marpa can produce all the parse results
+in the current parse series.
+The default is for the parse results to be returned
+in an B<arbitrary parse order>.
+This corresponds to the "C<none>" value of
+L<the recognizer's C<ranking_method>|Marpa::R2::NAIF::Recognizer/"ranking_method">
+named argument.
+
+=head2 Ranking methods
+
+Marpa recognizer objects have L<a C<ranking_method> named
+argument|Marpa::R2::NAIF::Recognizer/"ranking_method">,
+whose value can be the name of a ranking method,
+or "C<none>", indicating that the default ranking method is to
+be used.
+
+=head2 The C<rule> ranking method
+
+The rule method ranks alternative parses according to their rules.
+Every rule has a B<rule rank>.
+A rule's rank can be specified using the
+the C<rank> named
+argument for that rule.
+Rule ranks must be integers.
+If no rule rank is specified, the rule rank is 0.
+
+=head2 The C<high_rule_only> ranking method
+
+The C<high_rule_only> ranking method is similar to the
+C<rule> ranking method, except that, at every choice point,
+it discards all of the choices which
+have a rank lower than that of the highest ranked alternative.
+
+Since the C<high_rule_only> ranking method eliminates some
+parse trees, it can reduce or eliminate the ambiguity of a parse,
+but it does not necessarily do either.
+This is because, at each choice point among the parse trees,
+it is possible that several of the choices,
+or all of them, will have the same rank
+as the highest ranked alternative.
+
+=head2 Rule ranking
+
+A parse series is kept in a structure called a B<parse bocage>.
+The parse bocage is a tree-like structure, whose root node
+is the common root of all the parse trees of the parse series.
+In an unambiguous parse,
+there will be only one parse tree,
+and the parse bocage will be equivalent
+to that parse tree.
+In an ambiguous parse,
+there will be B<choice points> in the parse bocage.
+At the choice points, there will be two or more
+B<alternatives> -- choices which
+result in different parse trees.
+
+When ranking, the logic traverses the parse bocage,
+looking for choice points.
+From the point of view of the individual parse trees,
+this traversal will be top-down
+and left-to-right.
+At the choice points,
+the alternatives
+are ranked (in the C<rule> ranking method)
+or selected
+(in the C<high_rule_only> ranking method),
+by comparing them as follows:
+
+=over
+
+=item * B<Different ranks>:
+If the two alternatives have different rule ranks,
+they must also have different rules.
+The alternative with the higher rule rank
+will rank high.
+
+=item * B<Same Rule>:
+If the two alternatives have the same rule,
+they rank as described
+under L<"Null variant ranking">.
+
+=item * B<Same rank, different rules>:
+Two different rules can have the same rank.
+If the two alternatives are for
+different rules,
+but the two rules have the same rank,
+the relative order of the two alternatives is
+arbitrary.
+
+=back
+
+=head2 Null variant ranking
+
+Some rules have a RHS which contains
+B<proper nullables>:
+symbols
+which may be nulled, but which are not nulling
+symbols.
+(Nulling symbols are symbols which are B<always> nulled.)
+
+When a rule contains proper nullables, each application
+of that rule to a section of input creates a B<nulling variant> --
+that rule with a specific pattern of
+null and non-null symbols.
+In many cases, this creates an ambiguity -- different
+nulling variants could apply to the same substring of input.
+In ambiguous parsings of this kind,
+some applications may want to rank nulling variants that start
+with non-null symbols higher.
+Other applications may want to do the opposite --
+to rank nulling variants that start
+with null symbols higher.
+
+The
+L<C<null_ranking> named
+argument for rules|Marpa::R2::NAIF::Grammar/"null_ranking">
+specifies which nulling variants are ranked high or low.
+Ranking of nulling variants is done left-to-right,
+with the null preference as indicated by the C<null_ranking>
+named argument.
+Specifically, if the C<null_ranking> is "C<low>",
+then the closer a nulling variant
+places its B<visible> (non-null) symbols to the start of the rule,
+the higher it ranks.
+C<low> null ranking is the default.
+If the C<null_ranking> is "C<high>",
+then the closer a nulling variant
+places its B<null> symbols to the start of the rule,
+the higher it ranks.
+
+=head2 A general approach to sorting parses
+
+The most general way to sort Marpa parses is for the application
+to take control.
+The application can set up the Marpa semantic actions
+so that the parse result of every parse tree is a
+C<< <rank, true_value> >> duple.
+The duples can then be sorted by C<rank>.
+Once the resuls are sorted,
+the C<rank> element of the duple can be discarded.
+(Those familiar with the Schwartzian transform
+may note a resemblance.
+In Perl,
+duples can be implemented as references to arrays of 2 elements.)
+
+The user needs to be careful.
+In theory, ambiguity can cause an exponential explosion in the number of results.
+In practice, ambiguity tends to get out of hand very easily.
+Producing and sorting all the parses can take a very
+long time.
+
+=head1 Copyright and License
+
+=for Marpa::R2::Display
+ignore: 1
+
+  Copyright 2013 Jeffrey Kegler
+  This file is part of Marpa::R2.  Marpa::R2 is free software: you can
+  redistribute it and/or modify it under the terms of the GNU Lesser
+  General Public License as published by the Free Software Foundation,
+  either version 3 of the License, or (at your option) any later version.
+
+  Marpa::R2 is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser
+  General Public License along with Marpa::R2.  If not, see
+  http://www.gnu.org/licenses/.
+
+=for Marpa::R2::Display::End
+
+=cut
+
+# Local Variables:
+#   mode: cperl
+#   cperl-indent-level: 4
+#   fill-column: 100
+# End:
+# vim: expandtab shiftwidth=4:

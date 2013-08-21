@@ -1,0 +1,164 @@
+# Copyright 2013 Jeffrey Kegler
+# This file is part of Marpa::R2.  Marpa::R2 is free software: you can
+# redistribute it and/or modify it under the terms of the GNU Lesser
+# General Public License as published by the Free Software Foundation,
+# either version 3 of the License, or (at your option) any later version.
+#
+# Marpa::R2 is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser
+# General Public License along with Marpa::R2.  If not, see
+# http://www.gnu.org/licenses/.
+
+=head1 NAME
+
+Marpa::R2::Semantics::Phases - Details of parse evaluation
+
+=head1 Overview of the semantic phases
+
+Most users will not need to read this document.
+Most applications will find that the order in which
+Marpa executes its semantics "just works".
+This document describes that order in detail.
+These details can matter in some applications,
+for example, those which exploit side effects.
+And some readers may also find this background material
+to be helpful.
+
+An advanced document,
+this is written on the assumption that the more low-level NAIF interface
+is in use.
+The SLIF uses the same code as the NAIF for evaluation
+and works in the same way,
+except that it hides even more of these details from the user.
+
+=head1 Parse trees, parse results and parse series
+
+As a reminder,
+when the semantics are applied to a parse tree,
+they produce a value called a B<parse result>.
+Because Marpa allows ambiguous parsing,
+each parse can produce a B<parse series> --
+a series of zero or more parse trees,
+each with its own parse result.
+The first call to the
+L<the recognizer's C<value>
+method|Marpa::R2::NAIF::Recognizer/"value">
+after the recognizer is created is the
+start of the first parse series.
+The first parse series continues until there is
+a call to the
+L<the C<reset_evaluation>
+method|Marpa::R2::NAIF::Recognizer/"reset_evaluation">
+or until the recognizer is destroyed.
+Usually, an application is only interested in a single
+parse series.
+
+When the
+L<C<reset_evaluation>|Marpa::R2::NAIF::Recognizer/"reset_evaluation">
+method
+is called
+for a recognizer, it begins a new parse series.
+The new parse series continues until
+there is another
+call to the
+L<the C<reset_evaluation>
+method|Marpa::R2::NAIF::Recognizer/"reset_evaluation">,
+or until the recognizer is destroyed.
+
+=head1 Summary of the phases
+
+While processing a parse series, we have:
+
+=over
+
+=item * A Series Setup Phase, which occurs during
+the first call of the recognizer's C<value> method
+for that series.
+It is followed by
+
+=item * the processing of zero or more parse trees.
+
+=back
+
+While processing a parse tree, we have:
+
+=over
+
+=item * A Tree Setup Phase, which occurs during
+the call of the recognizer's C<value> method
+for that parse tree.
+It is followed by
+
+=item * a Tree Traveral Phase.
+
+=back
+
+B<Node Evaluation Time>
+is the Tree Traversal Phase, as seen from the point of view of
+each rule node.  It is not a separate phase.
+
+=head1 Series Setup Phase
+
+During the Series Setup Phase
+all value action names are resolved to
+value actions --
+constants
+or rule evaluation closures.
+The rule evaluation closures are never called in the Series Setup Phase.
+They will be called later,
+in the Tree Traversal Phase.
+Also, during the Series Setup Phase,
+the logic which
+ranks parse trees is executed.
+
+=head1 Tree Setup Phase
+
+In the Tree Setup Phase,
+the per-parse-tree variable is created.
+If a constructor was found for the C<action_object>,
+it is run at this point, and the per-parse-tree variable is
+its return value.
+Exactly one Tree Setup Phase occurs
+for each parse tree.
+
+=head1 Tree Traversal Phase
+
+During the Tree Traversal Phase,
+the rule evaluation closures are called.
+Node Evaluation Time is the Tree Traversal Phase,
+as seen from the point of view of the individual nodes of the parse tree.
+
+=head1 Copyright and License
+
+=for Marpa::R2::Display
+ignore: 1
+
+  Copyright 2013 Jeffrey Kegler
+  This file is part of Marpa::R2.  Marpa::R2 is free software: you can
+  redistribute it and/or modify it under the terms of the GNU Lesser
+  General Public License as published by the Free Software Foundation,
+  either version 3 of the License, or (at your option) any later version.
+
+  Marpa::R2 is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser
+  General Public License along with Marpa::R2.  If not, see
+  http://www.gnu.org/licenses/.
+
+=for Marpa::R2::Display::End
+
+=cut
+
+# Local Variables:
+#   mode: cperl
+#   cperl-indent-level: 4
+#   fill-column: 100
+# End:
+# vim: expandtab shiftwidth=4:

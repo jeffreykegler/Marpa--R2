@@ -1,0 +1,264 @@
+# Copyright 2013 Jeffrey Kegler
+# This file is part of Marpa::R2.  Marpa::R2 is free software: you can
+# redistribute it and/or modify it under the terms of the GNU Lesser
+# General Public License as published by the Free Software Foundation,
+# either version 3 of the License, or (at your option) any later version.
+#
+# Marpa::R2 is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser
+# General Public License along with Marpa::R2.  If not, see
+# http://www.gnu.org/licenses/.
+
+=head1 NAME
+
+Marpa::R2::Semantics::Null - How Marpa evaluates null rules and symbols
+
+=head1 Overview
+
+In Marpa parses, rules and  symbols can be nulled --
+in other words they can derive the zero-length, or null, string.
+Which symbols can be, or are, nulled, depends on the grammar
+and the input.
+When a symbol or rule is not nulled,
+the symbol is said to be B<visible>.
+
+Even the start symbol can be nulled,
+in which case the entire parse derives the null string.
+A parse in which the start symbol is nulled is
+called a B<null parse>.
+
+When evaluating a parse, nulled rules and symbols are
+assigned values as described
+L<in the semantics document|Marpa::R2::Semantics>.
+This document provides additional detail on the assignment
+of values to nulled symbols.
+
+=head1 Description
+
+=head2 Null values come from rules
+
+All null values for symbols come from rules with that symbol
+on their LHS.
+For a symbol to be nulled, it must be on the LHS of at least one
+nullable rule.
+The action of one of these nullable rules will be the action for
+the nulled symbol.
+
+If the action is a constant, then that constant is the value
+of the nulled symbol.
+If the action is a rule evaluation closure,
+then that closure is called with no child arguments,
+and the closure's result is the value of the nulled symbol.
+
+It may be that more than one nullable rule has that symbol on
+its LHS, and and that
+these rules have different action names.
+In that case, the action for the empty rule with that LHS
+is the one which
+applies.
+It is a fatal error if the nullable rules for a LHS symbol
+have different action names, and there is no empty rule for that LHS
+symbol.
+A simple way to fix this problem is create such an empty rule.
+
+=head2 Null subtrees
+
+A null subtree is a subtree all of whose symbols and rules are nulled.
+Marpa prunes
+all null subtrees back to their topmost nulled symbol.
+
+The "lost" semantics of the non-topmost symbols and rules
+of null subtrees is usually not missed.
+Nulled subtrees cannot contain input,
+and therefore do not contain token symbols.
+So no token values are lost when
+nulled subtrees are pruned.
+As bushy as a null subtree might be,
+all of its symbols and rules are nulled.
+
+Since nulled symbols and rules correspond to zero-length strings,
+so we are literally dealing here with
+the "semantics of nothing".
+In theory the semantics of nothing can be arbitrarily complex.
+In practice it should be possible to keep them simple.
+
+=head1 Example
+
+As already stated,
+Marpa prunes every null subtree back to its topmost
+null symbol.
+Here is an example:
+
+=for Marpa::R2::Display
+name: Null Value Example
+perltidy: '-dcsc -sil=0'
+
+    sub do_L {
+        shift;
+        return 'L(' . ( join q{;}, map { $_ // '[ERROR!]' } @_ ) . ')';
+    }
+
+    sub do_R {
+        return 'R(): I will never be called';
+    }
+
+    sub do_S {
+        shift;
+        return 'S(' . ( join q{;}, map { $_ // '[ERROR!]' } @_ ) . ')';
+    }
+
+    sub do_X { return 'X(' . $_[1] . ')'; }
+    sub do_Y { return 'Y(' . $_[1] . ')'; }
+
+    ## no critic (Variables::ProhibitPackageVars)
+    our $null_A = 'null A';
+    our $null_B = 'null B';
+    our $null_L = 'null L';
+    our $null_R = 'null R';
+    our $null_X = 'null X';
+    our $null_Y = 'null Y';
+    ## use critic
+
+    my $grammar = Marpa::R2::Grammar->new(
+        {   start   => 'S',
+            actions => 'main',
+            rules   => [
+                [ 'S', [qw/L R/],   'do_S' ],
+                [ 'L', [qw/A B X/], 'do_L' ],
+                [ 'L', [], 'null_L' ],
+                [ 'R', [qw/A B Y/], 'do_R' ],
+                [ 'R', [], 'null_R' ],
+                [ 'A', [], 'null_A' ],
+                [ 'B', [], 'null_B' ],
+                [ 'X', [], 'null_X' ],
+                [ 'X', [qw/x/], 'do_X' ],
+                [ 'Y', [], 'null_Y' ],
+                [ 'Y', [qw/y/], 'do_Y' ],
+            ],
+        }
+    );
+
+    $grammar->precompute();
+
+    my $recce = Marpa::R2::Recognizer->new( { grammar => $grammar } );
+
+    $recce->read( 'x', 'x' );
+
+=for Marpa::R2::Display::End
+
+If we write the unpruned parse tree
+in pre-order, depth-first, indenting children
+below their parents, we get something like this:
+
+=for Marpa::R2::Display
+ignore: 1
+
+        0: Visible Rule: S := L R
+             1: Visible Rule L := A B X
+                 1.1: Nulled Symbol A
+                 1.2: Nulled Symbol B
+                 1.3: Token, Value is 'x'
+             2: Nulled Rule, Rule R := A B Y
+                 2.1: Nulled Symbol A
+                 2.2: Nulled Symbol B
+                 2.3: Nulled Symbol Y
+
+=for Marpa::R2::Display::End
+
+In this example, five symbols and a rule are nulled.
+The rule and three of the symbols are in a single subtree: 2, 2.1, 2.2 and 2.3.
+Marpa prunes every null subtree back to its topmost symbol,
+which in this case is the LHS of the rule numbered 2.
+
+The pruned tree looks like this
+
+=for Marpa::R2::Display
+ignore: 1
+
+        0: Visible Rule: S := L R
+             1: Visible Rule L := A B X
+                 1.1: Nulled Symbol A
+                 1.2: Nulled Symbol B
+                 1.3: Token, Value is 'x'
+             2: LHS of Nulled Rule, Symbol R
+
+=for Marpa::R2::Display::End
+
+
+Here is the output:
+
+=for Marpa::R2::Display
+name: Null Value Example Output
+normalize-whitespace: 1
+
+    S(L(null A;null B;X(x));null R)
+
+=for Marpa::R2::Display::End
+
+In the output we see
+
+=over
+
+=item * The null value for symbol 1.1: "C<null A>".
+This comes from the empty rule for C<A>.
+
+=item * The null value for symbol 1.2: "C<null B>".
+This comes from the empty rule for C<B>.
+
+=item * The token value for symbol 1.3: "C<x>".
+
+=item * An application of the semantic Perl closure for the rule
+C<L := A B X>.
+
+=item * The null value for rule 2: "C<null R>".
+This comes from the empty rule for C<R>.
+
+=item * An application of the semantic Perl closure for the rule
+C<S := L R>
+
+=back
+
+We B<do not> see any output
+for symbols
+2.1 (C<A>),
+2.2 (C<B>),
+or 2.3 (C<Y>)
+because they were not topmost
+in the pruned subtree.
+We B<do not> see an application of the rule evaluation closure for rule C<R := A B Y>,
+because there is an empty rule for C<R>, and that takes priority.
+
+=head1 Copyright and License
+
+=for Marpa::R2::Display
+ignore: 1
+
+  Copyright 2013 Jeffrey Kegler
+  This file is part of Marpa::R2.  Marpa::R2 is free software: you can
+  redistribute it and/or modify it under the terms of the GNU Lesser
+  General Public License as published by the Free Software Foundation,
+  either version 3 of the License, or (at your option) any later version.
+
+  Marpa::R2 is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser
+  General Public License along with Marpa::R2.  If not, see
+  http://www.gnu.org/licenses/.
+
+=for Marpa::R2::Display::End
+
+=cut
+
+# Local Variables:
+#   mode: cperl
+#   cperl-indent-level: 4
+#   fill-column: 100
+# End:
+# vim: expandtab shiftwidth=4:
