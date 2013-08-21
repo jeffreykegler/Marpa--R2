@@ -614,6 +614,12 @@ sub thick_subgrammar_by_name {
     Marpa::R2::exception(qq{Bad subgrammar in Marpa"$subgrammar"});
 } ## end sub thick_subgrammar_by_name
 
+sub Marpa::R2::Scanless::G::rule_expand {
+    my ( $slg, $rule_id, $subgrammar ) = @_;
+    return thick_subgrammar_by_name($slg, $subgrammar)->tracer()
+        ->rule_expand($rule_id);
+}
+
 sub Marpa::R2::Scanless::G::symbol_name {
     my ( $slg, $symbol_id, $subgrammar ) = @_;
     return thick_subgrammar_by_name($slg, $subgrammar)->tracer()

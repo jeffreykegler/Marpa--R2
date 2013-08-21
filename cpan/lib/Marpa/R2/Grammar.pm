@@ -822,23 +822,13 @@ sub Marpa::R2::Grammar::symbol_ids {
     return 0 .. $grammar_c->highest_symbol_id();
 } ## end sub Marpa::R2::Grammar::rule_ids
 
-sub Marpa::R2::Grammar::rule_expand {
-    my ( $grammar, $rule_id ) = @_;
-    my $grammar_c   = $grammar->[Marpa::R2::Internal::Grammar::C];
-    my $rule_length = $grammar_c->rule_length($rule_id);
-    return if not defined $rule_length;
-    my @symbol_ids = ( $grammar_c->rule_lhs($rule_id) );
-    push @symbol_ids,
-        map { $grammar_c->rule_rhs( $rule_id, $_ ) }
-        ( 0 .. $rule_length - 1 );
-    return @symbol_ids;
-}
-
 sub Marpa::R2::Grammar::rule {
     my ( $grammar, $rule_id ) = @_;
     my $symbols     = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
+    my $tracer    = $grammar->[Marpa::R2::Internal::Grammar::TRACER];
     my @symbol_names = ();
-    SYMBOL_ID: for my $symbol_id ($grammar->rule_expand($rule_id)) {
+
+    SYMBOL_ID: for my $symbol_id ($tracer->rule_expand($rule_id)) {
         ## The name of the symbols, before the BNF rewrites
         my $name =
             $symbols->[$symbol_id]->[Marpa::R2::Internal::Symbol::LEGACY_NAME]

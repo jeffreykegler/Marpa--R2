@@ -124,25 +124,222 @@ Currently, the only argument that may be changed in C<trace_file_handle>.
 
 =head1 Accessors
 
-=head2 g1_rule_ids()
+=head2 rule_expand()
 
 =for Marpa::R2::Display
-name: Scanless rule() synopsis
-normalize-whitespace: 1
+name: SLG rule_expand() synopsis
 
-    my @g1_rule_ids = $slg->g1_rule_ids();
-    for my $g1_rule_id (@g1_rule_ids) {
-        $g1_rules_description .= "$g1_rule_id "
-            . ( join q{ }, map {"<$_>"} $slg->rule($g1_rule_id) ) . "\n";
-    }
+    my ($lhs_id, @rhs_ids) = $slg->rule_expand($rule_id);
+    $text .= "Rule #$rule_id: $lhs_id ::= " . (join q{ }, @rhs_ids) . "\n";
 
 =for Marpa::R2::Display::End
 
-Returns a list of the G1 rule ID's.
-The symbols for these can be queried using the 
-L<the SLIF grammar's rule() method|"rule()">,
+=for Marpa::R2::Display
+name: SLG rule_expand() 2 args synopsis
+
+    my ($lhs_id, @rhs_ids) = $slg->rule_expand($rule_id, 'G0');
+    $text .= "G0 Rule #$rule_id: $lhs_id ::= " . (join q{ }, @rhs_ids) . "\n";
+
+=for Marpa::R2::Display::End
+
+=head2 rule_ids()
+
+=for Marpa::R2::Display
+name: SLG rule_ids() synopsis
+normalize-whitespace: 1
+
+    do_something($_) for $slg->rule_ids();
+
+=for Marpa::R2::Display::End
+
+=for Marpa::R2::Display
+name: SLG rule_ids() 2 arg synopsis
+normalize-whitespace: 1
+
+    do_something($_) for $slg->rule_ids('G0');
+
+=for Marpa::R2::Display::End
+
+=head2 symbol_description()
+
+=for Marpa::R2::Display
+name: SLG symbol_description() synopsis
+
+    my $description = $slg->symbol_description($symbol_id)
+        // '[No description]';
+    $text .= "symbol number: $symbol_id  description $description\n";
+
+=for Marpa::R2::Display::End
+
+=for Marpa::R2::Display
+name: SLG symbol_description() 2 arg synopsis
+
+    my $description = $slg->symbol_description( $symbol_id, 'G0' )
+        // '[No description]';
+    $text .= "G0 symbol number: $symbol_id  description $description\n";
+
+=for Marpa::R2::Display::End
+
+=head2 symbol_display_form()
+
+=for Marpa::R2::Display
+name: SLG symbol_display_form() synopsis
+
+    my $display_form = $slg->symbol_display_form($symbol_id);
+    $text
+        .= "symbol number: $symbol_id  name in display form: $display_form\n";
+
+=for Marpa::R2::Display::End
+
+=for Marpa::R2::Display
+name: SLG symbol_display_form() 2 arg synopsis
+
+    my $display_form = $slg->symbol_display_form( $symbol_id, 'G0' );
+    $text
+        .= "G0 symbol number: $symbol_id  name in display form: $display_form\n";
+
+=for Marpa::R2::Display::End
+
+=head2 symbol_dsl_form()
+
+=for Marpa::R2::Display
+name: SLG symbol_dsl_form() synopsis
+
+    my $dsl_name = $slg->symbol_dsl_name($symbol_id)
+        // '[No name in DSL form]';
+    $text .= "symbol number: $symbol_id  DSL name: $dsl_name\n";
+
+=for Marpa::R2::Display::End
+
+=for Marpa::R2::Display
+name: SLG symbol_dsl_name() 2 arg synopsis
+
+    my $dsl_name = $slg->symbol_dsl_name( $symbol_id, 'G0' )
+        // '[No name in DSL form]';
+    $text .= "G0 symbol number: $symbol_id  DSL name: $dsl_name\n";
+
+=for Marpa::R2::Display::End
+
+=head2 symbol_ids()
+
+=for Marpa::R2::Display
+name: SLG symbol_ids() synopsis
+normalize-whitespace: 1
+
+    do_something($_) for $slg->symbol_ids();
+
+=for Marpa::R2::Display::End
+
+=for Marpa::R2::Display
+name: SLG symbol_ids() 2 arg synopsis
+normalize-whitespace: 1
+
+    do_something($_) for $slg->symbol_ids('G0');
+
+=for Marpa::R2::Display::End
+
+=head2 symbol_name()
+
+=for Marpa::R2::Display
+name: SLG symbol_name() synopsis
+
+    my $name = $slg->symbol_name($symbol_id);
+    $text .= "symbol number: $symbol_id  name: $name\n";
+
+=for Marpa::R2::Display::End
+
+=for Marpa::R2::Display
+name: SLG symbol_name() 2 arg synopsis
+
+    my $name = $slg->symbol_name( $symbol_id, 'G0' );
+    $text .= "G0 symbol number: $symbol_id  name: $name\n";
+
+=for Marpa::R2::Display::End
 
 =head1 Trace methods
+
+=head2 show_rules()
+
+=for Marpa::R2::Display
+name: SLR show_rules() synopsis
+partial: 1
+normalize-whitespace: 1
+
+    my $show_rules_output = $slg->show_rules();
+
+=for Marpa::R2::Display::End
+
+=for Marpa::R2::Display
+name: SLR show_rules() synopsis with 2 args
+partial: 1
+normalize-whitespace: 1
+
+    $show_rules_output .= $slg->show_rules(3, 'G0');
+
+=for Marpa::R2::Display::End
+
+The C<show_rules()> method returns a descripton of
+the rules for a subgrammar, by default G1.
+It is useful for understanding the rules as they
+appear in trace and debugging outputs.
+To allow for improvements in Marpa::R2,
+the output of C<show_rules()> is subject to change.
+
+The first optional argument can be a numeric verbosity level.
+The default verbosity is 1, which is adequate for
+most purposes.
+A verbosity of 2 prints additional information useful
+for those new to SLIF tracing and debugging.
+A verbosity of 3 prints additional information for
+experts.
+
+The second, optional, argument is the name of a subgrammar.
+Currently there are G0 and G1 subgrammars.
+
+=head2 show_symbols()
+
+=for Marpa::R2::Display
+name: SLIF show_symbols() synopsis
+partial: 1
+normalize-whitespace: 1
+
+    $show_symbols_output .= $slg->show_symbols(3);
+
+=for Marpa::R2::Display::End
+
+=for Marpa::R2::Display
+name: SLIF show_symbols() synopsis
+partial: 1
+normalize-whitespace: 1
+
+    $show_symbols_output .= $slg->show_symbols(3, 'G0');
+
+=for Marpa::R2::Display::End
+
+The C<show_symbols()> method returns a descripton of
+the symbols for a subgrammar,
+by default G1.
+It is useful for understanding the symbols as they
+appear in trace and debugging outputs.
+To allow for improvements in Marpa::R2,
+the output of C<show_symbols()> is subject to change.
+
+The first argument can be a numeric verbosity level.
+The default verbosity is 1, which is adequate for
+most purposes.
+A verbosity of 2 prints additional information useful
+for those new to SLIF tracing and debugging.
+A verbosity of 3 prints additional information for
+experts.
+
+The second, optional, argument is the name of a subgrammar.
+Currently there are G0 and G1 subgrammars.
+
+=head1 Discouraged methods
+
+Discouraged methods are those that
+continue to be supported, but whose use is discouraged for one
+reason or another.
 
 =head2 g0_rule()
 
@@ -188,90 +385,23 @@ Returns a list of the G0 rule ID's.
 The symbols for these can be queried using the 
 L<the SLIF grammar's g0_rule() method|"g0_rule()">,
 
-=head2 show_rules()
+=head2 g1_rule_ids()
 
 =for Marpa::R2::Display
-name: SLR show_rules() synopsis
-partial: 1
+name: Scanless rule() synopsis
 normalize-whitespace: 1
 
-    my $show_rules_output = $slg->show_rules();
+    my @g1_rule_ids = $slg->g1_rule_ids();
+    for my $g1_rule_id (@g1_rule_ids) {
+        $g1_rules_description .= "$g1_rule_id "
+            . ( join q{ }, map {"<$_>"} $slg->rule($g1_rule_id) ) . "\n";
+    }
 
 =for Marpa::R2::Display::End
 
-=for Marpa::R2::Display
-name: SLR show_rules() synopsis with 2 args
-partial: 1
-normalize-whitespace: 1
-
-    $show_rules_output .= $slg->show_rules(3, 'G0');
-
-=for Marpa::R2::Display::End
-
-The C<show_rules()> method returns a descripton of
-the rules for a subgrammar, by default G1.
-It is useful for understanding the rules as they
-appear in trace and debugging outputs.
-To allow for improvements in Marpa::R2,
-the output of C<show_rules()> is subject to change.
-
-The first optional argument can be a numeric verbosity level.
-The default verbosity is 1, which is adequate for
-most purposes.
-A verbosity of 2 prints additional information useful
-for those new to SLIF tracing and debugging.
-A verbosity of 3 prints additional information for
-experts,
-for those new to SLIF tracing and debugging.
-
-The second, optional, argument is the name of a subgrammar.
-Currently there are G0 and G1 subgrammars.
-
-=head2 show_symbols()
-
-=for Marpa::R2::Display
-name: SLIF show_symbols() synopsis
-partial: 1
-normalize-whitespace: 1
-
-    $show_symbols_output .= $slg->show_symbols(3);
-
-=for Marpa::R2::Display::End
-
-=for Marpa::R2::Display
-name: SLIF show_symbols() synopsis
-partial: 1
-normalize-whitespace: 1
-
-    $show_symbols_output .= $slg->show_symbols(3, 'G0');
-
-=for Marpa::R2::Display::End
-
-The C<show_symbols()> method returns a descripton of
-the symbols for a subgrammar,
-by default G1.
-It is useful for understanding the symbols as they
-appear in trace and debugging outputs.
-To allow for improvements in Marpa::R2,
-the output of C<show_symbols()> is subject to change.
-
-The first argument can be a numeric verbosity level.
-The default verbosity is 1, which is adequate for
-most purposes.
-A verbosity of 2 prints additional information useful
-for those new to SLIF tracing and debugging.
-A verbosity of 3 prints additional information for
-experts,
-for those new to SLIF tracing and debugging.
-
-The second, optional, argument is the name of a subgrammar.
-Currently there are G0 and G1 subgrammars.
-
-=head1 Discouraged methods
-
-Discouraged methods are those that
-continue to be supported, but their use is discouraged for one
-reason or another.
+Returns a list of the G1 rule ID's.
+The symbols for these can be queried using the 
+L<the SLIF grammar's rule() method|"rule()">,
 
 =head2 rule()
 
