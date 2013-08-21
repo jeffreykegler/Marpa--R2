@@ -650,14 +650,14 @@ sub Marpa::R2::Grammar::show_problems {
 
 # Return DSL name of symbol
 # Does no checking
-sub Marpa::R2::Grammar::symbol_dsl_name {
+sub Marpa::R2::Grammar::symbol_dsl_form {
     my ( $grammar, $symbol_id ) = @_;
     my $symbols   = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
     my $symbol = $symbols->[$symbol_id];
     return $symbol->[Marpa::R2::Internal::Symbol::DSL_NAME];
 }
 
-# Return DSL name of symbol
+# Return description of symbol
 # Does no checking
 sub Marpa::R2::Grammar::symbol_description {
     my ( $grammar, $symbol_id ) = @_;

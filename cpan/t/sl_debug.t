@@ -971,9 +971,9 @@ for my $symbol_id ( $slg->symbol_ids() ) {
 # Marpa::R2::Display
 # name: SLG symbol_dsl_form() synopsis
 
-    my $dsl_name = $slg->symbol_dsl_name($symbol_id)
+    my $dsl_form = $slg->symbol_dsl_form($symbol_id)
         // '[No name in DSL form]';
-    $text .= "symbol number: $symbol_id  DSL name: $dsl_name\n";
+    $text .= "symbol number: $symbol_id  DSL form: $dsl_form\n";
 
 # Marpa::R2::Display::End
 
@@ -983,103 +983,103 @@ Marpa::R2::Test::is( $text, <<'END_OF_TEXT', 'G1 symbol names and description');
 symbol number: 0  name: [:start]
 symbol number: 0  description Internal G1 start symbol
 symbol number: 0  name in display form: :start
-symbol number: 0  DSL name: [No name in DSL form]
+symbol number: 0  DSL form: [No name in DSL form]
 symbol number: 1  name: [Lex-0]
 symbol number: 1  description Internal lexical symbol for "'set'"
 symbol number: 1  name in display form: 'set'
-symbol number: 1  DSL name: 'set'
+symbol number: 1  DSL form: 'set'
 symbol number: 2  name: [Lex-1]
 symbol number: 2  description Internal lexical symbol for "'to'"
 symbol number: 2  name in display form: 'to'
-symbol number: 2  DSL name: 'to'
+symbol number: 2  DSL form: 'to'
 symbol number: 3  name: [Lex-2]
 symbol number: 3  description Internal lexical symbol for "'='"
 symbol number: 3  name in display form: '='
-symbol number: 3  DSL name: '='
+symbol number: 3  DSL form: '='
 symbol number: 4  name: [Lex-3]
 symbol number: 4  description Internal lexical symbol for "'string'"
 symbol number: 4  name in display form: 'string'
-symbol number: 4  DSL name: 'string'
+symbol number: 4  DSL form: 'string'
 symbol number: 5  name: [Lex-4]
 symbol number: 5  description Internal lexical symbol for "'('"
 symbol number: 5  name in display form: '('
-symbol number: 5  DSL name: '('
+symbol number: 5  DSL form: '('
 symbol number: 6  name: [Lex-5]
 symbol number: 6  description Internal lexical symbol for "')'"
 symbol number: 6  name in display form: ')'
-symbol number: 6  DSL name: ')'
+symbol number: 6  DSL form: ')'
 symbol number: 7  name: [Lex-6]
 symbol number: 7  description Internal lexical symbol for "'+'"
 symbol number: 7  name in display form: '+'
-symbol number: 7  DSL name: '+'
+symbol number: 7  DSL form: '+'
 symbol number: 8  name: [Lex-7]
 symbol number: 8  description Internal lexical symbol for "'+'"
 symbol number: 8  name in display form: '+'
-symbol number: 8  DSL name: '+'
+symbol number: 8  DSL form: '+'
 symbol number: 9  name: [Lex-8]
 symbol number: 9  description Internal lexical symbol for "'*'"
 symbol number: 9  name in display form: '*'
-symbol number: 9  DSL name: '*'
+symbol number: 9  DSL form: '*'
 symbol number: 10  name: expression[0]
 symbol number: 10  description <expression> at priority 0
 symbol number: 10  name in display form: <expression>
-symbol number: 10  DSL name: expression
+symbol number: 10  DSL form: expression
 symbol number: 11  name: expression[1]
 symbol number: 11  description <expression> at priority 1
 symbol number: 11  name in display form: <expression>
-symbol number: 11  DSL name: expression
+symbol number: 11  DSL form: expression
 symbol number: 12  name: expression[2]
 symbol number: 12  description <expression> at priority 2
 symbol number: 12  name in display form: <expression>
-symbol number: 12  DSL name: expression
+symbol number: 12  DSL form: expression
 symbol number: 13  name: numeric expression[0]
 symbol number: 13  description <numeric expression> at priority 0
 symbol number: 13  name in display form: <numeric expression>
-symbol number: 13  DSL name: numeric expression
+symbol number: 13  DSL form: numeric expression
 symbol number: 14  name: numeric expression[1]
 symbol number: 14  description <numeric expression> at priority 1
 symbol number: 14  name in display form: <numeric expression>
-symbol number: 14  DSL name: numeric expression
+symbol number: 14  DSL form: numeric expression
 symbol number: 15  name: numeric expression[2]
 symbol number: 15  description <numeric expression> at priority 2
 symbol number: 15  name in display form: <numeric expression>
-symbol number: 15  DSL name: numeric expression
+symbol number: 15  DSL form: numeric expression
 symbol number: 16  name: statements
 symbol number: 16  description [No description]
 symbol number: 16  name in display form: <statements>
-symbol number: 16  DSL name: [No name in DSL form]
+symbol number: 16  DSL form: [No name in DSL form]
 symbol number: 17  name: statement
 symbol number: 17  description [No description]
 symbol number: 17  name in display form: <statement>
-symbol number: 17  DSL name: [No name in DSL form]
+symbol number: 17  DSL form: [No name in DSL form]
 symbol number: 18  name: assignment
 symbol number: 18  description [No description]
 symbol number: 18  name in display form: <assignment>
-symbol number: 18  DSL name: [No name in DSL form]
+symbol number: 18  DSL form: [No name in DSL form]
 symbol number: 19  name: numeric assignment
 symbol number: 19  description [No description]
 symbol number: 19  name in display form: <numeric assignment>
-symbol number: 19  DSL name: [No name in DSL form]
+symbol number: 19  DSL form: [No name in DSL form]
 symbol number: 20  name: variable
 symbol number: 20  description [No description]
 symbol number: 20  name in display form: <variable>
-symbol number: 20  DSL name: [No name in DSL form]
+symbol number: 20  DSL form: [No name in DSL form]
 symbol number: 21  name: expression
 symbol number: 21  description [No description]
 symbol number: 21  name in display form: <expression>
-symbol number: 21  DSL name: [No name in DSL form]
+symbol number: 21  DSL form: [No name in DSL form]
 symbol number: 22  name: numeric expression
 symbol number: 22  description [No description]
 symbol number: 22  name in display form: <numeric expression>
-symbol number: 22  DSL name: [No name in DSL form]
+symbol number: 22  DSL form: [No name in DSL form]
 symbol number: 23  name: string
 symbol number: 23  description [No description]
 symbol number: 23  name in display form: <string>
-symbol number: 23  DSL name: [No name in DSL form]
+symbol number: 23  DSL form: [No name in DSL form]
 symbol number: 24  name: number
 symbol number: 24  description [No description]
 symbol number: 24  name in display form: <number>
-symbol number: 24  DSL name: [No name in DSL form]
+symbol number: 24  DSL form: [No name in DSL form]
 END_OF_TEXT
 
 $text = '';
@@ -1113,11 +1113,11 @@ for my $symbol_id ( $slg->symbol_ids('G0') ) {
 # Marpa::R2::Display::End
 
 # Marpa::R2::Display
-# name: SLG symbol_dsl_name() 2 arg synopsis
+# name: SLG symbol_dsl_form() 2 arg synopsis
 
-    my $dsl_name = $slg->symbol_dsl_name( $symbol_id, 'G0' )
+    my $dsl_form = $slg->symbol_dsl_form( $symbol_id, 'G0' )
         // '[No name in DSL form]';
-    $text .= "G0 symbol number: $symbol_id  DSL name: $dsl_name\n";
+    $text .= "G0 symbol number: $symbol_id  DSL form: $dsl_form\n";
 
 # Marpa::R2::Display::End
 
@@ -1127,139 +1127,139 @@ Marpa::R2::Test::is( $text, <<'END_OF_TEXT', 'G0 symbol names and description');
 G0 symbol number: 0  name: [:discard]
 G0 symbol number: 0  description Internal LHS for G0 discard
 G0 symbol number: 0  name in display form: :discard
-G0 symbol number: 0  DSL name: [No name in DSL form]
+G0 symbol number: 0  DSL form: [No name in DSL form]
 G0 symbol number: 1  name: [:start_lex]
 G0 symbol number: 1  description Internal G0 (lexical) start symbol
 G0 symbol number: 1  name in display form: :start_lex
-G0 symbol number: 1  DSL name: [No name in DSL form]
+G0 symbol number: 1  DSL form: [No name in DSL form]
 G0 symbol number: 2  name: [Lex-0]
 G0 symbol number: 2  description Internal lexical symbol for "'set'"
 G0 symbol number: 2  name in display form: 'set'
-G0 symbol number: 2  DSL name: 'set'
+G0 symbol number: 2  DSL form: 'set'
 G0 symbol number: 3  name: [Lex-1]
 G0 symbol number: 3  description Internal lexical symbol for "'to'"
 G0 symbol number: 3  name in display form: 'to'
-G0 symbol number: 3  DSL name: 'to'
+G0 symbol number: 3  DSL form: 'to'
 G0 symbol number: 4  name: [Lex-2]
 G0 symbol number: 4  description Internal lexical symbol for "'='"
 G0 symbol number: 4  name in display form: '='
-G0 symbol number: 4  DSL name: '='
+G0 symbol number: 4  DSL form: '='
 G0 symbol number: 5  name: [Lex-3]
 G0 symbol number: 5  description Internal lexical symbol for "'string'"
 G0 symbol number: 5  name in display form: 'string'
-G0 symbol number: 5  DSL name: 'string'
+G0 symbol number: 5  DSL form: 'string'
 G0 symbol number: 6  name: [Lex-4]
 G0 symbol number: 6  description Internal lexical symbol for "'('"
 G0 symbol number: 6  name in display form: '('
-G0 symbol number: 6  DSL name: '('
+G0 symbol number: 6  DSL form: '('
 G0 symbol number: 7  name: [Lex-5]
 G0 symbol number: 7  description Internal lexical symbol for "')'"
 G0 symbol number: 7  name in display form: ')'
-G0 symbol number: 7  DSL name: ')'
+G0 symbol number: 7  DSL form: ')'
 G0 symbol number: 8  name: [Lex-6]
 G0 symbol number: 8  description Internal lexical symbol for "'+'"
 G0 symbol number: 8  name in display form: '+'
-G0 symbol number: 8  DSL name: '+'
+G0 symbol number: 8  DSL form: '+'
 G0 symbol number: 9  name: [Lex-7]
 G0 symbol number: 9  description Internal lexical symbol for "'+'"
 G0 symbol number: 9  name in display form: '+'
-G0 symbol number: 9  DSL name: '+'
+G0 symbol number: 9  DSL form: '+'
 G0 symbol number: 10  name: [Lex-8]
 G0 symbol number: 10  description Internal lexical symbol for "'*'"
 G0 symbol number: 10  name in display form: '*'
-G0 symbol number: 10  DSL name: '*'
+G0 symbol number: 10  DSL form: '*'
 G0 symbol number: 11  name: [[']]
 G0 symbol number: 11  description Character class: [']
 G0 symbol number: 11  name in display form: [']
-G0 symbol number: 11  DSL name: [']
+G0 symbol number: 11  DSL form: [']
 G0 symbol number: 12  name: [[\(]]
 G0 symbol number: 12  description Character class: [\(]
 G0 symbol number: 12  name in display form: [\(]
-G0 symbol number: 12  DSL name: [\(]
+G0 symbol number: 12  DSL form: [\(]
 G0 symbol number: 13  name: [[\)]]
 G0 symbol number: 13  description Character class: [\)]
 G0 symbol number: 13  name in display form: [\)]
-G0 symbol number: 13  DSL name: [\)]
+G0 symbol number: 13  DSL form: [\)]
 G0 symbol number: 14  name: [[\*]]
 G0 symbol number: 14  description Character class: [\*]
 G0 symbol number: 14  name in display form: [\*]
-G0 symbol number: 14  DSL name: [\*]
+G0 symbol number: 14  DSL form: [\*]
 G0 symbol number: 15  name: [[\+]]
 G0 symbol number: 15  description Character class: [\+]
 G0 symbol number: 15  name in display form: [\+]
-G0 symbol number: 15  DSL name: [\+]
+G0 symbol number: 15  DSL form: [\+]
 G0 symbol number: 16  name: [[\=]]
 G0 symbol number: 16  description Character class: [\=]
 G0 symbol number: 16  name in display form: [\=]
-G0 symbol number: 16  DSL name: [\=]
+G0 symbol number: 16  DSL form: [\=]
 G0 symbol number: 17  name: [[\d]]
 G0 symbol number: 17  description Character class: [\d]
 G0 symbol number: 17  name in display form: [\d]
-G0 symbol number: 17  DSL name: [\d]
+G0 symbol number: 17  DSL form: [\d]
 G0 symbol number: 18  name: [[\s]]
 G0 symbol number: 18  description Character class: [\s]
 G0 symbol number: 18  name in display form: [\s]
-G0 symbol number: 18  DSL name: [\s]
+G0 symbol number: 18  DSL form: [\s]
 G0 symbol number: 19  name: [[\w]]
 G0 symbol number: 19  description Character class: [\w]
 G0 symbol number: 19  name in display form: [\w]
-G0 symbol number: 19  DSL name: [\w]
+G0 symbol number: 19  DSL form: [\w]
 G0 symbol number: 20  name: [[^'\x{0A}\x{0B}\x{0C}\x{0D}\x{0085}\x{2028}\x{2029}]]
 G0 symbol number: 20  description Character class: [^'\x{0A}\x{0B}\x{0C}\x{0D}\x{0085}\x{2028}\x{2029}]
 G0 symbol number: 20  name in display form: [^'\x{0A}\x{0B}\x{0C}\x{0D}\x{0085}\x{2028}\x{2029}]
-G0 symbol number: 20  DSL name: [^'\x{0A}\x{0B}\x{0C}\x{0D}\x{0085}\x{2028}\x{2029}]
+G0 symbol number: 20  DSL form: [^'\x{0A}\x{0B}\x{0C}\x{0D}\x{0085}\x{2028}\x{2029}]
 G0 symbol number: 21  name: [[e]]
 G0 symbol number: 21  description Character class: [e]
 G0 symbol number: 21  name in display form: [e]
-G0 symbol number: 21  DSL name: [e]
+G0 symbol number: 21  DSL form: [e]
 G0 symbol number: 22  name: [[g]]
 G0 symbol number: 22  description Character class: [g]
 G0 symbol number: 22  name in display form: [g]
-G0 symbol number: 22  DSL name: [g]
+G0 symbol number: 22  DSL form: [g]
 G0 symbol number: 23  name: [[i]]
 G0 symbol number: 23  description Character class: [i]
 G0 symbol number: 23  name in display form: [i]
-G0 symbol number: 23  DSL name: [i]
+G0 symbol number: 23  DSL form: [i]
 G0 symbol number: 24  name: [[n]]
 G0 symbol number: 24  description Character class: [n]
 G0 symbol number: 24  name in display form: [n]
-G0 symbol number: 24  DSL name: [n]
+G0 symbol number: 24  DSL form: [n]
 G0 symbol number: 25  name: [[o]]
 G0 symbol number: 25  description Character class: [o]
 G0 symbol number: 25  name in display form: [o]
-G0 symbol number: 25  DSL name: [o]
+G0 symbol number: 25  DSL form: [o]
 G0 symbol number: 26  name: [[r]]
 G0 symbol number: 26  description Character class: [r]
 G0 symbol number: 26  name in display form: [r]
-G0 symbol number: 26  DSL name: [r]
+G0 symbol number: 26  DSL form: [r]
 G0 symbol number: 27  name: [[s]]
 G0 symbol number: 27  description Character class: [s]
 G0 symbol number: 27  name in display form: [s]
-G0 symbol number: 27  DSL name: [s]
+G0 symbol number: 27  DSL form: [s]
 G0 symbol number: 28  name: [[t]]
 G0 symbol number: 28  description Character class: [t]
 G0 symbol number: 28  name in display form: [t]
-G0 symbol number: 28  DSL name: [t]
+G0 symbol number: 28  DSL form: [t]
 G0 symbol number: 29  name: variable
 G0 symbol number: 29  description [No description]
 G0 symbol number: 29  name in display form: <variable>
-G0 symbol number: 29  DSL name: [No name in DSL form]
+G0 symbol number: 29  DSL form: [No name in DSL form]
 G0 symbol number: 30  name: number
 G0 symbol number: 30  description [No description]
 G0 symbol number: 30  name in display form: <number>
-G0 symbol number: 30  DSL name: [No name in DSL form]
+G0 symbol number: 30  DSL form: [No name in DSL form]
 G0 symbol number: 31  name: string
 G0 symbol number: 31  description [No description]
 G0 symbol number: 31  name in display form: <string>
-G0 symbol number: 31  DSL name: [No name in DSL form]
+G0 symbol number: 31  DSL form: [No name in DSL form]
 G0 symbol number: 32  name: string contents
 G0 symbol number: 32  description [No description]
 G0 symbol number: 32  name in display form: <string contents>
-G0 symbol number: 32  DSL name: [No name in DSL form]
+G0 symbol number: 32  DSL form: [No name in DSL form]
 G0 symbol number: 33  name: whitespace
 G0 symbol number: 33  description [No description]
 G0 symbol number: 33  name in display form: <whitespace>
-G0 symbol number: 33  DSL name: [No name in DSL form]
+G0 symbol number: 33  DSL form: [No name in DSL form]
 END_OF_TEXT
 
 1;    # In case used as "do" file

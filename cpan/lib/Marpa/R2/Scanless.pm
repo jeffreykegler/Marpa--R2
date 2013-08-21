@@ -632,10 +632,10 @@ sub Marpa::R2::Scanless::G::symbol_display_form {
         ->symbol_in_display_form($symbol_id);
 }
 
-sub Marpa::R2::Scanless::G::symbol_dsl_name {
+sub Marpa::R2::Scanless::G::symbol_dsl_form {
     my ( $slg, $symbol_id, $subgrammar ) = @_;
     return thick_subgrammar_by_name( $slg, $subgrammar )
-        ->symbol_dsl_name($symbol_id);
+        ->symbol_dsl_form($symbol_id);
 }
 
 sub Marpa::R2::Scanless::G::symbol_description {
@@ -766,8 +766,8 @@ sub Marpa::R2::Scanless::G::show_symbols {
 
         if ( $verbose >= 3 ) {
 
-            my $dsl_name = $symbol->[Marpa::R2::Internal::Symbol::DSL_NAME];
-            if ($dsl_name) { $text .= qq{  SLIF name: $dsl_name\n}; }
+            my $dsl_form = $symbol->[Marpa::R2::Internal::Symbol::DSL_NAME];
+            if ($dsl_form) { $text .= qq{  SLIF name: $dsl_form\n}; }
 
         } ## end if ( $verbose >= 3 )
 
