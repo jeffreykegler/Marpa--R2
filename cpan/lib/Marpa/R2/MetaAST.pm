@@ -97,13 +97,23 @@ sub ast_to_hash {
     my $g0_rules = $hashed_ast->{rules}->{G0};
     my %lex_lhs  = ();
     my %lex_rhs  = ();
+    my %lex_separator = ();
     for my $lex_rule ( @{$g0_rules} ) {
+        say STDERR "lex rule = ", Data::Dumper::Dumper($lex_rule);
         $lex_lhs{ $lex_rule->{lhs} } = 1;
         $lex_rhs{$_} = 1 for @{ $lex_rule->{rhs} };
+        if (defined(my $separator = $lex_rule->{separator})) {
+            say STDERR $separator;
+            $lex_separator{$separator} = 1;
+        }
     }
 
-    my %is_lexeme =
-        map { ( $_, 1 ); } grep { not $lex_rhs{$_} } keys %lex_lhs;
+    my %is_lexeme = ();
+    LEX_LHS: for my $lex_lhs (keys %lex_lhs) {
+        next LEX_LHS if $lex_rhs{$lex_lhs};
+        next LEX_LHS if $lex_separator{$lex_lhs};
+        $is_lexeme{$lex_lhs} = 1;
+    }
     if ( my $lexeme_default_adverbs = $hashed_ast->{lexeme_default_adverbs} ) {
         my $blessing = $lexeme_default_adverbs->{bless};
         my $action   = $lexeme_default_adverbs->{action};
@@ -138,7 +148,9 @@ sub ast_to_hash {
     $hashed_ast->{is_lexeme}  = \%is_lexeme;
 
     my @unproductive =
-        grep { not $lex_lhs{$_} and not $_ =~ /\A \[\[ /xms } keys %lex_rhs;
+        grep { not $lex_lhs{$_} and not $_ =~ /\A \[\[ /xms } (keys %lex_rhs,
+        keys %lex_separator)
+        ;
     if (@unproductive) {
         Marpa::R2::exception( 'Unproductive lexical symbols: ',
             join q{ }, @unproductive );

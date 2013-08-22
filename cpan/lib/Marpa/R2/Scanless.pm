@@ -507,11 +507,13 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
     LEXEME_NAME: for my $lexeme_name (@g0_lexeme_names) {
         next LEXEME_NAME if $lexeme_name eq $discard_symbol_name;
         my $g1_symbol_id = $g1_tracer->symbol_by_name($lexeme_name);
-        if ( not defined $g1_symbol_id ) {
+        if (   not defined $g1_symbol_id
+            or not $g1_thin->symbol_is_accessible($g1_symbol_id) )
+        {
             Marpa::R2::exception(
-                'A lexeme is not accessible from the start symbol: ',
-                $lexeme_name );
-        }
+                qq{A G0 lexeme is not accessible from the G1 start symbol: <$lexeme_name>}
+            );
+        } ## end if ( not defined $g1_symbol_id or not $g1_thin...)
         my $lex_symbol_id = $lex_tracer->symbol_by_name($lexeme_name);
         $g0_lexeme_to_g1_symbol[$lex_symbol_id] = $g1_symbol_id;
         $g1_symbol_to_g0_lexeme[$g1_symbol_id]  = $lex_symbol_id;
