@@ -67,7 +67,16 @@ normalize-whitespace: 1
 
 =head1 Overview
 
-Marpa's semantics will be
+This document deals with Marpa's low-level NAIF interface.
+If you are new to Marpa,
+or are not sure which interface you are interested in,
+or do not know what the Named Argment InterFace (NAIF) is,
+you probably want to look instead at
+L<the document on semantics for the SLIF
+interface|Marpa::R2::Semantics>.
+
+The NAIF's semantics
+will be
 familiar
 to those who have used traditional
 methods to evaluate parses.
@@ -77,17 +86,6 @@ Once the values of all its child nodes are known,
 a parent node is ready to be evaluated.
 The value of a parse is the value of the top node
 of the parse tree.
-
-This document is written on the assumption that the low-level NAIF interface
-is in use.
-The more high-level SLIF is similar,
-except that it hides even more of these details from the user.
-SLIF methods work in the same way,
-and use much of the same code,
-as the equivalently named methods of the NAIF recognizer.
-Certain methods and named arguments exist in the NAIF for which there are
-not corresponding methods or arguments in the SLIF, and this is the source
-of the differences.
 
 When a Marpa grammar is created,
 its semantics

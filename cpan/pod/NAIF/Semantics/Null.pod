@@ -19,6 +19,14 @@ Marpa::R2::NAIF::Semantics::Null - How the NAIF evaluates null rules and symbols
 
 =head1 Overview
 
+This document deals with Marpa's low-level NAIF interface.
+If you are new to Marpa,
+or are not sure which interface you are interested in,
+or do not know what the Named Argment InterFace (NAIF) is,
+you probably want to look instead at
+L<the document on semantics for the SLIF
+interface|Marpa::R2::Semantics>.
+
 In Marpa parses, rules and  symbols can be nulled --
 in other words they can derive the zero-length, or null, string.
 Which symbols can be, or are, nulled, depends on the grammar

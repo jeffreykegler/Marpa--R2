@@ -19,6 +19,14 @@ Marpa::R2::NAIF::Semantics::Infinite - How the NAIF deals with infinite ambiguit
 
 =head1 Infinitely ambiguous grammars
 
+This document deals with Marpa's low-level NAIF interface.
+If you are new to Marpa,
+or are not sure which interface you are interested in,
+or do not know what the Named Argment InterFace (NAIF) is,
+you probably want to look instead at
+L<the document on semantics for the SLIF
+interface|Marpa::R2::Semantics>.
+
 Marpa will parse using an infinitely ambiguous grammar.
 (In the technical literature, an infinite ambiguity is more usually
 called a B<cycle> or a B<loop>.)

@@ -19,9 +19,16 @@ Marpa::R2::NAIF::Semantics::Phases - Details of NAIF parse evaluation
 
 =head1 Overview of the semantic phases
 
-Most users will not need to read this document.
+This document deals with Marpa's low-level NAIF interface.
+If you are new to Marpa,
+or are not sure which interface you are interested in,
+or do not know what the Named Argment InterFace (NAIF) is,
+you probably want to look instead at
+L<the document on semantics for the SLIF
+interface|Marpa::R2::Semantics>.
+
 Most applications will find that the order in which
-Marpa executes its semantics "just works".
+Marpa's NAIF executes its semantics "just works".
 This document describes that order in detail.
 These details can matter in some applications,
 for example, those which exploit side effects.
