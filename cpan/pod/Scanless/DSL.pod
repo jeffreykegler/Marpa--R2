@@ -648,19 +648,34 @@ The adverb's value must be as described for each keyword.
 
 =head2 action
 
-The C<action> adverb specifies the semantics for a G1 rule
-or a lexeme, as described below.
-The C<action> adverb may also appear in a default pseudo-rule.
+The C<action> adverb is allowed for
 
-The default value of a G1 rule is a Perl C<undef>.
-The C<action> adverb is not allowed for G0 rules,
-which have no default value.
+=over 4
+
+=item *
+
+An RHS alternative of a G1 prioritized rule, in which the action is for the alternative.
+
+=item *
+
+G1 rules other than prioritized rules, in which case the action is for the rule.
+
+=item *
+
+The default pseudo-rule, in which case the action is for all rules which do not
+have their own action explicitly specified.
+
+=item *
+
+The lexeme default statement, in which case the action is for all lexemes.
+
+=back
+
+The C<action> adverb is not allowed for G0 rules.
 The possible values of actions are described in
 L<their own section|/"Actions">.
-
-The default value of a lexeme is 
-its literal value in the input stream, as a string.
-This is called the B<token value> of the lexeme.
+Details of the semantics are given in
+L<their own document|Marpa::R2::Semantics>.
 
 =head2 assoc
 

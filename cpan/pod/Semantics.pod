@@ -118,45 +118,42 @@ B<This document is under construction.>
 It is being converted to describe Marpa's primary interface, the SLIF.
 Much of it still describes an older and more low-level Marpa interfaces, the NAIF.
 
-Marpa's semantics will be
-familiar
-to those who have used traditional
-methods to evaluate parses.
-A parse is seen as a parse tree.
+The SLIF's general approach to semantics is traditional,
+and will be familar to those who have used other parsers.
+For evaluation purposes,
+every parse is seen as a tree.
+Every nodes of the tree corresponds either to a lexemes,
+in which case the node is a "leaf" of the tree,
+or to a rule.
+
 Nodes on the tree are evaluated recursively, bottom-up.
 Once the values of all its child nodes are known,
 a parent node is ready to be evaluated.
-The value of a parse is the value of the top node
+The final value of a parse is the value of the top node
 of the parse tree.
 
-This document is written on the assumption that the low-level NAIF interface
-is in use.
-The more high-level SLIF is similar,
-except that it hides even more of these details from the user.
-SLIF methods work in the same way,
-and use much of the same code,
-as the equivalently named methods of the NAIF recognizer.
-Certain methods and named arguments exist in the NAIF for which there are
-not corresponding methods or arguments in the SLIF, and this is the source
-of the differences.
+What the SLIF does at each node is called that node's B<action>.
+Actions can be many things in the SLIF, as will be described
+in what follows.
+To give some perspective, it might be useful at this point
+to describe what could
+happen when evaluating a typical node.
 
-When a Marpa grammar is created,
-its semantics
-is
-specified indirectly, as B<action names>.
-To produce the values used in the semantics,
-Marpa must do three things:
+=head2 Evaluating a typical node
 
-=over
+As a typical example, the action adverb of a rule might be treated as a name,
+which is resolved to a Perl closure,
+called the rule evaluation closure.
+When it is that node's turn to be evaluated that closure
+is called with a series of arguments:
+first, the per-parse argument,
+and then the values of the child nodes in lexical order.
+The result of calling the rule evaluation closure is passed
+upward in the parse tree, except if this is the top of the tree.
+If that is the case, the evaluation of the parse is finished,
+and the value of the parse is the value of the rule evaluation closure.
 
-=item * Determine the action name.
-
-=item * Resolve the action name to an action.
-
-=item * If the action is a rule evaluation closure,
-call it to produce the actual result.
-
-=back
+=head1 Finished to here
 
 An action name is either reserved,
 or resolves to a Perl object.
@@ -176,20 +173,24 @@ to create the per-parse-tree variable,
 as L<described
 below|/"The per-parse-tree variable">.
 
-=head1 Nodes
+=head1 G0 and G1 Subgrammars
 
-=head2 Token nodes
+Evaluation only takes place within the structural (G1) subgrammar,
+and the descriptions of the behaviors of rules and lexemes applies only
+to the G1 subgrammar.
+G0 rules and terminal symbols do not become nodes
+in the parse tree,
+they have no actions,
+and they are never evaluated.
 
-For every input token, there is an associated B<token node>.
-Token nodes are leaf nodes
-in the parse tree.
-Tokens always have a B<token symbol>.
-At lexing time,
-they can be assigned a B<token value>.
-If no token value is assigned at lex time,
-the value of the token is a Perl C<undef>.
+=head1 Evaluating a lexeme
 
-=head2 Rule nodes
+Lexemes can have a action specified in
+the L<lexeme default statement|Marpa::R2::Scanless::DSL/"Lexeme default statement">.
+If no action is specified for a lexeme, its value is its literal value in the input
+stream, as a string.
+
+=head2 Evaluating a rule
 
 If a node is not a token node,
 then it is a B<rule node>.
