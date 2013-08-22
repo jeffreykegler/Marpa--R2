@@ -19,6 +19,10 @@ Marpa::R2::Semantics::Phases - Details of parse evaluation
 
 =head1 Overview of the semantic phases
 
+B<This document is under construction.>
+It is being converted to describe Marpa's primary interface, the SLIF.
+Much of it still describes an older and more low-level Marpa interfaces, the NAIF.
+
 Most users will not need to read this document.
 Most applications will find that the order in which
 Marpa executes its semantics "just works".

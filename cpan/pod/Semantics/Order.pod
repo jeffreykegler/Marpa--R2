@@ -19,6 +19,10 @@ Marpa::R2::Semantics::Order - How Marpa ranks ambiguous parses
 
 =head1 Description
 
+B<This document is under construction.>
+It is being converted to describe Marpa's primary interface, the SLIF.
+Much of it still describes an older and more low-level Marpa interfaces, the NAIF.
+
 Marpa allows ambiguous parses.
 While an unambiguous parse can produce at most one parse tree
 and one parse result,

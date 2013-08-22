@@ -19,6 +19,10 @@ Marpa::R2::Semantics::Null - How Marpa evaluates null rules and symbols
 
 =head1 Overview
 
+B<This document is under construction.>
+It is being converted to describe Marpa's primary interface, the SLIF.
+Much of it still describes an older and more low-level Marpa interfaces, the NAIF.
+
 In Marpa parses, rules and  symbols can be nulled --
 in other words they can derive the zero-length, or null, string.
 Which symbols can be, or are, nulled, depends on the grammar

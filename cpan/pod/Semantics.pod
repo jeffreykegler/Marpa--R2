@@ -67,6 +67,10 @@ normalize-whitespace: 1
 
 =head1 Overview
 
+B<This document is under construction.>
+It is being converted to describe Marpa's primary interface, the SLIF.
+Much of it still describes an older and more low-level Marpa interfaces, the NAIF.
+
 Marpa's semantics will be
 familiar
 to those who have used traditional
