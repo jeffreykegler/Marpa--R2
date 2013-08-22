@@ -99,11 +99,9 @@ sub ast_to_hash {
     my %lex_rhs  = ();
     my %lex_separator = ();
     for my $lex_rule ( @{$g0_rules} ) {
-        say STDERR "lex rule = ", Data::Dumper::Dumper($lex_rule);
         $lex_lhs{ $lex_rule->{lhs} } = 1;
         $lex_rhs{$_} = 1 for @{ $lex_rule->{rhs} };
         if (defined(my $separator = $lex_rule->{separator})) {
-            say STDERR $separator;
             $lex_separator{$separator} = 1;
         }
     }
@@ -253,6 +251,10 @@ sub Marpa::R2::Internal::MetaAST_Nodes::blessing_name::name {
 }
 
 sub Marpa::R2::Internal::MetaAST_Nodes::standard_name::name {
+    return $_[0]->[2];
+}
+
+sub Marpa::R2::Internal::MetaAST_Nodes::Perl_name::name {
     return $_[0]->[2];
 }
 

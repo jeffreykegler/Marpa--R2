@@ -14,7 +14,7 @@
 # General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 
-# NAIF semantics examples
+# SLIF semantics examples
 
 use 5.010;
 use strict;
@@ -66,31 +66,19 @@ sub do_bail_with_object_if_A {
 # Marpa::R2::Display::End
 
 my @terminals = qw/A B C D/;
-my $grammar   = Marpa::R2::Grammar->new(
-    {   start => 'S',
-        rules =>
-            [ { lhs => 'S', rhs => \@terminals, action => 'main::do_S' }, ],
-        symbols => { map { ( $_ => { terminal => 1 } ) } @terminals }
-    }
-);
-
-$grammar->precompute();
-
-# Marpa::R2::Display
-# name: rule_ids() Synopsis
-
-my @rule_ids = $grammar->rule_ids();
-
-# Marpa::R2::Display::End
-
-Test::More::is( ( join q{ }, @rule_ids ), '0', '$g->rule_ids() ok?' );
+my $grammar   = Marpa::R2::Scanless::G->new(
+    {   source => \<<'END_OF_SOURCE',
+:start ::= S
+S ::= A B C D action => main::do_S
+:discard ~ whitespace
+whitespace ~ [\s]+
+END_OF_SOURCE
+});
 
 sub do_parse {
-    my $recce = Marpa::R2::Recognizer->new( { grammar => $grammar } );
-    for my $terminal (@terminals) {
-        $recce->read( $terminal, $terminal );
-    }
-    return $recce->value();
+    my $slr = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
+    $slr->read( 'A B C D' );
+    return $slr->value();
 } ## end sub do_parse
 
 my $value_ref;

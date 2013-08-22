@@ -224,6 +224,11 @@ pod/NAIF.pod
 pod/NAIF/Grammar.pod
 pod/NAIF/Progress.pod
 pod/NAIF/Recognizer.pod
+pod/NAIF/Semantics.pod
+pod/NAIF/Semantics/Infinite.pod
+pod/NAIF/Semantics/Null.pod
+pod/NAIF/Semantics/Order.pod
+pod/NAIF/Semantics/Phases.pod
 pod/NAIF/Tracing.pod
 pod/Progress.pod
 pod/Scanless.pod
@@ -231,7 +236,6 @@ pod/Scanless/DSL.pod
 pod/Scanless/G.pod
 pod/Scanless/R.pod
 pod/Semantics.pod
-pod/Semantics/Infinite.pod
 pod/Semantics/Null.pod
 pod/Semantics/Order.pod
 pod/Semantics/Phases.pod

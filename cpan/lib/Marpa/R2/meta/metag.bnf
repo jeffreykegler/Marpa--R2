@@ -79,7 +79,7 @@ rhs ::= <rhs primary>+
 symbol ::= <symbol name>
 <symbol name> ::= <bare name>
 <symbol name> ::= <bracketed name>
-<action name> ::= <bare name>
+<action name> ::= <Perl name>
 <action name> ::= <reserved action name>
 <action name> ::= <array descriptor>
 
@@ -109,11 +109,17 @@ quantifier ::= '*' | '+'
 
 boolean ~ [01]
 
-
 <reserved action name> ~ '::' <one or more word characters>
 <reserved blessing name> ~ '::' <one or more word characters>
 <one or more word characters> ~ [\w]+
 <zero or more word characters> ~ [\w]*
+
+# Perl identifiers allow an initial digit, which makes them slightly more liberal than Perl bare names
+# but equivalent to Perl names with sigils.
+<Perl identifier> ~ [\w]+
+<double colon> ~ '::'
+<Perl name> ~ <Perl identifier>+ separator => <double colon> proper => 1
+
 <bare name> ~ [\w]+
 <standard name> ~ [a-zA-Z] <zero or more word characters>
 <bracketed name> ~ '<' <bracketed name string> '>'
