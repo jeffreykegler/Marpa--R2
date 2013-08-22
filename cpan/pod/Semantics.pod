@@ -20,48 +20,95 @@ Marpa::R2::Semantics - How Marpa evaluates parses
 =head1 Synopsis
 
 =for Marpa::R2::Display
-name: Engine Synopsis Unambiguous Parse
-partial: 1
+name: SLIF full synopsis
 normalize-whitespace: 1
 
-    my $grammar = Marpa::R2::Grammar->new(
-        {   start          => 'Expression',
-            actions        => 'My_Actions',
-            default_action => 'first_arg',
-            rules          => [
-                { lhs => 'Expression', rhs => [qw/Term/] },
-                { lhs => 'Term',       rhs => [qw/Factor/] },
-                { lhs => 'Factor',     rhs => [qw/Number/] },
-                { lhs => 'Term', rhs => [qw/Term Add Term/], action => 'do_add' },
-                {   lhs    => 'Factor',
-                    rhs    => [qw/Factor Multiply Factor/],
-                    action => 'do_multiply'
-                },
-            ],
+    use Marpa::R2;
+
+    my $grammar = Marpa::R2::Scanless::G->new(
+        {   bless_package => 'My_Nodes',
+            source        => \(<<'END_OF_SOURCE'),
+    :default ::= action => [values] bless => ::lhs
+    lexeme default = action => [start,length,value] bless => ::name
+
+    :start ::= Script
+    Script ::= Expression+ separator => comma
+    comma ~ [,]
+    Expression ::=
+        Number bless => primary
+        | '(' Expression ')' bless => paren assoc => group
+       || Expression '**' Expression bless => exponentiate assoc => right
+       || Expression '*' Expression bless => multiply
+        | Expression '/' Expression bless => divide
+       || Expression '+' Expression bless => add
+        | Expression '-' Expression bless => subtract
+
+    Number ~ [\d]+
+    :discard ~ whitespace
+    whitespace ~ [\s]+
+    # allow comments
+    :discard ~ <hash comment>
+    <hash comment> ~ <terminated hash comment> | <unterminated
+       final hash comment>
+    <terminated hash comment> ~ '#' <hash comment body> <vertical space char>
+    <unterminated final hash comment> ~ '#' <hash comment body>
+    <hash comment body> ~ <hash comment char>*
+    <vertical space char> ~ [\x{A}\x{B}\x{C}\x{D}\x{2028}\x{2029}]
+    <hash comment char> ~ [^\x{A}\x{B}\x{C}\x{D}\x{2028}\x{2029}]
+    END_OF_SOURCE
         }
     );
 
-=for Marpa::R2::Display::End
 
-=for Marpa::R2::Display
-name: Engine Synopsis Unambiguous Parse
-partial: 1
-normalize-whitespace: 1
+    my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
 
-    sub My_Actions::do_add {
-        my ( undef, $t1, undef, $t2 ) = @_;
-        return $t1 + $t2;
+    my $input = '42*2+7/3, 42*(2+7)/3, 2**7-3, 2**(7-3)';
+    $recce->read(\$input);
+    my $value_ref = $recce->value();
+    die "No parse was found\n" if not defined $value_ref;
+
+    # Result will be something like "86.33... 126 125 16"
+    # depending on the floating point precision
+    my $result = ${$value_ref}->doit();
+
+    package My_Nodes;
+
+    our $SELF;
+    sub new { return $SELF }
+
+    sub My_Nodes::primary::doit { return $_[0]->[0]->doit() }
+    sub My_Nodes::Number::doit  { return $_[0]->[2] }
+    sub My_Nodes::paren::doit   { my ($self) = @_; $self->[1]->doit() }
+
+    sub My_Nodes::add::doit {
+        my ($self) = @_;
+        $self->[0]->doit() + $self->[2]->doit();
     }
 
-    sub My_Actions::do_multiply {
-        my ( undef, $t1, undef, $t2 ) = @_;
-        return $t1 * $t2;
+    sub My_Nodes::subtract::doit {
+        my ($self) = @_;
+        $self->[0]->doit() - $self->[2]->doit();
     }
 
-    sub My_Actions::first_arg { shift; return shift; }
+    sub My_Nodes::multiply::doit {
+        my ($self) = @_;
+        $self->[0]->doit() * $self->[2]->doit();
+    }
 
-    my $value_ref = $recce->value;
-    my $value = $value_ref ? ${$value_ref} : 'No Parse';
+    sub My_Nodes::divide::doit {
+        my ($self) = @_;
+        $self->[0]->doit() / $self->[2]->doit();
+    }
+
+    sub My_Nodes::exponentiate::doit {
+        my ($self) = @_;
+        $self->[0]->doit()**$self->[2]->doit();
+    }
+
+    sub My_Nodes::Script::doit {
+        my ($self) = @_;
+        return join q{ }, map { $_->doit() } @{$self};
+    }
 
 =for Marpa::R2::Display::End
 
@@ -246,7 +293,7 @@ null semantics|Marpa::R2::Semantics::Null>.
 =head1 Action context
 
 =for Marpa::R2::Display
-name: Action context synopsis
+name: SLIF action context synopsis
 normalize-whitespace: 1
 
     sub do_S {
@@ -288,7 +335,7 @@ and end locations of the current rule.
 =head1 Bailing out of parse evaluation
 
 =for Marpa::R2::Display
-name: Semantics bail synopsis
+name: SLIF bail synopsis
 normalize-whitespace: 1
 
     my $bail_message = "This is a bail out message!";

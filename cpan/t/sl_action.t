@@ -31,7 +31,7 @@ use Marpa::R2;
 my $trace_rules = q{};
 
 # Marpa::R2::Display
-# name: Action context synopsis
+# name: SLIF action context synopsis
 
 sub do_S {
     my ($action_object) = @_;
@@ -49,7 +49,7 @@ sub do_S {
 # Marpa::R2::Display::End
 
 # Marpa::R2::Display
-# name: Semantics bail synopsis
+# name: SLIF bail synopsis
 
 my $bail_message = "This is a bail out message!";
 
@@ -137,9 +137,4 @@ Test::More::is( $eval_error_ref_type, 'ARRAY',
 Test::More::is( $exception_value_desc, $bail_message,
     "bail with object argument value" );
 
-# Local Variables:
-#   mode: cperl
-#   cperl-indent-level: 4
-#   fill-column: 100
-# End:
 # vim: expandtab shiftwidth=4:
