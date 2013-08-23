@@ -1,0 +1,9 @@
+set -x
+if test -r Marpa--R2 
+then
+    echo Marpa--R2 exists -- please remove it
+    exit 1
+fi
+git clone -b releng-R2-2.067_003 https://github.com/jeffreykegler/Marpa--R2
+cd Marpa--R2
+make releng
