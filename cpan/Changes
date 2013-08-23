@@ -15,25 +15,20 @@
 
 Revision history for Marpa::R2
 
-2.067_004
-2.067_003
+2.069_001
+
+   * New series of developer's releases.
+
+2.068000 Thu Aug 22 19:13:34 PDT 2013
 
    * Better debugging and tracing for SLIF,
      and better documentation for it.
 
-2.067_002
+   * Fix bug discovered by Jean-Damien Durand --
+     discarding lexemes should take precedence over rejecting
+     them.
 
-   *  Fix bug discovered by Jean-Damien Durand --
-      discarding lexemes should take precedence over rejecting
-      them.
-
-2.067_001
-
-   *  Doc fixes
-
-2.067_000
-
-   * New series of developer's releases.
+   * Various documentaion fixes
 
 2.066000 Fri Aug  2 17:34:47 PDT 2013
 
