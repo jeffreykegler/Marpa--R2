@@ -272,7 +272,7 @@ the grammar being parsed.
 current rule.
 Given the rule ID, an application can find
 its LHS and RHS symbols using
-L<the SLIF grammar's C<rule()> method|Marpa::R2::Scanless::G/"rule">.
+L<the grammar's C<rule()> method|Marpa::R2::NAIF::Grammar/"rule()">.
 
 =item * C<Marpa::R2::Context::location()> returns the start
 and end locations of the current rule.

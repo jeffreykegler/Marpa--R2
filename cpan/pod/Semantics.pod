@@ -116,7 +116,8 @@ normalize-whitespace: 1
 
 B<This document is under construction.>
 It is being converted to describe Marpa's primary interface, the SLIF.
-Much of it still describes an older and more low-level Marpa interfaces, the NAIF.
+Currently,
+much of it actually describes an older and more low-level Marpa interface, the NAIF.
 
 The SLIF's general approach to semantics is traditional,
 and will be familar to those who have used other parsers.
@@ -480,37 +481,8 @@ The "C<::undef>" reserved action name should
 be preferred for
 indicating a constant whose value is a Perl C<undef>.
 
-=head2 Explicit resolution
-
-The recognizer's C<closures> named argument
-allows the user to directly control the mapping from action names
-to actions.
-The value of the C<closures> named argument
-is a reference to a hash whose keys are
-action names and whose hash values are references.
-Typically (but not always) these will be C<CODE> refs.
-
-If an action name is the key of an entry in the C<closures> hash,
-it resolves to the closure referenced by the value part of that hash entry.
-Resolution via the C<closures> named argument is
-called B<explicit resolution>.
-
-When explicit resolution is the only kind of resolution that is wanted,
-it is best to pick a name that is very unlikely to be the name
-of a Perl object.
-Many of
-L<Marpa::HTML>'s action names
-are intended for explicit resolution only.
-In L<Marpa::HTML> those action names
-begin with
-an exclamation mark ("!"),
-and that convention is recommended.
-
 =head2 Fully qualified action names
 
-If explicit resolution fails,
-Marpa transforms the action name into a
-B<fully qualified> Perl name.
 An action name that
 contains a double colon ("C<::>") or a single quote ("C<'>")
 is considered to be a fully qualified name.
@@ -542,8 +514,6 @@ one of these five things must be the case:
 
 =item * The action name is one of the reserved action names.
 
-=item * The action name resolves explicitly.
-
 =item * The action name is fully qualified to begin with.
 
 =item * The C<actions> named argument is defined.
@@ -574,12 +544,6 @@ Actions divide into two types:
 reserved actions and Perl object actions.
 A Perl object action is a actual Perl object of some type:
 either code or a reference.
-
-A Perl object action may come either from resolution
-of an action name,
-or from explicit resolution.
-If it came from explicit resolution,
-it will always be a reference.
 
 In simplified terms,
 if a Perl object action comes from resolution of
@@ -629,9 +593,6 @@ it will be considered a failure to resolve.
 =head2 Reference actions
 
 A Marpa action can be a Perl object which is a reference.
-A reference action may have come via name resolution,
-or it might be the result of explicit resolution.
-
 Referents should be treated as read-only constants.
 It is possible to modify the values pointed to
 by a reference, but the effect will be global,
@@ -787,17 +748,6 @@ the value of the C<action_object> named argument.
 
 All standard rules apply when resolving the action
 object constructor name.
-In particular, bypass via
-explicit resolution applies to
-the action object constructor.
-If the action object constructor name is
-a hash key in the
-evaluator's C<closures> named argument,
-then
-the value referred to by
-that hash entry becomes the
-action object constructor.
-
 If a grammar has both the C<actions> and the
 C<action_object> named arguments defined,
 all action names B<except>
