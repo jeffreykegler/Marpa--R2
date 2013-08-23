@@ -353,7 +353,6 @@ sub Marpa::R2::Scanless::G::set {
 
     # Other possible grammar options:
     # actions
-    # default_empty_action
     # default_rank
     # inaccessible_ok
     # symbols
@@ -363,11 +362,22 @@ sub Marpa::R2::Scanless::G::set {
 
     ARG: for my $arg_name ( keys %{$args} ) {
         my $value = $args->{$arg_name};
-        if ( $arg_name eq 'trace_file_handle' ) {
-            $slg->[Marpa::R2::Inner::Scanless::G::TRACE_FILE_HANDLE] =
-                $value;
+        if ( $arg_name eq 'per_parse_package' ) {
+            $slg->[Marpa::R2::Inner::Scanless::G::PER_PARSE_PACKAGE] = $value;
+            $slg->[Marpa::R2::Inner::Scanless::G::THICK_G1_GRAMMAR]
+                ->set( { $arg_name => $value } );
+            $slg->[Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMAR]
+                ->set( { $arg_name => $value } );
             next ARG;
-        }
+        } ## end if ( $arg_name eq 'per_parse_package' )
+        if ( $arg_name eq 'trace_file_handle' ) {
+            $slg->[Marpa::R2::Inner::Scanless::G::TRACE_FILE_HANDLE] = $value;
+            $slg->[Marpa::R2::Inner::Scanless::G::THICK_G1_GRAMMAR]
+                ->set( { $arg_name => $value } );
+            $slg->[Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMAR]
+                ->set( { $arg_name => $value } );
+            next ARG;
+        } ## end if ( $arg_name eq 'trace_file_handle' )
         Carp::croak(
             '$slg->set does not know one of the options given to it:',
             qq{\n   The options not recognized was "$arg_name"\n}
@@ -419,6 +429,8 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
         $slg->[Marpa::R2::Inner::Scanless::G::TRACE_FILE_HANDLE] // \*STDERR;
     $g1_args->{bless_package} =
         $slg->[Marpa::R2::Inner::Scanless::G::BLESS_PACKAGE];
+    $g1_args->{per_parse_package} =
+        $slg->[Marpa::R2::Inner::Scanless::G::PER_PARSE_PACKAGE];
     $g1_args->{rules}   = $hashed_source->{rules}->{G1};
     $g1_args->{symbols} = $hashed_source->{symbols}->{G1};
     state $g1_target_symbol = '[:start]';
@@ -834,12 +846,16 @@ sub Marpa::R2::Scanless::R::new {
             $self->[Marpa::R2::Inner::Scanless::R::TRACE_G0] = $value;
             next ARG;
         }
-        if ( $arg_name eq 'trace_terminals' ) {
-            $self->[Marpa::R2::Inner::Scanless::R::TRACE_TERMINALS] = $value;
+        if ( $arg_name eq 'per_parse_package' ) {
+            $g1_recce_args->{$arg_name} = $value;
             next ARG;
         }
         if ( $arg_name eq 'ranking_method' ) {
             $g1_recce_args->{$arg_name} = $value;
+            next ARG;
+        }
+        if ( $arg_name eq 'trace_terminals' ) {
+            $self->[Marpa::R2::Inner::Scanless::R::TRACE_TERMINALS] = $value;
             next ARG;
         }
         if ( $arg_name eq 'trace_values' ) {
@@ -883,6 +899,44 @@ sub Marpa::R2::Scanless::R::new {
 
     return $self;
 } ## end sub Marpa::R2::Scanless::R::new
+
+sub Marpa::R2::Scanless::R::set {
+    my ( $slr, $args ) = @_;
+
+    my $ref_type = ref $args;
+    if ( not $ref_type ) {
+        Carp::croak(
+            "\$slr->set() expects args as ref to HASH; arg was non-reference"
+        );
+    }
+    if ( $ref_type ne 'HASH' ) {
+        Carp::croak(
+            "\$slr->set() expects args as ref to HASH, got ref to $ref_type instead"
+        );
+    }
+
+    ARG: for my $arg_name ( keys %{$args} ) {
+        my $value = $args->{$arg_name};
+        if ( $arg_name eq 'per_parse_package' ) {
+            $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE]
+                ->set( { $arg_name => $value } );
+            next ARG;
+        } ## end if ( $arg_name eq 'per_parse_package' )
+        if ( $arg_name eq 'trace_file_handle' ) {
+            $slr->[Marpa::R2::Inner::Scanless::R::TRACE_FILE_HANDLE] = $value;
+            $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE]
+                ->set( { $arg_name => $value } );
+            next ARG;
+        } ## end if ( $arg_name eq 'trace_file_handle' )
+        Carp::croak(
+            '$slr->set does not know one of the options given to it:',
+            qq{\n   The options not recognized was "$arg_name"\n}
+        );
+    } ## end ARG: for my $arg_name ( keys %{$args} )
+
+    return $slr;
+
+} ## end sub Marpa::R2::Scanless::R::set
 
 sub Marpa::R2::Scanless::R::thin {
     return $_[0]->[Marpa::R2::Inner::Scanless::R::C];
@@ -1577,11 +1631,10 @@ sub character_describe {
 } ## end sub character_describe
 
 sub Marpa::R2::Scanless::R::value {
-
-    my ($self) = @_;
+    my ( $slr, $per_parse_arg ) = @_;
     my $thick_g1_recce =
-        $self->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
-    my $thick_g1_value = $thick_g1_recce->value($self);
+        $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+    my $thick_g1_value = $thick_g1_recce->value( $slr, $per_parse_arg );
     return $thick_g1_value;
 } ## end sub Marpa::R2::Scanless::R::value
 

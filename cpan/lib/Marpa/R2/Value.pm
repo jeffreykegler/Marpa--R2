@@ -780,7 +780,7 @@ sub code_problems {
 } ## end sub code_problems
 
 sub Marpa::R2::Internal::Recognizer::evaluate {
-    my ($recce, $slr) = @_;
+    my ($recce, $slr, $per_parse_arg) = @_;
     my $recce_c = $recce->[Marpa::R2::Internal::Recognizer::C];
     my $bocage  = $recce->[Marpa::R2::Internal::Recognizer::B_C];
     my $order   = $recce->[Marpa::R2::Internal::Recognizer::O_C];
@@ -799,9 +799,10 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
     local $Marpa::R2::Context::rule    = undef;
 
     my $per_parse_package =
-        $recce->[Marpa::R2::Internal::Recognizer::PER_PARSE_PACKAGE];
+        $recce->[Marpa::R2::Internal::Recognizer::PER_PARSE_PACKAGE]
+        // (defined $per_parse_arg ? blessed $per_parse_arg : undef);
 
-    my $action_object_constructor;
+    my $per_parse_constructor;
     if ( defined $per_parse_package ) {
         my $constructor_name = $per_parse_package . q{::new};
         my $resolution =
@@ -811,11 +812,10 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
             qq{Could not find constructor "$constructor_name"},
             q{  }, ( $resolution // 'Failed to resolve action' ) )
             if not ref $resolution;
-        ( undef, $action_object_constructor ) = @{$resolution};
+        ( undef, $per_parse_constructor ) = @{$resolution};
     } ## end if ( defined $per_parse_package )
 
-    my $action_object;
-    if ($action_object_constructor) {
+    if ($per_parse_constructor) {
         my @warnings;
         my $eval_ok;
         my $fatal_error;
@@ -826,8 +826,8 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
             };
 
             $eval_ok = eval {
-                $action_object =
-                    $action_object_constructor->($per_parse_package);
+                $per_parse_arg =
+                    $per_parse_constructor->($per_parse_arg // $per_parse_package);
                 1;
             };
             $fatal_error = $EVAL_ERROR;
@@ -843,9 +843,9 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                 }
             );
         } ## end if ( not $eval_ok or @warnings )
-    } ## end if ($action_object_constructor)
+    } ## end if ($per_parse_constructor)
 
-    $action_object //= {};
+    $per_parse_arg //= {};
 
     my $rule_resolutions =
         $recce->[Marpa::R2::Internal::Recognizer::RULE_RESOLUTIONS]
@@ -1234,7 +1234,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                 $eval_ok = eval {
                     local $Marpa::R2::Context::rule =
                         $null_values->[$token_id];
-                    $result = $value_ref->($action_object);
+                    $result = $value_ref->($per_parse_arg);
                     1;
                 };
 
@@ -1278,13 +1278,13 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
                     if ( Scalar::Util::blessed($values) ) {
                         $eval_ok = eval {
-                            $result = $closure->( $action_object, $values );
+                            $result = $closure->( $per_parse_arg, $values );
                             1;
                         };
                         last DO_EVAL;
                     } ## end if ( Scalar::Util::blessed($values) )
                     $eval_ok = eval {
-                        $result = $closure->( $action_object, @{$values} );
+                        $result = $closure->( $per_parse_arg, @{$values} );
                         1;
                     };
 
@@ -1346,7 +1346,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 # Returns false if no parse
 sub Marpa::R2::Recognizer::value
 {    ## no critic (Subroutines::RequireArgUnpacking)
-    my ($recce, $slr) = @_;
+    my ($recce, $slr, $per_parse_arg) = @_;
 
     if ( scalar @_ != 1 ) {
         Marpa::R2::exception(
@@ -1444,7 +1444,7 @@ sub Marpa::R2::Recognizer::value
     }
 
     return if not defined $tree->next();
-    return \Marpa::R2::Internal::Recognizer::evaluate($recce, $slr);
+    return \Marpa::R2::Internal::Recognizer::evaluate($recce, $slr, $per_parse_arg);
 
 } ## end sub Marpa::R2::Recognizer::value
 
