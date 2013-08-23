@@ -160,7 +160,7 @@ __DATA__
     { === Evaluator Fields === }
 
     DEFAULT_EMPTY_ACTION { default value for empty rules }
-    ACTION_OBJECT
+    PER_PARSE_PACKAGE
     INFINITE_ACTION
 
     =LAST_EVALUATOR_FIELD
@@ -195,6 +195,7 @@ __DATA__
     CLOSURES
     EVENT_IF_EXPECTED
     MAX_PARSES
+    PER_PARSE_PACKAGE
     RANKING_METHOD
     TRACE_ACTIONS
     TRACE_AND_NODES

@@ -126,14 +126,14 @@ sub Marpa::R2::Internal::Recognizer::resolve_action {
         } ## end if ( defined( my $actions_package = $grammar->[...]))
 
         if (defined(
-                my $action_object_class =
-                    $grammar->[Marpa::R2::Internal::Grammar::ACTION_OBJECT]
+                my $per_parse_package =
+                    $recce->[Marpa::R2::Internal::Recognizer::PER_PARSE_PACKAGE]
             )
             )
         {
             $fully_qualified_name =
-                $action_object_class . q{::} . $closure_name;
-        } ## end if ( defined( my $action_object_class = $grammar->[...]))
+                $per_parse_package . q{::} . $closure_name;
+        } ## end if ( defined( my $per_parse_package = $grammar->[...]))
     } ## end DETERMINE_FULLY_QUALIFIED_NAME:
 
     return qq{Could not fully qualify "$closure_name"}
@@ -798,12 +798,12 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
     local $Marpa::R2::Context::grammar = $grammar;
     local $Marpa::R2::Context::rule    = undef;
 
-    my $action_object_class =
-        $grammar->[Marpa::R2::Internal::Grammar::ACTION_OBJECT];
+    my $per_parse_package =
+        $recce->[Marpa::R2::Internal::Recognizer::PER_PARSE_PACKAGE];
 
     my $action_object_constructor;
-    if ( defined $action_object_class ) {
-        my $constructor_name = $action_object_class . q{::new};
+    if ( defined $per_parse_package ) {
+        my $constructor_name = $per_parse_package . q{::new};
         my $resolution =
             Marpa::R2::Internal::Recognizer::resolve_action( $recce,
             $constructor_name );
@@ -812,7 +812,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
             q{  }, ( $resolution // 'Failed to resolve action' ) )
             if not ref $resolution;
         ( undef, $action_object_constructor ) = @{$resolution};
-    } ## end if ( defined $action_object_class )
+    } ## end if ( defined $per_parse_package )
 
     my $action_object;
     if ($action_object_constructor) {
@@ -827,7 +827,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
             $eval_ok = eval {
                 $action_object =
-                    $action_object_constructor->($action_object_class);
+                    $action_object_constructor->($per_parse_package);
                 1;
             };
             $fatal_error = $EVAL_ERROR;

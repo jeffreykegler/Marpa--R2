@@ -130,6 +130,7 @@ sub Marpa::R2::Grammar::set {
                 default_empty_action
                 default_rank
                 inaccessible_ok
+                per_parse_package
                 rule_name_required
                 rules
                 source
@@ -297,7 +298,8 @@ sub Marpa::R2::Grammar::set {
         }
 
         if ( defined( my $value = $args->{'action_object'} ) ) {
-            $grammar->[Marpa::R2::Internal::Grammar::ACTION_OBJECT] = $value;
+            # A discourage synonym of per_parse_package
+            $grammar->[Marpa::R2::Internal::Grammar::PER_PARSE_PACKAGE] = $value;
         }
 
         if ( defined( my $value = $args->{'default_action'} ) ) {
@@ -352,6 +354,10 @@ sub Marpa::R2::Grammar::set {
             $grammar->[Marpa::R2::Internal::Grammar::INACCESSIBLE_OK] =
                 $value;
         } ## end if ( defined( my $value = $args->{'inaccessible_ok'}...))
+
+        if ( defined( my $value = $args->{'per_parse_package'} ) ) {
+            $grammar->[Marpa::R2::Internal::Grammar::PER_PARSE_PACKAGE] = $value;
+        }
 
         if ( defined( my $value = $args->{'unproductive_ok'} ) ) {
             if ( $value && $grammar_c->is_precomputed() ) {
