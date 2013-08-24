@@ -419,6 +419,8 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
         $slg->[Marpa::R2::Inner::Scanless::G::TRACE_FILE_HANDLE] // \*STDERR;
     $g1_args->{bless_package} =
         $slg->[Marpa::R2::Inner::Scanless::G::BLESS_PACKAGE];
+    $g1_args->{per_parse_package} =
+        $slg->[Marpa::R2::Inner::Scanless::G::PER_PARSE_PACKAGE];
     $g1_args->{rules}   = $hashed_source->{rules}->{G1};
     $g1_args->{symbols} = $hashed_source->{symbols}->{G1};
     state $g1_target_symbol = '[:start]';
@@ -834,12 +836,16 @@ sub Marpa::R2::Scanless::R::new {
             $self->[Marpa::R2::Inner::Scanless::R::TRACE_G0] = $value;
             next ARG;
         }
-        if ( $arg_name eq 'trace_terminals' ) {
-            $self->[Marpa::R2::Inner::Scanless::R::TRACE_TERMINALS] = $value;
+        if ( $arg_name eq 'per_parse_package' ) {
+            $g1_recce_args->{$arg_name} = $value;
             next ARG;
         }
         if ( $arg_name eq 'ranking_method' ) {
             $g1_recce_args->{$arg_name} = $value;
+            next ARG;
+        }
+        if ( $arg_name eq 'trace_terminals' ) {
+            $self->[Marpa::R2::Inner::Scanless::R::TRACE_TERMINALS] = $value;
             next ARG;
         }
         if ( $arg_name eq 'trace_values' ) {
