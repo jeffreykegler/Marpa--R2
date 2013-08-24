@@ -1629,11 +1629,10 @@ sub character_describe {
 } ## end sub character_describe
 
 sub Marpa::R2::Scanless::R::value {
-
-    my ($self) = @_;
+    my ( $slr, $per_parse_arg ) = @_;
     my $thick_g1_recce =
-        $self->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
-    my $thick_g1_value = $thick_g1_recce->value($self);
+        $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+    my $thick_g1_value = $thick_g1_recce->value( $slr, $per_parse_arg );
     return $thick_g1_value;
 } ## end sub Marpa::R2::Scanless::R::value
 

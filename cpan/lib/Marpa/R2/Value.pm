@@ -745,7 +745,7 @@ sub code_problems {
 } ## end sub code_problems
 
 sub Marpa::R2::Internal::Recognizer::evaluate {
-    my ($recce, $slr) = @_;
+    my ($recce, $slr, $per_parse_arg) = @_;
     my $recce_c = $recce->[Marpa::R2::Internal::Recognizer::C];
     my $bocage  = $recce->[Marpa::R2::Internal::Recognizer::B_C];
     my $order   = $recce->[Marpa::R2::Internal::Recognizer::O_C];
@@ -1311,7 +1311,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 # Returns false if no parse
 sub Marpa::R2::Recognizer::value
 {    ## no critic (Subroutines::RequireArgUnpacking)
-    my ($recce, $slr) = @_;
+    my ($recce, $slr, $per_parse_arg) = @_;
 
     if ( scalar @_ != 1 ) {
         Marpa::R2::exception(
@@ -1409,7 +1409,7 @@ sub Marpa::R2::Recognizer::value
     }
 
     return if not defined $tree->next();
-    return \Marpa::R2::Internal::Recognizer::evaluate($recce, $slr);
+    return \Marpa::R2::Internal::Recognizer::evaluate($recce, $slr, $per_parse_arg);
 
 } ## end sub Marpa::R2::Recognizer::value
 
