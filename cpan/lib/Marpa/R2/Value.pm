@@ -798,22 +798,36 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
     local $Marpa::R2::Context::grammar = $grammar;
     local $Marpa::R2::Context::rule    = undef;
 
+    my $constructor_required = 0;
     my $per_parse_package =
-        $recce->[Marpa::R2::Internal::Recognizer::PER_PARSE_PACKAGE]
-        // (defined $per_parse_arg ? blessed $per_parse_arg : undef);
+        $recce->[Marpa::R2::Internal::Recognizer::PER_PARSE_PACKAGE];
+    FIND_PER_PARSE_PACKAGE: {
+        if ( defined $per_parse_package ) {
+            $constructor_required = 1;
+            last FIND_PER_PARSE_PACKAGE;
+        }
+        last FIND_PER_PARSE_PACKAGE if not defined $per_parse_arg;
+        $per_parse_package =
+            $recce->[Marpa::R2::Internal::Recognizer::PER_PARSE_PACKAGE] =
+            Scalar::Util::blessed $per_parse_arg;
+    } ## end FIND_PER_PARSE_PACKAGE:
 
     my $per_parse_constructor;
-    if ( defined $per_parse_package ) {
+    FIND_CONSTRUCTOR: {
+        last FIND_CONSTRUCTOR if not defined $per_parse_package;
         my $constructor_name = $per_parse_package . q{::new};
         my $resolution =
             Marpa::R2::Internal::Recognizer::resolve_action( $recce,
             $constructor_name );
+        if ( ref $resolution ) {
+            ( undef, $per_parse_constructor ) = @{$resolution};
+            last FIND_CONSTRUCTOR;
+        }
         Marpa::R2::exception(
             qq{Could not find constructor "$constructor_name"},
             q{  }, ( $resolution // 'Failed to resolve action' ) )
-            if not ref $resolution;
-        ( undef, $per_parse_constructor ) = @{$resolution};
-    } ## end if ( defined $per_parse_package )
+            if $constructor_required;
+    } ## end FIND_CONSTRUCTOR:
 
     if ($per_parse_constructor) {
         my @warnings;

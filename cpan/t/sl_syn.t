@@ -27,7 +27,7 @@ use Marpa::R2::Test;
 use Marpa::R2;
 
 my $grammar = Marpa::R2::Scanless::G->new(
-    {   action_object => 'My_Actions',
+    {
 
 # Marpa::R2::Display
 # name: Scanless concept example
@@ -47,8 +47,6 @@ END_OF_SOURCE
 );
 
 package My_Actions;
-our $SELF;
-sub new { return $SELF }
 sub add_sequence {
     my ($self, @numbers) = @_;
     return List::Util::sum @numbers, 0;
@@ -68,20 +66,19 @@ package main;
 sub my_parser {
     my ( $grammar, $string ) = @_;
 
-    my $self = bless { grammar => $grammar }, 'My_Actions';
-    local $My_Actions::SELF = $self;
+    my $parse_arg = bless { grammar => $grammar }, 'My_Actions';
 
     my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
-    $self->{recce} = $recce;
+    $parse_arg->{recce} = $recce;
     my ( $parse_value, $parse_status, $sequence_so_far );
 
     if ( not defined eval { $recce->read( \$string ); 1 } ) {
-        return 'No parse', $EVAL_ERROR, $self->show_sequence_so_far();
+        return 'No parse', $EVAL_ERROR, $parse_arg->show_sequence_so_far();
     }
-    my $value_ref = $recce->value();
+    my $value_ref = $recce->value( $parse_arg);
     if ( not defined $value_ref ) {
         return 'No parse', 'Input read to end but no parse',
-            $self->show_sequence_so_far();
+            $parse_arg->show_sequence_so_far();
     }
     return [ return ${$value_ref}, 'Parse OK', ];
 } ## end sub my_parser
