@@ -32,28 +32,13 @@ use English qw( -no_match_vars );
 
 sub new {
     my ( $class, $p_rules_source ) = @_;
-
-    my $meta_recce   = Marpa::R2::Internal::Scanless::meta_recce();
-    my $meta_grammar = $meta_recce->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
-    state $mask_by_rule_id =
-        $meta_grammar->[Marpa::R2::Inner::Scanless::G::MASK_BY_RULE_ID];
+    my $meta_recce = Marpa::R2::Internal::Scanless::meta_recce();
     $meta_recce->read($p_rules_source);
-
-    my $thick_meta_g1_grammar =
-        $meta_grammar->[Marpa::R2::Inner::Scanless::G::THICK_G1_GRAMMAR];
-    my $meta_g1_tracer       = $thick_meta_g1_grammar->tracer();
-    my $thin_meta_g1_grammar = $thick_meta_g1_grammar->thin();
-    my $thick_meta_g1_recce =
-        $meta_recce->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
-    my $thick_g1_recce =
-        $meta_recce->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
-
     my $value_ref = $meta_recce->value();
     Marpa::R2::exception('Parse of BNF/Scanless source failed')
         if not defined $value_ref;
     my $ast = { meta_recce => $meta_recce, top_node => ${$value_ref} };
     return bless $ast, $class;
-
 } ## end sub new
 
 sub Marpa::R2::Internal::MetaAST::Parse::substring {
