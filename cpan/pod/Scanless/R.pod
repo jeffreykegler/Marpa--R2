@@ -508,9 +508,16 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
-Has the same effect as a C<value()> call
-on the G1 recognizer.
-See L<Marpa::R2::NAIF::Recognizer/"value()">.
+The C<value> method call evaluates the next parse tree
+in the parse series,
+and returns a reference to the parse result for that parse tree.
+If there are no more parse trees,
+the C<value> method returns C<undef>.
+
+Because Marpa parses ambiguous grammars, every parse
+is a series of zero or more parse trees.
+There are zero parse trees if there was no valid parse
+of the input according to the grammar.
 
 =head1 Mutators for external scanning
 
