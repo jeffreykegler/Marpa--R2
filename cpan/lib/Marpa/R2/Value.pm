@@ -372,6 +372,25 @@ sub Marpa::R2::Internal::Recognizer::semantics_set {
     my @semantics_by_rule_id = ();
     my @blessing_by_rule_id  = ();
 
+    if (defined(
+            my $action_object_class =
+                $grammar->[Marpa::R2::Internal::Grammar::ACTION_OBJECT]
+        )
+        )
+    {
+        my $constructor_name = $action_object_class . q{::new};
+        my $resolution =
+            Marpa::R2::Internal::Recognizer::resolve_action( $recce,
+            $constructor_name );
+        Marpa::R2::exception(
+            qq{Could not find constructor "$constructor_name"},
+            q{  }, ( $resolution // 'Failed to resolve action' ) )
+            if not ref $resolution;
+        (   undef,
+            $recce->[Marpa::R2::Internal::Recognizer::PER_PARSE_CONSTRUCTOR]
+        ) = @{$resolution};
+    } ## end if ( defined( my $action_object_class = $grammar->[...]))
+
     # Set the arrays, and perform various checks on the resolutions
     # we received
     {
@@ -762,25 +781,6 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
     local $Marpa::R2::Context::grammar = $grammar;
     local $Marpa::R2::Context::rule    = undef;
-
-    if (defined(
-            my $action_object_class =
-                $grammar->[Marpa::R2::Internal::Grammar::ACTION_OBJECT]
-        )
-        )
-    {
-        my $constructor_name = $action_object_class . q{::new};
-        my $resolution =
-            Marpa::R2::Internal::Recognizer::resolve_action( $recce,
-            $constructor_name );
-        Marpa::R2::exception(
-            qq{Could not find constructor "$constructor_name"},
-            q{  }, ( $resolution // 'Failed to resolve action' ) )
-            if not ref $resolution;
-        (   undef,
-            $recce->[Marpa::R2::Internal::Recognizer::PER_PARSE_CONSTRUCTOR]
-        ) = @{$resolution};
-    } ## end if ( defined( my $action_object_class = $grammar->[...]))
 
     my $rule_resolutions =
         $recce->[Marpa::R2::Internal::Recognizer::RULE_RESOLUTIONS];
