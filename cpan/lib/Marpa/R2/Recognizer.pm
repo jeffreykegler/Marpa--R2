@@ -84,6 +84,14 @@ sub Marpa::R2::Recognizer::new {
 
     $recce_c->ruby_slippers_set(1);
 
+    if (   defined $grammar->[Marpa::R2::Internal::Grammar::ACTION_OBJECT]
+        or defined $grammar->[Marpa::R2::Internal::Grammar::ACTIONS]
+        or not defined $grammar->[Marpa::R2::Internal::Grammar::INTERNAL] )
+    {
+        $recce->[Marpa::R2::Internal::Recognizer::RESOLVE_PACKAGE_SOURCE] =
+            'legacy';
+    } ## end if ( defined $grammar->[...])
+
     ARG_HASH: for my $arg_hash (@arg_hashes) {
         if ( defined( my $value = $arg_hash->{'leo'} ) ) {
             my $boolean = $value ? 1 : 0;
@@ -155,6 +163,13 @@ sub Marpa::R2::Recognizer::thin {
 
 sub Marpa::R2::Recognizer::reset_evaluation {
     my ($recce) = @_;
+    my $grammar = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
+    my $package_source = $recce->[Marpa::R2::Internal::Recognizer::RESOLVE_PACKAGE_SOURCE];
+    if (defined $package_source and $package_source ne 'legacy') {
+      # Packaage source, once legacy, stays legacy
+      # Otherwise, reset it
+      $recce->[Marpa::R2::Internal::Recognizer::RESOLVE_PACKAGE_SOURCE] = undef;
+    }
     $recce->[Marpa::R2::Internal::Recognizer::ASF_OR_NODES]           = [];
     $recce->[Marpa::R2::Internal::Recognizer::B_C]                    = undef;
     $recce->[Marpa::R2::Internal::Recognizer::EVENTS]                 = [];
@@ -163,7 +178,6 @@ sub Marpa::R2::Recognizer::reset_evaluation {
     $recce->[Marpa::R2::Internal::Recognizer::PER_PARSE_CONSTRUCTOR]  = undef;
     $recce->[Marpa::R2::Internal::Recognizer::READ_STRING_ERROR]      = undef;
     $recce->[Marpa::R2::Internal::Recognizer::RESOLVE_PACKAGE]        = undef;
-    $recce->[Marpa::R2::Internal::Recognizer::RESOLVE_PACKAGE_SOURCE] = undef;
     $recce->[Marpa::R2::Internal::Recognizer::RULE_RESOLUTIONS]       = undef;
     $recce->[Marpa::R2::Internal::Recognizer::SYMBOL_RESOLUTIONS]     = undef;
     $recce->[Marpa::R2::Internal::Recognizer::T_C]                    = undef;
@@ -239,8 +253,28 @@ sub Marpa::R2::Recognizer::set {
         }
 
         if ( defined( my $value = $args->{'per_parse_package'} ) ) {
-            $recce->[Marpa::R2::Internal::Recognizer::PER_PARSE_PACKAGE] = $value;
-        }
+
+            # Not allowed once parsing is started
+            if ( defined $recce->[Marpa::R2::Internal::Recognizer::B_C] ) {
+                Marpa::R2::exception(
+                    q{Cannot change 'per_parse_package' named argument once parsing has started}
+                );
+            }
+
+            $recce->[Marpa::R2::Internal::Recognizer::RESOLVE_PACKAGE_SOURCE]
+                //= 'per_parse_package';
+            if ( $recce
+                ->[Marpa::R2::Internal::Recognizer::RESOLVE_PACKAGE_SOURCE] ne
+                'per_parse_package' )
+            {
+                Marpa::R2::exception(
+                    qq{'per_parse_package' named argument in conflict with other choices\n},
+                    qq{   Usually this means you tried to use the discouraged 'action_object' named argument as well\n}
+                );
+            } ## end if ( $recce->[...])
+            $recce->[Marpa::R2::Internal::Recognizer::PER_PARSE_PACKAGE] =
+                $value;
+        } ## end if ( defined( my $value = $args->{'per_parse_package'...}))
 
         if ( defined( my $value = $args->{'ranking_method'} ) ) {
 

@@ -602,10 +602,7 @@ sub Marpa::R2::Scanless::ASF::new {
         return if not defined $bocage;
     } ## end if ( not $bocage )
 
-    my $rule_resolutions =
-        $recce->[Marpa::R2::Internal::Recognizer::RULE_RESOLUTIONS]
-        // Marpa::R2::Internal::Recognizer::semantics_set( $recce,
-        Marpa::R2::Internal::Recognizer::default_semantics($recce) );
+    my $rule_resolutions = Marpa::R2::Internal::Recognizer::semantics_set( $recce);
 
     my $default_blessing_by_rule_id   = $rule_resolutions->{blessing};
     my $default_blessing_by_lexeme_id = $rule_resolutions->{blessing_by_lexeme};
