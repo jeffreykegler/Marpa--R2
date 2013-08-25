@@ -763,11 +763,12 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
     local $Marpa::R2::Context::grammar = $grammar;
     local $Marpa::R2::Context::rule    = undef;
 
-    my $action_object_class =
-        $grammar->[Marpa::R2::Internal::Grammar::ACTION_OBJECT];
-
-    my $action_object_constructor;
-    if ( defined $action_object_class ) {
+    if (defined(
+            my $action_object_class =
+                $grammar->[Marpa::R2::Internal::Grammar::ACTION_OBJECT]
+        )
+        )
+    {
         my $constructor_name = $action_object_class . q{::new};
         my $resolution =
             Marpa::R2::Internal::Recognizer::resolve_action( $recce,
@@ -776,14 +777,16 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
             qq{Could not find constructor "$constructor_name"},
             q{  }, ( $resolution // 'Failed to resolve action' ) )
             if not ref $resolution;
-        ( undef, $action_object_constructor ) = @{$resolution};
-    } ## end if ( defined $action_object_class )
+        (   undef,
+            $recce->[Marpa::R2::Internal::Recognizer::PER_PARSE_CONSTRUCTOR]
+        ) = @{$resolution};
+    } ## end if ( defined( my $action_object_class = $grammar->[...]))
 
     my $rule_resolutions =
         $recce->[Marpa::R2::Internal::Recognizer::RULE_RESOLUTIONS];
     if (not $rule_resolutions) {
 
-        # If rule resolutions not determined, which is the case
+        # If rule resolutions not determined, as will be the case
         # in the first value call of a parse series, set them
         $rule_resolutions =
             Marpa::R2::Internal::Recognizer::semantics_set( $recce,
@@ -798,7 +801,9 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
     my $blessing_by_lexeme_id = $rule_resolutions->{blessing_by_lexeme};
 
     my $semantics_arg0;
-    if ($action_object_constructor) {
+    if (my $per_parse_constructor = $recce->[Marpa::R2::Internal::Recognizer::PER_PARSE_CONSTRUCTOR]) {
+        my $action_object_class =
+            $grammar->[Marpa::R2::Internal::Grammar::ACTION_OBJECT];
         my @warnings;
         my $eval_ok;
         my $fatal_error;
@@ -810,7 +815,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
             $eval_ok = eval {
                 $semantics_arg0 =
-                    $action_object_constructor->($action_object_class);
+                    $per_parse_constructor->($action_object_class);
                 1;
             };
             $fatal_error = $EVAL_ERROR;
@@ -826,7 +831,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                 }
             );
         } ## end if ( not $eval_ok or @warnings )
-    } ## end if ($action_object_constructor)
+    } ## end if ($per_parse_constructor)
 
     $semantics_arg0 //= {};
 
