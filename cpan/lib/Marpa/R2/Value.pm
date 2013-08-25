@@ -80,25 +80,10 @@ sub Marpa::R2::Internal::Recognizer::resolve_action {
             $fully_qualified_name = $closure_name;
             last DETERMINE_FULLY_QUALIFIED_NAME;
         }
-        if (defined(
-                my $actions_package =
-                    $grammar->[Marpa::R2::Internal::Grammar::ACTIONS]
-            )
-            )
-        {
-            $fully_qualified_name = $actions_package . q{::} . $closure_name;
-            last DETERMINE_FULLY_QUALIFIED_NAME;
-        } ## end if ( defined( my $actions_package = $grammar->[...]))
-
-        if (defined(
-                my $action_object_class =
-                    $grammar->[Marpa::R2::Internal::Grammar::ACTION_OBJECT]
-            )
-            )
-        {
-            $fully_qualified_name =
-                $action_object_class . q{::} . $closure_name;
-        } ## end if ( defined( my $action_object_class = $grammar->[...]))
+        my $resolve_package =
+            $recce->[Marpa::R2::Internal::Recognizer::RESOLVE_PACKAGE];
+        last DETERMINE_FULLY_QUALIFIED_NAME if not defined $resolve_package;
+        $fully_qualified_name = $resolve_package . q{::} . $closure_name;
     } ## end DETERMINE_FULLY_QUALIFIED_NAME:
 
     return qq{Could not fully qualify "$closure_name"}
@@ -358,7 +343,7 @@ sub Marpa::R2::Internal::Recognizer::brief_rule_list {
 } ## end sub Marpa::R2::Internal::Recognizer::brief_rule_list
 
 sub Marpa::R2::Internal::Recognizer::semantics_set {
-    my ( $recce, $rule_resolutions, $lexeme_resolutions ) = @_;
+    my ( $recce) = @_;
     my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
     my $tracer    = $grammar->[Marpa::R2::Internal::Grammar::TRACER];
@@ -390,6 +375,14 @@ sub Marpa::R2::Internal::Recognizer::semantics_set {
             $recce->[Marpa::R2::Internal::Recognizer::PER_PARSE_CONSTRUCTOR]
         ) = @{$resolution};
     } ## end if ( defined( my $action_object_class = $grammar->[...]))
+
+    DETERMINE_RESOLVE_PACKAGE: {
+        $recce->[Marpa::R2::Internal::Recognizer::RESOLVE_PACKAGE] =
+            $grammar->[Marpa::R2::Internal::Grammar::ACTIONS]
+            // $grammar->[Marpa::R2::Internal::Grammar::ACTION_OBJECT];
+    }
+
+    my ( $rule_resolutions, $lexeme_resolutions ) = Marpa::R2::Internal::Recognizer::default_semantics($recce);
 
     # Set the arrays, and perform various checks on the resolutions
     # we received
@@ -788,9 +781,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
         # If rule resolutions not determined, as will be the case
         # in the first value call of a parse series, set them
-        $rule_resolutions =
-            Marpa::R2::Internal::Recognizer::semantics_set( $recce,
-            Marpa::R2::Internal::Recognizer::default_semantics($recce) );
+        $rule_resolutions = Marpa::R2::Internal::Recognizer::semantics_set( $recce);
     } ## end if ($rule_resolutions)
 
     my $null_values = $recce->[Marpa::R2::Internal::Recognizer::NULL_VALUES];
