@@ -779,7 +779,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
         ( undef, $action_object_constructor ) = @{$resolution};
     } ## end if ( defined $action_object_class )
 
-    my $action_object;
+    my $semantics_arg0;
     if ($action_object_constructor) {
         my @warnings;
         my $eval_ok;
@@ -791,7 +791,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
             };
 
             $eval_ok = eval {
-                $action_object =
+                $semantics_arg0 =
                     $action_object_constructor->($action_object_class);
                 1;
             };
@@ -810,12 +810,18 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
         } ## end if ( not $eval_ok or @warnings )
     } ## end if ($action_object_constructor)
 
-    $action_object //= {};
+    $semantics_arg0 //= {};
 
     my $rule_resolutions =
-        $recce->[Marpa::R2::Internal::Recognizer::RULE_RESOLUTIONS]
-        // Marpa::R2::Internal::Recognizer::semantics_set( $recce,
-        Marpa::R2::Internal::Recognizer::default_semantics($recce) );
+        $recce->[Marpa::R2::Internal::Recognizer::RULE_RESOLUTIONS];
+    if (not $rule_resolutions) {
+
+        # If rule resolutions not determined, which is the case
+        # in the first value call of a parse series, set them
+        $rule_resolutions =
+            Marpa::R2::Internal::Recognizer::semantics_set( $recce,
+            Marpa::R2::Internal::Recognizer::default_semantics($recce) );
+    } ## end if ($rule_resolutions)
 
     my $null_values = $recce->[Marpa::R2::Internal::Recognizer::NULL_VALUES];
     my $semantics_by_rule_id  = $rule_resolutions->{semantics};
@@ -1199,7 +1205,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                 $eval_ok = eval {
                     local $Marpa::R2::Context::rule =
                         $null_values->[$token_id];
-                    $result = $value_ref->($action_object);
+                    $result = $value_ref->($semantics_arg0);
                     1;
                 };
 
@@ -1243,13 +1249,13 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
                     if ( Scalar::Util::blessed($values) ) {
                         $eval_ok = eval {
-                            $result = $closure->( $action_object, $values );
+                            $result = $closure->( $semantics_arg0, $values );
                             1;
                         };
                         last DO_EVAL;
                     } ## end if ( Scalar::Util::blessed($values) )
                     $eval_ok = eval {
-                        $result = $closure->( $action_object, @{$values} );
+                        $result = $closure->( $semantics_arg0, @{$values} );
                         1;
                     };
 

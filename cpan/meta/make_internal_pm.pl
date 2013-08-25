@@ -161,7 +161,6 @@ __DATA__
 
     DEFAULT_EMPTY_ACTION { default value for empty rules }
     ACTION_OBJECT
-    PER_PARSE_PACKAGE
     INFINITE_ACTION
 
     =LAST_EVALUATOR_FIELD
@@ -196,7 +195,6 @@ __DATA__
     CLOSURES
     EVENT_IF_EXPECTED
     MAX_PARSES
-    PER_PARSE_PACKAGE
     RANKING_METHOD
     TRACE_ACTIONS
     TRACE_AND_NODES
@@ -209,6 +207,9 @@ __DATA__
     TRACE_SL
     WARNINGS
 
+    { Fields for new SLIF resolution logic }
+    PER_PARSE_PACKAGE
+
     { The following fields must be reinitialized when
     evaluation is reset }
 
@@ -217,6 +218,12 @@ __DATA__
     NULL_VALUES
     EVENTS
     READ_STRING_ERROR
+
+    { Fields for new SLIF resolution logic
+    -- must be reinitialized when evaluation is reset }
+    PER_PARSE_CONSTRUCTOR
+    RESOLVE_PACKAGE
+    RESOLVE_PACKAGE_SOURCE
 
     { This is the end of the list of fields which
     must be reinitialized when evaluation is reset }
@@ -264,7 +271,6 @@ __DATA__
     G0_RULE_TO_G1_LEXEME
     G0_DISCARD_SYMBOL_ID
     MASK_BY_RULE_ID
-    PER_PARSE_PACKAGE
 
     G1_ARGS
     COMPLETION_EVENT_BY_ID

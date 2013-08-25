@@ -71,9 +71,6 @@ sub Marpa::R2::Recognizer::new {
         $recce->[Marpa::R2::Internal::Recognizer::TRACE_FILE_HANDLE] =
         $grammar->[Marpa::R2::Internal::Grammar::TRACE_FILE_HANDLE];
 
-    $recce->[Marpa::R2::Internal::Recognizer::PER_PARSE_PACKAGE] =
-        $grammar->[Marpa::R2::Internal::Grammar::PER_PARSE_PACKAGE];
-
     my $recce_c = $recce->[Marpa::R2::Internal::Recognizer::C] =
         Marpa::R2::Thin::R->new($grammar_c);
     if ( not defined $recce_c ) {

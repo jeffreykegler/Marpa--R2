@@ -362,14 +362,6 @@ sub Marpa::R2::Scanless::G::set {
 
     ARG: for my $arg_name ( keys %{$args} ) {
         my $value = $args->{$arg_name};
-        if ( $arg_name eq 'per_parse_package' ) {
-            $slg->[Marpa::R2::Inner::Scanless::G::PER_PARSE_PACKAGE] = $value;
-            $slg->[Marpa::R2::Inner::Scanless::G::THICK_G1_GRAMMAR]
-                ->set( { $arg_name => $value } );
-            $slg->[Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMAR]
-                ->set( { $arg_name => $value } );
-            next ARG;
-        } ## end if ( $arg_name eq 'per_parse_package' )
         if ( $arg_name eq 'trace_file_handle' ) {
             $slg->[Marpa::R2::Inner::Scanless::G::TRACE_FILE_HANDLE] = $value;
             $slg->[Marpa::R2::Inner::Scanless::G::THICK_G1_GRAMMAR]
@@ -429,8 +421,6 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
         $slg->[Marpa::R2::Inner::Scanless::G::TRACE_FILE_HANDLE] // \*STDERR;
     $g1_args->{bless_package} =
         $slg->[Marpa::R2::Inner::Scanless::G::BLESS_PACKAGE];
-    $g1_args->{per_parse_package} =
-        $slg->[Marpa::R2::Inner::Scanless::G::PER_PARSE_PACKAGE];
     $g1_args->{rules}   = $hashed_source->{rules}->{G1};
     $g1_args->{symbols} = $hashed_source->{symbols}->{G1};
     state $g1_target_symbol = '[:start]';
