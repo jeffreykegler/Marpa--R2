@@ -779,6 +779,24 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
         ( undef, $action_object_constructor ) = @{$resolution};
     } ## end if ( defined $action_object_class )
 
+    my $rule_resolutions =
+        $recce->[Marpa::R2::Internal::Recognizer::RULE_RESOLUTIONS];
+    if (not $rule_resolutions) {
+
+        # If rule resolutions not determined, which is the case
+        # in the first value call of a parse series, set them
+        $rule_resolutions =
+            Marpa::R2::Internal::Recognizer::semantics_set( $recce,
+            Marpa::R2::Internal::Recognizer::default_semantics($recce) );
+    } ## end if ($rule_resolutions)
+
+    my $null_values = $recce->[Marpa::R2::Internal::Recognizer::NULL_VALUES];
+    my $semantics_by_rule_id  = $rule_resolutions->{semantics};
+    my $blessing_by_rule_id   = $rule_resolutions->{blessing};
+    my $closure_by_rule_id    = $rule_resolutions->{closure};
+    my $semantics_by_lexeme_id = $rule_resolutions->{semantics_by_lexeme};
+    my $blessing_by_lexeme_id = $rule_resolutions->{blessing_by_lexeme};
+
     my $semantics_arg0;
     if ($action_object_constructor) {
         my @warnings;
@@ -811,24 +829,6 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
     } ## end if ($action_object_constructor)
 
     $semantics_arg0 //= {};
-
-    my $rule_resolutions =
-        $recce->[Marpa::R2::Internal::Recognizer::RULE_RESOLUTIONS];
-    if (not $rule_resolutions) {
-
-        # If rule resolutions not determined, which is the case
-        # in the first value call of a parse series, set them
-        $rule_resolutions =
-            Marpa::R2::Internal::Recognizer::semantics_set( $recce,
-            Marpa::R2::Internal::Recognizer::default_semantics($recce) );
-    } ## end if ($rule_resolutions)
-
-    my $null_values = $recce->[Marpa::R2::Internal::Recognizer::NULL_VALUES];
-    my $semantics_by_rule_id  = $rule_resolutions->{semantics};
-    my $blessing_by_rule_id   = $rule_resolutions->{blessing};
-    my $closure_by_rule_id    = $rule_resolutions->{closure};
-    my $semantics_by_lexeme_id = $rule_resolutions->{semantics_by_lexeme};
-    my $blessing_by_lexeme_id = $rule_resolutions->{blessing_by_lexeme};
 
     my $value = Marpa::R2::Thin::V->new($tree);
     $value->valued_force();
