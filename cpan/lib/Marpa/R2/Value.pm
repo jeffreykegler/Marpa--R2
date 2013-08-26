@@ -343,7 +343,7 @@ sub Marpa::R2::Internal::Recognizer::brief_rule_list {
 } ## end sub Marpa::R2::Internal::Recognizer::brief_rule_list
 
 sub Marpa::R2::Internal::Recognizer::semantics_set {
-    my ( $recce) = @_;
+    my ( $recce, $per_parse_arg) = @_;
     my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
     my $tracer    = $grammar->[Marpa::R2::Internal::Grammar::TRACER];
@@ -356,6 +356,12 @@ sub Marpa::R2::Internal::Recognizer::semantics_set {
     my @closure_by_rule_id   = ();
     my @semantics_by_rule_id = ();
     my @blessing_by_rule_id  = ();
+
+    DETERMINE_RESOLVE_PACKAGE: {
+        $recce->[Marpa::R2::Internal::Recognizer::RESOLVE_PACKAGE] =
+            $grammar->[Marpa::R2::Internal::Grammar::ACTIONS]
+            // $grammar->[Marpa::R2::Internal::Grammar::ACTION_OBJECT];
+    }
 
     if (defined(
             my $action_object_class =
@@ -375,12 +381,6 @@ sub Marpa::R2::Internal::Recognizer::semantics_set {
             $recce->[Marpa::R2::Internal::Recognizer::PER_PARSE_CONSTRUCTOR]
         ) = @{$resolution};
     } ## end if ( defined( my $action_object_class = $grammar->[...]))
-
-    DETERMINE_RESOLVE_PACKAGE: {
-        $recce->[Marpa::R2::Internal::Recognizer::RESOLVE_PACKAGE] =
-            $grammar->[Marpa::R2::Internal::Grammar::ACTIONS]
-            // $grammar->[Marpa::R2::Internal::Grammar::ACTION_OBJECT];
-    }
 
     my ( $rule_resolutions, $lexeme_resolutions ) = Marpa::R2::Internal::Recognizer::default_semantics($recce);
 
@@ -777,12 +777,14 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
     my $rule_resolutions =
         $recce->[Marpa::R2::Internal::Recognizer::RULE_RESOLUTIONS];
-    if (not $rule_resolutions) {
+    if ( not $rule_resolutions ) {
 
         # If rule resolutions not determined, as will be the case
         # in the first value call of a parse series, set them
-        $rule_resolutions = Marpa::R2::Internal::Recognizer::semantics_set( $recce);
-    } ## end if ($rule_resolutions)
+        $rule_resolutions =
+            Marpa::R2::Internal::Recognizer::semantics_set( $recce,
+            $per_parse_arg );
+    } ## end if ( not $rule_resolutions )
 
     my $null_values = $recce->[Marpa::R2::Internal::Recognizer::NULL_VALUES];
     my $semantics_by_rule_id  = $rule_resolutions->{semantics};
@@ -792,9 +794,17 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
     my $blessing_by_lexeme_id = $rule_resolutions->{blessing_by_lexeme};
 
     my $semantics_arg0;
-    if (my $per_parse_constructor = $recce->[Marpa::R2::Internal::Recognizer::PER_PARSE_CONSTRUCTOR]) {
-        my $action_object_class =
-            $grammar->[Marpa::R2::Internal::Grammar::ACTION_OBJECT];
+    if ( my $per_parse_constructor = $recce->[Marpa::R2::Internal::Recognizer::PER_PARSE_CONSTRUCTOR] ) {
+        my $constructor_arg0;
+        if ( $recce->[Marpa::R2::Internal::Recognizer::RESOLVE_PACKAGE_SOURCE]
+            eq 'legacy' )
+        {
+            $constructor_arg0 =
+                $grammar->[Marpa::R2::Internal::Grammar::ACTION_OBJECT];
+        } ## end if ( $recce->[...])
+        else {
+            $constructor_arg0 = $per_parse_arg // $recce->[Marpa::R2::Internal::Recognizer::RESOLVE_PACKAGE];
+        }
         my @warnings;
         my $eval_ok;
         my $fatal_error;
@@ -805,8 +815,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
             };
 
             $eval_ok = eval {
-                $semantics_arg0 =
-                    $per_parse_constructor->($action_object_class);
+                $semantics_arg0 = $per_parse_constructor->($constructor_arg0);
                 1;
             };
             $fatal_error = $EVAL_ERROR;
@@ -822,7 +831,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                 }
             );
         } ## end if ( not $eval_ok or @warnings )
-    } ## end if ($per_parse_constructor)
+    } ## end if ( my $per_parse_constructor = $recce->[...])
 
     $semantics_arg0 //= {};
 
