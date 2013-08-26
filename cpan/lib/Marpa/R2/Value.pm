@@ -1380,6 +1380,68 @@ sub Marpa::R2::Recognizer::value
 
         $tree = $recce->[Marpa::R2::Internal::Recognizer::T_C];
 
+        # On second and later calls to value() in a parse series, we need
+        # to check the per-parse arg
+        CHECK_ARG: {
+            my $package_source = $recce
+                ->[Marpa::R2::Internal::Recognizer::RESOLVE_PACKAGE_SOURCE];
+            last CHECK_ARG
+                if $package_source eq 'per_parse_package';    # Anything is OK
+            if ( $package_source eq 'legacy' ) {
+                if ( defined $per_parse_arg ) {
+                    Marpa::R2::exception(
+                        "value() called with an argument while incompatible options are in use.\n",
+                        "  Often this means the discourage 'action_object' named argument was also used,\n",
+                        "  and that 'per_parse_package' should be used instead.\n"
+                    );
+                } ## end if ( defined $per_parse_arg )
+                last CHECK_ARG;
+            } ## end if ( $package_source eq 'legacy' )
+
+            # If here the resolve package source is 'arg'
+            if ( not defined $per_parse_arg ) {
+                Marpa::R2::exception(
+                    "No value() arg, whe one is required to resolve semantics.\n",
+                    "  Once value() has been called with a argument whose blessing is used to\n",
+                    "  find the parse's semantics closures, it must always be called with an arg\n",
+                    "  that is blessed in the same package\n",
+                    q{  In this case, the package was "},
+                    $recce
+                        ->[Marpa::R2::Internal::Recognizer::RESOLVE_PACKAGE],
+                    q{"\n"}
+                );
+            } ## end if ( not defined $per_parse_arg )
+
+            my $arg_blessing = Scalar::Util::blessed $per_parse_arg;
+            if ( not defined $arg_blessing ) {
+                Marpa::R2::exception(
+                    "value() arg is not blessed when required for the semantics.\n",
+                    "  Once value() has been called with a argument whose blessing is used to\n",
+                    "  find the parse's semantics closures, it must always be called with an arg\n",
+                    "  that is blessed in the same package\n",
+                    q{  In this case, the original package was "},
+                    $recce
+                        ->[Marpa::R2::Internal::Recognizer::RESOLVE_PACKAGE],
+                    q{"\n"},
+                    qq{  and the blessing in this call was "$arg_blessing"\n}
+                );
+            } ## end if ( not defined $arg_blessing )
+
+            my $required_blessing =
+                $recce->[Marpa::R2::Internal::Recognizer::RESOLVE_PACKAGE];
+            if ( $arg_blessing ne $required_blessing ) {
+                Marpa::R2::exception(
+                    "value() arg is blessed into the wrong package.\n",
+                    "  Once value() has been called with a argument whose blessing is used to\n",
+                    "  find the parse's semantics closures, it must always be called with an arg\n",
+                    "  that is blessed in the same package\n",
+                    qq{  In this case, the original package was "$required_blessing" and \n},
+                    qq{  and the blessing in this call was "$arg_blessing"\n}
+                );
+            } ## end if ( $arg_blessing ne $required_blessing )
+
+        } ## end CHECK_ARG:
+
         # If we have a bocage, we are initialized
         if ( not $tree ) {
 
