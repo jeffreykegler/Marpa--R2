@@ -207,9 +207,6 @@ __DATA__
     TRACE_SL
     WARNINGS
 
-    { Fields for new SLIF resolution logic }
-    PER_PARSE_PACKAGE
-
     { The following fields must be reinitialized when
     evaluation is reset }
 

@@ -272,7 +272,7 @@ sub Marpa::R2::Recognizer::set {
                     qq{   Usually this means you tried to use the discouraged 'action_object' named argument as well\n}
                 );
             } ## end if ( $recce->[...])
-            $recce->[Marpa::R2::Internal::Recognizer::PER_PARSE_PACKAGE] =
+            $recce->[Marpa::R2::Internal::Recognizer::RESOLVE_PACKAGE] =
                 $value;
         } ## end if ( defined( my $value = $args->{'per_parse_package'...}))
 

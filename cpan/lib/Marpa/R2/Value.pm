@@ -357,11 +357,36 @@ sub Marpa::R2::Internal::Recognizer::semantics_set {
     my @semantics_by_rule_id = ();
     my @blessing_by_rule_id  = ();
 
-    DETERMINE_RESOLVE_PACKAGE: {
+    my $package_source = $recce->[Marpa::R2::Internal::Recognizer::RESOLVE_PACKAGE_SOURCE];
+    if ( not defined $package_source ) {
+        DETERMINE_RESOLVE_PACKAGE_SOURCE: {
+            if ( defined $per_parse_arg ) {
+                if ( my $arg_blessing = Scalar::Util::blessed $per_parse_arg)
+                {
+                    $recce->[Marpa::R2::Internal::Recognizer::RESOLVE_PACKAGE]
+                        = $arg_blessing;
+                    $package_source = 'arg';
+                    last DETERMINE_RESOLVE_PACKAGE_SOURCE;
+                } ## end if ( my $arg_blessing = Scalar::Util::blessed ...)
+                $recce->[Marpa::R2::Internal::Recognizer::RESOLVE_PACKAGE] =
+                    $recce
+                    ->[Marpa::R2::Internal::Recognizer::RESOLVE_PACKAGE];
+                $package_source = 'per_parse_package';
+                last DETERMINE_RESOLVE_PACKAGE_SOURCE;
+            } ## end if ( defined $per_parse_arg )
+            $package_source = 'legacy';
+        } ## end DETERMINE_RESOLVE_PACKAGE_SOURCE:
+        $recce->[Marpa::R2::Internal::Recognizer::RESOLVE_PACKAGE_SOURCE] =
+            $package_source;
+    } ## end if ( not defined $package_source )
+
+    if ( $package_source eq 'legacy' ) {
+
+        # RESOLVE_PACKAGE is already set if not 'legacy'
         $recce->[Marpa::R2::Internal::Recognizer::RESOLVE_PACKAGE] =
             $grammar->[Marpa::R2::Internal::Grammar::ACTIONS]
             // $grammar->[Marpa::R2::Internal::Grammar::ACTION_OBJECT];
-    }
+    } ## end if ( $package_source eq 'legacy' )
 
     if (defined(
             my $action_object_class =
