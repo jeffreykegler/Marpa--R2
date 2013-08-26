@@ -404,6 +404,12 @@ sub Marpa::R2::Internal::MetaAST_Nodes::rank_specification::evaluate {
     return bless { rank => $child->value() }, $PROTO_ALTERNATIVE;
 }
 
+sub Marpa::R2::Internal::MetaAST_Nodes::null_ranking_specification::evaluate {
+    my ($values) = @_;
+    my $child = $values->[2];
+    return bless { null_ranking => $child->value() }, $PROTO_ALTERNATIVE;
+}
+
 sub Marpa::R2::Internal::MetaAST_Nodes::before_or_after::value {
     return $_[0]->[2];
 }
@@ -540,6 +546,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::priority_rule::evaluate {
 
             my $action;
             my $blessing;
+            my $null_ranking;
             my $rank;
             ADVERB: for my $key ( keys %{$adverb_list} ) {
                 my $value = $adverb_list->{$key};
@@ -554,6 +561,10 @@ sub Marpa::R2::Internal::MetaAST_Nodes::priority_rule::evaluate {
                 }
                 if ( $key eq 'bless' ) {
                     $blessing = $adverb_list->{$key};
+                    next ADVERB;
+                }
+                if ( $key eq 'null_ranking' ) {
+                    $null_ranking = $adverb_list->{$key};
                     next ADVERB;
                 }
                 if ( $key eq 'rank' ) {
@@ -582,6 +593,15 @@ sub Marpa::R2::Internal::MetaAST_Nodes::priority_rule::evaluate {
                     $lhs, '")' )
                     if $subgrammar eq 'G0';
                 $hash_rule{rank} = $rank;
+            } ## end if ( defined $rank )
+
+            $null_ranking //= $default_adverbs->{null_ranking};
+            if ( defined $null_ranking ) {
+                Marpa::R2::exception(
+                    'null-ranking allowed in lexical rules (rules LHS was "',
+                    $lhs, '")' )
+                    if $subgrammar eq 'G0';
+                $hash_rule{null_ranking} = $null_ranking;
             } ## end if ( defined $rank )
 
             $blessing //= $default_adverbs->{bless};
@@ -674,6 +694,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::priority_rule::evaluate {
         my $assoc;
         my $blessing;
         my $rank;
+        my $null_ranking;
         ADVERB: for my $key ( keys %{$adverb_list} ) {
             my $value = $adverb_list->{$key};
             if ( $key eq 'action' ) {
@@ -686,6 +707,10 @@ sub Marpa::R2::Internal::MetaAST_Nodes::priority_rule::evaluate {
             }
             if ( $key eq 'bless' ) {
                 $blessing = $adverb_list->{$key};
+                next ADVERB;
+            }
+            if ( $key eq 'null_ranking' ) {
+                $null_ranking = $adverb_list->{$key};
                 next ADVERB;
             }
             if ( $key eq 'rank' ) {
@@ -707,6 +732,15 @@ sub Marpa::R2::Internal::MetaAST_Nodes::priority_rule::evaluate {
                 if $subgrammar eq 'G0';
             $new_xs_rule{action} = $action;
         } ## end if ( defined $action )
+
+        $null_ranking //= $default_adverbs->{null_ranking};
+        if ( defined $null_ranking ) {
+            Marpa::R2::exception(
+                'null-ranking not allowed in lexical rules (rules LHS was "',
+                $lhs, '")' )
+                if $subgrammar eq 'G0';
+            $new_xs_rule{null_ranking} = $null_ranking;
+        } ## end if ( defined $rank )
 
         $rank //= $default_adverbs->{rank};
         if ( defined $rank ) {
@@ -792,6 +826,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::empty_rule::evaluate {
     my $action;
     my $blessing;
     my $rank;
+    my $null_ranking;
     ADVERB: for my $key ( keys %{$adverb_list} ) {
         my $value = $adverb_list->{$key};
         if ( $key eq 'action' ) {
@@ -802,8 +837,12 @@ sub Marpa::R2::Internal::MetaAST_Nodes::empty_rule::evaluate {
             $blessing = $adverb_list->{$key};
             next ADVERB;
         }
+        if ( $key eq 'null_ranking' ) {
+            $null_ranking = $adverb_list->{$key};
+            next ADVERB;
+        }
         if ( $key eq 'rank' ) {
-            $action = $adverb_list->{$key};
+            $rank = $adverb_list->{$key};
             next ADVERB;
         }
         my ( $line, $column ) = $parse->{meta_recce}->line_column($start);
@@ -819,6 +858,15 @@ sub Marpa::R2::Internal::MetaAST_Nodes::empty_rule::evaluate {
             if $subgrammar eq 'G0';
         $rule{action} = $action;
     } ## end if ( defined $action )
+
+    $null_ranking //= $default_adverbs->{null_ranking};
+    if ( defined $null_ranking ) {
+        Marpa::R2::exception(
+            'null-ranking not allowed in lexical rules (rules LHS was "',
+            $lhs, '")' )
+            if $subgrammar eq 'G0';
+        $rule{null_ranking} = $null_ranking;
+    } ## end if ( defined $null_ranking )
 
     $rank //= $default_adverbs->{rank};
     if ( defined $rank ) {
@@ -989,6 +1037,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::quantified_rule::evaluate {
     my $separator;
     my $proper;
     my $rank;
+    my $null_ranking;
     ADVERB: for my $key ( keys %{$adverb_list} ) {
         my $value = $adverb_list->{$key};
         if ( $key eq 'action' ) {
@@ -1004,7 +1053,11 @@ sub Marpa::R2::Internal::MetaAST_Nodes::quantified_rule::evaluate {
             next ADVERB;
         }
         if ( $key eq 'rank' ) {
-            $action = $adverb_list->{$key};
+            $rank = $adverb_list->{$key};
+            next ADVERB;
+        }
+        if ( $key eq 'null_ranking' ) {
+            $null_ranking = $adverb_list->{$key};
             next ADVERB;
         }
         if ( $key eq 'separator' ) {
@@ -1032,6 +1085,15 @@ sub Marpa::R2::Internal::MetaAST_Nodes::quantified_rule::evaluate {
             if $subgrammar eq 'G0';
         $sequence_rule{action} = $action;
     } ## end if ( defined $action )
+
+    $null_ranking //= $default_adverbs->{null_ranking};
+    if ( defined $null_ranking ) {
+        Marpa::R2::exception(
+            'null-ranking not allowed in lexical rules (rules LHS was "',
+            $lhs, '")' )
+            if $subgrammar eq 'G0';
+        $sequence_rule{null_ranking} = $null_ranking;
+    } ## end if ( defined $null_ranking )
 
     $rank //= $default_adverbs->{rank};
     if ( defined $rank ) {
