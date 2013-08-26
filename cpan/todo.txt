@@ -1,0 +1,19 @@
+* Add null_ranking adverb
+
+* Display for Null POD
+
+* Add test for $slr->reset_evaluation.
+
+* Test for all ranking methods with SLIF?  Do, if not.
+
+* Test SLIF action names
+  * When shadowed by CODE slot
+  * Scalar but not a ref -- should fatal
+  * !Scalar and !Code slot -- should fail to resolve
+  * ref to scalar, hash, array -- should resolve as per NAIF
+
+Later:
+
+* Add pseudo-symbols: :null, :empty -- sugar for empty RHS alternative
+
+* Add pseudo-symbols: :external, :never -- sugar for [^\d\D]
