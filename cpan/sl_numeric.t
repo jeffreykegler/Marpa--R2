@@ -45,6 +45,8 @@ my $dsl = <<'END_OF_DSL';
 :default ::= action => main::default_action
 :start ::= S
 A ::= 'a'
+A ::= empty
+empty ::=
 END_OF_DSL
 $dsl .= "S ::= A A A A null-ranking => $null_ranking\n";
 return $dsl;
@@ -58,8 +60,6 @@ for my $maximal ( 0, 1 ) {
     my $slg = Marpa::R2::Scanless::G->new( { source => \$dsl } );
     my $slr = Marpa::R2::Scanless::R->new(
         {   grammar        => $slg,
-            trace_values   => 99,
-            trace_actions   => 99,
             ranking_method => 'high_rule_only'
         }
     );
@@ -72,10 +72,9 @@ for my $maximal ( 0, 1 ) {
         my $expected = $maximal ? \@maximal : \@minimal;
         my $name     = $maximal ? 'maximal' : 'minimal';
         $slr->reset_evaluation();
-        $slr->set( { end => $i,
-        trace_actions => 99,
-        trace_values => 99 } );
+        $slr->set( { end => $i, } );
         my $result = $slr->value();
+        die "No parse" if not defined $result;
         Test::More::is( ${$result}, $expected->[$i],
             "$name parse, length=$i" );
 
