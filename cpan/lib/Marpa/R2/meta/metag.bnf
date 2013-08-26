@@ -47,7 +47,8 @@ alternative ::= rhs <adverb list>
 <adverb item> ::=
       action
     | <left association> | <right association> | <group association>
-    | <separator specification> | <proper specification> | <rank specification>
+    | <separator specification> | <proper specification>
+    | <rank specification> | <null ranking specification>
     | <priority specification> | <pause specification> | <event specification>
     | blessing
 
@@ -58,6 +59,8 @@ action ::= ('action' '=>') <action name>
 <separator specification> ::= ('separator' '=>') <single symbol>
 <proper specification> ::= ('proper' '=>') boolean
 <rank specification> ::= ('rank' '=>') <signed integer>
+<null ranking specification> ::= ('null-ranking' '=>') <null ranking constant>
+<null ranking constant> ::= 'low' | 'high'
 <priority specification> ::= ('priority' '=>') <signed integer>
 <pause specification> ::= ('pause' '=>') <before or after>
 <event specification> ::= ('event' '=>') <event name>

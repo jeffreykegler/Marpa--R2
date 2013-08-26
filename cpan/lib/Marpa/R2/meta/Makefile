@@ -22,3 +22,9 @@ doit:
 	-mv metag.pl metag-g1.pl
 	perl sl_to_hash.pl < metag.bnf > metag.pl
 
+bak:
+	for f in metag*.pl; do cp $$f $$f.bak; done
+
+diff:
+	diff metag.pl metag-g1.pl || true
+
