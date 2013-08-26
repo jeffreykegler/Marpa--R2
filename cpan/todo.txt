@@ -2,7 +2,7 @@
 
 * Display for Null POD
 
-* Add test for $slr->reset_evaluation.
+* Add test for $slr->reset_evaluation.  Rename to $slr->series_restart().
 
 * Test for all ranking methods with SLIF?  Do, if not.
 
@@ -17,3 +17,7 @@ Later:
 * Add pseudo-symbols: :null, :empty -- sugar for empty RHS alternative
 
 * Add pseudo-symbols: :external, :never -- sugar for [^\d\D]
+
+* Problem with indirect nulling.  Modifying Semantics::Null to add explicit
+  empty production changes semantics.  "Topmost nulled" rule seems not to be
+  followed in this case.
