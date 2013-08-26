@@ -74,28 +74,27 @@ our $null_X = 'null X';
 our $null_Y = 'null Y';
 ## use critic
 
-my $grammar = Marpa::R2::Scanless::G->new(
+my $slg = Marpa::R2::Scanless::G->new(
     {   source => \<<'END_OF_DSL',
 :start ::= S
 S ::= L R action => do_S
 L ::= A B X action => do_L
-L ::= empty action => null_L
+L ::= action => null_L
 R ::= A B Y action => do_R
-R ::= empty action => null_R
-A ::= empty action => null_A
-B ::= empty action => null_B
-X ::= empty action => null_X
+R ::= action => null_R
+A ::= action => null_A
+B ::= action => null_B
+X ::= action => null_X
 X ::= 'x' action => do_X
-Y ::= empty action => null_Y
+Y ::= action => null_Y
 Y ::= 'y' action => do_Y
-empty ::=
 END_OF_DSL
     }
 );
 
 my $slr = Marpa::R2::Scanless::R->new(
-    {   grammar           => $grammar,
-        per_parse_package => 'main'
+    {   grammar           => $slg,
+        per_parse_package => 'main',
     }
 );
 

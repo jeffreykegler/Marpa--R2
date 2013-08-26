@@ -410,6 +410,11 @@ sub Marpa::R2::Internal::MetaAST_Nodes::null_ranking_specification::evaluate {
     return bless { null_ranking => $child->value() }, $PROTO_ALTERNATIVE;
 }
 
+
+sub Marpa::R2::Internal::MetaAST_Nodes::null_ranking_constant::value {
+    return $_[0]->[2];
+}
+
 sub Marpa::R2::Internal::MetaAST_Nodes::before_or_after::value {
     return $_[0]->[2];
 }

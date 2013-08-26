@@ -905,6 +905,21 @@ sub Marpa::R2::Scanless::R::set {
 
     ARG: for my $arg_name ( keys %{$args} ) {
         my $value = $args->{$arg_name};
+        if ( $arg_name eq 'end' ) {
+            $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE]
+                ->set( { $arg_name => $value } );
+            next ARG;
+        } ## end if ( $arg_name eq 'per_parse_package' )
+        if ( $arg_name eq 'trace_actions' ) {
+            $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE]
+                ->set( { $arg_name => $value } );
+            next ARG;
+        } ## end if ( $arg_name eq 'per_parse_package' )
+        if ( $arg_name eq 'trace_values' ) {
+            $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE]
+                ->set( { $arg_name => $value } );
+            next ARG;
+        } ## end if ( $arg_name eq 'per_parse_package' )
         if ( $arg_name eq 'per_parse_package' ) {
             $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE]
                 ->set( { $arg_name => $value } );
@@ -1625,6 +1640,14 @@ sub Marpa::R2::Scanless::R::value {
     my $thick_g1_value = $thick_g1_recce->value( $slr, $per_parse_arg );
     return $thick_g1_value;
 } ## end sub Marpa::R2::Scanless::R::value
+
+sub Marpa::R2::Scanless::R::reset_evaluation {
+    my ( $slr , @args ) = @_;
+    my $thick_g1_recce =
+        $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+    $thick_g1_recce->reset_evaluation( @args );
+    return 1;
+}
 
 # Given a list of G1 locations, return the minimum span in the input string
 # that includes them all
