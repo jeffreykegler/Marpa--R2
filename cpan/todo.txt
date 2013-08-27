@@ -1,16 +1,15 @@
-* Add null_ranking adverb
-
-* Display for Null POD
-
-* Add test for $slr->reset_evaluation.  Rename to $slr->series_restart().
-
-* Test for all ranking methods with SLIF?  Do, if not.
-
 * Test SLIF action names
   * When shadowed by CODE slot
   * Scalar but not a ref -- should fatal
   * !Scalar and !Code slot -- should fail to resolve
-  * ref to scalar, hash, array -- should resolve as per NAIF
+  * ref to code, scalar, hash, array -- should resolve as per NAIF
+
+* Document
+  * fully qualified actions now allowed in SLIF
+  * null_ranking adverb added
+  * $slr->series_restart().
+
+* Display for Null POD
 
 Later:
 
@@ -20,4 +19,5 @@ Later:
 
 * Problem with indirect nulling.  Modifying Semantics::Null to add explicit
   empty production changes semantics.  "Topmost nulled" rule seems not to be
-  followed in this case.
+  followed in this case.  This is a "later to do" because the same issue exists
+  in the NAIF.
