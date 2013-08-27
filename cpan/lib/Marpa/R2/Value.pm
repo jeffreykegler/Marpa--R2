@@ -371,7 +371,7 @@ sub Marpa::R2::Internal::Recognizer::semantics_set {
                 $recce->[Marpa::R2::Internal::Recognizer::RESOLVE_PACKAGE] =
                     $recce
                     ->[Marpa::R2::Internal::Recognizer::RESOLVE_PACKAGE];
-                $package_source = 'per_parse_package';
+                $package_source = 'semantics_package';
                 last DETERMINE_RESOLVE_PACKAGE_SOURCE;
             } ## end if ( defined $per_parse_arg )
             $package_source = 'legacy';
@@ -407,7 +407,8 @@ sub Marpa::R2::Internal::Recognizer::semantics_set {
         ) = @{$resolution};
     } ## end if ( defined( my $action_object_class = $grammar->[...]))
 
-    my ( $rule_resolutions, $lexeme_resolutions ) = Marpa::R2::Internal::Recognizer::default_semantics($recce);
+    my ( $rule_resolutions, $lexeme_resolutions )
+        = Marpa::R2::Internal::Recognizer::default_semantics($recce);
 
     # Set the arrays, and perform various checks on the resolutions
     # we received
@@ -781,6 +782,51 @@ sub code_problems {
 
 } ## end sub code_problems
 
+# Dump semnatics for diagnostics
+sub show_semantics {
+    my (@ops) = @_;
+    my @op_descs = ();
+    my $op_ix = 0;
+    OP: while ( $op_ix < scalar @ops ) {
+        my $op = $ops[$op_ix++];
+        my $op_name = Marpa::R2::Thin::op_name($op);
+        push @op_descs, $op_name ;
+        if ($op_name eq 'bless') {
+            push @op_descs, $ops[$op_ix];
+            $op_ix++;
+            next OP;
+        }
+        if ($op_name eq 'push_one') {
+            push @op_descs, $ops[$op_ix];
+            $op_ix++;
+            next OP;
+        }
+        if ($op_name eq 'result_is_rhs_n' ) {
+            push @op_descs, $ops[$op_ix];
+            $op_ix++;
+            next OP;
+        }
+        if ($op_name eq 'result_is_n_of_sequence' ) {
+            push @op_descs, $ops[$op_ix];
+            $op_ix++;
+            next OP;
+        }
+        if ($op_name eq 'result_is_constant' ) {
+            push @op_descs, $ops[$op_ix];
+            $op_ix++;
+            next OP;
+        }
+        if ($op_name eq 'alternative' ) {
+            push @op_descs, $ops[$op_ix];
+            $op_ix++;
+            push @op_descs, $ops[$op_ix];
+            $op_ix++;
+            next OP;
+        }
+    }
+    return join q{ }, @op_descs;
+} ## end sub show_semantics
+
 sub Marpa::R2::Internal::Recognizer::evaluate {
     my ($recce, $slr, $per_parse_arg) = @_;
     my $recce_c = $recce->[Marpa::R2::Internal::Recognizer::C];
@@ -792,6 +838,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
     my $token_values =
         $recce->[Marpa::R2::Internal::Recognizer::TOKEN_VALUES];
     my $grammar_c    = $grammar->[Marpa::R2::Internal::Grammar::C];
+    my $tracer    = $grammar->[Marpa::R2::Internal::Grammar::TRACER];
     my $symbols      = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
     my $rules        = $grammar->[Marpa::R2::Internal::Grammar::RULES];
     my $trace_values = $recce->[Marpa::R2::Internal::Recognizer::TRACE_VALUES]
@@ -986,7 +1033,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                 } ## end if ( $ref_type eq q{} )
                 if ( $ref_type eq 'CODE' ) {
 
-                    # Set the nulling closure is this is the nulling symbol of a rule
+                    # Set the nulling closure if this is the nulling symbol of a rule
                     $nulling_closures[$nulling_symbol_id] = $thingy_ref
                         if defined $nulling_symbol_id and defined $rule_id;
                     last DO_CONSTANT;
@@ -1144,21 +1191,31 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
             if ( $trace_values > 2 ) {
                 say {$trace_file_handle} "Registering semantics for rule: ",
                     $grammar->brief_rule($rule_id),
-                    "\n", "  Semantics are ", join q{ },
-                    ( map { Marpa::R2::Thin::op_name($_) . '=' . $_ } @ops )
+                    "\n", "  Semantics are ", show_semantics( @ops )
                     or
                     Marpa::R2::exception("Cannot say to trace file handle");
             } ## end if ( $trace_values > 2 )
         } ## end if ( defined $rule_id )
 
         if ( defined $nulling_symbol_id ) {
+
+            if (    defined $slr
+                and $tracer->symbol_name($nulling_symbol_id) eq '[:start]'
+                and
+                defined( my $default_slif_closure = $slr->default_closure() )
+                )
+            {
+                # Special case for SLIF nulling start symbol when there is a default action
+                $nulling_closures[$nulling_symbol_id] = $default_slif_closure;
+                @ops = ($op_callback);
+            } ## end if ( defined $slr and $tracer->symbol_name(...))
+
             $value->nulling_symbol_register( $nulling_symbol_id, @ops );
             if ( $trace_values > 2 ) {
                 say {$trace_file_handle}
                     "Registering semantics for nulling symbol: ",
                     $grammar->symbol_name($nulling_symbol_id),
-                    "\n", "  Semantics are ", join q{ },
-                    ( map { Marpa::R2::Thin::op_name($_) . '=' . $_ } @ops )
+                    "\n", "  Semantics are ", show_semantics( @ops )
                     or
                     Marpa::R2::exception("Cannot say to trace file handle");
             } ## end if ( $trace_values > 2 )
@@ -1170,8 +1227,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                 say {$trace_file_handle}
                     "Registering semantics for lexeme: ",
                     $grammar->symbol_name($lexeme_id),
-                    "\n", "  Semantics are ", join q{ },
-                    ( map { Marpa::R2::Thin::op_name($_) . '=' . $_ } @ops )
+                    "\n", "  Semantics are ", show_semantics( @ops )
                     or
                     Marpa::R2::exception("Cannot say to trace file handle");
             } ## end if ( $trace_values > 2 )
@@ -1386,13 +1442,13 @@ sub Marpa::R2::Recognizer::value
             my $package_source = $recce
                 ->[Marpa::R2::Internal::Recognizer::RESOLVE_PACKAGE_SOURCE];
             last CHECK_ARG
-                if $package_source eq 'per_parse_package';    # Anything is OK
+                if $package_source eq 'semantics_package';    # Anything is OK
             if ( $package_source eq 'legacy' ) {
                 if ( defined $per_parse_arg ) {
                     Marpa::R2::exception(
                         "value() called with an argument while incompatible options are in use.\n",
-                        "  Often this means the discourage 'action_object' named argument was also used,\n",
-                        "  and that 'per_parse_package' should be used instead.\n"
+                        "  Often this means that the discouraged 'action_object' named argument was used,\n",
+                        "  and that 'semantics_package' should be used instead.\n"
                     );
                 } ## end if ( defined $per_parse_arg )
                 last CHECK_ARG;

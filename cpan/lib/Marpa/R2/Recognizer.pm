@@ -211,7 +211,7 @@ sub Marpa::R2::Recognizer::set {
 		event_if_expected
 		leo
 		max_parses
-		per_parse_package
+		semantics_package
 		ranking_method
 		too_many_earley_items
 		trace_actions
@@ -252,29 +252,29 @@ sub Marpa::R2::Recognizer::set {
             $recce->[Marpa::R2::Internal::Recognizer::MAX_PARSES] = $value;
         }
 
-        if ( defined( my $value = $args->{'per_parse_package'} ) ) {
+        if ( defined( my $value = $args->{'semantics_package'} ) ) {
 
             # Not allowed once parsing is started
             if ( defined $recce->[Marpa::R2::Internal::Recognizer::B_C] ) {
                 Marpa::R2::exception(
-                    q{Cannot change 'per_parse_package' named argument once parsing has started}
+                    q{Cannot change 'semantics_package' named argument once parsing has started}
                 );
             }
 
             $recce->[Marpa::R2::Internal::Recognizer::RESOLVE_PACKAGE_SOURCE]
-                //= 'per_parse_package';
+                //= 'semantics_package';
             if ( $recce
                 ->[Marpa::R2::Internal::Recognizer::RESOLVE_PACKAGE_SOURCE] ne
-                'per_parse_package' )
+                'semantics_package' )
             {
                 Marpa::R2::exception(
-                    qq{'per_parse_package' named argument in conflict with other choices\n},
+                    qq{'semantics_package' named argument in conflict with other choices\n},
                     qq{   Usually this means you tried to use the discouraged 'action_object' named argument as well\n}
                 );
             } ## end if ( $recce->[...])
             $recce->[Marpa::R2::Internal::Recognizer::RESOLVE_PACKAGE] =
                 $value;
-        } ## end if ( defined( my $value = $args->{'per_parse_package'...}))
+        } ## end if ( defined( my $value = $args->{'semantics_package'...}))
 
         if ( defined( my $value = $args->{'ranking_method'} ) ) {
 

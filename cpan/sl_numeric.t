@@ -71,7 +71,7 @@ for my $maximal ( 0, 1 ) {
     for my $i ( 0 .. $input_length ) {
         my $expected = $maximal ? \@maximal : \@minimal;
         my $name     = $maximal ? 'maximal' : 'minimal';
-        $slr->reset_evaluation();
+        $slr->series_restart();
         $slr->set( { end => $i, } );
         my $result = $slr->value();
         die "No parse" if not defined $result;

@@ -383,6 +383,9 @@ sub Marpa::R2::Scanless::G::set {
 sub Marpa::R2::Scanless::G::_hash_to_runtime {
     my ( $slg, $hashed_source ) = @_;
 
+    $slg->[Marpa::R2::Inner::Scanless::G::DEFAULT_G1_ACTION] =
+        $hashed_source->{'default_adverbs'}->{'G1'}->{'action'};
+
     my $g0_lexeme_by_name = $hashed_source->{is_lexeme};
     my @g0_lexeme_names   = keys %{$g0_lexeme_by_name};
     Marpa::R2::exception( "There are no lexemes\n",
@@ -836,7 +839,7 @@ sub Marpa::R2::Scanless::R::new {
             $self->[Marpa::R2::Inner::Scanless::R::TRACE_G0] = $value;
             next ARG;
         }
-        if ( $arg_name eq 'per_parse_package' ) {
+        if ( $arg_name eq 'semantics_package' ) {
             $g1_recce_args->{$arg_name} = $value;
             next ARG;
         }
@@ -909,22 +912,22 @@ sub Marpa::R2::Scanless::R::set {
             $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE]
                 ->set( { $arg_name => $value } );
             next ARG;
-        } ## end if ( $arg_name eq 'per_parse_package' )
+        }
         if ( $arg_name eq 'trace_actions' ) {
             $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE]
                 ->set( { $arg_name => $value } );
             next ARG;
-        } ## end if ( $arg_name eq 'per_parse_package' )
+        }
         if ( $arg_name eq 'trace_values' ) {
             $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE]
                 ->set( { $arg_name => $value } );
             next ARG;
-        } ## end if ( $arg_name eq 'per_parse_package' )
-        if ( $arg_name eq 'per_parse_package' ) {
+        }
+        if ( $arg_name eq 'semantics_package' ) {
             $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE]
                 ->set( { $arg_name => $value } );
             next ARG;
-        } ## end if ( $arg_name eq 'per_parse_package' )
+        }
         if ( $arg_name eq 'trace_file_handle' ) {
             $slr->[Marpa::R2::Inner::Scanless::R::TRACE_FILE_HANDLE] = $value;
             $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE]
@@ -1641,7 +1644,7 @@ sub Marpa::R2::Scanless::R::value {
     return $thick_g1_value;
 } ## end sub Marpa::R2::Scanless::R::value
 
-sub Marpa::R2::Scanless::R::reset_evaluation {
+sub Marpa::R2::Scanless::R::series_restart {
     my ( $slr , @args ) = @_;
     my $thick_g1_recce =
         $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
@@ -1967,6 +1970,17 @@ sub Marpa::R2::Scanless::G::thick_g1_grammar {
 sub Marpa::R2::Scanless::R::thick_g1_recce {
     my ($slr) = @_;
     return $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+}
+
+sub Marpa::R2::Scanless::R::default_closure {
+    my ($slr) = @_;
+    my $slg = $slr->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
+    my $default_action_name = $slg->[Marpa::R2::Inner::Scanless::G::DEFAULT_G1_ACTION];
+    my $thick_g1_recce = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+    my $resolution = Marpa::R2::Internal::Recognizer::resolve_action ( $thick_g1_recce, $default_action_name);
+    return if not $resolution;
+    my (undef, $closure ) = @{$resolution};
+    return $closure;
 }
 
 1;

@@ -94,7 +94,7 @@ END_OF_DSL
 
 my $slr = Marpa::R2::Scanless::R->new(
     {   grammar           => $slg,
-        per_parse_package => 'main',
+        semantics_package => 'main',
     }
 );
 
