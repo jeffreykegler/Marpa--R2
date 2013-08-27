@@ -7,6 +7,7 @@
 * Document
   * fully qualified actions now allowed in SLIF
   * null_ranking adverb added
+  * $slg->set, $slr_set for tested named arguments
   * $slr->series_restart().
 
 * Display for Null POD
