@@ -383,8 +383,8 @@ sub Marpa::R2::Scanless::G::set {
 sub Marpa::R2::Scanless::G::_hash_to_runtime {
     my ( $slg, $hashed_source ) = @_;
 
-    $slg->[Marpa::R2::Inner::Scanless::G::DEFAULT_G1_ACTION] =
-        $hashed_source->{'default_adverbs'}->{'G1'}->{'action'};
+    $slg->[Marpa::R2::Inner::Scanless::G::DEFAULT_G1_START_ACTION] =
+        $hashed_source->{'default_g1_start_action'};
 
     my $g0_lexeme_by_name = $hashed_source->{is_lexeme};
     my @g0_lexeme_names   = keys %{$g0_lexeme_by_name};
@@ -1972,16 +1972,20 @@ sub Marpa::R2::Scanless::R::thick_g1_recce {
     return $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
 }
 
-sub Marpa::R2::Scanless::R::default_closure {
+sub Marpa::R2::Scanless::R::default_g1_start_closure {
     my ($slr) = @_;
     my $slg = $slr->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
-    my $default_action_name = $slg->[Marpa::R2::Inner::Scanless::G::DEFAULT_G1_ACTION];
-    my $thick_g1_recce = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
-    my $resolution = Marpa::R2::Internal::Recognizer::resolve_action ( $thick_g1_recce, $default_action_name);
+    my $default_action_name =
+        $slg->[Marpa::R2::Inner::Scanless::G::DEFAULT_G1_START_ACTION];
+    my $thick_g1_recce =
+        $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+    my $resolution =
+        Marpa::R2::Internal::Recognizer::resolve_action( $thick_g1_recce,
+        $default_action_name );
     return if not $resolution;
-    my (undef, $closure ) = @{$resolution};
+    my ( undef, $closure ) = @{$resolution};
     return $closure;
-}
+} ## end sub Marpa::R2::Scanless::R::default_g1_start_closure
 
 1;
 

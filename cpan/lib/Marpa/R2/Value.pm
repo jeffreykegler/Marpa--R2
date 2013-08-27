@@ -1201,12 +1201,15 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
             if (    defined $slr
                 and $tracer->symbol_name($nulling_symbol_id) eq '[:start]'
-                and
-                defined( my $default_slif_closure = $slr->default_closure() )
+                and defined(
+                    my $default_g1_start_closure =
+                        $slr->default_g1_start_closure()
+                )
                 )
             {
                 # Special case for SLIF nulling start symbol when there is a default action
-                $nulling_closures[$nulling_symbol_id] = $default_slif_closure;
+                $nulling_closures[$nulling_symbol_id] =
+                    $default_g1_start_closure;
                 @ops = ($op_callback);
             } ## end if ( defined $slr and $tracer->symbol_name(...))
 

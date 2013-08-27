@@ -975,6 +975,8 @@ sub Marpa::R2::Internal::MetaAST_Nodes::start_rule::evaluate {
     my ( $values, $parse ) = @_;
     my ( $start, $length, $symbol ) = @{$values};
     my $start_lhs = '[:start]';
+    $parse->{'default_g1_start_action'} =
+        $parse->{'default_adverbs'}->{'G1'}->{'action'};
     $parse->symbol_names_set(
         $start_lhs,
         'G1',
