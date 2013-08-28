@@ -516,7 +516,8 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
             or not $g1_thin->symbol_is_accessible($g1_symbol_id) )
         {
             Marpa::R2::exception(
-                qq{A G0 lexeme is not accessible from the G1 start symbol: <$lexeme_name>}
+                q{A G0 lexeme is not accessible from the G1 start symbol: },
+                $thick_g1_grammar->symbol_in_display_form($g1_symbol_id)
             );
         } ## end if ( not defined $g1_symbol_id or not $g1_thin...)
         my $lex_symbol_id = $lex_tracer->symbol_by_name($lexeme_name);
@@ -2006,7 +2007,7 @@ sub Marpa::R2::Scanless::R::default_g1_start_closure {
     my $resolution =
         Marpa::R2::Internal::Recognizer::resolve_action( $thick_g1_recce,
         $default_action_name );
-    return if not $resolution;
+    return if not ref $resolution;
     my ( undef, $closure ) = @{$resolution};
     return $closure;
 } ## end sub Marpa::R2::Scanless::R::default_g1_start_closure

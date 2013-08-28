@@ -131,13 +131,27 @@ sub Marpa::R2::Internal::Recognizer::resolve_action {
         return [ $fully_qualified_name, $closure, '::array' ];
     } ## end if ( defined $closure )
 
+    for my $slot (qw(ARRAY HASH IO GLOB FORMAT))
+    {
+        no strict 'refs';
+        if ( defined *{$fully_qualified_name}{$slot} ) {
+            my $error =
+                qq{Failed resolution of action "$closure_name" to $fully_qualified_name\n}
+                . qq{  $fully_qualified_name is present as a $slot, but a $slot is not an acceptable resolution\n};
+            if ($trace_actions) {
+                print {$Marpa::R2::Internal::TRACE_FH} $error
+                    or Marpa::R2::exception('Could not print to trace file');
+            }
+            return $error;
+        } ## end if ( defined *{$fully_qualified_name}{'HASH'} )
+    }
+
     my $error =
         qq{Failed resolution of action "$closure_name" to $fully_qualified_name \n};
     if ($trace_actions) {
         print {$Marpa::R2::Internal::TRACE_FH} $error
             or Marpa::R2::exception('Could not print to trace file');
     }
-
     return $error;
 
 } ## end sub Marpa::R2::Internal::Recognizer::resolve_action
@@ -1005,14 +1019,15 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                         last SET_OPS;
                     } ## end if ( $ref_type eq 'SCALAR' )
                     if (   $ref_type eq 'HASH'
+                        or $ref_type eq 'REF'
                         or $ref_type eq 'ARRAY' )
                     {
                         # For hash and array, do not de-reference
                         # so therefore, add another layer of reference to indicate
                         # that this is a constant to be registered
-                        @ops = ( $op_result_is_constant, \$thingy_ref );
+                        @ops = ( $op_result_is_constant, $thingy_ref );
                         last SET_OPS;
-                    } ## end if ( $ref_type eq 'HASH' or $ref_type eq 'ARRAY' )
+                    } ## end if ( $ref_type eq 'HASH' or $ref_type eq 'REF' or ...)
 
                     # When I implement ref to 'REF', I probably should not
                     # de-reference, because of confusion if it becomes a
