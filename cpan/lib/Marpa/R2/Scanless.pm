@@ -2007,7 +2007,7 @@ sub Marpa::R2::Scanless::R::default_g1_start_closure {
     my $resolution =
         Marpa::R2::Internal::Recognizer::resolve_action( $thick_g1_recce,
         $default_action_name );
-    return if not ref $resolution;
+    return if not $resolution;
     my ( undef, $closure ) = @{$resolution};
     return $closure;
 } ## end sub Marpa::R2::Scanless::R::default_g1_start_closure
