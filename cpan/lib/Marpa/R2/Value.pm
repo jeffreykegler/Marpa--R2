@@ -287,10 +287,13 @@ sub Marpa::R2::Internal::Recognizer::default_semantics {
         } ## end DETERMINE_RULE_RESOLUTION:
 
         if ( not ref $rule_resolution ) {
-            my $message =
-                  "Could not resolve action\n"
-                . q{  Rule was }
-                . $grammar->brief_rule($rule_id) . "\n";
+            my $rule_desc;
+            if ( defined( my $slr = $Marpa::R2::Internal::slr ) ) {
+                $rule_desc  = $slr->show_rule($rule_id);
+            }
+            else { $rule_desc = $grammar->brief_rule($rule_id); }
+            my $message = "Could not resolve action\n  Rule was $rule_desc\n";
+
             $message .= qq{  Action was specified as "$action"\n}
                 if defined $action;
             $message .= qq{  $rule_resolution\n} if defined $rule_resolution;
@@ -847,6 +850,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
     local $Marpa::R2::Context::grammar = $grammar;
     local $Marpa::R2::Context::rule    = undef;
+    local $Marpa::R2::Internal::slr    = $slr; # for error messages
 
     if ( not $recce->[Marpa::R2::Internal::Recognizer::REGISTRATIONS] ) {
 
