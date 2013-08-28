@@ -21,6 +21,7 @@
 ^sl_fact[.]t$
 ^sl_fact2[.]t$
 ^sl_flies[.]t$
+^todo[.]txt$
 
 # Permanent
 /[.]gdb_history$

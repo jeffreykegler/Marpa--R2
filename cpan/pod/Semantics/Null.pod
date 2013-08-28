@@ -98,59 +98,60 @@ null symbol.
 Here is an example:
 
 =for Marpa::R2::Display
-name: Null Value Example
+name: SLIF Null Value Example
 perltidy: '-dcsc -sil=0'
 
-    sub do_L {
-        shift;
-        return 'L(' . ( join q{;}, map { $_ // '[ERROR!]' } @_ ) . ')';
+sub do_L {
+    shift;
+    return 'L(' . ( join q{;}, map { $_ // '[ERROR!]' } @_ ) . ')';
+}
+
+sub do_R {
+    return 'R(): I will never be called';
+}
+
+sub do_S {
+    shift;
+    return 'S(' . ( join q{;}, map { $_ // '[ERROR!]' } @_ ) . ')';
+}
+
+sub do_X { return 'X(' . $_[1] . ')'; }
+sub do_Y { return 'Y(' . $_[1] . ')'; }
+
+## no critic (Variables::ProhibitPackageVars)
+our $null_A = 'null A';
+our $null_B = 'null B';
+our $null_L = 'null L';
+our $null_R = 'null R';
+our $null_X = 'null X';
+our $null_Y = 'null Y';
+## use critic
+
+my $slg = Marpa::R2::Scanless::G->new(
+    {   source => \<<'END_OF_DSL',
+:start ::= S
+S ::= L R action => do_S
+L ::= A B X action => do_L
+L ::= action => null_L
+R ::= A B Y action => do_R
+R ::= action => null_R
+A ::= action => null_A
+B ::= action => null_B
+X ::= action => null_X
+X ::= 'x' action => do_X
+Y ::= action => null_Y
+Y ::= 'y' action => do_Y
+END_OF_DSL
     }
+);
 
-    sub do_R {
-        return 'R(): I will never be called';
+my $slr = Marpa::R2::Scanless::R->new(
+    {   grammar           => $slg,
+        semantics_package => 'main',
     }
+);
 
-    sub do_S {
-        shift;
-        return 'S(' . ( join q{;}, map { $_ // '[ERROR!]' } @_ ) . ')';
-    }
-
-    sub do_X { return 'X(' . $_[1] . ')'; }
-    sub do_Y { return 'Y(' . $_[1] . ')'; }
-
-    ## no critic (Variables::ProhibitPackageVars)
-    our $null_A = 'null A';
-    our $null_B = 'null B';
-    our $null_L = 'null L';
-    our $null_R = 'null R';
-    our $null_X = 'null X';
-    our $null_Y = 'null Y';
-    ## use critic
-
-    my $grammar = Marpa::R2::Grammar->new(
-        {   start   => 'S',
-            actions => 'main',
-            rules   => [
-                [ 'S', [qw/L R/],   'do_S' ],
-                [ 'L', [qw/A B X/], 'do_L' ],
-                [ 'L', [], 'null_L' ],
-                [ 'R', [qw/A B Y/], 'do_R' ],
-                [ 'R', [], 'null_R' ],
-                [ 'A', [], 'null_A' ],
-                [ 'B', [], 'null_B' ],
-                [ 'X', [], 'null_X' ],
-                [ 'X', [qw/x/], 'do_X' ],
-                [ 'Y', [], 'null_Y' ],
-                [ 'Y', [qw/y/], 'do_Y' ],
-            ],
-        }
-    );
-
-    $grammar->precompute();
-
-    my $recce = Marpa::R2::Recognizer->new( { grammar => $grammar } );
-
-    $recce->read( 'x', 'x' );
+$slr->read( \'x' );
 
 =for Marpa::R2::Display::End
 
@@ -196,7 +197,7 @@ ignore: 1
 Here is the output:
 
 =for Marpa::R2::Display
-name: Null Value Example Output
+name: SLIF Null Value Example Output
 normalize-whitespace: 1
 
     S(L(null A;null B;X(x));null R)
