@@ -856,7 +856,6 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
         $rule_resolutions =
             Marpa::R2::Internal::Recognizer::semantics_set( $recce,
             $per_parse_arg );
-    } ## end if ( not $rule_resolutions )
 
     my $null_values = $recce->[Marpa::R2::Internal::Recognizer::NULL_VALUES];
     my $semantics_by_rule_id  = $rule_resolutions->{semantics};
@@ -864,64 +863,6 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
     my $closure_by_rule_id    = $rule_resolutions->{closure};
     my $semantics_by_lexeme_id = $rule_resolutions->{semantics_by_lexeme};
     my $blessing_by_lexeme_id = $rule_resolutions->{blessing_by_lexeme};
-
-    my $semantics_arg0;
-    if ( my $per_parse_constructor = $recce->[Marpa::R2::Internal::Recognizer::PER_PARSE_CONSTRUCTOR] ) {
-        my $constructor_arg0;
-        if ( $recce->[Marpa::R2::Internal::Recognizer::RESOLVE_PACKAGE_SOURCE]
-            eq 'legacy' )
-        {
-            $constructor_arg0 =
-                $grammar->[Marpa::R2::Internal::Grammar::ACTION_OBJECT];
-        } ## end if ( $recce->[...])
-        else {
-            $constructor_arg0 = $per_parse_arg // $recce->[Marpa::R2::Internal::Recognizer::RESOLVE_PACKAGE];
-        }
-        my @warnings;
-        my $eval_ok;
-        my $fatal_error;
-        DO_EVAL: {
-            local $EVAL_ERROR = undef;
-            local $SIG{__WARN__} = sub {
-                push @warnings, [ $_[0], ( caller 0 ) ];
-            };
-
-            $eval_ok = eval {
-                $semantics_arg0 = $per_parse_constructor->($constructor_arg0);
-                1;
-            };
-            $fatal_error = $EVAL_ERROR;
-        } ## end DO_EVAL:
-
-        if ( not $eval_ok or @warnings ) {
-            code_problems(
-                {   fatal_error => $fatal_error,
-                    grammar     => $grammar,
-                    eval_ok     => $eval_ok,
-                    warnings    => \@warnings,
-                    where       => 'constructing action object',
-                }
-            );
-        } ## end if ( not $eval_ok or @warnings )
-    } ## end if ( my $per_parse_constructor = $recce->[...])
-
-    $semantics_arg0 //= {};
-
-    my $value = Marpa::R2::Thin::V->new($tree);
-    $value->valued_force();
-    if ($slr) {
-        $value->slr_set($slr->thin());
-    }
-    else {
-        TOKEN_IX: for (my $token_ix = 2; $token_ix <= $#{$token_values}; $token_ix++) {
-            my $token_value = $token_values->[$token_ix];
-            $value->token_value_set($token_ix, $token_value) if defined $token_value;
-        }
-    }
-    local $Marpa::R2::Internal::Context::VALUATOR = $value;
-    value_trace( $value, $trace_values ? 1 : 0 );
-    $value->trace_values($trace_values);
-    $value->stack_mode_set();
 
     state $op_bless         = Marpa::R2::Thin::op('bless');
     state $op_callback      = Marpa::R2::Thin::op('callback');
@@ -1221,6 +1162,67 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
     } ## end WORK_ITEM: for my $work_item (@work_list)
 
+    } ## end if ( not $rule_resolutions )
+
+    my $semantics_arg0;
+    if ( my $per_parse_constructor = $recce->[Marpa::R2::Internal::Recognizer::PER_PARSE_CONSTRUCTOR] ) {
+        my $constructor_arg0;
+        if ( $recce->[Marpa::R2::Internal::Recognizer::RESOLVE_PACKAGE_SOURCE]
+            eq 'legacy' )
+        {
+            $constructor_arg0 =
+                $grammar->[Marpa::R2::Internal::Grammar::ACTION_OBJECT];
+        } ## end if ( $recce->[...])
+        else {
+            $constructor_arg0 = $per_parse_arg // $recce->[Marpa::R2::Internal::Recognizer::RESOLVE_PACKAGE];
+        }
+        my @warnings;
+        my $eval_ok;
+        my $fatal_error;
+        DO_EVAL: {
+            local $EVAL_ERROR = undef;
+            local $SIG{__WARN__} = sub {
+                push @warnings, [ $_[0], ( caller 0 ) ];
+            };
+
+            $eval_ok = eval {
+                $semantics_arg0 = $per_parse_constructor->($constructor_arg0);
+                1;
+            };
+            $fatal_error = $EVAL_ERROR;
+        } ## end DO_EVAL:
+
+        if ( not $eval_ok or @warnings ) {
+            code_problems(
+                {   fatal_error => $fatal_error,
+                    grammar     => $grammar,
+                    eval_ok     => $eval_ok,
+                    warnings    => \@warnings,
+                    where       => 'constructing action object',
+                }
+            );
+        } ## end if ( not $eval_ok or @warnings )
+    } ## end if ( my $per_parse_constructor = $recce->[...])
+
+    $semantics_arg0 //= {};
+
+    my $value = Marpa::R2::Thin::V->new($tree);
+    $value->valued_force();
+    if ($slr) {
+        $value->slr_set($slr->thin());
+    }
+    else {
+        TOKEN_IX: for (my $token_ix = 2; $token_ix <= $#{$token_values}; $token_ix++) {
+            my $token_value = $token_values->[$token_ix];
+            $value->token_value_set($token_ix, $token_value) if defined $token_value;
+        }
+    }
+    local $Marpa::R2::Internal::Context::VALUATOR = $value;
+    value_trace( $value, $trace_values ? 1 : 0 );
+    $value->trace_values($trace_values);
+    $value->stack_mode_set();
+
+    my $null_values = $recce->[Marpa::R2::Internal::Recognizer::NULL_VALUES];
     my $nulling_closures = $recce->[Marpa::R2::Internal::Recognizer::CLOSURE_BY_SYMBOL_ID] ;
     my $rule_closures = $recce->[Marpa::R2::Internal::Recognizer::CLOSURE_BY_RULE_ID] ;
     REGISTRATION:
