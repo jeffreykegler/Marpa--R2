@@ -291,7 +291,7 @@ t/randal.t
 t/rewrite.t
 t/sequence.t
 t/sequence2.t
-t/sl_action.t
+t/sl_action2.t
 t/sl_asf.t
 t/sl_ast.t
 t/sl_astsyn.t
