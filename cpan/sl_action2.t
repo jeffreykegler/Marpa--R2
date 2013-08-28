@@ -32,26 +32,26 @@ use Marpa::R2;
 no warnings 'once';
 $My_Actions::hash_ref = {'a hash ref' => 1};
 $My_Actions::array_ref = ['an array ref'];
-$My_Actions::ref = \8675309;
-$My_Actions::code = sub { return 'code ref' };
+$My_Actions::scalar_ref = \8675309;
+$My_Actions::code_ref = sub { return 'code ref' };
 use warnings;
 
 my $grammar   = Marpa::R2::Scanless::G->new(
     {
-    semantics_package => 'My_Actions',
     source => \<<'END_OF_SOURCE',
 :default ::= action => ::array
 :start ::= S
 S ::= <array ref>  <hash ref>  <ref ref>  <code ref> 
 <array ref> ::= 'a' action => array_ref
 <hash ref> ::= 'a' action => hash_ref
-<ref ref>  ::= 'a' action => ref_ref
+<ref ref>  ::= 'a' action => scalar_ref
 <code ref>  ::= 'a' action => code_ref
 END_OF_SOURCE
 });
 
 sub do_parse {
-    my $slr = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
+    my $slr = Marpa::R2::Scanless::R->new(
+        { grammar => $grammar, semantics_package => 'My_Actions', } );
     $slr->read( \'aaaa' );
     return $slr->value();
 } ## end sub do_parse

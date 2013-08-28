@@ -973,15 +973,20 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                     last DO_CONSTANT if not defined $thingy_ref;
                     my $ref_type = Scalar::Util::reftype $thingy_ref;
                     if ( $ref_type eq q{} ) {
+                        my $rule_desc;
+                        if ( defined( my $slr = $Marpa::R2::Internal::slr ) )
+                        {
+                            $rule_desc = $slr->show_rule($rule_id);
+                        }
+                        else { $rule_desc = $grammar->brief_rule($rule_id); }
                         Marpa::R2::exception(
                             qq{An action resolved to a scalar.\n},
                             qq{  This is not allowed.\n},
                             qq{  A constant action must be a reference.\n},
-                            q{  Rule was },
-                            $grammar->brief_rule($rule_id),
-                            "\n"
+                            qq{  Rule was $rule_desc\n}
                         );
                     } ## end if ( $ref_type eq q{} )
+
                     if ( $ref_type eq 'CODE' ) {
 
                         # Set the nulling closure if this is the nulling symbol of a rule
@@ -1013,12 +1018,15 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                     # de-reference, because of confusion if it becomes a
                     # REF to CODE.
 
+                    my $rule_desc;
+                    if ( defined( my $slr = $Marpa::R2::Internal::slr ) ) {
+                        $rule_desc = $slr->show_rule($rule_id);
+                    }
+                    else { $rule_desc = $grammar->brief_rule($rule_id); }
                     Marpa::R2::exception(
                         qq{Constant action is not of an allowed type.\n},
                         qq{  It was of type reference to $ref_type.\n},
-                        q{  Rule was },
-                        $grammar->brief_rule($rule_id),
-                        "\n"
+                        qq{  Rule was $rule_desc\n}
                     );
                 } ## end DO_CONSTANT:
 
