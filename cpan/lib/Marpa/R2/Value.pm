@@ -847,13 +847,11 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
     local $Marpa::R2::Context::grammar = $grammar;
     local $Marpa::R2::Context::rule    = undef;
 
-    my $rule_resolutions =
-        $recce->[Marpa::R2::Internal::Recognizer::RULE_RESOLUTIONS];
-    if ( not $rule_resolutions ) {
+    if (not $recce->[Marpa::R2::Internal::Recognizer::REGISTRATIONS]) {
 
-        # If rule resolutions not determined, as will be the case
-        # in the first value call of a parse series, set them
-        $rule_resolutions =
+        # If rule, constant, and symbol registrations are not determined,
+        # as will be the case in the first value call of a parse series, set them
+        my $rule_resolutions =
             Marpa::R2::Internal::Recognizer::semantics_set( $recce,
             $per_parse_arg );
 
