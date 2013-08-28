@@ -1038,20 +1038,17 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                         @ops = ( $op_result_is_constant, $thingy_ref );
                         last SET_OPS;
                     } ## end if ( $ref_type eq 'SCALAR' )
-                    if (   $ref_type eq 'HASH'
-                        or $ref_type eq 'REF'
-                        or $ref_type eq 'ARRAY' )
+
+                    # No test for 'ARRAY' or 'HASH' --
+                    # The ref is currenly only to scalar and code slots in the symbol table,
+                    # and therefore cannot be to (among other things) an ARRAY or HASH
+
+                    if ( $ref_type eq 'REF' )
                     {
-                        # For hash and array, do not de-reference
-                        # so therefore, add another layer of reference to indicate
-                        # that this is a constant to be registered
                         @ops = ( $op_result_is_constant, $thingy_ref );
                         last SET_OPS;
                     } ## end if ( $ref_type eq 'HASH' or $ref_type eq 'REF' or ...)
 
-                    # When I implement ref to 'REF', I probably should not
-                    # de-reference, because of confusion if it becomes a
-                    # REF to CODE.
 
                     my $rule_desc;
                     if ( defined $slr ) {
