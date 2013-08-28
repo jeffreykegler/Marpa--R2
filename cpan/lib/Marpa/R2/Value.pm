@@ -792,7 +792,7 @@ sub show_semantics {
         my $op_name = Marpa::R2::Thin::op_name($op);
         push @op_descs, $op_name ;
         if ($op_name eq 'bless') {
-            push @op_descs, $ops[$op_ix];
+            push @op_descs, q{"} . $ops[$op_ix] . q{"};
             $op_ix++;
             next OP;
         }
@@ -1047,16 +1047,16 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                         @ops = ($op_result_is_undef);
                         last SET_OPS;
                     }
-                    my $constant_ix = $value->constant_register($thingy);
-                    @ops = ( $op_result_is_constant, $constant_ix );
+                    @ops = ( $op_result_is_constant, $thingy_ref );
                     last SET_OPS;
                 } ## end if ( $ref_type eq 'SCALAR' )
                 if (   $ref_type eq 'HASH'
                     or $ref_type eq 'ARRAY' )
                 {
                     # For hash and array, do not de-reference
-                    my $constant_ix = $value->constant_register($thingy_ref);
-                    @ops = ( $op_result_is_constant, $constant_ix );
+                    # so therefore, add another layer of reference to indicate
+                    # that this is a constant to be registered
+                    @ops = ( $op_result_is_constant, \$thingy_ref );
                     last SET_OPS;
                 } ## end if ( $ref_type eq 'HASH' or $ref_type eq 'ARRAY' )
 
@@ -1138,8 +1138,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
             my @bless_ops = ();
             if ( $blessing ne '::undef' ) {
-                my $constant_ix = $value->constant_register($blessing);
-                push @bless_ops, $op_bless, $constant_ix;
+                push @bless_ops, $op_bless, \$blessing;
             }
 
             Marpa::R2::exception(qq{Unknown semantics: "$semantics"})
@@ -1228,42 +1227,34 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
     for my $registration (
         @{ $recce->[Marpa::R2::Internal::Recognizer::REGISTRATIONS] } )
     {
-        my ( $type, $id, @ops ) = @{$registration};
+        my ( $type, $id, @raw_ops ) = @{$registration};
+        my @ops = ();
+        if ( $trace_values > 2 ) {
+            say {$trace_file_handle}
+                "Registering semantics for $type: ",
+                $grammar->symbol_name($id),
+                "\n", "  Semantics are ", show_semantics(@ops)
+                or Marpa::R2::exception("Cannot say to trace file handle");
+        } ## end if ( $trace_values > 2 )
+        OP: for my $raw_op (@raw_ops) {
+            if ( ref $raw_op ) {
+                push @ops, $value->constant_register( ${$raw_op} );
+                next OP;
+            }
+            push @ops, $raw_op;
+        } ## end OP: for my $raw_op (@raw_ops)
         if ( $type eq 'token' ) {
-            if ( $trace_values > 2 ) {
-                say {$trace_file_handle}
-                    "Registering semantics for lexeme: ",
-                    $grammar->symbol_name($id),
-                    "\n", "  Semantics are ", show_semantics(@ops)
-                    or
-                    Marpa::R2::exception("Cannot say to trace file handle");
-            } ## end if ( $trace_values > 2 )
             $value->token_register( $id, @ops );
             next REGISTRATION;
-        } ## end if ( $type eq 'token' )
+        }
         if ( $type eq 'nulling' ) {
-            if ( $trace_values > 2 ) {
-                say {$trace_file_handle}
-                    "Registering semantics for nulling symbol: ",
-                    $grammar->symbol_name($id),
-                    "\n", "  Semantics are ", show_semantics(@ops)
-                    or
-                    Marpa::R2::exception("Cannot say to trace file handle");
-            } ## end if ( $trace_values > 2 )
             $value->nulling_symbol_register( $id, @ops );
             next REGISTRATION;
-        } ## end if ( $type eq 'nulling' )
+        }
         if ( $type eq 'rule' ) {
-            if ( $trace_values > 2 ) {
-                say {$trace_file_handle} "Registering semantics for rule: ",
-                    $grammar->brief_rule($id),
-                    "\n", "  Semantics are ", show_semantics(@ops)
-                    or
-                    Marpa::R2::exception("Cannot say to trace file handle");
-            } ## end if ( $trace_values > 2 )
             $value->rule_register( $id, @ops );
             next REGISTRATION;
-        } ## end if ( $type eq 'rule' )
+        }
         Marpa::R2::exception(
             'Registration: with unknown type: ',
             Data::Dumper::Dumper($registration)
