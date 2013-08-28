@@ -212,11 +212,7 @@ __DATA__
 
     EVENTS
     READ_STRING_ERROR
-
-    { to be deleted? }
     NULL_VALUES
-    RULE_RESOLUTIONS
-    SYMBOL_RESOLUTIONS
 
     { Fields for new SLIF resolution logic
     -- must be reinitialized when evaluation is reset }

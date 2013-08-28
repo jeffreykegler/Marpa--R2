@@ -180,11 +180,7 @@ sub Marpa::R2::Recognizer::reset_evaluation {
     $recce->[Marpa::R2::Internal::Recognizer::PER_PARSE_CONSTRUCTOR] = undef;
     $recce->[Marpa::R2::Internal::Recognizer::READ_STRING_ERROR]     = undef;
     $recce->[Marpa::R2::Internal::Recognizer::RESOLVE_PACKAGE]       = undef;
-
-    # delete these?
     $recce->[Marpa::R2::Internal::Recognizer::NULL_VALUES]        = undef;
-    $recce->[Marpa::R2::Internal::Recognizer::RULE_RESOLUTIONS]   = undef;
-    $recce->[Marpa::R2::Internal::Recognizer::SYMBOL_RESOLUTIONS] = undef;
 
     $recce->[Marpa::R2::Internal::Recognizer::REGISTRATIONS]         = undef;
     $recce->[Marpa::R2::Internal::Recognizer::CLOSURE_BY_SYMBOL_ID] = undef;

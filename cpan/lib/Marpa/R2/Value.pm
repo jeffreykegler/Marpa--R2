@@ -652,8 +652,7 @@ sub Marpa::R2::Internal::Recognizer::semantics_set {
     $resolution_data{semantics_by_lexeme} = \@semantics_by_lexeme;
     $resolution_data{blessing_by_lexeme}  = \@blessing_by_lexeme;
 
-    return ( $recce->[Marpa::R2::Internal::Recognizer::RULE_RESOLUTIONS] =
-            \%resolution_data );
+    return \%resolution_data ;
 
 }    # semantics_set
 
