@@ -164,23 +164,33 @@ sub Marpa::R2::Recognizer::thin {
 sub Marpa::R2::Recognizer::reset_evaluation {
     my ($recce) = @_;
     my $grammar = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
-    my $package_source = $recce->[Marpa::R2::Internal::Recognizer::RESOLVE_PACKAGE_SOURCE];
-    if (defined $package_source and $package_source ne 'legacy') {
-      # Packaage source, once legacy, stays legacy
-      # Otherwise, reset it
-      $recce->[Marpa::R2::Internal::Recognizer::RESOLVE_PACKAGE_SOURCE] = undef;
-    }
-    $recce->[Marpa::R2::Internal::Recognizer::ASF_OR_NODES]           = [];
-    $recce->[Marpa::R2::Internal::Recognizer::B_C]                    = undef;
-    $recce->[Marpa::R2::Internal::Recognizer::EVENTS]                 = [];
-    $recce->[Marpa::R2::Internal::Recognizer::NULL_VALUES]            = undef;
-    $recce->[Marpa::R2::Internal::Recognizer::O_C]                    = undef;
-    $recce->[Marpa::R2::Internal::Recognizer::PER_PARSE_CONSTRUCTOR]  = undef;
-    $recce->[Marpa::R2::Internal::Recognizer::READ_STRING_ERROR]      = undef;
-    $recce->[Marpa::R2::Internal::Recognizer::RESOLVE_PACKAGE]        = undef;
-    $recce->[Marpa::R2::Internal::Recognizer::RULE_RESOLUTIONS]       = undef;
-    $recce->[Marpa::R2::Internal::Recognizer::SYMBOL_RESOLUTIONS]     = undef;
-    $recce->[Marpa::R2::Internal::Recognizer::T_C]                    = undef;
+    my $package_source =
+        $recce->[Marpa::R2::Internal::Recognizer::RESOLVE_PACKAGE_SOURCE];
+    if ( defined $package_source and $package_source ne 'legacy' ) {
+
+        # Packaage source, once legacy, stays legacy
+        # Otherwise, reset it
+        $recce->[Marpa::R2::Internal::Recognizer::RESOLVE_PACKAGE_SOURCE] =
+            undef;
+    } ## end if ( defined $package_source and $package_source ne ...)
+    $recce->[Marpa::R2::Internal::Recognizer::ASF_OR_NODES]          = [];
+    $recce->[Marpa::R2::Internal::Recognizer::B_C]                   = undef;
+    $recce->[Marpa::R2::Internal::Recognizer::EVENTS]                = [];
+    $recce->[Marpa::R2::Internal::Recognizer::O_C]                   = undef;
+    $recce->[Marpa::R2::Internal::Recognizer::PER_PARSE_CONSTRUCTOR] = undef;
+    $recce->[Marpa::R2::Internal::Recognizer::READ_STRING_ERROR]     = undef;
+    $recce->[Marpa::R2::Internal::Recognizer::RESOLVE_PACKAGE]       = undef;
+
+    # delete these?
+    $recce->[Marpa::R2::Internal::Recognizer::NULL_VALUES]        = undef;
+    $recce->[Marpa::R2::Internal::Recognizer::RULE_RESOLUTIONS]   = undef;
+    $recce->[Marpa::R2::Internal::Recognizer::SYMBOL_RESOLUTIONS] = undef;
+
+    $recce->[Marpa::R2::Internal::Recognizer::REGISTRATIONS]         = undef;
+    $recce->[Marpa::R2::Internal::Recognizer::CLOSURES_BY_SYMBOL_ID] = undef;
+    $recce->[Marpa::R2::Internal::Recognizer::CLOSURES_BY_RULE_ID]   = undef;
+
+    $recce->[Marpa::R2::Internal::Recognizer::T_C] = undef;
     return;
 } ## end sub Marpa::R2::Recognizer::reset_evaluation
 

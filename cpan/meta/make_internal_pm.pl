@@ -210,17 +210,22 @@ __DATA__
     { The following fields must be reinitialized when
     evaluation is reset }
 
-    RULE_RESOLUTIONS
-    SYMBOL_RESOLUTIONS
-    NULL_VALUES
     EVENTS
     READ_STRING_ERROR
+
+    { to be deleted? }
+    NULL_VALUES
+    RULE_RESOLUTIONS
+    SYMBOL_RESOLUTIONS
 
     { Fields for new SLIF resolution logic
     -- must be reinitialized when evaluation is reset }
     PER_PARSE_CONSTRUCTOR
     RESOLVE_PACKAGE
     RESOLVE_PACKAGE_SOURCE
+    REGISTRATIONS
+    CLOSURES_BY_SYMBOL_ID
+    CLOSURES_BY_RULE_ID
 
     { This is the end of the list of fields which
     must be reinitialized when evaluation is reset }

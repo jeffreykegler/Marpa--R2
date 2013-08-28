@@ -1186,6 +1186,9 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
         } ## end SET_OPS:
 
+        # We are not in a position to start recording our registrations
+        my @registrations = ();
+
         if ( defined $rule_id ) {
             $value->rule_register( $rule_id, @ops );
             if ( $trace_values > 2 ) {
@@ -1195,6 +1198,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                     or
                     Marpa::R2::exception("Cannot say to trace file handle");
             } ## end if ( $trace_values > 2 )
+            push @registrations, [ 'rule', $rule_id, @ops ];
         } ## end if ( defined $rule_id )
 
         if ( defined $nulling_symbol_id ) {
@@ -1214,6 +1218,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
             } ## end if ( defined $slr and $tracer->symbol_name(...))
 
             $value->nulling_symbol_register( $nulling_symbol_id, @ops );
+            push @registrations, [ 'nulling', $nulling_symbol_id, @ops ];
             if ( $trace_values > 2 ) {
                 say {$trace_file_handle}
                     "Registering semantics for nulling symbol: ",
@@ -1226,6 +1231,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
         if ( defined $lexeme_id ) {
             $value->token_register( $lexeme_id, @ops );
+            push @registrations, [ 'token', $lexeme_id, @ops ];
             if ( $trace_values > 2 ) {
                 say {$trace_file_handle}
                     "Registering semantics for lexeme: ",
@@ -1235,6 +1241,8 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                     Marpa::R2::exception("Cannot say to trace file handle");
             } ## end if ( $trace_values > 2 )
         } ## end if ( defined $lexeme_id )
+
+        $recce->[Marpa::R2::Internal::Recognizer::REGISTRATIONS] = \@registrations;
 
     } ## end WORK_ITEM: for my $work_item (@work_list)
 
