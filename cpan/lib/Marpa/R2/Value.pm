@@ -975,9 +975,12 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
     # Registering operations is postponed to this point, because
     # the valuator must exist for this to happen.  In the future,
     # it may be best to have a separate semantics object.
-    my @nulling_closures;
+    my @nulling_closures = ();
+    my @registrations = ();
+
     WORK_ITEM: for my $work_item (@work_list) {
         my ( $rule_id, $lexeme_id, $semantics, $blessing ) = @{$work_item};
+
 
         my ( $closure, $rule, $rule_length, $is_sequence_rule,
             $is_discard_sequence_rule, $nulling_symbol_id );
@@ -1186,9 +1189,6 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
         } ## end SET_OPS:
 
-        # We are not in a position to start recording our registrations
-        my @registrations = ();
-
         if ( defined $rule_id ) {
             $value->rule_register( $rule_id, @ops );
             if ( $trace_values > 2 ) {
@@ -1243,8 +1243,13 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
         } ## end if ( defined $lexeme_id )
 
         $recce->[Marpa::R2::Internal::Recognizer::REGISTRATIONS] = \@registrations;
+        $recce->[Marpa::R2::Internal::Recognizer::CLOSURE_BY_SYMBOL_ID] = \@nulling_closures;
+        $recce->[Marpa::R2::Internal::Recognizer::CLOSURE_BY_RULE_ID] = $closure_by_rule_id;
 
     } ## end WORK_ITEM: for my $work_item (@work_list)
+
+    my $nulling_closures = $recce->[Marpa::R2::Internal::Recognizer::CLOSURE_BY_SYMBOL_ID] ;
+    my $rule_closures = $recce->[Marpa::R2::Internal::Recognizer::CLOSURE_BY_RULE_ID] ;
 
     STEP: while (1) {
         my ( $value_type, @value_data ) = $value->stack_step();
@@ -1288,7 +1293,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
         if ( $value_type eq 'MARPA_STEP_NULLING_SYMBOL' ) {
             my ($token_id) = @value_data;
-            my $value_ref = $nulling_closures[$token_id];
+            my $value_ref = $nulling_closures->[$token_id];
             my $result;
 
             my @warnings;
@@ -1330,7 +1335,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
         if ( $value_type eq 'MARPA_STEP_RULE' ) {
             my ( $rule_id, $values ) = @value_data;
-            my $closure = $closure_by_rule_id->[$rule_id];
+            my $closure = $rule_closures->[$rule_id];
 
             next STEP if not defined $closure;
             my $result;

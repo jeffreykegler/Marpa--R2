@@ -111,8 +111,8 @@ use constant PER_PARSE_CONSTRUCTOR => 29;
 use constant RESOLVE_PACKAGE => 30;
 use constant RESOLVE_PACKAGE_SOURCE => 31;
 use constant REGISTRATIONS => 32;
-use constant CLOSURES_BY_SYMBOL_ID => 33;
-use constant CLOSURES_BY_RULE_ID => 34;
+use constant CLOSURE_BY_SYMBOL_ID => 33;
+use constant CLOSURE_BY_RULE_ID => 34;
 
 package Marpa::R2::Internal::Progress_Report;
 use constant RULE_ID => 0;

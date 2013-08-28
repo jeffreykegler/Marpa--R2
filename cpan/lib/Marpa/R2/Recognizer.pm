@@ -187,8 +187,8 @@ sub Marpa::R2::Recognizer::reset_evaluation {
     $recce->[Marpa::R2::Internal::Recognizer::SYMBOL_RESOLUTIONS] = undef;
 
     $recce->[Marpa::R2::Internal::Recognizer::REGISTRATIONS]         = undef;
-    $recce->[Marpa::R2::Internal::Recognizer::CLOSURES_BY_SYMBOL_ID] = undef;
-    $recce->[Marpa::R2::Internal::Recognizer::CLOSURES_BY_RULE_ID]   = undef;
+    $recce->[Marpa::R2::Internal::Recognizer::CLOSURE_BY_SYMBOL_ID] = undef;
+    $recce->[Marpa::R2::Internal::Recognizer::CLOSURE_BY_RULE_ID]   = undef;
 
     $recce->[Marpa::R2::Internal::Recognizer::T_C] = undef;
     return;

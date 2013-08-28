@@ -224,8 +224,8 @@ __DATA__
     RESOLVE_PACKAGE
     RESOLVE_PACKAGE_SOURCE
     REGISTRATIONS
-    CLOSURES_BY_SYMBOL_ID
-    CLOSURES_BY_RULE_ID
+    CLOSURE_BY_SYMBOL_ID
+    CLOSURE_BY_RULE_ID
 
     { This is the end of the list of fields which
     must be reinitialized when evaluation is reset }
