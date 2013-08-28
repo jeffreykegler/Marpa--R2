@@ -17,6 +17,16 @@ Revision history for Marpa::R2
 
 2.069_001
 
+   * Per-parse arg can now be specified explicitly as arg
+     of $slr->value().
+
+   * Added semantics_package named argument to SLIF recognizer.
+     
+   * Semantics docs updated for SLIF.
+
+   * Fix SLIF bug when using default action with null parse --
+     default action was not being called, it now is.
+
    * New series of developer's releases.
 
 2.068000 Thu Aug 22 19:13:34 PDT 2013

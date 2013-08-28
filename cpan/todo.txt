@@ -3,12 +3,12 @@
 * Document
   * fully qualified actions now allowed in SLIF
   * null_ranking adverb added
-  * $slg->set, $slr_set for tested named arguments
+  * semantics_package named argument
+  * $slr->value() arg
+  * Discourage action_object named argument
+  * $slg->set() for trace_file_handle named argument
+  * $slr->set() for end, trace_file_handle, semantics_package named arguments
   * $slr->series_restart().
-
-* Display for Null POD
-
-* Do author.t display test
 
 Later:
 
