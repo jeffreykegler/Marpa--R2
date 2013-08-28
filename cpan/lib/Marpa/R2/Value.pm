@@ -180,7 +180,7 @@ sub Marpa::R2::Internal::Recognizer::resolve_lexeme_semantics {
     my $symbol = $symbols->[$lexeme_id];
 
     my $semantics = $symbol->[Marpa::R2::Internal::Symbol::LEXEME_SEMANTICS];
-    $semantics = "::!default" if not defined $semantics;
+    $semantics = '::!default' if not defined $semantics;
 
     my $blessing = $symbol->[Marpa::R2::Internal::Symbol::BLESSING];
     return [ $semantics, '::undef' ] if not defined $blessing;
@@ -321,7 +321,7 @@ sub Marpa::R2::Internal::Recognizer::default_semantics {
 
         if ( not $rule_resolution ) {
             my $rule_desc;
-            if ( defined( my $slr = $Marpa::R2::Internal::slr ) ) {
+            if ( defined( my $slr = $Marpa::R2::Internal::SLR ) ) {
                 $rule_desc  = $slr->show_rule($rule_id);
             }
             else { $rule_desc = $grammar->brief_rule($rule_id); }
@@ -670,7 +670,7 @@ sub Marpa::R2::Internal::Recognizer::semantics_set {
                 }
                 last CHECK_BLESSING if $blessing eq '::undef';
                 last CHECK_BLESSING
-                    if $blessing =~ /\A [A-Za-z] [:\w]* \z /xms;
+                    if $blessing =~ /\A [[:alpha:]] [:\w]* \z /xms;
                 Marpa::R2::exception(
                     q{Unknown blessing for lexeme },
                     $grammar->symbol_name($lexeme_id),
@@ -884,7 +884,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
     local $Marpa::R2::Context::grammar = $grammar;
     local $Marpa::R2::Context::rule    = undef;
-    local $Marpa::R2::Internal::slr    = $slr; # for error messages
+    local $Marpa::R2::Internal::SLR    = $slr; # for error messages
 
     if ( not $recce->[Marpa::R2::Internal::Recognizer::REGISTRATIONS] ) {
 
@@ -1008,7 +1008,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                     my $ref_type = Scalar::Util::reftype $thingy_ref;
                     if ( $ref_type eq q{} ) {
                         my $rule_desc;
-                        if ( defined( my $slr = $Marpa::R2::Internal::slr ) )
+                        if ( defined $slr )
                         {
                             $rule_desc = $slr->show_rule($rule_id);
                         }
@@ -1054,7 +1054,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                     # REF to CODE.
 
                     my $rule_desc;
-                    if ( defined( my $slr = $Marpa::R2::Internal::slr ) ) {
+                    if ( defined $slr ) {
                         $rule_desc = $slr->show_rule($rule_id);
                     }
                     else { $rule_desc = $grammar->brief_rule($rule_id); }
@@ -1302,8 +1302,8 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
             say {$trace_file_handle}
                 "Registering semantics for $type: ",
                 $grammar->symbol_name($id),
-                "\n", "  Semantics are ", show_semantics(@ops)
-                or Marpa::R2::exception("Cannot say to trace file handle");
+                "\n", '  Semantics are ', show_semantics(@ops)
+                or Marpa::R2::exception('Cannot say to trace file handle');
         } ## end if ( $trace_values > 2 )
         OP: for my $raw_op (@raw_ops) {
             if ( ref $raw_op ) {
@@ -1560,7 +1560,7 @@ sub Marpa::R2::Recognizer::value
                     q{  In this case, the package was "},
                     $recce
                         ->[Marpa::R2::Internal::Recognizer::RESOLVE_PACKAGE],
-                    q{"\n"}
+                    qq{"\n"}
                 );
             } ## end if ( not defined $per_parse_arg )
 
@@ -1574,7 +1574,7 @@ sub Marpa::R2::Recognizer::value
                     q{  In this case, the original package was "},
                     $recce
                         ->[Marpa::R2::Internal::Recognizer::RESOLVE_PACKAGE],
-                    q{"\n"},
+                    qq{"\n"},
                     qq{  and the blessing in this call was "$arg_blessing"\n}
                 );
             } ## end if ( not defined $arg_blessing )
@@ -1598,7 +1598,7 @@ sub Marpa::R2::Recognizer::value
         if ( not $tree ) {
 
             # No tree means we are in ASF mode
-            Marpa::R2::exception("value() called for recognizer in ASF mode");
+            Marpa::R2::exception('value() called for recognizer in ASF mode');
         }
         my $max_parses =
             $recce->[Marpa::R2::Internal::Recognizer::MAX_PARSES];
@@ -1936,8 +1936,8 @@ sub Marpa::R2::Recognizer::verbose_or_node {
     my $position        = $bocage->_marpa_b_or_node_position($or_node_id);
     my $origin_earleme  = $recce_c->earleme($origin);
     my $current_earleme = $recce_c->earleme($set);
-    my $text
-        .= "OR-node #$or_node_id: R$irl_id" . q{:}
+    my $text =
+          "OR-node #$or_node_id: R$irl_id" . q{:}
         . $position . q{@}
         . $origin_earleme . q{-}
         . $current_earleme . "\n";

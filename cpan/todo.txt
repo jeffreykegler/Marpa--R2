@@ -1,8 +1,4 @@
-* Test SLIF action names
-  * When shadowed by CODE slot
-  * Scalar but not a ref -- should fatal
-  * !Scalar and !Code slot -- should fail to resolve
-  * ref to code, scalar, hash, array -- should resolve as per NAIF
+* Fix NAIF doc for constant actions
 
 * Document
   * fully qualified actions now allowed in SLIF
@@ -11,6 +7,8 @@
   * $slr->series_restart().
 
 * Display for Null POD
+
+* Do author.t display test
 
 Later:
 
