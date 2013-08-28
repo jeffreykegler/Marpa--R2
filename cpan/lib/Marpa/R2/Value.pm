@@ -142,7 +142,6 @@ sub Marpa::R2::Internal::Recognizer::resolve_action {
 
 } ## end sub Marpa::R2::Internal::Recognizer::resolve_action
 
-
 # Elaborate the semantics for a lexeme.  "Resolve" may not be quite
 # the right term, since (at least right now) closures are not
 # involved.
@@ -150,7 +149,7 @@ sub Marpa::R2::Internal::Recognizer::resolve_lexeme_semantics {
     my ( $recce, $lexeme_id ) = @_;
     my $grammar = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my $symbols = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
-    my $tracer    = $grammar->[Marpa::R2::Internal::Grammar::TRACER];
+    my $tracer  = $grammar->[Marpa::R2::Internal::Grammar::TRACER];
     my $trace_actions =
         $recce->[Marpa::R2::Internal::Recognizer::TRACE_ACTIONS];
     my $bless_package =
@@ -161,14 +160,14 @@ sub Marpa::R2::Internal::Recognizer::resolve_lexeme_semantics {
     $semantics = "::!default" if not defined $semantics;
 
     my $blessing = $symbol->[Marpa::R2::Internal::Symbol::BLESSING];
-    return [$semantics, '::undef'] if not defined $blessing;
-    return [$semantics, '::undef'] if $blessing eq '::undef';
+    return [ $semantics, '::undef' ] if not defined $blessing;
+    return [ $semantics, '::undef' ] if $blessing eq '::undef';
     if ( $blessing =~ m/\A [:][:] /xms ) {
         my $lexeme_name = $tracer->symbol_name($lexeme_id);
         return qq{Symbol "$lexeme_name" has unknown blessing: "$blessing"};
     }
     if ( $blessing =~ m/ [:][:] /xms ) {
-        return [$semantics, $blessing];
+        return [ $semantics, $blessing ];
     }
     if ( not defined $bless_package ) {
         my $lexeme_name = $tracer->symbol_name($lexeme_id);
@@ -177,7 +176,7 @@ sub Marpa::R2::Internal::Recognizer::resolve_lexeme_semantics {
             . qq{  The blessing for "$lexeme_name" was "$blessing"\n};
     } ## end if ( not defined $bless_package )
     return [ $semantics, $bless_package . q{::} . $blessing ];
-} ## end sub Marpa::R2::Internal::Recognizer::resolve_symbol_semantics
+} ## end sub Marpa::R2::Internal::Recognizer::resolve_lexeme_semantics
 
 sub Marpa::R2::Internal::Recognizer::add_blessing {
     my ( $recce, $resolution, $blessing ) = @_;
@@ -193,7 +192,7 @@ sub Marpa::R2::Internal::Recognizer::add_blessing {
     $semantics = '::array' if $semantics eq '::!default';
     CHECK_SEMANTICS: {
         last CHECK_SEMANTICS if $semantics eq '::array';
-        last CHECK_SEMANTICS if (substr $semantics, 0, 1) eq '[';
+        last CHECK_SEMANTICS if ( substr $semantics, 0, 1 ) eq '[';
         return qq{Attempt to bless, but improper semantics: "$semantics"};
     }
 
@@ -343,7 +342,7 @@ sub Marpa::R2::Internal::Recognizer::brief_rule_list {
 } ## end sub Marpa::R2::Internal::Recognizer::brief_rule_list
 
 sub Marpa::R2::Internal::Recognizer::semantics_set {
-    my ( $recce, $per_parse_arg) = @_;
+    my ( $recce, $per_parse_arg ) = @_;
     my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
     my $tracer    = $grammar->[Marpa::R2::Internal::Grammar::TRACER];
@@ -357,7 +356,8 @@ sub Marpa::R2::Internal::Recognizer::semantics_set {
     my @semantics_by_rule_id = ();
     my @blessing_by_rule_id  = ();
 
-    my $package_source = $recce->[Marpa::R2::Internal::Recognizer::RESOLVE_PACKAGE_SOURCE];
+    my $package_source =
+        $recce->[Marpa::R2::Internal::Recognizer::RESOLVE_PACKAGE_SOURCE];
     if ( not defined $package_source ) {
         DETERMINE_RESOLVE_PACKAGE_SOURCE: {
             if ( defined $per_parse_arg ) {
@@ -407,8 +407,8 @@ sub Marpa::R2::Internal::Recognizer::semantics_set {
         ) = @{$resolution};
     } ## end if ( defined( my $action_object_class = $grammar->[...]))
 
-    my ( $rule_resolutions, $lexeme_resolutions )
-        = Marpa::R2::Internal::Recognizer::default_semantics($recce);
+    my ( $rule_resolutions, $lexeme_resolutions ) =
+        Marpa::R2::Internal::Recognizer::default_semantics($recce);
 
     # Set the arrays, and perform various checks on the resolutions
     # we received
@@ -435,7 +435,8 @@ sub Marpa::R2::Internal::Recognizer::semantics_set {
                 } ## end if ( '[' eq substr $semantics, 0, 1 and ']' eq ...)
 
                 state $allowed_semantics = {
-                    map { ; ( $_, 1 ) } qw(::array ::undef ::first ::whatever ::!default),
+                    map { ; ( $_, 1 ) }
+                        qw(::array ::undef ::first ::whatever ::!default),
                     q{}
                 };
                 last REFINE_SEMANTICS if $allowed_semantics->{$semantics};
@@ -469,7 +470,7 @@ sub Marpa::R2::Internal::Recognizer::semantics_set {
                     qq{  Blessing is "$blessing"\n},
                     qq{  Semantics are "$semantics"\n}
                 );
-            } ## end if ( $blessing ne q{} and not $closure and $semantics...)
+            } ## end if ( $blessing ne '::undef' and not $closure and ...)
 
         } ## end RULE: for my $rule_id ( $grammar->rule_ids() )
 
@@ -593,7 +594,8 @@ sub Marpa::R2::Internal::Recognizer::semantics_set {
         \@null_symbol_closures;
 
     my @semantics_by_lexeme = ();
-    my @blessing_by_lexeme = ();
+    my @blessing_by_lexeme  = ();
+
     # Check the lexeme semantics
     {
         # ::whatever is deprecated and has been removed from the docs
@@ -612,8 +614,7 @@ sub Marpa::R2::Internal::Recognizer::semantics_set {
                     last CHECK_SEMANTICS;
                 }
                 state $allowed_semantics =
-                    { map { ; ( $_, 1 ) }
-                        qw(::array ::undef ::!default ) };
+                    { map { ; ( $_, 1 ) } qw(::array ::undef ::!default ) };
 
                 if ( not $allowed_semantics->{$semantics} ) {
                     Marpa::R2::exception(
@@ -649,7 +650,7 @@ sub Marpa::R2::Internal::Recognizer::semantics_set {
 
     # set the symbol resolutions
     $resolution_data{semantics_by_lexeme} = \@semantics_by_lexeme;
-    $resolution_data{blessing_by_lexeme} = \@blessing_by_lexeme;
+    $resolution_data{blessing_by_lexeme}  = \@blessing_by_lexeme;
 
     return ( $recce->[Marpa::R2::Internal::Recognizer::RULE_RESOLUTIONS] =
             \%resolution_data );
@@ -784,61 +785,62 @@ sub code_problems {
 
 # Dump semnatics for diagnostics
 sub show_semantics {
-    my (@ops) = @_;
+    my (@ops)    = @_;
     my @op_descs = ();
-    my $op_ix = 0;
+    my $op_ix    = 0;
     OP: while ( $op_ix < scalar @ops ) {
-        my $op = $ops[$op_ix++];
+        my $op      = $ops[ $op_ix++ ];
         my $op_name = Marpa::R2::Thin::op_name($op);
-        push @op_descs, $op_name ;
-        if ($op_name eq 'bless') {
+        push @op_descs, $op_name;
+        if ( $op_name eq 'bless' ) {
             push @op_descs, q{"} . $ops[$op_ix] . q{"};
             $op_ix++;
             next OP;
         }
-        if ($op_name eq 'push_one') {
+        if ( $op_name eq 'push_one' ) {
             push @op_descs, $ops[$op_ix];
             $op_ix++;
             next OP;
         }
-        if ($op_name eq 'result_is_rhs_n' ) {
+        if ( $op_name eq 'result_is_rhs_n' ) {
             push @op_descs, $ops[$op_ix];
             $op_ix++;
             next OP;
         }
-        if ($op_name eq 'result_is_n_of_sequence' ) {
+        if ( $op_name eq 'result_is_n_of_sequence' ) {
             push @op_descs, $ops[$op_ix];
             $op_ix++;
             next OP;
         }
-        if ($op_name eq 'result_is_constant' ) {
+        if ( $op_name eq 'result_is_constant' ) {
             push @op_descs, $ops[$op_ix];
             $op_ix++;
             next OP;
         }
-        if ($op_name eq 'alternative' ) {
+        if ( $op_name eq 'alternative' ) {
             push @op_descs, $ops[$op_ix];
             $op_ix++;
             push @op_descs, $ops[$op_ix];
             $op_ix++;
             next OP;
-        }
-    }
+        } ## end if ( $op_name eq 'alternative' )
+    } ## end OP: while ( $op_ix < scalar @ops )
     return join q{ }, @op_descs;
 } ## end sub show_semantics
 
 sub Marpa::R2::Internal::Recognizer::evaluate {
-    my ($recce, $slr, $per_parse_arg) = @_;
+    my ( $recce, $slr, $per_parse_arg ) = @_;
     my $recce_c = $recce->[Marpa::R2::Internal::Recognizer::C];
     my $bocage  = $recce->[Marpa::R2::Internal::Recognizer::B_C];
     my $order   = $recce->[Marpa::R2::Internal::Recognizer::O_C];
     my $tree    = $recce->[Marpa::R2::Internal::Recognizer::T_C];
     my $grammar = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
-    my $trace_file_handle = $recce->[Marpa::R2::Internal::Recognizer::TRACE_FILE_HANDLE];
+    my $trace_file_handle =
+        $recce->[Marpa::R2::Internal::Recognizer::TRACE_FILE_HANDLE];
     my $token_values =
         $recce->[Marpa::R2::Internal::Recognizer::TOKEN_VALUES];
     my $grammar_c    = $grammar->[Marpa::R2::Internal::Grammar::C];
-    my $tracer    = $grammar->[Marpa::R2::Internal::Grammar::TRACER];
+    my $tracer       = $grammar->[Marpa::R2::Internal::Grammar::TRACER];
     my $symbols      = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
     my $rules        = $grammar->[Marpa::R2::Internal::Grammar::RULES];
     my $trace_values = $recce->[Marpa::R2::Internal::Recognizer::TRACE_VALUES]
@@ -847,7 +849,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
     local $Marpa::R2::Context::grammar = $grammar;
     local $Marpa::R2::Context::rule    = undef;
 
-    if (not $recce->[Marpa::R2::Internal::Recognizer::REGISTRATIONS]) {
+    if ( not $recce->[Marpa::R2::Internal::Recognizer::REGISTRATIONS] ) {
 
         # If rule, constant, and symbol registrations are not determined,
         # as will be the case in the first value call of a parse series, set them
@@ -855,315 +857,330 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
             Marpa::R2::Internal::Recognizer::semantics_set( $recce,
             $per_parse_arg );
 
-    my $null_values = $recce->[Marpa::R2::Internal::Recognizer::NULL_VALUES];
-    my $semantics_by_rule_id  = $rule_resolutions->{semantics};
-    my $blessing_by_rule_id   = $rule_resolutions->{blessing};
-    my $closure_by_rule_id    = $rule_resolutions->{closure};
-    my $semantics_by_lexeme_id = $rule_resolutions->{semantics_by_lexeme};
-    my $blessing_by_lexeme_id = $rule_resolutions->{blessing_by_lexeme};
+        my $null_values =
+            $recce->[Marpa::R2::Internal::Recognizer::NULL_VALUES];
+        my $semantics_by_rule_id   = $rule_resolutions->{semantics};
+        my $blessing_by_rule_id    = $rule_resolutions->{blessing};
+        my $closure_by_rule_id     = $rule_resolutions->{closure};
+        my $semantics_by_lexeme_id = $rule_resolutions->{semantics_by_lexeme};
+        my $blessing_by_lexeme_id  = $rule_resolutions->{blessing_by_lexeme};
 
-    state $op_bless         = Marpa::R2::Thin::op('bless');
-    state $op_callback      = Marpa::R2::Thin::op('callback');
-    state $op_push_length   = Marpa::R2::Thin::op('push_length');
-    state $op_push_one      = Marpa::R2::Thin::op('push_one');
-    state $op_push_sequence = Marpa::R2::Thin::op('push_sequence');
-    state $op_push_start_location =
-        Marpa::R2::Thin::op('push_start_location');
-    state $op_push_values        = Marpa::R2::Thin::op('push_values');
-    state $op_result_is_array    = Marpa::R2::Thin::op('result_is_array');
-    state $op_result_is_constant = Marpa::R2::Thin::op('result_is_constant');
-    state $op_result_is_n_of_sequence =
-        Marpa::R2::Thin::op('result_is_n_of_sequence');
-    state $op_result_is_rhs_n = Marpa::R2::Thin::op('result_is_rhs_n');
-    state $op_result_is_token_value =
-        Marpa::R2::Thin::op('result_is_token_value');
-    state $op_result_is_undef = Marpa::R2::Thin::op('result_is_undef');
+        state $op_bless         = Marpa::R2::Thin::op('bless');
+        state $op_callback      = Marpa::R2::Thin::op('callback');
+        state $op_push_length   = Marpa::R2::Thin::op('push_length');
+        state $op_push_one      = Marpa::R2::Thin::op('push_one');
+        state $op_push_sequence = Marpa::R2::Thin::op('push_sequence');
+        state $op_push_start_location =
+            Marpa::R2::Thin::op('push_start_location');
+        state $op_push_values     = Marpa::R2::Thin::op('push_values');
+        state $op_result_is_array = Marpa::R2::Thin::op('result_is_array');
+        state $op_result_is_constant =
+            Marpa::R2::Thin::op('result_is_constant');
+        state $op_result_is_n_of_sequence =
+            Marpa::R2::Thin::op('result_is_n_of_sequence');
+        state $op_result_is_rhs_n = Marpa::R2::Thin::op('result_is_rhs_n');
+        state $op_result_is_token_value =
+            Marpa::R2::Thin::op('result_is_token_value');
+        state $op_result_is_undef = Marpa::R2::Thin::op('result_is_undef');
 
-    my @nulling_symbol_by_semantic_rule;
-    NULLING_SYMBOL: for my $nulling_symbol ( 0 .. $#{$null_values} ) {
-        my $semantic_rule = $null_values->[$nulling_symbol];
-        next NULLING_SYMBOL if not defined $semantic_rule;
-        $nulling_symbol_by_semantic_rule[$semantic_rule] = $nulling_symbol;
-    }
+        my @nulling_symbol_by_semantic_rule;
+        NULLING_SYMBOL: for my $nulling_symbol ( 0 .. $#{$null_values} ) {
+            my $semantic_rule = $null_values->[$nulling_symbol];
+            next NULLING_SYMBOL if not defined $semantic_rule;
+            $nulling_symbol_by_semantic_rule[$semantic_rule] =
+                $nulling_symbol;
+        } ## end NULLING_SYMBOL: for my $nulling_symbol ( 0 .. $#{$null_values} )
 
-    my @work_list = ();
-    RULE: for my $rule_id ( $grammar->rule_ids() ) {
+        my @work_list = ();
+        RULE: for my $rule_id ( $grammar->rule_ids() ) {
 
-        my $semantics = $semantics_by_rule_id->[$rule_id];
-        my $blessing  = $blessing_by_rule_id->[$rule_id];
+            my $semantics = $semantics_by_rule_id->[$rule_id];
+            my $blessing  = $blessing_by_rule_id->[$rule_id];
 
-        $semantics = '::undef'  if $semantics eq '::!default';
-        $semantics = '[values]' if $semantics eq '::array';
-        $semantics = '::undef'  if $semantics eq '::whatever';
-        $semantics = '::rhs0'   if $semantics eq '::first';
+            $semantics = '::undef'  if $semantics eq '::!default';
+            $semantics = '[values]' if $semantics eq '::array';
+            $semantics = '::undef'  if $semantics eq '::whatever';
+            $semantics = '::rhs0'   if $semantics eq '::first';
 
-        push @work_list, [ $rule_id, undef, $semantics, $blessing ];
-    } ## end RULE: for my $rule_id ( $grammar->rule_ids() )
+            push @work_list, [ $rule_id, undef, $semantics, $blessing ];
+        } ## end RULE: for my $rule_id ( $grammar->rule_ids() )
 
-    RULE: for my $lexeme_id ( 0 .. $#{$symbols} ) {
+        RULE: for my $lexeme_id ( 0 .. $#{$symbols} ) {
 
-        my $semantics = $semantics_by_lexeme_id->[$lexeme_id];
-        my $blessing  = $blessing_by_lexeme_id->[$lexeme_id];
+            my $semantics = $semantics_by_lexeme_id->[$lexeme_id];
+            my $blessing  = $blessing_by_lexeme_id->[$lexeme_id];
 
-        $semantics = '::value' if $semantics eq '::!default';
-        $semantics = '[value]' if $semantics eq '::array';
+            $semantics = '::value' if $semantics eq '::!default';
+            $semantics = '[value]' if $semantics eq '::array';
 
-        push @work_list, [ undef, $lexeme_id, $semantics, $blessing ];
-    } ## end RULE: for my $lexeme_id ( 0 .. $#{$symbols} )
+            push @work_list, [ undef, $lexeme_id, $semantics, $blessing ];
+        } ## end RULE: for my $lexeme_id ( 0 .. $#{$symbols} )
 
-    # Registering operations is postponed to this point, because
-    # the valuator must exist for this to happen.  In the future,
-    # it may be best to have a separate semantics object.
-    my @nulling_closures = ();
-    my @registrations = ();
+        # Registering operations is postponed to this point, because
+        # the valuator must exist for this to happen.  In the future,
+        # it may be best to have a separate semantics object.
+        my @nulling_closures = ();
+        my @registrations    = ();
 
-    WORK_ITEM: for my $work_item (@work_list) {
-        my ( $rule_id, $lexeme_id, $semantics, $blessing ) = @{$work_item};
+        WORK_ITEM: for my $work_item (@work_list) {
+            my ( $rule_id, $lexeme_id, $semantics, $blessing ) =
+                @{$work_item};
 
+            my ( $closure, $rule, $rule_length, $is_sequence_rule,
+                $is_discard_sequence_rule, $nulling_symbol_id );
+            if ( defined $rule_id ) {
+                $nulling_symbol_id =
+                    $nulling_symbol_by_semantic_rule[$rule_id];
+                $closure     = $closure_by_rule_id->[$rule_id];
+                $rule        = $rules->[$rule_id];
+                $rule_length = $grammar_c->rule_length($rule_id);
+                $is_sequence_rule =
+                    defined $grammar_c->sequence_min($rule_id);
+                $is_discard_sequence_rule = $is_sequence_rule
+                    && $rule->[Marpa::R2::Internal::Rule::DISCARD_SEPARATION];
+            } ## end if ( defined $rule_id )
 
-        my ( $closure, $rule, $rule_length, $is_sequence_rule,
-            $is_discard_sequence_rule, $nulling_symbol_id );
-        if ( defined $rule_id ) {
-            $nulling_symbol_id = $nulling_symbol_by_semantic_rule[$rule_id];
-            $closure           = $closure_by_rule_id->[$rule_id];
-            $rule              = $rules->[$rule_id];
-            $rule_length       = $grammar_c->rule_length($rule_id);
-            $is_sequence_rule  = defined $grammar_c->sequence_min($rule_id);
-            $is_discard_sequence_rule = $is_sequence_rule
-                && $rule->[Marpa::R2::Internal::Rule::DISCARD_SEPARATION];
-        } ## end if ( defined $rule_id )
+            # Determine the "fate" of the array of child values
+            my $array_fate;
+            ARRAY_FATE: {
+                if ( defined $closure and ref $closure eq 'CODE' ) {
+                    $array_fate = $op_callback;
+                    last ARRAY_FATE;
 
-        # Determine the "fate" of the array of child values
-        my $array_fate;
-        ARRAY_FATE: {
-            if ( defined $closure and  ref $closure eq 'CODE' )
-            {
-                $array_fate = $op_callback;
-                last ARRAY_FATE;
+                }
 
-            } ## end if ( defined $closure && ( ref $closure ne 'SCALAR' ...))
+                if ( ( substr $semantics, 0, 1 ) eq '[' ) {
+                    $array_fate = $op_result_is_array;
+                    last ARRAY_FATE;
+                }
+            } ## end ARRAY_FATE:
 
-            if ( ( substr $semantics, 0, 1 ) eq '[' ) {
-                $array_fate = $op_result_is_array;
-                last ARRAY_FATE;
-            }
-        } ## end ARRAY_FATE:
+            my @ops = ();
 
-        my @ops = ();
+            SET_OPS: {
 
-        SET_OPS: {
+                if ( $semantics eq '::undef' ) {
+                    @ops = ($op_result_is_undef);
+                    last SET_OPS;
+                }
 
-            if ( $semantics eq '::undef' ) {
-                @ops = ($op_result_is_undef);
-                last SET_OPS;
-            }
+                DO_CONSTANT: {
+                    last DO_CONSTANT if not defined $rule_id;
+                    my $thingy_ref = $closure_by_rule_id->[$rule_id];
+                    last DO_CONSTANT if not defined $thingy_ref;
+                    my $ref_type = Scalar::Util::reftype $thingy_ref;
+                    if ( $ref_type eq q{} ) {
+                        Marpa::R2::exception(
+                            qq{An action resolved to a scalar.\n},
+                            qq{  This is not allowed.\n},
+                            qq{  A constant action must be a reference.\n},
+                            q{  Rule was },
+                            $grammar->brief_rule($rule_id),
+                            "\n"
+                        );
+                    } ## end if ( $ref_type eq q{} )
+                    if ( $ref_type eq 'CODE' ) {
 
-            DO_CONSTANT: {
-                last DO_CONSTANT if not defined $rule_id;
-                my $thingy_ref = $closure_by_rule_id->[$rule_id];
-                last DO_CONSTANT if not defined $thingy_ref;
-                my $ref_type = Scalar::Util::reftype $thingy_ref;
-                if ( $ref_type eq q{} ) {
+                        # Set the nulling closure if this is the nulling symbol of a rule
+                        $nulling_closures[$nulling_symbol_id] = $thingy_ref
+                            if defined $nulling_symbol_id
+                                and defined $rule_id;
+                        last DO_CONSTANT;
+                    } ## end if ( $ref_type eq 'CODE' )
+                    if ( $ref_type eq 'SCALAR' ) {
+                        my $thingy = ${$thingy_ref};
+                        if ( not defined $thingy ) {
+                            @ops = ($op_result_is_undef);
+                            last SET_OPS;
+                        }
+                        @ops = ( $op_result_is_constant, $thingy_ref );
+                        last SET_OPS;
+                    } ## end if ( $ref_type eq 'SCALAR' )
+                    if (   $ref_type eq 'HASH'
+                        or $ref_type eq 'ARRAY' )
+                    {
+                        # For hash and array, do not de-reference
+                        # so therefore, add another layer of reference to indicate
+                        # that this is a constant to be registered
+                        @ops = ( $op_result_is_constant, \$thingy_ref );
+                        last SET_OPS;
+                    } ## end if ( $ref_type eq 'HASH' or $ref_type eq 'ARRAY' )
+
+                    # When I implement ref to 'REF', I probably should not
+                    # de-reference, because of confusion if it becomes a
+                    # REF to CODE.
+
                     Marpa::R2::exception(
-                        qq{An action resolved to a scalar.\n},
-                        qq{  This is not allowed.\n},
-                        qq{  A constant action must be a reference.\n},
+                        qq{Constant action is not of an allowed type.\n},
+                        qq{  It was of type reference to $ref_type.\n},
                         q{  Rule was },
                         $grammar->brief_rule($rule_id),
                         "\n"
                     );
-                } ## end if ( $ref_type eq q{} )
-                if ( $ref_type eq 'CODE' ) {
+                } ## end DO_CONSTANT:
 
-                    # Set the nulling closure if this is the nulling symbol of a rule
-                    $nulling_closures[$nulling_symbol_id] = $thingy_ref
-                        if defined $nulling_symbol_id and defined $rule_id;
-                    last DO_CONSTANT;
-                } ## end if ( $ref_type eq 'CODE' )
-                if ( $ref_type eq 'SCALAR' ) {
-                    my $thingy = ${$thingy_ref};
-                    if ( not defined $thingy ) {
-                        @ops = ($op_result_is_undef);
+                # After this point, any closure will be a ref to 'CODE'
+
+                if ( defined $lexeme_id and $semantics eq '::value' ) {
+                    @ops = ($op_result_is_token_value);
+                    last SET_OPS;
+                }
+
+                PROCESS_SINGLETON_RESULT: {
+                    last PROCESS_SINGLETON_RESULT if not defined $rule_id;
+
+                    my $singleton;
+                    if ( $semantics =~ m/\A [:][:] rhs (\d+)  \z/xms ) {
+                        $singleton = $1 + 0;
+                    }
+
+                    last PROCESS_SINGLETON_RESULT if not defined $singleton;
+
+                    my $singleton_element = $singleton;
+                    if ($is_discard_sequence_rule) {
+                        @ops = (
+                            $op_result_is_n_of_sequence, $singleton_element
+                        );
+                        last SET_OPS;
+                    } ## end if ($is_discard_sequence_rule)
+                    if ($is_sequence_rule) {
+                        @ops = ( $op_result_is_rhs_n, $singleton_element );
                         last SET_OPS;
                     }
-                    @ops = ( $op_result_is_constant, $thingy_ref );
-                    last SET_OPS;
-                } ## end if ( $ref_type eq 'SCALAR' )
-                if (   $ref_type eq 'HASH'
-                    or $ref_type eq 'ARRAY' )
-                {
-                    # For hash and array, do not de-reference
-                    # so therefore, add another layer of reference to indicate
-                    # that this is a constant to be registered
-                    @ops = ( $op_result_is_constant, \$thingy_ref );
-                    last SET_OPS;
-                } ## end if ( $ref_type eq 'HASH' or $ref_type eq 'ARRAY' )
+                    my $mask = $rule->[Marpa::R2::Internal::Rule::MASK];
+                    my @elements =
+                        grep { $mask->[$_] } 0 .. ( $rule_length - 1 );
+                    if ( not scalar @elements ) {
+                        my $original_semantics =
+                            $semantics_by_rule_id->[$rule_id];
+                        Marpa::R2::exception(
+                            q{Impossible semantics for empty rule: },
+                            $grammar->brief_rule($rule_id),
+                            "\n",
+                            qq{    Semantics were specified as "$original_semantics"\n}
+                        );
+                    } ## end if ( not scalar @elements )
+                    $singleton_element = $elements[$singleton];
 
-                # When I implement ref to 'REF', I probably should not
-                # de-reference, because of confusion if it becomes a
-                # REF to CODE.
-
-                Marpa::R2::exception(
-                    qq{Constant action is not of an allowed type.\n},
-                    qq{  It was of type reference to $ref_type.\n},
-                    q{  Rule was },
-                    $grammar->brief_rule($rule_id),
-                    "\n"
-                );
-            } ## end DO_CONSTANT:
-
-            # After this point, any closure will be a ref to 'CODE'
-
-            if ( defined $lexeme_id and $semantics eq '::value' ) {
-                @ops = ( $op_result_is_token_value );
-                last SET_OPS;
-            } ## end if ( defined $lexeme_id and $semantics eq '::value' )
-
-            PROCESS_SINGLETON_RESULT: {
-                last PROCESS_SINGLETON_RESULT if not defined $rule_id;
-
-                my $singleton;
-                if ( $semantics =~ m/\A [:][:] rhs (\d+)  \z/xms ) {
-                    $singleton = $1 + 0;
-                }
-
-                last PROCESS_SINGLETON_RESULT if not defined $singleton;
-
-                my $singleton_element = $singleton;
-                if ($is_discard_sequence_rule) {
-                    @ops =
-                        ( $op_result_is_n_of_sequence, $singleton_element );
-                    last SET_OPS;
-                }
-                if ($is_sequence_rule) {
+                    if ( not defined $singleton_element ) {
+                        my $original_semantics =
+                            $semantics_by_rule_id->[$rule_id];
+                        Marpa::R2::exception(
+                            q{Impossible semantics for rule: },
+                            $grammar->brief_rule($rule_id),
+                            "\n",
+                            qq{    Semantics were specified as "$original_semantics"\n}
+                        );
+                    } ## end if ( not defined $singleton_element )
                     @ops = ( $op_result_is_rhs_n, $singleton_element );
                     last SET_OPS;
+                } ## end PROCESS_SINGLETON_RESULT:
+
+                if ( not defined $array_fate ) {
+                    @ops = ($op_result_is_undef);
+                    last SET_OPS;
                 }
-                my $mask = $rule->[Marpa::R2::Internal::Rule::MASK];
-                my @elements =
-                    grep { $mask->[$_] } 0 .. ( $rule_length - 1 );
-                if ( not scalar @elements ) {
-                    my $original_semantics =
-                        $semantics_by_rule_id->[$rule_id];
-                    Marpa::R2::exception(
-                        q{Impossible semantics for empty rule: },
-                        $grammar->brief_rule($rule_id),
-                        "\n",
-                        qq{    Semantics were specified as "$original_semantics"\n}
-                    );
-                } ## end if ( not scalar @elements )
-                $singleton_element = $elements[$singleton];
 
-                if ( not defined $singleton_element ) {
-                    my $original_semantics =
-                        $semantics_by_rule_id->[$rule_id];
-                    Marpa::R2::exception(
-                        q{Impossible semantics for rule: },
-                        $grammar->brief_rule($rule_id),
-                        "\n",
-                        qq{    Semantics were specified as "$original_semantics"\n}
-                    );
-                } ## end if ( not defined $singleton_element )
-                @ops = ( $op_result_is_rhs_n, $singleton_element );
-                last SET_OPS;
-            } ## end PROCESS_SINGLETON_RESULT:
+                # if here, $array_fate is defined
 
-            if ( not defined $array_fate ) {
-                @ops = ($op_result_is_undef);
-                last SET_OPS;
-            }
-
-            # if here, $array_fate is defined
-
-            my @bless_ops = ();
-            if ( $blessing ne '::undef' ) {
-                push @bless_ops, $op_bless, \$blessing;
-            }
-
-            Marpa::R2::exception(qq{Unknown semantics: "$semantics"})
-                if ( substr $semantics, 0, 1 ) ne '[';
-
-            my @push_ops = ();
-            my $array_descriptor = substr $semantics, 1, -1;
-            RESULT_DESCRIPTOR:
-            for my $result_descriptor ( split /[,]/xms, $array_descriptor ) {
-                if ( $result_descriptor eq 'start' ) {
-                    push @push_ops, $op_push_start_location;
-                    next RESULT_DESCRIPTOR;
+                my @bless_ops = ();
+                if ( $blessing ne '::undef' ) {
+                    push @bless_ops, $op_bless, \$blessing;
                 }
-                if ( $result_descriptor eq 'length' ) {
-                    push @push_ops, $op_push_length;
-                    next RESULT_DESCRIPTOR;
-                }
-                if (   $result_descriptor eq 'values'
-                    or $result_descriptor eq 'value' )
+
+                Marpa::R2::exception(qq{Unknown semantics: "$semantics"})
+                    if ( substr $semantics, 0, 1 ) ne '[';
+
+                my @push_ops = ();
+                my $array_descriptor = substr $semantics, 1, -1;
+                RESULT_DESCRIPTOR:
+                for my $result_descriptor ( split /[,]/xms,
+                    $array_descriptor )
                 {
-                    if ( defined $lexeme_id ) {
-                        push @push_ops, $op_push_values;
+                    if ( $result_descriptor eq 'start' ) {
+                        push @push_ops, $op_push_start_location;
                         next RESULT_DESCRIPTOR;
                     }
-                    if ($is_sequence_rule) {
-                        my $push_op =
-                              $is_discard_sequence_rule
-                            ? $op_push_sequence
-                            : $op_push_values;
-                        push @push_ops, $push_op;
+                    if ( $result_descriptor eq 'length' ) {
+                        push @push_ops, $op_push_length;
                         next RESULT_DESCRIPTOR;
-                    } ## end if ($is_sequence_rule)
-                    my $mask = $rule->[Marpa::R2::Internal::Rule::MASK];
-                    if ( $rule_length > 0 ) {
-                        push @push_ops,
-                            map { $mask->[$_] ? ( $op_push_one, $_ ) : () }
-                            0 .. $rule_length - 1;
                     }
-                    next RESULT_DESCRIPTOR;
-                } ## end if ( $result_descriptor eq 'values' or ...)
-                Marpa::R2::exception(
-                    qq{Unknown result descriptor: "$result_descriptor"\n},
-                    qq{  The full semantics were "$semantics"}
-                );
-            } ## end RESULT_DESCRIPTOR: for my $result_descriptor ( split /[,]/xms, ...)
-            @ops = ( @push_ops, @bless_ops, $array_fate );
+                    if (   $result_descriptor eq 'values'
+                        or $result_descriptor eq 'value' )
+                    {
+                        if ( defined $lexeme_id ) {
+                            push @push_ops, $op_push_values;
+                            next RESULT_DESCRIPTOR;
+                        }
+                        if ($is_sequence_rule) {
+                            my $push_op =
+                                  $is_discard_sequence_rule
+                                ? $op_push_sequence
+                                : $op_push_values;
+                            push @push_ops, $push_op;
+                            next RESULT_DESCRIPTOR;
+                        } ## end if ($is_sequence_rule)
+                        my $mask = $rule->[Marpa::R2::Internal::Rule::MASK];
+                        if ( $rule_length > 0 ) {
+                            push @push_ops, map {
+                                $mask->[$_]
+                                    ? ( $op_push_one, $_ )
+                                    : ()
+                            } 0 .. $rule_length - 1;
+                        } ## end if ( $rule_length > 0 )
+                        next RESULT_DESCRIPTOR;
+                    } ## end if ( $result_descriptor eq 'values' or ...)
+                    Marpa::R2::exception(
+                        qq{Unknown result descriptor: "$result_descriptor"\n},
+                        qq{  The full semantics were "$semantics"}
+                    );
+                } ## end RESULT_DESCRIPTOR: for my $result_descriptor ( split /[,]/xms, ...)
+                @ops = ( @push_ops, @bless_ops, $array_fate );
 
-        } ## end SET_OPS:
+            } ## end SET_OPS:
 
-        if ( defined $rule_id ) {
-            push @registrations, [ 'rule', $rule_id, @ops ];
-        } ## end if ( defined $rule_id )
+            if ( defined $rule_id ) {
+                push @registrations, [ 'rule', $rule_id, @ops ];
+            }
 
-        if ( defined $nulling_symbol_id ) {
+            if ( defined $nulling_symbol_id ) {
 
-            if (    defined $slr
-                and $tracer->symbol_name($nulling_symbol_id) eq '[:start]'
-                and defined(
-                    my $default_g1_start_closure =
-                        $slr->default_g1_start_closure()
-                )
-                )
-            {
-                # Special case for SLIF nulling start symbol when there is a default action
-                $nulling_closures[$nulling_symbol_id] =
-                    $default_g1_start_closure;
-                @ops = ($op_callback);
-            } ## end if ( defined $slr and $tracer->symbol_name(...))
+                if (    defined $slr
+                    and $tracer->symbol_name($nulling_symbol_id) eq '[:start]'
+                    and defined(
+                        my $default_g1_start_closure =
+                            $slr->default_g1_start_closure()
+                    )
+                    )
+                {
+                    # Special case for SLIF nulling start symbol when there is a default action
+                    $nulling_closures[$nulling_symbol_id] =
+                        $default_g1_start_closure;
+                    @ops = ($op_callback);
+                } ## end if ( defined $slr and $tracer->symbol_name(...))
 
-            push @registrations, [ 'nulling', $nulling_symbol_id, @ops ];
-        } ## end if ( defined $nulling_symbol_id )
+                push @registrations, [ 'nulling', $nulling_symbol_id, @ops ];
+            } ## end if ( defined $nulling_symbol_id )
 
-        if ( defined $lexeme_id ) {
-            push @registrations, [ 'token', $lexeme_id, @ops ];
-        } ## end if ( defined $lexeme_id )
+            if ( defined $lexeme_id ) {
+                push @registrations, [ 'token', $lexeme_id, @ops ];
+            }
 
-        $recce->[Marpa::R2::Internal::Recognizer::REGISTRATIONS] = \@registrations;
-        $recce->[Marpa::R2::Internal::Recognizer::CLOSURE_BY_SYMBOL_ID] = \@nulling_closures;
-        $recce->[Marpa::R2::Internal::Recognizer::CLOSURE_BY_RULE_ID] = $closure_by_rule_id;
+            $recce->[Marpa::R2::Internal::Recognizer::REGISTRATIONS] =
+                \@registrations;
+            $recce->[Marpa::R2::Internal::Recognizer::CLOSURE_BY_SYMBOL_ID] =
+                \@nulling_closures;
+            $recce->[Marpa::R2::Internal::Recognizer::CLOSURE_BY_RULE_ID] =
+                $closure_by_rule_id;
 
-    } ## end WORK_ITEM: for my $work_item (@work_list)
+        } ## end WORK_ITEM: for my $work_item (@work_list)
 
-    } ## end if ( not $rule_resolutions )
+    } ## end if ( not $recce->[Marpa::R2::Internal::Recognizer::REGISTRATIONS...])
 
     my $semantics_arg0;
-    if ( my $per_parse_constructor = $recce->[Marpa::R2::Internal::Recognizer::PER_PARSE_CONSTRUCTOR] ) {
+    if ( my $per_parse_constructor =
+        $recce->[Marpa::R2::Internal::Recognizer::PER_PARSE_CONSTRUCTOR] )
+    {
         my $constructor_arg0;
         if ( $recce->[Marpa::R2::Internal::Recognizer::RESOLVE_PACKAGE_SOURCE]
             eq 'legacy' )
@@ -1172,7 +1189,8 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                 $grammar->[Marpa::R2::Internal::Grammar::ACTION_OBJECT];
         } ## end if ( $recce->[...])
         else {
-            $constructor_arg0 = $per_parse_arg // $recce->[Marpa::R2::Internal::Recognizer::RESOLVE_PACKAGE];
+            $constructor_arg0 = $per_parse_arg
+                // $recce->[Marpa::R2::Internal::Recognizer::RESOLVE_PACKAGE];
         }
         my @warnings;
         my $eval_ok;
@@ -1207,22 +1225,27 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
     my $value = Marpa::R2::Thin::V->new($tree);
     $value->valued_force();
     if ($slr) {
-        $value->slr_set($slr->thin());
+        $value->slr_set( $slr->thin() );
     }
     else {
-        TOKEN_IX: for (my $token_ix = 2; $token_ix <= $#{$token_values}; $token_ix++) {
+        TOKEN_IX:
+        for ( my $token_ix = 2; $token_ix <= $#{$token_values}; $token_ix++ )
+        {
             my $token_value = $token_values->[$token_ix];
-            $value->token_value_set($token_ix, $token_value) if defined $token_value;
-        }
-    }
+            $value->token_value_set( $token_ix, $token_value )
+                if defined $token_value;
+        } ## end TOKEN_IX: for ( my $token_ix = 2; $token_ix <= $#{...})
+    } ## end else [ if ($slr) ]
     local $Marpa::R2::Internal::Context::VALUATOR = $value;
     value_trace( $value, $trace_values ? 1 : 0 );
     $value->trace_values($trace_values);
     $value->stack_mode_set();
 
     my $null_values = $recce->[Marpa::R2::Internal::Recognizer::NULL_VALUES];
-    my $nulling_closures = $recce->[Marpa::R2::Internal::Recognizer::CLOSURE_BY_SYMBOL_ID] ;
-    my $rule_closures = $recce->[Marpa::R2::Internal::Recognizer::CLOSURE_BY_RULE_ID] ;
+    my $nulling_closures =
+        $recce->[Marpa::R2::Internal::Recognizer::CLOSURE_BY_SYMBOL_ID];
+    my $rule_closures =
+        $recce->[Marpa::R2::Internal::Recognizer::CLOSURE_BY_RULE_ID];
     REGISTRATION:
     for my $registration (
         @{ $recce->[Marpa::R2::Internal::Recognizer::REGISTRATIONS] } )
@@ -1429,7 +1452,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 # Returns false if no parse
 sub Marpa::R2::Recognizer::value
 {    ## no critic (Subroutines::RequireArgUnpacking)
-    my ($recce, $slr, $per_parse_arg) = @_;
+    my ( $recce, $slr, $per_parse_arg ) = @_;
 
     if ( scalar @_ != 1 ) {
         Marpa::R2::exception(
@@ -1442,7 +1465,8 @@ sub Marpa::R2::Recognizer::value
     my $recce_c   = $recce->[Marpa::R2::Internal::Recognizer::C];
     my $order     = $recce->[Marpa::R2::Internal::Recognizer::O_C];
 
-    my $parse_set_arg = $recce->[Marpa::R2::Internal::Recognizer::END_OF_PARSE];
+    my $parse_set_arg =
+        $recce->[Marpa::R2::Internal::Recognizer::END_OF_PARSE];
 
     local $Marpa::R2::Internal::TRACE_FH =
         $recce->[Marpa::R2::Internal::Recognizer::TRACE_FILE_HANDLE];
@@ -1540,7 +1564,7 @@ sub Marpa::R2::Recognizer::value
 
     } ## end if ($bocage)
     else {
-    # No bocage, therefore not initialized
+        # No bocage, therefore not initialized
 
         $grammar_c->throw_set(0);
         $bocage = $recce->[Marpa::R2::Internal::Recognizer::B_C] =
@@ -1568,7 +1592,7 @@ sub Marpa::R2::Recognizer::value
         $tree = $recce->[Marpa::R2::Internal::Recognizer::T_C] =
             Marpa::R2::Thin::T->new($order);
 
-    } ## end else [ if ($tree) ]
+    } ## end else [ if ($bocage) ]
 
     if ( $recce->[Marpa::R2::Internal::Recognizer::TRACE_AND_NODES] ) {
         print {$Marpa::R2::Internal::TRACE_FH} 'AND_NODES: ',
@@ -1589,7 +1613,8 @@ sub Marpa::R2::Recognizer::value
     }
 
     return if not defined $tree->next();
-    return \Marpa::R2::Internal::Recognizer::evaluate($recce, $slr, $per_parse_arg);
+    return \Marpa::R2::Internal::Recognizer::evaluate( $recce, $slr,
+        $per_parse_arg );
 
 } ## end sub Marpa::R2::Recognizer::value
 
@@ -2000,14 +2025,15 @@ sub trace_op {
     my ( $grammar, $recce, $value ) = @_;
 
     my $trace_output = q{};
-    my $trace_values = $recce->[Marpa::R2::Internal::Recognizer::TRACE_VALUES] // 0;
+    my $trace_values = $recce->[Marpa::R2::Internal::Recognizer::TRACE_VALUES]
+        // 0;
 
     return $trace_output if not $trace_values >= 2;
 
-    my $grammar_c    = $grammar->[Marpa::R2::Internal::Grammar::C];
-    my $bocage       = $recce->[Marpa::R2::Internal::Recognizer::B_C];
-    my $order        = $recce->[Marpa::R2::Internal::Recognizer::O_C];
-    my $tree         = $recce->[Marpa::R2::Internal::Recognizer::T_C];
+    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
+    my $bocage    = $recce->[Marpa::R2::Internal::Recognizer::B_C];
+    my $order     = $recce->[Marpa::R2::Internal::Recognizer::O_C];
+    my $tree      = $recce->[Marpa::R2::Internal::Recognizer::T_C];
 
     my $nook_ix    = $value->_marpa_v_nook();
     my $or_node_id = $tree->_marpa_t_nook_or_node($nook_ix);
