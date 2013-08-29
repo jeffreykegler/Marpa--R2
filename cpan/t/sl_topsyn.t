@@ -32,10 +32,8 @@ use Marpa::R2::Test;
 
 use Marpa::R2;
 
-my $grammar = Marpa::R2::Scanless::G->new(
-    {   action_object  => 'My_Nodes',
-        default_action => '::first',
-        source         => \(<<'END_OF_SOURCE'),
+my $dsl = <<'END_OF_DSL';
+:default ::= action => ::first
 :start ::= Expression
 Expression ::= Term
 Term ::=
@@ -48,25 +46,23 @@ Number ~ digits
 digits ~ [\d]+
 :discard ~ whitespace
 whitespace ~ [\s]+
-END_OF_SOURCE
-    }
-);
+END_OF_DSL
 
-my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
+my $grammar = Marpa::R2::Scanless::G->new( { source => \$dsl, } );
+my $recce = Marpa::R2::Scanless::R->new(
+    { grammar => $grammar, semantics_package => 'My_Actions' } );
 my $input = '42 * 1 + 7';
 $recce->read( \$input );
 
 my $value_ref = $recce->value;
 my $value = $value_ref ? ${$value_ref} : 'No Parse';
 
-sub My_Nodes::new { return {}; }
-
-sub My_Nodes::do_add {
+sub My_Actions::do_add {
     my ( undef, $t1, undef, $t2 ) = @_;
     return $t1 + $t2;
 }
 
-sub My_Nodes::do_multiply {
+sub My_Actions::do_multiply {
     my ( undef, $t1, undef, $t2 ) = @_;
     return $t1 * $t2;
 }
