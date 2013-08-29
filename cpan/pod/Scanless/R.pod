@@ -361,6 +361,18 @@ and to exclude some parse results from the parse series.
 For details, see L<the document
 on parse order|Marpa::R2::Semantics::Order>.
 
+=head2 semantics_package
+
+Sets the semantic package for the recognizer.
+The setting of this argument takes precedence
+over any package implied by the blessing of the per-parse arguments to
+the SLIF recognizer's C<value()> method.
+The semantics package is used when resolving action names to
+fully qualified Perl names.
+For more details on the SLIF semantics,
+see the L<document on SLIF
+semantics|Marpa::R2::Semantics>.
+
 =head2 too_many_earley_items
 
 The C<too_many_earley_items> argument is optional,
