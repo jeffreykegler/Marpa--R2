@@ -955,21 +955,51 @@ A separator symbol may not be nullable.
 
 =head1 Actions
 
-=head2 Word actions
+=head2 Perl identifers
 
-If the action value is
-a Perl word (a string of alphanumerics or underscores),
-it will be interpreted as the action name,
-as described for
-L<the C<action> named argument of rule descriptors|Marpa::R2::NAIF::Grammar/"action">.
-Word actions are not allowed for lexemes.
+If the action value is a Perl identifier,
+it is treated as the name of a Perl variable,
+but one which still must be fully qualified by adding a package name.
+For this purpose, a Perl identifier is a sequence of one or more alphanumerics
+and underscores.
+A Perl identifier will be fully qualified by prefixing the name of the semantic package,
+and then dealt with as described for L<"Fully qualified Perl names">.
 
-Typically, a word action is resolved to a Perl closure, called the B<semantic closure>.
+For example, if the action value
+is "C<some_var>", the action value will be regarded as a Perl identifer.
+If the semantics package is "C<My_Actions>", Marpa will convert the action
+value to "C<My_Actions::some_var>", and hand
+it on for processing as a fully qualified Perl name.
+is "C<some_var>", the action value will be regarded as a Perl identifer.
+For more details on qualifying Perl identifiers, see
+L<the document on SLIF semantics|Marpa::R2::Semantics>.
+
+=head2 Fully qualified Perl names
+
+If an action value is a series of two or more Perl identifiers
+separated by double colons ("C<::>"), it is treated as it was a fully qualified Perl name.
+Fully qualified Perl names are also obtained from action names which look like
+unqualified Perl names, by prefixing the semantics package, as described above.
+(Note that an action value start with a double colon is always treated as a reserved
+action name and is B<not> regarded as Perl name.)
+
+Once Marpa has a fully qualified Perl name, it looks in Perl's symbol tables for
+a Perl variable with that name,
+either the name of a subroutine, or of a scalar.
+(For the purpose of Perl's symbol tables, references are scalars.)
+If it finds one, the action name is resolved to that Perl variable.
+
+Most commonly,
+the action name resolves to a subroutine, and that
+subroutine becomes the B<semantic closure>.
+If the action name resolves to a scalar Perl variable (and, again, for this purpose
+references are scalars), then the effect is as if the resolution
+had been to a subroutine that ignores it arguments and always returns that Perl variable.
+
 Ordinarily, the arguments to the semantic closure are the per-parse-tree
 variable,
 followed by values of the rule's child nodes,
 in the order in which they occurred in the input stream.
-
 However,
 if a rule with a word action is blessed,
 in order to allow the blessing to take effect,
