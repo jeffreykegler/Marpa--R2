@@ -41,8 +41,6 @@ use Marpa::R2;
 
 ## no critic (Subroutines::RequireArgUnpacking)
 
-sub My_Actions::new { return {} }
-
 sub My_Actions::minus {
     shift;
     my ( $right_string, $right_value ) = ( $_[2] =~ /^(.*)==(.*)$/xms );

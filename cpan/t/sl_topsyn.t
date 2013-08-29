@@ -48,7 +48,7 @@ digits ~ [\d]+
 whitespace ~ [\s]+
 END_OF_DSL
 
-my $grammar = Marpa::R2::Scanless::G->new( { source => \$dsl, } );
+my $grammar = Marpa::R2::Scanless::G->new( { source => \$dsl } );
 my $recce = Marpa::R2::Scanless::R->new(
     { grammar => $grammar, semantics_package => 'My_Actions' } );
 my $input = '42 * 1 + 7';

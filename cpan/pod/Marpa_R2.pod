@@ -25,10 +25,8 @@ normalize-whitespace: 1
 
     use Marpa::R2;
 
-    my $grammar = Marpa::R2::Scanless::G->new(
-        {   action_object  => 'My_Nodes',
-            default_action => '::first',
-            source         => \(<<'END_OF_SOURCE'),
+    my $dsl = <<'END_OF_DSL';
+    :default ::= action => ::first
     :start ::= Expression
     Expression ::= Term
     Term ::=
@@ -37,29 +35,27 @@ normalize-whitespace: 1
     Factor ::=
           Number
         | Factor '*' Factor action => do_multiply
-          Number ~ digits
-          digits ~ [\d]+
-          :discard ~ whitespace
-          whitespace ~ [\s]+
-    END_OF_SOURCE
-        }
-    );
+    Number ~ digits
+    digits ~ [\d]+
+    :discard ~ whitespace
+    whitespace ~ [\s]+
+    END_OF_DSL
 
-    my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
+    my $grammar = Marpa::R2::Scanless::G->new( { source => \$dsl } );
+    my $recce = Marpa::R2::Scanless::R->new(
+        { grammar => $grammar, semantics_package => 'My_Actions' } );
     my $input = '42 * 1 + 7';
     $recce->read( \$input );
 
     my $value_ref = $recce->value;
     my $value = $value_ref ? ${$value_ref} : 'No Parse';
 
-    sub My_Nodes::new { return {}; }
-
-    sub My_Nodes::do_add {
+    sub My_Actions::do_add {
         my ( undef, $t1, undef, $t2 ) = @_;
         return $t1 + $t2;
     }
 
-    sub My_Nodes::do_multiply {
+    sub My_Actions::do_multiply {
         my ( undef, $t1, undef, $t2 ) = @_;
         return $t1 * $t2;
     }
@@ -80,20 +76,19 @@ in fact if a grammar is in any class currently
 in practical use, Marpa will parse it in linear time.
 
 This document centers around a short tutorial
-of the Scanless interface (SLIF),
-the interface most suitable for beginner's and
-for many advanced uses as well.
-
+of the Scanless interface (SLIF).
+This is the interface most suitable for beginners.
+The SLIF is the most suitable interface for most advanced uses as well.
 
 =head1 A simple calculator
 
-The synopsis shows the code for a very simple calculator.
+The synopsis shows the code for an extremely simple calculator.
 It handles only
 addition and multiplication of integers.
 The sections which follow explain, line by line, how it works.
 The explanation will assume that the reader
-understands BNF and the basics of grammars,
-such as what a grammar's start symbol is.
+understands BNF and the basics of grammars -- what rules are,
+what symbols are, what the start symbol of a grammar is, etc.
 
 =head2 Marpa::R2::Scanless::G::new
 
@@ -102,10 +97,8 @@ name: Landing page synopsis
 partial: 1
 normalize-whitespace: 1
 
-    my $grammar = Marpa::R2::Scanless::G->new(
-        {   action_object  => 'My_Nodes',
-            default_action => '::first',
-            source         => \(<<'END_OF_SOURCE'),
+    my $dsl = <<'END_OF_DSL';
+    :default ::= action => ::first
     :start ::= Expression
     Expression ::= Term
     Term ::=
@@ -114,13 +107,13 @@ normalize-whitespace: 1
     Factor ::=
           Number
         | Factor '*' Factor action => do_multiply
-          Number ~ digits
-          digits ~ [\d]+
-          :discard ~ whitespace
-          whitespace ~ [\s]+
-    END_OF_SOURCE
-        }
-    );
+    Number ~ digits
+    digits ~ [\d]+
+    :discard ~ whitespace
+    whitespace ~ [\s]+
+    END_OF_DSL
+
+    my $grammar = Marpa::R2::Scanless::G->new( { source => \$dsl } );
 
 =for Marpa::R2::Display::End
 
@@ -145,22 +138,30 @@ hash value
 is the
 value of the named argument.
 
-In what follows, we will look at all the arguments of
-this call to the 
-L<Marpa::R2::Scanless::G::new()|Marpa::R2::Scanless::G/"new">
-method in detail.
-The first two named arguments,
-C<action_object> and C<default_action> deal with the
-semantics,
-and it's best to delay talking about them until
-we get into the semantics, below.
-
-But the C<source> argument is an excellent place to start.
-Its value is a reference to a string in the
+In the example, there is only one named argument to the SLIF grammar constructor:
+C<source>.
+The value of C<source> must be a reference to a string in the
 L<SLIF's domain-specific language|Marpa::R2::Scanless::DSL>
 (DSL).
 In this example, the DSL consists of several rules
 and pseudo-rules.
+
+=head2 The default pseudo-rule
+
+=for Marpa::R2::Display
+name: Landing page synopsis
+partial: 1
+normalize-whitespace: 1
+
+    :default ::= action => ::first
+
+=for Marpa::R2::Display::End
+
+The default pseudo-rule specifies (as you might suspect) defaults for
+the other rules.
+Here it sets the default semantics to C<::first>.
+What this means we'll explain when we discuss
+L<the semantics at the end|/"Semantics">.
 
 =head2 The start pseudo-rule
 
@@ -182,7 +183,6 @@ Next follows a G1, or structural rule.
 Structural rules are the kinds of rules typically seen in BNF --
 they describe the symbols which provide the structure of the grammar,
 but leave out details of whitespace.
-
 The SLIF also handles the lexical details in this example,
 but it does it via G0 rules,
 which we will see shortly.
@@ -328,7 +328,7 @@ Something similar happens with the C<'*'> string in the rule for a C<Factor>.
 
 The SLIF's lexer mostly "does what you mean".
 While the input is being read, it looks for all lexemes defined in the DSL.
-The search is a longest tokens match, if mulitple tokens could match,
+The search is a longest tokens match -- if mulitple tokens could match,
 the longest match is the winner.
 Marpa tolerates ambiguity,
 so one feature special to Marpa is that it is a longest B<tokens> match --
@@ -343,18 +343,24 @@ name: Landing page synopsis
 partial: 1
 normalize-whitespace: 1
 
-    my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
+    my $recce = Marpa::R2::Scanless::R->new(
+        { grammar => $grammar, semantics_package => 'My_Actions' } );
 
 =for Marpa::R2::Display::End
 
 C<Marpa::R2::Scanless::R::new> creates a new SLIF recognizer.
 Its arguments are references to hashes of named arguments.
-In this example the only named argument is
+In this example the first named argument is
 the required argument: "C<grammar>".
 The value of the
 C<grammar>
 named argument must be a Marpa::R2 SLIF
 grammar.
+
+The second argument is optional, but you will use it frequently.
+The "C<semantics_package>" named argument tells Marpa in which Perl package to
+look for the closures implementing the semantics for this grammar.
+We will talk more about this below.
 
 =head2 Marpa::R2::Scanless::R::read
 
@@ -409,14 +415,15 @@ Now it is time to go back to those features.
 The value of the parse result, as returned via the C<value()> method,
 is determined by the parse's B<semantics>.
 Marpa's semantics are the traditional ones:
-The parse that results from repeatedly applying G1 rules to the input
-is seen as a tree.
-(The G1 rules are called structural because they give this tree
-its structure.)
+The input is seen as a tree which takes its structure from the G1 rules.
+(This is why the G1 rules are called structural.)
+The value of the parse results from repeatedly evaluating nodes of this
+tree, starting at the bottom, with the results of child nodes made available
+to their parent node when the parent node is evaluated.
+
 Parse trees are usually drawn upside-down
 with their root at the top,
 and their "leaves" at the bottom.
-
 In Marpa::R2's SLIF, the "leaves" are the symbols
 that the G1 (structural) rules share with the G0 (lexical)
 rules.
@@ -430,9 +437,8 @@ with a quoted string:
 and
 "C<*>".
 
-Following tradition,
 Marpa assigns values to the nodes of the tree,
-by starting with the leaves.
+starting with the leaves.
 Marpa's "leaves" will always be G0 symbols,
 and their value by default is the literal
 value at their location in the input stream.
@@ -473,8 +479,9 @@ and this is the parse result value
 to which the C<value()> method
 returns a reference.
 
-Previously we skipped over the named arguments to the SLIF grammar
-constructor which dealt with semantics.
+Previously we touched lightly,
+or skipped over entirely,
+the parts of this example dealing with semantics.
 We are now ready to look at them.
 
 =for Marpa::R2::Display
@@ -482,16 +489,30 @@ name: Landing page synopsis
 partial: 1
 normalize-whitespace: 1
 
-            action_object  => 'My_Nodes',
-            default_action => '::first',
+    :default ::= action => ::first
 
 =for Marpa::R2::Display::End
 
 Each non-leaf node determines its value with an action.
-The C<default_action> named argument indicates the default action.
+The default pseudo-rule allows you to specify the default action.
+(It is a pseudo-rule because its LHS, "C<:default>", is a pseudo-symbol,
+not a real one.)
 Often actions are Perl functions, which in this context are
 called Perl semantic closures.
-The C<action_object> named argument specified a package that is used
+
+=for Marpa::R2::Display
+name: Landing page synopsis
+partial: 1
+normalize-whitespace: 1
+
+    my $recce = Marpa::R2::Scanless::R->new(
+        { grammar => $grammar, semantics_package => 'My_Actions' } );
+
+=for Marpa::R2::Display::End
+
+Above we saw the C<semantics_package> named argument used when
+constructing the SLIF recognizer.
+As we noted, this specifies the package that is used
 to find the Perl semantic closures.
 
 In this example the default semantics,
@@ -530,10 +551,10 @@ To implement these actions, we need to "resolve" their names --
 map the action names into 
 the Perl closures which actually carry out the semantics.
 
-The C<actions_object> specified the package where we can find the actions:
-"C<My_Nodes>".
+The C<semantics_package> specified the package where we can find the actions:
+"C<My_Actions>".
 So, to resolve the C<do_multiply> action,
-Marpa looks for a closure whose fully qualified name is C<My_Nodes::do_multiply>,
+Marpa looks for a closure whose fully qualified name is C<My_Actions::do_multiply>,
 which it finds:
 
 =for Marpa::R2::Display
@@ -541,7 +562,7 @@ name: Landing page synopsis
 partial: 1
 normalize-whitespace: 1
 
-    sub My_Nodes::do_multiply {
+    sub My_Actions::do_multiply {
         my ( undef, $t1, undef, $t2 ) = @_;
         return $t1 * $t2;
     }
@@ -557,7 +578,7 @@ name: Landing page synopsis
 partial: 1
 normalize-whitespace: 1
 
-    sub My_Nodes::do_add {
+    sub My_Actions::do_add {
         my ( undef, $t1, undef, $t2 ) = @_;
         return $t1 + $t2;
     }
@@ -583,22 +604,6 @@ as an argument.
 The exception is the value for the start rule.
 The return value for the start rule becomes
 the parse result.
-
-As a final note,
-the C<actions_object> named argument
-requires the package it specifies to
-have a C<new> constructor.
-The value returned by the C<new> constructor is the per-parse-tree
-object which, as mentioned, is not used in this example.
-
-=for Marpa::R2::Display
-name: Landing page synopsis
-partial: 1
-normalize-whitespace: 1
-
-    sub My_Nodes::new { return {}; }
-
-=for Marpa::R2::Display::End
 
 =head1 Errors and exceptions
 
@@ -673,23 +678,23 @@ L<its grammar methods|Marpa::R2::Scanless::G>,
 and
 L<its recognizer methods|Marpa::R2::Scanless::R>.
 
-Marpa has two other interfaces which may be of interest.
-An older, more traditional, interface
-is the
-L<named argument inteface (NAIF)|Marpa::R2::NAIF>.
-The NAIF is a middle level interface which uses Perl calls
-instead of a DSL.
-The NAIF is more low level than the SLIF.
-
-There is also the L<the thin
-interface|Marpa::R2::Advanced::Thin>,
-which provides direct access to the underlying
+Marpa has two other interfaces.
+L<The thin
+interface|Marpa::R2::Advanced::Thin>
+provides direct access to the underlying
 Libmarpa C library.
 Of the Perl interfaces to Marpa,
 the thin interface is the most low-level.
 The thin interface offers efficient access to the full power of the
 Marpa parse engine,
 but it requires the application to do a lot of the work itself.
+
+Now discouraged,
+the L<named argument inteface (NAIF)|Marpa::R2::NAIF>
+was Marpa::R2's first interface.
+It is a more traditional,
+middle level interface which uses Perl calls
+instead of a DSL.
 
 L<Marpa::R2::Vocabulary> is intended as a quick refresher in
 parsing terminology,
