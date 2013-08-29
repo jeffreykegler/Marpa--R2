@@ -1,5 +1,3 @@
-* Fix NAIF doc for constant actions
-
 * Document
   * fully qualified actions now allowed in SLIF
   * null_ranking adverb added
