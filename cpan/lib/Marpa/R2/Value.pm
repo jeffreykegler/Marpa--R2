@@ -286,6 +286,7 @@ sub Marpa::R2::Internal::Recognizer::default_semantics {
                 $rule_resolution =
                     Marpa::R2::Internal::Recognizer::resolve_action( $recce,
                     $action, \$blessing_error );
+                last DETERMINE_RULE_RESOLUTION if not $rule_resolution;
                 $rule_resolution =
                     Marpa::R2::Internal::Recognizer::add_blessing( $recce,
                     $rule_resolution,
