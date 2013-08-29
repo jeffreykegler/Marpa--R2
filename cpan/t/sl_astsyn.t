@@ -105,9 +105,6 @@ for my $test (@tests) {
 
 package My_Nodes;
 
-our $SELF;
-sub new { return $SELF }
-
 sub My_Nodes::primary::doit { return $_[0]->[0]->doit() }
 sub My_Nodes::Number::doit  { return $_[0]->[2] }
 sub My_Nodes::paren::doit   { my ($self) = @_; $self->[1]->doit() }
