@@ -986,15 +986,44 @@ action name and is B<not> regarded as Perl name.)
 Once Marpa has a fully qualified Perl name, it looks in Perl's symbol tables for
 a Perl variable with that name,
 either the name of a subroutine, or of a scalar.
-(For the purpose of Perl's symbol tables, references are scalars.)
-If it finds one, the action name is resolved to that Perl variable.
+It is important to note that for the purposes of Perl's symbol tables,
+and therefore for the purposes of Marpa's resolution of Perl names,
+references are scalars.
+If Marpa finds a Perl subroutine that name,
+the action name is resolved to that subroutine,
+which then becomes a B<semantic closure>.
+If Marpa does not find
+a Perl subroutine with that name,
+but does find a scalar Perl variable with that name,
+the action name is resolved to that Perl variable.
+(Again, for this purpose a Perl references is a kind of Perl scalar.)
 
-Most commonly,
-the action name resolves to a subroutine, and that
-subroutine becomes the B<semantic closure>.
-If the action name resolves to a scalar Perl variable (and, again, for this purpose
-references are scalars), then the effect is as if the resolution
-had been to a subroutine that ignores it arguments and always returns that Perl variable.
+=head Resolution to Perl variables
+
+If the action name resolves to a scalar Perl variable,
+that is the value of the rule.
+One way of looking at it, is to say that the effect is as if the resolution
+had been to a subroutine that ignores its arguments and always returns that Perl variable,
+except that it is more efficient.
+
+Users should note that the resolution to a Perl variable resolves to the same
+variable every time.
+Further, assuming no trickery with Perl's C<local> keyword take place,
+this Perl variable will be global in scope.
+This means that good practice suggest that resolution to Perl variables be restricted
+to constants.
+
+For example, it may seem easier to initialize a hash in a parse tree
+using an action which returns a reference to an empty hash.
+Unfortunately for this purpose, this will be the same hash for
+all its users, and any change to it will be seen by all users.
+This is almost certainly not what is wanted.
+Users who want an action that returns an different empty hash every time
+it is invoked, which is almost always what is wanted,
+will need their action to resolve to a semantic closure,
+not a Perl variable.
+
+=head2 Resolution to a Perl semantic closure
 
 Ordinarily, the arguments to the semantic closure are the per-parse-tree
 variable,
@@ -1009,6 +1038,14 @@ exactly two arguments.
 The first will be the per-parse-tree variable.
 The second will be a blessed array that contains
 the child values in input-stream order.
+
+Note that the above implies that resolution can be either to a Perl subroutine
+or to a reference to a Perl subroutine, but that the result will be very different.
+The Perl subroutine will be treated as a semantic closure, and executed to produce
+the value of the node.
+The reference to a subroutine will B<NOT> be treated as a semantic closure,
+and will not be executed.
+The reference to a Perl subtroutine will be passed on, as is, as the value of the node.
 
 =head2 Reserved actions
 
