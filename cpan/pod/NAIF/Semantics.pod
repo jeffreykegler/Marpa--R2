@@ -514,125 +514,70 @@ the rule evaluation closures
 in their own namespace,
 particularly if the application is not small.
 
-=head2 Perl object actions
+=head2 Types of Perl actions
 
-Actions divide into two types:
-reserved actions and Perl object actions.
-A Perl object action is a actual Perl object of some type:
-either code or a reference.
-
-A Perl object action may come either from resolution
-of an action name,
-or from explicit resolution.
-If it came from explicit resolution,
-it will always be a reference.
-
-In simplified terms,
-if a Perl object action comes from resolution of
-an action name,
-and
-there is a Perl closure of that name, the Perl
-closure is the resolution.
-If there is a reference with that name
-it is resolved
-L<as described for Perl reference
-actions|/"Reference actions">.
-If there is some other scalar with that name,
-it is a fatal error.
-All other Perl objects with that name are ignored.
-
-More precisely, the resolution depends the lookup
-of the action name in the Perl symbol table:
+Actions resolve in three ways:
+to reserved actions, to Perl rule evaluation closures and to Perl variable actions.
+The following are tried, in order.
 
 =over 4
 
 =item * 
+If an action name begins with a double colon ("C<::>"),
+it will resolve to a reserved action, or not at all.
 
-If there is a C<CODE> entry,
-that entry is the resolution.
+=item *
+If the fully qualified form of an action name is the name of a Perl
+subroutine in the symbol table,
+the action name resolves to the Perl subroutine.
+That subroutine then becomes a Perl rule evaluation closure.
 
-=item * 
+=item *
+If the fully qualified form of an action name is the name of a Perl
+scalar variable in the symbol table,
+the action name resolves to the Perl variable.
+Note that, for this purpose, a Perl reference variable is considered as one type of Perl scalar.
 
-If there is a C<SCALAR> entry,
-and it is a reference,
-it is resolved
-L<as described for Perl reference
-actions|/"Reference actions">.
-
-=item * 
-
-If there is a C<SCALAR> entry,
-and it is not a reference,
-it is a fatal error.
-
-=item * 
-
-If there is no C<SCALAR> entry and no C<CODE> entry,
-it will be considered a failure to resolve.
+=item *
+Other kinds of Perl objects in the symbol table that match the fully qualified name,
+such as arrays and hashes, are ignored.
+Note that, while resolution to arrays and hashes is not allowed,
+resolution to references to arrays and hashes is permitted.
 
 =back
 
-=head2 Reference actions
+Resolution to a
+Perl rule evaluation closure
+or to a Perl variable
+may came from explicit resolution.
+Explicit resolution always takes place via a reference,
+and requires an extra level of indirection.
+For resolution to a rule evaluation closure,
+the closure must be provided in the form of a reference to the closure.
+For resolution to a Perl variable,
+the variable has to be provided in the form of a reference to the variable.
+If the Perl variable is a reference, that means adding another level of
+indirection.
 
-A Marpa action can be a Perl object which is a reference.
-A reference action may have come via name resolution,
-or it might be the result of explicit resolution.
+=head2 Modifying Perl variable actions
 
-Referents should be treated as read-only constants.
-It is possible to modify the values pointed to
-by a reference, but the effect will be global,
-and this is deprecated as bad practice.
-The referents of reference actions should be treated
-as read-only, and never modified.
+When resolution is to a
+Perl variable,
+it is possible to modify the value of the variable.
+In practice, this will usually be a bad idea.
+The Perl variable reference actions should be treated
+as read-only constants, and never modified.
 
-In the following, let C<$action_ref> be the action reference.
-Reference actions are handled based on type,
-ignoring any blessing as class objects.
-This would be the reftype as returned
-by C<Scalar::Util::reftype $action_ref>.
-
-If the reftype is C<CODE>,
-the resolution is to the Perl closure.
-The effect is the same as if an action name
-had resolved directly to a closure with the same
-name.
-The Perl closure,
-also called a B<rule evaluation closure>,
-will be called to produce the value of
-the action.
-
-If the reftype is C<SCALAR>,
-the resolution is to its de-referenced value,
-C<${$action_ref}>.
-The effect is roughly the same as if an action
-name had resolved to a closure which returned
-C<${$action_ref}>.
-
-If the reftype is C<ARRAY>,
-the resolution is to the original reference,
-C<$action_ref>.
-The effect is roughly the same as if an action
-name had resolved to a closure which returned
-C<$action_ref>.
-
-If the reftype is C<HASH>,
-the resolution is to the original reference,
-C<$action_ref>.
-The effect is roughly the same as if an action
-name had resolved to a closure which returned
-C<$action_ref>.
-
-=head2 Modifying Perl object actions
-
-It is important to note multiple invocations
-of C<$action_ref> will
-always point to the same contents,
-and that any modification will be
-seen by other invocations.
+This is because multiple resolutions
+to a Perl variable will
+always point to the same contents.
+Any modification to those contents will be
+seen by other users of that Perl variable.
 In other words, the modification will have global
 effect.
 For this reason modifying the referents of
-reference actions is deprecated.
+reference actions is almost always bad practice
+at the least, and is often an error.
 
 For example,
 assume that actions are in a package named C<My_Nodes>,
@@ -647,7 +592,7 @@ ignore: 1
 =for Marpa::R2::Display::End
 
 It can be tempting, in building objects which are hashes,
-to start with a left node whose action is C<empty_hash>
+to start with a leaf node whose action is C<empty_hash>
 and to add contents to it as the object is passed up the evaluation
 tree.
 But C<$empty_hash> points to a single hash object.
@@ -655,30 +600,22 @@ This single hash object will shared by all nodes,
 with all nodes seeing each other's changes.
 Worse, all Marpa parsers which use the same C<My_Nodes>
 namespace will share the same hash object.
+An application which needs an action which produces
+an empty hash should have the action resolve to a Perl rule
+evaluation closure
+that returns C<{}>.
 
-When not simply a mistake,
-this is usually bad programming practice.
-Before modifying the referent of a reference action,
-rule evaluation closures should copy it.
-Safer, if less efficient,
-is to define the C<empty_hash> action
-as a closure which returns C<{}>.
+=head2 Visibility and resolution
 
-=head2 Visibility of Perl object actions
-
-It is important to note that,
-when Perl closures are used for the semantics,
+When Perl closures and variables are used for the semantics,
 they must be visible in the scope where the semantics are
 B<resolved>.
 The action names are usually B<specified> with the grammar,
 but action B<resolution> takes place
 in the recognizer's
-L<C<value>|Marpa::R2::NAIF::Recognizer/"value">
-and
-L<C<reset_evaluation>|Marpa::R2::NAIF::Recognizer/"reset_evaluation">
-methods.
-This can sometimes be a source of confusion,
-because if a Perl closure is visible when the
+L<C<value>|Marpa::R2::NAIF::Recognizer/"value"> method.
+This can sometimes be a source of confusion.
+For example, if a Perl closure is visible when the
 action is specified,
 but goes out of scope before the action name is resolved,
 resolution will fail.
