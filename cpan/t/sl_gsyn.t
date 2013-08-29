@@ -34,9 +34,8 @@ use Marpa::R2;
 
 my $grammar = Marpa::R2::Scanless::G->new(
     {   
-        action_object  => 'My_Actions',
-        default_action => 'do_first_arg',
         source          => \(<<'END_OF_SOURCE'),
+:default ::= action => do_first_arg
 :start ::= Script
 Script ::= Expression+ separator => comma action => do_script
 comma ~ [,]
@@ -125,7 +124,6 @@ sub my_parser {
     my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
     my $self = bless { grammar => $grammar }, 'My_Actions';
     $self->{recce} = $recce;
-    local $My_Actions::SELF = $self;
 
     if ( not defined eval { $recce->read($p_input_string); 1 }
         )
@@ -136,7 +134,7 @@ sub my_parser {
         die $self->show_last_expression(), "\n", $eval_error, "\n";
     } ## end if ( not defined eval { $event_count = $recce->read...})
 
-    my $value_ref = $recce->value();
+    my $value_ref = $recce->value( $self );
     if ( not defined $value_ref ) {
         die $self->show_last_expression(), "\n",
             "No parse was found, after reading the entire input\n";
@@ -169,9 +167,6 @@ for my $test (@tests) {
 # name: Scanless recognizer semantics
 
 package My_Actions;
-
-our $SELF;
-sub new { return $SELF }
 
 sub do_parens    { shift; return $_[1] }
 sub do_add       { shift; return $_[0] + $_[2] }

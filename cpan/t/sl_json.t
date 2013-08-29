@@ -341,16 +341,22 @@ sub trace_json {
 
     my $re = Marpa::R2::Scanless::R->new( { grammar => $parser->{grammar} } );
     my $length = length $string;
-    for ( my $pos = $re->read(\$string); $pos < $length; $pos = $re->resume()) {
-       my ($start, $span_length) = $re->pause_span();
-       my ($line, $column) = $re->line_column($start);
-       my $lexeme = $re->pause_lexeme();
-       my $literal_string = $re->literal($start, $span_length);
-       $trace_desc .= qq{Line $line, column $column, lexeme <$lexeme>, literal "$literal_string"\n};
-       my $value = substr $string, $start+1, $span_length-2;
-       $value = decode_string($value) if -1 != index $value, q{\\};
-       $re->lexeme_read('lstring', $start, $span_length, $value) // die;
-    }
+    for (
+        my $pos = $re->read( \$string );
+        $pos < $length;
+        $pos = $re->resume()
+        )
+    {
+        my ( $start, $span_length ) = $re->pause_span();
+        my ( $line,  $column )      = $re->line_column($start);
+        my $lexeme = $re->pause_lexeme();
+        my $literal_string = $re->literal( $start, $span_length );
+        $trace_desc
+            .= qq{Line $line, column $column, lexeme <$lexeme>, literal "$literal_string"\n};
+        my $value = substr $string, $start + 1, $span_length - 2;
+        $value = decode_string($value) if -1 != index $value, q{\\};
+        $re->lexeme_read( 'lstring', $start, $span_length, $value ) // die;
+    } ## end for ( my $pos = $re->read( \$string ); $pos < $length...)
     return $trace_desc;
 
 # Marpa::R2::Display::End

@@ -27,7 +27,6 @@ normalize-whitespace: 1
     my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
     my $self = bless { grammar => $grammar }, 'My_Actions';
     $self->{recce} = $recce;
-    local $My_Actions::SELF = $self;
 
     if ( not defined eval { $recce->read($p_input_string); 1 }
         )
@@ -38,7 +37,7 @@ normalize-whitespace: 1
         die $self->show_last_expression(), "\n", $eval_error, "\n";
     } ## end if ( not defined eval { $event_count = $recce->read...})
 
-    my $value_ref = $recce->value();
+    my $value_ref = $recce->value( $self );
     if ( not defined $value_ref ) {
         die $self->show_last_expression(), "\n",
             "No parse was found, after reading the entire input\n";
@@ -52,10 +51,6 @@ partial: 1
 normalize-whitespace: 1
 
     package My_Actions;
-
-    our $SELF;
-    sub new { return $SELF }
-
     sub do_parens    { shift; return $_[1] }
     sub do_add       { shift; return $_[0] + $_[2] }
     sub do_subtract  { shift; return $_[0] - $_[2] }
@@ -504,7 +499,7 @@ name: Scanless recognizer synopsis
 partial: 1
 normalize-whitespace: 1
 
-    my $value_ref = $recce->value();
+    my $value_ref = $recce->value( $self );
 
 =for Marpa::R2::Display::End
 
@@ -516,8 +511,31 @@ the C<value> method returns C<undef>.
 
 Because Marpa parses ambiguous grammars, every parse
 is a series of zero or more parse trees.
+This series of zero or more parse trees is called a B<parse series>.
 There are zero parse trees if there was no valid parse
 of the input according to the grammar.
+
+The C<value()> method allows one, optional argument.
+If provided it explicitly specifies the per-parse argument for the
+parse tree.
+The per-parse argument will be the first argument of all 
+Perl semantics closures, and can be used to share data within
+the tree,
+when that data does not conveniently fit into the bottom-up
+flow of parse tree evaluation.
+Symbol tables are one example of the kind of data which parses often
+require, but which it is not convenient to accumulate bottom-up.
+
+If the C<semantics_package> named argument of the SLIF
+recognizer was not specified,
+Marpa will use the package into which the per-parse argument was blessed
+as the semantics package --
+the package in which to look for the parse's Perl semantic closures.
+In this case, Marpa will regard the per-parse arguments of all
+calls in the same parse series as the source of the semantics package,
+and it will require that the calls be consistent --
+each call must have a per-parse argument,
+and that per-parse argument  must be blessed into the semantics package.
 
 =head1 Mutators for external scanning
 
@@ -660,7 +678,7 @@ name: SLIF read/resume example
 partial: 1
 normalize-whitespace: 1
 
-   $re->lexeme_read('lstring', $start, $length, $value) // die;
+    $re->lexeme_read( 'lstring', $start, $length, $value ) // die;
 
 =for Marpa::R2::Display::End
 
@@ -739,15 +757,25 @@ name: SLIF read/resume example
 partial: 1
 normalize-whitespace: 1
 
-    my $re = Marpa::R2::Scanless::R->new( { grammar => $self->{grammar} } );
+    my $re = Marpa::R2::Scanless::R->new(
+        {   grammar           => $self->{grammar},
+            semantics_package => 'MarpaX::JSON::Actions'
+        }
+    );
     my $length = length $string;
-    for ( my $pos = $re->read(\$string); $pos < $length; $pos = $re->resume()) {
-       my ($start, $length) = $re->pause_span();
-       my $value = substr $string, $start+1, $length-2;
-       $value = decode_string($value) if -1 != index $value, '\\';
-       $re->lexeme_read('lstring', $start, $length, $value) // die;
-    }
-    my $value_ref = $re->value();
+    for (
+        my $pos = $re->read( \$string );
+        $pos < $length;
+        $pos = $re->resume()
+        )
+    {
+        my ( $start, $length ) = $re->pause_span();
+        my $value = substr $string, $start + 1, $length - 2;
+        $value = decode_string($value) if -1 != index $value, '\\';
+        $re->lexeme_read( 'lstring', $start, $length, $value ) // die;
+    } ## end for ( my $pos = $re->read( \$string ); $pos < $length...)
+    my $per_parse_arg = bless {}, 'MarpaX::JSON::Actions';
+    my $value_ref = $re->value($per_parse_arg);
     return ${$value_ref};
 
 =for Marpa::R2::Display::End
@@ -928,8 +956,8 @@ name: SLIF trace example
 partial: 1
 normalize-whitespace: 1
 
-       my ($start, $span_length) = $re->pause_span();
-       my ($line, $column) = $re->line_column($start);
+    my ( $start, $span_length ) = $re->pause_span();
+    my ( $line,  $column )      = $re->line_column($start);
 
 =for Marpa::R2::Display::End
 
@@ -991,7 +1019,7 @@ name: SLIF trace example
 partial: 1
 normalize-whitespace: 1
 
-   my $literal_string = $re->literal($start, $span_length);
+    my $literal_string = $re->literal( $start, $span_length );
 
 =for Marpa::R2::Display::End
 
@@ -1049,7 +1077,7 @@ name: SLIF read/resume example
 partial: 1
 normalize-whitespace: 1
 
-   my ($start, $length) = $re->pause_span();
+    my ( $start, $length ) = $re->pause_span();
 
 =for Marpa::R2::Display::End
 

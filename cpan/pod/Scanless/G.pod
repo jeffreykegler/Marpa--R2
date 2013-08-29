@@ -26,9 +26,8 @@ normalize-whitespace: 1
 
     my $grammar = Marpa::R2::Scanless::G->new(
         {   
-            action_object  => 'My_Actions',
-            default_action => 'do_first_arg',
             source          => \(<<'END_OF_SOURCE'),
+    :default ::= action => do_first_arg
     :start ::= Script
     Script ::= Expression+ separator => comma action => do_script
     comma ~ [,]
