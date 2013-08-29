@@ -54,8 +54,7 @@ END_OF_GRAMMAR
 my $events_expected = <<'END_OF_EVENTS';
 END_OF_EVENTS
 
-my $grammar = Marpa::R2::Scanless::G->new(
-    { action_object => 'My_Actions', source => \$rules } );
+my $grammar = Marpa::R2::Scanless::G->new( { source => \$rules } );
 
 my %expected_events;
 $expected_events{'all'} = <<'END_OF_EVENTS';
@@ -108,7 +107,7 @@ sub do_test {
     my ($test) = @_;
     state $string = q{aabbbcccdaaabccddddabcd};
     state $length = length $string;
-    my $slr = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
+    my $slr = Marpa::R2::Scanless::R->new( { grammar => $grammar, semantics_package => 'My_Actions' } );
     my $pos = $slr->read( \$string );
     my $actual_events = q{};
     my $deactivated_event_name;
@@ -166,13 +165,9 @@ do_test('seq');
 # Once again, but with unnamed events
 $expected_events{'all'} =~ s/^ [^\n]+ $/unnamed/gxms;
 $rules =~ s/^ ([:] lexeme \s [^\n]* ) \s+ event \s* [=][>] [^\n]* $/$1/gxms;
-$grammar = Marpa::R2::Scanless::G->new(
-    { action_object => 'My_Actions', source => \$rules } );
+$grammar = Marpa::R2::Scanless::G->new( { source => \$rules } );
 do_test('all');
 
-package My_Actions;
-
-sub OK { return 1792 }
-sub new { return {}; }
+sub My_Actions::OK { return 1792 }
 
 # vim: expandtab shiftwidth=4:

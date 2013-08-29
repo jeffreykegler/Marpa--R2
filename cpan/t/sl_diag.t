@@ -118,6 +118,10 @@ END_OF_DESCRIPTION
 );
 
 package My_Actions;
+# The SELF object is a very awkward way of specifying the per-parse
+# argument directly, one which was necessary before the $slr->value()
+# method took an argument.
+# This way of doing things is discourage and preserved here for testing purposes.
 our $SELF;
 sub new { return $SELF }
 

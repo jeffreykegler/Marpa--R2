@@ -28,9 +28,8 @@ use Marpa::R2;
 
 my $prefix_grammar = Marpa::R2::Scanless::G->new(
     {
-        action_object        => 'My_Actions',
-        default_action => 'do_arg0',
         source          => \(<<'END_OF_RULES'),
+:default ::= action => do_arg0
 :start ::= Script
 Script ::= Calculation* action => do_list
 Calculation ::= Expression | ('say') Expression
@@ -53,51 +52,42 @@ END_OF_RULES
     }
 );
 
-package My_Actions;
-our $SELF;
-sub new { return $SELF }
-sub do_list {
-    my ($self, @results) = @_;
-    return +(scalar @results) . ' results: ' . join q{ }, @results;
+sub My_Actions::do_list {
+    my ( $self, @results ) = @_;
+    return +( scalar @results ) . ' results: ' . join q{ }, @results;
 }
 
-sub do_add  { shift; return $_[0] + $_[1] }
-sub do_arg0 { shift; return shift; }
+sub My_Actions::do_add  { shift; return $_[0] + $_[1] }
+sub My_Actions::do_arg0 { shift; return shift; }
 
-sub show_last_expression {
+sub My_Actions::show_last_expression {
     my ($self) = @_;
     my $recce = $self->{recce};
     my ( $start, $end ) = $recce->last_completed_range('Expression');
     return if not defined $start;
     my $last_expression = $recce->range_to_string( $start, $end );
     return $last_expression;
-} ## end sub show_last_expression
-
-package main;
+} ## end sub My_Actions::show_last_expression
 
 sub my_parser {
     my ( $grammar, $string ) = @_;
 
-    my $self = bless { grammar => $grammar }, 'My_Actions';
-    local $My_Actions::SELF = $self;
-
     my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
-    $self->{recce} = $recce;
+    my $self = bless { grammar => $grammar, recce => $recce }, 'My_Actions';
     my ( $parse_value, $parse_status, $last_expression );
 
-    if ( not defined eval { $recce->read(\$string); 1 } ) {
+    if ( not defined eval { $recce->read( \$string ); 1 } ) {
         my $abbreviated_error = $EVAL_ERROR;
         chomp $abbreviated_error;
         $abbreviated_error =~ s/\n.*//xms;
         $abbreviated_error =~ s/^Error \s+ in \s+ string_read: \s+ //xms;
         return 'No parse', $abbreviated_error, $self->show_last_expression();
-    }
-    my $value_ref = $recce->value();
+    } ## end if ( not defined eval { $recce->read( \$string ); 1 ...})
+    my $value_ref = $recce->value($self);
     if ( not defined $value_ref ) {
-        return
-            'No parse', 'Input read to end but no parse',
+        return 'No parse', 'Input read to end but no parse',
             $self->show_last_expression();
-    } ## end if ( not defined $value_ref )
+    }
     return [ return ${$value_ref}, 'Parse OK', 'entire input' ];
 } ## end sub my_parser
 
