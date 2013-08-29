@@ -29,6 +29,7 @@ use Data::Dumper;
 
 my $dsl = <<'END_OF_DSL';
 # The BNF
+:default ::= action => ::first
 :start ::= sentence
 sentence ::= element
 array ::= 'A' <array count> '(' elements ')'
@@ -51,14 +52,9 @@ event 'expecting text' = predicted <text>
 text ~ [\d\D]
 END_OF_DSL
 
-my $grammar = Marpa::R2::Scanless::G->new(
-    {   action_object  => 'My_Actions',
-        default_action => '::first',
-        source         => \$dsl
-    }
-);
-
-my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
+my $grammar = Marpa::R2::Scanless::G->new( { source => \$dsl } );
+my $recce = Marpa::R2::Scanless::R->new(
+    { grammar => $grammar, semantics_package => 'My_Actions' } );
 
 my $input = 'A2(A2(S3(Hey)S13(Hello, World!))S5(Ciao!))';
 
@@ -104,11 +100,7 @@ $VAR1 = [
 EXPECTED_OUTPUT
 Test::More::is( $received, $expected , 'Dyck-Hollerith value');
 
-package My_Actions;
-
-sub new { }
-
-sub check_array {
+sub My_Actions::check_array {
     my ( undef, undef, $declared_size, undef, $array ) = @_;
     my $actual_size = @{$array};
     warn

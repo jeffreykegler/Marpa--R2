@@ -28,6 +28,7 @@ use Marpa::R2::Test;
 use Marpa::R2;
 
 my $source_template = <<'END_OF_SOURCE';
+:default ::= action => do_list
 :start       ::= Number
 Number       ::= number   # If I add '+' or '*' it will work...
 %QUANTIFIER%
@@ -40,20 +41,11 @@ END_OF_SOURCE
 (my $source_plus = $source_template) =~ s/ %QUANTIFIER% / + /xms;
 (my $source_star = $source_template) =~ s/ %QUANTIFIER% / * /xms;
 
-my @common_args = (
-    action_object  => 'My_Actions',
-    default_action => 'do_list',
-);
-my $grammar_bare =
-    Marpa::R2::Scanless::G->new( { @common_args, source => \$source_bare } );
-my $grammar_plus =
-    Marpa::R2::Scanless::G->new( { @common_args, source => \$source_plus } );
-my $grammar_star =
-    Marpa::R2::Scanless::G->new( { @common_args, source => \$source_star } );
+my $grammar_bare = Marpa::R2::Scanless::G->new( { source => \$source_bare } );
+my $grammar_plus = Marpa::R2::Scanless::G->new( { source => \$source_plus } );
+my $grammar_star = Marpa::R2::Scanless::G->new( { source => \$source_star } );
 
 package My_Actions;
-our $SELF;
-sub new { return $SELF }
 sub do_list {
     shift;
     return join " ", @_;
@@ -74,25 +66,23 @@ sub my_parser {
     my ( $grammar, $string ) = @_;
 
     my $self = bless { grammar => $grammar }, 'My_Actions';
-    local $My_Actions::SELF = $self;
 
     my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
     $self->{recce} = $recce;
     my ( $parse_value, $parse_status, $last_expression );
 
-    if ( not defined eval { $recce->read(\$string); 1 } ) {
+    if ( not defined eval { $recce->read( \$string ); 1 } ) {
         my $abbreviated_error = $EVAL_ERROR;
         chomp $abbreviated_error;
         $abbreviated_error =~ s/\n.*//xms;
         $abbreviated_error =~ s/^Error \s+ in \s+ string_read: \s+ //xms;
         return 'No parse', $abbreviated_error, $self->show_last_expression();
-    }
-    my $value_ref = $recce->value();
+    } ## end if ( not defined eval { $recce->read( \$string ); 1 ...})
+    my $value_ref = $recce->value($self);
     if ( not defined $value_ref ) {
-        return
-            'No parse', 'Input read to end but no parse',
+        return 'No parse', 'Input read to end but no parse',
             $self->show_last_expression();
-    } ## end if ( not defined $value_ref )
+    }
     my $value = ${$value_ref} // '';
     return [ return $value, 'Parse OK', 'entire input' ];
 } ## end sub my_parser

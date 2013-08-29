@@ -31,6 +31,7 @@ use Marpa::R2::Test;
 use Marpa::R2;
 
 my $rules = <<'END_OF_GRAMMAR';
+:default ::= action => do_arg0
 :start ::= script
 script ::= expression
 script ::= (script ';') expression
@@ -66,8 +67,7 @@ whitespace ~ [\s]+
 END_OF_GRAMMAR
 
 my $grammar = Marpa::R2::Scanless::G->new(
-    {   action_object  => 'My_Actions',
-        default_action => 'do_arg0',
+    {   
         source          => \$rules,
     }
 );
@@ -104,7 +104,6 @@ sub calculate {
 
     my $self = bless { grammar => $grammar }, 'My_Actions';
     $self->{slr} = $recce;
-    local $My_Actions::SELF = $self;
 
     if ( not defined eval { $recce->read($p_string); 1 } ) {
 
@@ -113,7 +112,7 @@ sub calculate {
         chomp $eval_error;
         die $self->show_last_expression(), "\n", $eval_error, "\n";
     } ## end if ( not defined eval { $event_count = $recce->read...})
-    my $value_ref = $recce->value;
+    my $value_ref = $recce->value( $self );
     if ( not defined $value_ref ) {
         die $self->show_last_expression(), "\n",
             "No parse was found, after reading the entire input\n";
@@ -158,8 +157,6 @@ for my $test_data (@tests_data) {
 } ## end TEST: for my $test_string (@test_strings)
 
 package My_Actions;
-our $SELF;
-sub new { return $SELF }
 
 sub do_is_var {
     my ( undef, $var ) = @_;

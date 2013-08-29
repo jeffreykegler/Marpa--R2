@@ -135,7 +135,7 @@ sub Marpa::R2::Internal::Recognizer::resolve_action {
     } ## end if ( defined $closure )
 
     if ( $trace_actions or defined $p_error ) {
-        for my $slot (qw(ARRAY HASH IO GLOB FORMAT)) {
+        for my $slot (qw(ARRAY HASH IO FORMAT)) {
             no strict 'refs';
             if ( defined *{$fully_qualified_name}{$slot} ) {
                 my $error =

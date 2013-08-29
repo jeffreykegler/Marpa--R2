@@ -42,6 +42,7 @@ my $pos = 0;
 # used together with values from an external scanner
 
 $dsl = <<'END_OF_SOURCE';
+:default ::= action => ::first
 :start ::= Expression
 Expression ::= Number
     | Expression Add Expression action => do_add
@@ -54,14 +55,9 @@ Expression ::= Number
       whitespace ~ [\s]+
 END_OF_SOURCE
 
-$grammar = Marpa::R2::Scanless::G->new(
-    {   action_object  => 'My_Nodes',
-        default_action => 'first_arg',
-        source         => \$dsl,
-    }
-);
-
-$recce = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
+$grammar = Marpa::R2::Scanless::G->new( { source => \$dsl } );
+$recce = Marpa::R2::Scanless::R->new(
+    { grammar => $grammar, semantics_package => 'My_Actions' } );
 $input = '2*1+3*4+5';
 $pos   = 0;
 $recce->read( \$input, 0, 0 );
@@ -84,21 +80,15 @@ $expected_output = '19 19 25 29 31 36 36 37 37 42 45 56 72 72';
 $actual_output = join " ", sort @values;
 Test::More::is( $actual_output, $expected_output, 'Values for Durand test' );
 
-package My_Nodes;
-
-sub new { return {}; }
-
-sub do_add {
+sub My_Actions::do_add {
     my ( undef, $t1, undef, $t2 ) = @_;
     return $t1 + $t2;
 }
 
-sub do_multiply {
+sub My_Actions::do_multiply {
     my ( undef, $t1, undef, $t2 ) = @_;
     return $t1 * $t2;
 }
-
-sub first_arg { shift; return shift; }
 
 # Second problem -- Location 0 events
 

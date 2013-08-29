@@ -44,9 +44,7 @@ word ~ [\w]+
 whitespace ~ [\s]+
 END_OF_GRAMMAR
 
-my $grammar = Marpa::R2::Scanless::G->new(
-    {   action_object => 'My_Actions', source          => \$rules }
-);
+my $grammar = Marpa::R2::Scanless::G->new( { source => \$rules } );
 
 
 do_test($grammar, q{42 ( hi 42 hi ) 7 11}, [ '( hi 42 hi )' ]);
@@ -65,7 +63,8 @@ sub show_last_subtext {
 sub do_test {
     my ( $slg, $string, $expected_events ) = @_;
     my @actual_events;
-    my $slr  = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
+    my $slr = Marpa::R2::Scanless::R->new(
+        { grammar => $grammar, semantics_package => 'My_Actions' } );
     my $length = length $string;
     my $pos    = $slr->read( \$string );
     READ: while (1) {
@@ -100,9 +99,6 @@ sub do_test {
     Test::More::is_deeply( \@actual_events, $expected_events, qq{Events for "$string"} );
 } ## end sub do_test
 
-package My_Actions;
-
-sub OK { return 1792 };
-sub new { return {}; }
+sub My_Actions::OK { return 1792 };
 
 # vim: expandtab shiftwidth=4:

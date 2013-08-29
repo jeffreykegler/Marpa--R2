@@ -112,10 +112,7 @@ for my $pos_events  (split /\n/xms, $all_events_expected)
     push @events, @pos_events;
 }
 
-my $grammar = Marpa::R2::Scanless::G->new(
-    {   action_object => 'My_Actions', source          => \$rules }
-);
-
+my $grammar = Marpa::R2::Scanless::G->new( { source => \$rules } );
 
 my $location_0_event = qq{0 ^a\n} ;
 
@@ -142,7 +139,8 @@ sub show_last_subtext {
 sub do_test {
     my ( $test, $slg, $string, $expected_events, $reactivate_events ) = @_;
     my $actual_events = q{};
-    my $slr    = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
+    my $slr = Marpa::R2::Scanless::R->new(
+        { grammar => $grammar, semantics_package => 'My_Actions' } );
     if (defined $reactivate_events) {
 
 # Marpa::R2::Display
@@ -189,9 +187,6 @@ sub do_test {
         qq{Events for $test} );
 } ## end sub do_test
 
-package My_Actions;
-
-sub OK { return 1792 };
-sub new { return {}; }
+sub My_Actions::OK { return 1792 };
 
 # vim: expandtab shiftwidth=4:
