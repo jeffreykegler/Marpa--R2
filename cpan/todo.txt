@@ -1,6 +1,4 @@
-* Document
-  * $slr->set() for end, trace_file_handle, semantics_package named arguments
-  * $slr->series_restart().
+* Update SLIF semantics documents
 
 Later:
 
