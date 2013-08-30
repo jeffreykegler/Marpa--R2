@@ -1,10 +1,6 @@
 * Document
-  * fully qualified actions now allowed in SLIF
-  * null_ranking adverb added
   * semantics_package named argument
   * $slr->value() arg
-  * Discourage action_object named argument
-  * $slg->set() for trace_file_handle named argument
   * $slr->set() for end, trace_file_handle, semantics_package named arguments
   * $slr->series_restart().
 

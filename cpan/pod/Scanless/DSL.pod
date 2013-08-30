@@ -768,6 +768,37 @@ for the L<named event statement|"Named event statement">.
 It is a fatal error to specify the C<event> adverb
 if the C<pause> adverb is not also specified.
 
+=head2 null-ranking
+
+=for Marpa::R2::Display
+name: null-ranking adverb example
+partial: 1
+normalize-whitespace: 1
+
+    S ::= A A A A null-ranking => high
+
+=for Marpa::R2::Display::End
+
+The C<null-ranking> adverb applies only to rules.
+and is ignored unless
+the recognizer's C<ranking_method> named argument
+is set to something other than its default.
+The C<null_ranking> named argument allows the application
+to control the order in which rules with nullable symbols
+are returned by the C<value> method.
+Such rules can match the same input in several ways
+depending on which symbols are nulled.
+These different ways of nulling symbols in a rule
+are called its null variants.
+
+If C<null_ranking> is undefined,
+the order of the null variants will be arbitrary.
+This is the default,
+and is acceptable to most applications.
+For details on using the
+C<null_ranking> named argument,
+see L<the document on parse order|Marpa::R2::Semantics::Order>.
+
 =head2 pause
 
 =for Marpa::R2::Display
@@ -980,7 +1011,7 @@ If an action value is a series of two or more Perl identifiers
 separated by double colons ("C<::>"), it is treated as it was a fully qualified Perl name.
 Fully qualified Perl names are also obtained from action names which look like
 unqualified Perl names, by prefixing the semantics package, as described above.
-(Note that an action value start with a double colon is always treated as a reserved
+(Note that an action value starting with a double colon is always treated as a reserved
 action name and is B<not> regarded as Perl name.)
 
 Once Marpa has a fully qualified Perl name, it looks in Perl's symbol tables for
@@ -989,23 +1020,19 @@ either the name of a subroutine, or of a scalar.
 It is important to note that for the purposes of Perl's symbol tables,
 and therefore for the purposes of Marpa's resolution of Perl names,
 references are scalars.
-If Marpa finds a Perl subroutine that name,
+If Marpa finds a Perl subroutine with that fully qualified Perl name,
 the action name is resolved to that subroutine,
 which then becomes a B<semantic closure>.
 If Marpa does not find
 a Perl subroutine with that name,
 but does find a scalar Perl variable with that name,
 the action name is resolved to that Perl variable.
-(Again, for this purpose a Perl references is a kind of Perl scalar.)
+(Again, for this purpose a Perl reference is a kind of Perl scalar.)
 
 =head Resolution to Perl variables
 
 If the action name resolves to a scalar Perl variable,
 that is the value of the rule.
-One way of looking at it, is to say that the effect is as if the resolution
-had been to a subroutine that ignores its arguments and always returns that Perl variable,
-except that it is more efficient.
-
 Users should note that the resolution to a Perl variable resolves to the same
 variable every time.
 Further, assuming no trickery with Perl's C<local> keyword take place,

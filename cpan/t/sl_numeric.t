@@ -39,25 +39,30 @@ sub default_action {
 
 ## use critic
 
-sub gen_dsl {
-    my ($null_ranking) = @_;
-my $dsl = <<'END_OF_DSL';
+# Marpa::R2::Display
+# name: null-ranking adverb example
+
+my $high_dsl = <<'END_OF_DSL';
 :default ::= action => main::default_action
 :start ::= S
 A ::= 'a'
 A ::= empty
 empty ::=
+S ::= A A A A null-ranking => high
 END_OF_DSL
-$dsl .= "S ::= A A A A null-ranking => $null_ranking\n";
-return $dsl;
-}
+
+# Marpa::R2::Display::End
+
+my $low_dsl = $high_dsl;
+$low_dsl =~ s/\s+ [=][>] \s+ high \Z/ => low/xms;
+my %dsl = ( high => \$high_dsl, low => \$low_dsl );
 
 my @maximal = ( q{}, qw[(a;;;) (a;a;;) (a;a;a;) (a;a;a;a)] );
 my @minimal = ( q{}, qw[(;;;a) (;;a;a) (;a;a;a) (a;a;a;a)] );
 
 for my $maximal ( 0, 1 ) {
-    my $dsl = gen_dsl( $maximal ? 'low' : 'high' );
-    my $slg = Marpa::R2::Scanless::G->new( { source => \$dsl } );
+    my $dsl = $dsl{ $maximal ? 'low' : 'high' };
+    my $slg = Marpa::R2::Scanless::G->new( { source => $dsl } );
     my $slr = Marpa::R2::Scanless::R->new(
         {   grammar        => $slg,
             ranking_method => 'high_rule_only'
