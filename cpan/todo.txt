@@ -1,6 +1,4 @@
 * Document
-  * semantics_package named argument
-  * $slr->value() arg
   * $slr->set() for end, trace_file_handle, semantics_package named arguments
   * $slr->series_restart().
 

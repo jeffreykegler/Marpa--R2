@@ -76,8 +76,21 @@ for my $maximal ( 0, 1 ) {
     for my $i ( 0 .. $input_length ) {
         my $expected = $maximal ? \@maximal : \@minimal;
         my $name     = $maximal ? 'maximal' : 'minimal';
+
+# Marpa::R2::Display
+# name: SLIF recognizer series_restart() synopsis
+
         $slr->series_restart();
-        $slr->set( { end => $i, } );
+
+# Marpa::R2::Display::End
+
+# Marpa::R2::Display
+# name: SLIF recognizer set() synopsis
+
+        $slr->set( { end => $i } );
+
+# Marpa::R2::Display::End
+
         my $result = $slr->value();
         die "No parse" if not defined $result;
         Test::More::is( ${$result}, $expected->[$i],

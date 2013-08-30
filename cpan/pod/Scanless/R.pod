@@ -332,6 +332,17 @@ All other named arguments are optional.
 
 The following named arguments are allowed:
 
+=head2 end
+
+Most users will want to ignore this argument.
+It is an advanced argument, mainly for use in testing.
+The C<end> named argument
+specifies the parse end, as a G1 location.
+The default is for the parse to end where the input did,
+so that the parse returned is of the entire input.
+The C<end> named argument is not allowed
+once a parse series has begun.
+
 =head2 grammar
 
 The C<new> method is required to have
@@ -503,6 +514,22 @@ or because internal scanning was paused.
 On success, C<read()> returns the location in the input
 stream at which internal scanning ended.
 This value may be zero.
+
+=head2 set()
+
+=for Marpa::R2::Display
+name: SLIF recognizer set() synopsis
+normalize-whitespace: 1
+
+    $slr->set( { end => $i } );
+
+=for Marpa::R2::Display::End
+
+This method allows the named arguments to be changed after an SLIF
+grammar is created.
+Currently, the arguments that may be changed are C<end>,
+C<semantics_package> and
+C<trace_file_handle>.
 
 =head2 value()
 
