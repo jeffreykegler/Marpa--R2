@@ -515,6 +515,28 @@ On success, C<read()> returns the location in the input
 stream at which internal scanning ended.
 This value may be zero.
 
+=head2 series_restart()
+
+=for Marpa::R2::Display
+name: SLIF recognizer series_restart() synopsis
+normalize-whitespace: 1
+
+    $slr->series_restart();
+
+=for Marpa::R2::Display::End
+
+The C<series_restart()> method ends the current parse series,
+and starts another.
+Restarting the parse series with
+the C<series_restart()> method
+allows the
+application to specify new
+values for
+the C<end>
+and C<semantics_package> named arguments.
+Once a parse series is underway,
+these values cannot be changed.
+
 =head2 set()
 
 =for Marpa::R2::Display
