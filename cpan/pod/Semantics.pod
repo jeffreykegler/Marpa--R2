@@ -359,7 +359,7 @@ the result of a default.
 
 =back
 
-=head2 Perl identifers
+=head1 Perl identifers
 
 If the action value is a Perl identifier,
 it is treated as the name of a Perl variable,
@@ -387,7 +387,7 @@ unqualified Perl names, by prefixing the semantics package, as described above.
 (Note that an action value starting with a double colon is always treated as a reserved
 action name and is B<not> regarded as Perl name.)
 
-=head2 Resolution to a Perl semantic closure
+=head1 Resolution to a Perl semantic closure
 
 Ordinarily, the arguments to the semantic closure are the per-parse-tree
 variable,
@@ -465,7 +465,7 @@ but does find a scalar Perl variable with that name,
 the action name is resolved to that Perl variable.
 (Again, for this purpose a Perl reference is a kind of Perl scalar.)
 
-=head2 Resolution to a Perl semantic closure
+=head1 Resolution to a Perl semantic closure
 
 Ordinarily, the arguments to the semantic closure are the per-parse-tree
 variable,
@@ -506,7 +506,7 @@ by the values of its child nodes in lexical order.
 If the rule is nulled, the child node values will be omitted.
 A rule evaluation closure action is always called in scalar context.
 
-=head2 Sequence rule nodes
+=head1 Sequence rule nodes
 
 Some rules are L<sequence rules|Marpa::R2::NAIF::Grammar/"Sequence rules">.
 Sequence rule nodes are also rule nodes.
@@ -552,7 +552,7 @@ and do appear in the
 value action's
 C<@_> array.
 
-=head2 Null nodes
+=head1 Null nodes
 
 A null node is a special case of a rule node,
 one where the rule derives the zero-length,
@@ -686,7 +686,7 @@ in detail.
 The details can matter in some applications,
 for example, those which exploit side effects.
 
-=head2 Perl object actions
+=head1 Perl object actions
 
 Actions divide into two types:
 reserved actions and Perl object actions.
@@ -738,7 +738,7 @@ it will be considered a failure to resolve.
 
 =back
 
-=head2 Reference actions
+=head1 Reference actions
 
 A Marpa action can be a Perl object which is a reference.
 Referents should be treated as read-only constants.
@@ -785,7 +785,7 @@ The effect is roughly the same as if an action
 name had resolved to a closure which returned
 C<$action_ref>.
 
-=head2 Modifying Perl object actions
+=head1 Modifying Perl object actions
 
 It is important to note multiple invocations
 of C<$action_ref> will
@@ -827,7 +827,7 @@ Safer, if less efficient,
 is to define the C<empty_hash> action
 as a closure which returns C<{}>.
 
-=head2 Visibility of Perl object actions
+=head1 Visibility of Perl object actions
 
 It is important to note that,
 when Perl closures are used for the semantics,
@@ -845,8 +845,6 @@ because if a Perl closure is visible when the
 action is specified,
 but goes out of scope before the action name is resolved,
 resolution will fail.
-
-=head1 Draft from here
 
 =head1 The per-parse argument
 
