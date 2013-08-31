@@ -123,7 +123,8 @@ in it.
 Traditionally, that structure is a tree.
 
 Rarely is an application interested only in the tree.
-Usually the idea is that the string "means" something, that it has a B<semantics>.
+Usually the idea is that the string "means" something --
+the idea is that the string has a B<semantics>.
 Traditionally and most often, the tree
 is as an intermediate step in producing a value,
 a value which represents the "meaning" or "semantics" of the string.
@@ -132,6 +133,14 @@ a value which represents the "meaning" or "semantics" of the string.
 The rest of this document describes Marpa's methods for evaluating trees.
 Those of you who have dealt with other traditional parsers, such as yacc and bison,
 will find Marpa's approach familiar.
+
+Evaluation only takes place within the structural (G1) subgrammar,
+and the descriptions of the behaviors of rules and lexemes applies only
+to the G1 subgrammar.
+G0 rules and terminal symbols do not become nodes
+in the parse tree,
+they have no actions,
+and they are never evaluated.
 
 =head1 Nodes
 
@@ -144,7 +153,7 @@ The topmost node of a tree is its "root node".
 (Trees are easiest to draw upside down, so traditionally in programming,
 the top of a tree is its root.)
 
-The node at a branch point, "branches" into zero or more "child nodes".
+A node, or branch point, "branches" into zero or more "child nodes".
 The node just above a child node,
 the one from which the child node branches out,
 is called its parent node.
@@ -185,11 +194,32 @@ Before evaluation,
 Marpa prunes all nulled subtrees back to their topmost nulled
 node.
 Of all the ways of dealing with nulled subtrees, this is the
-simplest,
+simplest and
 Marpa's users have found it a natural approach.
 More detail on the semantics of nulled symbols and subtrees
 can be found in
 L<a separate document|Marpa::R2::Semantics::Null>.
+
+When a node is nulled,
+it must be as a result of a nullable rule,
+and the action name and action are those
+associated with that rule.
+An ambiguity can arise if there is more
+than one nullable rule with the same LHS,
+but a different action name.
+In that case the action name for the null nodes
+is that of the empty rule.
+
+The remaining case is that of
+a set of nullable rules with the same LHS,
+where two or more of the rules have different action names,
+but none of the rules in the set is an empty rule.
+When this happens, Marpa throws an exception.
+To fix the issue,
+the user can add an empty rule.
+For more details,
+see L<the document on
+null semantics|Marpa::R2::Semantics::Null>.
 
 =head1 Actions
 
@@ -528,16 +558,6 @@ and action is also used
 to create the per-parse-tree variable,
 as L<described
 below|/"The per-parse-tree variable">.
-
-=head1 G0 and G1 Subgrammars
-
-Evaluation only takes place within the structural (G1) subgrammar,
-and the descriptions of the behaviors of rules and lexemes applies only
-to the G1 subgrammar.
-G0 rules and terminal symbols do not become nodes
-in the parse tree,
-they have no actions,
-and they are never evaluated.
 
 =head1 Evaluating a lexeme
 
