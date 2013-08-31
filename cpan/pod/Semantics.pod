@@ -276,7 +276,7 @@ but does find a scalar Perl variable with that name,
 the action name is resolved to that Perl variable.
 (Again, for this purpose a Perl reference is a kind of Perl scalar.)
 
-=head Resolution to Perl variables
+=head2 Resolution to Perl variables
 
 If the action name resolves to a scalar Perl variable,
 that is the value of the rule.

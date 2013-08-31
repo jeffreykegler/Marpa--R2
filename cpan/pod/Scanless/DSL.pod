@@ -1091,34 +1091,7 @@ in Marpa.
 Group associativity is meaningless for nullary alternatives,
 and is ignored.
 
-=head1 Caveats
-
-=head2 Symbol names
-
-The SLIF may rewrite its symbol names internally.
-Here we call the name by which a symbol is specified in the
-SLIF source string its "external symbol name",
-and its name as rewritten, its "internal symbol name".
-In many cases, Marpa::R2 makes sure the user sees only
-the external names of symbols.
-For example,
-L<the SLIF grammar's C<rule()> method|Marpa::R2::Scanless::G/"rule()">
-returns external symbol names.
-
-However,
-for some purposes, such as tracing grammars, the use of
-internal names may sometimes
-be appropriate.
-Marpa::R2's use of external and internal symbol names
-is evolving.
-When the SLIF is used,
-except as documented in this section,
-the user may see either the internal or external form
-of a symbol's name.
-Additionally, the exact form of the internal name is
-subject to change.
-
-=head2 Precedence: the good news
+=head2 Precedence and ambiguous grammars
 
 Marpa's generalization of precedence works
 for all grammars that
@@ -1129,8 +1102,6 @@ Marpa also allows you to define alternatives
 not allowed by traditional methods.
 Many of these are useful,
 and most of the useful ones can be parsed efficiently.
-
-=head2 Precedence and ambiguous grammars
 
 Because of the many forms of recursion allowed,
 it is possible
