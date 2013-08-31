@@ -115,7 +115,7 @@ called to produce the result.
 When a Perl object action is some other kind of object,
 its treatment is
 L<as described
-below|/"Reference actions">.
+below|/"Types of Perl actions">
 
 An action name
 and action is also used
