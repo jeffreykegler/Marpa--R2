@@ -239,8 +239,8 @@ describe how explicit action names resolve to actions.
 
 =head2 Lexeme actions
 
-The implicit action for a lexeme is to return the literal substring
-of the input that corresponds to the lexeme.
+The implicit action for a lexeme is to return
+its literal value in the stream, as a string.
 An explicit default may be set using the
 L<the lexeme default statement|Marpa::R2::Scanless::DSL/"Lexeme default statement">.
 
@@ -254,145 +254,6 @@ A default explicit action for rules can be specified with a
 L<default pseudo-rule|Marpa::R2::Scanless::DSL/"Default pseudo-rules">.
 
 =head1 Array descriptor actions
-
-=head1 Reserve action names
-
-=head1 Perl identifiers as actions
-
-=head1 Perl names as actions
-
-=head1 Actions
-
-=head2 Perl identifers
-
-If the action value is a Perl identifier,
-it is treated as the name of a Perl variable,
-but one which still must be fully qualified by adding a package name.
-For this purpose, a Perl identifier is a sequence of one or more alphanumerics
-and underscores.
-A Perl identifier will be fully qualified by prefixing the name of the semantic package,
-and then dealt with as described for L<"Fully qualified Perl names">.
-
-For example, if the action value
-is "C<some_var>", the action value will be regarded as a Perl identifer.
-If the semantics package is "C<My_Actions>", Marpa will convert the action
-value to "C<My_Actions::some_var>", and hand
-it on for processing as a fully qualified Perl name.
-is "C<some_var>", the action value will be regarded as a Perl identifer.
-For more details on qualifying Perl identifiers, see
-L<the document on SLIF semantics|Marpa::R2::Semantics>.
-
-=head2 Fully qualified Perl names
-
-If an action value is a series of two or more Perl identifiers
-separated by double colons ("C<::>"), it is treated as it was a fully qualified Perl name.
-Fully qualified Perl names are also obtained from action names which look like
-unqualified Perl names, by prefixing the semantics package, as described above.
-(Note that an action value starting with a double colon is always treated as a reserved
-action name and is B<not> regarded as Perl name.)
-
-Once Marpa has a fully qualified Perl name, it looks in Perl's symbol tables for
-a Perl variable with that name,
-either the name of a subroutine, or of a scalar.
-It is important to note that for the purposes of Perl's symbol tables,
-and therefore for the purposes of Marpa's resolution of Perl names,
-references are scalars.
-If Marpa finds a Perl subroutine with that fully qualified Perl name,
-the action name is resolved to that subroutine,
-which then becomes a B<semantic closure>.
-If Marpa does not find
-a Perl subroutine with that name,
-but does find a scalar Perl variable with that name,
-the action name is resolved to that Perl variable.
-(Again, for this purpose a Perl reference is a kind of Perl scalar.)
-
-=head2 Resolution to Perl variables
-
-If the action name resolves to a scalar Perl variable,
-that is the value of the rule.
-Users should note that the resolution to a Perl variable resolves to the same
-variable every time.
-Further, assuming no trickery with Perl's C<local> keyword take place,
-this Perl variable will be global in scope.
-This means that good practice suggest that resolution to Perl variables be restricted
-to constants.
-
-For example, it may seem easier to initialize a hash in a parse tree
-using an action which returns a reference to an empty hash.
-Unfortunately for this purpose, this will be the same hash for
-all its users, and any change to it will be seen by all users.
-This is almost certainly not what is wanted.
-Users who want an action that returns an different empty hash every time
-it is invoked, which is almost always what is wanted,
-will need their action to resolve to a semantic closure,
-not a Perl variable.
-
-=head2 Resolution to a Perl semantic closure
-
-Ordinarily, the arguments to the semantic closure are the per-parse-tree
-variable,
-followed by values of the rule's child nodes,
-in the order in which they occurred in the input stream.
-However,
-if a rule with a word action is blessed,
-in order to allow the blessing to take effect,
-the arguments to a semantic closure are formed differently.
-If the rule is blessed, its semantic closure will always have
-exactly two arguments.
-The first will be the per-parse-tree variable.
-The second will be a blessed array that contains
-the child values in input-stream order.
-
-Note that the above implies that resolution can be either to a Perl subroutine
-or to a reference to a Perl subroutine, but that the result will be very different.
-The Perl subroutine will be treated as a semantic closure, and executed to produce
-the value of the node.
-The reference to a subroutine will B<NOT> be treated as a semantic closure,
-and will not be executed.
-The reference to a Perl subtroutine will be passed on, as is, as the value of the node.
-
-=head2 Reserved actions
-
-If the action value begins with a double colon ("C<::>"),
-it is a reserved action.
-The following are recognized:
-
-=over 4
-
-=item * C<::array>
-
-The value of the rule or lexeme is an array.
-For a rule, the array will
-contain the
-values of each of its children, in left-to-right order.
-If the rule has no children, the array will be empty.
-For a lexeme, the array will be of length one,
-and will contain the token value.
-
-=item * C<::first>
-
-The value of the rule is that of the rule's first child.
-If there is no such child, the value is a Perl C<undef>.
-
-It is a fatal error if a blessing
-is applied to a rule with a C<::first> action.
-This is the case even when either or both adverbs are
-the result of a default.
-It is also a fatal error to use a C<::first> action
-with a lexeme.
-
-=item * C<::undef>
-
-The value of the rule or lexeme is 
-a Perl C<undef>.
-It is a fatal error if a blessing
-is applied to a rule with a C<::undef> action.
-This is the case even when either or both adverbs are
-the result of a default.
-
-=back
-
-=head2 Array descriptor actions
 
 =for Marpa::R2::Display
 name: SLIF DSL synopsis
@@ -457,11 +318,162 @@ in lexical order,
 as computed according to the semantics
 of those children.
 
+=head1 Reserved action names
+
+If the action value begins with a double colon ("C<::>"),
+it is a reserved action.
+The following are recognized:
+
+=over 4
+
+=item * C<::array>
+
+The value of the rule or lexeme is an array.
+For a rule, the array will
+contain the
+values of each of its children, in left-to-right order.
+If the rule has no children, the array will be empty.
+For a lexeme, the array will be of length one,
+and will contain the token value.
+
+=item * C<::first>
+
+The value of the rule is that of the rule's first child.
+If there is no such child, the value is a Perl C<undef>.
+
+It is a fatal error if a blessing
+is applied to a rule with a C<::first> action.
+This is the case even when either or both adverbs are
+the result of a default.
+It is also a fatal error to use a C<::first> action
+with a lexeme.
+
+=item * C<::undef>
+
+The value of the rule or lexeme is 
+a Perl C<undef>.
+It is a fatal error if a blessing
+is applied to a rule with a C<::undef> action.
+This is the case even when either or both adverbs are
+the result of a default.
+
+=back
+
+=head2 Perl identifers
+
+If the action value is a Perl identifier,
+it is treated as the name of a Perl variable,
+but one which still must be fully qualified by adding a package name.
+For this purpose, a Perl identifier is a sequence of one or more alphanumerics
+and underscores.
+A Perl identifier will be fully qualified by prefixing the name of the semantic package,
+and then dealt with as described for L<"Fully qualified Perl names">.
+
+For example, if the action value
+is "C<some_var>", the action value will be regarded as a Perl identifer.
+If the semantics package is "C<My_Actions>", Marpa will convert the action
+value to "C<My_Actions::some_var>", and hand
+it on for processing as a fully qualified Perl name.
+is "C<some_var>", the action value will be regarded as a Perl identifer.
+For more details on qualifying Perl identifiers, see
+L<the document on SLIF semantics|Marpa::R2::Semantics>.
+
+=head1 Perl names as actions
+
+If an action value is a series of two or more Perl identifiers
+separated by double colons ("C<::>"), it is treated as it was a fully qualified Perl name.
+Fully qualified Perl names are also obtained from action names which look like
+unqualified Perl names, by prefixing the semantics package, as described above.
+(Note that an action value starting with a double colon is always treated as a reserved
+action name and is B<not> regarded as Perl name.)
+
+=head2 Resolution to a Perl semantic closure
+
+Ordinarily, the arguments to the semantic closure are the per-parse-tree
+variable,
+followed by values of the rule's child nodes,
+in the order in which they occurred in the input stream.
+However,
+if a rule with a word action is blessed,
+in order to allow the blessing to take effect,
+the arguments to a semantic closure are formed differently.
+If the rule is blessed, its semantic closure will always have
+exactly two arguments.
+The first will be the per-parse-tree variable.
+The second will be a blessed array that contains
+the child values in input-stream order.
+
+Note that the above implies that resolution can be either to a Perl subroutine
+or to a reference to a Perl subroutine, but that the result will be very different.
+The Perl subroutine will be treated as a semantic closure, and executed to produce
+the value of the node.
+The reference to a subroutine will B<NOT> be treated as a semantic closure,
+and will not be executed.
+The reference to a Perl subtroutine will be passed on, as is, as the value of the node.
+
 =head1 The semantics package
 
 =head1 Resolving Perl identifier actions to Perl names
 
+If the action name resolves to a scalar Perl variable,
+that is the value of the rule.
+Users should note that the resolution to a Perl variable resolves to the same
+variable every time.
+Further, assuming no trickery with Perl's C<local> keyword take place,
+this Perl variable will be global in scope.
+This means that good practice suggest that resolution to Perl variables be restricted
+to constants.
+
+For example, it may seem easier to initialize a hash in a parse tree
+using an action which returns a reference to an empty hash.
+Unfortunately for this purpose, this will be the same hash for
+all its users, and any change to it will be seen by all users.
+This is almost certainly not what is wanted.
+Users who want an action that returns an different empty hash every time
+it is invoked, which is almost always what is wanted,
+will need their action to resolve to a semantic closure,
+not a Perl variable.
+
 =head1 Resolving Perl names action to Perl variables
+
+Once Marpa has a fully qualified Perl name, it looks in Perl's symbol tables for
+a Perl variable with that name,
+either the name of a subroutine, or of a scalar.
+It is important to note that for the purposes of Perl's symbol tables,
+and therefore for the purposes of Marpa's resolution of Perl names,
+references are scalars.
+If Marpa finds a Perl subroutine with that fully qualified Perl name,
+the action name is resolved to that subroutine,
+which then becomes a B<semantic closure>.
+If Marpa does not find
+a Perl subroutine with that name,
+but does find a scalar Perl variable with that name,
+the action name is resolved to that Perl variable.
+(Again, for this purpose a Perl reference is a kind of Perl scalar.)
+
+=head2 Resolution to a Perl semantic closure
+
+Ordinarily, the arguments to the semantic closure are the per-parse-tree
+variable,
+followed by values of the rule's child nodes,
+in the order in which they occurred in the input stream.
+However,
+if a rule with a word action is blessed,
+in order to allow the blessing to take effect,
+the arguments to a semantic closure are formed differently.
+If the rule is blessed, its semantic closure will always have
+exactly two arguments.
+The first will be the per-parse-tree variable.
+The second will be a blessed array that contains
+the child values in input-stream order.
+
+Note that the above implies that resolution can be either to a Perl subroutine
+or to a reference to a Perl subroutine, but that the result will be very different.
+The Perl subroutine will be treated as a semantic closure, and executed to produce
+the value of the node.
+The reference to a subroutine will B<NOT> be treated as a semantic closure,
+and will not be executed.
+The reference to a Perl subtroutine will be passed on, as is, as the value of the node.
 
 =head1 Executing rule evaluation closures
 
