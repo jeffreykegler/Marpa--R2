@@ -413,6 +413,17 @@ The reference to a Perl subtroutine will be passed on, as is, as the value of th
 
 =head1 The semantics package
 
+If the user wants to leave the
+rule evaluation closures in the C<main> namespace,
+she can specify
+C<"main">
+as the value of the C<actions> named argument.
+But
+it can be good practice to keep
+the rule evaluation closures
+in their own namespace,
+particularly if the application is not small.
+
 =head1 Resolving Perl identifier actions to Perl names
 
 If the action name resolves to a scalar Perl variable,
@@ -433,6 +444,9 @@ Users who want an action that returns an different empty hash every time
 it is invoked, which is almost always what is wanted,
 will need their action to resolve to a semantic closure,
 not a Perl variable.
+
+For an Perl identifier name to resolve successfully
+a semantics package must be defined.
 
 =head1 Resolving Perl names action to Perl variables
 
@@ -477,109 +491,6 @@ The reference to a Perl subtroutine will be passed on, as is, as the value of th
 
 =head1 Executing rule evaluation closures
 
-=head1 Action context
-
-=for Marpa::R2::Display
-name: SLIF action context synopsis
-normalize-whitespace: 1
-
-    sub do_S {
-        my ($action_object) = @_;
-        my $rule_id         = $Marpa::R2::Context::rule;
-        my $grammar         = $Marpa::R2::Context::grammar;
-        my ( $lhs, @rhs ) = $grammar->rule($rule_id);
-        $action_object->{text} =
-              "rule $rule_id: $lhs ::= "
-            . ( join q{ }, @rhs ) . "\n"
-            . "locations: "
-            . ( join q{-}, Marpa::R2::Context::location() ) . "\n";
-        return $action_object;
-    } ## end sub do_S
-
-=for Marpa::R2::Display::End
-
-In addition to the per-parse-tree variable
-and their child arguments,
-rule evaluation closures also have access
-to B<context variables>.
-
-=over
-
-=item * C<$Marpa::R2::Context::grammar> is set to
-the grammar being parsed.
-
-=item * C<$Marpa::R2::Context::rule> is the ID of the
-current rule.
-Given the rule ID, an application can find
-its LHS and RHS symbols using
-L<the SLIF grammar's C<rule()> method|Marpa::R2::Scanless::G/"rule">.
-
-=item * C<Marpa::R2::Context::location()> returns the start
-and end locations of the current rule.
-
-=back
-
-=head1 Bailing out of parse evaluation
-
-=for Marpa::R2::Display
-name: SLIF bail synopsis
-normalize-whitespace: 1
-
-    my $bail_message = "This is a bail out message!";
-
-    sub do_bail_with_message_if_A {
-        my ($action_object, $terminal) = @_;
-        Marpa::R2::Context::bail($bail_message) if $terminal eq 'A';
-    }
-
-    sub do_bail_with_object_if_A {
-        my ($action_object, $terminal) = @_;
-        Marpa::R2::Context::bail([$bail_message]) if $terminal eq 'A';
-    }
-
-=for Marpa::R2::Display::End
-
-The C<Marpa::R2::Context::bail()> static method is used to
-"bail out" of the evaluation of a parse tree.
-It will cause an exception to be thrown.
-If its first and only argument is a reference,
-that reference is the exception object.
-Otherwise, an exception message is created
-by converting the method's arguments to strings,
-concatenating them,
-and prepending them with a message indicating
-the file and line number at which the
-C<Marpa::R2::Context::bail()> method was called.
-
-=head1 Draft to here
-
-An action name is either reserved,
-or resolves to a Perl object.
-When it resolves to a Perl object,
-that object is usually a Perl closure -- code.
-If the Perl object action is code,
-it is a rule evaluation closure, and will be
-called to produce the result.
-When a Perl object action is some other kind of object,
-its treatment is
-L<as described
-below|/"Reference actions">.
-
-An action name
-and action is also used
-to create the per-parse-tree variable,
-as L<described
-below|/"The per-parse-tree variable">.
-
-=head1 Evaluating a lexeme
-
-Lexemes can have a action specified in
-the L<lexeme default statement|Marpa::R2::Scanless::DSL/"Lexeme default statement">.
-If no action is specified for a lexeme, its value is its literal value in the input
-stream, as a string.
-
-=head2 Evaluating a rule
-
 If a node is not a token node,
 then it is a B<rule node>.
 Rule nodes are always
@@ -594,14 +505,6 @@ per-parse-tree variable followed, if the rule is not nulled,
 by the values of its child nodes in lexical order.
 If the rule is nulled, the child node values will be omitted.
 A rule evaluation closure action is always called in scalar context.
-
-If the action is a constant,
-it becomes the value of the rule node.
-If the action is a rule evaluation closure,
-its return value becomes the value of the node.
-If there is no action for a
-rule node,
-the value of the rule node is a Perl C<undef>.
 
 =head2 Sequence rule nodes
 
@@ -679,7 +582,69 @@ For more details,
 see L<the document on
 null semantics|Marpa::R2::Semantics::Null>.
 
-=head1 Parse trees, parse results and parse series
+=head1 Action context
+
+=for Marpa::R2::Display
+name: SLIF action context synopsis
+normalize-whitespace: 1
+
+    sub do_S {
+        my ($action_object) = @_;
+        my $rule_id         = $Marpa::R2::Context::rule;
+        my $grammar         = $Marpa::R2::Context::grammar;
+        my ( $lhs, @rhs ) = $grammar->rule($rule_id);
+        $action_object->{text} =
+              "rule $rule_id: $lhs ::= "
+            . ( join q{ }, @rhs ) . "\n"
+            . "locations: "
+            . ( join q{-}, Marpa::R2::Context::location() ) . "\n";
+        return $action_object;
+    } ## end sub do_S
+
+=for Marpa::R2::Display::End
+
+In addition to the per-parse-tree variable
+and their child arguments,
+rule evaluation closures also have access
+to B<context variables>.
+
+=over
+
+=item * C<$Marpa::R2::Context::grammar> is set to
+the grammar being parsed.
+
+=item * C<$Marpa::R2::Context::rule> is the ID of the
+current rule.
+Given the rule ID, an application can find
+its LHS and RHS symbols using
+L<the SLIF grammar's C<rule()> method|Marpa::R2::Scanless::G/"rule">.
+
+=item * C<Marpa::R2::Context::location()> returns the start
+and end locations of the current rule.
+
+=back
+
+=head1 Bailing out of parse evaluation
+
+=for Marpa::R2::Display
+name: SLIF bail synopsis
+normalize-whitespace: 1
+
+    my $bail_message = "This is a bail out message!";
+
+    sub do_bail_with_message_if_A {
+        my ($action_object, $terminal) = @_;
+        Marpa::R2::Context::bail($bail_message) if $terminal eq 'A';
+    }
+
+    sub do_bail_with_object_if_A {
+        my ($action_object, $terminal) = @_;
+        Marpa::R2::Context::bail([$bail_message]) if $terminal eq 'A';
+    }
+
+=for Marpa::R2::Display::End
+
+=head1 [This section where?] Parse trees, parse results and parse series
 
 When the semantics are applied to a parse tree,
 it produces a value called a B<parse result>.
@@ -720,136 +685,6 @@ describes that order
 in detail.
 The details can matter in some applications,
 for example, those which exploit side effects.
-
-=head1 Finding the action for a rule
-
-Marpa finds the action for each rule based on
-rule and symbol properties and on the grammar named arguments.
-Specifically, Marpa attempts the following,
-in order:
-
-=over
-
-=item * Resolving an action based on the C<action> property of the rule,
-if one is defined.
-
-=item * If the rule is empty,
-and the C<default_empty_action> named argument of the grammar
-is defined,
-resolving an action based on that named argument.
-
-=item * Resolving an action based on
-the C<default_action> named argument of the grammar,
-if one is defined.
-
-=item * Defaulting to a Perl C<undef> value.
-
-=back
-
-Resolution of action names is L<described
-below|/"Resolving action names">.
-If the C<action> property,
-the C<default_action> named argument,
-or the C<default_empty_action> named argument
-is defined,
-but does not resolve successfully, Marpa
-throws an exception.
-Marpa prefers to "fast fail" in these cases,
-because they usually indicate a mistake
-that the application's author
-will want to correct.
-
-=head1 Resolving action names
-
-Action names come from these sources:
-
-=over
-
-=item * The C<default_action> named argument of Marpa's grammar.
-
-=item * The C<default_empty_action> named argument of Marpa's grammar.
-
-=item * The C<action> property of Marpa's rules.
-
-=item * The C<new> constructor in the package specified by the
-C<action_object> named argument of the Marpa grammar.
-
-=back
-
-=head2 Reserved action names
-
-Action names that begin with a double colon ("C<::>") are reserved.
-At present only the C<::undef> reserved action is documented for
-use outside of the DSL-based interfaces.
-
-=head3 ::undef
-
-A constant whose value is a Perl C<undef>.
-Perl is unable to distinguish reliably between a
-non-existent value and scalars with an C<undef> value.
-This makes it impossible to reliably distinguish
-resolutions
-to a Perl C<undef> from resolution problems.
-The "C<::undef>" reserved action name should 
-be preferred for
-indicating a constant whose value is a Perl C<undef>.
-
-=head2 Fully qualified action names
-
-An action name that
-contains a double colon ("C<::>") or a single quote ("C<'>")
-is considered to be a fully qualified name.
-Any other action name is considered to be a B<bare action name>.
-
-If the action name to be resolved is already a fully qualified name,
-it is not further transformed.
-It will be resolved in the form it was received,
-or not at all.
-
-For bare action names,
-Marpa tries to qualify them by adding a package name.
-If the C<actions> grammar named argument is defined,
-Marpa uses it as the package name.
-Otherwise,
-if the
-C<action_object> grammar named argument is defined,
-Marpa uses it as the package name.
-Once Marpa has fully qualified the action name,
-Marpa looks for a Perl object with that name.
-
-Marpa will not attempt to resolve an action name
-that it cannot fully qualify.
-This implies that,
-for an action name to resolve successfully,
-one of these five things must be the case:
-
-=over
-
-=item * The action name is one of the reserved action names.
-
-=item * The action name is fully qualified to begin with.
-
-=item * The C<actions> named argument is defined.
-
-=item * The C<action_object> named argument is defined.
-
-=back
-
-Marpa's philosophy
-is to require that the programmer be specific about action names.
-This can be an inconvenience, but Marpa prefers this to
-silently executing unintended code.
-
-If the user wants to leave the
-rule evaluation closures in the C<main> namespace,
-she can specify
-C<"main">
-as the value of the C<actions> named argument.
-But
-it can be good practice to keep
-the rule evaluation closures
-in their own namespace,
-particularly if the application is not small.
 
 =head2 Perl object actions
 
