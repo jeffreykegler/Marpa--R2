@@ -109,49 +109,211 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
-=head1 Overview
+=head1 About this document
 
 B<This document is under construction.>
 It is being converted to describe Marpa's primary interface, the SLIF.
 Currently,
 much of it actually describes an older and more low-level Marpa interface, the NAIF.
 
-The SLIF's general approach to semantics is traditional,
-and will be familar to those who have used other parsers.
-For evaluation purposes,
-every parse is seen as a tree.
-Every nodes of the tree corresponds either to a lexemes,
-in which case the node is a "leaf" of the tree,
-or to a rule.
+=head1 What is semantics?
 
-Nodes on the tree are evaluated recursively, bottom-up.
-Once the values of all its child nodes are known,
-a parent node is ready to be evaluated.
+A parser is something that takes a string of symbols (tokens or characters) and finds a structure
+in it.
+Traditionally, that structure is a tree.
+
+Rarely is an application interested only in the tree.
+Usually the idea is that the string "means" something, that it has a B<semantics>.
+Traditionally and most often, the tree
+is as an intermediate step in producing a value,
+a value which represents the "meaning" or "semantics" of the string.
+
+"Evaluating" a tree means finding its semantics.
+The rest of this document describes Marpa's methods for evaluating trees.
+Those of you who have dealt with other traditional parsers, such as yacc and bison,
+will find Marpa's approach familiar.
+
+=head1 Nodes
+
+In a parse tree, nodes are points where the tree branches or terminates.
+Tree terminations are also called terminals or "leaves".
+
+Every rule instance in a Marpa parse is reprsented by a branch point (or "node")
+in the tree.
+The topmost node of a tree is its "root node".
+(Trees are easiest to draw upside down, so traditionally in programming,
+the top of a tree is its root.)
+
+The node at a branch point, "branches" into zero or more "child nodes".
+The node just above a child node,
+the one from which the child node branches out,
+is called its parent node.
+
+If the node is for a BNF rule,
+the parent node is the LHS of the rule,
+and the child nodes are the RHS of the rule.
+If the node is for a sequence rule,
+the parent node is the LHS of the sequence rule,
+and the child nodes are the items of the sequence.
+If the node is for a lexeme,
+the node represents the lexeme's symbol
+and there will be no child nodes.
+
+A parent node can have zero or more children.
+Rules with zero children are nulled rules,
+and are "leaf nodes" or terminals.
+In Marpa's parse trees, every leaf node is either
+a lexeme or a nulled rule.
+
+=head1 The order of node evaluation
+
+The nodes of a Marpa parse tree are
+evaluated recursively, left-to-right and bottom-up.
+This means that,
+when a parent node is evaluated,
+the values of all child nodes are known
+and available for use by the semantics.
 The final value of a parse is the value of the top node
 of the parse tree.
 
+=head1 Nulled subtrees
+
+A nulled subtree is the tree formed by a nulled node and its direct and
+indirect child nodes.
+(All these child nodes will also be nulled nodes.)
+Before evaluation,
+Marpa prunes all nulled subtrees back to their topmost nulled
+node.
+Of all the ways of dealing with nulled subtrees, this is the
+simplest,
+Marpa's users have found it a natural approach.
+More detail on the semantics of nulled symbols and subtrees
+can be found in
+L<a separate document|Marpa::R2::Semantics::Null>.
+
+=head1 Actions
+
 What the SLIF does at each node is called that node's B<action>.
-Actions can be many things in the SLIF, as will be described
-in what follows.
-To give some perspective, it might be useful at this point
-to describe what could
-happen when evaluating a typical node.
+Actions can be explicit or implicit.
+An explicit action is one that is specified in one of the ways
+to be described below.
+A node's implicit action is the one it performs if it has no
+explicit action.
 
-=head2 Evaluating a typical node
+The next sections describe,
+by type of parse tree node,
+how explicit action names can be specified,
+and the implicit action.
+This document then proceeds to
+describe how explicit action names resolve to actions.
 
-As a typical example, the action adverb of a rule might be treated as a name,
-which is resolved to a Perl closure,
-called the rule evaluation closure.
-When it is that node's turn to be evaluated that closure
-is called with a series of arguments:
-first, the per-parse argument,
-and then the values of the child nodes in lexical order.
-The result of calling the rule evaluation closure is passed
-upward in the parse tree, except if this is the top of the tree.
-If that is the case, the evaluation of the parse is finished,
-and the value of the parse is the value of the rule evaluation closure.
+=head2 Lexeme actions
 
-=head1 Finished to here
+The implicit action for a lexeme is to return the literal substring
+of the input that corresponds to the lexeme.
+An explicit default may be set using the
+L<the lexeme default statement|Marpa::R2::Scanless::DSL/"Lexeme default statement">.
+
+=head2 Rule actions
+
+The implicit action for a rule is to return a Perl C<undef>.
+An explicit action for a rule can be specified using
+L<the C<action> adverb|Marpa::R2::Scanless::DSL/"action">
+for the rule or, in the case of a prioritized rule, the RHS alternative.
+A default explicit action for rules can be specified with a
+L<default pseudo-rule|Marpa::R2::Scanless::DSL/"Default pseudo-rules">.
+
+=head1 Array descriptor actions
+
+=head1 Reserve action names
+
+=head1 Perl identifiers as actions
+
+=head1 Perl names as actions
+
+=head1 The semantics package
+
+=head1 Resolving Perl identifier actions to Perl names
+
+=head1 Resolving Perl names action to Perl variables
+
+=head1 Executing rule evaluation closures
+
+=head1 Action context
+
+=for Marpa::R2::Display
+name: SLIF action context synopsis
+normalize-whitespace: 1
+
+    sub do_S {
+        my ($action_object) = @_;
+        my $rule_id         = $Marpa::R2::Context::rule;
+        my $grammar         = $Marpa::R2::Context::grammar;
+        my ( $lhs, @rhs ) = $grammar->rule($rule_id);
+        $action_object->{text} =
+              "rule $rule_id: $lhs ::= "
+            . ( join q{ }, @rhs ) . "\n"
+            . "locations: "
+            . ( join q{-}, Marpa::R2::Context::location() ) . "\n";
+        return $action_object;
+    } ## end sub do_S
+
+=for Marpa::R2::Display::End
+
+In addition to the per-parse-tree variable
+and their child arguments,
+rule evaluation closures also have access
+to B<context variables>.
+
+=over
+
+=item * C<$Marpa::R2::Context::grammar> is set to
+the grammar being parsed.
+
+=item * C<$Marpa::R2::Context::rule> is the ID of the
+current rule.
+Given the rule ID, an application can find
+its LHS and RHS symbols using
+L<the SLIF grammar's C<rule()> method|Marpa::R2::Scanless::G/"rule">.
+
+=item * C<Marpa::R2::Context::location()> returns the start
+and end locations of the current rule.
+
+=back
+
+=head1 Bailing out of parse evaluation
+
+=for Marpa::R2::Display
+name: SLIF bail synopsis
+normalize-whitespace: 1
+
+    my $bail_message = "This is a bail out message!";
+
+    sub do_bail_with_message_if_A {
+        my ($action_object, $terminal) = @_;
+        Marpa::R2::Context::bail($bail_message) if $terminal eq 'A';
+    }
+
+    sub do_bail_with_object_if_A {
+        my ($action_object, $terminal) = @_;
+        Marpa::R2::Context::bail([$bail_message]) if $terminal eq 'A';
+    }
+
+=for Marpa::R2::Display::End
+
+The C<Marpa::R2::Context::bail()> static method is used to
+"bail out" of the evaluation of a parse tree.
+It will cause an exception to be thrown.
+If its first and only argument is a reference,
+that reference is the exception object.
+Otherwise, an exception message is created
+by converting the method's arguments to strings,
+concatenating them,
+and prepending them with a message indicating
+the file and line number at which the
+C<Marpa::R2::Context::bail()> method was called.
+
+=head1 Draft to here
 
 An action name is either reserved,
 or resolves to a Perl object.
@@ -288,80 +450,6 @@ the user can add an empty rule.
 For more details,
 see L<the document on
 null semantics|Marpa::R2::Semantics::Null>.
-
-=head1 Action context
-
-=for Marpa::R2::Display
-name: SLIF action context synopsis
-normalize-whitespace: 1
-
-    sub do_S {
-        my ($action_object) = @_;
-        my $rule_id         = $Marpa::R2::Context::rule;
-        my $grammar         = $Marpa::R2::Context::grammar;
-        my ( $lhs, @rhs ) = $grammar->rule($rule_id);
-        $action_object->{text} =
-              "rule $rule_id: $lhs ::= "
-            . ( join q{ }, @rhs ) . "\n"
-            . "locations: "
-            . ( join q{-}, Marpa::R2::Context::location() ) . "\n";
-        return $action_object;
-    } ## end sub do_S
-
-=for Marpa::R2::Display::End
-
-In addition to the per-parse-tree variable
-and their child arguments,
-rule evaluation closures also have access
-to B<context variables>.
-
-=over
-
-=item * C<$Marpa::R2::Context::grammar> is set to
-the grammar being parsed.
-
-=item * C<$Marpa::R2::Context::rule> is the ID of the
-current rule.
-Given the rule ID, an application can find
-its LHS and RHS symbols using
-L<the SLIF grammar's C<rule()> method|Marpa::R2::Scanless::G/"rule">.
-
-=item * C<Marpa::R2::Context::location()> returns the start
-and end locations of the current rule.
-
-=back
-
-=head1 Bailing out of parse evaluation
-
-=for Marpa::R2::Display
-name: SLIF bail synopsis
-normalize-whitespace: 1
-
-    my $bail_message = "This is a bail out message!";
-
-    sub do_bail_with_message_if_A {
-        my ($action_object, $terminal) = @_;
-        Marpa::R2::Context::bail($bail_message) if $terminal eq 'A';
-    }
-
-    sub do_bail_with_object_if_A {
-        my ($action_object, $terminal) = @_;
-        Marpa::R2::Context::bail([$bail_message]) if $terminal eq 'A';
-    }
-
-=for Marpa::R2::Display::End
-
-The C<Marpa::R2::Context::bail()> static method is used to
-"bail out" of the evaluation of a parse tree.
-It will cause an exception to be thrown.
-If its first and only argument is a reference,
-that reference is the exception object.
-Otherwise, an exception message is created
-by converting the method's arguments to strings,
-concatenating them,
-and prepending them with a message indicating
-the file and line number at which the
-C<Marpa::R2::Context::bail()> method was called.
 
 =head1 Parse trees, parse results and parse series
 
@@ -695,63 +783,49 @@ action is specified,
 but goes out of scope before the action name is resolved,
 resolution will fail.
 
-=head1 The per-parse-tree variable
+=head1 Draft from here
 
-In the Tree Setup Phase,
-Marpa creates a per-parse-tree variable.
-This becomes the first argument of the rule evaluation closures for
-the rule nodes.
-If the grammar's C<action_object> named argument is not defined,
-the per-parse-tree variable is initialized to an empty hash ref.
+=head1 The per-parse argument
 
-Most data for
-the value actions of the rules
-will be passed up the parse tree.
-The actions will see the values of the rule node's child nodes
-as arguments,
-and will return their own value to be seen as an argument
-by their parent node.
-The per-parse-tree variable can be used for data which does not
-conveniently fit this model.
+The first argument of every rule evaluation closure is
+the B<per-parse> argument.
+This is taken from
 
-The lifetime of the per-parse-tree variable
-extends into the Tree Traversal Phase.
-During the Tree Traversal Phase,
-Marpa's internals never alter the per-parse-tree variable --
+=over 4
+
+=item * The result of returned by per-parse constructor if there is one.
+
+=item * Otherwise, the argument to the SLIF recognizer's C<value()> method, if there is one.
+
+=item * If not otherwise specified, the per-parse argument is an empty hash.
+
+=back
+
+The per-parse argument is destroyed once the evaluation of the parse tree is finished.
+Between creation and destruction, the per-parse argument is not touched by Marpa's internals --
 it is reserved for use by the application.
 
-=head2 Action object constructor
+The primary way of passing data while evaluating a parse tree is purely functional --
+results from child nodes are passed up to parent nodes.
+Applications can use
+the per-parse argument for data which does not conveniently fit the functional model.
+Symbol tables are
+one common example of data that are best handled outside the functional model.
 
-If the grammar's C<action_object> named argument has a defined value,
-that value is treated as the name of a class.
-The B<action object constructor> is
-the C<new> method
-in the C<action_object> class.
+=head1 The per-parse constructor
 
-The action object constructor is called
+The per-parse constructor is the C<new()> method of the semantics package.
+If there is no semantics package, or if it has no C<new()> method,
+there is no per-parse constructor.
+
+The per-parse construct is called with one argument.
+This argument is the argument of the
+the SLIF recognizer's C<value()> method, if there one was defined.
+Otherwise it is the name of the semantics package.
+
+The result returned by the per-parse constructor becomes the per-parse argument.
+The per-parse constructor is called
 in the Tree Setup Phase.
-The return value of the
-action object constructor becomes the per-parse-tree variable.
-It is a fatal error if the
-grammar's C<action_object> named argument is defined,
-but does not name a class with a C<new> method.
-
-Resolution of the action object constructor is
-resolution of the B<action object constructor name>.
-The action object constructor name is
-formed by concatenating
-the literal string "C<::new>" to
-the value of the C<action_object> named argument.
-
-All standard rules apply when resolving the action
-object constructor name.
-If a grammar has both the C<actions> and the
-C<action_object> named arguments defined,
-all action names B<except>
-for the action object constructor will be
-resolved in the C<actions> package or not at all.
-The action object constructor is always in
-the C<action_object> class, if it is anywhere.
 
 =head1 Parse order
 
