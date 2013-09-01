@@ -445,22 +445,23 @@ it is treated as the name of a Perl variable,
 but one which still must be fully qualified by adding a package name.
 For this purpose, a Perl identifier is a sequence of one or more alphanumerics
 and underscores.
+Perl identifiers must be resolved to Perl names,
+as L<described below|/"Resolving Perl identifiers to Perl names">.
 
 =head1 Perl names as actions
 
 For this purpose, a Perl name is
 is a series of two or more Perl identifiers
 separated by double colons ("C<::>").
-Action names which are Perl names by this definition are
-treated as they were fully qualified Perl names.
-
 Note that, by this definition, a Perl name cannot start with a double colon.
 Action names starting with double colons
 are always treated as a reserved
 action names.
 
-Perl names are resolved to variables in Perl's namespace,
-L<as described below|Resolving Perl names to Perl variables>.
+Action names which are Perl names by this definition are
+treated as they were fully qualified Perl names.
+Fully qualified Perl names are resolved to variables in Perl's namespace,
+L<as described below|/"Resolving Perl names to Perl variables">.
 
 =head1 The semantics package
 
