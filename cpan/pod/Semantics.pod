@@ -111,10 +111,8 @@ normalize-whitespace: 1
 
 =head1 About this document
 
-B<This document is under construction.>
-It is being converted to describe Marpa's primary interface, the SLIF.
-Currently,
-much of it actually describes an older and more low-level Marpa interface, the NAIF.
+This document describes the semantics for
+Marpa's primary interface, the SLIF.
 
 =head1 What is semantics?
 
@@ -700,22 +698,26 @@ ignore: 1
 
 =head1 Visibility of Perl object actions
 
-It is important to note that,
-when Perl closures are used for the semantics,
-they must be visible in the scope where the semantics are
-B<resolved>.
-The action names are usually B<specified> with the grammar,
-but action B<resolution> takes place
-in the recognizer's
-L<C<value>|Marpa::R2::NAIF::Recognizer/"value">
-and
-L<C<reset_evaluation>|Marpa::R2::NAIF::Recognizer/"reset_evaluation">
-methods.
-This can sometimes be a source of confusion,
-because if a Perl closure is visible when the
-action is specified,
-but goes out of scope before the action name is resolved,
-resolution will fail.
+Most application do not manipulate the Perl symbol table at runtime,
+and do not make use of Perl's C<local> keyword for declarations.
+Application which use the Perl global namespace in conventional ways,
+and which use the same names to point to the same variables
+throughout Marpa execution,
+can ignore questions about the visibility
+of the Perl variables used in actions.
+
+Less conventional applications should be aware that,
+for resolution from a Perl name to a Perl variable to take place,
+that Perl name must be visible,
+and must refer to the intended variable,
+at Parse Series Setup Time.
+Parse Series Setup Time occurs during
+the first call to a recognizer's L<C<value>|Marpa::R2::NAIF::Recognizer/"value()">
+methods of the parse series.
+More details about Parse Series Setup Time
+can be found in
+L<the document that describes the processing phases of Marpa's
+semantics|Marpa::R2::Semantics::Phases>.
 
 =head1 The per-parse argument
 
