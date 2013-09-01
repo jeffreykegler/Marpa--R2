@@ -185,6 +185,42 @@ and available for use by the semantics.
 The final value of a parse is the value of the top node
 of the parse tree.
 
+=head1  Parse trees and parse series
+
+Because Marpa allows ambiguous parsing,
+each parse can produce a B<parse series> --
+a series of zero or more parse trees,
+each with its own parse result.
+The first call to the
+L<the recognizer's C<value>
+method|Marpa::R2::NAIF::Recognizer/"value">
+after the recognizer is created is the
+start of the first parse series,
+a Parse Series Setup Phase takes place
+at this point.
+
+The first parse series continues until there is
+a call to the
+L<the C<reset_evaluation>
+method|Marpa::R2::NAIF::Recognizer/"reset_evaluation">
+or until the recognizer is destroyed.
+Almost always, an application is only interested in one
+parse series.
+
+The Parse Series Setup Phase, just mentioned,
+is one of several phases in which the semantics are executed.
+This document will not detail these, because
+most applications will find that the order in which
+these phases occurs "just works".
+But the detail can matter for some applications.
+Applications which might depend on these details
+include those which make unusual use of side effects in the semantics;
+and those which alter their symbol tables at runtime.
+L<A separate
+document|Marpa::R2::Semantics::Phases>
+describes that semantics phases.
+in detail.
+
 =head1 Nulled subtrees
 
 A nulled subtree is the tree formed by a nulled node and its direct and
@@ -200,28 +236,7 @@ More detail on the semantics of nulled symbols and subtrees
 can be found in
 L<a separate document|Marpa::R2::Semantics::Null>.
 
-When a node is nulled,
-it must be as a result of a nullable rule,
-and the action name and action are those
-associated with that rule.
-An ambiguity can arise if there is more
-than one nullable rule with the same LHS,
-but a different action name.
-In that case the action name for the null nodes
-is that of the empty rule.
-
-The remaining case is that of
-a set of nullable rules with the same LHS,
-where two or more of the rules have different action names,
-but none of the rules in the set is an empty rule.
-When this happens, Marpa throws an exception.
-To fix the issue,
-the user can add an empty rule.
-For more details,
-see L<the document on
-null semantics|Marpa::R2::Semantics::Null>.
-
-=head1 Actions
+=head1 Actions and how Marpa finds them
 
 What the SLIF does at each node is called that node's B<action>.
 Actions can be explicit or implicit.
@@ -230,17 +245,10 @@ to be described below.
 A node's implicit action is the one it performs if it has no
 explicit action.
 
-The next sections describe,
-by type of parse tree node,
-how explicit action names can be specified,
-and the implicit action.
-This document then proceeds to
-describe how explicit action names resolve to actions.
-
 =head2 Lexeme actions
 
 The implicit action for a lexeme is to return
-its literal value in the stream, as a string.
+its literal value in the input stream, as a string.
 An explicit default may be set using the
 L<the lexeme default statement|Marpa::R2::Scanless::DSL/"Lexeme default statement">.
 
@@ -252,6 +260,60 @@ L<the C<action> adverb|Marpa::R2::Scanless::DSL/"action">
 for the rule or, in the case of a prioritized rule, the RHS alternative.
 A default explicit action for rules can be specified with a
 L<default pseudo-rule|Marpa::R2::Scanless::DSL/"Default pseudo-rules">.
+
+=head2 Nulled symbol actions
+
+As mentioned, nulled subtrees are pruned back to their topmost symbol.
+Lexemes are never nulled, so this symbol is always the LHS of a rule,
+and the action is determined from the rule,
+as L<just described|/"Rule actions">.
+
+A complication arises if the symbol appears on the LHS of more than one
+nullable rule.  Because the symbol is nulled, the input is no help in determining
+which rule to use.  The rule whose semantics are used for a nulled symbol
+is determined as follows:
+
+=over 4
+
+=item * If there is only one nulled rule, its semantics are used.
+
+=item * If all nulled rule have the same semantics, that semantics is used.
+
+=item * If one of the nulled rules is a empty rule (a rule with zero RHS symbols),
+then the empty rule's semantics are used.
+
+=item * 
+The remaining case is that of
+a set of nullable rules with the same LHS,
+where two or more of the rules have different action names,
+but none of the rules in the set is an empty rule.
+When this happens, Marpa throws an exception.
+To fix the issue,
+the user can add an empty rule.
+
+=back
+
+For more details,
+see L<the document on
+null semantics|Marpa::R2::Semantics::Null>.
+
+=head1 Explicit actions
+
+There are four kinds of explicit action name:
+
+=over 4
+
+=item * Array descriptors
+
+=item * Reserved action names
+
+=item * Perl identifiers
+
+=item * Perl names
+
+=back
+
+These are detailed in the sections that follow.
 
 =head1 Array descriptor actions
 
@@ -277,17 +339,27 @@ and the value will be an empty array.
 Otherwise the "array descriptor item" keywords are interpreted as lists
 and those lists are used to fill out the 
 array.
-A C<start> array descriptor item will put
-the start location of the rule or lexeme into the array.
+
+=over 4
+
+=item C<length>
+
 The C<length> array descriptor item will put
 the length of the rule or lexeme into the array.
-The start location is an offset in the input string.
 Length is in characters
 and is defined such that the end location
 is always start location plus length.
 
+=item C<start>
+
+A C<start> array descriptor item will put
+the start location of the rule or lexeme into the array.
+The start location is an offset in the input string.
+
+=item C<value>
+
 For a rule,
-the C<values> array descriptor item indicates a list containing
+the C<value> array descriptor item indicates a list containing
 the values of
 the rule's children, in left-to-right order.
 For a lexeme, 
@@ -295,12 +367,14 @@ the C<value> array descriptor item indicates a list
 containing a single element,
 the token value of the lexeme.
 
-C<::array> is equivalent to C<[values]>.
+=item C<values>
+
 The C<value> and C<values> array descriptor items are synonyms,
 and may be used interchangeably for both rules and lexemes.
-This means that, for both lexemes and rules,
-the actions C<[values]>, C<[value]> and C<::array>
-will do exactly the same thing.
+
+=back
+
+=head2 Example
 
 The array descriptor item keywords fill out the array in
 the order in which they appear in the the array descriptor.
@@ -335,6 +409,11 @@ values of each of its children, in left-to-right order.
 If the rule has no children, the array will be empty.
 For a lexeme, the array will be of length one,
 and will contain the token value.
+
+C<::array> is equivalent to C<[values]>.
+This means that, for both lexemes and rules,
+the actions C<[values]>, C<[value]> and C<::array>
+will do exactly the same thing.
 
 =item * C<::first>
 
@@ -561,27 +640,6 @@ When the rule node is a null node,
 the rule evaluation closure will be called with
 no child value arguments.
 
-When a node is nulled,
-it must be as a result of a nullable rule,
-and the action name and action are those
-associated with that rule.
-An ambiguity can arise if there is more
-than one nullable rule with the same LHS,
-but a different action name.
-In that case the action name for the null nodes
-is that of the empty rule.
-
-The remaining case is that of
-a set of nullable rules with the same LHS,
-where two or more of the rules have different action names,
-but none of the rules in the set is an empty rule.
-When this happens, Marpa throws an exception.
-To fix the issue,
-the user can add an empty rule.
-For more details,
-see L<the document on
-null semantics|Marpa::R2::Semantics::Null>.
-
 =head1 Action context
 
 =for Marpa::R2::Display
@@ -643,48 +701,6 @@ normalize-whitespace: 1
     }
 
 =for Marpa::R2::Display::End
-
-=head1 [This section where?] Parse trees, parse results and parse series
-
-When the semantics are applied to a parse tree,
-it produces a value called a B<parse result>.
-Because Marpa allows ambiguous parsing,
-each parse can produce a B<parse series> --
-a series of zero or more parse trees,
-each with its own parse result.
-The first call to the
-L<the recognizer's C<value>
-method|Marpa::R2::NAIF::Recognizer/"value">
-after the recognizer is created is the
-start of the first parse series.
-The first parse series continues until there is
-a call to the
-L<the C<reset_evaluation>
-method|Marpa::R2::NAIF::Recognizer/"reset_evaluation">
-or until the recognizer is destroyed.
-Usually, an application is only interested in a single
-parse series.
-
-When the
-L<C<reset_evaluation>|Marpa::R2::NAIF::Recognizer/"reset_evaluation">
-method
-is called
-for a recognizer, it begins a new parse series.
-The new parse series continues until
-there is another
-call to the
-L<the C<reset_evaluation>
-method|Marpa::R2::NAIF::Recognizer/"reset_evaluation">,
-or until the recognizer is destroyed.
-
-Most applications will find that the order in which
-Marpa executes its semantics "just works".
-L<A separate
-document|Marpa::R2::Semantics::Phases>
-describes that order
-in detail.
-The details can matter in some applications,
-for example, those which exploit side effects.
 
 =head1 Perl object actions
 
