@@ -293,6 +293,11 @@ the user can add an empty rule.
 
 =back
 
+In determining whether the semantics of two nulled rules
+are "the same",
+blessing is taken into account.
+Two rules are considered to have different semantics if
+they are blessed differently.
 For more details,
 see L<the document on
 null semantics|Marpa::R2::Semantics::Null>.
@@ -510,6 +515,7 @@ either the name of a subroutine, or of a scalar.
 It is important to note that for the purposes of Perl's symbol tables,
 and therefore for the purposes of Marpa's resolution of Perl names,
 references are scalars.
+
 If Marpa finds a Perl subroutine with that fully qualified Perl name,
 the action name is resolved to that subroutine,
 which then becomes a B<rule evaluation closure>.
@@ -518,22 +524,6 @@ a Perl subroutine with that name,
 but does find a scalar Perl variable with that name,
 the action name is resolved to that Perl variable.
 (Again, for this purpose a Perl reference is a kind of Perl scalar.)
-
-=head1 Resolution to a Perl rule evaluation closure
-
-Ordinarily, the arguments to the rule evaluation closure are the per-parse-tree
-variable,
-followed by values of the rule's child nodes,
-in the order in which they occurred in the input stream.
-However,
-if a rule with a word action is blessed,
-in order to allow the blessing to take effect,
-the arguments to a rule evaluation closure are formed differently.
-If the rule is blessed, its rule evaluation closure will always have
-exactly two arguments.
-The first will be the per-parse-tree variable.
-The second will be a blessed array that contains
-the child values in input-stream order.
 
 Note that the above implies that resolution can be either to a Perl subroutine
 or to a reference to a Perl subroutine, but that the result will be very different.
@@ -545,75 +535,55 @@ The reference to a Perl subtroutine will be passed on, as is, as the value of th
 
 =head1 Executing rule evaluation closures
 
-If a node is not a token node,
-then it is a B<rule node>.
-Rule nodes are always
-associated with a rule.
-It a rule's action is a rule evaluation closure,
-it is called at
-L<Node Evaluation Time|/"Tree Traversal Phase">.
+A rule evaluation closure action is always called in scalar context,
+and its return value will be used as the value of its node.
+The first argument of a rule evaluation closure is always the per-parse argument.
+Subsequent arguments contain the child values, as follows:
 
-The rule evaluation closures's
-arguments will be a
-per-parse-tree variable followed, if the rule is not nulled,
-by the values of its child nodes in lexical order.
-If the rule is nulled, the child node values will be omitted.
-A rule evaluation closure action is always called in scalar context.
+=over 4
 
-=head1 Sequence rule nodes
+=item *
 
-Some rules are L<sequence rules|Marpa::R2::NAIF::Grammar/"Sequence rules">.
-Sequence rule nodes are also rule nodes.
-Everything said above about rule nodes
-applies to sequence rule nodes.
-Specifically,
-the arguments to the value actions for sequence rules
-are the
-per-parse-tree variable followed by
-the values of the child nodes in lexical order.
+If the rule is not nulled and is not blessed,
+the second and subsequent arguments are the child values in order.
 
-The difference (and it is a big one)
-is that in an ordinary rule, the right hand side
-is fixed in length, and that length is known
-when you are writing the code for the value action.
-In a sequence rule,
-the number of right hand side symbols is not known
-until node evaluation time.
+=item *
+
+If the rule is nulled, there will be only one argument:
+the, first, per-parse argument.
+
+=item *
+
+If according to the semantics, the rule is blessed and
+is not nulled,
+the closure will always have exactly two arguments.
+The first will be the per-parse argument,
+and the second will be a blessed array that contains
+the child values in input-stream order.
+(This grouping of child values into an array
+is required in order to allow the blessing to stay in effect.)
+
+=back
+
+=head1 Quanitifed rule nodes
+
+Everything just said about rule nodes
+applies to nodes for
+L<quantified
+rules|Marpa::R2::Scanless::DSL/"Quanitifed rules">.
+But there is a difference between quantified rules
+and others, and it a big one if you are writing a rule
+evaluation closure.
+
+In other rules, the right hand side
+is fixed in length,
+and therefore the number of child nodes is known in advance.
+This is not the case with a quantified rule.
 The rule evaluation closure
-of a sequence rule
+for a quantified rule
 must be capable of
 dealing with
 a variable number of arguments.
-
-Sequence semantics work best when
-every child node
-in the sequence has the same semantics.
-When that is not the case,
-writing the sequence using
-ordinary non-sequence rules should be considered as
-an alternative.
-
-By default, if a sequence rule has separators,
-the separators are thrown away before
-the value action is called.
-(Separators are described in
-L<the section introducing sequence rules|Marpa::R2::NAIF::Grammar/"Sequence rules">.)
-This means that separators do not appear in the C<@_> array
-of the rule evaluation closure which is the value action.
-If the value of the C<keep> rule property
-is a Perl true value, separators are kept,
-and do appear in the
-value action's
-C<@_> array.
-
-=head1 Null nodes
-
-A null node is a special case of a rule node,
-one where the rule derives the zero-length,
-or empty string.
-When the rule node is a null node,
-the rule evaluation closure will be called with
-no child value arguments.
 
 =head1 Action context
 
@@ -677,143 +647,31 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
-=head1 Perl object actions
+=head1 Modifying Perl variable actions
 
-Actions divide into two types:
-reserved actions and Perl object actions.
-A Perl object action is a actual Perl object of some type:
-either code or a reference.
-
-In simplified terms,
-if a Perl object action comes from resolution of
-an action name,
-and
-there is a Perl closure of that name, the Perl
-closure is the resolution.
-If there is a reference with that name
-it is resolved
-L<as described for Perl reference
-actions|/"Reference actions">.
-If there is some other scalar with that name,
-it is a fatal error.
-All other Perl objects with that name are ignored.
-
-More precisely, the resolution depends the lookup
-of the action name in the Perl symbol table:
-
-=over 4
-
-=item * 
-
-If there is a C<CODE> entry,
-that entry is the resolution.
-
-=item * 
-
-If there is a C<SCALAR> entry,
-and it is a reference,
-it is resolved
-L<as described for Perl reference
-actions|/"Reference actions">.
-
-=item * 
-
-If there is a C<SCALAR> entry,
-and it is not a reference,
-it is a fatal error.
-
-=item * 
-
-If there is no C<SCALAR> entry and no C<CODE> entry,
-it will be considered a failure to resolve.
-
-=back
-
-=head1 Reference actions
-
-A Marpa action can be a Perl object which is a reference.
-Referents should be treated as read-only constants.
-It is possible to modify the values pointed to
-by a reference, but the effect will be global,
-and this is deprecated as bad practice.
-The referents of reference actions should be treated
-as read-only, and never modified.
-
-In the following, let C<$action_ref> be the action reference.
-Reference actions are handled based on type,
-ignoring any blessing as class objects.
-This would be the reftype as returned
-by C<Scalar::Util::reftype $action_ref>.
-
-If the reftype is C<CODE>,
-the resolution is to the Perl closure.
-The effect is the same as if an action name
-had resolved directly to a closure with the same
-name.
-The Perl closure,
-also called a B<rule evaluation closure>,
-will be called to produce the value of
-the action.
-
-If the reftype is C<SCALAR>,
-the resolution is to its de-referenced value,
-C<${$action_ref}>.
-The effect is roughly the same as if an action
-name had resolved to a closure which returned
-C<${$action_ref}>.
-
-If the reftype is C<ARRAY>,
-the resolution is to the original reference,
-C<$action_ref>.
-The effect is roughly the same as if an action
-name had resolved to a closure which returned
-C<$action_ref>.
-
-If the reftype is C<HASH>,
-the resolution is to the original reference,
-C<$action_ref>.
-The effect is roughly the same as if an action
-name had resolved to a closure which returned
-C<$action_ref>.
-
-=head1 Modifying Perl object actions
-
-[ Merge with next graf. ]
-If the action name resolves to a scalar Perl variable,
-that is the value of the rule.
-Users should note that the resolution to a Perl variable resolves to the same
-variable every time.
-Further, assuming no trickery with Perl's C<local> keyword take place,
-this Perl variable will be global in scope.
-This means that good practice suggest that resolution to Perl variables be restricted
-to constants.
-
-If the action name resolves to a scalar Perl variable,
-that is the value of the rule.
-Users should note that the resolution to a Perl variable resolves to the same
-variable every time.
-Further, assuming no trickery with Perl's C<local> keyword take place,
-this Perl variable will be global in scope.
-This means that good practice suggest that resolution to Perl variables be restricted
-to constants.
-It is important to note multiple invocations
-of C<$action_ref> will
-always point to the same contents,
-and that any modification will be
-seen by other invocations.
-In other words, the modification will have global
-effect.
-For this reason modifying the referents of
-reference actions is deprecated.
+Assuming no trickery, such as use of Perl's C<local> keyword, takes place,
+resolution to a Perl variable will always resolve to a single, global variable.
+Any modification of this variable will be seen, at a minimum,
+by other nodes of the current parse,
+and by other parses.
+All this suggests that,
+as a matter of good practice,
+use of Perl variable actions
+be restricted to using them
+as constants.
+From one point of view,
+this suggest the term "Perl constant actions" might be better,
+but the fact is that they are variables and can be modified --
+it's just that it's almost always a bad idea to do so.
 
 For example,
-assume that actions are in a package named C<My_Nodes>,
+assume that actions are in a package named C<My_Actions>,
 which contains a hash reference named C<empty_hash>, 
 
 =for Marpa::R2::Display
 ignore: 1
 
-        package My_Nodes;
+        package My_Actions;
         our $empty_hash = {};
 
 =for Marpa::R2::Display::End
@@ -825,16 +683,20 @@ tree.
 But C<$empty_hash> points to a single hash object.
 This single hash object will shared by all nodes,
 with all nodes seeing each other's changes.
-Worse, all Marpa parsers which use the same C<My_Nodes>
+Worse, all Marpa parsers which use the same C<My_Actions>
 namespace will share the same hash object.
+The best way to defined an
+C<empty_hash> to
+initialize an empty hash is with a rule
+evaluation closure 
+that returns C<{}>.
 
-When not simply a mistake,
-this is usually bad programming practice.
-Before modifying the referent of a reference action,
-rule evaluation closures should copy it.
-Safer, if less efficient,
-is to define the C<empty_hash> action
-as a closure which returns C<{}>.
+=for Marpa::R2::Display
+ignore: 1
+
+        sub My_Actions::empty_hash { return {}; }
+
+=for Marpa::R2::Display::End
 
 =head1 Visibility of Perl object actions
 
