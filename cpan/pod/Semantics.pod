@@ -683,9 +683,9 @@ This single hash object will shared by all nodes,
 with all nodes seeing each other's changes.
 Worse, all Marpa parsers which use the same C<My_Actions>
 namespace will share the same hash object.
-The best way to defined an
-C<empty_hash> to
-initialize an empty hash is with a rule
+The best way to define an
+C<empty_hash> action that
+initializes an empty hash is as a rule
 evaluation closure 
 that returns C<{}>.
 
