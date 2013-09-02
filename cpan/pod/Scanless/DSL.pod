@@ -690,57 +690,9 @@ L<below|/"Precedence">.
 
 The C<bless> adverb causes the result of the semantics to be
 blessed into the class indicated by the value of the adverb.
-The C<bless> adverb is allowed for alternatives of prioritized G1 rules,
-quantified G1 rules,
-and lexemes.
-The C<bless> adverb is also allowed for the default lexeme statement
-and the default pseudo-rule.
-A G0 rule cannot have a C<bless> adverb.
-
-The value of a C<bless> adverb is called a B<blessing>.
-If the blessing is a Perl word
-(a string of alphanumerics or underscores),
-the name of the class will be formed by prepending
-the value of L<the C<bless_package>
-named argument|Marpa::R2::Scanless::G/"bless_package">, followed
-by a double colon ("C<::>").
-
-If the blessing begins with a double colon ("C<::>"), it is a
-reserved blessing.
-A blessing of C<::undef> means that the rule or lexeme will not be blessed.
-By default, both
-rules and lexemes are not blessed.
-If any rule or lexeme of a SLIF grammar has
-a blessing other than C<::undef>,
-a C<bless_package> is required,
-and failure to specify one results in
-a fatal error.
-
-The bless adverb for
-rules allows one additional reserved blessing: C<::lhs>.
-A blessing of C<::lhs> causes the result to be blessed into
-a class whose name is based on the LHS of the rule.
-The class will be the name of the LHS with whitespace
-changed to an underscore.
-(As a reminder, the whitespace in symbol names will have been normalized,
-with leading and trailing whitespace removed,
-and all other whitespace sequences changed to a single ASCII space.)
-When a C<::lhs> blessing value applies to a rule, it is a fatal
-error if the LHS contains anything other than alphanumerics
-and whitespace.
-In particular, the LHS cannot already contain an underscore ("C<_>").
-The C<::lhs> blessing is most useful in a default rule.
-
-The bless adverb for lexemes allows only one
-reserved value: C<::name>.
-A reserved value of C<::name> causes the value of the lexeme to be blessed into
-a class whose name is based on the name of the lexeme.
-The class is derived from the symbol name in the same way,
-and subject to the same restrictions,
-as described above for deriving a class name from the LHS
-of a rule.
-The C<::name> reserved blessing is most useful in
-the lexeme default rule.
+Details of its use may be found in
+L<the semantics
+document|Marpa::R2::Semantics/"Blessings">.
 
 =head2 event
 

@@ -116,7 +116,8 @@ Marpa's primary interface, the SLIF.
 
 =head1 What is semantics?
 
-A parser is something that takes a string of symbols (tokens or characters) and finds a structure
+A parser is an algorithm
+that takes a string of symbols (tokens or characters) and finds a structure
 in it.
 Traditionally, that structure is a tree.
 
@@ -131,14 +132,6 @@ a value which represents the "meaning" or "semantics" of the string.
 The rest of this document describes Marpa's methods for evaluating trees.
 Those of you who have dealt with other traditional parsers, such as yacc and bison,
 will find Marpa's approach familiar.
-
-Evaluation only takes place within the structural (G1) subgrammar,
-and the descriptions of the behaviors of rules and lexemes applies only
-to the G1 subgrammar.
-G0 rules and terminal symbols do not become nodes
-in the parse tree,
-they have no actions,
-and they are never evaluated.
 
 =head1 Nodes
 
@@ -159,18 +152,28 @@ is called its parent node.
 If the node is for a BNF rule,
 the parent node is the LHS of the rule,
 and the child nodes are the RHS of the rule.
-If the node is for a sequence rule,
-the parent node is the LHS of the sequence rule,
-and the child nodes are the items of the sequence.
+If the node is for a quantified rule,
+the parent node is the LHS of the quantified rule,
+and the child nodes are the items of the quantifed sequence of symbol on the
+right hand side.
 If the node is for a lexeme,
 the node represents the lexeme's symbol
 and there will be no child nodes.
 
 A parent node can have zero or more children.
 Rules with zero children are nulled rules,
-and are "leaf nodes" or terminals.
-In Marpa's parse trees, every leaf node is either
+and are "leaf nodes".
+Leaf nodes are also called B<terminals>.
+In Marpa's parse trees, every terminal is either
 a lexeme or a nulled rule.
+
+In Marpa,
+evaluation only takes place within the structural (G1) subgrammar,
+and the descriptions of the behaviors of rules and lexemes below
+applies only to the G1 subgrammar.
+G0 rules and terminal symbols do not become nodes
+in the parse tree,
+and are never evaluated.
 
 =head1 The order of node evaluation
 
@@ -194,34 +197,40 @@ L<the recognizer's C<value>
 method|Marpa::R2::NAIF::Recognizer/"value">
 after the recognizer is created is the
 start of the first parse series,
-a Parse Series Setup Phase takes place
+and Parse Series Setup Phase takes place
 at this point.
 
 The first parse series continues until there is
 a call to the
-L<the C<reset_evaluation>
-method|Marpa::R2::NAIF::Recognizer/"reset_evaluation">
+L<the C<series_restart()>
+method|Marpa::R2::NAIF::Recognizer/"series_restart()">
 or until the recognizer is destroyed.
 Almost always, an application is only interested in one
 parse series.
 
-The Parse Series Setup Phase, just mentioned,
+The C<series_restart()> method starts a new parse series.
+The Parse Series Setup Phase for that parse series will take
+place during
+the SLIF recognizer first C<value()> method called
+after the 
+C<series_restart()>.
+
+The Parse Series Setup Phase
 is one of several phases in which the semantics are executed.
-This document will not detail these, because
-most applications will find that the order in which
+Applications will find that the order in which
 these phases occurs "just works".
-But the detail can matter for some applications.
-Applications which might depend on these details
+But the details can matter.
+Applications whose behavior might depend on these details
 include those which make unusual use of side effects in the semantics;
 and those which alter their symbol tables at runtime.
-L<A separate
-document|Marpa::R2::Semantics::Phases>
-describes that semantics phases.
-in detail.
+A full description of phases of Marpa'a semantic processing
+are in
+L<a separate
+document|Marpa::R2::Semantics::Phases>.
 
 =head1 Nulled subtrees
 
-A nulled subtree is the tree formed by a nulled node and its direct and
+A nulled subtree is a subtree of the parse tree formed by a nulled node and its direct and
 indirect child nodes.
 (All these child nodes will also be nulled nodes.)
 Before evaluation,
@@ -238,7 +247,8 @@ L<a separate document|Marpa::R2::Semantics::Null>.
 
 What the SLIF does at each node is called that node's B<action>.
 Actions can be explicit or implicit.
-An explicit action is one that is specified in one of the ways
+An explicit action is one that is specified by the application,
+in one of the ways
 to be described below.
 A node's implicit action is the one it performs if it has no
 explicit action.
@@ -247,7 +257,7 @@ explicit action.
 
 The implicit action for a lexeme is to return
 its literal value in the input stream, as a string.
-An explicit default may be set using the
+An explicit default action name for lexemes may be set using the
 L<the lexeme default statement|Marpa::R2::Scanless::DSL/"Lexeme default statement">.
 
 =head2 Rule actions
@@ -255,14 +265,14 @@ L<the lexeme default statement|Marpa::R2::Scanless::DSL/"Lexeme default statemen
 The implicit action for a rule is to return a Perl C<undef>.
 An explicit action for a rule can be specified using
 L<the C<action> adverb|Marpa::R2::Scanless::DSL/"action">
-for the rule or, in the case of a prioritized rule, the RHS alternative.
+for the rule or, in the case of a prioritized rule, for the RHS alternative.
 A default explicit action for rules can be specified with a
 L<default pseudo-rule|Marpa::R2::Scanless::DSL/"Default pseudo-rules">.
 
 =head2 Nulled symbol actions
 
 As mentioned, nulled subtrees are pruned back to their topmost symbol.
-Lexemes are never nulled, so this symbol is always the LHS of a rule,
+Lexemes are never nulled, so a nulled symbol is always the LHS of a rule,
 and the action is determined from the rule,
 as L<just described|/"Rule actions">.
 
@@ -273,25 +283,23 @@ is determined as follows:
 
 =over 4
 
-=item * If there is only one nulled rule, its semantics are used.
+=item * If all nullable rule have the same semantics, that semantics is used.
 
-=item * If all nulled rule have the same semantics, that semantics is used.
-
-=item * If one of the nulled rules is a empty rule (a rule with zero RHS symbols),
+=item * If one of the nullable rules is a empty rule (a rule with zero RHS symbols),
 then the empty rule's semantics are used.
 
 =item * 
-The remaining case is that of
-a set of nullable rules with the same LHS,
-where two or more of the rules have different action names,
+In the remaining case,
+two or more of the rules have different action names,
 but none of the rules in the set is an empty rule.
 When this happens, Marpa throws an exception.
-To fix the issue,
-the user can add an empty rule.
+One easy way
+to fix the issue,
+to add an empty rule with the intended semantics.
 
 =back
 
-In determining whether the semantics of two nulled rules
+In determining whether the semantics of two nullable rules
 are "the same",
 blessing is taken into account.
 Two rules are considered to have different semantics if
@@ -299,6 +307,103 @@ they are blessed differently.
 For more details,
 see L<the document on
 null semantics|Marpa::R2::Semantics::Null>.
+
+=head1 Blessings
+
+Part of a rule or lexeme's action may be a blessing.
+A blessing is the name of a Perl package.
+If the action is not a rule evaluation closure, the value
+of the action will be blessed into that package.
+In the case of a rule evaluation closure,
+the argument containing its child values will be blessed
+into that package.
+
+Only Perl objects pointed to by references can be blessed,
+and it is a fatal error to try to use a blessing with an inappropriate
+action.
+When an action or action name cannot be blessed, its description
+in this document
+will indicate that.
+
+Implicitly, an action is not blessed.
+Explicity blessings are made using 
+the C<bless> adverb.
+The C<bless> adverb is allowed
+
+=over 4
+
+=item * for alternatives of prioritized G1 rules;
+
+=item * for quantified G1 rules;
+
+=item * for lexemes;
+
+=item * for the default lexeme statement;
+
+=item * and for the default pseudo-rule.
+
+=back
+
+A G0 rule cannot have a C<bless> adverb.
+
+The value of a C<bless> adverb is called a B<blessing>.
+If the blessing is a Perl word
+(a string of alphanumerics or underscores),
+the name of the class will be formed by prepending
+the value of L<the C<bless_package>
+named argument|Marpa::R2::Scanless::G/"bless_package">, followed
+by a double colon ("C<::>").
+
+If the blessing begins with a double colon ("C<::>"), it is a
+reserved blessing.
+The reserved blessings are as follows:
+
+=over 4
+
+=item C<::undef>
+
+The rule or lexeme will not be blessed.
+By default, both
+rules and lexemes are not blessed.
+
+=item C<::lhs>
+
+A blessing of C<::lhs> causes the result to be blessed into
+a class whose name is based on the LHS of the rule.
+A blessing of C<::lhs> is not allowed for a lexeme.
+
+The class will be the name of the LHS with whitespace
+changed to an underscore.
+(As a reminder, the whitespace in symbol names will have been normalized,
+with leading and trailing whitespace removed,
+and all other whitespace sequences changed to a single ASCII space.)
+When a C<::lhs> blessing value applies to a rule, it is a fatal
+error if the LHS contains anything other than alphanumerics
+and whitespace.
+In particular, the LHS cannot already contain an underscore ("C<_>").
+The C<::lhs> blessing is most useful in a default rule.
+
+=item C<::name>
+
+For a lexeme, the C<::name> reserved blessing
+causes it to be blessed into
+a class whose name is based on the name of the lexeme.
+The C<::name> blessing is not allowed for a rule.
+
+The class is derived from the symbol name in the same way,
+and subject to the same restrictions,
+as described above for deriving a class name from the LHS
+of a rule.
+The C<::name> reserved blessing is most useful in
+the lexeme default rule.
+
+=back
+
+If any rule or lexeme of a SLIF grammar has
+a blessing other than C<::undef>,
+a C<bless_package> is required,
+and failure to specify one results in
+a fatal error.
 
 =head1 Explicit actions
 
@@ -347,26 +452,36 @@ array.
 
 =item C<length>
 
-The C<length> array descriptor item will put
-the length of the rule or lexeme into the array.
-Length is in characters
-and is defined such that the end location
-is always start location plus length.
+The C<length> array descriptor item puts
+a single-element list into the array.
+That one element will be the length of the rule or lexeme.
+Length is in characters.
 
 =item C<start>
 
-A C<start> array descriptor item will put
+The C<length> array descriptor item puts
+a single-element list into the array.
+That one element will be
 the start location of the rule or lexeme into the array.
 The start location is an offset in the input string.
+The elements of the C<length> and C<start> descriptors are defined
+such that the end location
+is always start location plus length.
 
 =item C<value>
 
 For a rule,
-the C<value> array descriptor item indicates a list containing
+The C<value> array descriptor item puts
+a list of zero or more elements into the array.
+The list will contain
 the values of
 the rule's children, in left-to-right order.
+
 For a lexeme, 
-the C<value> array descriptor item indicates a list
+The C<value> array descriptor item puts
+a single-element list into the array.
+That one element
+will be a list
 containing a single element,
 the token value of the lexeme.
 
@@ -385,7 +500,7 @@ For example, if we are dealing with a rule,
 and the array descriptor is "C<[start,length,value]>",
 then the return value is an reference to an array,
 whose length will vary, but which will be contain least
-three elements.
+two elements.
 The first element will be the start location in the
 input string of this rule instance,
 and the second will be its length.
@@ -394,6 +509,8 @@ the values of the rule's RHS children,
 in lexical order,
 as computed according to the semantics
 of those children.
+If the rule is nulled, the array will contain only the two elements
+indicating start location and length.
 
 =head1 Reserved action names
 
@@ -405,14 +522,6 @@ The following are recognized:
 
 =item * C<::array>
 
-The value of the rule or lexeme is an array.
-For a rule, the array will
-contain the
-values of each of its children, in left-to-right order.
-If the rule has no children, the array will be empty.
-For a lexeme, the array will be of length one,
-and will contain the token value.
-
 C<::array> is equivalent to C<[values]>.
 This means that, for both lexemes and rules,
 the actions C<[values]>, C<[value]> and C<::array>
@@ -422,11 +531,9 @@ will do exactly the same thing.
 
 The value of the rule is that of the rule's first child.
 If there is no such child, the value is a Perl C<undef>.
-
-It is a fatal error if a blessing
-is applied to a rule with a C<::first> action.
-This is the case even when either or both adverbs are
-the result of a default.
+It is a fatal error if a 
+rule with a C<::first> action
+is blessed.
 It is also a fatal error to use a C<::first> action
 with a lexeme.
 
@@ -434,24 +541,24 @@ with a lexeme.
 
 The value of the rule or lexeme is 
 a Perl C<undef>.
-It is a fatal error if a blessing
-is applied to a rule with a C<::undef> action.
-This is the case even when either or both adverbs are
-the result of a default.
+It is a fatal error if a 
+rule with an C<::undef> action
+is blessed.
 
 =back
 
-=head1 Perl identifers
+=head1 Perl identifiers as action names
 
 If the action value is a Perl identifier,
 it is treated as the name of a Perl variable,
 but one which still must be fully qualified by adding a package name.
 For this purpose, a Perl identifier is a sequence of one or more alphanumerics
 and underscores.
+To successfully resolve to actions,
 Perl identifiers must be resolved to Perl names,
 as L<described below|/"Resolving Perl identifiers to Perl names">.
 
-=head1 Perl names as actions
+=head1 Perl names as action names
 
 For this purpose, a Perl name is
 is a series of two or more Perl identifiers
@@ -496,14 +603,17 @@ especially if the application is not small.
 
 =head1 Resolving Perl identifiers to Perl names
 
+A Perl identifier is resolved to a Perl name by prepending
+the semantic package, followed by a double colon ("C<::>").
+For an Perl identifier to resolve successfully
+to a Perl name,
+a semantics package must be defined.
+
 For example, if the action value
 is "C<some_var>", the action value will be regarded as a Perl identifer.
 If the semantics package is "C<My_Actions>", Marpa will convert the action
 value to "C<My_Actions::some_var>", and hand
 it on for processing as a fully qualified Perl name.
-For an Perl identifier to resolve successfully
-to a Perl name,
-a semantics package must be defined.
 
 =head1 Resolving Perl names to Perl variables
 
@@ -523,27 +633,18 @@ but does find a scalar Perl variable with that name,
 the action name is resolved to that Perl variable.
 (Again, for this purpose a Perl reference is a kind of Perl scalar.)
 
-Note that the above implies that resolution can be either to a Perl subroutine
-or to a reference to a Perl subroutine, but that the result will be very different.
-The Perl subroutine will be treated as a rule evaluation closure, and executed to produce
-the value of the node.
-The reference to a subroutine will B<NOT> be treated as a rule evaluation closure,
-and will not be executed.
-The reference to a Perl subtroutine will be passed on, as is, as the value of the node.
-
 =head1 Executing rule evaluation closures
 
 A rule evaluation closure action is always called in scalar context,
 and its return value will be used as the value of its node.
-The first argument of a rule evaluation closure is always the per-parse argument.
-Subsequent arguments contain the child values, as follows:
+Arguments to the rule evaluation closure will be as follows:
 
 =over 4
 
 =item *
 
 If the rule is not nulled and is not blessed,
-the second and subsequent arguments are the child values in order.
+the second and subsequent arguments are the child values in lexical order.
 
 =item *
 
@@ -557,11 +658,14 @@ is not nulled,
 the closure will always have exactly two arguments.
 The first will be the per-parse argument,
 and the second will be a blessed array that contains
-the child values in input-stream order.
+the child values in lexical order.
 (This grouping of child values into an array
 is required in order to allow the blessing to stay in effect.)
 
 =back
+
+Note that in each of these cases,
+the first argument of a rule evaluation closure is the per-parse argument.
 
 =head1 Quanitifed rule nodes
 
@@ -645,22 +749,32 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
-=head1 Modifying Perl variable actions
+=head1 Perl scalars as actions
+
+If a Perl scalar is the action,
+it becomes the value of the node, as is.
+References are scalars in this context, so that,
+for example the value of the node could be a reference to an array.
+
+Another possiiblity is that the Perl scalar action is a reference to code.
+What happens in this case is very different from the case where the action
+is a rule evaluation closure.
+A rule evaluation closure is executed to produce the value of the node.
+In contrast, the reference to a subroutine is B<NOT> executed -- it becomes the
+value of the node directly.
 
 Assuming no trickery, such as use of Perl's C<local> keyword, takes place,
 resolution to a Perl variable will always resolve to a single, global variable.
-Any modification of this variable will be seen, at a minimum,
+Any modification of this variable will be seen
 by other nodes of the current parse,
 and by other parses.
 All this suggests that,
 as a matter of good practice,
-use of Perl variable actions
-be restricted to using them
-as constants.
+Perl variable actions be used only as constants.
 From one point of view,
 this suggest the term "Perl constant actions" might be better,
 but the fact is that they are variables and can be modified --
-it's just that it's almost always a bad idea to do so.
+it's just that doing so is almost always a bad idea.
 
 For example,
 assume that actions are in a package named C<My_Actions>,
@@ -683,7 +797,7 @@ This single hash object will shared by all nodes,
 with all nodes seeing each other's changes.
 Worse, all Marpa parsers which use the same C<My_Actions>
 namespace will share the same hash object.
-The best way to define an
+The correct way to define an
 C<empty_hash> action that
 initializes an empty hash is as a rule
 evaluation closure 
@@ -700,7 +814,7 @@ ignore: 1
 
 Most application do not manipulate the Perl symbol table at runtime,
 and do not make use of Perl's C<local> keyword for declarations.
-Application which use the Perl global namespace in conventional ways,
+Applications which use the Perl global namespace in conventional ways,
 and which use the same names to point to the same variables
 throughout Marpa execution,
 can ignore questions about the visibility
@@ -712,8 +826,8 @@ that Perl name must be visible,
 and must refer to the intended variable,
 at Parse Series Setup Time.
 Parse Series Setup Time occurs during
-the first call to a recognizer's L<C<value>|Marpa::R2::NAIF::Recognizer/"value()">
-methods of the parse series.
+the first call to a recognizer's L<C<value()>|Marpa::R2::NAIF::Recognizer/"value()">
+method of the parse series.
 More details about Parse Series Setup Time
 can be found in
 L<the document that describes the processing phases of Marpa's
@@ -727,7 +841,7 @@ This is taken from
 
 =over 4
 
-=item * The result of returned by per-parse constructor if there is one.
+=item * The result of returned by per-parse constructor, if there is one.
 
 =item * Otherwise, the argument to the SLIF recognizer's C<value()> method, if there is one.
 
@@ -744,7 +858,7 @@ results from child nodes are passed up to parent nodes.
 Applications can use
 the per-parse argument for data which does not conveniently fit the functional model.
 Symbol tables are
-one common example of data that are best handled outside the functional model.
+one common example of data that is best handled outside the functional model.
 
 =head1 The per-parse constructor
 
@@ -754,7 +868,7 @@ there is no per-parse constructor.
 
 The per-parse construct is called with one argument.
 This argument is the argument of the
-the SLIF recognizer's C<value()> method, if there one was defined.
+the SLIF recognizer's C<value()> method, if one was defined.
 Otherwise it is the name of the semantics package.
 
 The result returned by the per-parse constructor becomes the per-parse argument.
