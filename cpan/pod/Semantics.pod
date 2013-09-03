@@ -154,7 +154,7 @@ the parent node is the LHS of the rule,
 and the child nodes are the RHS of the rule.
 If the node is for a quantified rule,
 the parent node is the LHS of the quantified rule,
-and the child nodes are the items of the quantifed sequence of symbol on the
+and the child nodes are the items of the quantified sequence of symbol on the
 right hand side.
 If the node is for a lexeme,
 the node represents the lexeme's symbol
@@ -205,26 +205,24 @@ a call to the
 L<the C<series_restart()>
 method|Marpa::R2::Scanless::R/"series_restart()">
 or until the recognizer is destroyed.
-Almost always, an application is only interested in one
+An application is usually interested in only one
 parse series.
 
 The C<series_restart()> method starts a new parse series.
 The Parse Series Setup Phase for that parse series will take
 place during
-the SLIF recognizer first C<value()> method called
-after the 
-C<series_restart()>.
+the next call of the SLIF recognizer's C<value()> method.
 
 The Parse Series Setup Phase
 is one of several phases in which the semantics are executed.
 Applications will find that the order in which
 these phases occurs "just works".
-But the details can matter.
-Applications whose behavior might depend on these details
+But in some cases the details will matter.
+Applications whose behavior might depend on the details
 include those which make unusual use of side effects in the semantics;
 and those which alter their symbol tables at runtime.
 A full description of phases of Marpa'a semantic processing
-are in
+is in
 L<a separate
 document|Marpa::R2::Semantics::Phases>.
 
@@ -245,9 +243,9 @@ L<a separate document|Marpa::R2::Semantics::Null>.
 
 =head1 Actions and how Marpa finds them
 
-What the SLIF does at each node is called that node's B<action>.
+The way in which the SLIF finds the value of a node is called that node's B<action>.
 Actions can be explicit or implicit.
-An explicit action is one that is specified by the application,
+An explicit action is one that is explicitly specified by the application,
 in one of the ways
 to be described below.
 A node's implicit action is the one it performs if it has no
@@ -265,7 +263,7 @@ L<the lexeme default statement|Marpa::R2::Scanless::DSL/"Lexeme default statemen
 The implicit action for a rule is to return a Perl C<undef>.
 An explicit action for a rule can be specified using
 L<the C<action> adverb|Marpa::R2::Scanless::DSL/"action">
-for the rule or, in the case of a prioritized rule, for the RHS alternative.
+for the its RHS alternative.
 A default explicit action for rules can be specified with a
 L<default pseudo-rule|Marpa::R2::Scanless::DSL/"Default pseudo-rules">.
 
@@ -291,7 +289,7 @@ then the empty rule's semantics are used.
 =item * 
 In the remaining case,
 two or more of the rules have different action names,
-but none of the rules in the set is an empty rule.
+but none of the rules is an empty rule.
 When this happens, Marpa throws an exception.
 One easy way
 to fix the issue,
@@ -301,12 +299,11 @@ to add an empty rule with the intended semantics.
 
 In determining whether the semantics of two nullable rules
 are "the same",
-blessing is taken into account.
+the blessing is taken into account.
 Two rules are considered to have different semantics if
 they are blessed differently.
-For more details,
-see L<the document on
-null semantics|Marpa::R2::Semantics::Null>.
+The SLIF's null semantics are described in more detail
+L<in a separate document|Marpa::R2::Semantics::Null>.
 
 =head1 Blessings
 
@@ -323,18 +320,17 @@ and it is a fatal error to try to use a blessing with an inappropriate
 action.
 When an action or action name cannot be blessed, its description
 in this document
-will indicate that.
+indicates that.
 
 Implicitly, an action is not blessed.
-Explicity blessings are made using 
+Also, it is a fatal error to bless the implicit action.
+Explicit blessings are made using 
 the C<bless> adverb.
 The C<bless> adverb is allowed
 
 =over 4
 
-=item * for alternatives of prioritized G1 rules;
-
-=item * for quantified G1 rules;
+=item * for RHS alternatives;
 
 =item * for lexemes;
 
@@ -363,12 +359,12 @@ The reserved blessings are as follows:
 =item C<::undef>
 
 The rule or lexeme will not be blessed.
-By default, both
-rules and lexemes are not blessed.
+For both rules and lexemes,
+the implicit blessing is C<::undef>.
 
 =item C<::lhs>
 
-A blessing of C<::lhs> causes the result to be blessed into
+The rule is blessed into
 a class whose name is based on the LHS of the rule.
 A blessing of C<::lhs> is not allowed for a lexeme.
 
@@ -381,12 +377,12 @@ When a C<::lhs> blessing value applies to a rule, it is a fatal
 error if the LHS contains anything other than alphanumerics
 and whitespace.
 In particular, the LHS cannot already contain an underscore ("C<_>").
-The C<::lhs> blessing is most useful in a default rule.
+The C<::lhs> blessing is most useful in a default pseudo-rule.
 
 =item C<::name>
 
-For a lexeme, the C<::name> reserved blessing
-causes it to be blessed into
+The lexeme
+is blessed into
 a class whose name is based on the name of the lexeme.
 The C<::name> blessing is not allowed for a rule.
 
@@ -395,7 +391,7 @@ and subject to the same restrictions,
 as described above for deriving a class name from the LHS
 of a rule.
 The C<::name> reserved blessing is most useful in
-the lexeme default rule.
+the lexeme default statement.
 
 =back
 
@@ -436,15 +432,15 @@ normalize-whitespace: 1
 
 If an action is enclosed in square brackets, it is an B<array descriptor>,
 and the value of the lexeme or rule will be an array.
-Inside the array descriptor should a comma separated list of zero or more array
-descriptor items.
-The B<array descriptor items> are keywords that describe how the array is to be filled
+Inside the array descriptor is a comma separated list of zero or more array item
+descriptors.
+The B<array item descriptors> are keywords that describe how the array is to be filled
 out.
 
 If the array descriptor is an empty pair of square brackets ("C<[]>"),
-then there are zero array descriptor items,
+then there are zero array item descriptors,
 and the value will be an empty array.
-Otherwise the "array descriptor item" keywords are interpreted as lists
+Otherwise the array item descriptors are interpreted as lists
 and those lists are used to fill out the 
 array.
 
@@ -452,33 +448,33 @@ array.
 
 =item C<length>
 
-The C<length> array descriptor item puts
+The C<length> array item descriptor puts
 a single-element list into the array.
 That one element will be the length of the rule or lexeme.
 Length is in characters.
 
 =item C<start>
 
-The C<length> array descriptor item puts
+The C<start> array item descriptor puts
 a single-element list into the array.
 That one element will be
 the start location of the rule or lexeme into the array.
 The start location is an offset in the input string.
-The elements of the C<length> and C<start> descriptors are defined
+The elements of the C<length> and C<start> item descriptors are defined
 such that the end location
 is always start location plus length.
 
 =item C<value>
 
 For a rule,
-The C<value> array descriptor item puts
+the C<value> array item descriptor puts
 a list of zero or more elements into the array.
 The list will contain
 the values of
 the rule's children, in left-to-right order.
 
 For a lexeme, 
-The C<value> array descriptor item puts
+The C<value> array item descriptor puts
 a single-element list into the array.
 That one element
 will be a list
@@ -487,14 +483,14 @@ the token value of the lexeme.
 
 =item C<values>
 
-The C<value> and C<values> array descriptor items are synonyms,
+The C<value> and C<values> array item descriptors are synonyms,
 and may be used interchangeably for both rules and lexemes.
 
 =back
 
 =head2 Example
 
-The array descriptor item keywords fill out the array in
+The array item descriptors fill out the array in
 the order in which they appear in the the array descriptor.
 For example, if we are dealing with a rule,
 and the array descriptor is "C<[start,length,value]>",
@@ -506,11 +502,9 @@ input string of this rule instance,
 and the second will be its length.
 The remaining elements will be
 the values of the rule's RHS children,
-in lexical order,
-as computed according to the semantics
-of those children.
-If the rule is nulled, the array will contain only the two elements
-indicating start location and length.
+in lexical order.
+If the rule is nulled, the array will contain only two elements:
+start location and length.
 
 =head1 Reserved action names
 
@@ -549,11 +543,11 @@ is blessed.
 
 =head1 Perl identifiers as action names
 
-If the action value is a Perl identifier,
-it is treated as the name of a Perl variable,
-but one which still must be fully qualified by adding a package name.
-For this purpose, a Perl identifier is a sequence of one or more alphanumerics
+An action name is considered to be
+a Perl identifier, if it is a sequence of one or more alphanumerics
 and underscores.
+If the action name is a Perl identifier,
+it is treated as the name of a Perl variable.
 To successfully resolve to actions,
 Perl identifiers must be resolved to Perl names,
 as L<described below|/"Resolving Perl identifiers to Perl names">.
@@ -587,7 +581,7 @@ The C<semantics_package> named argument takes precedence.
 If the arguments to the C<value()> method are used to specify
 the semantics package, within a parse series they must consistently
 specify the same package.
-For details see the description of
+For details, see the description of
 L<SLIF recognizer's C<value()>
 method|Marpa::R2::Scanless:R/"value()">.
 
@@ -605,14 +599,14 @@ especially if the application is not small.
 
 A Perl identifier is resolved to a Perl name by prepending
 the semantic package, followed by a double colon ("C<::>").
-For an Perl identifier to resolve successfully
+For a Perl identifier to resolve successfully
 to a Perl name,
 a semantics package must be defined.
 
-For example, if the action value
-is "C<some_var>", the action value will be regarded as a Perl identifer.
+For example, if the action name
+is "C<some_var>", the action name will be regarded as a Perl identifer.
 If the semantics package is "C<My_Actions>", Marpa will convert the action
-value to "C<My_Actions::some_var>", and hand
+name to "C<My_Actions::some_var>", and hand
 it on for processing as a fully qualified Perl name.
 
 =head1 Resolving Perl names to Perl variables
@@ -644,7 +638,7 @@ Arguments to the rule evaluation closure will be as follows:
 =item *
 
 If the rule is not nulled and is not blessed,
-the second and subsequent arguments are the child values in lexical order.
+the second and subsequent arguments are the values of its child nodes, in lexical order.
 
 =item *
 
@@ -653,26 +647,26 @@ the, first, per-parse argument.
 
 =item *
 
-If according to the semantics, the rule is blessed and
+If the rule is blessed, and
 is not nulled,
 the closure will always have exactly two arguments.
 The first will be the per-parse argument,
 and the second will be a blessed array that contains
 the child values in lexical order.
-(This grouping of child values into an array
+(The grouping of child values into an array
 is required in order to allow the blessing to stay in effect.)
 
 =back
 
-Note that in each of these cases,
+Note that, in every case,
 the first argument of a rule evaluation closure is the per-parse argument.
 
-=head1 Quanitifed rule nodes
+=head1 Quantified rule nodes
 
 Everything just said about rule nodes
 applies to nodes for
 L<quantified
-rules|Marpa::R2::Scanless::DSL/"Quanitifed rules">.
+rules|Marpa::R2::Scanless::DSL/"Quanitified rules">.
 But there is a difference between quantified rules
 and others, and it a big one if you are writing a rule
 evaluation closure.
@@ -685,7 +679,7 @@ The rule evaluation closure
 for a quantified rule
 must be capable of
 dealing with
-a variable number of arguments.
+a variable number of child nodes.
 
 =head1 Action context
 
@@ -710,14 +704,14 @@ normalize-whitespace: 1
 =for Marpa::R2::Display::End
 
 In addition to the per-parse argument
-and their child arguments,
+and their child values,
 rule evaluation closures also have access
 to B<context variables>.
 
 =over
 
-=item * C<$Marpa::R2::Context::grammar> is set to
-the grammar being parsed.
+=item * C<$Marpa::R2::Context::slg> is set to
+the SLIF grammar being parsed.
 
 =item * C<$Marpa::R2::Context::rule> is the ID of the
 current rule.
@@ -754,8 +748,8 @@ normalize-whitespace: 1
 
 If a Perl scalar is the action,
 it becomes the value of the node, as is.
-References are scalars in this context, so that,
-for example the value of the node could be a reference to an array.
+References are scalars in this context so that,
+for example, the value of the node could be a reference to an array.
 
 Another possiiblity is that the Perl scalar action is a reference to code.
 What happens in this case is very different from the case where the action
@@ -809,7 +803,7 @@ ignore: 1
 
 =head1 Visibility of Perl object actions
 
-Most application do not manipulate the Perl symbol table at runtime,
+Most applications do not manipulate the Perl symbol table at runtime,
 and do not make use of Perl's C<local> keyword for declarations.
 Applications which use the Perl global namespace in conventional ways,
 and which use the same names to point to the same variables
@@ -888,7 +882,7 @@ Grammars with infinite loops (cycles)
 are generally regarded as useless in practical applications.
 Due to lack of interest,
 the SLIF does not currently support them,
-altougth Libmarpa itself, Marpa's thin interface and the NAIF all do.
+although Libmarpa itself, Marpa's thin interface and the NAIF all do.
 Those interested in knowing more can look at L<the
 document on the NAIF's support of infinitely ambiguous
 grammars|Marpa::R2::NAIF::Semantics::Infinite>.
