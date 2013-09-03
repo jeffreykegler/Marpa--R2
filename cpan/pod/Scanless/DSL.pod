@@ -1136,13 +1136,14 @@ Marpa does catch the case where an alternative consists
 only of a single operand -- a "unit rule".
 This causes a fatal error.
 Unit rules are easy to define by accident in
-the Stuifzand interface.
+the SLIF.
 The author knows of no practical use for them,
 and their presence in a grammar is usually
 unintentional.
 Note that, in the event an application
 does find a use for a grammar with unit rules,
-Marpa's standard interface can parse it.
+the NAIF and the Thin interface
+can parse it.
 
 =head1 Copyright and License
 
