@@ -35,9 +35,10 @@ my $trace_rules = q{};
 
 sub do_S {
     my ($action_object) = @_;
-    my $rule_id = $Marpa::R2::Context::rule;
-    my $grammar = $Marpa::R2::Context::grammar;
-    my ( $lhs, @rhs ) = $grammar->rule($rule_id);
+    my $rule_id         = $Marpa::R2::Context::rule;
+    my $slg             = $Marpa::R2::Context::slg;
+    my ( $lhs, @rhs ) =
+        map { $slg->symbol_display_form($_) } $slg->rule_expand($rule_id);
     $action_object->{text} =
           "rule $rule_id: $lhs ::= "
         . ( join q{ }, @rhs ) . "\n"
@@ -99,7 +100,7 @@ VALUE_TEST: {
             qq{Parse value ref type is "$ref_type"; it needs to be "HASH"});
         last VALUE_TEST;
     } ## end if ( ref $value ne 'HASH' )
-    my $expected_text = qq{rule 1: S ::= A B C D\nlocations: 0-4\n};
+    my $expected_text = qq{rule 1: <S> ::= <A> <B> <C> <D>\nlocations: 0-4\n};
     Test::More::is( $value->{text}, $expected_text, 'Parse ok?' );
 } ## end VALUE_TEST:
 

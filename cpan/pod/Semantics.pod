@@ -15,7 +15,7 @@
 
 =head1 NAME
 
-Marpa::R2::Semantics - How Marpa evaluates parses
+Marpa::R2::Semantics - How the SLIF evaluates parses
 
 =head1 Synopsis
 
@@ -122,7 +122,7 @@ in it.
 Traditionally, that structure is a tree.
 
 Rarely is an application interested only in the tree.
-Usually the idea is that the string "means" something --
+Usually the idea is that the string "means" something:
 the idea is that the string has a B<semantics>.
 Traditionally and most often, the tree
 is as an intermediate step in producing a value,
@@ -193,8 +193,8 @@ each parse can produce a B<parse series> --
 a series of zero or more parse trees,
 each with its own parse result.
 The first call to the
-L<the recognizer's C<value>
-method|Marpa::R2::NAIF::Recognizer/"value">
+L<the SLIF recognizer's C<value()>
+method|Marpa::R2::Scanless::Recognizer/"value()">
 after the recognizer is created is the
 start of the first parse series,
 and Parse Series Setup Phase takes place
@@ -203,7 +203,7 @@ at this point.
 The first parse series continues until there is
 a call to the
 L<the C<series_restart()>
-method|Marpa::R2::NAIF::Recognizer/"series_restart()">
+method|Marpa::R2::Scanless::R/"series_restart()">
 or until the recognizer is destroyed.
 Almost always, an application is only interested in one
 parse series.
@@ -629,8 +629,8 @@ the action name is resolved to that subroutine,
 which then becomes a B<rule evaluation closure>.
 If Marpa does not find
 a Perl subroutine with that name,
-but does find a scalar Perl variable with that name,
-the action name is resolved to that Perl variable.
+but does find a Perl scalar with that name,
+the action name is resolved to that Perl scalar.
 (Again, for this purpose a Perl reference is a kind of Perl scalar.)
 
 =head1 Executing rule evaluation closures
@@ -696,8 +696,9 @@ normalize-whitespace: 1
     sub do_S {
         my ($action_object) = @_;
         my $rule_id         = $Marpa::R2::Context::rule;
-        my $grammar         = $Marpa::R2::Context::grammar;
-        my ( $lhs, @rhs ) = $grammar->rule($rule_id);
+        my $slg             = $Marpa::R2::Context::slg;
+        my ( $lhs, @rhs ) =
+            map { $slg->symbol_display_form($_) } $slg->rule_expand($rule_id);
         $action_object->{text} =
               "rule $rule_id: $lhs ::= "
             . ( join q{ }, @rhs ) . "\n"
@@ -708,7 +709,7 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
-In addition to the per-parse-tree variable
+In addition to the per-parse argument
 and their child arguments,
 rule evaluation closures also have access
 to B<context variables>.
@@ -764,17 +765,13 @@ In contrast, the reference to a subroutine is B<NOT> executed -- it becomes the
 value of the node directly.
 
 Assuming no trickery, such as use of Perl's C<local> keyword, takes place,
-resolution to a Perl variable will always resolve to a single, global variable.
-Any modification of this variable will be seen
+resolution to a Perl scalar will always resolve to a single, global scalar.
+Any modification of this scalar will be seen
 by other nodes of the current parse,
 and by other parses.
 All this suggests that,
 as a matter of good practice,
-Perl variable actions be used only as constants.
-From one point of view,
-this suggest the term "Perl constant actions" might be better,
-but the fact is that they are variables and can be modified --
-it's just that doing so is almost always a bad idea.
+Perl scalar actions be used only as constants.
 
 For example,
 assume that actions are in a package named C<My_Actions>,
@@ -822,11 +819,12 @@ of the Perl variables used in actions.
 
 Less conventional applications should be aware that,
 for resolution from a Perl name to a Perl variable to take place,
-that Perl name must be visible,
-and must refer to the intended variable,
+that Perl name must
+refer to the intended variable,
+and this variable must be visible,
 at Parse Series Setup Time.
 Parse Series Setup Time occurs during
-the first call to a recognizer's L<C<value()>|Marpa::R2::NAIF::Recognizer/"value()">
+the first call to a recognizer's L<C<value()>|Marpa::R2::Scanless::R/"value()">
 method of the parse series.
 More details about Parse Series Setup Time
 can be found in
@@ -866,7 +864,7 @@ The per-parse constructor is the C<new()> method of the semantics package.
 If there is no semantics package, or if it has no C<new()> method,
 there is no per-parse constructor.
 
-The per-parse construct is called with one argument.
+The per-parse constructor is called with one argument.
 This argument is the argument of the
 the SLIF recognizer's C<value()> method, if one was defined.
 Otherwise it is the name of the semantics package.

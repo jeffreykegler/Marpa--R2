@@ -322,7 +322,7 @@ sub Marpa::R2::Internal::Recognizer::default_semantics {
 
         if ( not $rule_resolution ) {
             my $rule_desc;
-            if ( defined( my $slr = $Marpa::R2::Internal::SLR ) ) {
+            if ( defined( my $slr = $Marpa::R2::Context::slr ) ) {
                 $rule_desc  = $slr->show_rule($rule_id);
             }
             else { $rule_desc = $grammar->brief_rule($rule_id); }
@@ -885,7 +885,8 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
     local $Marpa::R2::Context::grammar = $grammar;
     local $Marpa::R2::Context::rule    = undef;
-    local $Marpa::R2::Internal::SLR    = $slr; # for error messages
+    local $Marpa::R2::Context::slr    = $slr;
+    local $Marpa::R2::Context::slg    = $slr->[Marpa::R2::Inner::Scanless::R::GRAMMAR] if defined $slr;
 
     if ( not $recce->[Marpa::R2::Internal::Recognizer::REGISTRATIONS] ) {
 
