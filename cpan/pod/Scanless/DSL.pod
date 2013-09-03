@@ -241,7 +241,7 @@ normalize-whitespace: 1
 
 A character class in square brackets ("C<[]>")
 can be used in a RHS alternative of a prioritized rule,
-or on the RHS of a quantified rule or a discard rule.
+a quantified rule or a discard rule.
 Marpa character classes may contain anything acceptable to Perl,
 and follow the same escaping conventions as Perl's character classes.
 
@@ -264,24 +264,47 @@ Each character class is
 passed to Perl to interpret exactly once and the result is
 memoized in a C language structure for future use.
 
-=head1 Rules and statements
+=head1 Statements
 
-The BNF operator ("C<::=>")
+The SLIF DSL consists of a series of statements.
+The statements are of three kinds, as indicated by their declarator:
+
+=over 4
+
+=item * G1 rules
+
+The BNF operator ("C<::=>"),
+coming between the LHS and the first RHS alternative of a rule,
 indicates that the rule is
 a G1 rule.
-The match operator ("C<~>")
-can be used between the LHS and RHS of a rule,
-instead of the BNF operator.
-Rules which use the match operator are G0 rules.
-The effect of a rule is sometimes lexical --
-that is, the effect may vary depending
-on the position of the rule in the DSL source.
 
-Statements
+=item * G0 rules
+
+The match operator ("C<~>"),
+coming between the LHS and the first RHS alternative
+of a rule,
+indicates a G0 rule.
+
+=item * Global statements
+
+Global statements
 are signified by the assignment operator ("C<=>").
-Their effect is global, never lexical.
 The location of a statement in the DSL source
 will never affect the result.
+
+=back
+
+Rules differ from statements in that
+the effect of a rule
+is sometimes lexical --
+that is, the effect may vary depending
+on the position of the rule in the DSL source.
+Some rules are called pseudo-rules.
+Pseudo-rules do not correspond to BNF rules,
+but instead use the rule format as a convenient
+way to express other information.
+
+=head1 The structure of rules
 
 Every rule declaration consists of, in order:
 
@@ -293,66 +316,105 @@ symbol or a pseudo-symbol.
 
 =item * A declaration operator ("C<::=>" or "C<~>").
 
-=item * A right side declaration.
+=item * A right side declaration, which contains one or more RHS
+alternatives.
+Details of the right side declaration vary by the type of rule.
+For each type of rule,
+the right side declaration is described in detail below.
 
 =back
 
-For each type of rule,
-the right side declaration is described in detail below.
-Among the things a right side declaration may contain are:
+=head1 RHS alternatives
 
-=over 4
-
-=item * Zero or more RHS alernatives.
+The right side declaration of a rule will often contain one or
+more RHS alternatives.
 A RHS alternative is a series of RHS primaries,
 where a RHS primary may be a symbol name,
 a character class,
 or a single quoted string.
-
-=item * An list of zero or more adverbs.
+Associated with each RHS is often
+list of zero or more adverbs.
 Each adverb consists of a keyword,
 the adverb operator ("C<< => >>"),
 and the adverb's value.
 
-=back
+Within an alternative, symbols may be enclosed in parentheses.
+A symbol enclosed in parentheses is hidden from
+L<Marpa's semantics|Marpa::R2::Semantics>.
+A set of parentheses may contain more than one symbol,
+in which case the entire sequence of symbols is hidden,
+as if they had been enclosed in parentheses individually.
+"Hiding" symbols in this way can be convenient for symbols whose values
+the semantics will ignore, perhaps because the value is constant.
 
-Note that most rules are classified as "prioritized rules",
-although the prioritization may be trivial.
 For example,
-a rule like the following,
+in the following rule
 
 =for Marpa::R2::Display
 ignore: 1
 
-    a ::= b c d
+    a ::= b (',' c) d action => ::first
 
 =for Marpa::R2::Display::End
 
-whose RHS consists only of a sequence of symbols,
-is a prioritized rule.
-The prioritization is trivial --
-there is only one priority,
-and in fact only one alternative within
-that priority.
-In typical grammars,
-most rules will be prioritized rules,
-and many of them will be trivially prioritized.
+there is
+
+=over 4
+
+=item *
+
+A LHS, in this case the symbol "C<a>".
+
+=item *
+
+A declarator, "C<::=>", which indicates this is
+a G1 rule.
+
+=item *
+
+A RHS alternative consisting of four RHS primaries.
+The first RHS primary is the symbol "C<b>".
+The second RHS primary is a short single-quoted string C<','>.
+The third and fourth RHS primaries are symbols: "C<c>" and "C<d>".
+The parentheses around the second and third RHS primaries "hide"
+them from the semantics.
+Marpa's semantics will see this as a rule with only two RHS values.
+
+=item *
+
+The adverb list associated with the RHS alternative,
+consisting of a single adverb.
+The adverb consists of its keyword "C<action>",
+followed by the adverb operator ("C<< => >>"),
+and the adverb's value "C<::first>".
+
+=back
+
+The rule in the above example is one of a very common type:
+a trivial prioritized rule.
+A prioritized rule is one that contains one or more prioritized RHS alternatives.
+Prioritized rules are the only rules which may contain more than one RHS
+alternative, but even prioritized rules usually have only one RHS alternative.
+If there is only one RHS alternative, as in this case, the prioritization
+is B<trivial> --
+there is only one priority.
 
 =head2 Start rule
 
 Every source string should have a start rule.
 The LHS of this rule is the C<:start> pseudo-symbol.
-The RHS must be a single symbol name.
-The start rule does not accept any adverbs.
+Only one RHS alternative is allowed.
+This RHS alternative must contain only one symbol name,
+No adverbs should be associated with the RHS alternative.
 Start rules must be G1 rules.
 
 =head2 Empty rules
 
 An empty rule is a rule with an empty RHS.
-An empty right hand side is what the name suggests: no symbols
-or punctuation.
+The empty RHS, technically, is a RHS alternative, one with zero RHS primaries.
 The C<action> and
-C<bless> adverbs are allowed with empty rules,
+C<bless> adverbs are allowed 
+for the empty RHS alternative,
 but no others.
 A empty rule makes its LHS symbol a nullable symbol.
 
@@ -367,20 +429,22 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
-A rule is a quantified rule if
-its RHS consists of a single symbol,
-followed by a "quantifier".
-A "single symbol" in this context is a symbol name or a character class.
+A quantified rule has only one RHS alternative,
+which is followed by a quantifier.
+The RHS alternative must consist of a single RHS primary.
+This RHS primary must be a symbol name or a character class.
 The quantifer is either
 a star ("C<*>"),
 or a plus sign ("C<+>")
 indicating, respectively, that the sequence rule has a minimum length
 of 0 or 1.
 
-Quantified rules allow the C<action>,
+Adverbs may be associated with the RHS alternative.
+The adverb list must follow the quantifier.
+The adverbs allowed are C<action>,
 C<bless>,
 C<proper> and
-C<separator> adverbs.
+C<separator>.
 
 =head2 Prioritized rules
 
@@ -400,22 +464,21 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
-Any rule that is not a start rule,
-and that is not empty or quantified, is considered prioritized.
-The prioritization is often trivial, consisting only of a
-single priority level.
+A prioritized rule contains a series of one or more RHS alternatives,
+separated by either the alternation operator ("C<|>")
+or the loosen operators ("C<||>").
+In a typical grammar, most rules are prioritized rules,
+but they are often trivially prioritized,
+consisting of only one RHS alternative.
+For brevity, RHS alternatives are often called B<alternatives>.
 
-Each prioritized right hand side consists of one or more right hand alternatives
-(called "alternatives" for brevity).
-An alternative is a series of one or more symbols,
-followed by zero or more adverbs.
+Each alternative may be followed by a list of associated adverbs.
 The 
 C<action>,
 C<assoc> and
 C<bless> adverbs are allowed.
 
-The alternatives are separated by single or double "or" symbols.
-This means the alternatives in a prioritized right hand side proceed
+The RHS alternatives in a prioritized right hand side proceed
 from tightest (highest) priority to loosest.
 The double "or" symbol ("C<||>") is the "loosen" operator --
 the alternatives after it
@@ -423,13 +486,6 @@ have a looser (lower) priority than the alternatives before it.
 The single "or" symbol ("C<|>") is the ordinary "alternative" operator --
 alternatives on each side of it have the same priority.
 Associativity is specified using adverbs, as described below.
-
-Within an alternative, symbols may be enclosed in parentheses.
-A symbol enclosed in parentheses is hidden from
-L<Marpa's semantics|Marpa::R2::Semantics>.
-A set of parentheses may contain more than one symbol,
-in which case the entire sequence of symbols is hidden,
-as if they had been enclosed in parentheses individually.
 
 =head2 Discard rules
 
@@ -444,9 +500,11 @@ normalize-whitespace: 1
 
 A discard rule is a rule whose LHS is
 the C<:discard> pseudo-symbol,
-and whose RHS is a single symbol name,
+and which has only one RHS alternative.
+The RHS alternative must contain
+exactly one symbol name,
 called the B<discarded symbol>.
-These rules indicate that the discarded symbol is a top-level G0
+Discard rules indicate that the discarded symbol is a top-level G0
 symbol, but one which is not a lexeme.
 When a discarded symbol is recognized,
 it is not passed as a lexeme to the G1 parser, but is
@@ -465,21 +523,23 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
-The default pseudo-rule changes the defaults for
+The purpose of
+the default pseudo-rule is change the defaults for
 rule adverbs.
+Techncially, it has one RHS alternative, but this must always contain
+zero RHS primaries.
 Default pseudo-rules do not affect the defaults for G0 rules
 or for lexemes.
 There may be more than one default pseudo-rule.
 The scope of default pseudo-rules is lexical, applying only to rules
 that appear afterwards in the DSL source.
 
-Currently only the defaults for
-the C<action> and C<bless> adverbs
+Currently only the C<action> and C<bless> adverbs
 can be specified in a default pseudo-rule.
 Each default pseudo-rule creates a completely new
 set of defaults -- if an adverb is not specified,
-it is reset to its original default, the one it had
-before any default pseudo-rules were encountered.
+the default is reset to its implicit value,
+the value which it had prior to any explicit settings.
 
 =head2 Lexeme pseudo-rules
 
@@ -492,23 +552,27 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
-The C<:lexeme> pseudo-rule allows adverbs to be used to
+The purpose of
+the C<:lexeme> pseudo-rule is to allow adverbs to
 change the treatment of a lexeme.
+This pseudo-rule always had exactly one RHS alternative,
+and that RHS alternative must contain exactly one symbol.
+This RHS symbol identifies the lexeme which the adverbs will affect.
 The only adverbs allowed in a C<:lexeme> rule
 are
 L<C<priority>|/"priority">
 and
 L<C<pause>|/"pause">.
 
-As a side effect, a C<:lexeme> pseudo-rules
-declares that a symbol is a lexeme.
+As a side effect, a C<:lexeme> pseudo-rule
+declares that its RHS symbol is a lexeme.
 This declaration does not "force" lexeme status --
 if the symbol does not meet the criteria for a lexeme
 based on its use in G0 and G1 rules,
 the result will be a fatal error.
 Applications may find the ability to "declare"
 lexemes useful for debugging,
-and for documentating grammars.
+and for documenting grammars.
 
 =head2 Lexeme default statement
 
@@ -654,11 +718,7 @@ The C<action> adverb is allowed for
 
 =item *
 
-An RHS alternative of a G1 prioritized rule, in which the action is for the alternative.
-
-=item *
-
-G1 rules other than prioritized rules, in which case the action is for the rule.
+An RHS alternative, in which the action is for the alternative.
 
 =item *
 
