@@ -792,22 +792,22 @@ normalize-whitespace: 1
 
 The C<null-ranking> adverb applies only to rules.
 and is ignored unless
-the recognizer's C<ranking_method> named argument
+the SLIF recognizer's C<ranking_method> named argument
 is set to something other than its default.
-The C<null_ranking> named argument allows the application
-to control the order in which rules with nullable symbols
-are returned by the C<value> method.
-Such rules can match the same input in several ways
+Some rule alternatives can match the same input in several ways,
 depending on which symbols are nulled.
 These different ways of nulling symbols in a rule
 are called its null variants.
+The C<null-ranking> named argument allows the application
+to control the order in which null variants
+are returned by the C<value()> method.
 
-If C<null_ranking> is undefined,
+If C<null-ranking> is undefined,
 the order of the null variants will be arbitrary.
 This is the default,
 and is acceptable to most applications.
 For details on using the
-C<null_ranking> named argument,
+C<null-ranking> adverb,
 see L<the document on parse order|Marpa::R2::Semantics::Order>.
 
 =head2 pause
