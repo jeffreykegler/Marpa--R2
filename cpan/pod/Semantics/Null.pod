@@ -15,13 +15,9 @@
 
 =head1 NAME
 
-Marpa::R2::Semantics::Null - How Marpa evaluates null rules and symbols
+Marpa::R2::Semantics::Null - How the SLIF evaluates null rules and symbols
 
 =head1 Overview
-
-B<This document is under construction.>
-It is being converted to describe Marpa's primary interface, the SLIF.
-Much of it still describes an older and more low-level Marpa interfaces, the NAIF.
 
 In Marpa parses, rules and  symbols can be nulled --
 in other words they can derive the zero-length, or null, string.
@@ -45,35 +41,39 @@ of values to nulled symbols.
 
 =head2 Null values come from rules
 
-All null values for symbols come from rules with that symbol
-on their LHS.
-For a symbol to be nulled, it must be on the LHS of at least one
-nullable rule.
-The action of one of these nullable rules will be the action for
-the nulled symbol.
+Nulled subtrees are pruned back to their topmost symbol.
+Lexemes are never nulled, so a nulled symbol is always the LHS of a rule instance,
+and the action is determined from the rule alternative.
 
-If the action is a constant, then that constant is the value
-of the nulled symbol.
-If the action is a rule evaluation closure,
-then that closure is called with no child arguments,
-and the closure's result is the value of the nulled symbol.
+A complication arises if the symbol appears on the LHS of more than one
+nullable rule alternative.  Because the symbol is nulled, the input is no help in determining
+which rule alternative to use.  The rule alternative whose semantics are used for a nulled symbol
+is determined as follows:
 
-It may be that more than one nullable rule has that symbol on
-its LHS, and and that
-these rules have different action names.
-In that case, the action for the empty rule with that LHS
-is the one which
-applies.
-It is a fatal error if the nullable rules for a LHS symbol
-have different action names, and there is no empty rule for that LHS
-symbol.
-A simple way to fix this problem is create such an empty rule.
+=over 4
 
-=head2 Null subtrees
+=item * If all nullable rule alternatives have the same semantics, that semantics is used.
 
-A null subtree is a subtree all of whose symbols and rules are nulled.
-Marpa prunes
-all null subtrees back to their topmost nulled symbol.
+=item * If one of the nullable rule alternatives
+is empty (that is, has a zero-length RHS),
+then the empty alternative's semantics are used.
+
+=item * 
+In the remaining case,
+two or more of the rule alternatives have different action names,
+but none of the alternatives has a zero-length RHS.
+When this happens, Marpa throws an exception.
+One easy way
+to fix the issue,
+to add an empty rule with the intended semantics.
+
+=back
+
+In determining whether the semantics of two nullable rule alternatives
+is "the same",
+the blessing is taken into account.
+Two rule alternatives are considered to have different semantics if
+they are blessed differently.
 
 The "lost" semantics of the non-topmost symbols and rules
 of null subtrees is usually not missed.
@@ -130,17 +130,17 @@ normalize-whitespace: 1
     my $slg = Marpa::R2::Scanless::G->new(
         {   source => \<<'END_OF_DSL',
     :start ::= S
-    S ::= L R action => do_S
-    L ::= A B X action => do_L
-    L ::= action => null_L
-    R ::= A B Y action => do_R
-    R ::= action => null_R
-    A ::= action => null_A
-    B ::= action => null_B
-    X ::= action => null_X
-    X ::= 'x' action => do_X
-    Y ::= action => null_Y
-    Y ::= 'y' action => do_Y
+    S ::= L R     action => do_S
+    L ::= A B X   action => do_L
+    L ::=         action => null_L
+    R ::= A B Y   action => do_R
+    R ::=         action => null_R
+    A ::=         action => null_A
+    B ::=         action => null_B
+    X ::=         action => null_X
+    X ::= 'x'     action => do_X
+    Y ::=         action => null_Y
+    Y ::= 'y'     action => do_Y
     END_OF_DSL
         }
     );
@@ -216,13 +216,13 @@ This comes from the empty rule for C<B>.
 
 =item * The token value for symbol 1.3: "C<x>".
 
-=item * An application of the semantic Perl closure for the rule
+=item * An application of the rule evaluation closure for the rule
 C<L := A B X>.
 
 =item * The null value for rule 2: "C<null R>".
 This comes from the empty rule for C<R>.
 
-=item * An application of the semantic Perl closure for the rule
+=item * An application of the rule evaluation closure for the rule
 C<S := L R>
 
 =back
