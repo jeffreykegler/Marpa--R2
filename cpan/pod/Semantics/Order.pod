@@ -15,13 +15,9 @@
 
 =head1 NAME
 
-Marpa::R2::Semantics::Order - How Marpa ranks ambiguous parses
+Marpa::R2::Semantics::Order - How the SLIF ranks ambiguous parses
 
 =head1 Description
-
-B<This document is under construction.>
-It is being converted to describe Marpa's primary interface, the SLIF.
-Much of it still describes an older and more low-level Marpa interfaces, the NAIF.
 
 Marpa allows ambiguous parses.
 While an unambiguous parse can produce at most one parse tree
@@ -32,18 +28,11 @@ each of which will have its own parse result.
 
 This document describes ways of controlling
 the order in which
-the L<NAIF recognizer's C<value> method|Marpa::R2::NAIF::Recognizer/"value">
+the L<SLIF recognizer's C<value()> method|Marpa::R2::Scanless::R/"value()">
 evaluates the parse
 trees of an ambiguous parse;
 It also describes ways to exclude selected parse trees
 from the parse series.
-
-Almost all 
-of what is said in this document
-also applies to the L<SLIF recognizer's C<value> method|Marpa::R2::Scanless::R/"value">.
-Certain named arguments which control the parse order are present in the NAIF,
-but are not present in the SLIF,
-and this accounts for the differences between the two.
 
 =head2 Duplicate parses are eliminated
 
@@ -60,44 +49,26 @@ a recursive, top-down evaluation of each
 applies
 the same rules
 in the same order
-at the same earleme locations.
-This definition implies that,
-given any deterministic semantics,
-two parse trees which are
-semantic equivalents
-will always produce the same parse result --
-hence the term.
+at the same G1 locations.
+If the semantics are deterministic,
+and if two parse trees are
+semantic equivalents according to this definition,
+the two parse trees will always produce the same parse result.
+
+The two parse trees are called semantic equivalents,
+because from the point
+of view of a deterministic semantics they are indistinguishable.
 When the Marpa documentation refers to duplicate
-parses, it will mean that the two
-are semantic equivalents, unless otherwise
-stated.
+parses,
+unless otherwise stated,
+it means that the two
+are semantic equivalents.
 
 =head2 Default parse order
 
-In this document, the term
-B<arbitrary parse order>
-is used to mean an
-arbitrary choice among
-the strict total orders of
-the equivalence classes
-that contain the semantically equivalent parse trees.
-This set of equivalence classes is finite.
-
-Traversal of the parse trees in
-arbitrary parse order
-will be always be well-behaved
-in the sense
-that no two parse trees will be semantic duplicates,
-and no unique (semantic non-duplicate)
-parse tree will be omitted in it,
-No other property of arbitrary parse order is guaranteed.
-For example, the order may
-change each time
-the parse series is traversed.
-
 By calling
 the recognizer's
-L<C<value>|Marpa::R2::NAIF::Recognizer/"value">
+L<C<value()>|Marpa::R2::Scanless::R/"value()">
 method
 repeatedly,
 Marpa can produce all the parse results
@@ -105,41 +76,54 @@ in the current parse series.
 The default is for the parse results to be returned
 in an B<arbitrary parse order>.
 This corresponds to the "C<none>" value of
-L<the recognizer's C<ranking_method>|Marpa::R2::NAIF::Recognizer/"ranking_method">
+L<the recognizer's C<ranking_method>|Marpa::R2::Scanless::R/"ranking_method">
 named argument.
+
+Traversal of the parse trees in
+arbitrary parse order
+will be always be well-behaved
+in the sense
+that no two parse trees will be semantic duplicates,
+and no unique (semantic non-duplicate)
+parse tree will be omitted in it.
+No other property of arbitrary parse order is guaranteed.
+For example, the order may
+change each time
+the parse series is traversed.
 
 =head2 Ranking methods
 
-Marpa recognizer objects have L<a C<ranking_method> named
-argument|Marpa::R2::NAIF::Recognizer/"ranking_method">,
+SLIF recognizer objects have a L<C<ranking_method> named
+argument|Marpa::R2::Scanless::R/"ranking_method">,
 whose value can be the name of a ranking method,
 or "C<none>", indicating that the default ranking method is to
 be used.
 
 =head2 The C<rule> ranking method
 
-The rule method ranks alternative parses according to their rules.
-Every rule has a B<rule rank>.
+The rule method ranks alternative parses according to their rule alternatives.
+Every rule alternative has a B<numeric rank>.
 A rule's rank can be specified using the
-the C<rank> named
-argument for that rule.
+the C<rank> adverb
+argument for that RHS alternative.
 Rule ranks must be integers.
-If no rule rank is specified, the rule rank is 0.
+They may be negative.
+If no numeric rank is specified, the numeric rank is 0.
 
 =head2 The C<high_rule_only> ranking method
 
 The C<high_rule_only> ranking method is similar to the
 C<rule> ranking method, except that, at every choice point,
 it discards all of the choices which
-have a rank lower than that of the highest ranked alternative.
+have a rank lower than that of the highest ranked choice.
 
-Since the C<high_rule_only> ranking method eliminates some
-parse trees, it can reduce or eliminate the ambiguity of a parse,
-but it does not necessarily do either.
+The C<high_rule_only> ranking method 
+can reduce the ambiguity of a parse,
+but it does not necessarily do do.
 This is because, at each choice point among the parse trees,
 it is possible that several of the choices,
 or all of them, will have the same rank
-as the highest ranked alternative.
+as the highest ranked choice.
 
 =head2 Rule ranking
 
@@ -162,31 +146,28 @@ From the point of view of the individual parse trees,
 this traversal will be top-down
 and left-to-right.
 At the choice points,
-the alternatives
-are ranked (in the C<rule> ranking method)
-or selected
-(in the C<high_rule_only> ranking method),
-by comparing them as follows:
+the choices
+are ranked as follows:
 
 =over
 
-=item * B<Different ranks>:
-If the two alternatives have different rule ranks,
-they must also have different rules.
-The alternative with the higher rule rank
+=item * B<Different numeric ranks>:
+If the two choices have different numeric ranks,
+they must also have different rule alternatives.
+The choice whose rule alternative has the higher numeric rank
 will rank high.
 
-=item * B<Same Rule>:
-If the two alternatives have the same rule,
+=item * B<Same rule alternative>:
+If the two choices have the same rule alternative,
 they rank as described
 under L<"Null variant ranking">.
 
-=item * B<Same rank, different rules>:
-Two different rules can have the same rank.
-If the two alternatives are for
-different rules,
-but the two rules have the same rank,
-the relative order of the two alternatives is
+=item * B<Same numeric rank, different rule alternatives>:
+Two different rule alternatives can have the same numeric rank.
+If the two choices are for
+different rule alternatives,
+but the two rule alternatives have the same numeric rank,
+the relative order of the two choices is
 arbitrary.
 
 =back
@@ -200,12 +181,14 @@ which may be nulled, but which are not nulling
 symbols.
 (Nulling symbols are symbols which are B<always> nulled.)
 
-When a rule contains proper nullables, each application
-of that rule to a section of input creates a B<nulling variant> --
-that rule with a specific pattern of
-null and non-null symbols.
+When a rule alternative contains proper nullables,
+each instance
+of that rule creates a B<nulling variant>.
+A B<nulling variant> is
+a specific pattern of
+null and non-null symbols in a rule instance's RHS.
 In many cases, this creates an ambiguity -- different
-nulling variants could apply to the same substring of input.
+nulling variants can match the same substring in the input.
 In ambiguous parsings of this kind,
 some applications may want to rank nulling variants that start
 with non-null symbols higher.
@@ -214,21 +197,20 @@ to rank nulling variants that start
 with null symbols higher.
 
 The
-L<C<null_ranking> named
-argument for rules|Marpa::R2::NAIF::Grammar/"null_ranking">
+L<C<null-ranking> adverb
+for RHS alternatives|Marpa::R2::Scanless::R/"null-ranking">
 specifies which nulling variants are ranked high or low.
-Ranking of nulling variants is done left-to-right,
-with the null preference as indicated by the C<null_ranking>
-named argument.
-Specifically, if the C<null_ranking> is "C<low>",
+If the C<null-ranking> is "C<low>",
 then the closer a nulling variant
-places its B<visible> (non-null) symbols to the start of the rule,
+places its B<visible> (non-null) symbols to the start of the rule instance,
 the higher it ranks.
-C<low> null ranking is the default.
-If the C<null_ranking> is "C<high>",
+A null ranking of C<low> is the default.
+If the C<null-ranking> is "C<high>",
 then the closer a nulling variant
-places its B<null> symbols to the start of the rule,
+places its B<null> symbols to the start of the rule instance,
 the higher it ranks.
+In ranking nulling variants with more than one proper nullable,
+major-to-minor is left-to-right.
 
 =head2 A general approach to sorting parses
 
@@ -238,7 +220,7 @@ The application can set up the Marpa semantic actions
 so that the parse result of every parse tree is a
 C<< <rank, true_value> >> duple.
 The duples can then be sorted by C<rank>.
-Once the resuls are sorted,
+Once the results are sorted,
 the C<rank> element of the duple can be discarded.
 (Those familiar with the Schwartzian transform
 may note a resemblance.
@@ -250,6 +232,23 @@ In theory, ambiguity can cause an exponential explosion in the number of results
 In practice, ambiguity tends to get out of hand very easily.
 Producing and sorting all the parses can take a very
 long time.
+
+=head1 Formal definitions
+
+This section is a restatement of earlier material in more formal language.
+It is recorded here for those who find it helpful.
+Most readers will want to ignore this section.
+
+Call the set of parse trees, C<T>.
+Semantic equivalence is an equivalence relation
+on C<T>.
+Call this relation C<~>.
+Call C<E>, the quotient set of C<T> by C<~>.
+In this document, the term
+B<arbitrary parse order>
+is used to mean an
+arbitrary choice among the relations
+which are strict total orders of C<E>.
 
 =head1 Copyright and License
 
