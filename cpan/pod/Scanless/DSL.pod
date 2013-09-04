@@ -560,9 +560,10 @@ and that RHS alternative must contain exactly one symbol.
 This RHS symbol identifies the lexeme which the adverbs will affect.
 The only adverbs allowed in a C<:lexeme> rule
 are
-L<C<priority>|/"priority">
+L<C<event>|/"event">,
+L<C<pause>|/"pause">,
 and
-L<C<pause>|/"pause">.
+L<C<priority>|/"priority">.
 
 As a side effect, a C<:lexeme> pseudo-rule
 declares that its RHS symbol is a lexeme.
