@@ -36,7 +36,7 @@ a series of zero or more parse trees,
 each with its own parse result.
 The first call to the
 L<the SLIF recognizer's C<value()>
-method|Marpa::R2::Scanless::Recognizer/"value()">
+method|Marpa::R2::Scanless::R/"value()">
 after the recognizer is created is the
 start of the first parse series,
 and Parse Series Setup Phase takes place

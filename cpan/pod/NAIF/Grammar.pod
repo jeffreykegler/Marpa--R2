@@ -174,7 +174,7 @@ a single Perl closure often results in
 simpler and more
 natural code.
 See L<the section on sequences in the semantics
-document|Marpa::R2::NAIF::NAIF::Semantics/"Sequence Rule Nodes">.
+document|Marpa::R2::NAIF::Semantics/"Sequence Rule Nodes">.
 
 =head3 Caveats
 

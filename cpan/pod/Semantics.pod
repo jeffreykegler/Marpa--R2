@@ -216,7 +216,7 @@ a series of zero or more parse trees,
 each with its own parse result.
 The first call to the
 L<the SLIF recognizer's C<value()>
-method|Marpa::R2::Scanless::Recognizer/"value()">
+method|Marpa::R2::Scanless::R/"value()">
 after the recognizer is created is the
 start of the first parse series,
 and Parse Series Setup Phase takes place
@@ -596,7 +596,7 @@ To resolve Perl identifiers to Perl names,
 a semantics package must be defined.
 The semantics package can be defined using the
 L<SLIF recognizer's C<semantics_package> named
-argument|Marpa::R2::Scanless:R/"semantics_package">,
+argument|Marpa::R2::Scanless::R/"semantics_package">,
 or it can be taken from the argument to the first C<value()>
 call of the parse series.
 The C<semantics_package> named argument takes precedence.
@@ -606,7 +606,7 @@ the semantics package, within a parse series they must consistently
 specify the same package.
 For details, see the description of
 L<SLIF recognizer's C<value()>
-method|Marpa::R2::Scanless:R/"value()">.
+method|Marpa::R2::Scanless::R/"value()">.
 
 If the user wants the Perl variables implementing the semantics
 in the C<main> namespace,
