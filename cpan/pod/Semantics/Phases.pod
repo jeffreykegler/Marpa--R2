@@ -35,7 +35,7 @@ each parse can produce a B<parse series> --
 a series of zero or more parse trees,
 each with its own parse result.
 The first call to the
-L<the SLIF recognizer's C<value()>
+L<SLIF recognizer's C<value()>
 method|Marpa::R2::Scanless::R/"value()">
 after the recognizer is created is the
 start of the first parse series,
