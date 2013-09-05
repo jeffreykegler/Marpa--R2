@@ -65,7 +65,7 @@ but none of the alternatives has a zero-length RHS.
 When this happens, Marpa throws an exception.
 One easy way
 to fix the issue,
-to add an empty rule with the intended semantics.
+is to add an empty rule with the intended semantics.
 
 =back
 
@@ -76,7 +76,7 @@ Two rule alternatives are considered to have different semantics if
 they are blessed differently.
 
 The "lost" semantics of the non-topmost symbols and rules
-of null subtrees is usually not missed.
+of null subtrees are usually not missed.
 Nulled subtrees cannot contain input,
 and therefore do not contain token symbols.
 So no token values are lost when
@@ -193,6 +193,9 @@ ignore: 1
 
 =for Marpa::R2::Display::End
 
+Nulled nodes 1.1, 1.2 and 2 were all kept, because they are topmost in their
+nulled subtree.
+All the other nulled nodes were discarded.
 
 Here is the output:
 
