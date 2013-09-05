@@ -168,8 +168,8 @@ under L<"Null variant ranking">.
 
 Two different rule alternatives can have the same numeric rank.
 If the two choices are for
-different rule alternatives,
-with the same numeric rank,
+rule alternatives that are different,
+but that have the same numeric rank,
 the relative order of the two choices is
 arbitrary.
 
