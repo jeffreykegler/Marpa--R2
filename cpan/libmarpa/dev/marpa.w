@@ -11655,6 +11655,8 @@ typedef struct s_and_node AND_Object;
 	    dand = Next_DAND_of_DAND(dand);
 	}
 	AND_Count_of_OR(or_node) = and_count_of_parent_or;
+	Ambiguity_Metric_of_B (b) =
+	  MAX (Ambiguity_Metric_of_B (b), and_count_of_parent_or);
     }
     AND_Count_of_B (b) = and_node_id;
     MARPA_ASSERT(and_node_id == unique_draft_and_node_count);
@@ -12286,10 +12288,26 @@ Marpa_Or_Node_ID _marpa_b_top_or_node(Marpa_Bocage b)
   return Top_ORID_of_B(b);
 }
 
+@*0 Ambiguity metric
+An ambiguity metric, named vaguely because it is vaguely defined.
+It is 1 if the parse in not ambiguous,
+and greater than 1 if it is ambiguous.
+For convenience, it is initialized to 1.
+@d Ambiguity_Metric_of_B(b) ((b)->t_ambiguity_metric)
+@ @<Int aligned bocage elements@>= int t_ambiguity_metric;
+
 @*0 Reference counting and destructors.
 @ @<Int aligned bocage elements@>= int t_ref_count;
 @ @<Initialize bocage elements@> =
 b->t_ref_count = 1;
+@ @<Function definitions@> =
+int marpa_b_ambiguity_metric(Marpa_Bocage b)
+{
+  @<Return |-2| on failure@>@;
+  @<Unpack bocage objects@>@;
+  @<Fail if fatal error@>@;
+  return Ambiguity_Metric_of_B(b);
+}
 
 @ Decrement the bocage reference count.
 @<Function definitions@> =

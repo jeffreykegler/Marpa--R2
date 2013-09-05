@@ -140,6 +140,7 @@ Bocage methods
 * Bocage overview::             
 * Bocage constructor::          
 * Bocage reference counting::   
+* Bocage accessor::             
 
 Ordering methods
 
@@ -3056,6 +3057,7 @@ or on other failure, @minus{}2.
 * Bocage overview::             
 * Bocage constructor::          
 * Bocage reference counting::   
+* Bocage accessor::             
 @end menu
 
 @node Bocage overview, Bocage constructor, Bocage methods, Bocage methods
@@ -3090,7 +3092,7 @@ Return value: On success, the new bocage object.
 On failure, @code{NULL}.
 @end deftypefun
 
-@node Bocage reference counting,  , Bocage constructor, Bocage methods
+@node Bocage reference counting, Bocage accessor, Bocage constructor, Bocage methods
 @section  Reference counting
 @deftypefun Marpa_Bocage marpa_b_ref (Marpa_Bocage @var{b})
 Increases the reference count by 1.
@@ -3113,6 +3115,21 @@ If the parent recognizer is destroyed, the reference count
 of its base grammar is decreased by 1.
 If this takes the reference count of the base grammar
 to zero, it too is destroyed.
+
+@end deftypefun
+
+@node Bocage accessor,  , Bocage reference counting, Bocage methods
+@section  Accessor
+@deftypefun int marpa_b_ambiguity_metric (Marpa_Bocage @var{b})
+Returns an ambiguity metric.
+For the time being, it is vaguely defined, but it does differentiate
+between an ambiguous and an unambiguous bocage.
+
+Return value:
+1 if the bocage is not for an ambiguous parse;
+a number greater than 1 if the bocage is for an ambiguous parse.
+
+Failures: On failure, @minus{}2.
 
 @end deftypefun
 
