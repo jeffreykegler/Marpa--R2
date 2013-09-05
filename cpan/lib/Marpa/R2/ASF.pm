@@ -576,17 +576,17 @@ sub Marpa::R2::Scanless::ASF::new {
 
     my $recce     = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
 
-    $recce->[Marpa::R2::Internal::Recognizer::TREE_MODE] //= 'forest';
-    if ( $recce->[Marpa::R2::Internal::Recognizer::TREE_MODE] ne 'forest' ) {
-        Marpa::R2::exception( "Trying to create an ASF from a recognizer in the wrong mode\n",
-        );
-        # If there is a tree we are in valuation mode, and cannot create an ASF
+    if ( defined $recce->[Marpa::R2::Internal::Recognizer::TREE_MODE] ) {
+        # If we already in ASF mode, or are in valuation mode, we cannot create an ASF
         Marpa::R2::exception(
-            'An attempt was made to create an ASF for a SLIF recognizer in value mode',
-            '   The recognizer must be reset first',
-        '  The current mode is "', $recce->[Marpa::R2::Internal::Recognizer::TREE_MODE] , qq{"\n}
+            "An attempt was made to create an ASF for a SLIF recognizer already in use\n",
+            "   The recognizer must be reset first\n",
+            '  The current SLIF recognizer mode is "',
+            $recce->[Marpa::R2::Internal::Recognizer::TREE_MODE],
+            qq{"\n}
         );
     }
+    $recce->[Marpa::R2::Internal::Recognizer::TREE_MODE] = 'forest';
 
     my $slg       = $slr->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
     my $thin_slr  = $slr->[Marpa::R2::Inner::Scanless::R::C];

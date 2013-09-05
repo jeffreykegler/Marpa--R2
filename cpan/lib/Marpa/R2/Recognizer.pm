@@ -187,6 +187,7 @@ sub Marpa::R2::Recognizer::reset_evaluation {
     $recce->[Marpa::R2::Internal::Recognizer::CLOSURE_BY_RULE_ID]   = undef;
 
     $recce->[Marpa::R2::Internal::Recognizer::T_C] = undef;
+    $recce->[Marpa::R2::Internal::Recognizer::TREE_MODE] = undef;
     return;
 } ## end sub Marpa::R2::Recognizer::reset_evaluation
 
