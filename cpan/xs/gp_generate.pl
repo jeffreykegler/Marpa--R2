@@ -215,6 +215,12 @@ say {$out} gp_generate(qw(progress_report_finish));
 say {$out} gp_generate(qw(progress_report_start Marpa_Earley_Set_ID ordinal));
 say {$out} gp_generate(qw(terminal_is_expected Marpa_Symbol_ID xsyid));
 
+
+$main::CLASS_LETTER   = 'b';
+$main::LIBMARPA_CLASS = 'Marpa_Bocage';
+print {$out} 'MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin::B', "\n\n";
+say {$out} gp_generate(qw(ambiguity_metric));
+
 # Nothing (as yet) in bocage class
 
 $main::CLASS_LETTER   = 'o';

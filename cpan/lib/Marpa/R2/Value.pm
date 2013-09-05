@@ -1494,7 +1494,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
 } ## end sub Marpa::R2::Internal::Recognizer::evaluate
 
-sub create_bocage {
+sub bocage_create {
     my ($recce) = @_;
     my $parse_set_arg =
         $recce->[Marpa::R2::Internal::Recognizer::END_OF_PARSE];
@@ -1507,7 +1507,7 @@ sub create_bocage {
         Marpa::R2::Thin::B->new( $recce_c, ( $parse_set_arg // -1 ) );
     $grammar_c->throw_set(1);
     return $bocage;
-} ## end sub create_bocage
+} ## end sub bocage_create
 
 # Returns false if no parse
 sub Marpa::R2::Recognizer::value
@@ -1630,12 +1630,8 @@ sub Marpa::R2::Recognizer::value
     else {
         # No tree, therefore not initialized
 
-        my $bocage = $recce->[Marpa::R2::Internal::Recognizer::B_C];
-        if ( not $bocage ) {
-            $bocage = $recce->[Marpa::R2::Internal::Recognizer::B_C] =
-                create_bocage($recce);
-        }
-
+        my $bocage = $recce->[Marpa::R2::Internal::Recognizer::B_C] //
+                bocage_create($recce);
         return if not $bocage;
 
         $order = $recce->[Marpa::R2::Internal::Recognizer::O_C] =

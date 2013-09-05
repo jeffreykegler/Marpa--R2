@@ -931,32 +931,36 @@ sub Marpa::R2::Scanless::R::set {
         );
     }
 
+    my $recce = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
     ARG: for my $arg_name ( keys %{$args} ) {
         my $value = $args->{$arg_name};
         if ( $arg_name eq 'end' ) {
-            $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE]
-                ->set( { $arg_name => $value } );
+            $recce->set( { $arg_name => $value } );
+            next ARG;
+        }
+        if ( $arg_name eq 'max_parses' ) {
+            $recce->set( { $arg_name => $value } );
             next ARG;
         }
         if ( $arg_name eq 'trace_actions' ) {
-            $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE]
-                ->set( { $arg_name => $value } );
+            $recce->set( { $arg_name => $value } );
             next ARG;
         }
         if ( $arg_name eq 'trace_values' ) {
-            $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE]
-                ->set( { $arg_name => $value } );
+            $recce->set( { $arg_name => $value } );
+            next ARG;
+        }
+        if ( $arg_name eq 'trace_values' ) {
+            $recce ->set( { $arg_name => $value } );
             next ARG;
         }
         if ( $arg_name eq 'semantics_package' ) {
-            $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE]
-                ->set( { $arg_name => $value } );
+            $recce ->set( { $arg_name => $value } );
             next ARG;
         }
         if ( $arg_name eq 'trace_file_handle' ) {
             $slr->[Marpa::R2::Inner::Scanless::R::TRACE_FILE_HANDLE] = $value;
-            $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE]
-                ->set( { $arg_name => $value } );
+            $recce ->set( { $arg_name => $value } );
             next ARG;
         } ## end if ( $arg_name eq 'trace_file_handle' )
         Carp::croak(
@@ -1660,6 +1664,15 @@ sub character_describe {
         );
     return $text;
 } ## end sub character_describe
+
+sub Marpa::R2::Scanless::R::is_ambiguous {
+    my ($slr) = @_;
+    my $thick_g1_recce =
+        $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+    my $bocage = $thick_g1_recce->[Marpa::R2::Internal::Recognizer::B_C]
+        // $thick_g1_recce->bocage_create();
+    return $bocage->ambiguity_metric() > 1;
+} ## end sub Marpa::R2::Scanless::R::is_ambiguous
 
 sub Marpa::R2::Scanless::R::value {
     my ( $slr, $per_parse_arg ) = @_;

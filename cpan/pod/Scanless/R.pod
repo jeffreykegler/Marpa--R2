@@ -350,6 +350,24 @@ a C<grammar> named argument.  Its
 value must be
 an SLIF grammar object.
 
+=head2 max_parses
+
+If non-zero, causes a fatal error when that number
+of parse results is exceeded.
+C<max_parses> is useful to
+limit CPU usage and output length when testing
+and debugging.
+Stable and production applications may
+prefer to count the number of parses,
+and take a less Draconian response when the
+count is exceeded.
+
+The value must be an integer.
+If it is zero, there will be no
+limit on the number of parse results returned.
+The default is for
+there to be no limit.
+
 =head2 ranking_method
 
 The value must be a string:
@@ -550,6 +568,7 @@ normalize-whitespace: 1
 This method allows the named arguments to be changed after an SLIF
 grammar is created.
 Currently, the arguments that may be changed are C<end>,
+C<max_parses>,
 C<semantics_package> and
 C<trace_file_handle>.
 
