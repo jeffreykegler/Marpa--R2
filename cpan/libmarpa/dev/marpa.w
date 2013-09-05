@@ -12295,6 +12295,8 @@ and greater than 1 if it is ambiguous.
 For convenience, it is initialized to 1.
 @d Ambiguity_Metric_of_B(b) ((b)->t_ambiguity_metric)
 @ @<Int aligned bocage elements@>= int t_ambiguity_metric;
+@ @<Initialize bocage elements@> =
+Ambiguity_Metric_of_B(b) = 1;
 
 @*0 Reference counting and destructors.
 @ @<Int aligned bocage elements@>= int t_ref_count;
