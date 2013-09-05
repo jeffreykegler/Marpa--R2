@@ -44,7 +44,7 @@ at this point.
 
 The first parse series continues until there is
 a call to the
-L<the C<series_restart()>
+L<C<series_restart()>
 method|Marpa::R2::Scanless::R/"series_restart()">
 or until the recognizer is destroyed.
 An application is usually interested in only one
