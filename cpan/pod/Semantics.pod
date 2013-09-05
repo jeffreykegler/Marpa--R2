@@ -125,7 +125,7 @@ Rarely is an application interested only in the tree.
 Usually the idea is that the string "means" something:
 the idea is that the string has a B<semantics>.
 Traditionally and most often, the tree
-is as an intermediate step in producing a value,
+is an intermediate step in producing a value,
 a value which represents the "meaning" or "semantics" of the string.
 
 "Evaluating" a tree means finding its semantics.
@@ -160,7 +160,7 @@ called simply a B<rule instance>.
 In a parse tree, nodes are points where the tree branches or terminates.
 Tree terminations are also called terminals or "leaves".
 
-Every rule instance in a Marpa parse is reprsented by a branch point (or "node")
+Every rule instance in a Marpa parse is represented by a branch point (or "node")
 in the tree.
 The topmost node of a tree is its "root node".
 (Trees are easiest to draw upside down, so traditionally in programming,
@@ -176,7 +176,7 @@ the parent node is the LHS of the rule,
 and the child nodes are the RHS of the rule alternative.
 If the node is for a quantified rule,
 the parent node is the LHS of the quantified rule,
-and the child nodes are the items of the quantified sequence of symbol on the
+and the child nodes are the items of the sequence of symbols on the
 right hand side.
 If the node is for a lexeme,
 the node represents the lexeme's symbol
@@ -219,12 +219,12 @@ L<the SLIF recognizer's C<value()>
 method|Marpa::R2::Scanless::R/"value()">
 after the recognizer is created is the
 start of the first parse series,
-and Parse Series Setup Phase takes place
+and the Parse Series Setup Phase takes place
 at this point.
 
 The first parse series continues until there is
 a call to the
-L<the C<series_restart()>
+L<C<series_restart()>
 method|Marpa::R2::Scanless::R/"series_restart()">
 or until the recognizer is destroyed.
 An application is usually interested in only one
@@ -316,12 +316,12 @@ but none of the alternatives has a zero-length RHS.
 When this happens, Marpa throws an exception.
 One easy way
 to fix the issue,
-to add an empty rule with the intended semantics.
+is to add an empty rule with the intended semantics.
 
 =back
 
 In determining whether the semantics of two nullable rule alternatives
-is "the same",
+are "the same",
 the blessing is taken into account.
 Two rule alternatives are considered to have different semantics if
 they are blessed differently.
@@ -497,7 +497,7 @@ the values of
 the rule instance's children, in left-to-right order.
 
 For a lexeme,
-The C<value> array item descriptor puts
+the C<value> array item descriptor puts
 a single-element list into the array.
 That one element
 will be a list
@@ -514,7 +514,7 @@ and may be used interchangeably for both rules alternatives and lexemes.
 =head2 Example
 
 The array item descriptors fill out the array in
-the order in which they appear in the the array descriptor.
+the order in which they appear in the array descriptor.
 For example, if we are dealing with a rule,
 and the array descriptor is "C<[start,length,value]>",
 then the return value is an reference to an array,
@@ -577,16 +577,16 @@ as L<described below|/"Resolving Perl identifiers to Perl names">.
 
 =head1 Perl names as action names
 
-For this purpose, a Perl name is
+For this purpose, a Perl name
 is a series of two or more Perl identifiers
 separated by double colons ("C<::>").
 Note that, by this definition, a Perl name cannot start with a double colon.
 Action names starting with double colons
-are always treated as a reserved
+are always treated as reserved
 action names.
 
 Action names which are Perl names by this definition are
-treated as they were fully qualified Perl names.
+treated as if they were fully qualified Perl names.
 Fully qualified Perl names are resolved to variables in Perl's namespace,
 L<as described below|/"Resolving Perl names to Perl variables">.
 
@@ -667,7 +667,7 @@ the second and subsequent arguments are the values of its child nodes, in lexica
 =item *
 
 If the rule instance is nulled, there will be only one argument:
-the, first, per-parse argument.
+the per-parse argument.
 
 =item *
 
@@ -735,7 +735,7 @@ to B<context variables>.
 =over
 
 =item * C<$Marpa::R2::Context::slg> is set to
-the SLIF grammar being parsed.
+L<the SLIF grammar|Marpa::R2::Scanless::G> being parsed.
 
 =item * C<$Marpa::R2::Context::rule> is the ID of the
 current rule alternative.
@@ -853,15 +853,16 @@ semantics|Marpa::R2::Semantics::Phases>.
 
 The first argument of every rule evaluation closure is
 the B<per-parse> argument.
-This is taken from
+This is initialized
 
 =over 4
 
-=item * The result of returned by per-parse constructor, if there is one.
+=item * To the result returned by the per-parse constructor, if there is a per-parse constructor.
 
-=item * Otherwise, the argument to the SLIF recognizer's C<value()> method, if there is one.
+=item * Otherwise, to the argument to the SLIF recognizer's C<value()> method, if that
+argument is defined.
 
-=item * If not otherwise specified, the per-parse argument is an empty hash.
+=item * Otherwise, as a last resort, to an empty hash.
 
 =back
 
