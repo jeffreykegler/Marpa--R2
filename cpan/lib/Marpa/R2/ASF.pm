@@ -574,21 +574,25 @@ sub Marpa::R2::Scanless::ASF::new {
         {with the Marpa::R2::Scanless::ASF::new method}
     ) if not defined $force and not defined $default_blessing;
 
-    my $slg       = $slr->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
-    my $thin_slr  = $slr->[Marpa::R2::Inner::Scanless::R::C];
     my $recce     = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
-    my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
-    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
-    my $recce_c   = $recce->[Marpa::R2::Internal::Recognizer::C];
 
-    if ( $recce->[Marpa::R2::Internal::Recognizer::T_C] ) {
-
+    $recce->[Marpa::R2::Internal::Recognizer::TREE_MODE] //= 'forest';
+    if ( $recce->[Marpa::R2::Internal::Recognizer::TREE_MODE] ne 'forest' ) {
+        Marpa::R2::exception( "Trying to create an ASF from a recognizer in the wrong mode\n",
+        );
         # If there is a tree we are in valuation mode, and cannot create an ASF
         Marpa::R2::exception(
             'An attempt was made to create an ASF for a SLIF recognizer in value mode',
-            '   The recognizer must be reset first'
+            '   The recognizer must be reset first',
+        '  The current mode is "', $recce->[Marpa::R2::Internal::Recognizer::TREE_MODE] , qq{"\n}
         );
-    } ## end if ( $recce->[Marpa::R2::Internal::Recognizer::T_C] )
+    }
+
+    my $slg       = $slr->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
+    my $thin_slr  = $slr->[Marpa::R2::Inner::Scanless::R::C];
+    my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
+    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
+    my $recce_c   = $recce->[Marpa::R2::Internal::Recognizer::C];
 
     my $bocage = $recce->[Marpa::R2::Internal::Recognizer::B_C];
     if ( not $bocage ) {

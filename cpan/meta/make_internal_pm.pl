@@ -184,6 +184,7 @@ __DATA__
     T_C { C structure for the Marpa tree iterator }
 
     GRAMMAR { the grammar used }
+    TREE_MODE { 'tree' or 'forest' or undef }
     FINISHED
     TOKEN_VALUES
 

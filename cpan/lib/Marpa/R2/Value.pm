@@ -1505,6 +1505,13 @@ sub Marpa::R2::Recognizer::value
             if ref $slr ne 'Marpa::R2::Scanless::R';
     }
 
+    $recce->[Marpa::R2::Internal::Recognizer::TREE_MODE] //= 'tree';
+    if ( $recce->[Marpa::R2::Internal::Recognizer::TREE_MODE] ne 'tree' ) {
+        Marpa::R2::exception( "value() called when recognizer is not in tree mode\n",
+        '  The current mode is "', $recce->[Marpa::R2::Internal::Recognizer::TREE_MODE] , qq{"\n}
+        );
+    }
+
     my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
     my $recce_c   = $recce->[Marpa::R2::Internal::Recognizer::C];
