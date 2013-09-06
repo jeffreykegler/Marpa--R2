@@ -3454,34 +3454,79 @@ and productive.
       const XSYID lhs_id = LHS_ID_of_XRL (xrl);
       const XSY lhs = XSY_by_ID (lhs_id);
       XRL_is_Accessible (xrl) = XSY_is_Accessible (lhs);
-      if (XRL_is_Sequence (xrl) && Minimum_of_XRL (xrl) <= 0)
+      if (XRL_is_Sequence (xrl))
 	{
-	  XRL_is_Nulling (xrl) = 0;
-	  XRL_is_Nullable (xrl) = 1;
-	  XRL_is_Productive (xrl) = 1;
+	  @<Classify sequence rule@>@;
 	  continue;
 	}
-      {
-	int rh_ix;
-	int is_nulling = 1;
-	int is_nullable = 1;
-	int is_productive = 1;
-	for (rh_ix = 0; rh_ix < Length_of_XRL (xrl); rh_ix++)
-	  {
-	    const XSYID rhs_id = RHS_ID_of_XRL (xrl, rh_ix);
-	    const XSY rh_xsy = XSY_by_ID (rhs_id);
-	    if (LIKELY (!XSY_is_Nulling (rh_xsy)))
-	      is_nulling = 0;
-	    if (LIKELY (!XSY_is_Nullable (rh_xsy)))
-	      is_nullable = 0;
-	    if (UNLIKELY (!XSY_is_Productive (rh_xsy)))
-	      is_productive = 0;
-	  }
-	XRL_is_Nulling (xrl) = is_nulling;
-	XRL_is_Nullable (xrl) = is_nullable;
-	XRL_is_Productive (xrl) = is_productive;
-      }
+      @<Classify BNF rule@>@;
     }
+}
+
+@ Accessibility was determined in outer loop.
+Classify as nulling, nullable or productive.
+@<Classify BNF rule@> =
+{
+  int rh_ix;
+  int is_nulling = 1;
+  int is_nullable = 1;
+  int is_productive = 1;
+  for (rh_ix = 0; rh_ix < Length_of_XRL (xrl); rh_ix++)
+    {
+      const XSYID rhs_id = RHS_ID_of_XRL (xrl, rh_ix);
+      const XSY rh_xsy = XSY_by_ID (rhs_id);
+      if (LIKELY (!XSY_is_Nulling (rh_xsy)))
+	is_nulling = 0;
+      if (LIKELY (!XSY_is_Nullable (rh_xsy)))
+	is_nullable = 0;
+      if (UNLIKELY (!XSY_is_Productive (rh_xsy)))
+	is_productive = 0;
+    }
+  XRL_is_Nulling (xrl) = is_nulling;
+  XRL_is_Nullable (xrl) = is_nullable;
+  XRL_is_Productive (xrl) = is_productive;
+}
+
+@ Accessibility was determined in outer loop.
+Classify as nulling, nullable or productive.
+In the case of an unproductive separator, we could
+create a ``degenerate'' sequence, allowing only those
+sequence which don't require separators.
+(These are sequences of length 0 and 1.)
+But currently we don't both -- we just mark the rule unproductive.
+@<Classify sequence rule@> =
+{
+  const XSYID rhs_id = RHS_ID_of_XRL (xrl, 0);
+  const XSY rh_xsy = XSY_by_ID (rhs_id);
+  const XSYID separator_id = Separator_of_XRL (xrl);
+    @#
+  XRL_is_Nullable (xrl) = Minimum_of_XRL (xrl) <= 0
+    || XSY_is_Nullable (rh_xsy);@;
+     /* A sequence rule is nullable if it can be zero length or
+    if its RHS is nullable */
+    @#
+  XRL_is_Nulling (xrl) = XSY_is_Nulling (rh_xsy);
+     /* A sequence rule is nulling if its RHS is nulling */
+    @#
+  XRL_is_Productive (xrl) = XRL_is_Nullable (xrl) || XSY_is_Productive (rh_xsy);
+     /* A sequence rule is productive if it is nulling or if its RHS is productive */
+    @#
+  if (separator_id >= 0)
+    {				// Touch-ups to account for the separator
+      const XSY separator_xsy = XSY_by_ID (separator_id);
+      if (!XSY_is_Nulling (separator_xsy))
+	{
+	  /* A non-nulling separator means a non-nulling rule */
+	  XRL_is_Nulling (xrl) = 0;
+	}
+      if (UNLIKELY(!XSY_is_Productive (separator_xsy)))
+	{
+	  /* A unproductive separator means a unproductive rule,
+	  unless it is nullable.
+	  */
+	  XRL_is_Productive (xrl) = XRL_is_Nullable(xrl);
+	}
+  }
 }
 
 @ Those LHS terminals that have not been explicitly marked
