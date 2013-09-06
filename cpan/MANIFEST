@@ -46,6 +46,7 @@ etc/.gitignore
 etc/Makefile
 etc/check_license.pl
 etc/check_links.pl
+etc/compile_for_debug.sh
 g/config/default.txt
 html/.gitignore
 html/lib/Marpa/R2/HTML.pm

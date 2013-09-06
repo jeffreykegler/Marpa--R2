@@ -269,6 +269,7 @@ my %files_by_type = (
     'author.t/tidy1'                    => \&trivial,
     'dovg.sh'                           => \&trivial,
     'etc/copy_from_stage'               => \&license_problems_in_perl_file,
+    'etc/compile_for_debug.sh'          => \&trivial,
     'html/script/marpa_r2_html_fmt'     => \&license_problems_in_perl_file,
     'html/script/marpa_r2_html_score'   => \&license_problems_in_perl_file,
     'html/t/fmt_t_data/expected1.html'  => \&ignored,
