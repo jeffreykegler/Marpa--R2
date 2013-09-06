@@ -1671,6 +1671,7 @@ sub Marpa::R2::Scanless::R::is_ambiguous {
         $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
     my $bocage = $thick_g1_recce->[Marpa::R2::Internal::Recognizer::B_C]
         // $thick_g1_recce->bocage_create();
+    Marpa::R2::exception("No parse") if not $bocage;
     return $bocage->ambiguity_metric() > 1;
 } ## end sub Marpa::R2::Scanless::R::is_ambiguous
 
