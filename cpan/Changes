@@ -16,6 +16,12 @@
 Revision history for Marpa::R2
 
 2.069_002
+
+   * Doc fixes
+
+   * Fix bug: unproductive symbol in G0 sequence was causing SEGV
+     instead of diagnostic.
+
 2.069_001
 
    * Per-parse arg can now be specified explicitly as arg
