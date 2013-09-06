@@ -2627,10 +2627,12 @@ int marpa_g_rule_is_productive(Marpa_Grammar g, Marpa_Rule_ID xrl_id)
 
 @*0 Is XRL used?.
 Is the rule used in computing the AHFA sets?
-@d XRL_is_Used(xrl) (
-  XRL_is_Accessible(xrl) && XRL_is_Productive(xrl) && !XRL_is_Nulling(xrl)
-)
-@<Function definitions@> =
+@d XRL_is_Used(rule) ((rule)->t_is_used)
+@<Bit aligned rule elements@> = unsigned int t_is_used:1;
+@ Initialize to not used, because that's easier to debug.
+@<Initialize rule elements@> =
+XRL_is_Used(rule) = 0;
+@ @<Function definitions@> =
 int
 _marpa_g_rule_is_used(Marpa_Grammar g, Marpa_Rule_ID xrl_id)
 {
@@ -3485,6 +3487,8 @@ Classify as nulling, nullable or productive.
   XRL_is_Nulling (xrl) = is_nulling;
   XRL_is_Nullable (xrl) = is_nullable;
   XRL_is_Productive (xrl) = is_productive;
+  XRL_is_Used (xrl) = XRL_is_Accessible (xrl) && XRL_is_Productive (xrl)
+    && !XRL_is_Nulling (xrl);
 }
 
 @ Accessibility was determined in outer loop.
@@ -3511,6 +3515,9 @@ But currently we don't both -- we just mark the rule unproductive.
   XRL_is_Productive (xrl) = XRL_is_Nullable (xrl) || XSY_is_Productive (rh_xsy);
      /* A sequence rule is productive if it is nulling or if its RHS is productive */
     @#
+  XRL_is_Used (xrl) = XRL_is_Accessible (xrl) && XSY_is_Productive (rh_xsy);
+  // Initialize to used if accessible and RHS is productive
+    @#
   if (separator_id >= 0)
     {				// Touch-ups to account for the separator
       const XSY separator_xsy = XSY_by_ID (separator_id);
@@ -3525,8 +3532,11 @@ But currently we don't both -- we just mark the rule unproductive.
 	  unless it is nullable.
 	  */
 	  XRL_is_Productive (xrl) = XRL_is_Nullable(xrl);
+	  XRL_is_Used(xrl) = 0; // Do not use a sequence rule with an unproductive separator
 	}
   }
+
+  if (XRL_is_Nulling (xrl)) XRL_is_Used (xrl) = 0; // Do not use if nulling
 }
 
 @ Those LHS terminals that have not been explicitly marked
