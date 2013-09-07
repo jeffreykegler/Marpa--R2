@@ -124,7 +124,7 @@ use constant OR_NODE_IDS => 0;
 use constant TOKEN_IDS => 1;
 use constant EXTERNAL => 2;
 
-package Marpa::R2::Internal::Scanless::ASF;
+package Marpa::R2::Internal::Scanless::ASF2;
 use constant SLR => 0;
 use constant CHOICE_BLESSING => 1;
 use constant RULE_BLESSING => 2;

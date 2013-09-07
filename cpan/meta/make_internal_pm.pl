@@ -244,7 +244,7 @@ __DATA__
       Currently only one will be non-empty, but this may change if
       the SLIF implements LHS terminals. }
 
-    :package=Marpa::R2::Internal::Scanless::ASF
+    :package=Marpa::R2::Internal::Scanless::ASF2
 
     SLR { The underlying SLR }
     CHOICE_BLESSING
