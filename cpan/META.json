@@ -156,7 +156,7 @@
          "http://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt"
       ],
       "repository" : {
-         "url" : "git://github.com/jeffreykegler/Marpa-R2.git"
+         "url" : "git://github.com/jeffreykegler/Marpa--R2.git"
       }
    },
    "version" : "2.069_003"

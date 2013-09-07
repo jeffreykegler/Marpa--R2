@@ -148,7 +148,7 @@ my $build = Marpa::R2::Build_Me->new(
     },
     meta_merge => {
         resources =>
-            { repository => 'git://github.com/jeffreykegler/Marpa-R2.git', },
+            { repository => 'git://github.com/jeffreykegler/Marpa--R2.git', },
     },
     pod_files          => \%pod_files,
     license            => 'lgpl',
