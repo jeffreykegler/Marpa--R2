@@ -13,7 +13,7 @@
 # General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 
-package Marpa::R2::ASF2;
+package Marpa::R2::ASF;
 
 use 5.010;
 use strict;
@@ -32,7 +32,7 @@ $VERSION = eval $VERSION;
 # It is intended to create documented Libmarpa methods to underlie
 # this interface, and rewrite it to use them
 
-package Marpa::R2::Internal::ASF2;
+package Marpa::R2::Internal::ASF;
 
 # Terms
 #
@@ -72,9 +72,9 @@ package Marpa::R2::Internal::ASF2;
 sub ensure_cp {
     my ( $asf, $or_node_ids, $token_ids ) = @_;
     my $choicepoints_by_token_id =
-        $asf->[Marpa::R2::Internal::Scanless::ASF2::CHOICEPOINTS_BY_TOKEN_ID];
+        $asf->[Marpa::R2::Internal::Scanless::ASF::CHOICEPOINTS_BY_TOKEN_ID];
     my $choicepoints_by_or_node_id = $asf
-        ->[Marpa::R2::Internal::Scanless::ASF2::CHOICEPOINTS_BY_OR_NODE_ID];
+        ->[Marpa::R2::Internal::Scanless::ASF::CHOICEPOINTS_BY_OR_NODE_ID];
     my $token_id_count = scalar @{$token_ids};
     FIND_CP: {
         my $cp_candidates =
@@ -124,14 +124,14 @@ sub new_cp {
     for my $token_id ( @{$token_ids} ) {
         push @{
             $asf->[
-                Marpa::R2::Internal::Scanless::ASF2::CHOICEPOINTS_BY_TOKEN_ID]
+                Marpa::R2::Internal::Scanless::ASF::CHOICEPOINTS_BY_TOKEN_ID]
             },
             $token_id;
     } ## end for my $token_id ( @{$token_ids} )
     for my $or_node_id ( @{$or_node_ids} ) {
         push @{
             $asf->[
-                Marpa::R2::Internal::Scanless::ASF2::CHOICEPOINTS_BY_OR_NODE_ID
+                Marpa::R2::Internal::Scanless::ASF::CHOICEPOINTS_BY_OR_NODE_ID
             ]
             },
             $or_node_id;
@@ -141,9 +141,9 @@ sub new_cp {
 
 # No check for conflicting usage -- value(), asf(), etc.
 # at this point
-sub Marpa::R2::Scanless::ASF2::top {
+sub Marpa::R2::Scanless::ASF::top {
     my ($asf) = @_;
-    my $slr   = $asf->[Marpa::R2::Internal::Scanless::ASF2::SLR];
+    my $slr   = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
     my $recce = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
 
     my $bocage = $recce->[Marpa::R2::Internal::Recognizer::B_C];
@@ -178,7 +178,7 @@ sub Marpa::R2::Scanless::ASF2::top {
     my $new_cp = ensure_cp($asf, \@or_node_ids, \@token_ids);
     $new_cp->[Marpa::R2::Internal::Scanless::Choicepoint::EXTERNAL] = 1;
     return $new_cp;
-} ## end sub Marpa::R2::Scanless::ASF2::top_choicepoint
+} ## end sub Marpa::R2::Scanless::ASF::top_choicepoint
 
 sub make_token_cp { return -($_[0] + 43); }
 sub unmake_token_cp { return -$_[0] - 43; }
@@ -228,7 +228,7 @@ sub cmp_symches_by_predecessors {
 sub or_nodes_to_factor {
     $DB::single = 1;
     my ( $asf, $or_node_list, $chaf_predecessors ) = @_;
-    my $slr    = $asf->[Marpa::R2::Internal::Scanless::ASF2::SLR];
+    my $slr    = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
     my $recce  = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
     my $bocage = $recce->[Marpa::R2::Internal::Recognizer::B_C];
     my @pairings = ();
@@ -346,10 +346,10 @@ sub or_nodes_to_factor {
     return [ \@cartesians, 0 ];
 } ## end sub or_nodes_to_factor
 
-sub Marpa::R2::Scanless::ASF2::first_factored_rhs {
+sub Marpa::R2::Scanless::ASF::first_factored_rhs {
     my ( $asf, $arg_cp ) = @_;
     Marpa::R2::exception("Cannot factor token") if $arg_cp < 0;
-    my $slr       = $asf->[Marpa::R2::Internal::Scanless::ASF2::SLR];
+    my $slr       = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
     my $recce     = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
     my $bocage    = $recce->[Marpa::R2::Internal::Recognizer::B_C];
     my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
@@ -358,7 +358,7 @@ sub Marpa::R2::Scanless::ASF2::first_factored_rhs {
     my @final_or_nodes;
     my $chaf_predecessors =
         $asf
-        ->[Marpa::R2::Internal::Scanless::ASF2::FAC_CHAF_PREDECESSOR_BY_CAUSE]
+        ->[Marpa::R2::Internal::Scanless::ASF::FAC_CHAF_PREDECESSOR_BY_CAUSE]
         = [];
 
     my @chaf_links = ();
@@ -420,7 +420,7 @@ sub Marpa::R2::Scanless::ASF2::first_factored_rhs {
             $chaf_predecessors );
     } ## end FACTOR: while (1)
     return \@factoring;
-} ## end sub Marpa::R2::Scanless::ASF2::first_factored_rhs
+} ## end sub Marpa::R2::Scanless::ASF::first_factored_rhs
 
 sub irl_extend {
     my ( $recce, $or_node_id ) = @_;
@@ -540,7 +540,7 @@ sub normalize_asf_blessing {
 } ## end sub normalize_asf_blessing
 
 # Returns undef if no parse
-sub Marpa::R2::Scanless::ASF2::new {
+sub Marpa::R2::Scanless::ASF::new {
     my ( $class, @arg_hashes ) = @_;
     my $asf       = bless [], $class;
 
@@ -551,7 +551,7 @@ sub Marpa::R2::Scanless::ASF2::new {
 
     for my $args (@arg_hashes) {
         if ( defined( my $value = $args->{slr} ) ) {
-            $asf->[Marpa::R2::Internal::Scanless::ASF2::SLR] = $slr = $value;
+            $asf->[Marpa::R2::Internal::Scanless::ASF::SLR] = $slr = $value;
         }
         if ( defined( my $value = $args->{choice} ) ) {
             $choice_blessing = $value;
@@ -565,13 +565,13 @@ sub Marpa::R2::Scanless::ASF2::new {
     } ## end for my $args (@arg_hashes)
 
     Marpa::R2::exception(
-        q{The "slr" named argument must be specified with the Marpa::R2::Scanless::ASF2::new method}
+        q{The "slr" named argument must be specified with the Marpa::R2::Scanless::ASF::new method}
     ) if not defined $slr;
-    $asf->[Marpa::R2::Internal::Scanless::ASF2::SLR] = $slr;
+    $asf->[Marpa::R2::Internal::Scanless::ASF::SLR] = $slr;
 
     Marpa::R2::exception(
         q{The "force" or "default" named argument must be specified },
-        {with the Marpa::R2::Scanless::ASF2::new method}
+        {with the Marpa::R2::Scanless::ASF::new method}
     ) if not defined $force and not defined $default_blessing;
 
     my $recce     = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
@@ -653,28 +653,28 @@ sub Marpa::R2::Scanless::ASF2::new {
         $symbol_blessing[$symbol_id] = join q{::}, $default_blessing,
             normalize_asf_blessing($name);
     } ## end for ( my $symbol_id = 0; $symbol_id <= $highest_symbol_id...)
-    $asf->[Marpa::R2::Internal::Scanless::ASF2::RULE_BLESSING] =
+    $asf->[Marpa::R2::Internal::Scanless::ASF::RULE_BLESSING] =
         \@rule_blessing;
-    $asf->[Marpa::R2::Internal::Scanless::ASF2::SYMBOL_BLESSING] =
+    $asf->[Marpa::R2::Internal::Scanless::ASF::SYMBOL_BLESSING] =
         \@symbol_blessing;
-    $asf->[Marpa::R2::Internal::Scanless::ASF2::CHOICE_BLESSING] =
+    $asf->[Marpa::R2::Internal::Scanless::ASF::CHOICE_BLESSING] =
         $choice_blessing;
 
     return $asf;
 
-} ## end sub Marpa::R2::Scanless::ASF2::new
+} ## end sub Marpa::R2::Scanless::ASF::new
 
-sub Marpa::R2::Scanless::ASF2::raw {
+sub Marpa::R2::Scanless::ASF::raw {
     my ($asf, $start_rcp) = @_;
-    my $slr   = $asf->[Marpa::R2::Internal::Scanless::ASF2::SLR];
+    my $slr   = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
     my $recce = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
     $start_rcp //= $asf->top_choicepoint();
     return or_node_expand( $recce, $start_rcp );
-} ## end sub Marpa::R2::Scanless::ASF2::raw_asf
+} ## end sub Marpa::R2::Scanless::ASF::raw_asf
 
 sub bless_asf {
     my ( $asf, $tree, $data ) = @_;
-    my $slr       = $asf->[Marpa::R2::Internal::Scanless::ASF2::SLR];
+    my $slr       = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
     my $tag       = ref $tree ? $tree->[0] : $tree;
     my $recce     = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
     my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
@@ -688,7 +688,7 @@ sub bless_asf {
         my $xrl_id = $grammar_c->_marpa_g_source_xrl($irl_id);
         my $desc   = 'Rule ' . $grammar->brief_rule($xrl_id);
         my $rule_blessing =
-            $asf->[Marpa::R2::Internal::Scanless::ASF2::RULE_BLESSING]
+            $asf->[Marpa::R2::Internal::Scanless::ASF::RULE_BLESSING]
             ->[$xrl_id];
         $blessed_node = bless [
             $checkpoint_id, $desc,
@@ -706,7 +706,7 @@ sub bless_asf {
         my $xrl_id = $grammar_c->_marpa_g_source_xrl($irl_id);
         my $desc   = 'Rule ' . $grammar->brief_rule($xrl_id);
         my $rule_blessing =
-            $asf->[Marpa::R2::Internal::Scanless::ASF2::RULE_BLESSING]
+            $asf->[Marpa::R2::Internal::Scanless::ASF::RULE_BLESSING]
             ->[$xrl_id];
         my @blessed_choices = ();
 
@@ -716,7 +716,7 @@ sub bless_asf {
                 $rule_blessing;
         }
         $blessed_node = bless [ -2, $checkpoint_id, $desc, @blessed_choices ],
-            $asf->[Marpa::R2::Internal::Scanless::ASF2::CHOICE_BLESSING];
+            $asf->[Marpa::R2::Internal::Scanless::ASF::CHOICE_BLESSING];
         $data->{blessed_nodes}->[$checkpoint_id] = $blessed_node;
         return $blessed_node;
     } ## end if ( $tag == -2 )
@@ -725,7 +725,7 @@ sub bless_asf {
         my $token_isy_id = $bocage->_marpa_b_and_node_symbol($and_node_id);
         my $token_id     = $grammar_c->_marpa_g_source_xsy($token_isy_id);
         my $symbol_blessing =
-            $asf->[Marpa::R2::Internal::Scanless::ASF2::SYMBOL_BLESSING]
+            $asf->[Marpa::R2::Internal::Scanless::ASF::SYMBOL_BLESSING]
             ->[$token_id];
         return bless [
             -1, ( 'Token: ' . $asf->cp_token_name($tag) ),
@@ -735,20 +735,20 @@ sub bless_asf {
     die "Unknown tag in bless_asf: $tag";
 } ## end sub bless_asf
 
-sub Marpa::R2::Scanless::ASF2::bless {
+sub Marpa::R2::Scanless::ASF::bless {
     my ( $asf, $tree ) = @_;
-    my $slr   = $asf->[Marpa::R2::Internal::Scanless::ASF2::SLR];
+    my $slr   = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
     my $recce = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
     my %data  = ();
     $data{blessed_nodes} = [];
     bless_asf( $asf, $tree, \%data );
-} ## end sub Marpa::R2::Scanless::ASF2::bless
+} ## end sub Marpa::R2::Scanless::ASF::bless
 
 # No check for conflicting usage -- value(), asf(), etc.
 # at this point
-sub Marpa::R2::Scanless::ASF2::top_choicepoint {
+sub Marpa::R2::Scanless::ASF::top_choicepoint {
     my ($asf) = @_;
-    my $slr   = $asf->[Marpa::R2::Internal::Scanless::ASF2::SLR];
+    my $slr   = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
     my $recce = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
 
     my $bocage = $recce->[Marpa::R2::Internal::Recognizer::B_C];
@@ -772,18 +772,18 @@ sub Marpa::R2::Scanless::ASF2::top_choicepoint {
     my $augment2_and_node_id =
         $bocage->_marpa_b_or_node_first_and($augment2_or_node_id);
     return $bocage->_marpa_b_and_node_cause($augment2_and_node_id);
-} ## end sub Marpa::R2::Scanless::ASF2::top_choicepoint
+} ## end sub Marpa::R2::Scanless::ASF::top_choicepoint
 
-sub Marpa::R2::Scanless::ASF2::choices {
+sub Marpa::R2::Scanless::ASF::choices {
     my ( $asf, $choicepoint ) = @_;
-    my $slr   = $asf->[Marpa::R2::Internal::Scanless::ASF2::SLR];
+    my $slr   = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
     my $recce = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
     return choices( $recce, $choicepoint );
 }
 
 sub token_es_span {
     my ( $asf, $and_node_id ) = @_;
-    my $slr       = $asf->[Marpa::R2::Internal::Scanless::ASF2::SLR];
+    my $slr       = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
     my $recce     = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
     my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
@@ -801,7 +801,7 @@ sub token_es_span {
 
 sub or_child_current_set {
     my ( $asf, $or_child ) = @_;
-    my $slr    = $asf->[Marpa::R2::Internal::Scanless::ASF2::SLR];
+    my $slr    = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
     my $recce  = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
     my $bocage = $recce->[Marpa::R2::Internal::Recognizer::B_C];
     if ( $or_child < 0 ) {
@@ -813,11 +813,11 @@ sub or_child_current_set {
     return $bocage->_marpa_b_or_node_set($or_child);
 } ## end sub or_child_current_set
 
-sub Marpa::R2::Scanless::ASF2::is_factored {
+sub Marpa::R2::Scanless::ASF::is_factored {
     my ( $asf, $choicepoint_id ) = @_;
 
     my $is_factored_by_choicepoint =
-        $asf->[Marpa::R2::Internal::Scanless::ASF2::CHOICEPOINT_IS_FACTORED];
+        $asf->[Marpa::R2::Internal::Scanless::ASF::CHOICEPOINT_IS_FACTORED];
     if (defined(
             my $is_factored = $is_factored_by_choicepoint->[$choicepoint_id]
         )
@@ -858,7 +858,7 @@ sub Marpa::R2::Scanless::ASF2::is_factored {
     return $is_factored_by_choicepoint->[$choicepoint_id] = 0;
 } ## end sub is_factored
 
-sub Marpa::R2::Scanless::ASF2::choices_by_rhs {
+sub Marpa::R2::Scanless::ASF::choices_by_rhs {
     my ( $asf, $choicepoint_id ) = @_;
     my @choices_by_rhs = ();
     # Get choices first to ensure is-factored boolean is set
@@ -896,7 +896,7 @@ sub Marpa::R2::Scanless::ASF2::choices_by_rhs {
 
 sub ambiguities {
     my ( $asf, $choicepoint_id, $data ) = @_;
-    my $slr              = $asf->[Marpa::R2::Internal::Scanless::ASF2::SLR];
+    my $slr              = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
     my $was_node_seen    = $data->{was_node_seen};
     return if $was_node_seen->[$choicepoint_id];
     $was_node_seen->[$choicepoint_id] = 1;
@@ -949,9 +949,9 @@ sub ambiguities {
 
 # Return a list of ambiguous checkpoint ID's.
 # Once an ambiguity is found, its subtree is not explored further.
-sub Marpa::R2::Scanless::ASF2::ambiguities {
+sub Marpa::R2::Scanless::ASF::ambiguities {
     my ( $asf, $tree, @arg_hashes ) = @_;
-    my $slr               = $asf->[Marpa::R2::Internal::Scanless::ASF2::SLR];
+    my $slr               = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
     my %data              = ();
     my $is_node_ambiguous = $data{is_node_ambiguous} = [];
     $data{was_node_seen} = [];
@@ -964,11 +964,11 @@ sub Marpa::R2::Scanless::ASF2::ambiguities {
         map  { [ $bocage->_marpa_b_or_node_origin($_), $_ ] }
         grep { $is_node_ambiguous->[$_] } 0 .. $#{$is_node_ambiguous};
     return \@sorted_ambiguities;
-} ## end sub Marpa::R2::Scanless::ASF2::ambiguities
+} ## end sub Marpa::R2::Scanless::ASF::ambiguities
 
 sub or_node_es_span {
     my ( $asf, $choicepoint ) = @_;
-    my $slr   = $asf->[Marpa::R2::Internal::Scanless::ASF2::SLR];
+    my $slr   = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
     my $recce      = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
     my $bocage     = $recce->[Marpa::R2::Internal::Recognizer::B_C];
     my $origin_es  = $bocage->_marpa_b_or_node_origin($choicepoint);
@@ -976,42 +976,42 @@ sub or_node_es_span {
     return $origin_es, $current_es - $origin_es;
 } ## end sub or_node_es_span
 
-sub Marpa::R2::Scanless::ASF2::cp_literal {
+sub Marpa::R2::Scanless::ASF::cp_literal {
     my ( $asf, $cp ) = @_;
     if ($cp < 0) {
         my $and_node_id = unmake_token_cp( $cp );
-        my $slr = $asf->[Marpa::R2::Internal::Scanless::ASF2::SLR];
+        my $slr = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
         my ( $start, $length ) = token_es_span( $asf, $and_node_id );
         return '' if $length == 0;
         return $slr->substring( $start, $length );
     }
-    my $slr   = $asf->[Marpa::R2::Internal::Scanless::ASF2::SLR];
+    my $slr   = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
     return $slr->substring(or_node_es_span($asf, $cp));
 } ## end sub Marpa::R2::Scanless::R::choicepoint_literal
 
-sub Marpa::R2::Scanless::ASF2::cp_span {
+sub Marpa::R2::Scanless::ASF::cp_span {
     my ( $asf, $cp ) = @_;
     return or_node_es_span($asf, $cp) if $cp >= 0;
     my $and_node_id = unmake_token_cp( $cp );
     return token_es_span( $asf, $and_node_id );
 }
 
-sub Marpa::R2::Scanless::ASF2::cp_rule_id {
+sub Marpa::R2::Scanless::ASF::cp_rule_id {
     my ( $asf, $choicepoint ) = @_;
     return undef if $choicepoint < 0;
-    my $slr       = $asf->[Marpa::R2::Internal::Scanless::ASF2::SLR];
+    my $slr       = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
     my $recce     = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
     my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
     my $bocage    = $recce->[Marpa::R2::Internal::Recognizer::B_C];
     my $irl_id    = $bocage->_marpa_b_or_node_irl($choicepoint);
     return $grammar_c->_marpa_g_source_xrl($irl_id);
-} ## end sub Marpa::R2::Scanless::ASF2::cp_rule
+} ## end sub Marpa::R2::Scanless::ASF::cp_rule
 
-sub Marpa::R2::Scanless::ASF2::cp_rule {
+sub Marpa::R2::Scanless::ASF::cp_rule {
     my ( $asf, $choicepoint ) = @_;
     return undef if $choicepoint < 0;
-    my $slr       = $asf->[Marpa::R2::Internal::Scanless::ASF2::SLR];
+    my $slr       = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
     my $recce     = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
     my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
@@ -1019,18 +1019,18 @@ sub Marpa::R2::Scanless::ASF2::cp_rule {
     my $irl_id    = $bocage->_marpa_b_or_node_irl($choicepoint);
     my $rule_id   = $grammar_c->_marpa_g_source_xrl($irl_id);
     return $grammar->rule($rule_id);
-} ## end sub Marpa::R2::Scanless::ASF2::cp_rule_id
+} ## end sub Marpa::R2::Scanless::ASF::cp_rule_id
 
-sub Marpa::R2::Scanless::ASF2::cp_is_token {
+sub Marpa::R2::Scanless::ASF::cp_is_token {
     my ( $asf, $cp ) = @_;
     return $cp < 0 ? 1 : undef;
 }
 
-sub Marpa::R2::Scanless::ASF2::cp_token_name {
+sub Marpa::R2::Scanless::ASF::cp_token_name {
     my ( $asf, $cp ) = @_;
     return undef if $cp >= 0;
     my $and_node_id  = unmake_token_cp($cp);
-    my $slr          = $asf->[Marpa::R2::Internal::Scanless::ASF2::SLR];
+    my $slr          = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
     my $recce        = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
     my $grammar      = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my $grammar_c    = $grammar->[Marpa::R2::Internal::Grammar::C];
@@ -1038,12 +1038,12 @@ sub Marpa::R2::Scanless::ASF2::cp_token_name {
     my $token_isy_id = $bocage->_marpa_b_and_node_symbol($and_node_id);
     my $token_id     = $grammar_c->_marpa_g_source_xsy($token_isy_id);
     return $grammar->symbol_name($token_id);
-} ## end sub Marpa::R2::Scanless::ASF2::cp_token_name
+} ## end sub Marpa::R2::Scanless::ASF::cp_token_name
 
-sub Marpa::R2::Scanless::ASF2::cp_brief {
+sub Marpa::R2::Scanless::ASF::cp_brief {
     my ( $asf, $cp ) = @_;
     return $asf->cp_token_name($cp) if $cp < 0;
-    my $slr       = $asf->[Marpa::R2::Internal::Scanless::ASF2::SLR];
+    my $slr       = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
     my $recce     = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
     my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
@@ -1051,26 +1051,26 @@ sub Marpa::R2::Scanless::ASF2::cp_brief {
     my $irl_id  = $bocage->_marpa_b_or_node_irl($cp);
     my $rule_id = $grammar_c->_marpa_g_source_xrl($irl_id);
     return $grammar->brief_rule($rule_id);
-} ## end sub Marpa::R2::Scanless::ASF2::cp_brief
+} ## end sub Marpa::R2::Scanless::ASF::cp_brief
 
-sub Marpa::R2::Scanless::ASF2::cp_blessing {
+sub Marpa::R2::Scanless::ASF::cp_blessing {
     my ( $asf, $cp ) = @_;
     if ( $cp < 0 ) {
         my $and_node_id = unmake_token_cp($cp);
-        my $slr         = $asf->[Marpa::R2::Internal::Scanless::ASF2::SLR];
+        my $slr         = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
         my $recce     = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
         my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
         my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
         my $bocage    = $recce->[Marpa::R2::Internal::Recognizer::B_C];
         my $token_isy_id = $bocage->_marpa_b_and_node_symbol($and_node_id);
         my $token_id     = $grammar_c->_marpa_g_source_xsy($token_isy_id);
-        return $asf->[Marpa::R2::Internal::Scanless::ASF2::SYMBOL_BLESSING]
+        return $asf->[Marpa::R2::Internal::Scanless::ASF::SYMBOL_BLESSING]
             ->[$token_id];
     } ## end if ( $cp < 0 )
     my $rule_id = $asf->cp_rule_id($cp);
-    return $asf->[Marpa::R2::Internal::Scanless::ASF2::RULE_BLESSING]
+    return $asf->[Marpa::R2::Internal::Scanless::ASF::RULE_BLESSING]
         ->[$rule_id];
-} ## end sub Marpa::R2::Scanless::ASF2::cp_blessing
+} ## end sub Marpa::R2::Scanless::ASF::cp_blessing
 
 1;
 

@@ -95,6 +95,7 @@ lib/Marpa/.gitignore
 lib/Marpa/R2.pm
 lib/Marpa/R2/.gitignore
 lib/Marpa/R2/ASF.pm
+lib/Marpa/R2/ASF2.pm
 lib/Marpa/R2/Grammar.pm
 lib/Marpa/R2/Internal.pm
 lib/Marpa/R2/MetaAST.pm
