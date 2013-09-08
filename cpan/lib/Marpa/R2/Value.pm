@@ -1494,8 +1494,9 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
 } ## end sub Marpa::R2::Internal::Recognizer::evaluate
 
-sub Marpa::R2::Recognizer::bocage_create {
+sub Marpa::R2::Recognizer::ordering_create {
     my ($recce) = @_;
+    return if $recce->[Marpa::R2::Internal::Recognizer::NO_PARSE];
     my $parse_set_arg =
         $recce->[Marpa::R2::Internal::Recognizer::END_OF_PARSE];
     my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
@@ -1506,12 +1507,32 @@ sub Marpa::R2::Recognizer::bocage_create {
     my $bocage = $recce->[Marpa::R2::Internal::Recognizer::B_C] =
         Marpa::R2::Thin::B->new( $recce_c, ( $parse_set_arg // -1 ) );
     $grammar_c->throw_set(1);
-    return $bocage;
-} ## end sub Marpa::R2::Recognizer::bocage_create
+    if ( not $bocage ) {
+        $recce->[Marpa::R2::Internal::Recognizer::NO_PARSE] = 1;
+        return;
+    }
+    $recce->[Marpa::R2::Internal::Recognizer::O_C] =
+        Marpa::R2::Thin::O->new($bocage);
+
+    GIVEN_RANKING_METHOD: {
+        my $ranking_method =
+            $recce->[Marpa::R2::Internal::Recognizer::RANKING_METHOD];
+        if ( $ranking_method eq 'high_rule_only' ) {
+            do_high_rule_only($recce);
+            last GIVEN_RANKING_METHOD;
+        }
+        if ( $ranking_method eq 'rule' ) {
+            do_rank_by_rule($recce);
+            last GIVEN_RANKING_METHOD;
+        }
+    } ## end GIVEN_RANKING_METHOD:
+
+    return 1;
+} ## end sub Marpa::R2::Recognizer::ordering_create
 
 # Returns false if no parse
-sub Marpa::R2::Recognizer::value
-{    ## no critic (Subroutines::RequireArgUnpacking)
+sub Marpa::R2::Recognizer::value {
+    ## no critic (Subroutines::RequireArgUnpacking)
     my ( $recce, $slr, $per_parse_arg ) = @_;
 
     if ( scalar @_ != 1 ) {
@@ -1533,7 +1554,6 @@ sub Marpa::R2::Recognizer::value
     my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
     my $recce_c   = $recce->[Marpa::R2::Internal::Recognizer::C];
-    my $order     = $recce->[Marpa::R2::Internal::Recognizer::O_C];
 
     local $Marpa::R2::Internal::TRACE_FH =
         $recce->[Marpa::R2::Internal::Recognizer::TRACE_FILE_HANDLE];
@@ -1630,26 +1650,9 @@ sub Marpa::R2::Recognizer::value
     else {
         # No tree, therefore not initialized
 
-        my $bocage = $recce->[Marpa::R2::Internal::Recognizer::B_C] //
-                $recce->bocage_create();
-        return if not $bocage;
-
-        $order = $recce->[Marpa::R2::Internal::Recognizer::O_C] =
-            Marpa::R2::Thin::O->new($bocage);
-
-        GIVEN_RANKING_METHOD: {
-            my $ranking_method =
-                $recce->[Marpa::R2::Internal::Recognizer::RANKING_METHOD];
-            if ( $ranking_method eq 'high_rule_only' ) {
-                do_high_rule_only($recce);
-                last GIVEN_RANKING_METHOD;
-            }
-            if ( $ranking_method eq 'rule' ) {
-                do_rank_by_rule($recce);
-                last GIVEN_RANKING_METHOD;
-            }
-        } ## end GIVEN_RANKING_METHOD:
-
+        $recce->ordering_create();
+        return if $recce->[Marpa::R2::Internal::Recognizer::NO_PARSE];
+        my $order = $recce->[Marpa::R2::Internal::Recognizer::O_C];
         $tree = $recce->[Marpa::R2::Internal::Recognizer::T_C] =
             Marpa::R2::Thin::T->new($order);
 

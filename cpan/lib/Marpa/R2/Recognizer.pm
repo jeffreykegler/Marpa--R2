@@ -173,6 +173,7 @@ sub Marpa::R2::Recognizer::reset_evaluation {
         $recce->[Marpa::R2::Internal::Recognizer::RESOLVE_PACKAGE_SOURCE] =
             undef;
     } ## end if ( defined $package_source and $package_source ne ...)
+    $recce->[Marpa::R2::Internal::Recognizer::NO_PARSE]          = undef;
     $recce->[Marpa::R2::Internal::Recognizer::ASF_OR_NODES]          = [];
     $recce->[Marpa::R2::Internal::Recognizer::B_C]                   = undef;
     $recce->[Marpa::R2::Internal::Recognizer::EVENTS]                = [];

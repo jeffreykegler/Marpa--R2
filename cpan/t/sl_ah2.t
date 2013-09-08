@@ -70,9 +70,10 @@ for my $i ( 0 .. $input_length ) {
     $slr->set( { end => $i } );
     my $expected = $expected[$i];
 
-    my $is_ambiguous = $slr->is_ambiguous();
-    my $expected_to_be_ambiguous = (scalar keys %{$expected} > 1);
-    Test::More::is($is_ambiguous, $expected_to_be_ambiguous, "Ambiguity check for length $i");
+    my $ambiguity_metric = $slr->ambiguity_metric();
+    $ambiguity_metric = 2 if $ambiguity_metric > 2; # cap at 2 -- higher numbers not defined
+    my $expected_metric = (scalar keys %{$expected} > 1 ? 2 : 1);
+    Test::More::is($ambiguity_metric, $expected_metric, "Ambiguity check for length $i");
 
     while ( my $value_ref = $slr->value() ) {
 
