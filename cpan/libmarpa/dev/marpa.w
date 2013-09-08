@@ -6383,7 +6383,7 @@ void completion_count_inc(struct obstack *obstack, AHFA from_ahfa, ISYID isyid)
     return;
 }
 
-@*0 Trace functions.
+@** AHFA trace functions.
 @ @<Function definitions@> =
 int _marpa_g_AHFA_state_transitions(Marpa_Grammar g,
     Marpa_AHFA_State_ID AHFA_state_id,
@@ -6422,7 +6422,6 @@ int _marpa_g_AHFA_state_transitions(Marpa_Grammar g,
 
 @** Empty transition code.
 @d Empty_Transition_of_AHFA(state) ((state)->t_empty_transition)
-@*0 Trace functions.
 @ In the external accessor,
 -1 is a valid return value, indicating no empty transition.
 @<Function definitions@> =
@@ -6439,7 +6438,6 @@ AHFAID _marpa_g_AHFA_state_empty_transition(Marpa_Grammar g,
       return ID_of_AHFA (empty_transition_state);
     return -1;
 }
-
 
 @** Populating the terminal boolean vector.
 @<Populate the terminal boolean vector@> =
@@ -7468,7 +7466,7 @@ earley_set_new( RECCE r, EARLEME id)
   return set;
 }
 
-@*0 Trace functions.
+@** Earley set trace functions.
 Many of the
 trace functions use
 a ``trace Earley set" which is
@@ -7544,6 +7542,154 @@ int _marpa_r_earley_set_size(Marpa_Recognizer r, Marpa_Earley_Set_ID set_id)
       }
     earley_set = ES_of_R_by_Ord (r, set_id);
     return EIM_Count_of_ES (earley_set);
+}
+
+@ Many of the
+trace functions use
+a ``trace Earley item" which is
+tracked on a per-recognizer basis.
+@<Widely aligned recognizer elements@> =
+EIM t_trace_earley_item;
+@ @<Initialize recognizer elements@> =
+r->t_trace_earley_item = NULL;
+@ This function returns the AHFA state ID of an Earley item,
+and sets the trace Earley item,
+if it successfully finds an Earley item
+in the trace Earley set with the specified
+AHFA state ID and origin earleme.
+If there is no such Earley item,
+it returns |-1|,
+and clears the trace Earley item.
+On failure for other reasons,
+it returns |-2|,
+and clears the trace Earley item.
+@ The trace Earley item is cleared if no matching
+Earley item is found, and on failure.
+The trace source link is always
+cleared, regardless of success or failure.
+
+@ This function sets
+the trace Earley set to the one indicated
+by the ID
+of the argument.
+On success,
+the earleme of the new trace Earley set is
+returned.
+@ Various other trace data depends on the Earley
+set, and must be consistent with it.
+This function clears all such data,
+unless it is called while the recognizer is in
+a trace-unsafe state (initial, fatal, etc.)
+or unless the the Earley set requested by the
+argument is already the trace Earley set.
+On failure because the ID is for a non-existent
+Earley set which does not
+exist, |-1| is returned.
+The upper levels may choose to treat this as a soft failure.
+This may be treated as a soft failure by the upper levels.
+On failure because the ID is illegal (less than zero)
+or for other failures, |-2| is returned.
+The upper levels may choose to treat these as hard failures.
+@ @<Function definitions@> =
+Marpa_Earleme
+_marpa_r_earley_set_trace (Marpa_Recognizer r, Marpa_Earley_Set_ID set_id)
+{
+  ES earley_set;
+  const int es_does_not_exist = -1;
+  @<Return |-2| on failure@>@/
+  @<Unpack recognizer objects@>@;
+  @<Fail if not trace-safe@>@;
+    if (r->t_trace_earley_set && Ord_of_ES (r->t_trace_earley_set) == set_id)
+      { /* If the set is already
+	   the current earley set,
+	   return successfully without resetting any of the dependant data */
+	return Earleme_of_ES (r->t_trace_earley_set);
+      }
+  @<Clear trace Earley set dependent data@>@;
+    if (set_id < 0)
+    {
+	MARPA_ERROR(MARPA_ERR_INVALID_LOCATION);
+	return failure_indicator;
+    }
+  r_update_earley_sets (r);
+    if (set_id >= DSTACK_LENGTH (r->t_earley_set_stack))
+      {
+	return es_does_not_exist;
+      }
+    earley_set = ES_of_R_by_Ord (r, set_id);
+  r->t_trace_earley_set = earley_set;
+  return Earleme_of_ES(earley_set);
+}
+
+@ @<Clear trace Earley set dependent data@> = {
+  r->t_trace_earley_set = NULL;
+  trace_earley_item_clear(r);
+  @<Clear trace postdot item data@>@;
+}
+
+@ @<Function definitions@> =
+Marpa_AHFA_State_ID
+_marpa_r_earley_item_trace (Marpa_Recognizer r, Marpa_Earley_Item_ID item_id)
+{
+  const int eim_does_not_exist = -1;
+  @<Return |-2| on failure@>@;
+  ES trace_earley_set;
+  EIM earley_item;
+  EIM *earley_items;
+  @<Unpack recognizer objects@>@;
+  @<Fail if not trace-safe@>@;
+  trace_earley_set = r->t_trace_earley_set;
+  if (!trace_earley_set)
+    {
+      @<Clear trace Earley set dependent data@>@;
+      MARPA_ERROR(MARPA_ERR_NO_TRACE_ES);
+      return failure_indicator;
+    }
+  trace_earley_item_clear (r);
+  if (item_id < 0)
+    {
+      MARPA_ERROR (MARPA_ERR_EIM_ID_INVALID);
+      return failure_indicator;
+    }
+  if (item_id >= EIM_Count_of_ES (trace_earley_set))
+    {
+      return eim_does_not_exist;
+    }
+  earley_items = EIMs_of_ES (trace_earley_set);
+  earley_item = earley_items[item_id];
+  r->t_trace_earley_item = earley_item;
+  return AHFAID_of_EIM (earley_item);
+}
+
+@ Clear all the data elements specifically
+for the trace Earley item.
+The difference between this code and
+|trace_earley_item_clear| is
+that |trace_earley_item_clear| 
+also clears the source link.
+@<Clear trace Earley item data@> =
+      r->t_trace_earley_item = NULL;
+
+@ @<Function definitions@> =
+PRIVATE void trace_earley_item_clear(RECCE r)
+{
+    @<Clear trace Earley item data@>@/
+    trace_source_link_clear(r);
+}
+
+@ @<Function definitions@> =
+Marpa_Earley_Set_ID _marpa_r_earley_item_origin(Marpa_Recognizer r)
+{
+    @<Return |-2| on failure@>@;
+    EIM item = r->t_trace_earley_item;
+  @<Unpack recognizer objects@>@;
+  @<Fail if not trace-safe@>@;
+    if (!item) {
+        @<Clear trace Earley item data@>@;
+        MARPA_ERROR(MARPA_ERR_NO_TRACE_EIM);
+        return failure_indicator;
+    }
+    return Origin_Ord_of_EIM(item);
 }
 
 @** Earley item (EIM) code.
@@ -7733,155 +7879,6 @@ PRIVATE_NOT_INLINE Marpa_Error_Code invalid_source_type_code(unsigned int type)
      return MARPA_ERR_SOURCE_TYPE_IS_UNKNOWN;
 }
 
-@*0 Trace functions.
-Many of the
-trace functions use
-a ``trace Earley item" which is
-tracked on a per-recognizer basis.
-@<Widely aligned recognizer elements@> =
-EIM t_trace_earley_item;
-@ @<Initialize recognizer elements@> =
-r->t_trace_earley_item = NULL;
-@ This function returns the AHFA state ID of an Earley item,
-and sets the trace Earley item,
-if it successfully finds an Earley item
-in the trace Earley set with the specified
-AHFA state ID and origin earleme.
-If there is no such Earley item,
-it returns |-1|,
-and clears the trace Earley item.
-On failure for other reasons,
-it returns |-2|,
-and clears the trace Earley item.
-@ The trace Earley item is cleared if no matching
-Earley item is found, and on failure.
-The trace source link is always
-cleared, regardless of success or failure.
-
-@ This function sets
-the trace Earley set to the one indicated
-by the ID
-of the argument.
-On success,
-the earleme of the new trace Earley set is
-returned.
-@ Various other trace data depends on the Earley
-set, and must be consistent with it.
-This function clears all such data,
-unless it is called while the recognizer is in
-a trace-unsafe state (initial, fatal, etc.)
-or unless the the Earley set requested by the
-argument is already the trace Earley set.
-On failure because the ID is for a non-existent
-Earley set which does not
-exist, |-1| is returned.
-The upper levels may choose to treat this as a soft failure.
-This may be treated as a soft failure by the upper levels.
-On failure because the ID is illegal (less than zero)
-or for other failures, |-2| is returned.
-The upper levels may choose to treat these as hard failures.
-@ @<Function definitions@> =
-Marpa_Earleme
-_marpa_r_earley_set_trace (Marpa_Recognizer r, Marpa_Earley_Set_ID set_id)
-{
-  ES earley_set;
-  const int es_does_not_exist = -1;
-  @<Return |-2| on failure@>@/
-  @<Unpack recognizer objects@>@;
-  @<Fail if not trace-safe@>@;
-    if (r->t_trace_earley_set && Ord_of_ES (r->t_trace_earley_set) == set_id)
-      { /* If the set is already
-	   the current earley set,
-	   return successfully without resetting any of the dependant data */
-	return Earleme_of_ES (r->t_trace_earley_set);
-      }
-  @<Clear trace Earley set dependent data@>@;
-    if (set_id < 0)
-    {
-	MARPA_ERROR(MARPA_ERR_INVALID_LOCATION);
-	return failure_indicator;
-    }
-  r_update_earley_sets (r);
-    if (set_id >= DSTACK_LENGTH (r->t_earley_set_stack))
-      {
-	return es_does_not_exist;
-      }
-    earley_set = ES_of_R_by_Ord (r, set_id);
-  r->t_trace_earley_set = earley_set;
-  return Earleme_of_ES(earley_set);
-}
-
-@ @<Clear trace Earley set dependent data@> = {
-  r->t_trace_earley_set = NULL;
-  trace_earley_item_clear(r);
-  @<Clear trace postdot item data@>@;
-}
-
-@ @<Function definitions@> =
-Marpa_AHFA_State_ID
-_marpa_r_earley_item_trace (Marpa_Recognizer r, Marpa_Earley_Item_ID item_id)
-{
-  const int eim_does_not_exist = -1;
-  @<Return |-2| on failure@>@;
-  ES trace_earley_set;
-  EIM earley_item;
-  EIM *earley_items;
-  @<Unpack recognizer objects@>@;
-  @<Fail if not trace-safe@>@;
-  trace_earley_set = r->t_trace_earley_set;
-  if (!trace_earley_set)
-    {
-      @<Clear trace Earley set dependent data@>@;
-      MARPA_ERROR(MARPA_ERR_NO_TRACE_ES);
-      return failure_indicator;
-    }
-  trace_earley_item_clear (r);
-  if (item_id < 0)
-    {
-      MARPA_ERROR (MARPA_ERR_EIM_ID_INVALID);
-      return failure_indicator;
-    }
-  if (item_id >= EIM_Count_of_ES (trace_earley_set))
-    {
-      return eim_does_not_exist;
-    }
-  earley_items = EIMs_of_ES (trace_earley_set);
-  earley_item = earley_items[item_id];
-  r->t_trace_earley_item = earley_item;
-  return AHFAID_of_EIM (earley_item);
-}
-
-@ Clear all the data elements specifically
-for the trace Earley item.
-The difference between this code and
-|trace_earley_item_clear| is
-that |trace_earley_item_clear| 
-also clears the source link.
-@<Clear trace Earley item data@> =
-      r->t_trace_earley_item = NULL;
-
-@ @<Function definitions@> =
-PRIVATE void trace_earley_item_clear(RECCE r)
-{
-    @<Clear trace Earley item data@>@/
-    trace_source_link_clear(r);
-}
-
-@ @<Function definitions@> =
-Marpa_Earley_Set_ID _marpa_r_earley_item_origin(Marpa_Recognizer r)
-{
-    @<Return |-2| on failure@>@;
-    EIM item = r->t_trace_earley_item;
-  @<Unpack recognizer objects@>@;
-  @<Fail if not trace-safe@>@;
-    if (!item) {
-        @<Clear trace Earley item data@>@;
-        MARPA_ERROR(MARPA_ERR_NO_TRACE_EIM);
-        return failure_indicator;
-    }
-    return Origin_Ord_of_EIM(item);
-}
-
 @** Earley index (EIX) code.
 Postdot items are of two kinds: Earley indexes
 and Leo items.
@@ -7946,7 +7943,7 @@ typedef struct s_leo_item LIM_Object;
 @<Widely aligned LIM elements@> =
     CIL t_cil;
 
-@*0 Trace functions.
+@** Leo item (LIM) trace functions.
 The functions in this section are all accessors.
 The trace Leo item is selected by setting the trace postdot item
 to a Leo item.
@@ -8064,7 +8061,7 @@ PRIVATE PIM first_pim_of_es_by_isyid(ES set, ISYID isyid)
    return pim_isy_p ? *pim_isy_p : NULL;
 }
 
-@*0 Trace functions.
+@** PIM Trace functions.
 Many of the
 trace functions use
 a ``trace postdot item".
@@ -8518,7 +8515,7 @@ void earley_item_ambiguate (struct marpa_r * r, EIM item)
   LV_First_Token_SRCL_of_EIM (item) = NULL;
 }
 
-@*0 Trace functions.
+@** Link trace functions.
 Many trace functions track a ``trace source link".
 There is only one of these, shared among all types of
 source link.
@@ -11233,6 +11230,122 @@ MARPA_ASSERT(Position_of_OR(or_node) <= 1 || predecessor);
     }
 }
 
+@** Or-node trace functions.
+
+@ This is common logic in the or-node trace functions.
+In the case of a nulling bocage, the or count of
+the bocage is zero,
+so that any |or_node_id| is either a soft
+or a hard error,
+depending on whether it is non-negative
+or negative.
+@<Check |or_node_id|; set |or_node|@> =
+{
+  if (UNLIKELY (or_node_id >= OR_Count_of_B (b)))
+    {
+      return -1;
+    }
+  if (UNLIKELY (or_node_id < 0))
+    {
+      MARPA_ERROR (MARPA_ERR_ORID_NEGATIVE);
+      return failure_indicator;
+    }
+  {
+    OR *const or_nodes = ORs_of_B (b);
+    if (UNLIKELY (!or_nodes))
+      {
+	MARPA_ERROR (MARPA_ERR_NO_OR_NODES);
+	return failure_indicator;
+      }
+    or_node = or_nodes[or_node_id];
+  }
+}
+
+@ @<Function definitions@> =
+int _marpa_b_or_node_set(Marpa_Bocage b,
+  Marpa_Or_Node_ID or_node_id)
+{
+  OR or_node;
+  @<Return |-2| on failure@>@;
+  @<Unpack bocage objects@>@;
+  @<Fail if fatal error@>@;
+  @<Check |or_node_id|; set |or_node|@>@;
+  return ES_Ord_of_OR(or_node);
+}
+
+@ @<Function definitions@> =
+int _marpa_b_or_node_origin(Marpa_Bocage b,
+  Marpa_Or_Node_ID or_node_id)
+{
+  OR or_node;
+  @<Return |-2| on failure@>@;
+  @<Unpack bocage objects@>@;
+  @<Fail if fatal error@>@;
+  @<Check |or_node_id|; set |or_node|@>@;
+  return Origin_Ord_of_OR(or_node);
+}
+
+@ @<Function definitions@> =
+Marpa_IRL_ID _marpa_b_or_node_irl(Marpa_Bocage b,
+  Marpa_Or_Node_ID or_node_id)
+{
+  OR or_node;
+  @<Return |-2| on failure@>@;
+  @<Unpack bocage objects@>@;
+  @<Fail if fatal error@>@;
+  @<Check |or_node_id|; set |or_node|@>@;
+  return ID_of_IRL(IRL_of_OR(or_node));
+}
+
+@ @<Function definitions@> =
+int _marpa_b_or_node_position(Marpa_Bocage b,
+  Marpa_Or_Node_ID or_node_id)
+{
+  OR or_node;
+  @<Return |-2| on failure@>@;
+  @<Unpack bocage objects@>@;
+  @<Fail if fatal error@>@;
+  @<Check |or_node_id|; set |or_node|@>@;
+  return Position_of_OR(or_node);
+}
+
+@ @<Function definitions@> =
+int _marpa_b_or_node_first_and(Marpa_Bocage b,
+  Marpa_Or_Node_ID or_node_id)
+{
+  OR or_node;
+  @<Return |-2| on failure@>@;
+  @<Unpack bocage objects@>@;
+  @<Fail if fatal error@>@;
+  @<Check |or_node_id|; set |or_node|@>@;
+  return First_ANDID_of_OR(or_node);
+}
+
+@ @<Function definitions@> =
+int _marpa_b_or_node_last_and(Marpa_Bocage b,
+  Marpa_Or_Node_ID or_node_id)
+{
+  OR or_node;
+  @<Return |-2| on failure@>@;
+  @<Unpack bocage objects@>@;
+  @<Fail if fatal error@>@;
+  @<Check |or_node_id|; set |or_node|@>@;
+  return First_ANDID_of_OR(or_node)
+      + AND_Count_of_OR(or_node) - 1;
+}
+
+@ @<Function definitions@> =
+int _marpa_b_or_node_and_count(Marpa_Bocage b,
+  Marpa_Or_Node_ID or_node_id)
+{
+  OR or_node;
+  @<Return |-2| on failure@>@;
+  @<Unpack bocage objects@>@;
+  @<Fail if fatal error@>@;
+  @<Check |or_node_id|; set |or_node|@>@;
+  return AND_Count_of_OR(or_node);
+}
+
 @** Whole element ID (WHEID) code.
 The "whole elements" of the grammar are the symbols
 and the completed rules.
@@ -11717,7 +11830,7 @@ typedef struct s_and_node AND_Object;
     MARPA_ASSERT(and_node_id == unique_draft_and_node_count);
 }
 
-@*0 Trace functions.
+@** And-node trace functions.
 
 @ @<Function definitions@> =
 int _marpa_b_and_node_count(Marpa_Bocage b)
@@ -11728,7 +11841,7 @@ int _marpa_b_and_node_count(Marpa_Bocage b)
   return AND_Count_of_B(b);
 }
 
-@ @<Check |and_node_id|; set |and_node|@> =
+@ @<Check bocage |and_node_id|; set |and_node|@> =
 {
   if (and_node_id >= AND_Count_of_B (b))
     {
@@ -11757,7 +11870,7 @@ int _marpa_b_and_node_parent(Marpa_Bocage b,
   AND and_node;
   @<Return |-2| on failure@>@;
   @<Unpack bocage objects@>@;
-  @<Check |and_node_id|; set |and_node|@>@;
+  @<Check bocage |and_node_id|; set |and_node|@>@;
   return ID_of_OR (OR_of_AND (and_node));
 }
 
@@ -11768,7 +11881,7 @@ int _marpa_b_and_node_predecessor(Marpa_Bocage b,
   AND and_node;
   @<Return |-2| on failure@>@;
   @<Unpack bocage objects@>@;
-  @<Check |and_node_id|; set |and_node|@>@;
+  @<Check bocage |and_node_id|; set |and_node|@>@;
     {
       const OR predecessor_or = Predecessor_OR_of_AND (and_node);
       const ORID predecessor_or_id =
@@ -11784,7 +11897,7 @@ int _marpa_b_and_node_cause(Marpa_Bocage b,
   AND and_node;
   @<Return |-2| on failure@>@;
   @<Unpack bocage objects@>@;
-    @<Check |and_node_id|; set |and_node|@>@;
+    @<Check bocage |and_node_id|; set |and_node|@>@;
     {
       const OR cause_or = Cause_OR_of_AND (and_node);
       const ORID cause_or_id =
@@ -11800,7 +11913,7 @@ int _marpa_b_and_node_symbol(Marpa_Bocage b,
   AND and_node;
   @<Return |-2| on failure@>@;
   @<Unpack bocage objects@>@;
-  @<Check |and_node_id|; set |and_node|@>@;
+  @<Check bocage |and_node_id|; set |and_node|@>@;
   {
     const OR cause_or = Cause_OR_of_AND (and_node);
     const XSYID symbol_id =
@@ -11817,7 +11930,7 @@ Marpa_Symbol_ID _marpa_b_and_node_token(Marpa_Bocage b,
   AND and_node;
   @<Return |-2| on failure@>@;
   @<Unpack bocage objects@>@;
-    @<Check |and_node_id|; set |and_node|@>@;
+    @<Check bocage |and_node_id|; set |and_node|@>@;
     token = and_node_token(and_node);
     if (token) {
       if (value_p)
@@ -12343,7 +12456,7 @@ Marpa_Or_Node_ID _marpa_b_top_or_node(Marpa_Bocage b)
   return Top_ORID_of_B(b);
 }
 
-@*0 Ambiguity metric
+@*0 Ambiguity metric.
 An ambiguity metric, named vaguely because it is vaguely defined.
 It is 1 if the parse in not ambiguous,
 and greater than 1 if it is ambiguous.
@@ -12426,122 +12539,6 @@ Is this bocage for a nulling parse?
 unsigned int t_is_nulling:1;
 @ @<Initialize bocage elements@> =
 B_is_Nulling(b) = 0;
-
-@*0 Trace functions.
-
-@ This is common logic in the or-node trace functions.
-In the case of a nulling bocage, the or count of
-the bocage is zero,
-so that any |or_node_id| is either a soft
-or a hard error,
-depending on whether it is non-negative
-or negative.
-@<Check |or_node_id|; set |or_node|@> =
-{
-  if (UNLIKELY (or_node_id >= OR_Count_of_B (b)))
-    {
-      return -1;
-    }
-  if (UNLIKELY (or_node_id < 0))
-    {
-      MARPA_ERROR (MARPA_ERR_ORID_NEGATIVE);
-      return failure_indicator;
-    }
-  {
-    OR *const or_nodes = ORs_of_B (b);
-    if (UNLIKELY (!or_nodes))
-      {
-	MARPA_ERROR (MARPA_ERR_NO_OR_NODES);
-	return failure_indicator;
-      }
-    or_node = or_nodes[or_node_id];
-  }
-}
-
-@ @<Function definitions@> =
-int _marpa_b_or_node_set(Marpa_Bocage b,
-  Marpa_Or_Node_ID or_node_id)
-{
-  OR or_node;
-  @<Return |-2| on failure@>@;
-  @<Unpack bocage objects@>@;
-  @<Fail if fatal error@>@;
-  @<Check |or_node_id|; set |or_node|@>@;
-  return ES_Ord_of_OR(or_node);
-}
-
-@ @<Function definitions@> =
-int _marpa_b_or_node_origin(Marpa_Bocage b,
-  Marpa_Or_Node_ID or_node_id)
-{
-  OR or_node;
-  @<Return |-2| on failure@>@;
-  @<Unpack bocage objects@>@;
-  @<Fail if fatal error@>@;
-  @<Check |or_node_id|; set |or_node|@>@;
-  return Origin_Ord_of_OR(or_node);
-}
-
-@ @<Function definitions@> =
-Marpa_IRL_ID _marpa_b_or_node_irl(Marpa_Bocage b,
-  Marpa_Or_Node_ID or_node_id)
-{
-  OR or_node;
-  @<Return |-2| on failure@>@;
-  @<Unpack bocage objects@>@;
-  @<Fail if fatal error@>@;
-  @<Check |or_node_id|; set |or_node|@>@;
-  return ID_of_IRL(IRL_of_OR(or_node));
-}
-
-@ @<Function definitions@> =
-int _marpa_b_or_node_position(Marpa_Bocage b,
-  Marpa_Or_Node_ID or_node_id)
-{
-  OR or_node;
-  @<Return |-2| on failure@>@;
-  @<Unpack bocage objects@>@;
-  @<Fail if fatal error@>@;
-  @<Check |or_node_id|; set |or_node|@>@;
-  return Position_of_OR(or_node);
-}
-
-@ @<Function definitions@> =
-int _marpa_b_or_node_first_and(Marpa_Bocage b,
-  Marpa_Or_Node_ID or_node_id)
-{
-  OR or_node;
-  @<Return |-2| on failure@>@;
-  @<Unpack bocage objects@>@;
-  @<Fail if fatal error@>@;
-  @<Check |or_node_id|; set |or_node|@>@;
-  return First_ANDID_of_OR(or_node);
-}
-
-@ @<Function definitions@> =
-int _marpa_b_or_node_last_and(Marpa_Bocage b,
-  Marpa_Or_Node_ID or_node_id)
-{
-  OR or_node;
-  @<Return |-2| on failure@>@;
-  @<Unpack bocage objects@>@;
-  @<Fail if fatal error@>@;
-  @<Check |or_node_id|; set |or_node|@>@;
-  return First_ANDID_of_OR(or_node)
-      + AND_Count_of_OR(or_node) - 1;
-}
-
-@ @<Function definitions@> =
-int _marpa_b_or_node_and_count(Marpa_Bocage b,
-  Marpa_Or_Node_ID or_node_id)
-{
-  OR or_node;
-  @<Return |-2| on failure@>@;
-  @<Unpack bocage objects@>@;
-  @<Fail if fatal error@>@;
-  @<Check |or_node_id|; set |or_node|@>@;
-  return AND_Count_of_OR(or_node);
-}
 
 @** Ordering (O, ORDER) code.
 @<Public incomplete structures@> =
@@ -12646,7 +12643,7 @@ PRIVATE void order_free(ORDER o)
     const BOCAGE b = B_of_O(o);
     @<Unpack bocage objects@>@;
 
-@*0 Ambiguity metric
+@*0 Ambiguity metric.
 An ambiguity metric, named vaguely because it is vaguely defined.
 It is 1 if the parse in not ambiguous,
 and greater than 1 if it is ambiguous.
@@ -13467,7 +13464,7 @@ struct s_nook {
 };
 typedef struct s_nook NOOK_Object;
 
-@*0 Trace functions.
+@** Nook trace functions.
 
 @ This is common logic in the |NOOK| trace functions.
 @<Check |r| and |nook_id|;
