@@ -147,6 +147,7 @@ Ordering methods
 * Ordering overview::           
 * Ordering constructor::        
 * Ordering reference counting::  
+* Order accessor::              
 * Non-default ordering::        
 
 Tree methods
@@ -3140,6 +3141,7 @@ Failures: On failure, @minus{}2.
 * Ordering overview::           
 * Ordering constructor::        
 * Ordering reference counting::  
+* Order accessor::              
 * Non-default ordering::        
 @end menu
 
@@ -3175,7 +3177,7 @@ Return value: On success, the new ordering object.
 On failure, @code{NULL}.
 @end deftypefun
 
-@node Ordering reference counting, Non-default ordering, Ordering constructor, Ordering methods
+@node Ordering reference counting, Order accessor, Ordering constructor, Ordering methods
 @section Reference counting
 
 @deftypefun Marpa_Order marpa_o_ref ( @
@@ -3208,7 +3210,22 @@ base grammar, if necessary.
 
 @end deftypefun
 
-@node Non-default ordering,  , Ordering reference counting, Ordering methods
+@node Order accessor, Non-default ordering, Ordering reference counting, Ordering methods
+@section  Accessor
+@deftypefun int marpa_o_ambiguity_metric (Marpa_Order @var{o})
+Returns an ambiguity metric.
+For the time being, it is vaguely defined, but it does differentiate
+between an ambiguous and an unambiguous ordering.
+
+Return value:
+1 if the ordering is not for an ambiguous parse;
+a number greater than 1 if the ordering is for an ambiguous parse.
+
+Failures: On failure, @minus{}2.
+
+@end deftypefun
+
+@node Non-default ordering,  , Order accessor, Ordering methods
 @section Non-default ordering
 
 @deftypefun int marpa_o_high_rank_only_set ( @

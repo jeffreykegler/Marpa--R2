@@ -12353,10 +12353,6 @@ For convenience, it is initialized to 1.
 @ @<Initialize bocage elements@> =
 Ambiguity_Metric_of_B(b) = 1;
 
-@*0 Reference counting and destructors.
-@ @<Int aligned bocage elements@>= int t_ref_count;
-@ @<Initialize bocage elements@> =
-b->t_ref_count = 1;
 @ @<Function definitions@> =
 int marpa_b_ambiguity_metric(Marpa_Bocage b)
 {
@@ -12366,6 +12362,10 @@ int marpa_b_ambiguity_metric(Marpa_Bocage b)
   return Ambiguity_Metric_of_B(b);
 }
 
+@*0 Reference counting and destructors.
+@ @<Int aligned bocage elements@>= int t_ref_count;
+@ @<Initialize bocage elements@> =
+b->t_ref_count = 1;
 @ Decrement the bocage reference count.
 @<Function definitions@> =
 PRIVATE void
@@ -12591,6 +12591,7 @@ Marpa_Order marpa_o_new(Marpa_Bocage b)
     bocage_ref(b);
     @<Pre-initialize order elements@>@;
     O_is_Nulling(o) = B_is_Nulling(b);
+    Ambiguity_Metric_of_O(o) = Ambiguity_Metric_of_B(b);
     return o;
 }
 
@@ -12644,6 +12645,23 @@ PRIVATE void order_free(ORDER o)
 @ @<Unpack order objects@> =
     const BOCAGE b = B_of_O(o);
     @<Unpack bocage objects@>@;
+
+@*0 Ambiguity metric
+An ambiguity metric, named vaguely because it is vaguely defined.
+It is 1 if the parse in not ambiguous,
+and greater than 1 if it is ambiguous.
+For convenience, it is initialized to 1.
+@d Ambiguity_Metric_of_O(o) ((o)->t_ambiguity_metric)
+@ @<Int aligned order elements@>= int t_ambiguity_metric;
+
+@ @<Function definitions@> =
+int marpa_o_ambiguity_metric(Marpa_Order o)
+{
+  @<Return |-2| on failure@>@;
+  @<Unpack order objects@>@;
+  @<Fail if fatal error@>@;
+  return Ambiguity_Metric_of_O(o);
+}
 
 @*0 Order is nulling?.
 Is this order for a nulling parse?
@@ -12760,6 +12778,8 @@ int marpa_o_rank( Marpa_Order o)
   OR *const or_nodes = ORs_of_B (b);
   const int or_node_count_of_b = OR_Count_of_B (b);
   int or_node_id = 0;
+  int ambiguity_metric = 1;
+
   while (or_node_id < or_node_count_of_b)
     {
       const OR work_or_node = or_nodes[or_node_id];
@@ -12767,6 +12787,7 @@ int marpa_o_rank( Marpa_Order o)
 	@<Sort |work_or_node| for "high rank only"@>@;
       or_node_id++;
     }
+  Ambiguity_Metric_of_O(o) = ambiguity_metric;
 }
 
 @ @<Sort |work_or_node| for "high rank only"@> =
@@ -12800,6 +12821,7 @@ int marpa_o_rank( Marpa_Order o)
       {
 	int final_count = (order - order_base) - 1;
 	*order_base = final_count;
+	ambiguity_metric = MAX (ambiguity_metric, final_count);
 	my_obstack_confirm_fast (obs, sizeof (ANDID) * (final_count + 1));
 	and_node_orderings[or_node_id] = my_obstack_finish (obs);
       }

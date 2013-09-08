@@ -1670,9 +1670,9 @@ sub Marpa::R2::Scanless::R::ambiguity_metric {
     my $thick_g1_recce =
         $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
     $thick_g1_recce->ordering_create();
-    my $bocage = $thick_g1_recce->[Marpa::R2::Internal::Recognizer::B_C];
-    return 0 if not $bocage;
-    return $bocage->ambiguity_metric();
+    my $ordering = $thick_g1_recce->[Marpa::R2::Internal::Recognizer::O_C];
+    return 0 if not $ordering;
+    return $ordering->ambiguity_metric();
 } ## end sub Marpa::R2::Scanless::R::ambiguity_metric
 
 sub Marpa::R2::Scanless::R::value {
