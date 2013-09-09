@@ -1,10 +1,3 @@
-* Update SLIF semantics documents
-
-Later:
-
-* Add pseudo-symbols: :null, :empty -- sugar for empty RHS alternative
-
-* Add pseudo-symbols: :external, :never -- sugar for [^\d\D]
 
 * Problem with indirect nulling.  Modifying Semantics::Null to add explicit
   empty production changes semantics.  "Topmost nulled" rule seems not to be
