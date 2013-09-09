@@ -34,17 +34,9 @@ arbitrarily, suddenly and without notice.
 
 This is very often wanted, and its absence is awkward to workaround.
 
-=head2 Allow direct initialization of the per-parse object of the SLIF recognizer
-
-To create a per-parse object of the SLIF recognizer, you can specify
-a class in which a constructor is located, but you cannot provide an
-object directly.  There are workarounds, but
-this is awkward if what you want in the contents of the object
-depends in some way on the calling enviroment of the SLIF recognizer.
-
 =head1 To think about
 
-marpa_r_progress_report_reset() was documented, but it no longer used.
+marpa_r_progress_report_reset() was documented, but is no longer used.
 I probably should put it into the test suite.
 
 =head1 Dubious
