@@ -32,17 +32,25 @@ arbitrarily, suddenly and without notice.
 
 That way ranking methods will affect the ASF.
 
-=head22 Allow :start to be optional
+=head2 Allow :start to be optional
 
-=head22 Add pseudo-symbols: :null, :empty -- sugar for empty RHS alternative
+This is github issue #18.
 
-=head22 Add pseudo-symbols: :external, :never -- sugar for [^\d\D]
+=head2 Add pseudo-symbols: :null, :empty -- sugar for empty RHS alternative
+
+=head2 Add pseudo-symbols: :external, :never -- sugar for [^\d\D]
 
 =head2 Add case-insensitivity to strings
 
 This is very often wanted, and its absence is awkward to workaround.
 
 =head1 To think about
+
+=head2 Sublexers
+
+Add the ability to switch lexers.
+
+=head2 marpa_r_progress_report_reset()
 
 marpa_r_progress_report_reset() was documented, but is no longer used.
 I probably should put it into the test suite.

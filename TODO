@@ -1,7 +1,0 @@
-* "Context accessor" in actions to return current grammar, current
-rule ID.
-
-* "Context accessor" in actions to return start of token.
-
-* Create tests for Symbol::RANK and DEFAULT_RANK, then document
-them
