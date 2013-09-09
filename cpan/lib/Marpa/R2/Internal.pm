@@ -24,7 +24,7 @@ use warnings;
 use Carp;
 
 use vars qw($VERSION $STRING_VERSION);
-$VERSION        = '2.069_002';
+$VERSION        = '2.070000';
 $STRING_VERSION = $VERSION;
 $VERSION = eval $VERSION;
 
