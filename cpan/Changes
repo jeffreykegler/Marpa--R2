@@ -15,32 +15,27 @@
 
 Revision history for Marpa::R2
 
-2.069_003
+2.071_000
+
+   * New series of developer's releases -- 2.069_003 leap-frogged
 
    * Work on ASF's
 
-2.069_002
+2.070000 Sun Sep  8 17:52:17 PDT 2013
 
-   * Release candidate
-
-   * Doc fixes
-
-   * Fix bug: unproductive symbol in G0 sequence was causing SEGV
-     instead of diagnostic.
-
-2.069_001
+   * Semantics docs updated for SLIF.  It is now possible to become a Marpa::R2
+     expert without learning anything about its original interface, the NAIF.
 
    * Per-parse arg can now be specified explicitly as arg
      of $slr->value().
 
    * Added semantics_package named argument to SLIF recognizer.
-     
-   * Semantics docs updated for SLIF.
+
+   * Fix bug: unproductive symbol in G0 sequence was causing SEGV
+     instead of diagnostic.
 
    * Fix SLIF bug when using default action with null parse --
      default action was not being called, it now is.
-
-   * New series of developer's releases.
 
 2.068000 Thu Aug 22 19:13:34 PDT 2013
 
