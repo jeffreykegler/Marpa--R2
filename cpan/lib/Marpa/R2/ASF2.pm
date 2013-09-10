@@ -224,7 +224,6 @@ sub Marpa::R2::Scanless::ASF2::new {
     my $rule_resolutions = Marpa::R2::Internal::Recognizer::semantics_set( $recce);
 
     my $default_blessing_by_rule_id   = $rule_resolutions->{blessing};
-    my $default_blessing_by_lexeme_id = $rule_resolutions->{blessing_by_lexeme};
 
     my @rule_blessing   = ();
     my $highest_rule_id = $grammar_c->highest_rule_id();
@@ -257,14 +256,13 @@ sub Marpa::R2::Scanless::ASF2::new {
                 normalize_asf_blessing($name);
             next SYMBOL;
         }
-        if (defined(
-                my $blessing = $default_blessing_by_lexeme_id->[$symbol_id]
-            )
-            )
-        {
+        my $blessing =
+            Marpa::R2::Internal::Recognizer::lexeme_blessing_find( $recce,
+            $symbol_id );
+        if ( defined $blessing ) {
             $symbol_blessing[$symbol_id] = $blessing;
             next SYMBOL;
-        } ## end if ( defined( my $blessing = $default_blessing_by_lexeme_id...))
+        }
         $symbol_blessing[$symbol_id] = join q{::}, $default_blessing,
             normalize_asf_blessing($name);
     } ## end for ( my $symbol_id = 0; $symbol_id <= $highest_symbol_id...)
