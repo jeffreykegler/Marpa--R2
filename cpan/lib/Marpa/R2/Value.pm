@@ -165,42 +165,6 @@ sub Marpa::R2::Internal::Recognizer::resolve_action {
 
 } ## end sub Marpa::R2::Internal::Recognizer::resolve_action
 
-# Elaborate the semantics for a lexeme.  "Resolve" may not be quite
-# the right term, since (at least right now) closures are not
-# involved.
-sub Marpa::R2::Internal::Recognizer::resolve_lexeme_semantics {
-    my ( $recce, $lexeme_id ) = @_;
-    my $grammar = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
-    my $symbols = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
-    my $tracer  = $grammar->[Marpa::R2::Internal::Grammar::TRACER];
-    my $trace_actions =
-        $recce->[Marpa::R2::Internal::Recognizer::TRACE_ACTIONS];
-    my $bless_package =
-        $grammar->[Marpa::R2::Internal::Grammar::BLESS_PACKAGE];
-    my $symbol = $symbols->[$lexeme_id];
-
-    my $semantics = $symbol->[Marpa::R2::Internal::Symbol::LEXEME_SEMANTICS];
-    $semantics = '::!default' if not defined $semantics;
-
-    my $blessing = $symbol->[Marpa::R2::Internal::Symbol::BLESSING];
-    return [ $semantics, '::undef' ] if not defined $blessing;
-    return [ $semantics, '::undef' ] if $blessing eq '::undef';
-    if ( $blessing =~ m/\A [:][:] /xms ) {
-        my $lexeme_name = $tracer->symbol_name($lexeme_id);
-        return qq{Symbol "$lexeme_name" has unknown blessing: "$blessing"};
-    }
-    if ( $blessing =~ m/ [:][:] /xms ) {
-        return [ $semantics, $blessing ];
-    }
-    if ( not defined $bless_package ) {
-        my $lexeme_name = $tracer->symbol_name($lexeme_id);
-        return
-            qq{Symbol "$lexeme_name" needs a blessing package, but grammar has none\n}
-            . qq{  The blessing for "$lexeme_name" was "$blessing"\n};
-    } ## end if ( not defined $bless_package )
-    return [ $semantics, $bless_package . q{::} . $blessing ];
-} ## end sub Marpa::R2::Internal::Recognizer::resolve_lexeme_semantics
-
 sub Marpa::R2::Internal::Recognizer::add_blessing {
     my ( $recce, $resolution, $blessing, $p_error ) = @_;
     my $grammar = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
@@ -234,6 +198,50 @@ sub Marpa::R2::Internal::Recognizer::add_blessing {
         $semantics, ( join q{}, $bless_package, q{::}, $blessing )
     ];
 } ## end sub Marpa::R2::Internal::Recognizer::add_blessing
+
+# Find the semantics for a lexeme.
+sub Marpa::R2::Internal::Recognizer::lexeme_semantics_find {
+    my ( $recce, $lexeme_id ) = @_;
+    my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
+    my $symbols   = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
+    my $symbol    = $symbols->[$lexeme_id];
+    my $semantics = $symbol->[Marpa::R2::Internal::Symbol::LEXEME_SEMANTICS];
+    return '::!default' if not defined $semantics;
+    return $semantics;
+} ## end sub Marpa::R2::Internal::Recognizer::lexeme_semantics_find
+
+# Find the semantics for a lexeme.
+sub Marpa::R2::Internal::Recognizer::lexeme_blessing_find {
+    my ( $recce, $lexeme_id ) = @_;
+    my $grammar  = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
+    my $symbols  = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
+    my $symbol   = $symbols->[$lexeme_id];
+    my $blessing = $symbol->[Marpa::R2::Internal::Symbol::BLESSING];
+
+    return '::undef' if not defined $blessing;
+    return '::undef' if $blessing eq '::undef';
+    if ( $blessing =~ m/\A [:][:] /xms ) {
+        my $tracer      = $grammar->[Marpa::R2::Internal::Grammar::TRACER];
+        my $lexeme_name = $tracer->symbol_name($lexeme_id);
+        $recce->[Marpa::R2::Internal::Recognizer::ERROR_MESSAGE] =
+            qq{Symbol "$lexeme_name" has unknown blessing: "$blessing"};
+        return;
+    } ## end if ( $blessing =~ m/\A [:][:] /xms )
+    if ( $blessing =~ m/ [:][:] /xms ) {
+        return $blessing;
+    }
+    my $bless_package =
+        $grammar->[Marpa::R2::Internal::Grammar::BLESS_PACKAGE];
+    if ( not defined $bless_package ) {
+        my $tracer      = $grammar->[Marpa::R2::Internal::Grammar::TRACER];
+        my $lexeme_name = $tracer->symbol_name($lexeme_id);
+        $recce->[Marpa::R2::Internal::Recognizer::ERROR_MESSAGE] =
+            qq{Symbol "$lexeme_name" needs a blessing package, but grammar has none\n}
+            . qq{  The blessing for "$lexeme_name" was "$blessing"\n};
+        return;
+    } ## end if ( not defined $bless_package )
+    return $bless_package . q{::} . $blessing;
+} ## end sub Marpa::R2::Internal::Recognizer::lexeme_blessing_find
 
 sub Marpa::R2::Internal::Recognizer::default_semantics {
     my ($recce)   = @_;
@@ -350,19 +358,31 @@ sub Marpa::R2::Internal::Recognizer::default_semantics {
 
     my @lexeme_resolutions = ();
     SYMBOL: for my $lexeme_id ( 0 .. $#{$symbols} ) {
-        my $lexeme_resolution =
-            Marpa::R2::Internal::Recognizer::resolve_lexeme_semantics( $recce,
+        my $semantics =
+            Marpa::R2::Internal::Recognizer::lexeme_semantics_find( $recce,
             $lexeme_id );
-        if ( not ref $lexeme_resolution ) {
+        if ( not defined $semantics ) {
             my $message =
                   "Could not determine lexeme's semantics\n"
                 . q{  Lexeme was }
                 . $grammar->symbol_name($lexeme_id) . "\n";
-            $message .= qq{  $lexeme_resolution\n}
-                if defined $lexeme_resolution;
+            $message .= qq{  }
+                . $recce->[Marpa::R2::Internal::Recognizer::ERROR_MESSAGE];
             Marpa::R2::exception($message);
-        } ## end if ( not ref $lexeme_resolution )
-        $lexeme_resolutions[$lexeme_id] = $lexeme_resolution;
+        } ## end if ( not defined $semantics )
+        my $blessing =
+            Marpa::R2::Internal::Recognizer::lexeme_blessing_find( $recce,
+            $lexeme_id );
+        if ( not defined $blessing ) {
+            my $message =
+                  "Could not determine lexeme's blessing\n"
+                . q{  Lexeme was }
+                . $grammar->symbol_name($lexeme_id) . "\n";
+            $message .= qq{  }
+                . $recce->[Marpa::R2::Internal::Recognizer::ERROR_MESSAGE];
+            Marpa::R2::exception($message);
+        } ## end if ( not defined $blessing )
+        $lexeme_resolutions[$lexeme_id] = [ $semantics, $blessing ];
 
     } ## end SYMBOL: for my $lexeme_id ( 0 .. $#{$symbols} )
 
