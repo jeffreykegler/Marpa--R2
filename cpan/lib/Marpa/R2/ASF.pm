@@ -451,7 +451,7 @@ sub Marpa::R2::Internal::ASF::blessings_set {
         my $blessing =
             Marpa::R2::Internal::Recognizer::rule_blessing_find( $recce,
             $rule_id );
-        if ( defined $blessing ) {
+        if ( '::' ne substr $blessing, 0, 2 ) {
             $rule_blessing[$rule_id] = $blessing;
             next RULE;
         }
@@ -473,7 +473,7 @@ sub Marpa::R2::Internal::ASF::blessings_set {
         my $blessing =
             Marpa::R2::Internal::Recognizer::lexeme_blessing_find( $recce,
             $symbol_id );
-        if ( defined $blessing ) {
+        if ( '::' ne substr $blessing, 0, 2 ) {
             $symbol_blessing[$symbol_id] = $blessing;
             next SYMBOL;
         }
