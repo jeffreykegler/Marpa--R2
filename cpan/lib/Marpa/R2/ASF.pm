@@ -438,11 +438,6 @@ sub Marpa::R2::Internal::ASF::blessings_set {
     my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
 
-    my $rule_resolutions =
-        Marpa::R2::Internal::Recognizer::semantics_set($recce);
-
-    my $default_blessing_by_rule_id = $rule_resolutions->{blessing};
-
     my @rule_blessing   = ();
     my $highest_rule_id = $grammar_c->highest_rule_id();
     RULE: for ( my $rule_id = 0; $rule_id <= $highest_rule_id; $rule_id++ ) {
@@ -453,14 +448,13 @@ sub Marpa::R2::Internal::ASF::blessings_set {
                 normalize_asf_blessing($name);
             next RULE;
         }
-        if (defined(
-                my $blessing = $default_blessing_by_rule_id->[$rule_id]
-            )
-            )
-        {
+        my $blessing =
+            Marpa::R2::Internal::Recognizer::rule_blessing_find( $recce,
+            $rule_id );
+        if ( defined $blessing ) {
             $rule_blessing[$rule_id] = $blessing;
             next RULE;
-        } ## end if ( defined( my $blessing = $default_blessing_by_rule_id...))
+        }
         $rule_blessing[$rule_id] = join q{::}, $default_blessing,
             normalize_asf_blessing($name);
     } ## end RULE: for ( my $rule_id = 0; $rule_id <= $highest_rule_id; ...)
