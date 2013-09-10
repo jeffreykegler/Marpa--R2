@@ -176,7 +176,26 @@ sub Marpa::R2::Internal::Recognizer::lexeme_semantics_find {
     return $semantics;
 } ## end sub Marpa::R2::Internal::Recognizer::lexeme_semantics_find
 
-# Find the semantics for a lexeme.
+# Find the blessing for a rule.
+sub Marpa::R2::Internal::Recognizer::rule_blessing_find {
+    my ( $recce, $rule_id ) = @_;
+    my $grammar  = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
+    my $rules    = $grammar->[Marpa::R2::Internal::Grammar::RULES];
+    my $rule   = $rules->[$rule_id];
+    my $blessing = $rule->[Marpa::R2::Internal::Rule::BLESSING];
+    $blessing = '::undef' if not defined $blessing;
+    return $blessing if $blessing eq '::undef';
+    my $bless_package =
+        $grammar->[Marpa::R2::Internal::Grammar::BLESS_PACKAGE];
+    if ( not defined $bless_package ) {
+        Marpa::R2::exception(
+                  qq{A blessed rule is in a grammar with no bless_package\n}
+                . qq{  The rule was blessed as "$blessing"\n} );
+    }
+    return join q{}, $bless_package, q{::}, $blessing ;
+} ## end sub Marpa::R2::Internal::Recognizer::rule_blessing_find
+
+# Find the blessing for a lexeme.
 sub Marpa::R2::Internal::Recognizer::lexeme_blessing_find {
     my ( $recce, $lexeme_id ) = @_;
     my $grammar  = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
@@ -289,32 +308,25 @@ sub Marpa::R2::Internal::Recognizer::default_semantics {
         } ## end if ( not $rule_resolution )
 
         DETERMINE_BLESSING: {
-            my $blessing = $rule->[Marpa::R2::Internal::Rule::BLESSING];
-            last DETERMINE_BLESSING if not defined $blessing;
 
+            my $blessing =
+                Marpa::R2::Internal::Recognizer::rule_blessing_find( $recce,
+                $rule_id );
             my ( $closure_name, $closure, $semantics ) = @{$rule_resolution};
 
-            $semantics = '::array' if $semantics eq '::!default';
-            CHECK_SEMANTICS: {
-                last CHECK_SEMANTICS if $semantics eq '::array';
-                last CHECK_SEMANTICS if ( substr $semantics, 0, 1 ) eq '[';
-                Marpa::R2::exception(
-                    qq{Attempt to bless, but improper semantics: "$semantics"}
-                );
-            } ## end CHECK_SEMANTICS:
+            if ( $blessing ne '::undef' ) {
+                $semantics = '::array' if $semantics eq '::!default';
+                CHECK_SEMANTICS: {
+                    last CHECK_SEMANTICS if $semantics eq '::array';
+                    last CHECK_SEMANTICS
+                        if ( substr $semantics, 0, 1 ) eq '[';
+                    Marpa::R2::exception(
+                        qq{Attempt to bless, but improper semantics: "$semantics"}
+                    );
+                } ## end CHECK_SEMANTICS:
+            } ## end if ( $blessing ne '::undef' )
 
-            # Now figure out the blessings
-            my $bless_package =
-                $grammar->[Marpa::R2::Internal::Grammar::BLESS_PACKAGE];
-            if ( not defined $bless_package ) {
-                Marpa::R2::exception(
-                    qq{A blessed rule is in a grammar with no bless_package\n}
-                        . qq{  The rule was blessed as "$blessing"\n} );
-            }
-            $rule_resolution = [
-                $closure_name, $closure, $semantics,
-                ( join q{}, $bless_package, q{::}, $blessing )
-            ];
+            $rule_resolution = [ $closure_name, $closure, $semantics, $blessing ];
         } ## end DETERMINE_BLESSING:
 
         $rule_resolutions->[$rule_id] = $rule_resolution;
@@ -486,7 +498,6 @@ sub Marpa::R2::Internal::Recognizer::semantics_set {
             } ## end REFINE_SEMANTICS:
 
             $semantics_by_rule_id[$rule_id] = $semantics;
-            $blessing = '::undef' if not $blessing;
             $blessing_by_rule_id[$rule_id] = $blessing;
 
             $closure_by_rule_id[$rule_id] = $closure;
