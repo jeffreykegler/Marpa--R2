@@ -1,5 +1,0 @@
-
-* Problem with indirect nulling.  Modifying Semantics::Null to add explicit
-  empty production changes semantics.  "Topmost nulled" rule seems not to be
-  followed in this case.  This is a "later to do" because the same issue exists
-  in the NAIF.
