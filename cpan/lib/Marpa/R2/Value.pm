@@ -548,12 +548,12 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                     last DETERMINE_RULE_RESOLUTION;
                 } ## end if ( $default_empty_action and $grammar_c...)
 
-                $rule_resolution = $default_action_resolution,;
+                $rule_resolution = $default_action_resolution;
             } ## end DETERMINE_RULE_RESOLUTION:
 
             if ( not $rule_resolution ) {
                 my $rule_desc;
-                if ( defined( my $slr = $Marpa::R2::Context::slr ) ) {
+                if ( defined $slr ) {
                     $rule_desc = $slr->show_rule($rule_id);
                 }
                 else { $rule_desc = $grammar->brief_rule($rule_id); }
@@ -563,7 +563,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                 $message .= qq{  Action was specified as "$action"\n}
                     if defined $action;
                 $message
-                    .= qq{  }
+                    .= q{  }
                     . $recce
                     ->[Marpa::R2::Internal::Recognizer::ERROR_MESSAGE];
                 Marpa::R2::exception($message);
@@ -619,7 +619,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                     . q{  Lexeme was }
                     . $grammar->symbol_name($lexeme_id) . "\n";
                 $message
-                    .= qq{  }
+                    .= q{  }
                     . $recce
                     ->[Marpa::R2::Internal::Recognizer::ERROR_MESSAGE];
                 Marpa::R2::exception($message);
@@ -633,7 +633,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                     . q{  Lexeme was }
                     . $grammar->symbol_name($lexeme_id) . "\n";
                 $message
-                    .= qq{  }
+                    .= q{  }
                     . $recce
                     ->[Marpa::R2::Internal::Recognizer::ERROR_MESSAGE];
                 Marpa::R2::exception($message);
@@ -1510,7 +1510,6 @@ sub Marpa::R2::Recognizer::ordering_create {
 
 # Returns false if no parse
 sub Marpa::R2::Recognizer::value {
-    ## no critic (Subroutines::RequireArgUnpacking)
     my ( $recce, $slr, $per_parse_arg ) = @_;
 
     if ( scalar @_ != 1 ) {
