@@ -46,7 +46,7 @@ sub restore_stdout {
 }
 
 # Marpa::R2::Display
-# name: SLIF Null Value Example
+# name: SLIF null value example
 
 sub do_L {
     shift;
@@ -105,7 +105,7 @@ $slr->read( \'x' );
 ## use critic
 
 # Marpa::R2::Display
-# name: SLIF Null Value Example Output
+# name: SLIF null value example output
 # start-after-line: END_OF_OUTPUT
 # end-before-line: '^END_OF_OUTPUT$'
 

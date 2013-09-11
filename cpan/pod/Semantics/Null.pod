@@ -98,7 +98,7 @@ null symbol.
 Here is an example:
 
 =for Marpa::R2::Display
-name: SLIF Null Value Example
+name: SLIF null value example
 normalize-whitespace: 1
 
     sub do_L {
@@ -200,7 +200,7 @@ All the other nulled nodes were discarded.
 Here is the output:
 
 =for Marpa::R2::Display
-name: SLIF Null Value Example Output
+name: SLIF null value example output
 normalize-whitespace: 1
 
     S(L(null A;null B;X(x));null R)
