@@ -959,10 +959,10 @@ sub Marpa::R2::Recognizer::value {
                 my ( $other_closure_name, undef, $other_semantics,
                     $other_blessing )
                     = @{$other_resolution};
-                next OTHER_RESOLUTION
-                    if $first_closure_name eq $other_closure_name;
-                next OTHER_RESOLUTION if $first_semantics eq $other_semantics;
-                next OTHER_RESOLUTION if $first_blessing  eq $other_blessing;
+
+                    if ($first_closure_name ne $other_closure_name
+                or $first_semantics ne $other_semantics
+                or $first_blessing  ne $other_blessing) {
                 Marpa::R2::exception(
                     'When nulled, symbol ',
                     $grammar->symbol_name($lhs_id),
@@ -973,6 +973,7 @@ sub Marpa::R2::Recognizer::value {
                         $recce, $rule_ids
                     )
                 );
+                }
             } ## end OTHER_RESOLUTION: for my $other_resolution (@other_resolutions)
 
             # Multiple rules, but they all have one semantics.
