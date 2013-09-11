@@ -410,25 +410,197 @@ sub show_semantics {
     return join q{ }, @op_descs;
 } ## end sub show_semantics
 
-sub Marpa::R2::Internal::Recognizer::evaluate {
+sub Marpa::R2::Recognizer::ordering_create {
+    my ($recce) = @_;
+    return if $recce->[Marpa::R2::Internal::Recognizer::NO_PARSE];
+    my $parse_set_arg =
+        $recce->[Marpa::R2::Internal::Recognizer::END_OF_PARSE];
+    my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
+    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
+    my $recce_c   = $recce->[Marpa::R2::Internal::Recognizer::C];
+
+    $grammar_c->throw_set(0);
+    my $bocage = $recce->[Marpa::R2::Internal::Recognizer::B_C] =
+        Marpa::R2::Thin::B->new( $recce_c, ( $parse_set_arg // -1 ) );
+    $grammar_c->throw_set(1);
+    if ( not $bocage ) {
+        $recce->[Marpa::R2::Internal::Recognizer::NO_PARSE] = 1;
+        return;
+    }
+    $recce->[Marpa::R2::Internal::Recognizer::O_C] =
+        Marpa::R2::Thin::O->new($bocage);
+
+    GIVEN_RANKING_METHOD: {
+        my $ranking_method =
+            $recce->[Marpa::R2::Internal::Recognizer::RANKING_METHOD];
+        if ( $ranking_method eq 'high_rule_only' ) {
+            do_high_rule_only($recce);
+            last GIVEN_RANKING_METHOD;
+        }
+        if ( $ranking_method eq 'rule' ) {
+            do_rank_by_rule($recce);
+            last GIVEN_RANKING_METHOD;
+        }
+    } ## end GIVEN_RANKING_METHOD:
+
+    return 1;
+} ## end sub Marpa::R2::Recognizer::ordering_create
+
+# Returns false if no parse
+sub Marpa::R2::Recognizer::value {
     my ( $recce, $slr, $per_parse_arg ) = @_;
-    my $recce_c = $recce->[Marpa::R2::Internal::Recognizer::C];
-    my $bocage  = $recce->[Marpa::R2::Internal::Recognizer::B_C];
-    my $order   = $recce->[Marpa::R2::Internal::Recognizer::O_C];
-    my $tree    = $recce->[Marpa::R2::Internal::Recognizer::T_C];
-    my $grammar = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
-    my $trace_file_handle =
-        $recce->[Marpa::R2::Internal::Recognizer::TRACE_FILE_HANDLE];
-    my $token_values =
-        $recce->[Marpa::R2::Internal::Recognizer::TOKEN_VALUES];
-    my $grammar_c    = $grammar->[Marpa::R2::Internal::Grammar::C];
-    my $tracer       = $grammar->[Marpa::R2::Internal::Grammar::TRACER];
-    my $symbols      = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
-    my $rules        = $grammar->[Marpa::R2::Internal::Grammar::RULES];
-    my $trace_values = $recce->[Marpa::R2::Internal::Recognizer::TRACE_VALUES]
-        // 0;
+    my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
+    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
+    my $recce_c   = $recce->[Marpa::R2::Internal::Recognizer::C];
+    my $tracer    = $grammar->[Marpa::R2::Internal::Grammar::TRACER];
+
     my $trace_actions =
         $recce->[Marpa::R2::Internal::Recognizer::TRACE_ACTIONS] // 0;
+    my $trace_values = $recce->[Marpa::R2::Internal::Recognizer::TRACE_VALUES]
+        // 0;
+    my $trace_file_handle =
+        $recce->[Marpa::R2::Internal::Recognizer::TRACE_FILE_HANDLE];
+    local $Marpa::R2::Internal::TRACE_FH = $trace_file_handle;
+
+    my $rules     = $grammar->[Marpa::R2::Internal::Grammar::RULES];
+    my $symbols   = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
+    my $token_values = $recce->[Marpa::R2::Internal::Recognizer::TOKEN_VALUES];
+
+    if ( scalar @_ != 1 ) {
+        Marpa::R2::exception(
+            'Too many arguments to Marpa::R2::Recognizer::value')
+            if ref $slr ne 'Marpa::R2::Scanless::R';
+    }
+
+    $recce->[Marpa::R2::Internal::Recognizer::TREE_MODE] //= 'tree';
+    if ( $recce->[Marpa::R2::Internal::Recognizer::TREE_MODE] ne 'tree' ) {
+        Marpa::R2::exception(
+            "value() called when recognizer is not in tree mode\n",
+            '  The current mode is "',
+            $recce->[Marpa::R2::Internal::Recognizer::TREE_MODE],
+            qq{"\n}
+        );
+    } ## end if ( $recce->[Marpa::R2::Internal::Recognizer::TREE_MODE...])
+
+    my $furthest_earleme       = $recce_c->furthest_earleme();
+    my $last_completed_earleme = $recce_c->current_earleme();
+    Marpa::R2::exception(
+        "Attempt to evaluate incompletely recognized parse:\n",
+        "  Last token ends at location $furthest_earleme\n",
+        "  Recognition done only as far as location $last_completed_earleme\n"
+    ) if $furthest_earleme > $last_completed_earleme;
+
+    my $tree = $recce->[Marpa::R2::Internal::Recognizer::T_C];
+
+    if ($tree) {
+
+        # On second and later calls to value() in a parse series, we need
+        # to check the per-parse arg
+        CHECK_ARG: {
+            my $package_source = $recce
+                ->[Marpa::R2::Internal::Recognizer::RESOLVE_PACKAGE_SOURCE];
+            last CHECK_ARG
+                if $package_source eq 'semantics_package';    # Anything is OK
+            if ( $package_source eq 'legacy' ) {
+                if ( defined $per_parse_arg ) {
+                    Marpa::R2::exception(
+                        "value() called with an argument while incompatible options are in use.\n",
+                        "  Often this means that the discouraged 'action_object' named argument was used,\n",
+                        "  and that 'semantics_package' should be used instead.\n"
+                    );
+                } ## end if ( defined $per_parse_arg )
+                last CHECK_ARG;
+            } ## end if ( $package_source eq 'legacy' )
+
+            # If here the resolve package source is 'arg'
+            if ( not defined $per_parse_arg ) {
+                Marpa::R2::exception(
+                    "No value() arg, whe one is required to resolve semantics.\n",
+                    "  Once value() has been called with a argument whose blessing is used to\n",
+                    "  find the parse's semantics closures, it must always be called with an arg\n",
+                    "  that is blessed in the same package\n",
+                    q{  In this case, the package was "},
+                    $recce
+                        ->[Marpa::R2::Internal::Recognizer::RESOLVE_PACKAGE],
+                    qq{"\n"}
+                );
+            } ## end if ( not defined $per_parse_arg )
+
+            my $arg_blessing = Scalar::Util::blessed $per_parse_arg;
+            if ( not defined $arg_blessing ) {
+                Marpa::R2::exception(
+                    "value() arg is not blessed when required for the semantics.\n",
+                    "  Once value() has been called with a argument whose blessing is used to\n",
+                    "  find the parse's semantics closures, it must always be called with an arg\n",
+                    "  that is blessed in the same package\n",
+                    q{  In this case, the original package was "},
+                    $recce
+                        ->[Marpa::R2::Internal::Recognizer::RESOLVE_PACKAGE],
+                    qq{"\n"},
+                    qq{  and the blessing in this call was "$arg_blessing"\n}
+                );
+            } ## end if ( not defined $arg_blessing )
+
+            my $required_blessing =
+                $recce->[Marpa::R2::Internal::Recognizer::RESOLVE_PACKAGE];
+            if ( $arg_blessing ne $required_blessing ) {
+                Marpa::R2::exception(
+                    "value() arg is blessed into the wrong package.\n",
+                    "  Once value() has been called with a argument whose blessing is used to\n",
+                    "  find the parse's semantics closures, it must always be called with an arg\n",
+                    "  that is blessed in the same package\n",
+                    qq{  In this case, the original package was "$required_blessing" and \n},
+                    qq{  and the blessing in this call was "$arg_blessing"\n}
+                );
+            } ## end if ( $arg_blessing ne $required_blessing )
+
+        } ## end CHECK_ARG:
+
+        # If we have a bocage, we are initialized
+        if ( not $tree ) {
+
+            # No tree means we are in ASF mode
+            Marpa::R2::exception('value() called for recognizer in ASF mode');
+        }
+        my $max_parses =
+            $recce->[Marpa::R2::Internal::Recognizer::MAX_PARSES];
+        my $parse_count = $tree->parse_count();
+        if ( $max_parses and $parse_count > $max_parses ) {
+            Marpa::R2::exception(
+                "Maximum parse count ($max_parses) exceeded");
+        }
+
+    } ## end if ($tree)
+    else {
+        # No tree, therefore not initialized
+
+        $recce->ordering_create();
+        return if $recce->[Marpa::R2::Internal::Recognizer::NO_PARSE];
+        my $order = $recce->[Marpa::R2::Internal::Recognizer::O_C];
+        $tree = $recce->[Marpa::R2::Internal::Recognizer::T_C] =
+            Marpa::R2::Thin::T->new($order);
+
+    } ## end else [ if ($tree) ]
+
+    if ( $recce->[Marpa::R2::Internal::Recognizer::TRACE_AND_NODES] ) {
+        print {$trace_file_handle} 'AND_NODES: ',
+            $recce->show_and_nodes()
+            or Marpa::R2::exception('print to trace handle failed');
+    }
+
+    if ( $recce->[Marpa::R2::Internal::Recognizer::TRACE_OR_NODES] ) {
+        print {$trace_file_handle} 'OR_NODES: ',
+            $recce->show_or_nodes()
+            or Marpa::R2::exception('print to trace handle failed');
+    }
+
+    if ( $recce->[Marpa::R2::Internal::Recognizer::TRACE_BOCAGE] ) {
+        print {$trace_file_handle} 'BOCAGE: ',
+            $recce->show_bocage()
+            or Marpa::R2::exception('print to trace handle failed');
+    }
+
+    return if not defined $tree->next();
 
     local $Marpa::R2::Context::grammar = $grammar;
     local $Marpa::R2::Context::rule    = undef;
@@ -601,7 +773,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
             RULE: for my $rule_id ( 0 .. $#{$rules} ) {
                 my ( $resolution_name, $closure ) =
                     @{ $rule_resolutions->[$rule_id] };
-                say {$Marpa::R2::Internal::TRACE_FH} 'Rule ',
+                say {$trace_file_handle} 'Rule ',
                     $grammar->brief_rule($rule_id),
                     qq{ resolves to "$resolution_name"}
                     or Marpa::R2::exception('print to trace handle failed');
@@ -742,7 +914,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                     @{ $rule_resolutions->[$resolution_rule] };
                 if ($trace_actions) {
                     my $lhs_name = $grammar->symbol_name($lhs_id);
-                    say {$Marpa::R2::Internal::TRACE_FH}
+                    say {$trace_file_handle}
                         qq{Nulled symbol "$lhs_name" },
                         qq{ resolved to "$resolution_name" from rule },
                         $grammar->brief_rule($resolution_rule)
@@ -763,7 +935,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                     @{ $rule_resolutions->[$resolution_rule] };
                 if ($trace_actions) {
                     my $lhs_name = $grammar->symbol_name($lhs_id);
-                    say {$Marpa::R2::Internal::TRACE_FH}
+                    say {$trace_file_handle}
                         qq{Nulled symbol "$lhs_name" },
                         qq{ resolved to "$resolution_name" from rule },
                         $grammar->brief_rule($resolution_rule)
@@ -810,7 +982,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                 @{ $rule_resolutions->[$resolution_rule] };
             if ($trace_actions) {
                 my $lhs_name = $grammar->symbol_name($lhs_id);
-                say {$Marpa::R2::Internal::TRACE_FH}
+                say {$trace_file_handle}
                     qq{Nulled symbol "$lhs_name" },
                     qq{ resolved to "$resolution_name" from rule },
                     $grammar->brief_rule($resolution_rule)
@@ -1322,7 +1494,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
                         $token_value );
                     next EVENT;
                 } ## end if ( $event_type eq 'MARPA_STEP_TOKEN' )
-                say {$Marpa::R2::Internal::TRACE_FH} join q{ },
+                say {$trace_file_handle} join q{ },
                     'value event:',
                     map { $_ // 'undef' } $event_type, @event_data
                     or Marpa::R2::exception('say to trace handle failed');
@@ -1330,11 +1502,11 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
             if ( $trace_values >= 9 ) {
                 for my $i ( reverse 0 .. $value->highest_index ) {
-                    printf {$Marpa::R2::Internal::TRACE_FH}
+                    printf {$trace_file_handle}
                         "Stack position %3d:\n", $i,
                         or
                         Marpa::R2::exception('print to trace handle failed');
-                    print {$Marpa::R2::Internal::TRACE_FH} q{ },
+                    print {$trace_file_handle} q{ },
                         Data::Dumper->new( [ \$value->absolute($i) ] )
                         ->Terse(1)->Dump
                         or
@@ -1439,11 +1611,11 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
             $value->result_set($result);
 
             if ($trace_values) {
-                say {$Marpa::R2::Internal::TRACE_FH}
+                say {$trace_file_handle}
                     trace_stack_1( $grammar, $recce, $value, $values,
                     $rule_id )
                     or Marpa::R2::exception('Could not print to trace file');
-                print {$Marpa::R2::Internal::TRACE_FH}
+                print {$trace_file_handle}
                     'Calculated and pushed value: ',
                     Data::Dumper->new( [$result] )->Terse(1)->Dump
                     or Marpa::R2::exception('print to trace handle failed');
@@ -1456,7 +1628,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
         if ( $value_type eq 'MARPA_STEP_TRACE' ) {
 
             if ( my $trace_output = trace_op( $grammar, $recce, $value ) ) {
-                print {$Marpa::R2::Internal::TRACE_FH} $trace_output
+                print {$trace_file_handle} $trace_output
                     or Marpa::R2::exception('Could not print to trace file');
             }
 
@@ -1468,194 +1640,7 @@ sub Marpa::R2::Internal::Recognizer::evaluate {
 
     } ## end STEP: while (1)
 
-    return $value->absolute(0);
-
-} ## end sub Marpa::R2::Internal::Recognizer::evaluate
-
-sub Marpa::R2::Recognizer::ordering_create {
-    my ($recce) = @_;
-    return if $recce->[Marpa::R2::Internal::Recognizer::NO_PARSE];
-    my $parse_set_arg =
-        $recce->[Marpa::R2::Internal::Recognizer::END_OF_PARSE];
-    my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
-    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
-    my $recce_c   = $recce->[Marpa::R2::Internal::Recognizer::C];
-
-    $grammar_c->throw_set(0);
-    my $bocage = $recce->[Marpa::R2::Internal::Recognizer::B_C] =
-        Marpa::R2::Thin::B->new( $recce_c, ( $parse_set_arg // -1 ) );
-    $grammar_c->throw_set(1);
-    if ( not $bocage ) {
-        $recce->[Marpa::R2::Internal::Recognizer::NO_PARSE] = 1;
-        return;
-    }
-    $recce->[Marpa::R2::Internal::Recognizer::O_C] =
-        Marpa::R2::Thin::O->new($bocage);
-
-    GIVEN_RANKING_METHOD: {
-        my $ranking_method =
-            $recce->[Marpa::R2::Internal::Recognizer::RANKING_METHOD];
-        if ( $ranking_method eq 'high_rule_only' ) {
-            do_high_rule_only($recce);
-            last GIVEN_RANKING_METHOD;
-        }
-        if ( $ranking_method eq 'rule' ) {
-            do_rank_by_rule($recce);
-            last GIVEN_RANKING_METHOD;
-        }
-    } ## end GIVEN_RANKING_METHOD:
-
-    return 1;
-} ## end sub Marpa::R2::Recognizer::ordering_create
-
-# Returns false if no parse
-sub Marpa::R2::Recognizer::value {
-    my ( $recce, $slr, $per_parse_arg ) = @_;
-
-    if ( scalar @_ != 1 ) {
-        Marpa::R2::exception(
-            'Too many arguments to Marpa::R2::Recognizer::value')
-            if ref $slr ne 'Marpa::R2::Scanless::R';
-    }
-
-    $recce->[Marpa::R2::Internal::Recognizer::TREE_MODE] //= 'tree';
-    if ( $recce->[Marpa::R2::Internal::Recognizer::TREE_MODE] ne 'tree' ) {
-        Marpa::R2::exception(
-            "value() called when recognizer is not in tree mode\n",
-            '  The current mode is "',
-            $recce->[Marpa::R2::Internal::Recognizer::TREE_MODE],
-            qq{"\n}
-        );
-    } ## end if ( $recce->[Marpa::R2::Internal::Recognizer::TREE_MODE...])
-
-    my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
-    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
-    my $recce_c   = $recce->[Marpa::R2::Internal::Recognizer::C];
-
-    local $Marpa::R2::Internal::TRACE_FH =
-        $recce->[Marpa::R2::Internal::Recognizer::TRACE_FILE_HANDLE];
-
-    my $furthest_earleme       = $recce_c->furthest_earleme();
-    my $last_completed_earleme = $recce_c->current_earleme();
-    Marpa::R2::exception(
-        "Attempt to evaluate incompletely recognized parse:\n",
-        "  Last token ends at location $furthest_earleme\n",
-        "  Recognition done only as far as location $last_completed_earleme\n"
-    ) if $furthest_earleme > $last_completed_earleme;
-
-    my $tree = $recce->[Marpa::R2::Internal::Recognizer::T_C];
-
-    if ($tree) {
-
-        # On second and later calls to value() in a parse series, we need
-        # to check the per-parse arg
-        CHECK_ARG: {
-            my $package_source = $recce
-                ->[Marpa::R2::Internal::Recognizer::RESOLVE_PACKAGE_SOURCE];
-            last CHECK_ARG
-                if $package_source eq 'semantics_package';    # Anything is OK
-            if ( $package_source eq 'legacy' ) {
-                if ( defined $per_parse_arg ) {
-                    Marpa::R2::exception(
-                        "value() called with an argument while incompatible options are in use.\n",
-                        "  Often this means that the discouraged 'action_object' named argument was used,\n",
-                        "  and that 'semantics_package' should be used instead.\n"
-                    );
-                } ## end if ( defined $per_parse_arg )
-                last CHECK_ARG;
-            } ## end if ( $package_source eq 'legacy' )
-
-            # If here the resolve package source is 'arg'
-            if ( not defined $per_parse_arg ) {
-                Marpa::R2::exception(
-                    "No value() arg, whe one is required to resolve semantics.\n",
-                    "  Once value() has been called with a argument whose blessing is used to\n",
-                    "  find the parse's semantics closures, it must always be called with an arg\n",
-                    "  that is blessed in the same package\n",
-                    q{  In this case, the package was "},
-                    $recce
-                        ->[Marpa::R2::Internal::Recognizer::RESOLVE_PACKAGE],
-                    qq{"\n"}
-                );
-            } ## end if ( not defined $per_parse_arg )
-
-            my $arg_blessing = Scalar::Util::blessed $per_parse_arg;
-            if ( not defined $arg_blessing ) {
-                Marpa::R2::exception(
-                    "value() arg is not blessed when required for the semantics.\n",
-                    "  Once value() has been called with a argument whose blessing is used to\n",
-                    "  find the parse's semantics closures, it must always be called with an arg\n",
-                    "  that is blessed in the same package\n",
-                    q{  In this case, the original package was "},
-                    $recce
-                        ->[Marpa::R2::Internal::Recognizer::RESOLVE_PACKAGE],
-                    qq{"\n"},
-                    qq{  and the blessing in this call was "$arg_blessing"\n}
-                );
-            } ## end if ( not defined $arg_blessing )
-
-            my $required_blessing =
-                $recce->[Marpa::R2::Internal::Recognizer::RESOLVE_PACKAGE];
-            if ( $arg_blessing ne $required_blessing ) {
-                Marpa::R2::exception(
-                    "value() arg is blessed into the wrong package.\n",
-                    "  Once value() has been called with a argument whose blessing is used to\n",
-                    "  find the parse's semantics closures, it must always be called with an arg\n",
-                    "  that is blessed in the same package\n",
-                    qq{  In this case, the original package was "$required_blessing" and \n},
-                    qq{  and the blessing in this call was "$arg_blessing"\n}
-                );
-            } ## end if ( $arg_blessing ne $required_blessing )
-
-        } ## end CHECK_ARG:
-
-        # If we have a bocage, we are initialized
-        if ( not $tree ) {
-
-            # No tree means we are in ASF mode
-            Marpa::R2::exception('value() called for recognizer in ASF mode');
-        }
-        my $max_parses =
-            $recce->[Marpa::R2::Internal::Recognizer::MAX_PARSES];
-        my $parse_count = $tree->parse_count();
-        if ( $max_parses and $parse_count > $max_parses ) {
-            Marpa::R2::exception(
-                "Maximum parse count ($max_parses) exceeded");
-        }
-
-    } ## end if ($tree)
-    else {
-        # No tree, therefore not initialized
-
-        $recce->ordering_create();
-        return if $recce->[Marpa::R2::Internal::Recognizer::NO_PARSE];
-        my $order = $recce->[Marpa::R2::Internal::Recognizer::O_C];
-        $tree = $recce->[Marpa::R2::Internal::Recognizer::T_C] =
-            Marpa::R2::Thin::T->new($order);
-
-    } ## end else [ if ($tree) ]
-
-    if ( $recce->[Marpa::R2::Internal::Recognizer::TRACE_AND_NODES] ) {
-        print {$Marpa::R2::Internal::TRACE_FH} 'AND_NODES: ',
-            $recce->show_and_nodes()
-            or Marpa::R2::exception('print to trace handle failed');
-    }
-
-    if ( $recce->[Marpa::R2::Internal::Recognizer::TRACE_OR_NODES] ) {
-        print {$Marpa::R2::Internal::TRACE_FH} 'OR_NODES: ',
-            $recce->show_or_nodes()
-            or Marpa::R2::exception('print to trace handle failed');
-    }
-
-    if ( $recce->[Marpa::R2::Internal::Recognizer::TRACE_BOCAGE] ) {
-        print {$Marpa::R2::Internal::TRACE_FH} 'BOCAGE: ',
-            $recce->show_bocage()
-            or Marpa::R2::exception('print to trace handle failed');
-    }
-
-    return if not defined $tree->next();
-    return \Marpa::R2::Internal::Recognizer::evaluate( $recce, $slr,
-        $per_parse_arg );
+    return \($value->absolute(0));
 
 } ## end sub Marpa::R2::Recognizer::value
 
