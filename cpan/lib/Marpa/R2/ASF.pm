@@ -36,29 +36,18 @@ package Marpa::R2::Internal::ASF;
 
 # Terms
 #
-# Choicepoint -- a rule instance, which may be factored.  It is
-# a set of factorings.
-#
-# Full choicepoint expansion -- expansion of a choicepoint into sequences
-# of choicepoints, each an alternative for that choicepoint.
+# Choicepoint -- A set of symches, all with the same start and end locations.  It can
+# be expanded into a set of factorings.  Note that not every symch-set at the same
+# locations is necessarily a choicepoint -- it must be reachable from the top choicepoint
+# as part of the parse.
 #
 # Factoring -- one possible factoring of a choicepoint.  It is a sequence
 # of factors.
 #
-# Factor -- In a BNF rule, factor each factor corresponds to one of
-# the RHS symbols.  In a sequence rule, each factor corresponds to one item.
-# A factor is a set of symches.
+# Factor -- A list of choicepoints.
 #
-# Symch (Symbolic choice) -- A set of one or more cartesians --
+# Symch (Symbolic choice) -- An or-node or a lexeme
 #
-# Cartesian -- A pair of sets of choicepoints,
-# so called because every
-# pairing of choicepoints in the Cartesian product of the two
-# sets is allowed.  The first set contains the predecessor
-# choicepoints, and the second set contains the component choicepoints.
-# Predecessor choicepoints may be 'nil', but are never token instances.
-# Component choicepoint may be token instances, but are never 'nil'.
-# (The term "component" comes from Irons 1961 paper.)
 
 # This is more complicated that it needs to be for the current implementation.
 # It allows for LHS terminals (implemented in Libmarpa but not allowed by the SLIF).
@@ -560,6 +549,53 @@ sub Marpa::R2::Scanless::ASF::new {
     return $asf;
 
 } ## end sub Marpa::R2::Scanless::ASF::new
+
+=pod
+
+Pseudo-code for expanding a symch into its first factoring
+
+Trivial if symch is a lexeme.  For an or-node:
+
+Initialize current Vparent to symch
+When Vrule market is stacked or popped, change it
+
+[ Check if symch is memoized per ASF? ]
+Push symch and-nodes onto stack.
+
+While (pop stack)
+
+Is popped item an and-node?
+
+    Does it have a predecessor?
+
+        Yes: $vpred{$cause}{$pred} = 1
+            Push and-nodes if $pred not seen
+            $seen{$pred} = 1;
+
+        No: Add this $cause to memoized list of V-initials for this Vparent
+
+    Are we at a V-final?
+
+         Yes, and if $cause is not memoized:
+             Push Vrule marker ::= (Vparent => $cause )
+             Push and-nodes if $cause not seen
+            $seen{$cause} = 1;
+
+    No -- Add this to the list of finals for the current symch
+
+Is this a Vrule marker?
+
+     $vpred{$Vparent}{$_} for @{V-initials of Vparent}
+     [ No Vrule marker for top rule, so no $vpred{}{} settings,
+       which is correct. ]
+
+Memoized by ASF:
+V-initials for each Vparent
+
+Memoized for current symch:
+Vpred{cause}{pred} matrix -- which are present depends on top (start) symch
+
+=cut
 
 1;
 
