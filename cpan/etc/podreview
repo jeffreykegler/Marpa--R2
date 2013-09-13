@@ -19,7 +19,8 @@ $psx->html_header( my_header() );
 $psx->html_footer( my_footer() );
 $psx->parse_string_document( $file->slurp_utf8 );
  
-my $temp = path( $ENV{TMPDIR}, 'podpreview', $file->relative . '.html' );
+my $tmpdir = $ENV{TMPDIR} // '/tmp/';
+my $temp = path( $tmpdir, 'podpreview', $file->relative . '.html' );
 $temp->touchpath;
 $temp->spew_utf8($html);
 open_browser("file:///$temp");
