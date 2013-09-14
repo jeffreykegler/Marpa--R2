@@ -165,7 +165,7 @@ sub Marpa::R2::Scanless::ASF::top {
       push @token_ids, $token_id;
     }
     my $new_cp = ensure_cp($asf, \@or_node_ids, \@token_ids);
-    $new_cp->[Marpa::R2::Internal::Scanless::Choicepoint::EXTERNAL] = 1;
+    # $new_cp->[Marpa::R2::Internal::Scanless::Choicepoint::EXTERNAL] = 1;
     return $new_cp;
 } ## end sub Marpa::R2::Scanless::ASF::top_choicepoint
 

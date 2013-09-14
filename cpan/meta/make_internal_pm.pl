@@ -241,9 +241,25 @@ __DATA__
 
     :package=Marpa::R2::Internal::Scanless::Choicepoint
 
+    { An external choicepoint }
+    ID
+    ASF
+
+    { One of the or-node and token ID array will be non-empty.
+      Currently only one will be non-empty, but this may change if
+      the SLIF implements LHS terminals. }
     OR_NODE_IDS { array of the or-node IDs }
     TOKEN_IDS { array of the token IDs }
-    EXTERNAL { boolean: should this choicepoint be visible outside the ASF code? }
+
+    CURRENT_SYMCH_IX {
+      OR_NODE_IDS index if >= 0;
+      TOKEN_IDS ix is (-43 - x) if < 0;
+      undef if == -1
+    }
+
+    { the following fields must be reset when current symch changes }
+    CURRENT_FACTORING
+    VPREDECESSORS { virtual predecessors }
 
     { One of the or-node and token ID array will be non-empty.
       Currently only one will be non-empty, but this may change if
@@ -258,17 +274,14 @@ __DATA__
 
     { FAC_ indicates fields which would belong to separate factoring
      object, if there was one }
-    FAC_CHAF_PREDECESSOR_BY_CAUSE
-    FAC_CHAF_CAUSE_IS_ACTIVE
+    FAC_CHAF_PREDECESSOR_BY_CAUSE { Delete after development }
+    FAC_CHAF_CAUSE_IS_ACTIVE { Delete after development }
 
     SYMCHSETS_BY_TOKEN_ID
     SYMCHSETS_BY_OR_NODE_ID
 
     EXTERNAL { boolean: should this choicepoint be visible outside the ASF code? }
-
-    { One of the or-node and token ID array will be non-empty.
-      Currently only one will be non-empty, but this may change if
-      the SLIF implements LHS terminals. }
+    { Delete after development }
 
     :package=Marpa::R2::Internal::Scanless::ASF2
 
