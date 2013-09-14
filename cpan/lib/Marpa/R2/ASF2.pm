@@ -42,12 +42,12 @@ sub irl_extend {
     my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
     my $bocage    = $recce->[Marpa::R2::Internal::Recognizer::B_C];
+    my $ordering    = $recce->[Marpa::R2::Internal::Recognizer::O_C];
     my $irl_id    = $bocage->_marpa_b_or_node_irl($or_node_id);
     return or_node_flatten( $recce, $or_node_id )
         if not $grammar_c->_marpa_g_irl_is_virtual_rhs($irl_id);
     my @choices;
-    for my $and_node_id ( $bocage->_marpa_b_or_node_first_and($or_node_id)
-        .. $bocage->_marpa_b_or_node_last_and($or_node_id) )
+    for my $and_node_id ( $ordering->_marpa_o_or_node_and_node_ids($or_node_id))
     {
         my $predecessor_id =
             $bocage->_marpa_b_and_node_predecessor($and_node_id);
@@ -57,23 +57,24 @@ sub irl_extend {
             defined $predecessor_id
             ? or_node_flatten( $recce, $predecessor_id )
             : [ [] ];
-    my $cause_id = $bocage->_marpa_b_and_node_cause($and_node_id);
+        my $cause_id = $bocage->_marpa_b_and_node_cause($and_node_id);
         my $right_choices = irl_extend( $recce, $cause_id );
         for my $left_choice ( @{$left_choices} ) {
             for my $right_choice ( @{$right_choices} ) {
                 push @choices, [ @{$left_choice}, @{$right_choice} ];
             }
         }
-    } ## end for my $and_node_id ( $bocage->_marpa_b_or_node_first_and...)
+    }
     return \@choices;
 } ## end sub irl_extend
 
 sub or_node_flatten {
     my ( $recce, $or_node_id ) = @_;
     my $bocage = $recce->[Marpa::R2::Internal::Recognizer::B_C];
+    my $ordering = $recce->[Marpa::R2::Internal::Recognizer::O_C];
     my @choices;
-    for my $and_node_id ( $bocage->_marpa_b_or_node_first_and($or_node_id)
-        .. $bocage->_marpa_b_or_node_last_and($or_node_id) )
+    for my $and_node_id (
+        $ordering->_marpa_o_or_node_and_node_ids($or_node_id) )
     {
         my @choice = ();
         my $proto_choices =
@@ -93,12 +94,12 @@ sub or_node_flatten {
         } ## end if ( defined( my $cause_id = $bocage...))
         else {
             my $token_id = $bocage->_marpa_b_and_node_symbol($and_node_id);
-            $next_choice = make_token_cp( $and_node_id );
+            $next_choice = make_token_cp($and_node_id);
         }
         for my $proto_choice ( @{$proto_choices} ) {
             push @choices, [ @{$proto_choice}, $next_choice ];
         }
-    } ## end for my $and_node_id ( $bocage->_marpa_b_or_node_first_and...)
+    } ## end for my $and_node_id ( $bocage->_marpa_b_or_node_and_node_ids...)
     return \@choices;
 } ## end sub or_node_flatten
 
@@ -148,7 +149,7 @@ sub or_node_expand {
 # Returns undef if no parse
 sub Marpa::R2::Scanless::ASF2::new {
     my ( $class, @arg_hashes ) = @_;
-    my $asf       = bless [], $class;
+    my $asf = bless [], $class;
 
     my $choice_blessing = 'My_ASF::choice';
     my $force;
@@ -178,12 +179,13 @@ sub Marpa::R2::Scanless::ASF2::new {
 
     Marpa::R2::exception(
         q{The "force" or "default" named argument must be specified },
-        {with the Marpa::R2::Scanless::ASF2::new method}
+        { with the Marpa::R2::Scanless::ASF2::new method }
     ) if not defined $force and not defined $default_blessing;
 
-    my $recce     = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+    my $recce = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
 
     if ( defined $recce->[Marpa::R2::Internal::Recognizer::TREE_MODE] ) {
+
         # If we already in ASF mode, or are in valuation mode, we cannot create an ASF
         Marpa::R2::exception(
             "An attempt was made to create an ASF for a SLIF recognizer already in use\n",
@@ -192,7 +194,7 @@ sub Marpa::R2::Scanless::ASF2::new {
             $recce->[Marpa::R2::Internal::Recognizer::TREE_MODE],
             qq{"\n}
         );
-    }
+    } ## end if ( defined $recce->[Marpa::R2::Internal::Recognizer::TREE_MODE...])
     $recce->[Marpa::R2::Internal::Recognizer::TREE_MODE] = 'forest';
 
     my $slg       = $slr->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
@@ -201,19 +203,11 @@ sub Marpa::R2::Scanless::ASF2::new {
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
     my $recce_c   = $recce->[Marpa::R2::Internal::Recognizer::C];
 
-    my $bocage = $recce->[Marpa::R2::Internal::Recognizer::B_C];
-    if ( not $bocage ) {
-        my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
-        my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
-        my $recce_c   = $recce->[Marpa::R2::Internal::Recognizer::C];
-        $grammar_c->throw_set(0);
-        $bocage = $recce->[Marpa::R2::Internal::Recognizer::B_C] =
-            Marpa::R2::Thin::B->new( $recce_c, -1 );
-        $grammar_c->throw_set(1);
-        return if not defined $bocage;
-    } ## end if ( not $bocage )
+    $recce->ordering_create()
+        if not $recce->[Marpa::R2::Internal::Recognizer::O_C];
 
-    Marpa::R2::Internal::ASF2::blessings_set($asf, $default_blessing, $force);
+    Marpa::R2::Internal::ASF2::blessings_set( $asf, $default_blessing,
+        $force );
 
     return $asf;
 
@@ -318,8 +312,8 @@ sub Marpa::R2::Scanless::ASF2::top_choicepoint {
         die "No parse" if not defined $bocage;
     } ## end if ( not $bocage )
     my $augment_or_node_id = $bocage->_marpa_b_top_or_node();
-    # say STDERR "augment or-node = $augment_or_node_id";
-    my $augment_and_node_id =
+    # Do not use ordering -- it should be irrelevant here
+    my ($augment_and_node_id) =
         $bocage->_marpa_b_or_node_first_and($augment_or_node_id);
     my $augment2_or_node_id =
         $bocage->_marpa_b_and_node_cause($augment_and_node_id);

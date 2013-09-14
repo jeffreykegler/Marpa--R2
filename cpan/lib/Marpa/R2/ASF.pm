@@ -213,128 +213,6 @@ sub cmp_symches_by_predecessors {
     return 0;
 } ## end sub cmp_symches_by_predecessors
 
-# Given a set of or-nodes, convert them to a factor
-sub or_nodes_to_factor {
-    $DB::single = 1;
-    my ( $asf, $or_node_list, $chaf_predecessors ) = @_;
-    my $slr    = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
-    my $recce  = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
-    my $bocage = $recce->[Marpa::R2::Internal::Recognizer::B_C];
-    my @pairings = ();
-    for my $parent_or_node_id ( @{$or_node_list} ) {
-        for my $and_node_id (
-            $bocage->_marpa_b_or_node_first_and($parent_or_node_id)
-            .. $bocage->_marpa_b_or_node_last_and($parent_or_node_id) )
-        {
-            ## -1 if no predecessor
-            my $predecessor_cp =
-                $bocage->_marpa_b_and_node_predecessor($and_node_id);
-            my $cause_cp = $bocage->_marpa_b_and_node_cause($and_node_id);
-            if ( not defined $cause_cp ) {
-                my $token_id =
-                    $bocage->_marpa_b_and_node_symbol($and_node_id);
-                say STDERR "cause is token $token_id";
-                $cause_cp = make_token_cp($and_node_id);
-            }
-            say STDERR "and-node $and_node_id = [ ", ( $predecessor_cp // 'undef' ), "; $cause_cp ]";
-            if ( not defined $predecessor_cp ) {
-                push @pairings, [ 'nil', -1, $cause_cp, $parent_or_node_id ];
-            }
-            else {
-                push @pairings,
-                    [ 'pred', $predecessor_cp, $cause_cp,
-                    $parent_or_node_id ];
-            }
-        } ## end for my $and_node_id ( $bocage->_marpa_b_or_node_first_and...)
-    } ## end for my $parent_or_node_id ( @{$or_node_list} )
-    my @sorted_pairings =
-        sort {
-        $a->[2] <=> $b->[2] || $a->[0] cmp $b->[0] || $a->[1] <=> $b->[1];
-        } @pairings;
-
-    say STDERR "sorted_pairings = ", Data::Dumper::Dumper(\@sorted_pairings);
-
-    # A symch is a set of and-nodes sharing the same component
-    my @symches                = ();
-    my $start_of_current_symch = 0;
-    my $current_component      = $sorted_pairings[0]->[2];
-    AND_NODE_IX:
-    for (
-        my $and_node_ix = $start_of_current_symch + 1;
-        $and_node_ix <= $#sorted_pairings;
-        $and_node_ix++
-        )
-    {
-        my $this_component = $sorted_pairings[$and_node_ix]->[2];
-        next AND_NODE_IX if $current_component == $this_component;
-        push @symches, [ $start_of_current_symch, $and_node_ix - 1 ];
-        $start_of_current_symch = $and_node_ix;
-        $current_component = $sorted_pairings[$start_of_current_symch]->[2];
-    } ## end AND_NODE_IX: for ( my $and_node_ix = $start_of_current_symch + 1;...)
-    push @symches, [ $start_of_current_symch, $#sorted_pairings ];
-
-    # Sort the cause choices by their predecessor sets
-    my @sorted_symches =
-        sort { cmp_symches_by_predecessors( $a, $b, \@sorted_pairings, $chaf_predecessors ); }
-        @symches;
-
-    my @cartesians        = ();
-    my $current_cartesian;
-    {
-        my $first_pairing = $sorted_pairings[ $sorted_symches[0]->[0] ];
-        my $first_cause_id = $first_pairing->[2];
-        my $first_parent_id = $first_pairing->[3];
-            say "cause=$first_cause_id, parent=$first_parent_id, ", Data::Dumper::Dumper( $chaf_predecessors->[$first_parent_id]);
-        my $chaf_predecessors = $chaf_predecessors->[$first_parent_id] // [];
-        $current_cartesian =  [
-            $chaf_predecessors,
-            [   map { $sorted_pairings[$_]->[1] }
-                    grep { $sorted_pairings[$_]->[0] eq 'pred' }
-                    ( $sorted_symches[0]->[0] .. $sorted_symches[0]->[1] )
-            ],
-            [$first_cause_id]
-        ];
-    }
-    my $current_symch = $sorted_symches[0];
-    SYMCH_IX:
-    for ( my $symch_ix = 1; $symch_ix <= $#sorted_symches; $symch_ix++ ) {
-        my $this_symch = $sorted_symches[$symch_ix];
-        if (cmp_symches_by_predecessors(
-                $current_symch,    $this_symch,
-                \@sorted_pairings, $chaf_predecessors
-            )
-            )
-        {
-            push @cartesians, $current_cartesian;
-            say STDERR "Pushing cartesian: ",
-                Data::Dumper::Dumper($current_cartesian);
-            my $first_pairing = $sorted_pairings[ $sorted_symches[0]->[0] ];
-        my $first_cause_id = $first_pairing->[2];
-        my $first_parent_id = $first_pairing->[3];
-            say "cause=$first_cause_id, parent=$first_parent_id, ", Data::Dumper::Dumper( $chaf_predecessors->[$first_parent_id]);
-            my $chaf_predecessors = $chaf_predecessors->[$first_parent_id]
-                // [];
-            $current_cartesian = [
-                $chaf_predecessors,
-                [   map { $sorted_pairings[$_]->[1] }
-                        grep { $sorted_pairings[$_]->[0] eq 'pred' } (
-                        $sorted_symches[$symch_ix]->[0]
-                            .. $sorted_symches[$symch_ix]->[1]
-                        )
-                ],
-                [$first_cause_id]
-            ];
-            $current_symch = $this_symch;
-            next SYMCH_IX;
-        } ## end if ( cmp_symches_by_predecessors( $current_symch, ...))
-        push @{ $current_cartesian->[2] },
-            $sorted_pairings[ $sorted_symches[$symch_ix]->[0] ]->[2];
-    } ## end for ( my $symch_ix = 1; $symch_ix <= $#sorted_symches...)
-    say STDERR "Pushing cartesian: ", Data::Dumper::Dumper($current_cartesian);
-    push @cartesians, $current_cartesian;
-    return [ \@cartesians, 0 ];
-} ## end sub or_nodes_to_factor
-
 sub Marpa::R2::Scanless::ASF::first_factored_rhs {
     my ( $asf, $arg_cp ) = @_;
     Marpa::R2::exception("Cannot factor token") if $arg_cp < 0;
@@ -349,6 +227,8 @@ sub Marpa::R2::Scanless::ASF::first_factored_rhs {
         $asf
         ->[Marpa::R2::Internal::Scanless::ASF::FAC_CHAF_PREDECESSOR_BY_CAUSE]
         = [];
+
+    my @factoring = ();
 
     my @chaf_links = ();
     WORK_ITEM: while ( defined( my $or_node_id = pop @or_node_worklist ) ) {
@@ -386,28 +266,6 @@ sub Marpa::R2::Scanless::ASF::first_factored_rhs {
             $chaf_predecessors->[$cause_id] = [ grep { $predecessors->[$_] } (0 .. $#$predecessors) ];
         }
     } ## end for my $cause_id ( 0 .. $#$chaf_predecessors )
-    say STDERR "about to call or_nodes_to_factor with final or-nodes, chaf predecessors:\n",
-        Data::Dumper::Dumper($chaf_predecessors);
-    my @factoring = ( or_nodes_to_factor( $asf, \@final_or_nodes, $chaf_predecessors ) );
-    my $current_chaf_predecessor_or_nodes = [];
-    FACTOR: while (1) {
-        my $current_factor = $factoring[$#factoring];
-        my ( $cartesians, $current_cartesian_ix ) = @{$current_factor};
-        my $current_cartesian    = $cartesians->[$current_cartesian_ix];
-        my $predecessor_or_nodes = $current_cartesian->[1];
-        $current_chaf_predecessor_or_nodes = $current_cartesian->[0]
-            if $#{$current_chaf_predecessor_or_nodes} < 0;
-        if ( $#{$predecessor_or_nodes} < 0 ) {
-            $predecessor_or_nodes = $current_chaf_predecessor_or_nodes;
-            last FACTOR if $#{$predecessor_or_nodes} < 0;
-            $current_chaf_predecessor_or_nodes = [];
-        }
-        say STDERR "about to call or_nodes_to_factor with or-nodes ",
-            Data::Dumper::Dumper($predecessor_or_nodes);
-        push @factoring,
-            or_nodes_to_factor( $asf, $predecessor_or_nodes,
-            $chaf_predecessors );
-    } ## end FACTOR: while (1)
     return \@factoring;
 } ## end sub Marpa::R2::Scanless::ASF::first_factored_rhs
 
