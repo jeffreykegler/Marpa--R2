@@ -480,6 +480,17 @@ the or-node.
     int @var{ix})
 @end deftypefun
 
+@deftypefun int _marpa_o_or_node_and_node_count( @
+  Marpa_Order @var{o}, @
+  Marpa_Or_Node_ID @var{or_node_id})
+@end deftypefun
+
+@deftypefun int _marpa_o_or_node_and_node_id_by_ix( @
+  Marpa_Order @var{o}, @
+  Marpa_Or_Node_ID @var{or_node_id}, @
+  int @var{ix})
+@end deftypefun
+
 @node Tree internals, Valuator internals, Ordering internals, Internal Interface
 @section Tree internals
 

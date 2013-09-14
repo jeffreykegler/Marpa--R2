@@ -5073,6 +5073,38 @@ PPCODE:
     XPUSHs( sv_2mortal( newSViv(result) ) );
 }
 
+void
+_marpa_o_or_node_and_node_count( o_wrapper, or_node_id )
+    O_Wrapper *o_wrapper;
+    Marpa_Or_Node_ID or_node_id;
+PPCODE:
+{
+    Marpa_Order o = o_wrapper->o;
+    int count = _marpa_o_or_node_and_node_count(o, or_node_id);
+    if (count < 0) { croak("Invalid or node ID %d", or_node_id); }
+    XPUSHs( sv_2mortal( newSViv(count) ) );
+}
+
+void
+_marpa_o_or_node_and_node_ids( o_wrapper, or_node_id )
+    O_Wrapper *o_wrapper;
+    Marpa_Or_Node_ID or_node_id;
+PPCODE:
+{
+    Marpa_Order o = o_wrapper->o;
+    int count = _marpa_o_or_node_and_node_count(o, or_node_id);
+    if (count < 0) { croak("Invalid or node ID %d", or_node_id); }
+    {
+        int ix;
+        EXTEND(SP, count);
+        for (ix = 0; ix < count; ix++) {
+	    Marpa_And_Node_ID and_node_id
+		= _marpa_o_or_node_and_node_id_by_ix(o, or_node_id, ix);
+            PUSHs( sv_2mortal( newSViv(and_node_id) ) );
+        }
+    }
+}
+
 MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin::T
 
 int

@@ -11368,7 +11368,6 @@ or negative.
 int _marpa_o_or_node_and_node_count(Marpa_Order o,
   Marpa_Or_Node_ID or_node_id)
 {
-  OR or_node;
   @<Return |-2| on failure@>@;
   @<Unpack order objects@>@;
   @<Fail if fatal error@>@;
@@ -11390,7 +11389,6 @@ int _marpa_o_or_node_and_node_count(Marpa_Order o,
 int _marpa_o_or_node_and_node_id_by_ix(Marpa_Order o,
   Marpa_Or_Node_ID or_node_id, int ix)
 {
-  OR or_node;
   @<Return |-2| on failure@>@;
   @<Unpack order objects@>@;
   @<Fail if fatal error@>@;
