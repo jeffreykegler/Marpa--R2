@@ -36,12 +36,12 @@ package Marpa::R2::Internal::ASF;
 
 # Terms
 #
-# Choicepoint -- A set of symches, all with the same start and end locations.  It can
-# be expanded into a set of factorings.  Note that not every symch-set at the same
-# locations is necessarily a choicepoint -- it must be reachable from the top choicepoint
-# as part of the parse.
+# Symchset -- A set of symches, all with the same start and end locations.
 #
-# Factoring -- one possible factoring of a choicepoint.  It is a sequence
+# Choicepoint -- A symchset which is reachable from the top choicepoint.
+# Choicepoints can be internal or external.
+#
+# Factoring -- one possible factoring of an external choicepoint.  It is a sequence
 # of factors.
 #
 # Factor -- A list of choicepoints.
@@ -60,16 +60,16 @@ package Marpa::R2::Internal::ASF;
 # creating one if necessary.  Default is internal.
 sub ensure_cp {
     my ( $asf, $or_node_ids, $token_ids ) = @_;
-    my $choicepoints_by_token_id =
-        $asf->[Marpa::R2::Internal::Scanless::ASF::CHOICEPOINTS_BY_TOKEN_ID];
-    my $choicepoints_by_or_node_id = $asf
-        ->[Marpa::R2::Internal::Scanless::ASF::CHOICEPOINTS_BY_OR_NODE_ID];
+    my $symchsets_by_token_id =
+        $asf->[Marpa::R2::Internal::Scanless::ASF::SYMCHSETS_BY_TOKEN_ID];
+    my $symchsets_by_or_node_id = $asf
+        ->[Marpa::R2::Internal::Scanless::ASF::SYMCHSETS_BY_OR_NODE_ID];
     my $token_id_count = scalar @{$token_ids};
     FIND_CP: {
         my $cp_candidates =
               $token_id_count
-            ? $choicepoints_by_token_id->[ $token_ids->[0] ]
-            : $choicepoints_by_or_node_id->[ $or_node_ids->[0] ];
+            ? $symchsets_by_token_id->[ $token_ids->[0] ]
+            : $symchsets_by_or_node_id->[ $or_node_ids->[0] ];
         last FIND_CP if not defined $cp_candidates;
         for my $cp_candidate ( @{$cp_candidates} ) {
             my $candidate_token_ids = $cp_candidate
@@ -113,14 +113,14 @@ sub new_cp {
     for my $token_id ( @{$token_ids} ) {
         push @{
             $asf->[
-                Marpa::R2::Internal::Scanless::ASF::CHOICEPOINTS_BY_TOKEN_ID]
+                Marpa::R2::Internal::Scanless::ASF::SYMCHSETS_BY_TOKEN_ID]
             },
             $token_id;
     } ## end for my $token_id ( @{$token_ids} )
     for my $or_node_id ( @{$or_node_ids} ) {
         push @{
             $asf->[
-                Marpa::R2::Internal::Scanless::ASF::CHOICEPOINTS_BY_OR_NODE_ID
+                Marpa::R2::Internal::Scanless::ASF::SYMCHSETS_BY_OR_NODE_ID
             ]
             },
             $or_node_id;

@@ -255,16 +255,14 @@ __DATA__
     CHOICE_BLESSING
     RULE_BLESSING
     SYMBOL_BLESSING
-    CHOICEPOINT_IS_FACTORED
 
     { FAC_ indicates fields which would belong to separate factoring
      object, if there was one }
     FAC_CHAF_PREDECESSOR_BY_CAUSE
     FAC_CHAF_CAUSE_IS_ACTIVE
 
-    CHOICEPOINTS_BY_TOKEN_ID
-    CHOICEPOINTS_BY_OR_NODE_ID
-
+    SYMCHSETS_BY_TOKEN_ID
+    SYMCHSETS_BY_OR_NODE_ID
 
     EXTERNAL { boolean: should this choicepoint be visible outside the ASF code? }
 
