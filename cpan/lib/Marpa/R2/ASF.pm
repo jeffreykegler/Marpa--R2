@@ -408,29 +408,62 @@ sub Marpa::R2::Scanless::ASF::new {
 
 } ## end sub Marpa::R2::Scanless::ASF::new
 
+package Marpa::R2::Internal::Choicepoint;
+
+sub first_factoring {
+    my ( $choicepoint, $top_or_node ) = @_;
+    my %seen = ();
+
+    # return undef if we were passed a symch which is not
+    # an or-node
+    return if $top_or_node < 0;
+
+    my $asf = $choicepoint->[Marpa::R2::Internal::Scanless::Choicepoint::ASF];
+    my $slr = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
+    my $recce    = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+    my $bocage   = $recce->[Marpa::R2::Internal::Recognizer::B_C];
+    my $ordering = $recce->[Marpa::R2::Internal::Recognizer::O_C];
+
+    my %virtual_initials = ();    # Memoize by ASF?
+
+    # When virtual rule marker is pushed or popped, change this
+    my $virtual_parent;
+
+    my @stack;
+    push @stack, $ordering->_marpa_o_or_node_and_node_ids($top_or_node);
+    while ( defined( my $stack_element = pop @stack ) ) {
+        if ( not ref $stack_element ) {    # If this is an and-node
+            my $predecessor_id =
+                $bocage->_marpa_b_and_node_predecessor($stack_element);
+            my $cause_id = $bocage->_marpa_b_and_node_cause($stack_element);
+            if ( defined $predecessor_id ) {
+                $choicepoint->[
+                    Marpa::R2::Internal::Scanless::Choicepoint::V_PREDECESSORS
+                ]->{$cause_id}->{$predecessor_id} = 1;
+                if ( !$seen{$predecessor_id} ) {
+                    push @stack,
+                        $ordering->_marpa_o_or_node_and_node_ids(
+                        $predecessor_id);
+                    $seen{$predecessor_id} = 1;
+                } ## end if ( !$seen{$predecessor_id} )
+            } ## end if ( defined $predecessor )
+            else {
+                $virtual_initials{$virtual_parent}{$cause_id} = 1
+                    if defined $virtual_parent;
+            }
+
+            # Finish handling of and-nodes -- deal with causes
+
+        } ## end if ( not ref $stack_element )
+
+        # Handle virtual rule markers
+    } ## end while ( defined( my $stack_element = pop @stack ) )
+
+} ## end sub first_factoring
+
 =pod
 
-Pseudo-code for expanding a symch into its first factoring
-
-Trivial if symch is a lexeme.  For an or-node:
-
-Initialize current Vparent to symch
-When Vrule market is stacked or popped, change it
-
-[ Check if symch is memoized per ASF? ]
-Push symch and-nodes onto stack.
-
-While (pop stack)
-
-Is popped item an and-node?
-
-    Does it have a predecessor?
-
-        Yes: $vpred{$cause}{$pred} = 1
-            Push and-nodes if $pred not seen
-            $seen{$pred} = 1;
-
-        No: Add this $cause to memoized list of V-initials for this Vparent
+Dealing with causes of popped and-node:
 
     Are we at a V-final?
 
@@ -441,17 +474,11 @@ Is popped item an and-node?
 
     No -- Add this to the list of finals for the current symch
 
-Is this a Vrule marker?
+Dealing with virtual rule marker:
 
      $vpred{$Vparent}{$_} for @{V-initials of Vparent}
      [ No Vrule marker for top rule, so no $vpred{}{} settings,
        which is correct. ]
-
-Memoized by ASF:
-V-initials for each Vparent
-
-Memoized for current symch:
-Vpred{cause}{pred} matrix -- which are present depends on top (start) symch
 
 =cut
 

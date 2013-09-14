@@ -259,7 +259,7 @@ __DATA__
 
     { the following fields must be reset when current symch changes }
     CURRENT_FACTORING
-    VPREDECESSORS { virtual predecessors }
+    V_PREDECESSORS { virtual predecessors }
 
     { One of the or-node and token ID array will be non-empty.
       Currently only one will be non-empty, but this may change if
