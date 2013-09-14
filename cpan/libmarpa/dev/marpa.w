@@ -11239,7 +11239,7 @@ so that any |or_node_id| is either a soft
 or a hard error,
 depending on whether it is non-negative
 or negative.
-@<Check |or_node_id|; set |or_node|@> =
+@<Check |or_node_id|@> =
 {
   if (UNLIKELY (or_node_id >= OR_Count_of_B (b)))
     {
@@ -11250,15 +11250,16 @@ or negative.
       MARPA_ERROR (MARPA_ERR_ORID_NEGATIVE);
       return failure_indicator;
     }
-  {
-    OR *const or_nodes = ORs_of_B (b);
-    if (UNLIKELY (!or_nodes))
-      {
-	MARPA_ERROR (MARPA_ERR_NO_OR_NODES);
-	return failure_indicator;
-      }
-    or_node = or_nodes[or_node_id];
-  }
+}
+@ @<Set |or_node| or fail@> =
+{
+  OR *const or_nodes = ORs_of_B (b);
+  if (UNLIKELY (!or_nodes))
+    {
+      MARPA_ERROR (MARPA_ERR_NO_OR_NODES);
+      return failure_indicator;
+    }
+  or_node = or_nodes[or_node_id];
 }
 
 @ @<Function definitions@> =
@@ -11269,7 +11270,8 @@ int _marpa_b_or_node_set(Marpa_Bocage b,
   @<Return |-2| on failure@>@;
   @<Unpack bocage objects@>@;
   @<Fail if fatal error@>@;
-  @<Check |or_node_id|; set |or_node|@>@;
+  @<Check |or_node_id|@>@;
+  @<Set |or_node| or fail@>@;
   return ES_Ord_of_OR(or_node);
 }
 
@@ -11281,7 +11283,8 @@ int _marpa_b_or_node_origin(Marpa_Bocage b,
   @<Return |-2| on failure@>@;
   @<Unpack bocage objects@>@;
   @<Fail if fatal error@>@;
-  @<Check |or_node_id|; set |or_node|@>@;
+  @<Check |or_node_id|@>@;
+  @<Set |or_node| or fail@>@;
   return Origin_Ord_of_OR(or_node);
 }
 
@@ -11293,7 +11296,8 @@ Marpa_IRL_ID _marpa_b_or_node_irl(Marpa_Bocage b,
   @<Return |-2| on failure@>@;
   @<Unpack bocage objects@>@;
   @<Fail if fatal error@>@;
-  @<Check |or_node_id|; set |or_node|@>@;
+  @<Check |or_node_id|@>@;
+  @<Set |or_node| or fail@>@;
   return ID_of_IRL(IRL_of_OR(or_node));
 }
 
@@ -11305,7 +11309,8 @@ int _marpa_b_or_node_position(Marpa_Bocage b,
   @<Return |-2| on failure@>@;
   @<Unpack bocage objects@>@;
   @<Fail if fatal error@>@;
-  @<Check |or_node_id|; set |or_node|@>@;
+  @<Check |or_node_id|@>@;
+  @<Set |or_node| or fail@>@;
   return Position_of_OR(or_node);
 }
 
@@ -11317,7 +11322,8 @@ int _marpa_b_or_node_first_and(Marpa_Bocage b,
   @<Return |-2| on failure@>@;
   @<Unpack bocage objects@>@;
   @<Fail if fatal error@>@;
-  @<Check |or_node_id|; set |or_node|@>@;
+  @<Check |or_node_id|@>@;
+  @<Set |or_node| or fail@>@;
   return First_ANDID_of_OR(or_node);
 }
 
@@ -11329,7 +11335,8 @@ int _marpa_b_or_node_last_and(Marpa_Bocage b,
   @<Return |-2| on failure@>@;
   @<Unpack bocage objects@>@;
   @<Fail if fatal error@>@;
-  @<Check |or_node_id|; set |or_node|@>@;
+  @<Check |or_node_id|@>@;
+  @<Set |or_node| or fail@>@;
   return First_ANDID_of_OR(or_node)
       + AND_Count_of_OR(or_node) - 1;
 }
@@ -11342,8 +11349,63 @@ int _marpa_b_or_node_and_count(Marpa_Bocage b,
   @<Return |-2| on failure@>@;
   @<Unpack bocage objects@>@;
   @<Fail if fatal error@>@;
-  @<Check |or_node_id|; set |or_node|@>@;
+  @<Check |or_node_id|@>@;
+  @<Set |or_node| or fail@>@;
   return AND_Count_of_OR(or_node);
+}
+
+@** Ordering trace functions.
+
+@ This is common logic in the ordering trace functions.
+In the case of a nulling ordering, the or count of
+the ordering is zero,
+so that any |or_node_id| is either a soft
+or a hard error,
+depending on whether it is non-negative
+or negative.
+
+@ @<Function definitions@> =
+int _marpa_o_or_node_and_node_count(Marpa_Order o,
+  Marpa_Or_Node_ID or_node_id)
+{
+  OR or_node;
+  @<Return |-2| on failure@>@;
+  @<Unpack order objects@>@;
+  @<Fail if fatal error@>@;
+  @<Check |or_node_id|@>@;
+  if (!O_is_Default(o))
+  {
+    ANDID ** const and_node_orderings = o->t_and_node_orderings;
+    ANDID *ordering = and_node_orderings[or_node_id];
+    if (ordering) return ordering[0];
+  }
+  {
+    OR or_node;
+    @<Set |or_node| or fail@>@;
+    return AND_Count_of_OR (or_node);
+  }
+}
+
+@ @<Function definitions@> =
+int _marpa_o_or_node_and_node_id_by_ix(Marpa_Order o,
+  Marpa_Or_Node_ID or_node_id, int ix)
+{
+  OR or_node;
+  @<Return |-2| on failure@>@;
+  @<Unpack order objects@>@;
+  @<Fail if fatal error@>@;
+  @<Check |or_node_id|@>@;
+  if (!O_is_Default(o))
+  {
+      ANDID ** const and_node_orderings = o->t_and_node_orderings;
+      ANDID *ordering = and_node_orderings[or_node_id];
+      if (ordering) return ordering[1 + ix];
+  }
+  {
+    OR or_node;
+    @<Set |or_node| or fail@>@;
+    return First_ANDID_of_OR (or_node) + ix;
+  }
 }
 
 @** Whole element ID (WHEID) code.
@@ -12973,7 +13035,8 @@ Marpa_And_Node_ID _marpa_o_and_order_get(Marpa_Order o,
   @<Return |-2| on failure@>@;
   @<Unpack order objects@>@;
   @<Fail if fatal error@>@;
-  @<Check |or_node_id|; set |or_node|@>@;
+  @<Check |or_node_id|@>@;
+  @<Set |or_node| or fail@>@;
   if (ix < 0) {
       MARPA_ERROR(MARPA_ERR_ANDIX_NEGATIVE);
       return failure_indicator;
