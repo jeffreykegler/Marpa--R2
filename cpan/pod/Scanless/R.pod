@@ -519,8 +519,8 @@ can occur during the C<read()> method.
 When a named event occurs, 
 the C<read()> method pauses.
 Named events can be queried using
-L<the Scanless recognizer's event()
-method|/"event()">.
+L<the Scanless recognizer's events()
+method|/"events()">.
 The C<read()> method also
 pauses as specified with the
 L<Scanless DSL's pause adverb|Marpa::R2::Scanless::DSL/"pause">.
@@ -741,8 +741,8 @@ as indicated by the arguments.
 L<Completion named events|Marpa::R2::Scanless::DSL/"Completion event statement">
 can occur during the C<lexeme_complete()> method.
 Named events can be queried using
-L<the Scanless recognizer's event()
-method|/"event()">.
+L<the Scanless recognizer's events()
+method|/"events()">.
 
 B<Return value:>
 On success, C<lexeme_complete()>
@@ -821,8 +821,8 @@ Current G1 location is advanced by one.
 L<Completion named events|Marpa::R2::Scanless::DSL/"Completion event statement">
 can occur during the C<lexeme_read()> method.
 Named events can be queried using
-L<the Scanless recognizer's event()
-method|/"event()">.
+L<the Scanless recognizer's events()
+method|/"events()">.
 
 B<Return value>:
 On success, C<lexeme_read()> returns the new current location.
@@ -877,8 +877,8 @@ can occur during the C<resume()> method.
 When a named event occurs, 
 the C<resume()> method pauses.
 Named events can be queried using
-L<the Scanless recognizer's event()
-method|/"event()">.
+L<the Scanless recognizer's events()
+method|/"events()">.
 The C<resume()> method also
 pauses as specified with the
 L<Scanless DSL's pause adverb|Marpa::R2::Scanless::DSL/"pause">.
