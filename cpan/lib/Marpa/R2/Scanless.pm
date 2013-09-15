@@ -516,8 +516,7 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
             or not $g1_thin->symbol_is_accessible($g1_symbol_id) )
         {
             Marpa::R2::exception(
-                q{A G0 lexeme is not accessible from the G1 start symbol: },
-                $thick_g1_grammar->symbol_in_display_form($g1_symbol_id)
+                "A G0 lexeme is not accessible from the G1 start symbol: $lexeme_name"
             );
         } ## end if ( not defined $g1_symbol_id or not $g1_thin...)
         my $lex_symbol_id = $lex_tracer->symbol_by_name($lexeme_name);
