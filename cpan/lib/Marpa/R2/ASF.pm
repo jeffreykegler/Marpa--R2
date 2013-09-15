@@ -421,6 +421,8 @@ sub first_factoring {
     my $asf = $choicepoint->[Marpa::R2::Internal::Scanless::Choicepoint::ASF];
     my $slr = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
     my $recce    = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+    my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
+    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
     my $bocage   = $recce->[Marpa::R2::Internal::Recognizer::B_C];
     my $ordering = $recce->[Marpa::R2::Internal::Recognizer::O_C];
 
@@ -428,6 +430,7 @@ sub first_factoring {
 
     # When virtual rule marker is pushed or popped, change this
     my @virtual_parents = ();
+    my @finals = ();
 
     my @stack;
     push @stack, $ordering->_marpa_o_or_node_and_node_ids($top_or_node);
