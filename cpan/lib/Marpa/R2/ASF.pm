@@ -427,15 +427,17 @@ sub first_factoring {
     my %virtual_initials = ();    # Memoize by ASF?
 
     # When virtual rule marker is pushed or popped, change this
-    my $virtual_parent;
+    my @virtual_parents = ();
 
     my @stack;
     push @stack, $ordering->_marpa_o_or_node_and_node_ids($top_or_node);
-    while ( defined( my $stack_element = pop @stack ) ) {
-        if ( not ref $stack_element ) {    # If this is an and-node
+    STACK_ELEMENT: while ( defined( my $stack_element = pop @stack ) ) {
+
+        if ( $stack_element >= 0 ) {    # If this is a virtual rule marker
             my $predecessor_id =
                 $bocage->_marpa_b_and_node_predecessor($stack_element);
             my $cause_id = $bocage->_marpa_b_and_node_cause($stack_element);
+
             if ( defined $predecessor_id ) {
                 $choicepoint->[
                     Marpa::R2::Internal::Scanless::Choicepoint::V_PREDECESSORS
@@ -446,18 +448,35 @@ sub first_factoring {
                         $predecessor_id);
                     $seen{$predecessor_id} = 1;
                 } ## end if ( !$seen{$predecessor_id} )
-            } ## end if ( defined $predecessor )
+                last FOLLOW_PREDECESSOR;
+            } ## end if ( defined $predecessor_id )
             else {
-                $virtual_initials{$virtual_parent}{$cause_id} = 1
-                    if defined $virtual_parent;
+                $virtual_initials{ $virtual_parents[-1] }{$cause_id} = 1
+                    if scalar @virtual_parents;
             }
 
             # Finish handling of and-nodes -- deal with causes
+            # Parent rule is the rule for the predecessor
+            my $irl_id = $bocage->_marpa_b_or_node_irl($predecessor_id);
+            if ( !$grammar_c->_marpa_g_irl_is_virtual_rhs($irl_id) ) {
+                push @finals, $cause_id;
+                next STACK_ELEMENT;
+            }
+            else {
+                if ( !$seen{$cause_id} ) {
+                    push @stack, -1,    # virtual rule marker
+                        $ordering->_marpa_o_or_node_and_node_ids($cause_id);
+                    $seen{$cause_id} = 1;
+                    next STACK_ELEMENT;
+                } ## end if ( !$seen{$cause_id} )
+            } ## end else [ if ( !$grammar_c->_marpa_g_irl_is_virtual_rhs($irl_id...))]
+        } ## end if ( $stack_element >= 0 )
+        else {
+            pop @virtual_parents;
+            next STACK_ELEMENT;
+        }
 
-        } ## end if ( not ref $stack_element )
-
-        # Handle virtual rule markers
-    } ## end while ( defined( my $stack_element = pop @stack ) )
+    } ## end STACK_ELEMENT: while ( defined( my $stack_element = pop @stack ) )
 
 } ## end sub first_factoring
 
