@@ -262,6 +262,9 @@ $main::CLASS_LETTER   = 'b';
 $main::LIBMARPA_CLASS = 'Marpa_Bocage';
 print {$out} 'MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin::B', "\n\n";
 
+say {$out} gp_generate(qw(_marpa_b_and_node_parent Marpa_And_Node_ID and_node_id));
+say {$out} gp_generate(qw(_marpa_b_and_node_count));
+say {$out} gp_generate(qw(_marpa_b_or_node_and_count Marpa_Or_Node_ID or_node_id));
 say {$out} gp_generate(qw(_marpa_b_or_node_is_semantic Marpa_Or_Node_ID or_node_id));
 say {$out} gp_generate(qw(_marpa_b_or_node_is_whole Marpa_Or_Node_ID or_node_id));
 
