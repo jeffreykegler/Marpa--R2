@@ -11315,6 +11315,32 @@ int _marpa_b_or_node_position(Marpa_Bocage b,
 }
 
 @ @<Function definitions@> =
+int _marpa_b_or_node_is_whole(Marpa_Bocage b,
+  Marpa_Or_Node_ID or_node_id)
+{
+  OR or_node;
+  @<Return |-2| on failure@>@;
+  @<Unpack bocage objects@>@;
+  @<Fail if fatal error@>@;
+  @<Check |or_node_id|@>@;
+  @<Set |or_node| or fail@>@;
+  return Position_of_OR(or_node) >= Length_of_IRL(IRL_of_OR(or_node)) ? 1 : 0;
+}
+
+@ @<Function definitions@> =
+int _marpa_b_or_node_is_semantic(Marpa_Bocage b,
+  Marpa_Or_Node_ID or_node_id)
+{
+  OR or_node;
+  @<Return |-2| on failure@>@;
+  @<Unpack bocage objects@>@;
+  @<Fail if fatal error@>@;
+  @<Check |or_node_id|@>@;
+  @<Set |or_node| or fail@>@;
+  return IRL_has_Virtual_LHS(IRL_of_OR(or_node));
+}
+
+@ @<Function definitions@> =
 int _marpa_b_or_node_first_and(Marpa_Bocage b,
   Marpa_Or_Node_ID or_node_id)
 {
@@ -12272,6 +12298,7 @@ Marpa_Rule_ID marpa_r_progress_item(
 @ Pre-initialization is making the elements safe for the deallocation logic
 to be called.  Often it is setting the value to zero, so that the deallocation
 logic knows when {\bf not} to try deallocating a not-yet uninitialized value.
+@s Marpa_Bocage int
 @<Public incomplete structures@> =
 struct marpa_bocage;
 typedef struct marpa_bocage* Marpa_Bocage;
@@ -14159,9 +14186,9 @@ for the rule.
 	    if (lbv_bit_test (XSY_is_Valued_BV_of_V (v), XSYID_of_V (v)))
 	      return Step_Type_of_V (v) = MARPA_STEP_NULLING_SYMBOL;
 	  }
-	  /* fall through */
-	  /* No tracing of nulling valuators, at least at this point */
-	  /* fall through */
+	  @#
+	  /* No tracing of nulling valuators, at least at this point */ @#
+	  /* fall through */ @#
 	}
     }
 }

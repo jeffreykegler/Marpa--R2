@@ -51,6 +51,8 @@ my %format_by_type = (
    int => '%d',
    Marpa_IRL_ID => '%d',
    Marpa_ISY_ID => '%d',
+   Marpa_Or_Node_ID => '%d',
+   Marpa_And_Node_ID => '%d',
    Marpa_Rank => '%d',
    Marpa_Rule_ID => '%d',
    Marpa_Symbol_ID => '%d',
@@ -215,13 +217,11 @@ say {$out} gp_generate(qw(progress_report_finish));
 say {$out} gp_generate(qw(progress_report_start Marpa_Earley_Set_ID ordinal));
 say {$out} gp_generate(qw(terminal_is_expected Marpa_Symbol_ID xsyid));
 
-
 $main::CLASS_LETTER   = 'b';
 $main::LIBMARPA_CLASS = 'Marpa_Bocage';
 print {$out} 'MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin::B', "\n\n";
-say {$out} gp_generate(qw(ambiguity_metric));
 
-# Nothing (as yet) in bocage class
+say {$out} gp_generate(qw(ambiguity_metric));
 
 $main::CLASS_LETTER   = 'o';
 $main::LIBMARPA_CLASS = 'Marpa_Order';
@@ -257,3 +257,11 @@ say {$out} gp_generate(qw(_marpa_g_irl_rhs Marpa_IRL_ID rule_id int ix));
 say {$out} gp_generate(qw(_marpa_g_irl_length Marpa_IRL_ID rule_id));
 say {$out} gp_generate(qw(_marpa_g_irl_rank Marpa_IRL_ID irl_id));
 say {$out} gp_generate(qw(_marpa_g_isy_rank Marpa_ISY_ID isy_id));
+
+$main::CLASS_LETTER   = 'b';
+$main::LIBMARPA_CLASS = 'Marpa_Bocage';
+print {$out} 'MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin::B', "\n\n";
+
+say {$out} gp_generate(qw(_marpa_b_or_node_is_semantic Marpa_Or_Node_ID or_node_id));
+say {$out} gp_generate(qw(_marpa_b_or_node_is_whole Marpa_Or_Node_ID or_node_id));
+

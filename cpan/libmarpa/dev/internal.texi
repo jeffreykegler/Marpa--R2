@@ -458,6 +458,14 @@ the or-node.
     Marpa_Bocage @var{b}, @
     Marpa_Or_Node_ID @var{or_node_id})
 @end deftypefun
+@deftypefun int _marpa_b_or_node_is_whole ( @
+    Marpa_Bocage @var{b}, @
+    Marpa_Or_Node_ID @var{or_node_id})
+@end deftypefun
+@deftypefun int _marpa_b_or_node_is_semantic ( @
+    Marpa_Bocage @var{b}, @
+    Marpa_Or_Node_ID @var{or_node_id})
+@end deftypefun
 @deftypefun int _marpa_b_or_node_first_and ( @
     Marpa_Bocage @var{b}, @
     Marpa_Or_Node_ID @var{or_node_id})
@@ -480,12 +488,12 @@ the or-node.
     int @var{ix})
 @end deftypefun
 
-@deftypefun int _marpa_o_or_node_and_node_count( @
+@deftypefun int _marpa_o_or_node_and_node_count ( @
   Marpa_Order @var{o}, @
   Marpa_Or_Node_ID @var{or_node_id})
 @end deftypefun
 
-@deftypefun int _marpa_o_or_node_and_node_id_by_ix( @
+@deftypefun int _marpa_o_or_node_and_node_id_by_ix ( @
   Marpa_Order @var{o}, @
   Marpa_Or_Node_ID @var{or_node_id}, @
   int @var{ix})
