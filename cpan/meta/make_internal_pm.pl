@@ -259,7 +259,8 @@ __DATA__
 
     { the following fields must be reset when current symch changes }
     CURRENT_FACTORING
-    V_PREDECESSORS { virtual predecessors }
+    DIRECT_PREDECESSORS { cause to direct predecessors mapping }
+    DIRECT_WHOLES { cause to direct whole or-nodes mapping }
 
     { One of the or-node and token ID array will be non-empty.
       Currently only one will be non-empty, but this may change if

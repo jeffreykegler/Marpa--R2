@@ -4774,6 +4774,8 @@ PPCODE:
 
 MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin::B
 
+ # Move of bocage modules to gp_generate.pl is now complete
+
 void
 _marpa_b_and_node_token( b_wrapper, and_node_id )
      B_Wrapper *b_wrapper;

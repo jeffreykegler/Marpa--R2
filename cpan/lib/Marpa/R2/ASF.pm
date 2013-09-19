@@ -103,6 +103,8 @@ sub cmp_cp_length_major {
 sub new_cp {
     my ( $asf, $or_node_ids, $token_ids ) = @_;
     my $cp;
+    $cp->[Marpa::R2::Internal::Scanless::Choicepoint::DIRECT_PREDECESSORS] = {};
+    $cp->[Marpa::R2::Internal::Scanless::Choicepoint::DIRECT_WHOLES] = {};
     $cp->[Marpa::R2::Internal::Scanless::Choicepoint::OR_NODE_IDS] =
         $or_node_ids // [];
     $cp->[Marpa::R2::Internal::Scanless::Choicepoint::TOKEN_IDS] = $token_ids
@@ -426,83 +428,43 @@ sub first_factoring {
     my $bocage   = $recce->[Marpa::R2::Internal::Recognizer::B_C];
     my $ordering = $recce->[Marpa::R2::Internal::Recognizer::O_C];
 
-    my %virtual_initials = ();    # Memoize by ASF?
-
     # When virtual rule marker is pushed or popped, change this
-    my @virtual_parents = ();
+    my $direct_predecessors = $choicepoint->[Marpa::R2::Internal::Scanless::Choicepoint::DIRECT_PREDECESSORS];
+
+    # Could be memoized by ASF.  Do so?
+    my $direct_wholes = $choicepoint->[Marpa::R2::Internal::Scanless::Choicepoint::DIRECT_WHOLES];
     my @finals = ();
 
-    my @stack;
-    push @stack, $ordering->_marpa_o_or_node_and_node_ids($top_or_node);
+    my @stack = ([$top_or_node]);
     STACK_ELEMENT: while ( defined( my $stack_element = pop @stack ) ) {
 
-        if ( $stack_element >= 0 ) {    # If this is a virtual rule marker
+        # memoization of or-nodes on stack ?
+        my ( $or_node, $whole ) = @{$stack_element};
+        for my $and_node_id (
+            $ordering->_marpa_o_or_node_and_node_ids($top_or_node) )
+        {
             my $predecessor_id =
-                $bocage->_marpa_b_and_node_predecessor($stack_element);
-            my $cause_id = $bocage->_marpa_b_and_node_cause($stack_element);
+                $bocage->_marpa_b_and_node_predecessor($and_node_id);
 
+            # lexeme ?
+            my $cause_id = $bocage->_marpa_b_and_node_cause($and_node_id);
             if ( defined $predecessor_id ) {
-                $choicepoint->[
-                    Marpa::R2::Internal::Scanless::Choicepoint::V_PREDECESSORS
-                ]->{$cause_id}->{$predecessor_id} = 1;
-                if ( !$seen{$predecessor_id} ) {
-                    push @stack,
-                        $ordering->_marpa_o_or_node_and_node_ids(
-                        $predecessor_id);
-                    $seen{$predecessor_id} = 1;
-                } ## end if ( !$seen{$predecessor_id} )
-                last FOLLOW_PREDECESSOR;
-            } ## end if ( defined $predecessor_id )
-            else {
-                $virtual_initials{ $virtual_parents[-1] }{$cause_id} = 1
-                    if scalar @virtual_parents;
+                $direct_predecessors->{$cause_id}{$predecessor_id} = 1;
+                push @stack, [ $predecessor_id, $whole ];
             }
-
-            # Finish handling of and-nodes -- deal with causes
-            # Parent rule is the rule for the predecessor
-            my $irl_id = $bocage->_marpa_b_or_node_irl($predecessor_id);
-            if ( !$grammar_c->_marpa_g_irl_is_virtual_rhs($irl_id) ) {
+            else {
+                $direct_wholes->{$cause_id}{$whole} = 1 if defined $whole;
+            }
+            if ( _marpa_b_or_node_is_semantic($cause_id) ) {
                 push @finals, $cause_id;
-                next STACK_ELEMENT;
             }
             else {
-                if ( !$seen{$cause_id} ) {
-                    push @stack, -1,    # virtual rule marker
-                        $ordering->_marpa_o_or_node_and_node_ids($cause_id);
-                    $seen{$cause_id} = 1;
-                    next STACK_ELEMENT;
-                } ## end if ( !$seen{$cause_id} )
-            } ## end else [ if ( !$grammar_c->_marpa_g_irl_is_virtual_rhs($irl_id...))]
-        } ## end if ( $stack_element >= 0 )
-        else {
-            pop @virtual_parents;
-            next STACK_ELEMENT;
-        }
-
+                push @stack, [ $cause_id, $cause_id ];
+            }
+        } ## end for my $and_node_id ( $ordering...)
     } ## end STACK_ELEMENT: while ( defined( my $stack_element = pop @stack ) )
 
 } ## end sub first_factoring
-
-=pod
-
-Dealing with causes of popped and-node:
-
-    Are we at a V-final?
-
-         Yes, and if $cause is not memoized:
-             Push Vrule marker ::= (Vparent => $cause )
-             Push and-nodes if $cause not seen
-            $seen{$cause} = 1;
-
-    No -- Add this to the list of finals for the current symch
-
-Dealing with virtual rule marker:
-
-     $vpred{$Vparent}{$_} for @{V-initials of Vparent}
-     [ No Vrule marker for top rule, so no $vpred{}{} settings,
-       which is correct. ]
-
-=cut
 
 1;
 
