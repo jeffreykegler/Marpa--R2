@@ -174,6 +174,10 @@ sub Marpa::R2::Scanless::ASF::top {
 sub make_token_cp { return -($_[0] + 43); }
 sub unmake_token_cp { return -$_[0] - 43; }
 
+# Range from -1 to -42 reserved for special values
+sub and_node_to_token_symch { return -$_[0] - 43; }
+sub token_symch_to_and_node { return -$_[0] - 43; }
+
 sub cmp_symches_by_predecessors {
     my ( $symch_a, $symch_b, $sorted_pairings, $chaf_predecessors ) = @_;
     my ( $a_first_pairing, $a_last_pairing ) = @{$symch_a};
@@ -446,8 +450,8 @@ sub first_factoring {
             my $predecessor_id =
                 $bocage->_marpa_b_and_node_predecessor($and_node_id);
 
-            # lexeme ?
             my $cause_id = $bocage->_marpa_b_and_node_cause($and_node_id);
+            if (not defined $cause_id) { $cause_id = and_node_to_token_symch($and_node_id); }
             if ( defined $predecessor_id ) {
                 $direct_predecessors->{$cause_id}{$predecessor_id} = 1;
                 push @stack, [ $predecessor_id, $whole ];
@@ -455,7 +459,7 @@ sub first_factoring {
             else {
                 $direct_wholes->{$cause_id}{$whole} = 1 if defined $whole;
             }
-            if ( _marpa_b_or_node_is_semantic($cause_id) ) {
+            if ( $cause_id < 0 or _marpa_b_or_node_is_semantic($cause_id) ) {
                 push @finals, $cause_id;
             }
             else {
