@@ -252,15 +252,13 @@ __DATA__
     TOKEN_IDS { array of the token IDs }
 
     CURRENT_SYMCH_IX {
-      OR_NODE_IDS index if >= 0;
-      TOKEN_IDS ix is (-43 - x) if < 0;
-      undef if == -1
+      This is OR_NODE_IDS index if >= 0;
+           TOKEN_IDS ix is (-43 - x) if < 0;
+           undef if == -1
     }
 
     { the following fields must be reset when current symch changes }
     CURRENT_FACTORING
-    DIRECT_PREDECESSORS { cause to direct predecessors mapping }
-    DIRECT_WHOLES { cause to direct whole or-nodes mapping }
 
     { One of the or-node and token ID array will be non-empty.
       Currently only one will be non-empty, but this may change if

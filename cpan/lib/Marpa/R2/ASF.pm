@@ -103,8 +103,6 @@ sub cmp_cp_length_major {
 sub new_cp {
     my ( $asf, $or_node_ids, $token_ids ) = @_;
     my $cp;
-    $cp->[Marpa::R2::Internal::Scanless::Choicepoint::DIRECT_PREDECESSORS] = {};
-    $cp->[Marpa::R2::Internal::Scanless::Choicepoint::DIRECT_WHOLES] = {};
     $cp->[Marpa::R2::Internal::Scanless::Choicepoint::OR_NODE_IDS] =
         $or_node_ids // [];
     $cp->[Marpa::R2::Internal::Scanless::Choicepoint::TOKEN_IDS] = $token_ids
@@ -418,7 +416,6 @@ package Marpa::R2::Internal::Choicepoint;
 
 sub first_factoring {
     my ( $choicepoint, $top_or_node ) = @_;
-    my %seen = ();
 
     # return undef if we were passed a symch which is not
     # an or-node
@@ -426,20 +423,19 @@ sub first_factoring {
 
     my $asf = $choicepoint->[Marpa::R2::Internal::Scanless::Choicepoint::ASF];
     my $slr = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
-    my $recce    = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+    my $recce     = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
     my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
-    my $bocage   = $recce->[Marpa::R2::Internal::Recognizer::B_C];
-    my $ordering = $recce->[Marpa::R2::Internal::Recognizer::O_C];
+    my $bocage    = $recce->[Marpa::R2::Internal::Recognizer::B_C];
+    my $ordering  = $recce->[Marpa::R2::Internal::Recognizer::O_C];
 
-    # When virtual rule marker is pushed or popped, change this
-    my $direct_predecessors = $choicepoint->[Marpa::R2::Internal::Scanless::Choicepoint::DIRECT_PREDECESSORS];
+    my %internal_predecessors = ();
+    my %initial_by_whole      = ();
+    my %seen                  = ();
+    my @finals                = ();
 
-    # Could be memoized by ASF.  Do so?
-    my $direct_wholes = $choicepoint->[Marpa::R2::Internal::Scanless::Choicepoint::DIRECT_WHOLES];
-    my @finals = ();
-
-    my @stack = ([$top_or_node]);
+    my @stack = ( [$top_or_node, -1] );
+    $seen{$top_or_node}{-1} = 1;
     STACK_ELEMENT: while ( defined( my $stack_element = pop @stack ) ) {
 
         # memoization of or-nodes on stack ?
@@ -451,22 +447,40 @@ sub first_factoring {
                 $bocage->_marpa_b_and_node_predecessor($and_node_id);
 
             my $cause_id = $bocage->_marpa_b_and_node_cause($and_node_id);
-            if (not defined $cause_id) { $cause_id = and_node_to_token_symch($and_node_id); }
-            if ( defined $predecessor_id ) {
-                $direct_predecessors->{$cause_id}{$predecessor_id} = 1;
-                push @stack, [ $predecessor_id, $whole ];
+            if ( not defined $cause_id ) {
+                $cause_id = and_node_to_token_symch($and_node_id);
             }
+            if ( defined $predecessor_id ) {
+                $internal_predecessors{$cause_id}{$predecessor_id} = 1;
+                if ( not $seen{$predecessor_id}{$whole} ) {
+                    push @stack, [ $predecessor_id, $whole ];
+                    $seen{$predecessor_id}{$whole} = 1;
+                }
+            } ## end if ( defined $predecessor_id )
             else {
-                $direct_wholes->{$cause_id}{$whole} = 1 if defined $whole;
+                $initial_by_whole{$whole}{$cause_id} = 1 if $whole >= 0;
             }
             if ( $cause_id < 0 or _marpa_b_or_node_is_semantic($cause_id) ) {
                 push @finals, $cause_id;
             }
             else {
-                push @stack, [ $cause_id, $cause_id ];
-            }
+                if ( not $seen{$cause_id}{$cause_id} ) {
+                    push @stack, [ $cause_id, $cause_id ];
+                    $seen{$cause_id}{$cause_id} = 1;
+                }
+            } ## end else [ if ( $cause_id < 0 or _marpa_b_or_node_is_semantic(...))]
         } ## end for my $and_node_id ( $ordering...)
     } ## end STACK_ELEMENT: while ( defined( my $stack_element = pop @stack ) )
+
+    for my $whole_or_node_id ( keys %initial_by_whole ) {
+        my $initials     = $initial_by_whole{$whole_or_node_id};
+        my $predecessors = $internal_predecessors{$whole_or_node_id};
+        for my $initial ( @{$initials} ) {
+            for my $predecessor ( @{$predecessors} ) {
+                $internal_predecessors{$initial}{$predecessor} = 1;
+            }
+        }
+    } ## end for my $whole_or_node_id ( keys %initial_by_whole )
 
 } ## end sub first_factoring
 
