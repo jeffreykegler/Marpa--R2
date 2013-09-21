@@ -414,6 +414,13 @@ sub Marpa::R2::Scanless::ASF::new {
 
 package Marpa::R2::Internal::Choicepoint;
 
+# Memoization is heavily used -- it needs to be to keep the worst cases from
+# going exponential.  The need to memoize is the reason for the very heavy use of
+# hashes.  For example, quite often an HOH (hash of hashes) is used where
+# an HoL (hash of lists) would usually be preferred.  But the HOL would leave me
+# with the problem of having duplicates, which if followed up upon, would make
+# the algorithm go exponential.
+
 sub first_factoring {
     my ( $choicepoint, $top_or_node ) = @_;
 
@@ -481,6 +488,34 @@ sub first_factoring {
             }
         }
     } ## end for my $whole_or_node_id ( keys %initial_by_whole )
+
+    # Find the semantics causes for each predecessor
+    my %semantic_cause = ();
+    %seen = ();
+
+    # This re-initializes a stack to a list of or-nodes whose cause's should be examined,
+    # recursively, until a semantic or-node or a lexeme is found.
+    @stack =
+        grep { $seen{$_} ? 0 : ( $seen{$_} = 1 ) }
+        map { keys %{$_} } keys %internal_predecessors;
+    while ( my $predecessor_id = pop @stack ) {
+        for my $and_node_id (
+            $ordering->_marpa_o_or_node_and_node_ids($predecessor_id) )
+        {
+            # What if cause is nulled virtual?
+            my $cause_id = $bocage->_marpa_b_and_node_cause($and_node_id);
+            if ( not defined $cause_id ) {
+                $semantic_cause{$predecessor_id}
+                    { and_node_to_token_symch($and_node_id) } = 1;
+                next PREDECESSOR;
+            }
+            if ( $bocage->_marpa_b_or_node_is_semantic($cause_id) ) {
+                $semantic_cause{$predecessor_id}{$cause_id} = 1;
+                next PREDECESSOR;
+            }
+            push @stack, $cause_id;
+        } ## end for my $and_node_id ( $ordering...)
+    } ## end while ( my $predecessor_id = pop @predecessor_list )
 
 } ## end sub first_factoring
 
