@@ -543,6 +543,18 @@ sub first_factoring {
         } ## end for my $predecessor_id ( keys %{ $internal_predecessors...})
     } ## end for my $outer_cause_id ( keys %internal_predecessors )
 
+    my %prior_cause = ();
+    for my $cause_id ( keys %internal_predecessors ) {
+        for my $predecessor_id ( keys %{ $internal_predecessors{$cause_id} } )
+        {
+            for my $prior_cause_id (
+                keys %{ $semantic_cause{$predecessor_id} } )
+            {
+                $prior_cause{$cause_id}{$prior_cause_id} = 1;
+            }
+        } ## end for my $predecessor_id ( keys %{ $internal_predecessors...})
+    } ## end for my $cause_id ( keys %internal_predecessors )
+
 } ## end sub first_factoring
 
 1;
