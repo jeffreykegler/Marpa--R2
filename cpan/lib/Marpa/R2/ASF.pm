@@ -46,7 +46,7 @@ package Marpa::R2::Internal::ASF;
 #
 # Factor -- A list of choicepoints.
 #
-# Symch (Symbolic choice) -- An or-node or a lexeme
+# Symch (Symbolic choice) -- An or-node or a terminal
 #
 
 # This is more complicated that it needs to be for the current implementation.
@@ -492,30 +492,56 @@ sub first_factoring {
     # Find the semantics causes for each predecessor
     my %semantic_cause = ();
     %seen = ();
+    my %and_node_seen = ();
 
     # This re-initializes a stack to a list of or-nodes whose cause's should be examined,
-    # recursively, until a semantic or-node or a lexeme is found.
-    @stack =
-        grep { $seen{$_} ? 0 : ( $seen{$_} = 1 ) }
-        map { keys %{$_} } keys %internal_predecessors;
-    while ( my $predecessor_id = pop @stack ) {
-        for my $and_node_id (
-            $ordering->_marpa_o_or_node_and_node_ids($predecessor_id) )
+    # recursively, until a semantic or-node or a terminal is found.
+    for my $outer_cause_id ( keys %internal_predecessors ) {
+        for my $predecessor_id (
+            keys %{ $internal_predecessors{$outer_cause_id} } )
         {
-            # What if cause is nulled virtual?
-            my $cause_id = $bocage->_marpa_b_and_node_cause($and_node_id);
-            if ( not defined $cause_id ) {
-                $semantic_cause{$predecessor_id}
-                    { and_node_to_token_symch($and_node_id) } = 1;
-                next PREDECESSOR;
-            }
-            if ( $bocage->_marpa_b_or_node_is_semantic($cause_id) ) {
-                $semantic_cause{$predecessor_id}{$cause_id} = 1;
-                next PREDECESSOR;
-            }
-            push @stack, $cause_id;
-        } ## end for my $and_node_id ( $ordering...)
-    } ## end while ( my $predecessor_id = pop @predecessor_list )
+            next PREDECESSOR_ID if $seen{$predecessor_id};
+            $seen{$predecessor_id} = 1;
+
+            # Not the most efficient Perl implementation -- intended for conversion to C
+            # Outer seen, for predecessors, can be bit vector
+            # Inner seen, for and_nodes, must be array to track current predecessor,
+            #   because and-node is "seen" only if seen FOR THIS PREDECESSOR
+            my @and_node_stack = ();
+            for my $and_node_id (
+                $ordering->_marpa_o_or_node_and_node_ids($predecessor_id) )
+            {
+                next AND_NODE
+                    if ( $and_node_seen{$and_node_id} // -1 )
+                    == $predecessor_id;
+                $and_node_seen{$and_node_id} = $predecessor_id;
+                push @and_node_stack, $and_node_id;
+            } ## end for my $and_node_id ( $ordering...)
+            AND_NODE: while ( my $and_node_id = pop @and_node_stack ) {
+                my $cause_id = $bocage->_marpa_b_and_node_cause($and_node_id);
+                if ( not defined $cause_id ) {
+                    $semantic_cause{$predecessor_id}
+                        { and_node_to_token_symch($and_node_id) } = 1;
+                    next AND_NODE;
+                }
+                if ( $bocage->_marpa_b_or_node_is_semantic($cause_id) ) {
+                    $semantic_cause{$predecessor_id}{$cause_id} = 1;
+                    next AND_NODE;
+                }
+                INNER_AND_NODE:
+                for my $inner_and_node_id (
+                    $ordering->_marpa_o_or_node_and_node_ids($predecessor_id)
+                    )
+                {
+                    next INNER_AND_NODE
+                        if ( $and_node_seen{$inner_and_node_id} // -1 )
+                        == $predecessor_id;
+                    $and_node_seen{$inner_and_node_id} = $predecessor_id;
+                    push @and_node_stack, $inner_and_node_id;
+                } ## end INNER_AND_NODE: for my $inner_and_node_id ( $ordering...)
+            } ## end AND_NODE: while ( my $and_node_id = pop @and_node_stack )
+        } ## end for my $predecessor_id ( keys %{ $internal_predecessors...})
+    } ## end for my $outer_cause_id ( keys %internal_predecessors )
 
 } ## end sub first_factoring
 
