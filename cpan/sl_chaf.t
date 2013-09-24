@@ -30,9 +30,8 @@ use Data::Dumper;
 my $slg = Marpa::R2::Scanless::G->new(
     {   source => \(<<'END_OF_SOURCE'),
             :start ::= quartet
-            quartet ::= a a a
-            a ::= nothing | 'a'
-            nothing ::=
+            quartet ::= a a a a
+            a ~ 'a'
 END_OF_SOURCE
     }
 );
@@ -42,7 +41,7 @@ say STDERR "IRL's:\n", $slg->thick_g1_grammar()->show_irls();
 my $slr = Marpa::R2::Scanless::R->new( { grammar => $slg } );
 my ( $parse_value, $parse_status );
 
-if ( not defined eval { $slr->read( \'aa' ); 1 } ) {
+if ( not defined eval { $slr->read( \'aaaa' ); 1 } ) {
     my $abbreviated_error = $EVAL_ERROR;
     chomp $abbreviated_error;
     $abbreviated_error =~ s/\n.*//xms;
