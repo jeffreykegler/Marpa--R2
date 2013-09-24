@@ -134,11 +134,8 @@ use constant SLR => 0;
 use constant CHOICE_BLESSING => 1;
 use constant RULE_BLESSING => 2;
 use constant SYMBOL_BLESSING => 3;
-use constant FAC_CHAF_PREDECESSOR_BY_CAUSE => 4;
-use constant FAC_CHAF_CAUSE_IS_ACTIVE => 5;
-use constant SYMCHSETS_BY_TOKEN_ID => 6;
-use constant SYMCHSETS_BY_OR_NODE_ID => 7;
-use constant EXTERNAL => 8;
+use constant ID_BY_SYMCHSET => 4;
+use constant NEXT_SYMCHSET_ID => 5;
 
 package Marpa::R2::Internal::Scanless::ASF2;
 use constant SLR => 0;

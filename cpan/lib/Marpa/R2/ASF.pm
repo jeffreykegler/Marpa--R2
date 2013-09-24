@@ -58,75 +58,17 @@ package Marpa::R2::Internal::ASF;
 
 # Given the or-node IDs and token IDs, return the choicepoint,
 # creating one if necessary.  Default is internal.
-sub ensure_cp {
-    my ( $asf, $or_node_ids, $token_ids ) = @_;
-    my $symchsets_by_token_id =
-        $asf->[Marpa::R2::Internal::Scanless::ASF::SYMCHSETS_BY_TOKEN_ID];
-    my $symchsets_by_or_node_id = $asf
-        ->[Marpa::R2::Internal::Scanless::ASF::SYMCHSETS_BY_OR_NODE_ID];
-    my $token_id_count = scalar @{$token_ids};
-    FIND_CP: {
-        my $cp_candidates =
-              $token_id_count
-            ? $symchsets_by_token_id->[ $token_ids->[0] ]
-            : $symchsets_by_or_node_id->[ $or_node_ids->[0] ];
-        last FIND_CP if not defined $cp_candidates;
-        for my $cp_candidate ( @{$cp_candidates} ) {
-            my $candidate_token_ids = $cp_candidate
-                ->[Marpa::R2::Internal::Scanless::Choicepoint::TOKEN_IDS];
-            next CP_CANDIDATE
-                if scalar @{$token_ids} != scalar @{$candidate_token_ids};
-            for my $token_id ( @{$token_ids} ) {
-                next CP_CANDIDATE
-                    if not grep { $token_id == $_ } @{$candidate_token_ids};
-            }
-            my $candidate_or_node_ids = $cp_candidate
-                ->[Marpa::R2::Internal::Scanless::Choicepoint::OR_NODE_IDS];
-            next CP_CANDIDATE
-                if scalar @{$or_node_ids} != scalar @{$candidate_or_node_ids};
-            for my $or_node_id ( @{$or_node_ids} ) {
-                next CP_CANDIDATE
-                    if not grep { $or_node_id == $_ }
-                        @{$candidate_or_node_ids};
-            }
-            return $cp_candidate;
-        } ## end for my $cp_candidate ( @{$cp_candidates} )
-    } ## end FIND_CP:
-    return new_cp( $asf, $or_node_ids, $token_ids );
-} ## end sub ensure_cp
-
-# Sort with decreasing length as the major key
-sub cmp_cp_length_major {
-    my ($a, $b) = @_;
-}
-
-sub new_cp {
-    my ( $asf, $or_node_ids, $token_ids ) = @_;
-    my $cp;
-    $cp->[Marpa::R2::Internal::Scanless::Choicepoint::OR_NODE_IDS] =
-        $or_node_ids // [];
-    $cp->[Marpa::R2::Internal::Scanless::Choicepoint::TOKEN_IDS] = $token_ids
-        // [];
-
-    ## In C use an insertion sort by decreasing length, and changes searches to
-    # that they give up once past the last possible choicepoint
-    for my $token_id ( @{$token_ids} ) {
-        push @{
-            $asf->[
-                Marpa::R2::Internal::Scanless::ASF::SYMCHSETS_BY_TOKEN_ID]
-            },
-            $token_id;
-    } ## end for my $token_id ( @{$token_ids} )
-    for my $or_node_id ( @{$or_node_ids} ) {
-        push @{
-            $asf->[
-                Marpa::R2::Internal::Scanless::ASF::SYMCHSETS_BY_OR_NODE_ID
-            ]
-            },
-            $or_node_id;
-    } ## end for my $or_node_id ( @{$or_node_ids} )
-    return $cp;
-} ## end sub new_cp
+sub symchset_to_id {
+    my ( $asf, @symchset ) = @_;
+    my $key = join q{ }, sort { $a <=> $b } @symchset;
+    my $id_by_symchset =
+        $asf->[Marpa::R2::Internal::Scanless::ASF::ID_BY_SYMCHSET];
+    my $id = $id_by_symchset->{$key};
+    return $id if defined $id;
+    $id = $asf->[Marpa::R2::Internal::Scanless::ASF::NEXT_SYMCHSET_ID]++;
+    $id_by_symchset->{$key} = $id;
+    return $id;
+} ## end sub symchset_to_id
 
 # No check for conflicting usage -- value(), asf(), etc.
 # at this point
@@ -151,20 +93,18 @@ sub Marpa::R2::Scanless::ASF::top {
         $bocage->_marpa_b_or_node_first_and($augment_or_node_id);
     my $augment2_or_node_id =
         $bocage->_marpa_b_and_node_cause($augment_and_node_id);
-    my @token_ids;
-    my @or_node_ids;
+    my @symch_set;
     AND_NODE: for my $augment2_and_node_id (
         $bocage->_marpa_b_or_node_first_and($augment2_or_node_id)
         .. $bocage->_marpa_b_or_node_last_and($augment2_or_node_id)) {
       my $cause_id = $bocage->_marpa_b_and_node_cause($augment2_and_node_id);
       if (defined $cause_id) {
-          push @or_node_ids, $cause_id;
+          push @symch_set, $cause_id;
 	  next AND_NODE;
       }
-      my $token_id = $bocage->_marpa_b_and_node_symbol($augment2_and_node_id);
-      push @token_ids, $token_id;
+      push @symch_set, and_node_to_token_symch( $augment2_and_node_id);
     }
-    my $new_cp = ensure_cp($asf, \@or_node_ids, \@token_ids);
+    my $new_cp = symchset_to_id($asf, @symch_set);
     # $new_cp->[Marpa::R2::Internal::Scanless::Choicepoint::EXTERNAL] = 1;
     return $new_cp;
 } ## end sub Marpa::R2::Scanless::ASF::top_choicepoint
@@ -290,6 +230,9 @@ sub Marpa::R2::Scanless::ASF::new {
         );
     }
     $recce->[Marpa::R2::Internal::Recognizer::TREE_MODE] = 'forest';
+
+    $asf->[Marpa::R2::Internal::Scanless::ASF::ID_BY_SYMCHSET] = {};
+    $asf->[Marpa::R2::Internal::Scanless::ASF::NEXT_SYMCHSET_ID] = 0;
 
     my $slg       = $slr->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
     my $thin_slr  = $slr->[Marpa::R2::Inner::Scanless::R::C];

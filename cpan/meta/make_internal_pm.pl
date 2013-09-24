@@ -271,16 +271,8 @@ __DATA__
     RULE_BLESSING
     SYMBOL_BLESSING
 
-    { FAC_ indicates fields which would belong to separate factoring
-     object, if there was one }
-    FAC_CHAF_PREDECESSOR_BY_CAUSE { Delete after development }
-    FAC_CHAF_CAUSE_IS_ACTIVE { Delete after development }
-
-    SYMCHSETS_BY_TOKEN_ID
-    SYMCHSETS_BY_OR_NODE_ID
-
-    EXTERNAL { boolean: should this choicepoint be visible outside the ASF code? }
-    { Delete after development }
+    ID_BY_SYMCHSET
+    NEXT_SYMCHSET_ID
 
     :package=Marpa::R2::Internal::Scanless::ASF2
 
