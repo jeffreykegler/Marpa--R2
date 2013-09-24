@@ -56,7 +56,9 @@ if ( not defined $asf ) {
 }
 
 say STDERR "Or-nodes:\n", $slr->thick_g1_recce()->verbose_or_nodes();
-say STDERR Data::Dumper::Dumper($asf->first_factored_rhs($asf->top()));
+say STDERR "Top = ", Data::Dumper::Dumper( $asf->top() );
+say STDERR Data::Dumper::Dumper(
+    Marpa::R2::Internal::ASF::first_factoring( $asf, $asf->top() ) );
 
 # my $actual_asf         = $asf->raw();
 # my $actual_blessed_asf = $asf->bless($actual_asf);

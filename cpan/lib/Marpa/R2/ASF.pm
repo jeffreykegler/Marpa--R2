@@ -105,7 +105,6 @@ sub Marpa::R2::Scanless::ASF::top {
       push @symch_set, and_node_to_token_symch( $augment2_and_node_id);
     }
     my $new_cp = symchset_to_id($asf, @symch_set);
-    # $new_cp->[Marpa::R2::Internal::Scanless::Choicepoint::EXTERNAL] = 1;
     return $new_cp;
 } ## end sub Marpa::R2::Scanless::ASF::top_choicepoint
 
@@ -240,25 +239,14 @@ sub Marpa::R2::Scanless::ASF::new {
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
     my $recce_c   = $recce->[Marpa::R2::Internal::Recognizer::C];
 
-    my $bocage = $recce->[Marpa::R2::Internal::Recognizer::B_C];
-    if ( not $bocage ) {
-        my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
-        my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
-        my $recce_c   = $recce->[Marpa::R2::Internal::Recognizer::C];
-        $grammar_c->throw_set(0);
-        $bocage = $recce->[Marpa::R2::Internal::Recognizer::B_C] =
-            Marpa::R2::Thin::B->new( $recce_c, -1 );
-        $grammar_c->throw_set(1);
-        return if not defined $bocage;
-    } ## end if ( not $bocage )
+    $recce->ordering_create()
+        if not $recce->[Marpa::R2::Internal::Recognizer::O_C];
 
     blessings_set($asf, $default_blessing, $force);
 
     return $asf;
 
 } ## end sub Marpa::R2::Scanless::ASF::new
-
-package Marpa::R2::Internal::Choicepoint;
 
 # Memoization is heavily used -- it needs to be to keep the worst cases from
 # going exponential.  The need to memoize is the reason for the very heavy use of
@@ -268,13 +256,12 @@ package Marpa::R2::Internal::Choicepoint;
 # the algorithm go exponential.
 
 sub first_factoring {
-    my ( $choicepoint, $top_or_node ) = @_;
+    my ( $asf, $or_node ) = @_;
 
     # return undef if we were passed a symch which is not
     # an or-node
-    return if $top_or_node < 0;
+    return if $or_node < 0;
 
-    my $asf = $choicepoint->[Marpa::R2::Internal::Scanless::Choicepoint::ASF];
     my $slr = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
     my $recce     = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
     my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
@@ -287,14 +274,17 @@ sub first_factoring {
     my %seen                  = ();
     my @finals                = ();
 
-    my @stack = ( [$top_or_node, -1] );
-    $seen{$top_or_node}{-1} = 1;
+    my @stack = ( [$or_node, -1] );
+    $seen{$or_node}{-1} = 1;
+    say STDERR "stack = ", Data::Dumper::Dumper(\@stack);
     STACK_ELEMENT: while ( defined( my $stack_element = pop @stack ) ) {
 
         # memoization of or-nodes on stack ?
+        say STDERR "stack element = ", Data::Dumper::Dumper($stack_element);
         my ( $or_node, $whole ) = @{$stack_element};
+        say STDERR "or node = ", Data::Dumper::Dumper($or_node);
         for my $and_node_id (
-            $ordering->_marpa_o_or_node_and_node_ids($top_or_node) )
+            $ordering->_marpa_o_or_node_and_node_ids($or_node) )
         {
             my $predecessor_id =
                 $bocage->_marpa_b_and_node_predecessor($and_node_id);
@@ -400,6 +390,15 @@ sub first_factoring {
             }
         } ## end for my $predecessor_id ( keys %{ $internal_predecessors...})
     } ## end for my $cause_id ( keys %internal_predecessors )
+
+    my %prior_symchset_id = ();
+    for my $successor_cause_id (keys %prior_cause) {
+        my @predecessors = keys %{$prior_cause{$successor_cause_id}};
+        $prior_symchset_id{$successor_cause_id} = symchset_to_id($asf, @predecessors);
+    }
+
+    # This return value is temporary, for development
+    return \%prior_symchset_id;
 
 } ## end sub first_factoring
 
