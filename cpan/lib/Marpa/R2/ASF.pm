@@ -78,6 +78,11 @@ sub Marpa::R2::Symchset::symches {
     return $symchset->[Marpa::R2::Internal::Symchset::SYMCHES];
 }
 
+sub Marpa::R2::Symchset::id {
+    my ($symchset) = @_;
+    return $symchset->[Marpa::R2::Internal::Symchset::ID];
+}
+
 # No check for conflicting usage -- value(), asf(), etc.
 # at this point
 sub Marpa::R2::Scanless::ASF::top {
@@ -442,8 +447,9 @@ sub first_factoring {
     my %prior_symchset_id = ();
     for my $successor_cause_id ( keys %prior_cause ) {
         my @predecessors = keys %{ $prior_cause{$successor_cause_id} };
-        $prior_symchset_id{$successor_cause_id} =
-            Marpa::R2::Symchset->obtain( $asf, @predecessors );
+        my $prior_symchset = Marpa::R2::Symchset->obtain( $asf, @predecessors );
+        my $prior_symchset_id = $prior_symchset->id();
+        $prior_symchset_id{$successor_cause_id} = $prior_symchset_id;
     }
 
     # This return value is temporary, for development
