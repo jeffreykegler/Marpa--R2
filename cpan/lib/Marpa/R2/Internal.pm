@@ -134,8 +134,13 @@ use constant SLR => 0;
 use constant CHOICE_BLESSING => 1;
 use constant RULE_BLESSING => 2;
 use constant SYMBOL_BLESSING => 3;
-use constant ID_BY_SYMCHSET => 4;
-use constant NEXT_SYMCHSET_ID => 5;
+use constant SYMCHSET_BY_KEY => 4;
+use constant SYMCHSET_BY_ID => 5;
+use constant NEXT_SYMCHSET_ID => 6;
+
+package Marpa::R2::Internal::Symchset;
+use constant ID => 0;
+use constant SYMCHES => 1;
 
 package Marpa::R2::Internal::Scanless::ASF2;
 use constant SLR => 0;

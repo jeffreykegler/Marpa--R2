@@ -271,8 +271,14 @@ __DATA__
     RULE_BLESSING
     SYMBOL_BLESSING
 
-    ID_BY_SYMCHSET
+    SYMCHSET_BY_KEY
+    SYMCHSET_BY_ID
     NEXT_SYMCHSET_ID
+
+    :package=Marpa::R2::Internal::Symchset
+
+    ID
+    SYMCHES
 
     :package=Marpa::R2::Internal::Scanless::ASF2
 

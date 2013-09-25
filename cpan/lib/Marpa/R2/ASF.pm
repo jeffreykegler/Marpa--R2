@@ -56,19 +56,27 @@ package Marpa::R2::Internal::ASF;
 # rules and/or symbols may have extra-syntactic conditions attached making this
 # assumption false.
 
-# Given the or-node IDs and token IDs, return the choicepoint,
-# creating one if necessary.  Default is internal.
-sub symchset_to_id {
-    my ( $asf, @symchset ) = @_;
-    my $key = join q{ }, sort { $a <=> $b } @symchset;
-    my $id_by_symchset =
-        $asf->[Marpa::R2::Internal::Scanless::ASF::ID_BY_SYMCHSET];
-    my $id = $id_by_symchset->{$key};
-    return $id if defined $id;
-    $id = $asf->[Marpa::R2::Internal::Scanless::ASF::NEXT_SYMCHSET_ID]++;
-    $id_by_symchset->{$key} = $id;
-    return $id;
-} ## end sub symchset_to_id
+sub Marpa::R2::Symchset::obtain {
+    my ($class, $asf, @symches) = @_;
+    my @sorted_symchset = sort { $a <=> $b } @symches;
+    my $key = join q{ }, @sorted_symchset;
+    my $symchset_by_key =
+        $asf->[Marpa::R2::Internal::Scanless::ASF::SYMCHSET_BY_KEY];
+    my $symchset = $symchset_by_key->{$key};
+    return $symchset if defined $symchset;
+    $symchset = bless [], $class;
+    my $id = $asf->[Marpa::R2::Internal::Scanless::ASF::NEXT_SYMCHSET_ID]++;
+    $symchset->[Marpa::R2::Internal::Symchset::ID] = $id;
+    $symchset->[Marpa::R2::Internal::Symchset::SYMCHES] = \@sorted_symchset;
+    $asf->[Marpa::R2::Internal::Scanless::ASF::SYMCHSET_BY_KEY]->{$key} = $symchset;
+    $asf->[Marpa::R2::Internal::Scanless::ASF::SYMCHSET_BY_ID]->[$id] = $symchset;
+    return $symchset;
+}
+
+sub Marpa::R2::Symchset::symches {
+    my ($symchset) = @_;
+    return $symchset->[Marpa::R2::Internal::Symchset::SYMCHES];
+}
 
 # No check for conflicting usage -- value(), asf(), etc.
 # at this point
@@ -78,16 +86,7 @@ sub Marpa::R2::Scanless::ASF::top {
     my $recce = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
 
     my $bocage = $recce->[Marpa::R2::Internal::Recognizer::B_C];
-    if ( not $bocage ) {
-        my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
-        my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
-        my $recce_c   = $recce->[Marpa::R2::Internal::Recognizer::C];
-        $grammar_c->throw_set(0);
-        $bocage = $recce->[Marpa::R2::Internal::Recognizer::B_C] =
-            Marpa::R2::Thin::B->new( $recce_c, -1 );
-        $grammar_c->throw_set(1);
-        die "No parse" if not defined $bocage;
-    } ## end if ( not $bocage )
+    die "No Bocage" if not $bocage;
     my $augment_or_node_id = $bocage->_marpa_b_top_or_node();
     my $augment_and_node_id =
         $bocage->_marpa_b_or_node_first_and($augment_or_node_id);
@@ -104,7 +103,7 @@ sub Marpa::R2::Scanless::ASF::top {
       }
       push @symch_set, and_node_to_token_symch( $augment2_and_node_id);
     }
-    my $new_cp = symchset_to_id($asf, @symch_set);
+    my $new_cp = Marpa::R2::Symchset->obtain($asf, @symch_set);
     return $new_cp;
 } ## end sub Marpa::R2::Scanless::ASF::top_choicepoint
 
@@ -230,7 +229,8 @@ sub Marpa::R2::Scanless::ASF::new {
     }
     $recce->[Marpa::R2::Internal::Recognizer::TREE_MODE] = 'forest';
 
-    $asf->[Marpa::R2::Internal::Scanless::ASF::ID_BY_SYMCHSET] = {};
+    $asf->[Marpa::R2::Internal::Scanless::ASF::SYMCHSET_BY_ID] = [];
+    $asf->[Marpa::R2::Internal::Scanless::ASF::SYMCHSET_BY_KEY] = {};
     $asf->[Marpa::R2::Internal::Scanless::ASF::NEXT_SYMCHSET_ID] = 0;
 
     my $slg       = $slr->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
@@ -256,11 +256,11 @@ sub Marpa::R2::Scanless::ASF::new {
 # the algorithm go exponential.
 
 sub first_factoring {
-    my ( $asf, $or_node ) = @_;
+    my ( $asf, $symch ) = @_;
 
     # return undef if we were passed a symch which is not
     # an or-node
-    return if $or_node < 0;
+    return if $symch < 0;
 
     my $slr = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
     my $recce     = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
@@ -273,9 +273,9 @@ sub first_factoring {
     my %seen                  = ();
     my @finals                = ();
 
-    my @stack = ( $or_node );
+    my @stack = ( $symch );
     my @whole_ids = ();
-    $seen{$or_node} = 1;
+    $seen{$symch} = 1;
     STACK_ELEMENT: while ( defined( my $or_node = pop @stack ) ) {
 
         # memoization of or-nodes on stack ?
@@ -286,6 +286,7 @@ sub first_factoring {
         {
             my $predecessor_id =
                 $bocage->_marpa_b_and_node_predecessor($and_node_id);
+            $DB::single = 1;
 
             my $cause_id = $bocage->_marpa_b_and_node_cause($and_node_id);
             if ( not defined $cause_id ) {
@@ -369,7 +370,8 @@ sub first_factoring {
 
     } ## end for my $whole_id (@whole_ids)
 
-    say STDERR "stack = ", Data::Dumper::Dumper(\%predecessors);
+    say STDERR "finals = ", Data::Dumper::Dumper(\@finals);
+    say STDERR "predecessors = ", Data::Dumper::Dumper(\%predecessors);
 
     # Find the semantics causes for each predecessor
     my %semantic_cause = ();
