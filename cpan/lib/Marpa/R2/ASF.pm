@@ -270,7 +270,6 @@ sub first_factoring {
     my $ordering  = $recce->[Marpa::R2::Internal::Recognizer::O_C];
 
     my %predecessors = ();
-    my %initial_by_whole      = ();
     my %seen                  = ();
     my @finals                = ();
 
@@ -369,6 +368,8 @@ sub first_factoring {
         }
 
     } ## end for my $whole_id (@whole_ids)
+
+    say STDERR "stack = ", Data::Dumper::Dumper(\%predecessors);
 
     # Find the semantics causes for each predecessor
     my %semantic_cause = ();
