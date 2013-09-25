@@ -440,9 +440,10 @@ sub first_factoring {
     } ## end for my $cause_id ( keys %predecessors )
 
     my %prior_symchset_id = ();
-    for my $successor_cause_id (keys %prior_cause) {
-        my @predecessors = keys %{$prior_cause{$successor_cause_id}};
-        $prior_symchset_id{$successor_cause_id} = symchset_to_id($asf, @predecessors);
+    for my $successor_cause_id ( keys %prior_cause ) {
+        my @predecessors = keys %{ $prior_cause{$successor_cause_id} };
+        $prior_symchset_id{$successor_cause_id} =
+            Marpa::R2::Symchset->obtain( $asf, @predecessors );
     }
 
     # This return value is temporary, for development
