@@ -524,15 +524,45 @@ sub first_factoring {
     }
 
     my %symchset_to_cpset = ();
-    SYMCHSET: for my $symchset ($final_symchset, values %prior_symchset) {
+    SYMCHSET: for my $symchset ( $final_symchset, values %prior_symchset ) {
         my $symchset_id = $symchset->id();
         next SYMCHSET if defined $symchset_to_cpset{$symchset_id};
         my @sorted_symches =
             map { $_ - [-1] }
             sort { $a->[0] <=> $b->[0] }
-            map { ;[ ( $prior_symchset{$_} // -1 ), $_ ] }
-            @{$symchset->symches()};
-    }
+            map { ; [ ( $prior_symchset{$_} // -1 ), $_ ] }
+            @{ $symchset->symches() };
+        my $symch_ix                   = 0;
+        my $this_symch                 = $sorted_symches[ $symch_ix++ ];
+        my $prior_of_this_symch        = $prior_symchset{$this_symch} // -1;
+        my @symches_with_current_prior = ();
+        my $current_prior              = $prior_of_this_symch;
+        my @choicepoints = ();
+        SYMCH: while (1) {
+
+            CHECK_FOR_BREAK: {
+                if ( defined $this_symch
+                    and $prior_of_this_symch == $current_prior )
+                {
+                    push @symches_with_current_prior, $this_symch;
+                    last CHECK_FOR_BREAK;
+                } ## end if ( defined $this_symch and $prior_of_this_symch ==...)
+
+                # perform break on prior
+                my $choicepoint = Marpa::R2::Symchset->obtain( $asf,
+                    @symches_with_current_prior );
+                push @choicepoints, $choicepoint->id();
+                last SYMCH if not defined $this_symch;
+                @symches_with_current_prior = ($this_symch);
+                $current_prior              = $prior_of_this_symch;
+            } ## end CHECK_FOR_BREAK:
+            $this_symch = $sorted_symches[ $symch_ix++ ];
+            next SYMCH if not defined $this_symch;
+            $prior_of_this_symch = $prior_symchset{$this_symch} // -1;
+        } ## end SYMCH: while (1)
+        my $cpset = Marpa::R2::CPset->obtain( $asf, @choicepoints );
+        $symchset_to_cpset{$symchset_id} = $cpset;
+    } ## end SYMCHSET: for my $symchset ( $final_symchset, values ...)
 
     # This return value is temporary, for development
     return \%prior_symchset;
