@@ -60,6 +60,7 @@ sub Marpa::R2::Symchset::obtain {
     my ($class, $asf, @symches) = @_;
     my @sorted_symchset = sort { $a <=> $b } @symches;
     my $key = join q{ }, @sorted_symchset;
+    say STDERR "Obtaining symchset for key $key";
     my $symchset_by_key =
         $asf->[Marpa::R2::Internal::Scanless::ASF::SYMCHSET_BY_KEY];
     my $symchset = $symchset_by_key->{$key};
@@ -528,7 +529,7 @@ sub first_factoring {
         my $symchset_id = $symchset->id();
         next SYMCHSET if defined $symchset_to_cpset{$symchset_id};
         my @sorted_symches =
-            map { $_ - [-1] }
+            map { $_->[-1] }
             sort { $a->[0] <=> $b->[0] }
             map { ; [ ( $prior_symchset{$_} // -1 ), $_ ] }
             @{ $symchset->symches() };
