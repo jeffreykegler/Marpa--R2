@@ -527,6 +527,11 @@ sub first_factoring {
     SYMCHSET: for my $symchset ($final_symchset, values %prior_symchset) {
         my $symchset_id = $symchset->id();
         next SYMCHSET if defined $symchset_to_cpset{$symchset_id};
+        my @sorted_symches =
+            map { $_ - [-1] }
+            sort { $a->[0] <=> $b->[0] }
+            map { ;[ ( $prior_symchset{$_} // -1 ), $_ ] }
+            @{$symchset->symches()};
     }
 
     # This return value is temporary, for development
