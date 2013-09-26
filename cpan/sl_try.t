@@ -64,5 +64,4 @@ say STDERR Data::Dumper::Dumper(
 # my $actual_asf         = $asf->raw();
 # my $actual_blessed_asf = $asf->bless($actual_asf);
 
-
 # vim: expandtab shiftwidth=4:

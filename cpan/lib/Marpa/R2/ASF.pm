@@ -275,49 +275,67 @@ sub first_factoring {
     my $ordering  = $recce->[Marpa::R2::Internal::Recognizer::O_C];
 
     my %predecessors = ();
-    my %seen                  = ();
     my @finals                = ();
 
+    # Find symch of "finals" -- symches which can be last in the external
+    # rule.
     my @stack = ( $symch );
-    my @whole_ids = ();
-    $seen{$symch} = 1;
+    my %or_node_seen = ( $symch => 1 );
+    my %and_node_seen = ();
+    STACK_ELEMENT: while ( defined( my $or_node = pop @stack ) ) {
+
+        for my $and_node_id (
+            $ordering->_marpa_o_or_node_and_node_ids($or_node) )
+        {
+	    next STACK_ELEMENT if $and_node_seen{$and_node_id};
+	    $and_node_seen{$and_node_id} = 1;
+            my $cause_id = $bocage->_marpa_b_and_node_cause($and_node_id);
+            if ( not defined $cause_id ) {
+                push @finals, and_node_to_token_symch($and_node_id);
+		next STACK_ELEMENT;
+            }
+	    next STACK_ELEMENT if $or_node_seen{$cause_id};
+	    $or_node_seen{$cause_id} = 1;
+            if ( _marpa_b_or_node_is_semantic($cause_id) ) {
+                push @finals, $cause_id;
+		next STACK_ELEMENT;
+            }
+	    push @stack, $cause_id;
+        } ## end for my $and_node_id ( $ordering...)
+    } ## end STACK_ELEMENT: while ( defined( my $stack_element = pop @stack ) )
+
+    @stack     = ($symch);
+    my @internal_completions = ();
+    $or_node_seen{$symch} = 1;
     STACK_ELEMENT: while ( defined( my $or_node = pop @stack ) ) {
 
         # memoization of or-nodes on stack ?
-        say STDERR "stack = ", Data::Dumper::Dumper(\@stack);
+        say STDERR "stack = ",   Data::Dumper::Dumper( \@stack );
         say STDERR "or node = ", Data::Dumper::Dumper($or_node);
         for my $and_node_id (
             $ordering->_marpa_o_or_node_and_node_ids($or_node) )
         {
             my $predecessor_id =
                 $bocage->_marpa_b_and_node_predecessor($and_node_id);
-            $DB::single = 1;
-
             my $cause_id = $bocage->_marpa_b_and_node_cause($and_node_id);
             if ( not defined $cause_id ) {
                 $cause_id = and_node_to_token_symch($and_node_id);
             }
             if ( defined $predecessor_id ) {
                 $predecessors{$cause_id}{$predecessor_id} = 1;
-                if ( not $seen{$predecessor_id} ) {
+                if ( not $or_node_seen{$predecessor_id} ) {
                     push @stack, $predecessor_id;
-                    $seen{$predecessor_id} = 1;
+                    $or_node_seen{$predecessor_id} = 1;
                 }
-            } ## end if ( defined $predecessor_id )
-            if ( $cause_id < 0 or _marpa_b_or_node_is_semantic($cause_id) ) {
-                push @finals, $cause_id;
             }
-            else {
-                # This "seen" test also prevents duplicate whole_ids
-                # from going into that list
-                if ( not $seen{$cause_id} ) {
-                    push @stack, $cause_id;
-                    push @whole_ids, $cause_id;
-                    $seen{$cause_id} = 1;
-                }
-            } ## end else [ if ( $cause_id < 0 or _marpa_b_or_node_is_semantic(...))]
+            next STACK_ELEMENT if $cause_id < 0;
+            next STACK_ELEMENT if _marpa_b_or_node_is_semantic($cause_id);
+            next STACK_ELEMENT if $or_node_seen{$cause_id};
+            $or_node_seen{$cause_id} = 1;
+            push @stack,     $cause_id;
+            push @internal_completions, $cause_id;
         } ## end for my $and_node_id ( $ordering...)
-    } ## end STACK_ELEMENT: while ( defined( my $stack_element = pop @stack ) )
+    } ## end STACK_ELEMENT: while ( defined( my $or_node = pop @stack ) )
 
     # Find the predecessors which cross internal rule boundaries,
     # but that connect cause and predecessor for an external rule.
@@ -326,9 +344,8 @@ sub first_factoring {
     # of more than one complete ("whole") or-node.
     # In this pass we deal with one "whole" at a time, and do not have to track
     # them on a stack.
-    %seen = ();
     @stack = ();
-    for my $whole_id (@whole_ids) {
+    for my $complete_or_node_id (@internal_completions) {
         my @initials = ();
 
         # We do not have to mark the whole id's as "seen", because dups were
@@ -336,7 +353,7 @@ sub first_factoring {
         # is ever identical to a whole id.
         my %predecessor_seen = ();
         my %initial_seen     = ();
-        my @stack            = ($whole_id);
+        my @stack            = ($complete_or_node_id);
         OR_NODE_ID: while ( defined( my $or_node_id = pop @stack ) ) {
             for my $and_node_id (
                 $ordering->_marpa_o_or_node_and_node_ids($or_node_id) )
@@ -355,7 +372,7 @@ sub first_factoring {
                 } ## end if ( defined $predecessor_id )
 
                 # If here, no predecessor, and the cause will be an initial cause
-                # for this $whole_id
+                # for this $complete_or_node_id
                 my $cause_id = $bocage->_marpa_b_and_node_cause($and_node_id);
                 if ( not defined $cause_id ) {
                     $cause_id = and_node_to_token_symch($and_node_id);
@@ -368,20 +385,20 @@ sub first_factoring {
 
         } ## end OR_NODE_ID: while ( defined( my $or_node_id = pop @stack ) )
 
-        my @predecessors_of_whole = keys %{ $predecessors{$whole_id} };
+        my @predecessors_of_completion = keys %{ $predecessors{$complete_or_node_id} };
         for my $initial_cause (@initials) {
-            $predecessors{$initial_cause}{$_} = 1 for @predecessors_of_whole;
+            $predecessors{$initial_cause}{$_} = 1 for @predecessors_of_completion;
         }
 
-    } ## end for my $whole_id (@whole_ids)
+    } ## end for my $complete_or_node_id (@internal_completions)
 
     say STDERR "finals = ", Data::Dumper::Dumper(\@finals);
     say STDERR "predecessors = ", Data::Dumper::Dumper(\%predecessors);
 
     # Find the semantics causes for each predecessor
     my %semantic_cause = ();
-    %seen = ();
-    my %and_node_seen = ();
+    %or_node_seen = ();
+    %and_node_seen = ();
 
     # This re-initializes a stack to a list of or-nodes whose cause's should be examined,
     # recursively, until a semantic or-node or a terminal is found.
@@ -389,8 +406,8 @@ sub first_factoring {
         for my $predecessor_id (
             keys %{ $predecessors{$outer_cause_id} } )
         {
-            next PREDECESSOR_ID if $seen{$predecessor_id};
-            $seen{$predecessor_id} = 1;
+            next PREDECESSOR_ID if $or_node_seen{$predecessor_id};
+            $or_node_seen{$predecessor_id} = 1;
 
             # Not the most efficient Perl implementation -- intended for conversion to C
             # Outer seen, for predecessors, can be bit vector
