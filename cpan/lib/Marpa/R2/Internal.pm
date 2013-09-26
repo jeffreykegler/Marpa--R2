@@ -137,10 +137,17 @@ use constant SYMBOL_BLESSING => 3;
 use constant SYMCHSET_BY_KEY => 4;
 use constant SYMCHSET_BY_ID => 5;
 use constant NEXT_SYMCHSET_ID => 6;
+use constant CPSET_BY_KEY => 7;
+use constant CPSET_BY_ID => 8;
+use constant NEXT_CPSET_ID => 9;
 
 package Marpa::R2::Internal::Symchset;
 use constant ID => 0;
 use constant SYMCHES => 1;
+
+package Marpa::R2::Internal::CPSet;
+use constant ID => 0;
+use constant CHOICEPOINTS => 1;
 
 package Marpa::R2::Internal::Scanless::ASF2;
 use constant SLR => 0;

@@ -274,11 +274,19 @@ __DATA__
     SYMCHSET_BY_KEY
     SYMCHSET_BY_ID
     NEXT_SYMCHSET_ID
+    CPSET_BY_KEY
+    CPSET_BY_ID
+    NEXT_CPSET_ID
 
     :package=Marpa::R2::Internal::Symchset
 
     ID
     SYMCHES
+
+    :package=Marpa::R2::Internal::CPSet
+
+    ID
+    CHOICEPOINTS
 
     :package=Marpa::R2::Internal::Scanless::ASF2
 
