@@ -145,7 +145,7 @@ package Marpa::R2::Internal::Symchset;
 use constant ID => 0;
 use constant SYMCHES => 1;
 
-package Marpa::R2::Internal::CPSet;
+package Marpa::R2::Internal::CPset;
 use constant ID => 0;
 use constant CHOICEPOINTS => 1;
 

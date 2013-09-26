@@ -90,6 +90,40 @@ sub Marpa::R2::Symchset::show {
     return "Symchset #$id: " . join q{ }, @{$symches};
 }
 
+sub Marpa::R2::CPset::obtain {
+    my ($class, $asf, @choicepoints) = @_;
+    my @sorted_choicepoints = sort { $a <=> $b } @choicepoints;
+    my $key = join q{ }, @sorted_choicepoints;
+    my $cpset_by_key =
+        $asf->[Marpa::R2::Internal::Scanless::ASF::CPSET_BY_KEY];
+    my $cpset = $cpset_by_key->{$key};
+    return $cpset if defined $cpset;
+    $cpset = bless [], $class;
+    my $id = $asf->[Marpa::R2::Internal::Scanless::ASF::NEXT_CPSET_ID]++;
+    $cpset->[Marpa::R2::Internal::CPset::ID] = $id;
+    $cpset->[Marpa::R2::Internal::CPset::CHOICEPOINTS] = \@sorted_choicepoints;
+    $asf->[Marpa::R2::Internal::Scanless::ASF::CPSET_BY_KEY]->{$key} = $cpset;
+    $asf->[Marpa::R2::Internal::Scanless::ASF::CPSET_BY_ID]->[$id] = $cpset;
+    return $cpset;
+}
+
+sub Marpa::R2::CPset::choicepoints {
+    my ($cpset) = @_;
+    return $cpset->[Marpa::R2::Internal::CPset::CHOICEPOINTS];
+}
+
+sub Marpa::R2::CPset::id {
+    my ($cpset) = @_;
+    return $cpset->[Marpa::R2::Internal::CPset::ID];
+}
+
+sub Marpa::R2::CPset::show {
+    my ($cpset) = @_;
+    my $id = $cpset->id();
+    my $choicepoints = $cpset->choicepoints();
+    return "CPset #$id: " . join q{ }, @{$choicepoints};
+}
+
 # No check for conflicting usage -- value(), asf(), etc.
 # at this point
 sub Marpa::R2::Scanless::ASF::top {
@@ -244,6 +278,9 @@ sub Marpa::R2::Scanless::ASF::new {
     $asf->[Marpa::R2::Internal::Scanless::ASF::SYMCHSET_BY_ID] = [];
     $asf->[Marpa::R2::Internal::Scanless::ASF::SYMCHSET_BY_KEY] = {};
     $asf->[Marpa::R2::Internal::Scanless::ASF::NEXT_SYMCHSET_ID] = 0;
+    $asf->[Marpa::R2::Internal::Scanless::ASF::CPSET_BY_ID] = [];
+    $asf->[Marpa::R2::Internal::Scanless::ASF::CPSET_BY_KEY] = {};
+    $asf->[Marpa::R2::Internal::Scanless::ASF::NEXT_CPSET_ID] = 0;
 
     my $slg       = $slr->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
     my $thin_slr  = $slr->[Marpa::R2::Inner::Scanless::R::C];
@@ -317,7 +354,7 @@ sub first_factoring {
 	    push @stack, $cause_id;
         } ## end for my $and_node_id ( $ordering...)
     } ## end STACK_ELEMENT: while ( defined( my $stack_element = pop @stack ) )
-    my $final_symch_set = Marpa::R2::Symchset->obtain( $asf, @finals );
+    my $final_symchset = Marpa::R2::Symchset->obtain( $asf, @finals );
 
     @stack     = ($symch);
     my @internal_completions = ();
@@ -479,16 +516,21 @@ sub first_factoring {
 
     say STDERR "%prior_cause = ",   Data::Dumper::Dumper( \%prior_cause );
 
-    my %prior_symchset_id = ();
+    my %prior_symchset = ();
     for my $successor_cause_id ( keys %prior_cause ) {
         my @predecessors = keys %{ $prior_cause{$successor_cause_id} };
         my $prior_symchset = Marpa::R2::Symchset->obtain( $asf, @predecessors );
-        my $prior_symchset_id = $prior_symchset->id();
-        $prior_symchset_id{$successor_cause_id} = $prior_symchset_id;
+        $prior_symchset{$successor_cause_id} = $prior_symchset;
+    }
+
+    my %symchset_to_cpset = ();
+    SYMCHSET: for my $symchset ($final_symchset, values %prior_symchset) {
+        my $symchset_id = $symchset->id();
+        next SYMCHSET if defined $symchset_to_cpset{$symchset_id};
     }
 
     # This return value is temporary, for development
-    return \%prior_symchset_id;
+    return \%prior_symchset;
 
 } ## end sub first_factoring
 
@@ -498,6 +540,16 @@ sub Marpa::R2::Scanless::ASF::show_symchsets {
     my $symchsets = $asf->[Marpa::R2::Internal::Scanless::ASF::SYMCHSET_BY_ID];
     for my $symchset (@{$symchsets}) {
         $text .= $symchset->show() . "\n";
+    }
+    return $text;
+}
+
+sub Marpa::R2::Scanless::ASF::show_cpsets {
+    my ($asf) = @_;
+    my $text = q{};
+    my $cpsets = $asf->[Marpa::R2::Internal::Scanless::ASF::CPSET_BY_ID];
+    for my $cpset (@{$cpsets}) {
+        $text .= $cpset->show() . "\n";
     }
     return $text;
 }

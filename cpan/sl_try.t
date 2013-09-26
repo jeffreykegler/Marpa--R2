@@ -62,6 +62,7 @@ say STDERR Data::Dumper::Dumper(
     Marpa::R2::Internal::ASF::first_factoring( $asf, $top_symch ) );
 
 say STDERR $asf->show_symchsets();
+say STDERR $asf->show_cpsets();
 
 # my $actual_asf         = $asf->raw();
 # my $actual_blessed_asf = $asf->bless($actual_asf);

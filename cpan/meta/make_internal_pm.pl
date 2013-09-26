@@ -283,7 +283,7 @@ __DATA__
     ID
     SYMCHES
 
-    :package=Marpa::R2::Internal::CPSet
+    :package=Marpa::R2::Internal::CPset
 
     ID
     CHOICEPOINTS
