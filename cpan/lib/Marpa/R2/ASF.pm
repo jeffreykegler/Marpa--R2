@@ -83,6 +83,13 @@ sub Marpa::R2::Symchset::id {
     return $symchset->[Marpa::R2::Internal::Symchset::ID];
 }
 
+sub Marpa::R2::Symchset::show {
+    my ($symchset) = @_;
+    my $id = $symchset->id();
+    my $symches = $symchset->symches();
+    return "Symchset #$id: " . join q{ }, @{$symches};
+}
+
 # No check for conflicting usage -- value(), asf(), etc.
 # at this point
 sub Marpa::R2::Scanless::ASF::top {
@@ -260,6 +267,13 @@ sub Marpa::R2::Scanless::ASF::new {
 # with the problem of having duplicates, which if followed up upon, would make
 # the algorithm go exponential.
 
+# For the "seen" hashes, the intent, in C, is to use a bit vector.  Since typically
+# choicepoints will only use a tiny fraction of the or- and and-node space, I'll create
+# a per-choicepoint index in the bit vector for each or- and and-node.  The index will
+# per-ASF, and to avoid the overhead of clearing it, it will track, or each node, the
+# current CP indexing it.  It is assumed that the indexes need only remain valid within
+# the method call that constructs the CPI (choicepoint iterator).
+
 sub first_factoring {
     my ( $asf, $symch ) = @_;
 
@@ -275,10 +289,10 @@ sub first_factoring {
     my $ordering  = $recce->[Marpa::R2::Internal::Recognizer::O_C];
 
     my %predecessors = ();
-    my @finals                = ();
 
     # Find symch of "finals" -- symches which can be last in the external
     # rule.
+    my @finals;
     my @stack = ( $symch );
     my %or_node_seen = ( $symch => 1 );
     my %and_node_seen = ();
@@ -303,6 +317,7 @@ sub first_factoring {
 	    push @stack, $cause_id;
         } ## end for my $and_node_id ( $ordering...)
     } ## end STACK_ELEMENT: while ( defined( my $stack_element = pop @stack ) )
+    my $final_symch_set = Marpa::R2::Symchset->obtain( $asf, @finals );
 
     @stack     = ($symch);
     my @internal_completions = ();
@@ -310,8 +325,6 @@ sub first_factoring {
     STACK_ELEMENT: while ( defined( my $or_node = pop @stack ) ) {
 
         # memoization of or-nodes on stack ?
-        say STDERR "stack = ",   Data::Dumper::Dumper( \@stack );
-        say STDERR "or node = ", Data::Dumper::Dumper($or_node);
         for my $and_node_id (
             $ordering->_marpa_o_or_node_and_node_ids($or_node) )
         {
@@ -392,8 +405,8 @@ sub first_factoring {
 
     } ## end for my $complete_or_node_id (@internal_completions)
 
-    say STDERR "finals = ", Data::Dumper::Dumper(\@finals);
-    say STDERR "predecessors = ", Data::Dumper::Dumper(\%predecessors);
+    say STDERR "@finals = ", Data::Dumper::Dumper(\@finals);
+    say STDERR "%predecessors = ", Data::Dumper::Dumper(\%predecessors);
 
     # Find the semantics causes for each predecessor
     my %semantic_cause = ();
@@ -414,16 +427,17 @@ sub first_factoring {
             # Inner seen, for and_nodes, must be array to track current predecessor,
             #   because and-node is "seen" only if seen FOR THIS PREDECESSOR
             my @and_node_stack = ();
+            my %inner_seen = ();
             for my $and_node_id (
                 $ordering->_marpa_o_or_node_and_node_ids($predecessor_id) )
             {
                 next AND_NODE
-                    if ( $and_node_seen{$and_node_id} // -1 )
+                    if ( $inner_seen{$and_node_id} // -1 )
                     == $predecessor_id;
-                $and_node_seen{$and_node_id} = $predecessor_id;
+                $inner_seen{$and_node_id} = $predecessor_id;
                 push @and_node_stack, $and_node_id;
             } ## end for my $and_node_id ( $ordering...)
-            AND_NODE: while ( my $and_node_id = pop @and_node_stack ) {
+            AND_NODE: while ( defined (my $and_node_id = pop @and_node_stack) ) {
                 my $cause_id = $bocage->_marpa_b_and_node_cause($and_node_id);
                 if ( not defined $cause_id ) {
                     $semantic_cause{$predecessor_id}
@@ -436,18 +450,20 @@ sub first_factoring {
                 }
                 INNER_AND_NODE:
                 for my $inner_and_node_id (
-                    $ordering->_marpa_o_or_node_and_node_ids($predecessor_id)
+                    $ordering->_marpa_o_or_node_and_node_ids($cause_id)
                     )
                 {
                     next INNER_AND_NODE
-                        if ( $and_node_seen{$inner_and_node_id} // -1 )
+                        if ( $inner_seen{$inner_and_node_id} // -1 )
                         == $predecessor_id;
-                    $and_node_seen{$inner_and_node_id} = $predecessor_id;
+                    $inner_seen{$inner_and_node_id} = $predecessor_id;
                     push @and_node_stack, $inner_and_node_id;
                 } ## end INNER_AND_NODE: for my $inner_and_node_id ( $ordering...)
             } ## end AND_NODE: while ( my $and_node_id = pop @and_node_stack )
         } ## end for my $predecessor_id ( keys %{ $predecessors...})
     } ## end for my $outer_cause_id ( keys %predecessors )
+
+    say STDERR "%semantic_cause = ",   Data::Dumper::Dumper( \%semantic_cause );
 
     my %prior_cause = ();
     for my $cause_id ( keys %predecessors ) {
@@ -461,6 +477,8 @@ sub first_factoring {
         } ## end for my $predecessor_id ( keys %{ $predecessors...})
     } ## end for my $cause_id ( keys %predecessors )
 
+    say STDERR "%prior_cause = ",   Data::Dumper::Dumper( \%prior_cause );
+
     my %prior_symchset_id = ();
     for my $successor_cause_id ( keys %prior_cause ) {
         my @predecessors = keys %{ $prior_cause{$successor_cause_id} };
@@ -473,6 +491,16 @@ sub first_factoring {
     return \%prior_symchset_id;
 
 } ## end sub first_factoring
+
+sub Marpa::R2::Scanless::ASF::show_symchsets {
+    my ($asf) = @_;
+    my $text = q{};
+    my $symchsets = $asf->[Marpa::R2::Internal::Scanless::ASF::SYMCHSET_BY_ID];
+    for my $symchset (@{$symchsets}) {
+        $text .= $symchset->show() . "\n";
+    }
+    return $text;
+}
 
 1;
 
