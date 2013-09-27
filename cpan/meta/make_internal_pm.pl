@@ -239,30 +239,13 @@ __DATA__
     ORIGIN
     CURRENT
 
-    :package=Marpa::R2::Internal::Scanless::Choicepoint
+    :package=Marpa::R2::Internal::Choicepoint
 
     { An external choicepoint }
-    ID
     ASF
-
-    { One of the or-node and token ID array will be non-empty.
-      Currently only one will be non-empty, but this may change if
-      the SLIF implements LHS terminals. }
-    OR_NODE_IDS { array of the or-node IDs }
-    TOKEN_IDS { array of the token IDs }
-
-    CURRENT_SYMCH_IX {
-      This is OR_NODE_IDS index if >= 0;
-           TOKEN_IDS ix is (-43 - x) if < 0;
-           undef if == -1
-    }
-
-    { the following fields must be reset when current symch changes }
-    CURRENT_FACTORING
-
-    { One of the or-node and token ID array will be non-empty.
-      Currently only one will be non-empty, but this may change if
-      the SLIF implements LHS terminals. }
+    SYMCHSET
+    SYMCH_IX 
+    FACTORING
 
     :package=Marpa::R2::Internal::Scanless::ASF
 
@@ -287,6 +270,13 @@ __DATA__
 
     ID
     CHOICEPOINTS
+
+    :package=Marpa::R2::Internal::CPI
+
+    ASF
+    CHOICEPOINT
+    SYMCH_IX
+    FACTORING
 
     :package=Marpa::R2::Internal::Scanless::ASF2
 

@@ -150,8 +150,8 @@ sub Marpa::R2::Scanless::ASF::top {
       }
       push @symch_set, and_node_to_token_symch( $augment2_and_node_id);
     }
-    my $new_cp = Marpa::R2::Symchset->obtain($asf, @symch_set);
-    return $new_cp;
+    my $top_symchset = Marpa::R2::Symchset->obtain($asf, @symch_set);
+    return $asf->new_choicepoint( $top_symchset );
 } ## end sub Marpa::R2::Scanless::ASF::top_choicepoint
 
 sub make_token_cp { return -($_[0] + 43); }
@@ -298,6 +298,16 @@ sub Marpa::R2::Scanless::ASF::new {
 
 } ## end sub Marpa::R2::Scanless::ASF::new
 
+sub Marpa::R2::Scanless::ASF::new_choicepoint {
+    my ( $asf, $symchset ) = @_;
+    my $cpi = bless [], 'Marpa::R2::Choicepoint';
+    $cpi->[Marpa::R2::Internal::Choicepoint::ASF] = $asf;
+    $cpi->[Marpa::R2::Internal::Choicepoint::FACTORING] = [];
+    $cpi->[Marpa::R2::Internal::Choicepoint::SYMCHSET] = $symchset;
+    $cpi->[Marpa::R2::Internal::Choicepoint::SYMCH_IX] = 0;
+    return $cpi;
+}
+
 # Memoization is heavily used -- it needs to be to keep the worst cases from
 # going exponential.  The need to memoize is the reason for the very heavy use of
 # hashes.  For example, quite often an HOH (hash of hashes) is used where
@@ -312,8 +322,14 @@ sub Marpa::R2::Scanless::ASF::new {
 # current CP indexing it.  It is assumed that the indexes need only remain valid within
 # the method call that constructs the CPI (choicepoint iterator).
 
-sub first_factoring {
-    my ( $asf, $symch ) = @_;
+sub Marpa::R2::Choicepoint::first {
+    my ( $choicepoint ) = @_;
+    my $asf = $choicepoint->[Marpa::R2::Internal::Choicepoint::ASF];
+    $choicepoint->[Marpa::R2::Internal::Choicepoint::SYMCH_IX] = 0;
+    my $symches = $choicepoint->[Marpa::R2::Internal::Choicepoint::SYMCHSET]->symches();
+    my $symch = $symches->[0];
+    say STDERR "first(symchset) = ", Data::Dumper::Dumper(
+         $choicepoint->[Marpa::R2::Internal::Choicepoint::SYMCHSET]);
 
     # return undef if we were passed a symch which is not
     # an or-node

@@ -121,13 +121,11 @@ use constant POSITION => 1;
 use constant ORIGIN => 2;
 use constant CURRENT => 3;
 
-package Marpa::R2::Internal::Scanless::Choicepoint;
-use constant ID => 0;
-use constant ASF => 1;
-use constant OR_NODE_IDS => 2;
-use constant TOKEN_IDS => 3;
-use constant CURRENT_SYMCH_IX => 4;
-use constant CURRENT_FACTORING => 5;
+package Marpa::R2::Internal::Choicepoint;
+use constant ASF => 0;
+use constant SYMCHSET => 1;
+use constant SYMCH_IX => 2;
+use constant FACTORING => 3;
 
 package Marpa::R2::Internal::Scanless::ASF;
 use constant SLR => 0;
@@ -148,6 +146,12 @@ use constant SYMCHES => 1;
 package Marpa::R2::Internal::CPset;
 use constant ID => 0;
 use constant CHOICEPOINTS => 1;
+
+package Marpa::R2::Internal::CPI;
+use constant ASF => 0;
+use constant CHOICEPOINT => 1;
+use constant SYMCH_IX => 2;
+use constant FACTORING => 3;
 
 package Marpa::R2::Internal::Scanless::ASF2;
 use constant SLR => 0;
