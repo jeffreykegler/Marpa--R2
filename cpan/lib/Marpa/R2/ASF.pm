@@ -603,8 +603,8 @@ sub Marpa::R2::Choicepoint::first {
         } ## end CHOICEPOINT: for my $choicepoint_id ( $cp_set->choicepoints() )
     } ## end for my $cp_set ( values %symchset_to_cpset )
 
-    my @factoring_stack =
-        ( [ $symchset_to_cpset{ $final_symchset->id() }, 0 ] );
+    my $final_cpset = $symchset_to_cpset{ $final_symchset->id() };
+    my @factoring_stack = ( [ $final_cpset, 0 ] );
 
     say STDERR "@factoring_stack = ",   Data::Dumper::Dumper( \@factoring_stack );
 
@@ -620,8 +620,13 @@ sub Marpa::R2::Choicepoint::first {
     $choicepoint->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK] =
         \@factoring_stack;
 
-    # This return value is temporary, for development
-    return \@factoring_stack;
+    my @return_value = ();
+    for my $stack_element (reverse @factoring_stack) {
+        my ($cpset, $ix) = @{$stack_element};
+        my $symch_set = $cpset->choicepoint($ix);
+        push @return_value, $asf->new_choicepoint($symch_set);
+    }
+    return \@return_value;
 
 } ## end sub first_factoring
 
@@ -643,6 +648,43 @@ sub Marpa::R2::Scanless::ASF::show_cpsets {
         $text .= $cpset->show() . "\n";
     }
     return $text;
+}
+
+sub or_node_expand {
+    my ( $recce, $or_node_id, $memoized_expansions ) = @_;
+    my $memoized_or_nodes =
+        $recce->[Marpa::R2::Internal::Recognizer::ASF_OR_NODES];
+    my $choices   = choices( $recce, $or_node_id );
+    my @children = ();
+
+    $memoized_expansions //= [];
+    my $expansion = $memoized_expansions->[$or_node_id];
+    return $expansion if defined $expansion;
+    for my $choice ( @{$choices} ) {
+        push @children, [
+            map {
+                $_ < 0
+                    ? $_
+                    : or_node_expand( $recce, $_, $memoized_expansions )
+            } @{$choice}
+        ];
+    } ## end for my $choice ( @{$choices} )
+    my $choice_count = scalar @children;
+    if ( $choice_count == 1 ) {
+        $expansion = [ $or_node_id, @{$children[0]} ];
+    }
+    else {
+        $expansion = [ -2, $or_node_id, @children ];
+    }
+    return $memoized_expansions->[$or_node_id] = $expansion;
+} ## end sub or_node_expand
+
+sub Marpa::R2::Scanless::ASF::raw {
+    my ($asf, $start_rcp) = @_;
+    my $slr   = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
+    my $recce = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+    $start_rcp //= $asf->top();
+    return or_node_expand( $recce, $start_rcp );
 }
 
 1;
