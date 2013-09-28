@@ -245,7 +245,7 @@ __DATA__
     ASF
     SYMCHSET
     SYMCH_IX 
-    FACTORING
+    FACTORING_STACK
 
     :package=Marpa::R2::Internal::Scanless::ASF
 

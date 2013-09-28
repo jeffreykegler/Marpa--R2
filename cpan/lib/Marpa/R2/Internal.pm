@@ -125,7 +125,7 @@ package Marpa::R2::Internal::Choicepoint;
 use constant ASF => 0;
 use constant SYMCHSET => 1;
 use constant SYMCH_IX => 2;
-use constant FACTORING => 3;
+use constant FACTORING_STACK => 3;
 
 package Marpa::R2::Internal::Scanless::ASF;
 use constant SLR => 0;

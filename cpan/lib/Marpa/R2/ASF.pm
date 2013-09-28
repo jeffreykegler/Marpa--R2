@@ -113,6 +113,13 @@ sub Marpa::R2::CPset::choicepoints {
     return $cpset->[Marpa::R2::Internal::CPset::CHOICEPOINTS];
 }
 
+sub Marpa::R2::CPset::choicepoint {
+    my ($cpset, $ix) = @_;
+    my $choicepoints = $cpset->[Marpa::R2::Internal::CPset::CHOICEPOINTS];
+    return if $ix > $#{$choicepoints};
+    return $cpset->[Marpa::R2::Internal::CPset::CHOICEPOINTS]->[$ix];
+}
+
 sub Marpa::R2::CPset::id {
     my ($cpset) = @_;
     return $cpset->[Marpa::R2::Internal::CPset::ID];
@@ -302,7 +309,7 @@ sub Marpa::R2::Scanless::ASF::new_choicepoint {
     my ( $asf, $symchset ) = @_;
     my $cpi = bless [], 'Marpa::R2::Choicepoint';
     $cpi->[Marpa::R2::Internal::Choicepoint::ASF] = $asf;
-    $cpi->[Marpa::R2::Internal::Choicepoint::FACTORING] = [];
+    $cpi->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK] = [];
     $cpi->[Marpa::R2::Internal::Choicepoint::SYMCHSET] = $symchset;
     $cpi->[Marpa::R2::Internal::Choicepoint::SYMCH_IX] = 0;
     return $cpi;
@@ -596,8 +603,25 @@ sub Marpa::R2::Choicepoint::first {
         } ## end CHOICEPOINT: for my $choicepoint_id ( $cp_set->choicepoints() )
     } ## end for my $cp_set ( values %symchset_to_cpset )
 
+    my @factoring_stack =
+        ( [ $symchset_to_cpset{ $final_symchset->id() }, 0 ] );
+
+    say STDERR "@factoring_stack = ",   Data::Dumper::Dumper( \@factoring_stack );
+
+    my ( $top_cpset, $top_choicepoint_ix ) = @{ $factoring_stack[-1] };
+    my $current_choicepoint_id = $top_cpset->choicepoint($top_choicepoint_ix);
+    FACTOR: while ( defined $current_choicepoint_id ) {
+        my $prior_cpset = $cp_to_prior_cpset{$current_choicepoint_id};
+        last FACTOR if not defined $prior_cpset;
+        push @factoring_stack, [ $prior_cpset, 0 ];
+        $current_choicepoint_id = $prior_cpset->choicepoint(0);
+    } ## end while ( defined $current_choicepoint_id )
+
+    $choicepoint->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK] =
+        \@factoring_stack;
+
     # This return value is temporary, for development
-    return \%cp_to_prior_cpset;
+    return \@factoring_stack;
 
 } ## end sub first_factoring
 
