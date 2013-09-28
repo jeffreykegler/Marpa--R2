@@ -57,8 +57,8 @@ package Marpa::R2::Internal::ASF;
 # assumption false.
 
 sub Marpa::R2::Symchset::obtain {
-    my ($class, $asf, @symches) = @_;
-    my @sorted_symchset = sort { $a <=> $b } @symches;
+    my ($class, $asf, @symch_ids) = @_;
+    my @sorted_symchset = sort { $a <=> $b } @symch_ids;
     my $key = join q{ }, @sorted_symchset;
     say STDERR "Obtaining symchset for key $key";
     my $symchset_by_key =
@@ -74,7 +74,7 @@ sub Marpa::R2::Symchset::obtain {
     return $symchset;
 }
 
-sub Marpa::R2::Symchset::symches {
+sub Marpa::R2::Symchset::symch_ids {
     my ($symchset) = @_;
     return $symchset->[Marpa::R2::Internal::Symchset::SYMCHES];
 }
@@ -87,8 +87,8 @@ sub Marpa::R2::Symchset::id {
 sub Marpa::R2::Symchset::show {
     my ($symchset) = @_;
     my $id = $symchset->id();
-    my $symches = $symchset->symches();
-    return "Symchset #$id: " . join q{ }, @{$symches};
+    my $symch_ids = $symchset->symch_ids();
+    return "Symchset #$id: " . join q{ }, @{$symch_ids};
 }
 
 sub Marpa::R2::CPset::obtain {
@@ -326,8 +326,8 @@ sub Marpa::R2::Choicepoint::first {
     my ( $choicepoint ) = @_;
     my $asf = $choicepoint->[Marpa::R2::Internal::Choicepoint::ASF];
     $choicepoint->[Marpa::R2::Internal::Choicepoint::SYMCH_IX] = 0;
-    my $symches = $choicepoint->[Marpa::R2::Internal::Choicepoint::SYMCHSET]->symches();
-    my $symch = $symches->[0];
+    my $symch_ids = $choicepoint->[Marpa::R2::Internal::Choicepoint::SYMCHSET]->symch_ids();
+    my $symch = $symch_ids->[0];
     say STDERR "first(symchset) = ", Data::Dumper::Dumper(
          $choicepoint->[Marpa::R2::Internal::Choicepoint::SYMCHSET]);
 
@@ -544,15 +544,15 @@ sub Marpa::R2::Choicepoint::first {
     SYMCHSET: for my $symchset ( $final_symchset, values %prior_symchset ) {
         my $symchset_id = $symchset->id();
         next SYMCHSET if defined $symchset_to_cpset{$symchset_id};
-        my @sorted_symches =
+        my @sorted_symch_ids =
             map { $_->[-1] }
             sort { $a->[0] <=> $b->[0] }
             map { ; [ ( $prior_symchset{$_} // -1 ), $_ ] }
-            @{ $symchset->symches() };
+            @{ $symchset->symch_ids() };
         my $symch_ix                   = 0;
-        my $this_symch                 = $sorted_symches[ $symch_ix++ ];
+        my $this_symch                 = $sorted_symch_ids[ $symch_ix++ ];
         my $prior_of_this_symch        = $prior_symchset{$this_symch} // -1;
-        my @symches_with_current_prior = ();
+        my @symch_ids_with_current_prior = ();
         my $current_prior              = $prior_of_this_symch;
         my @choicepoints = ();
         SYMCH: while (1) {
@@ -561,25 +561,32 @@ sub Marpa::R2::Choicepoint::first {
                 if ( defined $this_symch
                     and $prior_of_this_symch == $current_prior )
                 {
-                    push @symches_with_current_prior, $this_symch;
+                    push @symch_ids_with_current_prior, $this_symch;
                     last CHECK_FOR_BREAK;
                 } ## end if ( defined $this_symch and $prior_of_this_symch ==...)
 
                 # perform break on prior
                 my $choicepoint = Marpa::R2::Symchset->obtain( $asf,
-                    @symches_with_current_prior );
+                    @symch_ids_with_current_prior );
                 push @choicepoints, $choicepoint->id();
                 last SYMCH if not defined $this_symch;
-                @symches_with_current_prior = ($this_symch);
+                @symch_ids_with_current_prior = ($this_symch);
                 $current_prior              = $prior_of_this_symch;
             } ## end CHECK_FOR_BREAK:
-            $this_symch = $sorted_symches[ $symch_ix++ ];
+            $this_symch = $sorted_symch_ids[ $symch_ix++ ];
             next SYMCH if not defined $this_symch;
             $prior_of_this_symch = $prior_symchset{$this_symch} // -1;
         } ## end SYMCH: while (1)
         my $cpset = Marpa::R2::CPset->obtain( $asf, @choicepoints );
         $symchset_to_cpset{$symchset_id} = $cpset;
     } ## end SYMCHSET: for my $symchset ( $final_symchset, values ...)
+
+    my %cp_to_prior_cpset = ();
+    for my $cp_set (values %symchset_to_cpset) {
+        CHOICEPOINT: for my $choicepoint_id ($cp_set->choicepoints()) {
+            next CHOICEPOINT if $cp_to_prior_cpset{$choicepoint_id};
+        }
+    }
 
     # This return value is temporary, for development
     return \%prior_symchset;
