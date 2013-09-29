@@ -123,7 +123,12 @@ sub Marpa::R2::CPset::choicepoints {
     return $cpset->[Marpa::R2::Internal::CPset::CHOICEPOINTS];
 }
 
-sub Marpa::R2::CPset::choicepoint {
+sub Marpa::R2::CPset::count {
+    my ($cpset) = @_;
+    return scalar @{$cpset->[Marpa::R2::Internal::CPset::CHOICEPOINTS]};
+}
+
+sub Marpa::R2::CPset::choicepoint_id {
     my ($cpset, $ix) = @_;
     my $choicepoints = $cpset->[Marpa::R2::Internal::CPset::CHOICEPOINTS];
     return if $ix > $#{$choicepoints};
@@ -339,7 +344,8 @@ sub Marpa::R2::Choicepoint::symch_count {
 
 sub Marpa::R2::Choicepoint::symch {
     my ( $cp, $ix ) = @_;
-    return $cp->[Marpa::R2::Internal::Choicepoint::SYMCHSET]->[$ix];
+    my $symch_ix = $ix // $cp->[Marpa::R2::Internal::Choicepoint::SYMCH_IX];
+    return $cp->[Marpa::R2::Internal::Choicepoint::SYMCHSET]->[$symch_ix];
 }
 
 sub Marpa::R2::Choicepoint::symch_set {
@@ -347,6 +353,7 @@ sub Marpa::R2::Choicepoint::symch_set {
     my $max_symch_ix = $cp->symch_count() - 1;
     Marpa::R2::exception("Symch index must in range from 0 to $max_symch_ix")
        if $ix < 0 or $ix > $max_symch_ix;
+    $cp->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK] = undef;
     return $cp->[Marpa::R2::Internal::Choicepoint::SYMCH_IX] = $ix;
 }
 
@@ -427,15 +434,13 @@ sub Marpa::R2::Choicepoint::symbol_id {
 sub Marpa::R2::Choicepoint::first_factoring {
     my ( $choicepoint ) = @_;
     my $asf = $choicepoint->[Marpa::R2::Internal::Choicepoint::ASF];
+    my $symch = $choicepoint->symch();
+
     my $symchset_by_id = $asf->[Marpa::R2::Internal::Scanless::ASF::SYMCHSET_BY_ID];
-    $choicepoint->[Marpa::R2::Internal::Choicepoint::SYMCH_IX] = 0;
-    my $symch_ids = $choicepoint->[Marpa::R2::Internal::Choicepoint::SYMCHSET]->symch_ids();
-    my $symch = $symch_ids->[0];
-    say STDERR "first(symchset) = ", Data::Dumper::Dumper(
-         $choicepoint->[Marpa::R2::Internal::Choicepoint::SYMCHSET]);
 
     # return undef if we were passed a symch which is not
     # an or-node
+    say STDERR join q{ }, __FILE__, __LINE__, '$symch =', $symch;
     return if $symch < 0;
 
     my $slr = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
@@ -710,6 +715,7 @@ sub Marpa::R2::Choicepoint::first_factoring {
 sub finish_stack {
     my ($choicepoint) = @_;
     my $asf = $choicepoint->[Marpa::R2::Internal::Choicepoint::ASF];
+    my $symchset_by_id = $asf->[Marpa::R2::Internal::Scanless::ASF::SYMCHSET_BY_ID];
     my $cp_to_prior_cpset = $choicepoint
         ->[Marpa::R2::Internal::Choicepoint::CP_TO_PRIOR_CPSET];
     my $factoring_stack =
@@ -717,19 +723,22 @@ sub finish_stack {
     say STDERR '$factoring_stack = ', Data::Dumper::Dumper($factoring_stack);
 
     my ( $top_cpset, $top_choicepoint_ix ) = @{ $factoring_stack->[-1] };
-    my $current_choicepoint_id = $top_cpset->choicepoint($top_choicepoint_ix);
+    my $current_choicepoint_id = $top_cpset->choicepoint_id($top_choicepoint_ix);
     FACTOR: while ( defined $current_choicepoint_id ) {
         my $prior_cpset = $cp_to_prior_cpset->{$current_choicepoint_id};
         last FACTOR if not defined $prior_cpset;
         push @{$factoring_stack}, [ $prior_cpset, 0 ];
-        $current_choicepoint_id = $prior_cpset->choicepoint(0);
+        $current_choicepoint_id = $prior_cpset->choicepoint_id(0);
     } ## end FACTOR: while ( defined $current_choicepoint_id )
+
+    say STDERR "choicepoint ($choicepoint) ", '$factoring_stack @', __LINE__, ' = ', Data::Dumper::Dumper($factoring_stack);
 
     my @return_value = ();
     for my $stack_element ( reverse @{$factoring_stack} ) {
         my ( $cpset, $ix ) = @{$stack_element};
-        my $symch_set = $cpset->choicepoint($ix);
-        push @return_value, $asf->new_choicepoint($symch_set);
+        my $symchset_id = $cpset->choicepoint_id($ix);
+        my $symchset = $symchset_by_id->[$symchset_id];
+        push @return_value, $asf->new_choicepoint($symchset);
     }
     return \@return_value;
 
@@ -739,6 +748,7 @@ sub Marpa::R2::Choicepoint::next_factoring {
     my ($choicepoint) = @_;
     my $factoring_stack =
         $choicepoint->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK];
+    say STDERR "choicepoint ($choicepoint) ", '$factoring_stack @', __LINE__, ' = ', Data::Dumper::Dumper($factoring_stack);
     Marpa::R2::exception("ASF choicepoint is not initialized for factoring")
         if not defined $factoring_stack;
     my $cp_to_prior_cpset =
@@ -750,7 +760,7 @@ sub Marpa::R2::Choicepoint::next_factoring {
     {
         my ( $cpset, $choicepoint_ix ) = @{$stack_element};
         $choicepoint_ix++;
-        if ( defined $cpset->choicepoint($choicepoint_ix) ) {
+        if ( defined $cpset->choicepoint_id($choicepoint_ix) ) {
             push @{$factoring_stack}, [ $cpset, $choicepoint_ix ];
             return finish_stack($choicepoint);
         }
@@ -758,11 +768,38 @@ sub Marpa::R2::Choicepoint::next_factoring {
 
     # if we could not increment any stack element, clear the factoring data
     # and return undef
+    say STDERR join q{ }, __FILE__, __LINE__;
     $choicepoint->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK] = undef;
+    say STDERR "choicepoint ($choicepoint) ", '$factoring_stack @', __LINE__, ' = ', Data::Dumper::Dumper($factoring_stack);
     $choicepoint->[Marpa::R2::Internal::Choicepoint::CP_TO_PRIOR_CPSET] =
         undef;
     return;
 } ## end sub Marpa::R2::Choicepoint::next_factoring
+
+# Return the size of the choicepoint ambiguous prefix.
+# This ranges from 1 to the length of the rule,
+# if the choicepoint is ambiguous.
+# If the choicepoint is unambiguous, it is always 0.
+sub Marpa::R2::Choicepoint::ambiguous_prefix {
+    my ($choicepoint) = @_;
+    my $asf = $choicepoint->[Marpa::R2::Internal::Choicepoint::ASF];
+    my $symchset_by_id = $asf->[Marpa::R2::Internal::Scanless::ASF::SYMCHSET_BY_ID];
+    my $factoring_stack =
+        $choicepoint->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK];
+    say STDERR "choicepoint ($choicepoint) ", '$factoring_stack @', __LINE__, ' = ', Data::Dumper::Dumper($factoring_stack);
+    Marpa::R2::exception("ASF choicepoint is not initialized for factoring")
+        if not defined $factoring_stack;
+    my $stack_pos = $#{$factoring_stack};
+    STACK_POS: while ( $stack_pos >= 0 ) {
+        my ( $cpset, $choicepoint_ix ) = @{ $factoring_stack->[$stack_pos] };
+        last STACK_POS if $cpset->count() > 1;
+        my $choicepoint_id = $cpset->choicepoint_id(0);
+        my $symchset = $symchset_by_id->[$choicepoint_id];
+        last STACK_POS if $symchset->count() > 1;
+        $stack_pos--;
+    } ## end STACK_POS: while ( $stack_pos >= 0 )
+    return $stack_pos + 1;
+} ## end sub Marpa::R2::Choicepoint::ambiguous_prefix
 
 sub Marpa::R2::Scanless::ASF::show_symchsets {
     my ($asf) = @_;
@@ -786,6 +823,7 @@ sub Marpa::R2::Scanless::ASF::show_cpsets {
 
 sub Marpa::R2::Choicepoint::show_symches {
     my ( $choicepoint, $indent, $parent_choice ) = @_;
+    # Check if choicepoint already seen?
     my $asf         = $choicepoint->[Marpa::R2::Internal::Choicepoint::ASF];
     my $slr         = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
     my $recce       = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
@@ -794,11 +832,16 @@ sub Marpa::R2::Choicepoint::show_symches {
     my $symch_count = $choicepoint->symch_count();
     for ( my $symch_ix = 0; $symch_ix < $symch_count; $symch_ix++ ) {
         $choicepoint->symch_set($symch_ix);
+        say STDERR join q{ }, __FILE__, __LINE__, '$symch_ix =', $symch_ix;
         my $current_choice = $parent_choice . q{.} . $symch_ix;
         $text .= "Symch #$current_choice: " if $symch_count > 1;
         my $rule_id = $choicepoint->rule_id();
+        say STDERR join q{ }, __FILE__, __LINE__, '$rule_id =', ($rule_id // 'undef');
         if ( defined $rule_id ) {
             $text .= 'Rule ' . $grammar->brief_rule($rule_id) . "\n";
+            $DB::single = 1;
+            $text
+                .= $choicepoint->show_factorings( $indent + 2, $current_choice );
         }
         else {
             my $symbol_id = $choicepoint->symbol_id();
@@ -806,11 +849,45 @@ sub Marpa::R2::Choicepoint::show_symches {
             my $symbol_name = $grammar->symbol_name($symbol_id);
             $text .= qq{Symbol: $symbol_name  "$literal"\n};
         }
-        $text
-            .= show_factorings( $choicepoint, $indent + 2, $current_choice );
     } ## end for ( my $symch_ix = 0; $symch_ix < $symch_count; $symch_ix...)
     return $text;
 } ## end sub Marpa::R2::Choicepoint::show_symches
+
+sub Marpa::R2::Choicepoint::show_factorings {
+    my ( $choicepoint, $indent, $parent_choice ) = @_;
+
+    # Check if choicepoint already seen?
+    my $asf       = $choicepoint->[Marpa::R2::Internal::Choicepoint::ASF];
+    my $slr       = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
+    my $recce     = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+    my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
+    my $text      = q{};
+
+    say STDERR "choicepoint ($choicepoint) ", '$factoring_stack @', __LINE__,
+        ' = ',
+        Data::Dumper::Dumper(
+        $choicepoint->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK] );
+
+    my $factoring = $choicepoint->first_factoring();
+
+    say STDERR "choicepoint ($choicepoint) ", '$factoring_stack @', __LINE__,
+        ' = ',
+        Data::Dumper::Dumper(
+        $choicepoint->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK] );
+
+    my $ambiguous_prefix = $choicepoint->ambiguous_prefix();
+    FACTOR: for ( my $factor_ix = 0; defined $factoring; $factor_ix++ ) {
+        my $current_choice = $parent_choice . q{.} . $factor_ix;
+        $text .= "Factoring #$current_choice: " if $ambiguous_prefix;
+        say STDERR (join " ", __LINE__, '$factoring = '), Data::Dumper::Dumper( $factoring );
+        for my $choicepoint ( @{$factoring} ) {
+            $text .= $choicepoint->show_symches( $indent + 2,
+                $current_choice );
+        }
+        $factoring = $choicepoint->next_factoring();
+    } ## end FACTOR: for ( my $factor_ix = 0; defined $factoring; $factor_ix...)
+    return $text;
+} ## end sub Marpa::R2::Choicepoint::show_factorings
 
 sub Marpa::R2::Scanless::ASF::show {
     my ($asf) = @_;
