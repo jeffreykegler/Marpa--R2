@@ -34,6 +34,8 @@ $VERSION = eval $VERSION;
 
 package Marpa::R2::Internal::ASF;
 
+our %choicepoint_seen;
+
 # Terms
 #
 # Symchset -- A set of symches, all with the same start and end locations.
@@ -337,6 +339,11 @@ sub Marpa::R2::Scanless::ASF::new_choicepoint {
     return $cpi;
 }
 
+sub Marpa::R2::Choicepoint::id {
+    my ( $cp ) = @_;
+    return $cp->[Marpa::R2::Internal::Choicepoint::SYMCHSET]->id();
+}
+
 sub Marpa::R2::Choicepoint::symch_count {
     my ( $cp ) = @_;
     return $cp->[Marpa::R2::Internal::Choicepoint::SYMCHSET]->count();
@@ -472,7 +479,7 @@ sub Marpa::R2::Choicepoint::first_factoring {
             }
 	    next STACK_ELEMENT if $or_node_seen{$cause_id};
 	    $or_node_seen{$cause_id} = 1;
-            if ( _marpa_b_or_node_is_semantic($cause_id) ) {
+            if ( $bocage->_marpa_b_or_node_is_semantic($cause_id) ) {
                 push @finals, $cause_id;
 		next STACK_ELEMENT;
             }
@@ -504,7 +511,7 @@ sub Marpa::R2::Choicepoint::first_factoring {
                 }
             }
             next STACK_ELEMENT if $cause_id < 0;
-            next STACK_ELEMENT if _marpa_b_or_node_is_semantic($cause_id);
+            next STACK_ELEMENT if $bocage->_marpa_b_or_node_is_semantic($cause_id);
             next STACK_ELEMENT if $or_node_seen{$cause_id};
             $or_node_seen{$cause_id} = 1;
             push @stack,     $cause_id;
@@ -823,6 +830,14 @@ sub Marpa::R2::Scanless::ASF::show_cpsets {
 
 sub Marpa::R2::Choicepoint::show_symches {
     my ( $choicepoint, $indent, $parent_choice ) = @_;
+    my $id = $choicepoint->id();
+    if ($choicepoint_seen{$id}) {
+        $parent_choice = '"Top"' if not defined $parent_choice;
+        return (q{ } x $indent) . "Choicepoint $parent_choice already displayed\n";
+    }
+    $choicepoint_seen{$id}++;
+    $parent_choice .= q{.} if defined $parent_choice;
+
     # Check if choicepoint already seen?
     my $asf         = $choicepoint->[Marpa::R2::Internal::Choicepoint::ASF];
     my $slr         = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
@@ -833,7 +848,7 @@ sub Marpa::R2::Choicepoint::show_symches {
     for ( my $symch_ix = 0; $symch_ix < $symch_count; $symch_ix++ ) {
         $choicepoint->symch_set($symch_ix);
         say STDERR join q{ }, __FILE__, __LINE__, '$symch_ix =', $symch_ix;
-        my $current_choice = $parent_choice . q{.} . $symch_ix;
+        my $current_choice = "$parent_choice$symch_ix";
         $text .= "Symch #$current_choice: " if $symch_count > 1;
         my $rule_id = $choicepoint->rule_id();
         say STDERR join q{ }, __FILE__, __LINE__, '$rule_id =', ($rule_id // 'undef');
@@ -855,6 +870,7 @@ sub Marpa::R2::Choicepoint::show_symches {
 
 sub Marpa::R2::Choicepoint::show_factorings {
     my ( $choicepoint, $indent, $parent_choice ) = @_;
+    $parent_choice .= q{.} if defined $parent_choice;
 
     # Check if choicepoint already seen?
     my $asf       = $choicepoint->[Marpa::R2::Internal::Choicepoint::ASF];
@@ -877,7 +893,7 @@ sub Marpa::R2::Choicepoint::show_factorings {
 
     my $ambiguous_prefix = $choicepoint->ambiguous_prefix();
     FACTOR: for ( my $factor_ix = 0; defined $factoring; $factor_ix++ ) {
-        my $current_choice = $parent_choice . q{.} . $factor_ix;
+        my $current_choice = "$parent_choice$factor_ix";
         $text .= "Factoring #$current_choice: " if $ambiguous_prefix;
         say STDERR (join " ", __LINE__, '$factoring = '), Data::Dumper::Dumper( $factoring );
         for my $choicepoint ( @{$factoring} ) {
@@ -892,7 +908,8 @@ sub Marpa::R2::Choicepoint::show_factorings {
 sub Marpa::R2::Scanless::ASF::show {
     my ($asf) = @_;
     my $top = $asf->top();
-    return $top->show_symches (0, q{});
+    local %choicepoint_seen = ();
+    return $top->show_symches (0);
 }
 
 1;
