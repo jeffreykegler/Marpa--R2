@@ -56,7 +56,7 @@ if ( not defined $asf ) {
 
 say STDERR "Or-nodes:\n", $slr->thick_g1_recce()->verbose_or_nodes();
 my $top = $asf->top();
-say STDERR Data::Dumper::Dumper( $top->first() );
+say STDERR Data::Dumper::Dumper( $top->first_factoring() );
 
 say STDERR $asf->show_symchsets();
 say STDERR $asf->show_cpsets();

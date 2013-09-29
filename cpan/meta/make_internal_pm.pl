@@ -246,6 +246,7 @@ __DATA__
     SYMCHSET
     SYMCH_IX 
     FACTORING_STACK
+    CP_TO_PRIOR_CPSET
 
     :package=Marpa::R2::Internal::Scanless::ASF
 
