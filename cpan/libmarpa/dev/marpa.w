@@ -11337,7 +11337,7 @@ int _marpa_b_or_node_is_semantic(Marpa_Bocage b,
   @<Fail if fatal error@>@;
   @<Check |or_node_id|@>@;
   @<Set |or_node| or fail@>@;
-  return IRL_has_Virtual_LHS(IRL_of_OR(or_node));
+  return ! IRL_has_Virtual_LHS(IRL_of_OR(or_node));
 }
 
 @ @<Function definitions@> =

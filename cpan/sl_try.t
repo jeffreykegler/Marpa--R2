@@ -60,7 +60,7 @@ say STDERR Data::Dumper::Dumper( $top->first() );
 
 say STDERR $asf->show_symchsets();
 say STDERR $asf->show_cpsets();
-say STDERR Data::Dumper::Dumper($asf->raw());
+say STDERR $asf->show();
 
 # my $actual_asf         = $asf->raw();
 # my $actual_blessed_asf = $asf->bless($actual_asf);

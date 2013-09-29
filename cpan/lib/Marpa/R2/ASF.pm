@@ -79,6 +79,16 @@ sub Marpa::R2::Symchset::symch_ids {
     return $symchset->[Marpa::R2::Internal::Symchset::SYMCHES];
 }
 
+sub Marpa::R2::Symchset::symch {
+    my ($symchset, $ix) = @_;
+    return $symchset->[Marpa::R2::Internal::Symchset::SYMCHES]->[$ix];
+}
+
+sub Marpa::R2::Symchset::count {
+    my ($symchset) = @_;
+    return scalar @{$symchset->[Marpa::R2::Internal::Symchset::SYMCHES]};
+}
+
 sub Marpa::R2::Symchset::id {
     my ($symchset) = @_;
     return $symchset->[Marpa::R2::Internal::Symchset::ID];
@@ -136,6 +146,8 @@ sub Marpa::R2::CPset::show {
 # at this point
 sub Marpa::R2::Scanless::ASF::top {
     my ($asf) = @_;
+    my $top = $asf->[Marpa::R2::Internal::Scanless::ASF::TOP];
+    return $top if defined $top;
     my $slr   = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
     my $recce = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
 
@@ -147,19 +159,24 @@ sub Marpa::R2::Scanless::ASF::top {
     my $augment2_or_node_id =
         $bocage->_marpa_b_and_node_cause($augment_and_node_id);
     my @symch_set;
-    AND_NODE: for my $augment2_and_node_id (
+    AND_NODE:
+    for my $augment2_and_node_id (
         $bocage->_marpa_b_or_node_first_and($augment2_or_node_id)
-        .. $bocage->_marpa_b_or_node_last_and($augment2_or_node_id)) {
-      my $cause_id = $bocage->_marpa_b_and_node_cause($augment2_and_node_id);
-      if (defined $cause_id) {
-          push @symch_set, $cause_id;
-	  next AND_NODE;
-      }
-      push @symch_set, and_node_to_token_symch( $augment2_and_node_id);
-    }
-    my $top_symchset = Marpa::R2::Symchset->obtain($asf, @symch_set);
-    return $asf->new_choicepoint( $top_symchset );
-} ## end sub Marpa::R2::Scanless::ASF::top_choicepoint
+        .. $bocage->_marpa_b_or_node_last_and($augment2_or_node_id) )
+    {
+        my $cause_id =
+            $bocage->_marpa_b_and_node_cause($augment2_and_node_id);
+        if ( defined $cause_id ) {
+            push @symch_set, $cause_id;
+            next AND_NODE;
+        }
+        push @symch_set, and_node_to_token_symch($augment2_and_node_id);
+    } ## end AND_NODE: for my $augment2_and_node_id ( $bocage...)
+    my $top_symchset = Marpa::R2::Symchset->obtain( $asf, @symch_set );
+    $top = $asf->new_choicepoint($top_symchset);
+    $asf->[Marpa::R2::Internal::Scanless::ASF::TOP] = $top;
+    return $top;
+} ## end sub Marpa::R2::Scanless::ASF::top
 
 sub make_token_cp { return -($_[0] + 43); }
 sub unmake_token_cp { return -$_[0] - 43; }
@@ -313,6 +330,31 @@ sub Marpa::R2::Scanless::ASF::new_choicepoint {
     $cpi->[Marpa::R2::Internal::Choicepoint::SYMCHSET] = $symchset;
     $cpi->[Marpa::R2::Internal::Choicepoint::SYMCH_IX] = 0;
     return $cpi;
+}
+
+sub Marpa::R2::Choicepoint::symch_count {
+    my ( $cp ) = @_;
+    return $cp->[Marpa::R2::Internal::Choicepoint::SYMCHSET]->count();
+}
+
+sub Marpa::R2::Choicepoint::symch {
+    my ( $cp, $ix ) = @_;
+    return $cp->[Marpa::R2::Internal::Choicepoint::SYMCHSET]->[$ix];
+}
+
+sub Marpa::R2::Choicepoint::symch_set {
+    my ( $cp, $ix ) = @_;
+    my $max_symch_ix = $cp->symch_count() - 1;
+    Marpa::R2::exception("Symch index must in range from 0 to $max_symch_ix")
+       if $ix < 0 or $ix > $max_symch_ix;
+    return $cp->[Marpa::R2::Internal::Choicepoint::SYMCH_IX] = $ix;
+}
+
+sub Marpa::R2::Choicepoint::rule_id {
+    my ( $cp ) = @_;
+    my $symch_ix = $cp->[Marpa::R2::Internal::Choicepoint::SYMCH_IX];
+    my $symch = $cp->symch($symch_ix);
+    return if $symch < 0;
 }
 
 # Memoization is heavily used -- it needs to be to keep the worst cases from
@@ -650,41 +692,24 @@ sub Marpa::R2::Scanless::ASF::show_cpsets {
     return $text;
 }
 
-sub or_node_expand {
-    my ( $recce, $or_node_id, $memoized_expansions ) = @_;
-    my $memoized_or_nodes =
-        $recce->[Marpa::R2::Internal::Recognizer::ASF_OR_NODES];
-    my $choices   = choices( $recce, $or_node_id );
-    my @children = ();
-
-    $memoized_expansions //= [];
-    my $expansion = $memoized_expansions->[$or_node_id];
-    return $expansion if defined $expansion;
-    for my $choice ( @{$choices} ) {
-        push @children, [
-            map {
-                $_ < 0
-                    ? $_
-                    : or_node_expand( $recce, $_, $memoized_expansions )
-            } @{$choice}
-        ];
-    } ## end for my $choice ( @{$choices} )
-    my $choice_count = scalar @children;
-    if ( $choice_count == 1 ) {
-        $expansion = [ $or_node_id, @{$children[0]} ];
+sub Marpa::R2::Choicepoint::show_symches {
+    my ($choicepoint, $indent, $parent_choice) = @_;
+    my $text = q{};
+    my $symch_count = $choicepoint->symch_count();
+    for (my $symch_ix = 0; $symch_ix < $symch_count; $symch_ix++) {
+        $choicepoint->symch_set($symch_ix);
+        my $current_choice = $parent_choice . q{.} . $symch_ix;
+        $text .= "Symch #$current_choice: " if $symch_count > 1;
+        my $rule = $choicepoint->rule_id();
+        # to HERE !!!
     }
-    else {
-        $expansion = [ -2, $or_node_id, @children ];
-    }
-    return $memoized_expansions->[$or_node_id] = $expansion;
-} ## end sub or_node_expand
+    # to HERE !!!
+}
 
-sub Marpa::R2::Scanless::ASF::raw {
-    my ($asf, $start_rcp) = @_;
-    my $slr   = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
-    my $recce = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
-    $start_rcp //= $asf->top();
-    return or_node_expand( $recce, $start_rcp );
+sub Marpa::R2::Scanless::ASF::show {
+    my ($asf) = @_;
+    my $top = $asf->top();
+    return $top->show_symches (0, q{});
 }
 
 1;
