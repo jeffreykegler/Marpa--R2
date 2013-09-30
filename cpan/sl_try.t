@@ -14,55 +14,105 @@
 # General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 
-# Test of Abstract Syntax Forest
+# Tests which require only a GIF combination-- a grammar (G),
+# input (I), and an (F) ASF output, with no semantics
 
 use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 2;
+use Test::More tests => 6;
 use English qw( -no_match_vars );
 use lib 'inc';
 use Marpa::R2::Test;
 use Marpa::R2;
 use Data::Dumper;
 
-my $slg = Marpa::R2::Scanless::G->new(
-    {   source => \(<<'END_OF_SOURCE'),
-            :start ::= quartet
-            quartet ::= a a a a
-            a ~ 'a'
+my @tests_data = ();
+
+my $aaaa_grammar = Marpa::R2::Scanless::G->new(
+    {   source =>
+\(<<'END_OF_SOURCE'),
+    :start ::= quartet
+    quartet ::= a a a a
+    a ~ 'a'
 END_OF_SOURCE
     }
 );
 
-say STDERR "IRL's:\n", $slg->thick_g1_grammar()->show_irls();
+push @tests_data, [
+    $aaaa_grammar, 'aaaa',
+    <<'END_OF_ASF',
+Rule 1: quartet -> a a a a
+  Symbol: a "a"
+  Symbol: a "a"
+  Symbol: a "a"
+  Symbol: a "a"
+END_OF_ASF
+    'ASF OK',
+    'Basic "a a a a" grammar'
+];
 
-my $slr = Marpa::R2::Scanless::R->new( { grammar => $slg } );
-my ( $parse_value, $parse_status );
+my $bb_grammar = Marpa::R2::Scanless::G->new(
+    {   source =>
+\(<<'END_OF_SOURCE'),
+:start ::= quartet
+quartet ::= b b
+b ::= a a a
+b ::= a
+a ~ 'a'
+END_OF_SOURCE
+    }
+);
 
-if ( not defined eval { $slr->read( \'aaaa' ); 1 } ) {
-    my $abbreviated_error = $EVAL_ERROR;
-    chomp $abbreviated_error;
-    $abbreviated_error =~ s/\n.*//xms;
-    $abbreviated_error =~ s/^Error \s+ in \s+ string_read: \s+ //xms;
-    die 'No parse: ', $abbreviated_error;
-} ## end if ( not defined eval { $slr->read( \'aaa' ); 1 } )
-my $asf = Marpa::R2::Scanless::ASF->new(
-    { slr => $slr, choice => 'My_ASF::choix', force => 'My_ASF' } );
-if ( not defined $asf ) {
-    return 'No parse', 'Input read to end but no parse';
-}
+push @tests_data, [
+    $bb_grammar, 'aaaa',
+    <<'END_OF_ASF',
+END_OF_ASF
+    'ASF OK',
+    '"b b" grammar'
+];
 
-say STDERR "Or-nodes:\n", $slr->thick_g1_recce()->verbose_or_nodes();
-say STDERR "And-nodes:\n", $slr->thick_g1_recce()->show_and_nodes();
-my $top = $asf->top();
+TEST:
+for my $test_data (@tests_data) {
+    my ( $grammar, $test_string, $expected_value, $expected_result,
+        $test_name )
+        = @{$test_data};
+    my ( $actual_value, $actual_result ) =
+        my_parser( $grammar, $test_string );
+    Test::More::is(
+        Data::Dumper::Dumper( \$actual_value ),
+        Data::Dumper::Dumper( \$expected_value ),
+        qq{Value of $test_name}
+    );
+    Test::More::is( $actual_result, $expected_result,
+        qq{Result of $test_name} );
+} ## end TEST: for my $test_data (@tests_data)
 
-say STDERR $asf->show();
-say STDERR $asf->show_symchsets();
-say STDERR $asf->show_cpsets();
+sub my_parser {
+    my ( $grammar, $string ) = @_;
 
-# my $actual_asf         = $asf->raw();
-# my $actual_blessed_asf = $asf->bless($actual_asf);
+    my $slr = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
+
+    if ( not defined eval { $slr->read( \$string ); 1 } ) {
+        my $abbreviated_error = $EVAL_ERROR;
+        chomp $abbreviated_error;
+        $abbreviated_error =~ s/\n.*//xms;
+        $abbreviated_error =~ s/^Error \s+ in \s+ string_read: \s+ //xms;
+        return 'No parse', $abbreviated_error;
+    } ## end if ( not defined eval { $slr->read( \$string ); 1 } )
+    my $asf = Marpa::R2::Scanless::ASF->new(
+        { slr => $slr, choice => 'My_ASF::choix', force => 'My_ASF' } );
+    if ( not defined $asf ) {
+        return 'No ASF', 'Input read to end but no ASF';
+    }
+
+    say STDERR "Or-nodes:\n",  $slr->thick_g1_recce()->verbose_or_nodes();
+    say STDERR "And-nodes:\n", $slr->thick_g1_recce()->show_and_nodes();
+    my $asf_desc = $asf->show();
+    say STDERR $asf->show_symchsets();
+    say STDERR $asf->show_cpsets();
+    return $asf_desc, 'ASF OK';
+} ## end sub my_parser
 
 # vim: expandtab shiftwidth=4:

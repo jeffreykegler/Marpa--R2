@@ -31,10 +31,11 @@ use Data::Dumper;
 my @tests_data = ();
 
 my $aaaa_grammar = Marpa::R2::Scanless::G->new(
-    {   source => \(<<'END_OF_SOURCE'),
-            :start ::= quartet
-            quartet ::= a a a a
-            a ~ 'a'
+    {   source =>
+\(<<'END_OF_SOURCE'),
+    :start ::= quartet
+    quartet ::= a a a a
+    a ~ 'a'
 END_OF_SOURCE
     }
 );
@@ -50,6 +51,26 @@ Rule 1: quartet -> a a a a
 END_OF_ASF
     'ASF OK',
     'Basic "a a a a" grammar'
+];
+
+my $bb_grammar = Marpa::R2::Scanless::G->new(
+    {   source =>
+\(<<'END_OF_SOURCE'),
+:start ::= quartet
+quartet ::= b b
+b ::= a a a
+b ::= a
+a ~ 'a'
+END_OF_SOURCE
+    }
+);
+
+push @tests_data, [
+    $bb_grammar, 'aaaa',
+    <<'END_OF_ASF',
+END_OF_ASF
+    'ASF OK',
+    '"b b" grammar'
 ];
 
 TEST:
