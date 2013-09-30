@@ -902,10 +902,14 @@ sub Marpa::R2::Choicepoint::show_factorings {
     my $ambiguous_prefix = $choicepoint->ambiguous_prefix();
     FACTOR: for ( my $factor_ix = 0; defined $factoring; $factor_ix++ ) {
         my $current_choice = "$parent_choice$factor_ix";
-        push @lines, "Factoring #$current_choice: " if $ambiguous_prefix;
+        my $indent = q{};
+        if ($ambiguous_prefix) {
+            push @lines, "Factoring #$current_choice";
+            $indent = q{  };
+        }
         for my $choicepoint ( @{$factoring} ) {
             say STDERR join q{ }, __FILE__, __LINE__, $choicepoint->show();
-            push @lines, map { q{  } . $_ } @{$choicepoint->show_symches( $current_choice )};
+            push @lines, map { $indent . $_ } @{$choicepoint->show_symches( $current_choice )};
         }
         $factoring = $choicepoint->next_factoring();
     } ## end FACTOR: for ( my $factor_ix = 0; defined $factoring; $factor_ix...)
