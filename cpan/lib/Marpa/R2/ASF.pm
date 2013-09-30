@@ -359,7 +359,8 @@ sub Marpa::R2::Choicepoint::symch_count {
 sub Marpa::R2::Choicepoint::symch {
     my ( $cp, $ix ) = @_;
     my $symch_ix = $ix // $cp->[Marpa::R2::Internal::Choicepoint::SYMCH_IX];
-    return $cp->[Marpa::R2::Internal::Choicepoint::SYMCHSET]->[$symch_ix];
+    say STDERR "symch_ix=$symch_ix ", $cp->show();
+    return $cp->[Marpa::R2::Internal::Choicepoint::SYMCHSET]->symch_ids()->[$symch_ix];
 }
 
 sub Marpa::R2::Choicepoint::symch_set {
@@ -374,12 +375,13 @@ sub Marpa::R2::Choicepoint::symch_set {
 sub Marpa::R2::Choicepoint::rule_id {
     my ($cp)      = @_;
     my $asf       = $cp->[Marpa::R2::Internal::Choicepoint::ASF];
-    my $slr       = $asf->[Marpa::R2::Internal::Scanless::ASF2::SLR];
+    my $slr       = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
     my $recce     = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
     my $bocage     = $recce->[Marpa::R2::Internal::Recognizer::B_C];
     my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
     my $or_node_id = $cp->symch() // -1;
+    say STDERR "or_node_id=$or_node_id ", $cp->show();
     return if $or_node_id < 0;
     my $irl_id = $bocage->_marpa_b_or_node_irl($or_node_id);
     my $xrl_id = $grammar_c->_marpa_g_source_xrl($irl_id);
@@ -388,7 +390,7 @@ sub Marpa::R2::Choicepoint::rule_id {
 
 sub or_node_es_span {
     my ( $asf, $choicepoint ) = @_;
-    my $slr   = $asf->[Marpa::R2::Internal::Scanless::ASF2::SLR];
+    my $slr   = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
     my $recce      = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
     my $bocage     = $recce->[Marpa::R2::Internal::Recognizer::B_C];
     my $origin_es  = $bocage->_marpa_b_or_node_origin($choicepoint);
@@ -396,25 +398,43 @@ sub or_node_es_span {
     return $origin_es, $current_es - $origin_es;
 } ## end sub or_node_es_span
 
+sub token_es_span {
+    my ( $asf, $and_node_id ) = @_;
+    my $slr       = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
+    my $recce     = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+    my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
+    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
+    my $bocage    = $recce->[Marpa::R2::Internal::Recognizer::B_C];
+    my $predecessor_id = $bocage->_marpa_b_and_node_predecessor($and_node_id);
+    my $parent_or_node_id = $bocage->_marpa_b_and_node_parent($and_node_id);
+
+    if (defined $predecessor_id) {
+        my $origin_es  = $bocage->_marpa_b_or_node_set($predecessor_id);
+        my $current_es = $bocage->_marpa_b_or_node_set($parent_or_node_id);
+        return ( $origin_es, $current_es - $origin_es );
+    } ## end if ($predecessor_id)
+    return or_node_es_span( $asf, $parent_or_node_id );
+} ## end sub token_es_span
+
 sub Marpa::R2::Choicepoint::literal {
     my ($cp)    = @_;
-    my $symch_0 = $cp->symch(0);
+    my $symch = $cp->symch();
     my $asf     = $cp->[Marpa::R2::Internal::Choicepoint::ASF];
-    my $slr     = $asf->[Marpa::R2::Internal::Scanless::ASF2::SLR];
-    if ( $symch_0 < 0 ) {
-        my $and_node_id = token_symch_to_and_node($symch_0);
+    my $slr     = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
+    if ( $symch < 0 ) {
+        my $and_node_id = token_symch_to_and_node($symch);
         my ( $start, $length ) = token_es_span( $asf, $and_node_id );
         return '' if $length == 0;
         return $slr->substring( $start, $length );
-    } ## end if ( $symch_0 < 0 )
-    return $slr->substring( or_node_es_span( $asf, $symch_0 ) );
+    } ## end if ( $symch < 0 )
+    return $slr->substring( or_node_es_span( $asf, $symch ) );
 } ## end sub Marpa::R2::Choicepoint::literal
 
 sub Marpa::R2::Choicepoint::symbol_id {
     my ($cp)      = @_;
     my $symch_0   = $cp->symch(0);
     my $asf       = $cp->[Marpa::R2::Internal::Choicepoint::ASF];
-    my $slr       = $asf->[Marpa::R2::Internal::Scanless::ASF2::SLR];
+    my $slr       = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
     my $recce     = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
     my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
@@ -858,7 +878,7 @@ sub Marpa::R2::Choicepoint::show_symches {
             my $symbol_id = $choicepoint->symbol_id();
             my $literal = $choicepoint->literal();
             my $symbol_name = $grammar->symbol_name($symbol_id);
-            push @lines, qq{Symbol: $symbol_name  "$literal"};
+            push @lines, qq{Symbol: $symbol_name "$literal"};
         }
     } ## end for ( my $symch_ix = 0; $symch_ix < $symch_count; $symch_ix...)
     return \@lines;

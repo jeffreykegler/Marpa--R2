@@ -55,11 +55,12 @@ if ( not defined $asf ) {
 }
 
 say STDERR "Or-nodes:\n", $slr->thick_g1_recce()->verbose_or_nodes();
+say STDERR "And-nodes:\n", $slr->thick_g1_recce()->show_and_nodes();
 my $top = $asf->top();
 
+say STDERR $asf->show();
 say STDERR $asf->show_symchsets();
 say STDERR $asf->show_cpsets();
-say STDERR $asf->show();
 
 # my $actual_asf         = $asf->raw();
 # my $actual_blessed_asf = $asf->bless($actual_asf);
