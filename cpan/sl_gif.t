@@ -42,8 +42,13 @@ END_OF_SOURCE
 push @tests_data, [
     $aaaa_grammar, 'aaaa',
     <<'END_OF_ASF',
+Rule 1: quartet -> a a a a
+  Symbol: a "a"
+  Symbol: a "a"
+  Symbol: a "a"
+  Symbol: a "a"
 END_OF_ASF
-    'Parse OK',
+    'ASF OK',
     'Basic "a a a a" grammar'
 ];
 
@@ -86,7 +91,7 @@ sub my_parser {
     my $asf_desc = $asf->show();
     say STDERR $asf->show_symchsets();
     say STDERR $asf->show_cpsets();
-    return [ 'ASF OK', $asf_desc ];
+    return $asf_desc, 'ASF OK';
 } ## end sub my_parser
 
 # vim: expandtab shiftwidth=4:

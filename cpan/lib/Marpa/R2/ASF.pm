@@ -288,10 +288,12 @@ sub Marpa::R2::Scanless::ASF::new {
     ) if not defined $slr;
     $asf->[Marpa::R2::Internal::Scanless::ASF::SLR] = $slr;
 
-    Marpa::R2::exception(
-        q{The "force" or "default" named argument must be specified },
-        {with the Marpa::R2::Scanless::ASF::new method}
-    ) if not defined $force and not defined $default_blessing;
+    if ( not defined $force and not defined $default_blessing ) {
+        Marpa::R2::exception(
+            q{The "force" or "default" named argument must be specified },
+            q{ with the Marpa::R2::Scanless::ASF::new method }
+        );
+    } ## end if ( not defined $force and not defined $default_blessing)
 
     my $recce     = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
 
@@ -921,7 +923,7 @@ sub Marpa::R2::Scanless::ASF::show {
     my $top = $asf->top();
     local %choicepoint_seen = ();
     my $lines = $top->show_symches ();
-    return join "\n", @{$lines}, "\n";
+    return join "\n", @{$lines}, q{};
 }
 
 1;
