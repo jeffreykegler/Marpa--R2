@@ -126,7 +126,7 @@ use constant ASF => 0;
 use constant SYMCHSET => 1;
 use constant SYMCH_IX => 2;
 use constant FACTORING_STACK => 3;
-use constant CP_TO_PRIOR_CPSET => 4;
+use constant SYMCHSET_TO_PRIOR_POWERSET => 4;
 
 package Marpa::R2::Internal::Scanless::ASF;
 use constant SLR => 0;
@@ -137,17 +137,17 @@ use constant TOP => 4;
 use constant SYMCHSET_BY_KEY => 5;
 use constant SYMCHSET_BY_ID => 6;
 use constant NEXT_SYMCHSET_ID => 7;
-use constant CPSET_BY_KEY => 8;
-use constant CPSET_BY_ID => 9;
-use constant NEXT_CPSET_ID => 10;
+use constant POWERSET_BY_KEY => 8;
+use constant POWERSET_BY_ID => 9;
+use constant NEXT_POWERSET_ID => 10;
 
 package Marpa::R2::Internal::Symchset;
 use constant ID => 0;
 use constant SYMCHES => 1;
 
-package Marpa::R2::Internal::CPset;
+package Marpa::R2::Internal::Powerset;
 use constant ID => 0;
-use constant CHOICEPOINTS => 1;
+use constant SYMCHSET_IDS => 1;
 
 package Marpa::R2::Internal::CPI;
 use constant ASF => 0;

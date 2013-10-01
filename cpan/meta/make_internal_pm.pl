@@ -246,7 +246,7 @@ __DATA__
     SYMCHSET
     SYMCH_IX 
     FACTORING_STACK
-    CP_TO_PRIOR_CPSET
+    SYMCHSET_TO_PRIOR_POWERSET
 
     :package=Marpa::R2::Internal::Scanless::ASF
 
@@ -259,19 +259,19 @@ __DATA__
     SYMCHSET_BY_KEY
     SYMCHSET_BY_ID
     NEXT_SYMCHSET_ID
-    CPSET_BY_KEY
-    CPSET_BY_ID
-    NEXT_CPSET_ID
+    POWERSET_BY_KEY
+    POWERSET_BY_ID
+    NEXT_POWERSET_ID
 
     :package=Marpa::R2::Internal::Symchset
 
     ID
     SYMCHES
 
-    :package=Marpa::R2::Internal::CPset
+    :package=Marpa::R2::Internal::Powerset
 
     ID
-    CHOICEPOINTS
+    SYMCHSET_IDS
 
     :package=Marpa::R2::Internal::CPI
 
