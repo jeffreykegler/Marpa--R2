@@ -515,6 +515,9 @@ sub Marpa::R2::Choicepoint::first_factoring {
     } ## end STACK_ELEMENT: while ( defined( my $stack_element = pop @stack ) )
     my $final_symchset = Marpa::R2::Symchset->obtain( $asf, @finals );
 
+    # Find the direct predecessors of each cause or-node,
+    # and the "internal completions" -- or-nodes for internal rules
+    # completed in the current checkpoint
     @stack     = ($symch);
     my @internal_completions = ();
     $or_node_seen{$symch} = 1;
@@ -603,58 +606,51 @@ sub Marpa::R2::Choicepoint::first_factoring {
 
     # Find the semantics causes for each predecessor
     my %semantic_cause = ();
-    %or_node_seen = ();
     %and_node_seen = ();
 
     # This re-initializes a stack to a list of or-nodes whose cause's should be examined,
     # recursively, until a semantic or-node or a terminal is found.
-    for my $outer_cause_id ( keys %predecessors ) {
-        for my $predecessor_id (
-            keys %{ $predecessors{$outer_cause_id} } )
-        {
-            next PREDECESSOR_ID if $or_node_seen{$predecessor_id};
-            $or_node_seen{$predecessor_id} = 1;
+    my %predecessors_to_do = ();
+    $predecessors_to_do{$_} = 1 for map { ; keys %{$_} } values %predecessors;
+    for my $predecessor_id ( keys %predecessors_to_do ) {
 
-            # Not the most efficient Perl implementation -- intended for conversion to C
-            # Outer seen, for predecessors, can be bit vector
-            # Inner seen, for and_nodes, must be array to track current predecessor,
-            #   because and-node is "seen" only if seen FOR THIS PREDECESSOR
-            my @and_node_stack = ();
-            my %inner_seen = ();
-            for my $and_node_id (
-                $ordering->_marpa_o_or_node_and_node_ids($predecessor_id) )
+        # Not the most efficient Perl implementation -- intended for conversion to C
+        # Outer seen, for predecessors, can be bit vector
+        # Inner seen, for and_nodes, must be array to track current predecessor,
+        #   because and-node is "seen" only if seen FOR THIS PREDECESSOR
+        my @and_node_stack = ();
+        my %inner_seen     = ();
+        for my $and_node_id (
+            $ordering->_marpa_o_or_node_and_node_ids($predecessor_id) )
+        {
+            next AND_NODE
+                if ( $inner_seen{$and_node_id} // -1 ) == $predecessor_id;
+            $inner_seen{$and_node_id} = $predecessor_id;
+            push @and_node_stack, $and_node_id;
+        } ## end for my $and_node_id ( $ordering...)
+        AND_NODE: while ( defined( my $and_node_id = pop @and_node_stack ) ) {
+            my $cause_id = $bocage->_marpa_b_and_node_cause($and_node_id);
+            if ( not defined $cause_id ) {
+                $semantic_cause{$predecessor_id}
+                    { and_node_to_token_symch($and_node_id) } = 1;
+                next AND_NODE;
+            }
+            if ( $bocage->_marpa_b_or_node_is_semantic($cause_id) ) {
+                $semantic_cause{$predecessor_id}{$cause_id} = 1;
+                next AND_NODE;
+            }
+            INNER_AND_NODE:
+            for my $inner_and_node_id (
+                $ordering->_marpa_o_or_node_and_node_ids($cause_id) )
             {
-                next AND_NODE
-                    if ( $inner_seen{$and_node_id} // -1 )
+                next INNER_AND_NODE
+                    if ( $inner_seen{$inner_and_node_id} // -1 )
                     == $predecessor_id;
-                $inner_seen{$and_node_id} = $predecessor_id;
-                push @and_node_stack, $and_node_id;
-            } ## end for my $and_node_id ( $ordering...)
-            AND_NODE: while ( defined (my $and_node_id = pop @and_node_stack) ) {
-                my $cause_id = $bocage->_marpa_b_and_node_cause($and_node_id);
-                if ( not defined $cause_id ) {
-                    $semantic_cause{$predecessor_id}
-                        { and_node_to_token_symch($and_node_id) } = 1;
-                    next AND_NODE;
-                }
-                if ( $bocage->_marpa_b_or_node_is_semantic($cause_id) ) {
-                    $semantic_cause{$predecessor_id}{$cause_id} = 1;
-                    next AND_NODE;
-                }
-                INNER_AND_NODE:
-                for my $inner_and_node_id (
-                    $ordering->_marpa_o_or_node_and_node_ids($cause_id)
-                    )
-                {
-                    next INNER_AND_NODE
-                        if ( $inner_seen{$inner_and_node_id} // -1 )
-                        == $predecessor_id;
-                    $inner_seen{$inner_and_node_id} = $predecessor_id;
-                    push @and_node_stack, $inner_and_node_id;
-                } ## end INNER_AND_NODE: for my $inner_and_node_id ( $ordering...)
-            } ## end AND_NODE: while ( my $and_node_id = pop @and_node_stack )
-        } ## end for my $predecessor_id ( keys %{ $predecessors...})
-    } ## end for my $outer_cause_id ( keys %predecessors )
+                $inner_seen{$inner_and_node_id} = $predecessor_id;
+                push @and_node_stack, $inner_and_node_id;
+            } ## end INNER_AND_NODE: for my $inner_and_node_id ( $ordering...)
+        } ## end AND_NODE: while ( defined( my $and_node_id = pop @and_node_stack...))
+    } ## end for my $predecessor_id ( keys %predecessors_to_do )
 
     my %prior_cause = ();
     for my $cause_id ( keys %predecessors ) {
