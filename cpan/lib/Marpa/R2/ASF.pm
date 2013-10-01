@@ -675,10 +675,10 @@ sub Marpa::R2::Choicepoint::first_factoring {
         $symch_to_prior_symchset{$successor_cause_id} = $prior_symchset;
     }
 
-    my %symchset_to_cpset = ();
+    my %symchset_to_powerset = ();
     SYMCHSET: for my $symchset ( $final_symchset, values %symch_to_prior_symchset ) {
         my $symchset_id = $symchset->id();
-        next SYMCHSET if defined $symchset_to_cpset{$symchset_id};
+        next SYMCHSET if defined $symchset_to_powerset{$symchset_id};
         my @sorted_symch_ids =
             map { $_->[-1] }
             sort { $a->[0] <=> $b->[0] }
@@ -713,11 +713,11 @@ sub Marpa::R2::Choicepoint::first_factoring {
             $prior_of_this_symch = $symch_to_prior_symchset{$this_symch} // -1;
         } ## end SYMCH: while (1)
         my $cpset = Marpa::R2::Powerset->obtain( $asf, @choicepoints );
-        $symchset_to_cpset{$symchset_id} = $cpset;
+        $symchset_to_powerset{$symchset_id} = $cpset;
     } ## end SYMCHSET: for my $symchset ( $final_symchset, values ...)
 
     my %symch_set_to_prior_powerset = ();
-    for my $cp_set ( values %symchset_to_cpset ) {
+    for my $cp_set ( values %symchset_to_powerset ) {
         CHOICEPOINT: for my $choicepoint_id ( @{$cp_set->choicepoints()} ) {
             next CHOICEPOINT if $symch_set_to_prior_powerset{$choicepoint_id};
             my $choicepoint = $symchset_by_id->[$choicepoint_id];
@@ -726,12 +726,13 @@ sub Marpa::R2::Choicepoint::first_factoring {
             next CHOICEPOINT if not defined $prior_symchset;
             my $prior_symchset_id = $prior_symchset->id();
             $symch_set_to_prior_powerset{$choicepoint_id} =
-                $symchset_to_cpset{$prior_symchset_id};
+                $symchset_to_powerset{$prior_symchset_id};
         } ## end CHOICEPOINT: for my $choicepoint_id ( $cp_set->choicepoints() )
-    } ## end for my $cp_set ( values %symchset_to_cpset )
+    } ## end for my $cp_set ( values %symchset_to_powerset )
 
-    my $final_cpset = $symchset_to_cpset{ $final_symchset->id() };
+    my $final_cpset = $symchset_to_powerset{ $final_symchset->id() };
     my @factoring_stack = ( [ $final_cpset, 0 ] );
+
     $choicepoint->[Marpa::R2::Internal::Choicepoint::SYMCHSET_TO_PRIOR_POWERSET] =
         \%symch_set_to_prior_powerset;
     $choicepoint->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK] =
@@ -756,6 +757,8 @@ sub finish_stack {
         push @{$factoring_stack}, [ $prior_cpset, 0 ];
         $current_choicepoint_id = $prior_cpset->choicepoint_id(0);
     } ## end FACTOR: while ( defined $current_choicepoint_id )
+
+    say STDERR '%symch_set_to_prior_powerset = ', Data::Dumper::Dumper( $symch_set_to_prior_powerset);
 
     my @return_value = ();
     for my $stack_element ( reverse @{$factoring_stack} ) {
