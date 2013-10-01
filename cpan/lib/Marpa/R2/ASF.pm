@@ -675,6 +675,8 @@ sub Marpa::R2::Choicepoint::first_factoring {
         $symch_to_prior_symchset{$successor_cause_id} = $prior_symchset;
     }
 
+    say STDERR '%symch_to_prior_symchset = ', Data::Dumper::Dumper( \%symch_to_prior_symchset);
+
     my %symchset_to_powerset = ();
     SYMCHSET: for my $symchset ( $final_symchset, values %symch_to_prior_symchset ) {
         my $symchset_id = $symchset->id();

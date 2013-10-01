@@ -78,6 +78,9 @@ for my $test_data (@tests_data) {
     my ( $grammar, $test_string, $expected_value, $expected_result,
         $test_name )
         = @{$test_data};
+
+    say STDERR "=== Test: $test_name";
+
     my ( $actual_value, $actual_result ) =
         my_parser( $grammar, $test_string );
     Test::More::is(
