@@ -107,45 +107,45 @@ sub Marpa::R2::Powerset::obtain {
     my ($class, $asf, @symchset_ids) = @_;
     my @sorted_symchset_ids = sort { $a <=> $b } @symchset_ids;
     my $key = join q{ }, @sorted_symchset_ids;
-    my $cpset_by_key =
+    my $powerset_by_key =
         $asf->[Marpa::R2::Internal::Scanless::ASF::POWERSET_BY_KEY];
-    my $cpset = $cpset_by_key->{$key};
-    return $cpset if defined $cpset;
-    $cpset = bless [], $class;
+    my $powerset = $powerset_by_key->{$key};
+    return $powerset if defined $powerset;
+    $powerset = bless [], $class;
     my $id = $asf->[Marpa::R2::Internal::Scanless::ASF::NEXT_POWERSET_ID]++;
-    $cpset->[Marpa::R2::Internal::Powerset::ID] = $id;
-    $cpset->[Marpa::R2::Internal::Powerset::SYMCHSET_IDS] = \@sorted_symchset_ids;
-    $asf->[Marpa::R2::Internal::Scanless::ASF::POWERSET_BY_KEY]->{$key} = $cpset;
-    $asf->[Marpa::R2::Internal::Scanless::ASF::POWERSET_BY_ID]->[$id] = $cpset;
-    return $cpset;
+    $powerset->[Marpa::R2::Internal::Powerset::ID] = $id;
+    $powerset->[Marpa::R2::Internal::Powerset::SYMCHSET_IDS] = \@sorted_symchset_ids;
+    $asf->[Marpa::R2::Internal::Scanless::ASF::POWERSET_BY_KEY]->{$key} = $powerset;
+    $asf->[Marpa::R2::Internal::Scanless::ASF::POWERSET_BY_ID]->[$id] = $powerset;
+    return $powerset;
 }
 
 sub Marpa::R2::Powerset::symchset_ids {
-    my ($cpset) = @_;
-    return $cpset->[Marpa::R2::Internal::Powerset::SYMCHSET_IDS];
+    my ($powerset) = @_;
+    return $powerset->[Marpa::R2::Internal::Powerset::SYMCHSET_IDS];
 }
 
 sub Marpa::R2::Powerset::count {
-    my ($cpset) = @_;
-    return scalar @{$cpset->[Marpa::R2::Internal::Powerset::SYMCHSET_IDS]};
+    my ($powerset) = @_;
+    return scalar @{$powerset->[Marpa::R2::Internal::Powerset::SYMCHSET_IDS]};
 }
 
 sub Marpa::R2::Powerset::symchset_id {
-    my ($cpset, $ix) = @_;
-    my $symchset_ids = $cpset->[Marpa::R2::Internal::Powerset::SYMCHSET_IDS];
+    my ($powerset, $ix) = @_;
+    my $symchset_ids = $powerset->[Marpa::R2::Internal::Powerset::SYMCHSET_IDS];
     return if $ix > $#{$symchset_ids};
-    return $cpset->[Marpa::R2::Internal::Powerset::SYMCHSET_IDS]->[$ix];
+    return $powerset->[Marpa::R2::Internal::Powerset::SYMCHSET_IDS]->[$ix];
 }
 
 sub Marpa::R2::Powerset::id {
-    my ($cpset) = @_;
-    return $cpset->[Marpa::R2::Internal::Powerset::ID];
+    my ($powerset) = @_;
+    return $powerset->[Marpa::R2::Internal::Powerset::ID];
 }
 
 sub Marpa::R2::Powerset::show {
-    my ($cpset) = @_;
-    my $id = $cpset->id();
-    my $symchset_ids = $cpset->symchset_ids();
+    my ($powerset) = @_;
+    my $id = $powerset->id();
+    my $symchset_ids = $powerset->symchset_ids();
     return "Powerset #$id: " . join q{ }, @{$symchset_ids};
 }
 
@@ -714,8 +714,8 @@ sub Marpa::R2::Choicepoint::first_factoring {
             next SYMCH if not defined $this_symch;
             $prior_of_this_symch = $symch_to_prior_symchset{$this_symch} // -1;
         } ## end SYMCH: while (1)
-        my $cpset = Marpa::R2::Powerset->obtain( $asf, @choicepoints );
-        $symchset_to_powerset{$symchset_id} = $cpset;
+        my $powerset = Marpa::R2::Powerset->obtain( $asf, @choicepoints );
+        $symchset_to_powerset{$symchset_id} = $powerset;
     } ## end SYMCHSET: for my $symchset ( $final_symchset, values ...)
 
     my %symch_set_to_prior_powerset = ();
@@ -732,8 +732,8 @@ sub Marpa::R2::Choicepoint::first_factoring {
         }
     }
 
-    my $final_cpset = $symchset_to_powerset{ $final_symchset->id() };
-    my @factoring_stack = ( [ $final_cpset, 0 ] );
+    my $final_powerset = $symchset_to_powerset{ $final_symchset->id() };
+    my @factoring_stack = ( [ $final_powerset, 0 ] );
 
     $choicepoint->[Marpa::R2::Internal::Choicepoint::SYMCHSET_TO_PRIOR_POWERSET] =
         \%symch_set_to_prior_powerset;
@@ -836,12 +836,12 @@ sub Marpa::R2::Scanless::ASF::show_symchsets {
     return $text;
 }
 
-sub Marpa::R2::Scanless::ASF::show_cpsets {
+sub Marpa::R2::Scanless::ASF::show_powersets {
     my ($asf) = @_;
     my $text = q{};
-    my $cpsets = $asf->[Marpa::R2::Internal::Scanless::ASF::POWERSET_BY_ID];
-    for my $cpset (@{$cpsets}) {
-        $text .= $cpset->show() . "\n";
+    my $powersets = $asf->[Marpa::R2::Internal::Scanless::ASF::POWERSET_BY_ID];
+    for my $powerset (@{$powersets}) {
+        $text .= $powerset->show() . "\n";
     }
     return $text;
 }
