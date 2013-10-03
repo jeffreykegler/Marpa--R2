@@ -43,11 +43,11 @@ END_OF_SOURCE
 push @tests_data, [
     $aaaa_grammar, 'aaaa',
     <<'END_OF_ASF',
-Rule 1: quartet -> a a a a
-  Symbol: a "a"
-  Symbol: a "a"
-  Symbol: a "a"
-  Symbol: a "a"
+CP0 Rule 1: quartet -> a a a a
+  CP2 Symbol: a "a"
+  CP3 Symbol: a "a"
+  CP4 Symbol: a "a"
+  CP1 Symbol: a "a"
 END_OF_ASF
     'ASF OK',
     'Basic "a a a a" grammar'
@@ -56,8 +56,8 @@ END_OF_ASF
 my $bb_grammar = Marpa::R2::Scanless::G->new(
     {   source =>
 \(<<'END_OF_SOURCE'),
-:start ::= quartet
-quartet ::= b b
+:start ::= top
+top ::= b b
 b ::= a a
 b ::= a
 a ~ 'a'
@@ -65,14 +65,61 @@ END_OF_SOURCE
     }
 );
 
-#clear tests data -- do only last test
-@tests_data = ();
 push @tests_data, [
     $bb_grammar, 'aaa',
     <<'END_OF_ASF',
+CP0 Rule 1: top -> b b
+  Factoring #0.0
+    CP3 Rule 3: b -> a
+      CP6 Symbol: a "a"
+    CP4 Rule 2: b -> a a
+      CP8 Symbol: a "a"
+      CP7 Symbol: a "a"
+  Factoring #0.1
+    CP2 Rule 2: b -> a a
+      CP10 Symbol: a "a"
+      CP9 Symbol: a "a"
+    CP5 Rule 3: b -> a
+      CP11 Symbol: a "a"
 END_OF_ASF
     'ASF OK',
     '"b b" grammar'
+];
+
+# clear test data
+@tests_data = ();
+
+my $seq_grammar = Marpa::R2::Scanless::G->new(
+    {   source =>
+\(<<'END_OF_SOURCE'),
+:start ::= sequence
+sequence ::= item+
+item ::= pair | singleton
+singleton ::= 'a'
+pair ::= item item
+END_OF_SOURCE
+    }
+);
+
+push @tests_data, [
+    $seq_grammar, 'aa',
+    <<'END_OF_ASF',
+CP0 Rule 1: sequence -> item+
+  Factoring #0.0
+    CP3 Rule 2: item -> pair
+      CP5 Rule 5: pair -> item item
+        CP2 Rule 3: item -> singleton
+          CP6 Rule 4: singleton -> [Lex-0]
+            CP7 Symbol: [Lex-0] "a"
+        CP4 Rule 3: item -> singleton
+          CP8 Rule 4: singleton -> [Lex-0]
+            CP9 Symbol: [Lex-0] "a"
+  Factoring #0.1
+    CP2 already displayed
+    CP4 already displayed
+END_OF_ASF
+    'ASF OK',
+    'Sequence grammar'
 ];
 
 TEST:
@@ -85,7 +132,7 @@ for my $test_data (@tests_data) {
 
     my ( $actual_value, $actual_result ) =
         my_parser( $grammar, $test_string );
-    Test::More::is(
+    Marpa::R2::Test::is(
         Data::Dumper::Dumper( \$actual_value ),
         Data::Dumper::Dumper( \$expected_value ),
         qq{Value of $test_name}

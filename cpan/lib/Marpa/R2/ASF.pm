@@ -680,8 +680,8 @@ sub Marpa::R2::Choicepoint::first_factoring {
     say STDERR '%symch_to_prior_symchset = ', Data::Dumper::Dumper( \%symch_to_prior_symchset);
 
     my %symchset_to_powerset = ();
-    my %symchset_ids_to_do = map { $_->id() => 1 } ($final_symchset, values %symch_to_prior_symchset );
-    SYMCHSET: for my $symchset_id ( sort keys %symchset_ids_to_do ) {
+    my @symchset_ids_to_do = sort map { $_->id() => 1 } ($final_symchset, values %symch_to_prior_symchset );
+    SYMCHSET: for my $symchset_id ( @symchset_ids_to_do ) {
         my @sorted_symch_ids =
             map  { $_->[-1] }
             sort { $a->[0] <=> $b->[0] }
@@ -857,7 +857,7 @@ sub Marpa::R2::Choicepoint::show_symches {
     if ($choicepoint_seen{$id}) {
         $parent_choice = '"Top"' if not defined $parent_choice;
         say STDERR join q{ }, __FILE__, __LINE__, "SEEN:", $choicepoint->show();
-        return ["Choicepoint $parent_choice already displayed"];
+        return ["CP$id already displayed"];
     }
     $choicepoint_seen{$id} = 1;
     $parent_choice .= q{.} if defined $parent_choice;
@@ -875,12 +875,12 @@ sub Marpa::R2::Choicepoint::show_symches {
         $choicepoint->symch_set($symch_ix);
         say STDERR join q{ }, __FILE__, __LINE__, '$symch_ix =', $symch_ix;
         my $current_choice = "$parent_choice$symch_ix";
-        push @lines, "Symch #$current_choice: " if $symch_count > 1;
+        push @lines, "CP$id Symch #$current_choice: " if $symch_count > 1;
         my $rule_id = $choicepoint->rule_id();
         say STDERR join q{ }, __FILE__, __LINE__, '$rule_id =', ($rule_id // 'undef');
         if ( defined $rule_id ) {
             push @lines,
-            ( 'Rule ' . $grammar->brief_rule($rule_id) ),
+            ( "CP$id Rule " . $grammar->brief_rule($rule_id) ),
                 map { q{  } . $_ }
                 @{ $choicepoint->show_factorings( $current_choice ) };
         }
@@ -888,7 +888,7 @@ sub Marpa::R2::Choicepoint::show_symches {
             my $symbol_id = $choicepoint->symbol_id();
             my $literal = $choicepoint->literal();
             my $symbol_name = $grammar->symbol_name($symbol_id);
-            push @lines, qq{Symbol: $symbol_name "$literal"};
+            push @lines, qq{CP$id Symbol: $symbol_name "$literal"};
         }
     } ## end for ( my $symch_ix = 0; $symch_ix < $symch_count; $symch_ix...)
     return \@lines;
