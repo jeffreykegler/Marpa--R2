@@ -435,29 +435,29 @@ Marpa::R2::Test::is( $recce->show_or_nodes(), $or_node_output,
     'XS Or nodes' );
 
 my $and_node_output = <<'END_OF_TEXT';
-R2:1@0-0S3@0
-R0:1@0-1C9@0
-R3:1@0-1C9@0
-R9:1@0-1S4@0
-R0:2@0-3C5@1
-R0:2@0-3C3@1
-R2:2@0-3C3@0
-R3:2@0-3C6@1
-R10:1@0-3C2@0
-R10:1@0-3C0@0
-R5:1@1-1S3@1
-R3:1@1-2C9@1
-R6:1@1-2C9@1
-R9:1@1-2S4@1
-R3:2@1-3C8@2
-R3:2@1-3C7@2
-R5:2@1-3C6@1
-R6:2@1-3C9@2
-R8:1@2-2S3@2
-R7:1@2-3C9@2
-R7:2@2-3S3@3
-R8:2@2-3C9@2
-R9:1@2-3S4@2
+And-node #0: R2:1@0-0S3@0
+And-node #2: R0:1@0-1C9@0
+And-node #3: R3:1@0-1C9@0
+And-node #1: R9:1@0-1S4@0
+And-node #19: R0:2@0-3C5@1
+And-node #20: R0:2@0-3C3@1
+And-node #16: R2:2@0-3C3@0
+And-node #15: R3:2@0-3C6@1
+And-node #17: R10:1@0-3C2@0
+And-node #18: R10:1@0-3C0@0
+And-node #4: R5:1@1-1S3@1
+And-node #6: R3:1@1-2C9@1
+And-node #7: R6:1@1-2C9@1
+And-node #5: R9:1@1-2S4@1
+And-node #21: R3:2@1-3C8@2
+And-node #22: R3:2@1-3C7@2
+And-node #14: R5:2@1-3C6@1
+And-node #13: R6:2@1-3C9@2
+And-node #8: R8:1@2-2S3@2
+And-node #10: R7:1@2-3C9@2
+And-node #11: R7:2@2-3S3@3
+And-node #12: R8:2@2-3C9@2
+And-node #9: R9:1@2-3S4@2
 END_OF_TEXT
 
 Marpa::R2::Test::is( $recce->show_and_nodes(),

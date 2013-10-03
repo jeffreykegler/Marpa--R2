@@ -58,15 +58,17 @@ my $bb_grammar = Marpa::R2::Scanless::G->new(
 \(<<'END_OF_SOURCE'),
 :start ::= quartet
 quartet ::= b b
-b ::= a a a
+b ::= a a
 b ::= a
 a ~ 'a'
 END_OF_SOURCE
     }
 );
 
+#clear tests data -- do only last test
+@tests_data = ();
 push @tests_data, [
-    $bb_grammar, 'aaaa',
+    $bb_grammar, 'aaa',
     <<'END_OF_ASF',
 END_OF_ASF
     'ASF OK',
@@ -112,6 +114,7 @@ sub my_parser {
 
     say STDERR "Or-nodes:\n",  $slr->thick_g1_recce()->verbose_or_nodes();
     say STDERR "And-nodes:\n", $slr->thick_g1_recce()->show_and_nodes();
+    say STDERR "Bocage:\n", $slr->thick_g1_recce()->show_bocage();
     my $asf_desc = $asf->show();
     say STDERR $asf->show_symchsets();
     say STDERR $asf->show_powersets();

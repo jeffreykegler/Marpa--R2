@@ -21,7 +21,7 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 2;
+use Test::More tests => 4;
 use English qw( -no_match_vars );
 use lib 'inc';
 use Marpa::R2::Test;
@@ -53,14 +53,50 @@ END_OF_ASF
     'Basic "a a a a" grammar'
 ];
 
+my $bb_grammar = Marpa::R2::Scanless::G->new(
+    {   source =>
+\(<<'END_OF_SOURCE'),
+:start ::= quartet
+quartet ::= b b
+b ::= a a
+b ::= a
+a ~ 'a'
+END_OF_SOURCE
+    }
+);
+
+push @tests_data, [
+    $bb_grammar, 'aaa',
+    <<'END_OF_ASF',
+Rule 1: quartet -> b b
+  Factoring #0.0
+    Rule 2: b -> a a
+      Symbol: a "a"
+      Symbol: a "a"
+    Rule 3: b -> a
+      Symbol: a "a"
+  Factoring #0.1
+    Rule 3: b -> a
+      Symbol: a "a"
+    Rule 2: b -> a a
+      Symbol: a "a"
+      Symbol: a "a"
+END_OF_ASF
+    'ASF OK',
+    '"b b" grammar'
+];
+
 TEST:
 for my $test_data (@tests_data) {
     my ( $grammar, $test_string, $expected_value, $expected_result,
         $test_name )
         = @{$test_data};
+
+    say STDERR "=== Test: $test_name";
+
     my ( $actual_value, $actual_result ) =
         my_parser( $grammar, $test_string );
-    Test::More::is(
+    Marpa::R2::Test::is(
         Data::Dumper::Dumper( \$actual_value ),
         Data::Dumper::Dumper( \$expected_value ),
         qq{Value of $test_name}
@@ -89,6 +125,7 @@ sub my_parser {
 
     say STDERR "Or-nodes:\n",  $slr->thick_g1_recce()->verbose_or_nodes();
     say STDERR "And-nodes:\n", $slr->thick_g1_recce()->show_and_nodes();
+    say STDERR "Bocage:\n", $slr->thick_g1_recce()->show_bocage();
     my $asf_desc = $asf->show();
     say STDERR $asf->show_symchsets();
     say STDERR $asf->show_powersets();

@@ -521,27 +521,27 @@ END_OF_EARLEY_SETS
 
 Marpa::R2::Test::is( $recog->show_and_nodes(),
     <<'END_OF_AND_NODES', 'And Nodes' );
-R4:1@0-1S2@0
-R0:1@0-8C2@0
-R2:1@0-8C4@0
-R4:2@0-8C5@1
-R23:1@0-8C0@0
-R5:1@1-2S5@1
-R5:2@1-3S11@2
-R5:3@1-4S0@3
-R5:4@1-8C8@4
-R8:1@4-5S7@4
-R8:2@4-6C16@5
-R8:3@4-6S20@6
-R8:4@4-8C12@6
-R16:1@5-6S13@5
-R12:1@6-6S22@6
-R19:1@6-7S9@6
-R12:2@6-8C14@6
-R14:1@6-8C19@6
-R14:2@6-8S26@8
-R19:2@6-8C20@7
-R20:1@7-8S8@7
+And-node #0: R4:1@0-1S2@0
+And-node #19: R0:1@0-8C2@0
+And-node #18: R2:1@0-8C4@0
+And-node #17: R4:2@0-8C5@1
+And-node #20: R23:1@0-8C0@0
+And-node #1: R5:1@1-2S5@1
+And-node #2: R5:2@1-3S11@2
+And-node #3: R5:3@1-4S0@3
+And-node #16: R5:4@1-8C8@4
+And-node #4: R8:1@4-5S7@4
+And-node #6: R8:2@4-6C16@5
+And-node #7: R8:3@4-6S20@6
+And-node #15: R8:4@4-8C12@6
+And-node #5: R16:1@5-6S13@5
+And-node #8: R12:1@6-6S22@6
+And-node #9: R19:1@6-7S9@6
+And-node #14: R12:2@6-8C14@6
+And-node #12: R14:1@6-8C19@6
+And-node #13: R14:2@6-8S26@8
+And-node #11: R19:2@6-8C20@7
+And-node #10: R20:1@7-8S8@7
 END_OF_AND_NODES
 
 Marpa::R2::Test::is( $recog->show_or_nodes(),

@@ -469,6 +469,7 @@ sub Marpa::R2::Choicepoint::symbol_id {
 sub Marpa::R2::Choicepoint::first_factoring {
     my ( $choicepoint ) = @_;
     my $asf = $choicepoint->[Marpa::R2::Internal::Choicepoint::ASF];
+    say STDERR join q{ }, __FILE__, __LINE__, "first_factoring()", $choicepoint->show();
     my $symch = $choicepoint->symch();
 
     my $symchset_by_id = $asf->[Marpa::R2::Internal::Scanless::ASF::SYMCHSET_BY_ID];
@@ -491,24 +492,27 @@ sub Marpa::R2::Choicepoint::first_factoring {
     my @finals;
     my @stack = ( $symch );
     my %or_node_seen = ( $symch => 1 );
-    my %and_node_seen = ();
     STACK_ELEMENT: while ( defined( my $or_node = pop @stack ) ) {
+        say STDERR "Popped or-node $or_node";
+        say STDERR "Count of and-nodes for or-node $or_node: ", $ordering->_marpa_o_or_node_and_node_count($or_node);
+        say STDERR "And-nodes for or-node $or_node: ", join " ", $ordering->_marpa_o_or_node_and_node_ids($or_node);
 
-        for my $and_node_id (
+        AND_NODE: for my $and_node_id (
             $ordering->_marpa_o_or_node_and_node_ids($or_node) )
         {
-	    next STACK_ELEMENT if $and_node_seen{$and_node_id};
-	    $and_node_seen{$and_node_id} = 1;
+            say STDERR "Looking for finals in and-node $and_node_id";
             my $cause_id = $bocage->_marpa_b_and_node_cause($and_node_id);
             if ( not defined $cause_id ) {
                 push @finals, and_node_to_token_symch($and_node_id);
-		next STACK_ELEMENT;
+                say STDERR "Adding ", and_node_to_token_symch($and_node_id), " to final symches";
+		next AND_NODE;
             }
 	    next STACK_ELEMENT if $or_node_seen{$cause_id};
 	    $or_node_seen{$cause_id} = 1;
             if ( $bocage->_marpa_b_or_node_is_semantic($cause_id) ) {
                 push @finals, $cause_id;
-		next STACK_ELEMENT;
+                say STDERR "Adding $cause_id to final symches";
+		next AND_NODE;
             }
 	    push @stack, $cause_id;
         } ## end for my $and_node_id ( $ordering...)
@@ -520,11 +524,10 @@ sub Marpa::R2::Choicepoint::first_factoring {
     # completed in the current checkpoint
     @stack     = ($symch);
     my @internal_completions = ();
-    $or_node_seen{$symch} = 1;
+    %or_node_seen = ($symch => 1);
     STACK_ELEMENT: while ( defined( my $or_node = pop @stack ) ) {
 
-        # memoization of or-nodes on stack ?
-        for my $and_node_id (
+        AND_NODE: for my $and_node_id (
             $ordering->_marpa_o_or_node_and_node_ids($or_node) )
         {
             my $predecessor_id =
@@ -534,20 +537,23 @@ sub Marpa::R2::Choicepoint::first_factoring {
                 $cause_id = and_node_to_token_symch($and_node_id);
             }
             if ( defined $predecessor_id ) {
+                say STDERR "predecessor of $cause_id is $predecessor_id";
                 $predecessors{$cause_id}{$predecessor_id} = 1;
                 if ( not $or_node_seen{$predecessor_id} ) {
                     push @stack, $predecessor_id;
                     $or_node_seen{$predecessor_id} = 1;
                 }
             }
-            next STACK_ELEMENT if $cause_id < 0;
-            next STACK_ELEMENT if $bocage->_marpa_b_or_node_is_semantic($cause_id);
-            next STACK_ELEMENT if $or_node_seen{$cause_id};
+            next AND_NODE if $cause_id < 0;
+            next AND_NODE if $bocage->_marpa_b_or_node_is_semantic($cause_id);
+            next AND_NODE if $or_node_seen{$cause_id};
             $or_node_seen{$cause_id} = 1;
             push @stack,     $cause_id;
             push @internal_completions, $cause_id;
         } ## end for my $and_node_id ( $ordering...)
     } ## end STACK_ELEMENT: while ( defined( my $or_node = pop @stack ) )
+
+    say STDERR '%predecessors = ', Data::Dumper::Dumper( \%predecessors);
 
     # Find the predecessors which cross internal rule boundaries,
     # but that connect cause and predecessor for an external rule.
@@ -606,13 +612,13 @@ sub Marpa::R2::Choicepoint::first_factoring {
 
     # Find the semantics causes for each predecessor
     my %semantic_cause = ();
-    %and_node_seen = ();
+    my %and_node_seen = ();
 
     # This re-initializes a stack to a list of or-nodes whose cause's should be examined,
     # recursively, until a semantic or-node or a terminal is found.
     my %predecessors_to_do = ();
     $predecessors_to_do{$_} = 1 for map { ; keys %{$_} } values %predecessors;
-    for my $predecessor_id ( keys %predecessors_to_do ) {
+    for my $predecessor_id ( sort keys %predecessors_to_do ) {
 
         # Not the most efficient Perl implementation -- intended for conversion to C
         # Outer seen, for predecessors, can be bit vector
@@ -665,7 +671,7 @@ sub Marpa::R2::Choicepoint::first_factoring {
     } ## end for my $cause_id ( keys %predecessors )
 
     my %symch_to_prior_symchset = ();
-    for my $successor_cause_id ( keys %prior_cause ) {
+    for my $successor_cause_id ( sort keys %prior_cause ) {
         my @predecessors = keys %{ $prior_cause{$successor_cause_id} };
         my $prior_symchset = Marpa::R2::Symchset->obtain( $asf, @predecessors );
         $symch_to_prior_symchset{$successor_cause_id} = $prior_symchset;
@@ -674,20 +680,19 @@ sub Marpa::R2::Choicepoint::first_factoring {
     say STDERR '%symch_to_prior_symchset = ', Data::Dumper::Dumper( \%symch_to_prior_symchset);
 
     my %symchset_to_powerset = ();
-    SYMCHSET: for my $symchset ( $final_symchset, values %symch_to_prior_symchset ) {
-        my $symchset_id = $symchset->id();
-        next SYMCHSET if defined $symchset_to_powerset{$symchset_id};
+    my %symchset_ids_to_do = map { $_->id() => 1 } ($final_symchset, values %symch_to_prior_symchset );
+    SYMCHSET: for my $symchset_id ( sort keys %symchset_ids_to_do ) {
         my @sorted_symch_ids =
-            map { $_->[-1] }
+            map  { $_->[-1] }
             sort { $a->[0] <=> $b->[0] }
-            map { ; [ ( $symch_to_prior_symchset{$_} // -1 ), $_ ] }
-            @{ $symchset->symch_ids() };
-        my $symch_ix                   = 0;
-        my $this_symch                 = $sorted_symch_ids[ $symch_ix++ ];
-        my $prior_of_this_symch        = $symch_to_prior_symchset{$this_symch} // -1;
+            map  { ; [ ( $symch_to_prior_symchset{$_} // -1 ), $_ ] }
+            @{ $symchset_by_id->[$symchset_id]->symch_ids() };
+        my $symch_ix            = 0;
+        my $this_symch          = $sorted_symch_ids[ $symch_ix++ ];
+        my $prior_of_this_symch = $symch_to_prior_symchset{$this_symch} // -1;
         my @symch_ids_with_current_prior = ();
-        my $current_prior              = $prior_of_this_symch;
-        my @choicepoints = ();
+        my $current_prior                = $prior_of_this_symch;
+        my @choicepoints                 = ();
         SYMCH: while (1) {
 
             CHECK_FOR_BREAK: {
@@ -704,18 +709,19 @@ sub Marpa::R2::Choicepoint::first_factoring {
                 push @choicepoints, $choicepoint->id();
                 last SYMCH if not defined $this_symch;
                 @symch_ids_with_current_prior = ($this_symch);
-                $current_prior              = $prior_of_this_symch;
+                $current_prior                = $prior_of_this_symch;
             } ## end CHECK_FOR_BREAK:
             $this_symch = $sorted_symch_ids[ $symch_ix++ ];
             next SYMCH if not defined $this_symch;
-            $prior_of_this_symch = $symch_to_prior_symchset{$this_symch} // -1;
+            $prior_of_this_symch = $symch_to_prior_symchset{$this_symch}
+                // -1;
         } ## end SYMCH: while (1)
         my $powerset = Marpa::R2::Powerset->obtain( $asf, @choicepoints );
         $symchset_to_powerset{$symchset_id} = $powerset;
-    } ## end SYMCHSET: for my $symchset ( $final_symchset, values ...)
+    } ## end SYMCHSET: for my $symchset_id ( sort keys %symchset_ids_to_do )
 
     my %symch_set_to_prior_powerset = ();
-    for my $powerset ( values %symchset_to_powerset ) {
+    for my $powerset ( sort values %symchset_to_powerset ) {
         CHOICEPOINT: for my $symchset_id ( @{$powerset->symchset_ids()} ) {
             next CHOICEPOINT if $symch_set_to_prior_powerset{$symchset_id};
             my $symchset = $symchset_by_id->[$symchset_id];
@@ -771,6 +777,7 @@ sub finish_stack {
 
 sub Marpa::R2::Choicepoint::next_factoring {
     my ($choicepoint) = @_;
+    say STDERR join q{ }, __FILE__, __LINE__, "next_factoring()", $choicepoint->show();
     my $factoring_stack =
         $choicepoint->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK];
     Marpa::R2::exception("ASF choicepoint is not initialized for factoring")

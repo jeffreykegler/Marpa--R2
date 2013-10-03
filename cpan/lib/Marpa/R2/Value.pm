@@ -1667,7 +1667,6 @@ sub do_rank_by_rule {
 
 sub Marpa::R2::Recognizer::show_bocage {
     my ($recce) = @_;
-    my $text;
     my @data      = ();
     my $id        = 0;
     my $recce_c   = $recce->[Marpa::R2::Internal::Recognizer::C];
@@ -1807,7 +1806,7 @@ sub Marpa::R2::Recognizer::show_and_nodes {
 
 #<<<  perltidy introduces trailing space on this
         my $desc =
-              'R'
+              "And-node #$id: R"
             . $irl_id . q{:}
             . $position . q{@}
             . $origin_earleme . q{-}
