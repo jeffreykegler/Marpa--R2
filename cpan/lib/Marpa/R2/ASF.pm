@@ -391,6 +391,22 @@ sub Marpa::R2::Choicepoint::rule_id {
     return $xrl_id;
 } ## end sub Marpa::R2::Choicepoint::rule_id
 
+# The "whole id" is the external rule ID, if there is one,
+# otherwise -1.  In particular, it is -1 is the symch is for
+# token
+sub symch_to_whole_id {
+    my ($asf, $symch) = @_;
+    my $slr       = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
+    my $recce     = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+    my $bocage     = $recce->[Marpa::R2::Internal::Recognizer::B_C];
+    my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
+    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
+    return -1 if $symch < 0;
+    my $irl_id = $bocage->_marpa_b_or_node_irl($symch);
+    my $xrl_id = $grammar_c->_marpa_g_source_xrl($irl_id);
+    return $xrl_id;
+}
+
 sub or_node_es_span {
     my ( $asf, $choicepoint ) = @_;
     my $slr   = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
@@ -682,7 +698,7 @@ sub Marpa::R2::Choicepoint::first_factoring {
 
     my %symchset_to_powerset = ();
     my @symchset_ids_to_do = sort map { $_->id() => 1 } ($final_symchset, values %symch_to_prior_symchset );
-    SYMCHSET: for my $symchset_id ( @symchset_ids_to_do ) {
+    SYMCHSET: for my $symchset_id (@symchset_ids_to_do) {
         my @sorted_symch_ids =
             map  { $_->[-1] }
             sort { $a->[0] <=> $b->[0] }
@@ -691,35 +707,40 @@ sub Marpa::R2::Choicepoint::first_factoring {
         my $symch_ix            = 0;
         my $this_symch          = $sorted_symch_ids[ $symch_ix++ ];
         my $prior_of_this_symch = $symch_to_prior_symchset{$this_symch} // -1;
-        my @symch_ids_with_current_prior = ();
-        my $current_prior                = $prior_of_this_symch;
-        my @choicepoints                 = ();
+        my $whole_id_of_this_symch = symch_to_whole_id( $asf, $this_symch );
+        my @symch_ids_with_current_data = ();
+        my $current_prior               = $prior_of_this_symch;
+        my $current_whole_id            = $whole_id_of_this_symch;
+        my @choicepoints                = ();
         SYMCH: while (1) {
 
             CHECK_FOR_BREAK: {
-                if ( defined $this_symch
-                    and $prior_of_this_symch == $current_prior )
+                if (    defined $this_symch
+                    and $prior_of_this_symch == $current_prior
+                    and $whole_id_of_this_symch == $current_whole_id )
                 {
-                    push @symch_ids_with_current_prior, $this_symch;
+                    push @symch_ids_with_current_data, $this_symch;
                     last CHECK_FOR_BREAK;
                 } ## end if ( defined $this_symch and $prior_of_this_symch ==...)
 
                 # perform break on prior
                 my $choicepoint = Marpa::R2::Symchset->obtain( $asf,
-                    @symch_ids_with_current_prior );
+                    @symch_ids_with_current_data );
                 push @choicepoints, $choicepoint->id();
                 last SYMCH if not defined $this_symch;
-                @symch_ids_with_current_prior = ($this_symch);
-                $current_prior                = $prior_of_this_symch;
+                @symch_ids_with_current_data = ($this_symch);
+                $current_prior               = $prior_of_this_symch;
+                $current_whole_id            = $whole_id_of_this_symch;
             } ## end CHECK_FOR_BREAK:
             $this_symch = $sorted_symch_ids[ $symch_ix++ ];
             next SYMCH if not defined $this_symch;
             $prior_of_this_symch = $symch_to_prior_symchset{$this_symch}
                 // -1;
+            $whole_id_of_this_symch = symch_to_whole_id( $asf, $this_symch );
         } ## end SYMCH: while (1)
         my $powerset = Marpa::R2::Powerset->obtain( $asf, @choicepoints );
         $symchset_to_powerset{$symchset_id} = $powerset;
-    } ## end SYMCHSET: for my $symchset_id ( sort keys %symchset_ids_to_do )
+    } ## end SYMCHSET: for my $symchset_id (@symchset_ids_to_do)
 
     my %symch_set_to_prior_powerset = ();
     for my $powerset ( sort values %symchset_to_powerset ) {
