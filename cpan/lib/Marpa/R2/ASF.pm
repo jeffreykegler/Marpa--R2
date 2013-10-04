@@ -344,12 +344,15 @@ sub Marpa::R2::Scanless::ASF::new_choicepoint {
 
 sub Marpa::R2::Choicepoint::show {
     my ( $cp ) = @_;
-    my $id = $cp->id();
-    return join q{ }, "Choicepoint #$id:", 
+    my $id = $cp->base_id();
+    # Not yet based on powerset, but will be.
+    return join q{ }, "Choicepoint based on powerset #$id:", 
         @{$cp->[Marpa::R2::Internal::Choicepoint::SYMCHSET]->symch_ids()};
 }
 
-sub Marpa::R2::Choicepoint::id {
+# ID of the set on which the choicepoint is based.  Two or more choicepoints
+# may share the same base ID.
+sub Marpa::R2::Choicepoint::base_id {
     my ( $cp ) = @_;
     return $cp->[Marpa::R2::Internal::Choicepoint::SYMCHSET]->id();
 }
@@ -724,9 +727,9 @@ sub Marpa::R2::Choicepoint::first_factoring {
                 } ## end if ( defined $this_symch and $prior_of_this_symch ==...)
 
                 # perform break on prior
-                my $choicepoint = Marpa::R2::Symchset->obtain( $asf,
+                my $symchset = Marpa::R2::Symchset->obtain( $asf,
                     @symch_ids_with_current_data );
-                push @choicepoints, $choicepoint->id();
+                push @choicepoints, $symchset->id();
                 last SYMCH if not defined $this_symch;
                 @symch_ids_with_current_data = ($this_symch);
                 $current_prior               = $prior_of_this_symch;
@@ -873,7 +876,7 @@ sub Marpa::R2::Scanless::ASF::show_powersets {
 
 sub Marpa::R2::Choicepoint::show_symches {
     my ( $choicepoint, $parent_choice ) = @_;
-    my $id = $choicepoint->id();
+    my $id = $choicepoint->base_id();
     say STDERR join q{ }, __FILE__, __LINE__, "show_symches(choicepoint=#$id)";
     say STDERR join q{ }, __FILE__, __LINE__, $choicepoint->show();
     if ($choicepoint_seen{$id}) {
