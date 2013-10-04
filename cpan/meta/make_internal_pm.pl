@@ -280,24 +280,6 @@ __DATA__
     SYMCH_IX
     FACTORING
 
-    :package=Marpa::R2::Internal::Scanless::ASF2
-
-    { Delete, once development is finished. }
-
-    SLR { The underlying SLR }
-    CHOICE_BLESSING
-    RULE_BLESSING
-    SYMBOL_BLESSING
-    CHOICEPOINT_IS_FACTORED
-
-    { FAC_ indicates fields which would belong to separate factoring
-     object, if there was one }
-    FAC_CHAF_PREDECESSOR_BY_CAUSE
-    FAC_CHAF_CAUSE_IS_ACTIVE
-
-    CHOICEPOINTS_BY_TOKEN_ID
-    CHOICEPOINTS_BY_OR_NODE_ID
-
     :package=Marpa::R2::Inner::Scanless::G
 
     C { The thin version of this object }

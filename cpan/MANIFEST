@@ -95,7 +95,6 @@ lib/Marpa/.gitignore
 lib/Marpa/R2.pm
 lib/Marpa/R2/.gitignore
 lib/Marpa/R2/ASF.pm
-lib/Marpa/R2/ASF2.pm
 lib/Marpa/R2/Grammar.pm
 lib/Marpa/R2/Internal.pm
 lib/Marpa/R2/MetaAST.pm
@@ -296,7 +295,6 @@ t/sequence2.t
 t/sl_action.t
 t/sl_action2.t
 t/sl_ah2.t
-t/sl_asf.t
 t/sl_ast.t
 t/sl_astsyn.t
 t/sl_calc.t

@@ -70,24 +70,21 @@ push @tests_data, [
     <<'END_OF_ASF',
 CP0 Rule 1: top -> b b
   Factoring #0.0
-    CP3 Rule 3: b -> a
-      CP6 Symbol: a "a"
-    CP4 Rule 2: b -> a a
-      CP8 Symbol: a "a"
-      CP7 Symbol: a "a"
-  Factoring #0.1
     CP2 Rule 2: b -> a a
-      CP10 Symbol: a "a"
+      CP7 Symbol: a "a"
+      CP6 Symbol: a "a"
+    CP4 Rule 3: b -> a
+      CP8 Symbol: a "a"
+  Factoring #0.1
+    CP3 Rule 3: b -> a
       CP9 Symbol: a "a"
-    CP5 Rule 3: b -> a
+    CP5 Rule 2: b -> a a
       CP11 Symbol: a "a"
+      CP10 Symbol: a "a"
 END_OF_ASF
     'ASF OK',
     '"b b" grammar'
 ];
-
-# clear test data
-@tests_data = ();
 
 my $seq_grammar = Marpa::R2::Scanless::G->new(
     {   source =>
@@ -117,6 +114,28 @@ CP0 Rule 1: sequence -> item+
   Factoring #0.1
     CP2 already displayed
     CP4 already displayed
+END_OF_ASF
+    'ASF OK',
+    'Sequence grammar'
+];
+
+# CLEAR FOR DEBUG
+@tests_data = ();
+
+my $null1_grammar = Marpa::R2::Scanless::G->new(
+    {   source =>
+\(<<'END_OF_SOURCE'),
+:start ::= top
+top ::= a a a a
+a ::= 'a'
+a ::=
+END_OF_SOURCE
+    }
+);
+
+push @tests_data, [
+    $null1_grammar, 'aaa',
+    <<'END_OF_ASF',
 END_OF_ASF
     'ASF OK',
     'Sequence grammar'

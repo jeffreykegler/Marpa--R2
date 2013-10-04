@@ -155,17 +155,6 @@ use constant CHOICEPOINT => 1;
 use constant SYMCH_IX => 2;
 use constant FACTORING => 3;
 
-package Marpa::R2::Internal::Scanless::ASF2;
-use constant SLR => 0;
-use constant CHOICE_BLESSING => 1;
-use constant RULE_BLESSING => 2;
-use constant SYMBOL_BLESSING => 3;
-use constant CHOICEPOINT_IS_FACTORED => 4;
-use constant FAC_CHAF_PREDECESSOR_BY_CAUSE => 5;
-use constant FAC_CHAF_CAUSE_IS_ACTIVE => 6;
-use constant CHOICEPOINTS_BY_TOKEN_ID => 7;
-use constant CHOICEPOINTS_BY_OR_NODE_ID => 8;
-
 package Marpa::R2::Inner::Scanless::G;
 use constant C => 0;
 use constant THICK_LEX_GRAMMAR => 1;

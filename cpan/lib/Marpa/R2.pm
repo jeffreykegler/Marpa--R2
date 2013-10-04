@@ -113,10 +113,6 @@ require Marpa::R2::ASF;
 ( $version_result = version_ok($Marpa::R2::ASF::VERSION) )
     and die 'Marpa::R2::ASF::VERSION ', $version_result;
 
-require Marpa::R2::ASF2;
-( $version_result = version_ok($Marpa::R2::ASF2::VERSION) )
-    and die 'Marpa::R2::ASF2::VERSION ', $version_result;
-
 sub Marpa::R2::exception {
     my $exception = join q{}, @_;
     $exception =~ s/ \n* \z /\n/xms;
