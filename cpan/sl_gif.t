@@ -70,17 +70,17 @@ push @tests_data, [
     <<'END_OF_ASF',
 CP0 Rule 1: top -> b b
   Factoring #0.0
-    CP2 Rule 2: b -> a a
-      CP7 Symbol: a "a"
-      CP6 Symbol: a "a"
-    CP4 Rule 3: b -> a
-      CP8 Symbol: a "a"
-  Factoring #0.1
     CP3 Rule 3: b -> a
-      CP9 Symbol: a "a"
-    CP5 Rule 2: b -> a a
-      CP11 Symbol: a "a"
+      CP6 Symbol: a "a"
+    CP4 Rule 2: b -> a a
+      CP8 Symbol: a "a"
+      CP7 Symbol: a "a"
+  Factoring #0.1
+    CP2 Rule 2: b -> a a
       CP10 Symbol: a "a"
+      CP9 Symbol: a "a"
+    CP5 Rule 3: b -> a
+      CP11 Symbol: a "a"
 END_OF_ASF
     'ASF OK',
     '"b b" grammar'

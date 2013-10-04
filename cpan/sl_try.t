@@ -178,6 +178,7 @@ sub my_parser {
         return 'No ASF', 'Input read to end but no ASF';
     }
 
+    say STDERR "Rules:\n",  $slr->thick_g1_grammar()->show_rules();
     say STDERR "Or-nodes:\n",  $slr->thick_g1_recce()->verbose_or_nodes();
     say STDERR "And-nodes:\n", $slr->thick_g1_recce()->show_and_nodes();
     say STDERR "Bocage:\n", $slr->thick_g1_recce()->show_bocage();

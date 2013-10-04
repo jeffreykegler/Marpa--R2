@@ -107,6 +107,7 @@ sub Marpa::R2::Powerset::obtain {
     my ($class, $asf, @symchset_ids) = @_;
     my @sorted_symchset_ids = sort { $a <=> $b } @symchset_ids;
     my $key = join q{ }, @sorted_symchset_ids;
+    say STDERR "Obtaining powerset for key $key";
     my $powerset_by_key =
         $asf->[Marpa::R2::Internal::Scanless::ASF::POWERSET_BY_KEY];
     my $powerset = $powerset_by_key->{$key};
