@@ -260,9 +260,7 @@ __DATA__
 
     TOP
     NIDSET_BY_ID
-    POWERSET_BY_KEY
     POWERSET_BY_ID
-    NEXT_POWERSET_ID
 
     :package=Marpa::R2::Internal::Nidset
 

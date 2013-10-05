@@ -44,10 +44,10 @@ push @tests_data, [
     $aaaa_grammar, 'aaaa',
     <<'END_OF_ASF',
 CP0 Rule 1: quartet -> a a a a
-  CP2 Symbol: a "a"
   CP3 Symbol: a "a"
   CP4 Symbol: a "a"
-  CP1 Symbol: a "a"
+  CP5 Symbol: a "a"
+  CP2 Symbol: a "a"
 END_OF_ASF
     'ASF OK',
     'Basic "a a a a" grammar'
@@ -70,17 +70,17 @@ push @tests_data, [
     <<'END_OF_ASF',
 CP0 Rule 1: top -> b b
   Factoring #0.0
-    CP3 Rule 3: b -> a
-      CP6 Symbol: a "a"
-    CP4 Rule 2: b -> a a
-      CP8 Symbol: a "a"
-      CP7 Symbol: a "a"
-  Factoring #0.1
-    CP2 Rule 2: b -> a a
+    CP3 Rule 2: b -> a a
       CP10 Symbol: a "a"
       CP9 Symbol: a "a"
     CP5 Rule 3: b -> a
-      CP11 Symbol: a "a"
+      CP13 Symbol: a "a"
+  Factoring #0.1
+    CP4 Rule 3: b -> a
+      CP15 Symbol: a "a"
+    CP6 Rule 2: b -> a a
+      CP18 Symbol: a "a"
+      CP17 Symbol: a "a"
 END_OF_ASF
     'ASF OK',
     '"b b" grammar'
@@ -103,17 +103,17 @@ push @tests_data, [
     <<'END_OF_ASF',
 CP0 Rule 1: sequence -> item+
   Factoring #0.0
-    CP3 Rule 2: item -> pair
-      CP5 Rule 5: pair -> item item
-        CP2 Rule 3: item -> singleton
-          CP6 Rule 4: singleton -> [Lex-0]
-            CP7 Symbol: [Lex-0] "a"
-        CP4 Rule 3: item -> singleton
-          CP8 Rule 4: singleton -> [Lex-0]
-            CP9 Symbol: [Lex-0] "a"
+    CP4 Rule 2: item -> pair
+      CP8 Rule 5: pair -> item item
+        CP3 Rule 3: item -> singleton
+          CP1 Rule 4: singleton -> [Lex-0]
+            CP10 Symbol: [Lex-0] "a"
+        CP5 Rule 3: item -> singleton
+          CP9 Rule 4: singleton -> [Lex-0]
+            CP12 Symbol: [Lex-0] "a"
   Factoring #0.1
-    CP2 already displayed
-    CP4 already displayed
+    CP3 already displayed
+    CP5 already displayed
 END_OF_ASF
     'ASF OK',
     'Sequence grammar'

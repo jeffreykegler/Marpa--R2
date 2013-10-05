@@ -96,19 +96,14 @@ sub Marpa::R2::Nidset::show {
 
 sub Marpa::R2::Powerset::obtain {
     my ($class, $asf, @nidset_ids) = @_;
-    my @sorted_nidset_ids = sort { $a <=> $b } @nidset_ids;
-    my $key = join q{ }, @sorted_nidset_ids;
-    say STDERR "Obtaining powerset for key $key";
-    my $powerset_by_key =
-        $asf->[Marpa::R2::Internal::Scanless::ASF::POWERSET_BY_KEY];
-    my $powerset = $powerset_by_key->{$key};
+    my $id = intset_id($asf, @nidset_ids);
+    my $powerset_by_id = $asf->[Marpa::R2::Internal::Scanless::ASF::POWERSET_BY_ID];
+    my $powerset = $powerset_by_id->[$id];
     return $powerset if defined $powerset;
     $powerset = bless [], $class;
-    my $id = $asf->[Marpa::R2::Internal::Scanless::ASF::NEXT_POWERSET_ID]++;
     $powerset->[Marpa::R2::Internal::Powerset::ID] = $id;
-    $powerset->[Marpa::R2::Internal::Powerset::NIDSET_IDS] = \@sorted_nidset_ids;
-    $asf->[Marpa::R2::Internal::Scanless::ASF::POWERSET_BY_KEY]->{$key} = $powerset;
-    $asf->[Marpa::R2::Internal::Scanless::ASF::POWERSET_BY_ID]->[$id] = $powerset;
+    $powerset->[Marpa::R2::Internal::Powerset::NIDSET_IDS] = [ sort { $a <=> $b } @nidset_ids ];
+    $powerset_by_id->[$id] = $powerset;
     return $powerset;
 }
 
@@ -295,8 +290,6 @@ sub Marpa::R2::Scanless::ASF::new {
 
     $asf->[Marpa::R2::Internal::Scanless::ASF::NIDSET_BY_ID] = [];
     $asf->[Marpa::R2::Internal::Scanless::ASF::POWERSET_BY_ID] = [];
-    $asf->[Marpa::R2::Internal::Scanless::ASF::POWERSET_BY_KEY] = {};
-    $asf->[Marpa::R2::Internal::Scanless::ASF::NEXT_POWERSET_ID] = 0;
 
     my $slg       = $slr->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
     my $thin_slr  = $slr->[Marpa::R2::Inner::Scanless::R::C];
@@ -836,7 +829,7 @@ sub Marpa::R2::Scanless::ASF::show_nidsets {
     my ($asf) = @_;
     my $text = q{};
     my $nidsets = $asf->[Marpa::R2::Internal::Scanless::ASF::NIDSET_BY_ID];
-    for my $nidset (@{$nidsets}) {
+    for my $nidset (grep { defined } @{$nidsets}) {
         $text .= $nidset->show() . "\n";
     }
     return $text;
@@ -846,7 +839,7 @@ sub Marpa::R2::Scanless::ASF::show_powersets {
     my ($asf) = @_;
     my $text = q{};
     my $powersets = $asf->[Marpa::R2::Internal::Scanless::ASF::POWERSET_BY_ID];
-    for my $powerset (@{$powersets}) {
+    for my $powerset (grep { defined } @{$powersets}) {
         $text .= $powerset->show() . "\n";
     }
     return $text;
