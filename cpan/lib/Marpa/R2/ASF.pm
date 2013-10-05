@@ -338,7 +338,7 @@ sub Marpa::R2::Choicepoint::nid {
 sub Marpa::R2::Choicepoint::nid_set {
     my ( $cp, $ix ) = @_;
     my $max_nid_ix = $cp->nid_count() - 1;
-    Marpa::R2::exception("NID index must in range from 0 to $max_nid_ix")
+    Marpa::R2::exception("NID index must be in range from 0 to $max_nid_ix")
        if $ix < 0 or $ix > $max_nid_ix;
     $cp->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK] = undef;
     return $cp->[Marpa::R2::Internal::Choicepoint::NID_IX] = $ix;
@@ -451,6 +451,51 @@ sub Marpa::R2::Choicepoint::symbol_id {
 # per-ASF, and to avoid the overhead of clearing it, it will track, or each node, the
 # current CP indexing it.  It is assumed that the indexes need only remain valid within
 # the method call that constructs the CPI (choicepoint iterator).
+
+sub nidset_to_factorset {
+    my ( $asf, $nidset, $nid_to_prior_nidset ) = @_;
+    my $nidset_id = $nidset->id();
+    my @sorted_nids =
+        map  { $_->[-1] }
+        sort { $a->[0] <=> $b->[0] }
+        map  { ; [ ( $nid_to_prior_nidset->{$_} // -1 ), $_ ] }
+        @{ $nidset->nids() };
+    my $nid_ix                 = 0;
+    my $this_nid               = $sorted_nids[ $nid_ix++ ];
+    my $prior_of_this_nid      = $nid_to_prior_nidset->{$this_nid} // -1;
+    my $whole_id_of_this_nid   = nid_to_whole_id( $asf, $this_nid );
+    my @nids_with_current_data = ();
+    my $current_prior          = $prior_of_this_nid;
+    my $current_whole_id       = $whole_id_of_this_nid;
+    my @choicepoints           = ();
+    NID: while (1) {
+
+        CHECK_FOR_BREAK: {
+            if (    defined $this_nid
+                and $prior_of_this_nid == $current_prior
+                and $whole_id_of_this_nid == $current_whole_id )
+            {
+                push @nids_with_current_data, $this_nid;
+                last CHECK_FOR_BREAK;
+            } ## end if ( defined $this_nid and $prior_of_this_nid == ...)
+
+            # perform break on prior
+            my $nidset =
+                Marpa::R2::Nidset->obtain( $asf, @nids_with_current_data );
+            push @choicepoints, $nidset->id();
+            last NID if not defined $this_nid;
+            @nids_with_current_data = ($this_nid);
+            $current_prior          = $prior_of_this_nid;
+            $current_whole_id       = $whole_id_of_this_nid;
+        } ## end CHECK_FOR_BREAK:
+        $this_nid = $sorted_nids[ $nid_ix++ ];
+        next NID if not defined $this_nid;
+        $prior_of_this_nid = $nid_to_prior_nidset->{$this_nid} // -1;
+        $whole_id_of_this_nid = nid_to_whole_id( $asf, $this_nid );
+    } ## end NID: while (1)
+    my $powerset = Marpa::R2::Powerset->obtain( $asf, @choicepoints );
+    return $powerset;
+} ## end sub nidset_to_factorset
 
 sub Marpa::R2::Choicepoint::first_factoring {
     my ( $choicepoint ) = @_;
@@ -661,53 +706,10 @@ sub Marpa::R2::Choicepoint::first_factoring {
         $nid_to_prior_nidset{$successor_cause_id} = $prior_nidset;
     }
 
-    say STDERR '%nid_to_prior_nidset = ', Data::Dumper::Dumper( \%nid_to_prior_nidset);
-
     my %nidset_to_powerset = ();
     my @nidset_ids_to_do = sort map { $_->id() => 1 } ($final_nidset, values %nid_to_prior_nidset );
-    NIDSET: for my $nidset_id (@nidset_ids_to_do) {
-        my @sorted_nids =
-            map  { $_->[-1] }
-            sort { $a->[0] <=> $b->[0] }
-            map  { ; [ ( $nid_to_prior_nidset{$_} // -1 ), $_ ] }
-            @{ $nidset_by_id->[$nidset_id]->nids() };
-        my $nid_ix            = 0;
-        my $this_nid          = $sorted_nids[ $nid_ix++ ];
-        my $prior_of_this_nid = $nid_to_prior_nidset{$this_nid} // -1;
-        my $whole_id_of_this_nid = nid_to_whole_id( $asf, $this_nid );
-        my @nids_with_current_data = ();
-        my $current_prior               = $prior_of_this_nid;
-        my $current_whole_id            = $whole_id_of_this_nid;
-        my @choicepoints                = ();
-        NID: while (1) {
-
-            CHECK_FOR_BREAK: {
-                if (    defined $this_nid
-                    and $prior_of_this_nid == $current_prior
-                    and $whole_id_of_this_nid == $current_whole_id )
-                {
-                    push @nids_with_current_data, $this_nid;
-                    last CHECK_FOR_BREAK;
-                } ## end if ( defined $this_nid and $prior_of_this_nid ==...)
-
-                # perform break on prior
-                my $nidset = Marpa::R2::Nidset->obtain( $asf,
-                    @nids_with_current_data );
-                push @choicepoints, $nidset->id();
-                last NID if not defined $this_nid;
-                @nids_with_current_data = ($this_nid);
-                $current_prior               = $prior_of_this_nid;
-                $current_whole_id            = $whole_id_of_this_nid;
-            } ## end CHECK_FOR_BREAK:
-            $this_nid = $sorted_nids[ $nid_ix++ ];
-            next NID if not defined $this_nid;
-            $prior_of_this_nid = $nid_to_prior_nidset{$this_nid}
-                // -1;
-            $whole_id_of_this_nid = nid_to_whole_id( $asf, $this_nid );
-        } ## end NID: while (1)
-        my $powerset = Marpa::R2::Powerset->obtain( $asf, @choicepoints );
-        $nidset_to_powerset{$nidset_id} = $powerset;
-    } ## end NIDSET: for my $nidset_id (@nidset_ids_to_do)
+    $nidset_to_powerset{$_} = nidset_to_factorset($asf, $nidset_by_id->[$_], \%nid_to_prior_nidset)
+        for @nidset_ids_to_do;
 
     my %nid_set_to_prior_powerset = ();
     for my $powerset ( sort values %nidset_to_powerset ) {
