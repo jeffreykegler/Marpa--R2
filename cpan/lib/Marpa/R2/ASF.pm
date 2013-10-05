@@ -720,7 +720,8 @@ sub Marpa::R2::Choicepoint::first_factoring {
     }
 
     my %nidset_to_powerset = ();
-    my @nidset_ids_to_do = sort map { $_->id() => 1 } ($final_nidset, values %nid_to_prior_nidset );
+    my %nidset_ids_to_do = map { $_->id() => 1 } ($final_nidset, values %nid_to_prior_nidset );
+    my @nidset_ids_to_do = sort { $a <=> $b } keys %nidset_ids_to_do;
     $nidset_to_powerset{$_} = nidset_to_factorset($asf, $nidset_by_id->[$_], \%nid_to_prior_nidset)
         for @nidset_ids_to_do;
 
