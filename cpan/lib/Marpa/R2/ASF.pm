@@ -489,7 +489,7 @@ sub Marpa::R2::Choicepoint::first_factoring {
 
     my %predecessors = ();
 
-    # Find symch of "finals" -- symches which can be last in the external
+    # Find nid of "finals" -- nids which can be last in the external
     # rule.
     my @finals;
     my @stack = ( $symch );
@@ -506,14 +506,12 @@ sub Marpa::R2::Choicepoint::first_factoring {
             my $cause_id = $bocage->_marpa_b_and_node_cause($and_node_id);
             if ( not defined $cause_id ) {
                 push @finals, and_node_to_token_symch($and_node_id);
-                say STDERR "Adding ", and_node_to_token_symch($and_node_id), " to final symches";
 		next AND_NODE;
             }
 	    next STACK_ELEMENT if $or_node_seen{$cause_id};
 	    $or_node_seen{$cause_id} = 1;
             if ( $bocage->_marpa_b_or_node_is_semantic($cause_id) ) {
                 push @finals, $cause_id;
-                say STDERR "Adding $cause_id to final symches";
 		next AND_NODE;
             }
 	    push @stack, $cause_id;
@@ -854,10 +852,10 @@ sub Marpa::R2::Scanless::ASF::show_powersets {
     return $text;
 }
 
-sub Marpa::R2::Choicepoint::show_symches {
+sub Marpa::R2::Choicepoint::show_nids {
     my ( $choicepoint, $parent_choice ) = @_;
     my $id = $choicepoint->base_id();
-    say STDERR join q{ }, __FILE__, __LINE__, "show_symches(choicepoint=#$id)";
+    say STDERR join q{ }, __FILE__, __LINE__, "show_nids(choicepoint=#$id)";
     say STDERR join q{ }, __FILE__, __LINE__, $choicepoint->show();
     if ($choicepoint_seen{$id}) {
         $parent_choice = '"Top"' if not defined $parent_choice;
@@ -897,7 +895,7 @@ sub Marpa::R2::Choicepoint::show_symches {
         }
     } ## end for ( my $symch_ix = 0; $symch_ix < $symch_count; $symch_ix...)
     return \@lines;
-} ## end sub Marpa::R2::Choicepoint::show_symches
+} ## end sub Marpa::R2::Choicepoint::show_nids
 
 sub Marpa::R2::Choicepoint::show_factorings {
     my ( $choicepoint, $parent_choice ) = @_;
@@ -925,7 +923,7 @@ sub Marpa::R2::Choicepoint::show_factorings {
         }
         for my $choicepoint ( @{$factoring} ) {
             say STDERR join q{ }, __FILE__, __LINE__, $choicepoint->show();
-            push @lines, map { $indent . $_ } @{$choicepoint->show_symches( $current_choice )};
+            push @lines, map { $indent . $_ } @{$choicepoint->show_nids( $current_choice )};
         }
         $factoring = $choicepoint->next_factoring();
     } ## end FACTOR: for ( my $factor_ix = 0; defined $factoring; $factor_ix...)
@@ -936,7 +934,7 @@ sub Marpa::R2::Scanless::ASF::show {
     my ($asf) = @_;
     my $top = $asf->top();
     local %choicepoint_seen = ();
-    my $lines = $top->show_symches ();
+    my $lines = $top->show_nids ();
     return join "\n", @{$lines}, q{};
 }
 
