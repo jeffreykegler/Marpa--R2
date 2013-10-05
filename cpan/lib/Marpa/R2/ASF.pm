@@ -339,23 +339,23 @@ sub Marpa::R2::Choicepoint::base_id {
     return $cp->[Marpa::R2::Internal::Choicepoint::NIDSET]->id();
 }
 
-sub Marpa::R2::Choicepoint::symch_count {
+sub Marpa::R2::Choicepoint::nid_count {
     my ( $cp ) = @_;
     return $cp->[Marpa::R2::Internal::Choicepoint::NIDSET]->count();
 }
 
 sub Marpa::R2::Choicepoint::symch {
     my ( $cp, $ix ) = @_;
-    my $symch_ix = $ix // $cp->[Marpa::R2::Internal::Choicepoint::NID_IX];
-    say STDERR "symch_ix=$symch_ix ", $cp->show();
-    return $cp->[Marpa::R2::Internal::Choicepoint::NIDSET]->nids()->[$symch_ix];
+    my $nid_ix = $ix // $cp->[Marpa::R2::Internal::Choicepoint::NID_IX];
+    say STDERR "nid_ix=$nid_ix ", $cp->show();
+    return $cp->[Marpa::R2::Internal::Choicepoint::NIDSET]->nids()->[$nid_ix];
 }
 
 sub Marpa::R2::Choicepoint::nid_set {
     my ( $cp, $ix ) = @_;
-    my $max_symch_ix = $cp->symch_count() - 1;
-    Marpa::R2::exception("Symch index must in range from 0 to $max_symch_ix")
-       if $ix < 0 or $ix > $max_symch_ix;
+    my $max_nid_ix = $cp->nid_count() - 1;
+    Marpa::R2::exception("Symch index must in range from 0 to $max_nid_ix")
+       if $ix < 0 or $ix > $max_nid_ix;
     $cp->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK] = undef;
     return $cp->[Marpa::R2::Internal::Choicepoint::NID_IX] = $ix;
 }
@@ -379,7 +379,7 @@ sub Marpa::R2::Choicepoint::rule_id {
 # The "whole id" is the external rule ID, if there is one,
 # otherwise -1.  In particular, it is -1 is the symch is for
 # token
-sub symch_to_whole_id {
+sub nid_to_whole_id {
     my ($asf, $symch) = @_;
     my $slr       = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
     my $recce     = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
@@ -436,20 +436,20 @@ sub Marpa::R2::Choicepoint::literal {
 
 sub Marpa::R2::Choicepoint::symbol_id {
     my ($cp)      = @_;
-    my $symch_0   = $cp->symch(0);
+    my $nid_0   = $cp->symch(0);
     my $asf       = $cp->[Marpa::R2::Internal::Choicepoint::ASF];
     my $slr       = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
     my $recce     = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
     my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
     my $bocage    = $recce->[Marpa::R2::Internal::Recognizer::B_C];
-    if ( $symch_0 < 0 ) {
-        my $and_node_id  = nid_to_and_node($symch_0);
+    if ( $nid_0 < 0 ) {
+        my $and_node_id  = nid_to_and_node($nid_0);
         my $token_isy_id = $bocage->_marpa_b_and_node_symbol($and_node_id);
         my $token_id     = $grammar_c->_marpa_g_source_xsy($token_isy_id);
         return $token_id;
-    } ## end if ( $symch_0 < 0 )
-    my $irl_id = $bocage->_marpa_b_or_node_irl($symch_0);
+    } ## end if ( $nid_0 < 0 )
+    my $irl_id = $bocage->_marpa_b_or_node_irl($nid_0);
     my $xrl_id = $grammar_c->_marpa_g_source_xrl($irl_id);
     my $lhs_id = $grammar_c->rule_lhs($xrl_id);
 } ## end sub Marpa::R2::Choicepoint::symbol_id
@@ -670,27 +670,27 @@ sub Marpa::R2::Choicepoint::first_factoring {
         } ## end for my $predecessor_id ( keys %{ $predecessors...})
     } ## end for my $cause_id ( keys %predecessors )
 
-    my %symch_to_prior_nidset = ();
+    my %nid_to_prior_nidset = ();
     for my $successor_cause_id ( sort keys %prior_cause ) {
         my @predecessors = keys %{ $prior_cause{$successor_cause_id} };
         my $prior_nidset = Marpa::R2::Nidset->obtain( $asf, @predecessors );
-        $symch_to_prior_nidset{$successor_cause_id} = $prior_nidset;
+        $nid_to_prior_nidset{$successor_cause_id} = $prior_nidset;
     }
 
-    say STDERR '%symch_to_prior_nidset = ', Data::Dumper::Dumper( \%symch_to_prior_nidset);
+    say STDERR '%nid_to_prior_nidset = ', Data::Dumper::Dumper( \%nid_to_prior_nidset);
 
     my %nidset_to_powerset = ();
-    my @nidset_ids_to_do = sort map { $_->id() => 1 } ($final_nidset, values %symch_to_prior_nidset );
+    my @nidset_ids_to_do = sort map { $_->id() => 1 } ($final_nidset, values %nid_to_prior_nidset );
     NIDSET: for my $nidset_id (@nidset_ids_to_do) {
         my @sorted_nids =
             map  { $_->[-1] }
             sort { $a->[0] <=> $b->[0] }
-            map  { ; [ ( $symch_to_prior_nidset{$_} // -1 ), $_ ] }
+            map  { ; [ ( $nid_to_prior_nidset{$_} // -1 ), $_ ] }
             @{ $nidset_by_id->[$nidset_id]->nids() };
-        my $symch_ix            = 0;
-        my $this_symch          = $sorted_nids[ $symch_ix++ ];
-        my $prior_of_this_symch = $symch_to_prior_nidset{$this_symch} // -1;
-        my $whole_id_of_this_symch = symch_to_whole_id( $asf, $this_symch );
+        my $nid_ix            = 0;
+        my $this_symch          = $sorted_nids[ $nid_ix++ ];
+        my $prior_of_this_symch = $nid_to_prior_nidset{$this_symch} // -1;
+        my $whole_id_of_this_symch = nid_to_whole_id( $asf, $this_symch );
         my @nids_with_current_data = ();
         my $current_prior               = $prior_of_this_symch;
         my $current_whole_id            = $whole_id_of_this_symch;
@@ -715,11 +715,11 @@ sub Marpa::R2::Choicepoint::first_factoring {
                 $current_prior               = $prior_of_this_symch;
                 $current_whole_id            = $whole_id_of_this_symch;
             } ## end CHECK_FOR_BREAK:
-            $this_symch = $sorted_nids[ $symch_ix++ ];
+            $this_symch = $sorted_nids[ $nid_ix++ ];
             next SYMCH if not defined $this_symch;
-            $prior_of_this_symch = $symch_to_prior_nidset{$this_symch}
+            $prior_of_this_symch = $nid_to_prior_nidset{$this_symch}
                 // -1;
-            $whole_id_of_this_symch = symch_to_whole_id( $asf, $this_symch );
+            $whole_id_of_this_symch = nid_to_whole_id( $asf, $this_symch );
         } ## end SYMCH: while (1)
         my $powerset = Marpa::R2::Powerset->obtain( $asf, @choicepoints );
         $nidset_to_powerset{$nidset_id} = $powerset;
@@ -731,7 +731,7 @@ sub Marpa::R2::Choicepoint::first_factoring {
             next CHOICEPOINT if $nid_set_to_prior_powerset{$nidset_id};
             my $nidset = $nidset_by_id->[$nidset_id];
             my $nid          = $nidset->nids()->[0];
-            my $prior_nidset    = $symch_to_prior_nidset{$nid};
+            my $prior_nidset    = $nid_to_prior_nidset{$nid};
             next CHOICEPOINT if not defined $prior_nidset;
             my $prior_nidset_id = $prior_nidset->id();
             $nid_set_to_prior_powerset{$nidset_id} =
@@ -873,12 +873,12 @@ sub Marpa::R2::Choicepoint::show_nids {
     my $grammar     = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my @lines = ();
 
-    my $symch_count = $choicepoint->symch_count();
-    for ( my $symch_ix = 0; $symch_ix < $symch_count; $symch_ix++ ) {
-        $choicepoint->nid_set($symch_ix);
-        say STDERR join q{ }, __FILE__, __LINE__, '$symch_ix =', $symch_ix;
-        my $current_choice = "$parent_choice$symch_ix";
-        push @lines, "CP$id Symch #$current_choice: " if $symch_count > 1;
+    my $nid_count = $choicepoint->nid_count();
+    for ( my $nid_ix = 0; $nid_ix < $nid_count; $nid_ix++ ) {
+        $choicepoint->nid_set($nid_ix);
+        say STDERR join q{ }, __FILE__, __LINE__, '$nid_ix =', $nid_ix;
+        my $current_choice = "$parent_choice$nid_ix";
+        push @lines, "CP$id Symch #$current_choice: " if $nid_count > 1;
         my $rule_id = $choicepoint->rule_id();
         say STDERR join q{ }, __FILE__, __LINE__, '$rule_id =', ($rule_id // 'undef');
         if ( defined $rule_id ) {
@@ -893,7 +893,7 @@ sub Marpa::R2::Choicepoint::show_nids {
             my $symbol_name = $grammar->symbol_name($symbol_id);
             push @lines, qq{CP$id Symbol: $symbol_name "$literal"};
         }
-    } ## end for ( my $symch_ix = 0; $symch_ix < $symch_count; $symch_ix...)
+    } ## end for ( my $nid_ix = 0; $nid_ix < $nid_count; $nid_ix...)
     return \@lines;
 } ## end sub Marpa::R2::Choicepoint::show_nids
 
