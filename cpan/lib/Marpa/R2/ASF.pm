@@ -36,21 +36,6 @@ package Marpa::R2::Internal::ASF;
 
 our %choicepoint_seen;
 
-# Terms
-#
-# Symchset -- A set of symches, all with the same start and end locations.
-#
-# Choicepoint -- A symchset which is reachable from the top choicepoint.
-# Choicepoints can be internal or external.
-#
-# Factoring -- one possible factoring of an external choicepoint.  It is a sequence
-# of factors.
-#
-# Factor -- A list of choicepoints.
-#
-# Symch (Symbolic choice) -- An or-node or a terminal
-#
-
 # This is more complicated that it needs to be for the current implementation.
 # It allows for LHS terminals (implemented in Libmarpa but not allowed by the SLIF).
 # It also assumes that every or-node which can be constructed from preceding or-nodes
@@ -58,49 +43,49 @@ our %choicepoint_seen;
 # rules and/or symbols may have extra-syntactic conditions attached making this
 # assumption false.
 
-sub Marpa::R2::Symchset::obtain {
+sub Marpa::R2::Nidset::obtain {
     my ($class, $asf, @symch_ids) = @_;
     my @sorted_symchset = sort { $a <=> $b } @symch_ids;
     my $key = join q{ }, @sorted_symchset;
     say STDERR "Obtaining symchset for key $key";
     my $symchset_by_key =
-        $asf->[Marpa::R2::Internal::Scanless::ASF::SYMCHSET_BY_KEY];
+        $asf->[Marpa::R2::Internal::Scanless::ASF::NIDSET_BY_KEY];
     my $symchset = $symchset_by_key->{$key};
     return $symchset if defined $symchset;
     $symchset = bless [], $class;
-    my $id = $asf->[Marpa::R2::Internal::Scanless::ASF::NEXT_SYMCHSET_ID]++;
-    $symchset->[Marpa::R2::Internal::Symchset::ID] = $id;
-    $symchset->[Marpa::R2::Internal::Symchset::SYMCHES] = \@sorted_symchset;
-    $asf->[Marpa::R2::Internal::Scanless::ASF::SYMCHSET_BY_KEY]->{$key} = $symchset;
-    $asf->[Marpa::R2::Internal::Scanless::ASF::SYMCHSET_BY_ID]->[$id] = $symchset;
+    my $id = $asf->[Marpa::R2::Internal::Scanless::ASF::NEXT_NIDSET_ID]++;
+    $symchset->[Marpa::R2::Internal::Nidset::ID] = $id;
+    $symchset->[Marpa::R2::Internal::Nidset::SYMCHES] = \@sorted_symchset;
+    $asf->[Marpa::R2::Internal::Scanless::ASF::NIDSET_BY_KEY]->{$key} = $symchset;
+    $asf->[Marpa::R2::Internal::Scanless::ASF::NIDSET_BY_ID]->[$id] = $symchset;
     return $symchset;
 }
 
-sub Marpa::R2::Symchset::symch_ids {
+sub Marpa::R2::Nidset::symch_ids {
     my ($symchset) = @_;
-    return $symchset->[Marpa::R2::Internal::Symchset::SYMCHES];
+    return $symchset->[Marpa::R2::Internal::Nidset::SYMCHES];
 }
 
-sub Marpa::R2::Symchset::symch {
+sub Marpa::R2::Nidset::symch {
     my ($symchset, $ix) = @_;
-    return $symchset->[Marpa::R2::Internal::Symchset::SYMCHES]->[$ix];
+    return $symchset->[Marpa::R2::Internal::Nidset::SYMCHES]->[$ix];
 }
 
-sub Marpa::R2::Symchset::count {
+sub Marpa::R2::Nidset::count {
     my ($symchset) = @_;
-    return scalar @{$symchset->[Marpa::R2::Internal::Symchset::SYMCHES]};
+    return scalar @{$symchset->[Marpa::R2::Internal::Nidset::SYMCHES]};
 }
 
-sub Marpa::R2::Symchset::id {
+sub Marpa::R2::Nidset::id {
     my ($symchset) = @_;
-    return $symchset->[Marpa::R2::Internal::Symchset::ID];
+    return $symchset->[Marpa::R2::Internal::Nidset::ID];
 }
 
-sub Marpa::R2::Symchset::show {
+sub Marpa::R2::Nidset::show {
     my ($symchset) = @_;
     my $id = $symchset->id();
     my $symch_ids = $symchset->symch_ids();
-    return "Symchset #$id: " . join q{ }, @{$symch_ids};
+    return "Nidset #$id: " . join q{ }, @{$symch_ids};
 }
 
 sub Marpa::R2::Powerset::obtain {
@@ -115,7 +100,7 @@ sub Marpa::R2::Powerset::obtain {
     $powerset = bless [], $class;
     my $id = $asf->[Marpa::R2::Internal::Scanless::ASF::NEXT_POWERSET_ID]++;
     $powerset->[Marpa::R2::Internal::Powerset::ID] = $id;
-    $powerset->[Marpa::R2::Internal::Powerset::SYMCHSET_IDS] = \@sorted_symchset_ids;
+    $powerset->[Marpa::R2::Internal::Powerset::NIDSET_IDS] = \@sorted_symchset_ids;
     $asf->[Marpa::R2::Internal::Scanless::ASF::POWERSET_BY_KEY]->{$key} = $powerset;
     $asf->[Marpa::R2::Internal::Scanless::ASF::POWERSET_BY_ID]->[$id] = $powerset;
     return $powerset;
@@ -123,19 +108,19 @@ sub Marpa::R2::Powerset::obtain {
 
 sub Marpa::R2::Powerset::symchset_ids {
     my ($powerset) = @_;
-    return $powerset->[Marpa::R2::Internal::Powerset::SYMCHSET_IDS];
+    return $powerset->[Marpa::R2::Internal::Powerset::NIDSET_IDS];
 }
 
 sub Marpa::R2::Powerset::count {
     my ($powerset) = @_;
-    return scalar @{$powerset->[Marpa::R2::Internal::Powerset::SYMCHSET_IDS]};
+    return scalar @{$powerset->[Marpa::R2::Internal::Powerset::NIDSET_IDS]};
 }
 
 sub Marpa::R2::Powerset::symchset_id {
     my ($powerset, $ix) = @_;
-    my $symchset_ids = $powerset->[Marpa::R2::Internal::Powerset::SYMCHSET_IDS];
+    my $symchset_ids = $powerset->[Marpa::R2::Internal::Powerset::NIDSET_IDS];
     return if $ix > $#{$symchset_ids};
-    return $powerset->[Marpa::R2::Internal::Powerset::SYMCHSET_IDS]->[$ix];
+    return $powerset->[Marpa::R2::Internal::Powerset::NIDSET_IDS]->[$ix];
 }
 
 sub Marpa::R2::Powerset::id {
@@ -180,7 +165,7 @@ sub Marpa::R2::Scanless::ASF::top {
         }
         push @symch_set, and_node_to_token_symch($augment2_and_node_id);
     } ## end AND_NODE: for my $augment2_and_node_id ( $bocage...)
-    my $top_symchset = Marpa::R2::Symchset->obtain( $asf, @symch_set );
+    my $top_symchset = Marpa::R2::Nidset->obtain( $asf, @symch_set );
     $top = $asf->new_choicepoint($top_symchset);
     $asf->[Marpa::R2::Internal::Scanless::ASF::TOP] = $top;
     return $top;
@@ -310,9 +295,9 @@ sub Marpa::R2::Scanless::ASF::new {
     }
     $recce->[Marpa::R2::Internal::Recognizer::TREE_MODE] = 'forest';
 
-    $asf->[Marpa::R2::Internal::Scanless::ASF::SYMCHSET_BY_ID] = [];
-    $asf->[Marpa::R2::Internal::Scanless::ASF::SYMCHSET_BY_KEY] = {};
-    $asf->[Marpa::R2::Internal::Scanless::ASF::NEXT_SYMCHSET_ID] = 0;
+    $asf->[Marpa::R2::Internal::Scanless::ASF::NIDSET_BY_ID] = [];
+    $asf->[Marpa::R2::Internal::Scanless::ASF::NIDSET_BY_KEY] = {};
+    $asf->[Marpa::R2::Internal::Scanless::ASF::NEXT_NIDSET_ID] = 0;
     $asf->[Marpa::R2::Internal::Scanless::ASF::POWERSET_BY_ID] = [];
     $asf->[Marpa::R2::Internal::Scanless::ASF::POWERSET_BY_KEY] = {};
     $asf->[Marpa::R2::Internal::Scanless::ASF::NEXT_POWERSET_ID] = 0;
@@ -337,7 +322,7 @@ sub Marpa::R2::Scanless::ASF::new_choicepoint {
     my $cpi = bless [], 'Marpa::R2::Choicepoint';
     $cpi->[Marpa::R2::Internal::Choicepoint::ASF] = $asf;
     $cpi->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK] = undef;
-    $cpi->[Marpa::R2::Internal::Choicepoint::SYMCHSET] = $symchset;
+    $cpi->[Marpa::R2::Internal::Choicepoint::NIDSET] = $symchset;
     $cpi->[Marpa::R2::Internal::Choicepoint::SYMCH_IX] = 0;
     return $cpi;
 }
@@ -347,26 +332,26 @@ sub Marpa::R2::Choicepoint::show {
     my $id = $cp->base_id();
     # Not yet based on powerset, but will be.
     return join q{ }, "Choicepoint based on powerset #$id:", 
-        @{$cp->[Marpa::R2::Internal::Choicepoint::SYMCHSET]->symch_ids()};
+        @{$cp->[Marpa::R2::Internal::Choicepoint::NIDSET]->symch_ids()};
 }
 
 # ID of the set on which the choicepoint is based.  Two or more choicepoints
 # may share the same base ID.
 sub Marpa::R2::Choicepoint::base_id {
     my ( $cp ) = @_;
-    return $cp->[Marpa::R2::Internal::Choicepoint::SYMCHSET]->id();
+    return $cp->[Marpa::R2::Internal::Choicepoint::NIDSET]->id();
 }
 
 sub Marpa::R2::Choicepoint::symch_count {
     my ( $cp ) = @_;
-    return $cp->[Marpa::R2::Internal::Choicepoint::SYMCHSET]->count();
+    return $cp->[Marpa::R2::Internal::Choicepoint::NIDSET]->count();
 }
 
 sub Marpa::R2::Choicepoint::symch {
     my ( $cp, $ix ) = @_;
     my $symch_ix = $ix // $cp->[Marpa::R2::Internal::Choicepoint::SYMCH_IX];
     say STDERR "symch_ix=$symch_ix ", $cp->show();
-    return $cp->[Marpa::R2::Internal::Choicepoint::SYMCHSET]->symch_ids()->[$symch_ix];
+    return $cp->[Marpa::R2::Internal::Choicepoint::NIDSET]->symch_ids()->[$symch_ix];
 }
 
 sub Marpa::R2::Choicepoint::symch_set {
@@ -492,7 +477,7 @@ sub Marpa::R2::Choicepoint::first_factoring {
     say STDERR join q{ }, __FILE__, __LINE__, "first_factoring()", $choicepoint->show();
     my $symch = $choicepoint->symch();
 
-    my $symchset_by_id = $asf->[Marpa::R2::Internal::Scanless::ASF::SYMCHSET_BY_ID];
+    my $symchset_by_id = $asf->[Marpa::R2::Internal::Scanless::ASF::NIDSET_BY_ID];
 
     # return undef if we were passed a symch which is not
     # an or-node
@@ -537,7 +522,7 @@ sub Marpa::R2::Choicepoint::first_factoring {
 	    push @stack, $cause_id;
         } ## end for my $and_node_id ( $ordering...)
     } ## end STACK_ELEMENT: while ( defined( my $stack_element = pop @stack ) )
-    my $final_symchset = Marpa::R2::Symchset->obtain( $asf, @finals );
+    my $final_symchset = Marpa::R2::Nidset->obtain( $asf, @finals );
 
     # Find the direct predecessors of each cause or-node,
     # and the "internal completions" -- or-nodes for internal rules
@@ -693,7 +678,7 @@ sub Marpa::R2::Choicepoint::first_factoring {
     my %symch_to_prior_symchset = ();
     for my $successor_cause_id ( sort keys %prior_cause ) {
         my @predecessors = keys %{ $prior_cause{$successor_cause_id} };
-        my $prior_symchset = Marpa::R2::Symchset->obtain( $asf, @predecessors );
+        my $prior_symchset = Marpa::R2::Nidset->obtain( $asf, @predecessors );
         $symch_to_prior_symchset{$successor_cause_id} = $prior_symchset;
     }
 
@@ -701,7 +686,7 @@ sub Marpa::R2::Choicepoint::first_factoring {
 
     my %symchset_to_powerset = ();
     my @symchset_ids_to_do = sort map { $_->id() => 1 } ($final_symchset, values %symch_to_prior_symchset );
-    SYMCHSET: for my $symchset_id (@symchset_ids_to_do) {
+    NIDSET: for my $symchset_id (@symchset_ids_to_do) {
         my @sorted_symch_ids =
             map  { $_->[-1] }
             sort { $a->[0] <=> $b->[0] }
@@ -727,7 +712,7 @@ sub Marpa::R2::Choicepoint::first_factoring {
                 } ## end if ( defined $this_symch and $prior_of_this_symch ==...)
 
                 # perform break on prior
-                my $symchset = Marpa::R2::Symchset->obtain( $asf,
+                my $symchset = Marpa::R2::Nidset->obtain( $asf,
                     @symch_ids_with_current_data );
                 push @choicepoints, $symchset->id();
                 last SYMCH if not defined $this_symch;
@@ -743,7 +728,7 @@ sub Marpa::R2::Choicepoint::first_factoring {
         } ## end SYMCH: while (1)
         my $powerset = Marpa::R2::Powerset->obtain( $asf, @choicepoints );
         $symchset_to_powerset{$symchset_id} = $powerset;
-    } ## end SYMCHSET: for my $symchset_id (@symchset_ids_to_do)
+    } ## end NIDSET: for my $symchset_id (@symchset_ids_to_do)
 
     my %symch_set_to_prior_powerset = ();
     for my $powerset ( sort values %symchset_to_powerset ) {
@@ -762,7 +747,7 @@ sub Marpa::R2::Choicepoint::first_factoring {
     my $final_powerset = $symchset_to_powerset{ $final_symchset->id() };
     my @factoring_stack = ( [ $final_powerset, 0 ] );
 
-    $choicepoint->[Marpa::R2::Internal::Choicepoint::SYMCHSET_TO_PRIOR_POWERSET] =
+    $choicepoint->[Marpa::R2::Internal::Choicepoint::NIDSET_TO_PRIOR_POWERSET] =
         \%symch_set_to_prior_powerset;
     $choicepoint->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK] =
         \@factoring_stack;
@@ -772,9 +757,9 @@ sub Marpa::R2::Choicepoint::first_factoring {
 sub finish_stack {
     my ($choicepoint) = @_;
     my $asf = $choicepoint->[Marpa::R2::Internal::Choicepoint::ASF];
-    my $symchset_by_id = $asf->[Marpa::R2::Internal::Scanless::ASF::SYMCHSET_BY_ID];
+    my $symchset_by_id = $asf->[Marpa::R2::Internal::Scanless::ASF::NIDSET_BY_ID];
     my $symch_set_to_prior_powerset = $choicepoint
-        ->[Marpa::R2::Internal::Choicepoint::SYMCHSET_TO_PRIOR_POWERSET];
+        ->[Marpa::R2::Internal::Choicepoint::NIDSET_TO_PRIOR_POWERSET];
     my $factoring_stack =
         $choicepoint->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK];
 
@@ -808,7 +793,7 @@ sub Marpa::R2::Choicepoint::next_factoring {
     Marpa::R2::exception("ASF choicepoint is not initialized for factoring")
         if not defined $factoring_stack;
     my $symch_set_to_prior_powerset =
-        $choicepoint->[Marpa::R2::Internal::Choicepoint::SYMCHSET_TO_PRIOR_POWERSET];
+        $choicepoint->[Marpa::R2::Internal::Choicepoint::NIDSET_TO_PRIOR_POWERSET];
 
     # pop stack until we can increment an element
     STACK_ELEMENT:
@@ -825,7 +810,7 @@ sub Marpa::R2::Choicepoint::next_factoring {
     # if we could not increment any stack element, clear the factoring data
     # and return undef
     $choicepoint->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK] = undef;
-    $choicepoint->[Marpa::R2::Internal::Choicepoint::SYMCHSET_TO_PRIOR_POWERSET] =
+    $choicepoint->[Marpa::R2::Internal::Choicepoint::NIDSET_TO_PRIOR_POWERSET] =
         undef;
     return;
 } ## end sub Marpa::R2::Choicepoint::next_factoring
@@ -837,7 +822,7 @@ sub Marpa::R2::Choicepoint::next_factoring {
 sub Marpa::R2::Choicepoint::ambiguous_prefix {
     my ($choicepoint) = @_;
     my $asf = $choicepoint->[Marpa::R2::Internal::Choicepoint::ASF];
-    my $symchset_by_id = $asf->[Marpa::R2::Internal::Scanless::ASF::SYMCHSET_BY_ID];
+    my $symchset_by_id = $asf->[Marpa::R2::Internal::Scanless::ASF::NIDSET_BY_ID];
     my $factoring_stack =
         $choicepoint->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK];
     Marpa::R2::exception("ASF choicepoint is not initialized for factoring")
@@ -857,7 +842,7 @@ sub Marpa::R2::Choicepoint::ambiguous_prefix {
 sub Marpa::R2::Scanless::ASF::show_symchsets {
     my ($asf) = @_;
     my $text = q{};
-    my $symchsets = $asf->[Marpa::R2::Internal::Scanless::ASF::SYMCHSET_BY_ID];
+    my $symchsets = $asf->[Marpa::R2::Internal::Scanless::ASF::NIDSET_BY_ID];
     for my $symchset (@{$symchsets}) {
         $text .= $symchset->show() . "\n";
     }

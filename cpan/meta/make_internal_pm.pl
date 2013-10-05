@@ -243,10 +243,10 @@ __DATA__
 
     { An external choicepoint }
     ASF
-    SYMCHSET
+    NIDSET
     SYMCH_IX 
     FACTORING_STACK
-    SYMCHSET_TO_PRIOR_POWERSET
+    NIDSET_TO_PRIOR_POWERSET
 
     :package=Marpa::R2::Internal::Scanless::ASF
 
@@ -256,14 +256,14 @@ __DATA__
     SYMBOL_BLESSING
 
     TOP
-    SYMCHSET_BY_KEY
-    SYMCHSET_BY_ID
-    NEXT_SYMCHSET_ID
+    NIDSET_BY_KEY
+    NIDSET_BY_ID
+    NEXT_NIDSET_ID
     POWERSET_BY_KEY
     POWERSET_BY_ID
     NEXT_POWERSET_ID
 
-    :package=Marpa::R2::Internal::Symchset
+    :package=Marpa::R2::Internal::Nidset
 
     ID
     SYMCHES
@@ -271,7 +271,7 @@ __DATA__
     :package=Marpa::R2::Internal::Powerset
 
     ID
-    SYMCHSET_IDS
+    NIDSET_IDS
 
     :package=Marpa::R2::Internal::CPI
 

@@ -123,10 +123,10 @@ use constant CURRENT => 3;
 
 package Marpa::R2::Internal::Choicepoint;
 use constant ASF => 0;
-use constant SYMCHSET => 1;
+use constant NIDSET => 1;
 use constant SYMCH_IX => 2;
 use constant FACTORING_STACK => 3;
-use constant SYMCHSET_TO_PRIOR_POWERSET => 4;
+use constant NIDSET_TO_PRIOR_POWERSET => 4;
 
 package Marpa::R2::Internal::Scanless::ASF;
 use constant SLR => 0;
@@ -134,20 +134,20 @@ use constant CHOICE_BLESSING => 1;
 use constant RULE_BLESSING => 2;
 use constant SYMBOL_BLESSING => 3;
 use constant TOP => 4;
-use constant SYMCHSET_BY_KEY => 5;
-use constant SYMCHSET_BY_ID => 6;
-use constant NEXT_SYMCHSET_ID => 7;
+use constant NIDSET_BY_KEY => 5;
+use constant NIDSET_BY_ID => 6;
+use constant NEXT_NIDSET_ID => 7;
 use constant POWERSET_BY_KEY => 8;
 use constant POWERSET_BY_ID => 9;
 use constant NEXT_POWERSET_ID => 10;
 
-package Marpa::R2::Internal::Symchset;
+package Marpa::R2::Internal::Nidset;
 use constant ID => 0;
 use constant SYMCHES => 1;
 
 package Marpa::R2::Internal::Powerset;
 use constant ID => 0;
-use constant SYMCHSET_IDS => 1;
+use constant NIDSET_IDS => 1;
 
 package Marpa::R2::Internal::CPI;
 use constant ASF => 0;
