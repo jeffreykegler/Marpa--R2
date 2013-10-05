@@ -43,21 +43,27 @@ our %choicepoint_seen;
 # rules and/or symbols may have extra-syntactic conditions attached making this
 # assumption false.
 
+sub intset_id {
+    my ($asf, @ids) = @_;
+    my $key = join q{ }, sort @ids;
+    my $intset_by_key = $asf->[Marpa::R2::Internal::Scanless::ASF::INTSET_BY_KEY];
+    my $intset_id = $intset_by_key->{$key};
+    return $intset_id if defined $intset_id;
+    $intset_id = $asf->[Marpa::R2::Internal::Scanless::ASF::NEXT_INTSET_ID]++;
+    $intset_by_key->{$key} = $intset_id;
+    return $intset_id;
+}
+
 sub Marpa::R2::Nidset::obtain {
     my ($class, $asf, @nids) = @_;
-    my @sorted_nidset = sort { $a <=> $b } @nids;
-    my $key = join q{ }, @sorted_nidset;
-    say STDERR "Obtaining nidset for key $key";
-    my $nidset_by_key =
-        $asf->[Marpa::R2::Internal::Scanless::ASF::NIDSET_BY_KEY];
-    my $nidset = $nidset_by_key->{$key};
+    my $id = intset_id($asf, @nids);
+    my $nidset_by_id = $asf->[Marpa::R2::Internal::Scanless::ASF::NIDSET_BY_ID];
+    my $nidset = $nidset_by_id->[$id];
     return $nidset if defined $nidset;
     $nidset = bless [], $class;
-    my $id = $asf->[Marpa::R2::Internal::Scanless::ASF::NEXT_NIDSET_ID]++;
     $nidset->[Marpa::R2::Internal::Nidset::ID] = $id;
-    $nidset->[Marpa::R2::Internal::Nidset::NIDS] = \@sorted_nidset;
-    $asf->[Marpa::R2::Internal::Scanless::ASF::NIDSET_BY_KEY]->{$key} = $nidset;
-    $asf->[Marpa::R2::Internal::Scanless::ASF::NIDSET_BY_ID]->[$id] = $nidset;
+    $nidset->[Marpa::R2::Internal::Nidset::NIDS] = [sort { $a <=> $b } @nids];
+    $nidset_by_id->[$id] = $nidset;
     return $nidset;
 }
 
@@ -284,9 +290,10 @@ sub Marpa::R2::Scanless::ASF::new {
     }
     $recce->[Marpa::R2::Internal::Recognizer::TREE_MODE] = 'forest';
 
+    $asf->[Marpa::R2::Internal::Scanless::ASF::NEXT_INTSET_ID] = 0;
+    $asf->[Marpa::R2::Internal::Scanless::ASF::INTSET_BY_KEY] = {};
+
     $asf->[Marpa::R2::Internal::Scanless::ASF::NIDSET_BY_ID] = [];
-    $asf->[Marpa::R2::Internal::Scanless::ASF::NIDSET_BY_KEY] = {};
-    $asf->[Marpa::R2::Internal::Scanless::ASF::NEXT_NIDSET_ID] = 0;
     $asf->[Marpa::R2::Internal::Scanless::ASF::POWERSET_BY_ID] = [];
     $asf->[Marpa::R2::Internal::Scanless::ASF::POWERSET_BY_KEY] = {};
     $asf->[Marpa::R2::Internal::Scanless::ASF::NEXT_POWERSET_ID] = 0;
