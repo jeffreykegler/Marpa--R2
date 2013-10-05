@@ -354,7 +354,7 @@ sub Marpa::R2::Choicepoint::symch {
 sub Marpa::R2::Choicepoint::nid_set {
     my ( $cp, $ix ) = @_;
     my $max_nid_ix = $cp->nid_count() - 1;
-    Marpa::R2::exception("Symch index must in range from 0 to $max_nid_ix")
+    Marpa::R2::exception("NID index must in range from 0 to $max_nid_ix")
        if $ix < 0 or $ix > $max_nid_ix;
     $cp->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK] = undef;
     return $cp->[Marpa::R2::Internal::Choicepoint::NID_IX] = $ix;
@@ -688,39 +688,39 @@ sub Marpa::R2::Choicepoint::first_factoring {
             map  { ; [ ( $nid_to_prior_nidset{$_} // -1 ), $_ ] }
             @{ $nidset_by_id->[$nidset_id]->nids() };
         my $nid_ix            = 0;
-        my $this_symch          = $sorted_nids[ $nid_ix++ ];
-        my $prior_of_this_symch = $nid_to_prior_nidset{$this_symch} // -1;
-        my $whole_id_of_this_symch = nid_to_whole_id( $asf, $this_symch );
+        my $this_nid          = $sorted_nids[ $nid_ix++ ];
+        my $prior_of_this_nid = $nid_to_prior_nidset{$this_nid} // -1;
+        my $whole_id_of_this_nid = nid_to_whole_id( $asf, $this_nid );
         my @nids_with_current_data = ();
-        my $current_prior               = $prior_of_this_symch;
-        my $current_whole_id            = $whole_id_of_this_symch;
+        my $current_prior               = $prior_of_this_nid;
+        my $current_whole_id            = $whole_id_of_this_nid;
         my @choicepoints                = ();
-        SYMCH: while (1) {
+        NID: while (1) {
 
             CHECK_FOR_BREAK: {
-                if (    defined $this_symch
-                    and $prior_of_this_symch == $current_prior
-                    and $whole_id_of_this_symch == $current_whole_id )
+                if (    defined $this_nid
+                    and $prior_of_this_nid == $current_prior
+                    and $whole_id_of_this_nid == $current_whole_id )
                 {
-                    push @nids_with_current_data, $this_symch;
+                    push @nids_with_current_data, $this_nid;
                     last CHECK_FOR_BREAK;
-                } ## end if ( defined $this_symch and $prior_of_this_symch ==...)
+                } ## end if ( defined $this_nid and $prior_of_this_nid ==...)
 
                 # perform break on prior
                 my $nidset = Marpa::R2::Nidset->obtain( $asf,
                     @nids_with_current_data );
                 push @choicepoints, $nidset->id();
-                last SYMCH if not defined $this_symch;
-                @nids_with_current_data = ($this_symch);
-                $current_prior               = $prior_of_this_symch;
-                $current_whole_id            = $whole_id_of_this_symch;
+                last NID if not defined $this_nid;
+                @nids_with_current_data = ($this_nid);
+                $current_prior               = $prior_of_this_nid;
+                $current_whole_id            = $whole_id_of_this_nid;
             } ## end CHECK_FOR_BREAK:
-            $this_symch = $sorted_nids[ $nid_ix++ ];
-            next SYMCH if not defined $this_symch;
-            $prior_of_this_symch = $nid_to_prior_nidset{$this_symch}
+            $this_nid = $sorted_nids[ $nid_ix++ ];
+            next NID if not defined $this_nid;
+            $prior_of_this_nid = $nid_to_prior_nidset{$this_nid}
                 // -1;
-            $whole_id_of_this_symch = nid_to_whole_id( $asf, $this_symch );
-        } ## end SYMCH: while (1)
+            $whole_id_of_this_nid = nid_to_whole_id( $asf, $this_nid );
+        } ## end NID: while (1)
         my $powerset = Marpa::R2::Powerset->obtain( $asf, @choicepoints );
         $nidset_to_powerset{$nidset_id} = $powerset;
     } ## end NIDSET: for my $nidset_id (@nidset_ids_to_do)
@@ -878,7 +878,7 @@ sub Marpa::R2::Choicepoint::show_nids {
         $choicepoint->nid_set($nid_ix);
         say STDERR join q{ }, __FILE__, __LINE__, '$nid_ix =', $nid_ix;
         my $current_choice = "$parent_choice$nid_ix";
-        push @lines, "CP$id Symch #$current_choice: " if $nid_count > 1;
+        push @lines, "CP$id NID #$current_choice: " if $nid_count > 1;
         my $rule_id = $choicepoint->rule_id();
         say STDERR join q{ }, __FILE__, __LINE__, '$rule_id =', ($rule_id // 'undef');
         if ( defined $rule_id ) {
