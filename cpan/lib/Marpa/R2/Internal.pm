@@ -124,7 +124,7 @@ use constant CURRENT => 3;
 package Marpa::R2::Internal::Choicepoint;
 use constant ASF => 0;
 use constant NIDSET => 1;
-use constant SYMCH_IX => 2;
+use constant NID_IX => 2;
 use constant FACTORING_STACK => 3;
 use constant NIDSET_TO_PRIOR_POWERSET => 4;
 
@@ -143,7 +143,7 @@ use constant NEXT_POWERSET_ID => 10;
 
 package Marpa::R2::Internal::Nidset;
 use constant ID => 0;
-use constant SYMCHES => 1;
+use constant NIDS => 1;
 
 package Marpa::R2::Internal::Powerset;
 use constant ID => 0;
@@ -152,7 +152,7 @@ use constant NIDSET_IDS => 1;
 package Marpa::R2::Internal::CPI;
 use constant ASF => 0;
 use constant CHOICEPOINT => 1;
-use constant SYMCH_IX => 2;
+use constant NID_IX => 2;
 use constant FACTORING => 3;
 
 package Marpa::R2::Inner::Scanless::G;

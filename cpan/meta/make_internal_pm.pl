@@ -244,7 +244,7 @@ __DATA__
     { An external choicepoint }
     ASF
     NIDSET
-    SYMCH_IX 
+    NID_IX 
     FACTORING_STACK
     NIDSET_TO_PRIOR_POWERSET
 
@@ -266,7 +266,7 @@ __DATA__
     :package=Marpa::R2::Internal::Nidset
 
     ID
-    SYMCHES
+    NIDS
 
     :package=Marpa::R2::Internal::Powerset
 
@@ -277,7 +277,7 @@ __DATA__
 
     ASF
     CHOICEPOINT
-    SYMCH_IX
+    NID_IX
     FACTORING
 
     :package=Marpa::R2::Inner::Scanless::G

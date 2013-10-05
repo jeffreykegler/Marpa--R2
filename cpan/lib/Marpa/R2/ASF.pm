@@ -55,7 +55,7 @@ sub Marpa::R2::Nidset::obtain {
     $symchset = bless [], $class;
     my $id = $asf->[Marpa::R2::Internal::Scanless::ASF::NEXT_NIDSET_ID]++;
     $symchset->[Marpa::R2::Internal::Nidset::ID] = $id;
-    $symchset->[Marpa::R2::Internal::Nidset::SYMCHES] = \@sorted_symchset;
+    $symchset->[Marpa::R2::Internal::Nidset::NIDS] = \@sorted_symchset;
     $asf->[Marpa::R2::Internal::Scanless::ASF::NIDSET_BY_KEY]->{$key} = $symchset;
     $asf->[Marpa::R2::Internal::Scanless::ASF::NIDSET_BY_ID]->[$id] = $symchset;
     return $symchset;
@@ -63,17 +63,17 @@ sub Marpa::R2::Nidset::obtain {
 
 sub Marpa::R2::Nidset::symch_ids {
     my ($symchset) = @_;
-    return $symchset->[Marpa::R2::Internal::Nidset::SYMCHES];
+    return $symchset->[Marpa::R2::Internal::Nidset::NIDS];
 }
 
 sub Marpa::R2::Nidset::symch {
     my ($symchset, $ix) = @_;
-    return $symchset->[Marpa::R2::Internal::Nidset::SYMCHES]->[$ix];
+    return $symchset->[Marpa::R2::Internal::Nidset::NIDS]->[$ix];
 }
 
 sub Marpa::R2::Nidset::count {
     my ($symchset) = @_;
-    return scalar @{$symchset->[Marpa::R2::Internal::Nidset::SYMCHES]};
+    return scalar @{$symchset->[Marpa::R2::Internal::Nidset::NIDS]};
 }
 
 sub Marpa::R2::Nidset::id {
@@ -323,7 +323,7 @@ sub Marpa::R2::Scanless::ASF::new_choicepoint {
     $cpi->[Marpa::R2::Internal::Choicepoint::ASF] = $asf;
     $cpi->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK] = undef;
     $cpi->[Marpa::R2::Internal::Choicepoint::NIDSET] = $symchset;
-    $cpi->[Marpa::R2::Internal::Choicepoint::SYMCH_IX] = 0;
+    $cpi->[Marpa::R2::Internal::Choicepoint::NID_IX] = 0;
     return $cpi;
 }
 
@@ -349,7 +349,7 @@ sub Marpa::R2::Choicepoint::symch_count {
 
 sub Marpa::R2::Choicepoint::symch {
     my ( $cp, $ix ) = @_;
-    my $symch_ix = $ix // $cp->[Marpa::R2::Internal::Choicepoint::SYMCH_IX];
+    my $symch_ix = $ix // $cp->[Marpa::R2::Internal::Choicepoint::NID_IX];
     say STDERR "symch_ix=$symch_ix ", $cp->show();
     return $cp->[Marpa::R2::Internal::Choicepoint::NIDSET]->symch_ids()->[$symch_ix];
 }
@@ -360,7 +360,7 @@ sub Marpa::R2::Choicepoint::symch_set {
     Marpa::R2::exception("Symch index must in range from 0 to $max_symch_ix")
        if $ix < 0 or $ix > $max_symch_ix;
     $cp->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK] = undef;
-    return $cp->[Marpa::R2::Internal::Choicepoint::SYMCH_IX] = $ix;
+    return $cp->[Marpa::R2::Internal::Choicepoint::NID_IX] = $ix;
 }
 
 sub Marpa::R2::Choicepoint::rule_id {
