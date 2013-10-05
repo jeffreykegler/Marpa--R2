@@ -153,6 +153,7 @@ sub Marpa::R2::Scanless::ASF::top {
         $bocage->_marpa_b_and_node_cause($augment_and_node_id);
     my @nid_set;
     AND_NODE:
+
     for my $augment2_and_node_id (
         $bocage->_marpa_b_or_node_first_and($augment2_or_node_id)
         .. $bocage->_marpa_b_or_node_last_and($augment2_or_node_id) )
@@ -165,8 +166,13 @@ sub Marpa::R2::Scanless::ASF::top {
         }
         push @nid_set, and_node_to_nid($augment2_and_node_id);
     } ## end AND_NODE: for my $augment2_and_node_id ( $bocage...)
-    my $top_nidset = Marpa::R2::Nidset->obtain( $asf, @nid_set );
-    $top = $asf->new_choicepoint($top_nidset);
+    my $flat_nidset = Marpa::R2::Nidset->obtain( $asf, @nid_set );
+    my $top_powerset = nidset_to_factorset( $asf, $flat_nidset, {} );
+    my $top_cooked_nidset_id = $top_powerset->nidset_id(0);
+    my $top_cooked_nidset =
+        $asf->[Marpa::R2::Internal::Scanless::ASF::NIDSET_BY_ID]
+        ->[$top_cooked_nidset_id];
+    $top = $asf->new_choicepoint($top_cooked_nidset);
     $asf->[Marpa::R2::Internal::Scanless::ASF::TOP] = $top;
     return $top;
 } ## end sub Marpa::R2::Scanless::ASF::top
