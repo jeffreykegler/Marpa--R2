@@ -160,7 +160,7 @@ sub my_parser {
     say STDERR "And-nodes:\n", $slr->thick_g1_recce()->show_and_nodes();
     say STDERR "Bocage:\n", $slr->thick_g1_recce()->show_bocage();
     my $asf_desc = $asf->show();
-    say STDERR $asf->show_symchsets();
+    say STDERR $asf->show_nidsets();
     say STDERR $asf->show_powersets();
     return $asf_desc, 'ASF OK';
 } ## end sub my_parser
