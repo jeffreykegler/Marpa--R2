@@ -245,38 +245,24 @@ sub Marpa::R2::Scanless::ASF::new {
     my ( $class, @arg_hashes ) = @_;
     my $asf       = bless [], $class;
 
-    my $choice_blessing = 'My_ASF::choice';
-    my $force;
-    my $default_blessing;
     my $slr;
 
-    for my $args (@arg_hashes) {
-        if ( defined( my $value = $args->{slr} ) ) {
-            $asf->[Marpa::R2::Internal::Scanless::ASF::SLR] = $slr = $value;
-        }
-        if ( defined( my $value = $args->{choice} ) ) {
-    $asf->[Marpa::R2::Internal::Scanless::ASF::CHOICE_BLESSING] =
-            $choice_blessing = $value;
-        }
-        if ( defined( my $value = $args->{force} ) ) {
-            $force = $value;
-        }
-        if ( defined( my $value = $args->{default} ) ) {
-            $default_blessing = $value;
-        }
-    } ## end for my $args (@arg_hashes)
+    for my $arg_hash (@arg_hashes) {
+        ARG: for my $arg ( keys %{$arg_hash} ) {
+            if ( $arg eq 'slr' ) {
+                $asf->[Marpa::R2::Internal::Scanless::ASF::SLR] = $slr =
+                    $arg_hash->{$arg};
+                next ARG;
+            }
+            Marpa::R2::exception(
+                qq{Unknown named arg to $asf->new(): "$arg"});
+        } ## end ARG: for my $arg ( keys %{$arg_hash} )
+    } ## end for my $arg_hash (@arg_hashes)
 
     Marpa::R2::exception(
         q{The "slr" named argument must be specified with the Marpa::R2::Scanless::ASF::new method}
     ) if not defined $slr;
     $asf->[Marpa::R2::Internal::Scanless::ASF::SLR] = $slr;
-
-    if ( not defined $force and not defined $default_blessing ) {
-        Marpa::R2::exception(
-            q{The "force" or "default" named argument must be specified },
-            q{ with the Marpa::R2::Scanless::ASF::new method }
-        );
-    } ## end if ( not defined $force and not defined $default_blessing)
 
     my $recce     = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
 
@@ -307,8 +293,6 @@ sub Marpa::R2::Scanless::ASF::new {
 
     $recce->ordering_create()
         if not $recce->[Marpa::R2::Internal::Recognizer::O_C];
-
-    blessings_set($asf, $default_blessing, $force);
 
     return $asf;
 
