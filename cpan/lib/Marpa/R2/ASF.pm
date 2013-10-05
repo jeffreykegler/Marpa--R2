@@ -66,7 +66,7 @@ sub Marpa::R2::Nidset::nids {
     return $nidset->[Marpa::R2::Internal::Nidset::NIDS];
 }
 
-sub Marpa::R2::Nidset::symch {
+sub Marpa::R2::Nidset::nid {
     my ($nidset, $ix) = @_;
     return $nidset->[Marpa::R2::Internal::Nidset::NIDS]->[$ix];
 }
@@ -344,7 +344,7 @@ sub Marpa::R2::Choicepoint::nid_count {
     return $cp->[Marpa::R2::Internal::Choicepoint::NIDSET]->count();
 }
 
-sub Marpa::R2::Choicepoint::symch {
+sub Marpa::R2::Choicepoint::nid {
     my ( $cp, $ix ) = @_;
     my $nid_ix = $ix // $cp->[Marpa::R2::Internal::Choicepoint::NID_IX];
     say STDERR "nid_ix=$nid_ix ", $cp->show();
@@ -368,7 +368,7 @@ sub Marpa::R2::Choicepoint::rule_id {
     my $bocage     = $recce->[Marpa::R2::Internal::Recognizer::B_C];
     my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
-    my $or_node_id = $cp->symch() // -1;
+    my $or_node_id = $cp->nid() // -1;
     say STDERR "or_node_id=$or_node_id ", $cp->show();
     return if $or_node_id < 0;
     my $irl_id = $bocage->_marpa_b_or_node_irl($or_node_id);
@@ -377,17 +377,17 @@ sub Marpa::R2::Choicepoint::rule_id {
 } ## end sub Marpa::R2::Choicepoint::rule_id
 
 # The "whole id" is the external rule ID, if there is one,
-# otherwise -1.  In particular, it is -1 is the symch is for
+# otherwise -1.  In particular, it is -1 is the NID is for
 # token
 sub nid_to_whole_id {
-    my ($asf, $symch) = @_;
+    my ($asf, $nid) = @_;
     my $slr       = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
     my $recce     = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
     my $bocage     = $recce->[Marpa::R2::Internal::Recognizer::B_C];
     my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
-    return -1 if $symch < 0;
-    my $irl_id = $bocage->_marpa_b_or_node_irl($symch);
+    return -1 if $nid < 0;
+    my $irl_id = $bocage->_marpa_b_or_node_irl($nid);
     my $xrl_id = $grammar_c->_marpa_g_source_xrl($irl_id);
     return $xrl_id;
 }
@@ -422,21 +422,21 @@ sub token_es_span {
 
 sub Marpa::R2::Choicepoint::literal {
     my ($cp)    = @_;
-    my $symch = $cp->symch();
+    my $nid = $cp->nid();
     my $asf     = $cp->[Marpa::R2::Internal::Choicepoint::ASF];
     my $slr     = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
-    if ( $symch < 0 ) {
-        my $and_node_id = nid_to_and_node($symch);
+    if ( $nid < 0 ) {
+        my $and_node_id = nid_to_and_node($nid);
         my ( $start, $length ) = token_es_span( $asf, $and_node_id );
         return '' if $length == 0;
         return $slr->substring( $start, $length );
-    } ## end if ( $symch < 0 )
-    return $slr->substring( or_node_es_span( $asf, $symch ) );
+    } ## end if ( $nid < 0 )
+    return $slr->substring( or_node_es_span( $asf, $nid ) );
 } ## end sub Marpa::R2::Choicepoint::literal
 
 sub Marpa::R2::Choicepoint::symbol_id {
     my ($cp)      = @_;
-    my $nid_0   = $cp->symch(0);
+    my $nid_0   = $cp->nid(0);
     my $asf       = $cp->[Marpa::R2::Internal::Choicepoint::ASF];
     my $slr       = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
     my $recce     = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
@@ -472,13 +472,13 @@ sub Marpa::R2::Choicepoint::first_factoring {
     my ( $choicepoint ) = @_;
     my $asf = $choicepoint->[Marpa::R2::Internal::Choicepoint::ASF];
     say STDERR join q{ }, __FILE__, __LINE__, "first_factoring()", $choicepoint->show();
-    my $symch = $choicepoint->symch();
+    my $nid = $choicepoint->nid();
 
     my $nidset_by_id = $asf->[Marpa::R2::Internal::Scanless::ASF::NIDSET_BY_ID];
 
-    # return undef if we were passed a symch which is not
+    # return undef if we were passed a NID which is not
     # an or-node
-    return if $symch < 0;
+    return if $nid < 0;
 
     my $slr = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
     my $recce     = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
@@ -492,8 +492,8 @@ sub Marpa::R2::Choicepoint::first_factoring {
     # Find nid of "finals" -- nids which can be last in the external
     # rule.
     my @finals;
-    my @stack = ( $symch );
-    my %or_node_seen = ( $symch => 1 );
+    my @stack = ( $nid );
+    my %or_node_seen = ( $nid => 1 );
     STACK_ELEMENT: while ( defined( my $or_node = pop @stack ) ) {
         say STDERR "Popped or-node $or_node";
         say STDERR "Count of and-nodes for or-node $or_node: ", $ordering->_marpa_o_or_node_and_node_count($or_node);
@@ -522,9 +522,9 @@ sub Marpa::R2::Choicepoint::first_factoring {
     # Find the direct predecessors of each cause or-node,
     # and the "internal completions" -- or-nodes for internal rules
     # completed in the current checkpoint
-    @stack     = ($symch);
+    @stack     = ($nid);
     my @internal_completions = ();
-    %or_node_seen = ($symch => 1);
+    %or_node_seen = ($nid => 1);
     STACK_ELEMENT: while ( defined( my $or_node = pop @stack ) ) {
 
         AND_NODE: for my $and_node_id (
