@@ -138,6 +138,7 @@ use constant NEXT_INTSET_ID => 5;
 use constant TOP => 6;
 use constant NIDSET_BY_ID => 7;
 use constant POWERSET_BY_ID => 8;
+use constant POW3SET_BY_ID => 9;
 
 package Marpa::R2::Internal::Nidset;
 use constant ID => 0;
@@ -146,6 +147,10 @@ use constant NIDS => 1;
 package Marpa::R2::Internal::Powerset;
 use constant ID => 0;
 use constant NIDSET_IDS => 1;
+
+package Marpa::R2::Internal::Pow3set;
+use constant ID => 0;
+use constant POWERSET_IDS => 1;
 
 package Marpa::R2::Internal::CPI;
 use constant ASF => 0;

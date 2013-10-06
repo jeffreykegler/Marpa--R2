@@ -261,6 +261,7 @@ __DATA__
     TOP
     NIDSET_BY_ID
     POWERSET_BY_ID
+    POW3SET_BY_ID
 
     :package=Marpa::R2::Internal::Nidset
 
@@ -271,6 +272,11 @@ __DATA__
 
     ID
     NIDSET_IDS
+
+    :package=Marpa::R2::Internal::Pow3set
+
+    ID
+    POWERSET_IDS
 
     :package=Marpa::R2::Internal::CPI
 

@@ -34,14 +34,37 @@ $VERSION = eval $VERSION;
 
 package Marpa::R2::Internal::ASF;
 
-our %choicepoint_seen;
-
 # This is more complicated that it needs to be for the current implementation.
 # It allows for LHS terminals (implemented in Libmarpa but not allowed by the SLIF).
 # It also assumes that every or-node which can be constructed from preceding or-nodes
 # and the input will be present.  This is currently the case, but in the future
 # rules and/or symbols may have extra-syntactic conditions attached making this
 # assumption false.
+
+# Terms:
+
+# NID (Node ID): Encoded ID of either an or-node or an and-node.
+#
+# Extenstions:
+# Set "powers":  A set of power 0 is an "atom" -- a single NID.
+# A set of power 1 is a set of NID's -- a nidset.
+# A set of power 2 is a set of sets of NID's, also called a powerset.
+# A set of power 3 is a set of powersets, etc.
+#
+# The whole ID of NID is the external rule id of an or-node, or -1
+# if the NID is for a token and-node.
+#
+# Intensions:
+# A Symch is a nidset, where all the NID's share the same "whole ID"
+# and the same span.  NID's in a symch may differ in their internal rule,
+# or have different causes.  If the symch contains and-node NID's they
+# will all have the same symbol.
+#
+# A choicepoint is a powerset -- a set of symches all of which share
+# the same set of predecessors.  (This set of predecessors is a power 3 set of
+# choicepoints.)  All symches in a choicepoint also share the same span,
+# and the same symch-symbol.  A symch's symbol is the LHS of the rule,
+# or the symbol of the token in the token and-nodes.
 
 sub intset_id {
     my ($asf, @ids) = @_;
@@ -134,6 +157,48 @@ sub Marpa::R2::Powerset::show {
     my $id = $powerset->id();
     my $nidset_ids = $powerset->nidset_ids();
     return "Powerset #$id: " . join q{ }, @{$nidset_ids};
+}
+
+sub Marpa::R2::Pow3set::obtain {
+    my ($class, $asf, @powerset_ids) = @_;
+    my $id = intset_id($asf, @powerset_ids);
+    my $pow3set_by_id = $asf->[Marpa::R2::Internal::Scanless::ASF::POW3SET_BY_ID];
+    my $pow3set = $pow3set_by_id->[$id];
+    return $pow3set if defined $pow3set;
+    $pow3set = bless [], $class;
+    $pow3set->[Marpa::R2::Internal::Pow3set::ID] = $id;
+    $pow3set->[Marpa::R2::Internal::Pow3set::POWERSET_IDS] = [ sort { $a <=> $b } @powerset_ids ];
+    $pow3set_by_id->[$id] = $pow3set;
+    return $pow3set;
+}
+
+sub Marpa::R2::Pow3set::powerset_ids {
+    my ($pow3set) = @_;
+    return $pow3set->[Marpa::R2::Internal::Pow3set::POWERSET_IDS];
+}
+
+sub Marpa::R2::Pow3set::count {
+    my ($pow3set) = @_;
+    return scalar @{$pow3set->[Marpa::R2::Internal::Pow3set::POWERSET_IDS]};
+}
+
+sub Marpa::R2::Pow3set::powerset_id {
+    my ($pow3set, $ix) = @_;
+    my $powerset_ids = $pow3set->[Marpa::R2::Internal::Pow3set::POWERSET_IDS];
+    return if $ix > $#{$powerset_ids};
+    return $pow3set->[Marpa::R2::Internal::Pow3set::POWERSET_IDS]->[$ix];
+}
+
+sub Marpa::R2::Pow3set::id {
+    my ($pow3set) = @_;
+    return $pow3set->[Marpa::R2::Internal::Pow3set::ID];
+}
+
+sub Marpa::R2::Pow3set::show {
+    my ($pow3set) = @_;
+    my $id = $pow3set->id();
+    my $powerset_ids = $pow3set->powerset_ids();
+    return "Pow3set #$id: " . join q{ }, @{$powerset_ids};
 }
 
 # No check for conflicting usage -- value(), asf(), etc.
@@ -290,6 +355,7 @@ sub Marpa::R2::Scanless::ASF::new {
 
     $asf->[Marpa::R2::Internal::Scanless::ASF::NIDSET_BY_ID] = [];
     $asf->[Marpa::R2::Internal::Scanless::ASF::POWERSET_BY_ID] = [];
+    $asf->[Marpa::R2::Internal::Scanless::ASF::POW3SET_BY_ID] = [];
 
     my $slg       = $slr->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
     my $thin_slr  = $slr->[Marpa::R2::Inner::Scanless::R::C];
@@ -851,6 +917,9 @@ sub Marpa::R2::Scanless::ASF::show_powersets {
     }
     return $text;
 }
+
+# choicepoint_seen is a local -- this is to silence warnings
+our %choicepoint_seen;
 
 sub Marpa::R2::Choicepoint::show_nids {
     my ( $choicepoint, $parent_choice ) = @_;
