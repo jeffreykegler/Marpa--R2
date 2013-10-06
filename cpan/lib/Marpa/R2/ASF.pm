@@ -462,10 +462,11 @@ sub nidset_to_factorset {
     my ( $asf, $nidset, $nid_to_prior_nidset ) = @_;
     my $nidset_id = $nidset->id();
     my @sorted_nids =
-        map  { $_->[-1] }
-        sort { $a->[0] <=> $b->[0] }
-        map  { ; [ ( $nid_to_prior_nidset->{$_} // -1 ), $_ ] }
-        @{ $nidset->nids() };
+        map { $_->[-1] }
+        sort { $a->[0] <=> $b->[0] or $a->[1] <=> $b->[1] } map {
+        ;
+        [ ( $nid_to_prior_nidset->{$_} // -1 ), nid_to_whole_id($asf, $_), $_ ]
+        } @{ $nidset->nids() };
     my $nid_ix                 = 0;
     my $this_nid               = $sorted_nids[ $nid_ix++ ];
     my $prior_of_this_nid      = $nid_to_prior_nidset->{$this_nid} // -1;
