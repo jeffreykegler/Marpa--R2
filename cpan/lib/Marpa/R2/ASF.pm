@@ -482,7 +482,6 @@ sub nidset_to_factorset {
                 and $prior_of_this_nid == $current_prior
                 and $whole_id_of_this_nid == $current_whole_id )
             {
-                push @nids_with_current_data, $this_nid;
                 last CHECK_FOR_BREAK;
             } ## end if ( defined $this_nid and $prior_of_this_nid == ...)
 
@@ -491,10 +490,11 @@ sub nidset_to_factorset {
                 Marpa::R2::Nidset->obtain( $asf, @nids_with_current_data );
             push @choicepoints, $nidset->id();
             last NID if not defined $this_nid;
-            @nids_with_current_data = ($this_nid);
+            @nids_with_current_data = ();
             $current_prior          = $prior_of_this_nid;
             $current_whole_id       = $whole_id_of_this_nid;
         } ## end CHECK_FOR_BREAK:
+        push @nids_with_current_data, $this_nid;
         $this_nid = $sorted_nids[ $nid_ix++ ];
         next NID if not defined $this_nid;
         $prior_of_this_nid = $nid_to_prior_nidset->{$this_nid} // -1;
