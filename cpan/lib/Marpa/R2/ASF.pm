@@ -477,15 +477,15 @@ sub nidset_to_factorset {
     my @choicepoints           = ();
     NID: while (1) {
 
-        CHECK_FOR_BREAK: {
-            if (    defined $this_nid
-                and $prior_of_this_nid == $current_prior
-                and $whole_id_of_this_nid == $current_whole_id )
-            {
-                last CHECK_FOR_BREAK;
-            } ## end if ( defined $this_nid and $prior_of_this_nid == ...)
+        my $prior_nidset_break;
+        $prior_nidset_break = 1 if not defined $this_nid;
+        $prior_nidset_break = 1 if $prior_of_this_nid != $current_prior;
+        my $whole_id_break;
+        $whole_id_break = 1 if $whole_id_of_this_nid != $current_whole_id;
+        $whole_id_break = 1 if $prior_nidset_break;
+        if ($whole_id_break) {
 
-            # perform break on prior
+            # Currently only whole id break logic
             my $nidset =
                 Marpa::R2::Nidset->obtain( $asf, @nids_with_current_data );
             push @choicepoints, $nidset->id();
@@ -493,12 +493,18 @@ sub nidset_to_factorset {
             @nids_with_current_data = ();
             $current_prior          = $prior_of_this_nid;
             $current_whole_id       = $whole_id_of_this_nid;
-        } ## end CHECK_FOR_BREAK:
+        } ## end if ($whole_id_break)
         push @nids_with_current_data, $this_nid;
         $this_nid = $sorted_nids[ $nid_ix++ ];
-        next NID if not defined $this_nid;
-        $prior_of_this_nid = $nid_to_prior_nidset->{$this_nid} // -1;
-        $whole_id_of_this_nid = nid_to_whole_id( $asf, $this_nid );
+        if ( defined $this_nid ) {
+            $prior_of_this_nid = $nid_to_prior_nidset->{$this_nid} // -1;
+            $whole_id_of_this_nid = nid_to_whole_id( $asf, $this_nid );
+            next NID;
+        }
+
+        # -2 indicates 'end of data'
+        $prior_of_this_nid    = -2;
+        $whole_id_of_this_nid = -2;
     } ## end NID: while (1)
     my $powerset = Marpa::R2::Powerset->obtain( $asf, @choicepoints );
     return $powerset;
