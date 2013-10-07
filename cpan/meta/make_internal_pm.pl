@@ -243,10 +243,11 @@ __DATA__
 
     { An external choicepoint }
     ASF
-    NIDSET
+    POWERSET
     NID_IX 
+    SYMCH_IX 
     FACTORING_STACK
-    NIDSET_TO_PRIOR_POWERSET
+    POWERSET_TO_PRIOR_FACTORSET
 
     :package=Marpa::R2::Internal::Scanless::ASF
 

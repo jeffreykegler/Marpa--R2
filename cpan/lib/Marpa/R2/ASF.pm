@@ -233,12 +233,9 @@ sub Marpa::R2::Scanless::ASF::top {
         push @nid_set, and_node_to_nid($augment2_and_node_id);
     } ## end AND_NODE: for my $augment2_and_node_id ( $bocage...)
     my $flat_nidset = Marpa::R2::Nidset->obtain( $asf, @nid_set );
-    my $top_powerset = nidset_to_factorset( $asf, $flat_nidset, {} );
-    my $top_cooked_nidset_id = $top_powerset->nidset_id(0);
-    my $top_cooked_nidset =
-        $asf->[Marpa::R2::Internal::Scanless::ASF::NIDSET_BY_ID]
-        ->[$top_cooked_nidset_id];
-    $top = $asf->new_choicepoint($top_cooked_nidset);
+    my $top_factorset = nidset_to_factorset( $asf, $flat_nidset, {} );
+    my $top_powerset = $top_factorset->powerset(0);
+    $top = $asf->new_choicepoint($top_powerset);
     $asf->[Marpa::R2::Internal::Scanless::ASF::TOP] = $top;
     return $top;
 } ## end sub Marpa::R2::Scanless::ASF::top
@@ -371,65 +368,64 @@ sub Marpa::R2::Scanless::ASF::new {
 } ## end sub Marpa::R2::Scanless::ASF::new
 
 sub Marpa::R2::Scanless::ASF::new_choicepoint {
-    my ( $asf, $nidset ) = @_;
-    my $cpi = bless [], 'Marpa::R2::Choicepoint';
-    $cpi->[Marpa::R2::Internal::Choicepoint::ASF] = $asf;
-    $cpi->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK] = undef;
-    $cpi->[Marpa::R2::Internal::Choicepoint::NIDSET] = $nidset;
-    $cpi->[Marpa::R2::Internal::Choicepoint::NID_IX] = 0;
-    return $cpi;
+    my ( $asf, $powerset ) = @_;
+    my $cp = bless [], 'Marpa::R2::Choicepoint';
+    $cp->[Marpa::R2::Internal::Choicepoint::ASF] = $asf;
+    $cp->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK] = undef;
+    $cp->[Marpa::R2::Internal::Choicepoint::POWERSET] = $powerset;
+    $cp->[Marpa::R2::Internal::Choicepoint::SYMCH_IX] = 0;
+    $cp->[Marpa::R2::Internal::Choicepoint::NID_IX] = 0;
+    return $cp;
 }
 
 sub Marpa::R2::Choicepoint::show {
     my ( $cp ) = @_;
     my $id = $cp->base_id();
-    # Not yet based on powerset, but will be.
-    return join q{ }, "Choicepoint based on powerset #$id:", 
-        @{$cp->[Marpa::R2::Internal::Choicepoint::NIDSET]->nids()};
+    return join q{ }, "Choicepoint based on powerset #$id: ", 
+        $cp->[Marpa::R2::Internal::Choicepoint::POWERSET]->show();
 }
 
 # ID of the set on which the choicepoint is based.  Two or more choicepoints
 # may share the same base ID.
 sub Marpa::R2::Choicepoint::base_id {
     my ( $cp ) = @_;
-    return $cp->[Marpa::R2::Internal::Choicepoint::NIDSET]->id();
+    return $cp->[Marpa::R2::Internal::Choicepoint::POWERSET]->id();
 }
 
-sub Marpa::R2::Choicepoint::nid_count {
+sub Marpa::R2::Choicepoint::symch_count {
     my ( $cp ) = @_;
-    return $cp->[Marpa::R2::Internal::Choicepoint::NIDSET]->count();
+    return $cp->[Marpa::R2::Internal::Choicepoint::POWERSET]->count();
+}
+
+sub Marpa::R2::Choicepoint::symch {
+    my ( $cp, $symch_ix ) = @_;
+    my $symch_ix = $ix // $cp->[Marpa::R2::Internal::Choicepoint::SYMCH_IX];
+    return >symch($symch_ix);
 }
 
 sub Marpa::R2::Choicepoint::nid {
-    my ( $cp, $ix ) = @_;
-    my $nid_ix = $ix // $cp->[Marpa::R2::Internal::Choicepoint::NID_IX];
-    say STDERR "nid_ix=$nid_ix ", $cp->show();
-    return $cp->[Marpa::R2::Internal::Choicepoint::NIDSET]->nids()->[$nid_ix];
-}
+    my ( $cp, $symch_ix, $nid_ix ) = @_;
+    my $symch_ix = $symch_ix
+        // $cp->[Marpa::R2::Internal::Choicepoint::SYMCH_IX];
+    my $symch = symch($symch_ix);
+    return if not defined $symch;
+    my $nid_ix = $nid_ix // $cp->[Marpa::R2::Internal::Choicepoint::NID_IX];
+    return $symch->nid($nid_ix);
+} ## end sub Marpa::R2::Choicepoint::nid
 
-sub Marpa::R2::Choicepoint::nid_set {
+sub Marpa::R2::Choicepoint::symch_set {
     my ( $cp, $ix ) = @_;
-    my $max_nid_ix = $cp->nid_count() - 1;
-    Marpa::R2::exception("NID index must be in range from 0 to $max_nid_ix")
-       if $ix < 0 or $ix > $max_nid_ix;
+    my $max_symch_ix = $cp->symch_count() - 1;
+    Marpa::R2::exception("SYMCH index must be in range from 0 to $max_symch_ix")
+       if $ix < 0 or $ix > $max_symch_ix;
     $cp->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK] = undef;
-    return $cp->[Marpa::R2::Internal::Choicepoint::NID_IX] = $ix;
+    return $cp->[Marpa::R2::Internal::Choicepoint::SYMCH_IX] = $ix;
 }
 
 sub Marpa::R2::Choicepoint::rule_id {
     my ($cp)      = @_;
-    my $asf       = $cp->[Marpa::R2::Internal::Choicepoint::ASF];
-    my $slr       = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
-    my $recce     = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
-    my $bocage     = $recce->[Marpa::R2::Internal::Recognizer::B_C];
-    my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
-    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
     my $or_node_id = $cp->nid() // -1;
-    say STDERR "or_node_id=$or_node_id ", $cp->show();
-    return if $or_node_id < 0;
-    my $irl_id = $bocage->_marpa_b_or_node_irl($or_node_id);
-    my $xrl_id = $grammar_c->_marpa_g_source_xrl($irl_id);
-    return $xrl_id;
+    return nid_to_whole_id($or_node_id);
 } ## end sub Marpa::R2::Choicepoint::rule_id
 
 # The "whole id" is the external rule ID, if there is one,
@@ -537,10 +533,11 @@ sub nidset_to_factorset {
     my $this_nid               = $sorted_nids[ $nid_ix++ ];
     my $prior_of_this_nid      = $nid_to_prior_nidset->{$this_nid} // -1;
     my $whole_id_of_this_nid   = nid_to_whole_id( $asf, $this_nid );
-    my @nids_with_current_data = ();
+    my @nids_with_current_whole_id = ();
+    my @symches_with_current_priors = ();
     my $current_prior          = $prior_of_this_nid;
     my $current_whole_id       = $whole_id_of_this_nid;
-    my @choicepoints           = ();
+    my @choicepoint_ids           = ();
     NID: while (1) {
 
         my $prior_nidset_break;
@@ -552,15 +549,23 @@ sub nidset_to_factorset {
         if ($whole_id_break) {
 
             # Currently only whole id break logic
-            my $nidset =
-                Marpa::R2::Nidset->obtain( $asf, @nids_with_current_data );
-            push @choicepoints, $nidset->id();
-            last NID if not defined $this_nid;
-            @nids_with_current_data = ();
-            $current_prior          = $prior_of_this_nid;
-            $current_whole_id       = $whole_id_of_this_nid;
+            my $nidset = Marpa::R2::Nidset->obtain( $asf,
+                @nids_with_current_whole_id );
+            push @symches_with_current_priors, $nidset->id();
+            @nids_with_current_whole_id = ();
+            $current_whole_id           = $whole_id_of_this_nid;
         } ## end if ($whole_id_break)
-        push @nids_with_current_data, $this_nid;
+        if ($prior_nidset_break) {
+
+            # Currently only whole id break logic
+            my $choicepoint = Marpa::R2::Nidset->obtain( $asf,
+                @symches_with_current_priors );
+            push @choicepoint_ids, $choicepoint->id();
+            last NID if not defined $this_nid;
+            @symches_with_current_priors = ();
+            $current_prior               = $prior_of_this_nid;
+        } ## end if ($prior_nidset_break)
+        push @nids_with_current_whole_id, $this_nid;
         $this_nid = $sorted_nids[ $nid_ix++ ];
         if ( defined $this_nid ) {
             $prior_of_this_nid = $nid_to_prior_nidset->{$this_nid} // -1;
@@ -572,21 +577,26 @@ sub nidset_to_factorset {
         $prior_of_this_nid    = -2;
         $whole_id_of_this_nid = -2;
     } ## end NID: while (1)
-    my $powerset = Marpa::R2::Powerset->obtain( $asf, @choicepoints );
+    my $pow3set = Marpa::R2::Pow3set->obtain( $asf, @choicepoint_ids );
     return $powerset;
 } ## end sub nidset_to_factorset
 
-sub Marpa::R2::Choicepoint::first_factoring {
+# Not external -- first_symch will be.
+sub first_factoring {
     my ( $choicepoint ) = @_;
     my $asf = $choicepoint->[Marpa::R2::Internal::Choicepoint::ASF];
-    say STDERR join q{ }, __FILE__, __LINE__, "first_factoring()", $choicepoint->show();
+
+    # First NID of current SYMCH
+    $choicepoint->[Marpa::R2::Internal::Choicepoint::NID_IX] = 0;
     my $nid = $choicepoint->nid();
 
     my $nidset_by_id = $asf->[Marpa::R2::Internal::Scanless::ASF::NIDSET_BY_ID];
 
-    # return undef if we were passed a NID which is not
-    # an or-node
-    return if $nid < 0;
+    # The caller should ensure that we are never called unless the current
+    # NID is for a rule.
+    Marpa::exception(
+        "Internal error: first_factoring() called for negative NID: $nid")
+        if $nid < 0;
 
     my $slr = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
     my $recce     = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
@@ -942,12 +952,11 @@ sub Marpa::R2::Choicepoint::show_nids {
     my $grammar     = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my @lines = ();
 
-    my $nid_count = $choicepoint->nid_count();
-    for ( my $nid_ix = 0; $nid_ix < $nid_count; $nid_ix++ ) {
-        $choicepoint->nid_set($nid_ix);
-        say STDERR join q{ }, __FILE__, __LINE__, '$nid_ix =', $nid_ix;
-        my $current_choice = "$parent_choice$nid_ix";
-        push @lines, "CP$id NID #$current_choice: " if $nid_count > 1;
+    my $symch_count = $choicepoint->symch_count();
+    for ( my $symch_ix = 0; $symch_ix < $symch_count; $symch_ix++ ) {
+        $choicepoint->symch_set($symch_ix);
+        my $current_choice = "$parent_choice$symch_ix";
+        push @lines, "CP$id NID #$current_choice: " if $symch_count > 1;
         my $rule_id = $choicepoint->rule_id();
         say STDERR join q{ }, __FILE__, __LINE__, '$rule_id =', ($rule_id // 'undef');
         if ( defined $rule_id ) {
@@ -962,7 +971,7 @@ sub Marpa::R2::Choicepoint::show_nids {
             my $symbol_name = $grammar->symbol_name($symbol_id);
             push @lines, qq{CP$id Symbol: $symbol_name "$literal"};
         }
-    } ## end for ( my $nid_ix = 0; $nid_ix < $nid_count; $nid_ix...)
+    }
     return \@lines;
 } ## end sub Marpa::R2::Choicepoint::show_nids
 
@@ -979,7 +988,7 @@ sub Marpa::R2::Choicepoint::show_factorings {
     my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my @lines;
 
-    my $factoring = $choicepoint->first_factoring();
+    my $factoring = first_factoring($choicepoint);
 
     my $ambiguous_prefix = $choicepoint->ambiguous_prefix();
     say STDERR join q{ }, __FILE__, __LINE__, "ambiguous_prefix=$ambiguous_prefix", $choicepoint->show();

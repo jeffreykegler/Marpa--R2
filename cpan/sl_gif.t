@@ -161,6 +161,7 @@ sub my_parser {
     my $asf_desc = $asf->show();
     say STDERR $asf->show_nidsets();
     say STDERR $asf->show_powersets();
+    say STDERR $asf->show_pow3sets();
     return $asf_desc, 'ASF OK';
 } ## end sub my_parser
 
