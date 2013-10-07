@@ -808,7 +808,8 @@ sub first_factoring {
         for @nidset_ids_to_do;
 
     my %powerset_to_prior_factorset = ();
-    for my $factorset ( sort values %nidset_to_factorset ) {
+    for my $nidset_id (@nidset_ids_to_do) {
+        my $factorset = $nidset_to_factorset{$nidset_id};
         CHOICEPOINT: for my $powerset_id ( @{ $factorset->powerset_ids() } ) {
             next CHOICEPOINT if $powerset_to_prior_factorset{$powerset_id};
             my $powerset     = $powerset_by_id->[$powerset_id];
@@ -821,11 +822,13 @@ sub first_factoring {
             $powerset_to_prior_factorset{$powerset_id} =
                 $nidset_to_factorset{$prior_nidset_id};
         } ## end CHOICEPOINT: for my $powerset_id ( @{ $factorset->powerset_ids() ...})
-    } ## end for my $factorset ( sort values %nidset_to_factorset )
+    } ## end for my $nidset_id (@nidset_ids_to_do)
 
     my $final_factorset = $nidset_to_factorset{ $final_nidset->id() };
     my @factoring_stack = ( [ $final_factorset, 0 ] );
 
+    say STDERR '%powerset_to_prior_factorset = ', Data::Dumper::Dumper( \%powerset_to_prior_factorset);
+    say STDERR '%final_factorset = ', Data::Dumper::Dumper( $final_factorset);
     $choicepoint->[Marpa::R2::Internal::Choicepoint::POWERSET_TO_PRIOR_FACTORSET] =
         \%powerset_to_prior_factorset;
     $choicepoint->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK] =
@@ -986,13 +989,8 @@ sub Marpa::R2::Choicepoint::show_nids {
                 @{ $choicepoint->show_factorings( $current_choice ) };
         }
         else {
-            # This assumes a token symch will contain only one
-            # NID, or at least that they will all be identical
-            # and only one should be displayed.
-            my $symbol_id = $choicepoint->symbol_id();
-            my $literal = $choicepoint->literal();
-            my $symbol_name = $grammar->symbol_name($symbol_id);
-            push @lines, qq{CP$id Symbol: $symbol_name "$literal"};
+            push @lines,
+                @{ $choicepoint->show_symch_tokens( $current_choice ) };
         }
     }
     return \@lines;
@@ -1042,6 +1040,34 @@ sub Marpa::R2::Choicepoint::show_factorings {
     } ## end for ( my $nid_ix = 0; $nid_ix < $nid_count; $nid_ix++)
     return \@lines;
 } ## end sub Marpa::R2::Choicepoint::show_factorings
+
+# Show all the tokens of a SYMCH
+sub Marpa::R2::Choicepoint::show_symch_tokens {
+    my ( $choicepoint, $parent_choice ) = @_;
+    my $id = $choicepoint->base_id();
+    say STDERR join q{ }, __FILE__, __LINE__, "show_symch_tokens()",
+        $choicepoint->show();
+    $parent_choice .= q{.} if defined $parent_choice;
+    $parent_choice //= q{};
+
+    # Check if choicepoint already seen?
+    my $asf     = $choicepoint->[Marpa::R2::Internal::Choicepoint::ASF];
+    my $slr     = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
+    my $recce   = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+    my $grammar = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
+    my @lines;
+
+    my $symch     = $choicepoint->symch();
+    my $nid_count = $symch->count();
+    for ( my $nid_ix = 0; $nid_ix < $nid_count; $nid_ix++ ) {
+        $choicepoint->[Marpa::R2::Internal::Choicepoint::NID_IX] = $nid_ix;
+        my $symbol_id   = $choicepoint->symbol_id();
+        my $literal     = $choicepoint->literal();
+        my $symbol_name = $grammar->symbol_name($symbol_id);
+        push @lines, qq{CP$id Symbol: $symbol_name "$literal"};
+    } ## end for ( my $nid_ix = 0; $nid_ix < $nid_count; $nid_ix++)
+    return \@lines;
+} ## end sub Marpa::R2::Choicepoint::show_symch_tokens
 
 sub Marpa::R2::Scanless::ASF::show {
     my ($asf) = @_;

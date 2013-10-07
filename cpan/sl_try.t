@@ -173,7 +173,7 @@ sub my_parser {
         return 'No parse', $abbreviated_error;
     } ## end if ( not defined eval { $slr->read( \$string ); 1 } )
     my $asf = Marpa::R2::Scanless::ASF->new(
-        { slr => $slr, choice => 'My_ASF::choix', force => 'My_ASF' } );
+        { slr => $slr } );
     if ( not defined $asf ) {
         return 'No ASF', 'Input read to end but no ASF';
     }
@@ -183,7 +183,7 @@ sub my_parser {
     say STDERR "And-nodes:\n", $slr->thick_g1_recce()->show_and_nodes();
     say STDERR "Bocage:\n", $slr->thick_g1_recce()->show_bocage();
     my $asf_desc = $asf->show();
-    say STDERR $asf->show_symchsets();
+    say STDERR $asf->show_nidsets();
     say STDERR $asf->show_powersets();
     return $asf_desc, 'ASF OK';
 } ## end sub my_parser
