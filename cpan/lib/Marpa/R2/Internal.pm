@@ -123,10 +123,11 @@ use constant CURRENT => 3;
 
 package Marpa::R2::Internal::Choicepoint;
 use constant ASF => 0;
-use constant NIDSET => 1;
+use constant POWERSET => 1;
 use constant NID_IX => 2;
-use constant FACTORING_STACK => 3;
-use constant NIDSET_TO_PRIOR_POWERSET => 4;
+use constant SYMCH_IX => 3;
+use constant FACTORING_STACK => 4;
+use constant POWERSET_TO_PRIOR_FACTORSET => 5;
 
 package Marpa::R2::Internal::Scanless::ASF;
 use constant SLR => 0;
