@@ -45,7 +45,7 @@ package Marpa::R2::Internal::ASF;
 
 # NID (Node ID): Encoded ID of either an or-node or an and-node.
 #
-# Extenstions:
+# Extensions:
 # Set "powers":  A set of power 0 is an "atom" -- a single NID.
 # A set of power 1 is a set of NID's -- a nidset.
 # A set of power 2 is a set of sets of NID's, also called a powerset.
