@@ -68,7 +68,7 @@ package Marpa::R2::Internal::ASF;
 
 sub intset_id {
     my ($asf, @ids) = @_;
-    my $key = join q{ }, sort @ids;
+    my $key = join q{ }, sort { $a <=> $b } @ids;
     my $intset_by_key = $asf->[Marpa::R2::Internal::Scanless::ASF::INTSET_BY_KEY];
     my $intset_id = $intset_by_key->{$key};
     return $intset_id if defined $intset_id;
@@ -590,6 +590,8 @@ sub nidset_to_factorset {
 # Not external -- first_symch will be.
 sub first_factoring {
     my ( $choicepoint ) = @_;
+    say STDERR join q{ }, __FILE__, __LINE__, "first_factoring()",
+        $choicepoint->show();
     my $asf = $choicepoint->[Marpa::R2::Internal::Choicepoint::ASF];
 
     # Current NID of current SYMCH
@@ -619,14 +621,10 @@ sub first_factoring {
     my @stack = ( $nid_of_choicepoint );
     my %or_node_seen = ( $nid_of_choicepoint => 1 );
     STACK_ELEMENT: while ( defined( my $or_node = pop @stack ) ) {
-        say STDERR "Popped or-node $or_node";
-        say STDERR "Count of and-nodes for or-node $or_node: ", $ordering->_marpa_o_or_node_and_node_count($or_node);
-        say STDERR "And-nodes for or-node $or_node: ", join " ", $ordering->_marpa_o_or_node_and_node_ids($or_node);
 
         AND_NODE: for my $and_node_id (
             $ordering->_marpa_o_or_node_and_node_ids($or_node) )
         {
-            say STDERR "Looking for finals in and-node $and_node_id";
             my $cause_id = $bocage->_marpa_b_and_node_cause($and_node_id);
             if ( not defined $cause_id ) {
                 push @finals, and_node_to_nid($and_node_id);
@@ -661,7 +659,6 @@ sub first_factoring {
                 $cause_id = and_node_to_nid($and_node_id);
             }
             if ( defined $predecessor_id ) {
-                say STDERR "predecessor of $cause_id is $predecessor_id";
                 $predecessors{$cause_id}{$predecessor_id} = 1;
                 if ( not $or_node_seen{$predecessor_id} ) {
                     push @stack, $predecessor_id;
@@ -676,8 +673,6 @@ sub first_factoring {
             push @internal_completions, $cause_id;
         } ## end for my $and_node_id ( $ordering...)
     } ## end STACK_ELEMENT: while ( defined( my $or_node = pop @stack ) )
-
-    say STDERR '%predecessors = ', Data::Dumper::Dumper( \%predecessors);
 
     # Find the predecessors which cross internal rule boundaries,
     # but that connect cause and predecessor for an external rule.
@@ -827,8 +822,8 @@ sub first_factoring {
     my $final_factorset = $nidset_to_factorset{ $final_nidset->id() };
     my @factoring_stack = ( [ $final_factorset, 0 ] );
 
-    say STDERR '%powerset_to_prior_factorset = ', Data::Dumper::Dumper( \%powerset_to_prior_factorset);
-    say STDERR '%final_factorset = ', Data::Dumper::Dumper( $final_factorset);
+    # say STDERR '%powerset_to_prior_factorset = ', Data::Dumper::Dumper( \%powerset_to_prior_factorset);
+    # say STDERR '%final_factorset = ', Data::Dumper::Dumper( $final_factorset);
     $choicepoint->[Marpa::R2::Internal::Choicepoint::POWERSET_TO_PRIOR_FACTORSET] =
         \%powerset_to_prior_factorset;
     $choicepoint->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK] =
@@ -959,6 +954,7 @@ our %CHOICEPOINT_SEEN;
 
 sub Marpa::R2::Choicepoint::show_nids {
     my ( $choicepoint, $parent_choice ) = @_;
+    say STDERR join q{ }, __FILE__, __LINE__, "show_nids()", $choicepoint->show();
     my $id = $choicepoint->base_id();
     if ($CHOICEPOINT_SEEN{$id}) {
         $parent_choice = '"Top"' if not defined $parent_choice;
@@ -981,8 +977,8 @@ sub Marpa::R2::Choicepoint::show_nids {
         my $current_choice = "$parent_choice$symch_ix";
         push @lines, "CP$id SYMCH #$current_choice: " if $symch_count > 1;
         my $rule_id = $choicepoint->rule_id();
-        say STDERR join q{ }, __FILE__, __LINE__, '$rule_id =', ($rule_id // 'undef');
         if ( $rule_id >= 0 ) {
+            say STDERR "LINE: ", ( "CP$id Rule " . $grammar->brief_rule($rule_id) );
             push @lines,
             ( "CP$id Rule " . $grammar->brief_rule($rule_id) ),
                 map { q{  } . $_ }
@@ -1019,18 +1015,15 @@ sub Marpa::R2::Choicepoint::show_factorings {
         my $factoring = first_factoring($choicepoint);
 
         my $ambiguous_prefix = $choicepoint->ambiguous_prefix();
-        say STDERR join q{ }, __FILE__, __LINE__,
-            "ambiguous_prefix=$ambiguous_prefix", $choicepoint->show();
         FACTOR: for ( my $factor_ix = 0; defined $factoring; $factor_ix++ ) {
             my $current_choice = "$parent_choice$factor_ix";
             my $indent         = q{};
             if ($ambiguous_prefix) {
+                say STDERR "LINE: ", "Factoring #$current_choice";
                 push @lines, "Factoring #$current_choice";
                 $indent = q{  };
             }
             for my $choicepoint ( @{$factoring} ) {
-                say STDERR join q{ }, __FILE__, __LINE__,
-                    $choicepoint->show();
                 push @lines,
                     map { $indent . $_ }
                     @{ $choicepoint->show_nids($current_choice) };
@@ -1044,9 +1037,9 @@ sub Marpa::R2::Choicepoint::show_factorings {
 # Show all the tokens of a SYMCH
 sub Marpa::R2::Choicepoint::show_symch_tokens {
     my ( $choicepoint, $parent_choice ) = @_;
-    my $id = $choicepoint->base_id();
     say STDERR join q{ }, __FILE__, __LINE__, "show_symch_tokens()",
         $choicepoint->show();
+    my $id = $choicepoint->base_id();
     $parent_choice .= q{.} if defined $parent_choice;
     $parent_choice //= q{};
 
@@ -1064,6 +1057,7 @@ sub Marpa::R2::Choicepoint::show_symch_tokens {
         my $symbol_id   = $choicepoint->symbol_id();
         my $literal     = $choicepoint->literal();
         my $symbol_name = $grammar->symbol_name($symbol_id);
+        say STDERR "LINE: ", qq{CP$id Symbol: $symbol_name "$literal"};
         push @lines, qq{CP$id Symbol: $symbol_name "$literal"};
     } ## end for ( my $nid_ix = 0; $nid_ix < $nid_count; $nid_ix++)
     return \@lines;

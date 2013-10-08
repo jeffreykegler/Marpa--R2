@@ -179,12 +179,15 @@ sub my_parser {
     }
 
     say STDERR "Rules:\n",  $slr->thick_g1_grammar()->show_rules();
+    say STDERR "IRLs:\n",  $slr->thick_g1_grammar()->show_irls();
+    say STDERR "ISYs:\n",  $slr->thick_g1_grammar()->show_isys();
     say STDERR "Or-nodes:\n",  $slr->thick_g1_recce()->verbose_or_nodes();
     say STDERR "And-nodes:\n", $slr->thick_g1_recce()->show_and_nodes();
     say STDERR "Bocage:\n", $slr->thick_g1_recce()->show_bocage();
     my $asf_desc = $asf->show();
     say STDERR $asf->show_nidsets();
     say STDERR $asf->show_powersets();
+    say STDERR $asf->show_pow3sets();
     return $asf_desc, 'ASF OK';
 } ## end sub my_parser
 
