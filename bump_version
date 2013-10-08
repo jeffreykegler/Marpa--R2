@@ -33,7 +33,6 @@ cpan/html/meta/make_internal_pm.pl
 cpan/html/tool/lib/Marpa/R2/HTML/Test/Util.pm
 cpan/lib/Marpa/R2.pm
 cpan/lib/Marpa/R2/ASF.pm
-cpan/lib/Marpa/R2/ASF2.pm
 cpan/lib/Marpa/R2/Grammar.pm
 cpan/lib/Marpa/R2/MetaAST.pm
 cpan/lib/Marpa/R2/MetaG.pm
