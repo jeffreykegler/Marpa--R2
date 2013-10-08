@@ -112,7 +112,7 @@ perltidy: '-dcsc -sil=0'
 
     sub supply_missing_tags {
         my $tagname = Marpa::R2::HTML::tagname();
-        return if $empty_elements{$tagname};
+        return if Marpa::R2::HTML::is_empty_element($tagname);
         return ( Marpa::R2::HTML::start_tag() // "<$tagname>\n" )
             . Marpa::R2::HTML::contents() .
             ( Marpa::R2::HTML::end_tag() // "</$tagname>\n" );

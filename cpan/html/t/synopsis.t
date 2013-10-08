@@ -39,9 +39,6 @@ BEGIN { use Test::More tests => 9; }
 
 use Marpa::R2::Test;
 
-# This is just a dummy value for the synopsis
-my %empty_elements = ();
-
 # Marpa::R2::Display
 # name: 'HTML Synopsis: Delete Tables'
 
@@ -116,7 +113,7 @@ my $edited_stuff       = html(
 
 sub supply_missing_tags {
     my $tagname = Marpa::R2::HTML::tagname();
-    return if $empty_elements{$tagname};
+    return if Marpa::R2::HTML::is_empty_element($tagname);
     return
           ( Marpa::R2::HTML::start_tag() // "<$tagname>\n" )
         . Marpa::R2::HTML::contents()

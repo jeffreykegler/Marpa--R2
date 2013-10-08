@@ -592,10 +592,14 @@ sub first_factoring {
     my ( $choicepoint ) = @_;
     say STDERR join q{ }, __FILE__, __LINE__, "first_factoring()",
         $choicepoint->show();
+        say STDERR "first_factoring: id=", $choicepoint->base_id(),
+            "; symch IX = ", $choicepoint->[Marpa::R2::Internal::Choicepoint::SYMCH_IX],
+            "; nid IX = ", $choicepoint->[Marpa::R2::Internal::Choicepoint::NID_IX];
     my $asf = $choicepoint->[Marpa::R2::Internal::Choicepoint::ASF];
 
     # Current NID of current SYMCH
     my $nid_of_choicepoint = $choicepoint->nid();
+    say STDERR "first_factoring NID of choicepoint = ", $nid_of_choicepoint;
 
     my $nidset_by_id = $asf->[Marpa::R2::Internal::Scanless::ASF::NIDSET_BY_ID];
     my $powerset_by_id = $asf->[Marpa::R2::Internal::Scanless::ASF::POWERSET_BY_ID];
@@ -822,8 +826,9 @@ sub first_factoring {
     my $final_factorset = $nidset_to_factorset{ $final_nidset->id() };
     my @factoring_stack = ( [ $final_factorset, 0 ] );
 
-    # say STDERR '%powerset_to_prior_factorset = ', Data::Dumper::Dumper( \%powerset_to_prior_factorset);
-    # say STDERR '%final_factorset = ', Data::Dumper::Dumper( $final_factorset);
+    say STDERR '%powerset_to_prior_factorset = ', Data::Dumper::Dumper( \%powerset_to_prior_factorset);
+    say STDERR '%final_factorset = ', Data::Dumper::Dumper( $final_factorset);
+
     $choicepoint->[Marpa::R2::Internal::Choicepoint::POWERSET_TO_PRIOR_FACTORSET] =
         \%powerset_to_prior_factorset;
     $choicepoint->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK] =
@@ -954,13 +959,12 @@ our %CHOICEPOINT_SEEN;
 
 sub Marpa::R2::Choicepoint::show_nids {
     my ( $choicepoint, $parent_choice ) = @_;
-    say STDERR join q{ }, __FILE__, __LINE__, "show_nids()", $choicepoint->show();
     my $id = $choicepoint->base_id();
     if ($CHOICEPOINT_SEEN{$id}) {
-        $parent_choice = '"Top"' if not defined $parent_choice;
         return ["CP$id already displayed"];
     }
     $CHOICEPOINT_SEEN{$id} = 1;
+    say STDERR join q{ }, __FILE__, __LINE__, ("show_nids($id, " . ($parent_choice // 'top') . ')'), $choicepoint->show();
     $parent_choice .= q{.} if defined $parent_choice;
     $parent_choice //= q{};
 
@@ -1009,16 +1013,17 @@ sub Marpa::R2::Choicepoint::show_factorings {
 
     my $symch     = $choicepoint->symch();
     my $nid_count = $symch->count();
+    my $factor_ix = 0;
     for ( my $nid_ix = 0; $nid_ix < $nid_count; $nid_ix++ ) {
         $choicepoint->[Marpa::R2::Internal::Choicepoint::NID_IX] = $nid_ix;
 
         my $factoring = first_factoring($choicepoint);
 
-        my $ambiguous_prefix = $choicepoint->ambiguous_prefix();
-        FACTOR: for ( my $factor_ix = 0; defined $factoring; $factor_ix++ ) {
+        my $factoring_is_ambiguous = ($nid_count > 1) || $choicepoint->ambiguous_prefix();
+        FACTOR: while (defined $factoring ) {
             my $current_choice = "$parent_choice$factor_ix";
             my $indent         = q{};
-            if ($ambiguous_prefix) {
+            if ($factoring_is_ambiguous) {
                 say STDERR "LINE: ", "Factoring #$current_choice";
                 push @lines, "Factoring #$current_choice";
                 $indent = q{  };
@@ -1029,6 +1034,7 @@ sub Marpa::R2::Choicepoint::show_factorings {
                     @{ $choicepoint->show_nids($current_choice) };
             } ## end for my $choicepoint ( @{$factoring} )
             $factoring = $choicepoint->next_factoring();
+            $factor_ix++;
         } ## end FACTOR: for ( my $factor_ix = 0; defined $factoring; ...)
     } ## end for ( my $nid_ix = 0; $nid_ix < $nid_count; $nid_ix++)
     return \@lines;
