@@ -14,13 +14,15 @@
 # http://www.gnu.org/licenses/.
 
 # Temporary
-^sl_ada[.]t$
-^sl_metaasf[.]t$
 ^ada[.]before$
+^sl_ada[.]t$
 ^sl_chaf[.]t$
-^sl_fact[.]t$
 ^sl_fact2[.]t$
+^sl_fact[.]t$
 ^sl_flies[.]t$
+^sl_gif[.]t$
+^sl_metaasf[.]t$
+^sl_try[.]t$
 ^todo[.]txt$
 
 # Permanent
