@@ -247,7 +247,13 @@ __DATA__
     NID_IX 
     SYMCH_IX 
     FACTORING_STACK
-    POWERSET_TO_PRIOR_FACTORSET
+    POWERSET_TO_PRIOR_POW3SET
+
+    :package=Marpa::R2::Internal::Factorset
+
+    ASF
+    POW3SET
+    FACTOR_IX
 
     :package=Marpa::R2::Internal::Scanless::ASF
 

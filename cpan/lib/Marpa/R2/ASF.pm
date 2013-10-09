@@ -233,7 +233,7 @@ sub Marpa::R2::Scanless::ASF::top {
         push @nid_set, and_node_to_nid($augment2_and_node_id);
     } ## end AND_NODE: for my $augment2_and_node_id ( $bocage...)
     my $flat_nidset = Marpa::R2::Nidset->obtain( $asf, @nid_set );
-    my $top_factorset = nidset_to_factorset( $asf, $flat_nidset, {} );
+    my $top_factorset = nidset_to_pow3set( $asf, $flat_nidset, {} );
     my $top_powerset_id = $top_factorset->powerset_id(0);
     my $top_powerset = $asf->[Marpa::R2::Internal::Scanless::ASF::POWERSET_BY_ID]->[$top_powerset_id];
     $top = $asf->new_choicepoint($top_powerset);
@@ -433,6 +433,67 @@ sub Marpa::R2::Choicepoint::rule_id {
     return nid_to_whole_id($asf, $or_node_id);
 } ## end sub Marpa::R2::Choicepoint::rule_id
 
+sub Marpa::R2::Factorset::new {
+    my ( $class, $asf, $pow3set ) = @_;
+    my $factorset = bless [], 'Marpa::R2::Factorset';
+    $factorset->[Marpa::R2::Internal::Factorset::ASF] = $asf;
+    $factorset->[Marpa::R2::Internal::Factorset::POW3SET] = $pow3set;
+    $factorset->[Marpa::R2::Internal::Factorset::FACTOR_IX] = 0;
+    return $factorset;
+}
+
+sub Marpa::R2::Factorset::increment {
+    my ($factorset) = @_;
+    my $factor_ix = ++$factorset->[Marpa::R2::Internal::Factorset::FACTOR_IX];
+    my $pow3set = $factorset->[Marpa::R2::Internal::Factorset::POW3SET];
+    my $count = $pow3set->count();
+    return if $factor_ix >= $count;
+    return $factor_ix;
+}
+
+sub Marpa::R2::Factorset::powerset_id {
+    my ($factorset, $ix) = @_;
+    my $factor_ix = $ix // $factorset->[Marpa::R2::Internal::Factorset::FACTOR_IX];
+    my $pow3set   = $factorset->[Marpa::R2::Internal::Factorset::POW3SET];
+    return $pow3set->powerset_id($factor_ix);
+}
+
+sub Marpa::R2::Factorset::count {
+    my ($factorset) = @_;
+    return $factorset->[Marpa::R2::Internal::Factorset::POW3SET]->count();
+}
+
+sub Marpa::R2::Factorset::choicepoint {
+    my ($factorset) = @_;
+    my $asf = $factorset->[Marpa::R2::Internal::Factorset::ASF];
+    my $powerset_by_id =
+        $asf->[Marpa::R2::Internal::Scanless::ASF::POWERSET_BY_ID];
+    my $factor_ix = $factorset->[Marpa::R2::Internal::Factorset::FACTOR_IX];
+    my $powerset_id =
+        $factorset->[Marpa::R2::Internal::Factorset::POW3SET]
+        ->powerset_id($factor_ix);
+    $DB::single = 1 if not defined $powerset_id;
+    my $powerset = $powerset_by_id->[$powerset_id];
+    return $asf->new_choicepoint($powerset);
+} ## end sub Marpa::R2::Factorset::choicepoint
+
+sub Marpa::R2::Factorset::is_ambiguous {
+    my ($factorset) = @_;
+    my $asf = $factorset->[Marpa::R2::Internal::Factorset::ASF];
+    return 1 if $factorset->count() > 1;
+    my $powerset_id = $factorset->powerset_id(0);
+    my $powerset_by_id =
+        $asf->[Marpa::R2::Internal::Scanless::ASF::POWERSET_BY_ID];
+    my $powerset = $powerset_by_id->[$powerset_id];
+    return 1 if $powerset->count() > 1;
+    my $nidset_id = $powerset->nidset_id(0);
+    my $nidset_by_id =
+        $asf->[Marpa::R2::Internal::Scanless::ASF::NIDSET_BY_ID];
+    my $nidset = $nidset_by_id->[$nidset_id];
+    return 1 if $nidset->count() > 1;
+    return;
+} ## end sub Marpa::R2::Factorset::is_ambiguous
+
 # The "whole id" is the external rule ID, if there is one,
 # otherwise -1.  In particular, it is -1 is the NID is for
 # token
@@ -526,7 +587,7 @@ sub Marpa::R2::Choicepoint::symbol_id {
 # current CP indexing it.  It is assumed that the indexes need only remain valid within
 # the method call that constructs the CPI (choicepoint iterator).
 
-sub nidset_to_factorset {
+sub nidset_to_pow3set {
     my ( $asf, $nidset, $nid_to_prior_nidset ) = @_;
     my $nidset_id = $nidset->id();
     my @sorted_nids =
@@ -585,9 +646,9 @@ sub nidset_to_factorset {
     } ## end NID: while (1)
     my $pow3set = Marpa::R2::Pow3set->obtain( $asf, @choicepoint_ids );
     return $pow3set;
-} ## end sub nidset_to_factorset
+} ## end sub nidset_to_pow3set
 
-# Not external -- first_symch will be.
+# Not external -- first_symch() will be the external method.
 sub first_factoring {
     my ( $choicepoint ) = @_;
     say STDERR join q{ }, __FILE__, __LINE__, "first_factoring()",
@@ -619,6 +680,7 @@ sub first_factoring {
 
     my %predecessors = ();
 
+    # Collect final nids -- can be delayed?
     # Find nid of "finals" -- nids which can be last in the external
     # rule.
     my @finals;
@@ -737,6 +799,7 @@ sub first_factoring {
     my %semantic_cause = ();
     my %and_node_seen = ();
 
+    # Find semantic cause's -- can be delayed?
     # This re-initializes a stack to a list of or-nodes whose cause's should be examined,
     # recursively, until a semantic or-node or a terminal is found.
     my %predecessors_to_do = ();
@@ -800,17 +863,18 @@ sub first_factoring {
         $nid_to_prior_nidset{$successor_cause_id} = $prior_nidset;
     }
 
-    my %nidset_to_factorset = ();
+    my %nidset_to_pow3set = ();
     my %nidset_ids_to_do = map { $_->id() => 1 } ($final_nidset, values %nid_to_prior_nidset );
     my @nidset_ids_to_do = sort { $a <=> $b } keys %nidset_ids_to_do;
-    $nidset_to_factorset{$_} = nidset_to_factorset($asf, $nidset_by_id->[$_], \%nid_to_prior_nidset)
+    $nidset_to_pow3set{$_} = nidset_to_pow3set($asf, $nidset_by_id->[$_], \%nid_to_prior_nidset)
         for @nidset_ids_to_do;
 
-    my %powerset_to_prior_factorset = ();
+    # Map powersets to prior factorsets.
+    my %powerset_to_prior_pow3set = ();
     for my $nidset_id (@nidset_ids_to_do) {
-        my $factorset = $nidset_to_factorset{$nidset_id};
+        my $factorset = $nidset_to_pow3set{$nidset_id};
         CHOICEPOINT: for my $powerset_id ( @{ $factorset->powerset_ids() } ) {
-            next CHOICEPOINT if $powerset_to_prior_factorset{$powerset_id};
+            next CHOICEPOINT if $powerset_to_prior_pow3set{$powerset_id};
             my $powerset     = $powerset_by_id->[$powerset_id];
             my $nidset_id    = $powerset->nidset_id(0);
             my $nidset       = $nidset_by_id->[$nidset_id];
@@ -818,19 +882,23 @@ sub first_factoring {
             my $prior_nidset = $nid_to_prior_nidset{$nid};
             next CHOICEPOINT if not defined $prior_nidset;
             my $prior_nidset_id = $prior_nidset->id();
-            $powerset_to_prior_factorset{$powerset_id} =
-                $nidset_to_factorset{$prior_nidset_id};
+            $powerset_to_prior_pow3set{$powerset_id} =
+                $nidset_to_pow3set{$prior_nidset_id};
         } ## end CHOICEPOINT: for my $powerset_id ( @{ $factorset->powerset_ids() ...})
     } ## end for my $nidset_id (@nidset_ids_to_do)
 
-    my $final_factorset = $nidset_to_factorset{ $final_nidset->id() };
-    my @factoring_stack = ( [ $final_factorset, 0 ] );
+    my $final_factorset = (
+        Marpa::R2::Factorset->new( $asf,
+            $nidset_to_pow3set{ $final_nidset->id() }
+        )
+    );
+    my @factoring_stack = ($final_factorset);
 
-    say STDERR '%powerset_to_prior_factorset = ', Data::Dumper::Dumper( \%powerset_to_prior_factorset);
+    say STDERR '%powerset_to_prior_pow3set = ', Data::Dumper::Dumper( \%powerset_to_prior_pow3set);
     say STDERR '%final_factorset = ', Data::Dumper::Dumper( $final_factorset);
 
-    $choicepoint->[Marpa::R2::Internal::Choicepoint::POWERSET_TO_PRIOR_FACTORSET] =
-        \%powerset_to_prior_factorset;
+    $choicepoint->[Marpa::R2::Internal::Choicepoint::POWERSET_TO_PRIOR_POW3SET] =
+        \%powerset_to_prior_pow3set;
     $choicepoint->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK] =
         \@factoring_stack;
     return finish_stack($choicepoint);
@@ -839,27 +907,27 @@ sub first_factoring {
 sub finish_stack {
     my ($choicepoint) = @_;
     my $asf = $choicepoint->[Marpa::R2::Internal::Choicepoint::ASF];
-    my $powerset_by_id = $asf->[Marpa::R2::Internal::Scanless::ASF::POWERSET_BY_ID];
-    my $powerset_to_prior_factorset = $choicepoint
-        ->[Marpa::R2::Internal::Choicepoint::POWERSET_TO_PRIOR_FACTORSET];
+    my $powerset_by_id =
+        $asf->[Marpa::R2::Internal::Scanless::ASF::POWERSET_BY_ID];
+    my $powerset_to_prior_pow3set = $choicepoint
+        ->[Marpa::R2::Internal::Choicepoint::POWERSET_TO_PRIOR_POW3SET];
     my $factoring_stack =
         $choicepoint->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK];
 
-    my ( $top_factorset, $top_powerset_ix ) = @{ $factoring_stack->[-1] };
-    my $current_powerset_id = $top_factorset->powerset_id($top_powerset_ix);
+    my $top_factorset       = $factoring_stack->[-1];
+    my $current_powerset_id = $top_factorset->powerset_id();
     POS: while ( defined $current_powerset_id ) {
-        my $prior_factorset = $powerset_to_prior_factorset->{$current_powerset_id};
-        last POS if not defined $prior_factorset;
-        push @{$factoring_stack}, [ $prior_factorset, 0 ];
-        $current_powerset_id = $prior_factorset->powerset_id(0);
-    }
+        my $prior_pow3set =
+            $powerset_to_prior_pow3set->{$current_powerset_id};
+        last POS if not defined $prior_pow3set;
+        my $factorset = Marpa::R2::Factorset->new($asf, $prior_pow3set);
+        push @{$factoring_stack}, $factorset;
+        $current_powerset_id = $factorset->powerset_id();
+    } ## end POS: while ( defined $current_powerset_id )
 
     my @return_value = ();
-    for my $stack_element ( reverse @{$factoring_stack} ) {
-        my ( $factorset, $powerset_ix ) = @{$stack_element};
-        my $powerset_id = $factorset->powerset_id($powerset_ix);
-        my $powerset = $powerset_by_id->[$powerset_id];
-        push @return_value, $asf->new_choicepoint($powerset);
+    for my $factorset ( reverse @{$factoring_stack} ) {
+        push @return_value, $factorset->choicepoint();
     }
     return \@return_value;
 
@@ -871,17 +939,15 @@ sub Marpa::R2::Choicepoint::next_factoring {
         $choicepoint->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK];
     Marpa::R2::exception('ASF choicepoint is not initialized for factoring')
         if not defined $factoring_stack;
-    my $powerset_to_prior_factorset =
-        $choicepoint->[Marpa::R2::Internal::Choicepoint::POWERSET_TO_PRIOR_FACTORSET];
+    my $powerset_to_prior_pow3set =
+        $choicepoint->[Marpa::R2::Internal::Choicepoint::POWERSET_TO_PRIOR_POW3SET];
 
     # pop stack until we can increment an element
     STACK_ELEMENT:
-    while ( defined( my $stack_element = pop @{$factoring_stack} ) )
+    while ( defined( my $factorset = pop @{$factoring_stack} ) )
     {
-        my ( $factorset, $powerset_ix ) = @{$stack_element};
-        $powerset_ix++;
-        if ( defined $factorset->powerset_id($powerset_ix) ) {
-            push @{$factoring_stack}, [ $factorset, $powerset_ix ];
+        if ( defined $factorset->increment() ) {
+            push @{$factoring_stack}, $factorset;
             return finish_stack($choicepoint);
         }
     } ## end STACK_ELEMENT: while ( defined( my $stack_element = pop @{...}))
@@ -889,7 +955,7 @@ sub Marpa::R2::Choicepoint::next_factoring {
     # if we could not increment any stack element, clear the factoring data
     # and return undef
     $choicepoint->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK] = undef;
-    $choicepoint->[Marpa::R2::Internal::Choicepoint::POWERSET_TO_PRIOR_FACTORSET] =
+    $choicepoint->[Marpa::R2::Internal::Choicepoint::POWERSET_TO_PRIOR_POW3SET] =
         undef;
     return;
 } ## end sub Marpa::R2::Choicepoint::next_factoring
@@ -911,14 +977,8 @@ sub Marpa::R2::Choicepoint::ambiguous_prefix {
         if not defined $factoring_stack;
     my $stack_pos = $#{$factoring_stack};
     STACK_POS: while ( $stack_pos >= 0 ) {
-        my ( $factorset, $powerset_ix ) = @{ $factoring_stack->[$stack_pos] };
-        last STACK_POS if $factorset->count() > 1;
-        my $powerset_id = $factorset->powerset_id(0);
-        my $powerset = $powerset_by_id->[$powerset_id];
-        last STACK_POS if $powerset->count() > 1;
-        my $nidset_id = $powerset->nidset_id(0);
-        my $nidset = $nidset_by_id->[$nidset_id];
-        last STACK_POS if $nidset->count() > 1;
+        my $factorset =  $factoring_stack->[$stack_pos];
+        last STACK_POS if $factorset->is_ambiguous();
         $stack_pos--;
     } ## end STACK_POS: while ( $stack_pos >= 0 )
     return $stack_pos + 1;

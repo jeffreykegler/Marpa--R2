@@ -127,7 +127,12 @@ use constant POWERSET => 1;
 use constant NID_IX => 2;
 use constant SYMCH_IX => 3;
 use constant FACTORING_STACK => 4;
-use constant POWERSET_TO_PRIOR_FACTORSET => 5;
+use constant POWERSET_TO_PRIOR_POW3SET => 5;
+
+package Marpa::R2::Internal::Factorset;
+use constant ASF => 0;
+use constant POW3SET => 1;
+use constant FACTOR_IX => 2;
 
 package Marpa::R2::Internal::Scanless::ASF;
 use constant SLR => 0;
