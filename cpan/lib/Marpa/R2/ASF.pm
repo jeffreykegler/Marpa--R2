@@ -379,6 +379,87 @@ sub Marpa::R2::Scanless::ASF::new_choicepoint {
     return $cp;
 }
 
+sub nidset_to_choicepoint_base {
+    my ( $asf, $nidset ) = @_;
+
+    my $slr       = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
+    my $recce     = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+    my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
+    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
+    my $bocage    = $recce->[Marpa::R2::Internal::Recognizer::B_C];
+    my $ordering  = $recce->[Marpa::R2::Internal::Recognizer::O_C];
+
+    # Memoize the method?
+    my %nid_seen = ();
+    my @stack    = @{ $nidset->nids() };
+    $nid_seen{$_} = 1 for @stack;
+    my @causes = ();
+    while ( my $or_node = pop @stack ) {
+        AND_NODE:
+        for my $and_node_id (
+            $ordering->_marpa_o_or_node_and_node_ids($or_node) )
+        {
+            my $cause_id = $bocage->_marpa_b_and_node_cause($and_node_id);
+            if ( not defined $cause_id ) {
+                push @causes, and_node_to_nid($and_node_id);
+                next AND_NODE;
+            }
+            next AND_NODE if $nid_seen{$cause_id};
+            $nid_seen{$cause_id} = 1;
+            if ( $bocage->_marpa_b_or_node_is_semantic($cause_id) ) {
+                push @causes, $cause_id;
+                next AND_NODE;
+            }
+            push @stack, $cause_id;
+        } ## end AND_NODE: for my $and_node_id ( $ordering...)
+    } ## end while ( my $or_node = pop @stack )
+    my @cause_data = ();
+    for my $cause_nid (@causes) {
+        my $sort_ix;
+        if ( $cause_nid >= 0 ) {
+            my $irl_id  = $bocage->_marpa_b_or_node_irl($cause_nid);
+            $sort_ix = $grammar_c->_marpa_g_source_xrl($irl_id);
+        }
+        else {
+            my $and_node_id = nid_to_and_node($cause_nid);
+            my $token_isy_id =
+                $bocage->_marpa_b_and_node_symbol($and_node_id);
+            my $token_id = $grammar_c->_marpa_g_source_xsy($token_isy_id);
+            $sort_ix = -$token_id - 1;
+        } ## end else [ if ( $cause_nid >= 0 ) ]
+        push @cause_data, [ $sort_ix, $cause_nid ];
+    } ## end for my $cause_nid (@causes)
+    my @sorted_cause_nids =
+        map { $_->[-1] } sort { $a->[0] <=> $b->[0] } @cause_data;
+    my $nid_ix = 0;
+    my ( $sort_ix_of_this_nid, $this_nid ) = @{$sorted_cause_nids[ $nid_ix++ ]};
+    my @nids_with_current_sort_ix = ();
+    my $current_sort_ix           = $sort_ix_of_this_nid;
+    my @symch_ids                 = ();
+    NID: while (1) {
+
+        if ( $sort_ix_of_this_nid != $current_sort_ix ) {
+
+            # Currently only whole id break logic
+            my $nidset_for_sort_ix =
+                Marpa::R2::Nidset->obtain( $asf, @nids_with_current_sort_ix );
+            push @symch_ids, $nidset_for_sort_ix->id();
+            @nids_with_current_sort_ix = ();
+            $current_sort_ix           = $sort_ix_of_this_nid;
+        } ## end if ( if $sort_ix_of_this_nid != $current_sort_ix )
+        last NID if not defined $this_nid;
+        push @nids_with_current_sort_ix, $this_nid;
+        my $sorted_entry = $sorted_cause_nids[ $nid_ix++ ];
+        if ( defined $sorted_entry ) {
+            ( $sort_ix_of_this_nid, $this_nid ) = @{$sorted_entry};
+            next NID;
+        }
+        $this_nid            = undef;
+        $sort_ix_of_this_nid = -2;
+    } ## end NID: while (1)
+    return Marpa::R2::Powerset->obtain( $asf, @symch_ids );
+} ## end sub nidset_to_choicepoint_base
+
 sub Marpa::R2::Choicepoint::show {
     my ( $cp ) = @_;
     my $id = $cp->base_id();
