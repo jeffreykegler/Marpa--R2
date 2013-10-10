@@ -217,25 +217,8 @@ sub Marpa::R2::Scanless::ASF::top {
         $bocage->_marpa_b_or_node_first_and($augment_or_node_id);
     my $augment2_or_node_id =
         $bocage->_marpa_b_and_node_cause($augment_and_node_id);
-    my @nid_set;
-    AND_NODE:
-
-    for my $augment2_and_node_id (
-        $bocage->_marpa_b_or_node_first_and($augment2_or_node_id)
-        .. $bocage->_marpa_b_or_node_last_and($augment2_or_node_id) )
-    {
-        my $cause_id =
-            $bocage->_marpa_b_and_node_cause($augment2_and_node_id);
-        if ( defined $cause_id ) {
-            push @nid_set, $cause_id;
-            next AND_NODE;
-        }
-        push @nid_set, and_node_to_nid($augment2_and_node_id);
-    } ## end AND_NODE: for my $augment2_and_node_id ( $bocage...)
-    my $flat_nidset = Marpa::R2::Nidset->obtain( $asf, @nid_set );
-    my $top_factorset = nidset_to_pow3set( $asf, $flat_nidset, {} );
-    my $top_powerset_id = $top_factorset->powerset_id(0);
-    my $top_powerset = $asf->[Marpa::R2::Internal::Scanless::ASF::POWERSET_BY_ID]->[$top_powerset_id];
+    my $augment_nidset = Marpa::R2::Nidset->obtain( $asf, $augment2_or_node_id );
+    my $top_powerset = nidset_to_choicepoint_base( $asf, $augment_nidset );
     $top = $asf->new_choicepoint($top_powerset);
     $asf->[Marpa::R2::Internal::Scanless::ASF::TOP] = $top;
     return $top;
@@ -429,10 +412,9 @@ sub nidset_to_choicepoint_base {
         } ## end else [ if ( $cause_nid >= 0 ) ]
         push @cause_data, [ $sort_ix, $cause_nid ];
     } ## end for my $cause_nid (@causes)
-    my @sorted_cause_nids =
-        map { $_->[-1] } sort { $a->[0] <=> $b->[0] } @cause_data;
+    my @sorted_cause_data = sort { $a->[0] <=> $b->[0] } @cause_data;
     my $nid_ix = 0;
-    my ( $sort_ix_of_this_nid, $this_nid ) = @{$sorted_cause_nids[ $nid_ix++ ]};
+    my ( $sort_ix_of_this_nid, $this_nid ) = @{$sorted_cause_data[ $nid_ix++ ]};
     my @nids_with_current_sort_ix = ();
     my $current_sort_ix           = $sort_ix_of_this_nid;
     my @symch_ids                 = ();
@@ -449,7 +431,7 @@ sub nidset_to_choicepoint_base {
         } ## end if ( if $sort_ix_of_this_nid != $current_sort_ix )
         last NID if not defined $this_nid;
         push @nids_with_current_sort_ix, $this_nid;
-        my $sorted_entry = $sorted_cause_nids[ $nid_ix++ ];
+        my $sorted_entry = $sorted_cause_data[ $nid_ix++ ];
         if ( defined $sorted_entry ) {
             ( $sort_ix_of_this_nid, $this_nid ) = @{$sorted_entry};
             next NID;
