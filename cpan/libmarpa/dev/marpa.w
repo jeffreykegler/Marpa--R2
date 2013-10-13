@@ -1844,10 +1844,35 @@ int _marpa_g_isy_is_nulling(Marpa_Grammar g, Marpa_ISY_ID isy_id)
   return ISY_is_Nulling(ISY_by_ID(isy_id));
 }
 
+@*0 Semantic XSY.
+This is the external symbol
+that corresponds semantically
+to the internal symbol.
+If the internal symbol is not semantically visible
+externally, it is NULL.
+@d Semantic_XSY_of_ISY(isy) ((isy)->t_semantic_xsy)
+@d Semantic_XSY_of_ISYID(isyid) (Semantic_XSY_of_ISY(ISY_by_ID(isyid)))
+@<Widely aligned ISY elements@> = XSY t_semantic_xsy;
+@ @<Initialize ISY elements@> = Semantic_XSY_of_ISY(isy) = NULL;
+@ @<Function definitions@> =
+Marpa_Rule_ID _marpa_g_semantic_xsy(
+    Marpa_Grammar g,
+    Marpa_IRL_ID isy_id)
+{
+    XSY semantic_xsy;
+    @<Return |-2| on failure@>@;
+    @<Fail if |isy_id| is invalid@>@;
+    semantic_xsy = Semantic_XSY_of_ISYID(isy_id);
+    return semantic_xsy ? ID_of_XSY(semantic_xsy) : -1;
+}
+
 @*0 Source XSY.
 This is the external
 ``source'' of the internal symbol --
 the external symbol that it is derived from.
+There is always a non-null source XSY.
+It is used in ranking, and is also convenient
+for tracing and debugging.
 @d Source_XSY_of_ISY(isy) ((isy)->t_source_xsy)
 @d Source_XSY_of_ISYID(isyid) (Source_XSY_of_ISY(ISY_by_ID(isyid)))
 @<Widely aligned ISY elements@> = XSY t_source_xsy;
@@ -1861,7 +1886,7 @@ Marpa_Rule_ID _marpa_g_source_xsy(
     @<Return |-2| on failure@>@;
     @<Fail if |isy_id| is invalid@>@;
     source_xsy = Source_XSY_of_ISYID(isy_id);
-    return source_xsy ? ID_of_XSY(source_xsy) : -1;
+    return ID_of_XSY(source_xsy);
 }
 
 @*0 Source rule and offset.
