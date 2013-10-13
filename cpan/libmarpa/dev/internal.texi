@@ -147,10 +147,6 @@ of "first child" semantics.
   Marpa_Grammar @var{g}, @
   Marpa_Symbol_ID @var{symid})
 @end deftypefun
-@deftypefun int _marpa_g_symbol_is_semantic ( @
-    Marpa_Grammar @var{g}, @
-    Marpa_Symbol_ID @var{symid})
-@end deftypefun
 @deftypefun Marpa_Rule_ID _marpa_g_source_xsy ( @
   Marpa_Grammar @var{g}, @
   Marpa_ISY_ID @var{isy_id})

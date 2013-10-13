@@ -96,12 +96,31 @@
 @s not normal
 @s or normal
 @s xor normal
-
 @s error normal
-@s PSAR int
-@s PSL int
-@s AVL_TREE int
+
+@q Marpa datatypes @>
 @s AVL_TRAV int
+@s AVL_TREE int
+@s Bit_Matrix int
+@s DAND int
+@s DSTACK int
+@s LBV int
+@s Marpa_Bocage int
+@s Marpa_IRL_ID int
+@s Marpa_Rule_ID int
+@s Marpa_Symbol_ID int
+@s NOOKID int
+@s NOOK_Object int
+@s OR int
+@s PIM int
+@s PRIVATE int
+@s PRIVATE_NOT_INLINE int
+@s PSAR int
+@s PSAR_Object int
+@s PSL int
+@s RULE int
+@s RULEID int
+@s XRL int
 
 @** License.
 \bigskip\noindent
@@ -1300,25 +1319,7 @@ Is this (external) symbol on the LHS of a sequence rule?
 @ @<Initialize XSY elements@> =
     XSY_is_Sequence_LHS(xsy) = 0;
 
-@*0 Symbol has semantics?.
-Can the symbol have a user-specified semantics?
-Symbols are semantic by default.
-@d XSY_is_Semantic(xsy) ((xsy)->t_is_semantic)
-@<Bit aligned XSY elements@> = unsigned int t_is_semantic:1;
-@ @<Initialize XSY elements@> =
-    XSY_is_Semantic(xsy) = 1;
-@ @<Function definitions@> =
-int _marpa_g_symbol_is_semantic(
-    Marpa_Grammar g,
-    Marpa_Symbol_ID xsy_id)
-{
-    @<Return |-2| on failure@>@;
-    @<Fail if |xsy_id| is malformed@>@;
-    @<Soft fail if |xsy_id| does not exist@>@;
-    return XSY_is_Semantic(XSY_by_ID(xsy_id));
-}
-
-@*0 Nulling symbol has semantics?.
+@*0 Nulling symbol is valued?.
 This value describes the semantics
 for a symbol when it is nulling.
 Marpa optimizes for the case

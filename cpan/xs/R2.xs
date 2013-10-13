@@ -3975,23 +3975,6 @@ PPCODE:
 MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin::G
 
 void
-_marpa_g_symbol_is_semantic( g_wrapper, symbol_id )
-    G_Wrapper *g_wrapper;
-    Marpa_Symbol_ID symbol_id;
-PPCODE:
-{
-  Marpa_Grammar g = g_wrapper->g;
-  int result = _marpa_g_symbol_is_semantic (g, symbol_id);
-  if (result < 0)
-    {
-      croak ("Problem in g->_marpa_g_symbol_is_semantic(): %s", xs_g_error (g_wrapper));
-    }
-  if (result)
-    XSRETURN_YES;
-  XSRETURN_NO;
-}
-
-void
 _marpa_g_isy_is_nulling( g_wrapper, isy_id )
     G_Wrapper *g_wrapper;
     Marpa_ISY_ID isy_id;
