@@ -96,9 +96,8 @@
 @s not normal
 @s or normal
 @s xor normal
-@s error normal
 
-@q Marpa datatypes @>
+@s error normal
 @s AVL_TRAV int
 @s AVL_TREE int
 @s Bit_Matrix int
@@ -1319,7 +1318,25 @@ Is this (external) symbol on the LHS of a sequence rule?
 @ @<Initialize XSY elements@> =
     XSY_is_Sequence_LHS(xsy) = 0;
 
-@*0 Nulling symbol is valued?.
+@*0 Symbol has semantics?.
+Can the symbol have a user-specified semantics?
+Symbols are semantic by default.
+@d XSY_is_Semantic(xsy) ((xsy)->t_is_semantic)
+@<Bit aligned XSY elements@> = unsigned int t_is_semantic:1;
+@ @<Initialize XSY elements@> =
+    XSY_is_Semantic(xsy) = 1;
+@ @<Function definitions@> =
+int _marpa_g_symbol_is_semantic(
+    Marpa_Grammar g,
+    Marpa_Symbol_ID xsy_id)
+{
+    @<Return |-2| on failure@>@;
+    @<Fail if |xsy_id| is malformed@>@;
+    @<Soft fail if |xsy_id| does not exist@>@;
+    return XSY_is_Semantic(XSY_by_ID(xsy_id));
+}
+
+@*0 Nulling symbol has semantics?.
 This value describes the semantics
 for a symbol when it is nulling.
 Marpa optimizes for the case
@@ -2743,6 +2760,20 @@ Marpa's design criteria.
 It was an especially non-negotiable criteria, because
 almost the only reason for parsing a grammar is to apply the
 semantics specified for the original grammar.
+@ The rewriting of rules into internal rules must be
+such that every one of their parses
+corresponds to a ``factoring'' --
+a way of dividing up the input.
+If the rewriting is unambiguous, this is trivially true.
+For an ambiguous rewrite, each parse will be visible
+external as a unique ``factoring'' of the external rule's
+RHS symbols by location,
+and the rewrite must make sense when interpreted that
+way.
+@ An IRL has an external semantics if and only if it does
+have a non-virtual LHS.
+And if a rule does not have a virtual LHS, then its LHS
+side ISY must have a semantic XRL.
 @d IRL_has_Virtual_LHS(irl) ((irl)->t_is_virtual_lhs)
 @<Bit aligned IRL elements@> = unsigned int t_is_virtual_lhs:1;
 @ @<Initialize IRL elements@> =
@@ -6515,7 +6546,7 @@ AHFAID _marpa_g_AHFA_state_empty_transition(Marpa_Grammar g,
 		{		// Completion
 		  const ISY lhs = LHS_of_IRL (irl);
 		  const XSY xsy = Source_XSY_of_ISY (lhs);
-		  if (xsy && XSY_is_Completion_Event (xsy))
+		  if (XSY_is_Completion_Event (xsy))
 		    {
 		      const XSYID xsyid = ID_of_XSY (xsy);
 		      bv_bit_set (bv_completion_xsyid, xsyid);
@@ -6525,11 +6556,8 @@ AHFAID _marpa_g_AHFA_state_empty_transition(Marpa_Grammar g,
 	  if (postdot_isyid >= 0)
 	    {
 	      const XSY xsy = Source_XSY_of_ISYID (postdot_isyid);
-	      if (xsy)
-		{
-		  const XSYID xsyid = ID_of_XSY (xsy);
-		  bv_bit_set (bv_prediction_xsyid, xsyid);
-		}
+	      const XSYID xsyid = ID_of_XSY (xsy);
+	      bv_bit_set (bv_prediction_xsyid, xsyid);
 	    }
 	  for (rhs_ix = raw_position - Null_Count_of_AIM (aim);
 	       rhs_ix < raw_position; rhs_ix++)
@@ -6537,16 +6565,13 @@ AHFAID _marpa_g_AHFA_state_empty_transition(Marpa_Grammar g,
 	      int cil_ix;
 	      const ISYID rhs_isyid = RHSID_of_IRL (irl, rhs_ix);
 	      const XSY xsy = Source_XSY_of_ISYID (rhs_isyid);
-	      if (xsy)
+	      const CIL nulled_xsyids = Nulled_XSYIDs_of_XSY (xsy);
+	      const int cil_count = Count_of_CIL (nulled_xsyids);
+	      for (cil_ix = 0; cil_ix < cil_count; cil_ix++)
 		{
-		  const CIL nulled_xsyids = Nulled_XSYIDs_of_XSY (xsy);
-		  const int cil_count = Count_of_CIL (nulled_xsyids);
-		  for (cil_ix = 0; cil_ix < cil_count; cil_ix++)
-		    {
-		      const XSYID nulled_xsyid =
-			Item_of_CIL (nulled_xsyids, cil_ix);
-		      bv_bit_set (bv_nulled_xsyid, nulled_xsyid);
-		    }
+		  const XSYID nulled_xsyid =
+		    Item_of_CIL (nulled_xsyids, cil_ix);
+		  bv_bit_set (bv_nulled_xsyid, nulled_xsyid);
 		}
 	    }
 	}
@@ -6948,8 +6973,6 @@ int marpa_r_terminals_expected(Marpa_Recognizer r, Marpa_Symbol_ID* buffer)
 	for (isyid = (ISYID) min; isyid <= (ISYID) max; isyid++)
 	  {
 	    const XSY xsy = Source_XSY_of_ISYID(isyid);
-	    /* These are terminals, so they should always have a non-NULL
-	       XSY */
 	    buffer[ix++] = ID_of_XSY(xsy);
 	  }
       }
@@ -10314,9 +10337,7 @@ of the base EIM.
             PIM this_pim = r->t_pim_workarea[isyid];
 	    if (lbv_bit_test(r->t_isy_expected_is_event, isyid)) {
 	      XSY xsy = Source_XSY_of_ISYID(isyid);
-	      if (xsy) {
-		int_event_new (g, MARPA_EVENT_SYMBOL_EXPECTED, ID_of_XSY(xsy));
-	      }
+	      int_event_new (g, MARPA_EVENT_SYMBOL_EXPECTED, ID_of_XSY(xsy));
 	    }
 	    if (this_pim) postdot_array[postdot_array_ix++] = this_pim;
 	}
@@ -14250,7 +14271,6 @@ for the rule.
 	  {
 	    const ISYID token_isyid = ISYID_of_TOK (token);
 	    Arg_0_of_V (v) = ++Arg_N_of_V (v);
-	    @#/* Tokens should always have a non-null xsy */@#
 	    if (token_type == VALUED_TOKEN_OR_NODE)
 	      {
 		const OR predecessor = Predecessor_OR_of_AND (and_node);
