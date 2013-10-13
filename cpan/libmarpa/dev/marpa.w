@@ -13319,7 +13319,7 @@ int marpa_t_next(Marpa_Tree t)
 {
     @<Return |-2| on failure@>@;
     const int termination_indicator = -1;
-    int is_first_tree_attempt = 0;
+    int is_first_tree_attempt = (t->t_parse_count < 1);
     @<Unpack tree objects@>@;
     @<Fail if fatal error@>@;
     if (T_is_Paused(t)) {
@@ -13334,7 +13334,7 @@ int marpa_t_next(Marpa_Tree t)
       }
 
     if (T_is_Nulling(t)) {
-      if (t->t_parse_count < 1) {
+      if (is_first_tree_attempt) {
 	t->t_parse_count++;
 	return 0;
       } else {
@@ -13342,15 +13342,11 @@ int marpa_t_next(Marpa_Tree t)
       }
     }
 
-    if (t->t_parse_count < 1)
-      {
-       is_first_tree_attempt = 1;
-       @<Initialize the tree iterator@>@;
-      }
     while (1) {
       const AND ands_of_b = ANDs_of_B(b);
       if (is_first_tree_attempt) {
-	is_first_tree_attempt = 0;
+	 is_first_tree_attempt = 0;
+	 @<Initialize the tree iterator@>@;
        } else {
 	 @<Start a new iteration of the tree@>@;
        }
