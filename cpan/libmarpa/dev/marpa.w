@@ -1868,7 +1868,6 @@ int _marpa_g_isy_is_semantic(
     Marpa_Grammar g,
     Marpa_IRL_ID isy_id)
 {
-    XSY semantic_xsy;
     @<Return |-2| on failure@>@;
     @<Fail if |isy_id| is invalid@>@;
     return ISYID_is_Semantic(isy_id);
