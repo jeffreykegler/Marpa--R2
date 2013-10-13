@@ -1706,7 +1706,7 @@ The return value is a pointer to the nulling alias.
 PRIVATE
 ISY symbol_alias_create(GRAMMAR g, XSY symbol)
 {
-    ISY alias_isy = isy_new(g, symbol);
+    ISY alias_isy = semantic_isy_new(g, symbol);
     XSY_is_Nulling(symbol) = 0;
     XSY_is_Nullable(symbol) = 1;
     ISY_is_Nulling(alias_isy) = 1;
@@ -1760,7 +1760,7 @@ isy_start(GRAMMAR g)
   return isy;
 }
 
-@ Create an ISY from scratch.
+@ Create a virtual ISY from scratch.
 A source symbol must be specified.
 @<Function definitions@> =
 PRIVATE ISY
@@ -1772,6 +1772,17 @@ isy_new(GRAMMAR g, XSY source)
   return new_isy;
 }
 
+@ Create an semantically-visible ISY from scratch.
+A source symbol must be specified.
+@<Function definitions@> =
+PRIVATE ISY
+semantic_isy_new(GRAMMAR g, XSY source)
+{
+  const ISY new_isy = isy_new (g, source);
+  Semantic_XSY_of_ISY(new_isy) = source;
+  return new_isy;
+}
+
 @ Clone an ISY from an XSY.
 An XSY must be specified.
 @<Function definitions@> =
@@ -1780,6 +1791,7 @@ isy_clone(GRAMMAR g, XSY xsy)
 {
   const ISY new_isy = isy_start (g);
   Source_XSY_of_ISY (new_isy) = xsy;
+  Semantic_XSY_of_ISY (new_isy) = xsy;
   Rank_of_ISY (new_isy) = ISY_Rank_by_XSY (xsy);
   ISY_is_Nulling (new_isy) = XSY_is_Nulling (xsy);
   return new_isy;
