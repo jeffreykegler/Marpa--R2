@@ -6498,9 +6498,9 @@ AHFAID _marpa_g_AHFA_state_empty_transition(Marpa_Grammar g,
       AEX aex;
       const AHFA ahfa = AHFA_of_G_by_ID (g, ahfaid);
       const int ahfa_item_count = AIM_Count_of_AHFA (ahfa);
-  bv_clear (bv_completion_xsyid);
-  bv_clear (bv_prediction_xsyid);
-  bv_clear (bv_nulled_xsyid);
+      bv_clear (bv_completion_xsyid);
+      bv_clear (bv_prediction_xsyid);
+      bv_clear (bv_nulled_xsyid);
       for (aex = 0; aex < (AEX) ahfa_item_count; aex++)
 	{
 	  int rhs_ix;
@@ -6508,20 +6508,20 @@ AHFAID _marpa_g_AHFA_state_empty_transition(Marpa_Grammar g,
 	  const ISYID postdot_isyid = Postdot_ISYID_of_AIM (aim);
 	  const IRL irl = IRL_of_AIM (aim);
 	  int raw_position = Position_of_AIM (aim);
-if (raw_position < 0)
-  {				// Completion
-    raw_position = Length_of_IRL (irl);
-    if (!IRL_has_Virtual_LHS (irl))
-      {				// Completion
-	const ISY lhs = LHS_of_IRL (irl);
-	const XSY xsy = Source_XSY_of_ISY (lhs);
-	if (XSY_is_Completion_Event (xsy))
-	  {
-	    const XSYID xsyid = ID_of_XSY (xsy);
-	    bv_bit_set (bv_completion_xsyid, xsyid);
-	  }
-      }
-  }
+	  if (raw_position < 0)
+	    {			// Completion
+	      raw_position = Length_of_IRL (irl);
+	      if (!IRL_has_Virtual_LHS (irl))
+		{		// Completion
+		  const ISY lhs = LHS_of_IRL (irl);
+		  const XSY xsy = Source_XSY_of_ISY (lhs);
+		  if (xsy && XSY_is_Completion_Event (xsy))
+		    {
+		      const XSYID xsyid = ID_of_XSY (xsy);
+		      bv_bit_set (bv_completion_xsyid, xsyid);
+		    }
+		}
+	    }
 	  if (postdot_isyid >= 0)
 	    {
 	      const XSY xsy = Source_XSY_of_ISYID (postdot_isyid);
@@ -6537,13 +6537,16 @@ if (raw_position < 0)
 	      int cil_ix;
 	      const ISYID rhs_isyid = RHSID_of_IRL (irl, rhs_ix);
 	      const XSY xsy = Source_XSY_of_ISYID (rhs_isyid);
-	      const CIL nulled_xsyids = Nulled_XSYIDs_of_XSY (xsy);
-	      const int cil_count = Count_of_CIL (nulled_xsyids);
-	      for (cil_ix = 0; cil_ix < cil_count; cil_ix++)
+	      if (xsy)
 		{
-		  const XSYID nulled_xsyid =
-		    Item_of_CIL (nulled_xsyids, cil_ix);
-		  bv_bit_set (bv_nulled_xsyid, nulled_xsyid);
+		  const CIL nulled_xsyids = Nulled_XSYIDs_of_XSY (xsy);
+		  const int cil_count = Count_of_CIL (nulled_xsyids);
+		  for (cil_ix = 0; cil_ix < cil_count; cil_ix++)
+		    {
+		      const XSYID nulled_xsyid =
+			Item_of_CIL (nulled_xsyids, cil_ix);
+		      bv_bit_set (bv_nulled_xsyid, nulled_xsyid);
+		    }
 		}
 	    }
 	}
@@ -6945,6 +6948,8 @@ int marpa_r_terminals_expected(Marpa_Recognizer r, Marpa_Symbol_ID* buffer)
 	for (isyid = (ISYID) min; isyid <= (ISYID) max; isyid++)
 	  {
 	    const XSY xsy = Source_XSY_of_ISYID(isyid);
+	    /* These are terminals, so they should always have a non-NULL
+	       XSY */
 	    buffer[ix++] = ID_of_XSY(xsy);
 	  }
       }
@@ -10309,7 +10314,9 @@ of the base EIM.
             PIM this_pim = r->t_pim_workarea[isyid];
 	    if (lbv_bit_test(r->t_isy_expected_is_event, isyid)) {
 	      XSY xsy = Source_XSY_of_ISYID(isyid);
-	      int_event_new (g, MARPA_EVENT_SYMBOL_EXPECTED, ID_of_XSY(xsy));
+	      if (xsy) {
+		int_event_new (g, MARPA_EVENT_SYMBOL_EXPECTED, ID_of_XSY(xsy));
+	      }
 	    }
 	    if (this_pim) postdot_array[postdot_array_ix++] = this_pim;
 	}
@@ -14243,6 +14250,7 @@ for the rule.
 	  {
 	    const ISYID token_isyid = ISYID_of_TOK (token);
 	    Arg_0_of_V (v) = ++Arg_N_of_V (v);
+	    @#/* Tokens should always have a non-null xsy */@#
 	    if (token_type == VALUED_TOKEN_OR_NODE)
 	      {
 		const OR predecessor = Predecessor_OR_of_AND (and_node);
