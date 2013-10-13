@@ -13487,10 +13487,8 @@ Otherwise, the tree is exhausted.
 	int choice;
 	int child_is_cause = 0;
 	int child_is_predecessor = 0;
+	if (FSTACK_LENGTH(t->t_nook_worklist) <= 0) { goto TREE_IS_FINISHED; }
 	p_work_nook_id = FSTACK_TOP(t->t_nook_worklist, NOOKID);
-	if (!p_work_nook_id) {
-	    goto TREE_IS_FINISHED;
-	}
 	work_nook = NOOK_of_TREE_by_IX(t, *p_work_nook_id);
 	work_or_node = OR_of_NOOK(work_nook);
 	work_and_node_id = and_order_get(o, work_or_node, Choice_of_NOOK(work_nook));
