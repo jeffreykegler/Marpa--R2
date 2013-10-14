@@ -13489,27 +13489,33 @@ Otherwise, the tree is exhausted.
 	work_or_node = OR_of_NOOK(work_nook);
 	work_and_node_id = and_order_get(o, work_or_node, Choice_of_NOOK(work_nook));
 	work_and_node = ands_of_b + work_and_node_id;
-	if (!NOOK_Cause_is_Ready(work_nook)) {
-	    child_or_node = Cause_OR_of_AND(work_and_node);
-	    if (child_or_node && OR_is_Token(child_or_node)) child_or_node = NULL;
-	    if (child_or_node) {
-		child_is_cause = 1;
-	    } else {
-		NOOK_Cause_is_Ready(work_nook) = 1;
-	    }
-	}
-	if (!child_or_node && !NOOK_Predecessor_is_Ready(work_nook)) {
-	    child_or_node = Predecessor_OR_of_AND(work_and_node);
-	    if (child_or_node) {
-		child_is_predecessor = 1;
-	    } else {
-		NOOK_Predecessor_is_Ready(work_nook) = 1;
-	    }
-	}
-	if (!child_or_node) {
-	    FSTACK_POP(t->t_nook_worklist);
+	do
+	  {
+	    if (!NOOK_Cause_is_Ready (work_nook))
+	      {
+		const OR cause_or_node = Cause_OR_of_AND (work_and_node);
+		if (!OR_is_Token (cause_or_node))
+		  {
+		    child_or_node = cause_or_node;
+		    child_is_cause = 1;
+		    break;
+		  }
+	      }
+	    NOOK_Cause_is_Ready (work_nook) = 1;
+	    if (!NOOK_Predecessor_is_Ready (work_nook))
+	      {
+		child_or_node = Predecessor_OR_of_AND (work_and_node);
+		if (child_or_node)
+		  {
+		    child_is_predecessor = 1;
+		    break;
+		  }
+	      }
+	    NOOK_Predecessor_is_Ready (work_nook) = 1;
+	    FSTACK_POP (t->t_nook_worklist);
 	    goto NEXT_NOOK_ON_WORKLIST;
-	}
+	  }
+	while (0);
 	if (!tree_or_node_try(t, ID_of_OR(child_or_node))) goto NEXT_TREE;
 	choice = 0;
 	if (!and_order_ix_is_valid(o, child_or_node, choice)) goto NEXT_TREE;
