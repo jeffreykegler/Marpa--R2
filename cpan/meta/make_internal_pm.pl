@@ -249,11 +249,16 @@ __DATA__
     FACTORING_STACK
     POWERSET_TO_PRIOR_POW3SET
 
-    :package=Marpa::R2::Internal::Factorset
+    :package=Marpa::R2::Internal::Nook
 
     ASF
-    POW3SET
-    FACTOR_IX
+    PARENT
+    OR_NODE
+    CHOICE
+    IS_CAUSE
+    IS_PREDECESSOR
+    CAUSE_IS_EXPANDED
+    PREDECESSOR_IS_EXPANDED
 
     :package=Marpa::R2::Internal::Scanless::ASF
 

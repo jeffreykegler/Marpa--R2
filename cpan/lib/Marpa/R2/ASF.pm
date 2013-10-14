@@ -741,229 +741,17 @@ sub first_factoring {
     my $bocage    = $recce->[Marpa::R2::Internal::Recognizer::B_C];
     my $ordering  = $recce->[Marpa::R2::Internal::Recognizer::O_C];
 
-    my %predecessors = ();
+    # Due to skipping, even the top or-node can have no valid choices
+    return factoring_exhaust($choicepoint)
+        if $ordering->_marpa_o_or_node_and_node_count($nid);
 
-    # Collect final nids -- can be delayed?
-    # Find nid of "finals" -- nids which can be last in the external
-    # rule.
-    my @finals;
-    my @stack = ( $nid_of_choicepoint );
-    my %or_node_seen = ( $nid_of_choicepoint => 1 );
-    STACK_ELEMENT: while ( defined( my $or_node = pop @stack ) ) {
+    my $nook;
+    $nook->[Marpa::R2::Internal::NOOK::ASF] = $asf;
+    $nook->[Marpa::R2::Internal::NOOK::OR_NODE] = $nid;
+    $nook->[Marpa::R2::Internal::NOOK::CHOICE] = 0;
+    $nook->[Marpa::R2::Internal::NOOK::PARENT] = -1;
 
-        AND_NODE: for my $and_node_id (
-            $ordering->_marpa_o_or_node_and_node_ids($or_node) )
-        {
-            my $cause_id = $bocage->_marpa_b_and_node_cause($and_node_id);
-            if ( not defined $cause_id ) {
-                push @finals, and_node_to_nid($and_node_id);
-		next AND_NODE;
-            }
-	    next STACK_ELEMENT if $or_node_seen{$cause_id};
-	    $or_node_seen{$cause_id} = 1;
-            if ( $bocage->_marpa_b_or_node_is_semantic($cause_id) ) {
-                push @finals, $cause_id;
-		next AND_NODE;
-            }
-	    push @stack, $cause_id;
-        } ## end for my $and_node_id ( $ordering...)
-    } ## end STACK_ELEMENT: while ( defined( my $stack_element = pop @stack ) )
-    my $final_nidset = Marpa::R2::Nidset->obtain( $asf, @finals );
-
-    # Find the direct predecessors of each cause or-node,
-    # and the "internal completions" -- or-nodes for internal rules
-    # completed in the current checkpoint
-    @stack     = ($nid_of_choicepoint);
-    my @internal_completions = ();
-    %or_node_seen = ($nid_of_choicepoint => 1);
-    STACK_ELEMENT: while ( defined( my $or_node = pop @stack ) ) {
-
-        AND_NODE: for my $and_node_id (
-            $ordering->_marpa_o_or_node_and_node_ids($or_node) )
-        {
-            my $predecessor_id =
-                $bocage->_marpa_b_and_node_predecessor($and_node_id);
-            my $cause_id = $bocage->_marpa_b_and_node_cause($and_node_id);
-            if ( not defined $cause_id ) {
-                $cause_id = and_node_to_nid($and_node_id);
-            }
-            if ( defined $predecessor_id ) {
-                $predecessors{$cause_id}{$predecessor_id} = 1;
-                if ( not $or_node_seen{$predecessor_id} ) {
-                    push @stack, $predecessor_id;
-                    $or_node_seen{$predecessor_id} = 1;
-                }
-            }
-            next AND_NODE if $cause_id < 0;
-            next AND_NODE if $bocage->_marpa_b_or_node_is_semantic($cause_id);
-            next AND_NODE if $or_node_seen{$cause_id};
-            $or_node_seen{$cause_id} = 1;
-            push @stack,     $cause_id;
-            push @internal_completions, $cause_id;
-        } ## end for my $and_node_id ( $ordering...)
-    } ## end STACK_ELEMENT: while ( defined( my $or_node = pop @stack ) )
-
-    # Find the predecessors which cross internal rule boundaries,
-    # but that connect cause and predecessor for an external rule.
-    # This is a separate pass, to save the overhead of tracking the whole or-node ID
-    # for each predecessor -- a single predecessor can be in the predecessor chain
-    # of more than one complete ("whole") or-node.
-    # In this pass we deal with one "whole" at a time, and do not have to track
-    # them on a stack.
-    @stack = ();
-    for my $complete_or_node_id (@internal_completions) {
-        my @initials = ();
-
-        # We do not have to mark the whole id's as "seen", because dups were
-        # prevented above, and only predecessors are stacked below.  No predecessor
-        # is ever identical to a whole id.
-        my %predecessor_seen = ();
-        my %initial_seen     = ();
-        my @inner_stack            = ($complete_or_node_id);
-        OR_NODE_ID: while ( defined( my $or_node_id = pop @inner_stack ) ) {
-            for my $and_node_id (
-                $ordering->_marpa_o_or_node_and_node_ids($or_node_id) )
-            {
-                my $predecessor_id =
-                    $bocage->_marpa_b_and_node_predecessor($and_node_id);
-                if ( defined $predecessor_id ) {
-
-                    # If a predecessor, and it has not been stacked, stack
-                    # it to be followed looking for initial causes
-                    if ( not $predecessor_seen{$predecessor_id} ) {
-                        push @inner_stack, $predecessor_id;
-                        $predecessor_seen{$predecessor_id} = 1;
-                    }
-                    next OR_NODE_ID;
-                } ## end if ( defined $predecessor_id )
-
-                # If here, no predecessor, and the cause will be an initial cause
-                # for this $complete_or_node_id
-                my $cause_id = $bocage->_marpa_b_and_node_cause($and_node_id);
-                if ( not defined $cause_id ) {
-                    $cause_id = and_node_to_nid($and_node_id);
-                }
-                if ( not $initial_seen{$cause_id} ) {
-                    push @initials, $cause_id;
-                    $initial_seen{$cause_id}++;
-                }
-            } ## end for my $and_node_id ( $ordering...)
-
-        } ## end OR_NODE_ID: while ( defined( my $or_node_id = pop @inner_stack ) )
-
-        my @predecessors_of_completion = keys %{ $predecessors{$complete_or_node_id} };
-        for my $initial_cause (@initials) {
-            $predecessors{$initial_cause}{$_} = 1 for @predecessors_of_completion;
-        }
-
-    } ## end for my $complete_or_node_id (@internal_completions)
-
-    # Find the semantics causes for each predecessor
-    my %semantic_cause = ();
-    my %and_node_seen = ();
-
-    # Find semantic cause's -- can be delayed?
-    # This re-initializes a stack to a list of or-nodes whose cause's should be examined,
-    # recursively, until a semantic or-node or a terminal is found.
-    my %predecessors_to_do = ();
-    $predecessors_to_do{$_} = 1 for map { ; keys %{$_} } values %predecessors;
-    for my $predecessor_id ( sort keys %predecessors_to_do ) {
-
-        # Not the most efficient Perl implementation -- intended for conversion to C
-        # Outer seen, for predecessors, can be bit vector
-        # Inner seen, for and_nodes, must be array to track current predecessor,
-        #   because and-node is "seen" only if seen FOR THIS PREDECESSOR
-        my @and_node_stack = ();
-        my %inner_seen     = ();
-        for my $and_node_id (
-            $ordering->_marpa_o_or_node_and_node_ids($predecessor_id) )
-        {
-            next AND_NODE
-                if ( $inner_seen{$and_node_id} // -1 ) == $predecessor_id;
-            $inner_seen{$and_node_id} = $predecessor_id;
-            push @and_node_stack, $and_node_id;
-        } ## end for my $and_node_id ( $ordering...)
-        AND_NODE: while ( defined( my $and_node_id = pop @and_node_stack ) ) {
-            my $cause_id = $bocage->_marpa_b_and_node_cause($and_node_id);
-            if ( not defined $cause_id ) {
-                $semantic_cause{$predecessor_id}
-                    { and_node_to_nid($and_node_id) } = 1;
-                next AND_NODE;
-            }
-            if ( $bocage->_marpa_b_or_node_is_semantic($cause_id) ) {
-                $semantic_cause{$predecessor_id}{$cause_id} = 1;
-                next AND_NODE;
-            }
-            INNER_AND_NODE:
-            for my $inner_and_node_id (
-                $ordering->_marpa_o_or_node_and_node_ids($cause_id) )
-            {
-                next INNER_AND_NODE
-                    if ( $inner_seen{$inner_and_node_id} // -1 )
-                    == $predecessor_id;
-                $inner_seen{$inner_and_node_id} = $predecessor_id;
-                push @and_node_stack, $inner_and_node_id;
-            } ## end INNER_AND_NODE: for my $inner_and_node_id ( $ordering...)
-        } ## end AND_NODE: while ( defined( my $and_node_id = pop @and_node_stack...))
-    } ## end for my $predecessor_id ( keys %predecessors_to_do )
-
-    my %prior_cause = ();
-    for my $cause_id ( keys %predecessors ) {
-        for my $predecessor_id ( keys %{ $predecessors{$cause_id} } )
-        {
-            for my $prior_cause_id (
-                keys %{ $semantic_cause{$predecessor_id} } )
-            {
-                $prior_cause{$cause_id}{$prior_cause_id} = 1;
-            }
-        } ## end for my $predecessor_id ( keys %{ $predecessors...})
-    } ## end for my $cause_id ( keys %predecessors )
-
-    my %nid_to_prior_nidset = ();
-    for my $successor_cause_id ( sort keys %prior_cause ) {
-        my @predecessors = keys %{ $prior_cause{$successor_cause_id} };
-        my $prior_nidset = Marpa::R2::Nidset->obtain( $asf, @predecessors );
-        $nid_to_prior_nidset{$successor_cause_id} = $prior_nidset;
-    }
-
-    my %nidset_to_pow3set = ();
-    my %nidset_ids_to_do = map { $_->id() => 1 } ($final_nidset, values %nid_to_prior_nidset );
-    my @nidset_ids_to_do = sort { $a <=> $b } keys %nidset_ids_to_do;
-    $nidset_to_pow3set{$_} = nidset_to_pow3set($asf, $nidset_by_id->[$_], \%nid_to_prior_nidset)
-        for @nidset_ids_to_do;
-
-    # Map powersets to prior factorsets.
-    my %powerset_to_prior_pow3set = ();
-    for my $nidset_id (@nidset_ids_to_do) {
-        my $factorset = $nidset_to_pow3set{$nidset_id};
-        CHOICEPOINT: for my $powerset_id ( @{ $factorset->powerset_ids() } ) {
-            next CHOICEPOINT if $powerset_to_prior_pow3set{$powerset_id};
-            my $powerset     = $powerset_by_id->[$powerset_id];
-            my $nidset_id    = $powerset->nidset_id(0);
-            my $nidset       = $nidset_by_id->[$nidset_id];
-            my $nid          = $nidset->nid(0);
-            my $prior_nidset = $nid_to_prior_nidset{$nid};
-            next CHOICEPOINT if not defined $prior_nidset;
-            my $prior_nidset_id = $prior_nidset->id();
-            $powerset_to_prior_pow3set{$powerset_id} =
-                $nidset_to_pow3set{$prior_nidset_id};
-        } ## end CHOICEPOINT: for my $powerset_id ( @{ $factorset->powerset_ids() ...})
-    } ## end for my $nidset_id (@nidset_ids_to_do)
-
-    my $final_factorset = (
-        Marpa::R2::Factorset->new( $asf,
-            $nidset_to_pow3set{ $final_nidset->id() }
-        )
-    );
-    my @factoring_stack = ($final_factorset);
-
-    say STDERR '%powerset_to_prior_pow3set = ', Data::Dumper::Dumper( \%powerset_to_prior_pow3set);
-    say STDERR '%final_factorset = ', Data::Dumper::Dumper( $final_factorset);
-
-    $choicepoint->[Marpa::R2::Internal::Choicepoint::POWERSET_TO_PRIOR_POW3SET] =
-        \%powerset_to_prior_pow3set;
-    $choicepoint->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK] =
-        \@factoring_stack;
+    $choicepoint->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK] = [ $nook ];
     return finish_stack($choicepoint);
 }
 
@@ -1017,11 +805,14 @@ sub Marpa::R2::Choicepoint::next_factoring {
 
     # if we could not increment any stack element, clear the factoring data
     # and return undef
-    $choicepoint->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK] = undef;
-    $choicepoint->[Marpa::R2::Internal::Choicepoint::POWERSET_TO_PRIOR_POW3SET] =
-        undef;
-    return;
+    return factoring_exhaust($choicepoint);
 } ## end sub Marpa::R2::Choicepoint::next_factoring
+
+# Set the factoring exhausted
+sub factoring_exhaust {
+    $choicepoint->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK] = undef;
+    return;
+}
 
 # Return the size of the choicepoint ambiguous prefix.
 # This ranges from 1 to the length of the rule,
@@ -1036,7 +827,7 @@ sub Marpa::R2::Choicepoint::ambiguous_prefix {
         $asf->[Marpa::R2::Internal::Scanless::ASF::POWERSET_BY_ID];
     my $factoring_stack =
         $choicepoint->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK];
-    Marpa::R2::exception('ASF choicepoint is not initialized for factoring')
+    Marpa::R2::exception('ASF choicepoint factoring is not initialized or exhausted')
         if not defined $factoring_stack;
     my $stack_pos = $#{$factoring_stack};
     STACK_POS: while ( $stack_pos >= 0 ) {

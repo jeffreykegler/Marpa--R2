@@ -129,10 +129,15 @@ use constant SYMCH_IX => 3;
 use constant FACTORING_STACK => 4;
 use constant POWERSET_TO_PRIOR_POW3SET => 5;
 
-package Marpa::R2::Internal::Factorset;
+package Marpa::R2::Internal::Nook;
 use constant ASF => 0;
-use constant POW3SET => 1;
-use constant FACTOR_IX => 2;
+use constant PARENT => 1;
+use constant OR_NODE => 2;
+use constant CHOICE => 3;
+use constant IS_CAUSE => 4;
+use constant IS_PREDECESSOR => 5;
+use constant CAUSE_IS_EXPANDED => 6;
+use constant PREDECESSOR_IS_EXPANDED => 7;
 
 package Marpa::R2::Internal::Scanless::ASF;
 use constant SLR => 0;
