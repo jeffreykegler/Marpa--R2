@@ -13403,8 +13403,8 @@ PRIVATE void tree_or_node_release(TREE tree, ORID or_node_id)
   /* Due to skipping, it is possible for even
     the top or-node to have no valid choices,
     in which case there is no parse */
-  int choice = 0;
-  if (!and_order_ix_is_valid(o, top_or_node, 0))
+  const int choice = 0;
+  if (!and_order_ix_is_valid(o, top_or_node, choice))
     goto TREE_IS_EXHAUSTED;
   nook = FSTACK_PUSH (t->t_nook_stack);
   tree_or_node_try(t, top_or_id); /* Empty stack, so cannot fail */
@@ -13415,7 +13415,6 @@ PRIVATE void tree_or_node_release(TREE tree, ORID or_node_id)
   NOOK_is_Cause (nook) = 0;
   NOOK_Predecessor_is_Expanded (nook) = 0;
   NOOK_is_Predecessor (nook) = 0;
-  *(FSTACK_PUSH (t->t_nook_worklist)) = 0;
 }
 
 @ Look for a nook to iterate.
@@ -13460,10 +13459,13 @@ Otherwise, the tree is exhausted.
 	    FSTACK_POP(t->t_nook_stack);
 	}
     }
+    if ( Size_of_T(t) <= 0) goto TREE_IS_EXHAUSTED;
+}
+
+@ @<Finish tree if possible@> = {
     {
-	int stack_length = Size_of_T(t);
+	const int stack_length = Size_of_T(t);
 	int i;
-	if (stack_length <= 0) goto TREE_IS_EXHAUSTED;
 	/* Clear the worklist, then copy the entire remaining
 	   tree onto it. */
 	FSTACK_CLEAR(t->t_nook_worklist);
@@ -13471,9 +13473,6 @@ Otherwise, the tree is exhausted.
 	    *(FSTACK_PUSH(t->t_nook_worklist)) = i;
 	}
     }
-}
-
-@ @<Finish tree if possible@> = {
     while (1) {
 	NOOKID* p_work_nook_id;
 	NOOK work_nook;
