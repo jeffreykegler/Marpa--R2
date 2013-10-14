@@ -13410,9 +13410,9 @@ PRIVATE void tree_or_node_release(TREE tree, ORID or_node_id)
   OR_of_NOOK (nook) = top_or_node;
   Choice_of_NOOK (nook) = choice;
   Parent_of_NOOK (nook) = -1;
-  NOOK_Cause_is_Ready (nook) = 0;
+  NOOK_Cause_is_Expanded (nook) = 0;
   NOOK_is_Cause (nook) = 0;
-  NOOK_Predecessor_is_Ready (nook) = 0;
+  NOOK_Predecessor_is_Expanded (nook) = 0;
   NOOK_is_Predecessor (nook) = 0;
   *(FSTACK_PUSH (t->t_nook_worklist)) = 0;
 }
@@ -13436,8 +13436,8 @@ Otherwise, the tree is exhausted.
 		and break out of the loop.
 	    */
 	    Choice_of_NOOK(iteration_candidate) = choice;
-	    NOOK_Cause_is_Ready(iteration_candidate) = 0;
-	    NOOK_Predecessor_is_Ready(iteration_candidate) = 0;
+	    NOOK_Cause_is_Expanded(iteration_candidate) = 0;
+	    NOOK_Predecessor_is_Expanded(iteration_candidate) = 0;
 	    break;
 	}
 	{
@@ -13447,10 +13447,10 @@ Otherwise, the tree is exhausted.
 	    if (parent_nook_ix >= 0) {
 		NOOK parent_nook = NOOK_of_TREE_by_IX(t, parent_nook_ix);
 		if (NOOK_is_Cause(iteration_candidate)) {
-		    NOOK_Cause_is_Ready(parent_nook) = 0;
+		    NOOK_Cause_is_Expanded(parent_nook) = 0;
 		}
 		if (NOOK_is_Predecessor(iteration_candidate)) {
-		    NOOK_Predecessor_is_Ready(parent_nook) = 0;
+		    NOOK_Predecessor_is_Expanded(parent_nook) = 0;
 		}
 	    }
 
@@ -13491,7 +13491,7 @@ Otherwise, the tree is exhausted.
 	work_and_node = ands_of_b + work_and_node_id;
 	do
 	  {
-	    if (!NOOK_Cause_is_Ready (work_nook))
+	    if (!NOOK_Cause_is_Expanded (work_nook))
 	      {
 		const OR cause_or_node = Cause_OR_of_AND (work_and_node);
 		if (!OR_is_Token (cause_or_node))
@@ -13501,8 +13501,8 @@ Otherwise, the tree is exhausted.
 		    break;
 		  }
 	      }
-	    NOOK_Cause_is_Ready (work_nook) = 1;
-	    if (!NOOK_Predecessor_is_Ready (work_nook))
+	    NOOK_Cause_is_Expanded (work_nook) = 1;
+	    if (!NOOK_Predecessor_is_Expanded (work_nook))
 	      {
 		child_or_node = Predecessor_OR_of_AND (work_and_node);
 		if (child_or_node)
@@ -13511,7 +13511,7 @@ Otherwise, the tree is exhausted.
 		    break;
 		  }
 	      }
-	    NOOK_Predecessor_is_Ready (work_nook) = 1;
+	    NOOK_Predecessor_is_Expanded (work_nook) = 1;
 	    FSTACK_POP (t->t_nook_worklist);
 	    goto NEXT_NOOK_ON_WORKLIST;
 	  }
@@ -13533,13 +13533,13 @@ Otherwise, the tree is exhausted.
     Parent_of_NOOK(new_nook) = *p_work_nook_id;
     Choice_of_NOOK(new_nook) = choice;
     OR_of_NOOK(new_nook) = child_or_node;
-    NOOK_Cause_is_Ready(new_nook) = 0;
+    NOOK_Cause_is_Expanded(new_nook) = 0;
     if ( ( NOOK_is_Cause(new_nook) = child_is_cause ) ) {
-	NOOK_Cause_is_Ready(work_nook) = 1;
+	NOOK_Cause_is_Expanded(work_nook) = 1;
     }
-    NOOK_Predecessor_is_Ready(new_nook) = 0;
+    NOOK_Predecessor_is_Expanded(new_nook) = 0;
     if ( ( NOOK_is_Predecessor(new_nook) = child_is_predecessor ) ) {
-	NOOK_Predecessor_is_Ready(work_nook) = 1;
+	NOOK_Predecessor_is_Expanded(work_nook) = 1;
     }
 }
 
@@ -13578,9 +13578,9 @@ typedef struct s_nook* NOOK;
 @ @d OR_of_NOOK(nook) ((nook)->t_or_node)
 @d Choice_of_NOOK(nook) ((nook)->t_choice)
 @d Parent_of_NOOK(nook) ((nook)->t_parent)
-@d NOOK_Cause_is_Ready(nook) ((nook)->t_is_cause_ready)
+@d NOOK_Cause_is_Expanded(nook) ((nook)->t_is_cause_ready)
 @d NOOK_is_Cause(nook) ((nook)->t_is_cause_of_parent)
-@d NOOK_Predecessor_is_Ready(nook) ((nook)->t_is_predecessor_ready)
+@d NOOK_Predecessor_is_Expanded(nook) ((nook)->t_is_predecessor_ready)
 @d NOOK_is_Predecessor(nook) ((nook)->t_is_predecessor_of_parent)
 @s NOOK_Object int
 @<NOOK structure@> =
@@ -13654,7 +13654,7 @@ int _marpa_t_nook_cause_is_ready(Marpa_Tree t, int nook_id)
   @<Return |-2| on failure@>@;
   @<Unpack tree objects@>@;
    @<Check |r| and |nook_id|; set |nook|@>@;
-    return NOOK_Cause_is_Ready(nook);
+    return NOOK_Cause_is_Expanded(nook);
 }
 
 @ @<Function definitions@> =
@@ -13664,7 +13664,7 @@ int _marpa_t_nook_predecessor_is_ready(Marpa_Tree t, int nook_id)
   @<Return |-2| on failure@>@;
   @<Unpack tree objects@>@;
    @<Check |r| and |nook_id|; set |nook|@>@;
-    return NOOK_Predecessor_is_Ready(nook);
+    return NOOK_Predecessor_is_Expanded(nook);
 }
 
 @ @<Function definitions@> =
