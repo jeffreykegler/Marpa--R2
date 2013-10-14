@@ -247,7 +247,7 @@ __DATA__
     NID_IX 
     SYMCH_IX 
     FACTORING_STACK
-    POWERSET_TO_PRIOR_POW3SET
+    OR_NODE_IN_USE
 
     :package=Marpa::R2::Internal::Nook
 

@@ -746,11 +746,12 @@ sub first_factoring {
         if $ordering->_marpa_o_or_node_and_node_count($nid);
 
     my $nook;
-    $nook->[Marpa::R2::Internal::NOOK::ASF] = $asf;
-    $nook->[Marpa::R2::Internal::NOOK::OR_NODE] = $nid;
-    $nook->[Marpa::R2::Internal::NOOK::CHOICE] = 0;
-    $nook->[Marpa::R2::Internal::NOOK::PARENT] = -1;
+    $nook->[Marpa::R2::Internal::Nook::ASF] = $asf;
+    $nook->[Marpa::R2::Internal::Nook::OR_NODE] = $nid;
+    $nook->[Marpa::R2::Internal::Nook::CHOICE] = 0;
+    $nook->[Marpa::R2::Internal::Nook::PARENT] = -1;
 
+    $choicepoint->[Marpa::R2::Internal::Choicepoint::OR_NODE_IN_USE]->{$nid} = 1;
     $choicepoint->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK] = [ $nook ];
     return finish_stack($choicepoint);
 }
@@ -758,23 +759,59 @@ sub first_factoring {
 sub finish_stack {
     my ($choicepoint) = @_;
     my $asf = $choicepoint->[Marpa::R2::Internal::Choicepoint::ASF];
-    my $powerset_by_id =
-        $asf->[Marpa::R2::Internal::Scanless::ASF::POWERSET_BY_ID];
-    my $powerset_to_prior_pow3set = $choicepoint
-        ->[Marpa::R2::Internal::Choicepoint::POWERSET_TO_PRIOR_POW3SET];
+    my $slr       = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
+    my $recce     = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+    my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
+    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
+    my $bocage    = $recce->[Marpa::R2::Internal::Recognizer::B_C];
+    my $ordering  = $recce->[Marpa::R2::Internal::Recognizer::O_C];
+
     my $factoring_stack =
         $choicepoint->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK];
+    my @worklist = (0 .. $#{$factoring_stack});
 
-    my $top_factorset       = $factoring_stack->[-1];
-    my $current_powerset_id = $top_factorset->powerset_id();
-    POS: while ( defined $current_powerset_id ) {
-        my $prior_pow3set =
-            $powerset_to_prior_pow3set->{$current_powerset_id};
-        last POS if not defined $prior_pow3set;
-        my $factorset = Marpa::R2::Factorset->new($asf, $prior_pow3set);
-        push @{$factoring_stack}, $factorset;
-        $current_powerset_id = $factorset->powerset_id();
-    } ## end POS: while ( defined $current_powerset_id )
+    DO_WORKLIST: while ( scalar @worklist ) {
+        my $stack_ix_of_work_nook = $worklist[-1];
+        my $work_nook    = $factoring_stack->[$stack_ix_of_work_nook];
+        my $work_or_node = $work_nook->[Marpa::R2::Internal::Nook::OR_NODE];
+        my $work_and_node_id =
+            $ordering->_marpa_o_and_node_order_get( $nid, $choice );
+        my $child_or_node;
+        my $child_is_cause;
+        my $child_is_predecessor;
+        FIND_CHILD_OR_NODE: {
+
+            if ( !$work_nook->[Marpa::R2::Internal::Nook::CAUSE_IS_EXPANDED] )
+            {
+                $child_or_node =
+                    $bocage->_marpa_b_and_node_cause($work_and_node_id);
+                if ( defined $child_or_node ) {
+                    $child_is_cause = 1;
+                    last FIND_CHILD_OR_NODE;
+                }
+            } ## end if ( !$work_nook->[...])
+            $work_nook->[Marpa::R2::Internal::Nook::CAUSE_IS_EXPANDED] = 1;
+            if ( !$work_nook
+                ->[Marpa::R2::Internal::Nook::PREDECESSOR_IS_EXPANDED] )
+            {
+                $child_or_node =
+                    $bocage->_marpa_b_and_node_predecessor($work_and_node_id);
+                if ( defined $child_or_node ) {
+                    $child_is_predecessor = 1;
+                    last FIND_CHILD_OR_NODE;
+                }
+            } ## end if ( !$work_nook->[...])
+            $work_nook->[Marpa::R2::Internal::Nook::PREDECESSOR_IS_EXPANDED] =
+                1;
+            pop @worklist;
+            next DO_WORKLIST;
+        } ## end FIND_CHILD_OR_NODE:
+
+        # NOT FINISHED AFTER HERE !!!
+
+    } ## end DO_WORKLIST: while ( scalar @worklist )
+
+    # NOT FINISHED AFTER HERE !!!
 
     my @return_value = ();
     for my $factorset ( reverse @{$factoring_stack} ) {
