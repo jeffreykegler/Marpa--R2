@@ -13394,7 +13394,8 @@ PRIVATE void tree_or_node_release(TREE tree, ORID or_node_id)
     bv_bit_clear(tree->t_or_node_in_use, (unsigned int)or_node_id);
 }
 
-@ @<Initialize the tree iterator@> =
+@*0 Iterating the tree.
+@<Initialize the tree iterator@> =
 {
   ORID top_or_id = Top_ORID_of_B (b);
   OR top_or_node = OR_of_B_by_ID (b, top_or_id);
@@ -13543,7 +13544,8 @@ Otherwise, the tree is exhausted.
     }
 }
 
-@ @<Function definitions@> =
+@*0 Accessors.
+@<Function definitions@> =
 int marpa_t_parse_count(Marpa_Tree t)
 {
     return t->t_parse_count;
