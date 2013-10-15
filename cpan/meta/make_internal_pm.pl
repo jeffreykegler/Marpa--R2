@@ -247,6 +247,7 @@ __DATA__
     NID_IX 
     SYMCH_IX 
     FACTORING_STACK
+    FACTORING_COUNT { Factoring expanded so far }
     OR_NODE_IN_USE
 
     :package=Marpa::R2::Internal::Nook

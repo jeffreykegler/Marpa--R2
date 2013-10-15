@@ -127,7 +127,8 @@ use constant POWERSET => 1;
 use constant NID_IX => 2;
 use constant SYMCH_IX => 3;
 use constant FACTORING_STACK => 4;
-use constant POWERSET_TO_PRIOR_POW3SET => 5;
+use constant FACTORING_COUNT => 5;
+use constant OR_NODE_IN_USE => 6;
 
 package Marpa::R2::Internal::Nook;
 use constant ASF => 0;
