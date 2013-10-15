@@ -497,67 +497,6 @@ sub Marpa::R2::Choicepoint::rule_id {
     return nid_to_whole_id($asf, $or_node_id);
 } ## end sub Marpa::R2::Choicepoint::rule_id
 
-sub Marpa::R2::Factorset::new {
-    my ( $class, $asf, $pow3set ) = @_;
-    my $factorset = bless [], 'Marpa::R2::Factorset';
-    $factorset->[Marpa::R2::Internal::Factorset::ASF] = $asf;
-    $factorset->[Marpa::R2::Internal::Factorset::POW3SET] = $pow3set;
-    $factorset->[Marpa::R2::Internal::Factorset::FACTOR_IX] = 0;
-    return $factorset;
-}
-
-sub Marpa::R2::Factorset::increment {
-    my ($factorset) = @_;
-    my $factor_ix = ++$factorset->[Marpa::R2::Internal::Factorset::FACTOR_IX];
-    my $pow3set = $factorset->[Marpa::R2::Internal::Factorset::POW3SET];
-    my $count = $pow3set->count();
-    return if $factor_ix >= $count;
-    return $factor_ix;
-}
-
-sub Marpa::R2::Factorset::powerset_id {
-    my ($factorset, $ix) = @_;
-    my $factor_ix = $ix // $factorset->[Marpa::R2::Internal::Factorset::FACTOR_IX];
-    my $pow3set   = $factorset->[Marpa::R2::Internal::Factorset::POW3SET];
-    return $pow3set->powerset_id($factor_ix);
-}
-
-sub Marpa::R2::Factorset::count {
-    my ($factorset) = @_;
-    return $factorset->[Marpa::R2::Internal::Factorset::POW3SET]->count();
-}
-
-sub Marpa::R2::Factorset::choicepoint {
-    my ($factorset) = @_;
-    my $asf = $factorset->[Marpa::R2::Internal::Factorset::ASF];
-    my $powerset_by_id =
-        $asf->[Marpa::R2::Internal::Scanless::ASF::POWERSET_BY_ID];
-    my $factor_ix = $factorset->[Marpa::R2::Internal::Factorset::FACTOR_IX];
-    my $powerset_id =
-        $factorset->[Marpa::R2::Internal::Factorset::POW3SET]
-        ->powerset_id($factor_ix);
-    $DB::single = 1 if not defined $powerset_id;
-    my $powerset = $powerset_by_id->[$powerset_id];
-    return $asf->new_choicepoint($powerset);
-} ## end sub Marpa::R2::Factorset::choicepoint
-
-sub Marpa::R2::Factorset::is_ambiguous {
-    my ($factorset) = @_;
-    my $asf = $factorset->[Marpa::R2::Internal::Factorset::ASF];
-    return 1 if $factorset->count() > 1;
-    my $powerset_id = $factorset->powerset_id(0);
-    my $powerset_by_id =
-        $asf->[Marpa::R2::Internal::Scanless::ASF::POWERSET_BY_ID];
-    my $powerset = $powerset_by_id->[$powerset_id];
-    return 1 if $powerset->count() > 1;
-    my $nidset_id = $powerset->nidset_id(0);
-    my $nidset_by_id =
-        $asf->[Marpa::R2::Internal::Scanless::ASF::NIDSET_BY_ID];
-    my $nidset = $nidset_by_id->[$nidset_id];
-    return 1 if $nidset->count() > 1;
-    return;
-} ## end sub Marpa::R2::Factorset::is_ambiguous
-
 # The "whole id" is the external rule ID, if there is one,
 # otherwise -1.  In particular, it is -1 is the NID is for
 # token
@@ -899,7 +838,6 @@ sub next_factoring {
     } ## end while (1)
 } ## end sub next_factoring
 
-
 # Set the factoring exhausted
 sub factoring_exhaust {
     $choicepoint->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK] = undef;
@@ -911,6 +849,7 @@ sub factoring_exhaust {
 # if the choicepoint is ambiguous.
 # If the choicepoint is unambiguous, it is always 0.
 sub Marpa::R2::Choicepoint::ambiguous_prefix {
+        # NOT FINISHED AFTER HERE !!!
     my ($choicepoint) = @_;
     my $asf = $choicepoint->[Marpa::R2::Internal::Choicepoint::ASF];
     my $nidset_by_id =
