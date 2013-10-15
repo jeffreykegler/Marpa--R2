@@ -752,7 +752,7 @@ sub next_factoring {
     my $bocage    = $recce->[Marpa::R2::Internal::Recognizer::B_C];
     my $ordering  = $recce->[Marpa::R2::Internal::Recognizer::O_C];
 
-    while (1) {
+    FACTORING_ATTEMPT: while (1) {
         if ($is_first_factoring_attempt) {
 
             # Due to skipping, even the top or-node can have no valid choices
@@ -771,7 +771,47 @@ sub next_factoring {
             push @{$factoring_stack}, $nook;
         } ## end if ($is_first_factoring_attempt)
         else {
-            # NOT FINISHED AFTER HERE !!!
+            FIND_NODE_TO_ITERATE: while (1) {
+                return factoring_exhaust($choicepoint)
+                    if not scalar @{$factoring_stack};
+                my $top_or_node = $factoring_stack->[-1];
+                my $top_nook    = =
+                    $top_nook->[Marpa::R2::Internal::Nook::OR_NODE];
+                my $choice =
+                    $top_nook->[Marpa::R2::Internal::Nook::CHOICE] + 1;
+                my $work_and_node_id =
+                    $ordering->_marpa_o_and_node_order_get( $top_or_node,
+                    $choice );
+                if ( defined $work_and_node_id ) {
+                    $top_nook->[Marpa::R2::Internal::Nook::CAUSE_IS_EXPANDED]
+                        = 1;
+                    $top_nook
+                        ->[Marpa::R2::Internal::Nook::PREDECESSOR_IS_EXPANDED]
+                        = 1;
+                    last FIND_NODE_TO_ITERATE;  # in C, a "break" will do this
+                } ## end if ( defined $work_and_node_id )
+
+                # Could not iterate
+                # "Dirty" the corresponding bits in the parent and pop this nook
+                my $stack_ix_of_parent_nook =
+                    $top_nook->[Marpa::R2::Internal::Nook::PARENT];
+                if ( $stack_ix_of_parent_nook >= 0 ) {
+                    my $parent_nook =
+                        $factoring_stack->[$stack_ix_of_parent_nook];
+                    $parent_nook
+                        ->[Marpa::R2::Internal::Nook::CAUSE_IS_EXPANDED] = 0
+                        if $top_nook->[Marpa::R2::Internal::Nook::IS_CAUSE];
+                    $parent_nook
+                        ->[Marpa::R2::Internal::Nook::PREDECESSOR_IS_EXPANDED]
+                        = 0
+                        if $top_nook
+                            ->[Marpa::R2::Internal::Nook::IS_PREDECESSOR];
+                } ## end if ( $stack_ix_of_parent_nook >= 0 )
+                $choicepoint
+                    ->[Marpa::R2::Internal::Choicepoint::OR_NODE_IN_USE]
+                    ->{$top_or_node} = undef;
+                pop @{$factoring_stack};
+            } ## end FIND_NODE_TO_ITERATE: while (1)
         }
 
         my @worklist = ( 0 .. $#{$factoring_stack} );
@@ -793,10 +833,13 @@ sub next_factoring {
                 {
                     $child_or_node =
                         $bocage->_marpa_b_and_node_cause($work_and_node_id);
-                    if ( defined $child_or_node ) {
+                    if ( defined $child_or_node
+                        and not $bocage->_marpa_b_or_node_is_semantic(
+                            $child_or_node) )
+                    {
                         $child_is_cause = 1;
                         last FIND_CHILD_OR_NODE;
-                    }
+                    } ## end if ( defined $child_or_node and not $bocage...)
                 } ## end if ( !$work_nook->[...])
                 $work_nook->[Marpa::R2::Internal::Nook::CAUSE_IS_EXPANDED] =
                     1;
@@ -818,7 +861,30 @@ sub next_factoring {
                 next DO_WORKLIST;
             } ## end FIND_CHILD_OR_NODE:
 
-            # NOT FINISHED AFTER HERE !!!
+            next FACTORING_ATTEMPT
+                if $choicepoint
+                    ->[Marpa::R2::Internal::Choicepoint::OR_NODE_IN_USE]
+                    ->{$child_or_node};
+
+            next FACTORING_ATTEMPT if $ordering->_marpa_o_or_node_and_node_count($nid) <= 0;
+
+            my $new_nook = [];
+            $new_nook->[Marpa::R2::Internal::Nook::PARENT] =
+                $stack_ix_of_work_nook;
+            $new_nook->[Marpa::R2::Internal::Nook::CHOICE] = 0;
+            if ($child_is_cause) {
+                $new_nook->[Marpa::R2::Internal::Nook::IS_CAUSE] = 1;
+                $work_nook->[Marpa::R2::Internal::Nook::CAUSE_IS_EXPANDED] =
+                    1;
+            }
+            if ($child_is_predecessor) {
+                $new_nook->[Marpa::R2::Internal::Nook::IS_PREDECESSOR] = 1;
+                $work_nook
+                    ->[Marpa::R2::Internal::Nook::PREDECESSOR_IS_EXPANDED] =
+                    1;
+            } ## end if ($child_is_predecessor)
+            push @{$factoring_stack}, $new_nook;
+            push @worklist, $#{$factoring_stack};
 
         } ## end DO_WORKLIST: while ( scalar @worklist )
 
