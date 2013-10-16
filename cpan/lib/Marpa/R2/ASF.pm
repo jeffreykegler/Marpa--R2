@@ -159,48 +159,6 @@ sub Marpa::R2::Powerset::show {
     return "Powerset #$id: " . join q{ }, @{$nidset_ids};
 }
 
-sub Marpa::R2::Pow3set::obtain {
-    my ($class, $asf, @powerset_ids) = @_;
-    my $id = intset_id($asf, @powerset_ids);
-    my $pow3set_by_id = $asf->[Marpa::R2::Internal::Scanless::ASF::POW3SET_BY_ID];
-    my $pow3set = $pow3set_by_id->[$id];
-    return $pow3set if defined $pow3set;
-    $pow3set = bless [], $class;
-    $pow3set->[Marpa::R2::Internal::Pow3set::ID] = $id;
-    $pow3set->[Marpa::R2::Internal::Pow3set::POWERSET_IDS] = [ sort { $a <=> $b } @powerset_ids ];
-    $pow3set_by_id->[$id] = $pow3set;
-    return $pow3set;
-}
-
-sub Marpa::R2::Pow3set::powerset_ids {
-    my ($pow3set) = @_;
-    return $pow3set->[Marpa::R2::Internal::Pow3set::POWERSET_IDS];
-}
-
-sub Marpa::R2::Pow3set::count {
-    my ($pow3set) = @_;
-    return scalar @{$pow3set->[Marpa::R2::Internal::Pow3set::POWERSET_IDS]};
-}
-
-sub Marpa::R2::Pow3set::powerset_id {
-    my ($pow3set, $ix) = @_;
-    my $powerset_ids = $pow3set->[Marpa::R2::Internal::Pow3set::POWERSET_IDS];
-    return if $ix > $#{$powerset_ids};
-    return $pow3set->[Marpa::R2::Internal::Pow3set::POWERSET_IDS]->[$ix];
-}
-
-sub Marpa::R2::Pow3set::id {
-    my ($pow3set) = @_;
-    return $pow3set->[Marpa::R2::Internal::Pow3set::ID];
-}
-
-sub Marpa::R2::Pow3set::show {
-    my ($pow3set) = @_;
-    my $id = $pow3set->id();
-    my $powerset_ids = $pow3set->powerset_ids();
-    return "Pow3set #$id: " . join q{ }, @{$powerset_ids};
-}
-
 # No check for conflicting usage -- value(), asf(), etc.
 # at this point
 sub Marpa::R2::Scanless::ASF::top {
@@ -338,7 +296,6 @@ sub Marpa::R2::Scanless::ASF::new {
 
     $asf->[Marpa::R2::Internal::Scanless::ASF::NIDSET_BY_ID] = [];
     $asf->[Marpa::R2::Internal::Scanless::ASF::POWERSET_BY_ID] = [];
-    $asf->[Marpa::R2::Internal::Scanless::ASF::POW3SET_BY_ID] = [];
 
     my $slg       = $slr->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
     my $thin_slr  = $slr->[Marpa::R2::Inner::Scanless::R::C];
@@ -592,67 +549,6 @@ sub Marpa::R2::Choicepoint::symbol_id {
 # current CP indexing it.  It is assumed that the indexes need only remain valid within
 # the method call that constructs the CPI (choicepoint iterator).
 
-sub nidset_to_pow3set {
-    my ( $asf, $nidset, $nid_to_prior_nidset ) = @_;
-    my $nidset_id = $nidset->id();
-    my @sorted_nids =
-        map { $_->[-1] }
-        sort { $a->[0] <=> $b->[0] or $a->[1] <=> $b->[1] } map {
-        ;
-        [ ( $nid_to_prior_nidset->{$_} // -1 ), nid_to_whole_id($asf, $_), $_ ]
-        } @{ $nidset->nids() };
-    my $nid_ix                 = 0;
-    my $this_nid               = $sorted_nids[ $nid_ix++ ];
-    my $prior_of_this_nid      = $nid_to_prior_nidset->{$this_nid} // -1;
-    my $whole_id_of_this_nid   = nid_to_whole_id( $asf, $this_nid );
-    my @nids_with_current_whole_id = ();
-    my @symches_with_current_priors = ();
-    my $current_prior          = $prior_of_this_nid;
-    my $current_whole_id       = $whole_id_of_this_nid;
-    my @choicepoint_ids           = ();
-    NID: while (1) {
-
-        my $prior_nidset_break;
-        $prior_nidset_break = 1 if not defined $this_nid;
-        $prior_nidset_break = 1 if $prior_of_this_nid != $current_prior;
-        my $whole_id_break;
-        $whole_id_break = 1 if $whole_id_of_this_nid != $current_whole_id;
-        $whole_id_break = 1 if $prior_nidset_break;
-        if ($whole_id_break) {
-
-            # Currently only whole id break logic
-            my $nidset_for_whole_id = Marpa::R2::Nidset->obtain( $asf,
-                @nids_with_current_whole_id );
-            push @symches_with_current_priors, $nidset_for_whole_id->id();
-            @nids_with_current_whole_id = ();
-            $current_whole_id           = $whole_id_of_this_nid;
-        } ## end if ($whole_id_break)
-        if ($prior_nidset_break) {
-
-            # Currently only whole id break logic
-            my $choicepoint = Marpa::R2::Powerset->obtain( $asf,
-                @symches_with_current_priors );
-            push @choicepoint_ids, $choicepoint->id();
-            last NID if not defined $this_nid;
-            @symches_with_current_priors = ();
-            $current_prior               = $prior_of_this_nid;
-        } ## end if ($prior_nidset_break)
-        push @nids_with_current_whole_id, $this_nid;
-        $this_nid = $sorted_nids[ $nid_ix++ ];
-        if ( defined $this_nid ) {
-            $prior_of_this_nid = $nid_to_prior_nidset->{$this_nid} // -1;
-            $whole_id_of_this_nid = nid_to_whole_id( $asf, $this_nid );
-            next NID;
-        }
-
-        # -2 indicates 'end of data'
-        $prior_of_this_nid    = -2;
-        $whole_id_of_this_nid = -2;
-    } ## end NID: while (1)
-    my $pow3set = Marpa::R2::Pow3set->obtain( $asf, @choicepoint_ids );
-    return $pow3set;
-} ## end sub nidset_to_pow3set
-
 # Not external -- first_symch() will be the external method.
 sub next_factoring {
     my ($choicepoint) = @_;
@@ -697,26 +593,37 @@ sub next_factoring {
         if ($is_first_factoring_attempt) {
 
             # Due to skipping, even the top or-node can have no valid choices
-            return factoring_exhaust($choicepoint)
-                if $ordering->_marpa_o_or_node_and_node_count($nid);
+            if ($ordering->_marpa_o_or_node_and_node_count(
+                    $nid_of_choicepoint)
+                )
+            {
+                $choicepoint
+                    ->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK] =
+                    undef;
+                return;
+            } ## end if ( $ordering->_marpa_o_or_node_and_node_count(...))
 
             $is_first_factoring_attempt = 0;
             my $nook;
             $nook->[Marpa::R2::Internal::Nook::ASF]     = $asf;
-            $nook->[Marpa::R2::Internal::Nook::OR_NODE] = $nid;
+            $nook->[Marpa::R2::Internal::Nook::OR_NODE] = $nid_of_choicepoint;
             $nook->[Marpa::R2::Internal::Nook::CHOICE]  = 0;
             $nook->[Marpa::R2::Internal::Nook::PARENT]  = -1;
 
             $choicepoint->[Marpa::R2::Internal::Choicepoint::OR_NODE_IN_USE]
-                ->{$nid} = 1;
+                ->{$nid_of_choicepoint} = 1;
             push @{$factoring_stack}, $nook;
         } ## end if ($is_first_factoring_attempt)
         else {
             FIND_NODE_TO_ITERATE: while (1) {
-                return factoring_exhaust($choicepoint)
-                    if not scalar @{$factoring_stack};
-                my $top_or_node = $factoring_stack->[-1];
-                my $top_nook    = =
+                if ( not scalar @{$factoring_stack} ) {
+                    $choicepoint
+                        ->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK]
+                        = undef;
+                    return;
+                } ## end if ( not scalar @{$factoring_stack} )
+                my $top_nook = $factoring_stack->[-1];
+                my $top_or_node =
                     $top_nook->[Marpa::R2::Internal::Nook::OR_NODE];
                 my $choice =
                     $top_nook->[Marpa::R2::Internal::Nook::CHOICE] + 1;
@@ -753,7 +660,7 @@ sub next_factoring {
                     ->{$top_or_node} = undef;
                 pop @{$factoring_stack};
             } ## end FIND_NODE_TO_ITERATE: while (1)
-        }
+        } ## end else [ if ($is_first_factoring_attempt) ]
 
         my @worklist = ( 0 .. $#{$factoring_stack} );
 
@@ -762,8 +669,11 @@ sub next_factoring {
             my $work_nook = $factoring_stack->[$stack_ix_of_work_nook];
             my $work_or_node =
                 $work_nook->[Marpa::R2::Internal::Nook::OR_NODE];
+            my $working_choice =
+                $work_nook->[Marpa::R2::Internal::Nook::CHOICE];
             my $work_and_node_id =
-                $ordering->_marpa_o_and_node_order_get( $nid, $choice );
+                $ordering->_marpa_o_and_node_order_get( $work_or_node,
+                $working_choice );
             my $child_or_node;
             my $child_is_cause;
             my $child_is_predecessor;
@@ -807,7 +717,9 @@ sub next_factoring {
                     ->[Marpa::R2::Internal::Choicepoint::OR_NODE_IN_USE]
                     ->{$child_or_node};
 
-            next FACTORING_ATTEMPT if $ordering->_marpa_o_or_node_and_node_count($nid) <= 0;
+            next FACTORING_ATTEMPT
+                if $ordering->_marpa_o_or_node_and_node_count($child_or_node)
+                    <= 0;
 
             my $new_nook = [];
             $new_nook->[Marpa::R2::Internal::Nook::PARENT] =
@@ -831,14 +743,21 @@ sub next_factoring {
 
         return 1;
 
-    } ## end while (1)
+    } ## end FACTORING_ATTEMPT: while (1)
 } ## end sub next_factoring
 
 sub factors {
     my ($choicepoint) = @_;
-    my @result = ();
-    my $factoring_stack = $choicepoint->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK];
-    for ( my $factor_ix = 0; $factor_ix < $#{$factoring_stack}; $factor_ix ) {
+    my $asf           = $choicepoint->[Marpa::R2::Internal::Choicepoint::ASF];
+    my $slr           = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
+    my $recce         = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+    my $bocage        = $recce->[Marpa::R2::Internal::Recognizer::B_C];
+    my $ordering      = $recce->[Marpa::R2::Internal::Recognizer::O_C];
+
+    my @result;
+    my $factoring_stack =
+        $choicepoint->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK];
+    for ( my $factor_ix = 0; $factor_ix < $#{$factoring_stack}; $factor_ix++ ) {
         my $nook    = $factoring_stack->[$factor_ix];
         my $or_node = $nook->[Marpa::R2::Internal::Nook::OR_NODE];
         my %nids    = ();
@@ -855,18 +774,13 @@ sub factors {
                 if not $bocage->_marpa_b_or_node_is_semantic($cause_id);
             $nids{$cause_id} = 1;
         } ## end AND_NODE: for my $and_node_id ( $ordering...)
-        my $nidset = Marpa::R2::Nidset->obtain( $asf, @nids );
+        my $nidset = Marpa::R2::Nidset->obtain( $asf, keys %nids );
         my $choicepoint_base = nidset_to_choicepoint_base( $asf, $nidset );
-        push @result, $asf->new_choicepoint($choicepoint_base);
+        my $new_choicepoint = $asf->new_choicepoint($choicepoint_base);
+        push @result, $new_choicepoint;
     } ## end for ( my $factor_ix = 0; $factor_ix < $#{$factoring_stack...})
     return \@result;
-}
-
-# Set the factoring exhausted
-sub factoring_exhaust {
-    $choicepoint->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK] = undef;
-    return;
-}
+} ## end sub factors
 
 # Return the size of the choicepoint ambiguous prefix.
 # This ranges from 1 to the length of the rule,
@@ -909,16 +823,6 @@ sub Marpa::R2::Scanless::ASF::show_powersets {
     my $powersets = $asf->[Marpa::R2::Internal::Scanless::ASF::POWERSET_BY_ID];
     for my $powerset (grep { defined } @{$powersets}) {
         $text .= $powerset->show() . "\n";
-    }
-    return $text;
-}
-
-sub Marpa::R2::Scanless::ASF::show_pow3sets {
-    my ($asf) = @_;
-    my $text = q{};
-    my $pow3sets = $asf->[Marpa::R2::Internal::Scanless::ASF::POW3SET_BY_ID];
-    for my $pow3set (grep { defined } @{$pow3sets}) {
-        $text .= $pow3set->show() . "\n";
     }
     return $text;
 }
@@ -1004,7 +908,7 @@ sub Marpa::R2::Choicepoint::show_factorings {
                     @{ $choicepoint->show_nids($current_choice) };
             } ## end for my $choicepoint ( @{$factoring} )
             $choicepoint->next_factoring();
-            $factoring = $factors($choicepoint);
+            $factoring = factors($choicepoint);
             $factor_ix++;
         } ## end FACTOR: for ( my $factor_ix = 0; defined $factoring; ...)
     } ## end for ( my $nid_ix = 0; $nid_ix < $nid_count; $nid_ix++)
