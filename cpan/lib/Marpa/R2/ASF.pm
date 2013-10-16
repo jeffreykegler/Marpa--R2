@@ -213,6 +213,8 @@ sub Marpa::R2::Scanless::ASF::top {
     my $bocage = $recce->[Marpa::R2::Internal::Recognizer::B_C];
     die 'No Bocage' if not $bocage;
     my $augment_or_node_id = $bocage->_marpa_b_top_or_node();
+
+    # We assume that ordering will have no effect
     my $augment_and_node_id =
         $bocage->_marpa_b_or_node_first_and($augment_or_node_id);
     my $augment2_or_node_id =
@@ -827,16 +829,34 @@ sub next_factoring {
 
         } ## end DO_WORKLIST: while ( scalar @worklist )
 
-        # NOT FINISHED AFTER HERE !!!
-
-        my @return_value = ();
-        for my $factorset ( reverse @{$factoring_stack} ) {
-            push @return_value, $factorset->choicepoint();
-        }
-        return \@return_value;
+        return 1;
 
     } ## end while (1)
 } ## end sub next_factoring
+
+sub factors {
+    my ($choicepoint) = @_;
+    my @result = ();
+    my $factoring_stack = $choicepoint->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK];
+    for (my $factor_ix = 0; $factor_ix < $#{$factoring_stack}; $factor_ix) {
+        my $nook = $factoring_stack->[$factor_ix];
+        my $or_node = $nook->[Marpa::R2::Internal::Nook::OR_NODE];
+        my @nids = ();
+        AND_NODE: for my $and_node_id ( $ordering->_marpa_o_or_node_and_node_ids($or_node) )
+        {
+            my $cause_id = $bocage->_marpa_b_and_node_cause($and_node_id);
+            if ( not defined $cause_id ) {
+                push @nids, and_node_to_nid($and_node_id);
+                next AND_NODE;
+            }
+            push @nids, $cause_id;
+        }
+        my $nidset = Marpa::R2::Nidset->obtain( $asf, @nids );
+        my $choicepoint_base = nidset_to_choicepoint_base( $asf, $nidset );
+        push @result, $asf->new_choicepoint($choicepoint_base);
+    }
+    return \@result;
+}
 
 # Set the factoring exhausted
 sub factoring_exhaust {
@@ -962,7 +982,8 @@ sub Marpa::R2::Choicepoint::show_factorings {
     for ( my $nid_ix = 0; $nid_ix < $nid_count; $nid_ix++ ) {
         $choicepoint->[Marpa::R2::Internal::Choicepoint::NID_IX] = $nid_ix;
 
-        my $factoring = next_factoring($choicepoint);
+        next_factoring($choicepoint);
+        my $factoring = factors($choicepoint);
 
         my $factoring_is_ambiguous = ($nid_count > 1) || $choicepoint->ambiguous_prefix();
         FACTOR: while (defined $factoring ) {
@@ -978,7 +999,8 @@ sub Marpa::R2::Choicepoint::show_factorings {
                     map { $indent . $_ }
                     @{ $choicepoint->show_nids($current_choice) };
             } ## end for my $choicepoint ( @{$factoring} )
-            $factoring = $choicepoint->next_factoring();
+            $choicepoint->next_factoring();
+            $factoring = $factors($choicepoint);
             $factor_ix++;
         } ## end FACTOR: for ( my $factor_ix = 0; defined $factoring; ...)
     } ## end for ( my $nid_ix = 0; $nid_ix < $nid_count; $nid_ix++)
