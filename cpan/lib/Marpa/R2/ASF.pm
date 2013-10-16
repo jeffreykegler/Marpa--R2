@@ -838,23 +838,27 @@ sub factors {
     my ($choicepoint) = @_;
     my @result = ();
     my $factoring_stack = $choicepoint->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK];
-    for (my $factor_ix = 0; $factor_ix < $#{$factoring_stack}; $factor_ix) {
-        my $nook = $factoring_stack->[$factor_ix];
+    for ( my $factor_ix = 0; $factor_ix < $#{$factoring_stack}; $factor_ix ) {
+        my $nook    = $factoring_stack->[$factor_ix];
         my $or_node = $nook->[Marpa::R2::Internal::Nook::OR_NODE];
-        my @nids = ();
-        AND_NODE: for my $and_node_id ( $ordering->_marpa_o_or_node_and_node_ids($or_node) )
+        my %nids    = ();
+        AND_NODE:
+        for my $and_node_id (
+            $ordering->_marpa_o_or_node_and_node_ids($or_node) )
         {
             my $cause_id = $bocage->_marpa_b_and_node_cause($and_node_id);
             if ( not defined $cause_id ) {
-                push @nids, and_node_to_nid($and_node_id);
+                $nids{ and_node_to_nid($and_node_id) } = 1;
                 next AND_NODE;
             }
-            push @nids, $cause_id;
-        }
+            next AND_NODE
+                if not $bocage->_marpa_b_or_node_is_semantic($cause_id);
+            $nids{$cause_id} = 1;
+        } ## end AND_NODE: for my $and_node_id ( $ordering...)
         my $nidset = Marpa::R2::Nidset->obtain( $asf, @nids );
         my $choicepoint_base = nidset_to_choicepoint_base( $asf, $nidset );
         push @result, $asf->new_choicepoint($choicepoint_base);
-    }
+    } ## end for ( my $factor_ix = 0; $factor_ix < $#{$factoring_stack...})
     return \@result;
 }
 
@@ -869,21 +873,21 @@ sub factoring_exhaust {
 # if the choicepoint is ambiguous.
 # If the choicepoint is unambiguous, it is always 0.
 sub Marpa::R2::Choicepoint::ambiguous_prefix {
-        # NOT FINISHED AFTER HERE !!!
     my ($choicepoint) = @_;
     my $asf = $choicepoint->[Marpa::R2::Internal::Choicepoint::ASF];
-    my $nidset_by_id =
-        $asf->[Marpa::R2::Internal::Scanless::ASF::NIDSET_BY_ID];
-    my $powerset_by_id =
-        $asf->[Marpa::R2::Internal::Scanless::ASF::POWERSET_BY_ID];
+    my $slr       = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
+    my $recce     = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+    my $ordering  = $recce->[Marpa::R2::Internal::Recognizer::O_C];
+
     my $factoring_stack =
         $choicepoint->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK];
     Marpa::R2::exception('ASF choicepoint factoring is not initialized or exhausted')
         if not defined $factoring_stack;
     my $stack_pos = $#{$factoring_stack};
     STACK_POS: while ( $stack_pos >= 0 ) {
-        my $factorset =  $factoring_stack->[$stack_pos];
-        last STACK_POS if $factorset->is_ambiguous();
+        my $nook =  $factoring_stack->[$stack_pos];
+        my $or_node = $nook->[Marpa::R2::Internal::Nook::OR_NODE];
+        last STACK_POS if $ordering->_marpa_o_or_node_and_node_count($or_node);
         $stack_pos--;
     } ## end STACK_POS: while ( $stack_pos >= 0 )
     return $stack_pos + 1;
