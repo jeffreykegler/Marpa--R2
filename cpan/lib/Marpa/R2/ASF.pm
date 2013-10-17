@@ -560,7 +560,7 @@ sub next_factoring {
         "; nid IX = ",
         $choicepoint->[Marpa::R2::Internal::Choicepoint::NID_IX];
     my $asf = $choicepoint->[Marpa::R2::Internal::Choicepoint::ASF];
-    $choicepoint->[Marpa::R2::Internal::Choicepoint::FACTORING_COUNT] //= [];
+    $choicepoint->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK] //= [];
     my $factoring_stack =
         $choicepoint->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK];
     my $factoring_count =
@@ -594,9 +594,11 @@ sub next_factoring {
 
             # Due to skipping, even the top or-node can have no valid choices
             if ($ordering->_marpa_o_or_node_and_node_count(
-                    $nid_of_choicepoint)
+                    $nid_of_choicepoint) <= 0
                 )
             {
+                $choicepoint
+                    ->[Marpa::R2::Internal::Choicepoint::IS_EXHAUSTED] = 1;
                 $choicepoint
                     ->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK] =
                     undef;
@@ -617,6 +619,8 @@ sub next_factoring {
         else {
             FIND_NODE_TO_ITERATE: while (1) {
                 if ( not scalar @{$factoring_stack} ) {
+                    $choicepoint
+                        ->[Marpa::R2::Internal::Choicepoint::IS_EXHAUSTED] = 1;
                     $choicepoint
                         ->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK]
                         = undef;
@@ -671,6 +675,7 @@ sub next_factoring {
                 $work_nook->[Marpa::R2::Internal::Nook::OR_NODE];
             my $working_choice =
                 $work_nook->[Marpa::R2::Internal::Nook::CHOICE];
+            $DB::single = 1;
             my $work_and_node_id =
                 $ordering->_marpa_o_and_node_order_get( $work_or_node,
                 $working_choice );
@@ -722,6 +727,7 @@ sub next_factoring {
                     <= 0;
 
             my $new_nook = [];
+            $new_nook->[Marpa::R2::Internal::Nook::OR_NODE] = $child_or_node;
             $new_nook->[Marpa::R2::Internal::Nook::PARENT] =
                 $stack_ix_of_work_nook;
             $new_nook->[Marpa::R2::Internal::Nook::CHOICE] = 0;
@@ -782,10 +788,12 @@ sub factors {
     return \@result;
 } ## end sub factors
 
+# Internal?
 # Return the size of the choicepoint ambiguous prefix.
-# This ranges from 1 to the length of the rule,
-# if the choicepoint is ambiguous.
+# This is the last point in the factoring stack with an ambiguity.
+# if the choicepoint is ambiguous, it is greater than 0.
 # If the choicepoint is unambiguous, it is always 0.
+# The concept of "point in the factoring stack" is internal.
 sub Marpa::R2::Choicepoint::ambiguous_prefix {
     my ($choicepoint) = @_;
     my $asf = $choicepoint->[Marpa::R2::Internal::Choicepoint::ASF];
@@ -795,7 +803,7 @@ sub Marpa::R2::Choicepoint::ambiguous_prefix {
 
     my $factoring_stack =
         $choicepoint->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK];
-    Marpa::R2::exception('ASF choicepoint factoring is not initialized or exhausted')
+    Marpa::R2::exception('ASF choicepoint factoring was never initialized')
         if not defined $factoring_stack;
     my $stack_pos = $#{$factoring_stack};
     STACK_POS: while ( $stack_pos >= 0 ) {
@@ -893,6 +901,7 @@ sub Marpa::R2::Choicepoint::show_factorings {
         next_factoring($choicepoint);
         my $factoring = factors($choicepoint);
 
+        $DB::single = 1;
         my $factoring_is_ambiguous = ($nid_count > 1) || $choicepoint->ambiguous_prefix();
         FACTOR: while (defined $factoring ) {
             my $current_choice = "$parent_choice$factor_ix";
