@@ -257,6 +257,7 @@ say {$out} gp_generate(qw(_marpa_g_irl_rhs Marpa_IRL_ID rule_id int ix));
 say {$out} gp_generate(qw(_marpa_g_irl_length Marpa_IRL_ID rule_id));
 say {$out} gp_generate(qw(_marpa_g_irl_rank Marpa_IRL_ID irl_id));
 say {$out} gp_generate(qw(_marpa_g_isy_rank Marpa_ISY_ID isy_id));
+say {$out} gp_generate(qw(_marpa_g_isy_is_semantic Marpa_ISY_ID isy_id));
 
 $main::CLASS_LETTER   = 'b';
 $main::LIBMARPA_CLASS = 'Marpa_Bocage';

@@ -277,15 +277,18 @@ of excellent ``average case" results.
 @ Finally, there is {\bf theoretical complexity}.
 This is the complexity I would claim in a write-up of the
 Marpa algorithm for a Theory of Computation article.
-Most of the time, this is the same as practical worst-case complexity.
+Most of the time, I am conservative, and do not
+claim a theoretical complexity better than
+the practical worst-case complexity.
 Often, however, for theoretical complexity I consider
 myself entitled to claim
 the time complexity for a 
 better algorithm, even thought that is not the one
 used in the actual implementation.
-@ Sorting is a good example of under what circumstances
-I take the liberty of claiming a time complexity I did not
-implement.
+@
+Sorting is a good example of a case where
+I take the liberty of claiming a time complexity better than
+the one I actually implemented.
 In many places in |libmarpa|,
 for sorting,
 the most reasonable practical
@@ -301,16 +304,16 @@ the GNU project has decided to base it on quicksort,
 and I do not care to second-guess them on this.
 But quicksort and insertion sorts are both, theoretically, $O(n^2)$.
 @ Clearly, in both cases, I could drop in a merge sort and achieve
-a theoretical $O(n \log n)$ worst case.
-Often just as clear is that is all cases likely to occur in practice,
+a theoretical time complexity $O(n \log n)$ in the worst case.
+Often it is just as clear is that, in practice,
 the merge sort would be inferior.
 @ When I claim a complexity from a theoretical choice of algorithm,
 rather than the actually implemented one, the following will always be
 the case:
 \li The existence of the theoretical algorithm must be generally accepted.
 \li The complexity I claim for it must be generally accepted.
-\li It must be clear that there are no obstacles to using the theoretical algorithm
-whose solution is not straightforward.
+\li It must be clear that there are no serious
+obstacles to using the theoretical algorithm.
 @ I am a big believer in theory.
 Often practical considerations didn't clearly indicate a choice of
 algorithm .
@@ -1724,7 +1727,8 @@ struct s_isy;
 typedef struct s_isy* ISY;
 typedef Marpa_ISY_ID ISYID;
 
-@ The initial element is a type |int|,
+@ Internal symbols are also used as the or-nodes for nulling tokens.
+The initial element is a type |int|,
 and the next element is the symbol ID,
 (the unique identifier for the symbol),
 so that the
@@ -2945,6 +2949,9 @@ be using it.
     First_AIM_of_IRL(irl) = NULL;
 
 @** Symbol instance (SYMI) code.
+The symbol instance identifies the instance of a symbol in the internal grammar,
+That is, it identifies not just the symbol, but the specific use of a symbol in
+a rule.
 @<Private typedefs@> = typedef int SYMI;
 @ @d SYMI_Count_of_G(g) ((g)->t_symbol_instance_count)
 @<Int aligned grammar elements@> =
@@ -3015,20 +3022,20 @@ int marpa_g_precompute(Marpa_Grammar g)
     @<Fail if no rules@>@;
     @<Fail if precomputed@>@;
     @<Fail if bad start symbol@>@;
-    // After this point, errors are not recoverable
+    // \break After this point, errors are not recoverable \break
     @<Clear rule duplication tree@>@;
-    // Phase 1: census the external grammar
+    /* \vskip\baselineskip Phase 1: census the external grammar */
     { /* Scope with only external grammar */
 	@<Declare census variables@>@;
 	@<Perform census of grammar |g|@>@;
 	@<Detect cycles@>@;
     }
-    // Phase 2: rewrite the grammar into internal form
+    //  \vskip\baselineskip Phase 2: rewrite the grammar into internal form 
     @<Initialize IRL stack@>@;
     @<Initialize ISY stack@>@;
     @<Rewrite grammar |g| into CHAF form@>@;
     @<Augment grammar |g|@>@;
-    // Phase 3: memoize the internal grammar
+    /* \vskip\baselineskip Phase 3: memoize the internal grammar */
      if (!G_is_Trivial(g)) {
 	@<Declare variables for the internal grammar
 	memoizations@>@;

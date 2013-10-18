@@ -177,8 +177,7 @@ sub Marpa::R2::Scanless::ASF::top {
         $bocage->_marpa_b_or_node_first_and($augment_or_node_id);
     my $augment2_or_node_id =
         $bocage->_marpa_b_and_node_cause($augment_and_node_id);
-    my $augment_nidset = Marpa::R2::Nidset->obtain( $asf, $augment2_or_node_id );
-    my $top_powerset = nidset_to_choicepoint_base( $asf, $augment_nidset );
+    my $top_powerset = parent_nid_to_choicepoint_base( $asf, $augment2_or_node_id );
     $top = $asf->new_choicepoint($top_powerset);
     $asf->[Marpa::R2::Internal::Scanless::ASF::TOP] = $top;
     return $top;
@@ -322,8 +321,8 @@ sub Marpa::R2::Scanless::ASF::new_choicepoint {
     return $cp;
 }
 
-sub nidset_to_choicepoint_base {
-    my ( $asf, $nidset ) = @_;
+sub parent_nid_to_choicepoint_base {
+    my ( $asf, $nid ) = @_;
 
     my $slr       = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
     my $recce     = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
@@ -333,31 +332,16 @@ sub nidset_to_choicepoint_base {
     my $ordering  = $recce->[Marpa::R2::Internal::Recognizer::O_C];
 
     # Memoize the method?
-    my %nid_seen = ();
-    my @stack    = @{ $nidset->nids() };
-    $nid_seen{$_} = 1 for @stack;
-    my @causes = ();
-    while ( my $or_node = pop @stack ) {
-        AND_NODE:
-        for my $and_node_id (
-            $ordering->_marpa_o_or_node_and_node_ids($or_node) )
-        {
-            my $cause_id = $bocage->_marpa_b_and_node_cause($and_node_id);
-            if ( not defined $cause_id ) {
-                push @causes, and_node_to_nid($and_node_id);
-                next AND_NODE;
-            }
-            next AND_NODE if $nid_seen{$cause_id};
-            $nid_seen{$cause_id} = 1;
-            if ( $bocage->_marpa_b_or_node_is_semantic($cause_id) ) {
-                push @causes, $cause_id;
-                next AND_NODE;
-            }
-            push @stack, $cause_id;
-        } ## end AND_NODE: for my $and_node_id ( $ordering...)
-    } ## end while ( my $or_node = pop @stack )
+    my %causes = ();
+    for my $and_node_id (
+        $ordering->_marpa_o_or_node_and_node_ids($nid) )
+    {
+        my $cause_nid = $bocage->_marpa_b_and_node_cause($and_node_id) //
+             and_node_to_nid($and_node_id);
+        $causes{$cause_nid} = 1;
+    } ## end AND_NODE: for my $and_node_id ( $ordering...)
     my @cause_data = ();
-    for my $cause_nid (@causes) {
+    for my $cause_nid (sort keys %causes) {
         my $sort_ix;
         if ( $cause_nid >= 0 ) {
             my $irl_id  = $bocage->_marpa_b_or_node_irl($cause_nid);
@@ -551,6 +535,7 @@ sub Marpa::R2::Choicepoint::symbol_id {
 
 # Not external -- first_symch() will be the external method.
 sub next_factoring {
+        $DB::single = 1;
     my ($choicepoint) = @_;
     say STDERR join q{ }, __FILE__, __LINE__, "next_factoring()",
         $choicepoint->show();
@@ -566,6 +551,10 @@ sub next_factoring {
     my $factoring_count =
         $choicepoint->[Marpa::R2::Internal::Choicepoint::FACTORING_COUNT];
     my $is_first_factoring_attempt = ( $factoring_count <= 0 );
+
+    say STDERR " factoring_count = ",
+        $choicepoint->[Marpa::R2::Internal::Choicepoint::FACTORING_COUNT];
+    $choicepoint->[Marpa::R2::Internal::Choicepoint::FACTORING_COUNT]++;
 
     # Current NID of current SYMCH
     my $nid_of_choicepoint = $choicepoint->nid();
@@ -607,7 +596,6 @@ sub next_factoring {
 
             $is_first_factoring_attempt = 0;
             my $nook;
-            $nook->[Marpa::R2::Internal::Nook::ASF]     = $asf;
             $nook->[Marpa::R2::Internal::Nook::OR_NODE] = $nid_of_choicepoint;
             $nook->[Marpa::R2::Internal::Nook::CHOICE]  = 0;
             $nook->[Marpa::R2::Internal::Nook::PARENT]  = -1;
@@ -675,7 +663,6 @@ sub next_factoring {
                 $work_nook->[Marpa::R2::Internal::Nook::OR_NODE];
             my $working_choice =
                 $work_nook->[Marpa::R2::Internal::Nook::CHOICE];
-            $DB::single = 1;
             my $work_and_node_id =
                 $ordering->_marpa_o_and_node_order_get( $work_or_node,
                 $working_choice );
@@ -757,34 +744,33 @@ sub factors {
     my $asf           = $choicepoint->[Marpa::R2::Internal::Choicepoint::ASF];
     my $slr           = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
     my $recce         = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+    my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
+    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
     my $bocage        = $recce->[Marpa::R2::Internal::Recognizer::B_C];
-    my $ordering      = $recce->[Marpa::R2::Internal::Recognizer::O_C];
 
     my @result;
     my $factoring_stack =
         $choicepoint->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK];
-    for ( my $factor_ix = 0; $factor_ix < $#{$factoring_stack}; $factor_ix++ ) {
-        my $nook    = $factoring_stack->[$factor_ix];
-        my $or_node = $nook->[Marpa::R2::Internal::Nook::OR_NODE];
-        my %nids    = ();
-        AND_NODE:
-        for my $and_node_id (
-            $ordering->_marpa_o_or_node_and_node_ids($or_node) )
-        {
-            my $cause_id = $bocage->_marpa_b_and_node_cause($and_node_id);
-            if ( not defined $cause_id ) {
-                $nids{ and_node_to_nid($and_node_id) } = 1;
-                next AND_NODE;
-            }
-            next AND_NODE
-                if not $bocage->_marpa_b_or_node_is_semantic($cause_id);
-            $nids{$cause_id} = 1;
-        } ## end AND_NODE: for my $and_node_id ( $ordering...)
-        my $nidset = Marpa::R2::Nidset->obtain( $asf, keys %nids );
-        my $choicepoint_base = nidset_to_choicepoint_base( $asf, $nidset );
+    FACTOR:
+    for (
+        my $factor_ix = 0;
+        $factor_ix < $#{$factoring_stack};
+        $factor_ix++
+        )
+    {
+        my $nook            = $factoring_stack->[$factor_ix];
+        my $or_node         = $nook->[Marpa::R2::Internal::Nook::OR_NODE];
+        my $irl_id             = $bocage->_marpa_b_or_node_irl($or_node);
+        my $predot_position = $bocage->_marpa_b_or_node_position($or_node) - 1;
+        my $predot_isyid =
+            $grammar_c->_marpa_g_irl_rhs( $irl_id, $predot_position );
+        next FACTOR
+            if not $grammar_c->_marpa_g_isy_is_semantic($predot_isyid);
+        my $choicepoint_base =
+            parent_nid_to_choicepoint_base( $asf, $or_node );
         my $new_choicepoint = $asf->new_choicepoint($choicepoint_base);
         push @result, $new_choicepoint;
-    } ## end for ( my $factor_ix = 0; $factor_ix < $#{$factoring_stack...})
+    } ## end FACTOR: for ( my $factor_ix = 0; $factor_ix < $#{$factoring_stack...})
     return \@result;
 } ## end sub factors
 
@@ -916,7 +902,7 @@ sub Marpa::R2::Choicepoint::show_factorings {
                     map { $indent . $_ }
                     @{ $choicepoint->show_nids($current_choice) };
             } ## end for my $choicepoint ( @{$factoring} )
-            $choicepoint->next_factoring();
+            next_factoring($choicepoint);
             $factoring = factors($choicepoint);
             $factor_ix++;
         } ## end FACTOR: for ( my $factor_ix = 0; defined $factoring; ...)

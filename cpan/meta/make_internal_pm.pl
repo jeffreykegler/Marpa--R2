@@ -253,7 +253,6 @@ __DATA__
 
     :package=Marpa::R2::Internal::Nook
 
-    ASF
     PARENT
     OR_NODE
     CHOICE
