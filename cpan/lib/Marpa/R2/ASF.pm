@@ -552,8 +552,6 @@ sub next_factoring {
         $choicepoint->[Marpa::R2::Internal::Choicepoint::FACTORING_COUNT];
     my $is_first_factoring_attempt = ( $factoring_count <= 0 );
 
-    say STDERR " factoring_count = ",
-        $choicepoint->[Marpa::R2::Internal::Choicepoint::FACTORING_COUNT];
     $choicepoint->[Marpa::R2::Internal::Choicepoint::FACTORING_COUNT]++;
 
     # Current NID of current SYMCH
@@ -618,7 +616,7 @@ sub next_factoring {
                 my $top_or_node =
                     $top_nook->[Marpa::R2::Internal::Nook::OR_NODE];
                 my $choice =
-                    $top_nook->[Marpa::R2::Internal::Nook::CHOICE] + 1;
+                    ++$top_nook->[Marpa::R2::Internal::Nook::CHOICE];
                 my $work_and_node_id =
                     $ordering->_marpa_o_and_node_order_get( $top_or_node,
                     $choice );
@@ -751,6 +749,7 @@ sub factors {
     my @result;
     my $factoring_stack =
         $choicepoint->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK];
+    return if not $factoring_stack;
     FACTOR:
     for (
         my $factor_ix = 0;
@@ -887,7 +886,6 @@ sub Marpa::R2::Choicepoint::show_factorings {
         next_factoring($choicepoint);
         my $factoring = factors($choicepoint);
 
-        $DB::single = 1;
         my $factoring_is_ambiguous = ($nid_count > 1) || $choicepoint->ambiguous_prefix();
         FACTOR: while (defined $factoring ) {
             my $current_choice = "$parent_choice$factor_ix";
