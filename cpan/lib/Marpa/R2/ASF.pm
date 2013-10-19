@@ -429,6 +429,7 @@ sub Marpa::R2::Choicepoint::symch_set {
     Marpa::R2::exception("SYMCH index must be in range from 0 to $max_symch_ix")
        if $ix < 0 or $ix > $max_symch_ix;
     $cp->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK] = undef;
+    $cp->[Marpa::R2::Internal::Choicepoint::FACTORING_COUNT] = 0;
     $cp->[Marpa::R2::Internal::Choicepoint::NID_IX] = 0;
     return $cp->[Marpa::R2::Internal::Choicepoint::SYMCH_IX] = $ix;
 }
@@ -753,7 +754,7 @@ sub factors {
     FACTOR:
     for (
         my $factor_ix = 0;
-        $factor_ix < $#{$factoring_stack};
+        $factor_ix <= $#{$factoring_stack};
         $factor_ix++
         )
     {
@@ -794,7 +795,7 @@ sub Marpa::R2::Choicepoint::ambiguous_prefix {
     STACK_POS: while ( $stack_pos >= 0 ) {
         my $nook =  $factoring_stack->[$stack_pos];
         my $or_node = $nook->[Marpa::R2::Internal::Nook::OR_NODE];
-        last STACK_POS if $ordering->_marpa_o_or_node_and_node_count($or_node);
+        last STACK_POS if $ordering->_marpa_o_or_node_and_node_count($or_node) > 1;
         $stack_pos--;
     } ## end STACK_POS: while ( $stack_pos >= 0 )
     return $stack_pos + 1;
