@@ -177,8 +177,9 @@ sub Marpa::R2::Scanless::ASF::top {
         $bocage->_marpa_b_or_node_first_and($augment_or_node_id);
     my $augment2_or_node_id =
         $bocage->_marpa_b_and_node_cause($augment_and_node_id);
-    my $top_powerset = parent_nid_to_choicepoint_base( $asf, $augment2_or_node_id );
-    $top = $asf->new_choicepoint($top_powerset);
+    my $top_nidset = Marpa::R2::Nidset->obtain( $asf, $augment2_or_node_id );
+    my $top_choicepoint_base = nidset_to_choicepoint_base( $asf, $top_nidset );
+    $top = $asf->new_choicepoint($top_choicepoint_base);
     $asf->[Marpa::R2::Internal::Scanless::ASF::TOP] = $top;
     return $top;
 } ## end sub Marpa::R2::Scanless::ASF::top
@@ -321,8 +322,10 @@ sub Marpa::R2::Scanless::ASF::new_choicepoint {
     return $cp;
 }
 
-sub parent_nid_to_choicepoint_base {
-    my ( $asf, $nid ) = @_;
+sub nidset_to_choicepoint_base {
+    my ( $asf, $nidset ) = @_;
+
+    # Memoize this method?
 
     my $slr       = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
     my $recce     = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
@@ -331,34 +334,26 @@ sub parent_nid_to_choicepoint_base {
     my $bocage    = $recce->[Marpa::R2::Internal::Recognizer::B_C];
     my $ordering  = $recce->[Marpa::R2::Internal::Recognizer::O_C];
 
-    # Memoize the method?
-    my %causes = ();
-    for my $and_node_id (
-        $ordering->_marpa_o_or_node_and_node_ids($nid) )
-    {
-        my $cause_nid = $bocage->_marpa_b_and_node_cause($and_node_id) //
-             and_node_to_nid($and_node_id);
-        $causes{$cause_nid} = 1;
-    } ## end AND_NODE: for my $and_node_id ( $ordering...)
-    my @cause_data = ();
-    for my $cause_nid (sort keys %causes) {
+    my @source_data = ();
+    for my $source_nid ( @{ $nidset->nids() } ) {
         my $sort_ix;
-        if ( $cause_nid >= 0 ) {
-            my $irl_id  = $bocage->_marpa_b_or_node_irl($cause_nid);
+        if ( $source_nid >= 0 ) {
+            my $irl_id = $bocage->_marpa_b_or_node_irl($source_nid);
             $sort_ix = $grammar_c->_marpa_g_source_xrl($irl_id);
         }
         else {
-            my $and_node_id = nid_to_and_node($cause_nid);
+            my $and_node_id = nid_to_and_node($source_nid);
             my $token_isy_id =
                 $bocage->_marpa_b_and_node_symbol($and_node_id);
             my $token_id = $grammar_c->_marpa_g_source_xsy($token_isy_id);
             $sort_ix = -$token_id - 1;
-        } ## end else [ if ( $cause_nid >= 0 ) ]
-        push @cause_data, [ $sort_ix, $cause_nid ];
-    } ## end for my $cause_nid (@causes)
-    my @sorted_cause_data = sort { $a->[0] <=> $b->[0] } @cause_data;
+        } ## end else [ if ( $source_nid >= 0 ) ]
+        push @source_data, [ $sort_ix, $source_nid ];
+    } ## end for my $source_nid ( @{ $nidset->nids() } )
+    my @sorted_source_data = sort { $a->[0] <=> $b->[0] } @source_data;
     my $nid_ix = 0;
-    my ( $sort_ix_of_this_nid, $this_nid ) = @{$sorted_cause_data[ $nid_ix++ ]};
+    my ( $sort_ix_of_this_nid, $this_nid ) =
+        @{ $sorted_source_data[ $nid_ix++ ] };
     my @nids_with_current_sort_ix = ();
     my $current_sort_ix           = $sort_ix_of_this_nid;
     my @symch_ids                 = ();
@@ -372,10 +367,10 @@ sub parent_nid_to_choicepoint_base {
             push @symch_ids, $nidset_for_sort_ix->id();
             @nids_with_current_sort_ix = ();
             $current_sort_ix           = $sort_ix_of_this_nid;
-        } ## end if ( if $sort_ix_of_this_nid != $current_sort_ix )
+        } ## end if ( $sort_ix_of_this_nid != $current_sort_ix )
         last NID if not defined $this_nid;
         push @nids_with_current_sort_ix, $this_nid;
-        my $sorted_entry = $sorted_cause_data[ $nid_ix++ ];
+        my $sorted_entry = $sorted_source_data[ $nid_ix++ ];
         if ( defined $sorted_entry ) {
             ( $sort_ix_of_this_nid, $this_nid ) = @{$sorted_entry};
             next NID;
@@ -743,9 +738,10 @@ sub factors {
     my $asf           = $choicepoint->[Marpa::R2::Internal::Choicepoint::ASF];
     my $slr           = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
     my $recce         = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
-    my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
-    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
+    my $grammar       = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
+    my $grammar_c     = $grammar->[Marpa::R2::Internal::Grammar::C];
     my $bocage        = $recce->[Marpa::R2::Internal::Recognizer::B_C];
+    my $ordering        = $recce->[Marpa::R2::Internal::Recognizer::O_C];
 
     my @result;
     my $factoring_stack =
@@ -758,19 +754,29 @@ sub factors {
         $factor_ix++
         )
     {
-        my $nook            = $factoring_stack->[$factor_ix];
-        my $or_node         = $nook->[Marpa::R2::Internal::Nook::OR_NODE];
-        my $irl_id             = $bocage->_marpa_b_or_node_irl($or_node);
-        my $predot_position = $bocage->_marpa_b_or_node_position($or_node) - 1;
+        my $nook    = $factoring_stack->[$factor_ix];
+        my $or_node = $nook->[Marpa::R2::Internal::Nook::OR_NODE];
+        my $irl_id  = $bocage->_marpa_b_or_node_irl($or_node);
+        my $predot_position =
+            $bocage->_marpa_b_or_node_position($or_node) - 1;
         my $predot_isyid =
             $grammar_c->_marpa_g_irl_rhs( $irl_id, $predot_position );
         next FACTOR
             if not $grammar_c->_marpa_g_isy_is_semantic($predot_isyid);
+        my %causes = ();
+        for my $and_node_id ( $ordering->_marpa_o_or_node_and_node_ids($or_node) )
+        {
+            my $cause_nid = $bocage->_marpa_b_and_node_cause($and_node_id)
+                // and_node_to_nid($and_node_id);
+            $causes{$cause_nid} = 1;
+        } ## end for my $and_node_id ( $ordering...)
+        my $choicepoint_nidset =
+            Marpa::R2::Nidset->obtain( $asf, keys %causes );
         my $choicepoint_base =
-            parent_nid_to_choicepoint_base( $asf, $or_node );
+            nidset_to_choicepoint_base( $asf, $choicepoint_nidset );
         my $new_choicepoint = $asf->new_choicepoint($choicepoint_base);
         push @result, $new_choicepoint;
-    } ## end FACTOR: for ( my $factor_ix = 0; $factor_ix < $#{$factoring_stack...})
+    } ## end FACTOR: for ( my $factor_ix = 0; $factor_ix <= $#{...})
     return \@result;
 } ## end sub factors
 
