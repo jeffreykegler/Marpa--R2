@@ -12086,6 +12086,31 @@ PRIVATE TOK and_node_token(AND and_node)
     return NULL;
 }
 
+@ The ``middle'' earley set of the and-node.
+It is most simply defined as equivalent to
+the start of the cause, but the cause can be token,
+and in that case the simpler definition is not helpful.
+Instead, the end of the predecessor is used, if there is one.
+If there is no predecessor, the origin of the parent or-node will
+always be the same as ``middle'' of the or-node.
+@<Function definitions@> =
+Marpa_Earley_Set_ID _marpa_b_and_node_middle(Marpa_Bocage b,
+    Marpa_And_Node_ID and_node_id)
+{
+  AND and_node;
+  @<Return |-2| on failure@>@;
+  @<Unpack bocage objects@>@;
+  @<Check bocage |and_node_id|; set |and_node|@>@;
+  {
+    const OR predecessor_or = Predecessor_OR_of_AND (and_node);
+    if (predecessor_or)
+      {
+	return ES_Ord_of_OR (predecessor_or);
+      }
+  }
+  return Origin_Ord_of_OR (OR_of_AND (and_node));
+}
+
 @** Progress report code.
 @<Private typedefs@> =
    typedef struct marpa_progress_item* PROGRESS;
