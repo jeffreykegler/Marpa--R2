@@ -171,15 +171,20 @@ sub Marpa::R2::Scanless::ASF::top {
     my $bocage = $recce->[Marpa::R2::Internal::Recognizer::B_C];
     die 'No Bocage' if not $bocage;
     my $augment_or_node_id = $bocage->_marpa_b_top_or_node();
-
-    # We assume that ordering will have no effect
     my $augment_and_node_id =
         $bocage->_marpa_b_or_node_first_and($augment_or_node_id);
+
     my $augment2_or_node_id =
         $bocage->_marpa_b_and_node_cause($augment_and_node_id);
-    my $top_nidset = Marpa::R2::Nidset->obtain( $asf, $augment2_or_node_id );
+    my $augment2_and_node_id =
+        $bocage->_marpa_b_or_node_first_and($augment2_or_node_id);
+
+    my $start_or_node_id =
+        $bocage->_marpa_b_and_node_cause($augment2_and_node_id);
+    my $top_nidset = Marpa::R2::Nidset->obtain( $asf, $start_or_node_id );
     my $top_choicepoint_base = nidset_to_choicepoint_base( $asf, $top_nidset );
     $top = $asf->new_choicepoint($top_choicepoint_base);
+
     $asf->[Marpa::R2::Internal::Scanless::ASF::TOP] = $top;
     return $top;
 } ## end sub Marpa::R2::Scanless::ASF::top
