@@ -302,6 +302,7 @@ sub Marpa::R2::Scanless::ASF::new {
     $asf->[Marpa::R2::Internal::Scanless::ASF::NIDSET_BY_ID] = [];
     $asf->[Marpa::R2::Internal::Scanless::ASF::POWERSET_BY_ID] = [];
 
+
     my $slg       = $slr->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
     my $thin_slr  = $slr->[Marpa::R2::Inner::Scanless::R::C];
     my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
@@ -310,6 +311,19 @@ sub Marpa::R2::Scanless::ASF::new {
 
     $recce->ordering_create()
         if not $recce->[Marpa::R2::Internal::Recognizer::O_C];
+
+    my $bocage = $recce->[Marpa::R2::Internal::Recognizer::B_C];
+    my $ordering = $recce->[Marpa::R2::Internal::Recognizer::O_C];
+    my $or_nodes = $asf->[Marpa::R2::Internal::Scanless::ASF::OR_NODES] = [];
+    use sort 'stable';
+    OR_NODE: for ( my $or_node_id = 0;; $or_node_id++ ) {
+        my @and_node_ids = $ordering->_marpa_o_or_node_and_node_ids($or_node_id);
+        last OR_NODE if not @and_node_ids;
+        my @sorted_and_node_ids = map { $_->[-1] } sort { $a <=> $b } map {
+            [ ( $bocage->_marpa_b_and_node_predecessor($_) // -1 ), $_ ]
+        } @and_node_ids;
+        $or_nodes->[$or_node_id] = \@and_node_ids;
+    } ## end OR_NODE: for ( my $or_node_id = 0;; $or_node_id++ )
 
     return $asf;
 

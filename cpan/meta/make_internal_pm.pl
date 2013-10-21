@@ -267,6 +267,10 @@ __DATA__
     CHOICE_BLESSING
     RULE_BLESSING
     SYMBOL_BLESSING
+    OR_NODES {
+	per or-node data, 
+        current arrays of sorted and-nodes
+    }
 
     INTSET_BY_KEY
     NEXT_INTSET_ID
