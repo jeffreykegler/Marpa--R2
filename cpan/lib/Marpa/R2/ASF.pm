@@ -318,7 +318,7 @@ sub Marpa::R2::Scanless::ASF::new {
     use sort 'stable';
     OR_NODE: for ( my $or_node_id = 0;; $or_node_id++ ) {
         my @and_node_ids = $ordering->_marpa_o_or_node_and_node_ids($or_node_id);
-        last OR_NODE if not @and_node_ids;
+        last OR_NODE if not scalar @and_node_ids;
         my @sorted_and_node_ids = map { $_->[-1] } sort { $a <=> $b } map {
             [ ( $bocage->_marpa_b_and_node_predecessor($_) // -1 ), $_ ]
         } @and_node_ids;
@@ -550,7 +550,6 @@ sub Marpa::R2::Choicepoint::symbol_id {
 
 # Not external -- first_symch() will be the external method.
 sub next_factoring {
-        $DB::single = 1;
     my ($choicepoint) = @_;
     say STDERR join q{ }, __FILE__, __LINE__, "next_factoring()",
         $choicepoint->show();
