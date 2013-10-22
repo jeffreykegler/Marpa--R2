@@ -159,6 +159,23 @@ sub Marpa::R2::Powerset::show {
     return "Powerset #$id: " . join q{ }, @{$nidset_ids};
 }
 
+sub nook_new {
+    my ($asf, $or_node, $parent_or_node) = @_;
+    my $nook = [];
+    $nook->[Marpa::R2::Internal::Nook::OR_NODE] = $or_node;
+    $nook->[Marpa::R2::Internal::Nook::CHOICE]  = 0;
+    $nook->[Marpa::R2::Internal::Nook::PARENT]  = $parent_or_node // -1;
+    return $nook;
+}
+
+sub nook_increment {
+    my ($asf, $nook) = @_;
+    my $choice = ++$nook->[Marpa::R2::Internal::Nook::CHOICE];
+    my $or_node = $nook->[Marpa::R2::Internal::Nook::OR_NODE];
+    my $or_nodes = $asf->[Marpa::R2::Internal::Scanless::ASF::OR_NODES];
+    return $choice <= $#{ $or_nodes->[$or_node] };
+}
+
 # No check for conflicting usage -- value(), asf(), etc.
 # at this point
 sub Marpa::R2::Scanless::ASF::top {
@@ -603,13 +620,9 @@ sub next_factoring {
             }
 
             $is_first_factoring_attempt = 0;
-            my $nook;
-            $nook->[Marpa::R2::Internal::Nook::OR_NODE] = $nid_of_choicepoint;
-            $nook->[Marpa::R2::Internal::Nook::CHOICE]  = 0;
-            $nook->[Marpa::R2::Internal::Nook::PARENT]  = -1;
-
             $choicepoint->[Marpa::R2::Internal::Choicepoint::OR_NODE_IN_USE]
                 ->{$nid_of_choicepoint} = 1;
+            my $nook = nook_new($asf, $nid_of_choicepoint);
             push @{$factoring_stack}, $nook;
         } ## end if ($is_first_factoring_attempt)
         else {
@@ -623,12 +636,7 @@ sub next_factoring {
                     return;
                 } ## end if ( not scalar @{$factoring_stack} )
                 my $top_nook = $factoring_stack->[-1];
-                my $top_or_node =
-                    $top_nook->[Marpa::R2::Internal::Nook::OR_NODE];
-                my $choice =
-                    ++$top_nook->[Marpa::R2::Internal::Nook::CHOICE];
-                my $work_and_node_id = $or_nodes->[ $top_or_node ] -> [$choice ];
-                if ( defined $work_and_node_id ) {
+                if ( nook_increment($asf, $top_nook) ) {
                     $top_nook->[Marpa::R2::Internal::Nook::CAUSE_IS_EXPANDED]
                         = 1;
                     $top_nook
@@ -653,6 +661,9 @@ sub next_factoring {
                         if $top_nook
                             ->[Marpa::R2::Internal::Nook::IS_PREDECESSOR];
                 } ## end if ( $stack_ix_of_parent_nook >= 0 )
+
+                my $top_or_node =
+                    $top_nook->[Marpa::R2::Internal::Nook::OR_NODE];
                 $choicepoint
                     ->[Marpa::R2::Internal::Choicepoint::OR_NODE_IN_USE]
                     ->{$top_or_node} = undef;
@@ -716,11 +727,7 @@ sub next_factoring {
             next FACTORING_ATTEMPT
                 if not scalar @{ $or_nodes->[ $work_or_node ] };
 
-            my $new_nook = [];
-            $new_nook->[Marpa::R2::Internal::Nook::OR_NODE] = $child_or_node;
-            $new_nook->[Marpa::R2::Internal::Nook::PARENT] =
-                $stack_ix_of_work_nook;
-            $new_nook->[Marpa::R2::Internal::Nook::CHOICE] = 0;
+            my $new_nook = nook_new( $asf, $child_or_node , $stack_ix_of_work_nook);
             if ($child_is_cause) {
                 $new_nook->[Marpa::R2::Internal::Nook::IS_CAUSE] = 1;
                 $work_nook->[Marpa::R2::Internal::Nook::CAUSE_IS_EXPANDED] =
