@@ -189,6 +189,7 @@ sub nook_has_semantic_cause {
     my $predot_position = $bocage->_marpa_b_or_node_position($or_node) - 1;
     my $predot_isyid =
         $grammar_c->_marpa_g_irl_rhs( $irl_id, $predot_position );
+    say STDERR "nook_has_semantic_cause ", $grammar_c->_marpa_g_isy_is_semantic($predot_isyid);
     return $grammar_c->_marpa_g_isy_is_semantic($predot_isyid);
 } ## end sub nook_has_semantic_cause
 
@@ -705,15 +706,13 @@ sub next_factoring {
                 if ( !$work_nook
                     ->[Marpa::R2::Internal::Nook::CAUSE_IS_EXPANDED] )
                 {
-                    $child_or_node =
-                        $bocage->_marpa_b_and_node_cause($work_and_node_id);
-                    if ( defined $child_or_node
-                        and not $bocage->_marpa_b_or_node_is_semantic(
-                            $child_or_node) )
-                    {
+                    if ( not nook_has_semantic_cause( $asf, $work_nook ) ) {
+                        $child_or_node =
+                            $bocage->_marpa_b_and_node_cause(
+                            $work_and_node_id);
                         $child_is_cause = 1;
                         last FIND_CHILD_OR_NODE;
-                    } ## end if ( defined $child_or_node and not $bocage...)
+                    } ## end if ( not nook_has_semantic_cause( $asf, $work_nook ...))
                 } ## end if ( !$work_nook->[...])
                 $work_nook->[Marpa::R2::Internal::Nook::CAUSE_IS_EXPANDED] =
                     1;
