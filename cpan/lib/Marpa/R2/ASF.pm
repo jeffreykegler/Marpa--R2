@@ -176,6 +176,22 @@ sub nook_increment {
     return $choice <= $#{ $or_nodes->[$or_node] };
 }
 
+sub nook_has_semantic_cause {
+    my ( $asf, $nook ) = @_;
+    my $or_node = $nook->[Marpa::R2::Internal::Nook::OR_NODE];
+    my $slr       = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
+    my $recce     = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+    my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
+    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
+    my $bocage    = $recce->[Marpa::R2::Internal::Recognizer::B_C];
+
+    my $irl_id          = $bocage->_marpa_b_or_node_irl($or_node);
+    my $predot_position = $bocage->_marpa_b_or_node_position($or_node) - 1;
+    my $predot_isyid =
+        $grammar_c->_marpa_g_irl_rhs( $irl_id, $predot_position );
+    return $grammar_c->_marpa_g_isy_is_semantic($predot_isyid);
+} ## end sub nook_has_semantic_cause
+
 # No check for conflicting usage -- value(), asf(), etc.
 # at this point
 sub Marpa::R2::Scanless::ASF::top {
@@ -770,16 +786,10 @@ sub factors {
         $factor_ix++
         )
     {
-        my $nook    = $factoring_stack->[$factor_ix];
+        my $nook = $factoring_stack->[$factor_ix];
+        next FACTOR if not nook_has_semantic_cause( $asf, $nook );
+        my %causes  = ();
         my $or_node = $nook->[Marpa::R2::Internal::Nook::OR_NODE];
-        my $irl_id  = $bocage->_marpa_b_or_node_irl($or_node);
-        my $predot_position =
-            $bocage->_marpa_b_or_node_position($or_node) - 1;
-        my $predot_isyid =
-            $grammar_c->_marpa_g_irl_rhs( $irl_id, $predot_position );
-        next FACTOR
-            if not $grammar_c->_marpa_g_isy_is_semantic($predot_isyid);
-        my %causes = ();
         for my $and_node_id ( @{ $or_nodes->[$or_node] } ) {
             my $cause_nid = $bocage->_marpa_b_and_node_cause($and_node_id)
                 // and_node_to_nid($and_node_id);
