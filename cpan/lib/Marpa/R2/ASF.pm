@@ -165,19 +165,18 @@ sub Marpa::R2::Scanless::ASF::top {
     my ($asf) = @_;
     my $top = $asf->[Marpa::R2::Internal::Scanless::ASF::TOP];
     return $top if defined $top;
+    my $or_nodes = $asf->[Marpa::R2::Internal::Scanless::ASF::OR_NODES];
     my $slr   = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
     my $recce = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
 
     my $bocage = $recce->[Marpa::R2::Internal::Recognizer::B_C];
     die 'No Bocage' if not $bocage;
     my $augment_or_node_id = $bocage->_marpa_b_top_or_node();
-    my $augment_and_node_id =
-        $bocage->_marpa_b_or_node_first_and($augment_or_node_id);
+    my $augment_and_node_id = $or_nodes->[$augment_or_node_id]->[0];
 
     my $augment2_or_node_id =
         $bocage->_marpa_b_and_node_cause($augment_and_node_id);
-    my $augment2_and_node_id =
-        $bocage->_marpa_b_or_node_first_and($augment2_or_node_id);
+    my $augment2_and_node_id = $or_nodes->[$augment2_or_node_id]->[0];
 
     my $start_or_node_id =
         $bocage->_marpa_b_and_node_cause($augment2_and_node_id);
@@ -351,7 +350,6 @@ sub nidset_to_choicepoint_base {
     my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
     my $bocage    = $recce->[Marpa::R2::Internal::Recognizer::B_C];
-    my $ordering  = $recce->[Marpa::R2::Internal::Recognizer::O_C];
 
     my @source_data = ();
     for my $source_nid ( @{ $nidset->nids() } ) {
@@ -559,6 +557,7 @@ sub next_factoring {
         "; nid IX = ",
         $choicepoint->[Marpa::R2::Internal::Choicepoint::NID_IX];
     my $asf = $choicepoint->[Marpa::R2::Internal::Choicepoint::ASF];
+    my $or_nodes = $asf->[Marpa::R2::Internal::Scanless::ASF::OR_NODES];
     $choicepoint->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK] //= [];
     my $factoring_stack =
         $choicepoint->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK];
@@ -588,15 +587,12 @@ sub next_factoring {
     my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
     my $bocage    = $recce->[Marpa::R2::Internal::Recognizer::B_C];
-    my $ordering  = $recce->[Marpa::R2::Internal::Recognizer::O_C];
 
     FACTORING_ATTEMPT: while (1) {
         if ($is_first_factoring_attempt) {
 
             # Due to skipping, even the top or-node can have no valid choices
-            if ($ordering->_marpa_o_or_node_and_node_count(
-                    $nid_of_choicepoint) <= 0
-                )
+            if (not scalar @{$or_nodes->[ $nid_of_choicepoint ]})
             {
                 $choicepoint
                     ->[Marpa::R2::Internal::Choicepoint::IS_EXHAUSTED] = 1;
@@ -604,7 +600,7 @@ sub next_factoring {
                     ->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK] =
                     undef;
                 return;
-            } ## end if ( $ordering->_marpa_o_or_node_and_node_count(...))
+            }
 
             $is_first_factoring_attempt = 0;
             my $nook;
@@ -631,9 +627,7 @@ sub next_factoring {
                     $top_nook->[Marpa::R2::Internal::Nook::OR_NODE];
                 my $choice =
                     ++$top_nook->[Marpa::R2::Internal::Nook::CHOICE];
-                my $work_and_node_id =
-                    $ordering->_marpa_o_and_node_order_get( $top_or_node,
-                    $choice );
+                my $work_and_node_id = $or_nodes->[ $top_or_node ] -> [$choice ];
                 if ( defined $work_and_node_id ) {
                     $top_nook->[Marpa::R2::Internal::Nook::CAUSE_IS_EXPANDED]
                         = 1;
@@ -675,9 +669,7 @@ sub next_factoring {
                 $work_nook->[Marpa::R2::Internal::Nook::OR_NODE];
             my $working_choice =
                 $work_nook->[Marpa::R2::Internal::Nook::CHOICE];
-            my $work_and_node_id =
-                $ordering->_marpa_o_and_node_order_get( $work_or_node,
-                $working_choice );
+            my $work_and_node_id = $or_nodes->[$work_or_node]->[$working_choice];
             my $child_or_node;
             my $child_is_cause;
             my $child_is_predecessor;
@@ -722,8 +714,7 @@ sub next_factoring {
                     ->{$child_or_node};
 
             next FACTORING_ATTEMPT
-                if $ordering->_marpa_o_or_node_and_node_count($child_or_node)
-                    <= 0;
+                if not scalar @{ $or_nodes->[ $work_or_node ] };
 
             my $new_nook = [];
             $new_nook->[Marpa::R2::Internal::Nook::OR_NODE] = $child_or_node;
@@ -759,7 +750,7 @@ sub factors {
     my $grammar       = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my $grammar_c     = $grammar->[Marpa::R2::Internal::Grammar::C];
     my $bocage        = $recce->[Marpa::R2::Internal::Recognizer::B_C];
-    my $ordering        = $recce->[Marpa::R2::Internal::Recognizer::O_C];
+    my $or_nodes = $asf->[Marpa::R2::Internal::Scanless::ASF::OR_NODES];
 
     my @result;
     my $factoring_stack =
@@ -782,12 +773,11 @@ sub factors {
         next FACTOR
             if not $grammar_c->_marpa_g_isy_is_semantic($predot_isyid);
         my %causes = ();
-        for my $and_node_id ( $ordering->_marpa_o_or_node_and_node_ids($or_node) )
-        {
+        for my $and_node_id ( @{ $or_nodes->[$or_node] } ) {
             my $cause_nid = $bocage->_marpa_b_and_node_cause($and_node_id)
                 // and_node_to_nid($and_node_id);
             $causes{$cause_nid} = 1;
-        } ## end for my $and_node_id ( $ordering...)
+        }
         my $choicepoint_nidset =
             Marpa::R2::Nidset->obtain( $asf, keys %causes );
         my $choicepoint_base =
@@ -807,9 +797,9 @@ sub factors {
 sub Marpa::R2::Choicepoint::ambiguous_prefix {
     my ($choicepoint) = @_;
     my $asf = $choicepoint->[Marpa::R2::Internal::Choicepoint::ASF];
+    my $or_nodes = $asf->[Marpa::R2::Internal::Scanless::ASF::OR_NODES];
     my $slr       = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
     my $recce     = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
-    my $ordering  = $recce->[Marpa::R2::Internal::Recognizer::O_C];
 
     my $factoring_stack =
         $choicepoint->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK];
@@ -819,7 +809,7 @@ sub Marpa::R2::Choicepoint::ambiguous_prefix {
     STACK_POS: while ( $stack_pos >= 0 ) {
         my $nook =  $factoring_stack->[$stack_pos];
         my $or_node = $nook->[Marpa::R2::Internal::Nook::OR_NODE];
-        last STACK_POS if $ordering->_marpa_o_or_node_and_node_count($or_node) > 1;
+        last STACK_POS if scalar @{ $or_nodes->[$or_node] } > 1;
         $stack_pos--;
     } ## end STACK_POS: while ( $stack_pos >= 0 )
     return $stack_pos + 1;
