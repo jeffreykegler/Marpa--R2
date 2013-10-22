@@ -160,21 +160,24 @@ sub Marpa::R2::Powerset::show {
 }
 
 sub nook_new {
-    my ($asf, $or_node, $parent_or_node) = @_;
+    my ( $asf, $or_node, $parent_or_node ) = @_;
     my $nook = [];
     $nook->[Marpa::R2::Internal::Nook::OR_NODE] = $or_node;
-    $nook->[Marpa::R2::Internal::Nook::CHOICE]  = 0;
-    $nook->[Marpa::R2::Internal::Nook::PARENT]  = $parent_or_node // -1;
+    $nook->[Marpa::R2::Internal::Nook::FIRST_CHOICE] =
+        $nook->[Marpa::R2::Internal::Nook::LAST_CHOICE] = 0;
+    $nook->[Marpa::R2::Internal::Nook::PARENT] = $parent_or_node // -1;
     return $nook;
-}
+} ## end sub nook_new
 
 sub nook_increment {
-    my ($asf, $nook) = @_;
-    my $choice = ++$nook->[Marpa::R2::Internal::Nook::CHOICE];
-    my $or_node = $nook->[Marpa::R2::Internal::Nook::OR_NODE];
+    my ( $asf, $nook ) = @_;
+    my $choice = ++$nook->[Marpa::R2::Internal::Nook::FIRST_CHOICE];
+    $nook->[Marpa::R2::Internal::Nook::LAST_CHOICE] =
+        $nook->[Marpa::R2::Internal::Nook::FIRST_CHOICE];
+    my $or_node  = $nook->[Marpa::R2::Internal::Nook::OR_NODE];
     my $or_nodes = $asf->[Marpa::R2::Internal::Scanless::ASF::OR_NODES];
     return $choice <= $#{ $or_nodes->[$or_node] };
-}
+} ## end sub nook_increment
 
 sub nook_has_semantic_cause {
     my ( $asf, $nook ) = @_;
@@ -695,7 +698,7 @@ sub next_factoring {
             my $work_or_node =
                 $work_nook->[Marpa::R2::Internal::Nook::OR_NODE];
             my $working_choice =
-                $work_nook->[Marpa::R2::Internal::Nook::CHOICE];
+                $work_nook->[Marpa::R2::Internal::Nook::FIRST_CHOICE];
             my $work_and_node_id = $or_nodes->[$work_or_node]->[$working_choice];
             my $child_or_node;
             my $child_is_cause;

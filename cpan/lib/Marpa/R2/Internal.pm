@@ -134,11 +134,12 @@ use constant IS_EXHAUSTED => 7;
 package Marpa::R2::Internal::Nook;
 use constant PARENT => 0;
 use constant OR_NODE => 1;
-use constant CHOICE => 2;
-use constant IS_CAUSE => 3;
-use constant IS_PREDECESSOR => 4;
-use constant CAUSE_IS_EXPANDED => 5;
-use constant PREDECESSOR_IS_EXPANDED => 6;
+use constant FIRST_CHOICE => 2;
+use constant LAST_CHOICE => 3;
+use constant IS_CAUSE => 4;
+use constant IS_PREDECESSOR => 5;
+use constant CAUSE_IS_EXPANDED => 6;
+use constant PREDECESSOR_IS_EXPANDED => 7;
 
 package Marpa::R2::Internal::Scanless::ASF;
 use constant SLR => 0;
