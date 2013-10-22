@@ -706,12 +706,15 @@ sub next_factoring {
             FIND_CHILD_OR_NODE: {
 
                 if ( !$work_nook
-                    ->[Marpa::R2::Internal::Nook::CAUSE_IS_EXPANDED]
-                    and not nook_has_semantic_cause($asf, $work_nook)
-                    )
+                    ->[Marpa::R2::Internal::Nook::CAUSE_IS_EXPANDED] )
                 {
-                    $child_is_cause = 1;
-                    last FIND_CHILD_OR_NODE;
+                    if ( not nook_has_semantic_cause( $asf, $work_nook ) ) {
+                        $child_or_node =
+                            $bocage->_marpa_b_and_node_cause(
+                            $work_and_node_id);
+                        $child_is_cause = 1;
+                        last FIND_CHILD_OR_NODE;
+                    } ## end if ( not nook_has_semantic_cause( $asf, $work_nook ...))
                 } ## end if ( !$work_nook->[...])
                 $work_nook->[Marpa::R2::Internal::Nook::CAUSE_IS_EXPANDED] =
                     1;
