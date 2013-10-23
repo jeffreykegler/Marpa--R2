@@ -159,21 +159,49 @@ sub Marpa::R2::Powerset::show {
     return "Powerset #$id: " . join q{ }, @{$nidset_ids};
 }
 
+sub set_last_choice {
+    my ( $asf, $nook ) = @_;
+    my $choice     = $nook->[Marpa::R2::Internal::Nook::FIRST_CHOICE];
+    if ( nook_has_semantic_cause( $asf, $nook ) ) {
+        my $or_node_id = $nook->[Marpa::R2::Internal::Nook::OR_NODE];
+        my $slr       = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
+        my $recce     = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+        my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
+        my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
+        my $bocage    = $recce->[Marpa::R2::Internal::Recognizer::B_C];
+        my $or_nodes  = $asf->[Marpa::R2::Internal::Scanless::ASF::OR_NODES];
+        my $and_nodes = $or_nodes->[$or_node_id];
+        my $and_node_id = $and_nodes->[$choice];
+        my $current_predecessor = $bocage->_marpa_b_and_node_predecessor($and_node_id);
+        AND_NODE: while (1) {
+            $choice++;
+            $and_node_id = $and_nodes->[$choice];
+            last AND_NODE if not defined $and_node_id;
+            last AND_NODE
+                if $current_predecessor
+                    != $bocage->_marpa_b_and_node_predecessor($and_node_id);
+        } ## end AND_NODE: while (1)
+        $choice--;
+    } ## end if ( nook_has_semantic_cause( $asf, $nook ) )
+    $nook->[Marpa::R2::Internal::Nook::LAST_CHOICE] = $choice;
+    return $choice;
+} ## end sub set_last_choice
+
 sub nook_new {
-    my ( $asf, $or_node, $parent_or_node ) = @_;
+    my ( $asf, $or_node_id, $parent_or_node_id ) = @_;
     my $nook = [];
-    $nook->[Marpa::R2::Internal::Nook::OR_NODE] = $or_node;
-    $nook->[Marpa::R2::Internal::Nook::FIRST_CHOICE] =
-        $nook->[Marpa::R2::Internal::Nook::LAST_CHOICE] = 0;
-    $nook->[Marpa::R2::Internal::Nook::PARENT] = $parent_or_node // -1;
+    $nook->[Marpa::R2::Internal::Nook::OR_NODE] = $or_node_id;
+    $nook->[Marpa::R2::Internal::Nook::PARENT] = $parent_or_node_id // -1;
+    $nook->[Marpa::R2::Internal::Nook::FIRST_CHOICE] = 0;
+    set_last_choice($asf, $nook);
     return $nook;
 } ## end sub nook_new
 
 sub nook_increment {
     my ( $asf, $nook ) = @_;
-    my $choice = ++$nook->[Marpa::R2::Internal::Nook::FIRST_CHOICE];
-    $nook->[Marpa::R2::Internal::Nook::LAST_CHOICE] =
-        $nook->[Marpa::R2::Internal::Nook::FIRST_CHOICE];
+    $nook->[Marpa::R2::Internal::Nook::FIRST_CHOICE] =
+        $nook->[Marpa::R2::Internal::Nook::LAST_CHOICE] + 1;
+    my $choice = set_last_choice($asf, $nook);
     my $or_node  = $nook->[Marpa::R2::Internal::Nook::OR_NODE];
     my $or_nodes = $asf->[Marpa::R2::Internal::Scanless::ASF::OR_NODES];
     return $choice <= $#{ $or_nodes->[$or_node] };
