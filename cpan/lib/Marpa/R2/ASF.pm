@@ -817,20 +817,24 @@ sub factors {
     {
         my $nook = $factoring_stack->[$factor_ix];
         next FACTOR if not nook_has_semantic_cause( $asf, $nook );
-        my %causes  = ();
-        my $or_node = $nook->[Marpa::R2::Internal::Nook::OR_NODE];
-        for my $and_node_id ( @{ $or_nodes->[$or_node] } ) {
-            my $cause_nid = $bocage->_marpa_b_and_node_cause($and_node_id)
+        my %causes    = ();
+        my $or_node   = $nook->[Marpa::R2::Internal::Nook::OR_NODE];
+        my $and_nodes = $or_nodes->[$or_node];
+        for my $and_node_ix ( $nook->[Marpa::R2::Internal::Nook::FIRST_CHOICE]
+            .. $nook->[Marpa::R2::Internal::Nook::LAST_CHOICE] )
+        {
+            my $and_node_id = $and_nodes->[$and_node_ix];
+            my $cause_nid   = $bocage->_marpa_b_and_node_cause($and_node_id)
                 // and_node_to_nid($and_node_id);
             $causes{$cause_nid} = 1;
-        }
+        } ## end for my $and_node_ix ( $nook->[...])
         my $choicepoint_nidset =
             Marpa::R2::Nidset->obtain( $asf, keys %causes );
         my $choicepoint_base =
             nidset_to_choicepoint_base( $asf, $choicepoint_nidset );
         my $new_choicepoint = $asf->new_choicepoint($choicepoint_base);
         push @result, $new_choicepoint;
-    } ## end FACTOR: for ( my $factor_ix = 0; $factor_ix <= $#{...})
+    } ## end for ( my $factor_ix = 0; $factor_ix <= $#{$factoring_stack...})
     return \@result;
 } ## end sub factors
 
