@@ -15,15 +15,15 @@
 
 Revision history for Marpa::R2
 
-2.071_001
+2.073_000
 
    * Work on ASF's
 
-2.071_000
+   * New series of developer's releases
 
-   * New series of developer's releases -- 2.069_003 leap-frogged
+2.072000 Wed Oct 23 17:26:49 PDT 2013
 
-   * Work on ASF's
+   * Minor fix to error messages
 
 2.070000 Sun Sep  8 17:52:17 PDT 2013
 
