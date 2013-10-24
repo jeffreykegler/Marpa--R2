@@ -862,7 +862,7 @@ This is initialized
 =item * Otherwise, to the argument to the SLIF recognizer's C<value()> method, if that
 argument is defined.
 
-=item * Otherwise, as a last resort, to an empty hash.
+=item * Otherwise, as a last resort, to an empty hashref.
 
 =back
 
