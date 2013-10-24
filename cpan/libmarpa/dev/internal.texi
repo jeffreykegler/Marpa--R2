@@ -397,6 +397,10 @@ and development.
 @deftypefun int _marpa_b_and_node_count ( @
     Marpa_Bocage @var{b})
 @end deftypefun
+@deftypefun Marpa_Earley_Set_ID _marpa_b_and_node_middle ( @
+    Marpa_Bocage @var{b}, @
+    Marpa_And_Node_ID @var{and_node_id})
+@end deftypefun
 @deftypefun int _marpa_b_and_node_parent ( @
     Marpa_Bocage @var{b}, @
     Marpa_And_Node_ID @var{and_node_id})

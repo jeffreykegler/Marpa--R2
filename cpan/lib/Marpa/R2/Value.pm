@@ -1710,12 +1710,8 @@ sub Marpa::R2::Recognizer::show_bocage {
                     $predecessor_id );
             }
             my $tag = join q{ }, $parent_tag, $predecessor_tag, $cause_tag;
-            my $middle_earleme = $origin_earleme;
-            if ( defined $predecessor_id ) {
-                my $predecessor_set =
-                    $bocage->_marpa_b_or_node_set($predecessor_id);
-                $middle_earleme = $recce_c->earleme($predecessor_set);
-            }
+            my $middle_earley_set = $bocage->_marpa_b_and_node_middle($and_node_id);
+            my $middle_earleme = $recce_c->earleme($middle_earley_set);
 
             push @data,
                 [
@@ -1750,12 +1746,10 @@ sub Marpa::R2::Recognizer::and_node_tag {
     my $current_earleme = $recce_c->earleme($current_earley_set);
     my $cause_id        = $bocage->_marpa_b_and_node_cause($and_node_id);
     my $predecessor_id = $bocage->_marpa_b_and_node_predecessor($and_node_id);
-    my $middle_earleme = $origin_earleme;
 
-    if ( defined $predecessor_id ) {
-        my $middle_set = $bocage->_marpa_b_or_node_set($predecessor_id);
-        $middle_earleme = $recce_c->earleme($middle_set);
-    }
+    my $middle_earley_set = $bocage->_marpa_b_and_node_middle($and_node_id);
+    my $middle_earleme = $recce_c->earleme($middle_earley_set);
+
     my $position = $bocage->_marpa_b_or_node_position($parent_or_node_id);
     my $irl_id   = $bocage->_marpa_b_or_node_irl($parent_or_node_id);
 
@@ -1797,12 +1791,8 @@ sub Marpa::R2::Recognizer::show_and_nodes {
         my $position        = $bocage->_marpa_b_or_node_position($parent);
         my $origin_earleme  = $recce_c->earleme($origin);
         my $current_earleme = $recce_c->earleme($set);
-        my $middle_earleme  = $origin_earleme;
-
-        if ( defined $predecessor ) {
-            my $predecessor_set = $bocage->_marpa_b_or_node_set($predecessor);
-            $middle_earleme = $recce_c->earleme($predecessor_set);
-        }
+        my $middle_earley_set = $bocage->_marpa_b_and_node_middle($id);
+        my $middle_earleme = $recce_c->earleme($middle_earley_set);
 
 #<<<  perltidy introduces trailing space on this
         my $desc =

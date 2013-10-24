@@ -4820,6 +4820,10 @@ PPCODE:
 {
     Marpa_Order o = o_wrapper->o;
     int count = _marpa_o_or_node_and_node_count(o, or_node_id);
+    if (count == -1) {
+      if (GIMME != G_ARRAY) { XSRETURN_NO; }
+      count = 0; /* will return an empty array */
+    }
     if (count < 0) { croak("Invalid or node ID %d", or_node_id); }
     {
         int ix;

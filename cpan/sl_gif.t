@@ -44,10 +44,10 @@ push @tests_data, [
     $aaaa_grammar, 'aaaa',
     <<'END_OF_ASF',
 CP1 Rule 1: quartet -> a a a a
+  CP3 Symbol: a "a"
+  CP5 Symbol: a "a"
   CP7 Symbol: a "a"
   CP9 Symbol: a "a"
-  CP11 Symbol: a "a"
-  CP0 Symbol: a "a"
 END_OF_ASF
     'ASF OK',
     'Basic "a a a a" grammar'
@@ -161,7 +161,6 @@ sub my_parser {
     my $asf_desc = $asf->show();
     say STDERR $asf->show_nidsets();
     say STDERR $asf->show_powersets();
-    say STDERR $asf->show_pow3sets();
     return $asf_desc, 'ASF OK';
 } ## end sub my_parser
 

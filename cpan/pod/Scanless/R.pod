@@ -596,7 +596,10 @@ There are zero parse trees if there was no valid parse
 of the input according to the grammar.
 
 The C<value()> method allows one, optional argument.
-If provided it explicitly specifies the per-parse argument for the
+This argument can be a Perl scalar of any kind, but the most useful
+possibilities are references (blessed or unblessed) to hashes or array.
+If provided, the argument of the C<value()> method
+explicitly specifies the per-parse argument for the
 parse tree.
 The per-parse argument will be the first argument of all 
 Perl semantics closures, and can be used to share data within
