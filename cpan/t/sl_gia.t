@@ -48,25 +48,6 @@ END_OF_SOURCE
 
 my $input = 'child::book';
 
-sub my_parser {
-    my ( $grammar, $string ) = @_;
-
-    my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
-
-    if ( not defined eval { $recce->read( \$string ); 1 } ) {
-        my $abbreviated_error = $EVAL_ERROR;
-        chomp $abbreviated_error;
-        $abbreviated_error =~ s/\n.*//xms;
-        $abbreviated_error =~ s/^Error \s+ in \s+ string_read: \s+ //xms;
-        return 'No parse', $abbreviated_error;
-    } ## end if ( not defined eval { $recce->read( \$string ); 1 ...})
-    my $value_ref = $recce->value();
-    if ( not defined $value_ref ) {
-        return 'No parse', 'Input read to end but no parse';
-    }
-    return [ return ${$value_ref}, 'Parse OK' ];
-} ## end sub my_parser
-
 my @tests_data = (
     [   $glenn_grammar,
         'child::book',
@@ -154,5 +135,24 @@ for my $test_data (@tests_data) {
     Test::More::is( $actual_result, $expected_result,
         qq{Result of $test_name} );
 } ## end TEST: for my $test_data (@tests_data)
+
+sub my_parser {
+    my ( $grammar, $string ) = @_;
+
+    my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
+
+    if ( not defined eval { $recce->read( \$string ); 1 } ) {
+        my $abbreviated_error = $EVAL_ERROR;
+        chomp $abbreviated_error;
+        $abbreviated_error =~ s/\n.*//xms;
+        $abbreviated_error =~ s/^Error \s+ in \s+ string_read: \s+ //xms;
+        return 'No parse', $abbreviated_error;
+    } ## end if ( not defined eval { $recce->read( \$string ); 1 ...})
+    my $value_ref = $recce->value();
+    if ( not defined $value_ref ) {
+        return 'No parse', 'Input read to end but no parse';
+    }
+    return [ return ${$value_ref}, 'Parse OK' ];
+} ## end sub my_parser
 
 # vim: expandtab shiftwidth=4:
