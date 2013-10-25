@@ -1580,8 +1580,9 @@ slr_discard (Scanless_R * slr)
   int lexemes_found = 0;
   Marpa_Recce r0;
   Marpa_Earley_Set_ID earley_set;
+  Unicode_Stream * const stream = slr->stream;
 
-  r0 = slr->stream->r0;
+  r0 = stream->r0;
   if (!r0)
     {
       croak ("Problem in slr->read(): No R0 at %s %d", __FILE__, __LINE__);
@@ -1594,6 +1595,7 @@ slr_discard (Scanless_R * slr)
     {
       int is_expected;
       int return_value;
+      const int working_pos = slr->start_of_lexeme + earley_set;
       return_value = marpa_r_progress_report_start (r0, earley_set);
       if (return_value < 0)
 	{
@@ -1623,7 +1625,7 @@ slr_discard (Scanless_R * slr)
 	  if (g1_lexeme == -1)
 	    goto NEXT_REPORT_ITEM;
 	  lexemes_found++;
-	  slr->end_of_lexeme = slr->start_of_lexeme + earley_set;
+	  slr->end_of_lexeme = working_pos;
 
 	  /* -2 means a discarded item */
 	  if (g1_lexeme <= -2)
@@ -1649,6 +1651,7 @@ slr_discard (Scanless_R * slr)
 	      /* If there is discarded item, we are fine,
 	       * and can return success.
 	       */
+	      slr->g0_start_pos = stream->perl_pos = working_pos;
 	      return 0;
 	    }
 
@@ -1679,6 +1682,7 @@ slr_discard (Scanless_R * slr)
 	   * to discard this input.
 	   * Return failure.
 	   */
+	  stream->perl_pos = stream->problem_pos = slr->g0_start_pos = slr->start_of_lexeme;
 	  return -4;
 	}
       earley_set--;
@@ -1688,6 +1692,7 @@ slr_discard (Scanless_R * slr)
    * and therefore none which can be discarded.
    * Return failure.
    */
+  stream->perl_pos = stream->problem_pos = slr->g0_start_pos = slr->start_of_lexeme;
   return -4;
 }
 
@@ -1801,7 +1806,7 @@ slr_alternatives (Scanless_R * slr)
   Marpa_Recce r1 = slr->r1;
   Marpa_Earley_Set_ID earley_set;
   const Scanless_G *slg = slr->slg;
-  Unicode_Stream *stream = slr->stream;
+  Unicode_Stream * const stream = slr->stream;
 
   r0 = stream->r0;
   if (!r0)
@@ -1823,6 +1828,7 @@ slr_alternatives (Scanless_R * slr)
       int is_priority_set = 0;
       int current_lexeme_priority = 0;
       int lexemes_in_buffer = 0;
+      const int working_pos = slr->start_of_lexeme + earley_set;
 
       int return_value;
       return_value = marpa_r_progress_report_start (r0, earley_set);
@@ -1862,7 +1868,7 @@ slr_alternatives (Scanless_R * slr)
 	      g1_lexeme = slr->slg->g0_rule_to_g1_lexeme[rule_id];
 	      if (g1_lexeme == -1)
 		goto NEXT_PASS1_REPORT_ITEM;
-	      slr->end_of_lexeme = slr->start_of_lexeme + earley_set;
+	      slr->end_of_lexeme = working_pos;
 	      /* -2 means a discarded item */
 	      if (g1_lexeme <= -2)
 		{
@@ -1948,11 +1954,13 @@ slr_alternatives (Scanless_R * slr)
 	    {
 	      if (discarded)
 		{
+		  stream->perl_pos = slr->g0_start_pos = working_pos;
 		  return 0;
 		}
 	      if (unforgiven)
 		{
-		  stream->problem_pos = slr->start_of_lexeme;
+		  stream->perl_pos = stream->problem_pos = slr->g0_start_pos =
+		    slr->start_of_lexeme;
 		  return "no lexemes accepted";
 		}
 	      goto LOOK_AT_PREVIOUS_EARLEME;
@@ -2004,7 +2012,7 @@ slr_alternatives (Scanless_R * slr)
 	  }
 	if (g1_lexeme >= 0)
 	  {
-	    stream->perl_pos = slr->start_of_lexeme;
+	    slr->g0_start_pos = stream->perl_pos = slr->start_of_lexeme;
 	    return "event";
 	  }
       }
@@ -2134,7 +2142,7 @@ slr_alternatives (Scanless_R * slr)
 	    croak ("Problem in marpa_r_earleme_complete(): %s",
 		   xs_g_error (slr->g1_wrapper));
 	  }
-	stream->perl_pos = slr->end_of_lexeme;
+	slr->g0_start_pos = stream->perl_pos = slr->end_of_lexeme;
 	if (return_value > 0)
 	  {
 	    r_convert_events (slr->r1_wrapper);
@@ -2143,7 +2151,8 @@ slr_alternatives (Scanless_R * slr)
 	marpa_r_latest_earley_set_values_set (r1, slr->start_of_lexeme,
 					      INT2PTR (void *,
 						       (slr->end_of_lexeme -
-							slr->start_of_lexeme)));
+							slr->
+							start_of_lexeme)));
 	if (av_len (slr->r1_wrapper->event_queue) >= 0)
 	  return "event";
 	return 0;
@@ -2153,6 +2162,8 @@ slr_alternatives (Scanless_R * slr)
       earley_set--;
     }
 
+  stream->perl_pos = stream->problem_pos = slr->g0_start_pos =
+    slr->start_of_lexeme;
   return "no lexeme";
 }
 
@@ -5642,7 +5653,6 @@ PPCODE:
       if (marpa_r_is_exhausted (slr->r1))
 	{
 	  int discard_result = slr_discard (slr);
-	  slr->g0_start_pos = slr->stream->perl_pos;
 	  if (discard_result < 0)
 	    {
 	      XSRETURN_PV ("R0 exhausted before end");
@@ -5651,7 +5661,6 @@ PPCODE:
       else
 	{
 	  const char *result_string = slr_alternatives (slr);
-	  slr->g0_start_pos = slr->stream->perl_pos;
 	  if (result_string)
 	    {
 	      XSRETURN_PV (result_string);
