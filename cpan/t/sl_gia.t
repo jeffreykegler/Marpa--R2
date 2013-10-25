@@ -21,14 +21,16 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 6;
+use Test::More tests => 8;
 use English qw( -no_match_vars );
 use lib 'inc';
 use Marpa::R2::Test;
 use Marpa::R2;
 use Data::Dumper;
 
-our $DEBUG = 1;
+our $DEBUG = 0;
+
+# In crediting test, JDD = Jean-Damien Durand
 
 my $glenn_grammar = Marpa::R2::Scanless::G->new(
     {   source => \(<<'END_OF_SOURCE'),
@@ -88,7 +90,7 @@ push @tests_data, [
 INPUT
     [ "## Allowed in the input\n" ],
     'Parse OK',
-    'Jean-Damien Durand test of discard versus accepted'
+    'JDD test of discard versus accepted'
 ];
 
 my $durand_grammar2 = Marpa::R2::Scanless::G->new(
@@ -119,11 +121,12 @@ test input
 INPUT
     [ 'test input', "\n" ],
     'Parse OK',
-    'Regression test of bug found by Jean-Damien Durand'
+    'Regression test of bug found by JDD'
 ];
 
 my $durand_grammar3 = Marpa::R2::Scanless::G->new(
     {   source => \(<<'END_OF_SOURCE'),
+:default ::= action => ::array
 :start ::= Script
 
 Script ::= '=' '/' 'dumb'
@@ -152,9 +155,9 @@ push @tests_data, [
     $durand_grammar3, <<INPUT,
  = / dumb
 INPUT
-    [ ],
+    [ qw(= / dumb) ],
     'Parse OK',
-    'Regression test of perl_pos bug found by Jean-Damien Durand'
+    'Regression test of perl_pos bug found by JDD'
 ];
 
 TEST:
