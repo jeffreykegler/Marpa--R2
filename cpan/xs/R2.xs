@@ -145,32 +145,36 @@ typedef struct {
     struct lexeme_g_properties * g1_lexeme_properties;
 } Scanless_G;
 
-typedef struct{
-     SV* slg_sv;
-     SV* r1_sv;
-     SV* stream_sv;
-     Scanless_G* slg;
-     Unicode_Stream* stream;
-     R_Wrapper* r1_wrapper;
-     Marpa_Recce r1;
-     G_Wrapper* g0_wrapper;
-     G_Wrapper* g1_wrapper;
-     AV* token_values;
-     int trace_level;
-     int trace_terminals;
-     STRLEN start_of_lexeme;
-     STRLEN end_of_lexeme;
-     int please_start_lex_recce;
-     int stream_read_result;
-     int r1_earleme_complete_result;
-     int throw;
-     int start_of_pause_lexeme;
-     int end_of_pause_lexeme;
-     Marpa_Symbol_ID pause_lexeme;
-     Marpa_Symbol_ID* lexeme_buffer;
-    struct lexeme_r_properties * g1_lexeme_properties;
-} Scanless_R;
+typedef struct
+{
+  SV *slg_sv;
+  SV *r1_sv;
+  SV *stream_sv;
+  Scanless_G *slg;
+  Unicode_Stream *stream;
+  R_Wrapper *r1_wrapper;
+  Marpa_Recce r1;
+  G_Wrapper *g0_wrapper;
+  G_Wrapper *g1_wrapper;
+  AV *token_values;
+  int trace_level;
+  int trace_terminals;
+  STRLEN start_of_lexeme;
+  STRLEN end_of_lexeme;
 
+  /* Input stream position at which to start G0.
+     -1 means no restart.
+   */
+  int g0_start_pos;
+  int stream_read_result;
+  int r1_earleme_complete_result;
+  int throw;
+  int start_of_pause_lexeme;
+  int end_of_pause_lexeme;
+  Marpa_Symbol_ID pause_lexeme;
+  Marpa_Symbol_ID *lexeme_buffer;
+  struct lexeme_r_properties *g1_lexeme_properties;
+} Scanless_R;
 #define TOKEN_VALUE_IS_UNDEF (1)
 #define TOKEN_VALUE_IS_LITERAL (2)
 
@@ -5404,7 +5408,7 @@ PPCODE:
       }
   }
 
-  slr->please_start_lex_recce = 1;
+  slr->g0_start_pos = slr->stream->perl_pos;
   slr->stream_read_result = 0;
   slr->r1_earleme_complete_result = 0;
   slr->start_of_pause_lexeme = -1;
@@ -5560,6 +5564,7 @@ PPCODE:
   int start_pos = SvIOK(start_pos_sv) ? SvIV(start_pos_sv) : stream->perl_pos;
   int length = SvIOK(length_sv) ? SvIV(length_sv) : -1;
   u_pos_set(stream, "stream->pos_set", start_pos, length);
+  slr->g0_start_pos = stream->perl_pos;
   XSRETURN_YES;
 }
 
@@ -5593,7 +5598,7 @@ PPCODE:
 
   while (1)
     {
-      if (slr->please_start_lex_recce)
+      if (slr->g0_start_pos >= 0)
 	{
 	  STRLEN input_length = SvCUR (stream->input);
 
@@ -5602,9 +5607,8 @@ PPCODE:
 	    XSRETURN_PV ("");
 	  }
 
-	  slr->start_of_lexeme = stream->perl_pos;
-
-	  slr->please_start_lex_recce = 0;
+	  slr->start_of_lexeme = stream->perl_pos = slr->g0_start_pos;
+	  slr->g0_start_pos = -1;
 	  u_r0_clear (stream);
 	  if (trace_g0 >= 1)
 	    {
@@ -5636,7 +5640,7 @@ PPCODE:
       if (marpa_r_is_exhausted (slr->r1))
 	{
 	  int discard_result = slr_discard (slr);
-  slr->please_start_lex_recce = 1;
+	  slr->g0_start_pos = slr->stream->perl_pos;
 	  if (discard_result < 0)
 	    {
 	      XSRETURN_PV ("R0 exhausted before end");
@@ -5645,7 +5649,7 @@ PPCODE:
       else
 	{
 	  const char *result_string = slr_alternatives (slr);
-  slr->please_start_lex_recce = 1;
+	  slr->g0_start_pos = slr->stream->perl_pos;
 	  if (result_string)
 	    {
 	      XSRETURN_PV (result_string);
