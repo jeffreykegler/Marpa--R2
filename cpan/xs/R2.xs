@@ -1958,50 +1958,50 @@ slr_alternatives (Scanless_R * slr)
       /* If here, a lexeme has been accepted and priority is set
        */
 
-{				/* Check for a "pause before" lexeme */
-  Marpa_Symbol_ID g1_lexeme = -1;
-  int lexeme_ix;
-  for (lexeme_ix = 0; lexeme_ix < lexemes_in_buffer; lexeme_ix++)
-    {
-      const Marpa_Symbol_ID lexeme_id = (slr->lexeme_buffer)[lexeme_ix];
-      const struct lexeme_r_properties *lexeme_r_properties
-	= slr->g1_lexeme_properties + lexeme_id;
-      if (lexeme_r_properties->pause_before_active)
-	{
-	  g1_lexeme = lexeme_id;
-	  slr->start_of_pause_lexeme = slr->start_of_lexeme;
-	  slr->end_of_pause_lexeme = slr->end_of_lexeme;
-	  slr->pause_lexeme = g1_lexeme;
-	  if (slr->trace_terminals > 2)
-	    {
-	      AV *event;
-	      SV *event_data[5];
-	      event_data[0] = newSVpvs ("'trace");
-	      event_data[1] = newSVpvs ("g1 pausing before lexeme");
-	      event_data[2] = newSViv (slr->start_of_pause_lexeme);	/* start */
-	      event_data[3] = newSViv (slr->end_of_pause_lexeme);	/* end */
-	      event_data[4] = newSViv (slr->pause_lexeme);	/* lexeme */
-	      event = av_make (Dim (event_data), event_data);
-	      av_push (slr->r1_wrapper->event_queue,
-		       newRV_noinc ((SV *) event));
-	    }
-	    {
-	      AV *event;
-	      SV *event_data[2];
-	      event_data[0] = newSVpvs ("before lexeme");
-	      event_data[1] = newSViv (slr->pause_lexeme);	/* lexeme */
-	      event = av_make (Dim (event_data), event_data);
-	      av_push (slr->r1_wrapper->event_queue,
-		       newRV_noinc ((SV *) event));
-	    }
-	}
-    }
-  if (g1_lexeme >= 0)
-    {
-      stream->perl_pos = slr->start_of_lexeme;
-      return "event";
-    }
-}
+      {				/* Check for a "pause before" lexeme */
+	Marpa_Symbol_ID g1_lexeme = -1;
+	int lexeme_ix;
+	for (lexeme_ix = 0; lexeme_ix < lexemes_in_buffer; lexeme_ix++)
+	  {
+	    const Marpa_Symbol_ID lexeme_id = (slr->lexeme_buffer)[lexeme_ix];
+	    const struct lexeme_r_properties *lexeme_r_properties
+	      = slr->g1_lexeme_properties + lexeme_id;
+	    if (lexeme_r_properties->pause_before_active)
+	      {
+		g1_lexeme = lexeme_id;
+		slr->start_of_pause_lexeme = slr->start_of_lexeme;
+		slr->end_of_pause_lexeme = slr->end_of_lexeme;
+		slr->pause_lexeme = g1_lexeme;
+		if (slr->trace_terminals > 2)
+		  {
+		    AV *event;
+		    SV *event_data[5];
+		    event_data[0] = newSVpvs ("'trace");
+		    event_data[1] = newSVpvs ("g1 pausing before lexeme");
+		    event_data[2] = newSViv (slr->start_of_pause_lexeme);	/* start */
+		    event_data[3] = newSViv (slr->end_of_pause_lexeme);	/* end */
+		    event_data[4] = newSViv (slr->pause_lexeme);	/* lexeme */
+		    event = av_make (Dim (event_data), event_data);
+		    av_push (slr->r1_wrapper->event_queue,
+			     newRV_noinc ((SV *) event));
+		  }
+		{
+		  AV *event;
+		  SV *event_data[2];
+		  event_data[0] = newSVpvs ("before lexeme");
+		  event_data[1] = newSViv (slr->pause_lexeme);	/* lexeme */
+		  event = av_make (Dim (event_data), event_data);
+		  av_push (slr->r1_wrapper->event_queue,
+			   newRV_noinc ((SV *) event));
+		}
+	      }
+	  }
+	if (g1_lexeme >= 0)
+	  {
+	    stream->perl_pos = slr->start_of_lexeme;
+	    return "event";
+	  }
+      }
 
       {
 	int lexeme_ix;
@@ -2089,32 +2089,34 @@ slr_alternatives (Scanless_R * slr)
 
 	      }
 
-if (lexeme_r_properties->pause_after_active)
-  {
-    slr->start_of_pause_lexeme = slr->start_of_lexeme;
-    slr->end_of_pause_lexeme = slr->end_of_lexeme;
-    slr->pause_lexeme = g1_lexeme;
-    if (slr->trace_terminals > 2)
-      {
-	AV *event;
-	SV *event_data[5];
-	event_data[0] = newSVpvs ("'trace");
-	event_data[1] = newSVpvs ("g1 pausing after lexeme");
-	event_data[2] = newSViv (slr->start_of_pause_lexeme);	/* start */
-	event_data[3] = newSViv (slr->end_of_pause_lexeme);	/* end */
-	event_data[4] = newSViv (g1_lexeme);	/* lexeme */
-	event = av_make (Dim (event_data), event_data);
-	av_push (slr->r1_wrapper->event_queue, newRV_noinc ((SV *) event));
-      }
-    {
-      AV *event;
-      SV *event_data[2];
-      event_data[0] = newSVpvs ("after lexeme");
-      event_data[1] = newSViv (slr->pause_lexeme);	/* lexeme */
-      event = av_make (Dim (event_data), event_data);
-      av_push (slr->r1_wrapper->event_queue, newRV_noinc ((SV *) event));
-    }
-  }
+	    if (lexeme_r_properties->pause_after_active)
+	      {
+		slr->start_of_pause_lexeme = slr->start_of_lexeme;
+		slr->end_of_pause_lexeme = slr->end_of_lexeme;
+		slr->pause_lexeme = g1_lexeme;
+		if (slr->trace_terminals > 2)
+		  {
+		    AV *event;
+		    SV *event_data[5];
+		    event_data[0] = newSVpvs ("'trace");
+		    event_data[1] = newSVpvs ("g1 pausing after lexeme");
+		    event_data[2] = newSViv (slr->start_of_pause_lexeme);	/* start */
+		    event_data[3] = newSViv (slr->end_of_pause_lexeme);	/* end */
+		    event_data[4] = newSViv (g1_lexeme);	/* lexeme */
+		    event = av_make (Dim (event_data), event_data);
+		    av_push (slr->r1_wrapper->event_queue,
+			     newRV_noinc ((SV *) event));
+		  }
+		{
+		  AV *event;
+		  SV *event_data[2];
+		  event_data[0] = newSVpvs ("after lexeme");
+		  event_data[1] = newSViv (slr->pause_lexeme);	/* lexeme */
+		  event = av_make (Dim (event_data), event_data);
+		  av_push (slr->r1_wrapper->event_queue,
+			   newRV_noinc ((SV *) event));
+		}
+	      }
 
 	  }
 
@@ -2135,8 +2137,7 @@ if (lexeme_r_properties->pause_after_active)
 	marpa_r_latest_earley_set_values_set (r1, slr->start_of_lexeme,
 					      INT2PTR (void *,
 						       (slr->end_of_lexeme -
-							slr->
-							start_of_lexeme)));
+							slr->start_of_lexeme)));
 	if (av_len (slr->r1_wrapper->event_queue) >= 0)
 	  return "event";
 	return 0;
@@ -5888,8 +5889,7 @@ PPCODE:
     }
   if (result == -2)
     {
-      const Marpa_Error_Code error =
-	marpa_g_error (slr->g1_wrapper->g, NULL);
+      const Marpa_Error_Code error = marpa_g_error (slr->g1_wrapper->g, NULL);
       if (error == MARPA_ERR_PARSE_EXHAUSTED)
 	{
 	  AV *event;

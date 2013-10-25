@@ -28,6 +28,8 @@ use Marpa::R2::Test;
 use Marpa::R2;
 use Data::Dumper;
 
+our $DEBUG = 1;
+
 my $glenn_grammar = Marpa::R2::Scanless::G->new(
     {   source => \(<<'END_OF_SOURCE'),
             :default ::= action => ::array
@@ -120,6 +122,41 @@ INPUT
     'Regression test of bug found by Jean-Damien Durand'
 ];
 
+my $durand_grammar3 = Marpa::R2::Scanless::G->new(
+    {   source => \(<<'END_OF_SOURCE'),
+:start ::= Script
+
+Script ::= '=' '/' 'dumb'
+
+_WhiteSpace                            ~ ' '
+_LineTerminator                        ~ [\n]
+_SingleLineComment                     ~ '//' _SingleLineCommentCharsopt
+_SingleLineCommentChars                ~ _SingleLineCommentChar _SingleLineCommentCharsopt
+_SingleLineCommentCharsopt             ~ _SingleLineCommentChars
+_SingleLineCommentCharsopt             ~
+_SingleLineCommentChar                 ~ [^\n]
+
+_S ~
+    _WhiteSpace
+  | _LineTerminator
+  | _SingleLineComment
+
+S_MANY ~ _S+
+:discard ~ S_MANY
+
+END_OF_SOURCE
+    }
+);
+
+push @tests_data, [
+    $durand_grammar3, <<INPUT,
+ = / dumb
+INPUT
+    [ ],
+    'Parse OK',
+    'Regression test of perl_pos bug found by Jean-Damien Durand'
+];
+
 TEST:
 for my $test_data (@tests_data) {
     my ( $grammar, $test_string, $expected_value, $expected_result,
@@ -142,6 +179,7 @@ sub my_parser {
     my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
 
     if ( not defined eval { $recce->read( \$string ); 1 } ) {
+        say $EVAL_ERROR if $DEBUG;
         my $abbreviated_error = $EVAL_ERROR;
         chomp $abbreviated_error;
         $abbreviated_error =~ s/\n.*//xms;
