@@ -1567,7 +1567,7 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
 /*
  * Try to discard lexemes.
  * It is assumed this is because R1 is exhausted and we
- * are checking for uncomsumed text.
+ * are checking for unconsumed text.
  * Return values:
  * 0 OK.
  * -4: Exhausted, but lexemes remain.
@@ -1587,6 +1587,9 @@ slr_discard (Scanless_R * slr)
       croak ("Problem in slr->read(): No R0 at %s %d", __FILE__, __LINE__);
     }
   earley_set = marpa_r_latest_earley_set (r0);
+  /* Zero length lexemes are not of interest, so we do *not*
+   * search the 0'th Earley set.
+   */
   while (earley_set > 0)
     {
       int is_expected;
@@ -1640,7 +1643,8 @@ slr_discard (Scanless_R * slr)
 		  event_data[3] = newSViv (slr->start_of_lexeme);
 		  event_data[4] = newSViv (slr->end_of_lexeme);
 		  event = av_make (Dim (event_data), event_data);
-		  av_push (slr->r1_wrapper->event_queue, newRV_noinc ((SV *) event));
+		  av_push (slr->r1_wrapper->event_queue,
+			   newRV_noinc ((SV *) event));
 		}
 	      /* If there is discarded item, we are fine,
 	       * and can return success.
@@ -1663,7 +1667,8 @@ slr_discard (Scanless_R * slr)
 	      event_data[3] = newSViv (slr->start_of_lexeme);
 	      event_data[4] = newSViv (slr->end_of_lexeme);
 	      event = av_make (Dim (event_data), event_data);
-	      av_push (slr->r1_wrapper->event_queue, newRV_noinc ((SV *) event));
+	      av_push (slr->r1_wrapper->event_queue,
+		       newRV_noinc ((SV *) event));
 	    }
 	NEXT_REPORT_ITEM:;
 	}
@@ -1677,12 +1682,9 @@ slr_discard (Scanless_R * slr)
 	  return -4;
 	}
       earley_set--;
-      /* Zero length lexemes are not of interest, so we do *not*
-       * search the 0'th Earley set.
-       */
     }
 
-  /* If we are here we either found no lexemes anywhere in the input,
+  /* If we are here we found no lexemes anywhere in the input,
    * and therefore none which can be discarded.
    * Return failure.
    */
@@ -5602,7 +5604,7 @@ PPCODE:
 	{
 	  STRLEN input_length = SvCUR (stream->input);
 
-	  if (stream->perl_pos >= stream->end_pos)
+	  if (slr->g0_start_pos >= stream->end_pos)
 	  {
 	    XSRETURN_PV ("");
 	  }
