@@ -2092,17 +2092,6 @@ slr_alternatives (Scanless_R * slr)
 		    av_push (slr->r1_wrapper->event_queue,
 			     newRV_noinc ((SV *) event));
 		  }
-		break;
-
-	      default:
-		croak
-		  ("Problem SLR->read() failed on symbol id %d at position %d: %s",
-		   g1_lexeme, (int) stream->perl_pos,
-		   xs_g_error (slr->g1_wrapper));
-		/* NOTREACHED */
-
-	      }
-
 	    if (lexeme_r_properties->pause_after_active)
 	      {
 		slr->start_of_pause_lexeme = slr->start_of_lexeme;
@@ -2130,6 +2119,16 @@ slr_alternatives (Scanless_R * slr)
 		  av_push (slr->r1_wrapper->event_queue,
 			   newRV_noinc ((SV *) event));
 		}
+	      }
+		break;
+
+	      default:
+		croak
+		  ("Problem SLR->read() failed on symbol id %d at position %d: %s",
+		   g1_lexeme, (int) stream->perl_pos,
+		   xs_g_error (slr->g1_wrapper));
+		/* NOTREACHED */
+
 	      }
 
 	  }
