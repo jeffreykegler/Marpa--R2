@@ -309,6 +309,7 @@ t/sl_exhaust.t
 t/sl_external1.t
 t/sl_fullsyn.t
 t/sl_gia.t
+t/sl_gie.t
 t/sl_gsyn.t
 t/sl_json.t
 t/sl_leo.t
