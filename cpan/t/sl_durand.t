@@ -20,7 +20,7 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 11;
+use Test::More tests => 10;
 
 use lib 'inc';
 use Marpa::R2::Test;
@@ -89,77 +89,6 @@ sub My_Actions::do_multiply {
     my ( undef, $t1, undef, $t2 ) = @_;
     return $t1 * $t2;
 }
-
-# Second problem -- Location 0 events
-
-$dsl = <<GRAMMAR_SOURCE;
-:start ::= Script
-Script ::= null1 null2 digits1 null3 null4 digits2 null5
-digits1 ::= DIGITS
-digits2 ::= DIGITS
-null1   ::=
-null2   ::=
-null3   ::=
-null4   ::=
-null5   ::=
-DIGITS ~ [\\d]+
-WS ~ [\\s]
-:discard ~ WS
-GRAMMAR_SOURCE
-
-foreach (
-    qw/Script/,
-    ( map {"digits$_"} ( 1 .. 2 ) ),
-    ( map {"null$_"}   ( 1 .. 5 ) )
-    )
-{
-    $dsl .= <<EVENTS;
-event '${_}\$' = completed <$_>
-event '^${_}' = predicted <$_>
-event '${_}[]' = nulled <$_>
-EVENTS
-} ## end foreach ( qw/Script/, ( map {"digits$_"} ( 1 .. 2 ) ), ( ...))
-
-$input = '    1 2';
-
-$grammar = Marpa::R2::Scanless::G->new( { source  => \$dsl } );
-$recce   = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
-$length  = length $input;
-$actual_output   = q{};
-$expected_output = q{};
-for (
-    my $pos = $recce->read( \$input );
-    $pos < $length;
-    $pos = $recce->resume()
-    )
-{
-    $actual_output .= record_events($recce);
-} ## end for ( my $pos = $recce->read( \$input ); $pos < $length...)
-$actual_output   .= record_events($recce);
-$expected_output .= <<'END_OF_EXPECTED_OUTPUT';
-^Script ^digits1 null1[] null2[]
-^digits2 digits1$ null3[] null4[]
-Script$ digits2$ null5[]
-END_OF_EXPECTED_OUTPUT
-
-sub record_events {
-    my ( $recce, $pos ) = @_;
-    my $text = q{};
-    my @events;
-    for (
-        my $event_ix = 0;
-        my $event    = $recce->event($event_ix);
-        $event_ix++
-        )
-    {
-        my ( $event_name, @event_data ) = @{$event};
-        push @events, $event_name;
-    } ## end for ( my $event_ix = 0; my $event = $recce->event($event_ix...))
-    return ( join q{ }, sort @events ) . "\n";
-} ## end sub record_events
-Test::More::is( $actual_output, $expected_output,
-    'Events for Durand event test 1' );
-
 1;    # In case used as "do" file
 
 # Local Variables:
