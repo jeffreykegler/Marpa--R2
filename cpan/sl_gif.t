@@ -51,7 +51,7 @@ CP1 Rule 1: quartet -> a a a a
 END_OF_ASF
     'ASF OK',
     'Basic "a a a a" grammar'
-];
+] if 1;
 
 my $bb_grammar = Marpa::R2::Scanless::G->new(
     {   source =>
@@ -117,7 +117,7 @@ CP1 Rule 1: sequence -> item+
 END_OF_ASF
     'ASF OK',
     'Sequence grammar'
-];
+] if 1;
 
 TEST:
 for my $test_data (@tests_data) {

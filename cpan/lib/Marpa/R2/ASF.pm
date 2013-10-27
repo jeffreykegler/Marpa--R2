@@ -161,16 +161,17 @@ sub Marpa::R2::Powerset::show {
 
 sub set_last_choice {
     my ( $asf, $nook ) = @_;
+    my $or_nodes  = $asf->[Marpa::R2::Internal::Scanless::ASF::OR_NODES];
+    my $or_node_id = $nook->[Marpa::R2::Internal::Nook::OR_NODE];
+    my $and_nodes = $or_nodes->[$or_node_id];
     my $choice     = $nook->[Marpa::R2::Internal::Nook::FIRST_CHOICE];
+    return if $choice >= $#{ $and_nodes };
     if ( nook_has_semantic_cause( $asf, $nook ) ) {
-        my $or_node_id = $nook->[Marpa::R2::Internal::Nook::OR_NODE];
         my $slr       = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
         my $recce     = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
         my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
         my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
         my $bocage    = $recce->[Marpa::R2::Internal::Recognizer::B_C];
-        my $or_nodes  = $asf->[Marpa::R2::Internal::Scanless::ASF::OR_NODES];
-        my $and_nodes = $or_nodes->[$or_node_id];
         my $and_node_id = $and_nodes->[$choice];
         my $current_predecessor = $bocage->_marpa_b_and_node_predecessor($and_node_id);
         AND_NODE: while (1) {
@@ -201,10 +202,8 @@ sub nook_increment {
     my ( $asf, $nook ) = @_;
     $nook->[Marpa::R2::Internal::Nook::FIRST_CHOICE] =
         $nook->[Marpa::R2::Internal::Nook::LAST_CHOICE] + 1;
-    my $choice = set_last_choice($asf, $nook);
-    my $or_node  = $nook->[Marpa::R2::Internal::Nook::OR_NODE];
-    my $or_nodes = $asf->[Marpa::R2::Internal::Scanless::ASF::OR_NODES];
-    return $choice <= $#{ $or_nodes->[$or_node] };
+    return if not defined set_last_choice($asf, $nook);
+    return 1;
 } ## end sub nook_increment
 
 sub nook_has_semantic_cause {
