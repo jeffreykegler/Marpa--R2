@@ -165,7 +165,7 @@ sub set_last_choice {
     my $or_node_id = $nook->[Marpa::R2::Internal::Nook::OR_NODE];
     my $and_nodes = $or_nodes->[$or_node_id];
     my $choice     = $nook->[Marpa::R2::Internal::Nook::FIRST_CHOICE];
-    return if $choice >= $#{ $and_nodes };
+    return if $choice > $#{ $and_nodes };
     if ( nook_has_semantic_cause( $asf, $nook ) ) {
         my $slr       = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
         my $recce     = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
@@ -200,9 +200,10 @@ sub nook_new {
 
 sub nook_increment {
     my ( $asf, $nook ) = @_;
+    $nook->[Marpa::R2::Internal::Nook::LAST_CHOICE] //= 0;
     $nook->[Marpa::R2::Internal::Nook::FIRST_CHOICE] =
         $nook->[Marpa::R2::Internal::Nook::LAST_CHOICE] + 1;
-    return if not defined set_last_choice($asf, $nook);
+    return if not defined set_last_choice( $asf, $nook );
     return 1;
 } ## end sub nook_increment
 
