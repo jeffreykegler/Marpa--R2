@@ -1709,28 +1709,12 @@ sub Marpa::R2::Recognizer::show_bocage {
                 $predecessor_tag = Marpa::R2::Recognizer::or_node_tag( $recce,
                     $predecessor_id );
             }
-            my $tag = join q{ }, $parent_tag, $predecessor_tag, $cause_tag;
-            my $middle_earley_set = $bocage->_marpa_b_and_node_middle($and_node_id);
-            my $middle_earleme = $recce_c->earleme($middle_earley_set);
+            my $tag = join q{ }, "$and_node_id:", "$or_node_id=$parent_tag", $predecessor_tag, $cause_tag;
 
-            push @data,
-                [
-                $origin_earleme, $current_earleme,
-                $irl_id,         $position,
-                $middle_earleme, ( defined $symbol ? 0 : 1 ),
-                ( $symbol // $cause_irl_id ), $tag
-                ];
+            push @data, [ $and_node_id, $tag ];
         } ## end AND_NODE: for my $and_node_id (@and_node_ids)
     } ## end OR_NODE: for ( my $or_node_id = 0;; $or_node_id++ )
-    my @sorted_data = map { $_->[-1] } sort {
-               $a->[0] <=> $b->[0]
-            or $a->[1] <=> $b->[1]
-            or $a->[2] <=> $b->[2]
-            or $a->[3] <=> $b->[3]
-            or $a->[4] <=> $b->[4]
-            or $a->[5] <=> $b->[5]
-            or $a->[6] <=> $b->[6]
-    } @data;
+    my @sorted_data = map { $_->[-1] } sort { $a->[0] <=> $b->[0] } @data;
     return ( join "\n", @sorted_data ) . "\n";
 } ## end sub Marpa::R2::Recognizer::show_bocage
 
