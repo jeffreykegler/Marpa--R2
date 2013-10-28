@@ -427,7 +427,8 @@ sub nidset_to_choicepoint_base {
             my $token_isy_id =
                 $bocage->_marpa_b_and_node_symbol($and_node_id);
             my $token_id = $grammar_c->_marpa_g_source_xsy($token_isy_id);
-            $sort_ix = -$token_id - 1;
+            # -2 is reserved for 'end of data'
+            $sort_ix = -$token_id - 3;
         } ## end else [ if ( $source_nid >= 0 ) ]
         push @source_data, [ $sort_ix, $source_nid ];
     } ## end for my $source_nid ( @{ $nidset->nids() } )

@@ -103,16 +103,16 @@ push @tests_data, [
     <<'END_OF_ASF',
 CP1 Rule 1: sequence -> item+
   Factoring #0.0
-    CP7 Rule 2: item -> pair
-      CP11 Rule 5: pair -> item item
-        CP4 Rule 3: item -> singleton
+    CP3 Rule 2: item -> pair
+      CP5 Rule 5: pair -> item item
+        CP6 Rule 3: item -> singleton
           CP2 Rule 4: singleton -> [Lex-0]
-            CP13 Symbol: [Lex-0] "a"
+            CP11 Symbol: [Lex-0] "a"
         CP8 Rule 3: item -> singleton
-          CP16 Rule 4: singleton -> [Lex-0]
-            CP19 Symbol: [Lex-0] "a"
+          CP7 Rule 4: singleton -> [Lex-0]
+            CP13 Symbol: [Lex-0] "a"
   Factoring #0.1
-    CP4 already displayed
+    CP6 already displayed
     CP8 already displayed
 END_OF_ASF
     'ASF OK',
