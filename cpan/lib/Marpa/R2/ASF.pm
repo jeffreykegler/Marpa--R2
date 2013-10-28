@@ -615,11 +615,6 @@ sub next_factoring {
     my ($choicepoint) = @_;
     say STDERR join q{ }, __FILE__, __LINE__, "next_factoring()",
         $choicepoint->show();
-    say STDERR "next_factoring: id=", $choicepoint->base_id(),
-        "; symch IX = ",
-        $choicepoint->[Marpa::R2::Internal::Choicepoint::SYMCH_IX],
-        "; nid IX = ",
-        $choicepoint->[Marpa::R2::Internal::Choicepoint::NID_IX];
     my $asf = $choicepoint->[Marpa::R2::Internal::Choicepoint::ASF];
     my $or_nodes = $asf->[Marpa::R2::Internal::Scanless::ASF::OR_NODES];
     $choicepoint->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK] //= [];
@@ -684,11 +679,6 @@ sub next_factoring {
                 } ## end if ( not scalar @{$factoring_stack} )
                 my $top_nook = $factoring_stack->[-1];
                 if ( nook_increment($asf, $top_nook) ) {
-                    $top_nook->[Marpa::R2::Internal::Nook::CAUSE_IS_EXPANDED]
-                        = 1;
-                    $top_nook
-                        ->[Marpa::R2::Internal::Nook::PREDECESSOR_IS_EXPANDED]
-                        = 1;
                     last FIND_NODE_TO_ITERATE;  # in C, a "break" will do this
                 } ## end if ( defined $work_and_node_id )
 
@@ -913,7 +903,7 @@ sub Marpa::R2::Choicepoint::show_nids {
         push @lines, "CP$id SYMCH #$current_choice: " if $symch_count > 1;
         my $rule_id = $choicepoint->rule_id();
         if ( $rule_id >= 0 ) {
-            say STDERR "LINE: ", ( "CP$id Rule " . $grammar->brief_rule($rule_id) );
+            say STDERR join "LINE:", __LINE__, ( "CP$id Rule " . $grammar->brief_rule($rule_id) );
             push @lines,
             ( "CP$id Rule " . $grammar->brief_rule($rule_id) ),
                 map { q{  } . $_ }
@@ -996,7 +986,7 @@ sub Marpa::R2::Choicepoint::show_symch_tokens {
         my $symbol_id   = $choicepoint->symbol_id();
         my $literal     = $choicepoint->literal();
         my $symbol_name = $grammar->symbol_name($symbol_id);
-        say STDERR "LINE: ", qq{CP$id Symbol: $symbol_name "$literal"};
+        say STDERR join " ", "LINE:", __LINE__, qq{CP$id Symbol: $symbol_name "$literal"};
         push @lines, qq{CP$id Symbol: $symbol_name "$literal"};
     } ## end for ( my $nid_ix = 0; $nid_ix < $nid_count; $nid_ix++)
     return \@lines;
@@ -1008,6 +998,37 @@ sub Marpa::R2::Scanless::ASF::show {
     local %CHOICEPOINT_SEEN = (); ## no critic (Variables::ProhibitLocalVars)
     my $lines = $top->show_nids ();
     return join "\n", @{$lines}, q{};
+}
+
+sub dump_nook {
+    my ( $asf, $nook ) = @_;
+    my $slr   = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
+    my $recce = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+    my $or_node_id = $nook->[Marpa::R2::Internal::Nook::OR_NODE];
+    my $text = "Nook ";
+    my @text = ();
+    push @text, $nook->[Marpa::R2::Internal::Nook::IS_CAUSE] ? 'C' : '-';
+    push @text, $nook->[Marpa::R2::Internal::Nook::IS_PREDECESSOR] ? 'P' : '-';
+    push @text, $nook->[Marpa::R2::Internal::Nook::CAUSE_IS_EXPANDED] ? 'C+' : '--';
+    push @text, $nook->[Marpa::R2::Internal::Nook::PREDECESSOR_IS_EXPANDED] ? 'P+' : '--';
+    $text .= join q{ }, @text;
+    $text
+        .= " @"
+        . $nook->[Marpa::R2::Internal::Nook::FIRST_CHOICE] . '-'
+        . $nook->[Marpa::R2::Internal::Nook::LAST_CHOICE] . q{: };
+    $text .= $recce->verbose_or_node($or_node_id);
+    return $text;
+} ## end sub dump_nook
+
+# For debugging
+sub dump_factoring_stack {
+    my ($asf, $stack) = @_;
+    my $text = q{};
+    for (my $stack_ix = 0; $stack_ix <= $#{$stack}; $stack_ix++) {
+        # Nook already has newline at end
+        $text .= "$stack_ix: " . dump_nook($asf, $stack->[$stack_ix]);
+    }
+    return $text . "\n";
 }
 
 1;

@@ -70,21 +70,21 @@ push @tests_data, [
     <<'END_OF_ASF',
 CP1 Rule 1: top -> b b
   Factoring #0.0
+    CP3 Rule 2: b -> a a
+      CP7 Symbol: a "a"
+      CP0 Symbol: a "a"
     CP5 Rule 3: b -> a
-      CP11 Symbol: a "a"
-    CP0 Rule 2: b -> a a
-      CP17 Symbol: a "a"
-      CP15 Symbol: a "a"
+      CP10 Symbol: a "a"
   Factoring #0.1
-    CP4 Rule 2: b -> a a
-      CP23 Symbol: a "a"
-      CP21 Symbol: a "a"
-    CP8 Rule 3: b -> a
-      CP26 Symbol: a "a"
+    CP2 Rule 3: b -> a
+      CP13 Symbol: a "a"
+    CP11 Rule 2: b -> a a
+      CP15 Symbol: a "a"
+      CP17 Symbol: a "a"
 END_OF_ASF
     'ASF OK',
     '"b b" grammar'
-];
+] if 1;
 
 my $seq_grammar = Marpa::R2::Scanless::G->new(
     {   source =>
