@@ -21,7 +21,7 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 6;
+use Test::More tests => 8;
 use English qw( -no_match_vars );
 use lib 'inc';
 use Marpa::R2::Test;
@@ -117,6 +117,26 @@ CP1 Rule 1: sequence -> item+
 END_OF_ASF
     'ASF OK',
     'Sequence grammar'
+] if 1;
+
+
+my $nulls_grammar = Marpa::R2::Scanless::G->new(
+    {   source =>
+\(<<'END_OF_SOURCE'),
+:start ::= top
+top ::= a a a a
+a ::= 'a'
+a ::=
+END_OF_SOURCE
+    }
+);
+
+push @tests_data, [
+    $nulls_grammar, 'aaa',
+    <<'END_OF_ASF',
+END_OF_ASF
+    'ASF OK',
+    'Nulls grammar'
 ] if 1;
 
 TEST:
