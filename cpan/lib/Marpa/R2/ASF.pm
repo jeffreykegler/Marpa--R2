@@ -240,11 +240,10 @@ sub Marpa::R2::Scanless::ASF::top {
 
     my $augment2_or_node_id =
         $bocage->_marpa_b_and_node_cause($augment_and_node_id);
-    my $augment2_and_node_id = $or_nodes->[$augment2_or_node_id]->[0];
+    my $augment2_and_node_ids = $or_nodes->[$augment2_or_node_id];
 
-    my $start_or_node_id =
-        $bocage->_marpa_b_and_node_cause($augment2_and_node_id);
-    my $top_nidset = Marpa::R2::Nidset->obtain( $asf, $start_or_node_id );
+    my @start_or_node_ids = map { $bocage->_marpa_b_and_node_cause($_) } @{$augment2_and_node_ids};
+    my $top_nidset = Marpa::R2::Nidset->obtain( $asf, @start_or_node_ids );
     my $top_choicepoint_base = nidset_to_choicepoint_base( $asf, $top_nidset );
     $top = $asf->new_choicepoint($top_choicepoint_base);
 
