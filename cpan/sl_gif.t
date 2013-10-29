@@ -169,18 +169,22 @@ sub my_parser {
         $abbreviated_error =~ s/^Error \s+ in \s+ string_read: \s+ //xms;
         return 'No parse', $abbreviated_error;
     } ## end if ( not defined eval { $slr->read( \$string ); 1 } )
-    my $asf = Marpa::R2::Scanless::ASF->new( { slr => $slr} );
+    my $asf = Marpa::R2::Scanless::ASF->new( { slr => $slr } );
     if ( not defined $asf ) {
         return 'No ASF', 'Input read to end but no ASF';
     }
 
+    say STDERR "Rules:\n",     $slr->thick_g1_grammar()->show_rules();
+    say STDERR "IRLs:\n",      $slr->thick_g1_grammar()->show_irls();
+    say STDERR "ISYs:\n",      $slr->thick_g1_grammar()->show_isys();
     say STDERR "Or-nodes:\n",  $slr->thick_g1_recce()->verbose_or_nodes();
     say STDERR "And-nodes:\n", $slr->thick_g1_recce()->show_and_nodes();
-    say STDERR "Bocage:\n", $slr->thick_g1_recce()->show_bocage();
+    say STDERR "Bocage:\n",    $slr->thick_g1_recce()->show_bocage();
     my $asf_desc = $asf->show();
     say STDERR $asf->show_nidsets();
     say STDERR $asf->show_powersets();
     return $asf_desc, 'ASF OK';
+
 } ## end sub my_parser
 
 # vim: expandtab shiftwidth=4:

@@ -835,23 +835,26 @@ sub factors {
 # The concept of "point in the factoring stack" is internal.
 sub Marpa::R2::Choicepoint::ambiguous_prefix {
     my ($choicepoint) = @_;
-    my $asf = $choicepoint->[Marpa::R2::Internal::Choicepoint::ASF];
-    my $or_nodes = $asf->[Marpa::R2::Internal::Scanless::ASF::OR_NODES];
-    my $slr       = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
-    my $recce     = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+    my $asf           = $choicepoint->[Marpa::R2::Internal::Choicepoint::ASF];
+    my $or_nodes      = $asf->[Marpa::R2::Internal::Scanless::ASF::OR_NODES];
+    my $slr           = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
+    my $recce         = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
 
     my $factoring_stack =
         $choicepoint->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK];
     Marpa::R2::exception('ASF choicepoint factoring was never initialized')
         if not defined $factoring_stack;
-    my $stack_pos = $#{$factoring_stack};
-    STACK_POS: while ( $stack_pos >= 0 ) {
-        my $nook =  $factoring_stack->[$stack_pos];
+    for (
+        my $stack_pos = $#{$factoring_stack};
+        $stack_pos >= 0;
+        $stack_pos--
+        )
+    {
+        my $nook    = $factoring_stack->[$stack_pos];
         my $or_node = $nook->[Marpa::R2::Internal::Nook::OR_NODE];
-        last STACK_POS if scalar @{ $or_nodes->[$or_node] } > 1;
-        $stack_pos--;
-    } ## end STACK_POS: while ( $stack_pos >= 0 )
-    return $stack_pos + 1;
+        return $stack_pos + 1 if scalar @{ $or_nodes->[$or_node] } > 1;
+    } ## end for ( my $stack_pos = $#{$factoring_stack}; $stack_pos...)
+    return 0;
 } ## end sub Marpa::R2::Choicepoint::ambiguous_prefix
 
 sub Marpa::R2::Scanless::ASF::show_nidsets {
@@ -909,7 +912,7 @@ sub Marpa::R2::Choicepoint::show_nids {
         push @lines, "CP$id SYMCH #$current_choice: " if $symch_count > 1;
         my $rule_id = $choicepoint->rule_id();
         if ( $rule_id >= 0 ) {
-            say STDERR join "LINE:", __LINE__, ( "CP$id Rule " . $grammar->brief_rule($rule_id) );
+            say STDERR join q{ }, "LINE:", __LINE__, ( "CP$id Rule " . $grammar->brief_rule($rule_id) );
             push @lines,
             ( "CP$id Rule " . $grammar->brief_rule($rule_id) ),
                 map { q{  } . $_ }
