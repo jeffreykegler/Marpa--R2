@@ -161,11 +161,11 @@ sub Marpa::R2::Powerset::show {
 
 sub set_last_choice {
     my ( $asf, $nook ) = @_;
-    my $or_nodes  = $asf->[Marpa::R2::Internal::Scanless::ASF::OR_NODES];
+    my $or_nodes   = $asf->[Marpa::R2::Internal::Scanless::ASF::OR_NODES];
     my $or_node_id = $nook->[Marpa::R2::Internal::Nook::OR_NODE];
-    my $and_nodes = $or_nodes->[$or_node_id];
+    my $and_nodes  = $or_nodes->[$or_node_id];
     my $choice     = $nook->[Marpa::R2::Internal::Nook::FIRST_CHOICE];
-    return if $choice > $#{ $and_nodes };
+    return if $choice > $#{$and_nodes};
     if ( nook_has_semantic_cause( $asf, $nook ) ) {
         my $slr       = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
         my $recce     = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
@@ -173,14 +173,15 @@ sub set_last_choice {
         my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
         my $bocage    = $recce->[Marpa::R2::Internal::Recognizer::B_C];
         my $and_node_id = $and_nodes->[$choice];
-        my $current_predecessor = $bocage->_marpa_b_and_node_predecessor($and_node_id);
+        my $current_predecessor =
+            $bocage->_marpa_b_and_node_predecessor($and_node_id) // -1;
         AND_NODE: while (1) {
             $choice++;
             $and_node_id = $and_nodes->[$choice];
             last AND_NODE if not defined $and_node_id;
-            last AND_NODE
-                if $current_predecessor
-                    != $bocage->_marpa_b_and_node_predecessor($and_node_id);
+            my $next_predecessor =
+                $bocage->_marpa_b_and_node_predecessor($and_node_id) // -1;
+            last AND_NODE if $current_predecessor != $next_predecessor;
         } ## end AND_NODE: while (1)
         $choice--;
     } ## end if ( nook_has_semantic_cause( $asf, $nook ) )
@@ -940,6 +941,7 @@ sub Marpa::R2::Choicepoint::show_factorings {
     my $factor_ix = 0;
     for ( my $nid_ix = 0; $nid_ix < $nid_count; $nid_ix++ ) {
         $choicepoint->[Marpa::R2::Internal::Choicepoint::NID_IX] = $nid_ix;
+        $choicepoint->[Marpa::R2::Internal::Choicepoint::FACTORING_COUNT] = 0;
 
         next_factoring($choicepoint);
         my $factoring = factors($choicepoint);
@@ -1006,8 +1008,10 @@ sub Marpa::R2::Scanless::ASF::show {
 sub dump_nook {
     my ( $asf, $nook ) = @_;
     my $slr   = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
+    my $or_nodes  = $asf->[Marpa::R2::Internal::Scanless::ASF::OR_NODES];
     my $recce = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
     my $or_node_id = $nook->[Marpa::R2::Internal::Nook::OR_NODE];
+    my $and_node_count = scalar @{ $or_nodes->[$or_node_id] };
     my $text = "Nook ";
     my @text = ();
     push @text, $nook->[Marpa::R2::Internal::Nook::IS_CAUSE] ? 'C' : '-';
@@ -1018,7 +1022,7 @@ sub dump_nook {
     $text
         .= " @"
         . $nook->[Marpa::R2::Internal::Nook::FIRST_CHOICE] . '-'
-        . $nook->[Marpa::R2::Internal::Nook::LAST_CHOICE] . q{: };
+        . $nook->[Marpa::R2::Internal::Nook::LAST_CHOICE] . qq{ of $and_node_count: };
     $text .= $recce->verbose_or_node($or_node_id);
     return $text;
 } ## end sub dump_nook
