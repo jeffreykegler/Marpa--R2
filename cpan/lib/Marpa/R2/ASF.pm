@@ -867,7 +867,12 @@ sub Marpa::R2::Choicepoint::ambiguous_prefix {
         my $or_node   = $nook->[Marpa::R2::Internal::Nook::OR_NODE];
         my $and_nodes = $or_nodes->[$or_node];
         next STACK_POS if scalar @{$and_nodes} <= 1;
-        return $stack_pos + 1;
+        my $cause_nids = and_nodes_to_cause_nids( $asf, @{$and_nodes} );
+        my $first_pred_sort_ix = pred_sort_ix( $asf, $cause_nids->[0] );
+        for ( my $ix = 1; $ix <= $#{$cause_nids}; $ix++ ) {
+            my $pred_sort_ix = pred_sort_ix( $asf, $cause_nids->[$ix] );
+            return $stack_pos + 1 if $pred_sort_ix != $first_pred_sort_ix;
+        }
     } ## end STACK_POS: for ( my $stack_pos = $#{$factoring_stack}; $stack_pos...)
     return 0;
 } ## end sub Marpa::R2::Choicepoint::ambiguous_prefix

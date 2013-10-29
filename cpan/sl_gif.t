@@ -133,6 +133,30 @@ END_OF_SOURCE
 push @tests_data, [
     $nulls_grammar, 'aaa',
     <<'END_OF_ASF',
+CP3 Rule 1: top -> a a a a
+  Factoring #0
+    CP5 Rule 2: a -> [Lex-0]
+      CP13 Symbol: [Lex-0] "a"
+    CP7 Rule 2: a -> [Lex-0]
+      CP15 Symbol: [Lex-0] "a"
+    CP9 Rule 2: a -> [Lex-0]
+      CP17 Symbol: [Lex-0] "a"
+    CP11 Symbol: a ""
+  Factoring #1
+    CP5 already displayed
+    CP7 already displayed
+    CP19 Symbol: a ""
+    CP9 already displayed
+  Factoring #2
+    CP5 already displayed
+    CP21 Symbol: a ""
+    CP7 already displayed
+    CP9 already displayed
+  Factoring #3
+    CP23 Symbol: a ""
+    CP5 already displayed
+    CP7 already displayed
+    CP9 already displayed
 END_OF_ASF
     'ASF OK',
     'Nulls grammar'
