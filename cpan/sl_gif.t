@@ -43,11 +43,11 @@ END_OF_SOURCE
 push @tests_data, [
     $aaaa_grammar, 'aaaa',
     <<'END_OF_ASF',
-CP1 Rule 1: quartet -> a a a a
-  CP3 Symbol: a "a"
-  CP5 Symbol: a "a"
-  CP7 Symbol: a "a"
-  CP9 Symbol: a "a"
+CP3 Rule 1: quartet -> a a a a
+  CP0 Symbol: a "a"
+  CP6 Symbol: a "a"
+  CP8 Symbol: a "a"
+  CP10 Symbol: a "a"
 END_OF_ASF
     'ASF OK',
     'Basic "a a a a" grammar'
@@ -68,19 +68,19 @@ END_OF_SOURCE
 push @tests_data, [
     $bb_grammar, 'aaa',
     <<'END_OF_ASF',
-CP1 Rule 1: top -> b b
-  Factoring #0.0
-    CP3 Rule 2: b -> a a
-      CP7 Symbol: a "a"
+CP3 Rule 1: top -> b b
+  Factoring #0
+    CP5 Rule 2: b -> a a
+      CP2 Symbol: a "a"
       CP0 Symbol: a "a"
-    CP5 Rule 3: b -> a
-      CP10 Symbol: a "a"
-  Factoring #0.1
-    CP2 Rule 3: b -> a
-      CP13 Symbol: a "a"
-    CP11 Rule 2: b -> a a
-      CP15 Symbol: a "a"
-      CP17 Symbol: a "a"
+    CP7 Rule 3: b -> a
+      CP11 Symbol: a "a"
+  Factoring #1
+    CP4 Rule 3: b -> a
+      CP14 Symbol: a "a"
+    CP12 Rule 2: b -> a a
+      CP16 Symbol: a "a"
+      CP18 Symbol: a "a"
 END_OF_ASF
     'ASF OK',
     '"b b" grammar'
@@ -101,24 +101,23 @@ END_OF_SOURCE
 push @tests_data, [
     $seq_grammar, 'aa',
     <<'END_OF_ASF',
-CP1 Rule 1: sequence -> item+
-  Factoring #0.0
-    CP3 Rule 2: item -> pair
-      CP5 Rule 5: pair -> item item
-        CP6 Rule 3: item -> singleton
-          CP2 Rule 4: singleton -> [Lex-0]
-            CP11 Symbol: [Lex-0] "a"
+CP3 Rule 1: sequence -> item+
+  Factoring #0
+    CP5 Rule 2: item -> pair
+      CP7 Rule 5: pair -> item item
         CP8 Rule 3: item -> singleton
-          CP7 Rule 4: singleton -> [Lex-0]
-            CP13 Symbol: [Lex-0] "a"
-  Factoring #0.1
-    CP6 already displayed
+          CP11 Rule 4: singleton -> [Lex-0]
+            CP0 Symbol: [Lex-0] "a"
+        CP4 Rule 3: item -> singleton
+          CP9 Rule 4: singleton -> [Lex-0]
+            CP14 Symbol: [Lex-0] "a"
+  Factoring #1
     CP8 already displayed
+    CP4 already displayed
 END_OF_ASF
     'ASF OK',
     'Sequence grammar'
 ] if 1;
-
 
 my $nulls_grammar = Marpa::R2::Scanless::G->new(
     {   source =>

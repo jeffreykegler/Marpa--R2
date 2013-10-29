@@ -230,21 +230,19 @@ sub Marpa::R2::Scanless::ASF::top {
     my $top = $asf->[Marpa::R2::Internal::Scanless::ASF::TOP];
     return $top if defined $top;
     my $or_nodes = $asf->[Marpa::R2::Internal::Scanless::ASF::OR_NODES];
-    my $slr   = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
-    my $recce = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+    my $slr      = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
+    my $recce    = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
 
     my $bocage = $recce->[Marpa::R2::Internal::Recognizer::B_C];
     die 'No Bocage' if not $bocage;
-    my $augment_or_node_id = $bocage->_marpa_b_top_or_node();
+    my $augment_or_node_id  = $bocage->_marpa_b_top_or_node();
     my $augment_and_node_id = $or_nodes->[$augment_or_node_id]->[0];
-
-    my $augment2_or_node_id =
+    my $start_or_node_id =
         $bocage->_marpa_b_and_node_cause($augment_and_node_id);
-    my $augment2_and_node_ids = $or_nodes->[$augment2_or_node_id];
 
-    my @start_or_node_ids = map { $bocage->_marpa_b_and_node_cause($_) } @{$augment2_and_node_ids};
-    my $top_nidset = Marpa::R2::Nidset->obtain( $asf, @start_or_node_ids );
-    my $top_choicepoint_base = nidset_to_choicepoint_base( $asf, $top_nidset );
+    my $top_nidset = Marpa::R2::Nidset->obtain( $asf, $start_or_node_id );
+    my $top_choicepoint_base =
+        nidset_to_choicepoint_base( $asf, $top_nidset );
     $top = $asf->new_choicepoint($top_choicepoint_base);
 
     $asf->[Marpa::R2::Internal::Scanless::ASF::TOP] = $top;
@@ -878,6 +876,12 @@ sub Marpa::R2::Scanless::ASF::show_powersets {
 # CHOICEPOINT_SEEN is a local -- this is to silence warnings
 our %CHOICEPOINT_SEEN;
 
+sub form_choice {
+   my ($parent_choice, $sub_choice) = @_;
+   return $sub_choice if not defined $parent_choice;
+   return join q{.}, $parent_choice, $sub_choice;
+}
+
 sub Marpa::R2::Choicepoint::show_nids {
     my ( $choicepoint, $parent_choice ) = @_;
     my $id = $choicepoint->base_id();
@@ -886,8 +890,6 @@ sub Marpa::R2::Choicepoint::show_nids {
     }
     $CHOICEPOINT_SEEN{$id} = 1;
     say STDERR join q{ }, __FILE__, __LINE__, ("show_nids($id, " . ($parent_choice // 'top') . ')'), $choicepoint->show();
-    $parent_choice .= q{.} if defined $parent_choice;
-    $parent_choice //= q{};
 
     # Check if choicepoint already seen?
     my $asf         = $choicepoint->[Marpa::R2::Internal::Choicepoint::ASF];
@@ -899,7 +901,10 @@ sub Marpa::R2::Choicepoint::show_nids {
     my $symch_count = $choicepoint->symch_count();
     for ( my $symch_ix = 0; $symch_ix < $symch_count; $symch_ix++ ) {
         $choicepoint->symch_set($symch_ix);
-        my $current_choice = "$parent_choice$symch_ix";
+        my $current_choice =
+            $symch_count > 1
+            ? form_choice($parent_choice, $symch_ix)
+            : $parent_choice;
         push @lines, "CP$id SYMCH #$current_choice: " if $symch_count > 1;
         my $rule_id = $choicepoint->rule_id();
         if ( $rule_id >= 0 ) {
@@ -922,8 +927,6 @@ sub Marpa::R2::Choicepoint::show_factorings {
     my ( $choicepoint, $parent_choice ) = @_;
     say STDERR join q{ }, __FILE__, __LINE__, "show_factorings()",
         $choicepoint->show();
-    $parent_choice .= q{.} if defined $parent_choice;
-    $parent_choice //= q{};
 
     # Check if choicepoint already seen?
     my $asf     = $choicepoint->[Marpa::R2::Internal::Choicepoint::ASF];
@@ -943,7 +946,9 @@ sub Marpa::R2::Choicepoint::show_factorings {
 
         my $factoring_is_ambiguous = ($nid_count > 1) || $choicepoint->ambiguous_prefix();
         FACTOR: while (defined $factoring ) {
-            my $current_choice = "$parent_choice$factor_ix";
+            my $current_choice = $factoring_is_ambiguous 
+                ? form_choice( $parent_choice , $factor_ix )
+                : $parent_choice;
             my $indent         = q{};
             if ($factoring_is_ambiguous) {
                 say STDERR "LINE: ", "Factoring #$current_choice";
@@ -965,12 +970,10 @@ sub Marpa::R2::Choicepoint::show_factorings {
 
 # Show all the tokens of a SYMCH
 sub Marpa::R2::Choicepoint::show_symch_tokens {
-    my ( $choicepoint, $parent_choice ) = @_;
+    my ( $choicepoint ) = @_;
     say STDERR join q{ }, __FILE__, __LINE__, "show_symch_tokens()",
         $choicepoint->show();
     my $id = $choicepoint->base_id();
-    $parent_choice .= q{.} if defined $parent_choice;
-    $parent_choice //= q{};
 
     # Check if choicepoint already seen?
     my $asf     = $choicepoint->[Marpa::R2::Internal::Choicepoint::ASF];
@@ -997,7 +1000,7 @@ sub Marpa::R2::Scanless::ASF::show {
     my $top = $asf->top();
     local %CHOICEPOINT_SEEN = (); ## no critic (Variables::ProhibitLocalVars)
     my $lines = $top->show_nids ();
-    return join "\n", @{$lines}, q{};
+    return join "\n", (map { substr $_, 2 } @{$lines}[1 .. $#{$lines}]), q{};
 }
 
 sub dump_nook {
