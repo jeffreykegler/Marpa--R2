@@ -402,7 +402,7 @@ sub Marpa::R2::Scanless::ASF::new_choicepoint {
     return $cp;
 }
 
-sub pred_sort_ix {
+sub nid_sort_ix {
     my ( $asf, $nid ) = @_;
     my $slr       = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
     my $recce     = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
@@ -419,7 +419,7 @@ sub pred_sort_ix {
 
     # -2 is reserved for 'end of data'
     return -$token_id - 3;
-} ## end sub pred_sort_ix
+} ## end sub nid_sort_ix
 
 sub nidset_to_choicepoint_base {
     my ( $asf, $nidset ) = @_;
@@ -427,7 +427,7 @@ sub nidset_to_choicepoint_base {
     # Memoize this method?
     my @source_data = ();
     for my $source_nid ( @{ $nidset->nids() } ) {
-        my $sort_ix = pred_sort_ix($asf, $source_nid);
+        my $sort_ix = nid_sort_ix($asf, $source_nid);
         push @source_data, [ $sort_ix, $source_nid ];
     } ## end for my $source_nid ( @{ $nidset->nids() } )
     my @sorted_source_data = sort { $a->[0] <=> $b->[0] } @source_data;
@@ -851,11 +851,14 @@ sub Marpa::R2::Choicepoint::ambiguous_prefix {
     my $or_nodes      = $asf->[Marpa::R2::Internal::Scanless::ASF::OR_NODES];
     my $slr           = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
     my $recce         = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+    my $bocage    = $recce->[Marpa::R2::Internal::Recognizer::B_C];
 
     my $factoring_stack =
         $choicepoint->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK];
     Marpa::R2::exception('ASF choicepoint factoring was never initialized')
         if not defined $factoring_stack;
+    say STDERR "Called ambiguous_prefix(), factoring stack";
+    say STDERR dump_factoring_stack( $asf, $factoring_stack );
     STACK_POS:
     for (
         my $stack_pos = $#{$factoring_stack};
@@ -867,13 +870,29 @@ sub Marpa::R2::Choicepoint::ambiguous_prefix {
         my $or_node   = $nook->[Marpa::R2::Internal::Nook::OR_NODE];
         my $and_nodes = $or_nodes->[$or_node];
         next STACK_POS if scalar @{$and_nodes} <= 1;
-        my $cause_nids = and_nodes_to_cause_nids( $asf, @{$and_nodes} );
-        my $first_pred_sort_ix = pred_sort_ix( $asf, $cause_nids->[0] );
-        for ( my $ix = 1; $ix <= $#{$cause_nids}; $ix++ ) {
-            my $pred_sort_ix = pred_sort_ix( $asf, $cause_nids->[$ix] );
-            return $stack_pos + 1 if $pred_sort_ix != $first_pred_sort_ix;
-        }
+        FIND_AMBIGUITY: {
+            last FIND_AMBIGUITY if nook_has_semantic_cause( $asf, $nook );
+            my $cause_nids = and_nodes_to_cause_nids( $asf, @{$and_nodes} );
+            my $first_nid_sort_ix = nid_sort_ix( $asf, $cause_nids->[0] );
+            for ( my $ix = 1; $ix <= $#{$cause_nids}; $ix++ ) {
+                my $nid_sort_ix = nid_sort_ix( $asf, $cause_nids->[$ix] );
+                last FIND_AMBIGUITY if $nid_sort_ix != $first_nid_sort_ix;
+            }
+            my $first_predecessor =
+                $bocage->_marpa_b_and_node_predecessor( $and_nodes->[0] )
+                // -1;
+            for my $and_node_id ( @{$and_nodes}[ 1 .. $#{$and_nodes} ] ) {
+                last FIND_AMBIGUITY
+                    if $first_predecessor != (
+                            $bocage->_marpa_b_and_node_predecessor(
+                                $and_node_id) // -1
+                    );
+            } ## end for my $and_node_id ( @{$and_nodes}[ 1 .. $#{$and_nodes...}])
+        } ## end FIND_AMBIGUITY:
+        say STDERR "ambiguous_prefix() returns ", ( $stack_pos + 1 );
+        return $stack_pos + 1;
     } ## end STACK_POS: for ( my $stack_pos = $#{$factoring_stack}; $stack_pos...)
+    say STDERR "ambiguous_prefix() returns ", 0;
     return 0;
 } ## end sub Marpa::R2::Choicepoint::ambiguous_prefix
 
@@ -906,14 +925,15 @@ sub form_choice {
    return join q{.}, $parent_choice, $sub_choice;
 }
 
-sub Marpa::R2::Choicepoint::show_nids {
+sub Marpa::R2::Choicepoint::show_symches {
     my ( $choicepoint, $parent_choice ) = @_;
     my $id = $choicepoint->base_id();
     if ($CHOICEPOINT_SEEN{$id}) {
+        say STDERR join q{ }, "LINE:", __LINE__, "CP$id already displayed";
         return ["CP$id already displayed"];
     }
     $CHOICEPOINT_SEEN{$id} = 1;
-    say STDERR join q{ }, __FILE__, __LINE__, ("show_nids($id, " . ($parent_choice // 'top') . ')'), $choicepoint->show();
+    say STDERR join q{ }, __FILE__, __LINE__, ("show_symches($id, " . ($parent_choice // 'top') . ')'), $choicepoint->show();
 
     # Check if choicepoint already seen?
     my $asf         = $choicepoint->[Marpa::R2::Internal::Choicepoint::ASF];
@@ -929,6 +949,8 @@ sub Marpa::R2::Choicepoint::show_nids {
             $symch_count > 1
             ? form_choice($parent_choice, $symch_ix)
             : $parent_choice;
+        say STDERR join q{ }, __LINE__, "symch $symch_ix of $symch_count";
+        say STDERR join q{ }, "LINE:", __LINE__, "CP$id SYMCH #$current_choice: " if $symch_count > 1;
         push @lines, "CP$id SYMCH #$current_choice: " if $symch_count > 1;
         my $rule_id = $choicepoint->rule_id();
         if ( $rule_id >= 0 ) {
@@ -944,7 +966,7 @@ sub Marpa::R2::Choicepoint::show_nids {
         }
     }
     return \@lines;
-} ## end sub Marpa::R2::Choicepoint::show_nids
+} ## end sub Marpa::R2::Choicepoint::show_symches
 
 # Show all the factorings of a SYMCH
 sub Marpa::R2::Choicepoint::show_factorings {
@@ -969,13 +991,15 @@ sub Marpa::R2::Choicepoint::show_factorings {
         next_factoring($choicepoint);
         my $factoring = factors($choicepoint);
 
-        my $factoring_is_ambiguous = ($nid_count > 1) || $choicepoint->ambiguous_prefix();
+        my $choicepoint_is_ambiguous = $choicepoint->ambiguous_prefix();
+        my $factoring_is_ambiguous = ($nid_count > 1) || $choicepoint_is_ambiguous;
         FACTOR: while (defined $factoring ) {
             my $current_choice = $factoring_is_ambiguous 
                 ? form_choice( $parent_choice , $factor_ix )
                 : $parent_choice;
             my $indent         = q{};
             if ($factoring_is_ambiguous) {
+                say STDERR "factor_ix=$factor_ix; nid_count=$nid_count; nid_ix=$nid_ix; ambiguous choicepoint? = $choicepoint_is_ambiguous";
                 say STDERR "LINE: ", "Factoring #$current_choice";
                 push @lines, "Factoring #$current_choice";
                 $indent = q{  };
@@ -983,7 +1007,7 @@ sub Marpa::R2::Choicepoint::show_factorings {
             for my $choicepoint ( @{$factoring} ) {
                 push @lines,
                     map { $indent . $_ }
-                    @{ $choicepoint->show_nids($current_choice) };
+                    @{ $choicepoint->show_symches($current_choice) };
             } ## end for my $choicepoint ( @{$factoring} )
             next_factoring($choicepoint);
             $factoring = factors($choicepoint);
@@ -1024,7 +1048,7 @@ sub Marpa::R2::Scanless::ASF::show {
     my ($asf) = @_;
     my $top = $asf->top();
     local %CHOICEPOINT_SEEN = (); ## no critic (Variables::ProhibitLocalVars)
-    my $lines = $top->show_nids ();
+    my $lines = $top->show_symches ();
     return join "\n", (map { substr $_, 2 } @{$lines}[1 .. $#{$lines}]), q{};
 }
 
