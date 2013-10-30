@@ -15,15 +15,15 @@
 
 Revision history for Marpa::R2
 
-2.073_001
-
-   * Minor Bug fixes
-
-2.073_000
+2.075_000
 
    * Work on ASF's
 
    * New series of developer's releases
+
+2.074000 Tue Oct 29 20:21:57 PDT 2013
+
+   * Minor Bug fixes in SLIF
 
 2.072000 Wed Oct 23 17:26:49 PDT 2013
 
