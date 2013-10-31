@@ -21,7 +21,7 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 8;
+use Test::More tests => 10;
 use English qw( -no_match_vars );
 use lib 'inc';
 use Marpa::R2::Test;
@@ -122,6 +122,38 @@ END_OF_ASF
 push @tests_data, [
     $seq_grammar, 'aaa',
     <<'END_OF_ASF',
+CP3 Rule 1: sequence -> item+
+  Factoring #0
+    CP5 Rule 2: item -> pair
+      CP7 Rule 5: pair -> item item
+        Factoring #0.0
+          CP9 Rule 3: item -> singleton
+            CP12 Rule 4: singleton -> [Lex-0]
+              CP14 Symbol: [Lex-0] "a"
+          CP10 Rule 2: item -> pair
+            CP8 Rule 5: pair -> item item
+              CP16 Rule 3: item -> singleton
+                CP19 Rule 4: singleton -> [Lex-0]
+                  CP4 Symbol: [Lex-0] "a"
+              CP6 Rule 3: item -> singleton
+                CP17 Rule 4: singleton -> [Lex-0]
+                  CP22 Symbol: [Lex-0] "a"
+        Factoring #0.1
+          CP0 Rule 2: item -> pair
+            CP23 Rule 5: pair -> item item
+              CP9 already displayed
+              CP16 already displayed
+          CP6 already displayed
+  Factoring #1
+    CP9 already displayed
+    CP10 already displayed
+  Factoring #2
+    CP9 already displayed
+    CP16 already displayed
+    CP6 already displayed
+  Factoring #3
+    CP0 already displayed
+    CP6 already displayed
 END_OF_ASF
     'ASF OK',
     'Sequence grammar for "aaa"'
