@@ -296,8 +296,6 @@ for my $test_data (@tests_data) {
         $test_name )
         = @{$test_data};
 
-    say STDERR "=== Test: $test_name";
-
     my ( $actual_value, $actual_result ) =
         my_parser( $grammar, $test_string );
     Marpa::R2::Test::is(

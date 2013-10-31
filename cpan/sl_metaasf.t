@@ -29,54 +29,57 @@ use Marpa::R2;
 use Data::Dumper;
 
 open my $metag_fh, q{<}, 'lib/Marpa/R2/meta/metag.bnf' or die;
-my $metag_source  = do { local $/ = undef; <$metag_fh>; };
+my $metag_source = do { local $/ = undef; <$metag_fh>; };
 close $metag_fh;
-my $asf_grammar = Marpa::R2::Scanless::G->new( { 
-bless_package => 'My_ASF',
-source => \$metag_source });
+
+my $meta_grammar = Marpa::R2::Scanless::G->new(
+    {   bless_package => 'My_ASF',
+        source        => \$metag_source
+    }
+);
+
+my $test_name = 'Meta grammar for SLIF';
+
+my ( $actual_value, $actual_result ) =
+    my_parser( $meta_grammar, \$metag_source );
+say $actual_value;
+
+# Marpa::R2::Test::is(
+# Data::Dumper::Dumper( \$actual_value ),
+# Data::Dumper::Dumper( \$expected_value ),
+# qq{Value of $test_name}
+# );
+Test::More::is( $actual_result, 'ASF OK', qq{Result of $test_name} );
 
 sub my_parser {
-    my ( $grammar, $string ) = @_;
-    my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
-    my ( $parse_value, $parse_status );
+    my ( $grammar, $p_string ) = @_;
 
-    if ( not defined eval { $recce->read( \$string ); 1 } ) {
+    my $slr = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
+
+    if ( not defined eval { $slr->read($p_string); 1 } ) {
         my $abbreviated_error = $EVAL_ERROR;
         chomp $abbreviated_error;
         $abbreviated_error =~ s/\n.*//xms;
         $abbreviated_error =~ s/^Error \s+ in \s+ string_read: \s+ //xms;
         return 'No parse', $abbreviated_error;
-    } ## end if ( not defined eval { $recce->read( \$string ); 1 ...})
-    my $value_ref = $recce->asf( { choice => 'choix', force => 'My_ASF' } );
-    if ( not defined $value_ref ) {
-        return 'No parse', 'Input read to end but no parse';
+    } ## end if ( not defined eval { $slr->read($p_string); 1 } )
+    my $asf = Marpa::R2::Scanless::ASF->new( { slr => $slr } );
+    if ( not defined $asf ) {
+        return 'No ASF', 'Input read to end but no ASF';
     }
-    return [ return ${$value_ref}, 'Parse OK' ];
+
+    # say STDERR "Rules:\n",     $slr->thick_g1_grammar()->show_rules();
+    # say STDERR "IRLs:\n",      $slr->thick_g1_grammar()->show_irls();
+    # say STDERR "ISYs:\n",      $slr->thick_g1_grammar()->show_isys();
+    # say STDERR "Or-nodes:\n",  $slr->thick_g1_recce()->verbose_or_nodes();
+    # say STDERR "And-nodes:\n", $slr->thick_g1_recce()->show_and_nodes();
+    # say STDERR "Bocage:\n",    $slr->thick_g1_recce()->show_bocage();
+    my $asf_desc = $asf->show();
+
+    # say STDERR $asf->show_nidsets();
+    # say STDERR $asf->show_powersets();
+    return $asf_desc, 'ASF OK';
+
 } ## end sub my_parser
-
-my @tests_data = (
-    [   $asf_grammar,
-    $metag_source,
-    '',
-        'Parse OK',
-        'ASF MetaG test'
-    ],
-);
-
-TEST:
-for my $test_data (@tests_data) {
-    my ( $grammar, $test_string, $expected_value, $expected_result,
-        $test_name )
-        = @{$test_data};
-    my ( $actual_value, $actual_result ) =
-        my_parser( $grammar, $test_string );
-    Test::More::is(
-        Data::Dumper::Dumper( \$actual_value ),
-        Data::Dumper::Dumper( \$expected_value ),
-        qq{Value of $test_name}
-    );
-    Test::More::is( $actual_result, $expected_result,
-        qq{Result of $test_name} );
-} ## end TEST: for my $test_data (@tests_data)
 
 # vim: expandtab shiftwidth=4:

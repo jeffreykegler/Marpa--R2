@@ -618,8 +618,6 @@ sub Marpa::R2::Choicepoint::symbol_id {
 # Not external -- first_symch() will be the external method.
 sub next_factoring {
     my ($choicepoint) = @_;
-    say STDERR join q{ }, __FILE__, __LINE__, "next_factoring()",
-        $choicepoint->show();
     my $asf = $choicepoint->[Marpa::R2::Internal::Choicepoint::ASF];
     my $or_nodes = $asf->[Marpa::R2::Internal::Scanless::ASF::OR_NODES];
     $choicepoint->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK] //= [];
@@ -862,7 +860,6 @@ sub Marpa::R2::Choicepoint::ambiguous_prefix {
         $choicepoint->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK];
     Marpa::R2::exception('ASF choicepoint factoring was never initialized')
         if not defined $factoring_stack;
-    say STDERR "Called ambiguous_prefix(), factoring stack";
     STACK_POS:
     for (
         my $stack_pos = $#{$factoring_stack};
@@ -932,11 +929,9 @@ sub Marpa::R2::Choicepoint::show_symches {
     my ( $choicepoint, $parent_choice ) = @_;
     my $id = $choicepoint->base_id();
     if ($CHOICEPOINT_SEEN{$id}) {
-        say STDERR join q{ }, "LINE:", __LINE__, "CP$id already displayed";
         return ["CP$id already displayed"];
     }
     $CHOICEPOINT_SEEN{$id} = 1;
-    say STDERR join q{ }, __FILE__, __LINE__, ("show_symches($id, " . ($parent_choice // 'top') . ')'), $choicepoint->show();
 
     # Check if choicepoint already seen?
     my $asf         = $choicepoint->[Marpa::R2::Internal::Choicepoint::ASF];
@@ -952,11 +947,8 @@ sub Marpa::R2::Choicepoint::show_symches {
             $symch_count > 1
             ? form_choice($parent_choice, $symch_ix)
             : $parent_choice;
-        say STDERR join q{ }, "LINE:", __LINE__, "CP$id SYMCH #$current_choice: " if $symch_count > 1;
-        push @lines, "CP$id SYMCH #$current_choice: " if $symch_count > 1;
         my $rule_id = $choicepoint->rule_id();
         if ( $rule_id >= 0 ) {
-            say STDERR join q{ }, "LINE:", __LINE__, ( "CP$id Rule " . $grammar->brief_rule($rule_id) );
             push @lines,
             ( "CP$id Rule " . $grammar->brief_rule($rule_id) ),
                 map { q{  } . $_ }
@@ -973,8 +965,6 @@ sub Marpa::R2::Choicepoint::show_symches {
 # Show all the factorings of a SYMCH
 sub Marpa::R2::Choicepoint::show_factorings {
     my ( $choicepoint, $parent_choice ) = @_;
-    say STDERR join q{ }, __FILE__, __LINE__, "show_factorings()",
-        $choicepoint->show();
 
     # Check if choicepoint already seen?
     my $asf     = $choicepoint->[Marpa::R2::Internal::Choicepoint::ASF];
@@ -1001,7 +991,6 @@ sub Marpa::R2::Choicepoint::show_factorings {
                 : $parent_choice;
             my $indent         = q{};
             if ($factoring_is_ambiguous) {
-                say STDERR "LINE: ", "Factoring #$current_choice";
                 push @lines, "Factoring #$current_choice";
                 $indent = q{  };
             }
@@ -1021,8 +1010,6 @@ sub Marpa::R2::Choicepoint::show_factorings {
 # Show all the tokens of a SYMCH
 sub Marpa::R2::Choicepoint::show_symch_tokens {
     my ( $choicepoint ) = @_;
-    say STDERR join q{ }, __FILE__, __LINE__, "show_symch_tokens()",
-        $choicepoint->show();
     my $id = $choicepoint->base_id();
 
     # Check if choicepoint already seen?
@@ -1039,7 +1026,6 @@ sub Marpa::R2::Choicepoint::show_symch_tokens {
         my $symbol_id   = $choicepoint->symbol_id();
         my $literal     = $choicepoint->literal();
         my $symbol_name = $grammar->symbol_name($symbol_id);
-        say STDERR join " ", "LINE:", __LINE__, qq{CP$id Symbol: $symbol_name "$literal"};
         push @lines, qq{CP$id Symbol: $symbol_name "$literal"};
     } ## end for ( my $nid_ix = 0; $nid_ix < $nid_count; $nid_ix++)
     return \@lines;
