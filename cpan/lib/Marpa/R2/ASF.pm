@@ -871,7 +871,7 @@ sub Marpa::R2::Choicepoint::ambiguous_prefix {
         my $and_nodes = $or_nodes->[$or_node];
         next STACK_POS if scalar @{$and_nodes} <= 1;
         FIND_AMBIGUITY: {
-            last FIND_AMBIGUITY if nook_has_semantic_cause( $asf, $nook );
+            last FIND_AMBIGUITY if not nook_has_semantic_cause( $asf, $nook );
             my $cause_nids = and_nodes_to_cause_nids( $asf, @{$and_nodes} );
             my $first_nid_sort_ix = nid_sort_ix( $asf, $cause_nids->[0] );
             for ( my $ix = 1; $ix <= $#{$cause_nids}; $ix++ ) {
@@ -888,6 +888,7 @@ sub Marpa::R2::Choicepoint::ambiguous_prefix {
                                 $and_node_id) // -1
                     );
             } ## end for my $and_node_id ( @{$and_nodes}[ 1 .. $#{$and_nodes...}])
+            next STACK_POS;
         } ## end FIND_AMBIGUITY:
         say STDERR "ambiguous_prefix() returns ", ( $stack_pos + 1 );
         return $stack_pos + 1;
