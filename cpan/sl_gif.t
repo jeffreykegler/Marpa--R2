@@ -21,7 +21,7 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 18;
+use Test::More tests => 20;
 use English qw( -no_match_vars );
 use lib 'inc';
 use Marpa::R2::Test;
@@ -65,6 +65,35 @@ my $abcd_grammar = Marpa::R2::Scanless::G->new(
 END_OF_SOURCE
     }
 );
+
+my $venus_grammar = Marpa::R2::Scanless::G->new(
+    {   source =>
+\(<<'END_OF_SOURCE'),
+    :start ::= planet
+    planet ::= hesperus
+    planet ::= phosphorus
+    hesperus ::= venus
+    phosphorus ::= venus
+    venus ~ 'venus'
+END_OF_SOURCE
+    }
+);
+
+push @tests_data, [
+    $venus_grammar, 'venus',
+    <<'END_OF_ASF',
+Symch #0
+CP5 Rule 1: planet -> hesperus
+    CP6 Rule 3: hesperus -> venus
+      CP8 Symbol: venus "venus"
+Symch #1
+CP5 Rule 2: planet -> phosphorus
+    CP9 Rule 4: phosphorus -> venus
+      CP11 Symbol: venus "venus"
+END_OF_ASF
+    'ASF OK',
+    '"Hesperus is Phosphorus"" grammar'
+] if 1;
 
 push @tests_data, [
     $abcd_grammar, 'abcd',

@@ -873,12 +873,6 @@ sub Marpa::R2::Choicepoint::ambiguous_prefix {
         next STACK_POS if scalar @{$and_nodes} <= 1;
         FIND_AMBIGUITY: {
             last FIND_AMBIGUITY if not nook_has_semantic_cause( $asf, $nook );
-            my $cause_nids = and_nodes_to_cause_nids( $asf, @{$and_nodes} );
-            my $first_nid_sort_ix = nid_sort_ix( $asf, $cause_nids->[0] );
-            for ( my $ix = 1; $ix <= $#{$cause_nids}; $ix++ ) {
-                my $nid_sort_ix = nid_sort_ix( $asf, $cause_nids->[$ix] );
-                last FIND_AMBIGUITY if $nid_sort_ix != $first_nid_sort_ix;
-            }
             my $first_predecessor =
                 $bocage->_marpa_b_and_node_predecessor( $and_nodes->[0] )
                 // -1;
@@ -947,15 +941,21 @@ sub Marpa::R2::Choicepoint::show_symches {
             $symch_count > 1
             ? form_choice($parent_choice, $symch_ix)
             : $parent_choice;
+        my $indent         = q{};
+        if ($symch_count > 1) {
+            push @lines, "Symch #$current_choice";
+            $indent = q{  };
+        }
         my $rule_id = $choicepoint->rule_id();
         if ( $rule_id >= 0 ) {
             push @lines,
             ( "CP$id Rule " . $grammar->brief_rule($rule_id) ),
-                map { q{  } . $_ }
+                map { $indent . q{  } . $_ }
                 @{ $choicepoint->show_factorings( $current_choice ) };
         }
         else {
             push @lines,
+                map { $indent . $_ }
                 @{ $choicepoint->show_symch_tokens( $current_choice ) };
         }
     }
