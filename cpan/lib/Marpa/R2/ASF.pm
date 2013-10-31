@@ -375,6 +375,12 @@ sub Marpa::R2::Scanless::ASF::new {
 
     my $bocage = $recce->[Marpa::R2::Internal::Recognizer::B_C];
     my $ordering = $recce->[Marpa::R2::Internal::Recognizer::O_C];
+    Marpa::R2::exception(
+        "An attempt was make to create an ASF for a null parse\n",
+        "  A null parse is a successful parse of a zero-length string\n",
+        "  ASF's are not defined for null parses\n"
+    ) if $ordering->is_null();
+
     my $or_nodes = $asf->[Marpa::R2::Internal::Scanless::ASF::OR_NODES] = [];
     use sort 'stable';
     OR_NODE: for ( my $or_node_id = 0;; $or_node_id++ ) {

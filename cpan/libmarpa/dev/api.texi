@@ -3120,15 +3120,24 @@ to zero, it too is destroyed.
 @end deftypefun
 
 @node Bocage accessor,  , Bocage reference counting, Bocage methods
-@section  Accessor
+@section  Accessors
 @deftypefun int marpa_b_ambiguity_metric (Marpa_Bocage @var{b})
 Returns an ambiguity metric.
 For the time being, it is vaguely defined, but it does differentiate
 between an ambiguous and an unambiguous bocage.
 
-Return value:
+Return value on success:
 1 if the bocage is not for an ambiguous parse;
 a number greater than 1 if the bocage is for an ambiguous parse.
+
+Failures: On failure, @minus{}2.
+
+@end deftypefun
+
+@deftypefun int marpa_b_is_null (Marpa_Bocage @var{b})
+Return value on success:
+A number greater than or equal to 1 if the bocage is for a null parse;
+otherwise, 0.
 
 Failures: On failure, @minus{}2.
 
@@ -3211,15 +3220,24 @@ base grammar, if necessary.
 @end deftypefun
 
 @node Order accessor, Non-default ordering, Ordering reference counting, Ordering methods
-@section  Accessor
+@section  Accessors
 @deftypefun int marpa_o_ambiguity_metric (Marpa_Order @var{o})
 Returns an ambiguity metric.
 For the time being, it is vaguely defined, but it does differentiate
 between an ambiguous and an unambiguous ordering.
 
-Return value:
+Return value on success:
 1 if the ordering is not for an ambiguous parse;
 a number greater than 1 if the ordering is for an ambiguous parse.
+
+Failures: On failure, @minus{}2.
+
+@end deftypefun
+
+@deftypefun int marpa_o_is_null (Marpa_Order @var{o})
+Return value on success:
+A number greater than or equal to 1 if the ordering is for a null parse;
+otherwise, 0.
 
 Failures: On failure, @minus{}2.
 

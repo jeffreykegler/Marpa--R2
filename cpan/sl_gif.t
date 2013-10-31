@@ -171,6 +171,14 @@ END_OF_SOURCE
 );
 
 push @tests_data, [
+    $nulls_grammar, 'aaaa',
+    <<'END_OF_ASF',
+END_OF_ASF
+    'ASF OK',
+    'Nulls grammar'
+] if 1;
+
+push @tests_data, [
     $nulls_grammar, 'aaa',
     <<'END_OF_ASF',
 CP3 Rule 1: top -> a a a a
@@ -197,6 +205,30 @@ CP3 Rule 1: top -> a a a a
     CP5 already displayed
     CP7 already displayed
     CP9 already displayed
+END_OF_ASF
+    'ASF OK',
+    'Nulls grammar'
+] if 1;
+
+push @tests_data, [
+    $nulls_grammar, 'aa',
+    <<'END_OF_ASF',
+END_OF_ASF
+    'ASF OK',
+    'Nulls grammar'
+] if 1;
+
+push @tests_data, [
+    $nulls_grammar, 'a',
+    <<'END_OF_ASF',
+END_OF_ASF
+    'ASF OK',
+    'Nulls grammar'
+] if 1;
+
+push @tests_data, [
+    $nulls_grammar, '',
+    <<'END_OF_ASF',
 END_OF_ASF
     'ASF OK',
     'Nulls grammar'

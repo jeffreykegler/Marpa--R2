@@ -12701,6 +12701,14 @@ Is this bocage for a nulling parse?
 unsigned int t_is_nulling:1;
 @ @<Initialize bocage elements@> =
 B_is_Nulling(b) = 0;
+@ @<Function definitions@> =
+int marpa_b_is_null(Marpa_Bocage b)
+{
+  @<Return |-2| on failure@>@;
+  @<Unpack bocage objects@>@;
+  @<Fail if fatal error@>@;
+  return B_is_Nulling(b);
+}
 
 @** Ordering (O, ORDER) code.
 @<Public incomplete structures@> =
@@ -12827,6 +12835,14 @@ Is this order for a nulling parse?
 @d O_is_Nulling(o) ((o)->t_is_nulling)
 @ @<Bit aligned order elements@> =
 unsigned int t_is_nulling:1;
+@ @<Function definitions@> =
+int marpa_o_is_null(Marpa_Order o)
+{
+  @<Return |-2| on failure@>@;
+  @<Unpack order objects@>@;
+  @<Fail if fatal error@>@;
+  return O_is_Nulling(o);
+}
 
 @ In the future perhaps,
 a ``high rank count'' of $n$
