@@ -116,7 +116,15 @@ CP3 Rule 1: sequence -> item+
     CP4 already displayed
 END_OF_ASF
     'ASF OK',
-    'Sequence grammar'
+    'Sequence grammar for "aa"'
+] if 1;
+
+push @tests_data, [
+    $seq_grammar, 'aaa',
+    <<'END_OF_ASF',
+END_OF_ASF
+    'ASF OK',
+    'Sequence grammar for "aaa"'
 ] if 1;
 
 my $nulls_grammar = Marpa::R2::Scanless::G->new(
