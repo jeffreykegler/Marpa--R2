@@ -633,7 +633,6 @@ sub next_factoring {
 
     # Current NID of current SYMCH
     my $nid_of_choicepoint = $choicepoint->nid();
-    say STDERR "next_factoring NID of choicepoint = ", $nid_of_choicepoint;
 
     my $nidset_by_id =
         $asf->[Marpa::R2::Internal::Scanless::ASF::NIDSET_BY_ID];
@@ -864,7 +863,6 @@ sub Marpa::R2::Choicepoint::ambiguous_prefix {
     Marpa::R2::exception('ASF choicepoint factoring was never initialized')
         if not defined $factoring_stack;
     say STDERR "Called ambiguous_prefix(), factoring stack";
-    say STDERR dump_factoring_stack( $asf, $factoring_stack );
     STACK_POS:
     for (
         my $stack_pos = $#{$factoring_stack};
@@ -896,10 +894,8 @@ sub Marpa::R2::Choicepoint::ambiguous_prefix {
             } ## end for my $and_node_id ( @{$and_nodes}[ 1 .. $#{$and_nodes...}])
             next STACK_POS;
         } ## end FIND_AMBIGUITY:
-        say STDERR "ambiguous_prefix() returns ", ( $stack_pos + 1 );
         return $stack_pos + 1;
     } ## end STACK_POS: for ( my $stack_pos = $#{$factoring_stack}; $stack_pos...)
-    say STDERR "ambiguous_prefix() returns ", 0;
     return 0;
 } ## end sub Marpa::R2::Choicepoint::ambiguous_prefix
 
@@ -956,7 +952,6 @@ sub Marpa::R2::Choicepoint::show_symches {
             $symch_count > 1
             ? form_choice($parent_choice, $symch_ix)
             : $parent_choice;
-        say STDERR join q{ }, __LINE__, "symch $symch_ix of $symch_count";
         say STDERR join q{ }, "LINE:", __LINE__, "CP$id SYMCH #$current_choice: " if $symch_count > 1;
         push @lines, "CP$id SYMCH #$current_choice: " if $symch_count > 1;
         my $rule_id = $choicepoint->rule_id();
@@ -1006,7 +1001,6 @@ sub Marpa::R2::Choicepoint::show_factorings {
                 : $parent_choice;
             my $indent         = q{};
             if ($factoring_is_ambiguous) {
-                say STDERR "factor_ix=$factor_ix; nid_count=$nid_count; nid_ix=$nid_ix; ambiguous choicepoint? = $choicepoint_is_ambiguous";
                 say STDERR "LINE: ", "Factoring #$current_choice";
                 push @lines, "Factoring #$current_choice";
                 $indent = q{  };

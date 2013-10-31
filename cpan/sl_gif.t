@@ -21,7 +21,7 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 10;
+use Test::More tests => 16;
 use English qw( -no_match_vars );
 use lib 'inc';
 use Marpa::R2::Test;
@@ -173,9 +173,18 @@ END_OF_SOURCE
 push @tests_data, [
     $nulls_grammar, 'aaaa',
     <<'END_OF_ASF',
+CP3 Rule 1: top -> a a a a
+  CP5 Rule 2: a -> [Lex-0]
+    CP2 Symbol: [Lex-0] "a"
+  CP6 Rule 2: a -> [Lex-0]
+    CP0 Symbol: [Lex-0] "a"
+  CP7 Rule 2: a -> [Lex-0]
+    CP12 Symbol: [Lex-0] "a"
+  CP8 Rule 2: a -> [Lex-0]
+    CP14 Symbol: [Lex-0] "a"
 END_OF_ASF
     'ASF OK',
-    'Nulls grammar'
+    'Nulls grammar for "aaaa"'
 ] if 1;
 
 push @tests_data, [
@@ -207,31 +216,78 @@ CP3 Rule 1: top -> a a a a
     CP9 already displayed
 END_OF_ASF
     'ASF OK',
-    'Nulls grammar'
+    'Nulls grammar for "aaa"'
 ] if 1;
 
 push @tests_data, [
     $nulls_grammar, 'aa',
     <<'END_OF_ASF',
+CP3 Rule 1: top -> a a a a
+  Factoring #0
+    CP5 Rule 2: a -> [Lex-0]
+      CP12 Symbol: [Lex-0] "a"
+    CP6 Rule 2: a -> [Lex-0]
+      CP14 Symbol: [Lex-0] "a"
+    CP8 Symbol: a ""
+    CP10 Symbol: a ""
+  Factoring #1
+    CP5 already displayed
+    CP16 Symbol: a ""
+    CP6 already displayed
+    CP10 already displayed
+  Factoring #2
+    CP18 Symbol: a ""
+    CP5 already displayed
+    CP6 already displayed
+    CP10 already displayed
+  Factoring #3
+    CP20 Symbol: a ""
+    CP22 Symbol: a ""
+    CP5 already displayed
+    CP6 already displayed
+  Factoring #4
+    CP5 already displayed
+    CP16 already displayed
+    CP24 Symbol: a ""
+    CP6 already displayed
+  Factoring #5
+    CP18 already displayed
+    CP5 already displayed
+    CP24 already displayed
+    CP6 already displayed
 END_OF_ASF
     'ASF OK',
-    'Nulls grammar'
+    'Nulls grammar for "aa"'
 ] if 1;
 
 push @tests_data, [
     $nulls_grammar, 'a',
     <<'END_OF_ASF',
+CP3 Rule 1: top -> a a a a
+  Factoring #0
+    CP5 Symbol: a ""
+    CP7 Symbol: a ""
+    CP9 Symbol: a ""
+    CP11 Rule 2: a -> [Lex-0]
+      CP13 Symbol: [Lex-0] "a"
+  Factoring #1
+    CP0 Symbol: a ""
+    CP16 Symbol: a ""
+    CP11 already displayed
+    CP18 Symbol: a ""
+  Factoring #2
+    CP11 already displayed
+    CP20 Symbol: a ""
+    CP22 Symbol: a ""
+    CP18 already displayed
+  Factoring #3
+    CP24 Symbol: a ""
+    CP11 already displayed
+    CP22 already displayed
+    CP18 already displayed
 END_OF_ASF
     'ASF OK',
-    'Nulls grammar'
-] if 1;
-
-push @tests_data, [
-    $nulls_grammar, '',
-    <<'END_OF_ASF',
-END_OF_ASF
-    'ASF OK',
-    'Nulls grammar'
+    'Nulls grammar for "a"'
 ] if 1;
 
 TEST:
@@ -270,15 +326,15 @@ sub my_parser {
         return 'No ASF', 'Input read to end but no ASF';
     }
 
-    say STDERR "Rules:\n",     $slr->thick_g1_grammar()->show_rules();
-    say STDERR "IRLs:\n",      $slr->thick_g1_grammar()->show_irls();
-    say STDERR "ISYs:\n",      $slr->thick_g1_grammar()->show_isys();
-    say STDERR "Or-nodes:\n",  $slr->thick_g1_recce()->verbose_or_nodes();
-    say STDERR "And-nodes:\n", $slr->thick_g1_recce()->show_and_nodes();
-    say STDERR "Bocage:\n",    $slr->thick_g1_recce()->show_bocage();
+    # say STDERR "Rules:\n",     $slr->thick_g1_grammar()->show_rules();
+    # say STDERR "IRLs:\n",      $slr->thick_g1_grammar()->show_irls();
+    # say STDERR "ISYs:\n",      $slr->thick_g1_grammar()->show_isys();
+    # say STDERR "Or-nodes:\n",  $slr->thick_g1_recce()->verbose_or_nodes();
+    # say STDERR "And-nodes:\n", $slr->thick_g1_recce()->show_and_nodes();
+    # say STDERR "Bocage:\n",    $slr->thick_g1_recce()->show_bocage();
     my $asf_desc = $asf->show();
-    say STDERR $asf->show_nidsets();
-    say STDERR $asf->show_powersets();
+    # say STDERR $asf->show_nidsets();
+    # say STDERR $asf->show_powersets();
     return $asf_desc, 'ASF OK';
 
 } ## end sub my_parser
