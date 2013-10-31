@@ -21,7 +21,7 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 16;
+use Test::More tests => 18;
 use English qw( -no_match_vars );
 use lib 'inc';
 use Marpa::R2::Test;
@@ -44,13 +44,39 @@ push @tests_data, [
     $aaaa_grammar, 'aaaa',
     <<'END_OF_ASF',
 CP3 Rule 1: quartet -> a a a a
-  CP0 Symbol: a "a"
-  CP6 Symbol: a "a"
-  CP8 Symbol: a "a"
   CP10 Symbol: a "a"
+  CP8 Symbol: a "a"
+  CP6 Symbol: a "a"
+  CP0 Symbol: a "a"
 END_OF_ASF
     'ASF OK',
     'Basic "a a a a" grammar'
+] if 1;
+
+my $abcd_grammar = Marpa::R2::Scanless::G->new(
+    {   source =>
+\(<<'END_OF_SOURCE'),
+    :start ::= quartet
+    quartet ::= a b c d
+    a ~ 'a'
+    b ~ 'b'
+    c ~ 'c'
+    d ~ 'd'
+END_OF_SOURCE
+    }
+);
+
+push @tests_data, [
+    $abcd_grammar, 'abcd',
+    <<'END_OF_ASF',
+CP3 Rule 1: quartet -> a b c d
+  CP10 Symbol: a "a"
+  CP8 Symbol: b "b"
+  CP6 Symbol: c "c"
+  CP0 Symbol: d "d"
+END_OF_ASF
+    'ASF OK',
+    'Basic "a b c d" grammar'
 ] if 1;
 
 my $bb_grammar = Marpa::R2::Scanless::G->new(
@@ -70,16 +96,16 @@ push @tests_data, [
     <<'END_OF_ASF',
 CP3 Rule 1: top -> b b
   Factoring #0
-    CP5 Rule 2: b -> a a
-      CP2 Symbol: a "a"
-      CP0 Symbol: a "a"
     CP7 Rule 3: b -> a
+      CP2 Symbol: a "a"
+    CP5 Rule 2: b -> a a
       CP11 Symbol: a "a"
+      CP0 Symbol: a "a"
   Factoring #1
-    CP4 Rule 3: b -> a
-      CP14 Symbol: a "a"
     CP12 Rule 2: b -> a a
       CP16 Symbol: a "a"
+      CP14 Symbol: a "a"
+    CP4 Rule 3: b -> a
       CP18 Symbol: a "a"
 END_OF_ASF
     'ASF OK',
@@ -105,15 +131,15 @@ CP3 Rule 1: sequence -> item+
   Factoring #0
     CP5 Rule 2: item -> pair
       CP7 Rule 5: pair -> item item
-        CP8 Rule 3: item -> singleton
-          CP11 Rule 4: singleton -> [Lex-0]
-            CP0 Symbol: [Lex-0] "a"
         CP4 Rule 3: item -> singleton
           CP9 Rule 4: singleton -> [Lex-0]
+            CP11 Symbol: [Lex-0] "a"
+        CP8 Rule 3: item -> singleton
+          CP0 Rule 4: singleton -> [Lex-0]
             CP14 Symbol: [Lex-0] "a"
   Factoring #1
-    CP8 already displayed
     CP4 already displayed
+    CP8 already displayed
 END_OF_ASF
     'ASF OK',
     'Sequence grammar for "aa"'
@@ -127,33 +153,33 @@ CP3 Rule 1: sequence -> item+
     CP5 Rule 2: item -> pair
       CP7 Rule 5: pair -> item item
         Factoring #0.0
-          CP9 Rule 3: item -> singleton
-            CP12 Rule 4: singleton -> [Lex-0]
-              CP14 Symbol: [Lex-0] "a"
           CP10 Rule 2: item -> pair
-            CP8 Rule 5: pair -> item item
-              CP16 Rule 3: item -> singleton
+            CP12 Rule 5: pair -> item item
+              CP15 Rule 3: item -> singleton
+                CP14 Rule 4: singleton -> [Lex-0]
+                  CP17 Symbol: [Lex-0] "a"
+              CP13 Rule 3: item -> singleton
                 CP19 Rule 4: singleton -> [Lex-0]
                   CP4 Symbol: [Lex-0] "a"
-              CP6 Rule 3: item -> singleton
-                CP17 Rule 4: singleton -> [Lex-0]
-                  CP22 Symbol: [Lex-0] "a"
+          CP9 Rule 3: item -> singleton
+            CP8 Rule 4: singleton -> [Lex-0]
+              CP22 Symbol: [Lex-0] "a"
         Factoring #0.1
+          CP15 already displayed
           CP0 Rule 2: item -> pair
             CP23 Rule 5: pair -> item item
+              CP13 already displayed
               CP9 already displayed
-              CP16 already displayed
-          CP6 already displayed
   Factoring #1
-    CP9 already displayed
     CP10 already displayed
-  Factoring #2
     CP9 already displayed
-    CP16 already displayed
-    CP6 already displayed
+  Factoring #2
+    CP15 already displayed
+    CP13 already displayed
+    CP9 already displayed
   Factoring #3
+    CP15 already displayed
     CP0 already displayed
-    CP6 already displayed
 END_OF_ASF
     'ASF OK',
     'Sequence grammar for "aaa"'
@@ -174,13 +200,13 @@ push @tests_data, [
     $nulls_grammar, 'aaaa',
     <<'END_OF_ASF',
 CP3 Rule 1: top -> a a a a
-  CP5 Rule 2: a -> [Lex-0]
-    CP2 Symbol: [Lex-0] "a"
-  CP6 Rule 2: a -> [Lex-0]
-    CP0 Symbol: [Lex-0] "a"
-  CP7 Rule 2: a -> [Lex-0]
-    CP12 Symbol: [Lex-0] "a"
   CP8 Rule 2: a -> [Lex-0]
+    CP2 Symbol: [Lex-0] "a"
+  CP7 Rule 2: a -> [Lex-0]
+    CP0 Symbol: [Lex-0] "a"
+  CP6 Rule 2: a -> [Lex-0]
+    CP12 Symbol: [Lex-0] "a"
+  CP5 Rule 2: a -> [Lex-0]
     CP14 Symbol: [Lex-0] "a"
 END_OF_ASF
     'ASF OK',
@@ -192,28 +218,28 @@ push @tests_data, [
     <<'END_OF_ASF',
 CP3 Rule 1: top -> a a a a
   Factoring #0
-    CP5 Rule 2: a -> [Lex-0]
+    CP11 Symbol: a ""
+    CP9 Rule 2: a -> [Lex-0]
       CP13 Symbol: [Lex-0] "a"
     CP7 Rule 2: a -> [Lex-0]
       CP15 Symbol: [Lex-0] "a"
-    CP9 Rule 2: a -> [Lex-0]
+    CP5 Rule 2: a -> [Lex-0]
       CP17 Symbol: [Lex-0] "a"
-    CP11 Symbol: a ""
   Factoring #1
-    CP5 already displayed
-    CP7 already displayed
+    CP9 already displayed
     CP19 Symbol: a ""
-    CP9 already displayed
+    CP7 already displayed
+    CP5 already displayed
   Factoring #2
-    CP5 already displayed
+    CP9 already displayed
+    CP7 already displayed
     CP21 Symbol: a ""
-    CP7 already displayed
-    CP9 already displayed
-  Factoring #3
-    CP23 Symbol: a ""
     CP5 already displayed
-    CP7 already displayed
+  Factoring #3
     CP9 already displayed
+    CP7 already displayed
+    CP5 already displayed
+    CP23 Symbol: a ""
 END_OF_ASF
     'ASF OK',
     'Nulls grammar for "aaa"'
@@ -224,37 +250,37 @@ push @tests_data, [
     <<'END_OF_ASF',
 CP3 Rule 1: top -> a a a a
   Factoring #0
-    CP5 Rule 2: a -> [Lex-0]
-      CP12 Symbol: [Lex-0] "a"
-    CP6 Rule 2: a -> [Lex-0]
-      CP14 Symbol: [Lex-0] "a"
-    CP8 Symbol: a ""
     CP10 Symbol: a ""
+    CP8 Symbol: a ""
+    CP6 Rule 2: a -> [Lex-0]
+      CP12 Symbol: [Lex-0] "a"
+    CP5 Rule 2: a -> [Lex-0]
+      CP14 Symbol: [Lex-0] "a"
   Factoring #1
-    CP5 already displayed
+    CP10 already displayed
+    CP6 already displayed
     CP16 Symbol: a ""
-    CP6 already displayed
-    CP10 already displayed
+    CP5 already displayed
   Factoring #2
-    CP18 Symbol: a ""
-    CP5 already displayed
-    CP6 already displayed
     CP10 already displayed
+    CP6 already displayed
+    CP5 already displayed
+    CP18 Symbol: a ""
   Factoring #3
-    CP20 Symbol: a ""
+    CP6 already displayed
+    CP5 already displayed
     CP22 Symbol: a ""
-    CP5 already displayed
-    CP6 already displayed
+    CP20 Symbol: a ""
   Factoring #4
-    CP5 already displayed
-    CP16 already displayed
+    CP6 already displayed
     CP24 Symbol: a ""
-    CP6 already displayed
-  Factoring #5
-    CP18 already displayed
+    CP16 already displayed
     CP5 already displayed
-    CP24 already displayed
+  Factoring #5
     CP6 already displayed
+    CP24 already displayed
+    CP5 already displayed
+    CP18 already displayed
 END_OF_ASF
     'ASF OK',
     'Nulls grammar for "aa"'
@@ -265,26 +291,26 @@ push @tests_data, [
     <<'END_OF_ASF',
 CP3 Rule 1: top -> a a a a
   Factoring #0
-    CP5 Symbol: a ""
-    CP7 Symbol: a ""
-    CP9 Symbol: a ""
     CP11 Rule 2: a -> [Lex-0]
       CP13 Symbol: [Lex-0] "a"
+    CP9 Symbol: a ""
+    CP7 Symbol: a ""
+    CP5 Symbol: a ""
   Factoring #1
-    CP0 Symbol: a ""
-    CP16 Symbol: a ""
-    CP11 already displayed
     CP18 Symbol: a ""
+    CP11 already displayed
+    CP16 Symbol: a ""
+    CP0 Symbol: a ""
   Factoring #2
-    CP11 already displayed
-    CP20 Symbol: a ""
+    CP18 already displayed
     CP22 Symbol: a ""
-    CP18 already displayed
-  Factoring #3
-    CP24 Symbol: a ""
+    CP20 Symbol: a ""
     CP11 already displayed
-    CP22 already displayed
+  Factoring #3
     CP18 already displayed
+    CP22 already displayed
+    CP11 already displayed
+    CP24 Symbol: a ""
 END_OF_ASF
     'ASF OK',
     'Nulls grammar for "a"'

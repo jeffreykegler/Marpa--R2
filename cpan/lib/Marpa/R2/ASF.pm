@@ -994,7 +994,7 @@ sub Marpa::R2::Choicepoint::show_factorings {
                 push @lines, "Factoring #$current_choice";
                 $indent = q{  };
             }
-            for my $choicepoint ( @{$factoring} ) {
+            for my $choicepoint ( reverse @{$factoring} ) {
                 push @lines,
                     map { $indent . $_ }
                     @{ $choicepoint->show_symches($current_choice) };

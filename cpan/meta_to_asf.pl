@@ -21,10 +21,8 @@ use strict;
 use warnings;
 no warnings qw(recursion);
 
-use Test::More tests => 2;
 use English qw( -no_match_vars );
 use lib 'inc';
-use Marpa::R2::Test;
 use Marpa::R2;
 use Data::Dumper;
 
@@ -38,18 +36,11 @@ my $meta_grammar = Marpa::R2::Scanless::G->new(
     }
 );
 
-my $test_name = 'Meta grammar for SLIF';
-
 my ( $actual_value, $actual_result ) =
     my_parser( $meta_grammar, \$metag_source );
 say $actual_value;
 
-# Marpa::R2::Test::is(
-# Data::Dumper::Dumper( \$actual_value ),
-# Data::Dumper::Dumper( \$expected_value ),
-# qq{Value of $test_name}
-# );
-Test::More::is( $actual_result, 'ASF OK', qq{Result of $test_name} );
+die if $actual_result ne 'ASF OK';
 
 sub my_parser {
     my ( $grammar, $p_string ) = @_;
