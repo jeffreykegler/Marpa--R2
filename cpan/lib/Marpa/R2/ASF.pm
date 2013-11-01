@@ -720,6 +720,36 @@ sub next_factoring {
             } ## end FIND_NODE_TO_ITERATE: while (1)
         } ## end else [ if ($is_first_factoring_attempt) ]
 
+        factoring_finish($choicepoint);
+
+        return 1;
+
+    } ## end FACTORING_ATTEMPT: while (1)
+} ## end sub next_factoring
+
+sub factoring_finish {
+    my ($choicepoint) = @_;
+    my $asf           = $choicepoint->[Marpa::R2::Internal::Choicepoint::ASF];
+    my $or_nodes      = $asf->[Marpa::R2::Internal::Scanless::ASF::OR_NODES];
+    my $factoring_stack =
+        $choicepoint->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK];
+
+    # Current NID of current SYMCH
+    my $nid_of_choicepoint = $choicepoint->nid();
+
+    my $nidset_by_id =
+        $asf->[Marpa::R2::Internal::Scanless::ASF::NIDSET_BY_ID];
+    my $powerset_by_id =
+        $asf->[Marpa::R2::Internal::Scanless::ASF::POWERSET_BY_ID];
+
+    my $slr       = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
+    my $recce     = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+    my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
+    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
+    my $bocage    = $recce->[Marpa::R2::Internal::Recognizer::B_C];
+
+    FACTORING_ATTEMPT: while (1) {
+
         my @worklist = ( 0 .. $#{$factoring_stack} );
 
         DO_WORKLIST: while ( scalar @worklist ) {
@@ -729,7 +759,8 @@ sub next_factoring {
                 $work_nook->[Marpa::R2::Internal::Nook::OR_NODE];
             my $working_choice =
                 $work_nook->[Marpa::R2::Internal::Nook::FIRST_CHOICE];
-            my $work_and_node_id = $or_nodes->[$work_or_node]->[$working_choice];
+            my $work_and_node_id =
+                $or_nodes->[$work_or_node]->[$working_choice];
             my $child_or_node;
             my $child_is_cause;
             my $child_is_predecessor;
@@ -772,9 +803,10 @@ sub next_factoring {
                     ->{$child_or_node};
 
             next FACTORING_ATTEMPT
-                if not scalar @{ $or_nodes->[ $work_or_node ] };
+                if not scalar @{ $or_nodes->[$work_or_node] };
 
-            my $new_nook = nook_new( $asf, $child_or_node , $stack_ix_of_work_nook);
+            my $new_nook =
+                nook_new( $asf, $child_or_node, $stack_ix_of_work_nook );
             if ($child_is_cause) {
                 $new_nook->[Marpa::R2::Internal::Nook::IS_CAUSE] = 1;
                 $work_nook->[Marpa::R2::Internal::Nook::CAUSE_IS_EXPANDED] =
@@ -794,7 +826,7 @@ sub next_factoring {
         return 1;
 
     } ## end FACTORING_ATTEMPT: while (1)
-} ## end sub next_factoring
+} ## end sub factoring_finish
 
 sub and_nodes_to_cause_nids {
     my ( $asf, @and_node_ids ) = @_;
@@ -1034,19 +1066,14 @@ sub Marpa::R2::Choicepoint::show_symch_tokens {
     my $id = $choicepoint->base_id();
 
     # Check if choicepoint already seen?
-    my $asf     = $choicepoint->[Marpa::R2::Internal::Choicepoint::ASF];
-    my $slr     = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
-    my $recce   = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
-    my $grammar = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my @lines;
 
     my $symch     = $choicepoint->symch();
     my $nid_count = $symch->count();
     for ( my $nid_ix = 0; $nid_ix < $nid_count; $nid_ix++ ) {
         $choicepoint->[Marpa::R2::Internal::Choicepoint::NID_IX] = $nid_ix;
-        my $symbol_id   = $choicepoint->symbol_id();
         my $literal     = $choicepoint->literal();
-        my $symbol_name = $grammar->symbol_name($symbol_id);
+        my $symbol_name = $choicepoint->symbol_name();
         push @lines, qq{CP$id Symbol: $symbol_name "$literal"};
     } ## end for ( my $nid_ix = 0; $nid_ix < $nid_count; $nid_ix++)
     return \@lines;
