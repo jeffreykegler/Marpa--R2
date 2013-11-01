@@ -625,17 +625,14 @@ sub Marpa::R2::Choicepoint::symbol_name {
 # current CP indexing it.  It is assumed that the indexes need only remain valid within
 # the method call that constructs the CPI (choicepoint iterator).
 
-# Not external -- first_symch() will be the external method.
-sub next_factoring {
+sub first_factoring {
     my ($choicepoint) = @_;
     my $asf           = $choicepoint->[Marpa::R2::Internal::Choicepoint::ASF];
-    my $or_nodes      = $asf->[Marpa::R2::Internal::Scanless::ASF::OR_NODES];
-    $choicepoint->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK] //= [];
     my $factoring_stack =
-        $choicepoint->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK];
+        $choicepoint->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK] = [];
     my $factoring_count =
         $choicepoint->[Marpa::R2::Internal::Choicepoint::FACTORING_COUNT];
-    my $is_first_factoring_attempt = ( $factoring_count <= 0 );
+    my $is_first_factoring_attempt = 1;
 
     $choicepoint->[Marpa::R2::Internal::Choicepoint::FACTORING_COUNT]++;
 
@@ -653,11 +650,7 @@ sub next_factoring {
         "Internal error: next_factoring() called for negative NID: $nid_of_choicepoint"
     ) if $nid_of_choicepoint < 0;
 
-    my $slr       = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
-    my $recce     = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
-    my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
-    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
-    my $bocage    = $recce->[Marpa::R2::Internal::Recognizer::B_C];
+    my $or_nodes      = $asf->[Marpa::R2::Internal::Scanless::ASF::OR_NODES];
 
     FACTORING_ATTEMPT: while (1) {
         if ($is_first_factoring_attempt) {
@@ -685,6 +678,25 @@ sub next_factoring {
         return 1 if factoring_finish($choicepoint);
 
     } ## end FACTORING_ATTEMPT: while (1)
+} ## end sub next_factoring
+
+sub next_factoring {
+    my ($choicepoint) = @_;
+    my $factoring_stack =
+        $choicepoint->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK];
+    Marpa::R2::exception(
+        "Attempt to iterate factoring of uninitialized checkpoint"
+    ) if not $factoring_stack;
+    my $factoring_count =
+        $choicepoint->[Marpa::R2::Internal::Choicepoint::FACTORING_COUNT];
+
+    $choicepoint->[Marpa::R2::Internal::Choicepoint::FACTORING_COUNT]++;
+
+    FACTORING_ATTEMPT: while (1) {
+        return if not factoring_iterate($choicepoint);
+        return 1 if factoring_finish($choicepoint);
+    } ## end FACTORING_ATTEMPT: while (1)
+
 } ## end sub next_factoring
 
 sub factoring_iterate {
@@ -1016,7 +1028,7 @@ sub Marpa::R2::Choicepoint::show_factorings {
         $choicepoint->[Marpa::R2::Internal::Choicepoint::NID_IX] = $nid_ix;
         $choicepoint->[Marpa::R2::Internal::Choicepoint::FACTORING_COUNT] = 0;
 
-        next_factoring($choicepoint);
+        first_factoring($choicepoint);
         my $factoring = factors($choicepoint);
 
         my $choicepoint_is_ambiguous = $choicepoint->ambiguous_prefix();
