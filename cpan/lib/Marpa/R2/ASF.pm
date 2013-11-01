@@ -679,51 +679,52 @@ sub next_factoring {
             push @{$factoring_stack}, $nook;
         } ## end if ($is_first_factoring_attempt)
         else {
-            FIND_NODE_TO_ITERATE: while (1) {
-                if ( not scalar @{$factoring_stack} ) {
-                    $choicepoint
-                        ->[Marpa::R2::Internal::Choicepoint::IS_EXHAUSTED] =
-                        1;
-                    $choicepoint
-                        ->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK]
-                        = undef;
-                    return;
-                } ## end if ( not scalar @{$factoring_stack} )
-                my $top_nook = $factoring_stack->[-1];
-                if ( nook_increment( $asf, $top_nook ) ) {
-                    last FIND_NODE_TO_ITERATE;  # in C, a "break" will do this
-                }
-
-                # Could not iterate
-                # "Dirty" the corresponding bits in the parent and pop this nook
-                my $stack_ix_of_parent_nook =
-                    $top_nook->[Marpa::R2::Internal::Nook::PARENT];
-                if ( $stack_ix_of_parent_nook >= 0 ) {
-                    my $parent_nook =
-                        $factoring_stack->[$stack_ix_of_parent_nook];
-                    $parent_nook
-                        ->[Marpa::R2::Internal::Nook::CAUSE_IS_EXPANDED] = 0
-                        if $top_nook->[Marpa::R2::Internal::Nook::IS_CAUSE];
-                    $parent_nook
-                        ->[Marpa::R2::Internal::Nook::PREDECESSOR_IS_EXPANDED]
-                        = 0
-                        if $top_nook
-                            ->[Marpa::R2::Internal::Nook::IS_PREDECESSOR];
-                } ## end if ( $stack_ix_of_parent_nook >= 0 )
-
-                my $top_or_node =
-                    $top_nook->[Marpa::R2::Internal::Nook::OR_NODE];
-                $choicepoint
-                    ->[Marpa::R2::Internal::Choicepoint::OR_NODE_IN_USE]
-                    ->{$top_or_node} = undef;
-                pop @{$factoring_stack};
-            } ## end FIND_NODE_TO_ITERATE: while (1)
+            return if not factoring_iterate($choicepoint);
         } ## end else [ if ($is_first_factoring_attempt) ]
 
         return 1 if factoring_finish($choicepoint);
 
     } ## end FACTORING_ATTEMPT: while (1)
 } ## end sub next_factoring
+
+sub factoring_iterate {
+    my ($choicepoint) = @_;
+    my $asf = $choicepoint->[Marpa::R2::Internal::Choicepoint::ASF];
+    my $factoring_stack =
+        $choicepoint->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK];
+    FIND_NODE_TO_ITERATE: while (1) {
+        if ( not scalar @{$factoring_stack} ) {
+            $choicepoint->[Marpa::R2::Internal::Choicepoint::IS_EXHAUSTED] =
+                1;
+            $choicepoint->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK]
+                = undef;
+            return;
+        } ## end if ( not scalar @{$factoring_stack} )
+        my $top_nook = $factoring_stack->[-1];
+        if ( nook_increment( $asf, $top_nook ) ) {
+            last FIND_NODE_TO_ITERATE;    # in C, a "break" will do this
+        }
+
+        # Could not iterate
+        # "Dirty" the corresponding bits in the parent and pop this nook
+        my $stack_ix_of_parent_nook =
+            $top_nook->[Marpa::R2::Internal::Nook::PARENT];
+        if ( $stack_ix_of_parent_nook >= 0 ) {
+            my $parent_nook = $factoring_stack->[$stack_ix_of_parent_nook];
+            $parent_nook->[Marpa::R2::Internal::Nook::CAUSE_IS_EXPANDED] = 0
+                if $top_nook->[Marpa::R2::Internal::Nook::IS_CAUSE];
+            $parent_nook->[Marpa::R2::Internal::Nook::PREDECESSOR_IS_EXPANDED]
+                = 0
+                if $top_nook->[Marpa::R2::Internal::Nook::IS_PREDECESSOR];
+        } ## end if ( $stack_ix_of_parent_nook >= 0 )
+
+        my $top_or_node = $top_nook->[Marpa::R2::Internal::Nook::OR_NODE];
+        $choicepoint->[Marpa::R2::Internal::Choicepoint::OR_NODE_IN_USE]
+            ->{$top_or_node} = undef;
+        pop @{$factoring_stack};
+    } ## end FIND_NODE_TO_ITERATE: while (1)
+    return 1;
+} ## end sub factoring_iterate
 
 sub factoring_finish {
     my ($choicepoint) = @_;
