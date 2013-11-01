@@ -234,16 +234,28 @@ push @tests_data, [
 CP3 Rule 1: sequence -> item+
   Factoring #0
     CP5 Rule 2: item -> pair
-      CP7 Rule 5: pair -> item item
-        CP4 Rule 3: item -> singleton
-          CP9 Rule 4: singleton -> [Lex-0]
-            CP11 Symbol: [Lex-0] "a"
-        CP8 Rule 3: item -> singleton
-          CP0 Rule 4: singleton -> [Lex-0]
-            CP14 Symbol: [Lex-0] "a"
+      CP7 Rule 7: pair -> item item
+        Symbol #0, item, has 2 symches
+          Symch #0.0.0
+          CP13 Rule 3: item -> Hesperus
+            CP2 Rule 5: Hesperus -> [Lex-0]
+              CP0 Symbol: [Lex-0] "a"
+          Symch #0.0.1
+          CP13 Rule 4: item -> Phosphorus
+            CP14 Rule 6: Phosphorus -> [Lex-1]
+              CP17 Symbol: [Lex-1] "a"
+        Symbol #1, item, has 2 symches
+          Symch #0.1.0
+          CP11 Rule 3: item -> Hesperus
+            CP19 Rule 5: Hesperus -> [Lex-0]
+              CP21 Symbol: [Lex-0] "a"
+          Symch #0.1.1
+          CP11 Rule 4: item -> Phosphorus
+            CP23 Rule 6: Phosphorus -> [Lex-1]
+              CP25 Symbol: [Lex-1] "a"
   Factoring #1
-    CP4 already displayed
-    CP8 already displayed
+    CP13 already displayed
+    CP11 already displayed
 END_OF_ASF
     'ASF OK',
     'Sequence grammar for "aa"'
