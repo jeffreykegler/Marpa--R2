@@ -906,8 +906,12 @@ The C<priority> adverb is only allowed in
 L<a C<:lexeme>
 pseudo-rule|/"Lexeme pseudo-rule">.
 It sets the lexeme priority for the lexeme.
-Priority must be an integer.
-It may be negative.
+The priority must be an integer,
+but it may be negative.
+An increase in numerical value means a higher priority.
+For example,
+a priority of 1 is greater than a priority of 0.
+A priority of 0, in turn, is greater than a priority of -1.
 The default priority is zero.
 
 Where more than one lexeme can be accepted at
