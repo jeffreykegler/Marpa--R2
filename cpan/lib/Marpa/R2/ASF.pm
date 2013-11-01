@@ -635,7 +635,7 @@ sub first_factoring {
     ) if $nid_of_choicepoint < 0;
 
     # Due to skipping, even the top or-node can have no valid choices
-    my $asf = $choicepoint->[Marpa::R2::Internal::Choicepoint::ASF];
+    my $asf      = $choicepoint->[Marpa::R2::Internal::Choicepoint::ASF];
     my $or_nodes = $asf->[Marpa::R2::Internal::Scanless::ASF::OR_NODES];
     if ( not scalar @{ $or_nodes->[$nid_of_choicepoint] } ) {
         $choicepoint->[Marpa::R2::Internal::Choicepoint::IS_EXHAUSTED] = 1;
@@ -650,10 +650,11 @@ sub first_factoring {
     $choicepoint->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK] =
         [$nook];
 
-    while (1) {
-        return 1 if factoring_finish($choicepoint);
-        return   if not factoring_iterate($choicepoint);
+    # Iterate as long as we cannot finish this stack
+    while ( not factoring_finish($choicepoint) ) {
+        return if not factoring_iterate($choicepoint);
     }
+    return 1;
 
 } ## end sub first_factoring
 
@@ -662,14 +663,15 @@ sub next_factoring {
     my $factoring_stack =
         $choicepoint->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK];
     Marpa::R2::exception(
-        "Attempt to iterate factoring of uninitialized checkpoint"
-    ) if not $factoring_stack;
+        'Attempt to iterate factoring of uninitialized checkpoint' )
+        if not $factoring_stack;
 
-    FACTORING_ATTEMPT: while (1) {
-        return if not factoring_iterate($choicepoint);
+    while ( factoring_iterate($choicepoint) ) {
         return 1 if factoring_finish($choicepoint);
-    } ## end FACTORING_ATTEMPT: while (1)
+    }
 
+    # Found nothing to iterate
+    return;
 } ## end sub next_factoring
 
 sub factoring_iterate {
@@ -1017,9 +1019,9 @@ sub Marpa::R2::Choicepoint::show_factorings {
                 $indent = q{  };
             }
             for ( my $item_ix = $#{$factoring}; $item_ix >= 0; $item_ix-- ) {
-                my $choicepoint = $factoring->[$item_ix];
+                my $item_choicepoint = $factoring->[$item_ix];
                 push @lines, map { $indent . $_ } @{
-                    $choicepoint->show_symches( $current_choice,
+                    $item_choicepoint->show_symches( $current_choice,
                         ( $#{$factoring} - $item_ix ) )
                     };
             } ## end for ( my $item_ix = $#{$factoring}; $item_ix >= 0; ...)
@@ -1065,16 +1067,16 @@ sub dump_nook {
     my $recce = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
     my $or_node_id = $nook->[Marpa::R2::Internal::Nook::OR_NODE];
     my $and_node_count = scalar @{ $or_nodes->[$or_node_id] };
-    my $text = "Nook ";
+    my $text = 'Nook ';
     my @text = ();
-    push @text, $nook->[Marpa::R2::Internal::Nook::IS_CAUSE] ? 'C' : '-';
-    push @text, $nook->[Marpa::R2::Internal::Nook::IS_PREDECESSOR] ? 'P' : '-';
-    push @text, $nook->[Marpa::R2::Internal::Nook::CAUSE_IS_EXPANDED] ? 'C+' : '--';
-    push @text, $nook->[Marpa::R2::Internal::Nook::PREDECESSOR_IS_EXPANDED] ? 'P+' : '--';
+    push @text, $nook->[Marpa::R2::Internal::Nook::IS_CAUSE] ? q{C} : q{-};
+    push @text, $nook->[Marpa::R2::Internal::Nook::IS_PREDECESSOR] ? q{P} : q{-};
+    push @text, $nook->[Marpa::R2::Internal::Nook::CAUSE_IS_EXPANDED] ? q{C+} : q{--};
+    push @text, $nook->[Marpa::R2::Internal::Nook::PREDECESSOR_IS_EXPANDED] ? q{P+} : q{--};
     $text .= join q{ }, @text;
     $text
-        .= " @"
-        . $nook->[Marpa::R2::Internal::Nook::FIRST_CHOICE] . '-'
+        .= ' @'
+        . $nook->[Marpa::R2::Internal::Nook::FIRST_CHOICE] . q{-}
         . $nook->[Marpa::R2::Internal::Nook::LAST_CHOICE] . qq{ of $and_node_count: };
     $text .= $recce->verbose_or_node($or_node_id);
     return $text;
