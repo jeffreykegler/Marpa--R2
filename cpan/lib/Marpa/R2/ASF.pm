@@ -404,7 +404,6 @@ sub Marpa::R2::Scanless::ASF::new_choicepoint {
     $cp->[Marpa::R2::Internal::Choicepoint::POWERSET] = $powerset;
     $cp->[Marpa::R2::Internal::Choicepoint::SYMCH_IX] = 0;
     $cp->[Marpa::R2::Internal::Choicepoint::NID_IX] = 0;
-    $cp->[Marpa::R2::Internal::Choicepoint::FACTORING_COUNT] = 0;
     return $cp;
 }
 
@@ -510,7 +509,6 @@ sub Marpa::R2::Choicepoint::symch_set {
     Marpa::R2::exception("SYMCH index must be in range from 0 to $max_symch_ix")
        if $ix < 0 or $ix > $max_symch_ix;
     $cp->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK] = undef;
-    $cp->[Marpa::R2::Internal::Choicepoint::FACTORING_COUNT] = 0;
     $cp->[Marpa::R2::Internal::Choicepoint::NID_IX] = 0;
     return $cp->[Marpa::R2::Internal::Choicepoint::SYMCH_IX] = $ix;
 }
@@ -627,58 +625,37 @@ sub Marpa::R2::Choicepoint::symbol_name {
 
 sub first_factoring {
     my ($choicepoint) = @_;
-    my $asf           = $choicepoint->[Marpa::R2::Internal::Choicepoint::ASF];
-    my $factoring_stack =
-        $choicepoint->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK] = [];
-    my $factoring_count =
-        $choicepoint->[Marpa::R2::Internal::Choicepoint::FACTORING_COUNT];
-    my $is_first_factoring_attempt = 1;
-
-    $choicepoint->[Marpa::R2::Internal::Choicepoint::FACTORING_COUNT]++;
 
     # Current NID of current SYMCH
-    my $nid_of_choicepoint = $choicepoint->nid();
-
-    my $nidset_by_id =
-        $asf->[Marpa::R2::Internal::Scanless::ASF::NIDSET_BY_ID];
-    my $powerset_by_id =
-        $asf->[Marpa::R2::Internal::Scanless::ASF::POWERSET_BY_ID];
-
     # The caller should ensure that we are never called unless the current
     # NID is for a rule.
+    my $nid_of_choicepoint = $choicepoint->nid();
     Marpa::exception(
         "Internal error: next_factoring() called for negative NID: $nid_of_choicepoint"
     ) if $nid_of_choicepoint < 0;
 
-    my $or_nodes      = $asf->[Marpa::R2::Internal::Scanless::ASF::OR_NODES];
+    # Due to skipping, even the top or-node can have no valid choices
+    my $asf = $choicepoint->[Marpa::R2::Internal::Choicepoint::ASF];
+    my $or_nodes = $asf->[Marpa::R2::Internal::Scanless::ASF::OR_NODES];
+    if ( not scalar @{ $or_nodes->[$nid_of_choicepoint] } ) {
+        $choicepoint->[Marpa::R2::Internal::Choicepoint::IS_EXHAUSTED] = 1;
+        $choicepoint->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK] =
+            undef;
+        return;
+    } ## end if ( not scalar @{ $or_nodes->[$nid_of_choicepoint] ...})
 
-    FACTORING_ATTEMPT: while (1) {
-        if ($is_first_factoring_attempt) {
+    $choicepoint->[Marpa::R2::Internal::Choicepoint::OR_NODE_IN_USE]
+        ->{$nid_of_choicepoint} = 1;
+    my $nook = nook_new( $asf, $nid_of_choicepoint );
+    $choicepoint->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK] =
+        [$nook];
 
-            # Due to skipping, even the top or-node can have no valid choices
-            if ( not scalar @{ $or_nodes->[$nid_of_choicepoint] } ) {
-                $choicepoint->[Marpa::R2::Internal::Choicepoint::IS_EXHAUSTED]
-                    = 1;
-                $choicepoint
-                    ->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK] =
-                    undef;
-                return;
-            } ## end if ( not scalar @{ $or_nodes->[$nid_of_choicepoint] ...})
-
-            $is_first_factoring_attempt = 0;
-            $choicepoint->[Marpa::R2::Internal::Choicepoint::OR_NODE_IN_USE]
-                ->{$nid_of_choicepoint} = 1;
-            my $nook = nook_new( $asf, $nid_of_choicepoint );
-            push @{$factoring_stack}, $nook;
-        } ## end if ($is_first_factoring_attempt)
-        else {
-            return if not factoring_iterate($choicepoint);
-        } ## end else [ if ($is_first_factoring_attempt) ]
-
+    while (1) {
         return 1 if factoring_finish($choicepoint);
+        return   if not factoring_iterate($choicepoint);
+    }
 
-    } ## end FACTORING_ATTEMPT: while (1)
-} ## end sub next_factoring
+} ## end sub first_factoring
 
 sub next_factoring {
     my ($choicepoint) = @_;
@@ -687,10 +664,6 @@ sub next_factoring {
     Marpa::R2::exception(
         "Attempt to iterate factoring of uninitialized checkpoint"
     ) if not $factoring_stack;
-    my $factoring_count =
-        $choicepoint->[Marpa::R2::Internal::Choicepoint::FACTORING_COUNT];
-
-    $choicepoint->[Marpa::R2::Internal::Choicepoint::FACTORING_COUNT]++;
 
     FACTORING_ATTEMPT: while (1) {
         return if not factoring_iterate($choicepoint);
@@ -1026,7 +999,6 @@ sub Marpa::R2::Choicepoint::show_factorings {
     my $factor_ix = 0;
     for ( my $nid_ix = 0; $nid_ix < $nid_count; $nid_ix++ ) {
         $choicepoint->[Marpa::R2::Internal::Choicepoint::NID_IX] = $nid_ix;
-        $choicepoint->[Marpa::R2::Internal::Choicepoint::FACTORING_COUNT] = 0;
 
         first_factoring($choicepoint);
         my $factoring = factors($choicepoint);
