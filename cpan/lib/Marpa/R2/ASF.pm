@@ -601,6 +601,16 @@ sub Marpa::R2::Choicepoint::symbol_id {
     return $lhs_id;
 } ## end sub Marpa::R2::Choicepoint::symbol_id
 
+sub Marpa::R2::Choicepoint::symbol_name {
+    my ($choicepoint) = @_;
+    my $asf       = $choicepoint->[Marpa::R2::Internal::Choicepoint::ASF];
+    my $slr       = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
+    my $recce     = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+    my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
+    my $symbol_id   = $choicepoint->symbol_id();
+    return $grammar->symbol_name($symbol_id);
+}
+
 # Memoization is heavily used -- it needs to be to keep the worst cases from
 # going exponential.  The need to memoize is the reason for the very heavy use of
 # hashes.  For example, quite often an HOH (hash of hashes) is used where
@@ -920,7 +930,7 @@ sub form_choice {
 }
 
 sub Marpa::R2::Choicepoint::show_symches {
-    my ( $choicepoint, $parent_choice ) = @_;
+    my ( $choicepoint, $parent_choice, $item_ix ) = @_;
     my $id = $choicepoint->base_id();
     if ($CHOICEPOINT_SEEN{$id}) {
         return ["CP$id already displayed"];
@@ -933,29 +943,36 @@ sub Marpa::R2::Choicepoint::show_symches {
     my $recce       = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
     my $grammar     = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my @lines = ();
+    my $symch_indent = q{};
 
     my $symch_count = $choicepoint->symch_count();
+    my $symch_choice = $parent_choice;
+    if ($symch_count > 1) {
+        $item_ix //= 0;
+        push @lines, "Symbol #$item_ix, " . $choicepoint->symbol_name() . ", has $symch_count symches";
+        $symch_indent .= q{  };
+        $symch_choice = form_choice($parent_choice, $item_ix);
+    }
     for ( my $symch_ix = 0; $symch_ix < $symch_count; $symch_ix++ ) {
         $choicepoint->symch_set($symch_ix);
         my $current_choice =
             $symch_count > 1
-            ? form_choice($parent_choice, $symch_ix)
-            : $parent_choice;
-        my $indent         = q{};
+            ? form_choice($symch_choice, $symch_ix)
+            : $symch_choice;
+        my $indent         = $symch_indent;
         if ($symch_count > 1) {
-            push @lines, "Symch #$current_choice";
-            $indent = q{  };
+            push @lines, $symch_indent . "Symch #$current_choice";
         }
         my $rule_id = $choicepoint->rule_id();
         if ( $rule_id >= 0 ) {
             push @lines,
-            ( "CP$id Rule " . $grammar->brief_rule($rule_id) ),
-                map { $indent . q{  } . $_ }
+            ( $symch_indent . "CP$id Rule " . $grammar->brief_rule($rule_id) ),
+                map { $symch_indent . q{  } . $_ }
                 @{ $choicepoint->show_factorings( $current_choice ) };
         }
         else {
             push @lines,
-                map { $indent . $_ }
+                map { $symch_indent . $_ }
                 @{ $choicepoint->show_symch_tokens( $current_choice ) };
         }
     }
@@ -984,25 +1001,29 @@ sub Marpa::R2::Choicepoint::show_factorings {
         my $factoring = factors($choicepoint);
 
         my $choicepoint_is_ambiguous = $choicepoint->ambiguous_prefix();
-        my $factoring_is_ambiguous = ($nid_count > 1) || $choicepoint_is_ambiguous;
-        FACTOR: while (defined $factoring ) {
-            my $current_choice = $factoring_is_ambiguous 
-                ? form_choice( $parent_choice , $factor_ix )
+        my $factoring_is_ambiguous   = ( $nid_count > 1 )
+            || $choicepoint_is_ambiguous;
+        FACTOR: while ( defined $factoring ) {
+            my $current_choice =
+                $factoring_is_ambiguous
+                ? form_choice( $parent_choice, $factor_ix )
                 : $parent_choice;
-            my $indent         = q{};
+            my $indent = q{};
             if ($factoring_is_ambiguous) {
                 push @lines, "Factoring #$current_choice";
                 $indent = q{  };
             }
-            for my $choicepoint ( reverse @{$factoring} ) {
-                push @lines,
-                    map { $indent . $_ }
-                    @{ $choicepoint->show_symches($current_choice) };
-            } ## end for my $choicepoint ( @{$factoring} )
+            for ( my $item_ix = $#{$factoring}; $item_ix >= 0; $item_ix-- ) {
+                my $choicepoint = $factoring->[$item_ix];
+                push @lines, map { $indent . $_ } @{
+                    $choicepoint->show_symches( $current_choice,
+                        ( $#{$factoring} - $item_ix ) )
+                    };
+            } ## end for ( my $item_ix = $#{$factoring}; $item_ix >= 0; ...)
             next_factoring($choicepoint);
             $factoring = factors($choicepoint);
             $factor_ix++;
-        } ## end FACTOR: for ( my $factor_ix = 0; defined $factoring; ...)
+        } ## end FACTOR: while ( defined $factoring )
     } ## end for ( my $nid_ix = 0; $nid_ix < $nid_count; $nid_ix++)
     return \@lines;
 } ## end sub Marpa::R2::Choicepoint::show_factorings

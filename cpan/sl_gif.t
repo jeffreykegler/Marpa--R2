@@ -21,7 +21,7 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 20;
+use Test::More tests => 22;
 use English qw( -no_match_vars );
 use lib 'inc';
 use Marpa::R2::Test;
@@ -82,12 +82,13 @@ END_OF_SOURCE
 push @tests_data, [
     $venus_grammar, 'venus',
     <<'END_OF_ASF',
-Symch #0
-CP5 Rule 1: planet -> hesperus
+Symbol #0, planet, has 2 symches
+  Symch #0.0
+  CP5 Rule 1: planet -> hesperus
     CP6 Rule 3: hesperus -> venus
       CP8 Symbol: venus "venus"
-Symch #1
-CP5 Rule 2: planet -> phosphorus
+  Symch #0.1
+  CP5 Rule 2: planet -> phosphorus
     CP9 Rule 4: phosphorus -> venus
       CP11 Symbol: venus "venus"
 END_OF_ASF
@@ -212,6 +213,40 @@ CP3 Rule 1: sequence -> item+
 END_OF_ASF
     'ASF OK',
     'Sequence grammar for "aaa"'
+] if 1;
+
+my $venus_seq_grammar = Marpa::R2::Scanless::G->new(
+    {   source =>
+\(<<'END_OF_SOURCE'),
+:start ::= sequence
+sequence ::= item+
+item ::= pair | Hesperus | Phosphorus
+Hesperus ::= 'a'
+Phosphorus ::= 'a'
+pair ::= item item
+END_OF_SOURCE
+    }
+);
+
+push @tests_data, [
+    $venus_seq_grammar, 'aa',
+    <<'END_OF_ASF',
+CP3 Rule 1: sequence -> item+
+  Factoring #0
+    CP5 Rule 2: item -> pair
+      CP7 Rule 5: pair -> item item
+        CP4 Rule 3: item -> singleton
+          CP9 Rule 4: singleton -> [Lex-0]
+            CP11 Symbol: [Lex-0] "a"
+        CP8 Rule 3: item -> singleton
+          CP0 Rule 4: singleton -> [Lex-0]
+            CP14 Symbol: [Lex-0] "a"
+  Factoring #1
+    CP4 already displayed
+    CP8 already displayed
+END_OF_ASF
+    'ASF OK',
+    'Sequence grammar for "aa"'
 ] if 1;
 
 my $nulls_grammar = Marpa::R2::Scanless::G->new(
