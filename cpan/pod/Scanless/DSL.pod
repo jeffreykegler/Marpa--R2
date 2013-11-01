@@ -524,9 +524,9 @@ normalize-whitespace: 1
 =for Marpa::R2::Display::End
 
 The purpose of
-the default pseudo-rule is change the defaults for
+the default pseudo-rule is to change the defaults for
 rule adverbs.
-Techncially, it has one RHS alternative, but this must always contain
+Technically, it has one RHS alternative, but this must always contain
 zero RHS primaries.
 Default pseudo-rules do not affect the defaults for G0 rules
 or for lexemes.
