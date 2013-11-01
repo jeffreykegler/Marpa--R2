@@ -494,6 +494,25 @@ sub Marpa::R2::Choicepoint::symch {
     return $nidset_by_id->[$symch_id];
 }
 
+sub Marpa::R2::Choicepoint::nid_count {
+    my ( $choicepoint ) = @_;
+    my $symch = $choicepoint->symch();
+    return $symch->count();
+}
+
+sub Marpa::R2::Choicepoint::nid_set {
+    my ( $choicepoint, $nid_ix ) = @_;
+    my $nid_count = $choicepoint->nid_count();
+    return if $nid_ix >= $nid_count;
+    if ( $nid_ix < 0 ) {
+        Marpa::R2::exception(
+            "Invalid attempt to set the NID ix of a choicepoint to $nid_ix\n",
+        );
+    }
+    $choicepoint->[Marpa::R2::Internal::Choicepoint::NID_IX] = $nid_ix;
+    return 1;
+} ## end sub Marpa::R2::Choicepoint::nid_set
+
 sub Marpa::R2::Choicepoint::nid {
     my ( $cp, $symch_ix, $nid_ix ) = @_;
     $symch_ix //= $cp->[Marpa::R2::Internal::Choicepoint::SYMCH_IX];
@@ -1035,20 +1054,17 @@ sub Marpa::R2::Choicepoint::show_factorings {
 
 # Show all the tokens of a SYMCH
 sub Marpa::R2::Choicepoint::show_symch_tokens {
-    my ( $choicepoint ) = @_;
-    my $id = $choicepoint->base_id();
+    my ($choicepoint) = @_;
+    my $base_id = $choicepoint->base_id();
 
     # Check if choicepoint already seen?
     my @lines;
 
-    my $symch     = $choicepoint->symch();
-    my $nid_count = $symch->count();
-    for ( my $nid_ix = 0; $nid_ix < $nid_count; $nid_ix++ ) {
-        $choicepoint->[Marpa::R2::Internal::Choicepoint::NID_IX] = $nid_ix;
+    for ( my $nid_ix = 0; $choicepoint->nid_set($nid_ix); $nid_ix++ ) {
         my $literal     = $choicepoint->literal();
         my $symbol_name = $choicepoint->symbol_name();
-        push @lines, qq{CP$id Symbol: $symbol_name "$literal"};
-    } ## end for ( my $nid_ix = 0; $nid_ix < $nid_count; $nid_ix++)
+        push @lines, qq{CP$base_id Symbol: $symbol_name "$literal"};
+    }
     return \@lines;
 } ## end sub Marpa::R2::Choicepoint::show_symch_tokens
 
