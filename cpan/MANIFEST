@@ -214,6 +214,7 @@ libmarpa_doc_dist/version_i.texi
 meta/Makefile
 meta/make_internal_pm.pl
 my_suppressions
+pod/ASF.pod
 pod/Acknowledgements.pod
 pod/Advanced/Bibliography.pod
 pod/Advanced/Models.pod
