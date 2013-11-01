@@ -473,6 +473,15 @@ sub Marpa::R2::Choicepoint::show {
         $cp->[Marpa::R2::Internal::Choicepoint::POWERSET]->show();
 }
 
+sub Marpa::R2::Choicepoint::grammar {
+    my ($choicepoint) = @_;
+    my $asf           = $choicepoint->[Marpa::R2::Internal::Choicepoint::ASF];
+    my $slr           = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
+    my $recce         = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+    my $grammar       = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
+    return $grammar;
+} ## end sub Marpa::R2::Choicepoint::grammar
+
 # ID of the set on which the choicepoint is based.  Two or more choicepoints
 # may share the same base ID.
 sub Marpa::R2::Choicepoint::base_id {
@@ -963,11 +972,8 @@ sub Marpa::R2::Choicepoint::show_symches {
     $CHOICEPOINT_SEEN{$id} = 1;
 
     # Check if choicepoint already seen?
-    my $asf         = $choicepoint->[Marpa::R2::Internal::Choicepoint::ASF];
-    my $slr         = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
-    my $recce       = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
-    my $grammar     = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
-    my @lines = ();
+    my $grammar      = $choicepoint->grammar();
+    my @lines        = ();
     my $symch_indent = q{};
 
     my $symch_count = $choicepoint->symch_count();
@@ -1009,17 +1015,11 @@ sub Marpa::R2::Choicepoint::show_factorings {
     my ( $choicepoint, $parent_choice ) = @_;
 
     # Check if choicepoint already seen?
-    my $asf     = $choicepoint->[Marpa::R2::Internal::Choicepoint::ASF];
-    my $slr     = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
-    my $recce   = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
-    my $grammar = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my @lines;
-
-    my $symch     = $choicepoint->symch();
-    my $nid_count = $symch->count();
     my $factor_ix = 0;
+    my $nid_count = $choicepoint->nid_count();
     for ( my $nid_ix = 0; $nid_ix < $nid_count; $nid_ix++ ) {
-        $choicepoint->[Marpa::R2::Internal::Choicepoint::NID_IX] = $nid_ix;
+        $choicepoint->nid_set($nid_ix);
 
         first_factoring($choicepoint);
         my $factoring = factors($choicepoint);
@@ -1048,7 +1048,7 @@ sub Marpa::R2::Choicepoint::show_factorings {
             $factoring = factors($choicepoint);
             $factor_ix++;
         } ## end FACTOR: while ( defined $factoring )
-    } ## end for ( my $nid_ix = 0; $nid_ix < $nid_count; $nid_ix++)
+    } ## end for ( my $nid_ix = 0; $nid_ix >= $nid_count; $nid_ix++)
     return \@lines;
 } ## end sub Marpa::R2::Choicepoint::show_factorings
 
