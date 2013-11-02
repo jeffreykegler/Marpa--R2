@@ -268,22 +268,14 @@ sub normalize_asf_blessing {
     return $name;
 } ## end sub normalize_asf_blessing
 
-sub lexeme_blessing_find {
-    my ( $asf, $lexeme_id ) = @_;
-    my $slr       = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
-    my $recce     = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
-    my $grammar  = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
-    my $symbols  = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
-    my $symbol   = $symbols->[$lexeme_id];
-    return $symbol->[Marpa::R2::Internal::Symbol::BLESSING];
-} ## end sub Marpa::R2::Internal::Recognizer::lexeme_blessing_find
-
 sub Marpa::R2::Internal::ASF::blessings_set {
     my ( $asf, $default_blessing, $force ) = @_;
     my $slr       = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
     my $recce     = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
     my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
+    my $rules    = $grammar->[Marpa::R2::Internal::Grammar::RULES];
+    my $symbols  = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
 
     my $default_token_blessing_package =
         $asf
@@ -295,7 +287,9 @@ sub Marpa::R2::Internal::ASF::blessings_set {
     my @rule_blessing   = ();
     my $highest_rule_id = $grammar_c->highest_rule_id();
     RULE: for ( my $rule_id = 0; $rule_id <= $highest_rule_id; $rule_id++ ) {
-        my $blessing = rule_blessing_find( $recce, $rule_id );
+        my $blessing;
+        my $rule     = $rules->[$rule_id];
+        $blessing = $rule->[Marpa::R2::Internal::Rule::BLESSING] if defined $rule;
         if ( q{::} ne substr $blessing, 0, 2 ) {
             $rule_blessing[$rule_id] = $blessing;
             next RULE;
@@ -311,7 +305,9 @@ sub Marpa::R2::Internal::ASF::blessings_set {
     SYMBOL:
     for ( my $symbol_id = 0; $symbol_id <= $highest_symbol_id; $symbol_id++ )
     {
-        my $blessing = lexeme_blessing_find( $recce, $symbol_id );
+        my $blessing;
+        my $symbol     = $symbols->[$symbol_id];
+        $blessing = $symbol->[Marpa::R2::Internal::Symbol::BLESSING] if defined $symbol;
         if ( q{::} ne substr $blessing, 0, 2 ) {
             $symbol_blessing[$symbol_id] = $blessing;
             next SYMBOL;
