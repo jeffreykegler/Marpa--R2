@@ -908,7 +908,7 @@ sub choicepoint_forest {
         my $rule_id = $choicepoint->rule_id();
         if ( $rule_id >= 0 ) {
             my @factoring_nodes = ();
-            for ( my $nid_ix = 0; $choicepoint->nid_set($nid_ix); $nid_ix++ )
+            FACTORING_NODES: for ( my $nid_ix = 0; $choicepoint->nid_set($nid_ix); $nid_ix++ )
             {
 
                 $choicepoint->first_factoring();
@@ -927,11 +927,15 @@ sub choicepoint_forest {
                     $choicepoint->next_factoring();
                     $factoring = $choicepoint->factors();
                     push @factoring_nodes, \@choicepoint_nodes;
+                    if (scalar @factoring_nodes > 42) {
+                          push @factoring_nodes, bless ["More than 42 factoring"], 'My_Problem';
+                          last FACTORING_NODES;
+                    }
                 } ## end FACTOR: while ( defined $factoring )
             } ## end for ( my $nid_ix = 0; $choicepoint->nid_set($nid_ix);...)
             my $symch_node;
             if ( scalar @factoring_nodes > 1 ) {
-                $symch_node = \@factoring_nodes;
+                $symch_node = bless \@factoring_nodes, 'My_Factoring';
             }
             else {
                 $symch_node = $factoring_nodes[0];
@@ -948,7 +952,7 @@ sub choicepoint_forest {
     } ## end for ( my $symch_ix = 0; $choicepoint->symch_set($symch_ix...))
     my $choicepoint_node;
     if ( scalar @symch_nodes > 1 ) {
-        $choicepoint_node = \@symch_nodes;
+        $choicepoint_node = bless \@symch_nodes, "My_Symch";
     }
     else {
         $choicepoint_node = $symch_nodes[0];

@@ -430,7 +430,7 @@ sub my_parser {
         return 'No ASF', 'Input read to end but no ASF';
     }
 
-    my $asf_desc = show($asf);
+    my $asf_desc = Data::Dumper::Dumper($asf->forest());
     return $asf_desc, 'ASF OK';
 
 } ## end sub my_parser
