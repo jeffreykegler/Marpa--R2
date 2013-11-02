@@ -264,9 +264,15 @@ __DATA__
     :package=Marpa::R2::Internal::Scanless::ASF
 
     SLR { The underlying SLR }
-    CHOICE_BLESSING
-    RULE_BLESSING
-    SYMBOL_BLESSING
+    RULE_BLESSINGS
+    SYMBOL_BLESSINGS
+
+    SYMCH_BLESSING_PACKAGE
+    FACTORING_BLESSING_PACKAGE
+    PROBLEM_BLESSING_PACKAGE
+    DEFAULT_RULE_BLESSING_PACKAGE
+    DEFAULT_TOKEN_BLESSING_PACKAGE
+
     OR_NODES {
 	per or-node data, 
         current arrays of sorted and-nodes

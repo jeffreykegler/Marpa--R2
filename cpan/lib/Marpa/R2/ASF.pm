@@ -268,6 +268,16 @@ sub normalize_asf_blessing {
     return $name;
 } ## end sub normalize_asf_blessing
 
+sub lexeme_blessing_find {
+    my ( $asf, $lexeme_id ) = @_;
+    my $slr       = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
+    my $recce     = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+    my $grammar  = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
+    my $symbols  = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
+    my $symbol   = $symbols->[$lexeme_id];
+    return $symbol->[Marpa::R2::Internal::Symbol::BLESSING];
+} ## end sub Marpa::R2::Internal::Recognizer::lexeme_blessing_find
+
 sub Marpa::R2::Internal::ASF::blessings_set {
     my ( $asf, $default_blessing, $force ) = @_;
     my $slr       = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
@@ -275,24 +285,24 @@ sub Marpa::R2::Internal::ASF::blessings_set {
     my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
 
+    my $default_token_blessing_package =
+        $asf
+        ->[Marpa::R2::Internal::Scanless::ASF::DEFAULT_TOKEN_BLESSING_PACKAGE
+        ];
+    my $default_rule_blessing_package = $asf
+        ->[Marpa::R2::Internal::Scanless::ASF::DEFAULT_RULE_BLESSING_PACKAGE];
+
     my @rule_blessing   = ();
     my $highest_rule_id = $grammar_c->highest_rule_id();
     RULE: for ( my $rule_id = 0; $rule_id <= $highest_rule_id; $rule_id++ ) {
-        my $lhs_id = $grammar_c->rule_lhs($rule_id);
-        my $name   = $grammar->symbol_name($lhs_id);
-        if ( defined $force ) {
-            $rule_blessing[$rule_id] = join q{::}, $force,
-                normalize_asf_blessing($name);
-            next RULE;
-        }
-        my $blessing =
-            Marpa::R2::Internal::Recognizer::rule_blessing_find( $recce,
-            $rule_id );
+        my $blessing = rule_blessing_find( $recce, $rule_id );
         if ( q{::} ne substr $blessing, 0, 2 ) {
             $rule_blessing[$rule_id] = $blessing;
             next RULE;
         }
-        $rule_blessing[$rule_id] = join q{::}, $default_blessing,
+        my $lhs_id = $grammar_c->rule_lhs($rule_id);
+        my $name   = $grammar->symbol_name($lhs_id);
+        $rule_blessing[$rule_id] = join q{::}, $default_rule_blessing_package,
             normalize_asf_blessing($name);
     } ## end RULE: for ( my $rule_id = 0; $rule_id <= $highest_rule_id; ...)
 
@@ -301,25 +311,18 @@ sub Marpa::R2::Internal::ASF::blessings_set {
     SYMBOL:
     for ( my $symbol_id = 0; $symbol_id <= $highest_symbol_id; $symbol_id++ )
     {
-        my $name = $grammar->symbol_name($symbol_id);
-        if ( defined $force ) {
-            $symbol_blessing[$symbol_id] = join q{::}, $force,
-                normalize_asf_blessing($name);
-            next SYMBOL;
-        }
-        my $blessing =
-            Marpa::R2::Internal::Recognizer::lexeme_blessing_find( $recce,
-            $symbol_id );
+        my $blessing = lexeme_blessing_find( $recce, $symbol_id );
         if ( q{::} ne substr $blessing, 0, 2 ) {
             $symbol_blessing[$symbol_id] = $blessing;
             next SYMBOL;
         }
-        $symbol_blessing[$symbol_id] = join q{::}, $default_blessing,
-            normalize_asf_blessing($name);
+        my $name = $grammar->symbol_name($symbol_id);
+        $symbol_blessing[$symbol_id] = join q{::}, $default_token_blessing_package,
+                normalize_asf_blessing($name);
     } ## end SYMBOL: for ( my $symbol_id = 0; $symbol_id <= $highest_symbol_id...)
-    $asf->[Marpa::R2::Internal::Scanless::ASF::RULE_BLESSING] =
+    $asf->[Marpa::R2::Internal::Scanless::ASF::RULE_BLESSINGS] =
         \@rule_blessing;
-    $asf->[Marpa::R2::Internal::Scanless::ASF::SYMBOL_BLESSING] =
+    $asf->[Marpa::R2::Internal::Scanless::ASF::SYMBOL_BLESSINGS] =
         \@symbol_blessing;
     return $asf;
 } ## end sub Marpa::R2::Internal::ASF::blessings_set
@@ -362,6 +365,12 @@ sub Marpa::R2::Scanless::ASF::new {
         );
     } ## end if ( defined $recce->[Marpa::R2::Internal::Recognizer::TREE_MODE...])
     $recce->[Marpa::R2::Internal::Recognizer::TREE_MODE] = 'forest';
+
+    $asf->[Marpa::R2::Internal::Scanless::ASF::SYMCH_BLESSING_PACKAGE] = 'My_Symch';
+    $asf->[Marpa::R2::Internal::Scanless::ASF::FACTORING_BLESSING_PACKAGE] = 'My_Factoring';
+    $asf->[Marpa::R2::Internal::Scanless::ASF::PROBLEM_BLESSING_PACKAGE] = 'My_Problem';
+    $asf->[Marpa::R2::Internal::Scanless::ASF::DEFAULT_RULE_BLESSING_PACKAGE] = 'My_Rule';
+    $asf->[Marpa::R2::Internal::Scanless::ASF::DEFAULT_TOKEN_BLESSING_PACKAGE] = 'My_Token';
 
     $asf->[Marpa::R2::Internal::Scanless::ASF::NEXT_INTSET_ID] = 0;
     $asf->[Marpa::R2::Internal::Scanless::ASF::INTSET_BY_KEY]  = {};
@@ -928,15 +937,19 @@ sub choicepoint_forest {
                     $factoring = $choicepoint->factors();
                     push @factoring_nodes, \@choicepoint_nodes;
                     if (scalar @factoring_nodes > 42) {
-                          push @factoring_nodes, bless ["More than 42 factoring"], 'My_Problem';
+                          push @factoring_nodes,
+                          bless ["More than 42 factoring"], $asf->[Marpa::R2::Internal::Scanless::ASF::PROBLEM_BLESSING_PACKAGE];
                           last FACTORING_NODES;
                     }
                 } ## end FACTOR: while ( defined $factoring )
             } ## end for ( my $nid_ix = 0; $choicepoint->nid_set($nid_ix);...)
             my $symch_node;
             if ( scalar @factoring_nodes > 1 ) {
-                $symch_node = bless \@factoring_nodes, 'My_Factoring';
-            }
+                $symch_node = bless \@factoring_nodes,
+                    $asf->[
+                    Marpa::R2::Internal::Scanless::ASF::FACTORING_BLESSING_PACKAGE
+                    ];
+            } ## end if ( scalar @factoring_nodes > 1 )
             else {
                 $symch_node = $factoring_nodes[0];
             }
@@ -952,7 +965,8 @@ sub choicepoint_forest {
     } ## end for ( my $symch_ix = 0; $choicepoint->symch_set($symch_ix...))
     my $choicepoint_node;
     if ( scalar @symch_nodes > 1 ) {
-        $choicepoint_node = bless \@symch_nodes, "My_Symch";
+        $choicepoint_node = bless \@symch_nodes, 
+    $asf->[Marpa::R2::Internal::Scanless::ASF::SYMCH_BLESSING_PACKAGE];
     }
     else {
         $choicepoint_node = $symch_nodes[0];
