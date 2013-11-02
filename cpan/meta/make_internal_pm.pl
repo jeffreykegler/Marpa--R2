@@ -271,6 +271,9 @@ __DATA__
 	per or-node data, 
         current arrays of sorted and-nodes
     }
+    ASF_NODES {
+        Memoized nodes of the ASF
+    }
 
     INTSET_BY_KEY
     NEXT_INTSET_ID

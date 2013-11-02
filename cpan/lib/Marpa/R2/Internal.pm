@@ -146,11 +146,12 @@ use constant CHOICE_BLESSING => 1;
 use constant RULE_BLESSING => 2;
 use constant SYMBOL_BLESSING => 3;
 use constant OR_NODES => 4;
-use constant INTSET_BY_KEY => 5;
-use constant NEXT_INTSET_ID => 6;
-use constant TOP => 7;
-use constant NIDSET_BY_ID => 8;
-use constant POWERSET_BY_ID => 9;
+use constant ASF_NODES => 5;
+use constant INTSET_BY_KEY => 6;
+use constant NEXT_INTSET_ID => 7;
+use constant TOP => 8;
+use constant NIDSET_BY_ID => 9;
+use constant POWERSET_BY_ID => 10;
 
 package Marpa::R2::Internal::Nidset;
 use constant ID => 0;

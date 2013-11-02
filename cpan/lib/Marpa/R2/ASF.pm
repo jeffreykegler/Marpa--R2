@@ -895,7 +895,75 @@ sub Marpa::R2::Choicepoint::factors {
     return \@result;
 } ## end sub Marpa::R2::Choicepoint::factors
 
-# Internal?
+sub choicepoint_forest {
+    my ( $asf, $choicepoint ) = @_;
+    my $base_id = $choicepoint->base_id();
+    my $memoized_node =
+        $asf->[Marpa::R2::Internal::Scanless::ASF::ASF_NODES]
+        ->[$base_id];
+    return $memoized_node if defined $memoized_node;
+    my @symch_nodes = ();
+    for ( my $symch_ix = 0; $choicepoint->symch_set($symch_ix); $symch_ix++ )
+    {
+        my $rule_id = $choicepoint->rule_id();
+        if ( $rule_id >= 0 ) {
+            my @factoring_nodes = ();
+            for ( my $nid_ix = 0; $choicepoint->nid_set($nid_ix); $nid_ix++ )
+            {
+
+                $choicepoint->first_factoring();
+                my $factoring = $choicepoint->factors();
+                FACTOR: while ( defined $factoring ) {
+                    my @choicepoint_nodes = ();
+                    for (
+                        my $item_ix = $#{$factoring};
+                        $item_ix >= 0;
+                        $item_ix--
+                        )
+                    {
+                        my $item_choicepoint = $factoring->[$item_ix];
+			push @choicepoint_nodes, choicepoint_forest($asf, $item_choicepoint);
+                    } ## end for ( my $item_ix = $#{$factoring}; $item_ix >= 0; ...)
+                    $choicepoint->next_factoring();
+                    $factoring = $choicepoint->factors();
+                    push @factoring_nodes, \@choicepoint_nodes;
+                } ## end FACTOR: while ( defined $factoring )
+            } ## end for ( my $nid_ix = 0; $choicepoint->nid_set($nid_ix);...)
+            my $symch_node;
+            if ( scalar @factoring_nodes > 1 ) {
+                $symch_node = \@factoring_nodes;
+            }
+            else {
+                $symch_node = $factoring_nodes[0];
+            }
+            push @symch_nodes, $symch_node;
+        } ## end if ( $rule_id >= 0 )
+        else {
+	    for ( my $nid_ix = 0; $choicepoint->nid_set($nid_ix); $nid_ix++ ) {
+		my $literal     = $choicepoint->literal();
+		my $symbol_name = $choicepoint->symbol_name();
+		push @symch_nodes, qq{Symbol: $symbol_name "$literal"};
+	    }
+        }
+    } ## end for ( my $symch_ix = 0; $choicepoint->symch_set($symch_ix...))
+    my $choicepoint_node;
+    if ( scalar @symch_nodes > 1 ) {
+        $choicepoint_node = \@symch_nodes;
+    }
+    else {
+        $choicepoint_node = $symch_nodes[0];
+    }
+    $asf->[Marpa::R2::Internal::Scanless::ASF::ASF_NODES]->[$base_id] =
+        $choicepoint_node;
+    return $choicepoint_node;
+}
+
+sub Marpa::R2::Scanless::ASF::forest {
+    my ($asf, @hash_args) = @_;
+    my $top = $asf->top();
+    return choicepoint_forest($asf, $top);
+}
+
 # Return the size of the choicepoint ambiguous prefix.
 # This is the last point in the factoring stack with an ambiguity.
 # if the choicepoint is ambiguous, it is greater than 0.
