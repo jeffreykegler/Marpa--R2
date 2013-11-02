@@ -542,14 +542,12 @@ sub Marpa::R2::Choicepoint::nid {
 
 sub Marpa::R2::Choicepoint::symch_set {
     my ( $cp, $ix ) = @_;
-    my $max_symch_ix = $cp->symch_count() - 1;
-    Marpa::R2::exception(
-        "SYMCH index must be in range from 0 to $max_symch_ix")
-        if $ix < 0
-            or $ix > $max_symch_ix;
+    Marpa::R2::exception('SYMCH index less than 0') if $ix < 0;
+    return if $ix >= $cp->symch_count();
     $cp->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK] = undef;
     $cp->[Marpa::R2::Internal::Choicepoint::NID_IX]          = 0;
-    return $cp->[Marpa::R2::Internal::Choicepoint::SYMCH_IX] = $ix;
+    $cp->[Marpa::R2::Internal::Choicepoint::SYMCH_IX] = $ix;
+    return 1;
 } ## end sub Marpa::R2::Choicepoint::symch_set
 
 sub Marpa::R2::Choicepoint::rule_id {
