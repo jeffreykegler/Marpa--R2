@@ -269,7 +269,7 @@ sub normalize_asf_blessing {
 } ## end sub normalize_asf_blessing
 
 sub Marpa::R2::Internal::ASF::blessings_set {
-    my ( $asf, $default_blessing, $force ) = @_;
+    my ( $asf, $default_blessing ) = @_;
     my $slr       = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
     my $recce     = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
     my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
@@ -290,7 +290,7 @@ sub Marpa::R2::Internal::ASF::blessings_set {
         my $blessing;
         my $rule     = $rules->[$rule_id];
         $blessing = $rule->[Marpa::R2::Internal::Rule::BLESSING] if defined $rule;
-        if ( q{::} ne substr $blessing, 0, 2 ) {
+        if ( defined $blessing and q{::} ne substr $blessing, 0, 2 ) {
             $rule_blessing[$rule_id] = $blessing;
             next RULE;
         }
@@ -308,7 +308,7 @@ sub Marpa::R2::Internal::ASF::blessings_set {
         my $blessing;
         my $symbol     = $symbols->[$symbol_id];
         $blessing = $symbol->[Marpa::R2::Internal::Symbol::BLESSING] if defined $symbol;
-        if ( q{::} ne substr $blessing, 0, 2 ) {
+        if ( defined $blessing and q{::} ne substr $blessing, 0, 2 ) {
             $symbol_blessing[$symbol_id] = $blessing;
             next SYMBOL;
         }
@@ -403,6 +403,7 @@ sub Marpa::R2::Scanless::ASF::new {
         $or_nodes->[$or_node_id] = \@and_node_ids;
     } ## end OR_NODE: for ( my $or_node_id = 0;; $or_node_id++ )
 
+    blessings_set($asf);
     return $asf;
 
 } ## end sub Marpa::R2::Scanless::ASF::new
@@ -673,7 +674,7 @@ sub Marpa::R2::Choicepoint::first_factoring {
     # NID is for a rule.
     my $nid_of_choicepoint = $choicepoint->nid();
     Marpa::exception(
-        "Internal error: next_factoring() called for negative NID: $nid_of_choicepoint"
+        "Internal error: first_factoring() called for negative NID: $nid_of_choicepoint"
     ) if $nid_of_choicepoint < 0;
 
     # Due to skipping, even the top or-node can have no valid choices
@@ -902,6 +903,8 @@ sub Marpa::R2::Choicepoint::factors {
 
 sub choicepoint_forest {
     my ( $asf, $choicepoint ) = @_;
+    my $slr       = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
+    my $thin_slr = $slr->[Marpa::R2::Inner::Scanless::R::C];
     my $base_id = $choicepoint->base_id();
     my $memoized_node =
         $asf->[Marpa::R2::Internal::Scanless::ASF::ASF_NODES]
@@ -953,9 +956,15 @@ sub choicepoint_forest {
         } ## end if ( $rule_id >= 0 )
         else {
 	    for ( my $nid_ix = 0; $choicepoint->nid_set($nid_ix); $nid_ix++ ) {
-		my $literal     = $choicepoint->literal();
-		my $symbol_name = $choicepoint->symbol_name();
-		push @symch_nodes, qq{Symbol: $symbol_name "$literal"};
+                my $nid = $choicepoint->nid();
+                my $and_node_id = nid_to_and_node($nid);
+                my ($es_start, $es_length) = token_es_span($asf, $and_node_id);
+                my ($start, $length) = $thin_slr->_es_to_literal_span($es_start, $es_length);
+		my $symbol_id = $choicepoint->symbol_id();
+                my $blessing = $asf->[Marpa::R2::Internal::Scanless::ASF::SYMBOL_BLESSINGS] ->[$symbol_id];
+                die "No blessing for $symbol_id" if not defined $blessing;
+		my $literal = $choicepoint->literal();
+		push @symch_nodes, bless [$start, $length, $literal], $blessing;
 	    }
         }
     } ## end for ( my $symch_ix = 0; $choicepoint->symch_set($symch_ix...))
