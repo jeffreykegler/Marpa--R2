@@ -251,9 +251,14 @@ sub Marpa::R2::Scanless::ASF::top {
     return $top;
 } ## end sub Marpa::R2::Scanless::ASF::top
 
+our $SPOT_LEAF_BASE = -43;
+our $SPOT_IS_FACTORING = -40;
+our $SPOT_IS_SYMCH = -39;
+our $SPOT_IS_PROBLEM = -38;
+
 # Range from -1 to -42 reserved for special values
-sub and_node_to_nid { return -$_[0] - 43; }
-sub nid_to_and_node { return -$_[0] - 43; }
+sub and_node_to_nid { return -$_[0] + $SPOT_LEAF_BASE; }
+sub nid_to_and_node { return -$_[0] + $SPOT_LEAF_BASE; }
 
 sub normalize_asf_blessing {
     my ($name) = @_;
@@ -897,7 +902,8 @@ sub Marpa::R2::Choicepoint::factors {
     return \@result;
 } ## end sub Marpa::R2::Choicepoint::factors
 
-sub choicepoint_forest {
+# Keeping this for now, until I mine it for useful code
+sub old_choicepoint_forest {
     my ( $asf, $choicepoint ) = @_;
     my $slr      = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
     my $thin_slr = $slr->[Marpa::R2::Inner::Scanless::R::C];
@@ -993,7 +999,8 @@ sub choicepoint_forest {
     return $choicepoint_node;
 } ## end sub choicepoint_forest
 
-sub Marpa::R2::Scanless::ASF::forest {
+# Keeping this for now, until I mine it for useful code
+sub Marpa::R2::Scanless::ASF::old_forest {
     my ($asf, @hash_args) = @_;
     my $top = $asf->top();
     return choicepoint_forest($asf, $top);
