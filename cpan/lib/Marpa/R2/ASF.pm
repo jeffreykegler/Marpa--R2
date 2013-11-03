@@ -447,6 +447,11 @@ sub Marpa::R2::Scanless::ASF::spot_is_factoring {
     return $spot_id == $SPOT_IS_FACTORING;
 }
 
+sub Marpa::R2::Scanless::ASF::spot_is_symch {
+    my ( $asf, $spot_id ) = @_;
+    return $spot_id == $SPOT_IS_SYMCH;
+}
+
 sub nid_sort_ix {
     my ( $asf, $nid ) = @_;
     my $slr       = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
@@ -1090,6 +1095,7 @@ sub choicepoint_forest {
     for ( my $symch_ix = 0; $choicepoint->symch_set($symch_ix); $symch_ix++ )
     {
         my $rule_id = $choicepoint->rule_id();
+        my $choicepoint_spot_id = $choicepoint->nid();
         if ( defined $rule_id ) {
             my @factoring_nodes = ();
             FACTORING_NODES:
@@ -1113,12 +1119,12 @@ sub choicepoint_forest {
                     $choicepoint->next_factoring();
                     $factoring = $choicepoint->factors();
                     push @factoring_nodes,
-                        [ $choicepoint->nid(), @choicepoint_nodes ];
+                        [ $choicepoint_spot_id, @choicepoint_nodes ];
                     if ( scalar @factoring_nodes > 42 ) {
                         push @factoring_nodes,
                             [
-                            $SPOT_IS_PROBLEM, 'FACTORING_TOO_BIG',
-                            "More than 42 factoring"
+                            $SPOT_IS_PROBLEM, 'TOO_MANY_FACTORINGS',
+                            "More than 42 factorings"
                             ];
                         last FACTORING_NODES;
                     } ## end if ( scalar @factoring_nodes > 42 )

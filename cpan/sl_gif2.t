@@ -437,7 +437,6 @@ sub my_parser {
 
 sub dump_spot {
     my ( $asf, $spot ) = @_;
-    return ["Spot $spot"] if not ref $spot;
     my ( $spot_id, @children ) = @{$spot};
     return ["Spot $spot_id already displayed"] if $asf->spot_visited($spot_id);
    my @lines = ();
@@ -445,6 +444,14 @@ sub dump_spot {
         for my $child_ix ( 0 .. $#children ) {
             push @lines, "Factoring $child_ix";
             push @lines, map { q{  } . $_ } @{ dump_spot( $asf, $children[$child_ix] ) };
+        }
+        return \@lines;
+    } ## end if ( $asf->spot_is_factoring($spot_id) )
+    if ( $asf->spot_is_symch($spot_id) ) {
+        push @lines, "Symches " . (scalar @children);
+        for my $child_ix ( 0 .. $#children ) {
+            push @lines, "  Symch $child_ix";
+            push @lines, map { q{    } . $_ } @{ dump_spot( $asf, $children[$child_ix] ) };
         }
         return \@lines;
     } ## end if ( $asf->spot_is_factoring($spot_id) )
@@ -462,7 +469,7 @@ sub dump_spot {
         push @lines, qq{Spot $spot_id Symbol: $token_name "$literal"};
         return \@lines;
     }
-    push @lines, ( join " ", "Spot $spot_id has", ( scalar @children ), " children" );
+    push @lines, ( join " ", "UNKNOWN Spot $spot_id has", ( scalar @children ), " children" );
     push @lines, map { @{dump_spot( $asf, $_ )} } @children;
     return \@lines;
 } ## end sub dump_spot
