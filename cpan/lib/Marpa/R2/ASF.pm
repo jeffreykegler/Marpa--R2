@@ -513,13 +513,18 @@ sub Marpa::R2::Choicepoint::show {
         $cp->[Marpa::R2::Internal::Choicepoint::POWERSET]->show();
 } ## end sub Marpa::R2::Choicepoint::show
 
-sub Marpa::R2::Choicepoint::grammar {
-    my ($choicepoint) = @_;
-    my $asf           = $choicepoint->[Marpa::R2::Internal::Choicepoint::ASF];
+sub Marpa::R2::Scanless::ASF::grammar {
+    my ($asf) = @_;
     my $slr           = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
     my $recce         = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
     my $grammar       = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     return $grammar;
+}
+
+sub Marpa::R2::Choicepoint::grammar {
+    my ($choicepoint) = @_;
+    my $asf           = $choicepoint->[Marpa::R2::Internal::Choicepoint::ASF];
+    return $asf->grammar();
 } ## end sub Marpa::R2::Choicepoint::grammar
 
 # ID of the set on which the choicepoint is based.  Two or more choicepoints
@@ -587,25 +592,22 @@ sub Marpa::R2::Choicepoint::symch_set {
 sub Marpa::R2::Choicepoint::rule_id {
     my ($cp) = @_;
     my $asf = $cp->[Marpa::R2::Internal::Choicepoint::ASF];
-    my $or_node_id = $cp->nid() // -1;
-    return nid_to_whole_id( $asf, $or_node_id );
+    my $spot_id = $cp->nid();
+    return $asf->spot_rule_id( $spot_id );
 } ## end sub Marpa::R2::Choicepoint::rule_id
 
-# The "whole id" is the external rule ID, if there is one,
-# otherwise -1.  In particular, it is -1 is the NID is for
-# token
-sub nid_to_whole_id {
-    my ( $asf, $nid ) = @_;
+sub Marpa::R2::Scanless::ASF::spot_rule_id {
+    my ( $asf, $spot_id ) = @_;
+    return if $spot_id < 0;
     my $slr       = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
     my $recce     = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
     my $bocage    = $recce->[Marpa::R2::Internal::Recognizer::B_C];
     my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
-    return -1 if $nid < 0;
-    my $irl_id = $bocage->_marpa_b_or_node_irl($nid);
+    my $irl_id = $bocage->_marpa_b_or_node_irl($spot_id);
     my $xrl_id = $grammar_c->_marpa_g_source_xrl($irl_id);
     return $xrl_id;
-} ## end sub nid_to_whole_id
+}
 
 sub or_node_es_span {
     my ( $asf, $choicepoint ) = @_;
@@ -635,50 +637,92 @@ sub token_es_span {
     return or_node_es_span( $asf, $parent_or_node_id );
 } ## end sub token_es_span
 
+sub Marpa::R2::Scanless::ASF::spot_literal {
+    my ( $asf, $spot_id ) = @_;
+    my $slr  = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
+    if ( $spot_id <= $SPOT_LEAF_BASE ) {
+        my $and_node_id = nid_to_and_node($spot_id);
+        my ( $start, $length ) = token_es_span( $asf, $and_node_id );
+        return q{} if $length == 0;
+        return $slr->substring( $start, $length );
+    } ## end if ( $spit_id <= $SPOT_LEAF_BASE )
+    if ( $spot_id >= 0 ) {
+        return $slr->substring( or_node_es_span( $asf, $spot_id ) );
+    }
+    Marpa::R2::exception("No literal for spot: $spot_id");
+} ## end sub Marpa::R2::ASF::literal
+
 sub Marpa::R2::Choicepoint::literal {
     my ($cp) = @_;
     my $nid  = $cp->nid();
     my $asf  = $cp->[Marpa::R2::Internal::Choicepoint::ASF];
-    my $slr  = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
-    if ( $nid < 0 ) {
-        my $and_node_id = nid_to_and_node($nid);
-        my ( $start, $length ) = token_es_span( $asf, $and_node_id );
-        return q{} if $length == 0;
-        return $slr->substring( $start, $length );
-    } ## end if ( $nid < 0 )
-    return $slr->substring( or_node_es_span( $asf, $nid ) );
+    return $asf->spot_literal($nid);
 } ## end sub Marpa::R2::Choicepoint::literal
 
-sub Marpa::R2::Choicepoint::symbol_id {
-    my ($cp)      = @_;
-    my $nid_0     = $cp->nid(0);
-    my $asf       = $cp->[Marpa::R2::Internal::Choicepoint::ASF];
+sub Marpa::R2::Scanless::ASF::spot_token_id {
+    my ( $asf, $spot_id ) = @_;
+    return if $spot_id > $SPOT_LEAF_BASE;
+    my $and_node_id  = nid_to_and_node($spot_id);
+    my $slr  = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
+    my $recce     = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+    my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
+    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
+    my $bocage    = $recce->[Marpa::R2::Internal::Recognizer::B_C];
+    my $token_isy_id = $bocage->_marpa_b_and_node_symbol($and_node_id);
+    my $token_id     = $grammar_c->_marpa_g_source_xsy($token_isy_id);
+    return $token_id;
+}
+
+sub Marpa::R2::Scanless::ASF::spot_symbol_id {
+    my ( $asf, $spot_id ) = @_;
+    my $token_id = $asf->spot_token_id($spot_id);
+    return $token_id if defined $token_id;
+    Marpa::R2::exception("No symbol ID for spot: $spot_id") if $spot_id < 0;
+
+    # Not a token, so return the LHS of the rule
     my $slr       = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
     my $recce     = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
     my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
     my $bocage    = $recce->[Marpa::R2::Internal::Recognizer::B_C];
-    if ( $nid_0 < 0 ) {
-        my $and_node_id  = nid_to_and_node($nid_0);
-        my $token_isy_id = $bocage->_marpa_b_and_node_symbol($and_node_id);
-        my $token_id     = $grammar_c->_marpa_g_source_xsy($token_isy_id);
-        return $token_id;
-    } ## end if ( $nid_0 < 0 )
-    my $irl_id = $bocage->_marpa_b_or_node_irl($nid_0);
-    my $xrl_id = $grammar_c->_marpa_g_source_xrl($irl_id);
-    my $lhs_id = $grammar_c->rule_lhs($xrl_id);
+    my $irl_id    = $bocage->_marpa_b_or_node_irl($spot_id);
+    my $xrl_id    = $grammar_c->_marpa_g_source_xrl($irl_id);
+    my $lhs_id    = $grammar_c->rule_lhs($xrl_id);
     return $lhs_id;
+} ## end sub Marpa::R2::Scanless::ASF::spot_symbol_id
+
+sub Marpa::R2::Choicepoint::symbol_id {
+    my ($cp)      = @_;
+    my $nid     = $cp->nid(0);
+    my $asf  = $cp->[Marpa::R2::Internal::Choicepoint::ASF];
+    return $asf->spot_symbol_id($nid);
 } ## end sub Marpa::R2::Choicepoint::symbol_id
 
-sub Marpa::R2::Choicepoint::symbol_name {
-    my ($choicepoint) = @_;
-    my $asf           = $choicepoint->[Marpa::R2::Internal::Choicepoint::ASF];
-    my $slr           = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
-    my $recce         = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+sub Marpa::R2::Scanless::ASF::spot_symbol_name {
+    my ( $asf, $spot_id ) = @_;
+    my $slr       = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
+    my $recce     = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
     my $grammar       = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
-    my $symbol_id     = $choicepoint->symbol_id();
+    my $symbol_id     = $asf->spot_symbol_id($spot_id);
     return $grammar->symbol_name($symbol_id);
 } ## end sub Marpa::R2::Choicepoint::symbol_name
+
+sub Marpa::R2::Scanless::ASF::spot_token_name {
+    my ( $asf, $spot_id ) = @_;
+    my $slr         = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
+    my $recce       = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+    my $grammar     = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
+    my $token_id = $asf->spot_token_id($spot_id);
+    return if not defined $token_id;
+    return $grammar->symbol_name($token_id);
+} ## end sub Marpa::R2::Scanless::ASF::spot_token_name
+
+sub Marpa::R2::Choicepoint::symbol_name {
+    my ($cp)      = @_;
+    my $nid     = $cp->nid(0);
+    my $asf  = $cp->[Marpa::R2::Internal::Choicepoint::ASF];
+    return $asf->spot_symbol_name($nid);
+} ## end sub Marpa::R2::Choicepoint::symbol_id
 
 # Memoization is heavily used -- it needs to be to keep the worst cases from
 # going exponential.  The need to memoize is the reason for the very heavy use of
@@ -1046,7 +1090,7 @@ sub choicepoint_forest {
     for ( my $symch_ix = 0; $choicepoint->symch_set($symch_ix); $symch_ix++ )
     {
         my $rule_id = $choicepoint->rule_id();
-        if ( $rule_id >= 0 ) {
+        if ( defined $rule_id ) {
             my @factoring_nodes = ();
             FACTORING_NODES:
             for ( my $nid_ix = 0; $choicepoint->nid_set($nid_ix); $nid_ix++ )

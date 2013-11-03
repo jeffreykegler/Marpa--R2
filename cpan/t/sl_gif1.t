@@ -479,7 +479,7 @@ sub show_symches {
             push @lines, $symch_indent . "Symch #$current_choice";
         }
         my $rule_id = $choicepoint->rule_id();
-        if ( $rule_id >= 0 ) {
+        if ( defined $rule_id ) {
             push @lines,
                 (     $symch_indent
                     . "CP$id Rule "
