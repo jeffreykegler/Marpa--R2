@@ -263,6 +263,10 @@ __DATA__
 
     :package=Marpa::R2::Internal::Scanless::ASF
 
+    { It is important not to keep any references to choicepoints, direct or
+      indirect in this structure.  The resulting circular reference would prevent
+      both structures from being freed, and create a memory leak. }
+
     SLR { The underlying SLR }
     RULE_BLESSINGS
     SYMBOL_BLESSINGS
@@ -284,7 +288,6 @@ __DATA__
     INTSET_BY_KEY
     NEXT_INTSET_ID
 
-    TOP
     NIDSET_BY_ID
     POWERSET_BY_ID
 
@@ -297,13 +300,6 @@ __DATA__
 
     ID
     NIDSET_IDS
-
-    :package=Marpa::R2::Internal::CPI
-
-    ASF
-    CHOICEPOINT
-    NID_IX
-    FACTORING
 
     :package=Marpa::R2::Inner::Scanless::G
 

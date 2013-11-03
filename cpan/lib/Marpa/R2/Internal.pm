@@ -153,9 +153,8 @@ use constant OR_NODES => 8;
 use constant ASF_NODES => 9;
 use constant INTSET_BY_KEY => 10;
 use constant NEXT_INTSET_ID => 11;
-use constant TOP => 12;
-use constant NIDSET_BY_ID => 13;
-use constant POWERSET_BY_ID => 14;
+use constant NIDSET_BY_ID => 12;
+use constant POWERSET_BY_ID => 13;
 
 package Marpa::R2::Internal::Nidset;
 use constant ID => 0;
@@ -164,12 +163,6 @@ use constant NIDS => 1;
 package Marpa::R2::Internal::Powerset;
 use constant ID => 0;
 use constant NIDSET_IDS => 1;
-
-package Marpa::R2::Internal::CPI;
-use constant ASF => 0;
-use constant CHOICEPOINT => 1;
-use constant NID_IX => 2;
-use constant FACTORING => 3;
 
 package Marpa::R2::Inner::Scanless::G;
 use constant C => 0;

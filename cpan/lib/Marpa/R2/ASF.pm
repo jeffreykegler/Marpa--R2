@@ -233,8 +233,6 @@ sub nook_has_semantic_cause {
 # at this point
 sub Marpa::R2::Scanless::ASF::top {
     my ($asf) = @_;
-    my $top = $asf->[Marpa::R2::Internal::Scanless::ASF::TOP];
-    return $top if defined $top;
     my $or_nodes = $asf->[Marpa::R2::Internal::Scanless::ASF::OR_NODES];
     my $slr      = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
     my $recce    = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
@@ -249,9 +247,7 @@ sub Marpa::R2::Scanless::ASF::top {
     my $top_nidset = Marpa::R2::Nidset->obtain( $asf, $start_or_node_id );
     my $top_choicepoint_base =
         nidset_to_choicepoint_base( $asf, $top_nidset );
-    $top = $asf->new_choicepoint($top_choicepoint_base);
-
-    $asf->[Marpa::R2::Internal::Scanless::ASF::TOP] = $top;
+    my $top = $asf->new_choicepoint($top_choicepoint_base);
     return $top;
 } ## end sub Marpa::R2::Scanless::ASF::top
 
