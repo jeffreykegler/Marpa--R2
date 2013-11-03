@@ -1006,6 +1006,93 @@ sub Marpa::R2::Scanless::ASF::old_forest {
     return choicepoint_forest($asf, $top);
 }
 
+# Keeping this for now, until I mine it for useful code
+sub choicepoint_forest {
+    my ( $asf, $choicepoint ) = @_;
+    my $slr      = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
+    my $thin_slr = $slr->[Marpa::R2::Inner::Scanless::R::C];
+    my $base_id  = $choicepoint->base_id();
+    my $memoized_node =
+        $asf->[Marpa::R2::Internal::Scanless::ASF::ASF_NODES]->[$base_id];
+    return $memoized_node if defined $memoized_node;
+    my @symch_nodes = ();
+    for ( my $symch_ix = 0; $choicepoint->symch_set($symch_ix); $symch_ix++ )
+    {
+        my $rule_id = $choicepoint->rule_id();
+        if ( $rule_id >= 0 ) {
+            my @factoring_nodes = ();
+            FACTORING_NODES:
+            for ( my $nid_ix = 0; $choicepoint->nid_set($nid_ix); $nid_ix++ )
+            {
+
+                $choicepoint->first_factoring();
+                my $factoring = $choicepoint->factors();
+                FACTOR: while ( defined $factoring ) {
+                    my @choicepoint_nodes = ();
+                    for (
+                        my $item_ix = $#{$factoring};
+                        $item_ix >= 0;
+                        $item_ix--
+                        )
+                    {
+                        my $item_choicepoint = $factoring->[$item_ix];
+                        push @choicepoint_nodes,
+                            choicepoint_forest( $asf, $item_choicepoint );
+                    } ## end for ( my $item_ix = $#{$factoring}; $item_ix >= 0; ...)
+                    $choicepoint->next_factoring();
+                    $factoring = $choicepoint->factors();
+                    push @factoring_nodes,
+                        [ $choicepoint->nid(), @choicepoint_nodes ];
+                    if ( scalar @factoring_nodes > 42 ) {
+                        push @factoring_nodes,
+                            [
+                            $SPOT_IS_PROBLEM, 'FACTORING_TOO_BIG',
+                            "More than 42 factoring"
+                            ];
+                        last FACTORING_NODES;
+                    } ## end if ( scalar @factoring_nodes > 42 )
+                } ## end FACTOR: while ( defined $factoring )
+            } ## end FACTORING_NODES: for ( my $nid_ix = 0; $choicepoint->nid_set($nid_ix)...)
+            my $symch_node;
+            if ( scalar @factoring_nodes > 1 ) {
+                $symch_node = [ $SPOT_IS_FACTORING, @factoring_nodes ];
+            }
+            else {
+                $symch_node = $factoring_nodes[0];
+            }
+            push @symch_nodes, $symch_node;
+        } ## end if ( $rule_id >= 0 )
+        else {
+            for ( my $nid_ix = 0; $choicepoint->nid_set($nid_ix); $nid_ix++ )
+            {
+                my $nid = $choicepoint->nid();
+                push @symch_nodes, [$nid];
+            }
+        } ## end else [ if ( $rule_id >= 0 ) ]
+    } ## end for ( my $symch_ix = 0; $choicepoint->symch_set($symch_ix...))
+    my $choicepoint_node;
+    if ( scalar @symch_nodes > 1 ) {
+        $choicepoint_node = [ $SPOT_IS_SYMCH, @symch_nodes ];
+    }
+    else {
+        $choicepoint_node = $symch_nodes[0];
+    }
+    $asf->[Marpa::R2::Internal::Scanless::ASF::ASF_NODES]->[$base_id] =
+        $choicepoint_node;
+    return $choicepoint_node;
+} ## end sub choicepoint_forest
+
+# Keeping this for now, until I mine it for useful code
+sub Marpa::R2::Scanless::ASF::forest {
+    my ( $asf, @hash_args ) = @_;
+    my $forest = $asf->[Marpa::R2::Internal::Scanless::ASF::FOREST];
+    return $forest if $forest;
+    my $top = $asf->top();
+    $forest = $asf->[Marpa::R2::Internal::Scanless::ASF::FOREST] =
+        choicepoint_forest( $asf, $top );
+    return $forest;
+} ## end sub Marpa::R2::Scanless::ASF::forest
+
 # Return the size of the choicepoint ambiguous prefix.
 # This is the last point in the factoring stack with an ambiguity.
 # if the choicepoint is ambiguous, it is greater than 0.

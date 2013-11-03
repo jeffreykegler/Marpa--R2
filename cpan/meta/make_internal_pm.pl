@@ -284,6 +284,7 @@ __DATA__
     ASF_NODES {
         Memoized nodes of the ASF
     }
+    FOREST { Memoized forest }
 
     INTSET_BY_KEY
     NEXT_INTSET_ID

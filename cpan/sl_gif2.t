@@ -430,13 +430,19 @@ sub my_parser {
         return 'No ASF', 'Input read to end but no ASF';
     }
 
-    my $asf_desc = Data::Dumper::Dumper($asf->forest());
+    my $asf_desc = dump($asf);
     return $asf_desc, 'ASF OK';
 
 } ## end sub my_parser
 
 # CHOICEPOINT_SEEN is a local -- this is to silence warnings
 our %CHOICEPOINT_SEEN;
+
+sub dump {
+    my ($asf) = @_;
+    my $forest = $asf->forest();
+    return Data::Dumper::Dumper($forest);
+}
 
 sub form_choice {
     my ( $parent_choice, $sub_choice ) = @_;
