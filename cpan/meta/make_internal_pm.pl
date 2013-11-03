@@ -285,6 +285,7 @@ __DATA__
         Memoized nodes of the ASF
     }
     FOREST { Memoized forest }
+    SPOT_VISITED { Trace "visited" spots }
 
     INTSET_BY_KEY
     NEXT_INTSET_ID

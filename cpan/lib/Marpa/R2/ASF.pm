@@ -375,6 +375,8 @@ sub Marpa::R2::Scanless::ASF::new {
     $asf->[Marpa::R2::Internal::Scanless::ASF::NIDSET_BY_ID]   = [];
     $asf->[Marpa::R2::Internal::Scanless::ASF::POWERSET_BY_ID] = [];
 
+    $asf->[Marpa::R2::Internal::Scanless::ASF::SPOT_VISITED] = {};
+
     my $slg       = $slr->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
     my $thin_slr  = $slr->[Marpa::R2::Inner::Scanless::R::C];
     my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
@@ -419,6 +421,31 @@ sub Marpa::R2::Scanless::ASF::new_choicepoint {
     $cp->[Marpa::R2::Internal::Choicepoint::NID_IX]          = 0;
     return $cp;
 } ## end sub Marpa::R2::Scanless::ASF::new_choicepoint
+
+sub Marpa::R2::Scanless::ASF::spot_visited {
+    my ( $asf, $spot_id ) = @_;
+    # Special "spots" may be repeatedly visited
+    return 0 if $spot_id < 0 and $spot_id > $SPOT_LEAF_BASE;
+    my $visited = $asf->[Marpa::R2::Internal::Scanless::ASF::SPOT_VISITED]->{$spot_id};
+    return 1 if $visited;
+    $asf->[Marpa::R2::Internal::Scanless::ASF::SPOT_VISITED]->{$spot_id} = 1;
+    return 0;
+}
+
+sub Marpa::R2::Scanless::ASF::spot_visited_clear {
+    my ( $asf, $spot_id ) = @_;
+    if (not defined $spot_id) {
+        $asf->[Marpa::R2::Internal::Scanless::ASF::SPOT_VISITED] = {};
+        return;
+    }
+    $asf->[Marpa::R2::Internal::Scanless::ASF::SPOT_VISITED]->{$spot_id} = undef;
+    return;
+}
+
+sub Marpa::R2::Scanless::ASF::spot_is_factoring {
+    my ( $asf, $spot_id ) = @_;
+    return $spot_id == $SPOT_IS_FACTORING;
+}
 
 sub nid_sort_ix {
     my ( $asf, $nid ) = @_;

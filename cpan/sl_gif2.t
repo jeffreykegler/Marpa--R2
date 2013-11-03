@@ -430,25 +430,47 @@ sub my_parser {
         return 'No ASF', 'Input read to end but no ASF';
     }
 
-    my $asf_desc = dump($asf);
+    my $asf_desc = my_dump($asf);
     return $asf_desc, 'ASF OK';
 
 } ## end sub my_parser
 
-# CHOICEPOINT_SEEN is a local -- this is to silence warnings
-our %CHOICEPOINT_SEEN;
+sub dump_spot {
+    my ( $asf, $spot ) = @_;
+    return ["Spot $spot"] if not ref $spot;
+    my ( $spot_id, @children ) = @{$spot};
+    return ["Spot $spot_id already displayed"] if $asf->spot_visited($spot_id);
+       my @lines = ();
+    if ( $asf->spot_is_factoring($spot_id) ) {
+        for my $child_ix ( 0 .. $#children ) {
+            push @lines, "Factoring $child_ix";
+            push @lines, @{ dump_spot( $asf, $children[$child_ix] ) };
+        }
+        return \@lines;
+    } ## end if ( $asf->spot_is_factoring($spot_id) )
+    push @lines, ( join " ", "Spot $spot_id has", ( scalar @children ), " children" );
+    push @lines, map { @{dump_spot( $asf, $_ )} } @children;
+    return \@lines;
+} ## end sub dump_spot
 
-sub dump {
+sub my_dump {
     my ($asf) = @_;
     my $forest = $asf->forest();
-    return Data::Dumper::Dumper($forest);
-}
+    my $lines = dump_spot( $asf, $forest );
+
+    # return join "\n", ( map { substr $_, 2 } @{$lines}[ 1 .. $#{$lines} ] ),
+    # q{};
+    return join "\n", @{$lines}[ 0 .. $#{$lines} ], q{};
+} ## end sub my_dump
 
 sub form_choice {
     my ( $parent_choice, $sub_choice ) = @_;
     return $sub_choice if not defined $parent_choice;
     return join q{.}, $parent_choice, $sub_choice;
 }
+
+# CHOICEPOINT_SEEN is a local -- this is to silence warnings
+our %CHOICEPOINT_SEEN;
 
 sub show_symches {
     my ( $choicepoint, $parent_choice, $item_ix ) = @_;

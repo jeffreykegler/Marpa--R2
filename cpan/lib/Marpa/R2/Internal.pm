@@ -152,10 +152,11 @@ use constant DEFAULT_TOKEN_BLESSING_PACKAGE => 7;
 use constant OR_NODES => 8;
 use constant ASF_NODES => 9;
 use constant FOREST => 10;
-use constant INTSET_BY_KEY => 11;
-use constant NEXT_INTSET_ID => 12;
-use constant NIDSET_BY_ID => 13;
-use constant POWERSET_BY_ID => 14;
+use constant SPOT_VISITED => 11;
+use constant INTSET_BY_KEY => 12;
+use constant NEXT_INTSET_ID => 13;
+use constant NIDSET_BY_ID => 14;
+use constant POWERSET_BY_ID => 15;
 
 package Marpa::R2::Internal::Nidset;
 use constant ID => 0;
