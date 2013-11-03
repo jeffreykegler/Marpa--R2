@@ -979,110 +979,6 @@ sub Marpa::R2::Choicepoint::factors {
 } ## end sub Marpa::R2::Choicepoint::factors
 
 # Keeping this for now, until I mine it for useful code
-sub old_choicepoint_forest {
-    my ( $asf, $choicepoint ) = @_;
-    my $slr      = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
-    my $thin_slr = $slr->[Marpa::R2::Inner::Scanless::R::C];
-    my $base_id  = $choicepoint->base_id();
-    my $memoized_node =
-        $asf->[Marpa::R2::Internal::Scanless::ASF::ASF_NODES]->[$base_id];
-    return $memoized_node if defined $memoized_node;
-    my @symch_nodes = ();
-    for ( my $symch_ix = 0; $choicepoint->symch_set($symch_ix); $symch_ix++ )
-    {
-        my $rule_id = $choicepoint->rule_id();
-        if ( $rule_id >= 0 ) {
-            my @factoring_nodes = ();
-            FACTORING_NODES:
-            for ( my $nid_ix = 0; $choicepoint->nid_set($nid_ix); $nid_ix++ )
-            {
-
-                $choicepoint->first_factoring();
-                my $factoring = $choicepoint->factors();
-                FACTOR: while ( defined $factoring ) {
-                    my @choicepoint_nodes = ();
-                    for (
-                        my $item_ix = $#{$factoring};
-                        $item_ix >= 0;
-                        $item_ix--
-                        )
-                    {
-                        my $item_choicepoint = $factoring->[$item_ix];
-                        push @choicepoint_nodes,
-                            choicepoint_forest( $asf, $item_choicepoint );
-                    } ## end for ( my $item_ix = $#{$factoring}; $item_ix >= 0; ...)
-                    $choicepoint->next_factoring();
-                    $factoring = $choicepoint->factors();
-                    push @factoring_nodes, bless \@choicepoint_nodes,
-                        $asf
-                        ->[Marpa::R2::Internal::Scanless::ASF::RULE_BLESSINGS]
-                        ->[$rule_id];
-                    if ( scalar @factoring_nodes > 42 ) {
-                        push @factoring_nodes,
-                            bless [ 'FACTORING_TOO_BIG',
-                            "More than 42 factoring" ],
-                            $asf->[
-                            Marpa::R2::Internal::Scanless::ASF::PROBLEM_BLESSING_PACKAGE
-                            ];
-                        last FACTORING_NODES;
-                    } ## end if ( scalar @factoring_nodes > 42 )
-                } ## end FACTOR: while ( defined $factoring )
-            } ## end FACTORING_NODES: for ( my $nid_ix = 0; $choicepoint->nid_set($nid_ix)...)
-            my $symch_node;
-            if ( scalar @factoring_nodes > 1 ) {
-                $symch_node = bless \@factoring_nodes,
-                    $asf->[
-                    Marpa::R2::Internal::Scanless::ASF::FACTORING_BLESSING_PACKAGE
-                    ];
-            } ## end if ( scalar @factoring_nodes > 1 )
-            else {
-                $symch_node = $factoring_nodes[0];
-            }
-            push @symch_nodes, $symch_node;
-        } ## end if ( $rule_id >= 0 )
-        else {
-            for ( my $nid_ix = 0; $choicepoint->nid_set($nid_ix); $nid_ix++ )
-            {
-                my $nid         = $choicepoint->nid();
-                my $and_node_id = nid_to_and_node($nid);
-                my ( $es_start, $es_length ) =
-                    token_es_span( $asf, $and_node_id );
-                my ( $start, $length ) =
-                    $thin_slr->_es_to_literal_span( $es_start, $es_length );
-                my $symbol_id = $choicepoint->symbol_id();
-                my $blessing =
-                    $asf
-                    ->[Marpa::R2::Internal::Scanless::ASF::SYMBOL_BLESSINGS]
-                    ->[$symbol_id];
-                die "No blessing for $symbol_id" if not defined $blessing;
-                my $literal = $choicepoint->literal();
-                push @symch_nodes, bless [ $start, $length, $literal ],
-                    $blessing;
-            } ## end for ( my $nid_ix = 0; $choicepoint->nid_set($nid_ix);...)
-        } ## end else [ if ( $rule_id >= 0 ) ]
-    } ## end for ( my $symch_ix = 0; $choicepoint->symch_set($symch_ix...))
-    my $choicepoint_node;
-    if ( scalar @symch_nodes > 1 ) {
-        $choicepoint_node = bless \@symch_nodes,
-            $asf
-            ->[Marpa::R2::Internal::Scanless::ASF::SYMCH_BLESSING_PACKAGE];
-    }
-    else {
-        $choicepoint_node = $symch_nodes[0];
-    }
-    $asf->[Marpa::R2::Internal::Scanless::ASF::ASF_NODES]->[$base_id] =
-        $choicepoint_node;
-    return $choicepoint_node;
-} ## end sub choicepoint_forest
-
-# Keeping this for now, until I mine it for useful code
-sub Marpa::R2::Scanless::ASF::old_forest {
-    my ($asf, @hash_args) = @_;
-    my $top = $asf->top();
-    return choicepoint_forest($asf, $top);
-}
-
-# Keeping this for now, until I mine it for useful code
 sub choicepoint_forest {
     my ( $asf, $choicepoint ) = @_;
     my $slr      = $asf->[Marpa::R2::Internal::Scanless::ASF::SLR];
@@ -1118,8 +1014,7 @@ sub choicepoint_forest {
                     } ## end for ( my $item_ix = $#{$factoring}; $item_ix >= 0; ...)
                     $choicepoint->next_factoring();
                     $factoring = $choicepoint->factors();
-                    push @factoring_nodes,
-                        [ $choicepoint_spot_id, @choicepoint_nodes ];
+                    push @factoring_nodes, [ $choicepoint_spot_id, @choicepoint_nodes ];
                     if ( scalar @factoring_nodes > 42 ) {
                         push @factoring_nodes,
                             [
@@ -1140,6 +1035,7 @@ sub choicepoint_forest {
             push @symch_nodes, $symch_node;
         } ## end if ( $rule_id >= 0 )
         else {
+            # Tokens
             for ( my $nid_ix = 0; $choicepoint->nid_set($nid_ix); $nid_ix++ )
             {
                 my $nid = $choicepoint->nid();

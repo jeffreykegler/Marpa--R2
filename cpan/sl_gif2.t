@@ -436,41 +436,56 @@ sub my_parser {
 } ## end sub my_parser
 
 sub dump_spot {
-    my ( $asf, $spot ) = @_;
+    my ( $asf,     $spot )     = @_;
     my ( $spot_id, @children ) = @{$spot};
-    return ["Spot $spot_id already displayed"] if $asf->spot_visited($spot_id);
-   my @lines = ();
+    return ["Spot $spot_id already displayed"]
+        if $asf->spot_visited($spot_id);
+    my @lines = ();
     if ( $asf->spot_is_factoring($spot_id) ) {
         for my $child_ix ( 0 .. $#children ) {
             push @lines, "Factoring $child_ix";
-            push @lines, map { q{  } . $_ } @{ dump_spot( $asf, $children[$child_ix] ) };
-        }
+            push @lines,
+                map { q{  } . $_ }
+                @{ dump_spot( $asf, $children[$child_ix] ) };
+        } ## end for my $child_ix ( 0 .. $#children )
         return \@lines;
     } ## end if ( $asf->spot_is_factoring($spot_id) )
     if ( $asf->spot_is_symch($spot_id) ) {
-        push @lines, "Symches " . (scalar @children);
+        push @lines, "Symches " . ( scalar @children );
         for my $child_ix ( 0 .. $#children ) {
             push @lines, "  Symch $child_ix";
-            push @lines, map { q{    } . $_ } @{ dump_spot( $asf, $children[$child_ix] ) };
-        }
+            push @lines,
+                map { q{    } . $_ }
+                @{ dump_spot( $asf, $children[$child_ix] ) };
+        } ## end for my $child_ix ( 0 .. $#children )
         return \@lines;
-    } ## end if ( $asf->spot_is_factoring($spot_id) )
-    my $rule_id = $asf->spot_rule_id( $spot_id ) ;
-    if (defined $rule_id) {
-        push @lines, "Spot $spot_id Rule " . $asf->grammar()->brief_rule($rule_id) ;
+    } ## end if ( $asf->spot_is_symch($spot_id) )
+    my $rule_id = $asf->spot_rule_id($spot_id);
+    if ( defined $rule_id ) {
+        push @lines,
+            "Spot $spot_id Rule " . $asf->grammar()->brief_rule($rule_id);
         for my $child_ix ( 0 .. $#children ) {
-            push @lines, @{ dump_spot( $asf, $children[$child_ix] ) };
+            push @lines,
+                map { q{  } . $_ }
+                @{ dump_spot( $asf, $children[$child_ix] ) };
         }
         return \@lines;
-    }
-    my $token_name = $asf->spot_token_name( $spot_id ) ;
+    } ## end if ( defined $rule_id )
+    my $token_name = $asf->spot_token_name($spot_id);
     if ( defined $token_name ) {
-        my $literal = $asf->spot_literal( $spot_id );
+        my $literal = $asf->spot_literal($spot_id);
         push @lines, qq{Spot $spot_id Symbol: $token_name "$literal"};
         return \@lines;
     }
-    push @lines, ( join " ", "UNKNOWN Spot $spot_id has", ( scalar @children ), " children" );
-    push @lines, map { @{dump_spot( $asf, $_ )} } @children;
+    # Should not reach here
+    push @lines,
+        (
+        join " ",
+        "UNKNOWN Spot $spot_id has",
+        ( scalar @children ),
+        " children"
+        );
+    push @lines, map { @{ dump_spot( $asf, $_ ) } } @children;
     return \@lines;
 } ## end sub dump_spot
 
