@@ -239,11 +239,18 @@ __DATA__
     ORIGIN
     CURRENT
 
+    :package=Marpa::R2::Internal::Glade
+
+    SYMCHES
+    VISITED
+    TRUNCATED_SYMCHES
+
     :package=Marpa::R2::Internal::Choicepoint
 
     { An external choicepoint }
     ASF
-    POWERSET
+    POWERSET { Delete this once development is done }
+    BASE_ID
     NID_IX 
     SYMCH_IX 
     FACTORING_STACK
@@ -261,7 +268,7 @@ __DATA__
     CAUSE_IS_EXPANDED
     PREDECESSOR_IS_EXPANDED
 
-    :package=Marpa::R2::Internal::Scanless::ASF
+    :package=Marpa::R2::Internal::ASF
 
     { It is important not to keep any references to choicepoints, direct or
       indirect in this structure.  The resulting circular reference would prevent
@@ -281,11 +288,7 @@ __DATA__
 	per or-node data, 
         current arrays of sorted and-nodes
     }
-    ASF_NODES {
-        Memoized nodes of the ASF
-    }
-    FOREST { Memoized forest }
-    SPOT_VISITED { Trace "visited" spots }
+    GLADES { Memoized forest }
 
     INTSET_BY_KEY
     NEXT_INTSET_ID

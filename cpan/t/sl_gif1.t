@@ -425,7 +425,7 @@ sub my_parser {
         $abbreviated_error =~ s/^Error \s+ in \s+ string_read: \s+ //xms;
         return 'No parse', $abbreviated_error;
     } ## end if ( not defined eval { $slr->read( \$string ); 1 } )
-    my $asf = Marpa::R2::Scanless::ASF->new( { slr => $slr } );
+    my $asf = Marpa::R2::ASF->new( { slr => $slr } );
     if ( not defined $asf ) {
         return 'No ASF', 'Input read to end but no ASF';
     }
