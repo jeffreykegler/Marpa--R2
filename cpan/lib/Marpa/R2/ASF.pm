@@ -412,8 +412,8 @@ sub new_choicepoint {
     my ( $asf, @nids ) = @_;
 
     my @source_data = ();
-    my $nidset = Marpa::R2::Nidset->obtain( $asf, @nids );
-    for my $source_nid ( @{ $nidset->nids() } ) {
+    my $base_nidset = Marpa::R2::Nidset->obtain( $asf, @nids );
+    for my $source_nid ( @{ $base_nidset->nids() } ) {
         my $sort_ix = nid_sort_ix( $asf, $source_nid );
         push @source_data, [ $sort_ix, $source_nid ];
     }
@@ -449,11 +449,12 @@ sub new_choicepoint {
     my $cp = bless [], 'Marpa::R2::Choicepoint';
     $cp->[Marpa::R2::Internal::Choicepoint::ASF]             = $asf;
     $cp->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK] = undef;
+    $cp->[Marpa::R2::Internal::Choicepoint::BASE_ID]         = $base_nidset;
     $cp->[Marpa::R2::Internal::Choicepoint::POWERSET]        = $powerset;
     $cp->[Marpa::R2::Internal::Choicepoint::SYMCH_IX]        = 0;
     $cp->[Marpa::R2::Internal::Choicepoint::NID_IX]          = 0;
     return $cp;
-} ## end sub Marpa::R2::ASF::new_choicepoint
+} ## end sub new_choicepoint
 
 sub Marpa::R2::ASF::glade_is_visited {
     my ( $asf, $glade_id ) = @_;
@@ -517,7 +518,7 @@ sub Marpa::R2::Choicepoint::grammar {
 # may share the same base ID.
 sub Marpa::R2::Choicepoint::base_id {
     my ($cp) = @_;
-    return $cp->[Marpa::R2::Internal::Choicepoint::POWERSET]->id();
+    return $cp->[Marpa::R2::Internal::Choicepoint::BASE_ID]->id();
 }
 
 sub Marpa::R2::Choicepoint::symch_count {
