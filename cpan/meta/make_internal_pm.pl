@@ -290,6 +290,9 @@ __DATA__
     INTSET_BY_KEY
     NEXT_INTSET_ID
 
+    { use powersets for choicepoints only
+      -- create a new series if I need them for something else
+    }
     NIDSET_BY_ID
     POWERSET_BY_ID
 

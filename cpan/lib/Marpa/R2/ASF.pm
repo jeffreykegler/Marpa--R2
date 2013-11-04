@@ -244,10 +244,7 @@ sub Marpa::R2::Scanless::ASF::top {
     my $start_or_node_id =
         $bocage->_marpa_b_and_node_cause($augment_and_node_id);
 
-    my $top_nidset = Marpa::R2::Nidset->obtain( $asf, $start_or_node_id );
-    my $top_choicepoint_base =
-        nidset_to_choicepoint_base( $asf, $top_nidset );
-    my $top = $asf->new_choicepoint($top_choicepoint_base);
+    my $top = new_choicepoint($asf, $start_or_node_id );
     return $top;
 } ## end sub Marpa::R2::Scanless::ASF::top
 
@@ -411,8 +408,44 @@ sub Marpa::R2::Scanless::ASF::new {
 
 } ## end sub Marpa::R2::Scanless::ASF::new
 
-sub Marpa::R2::Scanless::ASF::new_choicepoint {
-    my ( $asf, $powerset ) = @_;
+sub new_choicepoint {
+    my ( $asf, @nids ) = @_;
+
+    my @source_data = ();
+    my $nidset = Marpa::R2::Nidset->obtain( $asf, @nids );
+    for my $source_nid ( @{ $nidset->nids() } ) {
+        my $sort_ix = nid_sort_ix( $asf, $source_nid );
+        push @source_data, [ $sort_ix, $source_nid ];
+    }
+    my @sorted_source_data = sort { $a->[0] <=> $b->[0] } @source_data;
+    my $nid_ix = 0;
+    my ( $sort_ix_of_this_nid, $this_nid ) =
+        @{ $sorted_source_data[ $nid_ix++ ] };
+    my @nids_with_current_sort_ix = ();
+    my $current_sort_ix           = $sort_ix_of_this_nid;
+    my @symch_ids                 = ();
+    NID: while (1) {
+
+        if ( $sort_ix_of_this_nid != $current_sort_ix ) {
+
+            # Currently only whole id break logic
+            my $nidset_for_sort_ix =
+                Marpa::R2::Nidset->obtain( $asf, @nids_with_current_sort_ix );
+            push @symch_ids, $nidset_for_sort_ix->id();
+            @nids_with_current_sort_ix = ();
+            $current_sort_ix           = $sort_ix_of_this_nid;
+        } ## end if ( $sort_ix_of_this_nid != $current_sort_ix )
+        last NID if not defined $this_nid;
+        push @nids_with_current_sort_ix, $this_nid;
+        my $sorted_entry = $sorted_source_data[ $nid_ix++ ];
+        if ( defined $sorted_entry ) {
+            ( $sort_ix_of_this_nid, $this_nid ) = @{$sorted_entry};
+            next NID;
+        }
+        $this_nid            = undef;
+        $sort_ix_of_this_nid = -2;
+    } ## end NID: while (1)
+    my $powerset = Marpa::R2::Powerset->obtain( $asf, @symch_ids );
     my $cp = bless [], 'Marpa::R2::Choicepoint';
     $cp->[Marpa::R2::Internal::Choicepoint::ASF]             = $asf;
     $cp->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK] = undef;
@@ -470,46 +503,6 @@ sub nid_sort_ix {
     # -2 is reserved for 'end of data'
     return -$token_id - 3;
 } ## end sub nid_sort_ix
-
-sub nidset_to_choicepoint_base {
-    my ( $asf, $nidset ) = @_;
-
-    # Memoize this method?
-    my @source_data = ();
-    for my $source_nid ( @{ $nidset->nids() } ) {
-        my $sort_ix = nid_sort_ix( $asf, $source_nid );
-        push @source_data, [ $sort_ix, $source_nid ];
-    }
-    my @sorted_source_data = sort { $a->[0] <=> $b->[0] } @source_data;
-    my $nid_ix = 0;
-    my ( $sort_ix_of_this_nid, $this_nid ) =
-        @{ $sorted_source_data[ $nid_ix++ ] };
-    my @nids_with_current_sort_ix = ();
-    my $current_sort_ix           = $sort_ix_of_this_nid;
-    my @symch_ids                 = ();
-    NID: while (1) {
-
-        if ( $sort_ix_of_this_nid != $current_sort_ix ) {
-
-            # Currently only whole id break logic
-            my $nidset_for_sort_ix =
-                Marpa::R2::Nidset->obtain( $asf, @nids_with_current_sort_ix );
-            push @symch_ids, $nidset_for_sort_ix->id();
-            @nids_with_current_sort_ix = ();
-            $current_sort_ix           = $sort_ix_of_this_nid;
-        } ## end if ( $sort_ix_of_this_nid != $current_sort_ix )
-        last NID if not defined $this_nid;
-        push @nids_with_current_sort_ix, $this_nid;
-        my $sorted_entry = $sorted_source_data[ $nid_ix++ ];
-        if ( defined $sorted_entry ) {
-            ( $sort_ix_of_this_nid, $this_nid ) = @{$sorted_entry};
-            next NID;
-        }
-        $this_nid            = undef;
-        $sort_ix_of_this_nid = -2;
-    } ## end NID: while (1)
-    return Marpa::R2::Powerset->obtain( $asf, @symch_ids );
-} ## end sub nidset_to_choicepoint_base
 
 sub Marpa::R2::Choicepoint::show {
     my ($cp) = @_;
@@ -968,11 +961,7 @@ sub Marpa::R2::Choicepoint::factors {
                     .. $nook->[Marpa::R2::Internal::Nook::LAST_CHOICE]
             )
         );
-        my $choicepoint_nidset =
-            Marpa::R2::Nidset->obtain( $asf, @{$cause_nids} );
-        my $choicepoint_base =
-            nidset_to_choicepoint_base( $asf, $choicepoint_nidset );
-        my $new_choicepoint = $asf->new_choicepoint($choicepoint_base);
+        my $new_choicepoint = new_choicepoint($asf, @{$cause_nids} );
         push @result, $new_choicepoint;
     } ## end FACTOR: for ( my $factor_ix = 0; $factor_ix <= $#{...})
     return \@result;
