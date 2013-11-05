@@ -514,9 +514,14 @@ sub Marpa::R2::Choicepoint::grammar {
     return $asf->grammar();
 } ## end sub Marpa::R2::Choicepoint::grammar
 
-# ID of the set on which the choicepoint is based.  Two or more choicepoints
+# ID of the NID set on which the choicepoint is based.  Two or more choicepoints
 # may share the same base ID.
 sub Marpa::R2::Choicepoint::base_id {
+    my ($cp) = @_;
+    return $cp->[Marpa::R2::Internal::Choicepoint::BASE_ID]->id();
+}
+
+sub Marpa::R2::Choicepoint::base_nidset {
     my ($cp) = @_;
     return $cp->[Marpa::R2::Internal::Choicepoint::BASE_ID]->id();
 }
@@ -1001,6 +1006,58 @@ sub Marpa::R2::Choicepoint::ambiguous_prefix {
     } ## end STACK_POS: for ( my $stack_pos = $#{$factoring_stack}; $stack_pos...)
     return 0;
 } ## end sub Marpa::R2::Choicepoint::ambiguous_prefix
+
+sub obtain_glade {
+    my ( $asf, $choicepoint ) = @_;
+    my $base_nidset = $choicepoint->base_id();
+    my $glades      = $asf->[$Marpa::R2::Internal::ASF::GLADES];
+    return $base_nidset if defined $glades->[$base_nidset];
+    my @glade = ();
+
+    # Check if choicepoint already seen?
+    my @symches = ();
+    $glade[$Marpa::R2::Internal::Glade::TRUNCATIONS] = [];
+
+    my $symch_count = $choicepoint->symch_count();
+    for ( my $symch_ix = 0; $symch_ix < $symch_count; $symch_ix++ ) {
+        $choicepoint->symch_set($symch_ix);
+
+        # Check if choicepoint already seen?
+        my @factorings;
+        my $nid_count = $choicepoint->nid_count();
+        FACTORINGS_LOOP:
+        for ( my $nid_ix = 0; $nid_ix < $nid_count; $nid_ix++ ) {
+            $choicepoint->nid_set($nid_ix);
+            $choicepoint->first_factoring();
+            my $factoring = $choicepoint->factors();
+
+            FACTOR: while ( defined $factoring ) {
+                my @factoring = ();
+                for (
+                    my $item_ix = $#{$factoring};
+                    $item_ix >= 0;
+                    $item_ix--
+                    )
+                {
+                    my $item_choicepoint = $factoring->[$item_ix];
+                    push @factoring, $item_choicepoint->base_nidset();
+                } ## end for ( my $item_ix = $#{$factoring}; $item_ix >= 0; ...)
+                if ( scalar @factorings > 42 ) {
+                    $glade[$Marpa::R2::Internal::Glade::TRUNCATIONS]
+                        ->[$symch_ix] = 42;
+                    last FACTORINGS_LOOP;
+                }
+                push @factorings, \@factoring;
+                $choicepoint->next_factoring();
+                $factoring = $choicepoint->factors();
+            } ## end FACTOR: while ( defined $factoring )
+        } ## end FACTORINGS_LOOP: for ( my $nid_ix = 0; $nid_ix < $nid_count; $nid_ix...)
+        push @symches, \@factorings;
+    } ## end for
+    $glade[$Marpa::R2::Internal::Glade::SYMCHES] = \@symches;
+    $glades->[$base_nidset] = \@glade;
+    return $base_nidset;
+} ## end sub obtain_glade
 
 sub Marpa::R2::ASF::show_nidsets {
     my ($asf)   = @_;
