@@ -248,6 +248,14 @@ sub Marpa::R2::ASF::top {
     return $top;
 } ## end sub Marpa::R2::ASF::top
 
+# Eventually eliminate top() and fold into this
+sub Marpa::R2::ASF::peak {
+    my ($asf) = @_;
+    my $top = $asf->top();
+    my $peak = choicepoint_to_glade( $asf, $top );
+    return $peak;
+} ## end sub Marpa::R2::ASF::peak
+
 our $SPOT_LEAF_BASE = -43;
 our $SPOT_IS_FACTORING = -40;
 our $SPOT_IS_SYMCH = -39;
@@ -410,9 +418,13 @@ sub Marpa::R2::ASF::new {
 
 sub new_choicepoint {
     my ( $asf, @nids ) = @_;
-
-    my @source_data = ();
     my $base_nidset = Marpa::R2::Nidset->obtain( $asf, @nids );
+    return nidset_to_choicepoint($asf, $base_nidset);
+}
+
+sub nidset_to_choicepoint {
+    my ( $asf, $base_nidset ) = @_;
+    my @source_data = ();
     for my $source_nid ( @{ $base_nidset->nids() } ) {
         my $sort_ix = nid_sort_ix( $asf, $source_nid );
         push @source_data, [ $sort_ix, $source_nid ];
@@ -1007,7 +1019,19 @@ sub Marpa::R2::Choicepoint::ambiguous_prefix {
     return 0;
 } ## end sub Marpa::R2::Choicepoint::ambiguous_prefix
 
-sub obtain_glade {
+sub glade_obtain {
+    my ( $asf, $glade_id ) = @_;
+    my $glades = $asf->[$Marpa::R2::Internal::ASF::GLADES];
+    my $glade  = $glades->[$glade_id];
+    if ( not defined $glade ) {
+        my $choicepoint = nidset_to_choicepoint( $asf, $glade_id );
+        $glade = $glades->[$glade_id] =
+            choicepoint_to_glade( $asf, $choicepoint );
+    }
+    return $glade;
+} ## end sub glade_obtain
+
+sub choicepoint_to_glade {
     my ( $asf, $choicepoint ) = @_;
     my $base_nidset = $choicepoint->base_id();
     my $glades      = $asf->[$Marpa::R2::Internal::ASF::GLADES];
@@ -1057,7 +1081,7 @@ sub obtain_glade {
     $glade[$Marpa::R2::Internal::Glade::SYMCHES] = \@symches;
     $glades->[$base_nidset] = \@glade;
     return $base_nidset;
-} ## end sub obtain_glade
+}
 
 sub Marpa::R2::ASF::show_nidsets {
     my ($asf)   = @_;
