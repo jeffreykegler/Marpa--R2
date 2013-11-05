@@ -526,22 +526,22 @@ sub show_factorings {
                 )
             {
                 my $literal =
-                    $choicepoint->factor_literal( $glade_id, $symch_ix,
-                    $factoring_ix, $symbol_ix );
+                    $asf->factor_literal( $glade_id, $symch_ix, $factoring_ix,
+                    $symbol_ix );
                 my $symbol_name =
-                    $choicepoint->factor_symbol_name( $glade_id, $symch_ix,
+                    $asf->factor_symbol_name( $glade_id, $symch_ix,
                     $factoring_ix, $symbol_ix );
                 push @lines, qq{CP$glade_id Symbol: $symbol_name "$literal"};
                 next SYMBOL;
             } ## end if ( $asf->factor_is_terminal( $glade_id, $symch_ix,...))
+            my $downglade_id =
+                $asf->factor_downglade_id( $glade_id, $symch_ix,
+                $factoring_ix, $symbol_ix );
+            push @lines, map { $indent . $_ } @{
+                show_symches( $asf, $downglade_id, $current_choice,
+                    $symbol_ix )
+                };
         } ## end SYMBOL: for my $symbol_ix ( 0 .. $symbol_count - 1 )
-        my $downglade_id =
-            $asf->factor_downglade_id( $glade_id, $symch_ix, $factoring_ix,
-            $symbol_ix );
-        push @lines,
-            map { $indent . $_ }
-            @{ show_symches( $asf, $downglade_id, $current_choice,
-                $symbol_ix ) };
     } ## end for ( my $factoring_ix = 0; $factoring_ix < $factoring_count...)
     return \@lines;
 } ## end sub show_factorings
