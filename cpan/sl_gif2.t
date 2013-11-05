@@ -435,8 +435,8 @@ sub my_parser {
 
 } ## end sub my_parser
 
-# CHOICEPOINT_SEEN is a local -- this is to silence warnings
-our %CHOICEPOINT_SEEN;
+# GLADE_SEEN is a local -- this is to silence warnings
+our %GLADE_SEEN;
 
 sub form_choice {
     my ( $parent_choice, $sub_choice ) = @_;
@@ -445,31 +445,28 @@ sub form_choice {
 }
 
 sub show_symches {
-    my ( $choicepoint, $parent_choice, $item_ix ) = @_;
-    my $id = $choicepoint->base_id();
-    if ( $CHOICEPOINT_SEEN{$id} ) {
-        return ["CP$id already displayed"];
+    my ( $asf, $glade_id, $parent_choice, $item_ix ) = @_;
+    if ( $GLADE_SEEN{$glade_id} ) {
+        return ["CP$glade_id already displayed"];
     }
-    $CHOICEPOINT_SEEN{$id} = 1;
+    $GLADE_SEEN{$glade_id} = 1;
 
-    # Check if choicepoint already seen?
-    my $grammar      = $choicepoint->grammar();
+    my $grammar      = $asf->grammar();
     my @lines        = ();
     my $symch_indent = q{};
 
-    my $symch_count  = $choicepoint->symch_count();
+    my $symch_count  = $asf->glade_symch_count($glade_id);
     my $symch_choice = $parent_choice;
     if ( $symch_count > 1 ) {
         $item_ix //= 0;
         push @lines,
               "Symbol #$item_ix, "
-            . $choicepoint->symbol_name()
+            . $asf->glade_symbol_name($glade_id)
             . ", has $symch_count symches";
         $symch_indent .= q{  };
         $symch_choice = form_choice( $parent_choice, $item_ix );
     } ## end if ( $symch_count > 1 )
     for ( my $symch_ix = 0; $symch_ix < $symch_count; $symch_ix++ ) {
-        $choicepoint->symch_set($symch_ix);
         my $current_choice =
             $symch_count > 1
             ? form_choice( $symch_choice, $symch_ix )
@@ -478,89 +475,82 @@ sub show_symches {
         if ( $symch_count > 1 ) {
             push @lines, $symch_indent . "Symch #$current_choice";
         }
-        my $rule_id = $choicepoint->rule_id();
+        my $rule_id = $asf->symch_rule_id( $glade_id, $symch_ix );
         if ( defined $rule_id ) {
             push @lines,
                 (     $symch_indent
-                    . "CP$id Rule "
+                    . "CP$glade_id Rule "
                     . $grammar->brief_rule($rule_id) ),
-                map { $symch_indent . q{  } . $_ }
-                @{ show_factorings( $choicepoint, $current_choice ) };
-        } ## end if ( $rule_id >= 0 )
+                map { $symch_indent . q{  } . $_ } @{
+                show_factorings(
+                    $asf, $glade_id, $symch_ix, $current_choice
+                )
+                };
+        } ## end if ( defined $rule_id )
         else {
-            push @lines,
-                map { $symch_indent . $_ }
-                @{ show_symch_tokens( $choicepoint, $current_choice ) };
-        }
+            push @lines, map { $symch_indent . $_ } @{
+                show_symch_tokens( $asf, $glade_id, $symch_ix,
+                    $current_choice )
+                };
+        } ## end else [ if ( defined $rule_id ) ]
     } ## end for ( my $symch_ix = 0; $symch_ix < $symch_count; $symch_ix...)
     return \@lines;
 } ## end sub show_symches
 
 # Show all the factorings of a SYMCH
 sub show_factorings {
-    my ( $choicepoint, $parent_choice ) = @_;
+    my ( $asf, $glade_id, $symch_ix, $parent_choice ) = @_;
 
-    # Check if choicepoint already seen?
     my @lines;
-    my $factor_ix = 0;
-    my $nid_count = $choicepoint->nid_count();
-    for ( my $nid_ix = 0; $nid_ix < $nid_count; $nid_ix++ ) {
-        $choicepoint->nid_set($nid_ix);
-
-        $choicepoint->first_factoring();
-        my $factoring = $choicepoint->factors();
-
-        my $choicepoint_is_ambiguous = $choicepoint->ambiguous_prefix();
-        my $factoring_is_ambiguous   = ( $nid_count > 1 )
-            || $choicepoint_is_ambiguous;
-        FACTOR: while ( defined $factoring ) {
-            my $current_choice =
-                $factoring_is_ambiguous
-                ? form_choice( $parent_choice, $factor_ix )
-                : $parent_choice;
-            my $indent = q{};
-            if ($factoring_is_ambiguous) {
-                push @lines, "Factoring #$current_choice";
-                $indent = q{  };
-            }
-            for ( my $item_ix = $#{$factoring}; $item_ix >= 0; $item_ix-- ) {
-                my $item_choicepoint = $factoring->[$item_ix];
-                push @lines, map { $indent . $_ } @{
-                    show_symches(
-                        $item_choicepoint, $current_choice,
-                        ( $#{$factoring} - $item_ix )
-                    )
-                    };
-            } ## end for ( my $item_ix = $#{$factoring}; $item_ix >= 0; ...)
-            $choicepoint->next_factoring();
-            $factoring = $choicepoint->factors();
-            $factor_ix++;
-        } ## end FACTOR: while ( defined $factoring )
-    } ## end for ( my $nid_ix = 0; $nid_ix < $nid_count; $nid_ix++)
+    my $factoring_count = $asf->symch_factoring_count( $glade_id, $symch_ix );
+    for (
+        my $factoring_ix = 0;
+        $factoring_ix < $factoring_count;
+        $factoring_ix++
+        )
+    {
+        my $indent         = q{};
+        my $current_choice = $parent_choice;
+        if ( $factoring_count > 1 ) {
+            $indent = q{  };
+            $current_choice = form_choice( $parent_choice, $factoring_ix );
+            push @lines, "Factoring #$current_choice";
+        }
+        my $symbol_count =
+            $asf->factoring_symbol_count( $glade_id, $symch_ix,
+            $factoring_ix );
+        SYMBOL: for my $symbol_ix ( 0 .. $symbol_count - 1 ) {
+            if ($asf->factor_is_terminal(
+                    $glade_id, $symch_ix, $factoring_ix, $symbol_ix
+                )
+                )
+            {
+                my $literal =
+                    $choicepoint->factor_literal( $glade_id, $symch_ix,
+                    $factoring_ix, $symbol_ix );
+                my $symbol_name =
+                    $choicepoint->factor_symbol_name( $glade_id, $symch_ix,
+                    $factoring_ix, $symbol_ix );
+                push @lines, qq{CP$glade_id Symbol: $symbol_name "$literal"};
+                next SYMBOL;
+            } ## end if ( $asf->factor_is_terminal( $glade_id, $symch_ix,...))
+        } ## end SYMBOL: for my $symbol_ix ( 0 .. $symbol_count - 1 )
+        my $downglade_id =
+            $asf->factor_downglade_id( $glade_id, $symch_ix, $factoring_ix,
+            $symbol_ix );
+        push @lines,
+            map { $indent . $_ }
+            @{ show_symches( $asf, $downglade_id, $current_choice,
+                $symbol_ix ) };
+    } ## end for ( my $factoring_ix = 0; $factoring_ix < $factoring_count...)
     return \@lines;
 } ## end sub show_factorings
 
-# Show all the tokens of a SYMCH
-sub show_symch_tokens {
-    my ($choicepoint) = @_;
-    my $base_id = $choicepoint->base_id();
-
-    # Check if choicepoint already seen?
-    my @lines;
-
-    for ( my $nid_ix = 0; $choicepoint->nid_set($nid_ix); $nid_ix++ ) {
-        my $literal     = $choicepoint->literal();
-        my $symbol_name = $choicepoint->symbol_name();
-        push @lines, qq{CP$base_id Symbol: $symbol_name "$literal"};
-    }
-    return \@lines;
-} ## end sub show_symch_tokens
-
 sub show {
     my ($asf) = @_;
-    my $top = $asf->top();
-    local %CHOICEPOINT_SEEN = ();  ## no critic (Variables::ProhibitLocalVars)
-    my $lines = show_symches($top);
+    my $peak = $asf->peak();
+    local %GLADE_SEEN = ();  ## no critic (Variables::ProhibitLocalVars)
+    my $lines = show_symches($asf, $peak);
     return join "\n", ( map { substr $_, 2 } @{$lines}[ 1 .. $#{$lines} ] ),
         q{};
 } ## end sub show
