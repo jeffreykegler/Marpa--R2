@@ -420,6 +420,7 @@ sub new_choicepoint {
     my ( $asf, @nids ) = @_;
     my $base_nidset = Marpa::R2::Nidset->obtain( $asf, @nids );
     my $glade_id = $base_nidset->id();
+    # say STDERR "Registering glade id $glade_id";
     $asf->[Marpa::R2::Internal::ASF::GLADES]->[$glade_id]->[Marpa::R2::Internal::Glade::REGISTERED] = 1;
     return nidset_to_choicepoint($asf, $base_nidset);
 }
@@ -1023,26 +1024,33 @@ sub Marpa::R2::Choicepoint::ambiguous_prefix {
 
 sub glade_obtain {
     my ( $asf, $glade_id ) = @_;
+    # say STDERR "Obtaining glade id $glade_id";
     my $glades = $asf->[Marpa::R2::Internal::ASF::GLADES];
     my $glade  = $glades->[$glade_id];
-    if ( not defined $glade ) {
-        my $choicepoint = nidset_to_choicepoint( $asf, $glade_id );
-        $glade = $glades->[$glade_id] =
-            choicepoint_to_glade( $asf, $choicepoint );
-    }
-    return $glade;
+    if (   not defined $glade
+        or not $glade->[Marpa::R2::Internal::Glade::REGISTERED] )
+    {
+        say Data::Dumper::Dumper($glade);
+        Marpa::R2::exception(
+            "Attempt to use an invalid glade, one whose ID is $glade_id");
+    } ## end if ( not defined $glade or not $glade->[...])
+    # Return the glade if it is already set up
+    return $glade  if $glade->[Marpa::R2::Internal::Glade::SYMCHES];
+    # say STDERR "Creating glade for glade id $glade_id";
+    my $nidset = $asf->[Marpa::R2::Internal::ASF::NIDSET_BY_ID]->[$glade_id];
+    my $choicepoint = nidset_to_choicepoint( $asf, $nidset );
+    choicepoint_to_glade( $asf, $choicepoint );
+    return $glades->[$glade_id] ;
 } ## end sub glade_obtain
 
 sub choicepoint_to_glade {
     my ( $asf, $choicepoint ) = @_;
-    my $base_nidset = $choicepoint->base_id();
-    my $glades      = $asf->[Marpa::R2::Internal::ASF::GLADES];
-    return $base_nidset if defined $glades->[$base_nidset];
-    my @glade = ();
+    my $base_nidset_id = $choicepoint->base_id();
+    my $glade = $asf->[Marpa::R2::Internal::ASF::GLADES]->[$base_nidset_id];
 
     # Check if choicepoint already seen?
     my @symches = ();
-    $glade[Marpa::R2::Internal::Glade::TRUNCATED_SYMCHES] = [];
+    $glade->[Marpa::R2::Internal::Glade::TRUNCATED_SYMCHES] = [];
 
     my $symch_count = $choicepoint->symch_count();
     for ( my $symch_ix = 0; $symch_ix < $symch_count; $symch_ix++ ) {
@@ -1069,7 +1077,7 @@ sub choicepoint_to_glade {
                     push @factoring, $item_choicepoint->base_nidset();
                 } ## end for ( my $item_ix = $#{$factoring}; $item_ix >= 0; ...)
                 if ( scalar @factorings > 42 ) {
-                    $glade[Marpa::R2::Internal::Glade::TRUNCATED_SYMCHES]
+                    $glade->[Marpa::R2::Internal::Glade::TRUNCATED_SYMCHES]
                         ->[$symch_ix] = 42;
                     last FACTORINGS_LOOP;
                 }
@@ -1080,9 +1088,16 @@ sub choicepoint_to_glade {
         } ## end FACTORINGS_LOOP: for ( my $nid_ix = 0; $nid_ix < $nid_count; $nid_ix...)
         push @symches, \@factorings;
     } ## end for
-    $glade[Marpa::R2::Internal::Glade::SYMCHES] = \@symches;
-    $glades->[$base_nidset] = \@glade;
-    return $base_nidset;
+    $glade->[Marpa::R2::Internal::Glade::SYMCHES] = \@symches;
+    # say STDERR "Created glade for glade id $base_nidset_id from choicepoint";
+    $asf->[Marpa::R2::Internal::ASF::GLADES]->[$base_nidset_id] = $glade;
+    return $base_nidset_id;
+}
+
+sub Marpa::R2::ASF::glade_symch_count {
+    my ($asf, $glade_id)   = @_;
+    my $glade = glade_obtain($asf, $glade_id);
+    return scalar @{$glade->[Marpa::R2::Internal::Glade::SYMCHES]};
 }
 
 sub Marpa::R2::ASF::show_nidsets {
