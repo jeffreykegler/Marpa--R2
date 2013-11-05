@@ -419,6 +419,8 @@ sub Marpa::R2::ASF::new {
 sub new_choicepoint {
     my ( $asf, @nids ) = @_;
     my $base_nidset = Marpa::R2::Nidset->obtain( $asf, @nids );
+    my $glade_id = $base_nidset->id();
+    $asf->[Marpa::R2::Internal::ASF::GLADES]->[$glade_id]->[Marpa::R2::Internal::Glade::REGISTERED] = 1;
     return nidset_to_choicepoint($asf, $base_nidset);
 }
 
@@ -1021,7 +1023,7 @@ sub Marpa::R2::Choicepoint::ambiguous_prefix {
 
 sub glade_obtain {
     my ( $asf, $glade_id ) = @_;
-    my $glades = $asf->[$Marpa::R2::Internal::ASF::GLADES];
+    my $glades = $asf->[Marpa::R2::Internal::ASF::GLADES];
     my $glade  = $glades->[$glade_id];
     if ( not defined $glade ) {
         my $choicepoint = nidset_to_choicepoint( $asf, $glade_id );
@@ -1034,13 +1036,13 @@ sub glade_obtain {
 sub choicepoint_to_glade {
     my ( $asf, $choicepoint ) = @_;
     my $base_nidset = $choicepoint->base_id();
-    my $glades      = $asf->[$Marpa::R2::Internal::ASF::GLADES];
+    my $glades      = $asf->[Marpa::R2::Internal::ASF::GLADES];
     return $base_nidset if defined $glades->[$base_nidset];
     my @glade = ();
 
     # Check if choicepoint already seen?
     my @symches = ();
-    $glade[$Marpa::R2::Internal::Glade::TRUNCATIONS] = [];
+    $glade[Marpa::R2::Internal::Glade::TRUNCATED_SYMCHES] = [];
 
     my $symch_count = $choicepoint->symch_count();
     for ( my $symch_ix = 0; $symch_ix < $symch_count; $symch_ix++ ) {
@@ -1067,7 +1069,7 @@ sub choicepoint_to_glade {
                     push @factoring, $item_choicepoint->base_nidset();
                 } ## end for ( my $item_ix = $#{$factoring}; $item_ix >= 0; ...)
                 if ( scalar @factorings > 42 ) {
-                    $glade[$Marpa::R2::Internal::Glade::TRUNCATIONS]
+                    $glade[Marpa::R2::Internal::Glade::TRUNCATED_SYMCHES]
                         ->[$symch_ix] = 42;
                     last FACTORINGS_LOOP;
                 }
@@ -1078,7 +1080,7 @@ sub choicepoint_to_glade {
         } ## end FACTORINGS_LOOP: for ( my $nid_ix = 0; $nid_ix < $nid_count; $nid_ix...)
         push @symches, \@factorings;
     } ## end for
-    $glade[$Marpa::R2::Internal::Glade::SYMCHES] = \@symches;
+    $glade[Marpa::R2::Internal::Glade::SYMCHES] = \@symches;
     $glades->[$base_nidset] = \@glade;
     return $base_nidset;
 }

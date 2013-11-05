@@ -124,7 +124,8 @@ use constant CURRENT => 3;
 package Marpa::R2::Internal::Glade;
 use constant SYMCHES => 0;
 use constant VISITED => 1;
-use constant TRUNCATED_SYMCHES => 2;
+use constant REGISTERED => 2;
+use constant TRUNCATED_SYMCHES => 3;
 
 package Marpa::R2::Internal::Choicepoint;
 use constant ASF => 0;

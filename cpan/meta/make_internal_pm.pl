@@ -243,6 +243,7 @@ __DATA__
 
     SYMCHES
     VISITED
+    REGISTERED
     TRUNCATED_SYMCHES
 
     :package=Marpa::R2::Internal::Choicepoint
