@@ -42,11 +42,11 @@ END_OF_SOURCE
 push @tests_data, [
     $aaaa_grammar, 'aaaa',
     <<'END_OF_ASF',
-CP3 Rule 1: quartet -> a a a a
-  CP10 Symbol: a "a"
-  CP8 Symbol: a "a"
-  CP6 Symbol: a "a"
-  CP0 Symbol: a "a"
+CP2 Rule 1: quartet -> a a a a
+  CP9 Symbol: a "a"
+  CP7 Symbol: a "a"
+  CP5 Symbol: a "a"
+  CP4 Symbol: a "a"
 END_OF_ASF
     'ASF OK',
     'Basic "a a a a" grammar'
@@ -82,13 +82,13 @@ push @tests_data, [
     <<'END_OF_ASF',
 Symbol #0, planet, has 2 symches
   Symch #0.0
-  CP5 Rule 1: planet -> hesperus
-    CP6 Rule 3: hesperus -> venus
-      CP8 Symbol: venus "venus"
+  CP2 Rule 1: planet -> hesperus
+    CP1 Rule 3: hesperus -> venus
+      CP7 Symbol: venus "venus"
   Symch #0.1
-  CP5 Rule 2: planet -> phosphorus
-    CP9 Rule 4: phosphorus -> venus
-      CP11 Symbol: venus "venus"
+  CP2 Rule 2: planet -> phosphorus
+    CP6 Rule 4: phosphorus -> venus
+      CP10 Symbol: venus "venus"
 END_OF_ASF
     'ASF OK',
     '"Hesperus is Phosphorus"" grammar'
@@ -98,11 +98,11 @@ END_OF_ASF
 push @tests_data, [
     $abcd_grammar, 'abcd',
     <<'END_OF_ASF',
-CP3 Rule 1: quartet -> a b c d
-  CP10 Symbol: a "a"
-  CP8 Symbol: b "b"
-  CP6 Symbol: c "c"
-  CP0 Symbol: d "d"
+CP2 Rule 1: quartet -> a b c d
+  CP9 Symbol: a "a"
+  CP7 Symbol: b "b"
+  CP5 Symbol: c "c"
+  CP4 Symbol: d "d"
 END_OF_ASF
     'ASF OK',
     'Basic "a b c d" grammar'
@@ -123,19 +123,19 @@ END_OF_SOURCE
 push @tests_data, [
     $bb_grammar, 'aaa',
     <<'END_OF_ASF',
-CP3 Rule 1: top -> b b
+CP2 Rule 1: top -> b b
   Factoring #0
-    CP7 Rule 3: b -> a
-      CP2 Symbol: a "a"
-    CP5 Rule 2: b -> a a
-      CP11 Symbol: a "a"
-      CP0 Symbol: a "a"
+    CP6 Rule 3: b -> a
+      CP8 Symbol: a "a"
+    CP4 Rule 2: b -> a a
+      CP10 Symbol: a "a"
+      CP9 Symbol: a "a"
   Factoring #1
-    CP12 Rule 2: b -> a a
-      CP16 Symbol: a "a"
-      CP14 Symbol: a "a"
-    CP4 Rule 3: b -> a
-      CP18 Symbol: a "a"
+    CP5 Rule 2: b -> a a
+      CP15 Symbol: a "a"
+      CP13 Symbol: a "a"
+    CP7 Rule 3: b -> a
+      CP17 Symbol: a "a"
 END_OF_ASF
     'ASF OK',
     '"b b" grammar'
@@ -156,19 +156,19 @@ END_OF_SOURCE
 push @tests_data, [
     $seq_grammar, 'aa',
     <<'END_OF_ASF',
-CP3 Rule 1: sequence -> item+
+CP2 Rule 1: sequence -> item+
   Factoring #0
-    CP5 Rule 2: item -> pair
-      CP7 Rule 5: pair -> item item
-        CP4 Rule 3: item -> singleton
-          CP9 Rule 4: singleton -> [Lex-0]
-            CP11 Symbol: [Lex-0] "a"
-        CP8 Rule 3: item -> singleton
-          CP0 Rule 4: singleton -> [Lex-0]
-            CP14 Symbol: [Lex-0] "a"
+    CP4 Rule 2: item -> pair
+      CP6 Rule 5: pair -> item item
+        CP9 Rule 3: item -> singleton
+          CP1 Rule 4: singleton -> [Lex-0]
+            CP10 Symbol: [Lex-0] "a"
+        CP7 Rule 3: item -> singleton
+          CP12 Rule 4: singleton -> [Lex-0]
+            CP13 Symbol: [Lex-0] "a"
   Factoring #1
-    CP4 already displayed
-    CP8 already displayed
+    CP9 already displayed
+    CP7 already displayed
 END_OF_ASF
     'ASF OK',
     'Sequence grammar for "aa"'
@@ -178,38 +178,38 @@ END_OF_ASF
 push @tests_data, [
     $seq_grammar, 'aaa',
     <<'END_OF_ASF',
-CP3 Rule 1: sequence -> item+
+CP2 Rule 1: sequence -> item+
   Factoring #0
-    CP5 Rule 2: item -> pair
-      CP7 Rule 5: pair -> item item
+    CP4 Rule 2: item -> pair
+      CP6 Rule 5: pair -> item item
         Factoring #0.0
           CP10 Rule 2: item -> pair
-            CP12 Rule 5: pair -> item item
-              CP15 Rule 3: item -> singleton
-                CP14 Rule 4: singleton -> [Lex-0]
-                  CP17 Symbol: [Lex-0] "a"
-              CP13 Rule 3: item -> singleton
-                CP19 Rule 4: singleton -> [Lex-0]
-                  CP4 Symbol: [Lex-0] "a"
-          CP9 Rule 3: item -> singleton
-            CP8 Rule 4: singleton -> [Lex-0]
-              CP22 Symbol: [Lex-0] "a"
+            CP11 Rule 5: pair -> item item
+              CP14 Rule 3: item -> singleton
+                CP1 Rule 4: singleton -> [Lex-0]
+                  CP16 Symbol: [Lex-0] "a"
+              CP7 Rule 3: item -> singleton
+                CP18 Rule 4: singleton -> [Lex-0]
+                  CP20 Symbol: [Lex-0] "a"
+          CP8 Rule 3: item -> singleton
+            CP15 Rule 4: singleton -> [Lex-0]
+              CP21 Symbol: [Lex-0] "a"
         Factoring #0.1
-          CP15 already displayed
-          CP0 Rule 2: item -> pair
-            CP23 Rule 5: pair -> item item
-              CP13 already displayed
-              CP9 already displayed
+          CP14 already displayed
+          CP23 Rule 2: item -> pair
+            CP19 Rule 5: pair -> item item
+              CP7 already displayed
+              CP8 already displayed
   Factoring #1
     CP10 already displayed
-    CP9 already displayed
+    CP8 already displayed
   Factoring #2
-    CP15 already displayed
-    CP13 already displayed
-    CP9 already displayed
+    CP14 already displayed
+    CP7 already displayed
+    CP8 already displayed
   Factoring #3
-    CP15 already displayed
-    CP0 already displayed
+    CP14 already displayed
+    CP23 already displayed
 END_OF_ASF
     'ASF OK',
     'Sequence grammar for "aaa"'
@@ -231,31 +231,31 @@ END_OF_SOURCE
 push @tests_data, [
     $venus_seq_grammar, 'aa',
     <<'END_OF_ASF',
-CP3 Rule 1: sequence -> item+
+CP2 Rule 1: sequence -> item+
   Factoring #0
-    CP5 Rule 2: item -> pair
-      CP7 Rule 7: pair -> item item
+    CP4 Rule 2: item -> pair
+      CP6 Rule 7: pair -> item item
         Symbol #0, item, has 2 symches
           Symch #0.0.0
-          CP13 Rule 3: item -> Hesperus
-            CP2 Rule 5: Hesperus -> [Lex-0]
-              CP0 Symbol: [Lex-0] "a"
+          CP12 Rule 3: item -> Hesperus
+            CP14 Rule 5: Hesperus -> [Lex-0]
+              CP15 Symbol: [Lex-0] "a"
           Symch #0.0.1
-          CP13 Rule 4: item -> Phosphorus
-            CP14 Rule 6: Phosphorus -> [Lex-1]
-              CP17 Symbol: [Lex-1] "a"
+          CP12 Rule 4: item -> Phosphorus
+            CP1 Rule 6: Phosphorus -> [Lex-1]
+              CP16 Symbol: [Lex-1] "a"
         Symbol #1, item, has 2 symches
           Symch #0.1.0
-          CP11 Rule 3: item -> Hesperus
-            CP19 Rule 5: Hesperus -> [Lex-0]
-              CP21 Symbol: [Lex-0] "a"
+          CP8 Rule 3: item -> Hesperus
+            CP18 Rule 5: Hesperus -> [Lex-0]
+              CP20 Symbol: [Lex-0] "a"
           Symch #0.1.1
-          CP11 Rule 4: item -> Phosphorus
-            CP23 Rule 6: Phosphorus -> [Lex-1]
-              CP25 Symbol: [Lex-1] "a"
+          CP8 Rule 4: item -> Phosphorus
+            CP22 Rule 6: Phosphorus -> [Lex-1]
+              CP24 Symbol: [Lex-1] "a"
   Factoring #1
-    CP13 already displayed
-    CP11 already displayed
+    CP12 already displayed
+    CP8 already displayed
 END_OF_ASF
     'ASF OK',
     'Sequence grammar for "aa"'
@@ -275,15 +275,15 @@ END_OF_SOURCE
 push @tests_data, [
     $nulls_grammar, 'aaaa',
     <<'END_OF_ASF',
-CP3 Rule 1: top -> a a a a
-  CP8 Rule 2: a -> [Lex-0]
-    CP2 Symbol: [Lex-0] "a"
-  CP7 Rule 2: a -> [Lex-0]
-    CP0 Symbol: [Lex-0] "a"
-  CP6 Rule 2: a -> [Lex-0]
-    CP12 Symbol: [Lex-0] "a"
+CP2 Rule 1: top -> a a a a
+  CP1 Rule 2: a -> [Lex-0]
+    CP9 Symbol: [Lex-0] "a"
+  CP3 Rule 2: a -> [Lex-0]
+    CP10 Symbol: [Lex-0] "a"
   CP5 Rule 2: a -> [Lex-0]
-    CP14 Symbol: [Lex-0] "a"
+    CP11 Symbol: [Lex-0] "a"
+  CP4 Rule 2: a -> [Lex-0]
+    CP13 Symbol: [Lex-0] "a"
 END_OF_ASF
     'ASF OK',
     'Nulls grammar for "aaaa"'
@@ -293,30 +293,30 @@ END_OF_ASF
 push @tests_data, [
     $nulls_grammar, 'aaa',
     <<'END_OF_ASF',
-CP3 Rule 1: top -> a a a a
+CP2 Rule 1: top -> a a a a
   Factoring #0
-    CP11 Symbol: a ""
-    CP9 Rule 2: a -> [Lex-0]
-      CP13 Symbol: [Lex-0] "a"
-    CP7 Rule 2: a -> [Lex-0]
-      CP15 Symbol: [Lex-0] "a"
-    CP5 Rule 2: a -> [Lex-0]
-      CP17 Symbol: [Lex-0] "a"
+    CP10 Symbol: a ""
+    CP8 Rule 2: a -> [Lex-0]
+      CP12 Symbol: [Lex-0] "a"
+    CP6 Rule 2: a -> [Lex-0]
+      CP14 Symbol: [Lex-0] "a"
+    CP4 Rule 2: a -> [Lex-0]
+      CP16 Symbol: [Lex-0] "a"
   Factoring #1
-    CP9 already displayed
-    CP19 Symbol: a ""
-    CP7 already displayed
-    CP5 already displayed
+    CP8 already displayed
+    CP18 Symbol: a ""
+    CP6 already displayed
+    CP4 already displayed
   Factoring #2
-    CP9 already displayed
-    CP7 already displayed
-    CP21 Symbol: a ""
-    CP5 already displayed
+    CP8 already displayed
+    CP6 already displayed
+    CP20 Symbol: a ""
+    CP4 already displayed
   Factoring #3
-    CP9 already displayed
-    CP7 already displayed
-    CP5 already displayed
-    CP23 Symbol: a ""
+    CP8 already displayed
+    CP6 already displayed
+    CP4 already displayed
+    CP22 Symbol: a ""
 END_OF_ASF
     'ASF OK',
     'Nulls grammar for "aaa"'
@@ -326,39 +326,39 @@ END_OF_ASF
 push @tests_data, [
     $nulls_grammar, 'aa',
     <<'END_OF_ASF',
-CP3 Rule 1: top -> a a a a
+CP2 Rule 1: top -> a a a a
   Factoring #0
-    CP10 Symbol: a ""
-    CP8 Symbol: a ""
-    CP6 Rule 2: a -> [Lex-0]
-      CP12 Symbol: [Lex-0] "a"
-    CP5 Rule 2: a -> [Lex-0]
-      CP14 Symbol: [Lex-0] "a"
+    CP9 Symbol: a ""
+    CP7 Symbol: a ""
+    CP3 Rule 2: a -> [Lex-0]
+      CP11 Symbol: [Lex-0] "a"
+    CP4 Rule 2: a -> [Lex-0]
+      CP13 Symbol: [Lex-0] "a"
   Factoring #1
-    CP10 already displayed
-    CP6 already displayed
-    CP16 Symbol: a ""
-    CP5 already displayed
+    CP9 already displayed
+    CP3 already displayed
+    CP15 Symbol: a ""
+    CP4 already displayed
   Factoring #2
-    CP10 already displayed
-    CP6 already displayed
-    CP5 already displayed
-    CP18 Symbol: a ""
+    CP9 already displayed
+    CP3 already displayed
+    CP4 already displayed
+    CP17 Symbol: a ""
   Factoring #3
-    CP6 already displayed
-    CP5 already displayed
-    CP22 Symbol: a ""
-    CP20 Symbol: a ""
+    CP3 already displayed
+    CP4 already displayed
+    CP21 Symbol: a ""
+    CP19 Symbol: a ""
   Factoring #4
-    CP6 already displayed
-    CP24 Symbol: a ""
-    CP16 already displayed
-    CP5 already displayed
+    CP3 already displayed
+    CP23 Symbol: a ""
+    CP15 already displayed
+    CP4 already displayed
   Factoring #5
-    CP6 already displayed
-    CP24 already displayed
-    CP5 already displayed
-    CP18 already displayed
+    CP3 already displayed
+    CP23 already displayed
+    CP4 already displayed
+    CP17 already displayed
 END_OF_ASF
     'ASF OK',
     'Nulls grammar for "aa"'
@@ -368,28 +368,28 @@ END_OF_ASF
 push @tests_data, [
     $nulls_grammar, 'a',
     <<'END_OF_ASF',
-CP3 Rule 1: top -> a a a a
+CP2 Rule 1: top -> a a a a
   Factoring #0
-    CP11 Rule 2: a -> [Lex-0]
-      CP13 Symbol: [Lex-0] "a"
-    CP9 Symbol: a ""
-    CP7 Symbol: a ""
-    CP5 Symbol: a ""
+    CP10 Rule 2: a -> [Lex-0]
+      CP12 Symbol: [Lex-0] "a"
+    CP8 Symbol: a ""
+    CP6 Symbol: a ""
+    CP4 Symbol: a ""
   Factoring #1
-    CP18 Symbol: a ""
-    CP11 already displayed
-    CP16 Symbol: a ""
-    CP0 Symbol: a ""
+    CP17 Symbol: a ""
+    CP10 already displayed
+    CP15 Symbol: a ""
+    CP14 Symbol: a ""
   Factoring #2
-    CP18 already displayed
-    CP22 Symbol: a ""
-    CP20 Symbol: a ""
-    CP11 already displayed
+    CP17 already displayed
+    CP21 Symbol: a ""
+    CP19 Symbol: a ""
+    CP10 already displayed
   Factoring #3
-    CP18 already displayed
-    CP22 already displayed
-    CP11 already displayed
-    CP24 Symbol: a ""
+    CP17 already displayed
+    CP21 already displayed
+    CP10 already displayed
+    CP23 Symbol: a ""
 END_OF_ASF
     'ASF OK',
     'Nulls grammar for "a"'
@@ -425,84 +425,144 @@ sub my_parser {
         $abbreviated_error =~ s/^Error \s+ in \s+ string_read: \s+ //xms;
         return 'No parse', $abbreviated_error;
     } ## end if ( not defined eval { $slr->read( \$string ); 1 } )
-    my $asf = Marpa::R2::Scanless::ASF->new( { slr => $slr } );
+    my $asf = Marpa::R2::ASF->new( { slr => $slr } );
     if ( not defined $asf ) {
         return 'No ASF', 'Input read to end but no ASF';
     }
 
-    my $asf_desc = my_dump($asf);
+    my $asf_desc = show($asf);
     return $asf_desc, 'ASF OK';
 
 } ## end sub my_parser
 
-sub dump_spot {
-    my ( $asf,     $spot )     = @_;
-    my ( $spot_id, @children ) = @{$spot};
-    return ["Spot $spot_id already displayed"]
-        if $asf->spot_visited($spot_id);
-    my @lines = ();
-    if ( $asf->spot_is_factoring($spot_id) ) {
-        for my $child_ix ( 0 .. $#children ) {
-            push @lines, "Factoring $child_ix";
-            push @lines,
-                map { q{  } . $_ }
-                @{ dump_spot( $asf, $children[$child_ix] ) };
-        } ## end for my $child_ix ( 0 .. $#children )
-        return \@lines;
-    } ## end if ( $asf->spot_is_factoring($spot_id) )
-    if ( $asf->spot_is_symch($spot_id) ) {
-        push @lines, "Symches " . ( scalar @children );
-        for my $child_ix ( 0 .. $#children ) {
-            push @lines, "  Symch $child_ix";
-            push @lines,
-                map { q{    } . $_ }
-                @{ dump_spot( $asf, $children[$child_ix] ) };
-        } ## end for my $child_ix ( 0 .. $#children )
-        return \@lines;
-    } ## end if ( $asf->spot_is_symch($spot_id) )
-    my $rule_id = $asf->spot_rule_id($spot_id);
-    if ( defined $rule_id ) {
-        push @lines,
-            "Spot $spot_id Rule " . $asf->grammar()->brief_rule($rule_id);
-        for my $child_ix ( 0 .. $#children ) {
-            push @lines,
-                map { q{  } . $_ }
-                @{ dump_spot( $asf, $children[$child_ix] ) };
-        }
-        return \@lines;
-    } ## end if ( defined $rule_id )
-    my $token_name = $asf->spot_token_name($spot_id);
-    if ( defined $token_name ) {
-        my $literal = $asf->spot_literal($spot_id);
-        push @lines, qq{Spot $spot_id Symbol: $token_name "$literal"};
-        return \@lines;
-    }
-    # Should not reach here
-    push @lines,
-        (
-        join " ",
-        "UNKNOWN Spot $spot_id has",
-        ( scalar @children ),
-        " children"
-        );
-    push @lines, map { @{ dump_spot( $asf, $_ ) } } @children;
-    return \@lines;
-} ## end sub dump_spot
-
-sub my_dump {
-    my ($asf) = @_;
-    my $forest = $asf->forest();
-    my $lines = dump_spot( $asf, $forest );
-
-    # return join "\n", ( map { substr $_, 2 } @{$lines}[ 1 .. $#{$lines} ] ),
-    # q{};
-    return join "\n", @{$lines}[ 0 .. $#{$lines} ], q{};
-} ## end sub my_dump
+# CHOICEPOINT_SEEN is a local -- this is to silence warnings
+our %CHOICEPOINT_SEEN;
 
 sub form_choice {
     my ( $parent_choice, $sub_choice ) = @_;
     return $sub_choice if not defined $parent_choice;
     return join q{.}, $parent_choice, $sub_choice;
 }
+
+sub show_symches {
+    my ( $choicepoint, $parent_choice, $item_ix ) = @_;
+    my $id = $choicepoint->base_id();
+    if ( $CHOICEPOINT_SEEN{$id} ) {
+        return ["CP$id already displayed"];
+    }
+    $CHOICEPOINT_SEEN{$id} = 1;
+
+    # Check if choicepoint already seen?
+    my $grammar      = $choicepoint->grammar();
+    my @lines        = ();
+    my $symch_indent = q{};
+
+    my $symch_count  = $choicepoint->symch_count();
+    my $symch_choice = $parent_choice;
+    if ( $symch_count > 1 ) {
+        $item_ix //= 0;
+        push @lines,
+              "Symbol #$item_ix, "
+            . $choicepoint->symbol_name()
+            . ", has $symch_count symches";
+        $symch_indent .= q{  };
+        $symch_choice = form_choice( $parent_choice, $item_ix );
+    } ## end if ( $symch_count > 1 )
+    for ( my $symch_ix = 0; $symch_ix < $symch_count; $symch_ix++ ) {
+        $choicepoint->symch_set($symch_ix);
+        my $current_choice =
+            $symch_count > 1
+            ? form_choice( $symch_choice, $symch_ix )
+            : $symch_choice;
+        my $indent = $symch_indent;
+        if ( $symch_count > 1 ) {
+            push @lines, $symch_indent . "Symch #$current_choice";
+        }
+        my $rule_id = $choicepoint->rule_id();
+        if ( defined $rule_id ) {
+            push @lines,
+                (     $symch_indent
+                    . "CP$id Rule "
+                    . $grammar->brief_rule($rule_id) ),
+                map { $symch_indent . q{  } . $_ }
+                @{ show_factorings( $choicepoint, $current_choice ) };
+        } ## end if ( $rule_id >= 0 )
+        else {
+            push @lines,
+                map { $symch_indent . $_ }
+                @{ show_symch_tokens( $choicepoint, $current_choice ) };
+        }
+    } ## end for ( my $symch_ix = 0; $symch_ix < $symch_count; $symch_ix...)
+    return \@lines;
+} ## end sub show_symches
+
+# Show all the factorings of a SYMCH
+sub show_factorings {
+    my ( $choicepoint, $parent_choice ) = @_;
+
+    # Check if choicepoint already seen?
+    my @lines;
+    my $factor_ix = 0;
+    my $nid_count = $choicepoint->nid_count();
+    for ( my $nid_ix = 0; $nid_ix < $nid_count; $nid_ix++ ) {
+        $choicepoint->nid_set($nid_ix);
+
+        $choicepoint->first_factoring();
+        my $factoring = $choicepoint->factors();
+
+        my $choicepoint_is_ambiguous = $choicepoint->ambiguous_prefix();
+        my $factoring_is_ambiguous   = ( $nid_count > 1 )
+            || $choicepoint_is_ambiguous;
+        FACTOR: while ( defined $factoring ) {
+            my $current_choice =
+                $factoring_is_ambiguous
+                ? form_choice( $parent_choice, $factor_ix )
+                : $parent_choice;
+            my $indent = q{};
+            if ($factoring_is_ambiguous) {
+                push @lines, "Factoring #$current_choice";
+                $indent = q{  };
+            }
+            for ( my $item_ix = $#{$factoring}; $item_ix >= 0; $item_ix-- ) {
+                my $item_choicepoint = $factoring->[$item_ix];
+                push @lines, map { $indent . $_ } @{
+                    show_symches(
+                        $item_choicepoint, $current_choice,
+                        ( $#{$factoring} - $item_ix )
+                    )
+                    };
+            } ## end for ( my $item_ix = $#{$factoring}; $item_ix >= 0; ...)
+            $choicepoint->next_factoring();
+            $factoring = $choicepoint->factors();
+            $factor_ix++;
+        } ## end FACTOR: while ( defined $factoring )
+    } ## end for ( my $nid_ix = 0; $nid_ix < $nid_count; $nid_ix++)
+    return \@lines;
+} ## end sub show_factorings
+
+# Show all the tokens of a SYMCH
+sub show_symch_tokens {
+    my ($choicepoint) = @_;
+    my $base_id = $choicepoint->base_id();
+
+    # Check if choicepoint already seen?
+    my @lines;
+
+    for ( my $nid_ix = 0; $choicepoint->nid_set($nid_ix); $nid_ix++ ) {
+        my $literal     = $choicepoint->literal();
+        my $symbol_name = $choicepoint->symbol_name();
+        push @lines, qq{CP$base_id Symbol: $symbol_name "$literal"};
+    }
+    return \@lines;
+} ## end sub show_symch_tokens
+
+sub show {
+    my ($asf) = @_;
+    my $top = $asf->top();
+    local %CHOICEPOINT_SEEN = ();  ## no critic (Variables::ProhibitLocalVars)
+    my $lines = show_symches($top);
+    return join "\n", ( map { substr $_, 2 } @{$lines}[ 1 .. $#{$lines} ] ),
+        q{};
+} ## end sub show
 
 # vim: expandtab shiftwidth=4:
