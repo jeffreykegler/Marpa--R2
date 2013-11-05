@@ -938,7 +938,7 @@ sub and_nodes_to_cause_nids {
     return [ keys %causes ];
 } ## end sub and_nodes_to_cause_nids
 
-sub Marpa::R2::Choicepoint::factors {
+sub glade_id_factors {
     my ($choicepoint) = @_;
     my $asf           = $choicepoint->[Marpa::R2::Internal::Choicepoint::ASF];
     my $slr           = $asf->[Marpa::R2::Internal::ASF::SLR];
@@ -970,11 +970,35 @@ sub Marpa::R2::Choicepoint::factors {
                     .. $nook->[Marpa::R2::Internal::Nook::LAST_CHOICE]
             )
         );
-        my $new_choicepoint = new_choicepoint($asf, @{$cause_nids} );
-        push @result, $new_choicepoint;
+        my $base_nidset = Marpa::R2::Nidset->obtain( $asf, @{$cause_nids} );
+        my $glade_id = $base_nidset->id();
+
+        # say STDERR "Registering glade id $glade_id";
+        $asf->[Marpa::R2::Internal::ASF::GLADES]->[$glade_id]
+            ->[Marpa::R2::Internal::Glade::REGISTERED] = 1;
+        push @result, $glade_id;
     } ## end FACTOR: for ( my $factor_ix = 0; $factor_ix <= $#{...})
     return \@result;
+} ## end sub glade_id_factors
+
+sub Marpa::R2::Choicepoint::factors {
+    my ($choicepoint) = @_;
+    my $asf = $choicepoint->[Marpa::R2::Internal::Choicepoint::ASF];
+    my @result;
+    my $factoring_stack =
+        $choicepoint->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK];
+    return if not $factoring_stack;
+    my $glade_ids = glade_id_factors($choicepoint);
+    GLADE:
+    for my $glade_id ( @{$glade_ids} ) {
+        my $nidset =
+            $asf->[Marpa::R2::Internal::ASF::NIDSET_BY_ID]->[$glade_id];
+        my $new_choicepoint = nidset_to_choicepoint( $asf, $nidset );
+        push @result, $new_choicepoint;
+    } ## end GLADE: for my $glade_id ( @{$glade_ids} )
+    return \@result;
 } ## end sub Marpa::R2::Choicepoint::factors
+
 
 # Return the size of the choicepoint ambiguous prefix.
 # This is the last point in the factoring stack with an ambiguity.
