@@ -232,7 +232,7 @@ sub nook_has_semantic_cause {
 # No check for conflicting usage -- value(), asf(), etc.
 # at this point
 sub Marpa::R2::ASF::peak {
-    my ($asf) = @_;
+    my ($asf)    = @_;
     my $or_nodes = $asf->[Marpa::R2::Internal::ASF::OR_NODES];
     my $slr      = $asf->[Marpa::R2::Internal::ASF::SLR];
     my $recce    = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
@@ -244,15 +244,17 @@ sub Marpa::R2::ASF::peak {
     my $start_or_node_id =
         $bocage->_marpa_b_and_node_cause($augment_and_node_id);
 
-    my $top = new_choicepoint($asf, $start_or_node_id );
-    my $peak = choicepoint_to_glade( $asf, $top );
-    return $peak;
-} ## end sub Marpa::R2::ASF::top
+    my $base_nidset = Marpa::R2::Nidset->obtain( $asf, $start_or_node_id );
+    my $glade_id = $base_nidset->id();
+
+    # Cannot "obtain" the glade if it is not registered
+    $asf->[Marpa::R2::Internal::ASF::GLADES]->[$glade_id]
+        ->[Marpa::R2::Internal::Glade::REGISTERED] = 1;
+    glade_obtain($asf, $glade_id);
+    return $glade_id;
+} ## end sub Marpa::R2::ASF::peak
 
 our $SPOT_LEAF_BASE = -43;
-our $SPOT_IS_FACTORING = -40;
-our $SPOT_IS_SYMCH = -39;
-our $SPOT_IS_PROBLEM = -38;
 
 # Range from -1 to -42 reserved for special values
 sub and_node_to_nid { return -$_[0] + $SPOT_LEAF_BASE; }
@@ -409,15 +411,6 @@ sub Marpa::R2::ASF::new {
 
 } ## end sub Marpa::R2::ASF::new
 
-sub new_choicepoint {
-    my ( $asf, @nids ) = @_;
-    my $base_nidset = Marpa::R2::Nidset->obtain( $asf, @nids );
-    my $glade_id = $base_nidset->id();
-    # say STDERR "Registering glade id $glade_id";
-    $asf->[Marpa::R2::Internal::ASF::GLADES]->[$glade_id]->[Marpa::R2::Internal::Glade::REGISTERED] = 1;
-    return nidset_to_choicepoint($asf, $base_nidset);
-}
-
 sub nidset_to_choicepoint {
     my ( $asf, $base_nidset ) = @_;
     my @source_data = ();
@@ -462,7 +455,7 @@ sub nidset_to_choicepoint {
     $cp->[Marpa::R2::Internal::Choicepoint::SYMCH_IX]        = 0;
     $cp->[Marpa::R2::Internal::Choicepoint::NID_IX]          = 0;
     return $cp;
-} ## end sub new_choicepoint
+}
 
 sub Marpa::R2::ASF::glade_is_visited {
     my ( $asf, $glade_id ) = @_;
