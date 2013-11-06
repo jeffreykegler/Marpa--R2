@@ -1133,6 +1133,26 @@ sub Marpa::R2::ASF::symch_rule_id {
     return $rule_id;
 }
 
+sub Marpa::R2::ASF::symch_factoring_count {
+    my ($asf, $glade_id, $symch_ix)   = @_;
+    my $glade = glade_obtain($asf, $glade_id);
+    my $symches = $glade->[Marpa::R2::Internal::Glade::SYMCHES];
+    return if $symch_ix > $#{$symches};
+    return $#{$symches->[$symch_ix]} - 1; # length minus 2
+}
+
+sub Marpa::R2::ASF::factoring_symbol_count {
+    my ($asf, $glade_id, $symch_ix, $factoring_ix)   = @_;
+    my $glade = glade_obtain($asf, $glade_id);
+    my $symches = $glade->[Marpa::R2::Internal::Glade::SYMCHES];
+    return if $symch_ix > $#{$symches};
+    my $symch = $symches->[$symch_ix];
+    my (undef, undef, @factorings) = @{$symch};
+    return if $factoring_ix >= scalar @factorings;
+    my $factoring = $factorings[$factoring_ix];
+    return scalar @{$factoring};
+}
+
 sub Marpa::R2::ASF::show_nidsets {
     my ($asf)   = @_;
     my $text    = q{};
