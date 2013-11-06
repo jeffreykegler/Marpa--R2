@@ -231,7 +231,7 @@ sub nook_has_semantic_cause {
 
 # No check for conflicting usage -- value(), asf(), etc.
 # at this point
-sub Marpa::R2::ASF::top {
+sub Marpa::R2::ASF::peak {
     my ($asf) = @_;
     my $or_nodes = $asf->[Marpa::R2::Internal::ASF::OR_NODES];
     my $slr      = $asf->[Marpa::R2::Internal::ASF::SLR];
@@ -245,16 +245,9 @@ sub Marpa::R2::ASF::top {
         $bocage->_marpa_b_and_node_cause($augment_and_node_id);
 
     my $top = new_choicepoint($asf, $start_or_node_id );
-    return $top;
-} ## end sub Marpa::R2::ASF::top
-
-# Eventually eliminate top() and fold into this
-sub Marpa::R2::ASF::peak {
-    my ($asf) = @_;
-    my $top = $asf->top();
     my $peak = choicepoint_to_glade( $asf, $top );
     return $peak;
-} ## end sub Marpa::R2::ASF::peak
+} ## end sub Marpa::R2::ASF::top
 
 our $SPOT_LEAF_BASE = -43;
 our $SPOT_IS_FACTORING = -40;
@@ -523,12 +516,6 @@ sub Marpa::R2::ASF::grammar {
     return $grammar;
 }
 
-sub Marpa::R2::Choicepoint::grammar {
-    my ($choicepoint) = @_;
-    my $asf           = $choicepoint->[Marpa::R2::Internal::Choicepoint::ASF];
-    return $asf->grammar();
-} ## end sub Marpa::R2::Choicepoint::grammar
-
 # ID of the NID set on which the choicepoint is based.  Two or more choicepoints
 # may share the same base ID.
 sub Marpa::R2::Choicepoint::base_id {
@@ -760,7 +747,6 @@ sub Marpa::R2::Choicepoint::first_factoring {
     my $asf      = $choicepoint->[Marpa::R2::Internal::Choicepoint::ASF];
     my $or_nodes = $asf->[Marpa::R2::Internal::ASF::OR_NODES];
     if ( not scalar @{ $or_nodes->[$nid_of_choicepoint] } ) {
-        $choicepoint->[Marpa::R2::Internal::Choicepoint::IS_EXHAUSTED] = 1;
         $choicepoint->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK] =
             undef;
         return;
@@ -803,8 +789,6 @@ sub factoring_iterate {
         $choicepoint->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK];
     FIND_NODE_TO_ITERATE: while (1) {
         if ( not scalar @{$factoring_stack} ) {
-            $choicepoint->[Marpa::R2::Internal::Choicepoint::IS_EXHAUSTED] =
-                1;
             $choicepoint->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK]
                 = undef;
             return;
@@ -980,71 +964,6 @@ sub glade_id_factors {
     } ## end FACTOR: for ( my $factor_ix = 0; $factor_ix <= $#{...})
     return \@result;
 } ## end sub glade_id_factors
-
-sub Marpa::R2::Choicepoint::factors {
-    my ($choicepoint) = @_;
-    my $asf = $choicepoint->[Marpa::R2::Internal::Choicepoint::ASF];
-    my @result;
-    my $factoring_stack =
-        $choicepoint->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK];
-    return if not $factoring_stack;
-    my $glade_ids = glade_id_factors($choicepoint);
-    GLADE:
-    for my $glade_id ( @{$glade_ids} ) {
-        my $nidset =
-            $asf->[Marpa::R2::Internal::ASF::NIDSET_BY_ID]->[$glade_id];
-        my $new_choicepoint = nidset_to_choicepoint( $asf, $nidset );
-        push @result, $new_choicepoint;
-    } ## end GLADE: for my $glade_id ( @{$glade_ids} )
-    return \@result;
-} ## end sub Marpa::R2::Choicepoint::factors
-
-
-# Return the size of the choicepoint ambiguous prefix.
-# This is the last point in the factoring stack with an ambiguity.
-# if the choicepoint is ambiguous, it is greater than 0.
-# If the choicepoint is unambiguous, it is always 0.
-# The concept of "point in the factoring stack" is internal.
-sub Marpa::R2::Choicepoint::ambiguous_prefix {
-    my ($choicepoint) = @_;
-    my $asf           = $choicepoint->[Marpa::R2::Internal::Choicepoint::ASF];
-    my $or_nodes      = $asf->[Marpa::R2::Internal::ASF::OR_NODES];
-    my $slr           = $asf->[Marpa::R2::Internal::ASF::SLR];
-    my $recce         = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
-    my $bocage        = $recce->[Marpa::R2::Internal::Recognizer::B_C];
-
-    my $factoring_stack =
-        $choicepoint->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK];
-    Marpa::R2::exception('ASF choicepoint factoring was never initialized')
-        if not defined $factoring_stack;
-    STACK_POS:
-    for (
-        my $stack_pos = $#{$factoring_stack};
-        $stack_pos >= 0;
-        $stack_pos--
-        )
-    {
-        my $nook      = $factoring_stack->[$stack_pos];
-        my $or_node   = $nook->[Marpa::R2::Internal::Nook::OR_NODE];
-        my $and_nodes = $or_nodes->[$or_node];
-        next STACK_POS if scalar @{$and_nodes} <= 1;
-        FIND_AMBIGUITY: {
-            last FIND_AMBIGUITY if not nook_has_semantic_cause( $asf, $nook );
-            my $first_predecessor =
-                $bocage->_marpa_b_and_node_predecessor( $and_nodes->[0] )
-                // -1;
-            for my $and_node_id ( @{$and_nodes}[ 1 .. $#{$and_nodes} ] ) {
-                last FIND_AMBIGUITY
-                    if $first_predecessor
-                    != ( $bocage->_marpa_b_and_node_predecessor($and_node_id)
-                        // -1 );
-            } ## end for my $and_node_id ( @{$and_nodes}[ 1 .. $#{$and_nodes...}])
-            next STACK_POS;
-        } ## end FIND_AMBIGUITY:
-        return $stack_pos + 1;
-    } ## end STACK_POS: for ( my $stack_pos = $#{$factoring_stack}; $stack_pos...)
-    return 0;
-} ## end sub Marpa::R2::Choicepoint::ambiguous_prefix
 
 sub glade_obtain {
     my ( $asf, $glade_id ) = @_;
