@@ -447,23 +447,23 @@ sub form_choice {
 sub show_symches {
     my ( $asf, $glade_id, $parent_choice, $item_ix ) = @_;
     if ( $GLADE_SEEN{$glade_id} ) {
-        return ["CP$glade_id already displayed"];
+        return [ [0, "CP$glade_id already displayed"] ];
     }
     $GLADE_SEEN{$glade_id} = 1;
 
     my $grammar      = $asf->grammar();
     my @lines        = ();
-    my $symch_indent = q{};
+    my $symch_indent = 0;
 
     my $symch_count  = $asf->glade_symch_count($glade_id);
     my $symch_choice = $parent_choice;
     if ( $symch_count > 1 ) {
         $item_ix //= 0;
         push @lines,
-              "Symbol #$item_ix, "
+              [ 0, "Symbol #$item_ix, "
             . $asf->glade_symbol_name($glade_id)
-            . ", has $symch_count symches";
-        $symch_indent .= q{  };
+            . ", has $symch_count symches" ];
+        $symch_indent += 2;
         $symch_choice = form_choice( $parent_choice, $item_ix );
     } ## end if ( $symch_count > 1 )
     for ( my $symch_ix = 0; $symch_ix < $symch_count; $symch_ix++ ) {
@@ -473,26 +473,32 @@ sub show_symches {
             : $symch_choice;
         my $indent = $symch_indent;
         if ( $symch_count > 1 ) {
-            push @lines, $symch_indent . "Symch #$current_choice";
+            push @lines, [ $symch_indent , "Symch #$current_choice" ];
         }
         my $rule_id = $asf->symch_rule_id( $glade_id, $symch_ix );
         if ( $rule_id >= 0 ) {
             push @lines,
-                (     $symch_indent
-                    . "CP$glade_id Rule "
-                    . $grammar->brief_rule($rule_id) ),
-                map { $symch_indent . q{  } . $_ } @{
-                show_factorings(
+                [
+                $symch_indent,
+                "CP$glade_id Rule " . $grammar->brief_rule($rule_id)
+                ];
+            for my $line (
+                @{ show_factorings(
                     $asf, $glade_id, $symch_ix, $current_choice
+                ) }
                 )
-                };
-        } ## end if ( defined $rule_id )
+            {
+                my ( $line_indent, $body ) = @{$line};
+                push @lines, [ $line_indent + $symch_indent + 2, $body ];
+            } ## end for my $line ( show_factorings( $asf, $glade_id, ...))
+        } ## end if ( $rule_id >= 0 )
         else {
-            push @lines, map { $symch_indent . $_ } @{
-                show_terminal( $asf, $glade_id, $current_choice )
-                };
-        } ## end else [ if ( defined $rule_id ) ]
+            my $line = show_terminal( $asf, $glade_id, $current_choice );
+            my ( $line_indent, $body ) = @{$line};
+            push @lines, [ $line_indent + $symch_indent, $body ];
+        } ## end else [ if ( $rule_id >= 0 ) ]
     } ## end for ( my $symch_ix = 0; $symch_ix < $symch_count; $symch_ix...)
+    say "show_symches = ", Data::Dumper::Dumper(\@lines);
     return \@lines;
 } ## end sub show_symches
 
@@ -508,12 +514,12 @@ sub show_factorings {
         $factoring_ix++
         )
     {
-        my $indent         = q{};
+        my $indent         = 0;
         my $current_choice = $parent_choice;
         if ( $factoring_count > 1 ) {
-            $indent = q{  };
+            $indent = 2;
             $current_choice = form_choice( $parent_choice, $factoring_ix );
-            push @lines, "Factoring #$current_choice";
+            push @lines, [ 0, "Factoring #$current_choice" ];
         }
         my $symbol_count =
             $asf->factoring_symbol_count( $glade_id, $symch_ix,
@@ -522,10 +528,16 @@ sub show_factorings {
             my $downglade_id =
                 $asf->factor_downglade_id( $glade_id, $symch_ix,
                 $factoring_ix, $symbol_ix );
-            push @lines, map { $indent . $_ } @{
-                show_symches( $asf, $downglade_id, $current_choice,
-                    $symbol_ix )
-                };
+            for my $line (
+                @{ show_symches(
+                    $asf, $downglade_id, $current_choice, $symbol_ix
+                ) }
+                )
+            {
+                my ( $line_indent, $body ) = @{$line};
+                push @lines, [ $line_indent + $indent, $body ];
+
+            } ## end for my $line ( show_symches( $asf, $downglade_id, ...))
         } ## end SYMBOL: for my $symbol_ix ( 0 .. $symbol_count - 1 )
     } ## end for ( my $factoring_ix = 0; $factoring_ix < $factoring_count...)
     return \@lines;
@@ -538,16 +550,22 @@ sub show_terminal {
     my $current_choice = $parent_choice;
     my $literal        = $asf->glade_literal($glade_id);
     my $symbol_name    = $asf->glade_symbol_name($glade_id);
-    return [ qq{CP$glade_id Symbol: $symbol_name "$literal"} ]
+    return [0, qq{CP$glade_id Symbol: $symbol_name "$literal"}];
 } ## end sub show_terminal
 
 sub show {
     my ($asf) = @_;
     my $peak = $asf->peak();
-    local %GLADE_SEEN = ();  ## no critic (Variables::ProhibitLocalVars)
-    my $lines = show_symches($asf, $peak);
-    return join "\n", ( map { substr $_, 2 } @{$lines}[ 1 .. $#{$lines} ] ),
-        q{};
+    local %GLADE_SEEN = ();    ## no critic (Variables::ProhibitLocalVars)
+    my $lines = show_symches( $asf, $peak );
+    # die Data::Dumper::Dumper($lines);
+    my $text = q{};
+    for my $line ( @{$lines}[ 1 .. $#$lines ] ) {
+        my ( $line_indent, $body ) = @{$line};
+        $line_indent -= 2;
+        $text .= ( q{ } x $line_indent ) . $body . "\n";
+    }
+    return $text;
 } ## end sub show
 
 # vim: expandtab shiftwidth=4:
