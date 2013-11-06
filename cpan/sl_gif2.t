@@ -126,15 +126,15 @@ push @tests_data, [
 CP2 Rule 1: top -> b b
   Factoring #0
     CP5 Rule 3: b -> a
-      CP8 Symbol: a "a"
-    CP4 Rule 2: b -> a a
-      CP10 Symbol: a "a"
       CP9 Symbol: a "a"
+    CP4 Rule 2: b -> a a
+      CP11 Symbol: a "a"
+      CP10 Symbol: a "a"
   Factoring #1
-    CP6 Rule 2: b -> a a
+    CP7 Rule 2: b -> a a
       CP15 Symbol: a "a"
       CP14 Symbol: a "a"
-    CP12 Rule 3: b -> a
+    CP6 Rule 3: b -> a
       CP18 Symbol: a "a"
 END_OF_ASF
     'ASF OK',
@@ -159,16 +159,16 @@ push @tests_data, [
 CP2 Rule 1: sequence -> item+
   Factoring #0
     CP4 Rule 2: item -> pair
-      CP6 Rule 5: pair -> item item
-        CP8 Rule 3: item -> singleton
+      CP8 Rule 5: pair -> item item
+        CP6 Rule 3: item -> singleton
           CP1 Rule 4: singleton -> [Lex-0]
-            CP10 Symbol: [Lex-0] "a"
-        CP7 Rule 3: item -> singleton
-          CP12 Rule 4: singleton -> [Lex-0]
-            CP13 Symbol: [Lex-0] "a"
+            CP9 Symbol: [Lex-0] "a"
+        CP5 Rule 3: item -> singleton
+          CP10 Rule 4: singleton -> [Lex-0]
+            CP12 Symbol: [Lex-0] "a"
   Factoring #1
-    CP8 already displayed
-    CP7 already displayed
+    CP6 already displayed
+    CP5 already displayed
 END_OF_ASF
     'ASF OK',
     'Sequence grammar for "aa"'
@@ -181,35 +181,35 @@ push @tests_data, [
 CP2 Rule 1: sequence -> item+
   Factoring #0
     CP4 Rule 2: item -> pair
-      CP6 Rule 5: pair -> item item
+      CP11 Rule 5: pair -> item item
         Factoring #0.0
-          CP9 Rule 2: item -> pair
-            CP11 Rule 5: pair -> item item
-              CP13 Rule 3: item -> singleton
+          CP6 Rule 2: item -> pair
+            CP13 Rule 5: pair -> item item
+              CP8 Rule 3: item -> singleton
                 CP1 Rule 4: singleton -> [Lex-0]
                   CP16 Symbol: [Lex-0] "a"
               CP7 Rule 3: item -> singleton
-                CP18 Rule 4: singleton -> [Lex-0]
+                CP19 Rule 4: singleton -> [Lex-0]
                   CP20 Symbol: [Lex-0] "a"
-          CP8 Rule 3: item -> singleton
+          CP5 Rule 3: item -> singleton
             CP21 Rule 4: singleton -> [Lex-0]
               CP23 Symbol: [Lex-0] "a"
         Factoring #0.1
-          CP13 already displayed
-          CP24 Rule 2: item -> pair
-            CP19 Rule 5: pair -> item item
+          CP8 already displayed
+          CP9 Rule 2: item -> pair
+            CP24 Rule 5: pair -> item item
               CP7 already displayed
-              CP8 already displayed
+              CP5 already displayed
   Factoring #1
-    CP9 already displayed
-    CP8 already displayed
+    CP6 already displayed
+    CP5 already displayed
   Factoring #2
-    CP13 already displayed
-    CP7 already displayed
     CP8 already displayed
+    CP7 already displayed
+    CP5 already displayed
   Factoring #3
-    CP13 already displayed
-    CP24 already displayed
+    CP8 already displayed
+    CP9 already displayed
 END_OF_ASF
     'ASF OK',
     'Sequence grammar for "aaa"'
@@ -234,28 +234,28 @@ push @tests_data, [
 CP2 Rule 1: sequence -> item+
   Factoring #0
     CP4 Rule 2: item -> pair
-      CP6 Rule 7: pair -> item item
+      CP8 Rule 7: pair -> item item
         Symbol #0, item, has 2 symches
           Symch #0.0.0
-          CP9 Rule 3: item -> Hesperus
-            CP14 Rule 5: Hesperus -> [Lex-0]
-              CP15 Symbol: [Lex-0] "a"
+          CP6 Rule 3: item -> Hesperus
+            CP12 Rule 5: Hesperus -> [Lex-0]
+              CP13 Symbol: [Lex-0] "a"
           Symch #0.0.1
-          CP9 Rule 4: item -> Phosphorus
+          CP6 Rule 4: item -> Phosphorus
             CP1 Rule 6: Phosphorus -> [Lex-1]
-              CP16 Symbol: [Lex-1] "a"
+              CP15 Symbol: [Lex-1] "a"
         Symbol #1, item, has 2 symches
           Symch #0.1.0
-          CP8 Rule 3: item -> Hesperus
-            CP18 Rule 5: Hesperus -> [Lex-0]
+          CP5 Rule 3: item -> Hesperus
+            CP9 Rule 5: Hesperus -> [Lex-0]
               CP20 Symbol: [Lex-0] "a"
           Symch #0.1.1
-          CP8 Rule 4: item -> Phosphorus
-            CP22 Rule 6: Phosphorus -> [Lex-1]
-              CP24 Symbol: [Lex-1] "a"
+          CP5 Rule 4: item -> Phosphorus
+            CP19 Rule 6: Phosphorus -> [Lex-1]
+              CP23 Symbol: [Lex-1] "a"
   Factoring #1
-    CP9 already displayed
-    CP8 already displayed
+    CP6 already displayed
+    CP5 already displayed
 END_OF_ASF
     'ASF OK',
     'Sequence grammar for "aa"'
@@ -277,13 +277,13 @@ push @tests_data, [
     <<'END_OF_ASF',
 CP2 Rule 1: top -> a a a a
   CP1 Rule 2: a -> [Lex-0]
-    CP9 Symbol: [Lex-0] "a"
+    CP7 Symbol: [Lex-0] "a"
   CP3 Rule 2: a -> [Lex-0]
     CP10 Symbol: [Lex-0] "a"
   CP5 Rule 2: a -> [Lex-0]
-    CP11 Symbol: [Lex-0] "a"
+    CP12 Symbol: [Lex-0] "a"
   CP4 Rule 2: a -> [Lex-0]
-    CP13 Symbol: [Lex-0] "a"
+    CP14 Symbol: [Lex-0] "a"
 END_OF_ASF
     'ASF OK',
     'Nulls grammar for "aaaa"'
@@ -297,26 +297,26 @@ CP2 Rule 1: top -> a a a a
   Factoring #0
     CP7 Symbol: a ""
     CP6 Rule 2: a -> [Lex-0]
-      CP11 Symbol: [Lex-0] "a"
-    CP5 Rule 2: a -> [Lex-0]
       CP13 Symbol: [Lex-0] "a"
-    CP4 Rule 2: a -> [Lex-0]
+    CP5 Rule 2: a -> [Lex-0]
       CP15 Symbol: [Lex-0] "a"
+    CP4 Rule 2: a -> [Lex-0]
+      CP18 Symbol: [Lex-0] "a"
   Factoring #1
     CP6 already displayed
-    CP17 Symbol: a ""
+    CP8 Symbol: a ""
     CP5 already displayed
     CP4 already displayed
   Factoring #2
     CP6 already displayed
     CP5 already displayed
-    CP18 Symbol: a ""
+    CP9 Symbol: a ""
     CP4 already displayed
   Factoring #3
     CP6 already displayed
     CP5 already displayed
     CP4 already displayed
-    CP20 Symbol: a ""
+    CP10 Symbol: a ""
 END_OF_ASF
     'ASF OK',
     'Nulls grammar for "aaa"'
@@ -331,34 +331,34 @@ CP2 Rule 1: top -> a a a a
     CP6 Symbol: a ""
     CP5 Symbol: a ""
     CP3 Rule 2: a -> [Lex-0]
-      CP11 Symbol: [Lex-0] "a"
+      CP15 Symbol: [Lex-0] "a"
     CP4 Rule 2: a -> [Lex-0]
-      CP13 Symbol: [Lex-0] "a"
+      CP18 Symbol: [Lex-0] "a"
   Factoring #1
     CP6 already displayed
     CP3 already displayed
-    CP15 Symbol: a ""
+    CP7 Symbol: a ""
     CP4 already displayed
   Factoring #2
     CP6 already displayed
     CP3 already displayed
     CP4 already displayed
-    CP17 Symbol: a ""
+    CP8 Symbol: a ""
   Factoring #3
     CP3 already displayed
     CP4 already displayed
-    CP20 Symbol: a ""
-    CP19 Symbol: a ""
+    CP10 Symbol: a ""
+    CP9 Symbol: a ""
   Factoring #4
     CP3 already displayed
-    CP23 Symbol: a ""
-    CP15 already displayed
+    CP11 Symbol: a ""
+    CP7 already displayed
     CP4 already displayed
   Factoring #5
     CP3 already displayed
-    CP23 already displayed
+    CP11 already displayed
     CP4 already displayed
-    CP17 already displayed
+    CP8 already displayed
 END_OF_ASF
     'ASF OK',
     'Nulls grammar for "aa"'
@@ -371,25 +371,25 @@ push @tests_data, [
 CP2 Rule 1: top -> a a a a
   Factoring #0
     CP7 Rule 2: a -> [Lex-0]
-      CP12 Symbol: [Lex-0] "a"
+      CP15 Symbol: [Lex-0] "a"
     CP6 Symbol: a ""
     CP5 Symbol: a ""
     CP4 Symbol: a ""
   Factoring #1
-    CP16 Symbol: a ""
+    CP10 Symbol: a ""
     CP7 already displayed
-    CP15 Symbol: a ""
-    CP14 Symbol: a ""
+    CP9 Symbol: a ""
+    CP8 Symbol: a ""
   Factoring #2
-    CP16 already displayed
-    CP20 Symbol: a ""
-    CP19 Symbol: a ""
+    CP10 already displayed
+    CP12 Symbol: a ""
+    CP11 Symbol: a ""
     CP7 already displayed
   Factoring #3
-    CP16 already displayed
-    CP20 already displayed
+    CP10 already displayed
+    CP12 already displayed
     CP7 already displayed
-    CP23 Symbol: a ""
+    CP13 Symbol: a ""
 END_OF_ASF
     'ASF OK',
     'Nulls grammar for "a"'
@@ -476,7 +476,7 @@ sub show_symches {
             push @lines, $symch_indent . "Symch #$current_choice";
         }
         my $rule_id = $asf->symch_rule_id( $glade_id, $symch_ix );
-        if ( $rule_id > 0 ) {
+        if ( $rule_id >= 0 ) {
             push @lines,
                 (     $symch_indent
                     . "CP$glade_id Rule "

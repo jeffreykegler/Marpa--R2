@@ -752,7 +752,7 @@ sub Marpa::R2::Choicepoint::first_factoring {
     # The caller should ensure that we are never called unless the current
     # NID is for a rule.
     my $nid_of_choicepoint = $choicepoint->nid();
-    Marpa::exception(
+    Marpa::R2::exception(
         "Internal error: first_factoring() called for negative NID: $nid_of_choicepoint"
     ) if $nid_of_choicepoint < 0;
 
@@ -1073,14 +1073,31 @@ sub choicepoint_to_glade {
     my $glade = $asf->[Marpa::R2::Internal::ASF::GLADES]->[$base_nidset_id];
 
     # Check if choicepoint already seen?
-    my @symches = ();
+    my @symches     = ();
     my $symch_count = $choicepoint->symch_count();
-    for ( my $symch_ix = 0; $symch_ix < $symch_count; $symch_ix++ ) {
+    SYMCH: for ( my $symch_ix = 0; $symch_ix < $symch_count; $symch_ix++ ) {
         $choicepoint->symch_set($symch_ix);
         my $symch_rule_id = $choicepoint->rule_id() // -1;
 
         # Initial undef indicates no factorings omitted
-        my @factorings = ($symch_rule_id, undef);
+        my @factorings = ( $symch_rule_id, undef );
+
+        # For a token
+        # There will not be multiple factorings or nids,
+        # it is assumed, for a token
+        if ( $symch_rule_id < 0 ) {
+            my $nid0        = $choicepoint->nid(0);
+            my $base_nidset = Marpa::R2::Nidset->obtain( $asf, $nid0 );
+            my $glade_id    = $base_nidset->id();
+
+            # say STDERR "Registering glade id $glade_id";
+            $asf->[Marpa::R2::Internal::ASF::GLADES]->[$glade_id]
+                ->[Marpa::R2::Internal::Glade::REGISTERED] = 1;
+            push @factorings, [$glade_id];
+            push @symches,    \@factorings;
+            next SYMCH;
+        } ## end if ( $symch_rule_id < 0 )
+
         my $nid_count = $choicepoint->nid_count();
         my $factorings_omitted;
         FACTORINGS_LOOP:
@@ -1091,10 +1108,11 @@ sub choicepoint_to_glade {
 
             FACTOR: while ( defined $factoring ) {
                 if ( scalar @factorings > 42 ) {
+
                     # update factorings omitted flag
                     $factorings[1] = 1;
                     last FACTORINGS_LOOP;
-                }
+                } ## end if ( scalar @factorings > 42 )
                 my @factoring = ();
                 for (
                     my $item_ix = $#{$factoring};
@@ -1110,7 +1128,7 @@ sub choicepoint_to_glade {
             } ## end FACTOR: while ( defined $factoring )
         } ## end FACTORINGS_LOOP: for ( my $nid_ix = 0; $nid_ix < $nid_count; $nid_ix...)
         push @symches, \@factorings;
-    } ## end for ( my $symch_ix = 0; $symch_ix < $symch_count; $symch_ix...)
+    } ## end SYMCH: for ( my $symch_ix = 0; $symch_ix < $symch_count; ...)
     $glade->[Marpa::R2::Internal::Glade::SYMCHES] = \@symches;
 
     # say STDERR "Created glade for glade id $base_nidset_id from choicepoint";
@@ -1169,6 +1187,19 @@ sub Marpa::R2::ASF::factoring_symbol_count {
     return if $factoring_ix >= scalar @factorings;
     my $factoring = $factorings[$factoring_ix];
     return scalar @{$factoring};
+}
+
+sub Marpa::R2::ASF::factor_downglade_id {
+    my ($asf, $glade_id, $symch_ix, $factoring_ix, $symbol_ix)   = @_;
+    my $glade = glade_obtain($asf, $glade_id);
+    my $symches = $glade->[Marpa::R2::Internal::Glade::SYMCHES];
+    return if $symch_ix > $#{$symches};
+    my $symch = $symches->[$symch_ix];
+    my (undef, undef, @factorings) = @{$symch};
+    return if $factoring_ix >= scalar @factorings;
+    my $factoring = $factorings[$factoring_ix];
+    return if $symbol_ix > $#{$factoring};
+    return $factoring->[$symbol_ix];
 }
 
 sub Marpa::R2::ASF::show_nidsets {
