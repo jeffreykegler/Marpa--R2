@@ -476,7 +476,7 @@ sub show_symches {
             push @lines, $symch_indent . "Symch #$current_choice";
         }
         my $rule_id = $asf->symch_rule_id( $glade_id, $symch_ix );
-        if ( defined $rule_id ) {
+        if ( $rule_id > 0 ) {
             push @lines,
                 (     $symch_indent
                     . "CP$glade_id Rule "
@@ -489,7 +489,7 @@ sub show_symches {
         } ## end if ( defined $rule_id )
         else {
             push @lines, map { $symch_indent . $_ } @{
-                show_symch_tokens( $asf, $glade_id, $symch_ix,
+                show_factorings( $asf, $glade_id, $symch_ix,
                     $current_choice )
                 };
         } ## end else [ if ( defined $rule_id ) ]

@@ -1074,22 +1074,27 @@ sub choicepoint_to_glade {
 
     # Check if choicepoint already seen?
     my @symches = ();
-    $glade->[Marpa::R2::Internal::Glade::TRUNCATED_SYMCHES] = [];
-
     my $symch_count = $choicepoint->symch_count();
     for ( my $symch_ix = 0; $symch_ix < $symch_count; $symch_ix++ ) {
         $choicepoint->symch_set($symch_ix);
+        my $symch_rule_id = $choicepoint->rule_id() // -1;
 
-        # Check if choicepoint already seen?
-        my @factorings;
+        # Initial undef indicates no factorings omitted
+        my @factorings = ($symch_rule_id, undef);
         my $nid_count = $choicepoint->nid_count();
+        my $factorings_omitted;
         FACTORINGS_LOOP:
         for ( my $nid_ix = 0; $nid_ix < $nid_count; $nid_ix++ ) {
             $choicepoint->nid_set($nid_ix);
             $choicepoint->first_factoring();
-            my $factoring = $choicepoint->factors();
+            my $factoring = glade_id_factors($choicepoint);
 
             FACTOR: while ( defined $factoring ) {
+                if ( scalar @factorings > 42 ) {
+                    # update factorings omitted flag
+                    $factorings[1] = 1;
+                    last FACTORINGS_LOOP;
+                }
                 my @factoring = ();
                 for (
                     my $item_ix = $#{$factoring};
@@ -1097,31 +1102,35 @@ sub choicepoint_to_glade {
                     $item_ix--
                     )
                 {
-                    my $item_choicepoint = $factoring->[$item_ix];
-                    push @factoring, $item_choicepoint->base_nidset();
+                    push @factoring, $factoring->[$item_ix];
                 } ## end for ( my $item_ix = $#{$factoring}; $item_ix >= 0; ...)
-                if ( scalar @factorings > 42 ) {
-                    $glade->[Marpa::R2::Internal::Glade::TRUNCATED_SYMCHES]
-                        ->[$symch_ix] = 42;
-                    last FACTORINGS_LOOP;
-                }
                 push @factorings, \@factoring;
                 $choicepoint->next_factoring();
-                $factoring = $choicepoint->factors();
+                $factoring = glade_id_factors($choicepoint);
             } ## end FACTOR: while ( defined $factoring )
         } ## end FACTORINGS_LOOP: for ( my $nid_ix = 0; $nid_ix < $nid_count; $nid_ix...)
         push @symches, \@factorings;
-    } ## end for
+    } ## end for ( my $symch_ix = 0; $symch_ix < $symch_count; $symch_ix...)
     $glade->[Marpa::R2::Internal::Glade::SYMCHES] = \@symches;
+
     # say STDERR "Created glade for glade id $base_nidset_id from choicepoint";
     $asf->[Marpa::R2::Internal::ASF::GLADES]->[$base_nidset_id] = $glade;
     return $base_nidset_id;
-}
+} ## end sub choicepoint_to_glade
 
 sub Marpa::R2::ASF::glade_symch_count {
     my ($asf, $glade_id)   = @_;
     my $glade = glade_obtain($asf, $glade_id);
     return scalar @{$glade->[Marpa::R2::Internal::Glade::SYMCHES]};
+}
+
+sub Marpa::R2::ASF::symch_rule_id {
+    my ($asf, $glade_id, $symch_ix)   = @_;
+    my $glade = glade_obtain($asf, $glade_id);
+    my $symches = $glade->[Marpa::R2::Internal::Glade::SYMCHES];
+    return if $symch_ix > $#{$symches};
+    my ($rule_id) = @{$symches->[$symch_ix]};
+    return $rule_id;
 }
 
 sub Marpa::R2::ASF::show_nidsets {
