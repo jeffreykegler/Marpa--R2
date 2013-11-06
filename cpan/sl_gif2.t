@@ -42,11 +42,11 @@ END_OF_SOURCE
 push @tests_data, [
     $aaaa_grammar, 'aaaa',
     <<'END_OF_ASF',
-CP2 Rule 1: quartet -> a a a a
-  CP7 Symbol: a "a"
-  CP6 Symbol: a "a"
-  CP5 Symbol: a "a"
-  CP4 Symbol: a "a"
+GL2 Rule 1: quartet -> a a a a
+  GL7 Symbol: a "a"
+  GL6 Symbol: a "a"
+  GL5 Symbol: a "a"
+  GL4 Symbol: a "a"
 END_OF_ASF
     'ASF OK',
     'Basic "a a a a" grammar'
@@ -82,13 +82,13 @@ push @tests_data, [
     <<'END_OF_ASF',
 Symbol #0, planet, has 2 symches
   Symch #0.0
-  CP2 Rule 1: planet -> hesperus
-    CP1 Rule 3: hesperus -> venus
-      CP7 Symbol: venus "venus"
+  GL2 Rule 1: planet -> hesperus
+    GL1 Rule 3: hesperus -> venus
+      GL7 Symbol: venus "venus"
   Symch #0.1
-  CP2 Rule 2: planet -> phosphorus
-    CP6 Rule 4: phosphorus -> venus
-      CP10 Symbol: venus "venus"
+  GL2 Rule 2: planet -> phosphorus
+    GL6 Rule 4: phosphorus -> venus
+      GL10 Symbol: venus "venus"
 END_OF_ASF
     'ASF OK',
     '"Hesperus is Phosphorus"" grammar'
@@ -98,11 +98,11 @@ END_OF_ASF
 push @tests_data, [
     $abcd_grammar, 'abcd',
     <<'END_OF_ASF',
-CP2 Rule 1: quartet -> a b c d
-  CP7 Symbol: a "a"
-  CP6 Symbol: b "b"
-  CP5 Symbol: c "c"
-  CP4 Symbol: d "d"
+GL2 Rule 1: quartet -> a b c d
+  GL7 Symbol: a "a"
+  GL6 Symbol: b "b"
+  GL5 Symbol: c "c"
+  GL4 Symbol: d "d"
 END_OF_ASF
     'ASF OK',
     'Basic "a b c d" grammar'
@@ -123,19 +123,19 @@ END_OF_SOURCE
 push @tests_data, [
     $bb_grammar, 'aaa',
     <<'END_OF_ASF',
-CP2 Rule 1: top -> b b
+GL2 Rule 1: top -> b b
   Factoring #0
-    CP5 Rule 3: b -> a
-      CP9 Symbol: a "a"
-    CP4 Rule 2: b -> a a
-      CP11 Symbol: a "a"
-      CP10 Symbol: a "a"
+    GL5 Rule 3: b -> a
+      GL9 Symbol: a "a"
+    GL4 Rule 2: b -> a a
+      GL11 Symbol: a "a"
+      GL10 Symbol: a "a"
   Factoring #1
-    CP7 Rule 2: b -> a a
-      CP15 Symbol: a "a"
-      CP14 Symbol: a "a"
-    CP6 Rule 3: b -> a
-      CP18 Symbol: a "a"
+    GL7 Rule 2: b -> a a
+      GL15 Symbol: a "a"
+      GL14 Symbol: a "a"
+    GL6 Rule 3: b -> a
+      GL18 Symbol: a "a"
 END_OF_ASF
     'ASF OK',
     '"b b" grammar'
@@ -156,19 +156,19 @@ END_OF_SOURCE
 push @tests_data, [
     $seq_grammar, 'aa',
     <<'END_OF_ASF',
-CP2 Rule 1: sequence -> item+
+GL2 Rule 1: sequence -> item+
   Factoring #0
-    CP4 Rule 2: item -> pair
-      CP8 Rule 5: pair -> item item
-        CP6 Rule 3: item -> singleton
-          CP1 Rule 4: singleton -> [Lex-0]
-            CP9 Symbol: [Lex-0] "a"
-        CP5 Rule 3: item -> singleton
-          CP10 Rule 4: singleton -> [Lex-0]
-            CP12 Symbol: [Lex-0] "a"
+    GL4 Rule 2: item -> pair
+      GL8 Rule 5: pair -> item item
+        GL6 Rule 3: item -> singleton
+          GL1 Rule 4: singleton -> [Lex-0]
+            GL9 Symbol: [Lex-0] "a"
+        GL5 Rule 3: item -> singleton
+          GL10 Rule 4: singleton -> [Lex-0]
+            GL12 Symbol: [Lex-0] "a"
   Factoring #1
-    CP6 already displayed
-    CP5 already displayed
+    GL6 already displayed
+    GL5 already displayed
 END_OF_ASF
     'ASF OK',
     'Sequence grammar for "aa"'
@@ -178,38 +178,38 @@ END_OF_ASF
 push @tests_data, [
     $seq_grammar, 'aaa',
     <<'END_OF_ASF',
-CP2 Rule 1: sequence -> item+
+GL2 Rule 1: sequence -> item+
   Factoring #0
-    CP4 Rule 2: item -> pair
-      CP11 Rule 5: pair -> item item
+    GL4 Rule 2: item -> pair
+      GL11 Rule 5: pair -> item item
         Factoring #0.0
-          CP6 Rule 2: item -> pair
-            CP13 Rule 5: pair -> item item
-              CP8 Rule 3: item -> singleton
-                CP1 Rule 4: singleton -> [Lex-0]
-                  CP16 Symbol: [Lex-0] "a"
-              CP7 Rule 3: item -> singleton
-                CP19 Rule 4: singleton -> [Lex-0]
-                  CP20 Symbol: [Lex-0] "a"
-          CP5 Rule 3: item -> singleton
-            CP21 Rule 4: singleton -> [Lex-0]
-              CP23 Symbol: [Lex-0] "a"
+          GL6 Rule 2: item -> pair
+            GL13 Rule 5: pair -> item item
+              GL8 Rule 3: item -> singleton
+                GL1 Rule 4: singleton -> [Lex-0]
+                  GL16 Symbol: [Lex-0] "a"
+              GL7 Rule 3: item -> singleton
+                GL19 Rule 4: singleton -> [Lex-0]
+                  GL20 Symbol: [Lex-0] "a"
+          GL5 Rule 3: item -> singleton
+            GL21 Rule 4: singleton -> [Lex-0]
+              GL23 Symbol: [Lex-0] "a"
         Factoring #0.1
-          CP8 already displayed
-          CP9 Rule 2: item -> pair
-            CP24 Rule 5: pair -> item item
-              CP7 already displayed
-              CP5 already displayed
+          GL8 already displayed
+          GL9 Rule 2: item -> pair
+            GL24 Rule 5: pair -> item item
+              GL7 already displayed
+              GL5 already displayed
   Factoring #1
-    CP6 already displayed
-    CP5 already displayed
+    GL6 already displayed
+    GL5 already displayed
   Factoring #2
-    CP8 already displayed
-    CP7 already displayed
-    CP5 already displayed
+    GL8 already displayed
+    GL7 already displayed
+    GL5 already displayed
   Factoring #3
-    CP8 already displayed
-    CP9 already displayed
+    GL8 already displayed
+    GL9 already displayed
 END_OF_ASF
     'ASF OK',
     'Sequence grammar for "aaa"'
@@ -231,31 +231,31 @@ END_OF_SOURCE
 push @tests_data, [
     $venus_seq_grammar, 'aa',
     <<'END_OF_ASF',
-CP2 Rule 1: sequence -> item+
+GL2 Rule 1: sequence -> item+
   Factoring #0
-    CP4 Rule 2: item -> pair
-      CP8 Rule 7: pair -> item item
+    GL4 Rule 2: item -> pair
+      GL8 Rule 7: pair -> item item
         Symbol #0, item, has 2 symches
           Symch #0.0.0
-          CP6 Rule 3: item -> Hesperus
-            CP12 Rule 5: Hesperus -> [Lex-0]
-              CP13 Symbol: [Lex-0] "a"
+          GL6 Rule 3: item -> Hesperus
+            GL12 Rule 5: Hesperus -> [Lex-0]
+              GL13 Symbol: [Lex-0] "a"
           Symch #0.0.1
-          CP6 Rule 4: item -> Phosphorus
-            CP1 Rule 6: Phosphorus -> [Lex-1]
-              CP15 Symbol: [Lex-1] "a"
+          GL6 Rule 4: item -> Phosphorus
+            GL1 Rule 6: Phosphorus -> [Lex-1]
+              GL15 Symbol: [Lex-1] "a"
         Symbol #1, item, has 2 symches
           Symch #0.1.0
-          CP5 Rule 3: item -> Hesperus
-            CP9 Rule 5: Hesperus -> [Lex-0]
-              CP20 Symbol: [Lex-0] "a"
+          GL5 Rule 3: item -> Hesperus
+            GL9 Rule 5: Hesperus -> [Lex-0]
+              GL20 Symbol: [Lex-0] "a"
           Symch #0.1.1
-          CP5 Rule 4: item -> Phosphorus
-            CP19 Rule 6: Phosphorus -> [Lex-1]
-              CP23 Symbol: [Lex-1] "a"
+          GL5 Rule 4: item -> Phosphorus
+            GL19 Rule 6: Phosphorus -> [Lex-1]
+              GL23 Symbol: [Lex-1] "a"
   Factoring #1
-    CP6 already displayed
-    CP5 already displayed
+    GL6 already displayed
+    GL5 already displayed
 END_OF_ASF
     'ASF OK',
     'Sequence grammar for "aa"'
@@ -275,15 +275,15 @@ END_OF_SOURCE
 push @tests_data, [
     $nulls_grammar, 'aaaa',
     <<'END_OF_ASF',
-CP2 Rule 1: top -> a a a a
-  CP1 Rule 2: a -> [Lex-0]
-    CP7 Symbol: [Lex-0] "a"
-  CP3 Rule 2: a -> [Lex-0]
-    CP10 Symbol: [Lex-0] "a"
-  CP5 Rule 2: a -> [Lex-0]
-    CP12 Symbol: [Lex-0] "a"
-  CP4 Rule 2: a -> [Lex-0]
-    CP14 Symbol: [Lex-0] "a"
+GL2 Rule 1: top -> a a a a
+  GL1 Rule 2: a -> [Lex-0]
+    GL7 Symbol: [Lex-0] "a"
+  GL3 Rule 2: a -> [Lex-0]
+    GL10 Symbol: [Lex-0] "a"
+  GL5 Rule 2: a -> [Lex-0]
+    GL12 Symbol: [Lex-0] "a"
+  GL4 Rule 2: a -> [Lex-0]
+    GL14 Symbol: [Lex-0] "a"
 END_OF_ASF
     'ASF OK',
     'Nulls grammar for "aaaa"'
@@ -293,30 +293,30 @@ END_OF_ASF
 push @tests_data, [
     $nulls_grammar, 'aaa',
     <<'END_OF_ASF',
-CP2 Rule 1: top -> a a a a
+GL2 Rule 1: top -> a a a a
   Factoring #0
-    CP7 Symbol: a ""
-    CP6 Rule 2: a -> [Lex-0]
-      CP13 Symbol: [Lex-0] "a"
-    CP5 Rule 2: a -> [Lex-0]
-      CP15 Symbol: [Lex-0] "a"
-    CP4 Rule 2: a -> [Lex-0]
-      CP18 Symbol: [Lex-0] "a"
+    GL7 Symbol: a ""
+    GL6 Rule 2: a -> [Lex-0]
+      GL13 Symbol: [Lex-0] "a"
+    GL5 Rule 2: a -> [Lex-0]
+      GL15 Symbol: [Lex-0] "a"
+    GL4 Rule 2: a -> [Lex-0]
+      GL18 Symbol: [Lex-0] "a"
   Factoring #1
-    CP6 already displayed
-    CP8 Symbol: a ""
-    CP5 already displayed
-    CP4 already displayed
+    GL6 already displayed
+    GL8 Symbol: a ""
+    GL5 already displayed
+    GL4 already displayed
   Factoring #2
-    CP6 already displayed
-    CP5 already displayed
-    CP9 Symbol: a ""
-    CP4 already displayed
+    GL6 already displayed
+    GL5 already displayed
+    GL9 Symbol: a ""
+    GL4 already displayed
   Factoring #3
-    CP6 already displayed
-    CP5 already displayed
-    CP4 already displayed
-    CP10 Symbol: a ""
+    GL6 already displayed
+    GL5 already displayed
+    GL4 already displayed
+    GL10 Symbol: a ""
 END_OF_ASF
     'ASF OK',
     'Nulls grammar for "aaa"'
@@ -326,39 +326,39 @@ END_OF_ASF
 push @tests_data, [
     $nulls_grammar, 'aa',
     <<'END_OF_ASF',
-CP2 Rule 1: top -> a a a a
+GL2 Rule 1: top -> a a a a
   Factoring #0
-    CP6 Symbol: a ""
-    CP5 Symbol: a ""
-    CP3 Rule 2: a -> [Lex-0]
-      CP15 Symbol: [Lex-0] "a"
-    CP4 Rule 2: a -> [Lex-0]
-      CP18 Symbol: [Lex-0] "a"
+    GL6 Symbol: a ""
+    GL5 Symbol: a ""
+    GL3 Rule 2: a -> [Lex-0]
+      GL15 Symbol: [Lex-0] "a"
+    GL4 Rule 2: a -> [Lex-0]
+      GL18 Symbol: [Lex-0] "a"
   Factoring #1
-    CP6 already displayed
-    CP3 already displayed
-    CP7 Symbol: a ""
-    CP4 already displayed
+    GL6 already displayed
+    GL3 already displayed
+    GL7 Symbol: a ""
+    GL4 already displayed
   Factoring #2
-    CP6 already displayed
-    CP3 already displayed
-    CP4 already displayed
-    CP8 Symbol: a ""
+    GL6 already displayed
+    GL3 already displayed
+    GL4 already displayed
+    GL8 Symbol: a ""
   Factoring #3
-    CP3 already displayed
-    CP4 already displayed
-    CP10 Symbol: a ""
-    CP9 Symbol: a ""
+    GL3 already displayed
+    GL4 already displayed
+    GL10 Symbol: a ""
+    GL9 Symbol: a ""
   Factoring #4
-    CP3 already displayed
-    CP11 Symbol: a ""
-    CP7 already displayed
-    CP4 already displayed
+    GL3 already displayed
+    GL11 Symbol: a ""
+    GL7 already displayed
+    GL4 already displayed
   Factoring #5
-    CP3 already displayed
-    CP11 already displayed
-    CP4 already displayed
-    CP8 already displayed
+    GL3 already displayed
+    GL11 already displayed
+    GL4 already displayed
+    GL8 already displayed
 END_OF_ASF
     'ASF OK',
     'Nulls grammar for "aa"'
@@ -368,28 +368,28 @@ END_OF_ASF
 push @tests_data, [
     $nulls_grammar, 'a',
     <<'END_OF_ASF',
-CP2 Rule 1: top -> a a a a
+GL2 Rule 1: top -> a a a a
   Factoring #0
-    CP7 Rule 2: a -> [Lex-0]
-      CP15 Symbol: [Lex-0] "a"
-    CP6 Symbol: a ""
-    CP5 Symbol: a ""
-    CP4 Symbol: a ""
+    GL7 Rule 2: a -> [Lex-0]
+      GL15 Symbol: [Lex-0] "a"
+    GL6 Symbol: a ""
+    GL5 Symbol: a ""
+    GL4 Symbol: a ""
   Factoring #1
-    CP10 Symbol: a ""
-    CP7 already displayed
-    CP9 Symbol: a ""
-    CP8 Symbol: a ""
+    GL10 Symbol: a ""
+    GL7 already displayed
+    GL9 Symbol: a ""
+    GL8 Symbol: a ""
   Factoring #2
-    CP10 already displayed
-    CP12 Symbol: a ""
-    CP11 Symbol: a ""
-    CP7 already displayed
+    GL10 already displayed
+    GL12 Symbol: a ""
+    GL11 Symbol: a ""
+    GL7 already displayed
   Factoring #3
-    CP10 already displayed
-    CP12 already displayed
-    CP7 already displayed
-    CP13 Symbol: a ""
+    GL10 already displayed
+    GL12 already displayed
+    GL7 already displayed
+    GL13 Symbol: a ""
 END_OF_ASF
     'ASF OK',
     'Nulls grammar for "a"'
@@ -564,7 +564,7 @@ sub show {
         my ( $line_indent, $glade_id, $body ) = @{$line};
         $line_indent -= 2;
         $text .= q{ } x $line_indent;
-        $text .=  'CP' . $glade_id . q{ } if defined $glade_id;
+        $text .=  'GL' . $glade_id . q{ } if defined $glade_id;
         $text .= "$body\n";
     }
     return $text;
