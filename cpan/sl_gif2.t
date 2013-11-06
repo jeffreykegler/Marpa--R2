@@ -447,7 +447,7 @@ sub form_choice {
 sub show_symches {
     my ( $asf, $glade_id, $parent_choice, $item_ix ) = @_;
     if ( $GLADE_SEEN{$glade_id} ) {
-        return [ [0, $glade_id, "CP$glade_id already displayed"] ];
+        return [ [0, $glade_id, "already displayed"] ];
     }
     $GLADE_SEEN{$glade_id} = 1;
 
@@ -460,7 +460,7 @@ sub show_symches {
     if ( $symch_count > 1 ) {
         $item_ix //= 0;
         push @lines,
-              [ 0, $glade_id, "Symbol #$item_ix, "
+              [ 0, undef, "Symbol #$item_ix, "
             . $asf->glade_symbol_name($glade_id)
             . ", has $symch_count symches" ];
         $symch_indent += 2;
@@ -480,7 +480,7 @@ sub show_symches {
             push @lines,
                 [
                 $symch_indent, $glade_id,
-                "CP$glade_id Rule " . $grammar->brief_rule($rule_id)
+                "Rule " . $grammar->brief_rule($rule_id)
                 ];
             for my $line (
                 @{ show_factorings(
@@ -498,7 +498,7 @@ sub show_symches {
             push @lines, [ $line_indent + $symch_indent, @rest_of_line ];
         } ## end else [ if ( $rule_id >= 0 ) ]
     } ## end for ( my $symch_ix = 0; $symch_ix < $symch_count; $symch_ix...)
-    say "show_symches = ", Data::Dumper::Dumper(\@lines);
+    # say "show_symches = ", Data::Dumper::Dumper(\@lines);
     return \@lines;
 } ## end sub show_symches
 
@@ -550,7 +550,7 @@ sub show_terminal {
     my $current_choice = $parent_choice;
     my $literal        = $asf->glade_literal($glade_id);
     my $symbol_name    = $asf->glade_symbol_name($glade_id);
-    return [0, $glade_id, qq{CP$glade_id Symbol: $symbol_name "$literal"}];
+    return [0, $glade_id, qq{Symbol: $symbol_name "$literal"}];
 } ## end sub show_terminal
 
 sub show {
@@ -563,7 +563,9 @@ sub show {
     for my $line ( @{$lines}[ 1 .. $#$lines ] ) {
         my ( $line_indent, $glade_id, $body ) = @{$line};
         $line_indent -= 2;
-        $text .= ( q{ } x $line_indent ) . $body . "\n";
+        $text .= q{ } x $line_indent;
+        $text .=  'CP' . $glade_id . q{ } if defined $glade_id;
+        $text .= "$body\n";
     }
     return $text;
 } ## end sub show
