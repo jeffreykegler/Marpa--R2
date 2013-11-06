@@ -489,8 +489,7 @@ sub show_symches {
         } ## end if ( defined $rule_id )
         else {
             push @lines, map { $symch_indent . $_ } @{
-                show_factorings( $asf, $glade_id, $symch_ix,
-                    $current_choice )
+                show_terminal( $asf, $glade_id, $current_choice )
                 };
         } ## end else [ if ( defined $rule_id ) ]
     } ## end for ( my $symch_ix = 0; $symch_ix < $symch_count; $symch_ix...)
@@ -520,20 +519,6 @@ sub show_factorings {
             $asf->factoring_symbol_count( $glade_id, $symch_ix,
             $factoring_ix );
         SYMBOL: for my $symbol_ix ( 0 .. $symbol_count - 1 ) {
-            if ($asf->factor_is_terminal(
-                    $glade_id, $symch_ix, $factoring_ix, $symbol_ix
-                )
-                )
-            {
-                my $literal =
-                    $asf->factor_literal( $glade_id, $symch_ix, $factoring_ix,
-                    $symbol_ix );
-                my $symbol_name =
-                    $asf->factor_symbol_name( $glade_id, $symch_ix,
-                    $factoring_ix, $symbol_ix );
-                push @lines, qq{CP$glade_id Symbol: $symbol_name "$literal"};
-                next SYMBOL;
-            } ## end if ( $asf->factor_is_terminal( $glade_id, $symch_ix,...))
             my $downglade_id =
                 $asf->factor_downglade_id( $glade_id, $symch_ix,
                 $factoring_ix, $symbol_ix );
@@ -545,6 +530,16 @@ sub show_factorings {
     } ## end for ( my $factoring_ix = 0; $factoring_ix < $factoring_count...)
     return \@lines;
 } ## end sub show_factorings
+
+sub show_terminal {
+    my ( $asf, $glade_id, $symch_ix, $parent_choice ) = @_;
+
+    # There can only be one symbol in a terminal and therefore only one factoring
+    my $current_choice = $parent_choice;
+    my $literal        = $asf->glade_literal($glade_id);
+    my $symbol_name    = $asf->glade_symbol_name($glade_id);
+    return [ qq{CP$glade_id Symbol: $symbol_name "$literal"} ]
+} ## end sub show_terminal
 
 sub show {
     my ($asf) = @_;

@@ -1124,6 +1124,24 @@ sub Marpa::R2::ASF::glade_symch_count {
     return scalar @{$glade->[Marpa::R2::Internal::Glade::SYMCHES]};
 }
 
+sub Marpa::R2::ASF::glade_literal {
+    my ($asf, $glade_id)   = @_;
+    my $nidset_by_id =
+        $asf->[Marpa::R2::Internal::ASF::NIDSET_BY_ID];
+    my $nidset = $nidset_by_id->[$glade_id];
+    my $nid0 = $nidset->nid(0);
+    return $asf->spot_literal($nid0);
+}
+
+sub Marpa::R2::ASF::glade_symbol_name {
+    my ($asf, $glade_id)   = @_;
+    my $nidset_by_id =
+        $asf->[Marpa::R2::Internal::ASF::NIDSET_BY_ID];
+    my $nidset = $nidset_by_id->[$glade_id];
+    my $nid0 = $nidset->nid(0);
+    return $asf->spot_symbol_name($nid0);
+}
+
 sub Marpa::R2::ASF::symch_rule_id {
     my ($asf, $glade_id, $symch_ix)   = @_;
     my $glade = glade_obtain($asf, $glade_id);
