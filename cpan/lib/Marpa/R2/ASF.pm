@@ -919,6 +919,7 @@ sub glade_obtain {
         Marpa::R2::exception(
             "Attempt to use an invalid glade, one whose ID is $glade_id");
     } ## end if ( not defined $glade or not $glade->[...])
+
         # Return the glade if it is already set up
     return $glade if $glade->[Marpa::R2::Internal::Glade::SYMCHES];
 
@@ -964,21 +965,11 @@ sub glade_obtain {
         $choicepoint->[Marpa::R2::Internal::Choicepoint::ASF] = $asf;
         $choicepoint->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK] =
             undef;
-        $choicepoint->[Marpa::R2::Internal::Choicepoint::BASE_ID] =
-            $base_nidset;
         $choicepoint->[Marpa::R2::Internal::Choicepoint::POWERSET] =
             $powerset;
         $choicepoint->[Marpa::R2::Internal::Choicepoint::SYMCH_IX] = 0;
         $choicepoint->[Marpa::R2::Internal::Choicepoint::NID_IX]   = 0;
     }
-    choicepoint_to_glade( $asf, $choicepoint );
-    return $glades->[$glade_id];
-} ## end sub glade_obtain
-
-sub choicepoint_to_glade {
-    my ( $asf, $choicepoint ) = @_;
-    my $base_nidset_id = $choicepoint->base_id();
-    my $glade = $asf->[Marpa::R2::Internal::ASF::GLADES]->[$base_nidset_id];
 
     # Check if choicepoint already seen?
     my @symches     = ();
@@ -1037,12 +1028,14 @@ sub choicepoint_to_glade {
         } ## end FACTORINGS_LOOP: for ( my $nid_ix = 0; $nid_ix < $nid_count; $nid_ix...)
         push @symches, \@factorings;
     } ## end SYMCH: for ( my $symch_ix = 0; $symch_ix < $symch_count; ...)
+
     $glade->[Marpa::R2::Internal::Glade::SYMCHES] = \@symches;
 
     # say STDERR "Created glade for glade id $base_nidset_id from choicepoint";
-    $asf->[Marpa::R2::Internal::ASF::GLADES]->[$base_nidset_id] = $glade;
-    return $base_nidset_id;
-} ## end sub choicepoint_to_glade
+    $asf->[Marpa::R2::Internal::ASF::GLADES]->[$glade_id] = $glade;
+    return $glade;
+} ## end sub glade_obtain
+
 
 sub Marpa::R2::ASF::glade_symch_count {
     my ($asf, $glade_id)   = @_;
