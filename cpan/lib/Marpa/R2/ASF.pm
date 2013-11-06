@@ -411,51 +411,6 @@ sub Marpa::R2::ASF::new {
 
 } ## end sub Marpa::R2::ASF::new
 
-sub nidset_to_choicepoint {
-    my ( $asf, $base_nidset ) = @_;
-    my @source_data = ();
-    for my $source_nid ( @{ $base_nidset->nids() } ) {
-        my $sort_ix = nid_sort_ix( $asf, $source_nid );
-        push @source_data, [ $sort_ix, $source_nid ];
-    }
-    my @sorted_source_data = sort { $a->[0] <=> $b->[0] } @source_data;
-    my $nid_ix = 0;
-    my ( $sort_ix_of_this_nid, $this_nid ) =
-        @{ $sorted_source_data[ $nid_ix++ ] };
-    my @nids_with_current_sort_ix = ();
-    my $current_sort_ix           = $sort_ix_of_this_nid;
-    my @symch_ids                 = ();
-    NID: while (1) {
-
-        if ( $sort_ix_of_this_nid != $current_sort_ix ) {
-
-            # Currently only whole id break logic
-            my $nidset_for_sort_ix =
-                Marpa::R2::Nidset->obtain( $asf, @nids_with_current_sort_ix );
-            push @symch_ids, $nidset_for_sort_ix->id();
-            @nids_with_current_sort_ix = ();
-            $current_sort_ix           = $sort_ix_of_this_nid;
-        } ## end if ( $sort_ix_of_this_nid != $current_sort_ix )
-        last NID if not defined $this_nid;
-        push @nids_with_current_sort_ix, $this_nid;
-        my $sorted_entry = $sorted_source_data[ $nid_ix++ ];
-        if ( defined $sorted_entry ) {
-            ( $sort_ix_of_this_nid, $this_nid ) = @{$sorted_entry};
-            next NID;
-        }
-        $this_nid            = undef;
-        $sort_ix_of_this_nid = -2;
-    } ## end NID: while (1)
-    my $powerset = Marpa::R2::Powerset->obtain( $asf, @symch_ids );
-    my $cp = bless [], 'Marpa::R2::Choicepoint';
-    $cp->[Marpa::R2::Internal::Choicepoint::ASF]             = $asf;
-    $cp->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK] = undef;
-    $cp->[Marpa::R2::Internal::Choicepoint::BASE_ID]         = $base_nidset;
-    $cp->[Marpa::R2::Internal::Choicepoint::POWERSET]        = $powerset;
-    $cp->[Marpa::R2::Internal::Choicepoint::SYMCH_IX]        = 0;
-    $cp->[Marpa::R2::Internal::Choicepoint::NID_IX]          = 0;
-    return $cp;
-}
 
 sub Marpa::R2::ASF::glade_is_visited {
     my ( $asf, $glade_id ) = @_;
@@ -493,13 +448,6 @@ sub nid_sort_ix {
     # -2 is reserved for 'end of data'
     return -$token_id - 3;
 } ## end sub nid_sort_ix
-
-sub Marpa::R2::Choicepoint::show {
-    my ($cp) = @_;
-    my $id = $cp->base_id();
-    return join q{ }, "Choicepoint based on powerset #$id: ",
-        $cp->[Marpa::R2::Internal::Choicepoint::POWERSET]->show();
-} ## end sub Marpa::R2::Choicepoint::show
 
 sub Marpa::R2::ASF::grammar {
     my ($asf) = @_;
@@ -960,6 +908,7 @@ sub glade_id_factors {
 
 sub glade_obtain {
     my ( $asf, $glade_id ) = @_;
+
     # say STDERR "Obtaining glade id $glade_id";
     my $glades = $asf->[Marpa::R2::Internal::ASF::GLADES];
     my $glade  = $glades->[$glade_id];
@@ -970,13 +919,60 @@ sub glade_obtain {
         Marpa::R2::exception(
             "Attempt to use an invalid glade, one whose ID is $glade_id");
     } ## end if ( not defined $glade or not $glade->[...])
-    # Return the glade if it is already set up
-    return $glade  if $glade->[Marpa::R2::Internal::Glade::SYMCHES];
+        # Return the glade if it is already set up
+    return $glade if $glade->[Marpa::R2::Internal::Glade::SYMCHES];
+
     # say STDERR "Creating glade for glade id $glade_id";
-    my $nidset = $asf->[Marpa::R2::Internal::ASF::NIDSET_BY_ID]->[$glade_id];
-    my $choicepoint = nidset_to_choicepoint( $asf, $nidset );
+    my $base_nidset = $asf->[Marpa::R2::Internal::ASF::NIDSET_BY_ID]->[$glade_id];
+    my $choicepoint;
+    {
+        my @source_data = ();
+        for my $source_nid ( @{ $base_nidset->nids() } ) {
+            my $sort_ix = nid_sort_ix( $asf, $source_nid );
+            push @source_data, [ $sort_ix, $source_nid ];
+        }
+        my @sorted_source_data = sort { $a->[0] <=> $b->[0] } @source_data;
+        my $nid_ix = 0;
+        my ( $sort_ix_of_this_nid, $this_nid ) =
+            @{ $sorted_source_data[ $nid_ix++ ] };
+        my @nids_with_current_sort_ix = ();
+        my $current_sort_ix           = $sort_ix_of_this_nid;
+        my @symch_ids                 = ();
+        NID: while (1) {
+
+            if ( $sort_ix_of_this_nid != $current_sort_ix ) {
+
+                # Currently only whole id break logic
+                my $nidset_for_sort_ix = Marpa::R2::Nidset->obtain( $asf,
+                    @nids_with_current_sort_ix );
+                push @symch_ids, $nidset_for_sort_ix->id();
+                @nids_with_current_sort_ix = ();
+                $current_sort_ix           = $sort_ix_of_this_nid;
+            } ## end if ( $sort_ix_of_this_nid != $current_sort_ix )
+            last NID if not defined $this_nid;
+            push @nids_with_current_sort_ix, $this_nid;
+            my $sorted_entry = $sorted_source_data[ $nid_ix++ ];
+            if ( defined $sorted_entry ) {
+                ( $sort_ix_of_this_nid, $this_nid ) = @{$sorted_entry};
+                next NID;
+            }
+            $this_nid            = undef;
+            $sort_ix_of_this_nid = -2;
+        } ## end NID: while (1)
+        my $powerset = Marpa::R2::Powerset->obtain( $asf, @symch_ids );
+        $choicepoint = bless [], 'Marpa::R2::Choicepoint';
+        $choicepoint->[Marpa::R2::Internal::Choicepoint::ASF] = $asf;
+        $choicepoint->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK] =
+            undef;
+        $choicepoint->[Marpa::R2::Internal::Choicepoint::BASE_ID] =
+            $base_nidset;
+        $choicepoint->[Marpa::R2::Internal::Choicepoint::POWERSET] =
+            $powerset;
+        $choicepoint->[Marpa::R2::Internal::Choicepoint::SYMCH_IX] = 0;
+        $choicepoint->[Marpa::R2::Internal::Choicepoint::NID_IX]   = 0;
+    }
     choicepoint_to_glade( $asf, $choicepoint );
-    return $glades->[$glade_id] ;
+    return $glades->[$glade_id];
 } ## end sub glade_obtain
 
 sub choicepoint_to_glade {
