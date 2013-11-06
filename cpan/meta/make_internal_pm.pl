@@ -244,19 +244,16 @@ __DATA__
     SYMCHES
     VISITED
     REGISTERED
-    TRUNCATED_SYMCHES
 
     :package=Marpa::R2::Internal::Choicepoint
 
     { An external choicepoint }
     ASF
     POWERSET { Delete this once development is done }
-    BASE_ID
     NID_IX 
     SYMCH_IX 
     FACTORING_STACK
     OR_NODE_IN_USE
-    IS_EXHAUSTED
 
     :package=Marpa::R2::Internal::Nook
 

@@ -457,18 +457,6 @@ sub Marpa::R2::ASF::grammar {
     return $grammar;
 }
 
-# ID of the NID set on which the choicepoint is based.  Two or more choicepoints
-# may share the same base ID.
-sub Marpa::R2::Choicepoint::base_id {
-    my ($cp) = @_;
-    return $cp->[Marpa::R2::Internal::Choicepoint::BASE_ID]->id();
-}
-
-sub Marpa::R2::Choicepoint::base_nidset {
-    my ($cp) = @_;
-    return $cp->[Marpa::R2::Internal::Choicepoint::BASE_ID]->id();
-}
-
 sub Marpa::R2::Choicepoint::symch_count {
     my ($cp) = @_;
     return $cp->[Marpa::R2::Internal::Choicepoint::POWERSET]->count();

@@ -125,17 +125,14 @@ package Marpa::R2::Internal::Glade;
 use constant SYMCHES => 0;
 use constant VISITED => 1;
 use constant REGISTERED => 2;
-use constant TRUNCATED_SYMCHES => 3;
 
 package Marpa::R2::Internal::Choicepoint;
 use constant ASF => 0;
 use constant POWERSET => 1;
-use constant BASE_ID => 2;
-use constant NID_IX => 3;
-use constant SYMCH_IX => 4;
-use constant FACTORING_STACK => 5;
-use constant OR_NODE_IN_USE => 6;
-use constant IS_EXHAUSTED => 7;
+use constant NID_IX => 2;
+use constant SYMCH_IX => 3;
+use constant FACTORING_STACK => 4;
+use constant OR_NODE_IN_USE => 5;
 
 package Marpa::R2::Internal::Nook;
 use constant PARENT => 0;
