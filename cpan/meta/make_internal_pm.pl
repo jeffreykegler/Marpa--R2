@@ -249,9 +249,6 @@ __DATA__
 
     { An external choicepoint }
     ASF
-    POWERSET { Delete this once development is done }
-    NID_IX 
-    SYMCH_IX 
     FACTORING_STACK
     OR_NODE_IN_USE
 

@@ -128,11 +128,8 @@ use constant REGISTERED => 2;
 
 package Marpa::R2::Internal::Choicepoint;
 use constant ASF => 0;
-use constant POWERSET => 1;
-use constant NID_IX => 2;
-use constant SYMCH_IX => 3;
-use constant FACTORING_STACK => 4;
-use constant OR_NODE_IN_USE => 5;
+use constant FACTORING_STACK => 1;
+use constant OR_NODE_IN_USE => 2;
 
 package Marpa::R2::Internal::Nook;
 use constant PARENT => 0;
