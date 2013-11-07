@@ -84,52 +84,84 @@ of the ambiguity due to factoring,
 than it is than an application will want to ignore ambiguity causes
 by a symbol choice.
 
+=head2 An example of a symch
+
 Here's an example of a symch.  The grammar is:
 
-         :start ::= planet
-         planet ::= hesperus
-         planet ::= phosphorus
-         hesperus ::= venus
-         phosphorus ::= venus
-         venus ~ 'venus'
+=for Marpa::R2::Display
+name: ASF symch dump example grammar
+remove-display-indent: 1
+remove-blank-last-line: 1
+
+    :start ::= planet
+    planet ::= hesperus
+    planet ::= phosphorus
+    hesperus ::= venus
+    phosphorus ::= venus
+    venus ~ 'venus'
+
+=for Marpa::R2::Display::End
 
 For the input string 'venus', the forest would look like
 
-     Symbol #0, planet, has 2 symches
-       Symch #0.0
-       CP5 Rule 1: planet -> hesperus
-         CP6 Rule 3: hesperus -> venus
-           CP8 Symbol: venus "venus"
-       Symch #0.1
-       CP5 Rule 2: planet -> phosphorus
-         CP9 Rule 4: phosphorus -> venus
-           CP11 Symbol: venus "venus"
+=for Marpa::R2::Display
+name: ASF symch dump example output
+remove-blank-last-line: 1
+remove-display-indent: 1
 
-Now for an example of a factoring.  The grammar:
+    Symbol #0, planet, has 2 symches
+      Symch #0.0
+      GL2 Rule 1: planet -> hesperus
+        GL3 Rule 3: hesperus -> venus
+          GL4 Symbol: venus "venus"
+      Symch #0.1
+      GL2 Rule 2: planet -> phosphorus
+        GL5 Rule 4: phosphorus -> venus
+          GL6 Symbol: venus "venus"
 
-     :start ::= top
-     top ::= b b
-     b ::= a a
-     b ::= a
-     a ~ 'a'
+=for Marpa::R2::Display::End
+
+=head2 An example of a factoring
+
+Now for an example of a factoring.  Here's the grammar:
+
+=for Marpa::R2::Display
+name: ASF factoring dump example grammar
+remove-blank-last-line: 1
+remove-display-indent: 1
+
+    :start ::= top
+    top ::= b b
+    b ::= a a
+    b ::= a
+    a ~ 'a'
+
+=for Marpa::R2::Display::End
 
 For the input 'aaa', a parse from this grammar must have two b's, one
 short (a single 'a') and one long (two a's).  But they can be in either
 order.  This is a factoring.  Here's Marpa's dump of the forest:
 
-     CP3 Rule 1: top -> b b
-       Factoring #0
-         CP7 Rule 3: b -> a
-           CP2 Symbol: a "a"
-         CP5 Rule 2: b -> a a
-           CP11 Symbol: a "a"
-           CP0 Symbol: a "a"
-       Factoring #1
-         CP12 Rule 2: b -> a a
-           CP16 Symbol: a "a"
-           CP14 Symbol: a "a"
-         CP4 Rule 3: b -> a
-           CP18 Symbol: a "a"
+=for Marpa::R2::Display
+name: ASF factoring dump example output
+remove-blank-last-line: 1
+remove-display-indent: 1
+
+    GL2 Rule 1: top -> b b
+      Factoring #0
+        GL3 Rule 3: b -> a
+          GL4 Symbol: a "a"
+        GL5 Rule 2: b -> a a
+          GL6 Symbol: a "a"
+          GL7 Symbol: a "a"
+      Factoring #1
+        GL8 Rule 2: b -> a a
+          GL9 Symbol: a "a"
+          GL10 Symbol: a "a"
+        GL11 Rule 3: b -> a
+          GL12 Symbol: a "a"
+
+=for Marpa::R2::Display::End
 
 =head1 The structure of a forest
 

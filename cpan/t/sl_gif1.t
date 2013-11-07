@@ -65,21 +65,33 @@ END_OF_SOURCE
     }
 );
 
+# Marpa::R2::Display
+# name: ASF symch dump example grammar
+# start-after-line: END_OF_SOURCE
+# end-before-line: '^END_OF_SOURCE$'
+
 my $venus_grammar = Marpa::R2::Scanless::G->new(
     {   source => \(<<'END_OF_SOURCE'),
-    :start ::= planet
-    planet ::= hesperus
-    planet ::= phosphorus
-    hesperus ::= venus
-    phosphorus ::= venus
-    venus ~ 'venus'
+:start ::= planet
+planet ::= hesperus
+planet ::= phosphorus
+hesperus ::= venus
+phosphorus ::= venus
+venus ~ 'venus'
 END_OF_SOURCE
     }
 );
 
+# Marpa::R2::Display::End
+
+# Marpa::R2::Display
+# name: ASF symch dump example output
+# start-after-line: END_OF_OUTPUT
+# end-before-line: '^END_OF_OUTPUT$'
+
 push @tests_data, [
     $venus_grammar, 'venus',
-    <<'END_OF_ASF',
+    <<'END_OF_OUTPUT',
 Symbol #0, planet, has 2 symches
   Symch #0.0
   GL2 Rule 1: planet -> hesperus
@@ -89,11 +101,13 @@ Symbol #0, planet, has 2 symches
   GL2 Rule 2: planet -> phosphorus
     GL5 Rule 4: phosphorus -> venus
       GL6 Symbol: venus "venus"
-END_OF_ASF
+END_OF_OUTPUT
     'ASF OK',
     '"Hesperus is Phosphorus"" grammar'
     ]
     if 1;
+
+# Marpa::R2::Display::End
 
 push @tests_data, [
     $abcd_grammar, 'abcd',
@@ -109,6 +123,11 @@ END_OF_ASF
     ]
     if 1;
 
+# Marpa::R2::Display
+# name: ASF factoring dump example grammar
+# start-after-line: END_OF_SOURCE
+# end-before-line: '^END_OF_SOURCE$'
+
 my $bb_grammar = Marpa::R2::Scanless::G->new(
     {   source => \(<<'END_OF_SOURCE'),
 :start ::= top
@@ -120,9 +139,16 @@ END_OF_SOURCE
     }
 );
 
+# Marpa::R2::Display::End
+
+# Marpa::R2::Display
+# name: ASF factoring dump example output
+# start-after-line: END_OF_OUTPUT
+# end-before-line: '^END_OF_OUTPUT$'
+
 push @tests_data, [
     $bb_grammar, 'aaa',
-    <<'END_OF_ASF',
+    <<'END_OF_OUTPUT',
 GL2 Rule 1: top -> b b
   Factoring #0
     GL3 Rule 3: b -> a
@@ -136,11 +162,13 @@ GL2 Rule 1: top -> b b
       GL10 Symbol: a "a"
     GL11 Rule 3: b -> a
       GL12 Symbol: a "a"
-END_OF_ASF
+END_OF_OUTPUT
     'ASF OK',
     '"b b" grammar'
     ]
     if 1;
+
+# Marpa::R2::Display::End
 
 my $seq_grammar = Marpa::R2::Scanless::G->new(
     {   source => \(<<'END_OF_SOURCE'),
