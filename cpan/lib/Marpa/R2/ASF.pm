@@ -260,11 +260,11 @@ sub Marpa::R2::ASF::peak {
     return $glade_id;
 } ## end sub Marpa::R2::ASF::peak
 
-our $SPOT_LEAF_BASE = -43;
+our $NID_LEAF_BASE = -43;
 
 # Range from -1 to -42 reserved for special values
-sub and_node_to_nid { return -$_[0] + $SPOT_LEAF_BASE; }
-sub nid_to_and_node { return -$_[0] + $SPOT_LEAF_BASE; }
+sub and_node_to_nid { return -$_[0] + $NID_LEAF_BASE; }
+sub nid_to_and_node { return -$_[0] + $NID_LEAF_BASE; }
 
 sub normalize_asf_blessing {
     my ($name) = @_;
@@ -465,14 +465,14 @@ sub Marpa::R2::ASF::grammar {
 } ## end sub Marpa::R2::ASF::grammar
 
 sub Marpa::R2::ASF::nid_rule_id {
-    my ( $asf, $spot_id ) = @_;
-    return if $spot_id < 0;
+    my ( $asf, $nid ) = @_;
+    return if $nid < 0;
     my $slr       = $asf->[Marpa::R2::Internal::ASF::SLR];
     my $recce     = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
     my $bocage    = $recce->[Marpa::R2::Internal::Recognizer::B_C];
     my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
-    my $irl_id    = $bocage->_marpa_b_or_node_irl($spot_id);
+    my $irl_id    = $bocage->_marpa_b_or_node_irl($nid);
     my $xrl_id    = $grammar_c->_marpa_g_source_xrl($irl_id);
     return $xrl_id;
 } ## end sub Marpa::R2::ASF::nid_rule_id
@@ -505,25 +505,25 @@ sub token_es_span {
     return or_node_es_span( $asf, $parent_or_node_id );
 } ## end sub token_es_span
 
-sub Marpa::R2::ASF::spot_literal {
-    my ( $asf, $spot_id ) = @_;
+sub Marpa::R2::ASF::nid_literal {
+    my ( $asf, $nid ) = @_;
     my $slr = $asf->[Marpa::R2::Internal::ASF::SLR];
-    if ( $spot_id <= $SPOT_LEAF_BASE ) {
-        my $and_node_id = nid_to_and_node($spot_id);
+    if ( $nid <= $NID_LEAF_BASE ) {
+        my $and_node_id = nid_to_and_node($nid);
         my ( $start, $length ) = token_es_span( $asf, $and_node_id );
         return q{} if $length == 0;
         return $slr->substring( $start, $length );
-    } ## end if ( $spot_id <= $SPOT_LEAF_BASE )
-    if ( $spot_id >= 0 ) {
-        return $slr->substring( or_node_es_span( $asf, $spot_id ) );
+    } ## end if ( $nid <= $NID_LEAF_BASE )
+    if ( $nid >= 0 ) {
+        return $slr->substring( or_node_es_span( $asf, $nid ) );
     }
-    Marpa::R2::exception("No literal for spot: $spot_id");
-} ## end sub Marpa::R2::ASF::spot_literal
+    Marpa::R2::exception("No literal for node ID: $nid");
+} ## end sub Marpa::R2::ASF::nid_literal
 
-sub Marpa::R2::ASF::spot_token_id {
-    my ( $asf, $spot_id ) = @_;
-    return if $spot_id > $SPOT_LEAF_BASE;
-    my $and_node_id  = nid_to_and_node($spot_id);
+sub Marpa::R2::ASF::nid_token_id {
+    my ( $asf, $nid ) = @_;
+    return if $nid > $NID_LEAF_BASE;
+    my $and_node_id  = nid_to_and_node($nid);
     my $slr          = $asf->[Marpa::R2::Internal::ASF::SLR];
     my $recce        = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
     my $grammar      = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
@@ -532,13 +532,13 @@ sub Marpa::R2::ASF::spot_token_id {
     my $token_isy_id = $bocage->_marpa_b_and_node_symbol($and_node_id);
     my $token_id     = $grammar_c->_marpa_g_source_xsy($token_isy_id);
     return $token_id;
-} ## end sub Marpa::R2::ASF::spot_token_id
+} ## end sub Marpa::R2::ASF::nid_token_id
 
-sub Marpa::R2::ASF::spot_symbol_id {
-    my ( $asf, $spot_id ) = @_;
-    my $token_id = $asf->spot_token_id($spot_id);
+sub Marpa::R2::ASF::nid_symbol_id {
+    my ( $asf, $nid ) = @_;
+    my $token_id = $asf->nid_token_id($nid);
     return $token_id if defined $token_id;
-    Marpa::R2::exception("No symbol ID for spot: $spot_id") if $spot_id < 0;
+    Marpa::R2::exception("No symbol ID for node ID: $nid") if $nid < 0;
 
     # Not a token, so return the LHS of the rule
     my $slr       = $asf->[Marpa::R2::Internal::ASF::SLR];
@@ -546,30 +546,30 @@ sub Marpa::R2::ASF::spot_symbol_id {
     my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
     my $bocage    = $recce->[Marpa::R2::Internal::Recognizer::B_C];
-    my $irl_id    = $bocage->_marpa_b_or_node_irl($spot_id);
+    my $irl_id    = $bocage->_marpa_b_or_node_irl($nid);
     my $xrl_id    = $grammar_c->_marpa_g_source_xrl($irl_id);
     my $lhs_id    = $grammar_c->rule_lhs($xrl_id);
     return $lhs_id;
-} ## end sub Marpa::R2::ASF::spot_symbol_id
+} ## end sub Marpa::R2::ASF::nid_symbol_id
 
-sub Marpa::R2::ASF::spot_symbol_name {
-    my ( $asf, $spot_id ) = @_;
+sub Marpa::R2::ASF::nid_symbol_name {
+    my ( $asf, $nid ) = @_;
     my $slr       = $asf->[Marpa::R2::Internal::ASF::SLR];
     my $recce     = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
     my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
-    my $symbol_id = $asf->spot_symbol_id($spot_id);
+    my $symbol_id = $asf->nid_symbol_id($nid);
     return $grammar->symbol_name($symbol_id);
-} ## end sub Marpa::R2::ASF::spot_symbol_name
+} ## end sub Marpa::R2::ASF::nid_symbol_name
 
-sub Marpa::R2::ASF::spot_token_name {
-    my ( $asf, $spot_id ) = @_;
+sub Marpa::R2::ASF::nid_token_name {
+    my ( $asf, $nid ) = @_;
     my $slr      = $asf->[Marpa::R2::Internal::ASF::SLR];
     my $recce    = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
     my $grammar  = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
-    my $token_id = $asf->spot_token_id($spot_id);
+    my $token_id = $asf->nid_token_id($nid);
     return if not defined $token_id;
     return $grammar->symbol_name($token_id);
-} ## end sub Marpa::R2::ASF::spot_token_name
+} ## end sub Marpa::R2::ASF::nid_token_name
 
 # Memoization is heavily used -- it needs to be to keep the worst cases from
 # going exponential.  The need to memoize is the reason for the very heavy use of
@@ -953,7 +953,7 @@ sub Marpa::R2::ASF::glade_literal {
     my $nidset_by_id = $asf->[Marpa::R2::Internal::ASF::NIDSET_BY_ID];
     my $nidset       = $nidset_by_id->[$glade_id];
     my $nid0         = $nidset->nid(0);
-    return $asf->spot_literal($nid0);
+    return $asf->nid_literal($nid0);
 } ## end sub Marpa::R2::ASF::glade_literal
 
 sub Marpa::R2::ASF::glade_symbol_name {
@@ -961,7 +961,7 @@ sub Marpa::R2::ASF::glade_symbol_name {
     my $nidset_by_id = $asf->[Marpa::R2::Internal::ASF::NIDSET_BY_ID];
     my $nidset       = $nidset_by_id->[$glade_id];
     my $nid0         = $nidset->nid(0);
-    return $asf->spot_symbol_name($nid0);
+    return $asf->nid_symbol_name($nid0);
 } ## end sub Marpa::R2::ASF::glade_symbol_name
 
 sub Marpa::R2::ASF::symch_rule_id {
