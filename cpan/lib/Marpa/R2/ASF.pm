@@ -149,6 +149,15 @@ sub Marpa::R2::Powerset::nidset_id {
     return $powerset->[Marpa::R2::Internal::Powerset::NIDSET_IDS]->[$ix];
 } ## end sub Marpa::R2::Powerset::nidset_id
 
+sub Marpa::R2::Powerset::nidset {
+    my ( $powerset, $asf, $ix ) = @_;
+    my $nidset_ids = $powerset->[Marpa::R2::Internal::Powerset::NIDSET_IDS];
+    return if $ix > $#{$nidset_ids};
+    my $nidset_id = $powerset->[Marpa::R2::Internal::Powerset::NIDSET_IDS]->[$ix];
+    my $nidset_by_id = $asf->[Marpa::R2::Internal::ASF::NIDSET_BY_ID];
+    return $nidset_by_id->[$nidset_id];
+} ## end sub Marpa::R2::Powerset::nidset_id
+
 sub Marpa::R2::Powerset::id {
     my ($powerset) = @_;
     return $powerset->[Marpa::R2::Internal::Powerset::ID];
@@ -597,12 +606,11 @@ sub Marpa::R2::ASF::spot_token_name {
 # the method call that constructs the CPI (choicepoint iterator).
 
 sub Marpa::R2::Choicepoint::first_factoring {
-    my ($choicepoint) = @_;
+    my ($choicepoint, $nid_of_choicepoint) = @_;
 
     # Current NID of current SYMCH
     # The caller should ensure that we are never called unless the current
     # NID is for a rule.
-    my $nid_of_choicepoint = $choicepoint->nid();
     Marpa::R2::exception(
         "Internal error: first_factoring() called for negative NID: $nid_of_choicepoint"
     ) if $nid_of_choicepoint < 0;
@@ -623,7 +631,7 @@ sub Marpa::R2::Choicepoint::first_factoring {
         [$nook];
 
     # Iterate as long as we cannot finish this stack
-    while ( not factoring_finish($choicepoint) ) {
+    while ( not factoring_finish($choicepoint, $nid_of_choicepoint) ) {
         return if not factoring_iterate($choicepoint);
     }
     return 1;
@@ -631,7 +639,7 @@ sub Marpa::R2::Choicepoint::first_factoring {
 } ## end sub Marpa::R2::Choicepoint::first_factoring
 
 sub Marpa::R2::Choicepoint::next_factoring {
-    my ($choicepoint) = @_;
+    my ($choicepoint, $nid_of_choicepoint) = @_;
     my $factoring_stack =
         $choicepoint->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK];
     Marpa::R2::exception(
@@ -639,7 +647,7 @@ sub Marpa::R2::Choicepoint::next_factoring {
         if not $factoring_stack;
 
     while ( factoring_iterate($choicepoint) ) {
-        return 1 if factoring_finish($choicepoint);
+        return 1 if factoring_finish($choicepoint, $nid_of_choicepoint);
     }
 
     # Found nothing to iterate
@@ -684,14 +692,11 @@ sub factoring_iterate {
 } ## end sub factoring_iterate
 
 sub factoring_finish {
-    my ($choicepoint) = @_;
+    my ($choicepoint, $nid_of_choicepoint) = @_;
     my $asf           = $choicepoint->[Marpa::R2::Internal::Choicepoint::ASF];
     my $or_nodes      = $asf->[Marpa::R2::Internal::ASF::OR_NODES];
     my $factoring_stack =
         $choicepoint->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK];
-
-    # Current NID of current SYMCH
-    my $nid_of_choicepoint = $choicepoint->nid();
 
     my $nidset_by_id   = $asf->[Marpa::R2::Internal::ASF::NIDSET_BY_ID];
     my $powerset_by_id = $asf->[Marpa::R2::Internal::ASF::POWERSET_BY_ID];
@@ -903,7 +908,8 @@ sub glade_obtain {
         $choicepoint->[Marpa::R2::Internal::Choicepoint::NID_IX] = 0;
         $choicepoint->[Marpa::R2::Internal::Choicepoint::SYMCH_IX] =
             $symch_ix;
-        my $choicepoint_nid = $choicepoint->nid();
+        my $symch_nidset = $choicepoint_powerset->nidset($asf, $symch_ix);
+        my $choicepoint_nid = $symch_nidset->nid(0);
         my $symch_rule_id = $asf->nid_rule_id($choicepoint_nid) // -1;
 
         # Initial undef indicates no factorings omitted
@@ -913,8 +919,7 @@ sub glade_obtain {
         # There will not be multiple factorings or nids,
         # it is assumed, for a token
         if ( $symch_rule_id < 0 ) {
-            my $nid0        = $choicepoint->nid(0);
-            my $base_nidset = Marpa::R2::Nidset->obtain( $asf, $nid0 );
+            my $base_nidset = Marpa::R2::Nidset->obtain( $asf, $choicepoint_nid );
             my $glade_id    = $base_nidset->id();
 
             # say STDERR "Registering glade id $glade_id";
@@ -925,14 +930,15 @@ sub glade_obtain {
             next SYMCH;
         } ## end if ( $symch_rule_id < 0 )
 
-        my $symch = $choicepoint->symch();
+        my $symch = $choicepoint_powerset->nidset($asf, $symch_ix);
         my $nid_count = $symch->count();
         my $factorings_omitted;
         FACTORINGS_LOOP:
         for ( my $nid_ix = 0; $nid_ix < $nid_count; $nid_ix++ ) {
             $choicepoint->[Marpa::R2::Internal::Choicepoint::NID_IX] =
                 $nid_ix;
-            $choicepoint->first_factoring();
+            $choicepoint_nid = $symch_nidset->nid($nid_ix);
+            $choicepoint->first_factoring($choicepoint_nid);
             my $factoring = glade_id_factors($choicepoint);
 
             FACTOR: while ( defined $factoring ) {
@@ -952,7 +958,7 @@ sub glade_obtain {
                     push @factoring, $factoring->[$item_ix];
                 } ## end for ( my $item_ix = $#{$factoring}; $item_ix >= 0; ...)
                 push @factorings, \@factoring;
-                $choicepoint->next_factoring();
+                $choicepoint->next_factoring($choicepoint_nid);
                 $factoring = glade_id_factors($choicepoint);
             } ## end FACTOR: while ( defined $factoring )
         } ## end FACTORINGS_LOOP: for ( my $nid_ix = 0; $nid_ix < $nid_count; $nid_ix...)
