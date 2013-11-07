@@ -525,19 +525,19 @@ sub show_factorings {
             $asf->factoring_symbol_count( $glade_id, $symch_ix,
             $factoring_ix );
         SYMBOL: for my $symbol_ix ( 0 .. $symbol_count - 1 ) {
-            my $downglade_id =
-                $asf->factor_downglade_id( $glade_id, $symch_ix,
+            my $downglade =
+                $asf->factor_downglade( $glade_id, $symch_ix,
                 $factoring_ix, $symbol_ix );
             for my $line (
                 @{ show_symches(
-                    $asf, $downglade_id, $current_choice, $symbol_ix
+                    $asf, $downglade, $current_choice, $symbol_ix
                 ) }
                 )
             {
                 my ( $line_indent, @rest_of_line ) = @{$line};
                 push @lines, [ $line_indent + $indent, @rest_of_line ];
 
-            } ## end for my $line ( show_symches( $asf, $downglade_id, ...))
+            } ## end for my $line ( show_symches( $asf, $downglade, ...))
         } ## end SYMBOL: for my $symbol_ix ( 0 .. $symbol_count - 1 )
     } ## end for ( my $factoring_ix = 0; $factoring_ix < $factoring_count...)
     return \@lines;

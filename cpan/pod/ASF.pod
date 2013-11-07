@@ -37,18 +37,175 @@ An abstract syntax forest, as the name suggests, is an abstract
 syntax tree, generalized to contain the multiple trees that result from an
 ambiguous parse.
 
+=head1 Getting around in a parse forest
+
+An abstract syntax forest (ASF) is similar to an abstract syntax tree (AST), except that it
+can represent an ambiguous parse.
+An ASF is an efficient and practical way to represent multiple AST's.
+In their structure,
+ASF's have similarities to ordinary parse trees,
+but there are very important differences:
+
+=over 4
+
+=item * First, traversing many forests of practical interest requires care if your time is not going to go
+exponential.  This issue exists with trees to some extent, but it is much more severe with parse forests.
+
+=item * Second, Marpa parses can not be relied on to be trees.  The underlying algorithm allows parses
+to contain cycles and most likely this ability will come to the SLIF someday.
+
+=item * Third, for a tree there are only two kinds of nodes: rules (interior nodes) and tokens (leaf nodes).
+Forests also use nodes to represent the various kinds of ambiguity that a parse can encounter,
+and this makes traversing a forest somewhat more complex.
+
+=back
+
+=head1 Ambiguity: factoring versus symches
+
+Ambiguity in a parse can come in two forms, and Marpa's ASFs treat the
+distinction as important.  An ambiguity can be a symbolic choice
+(symch), or a factoring.  Symbolic choices are the kind of ambiguity
+that springs first to mind -- a choice between rules, or a choice
+between a rule and token.  Factorings occur when only one rule applies,
+but it can divide the input in different ways.  I'll give examples below.
+
+Symches are factorings behave very differently, and most applications
+will want to treat them very differently.
+Symches are less common, almost
+always of great interest, and the number of alternatives is usually
+small and has a (usually manageable) maximum size which depends on the
+grammar,.  Factorings are more common, and the number of alternatives
+can be exponential in the length of the input affected, and has no
+maximum -- it can grow arbitrarily large with the length of the affected
+section of the input.  On the other hand, factoring are sometimes of no
+interest.
+It is much more likely that an application will want to ignore some or all
+of the ambiguity due to factoring,
+than it is than an application will want to ignore ambiguity causes
+by a symbol choice.
+
+Here's an example of a symch.  The grammar is:
+
+         :start ::= planet
+         planet ::= hesperus
+         planet ::= phosphorus
+         hesperus ::= venus
+         phosphorus ::= venus
+         venus ~ 'venus'
+
+For the input string 'venus', the forest would look like
+
+     Symbol #0, planet, has 2 symches
+       Symch #0.0
+       CP5 Rule 1: planet -> hesperus
+         CP6 Rule 3: hesperus -> venus
+           CP8 Symbol: venus "venus"
+       Symch #0.1
+       CP5 Rule 2: planet -> phosphorus
+         CP9 Rule 4: phosphorus -> venus
+           CP11 Symbol: venus "venus"
+
+Now for an example of a factoring.  The grammar:
+
+     :start ::= top
+     top ::= b b
+     b ::= a a
+     b ::= a
+     a ~ 'a'
+
+For the input 'aaa', a parse from this grammar must have two b's, one
+short (a single 'a') and one long (two a's).  But they can be in either
+order.  This is a factoring.  Here's Marpa's dump of the forest:
+
+     CP3 Rule 1: top -> b b
+       Factoring #0
+         CP7 Rule 3: b -> a
+           CP2 Symbol: a "a"
+         CP5 Rule 2: b -> a a
+           CP11 Symbol: a "a"
+           CP0 Symbol: a "a"
+       Factoring #1
+         CP12 Rule 2: b -> a a
+           CP16 Symbol: a "a"
+           CP14 Symbol: a "a"
+         CP4 Rule 3: b -> a
+           CP18 Symbol: a "a"
+
+=head1 The structure of a forest
+
+Representing ambiguity requires new kinds of nodes,
+nodes which were not necessary in an AST.
+Marpa's ASF divides its nodes into three types:
+
+=over 4
+
+=item * Glades
+
+Glade nodes represent tokens, as well as the individual symbols on the RHS of rules.
+(The term "glade" comes from the idea of a glade as a distinct point in a forest which is
+open to light.)
+If a glade does not represent a token, it will have one or more symches as children.
+
+Each glade corresponds to a unique symbol,
+has a unique start location in the input,
+and has a unique length in the input.
+For a token, the symbol will be the token symbol.
+For a rule, the symbol will be the LHS of the rule.
+
+=item * Symches
+
+Glades contain one or more symbolic choices, which I will call B<symches>.
+Each symch is either a token or a rule.
+Since symches occur within a glade, and each glade has a unique symbol,
+only one of the symches in a glade can be a token symch.
+There can, however, be many rule symches in a glade --
+one for every rule with the glade symbol on its LHS.
+
+Each symch contains one or more factorings.
+Symches may have one or more factorings omitted.
+A symch which omits factorings is said to be "truncated".
+By default, at most 42 factorings are allowed in a symch.
+
+A token symch will always have exactly one factoring.
+That is because each factoring is a division
+of the input among the factors.
+A token is a single symbol, and therefore a token factoring
+has exactly one factor.
+Because the token factoring has exactly one factor,
+there is only one way of dividing up the input for the
+factoring, and therefore only one possible factoring.
+
+=item * Factorings
+
+As mentioned, a token factoring will always contain exactly one factor.
+For a rule,
+a factoring is a way of dividing up the span of the glade among its RHS symbols.
+Every rule factoring has one or more factors.
+
+Each "factor" is, in fact, a glade.
+As a glade, each factor will have a unique symbol and
+input range.
+The factors immediately below a glade are called its "downglades".
+
+=back
+
 =head1 Constructor
 
-=head1 General ASF Methods
+=head2 new()
 
-These methods deal with the ASF as a whole, as opposed to focusing on specific glades,
-symches or factor.
+=head1 Forest Methods
+
+These "forest" methods deal with the ASF as a whole,
+as compared to methods with a focus on specific glades,
+symches, factorings or factors.
 
 =head2 grammar()
 
 =head2 peak()
 
-=head1 General ASF Methods
+=head1 Glade Methods
+
+=head2 glade_is_visited()
 
 =head2 glade_literal()
 
@@ -56,9 +213,13 @@ symches or factor.
 
 =head2 glade_symbol_name()
 
+=head2 glade_visited_clear()
+
 =head1 Symch Methods
 
 =head2 symch_rule_id()
+
+=head2 symch_is_truncated()
 
 =head2 symch_factoring_count()
 
@@ -68,7 +229,7 @@ symches or factor.
 
 =head1 Factor Methods
 
-=head2 factor_downglade_id();
+=head2 factor_downglade()
 
 =head1 Copyright and License
 

@@ -993,7 +993,7 @@ sub Marpa::R2::ASF::factoring_symbol_count {
     return scalar @{$factoring};
 } ## end sub Marpa::R2::ASF::factoring_symbol_count
 
-sub Marpa::R2::ASF::factor_downglade_id {
+sub Marpa::R2::ASF::factor_downglade {
     my ( $asf, $glade_id, $symch_ix, $factoring_ix, $symbol_ix ) = @_;
     my $glade = glade_obtain( $asf, $glade_id );
     my $symches = $glade->[Marpa::R2::Internal::Glade::SYMCHES];
@@ -1004,7 +1004,7 @@ sub Marpa::R2::ASF::factor_downglade_id {
     my $factoring = $factorings[$factoring_ix];
     return if $symbol_ix > $#{$factoring};
     return $factoring->[$symbol_ix];
-} ## end sub Marpa::R2::ASF::factor_downglade_id
+} ## end sub Marpa::R2::ASF::factor_downglade
 
 sub Marpa::R2::ASF::show_nidsets {
     my ($asf)   = @_;
