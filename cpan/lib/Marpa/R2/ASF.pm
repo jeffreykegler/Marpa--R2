@@ -464,7 +464,7 @@ sub Marpa::R2::ASF::grammar {
     return $grammar;
 } ## end sub Marpa::R2::ASF::grammar
 
-sub Marpa::R2::ASF::nid_rule_id {
+sub nid_rule_id {
     my ( $asf, $nid ) = @_;
     return if $nid < 0;
     my $slr       = $asf->[Marpa::R2::Internal::ASF::SLR];
@@ -475,7 +475,7 @@ sub Marpa::R2::ASF::nid_rule_id {
     my $irl_id    = $bocage->_marpa_b_or_node_irl($nid);
     my $xrl_id    = $grammar_c->_marpa_g_source_xrl($irl_id);
     return $xrl_id;
-} ## end sub Marpa::R2::ASF::nid_rule_id
+}
 
 sub or_node_es_span {
     my ( $asf, $choicepoint ) = @_;
@@ -505,7 +505,7 @@ sub token_es_span {
     return or_node_es_span( $asf, $parent_or_node_id );
 } ## end sub token_es_span
 
-sub Marpa::R2::ASF::nid_literal {
+sub nid_literal {
     my ( $asf, $nid ) = @_;
     my $slr = $asf->[Marpa::R2::Internal::ASF::SLR];
     if ( $nid <= $NID_LEAF_BASE ) {
@@ -518,9 +518,9 @@ sub Marpa::R2::ASF::nid_literal {
         return $slr->substring( or_node_es_span( $asf, $nid ) );
     }
     Marpa::R2::exception("No literal for node ID: $nid");
-} ## end sub Marpa::R2::ASF::nid_literal
+}
 
-sub Marpa::R2::ASF::nid_token_id {
+sub nid_token_id {
     my ( $asf, $nid ) = @_;
     return if $nid > $NID_LEAF_BASE;
     my $and_node_id  = nid_to_and_node($nid);
@@ -532,11 +532,11 @@ sub Marpa::R2::ASF::nid_token_id {
     my $token_isy_id = $bocage->_marpa_b_and_node_symbol($and_node_id);
     my $token_id     = $grammar_c->_marpa_g_source_xsy($token_isy_id);
     return $token_id;
-} ## end sub Marpa::R2::ASF::nid_token_id
+}
 
-sub Marpa::R2::ASF::nid_symbol_id {
+sub nid_symbol_id {
     my ( $asf, $nid ) = @_;
-    my $token_id = $asf->nid_token_id($nid);
+    my $token_id = nid_token_id($asf, $nid);
     return $token_id if defined $token_id;
     Marpa::R2::exception("No symbol ID for node ID: $nid") if $nid < 0;
 
@@ -550,26 +550,26 @@ sub Marpa::R2::ASF::nid_symbol_id {
     my $xrl_id    = $grammar_c->_marpa_g_source_xrl($irl_id);
     my $lhs_id    = $grammar_c->rule_lhs($xrl_id);
     return $lhs_id;
-} ## end sub Marpa::R2::ASF::nid_symbol_id
+}
 
-sub Marpa::R2::ASF::nid_symbol_name {
+sub nid_symbol_name {
     my ( $asf, $nid ) = @_;
     my $slr       = $asf->[Marpa::R2::Internal::ASF::SLR];
     my $recce     = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
     my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
-    my $symbol_id = $asf->nid_symbol_id($nid);
+    my $symbol_id = nid_symbol_id($asf, $nid);
     return $grammar->symbol_name($symbol_id);
-} ## end sub Marpa::R2::ASF::nid_symbol_name
+}
 
-sub Marpa::R2::ASF::nid_token_name {
+sub nid_token_name {
     my ( $asf, $nid ) = @_;
     my $slr      = $asf->[Marpa::R2::Internal::ASF::SLR];
     my $recce    = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
     my $grammar  = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
-    my $token_id = $asf->nid_token_id($nid);
+    my $token_id = nid_token_id($asf, $nid);
     return if not defined $token_id;
     return $grammar->symbol_name($token_id);
-} ## end sub Marpa::R2::ASF::nid_token_name
+}
 
 # Memoization is heavily used -- it needs to be to keep the worst cases from
 # going exponential.  The need to memoize is the reason for the very heavy use of
@@ -882,7 +882,7 @@ sub glade_obtain {
             undef;
         my $symch_nidset = $choicepoint_powerset->nidset($asf, $symch_ix);
         my $choicepoint_nid = $symch_nidset->nid(0);
-        my $symch_rule_id = $asf->nid_rule_id($choicepoint_nid) // -1;
+        my $symch_rule_id = nid_rule_id($asf, $choicepoint_nid) // -1;
 
         # Initial undef indicates no factorings omitted
         my @factorings = ( $symch_rule_id, undef );
@@ -953,7 +953,7 @@ sub Marpa::R2::ASF::glade_literal {
     my $nidset_by_id = $asf->[Marpa::R2::Internal::ASF::NIDSET_BY_ID];
     my $nidset       = $nidset_by_id->[$glade_id];
     my $nid0         = $nidset->nid(0);
-    return $asf->nid_literal($nid0);
+    return nid_literal($asf, $nid0);
 } ## end sub Marpa::R2::ASF::glade_literal
 
 sub Marpa::R2::ASF::glade_symbol_name {
@@ -961,7 +961,7 @@ sub Marpa::R2::ASF::glade_symbol_name {
     my $nidset_by_id = $asf->[Marpa::R2::Internal::ASF::NIDSET_BY_ID];
     my $nidset       = $nidset_by_id->[$glade_id];
     my $nid0         = $nidset->nid(0);
-    return $asf->nid_symbol_name($nid0);
+    return nid_symbol_name($asf, $nid0);
 } ## end sub Marpa::R2::ASF::glade_symbol_name
 
 sub Marpa::R2::ASF::symch_rule_id {
