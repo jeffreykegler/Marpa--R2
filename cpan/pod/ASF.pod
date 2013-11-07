@@ -37,6 +37,39 @@ An abstract syntax forest, as the name suggests, is an abstract
 syntax tree, generalized to contain the multiple trees that result from an
 ambiguous parse.
 
+=head1 Constructor
+
+=head1 General ASF Methods
+
+These methods deal with the ASF as a whole, as opposed to focusing on specific glades,
+symches or factor.
+
+=head2 grammar()
+
+=head2 peak()
+
+=head1 General ASF Methods
+
+=head2 glade_literal()
+
+=head2 glade_symch_count()
+
+=head2 glade_symbol_name()
+
+=head1 Symch Methods
+
+=head2 symch_rule_id()
+
+=head2 symch_factoring_count()
+
+=head1 Factoring Methods
+
+=head2 factoring_symbol_count()
+
+=head1 Factor Methods
+
+=head2 factor_downglade_id();
+
 =head1 Copyright and License
 
 =for Marpa::R2::Display
