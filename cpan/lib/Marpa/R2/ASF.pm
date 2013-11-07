@@ -455,11 +455,6 @@ sub Marpa::R2::ASF::grammar {
     return $grammar;
 } ## end sub Marpa::R2::ASF::grammar
 
-sub Marpa::R2::Choicepoint::symch_count {
-    my ($cp) = @_;
-    return $cp->[Marpa::R2::Internal::Choicepoint::POWERSET]->count();
-}
-
 sub Marpa::R2::Choicepoint::symch {
     my ( $cp, $symch_ix ) = @_;
     $symch_ix //= $cp->[Marpa::R2::Internal::Choicepoint::SYMCH_IX];
@@ -486,14 +481,7 @@ sub Marpa::R2::Choicepoint::nid {
     return $symch->nid($nid_ix);
 } ## end sub Marpa::R2::Choicepoint::nid
 
-sub Marpa::R2::Choicepoint::rule_id {
-    my ($cp)    = @_;
-    my $asf     = $cp->[Marpa::R2::Internal::Choicepoint::ASF];
-    my $spot_id = $cp->nid();
-    return $asf->spot_rule_id($spot_id);
-} ## end sub Marpa::R2::Choicepoint::rule_id
-
-sub Marpa::R2::ASF::spot_rule_id {
+sub Marpa::R2::ASF::nid_rule_id {
     my ( $asf, $spot_id ) = @_;
     return if $spot_id < 0;
     my $slr       = $asf->[Marpa::R2::Internal::ASF::SLR];
@@ -504,7 +492,7 @@ sub Marpa::R2::ASF::spot_rule_id {
     my $irl_id    = $bocage->_marpa_b_or_node_irl($spot_id);
     my $xrl_id    = $grammar_c->_marpa_g_source_xrl($irl_id);
     return $xrl_id;
-} ## end sub Marpa::R2::ASF::spot_rule_id
+} ## end sub Marpa::R2::ASF::nid_rule_id
 
 sub or_node_es_span {
     my ( $asf, $choicepoint ) = @_;
@@ -927,14 +915,15 @@ sub glade_obtain {
 
     # Check if choicepoint already seen?
     my @symches     = ();
-    my $symch_count = $choicepoint->symch_count();
+    my $symch_count = $choicepoint->[Marpa::R2::Internal::Choicepoint::POWERSET]->count();
     SYMCH: for ( my $symch_ix = 0; $symch_ix < $symch_count; $symch_ix++ ) {
         $choicepoint->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK] =
             undef;
         $choicepoint->[Marpa::R2::Internal::Choicepoint::NID_IX] = 0;
         $choicepoint->[Marpa::R2::Internal::Choicepoint::SYMCH_IX] =
             $symch_ix;
-        my $symch_rule_id = $choicepoint->rule_id() // -1;
+        my $choicepoint_nid = $choicepoint->nid();
+        my $symch_rule_id = $asf->nid_rule_id($choicepoint_nid) // -1;
 
         # Initial undef indicates no factorings omitted
         my @factorings = ( $symch_rule_id, undef );
