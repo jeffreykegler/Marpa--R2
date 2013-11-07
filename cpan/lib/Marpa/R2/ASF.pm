@@ -466,12 +466,6 @@ sub Marpa::R2::Choicepoint::symch {
     return $nidset_by_id->[$symch_id];
 } ## end sub Marpa::R2::Choicepoint::symch
 
-sub Marpa::R2::Choicepoint::nid_count {
-    my ($choicepoint) = @_;
-    my $symch = $choicepoint->symch();
-    return $symch->count();
-}
-
 sub Marpa::R2::Choicepoint::nid {
     my ( $cp, $symch_ix, $nid_ix ) = @_;
     $symch_ix //= $cp->[Marpa::R2::Internal::Choicepoint::SYMCH_IX];
@@ -569,13 +563,6 @@ sub Marpa::R2::ASF::spot_symbol_id {
     return $lhs_id;
 } ## end sub Marpa::R2::ASF::spot_symbol_id
 
-sub Marpa::R2::Choicepoint::symbol_id {
-    my ($cp) = @_;
-    my $nid  = $cp->nid(0);
-    my $asf  = $cp->[Marpa::R2::Internal::Choicepoint::ASF];
-    return $asf->spot_symbol_id($nid);
-} ## end sub Marpa::R2::Choicepoint::symbol_id
-
 sub Marpa::R2::ASF::spot_symbol_name {
     my ( $asf, $spot_id ) = @_;
     my $slr       = $asf->[Marpa::R2::Internal::ASF::SLR];
@@ -594,13 +581,6 @@ sub Marpa::R2::ASF::spot_token_name {
     return if not defined $token_id;
     return $grammar->symbol_name($token_id);
 } ## end sub Marpa::R2::ASF::spot_token_name
-
-sub Marpa::R2::Choicepoint::symbol_name {
-    my ($cp) = @_;
-    my $nid  = $cp->nid(0);
-    my $asf  = $cp->[Marpa::R2::Internal::Choicepoint::ASF];
-    return $asf->spot_symbol_name($nid);
-} ## end sub Marpa::R2::Choicepoint::symbol_name
 
 # Memoization is heavily used -- it needs to be to keep the worst cases from
 # going exponential.  The need to memoize is the reason for the very heavy use of
@@ -868,6 +848,7 @@ sub glade_obtain {
     my $base_nidset =
         $asf->[Marpa::R2::Internal::ASF::NIDSET_BY_ID]->[$glade_id];
     my $choicepoint;
+    my $choicepoint_powerset;
     {
         my @source_data = ();
         for my $source_nid ( @{ $base_nidset->nids() } ) {
@@ -902,20 +883,20 @@ sub glade_obtain {
             $this_nid            = undef;
             $sort_ix_of_this_nid = -2;
         } ## end NID: while (1)
-        my $powerset = Marpa::R2::Powerset->obtain( $asf, @symch_ids );
+        $choicepoint_powerset = Marpa::R2::Powerset->obtain( $asf, @symch_ids );
         $choicepoint = bless [], 'Marpa::R2::Choicepoint';
         $choicepoint->[Marpa::R2::Internal::Choicepoint::ASF] = $asf;
         $choicepoint->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK] =
             undef;
         $choicepoint->[Marpa::R2::Internal::Choicepoint::POWERSET] =
-            $powerset;
+            $choicepoint_powerset;
         $choicepoint->[Marpa::R2::Internal::Choicepoint::SYMCH_IX] = 0;
         $choicepoint->[Marpa::R2::Internal::Choicepoint::NID_IX]   = 0;
     }
 
     # Check if choicepoint already seen?
     my @symches     = ();
-    my $symch_count = $choicepoint->[Marpa::R2::Internal::Choicepoint::POWERSET]->count();
+    my $symch_count = $choicepoint_powerset->count();
     SYMCH: for ( my $symch_ix = 0; $symch_ix < $symch_count; $symch_ix++ ) {
         $choicepoint->[Marpa::R2::Internal::Choicepoint::FACTORING_STACK] =
             undef;
@@ -944,7 +925,8 @@ sub glade_obtain {
             next SYMCH;
         } ## end if ( $symch_rule_id < 0 )
 
-        my $nid_count = $choicepoint->nid_count();
+        my $symch = $choicepoint->symch();
+        my $nid_count = $symch->count();
         my $factorings_omitted;
         FACTORINGS_LOOP:
         for ( my $nid_ix = 0; $nid_ix < $nid_count; $nid_ix++ ) {
