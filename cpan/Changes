@@ -15,9 +15,11 @@
 
 Revision history for Marpa::R2
 
-2.075_000
+2.075_001
 
-   * Work on ASF's
+   * ASF's seem stable and ready to be documented
+
+2.075_000
 
    * New series of developer's releases
 
