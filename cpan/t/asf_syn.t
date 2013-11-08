@@ -80,20 +80,17 @@ Marpa::R2::Test::is( $actual_output, $expected_output,
 # Marpa::R2::Display
 # name: ASF low-level calls synopsis, code part 2
 
-our %GLADE_SEEN;    # Silence warning
-
 sub asf_to_basic_tree {
     my ( $asf, $glade ) = @_;
-    local %GLADE_SEEN = ();
     my $peak = $asf->peak();
-    return glade_to_basic_tree( $asf, $peak );
+    return glade_to_basic_tree( $asf, $peak, [] );
 } ## end sub asf_to_basic_tree
 
 sub glade_to_basic_tree {
-    my ( $asf, $glade ) = @_;
+    my ( $asf, $glade, $seen ) = @_;
     return bless ["Glade $glade revisited"], 'My_Revisit'
-        if $GLADE_SEEN{$glade};
-    $GLADE_SEEN{$glade} = 1;
+        if $seen->[$glade];
+    $seen->[$glade] = 1;
     my $grammar     = $asf->grammar();
     my @symches     = ();
     my $symch_count = $asf->glade_symch_count($glade);
@@ -128,7 +125,7 @@ sub glade_to_basic_tree {
                 $asf->factoring_downglades( $glade, $symch_ix,
                 $factoring_ix );
             push @factorings,
-                map { glade_to_basic_tree( $asf, $_ ) } @{$downglades};
+                map { glade_to_basic_tree( $asf, $_, $seen ) } @{$downglades};
         } ## end for ( my $factoring_ix = 0; $factoring_ix < $factoring_count...)
         push @symches,
             bless [
@@ -146,6 +143,9 @@ sub glade_to_basic_tree {
 } ## end sub glade_to_basic_tree
 
 # Marpa::R2::Display::End
+
+# Marpa::R2::Display
+# name: ASF low-level calls synopsis, code part 3
 
 sub array_display {
     my ($array) = @_;
@@ -172,5 +172,7 @@ sub array_lines_display {
     } ## end ELEMENT: for my $element ( @{$array} )
     return \@lines;
 } ## end sub array_lines_display
+
+# Marpa::R2::Display::End
 
 # vim: expandtab shiftwidth=4:
