@@ -665,7 +665,7 @@ sub Marpa::R2::Scanless::G::show_rule
     if ( defined $minimum ) {
         @quantifier = ( $minimum <= 0 ? q{*} : q{+} );
     }
-    return join q{ }, $lhs, q{->}, @rhs, @quantifier;
+    return join q{ }, $lhs, q{::=}, @rhs, @quantifier;
 }
 
 # For error messages, make it convenient to use an SLR

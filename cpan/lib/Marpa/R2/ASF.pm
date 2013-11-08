@@ -459,9 +459,8 @@ sub nid_sort_ix {
 sub Marpa::R2::ASF::grammar {
     my ($asf)   = @_;
     my $slr     = $asf->[Marpa::R2::Internal::ASF::SLR];
-    my $recce   = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
-    my $grammar = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
-    return $grammar;
+    my $slg = $slr->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
+    return $slg;
 } ## end sub Marpa::R2::ASF::grammar
 
 sub nid_rule_id {
@@ -951,13 +950,13 @@ sub Marpa::R2::ASF::glade_literal {
     return nid_literal($asf, $nid0);
 } ## end sub Marpa::R2::ASF::glade_literal
 
-sub Marpa::R2::ASF::glade_symbol_name {
+sub Marpa::R2::ASF::glade_symbol_id {
     my ( $asf, $glade_id ) = @_;
     my $nidset_by_id = $asf->[Marpa::R2::Internal::ASF::NIDSET_BY_ID];
     my $nidset       = $nidset_by_id->[$glade_id];
     my $nid0         = $nidset->nid(0);
-    return nid_symbol_name($asf, $nid0);
-} ## end sub Marpa::R2::ASF::glade_symbol_name
+    return nid_symbol_id($asf, $nid0);
+}
 
 sub Marpa::R2::ASF::symch_rule_id {
     my ( $asf, $glade_id, $symch_ix ) = @_;
@@ -976,7 +975,7 @@ sub Marpa::R2::ASF::symch_factoring_count {
     return $#{ $symches->[$symch_ix] } - 1;    # length minus 2
 } ## end sub Marpa::R2::ASF::symch_factoring_count
 
-sub Marpa::R2::ASF::factoring_symbol_count {
+sub Marpa::R2::ASF::factoring_downglades {
     my ( $asf, $glade_id, $symch_ix, $factoring_ix ) = @_;
     my $glade = glade_obtain( $asf, $glade_id );
     my $symches = $glade->[Marpa::R2::Internal::Glade::SYMCHES];
@@ -985,19 +984,20 @@ sub Marpa::R2::ASF::factoring_symbol_count {
     my ( undef, undef, @factorings ) = @{$symch};
     return if $factoring_ix >= scalar @factorings;
     my $factoring = $factorings[$factoring_ix];
+    return $factoring;
+}
+
+sub Marpa::R2::ASF::factoring_symbol_count {
+    my ( $asf, $glade_id, $symch_ix, $factoring_ix ) = @_;
+    my $factoring = $asf->factoring_downglades($glade_id, $symch_ix, $factoring_ix);
+    return if not defined $factoring;
     return scalar @{$factoring};
 } ## end sub Marpa::R2::ASF::factoring_symbol_count
 
 sub Marpa::R2::ASF::factor_downglade {
     my ( $asf, $glade_id, $symch_ix, $factoring_ix, $symbol_ix ) = @_;
-    my $glade = glade_obtain( $asf, $glade_id );
-    my $symches = $glade->[Marpa::R2::Internal::Glade::SYMCHES];
-    return if $symch_ix > $#{$symches};
-    my $symch = $symches->[$symch_ix];
-    my ( undef, undef, @factorings ) = @{$symch};
-    return if $factoring_ix >= scalar @factorings;
-    my $factoring = $factorings[$factoring_ix];
-    return if $symbol_ix > $#{$factoring};
+    my $factoring = $asf->factoring_downglades($glade_id, $symch_ix, $factoring_ix);
+    return if not defined $factoring;
     return $factoring->[$symbol_ix];
 } ## end sub Marpa::R2::ASF::factor_downglade
 
@@ -1026,9 +1026,9 @@ sub Marpa::R2::ASF::dump_glade {
     if ( $symch_count > 1 ) {
         $item_ix //= 0;
         push @lines,
-              [ 0, undef, "Symbol #$item_ix, "
-            . $asf->glade_symbol_name($glade_id)
-            . ", has $symch_count symches" ];
+              [ 0, undef, "Symbol #$item_ix "
+            . $grammar->symbol_display_form($asf->glade_symbol_id($glade_id))
+            . " has $symch_count symches" ];
         $symch_indent += 2;
         $symch_choice = form_choice( $parent_choice, $item_ix );
     } ## end if ( $symch_count > 1 )
@@ -1046,7 +1046,7 @@ sub Marpa::R2::ASF::dump_glade {
             push @lines,
                 [
                 $symch_indent, $glade_id,
-                "Rule " . $grammar->brief_rule($rule_id)
+                "Rule $rule_id: " . $grammar->show_rule($rule_id)
                 ];
             for my $line (
                 @{ dump_factorings(
@@ -1114,8 +1114,10 @@ sub dump_terminal {
     # There can only be one symbol in a terminal and therefore only one factoring
     my $current_choice = $parent_choice;
     my $literal        = $asf->glade_literal($glade_id);
-    my $symbol_name    = $asf->glade_symbol_name($glade_id);
-    return [0, $glade_id, qq{Symbol: $symbol_name "$literal"}];
+    my $symbol_id    = $asf->glade_symbol_id($glade_id);
+    my $grammar = $asf->grammar();
+    my $display_form = $grammar->symbol_display_form($symbol_id);
+    return [0, $glade_id, qq{Symbol $display_form: "$literal"}];
 } ## end sub dump_terminal
 
 sub Marpa::R2::ASF::dump {

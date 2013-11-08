@@ -42,11 +42,11 @@ END_OF_SOURCE
 push @tests_data, [
     $aaaa_grammar, 'aaaa',
     <<'END_OF_ASF',
-GL2 Rule 1: quartet -> a a a a
-  GL3 Symbol: a "a"
-  GL4 Symbol: a "a"
-  GL5 Symbol: a "a"
-  GL6 Symbol: a "a"
+GL2 Rule 1: <quartet> ::= <a> <a> <a> <a>
+  GL3 Symbol <a>: "a"
+  GL4 Symbol <a>: "a"
+  GL5 Symbol <a>: "a"
+  GL6 Symbol <a>: "a"
 END_OF_ASF
     'ASF OK',
     'Basic "a a a a" grammar'
@@ -92,15 +92,15 @@ END_OF_SOURCE
 push @tests_data, [
     $venus_grammar, 'venus',
     <<'END_OF_OUTPUT',
-Symbol #0, planet, has 2 symches
+Symbol #0 <planet> has 2 symches
   Symch #0.0
-  GL2 Rule 1: planet -> hesperus
-    GL3 Rule 3: hesperus -> venus
-      GL4 Symbol: venus "venus"
+  GL2 Rule 1: <planet> ::= <hesperus>
+    GL3 Rule 3: <hesperus> ::= <venus>
+      GL4 Symbol <venus>: "venus"
   Symch #0.1
-  GL2 Rule 2: planet -> phosphorus
-    GL5 Rule 4: phosphorus -> venus
-      GL6 Symbol: venus "venus"
+  GL2 Rule 2: <planet> ::= <phosphorus>
+    GL5 Rule 4: <phosphorus> ::= <venus>
+      GL6 Symbol <venus>: "venus"
 END_OF_OUTPUT
     'ASF OK',
     '"Hesperus is Phosphorus"" grammar'
@@ -112,11 +112,11 @@ END_OF_OUTPUT
 push @tests_data, [
     $abcd_grammar, 'abcd',
     <<'END_OF_ASF',
-GL2 Rule 1: quartet -> a b c d
-  GL3 Symbol: a "a"
-  GL4 Symbol: b "b"
-  GL5 Symbol: c "c"
-  GL6 Symbol: d "d"
+GL2 Rule 1: <quartet> ::= <a> <b> <c> <d>
+  GL3 Symbol <a>: "a"
+  GL4 Symbol <b>: "b"
+  GL5 Symbol <c>: "c"
+  GL6 Symbol <d>: "d"
 END_OF_ASF
     'ASF OK',
     'Basic "a b c d" grammar'
@@ -149,19 +149,19 @@ END_OF_SOURCE
 push @tests_data, [
     $bb_grammar, 'aaa',
     <<'END_OF_OUTPUT',
-GL2 Rule 1: top -> b b
+GL2 Rule 1: <top> ::= <b> <b>
   Factoring #0
-    GL3 Rule 3: b -> a
-      GL4 Symbol: a "a"
-    GL5 Rule 2: b -> a a
-      GL6 Symbol: a "a"
-      GL7 Symbol: a "a"
+    GL3 Rule 3: <b> ::= <a>
+      GL4 Symbol <a>: "a"
+    GL5 Rule 2: <b> ::= <a> <a>
+      GL6 Symbol <a>: "a"
+      GL7 Symbol <a>: "a"
   Factoring #1
-    GL8 Rule 2: b -> a a
-      GL9 Symbol: a "a"
-      GL10 Symbol: a "a"
-    GL11 Rule 3: b -> a
-      GL12 Symbol: a "a"
+    GL8 Rule 2: <b> ::= <a> <a>
+      GL9 Symbol <a>: "a"
+      GL10 Symbol <a>: "a"
+    GL11 Rule 3: <b> ::= <a>
+      GL12 Symbol <a>: "a"
 END_OF_OUTPUT
     'ASF OK',
     '"b b" grammar'
@@ -184,16 +184,16 @@ END_OF_SOURCE
 push @tests_data, [
     $seq_grammar, 'aa',
     <<'END_OF_ASF',
-GL2 Rule 1: sequence -> item+
+GL2 Rule 1: <sequence> ::= <item> +
   Factoring #0
-    GL3 Rule 2: item -> pair
-      GL4 Rule 5: pair -> item item
-        GL5 Rule 3: item -> singleton
-          GL6 Rule 4: singleton -> [Lex-0]
-            GL7 Symbol: [Lex-0] "a"
-        GL8 Rule 3: item -> singleton
-          GL9 Rule 4: singleton -> [Lex-0]
-            GL10 Symbol: [Lex-0] "a"
+    GL3 Rule 2: <item> ::= <pair>
+      GL4 Rule 5: <pair> ::= <item> <item>
+        GL5 Rule 3: <item> ::= <singleton>
+          GL6 Rule 4: <singleton> ::= 'a'
+            GL7 Symbol 'a': "a"
+        GL8 Rule 3: <item> ::= <singleton>
+          GL9 Rule 4: <singleton> ::= 'a'
+            GL10 Symbol 'a': "a"
   Factoring #1
     GL5 already displayed
     GL8 already displayed
@@ -206,26 +206,26 @@ END_OF_ASF
 push @tests_data, [
     $seq_grammar, 'aaa',
     <<'END_OF_ASF',
-GL2 Rule 1: sequence -> item+
+GL2 Rule 1: <sequence> ::= <item> +
   Factoring #0
-    GL3 Rule 2: item -> pair
-      GL4 Rule 5: pair -> item item
+    GL3 Rule 2: <item> ::= <pair>
+      GL4 Rule 5: <pair> ::= <item> <item>
         Factoring #0.0
-          GL5 Rule 2: item -> pair
-            GL6 Rule 5: pair -> item item
-              GL7 Rule 3: item -> singleton
-                GL8 Rule 4: singleton -> [Lex-0]
-                  GL9 Symbol: [Lex-0] "a"
-              GL10 Rule 3: item -> singleton
-                GL11 Rule 4: singleton -> [Lex-0]
-                  GL12 Symbol: [Lex-0] "a"
-          GL13 Rule 3: item -> singleton
-            GL14 Rule 4: singleton -> [Lex-0]
-              GL15 Symbol: [Lex-0] "a"
+          GL5 Rule 2: <item> ::= <pair>
+            GL6 Rule 5: <pair> ::= <item> <item>
+              GL7 Rule 3: <item> ::= <singleton>
+                GL8 Rule 4: <singleton> ::= 'a'
+                  GL9 Symbol 'a': "a"
+              GL10 Rule 3: <item> ::= <singleton>
+                GL11 Rule 4: <singleton> ::= 'a'
+                  GL12 Symbol 'a': "a"
+          GL13 Rule 3: <item> ::= <singleton>
+            GL14 Rule 4: <singleton> ::= 'a'
+              GL15 Symbol 'a': "a"
         Factoring #0.1
           GL7 already displayed
-          GL16 Rule 2: item -> pair
-            GL17 Rule 5: pair -> item item
+          GL16 Rule 2: <item> ::= <pair>
+            GL17 Rule 5: <pair> ::= <item> <item>
               GL10 already displayed
               GL13 already displayed
   Factoring #1
@@ -259,28 +259,28 @@ END_OF_SOURCE
 push @tests_data, [
     $venus_seq_grammar, 'aa',
     <<'END_OF_ASF',
-GL2 Rule 1: sequence -> item+
+GL2 Rule 1: <sequence> ::= <item> +
   Factoring #0
-    GL3 Rule 2: item -> pair
-      GL4 Rule 7: pair -> item item
-        Symbol #0, item, has 2 symches
+    GL3 Rule 2: <item> ::= <pair>
+      GL4 Rule 7: <pair> ::= <item> <item>
+        Symbol #0 <item> has 2 symches
           Symch #0.0.0
-          GL5 Rule 3: item -> Hesperus
-            GL6 Rule 5: Hesperus -> [Lex-0]
-              GL7 Symbol: [Lex-0] "a"
+          GL5 Rule 3: <item> ::= <Hesperus>
+            GL6 Rule 5: <Hesperus> ::= 'a'
+              GL7 Symbol 'a': "a"
           Symch #0.0.1
-          GL5 Rule 4: item -> Phosphorus
-            GL8 Rule 6: Phosphorus -> [Lex-1]
-              GL9 Symbol: [Lex-1] "a"
-        Symbol #1, item, has 2 symches
+          GL5 Rule 4: <item> ::= <Phosphorus>
+            GL8 Rule 6: <Phosphorus> ::= 'a'
+              GL9 Symbol 'a': "a"
+        Symbol #1 <item> has 2 symches
           Symch #0.1.0
-          GL10 Rule 3: item -> Hesperus
-            GL11 Rule 5: Hesperus -> [Lex-0]
-              GL12 Symbol: [Lex-0] "a"
+          GL10 Rule 3: <item> ::= <Hesperus>
+            GL11 Rule 5: <Hesperus> ::= 'a'
+              GL12 Symbol 'a': "a"
           Symch #0.1.1
-          GL10 Rule 4: item -> Phosphorus
-            GL13 Rule 6: Phosphorus -> [Lex-1]
-              GL14 Symbol: [Lex-1] "a"
+          GL10 Rule 4: <item> ::= <Phosphorus>
+            GL13 Rule 6: <Phosphorus> ::= 'a'
+              GL14 Symbol 'a': "a"
   Factoring #1
     GL5 already displayed
     GL10 already displayed
@@ -303,15 +303,15 @@ END_OF_SOURCE
 push @tests_data, [
     $nulls_grammar, 'aaaa',
     <<'END_OF_ASF',
-GL2 Rule 1: top -> a a a a
-  GL3 Rule 2: a -> [Lex-0]
-    GL4 Symbol: [Lex-0] "a"
-  GL5 Rule 2: a -> [Lex-0]
-    GL6 Symbol: [Lex-0] "a"
-  GL7 Rule 2: a -> [Lex-0]
-    GL8 Symbol: [Lex-0] "a"
-  GL9 Rule 2: a -> [Lex-0]
-    GL10 Symbol: [Lex-0] "a"
+GL2 Rule 1: <top> ::= <a> <a> <a> <a>
+  GL3 Rule 2: <a> ::= 'a'
+    GL4 Symbol 'a': "a"
+  GL5 Rule 2: <a> ::= 'a'
+    GL6 Symbol 'a': "a"
+  GL7 Rule 2: <a> ::= 'a'
+    GL8 Symbol 'a': "a"
+  GL9 Rule 2: <a> ::= 'a'
+    GL10 Symbol 'a': "a"
 END_OF_ASF
     'ASF OK',
     'Nulls grammar for "aaaa"'
@@ -321,30 +321,30 @@ END_OF_ASF
 push @tests_data, [
     $nulls_grammar, 'aaa',
     <<'END_OF_ASF',
-GL2 Rule 1: top -> a a a a
+GL2 Rule 1: <top> ::= <a> <a> <a> <a>
   Factoring #0
-    GL3 Symbol: a ""
-    GL4 Rule 2: a -> [Lex-0]
-      GL5 Symbol: [Lex-0] "a"
-    GL6 Rule 2: a -> [Lex-0]
-      GL7 Symbol: [Lex-0] "a"
-    GL8 Rule 2: a -> [Lex-0]
-      GL9 Symbol: [Lex-0] "a"
+    GL3 Symbol <a>: ""
+    GL4 Rule 2: <a> ::= 'a'
+      GL5 Symbol 'a': "a"
+    GL6 Rule 2: <a> ::= 'a'
+      GL7 Symbol 'a': "a"
+    GL8 Rule 2: <a> ::= 'a'
+      GL9 Symbol 'a': "a"
   Factoring #1
     GL4 already displayed
-    GL10 Symbol: a ""
+    GL10 Symbol <a>: ""
     GL6 already displayed
     GL8 already displayed
   Factoring #2
     GL4 already displayed
     GL6 already displayed
-    GL11 Symbol: a ""
+    GL11 Symbol <a>: ""
     GL8 already displayed
   Factoring #3
     GL4 already displayed
     GL6 already displayed
     GL8 already displayed
-    GL12 Symbol: a ""
+    GL12 Symbol <a>: ""
 END_OF_ASF
     'ASF OK',
     'Nulls grammar for "aaa"'
@@ -354,32 +354,32 @@ END_OF_ASF
 push @tests_data, [
     $nulls_grammar, 'aa',
     <<'END_OF_ASF',
-GL2 Rule 1: top -> a a a a
+GL2 Rule 1: <top> ::= <a> <a> <a> <a>
   Factoring #0
-    GL3 Symbol: a ""
-    GL4 Symbol: a ""
-    GL5 Rule 2: a -> [Lex-0]
-      GL6 Symbol: [Lex-0] "a"
-    GL7 Rule 2: a -> [Lex-0]
-      GL8 Symbol: [Lex-0] "a"
+    GL3 Symbol <a>: ""
+    GL4 Symbol <a>: ""
+    GL5 Rule 2: <a> ::= 'a'
+      GL6 Symbol 'a': "a"
+    GL7 Rule 2: <a> ::= 'a'
+      GL8 Symbol 'a': "a"
   Factoring #1
     GL3 already displayed
     GL5 already displayed
-    GL9 Symbol: a ""
+    GL9 Symbol <a>: ""
     GL7 already displayed
   Factoring #2
     GL3 already displayed
     GL5 already displayed
     GL7 already displayed
-    GL10 Symbol: a ""
+    GL10 Symbol <a>: ""
   Factoring #3
     GL5 already displayed
     GL7 already displayed
-    GL11 Symbol: a ""
-    GL12 Symbol: a ""
+    GL11 Symbol <a>: ""
+    GL12 Symbol <a>: ""
   Factoring #4
     GL5 already displayed
-    GL13 Symbol: a ""
+    GL13 Symbol <a>: ""
     GL9 already displayed
     GL7 already displayed
   Factoring #5
@@ -396,28 +396,28 @@ END_OF_ASF
 push @tests_data, [
     $nulls_grammar, 'a',
     <<'END_OF_ASF',
-GL2 Rule 1: top -> a a a a
+GL2 Rule 1: <top> ::= <a> <a> <a> <a>
   Factoring #0
-    GL3 Rule 2: a -> [Lex-0]
-      GL4 Symbol: [Lex-0] "a"
-    GL5 Symbol: a ""
-    GL6 Symbol: a ""
-    GL7 Symbol: a ""
+    GL3 Rule 2: <a> ::= 'a'
+      GL4 Symbol 'a': "a"
+    GL5 Symbol <a>: ""
+    GL6 Symbol <a>: ""
+    GL7 Symbol <a>: ""
   Factoring #1
-    GL8 Symbol: a ""
+    GL8 Symbol <a>: ""
     GL3 already displayed
-    GL9 Symbol: a ""
-    GL10 Symbol: a ""
+    GL9 Symbol <a>: ""
+    GL10 Symbol <a>: ""
   Factoring #2
     GL8 already displayed
-    GL11 Symbol: a ""
-    GL12 Symbol: a ""
+    GL11 Symbol <a>: ""
+    GL12 Symbol <a>: ""
     GL3 already displayed
   Factoring #3
     GL8 already displayed
     GL11 already displayed
     GL3 already displayed
-    GL13 Symbol: a ""
+    GL13 Symbol <a>: ""
 END_OF_ASF
     'ASF OK',
     'Nulls grammar for "a"'
