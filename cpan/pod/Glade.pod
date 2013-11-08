@@ -269,6 +269,8 @@ The factors immediately below a glade are called its "downglades".
 
 =back
 
+=head1 Terminology
+
 =head1 Memoization
 
 When traversing a forest, you need to take steps traversing the same subtree twice.
