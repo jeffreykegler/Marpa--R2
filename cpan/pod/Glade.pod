@@ -71,18 +71,16 @@ rapidly and without notice.
 The good side is that field is 100% open for users
 to have feedback into the final interface.
 
-This document describes the low-level interface to Marpa's abstract syntax forests (ASF's).
-This interface allows the maximum flexiblity in building the forest,
-but requires the application to do much of the work.
-A higher-level interface is planned.
-
 =head1 About this document
 
-This document describes the abstract syntax forests (ASFs) of
-Marpa's SLIF interface.
+This document describes the low-level interface to Marpa's abstract syntax forests (ASF's).
 An abstract syntax forest, as the name suggests, is an abstract
 syntax tree, generalized to contain the multiple trees that result from an
 ambiguous parse.
+
+This low-level interface allows the maximum flexiblity in building the forest,
+but requires the application to do much of the work.
+A higher-level interface is planned.
 
 =head1 Getting around in a parse forest
 

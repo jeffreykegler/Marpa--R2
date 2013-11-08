@@ -1394,12 +1394,14 @@ sub Marpa::R2::Internal::MetaAST::Parse::prioritized_symbol {
     my $symbol_data =
         $parse->{symbols}->{$Marpa::R2::Internal::SUBGRAMMAR}->{$symbol_name};
     return $symbol_name if defined $symbol_data;
+    my $display_form =
+        ( $base_symbol =~ m/\s/xms ) ? "<$base_symbol>" : $base_symbol;
     $parse->symbol_names_set(
         $symbol_name,
         $Marpa::R2::Internal::SUBGRAMMAR,
         {   legacy_name  => $base_symbol,
             dsl_form     => $base_symbol,
-            display_form => "<$base_symbol>",
+            display_form => $display_form,
             description  => "<$base_symbol> at priority $priority"
         }
     );
