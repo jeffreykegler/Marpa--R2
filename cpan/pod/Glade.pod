@@ -269,6 +269,39 @@ The factors immediately below a glade are called its "downglades".
 
 =back
 
+=head1 Memoization
+
+When traversing a forest, you need to take steps traversing the same subtree twice.
+Memoization can easily be the difference between 
+an program which is unuseably slow even in small cases,
+and one which is very fast even for large inputs.
+
+Repeated subtraversals happen which two ancestor glades share the same descendant
+glade.  This is a very frequent occurrence in ASF's.
+Additionally, the underlying algorithm allows cycles, and some day the SLIF will
+as well.
+Traversing a cycle will cause an infinite loop unless you memorize.
+
+The example in this POD include memoization scheme which is very simple
+but adequate for most purposes.
+The main logic of it is show here.
+
+=for Marpa::R2::Display
+name: ASF low-level calls synopsis, code part 2
+normalize-whitespace: 1
+partial: 1
+
+        my ( $asf, $glade, $seen ) = @_;
+        return bless ["Glade $glade revisited"], 'My_Revisit'
+            if $seen->[$glade];
+        $seen->[$glade] = 1;
+
+=for Marpa::R2::Display::End
+
+As you can see, memoization is not hard.
+Putting memoization in your very first drafts of code
+will save you time and trouble.
+
 =head1 Constructor
 
 =head2 new()
@@ -379,6 +412,7 @@ partial: 1
 =head1 Factoring Methods
 
 =head2 factoring_downglades()
+
 =for Marpa::R2::Display
 name: ASF low-level calls synopsis, code part 2
 normalize-whitespace: 1
