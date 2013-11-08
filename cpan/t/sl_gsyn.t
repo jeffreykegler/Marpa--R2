@@ -71,20 +71,20 @@ $show_rules_output .= $grammar->show_rules(1, 'G0');
 
 Marpa::R2::Test::is( $show_rules_output,
     <<'END_OF_SHOW_RULES_OUTPUT', 'Scanless show_rules()' );
-G1 R0 :start ::= <Script>
-G1 R1 <Script> ::= <Expression> +
-G1 R2 <Expression> ::= <Expression>
-G1 R3 <Expression> ::= <Expression>
-G1 R4 <Expression> ::= <Expression>
-G1 R5 <Expression> ::= <Expression>
-G1 R6 <Expression> ::= <Number>
-G1 R7 <Expression> ::= '(' <Expression> ')'
-G1 R8 <Expression> ::= <Expression> '**' <Expression>
-G1 R9 <Expression> ::= <Expression> '*' <Expression>
-G1 R10 <Expression> ::= <Expression> '/' <Expression>
-G1 R11 <Expression> ::= <Expression> '+' <Expression>
-G1 R12 <Expression> ::= <Expression> '-' <Expression>
-G0 R0 <comma> ::= [,]
+G1 R0 :start ::= Script
+G1 R1 Script ::= Expression +
+G1 R2 Expression ::= Expression
+G1 R3 Expression ::= Expression
+G1 R4 Expression ::= Expression
+G1 R5 Expression ::= Expression
+G1 R6 Expression ::= Number
+G1 R7 Expression ::= '(' Expression ')'
+G1 R8 Expression ::= Expression '**' Expression
+G1 R9 Expression ::= Expression '*' Expression
+G1 R10 Expression ::= Expression '/' Expression
+G1 R11 Expression ::= Expression '+' Expression
+G1 R12 Expression ::= Expression '-' Expression
+G0 R0 comma ::= [,]
 G0 R1 '(' ::= [\(]
 G0 R2 ')' ::= [\)]
 G0 R3 '**' ::= [\*] [\*]
@@ -92,9 +92,9 @@ G0 R4 '*' ::= [\*]
 G0 R5 '/' ::= [\/]
 G0 R6 '+' ::= [\+]
 G0 R7 '-' ::= [\-]
-G0 R8 <Number> ::= [\d] +
-G0 R9 :discard ::= <whitespace>
-G0 R10 <whitespace> ::= [\s] +
+G0 R8 Number ::= [\d] +
+G0 R9 :discard ::= whitespace
+G0 R10 whitespace ::= [\s] +
 G0 R11 :discard ::= <hash comment>
 G0 R12 <hash comment> ::= <terminated hash comment>
 G0 R13 <hash comment> ::= <unterminated final hash comment>
@@ -103,7 +103,7 @@ G0 R15 <unterminated final hash comment> ::= [\#] <hash comment body>
 G0 R16 <hash comment body> ::= <hash comment char> *
 G0 R17 <vertical space char> ::= [\x{A}\x{B}\x{C}\x{D}\x{2028}\x{2029}]
 G0 R18 <hash comment char> ::= [^\x{A}\x{B}\x{C}\x{D}\x{2028}\x{2029}]
-G0 R19 :start_lex ::= <Number>
+G0 R19 :start_lex ::= Number
 G0 R20 :start_lex ::= :discard
 G0 R21 :start_lex ::= '('
 G0 R22 :start_lex ::= ')'
@@ -112,7 +112,7 @@ G0 R24 :start_lex ::= '*'
 G0 R25 :start_lex ::= '/'
 G0 R26 :start_lex ::= '+'
 G0 R27 :start_lex ::= '-'
-G0 R28 :start_lex ::= <comma>
+G0 R28 :start_lex ::= comma
 END_OF_SHOW_RULES_OUTPUT
 
 sub my_parser {
