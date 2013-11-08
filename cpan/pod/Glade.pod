@@ -60,7 +60,7 @@ remove-blank-last-line: 1
               Glade 1, Phosphorus ::= 'a'
                 Glade 17, Symbol 'a': "a"
       Glade 2, Symch 1, pair ::= item item
-    Glade 8 revisited
+        Glade 8 revisited
 
 =for Marpa::R2::Display::End
 
