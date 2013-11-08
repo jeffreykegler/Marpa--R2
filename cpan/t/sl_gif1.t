@@ -92,15 +92,15 @@ END_OF_SOURCE
 push @tests_data, [
     $venus_grammar, 'venus',
     <<'END_OF_OUTPUT',
-Symbol #0, planet, has 2 symches
+Symbol #0 planet has 2 symches
   Symch #0.0
-  GL2 Rule 1: planet -> hesperus
-    GL3 Rule 3: hesperus -> venus
-      GL4 Symbol: venus "venus"
+  GL2 Rule 1: planet ::= hesperus
+    GL3 Rule 3: hesperus ::= venus
+      GL4 Symbol venus: "venus"
   Symch #0.1
-  GL2 Rule 2: planet -> phosphorus
-    GL5 Rule 4: phosphorus -> venus
-      GL6 Symbol: venus "venus"
+  GL2 Rule 2: planet ::= phosphorus
+    GL5 Rule 4: phosphorus ::= venus
+      GL6 Symbol venus: "venus"
 END_OF_OUTPUT
     'ASF OK',
     '"Hesperus is Phosphorus"" grammar'
@@ -149,19 +149,19 @@ END_OF_SOURCE
 push @tests_data, [
     $bb_grammar, 'aaa',
     <<'END_OF_OUTPUT',
-GL2 Rule 1: top -> b b
+GL2 Rule 1: top ::= b b
   Factoring #0
-    GL3 Rule 3: b -> a
-      GL4 Symbol: a "a"
-    GL5 Rule 2: b -> a a
-      GL6 Symbol: a "a"
-      GL7 Symbol: a "a"
+    GL3 Rule 3: b ::= a
+      GL4 Symbol a: "a"
+    GL5 Rule 2: b ::= a a
+      GL6 Symbol a: "a"
+      GL7 Symbol a: "a"
   Factoring #1
-    GL8 Rule 2: b -> a a
-      GL9 Symbol: a "a"
-      GL10 Symbol: a "a"
-    GL11 Rule 3: b -> a
-      GL12 Symbol: a "a"
+    GL8 Rule 2: b ::= a a
+      GL9 Symbol a: "a"
+      GL10 Symbol a: "a"
+    GL11 Rule 3: b ::= a
+      GL12 Symbol a: "a"
 END_OF_OUTPUT
     'ASF OK',
     '"b b" grammar'

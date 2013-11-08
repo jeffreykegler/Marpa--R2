@@ -149,54 +149,54 @@ Test::More::is_deeply( $value_ref, $expected_output, 'Value before fix' );
 
 Marpa::R2::Test::is( $progress_report,
     <<'END_PROGRESS_REPORT', 'progress report' );
-P0 @0-0 L1c1 :start -> . <statements>
-P1 @0-0 L1c1 <statements> -> . <statement> *
-P2 @0-0 L1c1 <statement> -> . <assignment>
-P3 @0-0 L1c1 <statement> -> . <numeric assignment>
-P4 @0-0 L1c1 <assignment> -> . 'set' <variable> 'to' <expression>
-P5 @0-0 L1c1 <numeric assignment> -> . <variable> '=' <expression>
-R5:1 @0-1 L1c1 <numeric assignment> -> <variable> . '=' <expression>
-R5:2 @0-2 L1c1-3 <numeric assignment> -> <variable> '=' . <expression>
-P6 @2-2 L1c3 <expression> -> . <expression>
-P7 @2-2 L1c3 <expression> -> . <expression>
-P8 @2-2 L1c3 <expression> -> . <expression>
-P9 @2-2 L1c3 <expression> -> . <variable>
-P10 @2-2 L1c3 <expression> -> . <string>
-P11 @2-2 L1c3 <expression> -> . 'string' '(' <numeric expression> ')'
-P12 @2-2 L1c3 <expression> -> . <expression> '+' <expression>
-F0 @0-3 L1c1-11 :start -> <statements> .
-P1 @0-3 L1c1-11 <statements> -> . <statement> *
-F1 @0-3 L1c1-11 <statements> -> <statement> * .
-P2 @3-3 L1c5-11 <statement> -> . <assignment>
-P3 @3-3 L1c5-11 <statement> -> . <numeric assignment>
-F3 @0-3 L1c1-11 <statement> -> <numeric assignment> .
-P4 @3-3 L1c5-11 <assignment> -> . 'set' <variable> 'to' <expression>
-P5 @3-3 L1c5-11 <numeric assignment> -> . <variable> '=' <expression>
-F5 @0-3 L1c1-11 <numeric assignment> -> <variable> '=' <expression> .
-F6 @2-3 L1c3-11 <expression> -> <expression> .
-F7 @2-3 L1c3-11 <expression> -> <expression> .
-F8 @2-3 L1c3-11 <expression> -> <expression> .
-F9 @2-3 L1c3-11 <expression> -> <variable> .
-R12:1 @2-3 L1c3-11 <expression> -> <expression> . '+' <expression>
-P8 @4-4 L1c13 <expression> -> . <expression>
-P9 @4-4 L1c13 <expression> -> . <variable>
-P10 @4-4 L1c13 <expression> -> . <string>
-P11 @4-4 L1c13 <expression> -> . 'string' '(' <numeric expression> ')'
-R12:2 @2-4 L1c3-13 <expression> -> <expression> '+' . <expression>
-F0 @0-5 L1c1-16 :start -> <statements> .
-P1 @0-5 L1c1-16 <statements> -> . <statement> *
-F1 @0-5 L1c1-16 <statements> -> <statement> * .
-P2 @5-5 L1c15-16 <statement> -> . <assignment>
-P3 @5-5 L1c15-16 <statement> -> . <numeric assignment>
-F3 @0-5 L1c1-16 <statement> -> <numeric assignment> .
-P4 @5-5 L1c15-16 <assignment> -> . 'set' <variable> 'to' <expression>
-P5 @5-5 L1c15-16 <numeric assignment> -> . <variable> '=' <expression>
-F5 @0-5 L1c1-16 <numeric assignment> -> <variable> '=' <expression> .
-F6 @2-5 L1c3-16 <expression> -> <expression> .
-F8 @4-5 L1c13-16 <expression> -> <expression> .
-F9 @4-5 L1c13-16 <expression> -> <variable> .
-R12:1 @2-5 L1c3-16 <expression> -> <expression> . '+' <expression>
-F12 @2-5 L1c3-16 <expression> -> <expression> '+' <expression> .
+P0 @0-0 L1c1 :start -> . statements
+P1 @0-0 L1c1 statements -> . statement *
+P2 @0-0 L1c1 statement -> . assignment
+P3 @0-0 L1c1 statement -> . <numeric assignment>
+P4 @0-0 L1c1 assignment -> . 'set' variable 'to' expression
+P5 @0-0 L1c1 <numeric assignment> -> . variable '=' expression
+R5:1 @0-1 L1c1 <numeric assignment> -> variable . '=' expression
+R5:2 @0-2 L1c1-3 <numeric assignment> -> variable '=' . expression
+P6 @2-2 L1c3 expression -> . expression
+P7 @2-2 L1c3 expression -> . expression
+P8 @2-2 L1c3 expression -> . expression
+P9 @2-2 L1c3 expression -> . variable
+P10 @2-2 L1c3 expression -> . string
+P11 @2-2 L1c3 expression -> . 'string' '(' <numeric expression> ')'
+P12 @2-2 L1c3 expression -> . expression '+' expression
+F0 @0-3 L1c1-11 :start -> statements .
+P1 @0-3 L1c1-11 statements -> . statement *
+F1 @0-3 L1c1-11 statements -> statement * .
+P2 @3-3 L1c5-11 statement -> . assignment
+P3 @3-3 L1c5-11 statement -> . <numeric assignment>
+F3 @0-3 L1c1-11 statement -> <numeric assignment> .
+P4 @3-3 L1c5-11 assignment -> . 'set' variable 'to' expression
+P5 @3-3 L1c5-11 <numeric assignment> -> . variable '=' expression
+F5 @0-3 L1c1-11 <numeric assignment> -> variable '=' expression .
+F6 @2-3 L1c3-11 expression -> expression .
+F7 @2-3 L1c3-11 expression -> expression .
+F8 @2-3 L1c3-11 expression -> expression .
+F9 @2-3 L1c3-11 expression -> variable .
+R12:1 @2-3 L1c3-11 expression -> expression . '+' expression
+P8 @4-4 L1c13 expression -> . expression
+P9 @4-4 L1c13 expression -> . variable
+P10 @4-4 L1c13 expression -> . string
+P11 @4-4 L1c13 expression -> . 'string' '(' <numeric expression> ')'
+R12:2 @2-4 L1c3-13 expression -> expression '+' . expression
+F0 @0-5 L1c1-16 :start -> statements .
+P1 @0-5 L1c1-16 statements -> . statement *
+F1 @0-5 L1c1-16 statements -> statement * .
+P2 @5-5 L1c15-16 statement -> . assignment
+P3 @5-5 L1c15-16 statement -> . <numeric assignment>
+F3 @0-5 L1c1-16 statement -> <numeric assignment> .
+P4 @5-5 L1c15-16 assignment -> . 'set' variable 'to' expression
+P5 @5-5 L1c15-16 <numeric assignment> -> . variable '=' expression
+F5 @0-5 L1c1-16 <numeric assignment> -> variable '=' expression .
+F6 @2-5 L1c3-16 expression -> expression .
+F8 @4-5 L1c13-16 expression -> expression .
+F9 @4-5 L1c13-16 expression -> variable .
+R12:1 @2-5 L1c3-16 expression -> expression . '+' expression
+F12 @2-5 L1c3-16 expression -> expression '+' expression .
 END_PROGRESS_REPORT
 
 # Marpa::R2::Display::End
@@ -310,19 +310,19 @@ Marpa::R2::Test::is( Data::Dumper::Dumper($latest_report),
 
 Marpa::R2::Test::is( $trace_output, <<'END_TRACE_OUTPUT', 'trace output' );
 Setting trace_values option
-Accepted lexeme L1c1: <variable>; value="a"
-Discarded lexeme L1c2: <whitespace>
+Accepted lexeme L1c1: variable; value="a"
+Discarded lexeme L1c2: whitespace
 Accepted lexeme L1c3: '='; value="="
-Discarded lexeme L1c4: <whitespace>
-Rejected lexeme L1c5-11: <number>; value="8675309"
-Accepted lexeme L1c5-11: <variable>; value="8675309"
-Discarded lexeme L1c12: <whitespace>
+Discarded lexeme L1c4: whitespace
+Rejected lexeme L1c5-11: number; value="8675309"
+Accepted lexeme L1c5-11: variable; value="8675309"
+Discarded lexeme L1c12: whitespace
 Rejected lexeme L1c13: '+'; value="+"
 Accepted lexeme L1c13: '+'; value="+"
-Discarded lexeme L1c14: <whitespace>
-Rejected lexeme L1c15-16: <number>; value="42"
-Accepted lexeme L1c15-16: <variable>; value="42"
-Discarded lexeme L1c17: <whitespace>
+Discarded lexeme L1c14: whitespace
+Rejected lexeme L1c15-16: number; value="42"
+Accepted lexeme L1c15-16: variable; value="42"
+Discarded lexeme L1c17: whitespace
 Rejected lexeme L1c18: '*'; value="*"
 END_TRACE_OUTPUT
 
@@ -399,46 +399,46 @@ $show_rules_output .= $slg->show_rules(3, 'G0');
 Marpa::R2::Test::is( $show_rules_output,
     <<'END_OF_SHOW_RULES_OUTPUT', 'SLIF show_rules()' );
 G1 Rules:
-G1 R0 :start ::= <statements>
+G1 R0 :start ::= statements
   Symbol IDs: <0> ::= <16>
   Internal symbols: <[:start]> ::= <statements>
-G1 R1 <statements> ::= <statement> *
+G1 R1 statements ::= statement *
   Symbol IDs: <16> ::= <17>
   Internal symbols: <statements> ::= <statement>
-G1 R2 <statement> ::= <assignment>
+G1 R2 statement ::= assignment
   Symbol IDs: <17> ::= <18>
   Internal symbols: <statement> ::= <assignment>
-G1 R3 <statement> ::= <numeric assignment>
+G1 R3 statement ::= <numeric assignment>
   Symbol IDs: <17> ::= <19>
   Internal symbols: <statement> ::= <numeric assignment>
-G1 R4 <assignment> ::= 'set' <variable> 'to' <expression>
+G1 R4 assignment ::= 'set' variable 'to' expression
   Symbol IDs: <18> ::= <1> <20> <2> <21>
   Internal symbols: <assignment> ::= <[Lex-0]> <variable> <[Lex-1]> <expression>
-G1 R5 <numeric assignment> ::= <variable> '=' <numeric expression>
+G1 R5 <numeric assignment> ::= variable '=' <numeric expression>
   Symbol IDs: <19> ::= <20> <3> <22>
   Internal symbols: <numeric assignment> ::= <variable> <[Lex-2]> <numeric expression>
-G1 R6 <expression> ::= <expression>
+G1 R6 expression ::= expression
   Internal rule top priority rule for <expression>
   Symbol IDs: <21> ::= <10>
   Internal symbols: <expression> ::= <expression[0]>
-G1 R7 <expression> ::= <expression>
+G1 R7 expression ::= expression
   Internal rule for symbol <expression> priority transition from 0 to 1
   Symbol IDs: <10> ::= <11>
   Internal symbols: <expression[0]> ::= <expression[1]>
-G1 R8 <expression> ::= <expression>
+G1 R8 expression ::= expression
   Internal rule for symbol <expression> priority transition from 1 to 2
   Symbol IDs: <11> ::= <12>
   Internal symbols: <expression[1]> ::= <expression[2]>
-G1 R9 <expression> ::= <variable>
+G1 R9 expression ::= variable
   Symbol IDs: <12> ::= <20>
   Internal symbols: <expression[2]> ::= <variable>
-G1 R10 <expression> ::= <string>
+G1 R10 expression ::= string
   Symbol IDs: <12> ::= <23>
   Internal symbols: <expression[2]> ::= <string>
-G1 R11 <expression> ::= 'string' '(' <numeric expression> ')'
+G1 R11 expression ::= 'string' '(' <numeric expression> ')'
   Symbol IDs: <11> ::= <4> <5> <22> <6>
   Internal symbols: <expression[1]> ::= <[Lex-3]> <[Lex-4]> <numeric expression> <[Lex-5]>
-G1 R12 <expression> ::= <expression> '+' <expression>
+G1 R12 expression ::= expression '+' expression
   Symbol IDs: <10> ::= <10> <7> <11>
   Internal symbols: <expression[0]> ::= <expression[0]> <[Lex-6]> <expression[1]>
 G1 R13 <numeric expression> ::= <numeric expression>
@@ -453,10 +453,10 @@ G1 R15 <numeric expression> ::= <numeric expression>
   Internal rule for symbol <numeric expression> priority transition from 1 to 2
   Symbol IDs: <14> ::= <15>
   Internal symbols: <numeric expression[1]> ::= <numeric expression[2]>
-G1 R16 <numeric expression> ::= <variable>
+G1 R16 <numeric expression> ::= variable
   Symbol IDs: <15> ::= <20>
   Internal symbols: <numeric expression[2]> ::= <variable>
-G1 R17 <numeric expression> ::= <number>
+G1 R17 <numeric expression> ::= number
   Symbol IDs: <15> ::= <24>
   Internal symbols: <numeric expression[2]> ::= <number>
 G1 R18 <numeric expression> ::= <numeric expression> '+' <numeric expression>
@@ -502,23 +502,23 @@ G0 R8 '*' ::= [\*]
   Internal rule for single-quoted string '*'
   Symbol IDs: <10> ::= <14>
   Internal symbols: <[Lex-8]> ::= <[[\*]]>
-G0 R9 <variable> ::= [\w] +
+G0 R9 variable ::= [\w] +
   Symbol IDs: <29> ::= <19>
   Internal symbols: <variable> ::= <[[\w]]>
-G0 R10 <number> ::= [\d] +
+G0 R10 number ::= [\d] +
   Symbol IDs: <30> ::= <17>
   Internal symbols: <number> ::= <[[\d]]>
-G0 R11 <string> ::= ['] <string contents> [']
+G0 R11 string ::= ['] <string contents> [']
   Symbol IDs: <31> ::= <11> <32> <11>
   Internal symbols: <string> ::= <[[']]> <string contents> <[[']]>
 G0 R12 <string contents> ::= [^'\x{0A}\x{0B}\x{0C}\x{0D}\x{0085}\x{2028}\x{2029}] +
   Symbol IDs: <32> ::= <20>
   Internal symbols: <string contents> ::= <[[^'\x{0A}\x{0B}\x{0C}\x{0D}\x{0085}\x{2028}\x{2029}]]>
-G0 R13 :discard ::= <whitespace>
+G0 R13 :discard ::= whitespace
   Discard rule for <whitespace>
   Symbol IDs: <0> ::= <33>
   Internal symbols: <[:discard]> ::= <whitespace>
-G0 R14 <whitespace> ::= [\s] +
+G0 R14 whitespace ::= [\s] +
   Symbol IDs: <33> ::= <18>
   Internal symbols: <whitespace> ::= <[[\s]]>
 G0 R15 :start_lex ::= :discard
@@ -561,15 +561,15 @@ G0 R24 :start_lex ::= '*'
   Internal lexical start rule for <[Lex-8]>
   Symbol IDs: <1> ::= <10>
   Internal symbols: <[:start_lex]> ::= <[Lex-8]>
-G0 R25 :start_lex ::= <number>
+G0 R25 :start_lex ::= number
   Internal lexical start rule for <number>
   Symbol IDs: <1> ::= <30>
   Internal symbols: <[:start_lex]> ::= <number>
-G0 R26 :start_lex ::= <string>
+G0 R26 :start_lex ::= string
   Internal lexical start rule for <string>
   Symbol IDs: <1> ::= <31>
   Internal symbols: <[:start_lex]> ::= <string>
-G0 R27 :start_lex ::= <variable>
+G0 R27 :start_lex ::= variable
   Internal lexical start rule for <variable>
   Symbol IDs: <1> ::= <29>
   Internal symbols: <[:start_lex]> ::= <variable>
@@ -634,13 +634,13 @@ G1 S9 '*' -- Internal lexical symbol for "'*'"
   /* terminal */
   Internal name: <[Lex-8]>
   SLIF name: '*'
-G1 S10 <expression> -- <expression> at priority 0
+G1 S10 expression -- <expression> at priority 0
   Internal name: <expression[0]>
   SLIF name: expression
-G1 S11 <expression> -- <expression> at priority 1
+G1 S11 expression -- <expression> at priority 1
   Internal name: <expression[1]>
   SLIF name: expression
-G1 S12 <expression> -- <expression> at priority 2
+G1 S12 expression -- <expression> at priority 2
   Internal name: <expression[2]>
   SLIF name: expression
 G1 S13 <numeric expression> -- <numeric expression> at priority 0
@@ -652,25 +652,25 @@ G1 S14 <numeric expression> -- <numeric expression> at priority 1
 G1 S15 <numeric expression> -- <numeric expression> at priority 2
   Internal name: <numeric expression[2]>
   SLIF name: numeric expression
-G1 S16 <statements>
+G1 S16 statements
   Internal name: <statements>
-G1 S17 <statement>
+G1 S17 statement
   Internal name: <statement>
-G1 S18 <assignment>
+G1 S18 assignment
   Internal name: <assignment>
 G1 S19 <numeric assignment>
   Internal name: <numeric assignment>
-G1 S20 <variable>
+G1 S20 variable
   /* terminal */
   Internal name: <variable>
-G1 S21 <expression>
+G1 S21 expression
   Internal name: <expression>
 G1 S22 <numeric expression>
   Internal name: <numeric expression>
-G1 S23 <string>
+G1 S23 string
   /* terminal */
   Internal name: <string>
-G1 S24 <number>
+G1 S24 number
   /* terminal */
   Internal name: <number>
 Lex (G0) Symbols:
@@ -777,15 +777,15 @@ G0 S28 [t] -- Character class: [t]
   /* terminal */
   Internal name: <[[t]]>
   SLIF name: [t]
-G0 S29 <variable>
+G0 S29 variable
   Internal name: <variable>
-G0 S30 <number>
+G0 S30 number
   Internal name: <number>
-G0 S31 <string>
+G0 S31 string
   Internal name: <string>
 G0 S32 <string contents>
   Internal name: <string contents>
-G0 S33 <whitespace>
+G0 S33 whitespace
   Internal name: <whitespace>
 END_OF_SHOW_SYMBOLS_OUTPUT
 
@@ -1022,15 +1022,15 @@ symbol number: 9  name in display form: '*'
 symbol number: 9  DSL form: '*'
 symbol number: 10  name: expression[0]
 symbol number: 10  description <expression> at priority 0
-symbol number: 10  name in display form: <expression>
+symbol number: 10  name in display form: expression
 symbol number: 10  DSL form: expression
 symbol number: 11  name: expression[1]
 symbol number: 11  description <expression> at priority 1
-symbol number: 11  name in display form: <expression>
+symbol number: 11  name in display form: expression
 symbol number: 11  DSL form: expression
 symbol number: 12  name: expression[2]
 symbol number: 12  description <expression> at priority 2
-symbol number: 12  name in display form: <expression>
+symbol number: 12  name in display form: expression
 symbol number: 12  DSL form: expression
 symbol number: 13  name: numeric expression[0]
 symbol number: 13  description <numeric expression> at priority 0
@@ -1046,15 +1046,15 @@ symbol number: 15  name in display form: <numeric expression>
 symbol number: 15  DSL form: numeric expression
 symbol number: 16  name: statements
 symbol number: 16  description [No description]
-symbol number: 16  name in display form: <statements>
+symbol number: 16  name in display form: statements
 symbol number: 16  DSL form: [No name in DSL form]
 symbol number: 17  name: statement
 symbol number: 17  description [No description]
-symbol number: 17  name in display form: <statement>
+symbol number: 17  name in display form: statement
 symbol number: 17  DSL form: [No name in DSL form]
 symbol number: 18  name: assignment
 symbol number: 18  description [No description]
-symbol number: 18  name in display form: <assignment>
+symbol number: 18  name in display form: assignment
 symbol number: 18  DSL form: [No name in DSL form]
 symbol number: 19  name: numeric assignment
 symbol number: 19  description [No description]
@@ -1062,11 +1062,11 @@ symbol number: 19  name in display form: <numeric assignment>
 symbol number: 19  DSL form: [No name in DSL form]
 symbol number: 20  name: variable
 symbol number: 20  description [No description]
-symbol number: 20  name in display form: <variable>
+symbol number: 20  name in display form: variable
 symbol number: 20  DSL form: [No name in DSL form]
 symbol number: 21  name: expression
 symbol number: 21  description [No description]
-symbol number: 21  name in display form: <expression>
+symbol number: 21  name in display form: expression
 symbol number: 21  DSL form: [No name in DSL form]
 symbol number: 22  name: numeric expression
 symbol number: 22  description [No description]
@@ -1074,11 +1074,11 @@ symbol number: 22  name in display form: <numeric expression>
 symbol number: 22  DSL form: [No name in DSL form]
 symbol number: 23  name: string
 symbol number: 23  description [No description]
-symbol number: 23  name in display form: <string>
+symbol number: 23  name in display form: string
 symbol number: 23  DSL form: [No name in DSL form]
 symbol number: 24  name: number
 symbol number: 24  description [No description]
-symbol number: 24  name in display form: <number>
+symbol number: 24  name in display form: number
 symbol number: 24  DSL form: [No name in DSL form]
 END_OF_TEXT
 
@@ -1242,15 +1242,15 @@ G0 symbol number: 28  name in display form: [t]
 G0 symbol number: 28  DSL form: [t]
 G0 symbol number: 29  name: variable
 G0 symbol number: 29  description [No description]
-G0 symbol number: 29  name in display form: <variable>
+G0 symbol number: 29  name in display form: variable
 G0 symbol number: 29  DSL form: [No name in DSL form]
 G0 symbol number: 30  name: number
 G0 symbol number: 30  description [No description]
-G0 symbol number: 30  name in display form: <number>
+G0 symbol number: 30  name in display form: number
 G0 symbol number: 30  DSL form: [No name in DSL form]
 G0 symbol number: 31  name: string
 G0 symbol number: 31  description [No description]
-G0 symbol number: 31  name in display form: <string>
+G0 symbol number: 31  name in display form: string
 G0 symbol number: 31  DSL form: [No name in DSL form]
 G0 symbol number: 32  name: string contents
 G0 symbol number: 32  description [No description]
@@ -1258,7 +1258,7 @@ G0 symbol number: 32  name in display form: <string contents>
 G0 symbol number: 32  DSL form: [No name in DSL form]
 G0 symbol number: 33  name: whitespace
 G0 symbol number: 33  description [No description]
-G0 symbol number: 33  name in display form: <whitespace>
+G0 symbol number: 33  name in display form: whitespace
 G0 symbol number: 33  DSL form: [No name in DSL form]
 END_OF_TEXT
 
