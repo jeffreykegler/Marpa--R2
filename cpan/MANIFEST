@@ -95,7 +95,6 @@ lib/Marpa/.gitignore
 lib/Marpa/R2.pm
 lib/Marpa/R2/.gitignore
 lib/Marpa/R2/ASF.pm
-lib/Marpa/R2/Glade.pm
 lib/Marpa/R2/Grammar.pm
 lib/Marpa/R2/Internal.pm
 lib/Marpa/R2/MetaAST.pm
@@ -216,6 +215,7 @@ meta/Makefile
 meta/make_internal_pm.pl
 my_suppressions
 pod/ASF.pod
+pod/Glade.pod
 pod/Acknowledgements.pod
 pod/Advanced/Bibliography.pod
 pod/Advanced/Models.pod

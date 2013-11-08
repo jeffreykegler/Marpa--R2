@@ -355,7 +355,7 @@ name: SLIF debug example trace output
 partial: 1
 normalize-whitespace: 1
 
-    Discarded lexeme L1c17: <whitespace>
+    Discarded lexeme L1c17: whitespace
     Rejected lexeme L1c18: '*'; value="*"
 
 =for Marpa::R2::Display::End
@@ -397,20 +397,20 @@ name: SLIF debug example progress report
 partial: 1
 normalize-whitespace: 1
 
-    F0 @0-5 L1c1-16 :start -> <statements> .
-    P1 @0-5 L1c1-16 <statements> -> . <statement> *
-    F1 @0-5 L1c1-16 <statements> -> <statement> * .
-    P2 @5-5 L1c15-16 <statement> -> . <assignment>
-    P3 @5-5 L1c15-16 <statement> -> . <numeric assignment>
-    F3 @0-5 L1c1-16 <statement> -> <numeric assignment> .
-    P4 @5-5 L1c15-16 <assignment> -> . 'set' <variable> 'to' <expression>
-    P5 @5-5 L1c15-16 <numeric assignment> -> . <variable> '=' <expression>
-    F5 @0-5 L1c1-16 <numeric assignment> -> <variable> '=' <expression> .
-    F6 @2-5 L1c3-16 <expression> -> <expression> .
-    F8 @4-5 L1c13-16 <expression> -> <expression> .
-    F9 @4-5 L1c13-16 <expression> -> <variable> .
-    R12:1 @2-5 L1c3-16 <expression> -> <expression> . '+' <expression>
-    F12 @2-5 L1c3-16 <expression> -> <expression> '+' <expression> .
+    F0 @0-5 L1c1-16 :start -> statements .
+    P1 @0-5 L1c1-16 statements -> . statement *
+    F1 @0-5 L1c1-16 statements -> statement * .
+    P2 @5-5 L1c15-16 statement -> . assignment
+    P3 @5-5 L1c15-16 statement -> . <numeric assignment>
+    F3 @0-5 L1c1-16 statement -> <numeric assignment> .
+    P4 @5-5 L1c15-16 assignment -> . 'set' variable 'to' expression
+    P5 @5-5 L1c15-16 <numeric assignment> -> . variable '=' expression
+    F5 @0-5 L1c1-16 <numeric assignment> -> variable '=' expression .
+    F6 @2-5 L1c3-16 expression -> expression .
+    F8 @4-5 L1c13-16 expression -> expression .
+    F9 @4-5 L1c13-16 expression -> variable .
+    R12:1 @2-5 L1c3-16 expression -> expression . '+' expression
+    F12 @2-5 L1c3-16 expression -> expression '+' expression .
 
 =for Marpa::R2::Display::End
 
@@ -421,7 +421,7 @@ name: SLIF debug example progress report
 partial: 1
 normalize-whitespace: 1
 
-    F0 @0-5 L1c1-16 :start -> <statements> .
+    F0 @0-5 L1c1-16 :start -> statements .
 
 =for Marpa::R2::Display::End
 
@@ -475,7 +475,7 @@ name: SLIF debug example progress report
 partial: 1
 normalize-whitespace: 1
 
-    R12:2 @2-4 L1c3-13 <expression> -> <expression> '+' . <expression>
+    R12:2 @2-4 L1c3-13 expression -> expression '+' . expression
 
 =for Marpa::R2::Display::End
 
@@ -495,7 +495,7 @@ name: SLIF debug example progress report
 partial: 1
 normalize-whitespace: 1
 
-    P3 @3-3 L1c5-11 <statement> -> . <numeric assignment>
+    P3 @3-3 L1c5-11 statement -> . <numeric assignment>
 
 =for Marpa::R2::Display::End
 
@@ -563,12 +563,12 @@ name: SLIF debug example progress report
 partial: 1
 normalize-whitespace: 1
 
-    P0 @0-0 L1c1 :start -> . <statements>
-    P1 @0-0 L1c1 <statements> -> . <statement> *
-    P2 @0-0 L1c1 <statement> -> . <assignment>
-    P3 @0-0 L1c1 <statement> -> . <numeric assignment>
-    P4 @0-0 L1c1 <assignment> -> . 'set' <variable> 'to' <expression>
-    P5 @0-0 L1c1 <numeric assignment> -> . <variable> '=' <expression>
+    P0 @0-0 L1c1 :start -> . statements
+    P1 @0-0 L1c1 statements -> . statement *
+    P2 @0-0 L1c1 statement -> . assignment
+    P3 @0-0 L1c1 statement -> . <numeric assignment>
+    P4 @0-0 L1c1 assignment -> . 'set' variable 'to' expression
+    P5 @0-0 L1c1 <numeric assignment> -> . variable '=' expression
 
 =for Marpa::R2::Display::End
 
@@ -595,7 +595,7 @@ name: SLIF debug example progress report
 partial: 1
 normalize-whitespace: 1
 
-    P11 @2-2 L1c3 <expression> -> . 'string' '(' <numeric expression> ')'
+    P11 @2-2 L1c3 expression -> . 'string' '(' <numeric expression> ')'
 
 =for Marpa::R2::Display::End
 
@@ -604,7 +604,7 @@ name: SLIF debug example progress report
 partial: 1
 normalize-whitespace: 1
 
-    P11 @4-4 L1c13 <expression> -> . 'string' '(' <numeric expression> ')'
+    P11 @4-4 L1c13 expression -> . 'string' '(' <numeric expression> ')'
 
 =for Marpa::R2::Display::End
 
@@ -730,7 +730,7 @@ name: SLIF Leo show_progress() example
 partial: 1
 normalize-whitespace: 1
 
-    F12 x13 @0...40-41 L1c1-L2c40 <plain assignment> -> 'x' '=' <expression> .
+    F12 x13 @0...40-41 L1c1-L2c40 <plain assignment> -> 'x' '=' expression .
 
 =for Marpa::R2::Display::End
 
@@ -739,7 +739,7 @@ name: SLIF Leo show_progress() example
 partial: 1
 normalize-whitespace: 1
 
-    F2 x20 @0...38-41 L1c1-L2c40 <expression> -> <assignment> .
+    F2 x20 @0...38-41 L1c1-L2c40 expression -> assignment .
 
 =for Marpa::R2::Display::End
 
@@ -748,7 +748,7 @@ name: SLIF Leo show_progress() example
 partial: 1
 normalize-whitespace: 1
 
-    F7 x12 @0...38-41 L1c1-L2c40 <assignment> -> <plain assignment> .
+    F7 x12 @0...38-41 L1c1-L2c40 assignment -> <plain assignment> .
 
 =for Marpa::R2::Display::End
 
@@ -814,7 +814,7 @@ name: SLIF Leo show_progress() example
 partial: 1
 normalize-whitespace: 1
 
-    F3 x2 @8,18-41 L1c17-L2c40 <assignment> -> <divide assignment> .
+    F3 x2 @8,18-41 L1c17-L2c40 assignment -> <divide assignment> .
 
 =for Marpa::R2::Display::End
 
@@ -1059,19 +1059,19 @@ remove-display-indent: 1
 remove-blank-last-line: 1
 
     Setting trace_values option
-    Accepted lexeme L1c1: <variable>; value="a"
-    Discarded lexeme L1c2: <whitespace>
+    Accepted lexeme L1c1: variable; value="a"
+    Discarded lexeme L1c2: whitespace
     Accepted lexeme L1c3: '='; value="="
-    Discarded lexeme L1c4: <whitespace>
-    Rejected lexeme L1c5-11: <number>; value="8675309"
-    Accepted lexeme L1c5-11: <variable>; value="8675309"
-    Discarded lexeme L1c12: <whitespace>
+    Discarded lexeme L1c4: whitespace
+    Rejected lexeme L1c5-11: number; value="8675309"
+    Accepted lexeme L1c5-11: variable; value="8675309"
+    Discarded lexeme L1c12: whitespace
     Rejected lexeme L1c13: '+'; value="+"
     Accepted lexeme L1c13: '+'; value="+"
-    Discarded lexeme L1c14: <whitespace>
-    Rejected lexeme L1c15-16: <number>; value="42"
-    Accepted lexeme L1c15-16: <variable>; value="42"
-    Discarded lexeme L1c17: <whitespace>
+    Discarded lexeme L1c14: whitespace
+    Rejected lexeme L1c15-16: number; value="42"
+    Accepted lexeme L1c15-16: variable; value="42"
+    Discarded lexeme L1c17: whitespace
     Rejected lexeme L1c18: '*'; value="*"
 
 =for Marpa::R2::Display::End
@@ -1083,54 +1083,54 @@ name: SLIF debug example progress report
 remove-display-indent: 1
 remove-blank-last-line: 1
 
-    P0 @0-0 L1c1 :start -> . <statements>
-    P1 @0-0 L1c1 <statements> -> . <statement> *
-    P2 @0-0 L1c1 <statement> -> . <assignment>
-    P3 @0-0 L1c1 <statement> -> . <numeric assignment>
-    P4 @0-0 L1c1 <assignment> -> . 'set' <variable> 'to' <expression>
-    P5 @0-0 L1c1 <numeric assignment> -> . <variable> '=' <expression>
-    R5:1 @0-1 L1c1 <numeric assignment> -> <variable> . '=' <expression>
-    R5:2 @0-2 L1c1-3 <numeric assignment> -> <variable> '=' . <expression>
-    P6 @2-2 L1c3 <expression> -> . <expression>
-    P7 @2-2 L1c3 <expression> -> . <expression>
-    P8 @2-2 L1c3 <expression> -> . <expression>
-    P9 @2-2 L1c3 <expression> -> . <variable>
-    P10 @2-2 L1c3 <expression> -> . <string>
-    P11 @2-2 L1c3 <expression> -> . 'string' '(' <numeric expression> ')'
-    P12 @2-2 L1c3 <expression> -> . <expression> '+' <expression>
-    F0 @0-3 L1c1-11 :start -> <statements> .
-    P1 @0-3 L1c1-11 <statements> -> . <statement> *
-    F1 @0-3 L1c1-11 <statements> -> <statement> * .
-    P2 @3-3 L1c5-11 <statement> -> . <assignment>
-    P3 @3-3 L1c5-11 <statement> -> . <numeric assignment>
-    F3 @0-3 L1c1-11 <statement> -> <numeric assignment> .
-    P4 @3-3 L1c5-11 <assignment> -> . 'set' <variable> 'to' <expression>
-    P5 @3-3 L1c5-11 <numeric assignment> -> . <variable> '=' <expression>
-    F5 @0-3 L1c1-11 <numeric assignment> -> <variable> '=' <expression> .
-    F6 @2-3 L1c3-11 <expression> -> <expression> .
-    F7 @2-3 L1c3-11 <expression> -> <expression> .
-    F8 @2-3 L1c3-11 <expression> -> <expression> .
-    F9 @2-3 L1c3-11 <expression> -> <variable> .
-    R12:1 @2-3 L1c3-11 <expression> -> <expression> . '+' <expression>
-    P8 @4-4 L1c13 <expression> -> . <expression>
-    P9 @4-4 L1c13 <expression> -> . <variable>
-    P10 @4-4 L1c13 <expression> -> . <string>
-    P11 @4-4 L1c13 <expression> -> . 'string' '(' <numeric expression> ')'
-    R12:2 @2-4 L1c3-13 <expression> -> <expression> '+' . <expression>
-    F0 @0-5 L1c1-16 :start -> <statements> .
-    P1 @0-5 L1c1-16 <statements> -> . <statement> *
-    F1 @0-5 L1c1-16 <statements> -> <statement> * .
-    P2 @5-5 L1c15-16 <statement> -> . <assignment>
-    P3 @5-5 L1c15-16 <statement> -> . <numeric assignment>
-    F3 @0-5 L1c1-16 <statement> -> <numeric assignment> .
-    P4 @5-5 L1c15-16 <assignment> -> . 'set' <variable> 'to' <expression>
-    P5 @5-5 L1c15-16 <numeric assignment> -> . <variable> '=' <expression>
-    F5 @0-5 L1c1-16 <numeric assignment> -> <variable> '=' <expression> .
-    F6 @2-5 L1c3-16 <expression> -> <expression> .
-    F8 @4-5 L1c13-16 <expression> -> <expression> .
-    F9 @4-5 L1c13-16 <expression> -> <variable> .
-    R12:1 @2-5 L1c3-16 <expression> -> <expression> . '+' <expression>
-    F12 @2-5 L1c3-16 <expression> -> <expression> '+' <expression> .
+    P0 @0-0 L1c1 :start -> . statements
+    P1 @0-0 L1c1 statements -> . statement *
+    P2 @0-0 L1c1 statement -> . assignment
+    P3 @0-0 L1c1 statement -> . <numeric assignment>
+    P4 @0-0 L1c1 assignment -> . 'set' variable 'to' expression
+    P5 @0-0 L1c1 <numeric assignment> -> . variable '=' expression
+    R5:1 @0-1 L1c1 <numeric assignment> -> variable . '=' expression
+    R5:2 @0-2 L1c1-3 <numeric assignment> -> variable '=' . expression
+    P6 @2-2 L1c3 expression -> . expression
+    P7 @2-2 L1c3 expression -> . expression
+    P8 @2-2 L1c3 expression -> . expression
+    P9 @2-2 L1c3 expression -> . variable
+    P10 @2-2 L1c3 expression -> . string
+    P11 @2-2 L1c3 expression -> . 'string' '(' <numeric expression> ')'
+    P12 @2-2 L1c3 expression -> . expression '+' expression
+    F0 @0-3 L1c1-11 :start -> statements .
+    P1 @0-3 L1c1-11 statements -> . statement *
+    F1 @0-3 L1c1-11 statements -> statement * .
+    P2 @3-3 L1c5-11 statement -> . assignment
+    P3 @3-3 L1c5-11 statement -> . <numeric assignment>
+    F3 @0-3 L1c1-11 statement -> <numeric assignment> .
+    P4 @3-3 L1c5-11 assignment -> . 'set' variable 'to' expression
+    P5 @3-3 L1c5-11 <numeric assignment> -> . variable '=' expression
+    F5 @0-3 L1c1-11 <numeric assignment> -> variable '=' expression .
+    F6 @2-3 L1c3-11 expression -> expression .
+    F7 @2-3 L1c3-11 expression -> expression .
+    F8 @2-3 L1c3-11 expression -> expression .
+    F9 @2-3 L1c3-11 expression -> variable .
+    R12:1 @2-3 L1c3-11 expression -> expression . '+' expression
+    P8 @4-4 L1c13 expression -> . expression
+    P9 @4-4 L1c13 expression -> . variable
+    P10 @4-4 L1c13 expression -> . string
+    P11 @4-4 L1c13 expression -> . 'string' '(' <numeric expression> ')'
+    R12:2 @2-4 L1c3-13 expression -> expression '+' . expression
+    F0 @0-5 L1c1-16 :start -> statements .
+    P1 @0-5 L1c1-16 statements -> . statement *
+    F1 @0-5 L1c1-16 statements -> statement * .
+    P2 @5-5 L1c15-16 statement -> . assignment
+    P3 @5-5 L1c15-16 statement -> . <numeric assignment>
+    F3 @0-5 L1c1-16 statement -> <numeric assignment> .
+    P4 @5-5 L1c15-16 assignment -> . 'set' variable 'to' expression
+    P5 @5-5 L1c15-16 <numeric assignment> -> . variable '=' expression
+    F5 @0-5 L1c1-16 <numeric assignment> -> variable '=' expression .
+    F6 @2-5 L1c3-16 expression -> expression .
+    F8 @4-5 L1c13-16 expression -> expression .
+    F9 @4-5 L1c13-16 expression -> variable .
+    R12:1 @2-5 L1c3-16 expression -> expression . '+' expression
+    F12 @2-5 L1c3-16 expression -> expression '+' expression .
 
 =for Marpa::R2::Display::End
 
@@ -1147,46 +1147,46 @@ remove-blank-last-line: 1
 partial: 1
 
     G1 Rules:
-    G1 R0 :start ::= <statements>
+    G1 R0 :start ::= statements
       Symbol IDs: <0> ::= <16>
       Internal symbols: <[:start]> ::= <statements>
-    G1 R1 <statements> ::= <statement> *
+    G1 R1 statements ::= statement *
       Symbol IDs: <16> ::= <17>
-      Internal symbols: <statements> ::= <statement>
-    G1 R2 <statement> ::= <assignment>
+      Internal symbols: <statements> ::= statement
+    G1 R2 statement ::= assignment
       Symbol IDs: <17> ::= <18>
       Internal symbols: <statement> ::= <assignment>
-    G1 R3 <statement> ::= <numeric assignment>
+    G1 R3 statement ::= <numeric assignment>
       Symbol IDs: <17> ::= <19>
       Internal symbols: <statement> ::= <numeric assignment>
-    G1 R4 <assignment> ::= 'set' <variable> 'to' <expression>
+    G1 R4 assignment ::= 'set' variable 'to' expression
       Symbol IDs: <18> ::= <1> <20> <2> <21>
-      Internal symbols: <assignment> ::= <[Lex-0]> <variable> <[Lex-1]> <expression>
-    G1 R5 <numeric assignment> ::= <variable> '=' <numeric expression>
+      Internal symbols: <assignment> ::= <[Lex-0]> variable <[Lex-1]> <expression>
+    G1 R5 <numeric assignment> ::= variable '=' <numeric expression>
       Symbol IDs: <19> ::= <20> <3> <22>
-      Internal symbols: <numeric assignment> ::= <variable> <[Lex-2]> <numeric expression>
-    G1 R6 <expression> ::= <expression>
+      Internal symbols: <numeric assignment> ::= variable <[Lex-2]> <numeric expression>
+    G1 R6 expression ::= expression
       Internal rule top priority rule for <expression>
       Symbol IDs: <21> ::= <10>
       Internal symbols: <expression> ::= <expression[0]>
-    G1 R7 <expression> ::= <expression>
+    G1 R7 expression ::= expression
       Internal rule for symbol <expression> priority transition from 0 to 1
       Symbol IDs: <10> ::= <11>
       Internal symbols: <expression[0]> ::= <expression[1]>
-    G1 R8 <expression> ::= <expression>
+    G1 R8 expression ::= expression
       Internal rule for symbol <expression> priority transition from 1 to 2
       Symbol IDs: <11> ::= <12>
       Internal symbols: <expression[1]> ::= <expression[2]>
-    G1 R9 <expression> ::= <variable>
+    G1 R9 expression ::= variable
       Symbol IDs: <12> ::= <20>
       Internal symbols: <expression[2]> ::= <variable>
-    G1 R10 <expression> ::= <string>
+    G1 R10 expression ::= string
       Symbol IDs: <12> ::= <23>
       Internal symbols: <expression[2]> ::= <string>
-    G1 R11 <expression> ::= 'string' '(' <numeric expression> ')'
+    G1 R11 expression ::= 'string' '(' <numeric expression> ')'
       Symbol IDs: <11> ::= <4> <5> <22> <6>
       Internal symbols: <expression[1]> ::= <[Lex-3]> <[Lex-4]> <numeric expression> <[Lex-5]>
-    G1 R12 <expression> ::= <expression> '+' <expression>
+    G1 R12 expression ::= expression '+' expression
       Symbol IDs: <10> ::= <10> <7> <11>
       Internal symbols: <expression[0]> ::= <expression[0]> <[Lex-6]> <expression[1]>
     G1 R13 <numeric expression> ::= <numeric expression>
@@ -1201,10 +1201,10 @@ partial: 1
       Internal rule for symbol <numeric expression> priority transition from 1 to 2
       Symbol IDs: <14> ::= <15>
       Internal symbols: <numeric expression[1]> ::= <numeric expression[2]>
-    G1 R16 <numeric expression> ::= <variable>
+    G1 R16 <numeric expression> ::= variable
       Symbol IDs: <15> ::= <20>
       Internal symbols: <numeric expression[2]> ::= <variable>
-    G1 R17 <numeric expression> ::= <number>
+    G1 R17 <numeric expression> ::= number
       Symbol IDs: <15> ::= <24>
       Internal symbols: <numeric expression[2]> ::= <number>
     G1 R18 <numeric expression> ::= <numeric expression> '+' <numeric expression>
@@ -1263,13 +1263,13 @@ partial: 1
       /* terminal */
       Internal name: <[Lex-8]>
       SLIF name: '*'
-    G1 S10 <expression> -- <expression> at priority 0
+    G1 S10 expression -- <expression> at priority 0
       Internal name: <expression[0]>
       SLIF name: expression
-    G1 S11 <expression> -- <expression> at priority 1
+    G1 S11 expression -- <expression> at priority 1
       Internal name: <expression[1]>
       SLIF name: expression
-    G1 S12 <expression> -- <expression> at priority 2
+    G1 S12 expression -- <expression> at priority 2
       Internal name: <expression[2]>
       SLIF name: expression
     G1 S13 <numeric expression> -- <numeric expression> at priority 0
@@ -1281,25 +1281,25 @@ partial: 1
     G1 S15 <numeric expression> -- <numeric expression> at priority 2
       Internal name: <numeric expression[2]>
       SLIF name: numeric expression
-    G1 S16 <statements>
+    G1 S16 statements
       Internal name: <statements>
-    G1 S17 <statement>
+    G1 S17 statement
       Internal name: <statement>
-    G1 S18 <assignment>
+    G1 S18 assignment
       Internal name: <assignment>
     G1 S19 <numeric assignment>
       Internal name: <numeric assignment>
-    G1 S20 <variable>
+    G1 S20 variable
       /* terminal */
       Internal name: <variable>
-    G1 S21 <expression>
+    G1 S21 expression
       Internal name: <expression>
     G1 S22 <numeric expression>
       Internal name: <numeric expression>
-    G1 S23 <string>
+    G1 S23 string
       /* terminal */
       Internal name: <string>
-    G1 S24 <number>
+    G1 S24 number
       /* terminal */
       Internal name: <number>
 

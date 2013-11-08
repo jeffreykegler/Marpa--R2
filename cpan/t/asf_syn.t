@@ -54,8 +54,8 @@ my $actual_output   = array_display($output_as_array);
 
 # Marpa::R2::Display
 # name: ASF low-level calls synopsis, output
-# start-after-line: END_OF_OUTPUT
-# end-before-line: '^END_OF_OUTPUT$'
+# start-after-line: EXPECTED_OUTPUT
+# end-before-line: '^EXPECTED_OUTPUT$'
 
 my $expected_output = <<'EXPECTED_OUTPUT';
 Glade 2 has 2 symches
@@ -145,7 +145,7 @@ sub glade_to_basic_tree {
     return $symches[0];
 } ## end sub glade_to_basic_tree
 
-# Marpa::R2::Display
+# Marpa::R2::Display::End
 
 sub array_display {
     my ($array) = @_;

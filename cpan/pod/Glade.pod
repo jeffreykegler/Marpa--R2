@@ -21,6 +21,7 @@ Marpa::R2::Glade - Low-level interface to Marpa's ASF's
 
 =for Marpa::R2::Display
 name: ASF low-level calls synopsis, code part 1
+normalize-whitespace: 1
 
   my $grammar = Marpa::R2::Scanless::G->new(
       {   source => \(<<'END_OF_SOURCE'),
@@ -45,6 +46,8 @@ name: ASF low-level calls synopsis, code part 1
 
 =for Marpa::R2::Display
 name: ASF low-level calls synopsis, output
+remove-display-indent: 1
+remove-blank-last-line: 1
 
     Glade 2 has 2 symches
       Glade 2, Symch 0, pair ::= duple
@@ -154,15 +157,15 @@ name: ASF symch dump example output
 remove-blank-last-line: 1
 remove-display-indent: 1
 
-    Symbol #0, planet, has 2 symches
+    Symbol #0 planet has 2 symches
       Symch #0.0
-      GL2 Rule 1: planet -> hesperus
-        GL3 Rule 3: hesperus -> venus
-          GL4 Symbol: venus "venus"
+      GL2 Rule 1: planet ::= hesperus
+        GL3 Rule 3: hesperus ::= venus
+          GL4 Symbol venus: "venus"
       Symch #0.1
-      GL2 Rule 2: planet -> phosphorus
-        GL5 Rule 4: phosphorus -> venus
-          GL6 Symbol: venus "venus"
+      GL2 Rule 2: planet ::= phosphorus
+        GL5 Rule 4: phosphorus ::= venus
+          GL6 Symbol venus: "venus"
 
 =for Marpa::R2::Display::End
 
@@ -192,19 +195,19 @@ name: ASF factoring dump example output
 remove-blank-last-line: 1
 remove-display-indent: 1
 
-    GL2 Rule 1: top -> b b
+    GL2 Rule 1: top ::= b b
       Factoring #0
-        GL3 Rule 3: b -> a
-          GL4 Symbol: a "a"
-        GL5 Rule 2: b -> a a
-          GL6 Symbol: a "a"
-          GL7 Symbol: a "a"
+        GL3 Rule 3: b ::= a
+          GL4 Symbol a: "a"
+        GL5 Rule 2: b ::= a a
+          GL6 Symbol a: "a"
+          GL7 Symbol a: "a"
       Factoring #1
-        GL8 Rule 2: b -> a a
-          GL9 Symbol: a "a"
-          GL10 Symbol: a "a"
-        GL11 Rule 3: b -> a
-          GL12 Symbol: a "a"
+        GL8 Rule 2: b ::= a a
+          GL9 Symbol a: "a"
+          GL10 Symbol a: "a"
+        GL11 Rule 3: b ::= a
+          GL12 Symbol a: "a"
 
 =for Marpa::R2::Display::End
 
@@ -312,6 +315,7 @@ symches, factorings or factors.
 
 =for Marpa::R2::Display
 name: ASF low-level calls synopsis, code part 2
+normalize-whitespace: 1
 
   our %GLADE_SEEN;    # Silence warning
 
@@ -378,7 +382,7 @@ name: ASF low-level calls synopsis, code part 2
       return $symches[0];
   } ## end sub glade_to_basic_tree
 
-=for Marpa::R2::Display
+=for Marpa::R2::Display::End
 
 =head1 Copyright and License
 
