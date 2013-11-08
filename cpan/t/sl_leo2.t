@@ -126,24 +126,24 @@ my $show_progress_output = $test_slr->show_progress();
 # end-before-line: '^END_OF_OUTPUT$'
 
 my $expected_show_progress_output = <<'END_OF_OUTPUT';
-F0 @0-41 L1c1-L2c40 :start -> <expression> .
-F1 @40-41 L2c38-40 <expression> -> 'x' .
-F2 x20 @0...38-41 L1c1-L2c40 <expression> -> <assignment> .
-F3 x2 @8,18-41 L1c17-L2c40 <assignment> -> <divide assignment> .
-F4 x2 @6,16-41 L1c12-L2c40 <assignment> -> <multiply assignment> .
-F5 x2 @2,12-41 L1c3-L2c40 <assignment> -> <add assignment> .
-F6 x2 @4,14-41 L1c7-L2c40 <assignment> -> <subtract assignment> .
-F7 x12 @0...38-41 L1c1-L2c40 <assignment> -> <plain assignment> .
-R8:1 @40-41 L2c38-40 <divide assignment> -> 'x' . '/=' <expression>
-F8 x2 @10,20-41 L1c22-L2c40 <divide assignment> -> 'x' '/=' <expression> .
-R9:1 @40-41 L2c38-40 <multiply assignment> -> 'x' . '*=' <expression>
-F9 x2 @8,18-41 L1c17-L2c40 <multiply assignment> -> 'x' '*=' <expression> .
-R10:1 @40-41 L2c38-40 <add assignment> -> 'x' . '+=' <expression>
-F10 x2 @4,14-41 L1c7-L2c40 <add assignment> -> 'x' '+=' <expression> .
-R11:1 @40-41 L2c38-40 <subtract assignment> -> 'x' . '-=' <expression>
-F11 x2 @6,16-41 L1c12-L2c40 <subtract assignment> -> 'x' '-=' <expression> .
-R12:1 @40-41 L2c38-40 <plain assignment> -> 'x' . '=' <expression>
-F12 x13 @0...40-41 L1c1-L2c40 <plain assignment> -> 'x' '=' <expression> .
+F0 @0-41 L1c1-L2c40 :start -> expression .
+F1 @40-41 L2c38-40 expression -> 'x' .
+F2 x20 @0...38-41 L1c1-L2c40 expression -> assignment .
+F3 x2 @8,18-41 L1c17-L2c40 assignment -> <divide assignment> .
+F4 x2 @6,16-41 L1c12-L2c40 assignment -> <multiply assignment> .
+F5 x2 @2,12-41 L1c3-L2c40 assignment -> <add assignment> .
+F6 x2 @4,14-41 L1c7-L2c40 assignment -> <subtract assignment> .
+F7 x12 @0...38-41 L1c1-L2c40 assignment -> <plain assignment> .
+R8:1 @40-41 L2c38-40 <divide assignment> -> 'x' . '/=' expression
+F8 x2 @10,20-41 L1c22-L2c40 <divide assignment> -> 'x' '/=' expression .
+R9:1 @40-41 L2c38-40 <multiply assignment> -> 'x' . '*=' expression
+F9 x2 @8,18-41 L1c17-L2c40 <multiply assignment> -> 'x' '*=' expression .
+R10:1 @40-41 L2c38-40 <add assignment> -> 'x' . '+=' expression
+F10 x2 @4,14-41 L1c7-L2c40 <add assignment> -> 'x' '+=' expression .
+R11:1 @40-41 L2c38-40 <subtract assignment> -> 'x' . '-=' expression
+F11 x2 @6,16-41 L1c12-L2c40 <subtract assignment> -> 'x' '-=' expression .
+R12:1 @40-41 L2c38-40 <plain assignment> -> 'x' . '=' expression
+F12 x13 @0...40-41 L1c1-L2c40 <plain assignment> -> 'x' '=' expression .
 END_OF_OUTPUT
 
 # Marpa::R2::Display::End
