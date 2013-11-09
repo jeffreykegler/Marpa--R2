@@ -20,7 +20,7 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 24;
+use Test::More tests => 26;
 
 use English qw( -no_match_vars );
 use Fatal qw( open close );
@@ -385,7 +385,7 @@ $show_rules_output .= $slg->show_rules(3);
 $show_rules_output .= "Lex (G0) Rules:\n";
 
 # Marpa::R2::Display
-# name: SLR show_rules() synopsis with 2 args
+# name: SLG show_rules() synopsis with 2 args
 
 $show_rules_output .= $slg->show_rules(3, 'G0');
 
@@ -1080,6 +1080,86 @@ symbol number: 24  name: number
 symbol number: 24  description [No description]
 symbol number: 24  name in display form: number
 symbol number: 24  DSL form: [No name in DSL form]
+END_OF_TEXT
+
+$text = q{};
+
+for my $rule_id ( $slg->rule_ids() ) {
+
+# Marpa::R2::Display
+# name: SLG rule_expand() synopsis
+
+    $text .= $slg->rule_show($rule_id) . "\n";
+
+# Marpa::R2::Display::End
+
+}
+
+Marpa::R2::Test::is( $text, <<'END_OF_TEXT', 'G1 rule_show() by rule id');
+:start ::= statements
+statements ::= statement *
+statement ::= assignment
+statement ::= <numeric assignment>
+assignment ::= 'set' variable 'to' expression
+<numeric assignment> ::= variable '=' <numeric expression>
+expression ::= expression
+expression ::= expression
+expression ::= expression
+expression ::= variable
+expression ::= string
+expression ::= 'string' '(' <numeric expression> ')'
+expression ::= expression '+' expression
+<numeric expression> ::= <numeric expression>
+<numeric expression> ::= <numeric expression>
+<numeric expression> ::= <numeric expression>
+<numeric expression> ::= variable
+<numeric expression> ::= number
+<numeric expression> ::= <numeric expression> '+' <numeric expression>
+<numeric expression> ::= <numeric expression> '*' <numeric expression>
+END_OF_TEXT
+
+$text = q{};
+
+for my $rule_id ( $slg->rule_ids('G0') ) {
+
+# Marpa::R2::Display
+# name: SLG rule_expand() 2 args synopsis
+
+    $text .= $slg->rule_show($rule_id, 'G0') . "\n";
+
+# Marpa::R2::Display::End
+
+}
+
+Marpa::R2::Test::is( $text, <<'END_OF_TEXT', 'G0 rule_show() by rule id');
+'set' ::= [s] [e] [t]
+'to' ::= [t] [o]
+'=' ::= [\=]
+'string' ::= [s] [t] [r] [i] [n] [g]
+'(' ::= [\(]
+')' ::= [\)]
+'+' ::= [\+]
+'+' ::= [\+]
+'*' ::= [\*]
+variable ::= [\w] +
+number ::= [\d] +
+string ::= ['] <string contents> [']
+<string contents> ::= [^'\x{0A}\x{0B}\x{0C}\x{0D}\x{0085}\x{2028}\x{2029}] +
+:discard ::= whitespace
+whitespace ::= [\s] +
+:start_lex ::= :discard
+:start_lex ::= 'set'
+:start_lex ::= 'to'
+:start_lex ::= '='
+:start_lex ::= 'string'
+:start_lex ::= '('
+:start_lex ::= ')'
+:start_lex ::= '+'
+:start_lex ::= '+'
+:start_lex ::= '*'
+:start_lex ::= number
+:start_lex ::= string
+:start_lex ::= variable
 END_OF_TEXT
 
 $text = '';

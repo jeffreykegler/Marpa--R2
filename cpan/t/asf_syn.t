@@ -111,7 +111,7 @@ sub glade_to_basic_tree {
             $asf->symch_factoring_count( $glade, $symch_ix );
         my @symch_description = ("Glade $glade");
         push @symch_description, "Symch $symch_ix" if $symch_count > 1;
-        push @symch_description, $grammar->show_rule($rule_id);
+        push @symch_description, $grammar->rule_show($rule_id);
         my $symch_description = join q{, }, @symch_description;
 
         my @factorings = ($symch_description);

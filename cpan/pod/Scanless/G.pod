@@ -188,6 +188,32 @@ Takes one, optional, argument: the name of a subgrammar.
 Currently there are G0 and G1 subgrammars.
 The default subgrammar is G1.
 
+=head2 rule_show()
+
+=for Marpa::R2::Display
+name: SLG rule_show() synopsis
+
+    $text .= $slg->rule_show($rule_id) . "\n";
+
+=for Marpa::R2::Display::End
+
+=for Marpa::R2::Display
+name: SLG rule_show() 2 args synopsis
+
+    $text .= $slg->rule_show($rule_id, 'G0') . "\n";
+
+=for Marpa::R2::Display::End
+
+For a rule ID,
+returns a string describing that rule in a form which is useful for tracing and debugging,
+but subject to change.
+Returns a Perl undef if the rule does not exist.
+
+The first argument is the ID of the rule to be displayed.
+The second, optional, argument is the name of a subgrammar.
+Currently there are G0 and G1 subgrammars.
+The default subgrammar is G1.
+
 =head2 symbol_description()
 
 =for Marpa::R2::Display
@@ -353,7 +379,7 @@ Returns undefined if the symbol does not exist.
 =head2 show_rules()
 
 =for Marpa::R2::Display
-name: SLR show_rules() synopsis
+name: SLG show_rules() synopsis
 partial: 1
 normalize-whitespace: 1
 
@@ -362,7 +388,7 @@ normalize-whitespace: 1
 =for Marpa::R2::Display::End
 
 =for Marpa::R2::Display
-name: SLR show_rules() synopsis with 2 args
+name: SLG show_rules() synopsis with 2 args
 partial: 1
 normalize-whitespace: 1
 

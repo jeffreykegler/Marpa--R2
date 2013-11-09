@@ -93,6 +93,7 @@ sub rule_expand {
     my ( $self, $rule_id ) = @_;
     my $grammar     = $self->{g};
     my $rule_length = $grammar->rule_length($rule_id);
+    return if not defined $rule_length;
     my $lhs         = ( $grammar->rule_lhs($rule_id) );
     return ( $lhs,
         map { $grammar->rule_rhs( $rule_id, $_ ) }

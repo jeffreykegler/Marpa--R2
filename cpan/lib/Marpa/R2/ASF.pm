@@ -1046,7 +1046,7 @@ sub Marpa::R2::ASF::dump_glade {
             push @lines,
                 [
                 $symch_indent, $glade_id,
-                "Rule $rule_id: " . $grammar->show_rule($rule_id)
+                "Rule $rule_id: " . $grammar->rule_show($rule_id)
                 ];
             for my $line (
                 @{ dump_factorings(

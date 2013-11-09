@@ -63,7 +63,7 @@ END_OF_SOURCE
 );
 
 # Marpa::R2::Display
-# name: SLR show_rules() synopsis
+# name: SLG show_rules() synopsis
 
 my $show_rules_output = $slg->show_rules();
 

@@ -651,22 +651,28 @@ sub Marpa::R2::Scanless::G::symbol_description {
         ->symbol_description($symbol_id);
 }
 
-sub Marpa::R2::Scanless::G::show_rule
+sub Marpa::R2::Scanless::G::rule_show
 {
-    my ( $slg, $rule_id ) = @_;
-    my $grammar   = $slg->[Marpa::R2::Inner::Scanless::G::THICK_G1_GRAMMAR];
-    my $tracer    = $grammar->tracer();
-    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
+    my ( $slg, $rule_id, $subgrammar) = @_;
+    return slg_rule_show($slg, $rule_id, thick_subgrammar_by_name($slg, $subgrammar));
+}
+
+sub slg_rule_show {
+    my ( $slg, $rule_id, $subgrammar ) = @_;
+    my $tracer       = $subgrammar->tracer();
+    my $subgrammar_c = $subgrammar->[Marpa::R2::Internal::Grammar::C];
+    my @symbol_ids   = $tracer->rule_expand($rule_id);
+    return if not scalar @symbol_ids;
     my ( $lhs, @rhs ) =
-        map { $grammar->symbol_in_display_form($_) }
-        $tracer->rule_expand($rule_id);
-    my $minimum    = $grammar_c->sequence_min($rule_id);
+        map { $subgrammar->symbol_in_display_form($_) } @symbol_ids;
+    my $minimum    = $subgrammar_c->sequence_min($rule_id);
     my @quantifier = ();
+
     if ( defined $minimum ) {
         @quantifier = ( $minimum <= 0 ? q{*} : q{+} );
     }
     return join q{ }, $lhs, q{::=}, @rhs, @quantifier;
-}
+} ## end sub slg_rule_show
 
 # For error messages, make it convenient to use an SLR
 sub Marpa::R2::Scanless::R::show_rule {
