@@ -1087,11 +1087,13 @@ $text = q{};
 for my $rule_id ( $slg->rule_ids() ) {
 
 # Marpa::R2::Display
-# name: SLG rule_expand() synopsis
+# name: SLG rule_show() synopsis
 
-    $text .= $slg->rule_show($rule_id) . "\n";
+    my $rule_description = $slg->rule_show($rule_id);
 
 # Marpa::R2::Display::End
+
+    $text .= "$rule_description\n";
 
 }
 
@@ -1123,11 +1125,12 @@ $text = q{};
 for my $rule_id ( $slg->rule_ids('G0') ) {
 
 # Marpa::R2::Display
-# name: SLG rule_expand() 2 args synopsis
+# name: SLG rule_show() 2 args synopsis
 
-    $text .= $slg->rule_show($rule_id, 'G0') . "\n";
+    my $rule_description = $slg->rule_show($rule_id, 'G0');
 
 # Marpa::R2::Display::End
+    $text .= "$rule_description\n";
 
 }
 

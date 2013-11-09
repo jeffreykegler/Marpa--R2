@@ -193,14 +193,14 @@ The default subgrammar is G1.
 =for Marpa::R2::Display
 name: SLG rule_show() synopsis
 
-    $text .= $slg->rule_show($rule_id) . "\n";
+    my $rule_description = $slg->rule_show($rule_id);
 
 =for Marpa::R2::Display::End
 
 =for Marpa::R2::Display
 name: SLG rule_show() 2 args synopsis
 
-    $text .= $slg->rule_show($rule_id, 'G0') . "\n";
+    my $rule_description = $slg->rule_show($rule_id, 'G0');
 
 =for Marpa::R2::Display::End
 
