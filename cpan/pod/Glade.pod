@@ -269,7 +269,25 @@ The factors immediately below a glade are called its "downglades".
 
 =back
 
-=head1 Terminology
+=head1 More terminology
+
+Much of the terminology of ASF's has already been explained.
+The B<peak> of a forest is its topmost node, which will be a glade node.
+The B<downglades> of another glade, call it glade G, are those glades which are below it,
+and which have no other nodes except symches and factorings in between themselves
+and glade G.
+Glade G is called the B<upglade> of its downglades.
+
+A glade with no downglades is a B<terminal glade>.
+A glade with no upglade must be the peak.
+Note eventually ASF's will include cycles, so it is possible for a glade to be its own
+upglade, in which case it would also be its own downglade.
+
+Choices where there is only one alternative are generally called B<trivial>.
+A symch is called trivial if it is the only one immediately below its glade.
+A factoring is called trivial if it is the only one immediately below its symch.
+A glade is called trivial if it has a trivial symch which in turn has a trivial
+factoring.
 
 =head1 Memoization
 
