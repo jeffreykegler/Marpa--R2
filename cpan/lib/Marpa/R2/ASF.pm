@@ -974,6 +974,7 @@ sub Marpa::R2::ASF::symch_rule_id {
 sub Marpa::R2::ASF::symch_factoring_count {
     my ( $asf, $glade_id, $symch_ix ) = @_;
     my $glade = glade_obtain( $asf, $glade_id );
+    Marpa::R2::exception("No glade found for glade ID $glade_id)") if not defined $glade;
     my $symches = $glade->[Marpa::R2::Internal::Glade::SYMCHES];
     return if $symch_ix > $#{$symches};
     return $#{ $symches->[$symch_ix] } - 1;    # length minus 2
@@ -982,10 +983,14 @@ sub Marpa::R2::ASF::symch_factoring_count {
 sub Marpa::R2::ASF::factoring_downglades {
     my ( $asf, $glade_id, $symch_ix, $factoring_ix ) = @_;
     my $glade = glade_obtain( $asf, $glade_id );
+    Marpa::R2::exception("No glade found for glade ID $glade_id)") if not defined $glade;
     my $symches = $glade->[Marpa::R2::Internal::Glade::SYMCHES];
-    return if $symch_ix > $#{$symches};
+    Marpa::R2::exception("No symch #$symch_ix exists for glade ID $glade_id")
+        if $symch_ix > $#{$symches};
     my $symch = $symches->[$symch_ix];
-    my ( undef, undef, @factorings ) = @{$symch};
+    my ( $rule_id, undef, @factorings ) = @{$symch};
+    Marpa::R2::exception("No downglades for glade ID $glade_id, symch #$symch_ix: it is a token symch")
+        if $rule_id < 0;
     return if $factoring_ix >= scalar @factorings;
     my $factoring = $factorings[$factoring_ix];
     return $factoring;

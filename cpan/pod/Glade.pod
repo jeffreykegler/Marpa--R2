@@ -460,6 +460,12 @@ partial: 1
 
 =for Marpa::R2::Display::End
 
+Requires two arguments: a glade ID and a zero-based symch index.
+Returns the rule ID of the symch specified by the two arguments.
+If the symch is for a token, -1 is returned.
+Returns a Perl undef, if the glade exists, but the symch index is too high.
+On other failure, throws an exception.
+
 =head2 symch_is_truncated()
 
 [ To be written. ]
@@ -476,6 +482,11 @@ partial: 1
 
 =for Marpa::R2::Display::End
 
+Requires two arguments: a glade ID and a zero-based symch index.
+Returns numbers of factorings in the symch specified by the two arguments.
+Returns a Perl undef, if the glade exists, but the symch index is too high.
+On other failure, throws an exception.
+
 =head1 Factoring Methods
 
 =head2 factoring_downglades()
@@ -490,6 +501,17 @@ partial: 1
         $factoring_ix );
 
 =for Marpa::R2::Display::End
+
+Requires three arguments: a glade ID,
+the zero-based index of a symch
+and the zero-based index of a factoring.
+On succes, returns the glades IDs of the the downglades in
+the factoring specified by the arguments.
+
+Returns a Perl undef, if the glade and symch exists, but the factoring index is too high.
+On other failure, throws an exception.
+In particular, exceptions are thrown if the symch is for a token;
+and if the glade exists, but the symch index is too high.
 
 =head1 The code for the synopsis
 
