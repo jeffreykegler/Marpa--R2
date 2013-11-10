@@ -473,6 +473,9 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
+Please prefer L<"rule_expand()">, together with
+L<"symbol_name()"> or
+L<"symbol_display_form()">.
 Given a G0 rule ID as its argument,
 returns an array containing the
 names of the symbols of that rule.
@@ -499,9 +502,8 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
+Please prefer L<"rule_expand()">.
 Returns a list of the G0 rule ID's.
-The symbols for these can be queried using the 
-L<the SLIF grammar's g0_rule() method|"g0_rule()">,
 
 =head2 g1_rule_ids()
 
@@ -517,9 +519,8 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
+Please prefer L<"rule_expand()">.
 Returns a list of the G1 rule ID's.
-The symbols for these can be queried using the 
-L<the SLIF grammar's rule() method|"rule()">,
 
 =head2 rule()
 
@@ -534,6 +535,9 @@ name: Scanless rule() synopsis
 
 =for Marpa::R2::Display::End
 
+Please prefer L<"rule_expand()">, together with
+L<"symbol_name()"> or
+L<"symbol_display_form()">.
 Given a G1 rule ID as its argument,
 returns an array containing the
 names of the symbols of that rule.
