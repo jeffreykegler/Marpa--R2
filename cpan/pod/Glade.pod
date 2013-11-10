@@ -48,9 +48,9 @@ The code for C<asf_to_basic_tree()> represents a user-supplied call
 using the interface described below.  An full example of C<ast_to_basic_tree()>,
 which constructs a Perl array "tree",
 is given
-L<below/"The code for ast_to_basic_tree()">.
+L<below|/"The code for ast_to_basic_tree()">.
 C<array_display()> displays the tree in a compact form.
-The code for it is also given L<below/"The code for array_display()">.
+The code for it is also given L<below|/"The code for array_display()">.
 The return value of C<array_display()> is as follows:
 
 =for Marpa::R2::Display
@@ -96,8 +96,8 @@ A higher-level interface is planned.
 
 =head1 Getting around in a parse forest
 
-An abstract syntax forest (ASF) is similar to an abstract syntax tree (AST), except that it
-can represent an ambiguous parse.
+An abstract syntax forest (ASF) is similar to an abstract syntax tree (AST), but it
+has an additional ability -- it can represent an ambiguous parse.
 An ASF is an efficient and practical way to represent multiple AST's.
 In their structure,
 ASF's have similarities to ordinary parse trees,
@@ -108,8 +108,10 @@ but there are very important differences:
 =item * First, traversing many forests of practical interest requires care if your time is not going to go
 exponential.  This issue exists with trees to some extent, but it is much more severe with parse forests.
 
-=item * Second, Marpa parses can not be relied on to be trees.  The underlying algorithm allows parses
-to contain cycles and most likely this ability will come to the SLIF someday.
+=item * Second, Marpa parses should not be relied on to be trees in the strict sense
+-- the underlying algorithm allows parses
+to contain cycles.
+Most likely the ability to create parses with cycles will come to the SLIF someday.
 
 =item * Third, for a tree there are only two kinds of nodes: rules (interior nodes) and tokens (leaf nodes).
 Forests also use nodes to represent the various kinds of ambiguity that a parse can encounter,
@@ -119,27 +121,34 @@ and this makes traversing a forest somewhat more complex.
 
 =head1 Ambiguity: factoring versus symches
 
-Ambiguity in a parse can come in two forms, and Marpa's ASFs treat the
+Ambiguity in a parse can come in two forms, and Marpa's ASF's treat the
 distinction as important.  An ambiguity can be a symbolic choice
 (symch), or a factoring.  Symbolic choices are the kind of ambiguity
 that springs first to mind -- a choice between rules, or a choice
 between a rule and token.  Factorings occur when only one rule applies,
-but it can divide the input in different ways.  I'll give examples below.
+but that rule can divide the input in different ways.  I'll give examples below.
 
-Symches are factorings behave very differently, and most applications
-will want to treat them very differently.
-Symches are less common, almost
-always of great interest, and the number of alternatives is usually
-small and has a (usually manageable) maximum size which depends on the
-grammar,.  Factorings are more common, and the number of alternatives
-can be exponential in the length of the input affected, and has no
-maximum -- it can grow arbitrarily large with the length of the affected
-section of the input.  On the other hand, factoring are sometimes of no
-interest.
-It is much more likely that an application will want to ignore some or all
-of the ambiguity due to factoring,
-than it is than an application will want to ignore ambiguity causes
-by a symbol choice.
+Symches and factorings behave very differently:
+
+=over 4
+
+=item * Symches are less common than factorings.
+
+=item * Factorings are sometimes of no interest; symches are almost
+always of interest.
+
+=item * Symches almost always have only a small number of alternatives; factorings
+often have many, sometimes too many to manage.
+
+=item * The maximum number of symches is a reasonable finite constant.
+
+=item * The maximum number of factorings
+depends on the length of the string being factored, and can be grow arbitrarily large.
+
+=back
+
+Most applications
+will want to treat symches and factorings differently.
 
 =head2 An example of a symch
 
@@ -195,8 +204,8 @@ remove-display-indent: 1
 
 =for Marpa::R2::Display::End
 
-For the input 'aaa', a parse from this grammar must have two b's, one
-short (a single 'a') and one long (two a's).  But they can be in either
+For the input 'C<aaa>', a parse from this grammar must have two C<b>'s, one
+short (a single 'C<a>') and one long (two C<a>'s).  But they can be in either
 order.  This is a factoring.  Here's Marpa's dump of the forest:
 
 =for Marpa::R2::Display
@@ -231,15 +240,14 @@ Marpa's ASF divides its nodes into three types:
 =item * Glades
 
 Glade nodes represent tokens, as well as the individual symbols on the RHS of rules.
-(The term "glade" comes from the idea of a glade as a distinct point in a forest which is
+(The term "glade" comes from the idea of a glade as a distinct place in a forest that is
 open to light.)
-If a glade does not represent a token, it will have one or more symches as children.
+A glade will have one or more symches as children.
 
-Each glade corresponds to a unique symbol,
-has a unique start location in the input,
-and has a unique length in the input.
-For a token, the symbol will be the token symbol.
-For a rule, the symbol will be the LHS of the rule.
+Each glade corresponds to a unique symbol and a unique span in the input.
+(A span is duple, consisting of a start location and a length.)
+For a token, the glade symbol will be the token symbol.
+For a rule, the glade symbol will be the LHS of the rule.
 
 =item * Symches
 
@@ -251,18 +259,10 @@ There can, however, be many rule symches in a glade --
 one for every rule with the glade symbol on its LHS.
 
 Each symch contains one or more factorings.
+(The factoring of a token symch will always be trivial.)
 Symches may have one or more factorings omitted.
-A symch which omits factorings is said to be "truncated".
+A symch which omits factorings is said to be B<truncated>.
 By default, at most 42 factorings are allowed in a symch.
-
-A token symch will always have exactly one factoring.
-That is because each factoring is a division
-of the input among the factors.
-A token is a single symbol, and therefore a token factoring
-has exactly one factor.
-Because the token factoring has exactly one factor,
-there is only one way of dividing up the input for the
-factoring, and therefore only one possible factoring.
 
 =item * Factorings
 
@@ -271,10 +271,11 @@ For a rule,
 a factoring is a way of dividing up the span of the glade among its RHS symbols.
 Every rule factoring has one or more factors.
 
-Each "factor" is, in fact, a glade.
-As a glade, each factor will have a unique symbol and
-input range.
-The factors immediately below a glade are called its "downglades".
+For a rule symch,
+each "factor" of any of its factorings corresponds to a symbol instance
+on the RHS of the rule.
+Each such RHS factor, in fact, a glade.
+As a glade, each RHS factor will have a unique symbol and input span.
 
 =back
 
@@ -287,25 +288,28 @@ and which have no other nodes except symches and factorings in between themselve
 and glade G.
 Glade G is called the B<upglade> of its downglades.
 
+If you can reach glade B from glade A by
+following a path of downglades,
+glade A is said to be B<upper> with respect to A
+and glade B is said to be B<lower> with respect to B.
+
 A glade with no downglades is a B<terminal glade>.
 A glade with no upglade must be the peak.
-Note eventually ASF's will include cycles, so it is possible for a glade to be its own
-upglade, in which case it would also be its own downglade.
-
 Choices where there is only one alternative are generally called B<trivial>.
 A symch is called trivial if it is the only one immediately below its glade.
 A factoring is called trivial if it is the only one immediately below its symch.
-A glade is called trivial if it has a trivial symch which in turn has a trivial
+A glade is called trivial if it has a trivial symch which has a trivial
 factoring.
 
 =head1 Memoization
 
-When traversing a forest, you need to take steps traversing the same subtree twice.
+When traversing a forest, you need to take steps to avoid
+traversing the same subtree twice.
 Memoization can easily be the difference between 
 an program which is unuseably slow even in small cases,
 and one which is very fast even for large inputs.
 
-Repeated subtraversals happen which two ancestor glades share the same descendant
+Repeated subtraversals happen which two upper glades share the same lower
 glade.  This is a very frequent occurrence in ASF's.
 Additionally, the underlying algorithm allows cycles, and some day the SLIF will
 as well.
@@ -313,13 +317,13 @@ Traversing a cycle will cause an infinite loop unless you memorize.
 
 The example in this POD include memoization scheme which is very simple
 but adequate for most purposes.
-The main logic of it is show here.
+The main logic of it is shown here.
 
 =head1 The Glade ID
 
-Each glade as a glade ID.
+Each glade has a glade ID.
 This can be relied on to be a non-negative integer.
-It may be zero.
+A glade ID may be zero.
 Glade ID's are obtained from the L</"peak()">
 and L</"factoring_downglades()"> methods.
 
@@ -359,7 +363,7 @@ Current only one named argument is allowed, the C<slr> argument, and
 that argument is required.
 The value of the C<slr> argument must be a SLIF recognizer object.
 
-Return the new ASF object, or undef if there was a problem.
+Returns the new ASF object, or undef if there was a problem.
 
 =head1 Forest Methods
 
@@ -413,7 +417,7 @@ partial: 1
 
 Returns the literal substring of the input associated
 with the glade.
-Every glade is associated with a range -- a start location in the input,
+Every glade is associated with a span -- a start location in the input,
 and a length.
 On failure, throws an exception.
 
@@ -514,7 +518,8 @@ partial: 1
 Requires three arguments: a glade ID,
 the zero-based index of a symch
 and the zero-based index of a factoring.
-On succes, returns the glades IDs of the the downglades in
+On success, returns a reference to an array.
+The array contains the glade IDs of the the downglades in
 the factoring specified by the arguments.
 
 Returns a Perl undef, if the glade and symch exists, but the factoring index is too high.
@@ -634,6 +639,45 @@ normalize-whitespace: 1
     } ## end sub array_lines_display
 
 =for Marpa::R2::Display::End
+
+=head1 Details
+
+This section contains some mathematical elaborations of the above.
+These details are segregated because they are not essential to using this interface,
+and while some readers find them more helpful than distracting,
+for others it is the reverse.
+
+=head2 Why are token symches always trivial?
+
+A token symch is always trivial: that is, it contains exactly one factoring.
+Proof: Each factoring is a division
+of the input among the factors.
+A token is a single symbol, and therefore a token factoring
+has exactly one factor.
+When there is only factor,
+there is only one way of dividing up the input among the factors.
+Therefore there is only one possible factoring,
+and a token symch must be trivial. QED.
+
+=head2 An alternative way of defining glade terminology
+
+Here's a way of defining some of the above terms which is more elegant,
+but also more mathematical.
+First, define the B<glade length> from glades A to glade B in an ASF as 
+the number of glades on the shortest path from A to B, not including glade A.
+(Recall that paths are directional.)
+If there is no path between glades A and B, the glade length is undefined.
+Glade B is a B<downglade> of glade A,
+and a glade A is an B<upglade> of glade B,
+if and only if the glade length from A to B is 1.
+
+A glade A is B<upper> with respect to glade B,
+and a glade B is B<lower> with respect to glade A,
+if and only if the glade length from A to B is defined.
+
+A B<peak> of an ASF is a node without upglades.
+By construction of the ASF, there is only one peak.
+A glade is B<trivial> if and only if it has exactly one downglade.
 
 =head1 Copyright and License
 
