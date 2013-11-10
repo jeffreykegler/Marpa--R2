@@ -44,6 +44,15 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
+The code for C<asf_to_basic_tree()> represents a user-supplied call
+using the interface described below.  An full example of C<ast_to_basic_tree()>,
+which constructs a Perl array "tree",
+is given
+L<below/"The code for ast_to_basic_tree()">.
+C<array_display()> displays the tree in a compact form.
+The code for it is also given L<below/"The code for array_display()">.
+The return value of C<array_display()> is as follows:
+
 =for Marpa::R2::Display
 name: ASF low-level calls synopsis, output
 remove-display-indent: 1
@@ -515,6 +524,8 @@ and if the glade exists, but the symch index is too high.
 
 =head1 The code for the synopsis
 
+=head2 The asf_to_basic_tree() code
+
 =for Marpa::R2::Display
 name: ASF low-level calls synopsis, code part 2
 normalize-whitespace: 1
@@ -589,6 +600,8 @@ The following code displays the output array in a more compact form.
 This code actually works for all arrays and makes no use of Marpa, 
 but it is included for completeness,
 and to provide a simple example of array traversal.
+
+=head2 The array_display() code
 
 =for Marpa::R2::Display
 name: ASF low-level calls synopsis, code part 3
