@@ -147,7 +147,7 @@ and to a greater degree when tracing the G1 grammar.
 (For those more familiar with Marpa's internals,
 the G1 location is the G1 Earley set index.)
 
-=head1 Current location
+=head2 Current location
 
 The SLIF tracks
 the B<current location in the input stream>, more usually simply
@@ -191,6 +191,53 @@ The current location will never be negative.
 The current location will never be greater than EOS.
 
 =back
+
+=head2 Literals and G1 spans
+
+Often it is useful to find the literal substring of the input which corresponds to a span
+of G1 locations.
+If an application reads the input monotonically within the G1 span
+this presents no complications.
+
+"Monotonically" here means that,
+for the G1 span C<$g1_start, $g1_length>,
+the application reads the G1 locations
+in sequence and one-by-one, starting at
+C<$g1_start> and ending at C<$g1_start+$g1_length>.
+This is the usual case.
+
+Reading the input monotonically is the default,
+and by far the most common
+case.
+But Marpa applications
+are free to skip forward in the stream,
+to jump backward,
+to reread the same input multiple times, etc., etc.
+It is entirely possible the final input stream location of a G1 span 
+will be before the start of the G1 span.
+
+In precise terms,
+the substring returned
+for a G1 span C<$g1_start, $g1_length>
+is determined as follows:
+The string
+will start at the first input stream location in the span for
+G1 location C<$g1_start+1>.
+The end of the string will be at
+the last input stream location in the span for
+G1 location C<$g1_start+$g1_length>.
+When an application moves backward in the input,
+the end of the string,
+as calculated above,
+may be before the start of the string.
+When the end of a string is before its start,
+the substring returned will be the zero-length string.
+
+Applications which do not read monotonically,
+but which also
+wants to associate spans of G1 locations with the input stream,
+may need to reassemble the input based on their own ideas.
+The L</"literal()"> method can assist in this process.
 
 =head1 How internal scanning works
 
@@ -1286,38 +1333,9 @@ stream.
 A G1 length of zero will produce the zero-length string.
 
 The substring of the input stream is determined on the assumption
-that the application,
-while reading
-the sequence of G1 locations from
-C<$g1_start> to C<$g1_start+$g1_length>,
-read forward smoothly in the input stream.
-This is the usual case, but applications are free
-to jump around in the input stream.
-
-Here,
-in precise terms,
-is how C<substring()> determines the string to be returned:
-The string
-will start at the first input stream location in the span for
-G1 location C<$g1_start+1>.
-The end of the string will be at
-the last input stream location in the span for
-G1 location C<$g1_start+$g1_length>.
-When an application moves backward in the input,
-the end of the string,
-as calculated above,
-may be before the start of the string.
-When the end of a string is before its start,
-C<substring()> returns the zero-length string.
-
-Applications are free to skip forward in the stream,
-jump backward,
-reread the same input multiple times, etc., etc.
-Applications which do such things,
-but which also
-wants to associate spans of G1 locations with the input stream,
-will need to reassemble the input based on their own ideas.
-The L</"literal()"> method can assist in this process.
+that the application reads the input monotonically.
+When this is not the case, the substring is determined as
+L<described above|/"Literals and G1 spans">.
 
 =head2 terminals_expected()
 

@@ -306,6 +306,14 @@ The example in this POD include memoization scheme which is very simple
 but adequate for most purposes.
 The main logic of it is show here.
 
+=head1 The Glade ID
+
+Each glade as a glade ID.
+This can be relied on to be a non-negative integer.
+It may be zero.
+Glade ID's are obtained from the L</"peak()">
+and L</"factoring_downglades()"> methods.
+
 =for Marpa::R2::Display
 name: ASF low-level calls synopsis, code part 2
 normalize-whitespace: 1
@@ -336,6 +344,14 @@ partial: 1
 
 =for Marpa::R2::Display::End
 
+Creates a new ASF object.
+Must be called with a list of one or more hashes of named arguments.
+Current only one named argument is allowed, the C<slr> argument, and
+that argument is required.
+The value of the C<slr> argument must be a SLIF recognizer object.
+
+Return the new ASF object, or undef if there was a problem.
+
 =head1 Forest Methods
 
 These "forest" methods deal with the ASF as a whole,
@@ -353,6 +369,11 @@ partial: 1
 
 =for Marpa::R2::Display::End
 
+Returns the SLIF grammar associated with the ASF.
+This can be convenient when using SLIF grammar methods
+while examining an ASF.
+All failures are thrown as exceptions.
+
 =head2 peak()
 
 =for Marpa::R2::Display
@@ -363,6 +384,10 @@ partial: 1
     my $peak = $asf->peak();
 
 =for Marpa::R2::Display::End
+
+Returns the glade ID of the peak.
+This may be zero.
+All failures are thrown as exceptions.
 
 =head1 Glade Methods
 
@@ -377,6 +402,17 @@ partial: 1
 
 =for Marpa::R2::Display::End
 
+Returns the literal substring of the input associated
+with the glade.
+Every glade is associated with a range -- a start location in the input,
+and a length.
+On failure, throws an exception.
+
+The literal is determined by the range.
+Marpa applications are not required to read the input monotonically,
+and the complications that arise for those which do not are addressed
+in L<Marpa::R2::Scanless::R/"Literals and G1 spans">.
+
 =head2 glade_symch_count()
 
 =for Marpa::R2::Display
@@ -387,6 +423,10 @@ partial: 1
     my $symch_count = $asf->glade_symch_count($glade);
 
 =for Marpa::R2::Display::End
+
+Requires a glade ID as its only argument.
+Returns the number of symches below the glade specified by the argument.
+On failure, throws an exception.
 
 =head2 glade_symbol_id()
 
@@ -399,6 +439,13 @@ partial: 1
     my $display_form = $grammar->symbol_display_form($symbol_id);
 
 =for Marpa::R2::Display::End
+
+Requires a glade ID as its only argument.
+Returns the symbol ID of the "glade symbol" for the glade specified by the argument.
+The "glade symbol" always exsits.
+If the glade is for a token, it is the token symbol.
+If the glade is for a set of rules, it is the LHS that those rules share in common.
+On failure, throws an exception.
 
 =head1 Symch Methods
 

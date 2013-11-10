@@ -939,6 +939,7 @@ sub glade_obtain {
 sub Marpa::R2::ASF::glade_symch_count {
     my ( $asf, $glade_id ) = @_;
     my $glade = glade_obtain( $asf, $glade_id );
+    Marpa::R2::exception("No glade found for glade ID $glade_id)") if not defined $glade;
     return scalar @{ $glade->[Marpa::R2::Internal::Glade::SYMCHES] };
 }
 
@@ -946,6 +947,8 @@ sub Marpa::R2::ASF::glade_literal {
     my ( $asf, $glade_id ) = @_;
     my $nidset_by_id = $asf->[Marpa::R2::Internal::ASF::NIDSET_BY_ID];
     my $nidset       = $nidset_by_id->[$glade_id];
+    Marpa::R2::exception("No glade found for glade ID $glade_id)") if not defined $nidset;
+    return if not defined $nidset;
     my $nid0         = $nidset->nid(0);
     return nid_literal($asf, $nid0);
 } ## end sub Marpa::R2::ASF::glade_literal
@@ -954,6 +957,7 @@ sub Marpa::R2::ASF::glade_symbol_id {
     my ( $asf, $glade_id ) = @_;
     my $nidset_by_id = $asf->[Marpa::R2::Internal::ASF::NIDSET_BY_ID];
     my $nidset       = $nidset_by_id->[$glade_id];
+    Marpa::R2::exception("No glade found for glade ID $glade_id)") if not defined $nidset;
     my $nid0         = $nidset->nid(0);
     return nid_symbol_id($asf, $nid0);
 }
