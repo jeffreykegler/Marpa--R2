@@ -439,6 +439,12 @@ sub Marpa::R2::Internal::MetaAST_Nodes::adverb_item::evaluate {
     return bless $child, $PROTO_ALTERNATIVE;
 }
 
+sub Marpa::R2::Internal::MetaAST_Nodes::adverb_body::evaluate {
+    my ( $values, $parse ) = @_;
+    my $child = $values->[2]->evaluate($parse);
+    return bless $child, $PROTO_ALTERNATIVE;
+}
+
 sub Marpa::R2::Internal::MetaAST_Nodes::default_rule::evaluate {
     my ( $values, $parse ) = @_;
     my ( $start, $length, undef, $op_declare, $raw_adverb_list ) = @{$values};

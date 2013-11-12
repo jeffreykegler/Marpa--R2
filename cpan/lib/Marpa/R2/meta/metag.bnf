@@ -44,7 +44,8 @@ alternatives ::= alternative+
     separator => <op equal priority> proper => 1
 alternative ::= rhs <adverb list>
 <adverb list> ::= <adverb item>*
-<adverb item> ::=
+<adverb item> ::= <adverb body> | <adverb body> ','
+<adverb body> ::=
       action
     | <left association> | <right association> | <group association>
     | <separator specification> | <proper specification>
