@@ -313,7 +313,7 @@ Repeated subtraversals happen which two upper glades share the same lower
 glade.  This is a very frequent occurrence in ASF's.
 Additionally, the underlying algorithm allows cycles, and some day the SLIF will
 as well.
-Traversing a cycle will cause an infinite loop unless you memorize.
+Traversing a cycle will cause an infinite loop unless you memoize.
 
 The example in this POD include memoization scheme which is very simple
 but adequate for most purposes.
