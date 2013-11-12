@@ -143,7 +143,7 @@ often have many, sometimes too many to manage.
 =item * The maximum number of symches is a reasonable finite constant.
 
 =item * The maximum number of factorings
-depends on the length of the string being factored, and can be grow arbitrarily large.
+depends on the length of the string being factored, and can grow arbitrarily large.
 
 =back
 
