@@ -939,7 +939,7 @@ of lexemes when
 
 Lexeme priorities only have
 an effect when lexemes are accepted.
-The intent of this scheme is avoid situations where a lexeme
+The intent of this scheme is to avoid situations where a lexeme
 with a high priority is rejected, and causes a parse to fail,
 even though another lower priority lexeme is acceptable
 and would allow the parse to continue.
