@@ -143,7 +143,7 @@ often have many, sometimes too many to manage.
 =item * The maximum number of symches is a reasonable finite constant.
 
 =item * The maximum number of factorings
-depends on the length of the string being factored, and can be grow arbitrarily large.
+depends on the length of the string being factored, and can grow arbitrarily large.
 
 =back
 
@@ -313,7 +313,7 @@ Repeated subtraversals happen which two upper glades share the same lower
 glade.  This is a very frequent occurrence in ASF's.
 Additionally, the underlying algorithm allows cycles, and some day the SLIF will
 as well.
-Traversing a cycle will cause an infinite loop unless you memorize.
+Traversing a cycle will cause an infinite loop unless you memoize.
 
 The example in this POD include memoization scheme which is very simple
 but adequate for most purposes.
