@@ -61,7 +61,7 @@ action ::= ('action' '=>') <action name>
 <proper specification> ::= ('proper' '=>') boolean
 <rank specification> ::= ('rank' '=>') <signed integer>
 <null ranking specification> ::= ('null-ranking' '=>') <null ranking constant>
-<null ranking specification> ::= ('null' 'ranking' '=>') <null ranking constant>
+<null ranking specification> ::= ('null' 'rank' '=>') <null ranking constant>
 <null ranking constant> ::= 'low' | 'high'
 <priority specification> ::= ('priority' '=>') <signed integer>
 <pause specification> ::= ('pause' '=>') <before or after>
