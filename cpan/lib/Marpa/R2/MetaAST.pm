@@ -1354,13 +1354,17 @@ sub combine {
 } ## end sub combine
 
 sub Marpa::R2::Internal::MetaAST::char_class_to_re {
-    my ($char_class) = @_;
+    my ($cc_components) = @_;
+    die if ref $cc_components ne 'ARRAY';
+    my ( $char_class, @flags ) = @{$cc_components};
     my $regex;
-    my $eval_error;
+    my $error;
     if ( not defined eval { $regex = qr/$char_class/xms; 1; } ) {
-        $eval_error = $EVAL_ERROR;
+        $error = qq{Problem in evaluating character class: [$char_class]\n};
+        $error .= qq{  Flags were } . (join q{ }, @flags) if @flags;
+        $error .= $EVAL_ERROR;
     }
-    return $regex, $eval_error;
+    return $regex, $error;
 }
 
 # Return the character class symbol name,
@@ -1374,19 +1378,24 @@ sub char_class_to_symbol {
     my $cc_hash = $parse->{character_classes};
     my ( undef, $symbol ) = $cc_hash->{$symbol_name};
     if ( not defined $symbol ) {
-        my ( $regex, $eval_error ) = Marpa::R2::Internal::MetaAST::char_class_to_re($char_class);
-	# Fast fail on badly formed char_class -- we re-evaluate the regex just in time
-	# before we register characters.
+
+        my $cc_components = [$char_class];
+
+        # Fast fail on badly formed char_class -- we re-evaluate the regex just in time
+        # before we register characters.
+        my ( $regex, $eval_error ) =
+            Marpa::R2::Internal::MetaAST::char_class_to_re($cc_components);
         Carp::croak( 'Bad Character class: ',
-            $char_class, "\n", 'Perl said ', $EVAL_ERROR )
-          if not $regex;
-        $symbol = Marpa::R2::Internal::MetaAST::Symbol_List->new($symbol_name);
-        $cc_hash->{$symbol_name} = [ $regex, $symbol ];
+            $char_class, "\n", 'Perl said ', $eval_error )
+            if not $regex;
+
+        $symbol =
+            Marpa::R2::Internal::MetaAST::Symbol_List->new($symbol_name);
+        $cc_hash->{$symbol_name} = [ $cc_components, $symbol ];
         $parse->symbol_names_set(
             $symbol_name,
             $Marpa::R2::Internal::SUBGRAMMAR,
-            {
-                dsl_form     => $char_class,
+            {   dsl_form     => $char_class,
                 display_form => $char_class,
                 description  => "Character class: $char_class"
             }

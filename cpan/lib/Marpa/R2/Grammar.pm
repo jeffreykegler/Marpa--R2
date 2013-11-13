@@ -618,14 +618,8 @@ sub Marpa::R2::Grammar::precompute {
         my $class_table = $grammar->[Marpa::R2::Internal::Grammar::CHARACTER_CLASS_TABLE] = [];
         for my $cc_symbol ( sort keys %{$cc_hash} ) {
             my $cc_components = $cc_hash->{$cc_symbol};
-	    my $compiled_re;
-	    if (ref $cc_components eq 'Regexp') {
-	        $compiled_re = $regex;
-	    } else {
-	        $compiled_re = Marpa::R2::Internal::MetaAST::char_class_to_re($cc_components);
-	    }
             push @{$class_table},
-                [ $grammar->thin_symbol($cc_symbol), $compiled_re ];
+                [ $grammar->thin_symbol($cc_symbol), $cc_components ];
         }
     }
 

@@ -409,11 +409,24 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
     my @class_table          = ();
 
     for my $class_symbol ( sort keys %{$character_class_hash} ) {
+        my $error;
+        my $compiled_re;
+        my $cc_components = $character_class_hash->{$class_symbol};
+        if ( ref $cc_components eq 'Regexp' ) {
+            $compiled_re = $cc_components;
+        }
+        else {
+            ( $compiled_re, $error ) =
+                Marpa::R2::Internal::MetaAST::char_class_to_re(
+                $cc_components);
+        }
+        if ( not $compiled_re ) {
+            $error =~ s/^/  /gxms;    #indent all lines
+            Marpa::R2::exception(
+                "Failed belatedly to evaluate character class\n", $error );
+        }
         push @class_table,
-            [
-            $lex_tracer->symbol_by_name($class_symbol),
-            $character_class_hash->{$class_symbol}
-            ];
+            [ $lex_tracer->symbol_by_name($class_symbol), $compiled_re ];
     } ## end for my $class_symbol ( sort keys %{$character_class_hash...})
     $slg->[Marpa::R2::Inner::Scanless::G::CHARACTER_CLASS_TABLE] =
         \@class_table;
