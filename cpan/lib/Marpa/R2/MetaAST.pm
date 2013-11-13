@@ -1353,6 +1353,16 @@ sub combine {
     return bless $self, $class;
 } ## end sub combine
 
+sub Marpa::R2::Internal::MetaAST::char_class_to_re {
+    my ($char_class) = @_;
+    my $regex;
+    my $eval_error;
+    if ( not defined eval { $regex = qr/$char_class/xms; 1; } ) {
+        $eval_error = $EVAL_ERROR;
+    }
+    return $regex, $eval_error;
+}
+
 # Return the character class symbol name,
 # after ensuring everything is set up properly
 sub char_class_to_symbol {
@@ -1364,18 +1374,19 @@ sub char_class_to_symbol {
     my $cc_hash = $parse->{character_classes};
     my ( undef, $symbol ) = $cc_hash->{$symbol_name};
     if ( not defined $symbol ) {
-        my $regex;
-        if ( not defined eval { $regex = qr/$char_class/xms; 1; } ) {
-            Carp::croak( 'Bad Character class: ',
-                $char_class, "\n", 'Perl said ', $EVAL_ERROR );
-        }
-        $symbol =
-            Marpa::R2::Internal::MetaAST::Symbol_List->new($symbol_name);
+        my ( $regex, $eval_error ) = Marpa::R2::Internal::MetaAST::char_class_to_re($char_class);
+	# Fast fail on badly formed char_class -- we re-evaluate the regex just in time
+	# before we register characters.
+        Carp::croak( 'Bad Character class: ',
+            $char_class, "\n", 'Perl said ', $EVAL_ERROR )
+          if not $regex;
+        $symbol = Marpa::R2::Internal::MetaAST::Symbol_List->new($symbol_name);
         $cc_hash->{$symbol_name} = [ $regex, $symbol ];
         $parse->symbol_names_set(
             $symbol_name,
             $Marpa::R2::Internal::SUBGRAMMAR,
-            {   dsl_form     => $char_class,
+            {
+                dsl_form     => $char_class,
                 display_form => $char_class,
                 description  => "Character class: $char_class"
             }
