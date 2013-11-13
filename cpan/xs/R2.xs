@@ -5356,7 +5356,7 @@ PPCODE:
   if (!sv_isa (slg_sv, "Marpa::R2::Thin::SLG"))
     {
       croak
-	("Problem in u->new(): g0 arg is not of type Marpa::R2::Thin::SLG");
+	("Problem in u->new(): slg arg is not of type Marpa::R2::Thin::SLG");
     }
   if (!sv_isa (r1_sv, "Marpa::R2::Thin::R"))
     {
