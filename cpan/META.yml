@@ -108,6 +108,6 @@ requires:
   List::Util: 1.21
   Scalar::Util: 1.21
 resources:
-  license: http://opensource.org/licenses/lgpl-license.php
+  license: http://opensource.org/licenses/lgpl-3.0.html
   repository: git://github.com/jeffreykegler/Marpa--R2.git
 version: 2.075_003

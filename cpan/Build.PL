@@ -151,7 +151,7 @@ my $build = Marpa::R2::Build_Me->new(
             { repository => 'git://github.com/jeffreykegler/Marpa--R2.git', },
     },
     pod_files          => \%pod_files,
-    license            => 'lgpl',
+    license            => 'lgpl3',
     create_readme      => 0,
     # Removed per suggestion of Andreas Koenig
     # create_makefile_pl => 'small',

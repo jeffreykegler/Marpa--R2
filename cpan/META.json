@@ -144,7 +144,7 @@
    "release_status" : "testing",
    "resources" : {
       "license" : [
-         "http://opensource.org/licenses/lgpl-license.php"
+         "http://opensource.org/licenses/lgpl-3.0.html"
       ],
       "repository" : {
          "url" : "git://github.com/jeffreykegler/Marpa--R2.git"
