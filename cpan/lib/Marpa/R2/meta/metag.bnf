@@ -27,6 +27,7 @@ statement ::= <statement body> ';'
   | <nulled event declaration>
   | <prediction event declaration>
 <start rule> ::= (':start' <op declare bnf>) symbol
+<start rule> ::= ('start' 'symbol' 'is') symbol
 <default rule> ::= ':default' <op declare bnf> <adverb list>
 <lexeme default statement> ::= ('lexeme' 'default' '=') <adverb list>
 <priority rule> ::= lhs <op declare> priorities

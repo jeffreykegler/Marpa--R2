@@ -97,7 +97,7 @@ push @tests_data,
 my $durand_grammar1 = Marpa::R2::Scanless::G->new(
     {   source => \(<<'END_OF_SOURCE'),
 :default ::= action => ::array
-:start ::= test
+start symbol is test
 test ::= TEST
 :lexeme ~ TEST
 TEST                  ~ '## Allowed in the input' NEWLINE
