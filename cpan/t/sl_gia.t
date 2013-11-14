@@ -61,6 +61,11 @@ my @tests_data = (
     ],
 );
 
+# Marpa::R2::Display
+# name: Case-insensitive characters examples
+# start-after-line: END_OF_SOURCE
+# end-before-line: '^END_OF_SOURCE$'
+
 my $ic_grammar = Marpa::R2::Scanless::G->new(
     {   source => \(<<'END_OF_SOURCE'),
             :default ::= action => ::array
@@ -73,11 +78,13 @@ my $ic_grammar = Marpa::R2::Scanless::G->new(
             Token ~
                 word
                 | word ':' word
-            word ~ [\w]:ic+
+            word ~ [\w]:ic +
 
 END_OF_SOURCE
     }
 );
+
+# Marpa::R2::Display::End
 
 push @tests_data,
     [   $ic_grammar,

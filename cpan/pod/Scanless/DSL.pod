@@ -183,7 +183,7 @@ referred to by name in Perl code.
 In this cases, it is the symbols explicit name
 that is used.
 
-=head2 Single quoted strings
+=head1 Single-quoted strings
 
 =for Marpa::R2::Display
 name: SLIF DSL synopsis
@@ -201,22 +201,31 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
+=for Marpa::R2::Display
+name: Case-insensitive characters examples
+partial: 1
+normalize-whitespace: 1
+
+    Child ~ 'cHILd':i
+
+=for Marpa::R2::Display::End
+
 Single quotes can be used in prioritized
 rules to indicate character strings.
 The characters inside the single quote
 will be matched in the input, literally and one-for-one.
-Single quoted strings can contain any characters with
+Single-quoted strings can contain any characters with
 the exception of
 single quotes and vertical whitespace.
 
-Single quoted strings do not allow "escaped" characters.
+Single-quoted strings do not allow "escaped" characters.
 A backslash ("C<\>") represents itself and has no effect
 on the interpretation of the next character.
 If a rule needs to match one of the forbidden characters
 (single quote or vertical whitespace), it must use a
 character class.
 
-Single quoted strings are always interpreted at the
+Single-quoted strings are always interpreted at the
 G0 level, but they may be used in either structural
 or lexical rules.
 When a single quoted string is used in a structural rule,
@@ -228,7 +237,15 @@ When tracing and debugging parses and grammars,
 these virtual LHS's can be harder for a programmer
 to interpret.
 
-=head2 Character classes
+A modifier can appear after the string.
+It must appear immediately after the string,
+with no intervening whitespace.
+Currently only the "C<:ic>"
+and "C<:i>" modifier are availables.
+These have exactly the same effect -- they make the string
+match case-insensitive.
+
+=head1 Character classes
 
 =for Marpa::R2::Display
 name: SLIF DSL synopsis
@@ -236,6 +253,15 @@ partial: 1
 normalize-whitespace: 1
 
     <vertical space char> ~ [\x{A}\x{B}\x{C}\x{D}\x{2028}\x{2029}]
+
+=for Marpa::R2::Display::End
+
+=for Marpa::R2::Display
+name: Case-insensitive characters examples
+partial: 1
+normalize-whitespace: 1
+
+    word ~ [\w]:ic +
 
 =for Marpa::R2::Display::End
 
@@ -263,6 +289,11 @@ when the parse is of any length.
 Each character class is
 passed to Perl to interpret exactly once and the result is
 memoized in a C language structure for future use.
+
+The modifiers allowed after single quoted strings are also allowed allowed after character classes.
+Modifiers must appear immediately after the closing square bracket,
+with no intervening whitespace.
+For more details, see L<the section on single-quoted strings|/"Single-quoted strings">.
 
 =head1 Statements
 
