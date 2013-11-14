@@ -1356,12 +1356,13 @@ sub combine {
 sub Marpa::R2::Internal::MetaAST::char_class_to_re {
     my ($cc_components) = @_;
     die if ref $cc_components ne 'ARRAY';
-    my ( $char_class, @flags ) = @{$cc_components};
+    my ( $char_class, $flags ) = @{$cc_components};
+    $flags = $flags ? '(' . q{?} . $flags . ')' : q{};
     my $regex;
     my $error;
-    if ( not defined eval { $regex = qr/$char_class/xms; 1; } ) {
+    if ( not defined eval { $regex = qr/$flags$char_class/xms; 1; } ) {
         $error = qq{Problem in evaluating character class: [$char_class]\n};
-        $error .= qq{  Flags were } . (join q{ }, @flags) if @flags;
+        $error .= qq{  Flags were "$flags"\n} if $flags;
         $error .= $EVAL_ERROR;
     }
     return $regex, $error;
@@ -1372,23 +1373,20 @@ sub Marpa::R2::Internal::MetaAST::char_class_to_re {
 sub char_class_to_symbol {
     my ( $class, $parse, $char_class ) = @_;
 
-    my $raw_flags = q{};
-    my $unmodified_char_class = $char_class;
-    my $end_of_char_class = index ']', $char_class;
-    if ($end_of_char_class >= 0) {
-      $unmodified_char_class = substr $char_class, 0, $end_of_char_class;
-      $raw_flags = substr $char_class, $end_of_char_class+1;
-    }
+    my $end_of_char_class = index $char_class, q{]};
+      my $unmodified_char_class = substr $char_class, 0, $end_of_char_class+1;
+      my $raw_flags = substr $char_class, $end_of_char_class+1;
     my %flags = ();
     if ($raw_flags) {
         my @raw_flags = split m/:/xms, $raw_flags;
         RAW_FLAG: for my $raw_flag (@raw_flags) {
+	    next RAW_FLAG if not $raw_flag;
             if ( $raw_flag eq 'i' ) {
                 $flags{'i'} = 1;
                 next RAW_FLAG;
             }
-            if ( $raw_flag eq 'i' ) {
-                $flags{'ic'} = 1;
+            if ( $raw_flag eq 'ic' ) {
+                $flags{'i'} = 1;
                 next RAW_FLAG;
             }
             Carp::croak(
@@ -1408,7 +1406,7 @@ sub char_class_to_symbol {
     my ( undef, $symbol ) = $cc_hash->{$symbol_name};
     if ( not defined $symbol ) {
 
-        my $cc_components = [$char_class];
+        my $cc_components = [$unmodified_char_class, $cooked_flags];
 
         # Fast fail on badly formed char_class -- we re-evaluate the regex just in time
         # before we register characters.
