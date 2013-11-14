@@ -142,9 +142,6 @@ boolean ~ [01]
 <string without single quote or vertical space> ~ [^'\x{0A}\x{0B}\x{0C}\x{0D}\x{0085}\x{2028}\x{2029}]+
 
 <character class> ~ '[' <cc elements> ']' <character class modifiers>
-<character class modifiers> ~ <character class modifier>*
-<character class modifier> ~ ':' <one or more lower case characters>
-<one or more lower case characters> ~ [a-z]+
 <cc elements> ~ <cc element>+
 <cc element> ~ <safe cc character>
 # hex 5d is right square bracket
@@ -153,6 +150,9 @@ boolean ~ [01]
 <escaped cc character> ~ '\' <horizontal character>
 <cc element> ~ <posix char class>
 <cc element> ~ <negated posix char class>
+<character class modifiers> ~ <character class modifier>*
+<character class modifier> ~ ':ic'
+<character class modifier> ~ ':i'
 
 # [=xyz=] and [.xyz.] are parsed by Perl, but then currently cause an exception.
 # Catching Perl exceptions is inconvenient for Marpa,
