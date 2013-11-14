@@ -1308,9 +1308,15 @@ sub Marpa::R2::Internal::MetaAST_Nodes::single_quoted_string::evaluate {
     my ( $values, $parse ) = @_;
     my ( undef, undef, $string ) = @{$values};
     my @symbols = ();
+
+    my $end_of_string = rindex $string, q{'};
+      my $unmodified_string = substr $string, 0, $end_of_string+1;
+      my $raw_flags = substr $string, $end_of_string+1;
+    my $flags = Marpa::R2::Internal::MetaAST::flag_string_to_flags($raw_flags);
+
     for my $char_class (
-        map { '[' . ( quotemeta $_ ) . ']' } split //xms,
-        substr $string,
+        map { '[' . ( quotemeta $_ ) . ']' . $flags } split //xms,
+        substr $unmodified_string,
         1, -1
         )
     {
@@ -1368,6 +1374,32 @@ sub Marpa::R2::Internal::MetaAST::char_class_to_re {
     return $regex, $error;
 }
 
+sub Marpa::R2::Internal::MetaAST::flag_string_to_flags {
+    my ($raw_flag_string) = @_;
+    return q{} if not $raw_flag_string;
+    my @raw_flags = split m/:/xms, $raw_flag_string;
+    say STDERR "Raw flags = ", join ' ', @raw_flags;
+    my %flags = ();
+    RAW_FLAG: for my $raw_flag (@raw_flags) {
+        next RAW_FLAG if not $raw_flag;
+        if ( $raw_flag eq 'i' ) {
+            $flags{'i'} = 1;
+            next RAW_FLAG;
+        }
+        if ( $raw_flag eq 'ic' ) {
+            $flags{'i'} = 1;
+            next RAW_FLAG;
+        }
+        Carp::croak(
+            qq{Bad flag for character class\n},
+            qq{  Flag string was $raw_flag_string\n},
+            qq{  Bad flag was $raw_flag\n}
+        );
+    } ## end RAW_FLAG: for my $raw_flag (@raw_flags)
+    my $cooked_flags = join q{}, sort keys %flags;
+    return $cooked_flags;
+} ## end sub flag_string_to_flags
+
 # Return the character class symbol name,
 # after ensuring everything is set up properly
 sub char_class_to_symbol {
@@ -1376,38 +1408,16 @@ sub char_class_to_symbol {
     my $end_of_char_class = rindex $char_class, q{]};
       my $unmodified_char_class = substr $char_class, 0, $end_of_char_class+1;
       my $raw_flags = substr $char_class, $end_of_char_class+1;
-      $raw_flags //= q{};
-    my %flags = ();
-    if ($raw_flags) {
-        my @raw_flags = split m/:/xms, $raw_flags;
-        RAW_FLAG: for my $raw_flag (@raw_flags) {
-	    next RAW_FLAG if not $raw_flag;
-            if ( $raw_flag eq 'i' ) {
-                $flags{'i'} = 1;
-                next RAW_FLAG;
-            }
-            if ( $raw_flag eq 'ic' ) {
-                $flags{'i'} = 1;
-                next RAW_FLAG;
-            }
-            Carp::croak(
-                qq{Bad flag for character class\n},
-                qq{  Character class was $char_class\n},
-                qq{  Flag string was $raw_flags\n},
-                qq{  Bad flag was $raw_flag\n}
-            );
-        } ## end RAW_FLAG: for my $raw_flag (@raw_flags)
-    } ## end if ($raw_flags)
-    my $cooked_flags = join q{}, sort keys %flags;
+    my $flags = Marpa::R2::Internal::MetaAST::flag_string_to_flags($raw_flags);
 
     # character class symbol name always start with TWO left square brackets
-    my $symbol_name = '[' . $unmodified_char_class . $cooked_flags . ']';
+    my $symbol_name = '[' . $unmodified_char_class . $flags . ']';
     $parse->{character_classes} //= {};
     my $cc_hash = $parse->{character_classes};
     my ( undef, $symbol ) = $cc_hash->{$symbol_name};
     if ( not defined $symbol ) {
 
-        my $cc_components = [$unmodified_char_class, $cooked_flags];
+        my $cc_components = [$unmodified_char_class, $flags];
 
         # Fast fail on badly formed char_class -- we re-evaluate the regex just in time
         # before we register characters.
