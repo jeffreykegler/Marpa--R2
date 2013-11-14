@@ -21,7 +21,7 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 8;
+use Test::More tests => 10;
 use English qw( -no_match_vars );
 use lib 'inc';
 use Marpa::R2::Test;
@@ -60,6 +60,32 @@ my @tests_data = (
         'Nate Glenn bug regression'
     ],
 );
+
+my $ic_grammar = Marpa::R2::Scanless::G->new(
+    {   source => \(<<'END_OF_SOURCE'),
+            :default ::= action => ::array
+            :start ::= Start
+
+            Start  ::= Child DoubleColon Token
+
+            DoubleColon ~ '::'
+            Child ~ 'cHILd':i
+            Token ~
+                word
+                | word ':' word
+            word ~ [\w]:ic+
+
+END_OF_SOURCE
+    }
+);
+
+push @tests_data,
+    [   $ic_grammar,
+        'ChilD::BooK',
+        [ 'ChilD', q{::}, 'BooK' ],
+        'Parse OK',
+        'Case insensitivity test'
+    ];
 
 my $durand_grammar1 = Marpa::R2::Scanless::G->new(
     {   source => \(<<'END_OF_SOURCE'),
