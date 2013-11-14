@@ -1372,8 +1372,37 @@ sub Marpa::R2::Internal::MetaAST::char_class_to_re {
 sub char_class_to_symbol {
     my ( $class, $parse, $char_class ) = @_;
 
+    my $raw_flags = q{};
+    my $unmodified_char_class = $char_class;
+    my $end_of_char_class = index ']', $char_class;
+    if ($end_of_char_class >= 0) {
+      $unmodified_char_class = substr $char_class, 0, $end_of_char_class;
+      $raw_flags = substr $char_class, $end_of_char_class+1;
+    }
+    my %flags = ();
+    if ($raw_flags) {
+        my @raw_flags = split m/:/xms, $raw_flags;
+        RAW_FLAG: for my $raw_flag (@raw_flags) {
+            if ( $raw_flag eq 'i' ) {
+                $flags{'i'} = 1;
+                next RAW_FLAG;
+            }
+            if ( $raw_flag eq 'i' ) {
+                $flags{'ic'} = 1;
+                next RAW_FLAG;
+            }
+            Carp::croak(
+                qq{Bad flag for character class\n},
+                qq{  Character class was $char_class\n},
+                qq{  Flag string was $raw_flags\n},
+                qq{  Bad flag was $raw_flag\n}
+            );
+        } ## end RAW_FLAG: for my $raw_flag (@raw_flags)
+    } ## end if ($raw_flags)
+    my $cooked_flags = join q{}, sort keys %flags;
+
     # character class symbol name always start with TWO left square brackets
-    my $symbol_name = '[' . $char_class . ']';
+    my $symbol_name = '[' . $unmodified_char_class . $cooked_flags . ']';
     $parse->{character_classes} //= {};
     my $cc_hash = $parse->{character_classes};
     my ( undef, $symbol ) = $cc_hash->{$symbol_name};
