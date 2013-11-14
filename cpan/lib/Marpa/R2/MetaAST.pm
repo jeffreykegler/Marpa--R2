@@ -1361,7 +1361,7 @@ sub Marpa::R2::Internal::MetaAST::char_class_to_re {
     my $regex;
     my $error;
     if ( not defined eval { $regex = qr/$flags$char_class/xms; 1; } ) {
-        $error = qq{Problem in evaluating character class: [$char_class]\n};
+        $error = qq{Problem in evaluating character class: "$char_class"\n};
         $error .= qq{  Flags were "$flags"\n} if $flags;
         $error .= $EVAL_ERROR;
     }
@@ -1373,9 +1373,10 @@ sub Marpa::R2::Internal::MetaAST::char_class_to_re {
 sub char_class_to_symbol {
     my ( $class, $parse, $char_class ) = @_;
 
-    my $end_of_char_class = index $char_class, q{]};
+    my $end_of_char_class = rindex $char_class, q{]};
       my $unmodified_char_class = substr $char_class, 0, $end_of_char_class+1;
       my $raw_flags = substr $char_class, $end_of_char_class+1;
+      $raw_flags //= q{};
     my %flags = ();
     if ($raw_flags) {
         my @raw_flags = split m/:/xms, $raw_flags;

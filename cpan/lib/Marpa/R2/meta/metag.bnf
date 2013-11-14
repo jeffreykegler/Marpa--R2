@@ -137,7 +137,7 @@ boolean ~ [01]
 # In single quotes strings and character classes
 # no escaping or internal newlines, and disallow empty string
 
-<single quoted string> ~ ['] <string without single quote or vertical space> [']
+<single quoted string> ~ ['] <string without single quote or vertical space> ['] <character class modifiers>
 <single quoted name> ~ ['] <string without single quote or vertical space> [']
 <string without single quote or vertical space> ~ [^'\x{0A}\x{0B}\x{0C}\x{0D}\x{0085}\x{2028}\x{2029}]+
 
