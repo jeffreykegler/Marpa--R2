@@ -15,6 +15,11 @@
 
 Revision history for Marpa::R2
 
+2.075_003
+
+   * Case insensitve character classes and strings
+     added - not yet documented.
+
 2.075_002
 
    * ASF's documented and ready for trial by
