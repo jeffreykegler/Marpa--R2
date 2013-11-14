@@ -1378,7 +1378,6 @@ sub Marpa::R2::Internal::MetaAST::flag_string_to_flags {
     my ($raw_flag_string) = @_;
     return q{} if not $raw_flag_string;
     my @raw_flags = split m/:/xms, $raw_flag_string;
-    say STDERR "Raw flags = ", join ' ', @raw_flags;
     my %flags = ();
     RAW_FLAG: for my $raw_flag (@raw_flags) {
         next RAW_FLAG if not $raw_flag;
