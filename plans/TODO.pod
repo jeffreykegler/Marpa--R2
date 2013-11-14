@@ -28,10 +28,6 @@ arbitrarily, suddenly and without notice.
 
 =head1 Items to do
 
-=head2 ASF's should use orderings, instead of using bocage directly.
-
-That way ranking methods will affect the ASF.
-
 =head2 Allow :start to be optional
 
 This is github issue #18.
@@ -40,15 +36,11 @@ This is github issue #18.
 
 =head2 Add pseudo-symbols: :external, :never -- sugar for [^\d\D]
 
-=head2 Add case-insensitivity to strings
-
-This is very often wanted, and its absence is awkward to workaround.
-
-=head1 To think about
-
 =head2 Sublexers
 
 Add the ability to switch lexers.
+
+=head1 To think about
 
 =head2 marpa_r_progress_report_reset()
 
