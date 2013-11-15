@@ -412,7 +412,7 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
     $lex_args{start} = $lex_target_symbol;
     $lex_args{'_internal_'} = 1;
     my $lex_grammar = Marpa::R2::Grammar->new( \%lex_args );
-    $lex_grammar->precompute();
+    $lex_grammar->slif_precompute();
     my $lex_tracer = $lex_grammar->tracer();
     my $g0_thin    = $lex_tracer->grammar();
     $slg->[Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMAR] = $lex_grammar;
@@ -516,7 +516,7 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
     my $lexeme_events_by_id =
         $slg->[Marpa::R2::Inner::Scanless::G::LEXEME_EVENT_BY_ID] = [];
 
-    $thick_g1_grammar->precompute();
+    $thick_g1_grammar->slif_precompute();
     my @g0_lexeme_to_g1_symbol;
     my @g1_symbol_to_g0_lexeme;
     $g0_lexeme_to_g1_symbol[$_] = -1 for 0 .. $g1_thin->highest_symbol_id();

@@ -97,7 +97,7 @@ push @tests_data,
     'English start statement second'
     ];
 
-my $explicit_grammar = \(<<'END_OF_SOURCE');
+my $explicit_grammar1 = \(<<'END_OF_SOURCE');
             :default ::= action => ::array
             quartet  ::= a a a a;
 	    start symbol is quartet
@@ -106,9 +106,26 @@ END_OF_SOURCE
 
 push @tests_data,
     [
-    $explicit_grammar, 'aaaa',
+    $explicit_grammar1, 'aaaa',
     [qw(a a a a)],     'Parse OK',
     'Explicit English start statement second'
+    ];
+
+my $explicit_grammar2 = \(<<'END_OF_SOURCE');
+            :default ::= action => ::array
+            octet  ::= a a a a
+	    start symbol <is> octet
+	    a ~ 'a'
+	    start ~ 'a'
+	    symbol ~ 'a'
+	    is ~ 'a'
+END_OF_SOURCE
+
+push @tests_data,
+    [
+    $explicit_grammar2, 'aaaaaaaa',
+    [qw(a a a a a a a a)],     'Parse OK',
+    'Long quartet; no start statement'
     ];
 
 TEST:

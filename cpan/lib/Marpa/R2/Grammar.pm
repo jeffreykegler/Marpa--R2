@@ -613,22 +613,241 @@ sub Marpa::R2::Grammar::precompute {
     } ## end if ( $grammar->[Marpa::R2::Internal::Grammar::WARNINGS...])
 
     # If we are using scannerless parsing, set that up
+    Marpa::R2::exception("Internal error; precompute called for SLIF grammar")
+        if $grammar->[Marpa::R2::Internal::Grammar::CHARACTER_CLASSES];
+
+    return $grammar;
+
+} ## end sub Marpa::R2::Grammar::precompute
+
+# A custom precompute for SLIF grammars
+sub Marpa::R2::Grammar::slif_precompute {
+    my $grammar = shift;
+
+    my $rules     = $grammar->[Marpa::R2::Internal::Grammar::RULES];
+    my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
+    my $trace_fh =
+        $grammar->[Marpa::R2::Internal::Grammar::TRACE_FILE_HANDLE];
+
+    my $problems = $grammar->[Marpa::R2::Internal::Grammar::PROBLEMS];
+    if ($problems) {
+        Marpa::R2::exception(
+            Marpa::R2::Grammar::show_problems($grammar),
+            "Second attempt to precompute grammar with fatal problems\n",
+            'Marpa::R2 cannot proceed'
+        );
+    } ## end if ($problems)
+
+    return $grammar if $grammar_c->is_precomputed();
+
+    set_start_symbol($grammar);
+
+    # Catch errors in precomputation
+    my $precompute_error_code = $Marpa::R2::Error::NONE;
+    $grammar_c->throw_set(0);
+    my $precompute_result = $grammar_c->precompute();
+    $grammar_c->throw_set(1);
+
+    if ( $precompute_result < 0 ) {
+        ($precompute_error_code) = $grammar_c->error();
+        if ( not defined $precompute_error_code ) {
+            Marpa::R2::exception(
+                'libmarpa error, but no error code returned');
+        }
+
+        # If already precomputed, just return success
+        return $grammar
+            if $precompute_error_code == $Marpa::R2::Error::PRECOMPUTED;
+
+        # Cycles are not necessarily errors,
+        # and get special handling
+        $precompute_error_code = $Marpa::R2::Error::NONE
+            if $precompute_error_code == $Marpa::R2::Error::GRAMMAR_HAS_CYCLE;
+
+    } ## end if ( $precompute_result < 0 )
+
+    if ( $precompute_error_code != $Marpa::R2::Error::NONE ) {
+
+        # Report the errors, then return failure
+
+        if ( $precompute_error_code == $Marpa::R2::Error::NO_RULES ) {
+            Marpa::R2::exception(
+                'Attempted to precompute grammar with no rules');
+        }
+        if ( $precompute_error_code == $Marpa::R2::Error::NULLING_TERMINAL ) {
+            my @nulling_terminals = ();
+            my $event_count       = $grammar_c->event_count();
+            EVENT:
+            for ( my $event_ix = 0; $event_ix < $event_count; $event_ix++ ) {
+                my ( $event_type, $value ) = $grammar_c->event($event_ix);
+                if ( $event_type eq 'MARPA_EVENT_NULLING_TERMINAL' ) {
+                    push @nulling_terminals, $grammar->symbol_name($value);
+                }
+            } ## end EVENT: for ( my $event_ix = 0; $event_ix < $event_count; ...)
+            my @nulling_terminal_messages =
+                map {qq{Nulling symbol "$_" is also a terminal\n}}
+                @nulling_terminals;
+            Marpa::R2::exception( @nulling_terminal_messages,
+                'A terminal symbol cannot also be a nulling symbol' );
+        } ## end if ( $precompute_error_code == ...)
+        if ( $precompute_error_code == $Marpa::R2::Error::COUNTED_NULLABLE ) {
+            my @counted_nullables = ();
+            my $event_count       = $grammar_c->event_count();
+            EVENT:
+            for ( my $event_ix = 0; $event_ix < $event_count; $event_ix++ ) {
+                my ( $event_type, $value ) = $grammar_c->event($event_ix);
+                if ( $event_type eq 'MARPA_EVENT_COUNTED_NULLABLE' ) {
+                    push @counted_nullables, $grammar->symbol_name($value);
+                }
+            } ## end EVENT: for ( my $event_ix = 0; $event_ix < $event_count; ...)
+            my @counted_nullable_messages = map {
+                      q{Nullable symbol "}
+                    . $_
+                    . qq{" is on rhs of counted rule\n}
+            } @counted_nullables;
+            Marpa::R2::exception( @counted_nullable_messages,
+                'Counted nullables confuse Marpa -- please rewrite the grammar'
+            );
+        } ## end if ( $precompute_error_code == ...)
+
+        if ( $precompute_error_code == $Marpa::R2::Error::NO_START_SYMBOL ) {
+            Marpa::R2::exception('No start symbol');
+        }
+        if ( $precompute_error_code == $Marpa::R2::Error::START_NOT_LHS ) {
+            my $name = $grammar->[Marpa::R2::Internal::Grammar::START_NAME];
+            Marpa::R2::exception(
+                qq{Start symbol "$name" not on LHS of any rule});
+        }
+        if ( $precompute_error_code == $Marpa::R2::Error::UNPRODUCTIVE_START )
+        {
+            my $name = $grammar->[Marpa::R2::Internal::Grammar::START_NAME];
+            Marpa::R2::exception(qq{Unproductive start symbol: "$name"});
+        }
+
+        Marpa::R2::uncaught_error( scalar $grammar_c->error() );
+
+    } ## end if ( $precompute_error_code != $Marpa::R2::Error::NONE)
+
+    # Shadow all the new rules
+    {
+        my $highest_rule_id = $grammar_c->highest_rule_id();
+        RULE:
+        for ( my $rule_id = 0; $rule_id <= $highest_rule_id; $rule_id++ ) {
+            next RULE if defined $rules->[$rule_id];
+
+            # The Marpa::R2 logic assumes no "gaps" in the rule numbering,
+            # which is currently the case for Libmarpa,
+            # but not guaranteed.
+            shadow_rule( $grammar, $rule_id );
+        } ## end RULE: for ( my $rule_id = 0; $rule_id <= $highest_rule_id; ...)
+    }
+
+    my $infinite_action =
+        $grammar->[Marpa::R2::Internal::Grammar::INFINITE_ACTION];
+
+    # Above I went through the error events
+    # Here I go through the events for situations where there was no
+    # hard error returned from libmarpa
+    my $loop_rule_count = 0;
+    {
+        my $event_count = $grammar_c->event_count();
+        EVENT:
+        for ( my $event_ix = 0; $event_ix < $event_count; $event_ix++ ) {
+            my ( $event_type, $value ) = $grammar_c->event($event_ix);
+            if ( $event_type ne 'MARPA_EVENT_LOOP_RULES' ) {
+                Marpa::R2::exception(
+                    qq{Unknown grammar precomputation event; type="$event_type"}
+                );
+            }
+            $loop_rule_count = $value;
+        } ## end EVENT: for ( my $event_ix = 0; $event_ix < $event_count; ...)
+    }
+
+    if ( $loop_rule_count and $infinite_action ne 'quiet' ) {
+        my @loop_rules =
+            grep { $grammar_c->rule_is_loop($_) } ( 0 .. $#{$rules} );
+        for my $rule_id (@loop_rules) {
+            print {$trace_fh}
+                'Cycle found involving rule: ',
+                $grammar->brief_rule($rule_id), "\n"
+                or Marpa::R2::exception("Could not print: $ERRNO");
+        } ## end for my $rule_id (@loop_rules)
+        Marpa::R2::exception('Cycles in grammar, fatal error')
+            if $infinite_action eq 'fatal';
+    } ## end if ( $loop_rule_count and $infinite_action ne 'quiet')
+
+    # A bit hackish here: INACCESSIBLE_OK is not a HASH ref iff
+    # it is a Boolean TRUE indicating that all inaccessibles are OK.
+    # A Boolean FALSE will have been replaced with an empty hash.
+    if ($grammar->[Marpa::R2::Internal::Grammar::WARNINGS]
+        and ref(
+            my $ok = $grammar->[Marpa::R2::Internal::Grammar::INACCESSIBLE_OK]
+        ) eq 'HASH'
+        )
+    {
+        SYMBOL:
+        for my $symbol (
+            @{ Marpa::R2::Grammar::inaccessible_symbols($grammar) } )
+        {
+
+            # Inaccessible internal symbols may be created
+            # from inaccessible use symbols -- ignore these.
+            # This assumes that Marpa's logic
+            # is correct and that
+            # it is not creating inaccessible symbols from
+            # accessible ones.
+            next SYMBOL if $symbol =~ /\]/xms;
+            next SYMBOL if $ok->{$symbol};
+            say {$trace_fh} "Inaccessible symbol: $symbol"
+                or Marpa::R2::exception("Could not print: $ERRNO");
+        } ## end SYMBOL: for my $symbol ( @{ ...})
+    } ## end if ( $grammar->[Marpa::R2::Internal::Grammar::WARNINGS...])
+
+    # A bit hackish here: UNPRODUCTIVE_OK is not a HASH ref iff
+    # it is a Boolean TRUE indicating that all inaccessibles are OK.
+    # A Boolean FALSE will have been replaced with an empty hash.
+    if ($grammar->[Marpa::R2::Internal::Grammar::WARNINGS]
+        and ref(
+            my $ok = $grammar->[Marpa::R2::Internal::Grammar::UNPRODUCTIVE_OK]
+        ) eq 'HASH'
+        )
+    {
+        SYMBOL:
+        for my $symbol (
+            @{ Marpa::R2::Grammar::unproductive_symbols($grammar) } )
+        {
+
+            # Unproductive internal symbols may be created
+            # from unproductive use symbols -- ignore these.
+            # This assumes that Marpa's logic
+            # is correct and that
+            # it is not creating unproductive symbols from
+            # productive ones.
+            next SYMBOL if $symbol =~ /\]/xms;
+            next SYMBOL if $ok->{$symbol};
+            say {$trace_fh} "Unproductive symbol: $symbol"
+                or Marpa::R2::exception("Could not print: $ERRNO");
+        } ## end SYMBOL: for my $symbol ( @{ ...})
+    } ## end if ( $grammar->[Marpa::R2::Internal::Grammar::WARNINGS...])
+
     my $cc_hash = $grammar->[Marpa::R2::Internal::Grammar::CHARACTER_CLASSES];
-    if (defined $cc_hash) {
-        my $class_table = $grammar->[Marpa::R2::Internal::Grammar::CHARACTER_CLASS_TABLE] = [];
+    if ( defined $cc_hash ) {
+        my $class_table =
+            $grammar->[Marpa::R2::Internal::Grammar::CHARACTER_CLASS_TABLE] =
+            [];
         for my $cc_symbol ( sort keys %{$cc_hash} ) {
             my $cc_components = $cc_hash->{$cc_symbol};
             push @{$class_table},
                 [ $grammar->thin_symbol($cc_symbol), $cc_components ];
         }
-    }
+    } ## end if ( defined $cc_hash )
 
     # Save some memory
     $grammar->[Marpa::R2::Internal::Grammar::CHARACTER_CLASSES] = undef;
 
     return $grammar;
 
-} ## end sub Marpa::R2::Grammar::precompute
+} ## end sub Marpa::R2::Grammar::slif_precompute
 
 sub Marpa::R2::Grammar::rule_by_name {
     my ( $grammar, $name ) = @_;
