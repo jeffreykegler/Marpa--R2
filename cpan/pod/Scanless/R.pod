@@ -942,6 +942,20 @@ C<resume()> return a Perl C<undef>.
 
 =head1 Accessors
 
+=head2 ambiguity_metric()
+
+=for Marpa::R2::Display
+name: Scanless ambiguity_metric() synopsis
+
+    my $ambiguity_metric = $slr->ambiguity_metric();
+
+=for Marpa::R2::Display::End
+
+Returns 1 if there is an unambiguous parse,
+and 2 or greater if there is a ambiguous parse.
+Returns 0 if called before parsing.
+Returns 0 or less than zero on other unthrown failure.
+
 =head2 current_g1_location()
 
 =for Marpa::R2::Display

@@ -70,7 +70,13 @@ for my $i ( 0 .. $input_length ) {
     $slr->set( { end => $i } );
     my $expected = $expected[$i];
 
+# Marpa::R2::Display
+# name: Scanless ambiguity_metric() synopsis
+
     my $ambiguity_metric = $slr->ambiguity_metric();
+
+# Marpa::R2::Display::End
+
     $ambiguity_metric = 2 if $ambiguity_metric > 2; # cap at 2 -- higher numbers not defined
     my $expected_metric = (scalar keys %{$expected} > 1 ? 2 : 1);
     Test::More::is($ambiguity_metric, $expected_metric, "Ambiguity check for length $i");
