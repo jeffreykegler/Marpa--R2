@@ -1059,25 +1059,28 @@ sub Marpa::R2::Internal::ASF::glade_ambiguities {
         ];
     } ## end if ( $symch_count > 1 )
     my $rule_id = $asf->symch_rule_id( $glade, 0 );
-    return [] if $rule_id < 0 ; # no ambiguities if a token
+    return [] if $rule_id < 0;    # no ambiguities if a token
 
     # ignore any truncation of the factorings
     my $factoring_count = $asf->symch_factoring_count( $glade, 0 );
     if ( $factoring_count <= 1 ) {
         my $downglades = $asf->factoring_downglades( $glade, 0, 0 );
-	my @problems = map { @{ glade_ambiguities( $asf, $_, $seen )}  }
-                    @{$downglades} ;
+        my @problems =
+            map { @{ glade_ambiguities( $asf, $_, $seen ) } } @{$downglades};
         return \@problems;
     } ## end if ( $factoring_count <= 1 )
-    my @results     = ( 'factoring', $glade, 0, "Glade $glade, symch 0 has $factoring_count factorings" );
+    my @results      = ();
+    my @results_here = (
+        [   'factoring', $glade, 0,
+            "Glade $glade, symch 0 has $factoring_count factorings"
+        ]
+    );
     my @symch_description = ("Glade $glade");
     push @symch_description, $grammar->rule_show($rule_id);
     my $symch_description = join q{, }, @symch_description;
 
-    push @results,           $symch_description;
-    my $downglades = $asf->factoring_downglades( $glade, 0, 0 );
-    my $first_factor_count = $#{$downglades} + 1;
-    my $min_factors = $first_factor_count;
+    my $downglades           = $asf->factoring_downglades( $glade, 0, 0 );
+    my $min_factors          = $#{$downglades} + 1;
     my @factors_by_factoring = ($downglades);
     for (
         my $factoring_ix = 1;
@@ -1088,19 +1091,16 @@ sub Marpa::R2::Internal::ASF::glade_ambiguities {
         my $downglades =
             $asf->factoring_downglades( $glade, 0, $factoring_ix );
         my $factor_count = $#{$downglades} + 1;
-	if ($factor_count != $first_factor_count) {
-	    push @results, "Factorings 0 and $factoring_ix has different RHS lengths: $first_factor_count vs. $factor_count";
-	}
-        $min_factors = $min_factors > $factor_count ? $factor_count : $min_factors;
+        $min_factors =
+            $min_factors > $factor_count ? $factor_count : $min_factors;
         push @factors_by_factoring, $downglades;
-    } ## end for ( my $factoring_ix = 0; $factoring_ix < $factoring_count...)
+    } ## end for ( my $factoring_ix = 1; $factoring_ix < $factoring_count...)
+
+    my $factor_ix = 0;
     FACTOR:
-    for ( my $factor_ix = 0; $factor_ix < $min_factors; $factor_ix++ ) {
-	my $factoring_ix;
+    while ( $factor_ix < $min_factors ) {
+        my $factoring_ix;
         my $first_downglade = $factors_by_factoring[0][$factor_ix];
-        my ( $first_start, $first_length ) =
-            $asf->glade_span($first_downglade);
-        my $first_symbol_id = $asf->glade_symbol_id($first_downglade);
         for (
             my $factoring_ix = 1;
             $factoring_ix < $factoring_count;
@@ -1109,24 +1109,38 @@ sub Marpa::R2::Internal::ASF::glade_ambiguities {
         {
             my $this_downglade =
                 $factors_by_factoring[$factoring_ix][$factor_ix];
-            my ( $this_start, $this_length ) =
-                $asf->glade_span($this_downglade);
-            my $this_symbol_id = $asf->glade_symbol_id($this_downglade);
-            if (   $this_start != $first_start
-                or $this_length != $first_length
-                or $this_symbol_id != $first_symbol_id )
-            {
-                push @results,
-                    "Factorings 0 and $factoring_ix differ at factor $factor_ix: "
-                    . "Spans: $first_start" . q{-}
-                    . ( $first_start + $first_length )
-                    . " vs. $this_start" . q{-}
-                    . ( $this_start + $this_length )
-                    . "; Symbol $first_symbol_id vs. $this_symbol_id";
-                next FACTOR;
-            } ## end if ( $this_start != $first_start or $this_length != ...)
+            last FACTOR if $this_downglade != $first_downglade;
         } ## end for ( my $factoring_ix = 1; $factoring_ix < $factoring_count...)
-    } ## end FACTOR: for ( my $factor_ix = 0; $factor_ix < $max_factors; ...)
+        push @results,
+            @{ glade_ambiguities( $asf, $first_downglade, $seen ) };
+        $factor_ix++;
+    } ## end FACTOR: while ( $factor_ix < $min_factors )
+
+    push @results, @results_here;
+
+    $factor_ix = $factor_ix + 1;
+    FACTOR:
+    while ( $factor_ix < $min_factors ) {
+        my $factoring_ix;
+        my $first_downglade = $factors_by_factoring[0][$factor_ix];
+        for (
+            my $factoring_ix = 1;
+            $factoring_ix < $factoring_count;
+            $factoring_ix++
+            )
+        {
+            my $this_downglade =
+                $factors_by_factoring[$factoring_ix][$factor_ix];
+            if ($this_downglade != $first_downglade) {
+	        $factor_ix++;
+		next FACTOR;
+	    }
+        } ## end for ( my $factoring_ix = 1; $factoring_ix < $factoring_count...)
+        push @results,
+            @{ glade_ambiguities( $asf, $first_downglade, $seen ) };
+        $factor_ix++;
+    } ## end FACTOR: while ( $factor_ix < $min_factors )
+
     return \@results;
 } ## end sub Marpa::R2::Internal::ASF::glade_ambiguities
 
