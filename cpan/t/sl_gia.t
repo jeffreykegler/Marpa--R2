@@ -35,7 +35,6 @@ our $DEBUG = 0;
 my $glenn_grammar = Marpa::R2::Scanless::G->new(
     {   source => \(<<'END_OF_SOURCE'),
             :default ::= action => ::array
-            :start ::= Start
 
             Start  ::= Child DoubleColon Token
 
@@ -69,7 +68,6 @@ my @tests_data = (
 my $ic_grammar = Marpa::R2::Scanless::G->new(
     {   source => \(<<'END_OF_SOURCE'),
             :default ::= action => ::array
-            :start ::= Start
 
             Start  ::= Child DoubleColon Token
 
@@ -129,7 +127,6 @@ INPUT
 my $durand_grammar2 = Marpa::R2::Scanless::G->new(
     {   source => \(<<'END_OF_SOURCE'),
 :default ::= action => ::array
-:start ::= test
 test ::= 'test input' NEWLINE
 WS                    ~ [ \t]
 WS_any                ~ WS*
@@ -160,7 +157,6 @@ INPUT
 my $durand_grammar3 = Marpa::R2::Scanless::G->new(
     {   source => \(<<'END_OF_SOURCE'),
 :default ::= action => ::array
-:start ::= Script
 
 Script ::= '=' '/' 'dumb'
 

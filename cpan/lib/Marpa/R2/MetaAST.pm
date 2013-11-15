@@ -20,7 +20,7 @@ use strict;
 use warnings;
 
 use vars qw($VERSION $STRING_VERSION);
-$VERSION        = '2.075_003';
+$VERSION        = '2.075_004';
 $STRING_VERSION = $VERSION;
 ## no critic(BuiltinFunctions::ProhibitStringyEval)
 $VERSION = eval $VERSION;
@@ -160,6 +160,15 @@ sub ast_to_hash {
 
     return $hashed_ast;
 } ## end sub ast_to_hash
+
+sub Marpa::R2::Internal::MetaAST::Parse::start_rule_setup {
+    my ($ast) = @_;
+    if (not defined $ast->{symbols}->{'G1'}->{'[:start]'}) {
+      my $first_lhs = $ast->{'first_lhs'};
+      Marpa::R2::exception('No rules in SLIF grammar') if not defined $first_lhs;
+      Marpa::R2::Internal::MetaAST::start_rule_create ( $ast, $first_lhs );
+    }
+}
 
 # This class is for pieces of RHS alternatives, as they are
 # being constructed
@@ -512,6 +521,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::priority_rule::evaluate {
         @{$values};
 
     my $subgrammar = $op_declare->op() eq q{::=} ? 'G1' : 'G0';
+    $parse->{'first_lhs'} //= $raw_lhs if $subgrammar eq 'G1';
     local $Marpa::R2::Internal::SUBGRAMMAR = $subgrammar;
     my $lhs = $raw_lhs->name($parse);
 
@@ -827,6 +837,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::empty_rule::evaluate {
 
     my $lhs = $raw_lhs->name($parse);
     my $subgrammar = $op_declare->op() eq q{::=} ? 'G1' : 'G0';
+    $parse->{'first_lhs'} //= $raw_lhs if $subgrammar eq 'G1';
     local $Marpa::R2::Internal::SUBGRAMMAR = $subgrammar;
 
     my %rule = ( lhs => $lhs,
@@ -994,7 +1005,7 @@ sub Marpa::R2::Internal::MetaAST::start_rule_create {
     push @{ $parse->{rules}->{G1} },
         {
         lhs    => $start_lhs,
-        rhs    => $symbol->names($parse),
+        rhs    => [$symbol->name($parse)],
         action => '::first'
         };
 }
@@ -1038,6 +1049,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::quantified_rule::evaluate {
         $proto_adverb_list )
         = @{$values};
     my $subgrammar = $op_declare->op() eq q{::=} ? 'G1' : 'G0';
+    $parse->{'first_lhs'} //= $lhs if $subgrammar eq 'G1';
     local $Marpa::R2::Internal::SUBGRAMMAR = $subgrammar;
 
     my $adverb_list     = $proto_adverb_list->evaluate($parse);

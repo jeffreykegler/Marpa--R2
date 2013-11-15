@@ -41,6 +41,7 @@ die "usage $PROGRAM_NAME [--help] file ...\n" if $help_flag;
 my $bnf = do { local $RS = undef; \(<>) };
 my $ast = Marpa::R2::Internal::MetaAST->new($bnf);
 my $parse_result = $ast->ast_to_hash();
+$parse_result->start_rule_setup();
 
 sub sort_bnf {
     my $cmp = $a->{lhs} cmp $b->{lhs};

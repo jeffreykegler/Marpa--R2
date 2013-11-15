@@ -20,7 +20,7 @@ use strict;
 use warnings;
 
 use vars qw($VERSION $STRING_VERSION);
-$VERSION        = '2.075_003';
+$VERSION        = '2.075_004';
 $STRING_VERSION = $VERSION;
 ## no critic(BuiltinFunctions::ProhibitStringyEval)
 $VERSION = eval $VERSION;
@@ -330,6 +330,7 @@ sub Marpa::R2::Scanless::G::new {
     } ## end if ( $ref_type ne 'SCALAR' )
     my $ast = Marpa::R2::Internal::MetaAST->new( $rules_source );
     my $hashed_ast = $ast->ast_to_hash();
+    $hashed_ast->start_rule_setup();
     $self->_hash_to_runtime($hashed_ast);
 
     return $self;
