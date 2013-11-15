@@ -621,7 +621,7 @@ sub Marpa::R2::Grammar::precompute {
 } ## end sub Marpa::R2::Grammar::precompute
 
 # A custom precompute for SLIF grammars
-sub Marpa::R2::Grammar::slif_precompute {
+sub Marpa::R2::Internal::Grammar::slif_precompute {
     my $grammar = shift;
 
     my $rules     = $grammar->[Marpa::R2::Internal::Grammar::RULES];
@@ -638,7 +638,7 @@ sub Marpa::R2::Grammar::slif_precompute {
         );
     } ## end if ($problems)
 
-    return $grammar if $grammar_c->is_precomputed();
+    return if $grammar_c->is_precomputed();
 
     set_start_symbol($grammar);
 
@@ -655,8 +655,8 @@ sub Marpa::R2::Grammar::slif_precompute {
                 'libmarpa error, but no error code returned');
         }
 
-        # If already precomputed, just return success
-        return $grammar
+        # If already precomputed, let higher level know
+        return $precompute_error_code
             if $precompute_error_code == $Marpa::R2::Error::PRECOMPUTED;
 
         # Cycles are not necessarily errors,
@@ -718,11 +718,10 @@ sub Marpa::R2::Grammar::slif_precompute {
             Marpa::R2::exception(
                 qq{Start symbol "$name" not on LHS of any rule});
         }
-        if ( $precompute_error_code == $Marpa::R2::Error::UNPRODUCTIVE_START )
-        {
-            my $name = $grammar->[Marpa::R2::Internal::Grammar::START_NAME];
-            Marpa::R2::exception(qq{Unproductive start symbol: "$name"});
-        }
+
+        return $precompute_error_code
+            if $precompute_error_code
+            == $Marpa::R2::Error::UNPRODUCTIVE_START;
 
         Marpa::R2::uncaught_error( scalar $grammar_c->error() );
 
@@ -845,7 +844,7 @@ sub Marpa::R2::Grammar::slif_precompute {
     # Save some memory
     $grammar->[Marpa::R2::Internal::Grammar::CHARACTER_CLASSES] = undef;
 
-    return $grammar;
+    return ;
 
 } ## end sub Marpa::R2::Grammar::slif_precompute
 

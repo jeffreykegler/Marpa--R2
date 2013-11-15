@@ -21,7 +21,7 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 12;
+use Test::More tests => 14;
 use English qw( -no_match_vars );
 use lib 'inc';
 use Marpa::R2::Test;
@@ -119,12 +119,13 @@ my $explicit_grammar2 = \(<<'END_OF_SOURCE');
 	    start ~ 'a'
 	    symbol ~ 'a'
 	    is ~ 'a'
+	    octet ::= a
 END_OF_SOURCE
 
 push @tests_data,
     [
     $explicit_grammar2, 'aaaaaaaa',
-    [qw(a a a a a a a a)],     'Parse OK',
+    [qw(a a a a a a a), ['a']],     'Parse OK',
     'Long quartet; no start statement'
     ];
 
