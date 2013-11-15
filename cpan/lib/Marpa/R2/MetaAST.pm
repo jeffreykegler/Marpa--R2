@@ -34,8 +34,13 @@ sub new {
     my ( $class, $p_rules_source ) = @_;
     my $meta_recce = Marpa::R2::Internal::Scanless::meta_recce();
     $meta_recce->read($p_rules_source);
-    Marpa::R2::exception('Parse of BNF/Scanless source is ambiguous')
-        if $meta_recce->ambiguity_metric() > 1;
+    if ( $meta_recce->ambiguity_metric() > 1 ) {
+	my $asf = Marpa::R2::ASF->new( { slr => $meta_recce } );
+	say STDERR 'No ASF' if not defined $asf;
+	my $ambiguities = Marpa::R2::Internal::ASF::ambiguities( $asf );
+	say STDERR Data::Dumper::Dumper( $ambiguities );
+        Marpa::R2::exception('Parse of BNF/Scanless source is ambiguous');
+    }
     my $value_ref = $meta_recce->value();
     Marpa::R2::exception('Parse of BNF/Scanless source failed')
         if not defined $value_ref;

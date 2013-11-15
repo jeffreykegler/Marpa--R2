@@ -173,15 +173,12 @@ sub Marpa::R2::Scanless::R::range_to_string {
         $end_earley_set - $start_earley_set );
 }
 
-# Substring in terms of earley sets.
-# Necessary for the use of show_progress()
-# Given a scanless recognizer and
-# and two earley sets, return the input string
-sub Marpa::R2::Scanless::R::substring {
+# Not documented.  Should I?
+sub Marpa::R2::Scanless::R::es_to_input_span {
     my ( $slr, $start_earley_set, $length_in_parse_locations ) = @_;
     return
         if not defined $start_earley_set
-            or not defined $length_in_parse_locations;
+        or not defined $length_in_parse_locations;
     my $thick_g1_recce =
         $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
     my $thin_g1_recce     = $thick_g1_recce->thin();
@@ -210,7 +207,20 @@ sub Marpa::R2::Scanless::R::substring {
 
     # Negative lengths are quite possible if the application has jumped around in
     # the input.
-    return q{} if $length_in_characters <= 0;
+    $length_in_characters = 0 if $length_in_characters <= 0;
+    return ( $first_start_position, $length_in_characters );
+
+} ## end sub Marpa::R2::Scanless::R::es_to_input_span
+
+# Substring in terms of earley sets.
+# Necessary for the use of show_progress()
+# Given a scanless recognizer and
+# and two earley sets, return the input string
+sub Marpa::R2::Scanless::R::substring {
+    my ( $slr, $start_earley_set, $length_in_parse_locations ) = @_;
+    my ( $first_start_position, $length_in_characters ) =
+        $slr->es_to_input_span( $start_earley_set,
+        $length_in_parse_locations );
     my $p_input = $slr->[Marpa::R2::Inner::Scanless::R::P_INPUT_STRING];
     return substr ${$p_input}, $first_start_position, $length_in_characters;
 } ## end sub Marpa::R2::Scanless::R::substring

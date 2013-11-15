@@ -1010,6 +1010,79 @@ sub Marpa::R2::ASF::factor_downglade {
     return $factoring->[$symbol_ix];
 } ## end sub Marpa::R2::ASF::factor_downglade
 
+sub Marpa::R2::Internal::ASF::ambiguities {
+    my ($asf) = @_;
+    my $peak = $asf->peak();
+    return Marpa::R2::Internal::ASF::glade_ambiguities( $asf, $peak, [] );
+}
+
+sub Marpa::R2::Internal::ASF::glade_ambiguities {
+    my ( $asf, $glade, $seen ) = @_;
+    return [] if $seen->[$glade];    # empty on revisit
+    $seen->[$glade] = 1;
+    my $grammar     = $asf->grammar();
+    my @results     = ();
+    my $symch_count = $asf->glade_symch_count($glade);
+    if ( $symch_count > 1 ) {
+        my $literal      = $asf->glade_literal($glade);
+        my $symbol_id    = $asf->glade_symbol_id($glade);
+        my $display_form = $grammar->symbol_display_form($symbol_id);
+        return [
+            [   qq{Ambiguous symch; Glade $glade, Symbol $display_form: "$literal"}
+            ]
+        ];
+    } ## end if ( $symch_count > 1 )
+    my $rule_id = $asf->symch_rule_id( $glade, 0 );
+    if ( $rule_id < 0 ) {
+        my $literal      = $asf->glade_literal($glade);
+        my $symbol_id    = $asf->glade_symbol_id($glade);
+        my $display_form = $grammar->symbol_display_form($symbol_id);
+        return [qq{Token; Glade $glade, Symbol $display_form: "$literal"}];
+    } ## end if ( $rule_id < 0 )
+
+    # ignore any truncation of the factorings
+    my $factoring_count = $asf->symch_factoring_count( $glade, 0 );
+    if ( $factoring_count <= 1 ) {
+        my $downglades = $asf->factoring_downglades( $glade, 0, 0 );
+        if ( $#{$downglades} > 0 ) {
+            return [ map { glade_ambiguities( $asf, $_, $seen ) }
+                    @{$downglades} ];
+        }
+        return glade_ambiguities( $asf, $downglades->[0], $seen );
+    } ## end if ( $factoring_count <= 1 )
+    return "Glade $glade, symch 0 has $factoring_count factorings";
+    my @symch_description = ("Glade $glade");
+    push @symch_description, $grammar->rule_show($rule_id);
+    my $symch_description = join q{, }, @symch_description;
+
+    my @factorings           = ($symch_description);
+    my @factors_by_factoring = ();
+    my $max_factors = 0;
+    for (
+        my $factoring_ix = 0;
+        $factoring_ix < $factoring_count;
+        $factoring_ix++
+        )
+    {
+        my $downglades =
+            $asf->factoring_downglades( $glade, 0, $factoring_ix );
+        my $factor_count = $#{$downglades} + 1;
+        $max_factors =
+            $max_factors < $factor_count ? $factor_count : $max_factors;
+        push @factors_by_factoring, $downglades;
+    } ## end for ( my $factoring_ix = 0; $factoring_ix < $factoring_count...)
+    # for ( my $factor_ix = 0; $factor_ix < $max_factors; $factor_ix++ ) {
+        # my $factors_are_identical = 1;
+        # for (
+            # my $factoring_ix = 0;
+            # $factoring_ix < $factoring_count;
+            # $factoring_ix++
+            # )
+        # {
+        # } ## end for ( my $factoring_ix = 0; $factoring_ix < $factoring_count...)
+    # } ## end for ( my $factor_ix = 0; $factor_ix < $max_factors; $factor_ix...)
+} ## end sub Marpa::R2::Internal::ASF::glade_ambiguities
+
 # GLADE_SEEN is a local -- this is to silence warnings
 our %GLADE_SEEN;
 
