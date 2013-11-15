@@ -1070,11 +1070,6 @@ sub Marpa::R2::Internal::ASF::glade_ambiguities {
         return \@problems;
     } ## end if ( $factoring_count <= 1 )
     my @results      = ();
-    my @results_here = (
-        [   'factoring', $glade, 0,
-            "Glade $glade, symch 0 has $factoring_count factorings"
-        ]
-    );
     my @symch_description = ("Glade $glade");
     push @symch_description, $grammar->rule_show($rule_id);
     my $symch_description = join q{, }, @symch_description;
@@ -1116,7 +1111,11 @@ sub Marpa::R2::Internal::ASF::glade_ambiguities {
         $factor_ix++;
     } ## end FACTOR: while ( $factor_ix < $min_factors )
 
-    push @results, @results_here;
+    push @results,
+        [
+        'factoring', $glade, 0, $factor_ix,
+        "Glade $glade, symch 0 has $factoring_count factorings"
+        ];
 
     $factor_ix = $factor_ix + 1;
     FACTOR:
@@ -1143,6 +1142,22 @@ sub Marpa::R2::Internal::ASF::glade_ambiguities {
 
     return \@results;
 } ## end sub Marpa::R2::Internal::ASF::glade_ambiguities
+
+sub Marpa::R2::Internal::ASF::ambiguities_show {
+    my ( $asf, $ambiguities ) = @_;
+    my $result = q{};
+    AMBIGUITY: for my $ambiguity ( @{$ambiguities} ) {
+        my $type = $ambiguity->[0];
+        if ( $type eq 'factoring' ) {
+            my ( undef, $glade, $symch_ix, $first_ambiguous_factor ) = @{$ambiguity};
+        }
+        $result
+            .= qq{Ambiguities of type "$type" not implemented: } . join q{ },
+            @{$ambiguity} . "\n";
+        next AMBIGUITY;
+
+    } ## end AMBIGUITY: for my $ambiguity ( @{$ambiguities} )
+} ## end sub Marpa::R2::Internal::ASF::ambiguities_show
 
 # GLADE_SEEN is a local -- this is to silence warnings
 our %GLADE_SEEN;
