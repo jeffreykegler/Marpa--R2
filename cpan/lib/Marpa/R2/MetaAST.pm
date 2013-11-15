@@ -38,7 +38,8 @@ sub new {
 	my $asf = Marpa::R2::ASF->new( { slr => $meta_recce } );
 	say STDERR 'No ASF' if not defined $asf;
 	my $ambiguities = Marpa::R2::Internal::ASF::ambiguities( $asf );
-	say STDERR Data::Dumper::Dumper( $ambiguities );
+	my @ambiguities = grep { defined } @{$ambiguities}[0 .. 1 ];
+        say STDERR Marpa::R2::Internal::ASF::ambiguities_show( $asf, \@ambiguities );
         Marpa::R2::exception('Parse of BNF/Scanless source is ambiguous');
     }
     my $value_ref = $meta_recce->value();
