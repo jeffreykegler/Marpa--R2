@@ -34,7 +34,7 @@ my @tests_data = ();
 my $zero_grammar = \(<<'END_OF_SOURCE');
             :default ::= action => ::array
             quartet  ::= a a a a
-	    a ~ 'a'
+        a ~ 'a'
 END_OF_SOURCE
 
 push @tests_data,
@@ -43,9 +43,9 @@ push @tests_data,
 
 my $colon1_grammar = \(<<'END_OF_SOURCE');
             :default ::= action => ::array
-	    :start ::= quartet
+        :start ::= quartet
             quartet  ::= a a a a
-	    a ~ 'a'
+        a ~ 'a'
 END_OF_SOURCE
 
 push @tests_data,
@@ -58,8 +58,8 @@ push @tests_data,
 my $colon2_grammar = \(<<'END_OF_SOURCE');
             :default ::= action => ::array
             quartet  ::= a a a a
-	    :start ::= quartet
-	    a ~ 'a'
+        :start ::= quartet
+        a ~ 'a'
 END_OF_SOURCE
 
 push @tests_data,
@@ -71,9 +71,9 @@ push @tests_data,
 
 my $english1_grammar = \(<<'END_OF_SOURCE');
             :default ::= action => ::array
-	    start symbol is quartet
+        start symbol is quartet
             quartet  ::= a a a a
-	    a ~ 'a'
+        a ~ 'a'
 END_OF_SOURCE
 
 push @tests_data,
@@ -86,22 +86,30 @@ push @tests_data,
 my $english2_grammar = \(<<'END_OF_SOURCE');
             :default ::= action => ::array
             quartet  ::= a a a a
-	    start symbol is quartet
-	    a ~ 'a'
+        start symbol is quartet
+        a ~ 'a'
 END_OF_SOURCE
 
-push @tests_data,
-    [
+push @tests_data, [
     $english2_grammar, 'aaaa',
-         'SLIF grammar failed', q{},
+    'SLIF grammar failed',
+    <<'END_OF_MESSAGE',
+Parse of BNF/Scanless source is ambiguous
+Length of symbol "statement" at line 2, column 13 is ambiguous
+  Choices start with: quartet  ::= a a a a
+  Choice 1 ends at line 2, column 32
+  Choice 1 ending: quartet  ::= a a a a
+  Choice 2: Symbol ends at line 3, column 31
+  Choice 2 ending: uartet  ::= a a a a\n        start symbol is quartet
+END_OF_MESSAGE
     'English start statement second'
-    ];
+];
 
 my $explicit_grammar1 = \(<<'END_OF_SOURCE');
-            :default ::= action => ::array
-            quartet  ::= a a a a;
-	    start symbol is quartet
-	    a ~ 'a'
+	      :default ::= action => ::array
+	      quartet  ::= a a a a;
+        start symbol is quartet
+        a ~ 'a'
 END_OF_SOURCE
 
 push @tests_data,
@@ -112,14 +120,14 @@ push @tests_data,
     ];
 
 my $explicit_grammar2 = \(<<'END_OF_SOURCE');
-            :default ::= action => ::array
-            octet  ::= a a a a
-	    start symbol <is> octet
-	    a ~ 'a'
-	    start ~ 'a'
-	    symbol ~ 'a'
-	    is ~ 'a'
-	    octet ::= a
+	:default ::= action => ::array
+	octet  ::= a a a a
+        start symbol <is> octet
+        a ~ 'a'
+        start ~ 'a'
+        symbol ~ 'a'
+        is ~ 'a'
+        octet ::= a
 END_OF_SOURCE
 
 push @tests_data,
@@ -146,9 +154,8 @@ for my $test_data (@tests_data) {
             say $EVAL_ERROR if $DEBUG;
             my $abbreviated_error = $EVAL_ERROR;
 
-            # chomp $abbreviated_error;
-            # $abbreviated_error =~ s/\n.*//xms;
-            # $abbreviated_error =~ s/^Error \s+ in \s+ string_read: \s+ //xms;
+            chomp $abbreviated_error;
+            $abbreviated_error =~ s/^ Marpa[:][:]R2 \s+ exception \s+ at \s+ .* \z//xms;
             $actual_value  = 'SLIF grammar failed';
             $actual_result = $abbreviated_error;
             last PROCESSING;

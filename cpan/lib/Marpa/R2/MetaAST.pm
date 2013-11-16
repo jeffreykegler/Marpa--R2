@@ -39,8 +39,10 @@ sub new {
 	say STDERR 'No ASF' if not defined $asf;
 	my $ambiguities = Marpa::R2::Internal::ASF::ambiguities( $asf );
 	my @ambiguities = grep { defined } @{$ambiguities}[0 .. 1 ];
-        say STDERR Marpa::R2::Internal::ASF::ambiguities_show( $asf, \@ambiguities );
-        Marpa::R2::exception('Parse of BNF/Scanless source is ambiguous');
+        Marpa::R2::exception(
+            "Parse of BNF/Scanless source is ambiguous\n",
+            Marpa::R2::Internal::ASF::ambiguities_show( $asf, \@ambiguities )
+        );
     }
     my $value_ref = $meta_recce->value();
     Marpa::R2::exception('Parse of BNF/Scanless source failed')

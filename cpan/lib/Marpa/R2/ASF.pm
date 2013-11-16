@@ -1145,9 +1145,10 @@ sub Marpa::R2::Internal::ASF::glade_ambiguities {
 
 sub Marpa::R2::Internal::ASF::ambiguities_show {
     my ( $asf, $ambiguities ) = @_;
-    say +(join " ", __FILE__, __LINE__, q{}), Data::Dumper::Dumper($ambiguities);
     my $grammar = $asf->grammar();
-    my $result = q{};
+    my $slr     = $asf->[Marpa::R2::Internal::ASF::SLR];
+    my $p_input = $slr->[Marpa::R2::Inner::Scanless::R::P_INPUT_STRING];
+    my $result  = q{};
     AMBIGUITY: for my $ambiguity ( @{$ambiguities} ) {
         my $type = $ambiguity->[0];
         if ( $type eq 'factoring' ) {
@@ -1175,14 +1176,36 @@ sub Marpa::R2::Internal::ASF::ambiguities_show {
                 my $symbol_display_form =
                     $grammar->symbol_display_form(
                     $asf->glade_symbol_id($first_downglade) );
-                    my ( $start, $first_length ) =
+                my ( $start, $first_length ) =
                     $asf->glade_span($first_downglade);
                 my ( undef, $this_length ) =
                     $asf->glade_span($this_downglade);
+                my ( $start_line, $start_column ) = $slr->line_column($start);
+                my ( $end_line1, $end_column1 ) =
+                    $slr->line_column( $start + $first_length - 1 );
+                my ( $end_line2, $end_column2 ) =
+                    $slr->line_column( $start + $this_length - 1 );
+		my $display_length = List::Util::min($first_length, $this_length, 60);
                 $result
-                    .= qq{Length of symbol "$symbol_display_form" at $start is ambiguous\n};
-                $result .= qq{   Choice 1: Symbol length is $first_length\n};
-                $result .= qq{   Choice 2: Symbol length is $this_length\n};
+                    .= qq{Length of symbol "$symbol_display_form" at line $start_line, column $start_column is ambiguous\n};
+                $result .= qq{  Choices start with: }
+                    . Marpa::R2::Internal::Scanless::input_escape( $p_input,
+                    $start, $display_length )
+                    . qq{\n};
+                $result
+                    .= qq{  Choice 1 ends at line $end_line1, column $end_column1\n};
+		$display_length = List::Util::min($first_length, 60);
+                $result .= qq{  Choice 1 ending: }
+                    . Marpa::R2::Internal::Scanless::reversed_input_escape( $p_input,
+                    $start + $first_length, $display_length )
+                    . qq{\n};
+                $result
+                    .= qq{  Choice 2: Symbol ends at line $end_line2, column $end_column2\n};
+		$display_length = List::Util::min($this_length, 60);
+                $result .= qq{  Choice 2 ending: }
+                    . Marpa::R2::Internal::Scanless::reversed_input_escape( $p_input,
+                    $start + $this_length, $display_length )
+                    . qq{\n};
                 next AMBIGUITY;
             } ## end FACTORING: for ( my $factoring_ix = 1; $factoring_ix < ...)
             next AMBIGUITY;

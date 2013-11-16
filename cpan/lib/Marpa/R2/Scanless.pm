@@ -1701,6 +1701,81 @@ sub character_describe {
     return $text;
 } ## end sub character_describe
 
+my @escape_by_ord = ();
+$escape_by_ord[ ord q{\\} ] = q{\\\\};
+$escape_by_ord[ ord eval qq{"$_"} ] = $_
+    for "\\t", "\\r", "\\f", "\\b", "\\a", "\\e";
+$escape_by_ord[0xa] = '\\n';
+$escape_by_ord[$_] //= chr $_ for 32 .. 126;
+$escape_by_ord[$_] //= sprintf( "\\x%02x", $_ ) for 0 .. 255;
+
+# This and the sister routine for "forward strings"
+# should replace the other string "escaping" subroutine
+# in the NAIF
+sub Marpa::R2::Internal::Scanless::reversed_input_escape {
+    my ( $p_input, $base_pos, $length ) = @_;
+    my @escaped_chars = ();
+    my $pos           =  $base_pos - 1 ;
+
+    my $trailing_spaces = 0;
+    CHAR: while ( $pos > 0 ) {
+        last CHAR if substr ${$p_input}, $pos, 1 ne q{ };
+	$trailing_spaces++;
+        $pos--;
+    }
+    my $length_so_far = $trailing_spaces * 2;
+
+    CHAR: while ( $pos > 0 ) {
+        my $char         = substr ${$p_input}, $pos, 1;
+        my $ord          = ord $char;
+        my $escaped_char = $escape_by_ord[$ord]
+            // sprintf( "\\x{%04x}", $ord );
+        my $char_length = length $escaped_char;
+        $length_so_far += $char_length;
+        last CHAR if $length_so_far > $length;
+        push @escaped_chars, $escaped_char;
+        $pos--;
+    } ## end CHAR: while ( $pos > 0 and $pos < $end_of_input )
+    @escaped_chars = reverse @escaped_chars;
+    push @escaped_chars, '\\s' for 1 .. $trailing_spaces;
+    return join q{}, @escaped_chars;
+} ## end sub Marpa::R2::Internal::Scanless::input_escape
+
+sub Marpa::R2::Internal::Scanless::input_escape {
+    my ( $p_input, $base_pos, $length ) = @_;
+    my @escaped_chars = ();
+    my $pos           = $base_pos;
+
+    my $length_so_far = 0;
+
+    my $end_of_input = length ${$p_input};
+    CHAR: while ( $pos < $end_of_input ) {
+        my $char         = substr ${$p_input}, $pos, 1;
+        my $ord          = ord $char;
+        my $escaped_char = $escape_by_ord[$ord]
+            // sprintf( "\\x{%04x}", $ord );
+        my $char_length = length $escaped_char;
+        $length_so_far += $char_length;
+        last CHAR if $length_so_far > $length;
+        push @escaped_chars, $escaped_char;
+        $pos++;
+    } ## end CHAR: while ( $pos < $end_of_input )
+
+    my $first_non_space_ix = $#escaped_chars;
+    my $trailing_spaces    = 0;
+    $trailing_spaces++ while $escaped_chars[ $first_non_space_ix-- ] eq q{ };
+    if ($trailing_spaces) {
+        splice @escaped_chars, -$trailing_spaces;
+        $length_so_far -= $trailing_spaces;
+        TRAILING_SPACE: while ( $trailing_spaces-- > 0 ) {
+            $length_so_far += 2;
+            last TRAILING_SPACE if $length_so_far > $length;
+            push @escaped_chars, '\\s';
+        }
+    } ## end if ($trailing_spaces)
+    return join q{}, @escaped_chars;
+} ## end sub Marpa::R2::Internal::Scanless::input_escape
+
 sub Marpa::R2::Scanless::R::ambiguity_metric {
     my ($slr) = @_;
     my $thick_g1_recce =
