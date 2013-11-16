@@ -432,10 +432,23 @@ there is only one priority.
 
 =head2 Start rule
 
-Every source string should have a start rule.
+=for Marpa::R2::Display
+name: SLIF DSL synopsis
+partial: 1
+normalize-whitespace: 1
+
+    :start ::= Script
+
+=for Marpa::R2::Display::End
+
+By default, the start symbol of the grammar is the LHS of the
+first G1 rule.
+This default can be make explicit or overriden by using an explicit
+start rule.
 The LHS of this rule is the C<:start> pseudo-symbol.
 Only one RHS alternative is allowed.
 This RHS alternative must contain only one symbol name,
+and that symbol will be the start symbol of the G1 grammar.
 No adverbs should be associated with the RHS alternative.
 Start rules must be G1 rules.
 
