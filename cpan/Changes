@@ -15,17 +15,17 @@
 
 Revision history for Marpa::R2
 
+2.075_005
+
+   * Start rule is now optional.
+
+   * Character classes and strings can be
+     case-insensitive.
+
+   * ASF's documented and ready for trial, but
+     only by adventurous users.
+
 2.075_004
-
-   * Start rule is now optional
-     -- not yet documented.
-
-   * Case insensitve character classes and strings
-     added and documented.
-
-   * ASF's documented and ready for trial by
-     adventurous users.
-
 2.075_003
 2.075_002
 2.075_001
