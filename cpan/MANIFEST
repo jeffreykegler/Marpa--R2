@@ -295,11 +295,12 @@ t/randal.t
 t/rewrite.t
 t/sequence.t
 t/sequence2.t
-t/sl_action.t
 t/sl_action2.t
+t/sl_action.t
 t/sl_ah2.t
-t/sl_ast.t
+t/sl_ambig.t
 t/sl_astsyn.t
+t/sl_ast.t
 t/sl_calc.t
 t/sl_completed.t
 t/sl_debug.t
@@ -316,8 +317,8 @@ t/sl_gie.t
 t/sl_gif1.t
 t/sl_gsyn.t
 t/sl_json.t
-t/sl_leo.t
 t/sl_leo2.t
+t/sl_leo.t
 t/sl_lexevent.t
 t/sl_null_example.t
 t/sl_numeric.t
@@ -334,9 +335,9 @@ t/thin_eq.t
 t/timeflies.t
 t/use.t
 typemap
-xs/.gitignore
-xs/Makefile
-xs/R2.xs
 xs/general_pattern.xsh
+xs/.gitignore
 xs/gp_generate.pl
+xs/Makefile
 xs/ppport.h
+xs/R2.xs
