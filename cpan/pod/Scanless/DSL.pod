@@ -279,7 +279,7 @@ Marpa creates a virtual G0 rule on behalf of the application.
 This is handy, but it does have a real disadvantage --
 the name of the virtual rule's LHS
 will be one assigned automatically by Marpa.
-When tracing and debugging parses and grammars,
+When tracing and debugging parsers and grammars,
 these virtual LHS's can be harder for a programmer
 to interpret.
 
