@@ -1071,9 +1071,6 @@ sub Marpa::R2::Internal::ASF::glade_ambiguities {
         return \@problems;
     } ## end if ( $factoring_count <= 1 )
     my @results           = ();
-    my @symch_description = ("Glade $glade");
-    push @symch_description, $grammar->rule_show($rule_id);
-    my $symch_description = join q{, }, @symch_description;
 
     my $downglades = $asf->factoring_downglades( $glade, 0, 0 );
     my $min_factors = $#{$downglades} + 1;
@@ -1205,12 +1202,13 @@ sub Marpa::R2::Internal::ASF::ambiguities_show {
     AMBIGUITY: for my $ambiguity ( @{$ambiguities} ) {
         my $type = $ambiguity->[0];
         if ( $type eq 'symch' ) {
-	     # Not tested !!!!
+
+            # Not tested !!!!
             my ( undef, $glade ) = @{$ambiguity};
             my $symbol_display_form =
                 $grammar->symbol_display_form(
                 $asf->glade_symbol_id($glade) );
-            my ( $start,      $length )      = $asf->glade_span($glade);
+            my ( $start,      $length )       = $asf->glade_span($glade);
             my ( $start_line, $start_column ) = $slr->line_column($start);
             my ( $end_line,   $end_column ) =
                 $slr->line_column( $start + $length - 1 );
@@ -1220,12 +1218,38 @@ sub Marpa::R2::Internal::ASF::ambiguities_show {
             $result
                 .= qq{  The ambiguity is from line $start_line, column $start_column }
                 . qq{to line $end_line, column $end_column\n};
+            my $literal_label =
+                $display_length == $length ? 'Text is ' : 'Text begins ';
+            $result
+                .= q{  }
+                . $literal_label
+                . Marpa::R2::Internal::Scanless::input_escape( $p_input,
+                $start, $display_length )
+                . qq{\n};
+
+            my $symch_count = $asf->glade_symch_count($glade);
+            my $display_symch_count = List::Util::min( 5, $symch_count );
+            $result .=
+                $symch_count == $display_symch_count
+                ? "  There are $symch_count symches"
+                : "  There are $symch_count symches -- showing only the first $display_symch_count\n";
+            SYMCH_IX: for my $symch_ix ( 0 .. $display_symch_count ) {
+                my $rule_id = $asf->symch_rule_id( $glade, 0 );
+                if ( $rule_id < 0 ) {
+                    $result .= "  Symch is a token\n";
+                    next SYMCH_IX;
+                }
+                $result .= "  Symch is a rule: "
+                    . $grammar->rule_show($rule_id) . "\n";
+            } ## end SYMCH_IX: for my $symch_ix ( 0 .. $display_symch_count )
+
             next AMBIGUITY;
         } ## end if ( $type eq 'symch' )
         if ( $type eq 'factoring' ) {
-	    my $factoring_ix1 = 0;
-            my ( undef, $glade, $symch_ix, $factor_ix1, $factoring_ix2, $factor_ix2 ) =
-                @{$ambiguity};
+            my $factoring_ix1 = 0;
+            my ( undef, $glade, $symch_ix, $factor_ix1, $factoring_ix2,
+                $factor_ix2 )
+                = @{$ambiguity};
             my $first_downglades =
                 $asf->factoring_downglades( $glade, $symch_ix, 0 );
             my $first_downglade = $first_downglades->[$factor_ix1];
@@ -1233,8 +1257,7 @@ sub Marpa::R2::Internal::ASF::ambiguities_show {
                 my $these_downglades =
                     $asf->factoring_downglades( $glade, $symch_ix,
                     $factoring_ix2 );
-                my $this_downglade =
-                    $these_downglades->[$factor_ix2];
+                my $this_downglade = $these_downglades->[$factor_ix2];
                 my $symbol_display_form =
                     $grammar->symbol_display_form(
                     $asf->glade_symbol_id($first_downglade) );
@@ -1247,7 +1270,8 @@ sub Marpa::R2::Internal::ASF::ambiguities_show {
                     $slr->line_column( $start + $first_length - 1 );
                 my ( $end_line2, $end_column2 ) =
                     $slr->line_column( $start + $this_length - 1 );
-		my $display_length = List::Util::min($first_length, $this_length, 60);
+                my $display_length =
+                    List::Util::min( $first_length, $this_length, 60 );
                 $result
                     .= qq{Length of symbol "$symbol_display_form" at line $start_line, column $start_column is ambiguous\n};
                 $result .= qq{  Choices start with: }
@@ -1256,17 +1280,19 @@ sub Marpa::R2::Internal::ASF::ambiguities_show {
                     . qq{\n};
                 $result
                     .= qq{  Choice 1 ends at line $end_line1, column $end_column1\n};
-		$display_length = List::Util::min($first_length, 60);
+                $display_length = List::Util::min( $first_length, 60 );
                 $result .= qq{  Choice 1 ending: }
-                    . Marpa::R2::Internal::Scanless::reversed_input_escape( $p_input,
-                    $start + $first_length, $display_length )
+                    . Marpa::R2::Internal::Scanless::reversed_input_escape(
+                    $p_input, $start + $first_length,
+                    $display_length )
                     . qq{\n};
                 $result
                     .= qq{  Choice 2: Symbol ends at line $end_line2, column $end_column2\n};
-		$display_length = List::Util::min($this_length, 60);
+                $display_length = List::Util::min( $this_length, 60 );
                 $result .= qq{  Choice 2 ending: }
-                    . Marpa::R2::Internal::Scanless::reversed_input_escape( $p_input,
-                    $start + $this_length, $display_length )
+                    . Marpa::R2::Internal::Scanless::reversed_input_escape(
+                    $p_input, $start + $this_length,
+                    $display_length )
                     . qq{\n};
                 next AMBIGUITY;
             } ## end FACTORING: for ( my $factoring_ix = 1; $factoring_ix < ...)
@@ -1274,7 +1300,7 @@ sub Marpa::R2::Internal::ASF::ambiguities_show {
         } ## end if ( $type eq 'factoring' )
         $result
             .= qq{Ambiguities of type "$type" not implemented:\n}
-	    .  Data::Dumper::dumper($ambiguity);
+            . Data::Dumper::dumper($ambiguity);
         next AMBIGUITY;
 
     } ## end AMBIGUITY: for my $ambiguity ( @{$ambiguities} )
