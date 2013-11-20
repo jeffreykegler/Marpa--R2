@@ -1123,17 +1123,24 @@ sub Marpa::R2::Internal::ASF::glade_ambiguities {
             my $this_downglade =
                 $factors_by_factoring[$factoring_ix][$this_factor_ix];
             my ($this_start) = $asf->glade_span($this_downglade);
+
+	    # To keep time complexity down we limit the number of times we deal
+	    # with a factoring at a sync location to 3, worst case -- a pass which
+	    # identifies it as a potential sync location, a pass which 
+	    # (if possible) brings all the factors to that location, and a
+	    # pass which leaves all factor IX's where they are, and determines
+	    # we have found a sync location.  This makes out time O(f*n), where
+	    # f is the factoring count and n is the mininum number of factors.
+
+            while ( $this_start < $sync_location ) {
+                $factor_ix[$factoring_ix]++;
+                last SYNC_PASS if $factor_ix[$factoring_ix] >= $min_factors;
+		$this_start = $asf->glade_span($this_downglade);
+            } ## end if ( $this_start < $sync_location )
             if ( $this_start > $sync_location ) {
                 $is_synced     = 0;
                 $sync_location = $this_start;
-                next FACTORING;
             }
-            if ( $this_start < $sync_location ) {
-                $is_synced = 0;
-                $factor_ix[$factoring_ix]++;
-                last SYNC_PASS if $factor_ix[$factoring_ix] >= $min_factors;
-                next FACTORING;
-            } ## end if ( $this_start < $sync_location )
         } ## end FACTORING: for ( my $factoring_ix = 0; $factoring_ix < ...)
 
 	next SYNC_PASS if not $is_synced;
