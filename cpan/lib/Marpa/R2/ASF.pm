@@ -1110,13 +1110,11 @@ sub Marpa::R2::Internal::ASF::glade_ambiguities {
 
         # Assume synced and unambiguous until we see otherwise.
         my $is_synced = 1;
-        my $ambiguous_factors;
-        my $first_factor_ix = $factor_ix[0];
-        my $first_downglade = $factors_by_factoring[0][$first_factor_ix];
 
+        # First find a synch'ed set of factors, if we can
         FACTORING:
         for (
-            my $factoring_ix = 1;
+            my $factoring_ix = 0;
             $factoring_ix < $factoring_count;
             $factoring_ix++
             )
@@ -1126,25 +1124,49 @@ sub Marpa::R2::Internal::ASF::glade_ambiguities {
                 $factors_by_factoring[$factoring_ix][$this_factor_ix];
             my ($this_start) = $asf->glade_span($this_downglade);
             if ( $this_start > $sync_location ) {
+                $is_synced     = 0;
                 $sync_location = $this_start;
-                next SYNC_PASS;
+                next FACTORING;
             }
             if ( $this_start < $sync_location ) {
                 $is_synced = 0;
                 $factor_ix[$factoring_ix]++;
                 last SYNC_PASS if $factor_ix[$factoring_ix] >= $min_factors;
                 next FACTORING;
-            }
-            $ambiguous_factors =
-                [ $first_factor_ix, $factoring_ix, $this_factor_ix ]
-                if $this_downglade != $first_downglade;
-        } ## end FACTORING: for ( my $factoring_ix = 1; $factoring_ix < ...)
+            } ## end if ( $this_start < $sync_location )
+        } ## end FACTORING: for ( my $factoring_ix = 0; $factoring_ix < ...)
 
-        next SYNC_PASS if not $is_synced;
+	next SYNC_PASS if not $is_synced;
+
+	# If here, every factor starts at the sync location
 
         SYNCED_RESULT: {
 
-            # If here, all the factors are sync'ed
+            my $ambiguous_factors;
+            my $first_factor_ix = $factor_ix[0];
+            my $first_downglade = $factors_by_factoring[0][$first_factor_ix];
+
+            FACTORING:
+            for (
+                my $factoring_ix = 1;
+                $factoring_ix < $factoring_count;
+                $factoring_ix++
+                )
+            {
+                my $this_factor_ix = $factor_ix[$factoring_ix];
+                my $this_downglade =
+                    $factors_by_factoring[$factoring_ix][$this_factor_ix];
+                if ( $this_downglade != $first_downglade ) {
+                    $ambiguous_factors = [
+                        $first_factor_ix, $factoring_ix,
+                        $this_factor_ix
+                    ];
+                    last FACTORING;
+                } ## end if ( $this_downglade != $first_downglade )
+
+            } ## end FACTORING: for ( my $factoring_ix = 1; $factoring_ix < ...)
+
+            # If here, all the the downglades are identical
             if ( not defined $ambiguous_factors ) {
                 push @results,
                     @{ glade_ambiguities( $asf, $first_downglade, $seen ) };
@@ -1152,8 +1174,9 @@ sub Marpa::R2::Internal::ASF::glade_ambiguities {
             }
 
             push @results,
-                [   'factoring', $glade, 0, @{$ambiguous_factors},
-                    "Glade $glade, symch 0 has $factoring_count factorings"
+                [
+                'factoring', $glade, 0, @{$ambiguous_factors},
+                "Glade $glade, symch 0 has $factoring_count factorings"
                 ];
         } ## end SYNCED_RESULT:
 
