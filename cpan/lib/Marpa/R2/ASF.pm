@@ -1180,11 +1180,9 @@ sub Marpa::R2::Internal::ASF::glade_ambiguities {
                 last SYNCED_RESULT;
             }
 
+	    # First factoring IX is always zero
             push @results,
-                [
-                'factoring', $glade, 0, @{$ambiguous_factors},
-                "Glade $glade, symch 0 has $factoring_count factorings"
-                ];
+                [ 'factoring', $glade, 0, @{$ambiguous_factors} ];
         } ## end SYNCED_RESULT:
 
         $factor_ix[$_]++ for 0 .. $factoring_count;
@@ -1206,6 +1204,24 @@ sub Marpa::R2::Internal::ASF::ambiguities_show {
     my $result  = q{};
     AMBIGUITY: for my $ambiguity ( @{$ambiguities} ) {
         my $type = $ambiguity->[0];
+        if ( $type eq 'symch' ) {
+	     # Not tested !!!!
+            my ( undef, $glade ) = @{$ambiguity};
+            my $symbol_display_form =
+                $grammar->symbol_display_form(
+                $asf->glade_symbol_id($glade) );
+            my ( $start,      $length )      = $asf->glade_span($glade);
+            my ( $start_line, $start_column ) = $slr->line_column($start);
+            my ( $end_line,   $end_column ) =
+                $slr->line_column( $start + $length - 1 );
+            my $display_length = List::Util::min( $length, 60 );
+            $result
+                .= qq{Ambiguous symch at Glade=$glade, Symbol=<$symbol_display_form>:\n};
+            $result
+                .= qq{  The ambiguity is from line $start_line, column $start_column }
+                . qq{to line $end_line, column $end_column\n};
+            next AMBIGUITY;
+        } ## end if ( $type eq 'symch' )
         if ( $type eq 'factoring' ) {
 	    my $factoring_ix1 = 0;
             my ( undef, $glade, $symch_ix, $factor_ix1, $factoring_ix2, $factor_ix2 ) =
@@ -1257,8 +1273,8 @@ sub Marpa::R2::Internal::ASF::ambiguities_show {
             next AMBIGUITY;
         } ## end if ( $type eq 'factoring' )
         $result
-            .= qq{Ambiguities of type "$type" not implemented: } . join q{ },
-            @{$ambiguity} . "\n";
+            .= qq{Ambiguities of type "$type" not implemented:\n}
+	    .  Data::Dumper::dumper($ambiguity);
         next AMBIGUITY;
 
     } ## end AMBIGUITY: for my $ambiguity ( @{$ambiguities} )
