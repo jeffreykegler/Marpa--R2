@@ -40,8 +40,7 @@ Hesperus ::= 'a'
 Phosphorus ::= 'a'
 END_OF_SOURCE
 
-push @tests_data,
-    [
+push @tests_data, [
     $symch_ambiguity, 'aa',
     'Application grammar is ambiguous',
     <<'END_OF_MESSAGE',
@@ -53,8 +52,7 @@ Ambiguous symch at Glade=2, Symbol=<pair>:
   Symch 1 is a rule: pair ::= item item
 END_OF_MESSAGE
     'Symch ambiguity'
-    ];
-
+];
 
 TEST:
 for my $test_data (@tests_data) {
@@ -62,8 +60,8 @@ for my $test_data (@tests_data) {
         @{$test_data};
     my ( $actual_value, $actual_result );
     PROCESSING: {
-        my $grammar = Marpa::R2::Scanless::G->new( { source => $source } );
-        my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
+        my $grammar = Marpa::R2::Scanless::G->new( { source  => $source } );
+        my $recce   = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
 
         if ( not defined eval { $recce->read( \$input ); 1 } ) {
             say $EVAL_ERROR if $DEBUG;
@@ -76,16 +74,25 @@ for my $test_data (@tests_data) {
             last PROCESSING;
         } ## end if ( not defined eval { $recce->read( \$input ); 1 })
 
-    if ( $recce->ambiguity_metric() > 1 ) {
-	my $asf = Marpa::R2::ASF->new( { slr => $recce } );
-	say STDERR 'No ASF' if not defined $asf;
-	my $ambiguities = Marpa::R2::Internal::ASF::ambiguities( $asf );
-	my @ambiguities = grep { defined } @{$ambiguities}[0 .. 1 ];
-	$actual_value = 'Application grammar is ambiguous';
-	$actual_result = 
-            Marpa::R2::Internal::ASF::ambiguities_show( $asf, \@ambiguities );
-	  last PROCESSING;
-    }
+# Marpa::R2::Display
+# name: ASF ambiguity reporting
+
+        if ( $recce->ambiguity_metric() > 1 ) {
+            my $asf = Marpa::R2::ASF->new( { slr => $recce } );
+            die 'No ASF' if not defined $asf;
+            my $ambiguities = Marpa::R2::Internal::ASF::ambiguities($asf);
+
+            # Only report the first two
+            my @ambiguities = grep {defined} @{$ambiguities}[ 0 .. 1 ];
+
+            $actual_value  = 'Application grammar is ambiguous';
+            $actual_result = Marpa::R2::Internal::ASF::ambiguities_show( $asf,
+                \@ambiguities );
+            last PROCESSING;
+        } ## end if ( $recce->ambiguity_metric() > 1 )
+
+# Marpa::R2::Display::End
+
         my $value_ref = $recce->value();
         if ( not defined $value_ref ) {
             $actual_value  = 'No parse';
@@ -104,6 +111,6 @@ for my $test_data (@tests_data) {
     );
     Test::More::is( $actual_result, $expected_result,
         qq{Result of $test_name} );
-} ## end for my $test_data (@tests_data)
+} ## end TEST: for my $test_data (@tests_data)
 
 # vim: expandtab shiftwidth=4:

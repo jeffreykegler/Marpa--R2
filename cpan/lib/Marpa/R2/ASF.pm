@@ -1051,15 +1051,10 @@ sub Marpa::R2::Internal::ASF::glade_ambiguities {
         my $literal      = $asf->glade_literal($glade);
         my $symbol_id    = $asf->glade_symbol_id($glade);
         my $display_form = $grammar->symbol_display_form($symbol_id);
-        return [
-            [   'symch',
-                $glade,
-                qq{Ambiguous symch; Glade $glade, Symbol $display_form: "$literal"}
-            ]
-        ];
+        return [ [ 'symch', $glade, ] ];
     } ## end if ( $symch_count > 1 )
     my $rule_id = $asf->symch_rule_id( $glade, 0 );
-    return [] if $rule_id < 0;    # no ambiguities if a token
+    return [] if $rule_id < 0;       # no ambiguities if a token
 
     # ignore any truncation of the factorings
 

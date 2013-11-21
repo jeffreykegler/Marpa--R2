@@ -527,6 +527,163 @@ On other failure, throws an exception.
 In particular, exceptions are thrown if the symch is for a token;
 and if the glade exists, but the symch index is too high.
 
+=head1 Methods for reporting ambiguity
+
+=for Marpa::R2::Display
+name: ASF ambiguity reporting
+normalize-whitespace: 1
+partial: 1
+
+        if ( $recce->ambiguity_metric() > 1 ) {
+            my $asf = Marpa::R2::ASF->new( { slr => $recce } );
+            die 'No ASF' if not defined $asf;
+            my $ambiguities = Marpa::R2::Internal::ASF::ambiguities($asf);
+
+            # Only report the first two
+            my @ambiguities = grep {defined} @{$ambiguities}[ 0 .. 1 ];
+
+            $actual_value  = 'Application grammar is ambiguous';
+            $actual_result = Marpa::R2::Internal::ASF::ambiguities_show( $asf,
+                \@ambiguities );
+            last PROCESSING;
+        } ## end if ( $recce->ambiguity_metric() > 1 )
+
+=for Marpa::R2::Display::End
+
+=head2 ambiguities()
+
+=for Marpa::R2::Display
+name: ASF ambiguity reporting
+normalize-whitespace: 1
+partial: 1
+
+    my $ambiguities = Marpa::R2::Internal::ASF::ambiguities($asf);
+
+=for Marpa::R2::Display::End
+
+Returns a reference to an array of ambiguity reports in the ASF.
+The first and only argument must be an ASF object.
+The returned array may be zero length.
+Ambiguity reports are as L<described below|"Ambiguity reports">.
+
+While the C<ambiguities()> method can be called to determined whether
+or not ambiguities exist, that require creating an ASF,
+then traversing it,
+which is an expensive approach.
+Applications typically should prefer to use
+the L<$slr-E<gt>ambiguity_metric() method|Marpa::R2::Scanless::R/"ambiguity_metric()">,
+which tests an already-existing boolean and is therefore very fast.
+
+=head2 ambiguities_show()
+
+=for Marpa::R2::Display
+name: ASF ambiguity reporting
+normalize-whitespace: 1
+partial: 1
+
+    $actual_result = Marpa::R2::Internal::ASF::ambiguities_show( $asf,
+        \@ambiguities );
+
+=for Marpa::R2::Display::End
+
+Returns a string which contains a description of the ambiguities in its arguments.
+Takes two arguments, both required.
+The first is an ASF, and the second is a reference to an array of ambiguities,
+in the format returned by L<the ambiguities() method|/"ambiguities()">.
+
+It is expected that major applications of significant size will often have their own 
+customized ambiguity formatting routine, one which is aware of what
+the rule and symbol names mean in the application.
+This method is intended for applications which do not have
+their own customized ambiguity handling;
+and for debugging, development and tracing.
+It can also be used by customized
+methods as a fallback for ambiguity reports they do not recognize
+or do not choose to deal with.
+The format of the returned string is subject to change.
+
+=head1 Ambiguity reports
+
+The ambiguity reports returned by the L<C<ambiguities()> method|/"ambiguities()">
+are of two kinds:
+factoring reports, and symch reports.
+
+=head2 Symch reports
+
+A symch report is issued whenever, in a top-down traversal of the ASF,
+an non-trivial symbolic choice is encountered.
+(A trivial choice is one which has only one alternative, and therefore is not a choice
+in the ordinary sense of the term.)
+
+A symch report takes the form
+
+=for Marpa::R2::Display
+ignore: 1
+
+   [ 'symch', $glade ]
+
+=for Marpa::R2::Display::End
+
+=over 4
+
+where C<$glade> is the identifier of the glade with the symch ambiguity.
+This is enough information to allow the glade accessors to report full
+details of the symch ambiguity.
+
+Typically if there is a symch ambiguity, a factoring ambiguity is uninteresting,
+as are any ambiguities which occur lower in the ASF, involving child rules and symbols.
+When a symch ambiguity is reported,
+no ambiguiities below it in the ASF will be reported.
+If a glade has both a symch ambiguity and a factoring ambiguity, only the symch ambiguity
+is reported.
+
+=head2 Factoring reports
+
+A symch report is issued whenever, in a top-down traversal of the ASF,
+an sequence of symbols which are factored differently begins.
+A sequence is said to be "factored" differently if it the sequence contains
+the same symbols, and in the same order, but the symbols match different spans
+of the input.
+
+A factoring report takes the form
+
+=for Marpa::R2::Display
+ignore: 1
+
+    [ 'factoring', $glade, $symch_ix, $factor_ix1, $factoring_ix2, $factor_ix2 ];
+
+=for Marpa::R2::Display::End
+
+=over 4
+
+where C<$glade> is the identifier of the glade with the symch ambiguity,
+and C<$symch_ix> is the index of the symch involved.
+The the ambiguously factored stretch is indicated by the identifying
+two the factors at its beginning which differ in length.
+(Since it is the beginning of an ambiguous stretch, the two factors
+will have the same start location in the input.)
+
+To identify a factor within a symch, it is necessary to know the
+index of the factoring, and the index of the factor.
+The first factor will always have a factoring index of 0,
+and its factor index is C<$factor_ix1>.
+The second factor will have have a factoring index of C<$factoring_ix2>,
+and its factor index is C<$factor_ix2>.
+
+More information is not given because full information can voluminous --
+ambiguously factoring stretch can be lengthy, and the number of factorings
+can be in the thousands or higher.
+Error reporting is the primary application,
+and two factors at the beginning of the ambiguous stretch is
+usually all that is wanted for error reporting.
+An application that does not need to know more can find it using
+using the glade accessors.
+
+Ambiguities in rules and symbols underneath an ambiguously factored stretch
+are not reported.
+If a glade has both a symch ambiguity and stretches of factoring ambiguity,
+only the symch ambiguity is reported.
+
 =head1 The code for the synopsis
 
 =head2 The asf_to_basic_tree() code
