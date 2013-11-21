@@ -1219,7 +1219,7 @@ sub Marpa::R2::Internal::ASF::ambiguities_show {
                 .= qq{  The ambiguity is from line $start_line, column $start_column }
                 . qq{to line $end_line, column $end_column\n};
             my $literal_label =
-                $display_length == $length ? 'Text is ' : 'Text begins ';
+                $display_length == $length ? 'Text is: ' : 'Text begins: ';
             $result
                 .= q{  }
                 . $literal_label
@@ -1231,17 +1231,17 @@ sub Marpa::R2::Internal::ASF::ambiguities_show {
             my $display_symch_count = List::Util::min( 5, $symch_count );
             $result .=
                 $symch_count == $display_symch_count
-                ? "  There are $symch_count symches"
+                ? "  There are $symch_count symches\n"
                 : "  There are $symch_count symches -- showing only the first $display_symch_count\n";
-            SYMCH_IX: for my $symch_ix ( 0 .. $display_symch_count ) {
-                my $rule_id = $asf->symch_rule_id( $glade, 0 );
+            SYMCH_IX: for my $symch_ix ( 0 .. $display_symch_count - 1 ) {
+                my $rule_id = $asf->symch_rule_id( $glade, $symch_ix );
                 if ( $rule_id < 0 ) {
-                    $result .= "  Symch is a token\n";
+                    $result .= "  Symch $symch_ix is a token\n";
                     next SYMCH_IX;
                 }
-                $result .= "  Symch is a rule: "
+                $result .= "  Symch $symch_ix is a rule: "
                     . $grammar->rule_show($rule_id) . "\n";
-            } ## end SYMCH_IX: for my $symch_ix ( 0 .. $display_symch_count )
+            } ## end SYMCH_IX: for my $symch_ix ( 0 .. $display_symch_count - 1 )
 
             next AMBIGUITY;
         } ## end if ( $type eq 'symch' )

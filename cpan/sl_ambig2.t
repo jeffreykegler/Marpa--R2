@@ -21,7 +21,7 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 14;
+use Test::More tests => 2;
 use English qw( -no_match_vars );
 use lib 'inc';
 use Marpa::R2::Test;
@@ -43,9 +43,14 @@ END_OF_SOURCE
 push @tests_data,
     [
     $symch_ambiguity, 'aa',
-    'SLIF grammar failed',
+    'Application grammar is ambiguous',
     <<'END_OF_MESSAGE',
-Parse of BNF/Scanless source is ambiguous
+Ambiguous symch at Glade=2, Symbol=<pair>:
+  The ambiguity is from line 1, column 1 to line 1, column 2
+  Text is: aa
+  There are 2 symches
+  Symch 0 is a rule: pair ::= duple
+  Symch 1 is a rule: pair ::= item item
 END_OF_MESSAGE
     'Symch ambiguity'
     ];

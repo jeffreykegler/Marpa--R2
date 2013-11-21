@@ -14,8 +14,7 @@
 # General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 
-# Tests which require only grammar, input, and an output with no
-# semantics -- usually just an AST
+# Tests of ambiguity in the SLIF DSL itself.
 
 use 5.010;
 use strict;
