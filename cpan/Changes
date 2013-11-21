@@ -15,23 +15,15 @@
 
 Revision history for Marpa::R2
 
-2.075_005
+2.076000 Wed Nov 20 16:22:56 PST 2013
 
-   * Start rule is now optional.
+   * SLIF Start rule is now optional.
 
-   * Character classes and strings can be
-     case-insensitive.
+   * SLIF character classes and strings
+     can be case-insensitive.
 
    * ASF's documented and ready for trial, but
      only by adventurous users.
-
-2.075_004
-2.075_003
-2.075_002
-2.075_001
-2.075_000
-
-   * New series of developer's releases
 
 2.074000 Tue Oct 29 20:21:57 PDT 2013
 
