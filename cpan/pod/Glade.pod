@@ -286,15 +286,18 @@ one for every rule with the glade symbol on its LHS.
 
 =head2 Factorings
 
-A factoring is a way of dividing up the span of the glade among its RHS symbols.
 Each rule symch contains one or more factorings.
-If a rule symch has only one factoring, that factoring is said to be a B<trivial> factoring.
-A token symch is a terminal -- it contains no factorings.
+A factoring is a way of dividing up the input span of the glade among its RHS symbols,
+which in this context are called B<factors>.
+If a rule symch has only one factoring, that factoring is said to be B<trivial>.
+A token symch contains no factorings.
+Within an ASF,
+the token symches are it B<terminals>.
 
 Because the number of factorings can get out of hand,
 factorings may be ommitted.
 A symch which omits factorings is said to be B<truncated>.
-By default, at most 42 factorings are allowed in a symch.
+By default, every symch is truncated down to its first 42 factorings.
 
 =head2 Factors
 
@@ -303,15 +306,34 @@ Each "factor" corresponds to a symbol instance on the RHS of the rule.
 Each such RHS factor is also a downglade, one which contains its own
 symches.
 
+=head1 The Glade ID
+
+Each glade has a glade ID.
+This can be relied on to be a non-negative integer.
+A glade ID may be zero.
+Glade ID's are obtained from the L</"peak()">
+and L</"factoring_downglades()"> methods.
+
 =head1 Techniques for traversing ASF's
 
 =head2 Memoization
 
 When traversing a forest, you should to take steps to avoid
-traversing the same subtree twice.
-Memoization can easily be the difference between 
-an program which is unuseably slow even in small cases,
-and one which is very fast even for large inputs.
+traversing the same glades twice.
+You can do this by memoizing the result of each glade, perhaps
+using its glade ID to index a glade.
+When a glade is visited, it can be checked to see if its result has
+been memoized.
+If so the memoized result is used.
+
+This memoization eliminates the need to revisit the downglades
+of an already visited glade.
+It does not eliminate multiple visits to a glade, but it does
+eliminate retraversal of the glades downhill from it.
+In practice, the improvement in speed can be stunning.
+It will often be the difference between 
+an program which is unuseably slow even for very small inputs,
+and one which is very extremely fast even for large inputs.
 
 Repeated subtraversals happen which two upper glades share the same lower
 glade.  This is a very frequent occurrence in ASF's.
@@ -319,7 +341,7 @@ Additionally, the underlying algorithm allows cycles, and some day the SLIF will
 as well.
 Traversing a cycle will cause an infinite loop unless you memoize.
 
-The example in this POD include memoization scheme which is very simple
+The example in this POD includes a memoization scheme which is very simple,
 but adequate for most purposes.
 The main logic of it is shown here.
 
@@ -426,9 +448,12 @@ and a length.
 On failure, throws an exception.
 
 The literal is determined by the range.
-Marpa applications are not required to read the input monotonically,
-and the complications that arise for those which do not are addressed
-in L<Marpa::R2::Scanless::R/"Literals and G1 spans">.
+This works as expected if your application reads the input characters 
+one-by-one in order.
+(We will call applications which read in this fashion, monotonic.)
+Your application is monotonic, unless you've taken special measures to make it otherwise.
+Computation of literal substrings for non-monotonic applications
+is addressed in L<Marpa::R2::Scanless::R/"Literals and G1 spans">.
 
 =head2 glade_symch_count()
 
@@ -442,7 +467,7 @@ partial: 1
 =for Marpa::R2::Display::End
 
 Requires a glade ID as its only argument.
-Returns the number of symches below the glade specified by the argument.
+Returns the number of symches downhill from the glade specified by the argument.
 On failure, throws an exception.
 
 =head2 glade_symbol_id()
@@ -459,9 +484,6 @@ partial: 1
 
 Requires a glade ID as its only argument.
 Returns the symbol ID of the "glade symbol" for the glade specified by the argument.
-The "glade symbol" always exsits.
-If the glade is for a token, it is the token symbol.
-If the glade is for a set of rules, it is the LHS that those rules share in common.
 On failure, throws an exception.
 
 =head1 Symch Methods
@@ -478,8 +500,10 @@ partial: 1
 =for Marpa::R2::Display::End
 
 Requires two arguments: a glade ID and a zero-based symch index.
-Returns the rule ID of the symch specified by the two arguments.
-If the symch is for a token, -1 is returned.
+These specify a symch.
+If it is a rule symch, returns the rule ID.
+If it is a token symch, returns -1.
+
 Returns a Perl undef, if the glade exists, but the symch index is too high.
 On other failure, throws an exception.
 
@@ -571,16 +595,17 @@ partial: 1
 
 Returns a reference to an array of ambiguity reports in the ASF.
 The first and only argument must be an ASF object.
-The returned array may be zero length.
+The array returned will be be zero length if the parse was not ambiguous.
 Ambiguity reports are as L<described below|"Ambiguity reports">.
 
-While the C<ambiguities()> method can be called to determined whether
-or not ambiguities exist, that require creating an ASF,
-then traversing it,
-which is an expensive approach.
-Applications typically should prefer to use
-the L<$slr-E<gt>ambiguity_metric() method|Marpa::R2::Scanless::R/"ambiguity_metric()">,
-which tests an already-existing boolean and is therefore very fast.
+While the C<ambiguities()> method can be called to determine whether
+or not ambiguities exist, it is the more expensive way to do it.
+The L<$slr-E<gt>ambiguity_metric() method|Marpa::R2::Scanless::R/"ambiguity_metric()">
+tests an already-existing boolean and is therefore extremely fast.
+If you are simply testing for ambiguity,
+or if you can save time when you know that a parse is unambiguous,
+you will usually want to test for ambiguity with the C<ambiguity_metric()> method
+before calling the C<ambiguities()> method.
 
 =head2 ambiguities_show()
 
@@ -599,22 +624,22 @@ Takes two arguments, both required.
 The first is an ASF, and the second is a reference to an array of ambiguities,
 in the format returned by L<the ambiguities() method|/"ambiguities()">.
 
-It is expected that major applications of significant size will often have their own 
-customized ambiguity formatting routine, one which is aware of what
-the rule and symbol names mean in the application.
+Major applications will often have their own 
+customized ambiguity formatting routine, one which can formulate
+error messages based, not just on the names of the rules and symbols,
+but knowledge of what role the rules and symbols mean in
+the application.
 This method is intended for applications which do not have
-their own customized ambiguity handling;
-and for debugging, development and tracing.
-It can also be used by customized
-methods as a fallback for ambiguity reports they do not recognize
-or do not choose to deal with.
+their own customized ambiguity handling.
+For those which do, it can be used
+as a fallback for handling those reports that the customized method does not recognize
+or that do not need special handling.
 The format of the returned string is subject to change.
 
 =head1 Ambiguity reports
 
 The ambiguity reports returned by the L<C<ambiguities()> method|/"ambiguities()">
-are of two kinds:
-factoring reports, and symch reports.
+are of two kinds: symch reports and factoring reports.
 
 =head2 Symch reports
 
