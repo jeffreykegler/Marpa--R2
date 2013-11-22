@@ -655,24 +655,33 @@ ignore: 1
 
 =for Marpa::R2::Display::End
 
-where C<$glade> is the identifier of the glade with the symch ambiguity.
-This is enough information to allow the glade accessors to report full
+where C<$glade> is the ID of the glade with the symch ambiguity.
+With this and the glade accessors, an applicaiton can report full
 details of the symch ambiguity.
 
-Typically if there is a symch ambiguity, a factoring ambiguity is uninteresting,
-as are any ambiguities which occur lower in the ASF, involving child rules and symbols.
-When a symch ambiguity is reported,
-no ambiguiities below it in the ASF will be reported.
-If a glade has both a symch ambiguity and a factoring ambiguity, only the symch ambiguity
-is reported.
+Typically, when there is more than one kind of ambiguity in an input span, only
+one is of real interest.
+Symch ambiguities are usually of more interest than factorings.
+And if one ambiguities is uphill from another, the downhill ambiguity is usually
+a side effect of the uphill one.
+
+Accordingly, if there is both a symch ambiguity and a factoring ambiguity in a glade,
+only the symch ambiguity is reported.
+And if two ambiguities in the ASF overlap, only the one closest to the peak is reported.
 
 =head2 Factoring reports
 
 A symch report is issued whenever, in a top-down traversal of the ASF,
-an sequence of symbols which are factored differently begins.
-A sequence is said to be "factored" differently if it the sequence contains
-the same symbols, and in the same order, but the symbols match different spans
-of the input.
+an sequence of symbols is found which has more than one factoring.
+Factoring reports are specific -- they identify not just rules,
+but the specific sequences within the RHS
+which are differently factored -- B<multi-factored stretches>.
+A single rule, if the symbol fall into step with each other and then
+out of step, may have several multifactored stretches.
+Identifying specific multifactored stretches
+is useful when dealing with sequence rules,
+whose RHS's can be very long.
+The details of how an multifactored stretch is defined are L<below|/"Multifactored stretches">.
 
 A factoring report takes the form
 
@@ -897,6 +906,42 @@ for every rule in the grammar.
 That means the maximum number of symbolic choices in a glade is
 one plus
 the number of rules in the grammar.
+
+=head2 Multifactored stretches
+
+When locating factoring ambiguities, Marpa drills down below the rule level.
+This is very useful for ambiguities in sequence rules, whose RHS's can be very long.
+
+Recall that each factoring contains one or more factors, each of which has a symbol and a span.
+A B<symbol sequence> is a sequence of one or more symbols of a specific type in a specific order,
+the first symbol of which starts at a specific input location.
+A specific occurrence of a symbol in a symbol sequence is an B<instance>.
+Symbol sequence instances have offsets, numbered in order within the sequence
+starting with the first symbol, and zero-based.
+The number of symbols in the sequence is its B<length>, and will be one greater
+than the maximum offset of any of its instances.
+Symbol stretches align in the input,
+but symbol stretches in different factorings do not have to align by factor index.
+In factorings of sequence rules, where the RHS consists of repetitions of a single symbol,
+a short stretch might be found at many factor indexes in each of the factorings.
+
+Intuitively, a B<factoring position> is a location among the factors of a factoring.
+It can be considered to be a duple of factoring index and factor index.
+The factor at the start of the factoring position is the B<base factor>.
+Given a factoring position, the factors of its factoring will have offsets relative to
+the base factor.
+Factor offsets are zero-based, so that the base factor has offset 0.
+An factor corresponds to an instance of a symbol sequence, relative to a factoring position,
+if the instance offset is the same as the factor offset.
+
+An instance of a symbol sequence is ambiguous in a set of factorings,
+if and only if, for some choice of factoring positions,
+two or more of the corresponding factors match different spans of the input.
+A symbol sequence is ambiguous in a set of factorings,
+if every instance in it is ambiguous in that set of factorings.
+An instance of a symbol sequence is ambiguous in a symch if and only if it is ambiguous in the symch's set of factoring.
+An symbol sequence is ambiguous in a symch if and only if it is ambiguous in the symch's set of factorings.
+A symch is multifactored if and only if some symbol sequence is ambiguous in it.
 
 =head1 Copyright and License
 
