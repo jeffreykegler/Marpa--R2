@@ -97,8 +97,9 @@ Ambiguity in a parse can come in two forms, and Marpa's ASF's treat the
 distinction as important.  An ambiguity can be a symbolic choice
 (symch), or a factoring.  Symbolic choices are the kind of ambiguity
 that springs first to mind -- a choice between rules, or a choice
-between a rule and token.  Factorings occur when only one rule applies,
-but that rule can divide the input in different ways.  I'll give examples below.
+between a rule and token.  Factorings involve only one rule,
+but in factoring that one rule divides the input up in different ways.
+I'll give examples below.
 
 Symches and factorings are treated separately,
 because they behave very differently:
@@ -108,26 +109,22 @@ because they behave very differently:
 =item * Symches are less common than factorings.
 
 =item * Factorings are frequently not of interest; symches are almost
-always of interest.
+always of major interest.
 
-=item * Symches almost always have only a handful of alternatives; the
-possible number of factorings easily and quickly grows into thousands.
+=item * Symches usually have just a few alternatives; the
+possible number of factorings easily grows into the thousands.
 
-=item * Even in the worst case, the number of symches is never more than
+=item * Even in the worst case, the number of symches is less than
 a finite constant, which depends on the grammar and is of reasonable size.
-
-=item * The maximum number of factorings
+The maximum number of factorings
 grows exponentially with the length of the string being factored, and has
 no limit.
 
 =back
 
-Most applications
-will want to treat symches and factorings differently.
-
 =head2 An example of a symch
 
-Here's an example of a symch.  The grammar is:
+For the grammar,
 
 =for Marpa::R2::Display
 name: ASF symch dump example grammar
@@ -143,7 +140,7 @@ remove-blank-last-line: 1
 
 =for Marpa::R2::Display::End
 
-For the input string 'venus', the forest would look like
+and the input string 'venus', the forest would look like
 
 =for Marpa::R2::Display
 name: ASF symch dump example output
@@ -164,16 +161,16 @@ remove-display-indent: 1
 
 Notice the tags of the form "C<GLn>", where I<n> is an integer.
 These identify the glade.
-Glades will be described in detail below.
+(Glades will be described in detail below.)
 
 =head2 An example of a factoring
 
-Now for an example of a factoring.  Here's the grammar:
+For the grammar,
 
 =for Marpa::R2::Display
 name: ASF factoring dump example grammar
-remove-blank-last-line: 1
-remove-display-indent: 1
+normalize-whitespace: 1
+partial: 1
 
     :start ::= top
     top ::= b b
@@ -183,9 +180,36 @@ remove-display-indent: 1
 
 =for Marpa::R2::Display::End
 
-For the input 'C<aaa>', a parse from this grammar must have two C<b>'s, one
-short (a single 'C<a>') and one long (two C<a>'s).  But they can be in either
-order.  This is a factoring.  Here's Marpa's dump of the forest:
+and the input 'C<aaa>',
+a successful parse will always have two C<b>'s.
+Of these two C<b>'s one will always be short, deriving a 
+a single C<a>,
+The other will always be long, deriving two
+C<a>'s.
+But they can be in either order,
+which means that the two C<b>'s can divide up the input stream in
+two different ways:
+
+=over 4
+
+=item * Long first, short second.
+
+=item * Short first, long second.
+
+=back
+
+These two different ways of dividing the input stream using the rule
+
+=for Marpa::R2::Display
+name: ASF factoring dump example grammar
+normalize-whitespace: 1
+partial: 1
+
+    top ::= b b
+
+=for Marpa::R2::Display::End
+
+are called a B<factoring>.  Here's Marpa's dump of the forest:
 
 =for Marpa::R2::Display
 name: ASF factoring dump example output
@@ -210,12 +234,12 @@ remove-display-indent: 1
 
 =head1 The structure of a forest
 
-Intuitively, a forest can be pictured as on a mountain.  The forest has glades,
+The intuitive forest of an ASF, can be pictured as on a mountain.  The forest has glades,
 and there are paths between them.
 The term "glade" comes from the idea of a glade as a distinct place in a forest that is
 open to light.
-The paths between glades have a direction and are pictured
-as always running uphill or downhill.
+The paths between glades have a direction -- they are always thought of
+as running downhill.
 If a path connects two glades, the one uphill is called an upglade and the
 one downhill is called a downglade.
 
@@ -224,7 +248,7 @@ The peak has no upglades.
 
 =head1 The glade hierarchy
 
-Every glade have the same internal structure, which is a hierarchy.
+Every glade has the same internal structure, which is this hierarchy:
 
 =over 4
 
@@ -234,15 +258,15 @@ Every glade have the same internal structure, which is a hierarchy.
 
 =item * Factorings contain factors.
 
-=item * Each factor is the uphill end of a path which leads to a downglade.
-At the downglade, a new glade starts the hierarchy over again.
+=item * A factor is the uphill end of a path which leads to a downglade.
+That downglade will contain a glade hierarchy of its own.
 
 =back
 
 =head2 Glades
 
 Glade nodes represent a possible instance of a symbol in a parse.
-Therefore, each glade has a symbol (called the "glade symbol"),
+Each glade has a symbol (called the "glade symbol"),
 and an "input span".
 An input span is an input start location, and a length in characters.
 Because it has a start location and a length, each span also has
@@ -259,8 +283,6 @@ For a rule, the glade symbol will be the LHS of the rule.
 Only one of the symches in a glade can be a token symch.
 There can, however, be many rule symches in a glade --
 one for every rule with the glade symbol on its LHS.
-(The total number of symches is the number of rules in the grammar,
-plus one.)
 
 =head2 Factorings
 
@@ -803,6 +825,53 @@ if and only if the glade length from A to B is defined.
 A B<peak> of an ASF is a node without upglades.
 By construction of the ASF, there is only one peak.
 A glade is B<trivial> if and only if it has exactly one downglade.
+
+=head2 Cycles
+
+In the current SLIF implementation, a forest is a directed acyclic graph (DAG).
+(In the mathematical literature a DAG is also called a "tree", but that use is confusing
+in the present context.)
+The underlying Marpa algorithm allows parse trees with cycles,
+and someday the SLIF probably will as well.
+When that happens, ASF's will no longer be "acyclic" and therefore will no
+longer be DAG's.
+This document talks about ASF's as if they could contain cycles,
+when parse trees with cycles are encountered,
+the applications which follow the guidelines in this document
+will be ready for them.
+
+One consequence of an ASF containing cycles is that two glades can be both uphill and downhill
+from each other.
+That is if glade A cycles back to itself through glade B,
+glade A will be uphill from glade B,
+and glade B will be uphill from glade A.
+This means that glade B will be downhill from glade A,
+and glade A will be downhill glade B,
+
+This means the sense of downhill and uphill will becomes more complicated.
+ASF's will always be constructed so that the peak has no upglades, however,
+so that, even in an ASF with cycles, the peak will always be uphill from all glades,
+and all other glades will always be downhill from the peak.
+
+=head2 Token symches
+
+In the current SLIF implementation, a symbol is always either a token
+or the LHS of a rule.
+This means that every glade either that contains a token symch
+cannot contain any rule symches, and vice versa.
+
+However, the underlying Marpa algorithm allows LHS terminals,
+and someday the SLIF probably will as well.
+For this reason, the descriptions in this document always describes
+glades as if they could contain both rule symches and a token symch.
+
+=head2 Maximum symches per glade
+
+There can be at most one token symch, plus a rule symch
+for every rule in the grammar.
+That means the maximum number of symbolic choices in a glade is
+one plus
+the number of rules in the grammar.
 
 =head1 Copyright and License
 
