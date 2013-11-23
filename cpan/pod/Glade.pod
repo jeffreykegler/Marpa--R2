@@ -240,12 +240,14 @@ remove-display-indent: 1
 
 =head1 The structure of a forest
 
-The intuitive forest of an ASF, can be pictured as on a mountain.  The forest has glades,
-and there are paths between them.
+Intuitive an ASF, can be pictured as a forest on a mountain.
+This mountain forest has glades,
+and there are paths between the glades.
 The term "glade" comes from the idea of a glade as a distinct place in a forest that is
 open to light.
+
 The paths between glades have a direction -- they are always thought of
-as running downhill.
+as running one-way: downhill.
 If a path connects two glades, the one uphill is called an upglade and the
 one downhill is called a downglade.
 
@@ -258,7 +260,7 @@ Every glade has the same internal structure, which is this hierarchy:
 
 =over 4
 
-=item * Glades contain symches.  Symches can be for rules or for tokens.
+=item * Glades contain symches.  A symch is either for a rule or for a token.
 
 =item * Rule symches contain factorings.
 
@@ -271,22 +273,22 @@ That downglade will contain a glade hierarchy of its own.
 
 =head2 Glades
 
-Glade nodes represent a possible instance of a symbol in a parse.
-Each glade has a symbol (called the "glade symbol"),
+Each glade node represents an instance of a symbol in one of the possible parse trees.
+This means that each glade has a symbol (called the "glade symbol"),
 and an "input span".
 An input span is an input start location, and a length in characters.
-Because it has a start location and a length, each span also has
-a end location in the input.
+Because it has a start location and a length,
+a span also specifies an end location in the input.
 
 =head2 Symches
 
-A glade will have one or more symches as children.
-If a glade has only one symch, that symch is said to be a B<trivial> symch.
-Symches may be token symches or rule symches.
-For a token, the glade symbol will be the token symbol.
-For a rule, the glade symbol will be the LHS of the rule.
+Every glade contains one or more symches.
+If a glade has only one symch, that symch is said to be B<trivial>.
+A symch is either a token symch or a rule symch.
+For a token symch, the glade symbol is the token symbol.
+For a rule symch, the glade symbol is the LHS of the rule.
 
-Only one of the symches in a glade can be a token symch.
+At most one of the symches in a glade can be a token symch.
 There can, however, be many rule symches in a glade --
 one for every rule with the glade symbol on its LHS.
 
@@ -296,12 +298,11 @@ Each rule symch contains one or more factorings.
 A factoring is a way of dividing up the input span of the glade among its RHS symbols,
 which in this context are called B<factors>.
 If a rule symch has only one factoring, that factoring is said to be B<trivial>.
-A token symch contains no factorings.
-Within an ASF,
-the token symches are it B<terminals>.
+A token symch contains no factorings, which means that
+token symches are the B<terminals> of an ASF.
 
 Because the number of factorings can get out of hand,
-factorings may be ommitted.
+factorings may be omitted.
 A symch which omits factorings is said to be B<truncated>.
 By default, every symch is truncated down to its first 42 factorings.
 
@@ -327,10 +328,10 @@ and L</"factoring_downglades()"> methods.
 When traversing a forest, you should to take steps to avoid
 traversing the same glades twice.
 You can do this by memoizing the result of each glade, perhaps
-using its glade ID to index a glade.
-When a glade is visited, it can be checked to see if its result has
+using its glade ID to index an array.
+When a glade is visited, the array can be checked to see if its result has
 been memoized.
-If so the memoized result is used.
+If so, the memoized result should be used.
 
 This memoization eliminates the need to revisit the downglades
 of an already visited glade.
@@ -339,17 +340,16 @@ eliminate retraversal of the glades downhill from it.
 In practice, the improvement in speed can be stunning.
 It will often be the difference between 
 an program which is unuseably slow even for very small inputs,
-and one which is very extremely fast even for large inputs.
+and one which is extremely fast even for large inputs.
 
-Repeated subtraversals happen which two glades share the same downglades.
-This is a very frequent occurrence in ASF's.
-Additionally, the underlying algorithm allows cycles, and some day the SLIF will
-as well.
-Traversing a cycle will cause an infinite loop unless you memoize.
+Repeated subtraversals happen when two glades share the same downglades,
+something that occurs frequently in ASF's.
+Additionally, some day the SLIF may allow cycles.
+Memoization will prevent a cycle form causing an infinite loop.
 
 The example in this POD includes a memoization scheme which is very simple,
 but adequate for most purposes.
-The main logic of it is shown here.
+The main logic of its memoization is shown here.
 
 =for Marpa::R2::Display
 name: ASF low-level calls synopsis, code part 2
@@ -363,8 +363,8 @@ partial: 1
 
 =for Marpa::R2::Display::End
 
-As you can see, memoization is not hard.
-Putting memoization in your very first drafts of code
+Putting memoization in one of the very first drafts
+of your code
 will save you time and trouble.
 
 =head1 Constructor
@@ -448,8 +448,9 @@ On failure, throws an exception.
 The literal is determined by the range.
 This works as expected if your application reads the input characters 
 one-by-one in order.
-(We will call applications which read in this fashion, monotonic.)
-Your application is monotonic, unless you've taken special measures to make it otherwise.
+(We will call applications which read in this fashion, B<monotonic>.)
+Most applications are monotonic,
+and yours is, unless you've taken special pains to make it otherwise.
 Computation of literal substrings for non-monotonic applications
 is addressed in L<Marpa::R2::Scanless::R/"Literals and G1 spans">.
 
@@ -465,7 +466,7 @@ partial: 1
 =for Marpa::R2::Display::End
 
 Requires a glade ID as its only argument.
-Returns the number of symches downhill from the glade specified by the argument.
+Returns the number of symches contained in the glade specified by the argument.
 On failure, throws an exception.
 
 =head2 glade_symbol_id()
@@ -499,7 +500,7 @@ partial: 1
 
 Requires two arguments: a glade ID and a zero-based symch index.
 These specify a symch.
-If it is a rule symch, returns the rule ID.
+If the symch specified is a rule symch, returns the rule ID.
 If it is a token symch, returns -1.
 
 Returns a Perl undef, if the glade exists, but the symch index is too high.
@@ -522,10 +523,10 @@ partial: 1
 =for Marpa::R2::Display::End
 
 Requires two arguments: a glade ID and a zero-based symch index.
-For a rule symch,
-returns the numbers of factorings in the symch specified by the two arguments.
-This will always be one or greater.
-For a token symch, returns zero.
+These specify a symch.
+Returns the count of factorings if the specified symch is a rule symch.
+This count will always be one or greater.
+Returns zero if the specified symch is a token symch.
 
 Returns a Perl undef, if the glade exists, but the symch index is too high.
 On other failure, throws an exception.
@@ -548,11 +549,12 @@ partial: 1
 Requires three arguments: a glade ID,
 the zero-based index of a symch
 and the zero-based index of a factoring.
+These specify a factoring.
 On success, returns a reference to an array.
 The array contains the glade IDs of the the downglades in
-the factoring specified by the arguments.
+the factoring specified.
 
-Returns a Perl undef, if the glade and symch exists, but the factoring index is too high.
+Returns a Perl undef, if the glade and symch exist, but the factoring index is too high.
 On other failure, throws an exception.
 In particular, exceptions are thrown if the symch is for a token;
 and if the glade exists, but the symch index is too high.
@@ -625,7 +627,8 @@ in the format returned by L<the ambiguities() method|/"ambiguities()">.
 Major applications will often have their own 
 customized ambiguity formatting routine, one which can formulate
 error messages based, not just on the names of the rules and symbols,
-but knowledge of what role the rules and symbols mean in
+but on knowledge of the role that
+the rules and symbols play in
 the application.
 This method is intended for applications which do not have
 their own customized ambiguity handling.
@@ -643,7 +646,6 @@ are of two kinds: symch reports and factoring reports.
 
 A symch report is issued whenever, in a top-down traversal of the ASF,
 an non-trivial symch is encountered.
-
 A symch report takes the form
 
 =for Marpa::R2::Display
@@ -661,8 +663,8 @@ Typically, when there is more than one kind of ambiguity in an input span, only
 one is of real interest.
 Symch ambiguities are usually of more interest than factorings.
 And if one ambiguity is uphill from another, the downhill ambiguity is usually
-of less interest because it is a
-side effect of the uphill one.
+a side effect of the uphill one and
+of little interest.
 
 Accordingly, if a glade has both a symch ambiguity and a factoring ambiguity,
 only the symch ambiguity is reported.
@@ -675,9 +677,9 @@ an sequence of symbols is found which has more than one factoring.
 Factoring reports are specific -- they identify not just rules,
 but the specific sequences within the RHS
 which are differently factored -- B<multifactored stretches>.
-Sequence rules especially, can have long stretches where the symbols are in sync
+Sequence rules especially have long stretches where the symbols are in sync
 with each other, broken by other stretches where they are out of sync.
-Marpa identifies the individual stretches.
+Marpa reports each of the ambiguous stretches.
 (A detailed definition of multifactored stretches is L<below|/"Multifactored stretches">.)
 
 A factoring report takes the form
@@ -704,16 +706,10 @@ and its factor index is C<$factor_ix2>.
 
 The identifying factors will usually be enough
 for error reporting, which is the usual application of these reports.
-Full details of the stretch are not given because they can be extremely large,
-and are usually not of interest.
-
-The glade ID, symch index and start location
-are enough to identify the multifactored stretch.
-The start location can be determined from either of the
-two identifying factors.
-Applications which need to know more about the multifactored stretch
-than is in the report can use this identifying information as a start,
-following it up using the accessor methods in this document.
+Full details of the stretch are not given because they can be extremely large;
+are usually not of interest;
+and can be determined by following up on the information in the factoring report
+using the accessor methods described in this document.
 
 Ambiguities in rules and symbols downhill from an ambiguously factored stretch
 are not reported.
@@ -838,7 +834,8 @@ normalize-whitespace: 1
 
 =head1 Details
 
-This section contains some mathematical elaborations of the above.
+This section contains some elaborations of the above,
+some of them in mathematical terms.
 These details are segregated because they are not essential to using this interface,
 and while some readers find them more helpful than distracting,
 for many others it is the reverse.
@@ -852,7 +849,7 @@ the number of glades on the shortest path from A to B, not including glade A.
 (Recall that paths are directional.)
 If there is no path between glades A and B, the glade length is undefined.
 Glade B is a B<downglade> of glade A,
-and a glade A is an B<upglade> of glade B,
+and glade A is an B<upglade> of glade B,
 if and only if the glade length from A to B is 1.
 
 A glade A is B<uphill> with respect to glade B,
@@ -864,7 +861,7 @@ By construction of the ASF, there is only one peak.
 A glade with a token symch is B<trivial> if it has no rule symches.
 A glade without a token symch is B<trivial> if it has exactly one downglade.
 
-The B<distance to peak> of a glade C<A> is the glade length from the peak to glade C<A>.
+The B<distance-to-peak> of a glade C<A> is the glade length from the peak to glade C<A>.
 Glade C<A> is said to have a higher B<altitude> than glade C<B> if the distance-to-peak of glade C<A>
 is less than that of glade C<B>.
 Glade C<A> has a lower B<altitude> than glade C<B> if the distance-to-peak of glade C<A>
@@ -881,25 +878,33 @@ The underlying Marpa algorithm allows parse trees with cycles,
 and someday the SLIF probably will as well.
 When that happens, ASF's will no longer be "acyclic" and therefore will no
 longer be DAG's.
-This document talks about ASF's as if they could contain cycles,
-when parse trees with cycles are encountered,
-the applications which follow the guidelines in this document
-will be ready for them.
+This document talks about ASF's as if that day had already come --
+it assumes that the ASF's might
+contain cycles.
 
-One consequence of an ASF containing cycles is that two glades can be both uphill and downhill
-from each other.
-That is, if glade A cycles back to itself through glade B,
-glade A will be uphill from glade B,
-and glade B will be uphill from glade A.
-This means that glade B will be downhill from glade A,
-and glade A will be downhill glade B.
+In an ASF that contains one or more cycles,
+the concepts of uphill and downhill become much less useful
+for describing the relative positions of glades.
+For example, if glade A cycles back to itself through glade B, then
 
-A consequence of cycles is that large sets of glades may be both uphill and downhill
-from themselves and every other glade in the set.
-This makes the concepts of downhill and uphill almost useless for explaining the relative
-positions of glades in these sets.
+=over 4
+
+=item * Glade A will be uphill from glade B, and
+
+=item * Glade B will be uphill from glade A; so that
+
+=item * Glade B will be downhill from glade A, and
+
+=item * Glade A will be downhill from glade B; and
+
+=item * Glade A will be both downhill and uphill from itself; and
+
+=item * Glade B will be both downhill and uphill from itself.
+
+=back
 
 ASF's will always be constructed so that the peak has no upglades.
+Because of this, the peak can never be part of a cycle.
 This means that altitude will always be well defined in the sense that,
 for any two glades C<A> and C<B>, one and only one of the following statements will be true:
 
@@ -917,21 +922,29 @@ for any two glades C<A> and C<B>, one and only one of the following statements w
 
 In the current SLIF implementation, a symbol is always either a token
 or the LHS of a rule.
-This means that every glade either that contains a token symch
-cannot contain any rule symches, and vice versa.
+This means that any glade that contains a token symch
+cannot contain any rule symches.
+It also means that any glade that contains a rule symch will not
+contain a token symch.
 
 However, the underlying Marpa algorithm allows LHS terminals,
 and someday the SLIF probably will as well.
-For this reason, the descriptions in this document always describes
+This document is written as if that day has already come,
+and describes
 glades as if they could contain both rule symches and a token symch.
 
 =head2 Maximum symches per glade
 
-There can be at most one token symch, plus a rule symch
-for every rule in the grammar.
-That means the maximum number of symbolic choices in a glade is
-one plus
-the number of rules in the grammar.
+Above, the point is made that the number of symches in a glade,
+even in the worst case, is a very manageable number.
+For a particular case, it is not hard to work out the exact maximum.
+Here are the details.
+
+There can be at most one token symch.
+There can be only rule symch for every rule.
+In addition, all rules in a glade must have the glade symbol as their LHS.
+Let the number of rules with the glade symbol on their LHS be C<r>.
+The maximum number of symches in a glade is C<r+1>.
 
 =head2 Multifactored stretches
 
