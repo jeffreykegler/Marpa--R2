@@ -95,10 +95,10 @@ An abstract syntax forest (ASF) is similar to an abstract syntax tree (AST), but
 has an additional ability -- it can represent an ambiguous parse.
 Ambiguity in a parse can come in two forms, and Marpa's ASF's treat the
 distinction as important.  An ambiguity can be a symbolic choice
-(symch), or a factoring.  Symbolic choices are the kind of ambiguity
+(a symch), or a factoring.  Symbolic choices are the kind of ambiguity
 that springs first to mind -- a choice between rules, or a choice
 between a rule and token.  Factorings involve only one rule,
-but in factoring that one rule divides the input up in different ways.
+but the RHS symbols of that rule divide the input up ("factor it") in different ways.
 I'll give examples below.
 
 Symches and factorings are treated separately,
@@ -114,11 +114,15 @@ always of major interest.
 =item * Symches usually have just a few alternatives; the
 possible number of factorings easily grows into the thousands.
 
-=item * Even in the worst case, the number of symches is less than
-a finite constant, which depends on the grammar and is of reasonable size.
-The maximum number of factorings
-grows exponentially with the length of the string being factored, and has
-no limit.
+=item * In the worst case, the number of symches is a constant
+that depends on size of the grammar.
+In the worst case,
+the number of factorings
+grows exponentially with the length of the string being factored.
+
+=item * The constant limiting the number of symches will
+almost always be of manageable size.
+The number of factorings can grow without limit.
 
 =back
 
@@ -140,7 +144,7 @@ remove-blank-last-line: 1
 
 =for Marpa::R2::Display::End
 
-and the input string 'venus', the forest would look like
+and the input string 'C<venus>', the forest would look like
 
 =for Marpa::R2::Display
 name: ASF symch dump example output
@@ -161,7 +165,16 @@ remove-display-indent: 1
 
 Notice the tags of the form "C<GLn>", where I<n> is an integer.
 These identify the glade.
-(Glades will be described in detail below.)
+Glades will be described in detail below.
+
+The rules allow the string 'C<venus>' to be parsed
+as either one of two planets: 'C<hesperus>'
+or 'C<phosphorus>',
+depending on whether rule 1 or rule 2 is used.
+The choice, at glade 2, between rules 1 and 2,
+is a symch.
+(Hesperus is Venus's traditional name as an evening star,
+and Phosphorus and Lucifer are its traditional names as a morning star.)
 
 =head2 An example of a factoring
 
@@ -182,21 +195,14 @@ partial: 1
 
 and the input 'C<aaa>',
 a successful parse will always have two C<b>'s.
-Of these two C<b>'s one will always be short, deriving a 
-a single C<a>,
-The other will always be long, deriving two
-C<a>'s.
+Of these two C<b>'s one will always be short, deriving
+a string of length 1:
+'C<a>'.
+The other will always be long, deriving a string of length 2:
+'C<aa>'.
 But they can be in either order,
 which means that the two C<b>'s can divide up the input stream in
-two different ways:
-
-=over 4
-
-=item * Long first, short second.
-
-=item * Short first, long second.
-
-=back
+two different ways: long string first; or short string first.
 
 These two different ways of dividing the input stream using the rule
 
@@ -996,10 +1002,13 @@ occurs first.
 
 =back
 
-Note that multifactored stretch align in the input, but do not have to align in terms
-of factor indexes.
-In factorings of sequence rules, where the RHS consists of repetitions of a single symbol,
-a short stretch might be found at many factor indexes in each of the factorings.
+Note that multifactored stretch are aligned in terms of input locations,
+but they do not have to be aligned in terms of factor indexes.
+The factoring positions of
+a multifactored stretch can have many different factor indexes.
+This is true of all rules, but it is particularly likely for
+a sequence rule,
+where the RHS consists of repetitions of a single symbol.
 
 =head1 Copyright and License
 
