@@ -335,8 +335,8 @@ It will often be the difference between
 an program which is unuseably slow even for very small inputs,
 and one which is very extremely fast even for large inputs.
 
-Repeated subtraversals happen which two upper glades share the same lower
-glade.  This is a very frequent occurrence in ASF's.
+Repeated subtraversals happen which two glades share the same downglades.
+This is a very frequent occurrence in ASF's.
 Additionally, the underlying algorithm allows cycles, and some day the SLIF will
 as well.
 Traversing a cycle will cause an infinite loop unless you memoize.
@@ -794,14 +794,17 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
-Because of the blessings in this example, a standard dump of the output array is
-too cluttered for comfortable reading.
-The following code displays the output array in a more compact form.
-This code actually works for all arrays and makes no use of Marpa, 
-but it is included for completeness,
-and to provide a simple example of array traversal.
-
 =head2 The array_display() code
+
+Because of the blessings in this example,
+a standard dump of the output array is
+too cluttered for comfortable reading.
+The following code displays the output from
+C<asf_to_basic_tree()> in a more compact form.
+Note that this code makes no use of Marpa, 
+and works for all Perl arrays.
+It is included for completeness,
+and as a simple example of array traversal.
 
 =for Marpa::R2::Display
 name: ASF low-level calls synopsis, code part 3
@@ -854,13 +857,22 @@ Glade B is a B<downglade> of glade A,
 and a glade A is an B<upglade> of glade B,
 if and only if the glade length from A to B is 1.
 
-A glade A is B<upper> with respect to glade B,
-and a glade B is B<lower> with respect to glade A,
+A glade A is B<uphill> with respect to glade B,
+and a glade B is B<downhill> with respect to glade A,
 if and only if the glade length from A to B is defined.
 
 A B<peak> of an ASF is a node without upglades.
 By construction of the ASF, there is only one peak.
-A glade is B<trivial> if and only if it has exactly one downglade.
+A glade with a token symch is B<trivial> if it has no rule symches.
+A glade without a token symch is B<trivial> if it has exactly one downglade.
+
+The B<distance to peak> of a glade C<A> is the glade length from the peak to glade C<A>.
+Glade C<A> is said to have a higher B<altitude> than glade C<B> if the distance-to-peak of glade C<A>
+is less than that of glade C<B>.
+Glade C<A> has a lower B<altitude> than glade C<B> if the distance-to-peak of glade C<A>
+is greater than that of glade C<B>.
+Glade C<A> has the same B<altitude> as glade C<B> if the distance-to-peak of glade C<A>
+is equal to that of glade C<B>.
 
 =head2 Cycles
 
@@ -878,16 +890,30 @@ will be ready for them.
 
 One consequence of an ASF containing cycles is that two glades can be both uphill and downhill
 from each other.
-That is if glade A cycles back to itself through glade B,
+That is, if glade A cycles back to itself through glade B,
 glade A will be uphill from glade B,
 and glade B will be uphill from glade A.
 This means that glade B will be downhill from glade A,
-and glade A will be downhill glade B,
+and glade A will be downhill glade B.
 
-This means the sense of downhill and uphill will becomes more complicated.
-ASF's will always be constructed so that the peak has no upglades, however,
-so that, even in an ASF with cycles, the peak will always be uphill from all glades,
-and all other glades will always be downhill from the peak.
+A consequence of cycles is that large sets of glades may be both uphill and downhill
+from themselves and every other glade in the set.
+This makes the concepts of downhill and uphill almost useless for explaining the relative
+positions of glades in these sets.
+
+ASF's will always be constructed so that the peak has no upglades.
+This means that altitude will always be well defined in the sense that,
+for any two glades C<A> and C<B>, one and only one of the following statements will be true:
+
+=over 4
+
+=item * Glade C<A> is lower in altitude than glade C<B>.
+
+=item * Glade C<A> is higher in altitude than glade C<B>.
+
+=item * Glade C<A> is equal in altitude to glade C<b>.
+
+=back
 
 =head2 Token symches
 
@@ -960,8 +986,8 @@ the same length and symbol ID.
 A B<unsynced symch position> is an aligned symch position that is not a synced symch position.
 
 We are now in a position to define a B<multifactored stretch>.
-Intuitively, a multifactored stretch is a longest possible input span that does not
-contain any synced symch positions.
+Intuitively, a multifactored stretch is a longest possible input span that contains at least one unsynced symch position,
+but no synced symch positions.
 More formally,
 a multifactored stretch of a symch is a span of start locations within that symch,
 such that:
