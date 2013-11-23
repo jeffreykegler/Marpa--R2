@@ -972,10 +972,10 @@ have a factor index of 0.
 Equivalently, it is the constant function C<ISP>, where C<ISP(i)=0> for all factoring
 indexes C<i>.
 
-The factor of a factoring position C<E<lt>factoring_ix, factor_ixE<gt>>,
-is the factor with index C<factor_ix> in the factoring with index C<factoring_ix>.
-A factor is one of the factors of a symch_positioning if and only if it is a factor
-of one of its factoring positions.
+The factor with index C<factor_ix> in the factoring with index C<factoring_ix> is
+said to be the factor at factoring position C<E<lt>factoring_ix, factor_ixE<gt>>.
+A factor is one of the factors of a symch position if and only if it is a factor
+at one of its factoring positions.
 
 An B<aligned symch position> is a factoring position all of whose factors have
 the same start location.
@@ -999,7 +999,7 @@ such that:
 =item * Its first location is the initial symch position, or the first symch positiion after a
 synched symch position.
 
--item * Its end location is the end location of the symch, or a synced symch position, whichever
+=item * Its end location is the end location of the symch, or a synced symch position, whichever
 occurs first.
 
 =back
