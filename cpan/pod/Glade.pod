@@ -909,39 +909,77 @@ the number of rules in the grammar.
 
 =head2 Multifactored stretches
 
-When locating factoring ambiguities, Marpa drills down below the rule level.
-This is very useful for ambiguities in sequence rules, whose RHS's can be very long.
+Marpa locates factoring ambiguities, not just by rule, but by RHS symbol.
+It finds B<multifactored stretches>, input spans where a sequence of symbols
+within the RHS of a rule have multiple factorings.
+A multifactored stretch will sometimes encompass the entire RHS of a rule.
+In other cases, the RHS of a single rule might contain many multifactored stretches.
+This is often the case with sequence rules.
+Sequence rules can have a very long RHS,
+and in those situations narrowing down factoring ambiguities to specific input spans is 
+necessary for precise error reporting.
 
-Recall that each factoring contains one or more factors, each of which has a symbol and a span.
-A B<symbol sequence> is a sequence of one or more symbols of a specific type in a specific order,
-the first symbol of which starts at a specific input location.
-A specific occurrence of a symbol in a symbol sequence is an B<instance>.
-Symbol sequence instances have offsets, numbered in order within the sequence
-starting with the first symbol, and zero-based.
-The number of symbols in the sequence is its B<length>, and will be one greater
-than the maximum offset of any of its instances.
-Symbol stretches align in the input,
-but symbol stretches in different factorings do not have to align by factor index.
+The main body of this document worked with an intuitive "know one when I see one"
+idea of multifactored stretches.
+The exact definition follows.
+First we will need a series of preliminary definitions.
+
+
+Consider the case of a arbitrary rule symch.
+Intuitively, a B<factoring position> is a location within the factors of one of the factorings
+of that symch.
+It can be seen as a duple C<E<lt>factoring_ix, factor_ixE<gt>> where 
+C<E<lt>factoring_ixE<gt>> is the index of a factoring within the symch,
+and 
+C<E<lt>factor_ixE<gt>> is the index of one of the factors of the factoring.
+
+Let C<SP> be a function that maps the symch's set of factoring indexes to the
+non-negative integers, such that for a factoring index C<i>
+and factor index C<j>, C<SP(i)=j>, C<j> is a valid factor index within the factoring C<i>.
+The function C<SP> can be called a B<symch position>.
+
+Every B<symch position> is equivalent to a set of factoring positions.
+The B<initial symch position> is the symch position all of whose factoring positions
+have a factor index of 0.
+Equivalently, it is the constant function C<ISP>, where C<ISP(i)=0> for all factoring
+indexes C<i>.
+
+The factor of a factoring position C<E<lt>factoring_ix, factor_ixE<gt>>,
+is the factor with index C<factor_ix> in the factoring with index C<factoring_ix>.
+A factor is one of the factors of a symch_positioning if and only if it is a factor
+of one of its factoring positions.
+
+An B<aligned symch position> is a factoring position all of whose factors have
+the same start location.
+The location of an aligned symch position is that start location.
+The B<initial symch position> is always an aligned factoring position.
+A B<synced symch position> is an aligned symch position all of whose factors have
+the same length and symbol ID.
+A B<unsynced symch position> is an aligned symch position that is not a synced symch position.
+
+We are now in a position to define a B<multifactored stretch>.
+Intuitively, a multifactored stretch is a longest possible input span that does not
+contain any synced symch positions.
+More formally,
+a multifactored stretch of a symch is a span of start locations within that symch,
+such that:
+
+=over 
+
+=item * Its first location is the location of unsynced symch position.
+
+=item * Its first location is the initial symch position, or the first symch positiion after a
+synched symch position.
+
+-item * Its end location is the end location of the symch, or a synced symch position, whichever
+occurs first.
+
+=back
+
+Note that multifactored stretch align in the input, but do not have to align in terms
+of factor indexes.
 In factorings of sequence rules, where the RHS consists of repetitions of a single symbol,
 a short stretch might be found at many factor indexes in each of the factorings.
-
-Intuitively, a B<factoring position> is a location among the factors of a factoring.
-It can be considered to be a duple of factoring index and factor index.
-The factor at the start of the factoring position is the B<base factor>.
-Given a factoring position, the factors of its factoring will have offsets relative to
-the base factor.
-Factor offsets are zero-based, so that the base factor has offset 0.
-An factor corresponds to an instance of a symbol sequence, relative to a factoring position,
-if the instance offset is the same as the factor offset.
-
-An instance of a symbol sequence is ambiguous in a set of factorings,
-if and only if, for some choice of factoring positions,
-two or more of the corresponding factors match different spans of the input.
-A symbol sequence is ambiguous in a set of factorings,
-if every instance in it is ambiguous in that set of factorings.
-An instance of a symbol sequence is ambiguous in a symch if and only if it is ambiguous in the symch's set of factoring.
-An symbol sequence is ambiguous in a symch if and only if it is ambiguous in the symch's set of factorings.
-A symch is multifactored if and only if some symbol sequence is ambiguous in it.
 
 =head1 Copyright and License
 
