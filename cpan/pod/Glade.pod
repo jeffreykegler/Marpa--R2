@@ -662,10 +662,11 @@ details of the symch ambiguity.
 Typically, when there is more than one kind of ambiguity in an input span, only
 one is of real interest.
 Symch ambiguities are usually of more interest than factorings.
-And if one ambiguities is uphill from another, the downhill ambiguity is usually
-a side effect of the uphill one.
+And if one ambiguity is uphill from another, the downhill ambiguity is usually
+of less interest because it is a
+side effect of the uphill one.
 
-Accordingly, if there is both a symch ambiguity and a factoring ambiguity in a glade,
+Accordingly, if a glade has both a symch ambiguity and a factoring ambiguity,
 only the symch ambiguity is reported.
 And if two ambiguities in the ASF overlap, only the one closest to the peak is reported.
 
@@ -675,13 +676,11 @@ A symch report is issued whenever, in a top-down traversal of the ASF,
 an sequence of symbols is found which has more than one factoring.
 Factoring reports are specific -- they identify not just rules,
 but the specific sequences within the RHS
-which are differently factored -- B<multi-factored stretches>.
-A single rule, if the symbol fall into step with each other and then
-out of step, may have several multifactored stretches.
-Identifying specific multifactored stretches
-is useful when dealing with sequence rules,
-whose RHS's can be very long.
-The details of how an multifactored stretch is defined are L<below|/"Multifactored stretches">.
+which are differently factored -- B<multifactored stretches>.
+Sequence rules especially, can have long stretches where the symbols are in sync
+with each other, broken by other stretches where they are out of sync.
+Marpa identifies the individual stretches.
+(A detailed definition of multifactored stretches is L<below|/"Multifactored stretches">.)
 
 A factoring report takes the form
 
@@ -692,32 +691,35 @@ ignore: 1
 
 =for Marpa::R2::Display::End
 
-where C<$glade> is the identifier of the glade with the symch ambiguity,
+where C<$glade> is the ID of the glade with the factoring ambiguity,
 and C<$symch_ix> is the index of the symch involved.
-The the ambiguously factored stretch is indicated by the identifying
-two the factors at its beginning which differ in length.
-(Since they are at the beginning of an ambiguous stretch, the two factors
-will have the same start location in the input.)
+The multifactored stretch is described by
+two "identifying factors".
+Both factors are at the beginning of the stretch,
+and therefore have the same input start location.
+They differ in length.
 
-To identify a factor within a symch, it is necessary to know the
-index of the factoring, and the index of the factor.
-The first factor will always have a factoring index of 0,
+The first of the two identifying factors has factoring index of 0,
 and its factor index is C<$factor_ix1>.
-The second factor will have have a factoring index of C<$factoring_ix2>,
+The second identifying factor has a factoring index of C<$factoring_ix2>,
 and its factor index is C<$factor_ix2>.
 
-More information is not given because full information can voluminous --
-ambiguously factoring stretch can be lengthy, and the number of factorings
-can be in the thousands or higher.
-Error reporting is the primary application,
-two differing factors at the beginning of each ambiguous stretch is
-usually all that is wanted for error reporting.
-An application that does not need to know more can find it using
-using the glade accessors.
+The identifying factors will usually be enough
+for error reporting, which is the usual application of these reports.
+Full details of the stretch are not given because they can be extremely large,
+and are usually not of interest.
 
-Ambiguities in rules and symbols underneath an ambiguously factored stretch
+The glade ID, symch index and start location
+are enough to identify the multifactored stretch.
+The start location can be determined from either of the
+two identifying factors.
+Applications which need to know more about the multifactored stretch
+than is in the report can use this identifying information as a start
+and follow it up using the glade accessors.
+
+Ambiguities in rules and symbols downhill from an ambiguously factored stretch
 are not reported.
-If a glade has both a symch ambiguity and stretches of factoring ambiguity,
+If a glade has both a symch ambiguity and a factoring ambiguity,
 only the symch ambiguity is reported.
 
 =head1 The code for the synopsis
