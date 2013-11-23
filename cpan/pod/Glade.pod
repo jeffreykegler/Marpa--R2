@@ -306,7 +306,7 @@ Each "factor" corresponds to a symbol instance on the RHS of the rule.
 Each such RHS factor is also a downglade, one which contains its own
 symches.
 
-=head1 The Glade ID
+=head1 The glade ID
 
 Each glade has a glade ID.
 This can be relied on to be a non-negative integer.
@@ -344,14 +344,6 @@ Traversing a cycle will cause an infinite loop unless you memoize.
 The example in this POD includes a memoization scheme which is very simple,
 but adequate for most purposes.
 The main logic of it is shown here.
-
-=head1 The Glade ID
-
-Each glade has a glade ID.
-This can be relied on to be a non-negative integer.
-A glade ID may be zero.
-Glade ID's are obtained from the L</"peak()">
-and L</"factoring_downglades()"> methods.
 
 =for Marpa::R2::Display
 name: ASF low-level calls synopsis, code part 2
@@ -843,7 +835,7 @@ normalize-whitespace: 1
 This section contains some mathematical elaborations of the above.
 These details are segregated because they are not essential to using this interface,
 and while some readers find them more helpful than distracting,
-for others it is the reverse.
+for many others it is the reverse.
 
 =head2 An alternative way of defining glade terminology
 
