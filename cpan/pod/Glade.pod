@@ -383,7 +383,7 @@ The value of the C<slr> argument must be a SLIF recognizer object.
 
 Returns the new ASF object, or undef if there was a problem.
 
-=head1 Forest Methods
+=head1 Forest methods
 
 These "forest" methods deal with the ASF as a whole,
 as compared to methods with a focus on specific glades,
@@ -420,7 +420,7 @@ Returns the glade ID of the peak.
 This may be zero.
 All failures are thrown as exceptions.
 
-=head1 Glade Methods
+=head1 Glade methods
 
 =head2 glade_literal()
 
@@ -478,7 +478,7 @@ Requires a glade ID as its only argument.
 Returns the symbol ID of the "glade symbol" for the glade specified by the argument.
 On failure, throws an exception.
 
-=head1 Symch Methods
+=head1 Symch methods
 
 =head2 symch_rule_id()
 
@@ -524,7 +524,7 @@ For a token symch, returns zero.
 Returns a Perl undef, if the glade exists, but the symch index is too high.
 On other failure, throws an exception.
 
-=head1 Factoring Methods
+=head1 Factoring methods
 
 =head2 factoring_downglades()
 
@@ -648,7 +648,7 @@ ignore: 1
 =for Marpa::R2::Display::End
 
 where C<$glade> is the ID of the glade with the symch ambiguity.
-With this and the glade accessors, an applicaiton can report full
+With this and the accessor methods in this document, an application can report full
 details of the symch ambiguity.
 
 Typically, when there is more than one kind of ambiguity in an input span, only
@@ -706,8 +706,8 @@ are enough to identify the multifactored stretch.
 The start location can be determined from either of the
 two identifying factors.
 Applications which need to know more about the multifactored stretch
-than is in the report can use this identifying information as a start
-and follow it up using the glade accessors.
+than is in the report can use this identifying information as a start,
+following it up using the accessor methods in this document.
 
 Ambiguities in rules and symbols downhill from an ambiguously factored stretch
 are not reported.
