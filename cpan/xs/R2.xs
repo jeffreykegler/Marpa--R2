@@ -182,7 +182,6 @@ typedef struct
   int start_of_pause_lexeme;
   int end_of_pause_lexeme;
   Marpa_Symbol_ID pause_lexeme;
-  Marpa_Symbol_ID *lexeme_buffer;
   struct lexeme_r_properties *g1_lexeme_properties;
 } Scanless_R;
 #define TOKEN_VALUE_IS_UNDEF (1)
@@ -1835,6 +1834,10 @@ slr_alternatives (Scanless_R * slr)
   const Scanless_G *slg = slr->slg;
   Unicode_Stream * const stream = slr->stream;
 
+  int lexeme_buffer_size= 1; /* Increase after testing phase */
+  Marpa_Symbol_ID *lexeme_buffer;
+  Newx(lexeme_buffer, lexeme_buffer_size, Marpa_Symbol_ID);
+
   r0 = stream->r0;
   if (!r0)
     {
@@ -1970,7 +1973,11 @@ slr_alternatives (Scanless_R * slr)
 		  is_priority_set = 1;
 		}
 
-	      (slr->lexeme_buffer)[lexemes_in_buffer++] = g1_lexeme;
+	      if (lexemes_in_buffer >= lexeme_buffer_size) {
+		  lexeme_buffer_size *= 2;
+	          Renew(lexeme_buffer, lexeme_buffer_size, Marpa_Symbol_ID);
+	      }
+	      lexeme_buffer[lexemes_in_buffer++] = g1_lexeme;
 
 	    NEXT_PASS1_REPORT_ITEM:;
 	    }
@@ -2004,7 +2011,7 @@ slr_alternatives (Scanless_R * slr)
 	int lexeme_ix;
 	for (lexeme_ix = 0; lexeme_ix < lexemes_in_buffer; lexeme_ix++)
 	  {
-	    const Marpa_Symbol_ID lexeme_id = (slr->lexeme_buffer)[lexeme_ix];
+	    const Marpa_Symbol_ID lexeme_id = lexeme_buffer[lexeme_ix];
 	    const struct lexeme_r_properties *lexeme_r_properties
 	      = slr->g1_lexeme_properties + lexeme_id;
 	    if (lexeme_r_properties->pause_before_active)
@@ -2048,7 +2055,7 @@ slr_alternatives (Scanless_R * slr)
 	int lexeme_ix;
 	for (lexeme_ix = 0; lexeme_ix < lexemes_in_buffer; lexeme_ix++)
 	  {
-	    const Marpa_Symbol_ID g1_lexeme = (slr->lexeme_buffer)[lexeme_ix];
+	    const Marpa_Symbol_ID g1_lexeme = lexeme_buffer[lexeme_ix];
 	    const struct lexeme_r_properties *lexeme_r_properties
 	      = slr->g1_lexeme_properties + g1_lexeme;
 
@@ -5309,19 +5316,17 @@ precompute( slg )
     Scanless_G *slg;
 PPCODE:
 {
-  /* Ensure that I can call this multiple times safely */
+  /* Currently this routine does nothing except set a flag to
+   * enforce the * separation of the precomputation phase
+   * from the main processing.
+   */
   if (!slg->precomputed)
     {
-      Marpa_Rule_ID rule_id;
-      const Marpa_Rule_ID g0_rule_count =
-	marpa_g_highest_rule_id (slg->g0_wrapper->g) + 1;
-      slg->lexeme_count = 0;
+      /*
+       * Ensure that I can call this multiple times safely, even
+       * if I do some real processing here.
+       */
       slg->precomputed = 1;
-      for (rule_id = 0; rule_id < g0_rule_count; rule_id++)
-	{
-	  if (slg->g0_rule_to_g1_lexeme[rule_id] >= 0)
-	    slg->lexeme_count++;
-	}
     }
   XSRETURN_IV (1);
 }
@@ -5413,8 +5418,6 @@ PPCODE:
   slr->start_of_pause_lexeme = -1;
   slr->end_of_pause_lexeme = -1;
   slr->pause_lexeme = -1;
-  slr->lexeme_buffer = NULL;
-  Newx (slr->lexeme_buffer, slg->lexeme_count, Marpa_Symbol_ID);
 
   new_sv = sv_newmortal ();
   sv_setref_pv (new_sv, scanless_r_class_name, (void *) slr);
@@ -5430,7 +5433,6 @@ PPCODE:
   SvREFCNT_dec (slr->slg_sv);
   SvREFCNT_dec (slr->r1_sv);
   Safefree(slr->g1_lexeme_properties);
-  Safefree(slr->lexeme_buffer);
   if (slr->token_values)
     {
       SvREFCNT_dec ((SV *) slr->token_values);
