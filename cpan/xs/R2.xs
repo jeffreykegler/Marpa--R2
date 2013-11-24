@@ -133,6 +133,11 @@ struct lexeme_r_properties {
 };
 
 typedef struct {
+  int dummy; /* delete after development is finished */
+} Lexer;
+
+typedef struct {
+     Lexer *lexer;
      SV* g0_sv;
      SV* g1_sv;
      G_Wrapper* g0_wrapper;
@@ -477,6 +482,22 @@ r_unwrap (R_Wrapper * r_wrapper)
   Safefree (r_wrapper);
   /* The wrapper should always have had a ref to the Libmarpa recce */
   return r;
+}
+
+/* Static Lexer methods */
+
+/* The caller must ensure that g_sv is an SV of the correct type */
+static Lexer* lexer_new(SV* g_sv)
+{
+  dTHX;
+  Lexer *lexer;
+  Newx (lexer, 1, Lexer);
+  return lexer;
+}
+
+static void lexer_destroy(Lexer *lexer)
+{
+  dTHX;
 }
 
 /* Static Stream methods */
@@ -5085,6 +5106,8 @@ PPCODE:
   slg->g1_sv = g1_sv;
   SvREFCNT_inc (g1_sv);
 
+  slg->lexer = lexer_new(g0_sv);
+
   # These do not need references, because parent objects
   # hold references to them
   SET_G_WRAPPER_FROM_G_SV(slg->g0_wrapper, g0_sv)
@@ -5124,6 +5147,9 @@ DESTROY( slg )
     Scanless_G *slg;
 PPCODE:
 {
+  if (slg->lexer) {
+    lexer_destroy(slg->lexer);
+  }
   SvREFCNT_dec (slg->g0_sv);
   SvREFCNT_dec (slg->g1_sv);
   Safefree(slg->g0_rule_to_g1_lexeme);
