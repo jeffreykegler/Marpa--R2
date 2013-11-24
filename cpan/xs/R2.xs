@@ -100,7 +100,6 @@ typedef struct {
      SV* input;
      Marpa_Symbol_ID input_symbol_id;
      UV codepoint; /* For error returns */
-     HV* per_codepoint_ops;
 
      /* The minimum number of tokens that must
        be accepted at an earleme */
@@ -134,10 +133,11 @@ struct lexeme_r_properties {
   * for object ownership purposes they are simply components
   * of an SLG.  Ownership of objects is by SLG.
   */
-typedef struct {
-  int dummy; /* delete after development is finished */
-   SV* g0_sv;
-    Marpa_Symbol_ID* lexer_rule_to_g1_lexeme;
+typedef struct
+{
+  SV *g0_sv;
+  Marpa_Symbol_ID *lexer_rule_to_g1_lexeme;
+  HV *per_codepoint_ops;
 } Lexer;
 
 typedef struct {
@@ -500,6 +500,7 @@ static Lexer* lexer_new(SV* g_sv)
 
   Newx (lexer, 1, Lexer);
   lexer->g0_sv = g_sv;
+  lexer->per_codepoint_ops = newHV ();
   SET_G_WRAPPER_FROM_G_SV (g_wrapper, g_sv);
   lexer_rule_count = marpa_g_highest_rule_id (g_wrapper->g) + 1;
   Newx (lexer->lexer_rule_to_g1_lexeme, lexer_rule_count, Marpa_Symbol_ID);
@@ -515,6 +516,7 @@ static void lexer_destroy(Lexer *lexer)
 {
   dTHX;
   Safefree (lexer->lexer_rule_to_g1_lexeme);
+  SvREFCNT_dec (lexer->per_codepoint_ops);
   SvREFCNT_dec (lexer->g0_sv);
 }
 
@@ -545,7 +547,6 @@ static Unicode_Stream* u_new(SV* g_sv)
   stream->pos_db_logical_size = -1;
   stream->pos_db_physical_size = -1;
   stream->input_symbol_id = -1;
-  stream->per_codepoint_ops = newHV ();
   stream->minimum_accepted = 1;
   stream->event_queue = newAV ();
   stream->too_many_earley_items = -1;
@@ -563,7 +564,6 @@ static void u_destroy(Unicode_Stream *stream)
   SvREFCNT_dec (stream->event_queue);
   Safefree(stream->pos_db);
   SvREFCNT_dec (stream->input);
-  SvREFCNT_dec (stream->per_codepoint_ops);
   SvREFCNT_dec (stream->g0_sv);
   Safefree (stream);
 }
@@ -687,6 +687,7 @@ u_read(Scanless_R *slr)
 
   Unicode_Stream *stream = slr->stream;
   const IV trace_lexer = slr->trace_lexer;
+  Lexer *lexer = slr->slg->current_lexer;
   Marpa_Recognizer r = stream->r0;
 
   if (!r)
@@ -739,7 +740,7 @@ u_read(Scanless_R *slr)
       {
 	STRLEN dummy;
 	SV **p_ops_sv =
-	  hv_fetch (stream->per_codepoint_ops, (char *) &codepoint,
+	  hv_fetch (lexer->per_codepoint_ops, (char *) &codepoint,
 		    (I32) sizeof (codepoint), 0);
 	if (!p_ops_sv)
 	  {
@@ -3119,33 +3120,6 @@ PPCODE:
 }
 
 void
-char_register( stream, codepoint, ... )
-     Unicode_Stream *stream;
-     UV codepoint;
-PPCODE:
-{
-  /* OP Count is args less two, then plus two for codepoint and length fields */
-  const STRLEN op_count = items;
-  STRLEN op_ix;
-  STRLEN dummy;
-  IV *ops;
-  SV *ops_sv = newSV (op_count * sizeof (ops[0]));
-  SvPOK_on (ops_sv);
-  ops = (IV *) SvPV (ops_sv, dummy);
-  ops[0] = codepoint;
-  ops[1] = op_count;
-  for (op_ix = 2; op_ix < op_count; op_ix++)
-    {
-      /* By coincidence, offset of individual ops is 2 both in the
-       * method arguments and in the op_list, so that arg IX == op_ix
-       */
-      ops[op_ix] = SvUV (ST (op_ix));
-    }
-  hv_store (stream->per_codepoint_ops, (char *) &codepoint,
-	    sizeof (codepoint), ops_sv, 0);
-}
-
-void
 string_set( stream, string )
      Unicode_Stream *stream;
      SVREF string;
@@ -5336,6 +5310,33 @@ PPCODE:
       slg->precomputed = 1;
     }
   XSRETURN_IV (1);
+}
+
+void
+char_register( slg, codepoint, ... )
+    Scanless_G *slg;
+     UV codepoint;
+PPCODE:
+{
+  /* OP Count is args less two, then plus two for codepoint and length fields */
+  const STRLEN op_count = items;
+  STRLEN op_ix;
+  STRLEN dummy;
+  IV *ops;
+  SV *ops_sv = newSV (op_count * sizeof (ops[0]));
+  SvPOK_on (ops_sv);
+  ops = (IV *) SvPV (ops_sv, dummy);
+  ops[0] = codepoint;
+  ops[1] = op_count;
+  for (op_ix = 2; op_ix < op_count; op_ix++)
+    {
+      /* By coincidence, offset of individual ops is 2 both in the
+       * method arguments and in the op_list, so that arg IX == op_ix
+       */
+      ops[op_ix] = SvUV (ST (op_ix));
+    }
+  hv_store (slg->current_lexer->per_codepoint_ops, (char *) &codepoint,
+	    sizeof (codepoint), ops_sv, 0);
 }
 
 MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin::SLR

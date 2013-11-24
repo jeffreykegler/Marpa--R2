@@ -1382,22 +1382,24 @@ sub Marpa::R2::Inner::Scanless::convert_libmarpa_events {
 } ## end sub Marpa::R2::Inner::Scanless::convert_libmarpa_events
 
 sub Marpa::R2::Scanless::R::resume {
-    my ( $self, $start_pos, $length ) = @_;
+    my ( $slr, $start_pos, $length ) = @_;
     Marpa::R2::exception(
         "Attempt to resume an SLIF recce which has no string set\n",
         '  The string should be set first using read()'
         )
-        if not defined $self->[Marpa::R2::Inner::Scanless::R::P_INPUT_STRING];
+        if not defined $slr->[Marpa::R2::Inner::Scanless::R::P_INPUT_STRING];
 
-    my $thin_slr = $self->[Marpa::R2::Inner::Scanless::R::C];
+    my $thin_slr = $slr->[Marpa::R2::Inner::Scanless::R::C];
     my $trace_terminals =
-        $self->[Marpa::R2::Inner::Scanless::R::TRACE_TERMINALS] // 0;
-    my $trace_lexer = $self->[Marpa::R2::Inner::Scanless::R::TRACE_LEXER] // 0;
+        $slr->[Marpa::R2::Inner::Scanless::R::TRACE_TERMINALS] // 0;
+    my $trace_lexer = $slr->[Marpa::R2::Inner::Scanless::R::TRACE_LEXER] // 0;
     $thin_slr->trace_terminals($trace_terminals) if $trace_terminals;
-    $self->lexer_trace($trace_lexer)               if $trace_lexer;
+    $slr->lexer_trace($trace_lexer)               if $trace_lexer;
 
     $thin_slr->pos_set( $start_pos, $length );
-    $self->[Marpa::R2::Inner::Scanless::R::EVENTS] = [];
+    $slr->[Marpa::R2::Inner::Scanless::R::EVENTS] = [];
+    my $slg = $slr->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
+    my $thin_slg = $slg->[Marpa::R2::Inner::Scanless::G::C];
 
     OUTER_READ: while (1) {
 
@@ -1405,17 +1407,16 @@ sub Marpa::R2::Scanless::R::resume {
         last OUTER_READ if not $problem_code;
         my $stream = $thin_slr->stream();
         my $pause =
-            Marpa::R2::Inner::Scanless::convert_libmarpa_events($self);
+            Marpa::R2::Inner::Scanless::convert_libmarpa_events($slr);
 
         if ( $trace_lexer > 2 ) {
             my $stream_pos = $thin_slr->pos();
             my $trace_file_handle =
-                $self->[Marpa::R2::Inner::Scanless::R::TRACE_FILE_HANDLE];
-            my $grammar = $self->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
+                $slr->[Marpa::R2::Inner::Scanless::R::TRACE_FILE_HANDLE];
             my $thick_lex_grammar =
-                $grammar->[Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMAR];
+                $slg->[Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMAR];
             my $g0_tracer = $thick_lex_grammar->tracer();
-            my ( $line, $column ) = $self->line_column($stream_pos);
+            my ( $line, $column ) = $slr->line_column($stream_pos);
             print {$trace_file_handle}
                 qq{\n=== Progress report at line $line, column $column\n},
                 $g0_tracer->stream_progress_report($stream),
@@ -1437,9 +1438,8 @@ sub Marpa::R2::Scanless::R::resume {
             my $codepoint = $stream->codepoint();
             my $character = chr($codepoint);
             my @ops;
-            my $grammar = $self->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
             for my $entry (
-                @{  $grammar->[
+                @{  $slg->[
                         Marpa::R2::Inner::Scanless::G::CHARACTER_CLASS_TABLE]
                 }
                 )
@@ -1449,10 +1449,10 @@ sub Marpa::R2::Scanless::R::resume {
                 if ( $character =~ $re ) {
 
                     if ($trace_terminals >= 2) {
-                        my $thick_lex_grammar = $grammar->[
+                        my $thick_lex_grammar = $slg->[
                             Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMAR];
                         my $g0_tracer         = $thick_lex_grammar->tracer();
-                        my $trace_file_handle = $self->[
+                        my $trace_file_handle = $slr->[
                             Marpa::R2::Inner::Scanless::R::TRACE_FILE_HANDLE];
                         my $char_desc = sprintf 'U+%04x', $codepoint;
                         if ( $character =~ m/[[:graph:]]+/ ) {
@@ -1473,11 +1473,11 @@ sub Marpa::R2::Scanless::R::resume {
                 'Lexing failed at unacceptable character ',
                 character_describe( chr $codepoint )
             ) if not @ops;
-            $stream->char_register( $codepoint, @ops, $op_earleme_complete );
+            $thin_slg->char_register( $codepoint, @ops, $op_earleme_complete );
             next OUTER_READ;
         } ## end if ( $problem_code eq 'unregistered char' )
 
-        return $self->read_problem($problem_code);
+        return $slr->read_problem($problem_code);
 
     } ## end OUTER_READ: while (1)
 
