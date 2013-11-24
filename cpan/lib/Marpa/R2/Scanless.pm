@@ -537,7 +537,6 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
     $g0_lexeme_to_g1_symbol[$_] = -1 for 0 .. $g1_thin->highest_symbol_id();
     state $discard_symbol_name = '[:discard]';
     my $g0_discard_symbol_id =
-        $slg->[Marpa::R2::Inner::Scanless::G::G0_DISCARD_SYMBOL_ID] =
         $lex_tracer->symbol_by_name($discard_symbol_name) // -1;
 
     LEXEME_NAME: for my $lexeme_name (@g0_lexeme_names) {
