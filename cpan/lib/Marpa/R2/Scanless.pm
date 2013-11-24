@@ -1528,7 +1528,7 @@ sub Marpa::R2::Scanless::R::read_problem {
     my $length_of_string = length ${$p_string};
 
     my $problem;
-    my $g0_status = 0;
+    my $stream_status = 0;
     my $g1_status = 0;
     CODE_TO_PROBLEM: {
         if ( $problem_code eq 'R0 exhausted before end' ) {
@@ -1545,8 +1545,8 @@ sub Marpa::R2::Scanless::R::read_problem {
             last CODE_TO_PROBLEM;
         } ## end if ( $problem_code eq 'no lexeme' )
         if ( $problem_code eq 'R0 read() problem' ) {
-            $problem = undef;    # let $g0_status do the work
-            $g0_status = $thin_slr->stream_read_result();
+            $problem = undef;    # let $stream_status do the work
+            $stream_status = $thin_slr->stream_read_result();
             last CODE_TO_PROBLEM;
         }
         if ( $problem_code eq 'no lexemes accepted' ) {
@@ -1563,39 +1563,17 @@ sub Marpa::R2::Scanless::R::read_problem {
         if ( defined $problem ) {
             $desc .= "$problem";
         }
-        if ( $g0_status > 0 ) {
-            EVENT:
-            for ( my $event_ix = 0; $event_ix < $g0_status; $event_ix++ ) {
-                my ( $event_type, $value ) =
-                    $thin_slr->g0()->event($event_ix);
-                if ( $event_type eq 'MARPA_EVENT_EARLEY_ITEM_THRESHOLD' ) {
-                    $desc = join "\n", $desc,
-                        "Lexer: Earley item count ($value) exceeds warning threshold";
-                    next EVENT;
-                }
-                if ( $event_type eq 'MARPA_EVENT_SYMBOL_EXPECTED' ) {
-                    $desc = join "\n", $desc,
-                        "Unexpected lexer event: $event_type "
-                        . $lex_tracer->symbol_name($value);
-                    next EVENT;
-                } ## end if ( $event_type eq 'MARPA_EVENT_SYMBOL_EXPECTED' )
-                if ( $event_type eq 'MARPA_EVENT_EXHAUSTED' ) {
-                    $desc = join "\n", $desc,
-                        "Unexpected lexer event: $event_type";
-                    next EVENT;
-                }
-            } ## end EVENT: for ( my $event_ix = 0; $event_ix < $g0_status; ...)
-            last DESC;
-        } ## end if ( $g0_status > 0 )
-        if ( $g0_status == -1 ) {
+        if ( $stream_status == -1 ) {
             $desc = 'Lexer: Character rejected';
             last DESC;
         }
-        if ( $g0_status == -2 ) {
+        if ( $stream_status == -2 ) {
             $desc = 'Lexer: Unregistered character';
             last DESC;
         }
-        if ( $g0_status == -3 ) {
+
+	# -5 indicates success, in which case we should never have called this subroutine.
+        if ( $stream_status == -3 || $stream_status == -5 ) {
             $desc = 'Unexpected return value from lexer: Parse exhausted';
             last DESC;
         }

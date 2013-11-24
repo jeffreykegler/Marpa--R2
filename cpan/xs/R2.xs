@@ -132,13 +132,17 @@ struct lexeme_r_properties {
      unsigned int pause_after_active:1;
 };
 
+ /* Lexers are not visible at the Perl level --
+  * for object ownership purposes they are simply components
+  * of an SLG.  Ownership of objects is by SLG.
+  */
 typedef struct {
   int dummy; /* delete after development is finished */
+   SV* g0_sv;
 } Lexer;
 
 typedef struct {
      Lexer *lexer;
-     SV* g0_sv;
      SV* g1_sv;
      G_Wrapper* g0_wrapper;
      G_Wrapper* g1_wrapper;
@@ -492,12 +496,15 @@ static Lexer* lexer_new(SV* g_sv)
   dTHX;
   Lexer *lexer;
   Newx (lexer, 1, Lexer);
+  lexer->g0_sv = g_sv;
+  SvREFCNT_inc (g_sv);
   return lexer;
 }
 
 static void lexer_destroy(Lexer *lexer)
 {
   dTHX;
+  SvREFCNT_dec (lexer->g0_sv);
 }
 
 /* Static Stream methods */
@@ -595,10 +602,8 @@ u_r0_new (Unicode_Stream * stream)
 
 /* Assumes it is called
  after a successful marpa_r_earleme_complete()
- Return value is count of non-fatal events --
- it will always be greater than zero.
  */
-static int
+static void
 u_convert_events (Unicode_Stream * stream)
 {
   dTHX;
@@ -616,10 +621,9 @@ u_convert_events (Unicode_Stream * stream)
 	  {
 	case MARPA_EVENT_EXHAUSTED:
 	    /* Do nothing about exhaustion on success */
-	    non_fatal_event_count++;
 	    break;
 	case MARPA_EVENT_EARLEY_ITEM_THRESHOLD:
-	    /* All events are ignored on faiulre
+	    /* All events are ignored on failure
 	     * On success, all except MARPA_EVENT_EARLEY_ITEM_THRESHOLD
 	     * are ignored.
 	     *
@@ -631,7 +635,6 @@ u_convert_events (Unicode_Stream * stream)
 	      warn
 		("Marpa: stream Earley item count (%ld) exceeds warning threshold",
 		 (long) marpa_g_event_value (&marpa_event));
-	      non_fatal_event_count++;
 	    }
 	    break;
 	default:
@@ -649,16 +652,17 @@ u_convert_events (Unicode_Stream * stream)
 	  }
 	}
     }
-    return non_fatal_event_count;
 }
 
 /* Return values:
- * 1 or greater: an event count, as returned by earleme complete.
+ * 1 or greater: reserved for an event count, to deal with multiple events
+ *   when and if necessary
  * 0: success: a full reading of the input, with nothing to report.
  * -1: a character was rejected
  * -2: an unregistered character was found
- * -3: earleme_complete() reported an exhausted parse.
+ * -3: earleme_complete() reported an exhausted parse on failure
  * -4: we are tracing, character by character
+ * -5: earleme_complete() reported an exhausted parse on success
  */
 static int
 u_read(Unicode_Stream *stream)
@@ -686,7 +690,6 @@ u_read(Unicode_Stream *stream)
   input = (U8 *) SvPV (stream->input, len);
   for (;;)
     {
-      int return_value = 0;
       UV codepoint;
       STRLEN codepoint_length = 1;
       STRLEN op_ix;
@@ -838,8 +841,11 @@ u_read(Unicode_Stream *stream)
 		result = marpa_r_earleme_complete (r);
 		if (result > 0)
 		  {
-		    return_value = u_convert_events( stream );
+		     u_convert_events( stream );
 		    /* Advance one character before returning */
+		    if (marpa_r_is_exhausted (r)) {
+		        return -5;
+		    }
 		    goto ADVANCE_ONE_CHAR;
 		  }
 		if (result == -2)
@@ -871,10 +877,6 @@ u_read(Unicode_Stream *stream)
        * which is reserved for a indicating a full
        * read of the input string without event
        */
-      if (return_value)
-	{
-	  return return_value;
-	}
       if (trace_g0)
 	{
 	  return -4;
@@ -5101,16 +5103,14 @@ PPCODE:
   Newx (slg, 1, Scanless_G);
 
   # Copy and take references to the parent objects
-  slg->g0_sv = g0_sv;
-  SvREFCNT_inc (g0_sv);
+  slg->lexer = lexer_new(g0_sv);
   slg->g1_sv = g1_sv;
   SvREFCNT_inc (g1_sv);
 
-  slg->lexer = lexer_new(g0_sv);
 
   # These do not need references, because parent objects
   # hold references to them
-  SET_G_WRAPPER_FROM_G_SV(slg->g0_wrapper, g0_sv)
+  SET_G_WRAPPER_FROM_G_SV(slg->g0_wrapper, slg->lexer->g0_sv)
   SET_G_WRAPPER_FROM_G_SV(slg->g1_wrapper, g1_sv)
   slg->g0 = slg->g0_wrapper->g;
   slg->g1 = slg->g1_wrapper->g;
@@ -5150,25 +5150,10 @@ PPCODE:
   if (slg->lexer) {
     lexer_destroy(slg->lexer);
   }
-  SvREFCNT_dec (slg->g0_sv);
   SvREFCNT_dec (slg->g1_sv);
   Safefree(slg->g0_rule_to_g1_lexeme);
   Safefree(slg->g1_lexeme_properties);
   Safefree(slg);
-}
-
- #  Always returns the same SV for a given Scanless recce object -- 
- #  it does not create a new one
- # 
-void
-g0( slg )
-    Scanless_G *slg;
-PPCODE:
-{
-  /* Not mortalized because,
-   * held for the length of the scanless object.
-   */
-  XPUSHs (sv_2mortal (SvREFCNT_inc_NN (slg->g0_sv)));
 }
 
  #  Always returns the same SV for a given Scanless recce object -- 
@@ -5420,7 +5405,7 @@ PPCODE:
   av_fill (slr->token_values, TOKEN_VALUE_IS_LITERAL);
 
   {
-    SV *g0_sv = slg->g0_sv;
+    SV *g0_sv = slg->lexer->g0_sv;
     Unicode_Stream *stream = u_new (g0_sv);
     SV *stream_sv = newSV (0);
     SET_G_WRAPPER_FROM_G_SV (slr->g0_wrapper, g0_sv);
@@ -5547,17 +5532,6 @@ earley_item_warning_threshold_set( slr, too_many_earley_items )
 PPCODE:
 {
   slr->stream->too_many_earley_items = too_many_earley_items;
-}
-
- #  Always returns the same SV for a given Scanless recce object -- 
- #  it does not create a new one
- # 
-void
-g0( slr )
-    Scanless_R *slr;
-PPCODE:
-{
-  XPUSHs (sv_2mortal (SvREFCNT_inc_NN ( slr->slg->g0_sv)));
 }
 
  #  Always returns the same SV for a given Scanless recce object -- 
@@ -5709,7 +5683,7 @@ PPCODE:
 	{
 	  XSRETURN_PV ("unregistered char");
 	}
-      if (result < -1)
+      if (result < -5)
 	{
 	  XSRETURN_PV ("R0 read() problem");
 	}
