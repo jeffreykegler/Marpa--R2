@@ -2942,49 +2942,30 @@ PPCODE:
   XPUSHs (sv_2mortal (newSViv (origin)));
 }
 
-MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin::U
-
 void
-new( class, g_sv )
-    char * class;
-    SV *g_sv;
-PPCODE:
-{
-  SV* new_sv;
-  Unicode_Stream *stream;
-  if (!sv_isa (g_sv, "Marpa::R2::Thin::G"))
-    {
-      croak ("Problem in u->new(): arg is not of type Marpa::R2::Thin::G");
-    }
-  stream = u_new (g_sv);
-  new_sv = sv_newmortal ();
-  sv_setref_pv (new_sv, unicode_stream_class_name, (void *) stream);
-  XPUSHs (new_sv);
-}
-
-void
-DESTROY( stream )
-    Unicode_Stream *stream;
-PPCODE:
-{
-  u_destroy(stream);
-}
-
-void
-trace_g0( stream, level )
-     Unicode_Stream *stream;
+trace_lexer( slr, lexer, level )
+    Scanless_R *slr;
+    int lexer;
     int level;
 PPCODE:
 {
+  Unicode_Stream *stream = slr->stream;
+  if (lexer != 0)
+    {
+      /* Always thrown */
+      croak ("Problem in slr->trace_lexer(%d, %d); invalid lexer: %d", lexer, level, lexer);
+    }
   if (level < 0)
     {
       /* Always thrown */
-      croak ("Problem in u->trace(%d): argument must be greater than 0", level);
+      croak ("Problem in slr->trace_lexer(%d, %d): argument must be greater than 0", lexer, level);
     }
   warn ("Setting Marpa scannerless stream G0 trace level to %d", level);
   stream->trace_g0 = level;
   XPUSHs (sv_2mortal (newSViv (level)));
 }
+
+MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin::U
 
 void
 event( stream )
@@ -3278,6 +3259,14 @@ PPCODE:
   u_pos_set(stream, "stream->read", 0, -1);
   return_value = u_read(stream);
   XSRETURN_IV(return_value);
+}
+
+void
+DESTROY( stream )
+    Unicode_Stream *stream;
+PPCODE:
+{
+  u_destroy(stream);
 }
 
 MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin::B
