@@ -2943,7 +2943,7 @@ PPCODE:
 }
 
 void
-trace_lexer( slr, lexer, level )
+lexer_trace( slr, lexer, level )
     Scanless_R *slr;
     int lexer;
     int level;
@@ -2953,12 +2953,12 @@ PPCODE:
   if (lexer != 0)
     {
       /* Always thrown */
-      croak ("Problem in slr->trace_lexer(%d, %d); invalid lexer: %d", lexer, level, lexer);
+      croak ("Problem in slr->lexer_trace(%d, %d); invalid lexer: %d", lexer, level, lexer);
     }
   if (level < 0)
     {
       /* Always thrown */
-      croak ("Problem in slr->trace_lexer(%d, %d): argument must be greater than 0", lexer, level);
+      croak ("Problem in slr->lexer_trace(%d, %d): argument must be greater than 0", lexer, level);
     }
   warn ("Setting Marpa scannerless stream G0 trace level to %d", level);
   stream->trace_g0 = level;
@@ -2966,15 +2966,6 @@ PPCODE:
 }
 
 MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin::U
-
-void
-event( stream )
-     Unicode_Stream *stream;
-PPCODE:
-{
-    SV* event = av_shift(stream->event_queue);
-    XPUSHs (sv_2mortal (event));
-}
 
 void
 progress_report_start( stream, ordinal )
@@ -3247,18 +3238,6 @@ symbol_id( stream )
 PPCODE:
 {
   XSRETURN_IV(stream->input_symbol_id);
-}
-
-void
-read( stream )
-     Unicode_Stream *stream;
-PPCODE:
-{
-  int return_value;
-  av_clear(stream->event_queue);
-  u_pos_set(stream, "stream->read", 0, -1);
-  return_value = u_read(stream);
-  XSRETURN_IV(return_value);
 }
 
 void

@@ -1023,7 +1023,7 @@ sub Marpa::R2::Scanless::R::trace {
 sub Marpa::R2::Scanless::R::trace_g0 {
     my ( $self, $level ) = @_;
     $level //= 1;
-    return $self->trace_lexer(0, $level);
+    return $self->lexer_trace(0, $level);
 } ## end sub Marpa::R2::Scanless::R::trace_g0
 
 sub Marpa::R2::Scanless::R::error {
@@ -1054,7 +1054,7 @@ sub Marpa::R2::Scanless::R::read {
         $self->[Marpa::R2::Inner::Scanless::R::TRACE_TERMINALS] // 0;
     my $trace_g0 = $self->[Marpa::R2::Inner::Scanless::R::TRACE_G0] // 0;
     $thin_slr->trace_terminals($trace_terminals) if $trace_terminals;
-    $self->trace_lexer(0, $trace_g0)               if $trace_g0;
+    $self->lexer_trace(0, $trace_g0)               if $trace_g0;
     my $stream = $thin_slr->stream();
 
     $stream->string_set($p_string);
@@ -1397,7 +1397,7 @@ sub Marpa::R2::Scanless::R::resume {
         $self->[Marpa::R2::Inner::Scanless::R::TRACE_TERMINALS] // 0;
     my $trace_g0 = $self->[Marpa::R2::Inner::Scanless::R::TRACE_G0] // 0;
     $thin_slr->trace_terminals($trace_terminals) if $trace_terminals;
-    $self->trace_lexer(0, $trace_g0)               if $trace_g0;
+    $self->lexer_trace(0, $trace_g0)               if $trace_g0;
 
     $thin_slr->pos_set( $start_pos, $length );
     $self->[Marpa::R2::Inner::Scanless::R::EVENTS] = [];
