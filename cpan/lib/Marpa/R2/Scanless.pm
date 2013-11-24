@@ -633,8 +633,6 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
     } ## end RULE_ID: for my $rule_id ( 0 .. $g0_thin->highest_rule_id() )
 
     $thin_slg->precompute();
-    $slg->[Marpa::R2::Inner::Scanless::G::G0_RULE_TO_G1_LEXEME] =
-        \@g0_rule_to_g1_lexeme;
     $slg->[Marpa::R2::Inner::Scanless::G::THICK_G1_GRAMMAR] =
         $thick_g1_grammar;
 
