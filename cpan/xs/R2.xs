@@ -146,7 +146,6 @@ typedef struct {
      SV* g1_sv;
      G_Wrapper* g0_wrapper;
      G_Wrapper* g1_wrapper;
-     Marpa_Grammar g0;
      Marpa_Grammar g1;
     Marpa_Symbol_ID* g0_rule_to_g1_lexeme;
     int lexeme_count;
@@ -5112,13 +5111,12 @@ PPCODE:
   # hold references to them
   SET_G_WRAPPER_FROM_G_SV(slg->g0_wrapper, slg->lexer->g0_sv)
   SET_G_WRAPPER_FROM_G_SV(slg->g1_wrapper, g1_sv)
-  slg->g0 = slg->g0_wrapper->g;
   slg->g1 = slg->g1_wrapper->g;
   slg->precomputed = 0;
 
   {
     Marpa_Rule_ID rule;
-    Marpa_Rule_ID g0_rule_count = marpa_g_highest_rule_id (slg->g0) + 1;
+    Marpa_Rule_ID g0_rule_count = marpa_g_highest_rule_id (slg->g0_wrapper->g) + 1;
     Newx (slg->g0_rule_to_g1_lexeme, g0_rule_count, Marpa_Symbol_ID);
     for (rule = 0; rule < g0_rule_count; rule++)
       {
@@ -5177,7 +5175,7 @@ g0_rule_to_g1_lexeme_set( slg, g0_rule, g1_lexeme )
     Marpa_Symbol_ID g1_lexeme;
 PPCODE:
 {
-  Marpa_Rule_ID highest_g0_rule_id = marpa_g_highest_rule_id (slg->g0);
+  Marpa_Rule_ID highest_g0_rule_id = marpa_g_highest_rule_id (slg->g0_wrapper->g);
   Marpa_Symbol_ID highest_g1_symbol_id = marpa_g_highest_symbol_id (slg->g1);
   if (slg->precomputed)
     {
@@ -5339,7 +5337,7 @@ PPCODE:
     {
       Marpa_Rule_ID rule_id;
       const Marpa_Rule_ID g0_rule_count =
-	marpa_g_highest_rule_id (slg->g0) + 1;
+	marpa_g_highest_rule_id (slg->g0_wrapper->g) + 1;
       slg->lexeme_count = 0;
       slg->precomputed = 1;
       for (rule_id = 0; rule_id < g0_rule_count; rule_id++)
