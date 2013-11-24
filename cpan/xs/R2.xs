@@ -141,7 +141,9 @@ typedef struct {
 } Lexer;
 
 typedef struct {
-     Lexer *lexer;
+     Lexer **lexers;
+     Lexer *current_lexer;
+     int lexer_count;
      SV* g1_sv;
      G_Wrapper* g0_wrapper;
      G_Wrapper* g1_wrapper;
@@ -5067,14 +5069,18 @@ PPCODE:
   Newx (slg, 1, Scanless_G);
 
   # Copy and take references to the parent objects
-  slg->lexer = lexer_new(g0_sv);
+  Newx (slg->lexers, 1, Lexer*);
+  slg->current_lexer = lexer_new(g0_sv);
+  slg->lexers[0] = slg->current_lexer;
+  slg->lexer_count = 1;
+
   slg->g1_sv = g1_sv;
   SvREFCNT_inc (g1_sv);
 
 
   # These do not need references, because parent objects
   # hold references to them
-  SET_G_WRAPPER_FROM_G_SV(slg->g0_wrapper, slg->lexer->g0_sv)
+  SET_G_WRAPPER_FROM_G_SV(slg->g0_wrapper, slg->current_lexer->g0_sv)
   SET_G_WRAPPER_FROM_G_SV(slg->g1_wrapper, g1_sv)
   slg->g1 = slg->g1_wrapper->g;
   slg->precomputed = 0;
@@ -5110,13 +5116,19 @@ DESTROY( slg )
     Scanless_G *slg;
 PPCODE:
 {
-  if (slg->lexer) {
-    lexer_destroy(slg->lexer);
-  }
+  int i;
+  for (i = 0; i < slg->lexer_count; i++)
+    {
+      Lexer *lexer = slg->lexers[i];
+      if (lexer)
+	{
+	  lexer_destroy (lexer);
+	}
+    }
   SvREFCNT_dec (slg->g1_sv);
-  Safefree(slg->g0_rule_to_g1_lexeme);
-  Safefree(slg->g1_lexeme_properties);
-  Safefree(slg);
+  Safefree (slg->g0_rule_to_g1_lexeme);
+  Safefree (slg->g1_lexeme_properties);
+  Safefree (slg);
 }
 
  #  Always returns the same SV for a given Scanless recce object -- 
@@ -5369,7 +5381,7 @@ PPCODE:
   av_fill (slr->token_values, TOKEN_VALUE_IS_LITERAL);
 
   {
-    SV *g0_sv = slg->lexer->g0_sv;
+    SV *g0_sv = slg->current_lexer->g0_sv;
     Unicode_Stream *stream = u_new (g0_sv);
     SV *stream_sv = newSV (0);
     SET_G_WRAPPER_FROM_G_SV (slr->g0_wrapper, g0_sv);
