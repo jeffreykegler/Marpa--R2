@@ -896,8 +896,8 @@ sub Marpa::R2::Scanless::R::new {
                 $value;
             next ARG;
         } ## end if ( $arg_name eq 'trace_file_handle' )
-        if ( $arg_name eq 'trace_g0' ) {
-            $self->[Marpa::R2::Inner::Scanless::R::TRACE_G0] = $value;
+        if ( $arg_name eq 'trace_lexer' ) {
+            $self->[Marpa::R2::Inner::Scanless::R::TRACE_LEXER] = $value;
             next ARG;
         }
         if ( $arg_name eq 'semantics_package' ) {
@@ -1020,11 +1020,11 @@ sub Marpa::R2::Scanless::R::trace {
     return $stream->trace($level);
 } ## end sub Marpa::R2::Scanless::R::trace
 
-sub Marpa::R2::Scanless::R::trace_g0 {
+sub Marpa::R2::Scanless::R::trace_lexer {
     my ( $self, $level ) = @_;
     $level //= 1;
-    return $self->lexer_trace(0, $level);
-} ## end sub Marpa::R2::Scanless::R::trace_g0
+    return $self->trace_lexer($level);
+}
 
 sub Marpa::R2::Scanless::R::error {
     my ($self) = @_;
@@ -1052,9 +1052,9 @@ sub Marpa::R2::Scanless::R::read {
     my $thin_slr = $self->[Marpa::R2::Inner::Scanless::R::C];
     my $trace_terminals =
         $self->[Marpa::R2::Inner::Scanless::R::TRACE_TERMINALS] // 0;
-    my $trace_g0 = $self->[Marpa::R2::Inner::Scanless::R::TRACE_G0] // 0;
+    my $trace_lexer = $self->[Marpa::R2::Inner::Scanless::R::TRACE_LEXER] // 0;
     $thin_slr->trace_terminals($trace_terminals) if $trace_terminals;
-    $self->lexer_trace(0, $trace_g0)               if $trace_g0;
+    $self->lexer_trace($trace_lexer)               if $trace_lexer;
     my $stream = $thin_slr->stream();
 
     $stream->string_set($p_string);
@@ -1395,9 +1395,9 @@ sub Marpa::R2::Scanless::R::resume {
     my $thin_slr = $self->[Marpa::R2::Inner::Scanless::R::C];
     my $trace_terminals =
         $self->[Marpa::R2::Inner::Scanless::R::TRACE_TERMINALS] // 0;
-    my $trace_g0 = $self->[Marpa::R2::Inner::Scanless::R::TRACE_G0] // 0;
+    my $trace_lexer = $self->[Marpa::R2::Inner::Scanless::R::TRACE_LEXER] // 0;
     $thin_slr->trace_terminals($trace_terminals) if $trace_terminals;
-    $self->lexer_trace(0, $trace_g0)               if $trace_g0;
+    $self->lexer_trace($trace_lexer)               if $trace_lexer;
 
     $thin_slr->pos_set( $start_pos, $length );
     $self->[Marpa::R2::Inner::Scanless::R::EVENTS] = [];
@@ -1410,8 +1410,8 @@ sub Marpa::R2::Scanless::R::resume {
         my $pause =
             Marpa::R2::Inner::Scanless::convert_libmarpa_events($self);
 
-        if ( $trace_g0 > 2 ) {
-            my $stream_pos = $stream->pos();
+        if ( $trace_lexer > 2 ) {
+            my $stream_pos = $thin_slr->pos();
             my $trace_file_handle =
                 $self->[Marpa::R2::Inner::Scanless::R::TRACE_FILE_HANDLE];
             my $grammar = $self->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
@@ -1424,7 +1424,7 @@ sub Marpa::R2::Scanless::R::resume {
                 $g0_tracer->stream_progress_report($stream),
                 qq{=== End of progress report at line $line, column $column\n},
                 or Marpa::R2::exception("Cannot print(): $ERRNO");
-        } ## end if ( $trace_g0 > 2 )
+        } ## end if ( $trace_lexer > 2 )
 
         last OUTER_READ if $pause;
         next OUTER_READ if $problem_code eq 'event';
@@ -1521,7 +1521,7 @@ sub Marpa::R2::Scanless::R::read_problem {
     my $thick_g1_grammar = $thick_g1_recce->grammar();
     my $g1_tracer        = $thick_g1_grammar->tracer();
 
-    my $pos      = $stream->pos();
+    my $pos      = $thin_slr->pos();
     my $problem_pos = $pos;
     my $p_string = $slr->[Marpa::R2::Inner::Scanless::R::P_INPUT_STRING];
     my $length_of_string = length ${$p_string};
@@ -1642,8 +1642,8 @@ sub Marpa::R2::Scanless::R::read_problem {
             . Marpa::R2::escape_string( ${$p_string}, -50 ) . "\n";
     } ## end else [ if ($g1_status) ]
 
-    if ( $slr->[Marpa::R2::Inner::Scanless::R::TRACE_G0] ) {
-        my $stream_pos = $stream->pos();
+    if ( $slr->[Marpa::R2::Inner::Scanless::R::TRACE_LEXER] ) {
+        my $stream_pos = $thin_slr->pos();
         my $trace_file_handle =
             $slr->[Marpa::R2::Inner::Scanless::R::TRACE_FILE_HANDLE];
         my $grammar = $slr->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
@@ -1654,7 +1654,7 @@ sub Marpa::R2::Scanless::R::read_problem {
         $read_string_error .=
             qq{\n=== G0 Progress report at line $line, column $column\n} .
             $g0_tracer->stream_progress_report($stream);
-    } ## end if ( $slr->[Marpa::R2::Inner::Scanless::R::TRACE_G0...])
+    } ## end if ( $slr->[Marpa::R2::Inner::Scanless::R::TRACE_LEXER...])
 
     $slr->[Marpa::R2::Inner::Scanless::R::READ_STRING_ERROR] =
         $read_string_error;
@@ -2056,10 +2056,7 @@ sub Marpa::R2::Scanless::R::pause_lexeme {
 sub Marpa::R2::Scanless::R::line_column {
     my ( $slr, $pos ) = @_;
     my $thin_slr = $slr->[Marpa::R2::Inner::Scanless::R::C];
-    if ( not defined $pos ) {
-        my $stream = $thin_slr->stream();
-        $pos = $stream->pos();
-    }
+    $pos //= $thin_slr->pos();
     return $thin_slr->line_column($pos);
 } ## end sub Marpa::R2::Scanless::R::line_column
 

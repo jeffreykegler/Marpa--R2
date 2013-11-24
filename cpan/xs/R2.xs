@@ -106,7 +106,7 @@ typedef struct {
      /* The minimum number of tokens that must
        be accepted at an earleme */
      IV minimum_accepted;
-     IV trace_g0; /* trace level */
+     IV trace_lexer; /* trace level */
      AV* event_queue;
      Pos_Entry* pos_db;
      int pos_db_logical_size;
@@ -533,7 +533,7 @@ static Unicode_Stream* u_new(SV* g_sv)
   stream->input_symbol_id = -1;
   stream->per_codepoint_ops = newHV ();
   stream->minimum_accepted = 1;
-  stream->trace_g0 = 0;
+  stream->trace_lexer = 0;
   stream->event_queue = newAV ();
   stream->too_many_earley_items = -1;
   return stream;
@@ -672,7 +672,7 @@ u_read(Unicode_Stream *stream)
   int input_is_utf8;
   int input_length;
 
-  const IV trace_g0 = stream->trace_g0;
+  const IV trace_lexer = stream->trace_lexer;
   Marpa_Recognizer r = stream->r0;
 
   if (!r)
@@ -734,7 +734,7 @@ u_read(Unicode_Stream *stream)
 	  }
 	ops = (IV *) SvPV (*p_ops_sv, dummy);
       }
-      if (trace_g0 >= 1)
+      if (trace_lexer >= 1)
 	{
 	  AV *event;
 	  SV *event_data[4];
@@ -787,7 +787,7 @@ u_read(Unicode_Stream *stream)
 		     * we have one of them as an example
 		     */
 		    stream->input_symbol_id = symbol_id;
-		    if (trace_g0 >= 1)
+		    if (trace_lexer >= 1)
 		      {
 			AV *event;
 			SV *event_data[5];
@@ -802,7 +802,7 @@ u_read(Unicode_Stream *stream)
 		      }
 		    break;
 		  case MARPA_ERR_NONE:
-		    if (trace_g0 >= 1)
+		    if (trace_lexer >= 1)
 		      {
 			AV *event;
 			SV *event_data[5];
@@ -876,7 +876,7 @@ u_read(Unicode_Stream *stream)
        * which is reserved for a indicating a full
        * read of the input string without event
        */
-      if (trace_g0)
+      if (trace_lexer)
 	{
 	  return -4;
 	}
@@ -2943,29 +2943,83 @@ PPCODE:
 }
 
 void
-lexer_trace( slr, lexer, level )
+trace_lexer( slr, level )
     Scanless_R *slr;
-    int lexer;
     int level;
 PPCODE:
 {
   Unicode_Stream *stream = slr->stream;
-  if (lexer != 0)
-    {
-      /* Always thrown */
-      croak ("Problem in slr->lexer_trace(%d, %d); invalid lexer: %d", lexer, level, lexer);
-    }
   if (level < 0)
     {
       /* Always thrown */
-      croak ("Problem in slr->lexer_trace(%d, %d): argument must be greater than 0", lexer, level);
+      croak ("Problem in slr->trace_lexer(%d): argument must be greater than 0", level);
     }
-  warn ("Setting Marpa scannerless stream G0 trace level to %d", level);
-  stream->trace_g0 = level;
+  warn ("Setting Marpa SLIF lexer trace level to %d", level);
+  stream->trace_lexer = level;
   XPUSHs (sv_2mortal (newSViv (level)));
 }
 
+void
+pos( slr )
+    Scanless_R *slr;
+PPCODE:
+{
+  Unicode_Stream *stream = slr->stream;
+  XSRETURN_IV(stream->perl_pos);
+}
+
 MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin::U
+
+void
+problem_pos( stream )
+     Unicode_Stream *stream;
+PPCODE:
+{
+  if (stream->problem_pos < 0) {
+     XSRETURN_UNDEF;
+  }
+  XSRETURN_IV(stream->problem_pos);
+}
+
+void
+latest_earley_set( stream )
+     Unicode_Stream *stream;
+PPCODE:
+{
+  const Marpa_Recce r0 = stream->r0;
+  if (!stream->r0)
+    {
+      XSRETURN_UNDEF;
+    }
+  XSRETURN_IV (marpa_r_latest_earley_set (stream->r0));
+}
+
+void
+substring(stream, start_pos, length)
+    Unicode_Stream *stream;
+    int start_pos;
+    int length;
+PPCODE:
+{
+  SV* literal_sv = u_substring(stream, "stream->substring()", start_pos, length);
+  XPUSHs (sv_2mortal (literal_sv));
+}
+
+void
+codepoint( stream )
+     Unicode_Stream *stream;
+PPCODE:
+{
+  XSRETURN_UV(stream->codepoint);
+}
+
+void
+symbol_id( stream )
+     Unicode_Stream *stream;
+PPCODE:
+{
+  XSRETURN_IV(stream->input_symbol_id);
+}
 
 void
 progress_report_start( stream, ordinal )
@@ -3179,65 +3233,6 @@ input_length( stream )
 PPCODE:
 {
   XSRETURN_IV(stream->pos_db_logical_size);
-}
-
-void
-pos( stream )
-     Unicode_Stream *stream;
-PPCODE:
-{
-  XSRETURN_IV(stream->perl_pos);
-}
-
-void
-problem_pos( stream )
-     Unicode_Stream *stream;
-PPCODE:
-{
-  if (stream->problem_pos < 0) {
-     XSRETURN_UNDEF;
-  }
-  XSRETURN_IV(stream->problem_pos);
-}
-
-void
-latest_earley_set( stream )
-     Unicode_Stream *stream;
-PPCODE:
-{
-  const Marpa_Recce r0 = stream->r0;
-  if (!stream->r0)
-    {
-      XSRETURN_UNDEF;
-    }
-  XSRETURN_IV (marpa_r_latest_earley_set (stream->r0));
-}
-
-void
-substring(stream, start_pos, length)
-    Unicode_Stream *stream;
-    int start_pos;
-    int length;
-PPCODE:
-{
-  SV* literal_sv = u_substring(stream, "stream->substring()", start_pos, length);
-  XPUSHs (sv_2mortal (literal_sv));
-}
-
-void
-codepoint( stream )
-     Unicode_Stream *stream;
-PPCODE:
-{
-  XSRETURN_UV(stream->codepoint);
-}
-
-void
-symbol_id( stream )
-     Unicode_Stream *stream;
-PPCODE:
-{
-  XSRETURN_IV(stream->input_symbol_id);
 }
 
 void
@@ -5449,16 +5444,16 @@ PPCODE:
 }
 
 void
-trace_g0( slr, new_level )
+trace_lexer( slr, new_level )
     Scanless_R *slr;
     int new_level;
 PPCODE:
 {
   Unicode_Stream *stream = slr->stream;
-  IV old_level = stream->trace_g0;
-  stream->trace_g0 = new_level;
+  IV old_level = stream->trace_lexer;
+  stream->trace_lexer = new_level;
   if (slr->trace_level) {
-    /* Note that we use *trace_level*, not *trace_g0* to control warning.
+    /* Note that we use *trace_level*, not *trace_lexer* to control warning.
      * We never warn() for trace_terminals, just report events.
      */
     warn("Changing SLR g0 trace level from %d to %d", (int)old_level, (int)new_level);
@@ -5603,7 +5598,7 @@ PPCODE:
 {
   int result = 0;		/* Hold various results */
   Unicode_Stream *stream = slr->stream;
-  int trace_g0 = stream->trace_g0;
+  int trace_lexer = stream->trace_lexer;
 
   slr->stream_read_result = 0;
   slr->r1_earleme_complete_result = 0;
@@ -5626,7 +5621,7 @@ PPCODE:
 	  slr->start_of_lexeme = stream->perl_pos = slr->g0_start_pos;
 	  slr->g0_start_pos = -1;
 	  u_r0_clear (stream);
-	  if (trace_g0 >= 1)
+	  if (trace_lexer >= 1)
 	    {
 	      AV *event;
 	      SV *event_data[3];
@@ -5670,7 +5665,7 @@ PPCODE:
 	    }
 	}
 
-      if (slr->trace_terminals || stream->trace_g0)
+      if (slr->trace_terminals || stream->trace_lexer)
 	{
 	  XSRETURN_PV ("trace");
 	}
