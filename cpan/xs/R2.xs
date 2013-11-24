@@ -93,7 +93,6 @@ typedef struct {
          Equivalent to Perl pos()
 	 One past last actual position indicates past-end-of-string
      */
-     int perl_pos;
      /* Position of problem -- unspecifed if not returning a problem */
      int problem_pos;
      /* Location (exclusive) at which to stop reading */
@@ -117,7 +116,7 @@ typedef struct {
 #define POS_TO_OFFSET(stream, pos) \
   ((pos) > 0 ? (stream)->pos_db[(pos) - 1].next_offset : 0)
 #undef OFFSET_OF_STREAM
-#define OFFSET_OF_STREAM(stream) POS_TO_OFFSET((stream), (stream)->perl_pos)
+#define OFFSET_OF_STREAM(slr) POS_TO_OFFSET(((slr)->stream), (slr)->perl_pos)
 
 struct lexeme_g_properties {
      int priority;
@@ -177,6 +176,7 @@ typedef struct
   int g0_start_pos;
   int stream_read_result;
   int r1_earleme_complete_result;
+  int perl_pos;
   int throw;
   int start_of_pause_lexeme;
   int end_of_pause_lexeme;
@@ -539,7 +539,6 @@ static Unicode_Stream* u_new(SV* g_sv)
   SvREFCNT_inc (g_sv);
   stream->g0_sv = g_sv;
   stream->input = newSVpvn ("", 0);
-  stream->perl_pos = 0;
   stream->problem_pos = -1;
   stream->end_pos = 0;
   stream->pos_db = 0;
@@ -711,14 +710,14 @@ u_read(Scanless_R *slr)
       IV *ops;
       IV minimum_accepted = stream->minimum_accepted;
       int tokens_accepted = 0;
-      if (stream->perl_pos >= stream->end_pos)
+      if (slr->perl_pos >= stream->end_pos)
 	break;
 
       if (input_is_utf8)
 	{
 
 	  codepoint =
-	    utf8_to_uvchr_buf (input + OFFSET_OF_STREAM (stream),
+	    utf8_to_uvchr_buf (input + OFFSET_OF_STREAM (slr),
 			       input + len, &codepoint_length);
 
 	  /* Perl API documents that return value is 0 and length is -1 on error,
@@ -733,7 +732,7 @@ u_read(Scanless_R *slr)
 	}
       else
 	{
-	  codepoint = (UV) input[OFFSET_OF_STREAM (stream)];
+	  codepoint = (UV) input[OFFSET_OF_STREAM (slr)];
 	  codepoint_length = 1;
 	}
 
@@ -756,7 +755,7 @@ u_read(Scanless_R *slr)
 	  event_data[0] = newSVpvs ("'trace");
 	  event_data[1] = newSVpvs ("g0 reading codepoint");
 	  event_data[2] = newSViv ((IV) codepoint);
-	  event_data[3] = newSViv ((IV) stream->perl_pos);
+	  event_data[3] = newSViv ((IV) slr->perl_pos);
 	  event = av_make (Dim (event_data), event_data);
 	  av_push (stream->event_queue, newRV_noinc ((SV *) event));
 	}
@@ -809,7 +808,7 @@ u_read(Scanless_R *slr)
 			event_data[0] = newSVpvs ("'trace");
 			event_data[1] = newSVpvs ("g0 rejected codepoint");
 			event_data[2] = newSViv ((IV) codepoint);
-			event_data[3] = newSViv ((IV) stream->perl_pos);
+			event_data[3] = newSViv ((IV) slr->perl_pos);
 			event_data[4] = newSViv ((IV) symbol_id);
 			event = av_make (Dim (event_data), event_data);
 			av_push (stream->event_queue,
@@ -824,7 +823,7 @@ u_read(Scanless_R *slr)
 			event_data[0] = newSVpvs ("'trace");
 			event_data[1] = newSVpvs ("g0 accepted codepoint");
 			event_data[2] = newSViv ((IV) codepoint);
-			event_data[3] = newSViv ((IV) stream->perl_pos);
+			event_data[3] = newSViv ((IV) slr->perl_pos);
 			event_data[4] = newSViv ((IV) symbol_id);
 			event = av_make (Dim (event_data), event_data);
 			av_push (stream->event_queue,
@@ -838,7 +837,7 @@ u_read(Scanless_R *slr)
 		    croak
 		      ("Problem alternative() failed at char ix %ld; symbol id %ld; codepoint 0x%lx\n"
 		       "Problem in u_read(), alternative() failed: %s",
-		       (long) stream->perl_pos, (long)symbol_id,
+		       (long) slr->perl_pos, (long)symbol_id,
 		       (unsigned long) codepoint,
 		       xs_g_error (stream->g0_wrapper));
 		  }
@@ -886,7 +885,7 @@ u_read(Scanless_R *slr)
 	    }
 	}
     ADVANCE_ONE_CHAR:;
-      stream->perl_pos++;
+      slr->perl_pos++;
       /* This logic does not allow a return value of 0,
        * which is reserved for a indicating a full
        * read of the input string without event
@@ -901,10 +900,11 @@ u_read(Scanless_R *slr)
 
 /* It is OK to set pos to last codepoint + 1 */
 static STRLEN
-u_pos_set (Unicode_Stream * stream, const char* name, int start_pos_arg, int length_arg)
+u_pos_set (Scanless_R * slr, const char* name, int start_pos_arg, int length_arg)
 {
   dTHX;
-  const STRLEN old_perl_pos = stream->perl_pos;
+  Unicode_Stream * stream  = slr->stream;
+  const STRLEN old_perl_pos = slr->perl_pos;
   const STRLEN input_length = stream->pos_db_logical_size;
   int new_perl_pos;
   int new_end_pos;
@@ -930,7 +930,7 @@ u_pos_set (Unicode_Stream * stream, const char* name, int start_pos_arg, int len
   }
 
   new_perl_pos = new_perl_pos;
-  stream->perl_pos = new_perl_pos;
+  slr->perl_pos = new_perl_pos;
   new_end_pos = new_end_pos;
   stream->end_pos = new_end_pos;
   return old_perl_pos;
@@ -1688,7 +1688,7 @@ slr_discard (Scanless_R * slr)
 	      /* If there is discarded item, we are fine,
 	       * and can return success.
 	       */
-	      slr->g0_start_pos = stream->perl_pos = working_pos;
+	      slr->g0_start_pos = slr->perl_pos = working_pos;
 	      return 0;
 	    }
 
@@ -1719,7 +1719,7 @@ slr_discard (Scanless_R * slr)
 	   * to discard this input.
 	   * Return failure.
 	   */
-	  stream->perl_pos = stream->problem_pos = slr->g0_start_pos = slr->start_of_lexeme;
+	  slr->perl_pos = stream->problem_pos = slr->g0_start_pos = slr->start_of_lexeme;
 	  return -4;
 	}
       earley_set--;
@@ -1729,7 +1729,7 @@ slr_discard (Scanless_R * slr)
    * and therefore none which can be discarded.
    * Return failure.
    */
-  stream->perl_pos = stream->problem_pos = slr->g0_start_pos = slr->start_of_lexeme;
+  slr->perl_pos = stream->problem_pos = slr->g0_start_pos = slr->start_of_lexeme;
   return -4;
 }
 
@@ -1948,7 +1948,7 @@ slr_alternatives (Scanless_R * slr)
 		    {
 		      warn
 			("slr->read() R1 Rejected unexpected symbol %d at pos %d",
-			 g1_lexeme, (int) stream->perl_pos);
+			 g1_lexeme, (int) slr->perl_pos);
 		    }
 		  if (slr->trace_terminals)
 		    {
@@ -2000,12 +2000,12 @@ slr_alternatives (Scanless_R * slr)
 	    {
 	      if (discarded)
 		{
-		  stream->perl_pos = slr->g0_start_pos = working_pos;
+		  slr->perl_pos = slr->g0_start_pos = working_pos;
 		  return 0;
 		}
 	      if (unforgiven)
 		{
-		  stream->perl_pos = stream->problem_pos = slr->g0_start_pos =
+		  slr->perl_pos = stream->problem_pos = slr->g0_start_pos =
 		    slr->start_of_lexeme;
 		  return "no lexemes accepted";
 		}
@@ -2058,7 +2058,7 @@ slr_alternatives (Scanless_R * slr)
 	  }
 	if (g1_lexeme >= 0)
 	  {
-	    slr->g0_start_pos = stream->perl_pos = slr->start_of_lexeme;
+	    slr->g0_start_pos = slr->perl_pos = slr->start_of_lexeme;
 	    return "event";
 	  }
       }
@@ -2101,7 +2101,7 @@ slr_alternatives (Scanless_R * slr)
 		  {
 		    warn
 		      ("slr->read() R1 Rejected duplicate symbol %d at pos %d",
-		       g1_lexeme, (int) stream->perl_pos);
+		       g1_lexeme, (int) slr->perl_pos);
 		  }
 		if (slr->trace_terminals)
 		  {
@@ -2123,7 +2123,7 @@ slr_alternatives (Scanless_R * slr)
 		  {
 		    warn
 		      ("slr->read() R1 Accepted symbol %d at pos %d",
-		       g1_lexeme, (int) stream->perl_pos);
+		       g1_lexeme, (int) slr->perl_pos);
 		  }
 		if (slr->trace_terminals)
 		  {
@@ -2171,7 +2171,7 @@ slr_alternatives (Scanless_R * slr)
 	      default:
 		croak
 		  ("Problem SLR->read() failed on symbol id %d at position %d: %s",
-		   g1_lexeme, (int) stream->perl_pos,
+		   g1_lexeme, (int) slr->perl_pos,
 		   xs_g_error (slr->g1_wrapper));
 		/* NOTREACHED */
 
@@ -2187,7 +2187,7 @@ slr_alternatives (Scanless_R * slr)
 	    croak ("Problem in marpa_r_earleme_complete(): %s",
 		   xs_g_error (slr->g1_wrapper));
 	  }
-	slr->g0_start_pos = stream->perl_pos = slr->end_of_lexeme;
+	slr->g0_start_pos = slr->perl_pos = slr->end_of_lexeme;
 	if (return_value > 0)
 	  {
 	    r_convert_events (slr->r1_wrapper);
@@ -2207,7 +2207,7 @@ slr_alternatives (Scanless_R * slr)
       earley_set--;
     }
 
-  stream->perl_pos = stream->problem_pos = slr->g0_start_pos =
+  slr->perl_pos = stream->problem_pos = slr->g0_start_pos =
     slr->start_of_lexeme;
   return "no lexeme";
 }
@@ -2987,8 +2987,7 @@ pos( slr )
     Scanless_R *slr;
 PPCODE:
 {
-  Unicode_Stream *stream = slr->stream;
-  XSRETURN_IV(stream->perl_pos);
+  XSRETURN_IV(slr->perl_pos);
 }
 
 MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin::U
@@ -3117,14 +3116,6 @@ PPCODE:
   XPUSHs (sv_2mortal (newSViv (rule_id)));
   XPUSHs (sv_2mortal (newSViv (position)));
   XPUSHs (sv_2mortal (newSViv (origin)));
-}
-
-void
-_per_codepoint_ops( stream )
-     Unicode_Stream *stream;
-PPCODE:
-{
-  XPUSHs (sv_2mortal (newRV ((SV*)stream->per_codepoint_ops)));
 }
 
 void
@@ -5398,6 +5389,7 @@ PPCODE:
 
   slr->start_of_lexeme = 0;
   slr->end_of_lexeme = 0;
+  slr->perl_pos = 0;
   slr->token_values = newAV ();
   av_fill (slr->token_values, TOKEN_VALUE_IS_LITERAL);
 
@@ -5428,7 +5420,7 @@ PPCODE:
       }
   }
 
-  slr->g0_start_pos = slr->stream->perl_pos;
+  slr->g0_start_pos = slr->perl_pos;
   slr->stream_read_result = 0;
   slr->r1_earleme_complete_result = 0;
   slr->start_of_pause_lexeme = -1;
@@ -5555,7 +5547,7 @@ pos( slr )
 PPCODE:
 {
   Unicode_Stream *stream = slr->stream;
-  XSRETURN_IV(stream->perl_pos);
+  XSRETURN_IV(slr->perl_pos);
 }
 
 void
@@ -5565,11 +5557,10 @@ pos_set( slr, start_pos_sv, length_sv )
      SV* length_sv;
 PPCODE:
 {
-  Unicode_Stream *stream = slr->stream;
-  int start_pos = SvIOK(start_pos_sv) ? SvIV(start_pos_sv) : stream->perl_pos;
+  int start_pos = SvIOK(start_pos_sv) ? SvIV(start_pos_sv) : slr->perl_pos;
   int length = SvIOK(length_sv) ? SvIV(length_sv) : -1;
-  u_pos_set(stream, "stream->pos_set", start_pos, length);
-  slr->g0_start_pos = stream->perl_pos;
+  u_pos_set(slr, "stream->pos_set", start_pos, length);
+  slr->g0_start_pos = slr->perl_pos;
   XSRETURN_YES;
 }
 
@@ -5650,7 +5641,7 @@ PPCODE:
 	    XSRETURN_PV ("");
 	  }
 
-	  slr->start_of_lexeme = stream->perl_pos = slr->g0_start_pos;
+	  slr->start_of_lexeme = slr->perl_pos = slr->g0_start_pos;
 	  slr->g0_start_pos = -1;
 	  u_r0_clear (stream);
 	  if (trace_lexer >= 1)
@@ -5659,7 +5650,7 @@ PPCODE:
 	      SV *event_data[3];
 	      event_data[0] = newSVpvs ("'trace");
 	      event_data[1] = newSVpv ("g0 restarted recognizer", 0);
-	      event_data[2] = newSViv ((IV) stream->perl_pos);
+	      event_data[2] = newSViv ((IV) slr->perl_pos);
 	      event = av_make (Dim (event_data), event_data);
 	      av_push (stream->event_queue, newRV_noinc ((SV *) event));
 	    }
@@ -5811,7 +5802,7 @@ PPCODE:
   int linecol;
   if (pos < 0)
     {
-      pos = stream->perl_pos;
+      pos = slr->perl_pos;
     }
   if (pos >= stream->pos_db_logical_size)
     {
@@ -5889,14 +5880,14 @@ PPCODE:
 {
   int result;
   Unicode_Stream *stream = slr->stream;
-  const int old_pos = stream->perl_pos;
+  const int old_pos = slr->perl_pos;
   const int input_length = stream->pos_db_logical_size;
 
   int start_pos =
-    SvIOK (start_pos_sv) ? SvIV (start_pos_sv) : stream->perl_pos;
+    SvIOK (start_pos_sv) ? SvIV (start_pos_sv) : slr->perl_pos;
 
   int lexeme_length = SvIOK (length_sv) ? SvIV (length_sv)
-    : stream->perl_pos ==
+    : slr->perl_pos ==
     slr->start_of_pause_lexeme ? (slr->end_of_pause_lexeme -
 				  slr->start_of_pause_lexeme) : -1;
 
@@ -5907,7 +5898,7 @@ PPCODE:
       croak ("Bad start position in slr->g1_lexeme_complete(): %ld",
 	     (long) (SvIOK (start_pos_sv) ? SvIV (start_pos_sv) : -1));
     }
-  stream->perl_pos = start_pos;
+  slr->perl_pos = start_pos;
 
   {
     const int end_pos =
@@ -5929,8 +5920,8 @@ PPCODE:
       r_convert_events (slr->r1_wrapper);
       marpa_r_latest_earley_set_values_set (slr->r1, start_pos,
 					    INT2PTR (void *, lexeme_length));
-      stream->perl_pos = start_pos + lexeme_length;
-      XSRETURN_IV (stream->perl_pos);
+      slr->perl_pos = start_pos + lexeme_length;
+      XSRETURN_IV (slr->perl_pos);
     }
   if (result == -2)
     {
