@@ -106,7 +106,6 @@ typedef struct {
      /* The minimum number of tokens that must
        be accepted at an earleme */
      IV minimum_accepted;
-     IV trace_lexer; /* trace level */
      AV* event_queue;
      Pos_Entry* pos_db;
      int pos_db_logical_size;
@@ -165,6 +164,7 @@ typedef struct
   G_Wrapper *g0_wrapper;
   G_Wrapper *g1_wrapper;
   AV *token_values;
+  IV trace_lexer;
   int trace_level;
   int trace_terminals;
   STRLEN start_of_lexeme;
@@ -520,6 +520,9 @@ static Unicode_Stream* u_new(SV* g_sv)
   stream->r0 = NULL;
   /* Hold a ref to the grammar SV we were called with --
    * it will have to exist for our lifetime
+   *
+   * Once streams are not directly available the at
+   * the Perl level, we can delete this.
    */
   SvREFCNT_inc (g_sv);
   stream->g0_sv = g_sv;
@@ -533,7 +536,6 @@ static Unicode_Stream* u_new(SV* g_sv)
   stream->input_symbol_id = -1;
   stream->per_codepoint_ops = newHV ();
   stream->minimum_accepted = 1;
-  stream->trace_lexer = 0;
   stream->event_queue = newAV ();
   stream->too_many_earley_items = -1;
   return stream;
@@ -664,7 +666,7 @@ u_convert_events (Unicode_Stream * stream)
  * -5: earleme_complete() reported an exhausted parse on success
  */
 static int
-u_read(Unicode_Stream *stream)
+u_read(Scanless_R *slr)
 {
   dTHX;
   U8 *input;
@@ -672,7 +674,8 @@ u_read(Unicode_Stream *stream)
   int input_is_utf8;
   int input_length;
 
-  const IV trace_lexer = stream->trace_lexer;
+  Unicode_Stream *stream = slr->stream;
+  const IV trace_lexer = slr->trace_lexer;
   Marpa_Recognizer r = stream->r0;
 
   if (!r)
@@ -2948,14 +2951,13 @@ trace_lexer( slr, level )
     int level;
 PPCODE:
 {
-  Unicode_Stream *stream = slr->stream;
   if (level < 0)
     {
       /* Always thrown */
       croak ("Problem in slr->trace_lexer(%d): argument must be greater than 0", level);
     }
   warn ("Setting Marpa SLIF lexer trace level to %d", level);
-  stream->trace_lexer = level;
+  slr->trace_lexer = level;
   XPUSHs (sv_2mortal (newSViv (level)));
 }
 
@@ -5338,6 +5340,7 @@ PPCODE:
 
   slr->throw = 1;
   slr->trace_level = 0;
+  slr->trace_lexer = 0;
   slr->trace_terminals = 0;
 
 # Copy and take references to the "parent objects",
@@ -5449,9 +5452,8 @@ trace_lexer( slr, new_level )
     int new_level;
 PPCODE:
 {
-  Unicode_Stream *stream = slr->stream;
-  IV old_level = stream->trace_lexer;
-  stream->trace_lexer = new_level;
+  IV old_level = slr->trace_lexer;
+  slr->trace_lexer = new_level;
   if (slr->trace_level) {
     /* Note that we use *trace_level*, not *trace_lexer* to control warning.
      * We never warn() for trace_terminals, just report events.
@@ -5598,7 +5600,7 @@ PPCODE:
 {
   int result = 0;		/* Hold various results */
   Unicode_Stream *stream = slr->stream;
-  int trace_lexer = stream->trace_lexer;
+  int trace_lexer = slr->trace_lexer;
 
   slr->stream_read_result = 0;
   slr->r1_earleme_complete_result = 0;
@@ -5635,7 +5637,7 @@ PPCODE:
 
       av_clear (slr->r1_wrapper->event_queue);
 
-      result = slr->stream_read_result = u_read (stream);
+      result = slr->stream_read_result = u_read (slr);
       if (result == -4)
 	{
 	  XSRETURN_PV ("trace");
@@ -5665,7 +5667,7 @@ PPCODE:
 	    }
 	}
 
-      if (slr->trace_terminals || stream->trace_lexer)
+      if (slr->trace_terminals || slr->trace_lexer)
 	{
 	  XSRETURN_PV ("trace");
 	}
