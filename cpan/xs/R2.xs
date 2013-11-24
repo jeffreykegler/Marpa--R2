@@ -138,6 +138,7 @@ struct lexeme_r_properties {
 typedef struct {
   int dummy; /* delete after development is finished */
    SV* g0_sv;
+    Marpa_Symbol_ID* lexer_rule_to_g1_lexeme;
 } Lexer;
 
 typedef struct {
@@ -148,8 +149,6 @@ typedef struct {
      G_Wrapper* g0_wrapper;
      G_Wrapper* g1_wrapper;
      Marpa_Grammar g1;
-    Marpa_Symbol_ID* g0_rule_to_g1_lexeme;
-    int lexeme_count;
     int precomputed;
     struct lexeme_g_properties * g1_lexeme_properties;
 } Scanless_G;
@@ -495,8 +494,19 @@ static Lexer* lexer_new(SV* g_sv)
 {
   dTHX;
   Lexer *lexer;
+  G_Wrapper *g_wrapper;
+  int rule_ix;
+  Marpa_Rule_ID lexer_rule_count;
+
   Newx (lexer, 1, Lexer);
   lexer->g0_sv = g_sv;
+  SET_G_WRAPPER_FROM_G_SV (g_wrapper, g_sv);
+  lexer_rule_count = marpa_g_highest_rule_id (g_wrapper->g) + 1;
+  Newx (lexer->lexer_rule_to_g1_lexeme, lexer_rule_count, Marpa_Symbol_ID);
+  for (rule_ix = 0; rule_ix < lexer_rule_count; rule_ix++)
+    {
+      lexer->lexer_rule_to_g1_lexeme[rule_ix] = -1;
+    }
   SvREFCNT_inc (g_sv);
   return lexer;
 }
@@ -504,6 +514,7 @@ static Lexer* lexer_new(SV* g_sv)
 static void lexer_destroy(Lexer *lexer)
 {
   dTHX;
+  Safefree (lexer->lexer_rule_to_g1_lexeme);
   SvREFCNT_dec (lexer->g0_sv);
 }
 
@@ -1647,7 +1658,7 @@ slr_discard (Scanless_R * slr)
 	    goto NEXT_REPORT_ITEM;
 	  if (dot_position != -1)
 	    goto NEXT_REPORT_ITEM;
-	  g1_lexeme = slr->slg->g0_rule_to_g1_lexeme[rule_id];
+	  g1_lexeme = slr->slg->current_lexer->lexer_rule_to_g1_lexeme[rule_id];
 	  if (g1_lexeme == -1)
 	    goto NEXT_REPORT_ITEM;
 	  lexemes_found++;
@@ -1834,7 +1845,8 @@ slr_alternatives (Scanless_R * slr)
   const Scanless_G *slg = slr->slg;
   Unicode_Stream * const stream = slr->stream;
 
-  int lexeme_buffer_size= 1; /* Increase after testing phase */
+  /* Put this in SLG structure? */
+  int lexeme_buffer_size= 8;
   Marpa_Symbol_ID *lexeme_buffer;
   Newx(lexeme_buffer, lexeme_buffer_size, Marpa_Symbol_ID);
 
@@ -1895,7 +1907,7 @@ slr_alternatives (Scanless_R * slr)
 		goto NEXT_PASS1_REPORT_ITEM;
 	      if (dot_position != -1)
 		goto NEXT_PASS1_REPORT_ITEM;
-	      g1_lexeme = slr->slg->g0_rule_to_g1_lexeme[rule_id];
+	      g1_lexeme = slr->slg->current_lexer->lexer_rule_to_g1_lexeme[rule_id];
 	      if (g1_lexeme == -1)
 		goto NEXT_PASS1_REPORT_ITEM;
 	      slr->end_of_lexeme = working_pos;
@@ -5093,15 +5105,6 @@ PPCODE:
   slg->precomputed = 0;
 
   {
-    Marpa_Rule_ID rule;
-    Marpa_Rule_ID g0_rule_count = marpa_g_highest_rule_id (slg->g0_wrapper->g) + 1;
-    Newx (slg->g0_rule_to_g1_lexeme, g0_rule_count, Marpa_Symbol_ID);
-    for (rule = 0; rule < g0_rule_count; rule++)
-      {
-	slg->g0_rule_to_g1_lexeme[rule] = -1;
-      }
-  }
-  {
     Marpa_Symbol_ID symbol_id;
     Marpa_Symbol_ID g1_symbol_count = marpa_g_highest_symbol_id (slg->g1) + 1;
     Newx (slg->g1_lexeme_properties, g1_symbol_count, struct lexeme_g_properties);
@@ -5133,7 +5136,6 @@ PPCODE:
 	}
     }
   SvREFCNT_dec (slg->g1_sv);
-  Safefree (slg->g0_rule_to_g1_lexeme);
   Safefree (slg->g1_lexeme_properties);
   Safefree (slg);
 }
@@ -5153,47 +5155,61 @@ PPCODE:
 }
 
 void
-g0_rule_to_g1_lexeme_set( slg, g0_rule, g1_lexeme )
+lexer_rule_to_g1_lexeme_set( slg, lexer_ix, lexer_rule, g1_lexeme )
     Scanless_G *slg;
-    Marpa_Rule_ID g0_rule;
+    int lexer_ix;
+    Marpa_Rule_ID lexer_rule;
     Marpa_Symbol_ID g1_lexeme;
 PPCODE:
 {
-  Marpa_Rule_ID highest_g0_rule_id = marpa_g_highest_rule_id (slg->g0_wrapper->g);
-  Marpa_Symbol_ID highest_g1_symbol_id = marpa_g_highest_symbol_id (slg->g1);
+  Marpa_Rule_ID highest_lexer_rule_id;
+  Marpa_Symbol_ID highest_g1_symbol_id;
+  Lexer *lexer;
+
+  if (lexer_ix < 0 || lexer_ix >= slg->lexer_count)
+    {
+      croak
+	("slg->lexer_rule_to_g1_lexeme_set(%ld, %ld, %ld) called for invalid lexer(%ld)",
+	 (long) lexer_rule, (long) lexer_ix, (long) g1_lexeme, (long) lexer);
+    }
+  highest_lexer_rule_id = marpa_g_highest_rule_id (slg->g0_wrapper->g);
+  highest_g1_symbol_id = marpa_g_highest_symbol_id (slg->g1);
   if (slg->precomputed)
     {
       croak
-	("slg->g0_rule_to_g1_lexeme_set(%ld, %ld) called after SLG is precomputed",
-	 (long) g0_rule, (long) g1_lexeme);
+	("slg->lexer_rule_to_g1_lexeme_set(%ld, %ld, %ld) called after SLG is precomputed",
+	 (long) lexer_rule, (long) lexer_ix, (long) g1_lexeme);
     }
-  if (g0_rule > highest_g0_rule_id)
+  if (lexer_rule > highest_lexer_rule_id)
     {
       croak
-	("Problem in slg->g0_rule_to_g1_lexeme_set(%ld, %ld): rule ID was %ld, but highest G0 rule ID = %ld",
-	 (long) g0_rule,
-	 (long) g1_lexeme, (long) g0_rule, (long) highest_g0_rule_id);
+	("Problem in slg->lexer_rule_to_g1_lexeme_set(%ld, %ld, %ld): rule ID was %ld, but highest G0 rule ID = %ld",
+	 (long) lexer_rule, (long) lexer_ix,
+	 (long) g1_lexeme, (long) lexer_rule, (long) highest_lexer_rule_id);
     }
   if (g1_lexeme > highest_g1_symbol_id)
     {
       croak
-	("Problem in slg->g0_rule_to_g1_lexeme_set(%ld, %ld): symbol ID was %ld, but highest G1 symbol ID = %ld",
-	 (long) g0_rule,
-	 (long) g1_lexeme, (long) g0_rule, (long) highest_g1_symbol_id);
+	("Problem in slg->lexer_rule_to_g1_lexeme_set(%ld, %ld, %ld): symbol ID was %ld, but highest G1 symbol ID = %ld",
+	 (long) lexer_rule, (long) lexer_ix,
+	 (long) g1_lexeme, (long) lexer_rule, (long) highest_g1_symbol_id);
     }
-  if (g0_rule < -2)
+  if (lexer_rule < -2)
     {
       croak
-	("Problem in slg->g0_rule_to_g1_lexeme_set(%ld, %ld): rule ID was %ld, a disallowed value",
-	 (long) g0_rule, (long) g1_lexeme, (long) g0_rule);
+	("Problem in slg->lexer_rule_to_g1_lexeme_set(%ld, %ld, %ld): rule ID was %ld, a disallowed value",
+	 (long) lexer_rule, (long) lexer_ix, (long) g1_lexeme,
+	 (long) lexer_rule);
     }
   if (g1_lexeme < -2)
     {
       croak
-	("Problem in slg->g0_rule_to_g1_lexeme_set(%ld, %ld): symbol ID was %ld, a disallowed value",
-	 (long) g0_rule, (long) g1_lexeme, (long) g1_lexeme);
+	("Problem in slg->lexer_rule_to_g1_lexeme_set(%ld, %ld, %ld): symbol ID was %ld, a disallowed value",
+	 (long) lexer_rule, (long) lexer_ix, (long) g1_lexeme,
+	 (long) g1_lexeme);
     }
-  slg->g0_rule_to_g1_lexeme[g0_rule] = g1_lexeme;
+  lexer = slg->lexers[lexer_ix];
+  lexer->lexer_rule_to_g1_lexeme[lexer_rule] = g1_lexeme;
   XSRETURN_YES;
 }
 

@@ -628,7 +628,7 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
             ? -2
             : ( $g0_lexeme_to_g1_symbol[$lhs_id] // -1 );
         $g0_rule_to_g1_lexeme[$rule_id] = $lexeme_id;
-        $thin_slg->g0_rule_to_g1_lexeme_set( $rule_id, $lexeme_id );
+        $thin_slg->lexer_rule_to_g1_lexeme_set( 0, $rule_id, $lexeme_id );
     } ## end RULE_ID: for my $rule_id ( 0 .. $g0_thin->highest_rule_id() )
 
     $thin_slg->precompute();
