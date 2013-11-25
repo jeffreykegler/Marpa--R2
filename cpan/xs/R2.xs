@@ -137,7 +137,8 @@ typedef struct
 {
   SV *g0_sv;
   Marpa_Symbol_ID *lexer_rule_to_g1_lexeme;
-  HV *per_codepoint_ops;
+  HV *per_codepoint_hash;
+  IV *per_codepoint_array[128];
 } Lexer;
 
 typedef struct {
@@ -495,12 +496,16 @@ static Lexer* lexer_new(SV* g_sv)
   dTHX;
   Lexer *lexer;
   G_Wrapper *g_wrapper;
+  int i;
   int rule_ix;
   Marpa_Rule_ID lexer_rule_count;
 
   Newx (lexer, 1, Lexer);
   lexer->g0_sv = g_sv;
-  lexer->per_codepoint_ops = newHV ();
+  lexer->per_codepoint_hash = newHV ();
+  for (i = 0; i < Dim(lexer->per_codepoint_array); i++) {
+    lexer->per_codepoint_array[i] = NULL;
+  }
   SET_G_WRAPPER_FROM_G_SV (g_wrapper, g_sv);
   lexer_rule_count = marpa_g_highest_rule_id (g_wrapper->g) + 1;
   Newx (lexer->lexer_rule_to_g1_lexeme, lexer_rule_count, Marpa_Symbol_ID);
@@ -515,8 +520,12 @@ static Lexer* lexer_new(SV* g_sv)
 static void lexer_destroy(Lexer *lexer)
 {
   dTHX;
+  int i;
   Safefree (lexer->lexer_rule_to_g1_lexeme);
-  SvREFCNT_dec (lexer->per_codepoint_ops);
+  SvREFCNT_dec (lexer->per_codepoint_hash);
+  for (i = 0; i < Dim(lexer->per_codepoint_array); i++) {
+    Safefree(lexer->per_codepoint_array[i]);
+  }
   SvREFCNT_dec (lexer->g0_sv);
 }
 
@@ -737,18 +746,28 @@ u_read(Scanless_R *slr)
 	  codepoint_length = 1;
 	}
 
-      {
-	STRLEN dummy;
-	SV **p_ops_sv =
-	  hv_fetch (lexer->per_codepoint_ops, (char *) &codepoint,
-		    (I32) sizeof (codepoint), 0);
-	if (!p_ops_sv)
-	  {
-	    stream->codepoint = codepoint;
-	    return -2;
-	  }
-	ops = (IV *) SvPV (*p_ops_sv, dummy);
-      }
+      if (codepoint < Dim (lexer->per_codepoint_array))
+	{
+	  ops = lexer->per_codepoint_array[codepoint];
+	  if (!ops)
+	    {
+	      stream->codepoint = codepoint;
+	      return -2;
+	    }
+	}
+      else
+	{
+	  STRLEN dummy;
+	  SV **p_ops_sv = hv_fetch (lexer->per_codepoint_hash, (char *) &codepoint,
+				    (I32) sizeof (codepoint), 0);
+	  if (!p_ops_sv)
+	    {
+	      stream->codepoint = codepoint;
+	      return -2;
+	    }
+	  ops = (IV *) SvPV (*p_ops_sv, dummy);
+	}
+
       if (trace_lexer >= 1)
 	{
 	  AV *event;
@@ -5321,11 +5340,25 @@ PPCODE:
   /* OP Count is args less two, then plus two for codepoint and length fields */
   const STRLEN op_count = items;
   STRLEN op_ix;
-  STRLEN dummy;
   IV *ops;
-  SV *ops_sv = newSV (op_count * sizeof (ops[0]));
-  SvPOK_on (ops_sv);
-  ops = (IV *) SvPV (ops_sv, dummy);
+  SV *ops_sv;
+  Lexer *lexer = slg->current_lexer;
+  const int array_size = Dim (lexer->per_codepoint_array);
+  const int use_array = codepoint < array_size;
+
+  if (use_array)
+    {
+      ops = lexer->per_codepoint_array[codepoint];
+      ops = Renew (ops, op_count, IV);
+      lexer->per_codepoint_array[codepoint] = ops;
+    }
+  else
+    {
+      STRLEN dummy;
+      ops_sv = newSV (op_count * sizeof (ops[0]));
+      SvPOK_on (ops_sv);
+      ops = (IV *) SvPV (ops_sv, dummy);
+    }
   ops[0] = codepoint;
   ops[1] = op_count;
   for (op_ix = 2; op_ix < op_count; op_ix++)
@@ -5335,8 +5368,11 @@ PPCODE:
        */
       ops[op_ix] = SvUV (ST (op_ix));
     }
-  hv_store (slg->current_lexer->per_codepoint_ops, (char *) &codepoint,
-	    sizeof (codepoint), ops_sv, 0);
+  if (!use_array)
+    {
+      hv_store (slg->current_lexer->per_codepoint_hash, (char *) &codepoint,
+		sizeof (codepoint), ops_sv, 0);
+    }
 }
 
 MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin::SLR
