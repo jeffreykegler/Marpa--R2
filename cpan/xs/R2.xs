@@ -91,8 +91,6 @@ typedef struct {
      /* Location (exclusive) at which to stop reading */
      int end_pos;
      SV* input;
-     Marpa_Symbol_ID input_symbol_id;
-     UV codepoint; /* For error returns */
 
      int too_many_earley_items;
 } Unicode_Stream;
@@ -179,6 +177,9 @@ typedef struct
   Pos_Entry *pos_db;
   int pos_db_logical_size;
   int pos_db_physical_size;
+
+  Marpa_Symbol_ID input_symbol_id;
+  UV codepoint;			/* For error returns */
 } Scanless_R;
 #define TOKEN_VALUE_IS_UNDEF (1)
 #define TOKEN_VALUE_IS_LITERAL (2)
@@ -546,7 +547,6 @@ static Unicode_Stream* u_new(SV* g_sv)
   stream->g0_sv = g_sv;
   stream->input = newSVpvn ("", 0);
   stream->end_pos = 0;
-  stream->input_symbol_id = -1;
   stream->too_many_earley_items = -1;
   return stream;
 }
@@ -732,7 +732,7 @@ u_read(Scanless_R *slr)
 	  ops = lexer->per_codepoint_array[codepoint];
 	  if (!ops)
 	    {
-	      stream->codepoint = codepoint;
+	      slr->codepoint = codepoint;
 	      return -2;
 	    }
 	}
@@ -743,7 +743,7 @@ u_read(Scanless_R *slr)
 				    (I32) sizeof (codepoint), 0);
 	  if (!p_ops_sv)
 	    {
-	      stream->codepoint = codepoint;
+	      slr->codepoint = codepoint;
 	      return -2;
 	    }
 	  ops = (IV *) SvPV (*p_ops_sv, dummy);
@@ -801,7 +801,7 @@ u_read(Scanless_R *slr)
 		     * the minimum number of tokens accepted,
 		     * we have one of them as an example
 		     */
-		    stream->input_symbol_id = symbol_id;
+		    slr->input_symbol_id = symbol_id;
 		    if (trace_lexer >= 1)
 		      {
 			AV *event;
@@ -833,8 +833,8 @@ u_read(Scanless_R *slr)
 		    tokens_accepted++;
 		    break;
 		  default:
-		    stream->codepoint = codepoint;
-		    stream->input_symbol_id = symbol_id;
+		    slr->codepoint = codepoint;
+		    slr->input_symbol_id = symbol_id;
 		    croak
 		      ("Problem alternative() failed at char ix %ld; symbol id %ld; codepoint 0x%lx\n"
 		       "Problem in u_read(), alternative() failed: %s",
@@ -849,7 +849,7 @@ u_read(Scanless_R *slr)
 		int result;
 		if (tokens_accepted < 1)
 		  {
-		    stream->codepoint = codepoint;
+		    slr->codepoint = codepoint;
 		    return -1;
 		  }
 		result = marpa_r_earleme_complete (r);
@@ -2969,22 +2969,6 @@ PPCODE:
 }
 
 MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin::U
-
-void
-codepoint( stream )
-     Unicode_Stream *stream;
-PPCODE:
-{
-  XSRETURN_UV(stream->codepoint);
-}
-
-void
-symbol_id( stream )
-     Unicode_Stream *stream;
-PPCODE:
-{
-  XSRETURN_IV(stream->input_symbol_id);
-}
 
 void
 DESTROY( stream )
@@ -5214,6 +5198,8 @@ PPCODE:
   slr->pos_db_logical_size = -1;
   slr->pos_db_physical_size = -1;
 
+  slr->input_symbol_id = -1;
+
   new_sv = sv_newmortal ();
   sv_setref_pv (new_sv, scanless_r_class_name, (void *) slr);
   XPUSHs (new_sv);
@@ -5972,6 +5958,22 @@ input_length( slr )
 PPCODE:
 {
   XSRETURN_IV(slr->pos_db_logical_size);
+}
+
+void
+codepoint( slr )
+     Scanless_R *slr;
+PPCODE:
+{
+  XSRETURN_UV(slr->codepoint);
+}
+
+void
+symbol_id( slr )
+     Scanless_R *slr;
+PPCODE:
+{
+  XSRETURN_IV(slr->input_symbol_id);
 }
 
 INCLUDE: general_pattern.xsh

@@ -1429,7 +1429,7 @@ sub Marpa::R2::Scanless::R::resume {
                 Marpa::R2::Thin::op('earleme_complete');
 
             # Recover by registering character, if we can
-            my $codepoint = $stream->codepoint();
+            my $codepoint = $thin_slr->codepoint();
             my $character = chr($codepoint);
             my @ops;
             for my $entry (
