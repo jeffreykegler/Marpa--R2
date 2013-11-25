@@ -1011,9 +1011,9 @@ sub Marpa::R2::Scanless::R::thin {
 
 sub Marpa::R2::Scanless::R::trace {
     my ( $self, $level ) = @_;
+    my $thin_slr = $self->[Marpa::R2::Inner::Scanless::R::C];
     $level //= 1;
-    my $stream = $self->stream();
-    return $stream->trace($level);
+    return $thin_slr->trace($level);
 } ## end sub Marpa::R2::Scanless::R::trace
 
 sub Marpa::R2::Scanless::R::trace_lexer {
@@ -1399,7 +1399,6 @@ sub Marpa::R2::Scanless::R::resume {
 
         my $problem_code = $thin_slr->read();
         last OUTER_READ if not $problem_code;
-        my $stream = $thin_slr->stream();
         my $pause =
             Marpa::R2::Inner::Scanless::convert_libmarpa_events($slr);
 
@@ -1467,7 +1466,7 @@ sub Marpa::R2::Scanless::R::resume {
                 'Lexing failed at unacceptable character ',
                 character_describe( chr $codepoint )
             ) if not @ops;
-            $thin_slg->char_register( $codepoint, @ops, $op_earleme_complete );
+            $thin_slr->char_register( $codepoint, @ops, $op_earleme_complete );
             next OUTER_READ;
         } ## end if ( $problem_code eq 'unregistered char' )
 
@@ -1501,7 +1500,6 @@ sub Marpa::R2::Scanless::R::read_problem {
     my $thick_lex_grammar =
         $grammar->[Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMAR];
     my $lex_tracer = $thick_lex_grammar->tracer();
-    my $stream     = $thin_slr->stream();
 
     my $trace_file_handle =
         $slr->[Marpa::R2::Inner::Scanless::R::TRACE_FILE_HANDLE];
@@ -1536,7 +1534,7 @@ sub Marpa::R2::Scanless::R::read_problem {
         } ## end if ( $problem_code eq 'no lexeme' )
         if ( $problem_code eq 'R0 read() problem' ) {
             $problem = undef;    # let $stream_status do the work
-            $stream_status = $thin_slr->stream_read_result();
+            $stream_status = $thin_slr->input_read_result();
             last CODE_TO_PROBLEM;
         }
         if ( $problem_code eq 'no lexemes accepted' ) {
