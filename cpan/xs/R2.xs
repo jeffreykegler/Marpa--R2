@@ -94,10 +94,6 @@ typedef struct {
      Marpa_Symbol_ID input_symbol_id;
      UV codepoint; /* For error returns */
 
-     /* The minimum number of tokens that must
-       be accepted at an earleme */
-     IV minimum_accepted;
-     AV* event_queue;
      Pos_Entry* pos_db;
      int pos_db_logical_size;
      int pos_db_physical_size;
@@ -554,8 +550,6 @@ static Unicode_Stream* u_new(SV* g_sv)
   stream->pos_db_logical_size = -1;
   stream->pos_db_physical_size = -1;
   stream->input_symbol_id = -1;
-  stream->minimum_accepted = 1;
-  stream->event_queue = newAV ();
   stream->too_many_earley_items = -1;
   return stream;
 }
@@ -563,7 +557,6 @@ static Unicode_Stream* u_new(SV* g_sv)
 static void u_destroy(Unicode_Stream *stream)
 {
   dTHX;
-  SvREFCNT_dec (stream->event_queue);
   Safefree(stream->pos_db);
   SvREFCNT_dec (stream->input);
   SvREFCNT_dec (stream->g0_sv);
@@ -711,7 +704,6 @@ u_read(Scanless_R *slr)
       STRLEN op_ix;
       STRLEN op_count;
       IV *ops;
-      IV minimum_accepted = stream->minimum_accepted;
       int tokens_accepted = 0;
       if (slr->perl_pos >= stream->end_pos)
 	break;
@@ -770,7 +762,7 @@ u_read(Scanless_R *slr)
 	  event_data[2] = newSViv ((IV) codepoint);
 	  event_data[3] = newSViv ((IV) slr->perl_pos);
 	  event = av_make (Dim (event_data), event_data);
-	  av_push (stream->event_queue, newRV_noinc ((SV *) event));
+	  av_push (slr->r1_wrapper->event_queue, newRV_noinc ((SV *) event));
 	}
 
       /* ops[0] is codepoint */
@@ -824,7 +816,7 @@ u_read(Scanless_R *slr)
 			event_data[3] = newSViv ((IV) slr->perl_pos);
 			event_data[4] = newSViv ((IV) symbol_id);
 			event = av_make (Dim (event_data), event_data);
-			av_push (stream->event_queue,
+			av_push (slr->r1_wrapper->event_queue,
 				 newRV_noinc ((SV *) event));
 		      }
 		    break;
@@ -839,7 +831,7 @@ u_read(Scanless_R *slr)
 			event_data[3] = newSViv ((IV) slr->perl_pos);
 			event_data[4] = newSViv ((IV) symbol_id);
 			event = av_make (Dim (event_data), event_data);
-			av_push (stream->event_queue,
+			av_push (slr->r1_wrapper->event_queue,
 				 newRV_noinc ((SV *) event));
 		      }
 		    tokens_accepted++;
@@ -859,7 +851,7 @@ u_read(Scanless_R *slr)
 	    case op_earleme_complete:
 	      {
 		int result;
-		if (tokens_accepted < minimum_accepted)
+		if (tokens_accepted < 1)
 		  {
 		    stream->codepoint = codepoint;
 		    return -1;
@@ -5542,7 +5534,7 @@ PPCODE:
   slr->start_of_pause_lexeme = -1;
   slr->end_of_pause_lexeme = -1;
   slr->pause_lexeme = -1;
-  av_clear (stream->event_queue);
+  av_clear (slr->r1_wrapper->event_queue);
 
   while (1)
     {
@@ -5566,11 +5558,9 @@ PPCODE:
 	      event_data[1] = newSVpv ("g0 restarted recognizer", 0);
 	      event_data[2] = newSViv ((IV) slr->perl_pos);
 	      event = av_make (Dim (event_data), event_data);
-	      av_push (stream->event_queue, newRV_noinc ((SV *) event));
+	      av_push (slr->r1_wrapper->event_queue, newRV_noinc ((SV *) event));
 	    }
 	}
-
-      av_clear (slr->r1_wrapper->event_queue);
 
       result = slr->stream_read_result = u_read (slr);
       if (result == -4)
@@ -5664,16 +5654,9 @@ events(slr)
     Scanless_R *slr;
 PPCODE:
 {
-  Unicode_Stream *stream = slr->stream;
   int i;
-  const int stream_queue_length = av_len (stream->event_queue);
-  const int slr_queue_length = av_len (slr->r1_wrapper->event_queue);
-  for (i = 0; i <= stream_queue_length; i++)
-    {
-    SV *event = av_shift (stream->event_queue);
-      XPUSHs (sv_2mortal (event));
-    }
-  for (i = 0; i <= slr_queue_length; i++)
+  const int queue_length = av_len (slr->r1_wrapper->event_queue);
+  for (i = 0; i <= queue_length; i++)
     {
       SV *event = av_shift (slr->r1_wrapper->event_queue);
       XPUSHs (sv_2mortal (event));
