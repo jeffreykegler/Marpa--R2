@@ -94,17 +94,14 @@ typedef struct {
      Marpa_Symbol_ID input_symbol_id;
      UV codepoint; /* For error returns */
 
-     Pos_Entry* pos_db;
-     int pos_db_logical_size;
-     int pos_db_physical_size;
      int too_many_earley_items;
 } Unicode_Stream;
 
 #undef POS_TO_OFFSET
-#define POS_TO_OFFSET(stream, pos) \
-  ((pos) > 0 ? (stream)->pos_db[(pos) - 1].next_offset : 0)
+#define POS_TO_OFFSET(slr, pos) \
+  ((pos) > 0 ? (slr)->pos_db[(pos) - 1].next_offset : 0)
 #undef OFFSET_OF_STREAM
-#define OFFSET_OF_STREAM(slr) POS_TO_OFFSET(((slr)->stream), (slr)->perl_pos)
+#define OFFSET_OF_STREAM(slr) POS_TO_OFFSET((slr), (slr)->perl_pos)
 
 struct lexeme_g_properties {
      int priority;
@@ -167,18 +164,21 @@ typedef struct
   int stream_read_result;
   int r1_earleme_complete_result;
   int perl_pos;
-     Marpa_Recce r0;
-     /* character position, taking into account Unicode
-         Equivalent to Perl pos()
-	 One past last actual position indicates past-end-of-string
-     */
-     /* Position of problem -- unspecifed if not returning a problem */
-     int problem_pos;
+  Marpa_Recce r0;
+  /* character position, taking into account Unicode
+     Equivalent to Perl pos()
+     One past last actual position indicates past-end-of-string
+   */
+  /* Position of problem -- unspecifed if not returning a problem */
+  int problem_pos;
   int throw;
   int start_of_pause_lexeme;
   int end_of_pause_lexeme;
   Marpa_Symbol_ID pause_lexeme;
   struct lexeme_r_properties *g1_lexeme_properties;
+  Pos_Entry *pos_db;
+  int pos_db_logical_size;
+  int pos_db_physical_size;
 } Scanless_R;
 #define TOKEN_VALUE_IS_UNDEF (1)
 #define TOKEN_VALUE_IS_LITERAL (2)
@@ -546,9 +546,6 @@ static Unicode_Stream* u_new(SV* g_sv)
   stream->g0_sv = g_sv;
   stream->input = newSVpvn ("", 0);
   stream->end_pos = 0;
-  stream->pos_db = 0;
-  stream->pos_db_logical_size = -1;
-  stream->pos_db_physical_size = -1;
   stream->input_symbol_id = -1;
   stream->too_many_earley_items = -1;
   return stream;
@@ -557,7 +554,6 @@ static Unicode_Stream* u_new(SV* g_sv)
 static void u_destroy(Unicode_Stream *stream)
 {
   dTHX;
-  Safefree(stream->pos_db);
   SvREFCNT_dec (stream->input);
   SvREFCNT_dec (stream->g0_sv);
   Safefree (stream);
@@ -910,7 +906,7 @@ u_pos_set (Scanless_R * slr, const char* name, int start_pos_arg, int length_arg
   dTHX;
   Unicode_Stream * stream  = slr->stream;
   const STRLEN old_perl_pos = slr->perl_pos;
-  const STRLEN input_length = stream->pos_db_logical_size;
+  const STRLEN input_length = slr->pos_db_logical_size;
   int new_perl_pos;
   int new_end_pos;
 
@@ -919,7 +915,7 @@ u_pos_set (Scanless_R * slr, const char* name, int start_pos_arg, int length_arg
   } else {
       new_perl_pos = start_pos_arg;
   }
-  if (new_perl_pos < 0 || new_perl_pos > stream->pos_db_logical_size)
+  if (new_perl_pos < 0 || new_perl_pos > slr->pos_db_logical_size)
   {
       croak ("Bad start position in %s(): %ld", name, (long)start_pos_arg);
   }
@@ -929,7 +925,7 @@ u_pos_set (Scanless_R * slr, const char* name, int start_pos_arg, int length_arg
   } else {
     new_end_pos = new_perl_pos + length_arg;
   }
-  if (new_end_pos < 0 || new_end_pos > stream->pos_db_logical_size)
+  if (new_end_pos < 0 || new_end_pos > slr->pos_db_logical_size)
   {
       croak ("Bad length in %s(): %ld", name, (long)length_arg);
   }
@@ -942,27 +938,28 @@ u_pos_set (Scanless_R * slr, const char* name, int start_pos_arg, int length_arg
 }
 
 static SV *
-u_pos_span_to_literal_sv (Unicode_Stream * stream,
+u_pos_span_to_literal_sv (Scanless_R * slr,
 			  int start_pos, int length_in_positions)
 {
   dTHX;
   STRLEN dummy;
+  Unicode_Stream *stream = slr->stream;
   char *input = SvPV (stream->input, dummy);
-  int start_offset = POS_TO_OFFSET (stream, start_pos);
+  int start_offset = POS_TO_OFFSET (slr, start_pos);
   int length_in_bytes =
-    POS_TO_OFFSET (stream,
+    POS_TO_OFFSET (slr,
 		   start_pos + length_in_positions) - start_offset;
   return newSVpvn (input + start_offset, length_in_bytes);
 }
 
 static SV*
-u_substring (Unicode_Stream * stream, const char *name, int start_pos_arg,
+u_substring (Scanless_R * slr, const char *name, int start_pos_arg,
 	     int length_arg)
 {
   dTHX;
   int start_pos;
   int end_pos;
-  const int input_length = stream->pos_db_logical_size;
+  const int input_length = slr->pos_db_logical_size;
   int substring_length;
 
   start_pos =
@@ -979,7 +976,7 @@ u_substring (Unicode_Stream * stream, const char *name, int start_pos_arg,
       croak ("Bad length in %s: %ld", name, (long) length_arg);
     }
   substring_length = end_pos - start_pos;
-  return u_pos_span_to_literal_sv (stream, start_pos, substring_length);
+  return u_pos_span_to_literal_sv (slr, start_pos, substring_length);
 }
 
 /* Static valuator methods */
@@ -2257,7 +2254,7 @@ slr_es_to_literal_span (Scanless_R * slr,
   if (start_earley_set >= latest_earley_set)
     {
       /* Should only happen if length == 0 */
-      *p_start = slr->stream->pos_db_logical_size;
+      *p_start = slr->pos_db_logical_size;
       *p_length = 0;
       return;
     }
@@ -2289,7 +2286,7 @@ slr_es_span_to_literal_sv (Scanless_R * slr,
       slr_es_to_literal_span (slr,
 			      start_earley_set, length,
 			      &start_position, &length_in_positions);
-      return u_pos_span_to_literal_sv(stream, start_position, length_in_positions);
+      return u_pos_span_to_literal_sv(slr, start_position, length_in_positions);
     }
   return newSVpvn ("", 0);
 }
@@ -2974,17 +2971,6 @@ PPCODE:
 MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin::U
 
 void
-substring(stream, start_pos, length)
-    Unicode_Stream *stream;
-    int start_pos;
-    int length;
-PPCODE:
-{
-  SV* literal_sv = u_substring(stream, "stream->substring()", start_pos, length);
-  XPUSHs (sv_2mortal (literal_sv));
-}
-
-void
 codepoint( stream )
      Unicode_Stream *stream;
 PPCODE:
@@ -2998,110 +2984,6 @@ symbol_id( stream )
 PPCODE:
 {
   XSRETURN_IV(stream->input_symbol_id);
-}
-
-void
-string_set( stream, string )
-     Unicode_Stream *stream;
-     SVREF string;
-PPCODE:
-{
-  U8* p;
-  U8* start_of_string;
-  U8* end_of_string;
-  int input_is_utf8;
-
-  /* Initialized to a Unicode non-character.  In fact, anything
-   * but a CR would work here.
-   */
-  UV previous_codepoint = 0xFDD0;
-  int next_line = 1;
-  int next_column = 0;
-
-  STRLEN pv_length;
-
-  /* Fail fast with a tainted input string */
-  if (SvTAINTED(string)) {
-      croak
-	("Problem in v->string_set(): Attempt to use a tainted input string with Marpa::R2\n"
-	"Marpa::R2 is insecure for use with tainted data\n");
-  }
-
-  /* Get our own copy and coerce it to a PV.
-   * Stealing is OK, magic is not.
-   */
-  SvSetSV (stream->input, string);
-  start_of_string = (U8*)SvPV_force_nomg (stream->input, pv_length);
-  end_of_string = start_of_string + pv_length;
-  input_is_utf8 = SvUTF8 (stream->input);
-
-  stream->pos_db_logical_size = 0;
-  /* This original buffer size my be too small.
-   */
-  stream->pos_db_physical_size = 1024;
-  Newx (stream->pos_db, stream->pos_db_physical_size, Pos_Entry);
-
-  for (p = start_of_string; p < end_of_string; ) {
-      STRLEN codepoint_length;
-      UV codepoint;
-      if (input_is_utf8)
-	{
-	  codepoint = utf8_to_uvchr_buf (p, end_of_string, &codepoint_length);
-	  /* Perl API documents that return value is 0 and length is -1 on error,
-	   * "if possible".  length can be, and is, in fact unsigned.
-	   * I deal with this by noting that 0 is a valid UTF8 char but should
-	   * have a length of 1, when valid.
-	   */
-	  if (codepoint == 0 && codepoint_length != 1)
-	    {
-	      croak
-		("Problem in stream->string_set(): invalid UTF8 character");
-	    }
-	}
-      else
-	{
-	  codepoint = (UV) * p;
-	  codepoint_length = 1;
-	}
-      /* Ensure that there is enough space */
-      if (stream->pos_db_logical_size >= stream->pos_db_physical_size)
-	{
-	  stream->pos_db_physical_size *= 2;
-	  stream->pos_db =
-	    Renew (stream->pos_db, stream->pos_db_physical_size, Pos_Entry);
-	}
-      p += codepoint_length;
-      stream->pos_db[stream->pos_db_logical_size].next_offset =
-	p - start_of_string;
-
-	/* The definition of newline here follows the Unicode standard TR13 */
-      if (codepoint == 0x0a && previous_codepoint == 0x0d) {
-	stream->pos_db[stream->pos_db_logical_size].linecol =
-	  stream->pos_db[stream->pos_db_logical_size-1].linecol - 1;
-      } else {
-	stream->pos_db[stream->pos_db_logical_size].linecol = next_column ? next_column : next_line;
-      }
-      switch (codepoint) {
-      case 0x0a: case 0x0b: case 0x0c: case 0x0d:
-      case 0x85: case 0x2028: case 0x2029:
-          next_line++;
-	  next_column = 0;
-	  break;
-      default:
-          next_column--;
-      }
-      stream->pos_db_logical_size++;
-      previous_codepoint = codepoint;
-    }
-  XSRETURN_YES;
-}
-
-void
-input_length( stream )
-     Unicode_Stream *stream;
-PPCODE:
-{
-  XSRETURN_IV(stream->pos_db_logical_size);
 }
 
 void
@@ -5328,6 +5210,10 @@ PPCODE:
   slr->end_of_pause_lexeme = -1;
   slr->pause_lexeme = -1;
 
+  slr->pos_db = 0;
+  slr->pos_db_logical_size = -1;
+  slr->pos_db_physical_size = -1;
+
   new_sv = sv_newmortal ();
   sv_setref_pv (new_sv, scanless_r_class_name, (void *) slr);
   XPUSHs (new_sv);
@@ -5343,6 +5229,7 @@ PPCODE:
     {
       marpa_r_unref (r0);
     }
+  Safefree(slr->pos_db);
   SvREFCNT_dec (slr->stream_sv);
   SvREFCNT_dec (slr->slg_sv);
   SvREFCNT_dec (slr->r1_sv);
@@ -5452,7 +5339,6 @@ pos( slr )
     Scanless_R *slr;
 PPCODE:
 {
-  Unicode_Stream *stream = slr->stream;
   XSRETURN_IV(slr->perl_pos);
 }
 
@@ -5465,7 +5351,7 @@ PPCODE:
 {
   int start_pos = SvIOK(start_pos_sv) ? SvIV(start_pos_sv) : slr->perl_pos;
   int length = SvIOK(length_sv) ? SvIV(length_sv) : -1;
-  u_pos_set(slr, "stream->pos_set", start_pos, length);
+  u_pos_set(slr, "slr->pos_set", start_pos, length);
   slr->g0_start_pos = slr->perl_pos;
   XSRETURN_YES;
 }
@@ -5477,8 +5363,7 @@ substring(slr, start_pos, length)
     int length;
 PPCODE:
 {
-  Unicode_Stream *stream = slr->stream;
-  SV* literal_sv = u_substring(stream, "slr->substring()", start_pos, length);
+  SV* literal_sv = u_substring(slr, "slr->substring()", start_pos, length);
   XPUSHs (sv_2mortal (literal_sv));
 }
 
@@ -5693,7 +5578,6 @@ line_column(slr, pos)
      IV pos;
 PPCODE:
 {
-  Unicode_Stream *stream = slr->stream;
   int line = 1;
   int column = 1;
   int linecol;
@@ -5701,19 +5585,19 @@ PPCODE:
     {
       pos = slr->perl_pos;
     }
-  if (pos >= stream->pos_db_logical_size)
+  if (pos >= slr->pos_db_logical_size)
     {
       croak ("Problem in slr->line_column(%ld): position out of range",
 	     (long) pos);
     }
-  linecol = stream->pos_db[pos].linecol;
+  linecol = slr->pos_db[pos].linecol;
   if (linecol >= 0)
     {				/* Zero should not happen */
       line = linecol;
     }
   else
     {
-      line = stream->pos_db[pos + linecol].linecol;
+      line = slr->pos_db[pos + linecol].linecol;
       column = -linecol + 1;
     }
   XPUSHs (sv_2mortal (newSViv ((IV) line)));
@@ -5778,7 +5662,7 @@ PPCODE:
   int result;
   Unicode_Stream *stream = slr->stream;
   const int old_pos = slr->perl_pos;
-  const int input_length = stream->pos_db_logical_size;
+  const int input_length = slr->pos_db_logical_size;
 
   int start_pos =
     SvIOK (start_pos_sv) ? SvIV (start_pos_sv) : slr->perl_pos;
@@ -5983,6 +5867,111 @@ PPCODE:
   XPUSHs (sv_2mortal (newSViv (rule_id)));
   XPUSHs (sv_2mortal (newSViv (position)));
   XPUSHs (sv_2mortal (newSViv (origin)));
+}
+
+void
+string_set( slr, string )
+     Scanless_R *slr;
+     SVREF string;
+PPCODE:
+{
+  U8* p;
+  U8* start_of_string;
+  U8* end_of_string;
+  int input_is_utf8;
+  Unicode_Stream *stream = slr->stream;
+
+  /* Initialized to a Unicode non-character.  In fact, anything
+   * but a CR would work here.
+   */
+  UV previous_codepoint = 0xFDD0;
+  int next_line = 1;
+  int next_column = 0;
+
+  STRLEN pv_length;
+
+  /* Fail fast with a tainted input string */
+  if (SvTAINTED(string)) {
+      croak
+	("Problem in v->string_set(): Attempt to use a tainted input string with Marpa::R2\n"
+	"Marpa::R2 is insecure for use with tainted data\n");
+  }
+
+  /* Get our own copy and coerce it to a PV.
+   * Stealing is OK, magic is not.
+   */
+  SvSetSV (stream->input, string);
+  start_of_string = (U8*)SvPV_force_nomg (stream->input, pv_length);
+  end_of_string = start_of_string + pv_length;
+  input_is_utf8 = SvUTF8 (stream->input);
+
+  slr->pos_db_logical_size = 0;
+  /* This original buffer size my be too small.
+   */
+  slr->pos_db_physical_size = 1024;
+  Newx (slr->pos_db, slr->pos_db_physical_size, Pos_Entry);
+
+  for (p = start_of_string; p < end_of_string; ) {
+      STRLEN codepoint_length;
+      UV codepoint;
+      if (input_is_utf8)
+	{
+	  codepoint = utf8_to_uvchr_buf (p, end_of_string, &codepoint_length);
+	  /* Perl API documents that return value is 0 and length is -1 on error,
+	   * "if possible".  length can be, and is, in fact unsigned.
+	   * I deal with this by noting that 0 is a valid UTF8 char but should
+	   * have a length of 1, when valid.
+	   */
+	  if (codepoint == 0 && codepoint_length != 1)
+	    {
+	      croak
+		("Problem in slr->string_set(): invalid UTF8 character");
+	    }
+	}
+      else
+	{
+	  codepoint = (UV) * p;
+	  codepoint_length = 1;
+	}
+      /* Ensure that there is enough space */
+      if (slr->pos_db_logical_size >= slr->pos_db_physical_size)
+	{
+	  slr->pos_db_physical_size *= 2;
+	  slr->pos_db =
+	    Renew (slr->pos_db, slr->pos_db_physical_size, Pos_Entry);
+	}
+      p += codepoint_length;
+      slr->pos_db[slr->pos_db_logical_size].next_offset =
+	p - start_of_string;
+
+	/* The definition of newline here follows the Unicode standard TR13 */
+      if (codepoint == 0x0a && previous_codepoint == 0x0d) {
+	slr->pos_db[slr->pos_db_logical_size].linecol =
+	  slr->pos_db[slr->pos_db_logical_size-1].linecol - 1;
+      } else {
+	slr->pos_db[slr->pos_db_logical_size].linecol = next_column ? next_column : next_line;
+      }
+      switch (codepoint) {
+      case 0x0a: case 0x0b: case 0x0c: case 0x0d:
+      case 0x85: case 0x2028: case 0x2029:
+          next_line++;
+	  next_column = 0;
+	  break;
+      default:
+          next_column--;
+      }
+      slr->pos_db_logical_size++;
+      previous_codepoint = codepoint;
+    }
+  XSRETURN_YES;
+}
+
+void
+input_length( slr )
+     Scanless_R *slr;
+PPCODE:
+{
+  XSRETURN_IV(slr->pos_db_logical_size);
 }
 
 INCLUDE: general_pattern.xsh

@@ -236,8 +236,7 @@ sub Marpa::R2::Scanless::R::g1_location_to_span {
 sub Marpa::R2::Scanless::R::literal {
     my ( $slr, $start_pos, $length ) = @_;
     my $thin_slr = $slr->[Marpa::R2::Inner::Scanless::R::C];
-    my $stream   = $thin_slr->stream();
-    return $stream->substring( $start_pos, $length );
+    return $thin_slr->substring( $start_pos, $length );
 } ## end sub Marpa::R2::Scanless::R::literal
 
 sub Marpa::R2::Internal::Scanless::meta_grammar {
@@ -1052,9 +1051,8 @@ sub Marpa::R2::Scanless::R::read {
     my $trace_lexer = $self->[Marpa::R2::Inner::Scanless::R::TRACE_LEXER] // 0;
     $thin_slr->trace_terminals($trace_terminals) if $trace_terminals;
     $self->lexer_trace($trace_lexer)               if $trace_lexer;
-    my $stream = $thin_slr->stream();
 
-    $stream->string_set($p_string);
+    $thin_slr->string_set($p_string);
 
     return 0 if @{ $self->[Marpa::R2::Inner::Scanless::R::EVENTS] };
 
@@ -1069,9 +1067,8 @@ my $libmarpa_trace_event_handlers = {
         my ( undef, undef, $lexeme_start_pos, $lexeme_end_pos, $g1_lexeme ) =
             @{$event};
         my $thin_slr = $slr->[Marpa::R2::Inner::Scanless::R::C];
-        my $stream   = $thin_slr->stream();
         my $raw_token_value =
-            $stream->substring( $lexeme_start_pos,
+            $thin_slr->substring( $lexeme_start_pos,
             $lexeme_end_pos - $lexeme_start_pos );
         my $trace_file_handle =
             $slr->[Marpa::R2::Inner::Scanless::R::TRACE_FILE_HANDLE];
@@ -1091,9 +1088,8 @@ my $libmarpa_trace_event_handlers = {
         my ( undef, undef, $lexeme_start_pos, $lexeme_end_pos, $g1_lexeme ) =
             @{$event};
         my $thin_slr = $slr->[Marpa::R2::Inner::Scanless::R::C];
-        my $stream   = $thin_slr->stream();
         my $raw_token_value =
-            $stream->substring( $lexeme_start_pos,
+            $thin_slr->substring( $lexeme_start_pos,
             $lexeme_end_pos - $lexeme_start_pos );
         my $trace_file_handle =
             $slr->[Marpa::R2::Inner::Scanless::R::TRACE_FILE_HANDLE];
@@ -1113,9 +1109,8 @@ my $libmarpa_trace_event_handlers = {
         my ( undef, undef, $lexeme_start_pos, $lexeme_end_pos, $g1_lexeme ) =
             @{$event};
         my $thin_slr = $slr->[Marpa::R2::Inner::Scanless::R::C];
-        my $stream   = $thin_slr->stream();
         my $raw_token_value =
-            $stream->substring( $lexeme_start_pos,
+            $thin_slr->substring( $lexeme_start_pos,
             $lexeme_end_pos - $lexeme_start_pos );
         my $trace_file_handle =
             $slr->[Marpa::R2::Inner::Scanless::R::TRACE_FILE_HANDLE];
@@ -1136,9 +1131,8 @@ my $libmarpa_trace_event_handlers = {
         my ( undef, undef, $lexeme_start_pos, $lexeme_end_pos, $g1_lexeme ) =
             @{$event};
         my $thin_slr = $slr->[Marpa::R2::Inner::Scanless::R::C];
-        my $stream   = $thin_slr->stream();
         my $raw_token_value =
-            $stream->substring( $lexeme_start_pos,
+            $thin_slr->substring( $lexeme_start_pos,
             $lexeme_end_pos - $lexeme_start_pos );
         my $trace_file_handle =
             $slr->[Marpa::R2::Inner::Scanless::R::TRACE_FILE_HANDLE];
@@ -1781,7 +1775,7 @@ sub Marpa::R2::Scanless::R::series_restart {
 sub g1_locations_to_input_range {
     my ( $slr, @g1_locations ) = @_;
     my $thin_slr = $slr->[Marpa::R2::Inner::Scanless::R::C];
-    my $first_pos = $thin_slr->stream()->input_length();
+    my $first_pos = $thin_slr->input_length();
     my $last_pos = 0;
     for my $g1_location (@g1_locations) {
         my ( $input_start, $input_length ) = $thin_slr->span($g1_location);
