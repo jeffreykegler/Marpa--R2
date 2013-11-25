@@ -605,23 +605,13 @@ The exception is the value for the start rule.
 The return value for the start rule becomes
 the parse result.
 
-=head1 Errors and exceptions
-
-Methods in the Marpa API usually do not return errors.
-When there are errors,
-Marpa API methods throw an exception.
-
-=head1 Inheritance
-
-Classes in Marpa's API's are not designed to
-be inherited.
-
 =head1 Tainted data
 
 Marpa::R2 exists to allow its input to alter execution in
 flexible and powerful ways.
 Marpa should not be used with untrusted input.
 In Perl' s taint mode, it is a fatal error to use Marpa's SLIF
+interface
 with a tainted grammar, a tainted input string,
 or tainted token values.
 
@@ -629,27 +619,18 @@ or tainted token values.
 
 When used in a thread-safe Perl, Marpa::R2 should be thread-safe,
 with one important restriction:
-All Marpa objects have a base grammar and all objects that share
-a base grammar write to it.
-All Marpa objects that share a base grammar must be created
+All Marpa objects that share the same grammar must be created
 and used within a single thread.
-
-All Marpa objects are either grammars,
-or are created from other Marpa objects.
-When a Marpa object is created from another Marpa object,
-the newly created Marpa object inherits the base grammar of its parent object.
-Marpa grammars are their own base grammar.
 
 This restriction may be lifted someday, but
 in practice it does not seem onerous.
-Note that what cannot be shared between
-threads is a base grammar B<object> --
+Note that 
 you can use
 the same grammar in different
-threads by creating base grammars
+threads by creating grammars
 that are exact
 copies of each other,
-one base grammar per thread.
+one grammar per thread.
 
 =head1 The Marpa:: namespace
 
