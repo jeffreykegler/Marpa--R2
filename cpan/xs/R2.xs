@@ -481,7 +481,7 @@ static Lexer* lexer_add(Scanless_G* slg, SV* g_sv)
   dTHX;
   Lexer *lexer;
   G_Wrapper *g_wrapper;
-  int i;
+  unsigned i;
   int rule_ix;
   Marpa_Rule_ID lexer_rule_count;
   int lexer_count = slg->lexer_count;
@@ -515,7 +515,7 @@ static Lexer* lexer_add(Scanless_G* slg, SV* g_sv)
 static void lexer_destroy(Lexer *lexer)
 {
   dTHX;
-  int i;
+  unsigned i;
   Safefree (lexer->lexer_rule_to_g1_lexeme);
   SvREFCNT_dec (lexer->per_codepoint_hash);
   for (i = 0; i < Dim(lexer->per_codepoint_array); i++) {
@@ -4833,7 +4833,7 @@ PPCODE:
     {
       croak
 	("slg->lexer_rule_to_g1_lexeme_set(%ld, %ld, %ld) called for invalid lexer(%ld)",
-	 (long) lexer_rule, (long) lexer_ix, (long) g1_lexeme, (long) lexer);
+	 (long) lexer_rule, (long) lexer_ix, (long) g1_lexeme, (long) lexer_ix);
     }
   lexer = slg->lexers[lexer_ix];
   highest_lexer_rule_id = marpa_g_highest_rule_id (lexer->g_wrapper->g);
@@ -5873,15 +5873,15 @@ PPCODE:
   const STRLEN op_count = items;
   STRLEN op_ix;
   IV *ops;
-  SV *ops_sv;
+  SV *ops_sv = NULL;
   Lexer *lexer = slr->current_lexer;
-  const int array_size = Dim (lexer->per_codepoint_array);
+  const unsigned array_size = Dim (lexer->per_codepoint_array);
   const int use_array = codepoint < array_size;
 
   if (use_array)
     {
       ops = lexer->per_codepoint_array[codepoint];
-      ops = Renew (ops, op_count, IV);
+      Renew (ops, op_count, IV);
       lexer->per_codepoint_array[codepoint] = ops;
     }
   else
@@ -5900,7 +5900,7 @@ PPCODE:
        */
       ops[op_ix] = SvUV (ST (op_ix));
     }
-  if (!use_array)
+  if (ops_sv)
     {
       hv_store (slr->current_lexer->per_codepoint_hash, (char *) &codepoint,
 		sizeof (codepoint), ops_sv, 0);
