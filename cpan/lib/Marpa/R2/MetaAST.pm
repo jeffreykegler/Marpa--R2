@@ -1291,6 +1291,13 @@ sub Marpa::R2::Internal::MetaAST_Nodes::symbol_name::names {
 
 sub Marpa::R2::Internal::MetaAST_Nodes::adverb_list::evaluate {
     my ( $data, $parse ) = @_;
+    my ( undef, undef, $adverb_list_items ) = @{$data};
+    return undef if not defined $adverb_list_items;
+    return $adverb_list_items->evaluate($parse);
+} ## end sub Marpa::R2::Internal::MetaAST_Nodes::adverb_list::evaluate
+
+sub Marpa::R2::Internal::MetaAST_Nodes::adverb_list_items::evaluate {
+    my ( $data, $parse ) = @_;
     my ( undef, undef, @raw_items ) = @{$data};
     my (@adverb_items) = map { $_->evaluate($parse) } @raw_items;
     return Marpa::R2::Internal::MetaAST::Proto_Alternative->combine(
