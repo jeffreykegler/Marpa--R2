@@ -89,10 +89,6 @@ typedef struct {
       */
      SV* g0_sv;
      /* Location (exclusive) at which to stop reading */
-     int end_pos;
-     SV* input;
-
-     int too_many_earley_items;
 } Unicode_Stream;
 
 #undef POS_TO_OFFSET
@@ -180,6 +176,9 @@ typedef struct
 
   Marpa_Symbol_ID input_symbol_id;
   UV codepoint;			/* For error returns */
+     int end_pos;
+     SV* input;
+     int too_many_earley_items;
 } Scanless_R;
 #define TOKEN_VALUE_IS_UNDEF (1)
 #define TOKEN_VALUE_IS_LITERAL (2)
@@ -545,16 +544,12 @@ static Unicode_Stream* u_new(SV* g_sv)
    */
   SvREFCNT_inc (g_sv);
   stream->g0_sv = g_sv;
-  stream->input = newSVpvn ("", 0);
-  stream->end_pos = 0;
-  stream->too_many_earley_items = -1;
   return stream;
 }
 
 static void u_destroy(Unicode_Stream *stream)
 {
   dTHX;
-  SvREFCNT_dec (stream->input);
   SvREFCNT_dec (stream->g0_sv);
   Safefree (stream);
 }
@@ -683,7 +678,7 @@ u_read(Scanless_R *slr)
 
   if (!r)
     {
-      const int too_many_earley_items = stream->too_many_earley_items;
+      const int too_many_earley_items = slr->too_many_earley_items;
       r = u_r0_new (slr);
       if (!r)
 	croak ("Problem in u_read(): %s", xs_g_error (stream->g0_wrapper));
@@ -691,8 +686,8 @@ u_read(Scanless_R *slr)
 	marpa_r_earley_item_warning_threshold_set(r, too_many_earley_items);
       }
     }
-  input_is_utf8 = SvUTF8 (stream->input);
-  input = (U8 *) SvPV (stream->input, len);
+  input_is_utf8 = SvUTF8 (slr->input);
+  input = (U8 *) SvPV (slr->input, len);
   for (;;)
     {
       UV codepoint;
@@ -701,7 +696,7 @@ u_read(Scanless_R *slr)
       STRLEN op_count;
       IV *ops;
       int tokens_accepted = 0;
-      if (slr->perl_pos >= stream->end_pos)
+      if (slr->perl_pos >= slr->end_pos)
 	break;
 
       if (input_is_utf8)
@@ -933,7 +928,7 @@ u_pos_set (Scanless_R * slr, const char* name, int start_pos_arg, int length_arg
   new_perl_pos = new_perl_pos;
   slr->perl_pos = new_perl_pos;
   new_end_pos = new_end_pos;
-  stream->end_pos = new_end_pos;
+  slr->end_pos = new_end_pos;
   return old_perl_pos;
 }
 
@@ -944,7 +939,7 @@ u_pos_span_to_literal_sv (Scanless_R * slr,
   dTHX;
   STRLEN dummy;
   Unicode_Stream *stream = slr->stream;
-  char *input = SvPV (stream->input, dummy);
+  char *input = SvPV (slr->input, dummy);
   int start_offset = POS_TO_OFFSET (slr, start_pos);
   int length_in_bytes =
     POS_TO_OFFSET (slr,
@@ -2282,7 +2277,7 @@ slr_es_span_to_literal_sv (Scanless_R * slr,
       int start_position;
       STRLEN dummy;
       Unicode_Stream *stream = slr->stream;
-      char *input = SvPV (stream->input, dummy);
+      char *input = SvPV (slr->input, dummy);
       slr_es_to_literal_span (slr,
 			      start_earley_set, length,
 			      &start_position, &length_in_positions);
@@ -5199,6 +5194,9 @@ PPCODE:
   slr->pos_db_physical_size = -1;
 
   slr->input_symbol_id = -1;
+  slr->input = newSVpvn ("", 0);
+  slr->end_pos = 0;
+  slr->too_many_earley_items = -1;
 
   new_sv = sv_newmortal ();
   sv_setref_pv (new_sv, scanless_r_class_name, (void *) slr);
@@ -5224,6 +5222,7 @@ PPCODE:
     {
       SvREFCNT_dec ((SV *) slr->token_values);
     }
+  SvREFCNT_dec (slr->input);
   Safefree (slr);
 }
 
@@ -5286,7 +5285,7 @@ earley_item_warning_threshold( slr )
     Scanless_R *slr;
 PPCODE:
 {
-  XSRETURN_IV(slr->stream->too_many_earley_items);
+  XSRETURN_IV(slr->too_many_earley_items);
 }
 
 void
@@ -5295,7 +5294,7 @@ earley_item_warning_threshold_set( slr, too_many_earley_items )
     int too_many_earley_items;
 PPCODE:
 {
-  slr->stream->too_many_earley_items = too_many_earley_items;
+  slr->too_many_earley_items = too_many_earley_items;
 }
 
  #  Always returns the same SV for a given Scanless recce object -- 
@@ -5411,9 +5410,9 @@ PPCODE:
     {
       if (slr->g0_start_pos >= 0)
 	{
-	  STRLEN input_length = SvCUR (stream->input);
+	  STRLEN input_length = SvCUR (slr->input);
 
-	  if (slr->g0_start_pos >= stream->end_pos)
+	  if (slr->g0_start_pos >= slr->end_pos)
 	  {
 	    XSRETURN_PV ("");
 	  }
@@ -5886,10 +5885,10 @@ PPCODE:
   /* Get our own copy and coerce it to a PV.
    * Stealing is OK, magic is not.
    */
-  SvSetSV (stream->input, string);
-  start_of_string = (U8*)SvPV_force_nomg (stream->input, pv_length);
+  SvSetSV (slr->input, string);
+  start_of_string = (U8*)SvPV_force_nomg (slr->input, pv_length);
   end_of_string = start_of_string + pv_length;
-  input_is_utf8 = SvUTF8 (stream->input);
+  input_is_utf8 = SvUTF8 (slr->input);
 
   slr->pos_db_logical_size = 0;
   /* This original buffer size my be too small.
