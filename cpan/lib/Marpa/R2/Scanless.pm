@@ -1419,7 +1419,7 @@ sub Marpa::R2::Scanless::R::resume {
             my ( $line, $column ) = $slr->line_column($stream_pos);
             print {$trace_file_handle}
                 qq{\n=== Progress report at line $line, column $column\n},
-                $g0_tracer->stream_progress_report($stream),
+                $g0_tracer->lexer_progress_report($slr),
                 qq{=== End of progress report at line $line, column $column\n},
                 or Marpa::R2::exception("Cannot print(): $ERRNO");
         } ## end if ( $trace_lexer > 2 )
@@ -1546,7 +1546,7 @@ sub Marpa::R2::Scanless::R::read_problem {
             last CODE_TO_PROBLEM;
         }
         if ( $problem_code eq 'no lexemes accepted' ) {
-            $problem_pos = $stream->problem_pos();
+            $problem_pos = $thin_slr->problem_pos();
             my ( $line, $column ) = $slr->line_column($problem_pos);
             $problem = "No lexemes accepted at line $line, column $column";
             last CODE_TO_PROBLEM;
@@ -1650,7 +1650,7 @@ sub Marpa::R2::Scanless::R::read_problem {
         my ( $line, $column ) = $slr->line_column($stream_pos);
         $read_string_error .=
             qq{\n=== G0 Progress report at line $line, column $column\n} .
-            $g0_tracer->stream_progress_report($stream);
+            $g0_tracer->lexer_progress_report($slr);
     } ## end if ( $slr->[Marpa::R2::Inner::Scanless::R::TRACE_LEXER...])
 
     $slr->[Marpa::R2::Inner::Scanless::R::READ_STRING_ERROR] =

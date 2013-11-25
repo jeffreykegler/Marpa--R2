@@ -88,13 +88,6 @@ typedef struct {
       * a recognizer.
       */
      SV* g0_sv;
-     Marpa_Recce r0;
-     /* character position, taking into account Unicode
-         Equivalent to Perl pos()
-	 One past last actual position indicates past-end-of-string
-     */
-     /* Position of problem -- unspecifed if not returning a problem */
-     int problem_pos;
      /* Location (exclusive) at which to stop reading */
      int end_pos;
      SV* input;
@@ -178,6 +171,13 @@ typedef struct
   int stream_read_result;
   int r1_earleme_complete_result;
   int perl_pos;
+     Marpa_Recce r0;
+     /* character position, taking into account Unicode
+         Equivalent to Perl pos()
+	 One past last actual position indicates past-end-of-string
+     */
+     /* Position of problem -- unspecifed if not returning a problem */
+     int problem_pos;
   int throw;
   int start_of_pause_lexeme;
   int end_of_pause_lexeme;
@@ -540,7 +540,6 @@ static Unicode_Stream* u_new(SV* g_sv)
   G_Wrapper *g_wrapper = INT2PTR (G_Wrapper *, tmp);
   Newx (stream, 1, Unicode_Stream);
   stream->g0_wrapper = g_wrapper;
-  stream->r0 = NULL;
   /* Hold a ref to the grammar SV we were called with --
    * it will have to exist for our lifetime
    *
@@ -550,7 +549,6 @@ static Unicode_Stream* u_new(SV* g_sv)
   SvREFCNT_inc (g_sv);
   stream->g0_sv = g_sv;
   stream->input = newSVpvn ("", 0);
-  stream->problem_pos = -1;
   stream->end_pos = 0;
   stream->pos_db = 0;
   stream->pos_db_logical_size = -1;
@@ -565,11 +563,6 @@ static Unicode_Stream* u_new(SV* g_sv)
 static void u_destroy(Unicode_Stream *stream)
 {
   dTHX;
-  const Marpa_Recce r0 = stream->r0;
-  if (r0)
-    {
-      marpa_r_unref (r0);
-    }
   SvREFCNT_dec (stream->event_queue);
   Safefree(stream->pos_db);
   SvREFCNT_dec (stream->input);
@@ -578,27 +571,27 @@ static void u_destroy(Unicode_Stream *stream)
 }
 
 static void
-u_r0_clear (Unicode_Stream * stream)
+u_r0_clear (Scanless_R * slr)
 {
   dTHX;
-  Marpa_Recce r0 = stream->r0;
+  Marpa_Recce r0 = slr->r0;
   if (!r0)
     return;
   marpa_r_unref (r0);
-  stream->r0 = NULL;
+  slr->r0 = NULL;
 }
 
 static Marpa_Recce
-u_r0_new (Unicode_Stream * stream)
+u_r0_new (Scanless_R * slr)
 {
   dTHX;
-  Marpa_Recce r0 = stream->r0;
-  G_Wrapper *g0_wrapper = stream->g0_wrapper;
+  Marpa_Recce r0 = slr->r0;
+  G_Wrapper *g0_wrapper = slr->g0_wrapper;
   if (r0)
     {
       marpa_r_unref (r0);
     }
-  stream->r0 = r0 = marpa_r_new (g0_wrapper->g);
+  slr->r0 = r0 = marpa_r_new (g0_wrapper->g);
   if (!r0)
     {
       if (!g0_wrapper->throw)
@@ -697,12 +690,12 @@ u_read(Scanless_R *slr)
   Unicode_Stream *stream = slr->stream;
   const IV trace_lexer = slr->trace_lexer;
   Lexer *lexer = slr->slg->current_lexer;
-  Marpa_Recognizer r = stream->r0;
+  Marpa_Recognizer r = slr->r0;
 
   if (!r)
     {
       const int too_many_earley_items = stream->too_many_earley_items;
-      r = u_r0_new (stream);
+      r = u_r0_new (slr);
       if (!r)
 	croak ("Problem in u_read(): %s", xs_g_error (stream->g0_wrapper));
       if (too_many_earley_items >= 0) {
@@ -1639,7 +1632,7 @@ slr_discard (Scanless_R * slr)
   Marpa_Earley_Set_ID earley_set;
   Unicode_Stream * const stream = slr->stream;
 
-  r0 = stream->r0;
+  r0 = slr->r0;
   if (!r0)
     {
       croak ("Problem in slr->read(): No R0 at %s %d", __FILE__, __LINE__);
@@ -1739,7 +1732,7 @@ slr_discard (Scanless_R * slr)
 	   * to discard this input.
 	   * Return failure.
 	   */
-	  slr->perl_pos = stream->problem_pos = slr->g0_start_pos = slr->start_of_lexeme;
+	  slr->perl_pos = slr->problem_pos = slr->g0_start_pos = slr->start_of_lexeme;
 	  return -4;
 	}
       earley_set--;
@@ -1749,7 +1742,7 @@ slr_discard (Scanless_R * slr)
    * and therefore none which can be discarded.
    * Return failure.
    */
-  slr->perl_pos = stream->problem_pos = slr->g0_start_pos = slr->start_of_lexeme;
+  slr->perl_pos = slr->problem_pos = slr->g0_start_pos = slr->start_of_lexeme;
   return -4;
 }
 
@@ -1870,7 +1863,7 @@ slr_alternatives (Scanless_R * slr)
   Marpa_Symbol_ID *lexeme_buffer;
   Newx(lexeme_buffer, lexeme_buffer_size, Marpa_Symbol_ID);
 
-  r0 = stream->r0;
+  r0 = slr->r0;
   if (!r0)
     {
       croak ("Problem in slr->read(): No R0 at %s %d", __FILE__, __LINE__);
@@ -2025,7 +2018,7 @@ slr_alternatives (Scanless_R * slr)
 		}
 	      if (unforgiven)
 		{
-		  slr->perl_pos = stream->problem_pos = slr->g0_start_pos =
+		  slr->perl_pos = slr->problem_pos = slr->g0_start_pos =
 		    slr->start_of_lexeme;
 		  return "no lexemes accepted";
 		}
@@ -2227,7 +2220,7 @@ slr_alternatives (Scanless_R * slr)
       earley_set--;
     }
 
-  slr->perl_pos = stream->problem_pos = slr->g0_start_pos =
+  slr->perl_pos = slr->problem_pos = slr->g0_start_pos =
     slr->start_of_lexeme;
   return "no lexeme";
 }
@@ -2986,55 +2979,7 @@ PPCODE:
   XPUSHs (sv_2mortal (newSViv (origin)));
 }
 
-void
-trace_lexer( slr, level )
-    Scanless_R *slr;
-    int level;
-PPCODE:
-{
-  if (level < 0)
-    {
-      /* Always thrown */
-      croak ("Problem in slr->trace_lexer(%d): argument must be greater than 0", level);
-    }
-  warn ("Setting Marpa SLIF lexer trace level to %d", level);
-  slr->trace_lexer = level;
-  XPUSHs (sv_2mortal (newSViv (level)));
-}
-
-void
-pos( slr )
-    Scanless_R *slr;
-PPCODE:
-{
-  XSRETURN_IV(slr->perl_pos);
-}
-
 MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin::U
-
-void
-problem_pos( stream )
-     Unicode_Stream *stream;
-PPCODE:
-{
-  if (stream->problem_pos < 0) {
-     XSRETURN_UNDEF;
-  }
-  XSRETURN_IV(stream->problem_pos);
-}
-
-void
-latest_earley_set( stream )
-     Unicode_Stream *stream;
-PPCODE:
-{
-  const Marpa_Recce r0 = stream->r0;
-  if (!stream->r0)
-    {
-      XSRETURN_UNDEF;
-    }
-  XSRETURN_IV (marpa_r_latest_earley_set (stream->r0));
-}
 
 void
 substring(stream, start_pos, length)
@@ -3061,81 +3006,6 @@ symbol_id( stream )
 PPCODE:
 {
   XSRETURN_IV(stream->input_symbol_id);
-}
-
-void
-progress_report_start( stream, ordinal )
-    Unicode_Stream *stream;
-    Marpa_Earley_Set_ID ordinal;
-PPCODE:
-{
-  int gp_result;
-  G_Wrapper* g0_wrapper;
-  const Marpa_Recognizer recce = stream->r0;
-  if (!recce)
-    {
-      croak ("Problem in r->progress_item(): No G0 Recognizer");
-    }
-  g0_wrapper = stream->g0_wrapper;
-  gp_result = marpa_r_progress_report_start(recce, ordinal);
-  if ( gp_result == -1 ) { XSRETURN_UNDEF; }
-  if ( gp_result < 0 && g0_wrapper->throw ) {
-    croak( "Problem in r->progress_report_start(%d): %s",
-     ordinal, xs_g_error( g0_wrapper ));
-  }
-  XPUSHs (sv_2mortal (newSViv (gp_result)));
-}
-
-void
-progress_report_finish( stream )
-    Unicode_Stream *stream;
-PPCODE:
-{
-  int gp_result;
-  G_Wrapper* g0_wrapper;
-  const Marpa_Recognizer recce = stream->r0;
-  if (!recce)
-    {
-      croak ("Problem in r->progress_item(): No G0 Recognizer");
-    }
-  g0_wrapper = stream->g0_wrapper;
-  gp_result = marpa_r_progress_report_finish(recce);
-  if ( gp_result == -1 ) { XSRETURN_UNDEF; }
-  if ( gp_result < 0 && g0_wrapper->throw ) {
-    croak( "Problem in r->progress_report_finish(): %s",
-     xs_g_error( g0_wrapper ));
-  }
-  XPUSHs (sv_2mortal (newSViv (gp_result)));
-}
-
-void
-progress_item( stream )
-    Unicode_Stream *stream;
-PPCODE:
-{
-  Marpa_Rule_ID rule_id;
-  Marpa_Earley_Set_ID origin = -1;
-  int position = -1;
-  G_Wrapper* g0_wrapper;
-  const Marpa_Recognizer recce = stream->r0;
-  if (!recce)
-    {
-      croak ("Problem in r->progress_item(): No G0 Recognizer");
-    }
-  g0_wrapper = stream->g0_wrapper;
-  rule_id = marpa_r_progress_item (recce, &position, &origin);
-  if (rule_id == -1)
-    {
-      XSRETURN_UNDEF;
-    }
-  if (rule_id < 0 && g0_wrapper->throw)
-    {
-      croak ("Problem in r->progress_item(): %s",
-	     xs_g_error (g0_wrapper));
-    }
-  XPUSHs (sv_2mortal (newSViv (rule_id)));
-  XPUSHs (sv_2mortal (newSViv (position)));
-  XPUSHs (sv_2mortal (newSViv (origin)));
 }
 
 void
@@ -5403,6 +5273,7 @@ PPCODE:
   slr->trace_level = 0;
   slr->trace_lexer = 0;
   slr->trace_terminals = 0;
+  slr->r0 = NULL;
 
 # Copy and take references to the "parent objects",
 # the ones responsible for holding references.
@@ -5427,6 +5298,7 @@ PPCODE:
   slr->start_of_lexeme = 0;
   slr->end_of_lexeme = 0;
   slr->perl_pos = 0;
+  slr->problem_pos = -1;
   slr->token_values = newAV ();
   av_fill (slr->token_values, TOKEN_VALUE_IS_LITERAL);
 
@@ -5474,6 +5346,11 @@ DESTROY( slr )
     Scanless_R *slr;
 PPCODE:
 {
+  const Marpa_Recce r0 = slr->r0;
+  if (r0)
+    {
+      marpa_r_unref (r0);
+    }
   SvREFCNT_dec (slr->stream_sv);
   SvREFCNT_dec (slr->slg_sv);
   SvREFCNT_dec (slr->r1_sv);
@@ -5680,7 +5557,7 @@ PPCODE:
 
 	  slr->start_of_lexeme = slr->perl_pos = slr->g0_start_pos;
 	  slr->g0_start_pos = -1;
-	  u_r0_clear (stream);
+	  u_r0_clear (slr);
 	  if (trace_lexer >= 1)
 	    {
 	      AV *event;
@@ -6024,6 +5901,105 @@ PPCODE:
 	 (long) g1_lexeme_id, (long) reactivate, (long) reactivate);
     }
   XPUSHs (sv_2mortal (newSViv (reactivate)));
+}
+
+void
+problem_pos( slr )
+     Scanless_R *slr;
+PPCODE:
+{
+  if (slr->problem_pos < 0) {
+     XSRETURN_UNDEF;
+  }
+  XSRETURN_IV(slr->problem_pos);
+}
+
+void
+lexer_latest_earley_set( slr )
+     Scanless_R *slr;
+PPCODE:
+{
+  const Marpa_Recce r0 = slr->r0;
+  if (!r0)
+    {
+      XSRETURN_UNDEF;
+    }
+  XSRETURN_IV (marpa_r_latest_earley_set (r0));
+}
+
+void
+lexer_progress_report_start( slr, ordinal )
+    Scanless_R *slr;
+    Marpa_Earley_Set_ID ordinal;
+PPCODE:
+{
+  int gp_result;
+  G_Wrapper* g0_wrapper;
+  const Marpa_Recognizer recce = slr->r0;
+  if (!recce)
+    {
+      croak ("Problem in r->progress_item(): No G0 Recognizer");
+    }
+  g0_wrapper = slr->g0_wrapper;
+  gp_result = marpa_r_progress_report_start(recce, ordinal);
+  if ( gp_result == -1 ) { XSRETURN_UNDEF; }
+  if ( gp_result < 0 && g0_wrapper->throw ) {
+    croak( "Problem in r->progress_report_start(%d): %s",
+     ordinal, xs_g_error( g0_wrapper ));
+  }
+  XPUSHs (sv_2mortal (newSViv (gp_result)));
+}
+
+void
+lexer_progress_report_finish( slr )
+    Scanless_R *slr;
+PPCODE:
+{
+  int gp_result;
+  G_Wrapper* g0_wrapper;
+  const Marpa_Recognizer recce = slr->r0;
+  if (!recce)
+    {
+      croak ("Problem in r->progress_item(): No G0 Recognizer");
+    }
+  g0_wrapper = slr->g0_wrapper;
+  gp_result = marpa_r_progress_report_finish(recce);
+  if ( gp_result == -1 ) { XSRETURN_UNDEF; }
+  if ( gp_result < 0 && g0_wrapper->throw ) {
+    croak( "Problem in r->progress_report_finish(): %s",
+     xs_g_error( g0_wrapper ));
+  }
+  XPUSHs (sv_2mortal (newSViv (gp_result)));
+}
+
+void
+lexer_progress_item( slr )
+    Scanless_R *slr;
+PPCODE:
+{
+  Marpa_Rule_ID rule_id;
+  Marpa_Earley_Set_ID origin = -1;
+  int position = -1;
+  G_Wrapper* g0_wrapper;
+  const Marpa_Recognizer recce = slr->r0;
+  if (!recce)
+    {
+      croak ("Problem in r->progress_item(): No G0 Recognizer");
+    }
+  g0_wrapper = slr->g0_wrapper;
+  rule_id = marpa_r_progress_item (recce, &position, &origin);
+  if (rule_id == -1)
+    {
+      XSRETURN_UNDEF;
+    }
+  if (rule_id < 0 && g0_wrapper->throw)
+    {
+      croak ("Problem in r->progress_item(): %s",
+	     xs_g_error (g0_wrapper));
+    }
+  XPUSHs (sv_2mortal (newSViv (rule_id)));
+  XPUSHs (sv_2mortal (newSViv (position)));
+  XPUSHs (sv_2mortal (newSViv (origin)));
 }
 
 INCLUDE: general_pattern.xsh

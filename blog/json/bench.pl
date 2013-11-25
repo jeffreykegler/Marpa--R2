@@ -5,7 +5,7 @@ use Benchmark;
 use JSON::PP 'decode_json';
 use lib '../../cpan/blib/arch';
 use lib '../../cpan/lib';
-use Marpa::R2 2.061_002;
+use Marpa::R2 2.077_000;
 use lib '.';
 use MarpaX::JSON;
 use Benchmark qw/:hireswallclock :all/;
