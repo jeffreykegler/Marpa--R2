@@ -70,7 +70,7 @@ sub ast_to_hash {
     $hashed_ast->{rules}->{G1} = [];
     my $g1_symbols = $hashed_ast->{symbols}->{G1} = {};
 
-    my ( undef, undef, @statements ) = @{$ast->{top_node}};
+    my ( undef, undef, @statements ) = @{ $ast->{top_node} };
 
     # This is the last ditch exception catcher
     # It forces all Marpa exceptions to be die's,
@@ -96,7 +96,7 @@ sub ast_to_hash {
         grep { $_ eq 'G0' || ( substr $_, 0, 1 ) eq 'L' } keys %grammars;
 
     for my $lexer (@lexers) {
-	die if $lexer ne 'G0';
+        die if $lexer ne 'G0';
         my $lexer_name = $lexer;
         NAME_LEXER: {
             if ( $lexer eq 'L0' ) {
@@ -159,7 +159,7 @@ sub ast_to_hash {
                     $g1_symbols->{$lexeme}->{bless} = $blessing;
                 } ## end DETERMINE_BLESSING:
                 $g1_symbols->{$lexeme}->{semantics} = $action;
-            }
+            } ## end LEXEME: for my $lexeme ( keys %is_lexeme_in_this_lexer )
         } ## end if ( my $lexeme_default_adverbs = $hashed_ast->{...})
 
         $hashed_ast->{is_lexeme}->{$_} = 1 for keys %is_lexeme_in_this_lexer;
@@ -186,14 +186,49 @@ sub ast_to_hash {
         } sort keys %is_lexeme_in_this_lexer;
         my %stripped_character_classes = ();
         {
-            my $character_classes = $hashed_ast->{character_classes}->{$lexer};
+            my $character_classes =
+                $hashed_ast->{character_classes}->{$lexer};
             for my $symbol_name ( sort keys %{$character_classes} ) {
                 my ($re) = @{ $character_classes->{$symbol_name} };
                 $stripped_character_classes{$symbol_name} = $re;
             }
         }
-        $hashed_ast->{character_classes}->{$lexer} = \%stripped_character_classes;
+        $hashed_ast->{character_classes}->{$lexer} =
+            \%stripped_character_classes;
     } ## end for my $lexer (@lexers)
+
+    if ( my $lexeme_default_adverbs = $hashed_ast->{lexeme_default_adverbs} )
+    {
+        my $blessing = $lexeme_default_adverbs->{bless};
+        my $action   = $lexeme_default_adverbs->{action};
+        LEXEME: for my $lexeme ( keys %{ $hashed_ast->{is_lexeme} } ) {
+            next LEXEME if $lexeme =~ m/ \] \z/xms;
+            DETERMINE_BLESSING: {
+                last DETERMINE_BLESSING if not $blessing;
+                last DETERMINE_BLESSING if $blessing eq '::undef';
+                if ( $blessing eq '::name' ) {
+                    if ( $lexeme =~ / [^ [:alnum:]] /xms ) {
+                        Marpa::R2::exception(
+                            qq{Lexeme blessing by '::name' only allowed if lexeme name is whitespace and alphanumerics\n},
+                            qq{   Problematic lexeme was <$lexeme>\n}
+                        );
+                    } ## end if ( $lexeme =~ / [^ [:alnum:]] /xms )
+                    my $blessing_by_name = $lexeme;
+                    $blessing_by_name =~ s/[ ]/_/gxms;
+                    $g1_symbols->{$lexeme}->{bless} = $blessing_by_name;
+                    last DETERMINE_BLESSING;
+                } ## end if ( $blessing eq '::name' )
+                if ( $blessing =~ / [\W] /xms ) {
+                    Marpa::R2::exception(
+                        qq{Blessing lexeme as '$blessing' is not allowed\n},
+                        qq{   Problematic lexeme was <$lexeme>\n}
+                    );
+                } ## end if ( $blessing =~ / [\W] /xms )
+                $g1_symbols->{$lexeme}->{bless} = $blessing;
+            } ## end DETERMINE_BLESSING:
+            $g1_symbols->{$lexeme}->{semantics} = $action;
+        } ## end LEXEME: for my $lexeme ( keys %{ $hashed_ast->{is_lexeme} } )
+    } ## end if ( my $lexeme_default_adverbs = $hashed_ast->{...})
 
     return $hashed_ast;
 } ## end sub ast_to_hash
