@@ -121,18 +121,19 @@ sub ast_to_hash {
             }
         } ## end for my $lex_rule ( @{$g0_rules} )
 
-        my %is_lexeme = ();
+        my %is_lexeme_in_this_lexer = ();
         LEX_LHS: for my $lex_lhs ( keys %lex_lhs ) {
             next LEX_LHS if $lex_rhs{$lex_lhs};
             next LEX_LHS if $lex_separator{$lex_lhs};
-            $is_lexeme{$lex_lhs} = 1;
+            $is_lexeme_in_this_lexer{$lex_lhs} = 1;
         }
+
         if ( my $lexeme_default_adverbs =
             $hashed_ast->{lexeme_default_adverbs} )
         {
             my $blessing = $lexeme_default_adverbs->{bless};
             my $action   = $lexeme_default_adverbs->{action};
-            LEXEME: for my $lexeme ( keys %is_lexeme ) {
+            LEXEME: for my $lexeme ( keys %is_lexeme_in_this_lexer ) {
                 next LEXEME if $lexeme =~ m/ \] \z/xms;
                 DETERMINE_BLESSING: {
                     last DETERMINE_BLESSING if not $blessing;
@@ -158,9 +159,10 @@ sub ast_to_hash {
                     $g1_symbols->{$lexeme}->{bless} = $blessing;
                 } ## end DETERMINE_BLESSING:
                 $g1_symbols->{$lexeme}->{semantics} = $action;
-            } ## end LEXEME: for my $lexeme ( keys %is_lexeme )
+            }
         } ## end if ( my $lexeme_default_adverbs = $hashed_ast->{...})
-        $hashed_ast->{is_lexeme} = \%is_lexeme;
+
+        $hashed_ast->{is_lexeme}->{$_} = 1 for keys %is_lexeme_in_this_lexer;
 
         my @unproductive =
             map {"<$_>"}
@@ -181,7 +183,7 @@ sub ast_to_hash {
                 lhs         => $start_lhs,
                 rhs         => [$_]
             }
-        } sort keys %is_lexeme;
+        } sort keys %is_lexeme_in_this_lexer;
         my %stripped_character_classes = ();
         {
             my $character_classes = $hashed_ast->{character_classes}->{$lexer};
