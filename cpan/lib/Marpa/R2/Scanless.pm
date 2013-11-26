@@ -396,6 +396,9 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
     $slg->[Marpa::R2::Inner::Scanless::G::DEFAULT_G1_START_ACTION] =
         $hashed_source->{'default_g1_start_action'};
 
+    # The only one, for now
+    my $lexer = 'G0';
+
     my $g0_lexeme_by_name = $hashed_source->{is_lexeme};
     my @g0_lexeme_names   = keys %{$g0_lexeme_by_name};
     Marpa::R2::exception( "There are no lexemes\n",
@@ -415,7 +418,7 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
     my $lex_tracer = $lex_grammar->tracer();
     my $g0_thin    = $lex_tracer->grammar();
     $slg->[Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMAR] = $lex_grammar;
-    my $character_class_hash = $hashed_source->{character_classes};
+    my $character_class_hash = $hashed_source->{character_classes}->{$lexer};
     my @class_table          = ();
 
     for my $class_symbol ( sort keys %{$character_class_hash} ) {

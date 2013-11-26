@@ -91,6 +91,7 @@ sub ast_to_hash {
     my %grammars = ();
     $grammars{$_} = 1 for keys %{ $hashed_ast->{rules} };
     $grammars{$_} = 1 for keys %{ $hashed_ast->{symbols} };
+    $grammars{$_} = 1 for keys %{ $hashed_ast->{character_classes} };
     my @lexers =
         grep { $_ eq 'G0' || ( substr $_, 0, 1 ) eq 'L' } keys %grammars;
 
@@ -183,13 +184,13 @@ sub ast_to_hash {
         } sort keys %is_lexeme;
         my %stripped_character_classes = ();
         {
-            my $character_classes = $hashed_ast->{character_classes};
+            my $character_classes = $hashed_ast->{character_classes}->{$lexer};
             for my $symbol_name ( sort keys %{$character_classes} ) {
                 my ($re) = @{ $character_classes->{$symbol_name} };
                 $stripped_character_classes{$symbol_name} = $re;
             }
         }
-        $hashed_ast->{character_classes} = \%stripped_character_classes;
+        $hashed_ast->{character_classes}->{$lexer} = \%stripped_character_classes;
     } ## end for my $lexer (@lexers)
 
     return $hashed_ast;
@@ -1467,11 +1468,12 @@ sub char_class_to_symbol {
       my $unmodified_char_class = substr $char_class, 0, $end_of_char_class+1;
       my $raw_flags = substr $char_class, $end_of_char_class+1;
     my $flags = Marpa::R2::Internal::MetaAST::flag_string_to_flags($raw_flags);
+    my $subgrammar = $Marpa::R2::Internal::SUBGRAMMAR;
 
     # character class symbol name always start with TWO left square brackets
     my $symbol_name = '[' . $unmodified_char_class . $flags . ']';
-    $parse->{character_classes} //= {};
-    my $cc_hash = $parse->{character_classes};
+    $parse->{character_classes}->{$subgrammar} //= {};
+    my $cc_hash = $parse->{character_classes}->{$subgrammar};
     my ( undef, $symbol ) = $cc_hash->{$symbol_name};
     if ( not defined $symbol ) {
 
@@ -1490,7 +1492,7 @@ sub char_class_to_symbol {
         $cc_hash->{$symbol_name} = [ $cc_components, $symbol ];
         $parse->symbol_names_set(
             $symbol_name,
-            $Marpa::R2::Internal::SUBGRAMMAR,
+            $subgrammar,
             {   dsl_form     => $char_class,
                 display_form => $char_class,
                 description  => "Character class: $char_class"
