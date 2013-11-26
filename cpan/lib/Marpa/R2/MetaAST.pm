@@ -63,13 +63,16 @@ sub Marpa::R2::Internal::MetaAST::Parse::substring {
 sub ast_to_hash {
     my ($ast) = @_;
     my $hashed_ast = {};
-    $hashed_ast->{rules}->{G0} = [];
-    $hashed_ast->{rules}->{G1} = [];
-    my $g0_symbols = $hashed_ast->{symbols}->{G0} = {};
-    my $g1_symbols = $hashed_ast->{symbols}->{G1} = {};
 
     $hashed_ast->{meta_recce} = $ast->{meta_recce};
     bless $hashed_ast, 'Marpa::R2::Internal::MetaAST::Parse';
+
+    $hashed_ast->{rules}->{G1} = [];
+    my $g1_symbols = $hashed_ast->{symbols}->{G1} = {};
+
+    # Initialize the default lexer
+    $hashed_ast->{rules}->{G0} = [];
+    $hashed_ast->{symbols}->{G0} = {};
 
     my ( undef, undef, @statements ) = @{$ast->{top_node}};
 
@@ -89,7 +92,19 @@ sub ast_to_hash {
     };
     Marpa::R2::exception($EVAL_ERROR) if not $eval_ok;
 
+    my $lexer = "G0";
+    my $lexer_name = $lexer;
+    NAME_LEXER: {
+	if ($lexer eq 'L0') {
+	    $lexer_name = "L0 (the default)";
+	    last NAME_LEXER;
+	}
+        last NAME_LEXER if (substr $lexer_name, 0, 2) ne 'L-';
+	$lexer_name = substr $lexer_name, 2;
+    }
+    
     my $g0_rules = $hashed_ast->{rules}->{G0};
+    Marpa::R2::exception("No rules for lexer $lexer_name") if not $g0_rules;
     my %lex_lhs  = ();
     my %lex_rhs  = ();
     my %lex_separator = ();

@@ -63,7 +63,8 @@ my %cooked_parse_result = (
     symbols        => $parse_result->{symbols},
 );
 
-for my $rule_set (qw(G0 G1)) {
+my @rule_sets = keys %{ $parse_result->{rules} };
+for my $rule_set (@rule_sets) {
     my $aoh        = $parse_result->{rules}->{$rule_set};
     my $sorted_aoh = [ sort sort_bnf @{$aoh} ];
     $cooked_parse_result{rules}->{$rule_set} = $sorted_aoh;
