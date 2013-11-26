@@ -117,7 +117,7 @@ $node_status{completion_event_declaration} = "Completion events are not allowed"
 $node_status{nulled_event_declaration} = "Nulled events are not allowed";
 $node_status{prediction_event_declaration} = "Prediction events are not allowed";
 $node_status{array_descriptor} = "Actions in the form of array descriptors are not allowed";
-$node_status{op_declare_match} = "G0 rules are not allowed";
+$node_status{op_declare_match} = "lexical rules are not allowed";
 $node_status{priority_specification} = "The priority adverb is not allowed";
 $node_status{pause_specification} = "The pause adverb is not allowed";
 # 'forgiving' was never documented and may be eliminated

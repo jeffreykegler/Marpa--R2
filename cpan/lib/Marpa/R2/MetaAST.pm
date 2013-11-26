@@ -1505,7 +1505,7 @@ sub Marpa::R2::Internal::MetaAST::Parse::prioritized_symbol {
     return $symbol_name;
 } ## end sub Marpa::R2::Internal::MetaAST::Parse::prioritized_symbol
 
-# Return the priotized symbol name,
+# Return the prioritized symbol name,
 # after ensuring everything is set up properly
 sub Marpa::R2::Internal::MetaAST::Parse::internal_lexeme {
     my ( $parse, $dsl_form ) = @_;
