@@ -325,7 +325,7 @@ and L</"factoring_downglades()"> methods.
 
 =head2 Memoization
 
-When traversing a forest, you should to take steps to avoid
+When traversing a forest, you should take steps to avoid
 traversing the same glades twice.
 You can do this by memoizing the result of each glade, perhaps
 using its glade ID to index an array.
