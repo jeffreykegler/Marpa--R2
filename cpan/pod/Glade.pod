@@ -240,7 +240,7 @@ remove-display-indent: 1
 
 =head1 The structure of a forest
 
-Intuitive an ASF, can be pictured as a forest on a mountain.
+An ASF can be pictured as a forest on a mountain.
 This mountain forest has glades,
 and there are paths between the glades.
 The term "glade" comes from the idea of a glade as a distinct place in a forest that is
