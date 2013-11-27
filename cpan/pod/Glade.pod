@@ -128,6 +128,8 @@ The number of factorings can grow without limit.
 
 =head2 An example of a symch
 
+Hesperus is Venus's traditional name as an evening star,
+and Phosphorus (aka Lucifer) is its traditional name as a morning star.
 For the grammar,
 
 =for Marpa::R2::Display
@@ -173,8 +175,6 @@ or 'C<phosphorus>',
 depending on whether rule 1 or rule 2 is used.
 The choice, at glade 2, between rules 1 and 2,
 is a symch.
-(Hesperus is Venus's traditional name as an evening star,
-and Phosphorus and Lucifer are its traditional names as a morning star.)
 
 =head2 An example of a factoring
 
