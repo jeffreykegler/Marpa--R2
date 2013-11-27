@@ -35,68 +35,6 @@ our $G_PACKAGE = 'Marpa::R2::Scanless::G';
 our $R_PACKAGE = 'Marpa::R2::Scanless::R';
 our $TRACE_FILE_HANDLE;
 
-package Marpa::R2::Inner::Scanless::Symbol;
-
-use constant NAME => 0;
-use constant HIDE => 1;
-
-sub new {
-    my $class = shift;
-    return bless { name => $_[NAME], is_hidden => ( $_[HIDE] // 0 ) }, $class;
-}
-sub is_symbol      { return 1 }
-sub name           { return $_[0]->{name} }
-sub names          { return $_[0]->{name} }
-sub is_hidden      { return $_[0]->{is_hidden} }
-sub are_all_hidden { return $_[0]->{is_hidden} }
-
-sub is_lexical { return shift->{is_lexical} // 0 }
-sub hidden_set  { return shift->{is_hidden}  = 1; }
-sub lexical_set { return shift->{is_lexical} = 1; }
-sub mask { return shift->is_hidden() ? 0 : 1 }
-
-sub symbols      { return $_[0]; }
-sub symbol_lists { return $_[0]; }
-
-package Marpa::R2::Inner::Scanless::Symbol_List;
-
-sub new { my $class = shift; return bless { symbol_lists => [@_] }, $class }
-
-sub is_symbol { return 0 }
-
-sub names {
-    return map { $_->names() } @{ shift->{symbol_lists} };
-}
-
-sub are_all_hidden {
-    $_->is_hidden() || return 0 for @{ shift->{symbol_lists} };
-    return 1;
-}
-
-sub is_hidden {
-    return map { $_->is_hidden() } @{ shift->{symbol_lists} };
-}
-
-sub hidden_set {
-    $_->hidden_set() for @{ shift->{symbol_lists} };
-    return 0;
-}
-
-sub is_lexical { return shift->{is_lexical} // 0 }
-sub lexical_set { return shift->{is_lexical} = 1; }
-
-sub mask {
-    return
-        map { $_ ? 0 : 1 } map { $_->is_hidden() } @{ shift->{symbol_lists} };
-}
-
-sub symbols {
-    return map { $_->symbols() } @{ shift->{symbol_lists} };
-}
-
-# The "unflattened" list, which may contain other lists
-sub symbol_lists { return @{ shift->{symbol_lists} }; }
-
 package Marpa::R2::Inner::Scanless;
 
 use English qw( -no_match_vars );
