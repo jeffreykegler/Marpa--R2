@@ -15,7 +15,7 @@
 
 =head1 Name
 
-Marpa::R2::Glade - Low-level interface to Marpa's ASF's
+Marpa::R2::Glade - Low-level interface to Marpa's Abstract Syntax Forests (ASF's)
 
 =head1 Synopsis
 
