@@ -397,7 +397,7 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
         $hashed_source->{'default_g1_start_action'};
 
     # The only one, for now
-    my $lexer = 'G0';
+    my $lexer_name = 'G0';
 
     my $g0_lexeme_by_name = $hashed_source->{is_lexeme};
     my @g0_lexeme_names   = keys %{$g0_lexeme_by_name};
@@ -408,8 +408,8 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
     my %lex_args = ();
     $lex_args{trace_file_handle} =
         $slg->[Marpa::R2::Inner::Scanless::G::TRACE_FILE_HANDLE] // \*STDERR;
-    $lex_args{rules} = $hashed_source->{rules}->{$lexer};
-    $lex_args{symbols} = $hashed_source->{symbols}->{$lexer};
+    $lex_args{rules} = $hashed_source->{rules}->{$lexer_name};
+    $lex_args{symbols} = $hashed_source->{symbols}->{$lexer_name};
     state $lex_target_symbol = '[:start_lex]';
     $lex_args{start} = $lex_target_symbol;
     $lex_args{'_internal_'} = 1;
@@ -418,7 +418,7 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
     my $lex_tracer = $lex_grammar->tracer();
     my $g0_thin    = $lex_tracer->grammar();
     $slg->[Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMAR] = $lex_grammar;
-    my $character_class_hash = $hashed_source->{character_classes}->{$lexer};
+    my $character_class_hash = $hashed_source->{character_classes}->{$lexer_name};
     my @class_table          = ();
 
     for my $class_symbol ( sort keys %{$character_class_hash} ) {
@@ -433,7 +433,7 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
         push @class_table,
             [ $lex_tracer->symbol_by_name($class_symbol), $compiled_re ];
     } ## end for my $class_symbol ( sort keys %{$character_class_hash...})
-    $slg->[Marpa::R2::Inner::Scanless::G::CHARACTER_CLASS_TABLE] =
+    $slg->[Marpa::R2::Inner::Scanless::G::CHARACTER_CLASS_TABLES] =
         \@class_table;
 
     # The G1 grammar
@@ -548,7 +548,7 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
             or not $g1_thin->symbol_is_accessible($g1_symbol_id) )
         {
             Marpa::R2::exception(
-                "A lexeme in lexer $lexer is not accessible from the G1 start symbol: $lexeme_name"
+                "A lexeme in lexer $lexer_name is not accessible from the G1 start symbol: $lexeme_name"
             );
         } ## end if ( not defined $g1_symbol_id or not $g1_thin...)
         my $lex_symbol_id = $lex_tracer->symbol_by_name($lexeme_name);
@@ -565,9 +565,9 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
                 $thick_g1_grammar->symbol_in_display_form($symbol_id);
             if ( $lex_tracer->symbol_by_name($internal_symbol_name) ) {
                 Marpa::R2::exception(
-                    "Symbol $symbol_in_display_form is a lexeme in G1, but not in lexer $lexer.\n",
+                    "Symbol $symbol_in_display_form is a lexeme in G1, but not in lexer $lexer_name.\n",
                     qq{  The internal name for this symbol is $internal_symbol_name\n},
-                    "  This may be because $symbol_in_display_form was used on a RHS in lexer $lexer.\n",
+                    "  This may be because $symbol_in_display_form was used on a RHS in lexer $lexer_name.\n",
                     "  A lexeme cannot be used on the RHS of a lexer rule.\n"
                 );
             } ## end if ( $lex_tracer->symbol_by_name($symbol_name) )
@@ -581,6 +581,7 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
     my $thin_slg = $slg->[Marpa::R2::Inner::Scanless::G::C] =
         Marpa::R2::Thin::SLG->new( $lex_tracer->grammar(),
         $g1_tracer->grammar() );
+    $slg->[Marpa::R2::Inner::Scanless::G::LEXER_NAMES]->[0] = 'G0';
 
     my $lexeme_declarations = $hashed_source->{lexeme_declarations};
     for my $lexeme_name ( keys %{$lexeme_declarations} ) {
@@ -1436,7 +1437,7 @@ sub Marpa::R2::Scanless::R::resume {
             my @ops;
             for my $entry (
                 @{  $slg->[
-                        Marpa::R2::Inner::Scanless::G::CHARACTER_CLASS_TABLE]
+                        Marpa::R2::Inner::Scanless::G::CHARACTER_CLASS_TABLES]
                 }
                 )
             {

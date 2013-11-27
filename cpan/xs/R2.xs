@@ -5907,6 +5907,14 @@ PPCODE:
     }
 }
 
+void
+current_lexer( slr )
+     Scanless_R *slr;
+PPCODE:
+{
+  XSRETURN_IV(slr->current_lexer->index);
+}
+
 INCLUDE: general_pattern.xsh
 
 BOOT:

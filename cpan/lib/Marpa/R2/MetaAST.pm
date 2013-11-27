@@ -107,19 +107,19 @@ sub ast_to_hash {
             $lexer_name = substr $lexer_name, 2;
         } ## end NAME_LEXER:
 
-        my $g0_rules = $hashed_ast->{rules}->{G0};
+        my $lexer_rules = $hashed_ast->{rules}->{$lexer};
         Marpa::R2::exception("No rules for lexer $lexer_name")
-            if not $g0_rules;
+            if not $lexer_rules;
         my %lex_lhs       = ();
         my %lex_rhs       = ();
         my %lex_separator = ();
-        for my $lex_rule ( @{$g0_rules} ) {
+        for my $lex_rule ( @{$lexer_rules} ) {
             $lex_lhs{ $lex_rule->{lhs} } = 1;
             $lex_rhs{$_} = 1 for @{ $lex_rule->{rhs} };
             if ( defined( my $separator = $lex_rule->{separator} ) ) {
                 $lex_separator{$separator} = 1;
             }
-        } ## end for my $lex_rule ( @{$g0_rules} )
+        } ## end for my $lex_rule ( @{$lexer_rules} )
 
         my %is_lexeme_in_this_lexer = ();
         LEX_LHS: for my $lex_lhs ( keys %lex_lhs ) {
