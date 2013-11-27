@@ -396,8 +396,11 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
     $slg->[Marpa::R2::Inner::Scanless::G::DEFAULT_G1_START_ACTION] =
         $hashed_source->{'default_g1_start_action'};
 
+    state $lex_target_symbol = '[:start_lex]';
+
     # The only one, for now
     my $lexer_name = 'G0';
+    my $lexer      = 0;
 
     my $g0_lexeme_by_name = $hashed_source->{is_lexeme};
     my @g0_lexeme_names   = keys %{$g0_lexeme_by_name};
@@ -408,18 +411,18 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
     my %lex_args = ();
     $lex_args{trace_file_handle} =
         $slg->[Marpa::R2::Inner::Scanless::G::TRACE_FILE_HANDLE] // \*STDERR;
-    $lex_args{rules} = $hashed_source->{rules}->{$lexer_name};
-    $lex_args{symbols} = $hashed_source->{symbols}->{$lexer_name};
-    state $lex_target_symbol = '[:start_lex]';
-    $lex_args{start} = $lex_target_symbol;
+    $lex_args{rules}        = $hashed_source->{rules}->{$lexer_name};
+    $lex_args{symbols}      = $hashed_source->{symbols}->{$lexer_name};
+    $lex_args{start}        = $lex_target_symbol;
     $lex_args{'_internal_'} = 1;
     my $lex_grammar = Marpa::R2::Grammar->new( \%lex_args );
-    Marpa::R2::Internal::Grammar::slif_precompute( $lex_grammar);
+    Marpa::R2::Internal::Grammar::slif_precompute($lex_grammar);
     my $lex_tracer = $lex_grammar->tracer();
     my $g0_thin    = $lex_tracer->grammar();
     $slg->[Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMAR] = $lex_grammar;
-    my $character_class_hash = $hashed_source->{character_classes}->{$lexer_name};
-    my @class_table          = ();
+    my $character_class_hash =
+        $hashed_source->{character_classes}->{$lexer_name};
+    my @class_table = ();
 
     for my $class_symbol ( sort keys %{$character_class_hash} ) {
         my $cc_components = $character_class_hash->{$class_symbol};
@@ -433,7 +436,7 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
         push @class_table,
             [ $lex_tracer->symbol_by_name($class_symbol), $compiled_re ];
     } ## end for my $class_symbol ( sort keys %{$character_class_hash...})
-    $slg->[Marpa::R2::Inner::Scanless::G::CHARACTER_CLASS_TABLES] =
+    $slg->[Marpa::R2::Inner::Scanless::G::CHARACTER_CLASS_TABLES]->[$lexer] =
         \@class_table;
 
     # The G1 grammar
@@ -471,8 +474,9 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
         $g1_thin->symbol_is_completion_event_set( $symbol_id, 1 );
         $slg->[Marpa::R2::Inner::Scanless::G::COMPLETION_EVENT_BY_ID]
             ->[$symbol_id] = $completion_events_by_name->{$symbol_name};
-        push @{ $symbol_ids_by_event_name_and_type->{$event_name}
-                ->{completion} }, $symbol_id;
+        push
+            @{ $symbol_ids_by_event_name_and_type->{$event_name}->{completion}
+            }, $symbol_id;
     } ## end for my $symbol_name ( keys %{$completion_events_by_name...})
 
     my $nulled_events_by_name = $hashed_source->{nulled_events};
@@ -511,15 +515,18 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
         $g1_thin->symbol_is_prediction_event_set( $symbol_id, 1 );
         $slg->[Marpa::R2::Inner::Scanless::G::PREDICTION_EVENT_BY_ID]
             ->[$symbol_id] = $prediction_events_by_name->{$symbol_name};
-        push @{ $symbol_ids_by_event_name_and_type->{$event_name}
-                ->{prediction} }, $symbol_id;
+        push
+            @{ $symbol_ids_by_event_name_and_type->{$event_name}->{prediction}
+            }, $symbol_id;
     } ## end for my $symbol_name ( keys %{$prediction_events_by_name...})
 
     my $lexeme_events_by_id =
         $slg->[Marpa::R2::Inner::Scanless::G::LEXEME_EVENT_BY_ID] = [];
 
     if (defined(
-            my $precompute_error = Marpa::R2::Internal::Grammar::slif_precompute( $thick_g1_grammar)
+            my $precompute_error =
+                Marpa::R2::Internal::Grammar::slif_precompute(
+                $thick_g1_grammar)
         )
         )
     {
@@ -532,7 +539,7 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
         Marpa::R2::exception(
             'Internal errror: unnkown precompute error code ',
             $precompute_error );
-    } ## end if ( defined( my $precompute_error = $thick_g1_grammar...))
+    } ## end if ( defined( my $precompute_error = ...))
 
     my @g0_lexeme_to_g1_symbol;
     my @g1_symbol_to_g0_lexeme;
@@ -550,7 +557,7 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
             Marpa::R2::exception(
                 "A lexeme in lexer $lexer_name is not accessible from the G1 start symbol: $lexeme_name"
             );
-        } ## end if ( not defined $g1_symbol_id or not $g1_thin...)
+        } ## end if ( not defined $g1_symbol_id or not $g1_thin->...)
         my $lex_symbol_id = $lex_tracer->symbol_by_name($lexeme_name);
         $g0_lexeme_to_g1_symbol[$lex_symbol_id] = $g1_symbol_id;
         $g1_symbol_to_g0_lexeme[$g1_symbol_id]  = $lex_symbol_id;
@@ -570,7 +577,7 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
                     "  This may be because $symbol_in_display_form was used on a RHS in lexer $lexer_name.\n",
                     "  A lexeme cannot be used on the RHS of a lexer rule.\n"
                 );
-            } ## end if ( $lex_tracer->symbol_by_name($symbol_name) )
+            } ## end if ( $lex_tracer->symbol_by_name($internal_symbol_name...))
             Marpa::R2::exception(
                 "Unproductive symbol: $symbol_in_display_form\n",
                 qq{\n  The internal name for this symbol is $internal_symbol_name\n},
@@ -1434,18 +1441,17 @@ sub Marpa::R2::Scanless::R::resume {
             # Recover by registering character, if we can
             my $codepoint = $thin_slr->codepoint();
             my $character = chr($codepoint);
+            my $lexer     = $thin_slr->current_lexer();
+            my $character_class_table =
+                $slg->[Marpa::R2::Inner::Scanless::G::CHARACTER_CLASS_TABLES]
+                ->[$lexer];
             my @ops;
-            for my $entry (
-                @{  $slg->[
-                        Marpa::R2::Inner::Scanless::G::CHARACTER_CLASS_TABLES]
-                }
-                )
-            {
+            for my $entry ( @{$character_class_table} ) {
 
                 my ( $symbol_id, $re ) = @{$entry};
                 if ( $character =~ $re ) {
 
-                    if ($trace_terminals >= 2) {
+                    if ( $trace_terminals >= 2 ) {
                         my $thick_lex_grammar = $slg->[
                             Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMAR];
                         my $g0_tracer         = $thick_lex_grammar->tracer();
@@ -1461,16 +1467,17 @@ sub Marpa::R2::Scanless::R::resume {
                             $symbol_id)
                             or
                             Marpa::R2::exception("Could not say(): $ERRNO");
-                    } ## end if ($trace_terminals)
+                    } ## end if ( $trace_terminals >= 2 )
                     push @ops, $op_alternative, $symbol_id, 0, 1;
                 } ## end if ( $character =~ $re )
-            } ## end for my $entry ( @{ $grammar->[...]})
+            } ## end for my $entry ( @{$character_class_table} )
 
             Marpa::R2::exception(
                 'Lexing failed at unacceptable character ',
                 character_describe( chr $codepoint )
             ) if not @ops;
-            $thin_slr->char_register( $codepoint, @ops, $op_earleme_complete );
+            $thin_slr->char_register( $codepoint, @ops,
+                $op_earleme_complete );
             next OUTER_READ;
         } ## end if ( $problem_code eq 'unregistered char' )
 
