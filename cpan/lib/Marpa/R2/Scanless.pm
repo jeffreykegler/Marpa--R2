@@ -396,48 +396,6 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
     $slg->[Marpa::R2::Inner::Scanless::G::DEFAULT_G1_START_ACTION] =
         $hashed_source->{'default_g1_start_action'};
 
-    state $lex_target_symbol = '[:start_lex]';
-
-    # The only one, for now
-    my $lexer_name = 'G0';
-    my $lexer      = 0;
-
-    my $g0_lexeme_by_name = $hashed_source->{is_lexeme};
-    my @g0_lexeme_names   = keys %{$g0_lexeme_by_name};
-    Marpa::R2::exception( "There are no lexemes\n",
-        "  An SLIF grammar must have at least one lexeme\n" )
-        if not scalar @g0_lexeme_names;
-
-    my %lex_args = ();
-    $lex_args{trace_file_handle} =
-        $slg->[Marpa::R2::Inner::Scanless::G::TRACE_FILE_HANDLE] // \*STDERR;
-    $lex_args{rules}        = $hashed_source->{rules}->{$lexer_name};
-    $lex_args{symbols}      = $hashed_source->{symbols}->{$lexer_name};
-    $lex_args{start}        = $lex_target_symbol;
-    $lex_args{'_internal_'} = 1;
-    my $lex_grammar = Marpa::R2::Grammar->new( \%lex_args );
-    Marpa::R2::Internal::Grammar::slif_precompute($lex_grammar);
-    my $lex_tracer = $lex_grammar->tracer();
-    my $g0_thin    = $lex_tracer->grammar();
-    $slg->[Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMAR] = $lex_grammar;
-    my $character_class_hash =
-        $hashed_source->{character_classes}->{$lexer_name};
-    my @class_table = ();
-
-    for my $class_symbol ( sort keys %{$character_class_hash} ) {
-        my $cc_components = $character_class_hash->{$class_symbol};
-        my ( $compiled_re, $error ) =
-            Marpa::R2::Internal::MetaAST::char_class_to_re($cc_components);
-        if ( not $compiled_re ) {
-            $error =~ s/^/  /gxms;    #indent all lines
-            Marpa::R2::exception(
-                "Failed belatedly to evaluate character class\n", $error );
-        }
-        push @class_table,
-            [ $lex_tracer->symbol_by_name($class_symbol), $compiled_re ];
-    } ## end for my $class_symbol ( sort keys %{$character_class_hash...})
-    $slg->[Marpa::R2::Inner::Scanless::G::CHARACTER_CLASS_TABLES]->[$lexer] =
-        \@class_table;
 
     # The G1 grammar
     my $g1_args = $slg->[Marpa::R2::Inner::Scanless::G::G1_ARGS];
@@ -540,6 +498,52 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
             'Internal errror: unnkown precompute error code ',
             $precompute_error );
     } ## end if ( defined( my $precompute_error = ...))
+
+    # Lexers
+
+    state $lex_target_symbol = '[:start_lex]';
+
+    # The only one, for now
+    my $lexer_name = 'G0';
+    my $lexer      = 0;
+
+    my $g0_lexeme_by_name = $hashed_source->{is_lexeme};
+    my @g0_lexeme_names   = keys %{$g0_lexeme_by_name};
+    Marpa::R2::exception( "There are no lexemes\n",
+        "  An SLIF grammar must have at least one lexeme\n" )
+        if not scalar @g0_lexeme_names;
+
+    my %lex_args = ();
+    $lex_args{trace_file_handle} =
+        $slg->[Marpa::R2::Inner::Scanless::G::TRACE_FILE_HANDLE] // \*STDERR;
+    $lex_args{rules}        = $hashed_source->{rules}->{$lexer_name};
+    $lex_args{symbols}      = $hashed_source->{symbols}->{$lexer_name};
+    $lex_args{start}        = $lex_target_symbol;
+    $lex_args{'_internal_'} = 1;
+    my $lex_grammar = Marpa::R2::Grammar->new( \%lex_args );
+    Marpa::R2::Internal::Grammar::slif_precompute($lex_grammar);
+    my $lex_tracer = $lex_grammar->tracer();
+    my $g0_thin    = $lex_tracer->grammar();
+    $slg->[Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMAR] = $lex_grammar;
+    my $character_class_hash =
+        $hashed_source->{character_classes}->{$lexer_name};
+    my @class_table = ();
+
+    for my $class_symbol ( sort keys %{$character_class_hash} ) {
+        my $cc_components = $character_class_hash->{$class_symbol};
+        my ( $compiled_re, $error ) =
+            Marpa::R2::Internal::MetaAST::char_class_to_re($cc_components);
+        if ( not $compiled_re ) {
+            $error =~ s/^/  /gxms;    #indent all lines
+            Marpa::R2::exception(
+                "Failed belatedly to evaluate character class\n", $error );
+        }
+        push @class_table,
+            [ $lex_tracer->symbol_by_name($class_symbol), $compiled_re ];
+    } ## end for my $class_symbol ( sort keys %{$character_class_hash...})
+    $slg->[Marpa::R2::Inner::Scanless::G::CHARACTER_CLASS_TABLES]->[$lexer] =
+        \@class_table;
+
 
     my @g0_lexeme_to_g1_symbol;
     my @g1_symbol_to_g0_lexeme;
