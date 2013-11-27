@@ -737,7 +737,7 @@ Most applications
 will prefer the simpler C<lexeme_read()>.
 
 C<lexeme_alternative()> takes one or two arguments.
-The first required argument,
+The first argument,
 which is required,
 is the name of a symbol to be read
 at the current location.
