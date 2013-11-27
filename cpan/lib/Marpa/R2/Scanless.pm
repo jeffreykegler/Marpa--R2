@@ -408,8 +408,8 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
     my %lex_args = ();
     $lex_args{trace_file_handle} =
         $slg->[Marpa::R2::Inner::Scanless::G::TRACE_FILE_HANDLE] // \*STDERR;
-    $lex_args{rules} = $hashed_source->{rules}->{G0};
-    $lex_args{symbols} = $hashed_source->{symbols}->{G0};
+    $lex_args{rules} = $hashed_source->{rules}->{$lexer};
+    $lex_args{symbols} = $hashed_source->{symbols}->{$lexer};
     state $lex_target_symbol = '[:start_lex]';
     $lex_args{start} = $lex_target_symbol;
     $lex_args{'_internal_'} = 1;
@@ -548,7 +548,7 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
             or not $g1_thin->symbol_is_accessible($g1_symbol_id) )
         {
             Marpa::R2::exception(
-                "A G0 lexeme is not accessible from the G1 start symbol: $lexeme_name"
+                "A lexeme in lexer $lexer is not accessible from the G1 start symbol: $lexeme_name"
             );
         } ## end if ( not defined $g1_symbol_id or not $g1_thin...)
         my $lex_symbol_id = $lex_tracer->symbol_by_name($lexeme_name);
@@ -565,10 +565,10 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
                 $thick_g1_grammar->symbol_in_display_form($symbol_id);
             if ( $lex_tracer->symbol_by_name($internal_symbol_name) ) {
                 Marpa::R2::exception(
-                    "Symbol $symbol_in_display_form is a lexeme in G1, but not in G0.\n",
+                    "Symbol $symbol_in_display_form is a lexeme in G1, but not in lexer $lexer.\n",
                     qq{  The internal name for this symbol is $internal_symbol_name\n},
-                    "  This may be because $symbol_in_display_form was used on a RHS in G0.\n",
-                    "  A lexeme cannot be used on the RHS of a G0 rule.\n"
+                    "  This may be because $symbol_in_display_form was used on a RHS in lexer $lexer.\n",
+                    "  A lexeme cannot be used on the RHS of a lexer rule.\n"
                 );
             } ## end if ( $lex_tracer->symbol_by_name($symbol_name) )
             Marpa::R2::exception(
