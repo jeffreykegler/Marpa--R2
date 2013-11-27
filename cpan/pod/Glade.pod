@@ -15,7 +15,7 @@
 
 =head1 Name
 
-Marpa::R2::Glade - Low-level interface to Marpa's ASF's
+Marpa::R2::Glade - Low-level interface to Marpa's ASFs
 
 =head1 Synopsis
 
@@ -83,8 +83,8 @@ to have feedback into the final interface.
 
 =head1 About this document
 
-This document describes the low-level interface to Marpa's abstract syntax forests (ASF's).
-An ASF is an efficient and practical way to represent multiple abstract syntax trees (AST's).
+This document describes the low-level interface to Marpa's abstract syntax forests (ASFs).
+An ASF is an efficient and practical way to represent multiple abstract syntax trees (ASTs).
 This low-level interface allows the maximum flexiblity in building the forest,
 but requires the application to do much of the work.
 A higher-level interface is planned.
@@ -93,7 +93,7 @@ A higher-level interface is planned.
 
 An abstract syntax forest (ASF) is similar to an abstract syntax tree (AST), but it
 has an additional ability -- it can represent an ambiguous parse.
-Ambiguity in a parse can come in two forms, and Marpa's ASF's treat the
+Ambiguity in a parse can come in two forms, and Marpa's ASFs treat the
 distinction as important.  An ambiguity can be a symbolic choice
 (a symch), or a factoring.  Symbolic choices are the kind of ambiguity
 that springs first to mind -- a choice between rules, or a choice
@@ -318,14 +318,14 @@ symches.
 Each glade has a glade ID.
 This can be relied on to be a non-negative integer.
 A glade ID may be zero.
-Glade ID's are obtained from the L</"peak()">
+Glade IDs are obtained from the L</"peak()">
 and L</"factoring_downglades()"> methods.
 
-=head1 Techniques for traversing ASF's
+=head1 Techniques for traversing ASFs
 
 =head2 Memoization
 
-When traversing a forest, you should take steps to avoid
+When traversing a forest, you should to take steps to avoid
 traversing the same glades twice.
 You can do this by memoizing the result of each glade, perhaps
 using its glade ID to index an array.
@@ -343,7 +343,7 @@ an program which is unuseably slow even for very small inputs,
 and one which is extremely fast even for large inputs.
 
 Repeated subtraversals happen when two glades share the same downglades,
-something that occurs frequently in ASF's.
+something that occurs frequently in ASFs.
 Additionally, some day the SLIF may allow cycles.
 Memoization will prevent a cycle form causing an infinite loop.
 
@@ -876,10 +876,10 @@ In the current SLIF implementation, a forest is a directed acyclic graph (DAG).
 in the present context.)
 The underlying Marpa algorithm allows parse trees with cycles,
 and someday the SLIF probably will as well.
-When that happens, ASF's will no longer be "acyclic" and therefore will no
-longer be DAG's.
-This document talks about ASF's as if that day had already come --
-it assumes that the ASF's might
+When that happens, ASFs will no longer be "acyclic" and therefore will no
+longer be DAGs.
+This document talks about ASFs as if that day had already come --
+it assumes that the ASFs might
 contain cycles.
 
 In an ASF that contains one or more cycles,
@@ -903,7 +903,7 @@ For example, if glade A cycles back to itself through glade B, then
 
 =back
 
-ASF's will always be constructed so that the peak has no upglades.
+ASFs will always be constructed so that the peak has no upglades.
 Because of this, the peak can never be part of a cycle.
 This means that altitude will always be well defined in the sense that,
 for any two glades C<A> and C<B>, one and only one of the following statements will be true:
