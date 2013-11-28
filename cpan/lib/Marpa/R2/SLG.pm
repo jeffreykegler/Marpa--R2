@@ -290,7 +290,11 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
 
     # Lexers
 
+    my @lexer_names = ();
+    my @thick_lexer_grammars = ();
+    my @lexer_and_rule_to_g1_lexeme = ();
     state $lex_target_symbol = '[:start_lex]';
+    state $discard_symbol_name = '[:discard]';
 
     # The only one, for now
     my $lexer_name = 'G0';
@@ -310,6 +314,7 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
     $lex_args{start}        = $lex_target_symbol;
     $lex_args{'_internal_'} = 1;
     my $lex_grammar = Marpa::R2::Grammar->new( \%lex_args );
+    $thick_lexer_grammars[$lexer] = $lex_grammar;
     Marpa::R2::Internal::Grammar::slif_precompute($lex_grammar);
     my $lex_tracer = $lex_grammar->tracer();
     my $g0_thin    = $lex_tracer->grammar();
@@ -333,11 +338,9 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
     $slg->[Marpa::R2::Inner::Scanless::G::CHARACTER_CLASS_TABLES]->[$lexer] =
         \@class_table;
 
-
     my @g0_lexeme_to_g1_symbol;
     my @g1_symbol_to_g0_lexeme;
     $g0_lexeme_to_g1_symbol[$_] = -1 for 0 .. $g1_thin->highest_symbol_id();
-    state $discard_symbol_name = '[:discard]';
     my $g0_discard_symbol_id =
         $lex_tracer->symbol_by_name($discard_symbol_name) // -1;
 
@@ -378,10 +381,7 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
         } ## end if ( $g1_thin->symbol_is_terminal($symbol_id) and not...)
     } ## end SYMBOL_ID: for my $symbol_id ( 0 .. $g1_thin->highest_symbol_id(...))
 
-    my $thin_slg = $slg->[Marpa::R2::Inner::Scanless::G::C] =
-        Marpa::R2::Thin::SLG->new( $lex_tracer->grammar(),
-        $g1_tracer->grammar() );
-    $slg->[Marpa::R2::Inner::Scanless::G::LEXER_NAMES]->[0] = 'G0';
+    $lexer_names[Marpa::R2::Inner::Scanless::G::LEXER_NAMES]->[$lexer] = $lexer_name;
 
     my @g0_rule_to_g1_lexeme;
     RULE_ID: for my $rule_id ( 0 .. $g0_thin->highest_rule_id() ) {
@@ -391,10 +391,15 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
             ? -2
             : ( $g0_lexeme_to_g1_symbol[$lhs_id] // -1 );
         $g0_rule_to_g1_lexeme[$rule_id] = $lexeme_id;
-        $thin_slg->lexer_rule_to_g1_lexeme_set( $lexer, $rule_id, $lexeme_id );
-    } ## end RULE_ID: for my $rule_id ( 0 .. $g0_thin->highest_rule_id() )
+    }
+
+    $lexer_and_rule_to_g1_lexeme[$lexer] = \@g0_rule_to_g1_lexeme;
 
     # Post-lexer G1 processing
+
+    my $thin_slg = $slg->[Marpa::R2::Inner::Scanless::G::C] =
+        Marpa::R2::Thin::SLG->new( $lex_tracer->grammar(),
+        $g1_tracer->grammar() );
 
     my $lexeme_declarations = $hashed_source->{lexeme_declarations};
     for my $lexeme_name ( keys %{$lexeme_declarations} ) {
@@ -436,7 +441,21 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
         ) if $g0_lexeme_by_name->{$symbol_name};
     } ## end for my $symbol_name ( keys %{$nulled_events_by_name} )
 
+    # Second phase of lexer processing
+    for my $lexer ( 0 .. @lexer_names ) {
+        my $lexer_rule_to_g1_lexeme = $lexer_and_rule_to_g1_lexeme[$lexer];
+
+        RULE_ID: for my $lexer_rule_id ( 0 .. $#{$lexer_rule_to_g1_lexeme} ) {
+            my $g1_lexeme_id = $lexer_rule_to_g1_lexeme->[$lexer_rule_id];
+            $thin_slg->lexer_rule_to_g1_lexeme_set( $lexer, $lexer_rule_id,
+                $g1_lexeme_id );
+        }
+    } ## end for my $lexer ( 0 .. @lexer_names )
+
+    # Second phase of G1 processing
+
     $thin_slg->precompute();
+    $slg->[Marpa::R2::Inner::Scanless::G::LEXER_NAMES] = \@lexer_names;
     $slg->[Marpa::R2::Inner::Scanless::G::THICK_G1_GRAMMAR] =
         $thick_g1_grammar;
 
