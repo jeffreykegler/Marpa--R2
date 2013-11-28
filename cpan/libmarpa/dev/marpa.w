@@ -54,6 +54,7 @@
 \def\size#1{\v #1\v}
 \def\gsize{\v g\v}
 \def\wsize{\v w\v}
+\def\comment{\vskip\baselineskip}
 
 @q Unreserve the C++ keywords @>
 @s asm normal
@@ -653,10 +654,10 @@ Marpa_Grammar marpa_g_new (Marpa_Config* configuration)
 	return NULL;
     }
     g = my_slice_new(struct marpa_g);
-    /* Set |t_is_ok| to a bad value, just in case */
+    /* \comment Set |t_is_ok| to a bad value, just in case */
     g->t_is_ok = 0;
     @<Initialize grammar elements@>@;
-    /* Properly initialized, so set |t_is_ok| to its proper value */
+    /* \comment Properly initialized, so set |t_is_ok| to its proper value */
     g->t_is_ok = I_AM_OK;
    return g;
 }
@@ -1034,7 +1035,7 @@ the locations of |DSTACK| elements to change.
 PRIVATE
 void event_new(GRAMMAR g, int type)
 {
-  /* may change base of dstack */
+  /* \comment may change base of dstack */
   GEV top_of_stack = G_EVENT_PUSH(g);
   top_of_stack->t_type = type;
   top_of_stack->t_value = 0;
@@ -1043,7 +1044,7 @@ void event_new(GRAMMAR g, int type)
 PRIVATE
 void int_event_new(GRAMMAR g, int type, int value)
 {
-  /* may change base of dstack */
+  /* \comment may change base of dstack */
   GEV top_of_stack = G_EVENT_PUSH(g);
   top_of_stack->t_type = type;
   top_of_stack->t_value =  value;
@@ -2240,9 +2241,9 @@ duplicate_rule_cmp (const void *ap, const void *bp, void *param @,@, UNUSED)
   if (diff)
     return diff;
   {
-    /* Length is a key in-between LHS.  That way
-     * we only need to compare the RHS of
-     * rules of the same length */
+    /* \comment Length is a key in-between LHS.  That way
+      we only need to compare the RHS of
+      rules of the same length */
     int ix;
     const int length = Length_of_XRL (xrl1);
     diff = Length_of_XRL (xrl2) - length;
@@ -2984,8 +2985,8 @@ symbol_instance_of_ahfa_item_get (AIM aim)
 {
   int position = Position_of_AIM (aim);
   const int null_count = Null_Count_of_AIM(aim);
+  /* \comment If this AHFA item is not a prediction */
   if (position < 0 || position - null_count > 0) {
-      /* If this AHFA item is not a prediction */
       const IRL irl = IRL_of_AIM (aim);
       position = Position_of_AIM(aim-1);
       return SYMI_of_IRL(irl) + position;
@@ -3022,20 +3023,24 @@ int marpa_g_precompute(Marpa_Grammar g)
     @<Fail if no rules@>@;
     @<Fail if precomputed@>@;
     @<Fail if bad start symbol@>@;
-    // \break After this point, errors are not recoverable \break
+
+    /* \comment After this point, errors are not recoverable */
+
     @<Clear rule duplication tree@>@;
-    /* \vskip\baselineskip Phase 1: census the external grammar */
+    /* \comment Phase 1: census the external grammar */
     { /* Scope with only external grammar */
 	@<Declare census variables@>@;
 	@<Perform census of grammar |g|@>@;
 	@<Detect cycles@>@;
     }
-    //  \vskip\baselineskip Phase 2: rewrite the grammar into internal form 
+
+    //  \comment Phase 2: rewrite the grammar into internal form 
     @<Initialize IRL stack@>@;
     @<Initialize ISY stack@>@;
     @<Rewrite grammar |g| into CHAF form@>@;
     @<Augment grammar |g|@>@;
-    /* \vskip\baselineskip Phase 3: memoize the internal grammar */
+
+    /* \comment Phase 3: memoize the internal grammar */
      if (!G_is_Trivial(g)) {
 	@<Declare variables for the internal grammar
 	memoizations@>@;
@@ -3174,7 +3179,7 @@ PRIVATE_NOT_INLINE int sym_rule_cmp(
 {
   Marpa_Rule_ID rule_id;
 
-  /* AVL tree for RHS symbols */
+  /* \comment AVL tree for RHS symbols */
   const AVL_TREE rhs_avl_tree =
     _marpa_avl_create (sym_rule_cmp, NULL, alignof (struct sym_rule_pair));
     /* Size of G is sum of RHS lengths, plus 1 for each rule, which here is necessary
@@ -3184,7 +3189,7 @@ PRIVATE_NOT_INLINE int sym_rule_cmp(
 		    External_Size_of_G (g));
   struct sym_rule_pair *p_rh_sym_rule_pairs = p_rh_sym_rule_pair_base;
 
-  /* AVL tree for LHS symbols */
+  /* \comment AVL tree for LHS symbols */
   const AVL_TREE lhs_avl_tree =
     _marpa_avl_create (sym_rule_cmp, NULL, alignof (struct sym_rule_pair));
   struct sym_rule_pair *const p_lh_sym_rule_pair_base =
@@ -3203,7 +3208,7 @@ PRIVATE_NOT_INLINE int sym_rule_cmp(
 
       bv_bit_set (lhs_v, (unsigned int) lhs_id);
 
-      /* Insert the LH Sym / XRL pair into the LH AVL tree */
+      /* \comment Insert the LH Sym / XRL pair into the LH AVL tree */
       p_lh_sym_rule_pairs->t_symid = lhs_id;
 	p_lh_sym_rule_pairs->t_ruleid = rule_id;
       _marpa_avl_insert (lhs_avl_tree, p_lh_sym_rule_pairs);
@@ -3248,7 +3253,7 @@ PRIVATE_NOT_INLINE int sym_rule_cmp(
       my_obstack_new (obs_precompute, RULEID, External_Size_of_G (g));
     RULEID *p_rule_data = rule_data_base;
     traverser = _marpa_avl_t_init (rhs_avl_tree);
-    /* One extra "symbol" as an end marker */
+    /* \comment One extra "symbol" as an end marker */
     xrl_list_x_rh_sym = my_obstack_new (obs_precompute, RULEID*, pre_census_xsy_count + 1);
     for (pair = _marpa_avl_t_first (traverser); pair;
 	 pair = (struct sym_rule_pair*)_marpa_avl_t_next (traverser))
@@ -3271,7 +3276,7 @@ PRIVATE_NOT_INLINE int sym_rule_cmp(
       my_obstack_new (obs_precompute, RULEID, xrl_count);
     RULEID *p_rule_data = rule_data_base;
     traverser = _marpa_avl_t_init (lhs_avl_tree);
-    /* One extra "symbol" as an end marker */
+    /* \comment One extra "symbol" as an end marker */
     xrl_list_x_lh_sym =
       my_obstack_new (obs_precompute, RULEID *, pre_census_xsy_count + 1);
     for (pair = _marpa_avl_t_first (traverser); pair;
@@ -3300,10 +3305,10 @@ and a flag which indicates if there are any.
   for (symid = 0; symid < pre_census_xsy_count; symid++)
     {
       XSY symbol = XSY_by_ID (symid);
+	  /* \comment If marked by the user, leave the symbol
+	     as set by the user, and update the boolean vector */
       if (XSY_is_Locked_Terminal (symbol))
 	{
-	  /* If marked by the user, leave the symbol
-	     as set by the user, and update the boolean vector */
 	  if (XSY_is_Terminal (symbol))
 	    {
 	      bv_bit_set (terminal_v, (unsigned int) symid);
@@ -3312,7 +3317,7 @@ and a flag which indicates if there are any.
 	  bv_bit_clear (terminal_v, (unsigned int) symid);
 	  continue;
 	}
-      /* If not marked by the user, take the default
+      /* \comment If not marked by the user, take the default
          from the boolean vector and mark the symbol,
          if necessary. */
       if (bv_bit_test (terminal_v, (unsigned int) symid))
@@ -3556,40 +3561,44 @@ But currently we don't both -- we just mark the rule unproductive.
   const XSYID rhs_id = RHS_ID_of_XRL (xrl, 0);
   const XSY rh_xsy = XSY_by_ID (rhs_id);
   const XSYID separator_id = Separator_of_XRL (xrl);
-    @#
+
+     /* \comment A sequence rule is nullable if it can be zero length or
+    if its RHS is nullable */
   XRL_is_Nullable (xrl) = Minimum_of_XRL (xrl) <= 0
     || XSY_is_Nullable (rh_xsy);@;
-     /* A sequence rule is nullable if it can be zero length or
-    if its RHS is nullable */
-    @#
+
+     /* \comment A sequence rule is nulling if its RHS is nulling */
   XRL_is_Nulling (xrl) = XSY_is_Nulling (rh_xsy);
-     /* A sequence rule is nulling if its RHS is nulling */
-    @#
+    
+     /* \comment A sequence rule is productive if it is nulling or if its RHS is productive */
   XRL_is_Productive (xrl) = XRL_is_Nullable (xrl) || XSY_is_Productive (rh_xsy);
-     /* A sequence rule is productive if it is nulling or if its RHS is productive */
-    @#
+
+  // \comment Initialize to used if accessible and RHS is productive
   XRL_is_Used (xrl) = XRL_is_Accessible (xrl) && XSY_is_Productive (rh_xsy);
-  // Initialize to used if accessible and RHS is productive
-    @#
+
+  // \comment Touch-ups to account for the separator
   if (separator_id >= 0)
-    {				// Touch-ups to account for the separator
+    {
       const XSY separator_xsy = XSY_by_ID (separator_id);
+	/* \comment A non-nulling separator means a non-nulling rule */
       if (!XSY_is_Nulling (separator_xsy))
 	{
-	  /* A non-nulling separator means a non-nulling rule */
 	  XRL_is_Nulling (xrl) = 0;
 	}
+
+	  /* \comment A unproductive separator means a unproductive rule,
+	  unless it is nullable.  */
       if (UNLIKELY(!XSY_is_Productive (separator_xsy)))
 	{
-	  /* A unproductive separator means a unproductive rule,
-	  unless it is nullable.
-	  */
 	  XRL_is_Productive (xrl) = XRL_is_Nullable(xrl);
-	  XRL_is_Used(xrl) = 0; // Do not use a sequence rule with an unproductive separator
+
+	  // \comment Do not use a sequence rule with an unproductive separator
+	  XRL_is_Used(xrl) = 0;
 	}
   }
 
-  if (XRL_is_Nulling (xrl)) XRL_is_Used (xrl) = 0; // Do not use if nulling
+  // \comment Do not use if nulling
+  if (XRL_is_Nulling (xrl)) XRL_is_Used (xrl) = 0;
 }
 
 @ Those LHS terminals that have not been explicitly marked
@@ -3604,7 +3613,7 @@ and cause an error in the recognizer.
 @<Mark valued symbols@> = 
 if (0)
   {
-    /* Commented out.  The LHS terminal user is a sophisticated
+    /* \comment Commented out.  The LHS terminal user is a sophisticated
        user so it is probably the better course to allow her the
        choice.  */
     XSYID xsy_id;
@@ -9513,8 +9522,8 @@ marpa_r_earleme_complete(Marpa_Recognizer r)
   ES current_earley_set;
   EARLEME current_earleme;
 
-  /* Initialized to -2 just in case.
-   * Should be set before returning;
+  /* \comment Initialized to -2 just in case.
+    Should be set before returning;
    */
   EARLEME return_value = -2;
 
@@ -9536,12 +9545,13 @@ marpa_r_earleme_complete(Marpa_Recognizer r)
     }
     postdot_items_create(r, bv_ok_for_chain, current_earley_set);
 
+      /* \comment If no terminals are expected, and there are no Earley items in
+	   uncompleted Earley sets, we can make no further progress.
+	   The parse is ``exhausted". */
     count_of_expected_terminals = bv_count (r->t_bv_isyid_is_expected);
     if (count_of_expected_terminals <= 0
 	&& Earleme_of_ES (current_earley_set) >= Furthest_Earleme_of_R (r))
-      { /* If no terminals are expected, and there are no Earley items in
-	   uncompleted Earley sets, we can make no further progress.
-	   The parse is ``exhausted". */
+      {
 	@<Set |r| exhausted@>@;
       }
     earley_set_update_items(r, current_earley_set);
@@ -15460,9 +15470,10 @@ PRIVATE void cil_buffer_clear(CILAR cilar)
 {
   const DSTACK dstack = &cilar->t_buffer;
   DSTACK_CLEAR(*dstack);
-  *DSTACK_PUSH(*dstack, int) = 0; /* Has same effect as 
+  /* \comment Has same effect as 
   |Count_of_CIL (cil_in_buffer) = 0|, except that it sets
   the DSTACK up properly */
+  *DSTACK_PUSH(*dstack, int) = 0;
 }
 
 @ Push an |int| onto the end of the CILAR buffer.
@@ -15474,8 +15485,9 @@ PRIVATE CIL cil_buffer_push(CILAR cilar, int new_item)
   CIL cil_in_buffer;
   DSTACK dstack = &cilar->t_buffer;
   *DSTACK_PUSH (*dstack, int) = new_item;
-  cil_in_buffer = DSTACK_BASE (*dstack, int);	/* Note that the buffer CIL might have been moved
-						   by the |DSTACK_PUSH| */
+/* \comment Note that the buffer CIL might have been moved
+		   by the |DSTACK_PUSH| */
+  cil_in_buffer = DSTACK_BASE (*dstack, int);
   Count_of_CIL (cil_in_buffer)++;
   return cil_in_buffer;
 }
