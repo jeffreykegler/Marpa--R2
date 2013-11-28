@@ -311,6 +311,8 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
 
     for my $lexer_name (@lexer_names) {
 
+	# Replace from here
+
         my $g0_lexeme_by_name = $hashed_source->{is_lexeme};
         my @g0_lexeme_names   = keys %{$g0_lexeme_by_name};
 
@@ -319,12 +321,18 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
             "  An SLIF grammar must have at least one lexeme\n" )
             if not scalar @g0_lexeme_names;
 
+	# Replace to here
+
         my %lex_args = ();
         $lex_args{trace_file_handle} =
             $slg->[Marpa::R2::Inner::Scanless::G::TRACE_FILE_HANDLE]
             // \*STDERR;
-        $lex_args{rules}        = $hashed_source->{rules}->{$lexer_name};
-        $lex_args{symbols}      = $hashed_source->{symbols}->{$lexer_name};
+
+	my $lexer_rules = $hashed_source->{rules}->{$lexer_name};
+        $lex_args{rules}        = $lexer_rules;
+	my $lexer_symbols = $hashed_source->{symbols}->{$lexer_name};
+        $lex_args{symbols}        = $lexer_symbols;
+
         $lex_args{start}        = $lex_target_symbol;
         $lex_args{'_internal_'} = 1;
         my $lex_grammar = Marpa::R2::Grammar->new( \%lex_args );
