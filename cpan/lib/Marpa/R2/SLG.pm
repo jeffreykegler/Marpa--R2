@@ -406,18 +406,32 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
     # Relies on default lexer being given number zero
     $lexer_id_by_name{'G0'} = 0;
 
-    # Change this
-    my $lexeme_by_name = $hashed_source->{is_lexeme};
+    LEXEME: for my $g1_lexeme ( 0 .. $#g1_lexemes ) {
+
+        my $lexer_count = $g1_lexemes[$g1_lexeme];
+
+        # OK if it never was a lexeme in G1
+        next LEXEME if not defined $lexer_count;
+
+        # OK if used in at least one lexer
+        next LEXEME if $lexer_count >= 1;
+
+        my $lexeme_name = $g1_tracer->symbol_name($g1_lexeme);
+        Marpa::R2::exception(
+            "A lexeme in G1 is not a lexeme in any of the lexers: $lexeme_name"
+        );
+    } ## end LEXEME: for my $g1_lexeme ( 0 .. $#{$g1_lexeme} )
+
     # More processing of G1 lexemes
     my $lexeme_declarations = $hashed_source->{lexeme_declarations};
     for my $lexeme_name ( keys %{$lexeme_declarations} ) {
 
-        Marpa::R2::exception(
-            "Symbol <$lexeme_name> is declared as a lexeme, but it is not used as one.\n"
-        ) if not $lexeme_by_name->{$lexeme_name};
-
         my $declarations = $lexeme_declarations->{$lexeme_name};
         my $g1_lexeme_id = $g1_tracer->symbol_by_name($lexeme_name);
+
+        Marpa::R2::exception(
+            "Symbol <$lexeme_name> is declared as a lexeme, but it is not used as one.\n"
+        ) if not $g1_lexemes[$g1_lexeme_id];
 
         if ( defined( my $value = $declarations->{priority} ) ) {
             $thin_slg->g1_lexeme_priority_set( $g1_lexeme_id, $value );
@@ -438,16 +452,18 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
     # Now that we know the lexemes, check attempts to defined a
     # completion or a nulled event for one
     for my $symbol_name ( keys %{$completion_events_by_name} ) {
+        my $g1_lexeme_id = $g1_tracer->symbol_by_name($symbol_name);
         Marpa::R2::exception(
-            "A completion event is declared for <$symbol_name>, but it is a G1 lexeme.\n",
+            "A completion event is declared for <$symbol_name>, but it is a lexeme.\n",
             "  Completion events are only valid for symbols on the LHS of G1 rules.\n"
-        ) if $lexeme_by_name->{$symbol_name};
+        ) if $g1_lexemes[$g1_lexeme_id];
     } ## end for my $symbol_name ( keys %{$completion_events_by_name...})
     for my $symbol_name ( keys %{$nulled_events_by_name} ) {
+        my $g1_lexeme_id = $g1_tracer->symbol_by_name($symbol_name);
         Marpa::R2::exception(
             "A nulled event is declared for <$symbol_name>, but it is a G1 lexeme.\n",
             "  nulled events are only valid for symbols on the LHS of G1 rules.\n"
-        ) if $lexeme_by_name->{$symbol_name};
+        ) if $g1_lexemes[$g1_lexeme_id];
     } ## end for my $symbol_name ( keys %{$nulled_events_by_name} )
 
     # Second phase of lexer processing
