@@ -120,37 +120,6 @@ sub ast_to_hash {
             \%stripped_character_classes;
     } ## end for my $lexer (@lexers)
 
-    # Calculate lexemes at this point as those G1 symbols,
-    # 1.) Not on a G1 LHS
-    # 2.) Not on lexer RHS
-    # 3.) Not a lexer separator
-
-    # Initialize to all the G1 symbols on the RHS of a rule
-    my %is_lexeme = ();
-    RULE: for my $rule ( @{ $hashed_ast->{rules}->{'G1'} } ) {
-	for my $symbol ( @{ $rule->{rhs} } ) {
-	  $is_lexeme{ $symbol } = 1;
-	}
-	my $separator = $rule->{separator};
-	next RULE if not defined $separator;
-	$is_lexeme{$separator} = 1;
-    }
-    # Eliminate all those on a LHS
-    for my $rule ( @{ $hashed_ast->{rules}->{'G1'} } ) {
-        $is_lexeme{ $rule->{lhs} } = undef;
-    }
-    LEXER: for my $lexer ( keys %grammars ) {
-        next LEXER if $lexer eq 'G1';
-        RULE: for my $rule ( @{ $hashed_ast->{rules}->{$lexer} } ) {
-            for my $symbol ( @{ $rule->{rhs} } ) {
-                $is_lexeme{$symbol} = undef;
-            }
-            my $separator = $rule->{separator};
-            next RULE if not defined $separator;
-            $is_lexeme{$separator} = undef;
-        } ## end for my $rule ( $hashed_ast->{rules}->{$lexer} )
-    } ## end for my $lexer ( keys %grammars )
-
     return $hashed_ast;
 } ## end sub ast_to_hash
 

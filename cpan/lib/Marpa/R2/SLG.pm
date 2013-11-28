@@ -550,8 +550,7 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
         my $g1_symbols =
             $thick_g1_grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
 
-        LEXEME:
-        for my $lexeme_id ( grep { $g1_lexemes[$_] } 0 .. $#g1_lexemes ) {
+        LEXEME: for my $lexeme_id ( grep { $g1_lexemes[$_] } 0 .. $#g1_lexemes ) {
             my $g1_symbol = $g1_symbols->[$lexeme_id];
 	    my $lexeme = $g1_tracer->symbol_name($lexeme_id);
             next LEXEME if $lexeme =~ m/ \] \z/xms;
@@ -580,8 +579,14 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
                 $g1_symbol->[Marpa::R2::Internal::Symbol::BLESSING] =
                     $blessing;
             } ## end DETERMINE_BLESSING:
-            $g1_symbol->[Marpa::R2::Internal::Symbol::LEXEME_SEMANTICS] =
-                $action;
+	}
+
+        LEXEME:
+        for my $lexeme_id ( grep { $g1_lexemes[$_] } 0 .. $#g1_lexemes ) {
+            my $g1_symbol = $g1_symbols->[$lexeme_id];
+	    my $lexeme_name = $g1_tracer->symbol_name($lexeme_id);
+            next LEXEME if $lexeme_name =~ m/ \] \z/xms;
+            $g1_symbol->[Marpa::R2::Internal::Symbol::LEXEME_SEMANTICS] //= $action;
         } ## end for my $lexeme_id ( grep { $g1_lexemes[$_] } 0 .. ...)
     } ## end if ( my $lexeme_default_adverbs = $hashed_source->{...})
 
