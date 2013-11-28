@@ -100,7 +100,8 @@ lib/Marpa/R2/Internal.pm
 lib/Marpa/R2/MetaAST.pm
 lib/Marpa/R2/MetaG.pm
 lib/Marpa/R2/Recognizer.pm
-lib/Marpa/R2/Scanless.pm
+lib/Marpa/R2/SLG.pm
+lib/Marpa/R2/SLR.pm
 lib/Marpa/R2/Stuifzand.pm
 lib/Marpa/R2/Thin/Trace.pm
 lib/Marpa/R2/Value.pm
