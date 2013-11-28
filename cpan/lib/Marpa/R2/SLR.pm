@@ -998,14 +998,17 @@ sub Marpa::R2::Scanless::R::read_problem {
         my $stream_pos = $thin_slr->pos();
         my $trace_file_handle =
             $slr->[Marpa::R2::Inner::Scanless::R::TRACE_FILE_HANDLE];
-        my $grammar = $slr->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
+        my $slg = $slr->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
 	my $lexer_id = $thin_slr->current_lexer();
         my $thick_lex_grammar =
             $grammar->[Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMARS]->[$lexer_id];
         my $lex_tracer = $thick_lex_grammar->tracer();
+        my $lexer_name =
+            $slg->[Marpa::R2::Inner::Scanless::G::LEXER_NAME_BY_ID]
+            ->[$lexer_id];
         my ( $line, $column ) = $slr->line_column($stream_pos);
         $read_string_error .=
-            qq{\n=== G0 Progress report at line $line, column $column\n} .
+            qq{\n=== Progress report for lexer "$lexer_name" at line $line, column $column\n} .
             $lex_tracer->lexer_progress_report($slr);
     } ## end if ( $slr->[Marpa::R2::Inner::Scanless::R::TRACE_LEXER...])
 
