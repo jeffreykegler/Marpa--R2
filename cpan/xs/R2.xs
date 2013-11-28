@@ -106,7 +106,7 @@ struct lexeme_r_properties {
   */
 typedef struct
 {
-  SV *g0_sv;
+  SV *g_sv;
   Marpa_Symbol_ID *lexer_rule_to_g1_lexeme;
   HV *per_codepoint_hash;
   IV *per_codepoint_array[128];
@@ -489,7 +489,7 @@ static Lexer* lexer_add(Scanless_G* slg, SV* g_sv)
   Lexer** lexers = slg->lexers;
 
   Newx (lexer, 1, Lexer);
-  lexer->g0_sv = g_sv;
+  lexer->g_sv = g_sv;
   lexer->per_codepoint_hash = newHV ();
   for (i = 0; i < Dim(lexer->per_codepoint_array); i++) {
     lexer->per_codepoint_array[i] = NULL;
@@ -521,7 +521,7 @@ static void lexer_destroy(Lexer *lexer)
   for (i = 0; i < Dim(lexer->per_codepoint_array); i++) {
     Safefree(lexer->per_codepoint_array[i]);
   }
-  SvREFCNT_dec (lexer->g0_sv);
+  SvREFCNT_dec (lexer->g_sv);
 }
 
 /* Static lexer methods */
@@ -1636,7 +1636,7 @@ slr_discard (Scanless_R * slr)
 	      if (slr->trace_terminals)
 		{
 		  AV *event;
-		  SV *event_data[5];
+		  SV *event_data[6];
 		  event_data[0] = newSVpvs ("'trace");
 		  event_data[1] = newSVpvs ("discarded lexeme");
 		  /* We do not have the lexeme, but we have the 
@@ -1646,6 +1646,7 @@ slr_discard (Scanless_R * slr)
 		  event_data[2] = newSViv (rule_id);
 		  event_data[3] = newSViv (slr->start_of_lexeme);
 		  event_data[4] = newSViv (slr->end_of_lexeme);
+		  event_data[5] = newSViv (slr->current_lexer->index);
 		  event = av_make (Dim (event_data), event_data);
 		  av_push (slr->r1_wrapper->event_queue,
 			   newRV_noinc ((SV *) event));
@@ -1882,7 +1883,7 @@ slr_alternatives (Scanless_R * slr)
 		  if (slr->trace_terminals)
 		    {
 		      AV *event;
-		      SV *event_data[5];
+		      SV *event_data[6];
 		      event_data[0] = newSVpvs ("'trace");
 		      event_data[1] = newSVpvs ("discarded lexeme");
 		      /* We do not have the lexeme, but we have the 
@@ -1892,6 +1893,7 @@ slr_alternatives (Scanless_R * slr)
 		      event_data[2] = newSViv (rule_id);
 		      event_data[3] = newSViv (slr->start_of_lexeme);
 		      event_data[4] = newSViv (slr->end_of_lexeme);
+		      event_data[5] = newSViv (slr->current_lexer->index);
 		      event = av_make (Dim (event_data), event_data);
 		      av_push (slr->r1_wrapper->event_queue,
 			       newRV_noinc ((SV *) event));
@@ -5317,7 +5319,7 @@ PPCODE:
 	      event_data[0] = newSVpvs ("'trace");
 	      event_data[1] = newSVpv ("lexer restarted recognizer", 0);
 	      event_data[2] = newSViv ((IV) slr->perl_pos);
-	      event_data[3] = newSViv ((IV) slr->current_lexer);
+	      event_data[3] = newSViv ((IV) slr->current_lexer->index);
 	      event = av_make (Dim (event_data), event_data);
 	      av_push (slr->r1_wrapper->event_queue, newRV_noinc ((SV *) event));
 	    }

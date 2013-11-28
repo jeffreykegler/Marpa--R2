@@ -568,11 +568,10 @@ my $libmarpa_trace_event_handlers = {
         },
     'discarded lexeme' => sub {
         my ( $slr, $event ) = @_;
-        my ( undef, undef, $lex_rule_id, $start, $end ) = @{$event};
+        my ( undef, undef, $lex_rule_id, $start, $end, $lexer_id ) = @{$event};
         my $grammar = $slr->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
-	my $g0_lexer_id = 0;
         my $thick_lex_grammar =
-            $grammar->[Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMARS]->[$g0_lexer_id];
+            $grammar->[Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMARS]->[$lexer_id];
         my $grammar_c = $thick_lex_grammar->[Marpa::R2::Internal::Grammar::C];
         my $rule_length = $grammar_c->rule_length($lex_rule_id);
         my @rhs_ids =
@@ -755,9 +754,9 @@ sub Marpa::R2::Scanless::R::resume {
             my $stream_pos = $thin_slr->pos();
             my $trace_file_handle =
                 $slr->[Marpa::R2::Inner::Scanless::R::TRACE_FILE_HANDLE];
-	my $g0_lexer_id = 0;
+            my $lexer_id     = $thin_slr->current_lexer();
             my $thick_lex_grammar =
-                $slg->[Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMARS]->[$g0_lexer_id];
+                $slg->[Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMARS]->[$lexer_id];
             my $lex_tracer = $thick_lex_grammar->tracer();
             my ( $line, $column ) = $slr->line_column($stream_pos);
             print {$trace_file_handle}
@@ -791,9 +790,9 @@ sub Marpa::R2::Scanless::R::resume {
                 if ( $character =~ $re ) {
 
                     if ( $trace_terminals >= 2 ) {
-	my $g0_lexer_id = 0;;
+			my $lexer_id     = $thin_slr->current_lexer();
                         my $thick_lex_grammar = $slg->[
-                            Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMARS]->[$g0_lexer_id];
+                            Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMARS]->[$lexer_id];
                         my $trace_file_handle = $slr->[
                             Marpa::R2::Inner::Scanless::R::TRACE_FILE_HANDLE];
                         my $char_desc = sprintf 'U+%04x', $codepoint;
