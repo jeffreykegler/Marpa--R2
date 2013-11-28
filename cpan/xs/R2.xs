@@ -718,11 +718,12 @@ u_read(Scanless_R *slr)
       if (trace_lexer >= 1)
 	{
 	  AV *event;
-	  SV *event_data[4];
+	  SV *event_data[5];
 	  event_data[0] = newSVpvs ("'trace");
 	  event_data[1] = newSVpvs ("lexer reading codepoint");
 	  event_data[2] = newSViv ((IV) codepoint);
 	  event_data[3] = newSViv ((IV) slr->perl_pos);
+	  event_data[4] = newSViv (slr->current_lexer->index);
 	  event = av_make (Dim (event_data), event_data);
 	  av_push (slr->r1_wrapper->event_queue, newRV_noinc ((SV *) event));
 	}

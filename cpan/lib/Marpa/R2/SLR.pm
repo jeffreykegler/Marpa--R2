@@ -491,9 +491,9 @@ my $libmarpa_trace_event_handlers = {
             qq{; value="$raw_token_value"}
             or Marpa::R2::exception("Could not say(): $ERRNO");
     },
-    'g0 reading codepoint' => sub {
+    'lexer reading codepoint' => sub {
         my ( $slr, $event ) = @_;
-        my ( undef, undef, $codepoint, $position ) = @{$event};
+        my ( undef, undef, $codepoint, $position, $lexer_id ) = @{$event};
         my $char      = chr $codepoint;
         my @char_desc = ();
         push @char_desc, qq{"$char"}
@@ -503,8 +503,12 @@ my $libmarpa_trace_event_handlers = {
         my ( $line, $column ) = $slr->line_column($position);
         my $trace_file_handle =
             $slr->[Marpa::R2::Inner::Scanless::R::TRACE_FILE_HANDLE];
+        my $slg = $slr->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
+        my $lexer_name =
+            $slg->[Marpa::R2::Inner::Scanless::G::LEXER_NAME_BY_ID]
+            ->[$lexer_id];
         say {$trace_file_handle}
-            "G0 reading codepoint $char_desc at line $line, column $column"
+            qq{Lexer "$lexer_name" reading codepoint $char_desc at line $line, column $column}
             or Marpa::R2::exception("Could not say(): $ERRNO");
     },
     'g0 accepted codepoint' => sub {
