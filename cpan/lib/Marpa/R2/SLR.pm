@@ -538,28 +538,33 @@ my $libmarpa_trace_event_handlers = {
             qq{Lexer "$lexer_name" codepoint $char_desc accepted as $symbol_in_display_form at line $line, column $column}
             or Marpa::R2::exception("Could not say(): $ERRNO");
         },
-    'g0 rejected codepoint' => sub {
+    'lexer rejected codepoint' => sub {
         my ( $slr, $event ) = @_;
-        my ( undef, undef, $codepoint, $position, $token_id ) = @{$event};
+        my ( undef, undef, $codepoint, $position, $token_id, $lexer_id ) =
+            @{$event};
         my $char      = chr $codepoint;
         my @char_desc = ();
         push @char_desc, qq{"$char"}
             if $char =~ /[\p{IsGraph}]/xms;
         push @char_desc, ( sprintf '0x%04x', $codepoint );
-        my $char_desc = join q{ }, @char_desc;
-        my $grammar = $slr->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
-	my $g0_lexer_id = 0;
+        my $char_desc   = join q{ }, @char_desc;
+        my $grammar     = $slr->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
         my $thick_lex_grammar =
-            $grammar->[Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMARS]->[$g0_lexer_id];
+            $grammar->[Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMARS]
+            ->[$lexer_id];
         my $symbol_in_display_form =
             $thick_lex_grammar->symbol_in_display_form($token_id),
             my ( $line, $column ) = $slr->line_column($position);
+        my $slg = $slr->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
+        my $lexer_name =
+            $slg->[Marpa::R2::Inner::Scanless::G::LEXER_NAME_BY_ID]
+            ->[$lexer_id];
         my $trace_file_handle =
             $slr->[Marpa::R2::Inner::Scanless::R::TRACE_FILE_HANDLE];
         say {$trace_file_handle}
-            "G0 codepoint $char_desc rejected as $symbol_in_display_form at line $line, column $column"
+            qq{Lexer "$lexer_name" codepoint $char_desc rejected as $symbol_in_display_form at line $line, column $column}
             or Marpa::R2::exception("Could not say(): $ERRNO");
-    },
+        },
     'lexer restarted recognizer' => sub {
         my ( $slr, $event ) = @_;
         my ( undef, undef, $position, $lexer_id ) = @{$event};
