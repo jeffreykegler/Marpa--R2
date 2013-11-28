@@ -383,6 +383,19 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
         $g1_tracer->grammar() );
     $slg->[Marpa::R2::Inner::Scanless::G::LEXER_NAMES]->[0] = 'G0';
 
+    my @g0_rule_to_g1_lexeme;
+    RULE_ID: for my $rule_id ( 0 .. $g0_thin->highest_rule_id() ) {
+        my $lhs_id = $g0_thin->rule_lhs($rule_id);
+        my $lexeme_id =
+            $lhs_id == $g0_discard_symbol_id
+            ? -2
+            : ( $g0_lexeme_to_g1_symbol[$lhs_id] // -1 );
+        $g0_rule_to_g1_lexeme[$rule_id] = $lexeme_id;
+        $thin_slg->lexer_rule_to_g1_lexeme_set( $lexer, $rule_id, $lexeme_id );
+    } ## end RULE_ID: for my $rule_id ( 0 .. $g0_thin->highest_rule_id() )
+
+    # Post-lexer G1 processing
+
     my $lexeme_declarations = $hashed_source->{lexeme_declarations};
     for my $lexeme_name ( keys %{$lexeme_declarations} ) {
         Marpa::R2::exception(
@@ -407,19 +420,6 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
         } ## end if ( defined $pause_value )
 
     } ## end for my $lexeme_name ( keys %{$lexeme_declarations} )
-
-    my @g0_rule_to_g1_lexeme;
-    RULE_ID: for my $rule_id ( 0 .. $g0_thin->highest_rule_id() ) {
-        my $lhs_id = $g0_thin->rule_lhs($rule_id);
-        my $lexeme_id =
-            $lhs_id == $g0_discard_symbol_id
-            ? -2
-            : ( $g0_lexeme_to_g1_symbol[$lhs_id] // -1 );
-        $g0_rule_to_g1_lexeme[$rule_id] = $lexeme_id;
-        $thin_slg->lexer_rule_to_g1_lexeme_set( $lexer, $rule_id, $lexeme_id );
-    } ## end RULE_ID: for my $rule_id ( 0 .. $g0_thin->highest_rule_id() )
-
-    # Post-lexer G1 processing
 
     # Now that we know the lexemes, check attempts to defined a
     # completion or a nulled event for one
