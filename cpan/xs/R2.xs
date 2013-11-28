@@ -4731,22 +4731,22 @@ PPCODE:
 MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin::SLG
 
 void
-new( class, g0_sv, g1_sv )
+new( class, l0_sv, g1_sv )
     char * class;
-    SV *g0_sv;
+    SV *l0_sv;
     SV *g1_sv;
 PPCODE:
 {
   SV* new_sv;
   Scanless_G *slg;
 
-  if (!sv_isa (g0_sv, "Marpa::R2::Thin::G"))
+  if (!sv_isa (l0_sv, "Marpa::R2::Thin::G"))
     {
-      croak ("Problem in u->new(): g0 arg is not of type Marpa::R2::Thin::G");
+      croak ("Problem in u->new(): L0 arg is not of type Marpa::R2::Thin::G");
     }
   if (!sv_isa (g1_sv, "Marpa::R2::Thin::G"))
     {
-      croak ("Problem in u->new(): r1 arg is not of type Marpa::R2::Thin::G");
+      croak ("Problem in u->new(): G1 arg is not of type Marpa::R2::Thin::G");
     }
   Newx (slg, 1, Scanless_G);
 
@@ -4755,7 +4755,7 @@ PPCODE:
   # After testing, start with a larger buffer size, perhaps 8
   slg->lexer_buffer_size = 1;
   slg->lexer_count = 0;
-  lexer_add(slg, g0_sv);
+  lexer_add(slg, l0_sv);
 
   slg->g1_sv = g1_sv;
   SvREFCNT_inc (g1_sv);
@@ -5160,7 +5160,7 @@ PPCODE:
     /* Note that we use *trace_level*, not *trace_lexer* to control warning.
      * We never warn() for trace_terminals, just report events.
      */
-    warn("Changing SLR g0 trace level from %d to %d", (int)old_level, (int)new_level);
+    warn("Changing SLR lexer trace level from %d to %d", (int)old_level, (int)new_level);
   }
   XSRETURN_IV(old_level);
 }
@@ -5313,10 +5313,11 @@ PPCODE:
 	  if (trace_lexer >= 1)
 	    {
 	      AV *event;
-	      SV *event_data[3];
+	      SV *event_data[4];
 	      event_data[0] = newSVpvs ("'trace");
-	      event_data[1] = newSVpv ("g0 restarted recognizer", 0);
+	      event_data[1] = newSVpv ("lexer restarted recognizer", 0);
 	      event_data[2] = newSViv ((IV) slr->perl_pos);
+	      event_data[3] = newSViv ((IV) slr->current_lexer);
 	      event = av_make (Dim (event_data), event_data);
 	      av_push (slr->r1_wrapper->event_queue, newRV_noinc ((SV *) event));
 	    }

@@ -270,10 +270,6 @@ sub Marpa::R2::Scanless::R::new {
     } ## end ARG: for my $arg_name ( keys %{$args} )
 
     $self->[Marpa::R2::Inner::Scanless::R::GRAMMAR] = $grammar;
-    my $thick_lex_grammar =
-        $grammar->[Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMAR];
-    my $lex_tracer       = $thick_lex_grammar->tracer();
-    my $thin_lex_grammar = $lex_tracer->grammar();
 
     my $thick_g1_grammar =
         $grammar->[Marpa::R2::Inner::Scanless::G::THICK_G1_GRAMMAR];
@@ -521,9 +517,10 @@ my $libmarpa_trace_event_handlers = {
         push @char_desc, ( sprintf '0x%04x', $codepoint );
         my $char_desc = join q{ }, @char_desc;
         my $grammar = $slr->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
+	my $g0_lexer_id = 0;
         my $thick_lex_grammar =
-            $grammar->[Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMAR];
-        my $g0_tracer = $thick_lex_grammar->tracer();
+            $grammar->[Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMARS]
+            ->[$g0_lexer_id];
         my $symbol_in_display_form =
             $thick_lex_grammar->symbol_in_display_form($token_id),
             my ( $line, $column ) = $slr->line_column($position);
@@ -532,7 +529,7 @@ my $libmarpa_trace_event_handlers = {
         say {$trace_file_handle}
             "G0 codepoint $char_desc accepted as $symbol_in_display_form at line $line, column $column"
             or Marpa::R2::exception("Could not say(): $ERRNO");
-    },
+        },
     'g0 rejected codepoint' => sub {
         my ( $slr, $event ) = @_;
         my ( undef, undef, $codepoint, $position, $token_id ) = @{$event};
@@ -543,9 +540,9 @@ my $libmarpa_trace_event_handlers = {
         push @char_desc, ( sprintf '0x%04x', $codepoint );
         my $char_desc = join q{ }, @char_desc;
         my $grammar = $slr->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
+	my $g0_lexer_id = 0;
         my $thick_lex_grammar =
-            $grammar->[Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMAR];
-        my $g0_tracer = $thick_lex_grammar->tracer();
+            $grammar->[Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMARS]->[$g0_lexer_id];
         my $symbol_in_display_form =
             $thick_lex_grammar->symbol_in_display_form($token_id),
             my ( $line, $column ) = $slr->line_column($position);
@@ -555,26 +552,31 @@ my $libmarpa_trace_event_handlers = {
             "G0 codepoint $char_desc rejected as $symbol_in_display_form at line $line, column $column"
             or Marpa::R2::exception("Could not say(): $ERRNO");
     },
-    'g0 restarted recognizer' => sub {
+    'lexer restarted recognizer' => sub {
         my ( $slr, $event ) = @_;
-        my ( undef, undef, $position ) = @{$event};
+        my ( undef, undef, $position, $lexer_id ) = @{$event};
         my ( $line, $column ) = $slr->line_column($position);
         my $trace_file_handle =
             $slr->[Marpa::R2::Inner::Scanless::R::TRACE_FILE_HANDLE];
+        my $slg = $slr->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
+        my $lexer_name =
+            $slg->[Marpa::R2::Inner::Scanless::G::LEXER_NAME_BY_ID]
+            ->[$lexer_id];
         say {$trace_file_handle}
-            "G0 restarted recognizer at line $line, column $column"
+            qq{Lexer "$lexer_name" restarted recognizer at line $line, column $column}
             or Marpa::R2::exception("Could not say(): $ERRNO");
-    },
+        },
     'discarded lexeme' => sub {
         my ( $slr, $event ) = @_;
-        my ( undef, undef, $g0_rule_id, $start, $end ) = @{$event};
+        my ( undef, undef, $lex_rule_id, $start, $end ) = @{$event};
         my $grammar = $slr->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
+	my $g0_lexer_id = 0;
         my $thick_lex_grammar =
-            $grammar->[Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMAR];
+            $grammar->[Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMARS]->[$g0_lexer_id];
         my $grammar_c = $thick_lex_grammar->[Marpa::R2::Internal::Grammar::C];
-        my $rule_length = $grammar_c->rule_length($g0_rule_id);
+        my $rule_length = $grammar_c->rule_length($lex_rule_id);
         my @rhs_ids =
-            map { $grammar_c->rule_rhs( $g0_rule_id, $_ ) }
+            map { $grammar_c->rule_rhs( $lex_rule_id, $_ ) }
             ( 0 .. $rule_length - 1 );
         my @rhs =
             map { $thick_lex_grammar->symbol_in_display_form($_) } @rhs_ids;
@@ -753,13 +755,14 @@ sub Marpa::R2::Scanless::R::resume {
             my $stream_pos = $thin_slr->pos();
             my $trace_file_handle =
                 $slr->[Marpa::R2::Inner::Scanless::R::TRACE_FILE_HANDLE];
+	my $g0_lexer_id = 0;
             my $thick_lex_grammar =
-                $slg->[Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMAR];
-            my $g0_tracer = $thick_lex_grammar->tracer();
+                $slg->[Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMARS]->[$g0_lexer_id];
+            my $lex_tracer = $thick_lex_grammar->tracer();
             my ( $line, $column ) = $slr->line_column($stream_pos);
             print {$trace_file_handle}
                 qq{\n=== Progress report at line $line, column $column\n},
-                $g0_tracer->lexer_progress_report($slr),
+                $lex_tracer->lexer_progress_report($slr),
                 qq{=== End of progress report at line $line, column $column\n},
                 or Marpa::R2::exception("Cannot print(): $ERRNO");
         } ## end if ( $trace_lexer > 2 )
@@ -788,9 +791,9 @@ sub Marpa::R2::Scanless::R::resume {
                 if ( $character =~ $re ) {
 
                     if ( $trace_terminals >= 2 ) {
+	my $g0_lexer_id = 0;;
                         my $thick_lex_grammar = $slg->[
-                            Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMAR];
-                        my $g0_tracer         = $thick_lex_grammar->tracer();
+                            Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMARS]->[$g0_lexer_id];
                         my $trace_file_handle = $slr->[
                             Marpa::R2::Inner::Scanless::R::TRACE_FILE_HANDLE];
                         my $char_desc = sprintf 'U+%04x', $codepoint;
@@ -844,8 +847,9 @@ sub Marpa::R2::Scanless::R::read_problem {
     my $thin_slr = $slr->[Marpa::R2::Inner::Scanless::R::C];
     my $grammar  = $slr->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
 
+    my $lexer_id = $thin_slr->current_lexer();
     my $thick_lex_grammar =
-        $grammar->[Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMAR];
+        $grammar->[Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMARS]->[$lexer_id];
     my $lex_tracer = $thick_lex_grammar->tracer();
 
     my $trace_file_handle =
@@ -983,13 +987,14 @@ sub Marpa::R2::Scanless::R::read_problem {
         my $trace_file_handle =
             $slr->[Marpa::R2::Inner::Scanless::R::TRACE_FILE_HANDLE];
         my $grammar = $slr->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
+	my $lexer_id = $thin_slr->current_lexer();
         my $thick_lex_grammar =
-            $grammar->[Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMAR];
-        my $g0_tracer = $thick_lex_grammar->tracer();
+            $grammar->[Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMARS]->[$lexer_id];
+        my $lex_tracer = $thick_lex_grammar->tracer();
         my ( $line, $column ) = $slr->line_column($stream_pos);
         $read_string_error .=
             qq{\n=== G0 Progress report at line $line, column $column\n} .
-            $g0_tracer->lexer_progress_report($slr);
+            $lex_tracer->lexer_progress_report($slr);
     } ## end if ( $slr->[Marpa::R2::Inner::Scanless::R::TRACE_LEXER...])
 
     $slr->[Marpa::R2::Inner::Scanless::R::READ_STRING_ERROR] =

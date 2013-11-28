@@ -308,10 +308,11 @@ __DATA__
 
     C { The thin version of this object }
 
-    THICK_LEX_GRAMMAR
+    THICK_LEX_GRAMMARS
     THICK_G1_GRAMMAR
     CHARACTER_CLASS_TABLES
-    LEXER_NAMES
+    LEXER_BY_NAME
+    LEXER_NAME_BY_ID
     MASK_BY_RULE_ID
 
     G1_ARGS
