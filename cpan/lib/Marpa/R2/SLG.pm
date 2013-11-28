@@ -185,7 +185,8 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
         $hashed_source->{'default_g1_start_action'};
 
 
-    # The G1 grammar
+    # Pre-lexer G1 processing
+
     my $g1_args = $slg->[Marpa::R2::Inner::Scanless::G::G1_ARGS];
     $g1_args->{trace_file_handle} =
         $slg->[Marpa::R2::Inner::Scanless::G::TRACE_FILE_HANDLE] // \*STDERR;
@@ -407,6 +408,19 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
 
     } ## end for my $lexeme_name ( keys %{$lexeme_declarations} )
 
+    my @g0_rule_to_g1_lexeme;
+    RULE_ID: for my $rule_id ( 0 .. $g0_thin->highest_rule_id() ) {
+        my $lhs_id = $g0_thin->rule_lhs($rule_id);
+        my $lexeme_id =
+            $lhs_id == $g0_discard_symbol_id
+            ? -2
+            : ( $g0_lexeme_to_g1_symbol[$lhs_id] // -1 );
+        $g0_rule_to_g1_lexeme[$rule_id] = $lexeme_id;
+        $thin_slg->lexer_rule_to_g1_lexeme_set( $lexer, $rule_id, $lexeme_id );
+    } ## end RULE_ID: for my $rule_id ( 0 .. $g0_thin->highest_rule_id() )
+
+    # Post-lexer G1 processing
+
     # Now that we know the lexemes, check attempts to defined a
     # completion or a nulled event for one
     for my $symbol_name ( keys %{$completion_events_by_name} ) {
@@ -421,17 +435,6 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
             "  nulled events are only valid for symbols on the LHS of G1 rules.\n"
         ) if $g0_lexeme_by_name->{$symbol_name};
     } ## end for my $symbol_name ( keys %{$nulled_events_by_name} )
-
-    my @g0_rule_to_g1_lexeme;
-    RULE_ID: for my $rule_id ( 0 .. $g0_thin->highest_rule_id() ) {
-        my $lhs_id = $g0_thin->rule_lhs($rule_id);
-        my $lexeme_id =
-            $lhs_id == $g0_discard_symbol_id
-            ? -2
-            : ( $g0_lexeme_to_g1_symbol[$lhs_id] // -1 );
-        $g0_rule_to_g1_lexeme[$rule_id] = $lexeme_id;
-        $thin_slg->lexer_rule_to_g1_lexeme_set( 0, $rule_id, $lexeme_id );
-    } ## end RULE_ID: for my $rule_id ( 0 .. $g0_thin->highest_rule_id() )
 
     $thin_slg->precompute();
     $slg->[Marpa::R2::Inner::Scanless::G::THICK_G1_GRAMMAR] =

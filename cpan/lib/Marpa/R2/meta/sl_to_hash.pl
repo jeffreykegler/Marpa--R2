@@ -58,9 +58,10 @@ sub sort_bnf {
 } ## end sub sort_bnf
 
 my %cooked_parse_result = (
-    is_lexeme         => $parse_result->{is_lexeme},
-    character_classes => $parse_result->{character_classes},
-    symbols        => $parse_result->{symbols},
+    is_lexeme              => $parse_result->{is_lexeme},
+    character_classes      => $parse_result->{character_classes},
+    symbols                => $parse_result->{symbols},
+    lexeme_default_adverbs => $parse_result->{lexeme_default_adverbs}
 );
 
 my @rule_sets = keys %{ $parse_result->{rules} };
