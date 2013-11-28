@@ -288,6 +288,15 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
             $precompute_error );
     } ## end if ( defined( my $precompute_error = ...))
 
+    # Find out the list lexemes according to G1
+    # g1_lexeme[] is defined for G1 lexemes -- set to 0
+    # g1_lexeme is incremented for each lexer which uses it
+    my @g1_lexemes = ();
+    for my $symbol_id ( 0 .. $g1_thin->highest_symbol_id() ) {
+        $g1_lexemes[$symbol_id] = 0
+            if $g1_thin->symbol_is_terminal($symbol_id);
+    }
+
     # Lexers
 
     my @lexer_names = ('G0');
@@ -346,7 +355,6 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
         $character_class_table_by_lexer_name{$lexer_name} = \@class_table;
 
         my @g0_lexeme_to_g1_symbol;
-        my @g1_symbol_to_g0_lexeme;
         $g0_lexeme_to_g1_symbol[$_] = -1
             for 0 .. $g1_thin->highest_symbol_id();
         my $g0_discard_symbol_id =
@@ -355,40 +363,25 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
         LEXEME_NAME: for my $lexeme_name (@g0_lexeme_names) {
             next LEXEME_NAME if $lexeme_name eq $discard_symbol_name;
             my $g1_symbol_id = $g1_tracer->symbol_by_name($lexeme_name);
-            if (   not defined $g1_symbol_id
-                or not $g1_thin->symbol_is_accessible($g1_symbol_id) )
-            {
+            if ( not defined $g1_symbol_id ) {
+                Marpa::R2::exception(
+                    "A lexeme in lexer $lexer_name is not a symbol in G1: $lexeme_name"
+                );
+            }
+            if ( not $g1_thin->symbol_is_accessible($g1_symbol_id) ) {
                 Marpa::R2::exception(
                     "A lexeme in lexer $lexer_name is not accessible from the G1 start symbol: $lexeme_name"
                 );
-            } ## end if ( not defined $g1_symbol_id or not $g1_thin->...)
+            }
+            if ( not defined $g1_lexemes[$g1_symbol_id] ) {
+                Marpa::R2::exception(
+                    "A lexeme in lexer $lexer_name is not a lexeme in G1: $lexeme_name"
+                );
+            }
+            $g1_lexemes[$g1_symbol_id]++;
             my $lex_symbol_id = $lex_tracer->symbol_by_name($lexeme_name);
             $g0_lexeme_to_g1_symbol[$lex_symbol_id] = $g1_symbol_id;
-            $g1_symbol_to_g0_lexeme[$g1_symbol_id]  = $lex_symbol_id;
         } ## end LEXEME_NAME: for my $lexeme_name (@g0_lexeme_names)
-
-        SYMBOL_ID: for my $symbol_id ( 0 .. $g1_thin->highest_symbol_id() ) {
-            if ( $g1_thin->symbol_is_terminal($symbol_id)
-                and not defined $g1_symbol_to_g0_lexeme[$symbol_id] )
-            {
-                my $internal_symbol_name =
-                    $g1_tracer->symbol_name($symbol_id);
-                my $symbol_in_display_form =
-                    $thick_g1_grammar->symbol_in_display_form($symbol_id);
-                if ( $lex_tracer->symbol_by_name($internal_symbol_name) ) {
-                    Marpa::R2::exception(
-                        "Symbol $symbol_in_display_form is a lexeme in G1, but not in lexer $lexer_name.\n",
-                        qq{  The internal name for this symbol is $internal_symbol_name\n},
-                        "  This may be because $symbol_in_display_form was used on a RHS in lexer $lexer_name.\n",
-                        "  A lexeme cannot be used on the RHS of a lexer rule.\n"
-                    );
-                } ## end if ( $lex_tracer->symbol_by_name(...))
-                Marpa::R2::exception(
-                    "Unproductive symbol: $symbol_in_display_form\n",
-                    qq{\n  The internal name for this symbol is $internal_symbol_name\n},
-                );
-            } ## end if ( $g1_thin->symbol_is_terminal($symbol_id) and not...)
-        } ## end SYMBOL_ID: for my $symbol_id ( 0 .. $g1_thin->highest_symbol_id...)
 
         my @g0_rule_to_g1_lexeme;
         RULE_ID: for my $rule_id ( 0 .. $g0_thin->highest_rule_id() ) {
