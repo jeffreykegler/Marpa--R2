@@ -601,6 +601,9 @@ sub thick_subgrammar_by_name {
     return $slg->[Marpa::R2::Inner::Scanless::G::THICK_G1_GRAMMAR]
         if $subgrammar eq 'G1';
 
+    # Allow G0 as legacy synonym for L0
+    # $subgrammar = 'L0' if $subgrammar eq 'G0';
+
     my $lexer_id =
         $slg->[Marpa::R2::Inner::Scanless::G::LEXER_BY_NAME]->{$subgrammar};
     Marpa::R2::exception(qq{No lexer named "$subgrammar"})
