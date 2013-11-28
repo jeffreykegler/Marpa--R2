@@ -540,6 +540,51 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
             = $thick_grammar_by_lexer_name{$lexer_name};
     } ## end for my $lexer_name (@lexer_names)
 
+    # This section violates the NAIF interface, directly changing some
+    # of its internal structures.
+    if ( my $lexeme_default_adverbs =
+        $hashed_source->{lexeme_default_adverbs} )
+    {
+        my $blessing = $lexeme_default_adverbs->{bless};
+        my $action   = $lexeme_default_adverbs->{action};
+        my $g1_symbols =
+            $thick_g1_grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
+
+        LEXEME:
+        for my $lexeme_id ( grep { $g1_lexemes[$_] } 0 .. $#g1_lexemes ) {
+            my $g1_symbol = $g1_symbols->[$lexeme_id];
+	    my $lexeme = $g1_tracer->symbol_name($lexeme_id);
+            next LEXEME if $lexeme =~ m/ \] \z/xms;
+            DETERMINE_BLESSING: {
+                last DETERMINE_BLESSING if not $blessing;
+                last DETERMINE_BLESSING if $blessing eq '::undef';
+                if ( $blessing eq '::name' ) {
+                    if ( $lexeme =~ / [^ [:alnum:]] /xms ) {
+                        Marpa::R2::exception(
+                            qq{Lexeme blessing by '::name' only allowed if lexeme name is whitespace and alphanumerics\n},
+                            qq{   Problematic lexeme was <$lexeme>\n}
+                        );
+                    } ## end if ( $lexeme =~ / [^ [:alnum:]] /xms )
+                    my $blessing_by_name = $lexeme;
+                    $blessing_by_name =~ s/[ ]/_/gxms;
+                    $g1_symbol->[Marpa::R2::Internal::Symbol::BLESSING] =
+                        $blessing_by_name;
+                    last DETERMINE_BLESSING;
+                } ## end if ( $blessing eq '::name' )
+                if ( $blessing =~ / [\W] /xms ) {
+                    Marpa::R2::exception(
+                        qq{Blessing lexeme as '$blessing' is not allowed\n},
+                        qq{   Problematic lexeme was <$lexeme>\n}
+                    );
+                } ## end if ( $blessing =~ / [\W] /xms )
+                $g1_symbol->[Marpa::R2::Internal::Symbol::BLESSING] =
+                    $blessing;
+            } ## end DETERMINE_BLESSING:
+            $g1_symbol->[Marpa::R2::Internal::Symbol::LEXEME_SEMANTICS] =
+                $action;
+        } ## end for my $lexeme_id ( grep { $g1_lexemes[$_] } 0 .. ...)
+    } ## end if ( my $lexeme_default_adverbs = $hashed_source->{...})
+
     return 1;
 
 } ## end sub Marpa::R2::Scanless::G::_hash_to_runtime
