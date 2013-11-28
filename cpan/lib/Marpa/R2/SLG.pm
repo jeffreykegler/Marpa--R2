@@ -184,7 +184,6 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
     $slg->[Marpa::R2::Inner::Scanless::G::DEFAULT_G1_START_ACTION] =
         $hashed_source->{'default_g1_start_action'};
 
-
     # Pre-lexer G1 processing
 
     my $g1_args = $slg->[Marpa::R2::Inner::Scanless::G::G1_ARGS];
@@ -336,7 +335,6 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
         }
 
         my @g0_lexeme_names   = keys %is_lexeme_in_this_lexer;
-
 
 	Marpa::R2::exception( "No lexemes in lexer: $lexer_name\n",
             "  An SLIF grammar must have at least one lexeme\n" )

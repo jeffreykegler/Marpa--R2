@@ -120,11 +120,43 @@ sub ast_to_hash {
             \%stripped_character_classes;
     } ## end for my $lexer (@lexers)
 
+    # Calculate lexemes at this point as those G1 symbols,
+    # 1.) Not on a G1 LHS
+    # 2.) Not on lexer RHS
+    # 3.) Not a lexer separator
+
+    # Initialize to all the G1 symbols on the RHS of a rule
+    my %is_lexeme = ();
+    RULE: for my $rule ( @{ $hashed_ast->{rules}->{'G1'} } ) {
+	for my $symbol ( @{ $rule->{rhs} } ) {
+	  $is_lexeme{ $symbol } = 1;
+	}
+	my $separator = $rule->{separator};
+	next RULE if not defined $separator;
+	$is_lexeme{$separator} = 1;
+    }
+    # Eliminate all those on a LHS
+    for my $rule ( @{ $hashed_ast->{rules}->{'G1'} } ) {
+        $is_lexeme{ $rule->{lhs} } = undef;
+    }
+    LEXER: for my $lexer ( keys %grammars ) {
+        next LEXER if $lexer eq 'G1';
+        RULE: for my $rule ( @{ $hashed_ast->{rules}->{$lexer} } ) {
+            for my $symbol ( @{ $rule->{rhs} } ) {
+                $is_lexeme{$symbol} = undef;
+            }
+            my $separator = $rule->{separator};
+            next RULE if not defined $separator;
+            $is_lexeme{$separator} = undef;
+        } ## end for my $rule ( $hashed_ast->{rules}->{$lexer} )
+    } ## end for my $lexer ( keys %grammars )
+
     if ( my $lexeme_default_adverbs = $hashed_ast->{lexeme_default_adverbs} )
     {
         my $blessing = $lexeme_default_adverbs->{bless};
         my $action   = $lexeme_default_adverbs->{action};
-        LEXEME: for my $lexeme ( keys %{ $hashed_ast->{is_lexeme} } ) {
+        LEXEME: for my $lexeme ( keys %is_lexeme ) {
+	    next LEXEME if not $is_lexeme{$lexeme};
             next LEXEME if $lexeme =~ m/ \] \z/xms;
             DETERMINE_BLESSING: {
                 last DETERMINE_BLESSING if not $blessing;
@@ -150,7 +182,7 @@ sub ast_to_hash {
                 $g1_symbols->{$lexeme}->{bless} = $blessing;
             } ## end DETERMINE_BLESSING:
             $g1_symbols->{$lexeme}->{semantics} = $action;
-        } ## end LEXEME: for my $lexeme ( keys %{ $hashed_ast->{is_lexeme} } )
+        } ## end LEXEME: for my $lexeme ( keys %is_lexeme )
     } ## end if ( my $lexeme_default_adverbs = $hashed_ast->{...})
 
     return $hashed_ast;
