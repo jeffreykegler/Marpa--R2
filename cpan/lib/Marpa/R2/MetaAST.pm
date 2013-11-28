@@ -128,40 +128,6 @@ sub ast_to_hash {
             $is_lexeme_in_this_lexer{$lex_lhs} = 1;
         }
 
-        if ( my $lexeme_default_adverbs =
-            $hashed_ast->{lexeme_default_adverbs} )
-        {
-            my $blessing = $lexeme_default_adverbs->{bless};
-            my $action   = $lexeme_default_adverbs->{action};
-            LEXEME: for my $lexeme ( keys %is_lexeme_in_this_lexer ) {
-                next LEXEME if $lexeme =~ m/ \] \z/xms;
-                DETERMINE_BLESSING: {
-                    last DETERMINE_BLESSING if not $blessing;
-                    last DETERMINE_BLESSING if $blessing eq '::undef';
-                    if ( $blessing eq '::name' ) {
-                        if ( $lexeme =~ / [^ [:alnum:]] /xms ) {
-                            Marpa::R2::exception(
-                                qq{Lexeme blessing by '::name' only allowed if lexeme name is whitespace and alphanumerics\n},
-                                qq{   Problematic lexeme was <$lexeme>\n}
-                            );
-                        } ## end if ( $lexeme =~ / [^ [:alnum:]] /xms )
-                        my $blessing_by_name = $lexeme;
-                        $blessing_by_name =~ s/[ ]/_/gxms;
-                        $g1_symbols->{$lexeme}->{bless} = $blessing_by_name;
-                        last DETERMINE_BLESSING;
-                    } ## end if ( $blessing eq '::name' )
-                    if ( $blessing =~ / [\W] /xms ) {
-                        Marpa::R2::exception(
-                            qq{Blessing lexeme as '$blessing' is not allowed\n},
-                            qq{   Problematic lexeme was <$lexeme>\n}
-                        );
-                    } ## end if ( $blessing =~ / [\W] /xms )
-                    $g1_symbols->{$lexeme}->{bless} = $blessing;
-                } ## end DETERMINE_BLESSING:
-                $g1_symbols->{$lexeme}->{semantics} = $action;
-            } ## end LEXEME: for my $lexeme ( keys %is_lexeme_in_this_lexer )
-        } ## end if ( my $lexeme_default_adverbs = $hashed_ast->{...})
-
         $hashed_ast->{is_lexeme}->{$_} = 1 for keys %is_lexeme_in_this_lexer;
 
         my @unproductive =
