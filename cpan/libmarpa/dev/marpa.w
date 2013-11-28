@@ -14288,9 +14288,9 @@ for the rule.
 	    if (lbv_bit_test (XSY_is_Valued_BV_of_V (v), XSYID_of_V (v)))
 	      return Step_Type_of_V (v) = MARPA_STEP_NULLING_SYMBOL;
 	  }
-	  @#
-	  /* No tracing of nulling valuators, at least at this point */ @#
-	  /* fall through */ @#
+	  
+	  /* \comment No tracing of nulling valuators, at least at this point */
+	  /* \comment Fall through */
 	}
     }
 }
@@ -14298,10 +14298,12 @@ for the rule.
 @ @<Perform evaluation steps@> =
 {
     AND and_nodes;
-    int pop_arguments = 1; /* flag to indicate whether the arguments of
+
+    /* \comment flag to indicate whether the arguments of
        a rule should be popped off the stack.  Coming
        into this loop that is always the case -- if
        no rule was executed, this is a no-op. */
+    int pop_arguments = 1;
     @<Unpack value objects@>@;
     @<Fail if fatal error@>@;
     and_nodes = ANDs_of_B(B_of_O(o));
