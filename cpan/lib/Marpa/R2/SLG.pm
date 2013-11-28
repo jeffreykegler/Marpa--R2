@@ -304,37 +304,74 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
     my %thick_grammar_by_lexer_name = ();
     my %lexer_and_rule_to_g1_lexeme = ();
     my %character_class_table_by_lexer_name = ();
-    state $lex_target_symbol = '[:start_lex]';
+    state $lex_start_symbol_name = '[:start_lex]';
     state $discard_symbol_name = '[:discard]';
 
     # Need to clean up determination of lexeme status
 
     for my $lexer_name (@lexer_names) {
 
-	# Replace from here
+	my $lexer_rules = $hashed_source->{rules}->{$lexer_name};
+	my $lexer_symbols = $hashed_source->{symbols}->{$lexer_name};
 
-        my $g0_lexeme_by_name = $hashed_source->{is_lexeme};
-        my @g0_lexeme_names   = keys %{$g0_lexeme_by_name};
+        Marpa::R2::exception("No rules for lexer $lexer_name")
+            if not $lexer_rules;
+        my %lex_lhs       = ();
+        my %lex_rhs       = ();
+        my %lex_separator = ();
 
-	# Replace with test that every lexer has at least one lexeme
-        Marpa::R2::exception( "There are no lexemes\n",
+        for my $lex_rule ( @{$lexer_rules} ) {
+            $lex_lhs{ $lex_rule->{lhs} } = 1;
+            $lex_rhs{$_} = 1 for @{ $lex_rule->{rhs} };
+            if ( defined( my $separator = $lex_rule->{separator} ) ) {
+                $lex_separator{$separator} = 1;
+            }
+        } ## end for my $lex_rule ( @{$lexer_rules} )
+
+        my %is_lexeme_in_this_lexer = ();
+        LEX_LHS: for my $lex_lhs ( keys %lex_lhs ) {
+            next LEX_LHS if $lex_rhs{$lex_lhs};
+            next LEX_LHS if $lex_separator{$lex_lhs};
+            $is_lexeme_in_this_lexer{$lex_lhs} = 1;
+        }
+
+        my @g0_lexeme_names   = keys %is_lexeme_in_this_lexer;
+
+
+	Marpa::R2::exception( "No lexemes in lexer: $lexer_name\n",
             "  An SLIF grammar must have at least one lexeme\n" )
             if not scalar @g0_lexeme_names;
 
-	# Replace to here
+	# Do I need this?
+        my @unproductive =
+            map {"<$_>"}
+            grep { not $lex_lhs{$_} and not $_ =~ /\A \[\[ /xms }
+            ( keys %lex_rhs, keys %lex_separator );
+        if (@unproductive) {
+            Marpa::R2::exception( 'Unproductive lexical symbols: ',
+                join q{ }, @unproductive );
+        }
+
+        $lexer_symbols->{$lex_start_symbol_name}->{display_form} = ':start_lex';
+        $lexer_symbols->{$lex_start_symbol_name}->{description} =
+            'Internal G0 (lexical) start symbol';
+        push @{ $lexer_rules }, map {
+            ;
+            {   description => "Internal lexical start rule for <$_>",
+                lhs         => $lex_start_symbol_name,
+                rhs         => [$_]
+            }
+        } sort keys %is_lexeme_in_this_lexer;
 
         my %lex_args = ();
         $lex_args{trace_file_handle} =
             $slg->[Marpa::R2::Inner::Scanless::G::TRACE_FILE_HANDLE]
             // \*STDERR;
-
-	my $lexer_rules = $hashed_source->{rules}->{$lexer_name};
+        $lex_args{start}        = $lex_start_symbol_name;
+        $lex_args{'_internal_'} = 1;
         $lex_args{rules}        = $lexer_rules;
-	my $lexer_symbols = $hashed_source->{symbols}->{$lexer_name};
         $lex_args{symbols}        = $lexer_symbols;
 
-        $lex_args{start}        = $lex_target_symbol;
-        $lex_args{'_internal_'} = 1;
         my $lex_grammar = Marpa::R2::Grammar->new( \%lex_args );
         $thick_grammar_by_lexer_name{$lexer_name} = $lex_grammar;
         Marpa::R2::Internal::Grammar::slif_precompute($lex_grammar);
@@ -370,6 +407,7 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
 
         LEXEME_NAME: for my $lexeme_name (@g0_lexeme_names) {
             next LEXEME_NAME if $lexeme_name eq $discard_symbol_name;
+            next LEXEME_NAME if $lexeme_name eq $lex_start_symbol_name;
             my $g1_symbol_id = $g1_tracer->symbol_by_name($lexeme_name);
             if ( not defined $g1_symbol_id ) {
                 Marpa::R2::exception(

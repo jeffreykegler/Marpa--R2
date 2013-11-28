@@ -107,49 +107,6 @@ sub ast_to_hash {
             $lexer_name = substr $lexer_name, 2;
         } ## end NAME_LEXER:
 
-        my $lexer_rules = $hashed_ast->{rules}->{$lexer};
-        Marpa::R2::exception("No rules for lexer $lexer_name")
-            if not $lexer_rules;
-        my %lex_lhs       = ();
-        my %lex_rhs       = ();
-        my %lex_separator = ();
-        for my $lex_rule ( @{$lexer_rules} ) {
-            $lex_lhs{ $lex_rule->{lhs} } = 1;
-            $lex_rhs{$_} = 1 for @{ $lex_rule->{rhs} };
-            if ( defined( my $separator = $lex_rule->{separator} ) ) {
-                $lex_separator{$separator} = 1;
-            }
-        } ## end for my $lex_rule ( @{$lexer_rules} )
-
-        my %is_lexeme_in_this_lexer = ();
-        LEX_LHS: for my $lex_lhs ( keys %lex_lhs ) {
-            next LEX_LHS if $lex_rhs{$lex_lhs};
-            next LEX_LHS if $lex_separator{$lex_lhs};
-            $is_lexeme_in_this_lexer{$lex_lhs} = 1;
-        }
-
-        $hashed_ast->{is_lexeme}->{$_} = 1 for keys %is_lexeme_in_this_lexer;
-
-        my @unproductive =
-            map {"<$_>"}
-            grep { not $lex_lhs{$_} and not $_ =~ /\A \[\[ /xms }
-            ( keys %lex_rhs, keys %lex_separator );
-        if (@unproductive) {
-            Marpa::R2::exception( 'Unproductive lexical symbols: ',
-                join q{ }, @unproductive );
-        }
-        my $start_lhs = '[:start_lex]';
-        $hashed_ast->{symbols}->{G0}->{$start_lhs}->{display_form} =
-            ':start_lex';
-        $hashed_ast->{symbols}->{G0}->{$start_lhs}->{description} =
-            'Internal G0 (lexical) start symbol';
-        push @{ $hashed_ast->{rules}->{G0} }, map {
-            ;
-            {   description => "Internal lexical start rule for <$_>",
-                lhs         => $start_lhs,
-                rhs         => [$_]
-            }
-        } sort keys %is_lexeme_in_this_lexer;
         my %stripped_character_classes = ();
         {
             my $character_classes =
