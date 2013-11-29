@@ -31,13 +31,14 @@ cpan/html/lib/Marpa/R2/HTML/Config.pm
 cpan/html/lib/Marpa/R2/HTML/Config/Compile.pm
 cpan/html/meta/make_internal_pm.pl
 cpan/html/tool/lib/Marpa/R2/HTML/Test/Util.pm
-cpan/lib/Marpa/R2.pm
 cpan/lib/Marpa/R2/ASF.pm
 cpan/lib/Marpa/R2/Grammar.pm
 cpan/lib/Marpa/R2/MetaAST.pm
 cpan/lib/Marpa/R2/MetaG.pm
+cpan/lib/Marpa/R2.pm
 cpan/lib/Marpa/R2/Recognizer.pm
-cpan/lib/Marpa/R2/Scanless.pm
+cpan/lib/Marpa/R2/SLG.pm
+cpan/lib/Marpa/R2/SLR.pm
 cpan/lib/Marpa/R2/Stuifzand.pm
 cpan/lib/Marpa/R2/Thin/Trace.pm
 cpan/lib/Marpa/R2/Value.pm
