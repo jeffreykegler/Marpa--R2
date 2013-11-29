@@ -160,7 +160,7 @@ stage/configure: $(STAGE_FILES)
 	cd stage && autoreconf -iv
 
 stage/Makefile: stage/configure
-	cd stage && stage/configure
+	cd stage && ./configure
 
 doc/api.pdf: doc/Makefile doc/api.texi
 	cd doc && make pdf
