@@ -992,16 +992,17 @@ sub Marpa::R2::Internal::MetaAST_Nodes::start_rule::evaluate {
 sub Marpa::R2::Internal::MetaAST_Nodes::discard_rule::evaluate {
     my ( $values, $parse ) = @_;
     my ( $start, $length, $symbol ) = @{$values};
+    my $lexer_name = $parse->{default_lexer};
     my $discard_lhs = '[:discard]';
     $parse->symbol_names_set(
         $discard_lhs,
-        'G0',
+        $lexer_name,
         {   display_form => ':discard',
-            description  => 'Internal LHS for G0 discard'
+            description  => qq{Internal LHS for lexer "$lexer_name" discard}
         }
     );
     my $rhs = $symbol->names($parse);
-    push @{ $parse->{rules}->{G0} },
+    push @{ $parse->{rules}->{$lexer_name} },
         {
         description => (
             "Discard rule for " . join q{ },
@@ -1019,7 +1020,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::quantified_rule::evaluate {
     my ( $start, $length, $lhs, $op_declare, $rhs, $quantifier,
         $proto_adverb_list )
         = @{$values};
-    my $subgrammar = $op_declare->op() eq q{::=} ? 'G1' : 'G0';
+    my $subgrammar = $op_declare->op() eq q{::=} ? 'G1' : $parse->{default_lexer};
     $parse->{'first_lhs'} //= $lhs if $subgrammar eq 'G1';
     local $Marpa::R2::Internal::SUBGRAMMAR = $subgrammar;
 
@@ -1085,7 +1086,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::quantified_rule::evaluate {
         Marpa::R2::exception(
             'actions not allowed in lexical rules (rules LHS was "',
             $lhs, '")' )
-            if $subgrammar eq 'G0';
+		    if  $subgrammar eq 'G0' || ( substr $subgrammar, 0, 1 ) eq 'L';
         $sequence_rule{action} = $action;
     } ## end if ( defined $action )
 
@@ -1094,7 +1095,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::quantified_rule::evaluate {
         Marpa::R2::exception(
             'null-ranking not allowed in lexical rules (rules LHS was "',
             $lhs, '")' )
-            if $subgrammar eq 'G0';
+		    if  $subgrammar eq 'G0' || ( substr $subgrammar, 0, 1 ) eq 'L';
         $sequence_rule{null_ranking} = $null_ranking;
     } ## end if ( defined $null_ranking )
 
@@ -1103,16 +1104,18 @@ sub Marpa::R2::Internal::MetaAST_Nodes::quantified_rule::evaluate {
         Marpa::R2::exception(
             'ranks not allowed in lexical rules (rules LHS was "',
             $lhs, '")' )
-            if $subgrammar eq 'G0';
+		    if  $subgrammar eq 'G0' || ( substr $subgrammar, 0, 1 ) eq 'L';
         $sequence_rule{rank} = $rank;
     } ## end if ( defined $rank )
 
     $blessing //= $default_adverbs->{bless};
-    if ( defined $blessing and $subgrammar eq 'G0' ) {
+    if ( defined $blessing
+        and $subgrammar eq 'G0' || ( substr $subgrammar, 0, 1 ) eq 'L' )
+    {
         Marpa::R2::exception(
             'bless option not allowed in lexical rules (rules LHS was "',
             $lhs, '")' );
-    }
+    } ## end if ( defined $blessing and $subgrammar eq 'G0' || ( ...))
     $parse->bless_hash_rule( \%sequence_rule, $blessing, $lhs_name );
 
     push @{ $parse->{rules}->{$subgrammar} }, @rules;
@@ -1280,14 +1283,20 @@ sub Marpa::R2::Internal::MetaAST_Nodes::character_class::names {
 sub Marpa::R2::Internal::MetaAST_Nodes::character_class::evaluate {
     my ( $values, $parse ) = @_;
     my $character_class = $values->[2];
-    my $g0_symbol = do {
+    my $subgrammar = $Marpa::R2::Internal::SUBGRAMMAR;
+    if  ($subgrammar eq 'G0' || ( substr $subgrammar, 0, 1 ) eq 'L') {
+        return Marpa::R2::Internal::MetaAST::Symbol_List->char_class_to_symbol(
+            $parse, $character_class );
+    }
+    # If here, in G1
+    # Character classes and strings always go into L0, for now
+    my $lexer_symbol = do {
         local $Marpa::R2::Internal::SUBGRAMMAR = 'G0';
         Marpa::R2::Internal::MetaAST::Symbol_List->char_class_to_symbol(
             $parse, $character_class );
     };
-    return $g0_symbol if $Marpa::R2::Internal::SUBGRAMMAR eq 'G0';
     my $lexical_lhs       = $parse->internal_lexeme($character_class);
-    my $lexical_rhs       = $g0_symbol->names($parse);
+    my $lexical_rhs       = $lexer_symbol->names($parse);
     my %lexical_rule      = (
         lhs  => $lexical_lhs,
         rhs  => $lexical_rhs,
