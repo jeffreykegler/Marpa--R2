@@ -586,21 +586,27 @@ This value may be zero.
 name: SLIF recognizer series_restart() synopsis
 normalize-whitespace: 1
 
-    $slr->series_restart();
+    $slr->series_restart( { end => $i } );
 
 =for Marpa::R2::Display::End
 
 The C<series_restart()> method ends the current parse series,
 and starts another.
-Restarting the parse series with
-the C<series_restart()> method
-allows the
-application to specify new
-values for
-the C<end>
-and C<semantics_package> named arguments.
-Once a parse series is underway,
-these values cannot be changed.
+It allows, as optional arguments, hashes of named arguments
+for the SLIF recognizer.
+These named arguments can be any of those allowed by
+L<the C<set()> method|/"set()>.
+
+C<series_restart()> resets all the named arguments to their defaults.
+An application that wants a non-default named argument to have effect
+in each of its parse
+series must respecify it at the beginning of each parse series.
+C<series_restart()> is particularly useful for
+the 
+C<end> and C<semantics_package> named arguments,
+which cannot be changed once a parse series is underway.
+To change their values,
+an application must start a new parse series.
 
 =head2 set()
 
@@ -608,7 +614,7 @@ these values cannot be changed.
 name: SLIF recognizer set() synopsis
 normalize-whitespace: 1
 
-    $slr->set( { end => $i } );
+    $slr->set( { max_parses => 42 } );
 
 =for Marpa::R2::Display::End
 

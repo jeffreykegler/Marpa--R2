@@ -80,14 +80,14 @@ for my $maximal ( 0, 1 ) {
 # Marpa::R2::Display
 # name: SLIF recognizer series_restart() synopsis
 
-        $slr->series_restart();
+        $slr->series_restart( { end => $i } );
 
 # Marpa::R2::Display::End
 
 # Marpa::R2::Display
 # name: SLIF recognizer set() synopsis
 
-        $slr->set( { end => $i } );
+        $slr->set( { max_parses => 42 } );
 
 # Marpa::R2::Display::End
 

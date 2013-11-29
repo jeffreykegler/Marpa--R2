@@ -66,8 +66,7 @@ $slr->set( { max_parses => 20 } );
 
 for my $i ( 0 .. $input_length ) {
 
-    $slr->series_restart();
-    $slr->set( { end => $i } );
+    $slr->series_restart( { end => $i } );
     my $expected = $expected[$i];
 
 # Marpa::R2::Display
