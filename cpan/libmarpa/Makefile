@@ -94,16 +94,16 @@ stage/marpa_api.h: dev/marpa_api.h
 stage/marpa_util.h: dev/marpa_util.h
 	cp $? $@
 
-stage/marpa_obs.c: dev/marpa_obs.c
+stage/marpa_obs.c: obs/marpa_obs.c
 	cp $? $@
 
-stage/marpa_obs.h: dev/marpa_obs.h
+stage/marpa_obs.h: obs/marpa_obs.h
 	cp $? $@
 
-stage/avl.c: dev/avl/avl.c
+stage/avl.c: avl/avl.c
 	cp $? $@
 
-stage/avl.h: dev/avl/avl.h
+stage/avl.h: avl/avl.h
 	cp $? $@
 
 stage/private.h: dev/private.h
