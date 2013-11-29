@@ -1131,7 +1131,8 @@ sub Marpa::R2::Scanless::R::series_restart {
     my ( $slr , @args ) = @_;
     my $thick_g1_recce =
         $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
-    $thick_g1_recce->reset_evaluation( @args );
+    $thick_g1_recce->reset_evaluation();
+    $thick_g1_recce->set( @args );
     return 1;
 }
 
