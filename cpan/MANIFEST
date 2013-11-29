@@ -180,6 +180,7 @@ libmarpa_doc_dist/version_i.texi
 libmarpa_doc_dist/version.texi
 libmarpa/.gitignore
 lib/Marpa/.gitignore
+libmarpa/Makefile
 libmarpa/obs/marpa_obs.c
 libmarpa/obs/marpa_obs.h
 lib/Marpa/R2/ASF.pm

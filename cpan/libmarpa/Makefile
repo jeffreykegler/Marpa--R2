@@ -189,7 +189,7 @@ doc/configure: $(DOC_SOURCE_FILES)
 	cd doc && autoreconf -ivf
 
 doc/Makefile: doc/configure
-	cd doc && doc/configure
+	cd doc && ./configure
 
 docs: dev/marpa.pdf doc/Makefile \
   doc/api.pdf doc/api.html/index.html \
