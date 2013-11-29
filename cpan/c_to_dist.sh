@@ -13,7 +13,7 @@
 # General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 
-(cd libmarpa/dev; make install)
+(cd libmarpa; make install)
 version=`libmarpa/stage/configure --version | sed -ne '1s/^libmarpa configure *//p'`
 tar_file=libmarpa/stage/libmarpa-$version.tar.gz
 if test -d libmarpa_dist && test libmarpa_dist/stamp-h1 -nt $tar_file;
