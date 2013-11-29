@@ -84,27 +84,27 @@ A hash ("C<#>") character starts a comment,
 which continues to the end of the line.
 Comments are equivalent to whitespace.
 
-=head1 G0, G1 and lexemes
+=head1 L0, G1 and lexemes
 
 In reading this document, it is important to keep in mind
-the distinction, on one hand, between G0 and G1 rules and,
+the distinction, on one hand, between L0 and G1 rules and,
 on the other hand, between rules and lexemes.
 G1 rules have a semantics,
 which can be specified as described
 in this document.
-G0 rules simply recognize symbols in the input.
-G0 rules do not have a semantics.
+L0 rules simply recognize symbols in the input.
+L0 rules do not have a semantics.
 
-Top-level G0 rules correspond to a string in the input.
-The top-level G0 rules are seen by G1 as lexemes,
-and the string to which a top-level G0 rule
+Top-level L0 rules correspond to a string in the input.
+The top-level L0 rules are seen by G1 as lexemes,
+and the string to which a top-level L0 rule
 corresponds becomes the default value of the lexeme.
-The G0 grammar can be thought of as similar
+The L0 grammar can be thought of as similar
 in behavior to a set of regular expressions
 with the lexemes being seen as similar to named captures.
 
 Lexemes are the symbols which form the interface between
-G1 and G0.  Lexemes, like G1 rules, have a semantics.
+G1 and L0.  Lexemes, like G1 rules, have a semantics.
 The semantics of lexemes is
 specified separately from the
 semantics of G1 rules,
@@ -226,10 +226,10 @@ If a rule needs to match one of the forbidden characters
 character class.
 
 Single-quoted strings are always interpreted at the
-G0 level, but they may be used in either structural
+L0 level, but they may be used in either structural
 or lexical rules.
 When a single quoted string is used in a structural rule,
-Marpa creates a virtual G0 rule on behalf of the application.
+Marpa creates a virtual L0 rule on behalf of the application.
 This is handy, but it does have a real disadvantage --
 the name of the virtual rule's LHS
 will be one assigned automatically by Marpa.
@@ -272,10 +272,10 @@ Marpa character classes may contain anything acceptable to Perl,
 and follow the same escaping conventions as Perl's character classes.
 
 Character classes are always interpreted at the
-G0 level, but they may be used in either structural
+L0 level, but they may be used in either structural
 or lexical rules.
 When a character class is used in a structural rule,
-Marpa creates a virtual G0 rule on behalf of the application.
+Marpa creates a virtual L0 rule on behalf of the application.
 This is handy, but it does have a real disadvantage --
 the name of the virtual rule's LHS
 will be one assigned automatically by Marpa.
@@ -309,12 +309,12 @@ coming between the LHS and the first RHS alternative of a rule,
 indicates that the rule is
 a G1 rule.
 
-=item * G0 rules
+=item * L0 rules
 
 The match operator ("C<~>"),
 coming between the LHS and the first RHS alternative
 of a rule,
-indicates a G0 rule.
+indicates a L0 rule.
 
 =item * Global statements
 
@@ -548,12 +548,12 @@ and which has only one RHS alternative.
 The RHS alternative must contain
 exactly one symbol name,
 called the B<discarded symbol>.
-Discard rules indicate that the discarded symbol is a top-level G0
+Discard rules indicate that the discarded symbol is a top-level L0
 symbol, but one which is not a lexeme.
 When a discarded symbol is recognized,
 it is not passed as a lexeme to the G1 parser, but is
 (as the name suggests) discarded.
-Discard rules must be G0 rules.
+Discard rules must be L0 rules.
 No adverbs are allowed.
 
 =head2 Default pseudo-rules
@@ -572,7 +572,7 @@ the default pseudo-rule is to change the defaults for
 rule adverbs.
 Technically, it has one RHS alternative, but this must always contain
 zero RHS primaries.
-Default pseudo-rules do not affect the defaults for G0 rules
+Default pseudo-rules do not affect the defaults for L0 rules
 or for lexemes.
 There may be more than one default pseudo-rule.
 The scope of default pseudo-rules is lexical, applying only to rules
@@ -613,7 +613,7 @@ As a side effect, a C<:lexeme> pseudo-rule
 declares that its RHS symbol is a lexeme.
 This declaration does not "force" lexeme status --
 if the symbol does not meet the criteria for a lexeme
-based on its use in G0 and G1 rules,
+based on its use in L0 and G1 rules,
 the result will be a fatal error.
 Applications may find the ability to "declare"
 lexemes useful for debugging,
@@ -776,7 +776,7 @@ The lexeme default statement, in which case the action is for all lexemes.
 
 =back
 
-The C<action> adverb is not allowed for G0 rules.
+The C<action> adverb is not allowed for L0 rules.
 The possible values of actions are described,
 along with other details of the semantics
 L<a separate document|Marpa::R2::Semantics>.
@@ -994,7 +994,7 @@ and a variable name (C<< <variable> >>).
 Suppose further that
 the grammar specifies that C<< <say keyword> >> has a priority of 1,
 and C<< <variable> >> is left at the default priority of 0.
-When G0 finds a occurrence of "C<say>",
+When L0 finds a occurrence of "C<say>",
 where both the C<say> keyword and a variable name would
 be accepted by G1, then only the C<say> keyword is read by G1,
 because of the priorities.

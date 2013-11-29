@@ -193,7 +193,7 @@ In Marpa,
 evaluation only takes place within the structural (G1) subgrammar,
 and the descriptions of the behaviors of rule and lexeme instances below
 applies only to the G1 subgrammar.
-G0 rule alternatives and terminal symbols do not become nodes
+L0 rule alternatives and terminal symbols do not become nodes
 in the parse tree,
 and are never evaluated.
 
@@ -363,7 +363,7 @@ The C<bless> adverb is allowed
 
 =back
 
-A G0 RHS alternative cannot have a C<bless> adverb.
+A L0 RHS alternative cannot have a C<bless> adverb.
 
 The value of a C<bless> adverb is called a B<blessing>.
 If the blessing is a Perl word

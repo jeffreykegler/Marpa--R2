@@ -87,10 +87,10 @@ DSL|Marpa::R2::Scanless::DSL>,
 except that features and syntax not relevant to the Stuifzand
 interface are not supported.
 
-Everything related to G0 grammars is unsupported.
-G0 grammars do not exist in the Stuifzand interface.
+Everything related to L0 grammars is unsupported.
+L0 grammars do not exist in the Stuifzand interface.
 Lexemes, character classes and quoted strings all implicitly
-require a G0 grammar to exist
+require a L0 grammar to exist
 and therefore, they also are not supported.
 
 Since the Stuifzand interface does not implement internal
@@ -113,15 +113,15 @@ Specifically, here is a list of the unsupported SLIF DSL features.
 
 =item * Character classes
 
-These implicitly use the G0 grammar.
+These implicitly use the L0 grammar.
 
 =item * Quoted strings
 
-These implicitly use the G0 grammar.
+These implicitly use the L0 grammar.
 
 =item * Discard rules
 
-C<:discard> rules control the behavior of the G0 grammar.
+C<:discard> rules control the behavior of the L0 grammar.
 
 =item * The lexeme and lexeme default statements
 
@@ -131,9 +131,9 @@ lexemes.
 Lexemes in the SLIF sense
 do not exist in the Stuifzand interface.
 
-=item * G0 rules
+=item * L0 rules
 
-Rules with the tilde declarator ("C<~>") defined G0 rules.
+Rules with the tilde declarator ("C<~>") defined L0 rules.
 
 =item * Event declarations
 

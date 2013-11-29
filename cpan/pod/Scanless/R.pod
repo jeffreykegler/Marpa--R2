@@ -474,15 +474,15 @@ an Earley item warning threshold
 for the G1 recognizer
 based on the size of the
 G1 grammar,
-and for each G0 recognizer based on the size
-of the G0 grammar.
+and for each L0 recognizer based on the size
+of the L0 grammar.
 The default thresholds will never be less than 100.
 The default is the result of considerable experience
 and almost all users will be happy with it.
 
 If the
 Earley item warning threshold is changed from its default,
-the change applies to both G0 and G1 -- currently
+the change applies to both L0 and G1 -- currently
 there is no way to set them separately.
 If the Earley item warning threshold is set to 0,
 no recognizer event is generated,
@@ -496,10 +496,10 @@ rarely be what an application wants.
 =head2 trace_terminals
 
 If non-zero, traces the lexemes --
-those tokens passed from the G0 parser to
+those tokens passed from the L0 parser to
 the G1 parser.
 This named argument is the best way to follow
-what the G0 parser is doing,
+what the L0 parser is doing,
 and it is also very helpful for tracing the G1 parser.
 
 =head2 trace_values

@@ -148,8 +148,8 @@ name: SLG rule_expand() synopsis
 =for Marpa::R2::Display
 name: SLG rule_expand() 2 args synopsis
 
-    my ($lhs_id, @rhs_ids) = $slg->rule_expand($rule_id, 'G0');
-    $text .= "G0 Rule #$rule_id: $lhs_id ::= " . (join q{ }, @rhs_ids) . "\n";
+    my ($lhs_id, @rhs_ids) = $slg->rule_expand($rule_id, 'L0');
+    $text .= "L0 Rule #$rule_id: $lhs_id ::= " . (join q{ }, @rhs_ids) . "\n";
 
 =for Marpa::R2::Display::End
 
@@ -162,7 +162,7 @@ Returns an empty array if the rule does not exist.
 
 The first argument is the ID of the rule to be "expanded".
 The second, optional, argument is the name of a subgrammar.
-Currently there are G0 and G1 subgrammars.
+Currently there are L0 and G1 subgrammars.
 The default subgrammar is G1.
 
 =head2 rule_ids()
@@ -179,13 +179,13 @@ normalize-whitespace: 1
 name: SLG rule_ids() 2 arg synopsis
 normalize-whitespace: 1
 
-    do_something($_) for $slg->rule_ids('G0');
+    do_something($_) for $slg->rule_ids('L0');
 
 =for Marpa::R2::Display::End
 
 Returns a list of the rule ID's as an array.
 Takes one, optional, argument: the name of a subgrammar.
-Currently there are G0 and G1 subgrammars.
+Currently there are L0 and G1 subgrammars.
 The default subgrammar is G1.
 
 =head2 rule_show()
@@ -200,7 +200,7 @@ name: SLG rule_show() synopsis
 =for Marpa::R2::Display
 name: SLG rule_show() 2 args synopsis
 
-    my $rule_description = $slg->rule_show($rule_id, 'G0');
+    my $rule_description = $slg->rule_show($rule_id, 'L0');
 
 =for Marpa::R2::Display::End
 
@@ -211,7 +211,7 @@ Returns a Perl undef if the rule does not exist.
 
 The first argument is the ID of the rule to be displayed.
 The second, optional, argument is the name of a subgrammar.
-Currently there are G0 and G1 subgrammars.
+Currently there are L0 and G1 subgrammars.
 The default subgrammar is G1.
 
 =head2 symbol_description()
@@ -228,9 +228,9 @@ name: SLG symbol_description() synopsis
 =for Marpa::R2::Display
 name: SLG symbol_description() 2 arg synopsis
 
-    my $description = $slg->symbol_description( $symbol_id, 'G0' )
+    my $description = $slg->symbol_description( $symbol_id, 'L0' )
         // '[No description]';
-    $text .= "G0 symbol number: $symbol_id  description $description\n";
+    $text .= "L0 symbol number: $symbol_id  description $description\n";
 
 =for Marpa::R2::Display::End
 
@@ -242,7 +242,7 @@ The description is intended for humans to read, and is subject to change.
 
 The first argument is the symbol ID.
 A second, optional, argument is the subgrammar.
-Currently there are G0 and G1 subgrammars.
+Currently there are L0 and G1 subgrammars.
 The default subgrammar is G1.
 Returns undefined if the symbol does not exist,
 or if it has no description.
@@ -261,9 +261,9 @@ name: SLG symbol_display_form() synopsis
 =for Marpa::R2::Display
 name: SLG symbol_display_form() 2 arg synopsis
 
-    my $display_form = $slg->symbol_display_form( $symbol_id, 'G0' );
+    my $display_form = $slg->symbol_display_form( $symbol_id, 'L0' );
     $text
-        .= "G0 symbol number: $symbol_id  name in display form: $display_form\n";
+        .= "L0 symbol number: $symbol_id  name in display form: $display_form\n";
 
 =for Marpa::R2::Display::End
 
@@ -275,7 +275,7 @@ and is subject to change.
 
 The first argument is the symbol ID.
 A second, optional, argument is the subgrammar.
-Currently there are G0 and G1 subgrammars.
+Currently there are L0 and G1 subgrammars.
 The default subgrammar is G1.
 Returns undefined if the symbol does not exist.
 
@@ -293,9 +293,9 @@ name: SLG symbol_dsl_form() synopsis
 =for Marpa::R2::Display
 name: SLG symbol_dsl_form() 2 arg synopsis
 
-    my $dsl_form = $slg->symbol_dsl_form( $symbol_id, 'G0' )
+    my $dsl_form = $slg->symbol_dsl_form( $symbol_id, 'L0' )
         // '[No name in DSL form]';
-    $text .= "G0 symbol number: $symbol_id  DSL form: $dsl_form\n";
+    $text .= "L0 symbol number: $symbol_id  DSL form: $dsl_form\n";
 
 =for Marpa::R2::Display::End
 
@@ -313,7 +313,7 @@ and it is subject to change.
 
 The first argument is the symbol ID.
 A second, optional, argument is the subgrammar.
-Currently there are G0 and G1 subgrammars.
+Currently there are L0 and G1 subgrammars.
 The default subgrammar is G1.
 Returns undefined if the symbol does not exist,
 or if it has no DSL form.
@@ -332,13 +332,13 @@ normalize-whitespace: 1
 name: SLG symbol_ids() 2 arg synopsis
 normalize-whitespace: 1
 
-    do_something($_) for $slg->symbol_ids('G0');
+    do_something($_) for $slg->symbol_ids('L0');
 
 =for Marpa::R2::Display::End
 
 Returns a list of the symbol ID's as an array.
 Takes one, optional, argument: the name of a subgrammar.
-Currently there are G0 and G1 subgrammars.
+Currently there are L0 and G1 subgrammars.
 The default subgrammar is G1.
 
 =head2 symbol_name()
@@ -354,8 +354,8 @@ name: SLG symbol_name() synopsis
 =for Marpa::R2::Display
 name: SLG symbol_name() 2 arg synopsis
 
-    my $name = $slg->symbol_name( $symbol_id, 'G0' );
-    $text .= "G0 symbol number: $symbol_id  name: $name\n";
+    my $name = $slg->symbol_name( $symbol_id, 'L0' );
+    $text .= "L0 symbol number: $symbol_id  name: $name\n";
 
 =for Marpa::R2::Display::End
 
@@ -370,7 +370,7 @@ Internal names are subject to change.
 
 The first argument is the symbol ID.
 A second, optional, argument is the subgrammar.
-Currently there are G0 and G1 subgrammars.
+Currently there are L0 and G1 subgrammars.
 The default subgrammar is G1.
 Returns undefined if the symbol does not exist.
 
@@ -392,7 +392,7 @@ name: SLG show_rules() synopsis with 2 args
 partial: 1
 normalize-whitespace: 1
 
-    $show_rules_output .= $slg->show_rules(3, 'G0');
+    $show_rules_output .= $slg->show_rules(3, 'L0');
 
 =for Marpa::R2::Display::End
 
@@ -412,7 +412,7 @@ A verbosity of 3 prints additional information for
 experts.
 
 The second, optional, argument is the name of a subgrammar.
-Currently there are G0 and G1 subgrammars.
+Currently there are L0 and G1 subgrammars.
 
 =head2 show_symbols()
 
@@ -430,7 +430,7 @@ name: SLIF show_symbols() synopsis
 partial: 1
 normalize-whitespace: 1
 
-    $show_symbols_output .= $slg->show_symbols(3, 'G0');
+    $show_symbols_output .= $slg->show_symbols(3, 'L0');
 
 =for Marpa::R2::Display::End
 
@@ -451,7 +451,7 @@ A verbosity of 3 prints additional information for
 experts.
 
 The second, optional, argument is the name of a subgrammar.
-Currently there are G0 and G1 subgrammars.
+Currently there are L0 and G1 subgrammars.
 
 =head1 Discouraged methods
 
@@ -476,12 +476,12 @@ normalize-whitespace: 1
 Please prefer L<"rule_expand()">, together with
 L<"symbol_name()"> or
 L<"symbol_display_form()">.
-Given a G0 rule ID as its argument,
+Given a L0 rule ID as its argument,
 returns an array containing the
 names of the symbols of that rule.
 The C<g0_rule()> method
-returns a Perl false if no G0 rule with that rule ID exists.
-If the G0 rule ID exists,
+returns a Perl false if no L0 rule with that rule ID exists.
+If the L0 rule ID exists,
 C<g0_rule()> returns a list of one or more symbol names.
 The first symbol name will be that of
 the rule's LHS symbol.
@@ -503,7 +503,7 @@ normalize-whitespace: 1
 =for Marpa::R2::Display::End
 
 Please prefer L<"rule_expand()">.
-Returns a list of the G0 rule ID's.
+Returns a list of the L0 rule ID's.
 
 =head2 g1_rule_ids()
 

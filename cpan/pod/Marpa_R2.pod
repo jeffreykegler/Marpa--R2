@@ -184,7 +184,7 @@ Structural rules are the kinds of rules typically seen in BNF --
 they describe the symbols which provide the structure of the grammar,
 but leave out details of whitespace.
 The SLIF also handles the lexical details in this example,
-but it does it via G0 rules,
+but it does it via L0 rules,
 which we will see shortly.
 
 =for Marpa::R2::Display
@@ -248,7 +248,7 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
-=head2 G0 rules
+=head2 L0 rules
 
 The structural rules define the high-level structure of the grammar,
 and ignore details of whitespace, comments, etc.
@@ -289,7 +289,7 @@ The whitespace items are defined by a character class: C<[\s]>.
 Marpa supports the same character classes, and the same character class syntax,
 as Perl does.
 
-The next pair of G0 rules define the C<Number> symbol
+The next pair of L0 rules define the C<Number> symbol
 
 =for Marpa::R2::Display
 name: Landing page synopsis
@@ -303,7 +303,7 @@ normalize-whitespace: 1
 
 The above two rules say that a C<Number> is a sequence of one or more digits.
 C<Number> is a lexeme -- a G1 symbol which is defined and recognized at the lexical
-(G0) level.
+(L0) level.
 In this example, there are three other lexemes:
 C<whitespace>, and the addition and multiplication operators.
 
@@ -323,7 +323,7 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
-In the above rule, the single-quoted string C<'+'> implicitly defines a G0 lexeme.
+In the above rule, the single-quoted string C<'+'> implicitly defines a L0 lexeme.
 Something similar happens with the C<'*'> string in the rule for a C<Factor>.
 
 The SLIF's lexer mostly "does what you mean".
@@ -425,9 +425,9 @@ Parse trees are usually drawn upside-down
 with their root at the top,
 and their "leaves" at the bottom.
 In Marpa::R2's SLIF, the "leaves" are the symbols
-that the G1 (structural) rules share with the G0 (lexical)
+that the G1 (structural) rules share with the L0 (lexical)
 rules.
-The symbols shared by G0 and G1
+The symbols shared by L0 and G1
 are those lexemes which are not
 discarded.
 In this example, the lexemes visible to G1 are
@@ -439,7 +439,7 @@ and
 
 Marpa assigns values to the nodes of the tree,
 starting with the leaves.
-Marpa's "leaves" will always be G0 symbols,
+Marpa's "leaves" will always be L0 symbols,
 and their value by default is the literal
 value at their location in the input stream.
 In the case of the two operators described

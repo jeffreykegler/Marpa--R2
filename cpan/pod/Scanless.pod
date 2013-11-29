@@ -173,10 +173,12 @@ but in practice it ignores most of the character-by-character issues,
 and it almost always avoids dealing with whitespace.
 
 For reasons that will become clear later,
-I will sometimes call the lexical level, G0,
+I will sometimes call the lexical level, L0,
 and will sometimes call the structural level, G1.
+(For historic reasons, L0 is sometimes also called G0.)
+
 It is important to realize
-that the difference between G0 and G1 is one
+that the difference between L0 and G1 is one
 of level of description and
 NOT one of precision or exactness.
 A structural description of Perl's C<use> statement,
@@ -320,7 +322,7 @@ normalize-whitespace: 1
 In this example, three of the scanless interface's extensions
 to the Stuifzand interface are used.
 First, the tilde ("C<~>") is used to separate LHS and RHS of rules at the lexical
-(G0) level.
+(L0) level.
 Rules whose LHS and RHS are separated by the traditional BNF operator ("C<::=>")
 are at the structural (G1) level.
 
@@ -336,11 +338,11 @@ then you use the "C<~>" operator.
 
 Perl character classes are now allowed on the RHS of prioritized and quantified
 rules.
-The example shows character classes only in G0 rules,
+The example shows character classes only in L0 rules,
 but character classes can also be used in G1 rules.
 When a character class is used
 in a G1 rule, it still must be implemented at
-the G0 level.
+the L0 level.
 Marpa knows this and "does what you mean."
 
 =head2 Discard rules
@@ -351,26 +353,26 @@ A discard rule has a C<:discard> pseudo-symbol on its LHS
 and one symbol name on its RHS.
 It indicates that, when the RHS symbol is recognized,
 it should not be passed on as usual to the structural (G1) level.
-Instead, the lexical (G0) level will simply "discard" what it has
+Instead, the lexical (L0) level will simply "discard" what it has
 found.
 In the example, whitespace is discarded.
 
 =head1 Lexemes
 
-Tokens at the boundary between G0 and G1 have special
+Tokens at the boundary between L0 and G1 have special
 significance.
-The top-level undiscarded symbols in G0,
-which will be called "G0 lexemes",
+The top-level undiscarded symbols in L0,
+which will be called "L0 lexemes",
 go on to become the terminals in G1.
 G1's terminals are called "G1 lexemes".
-To find the "G0 lexemes",
+To find the "L0 lexemes",
 Marpa looks for symbols which are on
-the LHS of a G0 rule, but not on the RHS of any G0 rule.
+the LHS of a L0 rule, but not on the RHS of any L0 rule.
 To find the "G1 lexemes",
 Marpa looks for symbols on the RHS of at least one G1 rule,
 but not on the LHS of any G1 rule.
 
-G0 and G1 should agree on what is a lexeme and what is not.
+L0 and G1 should agree on what is a lexeme and what is not.
 If they do not,
 the programmer receives a fatal message which describes the
 problem and the symbols involved.
@@ -378,7 +380,7 @@ So in practice I will usually simply refer to "lexemes".
 
 =head1 Longest tokens match
 
-The G0 grammar looks for tokens on a longest B<tokens> match basis.
+The L0 grammar looks for tokens on a longest B<tokens> match basis.
 Tokens in discard rules are thrown away, and the rest are passed on
 to the G1 grammar.
 Note that match is longest TOKENS.
@@ -387,11 +389,11 @@ uses the full set of longest matches.
 
 =head1 Semantics
 
-The value of a G0 rule is always the string it matches,
+The value of a L0 rule is always the string it matches,
 and the value of a lexeme from the G1 point of view is the
-same as its value from the G0 point of view.
+same as its value from the L0 point of view.
 This means that it makes no sense to specify semantic
-actions for G0 rules, and that is not allowed.
+actions for L0 rules, and that is not allowed.
 
 With the exception of lexeme values,
 the semantics of the G1 grammar are exactly the
@@ -404,10 +406,10 @@ L<Marpa::R2::Semantics>.
 
 The scannerless interface uses two co-operating Marpa grammars,
 an approach pioneered by Andrew Rodland.
-There are separate Marpa grammars for the G0 and G1 levels,
+There are separate Marpa grammars for the L0 and G1 levels,
 as well as separate parsers.
 The details of their interaction are hidden from the user.
-Typically, the G0 parser finds tokens and passes them up to the
+Typically, the L0 parser finds tokens and passes them up to the
 G1 parser.
 
 The interface described in
