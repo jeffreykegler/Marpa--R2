@@ -298,7 +298,7 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
 
     # Lexers
 
-    my @lexer_names = ('G0');
+    my @lexer_names = ('L0');
     my %lexer_id_by_name = ();
     my %thick_grammar_by_lexer_name = ();
     my %lexer_and_rule_to_g1_lexeme = ();
@@ -352,7 +352,7 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
 
         $lexer_symbols->{$lex_start_symbol_name}->{display_form} = ':start_lex';
         $lexer_symbols->{$lex_start_symbol_name}->{description} =
-            'Internal G0 (lexical) start symbol';
+            'Internal L0 (lexical) start symbol';
         push @{ $lexer_rules }, map {
             ;
             {   description => "Internal lexical start rule for <$_>",
@@ -440,13 +440,13 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
 
     # Post-lexer G1 processing
 
-    my $thick_L0 = $thick_grammar_by_lexer_name{'G0'};
+    my $thick_L0 = $thick_grammar_by_lexer_name{'L0'};
     my $thin_L0 = $thick_L0->[Marpa::R2::Internal::Grammar::C];
     my $thin_slg   = $slg->[Marpa::R2::Inner::Scanless::G::C] =
         Marpa::R2::Thin::SLG->new( $thin_L0, $g1_tracer->grammar() );
 
     # Relies on default lexer being given number zero
-    $lexer_id_by_name{'G0'} = 0;
+    $lexer_id_by_name{'L0'} = 0;
 
     LEXEME: for my $g1_lexeme ( 0 .. $#g1_lexemes ) {
 
@@ -602,7 +602,7 @@ sub thick_subgrammar_by_name {
         if $subgrammar eq 'G1';
 
     # Allow G0 as legacy synonym for L0
-    # $subgrammar = 'L0' if $subgrammar eq 'G0';
+    $subgrammar = 'L0' if $subgrammar eq 'G0';
 
     my $lexer_id =
         $slg->[Marpa::R2::Inner::Scanless::G::LEXER_BY_NAME]->{$subgrammar};
@@ -843,7 +843,7 @@ sub Marpa::R2::Scanless::G::g1_rule_ids {
 
 sub Marpa::R2::Scanless::G::g0_rule_ids {
     my ($slg) = @_;
-    return $slg->rule_ids('G0');
+    return $slg->rule_ids('L0');
 }
 
 sub Marpa::R2::Scanless::G::g0_rule {

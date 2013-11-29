@@ -674,9 +674,9 @@ G1 S24 number
   /* terminal */
   Internal name: <number>
 Lex (G0) Symbols:
-G0 S0 :discard -- Internal LHS for lexer "G0" discard
+G0 S0 :discard -- Internal LHS for lexer "L0" discard
   Internal name: <[:discard]>
-G0 S1 :start_lex -- Internal G0 (lexical) start symbol
+G0 S1 :start_lex -- Internal L0 (lexical) start symbol
   Internal name: <[:start_lex]>
 G0 S2 'set' -- Internal lexical symbol for "'set'"
   Internal name: <[Lex-0]>
@@ -1208,11 +1208,11 @@ for my $symbol_id ( $slg->symbol_ids('G0') ) {
 
 Marpa::R2::Test::is( $text, <<'END_OF_TEXT', 'G0 symbol names and description');
 G0 symbol number: 0  name: [:discard]
-G0 symbol number: 0  description Internal LHS for lexer "G0" discard
+G0 symbol number: 0  description Internal LHS for lexer "L0" discard
 G0 symbol number: 0  name in display form: :discard
 G0 symbol number: 0  DSL form: [No name in DSL form]
 G0 symbol number: 1  name: [:start_lex]
-G0 symbol number: 1  description Internal G0 (lexical) start symbol
+G0 symbol number: 1  description Internal L0 (lexical) start symbol
 G0 symbol number: 1  name in display form: :start_lex
 G0 symbol number: 1  DSL form: [No name in DSL form]
 G0 symbol number: 2  name: [Lex-0]

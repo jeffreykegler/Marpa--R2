@@ -67,7 +67,7 @@ sub ast_to_hash {
     $hashed_ast->{meta_recce} = $ast->{meta_recce};
     bless $hashed_ast, 'Marpa::R2::Internal::MetaAST::Parse';
 
-    $hashed_ast->{default_lexer} = 'G0';
+    $hashed_ast->{default_lexer} = 'L0';
     $hashed_ast->{rules}->{G1} = [];
     my $g1_symbols = $hashed_ast->{symbols}->{G1} = {};
 
@@ -97,7 +97,7 @@ sub ast_to_hash {
         grep { $_ eq 'G0' || ( substr $_, 0, 1 ) eq 'L' } keys %grammars;
 
     for my $lexer (@lexers) {
-        die if $lexer ne 'G0';
+        die if $lexer eq 'G0';
         my $lexer_name = $lexer;
         NAME_LEXER: {
             if ( $lexer eq 'L0' ) {
@@ -1291,18 +1291,18 @@ sub Marpa::R2::Internal::MetaAST_Nodes::character_class::evaluate {
     # If here, in G1
     # Character classes and strings always go into L0, for now
     my $lexer_symbol = do {
-        local $Marpa::R2::Internal::SUBGRAMMAR = 'G0';
+        local $Marpa::R2::Internal::SUBGRAMMAR = 'L0';
         Marpa::R2::Internal::MetaAST::Symbol_List->char_class_to_symbol(
             $parse, $character_class );
     };
-    my $lexical_lhs       = $parse->internal_lexeme($character_class, 'G0', 'G1');
+    my $lexical_lhs       = $parse->internal_lexeme($character_class, 'L0', 'G1');
     my $lexical_rhs       = $lexer_symbol->names($parse);
     my %lexical_rule      = (
         lhs  => $lexical_lhs,
         rhs  => $lexical_rhs,
         mask => [1],
     );
-    push @{ $parse->{rules}->{G0} }, \%lexical_rule;
+    push @{ $parse->{rules}->{L0} }, \%lexical_rule;
     my $g1_symbol =
         Marpa::R2::Internal::MetaAST::Symbol_List->new($lexical_lhs);
     return $g1_symbol;
@@ -1321,7 +1321,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::single_quoted_string::evaluate {
 
     # If we are currently in a lexical grammar, the strings go there
     # If we are currently in G1, the strings always go into L0
-    my $lexical_grammar = $subgrammar eq 'G1' ? 'G0' : $subgrammar;
+    my $lexical_grammar = $subgrammar eq 'G1' ? 'L0' : $subgrammar;
 
     for my $char_class (
         map { '[' . ( quotemeta $_ ) . ']' . $flags } split //xms,
@@ -1337,7 +1337,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::single_quoted_string::evaluate {
     } ## end for my $char_class ( map { '[' . ( quotemeta $_ ) . ']'...})
     my $list = Marpa::R2::Internal::MetaAST::Symbol_List->combine(@symbols);
     return $list if $Marpa::R2::Internal::SUBGRAMMAR ne 'G1';
-    my $lexical_lhs       = $parse->internal_lexeme($string, 'G0', 'G1');
+    my $lexical_lhs       = $parse->internal_lexeme($string, 'L0', 'G1');
     my $lexical_rhs       = $list->names($parse);
     my %lexical_rule      = (
         lhs  => $lexical_lhs,

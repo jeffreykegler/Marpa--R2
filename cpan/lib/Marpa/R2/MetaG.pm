@@ -43,7 +43,7 @@ sub hashed_grammar {
 ## Date: Thu Nov 28 14:45:01 2013
 $hashed_metag = {
                   'character_classes' => {
-                                           'G0' => {
+                                           'L0' => {
                                                      '[[\']]' => [
                                                                    '[\']',
                                                                    ''
@@ -271,7 +271,7 @@ $hashed_metag = {
                                                 'bless' => '::name'
                                               },
                   'rules' => {
-                               'G0' => [
+                               'L0' => [
                                          {
                                            'lhs' => 'Perl identifier',
                                            'min' => 1,
@@ -2875,9 +2875,9 @@ $hashed_metag = {
                                        ]
                              },
                   'symbols' => {
-                                 'G0' => {
+                                 'L0' => {
                                            '[:discard]' => {
-                                                             'description' => 'Internal LHS for G0 discard',
+                                                             'description' => 'Internal LHS for L0 discard',
                                                              'display_form' => ':discard'
                                                            },
                                            '[Lex-0]' => {
