@@ -60,16 +60,24 @@ my $actual_output   = array_display($output_as_array);
 my $expected_output = <<'EXPECTED_OUTPUT';
 Glade 2 has 2 symches
   Glade 2, Symch 0, pair ::= duple
-    Glade 6, duple ::= item item
-      Glade 8 has 2 symches
-        Glade 8, Symch 0, item ::= Hesperus
-          Glade 13, Hesperus ::= 'a'
-            Glade 15, Symbol 'a': "a"
-        Glade 8, Symch 1, item ::= Phosphorus
-          Glade 1, Phosphorus ::= 'a'
-            Glade 17, Symbol 'a': "a"
+      Glade 6, duple ::= item item
+          Glade 8 has 2 symches
+            Glade 8, Symch 0, item ::= Hesperus
+                Glade 13, Hesperus ::= 'a'
+                    Glade 15, Symbol 'a': "a"
+            Glade 8, Symch 1, item ::= Phosphorus
+                Glade 1, Phosphorus ::= 'a'
+                    Glade 17, Symbol 'a': "a"
+          Glade 7 has 2 symches
+            Glade 7, Symch 0, item ::= Hesperus
+                Glade 22, Hesperus ::= 'a'
+                    Glade 24, Symbol 'a': "a"
+            Glade 7, Symch 1, item ::= Phosphorus
+                Glade 9, Phosphorus ::= 'a'
+                    Glade 26, Symbol 'a': "a"
   Glade 2, Symch 1, pair ::= item item
-    Glade 8 revisited
+      Glade 8 revisited
+      Glade 7 revisited
 EXPECTED_OUTPUT
 
 # Marpa::R2::Display::End
@@ -125,16 +133,19 @@ sub glade_to_basic_tree {
                 $asf->factoring_downglades( $glade, $symch_ix,
                 $factoring_ix );
             push @factorings,
-                map { glade_to_basic_tree( $asf, $_, $seen ) } @{$downglades};
+                bless [ map { glade_to_basic_tree( $asf, $_, $seen ) }
+                    @{$downglades} ], 'My_Rule';
         } ## end for ( my $factoring_ix = 0; $factoring_ix < $factoring_count...)
-        push @symches,
-            bless [
-            "Glade $glade, symch $symch_ix has $factoring_count factorings",
-            @factorings
-            ],
-            'My_Factorings'
-            if $factoring_count > 1;
-        push @symches, bless [ @factorings[ 0, 1 ] ], 'My_Rule';
+        if ( $factoring_count > 1 ) {
+            push @symches,
+                bless [
+                "Glade $glade, symch $symch_ix has $factoring_count factorings",
+                @factorings
+                ],
+                'My_Factorings';
+            next SYMCH;
+        } ## end if ( $factoring_count > 1 )
+        push @symches, bless [ @factorings[ 0, 1 ] ], 'My_Factorings';
     } ## end SYMCH: for ( my $symch_ix = 0; $symch_ix < $symch_count; ...)
     return bless [ "Glade $glade has $symch_count symches", @symches ],
         'My_Symches'
@@ -153,7 +164,7 @@ sub array_display {
     my $text = q{};
     for my $line (@lines) {
         my ( $indent, $body ) = @{$line};
-        $indent -= 4;
+        $indent -= 6;
         $text .= ( q{ } x $indent ) . $body . "\n";
     }
     return $text;

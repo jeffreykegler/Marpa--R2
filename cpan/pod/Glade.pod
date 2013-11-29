@@ -60,16 +60,24 @@ remove-blank-last-line: 1
 
     Glade 2 has 2 symches
       Glade 2, Symch 0, pair ::= duple
-        Glade 6, duple ::= item item
-          Glade 8 has 2 symches
-            Glade 8, Symch 0, item ::= Hesperus
-              Glade 13, Hesperus ::= 'a'
-                Glade 15, Symbol 'a': "a"
-            Glade 8, Symch 1, item ::= Phosphorus
-              Glade 1, Phosphorus ::= 'a'
-                Glade 17, Symbol 'a': "a"
+          Glade 6, duple ::= item item
+              Glade 8 has 2 symches
+                Glade 8, Symch 0, item ::= Hesperus
+                    Glade 13, Hesperus ::= 'a'
+                        Glade 15, Symbol 'a': "a"
+                Glade 8, Symch 1, item ::= Phosphorus
+                    Glade 1, Phosphorus ::= 'a'
+                        Glade 17, Symbol 'a': "a"
+              Glade 7 has 2 symches
+                Glade 7, Symch 0, item ::= Hesperus
+                    Glade 22, Hesperus ::= 'a'
+                        Glade 24, Symbol 'a': "a"
+                Glade 7, Symch 1, item ::= Phosphorus
+                    Glade 9, Phosphorus ::= 'a'
+                        Glade 26, Symbol 'a': "a"
       Glade 2, Symch 1, pair ::= item item
-        Glade 8 revisited
+          Glade 8 revisited
+          Glade 7 revisited
 
 =for Marpa::R2::Display::End
 
@@ -724,67 +732,70 @@ only the symch ambiguity is reported.
 name: ASF low-level calls synopsis, code part 2
 normalize-whitespace: 1
 
-    sub asf_to_basic_tree {
-        my ( $asf, $glade ) = @_;
-        my $peak = $asf->peak();
-        return glade_to_basic_tree( $asf, $peak, [] );
-    } ## end sub asf_to_basic_tree
+  sub asf_to_basic_tree {
+      my ( $asf, $glade ) = @_;
+      my $peak = $asf->peak();
+      return glade_to_basic_tree( $asf, $peak, [] );
+  } ## end sub asf_to_basic_tree
 
-    sub glade_to_basic_tree {
-        my ( $asf, $glade, $seen ) = @_;
-        return bless ["Glade $glade revisited"], 'My_Revisit'
-            if $seen->[$glade];
-        $seen->[$glade] = 1;
-        my $grammar     = $asf->grammar();
-        my @symches     = ();
-        my $symch_count = $asf->glade_symch_count($glade);
-        SYMCH: for ( my $symch_ix = 0; $symch_ix < $symch_count; $symch_ix++ ) {
-            my $rule_id = $asf->symch_rule_id( $glade, $symch_ix );
-            if ( $rule_id < 0 ) {
-                my $literal      = $asf->glade_literal($glade);
-                my $symbol_id    = $asf->glade_symbol_id($glade);
-                my $display_form = $grammar->symbol_display_form($symbol_id);
-                push @symches,
-                    bless [qq{Glade $glade, Symbol $display_form: "$literal"}],
-                    'My_Token';
-                next SYMCH;
-            } ## end if ( $rule_id < 0 )
+  sub glade_to_basic_tree {
+      my ( $asf, $glade, $seen ) = @_;
+      return bless ["Glade $glade revisited"], 'My_Revisit'
+	  if $seen->[$glade];
+      $seen->[$glade] = 1;
+      my $grammar     = $asf->grammar();
+      my @symches     = ();
+      my $symch_count = $asf->glade_symch_count($glade);
+      SYMCH: for ( my $symch_ix = 0; $symch_ix < $symch_count; $symch_ix++ ) {
+	  my $rule_id = $asf->symch_rule_id( $glade, $symch_ix );
+	  if ( $rule_id < 0 ) {
+	      my $literal      = $asf->glade_literal($glade);
+	      my $symbol_id    = $asf->glade_symbol_id($glade);
+	      my $display_form = $grammar->symbol_display_form($symbol_id);
+	      push @symches,
+		  bless [qq{Glade $glade, Symbol $display_form: "$literal"}],
+		  'My_Token';
+	      next SYMCH;
+	  } ## end if ( $rule_id < 0 )
 
-            # ignore any truncation of the factorings
-            my $factoring_count =
-                $asf->symch_factoring_count( $glade, $symch_ix );
-            my @symch_description = ("Glade $glade");
-            push @symch_description, "Symch $symch_ix" if $symch_count > 1;
-            push @symch_description, $grammar->rule_show($rule_id);
-            my $symch_description = join q{, }, @symch_description;
+	  # ignore any truncation of the factorings
+	  my $factoring_count =
+	      $asf->symch_factoring_count( $glade, $symch_ix );
+	  my @symch_description = ("Glade $glade");
+	  push @symch_description, "Symch $symch_ix" if $symch_count > 1;
+	  push @symch_description, $grammar->rule_show($rule_id);
+	  my $symch_description = join q{, }, @symch_description;
 
-            my @factorings = ($symch_description);
-            for (
-                my $factoring_ix = 0;
-                $factoring_ix < $factoring_count;
-                $factoring_ix++
-                )
-            {
-                my $downglades =
-                    $asf->factoring_downglades( $glade, $symch_ix,
-                    $factoring_ix );
-                push @factorings,
-                    map { glade_to_basic_tree( $asf, $_, $seen ) } @{$downglades};
-            } ## end for ( my $factoring_ix = 0; $factoring_ix < $factoring_count...)
-            push @symches,
-                bless [
-                "Glade $glade, symch $symch_ix has $factoring_count factorings",
-                @factorings
-                ],
-                'My_Factorings'
-                if $factoring_count > 1;
-            push @symches, bless [ @factorings[ 0, 1 ] ], 'My_Rule';
-        } ## end SYMCH: for ( my $symch_ix = 0; $symch_ix < $symch_count; ...)
-        return bless [ "Glade $glade has $symch_count symches", @symches ],
-            'My_Symches'
-            if $symch_count > 1;
-        return $symches[0];
-    } ## end sub glade_to_basic_tree
+	  my @factorings = ($symch_description);
+	  for (
+	      my $factoring_ix = 0;
+	      $factoring_ix < $factoring_count;
+	      $factoring_ix++
+	      )
+	  {
+	      my $downglades =
+		  $asf->factoring_downglades( $glade, $symch_ix,
+		  $factoring_ix );
+	      push @factorings,
+		  bless [ map { glade_to_basic_tree( $asf, $_, $seen ) }
+		      @{$downglades} ], 'My_Rule';
+	  } ## end for ( my $factoring_ix = 0; $factoring_ix < $factoring_count...)
+	  if ( $factoring_count > 1 ) {
+	      push @symches,
+		  bless [
+		  "Glade $glade, symch $symch_ix has $factoring_count factorings",
+		  @factorings
+		  ],
+		  'My_Factorings';
+	      next SYMCH;
+	  } ## end if ( $factoring_count > 1 )
+	  push @symches, bless [ @factorings[ 0, 1 ] ], 'My_Factorings';
+      } ## end SYMCH: for ( my $symch_ix = 0; $symch_ix < $symch_count; ...)
+      return bless [ "Glade $glade has $symch_count symches", @symches ],
+	  'My_Symches'
+	  if $symch_count > 1;
+      return $symches[0];
+  } ## end sub glade_to_basic_tree
 
 =for Marpa::R2::Display::End
 
@@ -810,7 +821,7 @@ normalize-whitespace: 1
         my $text = q{};
         for my $line (@lines) {
             my ( $indent, $body ) = @{$line};
-            $indent -= 4;
+            $indent -= 6;
             $text .= ( q{ } x $indent ) . $body . "\n";
         }
         return $text;
