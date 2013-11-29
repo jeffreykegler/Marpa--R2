@@ -181,10 +181,10 @@ sub Marpa::R2::Internal::Scanless::meta_recce {
 } ## end sub Marpa::R2::Internal::Scanless::meta_recce
 
 # For error messages, make it convenient to use an SLR
-sub Marpa::R2::Scanless::R::show_rule {
+sub Marpa::R2::Scanless::R::rule_show {
     my ( $slr, $rule_id ) = @_;
     my $slg = $slr->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
-    return $slg->show_rule($rule_id);
+    return $slg->rule_show($rule_id);
 }
 
 sub Marpa::R2::Scanless::R::new {

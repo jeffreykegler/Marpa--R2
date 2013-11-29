@@ -726,7 +726,7 @@ sub Marpa::R2::Recognizer::value {
             if ( not $rule_resolution ) {
                 my $rule_desc;
                 if ( defined $slr ) {
-                    $rule_desc = $slr->show_rule($rule_id);
+                    $rule_desc = $slr->rule_show($rule_id);
                 }
                 else { $rule_desc = $grammar->brief_rule($rule_id); }
                 my $message =
@@ -734,10 +734,9 @@ sub Marpa::R2::Recognizer::value {
 
                 $message .= qq{  Action was specified as "$action"\n}
                     if defined $action;
-                $message
-                    .= q{  }
-                    . $recce
-                    ->[Marpa::R2::Internal::Recognizer::ERROR_MESSAGE];
+                my $recce_error =
+                    $recce->[Marpa::R2::Internal::Recognizer::ERROR_MESSAGE];
+                $message .= q{  } . $recce_error if defined $recce_error;
                 Marpa::R2::exception($message);
             } ## end if ( not $rule_resolution )
 
@@ -1165,7 +1164,7 @@ sub Marpa::R2::Recognizer::value {
                     if ( $ref_type eq q{} ) {
                         my $rule_desc;
                         if ( defined $slr ) {
-                            $rule_desc = $slr->show_rule($rule_id);
+                            $rule_desc = $slr->rule_show($rule_id);
                         }
                         else { $rule_desc = $grammar->brief_rule($rule_id); }
                         Marpa::R2::exception(
@@ -1205,7 +1204,7 @@ sub Marpa::R2::Recognizer::value {
 
                     my $rule_desc;
                     if ( defined $slr ) {
-                        $rule_desc = $slr->show_rule($rule_id);
+                        $rule_desc = $slr->rule_show($rule_id);
                     }
                     else { $rule_desc = $grammar->brief_rule($rule_id); }
                     Marpa::R2::exception(
