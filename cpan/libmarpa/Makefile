@@ -57,11 +57,6 @@ STAGE_FILES = \
 dummy:
 	@echo install is the main target
 
-sources: marpa.c marpa.h marpa_util.h marpa_api.h codes.h codes.c private.h
-
-marpa.h marpa.c: copyright_page_license.w marpa.w
-	$(CTANGLE) marpa.w
-
 doc/configure.ac: dev/doc_dist/configure.ac
 	test -d doc || mkdir doc
 	cp $? $@
@@ -191,7 +186,7 @@ doc/configure: $(DOC_SOURCE_FILES)
 doc/Makefile: doc/configure
 	cd doc && ./configure
 
-docs: dev/marpa.pdf doc/Makefile \
+docs: doc/Makefile \
   doc/api.pdf doc/api.html/index.html \
   doc/internal.pdf doc/internal.html/index.html
 
