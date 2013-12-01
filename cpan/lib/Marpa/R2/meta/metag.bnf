@@ -25,6 +25,7 @@ statement ::= <start rule> | <empty rule>
   | <completion event declaration>
   | <nulled event declaration>
   | <prediction event declaration>
+  | <current lexer statement>
 <null statement> ::= ';'
 <statement group> ::= ('{') statements '}'
 <start rule> ::= (':start' <op declare bnf>) symbol
@@ -39,6 +40,8 @@ statement ::= <start rule> | <empty rule>
 <completion event declaration> ::= ('event') <event name> ('=' 'completed') <symbol name>
 <nulled event declaration> ::= ('event') <event name> ('=' 'nulled') <symbol name>
 <prediction event declaration> ::= ('event') <event name> ('=' 'predicted') <symbol name>
+<current lexer statement> ::= ('current' 'lexer' 'is') <lexer name>
+
 <op declare> ::= <op declare bnf> | <op declare match>
 priorities ::= alternatives+
     separator => <op loosen> proper => 1
@@ -72,6 +75,10 @@ action ::= ('action' '=>') <action name>
 <pause specification> ::= ('pause' '=>') <before or after>
 <event specification> ::= ('event' '=>') <event name>
 <blessing> ::= ('bless' '=>') <blessing name>
+
+# single quoted names not allowed, for now
+<lexer name> ::= <standard name>
+
 <event name> ::= <standard name> | <single quoted name>
 <blessing name> ::= <standard name>
 <blessing name> ::= <reserved blessing name>
