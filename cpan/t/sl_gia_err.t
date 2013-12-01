@@ -14,13 +14,16 @@
 # General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 
-# Tests of ambiguity in the SLIF DSL itself.
+# Tests that include a grammar, an input, and an error message
+# or an AST, but no semantics.
+#
+# Uses include tests of parsing of the SLIF DSL itself.
 
 use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 16;
+use Test::More tests => 18;
 use English qw( -no_match_vars );
 use lib 'inc';
 use Marpa::R2::Test;
@@ -154,6 +157,23 @@ push @tests_data,
     $disambig_grammar, 'aaaa',
     [qw(a a a a)],     'Parse OK',
     'Grammar with null statements'
+    ];
+
+#####
+# test grouped statements
+
+my $grouping_grammar = \(<<'END_OF_SOURCE');
+	;:default ::= action => ::array
+	{quartet ::= a b c d };
+        a ~ 'a' { b ~ 'b' c~'c' } { d ~ 'd'; };
+	{ {;} }
+END_OF_SOURCE
+
+push @tests_data,
+    [
+    $grouping_grammar, 'abcd',
+    [qw(a b c d)],     'Parse OK',
+    'Grammar with grouped statements'
     ];
 
 #####

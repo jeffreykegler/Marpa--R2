@@ -942,6 +942,13 @@ sub Marpa::R2::Internal::MetaAST_Nodes::lexeme_rule::evaluate {
     return undef;
 } ## end sub Marpa::R2::Internal::MetaAST_Nodes::lexeme_rule::evaluate
 
+sub Marpa::R2::Internal::MetaAST_Nodes::statements::evaluate {
+    my ( $data, $parse ) = @_;
+    my ( undef, undef, @statement_list ) = @{$data};
+    map { $_->evaluate($parse) } @statement_list;
+    return undef;
+} ## end sub Marpa::R2::Internal::MetaAST_Nodes::statements::evaluate
+
 sub Marpa::R2::Internal::MetaAST_Nodes::statement::evaluate {
     my ( $data, $parse ) = @_;
     my ( undef, undef, $statement_body ) = @{$data};
@@ -959,6 +966,14 @@ sub Marpa::R2::Internal::MetaAST_Nodes::statement_body::evaluate {
 } ## end sub Marpa::R2::Internal::MetaAST_Nodes::statement_body::evaluate
 
 sub Marpa::R2::Internal::MetaAST_Nodes::null_statement::evaluate {
+    return undef;
+}
+
+sub Marpa::R2::Internal::MetaAST_Nodes::statement_group::evaluate {
+    my ( $data, $parse ) = @_;
+    my ( undef, undef, $statements ) = @{$data};
+    $statements->evaluate($parse);
+    ## no critic(Subroutines::ProhibitExplicitReturnUndef)
     return undef;
 }
 
