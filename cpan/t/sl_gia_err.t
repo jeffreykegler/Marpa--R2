@@ -23,7 +23,7 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 18;
+use Test::More tests => 20;
 use English qw( -no_match_vars );
 use lib 'inc';
 use Marpa::R2::Test;
@@ -175,6 +175,24 @@ push @tests_data,
     [qw(a b c d)],     'Parse OK',
     'Grammar with grouped statements'
     ];
+
+#####
+# test null adverbs
+
+{
+    my $grammar = \(<<'END_OF_SOURCE');
+	:default ::= ,action => ::array,
+	quartet ::= a b c d ,
+        a ~ 'a' { b ~ 'b' c~'c' }  d ~ 'd',
+END_OF_SOURCE
+
+    push @tests_data,
+        [
+        $grammar,      'abcd',
+        [qw(a b c d)], 'Parse OK',
+        'Grammar with null adverbs'
+        ];
+}
 
 #####
 
