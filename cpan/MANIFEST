@@ -266,7 +266,6 @@ t/debug_leo.t
 t/debug_seq.t
 t/debug.t
 t/deprecated1.t
-t/dsl_ambig.t
 t/dsl.t
 t/duplicate_parse.t
 t/equation.t
@@ -315,6 +314,7 @@ t/sl_event.t
 t/sl_exhaust.t
 t/sl_external1.t
 t/sl_fullsyn.t
+t/sl_gia_err.t
 t/sl_gia.t
 t/sl_gie.t
 t/sl_gif1.t
