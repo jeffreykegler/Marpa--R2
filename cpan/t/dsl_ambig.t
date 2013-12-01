@@ -20,7 +20,7 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 14;
+use Test::More tests => 16;
 use English qw( -no_match_vars );
 use lib 'inc';
 use Marpa::R2::Test;
@@ -104,6 +104,8 @@ END_OF_MESSAGE
     'English start statement second'
 ];
 
+#####
+
 my $explicit_grammar1 = \(<<'END_OF_SOURCE');
 	      :default ::= action => ::array
 	      quartet  ::= a a a a;
@@ -117,6 +119,8 @@ push @tests_data,
     [qw(a a a a)],     'Parse OK',
     'Explicit English start statement second'
     ];
+
+#####
 
 my $explicit_grammar2 = \(<<'END_OF_SOURCE');
 	:default ::= action => ::array
@@ -135,6 +139,24 @@ push @tests_data,
     [qw(a a a a a a a), ['a']],     'Parse OK',
     'Long quartet; no start statement'
     ];
+
+#####
+# test null statements
+
+my $disambig_grammar = \(<<'END_OF_SOURCE');
+	;:default ::= action => ::array
+	octet  ::= a a a a
+        ;a ~ 'a';;;;;
+END_OF_SOURCE
+
+push @tests_data,
+    [
+    $disambig_grammar, 'aaaa',
+    [qw(a a a a)],     'Parse OK',
+    'Grammar with null statements'
+    ];
+
+#####
 
 TEST:
 for my $test_data (@tests_data) {

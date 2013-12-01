@@ -14,7 +14,7 @@
 # General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 
-# A "full" Synopsis for the intro doc to the SLIP
+# A "full" Synopsis for the intro doc to the SLIF
 
 use 5.010;
 use strict;

@@ -19,13 +19,13 @@ lexeme default = action => [start,length,value] bless => ::name
 :start ::= statements
 statements ::= statement+
 statement ::= <statement body>
-statement ::= <statement body> ';'
-<statement body> ::= <start rule> | <empty rule>
+<statement body> ::= <start rule> | <empty rule> | <null statement>
   | <priority rule> | <quantified rule> | <discard rule> | <default rule>
   | <lexeme default statement> | <lexeme rule>
   | <completion event declaration>
   | <nulled event declaration>
   | <prediction event declaration>
+<null statement> ::= ';'
 <start rule> ::= (':start' <op declare bnf>) symbol
 <start rule> ::= ('start' 'symbol' 'is') symbol
 <default rule> ::= ':default' <op declare bnf> <adverb list>

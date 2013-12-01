@@ -958,6 +958,10 @@ sub Marpa::R2::Internal::MetaAST_Nodes::statement_body::evaluate {
     return undef;
 } ## end sub Marpa::R2::Internal::MetaAST_Nodes::statement_body::evaluate
 
+sub Marpa::R2::Internal::MetaAST_Nodes::null_statement::evaluate {
+    return undef;
+}
+
 sub Marpa::R2::Internal::MetaAST::start_rule_create {
     my ( $parse, $symbol ) = @_;
     my $start_lhs = '[:start]';
