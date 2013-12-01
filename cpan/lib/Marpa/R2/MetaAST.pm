@@ -1269,6 +1269,10 @@ sub Marpa::R2::Internal::MetaAST_Nodes::adverb_list::evaluate {
     return $adverb_list_items->evaluate($parse);
 } ## end sub Marpa::R2::Internal::MetaAST_Nodes::adverb_list::evaluate
 
+sub Marpa::R2::Internal::MetaAST_Nodes::null_adverb::evaluate {
+    return {};
+}
+
 sub Marpa::R2::Internal::MetaAST_Nodes::adverb_list_items::evaluate {
     my ( $data, $parse ) = @_;
     my ( undef, undef, @raw_items ) = @{$data};

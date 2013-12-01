@@ -47,17 +47,17 @@ alternatives ::= alternative+
 alternative ::= rhs <adverb list>
 
 <adverb list> ::= <adverb list items>
-<adverb list> ::= (',') <adverb list items>
 <adverb list items> ::= <adverb item>*
-<adverb item> ::= <adverb body> | <adverb body> (',')
-<adverb body> ::=
+<adverb item> ::=
       action
     | <left association> | <right association> | <group association>
     | <separator specification> | <proper specification>
     | <rank specification> | <null ranking specification>
     | <priority specification> | <pause specification> | <event specification>
     | blessing
+    | <null adverb>
 
+<null adverb> ::= ','
 action ::= ('action' '=>') <action name>
 <left association> ::= ('assoc' '=>' 'left')
 <right association> ::= ('assoc' '=>' 'right')
