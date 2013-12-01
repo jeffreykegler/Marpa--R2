@@ -67,7 +67,7 @@ sub ast_to_hash {
     $hashed_ast->{meta_recce} = $ast->{meta_recce};
     bless $hashed_ast, 'Marpa::R2::Internal::MetaAST::Parse';
 
-    $hashed_ast->{default_lexer} = 'L0';
+    $hashed_ast->{current_lexer} = 'L0';
     $hashed_ast->{rules}->{G1} = [];
     my $g1_symbols = $hashed_ast->{symbols}->{G1} = {};
 
@@ -191,6 +191,11 @@ sub Marpa::R2::Internal::MetaAST_Nodes::action_name::name {
 }
 
 sub Marpa::R2::Internal::MetaAST_Nodes::event_name::name {
+    my ( $self, $parse ) = @_;
+    return $self->[2]->name($parse);
+}
+
+sub Marpa::R2::Internal::MetaAST_Nodes::lexer_name::name {
     my ( $self, $parse ) = @_;
     return $self->[2]->name($parse);
 }
@@ -415,7 +420,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::adverb_item::evaluate {
 sub Marpa::R2::Internal::MetaAST_Nodes::default_rule::evaluate {
     my ( $values, $parse ) = @_;
     my ( $start, $length, undef, $op_declare, $raw_adverb_list ) = @{$values};
-    my $subgrammar = $op_declare->op() eq q{::=} ? 'G1' : $parse->{default_lexer};
+    my $subgrammar = $op_declare->op() eq q{::=} ? 'G1' : $parse->{current_lexer};
     my $adverb_list = $raw_adverb_list->evaluate($parse);
 
     # A default rule clears the previous default
@@ -476,7 +481,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::priority_rule::evaluate {
     my ( $start, $length, $raw_lhs, $op_declare, $raw_priorities ) =
         @{$values};
 
-    my $subgrammar = $op_declare->op() eq q{::=} ? 'G1' : $parse->{default_lexer};
+    my $subgrammar = $op_declare->op() eq q{::=} ? 'G1' : $parse->{current_lexer};
     $parse->{'first_lhs'} //= $raw_lhs if $subgrammar eq 'G1';
     local $Marpa::R2::Internal::SUBGRAMMAR = $subgrammar;
     my $lhs = $raw_lhs->name($parse);
@@ -798,7 +803,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::empty_rule::evaluate {
         @{$values};
 
     my $lhs = $raw_lhs->name($parse);
-    my $subgrammar = $op_declare->op() eq q{::=} ? 'G1' : $parse->{default_lexer};
+    my $subgrammar = $op_declare->op() eq q{::=} ? 'G1' : $parse->{current_lexer};
     $parse->{'first_lhs'} //= $raw_lhs if $subgrammar eq 'G1';
     local $Marpa::R2::Internal::SUBGRAMMAR = $subgrammar;
 
@@ -994,7 +999,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::start_rule::evaluate {
 sub Marpa::R2::Internal::MetaAST_Nodes::discard_rule::evaluate {
     my ( $values, $parse ) = @_;
     my ( $start, $length, $symbol ) = @{$values};
-    my $lexer_name = $parse->{default_lexer};
+    my $lexer_name = $parse->{current_lexer};
     my $discard_lhs = '[:discard]';
     $parse->symbol_names_set(
         $discard_lhs,
@@ -1022,7 +1027,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::quantified_rule::evaluate {
     my ( $start, $length, $lhs, $op_declare, $rhs, $quantifier,
         $proto_adverb_list )
         = @{$values};
-    my $subgrammar = $op_declare->op() eq q{::=} ? 'G1' : $parse->{default_lexer};
+    my $subgrammar = $op_declare->op() eq q{::=} ? 'G1' : $parse->{current_lexer};
     $parse->{'first_lhs'} //= $lhs if $subgrammar eq 'G1';
     local $Marpa::R2::Internal::SUBGRAMMAR = $subgrammar;
 
@@ -1188,7 +1193,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::current_lexer_statement::evaluate
     my ( $values, $parse ) = @_;
     my ( $start, $length, $raw_lexer_name ) = @{$values};
     my $lexer_name        = $raw_lexer_name->name();
-    if ( $lexer_name ne 'L0' and $lexer_name =~ m/\a [[:upper:]] [[:digit:]]+ \z/xms) {
+    if ( $lexer_name ne 'L0' and $lexer_name =~ m/\A [[:upper:]] [[:digit:]]+ \z/xms) {
         my ( $line, $column ) = $parse->{meta_recce}->line_column($start);
         die qq{Attempt to name a new lexer "$lexer_name"\n},
             qq{  Lexer names of the form [A-Z][0-9]+ are reserved\n},
