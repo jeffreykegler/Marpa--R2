@@ -951,19 +951,11 @@ sub Marpa::R2::Internal::MetaAST_Nodes::statements::evaluate {
 
 sub Marpa::R2::Internal::MetaAST_Nodes::statement::evaluate {
     my ( $data, $parse ) = @_;
-    my ( undef, undef, $statement_body ) = @{$data};
-    $statement_body->evaluate($parse);
+    my ( undef, undef, $child ) = @{$data};
+    $child->evaluate($parse);
     ## no critic(Subroutines::ProhibitExplicitReturnUndef)
     return undef;
 } ## end sub Marpa::R2::Internal::MetaAST_Nodes::statement::evaluate
-
-sub Marpa::R2::Internal::MetaAST_Nodes::statement_body::evaluate {
-    my ( $data, $parse ) = @_;
-    my ( undef, undef, $statement ) = @{$data};
-    $statement->evaluate($parse);
-    ## no critic(Subroutines::ProhibitExplicitReturnUndef)
-    return undef;
-} ## end sub Marpa::R2::Internal::MetaAST_Nodes::statement_body::evaluate
 
 sub Marpa::R2::Internal::MetaAST_Nodes::null_statement::evaluate {
     return undef;

@@ -101,7 +101,6 @@ standard_name
 start_rule
 statement
 statements
-statement_body
 symbol
 symbol_name
 );
