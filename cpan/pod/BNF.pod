@@ -107,7 +107,7 @@ if they make sense in the Stuifzand context.
 However, this will necessarily always be the case in
 the future.
 
-Specifically, here is a list of the unsupported SLIF DSL features.
+Here is a list of some of the unsupported SLIF DSL features,
 
 =over 4
 

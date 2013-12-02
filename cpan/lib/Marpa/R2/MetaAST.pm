@@ -969,13 +969,10 @@ sub Marpa::R2::Internal::MetaAST::start_rule_create {
     my $start_lhs = '[:start]';
     $parse->{'default_g1_start_action'} =
         $parse->{'default_adverbs'}->{'G1'}->{'action'};
-    $parse->symbol_names_set(
-        $start_lhs,
-        'G1',
-        {   display_form => ':start',
-            description  => 'Internal G1 start symbol'
-        }
-    );
+    $parse->{'symbols'}->{'G1'}->{$start_lhs} = {
+        display_form => ':start',
+        description  => 'Internal G1 start symbol'
+    };
     push @{ $parse->{rules}->{G1} },
         {
         lhs    => $start_lhs,

@@ -190,8 +190,21 @@ sub parse_rules {
     my $start_lhs = $hashed_ast->{'start_lhs'} // $hashed_ast->{'first_lhs'};
     Marpa::R2::exception( 'No rules in Stuifzand grammar', )
         if not defined $start_lhs;
-    Marpa::R2::Internal::MetaAST::start_rule_create( $hashed_ast,
-        $start_lhs );
+
+    my $internal_start_lhs = '[:start]';
+    $hashed_ast->{'default_g1_start_action'} =
+        $hashed_ast->{'default_adverbs'}->{'G1'}->{'action'};
+    $hashed_ast->{'symbols'}->{'G1'}->{$internal_start_lhs} = {
+        display_form => ':start',
+        description  => 'Internal G1 start symbol'
+    };
+    push @{ $hashed_ast->{rules}->{G1} },
+        {
+        lhs    => $internal_start_lhs,
+        rhs    => [$start_lhs],
+        action => '::first'
+        };
+
     $self->{rules} = $hashed_ast->{rules}->{G1};
     return $self;
 } ## end sub parse_rules
