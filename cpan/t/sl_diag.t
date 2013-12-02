@@ -107,12 +107,12 @@ my $g1_rules_description;
 Marpa::R2::Test::is(
     $g1_rules_description,
     <<'END_OF_DESCRIPTION',
-0 <[:start]> <Script>
-1 <Script> <Calculation>
-2 <Calculation> <Expression>
-3 <Calculation> <[Lex-0]> <Expression>
-4 <Expression> <Number>
-5 <Expression> <[Lex-1]> <Expression> <Expression>
+0 <Script> <Calculation>
+1 <Calculation> <Expression>
+2 <Calculation> <[Lex-0]> <Expression>
+3 <Expression> <Number>
+4 <Expression> <[Lex-1]> <Expression> <Expression>
+5 <[:start]> <Script>
 END_OF_DESCRIPTION
     'g1_rule_ids() and rule()'
 );
@@ -215,16 +215,16 @@ for my $test_data (@tests_data) {
 
     Marpa::R2::Test::is( $show_progress_output,
         <<'END_OF_EXPECTED_OUTPUT', qq{Scanless show_progess()} );
-F0 @0-11 L1c1-19 :start -> Script .
-P1 @0-11 L1c1-19 Script -> . Calculation *
-F1 @0-11 L1c1-19 Script -> Calculation * .
-P2 @11-11 L1c19 Calculation -> . Expression
-F2 @0-11 L1c1-19 Calculation -> Expression .
-P3 @11-11 L1c19 Calculation -> . 'say' Expression
-P4 @11-11 L1c19 Expression -> . Number
-F4 @10-11 L1c17-19 Expression -> Number .
-P5 @11-11 L1c19 Expression -> . '+' Expression Expression
-F5 x3 @0,6,10-11 L1c1-19 Expression -> '+' Expression Expression .
+P0 @0-11 L1c1-19 Script -> . Calculation *
+F0 @0-11 L1c1-19 Script -> Calculation * .
+P1 @11-11 L1c19 Calculation -> . Expression
+F1 @0-11 L1c1-19 Calculation -> Expression .
+P2 @11-11 L1c19 Calculation -> . 'say' Expression
+P3 @11-11 L1c19 Expression -> . Number
+F3 @10-11 L1c17-19 Expression -> Number .
+P4 @11-11 L1c19 Expression -> . '+' Expression Expression
+F4 x3 @0,6,10-11 L1c1-19 Expression -> '+' Expression Expression .
+F5 @0-11 L1c1-19 :start -> Script .
 END_OF_EXPECTED_OUTPUT
 
     Marpa::R2::Test::is( $actual_value, $expected_value,
@@ -267,16 +267,16 @@ END_OF_OUTPUT
     my $expected_progress_output = [
         [ 0, -1, 0 ],
         [ 1, -1, 0 ],
-        [ 2, -1, 0 ],
+        [ 3, -1, 10 ],
+        [ 4, -1, 0 ],
+        [ 4, -1, 6 ],
         [ 4, -1, 10 ],
         [ 5, -1, 0 ],
-        [ 5, -1, 6 ],
-        [ 5, -1, 10 ],
-        [ 1, 0,  0 ],
+        [ 0, 0,  0 ],
+        [ 1, 0,  11 ],
         [ 2, 0,  11 ],
         [ 3, 0,  11 ],
         [ 4, 0,  11 ],
-        [ 5, 0,  11 ]
     ];
 
 # Marpa::R2::Display
@@ -286,8 +286,11 @@ END_OF_OUTPUT
 
 # Marpa::R2::Display::End
 
-    Test::More::is_deeply( $progress_output, $expected_progress_output,
-        qq{Scanless progress()} );
+    Marpa::R2::Test::is(
+        Data::Dumper::Dumper($progress_output),
+        Data::Dumper::Dumper($expected_progress_output),
+        qq{Scanless progress()}
+    );
 
     my $latest_g1_location = $slr->latest_g1_location();
     Test::More::is( $latest_g1_location, 11, qq{Scanless latest_g1_location()} );

@@ -71,19 +71,19 @@ $show_rules_output .= $grammar->show_rules(1, 'L0');
 
 Marpa::R2::Test::is( $show_rules_output,
     <<'END_OF_SHOW_RULES_OUTPUT', 'Scanless show_rules()' );
-G1 R0 :start ::= Script
-G1 R1 Script ::= Expression +
+G1 R0 Script ::= Expression +
+G1 R1 Expression ::= Expression
 G1 R2 Expression ::= Expression
 G1 R3 Expression ::= Expression
 G1 R4 Expression ::= Expression
-G1 R5 Expression ::= Expression
-G1 R6 Expression ::= Number
-G1 R7 Expression ::= '(' Expression ')'
-G1 R8 Expression ::= Expression '**' Expression
-G1 R9 Expression ::= Expression '*' Expression
-G1 R10 Expression ::= Expression '/' Expression
-G1 R11 Expression ::= Expression '+' Expression
-G1 R12 Expression ::= Expression '-' Expression
+G1 R5 Expression ::= Number
+G1 R6 Expression ::= '(' Expression ')'
+G1 R7 Expression ::= Expression '**' Expression
+G1 R8 Expression ::= Expression '*' Expression
+G1 R9 Expression ::= Expression '/' Expression
+G1 R10 Expression ::= Expression '+' Expression
+G1 R11 Expression ::= Expression '-' Expression
+G1 R12 :start ::= Script
 L0 R0 comma ::= [,]
 L0 R1 '(' ::= [\(]
 L0 R2 ')' ::= [\)]

@@ -176,7 +176,8 @@ sub parse_rules {
     my $ast              = Marpa::R2::Internal::MetaAST->new($p_rules_source);
     {
         local $Marpa::R2::Internal::P_SOURCE = $p_rules_source;
-        my $problem = Marpa::R2::Internal::Stuifzand::check_ast_node($ast->{top_node});
+        my $problem = Marpa::R2::Internal::Stuifzand::check_ast_node(
+            $ast->{top_node} );
         ## Uncaught problem -- should not happen
         if ($problem) {
             Marpa::R2::exception(
@@ -186,6 +187,11 @@ sub parse_rules {
         } ## end if ($problem)
     }
     my $hashed_ast = $ast->ast_to_hash();
+    my $start_lhs = $hashed_ast->{'start_lhs'} // $hashed_ast->{'first_lhs'};
+    Marpa::R2::exception( 'No rules in Stuifzand grammar', )
+        if not defined $start_lhs;
+    Marpa::R2::Internal::MetaAST::start_rule_create( $hashed_ast,
+        $start_lhs );
     $self->{rules} = $hashed_ast->{rules}->{G1};
     return $self;
 } ## end sub parse_rules

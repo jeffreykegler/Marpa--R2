@@ -42,7 +42,7 @@ END_OF_SOURCE
 push @tests_data, [
     $aaaa_grammar, 'aaaa',
     <<'END_OF_ASF',
-GL2 Rule 1: quartet ::= a a a a
+GL2 Rule 0: quartet ::= a a a a
   GL3 Symbol a: "a"
   GL4 Symbol a: "a"
   GL5 Symbol a: "a"
@@ -94,12 +94,12 @@ push @tests_data, [
     <<'END_OF_OUTPUT',
 Symbol #0 planet has 2 symches
   Symch #0.0
-  GL2 Rule 1: planet ::= hesperus
-    GL3 Rule 3: hesperus ::= venus
+  GL2 Rule 0: planet ::= hesperus
+    GL3 Rule 2: hesperus ::= venus
       GL4 Symbol venus: "venus"
   Symch #0.1
-  GL2 Rule 2: planet ::= phosphorus
-    GL5 Rule 4: phosphorus ::= venus
+  GL2 Rule 1: planet ::= phosphorus
+    GL5 Rule 3: phosphorus ::= venus
       GL6 Symbol venus: "venus"
 END_OF_OUTPUT
     'ASF OK',
@@ -112,7 +112,7 @@ END_OF_OUTPUT
 push @tests_data, [
     $abcd_grammar, 'abcd',
     <<'END_OF_ASF',
-GL2 Rule 1: quartet ::= a b c d
+GL2 Rule 0: quartet ::= a b c d
   GL3 Symbol a: "a"
   GL4 Symbol b: "b"
   GL5 Symbol c: "c"
@@ -149,18 +149,18 @@ END_OF_SOURCE
 push @tests_data, [
     $bb_grammar, 'aaa',
     <<'END_OF_OUTPUT',
-GL2 Rule 1: top ::= b b
+GL2 Rule 0: top ::= b b
   Factoring #0
-    GL3 Rule 3: b ::= a
+    GL3 Rule 2: b ::= a
       GL4 Symbol a: "a"
-    GL5 Rule 2: b ::= a a
+    GL5 Rule 1: b ::= a a
       GL6 Symbol a: "a"
       GL7 Symbol a: "a"
   Factoring #1
-    GL8 Rule 2: b ::= a a
+    GL8 Rule 1: b ::= a a
       GL9 Symbol a: "a"
       GL10 Symbol a: "a"
-    GL11 Rule 3: b ::= a
+    GL11 Rule 2: b ::= a
       GL12 Symbol a: "a"
 END_OF_OUTPUT
     'ASF OK',
@@ -184,15 +184,15 @@ END_OF_SOURCE
 push @tests_data, [
     $seq_grammar, 'aa',
     <<'END_OF_ASF',
-GL2 Rule 1: sequence ::= item +
+GL2 Rule 0: sequence ::= item +
   Factoring #0
-    GL3 Rule 2: item ::= pair
-      GL4 Rule 5: pair ::= item item
-        GL5 Rule 3: item ::= singleton
-          GL6 Rule 4: singleton ::= 'a'
+    GL3 Rule 1: item ::= pair
+      GL4 Rule 4: pair ::= item item
+        GL5 Rule 2: item ::= singleton
+          GL6 Rule 3: singleton ::= 'a'
             GL7 Symbol 'a': "a"
-        GL8 Rule 3: item ::= singleton
-          GL9 Rule 4: singleton ::= 'a'
+        GL8 Rule 2: item ::= singleton
+          GL9 Rule 3: singleton ::= 'a'
             GL10 Symbol 'a': "a"
   Factoring #1
     GL5 already displayed
@@ -206,26 +206,26 @@ END_OF_ASF
 push @tests_data, [
     $seq_grammar, 'aaa',
     <<'END_OF_ASF',
-GL2 Rule 1: sequence ::= item +
+GL2 Rule 0: sequence ::= item +
   Factoring #0
-    GL3 Rule 2: item ::= pair
-      GL4 Rule 5: pair ::= item item
+    GL3 Rule 1: item ::= pair
+      GL4 Rule 4: pair ::= item item
         Factoring #0.0
-          GL5 Rule 2: item ::= pair
-            GL6 Rule 5: pair ::= item item
-              GL7 Rule 3: item ::= singleton
-                GL8 Rule 4: singleton ::= 'a'
+          GL5 Rule 1: item ::= pair
+            GL6 Rule 4: pair ::= item item
+              GL7 Rule 2: item ::= singleton
+                GL8 Rule 3: singleton ::= 'a'
                   GL9 Symbol 'a': "a"
-              GL10 Rule 3: item ::= singleton
-                GL11 Rule 4: singleton ::= 'a'
+              GL10 Rule 2: item ::= singleton
+                GL11 Rule 3: singleton ::= 'a'
                   GL12 Symbol 'a': "a"
-          GL13 Rule 3: item ::= singleton
-            GL14 Rule 4: singleton ::= 'a'
+          GL13 Rule 2: item ::= singleton
+            GL14 Rule 3: singleton ::= 'a'
               GL15 Symbol 'a': "a"
         Factoring #0.1
           GL7 already displayed
-          GL16 Rule 2: item ::= pair
-            GL17 Rule 5: pair ::= item item
+          GL16 Rule 1: item ::= pair
+            GL17 Rule 4: pair ::= item item
               GL10 already displayed
               GL13 already displayed
   Factoring #1
@@ -259,27 +259,27 @@ END_OF_SOURCE
 push @tests_data, [
     $venus_seq_grammar, 'aa',
     <<'END_OF_ASF',
-GL2 Rule 1: sequence ::= item +
+GL2 Rule 0: sequence ::= item +
   Factoring #0
-    GL3 Rule 2: item ::= pair
-      GL4 Rule 7: pair ::= item item
+    GL3 Rule 1: item ::= pair
+      GL4 Rule 6: pair ::= item item
         Symbol #0 item has 2 symches
           Symch #0.0.0
-          GL5 Rule 3: item ::= Hesperus
-            GL6 Rule 5: Hesperus ::= 'a'
+          GL5 Rule 2: item ::= Hesperus
+            GL6 Rule 4: Hesperus ::= 'a'
               GL7 Symbol 'a': "a"
           Symch #0.0.1
-          GL5 Rule 4: item ::= Phosphorus
-            GL8 Rule 6: Phosphorus ::= 'a'
+          GL5 Rule 3: item ::= Phosphorus
+            GL8 Rule 5: Phosphorus ::= 'a'
               GL9 Symbol 'a': "a"
         Symbol #1 item has 2 symches
           Symch #0.1.0
-          GL10 Rule 3: item ::= Hesperus
-            GL11 Rule 5: Hesperus ::= 'a'
+          GL10 Rule 2: item ::= Hesperus
+            GL11 Rule 4: Hesperus ::= 'a'
               GL12 Symbol 'a': "a"
           Symch #0.1.1
-          GL10 Rule 4: item ::= Phosphorus
-            GL13 Rule 6: Phosphorus ::= 'a'
+          GL10 Rule 3: item ::= Phosphorus
+            GL13 Rule 5: Phosphorus ::= 'a'
               GL14 Symbol 'a': "a"
   Factoring #1
     GL5 already displayed
@@ -303,14 +303,14 @@ END_OF_SOURCE
 push @tests_data, [
     $nulls_grammar, 'aaaa',
     <<'END_OF_ASF',
-GL2 Rule 1: top ::= a a a a
-  GL3 Rule 2: a ::= 'a'
+GL2 Rule 0: top ::= a a a a
+  GL3 Rule 1: a ::= 'a'
     GL4 Symbol 'a': "a"
-  GL5 Rule 2: a ::= 'a'
+  GL5 Rule 1: a ::= 'a'
     GL6 Symbol 'a': "a"
-  GL7 Rule 2: a ::= 'a'
+  GL7 Rule 1: a ::= 'a'
     GL8 Symbol 'a': "a"
-  GL9 Rule 2: a ::= 'a'
+  GL9 Rule 1: a ::= 'a'
     GL10 Symbol 'a': "a"
 END_OF_ASF
     'ASF OK',
@@ -321,14 +321,14 @@ END_OF_ASF
 push @tests_data, [
     $nulls_grammar, 'aaa',
     <<'END_OF_ASF',
-GL2 Rule 1: top ::= a a a a
+GL2 Rule 0: top ::= a a a a
   Factoring #0
     GL3 Symbol a: ""
-    GL4 Rule 2: a ::= 'a'
+    GL4 Rule 1: a ::= 'a'
       GL5 Symbol 'a': "a"
-    GL6 Rule 2: a ::= 'a'
+    GL6 Rule 1: a ::= 'a'
       GL7 Symbol 'a': "a"
-    GL8 Rule 2: a ::= 'a'
+    GL8 Rule 1: a ::= 'a'
       GL9 Symbol 'a': "a"
   Factoring #1
     GL4 already displayed
@@ -354,13 +354,13 @@ END_OF_ASF
 push @tests_data, [
     $nulls_grammar, 'aa',
     <<'END_OF_ASF',
-GL2 Rule 1: top ::= a a a a
+GL2 Rule 0: top ::= a a a a
   Factoring #0
     GL3 Symbol a: ""
     GL4 Symbol a: ""
-    GL5 Rule 2: a ::= 'a'
+    GL5 Rule 1: a ::= 'a'
       GL6 Symbol 'a': "a"
-    GL7 Rule 2: a ::= 'a'
+    GL7 Rule 1: a ::= 'a'
       GL8 Symbol 'a': "a"
   Factoring #1
     GL3 already displayed
@@ -396,9 +396,9 @@ END_OF_ASF
 push @tests_data, [
     $nulls_grammar, 'a',
     <<'END_OF_ASF',
-GL2 Rule 1: top ::= a a a a
+GL2 Rule 0: top ::= a a a a
   Factoring #0
-    GL3 Rule 2: a ::= 'a'
+    GL3 Rule 1: a ::= 'a'
       GL4 Symbol 'a': "a"
     GL5 Symbol a: ""
     GL6 Symbol a: ""

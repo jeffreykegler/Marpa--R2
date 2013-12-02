@@ -122,12 +122,11 @@ sub ast_to_hash {
 
 sub Marpa::R2::Internal::MetaAST::Parse::start_rule_setup {
     my ($ast) = @_;
-    if (not defined $ast->{symbols}->{'G1'}->{'[:start]'}) {
-      my $first_lhs = $ast->{'first_lhs'};
-      Marpa::R2::exception('No rules in SLIF grammar') if not defined $first_lhs;
-      Marpa::R2::Internal::MetaAST::start_rule_create ( $ast, $first_lhs );
-    }
-}
+    my $start_lhs = $ast->{'start_lhs'} // $ast->{'first_lhs'};
+    Marpa::R2::exception('No rules in SLIF grammar')
+        if not defined $start_lhs;
+    Marpa::R2::Internal::MetaAST::start_rule_create( $ast, $start_lhs );
+} ## end sub Marpa::R2::Internal::MetaAST::Parse::start_rule_setup
 
 # This class is for pieces of RHS alternatives, as they are
 # being constructed
@@ -479,9 +478,9 @@ sub Marpa::R2::Internal::MetaAST_Nodes::priority_rule::evaluate {
         @{$values};
 
     my $subgrammar = $op_declare->op() eq q{::=} ? 'G1' : $parse->{current_lexer};
-    $parse->{'first_lhs'} //= $raw_lhs if $subgrammar eq 'G1';
-    local $Marpa::R2::Internal::SUBGRAMMAR = $subgrammar;
     my $lhs = $raw_lhs->name($parse);
+    $parse->{'first_lhs'} //= $lhs if $subgrammar eq 'G1';
+    local $Marpa::R2::Internal::SUBGRAMMAR = $subgrammar;
 
     my ( undef, undef, @priorities ) = @{$raw_priorities};
     my $priority_count = scalar @priorities;
@@ -799,9 +798,9 @@ sub Marpa::R2::Internal::MetaAST_Nodes::empty_rule::evaluate {
     my ( $start, $length, $raw_lhs, $op_declare, $raw_adverb_list ) =
         @{$values};
 
-    my $lhs = $raw_lhs->name($parse);
     my $subgrammar = $op_declare->op() eq q{::=} ? 'G1' : $parse->{current_lexer};
-    $parse->{'first_lhs'} //= $raw_lhs if $subgrammar eq 'G1';
+    my $lhs = $raw_lhs->name($parse);
+    $parse->{'first_lhs'} //= $lhs if $subgrammar eq 'G1';
     local $Marpa::R2::Internal::SUBGRAMMAR = $subgrammar;
 
     my %rule = ( lhs => $lhs,
@@ -966,7 +965,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::statement_group::evaluate {
 }
 
 sub Marpa::R2::Internal::MetaAST::start_rule_create {
-    my ( $parse, $symbol ) = @_;
+    my ( $parse, $symbol_name ) = @_;
     my $start_lhs = '[:start]';
     $parse->{'default_g1_start_action'} =
         $parse->{'default_adverbs'}->{'G1'}->{'action'};
@@ -980,15 +979,24 @@ sub Marpa::R2::Internal::MetaAST::start_rule_create {
     push @{ $parse->{rules}->{G1} },
         {
         lhs    => $start_lhs,
-        rhs    => [$symbol->name($parse)],
+        rhs    => [$symbol_name],
         action => '::first'
         };
-}
+} ## end sub Marpa::R2::Internal::MetaAST::start_rule_create
 
 sub Marpa::R2::Internal::MetaAST_Nodes::start_rule::evaluate {
     my ( $values, $parse ) = @_;
     my ( $start, $length, $symbol ) = @{$values};
-    Marpa::R2::Internal::MetaAST::start_rule_create( $parse, $symbol );
+    if ( defined $parse->{'start_lhs'} ) {
+        my ( $line, $column ) = $parse->{meta_recce}->line_column($start);
+        die qq{There are two start rules\n},
+            qq{  That is not allowed\n},
+            '  The second start rule is ',
+            $parse->substring( $start, $length ),
+            "\n",
+            "  Problem occurred at line $line, column $column\n";
+    } ## end if ( defined $parse->{'start_lhs'} )
+    $parse->{'start_lhs'} = $symbol->name($parse);
     ## no critic(Subroutines::ProhibitExplicitReturnUndef)
     return undef;
 } ## end sub Marpa::R2::Internal::MetaAST_Nodes::start_rule::evaluate
@@ -1025,7 +1033,8 @@ sub Marpa::R2::Internal::MetaAST_Nodes::quantified_rule::evaluate {
         $proto_adverb_list )
         = @{$values};
     my $subgrammar = $op_declare->op() eq q{::=} ? 'G1' : $parse->{current_lexer};
-    $parse->{'first_lhs'} //= $lhs if $subgrammar eq 'G1';
+    my $lhs_name = $lhs->name($parse);
+    $parse->{'first_lhs'} //= $lhs_name if $subgrammar eq 'G1';
     local $Marpa::R2::Internal::SUBGRAMMAR = $subgrammar;
 
     my $adverb_list     = $proto_adverb_list->evaluate($parse);
@@ -1078,7 +1087,6 @@ sub Marpa::R2::Internal::MetaAST_Nodes::quantified_rule::evaluate {
     } ## end ADVERB: for my $key ( keys %{$adverb_list} )
 
     # mask not needed
-    my $lhs_name = $lhs->name($parse);
     $sequence_rule{lhs} = $lhs_name;
 
     $sequence_rule{separator} = $separator

@@ -149,54 +149,54 @@ Test::More::is_deeply( $value_ref, $expected_output, 'Value before fix' );
 
 Marpa::R2::Test::is( $progress_report,
     <<'END_PROGRESS_REPORT', 'progress report' );
-P0 @0-0 L1c1 :start -> . statements
-P1 @0-0 L1c1 statements -> . statement *
-P2 @0-0 L1c1 statement -> . assignment
-P3 @0-0 L1c1 statement -> . <numeric assignment>
-P4 @0-0 L1c1 assignment -> . 'set' variable 'to' expression
-P5 @0-0 L1c1 <numeric assignment> -> . variable '=' expression
-R5:1 @0-1 L1c1 <numeric assignment> -> variable . '=' expression
-R5:2 @0-2 L1c1-3 <numeric assignment> -> variable '=' . expression
+P0 @0-0 L1c1 statements -> . statement *
+P1 @0-0 L1c1 statement -> . assignment
+P2 @0-0 L1c1 statement -> . <numeric assignment>
+P3 @0-0 L1c1 assignment -> . 'set' variable 'to' expression
+P4 @0-0 L1c1 <numeric assignment> -> . variable '=' expression
+P19 @0-0 L1c1 :start -> . statements
+R4:1 @0-1 L1c1 <numeric assignment> -> variable . '=' expression
+R4:2 @0-2 L1c1-3 <numeric assignment> -> variable '=' . expression
+P5 @2-2 L1c3 expression -> . expression
 P6 @2-2 L1c3 expression -> . expression
 P7 @2-2 L1c3 expression -> . expression
-P8 @2-2 L1c3 expression -> . expression
-P9 @2-2 L1c3 expression -> . variable
-P10 @2-2 L1c3 expression -> . string
-P11 @2-2 L1c3 expression -> . 'string' '(' <numeric expression> ')'
-P12 @2-2 L1c3 expression -> . expression '+' expression
-F0 @0-3 L1c1-11 :start -> statements .
-P1 @0-3 L1c1-11 statements -> . statement *
-F1 @0-3 L1c1-11 statements -> statement * .
-P2 @3-3 L1c5-11 statement -> . assignment
-P3 @3-3 L1c5-11 statement -> . <numeric assignment>
-F3 @0-3 L1c1-11 statement -> <numeric assignment> .
-P4 @3-3 L1c5-11 assignment -> . 'set' variable 'to' expression
-P5 @3-3 L1c5-11 <numeric assignment> -> . variable '=' expression
-F5 @0-3 L1c1-11 <numeric assignment> -> variable '=' expression .
+P8 @2-2 L1c3 expression -> . variable
+P9 @2-2 L1c3 expression -> . string
+P10 @2-2 L1c3 expression -> . 'string' '(' <numeric expression> ')'
+P11 @2-2 L1c3 expression -> . expression '+' expression
+P0 @0-3 L1c1-11 statements -> . statement *
+F0 @0-3 L1c1-11 statements -> statement * .
+P1 @3-3 L1c5-11 statement -> . assignment
+P2 @3-3 L1c5-11 statement -> . <numeric assignment>
+F2 @0-3 L1c1-11 statement -> <numeric assignment> .
+P3 @3-3 L1c5-11 assignment -> . 'set' variable 'to' expression
+P4 @3-3 L1c5-11 <numeric assignment> -> . variable '=' expression
+F4 @0-3 L1c1-11 <numeric assignment> -> variable '=' expression .
+F5 @2-3 L1c3-11 expression -> expression .
 F6 @2-3 L1c3-11 expression -> expression .
 F7 @2-3 L1c3-11 expression -> expression .
-F8 @2-3 L1c3-11 expression -> expression .
-F9 @2-3 L1c3-11 expression -> variable .
-R12:1 @2-3 L1c3-11 expression -> expression . '+' expression
-P8 @4-4 L1c13 expression -> . expression
-P9 @4-4 L1c13 expression -> . variable
-P10 @4-4 L1c13 expression -> . string
-P11 @4-4 L1c13 expression -> . 'string' '(' <numeric expression> ')'
-R12:2 @2-4 L1c3-13 expression -> expression '+' . expression
-F0 @0-5 L1c1-16 :start -> statements .
-P1 @0-5 L1c1-16 statements -> . statement *
-F1 @0-5 L1c1-16 statements -> statement * .
-P2 @5-5 L1c15-16 statement -> . assignment
-P3 @5-5 L1c15-16 statement -> . <numeric assignment>
-F3 @0-5 L1c1-16 statement -> <numeric assignment> .
-P4 @5-5 L1c15-16 assignment -> . 'set' variable 'to' expression
-P5 @5-5 L1c15-16 <numeric assignment> -> . variable '=' expression
-F5 @0-5 L1c1-16 <numeric assignment> -> variable '=' expression .
-F6 @2-5 L1c3-16 expression -> expression .
-F8 @4-5 L1c13-16 expression -> expression .
-F9 @4-5 L1c13-16 expression -> variable .
-R12:1 @2-5 L1c3-16 expression -> expression . '+' expression
-F12 @2-5 L1c3-16 expression -> expression '+' expression .
+F8 @2-3 L1c3-11 expression -> variable .
+R11:1 @2-3 L1c3-11 expression -> expression . '+' expression
+F19 @0-3 L1c1-11 :start -> statements .
+P7 @4-4 L1c13 expression -> . expression
+P8 @4-4 L1c13 expression -> . variable
+P9 @4-4 L1c13 expression -> . string
+P10 @4-4 L1c13 expression -> . 'string' '(' <numeric expression> ')'
+R11:2 @2-4 L1c3-13 expression -> expression '+' . expression
+P0 @0-5 L1c1-16 statements -> . statement *
+F0 @0-5 L1c1-16 statements -> statement * .
+P1 @5-5 L1c15-16 statement -> . assignment
+P2 @5-5 L1c15-16 statement -> . <numeric assignment>
+F2 @0-5 L1c1-16 statement -> <numeric assignment> .
+P3 @5-5 L1c15-16 assignment -> . 'set' variable 'to' expression
+P4 @5-5 L1c15-16 <numeric assignment> -> . variable '=' expression
+F4 @0-5 L1c1-16 <numeric assignment> -> variable '=' expression .
+F5 @2-5 L1c3-16 expression -> expression .
+F7 @4-5 L1c13-16 expression -> expression .
+F8 @4-5 L1c13-16 expression -> variable .
+R11:1 @2-5 L1c3-16 expression -> expression . '+' expression
+F11 @2-5 L1c3-16 expression -> expression '+' expression .
+F19 @0-5 L1c1-16 :start -> statements .
 END_PROGRESS_REPORT
 
 # Marpa::R2::Display::End
@@ -217,7 +217,7 @@ my $report0 = $slr->progress(0);
 # end-before-line: '^END_PROGRESS_REPORT$'
 
 chomp( my $expected_report0 = <<'END_PROGRESS_REPORT');
-[[0,0,0],[1,0,0],[2,0,0],[3,0,0],[4,0,0],[5,0,0]]
+[[0,0,0],[1,0,0],[2,0,0],[3,0,0],[4,0,0],[19,0,0]]
 END_PROGRESS_REPORT
 Marpa::R2::Test::is( Data::Dumper::Dumper($report0),
     $expected_report0, 'progress report at location 0' );
@@ -237,7 +237,7 @@ my $report1 = $slr->progress(1);
 # end-before-line: '^END_PROGRESS_REPORT$'
 
 chomp( my $expected_report1 = <<'END_PROGRESS_REPORT');
-[[5,1,0]]
+[[4,1,0]]
 END_PROGRESS_REPORT
 Marpa::R2::Test::is( Data::Dumper::Dumper($report1),
     $expected_report1, 'progress report at location 1' );
@@ -257,7 +257,7 @@ my $report2 = $slr->progress(2);
 # end-before-line: '^END_PROGRESS_REPORT$'
 
 chomp( my $expected_report2 = <<'END_PROGRESS_REPORT');
-[[6,0,2],[7,0,2],[8,0,2],[9,0,2],[10,0,2],[11,0,2],[12,0,2],[5,2,0]]
+[[5,0,2],[6,0,2],[7,0,2],[8,0,2],[9,0,2],[10,0,2],[11,0,2],[4,2,0]]
 END_PROGRESS_REPORT
 Marpa::R2::Test::is( Data::Dumper::Dumper($report2),
     $expected_report2, 'progress report at location 2' );
@@ -282,7 +282,7 @@ my $latest_report = $slr->progress();
 # end-before-line: '^END_PROGRESS_REPORT$'
 
 chomp( my $expected_default_report = <<'END_PROGRESS_REPORT');
-[[0,-1,0],[1,-1,0],[3,-1,0],[5,-1,0],[6,-1,2],[8,-1,4],[9,-1,4],[12,-1,2],[1,0,0],[2,0,5],[3,0,5],[4,0,5],[5,0,5],[12,1,2]]
+[[0,-1,0],[2,-1,0],[4,-1,0],[5,-1,2],[7,-1,4],[8,-1,4],[11,-1,2],[19,-1,0],[0,0,0],[1,0,5],[2,0,5],[3,0,5],[4,0,5],[11,1,2]]
 END_PROGRESS_REPORT
 Marpa::R2::Test::is( Data::Dumper::Dumper($latest_report),
     $expected_default_report, 'progress report at default location' );
@@ -290,7 +290,7 @@ Marpa::R2::Test::is( Data::Dumper::Dumper($latest_report),
 # Marpa::R2::Display::End
 
 chomp( my $expected_report3 = <<'END_PROGRESS_REPORT');
-[[0,-1,0],[1,-1,0],[3,-1,0],[5,-1,0],[6,-1,2],[7,-1,2],[8,-1,2],[9,-1,2],[1,0,0],[2,0,3],[3,0,3],[4,0,3],[5,0,3],[12,1,2]]
+[[0,-1,0],[2,-1,0],[4,-1,0],[5,-1,2],[6,-1,2],[7,-1,2],[8,-1,2],[19,-1,0],[0,0,0],[1,0,3],[2,0,3],[3,0,3],[4,0,3],[11,1,2]]
 END_PROGRESS_REPORT
 
 # Try latest report again with explicit index
@@ -399,72 +399,72 @@ $show_rules_output .= $slg->show_rules(3, 'L0');
 Marpa::R2::Test::is( $show_rules_output,
     <<'END_OF_SHOW_RULES_OUTPUT', 'SLIF show_rules()' );
 G1 Rules:
-G1 R0 :start ::= statements
-  Symbol IDs: <0> ::= <16>
-  Internal symbols: <[:start]> ::= <statements>
-G1 R1 statements ::= statement *
+G1 R0 statements ::= statement *
   Symbol IDs: <16> ::= <17>
   Internal symbols: <statements> ::= <statement>
-G1 R2 statement ::= assignment
+G1 R1 statement ::= assignment
   Symbol IDs: <17> ::= <18>
   Internal symbols: <statement> ::= <assignment>
-G1 R3 statement ::= <numeric assignment>
+G1 R2 statement ::= <numeric assignment>
   Symbol IDs: <17> ::= <19>
   Internal symbols: <statement> ::= <numeric assignment>
-G1 R4 assignment ::= 'set' variable 'to' expression
+G1 R3 assignment ::= 'set' variable 'to' expression
   Symbol IDs: <18> ::= <1> <20> <2> <21>
   Internal symbols: <assignment> ::= <[Lex-0]> <variable> <[Lex-1]> <expression>
-G1 R5 <numeric assignment> ::= variable '=' <numeric expression>
+G1 R4 <numeric assignment> ::= variable '=' <numeric expression>
   Symbol IDs: <19> ::= <20> <3> <22>
   Internal symbols: <numeric assignment> ::= <variable> <[Lex-2]> <numeric expression>
-G1 R6 expression ::= expression
+G1 R5 expression ::= expression
   Internal rule top priority rule for <expression>
   Symbol IDs: <21> ::= <10>
   Internal symbols: <expression> ::= <expression[0]>
-G1 R7 expression ::= expression
+G1 R6 expression ::= expression
   Internal rule for symbol <expression> priority transition from 0 to 1
   Symbol IDs: <10> ::= <11>
   Internal symbols: <expression[0]> ::= <expression[1]>
-G1 R8 expression ::= expression
+G1 R7 expression ::= expression
   Internal rule for symbol <expression> priority transition from 1 to 2
   Symbol IDs: <11> ::= <12>
   Internal symbols: <expression[1]> ::= <expression[2]>
-G1 R9 expression ::= variable
+G1 R8 expression ::= variable
   Symbol IDs: <12> ::= <20>
   Internal symbols: <expression[2]> ::= <variable>
-G1 R10 expression ::= string
+G1 R9 expression ::= string
   Symbol IDs: <12> ::= <23>
   Internal symbols: <expression[2]> ::= <string>
-G1 R11 expression ::= 'string' '(' <numeric expression> ')'
+G1 R10 expression ::= 'string' '(' <numeric expression> ')'
   Symbol IDs: <11> ::= <4> <5> <22> <6>
   Internal symbols: <expression[1]> ::= <[Lex-3]> <[Lex-4]> <numeric expression> <[Lex-5]>
-G1 R12 expression ::= expression '+' expression
+G1 R11 expression ::= expression '+' expression
   Symbol IDs: <10> ::= <10> <7> <11>
   Internal symbols: <expression[0]> ::= <expression[0]> <[Lex-6]> <expression[1]>
-G1 R13 <numeric expression> ::= <numeric expression>
+G1 R12 <numeric expression> ::= <numeric expression>
   Internal rule top priority rule for <numeric expression>
   Symbol IDs: <22> ::= <13>
   Internal symbols: <numeric expression> ::= <numeric expression[0]>
-G1 R14 <numeric expression> ::= <numeric expression>
+G1 R13 <numeric expression> ::= <numeric expression>
   Internal rule for symbol <numeric expression> priority transition from 0 to 1
   Symbol IDs: <13> ::= <14>
   Internal symbols: <numeric expression[0]> ::= <numeric expression[1]>
-G1 R15 <numeric expression> ::= <numeric expression>
+G1 R14 <numeric expression> ::= <numeric expression>
   Internal rule for symbol <numeric expression> priority transition from 1 to 2
   Symbol IDs: <14> ::= <15>
   Internal symbols: <numeric expression[1]> ::= <numeric expression[2]>
-G1 R16 <numeric expression> ::= variable
+G1 R15 <numeric expression> ::= variable
   Symbol IDs: <15> ::= <20>
   Internal symbols: <numeric expression[2]> ::= <variable>
-G1 R17 <numeric expression> ::= number
+G1 R16 <numeric expression> ::= number
   Symbol IDs: <15> ::= <24>
   Internal symbols: <numeric expression[2]> ::= <number>
-G1 R18 <numeric expression> ::= <numeric expression> '+' <numeric expression>
+G1 R17 <numeric expression> ::= <numeric expression> '+' <numeric expression>
   Symbol IDs: <14> ::= <14> <8> <15>
   Internal symbols: <numeric expression[1]> ::= <numeric expression[1]> <[Lex-7]> <numeric expression[2]>
-G1 R19 <numeric expression> ::= <numeric expression> '*' <numeric expression>
+G1 R18 <numeric expression> ::= <numeric expression> '*' <numeric expression>
   Symbol IDs: <13> ::= <13> <9> <14>
   Internal symbols: <numeric expression[0]> ::= <numeric expression[0]> <[Lex-8]> <numeric expression[1]>
+G1 R19 :start ::= statements
+  Symbol IDs: <0> ::= <16>
+  Internal symbols: <[:start]> ::= <statements>
 Lex (L0) Rules:
 L0 R0 'set' ::= [s] [e] [t]
   Internal rule for single-quoted string 'set'
@@ -871,26 +871,26 @@ for my $rule_id ( $slg->rule_ids() ) {
 }
 
 Marpa::R2::Test::is( $text, <<'END_OF_TEXT', 'G1 symbol ids by rule id');
-Rule #0: 0 ::= 16
-Rule #1: 16 ::= 17
-Rule #2: 17 ::= 18
-Rule #3: 17 ::= 19
-Rule #4: 18 ::= 1 20 2 21
-Rule #5: 19 ::= 20 3 22
-Rule #6: 21 ::= 10
-Rule #7: 10 ::= 11
-Rule #8: 11 ::= 12
-Rule #9: 12 ::= 20
-Rule #10: 12 ::= 23
-Rule #11: 11 ::= 4 5 22 6
-Rule #12: 10 ::= 10 7 11
-Rule #13: 22 ::= 13
-Rule #14: 13 ::= 14
-Rule #15: 14 ::= 15
-Rule #16: 15 ::= 20
-Rule #17: 15 ::= 24
-Rule #18: 14 ::= 14 8 15
-Rule #19: 13 ::= 13 9 14
+Rule #0: 16 ::= 17
+Rule #1: 17 ::= 18
+Rule #2: 17 ::= 19
+Rule #3: 18 ::= 1 20 2 21
+Rule #4: 19 ::= 20 3 22
+Rule #5: 21 ::= 10
+Rule #6: 10 ::= 11
+Rule #7: 11 ::= 12
+Rule #8: 12 ::= 20
+Rule #9: 12 ::= 23
+Rule #10: 11 ::= 4 5 22 6
+Rule #11: 10 ::= 10 7 11
+Rule #12: 22 ::= 13
+Rule #13: 13 ::= 14
+Rule #14: 14 ::= 15
+Rule #15: 15 ::= 20
+Rule #16: 15 ::= 24
+Rule #17: 14 ::= 14 8 15
+Rule #18: 13 ::= 13 9 14
+Rule #19: 0 ::= 16
 END_OF_TEXT
 
 $text = q{};
@@ -1098,7 +1098,6 @@ for my $rule_id ( $slg->rule_ids() ) {
 }
 
 Marpa::R2::Test::is( $text, <<'END_OF_TEXT', 'G1 rule_show() by rule id');
-:start ::= statements
 statements ::= statement *
 statement ::= assignment
 statement ::= <numeric assignment>
@@ -1118,6 +1117,7 @@ expression ::= expression '+' expression
 <numeric expression> ::= number
 <numeric expression> ::= <numeric expression> '+' <numeric expression>
 <numeric expression> ::= <numeric expression> '*' <numeric expression>
+:start ::= statements
 END_OF_TEXT
 
 $text = q{};
