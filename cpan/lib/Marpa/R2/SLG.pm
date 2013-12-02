@@ -379,7 +379,9 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
             $hashed_source->{character_classes}->{$lexer_name};
         my @class_table = ();
 
-        for my $class_symbol ( sort keys %{$character_class_hash} ) {
+        CLASS_SYMBOL: for my $class_symbol ( sort keys %{$character_class_hash} ) {
+	    my $symbol_id = $lex_tracer->symbol_by_name($class_symbol);
+	    next CLASS_SYMBOL if not defined $symbol_id;
             my $cc_components = $character_class_hash->{$class_symbol};
             my ( $compiled_re, $error ) =
                 Marpa::R2::Internal::MetaAST::char_class_to_re(
@@ -390,8 +392,7 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
                     "Failed belatedly to evaluate character class\n",
                     $error );
             } ## end if ( not $compiled_re )
-            push @class_table,
-                [ $lex_tracer->symbol_by_name($class_symbol), $compiled_re ];
+            push @class_table, [ $symbol_id, $compiled_re ];
         } ## end for my $class_symbol ( sort keys %{$character_class_hash...})
         $character_class_table_by_lexer_name{$lexer_name} = \@class_table;
 
