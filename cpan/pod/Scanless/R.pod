@@ -235,7 +235,7 @@ the substring returned will be the zero-length string.
 
 Applications which do not read monotonically,
 but which also
-wants to associate spans of G1 locations with the input stream,
+want to associate spans of G1 locations with the input stream,
 may need to reassemble the input based on their own ideas.
 The L</"literal()"> method can assist in this process.
 
@@ -348,7 +348,7 @@ An external scanner
 must set up a relationship to the input stream,
 even if that relationship is completely artificial.
 
-One way to do this is to put a artificial preamble in front of
+One way to do this is to put an artificial preamble in front of
 the input stream.
 For example, the first 7 characters of the input stream could be
 an preamble containing the characters "C<NO TEXT>".
