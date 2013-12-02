@@ -3298,7 +3298,7 @@ $hashed_metag = {
                                                           'dsl_form' => '\'default\''
                                                         }
                                          },
-                                 'L0' => {
+                                 'L' => {
                                            '[:discard]' => {
                                                              'description' => 'Internal LHS for lexer "L0" discard',
                                                              'display_form' => ':discard'

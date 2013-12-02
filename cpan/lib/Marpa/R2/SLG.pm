@@ -315,7 +315,7 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
     for my $lexer_name (@lexer_names) {
 
 	my $lexer_rules = $hashed_source->{rules}->{$lexer_name};
-	my $lexer_symbols = $hashed_source->{symbols}->{$lexer_name};
+	my $lexer_symbols = $hashed_source->{symbols}->{'L'};
 
         Marpa::R2::exception("No rules for lexer $lexer_name")
             if not $lexer_rules;

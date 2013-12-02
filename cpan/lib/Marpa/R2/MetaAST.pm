@@ -91,7 +91,6 @@ sub ast_to_hash {
 
     my %grammars = ();
     $grammars{$_} = 1 for keys %{ $hashed_ast->{rules} };
-    $grammars{$_} = 1 for keys %{ $hashed_ast->{symbols} };
     my @lexers =
         grep { ( substr $_, 0, 1 ) eq 'L' } keys %grammars;
 
@@ -1005,7 +1004,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::discard_rule::evaluate {
     my $discard_lhs = '[:discard]';
     $parse->symbol_names_set(
         $discard_lhs,
-        $lexer_name,
+        'L',
         {   display_form => ':discard',
             description  => qq{Internal LHS for lexer "$lexer_name" discard}
         }
@@ -1324,7 +1323,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::character_class::evaluate {
         Marpa::R2::Internal::MetaAST::Symbol_List->char_class_to_symbol(
             $parse, $character_class );
     };
-    my $lexical_lhs       = $parse->internal_lexeme($character_class, 'L0', 'G1');
+    my $lexical_lhs       = $parse->internal_lexeme($character_class);
     my $lexical_rhs       = $lexer_symbol->names($parse);
     my %lexical_rule      = (
         lhs  => $lexical_lhs,
@@ -1366,7 +1365,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::single_quoted_string::evaluate {
     } ## end for my $char_class ( map { '[' . ( quotemeta $_ ) . ']'...})
     my $list = Marpa::R2::Internal::MetaAST::Symbol_List->combine(@symbols);
     return $list if $Marpa::R2::Internal::SUBGRAMMAR ne 'G1';
-    my $lexical_lhs       = $parse->internal_lexeme($string, 'L0', 'G1');
+    my $lexical_lhs       = $parse->internal_lexeme($string);
     my $lexical_rhs       = $list->names($parse);
     my %lexical_rule      = (
         lhs  => $lexical_lhs,
@@ -1482,9 +1481,10 @@ sub char_class_to_symbol {
 
 sub Marpa::R2::Internal::MetaAST::Parse::symbol_names_set {
     my ( $parse, $symbol, $subgrammar, $args ) = @_;
+    my $symbol_type = $subgrammar eq 'G1' ? 'G1' : 'L';
     for my $arg_type (keys %{$args}) {
         my $value = $args->{$arg_type};
-        $parse->{symbols}->{$subgrammar}->{$symbol}->{$arg_type} = $value;
+        $parse->{symbols}->{$symbol_type}->{$symbol}->{$arg_type} = $value;
     }
 }
 
@@ -1496,7 +1496,7 @@ sub Marpa::R2::Internal::MetaAST::Parse::prioritized_symbol {
     # character class symbol name always start with TWO left square brackets
     my $symbol_name = $base_symbol . '[' . $priority . ']';
     my $symbol_data =
-        $parse->{symbols}->{$Marpa::R2::Internal::SUBGRAMMAR}->{$symbol_name};
+        $parse->{symbols}->{$Marpa::R2::Internal::SUBGRAMMAR eq 'G1' ? 'G1' : 'L'}->{$symbol_name};
     return $symbol_name if defined $symbol_data;
     my $display_form =
         ( $base_symbol =~ m/\s/xms ) ? "<$base_symbol>" : $base_symbol;
@@ -1525,7 +1525,7 @@ sub Marpa::R2::Internal::MetaAST::Parse::internal_lexeme {
         display_form => $dsl_form,
         description  => qq{Internal lexical symbol for "$dsl_form"}
     );
-    $parse->symbol_names_set( $lexical_symbol, $_, \%names ) for @grammars;
+    $parse->symbol_names_set( $lexical_symbol, $_, \%names ) for qw(G1 L);
     return $lexical_symbol;
 } ## end sub Marpa::R2::Internal::MetaAST::Parse::internal_lexeme
 
