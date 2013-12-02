@@ -312,10 +312,11 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
 
     # Need to clean up determination of lexeme status
 
+    my $lexer_symbols = $hashed_source->{symbols}->{'L'};
+
     for my $lexer_name (@lexer_names) {
 
 	my $lexer_rules = $hashed_source->{rules}->{$lexer_name};
-	my $lexer_symbols = $hashed_source->{symbols}->{'L'};
 
         Marpa::R2::exception("No rules for lexer $lexer_name")
             if not $lexer_rules;
@@ -330,6 +331,16 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
                 $lex_separator{$separator} = 1;
             }
         } ## end for my $lex_rule ( @{$lexer_rules} )
+
+        my %this_lexer_symbols = ();
+        SYMBOL:
+        for my $symbol_name ( ( keys %lex_lhs ), ( keys %lex_rhs ),
+            ( keys %lex_separator ) )
+        {
+            my $symbol_data = $lexer_symbols->{$symbol_name};
+            $this_lexer_symbols{$symbol_name} = $symbol_data
+                if defined $symbol_data;
+        }
 
         my %is_lexeme_in_this_lexer = ();
         LEX_LHS: for my $lex_lhs ( keys %lex_lhs ) {
@@ -354,8 +365,8 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
                 join q{ }, @unproductive );
         }
 
-        $lexer_symbols->{$lex_start_symbol_name}->{display_form} = ':start_lex';
-        $lexer_symbols->{$lex_start_symbol_name}->{description} =
+        $this_lexer_symbols{$lex_start_symbol_name}->{display_form} = ':start_lex';
+        $this_lexer_symbols{$lex_start_symbol_name}->{description} =
             'Internal L0 (lexical) start symbol';
         push @{ $lexer_rules }, map {
             ;
@@ -372,7 +383,7 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
         $lex_args{start}        = $lex_start_symbol_name;
         $lex_args{'_internal_'} = 1;
         $lex_args{rules}        = $lexer_rules;
-        $lex_args{symbols}        = $lexer_symbols;
+        $lex_args{symbols}        = \%this_lexer_symbols;
 
         my $lex_grammar = Marpa::R2::Grammar->new( \%lex_args );
         $thick_grammar_by_lexer_name{$lexer_name} = $lex_grammar;
