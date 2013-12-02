@@ -43,7 +43,6 @@ sub hashed_grammar {
 ## Date: Sat Nov 30 19:25:54 2013
 $hashed_metag = {
                   'character_classes' => {
-                                           'L0' => {
                                                      '[[\']]' => [
                                                                    '[\']',
                                                                    ''
@@ -272,7 +271,6 @@ $hashed_metag = {
                                                                   '[y]',
                                                                   ''
                                                                 ]
-                                                   }
                                          },
                   'lexeme_default_adverbs' => {
                                                 'action' => '[start,length,value]',

@@ -375,8 +375,7 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
         Marpa::R2::Internal::Grammar::slif_precompute($lex_grammar);
         my $lex_tracer = $lex_grammar->tracer();
         my $lex_thin    = $lex_tracer->grammar();
-        my $character_class_hash =
-            $hashed_source->{character_classes}->{$lexer_name};
+        my $character_class_hash = $hashed_source->{character_classes};
         my @class_table = ();
 
         CLASS_SYMBOL: for my $class_symbol ( sort keys %{$character_class_hash} ) {

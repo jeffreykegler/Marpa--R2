@@ -92,7 +92,6 @@ sub ast_to_hash {
     my %grammars = ();
     $grammars{$_} = 1 for keys %{ $hashed_ast->{rules} };
     $grammars{$_} = 1 for keys %{ $hashed_ast->{symbols} };
-    $grammars{$_} = 1 for keys %{ $hashed_ast->{character_classes} };
     my @lexers =
         grep { ( substr $_, 0, 1 ) eq 'L' } keys %grammars;
 
@@ -106,19 +105,17 @@ sub ast_to_hash {
             last NAME_LEXER if ( substr $lexer_name, 0, 2 ) ne 'L-';
             $lexer_name = substr $lexer_name, 2;
         } ## end NAME_LEXER:
+    } ## end for my $lexer (@lexers)
 
         my %stripped_character_classes = ();
         {
-            my $character_classes =
-                $hashed_ast->{character_classes}->{$lexer};
+            my $character_classes = $hashed_ast->{character_classes};
             for my $symbol_name ( sort keys %{$character_classes} ) {
                 my ($re) = @{ $character_classes->{$symbol_name} };
                 $stripped_character_classes{$symbol_name} = $re;
             }
         }
-        $hashed_ast->{character_classes}->{$lexer} =
-            \%stripped_character_classes;
-    } ## end for my $lexer (@lexers)
+        $hashed_ast->{character_classes} = \%stripped_character_classes;
 
     return $hashed_ast;
 } ## end sub ast_to_hash
@@ -1448,8 +1445,8 @@ sub char_class_to_symbol {
 
     # character class symbol name always start with TWO left square brackets
     my $symbol_name = '[' . $unmodified_char_class . $flags . ']';
-    $parse->{character_classes}->{$subgrammar} //= {};
-    my $cc_hash = $parse->{character_classes}->{$subgrammar};
+    $parse->{character_classes} //= {};
+    my $cc_hash = $parse->{character_classes};
     my ( undef, $symbol ) = $cc_hash->{$symbol_name};
     if ( not defined $symbol ) {
 
