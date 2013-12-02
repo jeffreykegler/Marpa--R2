@@ -127,7 +127,6 @@ sub Marpa::R2::Scanless::G::new {
     } ## end if ( $ref_type ne 'SCALAR' )
     my $ast = Marpa::R2::Internal::MetaAST->new( $rules_source );
     my $hashed_ast = $ast->ast_to_hash();
-    $hashed_ast->start_rule_setup();
     $self->_hash_to_runtime($hashed_ast);
 
     return $self;
@@ -181,10 +180,15 @@ sub Marpa::R2::Scanless::G::set {
 sub Marpa::R2::Scanless::G::_hash_to_runtime {
     my ( $slg, $hashed_source ) = @_;
 
+    # Pre-lexer G1 processing
+
+    my $start_lhs = $hashed_source->{'start_lhs'} // $hashed_source->{'first_lhs'};
+    Marpa::R2::exception('No rules in SLIF grammar')
+        if not defined $start_lhs;
+    Marpa::R2::Internal::MetaAST::start_rule_create( $hashed_source, $start_lhs );
+
     $slg->[Marpa::R2::Inner::Scanless::G::DEFAULT_G1_START_ACTION] =
         $hashed_source->{'default_g1_start_action'};
-
-    # Pre-lexer G1 processing
 
     my $g1_args = $slg->[Marpa::R2::Inner::Scanless::G::G1_ARGS];
     $g1_args->{trace_file_handle} =

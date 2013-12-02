@@ -41,7 +41,6 @@ die "usage $PROGRAM_NAME [--help] file ...\n" if $help_flag;
 my $bnf = do { local $RS = undef; \(<>) };
 my $ast = Marpa::R2::Internal::MetaAST->new($bnf);
 my $parse_result = $ast->ast_to_hash();
-$parse_result->start_rule_setup();
 
 sub sort_bnf {
     my $cmp = $a->{lhs} cmp $b->{lhs};
@@ -60,7 +59,9 @@ sub sort_bnf {
 my %cooked_parse_result = (
     character_classes      => $parse_result->{character_classes},
     symbols                => $parse_result->{symbols},
-    lexeme_default_adverbs => $parse_result->{lexeme_default_adverbs}
+    lexeme_default_adverbs => $parse_result->{lexeme_default_adverbs},
+    first_lhs              => $parse_result->{first_lhs},
+    start_lhs              => $parse_result->{start_lhs},
 );
 
 my @rule_sets = keys %{ $parse_result->{rules} };
