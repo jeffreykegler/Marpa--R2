@@ -9,14 +9,15 @@ product ::= sku nl name nl price price price nl
 sku       ~ sku_0 '.' sku_0
 sku_0     ~ [\d]+
 
-name      ~ [^\n]+
-
 price     ~ price_0 ',' price_0
 price_0   ~ [\d]+
 nl        ~ [\n]
 
 sp        ~ [ ]+
 :discard  ~ sp
+
+{ current lexer is 'slurp name' }
+name      ~ [^\n]+
 
 SOURCE
 
