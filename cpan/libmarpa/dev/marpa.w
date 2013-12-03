@@ -1118,8 +1118,8 @@ call.
 This obstack is cleared on exit from a method.
 
 @<Widely aligned grammar elements@> =
-struct obstack* t_obs;
-struct obstack* t_xrl_obs;
+struct marpa_obstack* t_obs;
+struct marpa_obstack* t_xrl_obs;
 @ @<Initialize grammar elements@> =
 g->t_obs = my_obstack_init;
 g->t_xrl_obs = my_obstack_begin(0, alignof(struct s_xrl));
@@ -3016,7 +3016,7 @@ int marpa_g_precompute(Marpa_Grammar g)
 {
     @<Return |-2| on failure@>@;
     int return_value = failure_indicator;
-    struct obstack *obs_precompute = my_obstack_init;
+    struct marpa_obstack *obs_precompute = my_obstack_init;
     @<Declare precompute variables@>@;
     @<Fail if fatal error@>@;
     G_EVENTS_CLEAR(g);
@@ -6393,7 +6393,7 @@ PRIVATE int completion_count_of_transition_get(TRANS transition)
 
 @ @<Function definitions@> =
 PRIVATE
-URTRANS transition_new(struct obstack *obstack, AHFA to_ahfa, int aim_ix)
+URTRANS transition_new(struct marpa_obstack *obstack, AHFA to_ahfa, int aim_ix)
 {
      URTRANS transition;
      transition = my_obstack_alloc (obstack, sizeof (transition[0]));
@@ -6415,7 +6415,7 @@ PRIVATE TRANS* transitions_new(GRAMMAR g, int isy_count)
 
 @ @<Function definitions@> =
 PRIVATE
-void transition_add(struct obstack *obstack, AHFA from_ahfa, ISYID isyid, AHFA to_ahfa)
+void transition_add(struct marpa_obstack *obstack, AHFA from_ahfa, ISYID isyid, AHFA to_ahfa)
 {
     TRANS* transitions = TRANSs_of_AHFA(from_ahfa);
     TRANS transition = transitions[isyid];
@@ -6433,7 +6433,7 @@ Once all the counts are complete,
 the array is populated.
 @<Function definitions@> =
 PRIVATE
-void completion_count_inc(struct obstack *obstack, AHFA from_ahfa, ISYID isyid)
+void completion_count_inc(struct marpa_obstack *obstack, AHFA from_ahfa, ISYID isyid)
 {
     TRANS* transitions = TRANSs_of_AHFA(from_ahfa);
     TRANS transition = transitions[isyid];
@@ -6767,7 +6767,7 @@ this fact by freeing up the rest of recognizer memory.
 @d TOK_Obs_of_I(i)
     ((i)->t_token_obs)
 @<Widely aligned input elements@> =
-struct obstack* t_token_obs;
+struct marpa_obstack* t_token_obs;
 
 @*0 Base objects.
 @ @d G_of_I(i) ((i)->t_grammar)
@@ -7328,7 +7328,7 @@ int marpa_r_is_exhausted(Marpa_Recognizer r)
 Create an obstack with the lifetime of the recognizer.
 This is a very efficient way of allocating memory which won't be
 resized and which will have the same lifetime as the recognizer.
-@<Widely aligned recognizer elements@> = struct obstack *t_obs;
+@<Widely aligned recognizer elements@> = struct marpa_obstack *t_obs;
 @ @<Initialize recognizer obstack@> = r->t_obs = my_obstack_init;
 @ @<Destroy recognizer obstack@> = my_obstack_free(r->t_obs);
 
@@ -9435,7 +9435,7 @@ altered by the attempt.
 {
   TOK token;
   ALT_Object alternative;
-  struct obstack * const token_obstack = TOK_Obs_of_I (input);
+  struct marpa_obstack * const token_obstack = TOK_Obs_of_I (input);
   if (value)
     {
       my_obstack_reserve (TOK_Obs_of_I (input), sizeof (*token));
@@ -9476,8 +9476,12 @@ This section is devoted to the logic for completion.
 @<Widely aligned recognizer elements@> = DSTACK_DECLARE(t_eim_work_stack);
 @ @<Initialize recognizer elements@> = DSTACK_SAFE(r->t_eim_work_stack);
 @ @<Initialize Earley item work stacks@> =
-    DSTACK_IS_INITIALIZED(r->t_eim_work_stack) ||
-	DSTACK_INIT2 (r->t_eim_work_stack, EIM );
+{
+  if (!DSTACK_IS_INITIALIZED (r->t_eim_work_stack))
+    {
+      DSTACK_INIT2 (r->t_eim_work_stack, EIM);
+    }
+}
 @ @<Destroy recognizer elements@> = DSTACK_DESTROY(r->t_eim_work_stack);
 
 @ The completion stack is initialized to a very high-ball estimate of the
@@ -9487,8 +9491,12 @@ Large stacks may needed for very ambiguous grammars.
 @<Widely aligned recognizer elements@> = DSTACK_DECLARE(t_completion_stack);
 @ @<Initialize recognizer elements@> = DSTACK_SAFE(r->t_completion_stack);
 @ @<Initialize Earley item work stacks@> =
-    DSTACK_IS_INITIALIZED(r->t_completion_stack) ||
-    DSTACK_INIT2 (r->t_completion_stack, EIM );
+{
+  if (!DSTACK_IS_INITIALIZED (r->t_completion_stack))
+    {
+      DSTACK_INIT2 (r->t_completion_stack, EIM);
+    }
+}
 @ @<Destroy recognizer elements@> = DSTACK_DESTROY(r->t_completion_stack);
 
 @ @<Widely aligned recognizer elements@> = DSTACK_DECLARE(t_earley_set_stack);
@@ -9571,7 +9579,7 @@ But I expect to use it for other purposes.
 @<Declare |marpa_r_earleme_complete| locals@> =
     const ISYID isy_count = ISY_Count_of_G(g);
     Bit_Vector bv_ok_for_chain = bv_create(isy_count);
-    struct obstack* const earleme_complete_obs = my_obstack_init;
+    struct marpa_obstack* const earleme_complete_obs = my_obstack_init;
 @ @<Destroy |marpa_r_earleme_complete| locals@> =
     bv_free(bv_ok_for_chain);
     my_obstack_free( earleme_complete_obs );
@@ -9749,7 +9757,7 @@ PRIVATE void trigger_events(RECCE r)
   const ES current_earley_set = Latest_ES_of_R (r);
   unsigned int min, max, start;
   int eim_ix;
-  struct obstack *const trigger_events_obs = my_obstack_init;
+  struct marpa_obstack *const trigger_events_obs = my_obstack_init;
   const EIM *eims = EIMs_of_ES (current_earley_set);
   const XSYID xsy_count = XSY_Count_of_G (g);
   const AHFAID ahfa_count = AHFA_Count_of_G (g);
@@ -10505,7 +10513,7 @@ will need to be changed.
 
 @<Private structures@> =
 struct s_ur_node_stack {
-   struct obstack* t_obs;
+   struct marpa_obstack* t_obs;
    UR t_base;
    UR t_top;
 };
@@ -10639,7 +10647,7 @@ This function ensures that the appropriate |PSIA| boolean is set.
 It returns that boolean's value {\bf prior} to the call.
 @<Function definitions@> = 
 PRIVATE int psia_test_and_set(
-    struct obstack* obs,
+    struct marpa_obstack* obs,
     struct s_bocage_setup_per_es* per_es_data,
     EIM earley_item,
     AEX ahfa_element_ix)
@@ -11537,7 +11545,7 @@ typedef struct s_draft_and_node DAND_Object;
 
 @ @<Function definitions@> =
 PRIVATE
-DAND draft_and_node_new(struct obstack *obs, OR predecessor, OR cause)
+DAND draft_and_node_new(struct marpa_obstack *obs, OR predecessor, OR cause)
 {
     DAND draft_and_node = my_obstack_alloc (obs, sizeof(DAND_Object));
     Predecessor_OR_of_DAND(draft_and_node) = predecessor;
@@ -11560,7 +11568,7 @@ and the PSARs can be reserved for the unusual case where this
 is not sufficient.
 @<Function definitions@> =
 PRIVATE
-void draft_and_node_add(struct obstack *obs, OR parent, OR predecessor, OR cause)
+void draft_and_node_add(struct marpa_obstack *obs, OR parent, OR predecessor, OR cause)
 {
     MARPA_OFF_ASSERT(Position_of_OR(parent) <= 1 || predecessor)
     const DAND new = draft_and_node_new(obs, predecessor, cause);
@@ -12409,7 +12417,7 @@ struct marpa_bocage {
 An obstack with the lifetime of the bocage.
 @d OBS_of_B(b) ((b)->t_obs)
 @<Widely aligned bocage elements@> =
-struct obstack *t_obs;
+struct marpa_obstack *t_obs;
 @ @<Destroy bocage elements, final phase@> =
 my_obstack_free(OBS_of_B(b));
 
@@ -12424,7 +12432,7 @@ Marpa_Bocage marpa_b_new(Marpa_Recognizer r,
     @<Fail if fatal error@>@;
     @<Fail if recognizer not started@>@;
     {
-	struct obstack* const obstack = my_obstack_init;
+	struct marpa_obstack* const obstack = my_obstack_init;
 	b = my_obstack_new (obstack, struct marpa_bocage, 1);
 	OBS_of_B(b) = obstack;
     }
@@ -12487,7 +12495,7 @@ EARLEME end_of_parse_earleme;
 EIM start_eim = NULL;
 AIM start_aim = NULL;
 AEX start_aex = -1;
-struct obstack* bocage_setup_obs = NULL;
+struct marpa_obstack* bocage_setup_obs = NULL;
 int total_earley_items_in_parse;
 int or_node_estimate = 0;
 const int earley_set_count_of_r = ES_Count_of_R (r);
@@ -12737,7 +12745,7 @@ It is non-null if and only if
 @d O_is_Frozen(o) ((o)->t_is_frozen)
 @<Private structures@> =
 struct marpa_order {
-    struct obstack* t_ordering_obs;
+    struct marpa_obstack* t_ordering_obs;
     ANDID** t_and_node_orderings;
     @<Widely aligned order elements@>@;
     @<Int aligned order elements@>@;
@@ -12932,7 +12940,7 @@ not less.
 int marpa_o_rank( Marpa_Order o)
 {
   ANDID** and_node_orderings;
-  struct obstack *obs;
+  struct marpa_obstack *obs;
   int bocage_was_reordered = 0;
   @<Return |-2| on failure@>@;
   @<Unpack order objects@>@;
@@ -13860,7 +13868,7 @@ ES_ID_of_V(v) = -1;
 @*0 The obstack.
 An obstack with the same lifetime as the valuator.
 @<Widely aligned value elements@> =
-  struct obstack* t_obs;
+  struct marpa_obstack* t_obs;
 @ @<Destroy value obstack@> =
   my_obstack_free(v->t_obs);
 
@@ -13932,7 +13940,7 @@ Marpa_Value marpa_v_new(Marpa_Tree t)
     if (!T_is_Exhausted (t))
       {
 	const XSYID xsy_count = XSY_Count_of_G (g);
-	struct obstack* const obstack = my_obstack_init;
+	struct marpa_obstack* const obstack = my_obstack_init;
 	const VALUE v = my_obstack_new (obstack, struct s_value, 1);
 	v->t_obs = obstack;
 	Step_Type_of_V (v) = Next_Value_Type_of_V (v) = MARPA_STEP_INITIAL;
@@ -14447,7 +14455,7 @@ PRIVATE int lbv_bits_to_size(int bits)
 @*0 Create an unitialized LBV on an obstack.
 @<Function definitions@> =
 PRIVATE Bit_Vector
-lbv_obs_new (struct obstack *obs, int bits)
+lbv_obs_new (struct marpa_obstack *obs, int bits)
 {
   int size = lbv_bits_to_size (bits);
   LBV lbv = my_obstack_new (obs, LBW, size);
@@ -14470,7 +14478,7 @@ lbv_zero (Bit_Vector lbv, int bits)
 @*0 Create a zeroed LBV on an obstack.
 @<Function definitions@> =
 PRIVATE Bit_Vector
-lbv_obs_new0 (struct obstack *obs, int bits)
+lbv_obs_new0 (struct marpa_obstack *obs, int bits)
 {
   LBV lbv = lbv_obs_new(obs, bits);
   return lbv_zero(lbv, bits);
@@ -14489,7 +14497,7 @@ lbv_obs_new0 (struct obstack *obs, int bits)
 @*0 Clone an LBV onto an obstack.
 @<Function definitions@> =
 PRIVATE LBV lbv_clone(
-  struct obstack* obs, LBV old_lbv, int bits)
+  struct marpa_obstack* obs, LBV old_lbv, int bits)
 {
   int size = lbv_bits_to_size (bits);
   const LBV new_lbv = my_obstack_new (obs, LBW, size);
@@ -14579,7 +14587,7 @@ This is offset from the |malloc|'d space,
 by |bv_hiddenwords|.
 @<Function definitions@> =
 PRIVATE Bit_Vector
-bv_obs_create (struct obstack *obs, unsigned int bits)
+bv_obs_create (struct marpa_obstack *obs, unsigned int bits)
 {
   unsigned int size = bv_bits_to_size (bits);
   unsigned int bytes = (size + bv_hiddenwords) * sizeof (Bit_Vector_Word);
@@ -14603,7 +14611,7 @@ PRIVATE Bit_Vector bv_shadow(Bit_Vector bv)
 {
     return bv_create(BV_BITS(bv));
 }
-PRIVATE Bit_Vector bv_obs_shadow(struct obstack * obs, Bit_Vector bv)
+PRIVATE Bit_Vector bv_obs_shadow(struct marpa_obstack * obs, Bit_Vector bv)
 {
     return bv_obs_create(obs, BV_BITS(bv));
 }
@@ -14638,7 +14646,7 @@ Bit_Vector bv_clone(Bit_Vector bv)
 }
 
 PRIVATE
-Bit_Vector bv_obs_clone(struct obstack *obs, Bit_Vector bv)
+Bit_Vector bv_obs_clone(struct marpa_obstack *obs, Bit_Vector bv)
 {
     return bv_copy(bv_obs_shadow(obs, bv), bv);
 }
@@ -15038,7 +15046,7 @@ PRIVATE size_t matrix_sizeof(unsigned int rows, unsigned int columns)
 
 @*0 Create a boolean matrix on an obstack.
 @ @<Function definitions@> =
-PRIVATE Bit_Matrix matrix_obs_create(struct obstack *obs, unsigned int rows, unsigned int columns)
+PRIVATE Bit_Matrix matrix_obs_create(struct marpa_obstack *obs, unsigned int rows, unsigned int columns)
 {
   Bit_Matrix matrix_addr =
     my_obstack_alloc (obs, matrix_sizeof (rows, columns));
@@ -15348,7 +15356,7 @@ for random-access through a pointer.
 for the lookups.
 @<Private utility structures@> =
 struct s_cil_arena {
-    struct obstack* t_obs;
+    struct marpa_obstack* t_obs;
     AVL_TREE t_avl;
     DSTACK_DECLARE(t_buffer);
 };

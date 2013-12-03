@@ -45,7 +45,7 @@ _marpa_avl_create (avl_comparison_func *compare, void *param,
 {
   AVL_TREE tree;
   const int alignment = MAX(minimum_alignment, requested_alignment);
-  struct obstack *avl_obstack = my_obstack_begin(0, alignment);
+  struct marpa_obstack *avl_obstack = my_obstack_begin(0, alignment);
 
   assert (compare != NULL);
 
