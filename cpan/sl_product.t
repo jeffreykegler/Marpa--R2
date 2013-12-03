@@ -1,5 +1,6 @@
 #!/usr/bin/env perl
 
+use 5.010;
 use Marpa::R2;
 use Data::Dumper;
 
@@ -16,6 +17,8 @@ nl        ~ [\n]
 sp        ~ [ ]+
 :discard  ~ sp
 
+event '^name' = predicted <name>
+:lexeme ~ <name> pause => after event => 'name$'
 { current lexer is 'slurp name' }
 name      ~ [^\n]+
 
@@ -32,8 +35,16 @@ Descriptive line
 1,10 1,10 1,30
 INPUT
 
-my $re = Marpa::R2::Scanless::R->new({ grammar => $g, trace_terminals => 1 }); 
-$re->read(\$input);
+my $slr =
+    Marpa::R2::Scanless::R->new( { grammar => $g, trace_terminals => 1 } );
+my $length = length $input;
+for ( my $pos = $slr->read( \$input ); $pos < $length; $pos = $slr->resume() ) {
+    EVENT:
+    for my $event ( @{ $slr->events() } ) {
+        my ($name) = @{$event};
+        say "Event: ", $name;
+	exit 0;
+    }
+}
 
-
-print Dumper([ ${$re->value} ]); 
+print Dumper([ ${$slr->value} ]); 
