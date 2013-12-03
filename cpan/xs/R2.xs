@@ -4809,6 +4809,24 @@ PPCODE:
 }
 
  #  Always returns the same SV for a given Scanless recce object -- 
+void
+lexer_add( slg, lexer_sv )
+  Scanless_G *slg;
+    SV *lexer_sv;
+PPCODE:
+{
+  SV *new_sv;
+  Lexer *lexer;
+
+  if (!sv_isa (lexer_sv, "Marpa::R2::Thin::G"))
+    {
+      croak ("Problem in u->new(): L0 arg is not of type Marpa::R2::Thin::G");
+    }
+
+  lexer = lexer_add (slg, lexer_sv);
+  XSRETURN_IV ((IV) lexer->index);
+}
+
  #  it does not create a new one
  # 
 void

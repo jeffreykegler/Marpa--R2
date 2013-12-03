@@ -302,7 +302,12 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
 
     # Lexers
 
-    my @lexer_names = ('L0');
+    my %grammars = ();
+    $grammars{$_} = 1 for keys %{ $hashed_source->{rules} };
+    my @lexer_names =
+        grep { ( substr $_, 0, 1 ) eq 'L' } keys %grammars;
+
+
     my %lexer_id_by_name = ();
     my %thick_grammar_by_lexer_name = ();
     my %lexer_and_rule_to_g1_lexeme = ();
@@ -462,6 +467,13 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
 
     # Relies on default lexer being given number zero
     $lexer_id_by_name{'L0'} = 0;
+
+    LEXER: for my $lexer_name (@lexer_names) {
+        next LEXER if $lexer_name eq 'L0';
+	my $thick_g = $thick_grammar_by_lexer_name{$lexer_name};
+	my $thin_g = $thick_g->[Marpa::R2::Internal::Grammar::C];
+	$lexer_id_by_name{$lexer_name} = $thin_slg->lexer_add($thin_g);
+    }
 
     LEXEME: for my $g1_lexeme ( 0 .. $#g1_lexemes ) {
 
