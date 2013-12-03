@@ -801,10 +801,10 @@ sub Marpa::R2::Scanless::R::resume {
             # Recover by registering character, if we can
             my $codepoint = $thin_slr->codepoint();
             my $character = chr($codepoint);
-            my $lexer     = $thin_slr->current_lexer();
+            my $lexer_id     = $thin_slr->current_lexer();
             my $character_class_table =
                 $slg->[Marpa::R2::Inner::Scanless::G::CHARACTER_CLASS_TABLES]
-                ->[$lexer];
+                ->[$lexer_id];
             my @ops;
             for my $entry ( @{$character_class_table} ) {
 
@@ -812,7 +812,6 @@ sub Marpa::R2::Scanless::R::resume {
                 if ( $character =~ $re ) {
 
                     if ( $trace_terminals >= 2 ) {
-			my $lexer_id     = $thin_slr->current_lexer();
                         my $thick_lex_grammar = $slg->[
                             Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMARS]->[$lexer_id];
                         my $trace_file_handle = $slr->[
@@ -832,8 +831,9 @@ sub Marpa::R2::Scanless::R::resume {
                 } ## end if ( $character =~ $re )
             } ## end for my $entry ( @{$character_class_table} )
 
+            my $lexer_name = $slg->[Marpa::R2::Inner::Scanless::G::LEXER_NAME_BY_ID]->[$lexer_id];
             Marpa::R2::exception(
-                'Lexing failed at unacceptable character ',
+                qq{Lexer "$lexer_name" failed at unacceptable character },
                 character_describe( chr $codepoint )
             ) if not @ops;
             $thin_slr->char_register( $codepoint, @ops,

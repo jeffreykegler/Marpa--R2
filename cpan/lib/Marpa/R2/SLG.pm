@@ -562,7 +562,7 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
         my $character_class_table =
             $character_class_table_by_lexer_name{$lexer_name};
         $slg->[Marpa::R2::Inner::Scanless::G::LEXER_NAME_BY_ID]->[$lexer_id]
-            = $lexer_name;
+            = $external_lexer_name;
         $slg->[Marpa::R2::Inner::Scanless::G::LEXER_BY_NAME]
             ->{$external_lexer_name} = $lexer_id;
         $slg->[Marpa::R2::Inner::Scanless::G::CHARACTER_CLASS_TABLES]
