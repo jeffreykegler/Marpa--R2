@@ -403,6 +403,15 @@ sub Marpa::R2::Scanless::R::read {
 
 } ## end sub Marpa::R2::Scanless::R::read
 
+sub Marpa::R2::Scanless::R::lexer_set {
+    my ( $slr, $lexer_name ) = @_;
+    my $slg = $slr->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
+    my $lexer_id = $slg->[Marpa::R2::Inner::Scanless::G::LEXER_BY_NAME]->{$lexer_name};
+    Marpa::R2::exception( "Attempt to switch to unknown lexer: $lexer_name" ) if not defined $lexer_id;
+    my $thin_slr = $slr->[Marpa::R2::Inner::Scanless::R::C];
+    return $thin_slr->lexer_set($lexer_id);
+}
+
 my $libmarpa_trace_event_handlers = {
 
     'g1 accepted lexeme' => sub {

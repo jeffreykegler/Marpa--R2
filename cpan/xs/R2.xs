@@ -5304,13 +5304,33 @@ PPCODE:
   XPUSHs (sv_2mortal (newSViv ((IV) literal_length)));
 }
 
+ #  Always returns the same SV for a given Scanless recce object -- 
+void
+lexer_set( slr, lexer_id )
+    Scanless_R *slr;
+    int lexer_id;
+PPCODE:
+{
+  const int old_lexer_id = slr->current_lexer->index;
+  const Scanless_G *slg = slr->slg;
+  const int lexer_count = slg->lexer_count;
+  if (lexer_id >= lexer_count || lexer_id < 0)
+    {
+      croak
+	("Problem in slr->lexer_set(%ld): lexer id must be between 0 and %ld",
+	 (long) lexer_id, (long) (lexer_count - 1));
+    }
+  slr->current_lexer = slg->lexers[lexer_id];
+  XSRETURN_IV ((IV) old_lexer_id);
+}
+
 void
 read(slr)
     Scanless_R *slr;
 PPCODE:
 {
   int result = 0;		/* Hold various results */
-  int trace_lexer = slr->trace_lexer;
+  const int trace_lexer = slr->trace_lexer;
 
   slr->lexer_read_result = 0;
   slr->r1_earleme_complete_result = 0;

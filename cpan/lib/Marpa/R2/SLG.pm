@@ -555,12 +555,16 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
         $thick_g1_grammar;
     for my $lexer_name (@lexer_names) {
         my $lexer_id = $lexer_id_by_name{$lexer_name};
+        my $external_lexer_name =
+            ( substr $lexer_name, 0, 2 ) eq 'L-'
+            ? substr $lexer_name, 2
+            : $lexer_name;
         my $character_class_table =
             $character_class_table_by_lexer_name{$lexer_name};
-        $slg->[Marpa::R2::Inner::Scanless::G::LEXER_NAME_BY_ID]->[$lexer_id] =
-            $lexer_name;
-        $slg->[Marpa::R2::Inner::Scanless::G::LEXER_BY_NAME]->{$lexer_name} =
-            $lexer_id;
+        $slg->[Marpa::R2::Inner::Scanless::G::LEXER_NAME_BY_ID]->[$lexer_id]
+            = $lexer_name;
+        $slg->[Marpa::R2::Inner::Scanless::G::LEXER_BY_NAME]
+            ->{$external_lexer_name} = $lexer_id;
         $slg->[Marpa::R2::Inner::Scanless::G::CHARACTER_CLASS_TABLES]
             ->[$lexer_id] = $character_class_table;
         $slg->[Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMARS]->[$lexer_id]
