@@ -9476,8 +9476,12 @@ This section is devoted to the logic for completion.
 @<Widely aligned recognizer elements@> = DSTACK_DECLARE(t_eim_work_stack);
 @ @<Initialize recognizer elements@> = DSTACK_SAFE(r->t_eim_work_stack);
 @ @<Initialize Earley item work stacks@> =
-    DSTACK_IS_INITIALIZED(r->t_eim_work_stack) ||
-	DSTACK_INIT2 (r->t_eim_work_stack, EIM );
+{
+  if (!DSTACK_IS_INITIALIZED (r->t_eim_work_stack))
+    {
+      DSTACK_INIT2 (r->t_eim_work_stack, EIM);
+    }
+}
 @ @<Destroy recognizer elements@> = DSTACK_DESTROY(r->t_eim_work_stack);
 
 @ The completion stack is initialized to a very high-ball estimate of the
@@ -9487,8 +9491,11 @@ Large stacks may needed for very ambiguous grammars.
 @<Widely aligned recognizer elements@> = DSTACK_DECLARE(t_completion_stack);
 @ @<Initialize recognizer elements@> = DSTACK_SAFE(r->t_completion_stack);
 @ @<Initialize Earley item work stacks@> =
-    DSTACK_IS_INITIALIZED(r->t_completion_stack) ||
-    DSTACK_INIT2 (r->t_completion_stack, EIM );
+{
+    if (!DSTACK_IS_INITIALIZED(r->t_completion_stack)) {
+        DSTACK_INIT2 (r->t_completion_stack, EIM );
+    }
+}
 @ @<Destroy recognizer elements@> = DSTACK_DESTROY(r->t_completion_stack);
 
 @ @<Widely aligned recognizer elements@> = DSTACK_DECLARE(t_earley_set_stack);

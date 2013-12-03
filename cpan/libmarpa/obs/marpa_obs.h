@@ -163,9 +163,6 @@ void _marpa_obs_free (struct obstack *__obstack);
 # define my_obstack_finish(h)						\
 ( \
   (h)->temp.tempptr = (h)->object_base,					\
-  (h)->next_free							\
-    = __BPTR_ALIGN ((h)->object_base, (h)->next_free,			\
-		   (h)->alignment_mask),				\
   (((h)->next_free - (char *) (h)->chunk				\
     > (h)->chunk_limit - (char *) (h)->chunk)				\
    ? ((h)->next_free = (h)->chunk_limit) : 0),				\
