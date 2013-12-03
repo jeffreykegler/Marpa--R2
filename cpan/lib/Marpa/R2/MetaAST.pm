@@ -1241,15 +1241,21 @@ sub Marpa::R2::Internal::MetaAST_Nodes::prediction_event_declaration::evaluate
 sub Marpa::R2::Internal::MetaAST_Nodes::current_lexer_statement::evaluate
 {
     my ( $values, $parse ) = @_;
-    my ( $start, $length, $raw_lexer_name ) = @{$values};
-    my $lexer_name        = $raw_lexer_name->name();
-    if ( $lexer_name ne 'L0' and $lexer_name =~ m/\A [[:upper:]] [[:digit:]]+ \z/xms) {
+    my ( $start, $length, $lexer_name_object ) = @{$values};
+    my $raw_lexer_name        = $lexer_name_object->name();
+    if ( $raw_lexer_name eq 'L0' ) {
+      $parse->{current_lexer} = $raw_lexer_name;
+      ## no critic(Subroutines::ProhibitExplicitReturnUndef)
+      return undef;
+    }
+    if ( $raw_lexer_name =~ m/\A [[:upper:]] [[:digit:]]+ \z/xms) {
         my ( $line, $column ) = $parse->{meta_recce}->line_column($start);
-        die qq{Attempt to name a new lexer "$lexer_name"\n},
+        die qq{Attempt to name a new lexer "$raw_lexer_name"\n},
             qq{  Lexer names of the form [A-Z][0-9]+ are reserved\n},
             qq{  Please choose another name\n},
             "  Problem occurred at line $line, column $column\n";
     } ## end if ( defined $prediction_events->{$symbol_name} )
+    my $lexer_name .= 'L-' . $raw_lexer_name;
     $parse->{current_lexer} = $lexer_name;
     ## no critic(Subroutines::ProhibitExplicitReturnUndef)
     return undef;
