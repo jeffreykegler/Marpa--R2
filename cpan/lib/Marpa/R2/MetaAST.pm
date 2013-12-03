@@ -477,15 +477,21 @@ sub Marpa::R2::Internal::MetaAST_Nodes::priority_rule::evaluate {
         @{$values};
 
     my $current_lexer = $parse->{current_lexer};
-    if ($current_lexer ne 'L0') {
-        my ( $line, $column ) = $parse->{meta_recce}->line_column($start);
-        die "G1 rules currently allowed only when L0 is current lexer\n",
-            qq{  A prioritized rule was found when "$current_lexer" was the current lexer\n"},
-            "  Location was line $line, column $column\n",
-            '  Rule was ', $parse->substring( $start, $length ), "\n";
+    my $subgrammar;
+    if ( $op_declare->op() eq q{::=} ) {
+        if ( $current_lexer ne 'L0' ) {
+            my ( $line, $column ) = $parse->{meta_recce}->line_column($start);
+            die "G1 rules currently allowed only when L0 is current lexer\n",
+                qq{  A prioritized rule was found when "$current_lexer" was the current lexer\n"},
+                "  Location was line $line, column $column\n",
+                '  Rule was ', $parse->substring( $start, $length ), "\n";
+        } ## end if ( $current_lexer ne 'L0' )
+        $subgrammar = 'G1';
+    } ## end if ( $op_declare->op() eq q{::=} )
+    else {
+        $subgrammar = $current_lexer;
     }
 
-    my $subgrammar = $op_declare->op() eq q{::=} ? 'G1' : $current_lexer;
     my $lhs = $raw_lhs->name($parse);
     $parse->{'first_lhs'} //= $lhs if $subgrammar eq 'G1';
     local $Marpa::R2::Internal::SUBGRAMMAR = $subgrammar;
@@ -807,14 +813,21 @@ sub Marpa::R2::Internal::MetaAST_Nodes::empty_rule::evaluate {
         @{$values};
 
     my $current_lexer = $parse->{current_lexer};
-    if ($current_lexer ne 'L0') {
-        my ( $line, $column ) = $parse->{meta_recce}->line_column($start);
-        die "G1 rules currently allowed only when L0 is current lexer\n",
-            qq{  An empty rule was found when "$current_lexer" was the current lexer\n"},
-            "  Location was line $line, column $column\n",
-            '  Rule was ', $parse->substring( $start, $length ), "\n";
+    my $subgrammar;
+    if ( $op_declare->op() eq q{::=} ) {
+        if ( $current_lexer ne 'L0' ) {
+            my ( $line, $column ) = $parse->{meta_recce}->line_column($start);
+            die "G1 rules currently allowed only when L0 is current lexer\n",
+                qq{  An empty rule was found when "$current_lexer" was the current lexer\n"},
+                "  Location was line $line, column $column\n",
+                '  Rule was ', $parse->substring( $start, $length ), "\n";
+        } ## end if ( $current_lexer ne 'L0' )
+        $subgrammar = 'G1';
+    } ## end if ( $op_declare->op() eq q{::=} )
+    else {
+        $subgrammar = $current_lexer;
     }
-    my $subgrammar = $op_declare->op() eq q{::=} ? 'G1' : $current_lexer;
+
     my $lhs = $raw_lhs->name($parse);
     $parse->{'first_lhs'} //= $lhs if $subgrammar eq 'G1';
     local $Marpa::R2::Internal::SUBGRAMMAR = $subgrammar;
@@ -1048,16 +1061,22 @@ sub Marpa::R2::Internal::MetaAST_Nodes::quantified_rule::evaluate {
         $proto_adverb_list )
         = @{$values};
 
+    my $subgrammar;
     my $current_lexer = $parse->{current_lexer};
-    if ($current_lexer ne 'L0') {
-        my ( $line, $column ) = $parse->{meta_recce}->line_column($start);
-        die "G1 rules currently allowed only when L0 is current lexer\n",
-            qq{  A quantified rule was found when "$current_lexer" was the current lexer\n"},
-            "  Location was line $line, column $column\n",
-            '  Rule was ', $parse->substring( $start, $length ), "\n";
+    if ( $op_declare->op() eq q{::=} ) {
+        if ( $current_lexer ne 'L0' ) {
+            my ( $line, $column ) = $parse->{meta_recce}->line_column($start);
+            die "G1 rules currently allowed only when L0 is current lexer\n",
+                qq{  A quantified rule was found when "$current_lexer" was the current lexer\n"},
+                "  Location was line $line, column $column\n",
+                '  Rule was ', $parse->substring( $start, $length ), "\n";
+        } ## end if ( $current_lexer ne 'L0' )
+        $subgrammar = 'G1';
+    } ## end if ( $op_declare->op() eq q{::=} )
+    else {
+        $subgrammar = $current_lexer;
     }
 
-    my $subgrammar = $op_declare->op() eq q{::=} ? 'G1' : $current_lexer;
     my $lhs_name = $lhs->name($parse);
     $parse->{'first_lhs'} //= $lhs_name if $subgrammar eq 'G1';
     local $Marpa::R2::Internal::SUBGRAMMAR = $subgrammar;

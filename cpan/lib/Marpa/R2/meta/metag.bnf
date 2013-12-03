@@ -76,9 +76,7 @@ action ::= ('action' '=>') <action name>
 <event specification> ::= ('event' '=>') <event name>
 <blessing> ::= ('bless' '=>') <blessing name>
 
-# single quoted names not allowed, for now
-<lexer name> ::= <standard name>
-
+<lexer name> ::= <standard name> | <single quoted name>
 <event name> ::= <standard name> | <single quoted name>
 <blessing name> ::= <standard name>
 <blessing name> ::= <reserved blessing name>
