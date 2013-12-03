@@ -84,7 +84,7 @@ struct marpa_obstack_chunk
 extern void _marpa_obs_newchunk (struct marpa_obstack *, int);
 
 extern struct marpa_obstack* _marpa_obs_begin (int, int);
-#define my_obstack_begin _marpa_obs_begin
+#define marpa_obs_begin _marpa_obs_begin
 
 extern int _marpa_obs_memory_used (struct marpa_obstack *);
 #define _obstack_memory_used _marpa_obs_memory_used
@@ -95,7 +95,7 @@ void _marpa_obs_free (struct marpa_obstack *__obstack);
    Note that this might not be the final address of the object
    because a new chunk might be needed to hold the final size.  */
 
-#define my_obstack_base(h) ((void *) (h)->object_base)
+#define marpa_obs_base(h) ((void *) (h)->object_base)
 
 /* Size for allocating ordinary chunks.  */
 
@@ -109,9 +109,9 @@ void _marpa_obs_free (struct marpa_obstack *__obstack);
 
 #define obstack_alignment_mask(h) ((h)->alignment_mask)
 
-#define my_obstack_init	my_obstack_begin (0, 0)
+#define marpa_obs_init	marpa_obs_begin (0, 0)
 
-#define my_obstack_reserve_fast(h,n) ((h)->next_free += (n))
+#define marpa_obs_reserve_fast(h,n) ((h)->next_free += (n))
 
 #define obstack_memory_used(h) _obstack_memory_used (h)
 
@@ -123,11 +123,11 @@ void _marpa_obs_free (struct marpa_obstack *__obstack);
  * "Fast" here means there is no check -- it is up to the caller
  * to ensure that the confirmed size is not too big
  */
-# define my_obstack_confirm_fast(h, n) \
+# define marpa_obs_confirm_fast(h, n) \
   ((h)->next_free = (h)->object_base + (n))
 
 /* Reject any object being built, as if it never existed */
-# define my_obstack_reject(h) \
+# define marpa_obs_reject(h) \
   ((h)->next_free = (h)->object_base)
 
 # define obstack_room(h)		\
@@ -140,19 +140,19 @@ void _marpa_obs_free (struct marpa_obstack *__obstack);
   ((h)->chunk_limit - (h)->next_free < (length))
 #endif
 
-# define my_obstack_reserve(h,length)					\
+# define marpa_obs_reserve(h,length)					\
 ( (h)->temp.tempint = (length),						\
   (NEED_CHUNK((h), (h)->temp.tempint)		\
    ? (_marpa_obs_newchunk ((h), (h)->temp.tempint), 0) : 0),		\
-  my_obstack_reserve_fast (h, (h)->temp.tempint))
+  marpa_obs_reserve_fast (h, (h)->temp.tempint))
 
-# define my_obstack_alloc(h,length)					\
- (my_obstack_reserve ((h), (length)), my_obstack_finish ((h)))
+# define marpa_obs_alloc(h,length)					\
+ (marpa_obs_reserve ((h), (length)), marpa_obs_finish ((h)))
 
-#define my_obstack_new(h, type, count) \
-    ((type *)my_obstack_alloc((h), (sizeof(type)*(count))))
+#define marpa_obs_new(h, type, count) \
+    ((type *)marpa_obs_alloc((h), (sizeof(type)*(count))))
 
-# define my_obstack_finish(h)						\
+# define marpa_obs_finish(h)						\
 ( \
   (h)->temp.tempptr = (h)->object_base,					\
   (h)->next_free							\
@@ -164,6 +164,6 @@ void _marpa_obs_free (struct marpa_obstack *__obstack);
   (h)->object_base = (h)->next_free,					\
   (h)->temp.tempptr)
 
-# define my_obstack_free(h)	(_marpa_obs_free((h)))
+# define marpa_obs_free(h)	(_marpa_obs_free((h)))
 
 #endif /* marpa_obs.h */

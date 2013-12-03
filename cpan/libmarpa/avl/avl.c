@@ -45,11 +45,11 @@ _marpa_avl_create (avl_comparison_func *compare, void *param,
 {
   AVL_TREE tree;
   const int alignment = MAX(minimum_alignment, requested_alignment);
-  struct marpa_obstack *avl_obstack = my_obstack_begin(0, alignment);
+  struct marpa_obstack *avl_obstack = marpa_obs_begin(0, alignment);
 
   assert (compare != NULL);
 
-  tree = my_obstack_new( avl_obstack, struct marpa_avl_table, 1);
+  tree = marpa_obs_new( avl_obstack, struct marpa_avl_table, 1);
   tree->avl_obstack = avl_obstack;
   tree->avl_root = NULL;
   tree->avl_compare = compare;
@@ -115,7 +115,7 @@ _marpa_avl_probe (AVL_TREE tree, void *item)
       da[k++] = dir = cmp > 0;
     }
 
-  n = q->avl_link[dir] = my_obstack_alloc (tree->avl_obstack, sizeof *n);
+  n = q->avl_link[dir] = marpa_obs_alloc (tree->avl_obstack, sizeof *n);
 
   tree->avl_count++;
   n->avl_data = item;
@@ -262,7 +262,7 @@ static inline void trav_reset(AVL_TRAV trav)
 AVL_TRAV _marpa_avl_t_init (AVL_TREE tree)
 {
   const AVL_TRAV trav
-    = my_obstack_new (AVL_OBSTACK (tree), struct avl_traverser, 1);
+    = marpa_obs_new (AVL_OBSTACK (tree), struct avl_traverser, 1);
   trav->avl_table = tree;
   trav_reset(trav);
   return trav;
@@ -547,7 +547,7 @@ _marpa_avl_destroy (AVL_TREE tree)
 {
   if (tree == NULL)
     return;
-  my_obstack_free (tree->avl_obstack);
+  marpa_obs_free (tree->avl_obstack);
 }
 
 #undef NDEBUG
