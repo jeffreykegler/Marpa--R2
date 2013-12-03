@@ -87,7 +87,7 @@ extern struct marpa_obstack* _marpa_obs_begin (int, int);
 #define marpa_obs_begin _marpa_obs_begin
 
 extern int _marpa_obs_memory_used (struct marpa_obstack *);
-#define _obstack_memory_used _marpa_obs_memory_used
+#define marpa_obstack_memory_used(h) _marpa_obs_memory_used (h)
 
 void _marpa_obs_free (struct marpa_obstack *__obstack);
 
@@ -99,23 +99,21 @@ void _marpa_obs_free (struct marpa_obstack *__obstack);
 
 /* Size for allocating ordinary chunks.  */
 
-#define obstack_chunk_size(h) ((h)->chunk_size)
+#define marpa_obstack_chunk_size(h) ((h)->chunk_size)
 
 /* Pointer to next byte not yet allocated in current chunk.  */
 
-#define obstack_next_free(h)	((h)->next_free)
+#define marpa_obstack_next_free(h)	((h)->next_free)
 
 /* Mask specifying low bits that should be clear in address of an object.  */
 
-#define obstack_alignment_mask(h) ((h)->alignment_mask)
+#define marpa_obstack_alignment_mask(h) ((h)->alignment_mask)
 
 #define marpa_obs_init	marpa_obs_begin (0, 0)
 
 #define marpa_obs_reserve_fast(h,n) ((h)->next_free += (n))
 
-#define obstack_memory_used(h) _obstack_memory_used (h)
-
-# define obstack_object_size(h) \
+# define marpa_obstack_object_size(h) \
  (unsigned) ((h)->next_free - (h)->object_base)
 
 /* "Confirm" the size of a reserved object, currently being built.
@@ -130,19 +128,19 @@ void _marpa_obs_free (struct marpa_obstack *__obstack);
 # define marpa_obs_reject(h) \
   ((h)->next_free = (h)->object_base)
 
-# define obstack_room(h)		\
+# define marpa_obstack_room(h)		\
  (unsigned) ((h)->chunk_limit - (h)->next_free)
 
 #if MARPA_OBSTACK_DEBUG
-#define NEED_CHUNK(h, length) (1)
+#define MARPA_OBS_NEED_CHUNK(h, length) (1)
 #else
-#define NEED_CHUNK(h, length) \
+#define MARPA_OBS_NEED_CHUNK(h, length) \
   ((h)->chunk_limit - (h)->next_free < (length))
 #endif
 
 # define marpa_obs_reserve(h,length)					\
 ( (h)->temp.tempint = (length),						\
-  (NEED_CHUNK((h), (h)->temp.tempint)		\
+  (MARPA_OBS_NEED_CHUNK((h), (h)->temp.tempint)		\
    ? (_marpa_obs_newchunk ((h), (h)->temp.tempint), 0) : 0),		\
   marpa_obs_reserve_fast (h, (h)->temp.tempint))
 
