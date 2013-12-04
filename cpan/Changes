@@ -15,9 +15,13 @@
 
 Revision history for Marpa::R2
 
+2.077_004
+
+   * Work on multiple lexers, refactoring libmarpa
+
 2.077_003
 
-   * Fixes to ASF, rewrite of it documentation.
+   * Fixes to ASF, rewrite of its documentation.
 
 2.077_002
 2.077_001
