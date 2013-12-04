@@ -103,4 +103,4 @@ void *_marpa_avl_t_cur (AVL_TRAV);
 void *_marpa_avl_t_insert (AVL_TRAV, void *);
 void *_marpa_avl_t_replace (AVL_TRAV, void *);
 
-#endif /* avl.h */
+#endif /* marpa_avl.h */

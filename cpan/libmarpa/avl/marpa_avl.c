@@ -31,7 +31,7 @@
 #include "config.h"
 #include "marpa_obs.h"
 #include "marpa_util.h"
-#include "avl.h"
+#include "marpa_avl.h"
 
 static const int minimum_alignment =
   MAX ((int) alignof (struct avl_node), alignof (struct avl_traverser));

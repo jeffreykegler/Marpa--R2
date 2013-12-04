@@ -16515,7 +16515,7 @@ So I add such a comment.
 #include "marpa_util.h"
 @h
 #include "marpa_obs.h"
-#include "avl.h"
+#include "marpa_avl.h"
 @<Private incomplete structures@>@;
 @<Private typedefs@>@;
 @<Private utility structures@>@;
