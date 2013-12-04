@@ -85,8 +85,8 @@ inc/Marpa/R2/Display.pm
 inc/Marpa/R2/legal.pl
 inc/Marpa/R2/License.pm
 inc/Marpa/R2/Test.pm
-libmarpa/avl/avl.c
-libmarpa/avl/avl.h
+libmarpa/avl/marpa_avl.c
+libmarpa/avl/marpa_avl.h
 libmarpa/dev/api.texi
 libmarpa/dev/copyright_page_license.w
 libmarpa/dev/cwebmac.tex
@@ -116,8 +116,8 @@ libmarpa/dev/texi2code.pl
 libmarpa/dev/w2private_h.pl
 libmarpa_dist/aclocal.m4
 libmarpa_dist/AUTHORS
-libmarpa_dist/avl.c
-libmarpa_dist/avl.h
+libmarpa_dist/marpa_avl.c
+libmarpa_dist/marpa_avl.h
 libmarpa_dist/ChangeLog
 libmarpa_dist/codes.c
 libmarpa_dist/codes.h
