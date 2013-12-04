@@ -44,9 +44,9 @@ STAGE_FILES = \
     stage/marpa_util.h \
     stage/marpa_obs.c \
     stage/marpa_obs.h \
-    stage/avl.h \
+    stage/marpa_avl.h \
     stage/private.h \
-    stage/avl.c \
+    stage/marpa_avl.c \
     stage/NEWS \
     stage/VERSION.in \
     stage/README \
@@ -95,10 +95,10 @@ stage/marpa_obs.c: obs/marpa_obs.c
 stage/marpa_obs.h: obs/marpa_obs.h
 	cp $? $@
 
-stage/avl.c: avl/avl.c
+stage/marpa_avl.c: avl/marpa_avl.c
 	cp $? $@
 
-stage/avl.h: avl/avl.h
+stage/marpa_avl.h: avl/marpa_avl.h
 	cp $? $@
 
 stage/private.h: dev/private.h
