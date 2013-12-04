@@ -70,11 +70,11 @@ struct marpa_avl_traverser
     size_t avl_height;                  /* Number of nodes in |avl_parent|. */
     unsigned long avl_generation;       /* Generation number. */
   };
-typedef struct marpa_avl_traverser* AVL_TRAV;
+typedef struct marpa_avl_traverser* MARPA_AVL_TRAV;
 
-#define TREE_of_AVL_TRAV(trav) ((trav)->avl_table)
-#define DATA_of_AVL_TRAV(trav) ((trav)->avl_node ? (trav)->avl_node->avl_data : NULL)
-#define AVL_OBSTACK(table) ((table)->avl_obstack)
+#define MARPA_TREE_OF_AVL_TRAV(trav) ((trav)->avl_table)
+#define MARPA_DATA_OF_AVL_TRAV(trav) ((trav)->avl_node ? (trav)->avl_node->avl_data : NULL)
+#define MARPA_AVL_OBSTACK(table) ((table)->avl_obstack)
 
 /* Table functions. */
 MARPA_AVL_TREE _marpa_avl_create (marpa_avl_comparison_func *, void *,
@@ -90,16 +90,16 @@ void *_marpa_avl_find (const MARPA_AVL_TREE , const void *);
 #define marpa_avl_count(table) ((size_t) (table)->avl_count)
 
 /* Table traverser functions. */
-AVL_TRAV _marpa_avl_t_init (MARPA_AVL_TREE );
-AVL_TRAV _marpa_avl_t_reset (AVL_TRAV );
-void *_marpa_avl_t_first (AVL_TRAV );
-void *_marpa_avl_t_last ( AVL_TRAV );
-void *_marpa_avl_t_find ( AVL_TRAV , void *);
+MARPA_AVL_TRAV _marpa_avl_t_init (MARPA_AVL_TREE );
+MARPA_AVL_TRAV _marpa_avl_t_reset (MARPA_AVL_TRAV );
+void *_marpa_avl_t_first (MARPA_AVL_TRAV );
+void *_marpa_avl_t_last ( MARPA_AVL_TRAV );
+void *_marpa_avl_t_find ( MARPA_AVL_TRAV , void *);
 void *_marpa_avl_t_copy (struct marpa_avl_traverser *, const struct marpa_avl_traverser *);
-void *_marpa_avl_t_next (AVL_TRAV);
-void *_marpa_avl_t_prev (AVL_TRAV);
-void *_marpa_avl_t_cur (AVL_TRAV);
-void *_marpa_avl_t_insert (AVL_TRAV, void *);
-void *_marpa_avl_t_replace (AVL_TRAV, void *);
+void *_marpa_avl_t_next (MARPA_AVL_TRAV);
+void *_marpa_avl_t_prev (MARPA_AVL_TRAV);
+void *_marpa_avl_t_cur (MARPA_AVL_TRAV);
+void *_marpa_avl_t_insert (MARPA_AVL_TRAV, void *);
+void *_marpa_avl_t_replace (MARPA_AVL_TRAV, void *);
 
 #endif /* marpa_avl.h */

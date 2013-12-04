@@ -252,9 +252,9 @@ trav_refresh (struct marpa_avl_traverser *trav)
 
 /* Assuming that the tree is already set,
   set the traverser to its initial values */
-static inline void trav_reset(AVL_TRAV trav)
+static inline void trav_reset(MARPA_AVL_TRAV trav)
 {
-  MARPA_AVL_TREE tree = TREE_of_AVL_TRAV(trav);
+  MARPA_AVL_TREE tree = MARPA_TREE_OF_AVL_TRAV(trav);
   trav->avl_node = NULL;
   trav->avl_height = 0;
   trav->avl_generation = tree->avl_generation;
@@ -262,10 +262,10 @@ static inline void trav_reset(AVL_TRAV trav)
 
 /* Initializes |trav| for use with |tree|
    and selects the null node. */
-AVL_TRAV _marpa_avl_t_init (MARPA_AVL_TREE tree)
+MARPA_AVL_TRAV _marpa_avl_t_init (MARPA_AVL_TREE tree)
 {
-  const AVL_TRAV trav
-    = marpa_obs_new (AVL_OBSTACK (tree), struct marpa_avl_traverser, 1);
+  const MARPA_AVL_TRAV trav
+    = marpa_obs_new (MARPA_AVL_OBSTACK (tree), struct marpa_avl_traverser, 1);
   trav->avl_table = tree;
   trav_reset(trav);
   return trav;
@@ -273,7 +273,7 @@ AVL_TRAV _marpa_avl_t_init (MARPA_AVL_TREE tree)
 
 /* Initializes |trav| for use with |tree|
    and selects the null node. */
-AVL_TRAV _marpa_avl_t_reset (AVL_TRAV trav)
+MARPA_AVL_TRAV _marpa_avl_t_reset (MARPA_AVL_TRAV trav)
 {
   trav_reset(trav);
   return trav;
@@ -282,10 +282,10 @@ AVL_TRAV _marpa_avl_t_reset (AVL_TRAV trav)
 /* Selects and returns a pointer to the least-valued item.
    Returns |NULL| if |tree| contains no nodes. */
 void *
-_marpa_avl_t_first (AVL_TRAV trav)
+_marpa_avl_t_first (MARPA_AVL_TRAV trav)
 {
   NODE x;
-  MARPA_AVL_TREE tree = TREE_of_AVL_TRAV(trav);
+  MARPA_AVL_TREE tree = MARPA_TREE_OF_AVL_TRAV(trav);
 
   assert (trav != NULL);
 
@@ -305,10 +305,10 @@ _marpa_avl_t_first (AVL_TRAV trav)
 /* Selects and returns a pointer to the greatest-valued item.
    Returns |NULL| if |tree| contains no nodes. */
 void *
-_marpa_avl_t_last (AVL_TRAV trav)
+_marpa_avl_t_last (MARPA_AVL_TRAV trav)
 {
   NODE x;
-  MARPA_AVL_TREE tree = TREE_of_AVL_TRAV(trav);
+  MARPA_AVL_TREE tree = MARPA_TREE_OF_AVL_TRAV(trav);
 
   assert (trav != NULL);
 
@@ -331,10 +331,10 @@ _marpa_avl_t_last (AVL_TRAV trav)
    If there is no matching item, initializes |trav| to the null item
    and returns |NULL|. */
 void *
-_marpa_avl_t_find (AVL_TRAV trav, void *item)
+_marpa_avl_t_find (MARPA_AVL_TRAV trav, void *item)
 {
   NODE p, q;
-  MARPA_AVL_TREE tree = TREE_of_AVL_TRAV(trav);
+  MARPA_AVL_TREE tree = MARPA_TREE_OF_AVL_TRAV(trav);
 
   assert (trav != NULL && item != NULL);
   for (p = tree->avl_root; p != NULL; p = q)
@@ -367,10 +367,10 @@ _marpa_avl_t_find (AVL_TRAV trav, void *item)
    its location.  No replacement of the item occurs.
    */
 void *
-_marpa_avl_t_insert ( AVL_TRAV trav, void *item)
+_marpa_avl_t_insert ( MARPA_AVL_TRAV trav, void *item)
 {
   void **p;
-  MARPA_AVL_TREE tree = TREE_of_AVL_TRAV(trav);
+  MARPA_AVL_TREE tree = MARPA_TREE_OF_AVL_TRAV(trav);
 
   assert (trav != NULL && tree != NULL && item != NULL);
 
@@ -417,7 +417,7 @@ _marpa_avl_t_copy (struct marpa_avl_traverser *trav, const struct marpa_avl_trav
    within the tree being traversed with |trav|,
    or if there are no more data items returns |NULL|. */
 void *
-_marpa_avl_t_next (AVL_TRAV trav)
+_marpa_avl_t_next (MARPA_AVL_TRAV trav)
 {
   NODE x;
 
@@ -470,7 +470,7 @@ _marpa_avl_t_next (AVL_TRAV trav)
    within the tree being traversed with |trav|,
    or if there are no more data items returns |NULL|. */
 void *
-_marpa_avl_t_prev (AVL_TRAV trav)
+_marpa_avl_t_prev (MARPA_AVL_TRAV trav)
 {
   NODE x;
 
@@ -521,7 +521,7 @@ _marpa_avl_t_prev (AVL_TRAV trav)
 
 /* Returns |trav|'s current item. */
 void *
-_marpa_avl_t_cur (AVL_TRAV trav)
+_marpa_avl_t_cur (MARPA_AVL_TRAV trav)
 {
   assert (trav != NULL);
 

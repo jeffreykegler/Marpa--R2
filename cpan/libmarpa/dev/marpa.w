@@ -99,7 +99,7 @@
 @s xor normal
 
 @s error normal
-@s AVL_TRAV int
+@s MARPA_AVL_TRAV int
 @s MARPA_AVL_TREE int
 @s Bit_Matrix int
 @s DAND int
@@ -3185,7 +3185,7 @@ PRIVATE_NOT_INLINE int sym_rule_cmp(
     /* Size of G is sum of RHS lengths, plus 1 for each rule, which here is necessary
     for separator of sequences */
   struct sym_rule_pair *const p_rh_sym_rule_pair_base =
-    marpa_obs_new (AVL_OBSTACK (rhs_avl_tree), struct sym_rule_pair,
+    marpa_obs_new (MARPA_AVL_OBSTACK (rhs_avl_tree), struct sym_rule_pair,
 		    External_Size_of_G (g));
   struct sym_rule_pair *p_rh_sym_rule_pairs = p_rh_sym_rule_pair_base;
 
@@ -3193,7 +3193,7 @@ PRIVATE_NOT_INLINE int sym_rule_cmp(
   const MARPA_AVL_TREE lhs_avl_tree =
     _marpa_avl_create (sym_rule_cmp, NULL, alignof (struct sym_rule_pair));
   struct sym_rule_pair *const p_lh_sym_rule_pair_base =
-    marpa_obs_new (AVL_OBSTACK (lhs_avl_tree), struct sym_rule_pair,
+    marpa_obs_new (MARPA_AVL_OBSTACK (lhs_avl_tree), struct sym_rule_pair,
 		    xrl_count);
   struct sym_rule_pair *p_lh_sym_rule_pairs = p_lh_sym_rule_pair_base;
 
@@ -3246,7 +3246,7 @@ PRIVATE_NOT_INLINE int sym_rule_cmp(
 	}
     }
   {
-    AVL_TRAV traverser;
+    MARPA_AVL_TRAV traverser;
     struct sym_rule_pair *pair;
     XSYID seen_symid = -1;
     RULEID *const rule_data_base =
@@ -3269,7 +3269,7 @@ PRIVATE_NOT_INLINE int sym_rule_cmp(
   }
 
   {
-    AVL_TRAV traverser;
+    MARPA_AVL_TRAV traverser;
     struct sym_rule_pair *pair;
     XSYID seen_symid = -1;
     RULEID *const rule_data_base =
@@ -5842,7 +5842,7 @@ of minimum sizes.
   const MARPA_AVL_TREE lhs_avl_tree =
     _marpa_avl_create (sym_rule_cmp, NULL, alignof (struct sym_rule_pair));
   struct sym_rule_pair *const p_sym_rule_pair_base =
-    marpa_obs_new (AVL_OBSTACK (lhs_avl_tree), struct sym_rule_pair,
+    marpa_obs_new (MARPA_AVL_OBSTACK (lhs_avl_tree), struct sym_rule_pair,
 		    irl_count);
   struct sym_rule_pair *p_sym_rule_pairs = p_sym_rule_pair_base;
   for (irl_id = 0; irl_id < irl_count; irl_id++)
@@ -5855,7 +5855,7 @@ of minimum sizes.
       p_sym_rule_pairs++;
     }
   {
-    AVL_TRAV traverser;
+    MARPA_AVL_TRAV traverser;
     struct sym_rule_pair *pair;
     ISYID seen_isyid = -1;
     IRLID *const rule_data_base =
@@ -12134,14 +12134,14 @@ Marpa_Earley_Set_ID _marpa_b_and_node_middle(Marpa_Bocage b,
    typedef struct marpa_progress_item* PROGRESS;
 @ @<Widely aligned recognizer elements@> =
    const struct marpa_progress_item* t_current_report_item;
-   AVL_TRAV t_progress_report_traverser;
+   MARPA_AVL_TRAV t_progress_report_traverser;
 @ @<Initialize recognizer elements@> =
    r->t_current_report_item = &progress_report_not_ready;
    r->t_progress_report_traverser = NULL;
 @ @<Clear progress report in |r|@> =
    r->t_current_report_item = &progress_report_not_ready;
     if (r->t_progress_report_traverser) {
-    _marpa_avl_destroy ( TREE_of_AVL_TRAV(r->t_progress_report_traverser) );
+    _marpa_avl_destroy ( MARPA_TREE_OF_AVL_TRAV(r->t_progress_report_traverser) );
     }
    r->t_progress_report_traverser = NULL;
 @ @<Destroy recognizer elements@> =
@@ -12224,7 +12224,7 @@ int marpa_r_progress_report_start(
 int marpa_r_progress_report_reset( Marpa_Recognizer r)
 {
   @<Return |-2| on failure@>@;
-  AVL_TRAV traverser = r->t_progress_report_traverser;
+  MARPA_AVL_TRAV traverser = r->t_progress_report_traverser;
   @<Unpack recognizer objects@>@;
   @<Fail if fatal error@>@;
   @<Fail if recognizer not started@>@;
@@ -12329,7 +12329,7 @@ NEXT_EARLEY_ITEM:;
 	    }
 	  {
 	    const PROGRESS new_report_item =
-	      marpa_obs_new (AVL_OBSTACK (report_tree), struct marpa_progress_item,
+	      marpa_obs_new (MARPA_AVL_OBSTACK (report_tree), struct marpa_progress_item,
 			      1);
 	    Position_of_PROGRESS (new_report_item) = xrl_position;
 	    Origin_of_PROGRESS (new_report_item) = report_origin;
@@ -12346,7 +12346,7 @@ int marpa_r_progress_report_finish(Marpa_Recognizer r) {
   const int success = 1;
   @<Return |-2| on failure@>@;
   @<Unpack recognizer objects@>@;
-  const AVL_TRAV traverser = r->t_progress_report_traverser;
+  const MARPA_AVL_TRAV traverser = r->t_progress_report_traverser;
   @<Fail if no |traverser|@>@;
     @<Clear progress report in |r|@>@;
     return success;
@@ -12358,7 +12358,7 @@ Marpa_Rule_ID marpa_r_progress_item(
 ) {
   @<Return |-2| on failure@>@;
   PROGRESS report_item;
-  AVL_TRAV traverser;
+  MARPA_AVL_TRAV traverser;
   @<Unpack recognizer objects@>@;
   @<Fail if fatal error@>@;
   @<Fail if recognizer not started@>@;
