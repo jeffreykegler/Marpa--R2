@@ -35,11 +35,6 @@ typedef int marpa_avl_comparison_func (const void *avl_a, const void *avl_b,
 typedef void marpa_avl_item_func (void *avl_item, void *avl_param);
 typedef void *marpa_avl_copy_func (void *avl_item, void *avl_param);
 
-/* Maximum AVL tree height. */
-#ifndef AVL_MAX_HEIGHT
-#define AVL_MAX_HEIGHT 92
-#endif
-
 /* Tree data structure. */
 struct marpa_avl_table
   {
@@ -50,7 +45,7 @@ struct marpa_avl_table
     size_t avl_count;                   /* Number of items in tree. */
     unsigned long avl_generation;       /* Generation number. */
   };
-typedef struct marpa_avl_table* AVL_TREE;
+typedef struct marpa_avl_table* MARPA_AVL_TREE;
 
 /* An AVL tree node. */
 struct marpa_avl_node
@@ -61,12 +56,17 @@ struct marpa_avl_node
   };
 typedef struct marpa_avl_node* NODE;
 
+/* Maximum AVL tree height. */
+#ifndef MARPA_AVL_MAX_HEIGHT
+#define MARPA_AVL_MAX_HEIGHT 92
+#endif
+
 /* AVL traverser structure. */
 struct marpa_avl_traverser
   {
-    AVL_TREE avl_table;        /* Tree being traversed. */
+    MARPA_AVL_TREE avl_table;        /* Tree being traversed. */
     struct marpa_avl_node *avl_node;          /* Current node in tree. */
-    struct marpa_avl_node *avl_stack[AVL_MAX_HEIGHT];
+    struct marpa_avl_node *avl_stack[MARPA_AVL_MAX_HEIGHT];
                                         /* All the nodes above |avl_node|. */
     size_t avl_height;                  /* Number of nodes in |avl_parent|. */
     unsigned long avl_generation;       /* Generation number. */
@@ -78,20 +78,20 @@ typedef struct marpa_avl_traverser* AVL_TRAV;
 #define AVL_OBSTACK(table) ((table)->avl_obstack)
 
 /* Table functions. */
-AVL_TREE _marpa_avl_create (marpa_avl_comparison_func *, void *,
+MARPA_AVL_TREE _marpa_avl_create (marpa_avl_comparison_func *, void *,
                               int alignment);
-AVL_TREE _marpa_avl_copy (const AVL_TREE , marpa_avl_copy_func *,
+MARPA_AVL_TREE _marpa_avl_copy (const MARPA_AVL_TREE , marpa_avl_copy_func *,
                             marpa_avl_item_func *, int alignment);
-void _marpa_avl_destroy (AVL_TREE );
-void **_marpa_avl_probe (AVL_TREE , void *);
-void *_marpa_avl_insert (AVL_TREE , void *);
-void *_marpa_avl_replace (AVL_TREE , void *);
-void *_marpa_avl_find (const AVL_TREE , const void *);
+void _marpa_avl_destroy (MARPA_AVL_TREE );
+void **_marpa_avl_probe (MARPA_AVL_TREE , void *);
+void *_marpa_avl_insert (MARPA_AVL_TREE , void *);
+void *_marpa_avl_replace (MARPA_AVL_TREE , void *);
+void *_marpa_avl_find (const MARPA_AVL_TREE , const void *);
 
 #define marpa_avl_count(table) ((size_t) (table)->avl_count)
 
 /* Table traverser functions. */
-AVL_TRAV _marpa_avl_t_init (AVL_TREE );
+AVL_TRAV _marpa_avl_t_init (MARPA_AVL_TREE );
 AVL_TRAV _marpa_avl_t_reset (AVL_TRAV );
 void *_marpa_avl_t_first (AVL_TRAV );
 void *_marpa_avl_t_last ( AVL_TRAV );

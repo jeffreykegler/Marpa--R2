@@ -39,11 +39,11 @@ static const int minimum_alignment =
 /* Creates and returns a new table
    with comparison function |compare| using parameter |param|.
    */
-AVL_TREE 
+MARPA_AVL_TREE 
 _marpa_avl_create (marpa_avl_comparison_func *compare, void *param,
             int requested_alignment)
 {
-  AVL_TREE tree;
+  MARPA_AVL_TREE tree;
   const int alignment = MAX(minimum_alignment, requested_alignment);
   struct marpa_obstack *avl_obstack = marpa_obs_begin(0, alignment);
 
@@ -63,7 +63,7 @@ _marpa_avl_create (marpa_avl_comparison_func *compare, void *param,
 /* Search |tree| for an item matching |item|, and return it if found.
    Otherwise return |NULL|. */
 void *
-_marpa_avl_find (const AVL_TREE tree, const void *item)
+_marpa_avl_find (const MARPA_AVL_TREE tree, const void *item)
 {
   const struct marpa_avl_node *p;
 
@@ -88,7 +88,7 @@ _marpa_avl_find (const AVL_TREE tree, const void *item)
    returns a pointer to the duplicate without inserting |item|.
    */
 void **
-_marpa_avl_probe (AVL_TREE tree, void *item)
+_marpa_avl_probe (MARPA_AVL_TREE tree, void *item)
 {
   struct marpa_avl_node *y, *z; /* Top node to update balance factor, and parent. */
   struct marpa_avl_node *p, *q; /* Iterator, and parent. */
@@ -96,7 +96,7 @@ _marpa_avl_probe (AVL_TREE tree, void *item)
   struct marpa_avl_node *w;     /* New root of rebalanced subtree. */
   int dir;                /* Direction to descend. */
 
-  unsigned char da[AVL_MAX_HEIGHT]; /* Cached comparison results. */
+  unsigned char da[MARPA_AVL_MAX_HEIGHT]; /* Cached comparison results. */
   int k = 0;              /* Number of cached results. */
 
   assert (tree != NULL && item != NULL);
@@ -196,7 +196,7 @@ _marpa_avl_probe (AVL_TREE tree, void *item)
    Returns |NULL| if |item| was successfully inserted.
    Otherwise, returns the duplicate item. */
 void *
-_marpa_avl_insert (AVL_TREE table, void *item)
+_marpa_avl_insert (MARPA_AVL_TREE table, void *item)
 {
   void **p = _marpa_avl_probe (table, item);
   return p == NULL || *p == item ? NULL : *p;
@@ -206,7 +206,7 @@ _marpa_avl_insert (AVL_TREE table, void *item)
    Returns |NULL| if |item| was inserted without replacing a duplicate.
    Otherwise, returns the item that was replaced. */
 void *
-_marpa_avl_replace (AVL_TREE table, void *item)
+_marpa_avl_replace (MARPA_AVL_TREE table, void *item)
 {
   void **p = _marpa_avl_probe (table, item);
   if (p == NULL || *p == item)
@@ -238,7 +238,7 @@ trav_refresh (struct marpa_avl_traverser *trav)
       trav->avl_height = 0;
       for (i = trav->avl_table->avl_root; i != node; )
         {
-          assert (trav->avl_height < AVL_MAX_HEIGHT);
+          assert (trav->avl_height < MARPA_AVL_MAX_HEIGHT);
           assert (i != NULL);
 
           trav->avl_stack[trav->avl_height++] = i;
@@ -251,7 +251,7 @@ trav_refresh (struct marpa_avl_traverser *trav)
   set the traverser to its initial values */
 static inline void trav_reset(AVL_TRAV trav)
 {
-  AVL_TREE tree = TREE_of_AVL_TRAV(trav);
+  MARPA_AVL_TREE tree = TREE_of_AVL_TRAV(trav);
   trav->avl_node = NULL;
   trav->avl_height = 0;
   trav->avl_generation = tree->avl_generation;
@@ -259,7 +259,7 @@ static inline void trav_reset(AVL_TRAV trav)
 
 /* Initializes |trav| for use with |tree|
    and selects the null node. */
-AVL_TRAV _marpa_avl_t_init (AVL_TREE tree)
+AVL_TRAV _marpa_avl_t_init (MARPA_AVL_TREE tree)
 {
   const AVL_TRAV trav
     = marpa_obs_new (AVL_OBSTACK (tree), struct marpa_avl_traverser, 1);
@@ -282,7 +282,7 @@ void *
 _marpa_avl_t_first (AVL_TRAV trav)
 {
   struct marpa_avl_node *x;
-  AVL_TREE tree = TREE_of_AVL_TRAV(trav);
+  MARPA_AVL_TREE tree = TREE_of_AVL_TRAV(trav);
 
   assert (trav != NULL);
 
@@ -290,7 +290,7 @@ _marpa_avl_t_first (AVL_TRAV trav)
   if (x != NULL)
     while (x->avl_link[0] != NULL)
       {
-        assert (trav->avl_height < AVL_MAX_HEIGHT);
+        assert (trav->avl_height < MARPA_AVL_MAX_HEIGHT);
         trav->avl_stack[trav->avl_height++] = x;
         x = x->avl_link[0];
       }
@@ -305,7 +305,7 @@ void *
 _marpa_avl_t_last (AVL_TRAV trav)
 {
   struct marpa_avl_node *x;
-  AVL_TREE tree = TREE_of_AVL_TRAV(trav);
+  MARPA_AVL_TREE tree = TREE_of_AVL_TRAV(trav);
 
   assert (trav != NULL);
 
@@ -313,7 +313,7 @@ _marpa_avl_t_last (AVL_TRAV trav)
   if (x != NULL)
     while (x->avl_link[1] != NULL)
       {
-        assert (trav->avl_height < AVL_MAX_HEIGHT);
+        assert (trav->avl_height < MARPA_AVL_MAX_HEIGHT);
         trav->avl_stack[trav->avl_height++] = x;
         x = x->avl_link[1];
       }
@@ -331,7 +331,7 @@ void *
 _marpa_avl_t_find (AVL_TRAV trav, void *item)
 {
   struct marpa_avl_node *p, *q;
-  AVL_TREE tree = TREE_of_AVL_TRAV(trav);
+  MARPA_AVL_TREE tree = TREE_of_AVL_TRAV(trav);
 
   assert (trav != NULL && item != NULL);
   for (p = tree->avl_root; p != NULL; p = q)
@@ -348,7 +348,7 @@ _marpa_avl_t_find (AVL_TRAV trav, void *item)
           return p->avl_data;
         }
 
-      assert (trav->avl_height < AVL_MAX_HEIGHT);
+      assert (trav->avl_height < MARPA_AVL_MAX_HEIGHT);
       trav->avl_stack[trav->avl_height++] = p;
     }
 
@@ -367,7 +367,7 @@ void *
 _marpa_avl_t_insert ( AVL_TRAV trav, void *item)
 {
   void **p;
-  AVL_TREE tree = TREE_of_AVL_TRAV(trav);
+  MARPA_AVL_TREE tree = TREE_of_AVL_TRAV(trav);
 
   assert (trav != NULL && tree != NULL && item != NULL);
 
@@ -430,13 +430,13 @@ _marpa_avl_t_next (AVL_TRAV trav)
     }
   else if (x->avl_link[1] != NULL)
     {
-      assert (trav->avl_height < AVL_MAX_HEIGHT);
+      assert (trav->avl_height < MARPA_AVL_MAX_HEIGHT);
       trav->avl_stack[trav->avl_height++] = x;
       x = x->avl_link[1];
 
       while (x->avl_link[0] != NULL)
         {
-          assert (trav->avl_height < AVL_MAX_HEIGHT);
+          assert (trav->avl_height < MARPA_AVL_MAX_HEIGHT);
           trav->avl_stack[trav->avl_height++] = x;
           x = x->avl_link[0];
         }
@@ -483,13 +483,13 @@ _marpa_avl_t_prev (AVL_TRAV trav)
     }
   else if (x->avl_link[0] != NULL)
     {
-      assert (trav->avl_height < AVL_MAX_HEIGHT);
+      assert (trav->avl_height < MARPA_AVL_MAX_HEIGHT);
       trav->avl_stack[trav->avl_height++] = x;
       x = x->avl_link[0];
 
       while (x->avl_link[1] != NULL)
         {
-          assert (trav->avl_height < AVL_MAX_HEIGHT);
+          assert (trav->avl_height < MARPA_AVL_MAX_HEIGHT);
           trav->avl_stack[trav->avl_height++] = x;
           x = x->avl_link[1];
         }
@@ -543,7 +543,7 @@ _marpa_avl_t_replace (struct marpa_avl_traverser *trav, void *new)
   Everything is on the obstack.
 */
 void
-_marpa_avl_destroy (AVL_TREE tree)
+_marpa_avl_destroy (MARPA_AVL_TREE tree)
 {
   if (tree == NULL)
     return;

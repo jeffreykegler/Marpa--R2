@@ -100,7 +100,7 @@
 
 @s error normal
 @s AVL_TRAV int
-@s AVL_TREE int
+@s MARPA_AVL_TREE int
 @s Bit_Matrix int
 @s DAND int
 @s DSTACK int
@@ -1088,7 +1088,7 @@ marpa_g_event_count (Marpa_Grammar g)
 This AVL tree is kept, before precomputation,
 to help detect BNF rules.
 @<Widely aligned grammar elements@> =
-AVL_TREE t_xrl_tree;
+MARPA_AVL_TREE t_xrl_tree;
 @ @<Initialize grammar elements@> =
   (g)->t_xrl_tree = _marpa_avl_create (duplicate_rule_cmp, NULL, 0);
 @ @<Clear rule duplication tree@> =
@@ -3180,7 +3180,7 @@ PRIVATE_NOT_INLINE int sym_rule_cmp(
   Marpa_Rule_ID rule_id;
 
   /* \comment AVL tree for RHS symbols */
-  const AVL_TREE rhs_avl_tree =
+  const MARPA_AVL_TREE rhs_avl_tree =
     _marpa_avl_create (sym_rule_cmp, NULL, alignof (struct sym_rule_pair));
     /* Size of G is sum of RHS lengths, plus 1 for each rule, which here is necessary
     for separator of sequences */
@@ -3190,7 +3190,7 @@ PRIVATE_NOT_INLINE int sym_rule_cmp(
   struct sym_rule_pair *p_rh_sym_rule_pairs = p_rh_sym_rule_pair_base;
 
   /* \comment AVL tree for LHS symbols */
-  const AVL_TREE lhs_avl_tree =
+  const MARPA_AVL_TREE lhs_avl_tree =
     _marpa_avl_create (sym_rule_cmp, NULL, alignof (struct sym_rule_pair));
   struct sym_rule_pair *const p_lh_sym_rule_pair_base =
     marpa_obs_new (AVL_OBSTACK (lhs_avl_tree), struct sym_rule_pair,
@@ -5496,7 +5496,7 @@ PRIVATE_NOT_INLINE int AHFA_state_cmp(
    IRL* irl_by_sort_key = my_new(IRL, irl_count);
   Bit_Vector per_ahfa_complete_v = bv_obs_create (obs_precompute, isy_count);
   Bit_Vector per_ahfa_postdot_v = bv_obs_create (obs_precompute, isy_count);
-    AVL_TREE duplicates;
+    MARPA_AVL_TREE duplicates;
     AHFA* singleton_duplicates;
    DQUEUE_DECLARE(states);
   int ahfa_count_of_g;
@@ -5839,7 +5839,7 @@ of minimum sizes.
 @ @<Calculate Rule by LHS lists@> =
 {
   IRLID irl_id;
-  const AVL_TREE lhs_avl_tree =
+  const MARPA_AVL_TREE lhs_avl_tree =
     _marpa_avl_create (sym_rule_cmp, NULL, alignof (struct sym_rule_pair));
   struct sym_rule_pair *const p_sym_rule_pair_base =
     marpa_obs_new (AVL_OBSTACK (lhs_avl_tree), struct sym_rule_pair,
@@ -5989,7 +5989,7 @@ and return |NULL|.
 When it does exist, return a pointer to it.
 @<Function definitions@> =
 PRIVATE AHFA
-assign_AHFA_state (AHFA sought_state, AVL_TREE duplicates)
+assign_AHFA_state (AHFA sought_state, MARPA_AVL_TREE duplicates)
 {
   const AHFA state_found = _marpa_avl_insert(duplicates, sought_state);
   return state_found;
@@ -6215,7 +6215,7 @@ create_predicted_AHFA_state(
      Bit_Vector prediction_rule_vector,
      IRL* irl_by_sort_key,
      DQUEUE states_p,
-     AVL_TREE duplicates,
+     MARPA_AVL_TREE duplicates,
      AIM* item_list_working_buffer
      )
 {
@@ -12205,7 +12205,7 @@ int marpa_r_progress_report_start(
   earley_set = ES_of_R_by_Ord (r, set_id);
   @<Clear progress report in |r|@>@;
   {
-    const AVL_TREE report_tree =
+    const MARPA_AVL_TREE report_tree =
       _marpa_avl_create (report_item_cmp, NULL, alignof (PROGRESS));
     const EIM *const earley_items = EIMs_of_ES (earley_set);
     const int earley_item_count = EIM_Count_of_ES (earley_set);
@@ -15357,7 +15357,7 @@ for the lookups.
 @<Private utility structures@> =
 struct s_cil_arena {
     struct marpa_obstack* t_obs;
-    AVL_TREE t_avl;
+    MARPA_AVL_TREE t_avl;
     DSTACK_DECLARE(t_buffer);
 };
 typedef struct s_cil_arena CILAR_Object;
