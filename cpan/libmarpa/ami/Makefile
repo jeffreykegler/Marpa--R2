@@ -48,19 +48,19 @@ CTANGLE = ctangle
 	 pdftex ) pdftex $* ;; \
 	esac
 
-all: marpa_util.pdf sources
+all: marpa_ami.pdf sources
 
-sources: marpa_util.c marpa_util.h
+sources: marpa_ami.c marpa_ami.h
 
 copyright_page_license.w: ../dev/copyright_page_license.w
 	cp $? $@
 
-marpa_util.h marpa_util.c: copyright_page_license.w marpa_util.w
-	$(CTANGLE) marpa_util.w
+marpa_ami.h marpa_ami.c: copyright_page_license.w marpa_ami.w
+	$(CTANGLE) marpa_ami.w
 
 cwebmac.tex: ../dev/cwebmac.tex
 	cp $? $@
 
-marpa_util.pdf: marpa_util.tex cwebmac.tex
+marpa_ami.pdf: marpa_ami.tex cwebmac.tex copyright_page_license.w
 
 

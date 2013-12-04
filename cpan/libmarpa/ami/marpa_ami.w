@@ -31,9 +31,9 @@
 
 \secpagedepth=1
 
-\def\title{Marpa: utilities}
+\def\title{Marpa's ami tools}
 \def\topofcontents{\null\vfill
-  \centerline{\titlefont Marpa: the program}
+  \centerline{\titlefont Marpa's ami tools}
   \vfill}
 \def\botofcontents{\vfill
 \noindent
@@ -126,10 +126,12 @@
 \bigskip\noindent
 @i copyright_page_license.w
 
-@** About this document.
-This document describes Marpa's ``internal'' utility functions
-and macros.
-These are considered ``undocumented'', in the sense that
+@** About this library.
+This is Marpa's ``ami'' or ``friend'' library, for macros
+and functions which are useful for Libmarpa and its
+``close friends''.
+The contents of this library are considered ``undocumented'',
+in the sense that
 they are not documented for general use.
 Specifically, the interfaces of these functions is subject
 to radical change without notice,
@@ -137,14 +139,26 @@ and it is assumed that the safety of such changes can
 be ensured by checking only Marpa itself and its ``close friend''
 libraries.
 
-These utilties are intended for use only by Marpa itself,
-and its ``close friend'' libraries.
 A ``close friend'' library is one which is allowed
 to rely on undocumented Libmarpa interfaces.
 At this writing,
 the only example of a ``close friend'' library is the Perl XS code which
 interfaces libmarpa to Perl.
 
+The ami interface and an internal interface differ in that
+\li The ami interface must be useable in a situation where the Libmarpa
+implementor does not have complete control over the namespace.
+It can only create names which begin in |marpa_|, |_marpa_| or
+one of its capitalization variants.
+The internal interface can assume that no library will be included
+unless the Libmarpa implementor decided it should be, so that most
+names are available for his use.
+\li The ami interface cannot use Libmarpa's error handling -- although
+it can be part of the implementation of that error handlind.
+The ami interface must be useable in a situation where another
+error handling regime is in effect.
+
+@** About this document.
 This document is very much under construction,
 enough so that readers may question why I make it
 available at all.  Two reasons:
@@ -1930,20 +1944,20 @@ So I add such a comment.
 
 @ \twelvepoint
 
-@*0 |marpa_util.h| layout.
+@*0 |marpa_ami.h| layout.
 \tenpoint
-@(marpa_util.h@> =
+@(marpa_ami.h@> =
 @<Header license language@>@;
 
-#ifndef __MARPA_UTIL_H__
-#define __MARPA_UTIL_H__
+#ifndef __MARPA_AMI_H__
+#define __MARPA_AMI_H__
 
 @<Utility macros@>
 @<Debug macros@>
 @<Utility variables@>
 @<Utility static functions@>
 
-#endif /* |__MARPA__UTIL_H__| */
+#endif /* |__MARPA__AMI_H__| */
 
 @** Index.
 
