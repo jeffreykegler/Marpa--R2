@@ -36,6 +36,9 @@
 static const int minimum_alignment =
   MAX ((int) alignof (struct marpa_avl_node), alignof (struct marpa_avl_traverser));
 
+/* An AVL tree node. */
+typedef struct marpa_avl_node* NODE;
+
 /* Creates and returns a new table
    with comparison function |compare| using parameter |param|.
    */
@@ -65,7 +68,7 @@ _marpa_avl_create (marpa_avl_comparison_func *compare, void *param,
 void *
 _marpa_avl_find (const MARPA_AVL_TREE tree, const void *item)
 {
-  const struct marpa_avl_node *p;
+  NODE p;
 
   assert (tree != NULL && item != NULL);
   for (p = tree->avl_root; p != NULL; )
@@ -90,10 +93,10 @@ _marpa_avl_find (const MARPA_AVL_TREE tree, const void *item)
 void **
 _marpa_avl_probe (MARPA_AVL_TREE tree, void *item)
 {
-  struct marpa_avl_node *y, *z; /* Top node to update balance factor, and parent. */
-  struct marpa_avl_node *p, *q; /* Iterator, and parent. */
-  struct marpa_avl_node *n;     /* Newly inserted node. */
-  struct marpa_avl_node *w;     /* New root of rebalanced subtree. */
+  NODE y, z; /* Top node to update balance factor, and parent */
+  NODE p, q; /* Iterator, and parent. */
+  NODE n;     /* Newly inserted node. */
+  NODE w;     /* New root of rebalanced subtree. */
   int dir;                /* Direction to descend. */
 
   unsigned char da[MARPA_AVL_MAX_HEIGHT]; /* Cached comparison results. */
@@ -101,7 +104,7 @@ _marpa_avl_probe (MARPA_AVL_TREE tree, void *item)
 
   assert (tree != NULL && item != NULL);
 
-  z = (struct marpa_avl_node *) &tree->avl_root;
+  z = (NODE) &tree->avl_root;
   y = tree->avl_root;
   dir = 0;
   for (q = z, p = y; p != NULL; q = p, p = p->avl_link[dir])
@@ -132,7 +135,7 @@ _marpa_avl_probe (MARPA_AVL_TREE tree, void *item)
 
   if (y->avl_balance == -2)
     {
-      struct marpa_avl_node *x = y->avl_link[0];
+      NODE x = y->avl_link[0];
       if (x->avl_balance == -1)
         {
           w = x;
@@ -159,7 +162,7 @@ _marpa_avl_probe (MARPA_AVL_TREE tree, void *item)
     }
   else if (y->avl_balance == +2)
     {
-      struct marpa_avl_node *x = y->avl_link[1];
+      NODE x = y->avl_link[1];
       if (x->avl_balance == +1)
         {
           w = x;
@@ -232,8 +235,8 @@ trav_refresh (struct marpa_avl_traverser *trav)
     {
       marpa_avl_comparison_func *cmp = trav->avl_table->avl_compare;
       void *param = trav->avl_table->avl_param;
-      struct marpa_avl_node *node = trav->avl_node;
-      struct marpa_avl_node *i;
+      NODE node = trav->avl_node;
+      NODE i;
 
       trav->avl_height = 0;
       for (i = trav->avl_table->avl_root; i != node; )
@@ -281,7 +284,7 @@ AVL_TRAV _marpa_avl_t_reset (AVL_TRAV trav)
 void *
 _marpa_avl_t_first (AVL_TRAV trav)
 {
-  struct marpa_avl_node *x;
+  NODE x;
   MARPA_AVL_TREE tree = TREE_of_AVL_TRAV(trav);
 
   assert (trav != NULL);
@@ -304,7 +307,7 @@ _marpa_avl_t_first (AVL_TRAV trav)
 void *
 _marpa_avl_t_last (AVL_TRAV trav)
 {
-  struct marpa_avl_node *x;
+  NODE x;
   MARPA_AVL_TREE tree = TREE_of_AVL_TRAV(trav);
 
   assert (trav != NULL);
@@ -330,7 +333,7 @@ _marpa_avl_t_last (AVL_TRAV trav)
 void *
 _marpa_avl_t_find (AVL_TRAV trav, void *item)
 {
-  struct marpa_avl_node *p, *q;
+  NODE p, q;
   MARPA_AVL_TREE tree = TREE_of_AVL_TRAV(trav);
 
   assert (trav != NULL && item != NULL);
@@ -376,7 +379,7 @@ _marpa_avl_t_insert ( AVL_TRAV trav, void *item)
     {
       trav->avl_table = tree;
       trav->avl_node =
-        ((struct marpa_avl_node *)
+        ((NODE )
          ((char *) p - offsetof (struct marpa_avl_node, avl_data)));
       trav->avl_generation = tree->avl_generation - 1;
       return *p;
@@ -416,7 +419,7 @@ _marpa_avl_t_copy (struct marpa_avl_traverser *trav, const struct marpa_avl_trav
 void *
 _marpa_avl_t_next (AVL_TRAV trav)
 {
-  struct marpa_avl_node *x;
+  NODE x;
 
   assert (trav != NULL);
 
@@ -443,7 +446,7 @@ _marpa_avl_t_next (AVL_TRAV trav)
     }
   else
     {
-      struct marpa_avl_node *y;
+      NODE y;
 
       do
         {
@@ -469,7 +472,7 @@ _marpa_avl_t_next (AVL_TRAV trav)
 void *
 _marpa_avl_t_prev (AVL_TRAV trav)
 {
-  struct marpa_avl_node *x;
+  NODE x;
 
   assert (trav != NULL);
 
@@ -496,7 +499,7 @@ _marpa_avl_t_prev (AVL_TRAV trav)
     }
   else
     {
-      struct marpa_avl_node *y;
+      NODE y;
 
       do
         {

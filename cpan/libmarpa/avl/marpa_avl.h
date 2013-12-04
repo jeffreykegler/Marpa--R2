@@ -35,6 +35,14 @@ typedef int marpa_avl_comparison_func (const void *avl_a, const void *avl_b,
 typedef void marpa_avl_item_func (void *avl_item, void *avl_param);
 typedef void *marpa_avl_copy_func (void *avl_item, void *avl_param);
 
+/* An AVL tree node. */
+struct marpa_avl_node
+  {
+    struct marpa_avl_node *avl_link[2];  /* Subtrees. */
+    void *avl_data;                /* Pointer to data. */
+    signed char avl_balance;       /* Balance factor. */
+  };
+
 /* Tree data structure. */
 struct marpa_avl_table
   {
@@ -46,15 +54,6 @@ struct marpa_avl_table
     unsigned long avl_generation;       /* Generation number. */
   };
 typedef struct marpa_avl_table* MARPA_AVL_TREE;
-
-/* An AVL tree node. */
-struct marpa_avl_node
-  {
-    struct marpa_avl_node *avl_link[2];  /* Subtrees. */
-    void *avl_data;                /* Pointer to data. */
-    signed char avl_balance;       /* Balance factor. */
-  };
-typedef struct marpa_avl_node* NODE;
 
 /* Maximum AVL tree height. */
 #ifndef MARPA_AVL_MAX_HEIGHT
