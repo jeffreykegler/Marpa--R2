@@ -15046,7 +15046,10 @@ PRIVATE size_t matrix_sizeof(unsigned int rows, unsigned int columns)
 
 @*0 Create a boolean matrix on an obstack.
 @ @<Function definitions@> =
-PRIVATE Bit_Matrix matrix_obs_create(struct marpa_obstack *obs, unsigned int rows, unsigned int columns)
+PRIVATE Bit_Matrix matrix_obs_create(
+  struct marpa_obstack *obs,
+  unsigned int rows,
+  unsigned int columns)
 {
   Bit_Matrix matrix_addr =
     marpa_obs_alloc (obs, matrix_sizeof (rows, columns));
