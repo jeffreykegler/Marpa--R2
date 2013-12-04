@@ -24,16 +24,16 @@
  * http://www.gnu.org/licenses/.
  */
 
-#ifndef AVL_H
-#define AVL_H 1
+#ifndef MARPA_AVL_H
+#define MARPA_AVL_H 1
 
 #include <stddef.h>
 
 /* Function types. */
-typedef int avl_comparison_func (const void *avl_a, const void *avl_b,
+typedef int marpa_avl_comparison_func (const void *avl_a, const void *avl_b,
                                  void *avl_param);
-typedef void avl_item_func (void *avl_item, void *avl_param);
-typedef void *avl_copy_func (void *avl_item, void *avl_param);
+typedef void marpa_avl_item_func (void *avl_item, void *avl_param);
+typedef void *marpa_avl_copy_func (void *avl_item, void *avl_param);
 
 /* Maximum AVL tree height. */
 #ifndef AVL_MAX_HEIGHT
@@ -43,8 +43,8 @@ typedef void *avl_copy_func (void *avl_item, void *avl_param);
 /* Tree data structure. */
 struct marpa_avl_table
   {
-    struct avl_node *avl_root;          /* Tree's root. */
-    avl_comparison_func *avl_compare;   /* Comparison function. */
+    struct marpa_avl_node *avl_root;          /* Tree's root. */
+    marpa_avl_comparison_func *avl_compare;   /* Comparison function. */
     void *avl_param;                    /* Extra argument to |avl_compare|. */
     struct marpa_obstack *avl_obstack;
     size_t avl_count;                   /* Number of items in tree. */
@@ -53,35 +53,35 @@ struct marpa_avl_table
 typedef struct marpa_avl_table* AVL_TREE;
 
 /* An AVL tree node. */
-struct avl_node
+struct marpa_avl_node
   {
-    struct avl_node *avl_link[2];  /* Subtrees. */
+    struct marpa_avl_node *avl_link[2];  /* Subtrees. */
     void *avl_data;                /* Pointer to data. */
     signed char avl_balance;       /* Balance factor. */
   };
-typedef struct avl_node* NODE;
+typedef struct marpa_avl_node* NODE;
 
 /* AVL traverser structure. */
-struct avl_traverser
+struct marpa_avl_traverser
   {
     AVL_TREE avl_table;        /* Tree being traversed. */
-    struct avl_node *avl_node;          /* Current node in tree. */
-    struct avl_node *avl_stack[AVL_MAX_HEIGHT];
+    struct marpa_avl_node *avl_node;          /* Current node in tree. */
+    struct marpa_avl_node *avl_stack[AVL_MAX_HEIGHT];
                                         /* All the nodes above |avl_node|. */
     size_t avl_height;                  /* Number of nodes in |avl_parent|. */
     unsigned long avl_generation;       /* Generation number. */
   };
-typedef struct avl_traverser* AVL_TRAV;
+typedef struct marpa_avl_traverser* AVL_TRAV;
 
 #define TREE_of_AVL_TRAV(trav) ((trav)->avl_table)
 #define DATA_of_AVL_TRAV(trav) ((trav)->avl_node ? (trav)->avl_node->avl_data : NULL)
 #define AVL_OBSTACK(table) ((table)->avl_obstack)
 
 /* Table functions. */
-AVL_TREE _marpa_avl_create (avl_comparison_func *, void *,
+AVL_TREE _marpa_avl_create (marpa_avl_comparison_func *, void *,
                               int alignment);
-AVL_TREE _marpa_avl_copy (const AVL_TREE , avl_copy_func *,
-                            avl_item_func *, int alignment);
+AVL_TREE _marpa_avl_copy (const AVL_TREE , marpa_avl_copy_func *,
+                            marpa_avl_item_func *, int alignment);
 void _marpa_avl_destroy (AVL_TREE );
 void **_marpa_avl_probe (AVL_TREE , void *);
 void *_marpa_avl_insert (AVL_TREE , void *);
@@ -96,7 +96,7 @@ AVL_TRAV _marpa_avl_t_reset (AVL_TRAV );
 void *_marpa_avl_t_first (AVL_TRAV );
 void *_marpa_avl_t_last ( AVL_TRAV );
 void *_marpa_avl_t_find ( AVL_TRAV , void *);
-void *_marpa_avl_t_copy (struct avl_traverser *, const struct avl_traverser *);
+void *_marpa_avl_t_copy (struct marpa_avl_traverser *, const struct marpa_avl_traverser *);
 void *_marpa_avl_t_next (AVL_TRAV);
 void *_marpa_avl_t_prev (AVL_TRAV);
 void *_marpa_avl_t_cur (AVL_TRAV);

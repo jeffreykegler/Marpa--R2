@@ -34,13 +34,13 @@
 #include "marpa_avl.h"
 
 static const int minimum_alignment =
-  MAX ((int) alignof (struct avl_node), alignof (struct avl_traverser));
+  MAX ((int) alignof (struct marpa_avl_node), alignof (struct marpa_avl_traverser));
 
 /* Creates and returns a new table
    with comparison function |compare| using parameter |param|.
    */
 AVL_TREE 
-_marpa_avl_create (avl_comparison_func *compare, void *param,
+_marpa_avl_create (marpa_avl_comparison_func *compare, void *param,
             int requested_alignment)
 {
   AVL_TREE tree;
@@ -65,7 +65,7 @@ _marpa_avl_create (avl_comparison_func *compare, void *param,
 void *
 _marpa_avl_find (const AVL_TREE tree, const void *item)
 {
-  const struct avl_node *p;
+  const struct marpa_avl_node *p;
 
   assert (tree != NULL && item != NULL);
   for (p = tree->avl_root; p != NULL; )
@@ -90,10 +90,10 @@ _marpa_avl_find (const AVL_TREE tree, const void *item)
 void **
 _marpa_avl_probe (AVL_TREE tree, void *item)
 {
-  struct avl_node *y, *z; /* Top node to update balance factor, and parent. */
-  struct avl_node *p, *q; /* Iterator, and parent. */
-  struct avl_node *n;     /* Newly inserted node. */
-  struct avl_node *w;     /* New root of rebalanced subtree. */
+  struct marpa_avl_node *y, *z; /* Top node to update balance factor, and parent. */
+  struct marpa_avl_node *p, *q; /* Iterator, and parent. */
+  struct marpa_avl_node *n;     /* Newly inserted node. */
+  struct marpa_avl_node *w;     /* New root of rebalanced subtree. */
   int dir;                /* Direction to descend. */
 
   unsigned char da[AVL_MAX_HEIGHT]; /* Cached comparison results. */
@@ -101,7 +101,7 @@ _marpa_avl_probe (AVL_TREE tree, void *item)
 
   assert (tree != NULL && item != NULL);
 
-  z = (struct avl_node *) &tree->avl_root;
+  z = (struct marpa_avl_node *) &tree->avl_root;
   y = tree->avl_root;
   dir = 0;
   for (q = z, p = y; p != NULL; q = p, p = p->avl_link[dir])
@@ -132,7 +132,7 @@ _marpa_avl_probe (AVL_TREE tree, void *item)
 
   if (y->avl_balance == -2)
     {
-      struct avl_node *x = y->avl_link[0];
+      struct marpa_avl_node *x = y->avl_link[0];
       if (x->avl_balance == -1)
         {
           w = x;
@@ -159,7 +159,7 @@ _marpa_avl_probe (AVL_TREE tree, void *item)
     }
   else if (y->avl_balance == +2)
     {
-      struct avl_node *x = y->avl_link[1];
+      struct marpa_avl_node *x = y->avl_link[1];
       if (x->avl_balance == +1)
         {
           w = x;
@@ -222,7 +222,7 @@ _marpa_avl_replace (AVL_TREE table, void *item)
 /* Refreshes the stack of parent pointers in |trav|
    and updates its generation number. */
 static void
-trav_refresh (struct avl_traverser *trav)
+trav_refresh (struct marpa_avl_traverser *trav)
 {
   assert (trav != NULL);
 
@@ -230,10 +230,10 @@ trav_refresh (struct avl_traverser *trav)
 
   if (trav->avl_node != NULL)
     {
-      avl_comparison_func *cmp = trav->avl_table->avl_compare;
+      marpa_avl_comparison_func *cmp = trav->avl_table->avl_compare;
       void *param = trav->avl_table->avl_param;
-      struct avl_node *node = trav->avl_node;
-      struct avl_node *i;
+      struct marpa_avl_node *node = trav->avl_node;
+      struct marpa_avl_node *i;
 
       trav->avl_height = 0;
       for (i = trav->avl_table->avl_root; i != node; )
@@ -262,7 +262,7 @@ static inline void trav_reset(AVL_TRAV trav)
 AVL_TRAV _marpa_avl_t_init (AVL_TREE tree)
 {
   const AVL_TRAV trav
-    = marpa_obs_new (AVL_OBSTACK (tree), struct avl_traverser, 1);
+    = marpa_obs_new (AVL_OBSTACK (tree), struct marpa_avl_traverser, 1);
   trav->avl_table = tree;
   trav_reset(trav);
   return trav;
@@ -281,7 +281,7 @@ AVL_TRAV _marpa_avl_t_reset (AVL_TRAV trav)
 void *
 _marpa_avl_t_first (AVL_TRAV trav)
 {
-  struct avl_node *x;
+  struct marpa_avl_node *x;
   AVL_TREE tree = TREE_of_AVL_TRAV(trav);
 
   assert (trav != NULL);
@@ -304,7 +304,7 @@ _marpa_avl_t_first (AVL_TRAV trav)
 void *
 _marpa_avl_t_last (AVL_TRAV trav)
 {
-  struct avl_node *x;
+  struct marpa_avl_node *x;
   AVL_TREE tree = TREE_of_AVL_TRAV(trav);
 
   assert (trav != NULL);
@@ -330,7 +330,7 @@ _marpa_avl_t_last (AVL_TRAV trav)
 void *
 _marpa_avl_t_find (AVL_TRAV trav, void *item)
 {
-  struct avl_node *p, *q;
+  struct marpa_avl_node *p, *q;
   AVL_TREE tree = TREE_of_AVL_TRAV(trav);
 
   assert (trav != NULL && item != NULL);
@@ -376,8 +376,8 @@ _marpa_avl_t_insert ( AVL_TRAV trav, void *item)
     {
       trav->avl_table = tree;
       trav->avl_node =
-        ((struct avl_node *)
-         ((char *) p - offsetof (struct avl_node, avl_data)));
+        ((struct marpa_avl_node *)
+         ((char *) p - offsetof (struct marpa_avl_node, avl_data)));
       trav->avl_generation = tree->avl_generation - 1;
       return *p;
     }
@@ -390,7 +390,7 @@ _marpa_avl_t_insert ( AVL_TRAV trav, void *item)
 
 /* Initializes |trav| to have the same current node as |src|. */
 void *
-_marpa_avl_t_copy (struct avl_traverser *trav, const struct avl_traverser *src)
+_marpa_avl_t_copy (struct marpa_avl_traverser *trav, const struct marpa_avl_traverser *src)
 {
   assert (trav != NULL && src != NULL);
 
@@ -416,7 +416,7 @@ _marpa_avl_t_copy (struct avl_traverser *trav, const struct avl_traverser *src)
 void *
 _marpa_avl_t_next (AVL_TRAV trav)
 {
-  struct avl_node *x;
+  struct marpa_avl_node *x;
 
   assert (trav != NULL);
 
@@ -443,7 +443,7 @@ _marpa_avl_t_next (AVL_TRAV trav)
     }
   else
     {
-      struct avl_node *y;
+      struct marpa_avl_node *y;
 
       do
         {
@@ -469,7 +469,7 @@ _marpa_avl_t_next (AVL_TRAV trav)
 void *
 _marpa_avl_t_prev (AVL_TRAV trav)
 {
-  struct avl_node *x;
+  struct marpa_avl_node *x;
 
   assert (trav != NULL);
 
@@ -496,7 +496,7 @@ _marpa_avl_t_prev (AVL_TRAV trav)
     }
   else
     {
-      struct avl_node *y;
+      struct marpa_avl_node *y;
 
       do
         {
@@ -529,7 +529,7 @@ _marpa_avl_t_cur (AVL_TRAV trav)
    |trav| must not have the null item selected.
    The new item must not upset the ordering of the tree. */
 void *
-_marpa_avl_t_replace (struct avl_traverser *trav, void *new)
+_marpa_avl_t_replace (struct marpa_avl_traverser *trav, void *new)
 {
   void *old;
 
