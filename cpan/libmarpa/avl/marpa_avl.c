@@ -33,7 +33,7 @@
 #include "marpa_util.h"
 #include "avl.h"
 
-const int minimum_alignment =
+static const int minimum_alignment =
   MAX ((int) alignof (struct avl_node), alignof (struct avl_traverser));
 
 /* Creates and returns a new table
