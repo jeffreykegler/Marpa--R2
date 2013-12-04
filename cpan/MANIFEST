@@ -116,8 +116,6 @@ libmarpa/dev/texi2code.pl
 libmarpa/dev/w2private_h.pl
 libmarpa_dist/aclocal.m4
 libmarpa_dist/AUTHORS
-libmarpa_dist/marpa_avl.c
-libmarpa_dist/marpa_avl.h
 libmarpa_dist/ChangeLog
 libmarpa_dist/codes.c
 libmarpa_dist/codes.h
@@ -139,6 +137,8 @@ libmarpa_dist/m4/ltversion.m4
 libmarpa_dist/Makefile.am
 libmarpa_dist/Makefile.in
 libmarpa_dist/marpa_api.h
+libmarpa_dist/marpa_avl.c
+libmarpa_dist/marpa_avl.h
 libmarpa_dist/marpa.c
 libmarpa_dist/marpa.h
 libmarpa_dist/marpa_obs.c
@@ -329,6 +329,7 @@ t/sl_prefix.t
 t/sl_rank.t
 t/sl_syn.t
 t/sl_taint.t
+t/sl_timeflies.t
 t/sl_topsyn.t
 t/sl_wall.t
 t/stuifzand.t
