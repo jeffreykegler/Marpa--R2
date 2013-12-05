@@ -50,7 +50,7 @@ CTANGLE = ctangle
 
 all: marpa_ami.pdf sources
 
-sources: marpa_ami.c marpa_ami.h
+sources: marpa_ami.c marpa_ami.h ami_private.h
 
 copyright_page_license.w: ../dev/copyright_page_license.w
 	cp $? $@
@@ -61,6 +61,13 @@ marpa_ami.h marpa_ami.c: copyright_page_license.w marpa_ami.w
 cwebmac.tex: ../dev/cwebmac.tex
 	cp $? $@
 
-marpa_ami.pdf: marpa_ami.tex cwebmac.tex copyright_page_license.w
+marpa_ami.tex: cwebmac.tex copyright_page_license.w
 
+marpa_ami.pdf: marpa_ami.tex
+
+w2private_h.pl: ../dev/w2private_h.pl
+	cp $? $@
+
+ami_private.h: marpa_ami.w w2private_h.pl
+	perl w2private_h.pl ami_private.h < marpa_ami.w
 

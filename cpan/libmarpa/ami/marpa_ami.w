@@ -185,24 +185,6 @@ Marpa has no globals as of this writing.
 For thread-safety, among other reasons,
 I'll try to keep it that way.
 
-@** Coding conventions.
-
-@*0 External functions.
-
-All libmarpa's external functions,
-begin with the
-prefixes
-|marpa_|
-|_marpa_| or one of their case variants.
-
-
-@*0 External names.
-External Names have |marpa_| or |MARPA_| as their prefix,
-as appropriate under the capitalization conventions.
-Many names begin with one of the major ``objects" of Marpa:
-grammars, recognizers, symbols, etc.
-Names of functions typically end with a verb.
-
 @** Lightweight boolean vectors (LBV).
 These macros and functions assume that the 
 caller remembers the boolean vector's length.
@@ -646,114 +628,6 @@ bv_count (Bit_Vector v)
       count += max - min + 1;
     }
     return count;
-}
-
-@*0 The RHS closure of a vector.
-Despite the fact that they are actually tied closely to their
-use in |libmarpa|, most of the logic of boolean vectors has
-a ``pure math" appearance.
-This routine has a direct connection with the grammar.
-\par
-Several properties of symbols that need to be determined
-have the property that, if
-all the symbols on the RHS of any rule have that property,
-so does its LHS symbol.
-@ The RHS closure looks a lot like the transitive closure,
-but there are several major differences.
-The biggest difference is that
-the RHS closure deals with properties and takes a {\bf vector} to another
-vector;
-the transitive closure is for a relation and takes a transition {\bf matrix}
-to another transition matrix.
-@ There are two properties of the RHS closure to note.
-First, it is reflexive.
-Any symbol in a set is in the RHS closure of that set.
-@ Second, the RHS closure is vacuously true.
-For any RHS closure property,
-every symbol which is on the LHS of an empty rule has that property.
-This means the RHS closure operation can only be used for
-properties which can meaningfully be regarded as vacuously
-true.
-In |libmarpa|, two important symbol properties are
-RHS closure properties:
-the property of being productive,
-and the property of being nullable.
-
-@*0 Produce the RHS closure of a vector.
-This routine takes a symbol vector and a grammar,
-and turns the original vector into the RHS closure of that vector.
-The orignal vector is destroyed.
-@<Function definitions@> =
-PRIVATE void
-rhs_closure (GRAMMAR g, Bit_Vector bv, XRLID ** xrl_list_x_rh_sym)
-{
-  unsigned int min, max, start = 0;
-  Marpa_Symbol_ID *top_of_stack = NULL;
-  FSTACK_DECLARE (stack, XSYID) @;
-  FSTACK_INIT (stack, XSYID, XSY_Count_of_G (g));
-  while (bv_scan (bv, start, &min, &max))
-    {
-      unsigned int xsy_id;
-      for (xsy_id = min; xsy_id <= max; xsy_id++)
-	{
-	  *(FSTACK_PUSH (stack)) = xsy_id;
-	}
-      start = max + 2;
-    }
-  while ((top_of_stack = FSTACK_POP (stack)))
-    {
-      const XSYID xsy_id = *top_of_stack;
-      XRLID *p_xrl = xrl_list_x_rh_sym[xsy_id];
-      const XRLID *p_one_past_rules = xrl_list_x_rh_sym[xsy_id + 1];
-      for (; p_xrl < p_one_past_rules; p_xrl++)
-	{
-	  const XRLID rule_id = *p_xrl;
-	  const XRL rule = XRL_by_ID (rule_id);
-	  int rule_length;
-	  int rh_ix;
-	  const XSYID lhs_id = LHS_ID_of_XRL (rule);
-
-	  const int is_sequence = XRL_is_Sequence (rule);
-
-	  if (bv_bit_test (bv, (unsigned int) lhs_id))
-	    goto NEXT_RULE;
-	  rule_length = Length_of_XRL (rule);
-
-	  /* This works for the present allowed sequence rules --
-	     These currently always allow rules of length 1,
-	     which do not necessarily have a separator, so
-	     that they may be treated like BNF rules of length 1.
-	   */
-	  for (rh_ix = 0; rh_ix < rule_length; rh_ix++)
-	    {
-	      if (!bv_bit_test
-		  (bv, (unsigned int) RHS_ID_of_XRL (rule, rh_ix)))
-		goto NEXT_RULE;
-	    }
-
-	  /* This code is untested, as of this writing.
-	     When rules of minimum size greater than 1 are allowed,
-	     the separator will need to be considered.
-	   */
-	  if (is_sequence && Minimum_of_XRL (rule) >= 2)
-	    {
-	      XSYID separator_id = Separator_of_XRL (rule);
-	      if (separator_id >= 0)
-		{
-		  if (!bv_bit_test (bv, (unsigned int) separator_id))
-		    goto NEXT_RULE;
-		}
-	    }
-
-	  /* If I am here, the bits for the RHS symbols are all
-	   * set, but the one for the LHS symbol is not.
-	   */
-	  bv_bit_set (bv, (unsigned int) lhs_id);
-	  *(FSTACK_PUSH (stack)) = lhs_id;
-	NEXT_RULE:;
-	}
-    }
-  FSTACK_DESTROY (stack);
 }
 
 @** Boolean matrixes.
@@ -1412,237 +1286,6 @@ cil_cmp (const void *ap, const void *bp, void *param @,@, UNUSED)
   return 0;
 }
 
-@** Per-Earley-set list (PSL) code.
-There are several cases where Marpa needs to
-look up a triple $\langle s,s',k \rangle$,
-where $s$ and $s'$ are earlemes, and $0<k<n$,
-where $n$ is a reasonably small constant,
-such as the number of AHFA items.
-Earley items, or-nodes and and-nodes are examples.
-@ Lookup for Earley items needs to be $O(1)$
-to justify Marpa's time complexity claims.
-Setup of the parse
-bocage for evaluation is not
-parsing in the strict sense,
-but makes sense to have it meet the same time complexity claims.
-@
-To obtain $O(1)$,
-Marpa uses a special data structure, the Per-Earley-Set List.
-The Per-Earley-Set Lists rely on the following being true:
-\li It can be arranged so
-that only one $s'$ is being considered at a time,
-so that we are in fact looking up a duple $\langle s,k \rangle$.
-\li In all cases of interest
-we will have pointers available that take
-us directly to all of the
-Earley sets involved,
-so that lookup of the data for an Earley set is $O(1)$.
-\li The value of $k$ is always less than a constant.
-Therefore any reasonable algorithm
-for the search and insertion of $k$ is $O(1)$.
-@ The idea is that each Earley set has a list of values
-for all the keys $k$.
-We arrange to consider only one Earley set $s$ at a time.
-A pointer takes us to the Earley set $s'$ in $O(1)$ time.
-Each Earley set has a list of values indexed by $k$.
-Since this list is of a size less than a constant,
-search and insertion in it is $O(1)$.
-Thus each search and insertion for the triple
-$\langle s,s',k \rangle$ takes $O(1)$ time.
-@ In understanding how the PSL's are used, it is important
-to keep in mind that the PSL's are kept in Earley sets as
-a convenience, and that the semantic relation of the Earley set
-to the data structure being tracked by the PSL is not important
-in the choice of where the PSL goes.
-All data structures tracked by PSL's belong
-semantically more to
-the Earley set of their dot earleme than any other,
-but for the time complexity hack to work,
-that must be held constand while another Earley set is
-the one which varies.
-In the case of Earley items and or-nodes, the varying
-Earley set is the origin.
-In the case of and-nodes, the origin Earley set is also
-held constant, and the Earley set of the middle earleme
-is the variable.
-@ The PSL's are kept in a linked list.
-Each contains |Size_of_PSL| |void *|'s.
-|t_owner| is the address of the location
-that ``owns" this PSL.
-That location will be NULL'ed
-when deallocating.
-@<Private incomplete structures@> =
-struct s_per_earley_set_list;
-typedef struct s_per_earley_set_list *PSL;
-@ @d Sizeof_PSL(psar)
-    (sizeof(PSL_Object) + (psar->t_psl_length - 1) * sizeof(void *))
-@d PSL_Datum(psl, i) ((psl)->t_data[(i)])
-@<Private structures@> =
-struct s_per_earley_set_list {
-    PSL t_prev;
-    PSL t_next;
-    PSL* t_owner;
-    void * t_data[1];
-};
-typedef struct s_per_earley_set_list PSL_Object;
-@ The per-Earley-set lists are allcated from per-Earley-set arenas.
-@<Private incomplete structures@> =
-struct s_per_earley_set_arena;
-typedef struct s_per_earley_set_arena *PSAR;
-@ The ``dot" PSAR is to track earley items whose origin
-or current earleme is at the ``dot" location,
-that is, the current Earley set.
-The ``predict" PSAR
-is to track earley items for predictions
-at locations other than the current earleme.
-The ``predict" PSAR
-is used for predictions which result from
-scanned items.
-Since they are predictions, their current Earley set
-and origin are at the same earleme.
-This earleme will be somewhere after the current earleme.
-@s PSAR_Object int
-@<Private structures@> =
-struct s_per_earley_set_arena {
-      int t_psl_length;
-      PSL t_first_psl;
-      PSL t_first_free_psl;
-};
-typedef struct s_per_earley_set_arena PSAR_Object;
-@ @d Dot_PSAR_of_R(r) (&(r)->t_dot_psar_object)
-@<Widely aligned recognizer elements@> =
-PSAR_Object t_dot_psar_object;
-@ @<Initialize recognizer elements@> =
-  psar_init(Dot_PSAR_of_R(r), AHFA_Count_of_R (r));
-@ @<Destroy recognizer elements@> =
-  psar_destroy(Dot_PSAR_of_R(r));
-@ @<Function definitions@> =
-PRIVATE void
-psar_init (const PSAR psar, int length)
-{
-  psar->t_psl_length = length;
-  psar->t_first_psl = psar->t_first_free_psl = psl_new (psar);
-}
-@ @<Function definitions@> =
-PRIVATE void psar_destroy(const PSAR psar)
-{
-    PSL psl = psar->t_first_psl;
-    while (psl)
-      {
-	PSL next_psl = psl->t_next;
-	PSL *owner = psl->t_owner;
-	if (owner)
-	  *owner = NULL;
-	my_slice_free1 (Sizeof_PSL (psar), psl);
-	psl = next_psl;
-      }
-}
-@ @<Function definitions@> =
-PRIVATE PSL psl_new(const PSAR psar)
-{
-     int i;
-     PSL new_psl = my_slice_alloc(Sizeof_PSL(psar));
-     new_psl->t_next = NULL;
-     new_psl->t_prev = NULL;
-     new_psl->t_owner = NULL;
-    for (i = 0; i < psar->t_psl_length; i++) {
-	PSL_Datum(new_psl, i) = NULL;
-    }
-     return new_psl;
-}
-@
-{\bf To Do}: @^To Do@>
-This is temporary data
-and perhaps should be keep track of on a per-phase
-obstack.
-@d Dot_PSL_of_ES(es) ((es)->t_dot_psl)
-@<Widely aligned Earley set elements@> =
-    PSL t_dot_psl;
-@ @<Initialize Earley set@> =
-{ set->t_dot_psl = NULL; }
-
-@ A PSAR reset nulls out the data in the PSL's.
-It is a moderately expensive operation, usually
-avoided by having the logic check for ``stale" data.
-But when the PSAR is needed for a
-a different type of PSL data,
-one which will require different stale-detection logic,
-the old PSL data need to be nulled.
-@<Function definitions@> =
-PRIVATE void psar_reset(const PSAR psar)
-{
-    PSL psl = psar->t_first_psl;
-    while (psl && psl->t_owner) {
-	int i;
-	for (i = 0; i < psar->t_psl_length; i++) {
-	    PSL_Datum(psl, i) = NULL;
-	}
-	psl = psl->t_next;
-    }
-    psar_dealloc(psar);
-}
-
-@ A PSAR dealloc removes an owner's claim to the all of
-its PSLs,
-and puts them back on the free list.
-It does {\bf not} null out the stale PSL items.
-@ @<Function definitions@> =
-PRIVATE void psar_dealloc(const PSAR psar)
-{
-    PSL psl = psar->t_first_psl;
-    while (psl) {
-	PSL* owner = psl->t_owner;
-	if (!owner) break;
-	(*owner) = NULL;
-	psl->t_owner = NULL;
-	psl = psl->t_next;
-    }
-     psar->t_first_free_psl = psar->t_first_psl;
-}
-
-@ This function ``claims" a PSL.
-The address of the claimed PSL and the PSAR
-from which to claim it are arguments.
-The caller must ensure that
-there is not a PSL already
-at the claiming address.
-@ @<Function definitions@> =
-PRIVATE void psl_claim(
-    PSL* const psl_owner, const PSAR psar)
-{
-     PSL new_psl = psl_alloc(psar);
-     (*psl_owner) = new_psl;
-     new_psl->t_owner = psl_owner;
-}
-
-@ @<Claim the or-node PSL for |PSL_ES_ORD| as |CLAIMED_PSL|@> =
-{
-      PSL *psl_owner = &per_es_data[PSL_ES_ORD].t_or_psl;
-      if (!*psl_owner)
-	psl_claim (psl_owner, or_psar);
-      (CLAIMED_PSL) = *psl_owner;
-}
-#undef PSL_ES_ORD
-#undef CLAIMED_PSL
-
-@ This function ``allocates" a PSL.
-It gets a free PSL from the PSAR.
-There must always be at least one free PSL in a PSAR.
-This function replaces the allocated PSL with
-a new free PSL when necessary.
-@<Function definitions@> =
-PRIVATE PSL psl_alloc(const PSAR psar)
-{
-    PSL free_psl = psar->t_first_free_psl;
-    PSL next_psl = free_psl->t_next;
-    if (!next_psl) {
-        next_psl = free_psl->t_next = psl_new(psar);
-	next_psl->t_prev = free_psl;
-    }
-    psar->t_first_free_psl = next_psl;
-    return free_psl;
-}
-
 @** Memory allocation.
 
 @*0 Memory allocation failures.
@@ -1686,59 +1329,6 @@ are allocated on these as the grammar object is built.
 All these allocations are are conveniently and quickly deallocated when
 the grammar's obstack is destroyed along with its parent grammar.
 
-@*0 Why the obstacks are renamed.
-Regretfully, I realized I simply could not simply include the
-GNU obstacks, because of three obstacles.
-First, the error handling is not thread-safe.  In fact,
-since it relies on a global error handler, it is not even
-safe for use by multiple libraries within one thread.
-Since
-the obstack ``error handling" consisted of exactly one
-``out of memory" message, which Marpa will never use because
-it uses |my_malloc|, this risk comes at no benefit whatsoever.
-Removing the error handling was far easier than leaving it
-in.
-
-@ Second, there were also portability complications
-caused by the unneeded features of obstacks.
-\li The GNU obtacks had a complex set of |ifdef|'s intended
-to allow the same code to be part of GNU libc,
-or not part of it, and the portability aspect of these
-was daunting.
-\li GNU obstack's lone error message was dragging in
-GNU's internationalization.
-(|libmarpa| avoids internationalization by leaving all
-messaging and naming to the higher layers.)
-It was far easier to rip out these features than to
-deal with the issues they raised,
-especially the portability
-issues.
-
-@ Third, if I did choose to try to use GNU obstacks in its
-original form, |libmarpa| would have to deal with issues
-of interposing identical function names in the linking process.
-I aim at portability, even to systems that I have no
-direct access to.
-This is, of course, a real challenge when
-it comes to debugging.
-It was not cheering to think of the prospect
-of multiple
-libraries with obstack functions being resolved by the linkers
-of widely different systems.
-If, for example, a function that I intended to be used was not the
-one linked, the bug would usually be a silent one.
-
-@ Porting to systems with no native obstack meant that I was
-already in the business of maintaining my own obstacks code,
-whether I liked it or not.
-The only reasonable alternative seemed to be
-to create my own version of obstacks,
-essentially copying the GNU implementation,
-but eliminating the unnecessary
-but problematic features.
-Namespace issues could then be dealt with by
-renaming the external functions.
-
 @*0 Memory allocation.
 libmarpa wrappers the standard memory functions
 to provide more convenient behaviors.
@@ -1751,7 +1341,7 @@ the C89 default |malloc| and |free|.
 At some point I may allow the user to override
 these choices.
 
-@<Utility static functions@> =
+@<Ami static inline functions@> =
 static inline
 void my_free (void *p)
 {
@@ -1760,7 +1350,7 @@ void my_free (void *p)
 
 @ The macro is defined because it is sometimes needed
 to force inlining.
-@<Utility static functions@> =
+@<Ami static inline functions@> =
 #define MALLOC_VIA_TEMP(size, temp) \
   (UNLIKELY(!((temp) = malloc(size))) ? (*_marpa_out_of_memory)() : (temp))
 static inline
@@ -1791,9 +1381,7 @@ my_realloc(void *p, size_t size)
    return my_malloc(size);
 }
 
-@ These do {\bf not} protect against overflow.
-Where necessary, the caller must do that.
-@<Utility macros@> =
+@ @<Utility macros@> =
 #define my_new(type, count) ((type *)my_malloc((sizeof(type)*(count))))
 #define my_renew(type, p, count) \
     ((type *)my_realloc((p), (sizeof(type)*(count))))
@@ -1952,12 +1540,76 @@ So I add such a comment.
 #ifndef __MARPA_AMI_H__
 #define __MARPA_AMI_H__
 
-@<Utility macros@>
-@<Debug macros@>
-@<Utility variables@>
-@<Utility static functions@>
+@<Utility macros@>@;
+@<Debug macros@>@;
+@<Utility variables@>@;
+@<Ami static inline functions@>@;
+@<Public function prototypes@>@;
 
-#endif /* |__MARPA__AMI_H__| */
+#endif /* |__MARPA_AMI_H__| */
 
+@*0 |marpa_ami.c| layout.
+@q This is a hack to get the @>
+@q license language nearer the top of the files. @>
+@ The physical structure of the |marpa_ami.c| file
+\tenpoint
+@c
+@=/*@>@/
+@= * Copyright 2013 Jeffrey Kegler@>@/
+@= * This file is part of Marpa::R2.  Marpa::R2 is free software: you can@>@/
+@= * redistribute it and/or modify it under the terms of the GNU Lesser@>@/
+@= * General Public License as published by the Free Software Foundation,@>@/
+@= * either version 3 of the License, or (at your option) any later version.@>@/
+@= *@>@/
+@= * Marpa::R2 is distributed in the hope that it will be useful,@>@/
+@= * but WITHOUT ANY WARRANTY; without even the implied warranty of@>@/
+@= * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU@>@/
+@= * Lesser General Public License for more details.@>@/
+@= *@>@/
+@= * You should have received a copy of the GNU Lesser@>@/
+@= * General Public License along with Marpa::R2.  If not, see@>@/
+@= * http://www.gnu.org/licenses/.@>@/
+@= */@>@/
+@=/*@>@/
+@= * DO NOT EDIT DIRECTLY@>@/
+@= * This file is written by ctangle@>@/
+@= * It is not intended to be modified directly@>@/
+@= */@>@/
+
+@ \twelvepoint @c
+#include "config.h"
+#include "marpa.h"
+#include <stddef.h>
+#include <limits.h>
+#include <string.h>
+#include <stdlib.h>
+
+#ifndef MARPA_DEBUG
+#define MARPA_DEBUG 0
+#endif
+
+#if MARPA_DEBUG
+#include <stdarg.h>
+#include <stdio.h>
+#endif
+
+#include "marpa_int.h"
+#include "marpa_ami.h"
+
+@h
+
+@<Global variables@>@;
+@<Private incomplete structures@>@;
+@<Private structures@>@;
+@<Private typedefs@>@;
+@<Private utility structures@>@;
+
+#if MARPA_DEBUG
+@<Debug function definitions@>@;
+#endif
+
+#include "ami_private.h"
+
+@<Function definitions@>@;
 @** Index.
 

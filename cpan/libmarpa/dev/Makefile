@@ -50,7 +50,7 @@ CTANGLE = ctangle
 
 all: marpa.pdf sources
 
-sources: marpa.c marpa.h marpa_util.h marpa_api.h codes.h codes.c private.h
+sources: marpa.c marpa.h marpa_int.h marpa_util.h marpa_api.h codes.h codes.c private.h
 
 marpa.h marpa.c: copyright_page_license.w marpa.w
 	$(CTANGLE) marpa.w

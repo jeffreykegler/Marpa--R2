@@ -653,7 +653,7 @@ Marpa_Grammar marpa_g_new (Marpa_Config* configuration)
         configuration->t_error = MARPA_ERR_I_AM_NOT_OK;
 	return NULL;
     }
-    g = my_slice_new(struct marpa_g);
+    g = my_malloc(sizeof(struct marpa_g));
     /* \comment Set |t_is_ok| to a bad value, just in case */
     g->t_is_ok = 0;
     @<Initialize grammar elements@>@;
@@ -708,7 +708,7 @@ PRIVATE
 void grammar_free(GRAMMAR g)
 {
     @<Destroy grammar elements@>@;
-    my_slice_free(struct marpa_g, g);
+    my_free(g);
 }
 
 @*0 The grammar's symbol list.
@@ -6705,7 +6705,7 @@ struct s_input {
 @ @<Function definitions@> =
 PRIVATE INPUT input_new (GRAMMAR g)
 {
-  INPUT input = my_slice_new (struct s_input);
+  INPUT input = my_malloc (sizeof(struct s_input));
   TOK_Obs_of_I (input) = marpa_obs_init;
   @<Initialize input elements@>@;
   return input;
@@ -6748,7 +6748,7 @@ guarantee that it is safe to destroy it.
 PRIVATE void input_free(INPUT input)
 {
     marpa_obs_free(TOK_Obs_of_I(input));
-    my_slice_free(struct s_input, input);
+    my_free( input);
 }
 
 @*0 Token obstack.
@@ -6807,7 +6807,7 @@ Marpa_Recognizer marpa_r_new( Marpa_Grammar g )
     @<Return |NULL| on failure@>@;
     @<Fail if not precomputed@>@;
     isy_count = ISY_Count_of_G(g);
-    r = my_slice_new(struct marpa_r);
+    r = my_malloc(sizeof(struct marpa_r));
     @<Initialize recognizer obstack@>@;
     @<Initialize recognizer elements@>@;
    return r;
@@ -6859,7 +6859,7 @@ void recce_free(struct marpa_r *r)
     @<Destroy recognizer elements@>@;
     grammar_unref(g);
     @<Destroy recognizer obstack@>@;
-    my_slice_free(struct marpa_r, r);
+    my_free( r);
 }
 
 @*0 Base objects.
@@ -12771,7 +12771,7 @@ Marpa_Order marpa_o_new(Marpa_Bocage b)
     @<Unpack bocage objects@>@;
     ORDER o;
     @<Fail if fatal error@>@;
-    o = my_slice_new(*o);
+    o = my_malloc(sizeof(*o));
     B_of_O(o) = b;
     bocage_ref(b);
     @<Pre-initialize order elements@>@;
@@ -12824,7 +12824,7 @@ PRIVATE void order_free(ORDER o)
   @<Unpack order objects@>@;
   bocage_unref(b);
   marpa_obs_free(OBS_of_O(o));
-  my_slice_free(*o, o);
+  my_free( o);
 }
 
 @ @<Unpack order objects@> =
@@ -13248,7 +13248,7 @@ Marpa_Tree marpa_t_new(Marpa_Order o)
     TREE t;
     @<Unpack order objects@>@;
     @<Fail if fatal error@>@;
-    t = my_slice_new(*t);
+    t = my_malloc(sizeof(*t));
     O_of_T(t) = o;
     order_ref(o);
     O_is_Frozen(o) = 1;
@@ -13322,7 +13322,7 @@ PRIVATE void tree_free(TREE t)
 {
     order_unref(O_of_T(t));
     tree_exhaust(t);
-    my_slice_free(*t, t);
+    my_free( t);
 }
 
 @*0 Tree pause counting.
@@ -15758,7 +15758,7 @@ PRIVATE void psar_destroy(const PSAR psar)
 	PSL *owner = psl->t_owner;
 	if (owner)
 	  *owner = NULL;
-	my_slice_free1 (Sizeof_PSL (psar), psl);
+	my_free ( psl);
 	psl = next_psl;
       }
 }
@@ -15766,7 +15766,7 @@ PRIVATE void psar_destroy(const PSAR psar)
 PRIVATE PSL psl_new(const PSAR psar)
 {
      int i;
-     PSL new_psl = my_slice_alloc(Sizeof_PSL(psar));
+     PSL new_psl = my_malloc(Sizeof_PSL(psar));
      new_psl->t_next = NULL;
      new_psl->t_prev = NULL;
      new_psl->t_owner = NULL;
@@ -15899,7 +15899,8 @@ Indirect use comes via obstacks.
 Obstacks are more efficient, but 
 limit the ability to resize memory,
 and to control the lifetime of the memory.
-@ Obstacks are widely used inside |libmarpa|.
+@ Marpa makes extensive use of its own implementation of obstacks.
+Marpa's obstacks are based on ideas that originate with GNU's obstacks.
 Much of the memory allocated in |libmarpa| is
 \li In individual allocations less than 4K, often considerable less.
 \li Once created, are kept for the entire life of the either the grammar or the recognizer.
@@ -15910,133 +15911,6 @@ Small allocations needed for the lifetime of the grammar
 are allocated on these as the grammar object is built.
 All these allocations are are conveniently and quickly deallocated when
 the grammar's obstack is destroyed along with its parent grammar.
-
-@*0 Why the obstacks are renamed.
-Regretfully, I realized I simply could not simply include the
-GNU obstacks, because of three obstacles.
-First, the error handling is not thread-safe.  In fact,
-since it relies on a global error handler, it is not even
-safe for use by multiple libraries within one thread.
-Since
-the obstack ``error handling" consisted of exactly one
-``out of memory" message, which Marpa will never use because
-it uses |my_malloc|, this risk comes at no benefit whatsoever.
-Removing the error handling was far easier than leaving it
-in.
-
-@ Second, there were also portability complications
-caused by the unneeded features of obstacks.
-\li The GNU obtacks had a complex set of |ifdef|'s intended
-to allow the same code to be part of GNU libc,
-or not part of it, and the portability aspect of these
-was daunting.
-\li GNU obstack's lone error message was dragging in
-GNU's internationalization.
-(|libmarpa| avoids internationalization by leaving all
-messaging and naming to the higher layers.)
-It was far easier to rip out these features than to
-deal with the issues they raised,
-especially the portability
-issues.
-
-@ Third, if I did choose to try to use GNU obstacks in its
-original form, |libmarpa| would have to deal with issues
-of interposing identical function names in the linking process.
-I aim at portability, even to systems that I have no
-direct access to.
-This is, of course, a real challenge when
-it comes to debugging.
-It was not cheering to think of the prospect
-of multiple
-libraries with obstack functions being resolved by the linkers
-of widely different systems.
-If, for example, a function that I intended to be used was not the
-one linked, the bug would usually be a silent one.
-
-@ Porting to systems with no native obstack meant that I was
-already in the business of maintaining my own obstacks code,
-whether I liked it or not.
-The only reasonable alternative seemed to be
-to create my own version of obstacks,
-essentially copying the GNU implementation,
-but eliminating the unnecessary
-but problematic features.
-Namespace issues could then be dealt with by
-renaming the external functions.
-
-@*0 Memory allocation.
-libmarpa wrappers the standard memory functions
-to provide more convenient behaviors.
-\li The allocators do not return on failed memory allocations.
-\li |my_realloc| is equivalent to |my_malloc| if called with
-a |NULL| pointer.  (This is the GNU C library behavior.)
-@ {\bf To Do}: @^To Do@>
-For the moment, the memory allocators are hard-wired to
-the C89 default |malloc| and |free|.
-At some point I may allow the user to override
-these choices.
-
-@<Utility static functions@> =
-static inline
-void my_free (void *p)
-{
-  free (p);
-}
-
-@ The macro is defined because it is sometimes needed
-to force inlining.
-@<Utility static functions@> =
-#define MALLOC_VIA_TEMP(size, temp) \
-  (UNLIKELY(!((temp) = malloc(size))) ? (*_marpa_out_of_memory)() : (temp))
-static inline
-void* my_malloc(size_t size)
-{
-    void *newmem;
-    return MALLOC_VIA_TEMP(size, newmem);
-}
-
-static inline
-void*
-my_malloc0(size_t size)
-{
-    void* newmem = my_malloc(size);
-    memset (newmem, 0, size);
-    return newmem;
-}
-
-static inline
-void*
-my_realloc(void *p, size_t size)
-{
-   if (LIKELY(p != NULL)) {
-	void *newmem = realloc(p, size);
-	if (UNLIKELY(!newmem)) (*_marpa_out_of_memory)();
-	return newmem;
-   }
-   return my_malloc(size);
-}
-
-@ These do {\bf not} protect against overflow.
-Where necessary, the caller must do that.
-@<Utility macros@> =
-#define my_new(type, count) ((type *)my_malloc((sizeof(type)*(count))))
-#define my_renew(type, p, count) \
-    ((type *)my_realloc((p), (sizeof(type)*(count))))
-
-@*0 Slices.
-I once used the "slice" allocator to handle
-the "middle ground" between the flexibity of the
-system malloc,
-and the efficiency of obstacks.
-But there turned out to not even "middle ground"
-to justify a third memory allocation scheme.
-I now simply
-pass all calls to the "slice" allocator
-on to the system malloc.
-@d my_slice_alloc(size) my_malloc(size)
-@d my_slice_new(x) my_malloc(sizeof(x))
-@d my_slice_free(x, p) my_free(p)
-@d my_slice_free1(size, p) my_free(p)
 
 @** External failure reports.
 Most of
@@ -16248,7 +16122,7 @@ internal matters on |STDERR|.
 |MARPA_DEBUG| is expected to be defined in the |CFLAGS|.
 |MARPA_DEBUG| implies |MARPA_ENABLE_ASSERT|, but not
 vice versa.
-@<Utility macros@> =
+@<Internal macros@> =
 #define MARPA_OFF_DEBUG1(a)
 #define MARPA_OFF_DEBUG2(a, b)
 #define MARPA_OFF_DEBUG3(a, b, c)
@@ -16501,6 +16375,7 @@ So I add such a comment.
 @ \twelvepoint @c
 #include "config.h"
 #include "marpa.h"
+#include "marpa_int.h"
 #include <stddef.h>
 #include <limits.h>
 #include <string.h>
@@ -16516,6 +16391,7 @@ So I add such a comment.
 #endif
 
 #include "marpa_util.h"
+#include "marpa_ami.h"
 @h
 #include "marpa_obs.h"
 #include "marpa_avl.h"
@@ -16577,7 +16453,32 @@ So I add such a comment.
 #include "marpa_api.h"
 #endif /* |__MARPA_H__| */
 
+@*0 |marpa_int.h| layout.
+This contains ``internal'' declarations
+and definitions.
+They allow themselves to intrude on the namespace reserved
+for the application and non-Marpa libraries.
+This makes them suitable only for source files
+in which the namespace is fully controlled
+by the Libmarpa implementor.
+They cannot be used in ``friend'' libraries.
+\tenpoint
+@(marpa_int.h@> =
+@<Header license language@>@;
+
+#ifndef __MARPA_INT_H__
+#define __MARPA_INT_H__
+
+@<Internal macros@>
+
+#endif /* |__MARPA__INT_H__| */
+
 @*0 |marpa_util.h| layout.
+This contains ``utility'' declarations,
+which are in an ill-defined area, such
+as error handling.
+They should be namespace-safe for friend libraries,
+but may be unsuitable for them for other reasons.
 \tenpoint
 @(marpa_util.h@> =
 @<Header license language@>@;
@@ -16585,18 +16486,16 @@ So I add such a comment.
 #ifndef __MARPA_UTIL_H__
 #define __MARPA_UTIL_H__
 
-@<Utility macros@>
 @<Debug macros@>
 @<Utility variables@>
-@<Utility static functions@>
 
-#endif /* |__MARPA__UTIL_H__| */
+#endif /* |__MARPA_UTIL_H__| */
 
 @** Miscellaneous compiler defines.
 Various defines to
 control the compiler behavior
 in various ways or which are otherwise useful.
-@<Utility macros@> =
+@<Internal macros@> =
 
 #if     __GNUC__ > 2 || (__GNUC__ == 2 && __GNUC_MINOR__ > 4)
 #define UNUSED __attribute__((__unused__))

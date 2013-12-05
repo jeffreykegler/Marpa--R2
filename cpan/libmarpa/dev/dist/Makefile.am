@@ -19,12 +19,15 @@ AM_CFLAGS = $(WARNING_CFLAGS) $(MARPA_DEBUG_FLAG)
 AM_CPPFLAGS = $(WARNING_CPPFLAGS)
 ACLOCAL_AMFLAGS = -I m4
 noinst_LTLIBRARIES = libmarpa.la
-libmarpa_la_SOURCES = marpa_obs.c marpa.c marpa_obs.h private.h \
-    marpa_util.h marpa_api.h marpa.h marpa_avl.c marpa_avl.h
+libmarpa_la_SOURCES = marpa_obs.c marpa.c marpa_obs.h \
+    ami_private.h private.h \
+    marpa_util.h marpa_int.h marpa_api.h marpa.h \
+    marpa_avl.c marpa_avl.h \
+    marpa_ami.c marpa_ami.h
 nodist_libmarpa_la_SOURCES = marpa_config.h
 EXTRA_DIST = codes.h codes.c VERSION
 libmarpa_la_LIBADD = $(LIBOBJS)
-include_HEADERS = marpa.h marpa_api.h marpa_util.h
+include_HEADERS = marpa.h marpa_api.h marpa_avl.h marpa_ami.h marpa_obs.h marpa_int.h marpa_util.h
 nodist_include_HEADERS = marpa_config.h
 DISTCLEANFILES = marpa_config.h
 

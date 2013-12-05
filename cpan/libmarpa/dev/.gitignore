@@ -13,4 +13,5 @@
 /marpa[.]toc
 /marpa_api[.]h
 /marpa_util[.]h
+/marpa_int[.]h
 /private[.]h

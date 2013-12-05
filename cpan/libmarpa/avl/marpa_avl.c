@@ -30,7 +30,7 @@
 #include <string.h>
 #include "config.h"
 #include "marpa_obs.h"
-#include "marpa_util.h"
+#include "marpa_int.h"
 #include "marpa_avl.h"
 
 static const int minimum_alignment =

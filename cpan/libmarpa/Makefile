@@ -42,10 +42,14 @@ STAGE_FILES = \
     stage/marpa.h \
     stage/marpa_api.h \
     stage/marpa_util.h \
+    stage/marpa_int.h \
     stage/marpa_obs.c \
     stage/marpa_obs.h \
+    stage/marpa_ami.h \
+    stage/marpa_ami.c \
     stage/marpa_avl.h \
     stage/private.h \
+    stage/ami_private.h \
     stage/marpa_avl.c \
     stage/NEWS \
     stage/VERSION.in \
@@ -86,6 +90,9 @@ stage/marpa.h: dev/marpa.h
 stage/marpa_api.h: dev/marpa_api.h
 	cp $? $@
 
+stage/marpa_int.h: dev/marpa_int.h
+	cp $? $@
+
 stage/marpa_util.h: dev/marpa_util.h
 	cp $? $@
 
@@ -95,6 +102,12 @@ stage/marpa_obs.c: obs/marpa_obs.c
 stage/marpa_obs.h: obs/marpa_obs.h
 	cp $? $@
 
+stage/marpa_ami.c: ami/marpa_ami.c
+	cp $? $@
+
+stage/marpa_ami.h: ami/marpa_ami.h
+	cp $? $@
+
 stage/marpa_avl.c: avl/marpa_avl.c
 	cp $? $@
 
@@ -102,6 +115,9 @@ stage/marpa_avl.h: avl/marpa_avl.h
 	cp $? $@
 
 stage/private.h: dev/private.h
+	cp $? $@
+
+stage/ami_private.h: ami/ami_private.h
 	cp $? $@
 
 stage/README: dev/dist/README
