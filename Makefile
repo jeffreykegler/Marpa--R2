@@ -20,6 +20,7 @@ dummy:
 releng: install full_test
 	cd cpan && ./Build distcheck
 	cd cpan && ./Build dist
+	cd cpan && MARPA_USE_PERL_AUTOCONF=1 ./Build dist
 	git status
 
 basic_test:
