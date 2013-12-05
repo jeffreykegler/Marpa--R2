@@ -176,8 +176,9 @@ that it is useful to define a macro to let me know when inlining is not
 used in a private function.
 @s PRIVATE_NOT_INLINE int
 @s PRIVATE int
-@d PRIVATE_NOT_INLINE static
-@d PRIVATE static inline
+@<Private macros@> =
+#define PRIVATE_NOT_INLINE static
+#define PRIVATE static inline
 
 @*0 Memory allocation.
 libmarpa wrappers the standard memory functions
@@ -198,16 +199,14 @@ void marpa_free (void *p)
   free (p);
 }
 
-@ The macro is defined because it is sometimes needed
-to force inlining.
-@<Friend static inline functions@> =
-#define MALLOC_VIA_TEMP(size, temp) \
-  (UNLIKELY(!((temp) = malloc(size))) ? (*_marpa_out_of_memory)() : (temp))
+@ @<Friend static inline functions@> =
+
 static inline
 void* marpa_malloc(size_t size)
 {
-    void *newmem;
-    return MALLOC_VIA_TEMP(size, newmem);
+    void *newmem = malloc(size);
+    if (UNLIKELY(!newmem)) { (*_marpa_out_of_memory)(); }
+    return newmem;
 }
 
 static inline
@@ -231,10 +230,110 @@ marpa_realloc(void *p, size_t size)
    return marpa_malloc(size);
 }
 
-@ @<Friend macros@> =
-#define marpa_new(type, count) ((type *)marpa_malloc((sizeof(type)*(count))))
-#define marpa_renew(type, p, count) \
+@
+@d marpa_new(type, count) ((type *)marpa_malloc((sizeof(type)*(count))))
+@d marpa_renew(type, p, count) 
     ((type *)marpa_realloc((p), (sizeof(type)*(count))))
+
+@*0 Dynamic stacks.
+|libmarpa| uses stacks and worklists extensively.
+This stack interface resizes itself dynamically.
+There are two disadvantages.
+
+\li There is more overhead ---
+overflow must be checked for with each push,
+and the resizings, while fast, do take time.
+
+\li The stack may be moved after any |MARPA_DSTACK_PUSH|
+operation, making all pointers into it invalid.
+Data must be retrieved from the stack before the
+next |MARPA_DSTACK_PUSH|.
+In the special 2-argument form,
+|MARPA_DSTACK_INIT2|, the stack is initialized
+to a size convenient for the memory allocator.
+{\bf To Do}: @^To Do@>
+Right now this is hard-wired to 1024, but I should
+use the better calculation made by the obstack code.
+@d MARPA_DSTACK_DECLARE(this) struct marpa_dstack_s this
+@d MARPA_DSTACK_INIT(this, type, initial_size)
+(
+    ((this).t_count = 0),
+    ((this).t_base = marpa_new(type, ((this).t_capacity = (initial_size))))
+)
+@d MARPA_DSTACK_INIT2(this, type)
+    MARPA_DSTACK_INIT((this), type, MAX(4, 1024/sizeof(this)))
+
+@ |MARPA_DSTACK_SAFE| is for cases where the dstack is not
+immediately initialized to a useful value,
+and might never be.
+All fields are zeroed so that when the containing object
+is destroyed, the deallocation logic knows that no
+memory has been allocated and therefore no attempt
+to free memory should be made.
+@d MARPA_DSTACK_IS_INITIALIZED(this) ((this).t_base)
+@d MARPA_DSTACK_SAFE(this)
+  (((this).t_count = (this).t_capacity = 0), ((this).t_base = NULL))
+
+@ A stack reinitialized by
+|MARPA_DSTACK_CLEAR| contains 0 elements,
+but has the same capacity as it had before the reinitialization.
+This saves the cost of reallocating the dstack's buffer,
+and leaves its capacity at what is hopefully
+a stable, high-water mark, which will make future
+resizings unnecessary.
+@d MARPA_DSTACK_CLEAR(this) ((this).t_count = 0)
+@d MARPA_DSTACK_PUSH(this, type) (
+      (UNLIKELY((this).t_count >= (this).t_capacity)
+      ? marpa_dstack_resize2(&(this), sizeof(type))
+      : 0),
+     ((type *)(this).t_base+(this).t_count++)
+   )
+@d MARPA_DSTACK_POP(this, type) ((this).t_count <= 0 ? NULL :
+    ( (type*)(this).t_base+(--(this).t_count)))
+@d MARPA_DSTACK_INDEX(this, type, ix) (MARPA_DSTACK_BASE((this), type)+(ix))
+@d MARPA_DSTACK_TOP(this, type) (MARPA_DSTACK_LENGTH(this) <= 0
+   ? NULL
+   : MARPA_DSTACK_INDEX((this), type, MARPA_DSTACK_LENGTH(this)-1))
+@d MARPA_DSTACK_BASE(this, type) ((type *)(this).t_base)
+@d MARPA_DSTACK_LENGTH(this) ((this).t_count)
+@d MARPA_DSTACK_CAPACITY(this) ((this).t_capacity)
+
+@
+|DSTACK|'s can have their data ``stolen", by other containers.
+The |MARPA_STOLEN_DSTACK_DATA_FREE| macro is intended
+to help the ``thief" container
+deallocate the data it now has ``stolen".
+@d MARPA_STOLEN_DSTACK_DATA_FREE(data) (marpa_free(data))
+@d MARPA_DSTACK_DESTROY(this) MARPA_STOLEN_DSTACK_DATA_FREE(this.t_base)
+@s MARPA_DSTACK int
+@<Friend incomplete structures@> =
+struct marpa_dstack_s;
+typedef struct marpa_dstack_s* MARPA_DSTACK;
+@ @<Friend structures@> =
+struct marpa_dstack_s { int t_count; int t_capacity; void * t_base; };
+@ @<Friend function prototypes@> =
+static inline void * marpa_dstack_resize2(struct marpa_dstack_s*, size_t);
+@ @<Friend static inline functions@> =
+static inline void * marpa_dstack_resize2(struct marpa_dstack_s* this, size_t type_bytes)
+{
+    return marpa_dstack_resize(this, type_bytes, this->t_capacity*2);
+}
+
+@ 
+@d MARPA_DSTACK_RESIZE(this, type, new_size) (marpa_dstack_resize((this), sizeof(type), (new_size)))
+@ @<Friend function prototypes@> =
+static inline void * marpa_dstack_resize(struct marpa_dstack_s*, size_t, int);
+@ @<Friend static inline functions@> =
+static inline void * marpa_dstack_resize(struct marpa_dstack_s* this, size_t type_bytes, int new_size)
+{
+  if (new_size > this->t_capacity)
+    {				/* We do not shrink the stack
+				   in this method */
+      this->t_capacity = new_size;
+      this->t_base = marpa_realloc (this->t_base, new_size * type_bytes);
+    }
+  return this->t_base;
+}
 
 @** File layout.  
 @ The output files are {\bf not} source files,
@@ -283,7 +382,10 @@ So I add such a comment.
 #ifndef _MARPA_AMI_H__
 #define _MARPA_AMI_H__ 1
 
-@<Friend macros@>@;
+@h
+@<Friend incomplete structures@>@;
+@<Friend function prototypes@>@;
+@<Friend structures@>@;
 @<Friend static inline functions@>@;
 
 #endif /* |_MARPA_AMI_H__| */
@@ -332,7 +434,7 @@ So I add such a comment.
 #include "marpa_util.h"
 #include "marpa_ami.h"
 
-@h
+@<Private macros@>@;
 
 #include "ami_private.h"
 

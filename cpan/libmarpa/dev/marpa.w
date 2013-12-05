@@ -103,7 +103,7 @@
 @s MARPA_AVL_TREE int
 @s Bit_Matrix int
 @s DAND int
-@s DSTACK int
+@s MARPA_DSTACK int
 @s LBV int
 @s Marpa_Bocage int
 @s Marpa_IRL_ID int
@@ -722,21 +722,21 @@ with their
 |Marpa_Symbol_ID| as the index.
 
 @<Widely aligned grammar elements@> =
-    DSTACK_DECLARE(t_xsy_stack);
-    DSTACK_DECLARE(t_isy_stack);
+    MARPA_DSTACK_DECLARE(t_xsy_stack);
+    MARPA_DSTACK_DECLARE(t_isy_stack);
 
 @ @<Initialize grammar elements@> =
-    DSTACK_INIT2(g->t_xsy_stack, XSY );
-    DSTACK_SAFE(g->t_isy_stack);
+    MARPA_DSTACK_INIT2(g->t_xsy_stack, XSY );
+    MARPA_DSTACK_SAFE(g->t_isy_stack);
 
 @ @<Destroy grammar elements@> =
 {
-  DSTACK_DESTROY (g->t_xsy_stack);
-  DSTACK_DESTROY (g->t_isy_stack);
+  MARPA_DSTACK_DESTROY (g->t_xsy_stack);
+  MARPA_DSTACK_DESTROY (g->t_isy_stack);
 }
 
 @ Symbol count accesors.
-@d XSY_Count_of_G(g) (DSTACK_LENGTH((g)->t_xsy_stack))
+@d XSY_Count_of_G(g) (MARPA_DSTACK_LENGTH((g)->t_xsy_stack))
 @ @<Function definitions@> =
 int marpa_g_highest_symbol_id(Marpa_Grammar g) {
    @<Return |-2| on failure@>@;
@@ -745,7 +745,7 @@ int marpa_g_highest_symbol_id(Marpa_Grammar g) {
 }
 
 @ Symbol by ID.
-@d XSY_by_ID(id) (*DSTACK_INDEX (g->t_xsy_stack, XSY, (id)))
+@d XSY_by_ID(id) (*MARPA_DSTACK_INDEX (g->t_xsy_stack, XSY, (id)))
 
 @ Adds the symbol to the list of symbols kept by the Grammar
 object.
@@ -753,8 +753,8 @@ object.
 PRIVATE
 void symbol_add( GRAMMAR g, XSY symbol)
 {
-    const XSYID new_id = DSTACK_LENGTH((g)->t_xsy_stack);
-    *DSTACK_PUSH((g)->t_xsy_stack, XSY) = symbol;
+    const XSYID new_id = MARPA_DSTACK_LENGTH((g)->t_xsy_stack);
+    *MARPA_DSTACK_PUSH((g)->t_xsy_stack, XSY) = symbol;
     symbol->t_symbol_id = new_id;
 }
 
@@ -779,19 +779,19 @@ PRIVATE int isy_is_valid(GRAMMAR g, ISYID isyid)
 with their |Marpa_Rule_ID| as the index.
 The |rule_tree| is a tree for detecting duplicates.
 @<Widely aligned grammar elements@> =
-    DSTACK_DECLARE(t_xrl_stack);
-    DSTACK_DECLARE(t_irl_stack);
+    MARPA_DSTACK_DECLARE(t_xrl_stack);
+    MARPA_DSTACK_DECLARE(t_irl_stack);
 @ @<Initialize grammar elements@> =
-    DSTACK_INIT2(g->t_xrl_stack, RULE);
-    DSTACK_SAFE(g->t_irl_stack);
+    MARPA_DSTACK_INIT2(g->t_xrl_stack, RULE);
+    MARPA_DSTACK_SAFE(g->t_irl_stack);
 
 @ @<Destroy grammar elements@> =
-    DSTACK_DESTROY(g->t_irl_stack);
-    DSTACK_DESTROY(g->t_xrl_stack);
+    MARPA_DSTACK_DESTROY(g->t_irl_stack);
+    MARPA_DSTACK_DESTROY(g->t_xrl_stack);
 
 @*0 Rule count accessors.
-@ @d XRL_Count_of_G(g) (DSTACK_LENGTH((g)->t_xrl_stack))
-@ @d IRL_Count_of_G(g) (DSTACK_LENGTH((g)->t_irl_stack))
+@ @d XRL_Count_of_G(g) (MARPA_DSTACK_LENGTH((g)->t_xrl_stack))
+@ @d IRL_Count_of_G(g) (MARPA_DSTACK_LENGTH((g)->t_irl_stack))
 @ @<Function definitions@> =
 int marpa_g_highest_rule_id(Marpa_Grammar g) {
    @<Return |-2| on failure@>@;
@@ -805,8 +805,8 @@ int _marpa_g_irl_count(Marpa_Grammar g) {
 }
 
 @ Internal accessor to find a rule by its id.
-@d XRL_by_ID(id) (*DSTACK_INDEX((g)->t_xrl_stack, XRL, (id)))
-@d IRL_by_ID(id) (*DSTACK_INDEX((g)->t_irl_stack, IRL, (id)))
+@d XRL_by_ID(id) (*MARPA_DSTACK_INDEX((g)->t_xrl_stack, XRL, (id)))
+@d IRL_by_ID(id) (*MARPA_DSTACK_INDEX((g)->t_irl_stack, IRL, (id)))
 @d RULE_by_ID(g, id) (XRL_by_ID(id))
 
 @ Adds the rule to the list of rules kept by the Grammar
@@ -815,8 +815,8 @@ object.
 PRIVATE void
 rule_add (GRAMMAR g, RULE rule)
 {
-  const RULEID new_id = DSTACK_LENGTH ((g)->t_xrl_stack);
-  *DSTACK_PUSH ((g)->t_xrl_stack, RULE) = rule;
+  const RULEID new_id = MARPA_DSTACK_LENGTH ((g)->t_xrl_stack);
+  *MARPA_DSTACK_PUSH ((g)->t_xrl_stack, RULE) = rule;
   rule->t_id = new_id;
   External_Size_of_G (g) += 1 + Length_of_XRL (rule);
   g->t_max_rule_length = MAX (Length_of_XRL (rule), g->t_max_rule_length);
@@ -1019,23 +1019,23 @@ struct s_g_event {
      int t_value;
 };
 typedef struct s_g_event GEV_Object;
-@ @d G_EVENT_COUNT(g) DSTACK_LENGTH ((g)->t_events)
+@ @d G_EVENT_COUNT(g) MARPA_DSTACK_LENGTH ((g)->t_events)
 @<Widely aligned grammar elements@> =
-DSTACK_DECLARE(t_events);
+MARPA_DSTACK_DECLARE(t_events);
 @
 @d INITIAL_G_EVENTS_CAPACITY (1024/sizeof(int))
 @<Initialize grammar elements@> =
-DSTACK_INIT(g->t_events, GEV_Object, INITIAL_G_EVENTS_CAPACITY);
-@ @<Destroy grammar elements@> = DSTACK_DESTROY(g->t_events);
+MARPA_DSTACK_INIT(g->t_events, GEV_Object, INITIAL_G_EVENTS_CAPACITY);
+@ @<Destroy grammar elements@> = MARPA_DSTACK_DESTROY(g->t_events);
 
 @ Callers must be careful.
 A pointer to the new event is returned,
 but it must be written to before another event
 is added,
 because that may cause
-the locations of |DSTACK| elements to change.
-@d G_EVENTS_CLEAR(g) DSTACK_CLEAR((g)->t_events)
-@d G_EVENT_PUSH(g) DSTACK_PUSH((g)->t_events, GEV_Object)
+the locations of |MARPA_DSTACK| elements to change.
+@d G_EVENTS_CLEAR(g) MARPA_DSTACK_CLEAR((g)->t_events)
+@d G_EVENT_PUSH(g) MARPA_DSTACK_PUSH((g)->t_events, GEV_Object)
 @ @<Function definitions@> =
 PRIVATE
 void event_new(GRAMMAR g, int type)
@@ -1061,7 +1061,7 @@ marpa_g_event (Marpa_Grammar g, Marpa_Event* public_event,
 	       int ix)
 {
   @<Return |-2| on failure@>@;
-  DSTACK events = &g->t_events;
+  MARPA_DSTACK events = &g->t_events;
   GEV internal_event;
   int type;
 
@@ -1069,11 +1069,11 @@ marpa_g_event (Marpa_Grammar g, Marpa_Event* public_event,
     MARPA_ERROR(MARPA_ERR_EVENT_IX_NEGATIVE);
     return failure_indicator;
   }
-  if (ix >= DSTACK_LENGTH (*events)) {
+  if (ix >= MARPA_DSTACK_LENGTH (*events)) {
     MARPA_ERROR(MARPA_ERR_EVENT_IX_OOB);
     return failure_indicator;
   }
-  internal_event = DSTACK_INDEX (*events, GEV_Object, ix);
+  internal_event = MARPA_DSTACK_INDEX (*events, GEV_Object, ix);
   type = internal_event->t_type;
   public_event->t_type = type;
   public_event->t_value = internal_event->t_value;
@@ -1086,7 +1086,7 @@ marpa_g_event_count (Marpa_Grammar g)
 {
   @<Return |-2| on failure@>@;
   @<Fail if fatal error@>@;
-  return DSTACK_LENGTH (g->t_events);
+  return MARPA_DSTACK_LENGTH (g->t_events);
 }
 
 @*0 The rule duplication tree.
@@ -1764,8 +1764,8 @@ PRIVATE ISY
 isy_start(GRAMMAR g)
 {
   const ISY isy = marpa_obs_new (g->t_obs, struct s_isy, 1);
-  ID_of_ISY(isy) = DSTACK_LENGTH((g)->t_isy_stack);
-  *DSTACK_PUSH((g)->t_isy_stack, ISY) = isy;
+  ID_of_ISY(isy) = MARPA_DSTACK_LENGTH((g)->t_isy_stack);
+  *MARPA_DSTACK_PUSH((g)->t_isy_stack, ISY) = isy;
   @<Initialize ISY elements@>@;
   return isy;
 }
@@ -1812,11 +1812,11 @@ The {\bf ISY ID} is a number which
 acts as the unique identifier for an ISY.
 The ISY ID is initialized when the ISY is
 added to the list of rules.
-@d ISY_by_ID(id) (*DSTACK_INDEX (g->t_isy_stack, ISY, (id)))
+@d ISY_by_ID(id) (*MARPA_DSTACK_INDEX (g->t_isy_stack, ISY, (id)))
 @d ID_of_ISY(isy) ((isy)->t_isyid)
 
 @ Symbol count accesors.
-@d ISY_Count_of_G(g) (DSTACK_LENGTH((g)->t_isy_stack))
+@d ISY_Count_of_G(g) (MARPA_DSTACK_LENGTH((g)->t_isy_stack))
 @ @<Function definitions@> =
 int _marpa_g_isy_count(Marpa_Grammar g) {
    @<Return |-2| on failure@>@;
@@ -2061,10 +2061,10 @@ irl_start(GRAMMAR g, int length)
   const int sizeof_irl = offsetof (struct s_irl, t_isyid_array) +
     (length + 1) * sizeof (irl->t_isyid_array[0]);
   irl = marpa_obs_alloc (g->t_obs, sizeof_irl);
-  ID_of_IRL(irl) = DSTACK_LENGTH((g)->t_irl_stack);
+  ID_of_IRL(irl) = MARPA_DSTACK_LENGTH((g)->t_irl_stack);
   Length_of_IRL(irl) = length;
   @<Initialize IRL elements@>@;
-  *DSTACK_PUSH((g)->t_irl_stack, IRL) = irl;
+  *MARPA_DSTACK_PUSH((g)->t_irl_stack, IRL) = irl;
   return irl;
 }
 
@@ -5829,7 +5829,7 @@ be if written 100\% using indexes.
 than its length, as a convenient way to deal with issues
 of minimum sizes.
 @<Initialize IRL stack@> =
-    DSTACK_INIT(g->t_irl_stack, IRL, 2*DSTACK_CAPACITY(g->t_xrl_stack));
+    MARPA_DSTACK_INIT(g->t_irl_stack, IRL, 2*MARPA_DSTACK_CAPACITY(g->t_xrl_stack));
 
 @ Clones all the used symbols,
 creating nulling versions as required.
@@ -5838,7 +5838,7 @@ than its length, as a convenient way to deal with issues
 of minimum sizes.
 @<Initialize ISY stack@> =
 {
-  DSTACK_INIT (g->t_isy_stack, ISY, 2 * DSTACK_CAPACITY (g->t_xsy_stack));
+  MARPA_DSTACK_INIT (g->t_isy_stack, ISY, 2 * MARPA_DSTACK_CAPACITY (g->t_xsy_stack));
 }
 
 @ @<Calculate Rule by LHS lists@> =
@@ -7676,7 +7676,7 @@ _marpa_r_earley_set_trace (Marpa_Recognizer r, Marpa_Earley_Set_ID set_id)
 	return failure_indicator;
     }
   r_update_earley_sets (r);
-    if (set_id >= DSTACK_LENGTH (r->t_earley_set_stack))
+    if (set_id >= MARPA_DSTACK_LENGTH (r->t_earley_set_stack))
       {
 	return es_does_not_exist;
       }
@@ -9067,11 +9067,11 @@ struct s_alternative {
 typedef struct s_alternative ALT_Object;
 
 @ @<Widely aligned recognizer elements@> =
-DSTACK_DECLARE(t_alternatives);
+MARPA_DSTACK_DECLARE(t_alternatives);
 @
 @<Initialize recognizer elements@> =
-DSTACK_INIT2(r->t_alternatives, ALT_Object);
-@ @<Destroy recognizer elements@> = DSTACK_DESTROY(r->t_alternatives);
+MARPA_DSTACK_INIT2(r->t_alternatives, ALT_Object);
+@ @<Destroy recognizer elements@> = MARPA_DSTACK_DESTROY(r->t_alternatives);
 
 @ This functions returns the index at which to insert a new
 alternative, or -1 if the new alternative is a duplicate.
@@ -9081,15 +9081,15 @@ alternative, or -1 if the new alternative is a duplicate.
 PRIVATE int
 alternative_insertion_point (RECCE r, ALT new_alternative)
 {
-  DSTACK alternatives = &r->t_alternatives;
+  MARPA_DSTACK alternatives = &r->t_alternatives;
   ALT alternative;
-  int hi = DSTACK_LENGTH(*alternatives) - 1;
+  int hi = MARPA_DSTACK_LENGTH(*alternatives) - 1;
   int lo = 0;
   int trial;
   // Special case when zero alternatives.
   if (hi < 0)
     return 0;
-  alternative = DSTACK_BASE(*alternatives, ALT_Object);
+  alternative = MARPA_DSTACK_BASE(*alternatives, ALT_Object);
   for (;;)
     {
       int outcome;
@@ -9141,11 +9141,11 @@ call that adds data to the alternatives stack.
 @<Function definitions@> =
 PRIVATE ALT alternative_pop(RECCE r, EARLEME earleme)
 {
-    DSTACK alternatives = &r->t_alternatives;
-    ALT top_of_stack = DSTACK_TOP(*alternatives, ALT_Object);
+    MARPA_DSTACK alternatives = &r->t_alternatives;
+    ALT top_of_stack = MARPA_DSTACK_TOP(*alternatives, ALT_Object);
     if (!top_of_stack) return NULL;
     if (earleme != End_Earleme_of_ALT(top_of_stack)) return NULL;
-    return DSTACK_POP(*alternatives, ALT_Object);
+    return MARPA_DSTACK_POP(*alternatives, ALT_Object);
 }
 
 @ This function inserts an alternative into the stack, 
@@ -9157,13 +9157,13 @@ and the insertion point (which must be zero or more) otherwise.
 PRIVATE int alternative_insert(RECCE r, ALT new_alternative)
 {
   ALT top_of_stack, base_of_stack;
-  DSTACK alternatives = &r->t_alternatives;
+  MARPA_DSTACK alternatives = &r->t_alternatives;
   int ix;
   int insertion_point = alternative_insertion_point (r, new_alternative);
   if (insertion_point < 0)
     return insertion_point;
-  top_of_stack = DSTACK_PUSH(*alternatives, ALT_Object); // may change base
-  base_of_stack = DSTACK_BASE(*alternatives, ALT_Object); // base will not change after this
+  top_of_stack = MARPA_DSTACK_PUSH(*alternatives, ALT_Object); // may change base
+  base_of_stack = MARPA_DSTACK_BASE(*alternatives, ALT_Object); // base will not change after this
    for (ix = top_of_stack-base_of_stack; ix > insertion_point; ix--) {
        base_of_stack[ix] = base_of_stack[ix-1];
    }
@@ -9474,39 +9474,39 @@ altered by the attempt.
 In the Aycock-Horspool variation of Earley's algorithm,
 the two main phases are scanning and completion.
 This section is devoted to the logic for completion.
-@d Work_EIMs_of_R(r) DSTACK_BASE((r)->t_eim_work_stack, EIM)
-@d Work_EIM_Count_of_R(r) DSTACK_LENGTH((r)->t_eim_work_stack)
-@d WORK_EIMS_CLEAR(r) DSTACK_CLEAR((r)->t_eim_work_stack)
-@d WORK_EIM_PUSH(r) DSTACK_PUSH((r)->t_eim_work_stack, EIM)
-@<Widely aligned recognizer elements@> = DSTACK_DECLARE(t_eim_work_stack);
-@ @<Initialize recognizer elements@> = DSTACK_SAFE(r->t_eim_work_stack);
+@d Work_EIMs_of_R(r) MARPA_DSTACK_BASE((r)->t_eim_work_stack, EIM)
+@d Work_EIM_Count_of_R(r) MARPA_DSTACK_LENGTH((r)->t_eim_work_stack)
+@d WORK_EIMS_CLEAR(r) MARPA_DSTACK_CLEAR((r)->t_eim_work_stack)
+@d WORK_EIM_PUSH(r) MARPA_DSTACK_PUSH((r)->t_eim_work_stack, EIM)
+@<Widely aligned recognizer elements@> = MARPA_DSTACK_DECLARE(t_eim_work_stack);
+@ @<Initialize recognizer elements@> = MARPA_DSTACK_SAFE(r->t_eim_work_stack);
 @ @<Initialize Earley item work stacks@> =
 {
-  if (!DSTACK_IS_INITIALIZED (r->t_eim_work_stack))
+  if (!MARPA_DSTACK_IS_INITIALIZED (r->t_eim_work_stack))
     {
-      DSTACK_INIT2 (r->t_eim_work_stack, EIM);
+      MARPA_DSTACK_INIT2 (r->t_eim_work_stack, EIM);
     }
 }
-@ @<Destroy recognizer elements@> = DSTACK_DESTROY(r->t_eim_work_stack);
+@ @<Destroy recognizer elements@> = MARPA_DSTACK_DESTROY(r->t_eim_work_stack);
 
 @ The completion stack is initialized to a very high-ball estimate of the
 number of completions per Earley set.
 It will grow if needed.
 Large stacks may needed for very ambiguous grammars.
-@<Widely aligned recognizer elements@> = DSTACK_DECLARE(t_completion_stack);
-@ @<Initialize recognizer elements@> = DSTACK_SAFE(r->t_completion_stack);
+@<Widely aligned recognizer elements@> = MARPA_DSTACK_DECLARE(t_completion_stack);
+@ @<Initialize recognizer elements@> = MARPA_DSTACK_SAFE(r->t_completion_stack);
 @ @<Initialize Earley item work stacks@> =
 {
-  if (!DSTACK_IS_INITIALIZED (r->t_completion_stack))
+  if (!MARPA_DSTACK_IS_INITIALIZED (r->t_completion_stack))
     {
-      DSTACK_INIT2 (r->t_completion_stack, EIM);
+      MARPA_DSTACK_INIT2 (r->t_completion_stack, EIM);
     }
 }
-@ @<Destroy recognizer elements@> = DSTACK_DESTROY(r->t_completion_stack);
+@ @<Destroy recognizer elements@> = MARPA_DSTACK_DESTROY(r->t_completion_stack);
 
-@ @<Widely aligned recognizer elements@> = DSTACK_DECLARE(t_earley_set_stack);
-@ @<Initialize recognizer elements@> = DSTACK_SAFE(r->t_earley_set_stack);
-@ @<Destroy recognizer elements@> = DSTACK_DESTROY(r->t_earley_set_stack);
+@ @<Widely aligned recognizer elements@> = MARPA_DSTACK_DECLARE(t_earley_set_stack);
+@ @<Initialize recognizer elements@> = MARPA_DSTACK_SAFE(r->t_earley_set_stack);
+@ @<Destroy recognizer elements@> = MARPA_DSTACK_DESTROY(r->t_earley_set_stack);
 
 @ This function returns the number of terminals expected on success.
 On failure, it returns |-2|.
@@ -9552,7 +9552,7 @@ marpa_r_earleme_complete(Marpa_Recognizer r)
     @<Initialize |current_earley_set|@>@;
     @<Scan from the alternative stack@>@;
     @<Pre-populate the completion stack@>@;
-    while ((cause_p = DSTACK_POP(r->t_completion_stack, EIM))) {
+    while ((cause_p = MARPA_DSTACK_POP(r->t_completion_stack, EIM))) {
       EIM cause = *cause_p;
 	@<Add new Earley items for |cause|@>@;
     }
@@ -9612,7 +9612,7 @@ return 0 without creating an
 Earley set.
 The return value means success, with no events.
 @<Return 0 if no alternatives@> = {
-  ALT top_of_stack = DSTACK_TOP (r->t_alternatives, ALT_Object);
+  ALT top_of_stack = MARPA_DSTACK_TOP (r->t_alternatives, ALT_Object);
   if (!top_of_stack || current_earleme != End_Earleme_of_ALT (top_of_stack))
     {
       return_value = 0;
@@ -9655,10 +9655,10 @@ The return value means success, with no events.
 }
 
 @ @<Pre-populate the completion stack@> = {
-    EIM* work_earley_items = DSTACK_BASE (r->t_eim_work_stack, EIM );
-    int no_of_work_earley_items = DSTACK_LENGTH (r->t_eim_work_stack );
+    EIM* work_earley_items = MARPA_DSTACK_BASE (r->t_eim_work_stack, EIM );
+    int no_of_work_earley_items = MARPA_DSTACK_LENGTH (r->t_eim_work_stack );
     int ix;
-    DSTACK_CLEAR(r->t_completion_stack);
+    MARPA_DSTACK_CLEAR(r->t_completion_stack);
     for (ix = 0;
          ix < no_of_work_earley_items;
 	 ix++) {
@@ -9666,7 +9666,7 @@ The return value means success, with no events.
 	EIM* tos;
 	if (!Earley_Item_is_Completion (earley_item))
 	  continue;
-	tos = DSTACK_PUSH (r->t_completion_stack, EIM);
+	tos = MARPA_DSTACK_PUSH (r->t_completion_stack, EIM);
 	*tos = earley_item;
       }
     }
@@ -9725,7 +9725,7 @@ add those Earley items it ``causes".
 }
 
 @ @<Push effect onto completion stack@> = {
-    EIM* tos = DSTACK_PUSH (r->t_completion_stack, EIM);
+    EIM* tos = MARPA_DSTACK_PUSH (r->t_completion_stack, EIM);
     *tos = effect;
 }
 
@@ -9914,23 +9914,23 @@ PRIVATE void earley_set_update_items(RECCE r, ES set)
     WORK_EIMS_CLEAR(r);
 }
 
-@ @d P_ES_of_R_by_Ord(r, ord) DSTACK_INDEX((r)->t_earley_set_stack, ES, (ord))
+@ @d P_ES_of_R_by_Ord(r, ord) MARPA_DSTACK_INDEX((r)->t_earley_set_stack, ES, (ord))
 @d ES_of_R_by_Ord(r, ord) (*P_ES_of_R_by_Ord((r), (ord)))
 @<Function definitions@> =
 PRIVATE void r_update_earley_sets(RECCE r)
 {
     ES set;
     ES first_unstacked_earley_set;
-    if (!DSTACK_IS_INITIALIZED(r->t_earley_set_stack)) {
+    if (!MARPA_DSTACK_IS_INITIALIZED(r->t_earley_set_stack)) {
 	first_unstacked_earley_set = First_ES_of_R(r);
-	DSTACK_INIT (r->t_earley_set_stack, ES,
+	MARPA_DSTACK_INIT (r->t_earley_set_stack, ES,
 		 MAX (1024, ES_Count_of_R(r)));
     } else {
-	 ES* top_of_stack = DSTACK_TOP(r->t_earley_set_stack, ES);
+	 ES* top_of_stack = MARPA_DSTACK_TOP(r->t_earley_set_stack, ES);
 	 first_unstacked_earley_set = Next_ES_of_ES(*top_of_stack);
     }
     for (set = first_unstacked_earley_set; set; set = Next_ES_of_ES(set)) {
-          ES* top_of_stack = DSTACK_PUSH(r->t_earley_set_stack, ES);
+          ES* top_of_stack = MARPA_DSTACK_PUSH(r->t_earley_set_stack, ES);
 	  (*top_of_stack) = set;
     }
 }
@@ -9990,8 +9990,8 @@ postdot_items_create (RECCE r,
 @ This code creates the Earley indexes in the PIM workarea.
 At this point there are no Leo items.
 @<Start EIXes in PIM workarea@> = {
-    EIM* work_earley_items = DSTACK_BASE (r->t_eim_work_stack, EIM );
-    int no_of_work_earley_items = DSTACK_LENGTH (r->t_eim_work_stack );
+    EIM* work_earley_items = MARPA_DSTACK_BASE (r->t_eim_work_stack, EIM );
+    int no_of_work_earley_items = MARPA_DSTACK_LENGTH (r->t_eim_work_stack );
     int ix;
     for (ix = 0;
          ix < no_of_work_earley_items;
@@ -13920,14 +13920,14 @@ of the worst case size, so the number of
 stack reallocations is $O(1)$.
 @d VStack_of_V(val) ((val)->t_virtual_stack)
 @<Widely aligned value elements@> =
-    DSTACK_DECLARE(t_virtual_stack);
+    MARPA_DSTACK_DECLARE(t_virtual_stack);
 @ @<Initialize value elements@> =
-    DSTACK_SAFE(VStack_of_V(v));
+    MARPA_DSTACK_SAFE(VStack_of_V(v));
 @ @<Destroy value elements@> =
 {
-    if (LIKELY(DSTACK_IS_INITIALIZED(VStack_of_V(v)) != NULL))
+    if (LIKELY(MARPA_DSTACK_IS_INITIALIZED(VStack_of_V(v)) != NULL))
     {
-        DSTACK_DESTROY(VStack_of_V(v));
+        MARPA_DSTACK_DESTROY(VStack_of_V(v));
     }
 }
 
@@ -13958,7 +13958,7 @@ Marpa_Value marpa_v_new(Marpa_Tree t)
 	  const int minimum_stack_size = (8192 / sizeof (int));
 	  const int initial_stack_size =
 	    MAX (Size_of_TREE (t) / 1024, minimum_stack_size);
-	  DSTACK_INIT (VStack_of_V (v), int, initial_stack_size);
+	  MARPA_DSTACK_INIT (VStack_of_V (v), int, initial_stack_size);
 	}
 	return (Marpa_Value)v;
       }
@@ -14396,19 +14396,19 @@ for the rule.
 	    int virtual_rhs = IRL_has_Virtual_RHS(nook_irl);
 	    int virtual_lhs = IRL_has_Virtual_LHS(nook_irl);
 	    int real_symbol_count;
-	    const DSTACK virtual_stack = &VStack_of_V(v);
+	    const MARPA_DSTACK virtual_stack = &VStack_of_V(v);
 	    if (virtual_lhs) {
 	        real_symbol_count = Real_SYM_Count_of_IRL(nook_irl);
 		if (virtual_rhs) {
-		    *(DSTACK_TOP(*virtual_stack, int)) += real_symbol_count;
+		    *(MARPA_DSTACK_TOP(*virtual_stack, int)) += real_symbol_count;
 		} else {
-		    *DSTACK_PUSH(*virtual_stack, int) = real_symbol_count;
+		    *MARPA_DSTACK_PUSH(*virtual_stack, int) = real_symbol_count;
 		}
 	    } else {
 
 		if (virtual_rhs) {
 		    real_symbol_count = Real_SYM_Count_of_IRL(nook_irl);
-		    real_symbol_count += *DSTACK_POP(*virtual_stack, int);
+		    real_symbol_count += *MARPA_DSTACK_POP(*virtual_stack, int);
 		} else {
 		    real_symbol_count = Length_of_IRL(nook_irl);
 		}
@@ -15196,105 +15196,6 @@ set up, in which case they can be made very fast.
 @d FSTACK_IS_INITIALIZED(stack) ((stack).t_base)
 @d FSTACK_DESTROY(stack) (marpa_free((stack).t_base))
 
-@*0 Dynamic stacks.
-|libmarpa| uses stacks and worklists extensively.
-This stack interface resizes itself dynamically.
-There are two disadvantages.
-
-\li There is more overhead ---
-overflow must be checked for with each push,
-and the resizings, while fast, do take time.
-
-\li The stack may be moved after any |DSTACK_PUSH|
-operation, making all pointers into it invalid.
-Data must be retrieved from the stack before the
-next |DSTACK_PUSH|.
-In the special 2-argument form,
-|DSTACK_INIT2|, the stack is initialized
-to a size convenient for the memory allocator.
-{\bf To Do}: @^To Do@>
-Right now this is hard-wired to 1024, but I should
-use the better calculation made by the obstack code.
-@d DSTACK_DECLARE(this) struct s_dstack this
-@d DSTACK_INIT(this, type, initial_size)
-(
-    ((this).t_count = 0),
-    ((this).t_base = marpa_new(type, ((this).t_capacity = (initial_size))))
-)
-@d DSTACK_INIT2(this, type)
-    DSTACK_INIT((this), type, MAX(4, 1024/sizeof(this)))
-
-@ |DSTACK_SAFE| is for cases where the dstack is not
-immediately initialized to a useful value,
-and might never be.
-All fields are zeroed so that when the containing object
-is destroyed, the deallocation logic knows that no
-memory has been allocated and therefore no attempt
-to free memory should be made.
-@d DSTACK_IS_INITIALIZED(this) ((this).t_base)
-@d DSTACK_SAFE(this)
-  (((this).t_count = (this).t_capacity = 0), ((this).t_base = NULL))
-
-@ A stack reinitialized by
-|DSTACK_CLEAR| contains 0 elements,
-but has the same capacity as it had before the reinitialization.
-This saves the cost of reallocating the dstack's buffer,
-and leaves its capacity at what is hopefully
-a stable, high-water mark, which will make future
-resizings unnecessary.
-@d DSTACK_CLEAR(this) ((this).t_count = 0)
-@d DSTACK_PUSH(this, type) (
-      (UNLIKELY((this).t_count >= (this).t_capacity)
-      ? dstack_resize2(&(this), sizeof(type))
-      : 0),
-     ((type *)(this).t_base+(this).t_count++)
-   )
-@d DSTACK_POP(this, type) ((this).t_count <= 0 ? NULL :
-    ( (type*)(this).t_base+(--(this).t_count)))
-@d DSTACK_INDEX(this, type, ix) (DSTACK_BASE((this), type)+(ix))
-@d DSTACK_TOP(this, type) (DSTACK_LENGTH(this) <= 0
-   ? NULL
-   : DSTACK_INDEX((this), type, DSTACK_LENGTH(this)-1))
-@d DSTACK_BASE(this, type) ((type *)(this).t_base)
-@d DSTACK_LENGTH(this) ((this).t_count)
-@d DSTACK_CAPACITY(this) ((this).t_capacity)
-
-@
-|DSTACK|'s can have their data ``stolen", by other containers.
-The |STOLEN_DSTACK_DATA_FREE| macro is intended
-to help the ``thief" container
-deallocate the data it now has ``stolen".
-@d STOLEN_DSTACK_DATA_FREE(data) (marpa_free(data))
-@d DSTACK_DESTROY(this) STOLEN_DSTACK_DATA_FREE(this.t_base)
-@s DSTACK int
-@<Private incomplete structures@> =
-struct s_dstack;
-typedef struct s_dstack* DSTACK;
-@ @<Private utility structures@> =
-struct s_dstack { int t_count; int t_capacity; void * t_base; };
-@ Not inline because |DSTACK|'s should be initialized so that
-resizings are uncommon or even exceptional events.
-@<Function definitions@> =
-PRIVATE_NOT_INLINE void * dstack_resize2(struct s_dstack* this, size_t type_bytes)
-{
-    return dstack_resize(this, type_bytes, this->t_capacity*2);
-}
-
-@ Not inline because |DSTACK|'s should be initialized so that
-resizings are uncommon or even exceptional events.
-@d DSTACK_RESIZE(this, type, new_size) (dstack_resize((this), sizeof(type), (new_size)))
-@<Function definitions@> =
-PRIVATE void * dstack_resize(struct s_dstack* this, size_t type_bytes, int new_size)
-{
-  if (new_size > this->t_capacity)
-    {				/* We do not shrink the stack
-				   in this method */
-      this->t_capacity = new_size;
-      this->t_base = marpa_realloc (this->t_base, new_size * type_bytes);
-    }
-  return this->t_base;
-}
-
 @*0 Dynamic queues.
 This is simply a dynamic stack extended with a second
 index.
@@ -15306,21 +15207,21 @@ when it needs to free the data.
 
 @d DQUEUE_DECLARE(this) struct s_dqueue this
 @d DQUEUE_INIT(this, type, initial_size)
-    ((this.t_current=0), DSTACK_INIT(this.t_stack, type, initial_size))
-@d DQUEUE_PUSH(this, type) DSTACK_PUSH(this.t_stack, type)
-@d DQUEUE_POP(this, type) DSTACK_POP(this.t_stack, type)
-@d DQUEUE_NEXT(this, type) (this.t_current >= DSTACK_LENGTH(this.t_stack)
+    ((this.t_current=0), MARPA_DSTACK_INIT(this.t_stack, type, initial_size))
+@d DQUEUE_PUSH(this, type) MARPA_DSTACK_PUSH(this.t_stack, type)
+@d DQUEUE_POP(this, type) MARPA_DSTACK_POP(this.t_stack, type)
+@d DQUEUE_NEXT(this, type) (this.t_current >= MARPA_DSTACK_LENGTH(this.t_stack)
     ? NULL
-    : (DSTACK_BASE(this.t_stack, type))+this.t_current++)
-@d DQUEUE_BASE(this, type) DSTACK_BASE(this.t_stack, type)
-@d DQUEUE_END(this) DSTACK_LENGTH(this.t_stack)
-@d STOLEN_DQUEUE_DATA_FREE(data) STOLEN_DSTACK_DATA_FREE(data)
+    : (MARPA_DSTACK_BASE(this.t_stack, type))+this.t_current++)
+@d DQUEUE_BASE(this, type) MARPA_DSTACK_BASE(this.t_stack, type)
+@d DQUEUE_END(this) MARPA_DSTACK_LENGTH(this.t_stack)
+@d STOLEN_DQUEUE_DATA_FREE(data) MARPA_STOLEN_DSTACK_DATA_FREE(data)
 
 @<Private incomplete structures@> =
 struct s_dqueue;
 typedef struct s_dqueue* DQUEUE;
 @ @<Private structures@> =
-struct s_dqueue { int t_current; struct s_dstack t_stack; };
+struct s_dqueue { int t_current; struct marpa_dstack_s t_stack; };
 
 @** Counted integer lists (CIL).
 As a structure,
@@ -15366,7 +15267,7 @@ for the lookups.
 struct s_cil_arena {
     struct marpa_obstack* t_obs;
     MARPA_AVL_TREE t_avl;
-    DSTACK_DECLARE(t_buffer);
+    MARPA_DSTACK_DECLARE(t_buffer);
 };
 typedef struct s_cil_arena CILAR_Object;
 
@@ -15378,8 +15279,8 @@ typedef struct s_cil_arena* CILAR;
 @
 {\bf To Do}: @^To Do@> The initial capacity of the CILAR dstack
 is absurdly small, in order to test the logic during development.
-Once things settle, |DSTACK_INIT| should be changed to
-|DSTACK_INIT2|.
+Once things settle, |MARPA_DSTACK_INIT| should be changed to
+|MARPA_DSTACK_INIT2|.
 @d CAPACITY_OF_CILAR(cilar) (CAPACITY_OF_DSTACK(cilar->t_buffer)-1)
 @<Function definitions@> =
 PRIVATE void
@@ -15387,21 +15288,21 @@ cilar_init (const CILAR cilar)
 {
   cilar->t_obs = marpa_obs_init;
   cilar->t_avl = _marpa_avl_create (cil_cmp, NULL, 0);
-  DSTACK_INIT(cilar->t_buffer, int, 2);
-  *DSTACK_INDEX(cilar->t_buffer, int, 0) = 0;
+  MARPA_DSTACK_INIT(cilar->t_buffer, int, 2);
+  *MARPA_DSTACK_INDEX(cilar->t_buffer, int, 0) = 0;
 }
 @
 {\bf To Do}: @^To Do@> The initial capacity of the CILAR dstack
 is absurdly small, in order to test the logic during development.
-Once things settle, |DSTACK_INIT| should be changed to
-|DSTACK_INIT2|.
+Once things settle, |MARPA_DSTACK_INIT| should be changed to
+|MARPA_DSTACK_INIT2|.
 @<Function definitions@> =
 PRIVATE void
 cilar_reinit (const CILAR cilar)
 {
-  DSTACK_DESTROY(cilar->t_buffer);
-  DSTACK_INIT(cilar->t_buffer, int, 2);
-  *DSTACK_INDEX(cilar->t_buffer, int, 0) = 0;
+  MARPA_DSTACK_DESTROY(cilar->t_buffer);
+  MARPA_DSTACK_INIT(cilar->t_buffer, int, 2);
+  *MARPA_DSTACK_INDEX(cilar->t_buffer, int, 0) = 0;
 }
 
 @ @<Function definitions@> =
@@ -15409,14 +15310,14 @@ PRIVATE void cilar_destroy(const CILAR cilar)
 {
   _marpa_avl_destroy (cilar->t_avl );
   marpa_obs_free(cilar->t_obs);
-  DSTACK_DESTROY((cilar->t_buffer));
+  MARPA_DSTACK_DESTROY((cilar->t_buffer));
 }
 
 @ Return the empty CIL from a CILAR.
 @<Function definitions@> =
 PRIVATE CIL cil_empty(CILAR cilar)
 {
-  CIL cil = DSTACK_BASE (cilar->t_buffer, int);	/* We assume there is enough room */
+  CIL cil = MARPA_DSTACK_BASE (cilar->t_buffer, int);	/* We assume there is enough room */
   Count_of_CIL(cil) = 0;
   return cil_buffer_add (cilar);
 }
@@ -15425,7 +15326,7 @@ PRIVATE CIL cil_empty(CILAR cilar)
 @<Function definitions@> =
 PRIVATE CIL cil_singleton(CILAR cilar, int element)
 {
-  CIL cil = DSTACK_BASE (cilar->t_buffer, int);
+  CIL cil = MARPA_DSTACK_BASE (cilar->t_buffer, int);
   Count_of_CIL(cil) = 1;
   Item_of_CIL(cil, 0) = element;
   /* We assume there is enough room in the CIL buffer for a singleton */
@@ -15442,7 +15343,7 @@ in which case this method finds the current entry.
 PRIVATE CIL cil_buffer_add(CILAR cilar)
 {
 
-  CIL cil_in_buffer = DSTACK_BASE (cilar->t_buffer, int);
+  CIL cil_in_buffer = MARPA_DSTACK_BASE (cilar->t_buffer, int);
   CIL found_cil = _marpa_avl_find (cilar->t_avl, cil_in_buffer);
   if (!found_cil)
     {
@@ -15486,12 +15387,12 @@ PRIVATE CIL cil_bv_add(CILAR cilar, Bit_Vector bv)
 @<Function definitions@> =
 PRIVATE void cil_buffer_clear(CILAR cilar)
 {
-  const DSTACK dstack = &cilar->t_buffer;
-  DSTACK_CLEAR(*dstack);
+  const MARPA_DSTACK dstack = &cilar->t_buffer;
+  MARPA_DSTACK_CLEAR(*dstack);
   /* \comment Has same effect as 
   |Count_of_CIL (cil_in_buffer) = 0|, except that it sets
-  the DSTACK up properly */
-  *DSTACK_PUSH(*dstack, int) = 0;
+  the |MARPA_DSTACK| up properly */
+  *MARPA_DSTACK_PUSH(*dstack, int) = 0;
 }
 
 @ Push an |int| onto the end of the CILAR buffer.
@@ -15501,11 +15402,11 @@ when and if added to the CILAR.
 PRIVATE CIL cil_buffer_push(CILAR cilar, int new_item)
 {
   CIL cil_in_buffer;
-  DSTACK dstack = &cilar->t_buffer;
-  *DSTACK_PUSH (*dstack, int) = new_item;
+  MARPA_DSTACK dstack = &cilar->t_buffer;
+  *MARPA_DSTACK_PUSH (*dstack, int) = new_item;
 /* \comment Note that the buffer CIL might have been moved
-		   by the |DSTACK_PUSH| */
-  cil_in_buffer = DSTACK_BASE (*dstack, int);
+		   by the |MARPA_DSTACK_PUSH| */
+  cil_in_buffer = MARPA_DSTACK_BASE (*dstack, int);
   Count_of_CIL (cil_in_buffer)++;
   return cil_in_buffer;
 }
@@ -15516,14 +15417,14 @@ to hold |element_count| elements.
 PRIVATE CIL cil_buffer_reserve(CILAR cilar, int element_count)
 {
   const int desired_dstack_capacity = element_count + 1;	/* One extra for the count word */
-  const int old_dstack_capacity = DSTACK_CAPACITY (cilar->t_buffer);
+  const int old_dstack_capacity = MARPA_DSTACK_CAPACITY (cilar->t_buffer);
   if (old_dstack_capacity < desired_dstack_capacity)
     {
       const int target_capacity =
 	MAX (old_dstack_capacity * 2, desired_dstack_capacity);
-      DSTACK_RESIZE (&(cilar->t_buffer), int, target_capacity);
+      MARPA_DSTACK_RESIZE (&(cilar->t_buffer), int, target_capacity);
     }
-  return DSTACK_BASE (cilar->t_buffer, int);
+  return MARPA_DSTACK_BASE (cilar->t_buffer, int);
 }
 
 @ Merge two CIL's into a new one.
