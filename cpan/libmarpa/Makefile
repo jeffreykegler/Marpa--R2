@@ -185,10 +185,13 @@ doc/internal.pdf: doc/Makefile doc/internal.texi
 doc/internal.html/index.html: doc/Makefile doc/internal.texi
 	cd doc && make html
 
-install: dev_sources stage/stamp-h1 doc/stamp-h1
+install: dev_sources ami_sources stage/stamp-h1 doc/stamp-h1
 
 dev_sources:
 	cd dev && make
+
+ami_sources:
+	cd ami && make
 
 stage/stamp-h1: stage/Makefile $(STAGE_FILES)
 	(cd stage; make dist)

@@ -198,7 +198,7 @@ the trailing bits are correct.
 @d lbv_lsb (1u)
 @d lbv_msb (1u << (lbv_wordbits-1u))
 @s LBV int
-@<Private typedefs@> =
+@<Friend typedefs@> =
 typedef unsigned int LBW;
 typedef LBW* LBV;
 
@@ -1341,7 +1341,7 @@ the C89 default |malloc| and |free|.
 At some point I may allow the user to override
 these choices.
 
-@<Ami static inline functions@> =
+@<Friend static inline functions@> =
 static inline
 void my_free (void *p)
 {
@@ -1350,7 +1350,7 @@ void my_free (void *p)
 
 @ The macro is defined because it is sometimes needed
 to force inlining.
-@<Ami static inline functions@> =
+@<Friend static inline functions@> =
 #define MALLOC_VIA_TEMP(size, temp) \
   (UNLIKELY(!((temp) = malloc(size))) ? (*_marpa_out_of_memory)() : (temp))
 static inline
@@ -1543,7 +1543,8 @@ So I add such a comment.
 @<Utility macros@>@;
 @<Debug macros@>@;
 @<Utility variables@>@;
-@<Ami static inline functions@>@;
+@<Friend typedefs@>@;
+@<Friend static inline functions@>@;
 @<Public function prototypes@>@;
 
 #endif /* |__MARPA_AMI_H__| */
@@ -1611,5 +1612,6 @@ So I add such a comment.
 #include "ami_private.h"
 
 @<Function definitions@>@;
+
 @** Index.
 
