@@ -179,41 +179,11 @@ used in a private function.
 @d PRIVATE_NOT_INLINE static
 @d PRIVATE static inline
 
-@*0 Marpa global Setup.
-
-Marpa has no globals as of this writing.
-For thread-safety, among other reasons,
-I'll try to keep it that way.
-
-@** Memory allocation.
-
-@*0 Memory allocation failures.
-@ By default,
-a memory allocation failure
-inside the Marpa library is a fatal error.
-At some point I may allow this to be reset.
-What else an application can do is not at all clear,
-which is why the usual practice 
-is to treatment memory allocation errors are
-fatal, irrecoverable problems.
-These functions all return |void*| in order
-to avoid compiler warnings about void returns.
-@<Function definitions@> =
-PRIVATE_NOT_INLINE void*
-_marpa_default_out_of_memory(void)
-{
-    abort();
-}
-void* (*_marpa_out_of_memory)(void) = _marpa_default_out_of_memory;
-
-@ @<Utility variables@> =
-extern void* (*_marpa_out_of_memory)(void);
-
 @*0 Memory allocation.
 libmarpa wrappers the standard memory functions
 to provide more convenient behaviors.
 \li The allocators do not return on failed memory allocations.
-\li |my_realloc| is equivalent to |my_malloc| if called with
+\li |marpa_realloc| is equivalent to |marpa_malloc| if called with
 a |NULL| pointer.  (This is the GNU C library behavior.)
 @ {\bf To Do}: @^To Do@>
 For the moment, the memory allocators are hard-wired to
@@ -223,7 +193,7 @@ these choices.
 
 @<Friend static inline functions@> =
 static inline
-void my_free (void *p)
+void marpa_free (void *p)
 {
   free (p);
 }
@@ -234,7 +204,7 @@ to force inlining.
 #define MALLOC_VIA_TEMP(size, temp) \
   (UNLIKELY(!((temp) = malloc(size))) ? (*_marpa_out_of_memory)() : (temp))
 static inline
-void* my_malloc(size_t size)
+void* marpa_malloc(size_t size)
 {
     void *newmem;
     return MALLOC_VIA_TEMP(size, newmem);
@@ -242,136 +212,29 @@ void* my_malloc(size_t size)
 
 static inline
 void*
-my_malloc0(size_t size)
+marpa_malloc0(size_t size)
 {
-    void* newmem = my_malloc(size);
+    void* newmem = marpa_malloc(size);
     memset (newmem, 0, size);
     return newmem;
 }
 
 static inline
 void*
-my_realloc(void *p, size_t size)
+marpa_realloc(void *p, size_t size)
 {
    if (LIKELY(p != NULL)) {
 	void *newmem = realloc(p, size);
 	if (UNLIKELY(!newmem)) (*_marpa_out_of_memory)();
 	return newmem;
    }
-   return my_malloc(size);
+   return marpa_malloc(size);
 }
 
-@ @<Utility macros@> =
-#define my_new(type, count) ((type *)my_malloc((sizeof(type)*(count))))
-#define my_renew(type, p, count) \
-    ((type *)my_realloc((p), (sizeof(type)*(count))))
-
-@** Debugging.
-The |MARPA_DEBUG| flag enables intrusive debugging logic.
-``Intrusive" debugging includes things which would
-be annoying in production, such as detailed messages about
-internal matters on |STDERR|.
-|MARPA_DEBUG| is expected to be defined in the |CFLAGS|.
-|MARPA_DEBUG| implies |MARPA_ENABLE_ASSERT|, but not
-vice versa.
-@<Utility macros@> =
-#define MARPA_OFF_DEBUG1(a)
-#define MARPA_OFF_DEBUG2(a, b)
-#define MARPA_OFF_DEBUG3(a, b, c)
-#define MARPA_OFF_DEBUG4(a, b, c, d)
-#define MARPA_OFF_DEBUG5(a, b, c, d, e)
-#define MARPA_OFF_ASSERT(expr)
-@ Returns int so that it can be portably used
-in a logically-anded expression.
-@<Debug function definitions@> =
-int _marpa_default_debug_handler (const char *format, ...)
-{
-   va_list args;
-   va_start (args, format);
-   vfprintf (stderr, format, args);
-   va_end (args);
-   putc('\n', stderr);
-   return 1;
-}
-
-@ @<Utility variables@> =
-extern int (*_marpa_debug_handler)(const char*, ...);
-extern int _marpa_debug_level;
-@ For thread-safety, these are for debugging only.
-Even in debugging, while not actually initialized constants,
-they are intended to be set very early
-and left unchanged.
-@<Utility variables@> =
-#if MARPA_DEBUG > 0
-extern int _marpa_default_debug_handler (const char *format, ...);
-#define MARPA_DEFAULT_DEBUG_HANDLER _marpa_default_debug_handler
-#else
-#define MARPA_DEFAULT_DEBUG_HANDLER NULL
-#endif
-
-@ @<Global variables@> =
-int (*_marpa_debug_handler)(const char*, ...) =
-    MARPA_DEFAULT_DEBUG_HANDLER;
-int _marpa_debug_level = 0;
-
-@ @<Public function prototypes@> =
-void marpa_debug_handler_set( int (*debug_handler)(const char*, ...) );
-@ @<Function definitions@> =
-void marpa_debug_handler_set( int (*debug_handler)(const char*, ...) )
-{
-    _marpa_debug_handler = debug_handler;
-}
-
-@ @<Public function prototypes@> =
-void marpa_debug_level_set( int level );
-@ @<Function definitions@> =
-void marpa_debug_level_set( int level )
-{
-    _marpa_debug_level = level;
-}
-
-@ @<Debug macros@> =
-
-#ifndef MARPA_DEBUG
-#define MARPA_DEBUG 0
-#endif
-
-#if MARPA_DEBUG
-
-#undef MARPA_ENABLE_ASSERT
-#define MARPA_ENABLE_ASSERT 1
-
-#define MARPA_DEBUG1(a) @[ (_marpa_debug_level && \
-    (*_marpa_debug_handler)(a)) @]
-#define MARPA_DEBUG2(a,b) @[ (_marpa_debug_level && \
-    (*_marpa_debug_handler)((a),(b))) @]
-#define MARPA_DEBUG3(a,b,c) @[ (_marpa_debug_level && \
-    (*_marpa_debug_handler)((a),(b),(c))) @]
-#define MARPA_DEBUG4(a,b,c,d) @[ (_marpa_debug_level && \
-    (*_marpa_debug_handler)((a),(b),(c),(d))) @]
-#define MARPA_DEBUG5(a,b,c,d,e) @[ (_marpa_debug_level && \
-    (*_marpa_debug_handler)((a),(b),(c),(d),(e))) @]
-
-#define MARPA_ASSERT(expr) do { if LIKELY (expr) ; else \
-       (*_marpa_debug_handler) ("%s: assertion failed %s", STRLOC, #expr); } while (0);
-#else /* if not |MARPA_DEBUG| */
-#define MARPA_DEBUG1(a) @[@]
-#define MARPA_DEBUG2(a, b) @[@]
-#define MARPA_DEBUG3(a, b, c) @[@]
-#define MARPA_DEBUG4(a, b, c, d) @[@]
-#define MARPA_DEBUG5(a, b, c, d, e) @[@]
-#define MARPA_ASSERT(exp) @[@]
-#endif
-
-#ifndef MARPA_ENABLE_ASSERT
-#define MARPA_ENABLE_ASSERT 0
-#endif
-
-#if MARPA_ENABLE_ASSERT
-#undef MARPA_ASSERT
-#define MARPA_ASSERT(expr) do { if LIKELY (expr) ; else \
-       (*_marpa_debug_handler) ("%s: assertion failed %s", STRLOC, #expr); } while (0);
-#endif
+@ @<Friend macros@> =
+#define marpa_new(type, count) ((type *)marpa_malloc((sizeof(type)*(count))))
+#define marpa_renew(type, p, count) \
+    ((type *)marpa_realloc((p), (sizeof(type)*(count))))
 
 @** File layout.  
 @ The output files are {\bf not} source files,
@@ -420,11 +283,8 @@ So I add such a comment.
 #ifndef _MARPA_AMI_H__
 #define _MARPA_AMI_H__ 1
 
-@<Utility macros@>@;
-@<Debug macros@>@;
-@<Utility variables@>@;
+@<Friend macros@>@;
 @<Friend static inline functions@>@;
-@<Public function prototypes@>@;
 
 #endif /* |_MARPA_AMI_H__| */
 
@@ -468,25 +328,13 @@ So I add such a comment.
 #define MARPA_DEBUG 0
 #endif
 
-#if MARPA_DEBUG
-#include <stdarg.h>
-#include <stdio.h>
-#endif
-
 #include "marpa_int.h"
+#include "marpa_util.h"
 #include "marpa_ami.h"
 
 @h
 
-@<Global variables@>@;
-
-#if MARPA_DEBUG
-@<Debug function definitions@>@;
-#endif
-
 #include "ami_private.h"
-
-@<Function definitions@>@;
 
 @** Index.
 
