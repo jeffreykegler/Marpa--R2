@@ -24,8 +24,8 @@
  * http://www.gnu.org/licenses/.
  */
 
-#ifndef MARPA_OBS_H
-#define MARPA_OBS_H 1
+#ifndef _MARPA_OBS_H__
+#define _MARPA_OBS_H__ 1
 
 #include <stddef.h>
 

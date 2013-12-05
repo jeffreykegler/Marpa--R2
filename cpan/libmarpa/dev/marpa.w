@@ -16444,14 +16444,14 @@ So I add such a comment.
 @ @(marpa.h@> =
 @<Header license language@>@;
 
-#ifndef __MARPA_H__
-#define __MARPA_H__ @/
+#ifndef _MARPA_H__
+#define _MARPA_H__ 1
 #include "marpa_config.h"
 
 @<Body of public header file@>
 
 #include "marpa_api.h"
-#endif /* |__MARPA_H__| */
+#endif /* |_MARPA_H__| */
 
 @*0 |marpa_int.h| layout.
 This contains ``internal'' declarations
@@ -16466,12 +16466,12 @@ They cannot be used in ``friend'' libraries.
 @(marpa_int.h@> =
 @<Header license language@>@;
 
-#ifndef __MARPA_INT_H__
-#define __MARPA_INT_H__
+#ifndef _MARPA_INT_H__
+#define _MARPA_INT_H__ 1
 
 @<Internal macros@>
 
-#endif /* |__MARPA__INT_H__| */
+#endif /* |_MARPA__INT_H__| */
 
 @*0 |marpa_util.h| layout.
 This contains ``utility'' declarations,
@@ -16483,13 +16483,13 @@ but may be unsuitable for them for other reasons.
 @(marpa_util.h@> =
 @<Header license language@>@;
 
-#ifndef __MARPA_UTIL_H__
-#define __MARPA_UTIL_H__
+#ifndef _MARPA_UTIL_H__
+#define _MARPA_UTIL_H__ 1
 
 @<Debug macros@>
 @<Utility variables@>
 
-#endif /* |__MARPA_UTIL_H__| */
+#endif /* |_MARPA_UTIL_H__| */
 
 @** Miscellaneous compiler defines.
 Various defines to

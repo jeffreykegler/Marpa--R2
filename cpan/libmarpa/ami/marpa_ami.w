@@ -417,8 +417,8 @@ So I add such a comment.
 @(marpa_ami.h@> =
 @<Header license language@>@;
 
-#ifndef __MARPA_AMI_H__
-#define __MARPA_AMI_H__
+#ifndef _MARPA_AMI_H__
+#define _MARPA_AMI_H__ 1
 
 @<Utility macros@>@;
 @<Debug macros@>@;
@@ -426,7 +426,7 @@ So I add such a comment.
 @<Friend static inline functions@>@;
 @<Public function prototypes@>@;
 
-#endif /* |__MARPA_AMI_H__| */
+#endif /* |_MARPA_AMI_H__| */
 
 @*0 |marpa_ami.c| layout.
 @q This is a hack to get the @>

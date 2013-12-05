@@ -24,8 +24,8 @@
  * http://www.gnu.org/licenses/.
  */
 
-#ifndef MARPA_AVL_H
-#define MARPA_AVL_H 1
+#ifndef _MARPA_AVL_H__
+#define _MARPA_AVL_H__ 1
 
 #include <stddef.h>
 
