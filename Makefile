@@ -33,7 +33,7 @@ full_test: etc_make
 	    ./Build distmeta; \
 	    ./Build test; \
 	    ./Build disttest; \
-	    MARPA_USE_PERL_AUTOCONF=1 ./Build dist; \
+	    MARPA_USE_PERL_AUTOCONF=1 ./Build disttest; \
 	) 2>&1 | tee full_test.out
 
 install:
