@@ -320,11 +320,15 @@ static inline void * marpa_dstack_resize2(struct marpa_dstack_s* this, size_t ty
 }
 
 @ 
-@d MARPA_DSTACK_RESIZE(this, type, new_size) (marpa_dstack_resize((this), sizeof(type), (new_size)))
+@d MARPA_DSTACK_RESIZE(this, type, new_size)
+  (marpa_dstack_resize((this), sizeof(type), (new_size)))
 @ @<Friend function prototypes@> =
-static inline void * marpa_dstack_resize(struct marpa_dstack_s*, size_t, int);
+static inline void *marpa_dstack_resize (struct marpa_dstack_s *, size_t,
+					 int);
 @ @<Friend static inline functions@> =
-static inline void * marpa_dstack_resize(struct marpa_dstack_s* this, size_t type_bytes, int new_size)
+static inline void *
+marpa_dstack_resize (struct marpa_dstack_s *this, size_t type_bytes,
+		     int new_size)
 {
   if (new_size > this->t_capacity)
     {				/* We do not shrink the stack
@@ -334,7 +338,6 @@ static inline void * marpa_dstack_resize(struct marpa_dstack_s* this, size_t typ
     }
   return this->t_base;
 }
-
 @** File layout.  
 @ The output files are {\bf not} source files,
 but I add the license to them anyway,
