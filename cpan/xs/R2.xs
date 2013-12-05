@@ -88,14 +88,14 @@ typedef struct {
 #undef OFFSET_IN_INPUT
 #define OFFSET_IN_INPUT(slr) POS_TO_OFFSET((slr), (slr)->perl_pos)
 
-struct lexeme_g_properties {
+struct symbol_g_properties {
      int priority;
      unsigned int forgiving:1;
      unsigned int pause_before:1;
      unsigned int pause_after:1;
 };
 
-struct lexeme_r_properties {
+struct symbol_r_properties {
      unsigned int pause_before_active:1;
      unsigned int pause_after_active:1;
 };
@@ -122,7 +122,7 @@ typedef struct {
      G_Wrapper* g1_wrapper;
      Marpa_Grammar g1;
     int precomputed;
-    struct lexeme_g_properties * g1_lexeme_properties;
+    struct symbol_g_properties * symbol_g_properties;
 } Scanless_G;
 
 typedef struct
@@ -159,7 +159,7 @@ typedef struct
   int start_of_pause_lexeme;
   int end_of_pause_lexeme;
   Marpa_Symbol_ID pause_lexeme;
-  struct lexeme_r_properties *g1_lexeme_properties;
+  struct symbol_r_properties *symbol_r_properties;
   Pos_Entry *pos_db;
   int pos_db_logical_size;
   int pos_db_physical_size;
@@ -1855,8 +1855,8 @@ slr_alternatives (Scanless_R * slr)
 	  int unforgiven = 0;
 	  while (1)
 	    {
-	      struct lexeme_r_properties *lexeme_r_properties;
-	      struct lexeme_g_properties *lexeme_g_properties;
+	      struct symbol_r_properties *symbol_r_properties;
+	      struct symbol_g_properties *symbol_g_properties;
 	      Marpa_Symbol_ID g1_lexeme;
 	      int this_lexeme_priority;
 	      int is_expected;
@@ -1903,13 +1903,13 @@ slr_alternatives (Scanless_R * slr)
 		    }
 		  goto NEXT_PASS1_REPORT_ITEM;
 		}
-	      lexeme_g_properties = slg->g1_lexeme_properties + g1_lexeme;
-	      lexeme_r_properties = slr->g1_lexeme_properties + g1_lexeme;
+	      symbol_g_properties = slg->symbol_g_properties + g1_lexeme;
+	      symbol_r_properties = slr->symbol_r_properties + g1_lexeme;
 	      is_expected = marpa_r_terminal_is_expected (r1, g1_lexeme);
 	      if (!is_expected)
 		{
 		  rejected++;
-		  if (!lexeme_g_properties->forgiving)
+		  if (!symbol_g_properties->forgiving)
 		    {
 		      unforgiven++;
 		    }
@@ -1939,7 +1939,7 @@ slr_alternatives (Scanless_R * slr)
 	       * but we do not yet know about priority
 	       */
 
-	      this_lexeme_priority = lexeme_g_properties->priority;
+	      this_lexeme_priority = symbol_g_properties->priority;
 	      if (is_priority_set
 		  && this_lexeme_priority < current_lexeme_priority)
 		{
@@ -1993,9 +1993,9 @@ slr_alternatives (Scanless_R * slr)
 	for (lexeme_ix = 0; lexeme_ix < lexemes_in_buffer; lexeme_ix++)
 	  {
 	    const Marpa_Symbol_ID lexeme_id = lexeme_buffer[lexeme_ix];
-	    const struct lexeme_r_properties *lexeme_r_properties
-	      = slr->g1_lexeme_properties + lexeme_id;
-	    if (lexeme_r_properties->pause_before_active)
+	    const struct symbol_r_properties *symbol_r_properties
+	      = slr->symbol_r_properties + lexeme_id;
+	    if (symbol_r_properties->pause_before_active)
 	      {
 		g1_lexeme = lexeme_id;
 		slr->start_of_pause_lexeme = slr->start_of_lexeme;
@@ -2037,8 +2037,8 @@ slr_alternatives (Scanless_R * slr)
 	for (lexeme_ix = 0; lexeme_ix < lexemes_in_buffer; lexeme_ix++)
 	  {
 	    const Marpa_Symbol_ID g1_lexeme = lexeme_buffer[lexeme_ix];
-	    const struct lexeme_r_properties *lexeme_r_properties
-	      = slr->g1_lexeme_properties + g1_lexeme;
+	    const struct symbol_r_properties *symbol_r_properties
+	      = slr->symbol_r_properties + g1_lexeme;
 
 	    if (slr->trace_terminals > 2)
 	      {
@@ -2107,7 +2107,7 @@ slr_alternatives (Scanless_R * slr)
 		    av_push (slr->r1_wrapper->event_queue,
 			     newRV_noinc ((SV *) event));
 		  }
-	    if (lexeme_r_properties->pause_after_active)
+	    if (symbol_r_properties->pause_after_active)
 	      {
 		slr->start_of_pause_lexeme = slr->start_of_lexeme;
 		slr->end_of_pause_lexeme = slr->end_of_lexeme;
@@ -4775,12 +4775,12 @@ PPCODE:
   {
     Marpa_Symbol_ID symbol_id;
     Marpa_Symbol_ID g1_symbol_count = marpa_g_highest_symbol_id (slg->g1) + 1;
-    Newx (slg->g1_lexeme_properties, g1_symbol_count, struct lexeme_g_properties);
+    Newx (slg->symbol_g_properties, g1_symbol_count, struct symbol_g_properties);
     for (symbol_id = 0; symbol_id < g1_symbol_count; symbol_id++) {
-        slg->g1_lexeme_properties[symbol_id].priority = 0;
-        slg->g1_lexeme_properties[symbol_id].forgiving = 0;
-        slg->g1_lexeme_properties[symbol_id].pause_before = 0;
-        slg->g1_lexeme_properties[symbol_id].pause_after = 0;
+        slg->symbol_g_properties[symbol_id].priority = 0;
+        slg->symbol_g_properties[symbol_id].forgiving = 0;
+        slg->symbol_g_properties[symbol_id].pause_before = 0;
+        slg->symbol_g_properties[symbol_id].pause_after = 0;
     }
   }
 
@@ -4804,7 +4804,7 @@ PPCODE:
 	}
     }
   SvREFCNT_dec (slg->g1_sv);
-  Safefree (slg->g1_lexeme_properties);
+  Safefree (slg->symbol_g_properties);
   Safefree (slg);
 }
 
@@ -4930,7 +4930,7 @@ PPCODE:
 	 (long) priority,
 	 (long) g1_lexeme);
     }
-  slg->g1_lexeme_properties[g1_lexeme].priority = priority;
+  slg->symbol_g_properties[g1_lexeme].priority = priority;
   XSRETURN_YES;
 }
 
@@ -4956,7 +4956,7 @@ PPCODE:
 	 (long) g1_lexeme,
 	 (long) g1_lexeme);
     }
-  XSRETURN_IV( slg->g1_lexeme_properties[g1_lexeme].priority);
+  XSRETURN_IV( slg->symbol_g_properties[g1_lexeme].priority);
 }
 
 void
@@ -4967,7 +4967,7 @@ g1_lexeme_pause_set( slg, g1_lexeme, pause )
 PPCODE:
 {
   Marpa_Symbol_ID highest_g1_symbol_id = marpa_g_highest_symbol_id (slg->g1);
-    struct lexeme_g_properties * g_properties = slg->g1_lexeme_properties + g1_lexeme;
+    struct symbol_g_properties * g_properties = slg->symbol_g_properties + g1_lexeme;
     if (slg->precomputed)
       {
 	croak
@@ -5094,15 +5094,15 @@ PPCODE:
     Marpa_Symbol_ID symbol_id;
     const Marpa_Symbol_ID g1_symbol_count =
       marpa_g_highest_symbol_id (slg->g1) + 1;
-    Newx (slr->g1_lexeme_properties, g1_symbol_count,
-	  struct lexeme_r_properties);
+    Newx (slr->symbol_r_properties, g1_symbol_count,
+	  struct symbol_r_properties);
     for (symbol_id = 0; symbol_id < g1_symbol_count; symbol_id++)
       {
-	const struct lexeme_g_properties *g_properties =
-	  slg->g1_lexeme_properties + symbol_id;
-	slr->g1_lexeme_properties[symbol_id].pause_before_active =
+	const struct symbol_g_properties *g_properties =
+	  slg->symbol_g_properties + symbol_id;
+	slr->symbol_r_properties[symbol_id].pause_before_active =
 	  g_properties->pause_before;
-	slr->g1_lexeme_properties[symbol_id].pause_after_active =
+	slr->symbol_r_properties[symbol_id].pause_after_active =
 	  g_properties->pause_after;
       }
   }
@@ -5142,7 +5142,7 @@ PPCODE:
   Safefree(slr->pos_db);
   SvREFCNT_dec (slr->slg_sv);
   SvREFCNT_dec (slr->r1_sv);
-  Safefree(slr->g1_lexeme_properties);
+  Safefree(slr->symbol_r_properties);
   if (slr->token_values)
     {
       SvREFCNT_dec ((SV *) slr->token_values);
@@ -5650,7 +5650,7 @@ lexeme_event_activate( slr, g1_lexeme_id, reactivate )
     int reactivate;
 PPCODE:
 {
-  struct lexeme_r_properties *lexeme_r_properties;
+  struct symbol_r_properties *symbol_r_properties;
   const Scanless_G *slg = slr->slg;
   const Marpa_Symbol_ID highest_g1_symbol_id = marpa_g_highest_symbol_id (slg->g1);
   if (g1_lexeme_id > highest_g1_symbol_id)
@@ -5666,18 +5666,18 @@ PPCODE:
 	("Problem in slr->lexeme_event_activate(..., %ld, %ld): symbol ID was %ld, a disallowed value",
 	 (long) g1_lexeme_id, (long) reactivate, (long) g1_lexeme_id);
     }
-  lexeme_r_properties = slr->g1_lexeme_properties + g1_lexeme_id;
+  symbol_r_properties = slr->symbol_r_properties + g1_lexeme_id;
   switch (reactivate)
     {
     case 0:
-      lexeme_r_properties->pause_after_active = 0;
-      lexeme_r_properties->pause_before_active = 0;
+      symbol_r_properties->pause_after_active = 0;
+      symbol_r_properties->pause_before_active = 0;
       break;
     case 1:
       {
-	const struct lexeme_g_properties* g_properties = slg->g1_lexeme_properties + g1_lexeme_id;
-	lexeme_r_properties->pause_after_active = g_properties->pause_after;
-	lexeme_r_properties->pause_before_active = g_properties->pause_before;
+	const struct symbol_g_properties* g_properties = slg->symbol_g_properties + g1_lexeme_id;
+	symbol_r_properties->pause_after_active = g_properties->pause_after;
+	symbol_r_properties->pause_before_active = g_properties->pause_before;
       }
       break;
     default:
