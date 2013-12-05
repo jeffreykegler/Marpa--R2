@@ -20,7 +20,6 @@ dummy:
 releng: install full_test
 	cd cpan && ./Build distcheck
 	cd cpan && ./Build dist
-	cd cpan && MARPA_USE_PERL_AUTOCONF=1 ./Build dist
 	git status
 
 basic_test:
@@ -34,6 +33,7 @@ full_test: etc_make
 	    ./Build distmeta; \
 	    ./Build test; \
 	    ./Build disttest; \
+	    MARPA_USE_PERL_AUTOCONF=1 ./Build dist
 	) 2>&1 | tee full_test.out
 
 install:
