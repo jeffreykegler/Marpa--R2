@@ -85,6 +85,9 @@ inc/Marpa/R2/Display.pm
 inc/Marpa/R2/legal.pl
 inc/Marpa/R2/License.pm
 inc/Marpa/R2/Test.pm
+libmarpa/ami/.gitignore
+libmarpa/ami/Makefile
+libmarpa/ami/marpa_ami.w
 libmarpa/avl/marpa_avl.c
 libmarpa/avl/marpa_avl.h
 libmarpa/dev/api.texi
@@ -115,6 +118,7 @@ libmarpa/dev/README
 libmarpa/dev/texi2code.pl
 libmarpa/dev/w2private_h.pl
 libmarpa_dist/aclocal.m4
+libmarpa_dist/ami_private.h
 libmarpa_dist/AUTHORS
 libmarpa_dist/ChangeLog
 libmarpa_dist/codes.c
@@ -136,11 +140,15 @@ libmarpa_dist/m4/ltsugar.m4
 libmarpa_dist/m4/ltversion.m4
 libmarpa_dist/Makefile.am
 libmarpa_dist/Makefile.in
+libmarpa_dist/marpa_ami.c
+libmarpa_dist/marpa_ami.h
+libmarpa_dist/marpa_ami.h
 libmarpa_dist/marpa_api.h
 libmarpa_dist/marpa_avl.c
 libmarpa_dist/marpa_avl.h
 libmarpa_dist/marpa.c
 libmarpa_dist/marpa.h
+libmarpa_dist/marpa_int.h
 libmarpa_dist/marpa_obs.c
 libmarpa_dist/marpa_obs.h
 libmarpa_dist/marpa_util.h
