@@ -126,6 +126,7 @@ AC_CACHE_CHECK([whether GCC handles -Wdeclaration-after-statement],
                                        [marpa_cv_prog_gcc_wdas=])])
 CFLAGS="$marpa_save_CFLAGS"
 
+dnl -Winline eliminated because it was too noisy
 dnl One to a line to make these easy to edit
 WARNING_CFLAGS="-Wall \
 $marpa_cv_prog_gcc_wextra \
@@ -134,7 +135,6 @@ $marpa_cv_prog_gcc_wdas \
 -Wstrict-prototypes \
 -Wwrite-strings \
 -Wshadow \
--Winline \
 -Wmissing-declarations \
 -ansi -pedantic"
 

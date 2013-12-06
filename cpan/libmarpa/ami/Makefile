@@ -55,7 +55,11 @@ sources: marpa_ami.c marpa_ami.h ami_private.h
 copyright_page_license.w: ../dev/copyright_page_license.w
 	cp $? $@
 
-marpa_ami.h marpa_ami.c: copyright_page_license.w marpa_ami.w
+MARPA_AMI_H_PIECES = marpa_ami.h.p1 marpa_ami.h.p5 marpa_ami.h.p9
+MARPA_AMI_C_PIECES = marpa_ami.c.p1 
+C_LANGUAGE_PREAMBLE = license.c do_not_edit.c
+
+$(MARPA_AMI_H_PIECES) $(MARPA_AMI_C_PIECES): copyright_page_license.w marpa_ami.w
 	$(CTANGLE) marpa_ami.w
 
 cwebmac.tex: ../dev/cwebmac.tex
@@ -65,9 +69,23 @@ marpa_ami.tex: cwebmac.tex copyright_page_license.w
 
 marpa_ami.pdf: marpa_ami.tex
 
+marpa_ami.h: $(C_LANGUAGE_PREAMBLE) $(MARPA_AMI_H_PIECES)
+	cat $(C_LANGUAGE_PREAMBLE) $(MARPA_AMI_H_PIECES) > $@
+
+marpa_ami.c: $(C_LANGUAGE_PREAMBLE) $(MARPA_AMI_C_PIECES)
+	cat $(C_LANGUAGE_PREAMBLE) $(MARPA_AMI_C_PIECES) > $@
+
 w2private_h.pl: ../dev/w2private_h.pl
 	cp $? $@
 
 ami_private.h: marpa_ami.w w2private_h.pl
 	perl w2private_h.pl ami_private.h < marpa_ami.w
 
+marpa_ami.h.p5: internal.texi texi2code.pl
+	cat internal.texi | perl texi2code.pl marpa_ami.h.p5
+
+update_texi:
+	emacs -batch internal.texi \
+	    -f texinfo-every-node-update \
+	    -f texinfo-all-menus-update \
+	    -f save-buffer -kill

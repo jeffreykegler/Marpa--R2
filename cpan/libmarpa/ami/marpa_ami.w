@@ -126,7 +126,8 @@
 \bigskip\noindent
 @i copyright_page_license.w
 
-@** About this library.
+@** Introduction.
+@*0 About this library.
 This is Marpa's ``ami'' or ``friend'' library, for macros
 and functions which are useful for Libmarpa and its
 ``close friends''.
@@ -158,7 +159,7 @@ it can be part of the implementation of that error handlind.
 The ami interface must be useable in a situation where another
 error handling regime is in effect.
 
-@** About this document.
+@*0 About this document.
 This document is very much under construction,
 enough so that readers may question why I make it
 available at all.  Two reasons:
@@ -180,7 +181,7 @@ used in a private function.
 #define PRIVATE_NOT_INLINE static
 #define PRIVATE static inline
 
-@*0 Memory allocation.
+@** Memory allocation.
 libmarpa wrappers the standard memory functions
 to provide more convenient behaviors.
 \li The allocators do not return on failed memory allocations.
@@ -235,7 +236,7 @@ marpa_realloc(void *p, size_t size)
 @d marpa_renew(type, p, count) 
     ((type *)marpa_realloc((p), (sizeof(type)*(count))))
 
-@*0 Dynamic stacks.
+@** Dynamic stacks.
 |libmarpa| uses stacks and worklists extensively.
 This stack interface resizes itself dynamically.
 There are two disadvantages.
@@ -311,8 +312,6 @@ struct marpa_dstack_s;
 typedef struct marpa_dstack_s* MARPA_DSTACK;
 @ @<Friend structures@> =
 struct marpa_dstack_s { int t_count; int t_capacity; void * t_base; };
-@ @<Friend function prototypes@> =
-static inline void * marpa_dstack_resize2(struct marpa_dstack_s*, size_t);
 @ @<Friend static inline functions@> =
 static inline void * marpa_dstack_resize2(struct marpa_dstack_s* this, size_t type_bytes)
 {
@@ -322,9 +321,6 @@ static inline void * marpa_dstack_resize2(struct marpa_dstack_s* this, size_t ty
 @ 
 @d MARPA_DSTACK_RESIZE(this, type, new_size)
   (marpa_dstack_resize((this), sizeof(type), (new_size)))
-@ @<Friend function prototypes@> =
-static inline void *marpa_dstack_resize (struct marpa_dstack_s *, size_t,
-					 int);
 @ @<Friend static inline functions@> =
 static inline void *
 marpa_dstack_resize (struct marpa_dstack_s *this, size_t type_bytes,
@@ -339,9 +335,11 @@ marpa_dstack_resize (struct marpa_dstack_s *this, size_t type_bytes,
   return this->t_base;
 }
 @** File layout.  
-@ The output files are {\bf not} source files,
-but I add the license to them anyway,
-as close to the top as possible.
+@ The output files are written in pieces,
+with the license prepended,
+which allows it to start the file.
+The output files are {\bf not} source files,
+but I add the license to them anyway.
 @ Also, it is helpful to someone first
 trying to orient herself,
 if built source files contain a comment
@@ -350,78 +348,26 @@ not that they are
 not intended to be edited directly.
 So I add such a comment.
 
-@ This is the license language for the header files.
-\tenpoint
-@<Header license language@> =
-@=/*@>@/
-@= * Copyright 2013 Jeffrey Kegler@>@/
-@= * This file is part of Marpa::R2.  Marpa::R2 is free software: you can@>@/
-@= * redistribute it and/or modify it under the terms of the GNU Lesser@>@/
-@= * General Public License as published by the Free Software Foundation,@>@/
-@= * either version 3 of the License, or (at your option) any later version.@>@/
-@= *@>@/
-@= * Marpa::R2 is distributed in the hope that it will be useful,@>@/
-@= * but WITHOUT ANY WARRANTY; without even the implied warranty of@>@/
-@= * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU@>@/
-@= * Lesser General Public License for more details.@>@/
-@= *@>@/
-@= * You should have received a copy of the GNU Lesser@>@/
-@= * General Public License along with Marpa::R2.  If not, see@>@/
-@= * http://www.gnu.org/licenses/.@>@/
-@= */@>@/
-@=/*@>@/
-@= * DO NOT EDIT DIRECTLY@>@/
-@= * This file is written by ctangle@>@/
-@= * It is not intended to be modified directly@>@/
-@= */@>@/
-
-@ \twelvepoint
-
-@*0 |marpa_ami.h| layout.
-\tenpoint
-@(marpa_ami.h@> =
-@<Header license language@>@;
+@*0 |marpa_ami.h| layout, first piece.
+@(marpa_ami.h.p1@> =
 
 #ifndef _MARPA_AMI_H__
 #define _MARPA_AMI_H__ 1
 
 @h
 @<Friend incomplete structures@>@;
-@<Friend function prototypes@>@;
+
+@*0 |marpa_ami.h| layout, last piece.
+@(marpa_ami.h.p9@> =
+
 @<Friend structures@>@;
 @<Friend static inline functions@>@;
 
 #endif /* |_MARPA_AMI_H__| */
 
 @*0 |marpa_ami.c| layout.
-@q This is a hack to get the @>
-@q license language nearer the top of the files. @>
-@ The physical structure of the |marpa_ami.c| file
-\tenpoint
-@c
-@=/*@>@/
-@= * Copyright 2013 Jeffrey Kegler@>@/
-@= * This file is part of Marpa::R2.  Marpa::R2 is free software: you can@>@/
-@= * redistribute it and/or modify it under the terms of the GNU Lesser@>@/
-@= * General Public License as published by the Free Software Foundation,@>@/
-@= * either version 3 of the License, or (at your option) any later version.@>@/
-@= *@>@/
-@= * Marpa::R2 is distributed in the hope that it will be useful,@>@/
-@= * but WITHOUT ANY WARRANTY; without even the implied warranty of@>@/
-@= * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU@>@/
-@= * Lesser General Public License for more details.@>@/
-@= *@>@/
-@= * You should have received a copy of the GNU Lesser@>@/
-@= * General Public License along with Marpa::R2.  If not, see@>@/
-@= * http://www.gnu.org/licenses/.@>@/
-@= */@>@/
-@=/*@>@/
-@= * DO NOT EDIT DIRECTLY@>@/
-@= * This file is written by ctangle@>@/
-@= * It is not intended to be modified directly@>@/
-@= */@>@/
+@(marpa_ami.c.p1@> =
 
-@ \twelvepoint @c
 #include "config.h"
 #include "marpa.h"
 #include <stddef.h>
@@ -440,6 +386,12 @@ So I add such a comment.
 @<Private macros@>@;
 
 #include "ami_private.h"
+
+@ The .c file has no contents at the moment, so just in
+case, I include a dummy function.  Once there are other contents,
+it should be deleted.
+@(marpa_ami.c.p1@> =
+int _marpa_ami_dummy(void) { return 1 ; }
 
 @** Index.
 

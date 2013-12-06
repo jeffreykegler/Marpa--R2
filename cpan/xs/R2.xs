@@ -368,7 +368,8 @@ enum marpa_op
   op_result_is_undef,
   op_character_is_invalid,
   op_set_lexer,
-  op_retry_or_set_lexer
+  op_retry_or_set_lexer,
+  op_pause
 };
 
 typedef struct { enum marpa_op op; const char *name; } Marpa_XS_OP_Data;
@@ -394,6 +395,7 @@ static Marpa_XS_OP_Data marpa_op_data[] = {
 {  op_character_is_invalid, "character_is_invalid" },
 {  op_set_lexer, "set_lexer" },
 {  op_retry_or_set_lexer, "retry_or_set_lexer" },
+{  op_pause, "pause" },
   { -1, (char *)NULL}
 };
 
