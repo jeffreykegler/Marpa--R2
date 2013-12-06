@@ -5377,14 +5377,18 @@ PPCODE:
 
   while (1)
     {
+      /* Flag to indicate whether we should attempt to consume some of the input
+       * after a u_read()
+       */
+      int consume_input = 0;
       if (slr->lexer_start_pos >= 0)
 	{
 	  STRLEN input_length = SvCUR (slr->input);
 
 	  if (slr->lexer_start_pos >= slr->end_pos)
-	  {
-	    XSRETURN_PV ("");
-	  }
+	    {
+	      XSRETURN_PV ("");
+	    }
 
 	  slr->start_of_lexeme = slr->perl_pos = slr->lexer_start_pos;
 	  slr->lexer_start_pos = -1;
@@ -5398,7 +5402,8 @@ PPCODE:
 	      event_data[2] = newSViv ((IV) slr->perl_pos);
 	      event_data[3] = newSViv ((IV) slr->current_lexer->index);
 	      event = av_make (Dim (event_data), event_data);
-	      av_push (slr->r1_wrapper->event_queue, newRV_noinc ((SV *) event));
+	      av_push (slr->r1_wrapper->event_queue,
+		       newRV_noinc ((SV *) event));
 	    }
 	}
 
@@ -5414,14 +5419,22 @@ PPCODE:
 	default:
 	  if (result < 0)
 	    {
-	      croak ("Internal Marpa SLIF error: u_read returned unknown code: %ld",
-		     (long) result);
+	      croak
+		("Internal Marpa SLIF error: u_read returned unknown code: %ld",
+		 (long) result);
 	    }
-	  /* FALL THROUGH */
+	  consume_input = 1;
+	  break;
 	case U_READ_OK:
 	case U_READ_REJECTED_CHAR:
 	case U_READ_EXHAUSTED_ON_FAILURE:
 	case U_READ_EXHAUSTED_ON_SUCCESS:
+	  consume_input = 1;
+	  break;
+	}
+
+      if (consume_input)
+	{
 	  if (marpa_r_is_exhausted (slr->r1))
 	    {
 	      int discard_result = slr_discard (slr);
@@ -5438,14 +5451,14 @@ PPCODE:
 		  XSRETURN_PV (result_string);
 		}
 	    }
-
-	  if (slr->trace_terminals || slr->trace_lexer)
-	    {
-	      XSRETURN_PV ("trace");
-	    }
-
 	}
-  }
+
+      if (slr->trace_terminals || slr->trace_lexer)
+	{
+	  XSRETURN_PV ("trace");
+	}
+
+    }
 
   /* Never reached */
   XSRETURN_PV ("");
