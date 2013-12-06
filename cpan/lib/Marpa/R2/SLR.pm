@@ -904,13 +904,13 @@ sub Marpa::R2::Scanless::R::read_problem {
     my $stream_status = 0;
     my $g1_status = 0;
     CODE_TO_PROBLEM: {
-        if ( $problem_code eq 'R0 exhausted before end' ) {
+        if ( $problem_code eq 'R1 exhausted before end' ) {
             my ($lexeme_start) = $thin_slr->lexeme_span();
             my ( $line, $column ) = $slr->line_column($lexeme_start);
             $problem =
                 "Parse exhausted, but lexemes remain, at line $line, column $column\n";
             last CODE_TO_PROBLEM;
-        } ## end if ( $problem_code eq 'R0 exhausted before end' )
+        }
         if ( $problem_code eq 'no lexeme' ) {
             my ($lexeme_start) = $thin_slr->lexeme_span();
             my ( $line, $column ) = $slr->line_column($lexeme_start);

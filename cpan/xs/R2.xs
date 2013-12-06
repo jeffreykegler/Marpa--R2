@@ -129,7 +129,13 @@ typedef struct
 {
   SV *slg_sv;
   SV *r1_sv;
+
+  /* |next_lexer| is to allow |current_lexer| to reflect the lexer that processed
+   * the current input.  The switch takes place just before reading new input.
+   */
+  Lexer *next_lexer;
   Lexer *current_lexer;
+
   Scanless_G *slg;
   R_Wrapper *r1_wrapper;
   Marpa_Recce r1;
@@ -5157,6 +5163,7 @@ PPCODE:
   slr->end_pos = 0;
   slr->too_many_earley_items = -1;
   slr->current_lexer = slg->lexers[0];
+  slr->next_lexer = slr->current_lexer;
 
   new_sv = sv_newmortal ();
   sv_setref_pv (new_sv, scanless_r_class_name, (void *) slr);
@@ -5354,7 +5361,7 @@ PPCODE:
 	("Problem in slr->lexer_set(%ld): lexer id must be between 0 and %ld",
 	 (long) lexer_id, (long) (lexer_count - 1));
     }
-  slr->current_lexer = slg->lexers[lexer_id];
+  slr->next_lexer = slr->current_lexer = slg->lexers[lexer_id];
   XSRETURN_IV ((IV) old_lexer_id);
 }
 
@@ -5407,6 +5414,7 @@ PPCODE:
 	    }
 	}
 
+      slr->current_lexer = slr->next_lexer;
       result = slr->lexer_read_result = u_read (slr);
       switch (result)
 	{
@@ -5433,6 +5441,14 @@ PPCODE:
 	  break;
 	}
 
+      /* Deal with repeated failures at the same |perl_pos| */
+      if (slr->perl_pos == slr->last_perl_pos) {
+          slr->perl_pos_hits++;
+      } else {
+          slr->last_perl_pos = slr->perl_pos;
+          slr->perl_pos_hits = 1;
+      }
+
       if (consume_input)
 	{
 	  if (marpa_r_is_exhausted (slr->r1))
@@ -5440,7 +5456,7 @@ PPCODE:
 	      int discard_result = slr_discard (slr);
 	      if (discard_result < 0)
 		{
-		  XSRETURN_PV ("R0 exhausted before end");
+		  XSRETURN_PV ("R1 exhausted before end");
 		}
 	    }
 	  else
