@@ -5395,7 +5395,8 @@ PPCODE:
 	default:
 	  if (result < 0)
 	    {
-	      XSRETURN_PV ("R0 read() problem");
+	      croak ("Internal Marpa SLIF error: u_read returned unknown code: %ld",
+		     (long) result);
 	    }
 	  /* FALL THROUGH */
 	case U_READ_OK:

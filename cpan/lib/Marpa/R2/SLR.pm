@@ -792,16 +792,28 @@ sub Marpa::R2::Scanless::R::resume {
         next OUTER_READ if $problem_code eq 'event';
         next OUTER_READ if $problem_code eq 'trace';
 
+        if ( $problem_code eq 'invalid char' ) {
+            my $codepoint = $thin_slr->codepoint();
+            my $lexer_id  = $thin_slr->current_lexer();
+            my $lexer_name =
+                $slg->[Marpa::R2::Inner::Scanless::G::LEXER_NAME_BY_ID]
+                ->[$lexer_id];
+            Marpa::R2::exception(
+                qq{Lexer "$lexer_name" failed at unacceptable character },
+                character_describe( chr $codepoint ) );
+        } ## end if ( $problem_code eq 'invalid char' )
+
         if ( $problem_code eq 'unregistered char' ) {
 
-            state $op_alternative = Marpa::R2::Thin::op('alternative');
+            state $op_alternative  = Marpa::R2::Thin::op('alternative');
+            state $op_invalid_char = Marpa::R2::Thin::op('invalid_char');
             state $op_earleme_complete =
                 Marpa::R2::Thin::op('earleme_complete');
 
             # Recover by registering character, if we can
             my $codepoint = $thin_slr->codepoint();
             my $character = chr($codepoint);
-            my $lexer_id     = $thin_slr->current_lexer();
+            my $lexer_id  = $thin_slr->current_lexer();
             my $character_class_table =
                 $slg->[Marpa::R2::Inner::Scanless::G::CHARACTER_CLASS_TABLES]
                 ->[$lexer_id];
@@ -812,8 +824,10 @@ sub Marpa::R2::Scanless::R::resume {
                 if ( $character =~ $re ) {
 
                     if ( $trace_terminals >= 2 ) {
-                        my $thick_lex_grammar = $slg->[
-                            Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMARS]->[$lexer_id];
+                        my $thick_lex_grammar =
+                            $slg->[
+                            Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMARS]
+                            ->[$lexer_id];
                         my $trace_file_handle = $slr->[
                             Marpa::R2::Inner::Scanless::R::TRACE_FILE_HANDLE];
                         my $char_desc = sprintf 'U+%04x', $codepoint;
@@ -831,11 +845,10 @@ sub Marpa::R2::Scanless::R::resume {
                 } ## end if ( $character =~ $re )
             } ## end for my $entry ( @{$character_class_table} )
 
-            my $lexer_name = $slg->[Marpa::R2::Inner::Scanless::G::LEXER_NAME_BY_ID]->[$lexer_id];
-            Marpa::R2::exception(
-                qq{Lexer "$lexer_name" failed at unacceptable character },
-                character_describe( chr $codepoint )
-            ) if not @ops;
+            if ( not @ops ) {
+                $thin_slr->char_register( $codepoint, $op_invalid_char );
+                next OUTER_READ;
+            }
             $thin_slr->char_register( $codepoint, @ops,
                 $op_earleme_complete );
             next OUTER_READ;
@@ -904,11 +917,6 @@ sub Marpa::R2::Scanless::R::read_problem {
             $problem = "No lexeme found at line $line, column $column";
             last CODE_TO_PROBLEM;
         } ## end if ( $problem_code eq 'no lexeme' )
-        if ( $problem_code eq 'R0 read() problem' ) {
-            $problem = undef;    # let $stream_status do the work
-            $stream_status = $thin_slr->input_read_result();
-            last CODE_TO_PROBLEM;
-        }
         if ( $problem_code eq 'no lexemes accepted' ) {
             $problem_pos = $thin_slr->problem_pos();
             my ( $line, $column ) = $slr->line_column($problem_pos);
