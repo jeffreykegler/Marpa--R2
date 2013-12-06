@@ -715,7 +715,7 @@ u_read(Scanless_R *slr)
 	  if (!ops)
 	    {
 	      slr->codepoint = codepoint;
-	      return -2;
+	      return U_READ_UNREGISTERED_CHAR;
 	    }
 	}
       else
@@ -726,7 +726,7 @@ u_read(Scanless_R *slr)
 	  if (!p_ops_sv)
 	    {
 	      slr->codepoint = codepoint;
-	      return -2;
+	      return U_READ_UNREGISTERED_CHAR;
 	    }
 	  ops = (IV *) SvPV (*p_ops_sv, dummy);
 	}
@@ -835,7 +835,7 @@ u_read(Scanless_R *slr)
 		if (tokens_accepted < 1)
 		  {
 		    slr->codepoint = codepoint;
-		    return -1;
+		    return U_READ_REJECTED_CHAR;
 		  }
 		result = marpa_r_earleme_complete (r);
 		if (result > 0)
@@ -853,7 +853,7 @@ u_read(Scanless_R *slr)
 		      marpa_g_error (slr->current_lexer->g_wrapper->g, NULL);
 		    if (error == MARPA_ERR_PARSE_EXHAUSTED)
 		      {
-			return -3;
+			return U_READ_EXHAUSTED_ON_FAILURE;
 		      }
 		  }
 		if (result < 0)
@@ -872,16 +872,12 @@ u_read(Scanless_R *slr)
 	}
     ADVANCE_ONE_CHAR:;
       slr->perl_pos++;
-      /* This logic does not allow a return value of 0,
-       * which is reserved for a indicating a full
-       * read of the input string without event
-       */
       if (trace_lexer)
 	{
-	  return -4;
+	  return U_READ_TRACING;
 	}
     }
-  return 0;
+  return U_READ_OK;
 }
 
 /* It is OK to set pos to last codepoint + 1 */
@@ -5383,45 +5379,48 @@ PPCODE:
 	}
 
       result = slr->lexer_read_result = u_read (slr);
-      if (result == U_READ_TRACING)
+      switch (result)
 	{
+	case U_READ_TRACING:
 	  XSRETURN_PV ("trace");
-	}
-      if (result == U_READ_UNREGISTERED_CHAR)
-	{
+	case U_READ_UNREGISTERED_CHAR:
 	  XSRETURN_PV ("unregistered char");
-	}
-      if (result == U_READ_INVALID_CHAR)
-	{
+	case U_READ_INVALID_CHAR:
 	  XSRETURN_PV ("invalid char");
-      }
-      if (result < -5)
-	{
-	  XSRETURN_PV ("R0 read() problem");
-	}
-      if (marpa_r_is_exhausted (slr->r1))
-	{
-	  int discard_result = slr_discard (slr);
-	  if (discard_result < 0)
+	default:
+	  if (result < 0)
 	    {
-	      XSRETURN_PV ("R0 exhausted before end");
+	      XSRETURN_PV ("R0 read() problem");
 	    }
-	}
-      else
-	{
-	  const char *result_string = slr_alternatives (slr);
-	  if (result_string)
+	  /* FALL THROUGH */
+	case U_READ_OK:
+	case U_READ_REJECTED_CHAR:
+	case U_READ_EXHAUSTED_ON_FAILURE:
+	case U_READ_EXHAUSTED_ON_SUCCESS:
+	  if (marpa_r_is_exhausted (slr->r1))
 	    {
-	      XSRETURN_PV (result_string);
+	      int discard_result = slr_discard (slr);
+	      if (discard_result < 0)
+		{
+		  XSRETURN_PV ("R0 exhausted before end");
+		}
 	    }
-	}
+	  else
+	    {
+	      const char *result_string = slr_alternatives (slr);
+	      if (result_string)
+		{
+		  XSRETURN_PV (result_string);
+		}
+	    }
 
-      if (slr->trace_terminals || slr->trace_lexer)
-	{
-	  XSRETURN_PV ("trace");
-	}
+	  if (slr->trace_terminals || slr->trace_lexer)
+	    {
+	      XSRETURN_PV ("trace");
+	    }
 
-    }
+	}
+  }
 
   /* Never reached */
   XSRETURN_PV ("");
