@@ -632,6 +632,14 @@ u_convert_events (Scanless_R * slr)
     }
 }
 
+#define U_READ_OK 0
+#define U_READ_REJECTED_CHAR -1
+#define U_READ_UNREGISTERED_CHAR -2
+#define U_READ_EXHAUSTED_ON_FAILURE -3
+#define U_READ_TRACING -4
+#define U_READ_EXHAUSTED_ON_SUCCESS -5
+#define U_READ_INVALID_CHAR -6
+
 /* Return values:
  * 1 or greater: reserved for an event count, to deal with multiple events
  *   when and if necessary
@@ -835,7 +843,7 @@ u_read(Scanless_R *slr)
 		     u_convert_events( slr );
 		    /* Advance one character before returning */
 		    if (marpa_r_is_exhausted (r)) {
-		        return -5;
+		        return U_READ_EXHAUSTED_ON_SUCCESS;
 		    }
 		    goto ADVANCE_ONE_CHAR;
 		  }
@@ -5375,14 +5383,18 @@ PPCODE:
 	}
 
       result = slr->lexer_read_result = u_read (slr);
-      if (result == -4)
+      if (result == U_READ_TRACING)
 	{
 	  XSRETURN_PV ("trace");
 	}
-      if (result == -2)
+      if (result == U_READ_UNREGISTERED_CHAR)
 	{
 	  XSRETURN_PV ("unregistered char");
 	}
+      if (result == U_READ_INVALID_CHAR)
+	{
+	  XSRETURN_PV ("invalid char");
+      }
       if (result < -5)
 	{
 	  XSRETURN_PV ("R0 read() problem");
