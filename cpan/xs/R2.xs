@@ -147,7 +147,16 @@ typedef struct
   int lexer_start_pos;
   int lexer_read_result;
   int r1_earleme_complete_result;
+
+  /* Make sure that, when we allow fallback_lexer to be changed, we do NOT
+   * allow that to happen while we are "hitting" the same perl_pos repeatedly --
+   * this to avoid infinite loops.
+   */
+  int fallback_lexer;
+  int perl_pos_hits;
+  int last_perl_pos;
   int perl_pos;
+
   Marpa_Recce r0;
   /* character position, taking into account Unicode
      Equivalent to Perl pos()
@@ -166,9 +175,10 @@ typedef struct
 
   Marpa_Symbol_ID input_symbol_id;
   UV codepoint;			/* For error returns */
-     int end_pos;
-     SV* input;
-     int too_many_earley_items;
+  int end_pos;
+  SV* input;
+  int too_many_earley_items;
+
 } Scanless_R;
 #define TOKEN_VALUE_IS_UNDEF (1)
 #define TOKEN_VALUE_IS_LITERAL (2)
@@ -915,6 +925,8 @@ u_pos_set (Scanless_R * slr, const char* name, int start_pos_arg, int length_arg
       croak ("Bad length in %s(): %ld", name, (long)length_arg);
   }
 
+  /* Application level intervention resets |perl_pos| */
+  slr->last_perl_pos = -1;
   new_perl_pos = new_perl_pos;
   slr->perl_pos = new_perl_pos;
   new_end_pos = new_end_pos;
@@ -5102,8 +5114,13 @@ PPCODE:
 
   slr->start_of_lexeme = 0;
   slr->end_of_lexeme = 0;
+
+  slr->fallback_lexer = 0;
   slr->perl_pos = 0;
+  slr->perl_pos_hits = 0;
+  slr->last_perl_pos = -1;
   slr->problem_pos = -1;
+
   slr->token_values = newAV ();
   av_fill (slr->token_values, TOKEN_VALUE_IS_LITERAL);
 
@@ -5355,6 +5372,8 @@ PPCODE:
   slr->end_of_pause_lexeme = -1;
   slr->pause_lexeme = -1;
   av_clear (slr->r1_wrapper->event_queue);
+  /* Application intervention resets perl_pos */
+  slr->last_perl_pos = -1;
 
   while (1)
     {
@@ -5606,6 +5625,9 @@ PPCODE:
   int result;
   const int old_pos = slr->perl_pos;
   const int input_length = slr->pos_db_logical_size;
+
+  /* User intervention resets last |perl_pos| */
+  slr->last_perl_pos = -1;
 
   int start_pos =
     SvIOK (start_pos_sv) ? SvIV (start_pos_sv) : slr->perl_pos;
