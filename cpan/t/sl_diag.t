@@ -232,6 +232,9 @@ END_OF_EXPECTED_OUTPUT
     Marpa::R2::Test::is( $trace_output,
         <<'END_OF_OUTPUT', qq{Trace output for "$test_string"} );
 Setting trace_terminals option
+Expecting "Number" at earleme 0
+Expecting "[Lex-0]" at earleme 0
+Expecting "[Lex-1]" at earleme 0
 Lexer "L0" registering character U+002b '+' as symbol 5: [\+]
 Lexer "L0" registering character U+002b '+' as symbol 9: [^\x{A}\x{B}\x{C}\x{D}\x{2028}\x{2029}]
 Lexer "L0" accepted lexeme L1c1: '+'; value="+"

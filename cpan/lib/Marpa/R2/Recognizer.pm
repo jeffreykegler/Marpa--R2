@@ -39,13 +39,25 @@ sub Marpa::R2::Recognizer::new {
     my $recce = bless [], $class;
 
     my $grammar;
-    ARG_HASH: for my $arg_hash (@arg_hashes) {
-        if ( defined( $grammar = $arg_hash->{grammar} ) ) {
-            delete $arg_hash->{grammar};
-            last ARG_HASH;
+    my $trace_file_handle;
+    for my $arg_hash (@arg_hashes) {
+
+        # Need to capture the trace file handle early
+        my $value;
+        if ( defined( $value = $arg_hash->{trace_file_handle} ) ) {
+            delete $arg_hash->{trace_file_handle};
+            $trace_file_handle = $value;
         }
-    } ## end ARG_HASH: for my $arg_hash (@arg_hashes)
+        if ( defined( $value = $arg_hash->{grammar} ) ) {
+            delete $arg_hash->{grammar};
+            $grammar = $value;
+        }
+    } ## end for my $arg_hash (@arg_hashes)
     Marpa::R2::exception('No grammar specified') if not defined $grammar;
+
+    $trace_file_handle //= $grammar->[Marpa::R2::Internal::Grammar::TRACE_FILE_HANDLE] ;
+    local $Marpa::R2::Internal::TRACE_FH =
+        $recce->[Marpa::R2::Internal::Recognizer::TRACE_FILE_HANDLE] = $trace_file_handle;
 
     $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR] = $grammar;
 
@@ -65,11 +77,6 @@ sub Marpa::R2::Recognizer::new {
             'Marpa::R2 cannot proceed',
         );
     } ## end if ($problems)
-
-    # set the defaults
-    local $Marpa::R2::Internal::TRACE_FH = my $trace_fh =
-        $recce->[Marpa::R2::Internal::Recognizer::TRACE_FILE_HANDLE] =
-        $grammar->[Marpa::R2::Internal::Grammar::TRACE_FILE_HANDLE];
 
     my $recce_c = $recce->[Marpa::R2::Internal::Recognizer::C] =
         Marpa::R2::Thin::R->new($grammar_c);
