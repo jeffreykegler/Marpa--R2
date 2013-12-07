@@ -1957,12 +1957,13 @@ slr_alternatives (Scanless_R * slr)
 		  if (slr->trace_terminals)
 		    {
 		      AV *event;
-		      SV *event_data[5];
+		      SV *event_data[6];
 		      event_data[0] = newSVpvs ("'trace");
 		      event_data[1] = newSVpvs ("g1 unexpected lexeme");
 		      event_data[2] = newSViv (slr->start_of_lexeme);	/* start */
 		      event_data[3] = newSViv (slr->end_of_lexeme);	/* end */
 		      event_data[4] = newSViv (g1_lexeme);	/* lexeme */
+		      event_data[5] = newSViv ((IV)slr->current_lexer->index);
 		      event = av_make (Dim (event_data), event_data);
 		      av_push (slr->r1_wrapper->event_queue,
 			       newRV_noinc ((SV *) event));
@@ -2132,12 +2133,13 @@ slr_alternatives (Scanless_R * slr)
 		if (slr->trace_terminals)
 		  {
 		    AV *event;
-		    SV *event_data[5];
+		    SV *event_data[6];
 		    event_data[0] = newSVpvs ("'trace");
 		    event_data[1] = newSVpvs ("g1 accepted lexeme");
 		    event_data[2] = newSViv (slr->start_of_lexeme);	/* start */
 		    event_data[3] = newSViv (slr->end_of_lexeme);	/* end */
 		    event_data[4] = newSViv (g1_lexeme);	/* lexeme */
+		    event_data[5] = newSViv ((IV)slr->current_lexer->index);
 		    event = av_make (Dim (event_data), event_data);
 		    av_push (slr->r1_wrapper->event_queue,
 			     newRV_noinc ((SV *) event));
