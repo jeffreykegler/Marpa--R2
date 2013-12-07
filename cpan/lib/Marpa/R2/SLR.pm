@@ -911,6 +911,12 @@ sub Marpa::R2::Scanless::R::read_problem {
                 "Parse exhausted, but lexemes remain, at line $line, column $column\n";
             last CODE_TO_PROBLEM;
         }
+        if ( $problem_code eq 'SLIF loop' ) {
+            my ($lexeme_start) = $thin_slr->lexeme_span();
+            my ( $line, $column ) = $slr->line_column($lexeme_start);
+            $problem = "SLIF loops at line $line, column $column";
+            last CODE_TO_PROBLEM;
+	}
         if ( $problem_code eq 'no lexeme' ) {
             my ($lexeme_start) = $thin_slr->lexeme_span();
             my ( $line, $column ) = $slr->line_column($lexeme_start);

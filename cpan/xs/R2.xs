@@ -158,7 +158,7 @@ typedef struct
    * allow that to happen while we are "hitting" the same perl_pos repeatedly --
    * this to avoid infinite loops.
    */
-  int fallback_lexer;
+  Lexer* fallback_lexer;
   int perl_pos_hits;
   int last_perl_pos;
   int perl_pos;
@@ -5121,7 +5121,6 @@ PPCODE:
   slr->start_of_lexeme = 0;
   slr->end_of_lexeme = 0;
 
-  slr->fallback_lexer = 0;
   slr->perl_pos = 0;
   slr->perl_pos_hits = 0;
   slr->last_perl_pos = -1;
@@ -5164,6 +5163,7 @@ PPCODE:
   slr->too_many_earley_items = -1;
   slr->current_lexer = slg->lexers[0];
   slr->next_lexer = slr->current_lexer;
+  slr->fallback_lexer = slr->current_lexer;
 
   new_sv = sv_newmortal ();
   sv_setref_pv (new_sv, scanless_r_class_name, (void *) slr);
@@ -5441,13 +5441,7 @@ PPCODE:
 	  break;
 	}
 
-      /* Deal with repeated failures at the same |perl_pos| */
-      if (slr->perl_pos == slr->last_perl_pos) {
-          slr->perl_pos_hits++;
-      } else {
-          slr->last_perl_pos = slr->perl_pos;
-          slr->perl_pos_hits = 1;
-      }
+
 
       if (consume_input)
 	{
@@ -5467,6 +5461,24 @@ PPCODE:
 		  XSRETURN_PV (result_string);
 		}
 	    }
+
+      /* Deal with repeated failures at the same |perl_pos| */
+      if (slr->perl_pos == slr->last_perl_pos) {
+          slr->perl_pos_hits++;
+      } else {
+          slr->last_perl_pos = slr->perl_pos;
+          slr->perl_pos_hits = 1;
+      }
+
+      if (slr->perl_pos_hits >= 2) {
+          if (slr->current_lexer->index == slr->fallback_lexer->index) {
+	    XSRETURN_PV ("SLIF loop");
+	  }
+	  slr->next_lexer = slr->fallback_lexer;
+	  /* Start the hits count over again */
+          slr->perl_pos_hits = 0;
+	  consume_input = 0;
+      }
 	}
 
       if (slr->trace_terminals || slr->trace_lexer)
