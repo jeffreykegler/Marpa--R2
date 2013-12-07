@@ -5595,6 +5595,7 @@ PPCODE:
 }
 
  # Return values are 1-based, as is the tradition */
+ # EOF is reported as the last line, last column plus one.
 void
 line_column(slr, pos)
      Scanless_R *slr;
@@ -5604,15 +5605,21 @@ PPCODE:
   int line = 1;
   int column = 1;
   int linecol;
+  int at_eof = 0;
+  const int logical_size = slr->pos_db_logical_size;
+
   if (pos < 0)
     {
       pos = slr->perl_pos;
     }
-  if (pos >= slr->pos_db_logical_size)
+  if (pos > logical_size)
     {
       croak ("Problem in slr->line_column(%ld): position out of range",
 	     (long) pos);
     }
+
+  /* At EOF, find data for position - 1 */
+  if (pos == logical_size) { at_eof = 1; pos--; }
   linecol = slr->pos_db[pos].linecol;
   if (linecol >= 0)
     {				/* Zero should not happen */
@@ -5623,6 +5630,7 @@ PPCODE:
       line = slr->pos_db[pos + linecol].linecol;
       column = -linecol + 1;
     }
+  if (at_eof) { column++; }
   XPUSHs (sv_2mortal (newSViv ((IV) line)));
   XPUSHs (sv_2mortal (newSViv ((IV) column)));
 }
