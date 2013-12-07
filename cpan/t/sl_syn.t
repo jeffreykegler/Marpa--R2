@@ -90,9 +90,7 @@ my @tests_data = (
     [ ' 8 6 7 5 3 1 1', 31,      qr/\AParse \s+ OK\z/xms ],
     [ '1234',           1234,    qr/\AParse \s+ OK\z/xms ],
     [   '2 x 1234', 'No parse',
-        qr/ Lexer \s+ "L0" \s+ failed \s+
-        at \s+ unacceptable \s+ character \s+
-        0x0078 \s+ [']x['] \s/xms,
+        qr/ No \s+ lexeme \s+ found \s+ at \s /xms,
         2
     ],
     [   '', 'No parse',

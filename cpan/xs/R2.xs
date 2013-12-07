@@ -5370,7 +5370,7 @@ read(slr)
     Scanless_R *slr;
 PPCODE:
 {
-  int result = 0;		/* Hold various results */
+  int lexer_read_result = 0;
   const int trace_lexer = slr->trace_lexer;
 
   slr->lexer_read_result = 0;
@@ -5415,32 +5415,30 @@ PPCODE:
 	}
 
       slr->current_lexer = slr->next_lexer;
-      result = slr->lexer_read_result = u_read (slr);
-      switch (result)
+      lexer_read_result = slr->lexer_read_result = u_read (slr);
+      switch (lexer_read_result)
 	{
 	case U_READ_TRACING:
 	  XSRETURN_PV ("trace");
 	case U_READ_UNREGISTERED_CHAR:
 	  XSRETURN_PV ("unregistered char");
-	case U_READ_INVALID_CHAR:
-	  XSRETURN_PV ("invalid char");
 	default:
-	  if (result < 0)
+	  if (lexer_read_result < 0)
 	    {
 	      croak
 		("Internal Marpa SLIF error: u_read returned unknown code: %ld",
-		 (long) result);
+		 (long) lexer_read_result);
 	    }
 	  consume_input = 1;
 	  break;
 	case U_READ_OK:
+	case U_READ_INVALID_CHAR:
 	case U_READ_REJECTED_CHAR:
 	case U_READ_EXHAUSTED_ON_FAILURE:
 	case U_READ_EXHAUSTED_ON_SUCCESS:
 	  consume_input = 1;
 	  break;
 	}
-
 
 
       if (consume_input)
@@ -5472,6 +5470,9 @@ PPCODE:
 
       if (slr->perl_pos_hits >= 2) {
           if (slr->current_lexer->index == slr->fallback_lexer->index) {
+	    if (lexer_read_result == U_READ_INVALID_CHAR) {
+	      XSRETURN_PV ("invalid char");
+	    }
 	    XSRETURN_PV ("SLIF loop");
 	  }
 	  slr->next_lexer = slr->fallback_lexer;
