@@ -36,7 +36,7 @@ Descriptive line
 INPUT
 
 my $slr =
-    Marpa::R2::Scanless::R->new( { grammar => $g, trace_terminals => 99 } );
+    Marpa::R2::Scanless::R->new( { grammar => $g, trace_terminals => 99, trace_lexers => 99 } );
 my $length = length $input;
 READ: for ( my $pos = $slr->read( \$input ); $pos < $length; $pos = $slr->resume() ) {
     EVENT:

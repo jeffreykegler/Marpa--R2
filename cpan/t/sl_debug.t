@@ -309,6 +309,7 @@ Marpa::R2::Test::is( Data::Dumper::Dumper($latest_report),
 # end-before-line: '^END_TRACE_OUTPUT$'
 
 Marpa::R2::Test::is( $trace_output, <<'END_TRACE_OUTPUT', 'trace output' );
+Setting trace_terminals option
 Setting trace_values option
 Lexer "L0" accepted lexeme L1c1: variable; value="a"
 Lexer "L0" discarded lexeme L1c2: whitespace

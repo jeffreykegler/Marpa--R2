@@ -141,7 +141,7 @@ typedef struct
   Marpa_Recce r1;
   G_Wrapper *g1_wrapper;
   AV *token_values;
-  IV trace_lexer;
+  IV trace_lexers;
   int trace_level;
   int trace_terminals;
   STRLEN start_of_lexeme;
@@ -675,7 +675,7 @@ u_read(Scanless_R *slr)
   int input_is_utf8;
   int input_length;
 
-  const IV trace_lexer = slr->trace_lexer;
+  const IV trace_lexers = slr->trace_lexers;
   Lexer *lexer = slr->current_lexer;
   Marpa_Recognizer r = slr->r0;
 
@@ -747,7 +747,7 @@ u_read(Scanless_R *slr)
 	  ops = (IV *) SvPV (*p_ops_sv, dummy);
 	}
 
-      if (trace_lexer >= 1)
+      if (trace_lexers >= 1)
 	{
 	  AV *event;
 	  SV *event_data[5];
@@ -801,7 +801,7 @@ u_read(Scanless_R *slr)
 		     * we have one of them as an example
 		     */
 		    slr->input_symbol_id = symbol_id;
-		    if (trace_lexer >= 1)
+		    if (trace_lexers >= 1)
 		      {
 			AV *event;
 			SV *event_data[6];
@@ -817,7 +817,7 @@ u_read(Scanless_R *slr)
 		      }
 		    break;
 		  case MARPA_ERR_NONE:
-		    if (trace_lexer >= 1)
+		    if (trace_lexers >= 1)
 		      {
 			AV *event;
 			SV *event_data[6];
@@ -893,7 +893,7 @@ u_read(Scanless_R *slr)
 	}
     ADVANCE_ONE_CHAR:;
       slr->perl_pos++;
-      if (trace_lexer)
+      if (trace_lexers)
 	{
 	  return U_READ_TRACING;
 	}
@@ -5096,7 +5096,7 @@ PPCODE:
 
   slr->throw = 1;
   slr->trace_level = 0;
-  slr->trace_lexer = 0;
+  slr->trace_lexers = 0;
   slr->trace_terminals = 0;
   slr->r0 = NULL;
 
@@ -5215,15 +5215,15 @@ PPCODE:
 }
 
 void
-trace_lexer( slr, new_level )
+trace_lexers( slr, new_level )
     Scanless_R *slr;
     int new_level;
 PPCODE:
 {
-  IV old_level = slr->trace_lexer;
-  slr->trace_lexer = new_level;
+  IV old_level = slr->trace_lexers;
+  slr->trace_lexers = new_level;
   if (slr->trace_level) {
-    /* Note that we use *trace_level*, not *trace_lexer* to control warning.
+    /* Note that we use *trace_level*, not *trace_lexers* to control warning.
      * We never warn() for trace_terminals, just report events.
      */
     warn("Changing SLR lexer trace level from %d to %d", (int)old_level, (int)new_level);
@@ -5363,7 +5363,7 @@ PPCODE:
 	("Problem in slr->lexer_set(%ld): lexer id must be between 0 and %ld",
 	 (long) lexer_id, (long) (lexer_count - 1));
     }
-  slr->next_lexer = slr->current_lexer = slg->lexers[lexer_id];
+  slr->next_lexer = slg->lexers[lexer_id];
   XSRETURN_IV ((IV) old_lexer_id);
 }
 
@@ -5373,7 +5373,7 @@ read(slr)
 PPCODE:
 {
   int lexer_read_result = 0;
-  const int trace_lexer = slr->trace_lexer;
+  const int trace_lexers = slr->trace_lexers;
 
   slr->lexer_read_result = 0;
   slr->r1_earleme_complete_result = 0;
@@ -5402,7 +5402,7 @@ PPCODE:
 	  slr->start_of_lexeme = slr->perl_pos = slr->lexer_start_pos;
 	  slr->lexer_start_pos = -1;
 	  u_r0_clear (slr);
-	  if (trace_lexer >= 1)
+	  if (trace_lexers >= 1)
 	    {
 	      AV *event;
 	      SV *event_data[4];
@@ -5416,6 +5416,22 @@ PPCODE:
 	    }
 	}
 
+      /* warn("%s %d: old=%ld new=%ld", __FILE__, __LINE__,
+	(long)slr->current_lexer->index,
+	(long)slr->next_lexer->index); */
+      if (trace_lexers >= 1 && slr->current_lexer->index != slr->next_lexer->index)
+	{
+	  AV *event_data = newAV ();
+	  /*( warn("Changing lexers %s %d: old=%ld new=%ld", __FILE__, __LINE__,
+	    (long)slr->current_lexer->index,
+	    (long)slr->next_lexer->index); */
+	  av_push (event_data, newSVpvs ("'trace"));
+	  av_push (event_data, newSVpv ("changing lexers", 0));
+	  av_push (event_data, newSViv ((IV) slr->perl_pos));
+	  av_push (event_data, newSViv ((IV) slr->current_lexer->index));
+	  av_push (event_data, newSViv ((IV) slr->next_lexer->index));
+	  av_push (slr->r1_wrapper->event_queue, newRV_noinc ((SV *) event_data));
+	}
       slr->current_lexer = slr->next_lexer;
       lexer_read_result = slr->lexer_read_result = u_read (slr);
       switch (lexer_read_result)
@@ -5484,7 +5500,7 @@ PPCODE:
       }
 	}
 
-      if (slr->trace_terminals || slr->trace_lexer)
+      if (slr->trace_terminals || slr->trace_lexers)
 	{
 	  XSRETURN_PV ("trace");
 	}
