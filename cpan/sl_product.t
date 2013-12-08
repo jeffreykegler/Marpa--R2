@@ -47,7 +47,7 @@ READ: for ( my $pos = $slr->read( \$input ); $pos < $length; $pos = $slr->resume
 	   next EVENT;
 	}
 	if ($event_name eq 'name$') {
-	   $slr->lexer_set('L0');
+	   # $slr->lexer_set('L0');
 	   next EVENT;
 	}
         die "Unexpected event: ", $event_name;

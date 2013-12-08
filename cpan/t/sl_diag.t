@@ -309,7 +309,7 @@ END_OF_OUTPUT
     Test::More::is( $current_g1_location, 11, qq{Scanless current_g1_location()} );
 
 # Marpa::R2::Display
-# name: Scanless pos() synopsis
+# name: SLIF pos() example
 
     my $pos = $slr->pos();
 
@@ -318,7 +318,7 @@ END_OF_OUTPUT
     Test::More::is( $pos, 19, qq{Scanless pos()} );
 
 # Marpa::R2::Display
-# name: Scanless input_length() synopsis
+# name: SLIF input_length() example
 
     my $input_length = $slr->input_length();
 

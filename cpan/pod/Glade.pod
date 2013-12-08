@@ -163,12 +163,12 @@ remove-display-indent: 1
 
     Symbol #0 planet has 2 symches
       Symch #0.0
-      GL2 Rule 1: planet ::= hesperus
-        GL3 Rule 3: hesperus ::= venus
+      GL2 Rule 0: planet ::= hesperus
+        GL3 Rule 2: hesperus ::= venus
           GL4 Symbol venus: "venus"
       Symch #0.1
-      GL2 Rule 2: planet ::= phosphorus
-        GL5 Rule 4: phosphorus ::= venus
+      GL2 Rule 1: planet ::= phosphorus
+        GL5 Rule 3: phosphorus ::= venus
           GL6 Symbol venus: "venus"
 
 =for Marpa::R2::Display::End
@@ -180,8 +180,8 @@ Glades will be described in detail below.
 The rules allow the string 'C<venus>' to be parsed
 as either one of two planets: 'C<hesperus>'
 or 'C<phosphorus>',
-depending on whether rule 1 or rule 2 is used.
-The choice, at glade 2, between rules 1 and 2,
+depending on whether rule 0 or rule 1 is used.
+The choice, at glade 2, between rules 0 and 1,
 is a symch.
 
 =head2 An example of a factoring
@@ -230,18 +230,18 @@ name: ASF factoring dump example output
 remove-blank-last-line: 1
 remove-display-indent: 1
 
-    GL2 Rule 1: top ::= b b
+    GL2 Rule 0: top ::= b b
       Factoring #0
-        GL3 Rule 3: b ::= a
+        GL3 Rule 2: b ::= a
           GL4 Symbol a: "a"
-        GL5 Rule 2: b ::= a a
+        GL5 Rule 1: b ::= a a
           GL6 Symbol a: "a"
           GL7 Symbol a: "a"
       Factoring #1
-        GL8 Rule 2: b ::= a a
+        GL8 Rule 1: b ::= a a
           GL9 Symbol a: "a"
           GL10 Symbol a: "a"
-        GL11 Rule 3: b ::= a
+        GL11 Rule 2: b ::= a
           GL12 Symbol a: "a"
 
 =for Marpa::R2::Display::End

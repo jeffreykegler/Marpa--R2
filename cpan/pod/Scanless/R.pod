@@ -1071,7 +1071,7 @@ name: SLIF input_length() example
 partial: 1
 normalize-whitespace: 1
 
-    my input_length = $slr->input_length();
+    my $input_length = $slr->input_length();
 
 =for Marpa::R2::Display::End
 
@@ -1280,7 +1280,7 @@ name: SLIF pos() example
 partial: 1
 normalize-whitespace: 1
 
-    my pos = $slr->pos();
+    my $pos = $slr->pos();
 
 =for Marpa::R2::Display::End
 

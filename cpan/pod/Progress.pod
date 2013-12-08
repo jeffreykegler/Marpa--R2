@@ -355,8 +355,8 @@ name: SLIF debug example trace output
 partial: 1
 normalize-whitespace: 1
 
-    Discarded lexeme L1c17: whitespace
-    Rejected lexeme L1c18: '*'; value="*"
+    Lexer "L0" discarded lexeme L1c17: whitespace
+    Lexer "L0" rejected lexeme L1c18: '*'; value="*"
 
 =for Marpa::R2::Display::End
 
@@ -1058,21 +1058,22 @@ name: SLIF debug example trace output
 remove-display-indent: 1
 remove-blank-last-line: 1
 
+    Setting trace_terminals option
     Setting trace_values option
-    Accepted lexeme L1c1: variable; value="a"
-    Discarded lexeme L1c2: whitespace
-    Accepted lexeme L1c3: '='; value="="
-    Discarded lexeme L1c4: whitespace
-    Rejected lexeme L1c5-11: number; value="8675309"
-    Accepted lexeme L1c5-11: variable; value="8675309"
-    Discarded lexeme L1c12: whitespace
-    Rejected lexeme L1c13: '+'; value="+"
-    Accepted lexeme L1c13: '+'; value="+"
-    Discarded lexeme L1c14: whitespace
-    Rejected lexeme L1c15-16: number; value="42"
-    Accepted lexeme L1c15-16: variable; value="42"
-    Discarded lexeme L1c17: whitespace
-    Rejected lexeme L1c18: '*'; value="*"
+    Lexer "L0" accepted lexeme L1c1: variable; value="a"
+    Lexer "L0" discarded lexeme L1c2: whitespace
+    Lexer "L0" accepted lexeme L1c3: '='; value="="
+    Lexer "L0" discarded lexeme L1c4: whitespace
+    Lexer "L0" rejected lexeme L1c5-11: number; value="8675309"
+    Lexer "L0" accepted lexeme L1c5-11: variable; value="8675309"
+    Lexer "L0" discarded lexeme L1c12: whitespace
+    Lexer "L0" rejected lexeme L1c13: '+'; value="+"
+    Lexer "L0" accepted lexeme L1c13: '+'; value="+"
+    Lexer "L0" discarded lexeme L1c14: whitespace
+    Lexer "L0" rejected lexeme L1c15-16: number; value="42"
+    Lexer "L0" accepted lexeme L1c15-16: variable; value="42"
+    Lexer "L0" discarded lexeme L1c17: whitespace
+    Lexer "L0" rejected lexeme L1c18: '*'; value="*"
 
 =for Marpa::R2::Display::End
 
@@ -1429,7 +1430,7 @@ name: SLIF progress() output at location 0
 remove-display-indent: 1
 remove-blank-last-line: 1
 
-    [[0,0,0],[1,0,0],[2,0,0],[3,0,0],[4,0,0],[5,0,0]]
+    [[0,0,0],[1,0,0],[2,0,0],[3,0,0],[4,0,0],[19,0,0]]
 
 =for Marpa::R2::Display::End
 
@@ -1440,7 +1441,7 @@ name: SLIF progress() output at location 1
 remove-display-indent: 1
 remove-blank-last-line: 1
 
-    [[5,1,0]]
+    [[4,1,0]]
 
 =for Marpa::R2::Display::End
 
