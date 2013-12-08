@@ -1418,6 +1418,18 @@ sub Marpa::R2::Scanless::R::line_column {
     return $thin_slr->line_column($pos);
 } ## end sub Marpa::R2::Scanless::R::line_column
 
+sub Marpa::R2::Scanless::R::pos {
+    my ( $slr ) = @_;
+    my $thin_slr = $slr->[Marpa::R2::Inner::Scanless::R::C];
+    return $thin_slr->pos();
+}
+
+sub Marpa::R2::Scanless::R::input_length {
+    my ( $slr ) = @_;
+    my $thin_slr = $slr->[Marpa::R2::Inner::Scanless::R::C];
+    return $thin_slr->input_length();
+}
+
 # no return value documented
 sub Marpa::R2::Scanless::R::activate {
     my ( $slr, $event_name, $activate ) = @_;

@@ -1064,6 +1064,20 @@ The last input stream location
 of the span
 will always be C<$span_start+$span_length>.
 
+=head2 input_length()
+
+=for Marpa::R2::Display
+name: SLIF input_length() example
+partial: 1
+normalize-whitespace: 1
+
+    my input_length = $slr->input_length();
+
+=for Marpa::R2::Display::End
+
+The C<input_length()> method accepts no arguments,
+and returns the length of the input stream.
+
 =head2 last_completed()
 
 =for Marpa::R2::Display
@@ -1121,6 +1135,16 @@ and the second element is the column position.
 
 Numbering of lines and columns is 1-based,
 following UNIX editor tradition.
+Except at EOF, the line and column will be that of an
+actual character.
+At EOF the line number
+will be that of the last line,
+and the column number will be that of the last column
+plus one.
+Applications which want to treat EOF as a special case
+can test it for using the L<C<pos()> method|/"pos()">
+and the L<C<input_length()> method|/"input_length()">.
+
 A line is considered to end with any newline sequence
 as defined in the
 Unicode Specification 4.0.0, Section 5.8.
@@ -1248,6 +1272,20 @@ no span can be associated with it,
 and the pause span is undefined.
 C<pause_span()> returns a Perl C<undef> if
 the pause span is undefined.
+
+=head2 pos()
+
+=for Marpa::R2::Display
+name: SLIF pos() example
+partial: 1
+normalize-whitespace: 1
+
+    my pos = $slr->pos();
+
+=for Marpa::R2::Display::End
+
+The C<pos()> method accepts no arguments,
+and returns the current input stream location.
 
 =head2 progress()
 

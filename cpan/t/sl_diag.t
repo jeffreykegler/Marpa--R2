@@ -20,7 +20,7 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 10;
+use Test::More tests => 12;
 use English qw( -no_match_vars );
 use lib 'inc';
 use Marpa::R2::Test;
@@ -307,6 +307,24 @@ END_OF_OUTPUT
 # Marpa::R2::Display::End
 
     Test::More::is( $current_g1_location, 11, qq{Scanless current_g1_location()} );
+
+# Marpa::R2::Display
+# name: Scanless pos() synopsis
+
+    my $pos = $slr->pos();
+
+# Marpa::R2::Display::End
+
+    Test::More::is( $pos, 19, qq{Scanless pos()} );
+
+# Marpa::R2::Display
+# name: Scanless input_length() synopsis
+
+    my $input_length = $slr->input_length();
+
+# Marpa::R2::Display::End
+
+    Test::More::is( $input_length, 19, qq{Scanless input_length()} );
 
     # Test translation from G1 location to input stream spans
     my %location_seen = ();
