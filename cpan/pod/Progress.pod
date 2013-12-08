@@ -421,7 +421,7 @@ name: SLIF debug example progress report
 partial: 1
 normalize-whitespace: 1
 
-    F0 @0-5 L1c1-16 :start -> statements .
+    F19 @0-5 L1c1-16 :start -> statements .
 
 =for Marpa::R2::Display::End
 
@@ -563,12 +563,12 @@ name: SLIF debug example progress report
 partial: 1
 normalize-whitespace: 1
 
-    P0 @0-0 L1c1 :start -> . statements
-    P1 @0-0 L1c1 statements -> . statement *
-    P2 @0-0 L1c1 statement -> . assignment
-    P3 @0-0 L1c1 statement -> . <numeric assignment>
-    P4 @0-0 L1c1 assignment -> . 'set' variable 'to' expression
-    P5 @0-0 L1c1 <numeric assignment> -> . variable '=' expression
+    P0 @0-0 L1c1 statements -> . statement *
+    P1 @0-0 L1c1 statement -> . assignment
+    P2 @0-0 L1c1 statement -> . <numeric assignment>
+    P3 @0-0 L1c1 assignment -> . 'set' variable 'to' expression
+    P4 @0-0 L1c1 <numeric assignment> -> . variable '=' expression
+    P19 @0-0 L1c1 :start -> . statements
 
 =for Marpa::R2::Display::End
 
@@ -1084,54 +1084,54 @@ name: SLIF debug example progress report
 remove-display-indent: 1
 remove-blank-last-line: 1
 
-    P0 @0-0 L1c1 :start -> . statements
-    P1 @0-0 L1c1 statements -> . statement *
-    P2 @0-0 L1c1 statement -> . assignment
-    P3 @0-0 L1c1 statement -> . <numeric assignment>
-    P4 @0-0 L1c1 assignment -> . 'set' variable 'to' expression
-    P5 @0-0 L1c1 <numeric assignment> -> . variable '=' expression
-    R5:1 @0-1 L1c1 <numeric assignment> -> variable . '=' expression
-    R5:2 @0-2 L1c1-3 <numeric assignment> -> variable '=' . expression
-    P6 @2-2 L1c3 expression -> . expression
-    P7 @2-2 L1c3 expression -> . expression
-    P8 @2-2 L1c3 expression -> . expression
-    P9 @2-2 L1c3 expression -> . variable
-    P10 @2-2 L1c3 expression -> . string
-    P11 @2-2 L1c3 expression -> . 'string' '(' <numeric expression> ')'
-    P12 @2-2 L1c3 expression -> . expression '+' expression
-    F0 @0-3 L1c1-11 :start -> statements .
-    P1 @0-3 L1c1-11 statements -> . statement *
-    F1 @0-3 L1c1-11 statements -> statement * .
-    P2 @3-3 L1c5-11 statement -> . assignment
-    P3 @3-3 L1c5-11 statement -> . <numeric assignment>
-    F3 @0-3 L1c1-11 statement -> <numeric assignment> .
-    P4 @3-3 L1c5-11 assignment -> . 'set' variable 'to' expression
-    P5 @3-3 L1c5-11 <numeric assignment> -> . variable '=' expression
-    F5 @0-3 L1c1-11 <numeric assignment> -> variable '=' expression .
-    F6 @2-3 L1c3-11 expression -> expression .
-    F7 @2-3 L1c3-11 expression -> expression .
-    F8 @2-3 L1c3-11 expression -> expression .
-    F9 @2-3 L1c3-11 expression -> variable .
-    R12:1 @2-3 L1c3-11 expression -> expression . '+' expression
-    P8 @4-4 L1c13 expression -> . expression
-    P9 @4-4 L1c13 expression -> . variable
-    P10 @4-4 L1c13 expression -> . string
-    P11 @4-4 L1c13 expression -> . 'string' '(' <numeric expression> ')'
-    R12:2 @2-4 L1c3-13 expression -> expression '+' . expression
-    F0 @0-5 L1c1-16 :start -> statements .
-    P1 @0-5 L1c1-16 statements -> . statement *
-    F1 @0-5 L1c1-16 statements -> statement * .
-    P2 @5-5 L1c15-16 statement -> . assignment
-    P3 @5-5 L1c15-16 statement -> . <numeric assignment>
-    F3 @0-5 L1c1-16 statement -> <numeric assignment> .
-    P4 @5-5 L1c15-16 assignment -> . 'set' variable 'to' expression
-    P5 @5-5 L1c15-16 <numeric assignment> -> . variable '=' expression
-    F5 @0-5 L1c1-16 <numeric assignment> -> variable '=' expression .
-    F6 @2-5 L1c3-16 expression -> expression .
-    F8 @4-5 L1c13-16 expression -> expression .
-    F9 @4-5 L1c13-16 expression -> variable .
-    R12:1 @2-5 L1c3-16 expression -> expression . '+' expression
-    F12 @2-5 L1c3-16 expression -> expression '+' expression .
+  P0 @0-0 L1c1 statements -> . statement *
+  P1 @0-0 L1c1 statement -> . assignment
+  P2 @0-0 L1c1 statement -> . <numeric assignment>
+  P3 @0-0 L1c1 assignment -> . 'set' variable 'to' expression
+  P4 @0-0 L1c1 <numeric assignment> -> . variable '=' expression
+  P19 @0-0 L1c1 :start -> . statements
+  R4:1 @0-1 L1c1 <numeric assignment> -> variable . '=' expression
+  R4:2 @0-2 L1c1-3 <numeric assignment> -> variable '=' . expression
+  P5 @2-2 L1c3 expression -> . expression
+  P6 @2-2 L1c3 expression -> . expression
+  P7 @2-2 L1c3 expression -> . expression
+  P8 @2-2 L1c3 expression -> . variable
+  P9 @2-2 L1c3 expression -> . string
+  P10 @2-2 L1c3 expression -> . 'string' '(' <numeric expression> ')'
+  P11 @2-2 L1c3 expression -> . expression '+' expression
+  P0 @0-3 L1c1-11 statements -> . statement *
+  F0 @0-3 L1c1-11 statements -> statement * .
+  P1 @3-3 L1c5-11 statement -> . assignment
+  P2 @3-3 L1c5-11 statement -> . <numeric assignment>
+  F2 @0-3 L1c1-11 statement -> <numeric assignment> .
+  P3 @3-3 L1c5-11 assignment -> . 'set' variable 'to' expression
+  P4 @3-3 L1c5-11 <numeric assignment> -> . variable '=' expression
+  F4 @0-3 L1c1-11 <numeric assignment> -> variable '=' expression .
+  F5 @2-3 L1c3-11 expression -> expression .
+  F6 @2-3 L1c3-11 expression -> expression .
+  F7 @2-3 L1c3-11 expression -> expression .
+  F8 @2-3 L1c3-11 expression -> variable .
+  R11:1 @2-3 L1c3-11 expression -> expression . '+' expression
+  F19 @0-3 L1c1-11 :start -> statements .
+  P7 @4-4 L1c13 expression -> . expression
+  P8 @4-4 L1c13 expression -> . variable
+  P9 @4-4 L1c13 expression -> . string
+  P10 @4-4 L1c13 expression -> . 'string' '(' <numeric expression> ')'
+  R11:2 @2-4 L1c3-13 expression -> expression '+' . expression
+  P0 @0-5 L1c1-16 statements -> . statement *
+  F0 @0-5 L1c1-16 statements -> statement * .
+  P1 @5-5 L1c15-16 statement -> . assignment
+  P2 @5-5 L1c15-16 statement -> . <numeric assignment>
+  F2 @0-5 L1c1-16 statement -> <numeric assignment> .
+  P3 @5-5 L1c15-16 assignment -> . 'set' variable 'to' expression
+  P4 @5-5 L1c15-16 <numeric assignment> -> . variable '=' expression
+  F4 @0-5 L1c1-16 <numeric assignment> -> variable '=' expression .
+  F5 @2-5 L1c3-16 expression -> expression .
+  F7 @4-5 L1c13-16 expression -> expression .
+  F8 @4-5 L1c13-16 expression -> variable .
+  R11:1 @2-5 L1c3-16 expression -> expression . '+' expression
+  F11 @2-5 L1c3-16 expression -> expression '+' expression .
+  F19 @0-5 L1c1-16 :start -> statements .
 
 =for Marpa::R2::Display::End
 
@@ -1464,7 +1464,7 @@ name: SLIF progress() output at default location
 remove-display-indent: 1
 remove-blank-last-line: 1
 
-    [[0,-1,0],[1,-1,0],[3,-1,0],[5,-1,0],[6,-1,2],[8,-1,4],[9,-1,4],[12,-1,2],[1,0,0],[2,0,5],[3,0,5],[4,0,5],[5,0,5],[12,1,2]]
+    [[0,-1,0],[2,-1,0],[4,-1,0],[5,-1,2],[7,-1,4],[8,-1,4],[11,-1,2],[19,-1,0],[0,0,0],[1,0,5],[2,0,5],[3,0,5],[4,0,5],[11,1,2]]
 
 =for Marpa::R2::Display::End
 
