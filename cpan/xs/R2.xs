@@ -2298,6 +2298,52 @@ slr_es_span_to_literal_sv (Scanless_R * slr,
 #define EXPECTED_LIBMARPA_MINOR 177
 #define EXPECTED_LIBMARPA_MICRO 106
 
+#define MARPA_SLREV_AFTER_LEXEME 1
+#define MARPA_SLREV_BEFORE_LEXEME 2
+#define MARPA_SLREV_LEXER_RESTARTED_RECCE 4
+#define MARPA_SLREV_MARPA_R_UNKNOWN 5
+#define MARPA_SLREV_NO_ACCEPTABLE_INPUT 6
+#define MARPA_SLREV_SYMBOL_COMPLETED 7
+#define MARPA_SLREV_SYMBOL_NULLED 8
+#define MARPA_SLREV_SYMBOL_PREDICTED 9
+#define MARPA_SLRTR_AFTER_LEXEME 10
+#define MARPA_SLRTR_BEFORE_LEXEME_EVENT 11
+#define MARPA_SLRTR_CHANGE_LEXERS 12
+#define MARPA_SLRTR_CODEPOINT_ACCEPTED 13
+#define MARPA_SLRTR_CODEPOINT_READ 14
+#define MARPA_SLRTR_CODEPOINT_REJECTED 15
+#define MARPA_SLRTR_DISCARDED_LEXEME 16
+#define MARPA_SLRTR_G1_ACCEPTED_LEXEME 17
+#define MARPA_SLRTR_G1_ATTEMPTING_LEXEME 18
+#define MARPA_SLRTR_G1_DUPLICATE_LEXEME 19
+#define MARPA_SLRTR_G1_UNEXPECTED_LEXEME 20
+#define MARPA_SLRTR_IGNORED_LEXEME 21
+
+union marpa_slr_event_s
+{
+  struct marpa_slrev_after_lexeme t_after_lexeme;
+  struct marpa_slrev_before_lexeme t_before_lexeme;
+  struct marpa_slrev_lexer_restarted_recce t_lexer_restarted_recce;
+  struct marpa_slrev_marpa_r_unknown t_marpa_r_unknown;
+  struct marpa_slrev_no_acceptable_input t_no_acceptable_input;
+  struct marpa_slrev_symbol_completed t_symbol_completed;
+  struct marpa_slrev_symbol_nulled t_symbol_nulled;
+  struct marpa_slrev_symbol_predicted t_symbol_predicted;
+  struct marpa_slrtr_accepted_lexeme t_trace_accepted_lexeme;
+  struct marpa_slrtr_after_lexeme t_trace_after_lexeme;
+  struct marpa_slrtr_attempting_lexeme t_trace_attempting_lexeme;
+  struct marpa_slrtr_before_lexeme t_trace_before_lexeme;
+  struct marpa_slrtr_change_lexers t_trace_change_lexers;
+  struct marpa_slrtr_codepoint_accepted t_trace_codepoint_accepted;
+  struct marpa_slrtr_codepoint_discarded t_trace_codepoint_discarded;
+  struct marpa_slrtr_codepoint_read t_trace_codepoint_read;
+  struct marpa_slrtr_codepoint_rejected t_trace_codepoint_rejected;
+  struct marpa_slrtr_discarded_lexeme t_trace_discarded_lexeme;
+  struct marpa_slrtr_duplicate_lexeme t_trace_duplicate_lexeme;
+  struct marpa_slrtr_g1_unexpected_lexeme t_trace_g1_unexpected_lexeme;
+  struct marpa_slrtr_ignored_lexeme t_trace_ignored_lexeme;
+};
+
 MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin
 
 PROTOTYPES: DISABLE
