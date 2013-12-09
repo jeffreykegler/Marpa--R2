@@ -5417,20 +5417,22 @@ PPCODE:
 	}
 
       /* warn("%s %d: old=%ld new=%ld", __FILE__, __LINE__,
-	(long)slr->current_lexer->index,
-	(long)slr->next_lexer->index); */
-      if (trace_lexers >= 1 && slr->current_lexer->index != slr->next_lexer->index)
+         (long)slr->current_lexer->index,
+         (long)slr->next_lexer->index); */
+      if (trace_lexers >= 1
+	  && slr->current_lexer->index != slr->next_lexer->index)
 	{
 	  AV *event_data = newAV ();
 	  /*( warn("Changing lexers %s %d: old=%ld new=%ld", __FILE__, __LINE__,
-	    (long)slr->current_lexer->index,
-	    (long)slr->next_lexer->index); */
+	     (long)slr->current_lexer->index,
+	     (long)slr->next_lexer->index); */
 	  av_push (event_data, newSVpvs ("'trace"));
 	  av_push (event_data, newSVpv ("changing lexers", 0));
 	  av_push (event_data, newSViv ((IV) slr->perl_pos));
 	  av_push (event_data, newSViv ((IV) slr->current_lexer->index));
 	  av_push (event_data, newSViv ((IV) slr->next_lexer->index));
-	  av_push (slr->r1_wrapper->event_queue, newRV_noinc ((SV *) event_data));
+	  av_push (slr->r1_wrapper->event_queue,
+		   newRV_noinc ((SV *) event_data));
 	}
       slr->current_lexer = slr->next_lexer;
       lexer_read_result = slr->lexer_read_result = u_read (slr);
@@ -5478,26 +5480,32 @@ PPCODE:
 		}
 	    }
 
-      /* Deal with repeated failures at the same |perl_pos| */
-      if (slr->perl_pos == slr->last_perl_pos) {
-          slr->perl_pos_hits++;
-      } else {
-          slr->last_perl_pos = slr->perl_pos;
-          slr->perl_pos_hits = 1;
-      }
-
-      if (slr->perl_pos_hits >= 2) {
-          if (slr->current_lexer->index == slr->fallback_lexer->index) {
-	    if (lexer_read_result == U_READ_INVALID_CHAR) {
-	      XSRETURN_PV ("invalid char");
+	  /* Deal with repeated failures at the same |perl_pos| */
+	  if (slr->perl_pos == slr->last_perl_pos)
+	    {
+	      slr->perl_pos_hits++;
 	    }
-	    XSRETURN_PV ("SLIF loop");
-	  }
-	  slr->next_lexer = slr->fallback_lexer;
-	  /* Start the hits count over again */
-          slr->perl_pos_hits = 0;
-	  consume_input = 0;
-      }
+	  else
+	    {
+	      slr->last_perl_pos = slr->perl_pos;
+	      slr->perl_pos_hits = 1;
+	    }
+
+	  if (slr->perl_pos_hits >= 2)
+	    {
+	      if (slr->current_lexer->index == slr->fallback_lexer->index)
+		{
+		  if (lexer_read_result == U_READ_INVALID_CHAR)
+		    {
+		      XSRETURN_PV ("invalid char");
+		    }
+		  XSRETURN_PV ("SLIF loop");
+		}
+	      slr->next_lexer = slr->fallback_lexer;
+	      /* Start the hits count over again */
+	      slr->perl_pos_hits = 0;
+	      consume_input = 0;
+	    }
 	}
 
       if (slr->trace_terminals || slr->trace_lexers)
