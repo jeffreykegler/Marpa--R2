@@ -4399,7 +4399,7 @@ Numeric value: 12.
 Suggested message: "Duplicate token".
 @end deftypevr
 
-@deftypevr Macro int MARPA_ERR_EIM_COUNT
+@deftypevr Macro int MARPA_ERR_YIM_COUNT
 This error code indicates that
 an implementation-defined limit on the
 number of Earley items per Earley set
@@ -5048,7 +5048,7 @@ Suggested message: "Development error, see string".
 Numeric value: 10.
 @end deftypevr
 
-@deftypevr Macro int MARPA_ERR_EIM_ID_INVALID
+@deftypevr Macro int MARPA_ERR_YIM_ID_INVALID
 Numeric value: 14.
 @end deftypevr
 
@@ -5087,13 +5087,13 @@ Numeric value: 38.
 @deftypevr Macro int MARPA_ERR_NO_OR_NODES
 Numeric value: 40.
 @end deftypevr
-@deftypevr Macro int MARPA_ERR_NO_TRACE_ES
+@deftypevr Macro int MARPA_ERR_NO_TRACE_YS
 Numeric value: 46.
 @end deftypevr
 @deftypevr Macro int MARPA_ERR_NO_TRACE_PIM
 Numeric value: 47.
 @end deftypevr
-@deftypevr Macro int MARPA_ERR_NO_TRACE_EIM
+@deftypevr Macro int MARPA_ERR_NO_TRACE_YIM
 Numeric value: 45.
 @end deftypevr
 @deftypevr Macro int MARPA_ERR_NO_TRACE_SRCL

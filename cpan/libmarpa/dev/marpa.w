@@ -7553,7 +7553,7 @@ Marpa_Earley_Set_ID _marpa_r_trace_earley_set(Marpa_Recognizer r)
   YS trace_earley_set = r->t_trace_earley_set;
   @<Fail if not trace-safe@>@;
   if (!trace_earley_set) {
-      MARPA_ERROR(MARPA_ERR_NO_TRACE_ES);
+      MARPA_ERROR(MARPA_ERR_NO_TRACE_YS);
       return failure_indicator;
   }
   return Ord_of_YS(trace_earley_set);
@@ -7708,13 +7708,13 @@ _marpa_r_earley_item_trace (Marpa_Recognizer r, Marpa_Earley_Item_ID item_id)
   if (!trace_earley_set)
     {
       @<Clear trace Earley set dependent data@>@;
-      MARPA_ERROR(MARPA_ERR_NO_TRACE_ES);
+      MARPA_ERROR(MARPA_ERR_NO_TRACE_YS);
       return failure_indicator;
     }
   trace_earley_item_clear (r);
   if (item_id < 0)
     {
-      MARPA_ERROR (MARPA_ERR_EIM_ID_INVALID);
+      MARPA_ERROR (MARPA_ERR_YIM_ID_INVALID);
       return failure_indicator;
     }
   if (item_id >= YIM_Count_of_YS (trace_earley_set))
@@ -7752,7 +7752,7 @@ Marpa_Earley_Set_ID _marpa_r_earley_item_origin(Marpa_Recognizer r)
   @<Fail if not trace-safe@>@;
     if (!item) {
         @<Clear trace Earley item data@>@;
-        MARPA_ERROR(MARPA_ERR_NO_TRACE_EIM);
+        MARPA_ERROR(MARPA_ERR_NO_TRACE_YIM);
         return failure_indicator;
     }
     return Origin_Ord_of_YIM(item);
@@ -7900,7 +7900,7 @@ if (count >= r->t_earley_item_warning_threshold)
   {
     if (UNLIKELY (count >= YIM_FATAL_THRESHOLD))
       {				/* Set the recognizer to a fatal error */
-	MARPA_FATAL (MARPA_ERR_EIM_COUNT);
+	MARPA_FATAL (MARPA_ERR_YIM_COUNT);
 	return failure_indicator;
       }
       int_event_new (g, MARPA_EVENT_EARLEY_ITEM_THRESHOLD, count);
@@ -8165,7 +8165,7 @@ _marpa_r_postdot_symbol_trace (Marpa_Recognizer r,
     @<Fail if |xsy_id| is malformed@>@;
     @<Soft fail if |xsy_id| does not exist@>@;
   if (!current_ys) {
-      MARPA_ERROR(MARPA_ERR_NO_TRACE_ES);
+      MARPA_ERROR(MARPA_ERR_NO_TRACE_YS);
       return failure_indicator;
   }
   pim_isy_p = PIM_ISY_P_of_YS_by_ISYID(current_ys, ISYID_by_XSYID(xsy_id));
@@ -8199,7 +8199,7 @@ _marpa_r_first_postdot_item_trace (Marpa_Recognizer r)
   @<Fail if not trace-safe@>@;
   if (!current_earley_set) {
       @<Clear trace Earley item data@>@;
-      MARPA_ERROR(MARPA_ERR_NO_TRACE_ES);
+      MARPA_ERROR(MARPA_ERR_NO_TRACE_YS);
       return failure_indicator;
   }
   if (current_earley_set->t_postdot_sym_count <= 0) return -1;
@@ -8237,7 +8237,7 @@ _marpa_r_next_postdot_item_trace (Marpa_Recognizer r)
   }
   @<Fail if not trace-safe@>@;
   if (!current_set) {
-      MARPA_ERROR(MARPA_ERR_NO_TRACE_ES);
+      MARPA_ERROR(MARPA_ERR_NO_TRACE_YS);
       return failure_indicator;
   }
   pim = Next_PIM_of_PIM(pim);
@@ -8801,7 +8801,7 @@ _marpa_r_next_leo_link_trace (Marpa_Recognizer r)
     item = r->t_trace_earley_item;
     if (!item) {
 	trace_source_link_clear(r);
-	MARPA_ERROR(MARPA_ERR_NO_TRACE_EIM);
+	MARPA_ERROR(MARPA_ERR_NO_TRACE_YIM);
         return failure_indicator;
     }
 
