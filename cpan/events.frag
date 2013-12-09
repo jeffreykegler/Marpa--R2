@@ -44,8 +44,8 @@ case MARPA_SLRTR_CODEPOINT_ACCEPTED:
 
 case MARPA_SLRTR_DISCARDED_LEXEME:
 {
-  struct marpa_slrtr_codepoint_discarded_s *event =
-    &marpa_slr_event.t_trace_codepoint_discarded;
+  struct marpa_slrtr_discarded_lexeme_s *event =
+    &marpa_slr_event.t_trace_discarded_lexeme;
   AV *event_av = newAV ();
 
   av_push (event_av, newSVpvs ("'trace"));
@@ -114,25 +114,6 @@ case MARPA_SLREV_MARPA_R_UNKNOWN:
   av_push (event_av, newSVpvs ("unknown event"));
   av_push (event_av, newSVpv (event->result_string, 0));
   av_push (r_wrapper->event_queue, newRV_noinc ((SV *) event_av));
-}
-
-case MARPA_SLRTR_DISCARDED_LEXEME:
-{
-  struct marpa_slrtr_discarded_lexeme_s *event =
-    &marpa_slr_event.t_trace_discarded_lexeme;
-  AV *event_av = newAV ();
-
-  av_push (event_av, newSVpvs ("'trace"));
-  av_push (event_av, newSVpvs ("discarded lexeme"));
-  /* We do not have the lexeme, but we have the 
-   * lexer rule.
-   * The upper level will have to figure things out.
-   */
-  av_push (event_av, newSViv ((IV) event->rule_id));
-  av_push (event_av, newSViv ((IV) event->start_of_lexeme));
-  av_push (event_av, newSViv ((IV) event->end_of_lexeme));
-  av_push (event_av, newSViv ((IV) event->current_lexer_ix));
-  av_push (slr->r1_wrapper->event_queue, newRV_noinc ((SV *) event_av));
 }
 
 case MARPA_SLRTR_G1_UNEXPECTED_LEXEME:
@@ -207,13 +188,13 @@ case MARPA_SLRTR_G1_ACCEPTED_LEXEME:
   av_push (event_av, newSViv ((IV) event->start_of_lexeme));	/* start */
   av_push (event_av, newSViv ((IV) event->end_of_lexeme));	/* end */
   av_push (event_av, newSViv ((IV) event->lexeme));	/* lexeme */
-  av_push (event_av, newSViv ((IV) event->current_lexer_x));
+  av_push (event_av, newSViv ((IV) event->current_lexer_ix));
   av_push (slr->r1_wrapper->event_queue, newRV_noinc ((SV *) event_av));
 }
 
 case MARPA_SLRTR_AFTER_LEXEME:
 {
-  struct marpa_slrev_event_after_lexeme_s *event =
+  struct marpa_slrtr_event_after_lexeme_s *event =
     &marpa_slr_event.t_after_lexeme;
   AV *event_av = newAV ();
   av_push (event_av, newSVpvs ("'trace"));
