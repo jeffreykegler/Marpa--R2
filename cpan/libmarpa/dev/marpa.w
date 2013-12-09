@@ -197,17 +197,31 @@ the more thorough the documentation.
 four layers.
 The layers are, from low to high
 \li |libmarpa|
-\li The glue layer
+\li The ``friend'' layer
 \li The wrapper layer
 \li The application
 
-This glue layer will be in C and will call the |libmarpa| routines
+This ``friend'' layer will be in C and will provide supplemental libraries,
+or call the |libmarpa| routines
 in a way that makes them compatible with another language.
 I expect this will usually be a 4GL (4th generation language),
 such as Perl.
-One example of a glue description lanuage is SWIG.
-Another is Perl XS, and currently that is
-the only glue layer implemented for |libmarpa|.
+
+The friend layer is totally independent of any higher level
+languages used in the application layer.
+In order for an application layer in another language to use
+the friend layer, a wrapper layer that knows about the requirements of the
+application layer's language may be needed to ``glue'' them
+together.
+An example of a wrapper layer
+(as of this writing the only one)
+is the Perl XS layer, which is C code that provides
+an interface between the ``friend'' layer and Perl.
+
+The top layer is the application.
+As of this writing,
+|libmarpa|'s only application layer is
+in Perl.
 
 |libmarpa| itself is not enormously user-
 or application-friendly.
@@ -220,11 +234,6 @@ many other conveniences.
 For this reason, applications will typically
 use |libmarpa| through a {\bf wrapper package}.
 Currently the only such package is in Perl.
-
-The top layer is the application.
-My expectation is that this will also be in a 4GL.
-Currently, |libmarpa|'s only application are
-in Perl.
 
 Not all these layers need be present.
 For example, it is conceivable that someone might
@@ -456,18 +465,19 @@ to negative names (|is_not_lost|).
 pose unnecessary challenges.
 Particular obstacles to those who are not native speakers
 of English, they are annoying to the natives as well.
-This section is intended to document
-all abbreviations.
-Also included is the
-any non-standard vocabulary 
-which is not explained in detail elsewhere in the
-text.
+This section is intended eventually to document
+all abbreviations,
+as well as
+non-standard vocabulary.
 By ``non-standard vocabulary",
 I mean terms that
-are not in a general dictionary, and
-are also not in the standard reference works.
+can not be found in a general dictionary or
+in the standard reference works.
+Non-standard vocabulary may be ommitted if
+it is explained in detail where it occurs.
 @ While development is underway, this section will be
 incomplete and sometimes inaccurate.
+@
 \li alloc: Allocate.
 \li assign: Find something, creating it when necessary.
 \li bv: Bit Vector.
@@ -486,13 +496,15 @@ that type is called the ``object" form of the
 type.  As an example, look at the definitions
 of |YIM| and |YIM_Object|.
 (These begin with a `Y' because C89 reserves names starting with `E'.)
-\li YIM: Earley item.
-\li YS: Earley set.
-\li |YIM_Object|: Earley item (object).
-\li EIX: Earley item index.
-\li YS: Earley set.
+\li eim: Earley item.  Used for clarity in a few places
+where C89 reserved names are not an issue.
+where C89 reserved names are not an issue.
+\li es: Earley set.  Used for clarity
+in a few places were 
 \li g: Grammar.
 \li |_ix|, |_IX|, ix, IX: Index.  Often used as a suffix.
+\li JEARLEME: Used instead of |EARLEME| because C89 reserves
+names starting with a capital `E'.
 \li Leo base item: The Earley item which ``causes" a Leo item to
 be added.  If a Leo chain in reconstructed from the Leo item,
 \li Leo completion item: The Earley item which is the ``successor"
@@ -531,6 +543,10 @@ suffice to let Cweb distinguish tags from other items, and that is the
 object.
 \li |u_|: Prefix for a union tag.  Cweb does not format C code well
 unless tag names are distinct from other names.
+\li |YIM_Object|: Earley item (object).  `Y' is used instead of `E'
+because C89 reserveds names starting with a capital `E'.
+\li YIX: Earley item index.
+\li YS: Earley set.
 
 @** Maintenance notes.
 
@@ -5175,7 +5191,7 @@ AHFA items.
 This makes a difference in AHFA state 0.
 AHFA state 0 is {\bf not} a predicted AHFA state.
 @d AHFA_is_Predicted(ahfa) ((ahfa)->t_is_predict)
-@d YIM_is_Predicted(eim) AHFA_is_Predicted(AHFA_of_YIM(eim))
+@d YIM_is_Predicted(yim) AHFA_is_Predicted(AHFA_of_YIM(yim))
 @<Bit aligned AHFA state elements@> =
 unsigned int t_is_predict:1;
 
@@ -5183,7 +5199,7 @@ unsigned int t_is_predict:1;
 @ This boolean indicates whether the
 AHFA state could be a Leo base.
 @d AHFA_is_Potential_Leo_Base(ahfa) ((ahfa)->t_is_potential_leo_base)
-@d YIM_is_Potential_Leo_Base(eim) AHFA_is_Potential_Leo_Base(AHFA_of_YIM(eim))
+@d YIM_is_Potential_Leo_Base(yim) AHFA_is_Potential_Leo_Base(AHFA_of_YIM(yim))
 @ @<Bit aligned AHFA state elements@> =
 unsigned int t_is_potential_leo_base:1;
 @ @<Initialize AHFA@> = AHFA_is_Potential_Leo_Base(ahfa) = 0;
@@ -6353,7 +6369,7 @@ once I stabilize the C code implemention.
 
 @d TRANS_of_AHFA_by_ISYID(from_ahfa, isyid)
     (*(TRANSs_of_AHFA(from_ahfa)+(isyid)))
-@d TRANS_of_YIM_by_ISYID(eim, isyid) TRANS_of_AHFA_by_ISYID(AHFA_of_YIM(eim), (isyid))
+@d TRANS_of_YIM_by_ISYID(yim, isyid) TRANS_of_AHFA_by_ISYID(AHFA_of_YIM(yim), (isyid))
 @d To_AHFA_of_TRANS(trans) (to_ahfa_of_transition_get(trans))
 @d LV_To_AHFA_of_TRANS(trans) ((trans)->t_ur.t_to_ahfa)
 @d Completion_Count_of_TRANS(trans)
@@ -6361,7 +6377,7 @@ once I stabilize the C code implemention.
 @d LV_Completion_Count_of_TRANS(trans) ((trans)->t_ur.t_completion_count)
 @d To_AHFA_of_AHFA_by_ISYID(from_ahfa, id)
      (To_AHFA_of_TRANS(TRANS_of_AHFA_by_ISYID((from_ahfa), (id))))
-@d To_AHFA_of_YIM_by_ISYID(eim, id) To_AHFA_of_AHFA_by_ISYID(AHFA_of_YIM(eim), (id))
+@d To_AHFA_of_YIM_by_ISYID(yim, id) To_AHFA_of_AHFA_by_ISYID(AHFA_of_YIM(yim), (id))
 @d AEXs_of_TRANS(trans) ((trans)->t_aex)
 @d Leo_Base_AEX_of_TRANS(trans) ((trans)->t_leo_base_aex)
 @ @s TRANS int
@@ -6896,7 +6912,7 @@ phases:
 @<Widely aligned recognizer elements@> =
 YS t_first_earley_set;
 YS t_latest_earley_set;
-EARLEME t_current_earleme;
+JEARLEME t_current_earleme;
 @ @<Initialize recognizer elements@> =
 r->t_first_earley_set = NULL;
 r->t_latest_earley_set = NULL;
@@ -6948,7 +6964,7 @@ Marpa allows variable length tokens,
 so it needs to track how far out tokens might be found.
 No complete or predicted Earley item will be found after the current earleme.
 @d Furthest_Earleme_of_R(r) ((r)->t_furthest_earleme)
-@<Int aligned recognizer elements@> = EARLEME t_furthest_earleme;
+@<Int aligned recognizer elements@> = JEARLEME t_furthest_earleme;
 @ @<Initialize recognizer elements@> = r->t_furthest_earleme = 0;
 @ @<Function definitions@> =
 unsigned int marpa_r_furthest_earleme(Marpa_Recognizer r)
@@ -7349,7 +7365,7 @@ etc.
 a more flexible idea of location, with a unit of length.
 The unit of token length in Marpa is called an Earleme.
 The locations themselves are often called earlemes.
-@ |EARLEME_THRESHOLD| is less than |INT_MAX| so that
+@ |JEARLEME_THRESHOLD| is less than |INT_MAX| so that
 I can prevent overflow without getting fancy -- overflow
 by addition is impossible as long as earlemes are below
 the threshold.
@@ -7359,12 +7375,12 @@ But machines with 32-bit int's
 will in a not very long time
 become museum pieces.
 And in the meantime this
-definition of |EARLEME_THRESHOLD| probably allows as large as
+definition of |JEARLEME_THRESHOLD| probably allows as large as
 parse as the memories on those machines will be
 able to handle.
-@d EARLEME_THRESHOLD (INT_MAX/4)
+@d JEARLEME_THRESHOLD (INT_MAX/4)
 @<Public typedefs@> = typedef int Marpa_Earleme;
-@ @<Private typedefs@> = typedef Marpa_Earleme EARLEME;
+@ @<Private typedefs@> = typedef Marpa_Earleme JEARLEME;
 
 @** Earley set (YS) code.
 @<Public typedefs@> = typedef int Marpa_Earley_Set_ID;
@@ -7381,7 +7397,7 @@ struct s_earley_set_key;
 typedef struct s_earley_set_key *YSK;
 @ @<Private structures@> =
 struct s_earley_set_key {
-    EARLEME t_earleme;
+    JEARLEME t_earleme;
 };
 typedef struct s_earley_set_key YSK_Object;
 @ @<Private structures@> =
@@ -7395,9 +7411,9 @@ struct s_earley_set {
 };
 
 @*0 Earley item container.
-@d YIM_Count_of_YS(set) ((set)->t_eim_count)
+@d YIM_Count_of_YS(set) ((set)->t_yim_count)
 @<Int aligned Earley set elements@> =
-int t_eim_count;
+int t_yim_count;
 @ @d YIMs_of_YS(set) ((set)->t_earley_items)
 @<Widely aligned Earley set elements@> =
 YIM* t_earley_items;
@@ -7515,7 +7531,7 @@ int marpa_r_latest_earley_set_values_set(Marpa_Recognizer r, int value,
 @*0 Constructor.
 @<Function definitions@> =
 PRIVATE YS
-earley_set_new( RECCE r, EARLEME id)
+earley_set_new( RECCE r, JEARLEME id)
 {
   YSK_Object key;
   YS set;
@@ -7697,7 +7713,7 @@ _marpa_r_earley_set_trace (Marpa_Recognizer r, Marpa_Earley_Set_ID set_id)
 Marpa_AHFA_State_ID
 _marpa_r_earley_item_trace (Marpa_Recognizer r, Marpa_Earley_Item_ID item_id)
 {
-  const int eim_does_not_exist = -1;
+  const int yim_does_not_exist = -1;
   @<Return |-2| on failure@>@;
   YS trace_earley_set;
   YIM earley_item;
@@ -7719,7 +7735,7 @@ _marpa_r_earley_item_trace (Marpa_Recognizer r, Marpa_Earley_Item_ID item_id)
     }
   if (item_id >= YIM_Count_of_YS (trace_earley_set))
     {
-      return eim_does_not_exist;
+      return yim_does_not_exist;
     }
   earley_items = YIMs_of_YS (trace_earley_set);
   earley_item = earley_items[item_id];
@@ -7794,7 +7810,7 @@ be recopied to make way for pointers to the linked lists.
     Complete_ISYID_of_AHFA(AHFA_of_YIM(item), (ix))
 @d Complete_ISY_Count_of_YIM(item)
     Complete_ISY_Count_of_AHFA(AHFA_of_YIM(item))
-@d Leo_IRLID_of_YIM(eim) Leo_IRLID_of_AHFA(AHFA_of_YIM(eim))
+@d Leo_IRLID_of_YIM(yim) Leo_IRLID_of_AHFA(AHFA_of_YIM(yim))
 @ It might be slightly faster if this boolean is memoized in the Earley item
 when the Earley item is initialized.
 @d Earley_Item_is_Completion(item)
@@ -7813,14 +7829,14 @@ the Earley set.
 @d Origin_Earleme_of_YIM(item) (Earleme_of_YS(Origin_of_YIM(item)))
 @d Origin_Ord_of_YIM(item) (Ord_of_YS(Origin_of_YIM(item)))
 @d Origin_of_YIM(item) ((item)->t_key.t_origin)
-@d AIM_of_YIM_by_AEX(eim, aex) AIM_of_AHFA_by_AEX(AHFA_of_YIM(eim), (aex))
-@d AEX_of_YIM_by_AIM(eim, aim) AEX_of_AHFA_by_AIM(AHFA_of_YIM(eim), (aim))
+@d AIM_of_YIM_by_AEX(yim, aex) AIM_of_AHFA_by_AEX(AHFA_of_YIM(yim), (aex))
+@d AEX_of_YIM_by_AIM(yim, aim) AEX_of_AHFA_by_AIM(AHFA_of_YIM(yim), (aim))
 @<Private incomplete structures@> =
 struct s_earley_item;
 typedef struct s_earley_item* YIM;
 typedef const struct s_earley_item* YIM_Const;
 struct s_earley_item_key;
-typedef struct s_earley_item_key* EIK;
+typedef struct s_earley_item_key* YIK;
 
 @ @<Earley item structure@> =
 struct s_earley_item_key {
@@ -7828,9 +7844,9 @@ struct s_earley_item_key {
      YS t_origin;
      YS t_set;
 };
-typedef struct s_earley_item_key EIK_Object;
+typedef struct s_earley_item_key YIK_Object;
 struct s_earley_item {
-     EIK_Object t_key;
+     YIK_Object t_key;
      union u_source_container t_container;
      int t_ordinal;
      @<Bit aligned Earley item elements@>@/
@@ -7845,7 +7861,7 @@ know that the Earley item is unique in the set.
 These are not worth optimizing for.
 @<Function definitions@> =
 PRIVATE YIM earley_item_create(const RECCE r,
-    const EIK_Object key)
+    const YIK_Object key)
 {
   @<Return |NULL| on failure@>@;
   @<Unpack recognizer objects@>@;
@@ -7868,8 +7884,8 @@ PRIVATE YIM
 earley_item_assign (const RECCE r, const YS set, const YS origin,
 		    const AHFA state)
 {
-  EIK_Object key;
-  YIM eim;
+  YIK_Object key;
+  YIM yim;
   PSL psl;
   AHFAID ahfa_id = ID_of_AHFA(state);
   PSL *psl_owner = &Dot_PSL_of_YS (origin);
@@ -7878,19 +7894,19 @@ earley_item_assign (const RECCE r, const YS set, const YS origin,
       psl_claim (psl_owner, Dot_PSAR_of_R(r));
     }
   psl = *psl_owner;
-  eim = PSL_Datum (psl, ahfa_id);
-  if (eim
-      && Earleme_of_YIM (eim) == Earleme_of_YS (set)
-      && Earleme_of_YS (Origin_of_YIM (eim)) == Earleme_of_YS (origin))
+  yim = PSL_Datum (psl, ahfa_id);
+  if (yim
+      && Earleme_of_YIM (yim) == Earleme_of_YS (set)
+      && Earleme_of_YS (Origin_of_YIM (yim)) == Earleme_of_YS (origin))
     {
-      return eim;
+      return yim;
     }
   key.t_origin = origin;
   key.t_state = state;
   key.t_set = set;
-  eim = earley_item_create (r, key);
-  PSL_Datum (psl, ahfa_id) = eim;
-  return eim;
+  yim = earley_item_create (r, key);
+  PSL_Datum (psl, ahfa_id) = yim;
+  return yim;
 }
 
 @ The fatal threshold always applies.
@@ -7945,20 +7961,20 @@ PRIVATE_NOT_INLINE Marpa_Error_Code invalid_source_type_code(unsigned int type)
      return MARPA_ERR_SOURCE_TYPE_IS_UNKNOWN;
 }
 
-@** Earley index (EIX) code.
+@** Earley index (YIX) code.
 Postdot items are of two kinds: Earley indexes
 and Leo items.
 The payload of an Earley index is simple:
 a pointer to an Earley item.
-The other elements of the EIX are overhead to 
+The other elements of the YIX are overhead to 
 support the chain of postdot items for
 a postdot symbol.
-@d Next_PIM_of_EIX(eix) ((eix)->t_next)
-@d YIM_of_EIX(eix) ((eix)->t_earley_item)
-@d Postdot_ISYID_of_EIX(eix) ((eix)->t_postdot_isyid)
+@d Next_PIM_of_YIX(yix) ((yix)->t_next)
+@d YIM_of_YIX(yix) ((yix)->t_earley_item)
+@d Postdot_ISYID_of_YIX(yix) ((yix)->t_postdot_isyid)
 @<Private incomplete structures@> =
 struct s_earley_ix;
-typedef struct s_earley_ix* EIX;
+typedef struct s_earley_ix* YIX;
 union u_postdot_item;
 @ @<Private structures@> =
 struct s_earley_ix {
@@ -7966,7 +7982,7 @@ struct s_earley_ix {
      ISYID t_postdot_isyid;
      YIM t_earley_item; // Never NULL if this is an index item
 };
-typedef struct s_earley_ix EIX_Object;
+typedef struct s_earley_ix YIX_Object;
 
 @** Leo item (LIM) code.
 Leo items originate from the ``transition items" of Joop Leo's 1991 paper.
@@ -7974,16 +7990,16 @@ They are set up so their first fields are identical to those of
 the Earley item indexes,
 so that they can be linked together in the same chain.
 Because the Earley index is at the beginning of each Leo item,
-LIMs can be treated as a kind of EIX.
-@d EIX_of_LIM(lim) ((EIX)(lim))
+LIMs can be treated as a kind of YIX.
+@d YIX_of_LIM(lim) ((YIX)(lim))
 @ Both Earley indexes and Leo items are
 postdot items, so that Leo items also require
 the fields to maintain the chain of postdot items.
 For this reason, Leo items contain an Earley index,
 but one
 with a |NULL| Earley item pointer.
-@d Postdot_ISYID_of_LIM(leo) (Postdot_ISYID_of_EIX(EIX_of_LIM(leo)))
-@d Next_PIM_of_LIM(leo) (Next_PIM_of_EIX(EIX_of_LIM(leo)))
+@d Postdot_ISYID_of_LIM(leo) (Postdot_ISYID_of_YIX(YIX_of_LIM(leo)))
+@d Next_PIM_of_LIM(leo) (Next_PIM_of_YIX(YIX_of_LIM(leo)))
 @d Origin_of_LIM(leo) ((leo)->t_origin)
 @d Top_AHFA_of_LIM(leo) ((leo)->t_top_ahfa)
 @d Predecessor_LIM_of_LIM(leo) ((leo)->t_predecessor)
@@ -7995,7 +8011,7 @@ struct s_leo_item;
 typedef struct s_leo_item* LIM;
 @ @<Private structures@> =
 struct s_leo_item {
-     EIX_Object t_earley_ix;
+     YIX_Object t_earley_ix;
     @<Widely aligned LIM elements@>@;
      YS t_origin;
      AHFA t_top_ahfa;
@@ -8039,7 +8055,7 @@ Marpa_Symbol_ID _marpa_r_leo_predecessor_symbol(Marpa_Recognizer r)
 @ @<Function definitions@> =
 Marpa_Earley_Set_ID _marpa_r_leo_base_origin(Marpa_Recognizer r)
 {
-  const EARLEME pim_is_not_a_leo_item = -1;
+  const JEARLEME pim_is_not_a_leo_item = -1;
   @<Return |-2| on failure@>@;
   PIM postdot_item = r->t_trace_postdot_item;
   @<Unpack recognizer objects@>@;
@@ -8057,7 +8073,7 @@ Marpa_Earley_Set_ID _marpa_r_leo_base_origin(Marpa_Recognizer r)
 @ @<Function definitions@> =
 Marpa_AHFA_State_ID _marpa_r_leo_base_state(Marpa_Recognizer r)
 {
-  const EARLEME pim_is_not_a_leo_item = -1;
+  const JEARLEME pim_is_not_a_leo_item = -1;
   @<Return |-2| on failure@>@;
   PIM postdot_item = r->t_trace_postdot_item;
   YIM base_earley_item;
@@ -8077,20 +8093,20 @@ Postdot items are entries in an index,
 by postdot symbol, of both the Earley items and the Leo items
 for each Earley set.
 @d LIM_of_PIM(pim) ((LIM)(pim))
-@d EIX_of_PIM(pim) ((EIX)(pim))
-@d Postdot_ISYID_of_PIM(pim) (Postdot_ISYID_of_EIX(EIX_of_PIM(pim)))
-@d YIM_of_PIM(pim) (YIM_of_EIX(EIX_of_PIM(pim)))
-@d Next_PIM_of_PIM(pim) (Next_PIM_of_EIX(EIX_of_PIM(pim)))
+@d YIX_of_PIM(pim) ((YIX)(pim))
+@d Postdot_ISYID_of_PIM(pim) (Postdot_ISYID_of_YIX(YIX_of_PIM(pim)))
+@d YIM_of_PIM(pim) (YIM_of_YIX(YIX_of_PIM(pim)))
+@d Next_PIM_of_PIM(pim) (Next_PIM_of_YIX(YIX_of_PIM(pim)))
 
 @ |PIM_of_LIM| assumes that PIM is in fact a LIM.
 |PIM_is_LIM| is available to check this.
 @d PIM_of_LIM(pim) ((PIM)(pim))
-@d PIM_is_LIM(pim) (YIM_of_EIX(EIX_of_PIM(pim)) == NULL)
+@d PIM_is_LIM(pim) (YIM_of_YIX(YIX_of_PIM(pim)) == NULL)
 @s PIM int
 @<Private structures@> =
 union u_postdot_item {
     LIM_Object t_leo;
-    EIX_Object t_earley;
+    YIX_Object t_earley;
 };
 typedef union u_postdot_item* PIM;
 
@@ -8348,9 +8364,9 @@ union u_source_container {
 
 @
 @d Source_of_SRCL(link) ((link)->t_source)
-@d SRCL_of_YIM(eim) (&(eim)->t_container.t_unique)
-@d Source_of_YIM(eim) ((eim)->t_container.t_unique.t_source)
-@d SRC_of_YIM(eim) (&Source_of_YIM(eim))
+@d SRCL_of_YIM(yim) (&(yim)->t_container.t_unique)
+@d Source_of_YIM(yim) ((yim)->t_container.t_unique.t_source)
+@d SRC_of_YIM(yim) (&Source_of_YIM(yim))
 @d Predecessor_of_Source(srcd) ((srcd).t_predecessor)
 @d Predecessor_of_SRC(source) Predecessor_of_Source(*(source))
 @d Predecessor_of_YIM(item) Predecessor_of_Source(Source_of_YIM(item))
@@ -8362,11 +8378,11 @@ union u_source_container {
 @d Cause_of_SRCL(link) Cause_of_Source(Source_of_SRCL(link))
 @d TOK_of_Source(srcd) ((srcd).t_cause.t_token)
 @d TOK_of_SRC(source) TOK_of_Source(*(source))
-@d TOK_of_YIM(eim) TOK_of_Source(Source_of_YIM(eim))
+@d TOK_of_YIM(yim) TOK_of_Source(Source_of_YIM(yim))
 @d TOK_of_SRCL(link) TOK_of_Source(Source_of_SRCL(link))
 @d ISYID_of_Source(srcd) ISYID_of_TOK(TOK_of_Source(srcd))
 @d ISYID_of_SRC(source) ISYID_of_Source(*(source))
-@d ISYID_of_YIM(eim) ISYID_of_Source(Source_of_YIM(eim))
+@d ISYID_of_YIM(yim) ISYID_of_Source(Source_of_YIM(yim))
 @d ISYID_of_SRCL(link) ISYID_of_Source(Source_of_SRCL(link))
 
 @ @d Cause_AHFAID_of_SRCL(srcl)
@@ -8944,7 +8960,7 @@ there being no source link,
 Marpa_Earley_Set_ID _marpa_r_source_middle(Marpa_Recognizer r)
 {
    @<Return |-2| on failure@>@/
-   const EARLEME no_predecessor = -1;
+   const JEARLEME no_predecessor = -1;
    unsigned int source_type;
    SRCL source_link;
   @<Unpack recognizer objects@>@;
@@ -9064,7 +9080,7 @@ typedef const struct s_alternative* ALT_Const;
 struct s_alternative {
     TOK t_token;
     YS t_start_earley_set;
-    EARLEME t_end_earleme;
+    JEARLEME t_end_earleme;
 };
 typedef struct s_alternative ALT_Object;
 
@@ -9141,7 +9157,7 @@ The data pointed to by the return value may be overwritten when
 new alternatives are added, so it must be used before the next
 call that adds data to the alternatives stack.
 @<Function definitions@> =
-PRIVATE ALT alternative_pop(RECCE r, EARLEME earleme)
+PRIVATE ALT alternative_pop(RECCE r, JEARLEME earleme)
 {
     MARPA_DSTACK alternatives = &r->t_alternatives;
     ALT top_of_stack = MARPA_DSTACK_TOP(*alternatives, ALT_Object);
@@ -9178,7 +9194,7 @@ PRIVATE int alternative_insert(RECCE r, ALT new_alternative)
 {
     int return_value = 1;
     YS set0;
-    EIK_Object key;
+    YIK_Object key;
     AHFA state;
   @<Unpack recognizer objects@>@;
   @<Return |-2| on failure@>@;
@@ -9320,8 +9336,8 @@ Marpa_Earleme marpa_r_alternative(
 {
     @<Unpack recognizer objects@>@;
     YS current_earley_set;
-    const EARLEME current_earleme = Current_Earleme_of_R (r);
-    EARLEME target_earleme;
+    const JEARLEME current_earleme = Current_Earleme_of_R (r);
+    JEARLEME target_earleme;
     ISYID token_isyid;
     if (UNLIKELY (Input_Phase_of_R (r) != R_DURING_INPUT))
       {
@@ -9346,7 +9362,7 @@ Marpa_Earleme marpa_r_alternative(
 	MARPA_ERROR(MARPA_ERR_TOKEN_LENGTH_LE_ZERO);
 	return MARPA_ERR_TOKEN_LENGTH_LE_ZERO;
     }
-    if (length >= EARLEME_THRESHOLD) {
+    if (length >= JEARLEME_THRESHOLD) {
 	MARPA_ERROR(MARPA_ERR_TOKEN_TOO_LONG);
 	return MARPA_ERR_TOKEN_TOO_LONG;
     }
@@ -9382,7 +9398,7 @@ Marpa_Earleme marpa_r_alternative(
 
 @ @<Set |target_earleme| or fail@> = {
     target_earleme = current_earleme + length;
-    if (target_earleme >= EARLEME_THRESHOLD) {
+    if (target_earleme >= JEARLEME_THRESHOLD) {
 	MARPA_ERROR(MARPA_ERR_PARSE_TOO_LONG);
 	return MARPA_ERR_PARSE_TOO_LONG;
     }
@@ -9476,20 +9492,20 @@ altered by the attempt.
 In the Aycock-Horspool variation of Earley's algorithm,
 the two main phases are scanning and completion.
 This section is devoted to the logic for completion.
-@d Work_YIMs_of_R(r) MARPA_DSTACK_BASE((r)->t_eim_work_stack, YIM)
-@d Work_YIM_Count_of_R(r) MARPA_DSTACK_LENGTH((r)->t_eim_work_stack)
-@d WORK_YIMS_CLEAR(r) MARPA_DSTACK_CLEAR((r)->t_eim_work_stack)
-@d WORK_YIM_PUSH(r) MARPA_DSTACK_PUSH((r)->t_eim_work_stack, YIM)
-@<Widely aligned recognizer elements@> = MARPA_DSTACK_DECLARE(t_eim_work_stack);
-@ @<Initialize recognizer elements@> = MARPA_DSTACK_SAFE(r->t_eim_work_stack);
+@d Work_YIMs_of_R(r) MARPA_DSTACK_BASE((r)->t_yim_work_stack, YIM)
+@d Work_YIM_Count_of_R(r) MARPA_DSTACK_LENGTH((r)->t_yim_work_stack)
+@d WORK_YIMS_CLEAR(r) MARPA_DSTACK_CLEAR((r)->t_yim_work_stack)
+@d WORK_YIM_PUSH(r) MARPA_DSTACK_PUSH((r)->t_yim_work_stack, YIM)
+@<Widely aligned recognizer elements@> = MARPA_DSTACK_DECLARE(t_yim_work_stack);
+@ @<Initialize recognizer elements@> = MARPA_DSTACK_SAFE(r->t_yim_work_stack);
 @ @<Initialize Earley item work stacks@> =
 {
-  if (!MARPA_DSTACK_IS_INITIALIZED (r->t_eim_work_stack))
+  if (!MARPA_DSTACK_IS_INITIALIZED (r->t_yim_work_stack))
     {
-      MARPA_DSTACK_INIT2 (r->t_eim_work_stack, YIM);
+      MARPA_DSTACK_INIT2 (r->t_yim_work_stack, YIM);
     }
 }
-@ @<Destroy recognizer elements@> = MARPA_DSTACK_DESTROY(r->t_eim_work_stack);
+@ @<Destroy recognizer elements@> = MARPA_DSTACK_DESTROY(r->t_yim_work_stack);
 
 @ The completion stack is initialized to a very high-ball estimate of the
 number of completions per Earley set.
@@ -9535,12 +9551,12 @@ marpa_r_earleme_complete(Marpa_Recognizer r)
   @<Unpack recognizer objects@>@;
   YIM* cause_p;
   YS current_earley_set;
-  EARLEME current_earleme;
+  JEARLEME current_earleme;
 
   /* \comment Initialized to -2 just in case.
     Should be set before returning;
    */
-  EARLEME return_value = -2;
+  JEARLEME return_value = -2;
 
   @<Fail if recognizer not accepting input@>@;
   {
@@ -9657,8 +9673,8 @@ The return value means success, with no events.
 }
 
 @ @<Pre-populate the completion stack@> = {
-    YIM* work_earley_items = MARPA_DSTACK_BASE (r->t_eim_work_stack, YIM );
-    int no_of_work_earley_items = MARPA_DSTACK_LENGTH (r->t_eim_work_stack );
+    YIM* work_earley_items = MARPA_DSTACK_BASE (r->t_yim_work_stack, YIM );
+    int no_of_work_earley_items = MARPA_DSTACK_LENGTH (r->t_yim_work_stack );
     int ix;
     MARPA_DSTACK_CLEAR(r->t_completion_stack);
     for (ix = 0;
@@ -9763,9 +9779,9 @@ PRIVATE void trigger_events(RECCE r)
   const GRAMMAR g = G_of_R (r);
   const YS current_earley_set = Latest_YS_of_R (r);
   unsigned int min, max, start;
-  int eim_ix;
+  int yim_ix;
   struct marpa_obstack *const trigger_events_obs = marpa_obs_init;
-  const YIM *eims = YIMs_of_YS (current_earley_set);
+  const YIM *yims = YIMs_of_YS (current_earley_set);
   const XSYID xsy_count = XSY_Count_of_G (g);
   const AHFAID ahfa_count = AHFA_Count_of_G (g);
   Bit_Vector bv_completion_event_trigger =
@@ -9777,10 +9793,10 @@ PRIVATE void trigger_events(RECCE r)
   Bit_Vector bv_ahfa_event_trigger =
     bv_obs_create (trigger_events_obs, ahfa_count);
   const int working_earley_item_count = YIM_Count_of_YS (current_earley_set);
-  for (eim_ix = 0; eim_ix < working_earley_item_count; eim_ix++)
+  for (yim_ix = 0; yim_ix < working_earley_item_count; yim_ix++)
     {
-      const YIM eim = eims[eim_ix];
-      const AHFA top_ahfa = AHFA_of_YIM (eim);
+      const YIM yim = yims[yim_ix];
+      const AHFA top_ahfa = AHFA_of_YIM (yim);
       const AHFAID top_ahfaid = ID_of_AHFA (top_ahfa);
       if (AHFA_has_Event (top_ahfa))
 	{			/* Note that we go on to look at the Leo path, even if
@@ -9789,7 +9805,7 @@ PRIVATE void trigger_events(RECCE r)
 	}
       {
 	/* Now do the ISYs for any Leo links */
-	const SRCL first_leo_source_link = First_Leo_SRCL_of_YIM (eim);
+	const SRCL first_leo_source_link = First_Leo_SRCL_of_YIM (yim);
 	SRCL setup_source_link;
 	for (setup_source_link = first_leo_source_link; setup_source_link;
 	     setup_source_link = Next_SRCL_of_SRCL (setup_source_link))
@@ -9978,9 +9994,9 @@ postdot_items_create (RECCE r,
   YS current_earley_set)
 {
   @<Unpack recognizer objects@>@;
-    EARLEME current_earley_set_id = Earleme_of_YS(current_earley_set);
+    JEARLEME current_earley_set_id = Earleme_of_YS(current_earley_set);
     @<Reinitialize containers used in PIM setup@>@;
-    @<Start EIXes in PIM workarea@>@;
+    @<Start YIXes in PIM workarea@>@;
     if (r->t_is_using_leo) {
 	@<Start LIMs in PIM workarea@>@;
 	@<Add predecessors to LIMs@>@;
@@ -9991,9 +10007,9 @@ postdot_items_create (RECCE r,
 
 @ This code creates the Earley indexes in the PIM workarea.
 At this point there are no Leo items.
-@<Start EIXes in PIM workarea@> = {
-    YIM* work_earley_items = MARPA_DSTACK_BASE (r->t_eim_work_stack, YIM );
-    int no_of_work_earley_items = MARPA_DSTACK_LENGTH (r->t_eim_work_stack );
+@<Start YIXes in PIM workarea@> = {
+    YIM* work_earley_items = MARPA_DSTACK_BASE (r->t_yim_work_stack, YIM );
+    int no_of_work_earley_items = MARPA_DSTACK_LENGTH (r->t_yim_work_stack );
     int ix;
     for (ix = 0;
          ix < no_of_work_earley_items;
@@ -10009,7 +10025,7 @@ At this point there are no Leo items.
 	  PIM old_pim = NULL;
 	  PIM new_pim;
 	  ISYID isyid;
-	  new_pim = marpa_obs_alloc (r->t_obs, sizeof (EIX_Object));
+	  new_pim = marpa_obs_alloc (r->t_obs, sizeof (YIX_Object));
 	  isyid = postdot_isyidary[isy_ix];
 	  Postdot_ISYID_of_PIM(new_pim) = isyid;
 	  YIM_of_PIM(new_pim) = earley_item;
@@ -10048,7 +10064,7 @@ Leo item have not been fully populated.
 	  PIM this_pim = r->t_pim_workarea[isyid];
 	  if (!Next_PIM_of_PIM (this_pim))
 	    {			/* Do not create a Leo item if there is more
-				   than one EIX */
+				   than one YIX */
 	      YIM leo_base = YIM_of_PIM (this_pim);
 	      if (YIM_is_Potential_Leo_Base (leo_base))
 		{
@@ -10214,8 +10230,8 @@ because it relies on the Top AHFA value containing
 the base AHFA to-state.
 In a populated LIM, this will not necessarily be the case.
 @<Find predecessor LIM of unpopulated LIM@> = {
-    const YIM base_eim = Base_YIM_of_LIM(lim_to_process);
-    const YS predecessor_set = Origin_of_YIM(base_eim);
+    const YIM base_yim = Base_YIM_of_LIM(lim_to_process);
+    const YS predecessor_set = Origin_of_YIM(base_yim);
     const AHFA base_to_ahfa = Top_AHFA_of_LIM(lim_to_process);
     const ISYID predecessor_transition_isyid =
       Leo_LHS_ISYID_of_AHFA(base_to_ahfa);
@@ -10365,8 +10381,8 @@ and the top AHFA to-state was initialized to the AHFA to-state
 of the base YIM.
 @<Populate |lim_to_process| from its base Earley item@> = {
   const AHFA top_AHFA = Top_AHFA_of_LIM(lim_to_process);
-  const YIM base_eim = Base_YIM_of_LIM(lim_to_process);
-  Origin_of_LIM (lim_to_process) = Origin_of_YIM (base_eim);
+  const YIM base_yim = Base_YIM_of_LIM(lim_to_process);
+  Origin_of_LIM (lim_to_process) = Origin_of_YIM (base_yim);
   CIL_of_LIM(lim_to_process) = Event_AHFAIDs_of_AHFA(top_AHFA);
 }
 
@@ -10617,7 +10633,7 @@ never on the stack.
     const URS ur_node_stack = URS_of_R(r);
     ur_node_stack_reset(ur_node_stack);
     {
-       const YIM ur_earley_item = start_eim;
+       const YIM ur_earley_item = start_yim;
        const AIM ur_aim = start_aim;
        const AEX ur_aex = start_aex;
 	@<Push ur-node if new@>@;
@@ -10722,18 +10738,18 @@ MARPA_ASSERT(ahfa_element_ix < aim_count_of_item)@;
 so that I will know to create the chain of or-nodes for them.
 We don't need to stack the prediction, because it can have
 no other descendants.
-@d Set_boolean_in_PSIA_for_initial_nulls(eim, aim) {
+@d Set_boolean_in_PSIA_for_initial_nulls(yim, aim) {
 
     if (Position_of_AIM(aim) > 0) {
 	const int null_count = Null_Count_of_AIM(aim);
 
 	if (null_count) {
-	    AEX aex = AEX_of_YIM_by_AIM((eim),
+	    AEX aex = AEX_of_YIM_by_AIM((yim),
 		(aim));
 
 	    or_node_estimate += null_count;
 	    psia_test_and_set(bocage_setup_obs, per_ys_data, 
-		(eim), aex);
+		(yim), aex);
 	}
     }
 }
@@ -11026,7 +11042,7 @@ Top_ORID_of_B(b) = -1;
       work_earley_set_ordinal++)
   {
       const YS_Const earley_set = YS_of_R_by_Ord (r, work_earley_set_ordinal);
-    YIM* const eims_of_ys = YIMs_of_YS(earley_set);
+    YIM* const yims_of_ys = YIMs_of_YS(earley_set);
     const int item_count = YIM_Count_of_YS (earley_set);
       PSL this_earley_set_psl;
     OR** const nodes_by_item = per_ys_data[work_earley_set_ordinal].t_aexes_by_item;
@@ -11048,7 +11064,7 @@ Top_ORID_of_B(b) = -1;
     {
 	OR* const work_nodes_by_aex = nodes_by_item[item_ordinal];
 	if (work_nodes_by_aex) {
-	    const YIM work_earley_item = eims_of_ys[item_ordinal];
+	    const YIM work_earley_item = yims_of_ys[item_ordinal];
 	    const int work_ahfa_item_count = AIM_Count_of_YIM(work_earley_item);
 	    AEX work_aex;
 	      const int work_origin_ordinal = Ord_of_YS (Origin_of_YIM (work_earley_item));
@@ -11590,7 +11606,7 @@ void draft_and_node_add(struct marpa_obstack *obs, OR parent, OR predecessor, OR
     {
 	OR* const nodes_by_aex = nodes_by_item[item_ordinal];
 	if (nodes_by_aex) {
-	    const YIM work_earley_item = eims_of_ys[item_ordinal];
+	    const YIM work_earley_item = yims_of_ys[item_ordinal];
 	    const int work_ahfa_item_count = AIM_Count_of_YIM(work_earley_item);
 	    const int work_origin_ordinal = Ord_of_YS (Origin_of_YIM (work_earley_item));
 	    AEX work_aex;
@@ -11711,9 +11727,9 @@ predecessor.  Set |or_node| to 0 if there is none.
 }
 
 @ It is assumed that there is an or-node entry for
-|psia_eim| and |psia_aex|.
-@d Set_OR_from_YIM_and_AEX(psia_or, psia_eim, psia_aex) {
-  const YIM psia_earley_item = psia_eim;
+|psia_yim| and |psia_aex|.
+@d Set_OR_from_YIM_and_AEX(psia_or, psia_yim, psia_aex) {
+  const YIM psia_earley_item = psia_yim;
   const int psia_earley_set_ordinal = YS_Ord_of_YIM (psia_earley_item);
   OR **const psia_nodes_by_item =
     per_ys_data[psia_earley_set_ordinal].t_aexes_by_item;
@@ -12461,8 +12477,8 @@ Marpa_Bocage marpa_b_new(Marpa_Recognizer r,
 	B_is_Nulling (b) = 1;
 	return b;
       }
-    @<Find |start_eim|, |start_aim| and |start_aex|@>@;
-    if (!start_eim) goto NO_PARSE;
+    @<Find |start_yim|, |start_aim| and |start_aex|@>@;
+    if (!start_yim) goto NO_PARSE;
     bocage_setup_obs = marpa_obs_init;
     @<Allocate bocage setup working data@>@;
     @<Populate the PSIA data@>@;
@@ -12498,8 +12514,8 @@ const int xsy_count = XSY_Count_of_G(g);
 const IRLID irl_count = IRL_Count_of_G(g);
 BOCAGE b = NULL;
 YS end_of_parse_earley_set;
-EARLEME end_of_parse_earleme;
-YIM start_eim = NULL;
+JEARLEME end_of_parse_earleme;
+YIM start_yim = NULL;
 AIM start_aim = NULL;
 AEX start_aex = -1;
 struct marpa_obstack* bocage_setup_obs = NULL;
@@ -12555,14 +12571,14 @@ struct s_bocage_setup_per_ys* per_ys_data = NULL;
       total_earley_items_in_parse += item_count;
 	{
 	  struct s_bocage_setup_per_ys *per_ys = per_ys_data + ix;
-	  OR ** const per_eim_eixes = per_ys->t_aexes_by_item =
+	  OR ** const per_yim_yixes = per_ys->t_aexes_by_item =
 	    marpa_obs_alloc (bocage_setup_obs, sizeof (OR *) * item_count);
 	  unsigned int item_ordinal;
 	  per_ys->t_or_psl = NULL;
 	  per_ys->t_and_psl = NULL;
 	  for (item_ordinal = 0; item_ordinal < item_count; item_ordinal++)
 	    {
-	      per_eim_eixes[item_ordinal] = NULL;
+	      per_yim_yixes[item_ordinal] = NULL;
 	    }
 	}
     }
@@ -12592,15 +12608,15 @@ It is hard to believe that for practical grammars
 that $O(\wsize \cdot s') <= O(s)$, which
 is what it would take for any per-Earley set overhead
 to make sense.
-@<Find |start_eim|, |start_aim| and |start_aex|@> =
+@<Find |start_yim|, |start_aim| and |start_aex|@> =
 {
-    int eim_ix;
+    int yim_ix;
     YIM* const earley_items = YIMs_of_YS(end_of_parse_earley_set);
     const IRL start_irl = g->t_start_irl;
     const IRLID sought_irl_id = ID_of_IRL(start_irl);
     const int earley_item_count = YIM_Count_of_YS(end_of_parse_earley_set);
-    for (eim_ix = 0; eim_ix < earley_item_count; eim_ix++) {
-        const YIM earley_item = earley_items[eim_ix];
+    for (yim_ix = 0; yim_ix < earley_item_count; yim_ix++) {
+        const YIM earley_item = earley_items[yim_ix];
 	const AHFA ahfa_state = AHFA_of_YIM(earley_item);
 	if (Origin_Earleme_of_YIM(earley_item) > 0) continue; // Not a start YIM
 	if (!AHFA_is_Predicted(ahfa_state)) {
@@ -12611,13 +12627,13 @@ to make sense.
 		 const AIM ahfa_item = ahfa_items[aex];
 	         if (IRLID_of_AIM(ahfa_item) == sought_irl_id) {
 		      start_aim = ahfa_item;
-		      start_eim = earley_item;
+		      start_yim = earley_item;
 		      start_aex = aex;
 		      break;
 		 }
 	    }
 	}
-	if (start_eim) break;
+	if (start_yim) break;
     }
 }
 
@@ -12626,7 +12642,7 @@ to make sense.
   const YSID end_of_parse_ordinal = Ord_of_YS (end_of_parse_earley_set);
   OR **const nodes_by_item =
     per_ys_data[end_of_parse_ordinal].t_aexes_by_item;
-  const int start_earley_item_ordinal = Ord_of_YIM (start_eim);
+  const int start_earley_item_ordinal = Ord_of_YIM (start_yim);
   OR *const nodes_by_aex = nodes_by_item[start_earley_item_ordinal];
   const OR top_or_node = nodes_by_aex[start_aex];
   Top_ORID_of_B (b) = ID_of_OR (top_or_node);
@@ -16135,25 +16151,25 @@ void marpa_debug_level_set( int level )
 A function to print a descriptive tag for
 an Earley item.
 @<Debug function prototypes@> =
-static const char* eim_tag_safe(char *buffer, YIM eim) @,@, UNUSED;
-static const char* eim_tag(YIM eim) @,@, UNUSED;
+static const char* yim_tag_safe(char *buffer, YIM yim) @,@, UNUSED;
+static const char* yim_tag(YIM yim) @,@, UNUSED;
 @ It is passed a buffer to keep it thread-safe.
 @<Debug function definitions@> =
 static const char *
-eim_tag_safe (char * buffer, YIM eim)
+yim_tag_safe (char * buffer, YIM yim)
 {
-  if (!eim) return "NULL";
+  if (!yim) return "NULL";
   sprintf (buffer, "S%d@@%d-%d",
-	   AHFAID_of_YIM (eim), Origin_Earleme_of_YIM (eim),
-	   Earleme_of_YIM (eim));
+	   AHFAID_of_YIM (yim), Origin_Earleme_of_YIM (yim),
+	   Earleme_of_YIM (yim));
   return buffer;
 }
 
-static char DEBUG_eim_tag_buffer[1000];
+static char DEBUG_yim_tag_buffer[1000];
 static const char*
-eim_tag (YIM eim)
+yim_tag (YIM yim)
 {
-  return eim_tag_safe (DEBUG_eim_tag_buffer, eim);
+  return yim_tag_safe (DEBUG_yim_tag_buffer, yim);
 }
 
 @*0 Leo item tag.
