@@ -6909,9 +6909,9 @@ r->t_current_earleme = -1;
 unsigned int marpa_r_current_earleme(Marpa_Recognizer r)
 { return Current_Earleme_of_R(r); }
 
-@ @d Current_YS_of_R(r) current_es_of_r(r)
+@ @d Current_YS_of_R(r) current_ys_of_r(r)
 @<Function definitions@> =
-PRIVATE YS current_es_of_r(RECCE r)
+PRIVATE YS current_ys_of_r(RECCE r)
 {
     const YS latest = Latest_YS_of_R(r);
     if (Earleme_of_YS(latest) == Current_Earleme_of_R(r)) return latest;
@@ -7371,7 +7371,7 @@ able to handle.
 @ @<Private typedefs@> = typedef Marpa_Earley_Set_ID YSID;
 @ @d Next_YS_of_YS(set) ((set)->t_next_earley_set)
 @d Postdot_SYM_Count_of_YS(set) ((set)->t_postdot_sym_count)
-@d First_PIM_of_YS_by_ISYID(set, isyid) (first_pim_of_es_by_isyid((set), (isyid)))
+@d First_PIM_of_YS_by_ISYID(set, isyid) (first_pim_of_ys_by_isyid((set), (isyid)))
 @d PIM_ISY_P_of_YS_by_ISYID(set, isyid) (pim_isy_p_find((set), (isyid)))
 @<Private incomplete structures@> =
 struct s_earley_set;
@@ -8121,7 +8121,7 @@ pim_isy_p_find (YS set, ISYID isyid)
   return NULL;
 }
 @ @<Function definitions@> =
-PRIVATE PIM first_pim_of_es_by_isyid(YS set, ISYID isyid)
+PRIVATE PIM first_pim_of_ys_by_isyid(YS set, ISYID isyid)
 {
    PIM* pim_isy_p = pim_isy_p_find(set, isyid);
    return pim_isy_p ? *pim_isy_p : NULL;
@@ -8156,7 +8156,7 @@ _marpa_r_postdot_symbol_trace (Marpa_Recognizer r,
     Marpa_Symbol_ID xsy_id)
 {
   @<Return |-2| on failure@>@;
-  YS current_es = r->t_trace_earley_set;
+  YS current_ys = r->t_trace_earley_set;
   PIM* pim_isy_p;
   PIM pim;
   @<Unpack recognizer objects@>@;
@@ -8164,11 +8164,11 @@ _marpa_r_postdot_symbol_trace (Marpa_Recognizer r,
   @<Fail if not trace-safe@>@;
     @<Fail if |xsy_id| is malformed@>@;
     @<Soft fail if |xsy_id| does not exist@>@;
-  if (!current_es) {
+  if (!current_ys) {
       MARPA_ERROR(MARPA_ERR_NO_TRACE_ES);
       return failure_indicator;
   }
-  pim_isy_p = PIM_ISY_P_of_YS_by_ISYID(current_es, ISYID_by_XSYID(xsy_id));
+  pim_isy_p = PIM_ISY_P_of_YS_by_ISYID(current_ys, ISYID_by_XSYID(xsy_id));
   pim = *pim_isy_p;
   if (!pim) return -1;
   r->t_trace_pim_isy_p = pim_isy_p;
@@ -10641,7 +10641,7 @@ never on the stack.
 
 @ @<Push ur-node if new@> = {
     if (!psia_test_and_set
-	(bocage_setup_obs, per_es_data, ur_earley_item, ur_aex))
+	(bocage_setup_obs, per_ys_data, ur_earley_item, ur_aex))
       {
 	ur_node_push (ur_node_stack, ur_earley_item, ur_aex);
 	or_node_estimate += 1 + Null_Count_of_AIM(ur_aim);
@@ -10655,13 +10655,13 @@ It returns that boolean's value {\bf prior} to the call.
 @<Function definitions@> = 
 PRIVATE int psia_test_and_set(
     struct marpa_obstack* obs,
-    struct s_bocage_setup_per_es* per_es_data,
+    struct s_bocage_setup_per_ys* per_ys_data,
     EIM earley_item,
     AEX ahfa_element_ix)
 {
     const int aim_count_of_item = AIM_Count_of_EIM(earley_item);
     const Marpa_Earley_Set_ID set_ordinal = YS_Ord_of_EIM(earley_item);
-    OR** nodes_by_item = per_es_data[set_ordinal].t_aexes_by_item;
+    OR** nodes_by_item = per_ys_data[set_ordinal].t_aexes_by_item;
     const int item_ordinal = Ord_of_EIM(earley_item);
     OR* nodes_by_aex = nodes_by_item[item_ordinal];
 MARPA_ASSERT(ahfa_element_ix < aim_count_of_item)@;
@@ -10732,7 +10732,7 @@ no other descendants.
 		(aim));
 
 	    or_node_estimate += null_count;
-	    psia_test_and_set(bocage_setup_obs, per_es_data, 
+	    psia_test_and_set(bocage_setup_obs, per_ys_data, 
 		(eim), aex);
 	}
     }
@@ -11015,8 +11015,8 @@ Top_ORID_of_B(b) = -1;
 @*0 Create the or-nodes.
 @<Create the or-nodes for all earley sets@> =
 {
-  PSAR_Object or_per_es_arena;
-  const PSAR or_psar = &or_per_es_arena;
+  PSAR_Object or_per_ys_arena;
+  const PSAR or_psar = &or_per_ys_arena;
   int work_earley_set_ordinal;
   OR last_or_node = NULL ;
   ORs_of_B (b) = marpa_new (OR, or_node_estimate);
@@ -11026,10 +11026,10 @@ Top_ORID_of_B(b) = -1;
       work_earley_set_ordinal++)
   {
       const YS_Const earley_set = YS_of_R_by_Ord (r, work_earley_set_ordinal);
-    EIM* const eims_of_es = EIMs_of_YS(earley_set);
+    EIM* const eims_of_ys = EIMs_of_YS(earley_set);
     const int item_count = EIM_Count_of_YS (earley_set);
       PSL this_earley_set_psl;
-    OR** const nodes_by_item = per_es_data[work_earley_set_ordinal].t_aexes_by_item;
+    OR** const nodes_by_item = per_ys_data[work_earley_set_ordinal].t_aexes_by_item;
       psar_dealloc(or_psar);
 #define PSL_YS_ORD work_earley_set_ordinal
 #define CLAIMED_PSL this_earley_set_psl
@@ -11048,7 +11048,7 @@ Top_ORID_of_B(b) = -1;
     {
 	OR* const work_nodes_by_aex = nodes_by_item[item_ordinal];
 	if (work_nodes_by_aex) {
-	    const EIM work_earley_item = eims_of_es[item_ordinal];
+	    const EIM work_earley_item = eims_of_ys[item_ordinal];
 	    const int work_ahfa_item_count = AIM_Count_of_EIM(work_earley_item);
 	    AEX work_aex;
 	      const int work_origin_ordinal = Ord_of_YS (Origin_of_EIM (work_earley_item));
@@ -11590,7 +11590,7 @@ void draft_and_node_add(struct marpa_obstack *obs, OR parent, OR predecessor, OR
     {
 	OR* const nodes_by_aex = nodes_by_item[item_ordinal];
 	if (nodes_by_aex) {
-	    const EIM work_earley_item = eims_of_es[item_ordinal];
+	    const EIM work_earley_item = eims_of_ys[item_ordinal];
 	    const int work_ahfa_item_count = AIM_Count_of_EIM(work_earley_item);
 	    const int work_origin_ordinal = Ord_of_YS (Origin_of_EIM (work_earley_item));
 	    AEX work_aex;
@@ -11688,7 +11688,7 @@ predecessor.  Set |or_node| to 0 if there is none.
 }
 
 @ @d Set_OR_from_Ord_and_SYMI(or_node, origin, symbol_instance) {
-  const PSL or_psl_at_origin = per_es_data[(origin)].t_or_psl;
+  const PSL or_psl_at_origin = per_ys_data[(origin)].t_or_psl;
   (or_node) = PSL_Datum (or_psl_at_origin, (symbol_instance));
 }
 
@@ -11716,7 +11716,7 @@ predecessor.  Set |or_node| to 0 if there is none.
   const EIM psia_earley_item = psia_eim;
   const int psia_earley_set_ordinal = YS_Ord_of_EIM (psia_earley_item);
   OR **const psia_nodes_by_item =
-    per_es_data[psia_earley_set_ordinal].t_aexes_by_item;
+    per_ys_data[psia_earley_set_ordinal].t_aexes_by_item;
   const int psia_item_ordinal = Ord_of_EIM (psia_earley_item);
   OR *const psia_nodes_by_aex = psia_nodes_by_item[psia_item_ordinal];
   psia_or = psia_nodes_by_aex ? psia_nodes_by_aex[psia_aex] : NULL;
@@ -11849,8 +11849,8 @@ predecessor.  Set |or_node| to 0 if there is none.
 {
   OR * const or_nodes_of_b = ORs_of_B (b);
   const int or_node_count_of_b = OR_Count_of_B(b);
-  PSAR_Object and_per_es_arena;
-  const PSAR and_psar = &and_per_es_arena;
+  PSAR_Object and_per_ys_arena;
+  const PSAR and_psar = &and_per_ys_arena;
   int or_node_id = 0;
   psar_init (and_psar, irl_count+isy_count);
   while (or_node_id < or_node_count_of_b) {
@@ -11895,7 +11895,7 @@ Otherwise, it's the first such draft and-node.
 	  const int middle_ordinal =
 	    predecessor ? YS_Ord_of_OR (predecessor) : origin_ordinal;
 	  PSL and_psl;
-	  PSL *psl_owner = &per_es_data[middle_ordinal].t_and_psl;
+	  PSL *psl_owner = &per_ys_data[middle_ordinal].t_and_psl;
 	  /* The or-node used as a boolean in the PSL */
 	  if (!*psl_owner) psl_claim (psl_owner, and_psar);
 	  and_psl = *psl_owner;
@@ -12508,15 +12508,15 @@ int or_node_estimate = 0;
 const int earley_set_count_of_r = YS_Count_of_R (r);
 
 @ @<Private incomplete structures@> =
-struct s_bocage_setup_per_es;
+struct s_bocage_setup_per_ys;
 @ @<Private structures@> =
-struct s_bocage_setup_per_es {
+struct s_bocage_setup_per_ys {
      OR ** t_aexes_by_item;
      PSL t_or_psl;
      PSL t_and_psl;
 };
 @ @<Declare bocage locals@> =
-struct s_bocage_setup_per_es* per_es_data = NULL;
+struct s_bocage_setup_per_ys* per_ys_data = NULL;
 
 @ @<Set |end_of_parse_earley_set| and |end_of_parse_earleme|@> =
 {
@@ -12545,21 +12545,21 @@ struct s_bocage_setup_per_es* per_es_data = NULL;
   unsigned int ix;
   unsigned int earley_set_count = YS_Count_of_R (r);
   total_earley_items_in_parse = 0;
-  per_es_data =
+  per_ys_data =
     marpa_obs_alloc (bocage_setup_obs,
-		   sizeof (struct s_bocage_setup_per_es) * earley_set_count);
+		   sizeof (struct s_bocage_setup_per_ys) * earley_set_count);
   for (ix = 0; ix < earley_set_count; ix++)
     {
       const YS_Const earley_set = YS_of_R_by_Ord (r, ix);
       const unsigned int item_count = EIM_Count_of_YS (earley_set);
       total_earley_items_in_parse += item_count;
 	{
-	  struct s_bocage_setup_per_es *per_es = per_es_data + ix;
-	  OR ** const per_eim_eixes = per_es->t_aexes_by_item =
+	  struct s_bocage_setup_per_ys *per_ys = per_ys_data + ix;
+	  OR ** const per_eim_eixes = per_ys->t_aexes_by_item =
 	    marpa_obs_alloc (bocage_setup_obs, sizeof (OR *) * item_count);
 	  unsigned int item_ordinal;
-	  per_es->t_or_psl = NULL;
-	  per_es->t_and_psl = NULL;
+	  per_ys->t_or_psl = NULL;
+	  per_ys->t_and_psl = NULL;
 	  for (item_ordinal = 0; item_ordinal < item_count; item_ordinal++)
 	    {
 	      per_eim_eixes[item_ordinal] = NULL;
@@ -12625,7 +12625,7 @@ to make sense.
 {
   const YSID end_of_parse_ordinal = Ord_of_YS (end_of_parse_earley_set);
   OR **const nodes_by_item =
-    per_es_data[end_of_parse_ordinal].t_aexes_by_item;
+    per_ys_data[end_of_parse_ordinal].t_aexes_by_item;
   const int start_earley_item_ordinal = Ord_of_EIM (start_eim);
   OR *const nodes_by_aex = nodes_by_item[start_earley_item_ordinal];
   const OR top_or_node = nodes_by_aex[start_aex];
@@ -13818,9 +13818,9 @@ struct marpa_value {
     int t_arg_0;
     int t_arg_n;
     int t_result;
-    Marpa_Earley_Set_ID t_token_start_es_id;
-    Marpa_Earley_Set_ID t_rule_start_es_id;
-    Marpa_Earley_Set_ID t_es_id;
+    Marpa_Earley_Set_ID t_token_start_ys_id;
+    Marpa_Earley_Set_ID t_rule_start_ys_id;
+    Marpa_Earley_Set_ID t_ys_id;
 };
 @ @<Public defines@> =
 #define marpa_v_step_type(v) ((v)->t_step_type)
@@ -13837,9 +13837,9 @@ struct marpa_value {
     ((v)->t_arg_n)
 #define marpa_v_result(v) \
     ((v)->t_result)
-#define marpa_v_rule_start_es_id(v) ((v)->t_rule_start_es_id)
-#define marpa_v_token_start_es_id(v) ((v)->t_token_start_es_id)
-#define marpa_v_es_id(v) ((v)->t_es_id)
+#define marpa_v_rule_start_ys_id(v) ((v)->t_rule_start_ys_id)
+#define marpa_v_token_start_ys_id(v) ((v)->t_token_start_ys_id)
+#define marpa_v_ys_id(v) ((v)->t_ys_id)
 
 @
 |Arg_N_of_V| is the current top of stack.
@@ -13857,9 +13857,9 @@ new top of stack.
 @d Arg_0_of_V(val) ((val)->public.t_arg_0)
 @d Arg_N_of_V(val) ((val)->public.t_arg_n)
 @d Result_of_V(val) ((val)->public.t_result)
-@d Rule_Start_of_V(val) ((val)->public.t_rule_start_es_id)
-@d Token_Start_of_V(val) ((val)->public.t_token_start_es_id)
-@d YS_ID_of_V(val) ((val)->public.t_es_id)
+@d Rule_Start_of_V(val) ((val)->public.t_rule_start_ys_id)
+@d Token_Start_of_V(val) ((val)->public.t_token_start_ys_id)
+@d YS_ID_of_V(val) ((val)->public.t_ys_id)
 @<Initialize value elements@> =
 XSYID_of_V(v) = -1;
 RULEID_of_V(v) = -1;
@@ -15688,7 +15688,7 @@ PRIVATE PSL psl_new(const PSAR psar)
 This is temporary data
 and perhaps should be keep track of on a per-phase
 obstack.
-@d Dot_PSL_of_YS(es) ((es)->t_dot_psl)
+@d Dot_PSL_of_YS(ys) ((ys)->t_dot_psl)
 @<Widely aligned Earley set elements@> =
     PSL t_dot_psl;
 @ @<Initialize Earley set@> =
@@ -15750,7 +15750,7 @@ PRIVATE void psl_claim(
 
 @ @<Claim the or-node PSL for |PSL_YS_ORD| as |CLAIMED_PSL|@> =
 {
-      PSL *psl_owner = &per_es_data[PSL_YS_ORD].t_or_psl;
+      PSL *psl_owner = &per_ys_data[PSL_YS_ORD].t_or_psl;
       if (!*psl_owner)
 	psl_claim (psl_owner, or_psar);
       (CLAIMED_PSL) = *psl_owner;

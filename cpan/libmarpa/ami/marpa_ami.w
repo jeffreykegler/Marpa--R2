@@ -391,6 +391,7 @@ So I add such a comment.
 case, I include a dummy function.  Once there are other contents,
 it should be deleted.
 @(marpa_ami.c.p1@> =
+int _marpa_ami_dummy(void);
 int _marpa_ami_dummy(void) { return 1 ; }
 
 @** Index.
