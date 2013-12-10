@@ -10385,10 +10385,10 @@ The predecessor LIM was initialized to |NULL|,
 and the top AHFA to-state was initialized to the AHFA to-state
 of the base YIM.
 @<Populate |lim_to_process| from its base Earley item@> = {
-  const AHFA top_AHFA = Top_AHFA_of_LIM(lim_to_process);
+  const AHFA root_AHFA = Top_AHFA_of_LIM(lim_to_process);
   const YIM base_yim = Base_YIM_of_LIM(lim_to_process);
   Origin_of_LIM (lim_to_process) = Origin_of_YIM (base_yim);
-  CIL_of_LIM(lim_to_process) = Event_AHFAIDs_of_AHFA(top_AHFA);
+  CIL_of_LIM(lim_to_process) = Event_AHFAIDs_of_AHFA(root_AHFA);
 }
 
 @ @<Copy PIM workarea to postdot item array@> = {
@@ -12649,8 +12649,8 @@ to make sense.
     per_ys_data[end_of_parse_ordinal].t_aexes_by_item;
   const int start_earley_item_ordinal = Ord_of_YIM (start_yim);
   OR *const nodes_by_aex = nodes_by_item[start_earley_item_ordinal];
-  const OR top_or_node = nodes_by_aex[start_aex];
-  Top_ORID_of_B (b) = ID_of_OR (top_or_node);
+  const OR root_or_node = nodes_by_aex[start_aex];
+  Top_ORID_of_B (b) = ID_of_OR (root_or_node);
 }
 
 @*0 Top or-node.
@@ -13491,18 +13491,18 @@ PRIVATE void tree_or_node_release(TREE tree, ORID or_node_id)
 @*0 Iterating the tree.
 @<Initialize the tree iterator@> =
 {
-  ORID top_or_id = Top_ORID_of_B (b);
-  OR top_or_node = OR_of_B_by_ID (b, top_or_id);
+  ORID root_or_id = Top_ORID_of_B (b);
+  OR root_or_node = OR_of_B_by_ID (b, root_or_id);
   NOOK nook;
   /* Due to skipping, it is possible for even
     the top or-node to have no valid choices,
     in which case there is no parse */
   const int choice = 0;
-  if (!and_order_ix_is_valid(o, top_or_node, choice))
+  if (!and_order_ix_is_valid(o, root_or_node, choice))
     goto TREE_IS_EXHAUSTED;
   nook = FSTACK_PUSH (t->t_nook_stack);
-  tree_or_node_try(t, top_or_id); /* Empty stack, so cannot fail */
-  OR_of_NOOK (nook) = top_or_node;
+  tree_or_node_try(t, root_or_id); /* Empty stack, so cannot fail */
+  OR_of_NOOK (nook) = root_or_node;
   Choice_of_NOOK (nook) = choice;
   Parent_of_NOOK (nook) = -1;
   NOOK_Cause_is_Expanded (nook) = 0;
