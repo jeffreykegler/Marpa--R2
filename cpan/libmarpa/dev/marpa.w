@@ -7871,7 +7871,7 @@ PRIVATE YIM earley_item_create(const RECCE r,
   @<Return |NULL| on failure@>@;
   @<Unpack recognizer objects@>@;
   YIM new_item;
-  YIM* top_of_work_stack;
+  YIM* end_of_work_stack;
   const YS set = key.t_set;
   const int count = ++YIM_Count_of_YS(set);
   @<Check count against Earley item thresholds@>@;
@@ -7879,8 +7879,8 @@ PRIVATE YIM earley_item_create(const RECCE r,
   new_item->t_key = key;
   new_item->t_source_type = NO_SOURCE;
   Ord_of_YIM(new_item) = count - 1;
-  top_of_work_stack = WORK_YIM_PUSH(r);
-  *top_of_work_stack = new_item;
+  end_of_work_stack = WORK_YIM_PUSH(r);
+  *end_of_work_stack = new_item;
   return new_item;
 }
 
@@ -9801,12 +9801,12 @@ PRIVATE void trigger_events(RECCE r)
   for (yim_ix = 0; yim_ix < working_earley_item_count; yim_ix++)
     {
       const YIM yim = yims[yim_ix];
-      const AHFA top_ahfa = AHFA_of_YIM (yim);
-      const AHFAID top_ahfaid = ID_of_AHFA (top_ahfa);
-      if (AHFA_has_Event (top_ahfa))
+      const AHFA root_ahfa = AHFA_of_YIM (yim);
+      const AHFAID root_ahfaid = ID_of_AHFA (root_ahfa);
+      if (AHFA_has_Event (root_ahfa))
 	{			/* Note that we go on to look at the Leo path, even if
 				   the top AHFA is not an event AHFA */
-	  bv_bit_set (bv_ahfa_event_trigger, top_ahfaid);
+	  bv_bit_set (bv_ahfa_event_trigger, root_ahfaid);
 	}
       {
 	/* Now do the NSYs for any Leo links */
@@ -10343,14 +10343,14 @@ which stabilizes short of closure.
 Secondary optimzations ensure this is fairly cheap as well.
 @<Populate |lim_to_process| from |predecessor_lim|@> =
 {
-  const AHFA top_ahfa = Top_AHFA_of_LIM (predecessor_lim);
+  const AHFA root_ahfa = Top_AHFA_of_LIM (predecessor_lim);
   const CIL predecessor_cil = CIL_of_LIM (predecessor_lim);
   CIL_of_LIM (lim_to_process) = predecessor_cil;	/* Initialize to be
 							   just the predcessor's list of AHFA IDs.
 							   Overwrite if we need to add another. */
   Predecessor_LIM_of_LIM (lim_to_process) = predecessor_lim;
   Origin_of_LIM (lim_to_process) = Origin_of_LIM (predecessor_lim);
-  if (Event_Group_Size_of_AHFA (top_ahfa) > Count_of_CIL (predecessor_cil))
+  if (Event_Group_Size_of_AHFA (root_ahfa) > Count_of_CIL (predecessor_cil))
     {				/* Might we need to add another AHFA ID? */
       const AHFA base_to_ahfa = Top_AHFA_of_LIM (lim_to_process);	/* The base to-AHFA
 									   was memoized as a potential Top AHFA for this LIM.
@@ -10368,7 +10368,7 @@ Secondary optimzations ensure this is fairly cheap as well.
 	    }
 	}
     }
-  Top_AHFA_of_LIM (lim_to_process) = top_ahfa;
+  Top_AHFA_of_LIM (lim_to_process) = root_ahfa;
 }
 
 @ If we have reached this code, either we do not have a predecessor
@@ -12524,7 +12524,7 @@ YIM start_yim = NULL;
 AIM start_aim = NULL;
 AEX start_aex = -1;
 struct marpa_obstack* bocage_setup_obs = NULL;
-int total_earley_items_in_parse;
+int count_of_earley_items_in_parse;
 int or_node_estimate = 0;
 const int earley_set_count_of_r = YS_Count_of_R (r);
 
@@ -12565,7 +12565,7 @@ struct s_bocage_setup_per_ys* per_ys_data = NULL;
 {
   unsigned int ix;
   unsigned int earley_set_count = YS_Count_of_R (r);
-  total_earley_items_in_parse = 0;
+  count_of_earley_items_in_parse = 0;
   per_ys_data =
     marpa_obs_alloc (bocage_setup_obs,
 		   sizeof (struct s_bocage_setup_per_ys) * earley_set_count);
@@ -12573,7 +12573,7 @@ struct s_bocage_setup_per_ys* per_ys_data = NULL;
     {
       const YS_Const earley_set = YS_of_R_by_Ord (r, ix);
       const unsigned int item_count = YIM_Count_of_YS (earley_set);
-      total_earley_items_in_parse += item_count;
+      count_of_earley_items_in_parse += item_count;
 	{
 	  struct s_bocage_setup_per_ys *per_ys = per_ys_data + ix;
 	  OR ** const per_yim_yixes = per_ys->t_aexes_by_item =
