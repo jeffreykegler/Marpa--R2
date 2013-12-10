@@ -1064,18 +1064,18 @@ PRIVATE
 void event_new(GRAMMAR g, int type)
 {
   /* \comment may change base of dstack */
-  GEV top_of_stack = G_EVENT_PUSH(g);
-  top_of_stack->t_type = type;
-  top_of_stack->t_value = 0;
+  GEV end_of_stack = G_EVENT_PUSH(g);
+  end_of_stack->t_type = type;
+  end_of_stack->t_value = 0;
 }
 @ @<Function definitions@> =
 PRIVATE
 void int_event_new(GRAMMAR g, int type, int value)
 {
   /* \comment may change base of dstack */
-  GEV top_of_stack = G_EVENT_PUSH(g);
-  top_of_stack->t_type = type;
-  top_of_stack->t_value =  value;
+  GEV end_of_stack = G_EVENT_PUSH(g);
+  end_of_stack->t_type = type;
+  end_of_stack->t_value =  value;
 }
 
 @ @<Function definitions@> =
@@ -9165,9 +9165,9 @@ call that adds data to the alternatives stack.
 PRIVATE ALT alternative_pop(RECCE r, JEARLEME earleme)
 {
     MARPA_DSTACK alternatives = &r->t_alternatives;
-    ALT top_of_stack = MARPA_DSTACK_TOP(*alternatives, ALT_Object);
-    if (!top_of_stack) return NULL;
-    if (earleme != End_Earleme_of_ALT(top_of_stack)) return NULL;
+    ALT end_of_stack = MARPA_DSTACK_TOP(*alternatives, ALT_Object);
+    if (!end_of_stack) return NULL;
+    if (earleme != End_Earleme_of_ALT(end_of_stack)) return NULL;
     return MARPA_DSTACK_POP(*alternatives, ALT_Object);
 }
 
@@ -9179,15 +9179,15 @@ and the insertion point (which must be zero or more) otherwise.
 @<Function definitions@> =
 PRIVATE int alternative_insert(RECCE r, ALT new_alternative)
 {
-  ALT top_of_stack, base_of_stack;
+  ALT end_of_stack, base_of_stack;
   MARPA_DSTACK alternatives = &r->t_alternatives;
   int ix;
   int insertion_point = alternative_insertion_point (r, new_alternative);
   if (insertion_point < 0)
     return insertion_point;
-  top_of_stack = MARPA_DSTACK_PUSH(*alternatives, ALT_Object); // may change base
+  end_of_stack = MARPA_DSTACK_PUSH(*alternatives, ALT_Object); // may change base
   base_of_stack = MARPA_DSTACK_BASE(*alternatives, ALT_Object); // base will not change after this
-   for (ix = top_of_stack-base_of_stack; ix > insertion_point; ix--) {
+   for (ix = end_of_stack-base_of_stack; ix > insertion_point; ix--) {
        base_of_stack[ix] = base_of_stack[ix-1];
    }
    base_of_stack[insertion_point] = *new_alternative;
@@ -9635,8 +9635,8 @@ return 0 without creating an
 Earley set.
 The return value means success, with no events.
 @<Return 0 if no alternatives@> = {
-  ALT top_of_stack = MARPA_DSTACK_TOP (r->t_alternatives, ALT_Object);
-  if (!top_of_stack || current_earleme != End_Earleme_of_ALT (top_of_stack))
+  ALT end_of_stack = MARPA_DSTACK_TOP (r->t_alternatives, ALT_Object);
+  if (!end_of_stack || current_earleme != End_Earleme_of_ALT (end_of_stack))
     {
       return_value = 0;
       goto CLEANUP;
@@ -9686,11 +9686,11 @@ The return value means success, with no events.
          ix < no_of_work_earley_items;
 	 ix++) {
 	YIM earley_item = work_earley_items[ix];
-	YIM* tos;
+	YIM* end_of_stack;
 	if (!Earley_Item_is_Completion (earley_item))
 	  continue;
-	tos = MARPA_DSTACK_PUSH (r->t_completion_stack, YIM);
-	*tos = earley_item;
+	end_of_stack = MARPA_DSTACK_PUSH (r->t_completion_stack, YIM);
+	*end_of_stack = earley_item;
       }
     }
 
@@ -9748,8 +9748,8 @@ add those Earley items it ``causes".
 }
 
 @ @<Push effect onto completion stack@> = {
-    YIM* tos = MARPA_DSTACK_PUSH (r->t_completion_stack, YIM);
-    *tos = effect;
+    YIM* end_of_stack = MARPA_DSTACK_PUSH (r->t_completion_stack, YIM);
+    *end_of_stack = effect;
 }
 
 
@@ -9949,12 +9949,12 @@ PRIVATE void r_update_earley_sets(RECCE r)
 	MARPA_DSTACK_INIT (r->t_earley_set_stack, YS,
 		 MAX (1024, YS_Count_of_R(r)));
     } else {
-	 YS* top_of_stack = MARPA_DSTACK_TOP(r->t_earley_set_stack, YS);
-	 first_unstacked_earley_set = Next_YS_of_YS(*top_of_stack);
+	 YS* end_of_stack = MARPA_DSTACK_TOP(r->t_earley_set_stack, YS);
+	 first_unstacked_earley_set = Next_YS_of_YS(*end_of_stack);
     }
     for (set = first_unstacked_earley_set; set; set = Next_YS_of_YS(set)) {
-          YS* top_of_stack = MARPA_DSTACK_PUSH(r->t_earley_set_stack, YS);
-	  (*top_of_stack) = set;
+          YS* end_of_stack = MARPA_DSTACK_PUSH(r->t_earley_set_stack, YS);
+	  (*end_of_stack) = set;
     }
 }
 
@@ -14942,7 +14942,7 @@ PRIVATE void
 rhs_closure (GRAMMAR g, Bit_Vector bv, XRLID ** xrl_list_x_rh_sym)
 {
   unsigned int min, max, start = 0;
-  Marpa_Symbol_ID *top_of_stack = NULL;
+  Marpa_Symbol_ID *end_of_stack = NULL;
   FSTACK_DECLARE (stack, XSYID) @;
   FSTACK_INIT (stack, XSYID, XSY_Count_of_G (g));
   while (bv_scan (bv, start, &min, &max))
@@ -14954,9 +14954,9 @@ rhs_closure (GRAMMAR g, Bit_Vector bv, XRLID ** xrl_list_x_rh_sym)
 	}
       start = max + 2;
     }
-  while ((top_of_stack = FSTACK_POP (stack)))
+  while ((end_of_stack = FSTACK_POP (stack)))
     {
-      const XSYID xsy_id = *top_of_stack;
+      const XSYID xsy_id = *end_of_stack;
       XRLID *p_xrl = xrl_list_x_rh_sym[xsy_id];
       const XRLID *p_one_past_rules = xrl_list_x_rh_sym[xsy_id + 1];
       for (; p_xrl < p_one_past_rules; p_xrl++)
