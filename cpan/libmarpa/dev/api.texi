@@ -5066,7 +5066,7 @@ Numeric value: 21.
 @deftypevr Macro int MARPA_ERR_INVALID_IRLID
 Numeric value: 23.
 @end deftypevr
-@deftypevr Macro int MARPA_ERR_INVALID_ISYID
+@deftypevr Macro int MARPA_ERR_INVALID_NSYID
 Numeric value: 24.
 @end deftypevr
 @deftypevr Macro int MARPA_ERR_NOOKID_NEGATIVE

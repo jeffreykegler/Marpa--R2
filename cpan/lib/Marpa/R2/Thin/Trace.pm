@@ -179,9 +179,9 @@ sub show_dotted_irl {
 
     my @rhs_names = ();
     for my $ix ( 0 .. $irl_length - 1 ) {
-        my $rhs_isy_id = $grammar_c->_marpa_g_irl_rhs( $irl_id, $ix );
-        my $rhs_isy_name = $self->isy_name($rhs_isy_id);
-        push @rhs_names, $rhs_isy_name;
+        my $rhs_nsy_id = $grammar_c->_marpa_g_irl_rhs( $irl_id, $ix );
+        my $rhs_nsy_name = $self->isy_name($rhs_nsy_id);
+        push @rhs_names, $rhs_nsy_name;
     }
 
     POSITION: for my $position ( 0 .. scalar @rhs_names ) {
@@ -307,14 +307,14 @@ sub isy_name {
 
     GEN_NAME: {
 
-        if ( $grammar_c->_marpa_g_isy_is_start($id) ) {
+        if ( $grammar_c->_marpa_g_nsy_is_start($id) ) {
             my $source_id = $grammar_c->_marpa_g_source_xsy($id);
             $name = $self->symbol_name($source_id);
             $name .= q<[']>;
             last GEN_NAME;
-        } ## end if ( $grammar_c->_marpa_g_isy_is_start($id) )
+        } ## end if ( $grammar_c->_marpa_g_nsy_is_start($id) )
 
-        my $lhs_xrl = $grammar_c->_marpa_g_isy_lhs_xrl($id);
+        my $lhs_xrl = $grammar_c->_marpa_g_nsy_lhs_xrl($id);
         if ( defined $lhs_xrl and defined $grammar_c->sequence_min($lhs_xrl) )
         {
             my $original_lhs_id = $grammar_c->rule_lhs($lhs_xrl);
@@ -322,7 +322,7 @@ sub isy_name {
             last GEN_NAME;
         } ## end if ( defined $lhs_xrl and defined $grammar_c->sequence_min...)
 
-        my $xrl_offset = $grammar_c->_marpa_g_isy_xrl_offset($id);
+        my $xrl_offset = $grammar_c->_marpa_g_nsy_xrl_offset($id);
         if ($xrl_offset) {
             my $original_lhs_id = $grammar_c->rule_lhs($lhs_xrl);
             $name =
@@ -334,7 +334,7 @@ sub isy_name {
 
         my $source_id = $grammar_c->_marpa_g_source_xsy($id);
         $name = $self->symbol_name($source_id);
-        $name .= '[]' if $grammar_c->_marpa_g_isy_is_nulling($id);
+        $name .= '[]' if $grammar_c->_marpa_g_nsy_is_nulling($id);
 
     } ## end GEN_NAME:
 

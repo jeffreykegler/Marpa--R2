@@ -26,7 +26,7 @@ Marpa_Rank T_IV
 Marpa_Symbol_ID T_IV
 Marpa_Rule_ID T_IV
 Marpa_IRL_ID T_IV
-Marpa_ISY_ID T_IV
+Marpa_NSY_ID T_IV
 Marpa_AHFA_Item_ID T_IV
 Marpa_AHFA_State_ID T_IV
 Marpa_Earley_Set_ID T_IV

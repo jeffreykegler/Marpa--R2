@@ -232,7 +232,7 @@ sub nook_has_semantic_cause {
     my $predot_position = $bocage->_marpa_b_or_node_position($or_node) - 1;
     my $predot_isyid =
         $grammar_c->_marpa_g_irl_rhs( $irl_id, $predot_position );
-    return $grammar_c->_marpa_g_isy_is_semantic($predot_isyid);
+    return $grammar_c->_marpa_g_nsy_is_semantic($predot_isyid);
 } ## end sub nook_has_semantic_cause
 
 # No check for conflicting usage -- value(), asf(), etc.
@@ -449,8 +449,8 @@ sub nid_sort_ix {
         return $grammar_c->_marpa_g_source_xrl($irl_id);
     }
     my $and_node_id  = nid_to_and_node($nid);
-    my $token_isy_id = $bocage->_marpa_b_and_node_symbol($and_node_id);
-    my $token_id     = $grammar_c->_marpa_g_source_xsy($token_isy_id);
+    my $token_nsy_id = $bocage->_marpa_b_and_node_symbol($and_node_id);
+    my $token_id     = $grammar_c->_marpa_g_source_xsy($token_nsy_id);
 
     # -2 is reserved for 'end of data'
     return -$token_id - 3;
@@ -543,8 +543,8 @@ sub nid_token_id {
     my $grammar      = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my $grammar_c    = $grammar->[Marpa::R2::Internal::Grammar::C];
     my $bocage       = $recce->[Marpa::R2::Internal::Recognizer::B_C];
-    my $token_isy_id = $bocage->_marpa_b_and_node_symbol($and_node_id);
-    my $token_id     = $grammar_c->_marpa_g_source_xsy($token_isy_id);
+    my $token_nsy_id = $bocage->_marpa_b_and_node_symbol($and_node_id);
+    my $token_id     = $grammar_c->_marpa_g_source_xsy($token_nsy_id);
     return $token_id;
 }
 

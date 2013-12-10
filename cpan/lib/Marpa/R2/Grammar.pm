@@ -1584,7 +1584,7 @@ sub Marpa::R2::Grammar::show_isy {
     $text .= "$isy_id: $name";
 
     my @tag_list = ();
-    $grammar_c->_marpa_g_isy_is_nulling($isy_id)
+    $grammar_c->_marpa_g_nsy_is_nulling($isy_id)
         and push @tag_list, 'nulling';
 
     $text .= join q{ }, q{,}, @tag_list if scalar @tag_list;
@@ -1598,7 +1598,7 @@ sub Marpa::R2::Grammar::show_isys {
     my ($grammar) = @_;
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
     my $text      = q{};
-    for my $isy_id ( 0 .. $grammar_c->_marpa_g_isy_count() - 1 ) {
+    for my $isy_id ( 0 .. $grammar_c->_marpa_g_nsy_count() - 1 ) {
         $text .= $grammar->show_isy($isy_id);
     }
     return $text;

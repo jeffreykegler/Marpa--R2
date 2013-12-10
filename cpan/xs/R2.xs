@@ -3922,16 +3922,16 @@ PPCODE:
 MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin::G
 
 void
-_marpa_g_isy_is_nulling( g_wrapper, isy_id )
+_marpa_g_nsy_is_nulling( g_wrapper, nsy_id )
     G_Wrapper *g_wrapper;
-    Marpa_ISY_ID isy_id;
+    Marpa_NSY_ID nsy_id;
 PPCODE:
 {
   Marpa_Grammar g = g_wrapper->g;
-  int result = _marpa_g_isy_is_nulling (g, isy_id);
+  int result = _marpa_g_nsy_is_nulling (g, nsy_id);
   if (result < 0)
     {
-      croak ("Problem in g->_marpa_g_isy_is_nulling(%d): %s", isy_id,
+      croak ("Problem in g->_marpa_g_nsy_is_nulling(%d): %s", nsy_id,
 	     xs_g_error (g_wrapper));
     }
   if (result)
@@ -3940,16 +3940,16 @@ PPCODE:
 }
 
 void
-_marpa_g_isy_is_start( g_wrapper, isy_id )
+_marpa_g_nsy_is_start( g_wrapper, nsy_id )
     G_Wrapper *g_wrapper;
-    Marpa_ISY_ID isy_id;
+    Marpa_NSY_ID nsy_id;
 PPCODE:
 {
   Marpa_Grammar g = g_wrapper->g;
-  int result = _marpa_g_isy_is_start (g, isy_id);
+  int result = _marpa_g_nsy_is_start (g, nsy_id);
   if (result < 0)
     {
-      croak ("Invalid isy %d", isy_id);
+      croak ("Invalid nsy %d", nsy_id);
     }
   if (result)
     XSRETURN_YES;
@@ -3976,16 +3976,16 @@ PPCODE:
 }
 
 Marpa_Rule_ID
-_marpa_g_isy_lhs_xrl( g_wrapper, isy_id )
+_marpa_g_nsy_lhs_xrl( g_wrapper, nsy_id )
     G_Wrapper *g_wrapper;
-    Marpa_ISY_ID isy_id;
+    Marpa_NSY_ID nsy_id;
 PPCODE:
 {
   Marpa_Grammar g = g_wrapper->g;
-  Marpa_Rule_ID rule_id = _marpa_g_isy_lhs_xrl (g, isy_id);
+  Marpa_Rule_ID rule_id = _marpa_g_nsy_lhs_xrl (g, nsy_id);
   if (rule_id < -1)
     {
-      croak ("problem with g->_marpa_g_isy_lhs_xrl: %s",
+      croak ("problem with g->_marpa_g_nsy_lhs_xrl: %s",
 	     xs_g_error (g_wrapper));
     }
   if (rule_id < 0)
@@ -3996,20 +3996,20 @@ PPCODE:
 }
 
 Marpa_Rule_ID
-_marpa_g_isy_xrl_offset( g_wrapper, isy_id )
+_marpa_g_nsy_xrl_offset( g_wrapper, nsy_id )
     G_Wrapper *g_wrapper;
-    Marpa_ISY_ID isy_id;
+    Marpa_NSY_ID nsy_id;
 PPCODE:
 {
   Marpa_Grammar g = g_wrapper->g;
-  int offset = _marpa_g_isy_xrl_offset (g, isy_id);
+  int offset = _marpa_g_nsy_xrl_offset (g, nsy_id);
   if (offset == -1)
     {
       XSRETURN_UNDEF;
     }
   if (offset < 0)
     {
-      croak ("problem with g->_marpa_g_isy_xrl_offset: %s",
+      croak ("problem with g->_marpa_g_nsy_xrl_offset: %s",
 	     xs_g_error (g_wrapper));
     }
   XPUSHs (sv_2mortal (newSViv (offset)));
@@ -4202,15 +4202,15 @@ PPCODE:
 }
 
 int
-_marpa_g_isy_count( g_wrapper )
+_marpa_g_nsy_count( g_wrapper )
     G_Wrapper *g_wrapper;
 PPCODE:
 {
   Marpa_Grammar g = g_wrapper->g;
-  int result = _marpa_g_isy_count (g);
+  int result = _marpa_g_nsy_count (g);
   if (result < -1)
     {
-      croak ("Problem in g->_marpa_g_isy_count(): %s", xs_g_error (g_wrapper));
+      croak ("Problem in g->_marpa_g_nsy_count(): %s", xs_g_error (g_wrapper));
     }
   if (result < 0)
     {

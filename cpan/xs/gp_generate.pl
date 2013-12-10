@@ -50,7 +50,7 @@ if ( @ARGV == 1 ) {
 my %format_by_type = (
    int => '%d',
    Marpa_IRL_ID => '%d',
-   Marpa_ISY_ID => '%d',
+   Marpa_NSY_ID => '%d',
    Marpa_Or_Node_ID => '%d',
    Marpa_And_Node_ID => '%d',
    Marpa_Rank => '%d',
@@ -258,8 +258,8 @@ say {$out} gp_generate(qw(_marpa_g_irl_lhs Marpa_IRL_ID rule_id));
 say {$out} gp_generate(qw(_marpa_g_irl_rhs Marpa_IRL_ID rule_id int ix));
 say {$out} gp_generate(qw(_marpa_g_irl_length Marpa_IRL_ID rule_id));
 say {$out} gp_generate(qw(_marpa_g_irl_rank Marpa_IRL_ID irl_id));
-say {$out} gp_generate(qw(_marpa_g_isy_rank Marpa_ISY_ID isy_id));
-say {$out} gp_generate(qw(_marpa_g_isy_is_semantic Marpa_ISY_ID isy_id));
+say {$out} gp_generate(qw(_marpa_g_nsy_rank Marpa_NSY_ID nsy_id));
+say {$out} gp_generate(qw(_marpa_g_nsy_is_semantic Marpa_NSY_ID nsy_id));
 
 $main::CLASS_LETTER   = 'b';
 $main::LIBMARPA_CLASS = 'Marpa_Bocage';

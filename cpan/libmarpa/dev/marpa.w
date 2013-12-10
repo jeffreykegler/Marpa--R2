@@ -151,7 +151,7 @@ some typing, at a very high cost in readability.
 In |libmarpa|, however, spelling things out usually does
 {\bf not} make them more readable.
 To be sure, when I say
-$$|To_AHFA_of_YIM_by_ISYID|$$
+$$|To_AHFA_of_YIM_by_NSYID|$$
 that is pretty incomprehensible.
 But is
 $$Aycock\_Horspool\_Finite\_Automaton\_To\_State\_of\_Earley\_Item\_by\_Internal\_Symbol\_ID$$
@@ -787,9 +787,9 @@ PRIVATE int xsy_id_is_valid(GRAMMAR g, XSYID xsy_id)
 
 @ Check that internal symbol is in valid range.
 @<Function definitions@> =
-PRIVATE int isy_is_valid(GRAMMAR g, ISYID isyid)
+PRIVATE int isy_is_valid(GRAMMAR g, NSYID isyid)
 {
-    return isyid >= 0 && isyid < ISY_Count_of_G(g);
+    return isyid >= 0 && isyid < NSY_Count_of_G(g);
 }
 
 @*0 The grammar's rule list.
@@ -1666,61 +1666,61 @@ the nulled event CIL's will be populated with the empty CIL.
 This is the internal
 equivalent of the external symbol.
 If the external symbol is nullable
-it is the non-nullable ISY.
-@d ISY_of_XSY(xsy) ((xsy)->t_isy_equivalent)
-@d ISYID_of_XSY(xsy) ID_of_ISY(ISY_of_XSY(xsy))
-@d ISY_by_XSYID(xsy_id) (XSY_by_ID(xsy_id)->t_isy_equivalent)
+it is the non-nullable NSY.
+@d NSY_of_XSY(xsy) ((xsy)->t_isy_equivalent)
+@d NSYID_of_XSY(xsy) ID_of_NSY(NSY_of_XSY(xsy))
+@d NSY_by_XSYID(xsy_id) (XSY_by_ID(xsy_id)->t_isy_equivalent)
 @ Note that it is up to the calling environment for
-|ISYID_by_XSYID(xsy_id)| to ensure that
-|ISY_of_XSY(xsy)| exists.
-@d ISYID_by_XSYID(xsy_id) ID_of_ISY(ISY_of_XSY(XSY_by_ID(xsy_id)))
-@<Widely aligned XSY elements@> = ISY t_isy_equivalent;
-@ @<Initialize XSY elements@> = ISY_of_XSY(xsy) = NULL;
+|NSYID_by_XSYID(xsy_id)| to ensure that
+|NSY_of_XSY(xsy)| exists.
+@d NSYID_by_XSYID(xsy_id) ID_of_NSY(NSY_of_XSY(XSY_by_ID(xsy_id)))
+@<Widely aligned XSY elements@> = NSY t_isy_equivalent;
+@ @<Initialize XSY elements@> = NSY_of_XSY(xsy) = NULL;
 @ @<Function definitions@> =
-Marpa_ISY_ID _marpa_g_xsy_isy(
+Marpa_NSY_ID _marpa_g_xsy_nsy(
     Marpa_Grammar g,
     Marpa_Symbol_ID xsy_id)
 {
     XSY xsy;
-    ISY isy;
+    NSY isy;
     @<Return |-2| on failure@>@;
     @<Fail if |xsy_id| is malformed@>@;
     @<Soft fail if |xsy_id| does not exist@>@;
     xsy = XSY_by_ID(xsy_id);
-    isy = ISY_of_XSY(xsy);
-    return isy ? ID_of_ISY(isy) : -1;
+    isy = NSY_of_XSY(xsy);
+    return isy ? ID_of_NSY(isy) : -1;
 }
 
 @*0 Nulling internal equivalent.
 This is the nulling internal
 equivalent of the external symbol.
 If the external symbol is nullable
-it is the nulling ISY.
+it is the nulling NSY.
 If the external symbol is nulling
 it is the same as the primary internal equivalent.
 If the external symbol is non-nulling,
 there is no nulling internal equivalent.
-@d Nulling_ISY_of_XSY(xsy) ((xsy)->t_nulling_isy)
-@d Nulling_ISY_by_XSYID(xsy) (XSY_by_ID(xsy)->t_nulling_isy)
+@d Nulling_NSY_of_XSY(xsy) ((xsy)->t_nulling_isy)
+@d Nulling_NSY_by_XSYID(xsy) (XSY_by_ID(xsy)->t_nulling_isy)
 @ Note that it is up to the calling environment for
-|Nulling_ISYID_by_XSYID(xsy_id)| to ensure that
-|Nulling_ISY_of_XSY(xsy)| exists.
-@d Nulling_ISYID_by_XSYID(xsy) ID_of_ISY(XSY_by_ID(xsy)->t_nulling_isy)
-@<Widely aligned XSY elements@> = ISY t_nulling_isy;
-@ @<Initialize XSY elements@> = Nulling_ISY_of_XSY(xsy) = NULL;
+|Nulling_NSYID_by_XSYID(xsy_id)| to ensure that
+|Nulling_NSY_of_XSY(xsy)| exists.
+@d Nulling_NSYID_by_XSYID(xsy) ID_of_NSY(XSY_by_ID(xsy)->t_nulling_isy)
+@<Widely aligned XSY elements@> = NSY t_nulling_isy;
+@ @<Initialize XSY elements@> = Nulling_NSY_of_XSY(xsy) = NULL;
 @ @<Function definitions@> =
-Marpa_ISY_ID _marpa_g_xsy_nulling_isy(
+Marpa_NSY_ID _marpa_g_xsy_nulling_nsy(
     Marpa_Grammar g,
     Marpa_Symbol_ID xsy_id)
 {
     XSY xsy;
-    ISY isy;
+    NSY isy;
     @<Return |-2| on failure@>@;
     @<Fail if |xsy_id| is malformed@>@;
     @<Soft fail if |xsy_id| does not exist@>@;
     xsy = XSY_by_ID(xsy_id);
-    isy = Nulling_ISY_of_XSY(xsy);
-    return isy ? ID_of_ISY(isy) : -1;
+    isy = Nulling_NSY_of_XSY(xsy);
+    return isy ? ID_of_NSY(isy) : -1;
 }
 
 @ Given a proper nullable symbol as its argument,
@@ -1731,25 +1731,25 @@ The nulling alias will have a new symbol ID.
 The return value is a pointer to the nulling alias.
 @ @<Function definitions@> =
 PRIVATE
-ISY symbol_alias_create(GRAMMAR g, XSY symbol)
+NSY symbol_alias_create(GRAMMAR g, XSY symbol)
 {
-    ISY alias_isy = semantic_isy_new(g, symbol);
+    NSY alias_isy = semantic_isy_new(g, symbol);
     XSY_is_Nulling(symbol) = 0;
     XSY_is_Nullable(symbol) = 1;
-    ISY_is_Nulling(alias_isy) = 1;
+    NSY_is_Nulling(alias_isy) = 1;
     return alias_isy;
 }
 
-@** Internal symbols (ISY).
+@** Internal symbols (NSY).
 This is the logic for keeping track of
 symbols created internally by libmarpa.
 
 @ @<Public typedefs@> =
-typedef int Marpa_ISY_ID;
+typedef int Marpa_NSY_ID;
 @ @<Private typedefs@> =
 struct s_isy;
-typedef struct s_isy* ISY;
-typedef Marpa_ISY_ID ISYID;
+typedef struct s_isy* NSY;
+typedef Marpa_NSY_ID NSYID;
 
 @ Internal symbols are also used as the or-nodes for nulling tokens.
 The initial element is a type |int|,
@@ -1759,146 +1759,146 @@ so that the
 symbol structure may be used
 where token or-nodes are
 expected.
-@d Nulling_OR_by_ISYID(isyid) ((OR)ISY_by_ID(isyid))
+@d Nulling_OR_by_NSYID(isyid) ((OR)NSY_by_ID(isyid))
 @<Private structures@> =
 struct s_isy {
   int t_or_node_type;
-  ISYID t_isyid;
-  @<Widely aligned ISY elements@>@;
-  @<Int aligned ISY elements@>@;
-  @<Bit aligned ISY elements@>@;
+  NSYID t_isyid;
+  @<Widely aligned NSY elements@>@;
+  @<Int aligned NSY elements@>@;
+  @<Bit aligned NSY elements@>@;
 };
 @ |t_isyid| is initialized when the symbol is
 added to the list of symbols.
 Symbols are used a nulling tokens, and
 |t_or_node_type| is set accordingly.
-@<Initialize ISY elements@> =
+@<Initialize NSY elements@> =
     isy->t_or_node_type = NULLING_TOKEN_OR_NODE;
 
 @*0 Constructors.
-@ Common logic for creating an ISY.
+@ Common logic for creating an NSY.
 @<Function definitions@> =
-PRIVATE ISY
+PRIVATE NSY
 isy_start(GRAMMAR g)
 {
-  const ISY isy = marpa_obs_new (g->t_obs, struct s_isy, 1);
-  ID_of_ISY(isy) = MARPA_DSTACK_LENGTH((g)->t_isy_stack);
-  *MARPA_DSTACK_PUSH((g)->t_isy_stack, ISY) = isy;
-  @<Initialize ISY elements@>@;
+  const NSY isy = marpa_obs_new (g->t_obs, struct s_isy, 1);
+  ID_of_NSY(isy) = MARPA_DSTACK_LENGTH((g)->t_isy_stack);
+  *MARPA_DSTACK_PUSH((g)->t_isy_stack, NSY) = isy;
+  @<Initialize NSY elements@>@;
   return isy;
 }
 
-@ Create a virtual ISY from scratch.
+@ Create a virtual NSY from scratch.
 A source symbol must be specified.
 @<Function definitions@> =
-PRIVATE ISY
+PRIVATE NSY
 isy_new(GRAMMAR g, XSY source)
 {
-  const ISY new_isy = isy_start (g);
-  Source_XSY_of_ISY (new_isy) = source;
-  Rank_of_ISY (new_isy) = ISY_Rank_by_XSY (source);
+  const NSY new_isy = isy_start (g);
+  Source_XSY_of_NSY (new_isy) = source;
+  Rank_of_NSY (new_isy) = NSY_Rank_by_XSY (source);
   return new_isy;
 }
 
-@ Create an semantically-visible ISY from scratch.
+@ Create an semantically-visible NSY from scratch.
 A source symbol must be specified.
 @<Function definitions@> =
-PRIVATE ISY
+PRIVATE NSY
 semantic_isy_new(GRAMMAR g, XSY source)
 {
-  const ISY new_isy = isy_new (g, source);
-  ISY_is_Semantic(new_isy) = 1;
+  const NSY new_isy = isy_new (g, source);
+  NSY_is_Semantic(new_isy) = 1;
   return new_isy;
 }
 
-@ Clone an ISY from an XSY.
+@ Clone an NSY from an XSY.
 An XSY must be specified.
 @<Function definitions@> =
-PRIVATE ISY
+PRIVATE NSY
 isy_clone(GRAMMAR g, XSY xsy)
 {
-  const ISY new_isy = isy_start (g);
-  Source_XSY_of_ISY (new_isy) = xsy;
-  ISY_is_Semantic (new_isy) = 1;
-  Rank_of_ISY (new_isy) = ISY_Rank_by_XSY (xsy);
-  ISY_is_Nulling (new_isy) = XSY_is_Nulling (xsy);
+  const NSY new_isy = isy_start (g);
+  Source_XSY_of_NSY (new_isy) = xsy;
+  NSY_is_Semantic (new_isy) = 1;
+  Rank_of_NSY (new_isy) = NSY_Rank_by_XSY (xsy);
+  NSY_is_Nulling (new_isy) = XSY_is_Nulling (xsy);
   return new_isy;
 }
 
 @*0 ID.
-The {\bf ISY ID} is a number which
-acts as the unique identifier for an ISY.
-The ISY ID is initialized when the ISY is
+The {\bf NSY ID} is a number which
+acts as the unique identifier for an NSY.
+The NSY ID is initialized when the NSY is
 added to the list of rules.
-@d ISY_by_ID(id) (*MARPA_DSTACK_INDEX (g->t_isy_stack, ISY, (id)))
-@d ID_of_ISY(isy) ((isy)->t_isyid)
+@d NSY_by_ID(id) (*MARPA_DSTACK_INDEX (g->t_isy_stack, NSY, (id)))
+@d ID_of_NSY(isy) ((isy)->t_isyid)
 
 @ Symbol count accesors.
-@d ISY_Count_of_G(g) (MARPA_DSTACK_LENGTH((g)->t_isy_stack))
+@d NSY_Count_of_G(g) (MARPA_DSTACK_LENGTH((g)->t_isy_stack))
 @ @<Function definitions@> =
-int _marpa_g_isy_count(Marpa_Grammar g) {
+int _marpa_g_nsy_count(Marpa_Grammar g) {
    @<Return |-2| on failure@>@;
     @<Fail if fatal error@>@;
-    return ISY_Count_of_G(g);
+    return NSY_Count_of_G(g);
 }
 
 @ Is Start?.
-@d ISY_is_Start(isy) ((isy)->t_is_start)
-@<Bit aligned ISY elements@> = unsigned int t_is_start:1;
-@ @<Initialize ISY elements@> = ISY_is_Start(isy) = 0;
+@d NSY_is_Start(isy) ((isy)->t_is_start)
+@<Bit aligned NSY elements@> = unsigned int t_is_start:1;
+@ @<Initialize NSY elements@> = NSY_is_Start(isy) = 0;
 @ @<Function definitions@> =
-int _marpa_g_isy_is_start( Marpa_Grammar g, Marpa_ISY_ID isy_id) 
+int _marpa_g_nsy_is_start( Marpa_Grammar g, Marpa_NSY_ID isy_id) 
 {
     @<Return |-2| on failure@>@;
     @<Fail if fatal error@>@;
     @<Fail if not precomputed@>@;
     @<Fail if |isy_id| is invalid@>@;
-   return ISY_is_Start(ISY_by_ID(isy_id));
+   return NSY_is_Start(NSY_by_ID(isy_id));
 }
 
 @ Is LHS?.
-@d ISY_is_LHS(isy) ((isy)->t_is_lhs)
-@<Bit aligned ISY elements@> = unsigned int t_is_lhs:1;
-@ @<Initialize ISY elements@> = ISY_is_LHS(isy) = 0;
+@d NSY_is_LHS(isy) ((isy)->t_is_lhs)
+@<Bit aligned NSY elements@> = unsigned int t_is_lhs:1;
+@ @<Initialize NSY elements@> = NSY_is_LHS(isy) = 0;
 @ @<Function definitions@> =
-int _marpa_g_isy_is_lhs( Marpa_Grammar g, Marpa_ISY_ID isy_id) 
+int _marpa_g_nsy_is_lhs( Marpa_Grammar g, Marpa_NSY_ID isy_id) 
 {
     @<Return |-2| on failure@>@;
     @<Fail if fatal error@>@;
     @<Fail if not precomputed@>@;
     @<Fail if |isy_id| is invalid@>@;
-   return ISY_is_LHS(ISY_by_ID(isy_id));
+   return NSY_is_LHS(NSY_by_ID(isy_id));
 }
 
-@*0 ISY is nulling?.
-@d ISY_is_Nulling(isy) ((isy)->t_isy_is_nulling)
-@<Bit aligned ISY elements@> = unsigned int t_isy_is_nulling:1;
-@ @<Initialize ISY elements@> = ISY_is_Nulling(isy) = 0;
+@*0 NSY is nulling?.
+@d NSY_is_Nulling(isy) ((isy)->t_isy_is_nulling)
+@<Bit aligned NSY elements@> = unsigned int t_isy_is_nulling:1;
+@ @<Initialize NSY elements@> = NSY_is_Nulling(isy) = 0;
 @ @<Function definitions@> =
-int _marpa_g_isy_is_nulling(Marpa_Grammar g, Marpa_ISY_ID isy_id)
+int _marpa_g_nsy_is_nulling(Marpa_Grammar g, Marpa_NSY_ID isy_id)
 {
   @<Return |-2| on failure@>@;
   @<Fail if fatal error@>@;
   @<Fail if not precomputed@>@;
   @<Fail if |isy_id| is invalid@>@;
-  return ISY_is_Nulling(ISY_by_ID(isy_id));
+  return NSY_is_Nulling(NSY_by_ID(isy_id));
 }
 
 @*0 Semantic XSY.
 Set if the internal symbol is semantically visible
 externally.
-@d ISY_is_Semantic(isy) ((isy)->t_is_semantic)
-@d ISYID_is_Semantic(isyid) (ISY_is_Semantic(ISY_by_ID(isyid)))
-@<Bit aligned ISY elements@> = unsigned int t_is_semantic:1;
-@ @<Initialize ISY elements@> = ISY_is_Semantic(isy) = 0;
+@d NSY_is_Semantic(isy) ((isy)->t_is_semantic)
+@d NSYID_is_Semantic(isyid) (NSY_is_Semantic(NSY_by_ID(isyid)))
+@<Bit aligned NSY elements@> = unsigned int t_is_semantic:1;
+@ @<Initialize NSY elements@> = NSY_is_Semantic(isy) = 0;
 @ @<Function definitions@> =
-int _marpa_g_isy_is_semantic(
+int _marpa_g_nsy_is_semantic(
     Marpa_Grammar g,
     Marpa_IRL_ID isy_id)
 {
     @<Return |-2| on failure@>@;
     @<Fail if |isy_id| is invalid@>@;
-    return ISYID_is_Semantic(isy_id);
+    return NSYID_is_Semantic(isy_id);
 }
 
 @*0 Source XSY.
@@ -1908,10 +1908,10 @@ the external symbol that it is derived from.
 There is always a non-null source XSY.
 It is used in ranking, and is also convenient
 for tracing and debugging.
-@d Source_XSY_of_ISY(isy) ((isy)->t_source_xsy)
-@d Source_XSY_of_ISYID(isyid) (Source_XSY_of_ISY(ISY_by_ID(isyid)))
-@<Widely aligned ISY elements@> = XSY t_source_xsy;
-@ @<Initialize ISY elements@> = Source_XSY_of_ISY(isy) = NULL;
+@d Source_XSY_of_NSY(isy) ((isy)->t_source_xsy)
+@d Source_XSY_of_NSYID(isyid) (Source_XSY_of_NSY(NSY_by_ID(isyid)))
+@<Widely aligned NSY elements@> = XSY t_source_xsy;
+@ @<Initialize NSY elements@> = Source_XSY_of_NSY(isy) = NULL;
 @ @<Function definitions@> =
 Marpa_Rule_ID _marpa_g_source_xsy(
     Marpa_Grammar g,
@@ -1920,7 +1920,7 @@ Marpa_Rule_ID _marpa_g_source_xsy(
     XSY source_xsy;
     @<Return |-2| on failure@>@;
     @<Fail if |isy_id| is invalid@>@;
-    source_xsy = Source_XSY_of_ISYID(isy_id);
+    source_xsy = Source_XSY_of_NSYID(isy_id);
     return ID_of_XSY(source_xsy);
 }
 
@@ -1931,14 +1931,14 @@ These fields record the symbol's source information
 with the symbol.
 The semantics need this information so that they can
 simulate the external ``source'' rule.
-@ @d LHS_XRL_of_ISY(isy) ((isy)->t_lhs_xrl)
-@d XRL_Offset_of_ISY(isy) ((isy)->t_xrl_offset)
-@<Widely aligned ISY elements@> =
+@ @d LHS_XRL_of_NSY(isy) ((isy)->t_lhs_xrl)
+@d XRL_Offset_of_NSY(isy) ((isy)->t_xrl_offset)
+@<Widely aligned NSY elements@> =
 XRL t_lhs_xrl;
 int t_xrl_offset;
-@ @<Initialize ISY elements@> =
-LHS_XRL_of_ISY(isy) = NULL;
-XRL_Offset_of_ISY(isy) = -1;
+@ @<Initialize NSY elements@> =
+LHS_XRL_of_NSY(isy) = NULL;
+XRL_Offset_of_NSY(isy) = -1;
 
 @ Virtual LHS trace accessor:
 If this symbol is an internal LHS
@@ -1948,20 +1948,20 @@ returns the XRLID.
 If there is no such external rule, returns |-1|.
 On other failures, returns |-2|.
 @ @<Function definitions@> =
-Marpa_Rule_ID _marpa_g_isy_lhs_xrl(Marpa_Grammar g, Marpa_ISY_ID isy_id)
+Marpa_Rule_ID _marpa_g_nsy_lhs_xrl(Marpa_Grammar g, Marpa_NSY_ID isy_id)
 {
   @<Return |-2| on failure@>@;
   @<Fail if |isy_id| is invalid@>@;
   {
-    const ISY isy = ISY_by_ID (isy_id);
-    const XRL lhs_xrl = LHS_XRL_of_ISY (isy);
+    const NSY isy = NSY_by_ID (isy_id);
+    const XRL lhs_xrl = LHS_XRL_of_NSY (isy);
     if (lhs_xrl)
       return ID_of_XRL (lhs_xrl);
   }
   return -1;
 }
 
-@ If the ISY was created as
+@ If the NSY was created as
 a LHS during the rewrite of an external rule,
 and there is an associated offset within that
 rule,
@@ -1972,31 +1972,31 @@ used in the CHAF rewrite.
 Otherwise, -1 is returned.
 On other failures, returns |-2|.
 @<Function definitions@> =
-int _marpa_g_isy_xrl_offset(Marpa_Grammar g, Marpa_ISY_ID isy_id)
+int _marpa_g_nsy_xrl_offset(Marpa_Grammar g, Marpa_NSY_ID isy_id)
 {
   @<Return |-2| on failure@>@;
-  ISY isy;
+  NSY isy;
   @<Fail if |isy_id| is invalid@>@;
-  isy = ISY_by_ID (isy_id);
-  return XRL_Offset_of_ISY(isy);
+  isy = NSY_by_ID (isy_id);
+  return XRL_Offset_of_NSY(isy);
 }
 
 @*0 Rank.
 The rank of the internal symbol.
-@d ISY_Rank_by_XSY(xsy)
+@d NSY_Rank_by_XSY(xsy)
   ((xsy)->t_rank * EXTERNAL_RANK_FACTOR + MAXIMUM_CHAF_RANK)
-@d Rank_of_ISY(isy) ((isy)->t_rank)
-@<Int aligned ISY elements@> = Marpa_Rank t_rank;
-@ @<Initialize ISY elements@> =
-  Rank_of_ISY(isy) = Default_Rank_of_G(g) * EXTERNAL_RANK_FACTOR + MAXIMUM_CHAF_RANK;
+@d Rank_of_NSY(isy) ((isy)->t_rank)
+@<Int aligned NSY elements@> = Marpa_Rank t_rank;
+@ @<Initialize NSY elements@> =
+  Rank_of_NSY(isy) = Default_Rank_of_G(g) * EXTERNAL_RANK_FACTOR + MAXIMUM_CHAF_RANK;
 @ @<Function definitions@> =
-Marpa_Rank _marpa_g_isy_rank(
+Marpa_Rank _marpa_g_nsy_rank(
     Marpa_Grammar g,
-    Marpa_ISY_ID isy_id)
+    Marpa_NSY_ID isy_id)
 {
     @<Return |-2| on failure@>@;
     @<Fail if |isy_id| is invalid@>@;
-    return Rank_of_ISY(ISY_by_ID(isy_id));
+    return Rank_of_NSY(NSY_by_ID(isy_id));
 }
 
 @** External rule (XRL) code.
@@ -2089,8 +2089,8 @@ irl_start(GRAMMAR g, int length)
 PRIVATE void
 irl_finish( GRAMMAR g, IRL irl)
 {
-  const ISY lhs_isy = LHS_of_IRL(irl);
-  ISY_is_LHS(lhs_isy) = 1;
+  const NSY lhs_isy = LHS_of_IRL(irl);
+  NSY_is_LHS(lhs_isy) = 1;
 }
 
 @ @<Clone a new IRL from |rule|@> =
@@ -2102,7 +2102,7 @@ irl_finish( GRAMMAR g, IRL irl)
   for (symbol_ix = 0; symbol_ix <= rewrite_xrl_length; symbol_ix++)
     {
       new_irl->t_isyid_array[symbol_ix] =
-	ISYID_by_XSYID(rule->t_symbols[symbol_ix]);
+	NSYID_by_XSYID(rule->t_symbols[symbol_ix]);
     }
   irl_finish(g, new_irl);
 }
@@ -2745,13 +2745,13 @@ added to the list of rules.
 @ The symbols come at the end of the structure,
 so that they can be variable length.
 @<Final IRL elements@> =
-  ISYID t_isyid_array[1];
+  NSYID t_isyid_array[1];
 
 @ @d LHSID_of_IRL(irlid) ((irlid)->t_isyid_array[0])
-@ @d LHS_of_IRL(irl) (ISY_by_ID(LHSID_of_IRL(irl)))
+@ @d LHS_of_IRL(irl) (NSY_by_ID(LHSID_of_IRL(irl)))
 
 @<Function definitions@> =
-Marpa_ISY_ID _marpa_g_irl_lhs(Marpa_Grammar g, Marpa_IRL_ID irl_id) {
+Marpa_NSY_ID _marpa_g_irl_lhs(Marpa_Grammar g, Marpa_IRL_ID irl_id) {
     IRL irl;
     @<Return |-2| on failure@>@;
     @<Fail if fatal error@>@;
@@ -2762,9 +2762,9 @@ Marpa_ISY_ID _marpa_g_irl_lhs(Marpa_Grammar g, Marpa_IRL_ID irl_id) {
 }
 
 @ @d RHSID_of_IRL(irl, position) ((irl)->t_isyid_array[(position)+1])
-@ @d RHS_of_IRL(irl, position) ISY_by_ID(RHSID_of_IRL((irl), (position)))
+@ @d RHS_of_IRL(irl, position) NSY_by_ID(RHSID_of_IRL((irl), (position)))
 @<Function definitions@> =
-Marpa_ISY_ID _marpa_g_irl_rhs(Marpa_Grammar g, Marpa_IRL_ID irl_id, int ix) {
+Marpa_NSY_ID _marpa_g_irl_rhs(Marpa_Grammar g, Marpa_IRL_ID irl_id, int ix) {
     IRL irl;
     @<Return |-2| on failure@>@;
     @<Fail if fatal error@>@;
@@ -2815,7 +2815,7 @@ way.
 @ An IRL has an external semantics if and only if it does
 have a non-virtual LHS.
 And if a rule does not have a virtual LHS, then its LHS
-side ISY must have a semantic XRL.
+side NSY must have a semantic XRL.
 @d IRL_has_Virtual_LHS(irl) ((irl)->t_is_virtual_lhs)
 @<Bit aligned IRL elements@> = unsigned int t_is_virtual_lhs:1;
 @ @<Initialize IRL elements@> =
@@ -3059,7 +3059,7 @@ int marpa_g_precompute(Marpa_Grammar g)
 
     //  \comment Phase 2: rewrite the grammar into internal form 
     @<Initialize IRL stack@>@;
-    @<Initialize ISY stack@>@;
+    @<Initialize NSY stack@>@;
     @<Rewrite grammar |g| into CHAF form@>@;
     @<Augment grammar |g|@>@;
 
@@ -3712,24 +3712,24 @@ Change so that this runs only if there are prediction events.
 @<Rewrite sequence |rule| into BNF@> =
 {
   const XSYID lhs_id = LHS_ID_of_RULE (rule);
-  const ISY lhs_isy = ISY_by_XSYID(lhs_id);
-  const ISYID lhs_isyid = ID_of_ISY(lhs_isy);
+  const NSY lhs_isy = NSY_by_XSYID(lhs_id);
+  const NSYID lhs_isyid = ID_of_NSY(lhs_isy);
 
-  const ISY internal_lhs_isy = isy_new (g, XSY_by_ID(lhs_id));
-  const ISYID internal_lhs_isyid = ID_of_ISY(internal_lhs_isy);
+  const NSY internal_lhs_isy = isy_new (g, XSY_by_ID(lhs_id));
+  const NSYID internal_lhs_isyid = ID_of_NSY(internal_lhs_isy);
 
   const XSYID rhs_id = RHS_ID_of_RULE (rule, 0);
-  const ISY rhs_isy = ISY_by_XSYID(rhs_id);
-  const ISYID rhs_isyid = ID_of_ISY(rhs_isy);
+  const NSY rhs_isy = NSY_by_XSYID(rhs_id);
+  const NSYID rhs_isyid = ID_of_NSY(rhs_isy);
 
   const XSYID separator_id = Separator_of_XRL (rule);
-  ISYID separator_isyid = -1;
+  NSYID separator_isyid = -1;
   if (separator_id >= 0) {
-    const ISY separator_isy = ISY_by_XSYID(separator_id) ;
-    separator_isyid = ID_of_ISY(separator_isy);
+    const NSY separator_isy = NSY_by_XSYID(separator_id) ;
+    separator_isyid = ID_of_NSY(separator_isy);
   }
 
-  LHS_XRL_of_ISY(internal_lhs_isy) = rule;
+  LHS_XRL_of_NSY(internal_lhs_isy) = rule;
   @<Add the top rule for the sequence@>@;
   if (separator_isyid >= 0 && !XRL_is_Proper_Separation(rule)) {
       @<Add the alternate top rule for the sequence@>@;
@@ -3903,15 +3903,15 @@ is not already aliased, alias it.
 	continue;
       if (UNLIKELY (!xsy_to_clone->t_is_productive))
 	continue;
-      ISY_of_XSY(xsy_to_clone) = isy_clone (g, xsy_to_clone);
+      NSY_of_XSY(xsy_to_clone) = isy_clone (g, xsy_to_clone);
       if (XSY_is_Nulling (xsy_to_clone))
 	{
-	  Nulling_ISY_of_XSY(xsy_to_clone) = ISY_of_XSY(xsy_to_clone);
+	  Nulling_NSY_of_XSY(xsy_to_clone) = NSY_of_XSY(xsy_to_clone);
 	  continue;
 	}
       if (XSY_is_Nullable (xsy_to_clone))
 	{
-	  Nulling_ISY_of_XSY(xsy_to_clone) = symbol_alias_create (g, xsy_to_clone);
+	  Nulling_NSY_of_XSY(xsy_to_clone) = symbol_alias_create (g, xsy_to_clone);
 	}
     }
 }
@@ -3960,8 +3960,8 @@ factor_positions = marpa_obs_new(obs_precompute, int, g->t_max_rule_length);
     int unprocessed_factor_count;
     /* Current index into the list of factors */
     int factor_position_ix = 0;
-    ISY current_lhs_isy = ISY_by_XSYID(LHS_ID_of_RULE(rule));
-    ISYID current_lhs_isyid = ID_of_ISY(current_lhs_isy);
+    NSY current_lhs_isy = NSY_by_XSYID(LHS_ID_of_RULE(rule));
+    NSYID current_lhs_isyid = ID_of_NSY(current_lhs_isy);
     /* The positions, in the original rule, where
 	the new (virtual) rule starts and ends */
     int piece_end, piece_start = 0;
@@ -3982,15 +3982,15 @@ factor_positions = marpa_obs_new(obs_precompute, int, g->t_max_rule_length);
 {
   const XSYID chaf_xrl_lhs_id = LHS_ID_of_XRL(chaf_xrl);
   chaf_virtual_isy = isy_new (g, XSY_by_ID(chaf_xrl_lhs_id));
-  chaf_virtual_isyid = ID_of_ISY(chaf_virtual_isy);
+  chaf_virtual_isyid = ID_of_NSY(chaf_virtual_isy);
 }
 
 @*0 Factor a non-final piece.
 @ As long as I have more than 3 unprocessed factors, I am working on a non-final
 rule.
 @<Add non-final CHAF rules@> =
-    ISY chaf_virtual_isy;
-    ISYID chaf_virtual_isyid;
+    NSY chaf_virtual_isy;
+    NSYID chaf_virtual_isyid;
     int first_factor_position = factor_positions[factor_position_ix];
     int second_factor_position = factor_positions[factor_position_ix+1];
     if (second_factor_position >= nullable_suffix_ix) {
@@ -4041,13 +4041,13 @@ end before the second proper nullable (or factor).
   for (piece_ix = 0; piece_ix < second_nulling_piece_ix; piece_ix++)
     {
       RHSID_of_IRL (chaf_irl, piece_ix) =
-	ISYID_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
+	NSYID_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
     }
   for (piece_ix = second_nulling_piece_ix; piece_ix < chaf_irl_length;
        piece_ix++)
     {
       RHSID_of_IRL (chaf_irl, piece_ix) =
-	Nulling_ISYID_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
+	Nulling_NSYID_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
     }
   irl_finish (g, chaf_irl);
   Rank_of_IRL(chaf_irl) = IRL_CHAF_Rank_by_XRL(rule, 2);
@@ -4075,24 +4075,24 @@ the Marpa parse engine.
       for (piece_ix = 0; piece_ix < first_nulling_piece_ix; piece_ix++)
 	{
 	  RHSID_of_IRL (chaf_irl, piece_ix) =
-	    ISYID_by_XSYID(RHS_ID_of_RULE
+	    NSYID_by_XSYID(RHS_ID_of_RULE
 				 (rule, piece_start + piece_ix));
 	}
       RHSID_of_IRL (chaf_irl, first_nulling_piece_ix) =
-	Nulling_ISYID_by_XSYID(RHS_ID_of_RULE
+	Nulling_NSYID_by_XSYID(RHS_ID_of_RULE
 			     (rule, piece_start + first_nulling_piece_ix));
       for (piece_ix = first_nulling_piece_ix + 1;
 	   piece_ix < second_nulling_piece_ix; piece_ix++)
 	{
 	  RHSID_of_IRL (chaf_irl, piece_ix) =
-	    ISYID_by_XSYID(RHS_ID_of_RULE
+	    NSYID_by_XSYID(RHS_ID_of_RULE
 				 (rule, piece_start + piece_ix));
 	}
       for (piece_ix = second_nulling_piece_ix; piece_ix < chaf_irl_length;
 	   piece_ix++)
 	{
 	  RHSID_of_IRL (chaf_irl, piece_ix) =
-	    Nulling_ISYID_by_XSYID(RHS_ID_of_RULE
+	    Nulling_NSYID_by_XSYID(RHS_ID_of_RULE
 				 (rule, piece_start + piece_ix));
 	}
       irl_finish (g, chaf_irl);
@@ -4122,7 +4122,7 @@ the Marpa parse engine.
   for (piece_ix = 0; piece_ix < chaf_irl_length - 1; piece_ix++)
     {
       RHSID_of_IRL (chaf_irl, piece_ix) =
-	ISYID_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
+	NSYID_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
     }
   RHSID_of_IRL (chaf_irl, chaf_irl_length - 1) = chaf_virtual_isyid;
   irl_finish (g, chaf_irl);
@@ -4141,16 +4141,16 @@ the Marpa parse engine.
   for (piece_ix = 0; piece_ix < second_nulling_piece_ix; piece_ix++)
     {
       RHSID_of_IRL (chaf_irl, piece_ix) =
-	ISYID_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
+	NSYID_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
     }
   RHSID_of_IRL (chaf_irl, second_nulling_piece_ix) =
-    Nulling_ISYID_by_XSYID(RHS_ID_of_RULE
+    Nulling_NSYID_by_XSYID(RHS_ID_of_RULE
 			 (rule, piece_start + second_nulling_piece_ix));
   for (piece_ix = second_nulling_piece_ix + 1;
        piece_ix < chaf_irl_length - 1; piece_ix++)
     {
       RHSID_of_IRL (chaf_irl, piece_ix) =
-	ISYID_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
+	NSYID_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
     }
   RHSID_of_IRL (chaf_irl, chaf_irl_length - 1) = chaf_virtual_isyid;
   irl_finish (g, chaf_irl);
@@ -4169,16 +4169,16 @@ the Marpa parse engine.
   for (piece_ix = 0; piece_ix < first_nulling_piece_ix; piece_ix++)
     {
       RHSID_of_IRL (chaf_irl, piece_ix) =
-	ISYID_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
+	NSYID_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
     }
   RHSID_of_IRL (chaf_irl, first_nulling_piece_ix) =
-    Nulling_ISYID_by_XSYID(RHS_ID_of_RULE
+    Nulling_NSYID_by_XSYID(RHS_ID_of_RULE
 			 (rule, piece_start + first_nulling_piece_ix));
   for (piece_ix = first_nulling_piece_ix + 1;
        piece_ix < chaf_irl_length - 1; piece_ix++)
     {
       RHSID_of_IRL (chaf_irl, piece_ix) =
-	ISYID_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
+	NSYID_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
     }
   RHSID_of_IRL (chaf_irl, chaf_irl_length - 1) = chaf_virtual_isyid;
   irl_finish (g, chaf_irl);
@@ -4198,25 +4198,25 @@ the Marpa parse engine.
   for (piece_ix = 0; piece_ix < first_nulling_piece_ix; piece_ix++)
     {
       RHSID_of_IRL (chaf_irl, piece_ix) =
-	ISYID_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
+	NSYID_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
     }
   RHSID_of_IRL (chaf_irl, first_nulling_piece_ix) =
-    Nulling_ISYID_by_XSYID(RHS_ID_of_RULE
+    Nulling_NSYID_by_XSYID(RHS_ID_of_RULE
 			 (rule, piece_start + first_nulling_piece_ix));
   for (piece_ix = first_nulling_piece_ix + 1;
        piece_ix < second_nulling_piece_ix; piece_ix++)
     {
       RHSID_of_IRL (chaf_irl, piece_ix) =
-	ISYID_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
+	NSYID_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
     }
   RHSID_of_IRL (chaf_irl, second_nulling_piece_ix) =
-    Nulling_ISYID_by_XSYID(RHS_ID_of_RULE
+    Nulling_NSYID_by_XSYID(RHS_ID_of_RULE
 			 (rule, piece_start + second_nulling_piece_ix));
   for (piece_ix = second_nulling_piece_ix + 1; piece_ix < chaf_irl_length-1;
        piece_ix++)
     {
       RHSID_of_IRL (chaf_irl, piece_ix) =
-	ISYID_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
+	NSYID_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
     }
   RHSID_of_IRL (chaf_irl, chaf_irl_length-1) = chaf_virtual_isyid;
   irl_finish (g, chaf_irl);
@@ -4248,7 +4248,7 @@ Open block, declarations and setup.
   for (piece_ix = 0; piece_ix < chaf_irl_length; piece_ix++)
     {
       RHSID_of_IRL (chaf_irl, piece_ix) =
-	ISYID_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
+	NSYID_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
     }
   irl_finish (g, chaf_irl);
   Rank_of_IRL(chaf_irl) = IRL_CHAF_Rank_by_XRL(rule, 3);
@@ -4266,16 +4266,16 @@ Open block, declarations and setup.
   for (piece_ix = 0; piece_ix < second_nulling_piece_ix; piece_ix++)
     {
       RHSID_of_IRL (chaf_irl, piece_ix) =
-	ISYID_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
+	NSYID_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
     }
   RHSID_of_IRL (chaf_irl, second_nulling_piece_ix) =
-    Nulling_ISYID_by_XSYID(RHS_ID_of_RULE
+    Nulling_NSYID_by_XSYID(RHS_ID_of_RULE
 			 (rule, piece_start + second_nulling_piece_ix));
   for (piece_ix = second_nulling_piece_ix + 1; piece_ix < chaf_irl_length;
        piece_ix++)
     {
       RHSID_of_IRL (chaf_irl, piece_ix) =
-	ISYID_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
+	NSYID_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
     }
   irl_finish (g, chaf_irl);
   Rank_of_IRL(chaf_irl) = IRL_CHAF_Rank_by_XRL(rule, 2);
@@ -4293,16 +4293,16 @@ Open block, declarations and setup.
   for (piece_ix = 0; piece_ix < first_nulling_piece_ix; piece_ix++)
     {
       RHSID_of_IRL (chaf_irl, piece_ix) =
-	ISYID_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
+	NSYID_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
     }
   RHSID_of_IRL (chaf_irl, first_nulling_piece_ix) =
-    Nulling_ISYID_by_XSYID(RHS_ID_of_RULE
+    Nulling_NSYID_by_XSYID(RHS_ID_of_RULE
 			 (rule, piece_start + first_nulling_piece_ix));
   for (piece_ix = first_nulling_piece_ix + 1; piece_ix < chaf_irl_length;
        piece_ix++)
     {
       RHSID_of_IRL (chaf_irl, piece_ix) =
-	ISYID_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
+	NSYID_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
     }
   irl_finish (g, chaf_irl);
   Rank_of_IRL(chaf_irl) = IRL_CHAF_Rank_by_XRL(rule, 1);
@@ -4323,25 +4323,25 @@ a nulling rule.
       for (piece_ix = 0; piece_ix < first_nulling_piece_ix; piece_ix++)
 	{
 	  RHSID_of_IRL (chaf_irl, piece_ix) =
-	    ISYID_by_XSYID(RHS_ID_of_RULE
+	    NSYID_by_XSYID(RHS_ID_of_RULE
 				 (rule, piece_start + piece_ix));
 	}
       RHSID_of_IRL (chaf_irl, first_nulling_piece_ix) =
-	Nulling_ISYID_by_XSYID(RHS_ID_of_RULE (rule, piece_start + first_nulling_piece_ix));
+	Nulling_NSYID_by_XSYID(RHS_ID_of_RULE (rule, piece_start + first_nulling_piece_ix));
       for (piece_ix = first_nulling_piece_ix + 1; piece_ix < second_nulling_piece_ix;
 	   piece_ix++)
 	{
 	  RHSID_of_IRL (chaf_irl, piece_ix) =
-	    ISYID_by_XSYID(RHS_ID_of_RULE
+	    NSYID_by_XSYID(RHS_ID_of_RULE
 				 (rule, piece_start + piece_ix));
 	}
       RHSID_of_IRL (chaf_irl, second_nulling_piece_ix) =
-	Nulling_ISYID_by_XSYID(RHS_ID_of_RULE (rule, piece_start + second_nulling_piece_ix));
+	Nulling_NSYID_by_XSYID(RHS_ID_of_RULE (rule, piece_start + second_nulling_piece_ix));
       for (piece_ix = second_nulling_piece_ix + 1; piece_ix < chaf_irl_length;
 	   piece_ix++)
 	{
 	  RHSID_of_IRL (chaf_irl, piece_ix) =
-	    ISYID_by_XSYID(RHS_ID_of_RULE
+	    NSYID_by_XSYID(RHS_ID_of_RULE
 				 (rule, piece_start + piece_ix));
 	}
       irl_finish (g, chaf_irl);
@@ -4371,7 +4371,7 @@ a nulling rule.
   for (piece_ix = 0; piece_ix < chaf_irl_length; piece_ix++)
     {
       RHSID_of_IRL (chaf_irl, piece_ix) =
-	ISYID_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
+	NSYID_by_XSYID(RHS_ID_of_RULE (rule, piece_start + piece_ix));
     }
   irl_finish (g, chaf_irl);
   Rank_of_IRL(chaf_irl) = IRL_CHAF_Rank_by_XRL(rule, 3);
@@ -4392,16 +4392,16 @@ a nulling rule.
       for (piece_ix = 0; piece_ix < nulling_piece_ix; piece_ix++)
 	{
 	  RHSID_of_IRL (chaf_irl, piece_ix) =
-	    ISYID_by_XSYID(RHS_ID_of_RULE
+	    NSYID_by_XSYID(RHS_ID_of_RULE
 				 (rule, piece_start + piece_ix));
 	}
       RHSID_of_IRL (chaf_irl, nulling_piece_ix) =
-	Nulling_ISYID_by_XSYID(RHS_ID_of_RULE (rule, piece_start + nulling_piece_ix));
+	Nulling_NSYID_by_XSYID(RHS_ID_of_RULE (rule, piece_start + nulling_piece_ix));
       for (piece_ix = nulling_piece_ix + 1; piece_ix < chaf_irl_length;
 	   piece_ix++)
 	{
 	  RHSID_of_IRL (chaf_irl, piece_ix) =
-	    ISYID_by_XSYID(RHS_ID_of_RULE
+	    NSYID_by_XSYID(RHS_ID_of_RULE
 				 (rule, piece_start + piece_ix));
 	}
       irl_finish (g, chaf_irl);
@@ -4424,8 +4424,8 @@ rule structure, and performing the call back.
   Virtual_Start_of_IRL(chaf_irl) = piece_start;
   Virtual_End_of_IRL(chaf_irl) = piece_start + real_symbol_count - 1;
   Real_SYM_Count_of_IRL (chaf_irl) = real_symbol_count;
-  LHS_XRL_of_ISY (current_lhs_isy) = chaf_xrl;
-  XRL_Offset_of_ISY (current_lhs_isy) = piece_start;
+  LHS_XRL_of_NSY (current_lhs_isy) = chaf_xrl;
+  XRL_Offset_of_NSY (current_lhs_isy) = piece_start;
 }
 
 @** Adding a new start symbol.
@@ -4442,14 +4442,14 @@ in the literature --- it is called ``augmenting the grammar".
 @ @<Set up a new proper start rule@> = {
   IRL new_start_irl;
 
-  const ISY new_start_isy = isy_new(g, start_xsy);
-  ISY_is_Start(new_start_isy) = 1;
+  const NSY new_start_isy = isy_new(g, start_xsy);
+  NSY_is_Start(new_start_isy) = 1;
 
   start_xsy->t_is_start = 0;
 
   new_start_irl = irl_start(g, 1);
-  LHSID_of_IRL(new_start_irl) = ID_of_ISY(new_start_isy);
-  RHSID_of_IRL(new_start_irl, 0) = ISYID_of_XSY(start_xsy);
+  LHSID_of_IRL(new_start_irl) = ID_of_NSY(new_start_isy);
+  RHSID_of_IRL(new_start_irl, 0) = NSYID_of_XSY(start_xsy);
   irl_finish(g, new_start_irl);
   IRL_has_Virtual_LHS (new_start_irl) = 1;
   Real_SYM_Count_of_IRL (new_start_irl) = 1;
@@ -4761,7 +4761,7 @@ return item_id < (AIMID)AIM_Count_of_G(g) && item_id >= 0;
 @*0 Rule.
 @d IRL_of_AIM(aim) ((aim)->t_irl)
 @d IRLID_of_AIM(item) ID_of_IRL(IRL_of_AIM(item))
-@d LHS_ISYID_of_AIM(item) LHSID_of_IRL(IRL_of_AIM(item))
+@d LHS_NSYID_of_AIM(item) LHSID_of_IRL(IRL_of_AIM(item))
 @<Widely aligned AHFA item elements@> =
     IRL t_irl;
 
@@ -4773,9 +4773,9 @@ int t_position;
 
 @*0 Postdot symbol.
 |-1| if the item is a completion.
-@d Postdot_ISYID_of_AIM(item) ((item)->t_postdot_isyid)
-@d AIM_is_Completion(aim) (Postdot_ISYID_of_AIM(aim) < 0)
-@<Int aligned AHFA item elements@> = ISYID t_postdot_isyid;
+@d Postdot_NSYID_of_AIM(item) ((item)->t_postdot_isyid)
+@d AIM_is_Completion(aim) (Postdot_NSYID_of_AIM(aim) < 0)
+@<Int aligned AHFA item elements@> = NSYID t_postdot_isyid;
 
 @*0 Leading nulls.
 In libmarpa's AHFA items, the dot position is never in front
@@ -4821,7 +4821,7 @@ Marpa_Symbol_ID _marpa_g_AHFA_item_postdot(Marpa_Grammar g,
     @<Return |-2| on failure@>@/
     @<Fail if not precomputed@>@/
     @<Fail if |item_id| is invalid@>@/
-    return Postdot_ISYID_of_AIM(AIM_by_ID(item_id));
+    return Postdot_NSYID_of_AIM(AIM_by_ID(item_id));
 }
 
 @ @<Function definitions@> =
@@ -4868,8 +4868,8 @@ int _marpa_g_AHFA_item_sort_key(Marpa_Grammar g,
   int rhs_ix;
   for (rhs_ix = 0; rhs_ix < Length_of_IRL(irl); rhs_ix++)
     {
-      ISYID rh_isyid = RHSID_of_IRL (irl, rhs_ix);
-      if (!ISY_is_Nulling(ISY_by_ID(rh_isyid)))
+      NSYID rh_isyid = RHSID_of_IRL (irl, rhs_ix);
+      if (!NSY_is_Nulling(NSY_by_ID(rh_isyid)))
 	{
 	  Last_Proper_SYMI_of_IRL(irl) = symbol_instance_of_next_rule + rhs_ix;
 	  @<Create an AHFA item for a precompletion@>@;
@@ -4890,9 +4890,9 @@ int _marpa_g_AHFA_item_sort_key(Marpa_Grammar g,
   int rhs_ix;
   for (rhs_ix = 0; rhs_ix < Length_of_IRL(irl); rhs_ix++)
     {
-      const ISYID rh_isyid = RHSID_of_IRL (irl, rhs_ix);
-      const ISY isy = ISY_by_ID (rh_isyid);
-      if (!ISY_is_Nulling(isy)) ahfa_item_count++;
+      const NSYID rh_isyid = RHSID_of_IRL (irl, rhs_ix);
+      const NSY isy = NSY_by_ID (rh_isyid);
+      if (!NSY_is_Nulling(isy)) ahfa_item_count++;
     }
   ahfa_item_count++;
 }
@@ -4902,7 +4902,7 @@ int _marpa_g_AHFA_item_sort_key(Marpa_Grammar g,
   IRL_of_AIM (current_item) = irl;
   Sort_Key_of_AIM (current_item) = current_item - base_item;
   Null_Count_of_AIM(current_item) = leading_nulls;
-  Postdot_ISYID_of_AIM (current_item) = rh_isyid;
+  Postdot_NSYID_of_AIM (current_item) = rh_isyid;
   Position_of_AIM (current_item) = rhs_ix;
 }
 
@@ -4911,7 +4911,7 @@ int _marpa_g_AHFA_item_sort_key(Marpa_Grammar g,
   IRL_of_AIM (current_item) = irl;
   Sort_Key_of_AIM (current_item) = current_item - base_item;
   Null_Count_of_AIM(current_item) = leading_nulls;
-  Postdot_ISYID_of_AIM (current_item) = -1;
+  Postdot_NSYID_of_AIM (current_item) = -1;
   Position_of_AIM (current_item) = -1;
 }
 
@@ -4960,8 +4960,8 @@ PRIVATE_NOT_INLINE int cmp_by_postdot_and_aimid (const void* ap,
 {
     AIM a = *(AIM*)ap;
     AIM b = *(AIM*)bp;
-    int a_postdot = Postdot_ISYID_of_AIM(a);
-    int b_postdot = Postdot_ISYID_of_AIM(b);
+    int a_postdot = Postdot_NSYID_of_AIM(a);
+    int b_postdot = Postdot_NSYID_of_AIM(b);
     if (a_postdot == b_postdot)
       return Sort_Key_of_AIM (a) - Sort_Key_of_AIM (b);
     if (a_postdot < 0) return 1;
@@ -5134,9 +5134,9 @@ Indirect completion events include all possible completions,
 including indirect ones found through right recursion
 and Leo items.
 @d Completion_CIL_of_AHFA(state) ((state)->t_complete_isyids)
-@d Complete_ISYID_of_AHFA(state, ix)
+@d Complete_NSYID_of_AHFA(state, ix)
   Item_of_CIL(Completion_CIL_of_AHFA(state), (ix))
-@d Complete_ISY_Count_of_AHFA(state)
+@d Complete_NSY_Count_of_AHFA(state)
   Count_of_CIL(Completion_CIL_of_AHFA(state))
 
 @ @<Widely aligned AHFA state elements@> =
@@ -5265,8 +5265,8 @@ PRIVATE int AHFA_state_id_is_valid(GRAMMAR g, AHFAID AHFA_state_id)
 
     
 @*0 Postdot symbols.
-@d Postdot_ISY_Count_of_AHFA(state) ((state)->t_postdot_isy_count)
-@d Postdot_ISYIDAry_of_AHFA(state) ((state)->t_postdot_isyidary)
+@d Postdot_NSY_Count_of_AHFA(state) ((state)->t_postdot_isy_count)
+@d Postdot_NSYIDAry_of_AHFA(state) ((state)->t_postdot_isyidary)
 @<Widely aligned AHFA state elements@> = Marpa_Symbol_ID* t_postdot_isyidary;
 @ @<Int aligned AHFA state elements@> = unsigned int t_postdot_isy_count;
 
@@ -5320,8 +5320,8 @@ int _marpa_g_AHFA_state_is_predict(Marpa_Grammar g,
     return AHFA_is_Predicted(state);
 }
 
-@*0 The ISY right derivation matrix.
-The ISY right derivation matrix is used in determining which
+@*0 The NSY right derivation matrix.
+The NSY right derivation matrix is used in determining which
 states are Leo completions.
 The bit for the $(|isy1|, |isy2|)$ duple is set if and only
 if |isy1| right derives a sentential form whose rightmost
@@ -5353,8 +5353,8 @@ the bit is set if $|isy1| = |isy2|$.
 	{ @/@,
 /* LHS right dervies the last non-nulling symbol.  There is at least
 one non-nulling symbol in each IRL. */
-	  const ISYID rh_isyid = RHSID_of_IRL (irl, rhs_ix);
-	  if (!ISY_is_Nulling (ISY_by_ID (rh_isyid)))
+	  const NSYID rh_isyid = RHSID_of_IRL (irl, rhs_ix);
+	  if (!NSY_is_Nulling (NSY_by_ID (rh_isyid)))
 	    {
 	      matrix_bit_set (isy_by_right_isy_matrix,
 			      (unsigned int) LHSID_of_IRL (irl),
@@ -5374,8 +5374,8 @@ one non-nulling symbol in each IRL. */
       int rhs_ix;
       for (rhs_ix = Length_of_IRL (irl) - 1; rhs_ix >= 0; rhs_ix--)
 	{
-	  const ISYID rh_isyid = RHSID_of_IRL (irl, rhs_ix);
-	  if (!ISY_is_Nulling (ISY_by_ID (rh_isyid)))
+	  const NSYID rh_isyid = RHSID_of_IRL (irl, rhs_ix);
+	  if (!NSY_is_Nulling (NSY_by_ID (rh_isyid)))
 	    {
 /* Does the last non-nulling symbol right derive the LHS?
 If so, the rule is right recursive.
@@ -5406,8 +5406,8 @@ If so, the rule is right recursive.
 	{ @/@,
 /* LHS right dervies the last non-nulling symbol.  There is at least
 one non-nulling symbol in each IRL. */
-	  const ISYID rh_isyid = RHSID_of_IRL (irl, rhs_ix);
-	  if (!ISY_is_Nulling (ISY_by_ID (rh_isyid)))
+	  const NSYID rh_isyid = RHSID_of_IRL (irl, rhs_ix);
+	  if (!NSY_is_Nulling (NSY_by_ID (rh_isyid)))
 	    {
 	      matrix_bit_set (isy_by_right_isy_matrix,
 			      (unsigned int) LHSID_of_IRL (irl),
@@ -5428,14 +5428,14 @@ The Leo LHS symbol is the LHS of the Leo IRL,
 The value of the Leo completion symbol is used to
 determine if an Earley item
 with this AHFA state is eligible to be a Leo completion.
-@d Leo_LHS_ISYID_of_AHFA(state) ((state)->t_leo_lhs_isyid)
+@d Leo_LHS_NSYID_of_AHFA(state) ((state)->t_leo_lhs_isyid)
 @d Leo_IRLID_of_AHFA(state) ((state)->t_leo_irlid)
 @d AHFA_is_Leo_Completion(state) (Leo_IRLID_of_AHFA(state) >= 0)
 @ @<Int aligned AHFA state elements@> =
-  ISYID t_leo_lhs_isyid;
+  NSYID t_leo_lhs_isyid;
   IRLID t_leo_irlid;
 @ @<Initialize AHFA@> =
-  Leo_LHS_ISYID_of_AHFA(ahfa) = -1;
+  Leo_LHS_NSYID_of_AHFA(ahfa) = -1;
   Leo_IRLID_of_AHFA(ahfa) = -1;
 @ @<Function definitions@> =
 Marpa_Symbol_ID _marpa_g_AHFA_state_leo_lhs_symbol(Marpa_Grammar g,
@@ -5445,7 +5445,7 @@ Marpa_Symbol_ID _marpa_g_AHFA_state_leo_lhs_symbol(Marpa_Grammar g,
     @<Fail if not precomputed@>@;
     @<Fail if |AHFA_state_id| is invalid@>@;
     state = AHFA_of_G_by_ID(g, AHFA_state_id);
-    return Leo_LHS_ISYID_of_AHFA(state);
+    return Leo_LHS_NSYID_of_AHFA(state);
 }
 
 @*0 Sorting AHFA states.
@@ -5545,9 +5545,9 @@ PRIVATE_NOT_INLINE int AHFA_state_cmp(
   unsigned int no_of_items = p_working_state->t_item_count;
   unsigned int current_item_ix = 0;
   AIM *item_list;
-  ISYID working_isyid;
+  NSYID working_isyid;
   item_list = p_working_state->t_items;
-  working_isyid = Postdot_ISYID_of_AIM (item_list[0]);	/*
+  working_isyid = Postdot_NSYID_of_AIM (item_list[0]);	/*
 							   Every AHFA has at least one item */
   if (working_isyid < 0)
     goto NEXT_AHFA_STATE;	/*
@@ -5559,7 +5559,7 @@ PRIVATE_NOT_INLINE int AHFA_state_cmp(
       for (current_item_ix++;
 	   current_item_ix < no_of_items; current_item_ix++)
 	{
-	  if (Postdot_ISYID_of_AIM (item_list[current_item_ix]) !=
+	  if (Postdot_NSYID_of_AIM (item_list[current_item_ix]) !=
 	      working_isyid)
 	    break;
 	}
@@ -5575,7 +5575,7 @@ PRIVATE_NOT_INLINE int AHFA_state_cmp(
     NEXT_WORKING_SYMBOL:;
       if (current_item_ix >= no_of_items)
 	break;
-      working_isyid = Postdot_ISYID_of_AIM (item_list[current_item_ix]);
+      working_isyid = Postdot_NSYID_of_AIM (item_list[current_item_ix]);
       if (working_isyid < 0)
 	break;
     }
@@ -5587,7 +5587,7 @@ NEXT_AHFA_STATE:;
 {
      int ahfa_id;
      for (ahfa_id = 0; ahfa_id < ahfa_count_of_g; ahfa_id++) {
-	  ISYID isyid;
+	  NSYID isyid;
 	  AHFA ahfa = AHFA_of_G_by_ID(g, ahfa_id);
           TRANS* const transitions = TRANSs_of_AHFA(ahfa);
 	  for (isyid = 0; isyid < isy_count; isyid++) {
@@ -5619,14 +5619,14 @@ incrementing
      for (ahfa_id = 0; ahfa_id < ahfa_count_of_g; ahfa_id++) {
 	  const AHFA ahfa = AHFA_of_G_by_ID(g, ahfa_id);
           TRANS* const transitions = TRANSs_of_AHFA(ahfa);
-	  if (Complete_ISY_Count_of_AHFA(ahfa) > 0) {
+	  if (Complete_NSY_Count_of_AHFA(ahfa) > 0) {
 	      AIM* aims = AIMs_of_AHFA(ahfa);
 	      int aim_count = AIM_Count_of_AHFA(ahfa);
 	      AEX aex;
 	      for (aex = 0; aex < aim_count; aex++) {
 		  AIM ahfa_item = aims[aex];
 		  if (AIM_is_Completion(ahfa_item)) {
-		      ISYID completed_isyid = LHS_ISYID_of_AIM(ahfa_item);
+		      NSYID completed_isyid = LHS_NSYID_of_AIM(ahfa_item);
 		      TRANS transition = transitions[completed_isyid];
 		      AEX* aexes = AEXs_of_TRANS(transition);
 		      int aex_ix = LV_Completion_Count_of_TRANS(transition)++;
@@ -5658,7 +5658,7 @@ You can get the AIM from the AEX, but not vice versa.
       for (aex = 0; aex < aim_count; aex++)
 	{
 	  AIM ahfa_item = aims[aex];
-	  ISYID postdot_isyid = Postdot_ISYID_of_AIM (ahfa_item);
+	  NSYID postdot_isyid = Postdot_NSYID_of_AIM (ahfa_item);
 	  if (postdot_isyid >= 0)
 	    {
 	      TRANS transition = transitions[postdot_isyid];
@@ -5689,9 +5689,9 @@ _marpa_avl_destroy(duplicates);
 {
   AHFA p_initial_state = DQUEUE_PUSH (states, AHFA_Object);
   const IRL start_irl = g->t_start_irl;
-  ISYID *postdot_isyidary;
+  NSYID *postdot_isyidary;
   AIM start_item;
-  ISYID postdot_isyid;
+  NSYID postdot_isyid;
   AIM *item_list = marpa_obs_alloc (g->t_obs, sizeof (AIM));
   /* The start item is the initial item for the start rule */
   start_item = First_AIM_of_IRL(start_irl);
@@ -5702,10 +5702,10 @@ _marpa_avl_destroy(duplicates);
   p_initial_state->t_key.t_id = 0;
   AHFA_is_Predicted (p_initial_state) = 0;
   TRANSs_of_AHFA (p_initial_state) = transitions_new (g, isy_count);
-  Postdot_ISY_Count_of_AHFA (p_initial_state) = 1;
-  postdot_isyidary = Postdot_ISYIDAry_of_AHFA (p_initial_state) =
-    marpa_obs_alloc (g->t_obs, sizeof (ISYID));
-  postdot_isyid = Postdot_ISYID_of_AIM (start_item);
+  Postdot_NSY_Count_of_AHFA (p_initial_state) = 1;
+  postdot_isyidary = Postdot_NSYIDAry_of_AHFA (p_initial_state) =
+    marpa_obs_alloc (g->t_obs, sizeof (NSYID));
+  postdot_isyid = Postdot_NSYID_of_AIM (start_item);
   *postdot_isyidary = postdot_isyid;
   Completion_CIL_of_AHFA(p_initial_state) =
     cil_empty (&g->t_cilar);
@@ -5749,7 +5749,7 @@ a start rule completion, and it is a
     AIM* new_state_item_list;
     AIM working_aim_p = item_list[first_working_item_ix];
     Marpa_AHFA_Item_ID working_aim_id;
-    ISYID postdot_isyid;
+    NSYID postdot_isyid;
     working_aim_p++;		// Transition to next item for this rule
     working_aim_id = working_aim_p - AHFA_item_0_p;
     p_new_state = singleton_duplicates[working_aim_id];
@@ -5770,14 +5770,14 @@ a start rule completion, and it is a
     p_new_state->t_key.t_id = p_new_state - DQUEUE_BASE (states, AHFA_Object);
     TRANSs_of_AHFA(p_new_state) = transitions_new(g, isy_count);
     transition_add (obs_precompute, p_working_state, working_isyid, p_new_state);
-    postdot_isyid = Postdot_ISYID_of_AIM(working_aim_p);
+    postdot_isyid = Postdot_NSYID_of_AIM(working_aim_p);
     if (postdot_isyid >= 0)
       {
-	ISYID* p_postdot_isyidary = Postdot_ISYIDAry_of_AHFA(p_new_state) =
-	  marpa_obs_alloc (g->t_obs, sizeof (ISYID));
+	NSYID* p_postdot_isyidary = Postdot_NSYIDAry_of_AHFA(p_new_state) =
+	  marpa_obs_alloc (g->t_obs, sizeof (NSYID));
 	Completion_CIL_of_AHFA(p_new_state)
 	  = cil_empty (&g->t_cilar);
-	Postdot_ISY_Count_of_AHFA(p_new_state) = 1;
+	Postdot_NSY_Count_of_AHFA(p_new_state) = 1;
 	*p_postdot_isyidary = postdot_isyid;
     /* If the sole item is not a completion
      attempt to create a predicted AHFA state as well */
@@ -5792,11 +5792,11 @@ a start rule completion, and it is a
       {
 	/* The only AIM is a completion */
 	const IRL irl = IRL_of_AIM(working_aim_p);
-	const ISYID lhs_isyid = LHSID_of_IRL(irl);
+	const NSYID lhs_isyid = LHSID_of_IRL(irl);
 	Completion_CIL_of_AHFA(p_new_state) = cil_singleton(&g->t_cilar, lhs_isyid);
 	completion_count_inc(obs_precompute, p_new_state, lhs_isyid);
 
-	Postdot_ISY_Count_of_AHFA(p_new_state) = 0;
+	Postdot_NSY_Count_of_AHFA(p_new_state) = 0;
 	p_new_state->t_empty_transition = NULL;
 	@<If this state can be a Leo completion,
 	set the Leo completion symbol to |lhs_id|@>@;
@@ -5813,7 +5813,7 @@ set the Leo completion symbol to |lhs_id|@> =
   const IRL aim_irl = IRL_of_AIM (working_aim_p);
   if (IRL_is_Right_Recursive(aim_irl))
     {
-      Leo_LHS_ISYID_of_AHFA (p_new_state) = lhs_isyid;
+      Leo_LHS_NSYID_of_AHFA (p_new_state) = lhs_isyid;
       Leo_IRLID_of_AHFA (p_new_state) = ID_of_IRL(aim_irl);
     }
 }
@@ -5838,7 +5838,7 @@ be if written 100\% using indexes.
   const RULEID irl_count = IRL_Count_of_G(g);
   AIM* const item_list_working_buffer
     = marpa_obs_alloc(obs_precompute, irl_count*sizeof(AIM));
-  const ISYID isy_count = ISY_Count_of_G(g);
+  const NSYID isy_count = NSY_Count_of_G(g);
   const XSYID xsy_count = XSY_Count_of_G(g);
   IRLID** irl_list_x_lh_isy = NULL;
   Bit_Matrix isy_by_right_isy_matrix;
@@ -5854,9 +5854,9 @@ creating nulling versions as required.
 Initialized based on the capacity of the XSY stack, rather
 than its length, as a convenient way to deal with issues
 of minimum sizes.
-@<Initialize ISY stack@> =
+@<Initialize NSY stack@> =
 {
-  MARPA_DSTACK_INIT (g->t_isy_stack, ISY, 2 * MARPA_DSTACK_CAPACITY (g->t_xsy_stack));
+  MARPA_DSTACK_INIT (g->t_isy_stack, NSY, 2 * MARPA_DSTACK_CAPACITY (g->t_xsy_stack));
 }
 
 @ @<Calculate Rule by LHS lists@> =
@@ -5871,7 +5871,7 @@ of minimum sizes.
   for (irl_id = 0; irl_id < irl_count; irl_id++)
     {
       const IRL irl = IRL_by_ID (irl_id);
-      const ISYID lhs_isyid = LHSID_of_IRL(irl);
+      const NSYID lhs_isyid = LHSID_of_IRL(irl);
       p_sym_rule_pairs->t_symid = lhs_isyid;
       p_sym_rule_pairs->t_ruleid = irl_id;
       _marpa_avl_insert (lhs_avl_tree, p_sym_rule_pairs);
@@ -5880,7 +5880,7 @@ of minimum sizes.
   {
     MARPA_AVL_TRAV traverser;
     struct sym_rule_pair *pair;
-    ISYID seen_isyid = -1;
+    NSYID seen_isyid = -1;
     IRLID *const rule_data_base =
       marpa_obs_new (obs_precompute, IRLID, irl_count);
     IRLID *p_rule_data = rule_data_base;
@@ -5891,7 +5891,7 @@ of minimum sizes.
     for (pair = _marpa_avl_t_first (traverser); pair;
 	 pair = (struct sym_rule_pair *) _marpa_avl_t_next (traverser))
       {
-	const ISYID current_isyid = pair->t_symid;
+	const NSYID current_isyid = pair->t_symid;
 	while (seen_isyid < current_isyid)
 	  irl_list_x_lh_isy[++seen_isyid] = p_rule_data;
 	*p_rule_data++ = pair->t_ruleid;
@@ -5969,10 +5969,10 @@ for discovered state with 2+ items@> =
   for (item_ix = 0; item_ix < no_of_items_in_new_state; item_ix++)
     {
       AIM item = item_list_working_buffer[item_ix];
-      ISYID postdot_isyid = Postdot_ISYID_of_AIM (item);
+      NSYID postdot_isyid = Postdot_NSYID_of_AIM (item);
       if (postdot_isyid < 0)
 	{
-	  ISYID complete_symbol_isyid = LHS_ISYID_of_AIM (item);
+	  NSYID complete_symbol_isyid = LHS_NSYID_of_AIM (item);
 	  completion_count_inc (obs_precompute, p_new_state,
 				complete_symbol_isyid);
 	  bv_bit_set (per_ahfa_complete_v,
@@ -5983,19 +5983,19 @@ for discovered state with 2+ items@> =
 	  bv_bit_set (per_ahfa_postdot_v, (unsigned int) postdot_isyid);
 	}
     }
-  if ((no_of_postdot_isys = Postdot_ISY_Count_of_AHFA (p_new_state) =
+  if ((no_of_postdot_isys = Postdot_NSY_Count_of_AHFA (p_new_state) =
        bv_count (per_ahfa_postdot_v)))
     {
       unsigned int min, max, start;
-      ISYID *p_isyid = Postdot_ISYIDAry_of_AHFA (p_new_state) =
+      NSYID *p_isyid = Postdot_NSYIDAry_of_AHFA (p_new_state) =
 	marpa_obs_alloc (g->t_obs,
-			  no_of_postdot_isys * sizeof (ISYID));
+			  no_of_postdot_isys * sizeof (NSYID));
       for (start = 0; bv_scan (per_ahfa_postdot_v, start, &min, &max);
 	   start = max + 2)
 	{
-	  ISYID postdot_isyid;
-	  for (postdot_isyid = (ISYID) min;
-	       postdot_isyid <= (ISYID) max; postdot_isyid++)
+	  NSYID postdot_isyid;
+	  for (postdot_isyid = (NSYID) min;
+	       postdot_isyid <= (NSYID) max; postdot_isyid++)
 	    {
 	      *p_isyid++ = postdot_isyid;
 	    }
@@ -6022,10 +6022,10 @@ assign_AHFA_state (AHFA sought_state, MARPA_AVL_TREE duplicates)
     state with 2+ items, and add the predicted AHFA state@> =
 {
   int item_ix;
-  ISYID postdot_isyid = -1;	// Initialized to prevent GCC warning
+  NSYID postdot_isyid = -1;	// Initialized to prevent GCC warning
   for (item_ix = 0; item_ix < no_of_items_in_new_state; item_ix++)
     {
-      postdot_isyid = Postdot_ISYID_of_AIM (item_list_working_buffer[item_ix]);
+      postdot_isyid = Postdot_NSYID_of_AIM (item_list_working_buffer[item_ix]);
       if (postdot_isyid >= 0)
 	break;
     }
@@ -6037,7 +6037,7 @@ assign_AHFA_state (AHFA sought_state, MARPA_AVL_TREE duplicates)
       for (item_ix = 0; item_ix < no_of_items_in_new_state; item_ix++)
 	{
 	  /* ``or" the other non-complete items into the prediction rule vector */
-	  postdot_isyid = Postdot_ISYID_of_AIM (item_list_working_buffer[item_ix]);
+	  postdot_isyid = Postdot_NSYID_of_AIM (item_list_working_buffer[item_ix]);
 	  if (postdot_isyid < 0)
 	    continue;
 	  bv_or_assign (predicted_rule_vector,
@@ -6097,26 +6097,26 @@ states.
 @ @<Initialize the |prediction_isy_by_isy_matrix|@> =
 {
   IRLID irl_id;
-  ISYID isyid;
+  NSYID isyid;
   for (isyid = 0; isyid < isy_count; isyid++)
     {
       /* If a symbol appears on a LHS, it predicts itself. */
-      ISY isy = ISY_by_ID (isyid);
-      if (!ISY_is_LHS(isy)) continue;
+      NSY isy = NSY_by_ID (isyid);
+      if (!NSY_is_LHS(isy)) continue;
       matrix_bit_set (prediction_isy_by_isy_matrix, (unsigned int) isyid, (unsigned int) isyid);
     }
   for (irl_id = 0; irl_id < irl_count; irl_id++)
     {
-      ISYID from_isyid, to_isyid;
+      NSYID from_isyid, to_isyid;
       const IRL irl = IRL_by_ID(irl_id);
       /* Get the initial item for the rule */
       const AIM item = First_AIM_of_IRL(irl);
-      to_isyid = Postdot_ISYID_of_AIM (item);
+      to_isyid = Postdot_NSYID_of_AIM (item);
       /* There is no symbol-to-symbol transition for a completion item */
       if (to_isyid < 0)
 	continue;
       /* Set a bit in the matrix */
-      from_isyid = LHS_ISYID_of_AIM (item);
+      from_isyid = LHS_NSYID_of_AIM (item);
       matrix_bit_set (prediction_isy_by_isy_matrix,
 	(unsigned int) from_isyid,
 	(unsigned int) to_isyid);
@@ -6161,7 +6161,7 @@ so that they can be used as the indices of a boolean vector.
 @
 @d SET_1ST_PASS_SORT_KEY_FOR_IRL(sort_key, irl) {
   const AIM aim = First_AIM_of_IRL(irl);
-  (sort_key) = Postdot_ISYID_of_AIM (aim);
+  (sort_key) = Postdot_NSYID_of_AIM (aim);
 }
 @<Function definitions@> =
 PRIVATE_NOT_INLINE int
@@ -6197,7 +6197,7 @@ which can be used to index the rules in a boolean vector.
 
 @ @<Populate the prediction matrix@> =
 {
-  ISYID from_isyid;
+  NSYID from_isyid;
   prediction_matrix =
     matrix_obs_create (obs_precompute, isy_count,
 		       irl_count);
@@ -6210,8 +6210,8 @@ which can be used to index the rules in a boolean vector.
 		    (prediction_isy_by_isy_matrix, (unsigned int) from_isyid),
 		    start, &min, &max); start = max + 2)
 	{
-	  ISYID to_isyid;
-	  for (to_isyid = min; to_isyid <= (ISYID)max; to_isyid++)
+	  NSYID to_isyid;
+	  for (to_isyid = min; to_isyid <= (NSYID)max; to_isyid++)
 	    {
 	      // for every predicted symbol
 	      RULEID *p_irl_x_lh_isy = irl_list_x_lh_isy[to_isyid];
@@ -6289,7 +6289,7 @@ create_predicted_AHFA_state(
   }
   AHFA_is_Predicted (p_new_state) = 1;
   p_new_state->t_empty_transition = NULL;
-  TRANSs_of_AHFA (p_new_state) = transitions_new (g, ISY_Count_of_G(g));
+  TRANSs_of_AHFA (p_new_state) = transitions_new (g, NSY_Count_of_G(g));
   Completion_CIL_of_AHFA(p_new_state) = cil_empty (&g->t_cilar);
   @<Calculate postdot symbols for predicted state@>@;
   return p_new_state;
@@ -6297,29 +6297,29 @@ create_predicted_AHFA_state(
 
 @ @<Calculate postdot symbols for predicted state@> =
 {
-  ISYID isy_count = ISY_Count_of_G (g);
+  NSYID isy_count = NSY_Count_of_G (g);
   int item_ix;
-  ISYID no_of_postdot_isys;
+  NSYID no_of_postdot_isys;
   Bit_Vector postdot_v = bv_create ( isy_count );
     for (item_ix = 0; item_ix < no_of_items_in_new_state; item_ix++)
       {
 	AIM item = item_list_working_buffer[item_ix];
-	ISYID postdot_isyid = Postdot_ISYID_of_AIM (item);
+	NSYID postdot_isyid = Postdot_NSYID_of_AIM (item);
 	if (postdot_isyid >= 0)
 	  bv_bit_set (postdot_v, (unsigned int) postdot_isyid);
       }
-    if ((no_of_postdot_isys = Postdot_ISY_Count_of_AHFA(p_new_state) =
+    if ((no_of_postdot_isys = Postdot_NSY_Count_of_AHFA(p_new_state) =
      bv_count (postdot_v)))
   {
     unsigned int min, max, start;
-    ISYID *p_isyid = Postdot_ISYIDAry_of_AHFA(p_new_state) =
+    NSYID *p_isyid = Postdot_NSYIDAry_of_AHFA(p_new_state) =
       marpa_obs_alloc (g->t_obs,
-		     no_of_postdot_isys * sizeof (ISYID));
+		     no_of_postdot_isys * sizeof (NSYID));
     for (start = 0; bv_scan (postdot_v, start, &min, &max); start = max + 2)
       {
-	ISYID postdot_isyid;
-	for (postdot_isyid = (ISYID) min;
-	     postdot_isyid <= (ISYID) max; postdot_isyid++)
+	NSYID postdot_isyid;
+	for (postdot_isyid = (NSYID) min;
+	     postdot_isyid <= (NSYID) max; postdot_isyid++)
 	  {
 	    *p_isyid++ = postdot_isyid;
 	  }
@@ -6367,17 +6367,17 @@ But I expect the trend will also be for grammars to get larger.
 This would be a good issue to run some benchmarks on,
 once I stabilize the C code implemention.
 
-@d TRANS_of_AHFA_by_ISYID(from_ahfa, isyid)
+@d TRANS_of_AHFA_by_NSYID(from_ahfa, isyid)
     (*(TRANSs_of_AHFA(from_ahfa)+(isyid)))
-@d TRANS_of_YIM_by_ISYID(yim, isyid) TRANS_of_AHFA_by_ISYID(AHFA_of_YIM(yim), (isyid))
+@d TRANS_of_YIM_by_NSYID(yim, isyid) TRANS_of_AHFA_by_NSYID(AHFA_of_YIM(yim), (isyid))
 @d To_AHFA_of_TRANS(trans) (to_ahfa_of_transition_get(trans))
 @d LV_To_AHFA_of_TRANS(trans) ((trans)->t_ur.t_to_ahfa)
 @d Completion_Count_of_TRANS(trans)
     (completion_count_of_transition_get(trans))
 @d LV_Completion_Count_of_TRANS(trans) ((trans)->t_ur.t_completion_count)
-@d To_AHFA_of_AHFA_by_ISYID(from_ahfa, id)
-     (To_AHFA_of_TRANS(TRANS_of_AHFA_by_ISYID((from_ahfa), (id))))
-@d To_AHFA_of_YIM_by_ISYID(yim, id) To_AHFA_of_AHFA_by_ISYID(AHFA_of_YIM(yim), (id))
+@d To_AHFA_of_AHFA_by_NSYID(from_ahfa, id)
+     (To_AHFA_of_TRANS(TRANS_of_AHFA_by_NSYID((from_ahfa), (id))))
+@d To_AHFA_of_YIM_by_NSYID(yim, id) To_AHFA_of_AHFA_by_NSYID(AHFA_of_YIM(yim), (id))
 @d AEXs_of_TRANS(trans) ((trans)->t_aex)
 @d Leo_Base_AEX_of_TRANS(trans) ((trans)->t_leo_base_aex)
 @ @s TRANS int
@@ -6438,7 +6438,7 @@ PRIVATE TRANS* transitions_new(GRAMMAR g, int isy_count)
 
 @ @<Function definitions@> =
 PRIVATE
-void transition_add(struct marpa_obstack *obstack, AHFA from_ahfa, ISYID isyid, AHFA to_ahfa)
+void transition_add(struct marpa_obstack *obstack, AHFA from_ahfa, NSYID isyid, AHFA to_ahfa)
 {
     TRANS* transitions = TRANSs_of_AHFA(from_ahfa);
     TRANS transition = transitions[isyid];
@@ -6456,7 +6456,7 @@ Once all the counts are complete,
 the array is populated.
 @<Function definitions@> =
 PRIVATE
-void completion_count_inc(struct marpa_obstack *obstack, AHFA from_ahfa, ISYID isyid)
+void completion_count_inc(struct marpa_obstack *obstack, AHFA from_ahfa, NSYID isyid)
 {
     TRANS* transitions = TRANSs_of_AHFA(from_ahfa);
     TRANS transition = transitions[isyid];
@@ -6494,7 +6494,7 @@ int _marpa_g_AHFA_state_transitions(Marpa_Grammar g,
     if (max_results <= 0) return 0;
     from_ahfa_state = AHFA_of_G_by_ID(g, AHFA_state_id);
     transitions = TRANSs_of_AHFA(from_ahfa_state); 
-    isy_count = ISY_Count_of_G(g);
+    isy_count = NSY_Count_of_G(g);
     for (isyid = 0; isyid < isy_count; isyid++) {
         AHFA to_ahfa_state = To_AHFA_of_TRANS(transitions[isyid]);
 	if (!to_ahfa_state) continue;
@@ -6533,13 +6533,13 @@ AHFAID _marpa_g_AHFA_state_empty_transition(Marpa_Grammar g,
     {
       if (XSYID_is_Terminal (xsy_id))
 	{
-	  /* A terminal might have no corresponding ISY.
+	  /* A terminal might have no corresponding NSY.
 	    Currently that can happen if it is not accessible */
-	  const ISY isy = ISY_of_XSY (XSY_by_ID (xsy_id));
+	  const NSY isy = NSY_of_XSY (XSY_by_ID (xsy_id));
 	  if (isy)
 	    {
 	      bv_bit_set (g->t_bv_isyid_is_terminal,
-			  (unsigned int) ID_of_ISY (isy));
+			  (unsigned int) ID_of_NSY (isy));
 	    }
 	}
     }
@@ -6589,7 +6589,7 @@ AHFAID _marpa_g_AHFA_state_empty_transition(Marpa_Grammar g,
 	{
 	  int rhs_ix;
 	  const AIM aim = AIM_of_AHFA_by_AEX (ahfa, aex);
-	  const ISYID postdot_isyid = Postdot_ISYID_of_AIM (aim);
+	  const NSYID postdot_isyid = Postdot_NSYID_of_AIM (aim);
 	  const IRL irl = IRL_of_AIM (aim);
 	  int raw_position = Position_of_AIM (aim);
 	  if (raw_position < 0)
@@ -6597,8 +6597,8 @@ AHFAID _marpa_g_AHFA_state_empty_transition(Marpa_Grammar g,
 	      raw_position = Length_of_IRL (irl);
 	      if (!IRL_has_Virtual_LHS (irl))
 		{		// Completion
-		  const ISY lhs = LHS_of_IRL (irl);
-		  const XSY xsy = Source_XSY_of_ISY (lhs);
+		  const NSY lhs = LHS_of_IRL (irl);
+		  const XSY xsy = Source_XSY_of_NSY (lhs);
 		  if (XSY_is_Completion_Event (xsy))
 		    {
 		      const XSYID xsyid = ID_of_XSY (xsy);
@@ -6608,7 +6608,7 @@ AHFAID _marpa_g_AHFA_state_empty_transition(Marpa_Grammar g,
 	    }
 	  if (postdot_isyid >= 0)
 	    {
-	      const XSY xsy = Source_XSY_of_ISYID (postdot_isyid);
+	      const XSY xsy = Source_XSY_of_NSYID (postdot_isyid);
 	      const XSYID xsyid = ID_of_XSY (xsy);
 	      bv_bit_set (bv_prediction_xsyid, xsyid);
 	    }
@@ -6616,8 +6616,8 @@ AHFAID _marpa_g_AHFA_state_empty_transition(Marpa_Grammar g,
 	       rhs_ix < raw_position; rhs_ix++)
 	    {
 	      int cil_ix;
-	      const ISYID rhs_isyid = RHSID_of_IRL (irl, rhs_ix);
-	      const XSY xsy = Source_XSY_of_ISYID (rhs_isyid);
+	      const NSYID rhs_isyid = RHSID_of_IRL (irl, rhs_ix);
+	      const XSY xsy = Source_XSY_of_NSYID (rhs_isyid);
 	      const CIL nulled_xsyids = Nulled_XSYIDs_of_XSY (xsy);
 	      const int cil_count = Count_of_CIL (nulled_xsyids);
 	      for (cil_ix = 0; cil_ix < cil_count; cil_ix++)
@@ -6667,7 +6667,7 @@ AHFAID _marpa_g_AHFA_state_empty_transition(Marpa_Grammar g,
          is an event AHFA.
          An AHFA, even if it is not itself an event AHFA,
          may be in a non-empty AHFA event group.  */
-      const ISYID outer_isyid = Leo_LHS_ISYID_of_AHFA (outer_ahfa);
+      const NSYID outer_isyid = Leo_LHS_NSYID_of_AHFA (outer_ahfa);
       if (outer_isyid < 0) {
 	  if (AHFA_has_Event (outer_ahfa)) {
 	      Event_Group_Size_of_AHFA (outer_ahfa) = 1;
@@ -6683,7 +6683,7 @@ AHFAID _marpa_g_AHFA_state_empty_transition(Marpa_Grammar g,
 	  if (!AHFA_has_Event (inner_ahfa))
 	    continue;		/* Not in the group, because it
 				   is not an event AHFA. */
-	  inner_isyid = Leo_LHS_ISYID_of_AHFA (inner_ahfa);
+	  inner_isyid = Leo_LHS_NSYID_of_AHFA (inner_ahfa);
 	  if (inner_isyid < 0)
 	    continue;		/* This AHFA is not a Leo completion,
 				   so we are done. */
@@ -6826,10 +6826,10 @@ In the event of an error creating the recognizer,
 Marpa_Recognizer marpa_r_new( Marpa_Grammar g )
 {
     RECCE r;
-    ISYID isy_count;
+    NSYID isy_count;
     @<Return |NULL| on failure@>@;
     @<Fail if not precomputed@>@;
-    isy_count = ISY_Count_of_G(g);
+    isy_count = NSY_Count_of_G(g);
     r = marpa_malloc(sizeof(struct marpa_r));
     @<Initialize recognizer obstack@>@;
     @<Initialize recognizer elements@>@;
@@ -7022,10 +7022,10 @@ int marpa_r_terminals_expected(Marpa_Recognizer r, Marpa_Symbol_ID* buffer)
     for (start = 0; bv_scan (r->t_bv_isyid_is_expected, start, &min, &max);
 	 start = max + 2)
       {
-	ISYID isyid;
-	for (isyid = (ISYID) min; isyid <= (ISYID) max; isyid++)
+	NSYID isyid;
+	for (isyid = (NSYID) min; isyid <= (NSYID) max; isyid++)
 	  {
-	    const XSY xsy = Source_XSY_of_ISYID(isyid);
+	    const XSY xsy = Source_XSY_of_NSYID(isyid);
 	    buffer[ix++] = ID_of_XSY(xsy);
 	  }
       }
@@ -7038,7 +7038,7 @@ Marpa_Symbol_ID xsy_id)
     @<Return |-2| on failure@>@;
    @<Unpack recognizer objects@>@;
    XSY xsy;
-   ISY isy;
+   NSY isy;
     @<Fail if fatal error@>@;
     @<Fail if recognizer not started@>@;
     @<Fail if |xsy_id| is malformed@>@;
@@ -7047,9 +7047,9 @@ Marpa_Symbol_ID xsy_id)
     if (UNLIKELY(!XSY_is_Terminal(xsy))) {
 	return 0;
     }
-    isy = ISY_of_XSY(xsy);
+    isy = NSY_of_XSY(xsy);
     if (UNLIKELY(!isy)) return 0; /* It may be an unused terminal */
-    return bv_bit_test (r->t_bv_isyid_is_expected, ID_of_ISY(isy));
+    return bv_bit_test (r->t_bv_isyid_is_expected, ID_of_NSY(isy));
 }
 
 @*0 Expected symbol is event?.
@@ -7065,8 +7065,8 @@ an event should be created.
 int marpa_r_expected_symbol_event_set(Marpa_Recognizer r, Marpa_Symbol_ID xsy_id, int value)
 {
     XSY xsy;
-    ISY isy;
-    ISYID isyid;
+    NSY isy;
+    NSYID isyid;
     @<Return |-2| on failure@>@;
     @<Unpack recognizer objects@>@;
     @<Fail if fatal error@>@;
@@ -7081,11 +7081,11 @@ int marpa_r_expected_symbol_event_set(Marpa_Recognizer r, Marpa_Symbol_ID xsy_id
     if (UNLIKELY(XSY_is_Nulling(xsy))) {
       MARPA_ERROR (MARPA_ERR_SYMBOL_IS_NULLING);
     }
-    isy = ISY_of_XSY(xsy);
+    isy = NSY_of_XSY(xsy);
     if (UNLIKELY(!isy)) {
       MARPA_ERROR (MARPA_ERR_SYMBOL_IS_UNUSED);
     }
-    isyid = ID_of_ISY(isy);
+    isyid = ID_of_NSY(isy);
     if (value) {
       lbv_bit_set(r->t_isy_expected_is_event, isyid);
     } else {
@@ -7387,8 +7387,8 @@ able to handle.
 @ @<Private typedefs@> = typedef Marpa_Earley_Set_ID YSID;
 @ @d Next_YS_of_YS(set) ((set)->t_next_earley_set)
 @d Postdot_SYM_Count_of_YS(set) ((set)->t_postdot_sym_count)
-@d First_PIM_of_YS_by_ISYID(set, isyid) (first_pim_of_ys_by_isyid((set), (isyid)))
-@d PIM_ISY_P_of_YS_by_ISYID(set, isyid) (pim_isy_p_find((set), (isyid)))
+@d First_PIM_of_YS_by_NSYID(set, isyid) (first_pim_of_ys_by_isyid((set), (isyid)))
+@d PIM_NSY_P_of_YS_by_NSYID(set, isyid) (pim_isy_p_find((set), (isyid)))
 @<Private incomplete structures@> =
 struct s_earley_set;
 typedef struct s_earley_set *YS;
@@ -7806,15 +7806,15 @@ The only awkwardness takes place
 when the second source is added, and the first one must
 be recopied to make way for pointers to the linked lists.
 @d YIM_FATAL_THRESHOLD (INT_MAX/4)
-@d Complete_ISYID_of_YIM(item, ix) 
-    Complete_ISYID_of_AHFA(AHFA_of_YIM(item), (ix))
-@d Complete_ISY_Count_of_YIM(item)
-    Complete_ISY_Count_of_AHFA(AHFA_of_YIM(item))
+@d Complete_NSYID_of_YIM(item, ix) 
+    Complete_NSYID_of_AHFA(AHFA_of_YIM(item), (ix))
+@d Complete_NSY_Count_of_YIM(item)
+    Complete_NSY_Count_of_AHFA(AHFA_of_YIM(item))
 @d Leo_IRLID_of_YIM(yim) Leo_IRLID_of_AHFA(AHFA_of_YIM(yim))
 @ It might be slightly faster if this boolean is memoized in the Earley item
 when the Earley item is initialized.
 @d Earley_Item_is_Completion(item)
-    (Complete_ISY_Count_of_YIM(item) > 0)
+    (Complete_NSY_Count_of_YIM(item) > 0)
 @<Public typedefs@> = typedef int Marpa_Earley_Item_ID;
 @ The ID of the Earley item is per-Earley-set, so that
 to uniquely specify the Earley item you must also specify
@@ -7971,7 +7971,7 @@ support the chain of postdot items for
 a postdot symbol.
 @d Next_PIM_of_YIX(yix) ((yix)->t_next)
 @d YIM_of_YIX(yix) ((yix)->t_earley_item)
-@d Postdot_ISYID_of_YIX(yix) ((yix)->t_postdot_isyid)
+@d Postdot_NSYID_of_YIX(yix) ((yix)->t_postdot_isyid)
 @<Private incomplete structures@> =
 struct s_earley_ix;
 typedef struct s_earley_ix* YIX;
@@ -7979,7 +7979,7 @@ union u_postdot_item;
 @ @<Private structures@> =
 struct s_earley_ix {
      union u_postdot_item* t_next;
-     ISYID t_postdot_isyid;
+     NSYID t_postdot_isyid;
      YIM t_earley_item; // Never NULL if this is an index item
 };
 typedef struct s_earley_ix YIX_Object;
@@ -7998,7 +7998,7 @@ the fields to maintain the chain of postdot items.
 For this reason, Leo items contain an Earley index,
 but one
 with a |NULL| Earley item pointer.
-@d Postdot_ISYID_of_LIM(leo) (Postdot_ISYID_of_YIX(YIX_of_LIM(leo)))
+@d Postdot_NSYID_of_LIM(leo) (Postdot_NSYID_of_YIX(YIX_of_LIM(leo)))
 @d Next_PIM_of_LIM(leo) (Next_PIM_of_YIX(YIX_of_LIM(leo)))
 @d Origin_of_LIM(leo) ((leo)->t_origin)
 @d Top_AHFA_of_LIM(leo) ((leo)->t_top_ahfa)
@@ -8049,7 +8049,7 @@ Marpa_Symbol_ID _marpa_r_leo_predecessor_symbol(Marpa_Recognizer r)
   }
   predecessor_leo_item = Predecessor_LIM_of_LIM(LIM_of_PIM(postdot_item));
   if (!predecessor_leo_item) return no_predecessor;
-  return Postdot_ISYID_of_LIM(predecessor_leo_item);
+  return Postdot_NSYID_of_LIM(predecessor_leo_item);
 }
 
 @ @<Function definitions@> =
@@ -8094,7 +8094,7 @@ by postdot symbol, of both the Earley items and the Leo items
 for each Earley set.
 @d LIM_of_PIM(pim) ((LIM)(pim))
 @d YIX_of_PIM(pim) ((YIX)(pim))
-@d Postdot_ISYID_of_PIM(pim) (Postdot_ISYID_of_YIX(YIX_of_PIM(pim)))
+@d Postdot_NSYID_of_PIM(pim) (Postdot_NSYID_of_YIX(YIX_of_PIM(pim)))
 @d YIM_of_PIM(pim) (YIM_of_YIX(YIX_of_PIM(pim)))
 @d Next_PIM_of_PIM(pim) (Next_PIM_of_YIX(YIX_of_PIM(pim)))
 
@@ -8118,7 +8118,7 @@ returns that postdot item.
 If it fails, it returns |NULL|.
 @<Function definitions@> =
 PRIVATE PIM*
-pim_isy_p_find (YS set, ISYID isyid)
+pim_isy_p_find (YS set, NSYID isyid)
 {
   int lo = 0;
   int hi = Postdot_SYM_Count_of_YS(set) - 1;
@@ -8126,7 +8126,7 @@ pim_isy_p_find (YS set, ISYID isyid)
   while (hi >= lo) { // A binary search
        int trial = lo+(hi-lo)/2; // guards against overflow
        PIM trial_pim = postdot_array[trial];
-       ISYID trial_isyid = Postdot_ISYID_of_PIM(trial_pim);
+       NSYID trial_isyid = Postdot_NSYID_of_PIM(trial_pim);
        if (trial_isyid == isyid) return postdot_array+trial;
        if (trial_isyid < isyid) {
            lo = trial+1;
@@ -8137,7 +8137,7 @@ pim_isy_p_find (YS set, ISYID isyid)
   return NULL;
 }
 @ @<Function definitions@> =
-PRIVATE PIM first_pim_of_ys_by_isyid(YS set, ISYID isyid)
+PRIVATE PIM first_pim_of_ys_by_isyid(YS set, NSYID isyid)
 {
    PIM* pim_isy_p = pim_isy_p_find(set, isyid);
    return pim_isy_p ? *pim_isy_p : NULL;
@@ -8184,7 +8184,7 @@ _marpa_r_postdot_symbol_trace (Marpa_Recognizer r,
       MARPA_ERROR(MARPA_ERR_NO_TRACE_YS);
       return failure_indicator;
   }
-  pim_isy_p = PIM_ISY_P_of_YS_by_ISYID(current_ys, ISYID_by_XSYID(xsy_id));
+  pim_isy_p = PIM_NSY_P_of_YS_by_NSYID(current_ys, NSYID_by_XSYID(xsy_id));
   pim = *pim_isy_p;
   if (!pim) return -1;
   r->t_trace_pim_isy_p = pim_isy_p;
@@ -8223,7 +8223,7 @@ _marpa_r_first_postdot_item_trace (Marpa_Recognizer r)
   pim = pim_isy_p[0];
   r->t_trace_pim_isy_p = pim_isy_p;
   r->t_trace_postdot_item = pim;
-  return Postdot_ISYID_of_PIM(pim);
+  return Postdot_NSYID_of_PIM(pim);
 }
 
 @ Set the trace postdot item to the one after
@@ -8268,7 +8268,7 @@ _marpa_r_next_postdot_item_trace (Marpa_Recognizer r)
   }
   r->t_trace_pim_isy_p = pim_isy_p;
   r->t_trace_postdot_item = pim;
-  return Postdot_ISYID_of_PIM(pim);
+  return Postdot_NSYID_of_PIM(pim);
 }
 
 @ @<Function definitions@> =
@@ -8282,7 +8282,7 @@ Marpa_AHFA_State_ID _marpa_r_postdot_item_symbol(Marpa_Recognizer r)
       MARPA_ERROR(MARPA_ERR_NO_TRACE_PIM);
       return failure_indicator;
   }
-  return Postdot_ISYID_of_PIM(postdot_item);
+  return Postdot_NSYID_of_PIM(postdot_item);
 }
 
 
@@ -8380,15 +8380,15 @@ union u_source_container {
 @d TOK_of_SRC(source) TOK_of_Source(*(source))
 @d TOK_of_YIM(yim) TOK_of_Source(Source_of_YIM(yim))
 @d TOK_of_SRCL(link) TOK_of_Source(Source_of_SRCL(link))
-@d ISYID_of_Source(srcd) ISYID_of_TOK(TOK_of_Source(srcd))
-@d ISYID_of_SRC(source) ISYID_of_Source(*(source))
-@d ISYID_of_YIM(yim) ISYID_of_Source(Source_of_YIM(yim))
-@d ISYID_of_SRCL(link) ISYID_of_Source(Source_of_SRCL(link))
+@d NSYID_of_Source(srcd) NSYID_of_TOK(TOK_of_Source(srcd))
+@d NSYID_of_SRC(source) NSYID_of_Source(*(source))
+@d NSYID_of_YIM(yim) NSYID_of_Source(Source_of_YIM(yim))
+@d NSYID_of_SRCL(link) NSYID_of_Source(Source_of_SRCL(link))
 
 @ @d Cause_AHFAID_of_SRCL(srcl)
     AHFAID_of_YIM((YIM)Cause_of_SRCL(srcl))
-@d Leo_Transition_ISYID_of_SRCL(leo_source_link)
-    Postdot_ISYID_of_LIM(LIM_of_SRCL(leo_source_link))
+@d Leo_Transition_NSYID_of_SRCL(leo_source_link)
+    Postdot_NSYID_of_LIM(LIM_of_SRCL(leo_source_link))
 
 @ Macros for setting and finding the first |SRCL|'s of each type.
 @d LV_First_Completion_SRCL_of_YIM(item) ((item)->t_container.t_ambiguous.t_completion)
@@ -8635,7 +8635,7 @@ Marpa_Symbol_ID _marpa_r_first_token_link_trace(Marpa_Recognizer r)
 	r->t_trace_source_type = SOURCE_IS_TOKEN;
 	source_link = SRCL_of_YIM(item);
 	r->t_trace_source_link = source_link;
-	return ISYID_of_SRCL (source_link);
+	return NSYID_of_SRCL (source_link);
       case SOURCE_IS_AMBIGUOUS:
 	{
 	  source_link = LV_First_Token_SRCL_of_YIM (item);
@@ -8643,7 +8643,7 @@ Marpa_Symbol_ID _marpa_r_first_token_link_trace(Marpa_Recognizer r)
 	    {
 	      r->t_trace_source_type = SOURCE_IS_TOKEN;
 	      r->t_trace_source_link = source_link;
-	      return ISYID_of_SRCL (source_link);
+	      return NSYID_of_SRCL (source_link);
 	    }
 	}
       }
@@ -8679,7 +8679,7 @@ Marpa_Symbol_ID _marpa_r_next_token_link_trace(Marpa_Recognizer r)
         return -1;
     }
     r->t_trace_source_link = source_link;
-    return ISYID_of_SRCL (source_link);
+    return NSYID_of_SRCL (source_link);
 }
 
 @*1 Trace first completion link.
@@ -8891,7 +8891,7 @@ Marpa_Symbol_ID _marpa_r_source_token(Marpa_Recognizer r, int *value_p)
     if (source_type == SOURCE_IS_TOKEN) {
 	const TOK token = TOK_of_SRCL(source_link);
         if (value_p) *value_p = Value_of_TOK(token);
-	return ISYID_of_TOK(token);
+	return NSYID_of_TOK(token);
     }
     MARPA_ERROR(invalid_source_type_code(source_type));
     return failure_indicator;
@@ -8923,7 +8923,7 @@ Marpa_Symbol_ID _marpa_r_source_leo_transition_symbol(Marpa_Recognizer r)
     switch (source_type)
     {
     case SOURCE_IS_LEO:
-	return Leo_Transition_ISYID_of_SRCL(source_link);
+	return Leo_Transition_NSYID_of_SRCL(source_link);
     }
     MARPA_ERROR(invalid_source_type_code(source_type));
     return failure_indicator;
@@ -9045,12 +9045,12 @@ typedef struct s_token* TOK;
 @ The |t_type| field is to allow |TOK|
 objects to act as or-nodes.
 @d Type_of_TOK(tok) ((tok)->t_unvalued.t_type)
-@d ISYID_of_TOK(tok) ((tok)->t_unvalued.t_isyid)
+@d NSYID_of_TOK(tok) ((tok)->t_unvalued.t_isyid)
 @d Value_of_TOK(tok) ((tok)->t_value)
 @<Private structures@> =
 struct s_token_unvalued {
     int t_type;
-    ISYID t_isyid;
+    NSYID t_isyid;
 };
 struct s_token {
     struct s_token_unvalued t_unvalued;
@@ -9072,7 +9072,7 @@ typedef struct s_alternative* ALT;
 typedef const struct s_alternative* ALT_Const;
 @
 @d TOK_of_ALT(alt) ((alt)->t_token)
-@d ISYID_of_ALT(alt) ISYID_of_TOK(TOK_of_ALT(alt))
+@d NSYID_of_ALT(alt) NSYID_of_TOK(TOK_of_ALT(alt))
 @d Start_YS_of_ALT(alt) ((alt)->t_start_earley_set)
 @d Start_Earleme_of_ALT(alt) Earleme_of_YS(Start_YS_of_ALT(alt))
 @d End_Earleme_of_ALT(alt) ((alt)->t_end_earleme)
@@ -9144,7 +9144,7 @@ PRIVATE int alternative_cmp(const ALT_Const a, const ALT_Const b)
 {
      int subkey = End_Earleme_of_ALT(b) - End_Earleme_of_ALT(a);
      if (subkey) return subkey;
-     subkey = ISYID_of_ALT(a) - ISYID_of_ALT(b);
+     subkey = NSYID_of_ALT(a) - NSYID_of_ALT(b);
      if (subkey) return subkey;
      return Start_Earleme_of_ALT(a) - Start_Earleme_of_ALT(b);
 }
@@ -9246,8 +9246,8 @@ PRIVATE int alternative_insert(RECCE r, ALT new_alternative)
 }
 
 @ @<Declare |marpa_r_start_input| locals@> =
-    const ISYID isy_count = ISY_Count_of_G(g);
-    const ISYID xsy_count = XSY_Count_of_G(g);
+    const NSYID isy_count = NSY_Count_of_G(g);
+    const NSYID xsy_count = XSY_Count_of_G(g);
     Bit_Vector bv_ok_for_chain = bv_create(isy_count);
 @ @<Destroy |marpa_r_start_input| locals@> =
     bv_free(bv_ok_for_chain);
@@ -9338,7 +9338,7 @@ Marpa_Earleme marpa_r_alternative(
     YS current_earley_set;
     const JEARLEME current_earleme = Current_Earleme_of_R (r);
     JEARLEME target_earleme;
-    ISYID token_isyid;
+    NSYID token_isyid;
     if (UNLIKELY (Input_Phase_of_R (r) != R_DURING_INPUT))
       {
 	MARPA_ERROR (MARPA_ERR_RECCE_NOT_ACCEPTING_INPUT);
@@ -9413,25 +9413,25 @@ This last is part of an important technique:
 ``Ruby Slippers" parsing.
 @ Another case of an ``unexpected'' token is an inaccessible one.
 (A terminal must be productive but can be inaccessible.)
-Inaccessible tokens will not have an ISY and,
+Inaccessible tokens will not have an NSY and,
 since they don't derive from the start symbol,
 are always unexpected.
 @<Set |current_earley_set|, failing if token is unexpected@> =
 {
-  ISY token_isy = ISY_by_XSYID (token_xsy_id);
+  NSY token_isy = NSY_by_XSYID (token_xsy_id);
   if (UNLIKELY (!token_isy))
     {
       MARPA_ERROR (MARPA_ERR_INACCESSIBLE_TOKEN);
       return MARPA_ERR_INACCESSIBLE_TOKEN;
     }
-  token_isyid = ID_of_ISY (token_isy);
+  token_isyid = ID_of_NSY (token_isy);
   current_earley_set = Current_YS_of_R (r);
   if (!current_earley_set)
     {
       MARPA_ERROR (MARPA_ERR_NO_TOKEN_EXPECTED_HERE);
       return MARPA_ERR_NO_TOKEN_EXPECTED_HERE;
     }
-  if (!First_PIM_of_YS_by_ISYID (current_earley_set, token_isyid))
+  if (!First_PIM_of_YS_by_NSYID (current_earley_set, token_isyid))
     {
       MARPA_ERROR (MARPA_ERR_UNEXPECTED_TOKEN_ID);
       return MARPA_ERR_UNEXPECTED_TOKEN_ID;
@@ -9463,7 +9463,7 @@ altered by the attempt.
     {
       marpa_obs_reserve (TOK_Obs_of_I (input), sizeof (*token));
       token = marpa_obs_base (token_obstack);
-      ISYID_of_TOK (token) = token_isyid;
+      NSYID_of_TOK (token) = token_isyid;
       Type_of_TOK (token) = VALUED_TOKEN_OR_NODE;
       Value_of_TOK (token) = value;
     }
@@ -9471,7 +9471,7 @@ altered by the attempt.
     {
       marpa_obs_reserve (TOK_Obs_of_I (input), sizeof (token->t_unvalued));
       token = marpa_obs_base (token_obstack);
-      ISYID_of_TOK (token) = token_isyid;
+      NSYID_of_TOK (token) = token_isyid;
       Type_of_TOK (token) = UNVALUED_TOKEN_OR_NODE;
     }
   if (Furthest_Earleme_of_R (r) < target_earleme)
@@ -9600,7 +9600,7 @@ marpa_r_earleme_complete(Marpa_Recognizer r)
 and so should only be initialized if they in use.
 But I expect to use it for other purposes.
 @<Declare |marpa_r_earleme_complete| locals@> =
-    const ISYID isy_count = ISY_Count_of_G(g);
+    const NSYID isy_count = NSY_Count_of_G(g);
     Bit_Vector bv_ok_for_chain = bv_create(isy_count);
     struct marpa_obstack* const earleme_complete_obs = marpa_obs_init;
 @ @<Destroy |marpa_r_earleme_complete| locals@> =
@@ -9649,15 +9649,15 @@ The return value means success, with no events.
 {
   YS start_earley_set = Start_YS_of_ALT (alternative);
   TOK token = TOK_of_ALT (alternative);
-  ISYID token_isyid = ISYID_of_TOK(token);
-  PIM pim = First_PIM_of_YS_by_ISYID (start_earley_set, token_isyid);
+  NSYID token_isyid = NSYID_of_TOK(token);
+  PIM pim = First_PIM_of_YS_by_NSYID (start_earley_set, token_isyid);
   for ( ; pim ; pim = Next_PIM_of_PIM (pim)) {
       AHFA scanned_AHFA, prediction_AHFA;
       YIM scanned_earley_item;
       YIM predecessor = YIM_of_PIM (pim);
       if (!predecessor)
 	continue;		// Ignore Leo items when scanning
-      scanned_AHFA = To_AHFA_of_YIM_by_ISYID (predecessor, token_isyid);
+      scanned_AHFA = To_AHFA_of_YIM_by_NSYID (predecessor, token_isyid);
       scanned_earley_item = earley_item_assign (r,
 						current_earley_set,
 						Origin_of_YIM (predecessor),
@@ -9693,12 +9693,12 @@ The return value means success, with no events.
 add those Earley items it ``causes".
 @<Add new Earley items for |cause|@> =
 {
-  int count = Complete_ISY_Count_of_YIM (cause);
+  int count = Complete_NSY_Count_of_YIM (cause);
   YS middle = Origin_of_YIM (cause);
   int isy_ix;
   for (isy_ix = 0; isy_ix < count; isy_ix++)
     {
-      ISYID complete_isyid = Complete_ISYID_of_YIM(cause, isy_ix);
+      NSYID complete_isyid = Complete_NSYID_of_YIM(cause, isy_ix);
       @<Add new Earley items for |complete_isyid| and |cause|@>@;
     }
 }
@@ -9706,7 +9706,7 @@ add those Earley items it ``causes".
 @ @<Add new Earley items for |complete_isyid| and |cause|@> =
 {
   PIM postdot_item;
-  for (postdot_item = First_PIM_of_YS_by_ISYID (middle, complete_isyid);
+  for (postdot_item = First_PIM_of_YS_by_NSYID (middle, complete_isyid);
        postdot_item; postdot_item = Next_PIM_of_PIM (postdot_item))
     {
       YIM predecessor = YIM_of_PIM (postdot_item);
@@ -9729,7 +9729,7 @@ add those Earley items it ``causes".
 @ @<Add effect, plus any prediction, for non-Leo predecessor@> =
 {
     YS origin = Origin_of_YIM(predecessor);
-     effect_AHFA_state = To_AHFA_of_YIM_by_ISYID(predecessor, complete_isyid);
+     effect_AHFA_state = To_AHFA_of_YIM_by_NSYID(predecessor, complete_isyid);
      effect = earley_item_assign(r, current_earley_set,
           origin, effect_AHFA_state);
      if (Earley_Item_has_No_Source(effect)) {
@@ -9804,7 +9804,7 @@ PRIVATE void trigger_events(RECCE r)
 	  bv_bit_set (bv_ahfa_event_trigger, top_ahfaid);
 	}
       {
-	/* Now do the ISYs for any Leo links */
+	/* Now do the NSYs for any Leo links */
 	const SRCL first_leo_source_link = First_Leo_SRCL_of_YIM (yim);
 	SRCL setup_source_link;
 	for (setup_source_link = first_leo_source_link; setup_source_link;
@@ -9816,7 +9816,7 @@ PRIVATE void trigger_events(RECCE r)
 	    const int event_ahfa_count = Count_of_CIL (event_ahfaids);
 	    for (cil_ix = 0; cil_ix < event_ahfa_count; cil_ix++)
 	      {
-		const ISYID leo_path_ahfaid =
+		const NSYID leo_path_ahfaid =
 		  Item_of_CIL (event_ahfaids, cil_ix);
 		bv_bit_set (bv_ahfa_event_trigger, leo_path_ahfaid);
 		/* No need to test if AHFA is an event AHFA --
@@ -9830,7 +9830,7 @@ PRIVATE void trigger_events(RECCE r)
        start = max + 2)
     {
       XSYID event_ahfaid;
-      for (event_ahfaid = (ISYID) min; event_ahfaid <= (ISYID) max;
+      for (event_ahfaid = (NSYID) min; event_ahfaid <= (NSYID) max;
 	   event_ahfaid++)
 	{
 	  int cil_ix;
@@ -9871,7 +9871,7 @@ PRIVATE void trigger_events(RECCE r)
        start = max + 2)
     {
       XSYID event_xsyid;
-      for (event_xsyid = (ISYID) min; event_xsyid <= (ISYID) max;
+      for (event_xsyid = (NSYID) min; event_xsyid <= (NSYID) max;
 	   event_xsyid++)
 	{
 	  if (lbv_bit_test
@@ -9885,7 +9885,7 @@ PRIVATE void trigger_events(RECCE r)
        start = max + 2)
     {
       XSYID event_xsyid;
-      for (event_xsyid = (ISYID) min; event_xsyid <= (ISYID) max;
+      for (event_xsyid = (NSYID) min; event_xsyid <= (NSYID) max;
 	   event_xsyid++)
 	{
 	  if (lbv_bit_test
@@ -9900,7 +9900,7 @@ PRIVATE void trigger_events(RECCE r)
        start = max + 2)
     {
       XSYID event_xsyid;
-      for (event_xsyid = (ISYID) min; event_xsyid <= (ISYID) max;
+      for (event_xsyid = (NSYID) min; event_xsyid <= (NSYID) max;
 	   event_xsyid++)
 	{
 	  if (lbv_bit_test
@@ -10017,17 +10017,17 @@ At this point there are no Leo items.
 	YIM earley_item = work_earley_items[ix];
       AHFA state = AHFA_of_YIM (earley_item);
       int isy_ix;
-      ISYID postdot_isy_count = Postdot_ISY_Count_of_AHFA (state);
-      ISYID *postdot_isyidary =
-	Postdot_ISYIDAry_of_AHFA (state);
+      NSYID postdot_isy_count = Postdot_NSY_Count_of_AHFA (state);
+      NSYID *postdot_isyidary =
+	Postdot_NSYIDAry_of_AHFA (state);
       for (isy_ix = 0; isy_ix < postdot_isy_count; isy_ix++)
 	{
 	  PIM old_pim = NULL;
 	  PIM new_pim;
-	  ISYID isyid;
+	  NSYID isyid;
 	  new_pim = marpa_obs_alloc (r->t_obs, sizeof (YIX_Object));
 	  isyid = postdot_isyidary[isy_ix];
-	  Postdot_ISYID_of_PIM(new_pim) = isyid;
+	  Postdot_NSYID_of_PIM(new_pim) = isyid;
 	  YIM_of_PIM(new_pim) = earley_item;
 	  if (bv_bit_test(r->t_bv_pim_symbols, (unsigned int)isyid))
 	      old_pim = r->t_pim_workarea[isyid];
@@ -10058,8 +10058,8 @@ Leo item have not been fully populated.
   for (start = 0; bv_scan (r->t_bv_pim_symbols, start, &min, &max);
        start = max + 2)
     {
-      ISYID isyid;
-      for (isyid = (ISYID) min; isyid <= (ISYID) max; isyid++)
+      NSYID isyid;
+      for (isyid = (NSYID) min; isyid <= (NSYID) max; isyid++)
 	{
 	  PIM this_pim = r->t_pim_workarea[isyid];
 	  if (!Next_PIM_of_PIM (this_pim))
@@ -10069,7 +10069,7 @@ Leo item have not been fully populated.
 	      if (YIM_is_Potential_Leo_Base (leo_base))
 		{
 		  AHFA base_to_ahfa =
-		    To_AHFA_of_YIM_by_ISYID (leo_base, isyid);
+		    To_AHFA_of_YIM_by_NSYID (leo_base, isyid);
 		  if (AHFA_is_Leo_Completion (base_to_ahfa))
 		    {
 		      @<Create a new, unpopulated, LIM@>@;
@@ -10089,7 +10089,7 @@ once it is populated.
 @<Create a new, unpopulated, LIM@> = {
     LIM new_lim;
     new_lim = marpa_obs_alloc(r->t_obs, sizeof(*new_lim));
-    Postdot_ISYID_of_LIM(new_lim) = isyid;
+    Postdot_NSYID_of_LIM(new_lim) = isyid;
     YIM_of_PIM(new_lim) = NULL;
     Predecessor_LIM_of_LIM(new_lim) = NULL;
     Origin_of_LIM(new_lim) = NULL;
@@ -10179,9 +10179,9 @@ Earley set.\par
        start = max + 2)
     { /* This is the outer loop.  It loops over the symbols IDs,
 	  visiting only the symbols with LIMs. */
-      ISYID main_loop_isyid;
-      for (main_loop_isyid = (ISYID) min;
-	  main_loop_isyid <= (ISYID) max;
+      NSYID main_loop_isyid;
+      for (main_loop_isyid = (NSYID) min;
+	  main_loop_isyid <= (NSYID) max;
 	  main_loop_isyid++)
 	{
 	  LIM predecessor_lim;
@@ -10233,12 +10233,12 @@ In a populated LIM, this will not necessarily be the case.
     const YIM base_yim = Base_YIM_of_LIM(lim_to_process);
     const YS predecessor_set = Origin_of_YIM(base_yim);
     const AHFA base_to_ahfa = Top_AHFA_of_LIM(lim_to_process);
-    const ISYID predecessor_transition_isyid =
-      Leo_LHS_ISYID_of_AHFA(base_to_ahfa);
+    const NSYID predecessor_transition_isyid =
+      Leo_LHS_NSYID_of_AHFA(base_to_ahfa);
     PIM predecessor_pim;
     if (Earleme_of_YS(predecessor_set) < current_earley_set_id) {
 	predecessor_pim
-	= First_PIM_of_YS_by_ISYID (predecessor_set, predecessor_transition_isyid);
+	= First_PIM_of_YS_by_NSYID (predecessor_set, predecessor_transition_isyid);
     } else {
         predecessor_pim = r->t_pim_workarea[predecessor_transition_isyid];
     }
@@ -10271,8 +10271,8 @@ and in that case would be useless, breaking the chain in this way causes no
 problems.
 @<Create a LIM chain@> =
 {
-  ISYID postdot_isyid_of_lim_to_process
-    = Postdot_ISYID_of_LIM (lim_to_process);
+  NSYID postdot_isyid_of_lim_to_process
+    = Postdot_NSYID_of_LIM (lim_to_process);
   lim_chain_ix = 0;
   r->t_lim_chain[lim_chain_ix++] = LIM_of_PIM (lim_to_process);
   bv_bit_clear (bv_ok_for_chain,
@@ -10287,7 +10287,7 @@ problems.
 					   |lim_to_process| is in the current Earley set, because all LIMs
 					   in previous Earley sets are already
 					   populated. */
-      postdot_isyid_of_lim_to_process = Postdot_ISYID_of_LIM (lim_to_process);
+      postdot_isyid_of_lim_to_process = Postdot_NSYID_of_LIM (lim_to_process);
       if (!bv_bit_test
 	  (bv_ok_for_chain, (unsigned int) postdot_isyid_of_lim_to_process))
 	{
@@ -10394,11 +10394,11 @@ of the base YIM.
     unsigned int min, max, start;
     int postdot_array_ix = 0;
     for (start = 0; bv_scan (r->t_bv_pim_symbols, start, &min, &max); start = max + 2) {
-	ISYID isyid;
-	for (isyid = (ISYID)min; isyid <= (ISYID) max; isyid++) {
+	NSYID isyid;
+	for (isyid = (NSYID)min; isyid <= (NSYID) max; isyid++) {
             PIM this_pim = r->t_pim_workarea[isyid];
 	    if (lbv_bit_test(r->t_isy_expected_is_event, isyid)) {
-	      XSY xsy = Source_XSY_of_ISYID(isyid);
+	      XSY xsy = Source_XSY_of_NSYID(isyid);
 	      int_event_new (g, MARPA_EVENT_SYMBOL_EXPECTED, ID_of_XSY(xsy));
 	    }
 	    if (this_pim) postdot_array[postdot_array_ix++] = this_pim;
@@ -10759,7 +10759,7 @@ no other descendants.
   SRCL source_link = NULL;
   YIM predecessor_earley_item = NULL;
   YIM cause_earley_item = NULL;
-  const ISYID transition_symbol_isyid = Postdot_ISYID_of_AIM(predecessor_aim);
+  const NSYID transition_symbol_isyid = Postdot_NSYID_of_AIM(predecessor_aim);
   switch (source_type)
     {
     case SOURCE_IS_COMPLETION:
@@ -10795,7 +10795,7 @@ no other descendants.
 	  }
     {
       const TRANS cause_completion_data =
-	TRANS_of_YIM_by_ISYID (cause_earley_item, transition_symbol_isyid);
+	TRANS_of_YIM_by_NSYID (cause_earley_item, transition_symbol_isyid);
       const int aex_count = Completion_Count_of_TRANS (cause_completion_data);
       const AEX * const aexes = AEXs_of_TRANS (cause_completion_data);
       const YIM ur_earley_item = cause_earley_item;
@@ -10821,9 +10821,9 @@ no other descendants.
     {
       const YIM cause_earley_item = Cause_of_SRCL (source_link);
       LIM leo_predecessor = LIM_of_SRCL (source_link);
-      const ISYID transition_isyid = Postdot_ISYID_of_LIM (leo_predecessor);
+      const NSYID transition_isyid = Postdot_NSYID_of_LIM (leo_predecessor);
       const TRANS cause_completion_data =
-	TRANS_of_YIM_by_ISYID (cause_earley_item, transition_isyid);
+	TRANS_of_YIM_by_NSYID (cause_earley_item, transition_isyid);
       const int aex_count = Completion_Count_of_TRANS (cause_completion_data);
       const AEX *const aexes = AEXs_of_TRANS (cause_completion_data);
       int ix;
@@ -10836,9 +10836,9 @@ no other descendants.
 	}
       while (leo_predecessor)
 	{
-	  ISYID postdot_isyid = Postdot_ISYID_of_LIM (leo_predecessor);
+	  NSYID postdot_isyid = Postdot_NSYID_of_LIM (leo_predecessor);
 	  YIM leo_base = Base_YIM_of_LIM (leo_predecessor);
-	  TRANS transition = TRANS_of_YIM_by_ISYID (leo_base, postdot_isyid);
+	  TRANS transition = TRANS_of_YIM_by_NSYID (leo_base, postdot_isyid);
 	  const AEX ur_aex = Leo_Base_AEX_of_TRANS (transition);
 	  const AIM ur_aim = AIM_of_YIM_by_AEX (leo_base, ur_aex);
 	  ur_earley_item = leo_base;
@@ -10983,7 +10983,7 @@ struct s_final_or_node
 };
 @
 @d TOK_of_OR(or) (&(or)->t_token)
-@d ISYID_of_OR(or) ISYID_of_TOK(TOK_of_OR(or))
+@d NSYID_of_OR(or) NSYID_of_TOK(TOK_of_OR(or))
 @d Value_of_OR(or) Value_of_TOK(TOK_of_OR(or))
 @<Private structures@> =
 union u_or_node {
@@ -11178,7 +11178,7 @@ and this is the case if |Position_of_OR(or_node) == 0|.
 		DAND draft_and_node;
 		const int rhs_ix = symbol_instance - symbol_instance_of_rule;
 		const OR predecessor = rhs_ix ? last_or_node : NULL;
-		const OR cause = Nulling_OR_by_ISYID( RHSID_of_IRL (irl, rhs_ix ) );
+		const OR cause = Nulling_OR_by_NSYID( RHSID_of_IRL (irl, rhs_ix ) );
 		@<Set |last_or_node| to a new or-node@>@;
 		or_node = PSL_Datum (or_psl, symbol_instance) = last_or_node ;
 		Origin_Ord_of_OR (or_node) = work_origin_ordinal;
@@ -11240,9 +11240,9 @@ and the index of the relevant AHFA item.
 @<Function definitions@> =
 PRIVATE AEX lim_base_data_get(LIM leo_item, YIM* p_base)
 {
-      const ISYID postdot_isyid = Postdot_ISYID_of_LIM (leo_item);
+      const NSYID postdot_isyid = Postdot_NSYID_of_LIM (leo_item);
       const YIM base = Base_YIM_of_LIM(leo_item);
-      const TRANS transition = TRANS_of_YIM_by_ISYID (base, postdot_isyid);
+      const TRANS transition = TRANS_of_YIM_by_NSYID (base, postdot_isyid);
       *p_base = base;
       return Leo_Base_AEX_of_TRANS (transition);
 }
@@ -11301,7 +11301,7 @@ or-nodes follow a completion.
 	  DAND draft_and_node;
 	  const int rhs_ix = symbol_instance - SYMI_of_IRL(path_irl);
 	  const OR predecessor = rhs_ix ? last_or_node : NULL;
-	  const OR cause = Nulling_OR_by_ISYID( RHSID_of_IRL (path_irl, rhs_ix ) );
+	  const OR cause = Nulling_OR_by_NSYID( RHSID_of_IRL (path_irl, rhs_ix ) );
 	  MARPA_ASSERT (symbol_instance < Length_of_IRL (path_irl)) @;
 	  MARPA_ASSERT (symbol_instance >= 0) @;
 	  @<Set |last_or_node| to a new or-node@>@;
@@ -11531,12 +11531,12 @@ and the completed rules.
 Note that this puts a limit on the number of symbols
 and internal rules in a grammar --- their total must fit in an
 int.
-@d WHEID_of_ISYID(isyid) (irl_count+(isyid))
+@d WHEID_of_NSYID(isyid) (irl_count+(isyid))
 @d WHEID_of_IRLID(irlid) (irlid)
 @d WHEID_of_IRL(irl) WHEID_of_IRLID(ID_of_IRL(irl))
 @d WHEID_of_OR(or) (
     wheid = OR_is_Token(or) ?
-        WHEID_of_ISYID(ISYID_of_OR(or)) :
+        WHEID_of_NSYID(NSYID_of_OR(or)) :
         WHEID_of_IRL(IRL_of_OR(or))
     )
 
@@ -11710,9 +11710,9 @@ predecessor.  Set |or_node| to 0 if there is none.
 
 @ @<Add draft and-nodes to the bottom or-node@> =
 {
-  const ISYID transition_isyid = Postdot_ISYID_of_LIM (leo_predecessor);
+  const NSYID transition_isyid = Postdot_NSYID_of_LIM (leo_predecessor);
   const TRANS cause_completion_data =
-    TRANS_of_YIM_by_ISYID (cause_earley_item, transition_isyid);
+    TRANS_of_YIM_by_NSYID (cause_earley_item, transition_isyid);
   const int aex_count = Completion_Count_of_TRANS (cause_completion_data);
   const AEX *const aexes = AEXs_of_TRANS (cause_completion_data);
   int ix;
@@ -11812,7 +11812,7 @@ predecessor.  Set |or_node| to 0 if there is none.
   SRCL source_link = NULL;
   YIM predecessor_earley_item = NULL;
   YIM cause_earley_item = NULL;
-  const ISYID transition_symbol_isyid = Postdot_ISYID_of_AIM(work_predecessor_aim);
+  const NSYID transition_symbol_isyid = Postdot_NSYID_of_AIM(work_predecessor_aim);
   switch (work_source_type)
     {
     case SOURCE_IS_COMPLETION:
@@ -11832,7 +11832,7 @@ predecessor.  Set |or_node| to 0 if there is none.
   while (cause_earley_item)
     {
       const TRANS cause_completion_data =
-	TRANS_of_YIM_by_ISYID (cause_earley_item, transition_symbol_isyid);
+	TRANS_of_YIM_by_NSYID (cause_earley_item, transition_symbol_isyid);
       const int aex_count = Completion_Count_of_TRANS (cause_completion_data);
       const AEX * const aexes = AEXs_of_TRANS (cause_completion_data);
       int ix;
@@ -12094,7 +12094,7 @@ int _marpa_b_and_node_symbol(Marpa_Bocage b,
   {
     const OR cause_or = Cause_OR_of_AND (and_node);
     const XSYID symbol_id =
-      OR_is_Token (cause_or) ? ISYID_of_OR (cause_or) : -1;
+      OR_is_Token (cause_or) ? NSYID_of_OR (cause_or) : -1;
     return symbol_id;
   }
 }
@@ -12112,7 +12112,7 @@ Marpa_Symbol_ID _marpa_b_and_node_token(Marpa_Bocage b,
     if (token) {
       if (value_p)
 	*value_p = Value_of_TOK (token);
-      return ISYID_of_TOK (token);
+      return NSYID_of_TOK (token);
     }
     return -1;
 }
@@ -12304,10 +12304,10 @@ int marpa_r_progress_report_reset( Marpa_Recognizer r)
 		}
 	      {
 		const YIM base_earley_item = Base_YIM_of_LIM (leo_item);
-		const ISYID postdot_isyid = Postdot_ISYID_of_LIM (leo_item);
+		const NSYID postdot_isyid = Postdot_NSYID_of_LIM (leo_item);
 		report_origin = Ord_of_YS (YS_of_LIM (leo_item));
 		report_AHFA_state =
-		  To_AHFA_of_YIM_by_ISYID (base_earley_item, postdot_isyid);
+		  To_AHFA_of_YIM_by_NSYID (base_earley_item, postdot_isyid);
 		next_leo_item = Predecessor_LIM_of_LIM (leo_item);
 		goto INSERT_ITEMS_INTO_TREE;
 	      }
@@ -12509,7 +12509,7 @@ Marpa_Bocage marpa_b_new(Marpa_Recognizer r,
 
 @ @<Declare bocage locals@> =
 const GRAMMAR g = G_of_R(r);
-const int isy_count = ISY_Count_of_G(g);
+const int isy_count = NSY_Count_of_G(g);
 const int xsy_count = XSY_Count_of_G(g);
 const IRLID irl_count = IRL_Count_of_G(g);
 BOCAGE b = NULL;
@@ -13048,8 +13048,8 @@ int marpa_o_rank( Marpa_Order o)
 {
     const OR cause_or = Cause_OR_of_AND (and_node);
     if (OR_is_Token(cause_or)) {
-       const ISYID isy_id = ISYID_of_OR(cause_or);
-       and_node_rank = Rank_of_ISY(ISY_by_ID(isy_id));
+       const NSYID isy_id = NSYID_of_OR(cause_or);
+       and_node_rank = Rank_of_NSY(NSY_by_ID(isy_id));
     } else {
        and_node_rank = Rank_of_IRL(IRL_of_OR(cause_or));
     }
@@ -14376,19 +14376,19 @@ for the rule.
 	  Token_Type_of_V (v) = token_type;
 	  if (token_type != DUMMY_OR_NODE)
 	  {
-	    const ISYID token_isyid = ISYID_of_TOK (token);
+	    const NSYID token_isyid = NSYID_of_TOK (token);
 	    Arg_0_of_V (v) = ++Arg_N_of_V (v);
 	    if (token_type == VALUED_TOKEN_OR_NODE)
 	      {
 		const OR predecessor = Predecessor_OR_of_AND (and_node);
-		XSYID_of_V (v) = ID_of_XSY (Source_XSY_of_ISYID (token_isyid));
+		XSYID_of_V (v) = ID_of_XSY (Source_XSY_of_NSYID (token_isyid));
 		Token_Start_of_V (v) =
 		  predecessor ? YS_Ord_of_OR (predecessor) : Origin_Ord_of_OR (or);
 		Token_Value_of_V (v) = Value_of_TOK (token);
 	      }
 	    else if (token_type == NULLING_TOKEN_OR_NODE)
 	      {
-		const XSY source_xsy = Source_XSY_of_ISYID(token_isyid);
+		const XSY source_xsy = Source_XSY_of_NSYID(token_isyid);
 		const XSYID source_xsy_id = ID_of_XSY(source_xsy);
 		if (bv_bit_test (XSY_is_Valued_BV_of_V (v), source_xsy_id))
 		  {
@@ -15889,7 +15889,7 @@ if (UNLIKELY(!XSYID_of_G_Exists(xsy_id))) {
 }
 @ @<Fail if |isy_id| is invalid@> =
 if (UNLIKELY(!isy_is_valid(g, isy_id))) {
-    MARPA_ERROR(MARPA_ERR_INVALID_ISYID);
+    MARPA_ERROR(MARPA_ERR_INVALID_NSYID);
     return failure_indicator;
 }
 @ @<Fail if |irl_id| is invalid@> =
@@ -16185,7 +16185,7 @@ static char*
 lim_tag_safe (char *buffer, LIM lim)
 {
   sprintf (buffer, "L%d@@%d",
-	   Postdot_ISYID_of_LIM (lim), Earleme_of_LIM (lim));
+	   Postdot_NSYID_of_LIM (lim), Earleme_of_LIM (lim));
 	return buffer;
 }
 

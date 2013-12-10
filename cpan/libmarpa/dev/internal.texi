@@ -120,22 +120,22 @@ once I fully work out the implications
 of "first child" semantics.
 @end deftypefun
 
-@deftypefun int _marpa_g_isy_is_start ( Marpa_Grammar @var{g}, @
-    Marpa_ISY_ID @var{isy_id})
+@deftypefun int _marpa_g_nsy_is_start ( Marpa_Grammar @var{g}, @
+    Marpa_NSY_ID @var{nsy_id})
 @end deftypefun
-@deftypefun int _marpa_g_isy_is_nulling ( @
+@deftypefun int _marpa_g_nsy_is_nulling ( @
   Marpa_Grammar @var{g}, @
-  Marpa_ISY_ID @var{isy_id})
+  Marpa_NSY_ID @var{nsy_id})
 @end deftypefun
-@deftypefun int _marpa_g_isy_is_lhs ( @
+@deftypefun int _marpa_g_nsy_is_lhs ( @
   Marpa_Grammar @var{g}, @
-  Marpa_ISY_ID @var{isy_id})
+  Marpa_NSY_ID @var{nsy_id})
 @end deftypefun
-@deftypefun Marpa_ISY_ID _marpa_g_xsy_nulling_isy ( @
+@deftypefun Marpa_NSY_ID _marpa_g_xsy_nulling_nsy ( @
     Marpa_Grammar @var{g}, @
     Marpa_Symbol_ID @var{symid})
 @end deftypefun
-@deftypefun Marpa_ISY_ID _marpa_g_xsy_isy ( @
+@deftypefun Marpa_NSY_ID _marpa_g_xsy_nsy ( @
     Marpa_Grammar @var{g}, @
     Marpa_Symbol_ID @var{symid})
 @end deftypefun
@@ -147,21 +147,21 @@ of "first child" semantics.
   Marpa_Grammar @var{g}, @
   Marpa_Symbol_ID @var{symid})
 @end deftypefun
-@deftypefun int _marpa_g_isy_is_semantic ( @
+@deftypefun int _marpa_g_nsy_is_semantic ( @
   Marpa_Grammar @var{g}, @
-  Marpa_ISY_ID @var{isy_id})
+  Marpa_NSY_ID @var{nsy_id})
 @end deftypefun
 @deftypefun Marpa_Rule_ID _marpa_g_source_xsy ( @
   Marpa_Grammar @var{g}, @
-  Marpa_ISY_ID @var{isy_id})
+  Marpa_NSY_ID @var{nsy_id})
 @end deftypefun
-@deftypefun Marpa_Rule_ID _marpa_g_isy_lhs_xrl ( @
+@deftypefun Marpa_Rule_ID _marpa_g_nsy_lhs_xrl ( @
   Marpa_Grammar @var{g}, @
-  Marpa_ISY_ID @var{isy_id})
+  Marpa_NSY_ID @var{nsy_id})
 @end deftypefun
-@deftypefun int _marpa_g_isy_xrl_offset ( @
+@deftypefun int _marpa_g_nsy_xrl_offset ( @
   Marpa_Grammar @var{g}, @
-  Marpa_ISY_ID @var{isy_id} )
+  Marpa_NSY_ID @var{nsy_id} )
 @end deftypefun
 
 @node Rule internals, Grammar internals, Symbol internal methods, Internal Interface
@@ -184,7 +184,7 @@ Returns 0 if
 On failure, returns -2.
 @end deftypefun
 
-@deftypefun int _marpa_g_isy_count ( @
+@deftypefun int _marpa_g_nsy_count ( @
   Marpa_Grammar @var{g})
 @end deftypefun
 @deftypefun int _marpa_g_irl_count ( @
@@ -251,9 +251,9 @@ On other failures, -2.
     Marpa_Grammar @var{g}, @
     Marpa_IRL_ID @var{irl_id})
 @end deftypefun
-@deftypefun Marpa_Rank _marpa_g_isy_rank ( @
+@deftypefun Marpa_Rank _marpa_g_nsy_rank ( @
     Marpa_Grammar @var{g}, @
-    Marpa_IRL_ID @var{isy_id})
+    Marpa_IRL_ID @var{nsy_id})
 @end deftypefun
 
 @node Grammar internals, Recognizer internals, Rule internals, Internal Interface
