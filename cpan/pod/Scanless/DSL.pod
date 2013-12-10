@@ -778,7 +778,7 @@ The lexeme default statement, in which case the action is for all lexemes.
 
 The C<action> adverb is not allowed for L0 rules.
 The possible values of actions are described,
-along with other details of the semantics
+along with other details of the semantics, in
 L<a separate document|Marpa::R2::Semantics>.
 
 =head2 assoc
