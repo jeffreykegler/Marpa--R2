@@ -26,7 +26,7 @@ John Aycock and
 R.  Nigel Horspool
 and is described in their
 L<Aycock and Horspool 2002|Marpa::R2::Advanced::Bibliography/"Aycock and Horspool 2002">.
-The second was described by Joop Leo and is described in
+The second was discovered by Joop Leo and is described in
 L<Leo 1991|Marpa::R2::Advanced::Bibliography/"Leo 1991">.
 Aycock, Horspool, and Leo, in turn, based their
 algorithms on the
