@@ -545,6 +545,7 @@ Since each structure and union in C has a different namespace,
 this does not suffice to make different tags unique, but it does
 suffice to let Cweb distinguish tags from other items, and that is the
 object.
+\li tkn: Token.  Needed because C89 reserves names beginning with `to'.
 \li |u_|: Prefix for a union tag.  Cweb does not format C code well
 unless tag names are distinct from other names.
 \li |YIM_Object|: Earley item (object).  `Y' is used instead of `E'
@@ -8405,10 +8406,10 @@ union u_source_container {
 
 @ @<Function definitions@> = PRIVATE
 void
-token_link_add (RECCE r,
+tkn_link_add (RECCE r,
 		YIM item,
 		YIM predecessor,
-		TOK token)
+		TOK tkn)
 {
   SRCL new_link;
   unsigned int previous_source_type = Source_Type_of_YIM (item);
@@ -8417,7 +8418,7 @@ token_link_add (RECCE r,
       const SRCL source_link = SRCL_of_YIM(item);
       Source_Type_of_YIM (item) = SOURCE_IS_TOKEN;
       Predecessor_of_SRCL(source_link) = predecessor;
-      TOK_of_SRCL(source_link) = token;
+      TOK_of_SRCL(source_link) = tkn;
       Next_SRCL_of_SRCL(source_link) = NULL;
       return;
     }
@@ -8428,7 +8429,7 @@ token_link_add (RECCE r,
   new_link = marpa_obs_alloc (r->t_obs, sizeof (*new_link));
   new_link->t_next = LV_First_Token_SRCL_of_YIM (item);
   new_link->t_source.t_predecessor = predecessor;
-  TOK_of_Source(new_link->t_source) = token;
+  TOK_of_Source(new_link->t_source) = tkn;
   LV_First_Token_SRCL_of_YIM (item) = new_link;
 }
 
@@ -8893,9 +8894,9 @@ Marpa_Symbol_ID _marpa_r_source_token(Marpa_Recognizer r, int *value_p)
    source_type = r->t_trace_source_type;
     @<Set source link, failing if necessary@>@;
     if (source_type == SOURCE_IS_TOKEN) {
-	const TOK token = TOK_of_SRCL(source_link);
-        if (value_p) *value_p = Value_of_TOK(token);
-	return NSYID_of_TOK(token);
+	const TOK tkn = TOK_of_SRCL(source_link);
+        if (value_p) *value_p = Value_of_TOK(tkn);
+	return NSYID_of_TOK(tkn);
     }
     MARPA_ERROR(invalid_source_type_code(source_type));
     return failure_indicator;
@@ -9334,7 +9335,7 @@ never reach location $n$.
 @<Function definitions@> =
 Marpa_Earleme marpa_r_alternative(
     Marpa_Recognizer r,
-    Marpa_Symbol_ID token_xsy_id,
+    Marpa_Symbol_ID tkn_xsy_id,
     int value,
     int length)
 {
@@ -9342,13 +9343,13 @@ Marpa_Earleme marpa_r_alternative(
     YS current_earley_set;
     const JEARLEME current_earleme = Current_Earleme_of_R (r);
     JEARLEME target_earleme;
-    NSYID token_nsyid;
+    NSYID tkn_nsyid;
     if (UNLIKELY (Input_Phase_of_R (r) != R_DURING_INPUT))
       {
 	MARPA_ERROR (MARPA_ERR_RECCE_NOT_ACCEPTING_INPUT);
 	return MARPA_ERR_RECCE_NOT_ACCEPTING_INPUT;
       }
-    if (UNLIKELY (!xsy_id_is_valid (g, token_xsy_id)))
+    if (UNLIKELY (!xsy_id_is_valid (g, tkn_xsy_id)))
       {
 	MARPA_ERROR (MARPA_ERR_INVALID_SYMBOL_ID);
 	return MARPA_ERR_INVALID_SYMBOL_ID;
@@ -9361,7 +9362,7 @@ Marpa_Earleme marpa_r_alternative(
 }
 
 @ @<|marpa_alternative| initial check for failure conditions@> = {
-    const XSY_Const token = XSY_by_ID(token_xsy_id);
+    const XSY_Const tkn = XSY_by_ID(tkn_xsy_id);
     if (length <= 0) {
 	MARPA_ERROR(MARPA_ERR_TOKEN_LENGTH_LE_ZERO);
 	return MARPA_ERR_TOKEN_LENGTH_LE_ZERO;
@@ -9370,33 +9371,33 @@ Marpa_Earleme marpa_r_alternative(
 	MARPA_ERROR(MARPA_ERR_TOKEN_TOO_LONG);
 	return MARPA_ERR_TOKEN_TOO_LONG;
     }
-    if (value && UNLIKELY(!lbv_bit_test(r->t_valued_terminal, token_xsy_id)))
+    if (value && UNLIKELY(!lbv_bit_test(r->t_valued_terminal, tkn_xsy_id)))
     {
-      if (!XSY_is_Terminal(token)) {
+      if (!XSY_is_Terminal(tkn)) {
 	  MARPA_ERROR(MARPA_ERR_TOKEN_IS_NOT_TERMINAL);
 	  return MARPA_ERR_TOKEN_IS_NOT_TERMINAL;
       }
-      if (lbv_bit_test(r->t_valued_locked, token_xsy_id)) {
+      if (lbv_bit_test(r->t_valued_locked, tkn_xsy_id)) {
 	  MARPA_ERROR(MARPA_ERR_SYMBOL_VALUED_CONFLICT);
 	  return MARPA_ERR_SYMBOL_VALUED_CONFLICT;
       }
-      lbv_bit_set(r->t_valued_locked, token_xsy_id);
-      lbv_bit_set(r->t_valued_terminal, token_xsy_id);
-      lbv_bit_set(r->t_valued, token_xsy_id);
+      lbv_bit_set(r->t_valued_locked, tkn_xsy_id);
+      lbv_bit_set(r->t_valued_terminal, tkn_xsy_id);
+      lbv_bit_set(r->t_valued, tkn_xsy_id);
     }
-    if (!value && UNLIKELY(!lbv_bit_test(r->t_unvalued_terminal, token_xsy_id)))
+    if (!value && UNLIKELY(!lbv_bit_test(r->t_unvalued_terminal, tkn_xsy_id)))
     {
-      if (!XSY_is_Terminal(token)) {
+      if (!XSY_is_Terminal(tkn)) {
 	  MARPA_ERROR(MARPA_ERR_TOKEN_IS_NOT_TERMINAL);
 	  return MARPA_ERR_TOKEN_IS_NOT_TERMINAL;
       }
-      if (lbv_bit_test(r->t_valued_locked, token_xsy_id)) {
+      if (lbv_bit_test(r->t_valued_locked, tkn_xsy_id)) {
 	  MARPA_ERROR(MARPA_ERR_SYMBOL_VALUED_CONFLICT);
 	  return MARPA_ERR_SYMBOL_VALUED_CONFLICT;
       }
-      lbv_bit_set(r->t_valued_locked, token_xsy_id);
-      lbv_bit_set(r->t_unvalued_terminal, token_xsy_id);
-      lbv_bit_set(r->t_unvalued, token_xsy_id);
+      lbv_bit_set(r->t_valued_locked, tkn_xsy_id);
+      lbv_bit_set(r->t_unvalued_terminal, tkn_xsy_id);
+      lbv_bit_set(r->t_unvalued, tkn_xsy_id);
     }
 }
 
@@ -9422,20 +9423,20 @@ since they don't derive from the start symbol,
 are always unexpected.
 @<Set |current_earley_set|, failing if token is unexpected@> =
 {
-  NSY token_nsy = NSY_by_XSYID (token_xsy_id);
-  if (UNLIKELY (!token_nsy))
+  NSY tkn_nsy = NSY_by_XSYID (tkn_xsy_id);
+  if (UNLIKELY (!tkn_nsy))
     {
       MARPA_ERROR (MARPA_ERR_INACCESSIBLE_TOKEN);
       return MARPA_ERR_INACCESSIBLE_TOKEN;
     }
-  token_nsyid = ID_of_NSY (token_nsy);
+  tkn_nsyid = ID_of_NSY (tkn_nsy);
   current_earley_set = Current_YS_of_R (r);
   if (!current_earley_set)
     {
       MARPA_ERROR (MARPA_ERR_NO_TOKEN_EXPECTED_HERE);
       return MARPA_ERR_NO_TOKEN_EXPECTED_HERE;
     }
-  if (!First_PIM_of_YS_by_NSYID (current_earley_set, token_nsyid))
+  if (!First_PIM_of_YS_by_NSYID (current_earley_set, tkn_nsyid))
     {
       MARPA_ERROR (MARPA_ERR_UNEXPECTED_TOKEN_ID);
       return MARPA_ERR_UNEXPECTED_TOKEN_ID;
@@ -9460,36 +9461,36 @@ The Earley sets and items will not have been
 altered by the attempt.
 @<Insert alternative into stack, failing if token is duplicate@> =
 {
-  TOK token;
+  TOK tkn;
   ALT_Object alternative;
-  struct marpa_obstack * const token_obstack = TOK_Obs_of_I (input);
+  struct marpa_obstack * const tkn_obstack = TOK_Obs_of_I (input);
   if (value)
     {
-      marpa_obs_reserve (TOK_Obs_of_I (input), sizeof (*token));
-      token = marpa_obs_base (token_obstack);
-      NSYID_of_TOK (token) = token_nsyid;
-      Type_of_TOK (token) = VALUED_TOKEN_OR_NODE;
-      Value_of_TOK (token) = value;
+      marpa_obs_reserve (TOK_Obs_of_I (input), sizeof (*tkn));
+      tkn = marpa_obs_base (tkn_obstack);
+      NSYID_of_TOK (tkn) = tkn_nsyid;
+      Type_of_TOK (tkn) = VALUED_TOKEN_OR_NODE;
+      Value_of_TOK (tkn) = value;
     }
   else
     {
-      marpa_obs_reserve (TOK_Obs_of_I (input), sizeof (token->t_unvalued));
-      token = marpa_obs_base (token_obstack);
-      NSYID_of_TOK (token) = token_nsyid;
-      Type_of_TOK (token) = UNVALUED_TOKEN_OR_NODE;
+      marpa_obs_reserve (TOK_Obs_of_I (input), sizeof (tkn->t_unvalued));
+      tkn = marpa_obs_base (tkn_obstack);
+      NSYID_of_TOK (tkn) = tkn_nsyid;
+      Type_of_TOK (tkn) = UNVALUED_TOKEN_OR_NODE;
     }
   if (Furthest_Earleme_of_R (r) < target_earleme)
     Furthest_Earleme_of_R (r) = target_earleme;
-  alternative.t_token = token;
+  alternative.t_token = tkn;
   alternative.t_start_earley_set = current_earley_set;
   alternative.t_end_earleme = target_earleme;
   if (alternative_insert (r, &alternative) < 0)
     {
-      marpa_obs_reject (token_obstack);
+      marpa_obs_reject (tkn_obstack);
       MARPA_ERROR(MARPA_ERR_DUPLICATE_TOKEN);
       return MARPA_ERR_DUPLICATE_TOKEN;
     }
-  token = marpa_obs_finish (token_obstack);
+  tkn = marpa_obs_finish (tkn_obstack);
 }
 
 @** Complete an Earley set.
@@ -9652,21 +9653,21 @@ The return value means success, with no events.
 @ @<Scan an Earley item from alternative@> =
 {
   YS start_earley_set = Start_YS_of_ALT (alternative);
-  TOK token = TOK_of_ALT (alternative);
-  NSYID token_nsyid = NSYID_of_TOK(token);
-  PIM pim = First_PIM_of_YS_by_NSYID (start_earley_set, token_nsyid);
+  TOK tkn = TOK_of_ALT (alternative);
+  NSYID tkn_nsyid = NSYID_of_TOK(tkn);
+  PIM pim = First_PIM_of_YS_by_NSYID (start_earley_set, tkn_nsyid);
   for ( ; pim ; pim = Next_PIM_of_PIM (pim)) {
       AHFA scanned_AHFA, prediction_AHFA;
       YIM scanned_earley_item;
       YIM predecessor = YIM_of_PIM (pim);
       if (!predecessor)
 	continue;		// Ignore Leo items when scanning
-      scanned_AHFA = To_AHFA_of_YIM_by_NSYID (predecessor, token_nsyid);
+      scanned_AHFA = To_AHFA_of_YIM_by_NSYID (predecessor, tkn_nsyid);
       scanned_earley_item = earley_item_assign (r,
 						current_earley_set,
 						Origin_of_YIM (predecessor),
 						scanned_AHFA);
-      token_link_add (r, scanned_earley_item, predecessor, token);
+      tkn_link_add (r, scanned_earley_item, predecessor, tkn);
       prediction_AHFA = Empty_Transition_of_AHFA (scanned_AHFA);
       if (!prediction_AHFA) continue;
       scanned_earley_item = earley_item_assign (r,
@@ -11766,28 +11767,28 @@ predecessor.  Set |or_node| to 0 if there is none.
 {
   SRCL source_link = NULL;
   YIM predecessor_earley_item = NULL;
-  TOK token = NULL;
+  TOK tkn = NULL;
   switch (work_source_type)
     {
     case SOURCE_IS_TOKEN:
       predecessor_earley_item = Predecessor_of_YIM (work_earley_item);
-      token = TOK_of_YIM(work_earley_item);
+      tkn = TOK_of_YIM(work_earley_item);
       break;
     case SOURCE_IS_AMBIGUOUS:
       source_link = LV_First_Token_SRCL_of_YIM (work_earley_item);
       if (source_link)
 	{
 	  predecessor_earley_item = Predecessor_of_SRCL (source_link);
-	  token = TOK_of_SRCL(source_link);
+	  tkn = TOK_of_SRCL(source_link);
 	  source_link = Next_SRCL_of_SRCL (source_link);
 	}
     }
-    while (token) 
+    while (tkn) 
       {
 	@<Add draft and-node for token source@>@;
 	if (!source_link) break;
 	predecessor_earley_item = Predecessor_of_SRCL (source_link);
-        token = TOK_of_SRCL(source_link);
+        tkn = TOK_of_SRCL(source_link);
 	source_link = Next_SRCL_of_SRCL (source_link);
       }
 }
@@ -11797,7 +11798,7 @@ predecessor.  Set |or_node| to 0 if there is none.
   OR dand_predecessor;
   @<Set |dand_predecessor|@>@;
   draft_and_node_add (bocage_setup_obs, work_proper_or_node,
-	  dand_predecessor, (OR)token);
+	  dand_predecessor, (OR)tkn);
 }
 
 @ @<Set |dand_predecessor|@> =
@@ -12107,16 +12108,16 @@ int _marpa_b_and_node_symbol(Marpa_Bocage b,
 Marpa_Symbol_ID _marpa_b_and_node_token(Marpa_Bocage b,
     Marpa_And_Node_ID and_node_id, int* value_p)
 {
-  TOK token;
+  TOK tkn;
   AND and_node;
   @<Return |-2| on failure@>@;
   @<Unpack bocage objects@>@;
     @<Check bocage |and_node_id|; set |and_node|@>@;
-    token = and_node_token(and_node);
-    if (token) {
+    tkn = and_node_token(and_node);
+    if (tkn) {
       if (value_p)
-	*value_p = Value_of_TOK (token);
-      return NSYID_of_TOK (token);
+	*value_p = Value_of_TOK (tkn);
+      return NSYID_of_TOK (tkn);
     }
     return -1;
 }
@@ -14251,16 +14252,16 @@ Marpa_Step_Type marpa_v_step(Marpa_Value public_v)
 	    /* fall through */
 	  case MARPA_STEP_TOKEN:
 	    {
-	      int token_type = Token_Type_of_V (v);
+	      int tkn_type = Token_Type_of_V (v);
 	      Next_Value_Type_of_V (v) = MARPA_STEP_RULE;
-	      if (token_type == NULLING_TOKEN_OR_NODE)
+	      if (tkn_type == NULLING_TOKEN_OR_NODE)
 	      {
 		  if (lbv_bit_test(XSY_is_Valued_BV_of_V(v), XSYID_of_V(v))) {
 		      Result_of_V(v) = Arg_N_of_V(v);
 		      return Step_Type_of_V(v) = MARPA_STEP_NULLING_SYMBOL;
 		  }
 	      }
-	      else if (token_type != DUMMY_OR_NODE)
+	      else if (tkn_type != DUMMY_OR_NODE)
 		{
 		    Result_of_V(v) = Arg_N_of_V(v);
 		   return Step_Type_of_V(v) = MARPA_STEP_TOKEN;
@@ -14367,32 +14368,32 @@ for the rule.
 	{
 	  ANDID and_node_id;
 	  AND and_node;
-	  TOK token;
-	  int token_type;
+	  TOK tkn;
+	  int tkn_type;
 	  const NOOK nook = NOOK_of_TREE_by_IX (t, NOOK_of_V (v));
 	  const int choice = Choice_of_NOOK (nook);
 	  or = OR_of_NOOK (nook);
 	  YS_ID_of_V(v) = YS_Ord_of_OR(or);
 	  and_node_id = and_order_get (o, or, choice);
 	  and_node = and_nodes + and_node_id;
-	  token = and_node_token (and_node);
-	  token_type = token ? Type_of_TOK(token) : DUMMY_OR_NODE;
-	  Token_Type_of_V (v) = token_type;
-	  if (token_type != DUMMY_OR_NODE)
+	  tkn = and_node_token (and_node);
+	  tkn_type = tkn ? Type_of_TOK(tkn) : DUMMY_OR_NODE;
+	  Token_Type_of_V (v) = tkn_type;
+	  if (tkn_type != DUMMY_OR_NODE)
 	  {
-	    const NSYID token_nsyid = NSYID_of_TOK (token);
+	    const NSYID tkn_nsyid = NSYID_of_TOK (tkn);
 	    Arg_0_of_V (v) = ++Arg_N_of_V (v);
-	    if (token_type == VALUED_TOKEN_OR_NODE)
+	    if (tkn_type == VALUED_TOKEN_OR_NODE)
 	      {
 		const OR predecessor = Predecessor_OR_of_AND (and_node);
-		XSYID_of_V (v) = ID_of_XSY (Source_XSY_of_NSYID (token_nsyid));
+		XSYID_of_V (v) = ID_of_XSY (Source_XSY_of_NSYID (tkn_nsyid));
 		Token_Start_of_V (v) =
 		  predecessor ? YS_Ord_of_OR (predecessor) : Origin_Ord_of_OR (or);
-		Token_Value_of_V (v) = Value_of_TOK (token);
+		Token_Value_of_V (v) = Value_of_TOK (tkn);
 	      }
-	    else if (token_type == NULLING_TOKEN_OR_NODE)
+	    else if (tkn_type == NULLING_TOKEN_OR_NODE)
 	      {
-		const XSY source_xsy = Source_XSY_of_NSYID(token_nsyid);
+		const XSY source_xsy = Source_XSY_of_NSYID(tkn_nsyid);
 		const XSYID source_xsy_id = ID_of_XSY(source_xsy);
 		if (bv_bit_test (XSY_is_Valued_BV_of_V (v), source_xsy_id))
 		  {
