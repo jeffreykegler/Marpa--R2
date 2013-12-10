@@ -578,7 +578,7 @@ There may be more than one default pseudo-rule.
 The scope of default pseudo-rules is lexical, applying only to rules
 that appear afterwards in the DSL source.
 
-Currently only the C<action> and C<bless> adverbs
+Currently only the L<C<action>|/"action"> and L<C<bless>|/"bless"> adverbs
 can be specified in a default pseudo-rule.
 Each default pseudo-rule creates a completely new
 set of defaults -- if an adverb is not specified,
@@ -635,7 +635,7 @@ lexeme adverbs.
 It only changes the defaults for lexemes,
 and does not affect rules.
 Only the defaults for
-the C<action> and C<bless> adverbs
+the L<C<action>|/"action"> and L<C<bless>|/"bless"> adverbs
 can be specified in a lexeme default statement.
 Only one lexeme default statement is allowed in a file.
 
