@@ -10598,14 +10598,14 @@ PRIVATE UR ur_node_new(URS stack, UR prev)
 PRIVATE void
 ur_node_push (URS stack, YIM earley_item, AEX aex)
 {
-  UR top = stack->t_top;
-  UR new_top = Next_UR_of_UR (top);
-  YIM_of_UR (top) = earley_item;
-  AEX_of_UR (top) = aex;
+  UR old_top = stack->t_top;
+  UR new_top = Next_UR_of_UR (old_top);
+  YIM_of_UR (old_top) = earley_item;
+  AEX_of_UR (old_top) = aex;
   if (!new_top)
     {
-      new_top = ur_node_new (stack, top);
-      Next_UR_of_UR (top) = new_top;
+      new_top = ur_node_new (stack, old_top);
+      Next_UR_of_UR (old_top) = new_top;
     }
   stack->t_top = new_top;
 }
