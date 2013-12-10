@@ -23,6 +23,7 @@
 
 #include "config.h"
 #include "marpa.h"
+#include "marpa_ami.h"
 
 /* This kind of pointer comparison is not portable per C89,
  * but the Perl source depends on it throughout,
@@ -184,6 +185,10 @@ typedef struct
   int end_pos;
   SV* input;
   int too_many_earley_items;
+
+  /* After this are declarations destined for the non-XS SLIF */
+  MARPA_DSTACK_DECLARE(t_events);
+  /* Before this are declarations destined for the non-XS SLIF */
 
 } Scanless_R;
 #define TOKEN_VALUE_IS_UNDEF (1)
@@ -5384,6 +5389,12 @@ PPCODE:
   slr->next_lexer = slr->current_lexer;
   slr->fallback_lexer = slr->current_lexer;
 
+  /* After this is code destined for the non-XS SLIF */
+
+  MARPA_DSTACK_INIT(slr->t_events, union marpa_slr_event_s, MAX(1024/sizeof(union marpa_slr_event_s), 16));
+
+  /* Before this is code destined for the non-XS SLIF */
+
   new_sv = sv_newmortal ();
   sv_setref_pv (new_sv, scanless_r_class_name, (void *) slr);
   XPUSHs (new_sv);
@@ -5399,6 +5410,13 @@ PPCODE:
     {
       marpa_r_unref (r0);
     }
+
+  /* After this is code destined for the non-XS SLIF */
+
+   MARPA_DSTACK_DESTROY(slr->t_events);
+
+  /* Before this is code destined for the non-XS SLIF */
+
   Safefree(slr->pos_db);
   SvREFCNT_dec (slr->slg_sv);
   SvREFCNT_dec (slr->r1_sv);

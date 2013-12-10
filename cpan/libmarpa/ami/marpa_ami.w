@@ -354,6 +354,8 @@ So I add such a comment.
 #ifndef _MARPA_AMI_H__
 #define _MARPA_AMI_H__ 1
 
+#include "marpa_util.h"
+
 @h
 @<Friend incomplete structures@>@;
 
@@ -380,7 +382,6 @@ So I add such a comment.
 #endif
 
 #include "marpa_int.h"
-#include "marpa_util.h"
 #include "marpa_ami.h"
 
 @<Private macros@>@;
