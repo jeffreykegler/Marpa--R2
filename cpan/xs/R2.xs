@@ -188,6 +188,7 @@ typedef struct
 
   /* After this are declarations destined for the non-XS SLIF */
   MARPA_DSTACK_DECLARE(t_event_dstack);
+  int t_count_of_deleted_events;
   /* Before this are declarations destined for the non-XS SLIF */
 
 } Scanless_R;
@@ -2377,7 +2378,7 @@ slr_alternatives (Scanless_R * slr)
 	if (g1_lexeme >= 0)
 	  {
 	    slr->lexer_start_pos = slr->perl_pos = slr->start_of_lexeme;
-	    return "event";
+	    return 0;
 	  }
       }
 
@@ -2517,8 +2518,6 @@ slr_alternatives (Scanless_R * slr)
 						       (slr->end_of_lexeme -
 							slr->
 							start_of_lexeme)));
-	if (av_len (slr->r1_wrapper->event_queue) >= 0)
-	  return "event";
 	return 0;
       }
 
@@ -5483,6 +5482,7 @@ PPCODE:
   /* After this is code destined for the non-XS SLIF */
 
   MARPA_DSTACK_INIT(slr->t_event_dstack, union marpa_slr_event_s, MAX(1024/sizeof(union marpa_slr_event_s), 16));
+  slr->t_count_of_deleted_events = 0;
 
   /* Before this is code destined for the non-XS SLIF */
 
@@ -5710,6 +5710,8 @@ PPCODE:
   /* Clear event queue */
   av_clear (slr->r1_wrapper->event_queue);
   MARPA_DSTACK_CLEAR(slr->t_event_dstack);
+  slr->t_count_of_deleted_events = 0;
+
 
   /* Application intervention resets perl_pos */
   slr->last_perl_pos = -1;
@@ -5746,16 +5748,10 @@ PPCODE:
 	    }
 	}
 
-      /* warn("%s %d: old=%ld new=%ld", __FILE__, __LINE__,
-         (long)slr->current_lexer->index,
-         (long)slr->next_lexer->index); */
       if (trace_lexers >= 1
 	  && slr->current_lexer->index != slr->next_lexer->index)
 	{
 	  AV *event_data = newAV ();
-	  /*( warn("Changing lexers %s %d: old=%ld new=%ld", __FILE__, __LINE__,
-	     (long)slr->current_lexer->index,
-	     (long)slr->next_lexer->index); */
 	  av_push (event_data, newSVpvs ("'trace"));
 	  av_push (event_data, newSVpv ("changing lexers", 0));
 	  av_push (event_data, newSViv ((IV) slr->perl_pos));
@@ -5803,11 +5799,18 @@ PPCODE:
 	    }
 	  else
 	    {
+	      int event_count;
 	      const char *result_string = slr_alternatives (slr);
 	      if (result_string)
 		{
 		  XSRETURN_PV (result_string);
 		}
+	      event_count = av_len (slr->r1_wrapper->event_queue) + 1;
+	      event_count += MARPA_DSTACK_LENGTH(slr->t_event_dstack);
+	      event_count -= slr->t_count_of_deleted_events;
+	      if (event_count) {
+		  XSRETURN_PV ("event");
+	      }
 	    }
 
 	  /* Deal with repeated failures at the same |perl_pos| */
@@ -5927,7 +5930,7 @@ PPCODE:
 	    av_push (event_av, newSViv ((IV) event->t_codepoint));
 	    av_push (event_av, newSViv ((IV) event->t_perl_pos));
 	    av_push (event_av, newSViv ((IV) event->t_current_lexer_ix));
-	    av_push (event_queue_av, newRV_noinc ((SV *) event_av));
+	    XPUSHs (sv_2mortal (newRV_noinc ((SV *) event_av)));
 	    break;
 	  }
 
@@ -5943,7 +5946,7 @@ PPCODE:
 	    av_push (event_av, newSViv ((IV) event->t_perl_pos));
 	    av_push (event_av, newSViv ((IV) event->t_symbol_id));
 	    av_push (event_av, newSViv ((IV) event->t_current_lexer_ix));
-	    av_push (event_queue_av, newRV_noinc ((SV *) event_av));
+	    XPUSHs (sv_2mortal (newRV_noinc ((SV *) event_av)));
 	    break;
 	  }
 
@@ -5959,7 +5962,7 @@ PPCODE:
 	    av_push (event_av, newSViv ((IV) event->t_perl_pos));
 	    av_push (event_av, newSViv ((IV) event->t_symbol_id));
 	    av_push (event_av, newSViv ((IV) event->t_current_lexer_ix));
-	    av_push (event_queue_av, newRV_noinc ((SV *) event_av));
+	    XPUSHs (sv_2mortal (newRV_noinc ((SV *) event_av)));
 	    break;
 	  }
 
@@ -5979,7 +5982,7 @@ PPCODE:
 	    av_push (event_av, newSViv ((IV) event->t_start_of_lexeme));
 	    av_push (event_av, newSViv ((IV) event->t_end_of_lexeme));
 	    av_push (event_av, newSViv ((IV) event->t_current_lexer_ix));
-	    av_push (event_queue_av, newRV_noinc ((SV *) event_av));
+	    XPUSHs (sv_2mortal (newRV_noinc ((SV *) event_av)));
 	    break;
 	  }
 
@@ -5994,7 +5997,7 @@ PPCODE:
 	    av_push (event_av, newSViv ((IV) event->t_lexeme));
 	    av_push (event_av, newSViv ((IV) event->t_start_of_lexeme));
 	    av_push (event_av, newSViv ((IV) event->t_end_of_lexeme));
-	    av_push (event_queue_av, newRV_noinc ((SV *) event_av));
+	    XPUSHs (sv_2mortal (newRV_noinc ((SV *) event_av)));
 	    break;
 	  }
 
@@ -6005,7 +6008,7 @@ PPCODE:
 	    AV *event_av = newAV ();
 	    av_push (event_av, newSVpvs ("symbol completed"));
 	    av_push (event_av, newSViv ((IV) event->t_completed_symbol));
-	    av_push (event_queue_av, newRV_noinc ((SV *) event_av));
+	    XPUSHs (sv_2mortal (newRV_noinc ((SV *) event_av)));
 	    break;
 	  }
 
@@ -6016,7 +6019,7 @@ PPCODE:
 	    AV *event_av = newAV ();
 	    av_push (event_av, newSVpvs ("symbol nulled"));
 	    av_push (event_av, newSViv ((IV) event->t_nulled_symbol));
-	    av_push (event_queue_av, newRV_noinc ((SV *) event_av));
+	    XPUSHs (sv_2mortal (newRV_noinc ((SV *) event_av)));
 	    break;
 	  }
 
@@ -6028,7 +6031,7 @@ PPCODE:
 
 	    av_push (event_av, newSVpvs ("symbol predicted"));
 	    av_push (event_av, newSViv ((IV) event->t_predicted_symbol));
-	    av_push (event_queue_av, newRV_noinc ((SV *) event_av));
+	    XPUSHs (sv_2mortal (newRV_noinc ((SV *) event_av)));
 	    break;
 	  }
 
@@ -6047,7 +6050,7 @@ PPCODE:
 	      }
 	    av_push (event_av, newSVpvs ("unknown marpa_r event"));
 	    av_push (event_av, newSVpv (result_string, 0));
-	    av_push (event_queue_av, newRV_noinc ((SV *) event_av));
+	    XPUSHs (sv_2mortal (newRV_noinc ((SV *) event_av)));
 	    break;
 	  }
 
@@ -6062,7 +6065,7 @@ PPCODE:
 	    av_push (event_av, newSViv ((IV) event->t_end_of_lexeme));	/* end */
 	    av_push (event_av, newSViv ((IV) event->t_lexeme));	/* lexeme */
 	    av_push (event_av, newSViv ((IV) event->t_current_lexer_ix));
-	    av_push (event_queue_av, newRV_noinc ((SV *) event_av));
+	    XPUSHs (sv_2mortal (newRV_noinc ((SV *) event_av)));
 	    break;
 	  }
 
@@ -6076,7 +6079,7 @@ PPCODE:
 	    av_push (event_av, newSViv ((IV) event->t_start_of_pause_lexeme));	/* start */
 	    av_push (event_av, newSViv ((IV) event->t_end_of_pause_lexeme));	/* end */
 	    av_push (event_av, newSViv ((IV) event->t_pause_lexeme));	/* lexeme */
-	    av_push (event_queue_av, newRV_noinc ((SV *) event_av));
+	    XPUSHs (sv_2mortal (newRV_noinc ((SV *) event_av)));
 	    break;
 	  }
 
@@ -6087,7 +6090,7 @@ PPCODE:
 	    AV *event_av = newAV ();
 	    av_push (event_av, newSVpvs ("before lexeme"));
 	    av_push (event_av, newSViv ((IV) event->t_pause_lexeme));	/* lexeme */
-	    av_push (event_queue_av, newRV_noinc ((SV *) event_av));
+	    XPUSHs (sv_2mortal (newRV_noinc ((SV *) event_av)));
 	    break;
 	  }
 
@@ -6101,7 +6104,7 @@ PPCODE:
 	    av_push (event_av, newSViv ((IV) event->t_start_of_lexeme));	/* start */
 	    av_push (event_av, newSViv ((IV) event->t_end_of_lexeme));	/* end */
 	    av_push (event_av, newSViv ((IV) event->t_lexeme));	/* lexeme */
-	    av_push (event_queue_av, newRV_noinc ((SV *) event_av));
+	    XPUSHs (sv_2mortal (newRV_noinc ((SV *) event_av)));
 	    break;
 	  }
 
@@ -6115,7 +6118,7 @@ PPCODE:
 	    av_push (event_av, newSViv ((IV) event->t_start_of_lexeme));	/* start */
 	    av_push (event_av, newSViv ((IV) event->t_end_of_lexeme));	/* end */
 	    av_push (event_av, newSViv ((IV) event->t_lexeme));	/* lexeme */
-	    av_push (event_queue_av, newRV_noinc ((SV *) event_av));
+	    XPUSHs (sv_2mortal (newRV_noinc ((SV *) event_av)));
 	    break;
 	  }
 
@@ -6130,7 +6133,7 @@ PPCODE:
 	    av_push (event_av, newSViv ((IV) event->t_end_of_lexeme));	/* end */
 	    av_push (event_av, newSViv ((IV) event->t_lexeme));	/* lexeme */
 	    av_push (event_av, newSViv ((IV) event->t_current_lexer_ix));
-	    av_push (event_queue_av, newRV_noinc ((SV *) event_av));
+	    XPUSHs (sv_2mortal (newRV_noinc ((SV *) event_av)));
 	    break;
 	  }
 
@@ -6144,7 +6147,7 @@ PPCODE:
 	    av_push (event_av, newSViv ((IV) event->t_start_of_lexeme));	/* start */
 	    av_push (event_av, newSViv ((IV) event->t_end_of_lexeme));	/* end */
 	    av_push (event_av, newSViv ((IV) event->t_lexeme));	/* lexeme */
-	    av_push (event_queue_av, newRV_noinc ((SV *) event_av));
+	    XPUSHs (sv_2mortal (newRV_noinc ((SV *) event_av)));
 	    break;
 	  }
 
@@ -6155,7 +6158,7 @@ PPCODE:
 	    AV *event_av = newAV ();;
 	    av_push (event_av, newSVpvs ("after lexeme"));
 	    av_push (event_av, newSViv ((IV) event->t_lexeme));	/* lexeme */
-	    av_push (event_queue_av, newRV_noinc ((SV *) event_av));
+	    XPUSHs (sv_2mortal (newRV_noinc ((SV *) event_av)));
 	    break;
 	  }
 
@@ -6168,7 +6171,7 @@ PPCODE:
 	    av_push (event_av, newSVpv ("lexer restarted recognizer", 0));
 	    av_push (event_av, newSViv ((IV) event->t_perl_pos));
 	    av_push (event_av, newSViv ((IV) event->t_current_lexer_ix));
-	    av_push (event_queue_av, newRV_noinc ((SV *) event_av));
+	    XPUSHs (sv_2mortal (newRV_noinc ((SV *) event_av)));
 	    break;
 	  }
 
@@ -6182,7 +6185,7 @@ PPCODE:
 	    av_push (event_av, newSViv ((IV) event->t_perl_pos));
 	    av_push (event_av, newSViv ((IV) event->t_old_lexer_ix));
 	    av_push (event_av, newSViv ((IV) event->t_new_lexer_ix));
-	    av_push (event_queue_av, newRV_noinc ((SV *) event_av));
+	    XPUSHs (sv_2mortal (newRV_noinc ((SV *) event_av)));
 	    break;
 	  }
 
@@ -6192,7 +6195,7 @@ PPCODE:
 	      &(marpa_slr_event->t_no_acceptable_input);
 	    AV *event_av = newAV ();
 	    av_push (event_av, newSVpvs ("no acceptable input"));
-	    av_push (event_queue_av, newRV_noinc ((SV *) event_av));
+	    XPUSHs (sv_2mortal (newRV_noinc ((SV *) event_av)));
 	    break;
 	  }
 
@@ -6201,12 +6204,13 @@ PPCODE:
 	    AV *event_av = newAV ();
 	    av_push (event_av, newSVpvs ("unknown SLR event"));
 	    av_push (event_av, newSViv ((IV) event_type));
-	    av_push (event_queue_av, newRV_noinc ((SV *) event_av));
+	    XPUSHs (sv_2mortal (newRV_noinc ((SV *) event_av)));
 	    break;
 	  }
 	}
     }
-  queue_length = av_len (slr->r1_wrapper->event_queue);
+
+  queue_length = av_len (event_queue_av);
   for (i = 0; i <= queue_length; i++)
     {
       SV *event = av_shift (event_queue_av);
