@@ -29,9 +29,8 @@ use Marpa::R2;
 use Data::Dumper;
 
 our $DEBUG = 0;
-my @tests_data = ();
 
-my $symch_ambiguity = \(<<'END_OF_SOURCE');
+my $source = \(<<'END_OF_SOURCE');
 :default ::= action => ::array
 pair ::= duple | item item
 duple ::= item item
@@ -40,10 +39,9 @@ Hesperus ::= 'a'
 Phosphorus ::= 'a'
 END_OF_SOURCE
 
-push @tests_data, [
-    $symch_ambiguity, 'aa',
-    'Application grammar is ambiguous',
-    <<'END_OF_MESSAGE',
+my $input           = 'aa';
+my $expected_value   = 'Application grammar is ambiguous';
+my $expected_result = <<'END_OF_MESSAGE';
 Ambiguous symch at Glade=2, Symbol=<pair>:
   The ambiguity is from line 1, column 1 to line 1, column 2
   Text is: aa
@@ -51,66 +49,59 @@ Ambiguous symch at Glade=2, Symbol=<pair>:
   Symch 0 is a rule: pair ::= duple
   Symch 1 is a rule: pair ::= item item
 END_OF_MESSAGE
-    'Symch ambiguity'
-];
+my $test_name = 'Symch ambiguity';
 
-TEST:
-for my $test_data (@tests_data) {
-    my ( $source, $input, $expected_value, $expected_result, $test_name ) =
-        @{$test_data};
-    my ( $actual_value, $actual_result );
-    PROCESSING: {
-        my $grammar = Marpa::R2::Scanless::G->new( { source  => $source } );
-        my $recce   = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
+my ( $actual_value, $actual_result );
+PROCESSING: {
+    my $grammar = Marpa::R2::Scanless::G->new( { source  => $source } );
+    my $recce   = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
 
-        if ( not defined eval { $recce->read( \$input ); 1 } ) {
-            say $EVAL_ERROR if $DEBUG;
-            my $abbreviated_error = $EVAL_ERROR;
-            chomp $abbreviated_error;
-            $abbreviated_error =~ s/\n.*//xms;
-            $abbreviated_error =~ s/^Error \s+ in \s+ string_read: \s+ //xms;
-            $actual_value  = 'No parse';
-            $actual_result = $abbreviated_error;
-            last PROCESSING;
-        } ## end if ( not defined eval { $recce->read( \$input ); 1 })
+    if ( not defined eval { $recce->read( \$input ); 1 } ) {
+        say $EVAL_ERROR if $DEBUG;
+        my $abbreviated_error = $EVAL_ERROR;
+        chomp $abbreviated_error;
+        $abbreviated_error =~ s/\n.*//xms;
+        $abbreviated_error =~ s/^Error \s+ in \s+ string_read: \s+ //xms;
+        $actual_value  = 'No parse';
+        $actual_result = $abbreviated_error;
+        last PROCESSING;
+    } ## end if ( not defined eval { $recce->read( \$input ); 1 })
 
 # Marpa::R2::Display
 # name: ASF ambiguity reporting
 
-        if ( $recce->ambiguity_metric() > 1 ) {
-            my $asf = Marpa::R2::ASF->new( { slr => $recce } );
-            die 'No ASF' if not defined $asf;
-            my $ambiguities = Marpa::R2::Internal::ASF::ambiguities($asf);
+    if ( $recce->ambiguity_metric() > 1 ) {
+        my $asf = Marpa::R2::ASF->new( { slr => $recce } );
+        die 'No ASF' if not defined $asf;
+        my $ambiguities = Marpa::R2::Internal::ASF::ambiguities($asf);
 
-            # Only report the first two
-            my @ambiguities = grep {defined} @{$ambiguities}[ 0 .. 1 ];
+        # Only report the first two
+        my @ambiguities = grep {defined} @{$ambiguities}[ 0 .. 1 ];
 
-            $actual_value  = 'Application grammar is ambiguous';
-            $actual_result = Marpa::R2::Internal::ASF::ambiguities_show( $asf,
-                \@ambiguities );
-            last PROCESSING;
-        } ## end if ( $recce->ambiguity_metric() > 1 )
+        $actual_value = 'Application grammar is ambiguous';
+        $actual_result =
+            Marpa::R2::Internal::ASF::ambiguities_show( $asf, \@ambiguities );
+        last PROCESSING;
+    } ## end if ( $recce->ambiguity_metric() > 1 )
 
 # Marpa::R2::Display::End
 
-        my $value_ref = $recce->value();
-        if ( not defined $value_ref ) {
-            $actual_value  = 'No parse';
-            $actual_result = 'Input read to end but no parse';
-            last PROCESSING;
-        }
-        $actual_value  = ${$value_ref};
-        $actual_result = 'Parse OK';
+    my $value_ref = $recce->value();
+    if ( not defined $value_ref ) {
+        $actual_value  = 'No parse';
+        $actual_result = 'Input read to end but no parse';
         last PROCESSING;
-    } ## end PROCESSING:
+    }
+    $actual_value  = ${$value_ref};
+    $actual_result = 'Parse OK';
+    last PROCESSING;
+} ## end PROCESSING:
 
-    Test::More::is(
-        Data::Dumper::Dumper( \$actual_value ),
-        Data::Dumper::Dumper( \$expected_value ),
-        qq{Value of $test_name}
-    );
-    Test::More::is( $actual_result, $expected_result,
-        qq{Result of $test_name} );
-} ## end TEST: for my $test_data (@tests_data)
+Test::More::is(
+    Data::Dumper::Dumper( \$actual_value ),
+    Data::Dumper::Dumper( \$expected_value ),
+    qq{Value of $test_name}
+);
+Test::More::is( $actual_result, $expected_result, qq{Result of $test_name} );
 
 # vim: expandtab shiftwidth=4:
