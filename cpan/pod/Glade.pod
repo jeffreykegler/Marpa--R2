@@ -462,6 +462,30 @@ and yours is, unless you've taken special pains to make it otherwise.
 Computation of literal substrings for non-monotonic applications
 is addressed in L<Marpa::R2::Scanless::R/"Literals and G1 spans">.
 
+=head2 glade_span()
+
+=for Marpa::R2::Display
+name: glade_span() example
+normalize-whitespace: 1
+
+    my ( $glade_start, $glade_length ) = $asf->glade_span($glade_id);
+
+=for Marpa::R2::Display::End
+
+Returns the span of the input associated
+with the glade.
+Every glade is associated with a span -- a start location in the input,
+and a length.
+On failure, throws an exception.
+
+The span will be as expected if your application reads the input characters 
+one-by-one in order.
+(We will call applications which read in this fashion, B<monotonic>.)
+Most applications are monotonic,
+and yours is, unless you've taken special pains to make it otherwise.
+Computation of literal substrings for non-monotonic applications
+is addressed in L<Marpa::R2::Scanless::R/"Literals and G1 spans">.
+
 =head2 glade_symch_count()
 
 =for Marpa::R2::Display
@@ -574,19 +598,19 @@ name: ASF ambiguity reporting
 normalize-whitespace: 1
 partial: 1
 
-        if ( $recce->ambiguity_metric() > 1 ) {
-            my $asf = Marpa::R2::ASF->new( { slr => $recce } );
-            die 'No ASF' if not defined $asf;
-            my $ambiguities = Marpa::R2::Internal::ASF::ambiguities($asf);
+    if ( $recce->ambiguity_metric() > 1 ) {
+        my $asf = Marpa::R2::ASF->new( { slr => $recce } );
+        die 'No ASF' if not defined $asf;
+        my $ambiguities = Marpa::R2::Internal::ASF::ambiguities($asf);
 
-            # Only report the first two
-            my @ambiguities = grep {defined} @{$ambiguities}[ 0 .. 1 ];
+        # Only report the first two
+        my @ambiguities = grep {defined} @{$ambiguities}[ 0 .. 1 ];
 
-            $actual_value  = 'Application grammar is ambiguous';
-            $actual_result = Marpa::R2::Internal::ASF::ambiguities_show( $asf,
-                \@ambiguities );
-            last PROCESSING;
-        } ## end if ( $recce->ambiguity_metric() > 1 )
+        $actual_value = 'Application grammar is ambiguous';
+        $actual_result =
+            Marpa::R2::Internal::ASF::ambiguities_show( $asf, \@ambiguities );
+        last PROCESSING;
+    } ## end if ( $recce->ambiguity_metric() > 1 )
 
 =for Marpa::R2::Display::End
 
@@ -622,8 +646,8 @@ name: ASF ambiguity reporting
 normalize-whitespace: 1
 partial: 1
 
-    $actual_result = Marpa::R2::Internal::ASF::ambiguities_show( $asf,
-        \@ambiguities );
+  $actual_result =
+    Marpa::R2::Internal::ASF::ambiguities_show( $asf, \@ambiguities );
 
 =for Marpa::R2::Display::End
 
