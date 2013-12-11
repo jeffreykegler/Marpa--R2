@@ -433,6 +433,28 @@ static const char* op_to_op_name(enum marpa_op op)
   return "unknown";
 }
 
+#define MARPA_SLREV_AFTER_LEXEME 1
+#define MARPA_SLREV_BEFORE_LEXEME 2
+#define MARPA_SLREV_LEXER_RESTARTED_RECCE 4
+#define MARPA_SLREV_MARPA_R_UNKNOWN 5
+#define MARPA_SLREV_NO_ACCEPTABLE_INPUT 6
+#define MARPA_SLREV_SYMBOL_COMPLETED 7
+#define MARPA_SLREV_SYMBOL_NULLED 8
+#define MARPA_SLREV_SYMBOL_PREDICTED 9
+#define MARPA_SLRTR_AFTER_LEXEME 10
+#define MARPA_SLRTR_BEFORE_LEXEME_EVENT 11
+#define MARPA_SLRTR_CHANGE_LEXERS 12
+#define MARPA_SLRTR_CODEPOINT_ACCEPTED 13
+#define MARPA_SLRTR_CODEPOINT_READ 14
+#define MARPA_SLRTR_CODEPOINT_REJECTED 15
+#define MARPA_SLRTR_DISCARDED_LEXEME 16
+#define MARPA_SLRTR_G1_ACCEPTED_LEXEME 17
+#define MARPA_SLRTR_G1_ATTEMPTING_LEXEME 18
+#define MARPA_SLRTR_G1_DUPLICATE_LEXEME 19
+#define MARPA_SLRTR_G1_UNEXPECTED_LEXEME 20
+#define MARPA_SLRTR_IGNORED_LEXEME 21
+#define MARPA_SLREV_DELETED 22
+
 union marpa_slr_event_s;
 
 struct marpa_slrev_base_s
@@ -441,6 +463,7 @@ struct marpa_slrev_base_s
 };
 
 #define MARPA_SLREV_TYPE(event) ((event)->t_base.t_event_type)
+#define MARPA_SLREV_TYPE_SET(event, type) ((event)->t_base.t_event_type = (type))
 
 struct marpa_slrtr_codepoint_read_s
 {
@@ -1007,6 +1030,7 @@ u_read(Scanless_R *slr)
 			MARPA_DSTACK_PUSH (slr->t_event_dstack, union marpa_slr_event_s);
 		      struct marpa_slrtr_codepoint_rejected_s *event =
 			&(slr_event->t_trace_codepoint_rejected);
+MARPA_SLREV_TYPE_SET(event, MARPA_SLRTR_CODEPOINT_REJECTED);
 		      event->t_codepoint = codepoint;
 		      event->t_perl_pos = slr->perl_pos;
 		      event->t_symbol_id = symbol_id;
@@ -1021,6 +1045,7 @@ if (trace_lexers >= 1)
 
     struct marpa_slrtr_codepoint_accepted_s *event =
       &(slr_event->t_trace_codepoint_accepted);
+MARPA_SLREV_TYPE_SET(event, MARPA_SLRTR_CODEPOINT_ACCEPTED);
 
     event->t_codepoint = codepoint;
     event->t_perl_pos = slr->perl_pos;
@@ -1876,6 +1901,8 @@ slr_discard (Scanless_R * slr)
 		  struct marpa_slrtr_discarded_lexeme_s *event =
 		    &(slr_event->t_trace_discarded_lexeme);
 
+MARPA_SLREV_TYPE_SET(event, MARPA_SLRTR_DISCARDED_LEXEME);
+
 		  /* We do not have the lexeme, but we have the 
 		   * lexer rule.
 		   * The upper level will have to figure things out.
@@ -1906,6 +1933,7 @@ slr_discard (Scanless_R * slr)
 
 	      struct marpa_slrtr_ignored_lexeme_s *event =
 		&(slr_event->t_trace_ignored_lexeme);
+MARPA_SLREV_TYPE_SET(event, MARPA_SLRTR_IGNORED_LEXEME);
 
 	      event->t_lexeme = g1_lexeme;
 	      event->t_start_of_lexeme = slr->start_of_lexeme;
@@ -1940,6 +1968,92 @@ slr_discard (Scanless_R * slr)
  after a successful marpa_r_earleme_complete().
  At some point it may need optional SLR information,
  at which point I will add a parameter
+ */
+static void
+slr_convert_events (Scanless_R * slr)
+{
+  dTHX;
+  int event_ix;
+  Marpa_Grammar g = slr->r1_wrapper->base->g;
+  const int event_count = marpa_g_event_count (g);
+  for (event_ix = 0; event_ix < event_count; event_ix++)
+    {
+      Marpa_Event marpa_event;
+      Marpa_Event_Type event_type = marpa_g_event (g, &marpa_event, event_ix);
+      switch (event_type)
+	{
+	  {
+	case MARPA_EVENT_EXHAUSTED:
+	    /* Do nothing about exhaustion on success */
+	    break;
+	case MARPA_EVENT_SYMBOL_COMPLETED:
+	    {
+	      union marpa_slr_event_s *slr_event =
+		MARPA_DSTACK_PUSH (slr->t_event_dstack,
+				   union marpa_slr_event_s);
+
+	      struct marpa_slrev_symbol_completed_s *event =
+		&(slr_event->t_symbol_completed);
+MARPA_SLREV_TYPE_SET(event, MARPA_SLREV_SYMBOL_COMPLETED);
+	      event->t_completed_symbol = marpa_g_event_value (&marpa_event);
+	    }
+	    break;
+	case MARPA_EVENT_SYMBOL_NULLED:
+	    {
+	      union marpa_slr_event_s *slr_event =
+		MARPA_DSTACK_PUSH (slr->t_event_dstack,
+				   union marpa_slr_event_s);
+
+	      struct marpa_slrev_symbol_nulled_s *event =
+		&(slr_event->t_symbol_nulled);
+MARPA_SLREV_TYPE_SET(event, MARPA_SLREV_SYMBOL_NULLED);
+	      event->t_nulled_symbol = marpa_g_event_value (&marpa_event);
+	    }
+	    break;
+	case MARPA_EVENT_SYMBOL_PREDICTED:
+	    {
+	      union marpa_slr_event_s *slr_event =
+		MARPA_DSTACK_PUSH (slr->t_event_dstack,
+				   union marpa_slr_event_s);
+	      struct marpa_slrev_symbol_predicted_s *event =
+		&(slr_event->t_symbol_predicted);
+MARPA_SLREV_TYPE_SET(event, MARPA_SLREV_SYMBOL_PREDICTED);
+	      event->t_predicted_symbol = marpa_g_event_value (&marpa_event);
+	    }
+	    break;
+	case MARPA_EVENT_EARLEY_ITEM_THRESHOLD:
+	    /* All events are ignored on faiulre
+	     * On success, all except MARPA_EVENT_EARLEY_ITEM_THRESHOLD
+	     * are ignored.
+	     *
+	     * The warning raised for MARPA_EVENT_EARLEY_ITEM_THRESHOLD 
+	     * can be turned off by raising
+	     * the Earley item warning threshold.
+	     */
+	    {
+	      warn
+		("Marpa: Scanless G1 Earley item count (%ld) exceeds warning threshold",
+		 (long) marpa_g_event_value (&marpa_event));
+	    }
+	    break;
+	default:
+	    {
+	      union marpa_slr_event_s *slr_event =
+		MARPA_DSTACK_PUSH (slr->t_event_dstack,
+				   union marpa_slr_event_s);
+	      struct marpa_slrev_marpa_r_unknown_s *event =
+		&(slr_event->t_marpa_r_unknown);
+MARPA_SLREV_TYPE_SET(event, MARPA_SLREV_MARPA_R_UNKNOWN);
+	      event->t_marpa_r_event = event_type;
+	    }
+	    break;
+	  }
+	}
+    }
+}
+
+/* Called after start_input().
+ I am not sure that all these events are needed.
  */
 static void
 r_convert_events (R_Wrapper * r_wrapper)
@@ -2395,7 +2509,7 @@ slr_alternatives (Scanless_R * slr)
 	slr->lexer_start_pos = slr->perl_pos = slr->end_of_lexeme;
 	if (return_value > 0)
 	  {
-	    r_convert_events (slr->r1_wrapper);
+	    slr_convert_events (slr);
 	  }
 
 	marpa_r_latest_earley_set_values_set (r1, slr->start_of_lexeme,
@@ -2496,28 +2610,6 @@ slr_es_span_to_literal_sv (Scanless_R * slr,
 #define EXPECTED_LIBMARPA_MAJOR 5
 #define EXPECTED_LIBMARPA_MINOR 177
 #define EXPECTED_LIBMARPA_MICRO 107
-
-#define MARPA_SLREV_AFTER_LEXEME 1
-#define MARPA_SLREV_BEFORE_LEXEME 2
-#define MARPA_SLREV_LEXER_RESTARTED_RECCE 4
-#define MARPA_SLREV_MARPA_R_UNKNOWN 5
-#define MARPA_SLREV_NO_ACCEPTABLE_INPUT 6
-#define MARPA_SLREV_SYMBOL_COMPLETED 7
-#define MARPA_SLREV_SYMBOL_NULLED 8
-#define MARPA_SLREV_SYMBOL_PREDICTED 9
-#define MARPA_SLRTR_AFTER_LEXEME 10
-#define MARPA_SLRTR_BEFORE_LEXEME_EVENT 11
-#define MARPA_SLRTR_CHANGE_LEXERS 12
-#define MARPA_SLRTR_CODEPOINT_ACCEPTED 13
-#define MARPA_SLRTR_CODEPOINT_READ 14
-#define MARPA_SLRTR_CODEPOINT_REJECTED 15
-#define MARPA_SLRTR_DISCARDED_LEXEME 16
-#define MARPA_SLRTR_G1_ACCEPTED_LEXEME 17
-#define MARPA_SLRTR_G1_ATTEMPTING_LEXEME 18
-#define MARPA_SLRTR_G1_DUPLICATE_LEXEME 19
-#define MARPA_SLRTR_G1_UNEXPECTED_LEXEME 20
-#define MARPA_SLRTR_IGNORED_LEXEME 21
-#define MARPA_SLREV_DELETED 22
 
 MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin
 
