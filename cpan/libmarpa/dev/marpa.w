@@ -949,12 +949,12 @@ Marpa_Rank marpa_g_default_rank_set(Marpa_Grammar g, Marpa_Rank rank)
   clear_error(g);
   @<Fail if fatal error@>@;
   @<Fail if precomputed@>@;
-  if (UNLIKELY (rank < MINIMUM_RANK))
+  if (_MARPA_UNLIKELY (rank < MINIMUM_RANK))
     {
       MARPA_ERROR (MARPA_ERR_RANK_TOO_LOW);
       return failure_indicator;
     }
-  if (UNLIKELY (rank > MAXIMUM_RANK))
+  if (_MARPA_UNLIKELY (rank > MAXIMUM_RANK))
     {
       MARPA_ERROR (MARPA_ERR_RANK_TOO_HIGH);
       return failure_indicator;
@@ -1322,12 +1322,12 @@ Marpa_Grammar g, Marpa_Symbol_ID xsy_id, Marpa_Rank rank)
     @<Fail if |xsy_id| is malformed@>@;
     @<Fail if |xsy_id| does not exist@>@;
     xsy = XSY_by_ID (xsy_id);
-    if (UNLIKELY (rank < MINIMUM_RANK))
+    if (_MARPA_UNLIKELY (rank < MINIMUM_RANK))
       {
 	MARPA_ERROR (MARPA_ERR_RANK_TOO_LOW);
 	return failure_indicator;
       }
-    if (UNLIKELY (rank > MAXIMUM_RANK))
+    if (_MARPA_UNLIKELY (rank > MAXIMUM_RANK))
       {
 	MARPA_ERROR (MARPA_ERR_RANK_TOO_HIGH);
 	return failure_indicator;
@@ -1387,12 +1387,12 @@ int marpa_g_symbol_is_valued_set(
     @<Fail if |xsy_id| is malformed@>@;
     @<Soft fail if |xsy_id| does not exist@>@;
   symbol = XSY_by_ID (xsy_id);
-  if (UNLIKELY (value < 0 || value > 1))
+  if (_MARPA_UNLIKELY (value < 0 || value > 1))
     {
       MARPA_ERROR (MARPA_ERR_INVALID_BOOLEAN);
       return failure_indicator;
     }
-  if (UNLIKELY (XSY_is_Valued_Locked (symbol)
+  if (_MARPA_UNLIKELY (XSY_is_Valued_Locked (symbol)
 		&& value != XSY_is_Valued (symbol)))
     {
       MARPA_ERROR(MARPA_ERR_VALUED_IS_LOCKED);
@@ -1509,12 +1509,12 @@ Marpa_Grammar g, Marpa_Symbol_ID xsy_id, int value)
     @<Fail if |xsy_id| is malformed@>@;
     @<Soft fail if |xsy_id| does not exist@>@;
     symbol = XSY_by_ID (xsy_id);
-    if (UNLIKELY (value < 0 || value > 1))
+    if (_MARPA_UNLIKELY (value < 0 || value > 1))
       {
 	MARPA_ERROR (MARPA_ERR_INVALID_BOOLEAN);
 	return failure_indicator;
       }
-    if (UNLIKELY (XSY_is_Locked_Terminal (symbol))
+    if (_MARPA_UNLIKELY (XSY_is_Locked_Terminal (symbol))
 	&& XSY_is_Terminal (symbol) != value)
       {
 	MARPA_ERROR (MARPA_ERR_TERMINAL_IS_LOCKED);
@@ -2122,12 +2122,12 @@ marpa_g_rule_new (Marpa_Grammar g,
   RULE rule;
   @<Fail if fatal error@>@;
   @<Fail if precomputed@>@;
-  if (UNLIKELY (length > MAX_RHS_LENGTH))
+  if (_MARPA_UNLIKELY (length > MAX_RHS_LENGTH))
     {
       MARPA_ERROR (MARPA_ERR_RHS_TOO_LONG);
       return failure_indicator;
     }
-  if (UNLIKELY (!xsy_id_is_valid (g, lhs_id)))
+  if (_MARPA_UNLIKELY (!xsy_id_is_valid (g, lhs_id)))
     {
       MARPA_ERROR (MARPA_ERR_INVALID_SYMBOL_ID);
       return failure_indicator;
@@ -2137,7 +2137,7 @@ marpa_g_rule_new (Marpa_Grammar g,
     for (rh_index = 0; rh_index < length; rh_index++)
       {
 	const XSYID rhs_id = rhs_ids[rh_index];
-	if (UNLIKELY (!xsy_id_is_valid (g, rhs_id)))
+	if (_MARPA_UNLIKELY (!xsy_id_is_valid (g, rhs_id)))
 	  {
 	    MARPA_ERROR (MARPA_ERR_INVALID_SYMBOL_ID);
 	    return failure_indicator;
@@ -2146,14 +2146,14 @@ marpa_g_rule_new (Marpa_Grammar g,
   }
   {
     const XSY lhs = XSY_by_ID(lhs_id);
-    if (UNLIKELY (XSY_is_Sequence_LHS (lhs)))
+    if (_MARPA_UNLIKELY (XSY_is_Sequence_LHS (lhs)))
       {
 	MARPA_ERROR (MARPA_ERR_SEQUENCE_LHS_NOT_UNIQUE);
 	return failure_indicator;
       }
   }
   rule = xrl_start (g, lhs_id, rhs_ids, length);
-  if (UNLIKELY (_marpa_avl_insert (g->t_xrl_tree, rule) != NULL))
+  if (_MARPA_UNLIKELY (_marpa_avl_insert (g->t_xrl_tree, rule) != NULL))
     {
       MARPA_ERROR (MARPA_ERR_DUPLICATE_RULE);
       marpa_obs_reject(g->t_xrl_obs);
@@ -2210,26 +2210,26 @@ int min, int flags )
 {
   if (separator_id != -1)
     {
-      if (UNLIKELY (!xsy_id_is_valid (g, separator_id)))
+      if (_MARPA_UNLIKELY (!xsy_id_is_valid (g, separator_id)))
 	{
 	  MARPA_ERROR (MARPA_ERR_BAD_SEPARATOR);
 	  goto FAILURE;
 	}
     }
-  if (UNLIKELY (!xsy_id_is_valid (g, lhs_id)))
+  if (_MARPA_UNLIKELY (!xsy_id_is_valid (g, lhs_id)))
     {
       MARPA_ERROR (MARPA_ERR_INVALID_SYMBOL_ID);
       goto FAILURE;
     }
   {
     const XSY lhs = XSY_by_ID (lhs_id);
-    if (UNLIKELY (XSY_is_LHS (lhs)))
+    if (_MARPA_UNLIKELY (XSY_is_LHS (lhs)))
       {
 	MARPA_ERROR (MARPA_ERR_SEQUENCE_LHS_NOT_UNIQUE);
 	goto FAILURE;
       }
   }
-  if (UNLIKELY (!xsy_id_is_valid (g, rhs_id)))
+  if (_MARPA_UNLIKELY (!xsy_id_is_valid (g, rhs_id)))
     {
       MARPA_ERROR (MARPA_ERR_INVALID_SYMBOL_ID);
       goto FAILURE;
@@ -2406,12 +2406,12 @@ Marpa_Grammar g, Marpa_Rule_ID xrl_id, Marpa_Rank rank)
     @<Fail if |xrl_id| is malformed@>@;
     @<Fail if |xrl_id| does not exist@>@;
     xrl = XRL_by_ID (xrl_id);
-    if (UNLIKELY (rank < MINIMUM_RANK))
+    if (_MARPA_UNLIKELY (rank < MINIMUM_RANK))
       {
 	MARPA_ERROR (MARPA_ERR_RANK_TOO_LOW);
 	return failure_indicator;
       }
-    if (UNLIKELY (rank > MAXIMUM_RANK))
+    if (_MARPA_UNLIKELY (rank > MAXIMUM_RANK))
       {
 	MARPA_ERROR (MARPA_ERR_RANK_TOO_HIGH);
 	return failure_indicator;
@@ -2453,7 +2453,7 @@ Marpa_Grammar g, Marpa_Rule_ID xrl_id, int flag)
     @<Fail if |xrl_id| is malformed@>@;
     @<Soft fail if |xrl_id| does not exist@>@;
     xrl = XRL_by_ID (xrl_id);
-    if (UNLIKELY (flag < 0 || flag > 1))
+    if (_MARPA_UNLIKELY (flag < 0 || flag > 1))
       {
 	MARPA_ERROR (MARPA_ERR_INVALID_BOOLEAN);
 	return failure_indicator;
@@ -3151,7 +3151,7 @@ a lot of useless diagnostics.
   XSYID pre_census_xsy_count = XSY_Count_of_G(g);
 
 @ @<Fail if no rules@> =
-if (UNLIKELY(xrl_count <= 0)) {
+if (_MARPA_UNLIKELY(xrl_count <= 0)) {
     MARPA_ERROR(MARPA_ERR_NO_RULES);
     goto FAILURE;
 }
@@ -3162,17 +3162,17 @@ While at it, set a flag to indicate if there are empty rules.
 
 @ @<Fail if bad start symbol@> =
 {
-  if (UNLIKELY(start_xsy_id < 0))
+  if (_MARPA_UNLIKELY(start_xsy_id < 0))
     {
       MARPA_ERROR (MARPA_ERR_NO_START_SYMBOL);
       goto FAILURE;
     }
-  if (UNLIKELY(!xsy_id_is_valid (g, start_xsy_id)))
+  if (_MARPA_UNLIKELY(!xsy_id_is_valid (g, start_xsy_id)))
     {
       MARPA_ERROR (MARPA_ERR_INVALID_START_SYMBOL);
       goto FAILURE;
     }
-  if (UNLIKELY(!XSY_is_LHS (XSY_by_ID (start_xsy_id))))
+  if (_MARPA_UNLIKELY(!XSY_is_LHS (XSY_by_ID (start_xsy_id))))
     {
       MARPA_ERROR (MARPA_ERR_START_NOT_LHS);
       goto FAILURE;
@@ -3377,14 +3377,14 @@ RULEID** xrl_list_x_lh_sym = NULL;
 	{
 	  XSY xsy = XSY_by_ID (xsy_id);
 	  XSY_is_Nullable(xsy) = 1;
-	  if (UNLIKELY(xsy->t_is_counted))
+	  if (_MARPA_UNLIKELY(xsy->t_is_counted))
 	    {
 	      counted_nullables++;
 	      int_event_new (g, MARPA_EVENT_COUNTED_NULLABLE, xsy_id);
 	    }
 	}
     }
-  if (UNLIKELY(counted_nullables))
+  if (_MARPA_UNLIKELY(counted_nullables))
     {
       MARPA_ERROR (MARPA_ERR_COUNTED_NULLABLE);
       goto FAILURE;
@@ -3413,7 +3413,7 @@ RULEID** xrl_list_x_lh_sym = NULL;
 }
 
 @ @<Check that start symbol is productive@> =
-if (UNLIKELY(!bv_bit_test(productive_v, (unsigned int)start_xsy_id)))
+if (_MARPA_UNLIKELY(!bv_bit_test(productive_v, (unsigned int)start_xsy_id)))
 {
     MARPA_ERROR(MARPA_ERR_UNPRODUCTIVE_START);
     goto FAILURE;
@@ -3511,7 +3511,7 @@ reach a terminal symbol.
 	    {
 	      const XSY symbol = XSY_by_ID (productive_id);
 	      XSY_is_Nulling (symbol) = 1;
-	      if (UNLIKELY (XSY_is_Terminal (symbol)))
+	      if (_MARPA_UNLIKELY (XSY_is_Terminal (symbol)))
 		{
 		  nulling_terminal_found = 1;
 		  int_event_new (g, MARPA_EVENT_NULLING_TERMINAL,
@@ -3521,7 +3521,7 @@ reach a terminal symbol.
 	}
     }
   bv_free (reaches_terminal_v);
-  if (UNLIKELY (nulling_terminal_found))
+  if (_MARPA_UNLIKELY (nulling_terminal_found))
     {
       MARPA_ERROR (MARPA_ERR_NULLING_TERMINAL);
       goto FAILURE;
@@ -3563,11 +3563,11 @@ Classify as nulling, nullable or productive.
     {
       const XSYID rhs_id = RHS_ID_of_XRL (xrl, rh_ix);
       const XSY rh_xsy = XSY_by_ID (rhs_id);
-      if (LIKELY (!XSY_is_Nulling (rh_xsy)))
+      if (_MARPA_LIKELY (!XSY_is_Nulling (rh_xsy)))
 	is_nulling = 0;
-      if (LIKELY (!XSY_is_Nullable (rh_xsy)))
+      if (_MARPA_LIKELY (!XSY_is_Nullable (rh_xsy)))
 	is_nullable = 0;
-      if (UNLIKELY (!XSY_is_Productive (rh_xsy)))
+      if (_MARPA_UNLIKELY (!XSY_is_Productive (rh_xsy)))
 	is_productive = 0;
     }
   XRL_is_Nulling (xrl) = is_nulling;
@@ -3616,7 +3616,7 @@ But currently we don't both -- we just mark the rule unproductive.
 
 	  /* \comment A unproductive separator means a unproductive rule,
 	  unless it is nullable.  */
-      if (UNLIKELY(!XSY_is_Productive (separator_xsy)))
+      if (_MARPA_UNLIKELY(!XSY_is_Productive (separator_xsy)))
 	{
 	  XRL_is_Productive (xrl) = XRL_is_Nullable(xrl);
 
@@ -3904,9 +3904,9 @@ is not already aliased, alias it.
   for (xsy_id = 0; xsy_id < pre_census_xsy_count; xsy_id++)
     {
       const XSY xsy_to_clone = XSY_by_ID (xsy_id);
-      if (UNLIKELY (!xsy_to_clone->t_is_accessible))
+      if (_MARPA_UNLIKELY (!xsy_to_clone->t_is_accessible))
 	continue;
-      if (UNLIKELY (!xsy_to_clone->t_is_productive))
+      if (_MARPA_UNLIKELY (!xsy_to_clone->t_is_productive))
 	continue;
       NSY_of_XSY(xsy_to_clone) = nsy_clone (g, xsy_to_clone);
       if (XSY_is_Nulling (xsy_to_clone))
@@ -4439,7 +4439,7 @@ in the literature --- it is called ``augmenting the grammar".
 @ @<Augment grammar |g|@> =
 {
     const XSY start_xsy = XSY_by_ID(start_xsy_id);
-    if (LIKELY(!XSY_is_Nulling(start_xsy))) {
+    if (_MARPA_LIKELY(!XSY_is_Nulling(start_xsy))) {
 	@<Set up a new proper start rule@>@;
     }
 }
@@ -7049,11 +7049,11 @@ Marpa_Symbol_ID xsy_id)
     @<Fail if |xsy_id| is malformed@>@;
     @<Fail if |xsy_id| does not exist@>@;
     xsy = XSY_by_ID(xsy_id);
-    if (UNLIKELY(!XSY_is_Terminal(xsy))) {
+    if (_MARPA_UNLIKELY(!XSY_is_Terminal(xsy))) {
 	return 0;
     }
     nsy = NSY_of_XSY(xsy);
-    if (UNLIKELY(!nsy)) return 0; /* It may be an unused terminal */
+    if (_MARPA_UNLIKELY(!nsy)) return 0; /* It may be an unused terminal */
     return bv_bit_test (r->t_bv_nsyid_is_expected, ID_of_NSY(nsy));
 }
 
@@ -7077,17 +7077,17 @@ int marpa_r_expected_symbol_event_set(Marpa_Recognizer r, Marpa_Symbol_ID xsy_id
     @<Fail if fatal error@>@;
     @<Fail if |xsy_id| is malformed@>@;
     @<Soft fail if |xsy_id| does not exist@>@;
-    if (UNLIKELY (value < 0 || value > 1))
+    if (_MARPA_UNLIKELY (value < 0 || value > 1))
       {
 	MARPA_ERROR (MARPA_ERR_INVALID_BOOLEAN);
 	return failure_indicator;
       }
     xsy = XSY_by_ID(xsy_id);
-    if (UNLIKELY(XSY_is_Nulling(xsy))) {
+    if (_MARPA_UNLIKELY(XSY_is_Nulling(xsy))) {
       MARPA_ERROR (MARPA_ERR_SYMBOL_IS_NULLING);
     }
     nsy = NSY_of_XSY(xsy);
-    if (UNLIKELY(!nsy)) {
+    if (_MARPA_UNLIKELY(!nsy)) {
       MARPA_ERROR (MARPA_ERR_SYMBOL_IS_UNUSED);
     }
     nsyid = ID_of_NSY(nsy);
@@ -7919,7 +7919,7 @@ The warning threshold does not count against items added by a Leo expansion.
 @<Check count against Earley item thresholds@> = 
 if (count >= r->t_earley_item_warning_threshold)
   {
-    if (UNLIKELY (count >= YIM_FATAL_THRESHOLD))
+    if (_MARPA_UNLIKELY (count >= YIM_FATAL_THRESHOLD))
       {				/* Set the recognizer to a fatal error */
 	MARPA_FATAL (MARPA_ERR_YIM_COUNT);
 	return failure_indicator;
@@ -9344,12 +9344,12 @@ Marpa_Earleme marpa_r_alternative(
     const JEARLEME current_earleme = Current_Earleme_of_R (r);
     JEARLEME target_earleme;
     NSYID tkn_nsyid;
-    if (UNLIKELY (Input_Phase_of_R (r) != R_DURING_INPUT))
+    if (_MARPA_UNLIKELY (Input_Phase_of_R (r) != R_DURING_INPUT))
       {
 	MARPA_ERROR (MARPA_ERR_RECCE_NOT_ACCEPTING_INPUT);
 	return MARPA_ERR_RECCE_NOT_ACCEPTING_INPUT;
       }
-    if (UNLIKELY (!xsy_id_is_valid (g, tkn_xsy_id)))
+    if (_MARPA_UNLIKELY (!xsy_id_is_valid (g, tkn_xsy_id)))
       {
 	MARPA_ERROR (MARPA_ERR_INVALID_SYMBOL_ID);
 	return MARPA_ERR_INVALID_SYMBOL_ID;
@@ -9371,7 +9371,7 @@ Marpa_Earleme marpa_r_alternative(
 	MARPA_ERROR(MARPA_ERR_TOKEN_TOO_LONG);
 	return MARPA_ERR_TOKEN_TOO_LONG;
     }
-    if (value && UNLIKELY(!lbv_bit_test(r->t_valued_terminal, tkn_xsy_id)))
+    if (value && _MARPA_UNLIKELY(!lbv_bit_test(r->t_valued_terminal, tkn_xsy_id)))
     {
       if (!XSY_is_Terminal(tkn)) {
 	  MARPA_ERROR(MARPA_ERR_TOKEN_IS_NOT_TERMINAL);
@@ -9385,7 +9385,7 @@ Marpa_Earleme marpa_r_alternative(
       lbv_bit_set(r->t_valued_terminal, tkn_xsy_id);
       lbv_bit_set(r->t_valued, tkn_xsy_id);
     }
-    if (!value && UNLIKELY(!lbv_bit_test(r->t_unvalued_terminal, tkn_xsy_id)))
+    if (!value && _MARPA_UNLIKELY(!lbv_bit_test(r->t_unvalued_terminal, tkn_xsy_id)))
     {
       if (!XSY_is_Terminal(tkn)) {
 	  MARPA_ERROR(MARPA_ERR_TOKEN_IS_NOT_TERMINAL);
@@ -9424,7 +9424,7 @@ are always unexpected.
 @<Set |current_earley_set|, failing if token is unexpected@> =
 {
   NSY tkn_nsy = NSY_by_XSYID (tkn_xsy_id);
-  if (UNLIKELY (!tkn_nsy))
+  if (_MARPA_UNLIKELY (!tkn_nsy))
     {
       MARPA_ERROR (MARPA_ERR_INACCESSIBLE_TOKEN);
       return MARPA_ERR_INACCESSIBLE_TOKEN;
@@ -11145,7 +11145,7 @@ or arranging to test it.
   OR *or_nodes_of_b = ORs_of_B (b);
   last_or_node = (OR)marpa_obs_alloc (OBS_of_B(b), sizeof(OR_Object));
   ID_of_OR(last_or_node) = or_node_id;
-  if (UNLIKELY(or_node_id >= or_node_estimate))
+  if (_MARPA_UNLIKELY(or_node_id >= or_node_estimate))
     {
       MARPA_ASSERT(0);
       or_node_estimate *= 2;
@@ -11337,11 +11337,11 @@ depending on whether it is non-negative
 or negative.
 @<Check |or_node_id|@> =
 {
-  if (UNLIKELY (or_node_id >= OR_Count_of_B (b)))
+  if (_MARPA_UNLIKELY (or_node_id >= OR_Count_of_B (b)))
     {
       return -1;
     }
-  if (UNLIKELY (or_node_id < 0))
+  if (_MARPA_UNLIKELY (or_node_id < 0))
     {
       MARPA_ERROR (MARPA_ERR_ORID_NEGATIVE);
       return failure_indicator;
@@ -11350,7 +11350,7 @@ or negative.
 @ @<Set |or_node| or fail@> =
 {
   OR *const or_nodes = ORs_of_B (b);
-  if (UNLIKELY (!or_nodes))
+  if (_MARPA_UNLIKELY (!or_nodes))
     {
       MARPA_ERROR (MARPA_ERR_NO_OR_NODES);
       return failure_indicator;
@@ -12391,7 +12391,7 @@ Marpa_Rule_ID marpa_r_progress_item(
   @<Fail if fatal error@>@;
   @<Fail if recognizer not started@>@;
   traverser = r->t_progress_report_traverser;
-  if (UNLIKELY(!position || !origin)) {
+  if (_MARPA_UNLIKELY(!position || !origin)) {
       MARPA_ERROR (MARPA_ERR_POINTER_ARG_NULL);
       return failure_indicator;
   }
@@ -12913,7 +12913,7 @@ int marpa_o_high_rank_only_set(
       MARPA_ERROR (MARPA_ERR_ORDER_FROZEN);
       return failure_indicator;
     }
-  if (UNLIKELY (count < 0 || count > 1))
+  if (_MARPA_UNLIKELY (count < 0 || count > 1))
     {
       MARPA_ERROR (MARPA_ERR_INVALID_BOOLEAN);
       return failure_indicator;
@@ -13949,7 +13949,7 @@ stack reallocations is $O(1)$.
     MARPA_DSTACK_SAFE(VStack_of_V(v));
 @ @<Destroy value elements@> =
 {
-    if (LIKELY(MARPA_DSTACK_IS_INITIALIZED(VStack_of_V(v)) != NULL))
+    if (_MARPA_LIKELY(MARPA_DSTACK_IS_INITIALIZED(VStack_of_V(v)) != NULL))
     {
         MARPA_DSTACK_DESTROY(VStack_of_V(v));
     }
@@ -14062,7 +14062,7 @@ int _marpa_v_trace(Marpa_Value public_v, int flag)
     const VALUE v = (VALUE)public_v;
     @<Unpack value objects@>@;
     @<Fail if fatal error@>@;
-    if (UNLIKELY(!V_is_Active(v))) {
+    if (_MARPA_UNLIKELY(!V_is_Active(v))) {
       MARPA_ERROR(MARPA_ERR_VALUATOR_INACTIVE);
       return failure_indicator;
     }
@@ -14084,8 +14084,8 @@ Marpa_Nook_ID _marpa_v_nook(Marpa_Value public_v)
     const VALUE v = (VALUE)public_v;
     @<Unpack value objects@>@;
     @<Fail if fatal error@>@;
-    if (UNLIKELY(V_is_Nulling(v))) return -1;
-    if (UNLIKELY(!V_is_Active(v))) {
+    if (_MARPA_UNLIKELY(V_is_Nulling(v))) return -1;
+    if (_MARPA_UNLIKELY(!V_is_Active(v))) {
       MARPA_ERROR(MARPA_ERR_VALUATOR_INACTIVE);
       return failure_indicator;
     }
@@ -14136,7 +14136,7 @@ PRIVATE int symbol_is_valued_set (
       return value;
     }
 
-    if (UNLIKELY(lbv_bit_test (Valued_Locked_BV_of_V (v), xsy_id))) {
+    if (_MARPA_UNLIKELY(lbv_bit_test (Valued_Locked_BV_of_V (v), xsy_id))) {
 	    return failure_indicator;
     }
     lbv_bit_set(Valued_Locked_BV_of_V (v), xsy_id);
@@ -14156,7 +14156,7 @@ int marpa_v_symbol_is_valued_set (
     @<Return |-2| on failure@>@;
     @<Unpack value objects@>@;
     @<Fail if fatal error@>@;
-    if (UNLIKELY (value < 0 || value > 1))
+    if (_MARPA_UNLIKELY (value < 0 || value > 1))
       {
 	MARPA_ERROR (MARPA_ERR_INVALID_BOOLEAN);
 	return failure_indicator;
@@ -14181,7 +14181,7 @@ marpa_v_valued_force (Marpa_Value public_v)
   xsy_count = XSY_Count_of_G (g);
   for (xsy_id = 0; xsy_id < xsy_count; xsy_id++)
     {
-      if (UNLIKELY (!lbv_bit_test (XSY_is_Valued_BV_of_V (v), xsy_id) &&
+      if (_MARPA_UNLIKELY (!lbv_bit_test (XSY_is_Valued_BV_of_V (v), xsy_id) &&
 		    lbv_bit_test (Valued_Locked_BV_of_V (v), xsy_id)))
 	{
 	  return failure_indicator;
@@ -14200,7 +14200,7 @@ int marpa_v_rule_is_valued_set (
     @<Return |-2| on failure@>@;
     @<Unpack value objects@>@;
     @<Fail if fatal error@>@;
-    if (UNLIKELY (value < 0 || value > 1))
+    if (_MARPA_UNLIKELY (value < 0 || value > 1))
       {
 	MARPA_ERROR (MARPA_ERR_INVALID_BOOLEAN);
 	return failure_indicator;
@@ -14684,7 +14684,7 @@ Bit_Vector bv_obs_clone(struct marpa_obstack *obs, Bit_Vector bv)
 @<Function definitions@> =
 PRIVATE void bv_free(Bit_Vector vector)
 {
-    if (LIKELY(vector != NULL))
+    if (_MARPA_LIKELY(vector != NULL))
     {
 	vector -= bv_hiddenwords;
 	marpa_free(vector);
@@ -15865,40 +15865,40 @@ general failure indicator.
 |g| is assumed to be the value of the relevant grammar,
 when one is required.
 @<Fail if precomputed@> =
-if (UNLIKELY(G_is_Precomputed(g))) {
+if (_MARPA_UNLIKELY(G_is_Precomputed(g))) {
     MARPA_ERROR(MARPA_ERR_PRECOMPUTED);
     return failure_indicator;
 }
 
 @ @<Fail if not precomputed@> =
-if (UNLIKELY(!G_is_Precomputed(g))) {
+if (_MARPA_UNLIKELY(!G_is_Precomputed(g))) {
     MARPA_ERROR(MARPA_ERR_NOT_PRECOMPUTED);
     return failure_indicator;
 }
 @ @<Fail if |xsy_id| is malformed@> =
-if (UNLIKELY(XSYID_is_Malformed(xsy_id))) {
+if (_MARPA_UNLIKELY(XSYID_is_Malformed(xsy_id))) {
     MARPA_ERROR(MARPA_ERR_INVALID_SYMBOL_ID);
     return failure_indicator;
 }
 @ Fail with |-1| for well-formed,
 but non-existent symbol ID.
 @<Soft fail if |xsy_id| does not exist@> =
-if (UNLIKELY(!XSYID_of_G_Exists(xsy_id))) {
+if (_MARPA_UNLIKELY(!XSYID_of_G_Exists(xsy_id))) {
     MARPA_ERROR (MARPA_ERR_NO_SUCH_SYMBOL_ID);
     return -1;
 }
 @ @<Fail if |xsy_id| does not exist@> =
-if (UNLIKELY(!XSYID_of_G_Exists(xsy_id))) {
+if (_MARPA_UNLIKELY(!XSYID_of_G_Exists(xsy_id))) {
     MARPA_ERROR (MARPA_ERR_NO_SUCH_SYMBOL_ID);
     return failure_indicator;
 }
 @ @<Fail if |nsy_id| is invalid@> =
-if (UNLIKELY(!nsy_is_valid(g, nsy_id))) {
+if (_MARPA_UNLIKELY(!nsy_is_valid(g, nsy_id))) {
     MARPA_ERROR(MARPA_ERR_INVALID_NSYID);
     return failure_indicator;
 }
 @ @<Fail if |irl_id| is invalid@> =
-if (UNLIKELY(!IRLID_of_G_is_Valid(irl_id))) {
+if (_MARPA_UNLIKELY(!IRLID_of_G_is_Valid(irl_id))) {
     MARPA_ERROR (MARPA_ERR_INVALID_IRLID);
     return failure_indicator;
 }
@@ -15906,28 +15906,28 @@ if (UNLIKELY(!IRLID_of_G_is_Valid(irl_id))) {
 sometimes we want hard failures,
 and sometimes soft (|-1|).
 @<Soft fail if |xrl_id| does not exist@> =
-if (UNLIKELY(!XRLID_of_G_Exists(xrl_id))) {
+if (_MARPA_UNLIKELY(!XRLID_of_G_Exists(xrl_id))) {
     MARPA_ERROR (MARPA_ERR_NO_SUCH_RULE_ID);
     return -1;
     }
 @ @<Fail if |xrl_id| does not exist@> =
-if (UNLIKELY(!XRLID_of_G_Exists(xrl_id))) {
+if (_MARPA_UNLIKELY(!XRLID_of_G_Exists(xrl_id))) {
     MARPA_ERROR (MARPA_ERR_NO_SUCH_RULE_ID);
     return failure_indicator;
 }
 @
 @<Fail if |xrl_id| is malformed@> =
-if (UNLIKELY(XRLID_is_Malformed(xrl_id))) {
+if (_MARPA_UNLIKELY(XRLID_is_Malformed(xrl_id))) {
     MARPA_ERROR (MARPA_ERR_INVALID_RULE_ID);
     return failure_indicator;
 }
 @ @<Fail if |item_id| is invalid@> =
-if (UNLIKELY(!aim_is_valid(g, item_id))) {
+if (_MARPA_UNLIKELY(!aim_is_valid(g, item_id))) {
     MARPA_ERROR(MARPA_ERR_INVALID_AIMID);
     return failure_indicator;
 }
 @ @<Fail if |AHFA_state_id| is invalid@> =
-if (UNLIKELY(!AHFA_state_id_is_valid(g, AHFA_state_id))) {
+if (_MARPA_UNLIKELY(!AHFA_state_id_is_valid(g, AHFA_state_id))) {
     MARPA_ERROR(MARPA_ERR_INVALID_AHFA_ID);
     return failure_indicator;
 }
@@ -15936,17 +15936,17 @@ if (UNLIKELY(!AHFA_state_id_is_valid(g, AHFA_state_id))) {
 |r| is assumed to be the value of the relevant recognizer,
 when one is required.
 @<Fail if recognizer started@> =
-if (UNLIKELY(Input_Phase_of_R(r) != R_BEFORE_INPUT)) {
+if (_MARPA_UNLIKELY(Input_Phase_of_R(r) != R_BEFORE_INPUT)) {
     MARPA_ERROR(MARPA_ERR_RECCE_STARTED);
     return failure_indicator;
 }
 @ @<Fail if recognizer not started@> =
-if (UNLIKELY(Input_Phase_of_R(r) == R_BEFORE_INPUT)) {
+if (_MARPA_UNLIKELY(Input_Phase_of_R(r) == R_BEFORE_INPUT)) {
     MARPA_ERROR(MARPA_ERR_RECCE_NOT_STARTED);
     return failure_indicator;
 }
 @ @<Fail if recognizer not accepting input@> =
-if (UNLIKELY(Input_Phase_of_R(r) != R_DURING_INPUT)) {
+if (_MARPA_UNLIKELY(Input_Phase_of_R(r) != R_DURING_INPUT)) {
     MARPA_ERROR(MARPA_ERR_RECCE_NOT_ACCEPTING_INPUT);
     return failure_indicator;
 }
@@ -15956,7 +15956,7 @@ if (UNLIKELY(Input_Phase_of_R(r) != R_DURING_INPUT)) {
     @<Fail if recognizer not started@>@;
 
 @ @<Fail if fatal error@> =
-if (UNLIKELY(!IS_G_OK(g))) {
+if (_MARPA_UNLIKELY(!IS_G_OK(g))) {
     MARPA_ERROR(g->t_error);
     return failure_indicator;
 }
@@ -16131,7 +16131,7 @@ void marpa_debug_level_set( int level )
 #define MARPA_DEBUG5(a,b,c,d,e) @[ (_marpa_debug_level && \
     (*_marpa_debug_handler)((a),(b),(c),(d),(e))) @]
 
-#define MARPA_ASSERT(expr) do { if LIKELY (expr) ; else \
+#define MARPA_ASSERT(expr) do { if _MARPA_LIKELY (expr) ; else \
        (*_marpa_debug_handler) ("%s: assertion failed %s", STRLOC, #expr); } while (0);
 #else /* if not |MARPA_DEBUG| */
 #define MARPA_DEBUG1(a) @[@]
@@ -16148,7 +16148,7 @@ void marpa_debug_level_set( int level )
 
 #if MARPA_ENABLE_ASSERT
 #undef MARPA_ASSERT
-#define MARPA_ASSERT(expr) do { if LIKELY (expr) ; else \
+#define MARPA_ASSERT(expr) do { if _MARPA_LIKELY (expr) ; else \
        (*_marpa_debug_handler) ("%s: assertion failed %s", STRLOC, #expr); } while (0);
 #endif
 
@@ -16463,14 +16463,6 @@ in various ways or which are otherwise useful.
 #  define STRFUNC     ((const char*) (__func__))
 #else
 #  define STRFUNC     ((const char*) ("???"))
-#endif
-
-#if defined(__GNUC__) && (__GNUC__ > 2) && defined(__OPTIMIZE__)
-#define LIKELY(expr) (__builtin_expect ((expr), 1))
-#define UNLIKELY(expr) (__builtin_expect ((expr), 0))
-#else
-#define LIKELY(expr) (expr)
-#define UNLIKELY(expr) (expr)
 #endif
 
 #if defined __GNUC__
