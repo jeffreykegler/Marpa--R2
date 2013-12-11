@@ -194,6 +194,7 @@ typedef struct
   /* After this are declarations destined for the non-XS SLIF */
   MARPA_DSTACK_DECLARE(t_event_dstack);
   int t_count_of_deleted_events;
+  MARPA_DSTACK_DECLARE(t_lexeme_dstack);
   /* Before this are declarations destined for the non-XS SLIF */
 
 } Scanless_R;
@@ -543,6 +544,12 @@ struct marpa_slrev_symbol_predicted_s
   int t_predicted_symbol;
 };
 
+struct marpa_slrev_lexeme_found_s {
+  struct marpa_slrev_base_s t_base;
+  int t_priority;
+  int t_lexeme;
+};
+
 struct marpa_slrev_marpa_r_unknown_s
 {
   struct marpa_slrev_base_s t_base;
@@ -636,6 +643,7 @@ union marpa_slr_event_s
   struct marpa_slrev_base_s t_base;
   struct marpa_slrev_after_lexeme_s t_after_lexeme;
   struct marpa_slrev_before_lexeme_s t_before_lexeme;
+  struct marpa_slrev_lexeme_found_s t_lexeme_found;
   struct marpa_slrev_lexer_restarted_recce_s t_lexer_restarted_recce;
   struct marpa_slrev_marpa_r_unknown_s t_marpa_r_unknown;
   struct marpa_slrev_no_acceptable_input_s t_no_acceptable_input;
@@ -2206,7 +2214,6 @@ slr_alternatives (Scanless_R * slr)
 	{			/* pass 1 -- do-block executed only once */
 	  int discarded = 0;
 	  int rejected = 0;
-	  int unforgiven = 0;
 	  while (1)
 	    {
 	      struct symbol_r_properties *symbol_r_properties;
@@ -2258,15 +2265,10 @@ slr_alternatives (Scanless_R * slr)
 		  goto NEXT_PASS1_REPORT_ITEM;
 		}
 	      symbol_g_properties = slg->symbol_g_properties + g1_lexeme;
-	      symbol_r_properties = slr->symbol_r_properties + g1_lexeme;
 	      is_expected = marpa_r_terminal_is_expected (r1, g1_lexeme);
 	      if (!is_expected)
 		{
 		  rejected++;
-		  if (!symbol_g_properties->forgiving)
-		    {
-		      unforgiven++;
-		    }
 		  if (slr->trace_level >= 1)
 		    {
 		      warn
@@ -2327,7 +2329,7 @@ slr_alternatives (Scanless_R * slr)
 		  slr->perl_pos = slr->lexer_start_pos = working_pos;
 		  return 0;
 		}
-	      if (unforgiven)
+	      if (rejected)
 		{
 		  slr->perl_pos = slr->problem_pos = slr->lexer_start_pos =
 		    slr->start_of_lexeme;
@@ -5486,8 +5488,11 @@ PPCODE:
 
   /* After this is code destined for the non-XS SLIF */
 
-  MARPA_DSTACK_INIT(slr->t_event_dstack, union marpa_slr_event_s, MAX(1024/sizeof(union marpa_slr_event_s), 16));
+  MARPA_DSTACK_INIT (slr->t_event_dstack, union marpa_slr_event_s,
+		     MAX (1024 / sizeof (union marpa_slr_event_s), 16));
   slr->t_count_of_deleted_events = 0;
+  MARPA_DSTACK_INIT (slr->t_lexeme_dstack, struct marpa_slrev_lexeme_found_s,
+		     MAX (1024 / sizeof (union marpa_slr_event_s), 16));
 
   /* Before this is code destined for the non-XS SLIF */
 
