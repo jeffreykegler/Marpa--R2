@@ -100,12 +100,12 @@ should treat these methods as ``undocumented''.
 @node Internal methods
 @section Internal methods
 
-@deftypefun static void * marpa_dstack_resize2( @
+@deftypefun static inline void * marpa_dstack_resize2( @
   struct marpa_dstack_s* @var{this}, @
   size_t @var{type_bytes})
 @end deftypefun
 
-@deftypefun static void * marpa_dstack_resize ( @
+@deftypefun static inline void * marpa_dstack_resize ( @
   struct marpa_dstack_s *@var{this}, @
   size_t @var{type_bytes}, @
    int @var{new_size})

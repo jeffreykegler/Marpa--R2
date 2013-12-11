@@ -6240,9 +6240,6 @@ PPCODE:
   const int old_pos = slr->perl_pos;
   const int input_length = slr->pos_db_logical_size;
 
-  /* User intervention resets last |perl_pos| */
-  slr->last_perl_pos = -1;
-
   int start_pos =
     SvIOK (start_pos_sv) ? SvIV (start_pos_sv) : slr->perl_pos;
 
@@ -6250,6 +6247,9 @@ PPCODE:
     : slr->perl_pos ==
     slr->start_of_pause_lexeme ? (slr->end_of_pause_lexeme -
 				  slr->start_of_pause_lexeme) : -1;
+
+  /* User intervention resets last |perl_pos| */
+  slr->last_perl_pos = -1;
 
   start_pos = start_pos < 0 ? input_length + start_pos : start_pos;
   if (start_pos < 0 || start_pos > input_length)
