@@ -433,6 +433,201 @@ static const char* op_to_op_name(enum marpa_op op)
   return "unknown";
 }
 
+union marpa_slr_event_s;
+
+struct marpa_slrev_base_s
+{
+  int t_event_type;
+};
+
+#define MARPA_SLREV_TYPE(event) ((event)->t_base.t_event_type)
+
+struct marpa_slrtr_codepoint_read_s
+{
+  struct marpa_slrev_base_s t_base;
+  int t_codepoint;
+  int t_perl_pos;
+  int t_current_lexer_ix;
+};
+
+struct marpa_slrtr_codepoint_rejected_s
+{
+  struct marpa_slrev_base_s t_base;
+  int t_codepoint;
+  int t_perl_pos;
+  int t_symbol_id;
+  int t_current_lexer_ix;
+};
+
+struct marpa_slrtr_codepoint_accepted_s
+{
+  struct marpa_slrev_base_s t_base;
+  int t_codepoint;
+  int t_perl_pos;
+  int t_symbol_id;
+  int t_current_lexer_ix;
+};
+
+struct marpa_slrtr_codepoint_discarded_s
+{
+  struct marpa_slrev_base_s t_base;
+  int t_event_type;
+  int t_rule_id;
+  int t_start_of_lexeme;
+  int t_end_of_lexeme;
+  int t_current_lexer_ix;
+};
+
+struct marpa_slrtr_ignored_lexeme_s
+{
+  struct marpa_slrev_base_s t_base;
+  int t_event_type;
+  int t_lexeme;
+  int t_start_of_lexeme;
+  int t_end_of_lexeme;
+};
+
+struct marpa_slrtr_discarded_lexeme_s
+{
+  struct marpa_slrev_base_s t_base;
+  int t_rule_id;
+  int t_start_of_lexeme;
+  int t_end_of_lexeme;
+  int t_current_lexer_ix;
+};
+
+struct marpa_slrev_symbol_completed_s
+{
+  struct marpa_slrev_base_s t_base;
+  int t_completed_symbol;
+};
+
+struct marpa_slrev_symbol_nulled_s
+{
+  struct marpa_slrev_base_s t_base;
+  int t_nulled_symbol;
+};
+
+struct marpa_slrev_symbol_predicted_s
+{
+  struct marpa_slrev_base_s t_base;
+  int t_predicted_symbol;
+};
+
+struct marpa_slrev_marpa_r_unknown_s
+{
+  struct marpa_slrev_base_s t_base;
+  int t_marpa_r_event;
+};
+
+struct marpa_slrtr_g1_unexpected_lexeme_s
+{
+  struct marpa_slrev_base_s t_base;
+  int t_start_of_lexeme;	/* start */
+  int t_end_of_lexeme;		/* end */
+  int t_lexeme;			/* lexeme */
+  int t_current_lexer_ix;
+};
+
+struct marpa_slrtr_before_lexeme_s
+{
+  struct marpa_slrev_base_s t_base;
+  int t_start_of_pause_lexeme;	/* start */
+  int t_end_of_pause_lexeme;	/* end */
+  int t_pause_lexeme;		/* lexeme */
+};
+
+struct marpa_slrev_before_lexeme_s
+{
+  struct marpa_slrev_base_s t_base;
+  int t_pause_lexeme;		/* lexeme */
+};
+
+struct marpa_slrtr_attempting_lexeme_s
+{
+  struct marpa_slrev_base_s t_base;
+  int t_start_of_lexeme;	/* start */
+  int t_end_of_lexeme;		/* end */
+  int t_lexeme;			/* lexeme */
+};
+
+struct marpa_slrtr_duplicate_lexeme_s
+{
+  struct marpa_slrev_base_s t_base;
+  int t_start_of_lexeme;	/* start */
+  int t_end_of_lexeme;		/* end */
+  int t_lexeme;			/* lexeme */
+};
+
+struct marpa_slrtr_accepted_lexeme_s
+{
+  struct marpa_slrev_base_s t_base;
+  int t_start_of_lexeme;	/* start */
+  int t_end_of_lexeme;		/* end */
+  int t_lexeme;			/* lexeme */
+  int t_current_lexer_ix;
+};
+
+struct marpa_slrtr_after_lexeme_s
+{
+  struct marpa_slrev_base_s t_base;
+  int t_start_of_lexeme;	/* start */
+  int t_end_of_lexeme;		/* end */
+  int t_lexeme;			/* lexeme */
+};
+
+struct marpa_slrev_after_lexeme_s
+{
+  struct marpa_slrev_base_s t_base;
+  int t_lexeme;			/* lexeme */
+};
+
+struct marpa_slrev_lexer_restarted_recce_s
+{
+  struct marpa_slrev_base_s t_base;
+  int t_perl_pos;
+  int t_current_lexer_ix;
+};
+
+struct marpa_slrtr_change_lexers_s
+{
+  struct marpa_slrev_base_s t_base;
+  int t_perl_pos;
+  int t_old_lexer_ix;
+  int t_new_lexer_ix;
+};
+
+struct marpa_slrev_no_acceptable_input_s
+{
+  struct marpa_slrev_base_s t_base;
+};
+
+union marpa_slr_event_s
+{
+  struct marpa_slrev_base_s t_base;
+  struct marpa_slrev_after_lexeme_s t_after_lexeme;
+  struct marpa_slrev_before_lexeme_s t_before_lexeme;
+  struct marpa_slrev_lexer_restarted_recce_s t_lexer_restarted_recce;
+  struct marpa_slrev_marpa_r_unknown_s t_marpa_r_unknown;
+  struct marpa_slrev_no_acceptable_input_s t_no_acceptable_input;
+  struct marpa_slrev_symbol_completed_s t_symbol_completed;
+  struct marpa_slrev_symbol_nulled_s t_symbol_nulled;
+  struct marpa_slrev_symbol_predicted_s t_symbol_predicted;
+  struct marpa_slrtr_accepted_lexeme_s t_trace_accepted_lexeme;
+  struct marpa_slrtr_after_lexeme_s t_trace_after_lexeme;
+  struct marpa_slrtr_attempting_lexeme_s t_trace_attempting_lexeme;
+  struct marpa_slrtr_before_lexeme_s t_trace_before_lexeme;
+  struct marpa_slrtr_change_lexers_s t_trace_change_lexers;
+  struct marpa_slrtr_codepoint_accepted_s t_trace_codepoint_accepted;
+  struct marpa_slrtr_codepoint_discarded_s t_trace_codepoint_discarded;
+  struct marpa_slrtr_codepoint_read_s t_trace_codepoint_read;
+  struct marpa_slrtr_codepoint_rejected_s t_trace_codepoint_rejected;
+  struct marpa_slrtr_discarded_lexeme_s t_trace_discarded_lexeme;
+  struct marpa_slrtr_duplicate_lexeme_s t_trace_duplicate_lexeme;
+  struct marpa_slrtr_g1_unexpected_lexeme_s t_trace_g1_unexpected_lexeme;
+  struct marpa_slrtr_ignored_lexeme_s t_trace_ignored_lexeme;
+};
+
 /* Static grammar methods */
 
 #define SET_G_WRAPPER_FROM_G_SV(g_wrapper, g_sv) { \
@@ -807,19 +1002,16 @@ u_read(Scanless_R *slr)
 		     */
 		    slr->input_symbol_id = symbol_id;
 		    if (trace_lexers >= 1)
-		      {
-			AV *event;
-			SV *event_data[6];
-			event_data[0] = newSVpvs ("'trace");
-			event_data[1] = newSVpvs ("lexer rejected codepoint");
-			event_data[2] = newSViv ((IV) codepoint);
-			event_data[3] = newSViv ((IV) slr->perl_pos);
-			event_data[4] = newSViv ((IV) symbol_id);
-			event_data[5] = newSViv ((IV)slr->current_lexer->index);
-			event = av_make (Dim (event_data), event_data);
-			av_push (slr->r1_wrapper->event_queue,
-				 newRV_noinc ((SV *) event));
-		      }
+		    {
+		      union marpa_slr_event_s* slr_event =
+			MARPA_DSTACK_PUSH (slr->t_event_dstack, union marpa_slr_event_s);
+		      struct marpa_slrtr_codepoint_rejected_s *event =
+			&(slr_event->t_trace_codepoint_rejected);
+		      event->t_codepoint = codepoint;
+		      event->t_perl_pos = slr->perl_pos;
+		      event->t_symbol_id = symbol_id;
+		      event->t_current_lexer_ix = slr->current_lexer->index;
+		    }
 		    break;
 		  case MARPA_ERR_NONE:
 		    if (trace_lexers >= 1)
@@ -2325,200 +2517,6 @@ slr_es_span_to_literal_sv (Scanless_R * slr,
 #define MARPA_SLRTR_IGNORED_LEXEME 21
 #define MARPA_SLREV_DELETED 22
 
-union marpa_slr_event_s;
-
-struct marpa_slrev_base_s
-{
-  int t_event_type;
-};
-
-#define MARPA_SLREV_TYPE(event) ((event)->t_base.t_event_type)
-
-struct marpa_slrtr_codepoint_read_s
-{
-  struct marpa_slrev_base_s t_base;
-  int t_codepoint;
-  int t_perl_pos;
-  int t_current_lexer_ix;
-};
-
-struct marpa_slrtr_codepoint_rejected_s
-{
-  struct marpa_slrev_base_s t_base;
-  int t_codepoint;
-  int t_perl_pos;
-  int t_symbol_id;
-  int t_current_lexer_ix;
-};
-
-struct marpa_slrtr_codepoint_accepted_s
-{
-  struct marpa_slrev_base_s t_base;
-  int t_codepoint;
-  int t_perl_pos;
-  int t_symbol_id;
-  int t_current_lexer_ix;
-};
-
-struct marpa_slrtr_codepoint_discarded_s
-{
-  struct marpa_slrev_base_s t_base;
-  int t_event_type;
-  int t_rule_id;
-  int t_start_of_lexeme;
-  int t_end_of_lexeme;
-  int t_current_lexer_ix;
-};
-
-struct marpa_slrtr_ignored_lexeme_s
-{
-  struct marpa_slrev_base_s t_base;
-  int t_event_type;
-  int t_lexeme;
-  int t_start_of_lexeme;
-  int t_end_of_lexeme;
-};
-
-struct marpa_slrtr_discarded_lexeme_s
-{
-  struct marpa_slrev_base_s t_base;
-  int t_rule_id;
-  int t_start_of_lexeme;
-  int t_end_of_lexeme;
-  int t_current_lexer_ix;
-};
-
-struct marpa_slrev_symbol_completed_s
-{
-  struct marpa_slrev_base_s t_base;
-  int t_completed_symbol;
-};
-
-struct marpa_slrev_symbol_nulled_s
-{
-  struct marpa_slrev_base_s t_base;
-  int t_nulled_symbol;
-};
-
-struct marpa_slrev_symbol_predicted_s
-{
-  struct marpa_slrev_base_s t_base;
-  int t_predicted_symbol;
-};
-
-struct marpa_slrev_marpa_r_unknown_s
-{
-  struct marpa_slrev_base_s t_base;
-  int t_marpa_r_event;
-};
-
-struct marpa_slrtr_g1_unexpected_lexeme_s
-{
-  struct marpa_slrev_base_s t_base;
-  int t_start_of_lexeme;	/* start */
-  int t_end_of_lexeme;		/* end */
-  int t_lexeme;			/* lexeme */
-  int t_current_lexer_ix;
-};
-
-struct marpa_slrtr_before_lexeme_s
-{
-  struct marpa_slrev_base_s t_base;
-  int t_start_of_pause_lexeme;	/* start */
-  int t_end_of_pause_lexeme;	/* end */
-  int t_pause_lexeme;		/* lexeme */
-};
-
-struct marpa_slrev_before_lexeme_s
-{
-  struct marpa_slrev_base_s t_base;
-  int t_pause_lexeme;		/* lexeme */
-};
-
-struct marpa_slrtr_attempting_lexeme_s
-{
-  struct marpa_slrev_base_s t_base;
-  int t_start_of_lexeme;	/* start */
-  int t_end_of_lexeme;		/* end */
-  int t_lexeme;			/* lexeme */
-};
-
-struct marpa_slrtr_duplicate_lexeme_s
-{
-  struct marpa_slrev_base_s t_base;
-  int t_start_of_lexeme;	/* start */
-  int t_end_of_lexeme;		/* end */
-  int t_lexeme;			/* lexeme */
-};
-
-struct marpa_slrtr_accepted_lexeme_s
-{
-  struct marpa_slrev_base_s t_base;
-  int t_start_of_lexeme;	/* start */
-  int t_end_of_lexeme;		/* end */
-  int t_lexeme;			/* lexeme */
-  int t_current_lexer_ix;
-};
-
-struct marpa_slrtr_after_lexeme_s
-{
-  struct marpa_slrev_base_s t_base;
-  int t_start_of_lexeme;	/* start */
-  int t_end_of_lexeme;		/* end */
-  int t_lexeme;			/* lexeme */
-};
-
-struct marpa_slrev_after_lexeme_s
-{
-  struct marpa_slrev_base_s t_base;
-  int t_lexeme;			/* lexeme */
-};
-
-struct marpa_slrev_lexer_restarted_recce_s
-{
-  struct marpa_slrev_base_s t_base;
-  int t_perl_pos;
-  int t_current_lexer_ix;
-};
-
-struct marpa_slrtr_change_lexers_s
-{
-  struct marpa_slrev_base_s t_base;
-  int t_perl_pos;
-  int t_old_lexer_ix;
-  int t_new_lexer_ix;
-};
-
-struct marpa_slrev_no_acceptable_input_s
-{
-  struct marpa_slrev_base_s t_base;
-};
-
-union marpa_slr_event_s
-{
-  struct marpa_slrev_base_s t_base;
-  struct marpa_slrev_after_lexeme_s t_after_lexeme;
-  struct marpa_slrev_before_lexeme_s t_before_lexeme;
-  struct marpa_slrev_lexer_restarted_recce_s t_lexer_restarted_recce;
-  struct marpa_slrev_marpa_r_unknown_s t_marpa_r_unknown;
-  struct marpa_slrev_no_acceptable_input_s t_no_acceptable_input;
-  struct marpa_slrev_symbol_completed_s t_symbol_completed;
-  struct marpa_slrev_symbol_nulled_s t_symbol_nulled;
-  struct marpa_slrev_symbol_predicted_s t_symbol_predicted;
-  struct marpa_slrtr_accepted_lexeme_s t_trace_accepted_lexeme;
-  struct marpa_slrtr_after_lexeme_s t_trace_after_lexeme;
-  struct marpa_slrtr_attempting_lexeme_s t_trace_attempting_lexeme;
-  struct marpa_slrtr_before_lexeme_s t_trace_before_lexeme;
-  struct marpa_slrtr_change_lexers_s t_trace_change_lexers;
-  struct marpa_slrtr_codepoint_accepted_s t_trace_codepoint_accepted;
-  struct marpa_slrtr_codepoint_discarded_s t_trace_codepoint_discarded;
-  struct marpa_slrtr_codepoint_read_s t_trace_codepoint_read;
-  struct marpa_slrtr_codepoint_rejected_s t_trace_codepoint_rejected;
-  struct marpa_slrtr_discarded_lexeme_s t_trace_discarded_lexeme;
-  struct marpa_slrtr_duplicate_lexeme_s t_trace_duplicate_lexeme;
-  struct marpa_slrtr_g1_unexpected_lexeme_s t_trace_g1_unexpected_lexeme;
-  struct marpa_slrtr_ignored_lexeme_s t_trace_ignored_lexeme;
-};
 MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin
 
 PROTOTYPES: DISABLE
