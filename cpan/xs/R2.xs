@@ -1869,21 +1869,22 @@ slr_discard (Scanless_R * slr)
 	      lexemes_discarded++;
 	      if (slr->trace_terminals)
 		{
-		  AV *event;
-		  SV *event_data[6];
-		  event_data[0] = newSVpvs ("'trace");
-		  event_data[1] = newSVpvs ("discarded lexeme");
+		  union marpa_slr_event_s *slr_event =
+		    MARPA_DSTACK_PUSH (slr->t_event_dstack,
+				       union marpa_slr_event_s);
+
+		  struct marpa_slrtr_discarded_lexeme_s *event =
+		    &(slr_event->t_trace_discarded_lexeme);
+
 		  /* We do not have the lexeme, but we have the 
 		   * lexer rule.
 		   * The upper level will have to figure things out.
 		   */
-		  event_data[2] = newSViv (rule_id);
-		  event_data[3] = newSViv (slr->start_of_lexeme);
-		  event_data[4] = newSViv (slr->end_of_lexeme);
-		  event_data[5] = newSViv (slr->current_lexer->index);
-		  event = av_make (Dim (event_data), event_data);
-		  av_push (slr->r1_wrapper->event_queue,
-			   newRV_noinc ((SV *) event));
+		  event->t_rule_id = rule_id;
+		  event->t_start_of_lexeme = slr->start_of_lexeme;
+		  event->t_end_of_lexeme = slr->end_of_lexeme;
+		  event->t_current_lexer_ix = slr->current_lexer->index;
+
 		}
 	      /* If there is discarded item, we are fine,
 	       * and can return success.
@@ -1899,16 +1900,16 @@ slr_discard (Scanless_R * slr)
 	   */
 	  if (slr->trace_terminals)
 	    {
-	      AV *event;
-	      SV *event_data[5];
-	      event_data[0] = newSVpvs ("'trace");
-	      event_data[1] = newSVpvs ("ignored lexeme");
-	      event_data[2] = newSViv (g1_lexeme);
-	      event_data[3] = newSViv (slr->start_of_lexeme);
-	      event_data[4] = newSViv (slr->end_of_lexeme);
-	      event = av_make (Dim (event_data), event_data);
-	      av_push (slr->r1_wrapper->event_queue,
-		       newRV_noinc ((SV *) event));
+	      union marpa_slr_event_s *slr_event =
+		MARPA_DSTACK_PUSH (slr->t_event_dstack,
+				   union marpa_slr_event_s);
+
+	      struct marpa_slrtr_ignored_lexeme_s *event =
+		&(slr_event->t_trace_ignored_lexeme);
+
+	      event->t_lexeme = g1_lexeme;
+	      event->t_start_of_lexeme = slr->start_of_lexeme;
+	      event->t_end_of_lexeme = slr->end_of_lexeme;
 	    }
 	NEXT_REPORT_ITEM:;
 	}
@@ -1919,7 +1920,8 @@ slr_discard (Scanless_R * slr)
 	   * to discard this input.
 	   * Return failure.
 	   */
-	  slr->perl_pos = slr->problem_pos = slr->lexer_start_pos = slr->start_of_lexeme;
+	  slr->perl_pos = slr->problem_pos = slr->lexer_start_pos =
+	    slr->start_of_lexeme;
 	  return -4;
 	}
       earley_set--;
@@ -1929,7 +1931,8 @@ slr_discard (Scanless_R * slr)
    * and therefore none which can be discarded.
    * Return failure.
    */
-  slr->perl_pos = slr->problem_pos = slr->lexer_start_pos = slr->start_of_lexeme;
+  slr->perl_pos = slr->problem_pos = slr->lexer_start_pos =
+    slr->start_of_lexeme;
   return -4;
 }
 
