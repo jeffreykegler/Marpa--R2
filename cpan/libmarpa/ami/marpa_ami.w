@@ -206,7 +206,7 @@ static inline
 void* marpa_malloc(size_t size)
 {
     void *newmem = malloc(size);
-    if (UNLIKELY(!newmem)) { (*_marpa_out_of_memory)(); }
+    if (MARPA_UNLIKELY(!newmem)) { (*_marpa_out_of_memory)(); }
     return newmem;
 }
 
@@ -223,9 +223,9 @@ static inline
 void*
 marpa_realloc(void *p, size_t size)
 {
-   if (LIKELY(p != NULL)) {
+   if (MARPA_LIKELY(p != NULL)) {
 	void *newmem = realloc(p, size);
-	if (UNLIKELY(!newmem)) (*_marpa_out_of_memory)();
+	if (MARPA_UNLIKELY(!newmem)) (*_marpa_out_of_memory)();
 	return newmem;
    }
    return marpa_malloc(size);
@@ -284,7 +284,7 @@ a stable, high-water mark, which will make future
 resizings unnecessary.
 @d MARPA_DSTACK_CLEAR(this) ((this).t_count = 0)
 @d MARPA_DSTACK_PUSH(this, type) (
-      (UNLIKELY((this).t_count >= (this).t_capacity)
+      (MARPA_UNLIKELY((this).t_count >= (this).t_capacity)
       ? marpa_dstack_resize2(&(this), sizeof(type))
       : 0),
      ((type *)(this).t_base+(this).t_count++)
@@ -355,6 +355,14 @@ So I add such a comment.
 #define _MARPA_AMI_H__ 1
 
 #include "marpa_util.h"
+
+#if defined(__GNUC__) && (__GNUC__ >  2) && defined(__OPTIMIZE__)
+#define MARPA_LIKELY(expr) (__builtin_expect ((expr), 1))
+#define MARPA_UNLIKELY(expr) (__builtin_expect ((expr), 0))
+#else
+#define MARPA_LIKELY(expr) (expr)
+#define MARPA_UNLIKELY(expr) (expr)
+#endif
 
 @h
 @<Friend incomplete structures@>@;

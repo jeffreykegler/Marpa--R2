@@ -15,15 +15,20 @@
  * http://www.gnu.org/licenses/.
  */
 
+#include "stdlib.h"
+#include "stddef.h"
+#include "string.h"
+#include "limits.h"
+
+#include "config.h"
+#include "marpa.h"
+#include "marpa_ami.h"
+
 #define PERL_NO_GET_CONTEXT
 #include <EXTERN.h>
 #include <perl.h>
 #include <XSUB.h>
 #include "ppport.h"
-
-#include "config.h"
-#include "marpa.h"
-#include "marpa_ami.h"
 
 /* This kind of pointer comparison is not portable per C89,
  * but the Perl source depends on it throughout,
