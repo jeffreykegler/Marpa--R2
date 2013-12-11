@@ -38,6 +38,7 @@ etc/check_links.pl
 etc/compile_for_debug.sh
 etc/.gitignore
 etc/Makefile
+etc/reserved_check.sh
 g/config/default.txt
 .gdbinit
 .gitattributes
@@ -85,9 +86,13 @@ inc/Marpa/R2/Display.pm
 inc/Marpa/R2/legal.pl
 inc/Marpa/R2/License.pm
 inc/Marpa/R2/Test.pm
+libmarpa/ami/do_not_edit.c
 libmarpa/ami/.gitignore
+libmarpa/ami/internal.texi
+libmarpa/ami/license.c
 libmarpa/ami/Makefile
 libmarpa/ami/marpa_ami.w
+libmarpa/ami/texi2code.pl
 libmarpa/avl/marpa_avl.c
 libmarpa/avl/marpa_avl.h
 libmarpa/dev/api.texi
@@ -217,6 +222,7 @@ libmarpa/test/Makefile
 libmarpa/test/README
 LICENSE
 MANIFEST
+MANIFEST appears to be out of sync with the distribution
 MANIFEST.SKIP
 META.json
 meta/Makefile
