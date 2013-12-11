@@ -5614,7 +5614,11 @@ PPCODE:
   slr->start_of_pause_lexeme = -1;
   slr->end_of_pause_lexeme = -1;
   slr->pause_lexeme = -1;
+
+  /* Clear event queue */
   av_clear (slr->r1_wrapper->event_queue);
+  MARPA_DSTACK_CLEAR(slr->t_event_dstack);
+
   /* Application intervention resets perl_pos */
   slr->last_perl_pos = -1;
 
@@ -5805,15 +5809,10 @@ events(slr)
 PPCODE:
 {
   int i;
-  const int queue_length = av_len (slr->r1_wrapper->event_queue);
+  int queue_length;
   const int dstack_length = MARPA_DSTACK_LENGTH (slr->t_event_dstack);
   AV *const event_queue_av = slr->r1_wrapper->event_queue;
 
-  for (i = 0; i <= queue_length; i++)
-    {
-      SV *event = av_shift (event_queue_av);
-      XPUSHs (sv_2mortal (event));
-    }
   for (i = 0; i < dstack_length; i++)
     {
       union marpa_slr_event_s *const marpa_slr_event =
@@ -6114,6 +6113,12 @@ PPCODE:
 	    break;
 	  }
 	}
+    }
+  queue_length = av_len (slr->r1_wrapper->event_queue);
+  for (i = 0; i <= queue_length; i++)
+    {
+      SV *event = av_shift (event_queue_av);
+      XPUSHs (sv_2mortal (event));
     }
 }
 
