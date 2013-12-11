@@ -1014,22 +1014,21 @@ u_read(Scanless_R *slr)
 		    }
 		    break;
 		  case MARPA_ERR_NONE:
-		    if (trace_lexers >= 1)
-		      {
-			AV *event;
-			SV *event_data[6];
-			event_data[0] = newSVpvs ("'trace");
-			event_data[1] = newSVpvs ("lexer accepted codepoint");
-			event_data[2] = newSViv ((IV) codepoint);
-			event_data[3] = newSViv ((IV) slr->perl_pos);
-			event_data[4] = newSViv ((IV) symbol_id);
-			event_data[5] = newSViv ((IV)slr->current_lexer->index);
-			event = av_make (Dim (event_data), event_data);
-			av_push (slr->r1_wrapper->event_queue,
-				 newRV_noinc ((SV *) event));
-		      }
-		    tokens_accepted++;
-		    break;
+if (trace_lexers >= 1)
+  {
+    union marpa_slr_event_s *slr_event =
+      MARPA_DSTACK_PUSH (slr->t_event_dstack, union marpa_slr_event_s);
+
+    struct marpa_slrtr_codepoint_accepted_s *event =
+      &(slr_event->t_trace_codepoint_accepted);
+
+    event->t_codepoint = codepoint;
+    event->t_perl_pos = slr->perl_pos;
+    event->t_symbol_id = symbol_id;
+    event->t_current_lexer_ix = slr->current_lexer->index;
+  }
+tokens_accepted++;
+break;
 		  default:
 		    slr->codepoint = codepoint;
 		    slr->input_symbol_id = symbol_id;
