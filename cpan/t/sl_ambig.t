@@ -21,7 +21,7 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 2;
+use Test::More tests => 4;
 use English qw( -no_match_vars );
 use lib 'inc';
 use Marpa::R2::Test;
@@ -51,10 +51,12 @@ Ambiguous symch at Glade=2, Symbol=<pair>:
 END_OF_MESSAGE
 my $test_name = 'Symch ambiguity';
 
+my $grammar = Marpa::R2::Scanless::G->new( { source  => $source } );
+my $recce   = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
+my $is_ambiguous_parse = 1;
+
 my ( $actual_value, $actual_result );
 PROCESSING: {
-    my $grammar = Marpa::R2::Scanless::G->new( { source  => $source } );
-    my $recce   = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
 
     if ( not defined eval { $recce->read( \$input ); 1 } ) {
         say $EVAL_ERROR if $DEBUG;
@@ -64,6 +66,7 @@ PROCESSING: {
         $abbreviated_error =~ s/^Error \s+ in \s+ string_read: \s+ //xms;
         $actual_value  = 'No parse';
         $actual_result = $abbreviated_error;
+	$is_ambiguous_parse = 0;
         last PROCESSING;
     } ## end if ( not defined eval { $recce->read( \$input ); 1 })
 
@@ -86,6 +89,8 @@ PROCESSING: {
 
 # Marpa::R2::Display::End
 
+    $is_ambiguous_parse = 0;
+
     my $value_ref = $recce->value();
     if ( not defined $value_ref ) {
         $actual_value  = 'No parse';
@@ -95,6 +100,7 @@ PROCESSING: {
     $actual_value  = ${$value_ref};
     $actual_result = 'Parse OK';
     last PROCESSING;
+
 } ## end PROCESSING:
 
 Test::More::is(
@@ -103,5 +109,26 @@ Test::More::is(
     qq{Value of $test_name}
 );
 Test::More::is( $actual_result, $expected_result, qq{Result of $test_name} );
+
+if ( !$is_ambiguous_parse ) {
+    Test::More::fail(qq{glade_span() start});
+    Test::More::fail(qq{glade_span() length});
+}
+else {
+    $recce->series_restart();
+    my $asf = Marpa::R2::ASF->new( { slr => $recce } );
+    my $glade_id = $asf->peak;
+
+# Marpa::R2::Display
+# name: glade_span() example
+
+    my ( $glade_start, $glade_length ) = $asf->glade_span($glade_id);
+
+# Marpa::R2::Display::End
+
+    Test::More::is( $glade_start,  0, qq{glade_span() start} );
+    Test::More::is( $glade_length, 2, qq{glade_span() length} );
+
+} ## end else [ if ( !$is_ambiguous_parse ) ]
 
 # vim: expandtab shiftwidth=4:
