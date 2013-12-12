@@ -59,7 +59,7 @@ C_LANGUAGE_PREAMBLE = license.c do_not_edit.c
 MARPA_AMI_H_PIECES =  $(C_LANGUAGE_PREAMBLE) marpa_ami.h.p1 marpa_ami.h.p5 marpa_ami.h.p9
 MARPA_AMI_C_PIECES = $(C_LANGUAGE_PREAMBLE) marpa_ami.c.p1 
 
-marpa_ami.h.p1 marpa_ami.h.p9 marpa_ami.c.pl: copyright_page_license.w marpa_ami.w
+marpa_ami.h.p1 marpa_ami.h.p9 marpa_ami.c.p1: copyright_page_license.w marpa_ami.w
 	$(CTANGLE) marpa_ami.w
 
 cwebmac.tex: ../dev/cwebmac.tex
