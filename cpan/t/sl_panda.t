@@ -116,11 +116,11 @@ while ( defined( my $value_ref = $recce->value() ) ) {
 }
 
 Marpa::R2::Test::is( ( join "\n", sort @actual ) . "\n",
-    $expected, 'Ambiguous English sentences' );
+    $expected, 'Ambiguous English sentence using value()' );
 
 $recce->series_restart();
 my $asf = Marpa::R2::ASF->new( { slr=>$recce } );
-my $actual = $asf->traverse(
+my $raw_actual = $asf->traverse(
     sub {
         my ($glade)     = @_;
         my $rule_id     = $glade->rule_id();
@@ -128,7 +128,8 @@ my $actual = $asf->traverse(
         my $symbol_name = $grammar->symbol_name($symbol_id);
         if ( not defined $rule_id ) {
             my $literal = $glade->literal();
-            return ["($symbol_name $literal)"];
+	    my $symbol_description = $symbol_name eq 'period' ? q{.} : $symbol_name;
+            return ["($symbol_description $literal)"];
         }
         my @return_value = ();
         CHOICE: while (1) {
@@ -147,17 +148,18 @@ my $actual = $asf->traverse(
                 return [ map { join q{}, @{$_} } @results ];
             }
             my $join_ws = q{ };
-            $join_ws = qq{\n  } if $symbol_name eq 'S';
+            $join_ws = qq{\n   } if $symbol_name eq 'S';
             push @return_value,
                 map { "($symbol_name " . ( join $join_ws, @{$_} ) . ')' }
                 @results;
-            last CHOICE if 1;
+            last CHOICE if not defined $glade->next();
         } ## end CHOICE: while (1)
 	return \@return_value;
     }
 );
 
-Marpa::R2::Test::is(  Data::Dumper::Dumper($actual), $expected, 'Ambiguous English sentences' );
+my $actual =  join "\n", (sort @{$raw_actual}), q{};
+Marpa::R2::Test::is(  $actual, $expected, 'Ambiguous English sentence using ASF' );
 
 package PennTags;
 
