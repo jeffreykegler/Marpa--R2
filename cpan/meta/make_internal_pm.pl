@@ -241,6 +241,7 @@ __DATA__
 
     :package=Marpa::R2::Internal::Glade
 
+    ID
     SYMCHES
     VISITED
     REGISTERED

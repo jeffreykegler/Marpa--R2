@@ -365,7 +365,7 @@ and will be unique to that symbol ID,
 so that it is suitable for use as a symbol name.
 If a symbol has an explicit name, the return value will be
 the symbol's explicit name.
-If there is no explicit name, it will be the an internal name.
+If there is no explicit name, it will be an internal name.
 Internal names are subject to change.
 
 The first argument is the symbol ID.

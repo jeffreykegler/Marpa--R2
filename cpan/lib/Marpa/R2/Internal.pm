@@ -122,9 +122,10 @@ use constant ORIGIN => 2;
 use constant CURRENT => 3;
 
 package Marpa::R2::Internal::Glade;
-use constant SYMCHES => 0;
-use constant VISITED => 1;
-use constant REGISTERED => 2;
+use constant ID => 0;
+use constant SYMCHES => 1;
+use constant VISITED => 2;
+use constant REGISTERED => 3;
 
 package Marpa::R2::Internal::Choicepoint;
 use constant ASF => 0;

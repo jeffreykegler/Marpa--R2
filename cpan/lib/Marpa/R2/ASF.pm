@@ -947,6 +947,7 @@ sub glade_obtain {
 
     $glade->[Marpa::R2::Internal::Glade::SYMCHES] = \@symches;
 
+    $glade->[Marpa::R2::Internal::Glade::ID] = $glade_id;
     $asf->[Marpa::R2::Internal::ASF::GLADES]->[$glade_id] = $glade;
     return $glade;
 } ## end sub glade_obtain
@@ -1322,9 +1323,43 @@ sub Marpa::R2::ASF::traverse {
     return $method->($traverser);
 } ## end sub Marpa::R2::Internal::ASF::traverse
 
+sub Marpa::R2::Internal::ASF::Traverse::literal {
+    my ( $traverser ) = @_;
+    my $asf = $traverser->[Marpa::R2::Internal::ASF::Traverse::ASF];
+    my $glade = $traverser->[Marpa::R2::Internal::ASF::Traverse::GLADE];
+    my $glade_id = $glade->[Marpa::R2::Internal::Glade::ID];
+    return $asf->glade_literal($glade_id);
+}
+
+sub Marpa::R2::Internal::ASF::Traverse::span {
+    my ( $traverser ) = @_;
+    my $asf = $traverser->[Marpa::R2::Internal::ASF::Traverse::ASF];
+    my $glade = $traverser->[Marpa::R2::Internal::ASF::Traverse::GLADE];
+    my $glade_id = $glade->[Marpa::R2::Internal::Glade::ID];
+    return $asf->glade_span($glade_id);
+}
+
+sub Marpa::R2::Internal::ASF::Traverse::symbol_id {
+    my ( $traverser ) = @_;
+    my $asf = $traverser->[Marpa::R2::Internal::ASF::Traverse::ASF];
+    my $glade = $traverser->[Marpa::R2::Internal::ASF::Traverse::GLADE];
+    my $glade_id = $glade->[Marpa::R2::Internal::Glade::ID];
+    return $asf->glade_symbol_id($glade_id);
+}
+
+sub Marpa::R2::Internal::ASF::Traverse::rule_id {
+    my ( $traverser ) = @_;
+    my $glade = $traverser->[Marpa::R2::Internal::ASF::Traverse::GLADE];
+    my $symch_ix =
+        $traverser->[Marpa::R2::Internal::ASF::Traverse::SYMCH_IX];
+    my $symch = $glade->[Marpa::R2::Internal::Glade::SYMCHES]->[$symch_ix];
+    my ( $rule_id ) = @{$symch};
+    return if $rule_id < 0;
+    return $rule_id;
+} ## end sub Marpa::R2::Internal::ASF::Traverse::rh_length
+
 sub Marpa::R2::Internal::ASF::Traverse::rh_length {
     my ( $traverser ) = @_;
-    $DB::single = 1;
     my $glade = $traverser->[Marpa::R2::Internal::ASF::Traverse::GLADE];
     my $symch_ix =
         $traverser->[Marpa::R2::Internal::ASF::Traverse::SYMCH_IX];
@@ -1373,6 +1408,41 @@ sub Marpa::R2::Internal::ASF::Traverse::rh_value {
         = $value;
     return $value;
 } ## end sub Marpa::R2::Internal::ASF::Traverse::rh_value
+
+sub Marpa::R2::Internal::ASF::Traverse::next_factoring {
+    my ($traverser) = @_;
+    my $glade       = $traverser->[Marpa::R2::Internal::ASF::Traverse::GLADE];
+    my $glade_id = $glade->[Marpa::R2::Internal::Glade::ID];
+    my $asf         = $traverser->[Marpa::R2::Internal::ASF::Traverse::ASF];
+    my $symch_ix = $traverser->[Marpa::R2::Internal::ASF::Traverse::SYMCH_IX];
+    my $last_factoring =
+        $asf->symch_factoring_count( $glade_id, $symch_ix ) - 1;
+    my $factoring_ix =
+        $traverser->[Marpa::R2::Internal::ASF::Traverse::FACTORING_IX];
+    return if $factoring_ix >= $last_factoring;
+    $factoring_ix++;
+    $traverser->[Marpa::R2::Internal::ASF::Traverse::FACTORING_IX] =
+        $factoring_ix;
+    return $factoring_ix;
+} ## end sub Marpa::R2::Internal::ASF::Traverse::next_factoring
+
+sub Marpa::R2::Internal::ASF::Traverse::next_symch {
+    my ($traverser) = @_;
+    my $glade       = $traverser->[Marpa::R2::Internal::ASF::Traverse::GLADE];
+    my $glade_id = $glade->[Marpa::R2::Internal::Glade::ID];
+    my $asf         = $traverser->[Marpa::R2::Internal::ASF::Traverse::ASF];
+    my $symch_ix = $traverser->[Marpa::R2::Internal::ASF::Traverse::SYMCH_IX];
+    my $last_symch = $asf->glade_symch_count( $glade_id, $symch_ix ) - 1;
+    return if $symch_ix >= $last_symch;
+    $symch_ix++;
+    $traverser->[Marpa::R2::Internal::ASF::Traverse::SYMCH_IX] = $symch_ix;
+    return $symch_ix;
+} ## end sub Marpa::R2::Internal::ASF::Traverse::next_symch
+
+sub Marpa::R2::Internal::ASF::Traverse::next {
+    my ($traverser) = @_;
+    return $traverser->next_factoring() // $traverser->next_symch();
+}
 
 # GLADE_SEEN is a local -- this is to silence warnings
 our %GLADE_SEEN;

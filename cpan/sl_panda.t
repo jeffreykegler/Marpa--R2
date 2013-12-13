@@ -120,9 +120,39 @@ Marpa::R2::Test::is( ( join "\n", sort @actual ) . "\n",
 
 $recce->series_restart();
 my $asf = Marpa::R2::ASF->new( { slr=>$recce } );
-my $actual = $asf->traverse( sub { my ($glade) = @_; return $glade->rh_length(); } );
+my $actual = $asf->traverse(
+    sub {
+        my ($glade)     = @_;
+        my $rule_id     = $glade->rule_id();
+        my $symbol_id   = $glade->symbol_id();
+        my $symbol_name = $grammar->symbol_name($symbol_id);
+        if ( not defined $rule_id ) {
+            my $literal = $glade->literal();
+            return ["($symbol_name $literal)"];
+        }
+        my $length  = $glade->rh_length();
+        my @results = ([]);
+        for my $rh_ix ( 0 .. $length - 1 ) {
+            my @new_results = ();
+            for my $old_result (@results) {
+                for my $new_value ( @{ $glade->rh_value($rh_ix) } ) {
+                    push @new_results, [ @{$old_result}, $new_value ];
+                }
+            }
+	    say Data::Dumper::Dumper(\@new_results);
+            @results = @new_results;
+        } ## end for my $rh_ix ( 0 .. $length - 1 )
+        if ( $symbol_name eq '[:start]' ) {
+            return [ map { join q{}, @{$_} } @results ];
+        }
+        my $join_ws = q{ };
+        $join_ws = qq{\n  } if $symbol_name eq 'S';
+        return [ map { "($symbol_name " . ( join $join_ws, @{$_} ) . ')' }
+                @results ];
+    }
+);
 
-Marpa::R2::Test::is(  $actual, $expected, 'Ambiguous English sentences' );
+Marpa::R2::Test::is(  Data::Dumper::Dumper($actual), $expected, 'Ambiguous English sentences' );
 
 package PennTags;
 
