@@ -47,7 +47,7 @@ use strict;
 use warnings;
 use English qw( -no_match_vars );
 
-use Test::More tests => 1;
+use Test::More tests => 2;
 use lib 'inc';
 use Marpa::R2::Test;
 use Marpa::R2;
@@ -122,17 +122,28 @@ $recce->series_restart();
 my $asf = Marpa::R2::ASF->new( { slr=>$recce } );
 my $raw_actual = $asf->traverse(
     sub {
+        # This routine converts the glade into a list of Penn-tagged elements.  It is called recursively.
         my ($glade)     = @_;
         my $rule_id     = $glade->rule_id();
         my $symbol_id   = $glade->symbol_id();
         my $symbol_name = $grammar->symbol_name($symbol_id);
+
+        # A token is a single choice, and we know enough to fully Penn-tag it
         if ( not defined $rule_id ) {
             my $literal = $glade->literal();
-	    my $symbol_description = $symbol_name eq 'period' ? q{.} : $symbol_name;
+            my $symbol_description =
+                $symbol_name eq 'period' ? q{.} : $symbol_name;
             return ["($symbol_description $literal)"];
-        }
+        } ## end if ( not defined $rule_id )
+
+        # Our result will be a list of choices
         my @return_value = ();
+
         CHOICE: while (1) {
+
+            # The results at each position are a list of choices, so
+            # to produce a new result list, we need to take a Cartesian
+            # product of all the choices
             my $length = $glade->rh_length();
             my @results = ( [] );
             for my $rh_ix ( 0 .. $length - 1 ) {
@@ -144,18 +155,32 @@ my $raw_actual = $asf->traverse(
                 }
                 @results = @new_results;
             } ## end for my $rh_ix ( 0 .. $length - 1 )
+
+            # Special case for the start rule
             if ( $symbol_name eq '[:start]' ) {
                 return [ map { join q{}, @{$_} } @results ];
             }
+
+            # Now we a list of choices, as a list of lists.  Each sub list
+            # is a list of Penn-tagged elements, which we need to join into
+            # a single Penn-tagged element.  The result will be to collapse
+            # one level of lists, and leave us with a list of Penn-tagged
+            # elements
             my $join_ws = q{ };
             $join_ws = qq{\n   } if $symbol_name eq 'S';
             push @return_value,
                 map { "($symbol_name " . ( join $join_ws, @{$_} ) . ')' }
                 @results;
+
+            # Look at the next alternative in this glade, or end the
+            # loop if there is none
             last CHOICE if not defined $glade->next();
+
         } ## end CHOICE: while (1)
-	return \@return_value;
-    }
+
+        # Return the list of Penn-tagged elements for this glade
+        return \@return_value;
+        }
 );
 
 my $actual =  join "\n", (sort @{$raw_actual}), q{};
