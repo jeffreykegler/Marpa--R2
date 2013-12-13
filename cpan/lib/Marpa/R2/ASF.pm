@@ -1323,7 +1323,8 @@ sub Marpa::R2::ASF::traverse {
 } ## end sub Marpa::R2::Internal::ASF::traverse
 
 sub Marpa::R2::Internal::ASF::Traverse::rh_length {
-    my ( $traverser );
+    my ( $traverser ) = @_;
+    $DB::single = 1;
     my $glade = $traverser->[Marpa::R2::Internal::ASF::Traverse::GLADE];
     my $symch_ix =
         $traverser->[Marpa::R2::Internal::ASF::Traverse::SYMCH_IX];
@@ -1339,7 +1340,7 @@ sub Marpa::R2::Internal::ASF::Traverse::rh_length {
 } ## end sub Marpa::R2::Internal::ASF::Traverse::rh_length
 
 sub Marpa::R2::Internal::ASF::Traverse::rh_value {
-    my ( $traverser, $rh_ix );
+    my ( $traverser, $rh_ix ) = @_;
     my $glade = $traverser->[Marpa::R2::Internal::ASF::Traverse::GLADE];
     my $symch_ix =
         $traverser->[Marpa::R2::Internal::ASF::Traverse::SYMCH_IX];

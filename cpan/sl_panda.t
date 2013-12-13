@@ -115,9 +115,14 @@ while ( defined( my $value_ref = $recce->value() ) ) {
     push @actual, $value;
 }
 
+Marpa::R2::Test::is( ( join "\n", sort @actual ) . "\n",
+    $expected, 'Ambiguous English sentences' );
+
 $recce->series_restart();
 my $asf = Marpa::R2::ASF->new( { slr=>$recce } );
-$asf->traverse( sub { my ($glade) = @_; return $glade->rh_length(); } );
+my $actual = $asf->traverse( sub { my ($glade) = @_; return $glade->rh_length(); } );
+
+Marpa::R2::Test::is(  $actual, $expected, 'Ambiguous English sentences' );
 
 package PennTags;
 
@@ -140,11 +145,6 @@ sub PennTags::VBP::bracket {"(VBP $_[0]->[0])"}
 sub PennTags::VBZ::bracket {"(VBZ $_[0]->[0])"}
 
 sub PennTags::period::bracket {"(. .)"}
-
-package main;
-
-Marpa::R2::Test::is( ( join "\n", sort @actual ) . "\n",
-    $expected, 'Ambiguous English sentences' );
 
 1;    # In case used as "do" file
 
