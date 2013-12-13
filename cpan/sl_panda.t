@@ -130,25 +130,30 @@ my $actual = $asf->traverse(
             my $literal = $glade->literal();
             return ["($symbol_name $literal)"];
         }
-        my $length  = $glade->rh_length();
-        my @results = ([]);
-        for my $rh_ix ( 0 .. $length - 1 ) {
-            my @new_results = ();
-            for my $old_result (@results) {
-                for my $new_value ( @{ $glade->rh_value($rh_ix) } ) {
-                    push @new_results, [ @{$old_result}, $new_value ];
+        my @return_value = ();
+        CHOICE: while (1) {
+            my $length = $glade->rh_length();
+            my @results = ( [] );
+            for my $rh_ix ( 0 .. $length - 1 ) {
+                my @new_results = ();
+                for my $old_result (@results) {
+                    for my $new_value ( @{ $glade->rh_value($rh_ix) } ) {
+                        push @new_results, [ @{$old_result}, $new_value ];
+                    }
                 }
+                @results = @new_results;
+            } ## end for my $rh_ix ( 0 .. $length - 1 )
+            if ( $symbol_name eq '[:start]' ) {
+                return [ map { join q{}, @{$_} } @results ];
             }
-	    say Data::Dumper::Dumper(\@new_results);
-            @results = @new_results;
-        } ## end for my $rh_ix ( 0 .. $length - 1 )
-        if ( $symbol_name eq '[:start]' ) {
-            return [ map { join q{}, @{$_} } @results ];
-        }
-        my $join_ws = q{ };
-        $join_ws = qq{\n  } if $symbol_name eq 'S';
-        return [ map { "($symbol_name " . ( join $join_ws, @{$_} ) . ')' }
-                @results ];
+            my $join_ws = q{ };
+            $join_ws = qq{\n  } if $symbol_name eq 'S';
+            push @return_value,
+                map { "($symbol_name " . ( join $join_ws, @{$_} ) . ')' }
+                @results;
+            last CHOICE if 1;
+        } ## end CHOICE: while (1)
+	return \@return_value;
     }
 );
 
