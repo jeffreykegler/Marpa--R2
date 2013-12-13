@@ -157,6 +157,14 @@ use constant NEXT_INTSET_ID => 11;
 use constant NIDSET_BY_ID => 12;
 use constant POWERSET_BY_ID => 13;
 
+package Marpa::R2::Internal::ASF::Traverse;
+use constant ASF => 0;
+use constant VALUES => 1;
+use constant CODE => 2;
+use constant GLADE => 3;
+use constant SYMCH_IX => 4;
+use constant FACTORING_IX => 5;
+
 package Marpa::R2::Internal::Nidset;
 use constant ID => 0;
 use constant NIDS => 1;
