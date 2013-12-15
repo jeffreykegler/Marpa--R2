@@ -2177,6 +2177,9 @@ slr_alternatives (Scanless_R * slr)
   int continue_to_look_at_earley_sets = 1;
   int is_priority_set = 0;
   int lexemes_in_buffer = 0;
+  int discarded = 0;
+  int rejected = 0;
+  int working_pos = slr->start_of_lexeme;
 
   /* Put this in SLG structure? */
   int lexeme_buffer_size = 8;
@@ -2201,7 +2204,7 @@ slr_alternatives (Scanless_R * slr)
        * the corresponding boolean is set.
        */
       int current_lexeme_priority = 0;
-      const int working_pos = slr->start_of_lexeme + earley_set;
+      working_pos = slr->start_of_lexeme + earley_set;
 
       int return_value;
       return_value = marpa_r_progress_report_start (r0, earley_set);
@@ -2214,8 +2217,6 @@ slr_alternatives (Scanless_R * slr)
 
       do
 	{			/* pass 1 -- do-block executed only once */
-	  int discarded = 0;
-	  int rejected = 0;
 	  int end_of_earley_items = 0;
 	LOOP_OVER_EARLEY_ITEMS:while (!end_of_earley_items)
 	    {
@@ -2329,8 +2330,17 @@ slr_alternatives (Scanless_R * slr)
 	    NEXT_PASS1_REPORT_ITEM:;
 	    }
 
-	  if (!is_priority_set)
-	    {
+	  if (discarded || rejected || is_priority_set)
+	    continue_to_look_at_earley_sets = 0;
+
+	}
+      while (0);
+
+      earley_set--;
+    }
+
+  if (!is_priority_set)
+    {
 	      if (discarded)
 		{
 		  slr->perl_pos = slr->lexer_start_pos = working_pos;
@@ -2342,18 +2352,6 @@ slr_alternatives (Scanless_R * slr)
 		    slr->start_of_lexeme;
 		  return "no lexemes accepted";
 		}
-	    }
-	  if (is_priority_set)
-	    continue_to_look_at_earley_sets = 0;
-
-	}
-      while (0);
-
-      earley_set--;
-    }
-
-  if (!is_priority_set)
-    {
       slr->perl_pos = slr->problem_pos = slr->lexer_start_pos =
 	slr->start_of_lexeme;
       return "no lexeme";
