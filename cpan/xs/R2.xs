@@ -461,6 +461,7 @@ static const char* op_to_op_name(enum marpa_op op)
 #define MARPA_SLRTR_IGNORED_LEXEME 21
 #define MARPA_SLREV_DELETED 22
 #define MARPA_SLRTR_LEXEME_ACCEPTABLE 23
+#define MARPA_SLRTR_LEXEME_OUTPRIORITIZED 23
 
 union marpa_slr_event_s;
 
@@ -2187,7 +2188,11 @@ slr_alternatives (Scanless_R * slr)
   Marpa_Recce r1 = slr->r1;
   Marpa_Earley_Set_ID earley_set;
   const Scanless_G *slg = slr->slg;
+
+  /* |high_lexeme_priority| is not valid unless |is_priority_set| is set. */
   int is_priority_set = 0;
+  int high_lexeme_priority = 0;
+
   int lexemes_in_buffer = 0;
   int discarded = 0;
   int rejected = 0;
@@ -2217,7 +2222,6 @@ slr_alternatives (Scanless_R * slr)
        * warning.  Their value must be considered undefined unless
        * the corresponding boolean is set.
        */
-      int current_lexeme_priority = 0;
       working_pos = slr->start_of_lexeme + earley_set;
       int end_of_earley_items = 0;
 
@@ -2312,21 +2316,21 @@ slr_alternatives (Scanless_R * slr)
 			event->t_end_of_lexeme = slr->end_of_lexeme;
 			event->t_lexeme = g1_lexeme;
 			event->t_current_lexer_ix = slr->current_lexer->index;
-			event->t_priority = current_lexeme_priority;
+			event->t_priority = high_lexeme_priority;
 	    }
 
 	  this_lexeme_priority = symbol_g_properties->priority;
 	  if (is_priority_set
-	      && this_lexeme_priority < current_lexeme_priority)
+	      && this_lexeme_priority < high_lexeme_priority)
 	    {
 	      goto NEXT_PASS1_REPORT_ITEM;
 	    }
 
 	  if (!is_priority_set
-	      || this_lexeme_priority > current_lexeme_priority)
+	      || this_lexeme_priority > high_lexeme_priority)
 	    {
 	      lexemes_in_buffer = 0;
-	      current_lexeme_priority = this_lexeme_priority;
+	      high_lexeme_priority = this_lexeme_priority;
 	      is_priority_set = 1;
 	    }
 
@@ -2395,50 +2399,75 @@ if (slr->trace_terminals)
   /* If here, a lexeme has been accepted and priority is set
    */
 
-  {				/* Check for a "pause before" lexeme */
-    Marpa_Symbol_ID g1_lexeme = -1;
-    int lexeme_ix;
-    for (lexeme_ix = 0; lexeme_ix < lexemes_in_buffer; lexeme_ix++)
-      {
-	const Marpa_Symbol_ID lexeme_id = lexeme_buffer[lexeme_ix];
-	const struct symbol_r_properties *symbol_r_properties
-	  = slr->symbol_r_properties + lexeme_id;
-	if (symbol_r_properties->pause_before_active)
-	  {
-	    g1_lexeme = lexeme_id;
-	    slr->start_of_pause_lexeme = slr->start_of_lexeme;
-	    slr->end_of_pause_lexeme = slr->end_of_lexeme;
-	    slr->pause_lexeme = g1_lexeme;
-	    if (slr->trace_terminals > 2)
-	      {
-		AV *event;
-		SV *event_data[5];
-		event_data[0] = newSVpvs ("'trace");
-		event_data[1] = newSVpvs ("g1 pausing before lexeme");
-		event_data[2] = newSViv (slr->start_of_pause_lexeme);	/* start */
-		event_data[3] = newSViv (slr->end_of_pause_lexeme);	/* end */
-		event_data[4] = newSViv (slr->pause_lexeme);	/* lexeme */
-		event = av_make (Dim (event_data), event_data);
-		av_push (slr->r1_wrapper->event_queue,
-			 newRV_noinc ((SV *) event));
-	      }
+{
+  int i;
+  const int lexeme_dstack_length = MARPA_DSTACK_LENGTH (slr->t_lexeme_dstack);
+  for (i = 0; i < lexeme_dstack_length; i++)
+    {
+      union marpa_slr_event_s *const slr_event =
+	MARPA_DSTACK_INDEX (slr->t_lexeme_dstack, union marpa_slr_event_s,
+			    i);
+      const int event_type = MARPA_SLREV_TYPE (slr_event);
+      if (event_type == MARPA_SLRTR_LEXEME_ACCEPTABLE)
+	{
+	  struct marpa_slrtr_lexeme_acceptable_s *event =
+	    &(slr_event->t_trace_lexeme_acceptable);
+	  if (event->t_priority < high_lexeme_priority)
+	    {
+	      MARPA_SLREV_TYPE_SET (slr_event,
+				    MARPA_SLRTR_LEXEME_OUTPRIORITIZED);
+	    }
+	}
+    }
+}
+
+{				/* Check for a "pause before" lexeme */
+  /* A legacy implement allowed only one pause-before lexeme, and used elements of
+     the SLR structure to hold the data.  The new mechanism uses events and allows
+     multiple pause-before lexemes, but the legacy mechanism must be supported. */
+  Marpa_Symbol_ID g1_lexeme = -1;
+  int lexeme_ix;
+  for (lexeme_ix = 0; lexeme_ix < lexemes_in_buffer; lexeme_ix++)
+    {
+      const Marpa_Symbol_ID lexeme_id = lexeme_buffer[lexeme_ix];
+      const struct symbol_r_properties *symbol_r_properties
+	= slr->symbol_r_properties + lexeme_id;
+      if (symbol_r_properties->pause_before_active)
+	{
+	  g1_lexeme = lexeme_id;
+	  slr->start_of_pause_lexeme = slr->start_of_lexeme;
+	  slr->end_of_pause_lexeme = slr->end_of_lexeme;
+	  slr->pause_lexeme = g1_lexeme;
+	  if (slr->trace_terminals > 2)
 	    {
 	      AV *event;
-	      SV *event_data[2];
-	      event_data[0] = newSVpvs ("before lexeme");
-	      event_data[1] = newSViv (slr->pause_lexeme);	/* lexeme */
+	      SV *event_data[5];
+	      event_data[0] = newSVpvs ("'trace");
+	      event_data[1] = newSVpvs ("g1 pausing before lexeme");
+	      event_data[2] = newSViv (slr->start_of_pause_lexeme);	/* start */
+	      event_data[3] = newSViv (slr->end_of_pause_lexeme);	/* end */
+	      event_data[4] = newSViv (slr->pause_lexeme);	/* lexeme */
 	      event = av_make (Dim (event_data), event_data);
 	      av_push (slr->r1_wrapper->event_queue,
 		       newRV_noinc ((SV *) event));
 	    }
+	  {
+	    AV *event;
+	    SV *event_data[2];
+	    event_data[0] = newSVpvs ("before lexeme");
+	    event_data[1] = newSViv (slr->pause_lexeme);	/* lexeme */
+	    event = av_make (Dim (event_data), event_data);
+	    av_push (slr->r1_wrapper->event_queue,
+		     newRV_noinc ((SV *) event));
 	  }
-      }
-    if (g1_lexeme >= 0)
-      {
-	slr->lexer_start_pos = slr->perl_pos = slr->start_of_lexeme;
-	return 0;
-      }
-  }
+	}
+    }
+  if (g1_lexeme >= 0)
+    {
+      slr->lexer_start_pos = slr->perl_pos = slr->start_of_lexeme;
+      return 0;
+    }
+}
 
   {
     int lexeme_ix;
@@ -6083,6 +6112,23 @@ PPCODE:
 	    av_push (event_av, newSViv ((IV) event->t_end_of_lexeme));	/* end */
 	    av_push (event_av, newSViv ((IV) event->t_lexeme));	/* lexeme */
 	    av_push (event_av, newSViv ((IV) event->t_current_lexer_ix));
+	    XPUSHs (sv_2mortal (newRV_noinc ((SV *) event_av)));
+	    break;
+	  }
+
+	case MARPA_SLRTR_LEXEME_OUTPRIORITIZED:
+	  {
+	    /* Uses same structure as "acceptable" lexeme */
+	    struct marpa_slrtr_lexeme_acceptable_s *event =
+	      &(marpa_slr_event->t_trace_lexeme_acceptable);
+	    AV *event_av = newAV ();
+	    av_push (event_av, newSVpvs ("'trace"));
+	    av_push (event_av, newSVpvs ("outprioritized lexeme"));
+	    av_push (event_av, newSViv ((IV) event->t_start_of_lexeme));	/* start */
+	    av_push (event_av, newSViv ((IV) event->t_end_of_lexeme));	/* end */
+	    av_push (event_av, newSViv ((IV) event->t_lexeme));	/* lexeme */
+	    av_push (event_av, newSViv ((IV) event->t_current_lexer_ix));
+	    av_push (event_av, newSViv ((IV) event->t_priority));
 	    XPUSHs (sv_2mortal (newRV_noinc ((SV *) event_av)));
 	    break;
 	  }
