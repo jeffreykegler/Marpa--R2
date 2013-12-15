@@ -2174,6 +2174,7 @@ slr_alternatives (Scanless_R * slr)
   Marpa_Recce r1 = slr->r1;
   Marpa_Earley_Set_ID earley_set;
   const Scanless_G *slg = slr->slg;
+  int continue_to_look_at_earley_sets = 1;
 
   /* Put this in SLG structure? */
   int lexeme_buffer_size= 8;
@@ -2190,7 +2191,8 @@ slr_alternatives (Scanless_R * slr)
   /* Zero length lexemes are not of interest, so we do *not*
    * search the 0'th Earley set.
    */
-  while (earley_set > 0)
+  if (earley_set <= 0) continue_to_look_at_earley_sets = 0;
+  while (continue_to_look_at_earley_sets)
     {
       /* The is_X booleans indicate whether the priorities are defined.
        * They are also initialized to 0, but only to silence the GCC
@@ -2210,6 +2212,7 @@ slr_alternatives (Scanless_R * slr)
 		 (void *) r0, (unsigned long) earley_set,
 		 xs_g_error (slr->current_lexer->g_wrapper));
 	}
+
       do
 	{			/* pass 1 -- do-block executed only once */
 	  int discarded = 0;
@@ -2322,8 +2325,6 @@ slr_alternatives (Scanless_R * slr)
 
 	    NEXT_PASS1_REPORT_ITEM:;
 	    }
-
-	END_OF_PASS1:;
 
 	  if (!is_priority_set)
 	    {
@@ -2533,6 +2534,7 @@ slr_alternatives (Scanless_R * slr)
 
     LOOK_AT_PREVIOUS_EARLEME:
       earley_set--;
+      if (earley_set <= 0) continue_to_look_at_earley_sets = 0;
     }
 
   slr->perl_pos = slr->problem_pos = slr->lexer_start_pos =
