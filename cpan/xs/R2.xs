@@ -545,26 +545,6 @@ struct marpa_slrev_marpa_r_unknown_s
   int t_marpa_r_event;
 };
 
-struct marpa_slrtr_lexeme_rejected_s
-{
-  int event_type;
-  int t_start_of_lexeme;	/* start */
-  int t_end_of_lexeme;		/* end */
-  int t_lexeme;			/* lexeme */
-  int t_current_lexer_ix;
-};
-
-struct marpa_slrtr_lexeme_acceptable_s
-{
-  int event_type;
-  int t_start_of_lexeme;	/* start */
-  int t_end_of_lexeme;		/* end */
-  int t_lexeme;			/* lexeme */
-  int t_current_lexer_ix;
-  int t_priority;
-  int t_required_priority;
-};
-
 union marpa_slr_event_s
 {
   struct
@@ -581,9 +561,28 @@ union marpa_slr_event_s
   struct marpa_slrtr_codepoint_read_s t_trace_codepoint_read;
   struct marpa_slrtr_codepoint_rejected_s t_trace_codepoint_rejected;
   struct marpa_slrtr_lexeme_discarded_s t_trace_lexeme_discarded;
-  struct marpa_slrtr_lexeme_rejected_s t_trace_lexeme_rejected;
-  struct marpa_slrtr_lexeme_acceptable_s t_trace_lexeme_acceptable;
   struct marpa_slrtr_ignored_lexeme_s t_trace_ignored_lexeme;
+
+struct
+{
+  int event_type;
+  int t_start_of_lexeme;	/* start */
+  int t_end_of_lexeme;		/* end */
+  int t_lexeme;			/* lexeme */
+  int t_current_lexer_ix;
+}
+  t_trace_lexeme_rejected;
+
+struct
+{
+  int event_type;
+  int t_start_of_lexeme;	/* start */
+  int t_end_of_lexeme;		/* end */
+  int t_lexeme;			/* lexeme */
+  int t_current_lexer_ix;
+  int t_priority;
+  int t_required_priority;
+}t_trace_lexeme_acceptable;
 
   struct
   {
@@ -2279,13 +2278,11 @@ slr_alternatives (Scanless_R * slr)
 	      union marpa_slr_event_s *slr_event =
 		MARPA_DSTACK_PUSH (slr->t_lexeme_dstack,
 				   union marpa_slr_event_s);
-	      struct marpa_slrtr_lexeme_rejected_s *event =
-		&(slr_event->t_trace_lexeme_rejected);
 	      MARPA_SLREV_TYPE(slr_event) = MARPA_SLRTR_LEXEME_REJECTED;
-	      event->t_start_of_lexeme = slr->start_of_lexeme;
-	      event->t_end_of_lexeme = slr->end_of_lexeme;
-	      event->t_lexeme = g1_lexeme;
-	      event->t_current_lexer_ix = slr->current_lexer->index;
+	      slr_event->t_trace_lexeme_rejected.t_start_of_lexeme = slr->start_of_lexeme;
+	      slr_event->t_trace_lexeme_rejected.t_end_of_lexeme = slr->end_of_lexeme;
+	      slr_event->t_trace_lexeme_rejected.t_lexeme = g1_lexeme;
+	      slr_event->t_trace_lexeme_rejected.t_current_lexer_ix = slr->current_lexer->index;
 	      rejected++;
 	      goto NEXT_PASS1_REPORT_ITEM;
 	    }
@@ -6094,15 +6091,13 @@ PPCODE:
 
 	case MARPA_SLRTR_LEXEME_REJECTED:
 	  {
-	    struct marpa_slrtr_lexeme_rejected_s *event =
-	      &(slr_event->t_trace_lexeme_rejected);
 	    AV *event_av = newAV ();
 	    av_push (event_av, newSVpvs ("'trace"));
 	    av_push (event_av, newSVpvs ("rejected lexeme"));
-	    av_push (event_av, newSViv ((IV) event->t_start_of_lexeme));	/* start */
-	    av_push (event_av, newSViv ((IV) event->t_end_of_lexeme));	/* end */
-	    av_push (event_av, newSViv ((IV) event->t_lexeme));	/* lexeme */
-	    av_push (event_av, newSViv ((IV) event->t_current_lexer_ix));
+	    av_push (event_av, newSViv ((IV) slr_event->t_trace_lexeme_rejected.t_start_of_lexeme));	/* start */
+	    av_push (event_av, newSViv ((IV) slr_event->t_trace_lexeme_rejected.t_end_of_lexeme));	/* end */
+	    av_push (event_av, newSViv ((IV) slr_event->t_trace_lexeme_rejected.t_lexeme));	/* lexeme */
+	    av_push (event_av, newSViv ((IV) slr_event->t_trace_lexeme_rejected.t_current_lexer_ix));
 	    XPUSHs (sv_2mortal (newRV_noinc ((SV *) event_av)));
 	    break;
 	  }
@@ -6110,17 +6105,15 @@ PPCODE:
 	case MARPA_SLRTR_LEXEME_OUTPRIORITIZED:
 	  {
 	    /* Uses same structure as "acceptable" lexeme */
-	    struct marpa_slrtr_lexeme_acceptable_s *event =
-	      &(slr_event->t_trace_lexeme_acceptable);
 	    AV *event_av = newAV ();
 	    av_push (event_av, newSVpvs ("'trace"));
 	    av_push (event_av, newSVpvs ("outprioritized lexeme"));
-	    av_push (event_av, newSViv ((IV) event->t_start_of_lexeme));	/* start */
-	    av_push (event_av, newSViv ((IV) event->t_end_of_lexeme));	/* end */
-	    av_push (event_av, newSViv ((IV) event->t_lexeme));	/* lexeme */
-	    av_push (event_av, newSViv ((IV) event->t_current_lexer_ix));
-	    av_push (event_av, newSViv ((IV) event->t_priority));
-	    av_push (event_av, newSViv ((IV) event->t_required_priority));
+	    av_push (event_av, newSViv ((IV) slr_event->t_trace_lexeme_acceptable.t_start_of_lexeme));	/* start */
+	    av_push (event_av, newSViv ((IV) slr_event->t_trace_lexeme_acceptable.t_end_of_lexeme));	/* end */
+	    av_push (event_av, newSViv ((IV) slr_event->t_trace_lexeme_acceptable.t_lexeme));	/* lexeme */
+	    av_push (event_av, newSViv ((IV) slr_event->t_trace_lexeme_acceptable.t_current_lexer_ix));
+	    av_push (event_av, newSViv ((IV) slr_event->t_trace_lexeme_acceptable.t_priority));
+	    av_push (event_av, newSViv ((IV) slr_event->t_trace_lexeme_acceptable.t_required_priority));
 	    XPUSHs (sv_2mortal (newRV_noinc ((SV *) event_av)));
 	    break;
 	  }
