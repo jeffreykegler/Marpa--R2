@@ -618,26 +618,6 @@ struct marpa_slrev_after_lexeme_s
   int t_lexeme;			/* lexeme */
 };
 
-struct marpa_slrev_lexer_restarted_recce_s
-{
-  int event_type;
-  int t_perl_pos;
-  int t_current_lexer_ix;
-};
-
-struct marpa_slrtr_change_lexers_s
-{
-  int event_type;
-  int t_perl_pos;
-  int t_old_lexer_ix;
-  int t_new_lexer_ix;
-};
-
-struct marpa_slrev_no_acceptable_input_s
-{
-  int event_type;
-};
-
 union marpa_slr_event_s
 {
   struct
@@ -665,10 +645,15 @@ union marpa_slr_event_s
   {
     int event_type;
   } t_no_acceptable_input;
+struct 
+{
+  int event_type;
+  int t_perl_pos;
+  int t_current_lexer_ix;
+  } t_lexer_restarted_recce;
 
   struct marpa_slrev_after_lexeme_s t_after_lexeme;
   struct marpa_slrev_before_lexeme_s t_before_lexeme;
-  struct marpa_slrev_lexer_restarted_recce_s t_lexer_restarted_recce;
   struct marpa_slrev_marpa_r_unknown_s t_marpa_r_unknown;
   struct marpa_slrev_symbol_completed_s t_symbol_completed;
   struct marpa_slrev_symbol_nulled_s t_symbol_nulled;
@@ -6237,13 +6222,11 @@ PPCODE:
 
 	case MARPA_SLREV_LEXER_RESTARTED_RECCE:
 	  {
-	    struct marpa_slrev_lexer_restarted_recce_s *event =
-	      &(marpa_slr_event->t_lexer_restarted_recce);
 	    AV *event_av = newAV ();
 	    av_push (event_av, newSVpvs ("'trace"));
 	    av_push (event_av, newSVpv ("lexer restarted recognizer", 0));
-	    av_push (event_av, newSViv ((IV) event->t_perl_pos));
-	    av_push (event_av, newSViv ((IV) event->t_current_lexer_ix));
+	    av_push (event_av, newSViv ((IV) marpa_slr_event->t_lexer_restarted_recce.t_perl_pos));
+	    av_push (event_av, newSViv ((IV) marpa_slr_event->t_lexer_restarted_recce.t_current_lexer_ix));
 	    XPUSHs (sv_2mortal (newRV_noinc ((SV *) event_av)));
 	    break;
 	  }
