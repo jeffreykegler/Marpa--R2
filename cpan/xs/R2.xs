@@ -2214,7 +2214,8 @@ slr_alternatives (Scanless_R * slr)
 	{			/* pass 1 -- do-block executed only once */
 	  int discarded = 0;
 	  int rejected = 0;
-	  while (1)
+	  int end_of_earley_items = 0;
+	  LOOP_OVER_EARLEY_ITEMS: while (!end_of_earley_items)
 	    {
 	      struct symbol_r_properties *symbol_r_properties;
 	      struct symbol_g_properties *symbol_g_properties;
@@ -2230,8 +2231,10 @@ slr_alternatives (Scanless_R * slr)
 		  croak ("Problem in marpa_r_progress_item(): %s",
 			 xs_g_error (slr->current_lexer->g_wrapper));
 		}
-	      if (rule_id == -1)
-		goto END_OF_PASS1;
+	      if (rule_id == -1) {
+		end_of_earley_items = 1;
+		goto NEXT_PASS1_REPORT_ITEM;
+	      }
 	      if (origin != 0)
 		goto NEXT_PASS1_REPORT_ITEM;
 	      if (dot_position != -1)
