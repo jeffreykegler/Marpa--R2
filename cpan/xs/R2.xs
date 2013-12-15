@@ -2175,6 +2175,8 @@ slr_alternatives (Scanless_R * slr)
   Marpa_Earley_Set_ID earley_set;
   const Scanless_G *slg = slr->slg;
   int continue_to_look_at_earley_sets = 1;
+  int is_priority_set = 0;
+  int lexemes_in_buffer = 0;
 
   /* Put this in SLG structure? */
   int lexeme_buffer_size= 8;
@@ -2191,17 +2193,14 @@ slr_alternatives (Scanless_R * slr)
   /* Zero length lexemes are not of interest, so we do *not*
    * search the 0'th Earley set.
    */
-  if (earley_set <= 0) continue_to_look_at_earley_sets = 0;
-  while (continue_to_look_at_earley_sets)
+  while (continue_to_look_at_earley_sets && earley_set > 0)
     {
       /* The is_X booleans indicate whether the priorities are defined.
        * They are also initialized to 0, but only to silence the GCC
        * warning.  Their value must be considered undefined unless
        * the corresponding boolean is set.
        */
-      int is_priority_set = 0;
       int current_lexeme_priority = 0;
-      int lexemes_in_buffer = 0;
       const int working_pos = slr->start_of_lexeme + earley_set;
 
       int return_value;
@@ -2345,10 +2344,13 @@ slr_alternatives (Scanless_R * slr)
 	}
       while (0);
 
-      if (continue_to_look_at_earley_sets) {
 	earley_set--;
-	if (earley_set <= 0) continue_to_look_at_earley_sets = 0;
-         continue;
+      }
+
+      if (!is_priority_set) {
+	slr->perl_pos = slr->problem_pos = slr->lexer_start_pos =
+	  slr->start_of_lexeme;
+	return "no lexeme";
       }
 
       /* If here, a lexeme has been accepted and priority is set
@@ -2401,6 +2403,7 @@ slr_alternatives (Scanless_R * slr)
 
       {
 	int lexeme_ix;
+	int return_value;
 	for (lexeme_ix = 0; lexeme_ix < lexemes_in_buffer; lexeme_ix++)
 	  {
 	    const Marpa_Symbol_ID g1_lexeme = lexeme_buffer[lexeme_ix];
@@ -2538,11 +2541,10 @@ slr_alternatives (Scanless_R * slr)
 	return 0;
       }
 
-    }
 
-  slr->perl_pos = slr->problem_pos = slr->lexer_start_pos =
-    slr->start_of_lexeme;
-  return "no lexeme";
+
+    croak ("Should not be here: %s %d", __FILE__, __LINE__);
+
 }
 
 static void
