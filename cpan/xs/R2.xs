@@ -6590,10 +6590,8 @@ PPCODE:
       /* Ensure that there is enough space */
       if (slr->pos_db_logical_size >= slr->pos_db_physical_size)
 	{
-	  Pos_Entry *new_pos_db;
 	  slr->pos_db_physical_size *= 2;
-	  new_pos_db = Renew (slr->pos_db, slr->pos_db_physical_size, Pos_Entry);
-	  slr->pos_db = new_pos_db;
+	  Renew (slr->pos_db, slr->pos_db_physical_size, Pos_Entry);
 	}
       p += codepoint_length;
       slr->pos_db[slr->pos_db_logical_size].next_offset =
