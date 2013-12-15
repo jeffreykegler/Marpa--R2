@@ -2347,6 +2347,12 @@ if (slr->trace_terminals)
 			       marpa_slr_event_s)->t_trace_lexeme_discarded) =
 	    marpa_slr_event->t_trace_lexeme_discarded;
 	  break;
+	case MARPA_SLRTR_LEXEME_REJECTED:
+	  *(&MARPA_DSTACK_PUSH (slr->t_event_dstack,
+			       union
+			       marpa_slr_event_s)->t_trace_lexeme_rejected) =
+	    marpa_slr_event->t_trace_lexeme_rejected;
+	  break;
 	}
     }
 }
