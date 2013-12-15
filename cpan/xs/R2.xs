@@ -2294,7 +2294,6 @@ slr_alternatives (Scanless_R * slr)
 
     }
 
-  if (slr->trace_terminals)
 {
   int i;
   const int lexeme_dstack_length = MARPA_DSTACK_LENGTH (slr->t_lexeme_dstack);
@@ -2306,10 +2305,30 @@ slr_alternatives (Scanless_R * slr)
       const int event_type = MARPA_SLREV_TYPE (lexeme_stack_event);
       switch (event_type)
 	{
+	case MARPA_SLRTR_LEXEME_ACCEPTABLE:
+	  if (lexeme_stack_event->t_lexeme_acceptable.t_priority <
+	      high_lexeme_priority)
+	    {
+	      MARPA_SLREV_TYPE (lexeme_stack_event) =
+		MARPA_SLRTR_LEXEME_OUTPRIORITIZED;
+	      lexeme_stack_event->t_lexeme_acceptable.t_required_priority =
+		high_lexeme_priority;
+	      if (slr->trace_terminals)
+		{
+		  *MARPA_DSTACK_PUSH (slr->t_event_dstack,
+				      union marpa_slr_event_s) =
+		    *lexeme_stack_event;
+		}
+	    }
+	  break;
 	case MARPA_SLRTR_LEXEME_REJECTED:
 	case MARPA_SLRTR_LEXEME_DISCARDED:
-	  *MARPA_DSTACK_PUSH (slr->t_event_dstack, union marpa_slr_event_s) =
-	    *lexeme_stack_event;
+	  if (slr->trace_terminals)
+	    {
+	      *MARPA_DSTACK_PUSH (slr->t_event_dstack,
+				  union marpa_slr_event_s) =
+		*lexeme_stack_event;
+	    }
 	  break;
 	}
     }
@@ -2335,34 +2354,6 @@ slr_alternatives (Scanless_R * slr)
 
   /* If here, a lexeme has been accepted and priority is set
    */
-
-{
-  int i;
-  const int lexeme_dstack_length = MARPA_DSTACK_LENGTH (slr->t_lexeme_dstack);
-  for (i = 0; i < lexeme_dstack_length; i++)
-    {
-      union marpa_slr_event_s *const slr_event =
-	MARPA_DSTACK_INDEX (slr->t_lexeme_dstack, union marpa_slr_event_s,
-			    i);
-      const int event_type = MARPA_SLREV_TYPE (slr_event);
-      if (event_type == MARPA_SLRTR_LEXEME_ACCEPTABLE)
-	{
-	  if (slr_event->t_lexeme_acceptable.t_priority <
-	      high_lexeme_priority)
-	    {
-	      MARPA_SLREV_TYPE (slr_event) =
-		MARPA_SLRTR_LEXEME_OUTPRIORITIZED;
-	      slr_event->t_lexeme_acceptable.t_required_priority =
-		high_lexeme_priority;
-	      if (slr->trace_terminals)
-		{
-		  *MARPA_DSTACK_PUSH (slr->t_event_dstack,
-				      union marpa_slr_event_s) = *slr_event;
-		}
-	    }
-	}
-    }
-}
 
   {				/* Check for a "pause before" lexeme */
     /* A legacy implement allowed only one pause-before lexeme, and used elements of
