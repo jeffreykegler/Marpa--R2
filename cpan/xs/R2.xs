@@ -2191,12 +2191,12 @@ slr_alternatives (Scanless_R * slr)
     {
       croak ("Problem in slr->read(): No R0 at %s %d", __FILE__, __LINE__);
     }
-  earley_set = marpa_r_latest_earley_set (r0);
 
   /* Zero length lexemes are not of interest, so we do *not*
    * search the 0'th Earley set.
    */
-  while (continue_to_look_at_earley_sets && earley_set > 0)
+  for (earley_set = marpa_r_latest_earley_set (r0); earley_set > 0;
+       earley_set--)
     {
       /* The is_X booleans indicate whether the priorities are defined.
        * They are also initialized to 0, but only to silence the GCC
@@ -2216,7 +2216,7 @@ slr_alternatives (Scanless_R * slr)
 		 xs_g_error (slr->current_lexer->g_wrapper));
 	}
 
-    LOOP_OVER_EARLEY_ITEMS:while (!end_of_earley_items)
+      while (!end_of_earley_items)
 	{
 	  struct symbol_r_properties *symbol_r_properties;
 	  struct symbol_g_properties *symbol_g_properties;
@@ -2323,13 +2323,13 @@ slr_alternatives (Scanless_R * slr)
 	    }
 	  lexeme_buffer[lexemes_in_buffer++] = g1_lexeme;
 
-	NEXT_PASS1_REPORT_ITEM:;
+	NEXT_PASS1_REPORT_ITEM:	/* Clearer, I think, using this label than long distance
+					   break and continue */ ;
 	}
 
       if (discarded || rejected || is_priority_set)
-	continue_to_look_at_earley_sets = 0;
+	break;
 
-      earley_set--;
     }
 
   if (!is_priority_set)
