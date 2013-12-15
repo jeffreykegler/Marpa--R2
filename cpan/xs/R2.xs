@@ -2300,6 +2300,21 @@ slr_alternatives (Scanless_R * slr)
 	   * but we do not yet know about priority
 	   */
 
+	    {
+			union marpa_slr_event_s *slr_event =
+			  MARPA_DSTACK_PUSH (slr->t_lexeme_dstack,
+					     union marpa_slr_event_s);
+	    struct marpa_slrtr_lexeme_acceptable_s *event =
+	      &(slr_event->t_trace_lexeme_acceptable);
+			MARPA_SLREV_TYPE_SET (event,
+					      MARPA_SLRTR_LEXEME_ACCEPTABLE);
+			event->t_start_of_lexeme = slr->start_of_lexeme;
+			event->t_end_of_lexeme = slr->end_of_lexeme;
+			event->t_lexeme = g1_lexeme;
+			event->t_current_lexer_ix = slr->current_lexer->index;
+			event->t_priority = current_lexeme_priority;
+	    }
+
 	  this_lexeme_priority = symbol_g_properties->priority;
 	  if (is_priority_set
 	      && this_lexeme_priority < current_lexeme_priority)
