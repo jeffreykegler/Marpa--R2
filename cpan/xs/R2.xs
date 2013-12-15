@@ -458,7 +458,7 @@ static const char* op_to_op_name(enum marpa_op op)
 #define MARPA_SLRTR_G1_ATTEMPTING_LEXEME 18
 #define MARPA_SLRTR_G1_DUPLICATE_LEXEME 19
 #define MARPA_SLRTR_LEXEME_REJECTED 20
-#define MARPA_SLRTR_IGNORED_LEXEME 21
+#define MARPA_SLRTR_LEXEME_IGNORED 21
 #define MARPA_SLREV_DELETED 22
 #define MARPA_SLRTR_LEXEME_ACCEPTABLE 23
 #define MARPA_SLRTR_LEXEME_OUTPRIORITIZED 24
@@ -503,23 +503,6 @@ struct marpa_slrtr_codepoint_discarded_s
   int t_current_lexer_ix;
 };
 
-struct marpa_slrtr_ignored_lexeme_s
-{
-  int event_type;
-  int t_event_type;
-  int t_lexeme;
-  int t_start_of_lexeme;
-  int t_end_of_lexeme;
-};
-
-struct marpa_slrtr_lexeme_discarded_s
-{
-  int event_type;
-  int t_rule_id;
-  int t_start_of_lexeme;
-  int t_end_of_lexeme;
-  int t_current_lexer_ix;
-};
 
 union marpa_slr_event_s
 {
@@ -532,8 +515,24 @@ union marpa_slr_event_s
   struct marpa_slrtr_codepoint_discarded_s t_trace_codepoint_discarded;
   struct marpa_slrtr_codepoint_read_s t_trace_codepoint_read;
   struct marpa_slrtr_codepoint_rejected_s t_trace_codepoint_rejected;
-  struct marpa_slrtr_lexeme_discarded_s t_trace_lexeme_discarded;
-  struct marpa_slrtr_ignored_lexeme_s t_trace_ignored_lexeme;
+
+struct
+{
+  int event_type;
+  int t_event_type;
+  int t_lexeme;
+  int t_start_of_lexeme;
+  int t_end_of_lexeme;
+} t_trace_lexeme_ignored;
+
+struct
+{
+  int event_type;
+  int t_rule_id;
+  int t_start_of_lexeme;
+  int t_end_of_lexeme;
+  int t_current_lexer_ix;
+} t_trace_lexeme_discarded;
 
 struct
 {
@@ -1910,36 +1909,36 @@ slr_discard (Scanless_R * slr)
 	  slr->end_of_lexeme = working_pos;
 
 	  /* -2 means a discarded item */
-	  if (g1_lexeme <= -2)
-	    {
-	      lexemes_discarded++;
-	      if (slr->trace_terminals)
-		{
-		  union marpa_slr_event_s *slr_event =
-		    MARPA_DSTACK_PUSH (slr->t_event_dstack,
-				       union marpa_slr_event_s);
+if (g1_lexeme <= -2)
+  {
+    lexemes_discarded++;
+    if (slr->trace_terminals)
+      {
+	union marpa_slr_event_s *slr_event =
+	  MARPA_DSTACK_PUSH (slr->t_event_dstack,
+			     union marpa_slr_event_s);
 
-		  struct marpa_slrtr_lexeme_discarded_s *event =
-		    &(slr_event->t_trace_lexeme_discarded);
+	MARPA_SLREV_TYPE (slr_event) = MARPA_SLRTR_LEXEME_DISCARDED;
 
-MARPA_SLREV_TYPE(slr_event) = MARPA_SLRTR_LEXEME_DISCARDED;
+	/* We do not have the lexeme, but we have the 
+	 * lexer rule.
+	 * The upper level will have to figure things out.
+	 */
+	slr_event->t_trace_lexeme_discarded.t_rule_id = rule_id;
+	slr_event->t_trace_lexeme_discarded.t_start_of_lexeme =
+	  slr->start_of_lexeme;
+	slr_event->t_trace_lexeme_discarded.t_end_of_lexeme =
+	  slr->end_of_lexeme;
+	slr_event->t_trace_lexeme_discarded.t_current_lexer_ix =
+	  slr->current_lexer->index;
 
-		  /* We do not have the lexeme, but we have the 
-		   * lexer rule.
-		   * The upper level will have to figure things out.
-		   */
-		  event->t_rule_id = rule_id;
-		  event->t_start_of_lexeme = slr->start_of_lexeme;
-		  event->t_end_of_lexeme = slr->end_of_lexeme;
-		  event->t_current_lexer_ix = slr->current_lexer->index;
-
-		}
-	      /* If there is discarded item, we are fine,
-	       * and can return success.
-	       */
-	      slr->lexer_start_pos = slr->perl_pos = working_pos;
-	      return 0;
-	    }
+      }
+    /* If there is discarded item, we are fine,
+     * and can return success.
+     */
+    slr->lexer_start_pos = slr->perl_pos = working_pos;
+    return 0;
+  }
 
 	  /*
 	   * Ignore everything else.
@@ -1952,13 +1951,11 @@ MARPA_SLREV_TYPE(slr_event) = MARPA_SLRTR_LEXEME_DISCARDED;
 		MARPA_DSTACK_PUSH (slr->t_event_dstack,
 				   union marpa_slr_event_s);
 
-	      struct marpa_slrtr_ignored_lexeme_s *event =
-		&(slr_event->t_trace_ignored_lexeme);
-MARPA_SLREV_TYPE(slr_event) = MARPA_SLRTR_IGNORED_LEXEME;
+MARPA_SLREV_TYPE(slr_event) = MARPA_SLRTR_LEXEME_IGNORED;
 
-	      event->t_lexeme = g1_lexeme;
-	      event->t_start_of_lexeme = slr->start_of_lexeme;
-	      event->t_end_of_lexeme = slr->end_of_lexeme;
+	      slr_event->t_trace_lexeme_ignored.t_lexeme = g1_lexeme;
+	      slr_event->t_trace_lexeme_ignored.t_start_of_lexeme = slr->start_of_lexeme;
+	      slr_event->t_trace_lexeme_ignored.t_end_of_lexeme = slr->end_of_lexeme;
 	    }
 	NEXT_REPORT_ITEM:;
 	}
@@ -2247,13 +2244,11 @@ slr_alternatives (Scanless_R * slr)
 	      union marpa_slr_event_s *slr_event =
 		MARPA_DSTACK_PUSH (slr->t_lexeme_dstack,
 				   union marpa_slr_event_s);
-	      struct marpa_slrtr_lexeme_discarded_s *event =
-		&(slr_event->t_trace_lexeme_discarded);
 	      MARPA_SLREV_TYPE(slr_event) = MARPA_SLRTR_LEXEME_DISCARDED;
-	      event->t_rule_id = rule_id;
-	      event->t_start_of_lexeme = slr->start_of_lexeme;
-	      event->t_end_of_lexeme = slr->end_of_lexeme;
-	      event->t_current_lexer_ix = slr->current_lexer->index;
+	      slr_event->t_trace_lexeme_discarded.t_rule_id = rule_id;
+	      slr_event->t_trace_lexeme_discarded.t_start_of_lexeme = slr->start_of_lexeme;
+	      slr_event->t_trace_lexeme_discarded.t_end_of_lexeme = slr->end_of_lexeme;
+	      slr_event->t_trace_lexeme_discarded.t_current_lexer_ix = slr->current_lexer->index;
 	      discarded++;
 
 	      goto NEXT_PASS1_REPORT_ITEM;
@@ -5990,35 +5985,29 @@ PPCODE:
 
 	case MARPA_SLRTR_LEXEME_DISCARDED:
 	  {
-	    struct marpa_slrtr_lexeme_discarded_s *event =
-	      &(slr_event->t_trace_lexeme_discarded);
 	    AV *event_av = newAV ();
-
 	    av_push (event_av, newSVpvs ("'trace"));
 	    av_push (event_av, newSVpvs ("discarded lexeme"));
 	    /* We do not have the lexeme, but we have the 
 	     * lexer rule.
 	     * The upper level will have to figure things out.
 	     */
-	    av_push (event_av, newSViv ((IV) event->t_rule_id));
-	    av_push (event_av, newSViv ((IV) event->t_start_of_lexeme));
-	    av_push (event_av, newSViv ((IV) event->t_end_of_lexeme));
-	    av_push (event_av, newSViv ((IV) event->t_current_lexer_ix));
+	    av_push (event_av, newSViv ((IV) slr_event->t_trace_lexeme_discarded.t_rule_id));
+	    av_push (event_av, newSViv ((IV) slr_event->t_trace_lexeme_discarded.t_start_of_lexeme));
+	    av_push (event_av, newSViv ((IV) slr_event->t_trace_lexeme_discarded.t_end_of_lexeme));
+	    av_push (event_av, newSViv ((IV) slr_event->t_trace_lexeme_discarded.t_current_lexer_ix));
 	    XPUSHs (sv_2mortal (newRV_noinc ((SV *) event_av)));
 	    break;
 	  }
 
-	case MARPA_SLRTR_IGNORED_LEXEME:
+	case MARPA_SLRTR_LEXEME_IGNORED:
 	  {
-	    struct marpa_slrtr_ignored_lexeme_s *event =
-	      &(slr_event->t_trace_ignored_lexeme);
 	    AV *event_av = newAV ();
-
 	    av_push (event_av, newSVpvs ("'trace"));
 	    av_push (event_av, newSVpvs ("ignored lexeme"));
-	    av_push (event_av, newSViv ((IV) event->t_lexeme));
-	    av_push (event_av, newSViv ((IV) event->t_start_of_lexeme));
-	    av_push (event_av, newSViv ((IV) event->t_end_of_lexeme));
+	    av_push (event_av, newSViv ((IV) slr_event->t_trace_lexeme_ignored.t_lexeme));
+	    av_push (event_av, newSViv ((IV) slr_event->t_trace_lexeme_ignored.t_start_of_lexeme));
+	    av_push (event_av, newSViv ((IV) slr_event->t_trace_lexeme_ignored.t_end_of_lexeme));
 	    XPUSHs (sv_2mortal (newRV_noinc ((SV *) event_av)));
 	    break;
 	  }
