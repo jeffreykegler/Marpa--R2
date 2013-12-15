@@ -453,7 +453,7 @@ static const char* op_to_op_name(enum marpa_op op)
 #define MARPA_SLRTR_CODEPOINT_ACCEPTED 13
 #define MARPA_SLRTR_CODEPOINT_READ 14
 #define MARPA_SLRTR_CODEPOINT_REJECTED 15
-#define MARPA_SLRTR_DISCARDED_LEXEME 16
+#define MARPA_SLRTR_LEXEME_DISCARDED 16
 #define MARPA_SLRTR_G1_ACCEPTED_LEXEME 17
 #define MARPA_SLRTR_G1_ATTEMPTING_LEXEME 18
 #define MARPA_SLRTR_G1_DUPLICATE_LEXEME 19
@@ -1923,7 +1923,7 @@ slr_discard (Scanless_R * slr)
 		  struct marpa_slrtr_discarded_lexeme_s *event =
 		    &(slr_event->t_trace_discarded_lexeme);
 
-MARPA_SLREV_TYPE_SET(event, MARPA_SLRTR_DISCARDED_LEXEME);
+MARPA_SLREV_TYPE_SET(event, MARPA_SLRTR_LEXEME_DISCARDED);
 
 		  /* We do not have the lexeme, but we have the 
 		   * lexer rule.
@@ -2257,25 +2257,19 @@ slr_alternatives (Scanless_R * slr)
 	  /* -2 means a discarded item */
 	  if (g1_lexeme <= -2)
 	    {
+			union marpa_slr_event_s *slr_event =
+			  MARPA_DSTACK_PUSH (slr->t_lexeme_dstack,
+					     union marpa_slr_event_s);
+	    struct marpa_slrtr_discarded_lexeme_s *event =
+	      &(slr_event->t_trace_discarded_lexeme);
+			MARPA_SLREV_TYPE_SET (event,
+					      MARPA_SLRTR_LEXEME_DISCARDED);
+			event->t_rule_id = rule_id;
+			event->t_start_of_lexeme = slr->start_of_lexeme;
+			event->t_end_of_lexeme = slr->end_of_lexeme;
+			event->t_current_lexer_ix = slr->current_lexer->index;
 	      discarded++;
-	      if (slr->trace_terminals)
-		{
-		  AV *event;
-		  SV *event_data[6];
-		  event_data[0] = newSVpvs ("'trace");
-		  event_data[1] = newSVpvs ("discarded lexeme");
-		  /* We do not have the lexeme, but we have the 
-		   * lexer rule.
-		   * The upper level will have to figure things out.
-		   */
-		  event_data[2] = newSViv (rule_id);
-		  event_data[3] = newSViv (slr->start_of_lexeme);
-		  event_data[4] = newSViv (slr->end_of_lexeme);
-		  event_data[5] = newSViv (slr->current_lexer->index);
-		  event = av_make (Dim (event_data), event_data);
-		  av_push (slr->r1_wrapper->event_queue,
-			   newRV_noinc ((SV *) event));
-		}
+
 	      goto NEXT_PASS1_REPORT_ITEM;
 	    }
 	  symbol_g_properties = slg->symbol_g_properties + g1_lexeme;
@@ -2334,6 +2328,28 @@ slr_alternatives (Scanless_R * slr)
 	break;
 
     }
+
+if (slr->trace_terminals)
+{
+  int i;
+  const int lexeme_dstack_length = MARPA_DSTACK_LENGTH (slr->t_lexeme_dstack);
+  for (i = 0; i < lexeme_dstack_length; i++)
+    {
+      union marpa_slr_event_s *const marpa_slr_event =
+	MARPA_DSTACK_INDEX (slr->t_lexeme_dstack, union marpa_slr_event_s,
+			    i);
+      const int event_type = MARPA_SLREV_TYPE (marpa_slr_event);
+      switch (event_type)
+	{
+	case MARPA_SLRTR_LEXEME_DISCARDED:
+	  *(&MARPA_DSTACK_PUSH (slr->t_event_dstack,
+			       union
+			       marpa_slr_event_s)->t_trace_discarded_lexeme) =
+	    marpa_slr_event->t_trace_discarded_lexeme;
+	  break;
+	}
+    }
+}
 
   if (!is_priority_set)
     {
@@ -5945,7 +5961,7 @@ PPCODE:
 	    break;
 	  }
 
-	case MARPA_SLRTR_DISCARDED_LEXEME:
+	case MARPA_SLRTR_LEXEME_DISCARDED:
 	  {
 	    struct marpa_slrtr_discarded_lexeme_s *event =
 	      &(marpa_slr_event->t_trace_discarded_lexeme);
