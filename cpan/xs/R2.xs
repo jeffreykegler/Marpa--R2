@@ -471,7 +471,6 @@ struct marpa_slrev_base_s
 };
 
 #define MARPA_SLREV_TYPE(event) ((event)->t_header.t_event_type)
-#define MARPA_SLREV_TYPE_SET(event, type) ((event)->t_base.t_event_type = (type))
 
 struct marpa_slrtr_codepoint_read_s
 {
@@ -1068,8 +1067,7 @@ u_read (Scanless_R * slr)
 					     union marpa_slr_event_s);
 			struct marpa_slrtr_codepoint_rejected_s *event =
 			  &(slr_event->t_trace_codepoint_rejected);
-			MARPA_SLREV_TYPE_SET (event,
-					      MARPA_SLRTR_CODEPOINT_REJECTED);
+			MARPA_SLREV_TYPE(slr_event) = MARPA_SLRTR_CODEPOINT_REJECTED;
 			event->t_codepoint = codepoint;
 			event->t_perl_pos = slr->perl_pos;
 			event->t_symbol_id = symbol_id;
@@ -1085,9 +1083,7 @@ u_read (Scanless_R * slr)
 
 			struct marpa_slrtr_codepoint_accepted_s *event =
 			  &(slr_event->t_trace_codepoint_accepted);
-			MARPA_SLREV_TYPE_SET (event,
-					      MARPA_SLRTR_CODEPOINT_ACCEPTED);
-
+			MARPA_SLREV_TYPE(slr_event) = MARPA_SLRTR_CODEPOINT_ACCEPTED;
 			event->t_codepoint = codepoint;
 			event->t_perl_pos = slr->perl_pos;
 			event->t_symbol_id = symbol_id;
@@ -1943,7 +1939,7 @@ slr_discard (Scanless_R * slr)
 		  struct marpa_slrtr_lexeme_discarded_s *event =
 		    &(slr_event->t_trace_lexeme_discarded);
 
-MARPA_SLREV_TYPE_SET(event, MARPA_SLRTR_LEXEME_DISCARDED);
+MARPA_SLREV_TYPE(slr_event) = MARPA_SLRTR_LEXEME_DISCARDED;
 
 		  /* We do not have the lexeme, but we have the 
 		   * lexer rule.
@@ -1975,7 +1971,7 @@ MARPA_SLREV_TYPE_SET(event, MARPA_SLRTR_LEXEME_DISCARDED);
 
 	      struct marpa_slrtr_ignored_lexeme_s *event =
 		&(slr_event->t_trace_ignored_lexeme);
-MARPA_SLREV_TYPE_SET(event, MARPA_SLRTR_IGNORED_LEXEME);
+MARPA_SLREV_TYPE(slr_event) = MARPA_SLRTR_IGNORED_LEXEME;
 
 	      event->t_lexeme = g1_lexeme;
 	      event->t_start_of_lexeme = slr->start_of_lexeme;
@@ -2036,7 +2032,7 @@ slr_convert_events (Scanless_R * slr)
 
 	      struct marpa_slrev_symbol_completed_s *event =
 		&(slr_event->t_symbol_completed);
-MARPA_SLREV_TYPE_SET(event, MARPA_SLREV_SYMBOL_COMPLETED);
+MARPA_SLREV_TYPE(slr_event) = MARPA_SLREV_SYMBOL_COMPLETED;
 	      event->t_completed_symbol = marpa_g_event_value (&marpa_event);
 	    }
 	    break;
@@ -2048,7 +2044,7 @@ MARPA_SLREV_TYPE_SET(event, MARPA_SLREV_SYMBOL_COMPLETED);
 
 	      struct marpa_slrev_symbol_nulled_s *event =
 		&(slr_event->t_symbol_nulled);
-MARPA_SLREV_TYPE_SET(event, MARPA_SLREV_SYMBOL_NULLED);
+MARPA_SLREV_TYPE(slr_event) =MARPA_SLREV_SYMBOL_NULLED;
 	      event->t_nulled_symbol = marpa_g_event_value (&marpa_event);
 	    }
 	    break;
@@ -2059,7 +2055,7 @@ MARPA_SLREV_TYPE_SET(event, MARPA_SLREV_SYMBOL_NULLED);
 				   union marpa_slr_event_s);
 	      struct marpa_slrev_symbol_predicted_s *event =
 		&(slr_event->t_symbol_predicted);
-MARPA_SLREV_TYPE_SET(event, MARPA_SLREV_SYMBOL_PREDICTED);
+MARPA_SLREV_TYPE(slr_event) = MARPA_SLREV_SYMBOL_PREDICTED;
 	      event->t_predicted_symbol = marpa_g_event_value (&marpa_event);
 	    }
 	    break;
@@ -2085,7 +2081,7 @@ MARPA_SLREV_TYPE_SET(event, MARPA_SLREV_SYMBOL_PREDICTED);
 				   union marpa_slr_event_s);
 	      struct marpa_slrev_marpa_r_unknown_s *event =
 		&(slr_event->t_marpa_r_unknown);
-MARPA_SLREV_TYPE_SET(event, MARPA_SLREV_MARPA_R_UNKNOWN);
+MARPA_SLREV_TYPE(slr_event) = MARPA_SLREV_MARPA_R_UNKNOWN;
 	      event->t_marpa_r_event = event_type;
 	    }
 	    break;
@@ -2279,7 +2275,7 @@ slr_alternatives (Scanless_R * slr)
 				   union marpa_slr_event_s);
 	      struct marpa_slrtr_lexeme_discarded_s *event =
 		&(slr_event->t_trace_lexeme_discarded);
-	      MARPA_SLREV_TYPE_SET (event, MARPA_SLRTR_LEXEME_DISCARDED);
+	      MARPA_SLREV_TYPE(slr_event) = MARPA_SLRTR_LEXEME_DISCARDED;
 	      event->t_rule_id = rule_id;
 	      event->t_start_of_lexeme = slr->start_of_lexeme;
 	      event->t_end_of_lexeme = slr->end_of_lexeme;
@@ -2297,7 +2293,7 @@ slr_alternatives (Scanless_R * slr)
 				   union marpa_slr_event_s);
 	      struct marpa_slrtr_lexeme_rejected_s *event =
 		&(slr_event->t_trace_lexeme_rejected);
-	      MARPA_SLREV_TYPE_SET (event, MARPA_SLRTR_LEXEME_REJECTED);
+	      MARPA_SLREV_TYPE(slr_event) = MARPA_SLRTR_LEXEME_REJECTED;
 	      event->t_start_of_lexeme = slr->start_of_lexeme;
 	      event->t_end_of_lexeme = slr->end_of_lexeme;
 	      event->t_lexeme = g1_lexeme;
