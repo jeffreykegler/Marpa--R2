@@ -2322,6 +2322,13 @@ slr_alternatives (Scanless_R * slr)
 	    }
 	  break;
 	case MARPA_SLRTR_LEXEME_REJECTED:
+	  if (slr->trace_terminals || !is_priority_set)
+	    {
+	      *MARPA_DSTACK_PUSH (slr->t_event_dstack,
+				  union marpa_slr_event_s) =
+		*lexeme_stack_event;
+	    }
+	  break;
 	case MARPA_SLRTR_LEXEME_DISCARDED:
 	  if (slr->trace_terminals)
 	    {
@@ -2340,12 +2347,6 @@ slr_alternatives (Scanless_R * slr)
 	{
 	  slr->perl_pos = slr->lexer_start_pos = working_pos;
 	  return 0;
-	}
-      if (rejected)
-	{
-	  slr->perl_pos = slr->problem_pos = slr->lexer_start_pos =
-	    slr->start_of_lexeme;
-	  return "no lexemes accepted";
 	}
       slr->perl_pos = slr->problem_pos = slr->lexer_start_pos =
 	slr->start_of_lexeme;
