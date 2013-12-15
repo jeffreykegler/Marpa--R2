@@ -148,7 +148,6 @@ typedef struct
   G_Wrapper *g1_wrapper;
   AV *token_values;
   IV trace_lexers;
-  int trace_level;
   int trace_terminals;
   STRLEN start_of_lexeme;
   STRLEN end_of_lexeme;
@@ -2174,7 +2173,6 @@ slr_alternatives (Scanless_R * slr)
   Marpa_Recce r1 = slr->r1;
   Marpa_Earley_Set_ID earley_set;
   const Scanless_G *slg = slr->slg;
-  int continue_to_look_at_earley_sets = 1;
   int is_priority_set = 0;
   int lexemes_in_buffer = 0;
   int discarded = 0;
@@ -2274,12 +2272,6 @@ slr_alternatives (Scanless_R * slr)
 	  if (!is_expected)
 	    {
 	      rejected++;
-	      if (slr->trace_level >= 1)
-		{
-		  warn
-		    ("slr->read() R1 Rejected unexpected symbol %d at pos %d",
-		     g1_lexeme, (int) slr->perl_pos);
-		}
 	      if (slr->trace_terminals)
 		{
 		  AV *event;
@@ -2433,12 +2425,6 @@ slr_alternatives (Scanless_R * slr)
 	    break;
 
 	  case MARPA_ERR_DUPLICATE_TOKEN:
-	    if (slr->trace_level >= 1)
-	      {
-		warn
-		  ("slr->read() R1 Rejected duplicate symbol %d at pos %d",
-		   g1_lexeme, (int) slr->perl_pos);
-	      }
 	    if (slr->trace_terminals)
 	      {
 		AV *event;
@@ -2455,12 +2441,6 @@ slr_alternatives (Scanless_R * slr)
 	    break;
 
 	  case MARPA_ERR_NONE:
-	    if (slr->trace_level >= 1)
-	      {
-		warn
-		  ("slr->read() R1 Accepted symbol %d at pos %d",
-		   g1_lexeme, (int) slr->perl_pos);
-	      }
 	    if (slr->trace_terminals)
 	      {
 		AV *event;
@@ -5416,7 +5396,6 @@ PPCODE:
   Newx (slr, 1, Scanless_R);
 
   slr->throw = 1;
-  slr->trace_level = 0;
   slr->trace_lexers = 0;
   slr->trace_terminals = 0;
   slr->r0 = NULL;
@@ -5517,6 +5496,7 @@ PPCODE:
   /* After this is code destined for the non-XS SLIF */
 
    MARPA_DSTACK_DESTROY(slr->t_event_dstack);
+   MARPA_DSTACK_DESTROY(slr->t_lexeme_dstack);
 
   /* Before this is code destined for the non-XS SLIF */
 
@@ -5541,18 +5521,6 @@ PPCODE:
 }
 
 void
-trace( slr, new_level )
-    Scanless_R *slr;
-    int new_level;
-PPCODE:
-{
-  IV old_level = slr->trace_level;
-  slr->trace_level = new_level;
-  warn("Changing SLR trace level from %d to %d", (int)old_level, (int)new_level);
-  XSRETURN_IV(old_level);
-}
-
-void
 trace_lexers( slr, new_level )
     Scanless_R *slr;
     int new_level;
@@ -5560,12 +5528,6 @@ PPCODE:
 {
   IV old_level = slr->trace_lexers;
   slr->trace_lexers = new_level;
-  if (slr->trace_level) {
-    /* Note that we use *trace_level*, not *trace_lexers* to control warning.
-     * We never warn() for trace_terminals, just report events.
-     */
-    warn("Changing SLR lexer trace level from %d to %d", (int)old_level, (int)new_level);
-  }
   XSRETURN_IV(old_level);
 }
 
@@ -5577,12 +5539,6 @@ PPCODE:
 {
   IV old_level = slr->trace_terminals;
   slr->trace_terminals = new_level;
-  if (slr->trace_level) {
-    /* Note that we use *trace_level*, not *trace_terminals* to control warning.
-     * We never warn() for trace_terminals, just report events.
-     */
-    warn("Changing SLR trace_terminals level from %d to %d", (int)old_level, (int)new_level);
-  }
   XSRETURN_IV(old_level);
 }
 
