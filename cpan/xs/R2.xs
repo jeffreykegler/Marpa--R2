@@ -2276,21 +2276,18 @@ slr_alternatives (Scanless_R * slr)
 	  is_expected = marpa_r_terminal_is_expected (r1, g1_lexeme);
 	  if (!is_expected)
 	    {
+			union marpa_slr_event_s *slr_event =
+			  MARPA_DSTACK_PUSH (slr->t_lexeme_dstack,
+					     union marpa_slr_event_s);
+	    struct marpa_slrtr_lexeme_rejected_s *event =
+	      &(slr_event->t_trace_lexeme_rejected);
+			MARPA_SLREV_TYPE_SET (event,
+					      MARPA_SLRTR_LEXEME_REJECTED);
+			event->t_start_of_lexeme = slr->start_of_lexeme;
+			event->t_end_of_lexeme = slr->end_of_lexeme;
+			event->t_lexeme = g1_lexeme;
+			event->t_current_lexer_ix = slr->current_lexer->index;
 	      rejected++;
-	      if (slr->trace_terminals)
-		{
-		  AV *event;
-		  SV *event_data[6];
-		  event_data[0] = newSVpvs ("'trace");
-		  event_data[1] = newSVpvs ("rejected lexeme");
-		  event_data[2] = newSViv (slr->start_of_lexeme);	/* start */
-		  event_data[3] = newSViv (slr->end_of_lexeme);	/* end */
-		  event_data[4] = newSViv (g1_lexeme);	/* lexeme */
-		  event_data[5] = newSViv ((IV) slr->current_lexer->index);
-		  event = av_make (Dim (event_data), event_data);
-		  av_push (slr->r1_wrapper->event_queue,
-			   newRV_noinc ((SV *) event));
-		}
 	      goto NEXT_PASS1_REPORT_ITEM;
 	    }
 
