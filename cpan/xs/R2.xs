@@ -903,7 +903,7 @@ u_convert_events (Scanless_R * slr)
  * -5: earleme_complete() reported an exhausted parse on success
  */
 static int
-u_read(Scanless_R *slr)
+u_read (Scanless_R * slr)
 {
   dTHX;
   U8 *input;
@@ -920,10 +920,13 @@ u_read(Scanless_R *slr)
       const int too_many_earley_items = slr->too_many_earley_items;
       r = u_r0_new (slr);
       if (!r)
-	croak ("Problem in u_read(): %s", xs_g_error (slr->current_lexer->g_wrapper));
-      if (too_many_earley_items >= 0) {
-	marpa_r_earley_item_warning_threshold_set(r, too_many_earley_items);
-      }
+	croak ("Problem in u_read(): %s",
+	       xs_g_error (slr->current_lexer->g_wrapper));
+      if (too_many_earley_items >= 0)
+	{
+	  marpa_r_earley_item_warning_threshold_set (r,
+						     too_many_earley_items);
+	}
     }
   input_is_utf8 = SvUTF8 (slr->input);
   input = (U8 *) SvPV (slr->input, len);
@@ -973,8 +976,9 @@ u_read(Scanless_R *slr)
       else
 	{
 	  STRLEN dummy;
-	  SV **p_ops_sv = hv_fetch (lexer->per_codepoint_hash, (char *) &codepoint,
-				    (I32) sizeof (codepoint), 0);
+	  SV **p_ops_sv =
+	    hv_fetch (lexer->per_codepoint_hash, (char *) &codepoint,
+		      (I32) sizeof (codepoint), 0);
 	  if (!p_ops_sv)
 	    {
 	      slr->codepoint = codepoint;
@@ -1038,42 +1042,46 @@ u_read(Scanless_R *slr)
 		     */
 		    slr->input_symbol_id = symbol_id;
 		    if (trace_lexers >= 1)
-		    {
-		      union marpa_slr_event_s* slr_event =
-			MARPA_DSTACK_PUSH (slr->t_event_dstack, union marpa_slr_event_s);
-		      struct marpa_slrtr_codepoint_rejected_s *event =
-			&(slr_event->t_trace_codepoint_rejected);
-MARPA_SLREV_TYPE_SET(event, MARPA_SLRTR_CODEPOINT_REJECTED);
-		      event->t_codepoint = codepoint;
-		      event->t_perl_pos = slr->perl_pos;
-		      event->t_symbol_id = symbol_id;
-		      event->t_current_lexer_ix = slr->current_lexer->index;
-		    }
+		      {
+			union marpa_slr_event_s *slr_event =
+			  MARPA_DSTACK_PUSH (slr->t_event_dstack,
+					     union marpa_slr_event_s);
+			struct marpa_slrtr_codepoint_rejected_s *event =
+			  &(slr_event->t_trace_codepoint_rejected);
+			MARPA_SLREV_TYPE_SET (event,
+					      MARPA_SLRTR_CODEPOINT_REJECTED);
+			event->t_codepoint = codepoint;
+			event->t_perl_pos = slr->perl_pos;
+			event->t_symbol_id = symbol_id;
+			event->t_current_lexer_ix = slr->current_lexer->index;
+		      }
 		    break;
 		  case MARPA_ERR_NONE:
-if (trace_lexers >= 1)
-  {
-    union marpa_slr_event_s *slr_event =
-      MARPA_DSTACK_PUSH (slr->t_event_dstack, union marpa_slr_event_s);
+		    if (trace_lexers >= 1)
+		      {
+			union marpa_slr_event_s *slr_event =
+			  MARPA_DSTACK_PUSH (slr->t_event_dstack,
+					     union marpa_slr_event_s);
 
-    struct marpa_slrtr_codepoint_accepted_s *event =
-      &(slr_event->t_trace_codepoint_accepted);
-MARPA_SLREV_TYPE_SET(event, MARPA_SLRTR_CODEPOINT_ACCEPTED);
+			struct marpa_slrtr_codepoint_accepted_s *event =
+			  &(slr_event->t_trace_codepoint_accepted);
+			MARPA_SLREV_TYPE_SET (event,
+					      MARPA_SLRTR_CODEPOINT_ACCEPTED);
 
-    event->t_codepoint = codepoint;
-    event->t_perl_pos = slr->perl_pos;
-    event->t_symbol_id = symbol_id;
-    event->t_current_lexer_ix = slr->current_lexer->index;
-  }
-tokens_accepted++;
-break;
+			event->t_codepoint = codepoint;
+			event->t_perl_pos = slr->perl_pos;
+			event->t_symbol_id = symbol_id;
+			event->t_current_lexer_ix = slr->current_lexer->index;
+		      }
+		    tokens_accepted++;
+		    break;
 		  default:
 		    slr->codepoint = codepoint;
 		    slr->input_symbol_id = symbol_id;
 		    croak
 		      ("Problem alternative() failed at char ix %ld; symbol id %ld; codepoint 0x%lx\n"
 		       "Problem in u_read(), alternative() failed: %s",
-		       (long) slr->perl_pos, (long)symbol_id,
+		       (long) slr->perl_pos, (long) symbol_id,
 		       (unsigned long) codepoint,
 		       xs_g_error (slr->current_lexer->g_wrapper));
 		  }
@@ -1081,8 +1089,8 @@ break;
 	      break;
 
 	    case op_invalid_char:
-		slr->codepoint = codepoint;
-		return U_READ_INVALID_CHAR;
+	      slr->codepoint = codepoint;
+	      return U_READ_INVALID_CHAR;
 
 	    case op_earleme_complete:
 	      {
@@ -1095,11 +1103,12 @@ break;
 		result = marpa_r_earleme_complete (r);
 		if (result > 0)
 		  {
-		     u_convert_events( slr );
+		    u_convert_events (slr);
 		    /* Advance one character before returning */
-		    if (marpa_r_is_exhausted (r)) {
-		        return U_READ_EXHAUSTED_ON_SUCCESS;
-		    }
+		    if (marpa_r_is_exhausted (r))
+		      {
+			return U_READ_EXHAUSTED_ON_SUCCESS;
+		      }
 		    goto ADVANCE_ONE_CHAR;
 		  }
 		if (result == -2)
@@ -2189,6 +2198,8 @@ slr_alternatives (Scanless_R * slr)
     {
       croak ("Problem in slr->read(): No R0 at %s %d", __FILE__, __LINE__);
     }
+
+  MARPA_DSTACK_CLEAR(slr->t_lexeme_dstack);
 
   /* Zero length lexemes are not of interest, so we do *not*
    * search the 0'th Earley set.
