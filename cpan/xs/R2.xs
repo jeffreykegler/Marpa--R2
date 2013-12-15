@@ -2205,6 +2205,7 @@ slr_alternatives (Scanless_R * slr)
        */
       int current_lexeme_priority = 0;
       working_pos = slr->start_of_lexeme + earley_set;
+      int end_of_earley_items = 0;
 
       int return_value;
       return_value = marpa_r_progress_report_start (r0, earley_set);
@@ -2215,143 +2216,135 @@ slr_alternatives (Scanless_R * slr)
 		 xs_g_error (slr->current_lexer->g_wrapper));
 	}
 
-      do
-	{			/* pass 1 -- do-block executed only once */
-	  int end_of_earley_items = 0;
-	LOOP_OVER_EARLEY_ITEMS:while (!end_of_earley_items)
+    LOOP_OVER_EARLEY_ITEMS:while (!end_of_earley_items)
+	{
+	  struct symbol_r_properties *symbol_r_properties;
+	  struct symbol_g_properties *symbol_g_properties;
+	  Marpa_Symbol_ID g1_lexeme;
+	  int this_lexeme_priority;
+	  int is_expected;
+	  int dot_position;
+	  Marpa_Earley_Set_ID origin;
+	  Marpa_Rule_ID rule_id =
+	    marpa_r_progress_item (r0, &dot_position, &origin);
+	  if (rule_id <= -2)
 	    {
-	      struct symbol_r_properties *symbol_r_properties;
-	      struct symbol_g_properties *symbol_g_properties;
-	      Marpa_Symbol_ID g1_lexeme;
-	      int this_lexeme_priority;
-	      int is_expected;
-	      int dot_position;
-	      Marpa_Earley_Set_ID origin;
-	      Marpa_Rule_ID rule_id =
-		marpa_r_progress_item (r0, &dot_position, &origin);
-	      if (rule_id <= -2)
+	      croak ("Problem in marpa_r_progress_item(): %s",
+		     xs_g_error (slr->current_lexer->g_wrapper));
+	    }
+	  if (rule_id == -1)
+	    {
+	      end_of_earley_items = 1;
+	      goto NEXT_PASS1_REPORT_ITEM;
+	    }
+	  if (origin != 0)
+	    goto NEXT_PASS1_REPORT_ITEM;
+	  if (dot_position != -1)
+	    goto NEXT_PASS1_REPORT_ITEM;
+	  g1_lexeme = slr->current_lexer->lexer_rule_to_g1_lexeme[rule_id];
+	  if (g1_lexeme == -1)
+	    goto NEXT_PASS1_REPORT_ITEM;
+	  slr->end_of_lexeme = working_pos;
+	  /* -2 means a discarded item */
+	  if (g1_lexeme <= -2)
+	    {
+	      discarded++;
+	      if (slr->trace_terminals)
 		{
-		  croak ("Problem in marpa_r_progress_item(): %s",
-			 xs_g_error (slr->current_lexer->g_wrapper));
+		  AV *event;
+		  SV *event_data[6];
+		  event_data[0] = newSVpvs ("'trace");
+		  event_data[1] = newSVpvs ("discarded lexeme");
+		  /* We do not have the lexeme, but we have the 
+		   * lexer rule.
+		   * The upper level will have to figure things out.
+		   */
+		  event_data[2] = newSViv (rule_id);
+		  event_data[3] = newSViv (slr->start_of_lexeme);
+		  event_data[4] = newSViv (slr->end_of_lexeme);
+		  event_data[5] = newSViv (slr->current_lexer->index);
+		  event = av_make (Dim (event_data), event_data);
+		  av_push (slr->r1_wrapper->event_queue,
+			   newRV_noinc ((SV *) event));
 		}
-	      if (rule_id == -1)
+	      goto NEXT_PASS1_REPORT_ITEM;
+	    }
+	  symbol_g_properties = slg->symbol_g_properties + g1_lexeme;
+	  is_expected = marpa_r_terminal_is_expected (r1, g1_lexeme);
+	  if (!is_expected)
+	    {
+	      rejected++;
+	      if (slr->trace_level >= 1)
 		{
-		  end_of_earley_items = 1;
-		  goto NEXT_PASS1_REPORT_ITEM;
+		  warn
+		    ("slr->read() R1 Rejected unexpected symbol %d at pos %d",
+		     g1_lexeme, (int) slr->perl_pos);
 		}
-	      if (origin != 0)
-		goto NEXT_PASS1_REPORT_ITEM;
-	      if (dot_position != -1)
-		goto NEXT_PASS1_REPORT_ITEM;
-	      g1_lexeme =
-		slr->current_lexer->lexer_rule_to_g1_lexeme[rule_id];
-	      if (g1_lexeme == -1)
-		goto NEXT_PASS1_REPORT_ITEM;
-	      slr->end_of_lexeme = working_pos;
-	      /* -2 means a discarded item */
-	      if (g1_lexeme <= -2)
+	      if (slr->trace_terminals)
 		{
-		  discarded++;
-		  if (slr->trace_terminals)
-		    {
-		      AV *event;
-		      SV *event_data[6];
-		      event_data[0] = newSVpvs ("'trace");
-		      event_data[1] = newSVpvs ("discarded lexeme");
-		      /* We do not have the lexeme, but we have the 
-		       * lexer rule.
-		       * The upper level will have to figure things out.
-		       */
-		      event_data[2] = newSViv (rule_id);
-		      event_data[3] = newSViv (slr->start_of_lexeme);
-		      event_data[4] = newSViv (slr->end_of_lexeme);
-		      event_data[5] = newSViv (slr->current_lexer->index);
-		      event = av_make (Dim (event_data), event_data);
-		      av_push (slr->r1_wrapper->event_queue,
-			       newRV_noinc ((SV *) event));
-		    }
-		  goto NEXT_PASS1_REPORT_ITEM;
+		  AV *event;
+		  SV *event_data[6];
+		  event_data[0] = newSVpvs ("'trace");
+		  event_data[1] = newSVpvs ("g1 unexpected lexeme");
+		  event_data[2] = newSViv (slr->start_of_lexeme);	/* start */
+		  event_data[3] = newSViv (slr->end_of_lexeme);	/* end */
+		  event_data[4] = newSViv (g1_lexeme);	/* lexeme */
+		  event_data[5] = newSViv ((IV) slr->current_lexer->index);
+		  event = av_make (Dim (event_data), event_data);
+		  av_push (slr->r1_wrapper->event_queue,
+			   newRV_noinc ((SV *) event));
 		}
-	      symbol_g_properties = slg->symbol_g_properties + g1_lexeme;
-	      is_expected = marpa_r_terminal_is_expected (r1, g1_lexeme);
-	      if (!is_expected)
-		{
-		  rejected++;
-		  if (slr->trace_level >= 1)
-		    {
-		      warn
-			("slr->read() R1 Rejected unexpected symbol %d at pos %d",
-			 g1_lexeme, (int) slr->perl_pos);
-		    }
-		  if (slr->trace_terminals)
-		    {
-		      AV *event;
-		      SV *event_data[6];
-		      event_data[0] = newSVpvs ("'trace");
-		      event_data[1] = newSVpvs ("g1 unexpected lexeme");
-		      event_data[2] = newSViv (slr->start_of_lexeme);	/* start */
-		      event_data[3] = newSViv (slr->end_of_lexeme);	/* end */
-		      event_data[4] = newSViv (g1_lexeme);	/* lexeme */
-		      event_data[5] =
-			newSViv ((IV) slr->current_lexer->index);
-		      event = av_make (Dim (event_data), event_data);
-		      av_push (slr->r1_wrapper->event_queue,
-			       newRV_noinc ((SV *) event));
-		    }
-		  goto NEXT_PASS1_REPORT_ITEM;
-		}
-
-	      /* If we are here, the lexeme will be accepted  by the grammar,
-	       * but we do not yet know about priority
-	       */
-
-	      this_lexeme_priority = symbol_g_properties->priority;
-	      if (is_priority_set
-		  && this_lexeme_priority < current_lexeme_priority)
-		{
-		  goto NEXT_PASS1_REPORT_ITEM;
-		}
-
-	      if (!is_priority_set
-		  || this_lexeme_priority > current_lexeme_priority)
-		{
-		  lexemes_in_buffer = 0;
-		  current_lexeme_priority = this_lexeme_priority;
-		  is_priority_set = 1;
-		}
-
-	      if (lexemes_in_buffer >= lexeme_buffer_size)
-		{
-		  lexeme_buffer_size *= 2;
-		  Renew (lexeme_buffer, lexeme_buffer_size, Marpa_Symbol_ID);
-		}
-	      lexeme_buffer[lexemes_in_buffer++] = g1_lexeme;
-
-	    NEXT_PASS1_REPORT_ITEM:;
+	      goto NEXT_PASS1_REPORT_ITEM;
 	    }
 
-	  if (discarded || rejected || is_priority_set)
-	    continue_to_look_at_earley_sets = 0;
+	  /* If we are here, the lexeme will be accepted  by the grammar,
+	   * but we do not yet know about priority
+	   */
 
+	  this_lexeme_priority = symbol_g_properties->priority;
+	  if (is_priority_set
+	      && this_lexeme_priority < current_lexeme_priority)
+	    {
+	      goto NEXT_PASS1_REPORT_ITEM;
+	    }
+
+	  if (!is_priority_set
+	      || this_lexeme_priority > current_lexeme_priority)
+	    {
+	      lexemes_in_buffer = 0;
+	      current_lexeme_priority = this_lexeme_priority;
+	      is_priority_set = 1;
+	    }
+
+	  if (lexemes_in_buffer >= lexeme_buffer_size)
+	    {
+	      lexeme_buffer_size *= 2;
+	      Renew (lexeme_buffer, lexeme_buffer_size, Marpa_Symbol_ID);
+	    }
+	  lexeme_buffer[lexemes_in_buffer++] = g1_lexeme;
+
+	NEXT_PASS1_REPORT_ITEM:;
 	}
-      while (0);
+
+      if (discarded || rejected || is_priority_set)
+	continue_to_look_at_earley_sets = 0;
 
       earley_set--;
     }
 
   if (!is_priority_set)
     {
-	      if (discarded)
-		{
-		  slr->perl_pos = slr->lexer_start_pos = working_pos;
-		  return 0;
-		}
-	      if (rejected)
-		{
-		  slr->perl_pos = slr->problem_pos = slr->lexer_start_pos =
-		    slr->start_of_lexeme;
-		  return "no lexemes accepted";
-		}
+      if (discarded)
+	{
+	  slr->perl_pos = slr->lexer_start_pos = working_pos;
+	  return 0;
+	}
+      if (rejected)
+	{
+	  slr->perl_pos = slr->problem_pos = slr->lexer_start_pos =
+	    slr->start_of_lexeme;
+	  return "no lexemes accepted";
+	}
       slr->perl_pos = slr->problem_pos = slr->lexer_start_pos =
 	slr->start_of_lexeme;
       return "no lexeme";
@@ -2540,12 +2533,9 @@ slr_alternatives (Scanless_R * slr)
 					  INT2PTR (void *,
 						   (slr->end_of_lexeme -
 						    slr->start_of_lexeme)));
-    return 0;
   }
 
-
-
-  croak ("Should not be here: %s %d", __FILE__, __LINE__);
+  return 0;
 
 }
 
