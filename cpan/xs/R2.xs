@@ -654,11 +654,22 @@ union marpa_slr_event_s
     int t_priority;
     int t_required_priority;
   } t_lexeme_acceptable;
+  struct
+  {
+    int event_type;
+    int t_perl_pos;
+    int t_old_lexer_ix;
+    int t_new_lexer_ix;
+  } t_trace_change_lexers;
+  struct
+  {
+    int event_type;
+  } t_no_acceptable_input;
+
   struct marpa_slrev_after_lexeme_s t_after_lexeme;
   struct marpa_slrev_before_lexeme_s t_before_lexeme;
   struct marpa_slrev_lexer_restarted_recce_s t_lexer_restarted_recce;
   struct marpa_slrev_marpa_r_unknown_s t_marpa_r_unknown;
-  struct marpa_slrev_no_acceptable_input_s t_no_acceptable_input;
   struct marpa_slrev_symbol_completed_s t_symbol_completed;
   struct marpa_slrev_symbol_nulled_s t_symbol_nulled;
   struct marpa_slrev_symbol_predicted_s t_symbol_predicted;
@@ -666,7 +677,6 @@ union marpa_slr_event_s
   struct marpa_slrtr_after_lexeme_s t_trace_after_lexeme;
   struct marpa_slrtr_attempting_lexeme_s t_trace_attempting_lexeme;
   struct marpa_slrtr_before_lexeme_s t_trace_before_lexeme;
-  struct marpa_slrtr_change_lexers_s t_trace_change_lexers;
   struct marpa_slrtr_codepoint_accepted_s t_trace_codepoint_accepted;
   struct marpa_slrtr_codepoint_discarded_s t_trace_codepoint_discarded;
   struct marpa_slrtr_codepoint_read_s t_trace_codepoint_read;
@@ -6240,22 +6250,18 @@ PPCODE:
 
 	case MARPA_SLRTR_CHANGE_LEXERS:
 	  {
-	    struct marpa_slrtr_change_lexers_s *event =
-	      &(marpa_slr_event->t_trace_change_lexers);
 	    AV *event_av = newAV ();
 	    av_push (event_av, newSVpvs ("'trace"));
 	    av_push (event_av, newSVpv ("changing lexers", 0));
-	    av_push (event_av, newSViv ((IV) event->t_perl_pos));
-	    av_push (event_av, newSViv ((IV) event->t_old_lexer_ix));
-	    av_push (event_av, newSViv ((IV) event->t_new_lexer_ix));
+	    av_push (event_av, newSViv ((IV) marpa_slr_event->t_trace_change_lexers.t_perl_pos));
+	    av_push (event_av, newSViv ((IV) marpa_slr_event->t_trace_change_lexers.t_old_lexer_ix));
+	    av_push (event_av, newSViv ((IV) marpa_slr_event->t_trace_change_lexers.t_new_lexer_ix));
 	    XPUSHs (sv_2mortal (newRV_noinc ((SV *) event_av)));
 	    break;
 	  }
 
 	case MARPA_SLREV_NO_ACCEPTABLE_INPUT:
 	  {
-	    struct marpa_slrev_no_acceptable_input_s *event =
-	      &(marpa_slr_event->t_no_acceptable_input);
 	    AV *event_av = newAV ();
 	    av_push (event_av, newSVpvs ("no acceptable input"));
 	    XPUSHs (sv_2mortal (newRV_noinc ((SV *) event_av)));
