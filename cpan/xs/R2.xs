@@ -460,6 +460,7 @@ static const char* op_to_op_name(enum marpa_op op)
 #define MARPA_SLRTR_LEXEME_REJECTED 20
 #define MARPA_SLRTR_IGNORED_LEXEME 21
 #define MARPA_SLREV_DELETED 22
+#define MARPA_SLRTR_LEXEME_ACCEPTABLE 23
 
 union marpa_slr_event_s;
 
@@ -543,12 +544,6 @@ struct marpa_slrev_symbol_predicted_s
   int t_predicted_symbol;
 };
 
-struct marpa_slrev_lexeme_found_s {
-  struct marpa_slrev_base_s t_base;
-  int t_priority;
-  int t_lexeme;
-};
-
 struct marpa_slrev_marpa_r_unknown_s
 {
   struct marpa_slrev_base_s t_base;
@@ -562,6 +557,16 @@ struct marpa_slrtr_lexeme_rejected_s
   int t_end_of_lexeme;		/* end */
   int t_lexeme;			/* lexeme */
   int t_current_lexer_ix;
+};
+
+struct marpa_slrtr_lexeme_acceptable_s
+{
+  struct marpa_slrev_base_s t_base;
+  int t_start_of_lexeme;	/* start */
+  int t_end_of_lexeme;		/* end */
+  int t_lexeme;			/* lexeme */
+  int t_current_lexer_ix;
+  int t_priority;
 };
 
 struct marpa_slrtr_before_lexeme_s
@@ -642,7 +647,6 @@ union marpa_slr_event_s
   struct marpa_slrev_base_s t_base;
   struct marpa_slrev_after_lexeme_s t_after_lexeme;
   struct marpa_slrev_before_lexeme_s t_before_lexeme;
-  struct marpa_slrev_lexeme_found_s t_lexeme_found;
   struct marpa_slrev_lexer_restarted_recce_s t_lexer_restarted_recce;
   struct marpa_slrev_marpa_r_unknown_s t_marpa_r_unknown;
   struct marpa_slrev_no_acceptable_input_s t_no_acceptable_input;
@@ -661,6 +665,7 @@ union marpa_slr_event_s
   struct marpa_slrtr_lexeme_discarded_s t_trace_lexeme_discarded;
   struct marpa_slrtr_duplicate_lexeme_s t_trace_duplicate_lexeme;
   struct marpa_slrtr_lexeme_rejected_s t_trace_lexeme_rejected;
+  struct marpa_slrtr_lexeme_acceptable_s t_trace_lexeme_acceptable;
   struct marpa_slrtr_ignored_lexeme_s t_trace_ignored_lexeme;
 };
 
@@ -5502,7 +5507,7 @@ PPCODE:
   MARPA_DSTACK_INIT (slr->t_event_dstack, union marpa_slr_event_s,
 		     MAX (1024 / sizeof (union marpa_slr_event_s), 16));
   slr->t_count_of_deleted_events = 0;
-  MARPA_DSTACK_INIT (slr->t_lexeme_dstack, struct marpa_slrev_lexeme_found_s,
+  MARPA_DSTACK_INIT (slr->t_lexeme_dstack, union marpa_slr_event_s,
 		     MAX (1024 / sizeof (union marpa_slr_event_s), 16));
 
   /* Before this is code destined for the non-XS SLIF */
