@@ -442,7 +442,7 @@ my $libmarpa_trace_event_handlers = {
             qq{; value="$raw_token_value"}
             or Marpa::R2::exception("Could not say(): $ERRNO");
         },
-    'g1 unexpected lexeme' => sub {
+    'rejected lexeme' => sub {
         my ( $slr, $event ) = @_;
         my ( undef, undef, $lexeme_start_pos, $lexeme_end_pos, $g1_lexeme, $lexer_id ) =
             @{$event};

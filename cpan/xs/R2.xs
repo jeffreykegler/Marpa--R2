@@ -457,7 +457,7 @@ static const char* op_to_op_name(enum marpa_op op)
 #define MARPA_SLRTR_G1_ACCEPTED_LEXEME 17
 #define MARPA_SLRTR_G1_ATTEMPTING_LEXEME 18
 #define MARPA_SLRTR_G1_DUPLICATE_LEXEME 19
-#define MARPA_SLRTR_G1_UNEXPECTED_LEXEME 20
+#define MARPA_SLRTR_LEXEME_REJECTED 20
 #define MARPA_SLRTR_IGNORED_LEXEME 21
 #define MARPA_SLREV_DELETED 22
 
@@ -516,7 +516,7 @@ struct marpa_slrtr_ignored_lexeme_s
   int t_end_of_lexeme;
 };
 
-struct marpa_slrtr_discarded_lexeme_s
+struct marpa_slrtr_lexeme_discarded_s
 {
   struct marpa_slrev_base_s t_base;
   int t_rule_id;
@@ -555,7 +555,7 @@ struct marpa_slrev_marpa_r_unknown_s
   int t_marpa_r_event;
 };
 
-struct marpa_slrtr_g1_unexpected_lexeme_s
+struct marpa_slrtr_lexeme_rejected_s
 {
   struct marpa_slrev_base_s t_base;
   int t_start_of_lexeme;	/* start */
@@ -658,9 +658,9 @@ union marpa_slr_event_s
   struct marpa_slrtr_codepoint_discarded_s t_trace_codepoint_discarded;
   struct marpa_slrtr_codepoint_read_s t_trace_codepoint_read;
   struct marpa_slrtr_codepoint_rejected_s t_trace_codepoint_rejected;
-  struct marpa_slrtr_discarded_lexeme_s t_trace_discarded_lexeme;
+  struct marpa_slrtr_lexeme_discarded_s t_trace_lexeme_discarded;
   struct marpa_slrtr_duplicate_lexeme_s t_trace_duplicate_lexeme;
-  struct marpa_slrtr_g1_unexpected_lexeme_s t_trace_g1_unexpected_lexeme;
+  struct marpa_slrtr_lexeme_rejected_s t_trace_lexeme_rejected;
   struct marpa_slrtr_ignored_lexeme_s t_trace_ignored_lexeme;
 };
 
@@ -1920,8 +1920,8 @@ slr_discard (Scanless_R * slr)
 		    MARPA_DSTACK_PUSH (slr->t_event_dstack,
 				       union marpa_slr_event_s);
 
-		  struct marpa_slrtr_discarded_lexeme_s *event =
-		    &(slr_event->t_trace_discarded_lexeme);
+		  struct marpa_slrtr_lexeme_discarded_s *event =
+		    &(slr_event->t_trace_lexeme_discarded);
 
 MARPA_SLREV_TYPE_SET(event, MARPA_SLRTR_LEXEME_DISCARDED);
 
@@ -2260,8 +2260,8 @@ slr_alternatives (Scanless_R * slr)
 			union marpa_slr_event_s *slr_event =
 			  MARPA_DSTACK_PUSH (slr->t_lexeme_dstack,
 					     union marpa_slr_event_s);
-	    struct marpa_slrtr_discarded_lexeme_s *event =
-	      &(slr_event->t_trace_discarded_lexeme);
+	    struct marpa_slrtr_lexeme_discarded_s *event =
+	      &(slr_event->t_trace_lexeme_discarded);
 			MARPA_SLREV_TYPE_SET (event,
 					      MARPA_SLRTR_LEXEME_DISCARDED);
 			event->t_rule_id = rule_id;
@@ -2282,7 +2282,7 @@ slr_alternatives (Scanless_R * slr)
 		  AV *event;
 		  SV *event_data[6];
 		  event_data[0] = newSVpvs ("'trace");
-		  event_data[1] = newSVpvs ("g1 unexpected lexeme");
+		  event_data[1] = newSVpvs ("rejected lexeme");
 		  event_data[2] = newSViv (slr->start_of_lexeme);	/* start */
 		  event_data[3] = newSViv (slr->end_of_lexeme);	/* end */
 		  event_data[4] = newSViv (g1_lexeme);	/* lexeme */
@@ -2344,8 +2344,8 @@ if (slr->trace_terminals)
 	case MARPA_SLRTR_LEXEME_DISCARDED:
 	  *(&MARPA_DSTACK_PUSH (slr->t_event_dstack,
 			       union
-			       marpa_slr_event_s)->t_trace_discarded_lexeme) =
-	    marpa_slr_event->t_trace_discarded_lexeme;
+			       marpa_slr_event_s)->t_trace_lexeme_discarded) =
+	    marpa_slr_event->t_trace_lexeme_discarded;
 	  break;
 	}
     }
@@ -5963,8 +5963,8 @@ PPCODE:
 
 	case MARPA_SLRTR_LEXEME_DISCARDED:
 	  {
-	    struct marpa_slrtr_discarded_lexeme_s *event =
-	      &(marpa_slr_event->t_trace_discarded_lexeme);
+	    struct marpa_slrtr_lexeme_discarded_s *event =
+	      &(marpa_slr_event->t_trace_lexeme_discarded);
 	    AV *event_av = newAV ();
 
 	    av_push (event_av, newSVpvs ("'trace"));
@@ -6049,13 +6049,13 @@ PPCODE:
 	    break;
 	  }
 
-	case MARPA_SLRTR_G1_UNEXPECTED_LEXEME:
+	case MARPA_SLRTR_LEXEME_REJECTED:
 	  {
-	    struct marpa_slrtr_g1_unexpected_lexeme_s *event =
-	      &(marpa_slr_event->t_trace_g1_unexpected_lexeme);
+	    struct marpa_slrtr_lexeme_rejected_s *event =
+	      &(marpa_slr_event->t_trace_lexeme_rejected);
 	    AV *event_av = newAV ();
 	    av_push (event_av, newSVpvs ("'trace"));
-	    av_push (event_av, newSVpvs ("g1 unexpected lexeme"));
+	    av_push (event_av, newSVpvs ("rejected lexeme"));
 	    av_push (event_av, newSViv ((IV) event->t_start_of_lexeme));	/* start */
 	    av_push (event_av, newSViv ((IV) event->t_end_of_lexeme));	/* end */
 	    av_push (event_av, newSViv ((IV) event->t_lexeme));	/* lexeme */
