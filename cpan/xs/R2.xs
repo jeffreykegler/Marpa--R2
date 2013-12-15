@@ -2339,11 +2339,17 @@ slr_alternatives (Scanless_R * slr)
 		    slr->start_of_lexeme;
 		  return "no lexemes accepted";
 		}
-	      goto LOOK_AT_PREVIOUS_EARLEME;
 	    }
+	    if (is_priority_set) continue_to_look_at_earley_sets = 0;
 
 	}
       while (0);
+
+      if (continue_to_look_at_earley_sets) {
+	earley_set--;
+	if (earley_set <= 0) continue_to_look_at_earley_sets = 0;
+         continue;
+      }
 
       /* If here, a lexeme has been accepted and priority is set
        */
@@ -2532,9 +2538,6 @@ slr_alternatives (Scanless_R * slr)
 	return 0;
       }
 
-    LOOK_AT_PREVIOUS_EARLEME:
-      earley_set--;
-      if (earley_set <= 0) continue_to_look_at_earley_sets = 0;
     }
 
   slr->perl_pos = slr->problem_pos = slr->lexer_start_pos =
