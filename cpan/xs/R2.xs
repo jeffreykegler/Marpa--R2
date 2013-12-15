@@ -467,43 +467,6 @@ union marpa_slr_event_s;
 
 #define MARPA_SLREV_TYPE(event) ((event)->t_header.t_event_type)
 
-struct marpa_slrtr_codepoint_read_s
-{
-  int event_type;
-  int t_codepoint;
-  int t_perl_pos;
-  int t_current_lexer_ix;
-};
-
-struct marpa_slrtr_codepoint_rejected_s
-{
-  int event_type;
-  int t_codepoint;
-  int t_perl_pos;
-  int t_symbol_id;
-  int t_current_lexer_ix;
-};
-
-struct marpa_slrtr_codepoint_accepted_s
-{
-  int event_type;
-  int t_codepoint;
-  int t_perl_pos;
-  int t_symbol_id;
-  int t_current_lexer_ix;
-};
-
-struct marpa_slrtr_codepoint_discarded_s
-{
-  int event_type;
-  int t_event_type;
-  int t_rule_id;
-  int t_start_of_lexeme;
-  int t_end_of_lexeme;
-  int t_current_lexer_ix;
-};
-
-
 union marpa_slr_event_s
 {
   struct
@@ -511,73 +474,105 @@ union marpa_slr_event_s
     int t_event_type;
   } t_header;
 
-  struct marpa_slrtr_codepoint_accepted_s t_trace_codepoint_accepted;
-  struct marpa_slrtr_codepoint_discarded_s t_trace_codepoint_discarded;
-  struct marpa_slrtr_codepoint_read_s t_trace_codepoint_read;
-  struct marpa_slrtr_codepoint_rejected_s t_trace_codepoint_rejected;
+  struct
+  {
+    int event_type;
+    int t_codepoint;
+    int t_perl_pos;
+    int t_current_lexer_ix;
+  } t_trace_codepoint_read;
 
-struct
-{
-  int event_type;
-  int t_event_type;
-  int t_lexeme;
-  int t_start_of_lexeme;
-  int t_end_of_lexeme;
-} t_trace_lexeme_ignored;
+  struct
+  {
+    int event_type;
+    int t_codepoint;
+    int t_perl_pos;
+    int t_symbol_id;
+    int t_current_lexer_ix;
+  } t_trace_codepoint_rejected;
 
-struct
-{
-  int event_type;
-  int t_rule_id;
-  int t_start_of_lexeme;
-  int t_end_of_lexeme;
-  int t_current_lexer_ix;
-} t_trace_lexeme_discarded;
+  struct
+  {
+    int event_type;
+    int t_codepoint;
+    int t_perl_pos;
+    int t_symbol_id;
+    int t_current_lexer_ix;
+  } t_trace_codepoint_accepted;
 
-struct
-{
-  int event_type;
-  int t_symbol;
-} t_symbol_completed;
+  struct
+  {
+    int event_type;
+    int t_event_type;
+    int t_rule_id;
+    int t_start_of_lexeme;
+    int t_end_of_lexeme;
+    int t_current_lexer_ix;
+  } t_trace_codepoint_discarded;
 
-struct
-{
-  int event_type;
-  int t_symbol;
-} t_symbol_nulled;
 
-struct
-{
-  int event_type;
-  int t_symbol;
-} t_symbol_predicted;
+  struct
+  {
+    int event_type;
+    int t_event_type;
+    int t_lexeme;
+    int t_start_of_lexeme;
+    int t_end_of_lexeme;
+  } t_trace_lexeme_ignored;
 
-struct
-{
-  int event_type;
-  int t_event;
-} t_marpa_r_unknown;
+  struct
+  {
+    int event_type;
+    int t_rule_id;
+    int t_start_of_lexeme;
+    int t_end_of_lexeme;
+    int t_current_lexer_ix;
+  } t_trace_lexeme_discarded;
 
-struct
-{
-  int event_type;
-  int t_start_of_lexeme;	/* start */
-  int t_end_of_lexeme;		/* end */
-  int t_lexeme;			/* lexeme */
-  int t_current_lexer_ix;
-}
+  struct
+  {
+    int event_type;
+    int t_symbol;
+  } t_symbol_completed;
+
+  struct
+  {
+    int event_type;
+    int t_symbol;
+  } t_symbol_nulled;
+
+  struct
+  {
+    int event_type;
+    int t_symbol;
+  } t_symbol_predicted;
+
+  struct
+  {
+    int event_type;
+    int t_event;
+  } t_marpa_r_unknown;
+
+  struct
+  {
+    int event_type;
+    int t_start_of_lexeme;	/* start */
+    int t_end_of_lexeme;	/* end */
+    int t_lexeme;		/* lexeme */
+    int t_current_lexer_ix;
+  }
   t_trace_lexeme_rejected;
 
-struct
-{
-  int event_type;
-  int t_start_of_lexeme;	/* start */
-  int t_end_of_lexeme;		/* end */
-  int t_lexeme;			/* lexeme */
-  int t_current_lexer_ix;
-  int t_priority;
-  int t_required_priority;
-}t_trace_lexeme_acceptable;
+  struct
+  {
+    int event_type;
+    int t_start_of_lexeme;	/* start */
+    int t_end_of_lexeme;	/* end */
+    int t_lexeme;		/* lexeme */
+    int t_current_lexer_ix;
+    int t_priority;
+    int t_required_priority;
+  } t_trace_lexeme_acceptable;
 
   struct
   {
@@ -1047,13 +1042,11 @@ u_read (Scanless_R * slr)
 			union marpa_slr_event_s *slr_event =
 			  MARPA_DSTACK_PUSH (slr->t_event_dstack,
 					     union marpa_slr_event_s);
-			struct marpa_slrtr_codepoint_rejected_s *event =
-			  &(slr_event->t_trace_codepoint_rejected);
 			MARPA_SLREV_TYPE(slr_event) = MARPA_SLRTR_CODEPOINT_REJECTED;
-			event->t_codepoint = codepoint;
-			event->t_perl_pos = slr->perl_pos;
-			event->t_symbol_id = symbol_id;
-			event->t_current_lexer_ix = slr->current_lexer->index;
+			slr_event->t_trace_codepoint_rejected.t_codepoint = codepoint;
+			slr_event->t_trace_codepoint_rejected.t_perl_pos = slr->perl_pos;
+			slr_event->t_trace_codepoint_rejected.t_symbol_id = symbol_id;
+			slr_event->t_trace_codepoint_rejected.t_current_lexer_ix = slr->current_lexer->index;
 		      }
 		    break;
 		  case MARPA_ERR_NONE:
@@ -1062,14 +1055,11 @@ u_read (Scanless_R * slr)
 			union marpa_slr_event_s *slr_event =
 			  MARPA_DSTACK_PUSH (slr->t_event_dstack,
 					     union marpa_slr_event_s);
-
-			struct marpa_slrtr_codepoint_accepted_s *event =
-			  &(slr_event->t_trace_codepoint_accepted);
 			MARPA_SLREV_TYPE(slr_event) = MARPA_SLRTR_CODEPOINT_ACCEPTED;
-			event->t_codepoint = codepoint;
-			event->t_perl_pos = slr->perl_pos;
-			event->t_symbol_id = symbol_id;
-			event->t_current_lexer_ix = slr->current_lexer->index;
+			slr_event->t_trace_codepoint_accepted.t_codepoint = codepoint;
+			slr_event->t_trace_codepoint_accepted.t_perl_pos = slr->perl_pos;
+			slr_event->t_trace_codepoint_accepted.t_symbol_id = symbol_id;
+			slr_event->t_trace_codepoint_accepted.t_current_lexer_ix = slr->current_lexer->index;
 		      }
 		    tokens_accepted++;
 		    break;
@@ -5938,47 +5928,39 @@ PPCODE:
 
 	case MARPA_SLRTR_CODEPOINT_READ:
 	  {
-	    struct marpa_slrtr_codepoint_read_s *event =
-	      &(slr_event->t_trace_codepoint_read);
 	    AV *event_av = newAV ();
 
 	    av_push (event_av, newSVpvs ("'trace"));
 	    av_push (event_av, newSVpvs ("lexer reading codepoint"));
-	    av_push (event_av, newSViv ((IV) event->t_codepoint));
-	    av_push (event_av, newSViv ((IV) event->t_perl_pos));
-	    av_push (event_av, newSViv ((IV) event->t_current_lexer_ix));
+	    av_push (event_av, newSViv ((IV) slr_event->t_trace_codepoint_read.t_codepoint));
+	    av_push (event_av, newSViv ((IV) slr_event->t_trace_codepoint_read.t_perl_pos));
+	    av_push (event_av, newSViv ((IV) slr_event->t_trace_codepoint_read.t_current_lexer_ix));
 	    XPUSHs (sv_2mortal (newRV_noinc ((SV *) event_av)));
 	    break;
 	  }
 
 	case MARPA_SLRTR_CODEPOINT_REJECTED:
 	  {
-	    struct marpa_slrtr_codepoint_rejected_s *event =
-	      &(slr_event->t_trace_codepoint_rejected);
 	    AV *event_av = newAV ();
-
 	    av_push (event_av, newSVpvs ("'trace"));
 	    av_push (event_av, newSVpvs ("lexer rejected codepoint"));
-	    av_push (event_av, newSViv ((IV) event->t_codepoint));
-	    av_push (event_av, newSViv ((IV) event->t_perl_pos));
-	    av_push (event_av, newSViv ((IV) event->t_symbol_id));
-	    av_push (event_av, newSViv ((IV) event->t_current_lexer_ix));
+	    av_push (event_av, newSViv ((IV) slr_event->t_trace_codepoint_rejected.t_codepoint));
+	    av_push (event_av, newSViv ((IV) slr_event->t_trace_codepoint_rejected.t_perl_pos));
+	    av_push (event_av, newSViv ((IV) slr_event->t_trace_codepoint_rejected.t_symbol_id));
+	    av_push (event_av, newSViv ((IV) slr_event->t_trace_codepoint_rejected.t_current_lexer_ix));
 	    XPUSHs (sv_2mortal (newRV_noinc ((SV *) event_av)));
 	    break;
 	  }
 
 	case MARPA_SLRTR_CODEPOINT_ACCEPTED:
 	  {
-	    struct marpa_slrtr_codepoint_accepted_s *event =
-	      &(slr_event->t_trace_codepoint_accepted);
 	    AV *event_av = newAV ();
-
 	    av_push (event_av, newSVpvs ("'trace"));
 	    av_push (event_av, newSVpvs ("lexer accepted codepoint"));
-	    av_push (event_av, newSViv ((IV) event->t_codepoint));
-	    av_push (event_av, newSViv ((IV) event->t_perl_pos));
-	    av_push (event_av, newSViv ((IV) event->t_symbol_id));
-	    av_push (event_av, newSViv ((IV) event->t_current_lexer_ix));
+	    av_push (event_av, newSViv ((IV) slr_event->t_trace_codepoint_accepted.t_codepoint));
+	    av_push (event_av, newSViv ((IV) slr_event->t_trace_codepoint_accepted.t_perl_pos));
+	    av_push (event_av, newSViv ((IV) slr_event->t_trace_codepoint_accepted.t_symbol_id));
+	    av_push (event_av, newSViv ((IV) slr_event->t_trace_codepoint_accepted.t_current_lexer_ix));
 	    XPUSHs (sv_2mortal (newRV_noinc ((SV *) event_av)));
 	    break;
 	  }
