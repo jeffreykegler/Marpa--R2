@@ -521,30 +521,6 @@ struct marpa_slrtr_lexeme_discarded_s
   int t_current_lexer_ix;
 };
 
-struct marpa_slrev_symbol_completed_s
-{
-  int event_type;
-  int t_completed_symbol;
-};
-
-struct marpa_slrev_symbol_nulled_s
-{
-  int event_type;
-  int t_nulled_symbol;
-};
-
-struct marpa_slrev_symbol_predicted_s
-{
-  int event_type;
-  int t_predicted_symbol;
-};
-
-struct marpa_slrev_marpa_r_unknown_s
-{
-  int event_type;
-  int t_marpa_r_event;
-};
-
 union marpa_slr_event_s
 {
   struct
@@ -552,16 +528,36 @@ union marpa_slr_event_s
     int t_event_type;
   } t_header;
 
-  struct marpa_slrev_marpa_r_unknown_s t_marpa_r_unknown;
-  struct marpa_slrev_symbol_completed_s t_symbol_completed;
-  struct marpa_slrev_symbol_nulled_s t_symbol_nulled;
-  struct marpa_slrev_symbol_predicted_s t_symbol_predicted;
   struct marpa_slrtr_codepoint_accepted_s t_trace_codepoint_accepted;
   struct marpa_slrtr_codepoint_discarded_s t_trace_codepoint_discarded;
   struct marpa_slrtr_codepoint_read_s t_trace_codepoint_read;
   struct marpa_slrtr_codepoint_rejected_s t_trace_codepoint_rejected;
   struct marpa_slrtr_lexeme_discarded_s t_trace_lexeme_discarded;
   struct marpa_slrtr_ignored_lexeme_s t_trace_ignored_lexeme;
+
+struct
+{
+  int event_type;
+  int t_symbol;
+} t_symbol_completed;
+
+struct
+{
+  int event_type;
+  int t_symbol;
+} t_symbol_nulled;
+
+struct
+{
+  int event_type;
+  int t_symbol;
+} t_symbol_predicted;
+
+struct
+{
+  int event_type;
+  int t_event;
+} t_marpa_r_unknown;
 
 struct
 {
@@ -2016,11 +2012,8 @@ slr_convert_events (Scanless_R * slr)
 	      union marpa_slr_event_s *slr_event =
 		MARPA_DSTACK_PUSH (slr->t_event_dstack,
 				   union marpa_slr_event_s);
-
-	      struct marpa_slrev_symbol_completed_s *event =
-		&(slr_event->t_symbol_completed);
 MARPA_SLREV_TYPE(slr_event) = MARPA_SLREV_SYMBOL_COMPLETED;
-	      event->t_completed_symbol = marpa_g_event_value (&marpa_event);
+	      slr_event->t_symbol_completed.t_symbol = marpa_g_event_value (&marpa_event);
 	    }
 	    break;
 	case MARPA_EVENT_SYMBOL_NULLED:
@@ -2029,10 +2022,8 @@ MARPA_SLREV_TYPE(slr_event) = MARPA_SLREV_SYMBOL_COMPLETED;
 		MARPA_DSTACK_PUSH (slr->t_event_dstack,
 				   union marpa_slr_event_s);
 
-	      struct marpa_slrev_symbol_nulled_s *event =
-		&(slr_event->t_symbol_nulled);
 MARPA_SLREV_TYPE(slr_event) =MARPA_SLREV_SYMBOL_NULLED;
-	      event->t_nulled_symbol = marpa_g_event_value (&marpa_event);
+	      slr_event->t_symbol_nulled.t_symbol = marpa_g_event_value (&marpa_event);
 	    }
 	    break;
 	case MARPA_EVENT_SYMBOL_PREDICTED:
@@ -2040,10 +2031,8 @@ MARPA_SLREV_TYPE(slr_event) =MARPA_SLREV_SYMBOL_NULLED;
 	      union marpa_slr_event_s *slr_event =
 		MARPA_DSTACK_PUSH (slr->t_event_dstack,
 				   union marpa_slr_event_s);
-	      struct marpa_slrev_symbol_predicted_s *event =
-		&(slr_event->t_symbol_predicted);
 MARPA_SLREV_TYPE(slr_event) = MARPA_SLREV_SYMBOL_PREDICTED;
-	      event->t_predicted_symbol = marpa_g_event_value (&marpa_event);
+	      slr_event->t_symbol_predicted.t_symbol = marpa_g_event_value (&marpa_event);
 	    }
 	    break;
 	case MARPA_EVENT_EARLEY_ITEM_THRESHOLD:
@@ -2066,10 +2055,8 @@ MARPA_SLREV_TYPE(slr_event) = MARPA_SLREV_SYMBOL_PREDICTED;
 	      union marpa_slr_event_s *slr_event =
 		MARPA_DSTACK_PUSH (slr->t_event_dstack,
 				   union marpa_slr_event_s);
-	      struct marpa_slrev_marpa_r_unknown_s *event =
-		&(slr_event->t_marpa_r_unknown);
 MARPA_SLREV_TYPE(slr_event) = MARPA_SLREV_MARPA_R_UNKNOWN;
-	      event->t_marpa_r_event = event_type;
+	      slr_event->t_marpa_r_unknown.t_event = event_type;
 	    }
 	    break;
 	  }
@@ -6038,34 +6025,27 @@ PPCODE:
 
 	case MARPA_SLREV_SYMBOL_COMPLETED:
 	  {
-	    struct marpa_slrev_symbol_completed_s *event =
-	      &(slr_event->t_symbol_completed);
 	    AV *event_av = newAV ();
 	    av_push (event_av, newSVpvs ("symbol completed"));
-	    av_push (event_av, newSViv ((IV) event->t_completed_symbol));
+	    av_push (event_av, newSViv ((IV) slr_event->t_symbol_completed.t_symbol));
 	    XPUSHs (sv_2mortal (newRV_noinc ((SV *) event_av)));
 	    break;
 	  }
 
 	case MARPA_SLREV_SYMBOL_NULLED:
 	  {
-	    struct marpa_slrev_symbol_nulled_s *event =
-	      &(slr_event->t_symbol_nulled);
 	    AV *event_av = newAV ();
 	    av_push (event_av, newSVpvs ("symbol nulled"));
-	    av_push (event_av, newSViv ((IV) event->t_nulled_symbol));
+	    av_push (event_av, newSViv ((IV) slr_event->t_symbol_nulled.t_symbol));
 	    XPUSHs (sv_2mortal (newRV_noinc ((SV *) event_av)));
 	    break;
 	  }
 
 	case MARPA_SLREV_SYMBOL_PREDICTED:
 	  {
-	    struct marpa_slrev_symbol_predicted_s *event =
-	      &(slr_event->t_symbol_predicted);
 	    AV *event_av = newAV ();
-
 	    av_push (event_av, newSVpvs ("symbol predicted"));
-	    av_push (event_av, newSViv ((IV) event->t_predicted_symbol));
+	    av_push (event_av, newSViv ((IV) slr_event->t_symbol_predicted.t_symbol));
 	    XPUSHs (sv_2mortal (newRV_noinc ((SV *) event_av)));
 	    break;
 	  }
@@ -6073,10 +6053,8 @@ PPCODE:
 	case MARPA_SLREV_MARPA_R_UNKNOWN:
 	  {
 	    /* An unknown Marpa_Recce event */
-	    struct marpa_slrev_marpa_r_unknown_s *event =
-	      &(slr_event->t_marpa_r_unknown);
 	    AV *event_av = newAV ();
-	    const int r_event_ix = event->t_marpa_r_event;
+	    const int r_event_ix = slr_event->t_marpa_r_unknown.t_event;
 	    const char *result_string = event_type_to_string (r_event_ix);
 	    if (!result_string)
 	      {
