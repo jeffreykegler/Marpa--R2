@@ -467,6 +467,32 @@ my $libmarpa_trace_event_handlers = {
             qq{; value="$raw_token_value"}
             or Marpa::R2::exception("Could not say(): $ERRNO");
         },
+    'outprioritized lexeme' => sub {
+        my ( $slr, $event ) = @_;
+        my ( undef, undef, $lexeme_start_pos, $lexeme_end_pos, $g1_lexeme, $lexer_id, $lexeme_priority, $required_priority ) =
+            @{$event};
+        my $thin_slr = $slr->[Marpa::R2::Inner::Scanless::R::C];
+        my $raw_token_value =
+            $thin_slr->substring( $lexeme_start_pos,
+            $lexeme_end_pos - $lexeme_start_pos );
+        my $trace_file_handle =
+            $slr->[Marpa::R2::Inner::Scanless::R::TRACE_FILE_HANDLE];
+        my $thick_g1_recce =
+            $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+        my $thick_g1_grammar = $thick_g1_recce->grammar();
+        my $slg              = $slr->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
+        my $lexer_name =
+            $slg->[Marpa::R2::Inner::Scanless::G::LEXER_NAME_BY_ID]
+            ->[$lexer_id];
+        say {$trace_file_handle} qq{Lexer "$lexer_name" outprioritized lexeme },
+            input_range_describe( $slr, $lexeme_start_pos,
+            $lexeme_end_pos - 1 ),
+            q{: },
+            $thick_g1_grammar->symbol_in_display_form($g1_lexeme),
+            qq{; value="$raw_token_value"; },
+	    qq{priority was $lexeme_priority, but $required_priority was required}
+            or Marpa::R2::exception("Could not say(): $ERRNO");
+        },
     'g1 duplicate lexeme' => sub {
         my ( $slr, $event ) = @_;
         my ( undef, undef, $lexeme_start_pos, $lexeme_end_pos, $g1_lexeme ) =
