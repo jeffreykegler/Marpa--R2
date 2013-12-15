@@ -182,31 +182,17 @@ sub marpa_infer_xs_spec {
     return \%spec;
 } ## end sub marpa_infer_xs_spec
 
-sub gcc_version {
-    my $version;
-    my $cc = $Config{cc};
-    return if $cc ne 'gcc';
-    return if not IPC::Cmd->can_capture_buffer;
-    return
-        if not IPC::Cmd::run(
-                command => [ $cc, '-dumpversion' ],
-                buffer  => \$version,
-        );
-	chomp $version;
-    my @current = ($version =~ m/ \A (\d+) [.] (\d+) [.] (\d+) \z /xms);
-    return if not scalar @current == 3;
-    return \@current;
-} ## end sub gcc_version
-
 sub gcc_is_at_least {
     my ($required) = @_;
-    state $gcc_version = gcc_version();
+    state $gcc_version = $Config{gccversion};
     return if not $gcc_version;
+    my @actual = ($gcc_version =~ m/ \A (\d+) [.] (\d+) [.] (\d+) \z /xms);
+    return if @actual != 3;
     my @required = ($required =~ m/ \A (\d+) [.] (\d+) [.] (\d+) \z /xms);
-    return if scalar @required != 3;
-    my $cmp = $gcc_version->[0] <=> $required[0] ||
-     $gcc_version->[1] <=> $required[1]  ||
-     $gcc_version->[2] <=> $required[2] ;
+    die if scalar @required != 3;
+    my $cmp = $actual[0] <=> $required[0] ||
+     $actual[1] <=> $required[1]  ||
+     $actual[2] <=> $required[2] ;
     return $cmp >= 0 ? 1 : 0;
 }
 
@@ -260,11 +246,13 @@ sub process_xs {
     my $v = $self->dist_version;
     $self->verbose() and say "compiling $spec->{c_file}";
     my @new_ccflags = ( '-I', $libmarpa_build_dir, '-I', 'xs' );
-    if ( $self->config('cc') eq 'gcc' ) {
+
+    if ( $self->config('ccname') eq 'gcc' ) {
 	## -W instead of -Wextra is case the GCC is pre 3.0.0
+	## -Winline omitted because too noisy
         push @new_ccflags, qw( -Wall -Wno-unused-variable -W
 	    -Wpointer-arith -Wstrict-prototypes -Wwrite-strings
-            -Winline -Wmissing-declarations );
+            -Wmissing-declarations );
 	push @new_ccflags, '-Wdeclaration-after-statement' if gcc_is_at_least('3.4.6');
     } ## end if ( $self->config('cc') eq 'gcc' )
     if ( defined $self->args('XS-debug') ) {

@@ -2182,15 +2182,10 @@ slr_alternatives (Scanless_R * slr)
   for (earley_set = marpa_r_latest_earley_set (r0); earley_set > 0;
        earley_set--)
     {
-      /* The is_X booleans indicate whether the priorities are defined.
-       * They are also initialized to 0, but only to silence the GCC
-       * warning.  Their value must be considered undefined unless
-       * the corresponding boolean is set.
-       */
-      working_pos = slr->start_of_lexeme + earley_set;
-      int end_of_earley_items = 0;
-
       int return_value;
+      int end_of_earley_items = 0;
+      working_pos = slr->start_of_lexeme + earley_set;
+
       return_value = marpa_r_progress_report_start (r0, earley_set);
       if (return_value < 0)
 	{
@@ -3883,10 +3878,8 @@ relative( v_wrapper, index )
 PPCODE:
 {
   SV** p_sv;
-  IV length;
   AV* stack = v_wrapper->stack;
   if (!stack) { XSRETURN_UNDEF; }
-  length = stack ? av_len(stack) : -1;
   p_sv = av_fetch(stack, index+v_wrapper->result, 0);
   if (!p_sv) { XSRETURN_UNDEF; }
   XPUSHs (sv_mortalcopy(*p_sv));
@@ -6597,9 +6590,10 @@ PPCODE:
       /* Ensure that there is enough space */
       if (slr->pos_db_logical_size >= slr->pos_db_physical_size)
 	{
+	  Pos_Entry *new_pos_db;
 	  slr->pos_db_physical_size *= 2;
-	  slr->pos_db =
-	    Renew (slr->pos_db, slr->pos_db_physical_size, Pos_Entry);
+	  new_pos_db = Renew (slr->pos_db, slr->pos_db_physical_size, Pos_Entry);
+	  slr->pos_db = new_pos_db;
 	}
       p += codepoint_length;
       slr->pos_db[slr->pos_db_logical_size].next_offset =
@@ -6690,7 +6684,7 @@ PPCODE:
     }
   if (ops_sv)
     {
-      hv_store (slr->current_lexer->per_codepoint_hash, (char *) &codepoint,
+      (void)hv_store (slr->current_lexer->per_codepoint_hash, (char *) &codepoint,
 		sizeof (codepoint), ops_sv, 0);
     }
 }
