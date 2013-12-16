@@ -177,12 +177,47 @@ to have feedback into the final interface.
 
 This document describes the abstract syntax forests (ASFs) of
 Marpa's SLIF interface.
-An abstract syntax forest, as the name suggests, is an abstract
-syntax tree, generalized to contain the multiple trees that result from an
-ambiguous parse.
-ASF's are expected to have a high-level and a low-level interface.
-The low-level interface is expected to be released first.
-It is described in L<a separate document|Marpa::R2::Glade>.
+An ASF is an efficient and practical way to represent multiple abstract syntax trees (AST's).
+
+=head1 Constructor
+
+=head2 new()
+
+=for Marpa::R2::Display
+name: ASF low-level calls synopsis, code part 1
+normalize-whitespace: 1
+partial: 1
+
+  my $asf = Marpa::R2::ASF->new( { slr => $slr } );
+  die 'No ASF' if not defined $asf;
+
+=for Marpa::R2::Display::End
+
+Creates a new ASF object.
+Must be called with a list of one or more hashes of named arguments.
+Current only one named argument is allowed, the C<slr> argument, and
+that argument is required.
+The value of the C<slr> argument must be a SLIF recognizer object.
+
+Returns the new ASF object, or undef if there was a problem.
+
+=head1 Accessor
+
+=head2 grammar()
+
+=for Marpa::R2::Display
+name: ASF low-level calls synopsis, code part 2
+normalize-whitespace: 1
+partial: 1
+
+    my $grammar     = $asf->grammar();
+
+=for Marpa::R2::Display::End
+
+Returns the SLIF grammar associated with the ASF.
+This can be convenient when using SLIF grammar methods
+while examining an ASF.
+All failures are thrown as exceptions.
 
 =head1 Copyright and License
 
