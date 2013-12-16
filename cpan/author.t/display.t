@@ -175,14 +175,18 @@ sub compare {
     if ( $copy->{partial} ) {
         return 1 if -1 != index ${$formatted_original}, ${$formatted_copy};
         Test::More::diag(
+	    "Partial: ",
             $copy->{filename},
             ' vs. ',
             $original->{filename},
             "\n",
-            "Sought Substring:\n",
-            Text::Wrap::wrap( q{    }, q{    }, ${$formatted_copy} ),
-            "\nOriginal:\n",
-            Text::Wrap::wrap( q{    }, q{    }, ${$formatted_original} )
+	    (   Text::Diff::diff $formatted_original,
+		$formatted_copy,
+		{ STYLE => 'Table' }
+	    )
+            # Text::Wrap::wrap( q{    }, q{    }, ${$formatted_copy} ),
+            # "\nOriginal:\n",
+            # Text::Wrap::wrap( q{    }, q{    }, ${$formatted_original} )
         );
         return 0;
     } ## end if ( $copy->{partial} )

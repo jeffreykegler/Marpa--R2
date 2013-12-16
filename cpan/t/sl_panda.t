@@ -52,9 +52,12 @@ use lib 'inc';
 use Marpa::R2::Test;
 use Marpa::R2;
 
-my $grammar = Marpa::R2::Scanless::G->new(
-    {   bless_package => 'PennTags',
-        source => \(<<'END_OF_SOURCE'),
+# Marpa::R2::Display
+# name: ASF synopsis grammar
+# start-after-line: END_OF_SOURCE
+# end-before-line: '^END_OF_SOURCE$'
+
+my $dsl = <<'END_OF_SOURCE';
         
 :default ::= action => [values] bless => ::lhs
 lexeme default = action => [value] bless => ::name
@@ -85,10 +88,18 @@ NNS  ~ 'shoots' | 'leaves'
 VBZ ~ 'eats' | 'shoots' | 'leaves'
 
 END_OF_SOURCE
-    }
-);
 
-my $expected = <<'EOS';
+# Marpa::R2::Display::End
+
+my $grammar = Marpa::R2::Scanless::G->new(
+    { bless_package => 'PennTags', source => \$dsl, } );
+
+# Marpa::R2::Display
+# name: ASF synopsis output
+# start-after-line: END_OF_OUTPUT
+# end-before-line: '^END_OF_OUTPUT$'
+
+my $expected = <<'END_OF_OUTPUT';
 (S (NP (DT a) (NN panda))
    (VP (VBZ eats) (NP (NNS shoots) (CC and) (NNS leaves)))
    (. .))
@@ -98,11 +109,16 @@ my $expected = <<'EOS';
 (S (NP (DT a) (NN panda))
    (VP (VP (VBZ eats)) (VP (VBZ shoots)) (CC and) (VP (VBZ leaves)))
    (. .))
-EOS
+END_OF_OUTPUT
 
-my $sentence = <<END_OF_SENTENCE;
-a panda eats shoots and leaves.
-END_OF_SENTENCE
+# Marpa::R2::Display::End
+
+# Marpa::R2::Display
+# name: ASF synopsis input
+
+my $sentence = 'a panda eats shoots and leaves.';
+
+# Marpa::R2::Display::End
 
 my @actual = ();
 
@@ -118,15 +134,20 @@ while ( defined( my $value_ref = $recce->value() ) ) {
 Marpa::R2::Test::is( ( join "\n", sort @actual ) . "\n",
     $expected, 'Ambiguous English sentence using value()' );
 
-$recce->series_restart();
-my $asf = Marpa::R2::ASF->new( { slr=>$recce } );
+# Marpa::R2::Display
+# name: ASF synopsis code
+
+my $panda_grammar = Marpa::R2::Scanless::G->new( { source => \$dsl } );
+my $panda_recce = Marpa::R2::Scanless::R->new( { grammar => $panda_grammar } );
+$panda_recce->read( \$sentence );
+my $asf = Marpa::R2::ASF->new( { slr=>$panda_recce } );
 my $raw_actual = $asf->traverse(
     sub {
         # This routine converts the glade into a list of Penn-tagged elements.  It is called recursively.
         my ($glade)     = @_;
         my $rule_id     = $glade->rule_id();
         my $symbol_id   = $glade->symbol_id();
-        my $symbol_name = $grammar->symbol_name($symbol_id);
+        my $symbol_name = $panda_grammar->symbol_name($symbol_id);
 
         # A token is a single choice, and we know enough to fully Penn-tag it
         if ( not defined $rule_id ) {
@@ -182,6 +203,8 @@ my $raw_actual = $asf->traverse(
         return \@return_value;
         }
 );
+
+# Marpa::R2::Display::End
 
 my $actual =  join "\n", (sort @{$raw_actual}), q{};
 Marpa::R2::Test::is(  $actual, $expected, 'Ambiguous English sentence using ASF' );

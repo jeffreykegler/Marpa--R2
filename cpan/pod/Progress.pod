@@ -271,6 +271,8 @@ partial: 1
 normalize-whitespace: 1
 
     Error in SLIF parse: No lexemes accepted at line 1, column 18
+      Lexer "L0" rejected 1 lexeme(s)
+      Rejected lexeme #1: '*'; value="*"; length = 1
     * String before error: a = 8675309 + 42\s
     * The error was at line 1, column 18, and at character 0x002a '*', ...
     * here: * 711
@@ -1011,6 +1013,8 @@ remove-display-indent: 1
 remove-blank-last-line: 1
 
     Error in SLIF parse: No lexemes accepted at line 1, column 18
+      Lexer "L0" rejected 1 lexeme(s)
+      Rejected lexeme #1: '*'; value="*"; length = 1
     * String before error: a = 8675309 + 42\s
     * The error was at line 1, column 18, and at character 0x002a '*', ...
     * here: * 711
