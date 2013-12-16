@@ -219,6 +219,28 @@ This can be convenient when using SLIF grammar methods
 while examining an ASF.
 All failures are thrown as exceptions.
 
+=head1 Mutator
+
+=head2 traverse()
+
+=head1 Traversal accessors
+
+These are the methods that must be called in the context of a traversal routine.
+
+=head2 literal()
+
+=head2 span()
+
+=head2 symbol_id()
+
+=head2 rule_id()
+
+=head2 rh_length()
+
+=head2 rh_value()
+
+=head2 next()
+
 =head1 Copyright and License
 
 =for Marpa::R2::Display
