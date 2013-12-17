@@ -19,7 +19,7 @@ Marpa::R2::ASF - Marpa's abstract syntax forests (ASF's)
 
 =head1 Synopsis
 
-and the input,
+We want to "diagram" the following sentence.
 
 =for Marpa::R2::Display
 name: ASF synopsis input
@@ -29,7 +29,7 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
-we can create use an ASF to diagram it in Penntag form:
+Here's the result we are looking for.  It is in Penntag form:
 
 =for Marpa::R2::Display
 name: ASF synopsis output
@@ -49,7 +49,7 @@ remove-blank-last-line: 1
 
 =for Marpa::R2::Display::End
 
-With the grammar,
+Here is the grammar.
 
 =for Marpa::R2::Display
 name: ASF synopsis grammar
@@ -102,6 +102,9 @@ normalize-whitespace: 1
   my $pruned_result = $asf->traverse( \&pruning_traverser );
 
 =for Marpa::R2::Display::End
+
+The code for the full traverser is in an appendex.
+The pruning code is simpler.  Here it is:
 
 =for Marpa::R2::Display
 name: ASF synopsis pruning traverser code
@@ -163,8 +166,6 @@ It is alpha and experimental.
 The bad side of this is that it is subject to change from version to
 version in major ways,
 rapidly and without notice.
-The good side is that field is 100% open for users
-to have feedback into the final interface.
 
 =head1 About this document
 
