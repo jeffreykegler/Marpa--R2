@@ -18,30 +18,6 @@
 # is Penn Treebank's syntactic bracketing tags.  For details, see
 # http://www.cis.upenn.edu/~treebank/
 
-# This example originally came from Ralf Muschall.  Ruslan Shvedov
-# reworked my implementation, converting it to the SLIF and
-# Penn Treebank.  Ruslan and Ralf clearly know English grammar better than
-# most of us native speakers.
-
-# 'time', 'fruit', and 'flies' can be nouns or verbs, 'like' can be
-# a preposition or a verb.  This creates syntactic ambiguity shown 
-# in the parse results.
-
-# Modifier nouns are not tagged or lexed as adjectives (JJ), because
-# "Nouns that are used as modifiers, whether in isolation or in sequences,
-# should be tagged as nouns (NN, NNS) rather than as adjectives (JJ)."
-# -- ftp://ftp.cis.upenn.edu/pub/treebank/doc/tagguide.ps.gz
-
-# The saying "time flies like an arrow; fruit flies like a banana"
-# is attributed to Groucho Marx, but there is no reason to believe
-# he ever said it.  Apparently, the saying
-# first appeared on the Usenet on net.jokes in 1982.
-# I've documented this whole thing on Wikipedia:
-# http://en.wikipedia.org/wiki/Time_flies_like_an_arrow
-#
-# The permalink is:
-# http://en.wikipedia.org/w/index.php?title=Time_flies_like_an_arrow&oldid=311163283
-
 use 5.010;
 use strict;
 use warnings;
@@ -141,68 +117,74 @@ my $panda_grammar = Marpa::R2::Scanless::G->new( { source => \$dsl } );
 my $panda_recce = Marpa::R2::Scanless::R->new( { grammar => $panda_grammar } );
 $panda_recce->read( \$sentence );
 my $asf = Marpa::R2::ASF->new( { slr=>$panda_recce } );
-my $raw_actual = $asf->traverse(
-    sub {
-        # This routine converts the glade into a list of Penn-tagged elements.  It is called recursively.
-        my ($glade)     = @_;
-        my $rule_id     = $glade->rule_id();
-        my $symbol_id   = $glade->symbol_id();
-        my $symbol_name = $panda_grammar->symbol_name($symbol_id);
+my $raw_actual = $asf->traverse( \&my_traverser );
 
-        # A token is a single choice, and we know enough to fully Penn-tag it
-        if ( not defined $rule_id ) {
-            my $literal = $glade->literal();
-            my $symbol_description =
-                $symbol_name eq 'period' ? q{.} : $symbol_name;
-            return ["($symbol_description $literal)"];
-        } ## end if ( not defined $rule_id )
+# Marpa::R2::Display::End
 
-        # Our result will be a list of choices
-        my @return_value = ();
+# Marpa::R2::Display
+# name: ASF synopsis traverser code
 
-        CHOICE: while (1) {
+sub my_traverser {
 
-            # The results at each position are a list of choices, so
-            # to produce a new result list, we need to take a Cartesian
-            # product of all the choices
-            my $length = $glade->rh_length();
-            my @results = ( [] );
-            for my $rh_ix ( 0 .. $length - 1 ) {
-                my @new_results = ();
-                for my $old_result (@results) {
-                    for my $new_value ( @{ $glade->rh_value($rh_ix) } ) {
-                        push @new_results, [ @{$old_result}, $new_value ];
-                    }
+    # This routine converts the glade into a list of Penn-tagged elements.  It is called recursively.
+    my ($glade)     = @_;
+    my $rule_id     = $glade->rule_id();
+    my $symbol_id   = $glade->symbol_id();
+    my $symbol_name = $panda_grammar->symbol_name($symbol_id);
+
+    # A token is a single choice, and we know enough to fully Penn-tag it
+    if ( not defined $rule_id ) {
+        my $literal = $glade->literal();
+        my $symbol_description =
+            $symbol_name eq 'period' ? q{.} : $symbol_name;
+        return ["($symbol_description $literal)"];
+    } ## end if ( not defined $rule_id )
+
+    # Our result will be a list of choices
+    my @return_value = ();
+
+    CHOICE: while (1) {
+
+        # The results at each position are a list of choices, so
+        # to produce a new result list, we need to take a Cartesian
+        # product of all the choices
+        my $length = $glade->rh_length();
+        my @results = ( [] );
+        for my $rh_ix ( 0 .. $length - 1 ) {
+            my @new_results = ();
+            for my $old_result (@results) {
+                for my $new_value ( @{ $glade->rh_value($rh_ix) } ) {
+                    push @new_results, [ @{$old_result}, $new_value ];
                 }
-                @results = @new_results;
-            } ## end for my $rh_ix ( 0 .. $length - 1 )
-
-            # Special case for the start rule
-            if ( $symbol_name eq '[:start]' ) {
-                return [ map { join q{}, @{$_} } @results ];
             }
+            @results = @new_results;
+        } ## end for my $rh_ix ( 0 .. $length - 1 )
 
-            # Now we a list of choices, as a list of lists.  Each sub list
-            # is a list of Penn-tagged elements, which we need to join into
-            # a single Penn-tagged element.  The result will be to collapse
-            # one level of lists, and leave us with a list of Penn-tagged
-            # elements
-            my $join_ws = q{ };
-            $join_ws = qq{\n   } if $symbol_name eq 'S';
-            push @return_value,
-                map { "($symbol_name " . ( join $join_ws, @{$_} ) . ')' }
-                @results;
-
-            # Look at the next alternative in this glade, or end the
-            # loop if there is none
-            last CHOICE if not defined $glade->next();
-
-        } ## end CHOICE: while (1)
-
-        # Return the list of Penn-tagged elements for this glade
-        return \@return_value;
+        # Special case for the start rule
+        if ( $symbol_name eq '[:start]' ) {
+            return [ map { join q{}, @{$_} } @results ];
         }
-);
+
+        # Now we a list of choices, as a list of lists.  Each sub list
+        # is a list of Penn-tagged elements, which we need to join into
+        # a single Penn-tagged element.  The result will be to collapse
+        # one level of lists, and leave us with a list of Penn-tagged
+        # elements
+        my $join_ws = q{ };
+        $join_ws = qq{\n   } if $symbol_name eq 'S';
+        push @return_value,
+            map { "($symbol_name " . ( join $join_ws, @{$_} ) . ')' }
+            @results;
+
+        # Look at the next alternative in this glade, or end the
+        # loop if there is none
+        last CHOICE if not defined $glade->next();
+
+    } ## end CHOICE: while (1)
+
+    # Return the list of Penn-tagged elements for this glade
+    return \@return_value;
+} ## end sub my_traverser
 
 # Marpa::R2::Display::End
 
