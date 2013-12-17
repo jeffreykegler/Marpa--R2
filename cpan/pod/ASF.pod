@@ -162,23 +162,86 @@ All failures are thrown as exceptions.
 
 =head2 traverse()
 
+=for Marpa::R2::Display
+name: ASF synopsis code
+normalize-whitespace: 1
+partial: 1
+
+  my $raw_actual = $asf->traverse( \&my_traverser );
+
+=for Marpa::R2::Display::End
+
 =head1 Traversal accessors
 
 These are the methods that must be called in the context of a traversal routine.
 
 =head2 literal()
 
+=for Marpa::R2::Display
+name: ASF synopsis traverser code
+normalize-whitespace: 1
+partial: 1
+
+  my $literal = $glade->literal();
+
+=for Marpa::R2::Display::End
+
 =head2 span()
 
 =head2 symbol_id()
 
+=for Marpa::R2::Display
+name: ASF synopsis traverser code
+normalize-whitespace: 1
+partial: 1
+
+    my $symbol_id   = $glade->symbol_id();
+
+=for Marpa::R2::Display::End
+
 =head2 rule_id()
+
+=for Marpa::R2::Display
+name: ASF synopsis traverser code
+normalize-whitespace: 1
+partial: 1
+
+  my $rule_id     = $glade->rule_id();
+
+=for Marpa::R2::Display::End
 
 =head2 rh_length()
 
+=for Marpa::R2::Display
+name: ASF synopsis traverser code
+normalize-whitespace: 1
+partial: 1
+
+  my $length = $glade->rh_length();
+
+=for Marpa::R2::Display::End
+
 =head2 rh_value()
 
+=for Marpa::R2::Display
+name: ASF synopsis traverser code
+normalize-whitespace: 1
+partial: 1
+
+  my $child_value = $glade->rh_value($rh_ix);
+
+=for Marpa::R2::Display::End
+
 =head2 next()
+
+=for Marpa::R2::Display
+name: ASF synopsis traverser code
+normalize-whitespace: 1
+partial: 1
+
+  last CHOICE if not defined $glade->next();
+
+=for Marpa::R2::Display::End
 
 =head1 Appendix: traverser code
 
@@ -215,7 +278,8 @@ sub my_traverser {
         for my $rh_ix ( 0 .. $length - 1 ) {
             my @new_results = ();
             for my $old_result (@results) {
-                for my $new_value ( @{ $glade->rh_value($rh_ix) } ) {
+                my $child_value = $glade->rh_value($rh_ix);
+                for my $new_value ( @{ $child_value } ) {
                     push @new_results, [ @{$old_result}, $new_value ];
                 }
             }

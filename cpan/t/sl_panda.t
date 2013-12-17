@@ -153,7 +153,8 @@ sub my_traverser {
         for my $rh_ix ( 0 .. $length - 1 ) {
             my @new_results = ();
             for my $old_result (@results) {
-                for my $new_value ( @{ $glade->rh_value($rh_ix) } ) {
+                my $child_value = $glade->rh_value($rh_ix);
+                for my $new_value ( @{ $child_value } ) {
                     push @new_results, [ @{$old_result}, $new_value ];
                 }
             }
