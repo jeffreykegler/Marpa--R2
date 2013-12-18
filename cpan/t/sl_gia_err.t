@@ -23,7 +23,7 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 22;
+use Test::More tests => 24;
 use English qw( -no_match_vars );
 use lib 'inc';
 use Marpa::R2::Test;
@@ -105,6 +105,23 @@ Length of symbol "statement" at line 2, column 13 is ambiguous
   Choice 2 ending: uartet  ::= a a a a\n        start symbol is quartet
 END_OF_MESSAGE
     'English start statement second'
+];
+
+my $invalid_syntax_grammar = \(<<'END_OF_SOURCE');
+    quartet$ ::= a b c d e f
+END_OF_SOURCE
+
+push @tests_data, [
+    $invalid_syntax_grammar, 'n/a',
+    'SLIF grammar failed',
+    <<'END_OF_MESSAGE',
+Parse of BNF/Scanless source failed
+Error in SLIF parse: No lexeme found at line 1, column 12
+* String before error:     quartet
+* The error was at line 1, column 12, and at character 0x0024 '$', ...
+* here: $ ::= a b c d e f\n
+END_OF_MESSAGE
+    'Grammar with syntax error'
 ];
 
 #####

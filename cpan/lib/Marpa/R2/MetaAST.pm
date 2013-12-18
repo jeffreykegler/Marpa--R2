@@ -33,7 +33,8 @@ use English qw( -no_match_vars );
 sub new {
     my ( $class, $p_rules_source ) = @_;
     my $meta_recce = Marpa::R2::Internal::Scanless::meta_recce();
-    $meta_recce->read($p_rules_source);
+    eval { $meta_recce->read($p_rules_source) } or
+        Marpa::R2::exception("Parse of BNF/Scanless source failed\n", $EVAL_ERROR);
     if ( $meta_recce->ambiguity_metric() > 1 ) {
     my $asf = Marpa::R2::ASF->new( { slr => $meta_recce } );
     say STDERR 'No ASF' if not defined $asf;
