@@ -226,10 +226,12 @@ partial: 1
 
 =for Marpa::R2::Display::End
 
+Performs a traversal of the ASF.
 Returns the value of the traversal,
 which is computed as described below.
-It requires two arguments: a reference to a traverser function,
-and a per-traversal object, which should be a Perl reference.
+It requires two arguments.
+The first is a per-traversal object, which must be a Perl reference.
+The second argument must be a reference to a traverser function,
 Discussion of how to write a traverser follows.
 The C<traverse()> method may be called repeatedly for an ASF,
 with the same traverser, or with different ones.
@@ -241,7 +243,7 @@ writing a traverser will be familiar if you have experience with
 traversing trees.
 The traverser may be called at every node of the forest.
 (These nodes are called B<glades>.)
-The traverser must return a value, and this will be become the value.
+The traverser must return a value, and this will be become the value
 of the glade.
 The value of the topmost glade (called the B<peak>) becomes the value
 of the traversal, and is the value returned by
@@ -255,16 +257,16 @@ value is required.
 It may or may not be invoked for other glades.
 
 The traverser is always invoked with two arguments.
-The first of the two arguments to a traverser is 
+The first argument will be a B<glade object>.
+Methods of the glade object are used to find information about
+the glade, and to move around in it.
+
+The second of the two arguments to a traverser is 
 the per-traversal object, which will be shared by all calls
 in the traversal.
 It may be used as a "scratch pad" for information
 which it is not convenient to pass via return values,
 as a means of avoiding the uses of globals.
-
-The second traverser arguments will be a B<glade object>.
-Methods of the glade object are used to find information about
-the glade, and to move around in it.
 
 "Moving around" in a glade means visiting its B<parse alternatives>.
 The parse alternatives, called B<alternatives> where the meaning is clear.
@@ -285,7 +287,7 @@ At all alternatives,
 L<the C<span()>|/"span()"> and
 L<the C<literal()>|/"literal()"> glade methods
 are of use.
-L<the C<symbol_id()> glade method|/"symbol_d()"> is
+The L<C<symbol_id()> glade method|/"symbol_d()"> is
 also always of use although its meaning varies.
 At token alteratives, the C<symbol_id()> method returns the 
 token symbol.
@@ -325,6 +327,10 @@ partial: 1
 
 =for Marpa::R2::Display::End
 
+Returns the B<glade literal>, a string in the input which corresponds to this glade.
+The glade literal remains constant inside a glade.
+Allows no arguments.
+
 =head2 span()
 
 =for Marpa::R2::Display::Start
@@ -337,6 +343,14 @@ partial: 1
 
 =for Marpa::R2::Display::End
 
+Returns the B<glade span>, two numbers which describe
+the location which corresponds to this glade.
+The first number will be the start of the span, as
+an offset in the input stream.
+The second number will be its length.
+The glade literal remains constant inside a glade.
+Allows no arguments.
+
 =head2 symbol_id()
 
 =for Marpa::R2::Display
@@ -347,6 +361,14 @@ partial: 1
     my $symbol_id   = $glade->symbol_id();
 
 =for Marpa::R2::Display::End
+
+Returns the B<glade symbol>, which remains constant
+inside a glade.
+For a token alternative, the glade symbol is the token
+symbol.
+For a rule alternative, the glade symbol is the LHS symbol of
+the rule.
+Allows no arguments.
 
 =head2 rule_id()
 

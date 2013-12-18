@@ -525,7 +525,7 @@ sub nid_span {
     if ( $nid <= $NID_LEAF_BASE ) {
         my $and_node_id = nid_to_and_node($nid);
         my ( $start, $length ) = token_es_span( $asf, $and_node_id );
-        return q{} if $length == 0;
+        return ($start, 0) if $length == 0;
         return $slr->es_to_input_span( $start, $length );
     } ## end if ( $nid <= $NID_LEAF_BASE )
     if ( $nid >= 0 ) {
@@ -964,7 +964,6 @@ sub Marpa::R2::ASF::glade_literal {
     my $nidset_by_id = $asf->[Marpa::R2::Internal::ASF::NIDSET_BY_ID];
     my $nidset       = $nidset_by_id->[$glade_id];
     Marpa::R2::exception("No glade found for glade ID $glade_id)") if not defined $nidset;
-    return if not defined $nidset;
     my $nid0         = $nidset->nid(0);
     return nid_literal($asf, $nid0);
 } ## end sub Marpa::R2::ASF::glade_literal
@@ -974,7 +973,6 @@ sub Marpa::R2::ASF::glade_span {
     my $nidset_by_id = $asf->[Marpa::R2::Internal::ASF::NIDSET_BY_ID];
     my $nidset       = $nidset_by_id->[$glade_id];
     Marpa::R2::exception("No glade found for glade ID $glade_id)") if not defined $nidset;
-    return if not defined $nidset;
     my $nid0         = $nidset->nid(0);
     return nid_span($asf, $nid0);
 }
@@ -1262,34 +1260,46 @@ sub Marpa::R2::Internal::ASF::ambiguities_show {
                 my ( undef, $this_length ) =
                     $asf->glade_span($this_downglade);
                 my ( $start_line, $start_column ) = $slr->line_column($start);
-                my ( $end_line1, $end_column1 ) =
-                    $slr->line_column( $start + $first_length - 1 );
-                my ( $end_line2, $end_column2 ) =
-                    $slr->line_column( $start + $this_length - 1 );
                 my $display_length =
                     List::Util::min( $first_length, $this_length, 60 );
                 $result
                     .= qq{Length of symbol "$symbol_display_form" at line $start_line, column $start_column is ambiguous\n};
-                $result .= qq{  Choices start with: }
-                    . Marpa::R2::Internal::Scanless::input_escape( $p_input,
-                    $start, $display_length )
-                    . qq{\n};
-                $result
-                    .= qq{  Choice 1 ends at line $end_line1, column $end_column1\n};
-                $display_length = List::Util::min( $first_length, 60 );
-                $result .= qq{  Choice 1 ending: }
-                    . Marpa::R2::Internal::Scanless::reversed_input_escape(
-                    $p_input, $start + $first_length,
-                    $display_length )
-                    . qq{\n};
-                $result
-                    .= qq{  Choice 2: Symbol ends at line $end_line2, column $end_column2\n};
-                $display_length = List::Util::min( $this_length, 60 );
-                $result .= qq{  Choice 2 ending: }
-                    . Marpa::R2::Internal::Scanless::reversed_input_escape(
-                    $p_input, $start + $this_length,
-                    $display_length )
-                    . qq{\n};
+
+                if ( $display_length > 0 ) {
+                    $result .= qq{  Choices start with: }
+                        . Marpa::R2::Internal::Scanless::input_escape(
+                        $p_input, $start, $display_length )
+                        . qq{\n};
+                } ## end if ( $display_length > 0 )
+
+		my @display_downglade = ($first_downglade, $this_downglade);
+                DISPLAY_GLADE:
+                for (
+                    my $glade_ix = 0;
+                    $glade_ix <= $#display_downglade;
+                    $glade_ix++
+                    )
+                {
+                    # Choices may be zero length
+                    my $choice_number = $glade_ix + 1;
+                    my $glade_id      = $display_downglade[$glade_ix];
+                    my ( undef, $length ) = $asf->glade_span($glade_id);
+                    if ( $length <= 0 ) {
+                        $result
+                            .= qq{  Choice $choice_number is zero length\n};
+                        next DISPLAY_GLADE;
+                    }
+                    my ( $end_line, $end_column ) =
+                        $slr->line_column( $start + $length - 1 );
+                    $result
+                        .= qq{  Choice $choice_number, length=$length, ends at line $end_line, column $end_column\n};
+                    $display_length = List::Util::min( $length, 60 );
+                    $result .= qq{  Choice $choice_number ending: }
+                        . Marpa::R2::Internal::Scanless::reversed_input_escape(
+                        $p_input, $start + $length,
+                        $display_length )
+                        . qq{\n};
+                } ## end DISPLAY_GLADE: for ( my $glade_ix = 0; $glade_ix <= ...)
                 next AMBIGUITY;
             } ## end FACTORING: for ( my $factoring_ix = 1; $factoring_ix < ...)
             next AMBIGUITY;

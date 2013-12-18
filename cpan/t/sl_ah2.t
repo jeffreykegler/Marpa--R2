@@ -95,6 +95,24 @@ for my $i ( 0 .. $input_length ) {
     for my $value ( keys %{$expected} ) {
         Test::More::fail(qq{Missing result for length=$i, "$value"});
     }
+
+    my $ambiguity_desc = 'No ambiguity';
+    if ($ambiguity_metric > 1) {
+
+	$slr->series_restart( { end => $i } );
+        my $asf = Marpa::R2::ASF->new( { slr => $slr } );
+        die 'No ASF' if not defined $asf;
+        my $ambiguities = Marpa::R2::Internal::ASF::ambiguities($asf);
+
+        # Only report the first two
+        my @ambiguities = grep {defined} @{$ambiguities}[ 0 .. 1 ];
+
+        $ambiguity_desc =
+            Marpa::R2::Internal::ASF::ambiguities_show( $asf, \@ambiguities );
+    }
+
+    Test::More::is($ambiguity_desc, q{}, "Ambiguity description for length $i");
+
 } ## end for my $i ( 0 .. $input_length )
 
 1;    # In case used as "do" file
