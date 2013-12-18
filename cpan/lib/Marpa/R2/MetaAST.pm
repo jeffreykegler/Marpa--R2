@@ -35,10 +35,10 @@ sub new {
     my $meta_recce = Marpa::R2::Internal::Scanless::meta_recce();
     $meta_recce->read($p_rules_source);
     if ( $meta_recce->ambiguity_metric() > 1 ) {
-	my $asf = Marpa::R2::ASF->new( { slr => $meta_recce } );
-	say STDERR 'No ASF' if not defined $asf;
-	my $ambiguities = Marpa::R2::Internal::ASF::ambiguities( $asf );
-	my @ambiguities = grep { defined } @{$ambiguities}[0 .. 1 ];
+    my $asf = Marpa::R2::ASF->new( { slr => $meta_recce } );
+    say STDERR 'No ASF' if not defined $asf;
+    my $ambiguities = Marpa::R2::Internal::ASF::ambiguities( $asf );
+    my @ambiguities = grep { defined } @{$ambiguities}[0 .. 1 ];
         Marpa::R2::exception(
             "Parse of BNF/Scanless source is ambiguous\n",
             Marpa::R2::Internal::ASF::ambiguities_show( $asf, \@ambiguities )
@@ -579,7 +579,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::priority_rule::evaluate {
                 Marpa::R2::exception(
                     'actions not allowed in lexical rules (rules LHS was "',
                     $lhs, '")' )
-		    if  ( substr $subgrammar, 0, 1 ) eq 'L';
+            if  ( substr $subgrammar, 0, 1 ) eq 'L';
                 $hash_rule{action} = $action;
             } ## end if ( defined $action )
 
@@ -588,7 +588,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::priority_rule::evaluate {
                 Marpa::R2::exception(
                     'ranks not allowed in lexical rules (rules LHS was "',
                     $lhs, '")' )
-		    if  ( substr $subgrammar, 0, 1 ) eq 'L';
+            if  ( substr $subgrammar, 0, 1 ) eq 'L';
                 $hash_rule{rank} = $rank;
             } ## end if ( defined $rank )
 
@@ -597,7 +597,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::priority_rule::evaluate {
                 Marpa::R2::exception(
                     'null-ranking allowed in lexical rules (rules LHS was "',
                     $lhs, '")' )
-		    if  ( substr $subgrammar, 0, 1 ) eq 'L';
+            if  ( substr $subgrammar, 0, 1 ) eq 'L';
                 $hash_rule{null_ranking} = $null_ranking;
             } ## end if ( defined $rank )
 
@@ -729,7 +729,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::priority_rule::evaluate {
             Marpa::R2::exception(
                 'actions not allowed in lexical rules (rules LHS was "',
                 $lhs, '")' )
-		    if  ( substr $subgrammar, 0, 1 ) eq 'L';
+            if  ( substr $subgrammar, 0, 1 ) eq 'L';
             $new_xs_rule{action} = $action;
         } ## end if ( defined $action )
 
@@ -738,7 +738,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::priority_rule::evaluate {
             Marpa::R2::exception(
                 'null-ranking not allowed in lexical rules (rules LHS was "',
                 $lhs, '")' )
-		    if  ( substr $subgrammar, 0, 1 ) eq 'L';
+            if  ( substr $subgrammar, 0, 1 ) eq 'L';
             $new_xs_rule{null_ranking} = $null_ranking;
         } ## end if ( defined $rank )
 
@@ -747,7 +747,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::priority_rule::evaluate {
             Marpa::R2::exception(
                 'ranks not allowed in lexical rules (rules LHS was "',
                 $lhs, '")' )
-		    if  ( substr $subgrammar, 0, 1 ) eq 'L';
+            if  ( substr $subgrammar, 0, 1 ) eq 'L';
             $new_xs_rule{rank} = $rank;
         } ## end if ( defined $rank )
 
@@ -871,7 +871,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::empty_rule::evaluate {
         Marpa::R2::exception(
             'actions not allowed in lexical rules (rules LHS was "',
             $lhs, '")' )
-		    if  ( substr $subgrammar, 0, 1 ) eq 'L';
+            if  ( substr $subgrammar, 0, 1 ) eq 'L';
         $rule{action} = $action;
     } ## end if ( defined $action )
 
@@ -880,7 +880,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::empty_rule::evaluate {
         Marpa::R2::exception(
             'null-ranking not allowed in lexical rules (rules LHS was "',
             $lhs, '")' )
-		    if  ( substr $subgrammar, 0, 1 ) eq 'L';
+            if  ( substr $subgrammar, 0, 1 ) eq 'L';
         $rule{null_ranking} = $null_ranking;
     } ## end if ( defined $null_ranking )
 
@@ -889,7 +889,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::empty_rule::evaluate {
         Marpa::R2::exception(
             'ranks not allowed in lexical rules (rules LHS was "',
             $lhs, '")' )
-		    if  ( substr $subgrammar, 0, 1 ) eq 'L';
+            if  ( substr $subgrammar, 0, 1 ) eq 'L';
         $rule{rank} = $rank;
     } ## end if ( defined $rank )
 
@@ -1142,7 +1142,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::quantified_rule::evaluate {
         Marpa::R2::exception(
             'actions not allowed in lexical rules (rules LHS was "',
             $lhs, '")' )
-		    if  ( substr $subgrammar, 0, 1 ) eq 'L';
+            if  ( substr $subgrammar, 0, 1 ) eq 'L';
         $sequence_rule{action} = $action;
     } ## end if ( defined $action )
 
@@ -1151,7 +1151,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::quantified_rule::evaluate {
         Marpa::R2::exception(
             'null-ranking not allowed in lexical rules (rules LHS was "',
             $lhs, '")' )
-		    if  ( substr $subgrammar, 0, 1 ) eq 'L';
+            if  ( substr $subgrammar, 0, 1 ) eq 'L';
         $sequence_rule{null_ranking} = $null_ranking;
     } ## end if ( defined $null_ranking )
 
@@ -1160,7 +1160,7 @@ sub Marpa::R2::Internal::MetaAST_Nodes::quantified_rule::evaluate {
         Marpa::R2::exception(
             'ranks not allowed in lexical rules (rules LHS was "',
             $lhs, '")' )
-		    if  ( substr $subgrammar, 0, 1 ) eq 'L';
+            if  ( substr $subgrammar, 0, 1 ) eq 'L';
         $sequence_rule{rank} = $rank;
     } ## end if ( defined $rank )
 

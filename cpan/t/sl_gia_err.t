@@ -110,8 +110,8 @@ END_OF_MESSAGE
 #####
 
 my $explicit_grammar1 = \(<<'END_OF_SOURCE');
-	      :default ::= action => ::array
-	      quartet  ::= a a a a;
+          :default ::= action => ::array
+          quartet  ::= a a a a;
         start symbol is quartet
         a ~ 'a'
 END_OF_SOURCE
@@ -126,8 +126,8 @@ push @tests_data,
 #####
 
 my $explicit_grammar2 = \(<<'END_OF_SOURCE');
-	:default ::= action => ::array
-	octet  ::= a a a a
+    :default ::= action => ::array
+    octet  ::= a a a a
         start symbol <is> octet
         a ~ 'a'
         start ~ 'a'
@@ -147,8 +147,8 @@ push @tests_data,
 # test null statements
 
 my $disambig_grammar = \(<<'END_OF_SOURCE');
-	;:default ::= action => ::array
-	octet  ::= a a a a
+    ;:default ::= action => ::array
+    octet  ::= a a a a
         ;a ~ 'a';;;;;
 END_OF_SOURCE
 
@@ -163,10 +163,10 @@ push @tests_data,
 # test grouped statements
 
 my $grouping_grammar = \(<<'END_OF_SOURCE');
-	;:default ::= action => ::array
-	{quartet ::= a b c d };
+    ;:default ::= action => ::array
+    {quartet ::= a b c d };
         a ~ 'a' { b ~ 'b' c~'c' } { d ~ 'd'; };
-	{ {;} }
+    { {;} }
 END_OF_SOURCE
 
 push @tests_data,
@@ -181,8 +181,8 @@ push @tests_data,
 
 {
     my $grammar = \(<<'END_OF_SOURCE');
-	:default ::= ,action => ::array,
-	quartet ::= a b c d ,
+    :default ::= ,action => ::array,
+    quartet ::= a b c d ,
         a ~ 'a' { b ~ 'b' c~'c' }  d ~ 'd',
 END_OF_SOURCE
 
@@ -199,8 +199,8 @@ END_OF_SOURCE
 
 {
     my $grammar = \(<<'END_OF_SOURCE');
-	:default ::= ,action => ::array,
-	quartet ::= a b c d e f
+    :default ::= ,action => ::array,
+    quartet ::= a b c d e f
         { a ~ 'a' { b ~ 'b' { c~'c' {; d~'d' {e~'e'}} }}  f ~ 'f' }
 END_OF_SOURCE
 
