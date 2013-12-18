@@ -213,7 +213,7 @@ This can be convenient when using SLIF grammar methods
 while examining an ASF.
 All failures are thrown as exceptions.
 
-=head1 Mutator
+=head1 The traverser method
 
 =head2 traverse()
 
@@ -222,13 +222,97 @@ name: ASF synopsis code
 normalize-whitespace: 1
 partial: 1
 
-  my $full_result = $asf->traverse( \&full_traverser );
+  my $full_result = $asf->traverse( {}, \&full_traverser );
 
 =for Marpa::R2::Display::End
+
+Returns the value of the traversal,
+which is computed as described below.
+It requires two arguments: a reference to a traverser function,
+and a per-traversal object, which should be a Perl reference.
+Discussion of how to write a traverser follows.
+The C<traverse()> method may be called repeatedly for an ASF,
+with the same traverser, or with different ones.
+
+=head1 How to write a traverser
+
+The process of
+writing a traverser will be familiar if you have experience with
+traversing trees.
+The traverser may be called at every node of the forest.
+(These nodes are called B<glades>.)
+The traverser must return a value, and this will be become the value.
+of the glade.
+The value of the topmost glade (called the B<peak>) becomes the value
+of the traversal, and is the value returned by
+L<the C<traverse()> method|/"traverse()">.
+
+The traverser is called at most once for each glade -- subsequent
+attempts to determine the value of a glade will return a memoized
+value.
+The traverser is always invoked for the peak, and for any glade whose
+value is required.
+It may or may not be invoked for other glades.
+
+The traverser is always invoked with two arguments.
+The first of the two arguments to a traverser is 
+the per-traversal object, which will be shared by all calls
+in the traversal.
+It may be used as a "scratch pad" for information
+which it is not convenient to pass via return values,
+as a means of avoiding the uses of globals.
+
+The second traverser arguments will be a B<glade object>.
+Methods of the glade object are used to find information about
+the glade, and to move around in it.
+
+"Moving around" in a glade means visiting its B<parse alternatives>.
+The parse alternatives, called B<alternatives> where the meaning is clear.
+(If a glade has exactly one alternative, it is called a B<trivial glade>.)
+When invoked, the traverser points at the first alternative.
+Alternatives after the first may be visited using the
+L<the C<next()> glade method|/"traverse()">.
+
+Parse alternatives may be either token
+alternatives or rule alternatives.
+Whether or not the current alternative of the glade is a rule
+can be determined using the
+L<the C<rule_id()> glade method|/"traverse()">,
+which returns undefined if and only if the glade is positioned at a token
+alternative.
+
+At all alternatives,
+L<the C<span()>|/"span()"> and
+L<the C<literal()>|/"literal()"> glade methods
+are of use.
+L<the C<symbol_id()> glade method|/"symbol_d()"> is
+also always of use although its meaning varies.
+At token alteratives, the C<symbol_id()> method returns the 
+token symbol.
+At rule alteratives, the C<symbol_id()> method returns the 
+ID of the LHS of the rule.
+
+At rule alternatives,
+L<the C<rh_count()>|/"rh_count()"> and
+L<the C<rh_value()>|/"rh_value()"> glade methods
+are of use.
+The C<rh_count()> method returns the length of the RHS,
+and the C<rh_value()> method returns the value of one of the
+RHS children, as determined using its traverser.
+
+At the peak of the ASF, the symbol will be named 'C<[:start]>'.
+This case often requires special treatment.
+Note that it is entirely possible for the peak to be a non-trivial
+glade.
 
 =head1 Traversal accessors
 
 These are the methods that must be called in the context of a traversal routine.
+The descriptions state whether the value remains constant within a glade,
+or within a symch.
+Symches are a concern for some advanced applications.
+A symch is either a series of alternatives which share the same rule,
+or a token alternative.
 
 =head2 literal()
 
@@ -275,6 +359,14 @@ partial: 1
 
 =for Marpa::R2::Display::End
 
+Returns the ID of the rule for the current
+alternative, which will be non-negative,
+but which may be zero.
+Returns C<undef> if and only if the current
+alternative is a token alternative.
+Takes no arguments.
+Always constant within a symch.
+
 =head2 rh_length()
 
 =for Marpa::R2::Display
@@ -307,6 +399,12 @@ partial: 1
   last CHOICE if not defined $glade->next();
 
 =for Marpa::R2::Display::End
+
+When moving through a glade using
+the C<traverse()> method,
+all alternatives which share the same symch will be
+visited before any alternatives from other symches
+are visited.
 
 =head1 Appendix: full traverser code
 

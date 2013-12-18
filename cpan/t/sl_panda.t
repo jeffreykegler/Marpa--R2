@@ -117,8 +117,8 @@ my $panda_grammar = Marpa::R2::Scanless::G->new( { source => \$dsl } );
 my $panda_recce = Marpa::R2::Scanless::R->new( { grammar => $panda_grammar } );
 $panda_recce->read( \$sentence );
 my $asf = Marpa::R2::ASF->new( { slr=>$panda_recce } );
-my $full_result = $asf->traverse( \&full_traverser );
-my $pruned_result = $asf->traverse( \&pruning_traverser );
+my $full_result = $asf->traverse( {}, \&full_traverser );
+my $pruned_result = $asf->traverse( {}, \&pruning_traverser );
 
 # Marpa::R2::Display::End
 
@@ -128,7 +128,7 @@ my $pruned_result = $asf->traverse( \&pruning_traverser );
 sub full_traverser {
 
     # This routine converts the glade into a list of Penn-tagged elements.  It is called recursively.
-    my ($glade)     = @_;
+    my ($glade, $scratch)     = @_;
     my $rule_id     = $glade->rule_id();
     my $symbol_id   = $glade->symbol_id();
     my $symbol_name = $panda_grammar->symbol_name($symbol_id);
@@ -205,7 +205,7 @@ sub penn_tag {
 sub pruning_traverser {
 
     # This routine converts the glade into a list of Penn-tagged elements.  It is called recursively.
-    my ($glade)     = @_;
+    my ($glade, $scratch)     = @_;
     my $rule_id     = $glade->rule_id();
     my $symbol_id   = $glade->symbol_id();
     my $symbol_name = $panda_grammar->symbol_name($symbol_id);
@@ -248,12 +248,12 @@ END_OF_OUTPUT
 Marpa::R2::Test::is( $pruned_result, $pruned_expected,
     'Ambiguous English sentence using ASF: pruned' );
 
-my $located_actual = $asf->traverse( \&located_traverser );
+my $located_actual = $asf->traverse( {}, \&located_traverser );
 
 sub located_traverser {
 
     # This routine converts the glade into a list of Penn-tagged elements.  It is called recursively.
-    my ($glade)     = @_;
+    my ($glade, $scratch)     = @_;
     my $rule_id     = $glade->rule_id();
     my $symbol_id   = $glade->symbol_id();
     my $symbol_name = $panda_grammar->symbol_name($symbol_id);

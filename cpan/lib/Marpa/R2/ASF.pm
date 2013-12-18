@@ -1306,10 +1306,14 @@ sub Marpa::R2::Internal::ASF::ambiguities_show {
 # The higher level calls
 
 sub Marpa::R2::ASF::traverse {
-    my ( $asf, $method ) = @_;
+    my ( $asf, $per_traverse_object, $method ) = @_;
     if ( ref $method ne 'CODE' ) {
         Marpa::R2::exception(
             'Argument to $asf->traverse() must be an anonymous subroutine');
+    }
+    if ( not ref $per_traverse_object ) {
+        Marpa::R2::exception(
+            'Argument to $asf->traverse() must be a reference');
     }
     my $peak       = $asf->peak();
     my $peak_glade = glade_obtain( $asf, $peak );
@@ -1320,8 +1324,8 @@ sub Marpa::R2::ASF::traverse {
     $traverser->[Marpa::R2::Internal::ASF::Traverse::GLADE]    = $peak_glade;
     $traverser->[Marpa::R2::Internal::ASF::Traverse::SYMCH_IX] = 0;
     $traverser->[Marpa::R2::Internal::ASF::Traverse::FACTORING_IX] = 0;
-    return $method->($traverser);
-} ## end sub Marpa::R2::Internal::ASF::traverse
+    return $method->( $traverser, $per_traverse_object );
+} ## end sub Marpa::R2::ASF::traverse
 
 sub Marpa::R2::Internal::ASF::Traverse::literal {
     my ( $traverser ) = @_;
