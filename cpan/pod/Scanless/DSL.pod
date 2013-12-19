@@ -485,7 +485,7 @@ of 0 or 1.
 
 Adverbs may be associated with the RHS alternative.
 The adverb list must follow the quantifier.
-The adverbs allowed are L<C<action>|/"action">>,
+The adverbs allowed are L<C<action>|/"action">,
 L<C<bless>|/"bless">,
 L<C<proper>|/"proper"> and
 L<C<separator>|/"separator">.
