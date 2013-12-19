@@ -1192,7 +1192,7 @@ sub Marpa::R2::Internal::Scanless::reversed_input_escape {
     }
     my $length_so_far = $trailing_spaces * 2;
 
-    CHAR: while ( $pos > 0 ) {
+    CHAR: while ( $pos >= 0 ) {
         my $char         = substr ${$p_input}, $pos, 1;
         my $ord          = ord $char;
         my $escaped_char = $escape_by_ord[$ord]

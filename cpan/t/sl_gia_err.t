@@ -99,10 +99,10 @@ push @tests_data, [
 Parse of BNF/Scanless source is ambiguous
 Length of symbol "statement" at line 2, column 13 is ambiguous
   Choices start with: quartet  ::= a a a a
-  Choice 1 ends at line 2, column 32
-  Choice 1 ending: quartet  ::= a a a a
-  Choice 2: Symbol ends at line 3, column 31
-  Choice 2 ending: uartet  ::= a a a a\n        start symbol is quartet
+  Choice 1, length=20, ends at line 2, column 32
+  Choice 1: quartet  ::= a a a a
+  Choice 2, length=52, ends at line 3, column 31
+  Choice 2: quartet  ::= a a a a\n        start symbol is quarte
 END_OF_MESSAGE
     'English start statement second'
 ];
@@ -260,12 +260,12 @@ for my $test_data (@tests_data) {
         last PROCESSING;
     } ## end PROCESSING:
 
-    Test::More::is(
+    Marpa::R2::Test::is(
         Data::Dumper::Dumper( \$actual_value ),
         Data::Dumper::Dumper( \$expected_value ),
         qq{Value of $test_name}
     );
-    Test::More::is( $actual_result, $expected_result,
+    Marpa::R2::Test::is( $actual_result, $expected_result,
         qq{Result of $test_name} );
 } ## end for my $test_data (@tests_data)
 

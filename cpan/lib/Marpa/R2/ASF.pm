@@ -1272,7 +1272,7 @@ sub Marpa::R2::Internal::ASF::ambiguities_show {
                         . qq{\n};
                 } ## end if ( $display_length > 0 )
 
-		my @display_downglade = ($first_downglade, $this_downglade);
+                my @display_downglade = ( $first_downglade, $this_downglade );
                 DISPLAY_GLADE:
                 for (
                     my $glade_ix = 0;
@@ -1293,12 +1293,18 @@ sub Marpa::R2::Internal::ASF::ambiguities_show {
                         $slr->line_column( $start + $length - 1 );
                     $result
                         .= qq{  Choice $choice_number, length=$length, ends at line $end_line, column $end_column\n};
-                    $display_length = List::Util::min( $length, 60 );
-                    $result .= qq{  Choice $choice_number ending: }
-                        . Marpa::R2::Internal::Scanless::reversed_input_escape(
-                        $p_input, $start + $length,
-                        $display_length )
+                    if ( $length > 60 ) {
+                        $result .= qq{  Choice $choice_number ending: }
+                            . Marpa::R2::Internal::Scanless::reversed_input_escape(
+                            $p_input, $start + $length, 60 )
+                            . qq{\n};
+                        next DISPLAY_GLADE;
+                    } ## end if ( $length > 60 )
+                    $result .= qq{  Choice $choice_number: }
+                        . Marpa::R2::Internal::Scanless::input_escape(
+                        $p_input, $start, $length )
                         . qq{\n};
+
                 } ## end DISPLAY_GLADE: for ( my $glade_ix = 0; $glade_ix <= ...)
                 next AMBIGUITY;
             } ## end FACTORING: for ( my $factoring_ix = 1; $factoring_ix < ...)
