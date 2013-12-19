@@ -241,7 +241,7 @@ The L</"literal()"> method can assist in this process.
 
 =head1 How internal scanning works
 
-The SLIF always starts scanning using the C<read()>
+The SLIF always starts scanning using the L<C<read()>|/"read()>"
 method.
 Pedantically, this means scanning always begins with a phase
 of internal scanning.
@@ -249,15 +249,15 @@ But that first phase may be of zero length,
 and after that,
 internal scanning does not have to be resumed.
 
-Internal scanning can be resumed with the C<resume()> method.
-Both the C<read()> and C<resume()> methods require the application
+Internal scanning can be resumed with the L<C<resume()>|/"resume()>" method.
+Both the L<C<read()>|/"read()>" and L<C<resume()>|/"resume()>" methods require the application
 to specify a span in the input stream.
-The C<read()> method sets the input stream,
-and that input stream is the one used by all C<resume()> method calls
+The L<C<read()>|/"read()>" method sets the input stream,
+and that input stream is the one used by all L<C<resume()>|/"resume()>" method calls
 for that recognizer.
 
 In what follows, the term "internal scanning method"
-refers to either the C<read()> or the C<resume()> method.
+refers to either the L<C<read()>|/"read()>" or the L<C<resume()>|/"resume()>" method.
 After an internal scanning method,
 the current location will indicate how far
 in the input stream the internal scanning method actually read.
@@ -266,7 +266,7 @@ the current
 location will be the one at which it paused.
 If the internal scanning method pauses at EOS,
 the current location will be EOS.
-The return value of the C<read()> and the C<resume()> method is
+The return value of the L<C<read()>|/"read()>" and the L<C<resume()>|/"resume()>" method is
 the current location.
 
 =head2 EOS
@@ -302,7 +302,7 @@ the end of the input string.
 
 =head2 Pauses in internal scanning
 
-When a C<read()> and the C<resume()> method pauses,
+When a L<C<read()>|/"read()>" and the L<C<resume()>|/"resume()>" method pauses,
 one of more of the following occurred.
 
 =over 4
@@ -354,7 +354,7 @@ For example, the first 7 characters of the input stream could be
 an preamble containing the characters "C<NO TEXT>".
 This preamble could be immediately followed by what is seen as the text
 from a more natural point of view.
-In this case, the initial call to the C<read()> method
+In this case, the initial call to the L<C<read()>|/"read()>" method
 could take the form
 C<< $slr->read($input_string, 7) >>.
 Lexemes corresponding to the artificial preamble would be read
@@ -374,7 +374,7 @@ normalize-whitespace: 1
 
 The C<new()> method is the constructor for SLIF recognizers.
 The C<new()> constructor accepts a hash of named arguments.
-The C<grammar> named argument is required.
+The L<C<grammar>|/"grammar>" named argument is required.
 All other named arguments are optional.
 
 The following named arguments are allowed:
@@ -383,11 +383,11 @@ The following named arguments are allowed:
 
 Most users will want to ignore this argument.
 It is an advanced argument, mainly for use in testing.
-The C<end> named argument
+The L<C<end>|/"end>" named argument
 specifies the parse end, as a G1 location.
 The default is for the parse to end where the input did,
 so that the parse returned is of the entire input.
-The C<end> named argument is not allowed
+The L<C<end>|/"end>" named argument is not allowed
 once a parse series has begun.
 
 =head2 grammar
@@ -620,10 +620,10 @@ normalize-whitespace: 1
 
 This method allows the named arguments to be changed after an SLIF
 grammar is created.
-Currently, the arguments that may be changed are C<end>,
-C<max_parses>,
-C<semantics_package> and
-C<trace_file_handle>.
+Currently, the arguments that may be changed are L<C<end>|/"end>",
+L<C<max_parses>|/"max_parses>",
+L<C<semantics_package>|/"semantics_package>" and
+L<C<trace_file_handle>|/"trace_file_handle>".
 
 =head2 value()
 
@@ -662,7 +662,7 @@ flow of parse tree evaluation.
 Symbol tables are one example of the kind of data which parses often
 require, but which it is not convenient to accumulate bottom-up.
 
-If the C<semantics_package> named argument of the SLIF
+If the L<C<semantics_package>|/"semantics_package>" named argument of the SLIF
 recognizer was not specified,
 Marpa will use the package into which the per-parse argument was blessed
 as the semantics package --
@@ -740,7 +740,7 @@ The C<lexeme_alternative()> method
 allows an external scanner to read
 ambiguous tokens.
 Most applications 
-will prefer the simpler C<lexeme_read()>.
+will prefer the simpler L<C<lexeme_read()>|/"lexeme_read()>".
 
 C<lexeme_alternative()> takes one or two arguments.
 The first argument,
@@ -757,7 +757,7 @@ without advancing the current location.
 This allows an application to use ambiguous tokens.
 To complete reading at a G1 location,
 and advance the current G1 location to the next G1 location,
-use the C<lexeme_complete()> method.
+use the L<C<lexeme_complete()>|/"lexeme_complete()>" method.
 
 On success, returns a non-negative number.
 Returns C<undef> if the token was rejected.
@@ -785,7 +785,7 @@ requires two arguments,
 a input stream start location and a length.
 These are interpreted as described for the
 corresponding second and third
-arguments to C<lexeme_read()>.
+arguments to L<C<lexeme_read()>|/"lexeme_read()>".
 The C<lexeme_complete()>
 method completes the reading of
 alternative tokens at the current G1 location,
@@ -1219,7 +1219,7 @@ and returns the name of the lexeme which caused the most
 recent pause.
 The pause lexeme is initially undefined
 and it is reset to undefined at the beginning of
-each call to the C<read()> or C<resume()> methods.
+each call to the L<C<read()>|/"read()>" or L<C<resume()>|/"resume()>" methods.
 
 
 More than one lexeme may cause a pause.
@@ -1262,7 +1262,7 @@ the start location and length of the lexeme which caused
 the most recent pause.
 The pause span is initially undefined
 and it is reset to undefined at the beginning of
-each call to the C<read()> or C<resume()> methods.
+each call to the L<C<read()>|/"read()>" or L<C<resume()>|/"resume()>" methods.
 
 A pause is not always caused by a lexeme -- internal
 scanning may be paused
@@ -1408,7 +1408,7 @@ normalize-whitespace: 1
 Returns a reference to a list of strings, where the strings are the
 names of the lexemes acceptable at the current location.
 The presence of a lexeme in this list means
-that lexeme will be acceptable in the next call of the C<resume()> method.
+that lexeme will be acceptable in the next call of the L<C<resume()>|/"resume()>" method.
 
 This is highly useful for Ruby Slippers parsing.
 A more fine-tuned approach is to identify the lexemes of interest
