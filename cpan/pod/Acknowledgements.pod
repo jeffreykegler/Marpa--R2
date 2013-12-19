@@ -68,7 +68,7 @@ Graham Barr (C<Scalar::Util>).
 Adam Kennedy patiently instructed me
 in module writing,
 both on the finer points and
-on issues about which I really should have know better.
+on issues about which I really should have known better.
 
 I am very grateful to a handful of early contributors,
 whose contributions were made when I desperately needed help.
