@@ -1020,7 +1020,7 @@ is required, and 0 if Perl separation is allowed.
 "Perl separation" allows a final separator.
 "Proper separation" is so called, because it requires
 that separators be "proper" in the sense that they
-must actually separating
+must actually separate
 sequence items.
 
 =head2 rank
