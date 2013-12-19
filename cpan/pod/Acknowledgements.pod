@@ -70,8 +70,29 @@ in module writing,
 both on the finer points and
 on issues about which I really should have know better.
 
-I am very grateful to Ruslan Zakirov for generously
-starting, and agreeing to moderate,
+I am very grateful to a handful of early contributors,
+whose contributions were made when I desperately needed help.
+I am especially grateful to Ron Savage,
+who has been a very aggressive early adopter
+of all Marpa's versions.
+Ruslan Zakirov generously
+started, and agreed to moderate,
+the "Marpa parser" mailing list.
+Peter Stuifzand invented the "Stuifzand interface",
+which was the original inspiration for the SLIF.
+
+Ron, Peter and Ruslan Z. has since gone on to contribute
+in ways too numerous to mention,
+and others have joined in.
+Jean-Damien Durand's numerous contributions include
+the Windows port of Marpa.
+Ruslan Shvedov helped with ASF's
+and my documentation.
+Andrew Rodland's TAP parser, with one Marpa grammar layered on
+another, was another major inspiration
+for the SLIF.
+
+Finally, my thanks to all those who participated on
 the "Marpa parser" mailing list.
 It is hard to describe how important
 informed and constructive feedback 
@@ -79,15 +100,6 @@ is to a lone laborer on
 a complex and large project like Marpa,
 and I greatly appreciate all the
 contributors to the list.
-In addition to Ruslan,
-Peter Stuifzand and Ron Savage stand out
-for their contributions.
-I am especially grateful to Ron,
-who has been a very aggressive early adopter
-of all Marpa's versions.
-
-For the Windows port of Marpa,
-I am indebted to the work of Jean-Damien Durand.
 
 =head1 Copyright and License
 
