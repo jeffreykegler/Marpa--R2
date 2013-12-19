@@ -59,17 +59,17 @@ my $grammar = Marpa::R2::Scanless::G->new(
 :default ::= action => [values] bless => ::lhs
 lexeme default = action => [value] bless => ::name
 
-S   ::= NP  VP  period  bless => S
+S   ::= NP  VP  period  
 
-NP  ::= NN              bless => NP
-    |   DT  NN          bless => NP
-    |   NN  NNS         bless => NP
+NP  ::= NN              
+    |   DT  NN          
+    |   NN  NNS         
 
-VP  ::= VBP NP          bless => VP
-    |   VBP PP          bless => VP
-    |   VBZ PP          bless => VP
+VP  ::= VBP NP          
+    |   VBP PP          
+    |   VBZ PP          
 
-PP  ::= IN  NP          bless => PP
+PP  ::= IN  NP          
     
 period ~ '.'
 
@@ -92,18 +92,28 @@ END_OF_SOURCE
 );
 
 my $expected = <<'EOS';
-(S (NP (NN Time))
-   (VP (VBZ flies) (PP (IN like) (NP (DT an) (NN arrow))))
-   (. .))
-(S (NP (NN Time) (NNS flies))
-   (VP (VBP like) (NP (DT an) (NN arrow)))
-   (. .))
-(S (NP (NN Fruit))
-   (VP (VBZ flies) (PP (IN like) (NP (DT a) (NN banana))))
-   (. .))
-(S (NP (NN Fruit) (NNS flies))
-   (VP (VBP like) (NP (DT a) (NN banana)))
-   (. .))
+(S 
+  (NP (NN Time)) 
+  (VP (VBZ flies) 
+    (PP (IN like) 
+      (NP (DT an) (NN arrow)))) 
+  (. .))
+(S 
+  (NP (NN Time) (NNS flies)) 
+  (VP (VBP like) 
+    (NP (DT an) (NN arrow))) 
+  (. .))
+(S 
+  (NP (NN Fruit)) 
+  (VP (VBZ flies) 
+    (PP (IN like) 
+      (NP (DT a) (NN banana)))) 
+  (. .))
+(S 
+  (NP (NN Fruit) (NNS flies)) 
+  (VP (VBP like) 
+    (NP (DT a) (NN banana))) 
+  (. .))
 EOS
 
 my $paragraph = <<END_OF_PARAGRAPH;
@@ -120,29 +130,35 @@ for my $sentence (split /\n/, $paragraph){
     $recce->read( \$sentence );
 
     while ( defined( my $value_ref = $recce->value() ) ) {
-        my $value = $value_ref ? ${$value_ref}->bracket() : 'No parse';
+        my $value = $value_ref ? ${$value_ref}->bracket : 'No parse';
         push @actual, $value;
     }
 }
 
 package PennTags;
 
-sub contents { join ( $_[0], map { $_->bracket() } @{$_[1]} ) }
+my %s_tags; # structural tags
 
-sub PennTags::S::bracket   { "(S "  . contents ( "\n   ", $_[0] ) . ")" }
-sub PennTags::NP::bracket  { "(NP " . contents ( ' ',     $_[0] ) . ")" }
-sub PennTags::VP::bracket  { "(VP " . contents ( ' ',     $_[0] ) . ")" }
-sub PennTags::PP::bracket  { "(PP " . contents ( ' ',     $_[0] ) . ")" }
-
-sub PennTags::DT::bracket  { "(DT $_[0]->[0])" }
-sub PennTags::IN::bracket  { "(IN $_[0]->[0])" }
-sub PennTags::NN::bracket  { "(NN $_[0]->[0])" }
-sub PennTags::NNS::bracket { "(NNS $_[0]->[0])" }
-sub PennTags::VB::bracket  { "(VB $_[0]->[0])" }
-sub PennTags::VBP::bracket { "(VBP $_[0]->[0])" }
-sub PennTags::VBZ::bracket { "(VBZ $_[0]->[0])" }
-
-sub PennTags::period::bracket {"(. .)"}
+sub PennTags::S::bracket   { 
+    %s_tags = map { $_ => undef } qw{ NP VP PP period } unless %s_tags;
+    my ($tag, $contents) = ( ref $_[0], $_[0] );
+    state $level++;
+    $tag =~ s/^PennTags:://;
+    my $bracketed = 
+        exists $s_tags{$tag} ? ("\n" . ("  " x ($level-1))) : '';
+    $tag = '.' if $tag eq 'period';
+    if (ref $contents->[0]){
+        $bracketed .= 
+                "($tag " # :$level 
+            .   join(' ', map { PennTags::S::bracket($_) } @$contents) 
+            .   ")";
+    }
+    else {
+        $bracketed .= "($tag $contents->[0])"; # :$level
+    }
+    $level--;
+    return $bracketed;
+}
 
 package main;
 
