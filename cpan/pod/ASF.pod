@@ -458,6 +458,12 @@ and not for a Perl true value.
 
 =head1 Details
 
+This section contains additional explanations, not essential to understanding
+the topic of this document.
+Often they are formal or mathematical.
+Some people find these helpful, but others do not, which is why
+they are segregated here.
+
 =head2 Symches and factorings
 
 B<Symch> and B<factoring> are terms which are
