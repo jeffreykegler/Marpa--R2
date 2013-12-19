@@ -310,11 +310,17 @@ glade.
 =head1 Traversal accessors
 
 These are the methods that must be called in the context of a traversal routine.
-The descriptions state whether the value remains constant within a glade,
-or within a symch.
-Symches are a concern for some advanced applications.
-A symch is either a series of alternatives which share the same rule,
-or a token alternative.
+The descriptions state whether the value will remain constant inside a glade,
+will remain constant within a symch;
+or can vary with each factoring.
+
+Symches and factoring are terms which are
+useful for some advanced applications.
+For the purposes of this document,
+the reader can regard the term "factoring" as a synonym
+for "parse alternative".
+A symch is a series of alternatives (factorings) which share the same rule id.
+and the same glade.
 
 =head2 literal()
 
@@ -329,7 +335,7 @@ partial: 1
 
 Returns the B<glade literal>, a string in the input which corresponds to this glade.
 The glade literal remains constant inside a glade.
-Allows no arguments.
+The C<glade_literal()> method accepts no arguments.
 
 =head2 span()
 
@@ -348,8 +354,9 @@ the location which corresponds to this glade.
 The first number will be the start of the span, as
 an offset in the input stream.
 The second number will be its length.
-The glade literal remains constant inside a glade.
-Allows no arguments.
+Length may be zero.
+The glade literal remains constant within a glade.
+The C<glade_span()> method accepts no arguments.
 
 =head2 symbol_id()
 
@@ -368,7 +375,8 @@ For a token alternative, the glade symbol is the token
 symbol.
 For a rule alternative, the glade symbol is the LHS symbol of
 the rule.
-Allows no arguments.
+The symbol ID remains constant within a glade.
+The C<symbol_id()> method accepts no arguments.
 
 =head2 rule_id()
 
@@ -386,8 +394,12 @@ alternative, which will be non-negative,
 but which may be zero.
 Returns C<undef> if and only if the current
 alternative is a token alternative.
-Takes no arguments.
-Always constant within a symch.
+The C<rule_id()> method accepts no arguments.
+
+The rule ID remains constant within a symch.
+In fact by definition, within a glade, alternatives sharing the same rule ID are
+a symch.
+For this purpose, C<undef> is considered a rule ID.
 
 =head2 rh_length()
 
@@ -400,6 +412,12 @@ partial: 1
 
 =for Marpa::R2::Display::End
 
+Returns the number of RHS children of the current rule.
+On success, this will always be an integer greater than zero.
+The C<rh_length()> method accepts no arguments.
+It is a fatal error to call C<rh_length> for a token alternative.
+The RHS length ID may vary for each factoring.
+
 =head2 rh_value()
 
 =for Marpa::R2::Display
@@ -410,6 +428,15 @@ partial: 1
   my $child_value = $glade->rh_value($rh_ix);
 
 =for Marpa::R2::Display::End
+
+Requires exactly one argument, C<$rh_ix>, which must be the zero-based
+index of a RHS child of the current rule instance.
+Returns the value of the C<$rh_ix>'th child of the current rule instance.
+For convenient iteration,
+returns C<undef> if the value of the C<$rh_ix> is greater than or equal to the RHS length.
+
+It is a fatal error to call C<rh_length> for a token alternative.
+The RHS child values may vary for each factoring.
 
 =head2 next()
 
@@ -422,11 +449,32 @@ partial: 1
 
 =for Marpa::R2::Display::End
 
+Points the glade at the next alternative.
+If there is no next alternative returns C<undef>.
+On success, returns a defined value.
+One of the values returned on success may be
+the integer zero, so applications checking for failure
+should be careful to check, not that the return value is a Perl true,
+but that the return value is defined.
+
+As a reminder, a symch is the set of alternatives which share the same
+glade and the same rule ID.
+For this purpose, C<undef> is considered a rule ID.
+The term B<symch> is shorthand for "symbolic choice".
+
 When moving through a glade using
-the C<traverse()> method,
-all alternatives which share the same symch will be
-visited before any alternatives from other symches
-are visited.
+the C<next()> method,
+alternatives within the same symch are visited
+as a group.
+More precisely, call the rule ID of the alternative at which the glade is
+currently pointing, the "current rule ID".
+The
+C<next()> glade method guarantees that,
+before
+any alternative with a rule ID different from the current rule ID
+is visited,
+all of the so-far-unvisited alternatives that share the current rule ID will be
+visited.
 
 =head1 Appendix: full traverser code
 

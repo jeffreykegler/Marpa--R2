@@ -280,7 +280,7 @@ sub located_traverser {
 # Marpa::R2::Display::End
 
     my $location = q{@};
-    $location .= $start == $end ? $start : "$start-$end";
+    $location .= $start >= $end ? $start : "$start-$end";
     my $join_ws = q{ };
     $join_ws = qq{\n   } if $symbol_name eq 'S';
     return "($symbol_name$location " . ( join $join_ws, @return_value ) . ')';
