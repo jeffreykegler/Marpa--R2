@@ -191,7 +191,7 @@ Currently only one named argument is allowed, the C<slr> argument, and
 that argument is required.
 The value of the C<slr> argument must be a SLIF recognizer object.
 
-Returns the new ASF object, or undef if there was a problem.
+Returns the new ASF object, or C<undef> if there was a problem.
 
 =head1 Accessor
 
@@ -273,13 +273,13 @@ when the meaning is clear.)
 If a glade has exactly one alternative, it is called a B<trivial glade>.
 When invoked, the traverser points at the first alternative.
 Alternatives after the first may be visited using the
-L<the C<next()> glade method|/"traverse()">.
+the L<C<next()>|/"next()"> glade method.
 
 Parse alternatives may be either token
 alternatives or rule alternatives.
 Whether or not the current alternative of the glade is a rule
 can be determined using the
-L<the C<rule_id()> glade method|/"traverse()">,
+the L<C<rule_id()>|/"rule_id()"> glade method,
 which returns C<undef> if and only if the glade is positioned at a token
 alternative.
 
@@ -291,19 +291,19 @@ in this context,
 even when it actually is the LHS symbol of a nulled rule.
 
 At all alternatives,
-L<the C<span()>|/"span()"> and
-L<the C<literal()>|/"literal()"> glade methods
+the L<C<span()>|/"span()"> and
+the L<C<literal()>|/"literal()"> glade methods
 are of use.
-The L<C<symbol_id()> glade method|/"symbol_d()"> is
+The L<C<symbol_id()>|/"symbol_d()"> glade method is
 also always of use although its meaning varies.
-At token alteratives, the C<symbol_id()> method returns the 
+At token alteratives, the L<C<symbol_id()>|/"symbol_d()"> method returns the 
 token symbol.
-At rule alteratives, the C<symbol_id()> method returns the 
+At rule alteratives, the L<C<symbol_id()>|/"symbol_d()"> method returns the 
 ID of the LHS of the rule.
 
 At rule alternatives,
-L<the C<rh_count()>|/"rh_count()"> and
-L<the C<rh_value()>|/"rh_value()"> glade methods
+the L<C<rh_count()>|/"rh_count()"> and
+the L<C<rh_value()>|/"rh_value()"> glade methods
 are of use.
 The C<rh_count()> method returns the length of the RHS,
 and the C<rh_value()> method returns the value of one of the
@@ -332,7 +332,7 @@ partial: 1
 
 Returns the B<glade literal>, a string in the input which corresponds to this glade.
 The glade literal remains constant inside a glade.
-The C<glade_literal()> method accepts no arguments.
+The C<literal()> method accepts no arguments.
 
 =head2 span()
 
@@ -352,7 +352,7 @@ The first number will be the start of the span, as
 an offset in the input stream.
 The second number will be its length.
 The glade span remains constant within a glade.
-The C<glade_span()> method accepts no arguments.
+The C<span()> method accepts no arguments.
 
 Then "end" character of the span, when defined, may be calculated as
 its start plus its length, minus one.
@@ -465,8 +465,7 @@ useful for some advanced applications.
 For the purposes of this document,
 the reader can consider the term "factoring" as a synonym
 for "parse alternative".
-A symch is a series of alternatives (factorings) which share the same rule id.
-and the same glade.
+A symch is a series of alternatives (factorings) which share the same rule ID and the same glade.
 For this purpose, the C<undef> of a token alternative
 is considered a rule ID.
 The term B<symch> is shorthand for "symbolic choice".
