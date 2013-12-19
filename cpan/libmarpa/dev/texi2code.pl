@@ -206,13 +206,13 @@ LINE: while ( my $line = <STDIN> ) {
 
     if ( $line =~ /[@]deftypevr/xms ) {
         my ($error) = ($line =~ m/(MARPA_ERR_.*)\b/xms);
-	if ($error) {
-	    my $error_number = $error_number{$error};
-	    die("$error not in list in $PROGRAM_NAME") if not defined $error_number;
-	    $current_error_number = $error_number;
-	    $errors_seen[$error_number] = 1;
-	    $errors[$current_error_number] = $error;
-	}
+        if ($error) {
+            my $error_number = $error_number{$error};
+            die("$error not in list in $PROGRAM_NAME") if not defined $error_number;
+            $current_error_number = $error_number;
+            $errors_seen[$error_number] = 1;
+            $errors[$current_error_number] = $error;
+        }
     }
 
      if ( defined $current_event_number ) {
@@ -224,23 +224,23 @@ LINE: while ( my $line = <STDIN> ) {
      }
     if ( $line =~ /[@]deftypevr.*MARPA_EVENT_/xms ) {
         my ($event) = ($line =~ m/(MARPA_EVENT_.*)\b/xms);
-	if ($event) {
-	    my $event_number = $event_number{$event};
-	    die("$event not in list in $PROGRAM_NAME") if not defined $event_number;
-	    $current_event_number = $event_number;
-	    $events_seen[$event_number] = 1;
-	    $events[$current_event_number] = $event;
-	}
+        if ($event) {
+            my $event_number = $event_number{$event};
+            die("$event not in list in $PROGRAM_NAME") if not defined $event_number;
+            $current_event_number = $event_number;
+            $events_seen[$event_number] = 1;
+            $events[$current_event_number] = $event;
+        }
     }
     if ( $line =~ /[@]deftypevr.*MARPA_STEP_/xms ) {
         my ($step_type) = ($line =~ m/(MARPA_STEP_.*)\b/xms);
-	if ($step_type) {
-	    my $step_type_number = $step_type_number{$step_type};
-	    die("$step_type not in list in $PROGRAM_NAME") if not defined $step_type_number;
-	    $current_step_type_number = $step_type_number;
-	    $step_types_seen[$step_type_number] = 1;
-	    $step_types[$current_step_type_number] = $step_type;
-	}
+        if ($step_type) {
+            my $step_type_number = $step_type_number{$step_type};
+            die("$step_type not in list in $PROGRAM_NAME") if not defined $step_type_number;
+            $current_step_type_number = $step_type_number;
+            $step_types_seen[$step_type_number] = 1;
+            $step_types[$current_step_type_number] = $step_type;
+        }
     }
 
     next LINE if $line =~ m/ [{] Macro [}] /xms;

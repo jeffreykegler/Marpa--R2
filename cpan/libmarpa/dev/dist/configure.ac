@@ -64,15 +64,15 @@ AC_SUBST(MARPA_INTERFACE_AGE)
 AC_SUBST(MARPA_BINARY_AGE)
 
 AC_DEFINE(MARPA_MAJOR_VERSION, [marpa_major_version],
-	  [Define to the MARPA major version])
+          [Define to the MARPA major version])
 AC_DEFINE(MARPA_MINOR_VERSION, [marpa_minor_version],
-	  [Define to the MARPA minor version])
+          [Define to the MARPA minor version])
 AC_DEFINE(MARPA_MICRO_VERSION, [marpa_micro_version],
-	  [Define to the MARPA micro version])
+          [Define to the MARPA micro version])
 AC_DEFINE(MARPA_INTERFACE_AGE, [marpa_interface_age],
-	  [Define to the MARPA interface age])
+          [Define to the MARPA interface age])
 AC_DEFINE(MARPA_BINARY_AGE, [marpa_binary_age],
-	  [Define to the MARPA binary age])
+          [Define to the MARPA binary age])
 
 # libtool versioning
 LT_RELEASE=marpa_lt_release
@@ -148,8 +148,8 @@ dnl this section will only be run if config.status is invoked with no
 dnl arguments, or with "marpa_config.h" as an argument.
 AC_CONFIG_COMMANDS([marpa_config.h],
 [
-	outfile=marpa_config.h-tmp
-	cat > $outfile <<_______EOF
+        outfile=marpa_config.h-tmp
+        cat > $outfile <<_______EOF
 /* marpa_config.h
  *
  * This is a generated file.  Please modify 'configure.ac'
@@ -164,12 +164,12 @@ $marpa_defines
 
 _______EOF
 
-	if cmp -s $outfile marpa_config.h; then
-	  AC_MSG_NOTICE([marpa_config.h is unchanged])
-	  rm -f $outfile
-	else
-	  mv $outfile marpa_config.h
-	fi
+        if cmp -s $outfile marpa_config.h; then
+          AC_MSG_NOTICE([marpa_config.h is unchanged])
+          rm -f $outfile
+        else
+          mv $outfile marpa_config.h
+        fi
 ],[
 
 marpa_defines="

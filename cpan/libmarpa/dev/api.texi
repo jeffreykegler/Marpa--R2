@@ -3362,7 +3362,7 @@ base grammar, if necessary.
 @section Iterating through the trees
 
 @deftypefun int marpa_t_next ( @
-	Marpa_Tree @var{t})
+        Marpa_Tree @var{t})
 Positions @var{t} at the next parse tree
 in the iteration.
 Tree iterators are initialized to the position
@@ -3385,7 +3385,7 @@ On failure, @minus{}2.
 @end deftypefun
 
 @deftypefun int marpa_t_parse_count ( @
-	Marpa_Tree @var{t})
+        Marpa_Tree @var{t})
 The parse counter counts the number of parse trees
 traversed so far.
 The count includes the current iteration of the
@@ -4121,7 +4121,7 @@ use the @code{marpa_g_event} and
 
 @deftypefun Marpa_Event_Type marpa_g_event (Marpa_Grammar @var{g}, @
     Marpa_Event* @var{event}, @
-	       int @var{ix})
+               int @var{ix})
 On success,
 the type of the @var{ix}'th event is returned
 and the data for the @var{ix}'th event is placed

@@ -49,32 +49,32 @@
 
 #include <string.h>
 
-struct marpa_obstack	/* control current object in current chunk */
+struct marpa_obstack    /* control current object in current chunk */
 {
-  long chunk_size;		/* preferred size to allocate chunks in */
-  struct marpa_obstack_chunk *chunk;	/* address of current struct obstack_chunk */
-  char *object_base;		/* address of object we are building */
-  char *next_free;		/* where to add next char to current object */
-  char *chunk_limit;		/* address of char after current chunk */
+  long chunk_size;              /* preferred size to allocate chunks in */
+  struct marpa_obstack_chunk *chunk;    /* address of current struct obstack_chunk */
+  char *object_base;            /* address of object we are building */
+  char *next_free;              /* where to add next char to current object */
+  char *chunk_limit;            /* address of char after current chunk */
   union
   {
     ptrdiff_t tempint;
     void *tempptr;
-  } temp;			/* Temporary for some macros.  */
-  int alignment_mask;		/* Mask of alignment for each object. */
+  } temp;                       /* Temporary for some macros.  */
+  int alignment_mask;           /* Mask of alignment for each object. */
 };
 
-struct marpa_obstack_chunk_header		/* Lives at front of each chunk. */
+struct marpa_obstack_chunk_header               /* Lives at front of each chunk. */
 {
-  char *limit;			/* 1 past end of this chunk */
-  struct marpa_obstack_chunk* prev;	/* address of prior chunk or NULL */
+  char *limit;                  /* 1 past end of this chunk */
+  struct marpa_obstack_chunk* prev;     /* address of prior chunk or NULL */
 };
 
 struct marpa_obstack_chunk
 {
   struct marpa_obstack_chunk_header header;
   union {
-    char contents[4];	/* objects begin here */
+    char contents[4];   /* objects begin here */
     struct marpa_obstack obstack_header;
   } contents;
 };
@@ -103,13 +103,13 @@ void _marpa_obs_free (struct marpa_obstack *__obstack);
 
 /* Pointer to next byte not yet allocated in current chunk.  */
 
-#define marpa_obstack_next_free(h)	((h)->next_free)
+#define marpa_obstack_next_free(h)      ((h)->next_free)
 
 /* Mask specifying low bits that should be clear in address of an object.  */
 
 #define marpa_obstack_alignment_mask(h) ((h)->alignment_mask)
 
-#define marpa_obs_init	marpa_obs_begin (0, 0)
+#define marpa_obs_init  marpa_obs_begin (0, 0)
 
 #define marpa_obs_reserve_fast(h,n) ((h)->next_free += (n))
 
@@ -128,7 +128,7 @@ void _marpa_obs_free (struct marpa_obstack *__obstack);
 # define marpa_obs_reject(h) \
   ((h)->next_free = (h)->object_base)
 
-# define marpa_obstack_room(h)		\
+# define marpa_obstack_room(h)          \
  (unsigned) ((h)->chunk_limit - (h)->next_free)
 
 #if MARPA_OBSTACK_DEBUG
@@ -138,30 +138,32 @@ void _marpa_obs_free (struct marpa_obstack *__obstack);
   ((h)->chunk_limit - (h)->next_free < (length))
 #endif
 
-# define marpa_obs_reserve(h,length)					\
-( (h)->temp.tempint = (length),						\
-  (MARPA_OBS_NEED_CHUNK((h), (h)->temp.tempint)		\
-   ? (_marpa_obs_newchunk ((h), (h)->temp.tempint), 0) : 0),		\
+# define marpa_obs_reserve(h,length)                                    \
+( (h)->temp.tempint = (length),                                         \
+  (MARPA_OBS_NEED_CHUNK((h), (h)->temp.tempint)         \
+   ? (_marpa_obs_newchunk ((h), (h)->temp.tempint), 0) : 0),            \
   marpa_obs_reserve_fast (h, (h)->temp.tempint))
 
-# define marpa_obs_alloc(h,length)					\
+# define marpa_obs_alloc(h,length)                                      \
  (marpa_obs_reserve ((h), (length)), marpa_obs_finish ((h)))
 
 #define marpa_obs_new(h, type, count) \
     ((type *)marpa_obs_alloc((h), (sizeof(type)*(count))))
 
-# define marpa_obs_finish(h)						\
+# define marpa_obs_finish(h)                                            \
 ( \
-  (h)->temp.tempptr = (h)->object_base,					\
-  (h)->next_free							\
-    = MARPA_PTR_ALIGN ((h)->object_base, (h)->next_free,			\
-		   (h)->alignment_mask),				\
-  (((h)->next_free - (char *) (h)->chunk				\
-    > (h)->chunk_limit - (char *) (h)->chunk)				\
-   ? ((h)->next_free = (h)->chunk_limit) : 0),				\
-  (h)->object_base = (h)->next_free,					\
+  (h)->temp.tempptr = (h)->object_base,                                 \
+  (h)->next_free                                                        \
+    = MARPA_PTR_ALIGN ((h)->object_base, (h)->next_free,                        \
+                   (h)->alignment_mask),                                \
+  (((h)->next_free - (char *) (h)->chunk                                \
+    > (h)->chunk_limit - (char *) (h)->chunk)                           \
+   ? ((h)->next_free = (h)->chunk_limit) : 0),                          \
+  (h)->object_base = (h)->next_free,                                    \
   (h)->temp.tempptr)
 
-# define marpa_obs_free(h)	(_marpa_obs_free((h)))
+# define marpa_obs_free(h)      (_marpa_obs_free((h)))
 
 #endif /* marpa_obs.h */
+
+/* vim: set expandtab shiftwidth=4: */

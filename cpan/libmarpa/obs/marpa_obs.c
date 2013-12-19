@@ -85,8 +85,8 @@ enum
 
 struct marpa_obstack * _marpa_obs_begin ( int size, int alignment)
 {
-  struct marpa_obstack_chunk *chunk;	/* points to new chunk */
-  struct marpa_obstack *h;	/* points to new obstack */
+  struct marpa_obstack_chunk *chunk;    /* points to new chunk */
+  struct marpa_obstack *h;      /* points to new obstack */
   const int minimum_chunk_size = sizeof(struct marpa_obstack_chunk);
   /* Just enough room for the chunk and obstack headers */
 
@@ -104,7 +104,7 @@ struct marpa_obstack * _marpa_obs_begin ( int size, int alignment)
          These number are irrelevant to the new GNU malloc.  I suspect it is
          less sensitive to the size of the request.  */
       int extra = ((((12 + DEFAULT_ROUNDING - 1) & ~(DEFAULT_ROUNDING - 1))
-		    + 4 + DEFAULT_ROUNDING - 1) & ~(DEFAULT_ROUNDING - 1));
+                    + 4 + DEFAULT_ROUNDING - 1) & ~(DEFAULT_ROUNDING - 1));
       size = 4096 - extra;
     }
 
@@ -141,7 +141,7 @@ _marpa_obs_newchunk (struct marpa_obstack *h, int length)
 {
   struct marpa_obstack_chunk *old_chunk = h->chunk;
   struct marpa_obstack_chunk *new_chunk;
-  long	new_size;
+  long  new_size;
   char *object_base;
 
   /* Compute size for new chunk.  */
@@ -178,8 +178,8 @@ int _marpa_obs_allocated_p (struct marpa_obstack *h, void *obj);
 int
 _marpa_obs_allocated_p (struct marpa_obstack *h, void *obj)
 {
-  struct marpa_obstack_chunk *lp;	/* below addr of any objects in this chunk */
-  struct marpa_obstack_chunk *plp;	/* point to previous chunk if any */
+  struct marpa_obstack_chunk *lp;       /* below addr of any objects in this chunk */
+  struct marpa_obstack_chunk *plp;      /* point to previous chunk if any */
 
   lp = (h)->chunk;
   /* We use >= rather than > since the object cannot be exactly at
@@ -197,11 +197,11 @@ _marpa_obs_allocated_p (struct marpa_obstack *h, void *obj)
 void
 _marpa_obs_free (struct marpa_obstack *h)
 {
-  struct marpa_obstack_chunk *lp;	/* below addr of any objects in this chunk */
-  struct marpa_obstack_chunk *plp;	/* point to previous chunk if any */
+  struct marpa_obstack_chunk *lp;       /* below addr of any objects in this chunk */
+  struct marpa_obstack_chunk *plp;      /* point to previous chunk if any */
 
   if (!h)
-    return;			/* Return safely if never initialized */
+    return;                     /* Return safely if never initialized */
   lp = h->chunk;
   while (lp != 0)
     {
@@ -223,3 +223,5 @@ _marpa_obs_memory_used (struct marpa_obstack *h)
     }
   return nbytes;
 }
+
+/* vim: set expandtab shiftwidth=4: */
