@@ -465,9 +465,9 @@ useful for some advanced applications.
 For the purposes of this document,
 the reader can consider the term "factoring" as a synonym
 for "parse alternative".
-A symch is a series of alternatives (factorings) which share the same rule ID and the same glade.
-For this purpose, the C<undef> of a token alternative
-is considered a rule ID.
+A symch is either a rule symch or a token alternative.
+A rule symch is a series of rule alternatives (factorings) which share the same rule ID and the same glade.
+A glade's token alternative is a symch all by itself.
 The term B<symch> is shorthand for "symbolic choice".
 
 For each glade accessor, its value can be classified as
