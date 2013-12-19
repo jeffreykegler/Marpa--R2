@@ -162,10 +162,8 @@ remove-blank-last-line: 1
 =head1 THIS INTERFACE is ALPHA and EXPERIMENTAL
 
 The interface described in this document is very much a work in progress.
-It is alpha and experimental.
-The bad side of this is that it is subject to change from version to
-version in major ways,
-rapidly and without notice.
+It is alpha and experimental --
+subject to radical change without notice.
 
 =head1 About this document
 
@@ -189,7 +187,7 @@ partial: 1
 
 Creates a new ASF object.
 Must be called with a list of one or more hashes of named arguments.
-Current only one named argument is allowed, the C<slr> argument, and
+Currently only one named argument is allowed, the C<slr> argument, and
 that argument is required.
 The value of the C<slr> argument must be a SLIF recognizer object.
 
@@ -266,11 +264,12 @@ the per-traversal object, which will be shared by all calls
 in the traversal.
 It may be used as a "scratch pad" for information
 which it is not convenient to pass via return values,
-as a means of avoiding the uses of globals.
+as a means of avoiding the use of globals.
 
 "Moving around" in a glade means visiting its B<parse alternatives>.
-The parse alternatives, called B<alternatives> where the meaning is clear.
-(If a glade has exactly one alternative, it is called a B<trivial glade>.)
+(Parse alternatives are usually called B<alternatives>,
+when the meaning is clear.)
+If a glade has exactly one alternative, it is called a B<trivial glade>.
 When invoked, the traverser points at the first alternative.
 Alternatives after the first may be visited using the
 L<the C<next()> glade method|/"traverse()">.
@@ -280,7 +279,7 @@ alternatives or rule alternatives.
 Whether or not the current alternative of the glade is a rule
 can be determined using the
 L<the C<rule_id()> glade method|/"traverse()">,
-which returns undefined if and only if the glade is positioned at a token
+which returns C<undef> if and only if the glade is positioned at a token
 alternative.
 
 At all alternatives,
