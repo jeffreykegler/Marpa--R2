@@ -224,9 +224,9 @@ void*
 marpa_realloc(void *p, size_t size)
 {
    if (_MARPA_LIKELY(p != NULL)) {
-	void *newmem = realloc(p, size);
-	if (_MARPA_UNLIKELY(!newmem)) (*_marpa_out_of_memory)();
-	return newmem;
+        void *newmem = realloc(p, size);
+        if (_MARPA_UNLIKELY(!newmem)) (*_marpa_out_of_memory)();
+        return newmem;
    }
    return marpa_malloc(size);
 }
@@ -324,11 +324,11 @@ static inline void * marpa_dstack_resize2(struct marpa_dstack_s* this, size_t ty
 @ @<Friend static inline functions@> =
 static inline void *
 marpa_dstack_resize (struct marpa_dstack_s *this, size_t type_bytes,
-		     int new_size)
+                     int new_size)
 {
   if (new_size > this->t_capacity)
-    {				/* We do not shrink the stack
-				   in this method */
+    {                           /* We do not shrink the stack
+                                   in this method */
       this->t_capacity = new_size;
       this->t_base = marpa_realloc (this->t_base, new_size * type_bytes);
     }
@@ -405,3 +405,4 @@ int _marpa_ami_dummy(void) { return 1 ; }
 
 @** Index.
 
+% vim: expandtab shiftwidth=4:
