@@ -20,7 +20,7 @@ use warnings;
 use strict;
 
 use vars qw($VERSION $STRING_VERSION);
-$VERSION        = '2.077_010';
+$VERSION        = '2.077_011';
 $STRING_VERSION = $VERSION;
 $VERSION        = eval $VERSION;
 
