@@ -42,16 +42,18 @@ READ: for ( my $pos = $slr->read( \$input ); $pos < $length; $pos = $slr->resume
     EVENT:
     for my $event ( @{ $slr->events() } ) {
         my ($event_name) = @{$event};
-	if ($event_name eq '^name') {
-	   $slr->lexer_set('slurp name');
-	   next EVENT;
-	}
-	if ($event_name eq 'name$') {
-	   # $slr->lexer_set('L0');
-	   next EVENT;
-	}
+        if ($event_name eq '^name') {
+           $slr->lexer_set('slurp name');
+           next EVENT;
+        }
+        if ($event_name eq 'name$') {
+           # $slr->lexer_set('L0');
+           next EVENT;
+        }
         die "Unexpected event: ", $event_name;
     }
 }
 
 print Dumper([ ${$slr->value} ]); 
+
+# vim: set expandtab shiftwidth=4:

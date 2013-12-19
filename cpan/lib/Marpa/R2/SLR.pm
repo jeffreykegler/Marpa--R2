@@ -445,8 +445,8 @@ my $libmarpa_trace_event_handlers = {
     },
     'rejected lexeme' => sub {
         my ( $slr, $event ) = @_;
-	# Necessary to check, because this one can be returned when not tracing
-	return if not $slr->[Marpa::R2::Inner::Scanless::R::TRACE_TERMINALS];
+        # Necessary to check, because this one can be returned when not tracing
+        return if not $slr->[Marpa::R2::Inner::Scanless::R::TRACE_TERMINALS];
         my ( undef, undef, $lexeme_start_pos, $lexeme_end_pos, $g1_lexeme,
             $lexer_id )
             = @{$event};
@@ -902,9 +902,9 @@ sub Marpa::R2::Scanless::R::resume {
                         if ( $character =~ m/[[:graph:]]+/ ) {
                             $char_desc .= qq{ '$character'};
                         }
-			my $lexer_name =
-			    $slg->[Marpa::R2::Inner::Scanless::G::LEXER_NAME_BY_ID]
-			    ->[$lexer_id];
+                        my $lexer_name =
+                            $slg->[Marpa::R2::Inner::Scanless::G::LEXER_NAME_BY_ID]
+                            ->[$lexer_id];
                         say {$trace_file_handle}
                             qq{Lexer "$lexer_name" registering character $char_desc as symbol $symbol_id: },
                             $thick_lex_grammar->symbol_in_display_form(
@@ -987,13 +987,13 @@ sub Marpa::R2::Scanless::R::read_problem {
             my ( $line, $column ) = $slr->line_column($lexeme_start);
             $problem = "SLIF loops at line $line, column $column";
             last CODE_TO_PROBLEM;
-	}
+        }
         if ( $problem_code eq 'no lexeme' ) {
             $problem_pos = $thin_slr->problem_pos();
             my ( $line, $column ) = $slr->line_column($problem_pos);
-	    my $lexer_name;
-	    my $rejected_count = 0 ;
-	    my @details = ();
+            my $lexer_name;
+            my $rejected_count = 0 ;
+            my @details = ();
             EVENT: for my $event ( $thin_slr->events() ) {
                 my ( $event_type, $trace_event_type, $lexeme_start_pos,
                     $lexeme_end_pos, $g1_lexeme, $lexer_id )
@@ -1057,7 +1057,7 @@ sub Marpa::R2::Scanless::R::read_problem {
             last DESC;
         }
 
-	# -5 indicates success, in which case we should never have called this subroutine.
+        # -5 indicates success, in which case we should never have called this subroutine.
         if ( $stream_status == -3 || $stream_status == -5 ) {
             $desc = 'Unexpected return value from lexer: Parse exhausted';
             last DESC;
@@ -1133,7 +1133,7 @@ sub Marpa::R2::Scanless::R::read_problem {
         my $trace_file_handle =
             $slr->[Marpa::R2::Inner::Scanless::R::TRACE_FILE_HANDLE];
         my $slg = $slr->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
-	my $lexer_id = $thin_slr->current_lexer();
+        my $lexer_id = $thin_slr->current_lexer();
         my $thick_lex_grammar =
             $grammar->[Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMARS]->[$lexer_id];
         my $lex_tracer = $thick_lex_grammar->tracer();
@@ -1187,7 +1187,7 @@ sub Marpa::R2::Internal::Scanless::reversed_input_escape {
     my $trailing_spaces = 0;
     CHAR: while ( $pos > 0 ) {
         last CHAR if substr ${$p_input}, $pos, 1 ne q{ };
-	$trailing_spaces++;
+        $trailing_spaces++;
         $pos--;
     }
     my $length_so_far = $trailing_spaces * 2;

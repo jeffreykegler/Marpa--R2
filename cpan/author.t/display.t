@@ -175,15 +175,15 @@ sub compare {
     if ( $copy->{partial} ) {
         return 1 if -1 != index ${$formatted_original}, ${$formatted_copy};
         Test::More::diag(
-	    "Partial: ",
+            "Partial: ",
             $copy->{filename},
             ' vs. ',
             $original->{filename},
             "\n",
-	    (   Text::Diff::diff $formatted_original,
-		$formatted_copy,
-		{ STYLE => 'Table' }
-	    )
+            (   Text::Diff::diff $formatted_original,
+                $formatted_copy,
+                { STYLE => 'Table' }
+            )
             # Text::Wrap::wrap( q{    }, q{    }, ${$formatted_copy} ),
             # "\nOriginal:\n",
             # Text::Wrap::wrap( q{    }, q{    }, ${$formatted_original} )
@@ -261,3 +261,5 @@ VERBATIM_FILE: for my $verbatim_file ( keys %{$verbatim_by_file} ) {
 Test::More::done_testing($tests_run);
 
 __END__
+
+# vim: set expandtab shiftwidth=4:

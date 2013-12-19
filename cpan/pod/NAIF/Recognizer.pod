@@ -134,7 +134,7 @@ L</"Recognizer events">.
 name: Recognizer exhausted Synopsis
 normalize-whitespace: 1
 
-	$recce->exhausted() and die 'Recognizer exhausted';
+        $recce->exhausted() and die 'Recognizer exhausted';
 
 =for Marpa::R2::Display::End
 

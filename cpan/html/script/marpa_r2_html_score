@@ -100,12 +100,12 @@ sub calculate_length {
     for my $descendant_data ( @{$descendant_data} ) {
         my ( $value, $literal ) = @{$descendant_data};
         my $this_length;
-	if (defined $value) {
-	   $this_length = $value->{length};
-	} else {
-	   (my $no_whitespace_literal = $literal) =~ s/\s//xmsg;
-	  $this_length = length $no_whitespace_literal;
-	}
+        if (defined $value) {
+           $this_length = $value->{length};
+        } else {
+           (my $no_whitespace_literal = $literal) =~ s/\s//xmsg;
+          $this_length = length $no_whitespace_literal;
+        }
         $length += $this_length;
     } ## end for my $descendant_data ( @{$descendant_data} )
     return $length;
@@ -227,3 +227,5 @@ for my $element ( sort keys %{$max_depths} ) {
 $html_flag and print qq{</table>\n};
 
 exit 0;
+
+# vim: set expandtab shiftwidth=4:

@@ -38,8 +38,8 @@ sub offset {
         PROCESS_OPTION: {
             last PROCESS_OPTION if $field !~ /\A [{:] /xms;
             if ( $field =~ / \A [:] package [=] (.*) /xms ) {
-		say "\npackage $1;";
-		$offset = -1;
+                say "\npackage $1;";
+                $offset = -1;
                 next FIELD;
             }
             if ( $field =~ / \A [:]? [{] /xms ) {
@@ -49,14 +49,14 @@ sub offset {
         } ## end PROCESS_OPTION:
 
 
-	if ((substr $field, 0, 1) eq '=') {
-	    $field = substr $field, 1;
-	} else {
-	    $offset++;
-	}
-	die "Unacceptable field name: $field"
-	      if $field =~ /[^A-Z0-9_]/xms;
-	say "use constant $field => $offset;"
+        if ((substr $field, 0, 1) eq '=') {
+            $field = substr $field, 1;
+        } else {
+            $offset++;
+        }
+        die "Unacceptable field name: $field"
+              if $field =~ /[^A-Z0-9_]/xms;
+        say "use constant $field => $offset;"
 
     } ## end for my $field (@fields)
     return 1;
@@ -281,7 +281,7 @@ __DATA__
     DEFAULT_TOKEN_BLESSING_PACKAGE
 
     OR_NODES {
-	per or-node data, 
+        per or-node data, 
         current arrays of sorted and-nodes
     }
     GLADES { Memoized forest }
@@ -352,3 +352,5 @@ __DATA__
     READ_STRING_ERROR
     EVENTS
 
+    { vim: set expandtab shiftwidth=4:
+    }

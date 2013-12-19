@@ -212,18 +212,18 @@ sub Marpa::R2::HTML::descendants {
             $furthest_explicit_token_ix )
             = @{$tdesc_item};
 
-	if (not defined $next_explicit_token_ix) {
-	    ## An element can contain no HTML tokens -- it may contain
-	    ## only Ruby Slippers tokens.
-	    ## Treat this as a special case.
-	  if ( $tdesc_item_type eq 'VALUED_SPAN'
-	      and defined $tdesc_item->[Marpa::R2::HTML::Internal::TDesc::VALUE]
-	      )
-	  {
+        if (not defined $next_explicit_token_ix) {
+            ## An element can contain no HTML tokens -- it may contain
+            ## only Ruby Slippers tokens.
+            ## Treat this as a special case.
+          if ( $tdesc_item_type eq 'VALUED_SPAN'
+              and defined $tdesc_item->[Marpa::R2::HTML::Internal::TDesc::VALUE]
+              )
+          {
             push @descendants, [ 1, $tdesc_item ];
-	  }
-	  next TDESC_ITEM;
-	}
+          }
+          next TDESC_ITEM;
+        }
 
         push @descendants,
             map { [ 0, $_ ] }
@@ -233,7 +233,7 @@ sub Marpa::R2::HTML::descendants {
             )
         {
             push @descendants, [ 1, $tdesc_item ];
-	    $next_token_ix = $furthest_explicit_token_ix + 1;
+            $next_token_ix = $furthest_explicit_token_ix + 1;
             next TDESC_ITEM;
         } ## end if ( $tdesc_item_type eq 'VALUED_SPAN' and defined ...)
         push @descendants,
@@ -321,9 +321,9 @@ sub Marpa::R2::HTML::descendants {
                 next ARGSPEC;
             } ## end if ( $argspec eq 'element' )
             if ( $argspec eq 'pseudoclass' ) {
-		## This argspec needs to be better defined/implemented
-		## As of VERSION 2.021_000 it has been removed
-		## from the documentation.
+                ## This argspec needs to be better defined/implemented
+                ## As of VERSION 2.021_000 it has been removed
+                ## from the documentation.
                 if ( not $is_valued ) {
                     push @per_descendant_results, undef;
                     next ARGSPEC;
@@ -458,3 +458,5 @@ sub Marpa::R2::HTML::original {
 }
 
 1;
+
+# vim: set expandtab shiftwidth=4:

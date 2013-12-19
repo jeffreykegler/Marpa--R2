@@ -69,7 +69,7 @@ my $document;
 GET_DOCUMENT: {
     if ( not defined $locator ) {
         local $RS = undef;
-	## no critic(InputOutput::ProhibitExplicitStdin)
+        ## no critic(InputOutput::ProhibitExplicitStdin)
         $document = <STDIN>;
         last GET_DOCUMENT;
     }
@@ -412,7 +412,7 @@ sub do_pre {
 
     if ( not defined $start_tag ) {
         push @new_line_data, [ 'msg: missing pre start tag', 0 ]
-	   if $main::ADDED_TAG_COMMENT_FLAG;
+           if $main::ADDED_TAG_COMMENT_FLAG;
         push @new_line_data, [ 'start tag', 0, '<pre>' ];
     }
 
@@ -421,7 +421,7 @@ sub do_pre {
 
     if ( not defined $end_tag ) {
         push @new_line_data, [ 'end tag', 0, '</pre>' ]
-	   if $main::ADDED_TAG_COMMENT_FLAG;
+           if $main::ADDED_TAG_COMMENT_FLAG;
         push @new_line_data, [ 'msg: missing pre end tag', 0 ];
     }
     return \@new_line_data;
@@ -531,3 +531,5 @@ if ($dump_config_flag or $dump_AHFA_flag) {
 print post_process($value_ref) or die "print failed: $ERRNO";
 
 exit 0;
+
+# vim: set expandtab shiftwidth=4:

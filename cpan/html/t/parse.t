@@ -103,19 +103,19 @@ my $html_args = {
                     @{$descendant_data} ];
         }
 
-	my @contents = ();
-	DATUM: for my $descendant_datum (@{$descendant_data}) {
-	    my $token_type = $descendant_datum->[0];
-	    if ( not defined $token_type ) {
-		push @contents, $descendant_datum->[1];
-		next DATUM;
-	    }
-	    next DATUM if $token_type eq 'S';
-	    next DATUM if $token_type eq 'E';
-	    push @contents, $descendant_datum->[1];
-	} ## end for my $descendant_datum (@descendant_data)
-	my $contents = join q{}, @contents;
-	$contents =~ s/\A [\x{20}\t\f\x{200B}]+ //xms;
+        my @contents = ();
+        DATUM: for my $descendant_datum (@{$descendant_data}) {
+            my $token_type = $descendant_datum->[0];
+            if ( not defined $token_type ) {
+                push @contents, $descendant_datum->[1];
+                next DATUM;
+            }
+            next DATUM if $token_type eq 'S';
+            next DATUM if $token_type eq 'E';
+            push @contents, $descendant_datum->[1];
+        } ## end for my $descendant_datum (@descendant_data)
+        my $contents = join q{}, @contents;
+        $contents =~ s/\A [\x{20}\t\f\x{200B}]+ //xms;
         $contents =~ s/ [\x{20}\t\f\x{200B}]+ \z//xms;
         return join q{}, $start_tag, $contents, $end_tag;
     },
@@ -268,3 +268,4 @@ sub same {
     return $rv;
 } ## end sub same
 
+# vim: set expandtab shiftwidth=4:

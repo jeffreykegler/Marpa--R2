@@ -321,7 +321,7 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
 
     for my $lexer_name (@lexer_names) {
 
-	my $lexer_rules = $hashed_source->{rules}->{$lexer_name};
+        my $lexer_rules = $hashed_source->{rules}->{$lexer_name};
 
         Marpa::R2::exception("No rules for lexer $lexer_name")
             if not $lexer_rules;
@@ -356,11 +356,11 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
 
         my @lex_lexeme_names   = keys %is_lexeme_in_this_lexer;
 
-	Marpa::R2::exception( "No lexemes in lexer: $lexer_name\n",
+        Marpa::R2::exception( "No lexemes in lexer: $lexer_name\n",
             "  An SLIF grammar must have at least one lexeme\n" )
             if not scalar @lex_lexeme_names;
 
-	# Do I need this?
+        # Do I need this?
         my @unproductive =
             map {"<$_>"}
             grep { not $lex_lhs{$_} and not $_ =~ /\A \[\[ /xms }
@@ -399,8 +399,8 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
         my @class_table = ();
 
         CLASS_SYMBOL: for my $class_symbol ( sort keys %{$character_class_hash} ) {
-	    my $symbol_id = $lex_tracer->symbol_by_name($class_symbol);
-	    next CLASS_SYMBOL if not defined $symbol_id;
+            my $symbol_id = $lex_tracer->symbol_by_name($class_symbol);
+            next CLASS_SYMBOL if not defined $symbol_id;
             my $cc_components = $character_class_hash->{$class_symbol};
             my ( $compiled_re, $error ) =
                 Marpa::R2::Internal::MetaAST::char_class_to_re(
@@ -470,9 +470,9 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
 
     LEXER: for my $lexer_name (@lexer_names) {
         next LEXER if $lexer_name eq 'L0';
-	my $thick_g = $thick_grammar_by_lexer_name{$lexer_name};
-	my $thin_g = $thick_g->[Marpa::R2::Internal::Grammar::C];
-	$lexer_id_by_name{$lexer_name} = $thin_slg->lexer_add($thin_g);
+        my $thick_g = $thick_grammar_by_lexer_name{$lexer_name};
+        my $thin_g = $thick_g->[Marpa::R2::Internal::Grammar::C];
+        $lexer_id_by_name{$lexer_name} = $thin_slg->lexer_add($thin_g);
     }
 
     LEXEME: for my $g1_lexeme ( 0 .. $#g1_lexemes ) {

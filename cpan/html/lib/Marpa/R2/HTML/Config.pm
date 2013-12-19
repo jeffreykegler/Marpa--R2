@@ -57,8 +57,8 @@ sub contents {
     return @{$self}{
         qw( rules runtime_tag
             ruby_slippers_rank_by_name is_empty_element
-	    primary_group_by_tag
-	    )
+            primary_group_by_tag
+            )
         };
 } ## end sub contents
 
@@ -118,8 +118,8 @@ sub as_string {
             \@contents,
             [   qw( CORE_RULES RUNTIME_TAG
                     RUBY_SLIPPERS_RANK_BY_NAME IS_EMPTY_ELEMENT
-		    PRIMARY_GROUP_BY_TAG
-		    )
+                    PRIMARY_GROUP_BY_TAG
+                    )
             ]
             )
     );
@@ -127,3 +127,5 @@ sub as_string {
 } ## end sub as_string
 
 1;
+
+# vim: set expandtab shiftwidth=4:

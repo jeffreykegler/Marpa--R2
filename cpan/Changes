@@ -189,7 +189,7 @@ Revision history for Marpa::R2
 2.030000 Tue Dec  4 18:01:55 PST 2012
 
       * Use Config::AutoConf to install on Sun's,
-	OpenBSD.
+        OpenBSD.
       * Use legacy File::Path::mkpath() for portability
 
 2.026000 Fri Nov 23 08:04:02 PST 2012
@@ -206,9 +206,9 @@ Revision history for Marpa::R2
 
       * Extensive revisions to internals of
         Marpa::R2::HTML; now requires only
-	HTML::Parser, not HTML::PullParser;
-	'pseudoclass' argspec of descendants()
-	method removed from documentation.
+        HTML::Parser, not HTML::PullParser;
+        'pseudoclass' argspec of descendants()
+        method removed from documentation.
 
       * Make HTML::Parser a required
         dependency.
@@ -216,7 +216,7 @@ Revision history for Marpa::R2
 2.020000 Wed Sep 12 20:44:46 PDT 2012
 
       * Make Marpa::R2::HTML a fully visible part
-	of the distribution.
+        of the distribution.
 
       * Documentation changes and fixes
 
@@ -234,8 +234,8 @@ Revision history for Marpa::R2
       * Added marpa_r_expected_symbol_event_set() to Libmarpa
 
       * Added Marpa::R2::Recognizer::expected_symbol_event_set(),
-	Marpa::R2::Recognizer::events(), and 'event_if_expected'
-	recognizer named argument to Marpa::R2
+        Marpa::R2::Recognizer::events(), and 'event_if_expected'
+        recognizer named argument to Marpa::R2
 
 2.014000 Sat Jul 21 18:18:52 PDT 2012
 
@@ -290,3 +290,5 @@ Revision history for Marpa::R2
 0.001_000 Fri Oct 21 20:57:44 PDT 2011
 
         * Marpa::R2 forked from Marpa::XS 0.019_002
+
+# vim: set expandtab shiftwidth=4:

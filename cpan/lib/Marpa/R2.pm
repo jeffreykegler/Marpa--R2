@@ -123,11 +123,13 @@ sub Marpa::R2::exception {
     die($exception) if $Marpa::R2::JUST_DIE;
     CALLER: for ( my $i = 0; 1; $i++) {
         my ($package ) = caller($i);
-	last CALLER if not $package;
-	last CALLER if not 'Marpa::R2::' eq substr $package, 0, 11;
-	$Carp::Internal{ $package } = 1;
+        last CALLER if not $package;
+        last CALLER if not 'Marpa::R2::' eq substr $package, 0, 11;
+        $Carp::Internal{ $package } = 1;
     }
     Carp::croak($exception, q{Marpa::R2 exception});
 }
 
 1;
+
+# vim: set expandtab shiftwidth=4:

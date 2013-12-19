@@ -218,39 +218,39 @@ sub Marpa::R2::Recognizer::set {
             );
         } ## end if ( not $ref_type or $ref_type ne 'HASH' )
 
-	state $recognizer_options = {
-	    map { ( $_, 1 ) }
-		qw(
-		closures
-		end
-		event_if_expected
-		leo
-		max_parses
-		semantics_package
-		ranking_method
-		too_many_earley_items
-		trace_actions
-		trace_and_nodes
-		trace_bocage
-		trace_earley_sets
-		trace_fh
-		trace_file_handle
-		trace_or_nodes
-		trace_tasks
-		trace_terminals
-		trace_values
-		warnings
-		)
-	};
+        state $recognizer_options = {
+            map { ( $_, 1 ) }
+                qw(
+                closures
+                end
+                event_if_expected
+                leo
+                max_parses
+                semantics_package
+                ranking_method
+                too_many_earley_items
+                trace_actions
+                trace_and_nodes
+                trace_bocage
+                trace_earley_sets
+                trace_fh
+                trace_file_handle
+                trace_or_nodes
+                trace_tasks
+                trace_terminals
+                trace_values
+                warnings
+                )
+        };
 
-	if (my @bad_options =
-	    grep { not exists $recognizer_options->{$_} }
-	    keys %{$args}
-	    )
-	{
-	    Carp::croak( 'Unknown option(s) for Marpa::R2 Recognizer: ',
-		join q{ }, @bad_options );
-	} ## end if ( my @bad_options = grep { not exists $recognizer_options...})
+        if (my @bad_options =
+            grep { not exists $recognizer_options->{$_} }
+            keys %{$args}
+            )
+        {
+            Carp::croak( 'Unknown option(s) for Marpa::R2 Recognizer: ',
+                join q{ }, @bad_options );
+        } ## end if ( my @bad_options = grep { not exists $recognizer_options...})
 
         if ( defined( my $value = $args->{'event_if_expected'} ) ) {
             ## It could be allowed, but it is not needed and this is simpler
@@ -670,8 +670,8 @@ sub Marpa::R2::Recognizer::alternative {
             Marpa::R2::exception('alternative(): value must be undef or ref');
         } ## end if ( $ref_type ne 'SCALAR' and $ref_type ne 'REF' and...)
         $value_ix = scalar @{$token_values};
-	my $value = ${$value_ref};
-	last SET_VALUE_IX if not defined $value;
+        my $value = ${$value_ref};
+        last SET_VALUE_IX if not defined $value;
         push @{$token_values}, $value;
     } ## end SET_VALUE_IX:
     $length //= 1;
@@ -1096,3 +1096,5 @@ sub Marpa::R2::Recognizer::show_earley_sets {
 } ## end sub Marpa::R2::Recognizer::show_earley_sets
 
 1;
+
+# vim: set expandtab shiftwidth=4:

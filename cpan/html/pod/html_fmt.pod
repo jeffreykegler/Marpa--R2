@@ -239,8 +239,8 @@ ignore: 1
     <head>
       <!-- html_fmt: Preceeding start tag is replacement for a missing one -->
       <title>
-	Test page
-	<!-- html_fmt: Following end tag is replacement for a missing one -->
+        Test page
+        <!-- html_fmt: Following end tag is replacement for a missing one -->
       </title>
       <!-- html_fmt: Following end tag is replacement for a missing one -->
     </head><!--
@@ -248,29 +248,29 @@ ignore: 1
     --><body>
       <!-- html_fmt: Preceeding start tag is replacement for a missing one -->
       <table>
-	<!-- html_fmt: Preceeding start tag is replacement for a missing one -->
-	<tbody>
-	  <!-- html_fmt: Preceeding start tag is replacement for a missing one -->
-	  <tr>
-	    <td>
-	      <!-- html_fmt: Preceeding start tag is replacement for a missing one -->
-	      x<!--
-		html_fmt: this comment is to avoid introducing whitespace
-	      --><!-- html_fmt: Next line is cruft --><!--
-		html_fmt: this comment is to avoid introducing whitespace
-	      --><head attr="I am cruft"><!--
-		html_fmt: this comment is to avoid introducing whitespace
-	      --><p>
-		Final graf
-		<!-- html_fmt: Following end tag is replacement for a missing one -->
-	      </p>
-	      <!-- html_fmt: Following end tag is replacement for a missing one -->
-	    </td>
-	    <!-- html_fmt: Following end tag is replacement for a missing one -->
-	  </tr>
-	  <!-- html_fmt: Following end tag is replacement for a missing one -->
-	</tbody>
-	<!-- html_fmt: Following end tag is replacement for a missing one -->
+        <!-- html_fmt: Preceeding start tag is replacement for a missing one -->
+        <tbody>
+          <!-- html_fmt: Preceeding start tag is replacement for a missing one -->
+          <tr>
+            <td>
+              <!-- html_fmt: Preceeding start tag is replacement for a missing one -->
+              x<!--
+                html_fmt: this comment is to avoid introducing whitespace
+              --><!-- html_fmt: Next line is cruft --><!--
+                html_fmt: this comment is to avoid introducing whitespace
+              --><head attr="I am cruft"><!--
+                html_fmt: this comment is to avoid introducing whitespace
+              --><p>
+                Final graf
+                <!-- html_fmt: Following end tag is replacement for a missing one -->
+              </p>
+              <!-- html_fmt: Following end tag is replacement for a missing one -->
+            </td>
+            <!-- html_fmt: Following end tag is replacement for a missing one -->
+          </tr>
+          <!-- html_fmt: Following end tag is replacement for a missing one -->
+        </tbody>
+        <!-- html_fmt: Following end tag is replacement for a missing one -->
       </table>
       <!-- html_fmt: Following end tag is replacement for a missing one -->
     </body>
@@ -307,3 +307,5 @@ ignore: 1
 =for Marpa::R2::Display::End
 
 =cut
+
+# vim: set expandtab shiftwidth=4:

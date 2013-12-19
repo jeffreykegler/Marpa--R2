@@ -1226,11 +1226,11 @@ sub read_PPI_token {
     if ( $PPI_type eq 'PPI::Token::Operator' ) {
         my $content = $token->{content};
         $perl_type = $perl_type_by_op{$content};
-	if (not defined $perl_type) {
-	  unknown_ppi_token($token);
-	  $parser->earleme_complete();
-	  goto SUCCESS;
-	}
+        if (not defined $perl_type) {
+          unknown_ppi_token($token);
+          $parser->earleme_complete();
+          goto SUCCESS;
+        }
         if ( $perl_type eq 'PLUS' ) {
 
             # Apply the "ruby slippers"
@@ -1278,11 +1278,11 @@ sub read_PPI_token {
         my $content = $token->{content};
         $perl_type = $perl_type_by_structure{$content};
         my $expected_tokens = $parser->{terminals_expected};
-	if ( not defined $perl_type ) {
-	    unknown_ppi_token($token);
-	    $parser->earleme_complete();
-	    goto SUCCESS;
-	}
+        if ( not defined $perl_type ) {
+            unknown_ppi_token($token);
+            $parser->earleme_complete();
+            goto SUCCESS;
+        }
         if ( $perl_type eq 'RCURLY' ) {
             if ((   not defined $Marpa::R2::Perl::LAST_PERL_TYPE
                     or $Marpa::R2::Perl::LAST_PERL_TYPE ne 'SEMI'
@@ -1413,10 +1413,10 @@ sub Marpa::R2::Perl::find_perl {
         )
     {
         if ($recce->exhausted())
-	{
-	  die 'Exhausted but no program found\?' if not defined $last_end_marker_ix;
-	  last TOKEN;
-	}
+        {
+          die 'Exhausted but no program found\?' if not defined $last_end_marker_ix;
+          last TOKEN;
+        }
         my $current_earleme = $recce->current_earleme();
         $earleme_to_PPI_token->[$current_earleme] //= $PPI_token_ix;
         $PPI_token_to_earleme[$PPI_token_ix] = $current_earleme;
@@ -1451,10 +1451,10 @@ sub Marpa::R2::Perl::find_perl {
     my $start;
     ITEM: for my $item (@{$report}) {
         my ($rule_id, $dot_position, $origin) = @{$item};
-	next ITEM if $dot_position >= 0;
-	next ITEM if ($grammar->rule($rule_id))[0] ne 'prog';
-	$start //= $origin;
-	$start = $origin if $start > $origin;
+        next ITEM if $dot_position >= 0;
+        next ITEM if ($grammar->rule($rule_id))[0] ne 'prog';
+        $start //= $origin;
+        $start = $origin if $start > $origin;
     }
     die 'End marker, but no Perl prog?' if not defined $start;
     my $start_PPI_ix = $earleme_to_PPI_token->[$start];
@@ -1496,3 +1496,5 @@ sub Marpa::R2::Perl::default_show_location {
 } ## end sub Marpa::R2::Perl::default_show_location
 
 1;
+
+# vim: set expandtab shiftwidth=4:

@@ -1115,18 +1115,18 @@ sub Marpa::R2::Internal::ASF::glade_ambiguities {
                 $factors_by_factoring[$factoring_ix][$this_factor_ix];
             my ($this_start) = $asf->glade_span($this_downglade);
 
-	    # To keep time complexity down we limit the number of times we deal
-	    # with a factoring at a sync location to 3, worst case -- a pass which
-	    # identifies it as a potential sync location, a pass which 
-	    # (if possible) brings all the factors to that location, and a
-	    # pass which leaves all factor IX's where they are, and determines
-	    # we have found a sync location.  This makes out time O(f*n), where
-	    # f is the factoring count and n is the mininum number of factors.
+            # To keep time complexity down we limit the number of times we deal
+            # with a factoring at a sync location to 3, worst case -- a pass which
+            # identifies it as a potential sync location, a pass which 
+            # (if possible) brings all the factors to that location, and a
+            # pass which leaves all factor IX's where they are, and determines
+            # we have found a sync location.  This makes out time O(f*n), where
+            # f is the factoring count and n is the mininum number of factors.
 
             while ( $this_start < $sync_location ) {
                 $factor_ix[$factoring_ix]++;
                 last SYNC_PASS if $factor_ix[$factoring_ix] >= $min_factors;
-		$this_start = $asf->glade_span($this_downglade);
+                $this_start = $asf->glade_span($this_downglade);
             } ## end if ( $this_start < $sync_location )
             if ( $this_start > $sync_location ) {
                 $is_synced     = 0;
@@ -1134,9 +1134,9 @@ sub Marpa::R2::Internal::ASF::glade_ambiguities {
             }
         } ## end FACTORING: for ( my $factoring_ix = 0; $factoring_ix < ...)
 
-	next SYNC_PASS if not $is_synced;
+        next SYNC_PASS if not $is_synced;
 
-	# If here, every factor starts at the sync location
+        # If here, every factor starts at the sync location
 
         SYNCED_RESULT: {
 
@@ -1171,13 +1171,13 @@ sub Marpa::R2::Internal::ASF::glade_ambiguities {
                 last SYNCED_RESULT;
             }
 
-	    # First factoring IX is always zero
+            # First factoring IX is always zero
             push @results,
                 [ 'factoring', $glade, 0, @{$ambiguous_factors} ];
         } ## end SYNCED_RESULT:
 
         $factor_ix[$_]++ for 0 .. $factoring_count;
-	last SYNC_PASS if List::Util::max(@factor_ix) >= $min_factors;
+        last SYNC_PASS if List::Util::max(@factor_ix) >= $min_factors;
 
     } ## end SYNC_PASS: while (1)
 

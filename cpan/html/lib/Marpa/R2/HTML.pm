@@ -453,7 +453,7 @@ sub parse {
 
     my ($core_rules,   $runtime_tag,
         $rank_by_name, $is_empty_element,
-	$primary_group_by_tag
+        $primary_group_by_tag
     ) = $self->{config}->contents();
     $self->{is_empty_element} = $is_empty_element;
     if ($self->{dump_config}) {
@@ -470,7 +470,7 @@ sub parse {
         my $rhs    = $rule->{rhs};
         my $min    = $rule->{min};
         my $action = $rule->{action};
-	my @symbol_ids = ();
+        my @symbol_ids = ();
         for my $symbol_name ( $lhs, @{$rhs} ) {
             push @symbol_ids,
                 $tracer->symbol_by_name($symbol_name)
@@ -532,7 +532,7 @@ sub parse {
         PROCESS_TOKEN_TYPE: {
             if ($is_cdata) {
                 $raw_token->[Marpa::R2::HTML::Internal::Token::TOKEN_ID] =
-		    $SYMID_CDATA;
+                    $SYMID_CDATA;
                 last PROCESS_TOKEN_TYPE;
             }
             if ( $token_type eq 'T' ) {
@@ -711,7 +711,7 @@ sub parse {
                 next SYMBOL;
             } ## end if ( not defined $placement )
             my $tag = substr $rejected_symbol_name, 2;
-	    my $primary_group = $primary_group_by_tag->{$tag};
+            my $primary_group = $primary_group_by_tag->{$tag};
             my $element_type = defined $primary_group ? (substr $primary_group, 4) : 'anywhere';
             $ruby_vector =
                 $ruby_vectors{ q{<} . $placement . q{%} . $element_type . q{>} };
@@ -732,11 +732,11 @@ sub parse {
     my @empty_element_end_tag = ();
     {
         TAG: for my $tag (keys %{$is_empty_element}) {
-	    my $start_tag_id = $tracer->symbol_by_name('S_' . $tag);
-	    next TAG if not defined $start_tag_id;
-	    my $end_tag_id = $tracer->symbol_by_name('E_' . $tag);
-	    $empty_element_end_tag[$start_tag_id] = $end_tag_id;
-	}
+            my $start_tag_id = $tracer->symbol_by_name('S_' . $tag);
+            next TAG if not defined $start_tag_id;
+            my $end_tag_id = $tracer->symbol_by_name('E_' . $tag);
+            $empty_element_end_tag[$start_tag_id] = $end_tag_id;
+        }
     }
 
     my $recce = Marpa::R2::Thin::R->new($thin_grammar);
@@ -771,28 +771,28 @@ sub parse {
     my $empty_element_end_tag;
     RECCE_RESPONSE: while ( $token_number < $token_count ) {
 
-	if ( defined $empty_element_end_tag ) {
-	    my $read_result =
-		$recce->alternative( $empty_element_end_tag, RUBY_SLIPPERS_TOKEN,
-		1 );
-	    if ( $read_result != $NO_MARPA_ERROR ) {
-		die $thin_grammar->error();
-	    }
-	    if ($trace_terminals) {
-		say {$trace_fh} 'Virtual end tag accepted: ',
-		    $tracer->symbol_name($empty_element_end_tag)
-		    or Carp::croak("Cannot print: $ERRNO");
-	    }
-	    if ( $recce->earleme_complete() < 0 ) {
-		die $thin_grammar->error();
-	    }
-	    my $current_earleme = $recce->current_earleme();
-	    die $thin_grammar->error() if not defined $current_earleme;
-	    $self->{earleme_to_html_token_ix}->[$current_earleme] =
-		$latest_html_token;
-	    $empty_element_end_tag = undef;
-	    next RECCE_RESPONSE;
-	} ## end if ( defined $empty_element_end_tag )
+        if ( defined $empty_element_end_tag ) {
+            my $read_result =
+                $recce->alternative( $empty_element_end_tag, RUBY_SLIPPERS_TOKEN,
+                1 );
+            if ( $read_result != $NO_MARPA_ERROR ) {
+                die $thin_grammar->error();
+            }
+            if ($trace_terminals) {
+                say {$trace_fh} 'Virtual end tag accepted: ',
+                    $tracer->symbol_name($empty_element_end_tag)
+                    or Carp::croak("Cannot print: $ERRNO");
+            }
+            if ( $recce->earleme_complete() < 0 ) {
+                die $thin_grammar->error();
+            }
+            my $current_earleme = $recce->current_earleme();
+            die $thin_grammar->error() if not defined $current_earleme;
+            $self->{earleme_to_html_token_ix}->[$current_earleme] =
+                $latest_html_token;
+            $empty_element_end_tag = undef;
+            next RECCE_RESPONSE;
+        } ## end if ( defined $empty_element_end_tag )
 
         my $token = $html_parser_tokens[$token_number];
 
@@ -823,7 +823,7 @@ sub parse {
             $self->{earleme_to_html_token_ix}->[$current_earleme] =
                 $latest_html_token;
 
-	    $empty_element_end_tag = $empty_element_end_tag[$attempted_symbol_id];
+            $empty_element_end_tag = $empty_element_end_tag[$attempted_symbol_id];
             next RECCE_RESPONSE;
         } ## end if ( $read_result != $UNEXPECTED_TOKEN_ID )
 
@@ -897,7 +897,7 @@ sub parse {
             $self->{earleme_to_html_token_ix}->[$current_earleme] =
                 $latest_html_token;
 
-	    $empty_element_end_tag = $empty_element_end_tag[$virtual_terminal_to_add];
+            $empty_element_end_tag = $empty_element_end_tag[$virtual_terminal_to_add];
 
             next RECCE_RESPONSE;
         } ## end if ( defined $virtual_terminal_to_add )
@@ -1195,3 +1195,5 @@ sub Marpa::R2::HTML::html {
 }
 
 1;
+
+# vim: set expandtab shiftwidth=4:
