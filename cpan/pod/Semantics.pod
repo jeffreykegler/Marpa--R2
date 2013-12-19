@@ -518,7 +518,7 @@ the order in which they appear in the array descriptor.
 For example, if we are dealing with a rule,
 and the array descriptor is "C<[start,length,value]>",
 then the return value is an reference to an array,
-whose length will vary, but which will be contain least
+whose length will vary, but which will contain at least
 two elements.
 The first element will be the start location in the
 input string of this rule instance,
