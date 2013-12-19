@@ -166,7 +166,7 @@ sub full_traverser {
             return [ map { join q{}, @{$_} } @results ];
         }
 
-        # Now we a list of choices, as a list of lists.  Each sub list
+        # Now we have a list of choices, as a list of lists.  Each sub-list
         # is a list of Penn-tagged elements, which we need to join into
         # a single Penn-tagged element.  The result will be to collapse
         # one level of lists, and leave us with a list of Penn-tagged
