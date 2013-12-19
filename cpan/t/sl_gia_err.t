@@ -23,7 +23,7 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 22;
+use Test::More tests => 24;
 use English qw( -no_match_vars );
 use lib 'inc';
 use Marpa::R2::Test;
@@ -107,11 +107,28 @@ END_OF_MESSAGE
     'English start statement second'
 ];
 
+my $invalid_syntax_grammar = \(<<'END_OF_SOURCE');
+    quartet$ ::= a b c d e f
+END_OF_SOURCE
+
+push @tests_data, [
+    $invalid_syntax_grammar, 'n/a',
+    'SLIF grammar failed',
+    <<'END_OF_MESSAGE',
+Parse of BNF/Scanless source failed
+Error in SLIF parse: No lexeme found at line 1, column 12
+* String before error:     quartet
+* The error was at line 1, column 12, and at character 0x0024 '$', ...
+* here: $ ::= a b c d e f\n
+END_OF_MESSAGE
+    'Grammar with syntax error'
+];
+
 #####
 
 my $explicit_grammar1 = \(<<'END_OF_SOURCE');
-	      :default ::= action => ::array
-	      quartet  ::= a a a a;
+          :default ::= action => ::array
+          quartet  ::= a a a a;
         start symbol is quartet
         a ~ 'a'
 END_OF_SOURCE
@@ -126,8 +143,8 @@ push @tests_data,
 #####
 
 my $explicit_grammar2 = \(<<'END_OF_SOURCE');
-	:default ::= action => ::array
-	octet  ::= a a a a
+    :default ::= action => ::array
+    octet  ::= a a a a
         start symbol <is> octet
         a ~ 'a'
         start ~ 'a'
@@ -147,8 +164,8 @@ push @tests_data,
 # test null statements
 
 my $disambig_grammar = \(<<'END_OF_SOURCE');
-	;:default ::= action => ::array
-	octet  ::= a a a a
+    ;:default ::= action => ::array
+    octet  ::= a a a a
         ;a ~ 'a';;;;;
 END_OF_SOURCE
 
@@ -163,10 +180,10 @@ push @tests_data,
 # test grouped statements
 
 my $grouping_grammar = \(<<'END_OF_SOURCE');
-	;:default ::= action => ::array
-	{quartet ::= a b c d };
+    ;:default ::= action => ::array
+    {quartet ::= a b c d };
         a ~ 'a' { b ~ 'b' c~'c' } { d ~ 'd'; };
-	{ {;} }
+    { {;} }
 END_OF_SOURCE
 
 push @tests_data,
@@ -181,8 +198,8 @@ push @tests_data,
 
 {
     my $grammar = \(<<'END_OF_SOURCE');
-	:default ::= ,action => ::array,
-	quartet ::= a b c d ,
+    :default ::= ,action => ::array,
+    quartet ::= a b c d ,
         a ~ 'a' { b ~ 'b' c~'c' }  d ~ 'd',
 END_OF_SOURCE
 
@@ -199,8 +216,8 @@ END_OF_SOURCE
 
 {
     my $grammar = \(<<'END_OF_SOURCE');
-	:default ::= ,action => ::array,
-	quartet ::= a b c d e f
+    :default ::= ,action => ::array,
+    quartet ::= a b c d e f
         { a ~ 'a' { b ~ 'b' { c~'c' {; d~'d' {e~'e'}} }}  f ~ 'f' }
 END_OF_SOURCE
 
