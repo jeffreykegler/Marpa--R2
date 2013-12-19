@@ -103,7 +103,7 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
-The code for the full traverser is in an appendex.
+The code for the full traverser is in an appendix.
 The pruning code is simpler.  Here it is:
 
 =for Marpa::R2::Display
@@ -241,10 +241,11 @@ writing a traverser will be familiar if you have experience with
 traversing trees.
 The traverser may be called at every node of the forest.
 (These nodes are called B<glades>.)
-The traverser must return a value, and this will be become the value
-of the glade.
+The traverser must return a value,
+which may not be an C<undef>.
+The value returned by the traverser becomes the value of the glade.
 The value of the topmost glade (called the B<peak>) becomes the value
-of the traversal, and is the value returned by
+of the traversal, and will be the value returned by
 L<the C<traverse()> method|/"traverse()">.
 
 The traverser is called at most once for each glade -- subsequent
@@ -282,6 +283,13 @@ L<the C<rule_id()> glade method|/"traverse()">,
 which returns C<undef> if and only if the glade is positioned at a token
 alternative.
 
+As a special case,
+a glade representing a nulled symbol is always a trivial glade,
+containing only one token alternative.
+This means that a nulled symbol is always treated as a token
+in this context,
+even when it actually is the LHS symbol of a nulled rule.
+
 At all alternatives,
 L<the C<span()>|/"span()"> and
 L<the C<literal()>|/"literal()"> glade methods
@@ -303,23 +311,13 @@ RHS children, as determined using its traverser.
 
 At the peak of the ASF, the symbol will be named 'C<[:start]>'.
 This case often requires special treatment.
-Note that it is entirely possible for the peak to be a non-trivial
-glade.
+Note that it is entirely possible for the peak glade to be non-trivial.
 
-=head1 Traversal accessors
+=head1 Glade methods
 
-These are the methods that must be called in the context of a traversal routine.
-The descriptions state whether the value will remain constant inside a glade,
-will remain constant within a symch;
-or can vary with each factoring.
-
-Symches and factoring are terms which are
-useful for some advanced applications.
-For the purposes of this document,
-the reader can regard the term "factoring" as a synonym
-for "parse alternative".
-A symch is a series of alternatives (factorings) which share the same rule id.
-and the same glade.
+These are methods of the glade object.
+Glade objects are passed as arguments to the traversal routine,
+and are only valid within its scope.
 
 =head2 literal()
 
@@ -353,9 +351,16 @@ the location which corresponds to this glade.
 The first number will be the start of the span, as
 an offset in the input stream.
 The second number will be its length.
-Length may be zero.
 The glade literal remains constant within a glade.
 The C<glade_span()> method accepts no arguments.
+
+Then "end" character of the span may usually be calculated as
+its start plus its length, minus one.
+Applications should note that glades representing nulled symbols
+are special cases.
+They will have a length of zero and,
+properly speaking,
+their literals will have no first (start) or last (end) character.
 
 =head2 symbol_id()
 
@@ -389,16 +394,11 @@ partial: 1
 =for Marpa::R2::Display::End
 
 Returns the ID of the rule for the current
-alternative, which will be non-negative,
-but which may be zero.
+alternative.
+The ID will be non-negative, but it may be zero.
 Returns C<undef> if and only if the current
 alternative is a token alternative.
 The C<rule_id()> method accepts no arguments.
-
-The rule ID remains constant within a symch.
-In fact by definition, within a glade, alternatives sharing the same rule ID are
-a symch.
-For this purpose, C<undef> is considered a rule ID.
 
 =head2 rh_length()
 
@@ -414,8 +414,8 @@ partial: 1
 Returns the number of RHS children of the current rule.
 On success, this will always be an integer greater than zero.
 The C<rh_length()> method accepts no arguments.
-It is a fatal error to call C<rh_length> for a token alternative.
-The RHS length ID may vary for each factoring.
+It is a fatal error to call C<rh_length()> for a glade
+that currently points to a token alternative.
 
 =head2 rh_value()
 
@@ -433,9 +433,8 @@ index of a RHS child of the current rule instance.
 Returns the value of the C<$rh_ix>'th child of the current rule instance.
 For convenient iteration,
 returns C<undef> if the value of the C<$rh_ix> is greater than or equal to the RHS length.
-
-It is a fatal error to call C<rh_length> for a token alternative.
-The RHS child values may vary for each factoring.
+It is a fatal error to call C<rh_value()> for a glade
+that currently points to a token alternative.
 
 =head2 next()
 
@@ -449,20 +448,57 @@ partial: 1
 =for Marpa::R2::Display::End
 
 Points the glade at the next alternative.
-If there is no next alternative returns C<undef>.
+If there is no next alternative, returns C<undef>.
 On success, returns a defined value.
 One of the values returned on success may be
 the integer zero, so applications checking for failure
-should be careful to check, not that the return value is a Perl true,
-but that the return value is defined.
+should be careful to check for a Perl defined value,
+and not for a Perl true value.
 
-As a reminder, a symch is the set of alternatives which share the same
-glade and the same rule ID.
-For this purpose, C<undef> is considered a rule ID.
+=head1 Details
+
+=head2 Symches and factorings
+
+B<Symch> and B<factoring> are terms which are
+useful for some advanced applications.
+For the purposes of this document,
+the reader can consider the term "factoring" as a synonym
+for "parse alternative".
+A symch is a series of alternatives (factorings) which share the same rule id.
+and the same glade.
+For this purpose, the C<undef> of a token alternative
+is considered a rule ID.
 The term B<symch> is shorthand for "symbolic choice".
 
+For glade accessors, the accessor's value can be classified as
+
+=over
+
+=item * remaining constant inside a glade;
+
+=item * remaining constant within a symch; or
+
+=item * potentially varying with each factoring.
+
+=back
+
+The values of the
+L<C<literal()>|/"literal()">,
+L<C<span()>|/"span()">,
+L<C<symbol_id()>|/"symbol_id()"> methods
+remain constant inside each glade.
+The L<C<rule_id()> method|/"rule_id()"> remains constant within a symch --
+in fact, the rule ID and the glade define a symch.
+(Recall that for this purpose, the token alternative's
+C<undef> is considered a rule ID.
+The values of the
+L<C<rh_length()> method|/"rh_length()">
+and the values of the
+L<C<rh_value()> method|/"rh_value()"> method
+may vary with each alternative (factoring).
+
 When moving through a glade using
-the C<next()> method,
+the L<C<next()> method|/"next()">,
 alternatives within the same symch are visited
 as a group.
 More precisely, call the rule ID of the alternative at which the glade is
