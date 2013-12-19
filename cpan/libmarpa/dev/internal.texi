@@ -516,7 +516,7 @@ called "nooks".
 "node" and "fork".
 
 @deftypefun int _marpa_t_size ( @
-	Marpa_Tree @var{t})
+        Marpa_Tree @var{t})
 Return the size of the parse tree.
 This is the number of nooks in its stack.
 If there is a serious error,
@@ -532,17 +532,17 @@ Return the ID of the or-node for @var{nook_id}.
 @end deftypefun
 
 @deftypefun int _marpa_t_nook_choice ( @
-	Marpa_Tree @var{t}, @
-	Marpa_Nook_ID @var{nook_id} @
-	)
+        Marpa_Tree @var{t}, @
+        Marpa_Nook_ID @var{nook_id} @
+        )
 
 Return the current choice for @var{nook_id}.
 @end deftypefun
 
 @deftypefun int _marpa_t_nook_parent ( @
-	Marpa_Tree @var{t}, @
-	Marpa_Nook_ID @var{nook_id} @
-	)
+        Marpa_Tree @var{t}, @
+        Marpa_Nook_ID @var{nook_id} @
+        )
 
 Return the parent nook's ID for @var{nook_id}.
 As with the other nook trace functions,
@@ -556,33 +556,33 @@ for example, @code{_marpa_t_nook_or_node}.
 @end deftypefun
 
 @deftypefun int _marpa_t_nook_cause_is_ready ( @
-	Marpa_Tree @var{t}, @
-	Marpa_Nook_ID @var{nook_id} @
-	)
+        Marpa_Tree @var{t}, @
+        Marpa_Nook_ID @var{nook_id} @
+        )
 
 Return the cause-is-ready bit for @var{nook_id}.
 @end deftypefun
 
 @deftypefun int _marpa_t_nook_predecessor_is_ready ( @
-	Marpa_Tree @var{t}, @
-	Marpa_Nook_ID @var{nook_id} @
-	)
+        Marpa_Tree @var{t}, @
+        Marpa_Nook_ID @var{nook_id} @
+        )
 
 Return the predecessor-is-ready bit for @var{nook_id}.
 @end deftypefun
 
 @deftypefun int _marpa_t_nook_is_cause ( @
-	Marpa_Tree @var{t}, @
-	Marpa_Nook_ID @var{nook_id} @
-	)
+        Marpa_Tree @var{t}, @
+        Marpa_Nook_ID @var{nook_id} @
+        )
 
 Return the is-cause bit for @var{nook_id}.
 @end deftypefun
 
 @deftypefun int _marpa_t_nook_is_predecessor ( @
-	Marpa_Tree @var{t}, @
-	Marpa_Nook_ID @var{nook_id} @
-	)
+        Marpa_Tree @var{t}, @
+        Marpa_Nook_ID @var{nook_id} @
+        )
 
 Return the is-predecessor bit for @var{nook_id}.
 @end deftypefun
@@ -605,3 +605,5 @@ Return the is-predecessor bit for @var{nook_id}.
 @include fdl-1.3.texi
 
 @bye
+
+@c vim: expandtab shiftwidth=4:

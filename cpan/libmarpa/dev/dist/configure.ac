@@ -195,3 +195,4 @@ AC_CONFIG_FILES( [Makefile])
 AC_CONFIG_FILES( [VERSION])
 AC_OUTPUT
 
+# vim: expandtab shiftwidth=4:

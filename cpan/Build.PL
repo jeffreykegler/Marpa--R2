@@ -160,3 +160,5 @@ my $build = Marpa::R2::Build_Me->new(
 );
 
 $build->create_build_script;
+
+# vim: expandtab shiftwidth=4:

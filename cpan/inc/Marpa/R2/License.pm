@@ -150,21 +150,21 @@ my %GNU_file = (
         'libmarpa_doc_dist/' . $_,   1
         )
     } qw(
-	aclocal.m4
-	config.guess
-	config.sub
-	configure
-	depcomp
-	mdate-sh
-	texinfo.tex
-	ltmain.sh
-	m4/libtool.m4
-	m4/ltoptions.m4
-	m4/ltsugar.m4
-	m4/ltversion.m4
-	m4/lt~obsolete.m4
-	missing
-	Makefile.in
+        aclocal.m4
+        config.guess
+        config.sub
+        configure
+        depcomp
+        mdate-sh
+        texinfo.tex
+        ltmain.sh
+        m4/libtool.m4
+        m4/ltoptions.m4
+        m4/ltsugar.m4
+        m4/ltversion.m4
+        m4/lt~obsolete.m4
+        missing
+        Makefile.in
     )
 );;
 
@@ -747,8 +747,8 @@ sub license_problems_in_pod_file {
             "=== licensing pod section for $filename should be as follows:\n"
             . $pod_section
             . ( q{=} x 30 )
-	    . "\n"
-	    ;
+            . "\n"
+            ;
         push @problems, $problem;
     } ## end if ( scalar @problems and $verbose >= 2 )
     return @problems;
@@ -819,3 +819,4 @@ sub license_problems_in_fdl_file {
 
 1;
 
+# vim: expandtab shiftwidth=4:
