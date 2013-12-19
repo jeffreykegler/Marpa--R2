@@ -167,7 +167,7 @@ subject to radical change without notice.
 
 =head1 About this document
 
-This document describes the abstract syntax forests (ASFs) of
+This document describes the abstract syntax forests (ASF's) of
 Marpa's SLIF interface.
 An ASF is an efficient and practical way to represent multiple abstract syntax trees (AST's).
 
@@ -351,16 +351,17 @@ the location which corresponds to this glade.
 The first number will be the start of the span, as
 an offset in the input stream.
 The second number will be its length.
-The glade literal remains constant within a glade.
+The glade span remains constant within a glade.
 The C<glade_span()> method accepts no arguments.
 
-Then "end" character of the span may usually be calculated as
+Then "end" character of the span, when defined, may be calculated as
 its start plus its length, minus one.
 Applications should note that glades representing nulled symbols
 are special cases.
 They will have a length of zero and,
 properly speaking,
-their literals will have no first (start) or last (end) character.
+their literals are zero length and
+do not have defined first (start) and last (end) characters.
 
 =head2 symbol_id()
 
@@ -470,7 +471,7 @@ For this purpose, the C<undef> of a token alternative
 is considered a rule ID.
 The term B<symch> is shorthand for "symbolic choice".
 
-For glade accessors, the accessor's value can be classified as
+For each glade accessor, its value can be classified as
 
 =over
 
@@ -484,13 +485,13 @@ For glade accessors, the accessor's value can be classified as
 
 The values of the
 L<C<literal()>|/"literal()">,
-L<C<span()>|/"span()">,
+L<C<span()>|/"span()">, and
 L<C<symbol_id()>|/"symbol_id()"> methods
 remain constant inside each glade.
 The L<C<rule_id()> method|/"rule_id()"> remains constant within a symch --
 in fact, the rule ID and the glade define a symch.
 (Recall that for this purpose, the token alternative's
-C<undef> is considered a rule ID.
+C<undef> is considered a rule ID.)
 The values of the
 L<C<rh_length()> method|/"rh_length()">
 and the values of the
@@ -501,8 +502,10 @@ When moving through a glade using
 the L<C<next()> method|/"next()">,
 alternatives within the same symch are visited
 as a group.
-More precisely, call the rule ID of the alternative at which the glade is
-currently pointing, the "current rule ID".
+More precisely, let
+the "current rule ID" be defined as
+the rule ID of the alternative at which the glade is
+currently pointing.
 The
 C<next()> glade method guarantees that,
 before
