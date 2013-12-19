@@ -507,7 +507,7 @@ the "current rule ID" be defined as
 the rule ID of the alternative at which the glade is
 currently pointing.
 The
-L<C<next()>|/"next()>" glade method guarantees that,
+L<C<next()>|/"next()"> glade method guarantees that,
 before
 any alternative with a rule ID different from the current rule ID
 is visited,
