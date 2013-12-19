@@ -415,7 +415,7 @@ Marpa's semantics will see this as a rule with only two RHS values.
 
 The adverb list associated with the RHS alternative,
 consisting of a single adverb.
-The adverb consists of its keyword "C<action>",
+The adverb consists of its keyword "L<C<action>|/"action">",
 followed by the adverb operator ("C<< => >>"),
 and the adverb's value "C<::first>".
 
@@ -456,8 +456,8 @@ Start rules must be G1 rules.
 
 An empty rule is a rule with an empty RHS.
 The empty RHS, technically, is a RHS alternative, one with zero RHS primaries.
-The C<action> and
-C<bless> adverbs are allowed 
+The L<C<action>|/"action"> and
+L<C<bless>|/"bless"> adverbs are allowed 
 for the empty RHS alternative,
 but no others.
 A empty rule makes its LHS symbol a nullable symbol.
@@ -485,10 +485,10 @@ of 0 or 1.
 
 Adverbs may be associated with the RHS alternative.
 The adverb list must follow the quantifier.
-The adverbs allowed are C<action>,
-C<bless>,
-C<proper> and
-C<separator>.
+The adverbs allowed are L<C<action>|/"action">,
+L<C<bless>|/"bless">,
+L<C<proper>|/"proper"> and
+L<C<separator>|/"separator">.
 
 =head2 Prioritized rules
 
@@ -518,9 +518,9 @@ For brevity, RHS alternatives are often called B<alternatives>.
 
 Each alternative may be followed by a list of associated adverbs.
 The 
-C<action>,
-C<assoc> and
-C<bless> adverbs are allowed.
+L<C<action>|/"action">,
+L<C<assoc>|/"assoc"> and
+L<C<bless>|/"bless"> adverbs are allowed.
 
 The RHS alternatives in a prioritized right hand side proceed
 from tightest (highest) priority to loosest.
@@ -822,7 +822,7 @@ The allowed event names are as described
 for the L<named event statement|"Named event statement">.
 
 It is a fatal error to specify the C<event> adverb
-if the C<pause> adverb is not also specified.
+if the L<C<pause>|/"pause"> adverb is not also specified.
 
 =head2 null-ranking
 

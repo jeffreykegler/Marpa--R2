@@ -1427,7 +1427,7 @@ The output is shown in L<Data::Dumper> format,
 with C<Data::Dumper::Indent> set to 0
 and C<Data::Dumper::Terse> set to 1.
 
-The C<Data::Dumper> output from C<progress()> at G1 location 0:
+The C<Data::Dumper> output from L<C<progress()>|/"progress()"> at G1 location 0:
 
 =for Marpa::R2::Display
 name: SLIF progress() output at location 0
@@ -1438,7 +1438,7 @@ remove-blank-last-line: 1
 
 =for Marpa::R2::Display::End
 
-The C<Data::Dumper> output from C<progress()> at G1 location 1:
+The C<Data::Dumper> output from L<C<progress()>|/"progress()"> at G1 location 1:
 
 =for Marpa::R2::Display
 name: SLIF progress() output at location 1
@@ -1449,7 +1449,7 @@ remove-blank-last-line: 1
 
 =for Marpa::R2::Display::End
 
-The C<Data::Dumper> output from C<progress()> at location 2:
+The C<Data::Dumper> output from L<C<progress()>|/"progress()"> at location 2:
 
 =for Marpa::R2::Display
 name: SLIF progress() output at location 2
@@ -1460,8 +1460,8 @@ remove-blank-last-line: 1
 
 =for Marpa::R2::Display::End
 
-The default C<progress()> output is for the latest Earley set.
-Here is the C<progress()> output for the latest Earley set.
+The default L<C<progress()>|/"progress()"> output is for the latest Earley set.
+Here is the L<C<progress()>|/"progress()"> output for the latest Earley set.
 
 =for Marpa::R2::Display
 name: SLIF progress() output at default location

@@ -131,7 +131,7 @@ normalize-whitespace: 1
 
 This method allows the named arguments to be changed after an SLIF
 grammar is created.
-Currently, the only argument that may be changed in C<trace_file_handle>.
+Currently, the only argument that may be changed in L<C<trace_file_handle>|/"trace_file_handle">.
 
 =head1 Accessors
 
