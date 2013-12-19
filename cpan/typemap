@@ -39,75 +39,76 @@ Marpa_Nook_ID T_IV
 INPUT
 
 T_MARPA_G_W
-	if (sv_isa($arg, \"Marpa::R2::Thin::G\")) {
-	    IV tmp = SvIV((SV*)SvRV($arg));
-	    $var = INT2PTR(G_Wrapper *, tmp);
-	} else
-	    Perl_croak(aTHX_ \"%s: %s is not of type Marpa::R2::Thin::G\",
-			${$ALIAS?\q[GvNAME(CvGV(cv))]:\qq[\"$pname\"]},
-			\"$var\")
+        if (sv_isa($arg, \"Marpa::R2::Thin::G\")) {
+            IV tmp = SvIV((SV*)SvRV($arg));
+            $var = INT2PTR(G_Wrapper *, tmp);
+        } else
+            Perl_croak(aTHX_ \"%s: %s is not of type Marpa::R2::Thin::G\",
+                        ${$ALIAS?\q[GvNAME(CvGV(cv))]:\qq[\"$pname\"]},
+                        \"$var\")
 
 T_MARPA_R_W
-	if (sv_isa($arg, \"Marpa::R2::Thin::R\")) {
-	    IV tmp = SvIV((SV*)SvRV($arg));
-	    $var = INT2PTR(R_Wrapper *, tmp);
-	} else
-	    Perl_croak(aTHX_ \"%s: %s is not of type Marpa::R2::Thin::R\",
-			${$ALIAS?\q[GvNAME(CvGV(cv))]:\qq[\"$pname\"]},
-			\"$var\")
+        if (sv_isa($arg, \"Marpa::R2::Thin::R\")) {
+            IV tmp = SvIV((SV*)SvRV($arg));
+            $var = INT2PTR(R_Wrapper *, tmp);
+        } else
+            Perl_croak(aTHX_ \"%s: %s is not of type Marpa::R2::Thin::R\",
+                        ${$ALIAS?\q[GvNAME(CvGV(cv))]:\qq[\"$pname\"]},
+                        \"$var\")
 
 T_MARPA_B_W
-	if (sv_isa($arg, \"Marpa::R2::Thin::B\")) {
-	    IV tmp = SvIV((SV*)SvRV($arg));
-	    $var = INT2PTR(B_Wrapper *, tmp);
-	} else
-	    Perl_croak(aTHX_ \"%s: %s is not of type Marpa::R2::Thin::B\",
-			${$ALIAS?\q[GvNAME(CvGV(cv))]:\qq[\"$pname\"]},
-			\"$var\")
+        if (sv_isa($arg, \"Marpa::R2::Thin::B\")) {
+            IV tmp = SvIV((SV*)SvRV($arg));
+            $var = INT2PTR(B_Wrapper *, tmp);
+        } else
+            Perl_croak(aTHX_ \"%s: %s is not of type Marpa::R2::Thin::B\",
+                        ${$ALIAS?\q[GvNAME(CvGV(cv))]:\qq[\"$pname\"]},
+                        \"$var\")
 
 T_MARPA_O_W
-	if (sv_isa($arg, \"Marpa::R2::Thin::O\")) {
-	    IV tmp = SvIV((SV*)SvRV($arg));
-	    $var = INT2PTR(O_Wrapper *, tmp);
-	} else
-	    Perl_croak(aTHX_ \"%s: %s is not of type Marpa::R2::Thin::O\",
-			${$ALIAS?\q[GvNAME(CvGV(cv))]:\qq[\"$pname\"]},
-			\"$var\")
+        if (sv_isa($arg, \"Marpa::R2::Thin::O\")) {
+            IV tmp = SvIV((SV*)SvRV($arg));
+            $var = INT2PTR(O_Wrapper *, tmp);
+        } else
+            Perl_croak(aTHX_ \"%s: %s is not of type Marpa::R2::Thin::O\",
+                        ${$ALIAS?\q[GvNAME(CvGV(cv))]:\qq[\"$pname\"]},
+                        \"$var\")
 
 T_MARPA_T_W
-	if (sv_isa($arg, \"Marpa::R2::Thin::T\")) {
-	    IV tmp = SvIV((SV*)SvRV($arg));
-	    $var = INT2PTR(T_Wrapper *, tmp);
-	} else
-	    Perl_croak(aTHX_ \"%s: %s is not of type Marpa::R2::Thin::T\",
-			${$ALIAS?\q[GvNAME(CvGV(cv))]:\qq[\"$pname\"]},
-			\"$var\")
+        if (sv_isa($arg, \"Marpa::R2::Thin::T\")) {
+            IV tmp = SvIV((SV*)SvRV($arg));
+            $var = INT2PTR(T_Wrapper *, tmp);
+        } else
+            Perl_croak(aTHX_ \"%s: %s is not of type Marpa::R2::Thin::T\",
+                        ${$ALIAS?\q[GvNAME(CvGV(cv))]:\qq[\"$pname\"]},
+                        \"$var\")
 
 T_MARPA_V_W
-	if (sv_isa($arg, \"Marpa::R2::Thin::V\")) {
-	    IV tmp = SvIV((SV*)SvRV($arg));
-	    $var = INT2PTR(V_Wrapper *, tmp);
-	} else
-	    Perl_croak(aTHX_ \"%s: %s is not of type Marpa::R2::Thin::V\",
-			${$ALIAS?\q[GvNAME(CvGV(cv))]:\qq[\"$pname\"]},
-			\"$var\")
+        if (sv_isa($arg, \"Marpa::R2::Thin::V\")) {
+            IV tmp = SvIV((SV*)SvRV($arg));
+            $var = INT2PTR(V_Wrapper *, tmp);
+        } else
+            Perl_croak(aTHX_ \"%s: %s is not of type Marpa::R2::Thin::V\",
+                        ${$ALIAS?\q[GvNAME(CvGV(cv))]:\qq[\"$pname\"]},
+                        \"$var\")
 
 T_SCANLESS_G
-	if (sv_isa($arg, \"Marpa::R2::Thin::SLG\")) {
-	    IV tmp = SvIV((SV*)SvRV($arg));
-	    $var = INT2PTR(Scanless_G *, tmp);
-	} else
-	    Perl_croak(aTHX_ \"%s: %s is not of type Marpa::R2::Thin::SLG\",
-			${$ALIAS?\q[GvNAME(CvGV(cv))]:\qq[\"$pname\"]},
-			\"$var\")
+        if (sv_isa($arg, \"Marpa::R2::Thin::SLG\")) {
+            IV tmp = SvIV((SV*)SvRV($arg));
+            $var = INT2PTR(Scanless_G *, tmp);
+        } else
+            Perl_croak(aTHX_ \"%s: %s is not of type Marpa::R2::Thin::SLG\",
+                        ${$ALIAS?\q[GvNAME(CvGV(cv))]:\qq[\"$pname\"]},
+                        \"$var\")
 
 
 T_SCANLESS_R
-	if (sv_isa($arg, \"Marpa::R2::Thin::SLR\")) {
-	    IV tmp = SvIV((SV*)SvRV($arg));
-	    $var = INT2PTR(Scanless_R *, tmp);
-	} else
-	    Perl_croak(aTHX_ \"%s: %s is not of type Marpa::R2::Thin::SLR\",
-			${$ALIAS?\q[GvNAME(CvGV(cv))]:\qq[\"$pname\"]},
-			\"$var\")
+        if (sv_isa($arg, \"Marpa::R2::Thin::SLR\")) {
+            IV tmp = SvIV((SV*)SvRV($arg));
+            $var = INT2PTR(Scanless_R *, tmp);
+        } else
+            Perl_croak(aTHX_ \"%s: %s is not of type Marpa::R2::Thin::SLR\",
+                        ${$ALIAS?\q[GvNAME(CvGV(cv))]:\qq[\"$pname\"]},
+                        \"$var\")
 
+/* vim: set expandtab shiftwidth=4: */

@@ -66,7 +66,7 @@ PROCESSING: {
         $abbreviated_error =~ s/^Error \s+ in \s+ string_read: \s+ //xms;
         $actual_value  = 'No parse';
         $actual_result = $abbreviated_error;
-	$is_ambiguous_parse = 0;
+        $is_ambiguous_parse = 0;
         last PROCESSING;
     } ## end if ( not defined eval { $recce->read( \$input ); 1 })
 
