@@ -81,7 +81,7 @@ the "Marpa parser" mailing list.
 Peter Stuifzand invented the "Stuifzand interface",
 which was the original inspiration for the SLIF.
 
-Ron, Peter and Ruslan Z. has since gone on to contribute
+Ron, Peter and Ruslan Z. have since gone on to contribute
 in ways too numerous to mention,
 and others have joined in.
 Jean-Damien Durand's numerous contributions include
