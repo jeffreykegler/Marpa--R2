@@ -15,33 +15,13 @@
 
 Revision history for Marpa::R2
 
-2.077_012
-2.077_011
+2.077_013
 
-  * Documented high-level ASF interface in ASF.pod
+  * Allow Unicode in SLIF DSL source
 
-2.077_010
-2.077_009
+  * New high-level ASF interface -- still alpha
 
-  * Advance version of high-level ASF interface
-
-2.077_008
-2.077_007
-2.077_006
-2.077_005
-2.077_004
-
-   * Work on multiple lexers, refactoring libmarpa
-
-2.077_003
-
-   * Fixes to ASF, rewrite of its documentation.
-
-2.077_002
-2.077_001
-2.077_000
-
-   * New series of developer's releases
+   * Release candidate
 
 2.076000 Wed Nov 20 16:22:56 PST 2013
 
