@@ -7067,7 +7067,9 @@ an event should be created.
   r->t_nsy_expected_is_event = lbv_obs_new0(r->t_obs, nsy_count);
 @ Returns |-2| if there was a failure.
 @<Function definitions@> =
-int marpa_r_expected_symbol_event_set(Marpa_Recognizer r, Marpa_Symbol_ID xsy_id, int value)
+int
+marpa_r_expected_symbol_event_set (Marpa_Recognizer r, Marpa_Symbol_ID xsy_id,
+                                   int value)
 {
     XSY xsy;
     NSY nsy;
@@ -10345,16 +10347,17 @@ Secondary optimzations ensure this is fairly cheap as well.
 {
   const AHFA root_ahfa = Top_AHFA_of_LIM (predecessor_lim);
   const CIL predecessor_cil = CIL_of_LIM (predecessor_lim);
-  CIL_of_LIM (lim_to_process) = predecessor_cil;        /* Initialize to be
-                                                           just the predcessor's list of AHFA IDs.
-                                                           Overwrite if we need to add another. */
+  /* \comment Initialize to be just the predcessor's list of AHFA IDs.
+       Overwrite if we need to add another. */
+  CIL_of_LIM (lim_to_process) = predecessor_cil;        
   Predecessor_LIM_of_LIM (lim_to_process) = predecessor_lim;
   Origin_of_LIM (lim_to_process) = Origin_of_LIM (predecessor_lim);
   if (Event_Group_Size_of_AHFA (root_ahfa) > Count_of_CIL (predecessor_cil))
     {                           /* Might we need to add another AHFA ID? */
-      const AHFA base_to_ahfa = Top_AHFA_of_LIM (lim_to_process);       /* The base to-AHFA
-                                                                           was memoized as a potential Top AHFA for this LIM.
-                                                                           It will be overwritten shortly */
+      /* \comment The base to-AHFA
+      was memoized as a potential Top AHFA for this LIM.
+           It will be overwritten shortly */
+      const AHFA base_to_ahfa = Top_AHFA_of_LIM (lim_to_process);      
       const CIL base_to_ahfa_event_ahfaids =
         Event_AHFAIDs_of_AHFA (base_to_ahfa);
       if (Count_of_CIL (base_to_ahfa_event_ahfaids))
@@ -10718,25 +10721,29 @@ MARPA_ASSERT(ahfa_element_ix < aim_count_of_item)@;
           source_link = Next_SRCL_of_SRCL (source_link);
         }
     }
-    for (;;)
-      {
-        if (predecessor_earley_item)
-          {
-            if (YIM_is_Predicted(predecessor_earley_item)) {
-                Set_boolean_in_PSIA_for_initial_nulls(predecessor_earley_item, predecessor_aim);
-            } else {
-                const YIM ur_earley_item = predecessor_earley_item;
-                const AEX ur_aex =
-                  AEX_of_YIM_by_AIM (predecessor_earley_item, predecessor_aim);
-                const AIM ur_aim = predecessor_aim;
-                @<Push ur-node if new@>@;
+  for (;;)
+    {
+      if (predecessor_earley_item)
+        {
+          if (YIM_is_Predicted (predecessor_earley_item))
+            {
+              Set_boolean_in_PSIA_for_initial_nulls (predecessor_earley_item,
+                                                     predecessor_aim);
             }
-          }
-        if (!source_link)
-          break;
-        predecessor_earley_item = Predecessor_of_SRCL (source_link);
-        source_link = Next_SRCL_of_SRCL (source_link);
-      }
+          else
+            {
+              const YIM ur_earley_item = predecessor_earley_item;
+              const AEX ur_aex =
+                AEX_of_YIM_by_AIM (predecessor_earley_item, predecessor_aim);
+              const AIM ur_aim = predecessor_aim;
+              @<Push ur-node if new@>@;
+            }
+        }
+      if (!source_link)
+        break;
+      predecessor_earley_item = Predecessor_of_SRCL (source_link);
+      source_link = Next_SRCL_of_SRCL (source_link);
+    }
 }
 
 @ If there are initial nulls, set a boolean in the PSIA
@@ -10787,7 +10794,8 @@ no other descendants.
           {
             if (YIM_is_Predicted (predecessor_earley_item))
               {
-                Set_boolean_in_PSIA_for_initial_nulls(predecessor_earley_item, predecessor_aim);
+                Set_boolean_in_PSIA_for_initial_nulls
+                  (predecessor_earley_item, predecessor_aim);
               }
             else
               {
@@ -11064,19 +11072,28 @@ Top_ORID_of_B(b) = -1;
 
 @ @<Create the or-nodes for |work_earley_set_ordinal|@> =
 {
-    int item_ordinal;
-    for (item_ordinal = 0; item_ordinal < item_count; item_ordinal++)
+  int item_ordinal;
+  for (item_ordinal = 0; item_ordinal < item_count;
+       item_ordinal++)
     {
-        OR* const work_nodes_by_aex = nodes_by_item[item_ordinal];
-        if (work_nodes_by_aex) {
-            const YIM work_earley_item = yims_of_ys[item_ordinal];
-            const int work_ahfa_item_count = AIM_Count_of_YIM(work_earley_item);
-            AEX work_aex;
-              const int work_origin_ordinal = Ord_of_YS (Origin_of_YIM (work_earley_item));
-            for (work_aex = 0; work_aex < work_ahfa_item_count; work_aex++) {
-                if (!work_nodes_by_aex[work_aex]) continue;
-                @<Create the or-nodes
-                    for |work_earley_item| and |work_aex|@>@;
+      OR *const work_nodes_by_aex =
+        nodes_by_item[item_ordinal];
+      if (work_nodes_by_aex)
+        {
+          const YIM work_earley_item =
+            yims_of_ys[item_ordinal];
+          const int work_ahfa_item_count =
+            AIM_Count_of_YIM (work_earley_item);
+          AEX work_aex;
+          const int work_origin_ordinal =
+            Ord_of_YS (Origin_of_YIM (work_earley_item));
+          for (work_aex = 0;
+               work_aex < work_ahfa_item_count; work_aex++)
+            {
+              if (!work_nodes_by_aex[work_aex])
+                continue;
+              @<Create the or-nodes for
+                  |work_earley_item| and |work_aex|@>@;
             }
         }
     }
@@ -11172,8 +11189,9 @@ and this is the case if |Position_of_OR(or_node) == 0|.
     {
       const IRL irl = IRL_of_AIM (ahfa_item);
       const int symbol_instance_of_rule = SYMI_of_IRL(irl);
-      const int first_null_symbol_instance =
-          ahfa_item_symbol_instance < 0 ? symbol_instance_of_rule : ahfa_item_symbol_instance + 1;
+        const int first_null_symbol_instance =
+          ahfa_item_symbol_instance <
+          0 ? symbol_instance_of_rule : ahfa_item_symbol_instance + 1;
       int i;
       for (i = 0; i < null_count; i++)
         {
@@ -11277,7 +11295,8 @@ corresponds to the Leo predecessor.
       if (!or_node || YS_Ord_of_OR(or_node) != work_earley_set_ordinal)
         {
           @<Set |last_or_node| to a new or-node@>@;
-          PSL_Datum (leo_psl, symbol_instance_of_path_ahfa_item) = or_node = last_or_node;
+          PSL_Datum (leo_psl, symbol_instance_of_path_ahfa_item) = or_node =
+              last_or_node;
           Origin_Ord_of_OR(or_node) = ordinal_of_set_of_this_leo_item;
           YS_Ord_of_OR(or_node) = work_earley_set_ordinal;
           IRL_of_OR(or_node) = path_irl;
@@ -11803,13 +11822,17 @@ predecessor.  Set |or_node| to 0 if there is none.
 
 @ @<Set |dand_predecessor|@> =
 {
-   if (Position_of_AIM(work_predecessor_aim) < 1) {
-       dand_predecessor = NULL;
-   } else {
-        const AEX predecessor_aex =
-            AEX_of_YIM_by_AIM (predecessor_earley_item, work_predecessor_aim);
-      Set_OR_from_YIM_and_AEX(dand_predecessor, predecessor_earley_item, predecessor_aex);
-   }
+  if (Position_of_AIM (work_predecessor_aim) < 1)
+    {
+      dand_predecessor = NULL;
+    }
+  else
+    {
+      const AEX predecessor_aex =
+        AEX_of_YIM_by_AIM (predecessor_earley_item, work_predecessor_aim);
+      Set_OR_from_YIM_and_AEX (dand_predecessor, predecessor_earley_item,
+                               predecessor_aex);
+    }
 }
 
 @ @<Create draft and-nodes for completion sources@> =
@@ -15044,7 +15067,8 @@ typedef struct s_bit_matrix* Bit_Matrix;
 This is {\bf not} the case with vectors, whose pointer is offset for
 the ``hidden words".
 @<Function definitions@> =
-PRIVATE Bit_Matrix matrix_buffer_create(void *buffer, unsigned int rows, unsigned int columns)
+PRIVATE Bit_Matrix
+matrix_buffer_create (void *buffer, unsigned int rows, unsigned int columns)
 {
     unsigned int row;
     const unsigned int bv_data_words = bv_bits_to_size(columns);
@@ -15068,9 +15092,10 @@ PRIVATE Bit_Matrix matrix_buffer_create(void *buffer, unsigned int rows, unsigne
 @ @<Function definitions@> =
 PRIVATE size_t matrix_sizeof(unsigned int rows, unsigned int columns)
 {
-    const unsigned int bv_data_words = bv_bits_to_size(columns);
-    const unsigned int row_bytes = (bv_data_words + bv_hiddenwords) * sizeof(Bit_Vector_Word);
-    return offsetof (struct s_bit_matrix, t_row_data) + (rows) * row_bytes;
+  const unsigned int bv_data_words = bv_bits_to_size (columns);
+  const unsigned int row_bytes =
+    (bv_data_words + bv_hiddenwords) * sizeof (Bit_Vector_Word);
+  return offsetof (struct s_bit_matrix, t_row_data) +(rows) * row_bytes;
 }
 
 @*0 Create a boolean matrix on an obstack.
@@ -15207,7 +15232,8 @@ Often a reasonable maximum size is known when they are
 set up, in which case they can be made very fast.
 @d FSTACK_DECLARE(stack, type) struct { int t_count; type* t_base; } stack;
 @d FSTACK_CLEAR(stack) ((stack).t_count = 0)
-@d FSTACK_INIT(stack, type, n) (FSTACK_CLEAR(stack), ((stack).t_base = marpa_new(type, n)))
+@d FSTACK_INIT(stack, type, n) (FSTACK_CLEAR(stack),
+    ((stack).t_base = marpa_new(type, n)))
 @d FSTACK_SAFE(stack) ((stack).t_base = NULL)
 @d FSTACK_BASE(stack, type) ((type *)(stack).t_base)
 @d FSTACK_INDEX(this, type, ix) (FSTACK_BASE((this), type)+(ix))
@@ -15341,7 +15367,8 @@ PRIVATE void cilar_destroy(const CILAR cilar)
 @<Function definitions@> =
 PRIVATE CIL cil_empty(CILAR cilar)
 {
-  CIL cil = MARPA_DSTACK_BASE (cilar->t_buffer, int);   /* We assume there is enough room */
+  CIL cil = MARPA_DSTACK_BASE (cilar->t_buffer, int); 
+  /* We assume there is enough room */
   Count_of_CIL(cil) = 0;
   return cil_buffer_add (cilar);
 }
@@ -15440,7 +15467,8 @@ to hold |element_count| elements.
 @<Function definitions@> =
 PRIVATE CIL cil_buffer_reserve(CILAR cilar, int element_count)
 {
-  const int desired_dstack_capacity = element_count + 1;        /* One extra for the count word */
+  const int desired_dstack_capacity = element_count + 1;
+  /* One extra for the count word */
   const int old_dstack_capacity = MARPA_DSTACK_CAPACITY (cilar->t_buffer);
   if (old_dstack_capacity < desired_dstack_capacity)
     {
@@ -15833,7 +15861,8 @@ and to control the lifetime of the memory.
 Marpa's obstacks are based on ideas that originate with GNU's obstacks.
 Much of the memory allocated in |libmarpa| is
 \li In individual allocations less than 4K, often considerable less.
-\li Once created, are kept for the entire life of the either the grammar or the recognizer.
+\li Once created,
+are kept for the entire life of the either the grammar or the recognizer.
 \li Once created, is never resized.
 For these, obstacks are perfect.
 |libmarpa|'s grammar has an obstacks.
@@ -16473,4 +16502,4 @@ in various ways or which are otherwise useful.
 
 @** Index.
 
-% vim: expandtab shiftwidth=4:
+% vim: set expandtab shiftwidth=4:
