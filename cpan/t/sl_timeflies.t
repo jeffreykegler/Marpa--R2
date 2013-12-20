@@ -163,3 +163,5 @@ Marpa::R2::Test::is( ( join "\n", @actual ) . "\n",
 
 1;    # In case used as "do" file
 
+# vim: set expandtab shiftwidth=4:
+
