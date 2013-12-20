@@ -24,7 +24,7 @@ use warnings;
 use English qw( -no_match_vars );
 use utf8;
 
-use Test::More tests => 1;
+use Test::More tests => 18;
 use lib 'inc';
 use Marpa::R2::Test;
 use Marpa::R2;
@@ -51,22 +51,45 @@ END_OF_BASE_DSL
 
 my @tests = ();
 push @tests, [ '2♥ 5♥ 7♦ 8♣ 9♠',
+'Parse OK',
+'Parse OK'
  ];
 push @tests, [ '2♥ a♥ 7♦ 8♣ j♥',
+'Parse OK',
+'Parse OK'
  ];
 push @tests, [ 'a♥ a♥ 7♦ 8♣ j♥',
+'Parse stopped by application',
+'Duplicate card a♥'
  ];
 push @tests, [ 'a♥ 7♥ 7♦ 8♣ j♥; 10♥ j♥ q♥ k♥ a♥',
+'Parse stopped by application',
+'Duplicate card j♥'
  ];
 push @tests, [ '2♥ 7♥ 2♦ 3♣ 3♦',
+'Parse OK',
+'Parse OK'
  ];
 push @tests, [ '2♥ 7♥ 2♦ 3♣',
+'No parse',
+'No parse'
  ];
 push @tests, [ '2♥ 7♥ 2♦ 3♣ 3♦ 1♦',
+'No parse',
+<<'END_OF_MESSAGE'
+'Error in SLIF parse: No lexeme found at line 1, column 16
+* String before error: 2\x{2665} 7\x{2665} 2\x{2666} 3\x{2663} 3\x{2666}\s
+* The error was at line 1, column 16, and at character 0x0031 '1', ...
+* here: 1\x{2666}
+END_OF_MESSAGE
  ];
 push @tests, [ '2♥ 7♥ 2♦ 3♣',
+'No parse',
+'No parse'
  ];
 push @tests, [ 'a♥ 7♥ 7♦ 8♣ j♥; 10♥ j♣ q♥ k♥',
+'Parse OK',
+'Parse OK'
  ];
 
 for my $test_data (@tests) {
@@ -76,9 +99,9 @@ for my $test_data (@tests) {
     PROCESSING: {
 
         # Note: in production, no need to recompute G each time
-        my $grammar = Marpa::R2::Scanless::G->new( { source  => \$base_dsl } );
-        my $re      = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
-        my $length  = length $input;
+        my $grammar = Marpa::R2::Scanless::G->new( { source => \$base_dsl } );
+        my $re = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
+        my $length = length $input;
 
         my %played = ();
         my $pos = eval { $re->read( \$input ) };
@@ -88,11 +111,11 @@ for my $test_data (@tests) {
             my ( $start, $length ) =
                 $re->g1_location_to_span( $re->current_g1_location() );
             my $card = $re->literal( $start, $length );
-                if ( ++$played{$card} > 1 ){
-                $actual_result = 'Parse discontinued';
+            if ( ++$played{$card} > 1 ) {
+                $actual_result = 'Parse stopped by application';
                 $actual_value  = "Duplicate card " . $card;
                 last PROCESSING;
-		}
+            }
             eval { $pos = $re->resume() };
             if ($EVAL_ERROR) {
                 $actual_result = "No parse";
@@ -100,21 +123,27 @@ for my $test_data (@tests) {
                 last PROCESSING;
             }
         } while ( $pos < $length );
-        $actual_result = $actual_value =
-            $re->value() ? '' : show_last_hand($re);
+
+        my ( $start, $end ) = $re->last_completed_range('hand');
+        if ( not defined $start ) {
+            $actual_result = 'No parse';
+            $actual_value  = 'No parse';
+            last PROCESSING;
+        }
+        my $value_ref = $re->value();
+        if ( not $value_ref ) {
+            $actual_result = 'No parse';
+            $actual_value  = 'No parse';
+            last PROCESSING;
+        }
+        my $lastHand = $re->range_to_string( $start, $end );
+        $actual_result = 'Parse OK';
+        $actual_value  = "Last hand successfully parsed was: $lastHand";
     } ## end PROCESSING:
 
     printf( "%-40s : %s\n", $input, $actual_value || "OK" );
+    my $test_name = 'Test of $input';
+    Test::More::is($actual_result, $expected_result, $test_name);
+    Test::More::is($expected_result, $expected_result, $test_name);
 } ## end for my $test_data (@tests)
 
-#
-# In case parse succeed but is incomplete: get last card parsed
-# -------------------------------------------------------------
-sub show_last_hand {
-  my ($re) = @_;
-
-  my ($start, $end) = $re->last_completed_range('hand');
-  return 'No source element was successfully parsed' if (! defined($start));
-  my $lastHand = $re->range_to_string($start, $end);
-  return "Last hand successfully parsed was: $lastHand";
-}
