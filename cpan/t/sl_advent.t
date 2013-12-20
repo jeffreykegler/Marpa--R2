@@ -14,7 +14,7 @@
 # General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 
-# This example is an example from a Perl 6 advent blog post
+# This example is from a Perl 6 advent blog post
 # (Day 18 2103) by Dwarring, adapted to Marpa by Jean-Damien
 # Durand.
 
@@ -117,7 +117,8 @@ for my $test_data (@tests) {
         my ( $suit_line, $suit_line_type ) = @{$suit_line_data};
         PROCESSING: {
 
-            # Note: in production, no need to recompute G each time
+            # Note: in production, you would compute the three grammar variants
+            # ahead of time.
             my $full_dsl = $base_dsl . $suit_line;
             my $grammar =
                 Marpa::R2::Scanless::G->new( { source => \$full_dsl } );
