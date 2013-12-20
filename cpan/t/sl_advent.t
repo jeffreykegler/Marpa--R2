@@ -34,8 +34,8 @@ use Marpa::R2;
 
 # Guess why
 # ---------
-binmode STDOUT, ':utf8';                                
-binmode STDERR, ':utf8';                                
+binmode STDOUT, ':utf8';
+binmode STDERR, ':utf8';
 
 # Grammar and test suite are in __DATA__
 # --------------------------------------
@@ -54,47 +54,64 @@ WS ~ [\s]
 END_OF_BASE_DSL
 
 my @tests = ();
-push @tests, [ '2♥ 5♥ 7♦ 8♣ 9♠',
-'Parse OK',
-'Parse OK'
- ];
-push @tests, [ '2♥ a♥ 7♦ 8♣ j♥',
-'Parse OK',
-'Parse OK'
- ];
-push @tests, [ 'a♥ a♥ 7♦ 8♣ j♥',
-'Parse stopped by application',
-'Duplicate card a♥'
- ];
-push @tests, [ 'a♥ 7♥ 7♦ 8♣ j♥; 10♥ j♥ q♥ k♥ a♥',
-'Parse stopped by application',
-'Duplicate card j♥'
- ];
-push @tests, [ '2♥ 7♥ 2♦ 3♣ 3♦',
-'Parse OK',
-'Parse OK'
- ];
-push @tests, [ '2♥ 7♥ 2♦ 3♣',
-'No parse',
-'No parse'
- ];
-push @tests, [ '2♥ 7♥ 2♦ 3♣ 3♦ 1♦',
-'No parse',
-<<'END_OF_MESSAGE'
-'Error in SLIF parse: No lexeme found at line 1, column 16
+push @tests,
+    [
+    '2♥ 5♥ 7♦ 8♣ 9♠',
+    'Parse OK',
+    'Hand was 2♥ 5♥ 7♦ 8♣ 9♠',
+    ];
+push @tests,
+    [
+    '2♥ a♥ 7♦ 8♣ j♥',
+    'Parse OK',
+    'Hand was 2♥ a♥ 7♦ 8♣ j♥',
+    ];
+push @tests,
+    [
+    'a♥ a♥ 7♦ 8♣ j♥',
+    'Parse stopped by application',
+    'Duplicate card a♥'
+    ];
+push @tests,
+    [
+    'a♥ 7♥ 7♦ 8♣ j♥; 10♥ j♥ q♥ k♥ a♥',
+    'Parse stopped by application',
+    'Duplicate card j♥'
+    ];
+push @tests,
+    [
+    '2♥ 7♥ 2♦ 3♣ 3♦',
+    'Parse OK',
+    'Hand was 2♥ 7♥ 2♦ 3♣ 3♦',
+    ];
+push @tests,
+    [
+    '2♥ 7♥ 2♦ 3♣',
+    'Parse reached end of input, but failed',
+    'No hands were found'
+    ];
+push @tests, [
+    '2♥ 7♥ 2♦ 3♣ 3♦ 1♦',
+    'Parse failed before end',
+    <<'END_OF_MESSAGE'
+Error in SLIF parse: No lexeme found at line 1, column 16
 * String before error: 2\x{2665} 7\x{2665} 2\x{2666} 3\x{2663} 3\x{2666}\s
 * The error was at line 1, column 16, and at character 0x0031 '1', ...
 * here: 1\x{2666}
 END_OF_MESSAGE
- ];
-push @tests, [ '2♥ 7♥ 2♦ 3♣',
-'No parse',
-'No parse'
- ];
-push @tests, [ 'a♥ 7♥ 7♦ 8♣ j♥; 10♥ j♣ q♥ k♥',
-'Parse failed after finding hand(s)',
-'Last hand successfully parsed was: a♥ 7♥ 7♦ 8♣ j♥'
- ];
+];
+push @tests,
+    [
+    '2♥ 7♥ 2♦ 3♣',
+    'Parse reached end of input, but failed',
+    'No hands were found'
+    ];
+push @tests,
+    [
+    'a♥ 7♥ 7♦ 8♣ j♥; 10♥ j♣ q♥ k♥',
+    'Parse failed after finding hand(s)',
+    'Last hand successfully parsed was a♥ 7♥ 7♦ 8♣ j♥'
+    ];
 
 for my $test_data (@tests) {
     my ( $input, $expected_result, $expected_value ) = @{$test_data};
@@ -122,33 +139,37 @@ for my $test_data (@tests) {
             }
             eval { $pos = $re->resume() };
             if ($EVAL_ERROR) {
-                $actual_result = "No parse";
+                $actual_result = "Parse failed before end";
                 $actual_value  = $EVAL_ERROR;
+                $actual_value
+                    =~ s/ ^ Marpa::R2 \s+ exception \s+ at \s .* \z//xms;
                 last PROCESSING;
-            }
+            } ## end if ($EVAL_ERROR)
         } while ( $pos < $length );
 
         my $value_ref = $re->value();
-        if ( $value_ref ) {
-            $actual_result = 'Parse OK';
-            $actual_value  = ${$value_ref};
-            last PROCESSING;
-        }
+        my $last_hand;
         my ( $start, $end ) = $re->last_completed_range('hand');
-        if ( not defined $start ) {
-            $actual_result = 'No parse';
-            $actual_value  = 'No parse';
+        if ( defined $start ) {
+            $last_hand = $re->range_to_string( $start, $end );
+        }
+        if ($value_ref) {
+            $actual_result = 'Parse OK';
+            $actual_value  = "Hand was $last_hand";
             last PROCESSING;
         }
-        my $lastHand = $re->range_to_string( $start, $end );
-        $actual_result = 'Parse failed after finding hand(s)';
-        $actual_value  = "Last hand successfully parsed was: $lastHand";
+        if ( defined $last_hand ) {
+            $actual_result = 'Parse failed after finding hand(s)';
+            $actual_value  = "Last hand successfully parsed was $last_hand";
+            last PROCESSING;
+        }
+        $actual_result = 'Parse reached end of input, but failed';
+        $actual_value  = 'No hands were found';
     } ## end PROCESSING:
 
-    printf STDERR ( "%-40s : %s\n", $input, $actual_value || "OK" );
     my $test_name = "Test of $input";
-    
-    Marpa::R2::Test::is($actual_result, $expected_result, $test_name);
-    Marpa::R2::Test::is($actual_value, $expected_value, $test_name);
+    Marpa::R2::Test::is( $actual_result, $expected_result, $test_name );
+    Marpa::R2::Test::is( $actual_value,  $expected_value,  $test_name );
 } ## end for my $test_data (@tests)
 
+# vim: expandtab shiftwidth=4:
