@@ -6048,14 +6048,12 @@ assign_AHFA_state (AHFA sought_state, MARPA_AVL_TREE duplicates)
           bv_or_assign (predicted_rule_vector,
                         matrix_row (prediction_matrix, postdot_nsyid));
         }
-      /* Add the predicted rule */
-      p_new_state->t_empty_transition = create_predicted_AHFA_state (g,
-                                                                     predicted_rule_vector,
-                                                                     irl_by_sort_key,
-                                                                     &states,
-                                                                     duplicates,
-                                                                     item_list_working_buffer
-                                                                     );
+      /* \comment Add the predicted rule */
+      p_new_state->t_empty_transition =
+        create_predicted_AHFA_state (g, predicted_rule_vector,
+                                 irl_by_sort_key, &states,
+                                 duplicates,
+                                 item_list_working_buffer);
       bv_free (predicted_rule_vector);
     }
 }
@@ -6065,11 +6063,13 @@ The method for building predicted AHFA states is optimized using
 precomputed boolean vectors.
 This should be very fast,
 but it is possible to think other methods might
-be better, at least in some cases.  The boolean vectors are $O(s)$ in length, where $s$ is the
+be better, at least in some cases.
+The boolean vectors are $O(s)$ in length, where $s$ is the
 size of the grammar, and so is the time complexity of the method used.
 @ It may be possible to look at a list of
 only the AHFA items actually present in each state,
-which might be $O(\log s)$ in the average case.  An advantage of the boolean vectors is they
+which might be $O(\log s)$ in the average case.
+An advantage of the boolean vectors is they
 implicitly perform a radix sort.
 This would have to be performed explicitly for an enumerated
 list of AHFA items, making the putative average case $O(\log s \cdot \log \log s)$.
@@ -6108,7 +6108,8 @@ states.
       /* If a symbol appears on a LHS, it predicts itself. */
       NSY nsy = NSY_by_ID (nsyid);
       if (!NSY_is_LHS(nsy)) continue;
-      matrix_bit_set (prediction_nsy_by_nsy_matrix, (unsigned int) nsyid, (unsigned int) nsyid);
+      matrix_bit_set (prediction_nsy_by_nsy_matrix, (unsigned int) nsyid,
+                (unsigned int) nsyid);
     }
   for (irl_id = 0; irl_id < irl_count; irl_id++)
     {
@@ -6254,9 +6255,10 @@ create_predicted_AHFA_state(
     return NULL;
   {
     unsigned int start, min, max;
+      // \comment Scan the prediction rule vector again, this time to populate the list
     for (start = 0; bv_scan (prediction_rule_vector, start, &min, &max);
          start = max + 2)
-      {                         // Scan the prediction rule vector again, this time to populate the list
+      {
         unsigned int sort_ordinal;
         for (sort_ordinal = min; sort_ordinal <= max; sort_ordinal++)
           {
@@ -6443,7 +6445,9 @@ PRIVATE TRANS* transitions_new(GRAMMAR g, int nsy_count)
 
 @ @<Function definitions@> =
 PRIVATE
-void transition_add(struct marpa_obstack *obstack, AHFA from_ahfa, NSYID nsyid, AHFA to_ahfa)
+void
+transition_add (struct marpa_obstack *obstack, AHFA from_ahfa, NSYID nsyid,
+                AHFA to_ahfa)
 {
     TRANS* transitions = TRANSs_of_AHFA(from_ahfa);
     TRANS transition = transitions[nsyid];
@@ -6696,8 +6700,10 @@ AHFAID _marpa_g_AHFA_state_empty_transition(Marpa_Grammar g,
                                (unsigned int) outer_nsyid,
                                (unsigned int) inner_nsyid))
             {
-              Event_Group_Size_of_AHFA (outer_ahfa)++;  /* |inner_ahfa == outer_ahfa|
-                                                           is not treated as special case */
+              /* |inner_ahfa == outer_ahfa|
+              is not treated as special case
+              */
+              Event_Group_Size_of_AHFA (outer_ahfa)++; 
             }
         }
     }
@@ -6943,7 +6949,8 @@ PRIVATE YS current_ys_of_r(RECCE r)
 @d DEFAULT_YIM_WARNING_THRESHOLD (100)
 @<Int aligned recognizer elements@> = int t_earley_item_warning_threshold;
 @ @<Initialize recognizer elements@> =
-r->t_earley_item_warning_threshold = MAX(DEFAULT_YIM_WARNING_THRESHOLD, AIM_Count_of_G(g)*2);
+r->t_earley_item_warning_threshold =
+    MAX (DEFAULT_YIM_WARNING_THRESHOLD, AIM_Count_of_G (g) * 2);
 @ @<Function definitions@> =
 int
 marpa_r_earley_item_warning_threshold (Marpa_Recognizer r)
@@ -7116,7 +7123,9 @@ Any other result is a failure.
 On success, returns the new value.
 Returns |-2| if there was a failure.
 @<Function definitions@> =
-int marpa_r_completion_symbol_activate(Marpa_Recognizer r, Marpa_Symbol_ID xsy_id, int reactivate)
+int
+marpa_r_completion_symbol_activate (Marpa_Recognizer r,
+                                    Marpa_Symbol_ID xsy_id, int reactivate)
 {
     @<Return |-2| on failure@>@;
     @<Unpack recognizer objects@>@;
@@ -7161,7 +7170,9 @@ Any other result is a failure.
 On success, returns the new value.
 Returns |-2| if there was a failure.
 @<Function definitions@> =
-int marpa_r_nulled_symbol_activate(Marpa_Recognizer r, Marpa_Symbol_ID xsy_id, int reactivate)
+int
+marpa_r_nulled_symbol_activate (Marpa_Recognizer r, Marpa_Symbol_ID xsy_id,
+                                int reactivate)
 {
     @<Return |-2| on failure@>@;
     @<Unpack recognizer objects@>@;
@@ -7206,7 +7217,9 @@ Any other result is a failure.
 On success, returns the new value.
 Returns |-2| if there was a failure.
 @<Function definitions@> =
-int marpa_r_prediction_symbol_activate(Marpa_Recognizer r, Marpa_Symbol_ID xsy_id, int reactivate)
+int
+marpa_r_prediction_symbol_activate (Marpa_Recognizer r,
+                                    Marpa_Symbol_ID xsy_id, int reactivate)
 {
     @<Return |-2| on failure@>@;
     @<Unpack recognizer objects@>@;
@@ -9187,8 +9200,10 @@ PRIVATE int alternative_insert(RECCE r, ALT new_alternative)
   int insertion_point = alternative_insertion_point (r, new_alternative);
   if (insertion_point < 0)
     return insertion_point;
-  end_of_stack = MARPA_DSTACK_PUSH(*alternatives, ALT_Object); // may change base
-  base_of_stack = MARPA_DSTACK_BASE(*alternatives, ALT_Object); // base will not change after this
+  // \comment may change base
+  end_of_stack = MARPA_DSTACK_PUSH(*alternatives, ALT_Object);
+  // \comment base will not change after this
+  base_of_stack = MARPA_DSTACK_BASE(*alternatives, ALT_Object);
    for (ix = end_of_stack-base_of_stack; ix > insertion_point; ix--) {
        base_of_stack[ix] = base_of_stack[ix-1];
    }
@@ -10288,12 +10303,14 @@ problems.
      is not added to a LIM chain again for this Earley set */
   while (1)
     {
-      lim_to_process = predecessor_lim; /* I know at this point that
-                                           |predecessor_lim| is unpopulated, so I also know that
-                                           |lim_to_process| is unpopulated.  This means I also know that
-                                           |lim_to_process| is in the current Earley set, because all LIMs
-                                           in previous Earley sets are already
-                                           populated. */
+      /* \comment I know at this point that
+       |predecessor_lim| is unpopulated, so I also know that
+       |lim_to_process| is unpopulated.  This means I also know that
+       |lim_to_process| is in the current Earley set, because all LIMs
+       in previous Earley sets are already
+       populated.
+       */
+      lim_to_process = predecessor_lim;
       postdot_nsyid_of_lim_to_process = Postdot_NSYID_of_LIM (lim_to_process);
       if (!bv_bit_test
           (bv_ok_for_chain, (unsigned int) postdot_nsyid_of_lim_to_process))
@@ -10315,9 +10332,10 @@ problems.
                     (unsigned int) postdot_nsyid_of_lim_to_process);
       /* Make sure this LIM
          is not added to a LIM chain again for this Earley set */
+        /* \comment |predecesssor_lim = NULL|,
+       so that we are forced to break the LIM chain before it */
       if (!predecessor_lim)
-        break;                  /* |predecesssor_lim = NULL|,
-                                   so that we are forced to break the LIM chain before it */
+        break;                 
       if (LIM_is_Populated (predecessor_lim))
         break;
       /* |predecesssor_lim| is populated, so that if we
