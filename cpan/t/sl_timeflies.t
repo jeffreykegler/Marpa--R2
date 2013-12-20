@@ -135,8 +135,6 @@ for my $sentence (split /\n/, $paragraph){
     }
 }
 
-package PennTags;
-
 my %s_tags; # structural tags
 
 sub PennTags::S::bracket   { 
@@ -149,18 +147,16 @@ sub PennTags::S::bracket   {
     $tag = '.' if $tag eq 'period';
     if (ref $contents->[0]){
         $bracketed .= 
-                "($tag " # :$level 
+                "($tag "
             .   join(' ', map { PennTags::S::bracket($_) } @$contents) 
             .   ")";
     }
     else {
-        $bracketed .= "($tag $contents->[0])"; # :$level
+        $bracketed .= "($tag $contents->[0])";
     }
     $level--;
     return $bracketed;
 }
-
-package main;
 
 Marpa::R2::Test::is( ( join "\n", @actual ) . "\n",
     $expected, 'Ambiguous English sentences' );
