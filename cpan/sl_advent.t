@@ -24,6 +24,9 @@ use warnings;
 use English qw( -no_match_vars );
 use utf8;
 
+# This next line is so that Test::More works with utf8
+use open ':std', ':encoding(utf8)';
+
 use Test::More tests => 18;
 use lib 'inc';
 use Marpa::R2::Test;
@@ -32,6 +35,7 @@ use Marpa::R2;
 # Guess why
 # ---------
 binmode STDOUT, ':utf8';                                
+binmode STDERR, ':utf8';                                
 
 # Grammar and test suite are in __DATA__
 # --------------------------------------
@@ -88,8 +92,8 @@ push @tests, [ '2♥ 7♥ 2♦ 3♣',
 'No parse'
  ];
 push @tests, [ 'a♥ 7♥ 7♦ 8♣ j♥; 10♥ j♣ q♥ k♥',
-'Parse OK',
-'Parse OK'
+'Parse failed after finding hand(s)',
+'Last hand successfully parsed was: a♥ 7♥ 7♦ 8♣ j♥'
  ];
 
 for my $test_data (@tests) {
@@ -124,26 +128,27 @@ for my $test_data (@tests) {
             }
         } while ( $pos < $length );
 
+        my $value_ref = $re->value();
+        if ( $value_ref ) {
+            $actual_result = 'Parse OK';
+            $actual_value  = ${$value_ref};
+            last PROCESSING;
+        }
         my ( $start, $end ) = $re->last_completed_range('hand');
         if ( not defined $start ) {
             $actual_result = 'No parse';
             $actual_value  = 'No parse';
             last PROCESSING;
         }
-        my $value_ref = $re->value();
-        if ( not $value_ref ) {
-            $actual_result = 'No parse';
-            $actual_value  = 'No parse';
-            last PROCESSING;
-        }
         my $lastHand = $re->range_to_string( $start, $end );
-        $actual_result = 'Parse OK';
+        $actual_result = 'Parse failed after finding hand(s)';
         $actual_value  = "Last hand successfully parsed was: $lastHand";
     } ## end PROCESSING:
 
-    printf( "%-40s : %s\n", $input, $actual_value || "OK" );
-    my $test_name = 'Test of $input';
-    Test::More::is($actual_result, $expected_result, $test_name);
-    Test::More::is($expected_result, $expected_result, $test_name);
+    printf STDERR ( "%-40s : %s\n", $input, $actual_value || "OK" );
+    my $test_name = "Test of $input";
+    
+    Marpa::R2::Test::is($actual_result, $expected_result, $test_name);
+    Marpa::R2::Test::is($actual_value, $expected_value, $test_name);
 } ## end for my $test_data (@tests)
 
