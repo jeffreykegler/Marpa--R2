@@ -22,23 +22,14 @@ use 5.010;
 use strict;
 use warnings;
 use English qw( -no_match_vars );
-use utf8;
-
-# This next line is so that Test::More works with utf8
 use open ':std', ':encoding(utf8)';
+use utf8;
 
 use Test::More tests => 54;
 use lib 'inc';
 use Marpa::R2::Test;
 use Marpa::R2;
 
-# Guess why
-# ---------
-binmode STDOUT, ':utf8';
-binmode STDERR, ':utf8';
-
-# Grammar and test suite are in __DATA__
-# --------------------------------------
 my $base_dsl = <<'END_OF_BASE_DSL';
 :start ::= deal
 deal ::= hands
