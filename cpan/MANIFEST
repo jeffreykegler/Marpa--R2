@@ -121,6 +121,7 @@ libmarpa/dev/Makefile
 libmarpa/dev/marpa.w
 libmarpa/dev/README
 libmarpa/dev/texi2code.pl
+libmarpa/dev/too_long.pl
 libmarpa/dev/w2private_h.pl
 libmarpa_dist/aclocal.m4
 libmarpa_dist/ami_private.h

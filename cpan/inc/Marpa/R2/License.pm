@@ -290,6 +290,7 @@ my %files_by_type = (
     'libmarpa/dev/dist/VERSION.in'          => \&trivial,
     'libmarpa_dist/VERSION'                 => \&trivial,
     'libmarpa_dist/VERSION.in'              => \&trivial,
+    'libmarpa/dev/too_long.pl' => \&trivial,
     'libmarpa/dev/copyright_page_license.w' => \&copyright_page,
     'libmarpa/dev/cwebmac.tex' =>
         \&ignored,    # originally from Cweb, leave it alone
