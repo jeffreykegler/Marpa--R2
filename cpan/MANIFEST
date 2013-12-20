@@ -314,6 +314,7 @@ t/sequence2.t
 t/sequence.t
 t/sl_action2.t
 t/sl_action.t
+t/sl_advent.t
 t/sl_ah2.t
 t/sl_ambig.t
 t/sl_astsyn.t

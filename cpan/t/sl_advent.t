@@ -27,7 +27,7 @@ use utf8;
 # This next line is so that Test::More works with utf8
 use open ':std', ':encoding(utf8)';
 
-use Test::More tests => 18;
+use Test::More tests => 54;
 use lib 'inc';
 use Marpa::R2::Test;
 use Marpa::R2;
@@ -46,7 +46,6 @@ hands ::= hand | hands ';' hand
 hand ::= card card card card card
 card ~ face suit
 face ~ [2-9jqka] | '10'
-suit ~ [\x{2665}\x{2666}\x{2663}\x{2660}]
 WS ~ [\s]
 :discard ~ WS
 
@@ -113,63 +112,76 @@ push @tests,
     'Last hand successfully parsed was a♥ 7♥ 7♦ 8♣ j♥'
     ];
 
+my @suit_line = (
+    [ 'suit ~ [\x{2665}\x{2666}\x{2663}\x{2660}]', 'hex' ],
+    [ 'suit ~ [♥♦♣♠]',                     'char class' ],
+    [ q{suit ~ '♥' | '♦' | '♣'| '♠'},      'strings' ],
+);
+
 for my $test_data (@tests) {
     my ( $input, $expected_result, $expected_value ) = @{$test_data};
     my ( $actual_result, $actual_value );
 
-    PROCESSING: {
+    for my $suit_line_data (@suit_line) {
+        my ( $suit_line, $suit_line_type ) = @{$suit_line_data};
+        PROCESSING: {
 
-        # Note: in production, no need to recompute G each time
-        my $grammar = Marpa::R2::Scanless::G->new( { source => \$base_dsl } );
-        my $re = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
-        my $length = length $input;
+            # Note: in production, no need to recompute G each time
+            my $full_dsl = $base_dsl . $suit_line;
+            my $grammar =
+                Marpa::R2::Scanless::G->new( { source => \$full_dsl } );
+            my $re = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
+            my $length = length $input;
 
-        my %played = ();
-        my $pos = eval { $re->read( \$input ) };
-        return $@ if $@;
-        do {
-            # In our example there is a single event: no need to ask Marpa what it is
-            my ( $start, $length ) =
-                $re->g1_location_to_span( $re->current_g1_location() );
-            my $card = $re->literal( $start, $length );
-            if ( ++$played{$card} > 1 ) {
-                $actual_result = 'Parse stopped by application';
-                $actual_value  = "Duplicate card " . $card;
+            my %played = ();
+            my $pos = eval { $re->read( \$input ) };
+            return $@ if $@;
+            do {
+                # In our example there is a single event: no need to ask Marpa what it is
+                my ( $start, $length ) =
+                    $re->g1_location_to_span( $re->current_g1_location() );
+                my $card = $re->literal( $start, $length );
+                if ( ++$played{$card} > 1 ) {
+                    $actual_result = 'Parse stopped by application';
+                    $actual_value  = "Duplicate card " . $card;
+                    last PROCESSING;
+                }
+                eval { $pos = $re->resume() };
+                if ($EVAL_ERROR) {
+                    $actual_result = "Parse failed before end";
+                    $actual_value  = $EVAL_ERROR;
+                    $actual_value
+                        =~ s/ ^ Marpa::R2 \s+ exception \s+ at \s .* \z//xms;
+                    last PROCESSING;
+                } ## end if ($EVAL_ERROR)
+            } while ( $pos < $length );
+
+            my $value_ref = $re->value();
+            my $last_hand;
+            my ( $start, $end ) = $re->last_completed_range('hand');
+            if ( defined $start ) {
+                $last_hand = $re->range_to_string( $start, $end );
+            }
+            if ($value_ref) {
+                $actual_result = 'Parse OK';
+                $actual_value  = "Hand was $last_hand";
                 last PROCESSING;
             }
-            eval { $pos = $re->resume() };
-            if ($EVAL_ERROR) {
-                $actual_result = "Parse failed before end";
-                $actual_value  = $EVAL_ERROR;
-                $actual_value
-                    =~ s/ ^ Marpa::R2 \s+ exception \s+ at \s .* \z//xms;
+            if ( defined $last_hand ) {
+                $actual_result = 'Parse failed after finding hand(s)';
+                $actual_value =
+                    "Last hand successfully parsed was $last_hand";
                 last PROCESSING;
-            } ## end if ($EVAL_ERROR)
-        } while ( $pos < $length );
+            } ## end if ( defined $last_hand )
+            $actual_result = 'Parse reached end of input, but failed';
+            $actual_value  = 'No hands were found';
+        } ## end PROCESSING:
 
-        my $value_ref = $re->value();
-        my $last_hand;
-        my ( $start, $end ) = $re->last_completed_range('hand');
-        if ( defined $start ) {
-            $last_hand = $re->range_to_string( $start, $end );
-        }
-        if ($value_ref) {
-            $actual_result = 'Parse OK';
-            $actual_value  = "Hand was $last_hand";
-            last PROCESSING;
-        }
-        if ( defined $last_hand ) {
-            $actual_result = 'Parse failed after finding hand(s)';
-            $actual_value  = "Last hand successfully parsed was $last_hand";
-            last PROCESSING;
-        }
-        $actual_result = 'Parse reached end of input, but failed';
-        $actual_value  = 'No hands were found';
-    } ## end PROCESSING:
-
-    my $test_name = "Test of $input";
-    Marpa::R2::Test::is( $actual_result, $expected_result, $test_name );
-    Marpa::R2::Test::is( $actual_value,  $expected_value,  $test_name );
+        Marpa::R2::Test::is( $actual_result, $expected_result,
+            "Result of $input using $suit_line_type" );
+        Marpa::R2::Test::is( $actual_value, $expected_value,
+            "Value of $input using $suit_line_type" );
+    } ## end for my $suit_line_data (@suit_line)
 } ## end for my $test_data (@tests)
 
 # vim: expandtab shiftwidth=4:
