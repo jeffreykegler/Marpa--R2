@@ -677,8 +677,7 @@ my $libmarpa_trace_event_handlers = {
     },
     'g1 pausing before lexeme' => sub {
         my ( $slr, $event ) = @_;
-        my ( undef, undef, $start, $length, $lexeme_id ) = @{$event};
-        my $end = $start + $length - 1;
+        my ( undef, undef, $start, $end, $lexeme_id ) = @{$event};
         my $thick_g1_recce =
             $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
         my $thick_g1_grammar = $thick_g1_recce->grammar();
@@ -692,8 +691,7 @@ my $libmarpa_trace_event_handlers = {
     },
     'g1 pausing after lexeme' => sub {
         my ( $slr, $event ) = @_;
-        my ( undef, undef, $start, $length, $lexeme_id ) = @{$event};
-        my $end = $start + $length - 1;
+        my ( undef, undef, $start, $end, $lexeme_id ) = @{$event};
         my $thick_g1_recce =
             $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
         my $thick_g1_grammar = $thick_g1_recce->grammar();
