@@ -154,7 +154,8 @@ To be sure, when I say
 $$|To_AHFA_of_YIM_by_NSYID|$$
 that is pretty incomprehensible.
 But is
-$$Aycock\_Horspool\_Finite\_Automaton\_To\_State\_of\_Earley\_Item\_by\_Internal\_Symbol\_ID$$
+$$Aycock\_Horspool\_FA\_To\_State\_of\_Earley\_Item\_by\_Internal\_Symbol\_ID$$,
+(where the FA must still be abbreviated to allow the line to fit into 80 characters)
 really any better?
 \par
 My experience say no.
@@ -193,7 +194,9 @@ the more thorough the documentation.
 
 @** Design.
 @*0 Layers.
-|libmarpa|, the library described in this document, is intended as the bottom of potentially
+|libmarpa|,
+the library described in this document,
+is intended as the bottom of potentially
 four layers.
 The layers are, from low to high
 \li |libmarpa|
@@ -3282,7 +3285,8 @@ PRIVATE_NOT_INLINE int sym_rule_cmp(
     RULEID *p_rule_data = rule_data_base;
     traverser = _marpa_avl_t_init (rhs_avl_tree);
     /* \comment One extra "symbol" as an end marker */
-    xrl_list_x_rh_sym = marpa_obs_new (obs_precompute, RULEID*, pre_census_xsy_count + 1);
+    xrl_list_x_rh_sym =
+      marpa_obs_new (obs_precompute, RULEID *, pre_census_xsy_count + 1);
     for (pair = _marpa_avl_t_first (traverser); pair;
          pair = (struct sym_rule_pair*)_marpa_avl_t_next (traverser))
       {
@@ -3443,28 +3447,30 @@ where many of the right hand sides repeat symbols.
 @<Calculate reach matrix@> =
 {
   XRLID rule_id;
-  reach_matrix = matrix_obs_create (obs_precompute, pre_census_xsy_count, pre_census_xsy_count);
+  reach_matrix =
+    matrix_obs_create (obs_precompute, pre_census_xsy_count,
+		       pre_census_xsy_count);
   for (rule_id = 0; rule_id < xrl_count; rule_id++)
     {
       XRL rule = XRL_by_ID (rule_id);
       XSYID lhs_id = LHS_ID_of_RULE (rule);
       unsigned int rhs_ix, rule_length = Length_of_XRL (rule);
       for (rhs_ix = 0; rhs_ix < rule_length; rhs_ix++)
-        {
-          matrix_bit_set (reach_matrix,
-                          (unsigned int) lhs_id,
-                          (unsigned int) RHS_ID_of_RULE (rule, rhs_ix));
-        }
+	{
+	  matrix_bit_set (reach_matrix,
+			  (unsigned int) lhs_id,
+			  (unsigned int) RHS_ID_of_RULE (rule, rhs_ix));
+	}
       if (XRL_is_Sequence (rule))
-        {
-          const XSYID separator_id = Separator_of_XRL (rule);
-          if (separator_id >= 0)
-            {
-              matrix_bit_set (reach_matrix,
-                              (unsigned int) lhs_id,
-                              (unsigned int) separator_id);
-            }
-        }
+	{
+	  const XSYID separator_id = Separator_of_XRL (rule);
+	  if (separator_id >= 0)
+	    {
+	      matrix_bit_set (reach_matrix,
+			      (unsigned int) lhs_id,
+			      (unsigned int) separator_id);
+	    }
+	}
     }
   transitive_closure (reach_matrix);
 }
@@ -3598,7 +3604,8 @@ But currently we don't both -- we just mark the rule unproductive.
      /* \comment A sequence rule is nulling if its RHS is nulling */
   XRL_is_Nulling (xrl) = XSY_is_Nulling (rh_xsy);
     
-     /* \comment A sequence rule is productive if it is nulling or if its RHS is productive */
+     /* \comment A sequence rule is productive
+     if it is nulling or if its RHS is productive */
   XRL_is_Productive (xrl) = XRL_is_Nullable (xrl) || XSY_is_Productive (rh_xsy);
 
   // \comment Initialize to used if accessible and RHS is productive
@@ -4000,7 +4007,8 @@ rule.
     int second_factor_position = factor_positions[factor_position_ix+1];
     if (second_factor_position >= nullable_suffix_ix) {
         piece_end = second_factor_position-1;
-        /* The last factor is in the nullable suffix, so the virtual RHS must be nullable */
+        /* \comment The last factor is in the nullable suffix,
+            so the virtual RHS must be nullable */
         @<Create a CHAF virtual symbol@>@;
         @<Add CHAF rules for nullable continuation@>@;
         factor_position_ix++;
@@ -4319,39 +4327,41 @@ a nulling rule.
 @<Add final CHAF NN rule for two factors@> =
 {
   if (piece_start < nullable_suffix_ix) {
-      int piece_ix;
-      const int first_nulling_piece_ix = first_factor_position - piece_start;
-      const int second_nulling_piece_ix = second_factor_position - piece_start;
-      const int chaf_irl_length = (piece_end - piece_start) + 1;
-      IRL chaf_irl = irl_start (g, chaf_irl_length);
-      LHSID_of_IRL (chaf_irl) = current_lhs_nsyid;
-      for (piece_ix = 0; piece_ix < first_nulling_piece_ix; piece_ix++)
-        {
-          RHSID_of_IRL (chaf_irl, piece_ix) =
-            NSYID_by_XSYID(RHS_ID_of_RULE
-                                 (rule, piece_start + piece_ix));
-        }
-      RHSID_of_IRL (chaf_irl, first_nulling_piece_ix) =
-        Nulling_NSYID_by_XSYID(RHS_ID_of_RULE (rule, piece_start + first_nulling_piece_ix));
-      for (piece_ix = first_nulling_piece_ix + 1; piece_ix < second_nulling_piece_ix;
-           piece_ix++)
-        {
-          RHSID_of_IRL (chaf_irl, piece_ix) =
-            NSYID_by_XSYID(RHS_ID_of_RULE
-                                 (rule, piece_start + piece_ix));
-        }
-      RHSID_of_IRL (chaf_irl, second_nulling_piece_ix) =
-        Nulling_NSYID_by_XSYID(RHS_ID_of_RULE (rule, piece_start + second_nulling_piece_ix));
-      for (piece_ix = second_nulling_piece_ix + 1; piece_ix < chaf_irl_length;
-           piece_ix++)
-        {
-          RHSID_of_IRL (chaf_irl, piece_ix) =
-            NSYID_by_XSYID(RHS_ID_of_RULE
-                                 (rule, piece_start + piece_ix));
-        }
-      irl_finish (g, chaf_irl);
-      Rank_of_IRL(chaf_irl) = IRL_CHAF_Rank_by_XRL(rule, 0);
-      @<Add CHAF IRL@>@;
+    int piece_ix;
+    const int first_nulling_piece_ix = first_factor_position - piece_start;
+    const int second_nulling_piece_ix = second_factor_position - piece_start;
+    const int chaf_irl_length = (piece_end - piece_start) + 1;
+    IRL chaf_irl = irl_start (g, chaf_irl_length);
+    LHSID_of_IRL (chaf_irl) = current_lhs_nsyid;
+    for (piece_ix = 0; piece_ix < first_nulling_piece_ix; piece_ix++)
+      {
+        RHSID_of_IRL (chaf_irl, piece_ix) =
+          NSYID_by_XSYID (RHS_ID_of_RULE (rule, piece_start + piece_ix));
+      }
+
+    RHSID_of_IRL (chaf_irl, first_nulling_piece_ix) =
+    Nulling_NSYID_by_XSYID (RHS_ID_of_RULE
+                            (rule, piece_start + first_nulling_piece_ix));
+    for (piece_ix = first_nulling_piece_ix + 1;
+         piece_ix < second_nulling_piece_ix; piece_ix++)
+      {
+        RHSID_of_IRL (chaf_irl, piece_ix) =
+          NSYID_by_XSYID (RHS_ID_of_RULE (rule, piece_start + piece_ix));
+      }
+
+    RHSID_of_IRL (chaf_irl, second_nulling_piece_ix) =
+    Nulling_NSYID_by_XSYID (RHS_ID_of_RULE
+                            (rule, piece_start + second_nulling_piece_ix));
+    for (piece_ix = second_nulling_piece_ix + 1; piece_ix < chaf_irl_length;
+         piece_ix++)
+      {
+        RHSID_of_IRL (chaf_irl, piece_ix) =
+          NSYID_by_XSYID (RHS_ID_of_RULE (rule, piece_start + piece_ix));
+      }
+
+    irl_finish (g, chaf_irl);
+    Rank_of_IRL (chaf_irl) = IRL_CHAF_Rank_by_XRL (rule, 0);
+    @<Add CHAF IRL@>@;
   }
 }
 
@@ -5541,7 +5551,8 @@ PRIVATE_NOT_INLINE int AHFA_state_cmp(
   singleton_duplicates = marpa_new (AHFA, no_of_items_in_grammar);
   for (item_id = 0; item_id < no_of_items_in_grammar; item_id++)
     {
-      singleton_duplicates[item_id] = NULL;     // All zero bits are not necessarily a NULL pointer
+      singleton_duplicates[item_id] = NULL;
+      // All zero bits are not necessarily a NULL pointer
     }
 }
 
@@ -5552,11 +5563,11 @@ PRIVATE_NOT_INLINE int AHFA_state_cmp(
   AIM *item_list;
   NSYID working_nsyid;
   item_list = p_working_state->t_items;
-  working_nsyid = Postdot_NSYID_of_AIM (item_list[0]);  /*
-                                                           Every AHFA has at least one item */
+  /* \comment Every AHFA has at least one item */
+  working_nsyid = Postdot_NSYID_of_AIM (item_list[0]); 
+    /* \comment All items in this state are completions */
   if (working_nsyid < 0)
-    goto NEXT_AHFA_STATE;       /*
-                                   All items in this state are completions */
+    goto NEXT_AHFA_STATE;   
   while (1)
     {                           /* Loop over all items for this state */
       int first_working_item_ix = current_item_ix;
@@ -5590,25 +5601,32 @@ NEXT_AHFA_STATE:;
 @ Here is where the final transitions are allocated.
 @<Resize the transitions@> =
 {
-     int ahfa_id;
-     for (ahfa_id = 0; ahfa_id < ahfa_count_of_g; ahfa_id++) {
-          NSYID nsyid;
-          AHFA ahfa = AHFA_of_G_by_ID(g, ahfa_id);
-          TRANS* const transitions = TRANSs_of_AHFA(ahfa);
-          for (nsyid = 0; nsyid < nsy_count; nsyid++) {
-               TRANS working_transition = transitions[nsyid];
-               if (working_transition) {
-                   int completion_count = Completion_Count_of_TRANS(working_transition);
-                   int sizeof_transition =
-                       offsetof (struct s_transition, t_aex) + completion_count *
-                       sizeof (transitions[0]->t_aex[0]);
-                   TRANS new_transition = marpa_obs_alloc(g->t_obs, sizeof_transition);
-                   LV_To_AHFA_of_TRANS(new_transition) = To_AHFA_of_TRANS(working_transition);
-                   LV_Completion_Count_of_TRANS(new_transition) = 0;
-                   transitions[nsyid] = new_transition;
-               }
-          }
+  int ahfa_id;
+  for (ahfa_id = 0; ahfa_id < ahfa_count_of_g; ahfa_id++)
+    {
+      NSYID nsyid;
+      AHFA ahfa = AHFA_of_G_by_ID (g, ahfa_id);
+      TRANS *const transitions = TRANSs_of_AHFA (ahfa);
+      for (nsyid = 0; nsyid < nsy_count; nsyid++)
+        {
+          TRANS working_transition = transitions[nsyid];
+          if (working_transition)
+            {
+              int completion_count =
+                Completion_Count_of_TRANS (working_transition);
+              int sizeof_transition =
+                offsetof (struct s_transition,
+                          t_aex) +
+                completion_count * sizeof (transitions[0]->t_aex[0]);
+              TRANS new_transition =
+                marpa_obs_alloc (g->t_obs, sizeof_transition);
+              LV_To_AHFA_of_TRANS (new_transition) =
+                To_AHFA_of_TRANS (working_transition);
+              LV_Completion_Count_of_TRANS (new_transition) = 0;
+              transitions[nsyid] = new_transition;
+            }
         }
+    }
 }
 
 @ Earlier we counted the number of completions,
@@ -16520,4 +16538,4 @@ in various ways or which are otherwise useful.
 
 @** Index.
 
-% vim: set expandtab shiftwidth=4:
+% vim: set expandtab shiftwidth=2:
