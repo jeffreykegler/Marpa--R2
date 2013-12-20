@@ -1178,11 +1178,16 @@ u_pos_span_to_literal_sv (Scanless_R * slr,
   dTHX;
   STRLEN dummy;
   char *input = SvPV (slr->input, dummy);
+  SV* new_sv;
   int start_offset = POS_TO_OFFSET (slr, start_pos);
   int length_in_bytes =
     POS_TO_OFFSET (slr,
                    start_pos + length_in_positions) - start_offset;
-  return newSVpvn (input + start_offset, length_in_bytes);
+  new_sv = newSVpvn (input + start_offset, length_in_bytes);
+  if (SvUTF8(slr->input)) {
+     SvUTF8_on(new_sv);
+  }
+  return new_sv;
 }
 
 static SV*
