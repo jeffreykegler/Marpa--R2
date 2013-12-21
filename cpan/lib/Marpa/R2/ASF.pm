@@ -1417,6 +1417,8 @@ sub Marpa::R2::Internal::ASF::Traverse::rh_value {
     my $factoring = $factorings[$factoring_ix];
     return if $rh_ix > $#{$factoring};
     my $downglade_id = $factoring->[$rh_ix];
+    my $memoized_value = $traverser->[Marpa::R2::Internal::ASF::Traverse::VALUES]->[$downglade_id];
+    return $memoized_value if defined $memoized_value;
     my $asf = $traverser->[Marpa::R2::Internal::ASF::Traverse::ASF];
     my $downglade    = glade_obtain( $asf, $downglade_id );
     my $blessing     = ref $traverser;
