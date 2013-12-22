@@ -148,6 +148,15 @@ sub Marpa::R2::Scanless::G::set {
 sub Marpa::R2::Internal::Scanless::G::set {
     my ( $slg, $method, @hash_ref_args ) = @_;
 
+    state $set_method_args =
+        { map { ( $_, 1 ); } qw(trace_file_handle) };
+    state $new_method_args = {
+        map { ( $_, 1 ); } qw(
+        action_object
+        bless_package
+        default_action
+        source), keys %{$set_method_args} };
+
     for my $args (@hash_ref_args) {
         my $ref_type = ref $args;
         if ( not $ref_type ) {
@@ -171,6 +180,19 @@ sub Marpa::R2::Internal::Scanless::G::set {
         }
     }
 
+    my $ok_args = $set_method_args;
+    $ok_args = $new_method_args            if $method eq 'new';
+    my @bad_args = grep { not $ok_args->{$_} } keys %flat_args;
+    if ( scalar @bad_args ) {
+        Marpa::R2::exception(
+            q{Bad named argument(s) to $slr->}
+                . $method
+                . q{() method: }
+                . join q{ },
+            @bad_args
+        );
+    } ## end if ( scalar @bad_args )
+
     # Other possible grammar options:
     # actions
     # default_rank
@@ -190,10 +212,6 @@ sub Marpa::R2::Internal::Scanless::G::set {
                 ->set( { $arg_name => $value } );
             next ARG;
         } ## end if ( $arg_name eq 'trace_file_handle' )
-        Carp::croak(
-            '$slg->set does not know one of the options given to it:',
-            qq{\n   The options not recognized was "$arg_name"\n}
-        );
     }
 
     return $slg;
