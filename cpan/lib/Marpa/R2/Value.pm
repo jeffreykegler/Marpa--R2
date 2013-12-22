@@ -649,26 +649,28 @@ sub Marpa::R2::Recognizer::value {
                 // $grammar->[Marpa::R2::Internal::Grammar::ACTION_OBJECT];
         } ## end if ( $package_source eq 'legacy' )
 
-        if (defined(
-                my $action_object_class =
-                    $grammar->[Marpa::R2::Internal::Grammar::ACTION_OBJECT]
-            )
-            )
-        {
-            my $constructor_name = $action_object_class . q{::new};
+        FIND_CONSTRUCTOR: {
+            my $constructor_package =
+                ( $package_source eq 'legacy' )
+                ? $grammar->[Marpa::R2::Internal::Grammar::ACTION_OBJECT]
+                : $recce->[Marpa::R2::Internal::Recognizer::RESOLVE_PACKAGE];
+            last FIND_CONSTRUCTOR if not defined $constructor_package;
+            my $constructor_name = $constructor_package . q{::new};
             my $resolve_error;
             my $resolution =
                 Marpa::R2::Internal::Recognizer::resolve_action( $recce,
                 $constructor_name, \$resolve_error );
+            if ($resolution) {
+                $recce->[
+                    Marpa::R2::Internal::Recognizer::PER_PARSE_CONSTRUCTOR
+                ] = $resolution->[1];
+                last FIND_CONSTRUCTOR;
+            } ## end if ($resolution)
+            last FIND_CONSTRUCTOR if $package_source ne 'legacy';
             Marpa::R2::exception(
                 qq{Could not find constructor "$constructor_name"},
-                q{  }, ( $resolve_error // 'Failed to resolve action' ) )
-                if not $resolution;
-            (   undef,
-                $recce
-                    ->[Marpa::R2::Internal::Recognizer::PER_PARSE_CONSTRUCTOR]
-            ) = @{$resolution};
-        } ## end if ( defined( my $action_object_class = $grammar->[...]))
+                q{  }, ( $resolve_error // 'Failed to resolve action' ) );
+        } ## end FIND_CONSTRUCTOR:
 
         my $resolve_error;
 
