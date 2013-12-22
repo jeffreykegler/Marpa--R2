@@ -59,11 +59,11 @@ sub Marpa::R2::Internal::Scanless::meta_grammar {
 sub Marpa::R2::Scanless::G::new {
     my ( $class, $args ) = @_;
 
-    my $self = [];
-    bless $self, $class;
+    my $slg = [];
+    bless $slg, $class;
 
-    $self->[Marpa::R2::Inner::Scanless::G::TRACE_FILE_HANDLE]       = *STDERR;
-    $self->[Marpa::R2::Inner::Scanless::G::CACHE_RULEIDS_BY_LHS_NAME] = {};
+    $slg->[Marpa::R2::Inner::Scanless::G::TRACE_FILE_HANDLE]       = *STDERR;
+    $slg->[Marpa::R2::Inner::Scanless::G::CACHE_RULEIDS_BY_LHS_NAME] = {};
 
     my $ref_type = ref $args;
     if ( not $ref_type ) {
@@ -87,20 +87,20 @@ sub Marpa::R2::Scanless::G::new {
     # warnings
 
     my $rules_source;
-    $self->[Marpa::R2::Inner::Scanless::G::G1_ARGS] = {};
+    $slg->[Marpa::R2::Inner::Scanless::G::G1_ARGS] = {};
     ARG: for my $arg_name ( keys %{$args} ) {
         my $value = $args->{$arg_name};
         if ( $arg_name eq 'action_object' ) {
-            $self->[Marpa::R2::Inner::Scanless::G::G1_ARGS]->{$arg_name} =
+            $slg->[Marpa::R2::Inner::Scanless::G::G1_ARGS]->{$arg_name} =
                 $value;
             next ARG;
         }
         if ( $arg_name eq 'bless_package' ) {
-            $self->[Marpa::R2::Inner::Scanless::G::BLESS_PACKAGE] = $value;
+            $slg->[Marpa::R2::Inner::Scanless::G::BLESS_PACKAGE] = $value;
             next ARG;
         }
         if ( $arg_name eq 'default_action' ) {
-            $self->[Marpa::R2::Inner::Scanless::G::G1_ARGS]->{$arg_name} =
+            $slg->[Marpa::R2::Inner::Scanless::G::G1_ARGS]->{$arg_name} =
                 $value;
             next ARG;
         }
@@ -108,7 +108,7 @@ sub Marpa::R2::Scanless::G::new {
             $rules_source = $value;
             next ARG;
         }
-        $self->set( { $arg_name => $value });
+        $slg->set( { $arg_name => $value });
         next ARG;
     } ## end ARG: for my $arg_name ( keys %{$args} )
 
@@ -127,25 +127,48 @@ sub Marpa::R2::Scanless::G::new {
     } ## end if ( $ref_type ne 'SCALAR' )
     my $ast = Marpa::R2::Internal::MetaAST->new( $rules_source );
     my $hashed_ast = $ast->ast_to_hash();
-    $self->_hash_to_runtime($hashed_ast);
+    $slg->_hash_to_runtime($hashed_ast);
 
-    return $self;
+    return $slg;
 
 } ## end sub Marpa::R2::Scanless::G::new
 
 sub Marpa::R2::Scanless::G::set {
-    my ( $slg, $args ) = @_;
+    my ( $slg, @args ) = @_;
+    return Marpa::R2::Internal::Scanless::G::set ( $slg, 'set', @args );
+}
 
-    my $ref_type = ref $args;
-    if ( not $ref_type ) {
-        Carp::croak(
-            "\$slg->set() expects args as ref to HASH; arg was non-reference"
-        );
-    }
-    if ( $ref_type ne 'HASH' ) {
-        Carp::croak(
-            "\$slg->set() expects args as ref to HASH, got ref to $ref_type instead"
-        );
+# The context flag indicates whether this set is called directly by the user
+# or is for series reset or the constructor.  "Context" flags of this kind
+# are much decried practice, and for good reason, but in this case
+# I think it is justified.
+# This logic really needs to be all in one place, and so a flag
+# to trigger the minor differences needed by the various calling
+# contexts is a small price to pay.
+sub Marpa::R2::Internal::Scanless::G::set {
+    my ( $slg, $method, @hash_ref_args ) = @_;
+
+    for my $args (@hash_ref_args) {
+        my $ref_type = ref $args;
+        if ( not $ref_type ) {
+            Marpa::R2::exception( q{$slr->}
+                    . $method
+                    . qq{() expects args as ref to HASH; got non-reference instead}
+            );
+        } ## end if ( not $ref_type )
+        if ( $ref_type ne 'HASH' ) {
+            Marpa::R2::exception( q{$slr->}
+                    . $method
+                    . qq{() expects args as ref to HASH, got ref to $ref_type instead}
+            );
+        } ## end if ( $ref_type ne 'HASH' )
+    } ## end for my $args (@hash_ref_args)
+
+    my %flat_args = ();
+    for my $hash_ref (@hash_ref_args) {
+        ARG: for my $arg_name ( keys %{$hash_ref} ) {
+            $flat_args{$arg_name} = $hash_ref->{$arg_name};
+        }
     }
 
     # Other possible grammar options:
@@ -157,8 +180,8 @@ sub Marpa::R2::Scanless::G::set {
     # unproductive_ok
     # warnings
 
-    ARG: for my $arg_name ( keys %{$args} ) {
-        my $value = $args->{$arg_name};
+    ARG: for my $arg_name ( keys %flat_args ) {
+        my $value = $flat_args{$arg_name};
         if ( $arg_name eq 'trace_file_handle' ) {
             $slg->[Marpa::R2::Inner::Scanless::G::TRACE_FILE_HANDLE] = $value;
             $slg->[Marpa::R2::Inner::Scanless::G::THICK_G1_GRAMMAR]
@@ -171,11 +194,11 @@ sub Marpa::R2::Scanless::G::set {
             '$slg->set does not know one of the options given to it:',
             qq{\n   The options not recognized was "$arg_name"\n}
         );
-    } ## end ARG: for my $arg_name ( keys %{$args} )
+    }
 
     return $slg;
 
-} ## end sub Marpa::R2::Scanless::G::set
+}
 
 sub Marpa::R2::Scanless::G::_hash_to_runtime {
     my ( $slg, $hashed_source ) = @_;
