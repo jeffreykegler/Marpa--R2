@@ -292,6 +292,7 @@ sub Marpa::R2::Internal::Scanless::R::set {
             trace_actions trace_file_handle trace_lexers trace_terminals trace_values)
         };
     state $set_method_args = { map { ( $_, 1 ); } keys %{$naif_recce_args} };
+    state $series_restart_method_args = { map { ( $_, 1 ); } keys %{$naif_recce_args} };
     state $new_method_args = { map { ( $_, 1 ); } qw(grammar), keys %{$set_method_args} };
 
     for my $args (@hash_ref_args) {
@@ -314,6 +315,7 @@ sub Marpa::R2::Internal::Scanless::R::set {
     $arg_seen{$_}++ for map { keys %{$_}} @hash_ref_args;
     my $ok_args = $set_method_args;
     $ok_args = $new_method_args if $method eq 'new';
+    $ok_args = $series_restart_method_args if $method eq 'series_restart';
     my @bad_args = grep { not $ok_args->{$_} } keys %arg_seen;
     if (scalar @bad_args) {
         Marpa::R2::exception( q{Bad named argument(s) to $slr->} . $method . q{() method: } . join q{ }, @bad_args);
@@ -1301,7 +1303,8 @@ sub Marpa::R2::Scanless::R::series_restart {
     my $thick_g1_recce =
         $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
     $thick_g1_recce->reset_evaluation();
-    $thick_g1_recce->set( @args );
+    my $g1_recce_args = Marpa::R2::Internal::Scanless::R::set($slr, "series_restart", @args );
+    $thick_g1_recce->set( $g1_recce_args );
     return 1;
 }
 
