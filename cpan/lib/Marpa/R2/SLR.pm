@@ -236,13 +236,12 @@ sub Marpa::R2::Scanless::R::new {
         } ## end ARG: for my $arg_name ( keys %{$args} )
     } ## end for my $args (@args)
 
-    my %default_g1_recce_args = ( too_many_earley_items => -1 );
+    my %default_g1_recce_args = ();
     my $grammar_trace_file_handle =
         $grammar->[Marpa::R2::Inner::Scanless::G::TRACE_FILE_HANDLE];
     $default_g1_recce_args{trace_file_handle} = $grammar_trace_file_handle
         if defined $grammar_trace_file_handle;
-    my $common_g1_recce_args =
-        capture_g1_recce_args( $self, \%default_g1_recce_args, @args );
+    my $common_g1_recce_args = Marpa::R2::Internal::Scanless::R::set($self, "new", \%default_g1_recce_args, @args );
     my $too_many_earley_items =
         $common_g1_recce_args->{too_many_earley_items};
 
@@ -311,8 +310,12 @@ sub Marpa::R2::Internal::Scanless::R::set {
         } ## end if ( $ref_type ne 'HASH' )
     } ## end for my $args (@args)
 
-    my $recce = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
-    return capture_g1_recce_args( $slr, @args );
+    my %default_args = ();
+    if ($method eq 'new') {
+        $default_args{too_many_earley_items} = -1;
+    }
+
+    return capture_g1_recce_args( $slr, \%default_args, @args );
 
 } ## end sub Marpa::R2::Internal::Scanless::R::set
 
