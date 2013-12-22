@@ -515,7 +515,8 @@ trace file handle.
 The value is a file handle.
 Trace output and warning messages
 go to the trace file handle.
-By default the trace file handle is C<STDERR>.
+By default, the trace file handle is inherited from the
+grammar.
 
 =head1 Basic mutators
 
