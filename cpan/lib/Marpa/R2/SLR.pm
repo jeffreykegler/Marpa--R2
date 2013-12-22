@@ -228,12 +228,7 @@ sub Marpa::R2::Scanless::R::new {
         }
     } ## end for my $args (@args)
 
-    my %default_g1_recce_args = ();
-    my $grammar_trace_file_handle =
-        $grammar->[Marpa::R2::Inner::Scanless::G::TRACE_FILE_HANDLE];
-    $default_g1_recce_args{trace_file_handle} = $grammar_trace_file_handle
-        if defined $grammar_trace_file_handle;
-    my $common_g1_recce_args = Marpa::R2::Internal::Scanless::R::set($self, "new", \%default_g1_recce_args, @args );
+    my $common_g1_recce_args = Marpa::R2::Internal::Scanless::R::set($self, "new", @args );
     my $too_many_earley_items =
         $common_g1_recce_args->{too_many_earley_items};
 
@@ -329,23 +324,6 @@ sub Marpa::R2::Internal::Scanless::R::set {
         );
     } ## end if ( scalar @bad_args )
 
-    my %g1_recce_args = ();
-    if ( $method eq 'new' ) {
-        $g1_recce_args{too_many_earley_items} = -1;
-    }
-
-    # These NAIF recce args, when applicable, are simply copies of the the
-    # SLIF args of the same name
-    state $copyable_naif_recce_args = {
-        map { ( $_, 1 ); }
-            qw(end max_parses semantics_package too_many_earley_items ranking_method
-            trace_actions trace_file_handle trace_lexers trace_terminals trace_values)
-    };
-
-    ARG: for my $arg_name ( keys %flat_args ) {
-        next ARG if not $copyable_naif_recce_args->{$arg_name};
-        $g1_recce_args{$arg_name} = $flat_args{$arg_name};
-    }
 
     # A bit hack-ish, but some named args are copies straight to an member of
     # the Scanless::R class, so this maps named args to the index of the array
@@ -371,7 +349,27 @@ sub Marpa::R2::Internal::Scanless::R::set {
             $slg->[Marpa::R2::Inner::Scanless::G::TRACE_FILE_HANDLE];
     } ## end if ( not defined $slr->[...])
 
-    return \%g1_recce_args;
+    # These NAIF recce args, when applicable, are simply copies of the the
+    # SLIF args of the same name
+    state $copyable_naif_recce_args = {
+        map { ( $_, 1 ); }
+            qw(end max_parses semantics_package too_many_earley_items ranking_method
+            trace_actions trace_file_handle trace_lexers trace_terminals trace_values)
+    };
+
+    # Prune flat args of all those named args which are NOT to be copied
+    # into the NAIF recce args
+    for my $arg_name ( keys %flat_args ) {
+        delete $flat_args{$arg_name} if not $copyable_naif_recce_args->{$arg_name};
+    }
+
+    # In the new method, a few items must always be set in the NAIF recce args
+    if ( $method eq 'new' ) {
+        $flat_args{too_many_earley_items} //= -1;
+        $flat_args{trace_file_handle} //= $slr->[Marpa::R2::Inner::Scanless::R::TRACE_FILE_HANDLE];
+    }
+
+    return \%flat_args;
 
 } ## end sub Marpa::R2::Internal::Scanless::R::set
 
