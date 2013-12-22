@@ -279,14 +279,19 @@ sub Marpa::R2::Internal::Scanless::R::set {
     my ( $slr, $method, @hash_ref_args ) = @_;
 
     # These NAIF recce args are allowed in all contexts
-    state $common_naif_recce_args =
-        { map { ( $_, 1 ); }
+    state $common_naif_recce_args = {
+        map { ( $_, 1 ); }
             qw(end max_parses semantics_package too_many_earley_items
             trace_actions trace_file_handle trace_lexers trace_terminals trace_values)
-        };
-    state $set_method_args = { map { ( $_, 1 ); } keys %{$common_naif_recce_args} };
-    state $new_method_args = { map { ( $_, 1 ); } qw(grammar ranking_method), keys %{$set_method_args} };
-    state $series_restart_method_args = { map { ( $_, 1 ); } keys %{$common_naif_recce_args} };
+    };
+    state $set_method_args =
+        { map { ( $_, 1 ); } keys %{$common_naif_recce_args} };
+    state $new_method_args = {
+        map { ( $_, 1 ); } qw(grammar ranking_method),
+        keys %{$set_method_args}
+    };
+    state $series_restart_method_args =
+        { map { ( $_, 1 ); } keys %{$common_naif_recce_args} };
 
     for my $args (@hash_ref_args) {
         my $ref_type = ref $args;
@@ -305,93 +310,70 @@ sub Marpa::R2::Internal::Scanless::R::set {
     } ## end for my $args (@hash_ref_args)
 
     my %arg_seen = ();
-    $arg_seen{$_}++ for map { keys %{$_}} @hash_ref_args;
+    $arg_seen{$_}++ for map { keys %{$_} } @hash_ref_args;
     my $ok_args = $set_method_args;
-    $ok_args = $new_method_args if $method eq 'new';
+    $ok_args = $new_method_args            if $method eq 'new';
     $ok_args = $series_restart_method_args if $method eq 'series_restart';
     my @bad_args = grep { not $ok_args->{$_} } keys %arg_seen;
-    if (scalar @bad_args) {
-        Marpa::R2::exception( q{Bad named argument(s) to $slr->} . $method . q{() method: } . join q{ }, @bad_args);
-    }
+    if ( scalar @bad_args ) {
+        Marpa::R2::exception(
+            q{Bad named argument(s) to $slr->}
+                . $method
+                . q{() method: }
+                . join q{ },
+            @bad_args
+        );
+    } ## end if ( scalar @bad_args )
 
-    my %default_args = ();
-    if ($method eq 'new') {
-        $default_args{too_many_earley_items} = -1;
+    my %g1_recce_args = ();
+    if ( $method eq 'new' ) {
+        $g1_recce_args{too_many_earley_items} = -1;
     }
 
     # These NAIF recce args, when applicable, are simply copies of the the
     # SLIF args of the same name
-    state $copyable_naif_recce_args =
-        { map { ( $_, 1 ); }
+    state $copyable_naif_recce_args = {
+        map { ( $_, 1 ); }
             qw(end max_parses semantics_package too_many_earley_items ranking_method
             trace_actions trace_file_handle trace_lexers trace_terminals trace_values)
-        };
-    return capture_g1_recce_args( $slr, \%default_args, @hash_ref_args );
+    };
 
-} ## end sub Marpa::R2::Internal::Scanless::R::set
-
-# Capture arguments to be passed on to the g1 recognizer
-# Includes only those whose processing is common to new()
-# and set()
-sub capture_g1_recce_args {
-    my ( $slr, @args ) = @_;
-    my %g1_recce_args = ();
-    for my $args (@args) {
+    for my $args (@hash_ref_args) {
         ARG: for my $arg_name ( keys %{$args} ) {
-            my $value = $args->{$arg_name};
-            if ( $arg_name eq 'ranking_method' ) {
-                $g1_recce_args{$arg_name} = $value;
-                next ARG;
-            }
-            if ( $arg_name eq 'max_parses' ) {
-                $g1_recce_args{$arg_name} = $value;
-                next ARG;
-            }
+            next ARG if not $copyable_naif_recce_args->{$arg_name};
+            $g1_recce_args{$arg_name} = $args->{$arg_name};
+        }
+    } ## end for my $args (@args)
 
-            if ( $arg_name eq 'too_many_earley_items' ) {
-                $g1_recce_args{$arg_name} = $value;
-                next ARG;
-            }
-            if ( $arg_name eq 'semantics_package' ) {
-                $g1_recce_args{$arg_name} = $value;
-                next ARG;
-            }
-            if ( $arg_name eq 'end' ) {
-                $g1_recce_args{$arg_name} = $value;
-                next ARG;
-            }
-            if ( $arg_name eq 'trace_actions' ) {
-                $g1_recce_args{$arg_name} = $value;
-                next ARG;
-            }
-            if ( $arg_name eq 'trace_file_handle' ) {
-                $slr->[Marpa::R2::Inner::Scanless::R::TRACE_FILE_HANDLE] =
-                    $value;
-                $g1_recce_args{$arg_name} = $value;
-                next ARG;
-            } ## end if ( $arg_name eq 'trace_file_handle' )
-            if ( $arg_name eq 'trace_lexers' ) {
-                $slr->[Marpa::R2::Inner::Scanless::R::TRACE_LEXERS] = $value;
-                next ARG;
-            }
-            if ( $arg_name eq 'trace_terminals' ) {
-                $slr->[Marpa::R2::Inner::Scanless::R::TRACE_TERMINALS] =
-                    $value;
-                $g1_recce_args{$arg_name} = $value;
-                next ARG;
-            } ## end if ( $arg_name eq 'trace_terminals' )
-            if ( $arg_name eq 'trace_values' ) {
-                $g1_recce_args{$arg_name} = $value;
-                next ARG;
-            }
-            Marpa::R2::exception(
-                "$PACKAGE does not know one of options given to it:\n",
-                qq{   The options not recognized was "$arg_name"\n}
-            );
+    # A bit hack-ish, but some named args are copies straight to an member of
+    # the Scanless::R class, so this maps named args to the index of the array
+    # that holds the members.
+    state $copy_arg_to_index = {
+        trace_file_handle => Marpa::R2::Inner::Scanless::R::TRACE_FILE_HANDLE,
+        trace_lexers      => Marpa::R2::Inner::Scanless::R::TRACE_LEXERS,
+        trace_terminals   => Marpa::R2::Inner::Scanless::R::TRACE_TERMINALS,
+    };
+
+    for my $args (@hash_ref_args) {
+        ARG: for my $arg_name ( keys %{$args} ) {
+            my $index = $copy_arg_to_index->{$arg_name};
+            next ARG if not defined $index;
+            my $value = $args->{$arg_name};
+            $slr->[$index] = $value;
         } ## end ARG: for my $arg_name ( keys %{$args} )
     } ## end for my $args (@args)
+
+    # Trace file handle can never be undefined
+    if (not defined $slr->[Marpa::R2::Inner::Scanless::R::TRACE_FILE_HANDLE] )
+    {
+        my $slg = $slr->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
+        $slr->[Marpa::R2::Inner::Scanless::R::TRACE_FILE_HANDLE] =
+            $slg->[Marpa::R2::Inner::Scanless::G::TRACE_FILE_HANDLE];
+    } ## end if ( not defined $slr->[...])
+
     return \%g1_recce_args;
-} ## end sub capture_g1_recce_args
+
+} ## end sub Marpa::R2::Internal::Scanless::R::set
 
 sub Marpa::R2::Scanless::R::thin {
     return $_[0]->[Marpa::R2::Inner::Scanless::R::C];
