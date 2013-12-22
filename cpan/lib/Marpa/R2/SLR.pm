@@ -309,12 +309,16 @@ sub Marpa::R2::Internal::Scanless::R::set {
         } ## end if ( $ref_type ne 'HASH' )
     } ## end for my $args (@hash_ref_args)
 
-    my %arg_seen = ();
-    $arg_seen{$_}++ for map { keys %{$_} } @hash_ref_args;
+    my %flat_args = ();
+    for my $hash_ref (@hash_ref_args) {
+        ARG: for my $arg_name ( keys %{$hash_ref} ) {
+            $flat_args{$arg_name} = $hash_ref->{$arg_name};
+        }
+    }
     my $ok_args = $set_method_args;
     $ok_args = $new_method_args            if $method eq 'new';
     $ok_args = $series_restart_method_args if $method eq 'series_restart';
-    my @bad_args = grep { not $ok_args->{$_} } keys %arg_seen;
+    my @bad_args = grep { not $ok_args->{$_} } keys %flat_args;
     if ( scalar @bad_args ) {
         Marpa::R2::exception(
             q{Bad named argument(s) to $slr->}
@@ -338,12 +342,10 @@ sub Marpa::R2::Internal::Scanless::R::set {
             trace_actions trace_file_handle trace_lexers trace_terminals trace_values)
     };
 
-    for my $args (@hash_ref_args) {
-        ARG: for my $arg_name ( keys %{$args} ) {
-            next ARG if not $copyable_naif_recce_args->{$arg_name};
-            $g1_recce_args{$arg_name} = $args->{$arg_name};
-        }
-    } ## end for my $args (@args)
+    ARG: for my $arg_name ( keys %flat_args ) {
+        next ARG if not $copyable_naif_recce_args->{$arg_name};
+        $g1_recce_args{$arg_name} = $flat_args{$arg_name};
+    }
 
     # A bit hack-ish, but some named args are copies straight to an member of
     # the Scanless::R class, so this maps named args to the index of the array
@@ -354,14 +356,12 @@ sub Marpa::R2::Internal::Scanless::R::set {
         trace_terminals   => Marpa::R2::Inner::Scanless::R::TRACE_TERMINALS,
     };
 
-    for my $args (@hash_ref_args) {
-        ARG: for my $arg_name ( keys %{$args} ) {
-            my $index = $copy_arg_to_index->{$arg_name};
-            next ARG if not defined $index;
-            my $value = $args->{$arg_name};
-            $slr->[$index] = $value;
-        } ## end ARG: for my $arg_name ( keys %{$args} )
-    } ## end for my $args (@args)
+    ARG: for my $arg_name ( keys %flat_args ) {
+        my $index = $copy_arg_to_index->{$arg_name};
+        next ARG if not defined $index;
+        my $value = $flat_args{$arg_name};
+        $slr->[$index] = $value;
+    } ## end ARG: for my $arg_name ( keys %flat_args )
 
     # Trace file handle can never be undefined
     if (not defined $slr->[Marpa::R2::Inner::Scanless::R::TRACE_FILE_HANDLE] )
