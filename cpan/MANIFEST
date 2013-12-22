@@ -342,6 +342,7 @@ t/sl_lexevent.t
 t/sl_null_example.t
 t/sl_numeric.t
 t/sl_panda.t
+t/sl_pascal.t
 t/sl_prefix.t
 t/sl_rank.t
 t/sl_syn.t
