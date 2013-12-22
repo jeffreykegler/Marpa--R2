@@ -33,7 +33,6 @@ use English qw( -no_match_vars );
 
 # names of packages for strings
 our $PACKAGE = 'Marpa::R2::Scanless::G';
-our $TRACE_FILE_HANDLE;
 
 sub Marpa::R2::Internal::Scanless::meta_grammar {
 
@@ -95,10 +94,6 @@ sub Marpa::R2::Scanless::G::new {
                 $value;
             next ARG;
         }
-        if ( $arg_name eq 'bless_package' ) {
-            $slg->[Marpa::R2::Inner::Scanless::G::BLESS_PACKAGE] = $value;
-            next ARG;
-        }
         if ( $arg_name eq 'default_action' ) {
             $slg->[Marpa::R2::Inner::Scanless::G::G1_ARGS]->{$arg_name} =
                 $value;
@@ -111,6 +106,8 @@ sub Marpa::R2::Scanless::G::new {
         $slg->set( { $arg_name => $value });
         next ARG;
     } ## end ARG: for my $arg_name ( keys %{$args} )
+
+    Marpa::R2::Internal::Scanless::G::set ( $slg, 'new', $args );
 
     if ( not defined $rules_source ) {
         Marpa::R2::exception(
@@ -149,11 +146,10 @@ sub Marpa::R2::Internal::Scanless::G::set {
     my ( $slg, $method, @hash_ref_args ) = @_;
 
     state $set_method_args =
-        { map { ( $_, 1 ); } qw(trace_file_handle) };
+        { map { ( $_, 1 ); } qw(trace_file_handle bless_package) };
     state $new_method_args = {
         map { ( $_, 1 ); } qw(
         action_object
-        bless_package
         default_action
         source), keys %{$set_method_args} };
 
@@ -202,17 +198,33 @@ sub Marpa::R2::Internal::Scanless::G::set {
     # unproductive_ok
     # warnings
 
+    # A bit hack-ish, but some named args will be copies straight to a member of
+    # the Scanless::G class, so this maps named args to the index of the array
+    # that holds the members.
+    state $copy_arg_to_index = {
+        bless_package => Marpa::R2::Inner::Scanless::G::BLESS_PACKAGE,
+        trace_file_handle => Marpa::R2::Inner::Scanless::G::TRACE_FILE_HANDLE
+    };
+
     ARG: for my $arg_name ( keys %flat_args ) {
+        my $index = $copy_arg_to_index->{$arg_name};
+        next ARG if not defined $index;
         my $value = $flat_args{$arg_name};
-        if ( $arg_name eq 'trace_file_handle' ) {
-            $slg->[Marpa::R2::Inner::Scanless::G::TRACE_FILE_HANDLE] = $value;
-            $slg->[Marpa::R2::Inner::Scanless::G::THICK_G1_GRAMMAR]
-                ->set( { $arg_name => $value } );
-            $slg->[Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMARS]->[0]
-                ->set( { $arg_name => $value } );
-            next ARG;
-        } ## end if ( $arg_name eq 'trace_file_handle' )
-    }
+        $slg->[$index] = $value;
+    } ## end ARG: for my $arg_name ( keys %flat_args )
+
+    # Trace file handle needs to be populated downwards
+    if ( defined( my $trace_file_handle = $flat_args{trace_file_handle} ) ) {
+        GRAMMAR:
+        for my $naif_grammar (
+            $slg->[Marpa::R2::Inner::Scanless::G::THICK_G1_GRAMMAR],
+            @{ $slg->[Marpa::R2::Inner::Scanless::G::THICK_LEX_GRAMMARS] }
+            )
+        {
+            next GRAMMAR if not defined $naif_grammar;
+            $naif_grammar->set( { trace_file_handle => $trace_file_handle } );
+        } ## end GRAMMAR: for my $naif_grammar ( $slg->[...])
+    } ## end if ( defined( my $trace_file_handle = $flat_args{...}))
 
     return $slg;
 
