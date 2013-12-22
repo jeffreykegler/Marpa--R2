@@ -287,11 +287,13 @@ sub Marpa::R2::Internal::Scanless::R::set {
 
     my ( $slr, $method, @args ) = @_;
 
-    state $set_args = { map { ( $_, 1 ); } qw(grammar) };
     state $naif_recce_args =
         { map { ( $_, 1 ); }
-            qw(end max_parses semantics_package too_many_earley_items trace_actions trace_file_handle trace_lexers trace_terminals trace_values)
+            qw(end max_parses semantics_package too_many_earley_items
+            trace_actions trace_file_handle trace_lexers trace_terminals trace_values)
         };
+    state $set_method_args = { map { ( $_, 1 ); } keys %{$naif_recce_args} };
+    state $new_method_args = { map { ( $_, 1 ); } qw(grammar), keys %{$set_method_args} };
 
     for my $args (@args) {
         my $ref_type = ref $args;
