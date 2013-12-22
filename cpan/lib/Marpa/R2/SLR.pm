@@ -243,6 +243,8 @@ sub Marpa::R2::Scanless::R::new {
         if defined $grammar_trace_file_handle;
     my $common_g1_recce_args =
         capture_g1_recce_args( $self, \%default_g1_recce_args, @args );
+    my $too_many_earley_items =
+        $common_g1_recce_args->{too_many_earley_items};
 
     $self->[Marpa::R2::Inner::Scanless::R::GRAMMAR] = $grammar;
 
@@ -256,8 +258,6 @@ sub Marpa::R2::Scanless::R::new {
     my $thin_self = Marpa::R2::Thin::SLR->new(
         $grammar->[Marpa::R2::Inner::Scanless::G::C],
         $thick_g1_recce->thin() );
-    my $too_many_earley_items =
-        $common_g1_recce_args->{too_many_earley_items};
     $thin_self->earley_item_warning_threshold_set($too_many_earley_items)
         if $too_many_earley_items >= 0;
     $self->[Marpa::R2::Inner::Scanless::R::C]      = $thin_self;
@@ -269,28 +269,50 @@ sub Marpa::R2::Scanless::R::new {
 
 sub Marpa::R2::Scanless::R::set {
     my ( $slr, @args ) = @_;
+    my $naif_recce_args =
+        Marpa::R2::Internal::Scanless::R::set( $slr, "set", @args );
+    my $naif_recce = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+    $naif_recce->set($naif_recce_args);
+    return $slr;
+} ## end sub Marpa::R2::Scanless::R::set
+
+# The context flag indicates whether this set is called directly by the user
+# or is for series reset or the constructor.  "Context" flags of this kind
+# are much decried practice, and for good reason, but in this case
+# I think it is justified.
+# This logic really needs to be all in one place, and so a flag
+# to trigger the minor differences needed by the various calling
+# contexts is a small price to pay.
+sub Marpa::R2::Internal::Scanless::R::set {
+
+    my ( $slr, $method, @args ) = @_;
+
+    state $set_args = { map { ( $_, 1 ); } qw(grammar) };
+    state $naif_recce_args =
+        { map { ( $_, 1 ); }
+            qw(end max_parses semantics_package too_many_earley_items trace_actions trace_file_handle trace_lexers trace_terminals trace_values)
+        };
 
     for my $args (@args) {
         my $ref_type = ref $args;
         if ( not $ref_type ) {
-            Carp::croak(
-                "\$slr->set() expects args as ref to HASH; arg was non-reference"
+            Carp::croak( q{$slr->}
+                    . $method
+                    . qq{() expects args as ref to HASH; arg was non-reference}
             );
-        }
+        } ## end if ( not $ref_type )
         if ( $ref_type ne 'HASH' ) {
-            Carp::croak(
-                "\$slr->set() expects args as ref to HASH, got ref to $ref_type instead"
+            Carp::croak( q{$slr->}
+                    . $method
+                    . qq{() expects args as ref to HASH, got ref to $ref_type instead}
             );
-        }
+        } ## end if ( $ref_type ne 'HASH' )
     } ## end for my $args (@args)
 
     my $recce = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
-    my $common_recce_args = capture_g1_recce_args( $slr, @args );
-    $recce->set($common_recce_args);
+    return capture_g1_recce_args( $slr, @args );
 
-    return $slr;
-
-} ## end sub Marpa::R2::Scanless::R::set
+} ## end sub Marpa::R2::Internal::Scanless::R::set
 
 # Capture arguments to be passed on to the g1 recognizer
 # Includes only those whose processing is common to new()
@@ -305,10 +327,11 @@ sub capture_g1_recce_args {
                 $g1_recce_args{$arg_name} = $value;
                 next ARG;
             }
+
             if ( $arg_name eq 'too_many_earley_items' ) {
                 $g1_recce_args{$arg_name} = $value;
                 next ARG;
-            } ## end if ( $arg_name eq 'too_many_earley_items' )
+            }
             if ( $arg_name eq 'semantics_package' ) {
                 $g1_recce_args{$arg_name} = $value;
                 next ARG;
@@ -345,10 +368,10 @@ sub capture_g1_recce_args {
                 "$PACKAGE does not know one of options given to it:\n",
                 qq{   The options not recognized was "$arg_name"\n}
             );
-        } ## end for my $arg_name ( keys %{$args} )
+        } ## end ARG: for my $arg_name ( keys %{$args} )
     } ## end for my $args (@args)
     return \%g1_recce_args;
-} ## end capture_g1_recce_args
+} ## end sub capture_g1_recce_args
 
 sub Marpa::R2::Scanless::R::thin {
     return $_[0]->[Marpa::R2::Inner::Scanless::R::C];
