@@ -210,7 +210,7 @@ sub Marpa::R2::Scanless::R::new {
         Marpa::R2::Thin::SLR->new( $slg->[Marpa::R2::Inner::Scanless::G::C],
         $thick_g1_recce->thin() );
     $thin_self->earley_item_warning_threshold_set($too_many_earley_items)
-        if $too_many_earley_items >= 0;
+        if defined $too_many_earley_items;
     $self->[Marpa::R2::Inner::Scanless::R::C]      = $thin_self;
     $self->[Marpa::R2::Inner::Scanless::R::EVENTS] = [];
     Marpa::R2::Inner::Scanless::convert_libmarpa_events($self);
@@ -289,24 +289,25 @@ sub Marpa::R2::Internal::Scanless::R::set {
         );
     } ## end if ( scalar @bad_args )
 
-if ( $method eq 'new' ) {
-    state $arg_name  = 'grammar';
-    state $slg_class = 'Marpa::R2::Scanless::G';
-    my $slg = $flat_args{$arg_name};
-    Marpa::R2::exception(
-        qq{Marpa::R2::Scanless::R::new() called without a "$arg_name" argument}
-    ) if not defined $slg;
-    if ( not blessed $slg or not $slg->isa($slg_class) ) {
-        my $ref_type = ref $slg;
-        my $desc = $ref_type ? "a ref to $ref_type" : 'not a ref';
+    if ( $method eq 'new' ) {
+        state $arg_name  = 'grammar';
+        state $slg_class = 'Marpa::R2::Scanless::G';
+        my $slg = $flat_args{$arg_name};
         Marpa::R2::exception(
-            qq{'$arg_name' name argument to scanless_r->new() is $desc\n},
-            "  It should be a ref to $slg_class\n" );
-    } ## end if ( not blessed $slg or not $slg->isa($slg_class) )
+            qq{Marpa::R2::Scanless::R::new() called without a "$arg_name" argument}
+        ) if not defined $slg;
+        if ( not blessed $slg or not $slg->isa($slg_class) ) {
+            my $ref_type = ref $slg;
+            my $desc = $ref_type ? "a ref to $ref_type" : 'not a ref';
+            Marpa::R2::exception(
+                qq{'$arg_name' name argument to scanless_r->new() is $desc\n},
+                "  It should be a ref to $slg_class\n"
+            );
+        } ## end if ( not blessed $slg or not $slg->isa($slg_class) )
 
-    $slr->[Marpa::R2::Inner::Scanless::R::GRAMMAR] = $slg;
+        $slr->[Marpa::R2::Inner::Scanless::R::GRAMMAR] = $slg;
 
-} ## end if ( $method eq 'new' )
+    } ## end if ( $method eq 'new' )
 
     # A bit hack-ish, but some named args are copies straight to an member of
     # the Scanless::R class, so this maps named args to the index of the array
@@ -343,13 +344,14 @@ if ( $method eq 'new' ) {
     # Prune flat args of all those named args which are NOT to be copied
     # into the NAIF recce args
     for my $arg_name ( keys %flat_args ) {
-        delete $flat_args{$arg_name} if not $copyable_naif_recce_args->{$arg_name};
+        delete $flat_args{$arg_name}
+            if not $copyable_naif_recce_args->{$arg_name};
     }
 
-    # In the new method, a few items must always be set in the NAIF recce args
+    # In the new method, these items must always be set in the NAIF recce args
     if ( $method eq 'new' ) {
-        $flat_args{too_many_earley_items} //= -1;
-        $flat_args{trace_file_handle} //= $slr->[Marpa::R2::Inner::Scanless::R::TRACE_FILE_HANDLE];
+        $flat_args{trace_file_handle} //=
+            $slr->[Marpa::R2::Inner::Scanless::R::TRACE_FILE_HANDLE];
     }
 
     return \%flat_args;
