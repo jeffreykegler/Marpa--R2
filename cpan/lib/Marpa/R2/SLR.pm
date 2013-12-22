@@ -284,7 +284,7 @@ sub Marpa::R2::Scanless::R::set {
 # contexts is a small price to pay.
 sub Marpa::R2::Internal::Scanless::R::set {
 
-    my ( $slr, $method, @args ) = @_;
+    my ( $slr, $method, @hash_ref_args ) = @_;
 
     state $naif_recce_args =
         { map { ( $_, 1 ); }
@@ -294,28 +294,37 @@ sub Marpa::R2::Internal::Scanless::R::set {
     state $set_method_args = { map { ( $_, 1 ); } keys %{$naif_recce_args} };
     state $new_method_args = { map { ( $_, 1 ); } qw(grammar), keys %{$set_method_args} };
 
-    for my $args (@args) {
+    for my $args (@hash_ref_args) {
         my $ref_type = ref $args;
         if ( not $ref_type ) {
-            Carp::croak( q{$slr->}
+            Marpa::R2::exception( q{$slr->}
                     . $method
-                    . qq{() expects args as ref to HASH; arg was non-reference}
+                    . qq{() expects args as ref to HASH; got non-reference instead}
             );
         } ## end if ( not $ref_type )
         if ( $ref_type ne 'HASH' ) {
-            Carp::croak( q{$slr->}
+            Marpa::R2::exception( q{$slr->}
                     . $method
                     . qq{() expects args as ref to HASH, got ref to $ref_type instead}
             );
         } ## end if ( $ref_type ne 'HASH' )
-    } ## end for my $args (@args)
+    } ## end for my $args (@hash_ref_args)
+
+    my %arg_seen = ();
+    $arg_seen{$_}++ for map { keys %{$_}} @hash_ref_args;
+    my $ok_args = $set_method_args;
+    $ok_args = $new_method_args if $method eq 'new';
+    my @bad_args = grep { not $ok_args->{$_} } keys %arg_seen;
+    if (scalar @bad_args) {
+        Marpa::R2::exception( q{Bad named argument(s) to $slr->} . $method . q{() method: } . join q{ }, @bad_args);
+    }
 
     my %default_args = ();
     if ($method eq 'new') {
         $default_args{too_many_earley_items} = -1;
     }
 
-    return capture_g1_recce_args( $slr, \%default_args, @args );
+    return capture_g1_recce_args( $slr, \%default_args, @hash_ref_args );
 
 } ## end sub Marpa::R2::Internal::Scanless::R::set
 
