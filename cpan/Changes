@@ -15,11 +15,11 @@
 
 Revision history for Marpa::R2
 
-2.077_013
+2.077_014
 
-  * Allow Unicode in SLIF DSL source
+   * Allow Unicode in SLIF DSL source
 
-  * New high-level ASF interface -- still alpha
+   * New high-level ASF interface -- still alpha
 
    * Release candidate
 
