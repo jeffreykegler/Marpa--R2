@@ -17,8 +17,8 @@
 #PDFTEX = dvipdfm
 PDFTEX = pdftex
 
-CWEAVE = cweave
-CTANGLE = ctangle
+CWEAVE = cweave -p
+CTANGLE = ctangle -p
 
 .PHONY: all
 
