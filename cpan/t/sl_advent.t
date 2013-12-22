@@ -15,7 +15,7 @@
 # http://www.gnu.org/licenses/.
 
 # This example is from a Perl 6 advent blog post
-# (Day 18 2103) by Dwarring, adapted to Marpa by Jean-Damien
+# (Day 18 2013) by Dwarring, adapted to Marpa by Jean-Damien
 # Durand.
 
 use 5.010;
@@ -127,7 +127,13 @@ for my $test_data (@tests) {
 
             my %played = ();
             my $pos = eval { $re->read( \$input ) };
-            return $@ if $@;
+            if ($EVAL_ERROR) {
+                $actual_result = "Parse failed before end";
+                $actual_value  = $EVAL_ERROR;
+                $actual_value
+                    =~ s/ ^ Marpa::R2 \s+ exception \s+ at \s .* \z//xms;
+                last PROCESSING;
+            } ## end if ($EVAL_ERROR)
             do {
                 # In our example there is a single event: no need to ask Marpa what it is
                 my ( $start, $length ) =
