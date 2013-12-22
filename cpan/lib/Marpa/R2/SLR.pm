@@ -226,14 +226,6 @@ sub Marpa::R2::Scanless::R::new {
                 "\$slr->set() expects args as ref to HASH, got ref to $ref_type instead"
             );
         }
-        ARG: for my $arg_name ( keys %{$args} ) {
-            my $value = $args->{$arg_name};
-            if ( $arg_name eq 'ranking_method' ) {
-                delete $args->{$arg_name};
-                $g1_recce_args{$arg_name} = $value;
-                next ARG;
-            }
-        } ## end ARG: for my $arg_name ( keys %{$args} )
     } ## end for my $args (@args)
 
     my %default_g1_recce_args = ();
@@ -286,14 +278,15 @@ sub Marpa::R2::Internal::Scanless::R::set {
 
     my ( $slr, $method, @hash_ref_args ) = @_;
 
-    state $naif_recce_args =
+    # These NAIF recce args are allowed in all contexts
+    state $common_naif_recce_args =
         { map { ( $_, 1 ); }
             qw(end max_parses semantics_package too_many_earley_items
             trace_actions trace_file_handle trace_lexers trace_terminals trace_values)
         };
-    state $set_method_args = { map { ( $_, 1 ); } keys %{$naif_recce_args} };
-    state $series_restart_method_args = { map { ( $_, 1 ); } keys %{$naif_recce_args} };
-    state $new_method_args = { map { ( $_, 1 ); } qw(grammar), keys %{$set_method_args} };
+    state $set_method_args = { map { ( $_, 1 ); } keys %{$common_naif_recce_args} };
+    state $new_method_args = { map { ( $_, 1 ); } qw(grammar ranking_method), keys %{$set_method_args} };
+    state $series_restart_method_args = { map { ( $_, 1 ); } keys %{$common_naif_recce_args} };
 
     for my $args (@hash_ref_args) {
         my $ref_type = ref $args;
@@ -326,6 +319,13 @@ sub Marpa::R2::Internal::Scanless::R::set {
         $default_args{too_many_earley_items} = -1;
     }
 
+    # These NAIF recce args, when applicable, are simply copies of the the
+    # SLIF args of the same name
+    state $copyable_naif_recce_args =
+        { map { ( $_, 1 ); }
+            qw(end max_parses semantics_package too_many_earley_items ranking_method
+            trace_actions trace_file_handle trace_lexers trace_terminals trace_values)
+        };
     return capture_g1_recce_args( $slr, \%default_args, @hash_ref_args );
 
 } ## end sub Marpa::R2::Internal::Scanless::R::set
@@ -339,6 +339,10 @@ sub capture_g1_recce_args {
     for my $args (@args) {
         ARG: for my $arg_name ( keys %{$args} ) {
             my $value = $args->{$arg_name};
+            if ( $arg_name eq 'ranking_method' ) {
+                $g1_recce_args{$arg_name} = $value;
+                next ARG;
+            }
             if ( $arg_name eq 'max_parses' ) {
                 $g1_recce_args{$arg_name} = $value;
                 next ARG;
