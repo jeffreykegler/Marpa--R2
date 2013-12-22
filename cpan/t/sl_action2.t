@@ -21,13 +21,15 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 1;
+use Test::More tests => 2;
 
 use English qw( -no_match_vars );
 use Fatal qw( open close );
 use lib 'inc';
 use Marpa::R2::Test;
 use Marpa::R2;
+
+my $side_effect = 0;
 
 no warnings 'once';
 $My_Actions::hash_ref = {'a hash ref' => 1};
@@ -44,6 +46,7 @@ sub My_Actions::array_ref2 { return 'shadow of array_ref2' };
 sub My_Actions::code_ref2 { return 'shadow of code_ref2' };
 use warnings;
 sub My_Actions::code { return 'code' };
+sub My_Actions::new { $side_effect = 42; }
 
 my $grammar   = Marpa::R2::Scanless::G->new(
     {
@@ -88,5 +91,6 @@ my $expected = \[
     'shadow of code_ref2'
 ];
 Test::More::is_deeply($value_ref, $expected, 'Constant actions');
+Test::More::is($side_effect, 42, 'semantics_package constructor');
 
 # vim: expandtab shiftwidth=4:
