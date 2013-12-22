@@ -193,56 +193,21 @@ sub Marpa::R2::Scanless::R::new {
     my $self = [];
     bless $self, $class;
 
-    state $grammar_class = 'Marpa::R2::Scanless::G';
-    my $grammar = $args[0]->{grammar};
-    if ( not blessed $grammar or not $grammar->isa('Marpa::R2::Scanless::G') )
-    {
-        my $desc = 'undefined';
-        if ( defined $grammar ) {
-            my $ref_type = ref $grammar;
-            $desc = $ref_type ? "a ref to $ref_type" : 'not a ref';
-        }
-        Marpa::R2::exception(
-            qq{'grammar' name argument to scanless_r->new() is $desc\n},
-            "  It should be a ref to $grammar_class\n" );
-        Marpa::R2::exception(
-            'Marpa::R2::Scanless::R::new() called without a "grammar" argument'
-        );
-    } ## end if ( not blessed $grammar or not $grammar->isa(...))
-    delete $args[0]->{grammar};
+    my $g1_recce_args =
+        Marpa::R2::Internal::Scanless::R::set( $self, "new", @args );
+    my $too_many_earley_items = $g1_recce_args->{too_many_earley_items};
 
-    $self->[Marpa::R2::Inner::Scanless::R::GRAMMAR] = $grammar;
-
-    my %g1_recce_args = ();
-    for my $args (@args) {
-        my $ref_type = ref $args;
-        if ( not $ref_type ) {
-            Carp::croak(
-                "\$slr->set() expects args as ref to HASH; arg was non-reference"
-            );
-        }
-        if ( $ref_type ne 'HASH' ) {
-            Carp::croak(
-                "\$slr->set() expects args as ref to HASH, got ref to $ref_type instead"
-            );
-        }
-    } ## end for my $args (@args)
-
-    my $common_g1_recce_args = Marpa::R2::Internal::Scanless::R::set($self, "new", @args );
-    my $too_many_earley_items =
-        $common_g1_recce_args->{too_many_earley_items};
-
-    $self->[Marpa::R2::Inner::Scanless::R::GRAMMAR] = $grammar;
+    my $slg = $self->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
 
     my $thick_g1_grammar =
-        $grammar->[Marpa::R2::Inner::Scanless::G::THICK_G1_GRAMMAR];
-    $g1_recce_args{grammar} = $thick_g1_grammar;
+        $slg->[Marpa::R2::Inner::Scanless::G::THICK_G1_GRAMMAR];
+    $g1_recce_args->{grammar} = $thick_g1_grammar;
     my $thick_g1_recce =
         $self->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE] =
-        Marpa::R2::Recognizer->new( \%g1_recce_args, $common_g1_recce_args );
+        Marpa::R2::Recognizer->new($g1_recce_args);
 
-    my $thin_self = Marpa::R2::Thin::SLR->new(
-        $grammar->[Marpa::R2::Inner::Scanless::G::C],
+    my $thin_self =
+        Marpa::R2::Thin::SLR->new( $slg->[Marpa::R2::Inner::Scanless::G::C],
         $thick_g1_recce->thin() );
     $thin_self->earley_item_warning_threshold_set($too_many_earley_items)
         if $too_many_earley_items >= 0;
@@ -324,6 +289,24 @@ sub Marpa::R2::Internal::Scanless::R::set {
         );
     } ## end if ( scalar @bad_args )
 
+if ( $method eq 'new' ) {
+    state $arg_name  = 'grammar';
+    state $slg_class = 'Marpa::R2::Scanless::G';
+    my $slg = $flat_args{$arg_name};
+    Marpa::R2::exception(
+        qq{Marpa::R2::Scanless::R::new() called without a "$arg_name" argument}
+    ) if not defined $slg;
+    if ( not blessed $slg or not $slg->isa($slg_class) ) {
+        my $ref_type = ref $slg;
+        my $desc = $ref_type ? "a ref to $ref_type" : 'not a ref';
+        Marpa::R2::exception(
+            qq{'$arg_name' name argument to scanless_r->new() is $desc\n},
+            "  It should be a ref to $slg_class\n" );
+    } ## end if ( not blessed $slg or not $slg->isa($slg_class) )
+
+    $slr->[Marpa::R2::Inner::Scanless::R::GRAMMAR] = $slg;
+
+} ## end if ( $method eq 'new' )
 
     # A bit hack-ish, but some named args are copies straight to an member of
     # the Scanless::R class, so this maps named args to the index of the array
