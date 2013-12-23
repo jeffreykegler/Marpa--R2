@@ -41,17 +41,17 @@ sub Marpa::R2::Internal::Scanless::meta_grammar {
     $self->[Marpa::R2::Internal::Scanless::G::BLESS_PACKAGE] =
         'Marpa::R2::Internal::MetaAST_Nodes';
     state $hashed_metag = Marpa::R2::Internal::MetaG::hashed_grammar();
-    Marpa::R2::Internal::Scanless::G::hash_to_runtime($self, $hashed_metag, {});
+    my $meta_slg = Marpa::R2::Internal::Scanless::G::hash_to_runtime($self, $hashed_metag, {});
 
     my $thick_g1_grammar =
-        $self->[Marpa::R2::Internal::Scanless::G::THICK_G1_GRAMMAR];
+        $meta_slg->[Marpa::R2::Internal::Scanless::G::THICK_G1_GRAMMAR];
     my @mask_by_rule_id;
     $mask_by_rule_id[$_] = $thick_g1_grammar->_rule_mask($_)
         for $thick_g1_grammar->rule_ids();
-    $self->[Marpa::R2::Internal::Scanless::G::MASK_BY_RULE_ID] =
+    $meta_slg->[Marpa::R2::Internal::Scanless::G::MASK_BY_RULE_ID] =
         \@mask_by_rule_id;
 
-    return $self;
+    return $meta_slg;
 
 } ## end sub Marpa::R2::Internal::Scanless::meta_grammar
 
@@ -65,7 +65,7 @@ sub Marpa::R2::Scanless::G::new {
     my ($dsl, $g1_args) = Marpa::R2::Internal::Scanless::G::set ( $slg, 'new', @hash_ref_args );
     my $ast = Marpa::R2::Internal::MetaAST->new( $dsl );
     my $hashed_ast = $ast->ast_to_hash();
-    Marpa::R2::Internal::Scanless::G::hash_to_runtime($slg, $hashed_ast, $g1_args);
+    $slg = Marpa::R2::Internal::Scanless::G::hash_to_runtime($slg, $hashed_ast, $g1_args);
     return $slg;
 } ## end sub Marpa::R2::Scanless::G::new
 
@@ -645,9 +645,9 @@ sub Marpa::R2::Internal::Scanless::G::hash_to_runtime {
 
     } ## end APPLY_DEFAULT_LEXEME_ADVERBS:
 
-    return 1;
+    return $slg;
 
-} ## end sub Marpa::R2::Scanless::G::_hash_to_runtime
+}
 
 sub thick_subgrammar_by_name {
     my ( $slg, $subgrammar ) = @_;
