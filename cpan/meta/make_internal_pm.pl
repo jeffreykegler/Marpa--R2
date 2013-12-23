@@ -332,7 +332,6 @@ __DATA__
     PREDICTION_EVENT_BY_ID
     LEXEME_EVENT_BY_ID
     TRACE_FILE_HANDLE
-    BLESS_PACKAGE
     SYMBOL_IDS_BY_EVENT_NAME_AND_TYPE
 
     { This saves a lot of time at points }

@@ -189,9 +189,8 @@ use constant NULLED_EVENT_BY_ID => 9;
 use constant PREDICTION_EVENT_BY_ID => 10;
 use constant LEXEME_EVENT_BY_ID => 11;
 use constant TRACE_FILE_HANDLE => 12;
-use constant BLESS_PACKAGE => 13;
-use constant SYMBOL_IDS_BY_EVENT_NAME_AND_TYPE => 14;
-use constant CACHE_RULEIDS_BY_LHS_NAME => 15;
+use constant SYMBOL_IDS_BY_EVENT_NAME_AND_TYPE => 13;
+use constant CACHE_RULEIDS_BY_LHS_NAME => 14;
 
 package Marpa::R2::Internal::Scanless::R;
 use constant C => 0;

@@ -37,10 +37,10 @@ our $PACKAGE = 'Marpa::R2::Scanless::G';
 sub Marpa::R2::Internal::Scanless::meta_grammar {
 
     my $meta_slg = bless [], 'Marpa::R2::Scanless::G';
-    $meta_slg->[Marpa::R2::Internal::Scanless::G::BLESS_PACKAGE] =
-        'Marpa::R2::Internal::MetaAST_Nodes';
     state $hashed_metag = Marpa::R2::Internal::MetaG::hashed_grammar();
-    Marpa::R2::Internal::Scanless::G::hash_to_runtime($meta_slg, $hashed_metag, {});
+    Marpa::R2::Internal::Scanless::G::hash_to_runtime( $meta_slg,
+        $hashed_metag,
+        { bless_package => 'Marpa::R2::Internal::MetaAST_Nodes' } );
 
     my $thick_g1_grammar =
         $meta_slg->[Marpa::R2::Internal::Scanless::G::THICK_G1_GRAMMAR];
@@ -94,9 +94,11 @@ sub Marpa::R2::Internal::Scanless::G::set {
 
     state $copy_to_g1_args =
         { map { ( $_, 1 ); }
-            qw(trace_file_handle action_object default_action) };
+            qw(trace_file_handle action_object default_action bless_package) };
     state $set_method_args =
-        { map { ( $_, 1 ); } qw(trace_file_handle bless_package) };
+        { map { ( $_, 1 ); } qw(trace_file_handle) };
+    state $internal_args =
+        { map { ( $_, 1 ); } qw(bless_package) };
     state $new_method_args = {
         map { ( $_, 1 ); } qw(source),
         keys %{$copy_to_g1_args},
@@ -127,6 +129,7 @@ sub Marpa::R2::Internal::Scanless::G::set {
 
     my $ok_args = $set_method_args;
     $ok_args = $new_method_args if $method eq 'new';
+    $ok_args = $internal_args if $method eq 'meta';
     my @bad_args = grep { not $ok_args->{$_} } keys %flat_args;
     if ( scalar @bad_args ) {
         Marpa::R2::exception(
@@ -159,7 +162,6 @@ sub Marpa::R2::Internal::Scanless::G::set {
     # the Scanless::G class, so this maps named args to the index of the array
     # that holds the members.
     state $copy_arg_to_index = {
-        bless_package     => Marpa::R2::Internal::Scanless::G::BLESS_PACKAGE,
         trace_file_handle => Marpa::R2::Internal::Scanless::G::TRACE_FILE_HANDLE
     };
 
@@ -183,7 +185,7 @@ sub Marpa::R2::Internal::Scanless::G::set {
         } ## end GRAMMAR: for my $naif_grammar ( $slg->[...])
     } ## end if ( defined( my $trace_file_handle = $flat_args{...}))
 
-    if ( $method eq 'new' ) {
+    if ( $method eq 'new' or $method eq 'meta' ) {
 
         # Prune flat args of all those named args which are NOT to be copied
         # into the NAIF recce args
@@ -218,8 +220,6 @@ sub Marpa::R2::Internal::Scanless::G::hash_to_runtime {
 
     $slg->[Marpa::R2::Internal::Scanless::G::TRACE_FILE_HANDLE] = $g1_args->{trace_file_handle} // \*STDERR;
 
-    $g1_args->{bless_package} =
-        $slg->[Marpa::R2::Internal::Scanless::G::BLESS_PACKAGE];
     $g1_args->{rules}   = $hashed_source->{rules}->{G1};
     $g1_args->{symbols} = $hashed_source->{symbols}->{G1};
     state $g1_target_symbol = '[:start]';
