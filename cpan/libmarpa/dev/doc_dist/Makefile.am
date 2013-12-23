@@ -19,6 +19,5 @@ ACLOCAL_AMFLAGS = -I m4
 info_TEXINFOS = api.texi internal.texi
 api_TEXINFOS = fdl-1.3.texi lgpl-3.0.texi
 internal_TEXINFOS = fdl-1.3.texi lgpl-3.0.texi
-
-
+TEXI2PDF = texi2pdf --pdf --batch --quiet
 

@@ -30,4 +30,5 @@ libmarpa_la_LIBADD = $(LIBOBJS)
 include_HEADERS = marpa.h marpa_api.h marpa_avl.h marpa_ami.h marpa_obs.h marpa_int.h marpa_util.h
 nodist_include_HEADERS = marpa_config.h
 DISTCLEANFILES = marpa_config.h
+TEXI2PDF = texi2pdf --pdf --batch --quiet
 
