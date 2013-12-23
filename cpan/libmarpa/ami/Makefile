@@ -13,10 +13,6 @@
 # General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 
-# uncomment the second line if you use pdftex to bypass .dvi files
-#PDFTEX = dvipdfm
-PDFTEX = pdftex -interaction=batchmode -halt-on-error
-
 CWEAVE = cweave -p
 CTANGLE = ctangle -p
 
@@ -43,10 +39,7 @@ CTANGLE = ctangle -p
 
 .w.pdf:
 	make $*.tex
-	case "$(PDFTEX)" in \
-	 dvipdfm ) tex "\let\pdf+ \input $*"; dvipdfm $* ;; \
-	 pdftex ) pdftex $* ;; \
-	esac
+	pdftex -interaction=batchmode -halt-on-error $* || cat $*.log
 
 all: marpa_ami.pdf sources
 
