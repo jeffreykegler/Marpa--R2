@@ -73,8 +73,9 @@ sub Marpa::R2::Scanless::G::set {
     return $slg;
 }
 
-# The context flag indicates whether this set is called directly by the user
-# or is for series reset or the constructor.  "Context" flags of this kind
+# The context flag indicates whether this ::set() is called directly by the user;
+# is for the external constructor; or is for the internal ("meta") constructor.
+# "Context" flags of this kind
 # are much decried practice, and for good reason, but in this case
 # I think it is justified.
 # This logic really needs to be all in one place, and so a flag
@@ -84,11 +85,8 @@ sub Marpa::R2::Internal::Scanless::G::set {
     my ( $slg, $method, @hash_ref_args ) = @_;
 
     # Other possible grammar options:
-    # actions
     # default_rank
     # inaccessible_ok
-    # symbols
-    # terminals
     # unproductive_ok
     # warnings
 
@@ -97,12 +95,8 @@ sub Marpa::R2::Internal::Scanless::G::set {
             qw(trace_file_handle action_object default_action bless_package) };
     state $set_method_args =
         { map { ( $_, 1 ); } qw(trace_file_handle) };
-    state $internal_args =
-        { map { ( $_, 1 ); } qw(bless_package) };
     state $new_method_args = {
-        map { ( $_, 1 ); } qw(source),
-        keys %{$copy_to_g1_args},
-        keys %{$set_method_args}
+        map { ( $_, 1 ); } qw(source), keys %{$copy_to_g1_args}
     };
     for my $args (@hash_ref_args) {
         my $ref_type = ref $args;
@@ -129,7 +123,6 @@ sub Marpa::R2::Internal::Scanless::G::set {
 
     my $ok_args = $set_method_args;
     $ok_args = $new_method_args if $method eq 'new';
-    $ok_args = $internal_args if $method eq 'meta';
     my @bad_args = grep { not $ok_args->{$_} } keys %flat_args;
     if ( scalar @bad_args ) {
         Marpa::R2::exception(
@@ -185,7 +178,7 @@ sub Marpa::R2::Internal::Scanless::G::set {
         } ## end GRAMMAR: for my $naif_grammar ( $slg->[...])
     } ## end if ( defined( my $trace_file_handle = $flat_args{...}))
 
-    if ( $method eq 'new' or $method eq 'meta' ) {
+    if ( $method eq 'new' ) {
 
         # Prune flat args of all those named args which are NOT to be copied
         # into the NAIF recce args
