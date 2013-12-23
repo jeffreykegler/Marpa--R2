@@ -175,7 +175,7 @@ package Marpa::R2::Internal::Powerset;
 use constant ID => 0;
 use constant NIDSET_IDS => 1;
 
-package Marpa::R2::Inner::Scanless::G;
+package Marpa::R2::Internal::Scanless::G;
 use constant C => 0;
 use constant THICK_LEX_GRAMMARS => 1;
 use constant THICK_G1_GRAMMAR => 2;
@@ -194,7 +194,7 @@ use constant BLESS_PACKAGE => 14;
 use constant SYMBOL_IDS_BY_EVENT_NAME_AND_TYPE => 15;
 use constant CACHE_RULEIDS_BY_LHS_NAME => 16;
 
-package Marpa::R2::Inner::Scanless::R;
+package Marpa::R2::Internal::Scanless::R;
 use constant C => 0;
 use constant GRAMMAR => 1;
 use constant THICK_G1_RECCE => 2;

@@ -315,7 +315,7 @@ __DATA__
     ID
     NIDSET_IDS
 
-    :package=Marpa::R2::Inner::Scanless::G
+    :package=Marpa::R2::Internal::Scanless::G
 
     C { The thin version of this object }
 
@@ -339,7 +339,7 @@ __DATA__
     { This saves a lot of time at points }
     CACHE_RULEIDS_BY_LHS_NAME
 
-    :package=Marpa::R2::Inner::Scanless::R
+    :package=Marpa::R2::Internal::Scanless::R
 
     C { The thin version of this object }
 

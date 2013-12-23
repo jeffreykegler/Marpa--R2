@@ -149,7 +149,7 @@ sub progress_report {
 
 sub lexer_progress_report {
     my ( $self, $slr, $ordinal ) = @_;
-    my $thin_slr = $slr->[Marpa::R2::Inner::Scanless::R::C];
+    my $thin_slr = $slr->[Marpa::R2::Internal::Scanless::R::C];
     my $result = q{};
     $ordinal //= $thin_slr->lexer_latest_earley_set();
     $thin_slr->lexer_progress_report_start($ordinal);

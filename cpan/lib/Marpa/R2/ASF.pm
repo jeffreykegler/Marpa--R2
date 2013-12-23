@@ -179,7 +179,7 @@ sub set_last_choice {
     return if $choice > $#{$and_nodes};
     if ( nook_has_semantic_cause( $asf, $nook ) ) {
         my $slr       = $asf->[Marpa::R2::Internal::ASF::SLR];
-        my $recce     = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+        my $recce     = $slr->[Marpa::R2::Internal::Scanless::R::THICK_G1_RECCE];
         my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
         my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
         my $bocage    = $recce->[Marpa::R2::Internal::Recognizer::B_C];
@@ -223,7 +223,7 @@ sub nook_has_semantic_cause {
     my ( $asf, $nook ) = @_;
     my $or_node   = $nook->[Marpa::R2::Internal::Nook::OR_NODE];
     my $slr       = $asf->[Marpa::R2::Internal::ASF::SLR];
-    my $recce     = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+    my $recce     = $slr->[Marpa::R2::Internal::Scanless::R::THICK_G1_RECCE];
     my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
     my $bocage    = $recce->[Marpa::R2::Internal::Recognizer::B_C];
@@ -241,7 +241,7 @@ sub Marpa::R2::ASF::peak {
     my ($asf)    = @_;
     my $or_nodes = $asf->[Marpa::R2::Internal::ASF::OR_NODES];
     my $slr      = $asf->[Marpa::R2::Internal::ASF::SLR];
-    my $recce    = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+    my $recce    = $slr->[Marpa::R2::Internal::Scanless::R::THICK_G1_RECCE];
 
     my $bocage = $recce->[Marpa::R2::Internal::Recognizer::B_C];
     die 'No Bocage' if not $bocage;
@@ -278,7 +278,7 @@ sub normalize_asf_blessing {
 sub Marpa::R2::Internal::ASF::blessings_set {
     my ( $asf, $default_blessing ) = @_;
     my $slr       = $asf->[Marpa::R2::Internal::ASF::SLR];
-    my $recce     = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+    my $recce     = $slr->[Marpa::R2::Internal::Scanless::R::THICK_G1_RECCE];
     my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
     my $rules     = $grammar->[Marpa::R2::Internal::Grammar::RULES];
@@ -359,7 +359,7 @@ sub Marpa::R2::ASF::new {
     $asf->[Marpa::R2::Internal::ASF::SLR] = $slr;
     $asf->[Marpa::R2::Internal::ASF::FACTORING_MAX] //= 42;
 
-    my $recce = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+    my $recce = $slr->[Marpa::R2::Internal::Scanless::R::THICK_G1_RECCE];
 
     if ( defined $recce->[Marpa::R2::Internal::Recognizer::TREE_MODE] ) {
 
@@ -391,8 +391,8 @@ sub Marpa::R2::ASF::new {
 
     $asf->[Marpa::R2::Internal::ASF::GLADES] = [];
 
-    my $slg       = $slr->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
-    my $thin_slr  = $slr->[Marpa::R2::Inner::Scanless::R::C];
+    my $slg       = $slr->[Marpa::R2::Internal::Scanless::R::GRAMMAR];
+    my $thin_slr  = $slr->[Marpa::R2::Internal::Scanless::R::C];
     my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
     my $recce_c   = $recce->[Marpa::R2::Internal::Recognizer::C];
@@ -446,7 +446,7 @@ sub Marpa::R2::ASF::glade_visited_clear {
 sub nid_sort_ix {
     my ( $asf, $nid ) = @_;
     my $slr       = $asf->[Marpa::R2::Internal::ASF::SLR];
-    my $recce     = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+    my $recce     = $slr->[Marpa::R2::Internal::Scanless::R::THICK_G1_RECCE];
     my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
     my $bocage    = $recce->[Marpa::R2::Internal::Recognizer::B_C];
@@ -465,7 +465,7 @@ sub nid_sort_ix {
 sub Marpa::R2::ASF::grammar {
     my ($asf)   = @_;
     my $slr     = $asf->[Marpa::R2::Internal::ASF::SLR];
-    my $slg = $slr->[Marpa::R2::Inner::Scanless::R::GRAMMAR];
+    my $slg = $slr->[Marpa::R2::Internal::Scanless::R::GRAMMAR];
     return $slg;
 } ## end sub Marpa::R2::ASF::grammar
 
@@ -473,7 +473,7 @@ sub nid_rule_id {
     my ( $asf, $nid ) = @_;
     return if $nid < 0;
     my $slr       = $asf->[Marpa::R2::Internal::ASF::SLR];
-    my $recce     = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+    my $recce     = $slr->[Marpa::R2::Internal::Scanless::R::THICK_G1_RECCE];
     my $bocage    = $recce->[Marpa::R2::Internal::Recognizer::B_C];
     my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
@@ -485,7 +485,7 @@ sub nid_rule_id {
 sub or_node_es_span {
     my ( $asf, $choicepoint ) = @_;
     my $slr        = $asf->[Marpa::R2::Internal::ASF::SLR];
-    my $recce      = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+    my $recce      = $slr->[Marpa::R2::Internal::Scanless::R::THICK_G1_RECCE];
     my $bocage     = $recce->[Marpa::R2::Internal::Recognizer::B_C];
     my $origin_es  = $bocage->_marpa_b_or_node_origin($choicepoint);
     my $current_es = $bocage->_marpa_b_or_node_set($choicepoint);
@@ -495,7 +495,7 @@ sub or_node_es_span {
 sub token_es_span {
     my ( $asf, $and_node_id ) = @_;
     my $slr       = $asf->[Marpa::R2::Internal::ASF::SLR];
-    my $recce     = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+    my $recce     = $slr->[Marpa::R2::Internal::Scanless::R::THICK_G1_RECCE];
     my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
     my $bocage    = $recce->[Marpa::R2::Internal::Recognizer::B_C];
@@ -545,7 +545,7 @@ sub nid_token_id {
     return if $nid > $NID_LEAF_BASE;
     my $and_node_id  = nid_to_and_node($nid);
     my $slr          = $asf->[Marpa::R2::Internal::ASF::SLR];
-    my $recce        = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+    my $recce        = $slr->[Marpa::R2::Internal::Scanless::R::THICK_G1_RECCE];
     my $grammar      = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my $grammar_c    = $grammar->[Marpa::R2::Internal::Grammar::C];
     my $bocage       = $recce->[Marpa::R2::Internal::Recognizer::B_C];
@@ -562,7 +562,7 @@ sub nid_symbol_id {
 
     # Not a token, so return the LHS of the rule
     my $slr       = $asf->[Marpa::R2::Internal::ASF::SLR];
-    my $recce     = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+    my $recce     = $slr->[Marpa::R2::Internal::Scanless::R::THICK_G1_RECCE];
     my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
     my $bocage    = $recce->[Marpa::R2::Internal::Recognizer::B_C];
@@ -575,7 +575,7 @@ sub nid_symbol_id {
 sub nid_symbol_name {
     my ( $asf, $nid ) = @_;
     my $slr       = $asf->[Marpa::R2::Internal::ASF::SLR];
-    my $recce     = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+    my $recce     = $slr->[Marpa::R2::Internal::Scanless::R::THICK_G1_RECCE];
     my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my $symbol_id = nid_symbol_id($asf, $nid);
     return $grammar->symbol_name($symbol_id);
@@ -584,7 +584,7 @@ sub nid_symbol_name {
 sub nid_token_name {
     my ( $asf, $nid ) = @_;
     my $slr      = $asf->[Marpa::R2::Internal::ASF::SLR];
-    my $recce    = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+    my $recce    = $slr->[Marpa::R2::Internal::Scanless::R::THICK_G1_RECCE];
     my $grammar  = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my $token_id = nid_token_id($asf, $nid);
     return if not defined $token_id;
@@ -702,7 +702,7 @@ sub factoring_finish {
     my $powerset_by_id = $asf->[Marpa::R2::Internal::ASF::POWERSET_BY_ID];
 
     my $slr       = $asf->[Marpa::R2::Internal::ASF::SLR];
-    my $recce     = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+    my $recce     = $slr->[Marpa::R2::Internal::Scanless::R::THICK_G1_RECCE];
     my $grammar   = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
     my $bocage    = $recce->[Marpa::R2::Internal::Recognizer::B_C];
@@ -778,7 +778,7 @@ sub factoring_finish {
 sub and_nodes_to_cause_nids {
     my ( $asf, @and_node_ids ) = @_;
     my $slr    = $asf->[Marpa::R2::Internal::ASF::SLR];
-    my $recce  = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+    my $recce  = $slr->[Marpa::R2::Internal::Scanless::R::THICK_G1_RECCE];
     my $bocage = $recce->[Marpa::R2::Internal::Recognizer::B_C];
     my %causes = ();
     for my $and_node_id (@and_node_ids) {
@@ -793,7 +793,7 @@ sub glade_id_factors {
     my ($choicepoint) = @_;
     my $asf           = $choicepoint->[Marpa::R2::Internal::Choicepoint::ASF];
     my $slr           = $asf->[Marpa::R2::Internal::ASF::SLR];
-    my $recce         = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+    my $recce         = $slr->[Marpa::R2::Internal::Scanless::R::THICK_G1_RECCE];
     my $grammar       = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
     my $grammar_c     = $grammar->[Marpa::R2::Internal::Grammar::C];
     my $bocage        = $recce->[Marpa::R2::Internal::Recognizer::B_C];
@@ -1199,7 +1199,7 @@ sub Marpa::R2::Internal::ASF::ambiguities_show {
     my ( $asf, $ambiguities ) = @_;
     my $grammar = $asf->grammar();
     my $slr     = $asf->[Marpa::R2::Internal::ASF::SLR];
-    my $p_input = $slr->[Marpa::R2::Inner::Scanless::R::P_INPUT_STRING];
+    my $p_input = $slr->[Marpa::R2::Internal::Scanless::R::P_INPUT_STRING];
     my $result  = q{};
     AMBIGUITY: for my $ambiguity ( @{$ambiguities} ) {
         my $type = $ambiguity->[0];
@@ -1636,7 +1636,7 @@ sub dump_nook {
     my ( $asf, $nook ) = @_;
     my $slr        = $asf->[Marpa::R2::Internal::ASF::SLR];
     my $or_nodes   = $asf->[Marpa::R2::Internal::ASF::OR_NODES];
-    my $recce      = $slr->[Marpa::R2::Inner::Scanless::R::THICK_G1_RECCE];
+    my $recce      = $slr->[Marpa::R2::Internal::Scanless::R::THICK_G1_RECCE];
     my $or_node_id = $nook->[Marpa::R2::Internal::Nook::OR_NODE];
     my $and_node_count = scalar @{ $or_nodes->[$or_node_id] };
     my $text           = 'Nook ';

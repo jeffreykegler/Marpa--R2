@@ -606,7 +606,7 @@ sub Marpa::R2::Recognizer::value {
     local $Marpa::R2::Context::rule    = undef;
     local $Marpa::R2::Context::slr     = $slr;
     local $Marpa::R2::Context::slg =
-        $slr->[Marpa::R2::Inner::Scanless::R::GRAMMAR]
+        $slr->[Marpa::R2::Internal::Scanless::R::GRAMMAR]
         if defined $slr;
 
     if ( not $recce->[Marpa::R2::Internal::Recognizer::REGISTRATIONS] ) {
