@@ -75,17 +75,6 @@ sub Marpa::R2::Scanless::G::new {
         );
     }
 
-    # Other possible grammar options:
-    # actions
-    # default_empty_action
-    # default_rank
-    # inaccessible_ok
-    # symbols
-    # terminals
-    # unproductive_ok
-    # warnings
-
-    my $rules_source;
     $slg->[Marpa::R2::Inner::Scanless::G::G1_ARGS] = {};
     ARG: for my $arg_name ( keys %{$args} ) {
         my $value = $args->{$arg_name};
@@ -99,30 +88,11 @@ sub Marpa::R2::Scanless::G::new {
                 $value;
             next ARG;
         }
-        if ( $arg_name eq 'source' ) {
-            $rules_source = $value;
-            next ARG;
-        }
-        $slg->set( { $arg_name => $value });
-        next ARG;
     } ## end ARG: for my $arg_name ( keys %{$args} )
 
-    Marpa::R2::Internal::Scanless::G::set ( $slg, 'new', $args );
+    my $dsl = Marpa::R2::Internal::Scanless::G::set ( $slg, 'new', $args );
 
-    if ( not defined $rules_source ) {
-        Marpa::R2::exception(
-            'Marpa::R2::Scanless::G::new() called without a "source" argument'
-        );
-    }
-
-    $ref_type = ref $rules_source;
-    if ( $ref_type ne 'SCALAR' ) {
-        Marpa::R2::exception(
-            qq{Marpa::R2::Scanless::G::new() type of "source" argument is "$ref_type"},
-            "  It must be a ref to a string\n"
-        );
-    } ## end if ( $ref_type ne 'SCALAR' )
-    my $ast = Marpa::R2::Internal::MetaAST->new( $rules_source );
+    my $ast = Marpa::R2::Internal::MetaAST->new( $dsl );
     my $hashed_ast = $ast->ast_to_hash();
     $slg->_hash_to_runtime($hashed_ast);
 
@@ -132,7 +102,8 @@ sub Marpa::R2::Scanless::G::new {
 
 sub Marpa::R2::Scanless::G::set {
     my ( $slg, @args ) = @_;
-    return Marpa::R2::Internal::Scanless::G::set ( $slg, 'set', @args );
+    Marpa::R2::Internal::Scanless::G::set ( $slg, 'set', @args );
+    return $slg;
 }
 
 # The context flag indicates whether this set is called directly by the user
@@ -144,6 +115,15 @@ sub Marpa::R2::Scanless::G::set {
 # contexts is a small price to pay.
 sub Marpa::R2::Internal::Scanless::G::set {
     my ( $slg, $method, @hash_ref_args ) = @_;
+
+    # Other possible grammar options:
+    # actions
+    # default_rank
+    # inaccessible_ok
+    # symbols
+    # terminals
+    # unproductive_ok
+    # warnings
 
     state $set_method_args =
         { map { ( $_, 1 ); } qw(trace_file_handle bless_package) };
@@ -189,14 +169,22 @@ sub Marpa::R2::Internal::Scanless::G::set {
         );
     } ## end if ( scalar @bad_args )
 
-    # Other possible grammar options:
-    # actions
-    # default_rank
-    # inaccessible_ok
-    # symbols
-    # terminals
-    # unproductive_ok
-    # warnings
+    my $dsl;
+    if ( $method eq 'new' ) {
+        state $arg_name = 'source';
+        $dsl = $flat_args{$arg_name};
+        Marpa::R2::exception(
+            qq{Marpa::R2::Scanless::G::new() called without a "$arg_name" argument}
+        ) if not defined $dsl;
+        my $ref_type = ref $dsl;
+        if ( $ref_type ne 'SCALAR' ) {
+            my $desc = $ref_type ? "a ref to $ref_type" : 'not a ref';
+            Marpa::R2::exception(
+                qq{'$arg_name' name argument to Marpa::R2::Scanless::G->new() is $desc\n},
+                "  It should be a ref to a string\n"
+            );
+        } ## end if ( $ref_type ne 'SCALAR' )
+    } ## end if ( $method eq 'new' )
 
     # A bit hack-ish, but some named args will be copies straight to a member of
     # the Scanless::G class, so this maps named args to the index of the array
@@ -226,7 +214,7 @@ sub Marpa::R2::Internal::Scanless::G::set {
         } ## end GRAMMAR: for my $naif_grammar ( $slg->[...])
     } ## end if ( defined( my $trace_file_handle = $flat_args{...}))
 
-    return $slg;
+    return $dsl;
 
 }
 
