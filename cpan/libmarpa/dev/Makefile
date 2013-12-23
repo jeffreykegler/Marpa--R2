@@ -15,7 +15,7 @@
 
 # uncomment the second line if you use pdftex to bypass .dvi files
 #PDFTEX = dvipdfm
-PDFTEX = pdftex
+PDFTEX = pdftex -interaction=batchmode -halt-on-error
 
 CWEAVE = cweave -p
 CTANGLE = ctangle -p
