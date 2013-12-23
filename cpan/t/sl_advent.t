@@ -22,8 +22,8 @@ use 5.010;
 use strict;
 use warnings;
 use English qw( -no_match_vars );
-use open ':std', ':encoding(utf8)';
 use utf8;
+use open ':std', ':encoding(utf8)';
 
 use Test::More tests => 54;
 use lib 'inc';
