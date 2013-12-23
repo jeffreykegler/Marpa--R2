@@ -56,53 +56,23 @@ sub Marpa::R2::Internal::Scanless::meta_grammar {
 } ## end sub Marpa::R2::Internal::Scanless::meta_grammar
 
 sub Marpa::R2::Scanless::G::new {
-    my ( $class, $args ) = @_;
+    my ( $class, @hash_ref_args ) = @_;
 
     my $slg = [];
     bless $slg, $class;
 
     $slg->[Marpa::R2::Inner::Scanless::G::TRACE_FILE_HANDLE]       = *STDERR;
     $slg->[Marpa::R2::Inner::Scanless::G::CACHE_RULEIDS_BY_LHS_NAME] = {};
-
-    my $ref_type = ref $args;
-    if ( not $ref_type ) {
-        Carp::croak(
-            "$PACKAGE expects args as ref to HASH; arg was non-reference");
-    }
-    if ( $ref_type ne 'HASH' ) {
-        Carp::croak(
-            "$PACKAGE expects args as ref to HASH, got ref to $ref_type instead"
-        );
-    }
-
-    $slg->[Marpa::R2::Inner::Scanless::G::G1_ARGS] = {};
-    ARG: for my $arg_name ( keys %{$args} ) {
-        my $value = $args->{$arg_name};
-        if ( $arg_name eq 'action_object' ) {
-            $slg->[Marpa::R2::Inner::Scanless::G::G1_ARGS]->{$arg_name} =
-                $value;
-            next ARG;
-        }
-        if ( $arg_name eq 'default_action' ) {
-            $slg->[Marpa::R2::Inner::Scanless::G::G1_ARGS]->{$arg_name} =
-                $value;
-            next ARG;
-        }
-    } ## end ARG: for my $arg_name ( keys %{$args} )
-
-    my $dsl = Marpa::R2::Internal::Scanless::G::set ( $slg, 'new', $args );
-
+    my $dsl = Marpa::R2::Internal::Scanless::G::set ( $slg, 'new', @hash_ref_args );
     my $ast = Marpa::R2::Internal::MetaAST->new( $dsl );
     my $hashed_ast = $ast->ast_to_hash();
     $slg->_hash_to_runtime($hashed_ast);
-
     return $slg;
-
 } ## end sub Marpa::R2::Scanless::G::new
 
 sub Marpa::R2::Scanless::G::set {
-    my ( $slg, @args ) = @_;
-    Marpa::R2::Internal::Scanless::G::set ( $slg, 'set', @args );
+    my ( $slg, @hash_ref_args ) = @_;
+    Marpa::R2::Internal::Scanless::G::set ( $slg, 'set', @hash_ref_args );
     return $slg;
 }
 
@@ -125,14 +95,16 @@ sub Marpa::R2::Internal::Scanless::G::set {
     # unproductive_ok
     # warnings
 
+    state $copy_to_g1_args =
+        { map { ( $_, 1 ); }
+            qw(trace_file_handle action_object default_action) };
     state $set_method_args =
         { map { ( $_, 1 ); } qw(trace_file_handle bless_package) };
     state $new_method_args = {
-        map { ( $_, 1 ); } qw(
-        action_object
-        default_action
-        source), keys %{$set_method_args} };
-
+        map { ( $_, 1 ); } qw(source),
+        keys %{$copy_to_g1_args},
+        keys %{$set_method_args}
+    };
     for my $args (@hash_ref_args) {
         my $ref_type = ref $args;
         if ( not $ref_type ) {
@@ -157,7 +129,7 @@ sub Marpa::R2::Internal::Scanless::G::set {
     }
 
     my $ok_args = $set_method_args;
-    $ok_args = $new_method_args            if $method eq 'new';
+    $ok_args = $new_method_args if $method eq 'new';
     my @bad_args = grep { not $ok_args->{$_} } keys %flat_args;
     if ( scalar @bad_args ) {
         Marpa::R2::exception(
@@ -190,7 +162,7 @@ sub Marpa::R2::Internal::Scanless::G::set {
     # the Scanless::G class, so this maps named args to the index of the array
     # that holds the members.
     state $copy_arg_to_index = {
-        bless_package => Marpa::R2::Inner::Scanless::G::BLESS_PACKAGE,
+        bless_package     => Marpa::R2::Inner::Scanless::G::BLESS_PACKAGE,
         trace_file_handle => Marpa::R2::Inner::Scanless::G::TRACE_FILE_HANDLE
     };
 
@@ -214,9 +186,20 @@ sub Marpa::R2::Internal::Scanless::G::set {
         } ## end GRAMMAR: for my $naif_grammar ( $slg->[...])
     } ## end if ( defined( my $trace_file_handle = $flat_args{...}))
 
+    if ( $method eq 'new' ) {
+
+        # Prune flat args of all those named args which are NOT to be copied
+        # into the NAIF recce args
+        for my $arg_name ( keys %flat_args ) {
+            delete $flat_args{$arg_name}
+                if not $copy_to_g1_args->{$arg_name};
+        }
+        $slg->[Marpa::R2::Inner::Scanless::G::G1_ARGS] = \%flat_args;
+    } ## end if ( $method eq 'new' )
+
     return $dsl;
 
-}
+} ## end sub Marpa::R2::Internal::Scanless::G::set
 
 sub Marpa::R2::Scanless::G::_hash_to_runtime {
     my ( $slg, $hashed_source ) = @_;
