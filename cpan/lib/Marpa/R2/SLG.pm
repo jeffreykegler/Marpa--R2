@@ -41,7 +41,7 @@ sub Marpa::R2::Internal::Scanless::meta_grammar {
     $self->[Marpa::R2::Inner::Scanless::G::BLESS_PACKAGE] =
         'Marpa::R2::Internal::MetaAST_Nodes';
     state $hashed_metag = Marpa::R2::Internal::MetaG::hashed_grammar();
-    $self->_hash_to_runtime($hashed_metag);
+    $self->_hash_to_runtime($hashed_metag, {});
 
     my $thick_g1_grammar =
         $self->[Marpa::R2::Inner::Scanless::G::THICK_G1_GRAMMAR];
@@ -63,10 +63,10 @@ sub Marpa::R2::Scanless::G::new {
 
     $slg->[Marpa::R2::Inner::Scanless::G::TRACE_FILE_HANDLE]       = *STDERR;
     $slg->[Marpa::R2::Inner::Scanless::G::CACHE_RULEIDS_BY_LHS_NAME] = {};
-    my $dsl = Marpa::R2::Internal::Scanless::G::set ( $slg, 'new', @hash_ref_args );
+    my ($dsl, $g1_args) = Marpa::R2::Internal::Scanless::G::set ( $slg, 'new', @hash_ref_args );
     my $ast = Marpa::R2::Internal::MetaAST->new( $dsl );
     my $hashed_ast = $ast->ast_to_hash();
-    $slg->_hash_to_runtime($hashed_ast);
+    $slg->_hash_to_runtime($hashed_ast, $g1_args);
     return $slg;
 } ## end sub Marpa::R2::Scanless::G::new
 
@@ -194,15 +194,15 @@ sub Marpa::R2::Internal::Scanless::G::set {
             delete $flat_args{$arg_name}
                 if not $copy_to_g1_args->{$arg_name};
         }
-        $slg->[Marpa::R2::Inner::Scanless::G::G1_ARGS] = \%flat_args;
+        return ($dsl, \%flat_args);
     } ## end if ( $method eq 'new' )
 
-    return $dsl;
+    return;
 
 } ## end sub Marpa::R2::Internal::Scanless::G::set
 
 sub Marpa::R2::Scanless::G::_hash_to_runtime {
-    my ( $slg, $hashed_source ) = @_;
+    my ( $slg, $hashed_source, $g1_args ) = @_;
 
     # Pre-lexer G1 processing
 
@@ -214,7 +214,6 @@ sub Marpa::R2::Scanless::G::_hash_to_runtime {
     $slg->[Marpa::R2::Inner::Scanless::G::DEFAULT_G1_START_ACTION] =
         $hashed_source->{'default_g1_start_action'};
 
-    my $g1_args = $slg->[Marpa::R2::Inner::Scanless::G::G1_ARGS];
     $g1_args->{trace_file_handle} =
         $slg->[Marpa::R2::Inner::Scanless::G::TRACE_FILE_HANDLE] // \*STDERR;
     $g1_args->{bless_package} =
