@@ -36,12 +36,11 @@ our $PACKAGE = 'Marpa::R2::Scanless::G';
 
 sub Marpa::R2::Internal::Scanless::meta_grammar {
 
-    my $self = bless [], 'Marpa::R2::Scanless::G';
-    $self->[Marpa::R2::Internal::Scanless::G::TRACE_FILE_HANDLE] = \*STDERR;
-    $self->[Marpa::R2::Internal::Scanless::G::BLESS_PACKAGE] =
+    my $meta_slg = bless [], 'Marpa::R2::Scanless::G';
+    $meta_slg->[Marpa::R2::Internal::Scanless::G::BLESS_PACKAGE] =
         'Marpa::R2::Internal::MetaAST_Nodes';
     state $hashed_metag = Marpa::R2::Internal::MetaG::hashed_grammar();
-    my $meta_slg = Marpa::R2::Internal::Scanless::G::hash_to_runtime($self, $hashed_metag, {});
+    Marpa::R2::Internal::Scanless::G::hash_to_runtime($meta_slg, $hashed_metag, {});
 
     my $thick_g1_grammar =
         $meta_slg->[Marpa::R2::Internal::Scanless::G::THICK_G1_GRAMMAR];
@@ -61,11 +60,10 @@ sub Marpa::R2::Scanless::G::new {
     my $slg = [];
     bless $slg, $class;
 
-    $slg->[Marpa::R2::Internal::Scanless::G::TRACE_FILE_HANDLE]       = *STDERR;
     my ($dsl, $g1_args) = Marpa::R2::Internal::Scanless::G::set ( $slg, 'new', @hash_ref_args );
     my $ast = Marpa::R2::Internal::MetaAST->new( $dsl );
     my $hashed_ast = $ast->ast_to_hash();
-    $slg = Marpa::R2::Internal::Scanless::G::hash_to_runtime($slg, $hashed_ast, $g1_args);
+    Marpa::R2::Internal::Scanless::G::hash_to_runtime($slg, $hashed_ast, $g1_args);
     return $slg;
 } ## end sub Marpa::R2::Scanless::G::new
 
@@ -193,6 +191,10 @@ sub Marpa::R2::Internal::Scanless::G::set {
             delete $flat_args{$arg_name}
                 if not $copy_to_g1_args->{$arg_name};
         }
+
+        # trace file handle must always be defined
+        $slg->[Marpa::R2::Internal::Scanless::G::TRACE_FILE_HANDLE] //= \*STDERR;
+
         return ($dsl, \%flat_args);
     } ## end if ( $method eq 'new' )
 
@@ -214,8 +216,8 @@ sub Marpa::R2::Internal::Scanless::G::hash_to_runtime {
     $slg->[Marpa::R2::Internal::Scanless::G::DEFAULT_G1_START_ACTION] =
         $hashed_source->{'default_g1_start_action'};
 
-    $g1_args->{trace_file_handle} =
-        $slg->[Marpa::R2::Internal::Scanless::G::TRACE_FILE_HANDLE] // \*STDERR;
+    $slg->[Marpa::R2::Internal::Scanless::G::TRACE_FILE_HANDLE] = $g1_args->{trace_file_handle} // \*STDERR;
+
     $g1_args->{bless_package} =
         $slg->[Marpa::R2::Internal::Scanless::G::BLESS_PACKAGE];
     $g1_args->{rules}   = $hashed_source->{rules}->{G1};
