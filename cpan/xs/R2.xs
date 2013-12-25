@@ -983,18 +983,17 @@ u_read (Scanless_R * slr)
           ops = (IV *) SvPV (*p_ops_sv, dummy);
         }
 
-      if (trace_lexers >= 1)
-        {
-          AV *event;
-          SV *event_data[5];
-          event_data[0] = newSVpvs ("'trace");
-          event_data[1] = newSVpvs ("lexer reading codepoint");
-          event_data[2] = newSViv ((IV) codepoint);
-          event_data[3] = newSViv ((IV) slr->perl_pos);
-          event_data[4] = newSViv (slr->current_lexer->index);
-          event = av_make (Dim (event_data), event_data);
-          av_push (slr->r1_wrapper->event_queue, newRV_noinc ((SV *) event));
-        }
+if (trace_lexers >= 1)
+  {
+    union marpa_slr_event_s *event = MARPA_DSTACK_PUSH (slr->t_event_dstack,
+							union
+							marpa_slr_event_s);
+    MARPA_SLREV_TYPE (event) = MARPA_SLRTR_CODEPOINT_READ;
+    event->t_trace_codepoint_read.t_codepoint = codepoint;
+    event->t_trace_codepoint_read.t_perl_pos = slr->perl_pos;
+    event->t_trace_codepoint_read.t_current_lexer_ix =
+      slr->current_lexer->index;
+  }
 
       /* ops[0] is codepoint */
       op_count = ops[1];
@@ -6323,13 +6322,12 @@ PPCODE:
   const int old_pos = slr->perl_pos;
   const int input_length = slr->pos_db_logical_size;
 
-  int start_pos =
-    SvIOK (start_pos_sv) ? SvIV (start_pos_sv) : slr->perl_pos;
+  int start_pos = SvIOK (start_pos_sv) ? SvIV (start_pos_sv) : slr->perl_pos;
 
   int lexeme_length = SvIOK (length_sv) ? SvIV (length_sv)
     : slr->perl_pos ==
     slr->start_of_pause_lexeme ? (slr->end_of_pause_lexeme -
-                                  slr->start_of_pause_lexeme) : -1;
+				  slr->start_of_pause_lexeme) : -1;
 
   /* User intervention resets last |perl_pos| */
   slr->last_perl_pos = -1;
@@ -6339,7 +6337,7 @@ PPCODE:
     {
       /* Undef start_pos_sv should not cause error */
       croak ("Bad start position in slr->g1_lexeme_complete(): %ld",
-             (long) (SvIOK (start_pos_sv) ? SvIV (start_pos_sv) : -1));
+	     (long) (SvIOK (start_pos_sv) ? SvIV (start_pos_sv) : -1));
     }
   slr->perl_pos = start_pos;
 
@@ -6349,9 +6347,9 @@ PPCODE:
       0 ? input_length + lexeme_length + 1 : start_pos + lexeme_length;
     if (end_pos < 0 || end_pos > input_length)
       {
-        /* Undef length_sv should not cause error */
-        croak ("Bad length in slr->g1_lexeme_complete(): %ld",
-               (long) (SvIOK (length_sv) ? SvIV (length_sv) : -1));
+	/* Undef length_sv should not cause error */
+	croak ("Bad length in slr->g1_lexeme_complete(): %ld",
+	       (long) (SvIOK (length_sv) ? SvIV (length_sv) : -1));
       }
     lexeme_length = end_pos - start_pos;
   }
@@ -6362,7 +6360,7 @@ PPCODE:
     {
       r_convert_events (slr->r1_wrapper);
       marpa_r_latest_earley_set_values_set (slr->r1, start_pos,
-                                            INT2PTR (void *, lexeme_length));
+					    INT2PTR (void *, lexeme_length));
       slr->perl_pos = start_pos + lexeme_length;
       XSRETURN_IV (slr->perl_pos);
     }
@@ -6370,19 +6368,18 @@ PPCODE:
     {
       const Marpa_Error_Code error = marpa_g_error (slr->g1_wrapper->g, NULL);
       if (error == MARPA_ERR_PARSE_EXHAUSTED)
-        {
-          AV *event;
-          SV *event_data[1];
-          event_data[0] = newSVpvs ("no acceptable input");
-          event = av_make (Dim (event_data), event_data);
-          av_push (slr->r1_wrapper->event_queue, newRV_noinc ((SV *) event));
-        }
+	{
+	  union marpa_slr_event_s *event =
+	    MARPA_DSTACK_PUSH (slr->t_event_dstack,
+			       union marpa_slr_event_s);
+	  MARPA_SLREV_TYPE (event) = MARPA_SLREV_NO_ACCEPTABLE_INPUT;
+	}
       XSRETURN_IV (0);
     }
   if (slr->throw)
     {
       croak ("Problem in slr->g1_lexeme_complete(): %s",
-             xs_g_error (slr->g1_wrapper));
+	     xs_g_error (slr->g1_wrapper));
     }
   XSRETURN_IV (0);
 }
