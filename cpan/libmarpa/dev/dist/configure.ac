@@ -24,8 +24,8 @@ dnl ***********************************
 m4_define(marpa_configure_in)
 
 m4_define([marpa_major_version], [5])
-m4_define([marpa_minor_version], [177])
-m4_define([marpa_micro_version], [115])
+m4_define([marpa_minor_version], [178])
+m4_define([marpa_micro_version], [100])
 m4_define([marpa_interface_age], [100])
 m4_define([marpa_binary_age],
           [m4_eval(100 * marpa_minor_version + marpa_micro_version)])

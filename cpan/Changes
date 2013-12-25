@@ -15,17 +15,15 @@
 
 Revision history for Marpa::R2
 
-2.077_015
+2.078000 Wed Dec 25 08:38:49 PST 2013
 
    * Allow Unicode in SLIF DSL source
 
    * New high-level ASF interface -- still alpha
 
-   * Release candidate
-
 2.076000 Wed Nov 20 16:22:56 PST 2013
 
-   * SLIF Start rule is now optional.
+   * SLIF start rule is now optional.
 
    * SLIF character classes and strings
      can be case-insensitive.
