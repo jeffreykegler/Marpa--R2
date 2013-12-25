@@ -2456,34 +2456,28 @@ slr_alternatives (Scanless_R * slr)
               case MARPA_ERR_DUPLICATE_TOKEN:
                 if (slr->trace_terminals)
                   {
-                    AV *event;
-                    SV *event_data[5];
-                    event_data[0] = newSVpvs ("'trace");
-                    event_data[1] = newSVpvs ("g1 duplicate lexeme");
-                    event_data[2] = newSViv (slr->start_of_lexeme);     /* start */
-                    event_data[3] = newSViv (slr->end_of_lexeme);       /* end */
-                    event_data[4] = newSViv (g1_lexeme);        /* lexeme */
-                    event = av_make (Dim (event_data), event_data);
-                    av_push (slr->r1_wrapper->event_queue,
-                             newRV_noinc ((SV *) event));
+    union marpa_slr_event_s *event = MARPA_DSTACK_PUSH (slr->t_event_dstack,
+							union
+							marpa_slr_event_s);
+    MARPA_SLREV_TYPE (event) = MARPA_SLRTR_G1_DUPLICATE_LEXEME;
+    event->t_trace_duplicate_lexeme.t_start_of_lexeme = slr->start_of_lexeme;	/* start */
+    event->t_trace_duplicate_lexeme.t_end_of_lexeme = slr->end_of_lexeme;	/* end */
+    event->t_trace_duplicate_lexeme.t_lexeme = g1_lexeme;	/* lexeme */
                   }
                 break;
 
               case MARPA_ERR_NONE:
-                if (slr->trace_terminals)
-                  {
-                    AV *event;
-                    SV *event_data[6];
-                    event_data[0] = newSVpvs ("'trace");
-                    event_data[1] = newSVpvs ("g1 accepted lexeme");
-                    event_data[2] = newSViv (slr->start_of_lexeme);     /* start */
-                    event_data[3] = newSViv (slr->end_of_lexeme);       /* end */
-                    event_data[4] = newSViv (g1_lexeme);        /* lexeme */
-                    event_data[5] = newSViv ((IV) slr->current_lexer->index);
-                    event = av_make (Dim (event_data), event_data);
-                    av_push (slr->r1_wrapper->event_queue,
-                             newRV_noinc ((SV *) event));
-                  }
+if (slr->trace_terminals)
+  {
+    union marpa_slr_event_s *event = MARPA_DSTACK_PUSH (slr->t_event_dstack,
+							union
+							marpa_slr_event_s);
+    MARPA_SLREV_TYPE (event) = MARPA_SLRTR_G1_ACCEPTED_LEXEME;
+    event->t_trace_accepted_lexeme.t_start_of_lexeme = slr->start_of_lexeme;	/* start */
+    event->t_trace_accepted_lexeme.t_end_of_lexeme = slr->end_of_lexeme;	/* end */
+    event->t_trace_accepted_lexeme.t_lexeme = g1_lexeme;	/* lexeme */
+    event->t_trace_accepted_lexeme.t_current_lexer_ix = slr->current_lexer->index;
+  }
                 if (symbol_r_properties->pause_after_active)
                   {
                     slr->start_of_pause_lexeme = event->t_lexeme_acceptable.t_start_of_lexeme;
