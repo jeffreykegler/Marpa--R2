@@ -2193,170 +2193,180 @@ slr_alternatives (Scanless_R * slr)
 
       return_value = marpa_r_progress_report_start (r0, earley_set);
       if (return_value < 0)
-        {
-          croak ("Problem in marpa_r_progress_report_start(%p, %ld): %s",
-                 (void *) r0, (unsigned long) earley_set,
-                 xs_g_error (slr->current_lexer->g_wrapper));
-        }
+	{
+	  croak ("Problem in marpa_r_progress_report_start(%p, %ld): %s",
+		 (void *) r0, (unsigned long) earley_set,
+		 xs_g_error (slr->current_lexer->g_wrapper));
+	}
 
       while (!end_of_earley_items)
-        {
-          struct symbol_r_properties *symbol_r_properties;
-          struct symbol_g_properties *symbol_g_properties;
-          Marpa_Symbol_ID g1_lexeme;
-          int this_lexeme_priority;
-          int is_expected;
-          int dot_position;
-          Marpa_Earley_Set_ID origin;
-          Marpa_Rule_ID rule_id =
-            marpa_r_progress_item (r0, &dot_position, &origin);
-          if (rule_id <= -2)
-            {
-              croak ("Problem in marpa_r_progress_item(): %s",
-                     xs_g_error (slr->current_lexer->g_wrapper));
-            }
-          if (rule_id == -1)
-            {
-              end_of_earley_items = 1;
-              goto NEXT_PASS1_REPORT_ITEM;
-            }
-          if (origin != 0)
-            goto NEXT_PASS1_REPORT_ITEM;
-          if (dot_position != -1)
-            goto NEXT_PASS1_REPORT_ITEM;
-          g1_lexeme = slr->current_lexer->lexer_rule_to_g1_lexeme[rule_id];
-          if (g1_lexeme == -1)
-            goto NEXT_PASS1_REPORT_ITEM;
-          slr->end_of_lexeme = working_pos;
-          /* -2 means a discarded item */
-          if (g1_lexeme <= -2)
-            {
-              union marpa_slr_event_s *slr_event =
-                MARPA_DSTACK_PUSH (slr->t_lexeme_dstack,
-                                   union marpa_slr_event_s);
-              MARPA_SLREV_TYPE(slr_event) = MARPA_SLRTR_LEXEME_DISCARDED;
-              slr_event->t_trace_lexeme_discarded.t_rule_id = rule_id;
-              slr_event->t_trace_lexeme_discarded.t_start_of_lexeme = slr->start_of_lexeme;
-              slr_event->t_trace_lexeme_discarded.t_end_of_lexeme = slr->end_of_lexeme;
-              slr_event->t_trace_lexeme_discarded.t_current_lexer_ix = slr->current_lexer->index;
-              discarded++;
+	{
+	  struct symbol_r_properties *symbol_r_properties;
+	  struct symbol_g_properties *symbol_g_properties;
+	  Marpa_Symbol_ID g1_lexeme;
+	  int this_lexeme_priority;
+	  int is_expected;
+	  int dot_position;
+	  Marpa_Earley_Set_ID origin;
+	  Marpa_Rule_ID rule_id =
+	    marpa_r_progress_item (r0, &dot_position, &origin);
+	  if (rule_id <= -2)
+	    {
+	      croak ("Problem in marpa_r_progress_item(): %s",
+		     xs_g_error (slr->current_lexer->g_wrapper));
+	    }
+	  if (rule_id == -1)
+	    {
+	      end_of_earley_items = 1;
+	      goto NEXT_PASS1_REPORT_ITEM;
+	    }
+	  if (origin != 0)
+	    goto NEXT_PASS1_REPORT_ITEM;
+	  if (dot_position != -1)
+	    goto NEXT_PASS1_REPORT_ITEM;
+	  g1_lexeme = slr->current_lexer->lexer_rule_to_g1_lexeme[rule_id];
+	  if (g1_lexeme == -1)
+	    goto NEXT_PASS1_REPORT_ITEM;
+	  slr->end_of_lexeme = working_pos;
+	  /* -2 means a discarded item */
+	  if (g1_lexeme <= -2)
+	    {
+	      union marpa_slr_event_s *slr_event =
+		MARPA_DSTACK_PUSH (slr->t_lexeme_dstack,
+				   union marpa_slr_event_s);
+	      MARPA_SLREV_TYPE (slr_event) = MARPA_SLRTR_LEXEME_DISCARDED;
+	      slr_event->t_trace_lexeme_discarded.t_rule_id = rule_id;
+	      slr_event->t_trace_lexeme_discarded.t_start_of_lexeme =
+		slr->start_of_lexeme;
+	      slr_event->t_trace_lexeme_discarded.t_end_of_lexeme =
+		slr->end_of_lexeme;
+	      slr_event->t_trace_lexeme_discarded.t_current_lexer_ix =
+		slr->current_lexer->index;
+	      discarded++;
 
-              goto NEXT_PASS1_REPORT_ITEM;
-            }
-          symbol_g_properties = slg->symbol_g_properties + g1_lexeme;
-          is_expected = marpa_r_terminal_is_expected (r1, g1_lexeme);
-          if (!is_expected)
-            {
-              union marpa_slr_event_s *slr_event =
-                MARPA_DSTACK_PUSH (slr->t_lexeme_dstack,
-                                   union marpa_slr_event_s);
-              MARPA_SLREV_TYPE(slr_event) = MARPA_SLRTR_LEXEME_REJECTED;
-              slr_event->t_trace_lexeme_rejected.t_start_of_lexeme = slr->start_of_lexeme;
-              slr_event->t_trace_lexeme_rejected.t_end_of_lexeme = slr->end_of_lexeme;
-              slr_event->t_trace_lexeme_rejected.t_lexeme = g1_lexeme;
-              slr_event->t_trace_lexeme_rejected.t_current_lexer_ix = slr->current_lexer->index;
-              rejected++;
-              goto NEXT_PASS1_REPORT_ITEM;
-            }
+	      goto NEXT_PASS1_REPORT_ITEM;
+	    }
+	  symbol_g_properties = slg->symbol_g_properties + g1_lexeme;
+	  is_expected = marpa_r_terminal_is_expected (r1, g1_lexeme);
+	  if (!is_expected)
+	    {
+	      union marpa_slr_event_s *slr_event =
+		MARPA_DSTACK_PUSH (slr->t_lexeme_dstack,
+				   union marpa_slr_event_s);
+	      MARPA_SLREV_TYPE (slr_event) = MARPA_SLRTR_LEXEME_REJECTED;
+	      slr_event->t_trace_lexeme_rejected.t_start_of_lexeme =
+		slr->start_of_lexeme;
+	      slr_event->t_trace_lexeme_rejected.t_end_of_lexeme =
+		slr->end_of_lexeme;
+	      slr_event->t_trace_lexeme_rejected.t_lexeme = g1_lexeme;
+	      slr_event->t_trace_lexeme_rejected.t_current_lexer_ix =
+		slr->current_lexer->index;
+	      rejected++;
+	      goto NEXT_PASS1_REPORT_ITEM;
+	    }
 
-          /* If we are here, the lexeme will be accepted  by the grammar,
-           * but we do not yet know about priority
-           */
+	  /* If we are here, the lexeme will be accepted  by the grammar,
+	   * but we do not yet know about priority
+	   */
 
-          this_lexeme_priority = symbol_g_properties->priority;
-          if (!is_priority_set || this_lexeme_priority > high_lexeme_priority)
-            {
-              high_lexeme_priority = this_lexeme_priority;
-              is_priority_set = 1;
-            }
+	  this_lexeme_priority = symbol_g_properties->priority;
+	  if (!is_priority_set || this_lexeme_priority > high_lexeme_priority)
+	    {
+	      high_lexeme_priority = this_lexeme_priority;
+	      is_priority_set = 1;
+	    }
 
-          {
-            union marpa_slr_event_s *event =
-              MARPA_DSTACK_PUSH (slr->t_lexeme_dstack,
-                                 union marpa_slr_event_s);
-            MARPA_SLREV_TYPE(event) = MARPA_SLRTR_LEXEME_ACCEPTABLE;
-            event->t_lexeme_acceptable.t_start_of_lexeme = slr->start_of_lexeme;
-            event->t_lexeme_acceptable.t_end_of_lexeme = slr->end_of_lexeme;
-            event->t_lexeme_acceptable.t_lexeme = g1_lexeme;
-            event->t_lexeme_acceptable.t_current_lexer_ix = slr->current_lexer->index;
-            event->t_lexeme_acceptable.t_priority = this_lexeme_priority;
-            /* Default to this symbol's priority, since we don't
-               yet know what the required priority will be */
-            event->t_lexeme_acceptable.t_required_priority = this_lexeme_priority;
-          }
+	  {
+	    union marpa_slr_event_s *event =
+	      MARPA_DSTACK_PUSH (slr->t_lexeme_dstack,
+				 union marpa_slr_event_s);
+	    MARPA_SLREV_TYPE (event) = MARPA_SLRTR_LEXEME_ACCEPTABLE;
+	    event->t_lexeme_acceptable.t_start_of_lexeme =
+	      slr->start_of_lexeme;
+	    event->t_lexeme_acceptable.t_end_of_lexeme = slr->end_of_lexeme;
+	    event->t_lexeme_acceptable.t_lexeme = g1_lexeme;
+	    event->t_lexeme_acceptable.t_current_lexer_ix =
+	      slr->current_lexer->index;
+	    event->t_lexeme_acceptable.t_priority = this_lexeme_priority;
+	    /* Default to this symbol's priority, since we don't
+	       yet know what the required priority will be */
+	    event->t_lexeme_acceptable.t_required_priority =
+	      this_lexeme_priority;
+	  }
 
-        NEXT_PASS1_REPORT_ITEM: /* Clearer, I think, using this label than long distance
-                                           break and continue */ ;
-        }
+	NEXT_PASS1_REPORT_ITEM:	/* Clearer, I think, using this label than long distance
+					   break and continue */ ;
+	}
 
       if (discarded || rejected || is_priority_set)
-        break;
+	break;
 
     }
 
-{
-  int i;
-  const int lexeme_dstack_length = MARPA_DSTACK_LENGTH (slr->t_lexeme_dstack);
-  for (i = 0; i < lexeme_dstack_length; i++)
-    {
-      union marpa_slr_event_s *const lexeme_stack_event =
-        MARPA_DSTACK_INDEX (slr->t_lexeme_dstack, union marpa_slr_event_s,
-                            i);
-      const int event_type = MARPA_SLREV_TYPE (lexeme_stack_event);
-      switch (event_type)
-        {
-        case MARPA_SLRTR_LEXEME_ACCEPTABLE:
-          if (lexeme_stack_event->t_lexeme_acceptable.t_priority <
-              high_lexeme_priority)
-            {
-              MARPA_SLREV_TYPE (lexeme_stack_event) =
-                MARPA_SLRTR_LEXEME_OUTPRIORITIZED;
-              lexeme_stack_event->t_lexeme_acceptable.t_required_priority =
-                high_lexeme_priority;
-              if (slr->trace_terminals)
-                {
-                  *MARPA_DSTACK_PUSH (slr->t_event_dstack,
-                                      union marpa_slr_event_s) =
-                    *lexeme_stack_event;
-                }
-            }
-          break;
-        case MARPA_SLRTR_LEXEME_REJECTED:
-          if (slr->trace_terminals || !is_priority_set)
-            {
-              *MARPA_DSTACK_PUSH (slr->t_event_dstack,
-                                  union marpa_slr_event_s) =
-                *lexeme_stack_event;
-            }
-          break;
-        case MARPA_SLRTR_LEXEME_DISCARDED:
-          if (slr->trace_terminals)
-            {
-              *MARPA_DSTACK_PUSH (slr->t_event_dstack,
-                                  union marpa_slr_event_s) =
-                *lexeme_stack_event;
-            }
-          break;
-        }
-    }
-}
+  {
+    int i;
+    const int lexeme_dstack_length =
+      MARPA_DSTACK_LENGTH (slr->t_lexeme_dstack);
+    for (i = 0; i < lexeme_dstack_length; i++)
+      {
+	union marpa_slr_event_s *const lexeme_stack_event =
+	  MARPA_DSTACK_INDEX (slr->t_lexeme_dstack, union marpa_slr_event_s,
+			      i);
+	const int event_type = MARPA_SLREV_TYPE (lexeme_stack_event);
+	switch (event_type)
+	  {
+	  case MARPA_SLRTR_LEXEME_ACCEPTABLE:
+	    if (lexeme_stack_event->t_lexeme_acceptable.t_priority <
+		high_lexeme_priority)
+	      {
+		MARPA_SLREV_TYPE (lexeme_stack_event) =
+		  MARPA_SLRTR_LEXEME_OUTPRIORITIZED;
+		lexeme_stack_event->t_lexeme_acceptable.t_required_priority =
+		  high_lexeme_priority;
+		if (slr->trace_terminals)
+		  {
+		    *MARPA_DSTACK_PUSH (slr->t_event_dstack,
+					union marpa_slr_event_s) =
+		      *lexeme_stack_event;
+		  }
+	      }
+	    break;
+	  case MARPA_SLRTR_LEXEME_REJECTED:
+	    if (slr->trace_terminals || !is_priority_set)
+	      {
+		*MARPA_DSTACK_PUSH (slr->t_event_dstack,
+				    union marpa_slr_event_s) =
+		  *lexeme_stack_event;
+	      }
+	    break;
+	  case MARPA_SLRTR_LEXEME_DISCARDED:
+	    if (slr->trace_terminals)
+	      {
+		*MARPA_DSTACK_PUSH (slr->t_event_dstack,
+				    union marpa_slr_event_s) =
+		  *lexeme_stack_event;
+	      }
+	    break;
+	  }
+      }
+  }
 
   if (!is_priority_set)
     {
       if (discarded)
-        {
-          slr->perl_pos = slr->lexer_start_pos = working_pos;
-          return 0;
-        }
+	{
+	  slr->perl_pos = slr->lexer_start_pos = working_pos;
+	  return 0;
+	}
       slr->perl_pos = slr->problem_pos = slr->lexer_start_pos =
-        slr->start_of_lexeme;
+	slr->start_of_lexeme;
       return "no lexeme";
     }
 
   /* If here, a lexeme has been accepted and priority is set
    */
 
-  {                             /* Check for a "pause before" lexeme */
+  {				/* Check for a "pause before" lexeme */
     /* A legacy implement allowed only one pause-before lexeme, and used elements of
        the SLR structure to hold the data.  The new mechanism uses events and allows
        multiple pause-before lexemes, but the legacy mechanism must be supported. */
@@ -2366,51 +2376,54 @@ slr_alternatives (Scanless_R * slr)
       MARPA_DSTACK_LENGTH (slr->t_lexeme_dstack);
     for (i = 0; i < lexeme_dstack_length; i++)
       {
-        union marpa_slr_event_s *const event =
-          MARPA_DSTACK_INDEX (slr->t_lexeme_dstack, union marpa_slr_event_s,
-                              i);
-        const int event_type = MARPA_SLREV_TYPE (event);
-        if (event_type == MARPA_SLRTR_LEXEME_ACCEPTABLE)
-          {
-            const Marpa_Symbol_ID lexeme_id = event->t_lexeme_acceptable.t_lexeme;
-            const struct symbol_r_properties *symbol_r_properties
-              = slr->symbol_r_properties + lexeme_id;
-            if (symbol_r_properties->pause_before_active)
-              {
-                g1_lexeme = lexeme_id;
-                slr->start_of_pause_lexeme = event->t_lexeme_acceptable.t_start_of_lexeme;
-                slr->end_of_pause_lexeme = event->t_lexeme_acceptable.t_end_of_lexeme;
-                slr->pause_lexeme = g1_lexeme;
-                if (slr->trace_terminals > 2)
-                  {
-                    AV *event;
-                    SV *event_data[5];
-                    event_data[0] = newSVpvs ("'trace");
-                    event_data[1] = newSVpvs ("g1 pausing before lexeme");
-                    event_data[2] = newSViv (slr->start_of_pause_lexeme);       /* start */
-                    event_data[3] = newSViv (slr->end_of_pause_lexeme); /* end */
-                    event_data[4] = newSViv (slr->pause_lexeme);        /* lexeme */
-                    event = av_make (Dim (event_data), event_data);
-                    av_push (slr->r1_wrapper->event_queue,
-                             newRV_noinc ((SV *) event));
-                  }
-                {
-                  AV *event;
-                  SV *event_data[2];
-                  event_data[0] = newSVpvs ("before lexeme");
-                  event_data[1] = newSViv (slr->pause_lexeme);  /* lexeme */
-                  event = av_make (Dim (event_data), event_data);
-                  av_push (slr->r1_wrapper->event_queue,
-                           newRV_noinc ((SV *) event));
-                }
-              }
-          }
+	union marpa_slr_event_s *const event =
+	  MARPA_DSTACK_INDEX (slr->t_lexeme_dstack, union marpa_slr_event_s,
+			      i);
+	const int event_type = MARPA_SLREV_TYPE (event);
+	if (event_type == MARPA_SLRTR_LEXEME_ACCEPTABLE)
+	  {
+	    const Marpa_Symbol_ID lexeme_id =
+	      event->t_lexeme_acceptable.t_lexeme;
+	    const struct symbol_r_properties *symbol_r_properties =
+	      slr->symbol_r_properties + lexeme_id;
+	    if (symbol_r_properties->pause_before_active)
+	      {
+		g1_lexeme = lexeme_id;
+		slr->start_of_pause_lexeme =
+		  event->t_lexeme_acceptable.t_start_of_lexeme;
+		slr->end_of_pause_lexeme =
+		  event->t_lexeme_acceptable.t_end_of_lexeme;
+		slr->pause_lexeme = g1_lexeme;
+		if (slr->trace_terminals > 2)
+		  {
+		    AV *event;
+		    SV *event_data[5];
+		    event_data[0] = newSVpvs ("'trace");
+		    event_data[1] = newSVpvs ("g1 pausing before lexeme");
+		    event_data[2] = newSViv (slr->start_of_pause_lexeme);	/* start */
+		    event_data[3] = newSViv (slr->end_of_pause_lexeme);	/* end */
+		    event_data[4] = newSViv (slr->pause_lexeme);	/* lexeme */
+		    event = av_make (Dim (event_data), event_data);
+		    av_push (slr->r1_wrapper->event_queue,
+			     newRV_noinc ((SV *) event));
+		  }
+		{
+		  AV *event;
+		  SV *event_data[2];
+		  event_data[0] = newSVpvs ("before lexeme");
+		  event_data[1] = newSViv (slr->pause_lexeme);	/* lexeme */
+		  event = av_make (Dim (event_data), event_data);
+		  av_push (slr->r1_wrapper->event_queue,
+			   newRV_noinc ((SV *) event));
+		}
+	      }
+	  }
       }
 
     if (g1_lexeme >= 0)
       {
-        slr->lexer_start_pos = slr->perl_pos = slr->start_of_lexeme;
-        return 0;
+	slr->lexer_start_pos = slr->perl_pos = slr->start_of_lexeme;
+	return 0;
       }
   }
 
@@ -2421,98 +2434,102 @@ slr_alternatives (Scanless_R * slr)
       MARPA_DSTACK_LENGTH (slr->t_lexeme_dstack);
     for (i = 0; i < lexeme_dstack_length; i++)
       {
-        union marpa_slr_event_s *const event =
-          MARPA_DSTACK_INDEX (slr->t_lexeme_dstack, union marpa_slr_event_s,
-                              i);
-        const int event_type = MARPA_SLREV_TYPE (event);
-        if (event_type == MARPA_SLRTR_LEXEME_ACCEPTABLE)
-          {
-            const Marpa_Symbol_ID g1_lexeme = event->t_lexeme_acceptable.t_lexeme;
-            const struct symbol_r_properties *symbol_r_properties
-              = slr->symbol_r_properties + g1_lexeme;
+	union marpa_slr_event_s *const event =
+	  MARPA_DSTACK_INDEX (slr->t_lexeme_dstack, union marpa_slr_event_s,
+			      i);
+	const int event_type = MARPA_SLREV_TYPE (event);
+	if (event_type == MARPA_SLRTR_LEXEME_ACCEPTABLE)
+	  {
+	    const Marpa_Symbol_ID g1_lexeme =
+	      event->t_lexeme_acceptable.t_lexeme;
+	    const struct symbol_r_properties *symbol_r_properties =
+	      slr->symbol_r_properties + g1_lexeme;
 
-            if (slr->trace_terminals > 2)
-              {
-                AV *event;
-                SV *event_data[5];
-                event_data[0] = newSVpvs ("'trace");
-                event_data[1] = newSVpvs ("g1 attempting lexeme");
-                event_data[2] = newSViv (slr->start_of_lexeme); /* start */
-                event_data[3] = newSViv (slr->end_of_lexeme);   /* end */
-                event_data[4] = newSViv (g1_lexeme);    /* lexeme */
-                event = av_make (Dim (event_data), event_data);
-                av_push (slr->r1_wrapper->event_queue,
-                         newRV_noinc ((SV *) event));
-              }
-            return_value =
-              marpa_r_alternative (r1, g1_lexeme, TOKEN_VALUE_IS_LITERAL, 1);
-            switch (return_value)
-              {
-
-              case MARPA_ERR_UNEXPECTED_TOKEN_ID:
-                croak ("Internal error: Marpa rejected expected token");
-                break;
-
-              case MARPA_ERR_DUPLICATE_TOKEN:
-                if (slr->trace_terminals)
-                  {
-    union marpa_slr_event_s *event = MARPA_DSTACK_PUSH (slr->t_event_dstack,
-							union
-							marpa_slr_event_s);
-    MARPA_SLREV_TYPE (event) = MARPA_SLRTR_G1_DUPLICATE_LEXEME;
-    event->t_trace_duplicate_lexeme.t_start_of_lexeme = slr->start_of_lexeme;	/* start */
-    event->t_trace_duplicate_lexeme.t_end_of_lexeme = slr->end_of_lexeme;	/* end */
-    event->t_trace_duplicate_lexeme.t_lexeme = g1_lexeme;	/* lexeme */
-                  }
-                break;
-
-              case MARPA_ERR_NONE:
-if (slr->trace_terminals)
+if (slr->trace_terminals > 2)
   {
     union marpa_slr_event_s *event = MARPA_DSTACK_PUSH (slr->t_event_dstack,
 							union
 							marpa_slr_event_s);
-    MARPA_SLREV_TYPE (event) = MARPA_SLRTR_G1_ACCEPTED_LEXEME;
-    event->t_trace_accepted_lexeme.t_start_of_lexeme = slr->start_of_lexeme;	/* start */
-    event->t_trace_accepted_lexeme.t_end_of_lexeme = slr->end_of_lexeme;	/* end */
-    event->t_trace_accepted_lexeme.t_lexeme = g1_lexeme;	/* lexeme */
-    event->t_trace_accepted_lexeme.t_current_lexer_ix = slr->current_lexer->index;
+    MARPA_SLREV_TYPE (event) = MARPA_SLRTR_G1_ATTEMPTING_LEXEME;
+    event->t_trace_attempting_lexeme.t_start_of_lexeme = slr->start_of_lexeme;	/* start */
+    event->t_trace_attempting_lexeme.t_end_of_lexeme = slr->end_of_lexeme;	/* end */
+    event->t_trace_attempting_lexeme.t_lexeme = g1_lexeme;
   }
-                if (symbol_r_properties->pause_after_active)
-                  {
-                    slr->start_of_pause_lexeme = event->t_lexeme_acceptable.t_start_of_lexeme;
-                    slr->end_of_pause_lexeme = event->t_lexeme_acceptable.t_end_of_lexeme;
-                    slr->pause_lexeme = g1_lexeme;
-                    if (slr->trace_terminals > 2)
-{
-  union marpa_slr_event_s *event = MARPA_DSTACK_PUSH (slr->t_event_dstack,
-						      union
-						      marpa_slr_event_s);
-  MARPA_SLREV_TYPE (event) = MARPA_SLRTR_AFTER_LEXEME;
-  event->t_trace_after_lexeme.t_start_of_lexeme = slr->start_of_pause_lexeme;
-  event->t_trace_after_lexeme.t_end_of_lexeme = slr->end_of_pause_lexeme;
-  event->t_trace_after_lexeme.t_lexeme = g1_lexeme;
-}
-                    {
-  union marpa_slr_event_s *event = MARPA_DSTACK_PUSH (slr->t_event_dstack,
-						      union
-						      marpa_slr_event_s);
-  MARPA_SLREV_TYPE (event) = MARPA_SLREV_AFTER_LEXEME;
-  event->t_after_lexeme.t_lexeme = slr->pause_lexeme;
-                    }
-                  }
-                break;
+	    return_value =
+	      marpa_r_alternative (r1, g1_lexeme, TOKEN_VALUE_IS_LITERAL, 1);
+	    switch (return_value)
+	      {
 
-              default:
-                croak
-                  ("Problem SLR->read() failed on symbol id %d at position %d: %s",
-                   g1_lexeme, (int) slr->perl_pos,
-                   xs_g_error (slr->g1_wrapper));
-                /* NOTREACHED */
+	      case MARPA_ERR_UNEXPECTED_TOKEN_ID:
+		croak ("Internal error: Marpa rejected expected token");
+		break;
 
-              }
+	      case MARPA_ERR_DUPLICATE_TOKEN:
+		if (slr->trace_terminals)
+		  {
+		    union marpa_slr_event_s *event =
+		      MARPA_DSTACK_PUSH (slr->t_event_dstack,
+					 union marpa_slr_event_s);
+		    MARPA_SLREV_TYPE (event) =
+		      MARPA_SLRTR_G1_DUPLICATE_LEXEME;
+		    event->t_trace_duplicate_lexeme.t_start_of_lexeme = slr->start_of_lexeme;	/* start */
+		    event->t_trace_duplicate_lexeme.t_end_of_lexeme = slr->end_of_lexeme;	/* end */
+		    event->t_trace_duplicate_lexeme.t_lexeme = g1_lexeme;	/* lexeme */
+		  }
+		break;
 
-          }
+	      case MARPA_ERR_NONE:
+		if (slr->trace_terminals)
+		  {
+		    union marpa_slr_event_s *event =
+		      MARPA_DSTACK_PUSH (slr->t_event_dstack,
+					 union marpa_slr_event_s);
+		    MARPA_SLREV_TYPE (event) = MARPA_SLRTR_G1_ACCEPTED_LEXEME;
+		    event->t_trace_accepted_lexeme.t_start_of_lexeme = slr->start_of_lexeme;	/* start */
+		    event->t_trace_accepted_lexeme.t_end_of_lexeme = slr->end_of_lexeme;	/* end */
+		    event->t_trace_accepted_lexeme.t_lexeme = g1_lexeme;	/* lexeme */
+		    event->t_trace_accepted_lexeme.t_current_lexer_ix =
+		      slr->current_lexer->index;
+		  }
+		if (symbol_r_properties->pause_after_active)
+		  {
+		    slr->start_of_pause_lexeme =
+		      event->t_lexeme_acceptable.t_start_of_lexeme;
+		    slr->end_of_pause_lexeme =
+		      event->t_lexeme_acceptable.t_end_of_lexeme;
+		    slr->pause_lexeme = g1_lexeme;
+		    if (slr->trace_terminals > 2)
+		      {
+			union marpa_slr_event_s *event =
+			  MARPA_DSTACK_PUSH (slr->t_event_dstack,
+					     union marpa_slr_event_s);
+			MARPA_SLREV_TYPE (event) = MARPA_SLRTR_AFTER_LEXEME;
+			event->t_trace_after_lexeme.t_start_of_lexeme =
+			  slr->start_of_pause_lexeme;
+			event->t_trace_after_lexeme.t_end_of_lexeme =
+			  slr->end_of_pause_lexeme;
+			event->t_trace_after_lexeme.t_lexeme = g1_lexeme;
+		      }
+		    {
+		      union marpa_slr_event_s *event =
+			MARPA_DSTACK_PUSH (slr->t_event_dstack,
+					   union marpa_slr_event_s);
+		      MARPA_SLREV_TYPE (event) = MARPA_SLREV_AFTER_LEXEME;
+		      event->t_after_lexeme.t_lexeme = slr->pause_lexeme;
+		    }
+		  }
+		break;
+
+	      default:
+		croak
+		  ("Problem SLR->read() failed on symbol id %d at position %d: %s",
+		   g1_lexeme, (int) slr->perl_pos,
+		   xs_g_error (slr->g1_wrapper));
+		/* NOTREACHED */
+
+	      }
+
+	  }
       }
 
 
@@ -2520,19 +2537,19 @@ if (slr->trace_terminals)
       marpa_r_earleme_complete (r1);
     if (return_value < 0)
       {
-        croak ("Problem in marpa_r_earleme_complete(): %s",
-               xs_g_error (slr->g1_wrapper));
+	croak ("Problem in marpa_r_earleme_complete(): %s",
+	       xs_g_error (slr->g1_wrapper));
       }
     slr->lexer_start_pos = slr->perl_pos = slr->end_of_lexeme;
     if (return_value > 0)
       {
-        slr_convert_events (slr);
+	slr_convert_events (slr);
       }
 
     marpa_r_latest_earley_set_values_set (r1, slr->start_of_lexeme,
-                                          INT2PTR (void *,
-                                                   (slr->end_of_lexeme -
-                                                    slr->start_of_lexeme)));
+					  INT2PTR (void *,
+						   (slr->end_of_lexeme -
+						    slr->start_of_lexeme)));
   }
 
   return 0;
