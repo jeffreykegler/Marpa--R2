@@ -5174,7 +5174,6 @@ PPCODE:
   Safefree (slg);
 }
 
- #  Always returns the same SV for a given Scanless recce object -- 
 void
 lexer_add( slg, lexer_sv )
   Scanless_G *slg;
