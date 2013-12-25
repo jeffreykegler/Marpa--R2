@@ -1,0 +1,3 @@
+#ifndef _MARPA_H__
+#define _MARPA_H__ 1
+#include "marpa_config.h"

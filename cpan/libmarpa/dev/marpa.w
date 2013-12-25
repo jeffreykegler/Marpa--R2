@@ -16406,6 +16406,11 @@ So I add such a comment.
 #endif
 @<Function definitions@>@;
 
+@*0 Public header file
+@ Our portion of the public header file.
+@ @(marpa.h.p50@> =
+@<Body of public header file@>
+
 @ This is the license language for the header files.
 \tenpoint
 @<Header license language@> =
@@ -16432,21 +16437,6 @@ So I add such a comment.
 @= */@>@/
 
 @ \twelvepoint
-
-@*0 |marpa.h| layout.
-@ The physical structure of the |marpa.h| file
-\tenpoint
-@ @(marpa.h@> =
-@<Header license language@>@;
-
-#ifndef _MARPA_H__
-#define _MARPA_H__ 1
-#include "marpa_config.h"
-
-@<Body of public header file@>
-
-#include "marpa_api.h"
-#endif /* |_MARPA_H__| */
 
 @*0 |marpa_int.h| layout.
 This contains ``internal'' declarations
