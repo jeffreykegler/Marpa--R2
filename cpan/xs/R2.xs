@@ -2394,22 +2394,23 @@ slr_alternatives (Scanless_R * slr)
 		slr->end_of_pause_lexeme =
 		  event->t_lexeme_acceptable.t_end_of_lexeme;
 		slr->pause_lexeme = g1_lexeme;
-		if (slr->trace_terminals > 2) {
-    union marpa_slr_event_s *event = MARPA_DSTACK_PUSH (slr->t_event_dstack,
-							union
-							marpa_slr_event_s);
-    MARPA_SLREV_TYPE (event) = MARPA_SLRTR_BEFORE_LEXEME;
-             event->t_trace_before_lexeme.t_start_of_pause_lexeme = slr->start_of_pause_lexeme;	
-             event->t_trace_before_lexeme.t_end_of_pause_lexeme = slr->end_of_pause_lexeme;	/* end */
-             event->t_trace_before_lexeme.t_pause_lexeme = slr->pause_lexeme;	/* lexeme */
+		if (slr->trace_terminals > 2)
+		  {
+		    union marpa_slr_event_s *event =
+		      MARPA_DSTACK_PUSH (slr->t_event_dstack,
+					 union marpa_slr_event_s);
+		    MARPA_SLREV_TYPE (event) = MARPA_SLRTR_BEFORE_LEXEME;
+		    event->t_trace_before_lexeme.t_start_of_pause_lexeme =
+		      slr->start_of_pause_lexeme;
+		    event->t_trace_before_lexeme.t_end_of_pause_lexeme = slr->end_of_pause_lexeme;	/* end */
+		    event->t_trace_before_lexeme.t_pause_lexeme = slr->pause_lexeme;	/* lexeme */
 		  }
 		{
-    union marpa_slr_event_s *event = MARPA_DSTACK_PUSH (slr->t_event_dstack,
-							union
-							marpa_slr_event_s);
-    MARPA_SLREV_TYPE (event) = MARPA_SLREV_BEFORE_LEXEME;
-             event->t_before_lexeme.t_pause_lexeme
-		   =slr->pause_lexeme;
+		  union marpa_slr_event_s *event =
+		    MARPA_DSTACK_PUSH (slr->t_event_dstack,
+				       union marpa_slr_event_s);
+		  MARPA_SLREV_TYPE (event) = MARPA_SLREV_BEFORE_LEXEME;
+		  event->t_before_lexeme.t_pause_lexeme = slr->pause_lexeme;
 		}
 	      }
 	  }
@@ -2440,16 +2441,16 @@ slr_alternatives (Scanless_R * slr)
 	    const struct symbol_r_properties *symbol_r_properties =
 	      slr->symbol_r_properties + g1_lexeme;
 
-if (slr->trace_terminals > 2)
-  {
-    union marpa_slr_event_s *event = MARPA_DSTACK_PUSH (slr->t_event_dstack,
-							union
-							marpa_slr_event_s);
-    MARPA_SLREV_TYPE (event) = MARPA_SLRTR_G1_ATTEMPTING_LEXEME;
-    event->t_trace_attempting_lexeme.t_start_of_lexeme = slr->start_of_lexeme;	/* start */
-    event->t_trace_attempting_lexeme.t_end_of_lexeme = slr->end_of_lexeme;	/* end */
-    event->t_trace_attempting_lexeme.t_lexeme = g1_lexeme;
-  }
+	    if (slr->trace_terminals > 2)
+	      {
+		union marpa_slr_event_s *event =
+		  MARPA_DSTACK_PUSH (slr->t_event_dstack,
+				     union marpa_slr_event_s);
+		MARPA_SLREV_TYPE (event) = MARPA_SLRTR_G1_ATTEMPTING_LEXEME;
+		event->t_trace_attempting_lexeme.t_start_of_lexeme = slr->start_of_lexeme;	/* start */
+		event->t_trace_attempting_lexeme.t_end_of_lexeme = slr->end_of_lexeme;	/* end */
+		event->t_trace_attempting_lexeme.t_lexeme = g1_lexeme;
+	      }
 	    return_value =
 	      marpa_r_alternative (r1, g1_lexeme, TOKEN_VALUE_IS_LITERAL, 1);
 	    switch (return_value)
