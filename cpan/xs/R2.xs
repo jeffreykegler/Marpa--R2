@@ -448,7 +448,7 @@ static const char* op_to_op_name(enum marpa_op op)
 #define MARPA_SLREV_SYMBOL_NULLED 8
 #define MARPA_SLREV_SYMBOL_PREDICTED 9
 #define MARPA_SLRTR_AFTER_LEXEME 10
-#define MARPA_SLRTR_BEFORE_LEXEME_EVENT 11
+#define MARPA_SLRTR_BEFORE_LEXEME 11
 #define MARPA_SLRTR_CHANGE_LEXERS 12
 #define MARPA_SLRTR_CODEPOINT_ACCEPTED 13
 #define MARPA_SLRTR_CODEPOINT_READ 14
@@ -2394,27 +2394,22 @@ slr_alternatives (Scanless_R * slr)
 		slr->end_of_pause_lexeme =
 		  event->t_lexeme_acceptable.t_end_of_lexeme;
 		slr->pause_lexeme = g1_lexeme;
-		if (slr->trace_terminals > 2)
-		  {
-		    AV *event;
-		    SV *event_data[5];
-		    event_data[0] = newSVpvs ("'trace");
-		    event_data[1] = newSVpvs ("g1 pausing before lexeme");
-		    event_data[2] = newSViv (slr->start_of_pause_lexeme);	/* start */
-		    event_data[3] = newSViv (slr->end_of_pause_lexeme);	/* end */
-		    event_data[4] = newSViv (slr->pause_lexeme);	/* lexeme */
-		    event = av_make (Dim (event_data), event_data);
-		    av_push (slr->r1_wrapper->event_queue,
-			     newRV_noinc ((SV *) event));
+		if (slr->trace_terminals > 2) {
+    union marpa_slr_event_s *event = MARPA_DSTACK_PUSH (slr->t_event_dstack,
+							union
+							marpa_slr_event_s);
+    MARPA_SLREV_TYPE (event) = MARPA_SLRTR_BEFORE_LEXEME;
+             event->t_trace_before_lexeme.t_start_of_pause_lexeme = slr->start_of_pause_lexeme;	
+             event->t_trace_before_lexeme.t_end_of_pause_lexeme = slr->end_of_pause_lexeme;	/* end */
+             event->t_trace_before_lexeme.t_pause_lexeme = slr->pause_lexeme;	/* lexeme */
 		  }
 		{
-		  AV *event;
-		  SV *event_data[2];
-		  event_data[0] = newSVpvs ("before lexeme");
-		  event_data[1] = newSViv (slr->pause_lexeme);	/* lexeme */
-		  event = av_make (Dim (event_data), event_data);
-		  av_push (slr->r1_wrapper->event_queue,
-			   newRV_noinc ((SV *) event));
+    union marpa_slr_event_s *event = MARPA_DSTACK_PUSH (slr->t_event_dstack,
+							union
+							marpa_slr_event_s);
+    MARPA_SLREV_TYPE (event) = MARPA_SLREV_BEFORE_LEXEME;
+             event->t_before_lexeme.t_pause_lexeme
+		   =slr->pause_lexeme;
 		}
 	      }
 	  }
@@ -6063,7 +6058,7 @@ PPCODE:
             break;
           }
 
-        case MARPA_SLRTR_BEFORE_LEXEME_EVENT:
+        case MARPA_SLRTR_BEFORE_LEXEME:
           {
             AV *event_av = newAV ();
             av_push (event_av, newSVpvs ("'trace"));
