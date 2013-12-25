@@ -2490,18 +2490,15 @@ slr_alternatives (Scanless_R * slr)
                     slr->end_of_pause_lexeme = event->t_lexeme_acceptable.t_end_of_lexeme;
                     slr->pause_lexeme = g1_lexeme;
                     if (slr->trace_terminals > 2)
-                      {
-                        AV *event;
-                        SV *event_data[5];
-                        event_data[0] = newSVpvs ("'trace");
-                        event_data[1] = newSVpvs ("g1 pausing after lexeme");
-                        event_data[2] = newSViv (slr->start_of_pause_lexeme);   /* start */
-                        event_data[3] = newSViv (slr->end_of_pause_lexeme);     /* end */
-                        event_data[4] = newSViv (g1_lexeme);    /* lexeme */
-                        event = av_make (Dim (event_data), event_data);
-                        av_push (slr->r1_wrapper->event_queue,
-                                 newRV_noinc ((SV *) event));
-                      }
+{
+  union marpa_slr_event_s *event = MARPA_DSTACK_PUSH (slr->t_lexeme_dstack,
+						      union
+						      marpa_slr_event_s);
+  MARPA_SLREV_TYPE (event) = MARPA_SLRTR_AFTER_LEXEME;
+  event->t_trace_after_lexeme.t_start_of_lexeme = slr->start_of_pause_lexeme;
+  event->t_trace_after_lexeme.t_end_of_lexeme = slr->end_of_pause_lexeme;
+  event->t_trace_after_lexeme.t_lexeme = g1_lexeme;
+}
                     {
                       AV *event;
                       SV *event_data[2];
