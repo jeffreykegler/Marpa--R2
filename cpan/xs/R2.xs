@@ -2491,7 +2491,7 @@ slr_alternatives (Scanless_R * slr)
                     slr->pause_lexeme = g1_lexeme;
                     if (slr->trace_terminals > 2)
 {
-  union marpa_slr_event_s *event = MARPA_DSTACK_PUSH (slr->t_lexeme_dstack,
+  union marpa_slr_event_s *event = MARPA_DSTACK_PUSH (slr->t_event_dstack,
 						      union
 						      marpa_slr_event_s);
   MARPA_SLREV_TYPE (event) = MARPA_SLRTR_AFTER_LEXEME;
@@ -2500,13 +2500,11 @@ slr_alternatives (Scanless_R * slr)
   event->t_trace_after_lexeme.t_lexeme = g1_lexeme;
 }
                     {
-                      AV *event;
-                      SV *event_data[2];
-                      event_data[0] = newSVpvs ("after lexeme");
-                      event_data[1] = newSViv (slr->pause_lexeme);      /* lexeme */
-                      event = av_make (Dim (event_data), event_data);
-                      av_push (slr->r1_wrapper->event_queue,
-                               newRV_noinc ((SV *) event));
+  union marpa_slr_event_s *event = MARPA_DSTACK_PUSH (slr->t_event_dstack,
+						      union
+						      marpa_slr_event_s);
+  MARPA_SLREV_TYPE (event) = MARPA_SLREV_AFTER_LEXEME;
+  event->t_after_lexeme.t_lexeme = slr->pause_lexeme;
                     }
                   }
                 break;
@@ -6130,7 +6128,7 @@ PPCODE:
           {
             AV *event_av = newAV ();;
             av_push (event_av, newSVpvs ("after lexeme"));
-            av_push (event_av, newSViv ((IV) slr_event->t_trace_after_lexeme.t_lexeme));        /* lexeme */
+            av_push (event_av, newSViv ((IV) slr_event->t_after_lexeme.t_lexeme));        /* lexeme */
             XPUSHs (sv_2mortal (newRV_noinc ((SV *) event_av)));
             break;
           }
