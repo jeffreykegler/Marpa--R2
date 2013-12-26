@@ -1,0 +1,9 @@
+This library contains code adopted from Ben Pfaff's libavl.  It differs
+from marpa_avl, my other adaptation of Ben's libavl in being closer to
+the original, and less adopted to Marpa's special needs.  This makes it
+more powerful, more general and less efficient.  The marpa_tavl library
+is used by Marpa in those cases where it does need the greater power
+and generality.
+
+Ben Pfaff's original README is in this directory as README.Pfaff, and
+includes the description of his licensing.
