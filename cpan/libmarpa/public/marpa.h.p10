@@ -1,3 +1,8 @@
+#line 1 "./marpa.h.p10"
+
 #ifndef _MARPA_H__
 #define _MARPA_H__ 1
+
 #include "marpa_config.h"
+
+

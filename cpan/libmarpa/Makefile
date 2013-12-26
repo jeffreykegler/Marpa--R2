@@ -36,11 +36,9 @@ CONFIGURE_FILES = \
 
 STAGE_FILES = \
     $(CONFIGURE_FILES) \
-    stage/codes.c \
-    stage/codes.h \
     stage/marpa.c \
     stage/marpa.h \
-    stage/marpa_api.h \
+    stage/marpa_slif.h \
     stage/marpa_util.h \
     stage/marpa_int.h \
     stage/marpa_obs.c \
@@ -75,19 +73,13 @@ stage/configure.ac: dev/dist/configure.ac
 stage/Makefile.am: dev/dist/Makefile.am
 	cp $? $@
 
-stage/codes.c: dev/codes.c
-	cp $? $@
-
-stage/codes.h: dev/codes.h
-	cp $? $@
-
 stage/marpa.c: dev/marpa.c
 	cp $? $@
 
-stage/marpa.h: dev/marpa.h
+stage/marpa.h: public/marpa.h
 	cp $? $@
 
-stage/marpa_api.h: dev/marpa_api.h
+stage/marpa_slif.h: public/marpa_slif.h
 	cp $? $@
 
 stage/marpa_int.h: dev/marpa_int.h

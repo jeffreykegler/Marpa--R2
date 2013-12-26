@@ -21,8 +21,10 @@ use English qw( -no_match_vars );
 use Fatal qw(open close);
 
 if (scalar @ARGV != 0) {
-    die("usage: $PROGRAM_NAME > marpa.h-err");
+    die("usage: $PROGRAM_NAME error_codes.c > marpa.h-err");
 }
+
+open my $codes_c, '>', $ARGV[0];
 
 # In addition to be taken from the texinfo, document
 # error codes are checked against this list.
@@ -203,12 +205,12 @@ for ( my $error_number = 0; $error_number < $error_count; $error_number++ ) {
         . $error_number;
 }
 
-say 'const struct s_marpa_error_description marpa_error_description[] = {';
+say {$codes_c} 'const struct s_marpa_error_description marpa_error_description[] = {';
 for ( my $error_number = 0; $error_number < $error_count; $error_number++ ) {
     my $error_name = $errors[$error_number];
     my $suggested_description = $error_suggested_messages[$error_number]
         // $error_name;
-    say 
+    say {$codes_c}
         qq[  { $error_number, "$error_name", "$suggested_description" },];
 } ## end for ( my $error_number = 0; $error_number < $error_count...)
 say '};';
