@@ -19,6 +19,15 @@
 ^sl_product[.]t$
 ^meta_to_asf[.]pl$
 
+# IMPORTANT: these match prefixes
+^libmarpa/public/marpa.c-
+^libmarpa/public/marpa.h-
+^libmarpa/public/marpa.h.p
+^libmarpa/public/marpa_codes.c.p
+^libmarpa/public/marpa_slif.h.p
+^libmarpa/ami/marpa_ami[.]c
+^libmarpa/ami/marpa_ami[.]h
+
 ^author.t/all.errs$
 ^author.t/critic.errs$
 ^author.t/critic.list$
@@ -63,21 +72,16 @@
 ^libmarpa/ami/ami_private[.]h$
 ^libmarpa/ami/copyright_page_license[.]w$
 ^libmarpa/ami/cwebmac[.]tex$
-^libmarpa/ami/marpa_ami[.]c
-^libmarpa/ami/marpa_ami[.]h
-^libmarpa/ami/marpa_ami[.]idx
+^libmarpa/ami/marpa_ami[.]idx$
 ^libmarpa/ami/marpa_ami[.]log$
 ^libmarpa/ami/marpa_ami[.]scn$
-^libmarpa/ami/marpa_ami[.]tex
-^libmarpa/ami/marpa_ami[.]toc
-^libmarpa/ami/w2private_h[.]pl
+^libmarpa/ami/marpa_ami[.]tex$
+^libmarpa/ami/marpa_ami[.]toc$
+^libmarpa/ami/w2private_h[.]pl$
 ^libmarpa_build/
 ^libmarpa/dev/api[.]texi[~]$
-^libmarpa/dev/codes[.]c
-^libmarpa/dev/codes[.]h
 ^libmarpa/dev/fragments/
 ^libmarpa/dev/internal[.]texi[~]$
-^libmarpa/dev/marpa_api[.]h
 ^libmarpa/dev/marpa[.]c
 ^libmarpa/dev/marpa[.]h
 ^libmarpa/dev/marpa[.]idx

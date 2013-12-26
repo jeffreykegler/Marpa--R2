@@ -283,6 +283,7 @@ my %files_by_type = (
     'html/t/test.html'                       => \&ignored,
     'libmarpa/VERSION'                       => \&trivial,
     'libmarpa/ami/do_not_edit.c'                    => \&trivial,
+    'libmarpa/public/do_not_edit.c'                    => \&trivial,
     'libmarpa/ami/internal.texi'          => \&license_problems_in_fdl_file,
     'libmarpa/dev/README'                    => \&trivial,
     'libmarpa/dev/VERSION.in'                => \&trivial,
