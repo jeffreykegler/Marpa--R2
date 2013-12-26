@@ -22,8 +22,9 @@
 
 CPPWRAP = perl ../bin/cppwrap.pl
 C_LANGUAGE_PREAMBLE = license.c do_not_edit.c
-MARPA_H_PIECES = $(C_LANGUAGE_PREAMBLE) marpa.h.p10 marpa.h-err marpa.h.p50 marpa.h.p80 marpa.h.p90
-MARPA_SLIF_H_PIECES = $(C_LANGUAGE_PREAMBLE) marpa_slif.h.p20
+MARPA_H_PIECES = $(C_LANGUAGE_PREAMBLE) \
+  marpa.h.p10 marpa.h-err marpa.h-event marpa.h-step \
+  marpa.h.p50 marpa.h.p80 marpa.h.p90
 
 all: marpa_slif.h marpa.h marpa_codes.c
 
@@ -36,19 +37,25 @@ marpa.h.p80: ../dev/marpa.h.p80
 marpa.h: $(MARPA_H_PIECES)
 	cat $(MARPA_H_PIECES) > marpa.h
 
+MARPA_SLIF_H_UNWRAPPED = marpa_slif.h.p20
+MARPA_SLIF_H_PIECES = $(C_LANGUAGE_PREAMBLE) $(MARPA_SLIF_H_UNWRAPPED)
+
 marpa_slif.h: $(MARPA_SLIF_H_PIECES)
-	cat $(MARPA_SLIF_H_PIECES) > marpa_slif.h
+	(cat $(C_LANGUAGE_PREAMBLE) ; \
+		for f in $(MARPA_SLIF_H_UNWRAPPED); \
+		do $(CPPWRAP) $$f < $$f; \
+		done) > $@
 
 # The pieces with the code data,
 # not yet wrapped with the pre-processor line directive
-MARPA_CODES_C_UNWRAPPED = marpa.c-err marpa.c-event marpa.c-step
+MARPA_CODES_C_UNWRAPPED = marpa_codes.c.p10 marpa.c-err marpa.c-event marpa.c-step
 
 MARPA_CODES_C_PIECES = $(C_LANGUAGE_PREAMBLE) $(MARPA_CODES_C_UNWRAPPED)
 
 marpa_codes.c: $(MARPA_CODES_C_PIECES)
 	(cat $(C_LANGUAGE_PREAMBLE) ; \
-		for f in $(MARPA_CODES_C_UNWRAPPED);
-		do $(CPPWRAP) $$f < $$f;
+		for f in $(MARPA_CODES_C_UNWRAPPED); \
+		do $(CPPWRAP) $$f < $$f; \
 		done) > $@
 
 

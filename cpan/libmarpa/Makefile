@@ -46,6 +46,7 @@ STAGE_FILES = \
     stage/marpa_ami.h \
     stage/marpa_ami.c \
     stage/marpa_avl.h \
+    stage/marpa_codes.c \
     stage/private.h \
     stage/ami_private.h \
     stage/marpa_avl.c \
@@ -95,6 +96,9 @@ stage/marpa_obs.h: obs/marpa_obs.h
 	cp $? $@
 
 stage/marpa_ami.c: ami/marpa_ami.c
+	cp $? $@
+
+stage/marpa_codes.c: public/marpa_codes.c
 	cp $? $@
 
 stage/marpa_ami.h: ami/marpa_ami.h
@@ -177,7 +181,7 @@ doc/internal.pdf: doc/Makefile doc/internal.texi
 doc/internal.html/index.html: doc/Makefile doc/internal.texi
 	cd doc && make html
 
-install: dev_sources ami_sources code_sources stage/stamp-h1 doc/stamp-h1
+install: dev_sources ami_sources public_sources stage/stamp-h1 doc/stamp-h1
 
 dev_sources:
 	cd dev && make
@@ -185,8 +189,8 @@ dev_sources:
 ami_sources:
 	cd ami && make
 
-codes_sources:
-	cd codes && make
+public_sources:
+	cd public && make
 
 stage/stamp-h1: stage/Makefile $(STAGE_FILES)
 	(cd stage; make dist)
