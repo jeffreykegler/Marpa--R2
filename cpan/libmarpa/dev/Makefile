@@ -43,14 +43,14 @@ CTANGLE = ctangle -p
 
 all: marpa.pdf sources
 
-sources: marpa.c marpa.h.p50 marpa.h.p80 marpa_int.h marpa_util.h marpa_api.h codes.h codes.c private.h
+sources: marpa.c marpa.h.p50 marpa.h.p80 marpa_int.h marpa_util.h marpa.h.p80 private.h
 
 marpa.h.p50 marpa.c: copyright_page_license.w marpa.w
 	$(CTANGLE) marpa.w
 
 marpa.h.p80: api.texi internal.texi texi2proto.pl
 	cat api.texi internal.texi | \
-	  perl texi2proto.pl marpa_api.h
+	  perl texi2proto.pl > marpa.h.p80
 
 private.h: marpa.w w2private_h.pl
 	perl w2private_h.pl private.h < marpa.w

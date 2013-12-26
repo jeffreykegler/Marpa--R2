@@ -16406,7 +16406,7 @@ So I add such a comment.
 #endif
 @<Function definitions@>@;
 
-@*0 Public header file
+@*0 Public header file.
 @ Our portion of the public header file.
 @ @(marpa.h.p50@> =
 @<Body of public header file@>
