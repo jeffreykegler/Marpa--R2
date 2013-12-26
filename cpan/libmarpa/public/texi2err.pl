@@ -20,7 +20,7 @@ use warnings;
 use English qw( -no_match_vars );
 use Fatal qw(open close);
 
-if (scalar @ARGV != 0) {
+if (scalar @ARGV != 1) {
     die("usage: $PROGRAM_NAME error_codes.c > marpa.h-err");
 }
 
@@ -213,6 +213,6 @@ for ( my $error_number = 0; $error_number < $error_count; $error_number++ ) {
     say {$codes_c}
         qq[  { $error_number, "$error_name", "$suggested_description" },];
 } ## end for ( my $error_number = 0; $error_number < $error_count...)
-say '};';
+say {$codes_c} '};';
 
 # vim: expandtab shiftwidth=4:

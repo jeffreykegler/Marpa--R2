@@ -25,7 +25,7 @@ C_LANGUAGE_PREAMBLE = license.c do_not_edit.c
 MARPA_H_PIECES = $(C_LANGUAGE_PREAMBLE) marpa.h.p10 marpa.h-err marpa.h.p50 marpa.h.p80 marpa.h.p90
 MARPA_SLIF_H_PIECES = $(C_LANGUAGE_PREAMBLE) marpa_slif.h.p20
 
-all: marpa_slif.h marpa.h
+all: marpa_slif.h marpa.h marpa_codes.c
 
 marpa.h.p50: ../dev/marpa.h.p50
 	cp $? $@
@@ -39,15 +39,31 @@ marpa.h: $(MARPA_H_PIECES)
 marpa_slif.h: $(MARPA_SLIF_H_PIECES)
 	cat $(MARPA_SLIF_H_PIECES) > marpa_slif.h
 
-UNWRAPPED_CODE_PIECES = marpa-c.err marpa.c-event marpa.c-step
+# The pieces with the code data,
+# not yet wrapped with the pre-processor line directive
+MARPA_CODES_C_UNWRAPPED = marpa.c-err marpa.c-event marpa.c-step
 
-marpa_codes.c: $(C_LANGUAGE_PREAMBLE) $(UNWRAPPED_CODE_PIECES)
+MARPA_CODES_C_PIECES = $(C_LANGUAGE_PREAMBLE) $(MARPA_CODES_C_UNWRAPPED)
+
+marpa_codes.c: $(MARPA_CODES_C_PIECES)
 	(cat $(C_LANGUAGE_PREAMBLE) ; \
-	   for f in $(UNWRAPPED_CODE_PIECES); \
-	   do $(CPPWRAP) $$f > $$f; \
-	   done \
-	) > $@
+		for f in $(MARPA_CODES_C_UNWRAPPED);
+		do $(CPPWRAP) $$f < $$f;
+		done) > $@
+
 
 marpa.c-err marpa.h-err: ../dev/api.texi
-	cat ../dev/api.texi | perl texi2err.pl marpa.c-err | $(CPPWRAP) $@ > $@
+	cat ../dev/api.texi | \
+	  perl texi2err.pl marpa.c-err | \
+	  $(CPPWRAP) marpa.h-err > marpa.h-err
+
+marpa.c-event marpa.h-event: ../dev/api.texi
+	cat ../dev/api.texi | \
+	  perl texi2event.pl marpa.c-event | \
+	  $(CPPWRAP) marpa.h-event > marpa.h-event
+
+marpa.c-step marpa.h-step: ../dev/api.texi
+	cat ../dev/api.texi | \
+	  perl texi2step.pl marpa.c-step | \
+	  $(CPPWRAP) marpa.h-step > marpa.h-step
 

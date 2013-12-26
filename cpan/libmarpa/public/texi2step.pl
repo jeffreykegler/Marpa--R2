@@ -66,28 +66,6 @@ for ( my $step_type_number = 0; $step_type_number < $step_type_count; $step_type
 }
 
 say {$codes_c}
-    'const struct s_marpa_error_description marpa_error_description[] = {';
-for ( my $error_number = 0; $error_number < $error_count; $error_number++ ) {
-    my $error_name = $errors[$error_number];
-    my $suggested_description = $error_suggested_messages[$error_number]
-        // $error_name;
-    say {$codes_c}
-        qq[  { $error_number, "$error_name", "$suggested_description" },];
-} ## end for ( my $error_number = 0; $error_number < $error_count...)
-say {$codes_c} '};';
-
-say {$codes_c}
-    'const struct s_marpa_event_description marpa_event_description[] = {';
-for ( my $event_number = 0; $event_number < $event_count; $event_number++ ) {
-    my $suggested_description = $event_suggested_messages[$event_number]
-        // "Unknown event";
-    my $event_name = $events[$event_number];
-    say {$codes_c}
-        qq[  { $event_number, "$event_name", "$suggested_description" },];
-} ## end for ( my $event_number = 0; $event_number < $event_count...)
-say {$codes_c} '};';
-
-say {$codes_c}
     'const struct s_marpa_step_type_description marpa_step_type_description[] = {';
 for (
     my $step_type_number = 0;

@@ -1,4 +1,10 @@
 /marpa[.]h-err
+/marpa[.]c-err
+/marpa[.]c-event
+/marpa[.]c-step
+/marpa[.]h-event
+/marpa[.]h-step
+/marpa_codes[.]c
 /marpa[.]h
 /marpa_slif[.]h
 /marpa_slif[.]h[.]p20
