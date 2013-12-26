@@ -21,7 +21,7 @@
 #include "limits.h"
 
 #include "config.h"
-#include "marpa.h"
+#include "marpa_slif.h"
 #include "marpa_ami.h"
 
 #define PERL_NO_GET_CONTEXT
@@ -252,9 +252,6 @@ static const char tree_c_class_name[] = "Marpa::R2::Thin::T";
 static const char value_c_class_name[] = "Marpa::R2::Thin::V";
 static const char scanless_g_class_name[] = "Marpa::R2::Thin::SLG";
 static const char scanless_r_class_name[] = "Marpa::R2::Thin::SLR";
-
-#include "codes.h"
-#include "codes.c"
 
 static const char *
 event_type_to_string (Marpa_Event_Type event_code)
