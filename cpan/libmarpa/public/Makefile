@@ -22,8 +22,10 @@ MARPA_AMI_H_PIECES =  $(C_LANGUAGE_PREAMBLE) marpa.h.p10 marpa.h.p50 marpa.h.p90
 
 all: marpa_ami.pdf sources
 
-sources: marpa_slif.h marpa.h
+sources: marpa_slif.h marpa.h-err
 
-codes.c codes.h: api.texi texi2code.pl
-	cat api.texi | perl texi2code.pl codes.h codes.c
+marpa.h: marpa.h-err
+
+marpa.h-err: ../dev/api.texi
+	cat ../dev/api.texi | perl texi2err.pl > marpa.h-err
 
