@@ -20,7 +20,7 @@ AM_CPPFLAGS = $(WARNING_CPPFLAGS)
 ACLOCAL_AMFLAGS = -I m4
 noinst_LTLIBRARIES = libmarpa.la
 libmarpa_la_SOURCES = marpa_obs.c marpa.c marpa_obs.h \
-    ami_private.h private.h \
+    ami_private.h slif_private.h private.h \
     marpa_util.h marpa_int.h marpa.h \
     marpa_avl.c marpa_avl.h \
     marpa_ami.c marpa_ami.h \

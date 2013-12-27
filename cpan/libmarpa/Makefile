@@ -50,6 +50,7 @@ STAGE_FILES = \
     stage/marpa_slif.c \
     stage/private.h \
     stage/ami_private.h \
+    stage/slif_private.h \
     stage/marpa_avl.c \
     stage/NEWS \
     stage/VERSION.in \
@@ -102,7 +103,7 @@ stage/marpa_ami.c: ami/marpa_ami.c
 stage/marpa_codes.c: public/marpa_codes.c
 	cp $? $@
 
-stage/marpa_slif.c: public/marpa_slif.c
+stage/marpa_slif.c: slif/marpa_slif.c
 	cp $? $@
 
 stage/marpa_ami.h: ami/marpa_ami.h
@@ -118,6 +119,9 @@ stage/private.h: dev/private.h
 	cp $? $@
 
 stage/ami_private.h: ami/ami_private.h
+	cp $? $@
+
+stage/slif_private.h: slif/slif_private.h
 	cp $? $@
 
 stage/README: dev/dist/README
