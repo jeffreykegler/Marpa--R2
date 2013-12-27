@@ -282,21 +282,24 @@ my %files_by_type = (
     'html/t/no_tang.html'                    => \&ignored,
     'html/t/test.html'                       => \&ignored,
     'libmarpa/VERSION'                       => \&trivial,
-    'libmarpa/ami/do_not_edit.c'                    => \&trivial,
-    'libmarpa/public/do_not_edit.c'                    => \&trivial,
+    'libmarpa/shared/do_not_edit.c'                    => \&trivial,
+    'libmarpa/public/marpa_codes.c.p10' => \&trivial,
+    'libmarpa/public/marpa_slif.h.p20' => \&trivial,
+    'libmarpa/public/marpa.h.p10' => \&trivial,
+    'libmarpa/public/marpa.h.p90' => \&trivial,
     'libmarpa/ami/internal.texi'          => \&license_problems_in_fdl_file,
     'libmarpa/dev/README'                    => \&trivial,
     'libmarpa/dev/VERSION.in'                => \&trivial,
     'libmarpa/dev/api.texi'                 => \&license_problems_in_fdl_file,
-    'libmarpa/dev/dist/VERSION.in'          => \&trivial,
+    'libmarpa/ac/VERSION.in'          => \&trivial,
     'libmarpa_dist/VERSION'                 => \&trivial,
     'libmarpa_dist/VERSION.in'              => \&trivial,
-    'libmarpa/dev/too_long.pl' => \&trivial,
-    'libmarpa/dev/copyright_page_license.w' => \&copyright_page,
-    'libmarpa/dev/cwebmac.tex' =>
+    'libmarpa/bin/too_long.pl' => \&trivial,
+    'libmarpa/shared/copyright_page_license.w' => \&copyright_page,
+    'libmarpa/shared/cwebmac.tex' =>
         \&ignored,    # originally from Cweb, leave it alone
-    'libmarpa/dev/doc_dist/fdl-1.3.texi'  => \&ignored,
-    'libmarpa/dev/doc_dist/lgpl-3.0.texi' => \&ignored,
+    'libmarpa/ac_doc/fdl-1.3.texi'  => \&ignored,
+    'libmarpa/ac_doc/lgpl-3.0.texi' => \&ignored,
     'libmarpa/dev/internal.texi'          => \&license_problems_in_fdl_file,
     'libmarpa/stage/config.h.in' =>
         check_tag( 'Generated from configure.ac by autoheader', 250 ),
@@ -326,7 +329,7 @@ my %files_by_type = (
 
 # Common files in the GNU distributions
 for my $distlib (
-    qw(libmarpa/dev/doc_dist libmarpa/dev/dist libmarpa_dist libmarpa_doc_dist)
+    qw(libmarpa/ac_doc libmarpa/ac libmarpa_dist libmarpa_doc_dist)
     )
 {
     $files_by_type{"$distlib/AUTHORS"}   = \&trivial;
