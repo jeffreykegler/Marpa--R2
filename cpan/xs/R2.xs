@@ -16,7 +16,6 @@
  */
 
 #include "config.h"
-#include "marpa_slif.h"
 #include "marpa_ami.h"
 
 #define PERL_NO_GET_CONTEXT

@@ -354,6 +354,7 @@ So I add such a comment.
 #ifndef _MARPA_AMI_H__
 #define _MARPA_AMI_H__ 1
 
+#include "marpa_slif.h"
 #include "marpa_util.h"
 
 #if defined(__GNUC__) && (__GNUC__ >  2) && defined(__OPTIMIZE__)
@@ -379,7 +380,6 @@ So I add such a comment.
 @(marpa_ami.c.p1@> =
 
 #include "config.h"
-#include "marpa.h"
 
 #ifndef MARPA_DEBUG
 #define MARPA_DEBUG 0
