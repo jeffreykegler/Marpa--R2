@@ -1,9 +1,9 @@
 /copyright_page_license[.]w
 /cwebmac[.]tex
 /marpa_ami[.]c
-/marpa_ami[.]c[.]p[0-9]
+/marpa_ami[.]c[.]p[0-9][0-9]
 /marpa_ami[.]h
-/marpa_ami[.]h[.]p[0-9]
+/marpa_ami[.]h[.]p[0-9][0-9]
 /marpa_ami[.]idx
 /marpa_ami[.]log
 /marpa_ami[.]pdf
@@ -12,4 +12,3 @@
 /marpa_ami[.]toc
 /ami_private[.]h
 /*[.]swp
-/w2private_h[.]pl

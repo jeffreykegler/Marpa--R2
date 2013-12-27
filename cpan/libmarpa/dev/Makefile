@@ -43,7 +43,7 @@ CTANGLE = ctangle -p
 
 all: marpa.pdf sources
 
-sources: marpa.c marpa.h.p50 marpa.h.p80 marpa_int.h marpa_util.h marpa.h.p80 private.h
+sources: marpa.c marpa.h.p50 marpa.h.p80 marpa_int.h marpa_util.h marpa.h.p80
 
 C_LANGUAGE_PREAMBLE = ../shared/license.c ../shared/do_not_edit.c
 MARPA_C_PIECES = $(C_LANGUAGE_PREAMBLE) marpa.c.p10 marpa.c.p40 marpa.c.p50
@@ -51,15 +51,17 @@ MARPA_C_PIECES = $(C_LANGUAGE_PREAMBLE) marpa.c.p10 marpa.c.p40 marpa.c.p50
 marpa.c: $(MARPA_C_PIECES)
 	cat $(MARPA_C_PIECES) > $@
 
-marpa.h.p50 marpa.c.p10 marpa.c.p40 marpa.c.p50: copyright_page_license.w marpa.w
+marpa.h.p50 marpa.c.p10 marpa.c.p50: copyright_page_license.w marpa.w
 	$(CTANGLE) marpa.w
 
 marpa.h.p80: api.texi internal.texi texi2proto.pl
 	cat api.texi internal.texi | \
 	  perl texi2proto.pl > marpa.h.p80
 
-private.h: marpa.w w2private_h.pl
-	perl w2private_h.pl private.h < marpa.w
+CPPWRAP = perl ../bin/cppwrap.pl
+
+marpa.c.p40: marpa.w
+	perl w2private_h.pl < $? | $(CPPWRAP) $@ > $@
 
 marpa.pdf: marpa.tex cwebmac.tex
 

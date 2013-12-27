@@ -202,7 +202,7 @@ extern const struct s_marpa_step_type_description
 case, I include a dummy function.  Once there are other contents,
 it should be deleted.
 @*0 The main code file.
-@(marpa_slif.c.p50@> =
+@(marpa_slif.c.p10@> =
 
 #ifndef MARPA_DEBUG
 #define MARPA_DEBUG 0
@@ -213,7 +213,7 @@ it should be deleted.
 
 @<Private macros@>@;
 
-#include "slif_private.h"
+@ @(marpa_slif.c.p50@> =
 
 int marpa__slif_dummy(void);
 int marpa__slif_dummy(void) { return 1 ; }

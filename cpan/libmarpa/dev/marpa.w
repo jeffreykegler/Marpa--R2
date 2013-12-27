@@ -16371,9 +16371,6 @@ So I add such a comment.
 @<Earley item structure@>@;
 @<Bocage structure@>@;
 
-@ @(marpa.c.p40@> =
-#include "private.h"
-
 @ @(marpa.c.p50@> =
 #if MARPA_DEBUG
 @<Debug function prototypes@>@;

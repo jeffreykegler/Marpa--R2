@@ -349,7 +349,7 @@ not intended to be edited directly.
 So I add such a comment.
 
 @*0 |marpa_ami.h| layout, first piece.
-@(marpa_ami.h.p1@> =
+@(marpa_ami.h.p10@> =
 
 #ifndef _MARPA_AMI_H__
 #define _MARPA_AMI_H__ 1
@@ -369,7 +369,7 @@ So I add such a comment.
 @<Friend incomplete structures@>@;
 
 @*0 |marpa_ami.h| layout, last piece.
-@(marpa_ami.h.p9@> =
+@(marpa_ami.h.p90@> =
 
 @<Friend structures@>@;
 @<Friend static inline functions@>@;
@@ -377,7 +377,7 @@ So I add such a comment.
 #endif /* |_MARPA_AMI_H__| */
 
 @*0 |marpa_ami.c| layout.
-@(marpa_ami.c.p1@> =
+@(marpa_ami.c.p10@> =
 
 #include "config.h"
 
@@ -390,12 +390,10 @@ So I add such a comment.
 
 @<Private macros@>@;
 
-#include "ami_private.h"
-
 @ The .c file has no contents at the moment, so just in
 case, I include a dummy function.  Once there are other contents,
 it should be deleted.
-@(marpa_ami.c.p1@> =
+@(marpa_ami.c.p50@> =
 int _marpa_ami_dummy(void);
 int _marpa_ami_dummy(void) { return 1 ; }
 
