@@ -37,7 +37,7 @@ marpa.h.p80: ../dev/marpa.h.p80
 marpa.h: $(MARPA_H_PIECES)
 	cat $(MARPA_H_PIECES) > marpa.h
 
-MARPA_SLIF_H_UNWRAPPED = marpa_slif.h.p20
+MARPA_SLIF_H_UNWRAPPED = marpa_slif.h.p50
 MARPA_SLIF_H_PIECES = $(C_LANGUAGE_PREAMBLE) $(MARPA_SLIF_H_UNWRAPPED)
 
 marpa_slif.h: $(MARPA_SLIF_H_PIECES)

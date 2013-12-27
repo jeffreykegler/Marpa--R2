@@ -153,14 +153,82 @@ used in a private function.
 #define PRIVATE_NOT_INLINE static
 #define PRIVATE static inline
 
-@** File layout.  
+@** Error description structure.
+@ Keeps data for mapping back and forth between error code,
+on one hand,
+and its name and long form description,
+on the other.
+@<Body of public header file@> =
+struct s_marpa_error_description
+{
+  Marpa_Error_Code error_code;
+  const char *name;
+  const char *suggested;
+};
+extern const struct s_marpa_error_description marpa_error_description[];
+
+@** Event description structure.
+@ Keeps data for mapping back and forth between event code,
+on one hand,
+and its name and long form description,
+on the other..
+@<Body of public header file@> =
+struct s_marpa_event_description
+{
+  Marpa_Event_Type event_code;
+  const char *name;
+  const char *suggested;
+};
+extern const struct s_marpa_event_description marpa_event_description[];
+
+@** Step type description structure.
+@ Keeps data for mapping back and forth between
+evaluation step code,
+on one hand,
+and its name,
+on the other.
+
+@<Body of public header file@> =
+struct s_marpa_step_type_description
+{
+  Marpa_Step_Type step_type;
+  const char *name;
+};
+extern const struct s_marpa_step_type_description
+  marpa_step_type_description[];
+
+@** File layouts.  
 @ The .c file has no contents at the moment, so just in
 case, I include a dummy function.  Once there are other contents,
 it should be deleted.
+@*0 The main code file.
 @(marpa_slif.c.p50@> =
+
+#ifndef MARPA_DEBUG
+#define MARPA_DEBUG 0
+#endif
+
+#include "marpa_slif.h"
+#include "marpa_int.h"
+
+@<Private macros@>@;
+
+#include "slif_private.h"
+
 int marpa__slif_dummy(void);
 int marpa__slif_dummy(void) { return 1 ; }
 
+@*0 The public header file.
+@(marpa_slif.h.p50@> =
+
+#ifndef _MARPA_SLIF_H__
+#define _MARPA_SLIF_H__ 1
+
+#include "marpa.h"
+
+@<Body of public header file@>@;
+
+#endif /* |_MARPA_SLIF_H__| */
 @** Index.
 
 % vim: expandtab shiftwidth=4:

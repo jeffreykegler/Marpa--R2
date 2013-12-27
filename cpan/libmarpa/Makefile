@@ -47,6 +47,7 @@ STAGE_FILES = \
     stage/marpa_ami.c \
     stage/marpa_avl.h \
     stage/marpa_codes.c \
+    stage/marpa_slif.c \
     stage/private.h \
     stage/ami_private.h \
     stage/marpa_avl.c \
@@ -99,6 +100,9 @@ stage/marpa_ami.c: ami/marpa_ami.c
 	cp $? $@
 
 stage/marpa_codes.c: public/marpa_codes.c
+	cp $? $@
+
+stage/marpa_slif.c: public/marpa_slif.c
 	cp $? $@
 
 stage/marpa_ami.h: ami/marpa_ami.h
@@ -181,13 +185,17 @@ doc/internal.pdf: doc/Makefile doc/internal.texi
 doc/internal.html/index.html: doc/Makefile doc/internal.texi
 	cd doc && make html
 
-install: dev_sources ami_sources public_sources stage/stamp-h1 doc/stamp-h1
+install: dev_sources ami_sources public_sources slif_sources \
+    stage/stamp-h1 doc/stamp-h1
 
 dev_sources:
 	cd dev && make
 
 ami_sources:
 	cd ami && make
+
+slif_sources:
+	cd slif && make
 
 public_sources:
 	cd public && make
