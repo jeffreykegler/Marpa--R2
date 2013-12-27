@@ -37,14 +37,13 @@ marpa.h.p80: ../dev/marpa.h.p80
 marpa.h: $(MARPA_H_PIECES)
 	cat $(MARPA_H_PIECES) > marpa.h
 
-MARPA_SLIF_H_UNWRAPPED = marpa_slif.h.p50
-MARPA_SLIF_H_PIECES = $(C_LANGUAGE_PREAMBLE) $(MARPA_SLIF_H_UNWRAPPED)
+MARPA_SLIF_H_PIECES = $(C_LANGUAGE_PREAMBLE) marpa_slif.h.p50
+
+marpa_slif.h.p50: ../slif/marpa_slif.h.p50
+	cp $? $@
 
 marpa_slif.h: $(MARPA_SLIF_H_PIECES)
-	(cat $(C_LANGUAGE_PREAMBLE) ; \
-		for f in $(MARPA_SLIF_H_UNWRAPPED); \
-		do $(CPPWRAP) $$f < $$f; \
-		done) > $@
+	cat $(MARPA_SLIF_H_PIECES) > $@
 
 # The pieces with the code data,
 # not yet wrapped with the pre-processor line directive

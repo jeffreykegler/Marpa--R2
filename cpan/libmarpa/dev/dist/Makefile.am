@@ -24,7 +24,7 @@ libmarpa_la_SOURCES = marpa_obs.c marpa.c marpa_obs.h \
     marpa_util.h marpa_int.h marpa.h \
     marpa_avl.c marpa_avl.h \
     marpa_ami.c marpa_ami.h \
-    marpa_codes.c
+    marpa_codes.c marpa_slif.c
 nodist_libmarpa_la_SOURCES = marpa_config.h
 EXTRA_DIST = VERSION
 libmarpa_la_LIBADD = $(LIBOBJS)
