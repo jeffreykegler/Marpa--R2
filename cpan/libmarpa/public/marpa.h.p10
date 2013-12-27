@@ -3,6 +3,10 @@
 #ifndef _MARPA_H__
 #define _MARPA_H__ 1
 
-#include "marpa_config.h"
+#include "stdlib.h"
+#include "stddef.h"
+#include "string.h"
+#include "limits.h"
 
+#include "marpa_config.h"
 

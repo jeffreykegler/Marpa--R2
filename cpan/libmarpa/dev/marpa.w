@@ -16371,10 +16371,6 @@ So I add such a comment.
 #include "config.h"
 #include "marpa.h"
 #include "marpa_int.h"
-#include <stddef.h>
-#include <limits.h>
-#include <string.h>
-#include <stdlib.h>
 
 #ifndef MARPA_DEBUG
 #define MARPA_DEBUG 0

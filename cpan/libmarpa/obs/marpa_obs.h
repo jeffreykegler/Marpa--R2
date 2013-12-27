@@ -28,6 +28,7 @@
 #define _MARPA_OBS_H__ 1
 
 #include <stddef.h>
+#include <string.h>
 
 #ifndef MARPA_OBSTACK_DEBUG
 #define MARPA_OBSTACK_DEBUG 0
@@ -46,8 +47,6 @@
    This is unsafe according to C89 and we are purists,
    so we don't use it. 
 */
-
-#include <string.h>
 
 struct marpa_obstack    /* control current object in current chunk */
 {

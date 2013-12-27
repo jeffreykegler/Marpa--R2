@@ -15,11 +15,6 @@
  * http://www.gnu.org/licenses/.
  */
 
-#include "stdlib.h"
-#include "stddef.h"
-#include "string.h"
-#include "limits.h"
-
 #include "config.h"
 #include "marpa_slif.h"
 #include "marpa_ami.h"

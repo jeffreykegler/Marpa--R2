@@ -189,7 +189,7 @@ doc/internal.pdf: doc/Makefile doc/internal.texi
 doc/internal.html/index.html: doc/Makefile doc/internal.texi
 	cd doc && make html
 
-install: dev_sources ami_sources public_sources slif_sources \
+install: dev_sources ami_sources slif_sources public_sources \
     stage/stamp-h1 doc/stamp-h1
 
 dev_sources:

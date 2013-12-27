@@ -24,9 +24,7 @@
  * http://www.gnu.org/licenses/.
  */
 
-#include <stddef.h>
 #include <stdlib.h>
-#include <string.h>
 
 # include "config.h"
 
