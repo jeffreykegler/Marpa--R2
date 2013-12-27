@@ -46,7 +46,7 @@ CTANGLE = ctangle -p
 
 all: marpa_slif.pdf sources
 
-sources: marpa_slif.c slif_private.h marpa_slif.h.p50
+sources: marpa_slif.c marpa_slif.h.p50
 
 copyright_page_license.w: ../dev/copyright_page_license.w
 	cp $? $@

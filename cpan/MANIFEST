@@ -89,7 +89,6 @@ inc/Marpa/R2/Test.pm
 libmarpa/ami/.gitignore
 libmarpa/ami/.gitignore
 libmarpa/ami/internal.texi
-libmarpa/ami/license.c
 libmarpa/ami/Makefile
 libmarpa/ami/marpa_ami.w
 libmarpa/ami/texi2code.pl
@@ -124,8 +123,9 @@ libmarpa/dev/README
 libmarpa/dev/texi2proto.pl
 libmarpa/dev/too_long.pl
 libmarpa/dev/w2private_h.pl
+libmarpa/ami/w2private_h.pl
+libmarpa/slif/w2private_h.pl
 libmarpa_dist/aclocal.m4
-libmarpa_dist/ami_private.h
 libmarpa_dist/AUTHORS
 libmarpa_dist/ChangeLog
 libmarpa_dist/config.guess
@@ -160,9 +160,7 @@ libmarpa_dist/marpa_slif.h
 libmarpa_dist/marpa_util.h
 libmarpa_dist/missing
 libmarpa_dist/NEWS
-libmarpa_dist/private.h
 libmarpa_dist/README
-libmarpa_dist/slif_private.h
 libmarpa_dist/stamp-h1
 libmarpa_dist/VERSION
 libmarpa_dist/VERSION.in
@@ -199,7 +197,6 @@ libmarpa/Makefile
 libmarpa/obs/marpa_obs.c
 libmarpa/obs/marpa_obs.h
 libmarpa/public/.gitignore
-libmarpa/public/license.c
 libmarpa/public/Makefile
 libmarpa/public/marpa_codes.c
 libmarpa/public/marpa.h
