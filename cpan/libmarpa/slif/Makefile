@@ -48,16 +48,10 @@ all: marpa_slif.pdf sources
 
 sources: marpa_slif.c slif_private.h marpa_slif.h.p50
 
-license.c: ../public/license.c
-	cp $? $@
-
-do_not_edit.c: ../public/do_not_edit.c
-	cp $? $@
-
 copyright_page_license.w: ../dev/copyright_page_license.w
 	cp $? $@
 
-C_LANGUAGE_PREAMBLE = license.c do_not_edit.c
+C_LANGUAGE_PREAMBLE = ../shared/license.c ../shared/do_not_edit.c
 MARPA_SLIF_H_PIECES =  $(C_LANGUAGE_PREAMBLE) marpa_slif.h.p50
 MARPA_SLIF_C_PIECES = $(C_LANGUAGE_PREAMBLE) marpa_slif.c.p50
 

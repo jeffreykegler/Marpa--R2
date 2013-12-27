@@ -21,7 +21,7 @@
 # lookup of events, errors, etc., by number.
 
 CPPWRAP = perl ../bin/cppwrap.pl
-C_LANGUAGE_PREAMBLE = license.c do_not_edit.c
+C_LANGUAGE_PREAMBLE = ../shared/license.c ../shared/do_not_edit.c
 MARPA_H_PIECES = $(C_LANGUAGE_PREAMBLE) \
   marpa.h.p10 marpa.h-err marpa.h-event marpa.h-step \
   marpa.h.p50 marpa.h.p80 marpa.h.p90
