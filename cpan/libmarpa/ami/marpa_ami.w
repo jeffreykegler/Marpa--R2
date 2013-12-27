@@ -37,7 +37,7 @@
   \vfill}
 \def\botofcontents{\vfill
 \noindent
-@i copyright_page_license.w
+@i ../shared/copyright_page_license.w
 \bigskip
 \leftline{\sc\today\ at \hours} % timestamps the contents page
 }
@@ -124,7 +124,7 @@
 
 @** License.
 \bigskip\noindent
-@i copyright_page_license.w
+@i ../shared/copyright_page_license.w
 
 @** Introduction.
 @*0 About this library.

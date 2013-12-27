@@ -51,7 +51,7 @@ MARPA_C_PIECES = $(C_LANGUAGE_PREAMBLE) marpa.c.p10 marpa.c.p40 marpa.c.p50
 marpa.c: $(MARPA_C_PIECES)
 	cat $(MARPA_C_PIECES) > $@
 
-marpa.h.p50 marpa.c.p10 marpa.c.p50: copyright_page_license.w marpa.w
+marpa.h.p50 marpa.c.p10 marpa.c.p50: ../shared/copyright_page_license.w marpa.w
 	$(CTANGLE) marpa.w
 
 marpa.h.p80: api.texi internal.texi texi2proto.pl
@@ -63,7 +63,7 @@ CPPWRAP = perl ../bin/cppwrap.pl
 marpa.c.p40: marpa.w
 	perl w2private_h.pl < $? | $(CPPWRAP) $@ > $@
 
-marpa.pdf: marpa.tex cwebmac.tex
+marpa.pdf: marpa.tex ../shared/cwebmac.tex
 
 docs: marpa.pdf
 

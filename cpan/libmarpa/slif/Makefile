@@ -48,20 +48,14 @@ all: marpa_slif.pdf sources
 
 sources: marpa_slif.c marpa_slif.h.p50
 
-copyright_page_license.w: ../dev/copyright_page_license.w
-	cp $? $@
-
 C_LANGUAGE_PREAMBLE = ../shared/license.c ../shared/do_not_edit.c
 MARPA_SLIF_H_PIECES =  $(C_LANGUAGE_PREAMBLE) marpa_slif.h.p50
 MARPA_SLIF_C_PIECES = $(C_LANGUAGE_PREAMBLE) marpa_slif.c.p10 marpa_slif.c.p40 marpa_slif.c.p50
 
-marpa_slif.h.p50 marpa_slif.c.p10 marpa_slif.c.p50: copyright_page_license.w marpa_slif.w
+marpa_slif.h.p50 marpa_slif.c.p10 marpa_slif.c.p50: ../shared/copyright_page_license.w marpa_slif.w
 	$(CTANGLE) marpa_slif.w
 
-cwebmac.tex: ../dev/cwebmac.tex
-	cp $? $@
-
-marpa_slif.tex: cwebmac.tex copyright_page_license.w
+marpa_slif.tex: ../shared/cwebmac.tex ../shared/copyright_page_license.w
 
 marpa_slif.pdf: marpa_slif.tex
 

@@ -45,20 +45,17 @@ all: marpa_ami.pdf sources
 
 sources: marpa_ami.c marpa_ami.h
 
-copyright_page_license.w: ../dev/copyright_page_license.w
-	cp $? $@
-
 C_LANGUAGE_PREAMBLE = ../shared/license.c ../shared/do_not_edit.c
 MARPA_AMI_H_PIECES =  $(C_LANGUAGE_PREAMBLE) marpa_ami.h.p10 marpa_ami.h.p50 marpa_ami.h.p90
 MARPA_AMI_C_PIECES = $(C_LANGUAGE_PREAMBLE) marpa_ami.c.p10 marpa_ami.c.p40 marpa_ami.c.p50
 
-marpa_ami.h.p10 marpa_ami.h.p90 marpa_ami.c.p10: copyright_page_license.w marpa_ami.w
+marpa_ami.h.p10 marpa_ami.h.p90 marpa_ami.c.p10: ../shared/copyright_page_license.w marpa_ami.w
 	$(CTANGLE) marpa_ami.w
 
-cwebmac.tex: ../dev/cwebmac.tex
+cwebmac.tex: ../shared/cwebmac.tex
 	cp $? $@
 
-marpa_ami.tex: cwebmac.tex copyright_page_license.w
+marpa_ami.tex: cwebmac.tex ../shared/copyright_page_license.w
 
 marpa_ami.pdf: marpa_ami.tex
 
@@ -81,3 +78,10 @@ update_texi:
 	    -f texinfo-every-node-update \
 	    -f texinfo-all-menus-update \
 	    -f save-buffer -kill
+
+CLEAN_FILES = cwebmac.tex marpa_ami.c marpa_ami.c.p10 marpa_ami.c.p40 marpa_ami.c.p50 \
+  marpa_ami.h marpa_ami.h.p10 marpa_ami.h.p50 marpa_ami.h.p90 marpa_ami.idx \
+  marpa_ami.log marpa_ami.pdf marpa_ami.scn marpa_ami.tex marpa_ami.toc
+
+clean:
+	rm -f $(CLEAN_FILES)
