@@ -1,4 +1,6 @@
-/* Produced by texiweb from libavl.w. */
+/* Orginally produced by texiweb from libavl.w.
+    Hand-edited for Marpa by Jeffrey Kegler.
+*/
 
 /* libavl - library for manipulation of binary trees.
    Copyright (C) 1998, 1999, 2000, 2001, 2002, 2004 Free Software
@@ -19,6 +21,11 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
    02110-1301 USA.
 */
+
+/* Namespace not corrected for use as public Marpa header.  The
+   names are namespace safe in terms of the avl library, but for use
+   as a Marpa public header they really ought to be changed into
+   the 'marpa__' namespace. */
 
 #ifndef TAVL_H
 #define TAVL_H 1
@@ -42,7 +49,7 @@ struct libavl_allocator
 #endif
 
 /* Default memory allocator. */
-extern struct libavl_allocator tavl_allocator_default;
+extern struct libavl_allocator marpa__tavl_allocator_default;
 void *tavl_malloc (struct libavl_allocator *, size_t);
 void tavl_free (struct libavl_allocator *, void *);
 
@@ -89,27 +96,27 @@ struct tavl_table *tavl_create (tavl_comparison_func *, void *,
                               struct libavl_allocator *);
 struct tavl_table *tavl_copy (const struct tavl_table *, tavl_copy_func *,
                             tavl_item_func *, struct libavl_allocator *);
-void tavl_destroy (struct tavl_table *, tavl_item_func *);
-void **tavl_probe (struct tavl_table *, void *);
-void *tavl_insert (struct tavl_table *, void *);
-void *tavl_replace (struct tavl_table *, void *);
-void *tavl_delete (struct tavl_table *, const void *);
-void *tavl_find (const struct tavl_table *, const void *);
+void marpa__tavl_destroy (struct tavl_table *, tavl_item_func *);
+void **marpa__tavl_probe (struct tavl_table *, void *);
+void *marpa__tavl_insert (struct tavl_table *, void *);
+void *marpa__tavl_replace (struct tavl_table *, void *);
+void *marpa__tavl_delete (struct tavl_table *, const void *);
+void *marpa__tavl_find (const struct tavl_table *, const void *);
 void tavl_assert_insert (struct tavl_table *, void *);
 void *tavl_assert_delete (struct tavl_table *, void *);
 
 #define tavl_count(table) ((size_t) (table)->tavl_count)
 
 /* Table traverser functions. */
-void tavl_t_init (struct tavl_traverser *, struct tavl_table *);
-void *tavl_t_first (struct tavl_traverser *, struct tavl_table *);
-void *tavl_t_last (struct tavl_traverser *, struct tavl_table *);
-void *tavl_t_find (struct tavl_traverser *, struct tavl_table *, void *);
-void *tavl_t_insert (struct tavl_traverser *, struct tavl_table *, void *);
-void *tavl_t_copy (struct tavl_traverser *, const struct tavl_traverser *);
-void *tavl_t_next (struct tavl_traverser *);
-void *tavl_t_prev (struct tavl_traverser *);
-void *tavl_t_cur (struct tavl_traverser *);
-void *tavl_t_replace (struct tavl_traverser *, void *);
+void marpa__tavl_t_init (struct tavl_traverser *, struct tavl_table *);
+void *marpa__tavl_t_first (struct tavl_traverser *, struct tavl_table *);
+void *marpa__tavl_t_last (struct tavl_traverser *, struct tavl_table *);
+void *marpa__tavl_t_find (struct tavl_traverser *, struct tavl_table *, void *);
+void *marpa__tavl_t_insert (struct tavl_traverser *, struct tavl_table *, void *);
+void *marpa__tavl_t_copy (struct tavl_traverser *, const struct tavl_traverser *);
+void *marpa__tavl_t_next (struct tavl_traverser *);
+void *marpa__tavl_t_prev (struct tavl_traverser *);
+void *marpa__tavl_t_cur (struct tavl_traverser *);
+void *marpa__tavl_t_replace (struct tavl_traverser *, void *);
 
 #endif /* tavl.h */

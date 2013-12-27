@@ -92,7 +92,7 @@ check_traverser (struct tavl_traverser *trav, int i, int n, const char *label)
   int okay = 1;
   int *cur, *prev, *next;
 
-  prev = tavl_t_prev (trav);
+  prev = marpa__tavl_t_prev (trav);
   if ((i == 0 && prev != NULL)
       || (i > 0 && (prev == NULL || *prev != i - 1)))
     {
@@ -100,9 +100,9 @@ check_traverser (struct tavl_traverser *trav, int i, int n, const char *label)
               label, prev != NULL ? *prev : -1, i == 0 ? -1 : i - 1);
       okay = 0;
     }
-  tavl_t_next (trav);
+  marpa__tavl_t_next (trav);
 
-  cur = tavl_t_cur (trav);
+  cur = marpa__tavl_t_cur (trav);
   if (cur == NULL || *cur != i)
     {
       printf ("   %s traverser at %d, but should be at %d.\n",
@@ -110,7 +110,7 @@ check_traverser (struct tavl_traverser *trav, int i, int n, const char *label)
       okay = 0;
     }
 
-  next = tavl_t_next (trav);
+  next = marpa__tavl_t_next (trav);
   if ((i == n - 1 && next != NULL)
       || (i != n - 1 && (next == NULL || *next != i + 1)))
     {
@@ -118,7 +118,7 @@ check_traverser (struct tavl_traverser *trav, int i, int n, const char *label)
               label, next != NULL ? *next : -1, i == n - 1 ? -1 : i + 1);
       okay = 0;
     }
-  tavl_t_prev (trav);
+  marpa__tavl_t_prev (trav);
 
   return okay;
 }
@@ -280,7 +280,7 @@ verify_tree (struct tavl_table *tree, int array[], size_t n)
       size_t i;
 
       for (i = 0; i < n; i++)
-        if (tavl_find (tree, &array[i]) == NULL)
+        if (marpa__tavl_find (tree, &array[i]) == NULL)
           {
             printf (" Tree does not contain expected value %d.\n", array[i]);
             okay = 0;
@@ -289,14 +289,14 @@ verify_tree (struct tavl_table *tree, int array[], size_t n)
 
   if (okay)
     {
-      /* Check that |tavl_t_first()| and |tavl_t_next()| work properly. */
+      /* Check that |marpa__tavl_t_first()| and |marpa__tavl_t_next()| work properly. */
       struct tavl_traverser trav;
       size_t i;
       int prev = -1;
       int *item;
 
-      for (i = 0, item = tavl_t_first (&trav, tree); i < 2 * n && item != NULL;
-           i++, item = tavl_t_next (&trav))
+      for (i = 0, item = marpa__tavl_t_first (&trav, tree); i < 2 * n && item != NULL;
+           i++, item = marpa__tavl_t_next (&trav))
         {
           if (*item <= prev)
             {
@@ -318,14 +318,14 @@ verify_tree (struct tavl_table *tree, int array[], size_t n)
 
   if (okay)
     {
-      /* Check that |tavl_t_last()| and |tavl_t_prev()| work properly. */
+      /* Check that |marpa__tavl_t_last()| and |marpa__tavl_t_prev()| work properly. */
       struct tavl_traverser trav;
       size_t i;
       int next = INT_MAX;
       int *item;
 
-      for (i = 0, item = tavl_t_last (&trav, tree); i < 2 * n && item != NULL;
-           i++, item = tavl_t_prev (&trav))
+      for (i = 0, item = marpa__tavl_t_last (&trav, tree); i < 2 * n && item != NULL;
+           i++, item = marpa__tavl_t_prev (&trav))
         {
           if (*item >= next)
             {
@@ -347,15 +347,15 @@ verify_tree (struct tavl_table *tree, int array[], size_t n)
 
   if (okay)
     {
-      /* Check that |tavl_t_init()| works properly. */
+      /* Check that |marpa__tavl_t_init()| works properly. */
       struct tavl_traverser init, first, last;
       int *cur, *prev, *next;
 
-      tavl_t_init (&init, tree);
-      tavl_t_first (&first, tree);
-      tavl_t_last (&last, tree);
+      marpa__tavl_t_init (&init, tree);
+      marpa__tavl_t_first (&first, tree);
+      marpa__tavl_t_last (&last, tree);
 
-      cur = tavl_t_cur (&init);
+      cur = marpa__tavl_t_cur (&init);
       if (cur != NULL)
         {
           printf (" Inited traverser should be null, but is actually %d.\n",
@@ -363,23 +363,23 @@ verify_tree (struct tavl_table *tree, int array[], size_t n)
           okay = 0;
         }
 
-      next = tavl_t_next (&init);
-      if (next != tavl_t_cur (&first))
+      next = marpa__tavl_t_next (&init);
+      if (next != marpa__tavl_t_cur (&first))
         {
           printf (" Next after null should be %d, but is actually %d.\n",
-                  *(int *) tavl_t_cur (&first), *next);
+                  *(int *) marpa__tavl_t_cur (&first), *next);
           okay = 0;
         }
-      tavl_t_prev (&init);
+      marpa__tavl_t_prev (&init);
 
-      prev = tavl_t_prev (&init);
-      if (prev != tavl_t_cur (&last))
+      prev = marpa__tavl_t_prev (&init);
+      if (prev != marpa__tavl_t_cur (&last))
         {
           printf (" Previous before null should be %d, but is actually %d.\n",
-                  *(int *) tavl_t_cur (&last), *prev);
+                  *(int *) marpa__tavl_t_cur (&last), *prev);
           okay = 0;
         }
-      tavl_t_next (&init);
+      marpa__tavl_t_next (&init);
     }
 
   return okay;
@@ -399,7 +399,7 @@ test_correctness (struct libavl_allocator *allocator,
   int i;
 
   /* Test creating a TAVL and inserting into it. */
-  tree = tavl_create (compare_ints, NULL, allocator);
+  tree = marpa__tavl_create (compare_ints, NULL, allocator);
   if (tree == NULL)
     {
       if (verbosity >= 0)
@@ -414,12 +414,12 @@ test_correctness (struct libavl_allocator *allocator,
 
       /* Add the |i|th element to the tree. */
       {
-        void **p = tavl_probe (tree, &insert[i]);
+        void **p = marpa__tavl_probe (tree, &insert[i]);
         if (p == NULL)
           {
             if (verbosity >= 0)
               printf ("    Out of memory in insertion.\n");
-            tavl_destroy (tree, NULL);
+            marpa__tavl_destroy (tree, NULL);
             return 1;
           }
         if (*p != &insert[i])
@@ -445,7 +445,7 @@ test_correctness (struct libavl_allocator *allocator,
       if (verbosity >= 2)
         printf ("   Checking traversal from item %d...\n", insert[i]);
 
-      if (tavl_t_find (&x, tree, &insert[i]) == NULL)
+      if (marpa__tavl_t_find (&x, tree, &insert[i]) == NULL)
         {
           printf ("    Can't find item %d in tree!\n", insert[i]);
           continue;
@@ -456,7 +456,7 @@ test_correctness (struct libavl_allocator *allocator,
       if (verbosity >= 3)
         printf ("    Deleting item %d.\n", delete[i]);
 
-      deleted = tavl_delete (tree, &delete[i]);
+      deleted = marpa__tavl_delete (tree, &delete[i]);
       if (deleted == NULL || *deleted != delete[i])
         {
           okay = 0;
@@ -466,15 +466,15 @@ test_correctness (struct libavl_allocator *allocator,
             printf ("    Wrong node %d returned.\n", *deleted);
         }
 
-      tavl_t_copy (&y, &x);
+      marpa__tavl_t_copy (&y, &x);
 
       if (verbosity >= 3)
         printf ("    Re-inserting item %d.\n", delete[i]);
-      if (tavl_t_insert (&z, tree, &delete[i]) == NULL)
+      if (marpa__tavl_t_insert (&z, tree, &delete[i]) == NULL)
         {
           if (verbosity >= 0)
             printf ("    Out of memory re-inserting item.\n");
-          tavl_destroy (tree, NULL);
+          marpa__tavl_destroy (tree, NULL);
           return 1;
         }
 
@@ -494,7 +494,7 @@ test_correctness (struct libavl_allocator *allocator,
       if (verbosity >= 2)
         printf ("  Deleting %d...\n", delete[i]);
 
-      deleted = tavl_delete (tree, &delete[i]);
+      deleted = marpa__tavl_delete (tree, &delete[i]);
       if (deleted == NULL || *deleted != delete[i])
         {
           okay = 0;
@@ -515,28 +515,28 @@ test_correctness (struct libavl_allocator *allocator,
 
       /* Copy the tree and make sure it's identical. */
       {
-        struct tavl_table *copy = tavl_copy (tree, NULL, NULL, NULL);
+        struct tavl_table *copy = marpa__tavl_copy (tree, NULL, NULL, NULL);
         if (copy == NULL)
           {
             if (verbosity >= 0)
               printf ("  Out of memory in copy\n");
-            tavl_destroy (tree, NULL);
+            marpa__tavl_destroy (tree, NULL);
             return 1;
           }
 
         okay &= compare_trees (tree->tavl_root, copy->tavl_root);
-        tavl_destroy (copy, NULL);
+        marpa__tavl_destroy (copy, NULL);
       }
     }
 
-  if (tavl_delete (tree, &insert[0]) != NULL)
+  if (marpa__tavl_delete (tree, &insert[0]) != NULL)
     {
       printf (" Deletion from empty tree succeeded.\n");
       okay = 0;
     }
 
   /* Test destroying the tree. */
-  tavl_destroy (tree, NULL);
+  marpa__tavl_destroy (tree, NULL);
 
   return okay;
 }
@@ -547,7 +547,7 @@ test_bst_t_first (struct tavl_table *tree, int n)
   struct tavl_traverser trav;
   int *first;
 
-  first = tavl_t_first (&trav, tree);
+  first = marpa__tavl_t_first (&trav, tree);
   if (first == NULL || *first != 0)
     {
       printf ("    First item test failed: expected 0, got %d\n",
@@ -564,7 +564,7 @@ test_bst_t_last (struct tavl_table *tree, int n)
   struct tavl_traverser trav;
   int *last;
 
-  last = tavl_t_last (&trav, tree);
+  last = marpa__tavl_t_last (&trav, tree);
   if (last == NULL || *last != n - 1)
     {
       printf ("    Last item test failed: expected %d, got %d\n",
@@ -585,7 +585,7 @@ test_bst_t_find (struct tavl_table *tree, int n)
       struct tavl_traverser trav;
       int *iter;
 
-      iter = tavl_t_find (&trav, tree, &i);
+      iter = marpa__tavl_t_find (&trav, tree, &i);
       if (iter == NULL || *iter != i)
         {
           printf ("    Find item test failed: looked for %d, got %d\n",
@@ -607,7 +607,7 @@ test_bst_t_insert (struct tavl_table *tree, int n)
       struct tavl_traverser trav;
       int *iter;
 
-      iter = tavl_t_insert (&trav, tree, &i);
+      iter = marpa__tavl_t_insert (&trav, tree, &i);
       if (iter == NULL || iter == &i || *iter != i)
         {
           printf ("    Insert item test failed: inserted dup %d, got %d\n",
@@ -625,10 +625,10 @@ test_bst_t_next (struct tavl_table *tree, int n)
   struct tavl_traverser trav;
   int i;
 
-  tavl_t_init (&trav, tree);
+  marpa__tavl_t_init (&trav, tree);
   for (i = 0; i < n; i++)
     {
-      int *iter = tavl_t_next (&trav);
+      int *iter = marpa__tavl_t_next (&trav);
       if (iter == NULL || *iter != i)
         {
           printf ("    Next item test failed: expected %d, got %d\n",
@@ -646,10 +646,10 @@ test_bst_t_prev (struct tavl_table *tree, int n)
   struct tavl_traverser trav;
   int i;
 
-  tavl_t_init (&trav, tree);
+  marpa__tavl_t_init (&trav, tree);
   for (i = n - 1; i >= 0; i--)
     {
-      int *iter = tavl_t_prev (&trav);
+      int *iter = marpa__tavl_t_prev (&trav);
       if (iter == NULL || *iter != i)
         {
           printf ("    Previous item test failed: expected %d, got %d\n",
@@ -664,10 +664,10 @@ test_bst_t_prev (struct tavl_table *tree, int n)
 static int
 test_bst_copy (struct tavl_table *tree, int n)
 {
-  struct tavl_table *copy = tavl_copy (tree, NULL, NULL, NULL);
+  struct tavl_table *copy = marpa__tavl_copy (tree, NULL, NULL, NULL);
   int okay = compare_trees (tree->tavl_root, copy->tavl_root);
 
-  tavl_destroy (copy, NULL);
+  marpa__tavl_destroy (copy, NULL);
 
   return okay;
 }
@@ -714,7 +714,7 @@ test_overflow (struct libavl_allocator *allocator,
       if (verbosity >= 2)
         printf ("  Running %s test...\n", i->name);
 
-      tree = tavl_create (compare_ints, NULL, allocator);
+      tree = marpa__tavl_create (compare_ints, NULL, allocator);
       if (tree == NULL)
         {
           printf ("    Out of memory creating tree.\n");
@@ -723,14 +723,14 @@ test_overflow (struct libavl_allocator *allocator,
 
       for (j = 0; j < n; j++)
         {
-          void **p = tavl_probe (tree, &order[j]);
+          void **p = marpa__tavl_probe (tree, &order[j]);
           if (p == NULL || *p != &order[j])
             {
               if (p == NULL && verbosity >= 0)
                 printf ("    Out of memory in insertion.\n");
               else if (p != NULL)
                 printf ("    Duplicate item in tree!\n");
-              tavl_destroy (tree, NULL);
+              marpa__tavl_destroy (tree, NULL);
               return p == NULL;
             }
         }
@@ -740,7 +740,7 @@ test_overflow (struct libavl_allocator *allocator,
 
       if (verify_tree (tree, order, n) == 0)
         return 0;
-      tavl_destroy (tree, NULL);
+      marpa__tavl_destroy (tree, NULL);
     }
 
   return 1;
