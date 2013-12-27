@@ -192,6 +192,11 @@ slif_sources:
 public_sources:
 	cd public && make
 
+CLEANABLE_DIR = ami dev public slif tavl
+
+clean:
+	for d in $(CLEANABLE_DIR); do (cd $$d; make clean); done
+
 stage/stamp-h1: stage/Makefile $(STAGE_FILES)
 	(cd stage; make dist)
 	date > $@

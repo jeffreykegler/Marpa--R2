@@ -47,14 +47,7 @@ clean:
 	rm -f *.o *.tmp
 	rm -f a.out foo*
 
-mostlyclean: clean
-
-distclean: clean
-	rm -f *~
-
-maintainer-clean: distclean
-
 .PHONY: all
 .PHONY: docs 
 .PHONY: programs sources
-.PHONY: clean mostlyclean distclean maintainer-clean
+.PHONY: clean

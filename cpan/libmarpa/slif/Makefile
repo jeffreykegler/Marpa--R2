@@ -55,7 +55,10 @@ MARPA_SLIF_C_PIECES = $(C_LANGUAGE_PREAMBLE) marpa_slif.c.p10 marpa_slif.c.p40 m
 marpa_slif.h.p50 marpa_slif.c.p10 marpa_slif.c.p50: ../shared/copyright_page_license.w marpa_slif.w
 	$(CTANGLE) marpa_slif.w
 
-marpa_slif.tex: ../shared/cwebmac.tex ../shared/copyright_page_license.w
+cwebmac.tex: ../shared/cwebmac.tex
+	cp $? $@
+
+marpa_slif.tex: cwebmac.tex ../shared/copyright_page_license.w
 
 marpa_slif.pdf: marpa_slif.tex
 
@@ -75,3 +78,10 @@ update_texi:
 	    -f texinfo-every-node-update \
 	    -f texinfo-all-menus-update \
 	    -f save-buffer -kill
+
+CLEAN_FILES = marpa_slif.c marpa_slif.c.p10 marpa_slif.c.p40 marpa_slif.c.p50 marpa_slif.h.p50 \
+  marpa_slif.idx marpa_slif.log marpa_slif.pdf marpa_slif.scn marpa_slif.tex marpa_slif.toc \
+  cwebmac.tex
+
+clean:
+	rm -f $(CLEAN_FILES)

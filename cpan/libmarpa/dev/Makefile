@@ -63,7 +63,10 @@ CPPWRAP = perl ../bin/cppwrap.pl
 marpa.c.p40: marpa.w
 	perl w2private_h.pl < $? | $(CPPWRAP) $@ > $@
 
-marpa.pdf: marpa.tex ../shared/cwebmac.tex
+cwebmac.tex: ../shared/cwebmac.tex
+	cp $? $@
+
+marpa.pdf: marpa.tex cwebmac.tex
 
 docs: marpa.pdf
 
@@ -76,3 +79,11 @@ update_texi:
 	    -f texinfo-every-node-update \
 	    -f texinfo-all-menus-update \
 	    -f save-buffer -kill
+
+CLEAN_FILES = marpa.c marpa.c.p10 marpa.c.p40 marpa.c.p50 \
+  marpa.h.p50 marpa.h.p80 \
+  marpa.idx marpa.log marpa.pdf marpa.scn marpa.tex marpa.toc \
+  marpa_int.h marpa_util.h
+
+clean:
+	rm -f $(CLEAN_FILES)

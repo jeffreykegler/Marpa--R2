@@ -73,3 +73,9 @@ marpa.c-step marpa.h-step: ../dev/api.texi
 	  perl texi2step.pl marpa.c-step | \
 	  $(CPPWRAP) marpa.h-step > marpa.h-step
 
+CLEAN_FILES = marpa.c-err marpa.c-event marpa.c-step \
+  marpa.h marpa.h-err marpa.h-event marpa.h-step marpa.h.p50 marpa.h.p80 \
+  marpa_codes.c marpa_slif.h marpa_slif.h.p50
+
+clean:
+	rm -f $(CLEAN_FILES)
