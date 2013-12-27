@@ -313,6 +313,15 @@ my %files_by_type = (
     'my_suppressions'                  => \&trivial,
     't/etc/wall_proof.txt'             => \&cc_a_nd,
     'xs/ppport.h' => \&ignored,    # copied from CPAN, just leave it alone
+    'libmarpa/tavl/README' => \&trivial,
+
+    # Leave Pfaff's licensing as is
+    'libmarpa/tavl/tavl.c' => \&ignored,
+    'libmarpa/tavl/test.c' => \&ignored,
+    'libmarpa/tavl/test.h' => \&ignored,
+    'libmarpa/tavl/tavl.h' => \&ignored,
+    'libmarpa/tavl/tavl-test.c' => \&ignored,
+    'libmarpa/tavl/README.Pfaff' => \&ignored,
 );
 
 # Common files in the GNU distributions
