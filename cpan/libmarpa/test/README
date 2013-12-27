@@ -1,3 +1,6 @@
+Note As of Fri Dec 27 14:43:28 PST 2013:
+The contents of these directories are largely obsolete.
+
 This directory is for testing.
 Actual testing happens in the build subdirectory.
 The dev subdirectory holds the source of the test program.

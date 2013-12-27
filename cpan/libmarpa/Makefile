@@ -59,18 +59,18 @@ STAGE_FILES = \
 dummy:
 	@echo install is the main target
 
-doc/configure.ac: dev/doc_dist/configure.ac
+doc/configure.ac: ac_doc/configure.ac
 	test -d doc || mkdir doc
 	cp $? $@
 
-doc/Makefile.am: dev/doc_dist/Makefile.am
+doc/Makefile.am: ac_doc/Makefile.am
 	cp $? $@
 
-stage/configure.ac: dev/dist/configure.ac
+stage/configure.ac: ac/configure.ac
 	test -d stage || mkdir stage
 	cp $? $@
 
-stage/Makefile.am: dev/dist/Makefile.am
+stage/Makefile.am: ac/Makefile.am
 	cp $? $@
 
 stage/marpa.c: dev/marpa.c
@@ -112,43 +112,43 @@ stage/marpa_avl.c: avl/marpa_avl.c
 stage/marpa_avl.h: avl/marpa_avl.h
 	cp $? $@
 
-stage/README: dev/dist/README
+stage/README: ac/README
 	cp $? $@
 
-stage/VERSION.in: dev/dist/VERSION.in
+stage/VERSION.in: ac/VERSION.in
 	cp $? $@
 
-stage/NEWS: dev/dist/NEWS
+stage/NEWS: ac/NEWS
 	cp $? $@
 
-stage/AUTHORS: dev/dist/AUTHORS
+stage/AUTHORS: ac/AUTHORS
 	cp $? $@
 
-stage/COPYING.LESSER: dev/dist/COPYING.LESSER
+stage/COPYING.LESSER: ac/COPYING.LESSER
 	cp $? $@
 
-stage/ChangeLog: dev/dist/ChangeLog
+stage/ChangeLog: ac/ChangeLog
 	cp $? $@
 
-doc/README: dev/doc_dist/README
+doc/README: ac_doc/README
 	cp $? $@
 
-doc/NEWS: dev/doc_dist/NEWS
+doc/NEWS: ac_doc/NEWS
 	cp $? $@
 
-doc/AUTHORS: dev/doc_dist/AUTHORS
+doc/AUTHORS: ac_doc/AUTHORS
 	cp $? $@
 
-doc/COPYING.LESSER: dev/doc_dist/COPYING.LESSER
+doc/COPYING.LESSER: ac_doc/COPYING.LESSER
 	cp $? $@
 
-doc/ChangeLog: dev/doc_dist/ChangeLog
+doc/ChangeLog: ac_doc/ChangeLog
 	cp $? $@
 
-doc/fdl-1.3.texi: dev/doc_dist/fdl-1.3.texi
+doc/fdl-1.3.texi: ac_doc/fdl-1.3.texi
 	cp $? $@
 
-doc/lgpl-3.0.texi: dev/doc_dist/lgpl-3.0.texi
+doc/lgpl-3.0.texi: ac_doc/lgpl-3.0.texi
 	cp $? $@
 
 doc/api.texi: dev/api.texi
