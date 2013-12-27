@@ -16340,34 +16340,9 @@ not intended to be edited directly.
 So I add such a comment.
 
 @*0 |marpa.c| layout.
-@q This is a hack to get the @>
-@q license language nearer the top of the files. @>
-@ The physical structure of the |marpa.c| file
-\tenpoint
-@c
-@=/*@>@/
-@= * Copyright 2013 Jeffrey Kegler@>@/
-@= * This file is part of Marpa::R2.  Marpa::R2 is free software: you can@>@/
-@= * redistribute it and/or modify it under the terms of the GNU Lesser@>@/
-@= * General Public License as published by the Free Software Foundation,@>@/
-@= * either version 3 of the License, or (at your option) any later version.@>@/
-@= *@>@/
-@= * Marpa::R2 is distributed in the hope that it will be useful,@>@/
-@= * but WITHOUT ANY WARRANTY; without even the implied warranty of@>@/
-@= * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU@>@/
-@= * Lesser General Public License for more details.@>@/
-@= *@>@/
-@= * You should have received a copy of the GNU Lesser@>@/
-@= * General Public License along with Marpa::R2.  If not, see@>@/
-@= * http://www.gnu.org/licenses/.@>@/
-@= */@>@/
-@=/*@>@/
-@= * DO NOT EDIT DIRECTLY@>@/
-@= * This file is written by ctangle@>@/
-@= * It is not intended to be modified directly@>@/
-@= */@>@/
 
-@ \twelvepoint @c
+@ @(marpa.c.p10@> =
+
 #include "config.h"
 #include "marpa.h"
 #include "marpa_int.h"
@@ -16395,7 +16370,11 @@ So I add such a comment.
 @<Source object structure@>@;
 @<Earley item structure@>@;
 @<Bocage structure@>@;
+
+@ @(marpa.c.p40@> =
 #include "private.h"
+
+@ @(marpa.c.p50@> =
 #if MARPA_DEBUG
 @<Debug function prototypes@>@;
 @<Debug function definitions@>@;

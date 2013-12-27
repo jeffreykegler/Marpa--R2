@@ -45,7 +45,13 @@ all: marpa.pdf sources
 
 sources: marpa.c marpa.h.p50 marpa.h.p80 marpa_int.h marpa_util.h marpa.h.p80 private.h
 
-marpa.h.p50 marpa.c: copyright_page_license.w marpa.w
+C_LANGUAGE_PREAMBLE = ../shared/license.c ../shared/do_not_edit.c
+MARPA_C_PIECES = $(C_LANGUAGE_PREAMBLE) marpa.c.p10 marpa.c.p40 marpa.c.p50
+
+marpa.c: $(MARPA_C_PIECES)
+	cat $(MARPA_C_PIECES) > $@
+
+marpa.h.p50 marpa.c.p10 marpa.c.p40 marpa.c.p50: copyright_page_license.w marpa.w
 	$(CTANGLE) marpa.w
 
 marpa.h.p80: api.texi internal.texi texi2proto.pl
