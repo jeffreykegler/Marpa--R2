@@ -778,7 +778,7 @@ u_read (Scanless_R * slr)
 
 if (trace_lexers >= 1)
   {
-    union marpa_slr_event_s *event = MARPA_DSTACK_PUSH(slr->gift->t_event_dstack, union marpa_slr_event_s);
+    union marpa_slr_event_s *event = marpa__slr_event_push(slr->gift);
     MARPA_SLREV_TYPE(event) = MARPA_SLRTR_CODEPOINT_READ;
     event->t_trace_codepoint_read.t_codepoint = codepoint;
     event->t_trace_codepoint_read.t_perl_pos = slr->perl_pos;
@@ -829,9 +829,7 @@ if (trace_lexers >= 1)
                     slr->input_symbol_id = symbol_id;
                     if (trace_lexers >= 1)
                       {
-                        union marpa_slr_event_s *slr_event =
-                          MARPA_DSTACK_PUSH(slr->gift->t_event_dstack,
-                                             union marpa_slr_event_s);
+                        union marpa_slr_event_s *slr_event = marpa__slr_event_push(slr->gift);
                         MARPA_SLREV_TYPE(slr_event) = MARPA_SLRTR_CODEPOINT_REJECTED;
                         slr_event->t_trace_codepoint_rejected.t_codepoint = codepoint;
                         slr_event->t_trace_codepoint_rejected.t_perl_pos = slr->perl_pos;
@@ -842,9 +840,7 @@ if (trace_lexers >= 1)
                   case MARPA_ERR_NONE:
                     if (trace_lexers >= 1)
                       {
-                        union marpa_slr_event_s *slr_event =
-                          MARPA_DSTACK_PUSH(slr->gift->t_event_dstack,
-                                             union marpa_slr_event_s);
+                        union marpa_slr_event_s *slr_event = marpa__slr_event_push(slr->gift);
                         MARPA_SLREV_TYPE(slr_event) = MARPA_SLRTR_CODEPOINT_ACCEPTED;
                         slr_event->t_trace_codepoint_accepted.t_codepoint = codepoint;
                         slr_event->t_trace_codepoint_accepted.t_perl_pos = slr->perl_pos;
@@ -1699,10 +1695,7 @@ if (g1_lexeme <= -2)
     lexemes_discarded++;
     if (slr->trace_terminals)
       {
-        union marpa_slr_event_s *slr_event =
-          MARPA_DSTACK_PUSH(slr->gift->t_event_dstack,
-                             union marpa_slr_event_s);
-
+                        union marpa_slr_event_s *slr_event = marpa__slr_event_push(slr->gift);
         MARPA_SLREV_TYPE(slr_event) = MARPA_SLRTR_LEXEME_DISCARDED;
 
         /* We do not have the lexeme, but we have the 
@@ -1732,10 +1725,7 @@ if (g1_lexeme <= -2)
            */
           if (slr->trace_terminals)
             {
-              union marpa_slr_event_s *slr_event =
-                MARPA_DSTACK_PUSH(slr->gift->t_event_dstack,
-                                   union marpa_slr_event_s);
-
+                        union marpa_slr_event_s *slr_event = marpa__slr_event_push(slr->gift);
 MARPA_SLREV_TYPE(slr_event) = MARPA_SLRTR_LEXEME_IGNORED;
 
               slr_event->t_trace_lexeme_ignored.t_lexeme = g1_lexeme;
@@ -2151,41 +2141,37 @@ slr_alternatives (Scanless_R * slr)
       MARPA_DSTACK_LENGTH (slr->gift->t_lexeme_dstack);
     for (i = 0; i < lexeme_dstack_length; i++)
       {
-	union marpa_slr_event_s *const event =
+	union marpa_slr_event_s *const lexeme_entry =
 	  MARPA_DSTACK_INDEX (slr->gift->t_lexeme_dstack, union marpa_slr_event_s,
 			      i);
-	const int event_type = MARPA_SLREV_TYPE (event);
+	const int event_type = MARPA_SLREV_TYPE (lexeme_entry);
 	if (event_type == MARPA_SLRTR_LEXEME_ACCEPTABLE)
 	  {
 	    const Marpa_Symbol_ID lexeme_id =
-	      event->t_lexeme_acceptable.t_lexeme;
+	      lexeme_entry->t_lexeme_acceptable.t_lexeme;
 	    const struct symbol_r_properties *symbol_r_properties =
 	      slr->symbol_r_properties + lexeme_id;
 	    if (symbol_r_properties->pause_before_active)
 	      {
 		g1_lexeme = lexeme_id;
 		slr->start_of_pause_lexeme =
-		  event->t_lexeme_acceptable.t_start_of_lexeme;
+		  lexeme_entry->t_lexeme_acceptable.t_start_of_lexeme;
 		slr->end_of_pause_lexeme =
-		  event->t_lexeme_acceptable.t_end_of_lexeme;
+		  lexeme_entry->t_lexeme_acceptable.t_end_of_lexeme;
 		slr->pause_lexeme = g1_lexeme;
 		if (slr->trace_terminals > 2)
 		  {
-		    union marpa_slr_event_s *event =
-		      MARPA_DSTACK_PUSH (slr->gift->t_event_dstack,
-					 union marpa_slr_event_s);
-		    MARPA_SLREV_TYPE (event) = MARPA_SLRTR_BEFORE_LEXEME;
-		    event->t_trace_before_lexeme.t_start_of_pause_lexeme =
+                    union marpa_slr_event_s *slr_event = marpa__slr_event_push(slr->gift);
+		    MARPA_SLREV_TYPE (slr_event) = MARPA_SLRTR_BEFORE_LEXEME;
+		    slr_event->t_trace_before_lexeme.t_start_of_pause_lexeme =
 		      slr->start_of_pause_lexeme;
-		    event->t_trace_before_lexeme.t_end_of_pause_lexeme = slr->end_of_pause_lexeme;	/* end */
-		    event->t_trace_before_lexeme.t_pause_lexeme = slr->pause_lexeme;	/* lexeme */
+		    slr_event->t_trace_before_lexeme.t_end_of_pause_lexeme = slr->end_of_pause_lexeme;	/* end */
+		    slr_event->t_trace_before_lexeme.t_pause_lexeme = slr->pause_lexeme;	/* lexeme */
 		  }
 		{
-		  union marpa_slr_event_s *event =
-		    MARPA_DSTACK_PUSH (slr->gift->t_event_dstack,
-				       union marpa_slr_event_s);
-		  MARPA_SLREV_TYPE (event) = MARPA_SLREV_BEFORE_LEXEME;
-		  event->t_before_lexeme.t_pause_lexeme = slr->pause_lexeme;
+                    union marpa_slr_event_s *slr_event = marpa__slr_event_push(slr->gift);
+		  MARPA_SLREV_TYPE (slr_event) = MARPA_SLREV_BEFORE_LEXEME;
+		  slr_event->t_before_lexeme.t_pause_lexeme = slr->pause_lexeme;
 		}
 	      }
 	  }
@@ -2218,9 +2204,7 @@ slr_alternatives (Scanless_R * slr)
 
 	    if (slr->trace_terminals > 2)
 	      {
-		union marpa_slr_event_s *event =
-		  MARPA_DSTACK_PUSH (slr->gift->t_event_dstack,
-				     union marpa_slr_event_s);
+                        union marpa_slr_event_s *event = marpa__slr_event_push(slr->gift);
 		MARPA_SLREV_TYPE (event) = MARPA_SLRTR_G1_ATTEMPTING_LEXEME;
 		event->t_trace_attempting_lexeme.t_start_of_lexeme = slr->start_of_lexeme;	/* start */
 		event->t_trace_attempting_lexeme.t_end_of_lexeme = slr->end_of_lexeme;	/* end */
@@ -2238,9 +2222,7 @@ slr_alternatives (Scanless_R * slr)
 	      case MARPA_ERR_DUPLICATE_TOKEN:
 		if (slr->trace_terminals)
 		  {
-		    union marpa_slr_event_s *event =
-		      MARPA_DSTACK_PUSH (slr->gift->t_event_dstack,
-					 union marpa_slr_event_s);
+                        union marpa_slr_event_s *event = marpa__slr_event_push(slr->gift);
 		    MARPA_SLREV_TYPE (event) =
 		      MARPA_SLRTR_G1_DUPLICATE_LEXEME;
 		    event->t_trace_duplicate_lexeme.t_start_of_lexeme = slr->start_of_lexeme;	/* start */
@@ -2252,9 +2234,7 @@ slr_alternatives (Scanless_R * slr)
 	      case MARPA_ERR_NONE:
 		if (slr->trace_terminals)
 		  {
-		    union marpa_slr_event_s *event =
-		      MARPA_DSTACK_PUSH (slr->gift->t_event_dstack,
-					 union marpa_slr_event_s);
+                        union marpa_slr_event_s *event = marpa__slr_event_push(slr->gift);
 		    MARPA_SLREV_TYPE (event) = MARPA_SLRTR_G1_ACCEPTED_LEXEME;
 		    event->t_trace_accepted_lexeme.t_start_of_lexeme = slr->start_of_lexeme;	/* start */
 		    event->t_trace_accepted_lexeme.t_end_of_lexeme = slr->end_of_lexeme;	/* end */
@@ -2271,9 +2251,7 @@ slr_alternatives (Scanless_R * slr)
 		    slr->pause_lexeme = g1_lexeme;
 		    if (slr->trace_terminals > 2)
 		      {
-			union marpa_slr_event_s *event =
-			  MARPA_DSTACK_PUSH (slr->gift->t_event_dstack,
-					     union marpa_slr_event_s);
+                        union marpa_slr_event_s *event = marpa__slr_event_push(slr->gift);
 			MARPA_SLREV_TYPE (event) = MARPA_SLRTR_AFTER_LEXEME;
 			event->t_trace_after_lexeme.t_start_of_lexeme =
 			  slr->start_of_pause_lexeme;
@@ -2282,9 +2260,7 @@ slr_alternatives (Scanless_R * slr)
 			event->t_trace_after_lexeme.t_lexeme = g1_lexeme;
 		      }
 		    {
-		      union marpa_slr_event_s *event =
-			MARPA_DSTACK_PUSH (slr->gift->t_event_dstack,
-					   union marpa_slr_event_s);
+                        union marpa_slr_event_s *event = marpa__slr_event_push(slr->gift);
 		      MARPA_SLREV_TYPE (event) = MARPA_SLREV_AFTER_LEXEME;
 		      event->t_after_lexeme.t_lexeme = slr->pause_lexeme;
 		    }
@@ -5496,9 +5472,7 @@ PPCODE:
 	  u_r0_clear (slr);
 	  if (trace_lexers >= 1)
 	    {
-	      union marpa_slr_event_s *event =
-		MARPA_DSTACK_PUSH (slr->gift->t_event_dstack,
-				   union marpa_slr_event_s);
+                        union marpa_slr_event_s *event = marpa__slr_event_push(slr->gift);
 	      MARPA_SLREV_TYPE (event) = MARPA_SLREV_LEXER_RESTARTED_RECCE;
 	      event->t_lexer_restarted_recce.t_perl_pos = slr->perl_pos;
 	      event->t_lexer_restarted_recce.t_current_lexer_ix =
@@ -5508,8 +5482,7 @@ PPCODE:
 
     if (trace_lexers >= 1 && slr->current_lexer->index != slr->next_lexer->index)
   {
-    union marpa_slr_event_s *event =
-      MARPA_DSTACK_PUSH (slr->gift->t_event_dstack, union marpa_slr_event_s);
+                        union marpa_slr_event_s *event = marpa__slr_event_push(slr->gift);
     MARPA_SLREV_TYPE (event) = MARPA_SLRTR_CHANGE_LEXERS;
     event->t_trace_change_lexers.t_perl_pos = slr->perl_pos;
     event->t_trace_change_lexers.t_old_lexer_ix = slr->current_lexer->index;
