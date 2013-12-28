@@ -473,6 +473,7 @@ slr_ref (SLR slr)
   slr->t_ref_count++;
   return slr;
 }
+
 Marpa_SLR
 marpa__slr_ref (Marpa_SLR slr)
 {
@@ -485,6 +486,11 @@ PRIVATE void slr_free(SLR slr)
    MARPA_DSTACK_DESTROY(slr->t_event_dstack);
    MARPA_DSTACK_DESTROY(slr->t_lexeme_dstack);
   marpa_free( slr);
+}
+
+@ @<Function definitions@> =
+union marpa_slr_event_s * marpa__slr_event_push( Marpa_SLR slr ) {
+    return MARPA_DSTACK_PUSH(slr->t_event_dstack, union marpa_slr_event_s);
 }
 
 @** Error handling.  
