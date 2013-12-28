@@ -187,6 +187,7 @@ typedef struct
   SV* input;
   int too_many_earley_items;
 
+  /* A "Gift" because it is something that is "wrapped". */
   Marpa_SLR gift;
 
 } Scanless_R;
@@ -1950,7 +1951,7 @@ slr_alternatives (Scanless_R * slr)
       croak ("Problem in slr->read(): No R0 at %s %d", __FILE__, __LINE__);
     }
 
-  MARPA_DSTACK_CLEAR (slr->gift->t_lexeme_dstack);
+  marpa__slr_lexeme_clear(slr->gift);
 
   /* Zero length lexemes are not of interest, so we do *not*
    * search the 0'th Earley set.
@@ -5430,9 +5431,7 @@ PPCODE:
 
   /* Clear event queue */
   av_clear (slr->r1_wrapper->event_queue);
-  MARPA_DSTACK_CLEAR (slr->gift->t_event_dstack);
-  slr->gift->t_count_of_deleted_events = 0;
-
+  marpa__slr_event_clear(slr->gift);
 
   /* Application intervention resets perl_pos */
   slr->last_perl_pos = -1;
