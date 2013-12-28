@@ -192,7 +192,6 @@ typedef struct
   Marpa_SLR gift;
 
   MARPA_DSTACK_DECLARE(t_event_dstack);
-  MARPA_DSTACK_DECLARE(t_lexeme_dstack);
   /* Before this are declarations destined for the non-XS SLIF */
 
 } Scanless_R;
@@ -1975,7 +1974,7 @@ slr_alternatives (Scanless_R * slr)
       croak ("Problem in slr->read(): No R0 at %s %d", __FILE__, __LINE__);
     }
 
-  MARPA_DSTACK_CLEAR (slr->t_lexeme_dstack);
+  MARPA_DSTACK_CLEAR (slr->gift->t_lexeme_dstack);
 
   /* Zero length lexemes are not of interest, so we do *not*
    * search the 0'th Earley set.
@@ -2028,7 +2027,7 @@ slr_alternatives (Scanless_R * slr)
 	  if (g1_lexeme <= -2)
 	    {
 	      union marpa_slr_event_s *slr_event =
-		MARPA_DSTACK_PUSH (slr->t_lexeme_dstack,
+		MARPA_DSTACK_PUSH (slr->gift->t_lexeme_dstack,
 				   union marpa_slr_event_s);
 	      MARPA_SLREV_TYPE (slr_event) = MARPA_SLRTR_LEXEME_DISCARDED;
 	      slr_event->t_trace_lexeme_discarded.t_rule_id = rule_id;
@@ -2047,7 +2046,7 @@ slr_alternatives (Scanless_R * slr)
 	  if (!is_expected)
 	    {
 	      union marpa_slr_event_s *slr_event =
-		MARPA_DSTACK_PUSH (slr->t_lexeme_dstack,
+		MARPA_DSTACK_PUSH (slr->gift->t_lexeme_dstack,
 				   union marpa_slr_event_s);
 	      MARPA_SLREV_TYPE (slr_event) = MARPA_SLRTR_LEXEME_REJECTED;
 	      slr_event->t_trace_lexeme_rejected.t_start_of_lexeme =
@@ -2074,7 +2073,7 @@ slr_alternatives (Scanless_R * slr)
 
 	  {
 	    union marpa_slr_event_s *event =
-	      MARPA_DSTACK_PUSH (slr->t_lexeme_dstack,
+	      MARPA_DSTACK_PUSH (slr->gift->t_lexeme_dstack,
 				 union marpa_slr_event_s);
 	    MARPA_SLREV_TYPE (event) = MARPA_SLRTR_LEXEME_ACCEPTABLE;
 	    event->t_lexeme_acceptable.t_start_of_lexeme =
@@ -2102,11 +2101,11 @@ slr_alternatives (Scanless_R * slr)
   {
     int i;
     const int lexeme_dstack_length =
-      MARPA_DSTACK_LENGTH (slr->t_lexeme_dstack);
+      MARPA_DSTACK_LENGTH (slr->gift->t_lexeme_dstack);
     for (i = 0; i < lexeme_dstack_length; i++)
       {
 	union marpa_slr_event_s *const lexeme_stack_event =
-	  MARPA_DSTACK_INDEX (slr->t_lexeme_dstack, union marpa_slr_event_s,
+	  MARPA_DSTACK_INDEX (slr->gift->t_lexeme_dstack, union marpa_slr_event_s,
 			      i);
 	const int event_type = MARPA_SLREV_TYPE (lexeme_stack_event);
 	switch (event_type)
@@ -2169,11 +2168,11 @@ slr_alternatives (Scanless_R * slr)
     Marpa_Symbol_ID g1_lexeme = -1;
     int i;
     const int lexeme_dstack_length =
-      MARPA_DSTACK_LENGTH (slr->t_lexeme_dstack);
+      MARPA_DSTACK_LENGTH (slr->gift->t_lexeme_dstack);
     for (i = 0; i < lexeme_dstack_length; i++)
       {
 	union marpa_slr_event_s *const event =
-	  MARPA_DSTACK_INDEX (slr->t_lexeme_dstack, union marpa_slr_event_s,
+	  MARPA_DSTACK_INDEX (slr->gift->t_lexeme_dstack, union marpa_slr_event_s,
 			      i);
 	const int event_type = MARPA_SLREV_TYPE (event);
 	if (event_type == MARPA_SLRTR_LEXEME_ACCEPTABLE)
@@ -2223,11 +2222,11 @@ slr_alternatives (Scanless_R * slr)
     int return_value;
     int i;
     const int lexeme_dstack_length =
-      MARPA_DSTACK_LENGTH (slr->t_lexeme_dstack);
+      MARPA_DSTACK_LENGTH (slr->gift->t_lexeme_dstack);
     for (i = 0; i < lexeme_dstack_length; i++)
       {
 	union marpa_slr_event_s *const event =
-	  MARPA_DSTACK_INDEX (slr->t_lexeme_dstack, union marpa_slr_event_s,
+	  MARPA_DSTACK_INDEX (slr->gift->t_lexeme_dstack, union marpa_slr_event_s,
 			      i);
 	const int event_type = MARPA_SLREV_TYPE (event);
 	if (event_type == MARPA_SLRTR_LEXEME_ACCEPTABLE)
@@ -5299,8 +5298,6 @@ PPCODE:
 
   MARPA_DSTACK_INIT (slr->t_event_dstack, union marpa_slr_event_s,
                      MAX (1024 / sizeof (union marpa_slr_event_s), 16));
-  MARPA_DSTACK_INIT (slr->t_lexeme_dstack, union marpa_slr_event_s,
-                     MAX (1024 / sizeof (union marpa_slr_event_s), 16));
 
   /* Before this is code destined for the non-XS SLIF */
 
@@ -5324,7 +5321,6 @@ PPCODE:
 
    marpa__slr_unref(slr->gift);
    MARPA_DSTACK_DESTROY(slr->t_event_dstack);
-   MARPA_DSTACK_DESTROY(slr->t_lexeme_dstack);
 
   /* Before this is code destined for the non-XS SLIF */
 
