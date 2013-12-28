@@ -5287,14 +5287,7 @@ PPCODE:
   slr->next_lexer = slr->current_lexer;
   slr->fallback_lexer = slr->current_lexer;
 
-  /* After this is code destined for the non-XS SLIF */
-
   slr->gift = marpa__slr_new();
-
-  MARPA_DSTACK_INIT (slr->gift->t_event_dstack, union marpa_slr_event_s,
-                     MAX (1024 / sizeof (union marpa_slr_event_s), 16));
-
-  /* Before this is code destined for the non-XS SLIF */
 
   new_sv = sv_newmortal ();
   sv_setref_pv (new_sv, scanless_r_class_name, (void *) slr);
