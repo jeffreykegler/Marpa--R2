@@ -330,6 +330,15 @@ Never returns failure.
 
 @end deftypefun
 
+@deftypefun int marpa__slr_event_count( Marpa_SLR slr )
+@end deftypefun
+
+@deftypefun int marpa__slr_event_max_index( Marpa_SLR slr )
+@end deftypefun
+
+@deftypefun union marpa_slr_event_s * marpa__slr_event_entry( Marpa_SLR @var{slr}, int @var{i} )
+@end deftypefun
+
 @deftypefun union marpa_slr_event_s * marpa__slr_lexeme_push( Marpa_SLR @var{slr} )
 
 Return value:
@@ -338,13 +347,10 @@ Never returns failure.
 
 @end deftypefun
 
-@deftypefun int marpa__slr_event_count( Marpa_SLR slr )
-@end deftypefun
-
-@deftypefun int marpa__slr_event_max_index( Marpa_SLR slr )
-@end deftypefun
-
 @deftypefun int marpa__slr_lexeme_count( Marpa_SLR slr )
+@end deftypefun
+
+@deftypefun union marpa_slr_event_s * marpa__slr_lexeme_entry( Marpa_SLR @var{slr}, int @var{i} )
 @end deftypefun
 
 @node GNU Free Documentation License,  , Work in Progress, Top

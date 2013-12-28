@@ -496,12 +496,6 @@ int marpa__slr_event_count( Marpa_SLR slr )
 }
 
 @ @<Function definitions@> =
-int marpa__slr_lexeme_count( Marpa_SLR slr )
-{
-  return MARPA_DSTACK_LENGTH (slr->t_lexeme_dstack);
-}
-
-@ @<Function definitions@> =
 int marpa__slr_event_max_index( Marpa_SLR slr )
 {
   return  MARPA_DSTACK_LENGTH (slr->t_event_dstack) - 1;
@@ -514,9 +508,27 @@ union marpa_slr_event_s * marpa__slr_event_push( Marpa_SLR slr )
 }
 
 @ @<Function definitions@> =
+union marpa_slr_event_s * marpa__slr_event_entry( Marpa_SLR slr, int i )
+{
+    return MARPA_DSTACK_INDEX (slr->t_event_dstack, union marpa_slr_event_s, i);
+}
+
+@ @<Function definitions@> =
+int marpa__slr_lexeme_count( Marpa_SLR slr )
+{
+  return MARPA_DSTACK_LENGTH (slr->t_lexeme_dstack);
+}
+
+@ @<Function definitions@> =
 union marpa_slr_event_s * marpa__slr_lexeme_push( Marpa_SLR slr )
 {
     return MARPA_DSTACK_PUSH(slr->t_lexeme_dstack, union marpa_slr_event_s);
+}
+
+@ @<Function definitions@> =
+union marpa_slr_event_s * marpa__slr_lexeme_entry( Marpa_SLR slr, int i )
+{
+    return MARPA_DSTACK_INDEX (slr->t_lexeme_dstack, union marpa_slr_event_s, i);
 }
 
 @** Error handling.  
