@@ -1791,10 +1791,8 @@ slr_convert_events (Scanless_R * slr)
             break;
         case MARPA_EVENT_SYMBOL_COMPLETED:
             {
-              union marpa_slr_event_s *slr_event =
-                MARPA_DSTACK_PUSH(slr->gift->t_event_dstack,
-                                   union marpa_slr_event_s);
-MARPA_SLREV_TYPE(slr_event) = MARPA_SLREV_SYMBOL_COMPLETED;
+              union marpa_slr_event_s *slr_event = marpa__slr_event_push(slr->gift);
+                MARPA_SLREV_TYPE(slr_event) = MARPA_SLREV_SYMBOL_COMPLETED;
               slr_event->t_symbol_completed.t_symbol = marpa_g_event_value (&marpa_event);
             }
             break;
@@ -6142,9 +6140,7 @@ PPCODE:
       const Marpa_Error_Code error = marpa_g_error (slr->g1_wrapper->g, NULL);
       if (error == MARPA_ERR_PARSE_EXHAUSTED)
 	{
-	  union marpa_slr_event_s *event =
-	    MARPA_DSTACK_PUSH (slr->gift->t_event_dstack,
-			       union marpa_slr_event_s);
+	  union marpa_slr_event_s *event = marpa__slr_event_push(slr->gift);
 	  MARPA_SLREV_TYPE (event) = MARPA_SLREV_NO_ACCEPTABLE_INPUT;
 	}
       XSRETURN_IV (0);
