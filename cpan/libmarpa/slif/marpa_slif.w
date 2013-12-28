@@ -211,7 +211,7 @@ a proper method-based interface.
 @<Public incomplete structures@> =
 struct marpa_slr_s;
 typedef struct marpa_slr_s* Marpa_SLR;
-@ @<Public structures@> =
+@ @<Private structures@> =
 struct marpa_slr_s {
   MARPA_DSTACK_DECLARE(t_event_dstack);
   MARPA_DSTACK_DECLARE(t_lexeme_dstack);
@@ -566,6 +566,7 @@ it should be deleted.
 
 @<Private macros@>@;
 @<Private typedefs@>@;
+@<Private structures@>@;
 
 @ @(marpa_slif.c.p50@> =
 

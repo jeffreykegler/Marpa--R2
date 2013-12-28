@@ -18,7 +18,6 @@
 #include "config.h"
 #include "marpa_util.h"
 #include "marpa.h"
-#include "marpa_ami.h"
 #include "marpa_slif.h"
 
 #define PERL_NO_GET_CONTEXT
