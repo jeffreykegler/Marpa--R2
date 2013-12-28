@@ -330,6 +330,14 @@ Never returns failure.
 
 @end deftypefun
 
+@deftypefun union marpa_slr_event_s * marpa__slr_lexeme_push( Marpa_SLR @var{slr} )
+
+Return value:
+On success, the new event.
+Never returns failure.
+
+@end deftypefun
+
 @node GNU Free Documentation License,  , Work in Progress, Top
 @appendix GNU Free Documentation License
 

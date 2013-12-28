@@ -2002,16 +2002,14 @@ slr_alternatives (Scanless_R * slr)
 	  /* -2 means a discarded item */
 	  if (g1_lexeme <= -2)
 	    {
-	      union marpa_slr_event_s *slr_event =
-		MARPA_DSTACK_PUSH (slr->gift->t_lexeme_dstack,
-				   union marpa_slr_event_s);
-	      MARPA_SLREV_TYPE (slr_event) = MARPA_SLRTR_LEXEME_DISCARDED;
-	      slr_event->t_trace_lexeme_discarded.t_rule_id = rule_id;
-	      slr_event->t_trace_lexeme_discarded.t_start_of_lexeme =
+	      union marpa_slr_event_s *lexeme_entry =  mapra__slr_lexeme_push(slr->gift);
+	      MARPA_SLREV_TYPE (lexeme_entry) = MARPA_SLRTR_LEXEME_DISCARDED;
+	      lexeme_entry->t_trace_lexeme_discarded.t_rule_id = rule_id;
+	      lexeme_entry->t_trace_lexeme_discarded.t_start_of_lexeme =
 		slr->start_of_lexeme;
-	      slr_event->t_trace_lexeme_discarded.t_end_of_lexeme =
+	      lexeme_entry->t_trace_lexeme_discarded.t_end_of_lexeme =
 		slr->end_of_lexeme;
-	      slr_event->t_trace_lexeme_discarded.t_current_lexer_ix =
+	      lexeme_entry->t_trace_lexeme_discarded.t_current_lexer_ix =
 		slr->current_lexer->index;
 	      discarded++;
 
@@ -2021,16 +2019,14 @@ slr_alternatives (Scanless_R * slr)
 	  is_expected = marpa_r_terminal_is_expected (r1, g1_lexeme);
 	  if (!is_expected)
 	    {
-	      union marpa_slr_event_s *slr_event =
-		MARPA_DSTACK_PUSH (slr->gift->t_lexeme_dstack,
-				   union marpa_slr_event_s);
-	      MARPA_SLREV_TYPE (slr_event) = MARPA_SLRTR_LEXEME_REJECTED;
-	      slr_event->t_trace_lexeme_rejected.t_start_of_lexeme =
+	      union marpa_slr_event_s *lexeme_entry =  mapra__slr_lexeme_push(slr->gift);
+	      MARPA_SLREV_TYPE (lexeme_entry) = MARPA_SLRTR_LEXEME_REJECTED;
+	      lexeme_entry->t_trace_lexeme_rejected.t_start_of_lexeme =
 		slr->start_of_lexeme;
-	      slr_event->t_trace_lexeme_rejected.t_end_of_lexeme =
+	      lexeme_entry->t_trace_lexeme_rejected.t_end_of_lexeme =
 		slr->end_of_lexeme;
-	      slr_event->t_trace_lexeme_rejected.t_lexeme = g1_lexeme;
-	      slr_event->t_trace_lexeme_rejected.t_current_lexer_ix =
+	      lexeme_entry->t_trace_lexeme_rejected.t_lexeme = g1_lexeme;
+	      lexeme_entry->t_trace_lexeme_rejected.t_current_lexer_ix =
 		slr->current_lexer->index;
 	      rejected++;
 	      goto NEXT_PASS1_REPORT_ITEM;
@@ -2048,20 +2044,18 @@ slr_alternatives (Scanless_R * slr)
 	    }
 
 	  {
-	    union marpa_slr_event_s *event =
-	      MARPA_DSTACK_PUSH (slr->gift->t_lexeme_dstack,
-				 union marpa_slr_event_s);
-	    MARPA_SLREV_TYPE (event) = MARPA_SLRTR_LEXEME_ACCEPTABLE;
-	    event->t_lexeme_acceptable.t_start_of_lexeme =
+          union marpa_slr_event_s *lexeme_entry =  mapra__slr_lexeme_push(slr->gift);
+	    MARPA_SLREV_TYPE (lexeme_entry) = MARPA_SLRTR_LEXEME_ACCEPTABLE;
+	    lexeme_entry->t_lexeme_acceptable.t_start_of_lexeme =
 	      slr->start_of_lexeme;
-	    event->t_lexeme_acceptable.t_end_of_lexeme = slr->end_of_lexeme;
-	    event->t_lexeme_acceptable.t_lexeme = g1_lexeme;
-	    event->t_lexeme_acceptable.t_current_lexer_ix =
+	    lexeme_entry->t_lexeme_acceptable.t_end_of_lexeme = slr->end_of_lexeme;
+	    lexeme_entry->t_lexeme_acceptable.t_lexeme = g1_lexeme;
+	    lexeme_entry->t_lexeme_acceptable.t_current_lexer_ix =
 	      slr->current_lexer->index;
-	    event->t_lexeme_acceptable.t_priority = this_lexeme_priority;
+	    lexeme_entry->t_lexeme_acceptable.t_priority = this_lexeme_priority;
 	    /* Default to this symbol's priority, since we don't
 	       yet know what the required priority will be */
-	    event->t_lexeme_acceptable.t_required_priority =
+	    lexeme_entry->t_lexeme_acceptable.t_required_priority =
 	      this_lexeme_priority;
 	  }
 

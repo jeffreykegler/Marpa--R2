@@ -493,6 +493,11 @@ union marpa_slr_event_s * marpa__slr_event_push( Marpa_SLR slr ) {
     return MARPA_DSTACK_PUSH(slr->t_event_dstack, union marpa_slr_event_s);
 }
 
+@ @<Function definitions@> =
+union marpa_slr_event_s * marpa__slr_lexeme_push( Marpa_SLR slr ) {
+    return MARPA_DSTACK_PUSH(slr->t_lexeme_dstack, union marpa_slr_event_s);
+}
+
 @** Error handling.  
 @<Return |NULL| on failure@> = void* const failure_indicator = NULL;
 
