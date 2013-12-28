@@ -1798,19 +1798,14 @@ slr_convert_events (Scanless_R * slr)
             break;
         case MARPA_EVENT_SYMBOL_NULLED:
             {
-              union marpa_slr_event_s *slr_event =
-                MARPA_DSTACK_PUSH(slr->gift->t_event_dstack,
-                                   union marpa_slr_event_s);
-
+              union marpa_slr_event_s *slr_event = marpa__slr_event_push(slr->gift);
 MARPA_SLREV_TYPE(slr_event) =MARPA_SLREV_SYMBOL_NULLED;
               slr_event->t_symbol_nulled.t_symbol = marpa_g_event_value (&marpa_event);
             }
             break;
         case MARPA_EVENT_SYMBOL_PREDICTED:
             {
-              union marpa_slr_event_s *slr_event =
-                MARPA_DSTACK_PUSH (slr->gift->t_event_dstack,
-                                   union marpa_slr_event_s);
+              union marpa_slr_event_s *slr_event = marpa__slr_event_push(slr->gift);
 MARPA_SLREV_TYPE(slr_event) = MARPA_SLREV_SYMBOL_PREDICTED;
               slr_event->t_symbol_predicted.t_symbol = marpa_g_event_value (&marpa_event);
             }
@@ -1832,9 +1827,7 @@ MARPA_SLREV_TYPE(slr_event) = MARPA_SLREV_SYMBOL_PREDICTED;
             break;
         default:
             {
-              union marpa_slr_event_s *slr_event =
-                MARPA_DSTACK_PUSH (slr->gift->t_event_dstack,
-                                   union marpa_slr_event_s);
+              union marpa_slr_event_s *slr_event = marpa__slr_event_push(slr->gift);
 MARPA_SLREV_TYPE(slr_event) = MARPA_SLREV_MARPA_R_UNKNOWN;
               slr_event->t_marpa_r_unknown.t_event = event_type;
             }
@@ -2113,26 +2106,20 @@ slr_alternatives (Scanless_R * slr)
 		  high_lexeme_priority;
 		if (slr->trace_terminals)
 		  {
-		    *MARPA_DSTACK_PUSH (slr->gift->t_event_dstack,
-					union marpa_slr_event_s) =
-		      *lexeme_stack_event;
+		    *(marpa__slr_event_push(slr->gift)) = *lexeme_stack_event;
 		  }
 	      }
 	    break;
 	  case MARPA_SLRTR_LEXEME_REJECTED:
 	    if (slr->trace_terminals || !is_priority_set)
 	      {
-		*MARPA_DSTACK_PUSH (slr->gift->t_event_dstack,
-				    union marpa_slr_event_s) =
-		  *lexeme_stack_event;
+		    *(marpa__slr_event_push(slr->gift)) = *lexeme_stack_event;
 	      }
 	    break;
 	  case MARPA_SLRTR_LEXEME_DISCARDED:
 	    if (slr->trace_terminals)
 	      {
-		*MARPA_DSTACK_PUSH (slr->gift->t_event_dstack,
-				    union marpa_slr_event_s) =
-		  *lexeme_stack_event;
+		    *(marpa__slr_event_push(slr->gift)) = *lexeme_stack_event;
 	      }
 	    break;
 	  }
