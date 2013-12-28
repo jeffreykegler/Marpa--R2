@@ -37,10 +37,14 @@ marpa.h.p80: ../dev/marpa.h.p80
 marpa.h: $(MARPA_H_PIECES)
 	cat $(MARPA_H_PIECES) > marpa.h
 
-MARPA_SLIF_H_PIECES = $(C_LANGUAGE_PREAMBLE) marpa_slif.h.p50
+MARPA_SLIF_H_PIECES = $(C_LANGUAGE_PREAMBLE) marpa_slif.h.p50 marpa_slif.h.p80
 
+CPPWRAP = perl ../bin/cppwrap.pl
 marpa_slif.h.p50: ../slif/marpa_slif.h.p50
 	cp $? $@
+
+marpa_slif.h.p80: ../slif/marpa_slif.h.p80
+	$(CPPWRAP) $@ < $? > $@
 
 marpa_slif.h: $(MARPA_SLIF_H_PIECES)
 	cat $(MARPA_SLIF_H_PIECES) > $@
@@ -57,19 +61,19 @@ marpa_codes.c: $(MARPA_CODES_C_PIECES)
 		do $(CPPWRAP) $$f < $$f; \
 		done) > $@
 
-
-marpa.c-err marpa.h-err: ../dev/api.texi
-	cat ../dev/api.texi | \
+API_TEXI_FILES = ../dev/api.texi ../slif/api.texi
+marpa.c-err marpa.h-err: $(API_TEXI_FILES)
+	cat $(API_TEXI_FILES) | \
 	  perl texi2err.pl marpa.c-err | \
 	  $(CPPWRAP) marpa.h-err > marpa.h-err
 
 marpa.c-event marpa.h-event: ../dev/api.texi
-	cat ../dev/api.texi | \
+	cat $(API_TEXI_FILES) | \
 	  perl texi2event.pl marpa.c-event | \
 	  $(CPPWRAP) marpa.h-event > marpa.h-event
 
 marpa.c-step marpa.h-step: ../dev/api.texi
-	cat ../dev/api.texi | \
+	cat $(API_TEXI_FILES) | \
 	  perl texi2step.pl marpa.c-step | \
 	  $(CPPWRAP) marpa.h-step > marpa.h-step
 

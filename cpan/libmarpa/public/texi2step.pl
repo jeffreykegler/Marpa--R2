@@ -66,7 +66,7 @@ for ( my $step_type_number = 0; $step_type_number < $step_type_count; $step_type
 }
 
 say {$codes_c}
-    'const struct s_marpa_step_type_description marpa_step_type_description[] = {';
+    'const struct marpa_step_type_description_s marpa_step_type_description[] = {';
 for (
     my $step_type_number = 0;
     $step_type_number < $step_type_count;

@@ -36,6 +36,7 @@
 #endif
 
 # include "marpa_int.h"
+# include "marpa.h"
 # include "marpa_util.h"
 # include "marpa_ami.h"
 # include "marpa_obs.h"

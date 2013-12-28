@@ -1173,6 +1173,10 @@ cilar_init(&(g)->t_cilar);
 cilar_destroy(&(g)->t_cilar);
 
 @*0 The "is OK" word.
+@ {\bf To Do}: @^To Do@>
+I probably should delete this.
+I don't use it in the SLIF.
+@ 
 The grammar needs a flag for a fatal error.
 This is an |int| for defensive coding reasons.
 Since I am paying the code of an |int|,

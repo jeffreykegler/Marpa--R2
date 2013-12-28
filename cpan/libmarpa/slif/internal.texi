@@ -1,0 +1,115 @@
+\input texinfo @c -*-texinfo-*-
+@c %**start of header
+@setfilename slif_internal.info
+@include version_i.texi
+@settitle Libmarpa @value{VERSION}
+@finalout
+@c %**end of header
+
+@copying
+This manual (@value{UPDATED})
+is for the internals of the SLIF @value{VERSION}.
+
+Copyright @copyright{} 2013 Jeffrey Kegler.
+
+@quotation
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the @acronym{GNU} Free Documentation License,
+Version 1.3 or any later version published by the Free Software
+Foundation.
+A copy of the license is included in the section entitled
+``@acronym{GNU} Free Documentation License.''
+@end quotation
+@end copying
+
+@titlepage
+@title SLIF internals
+@subtitle Version @value{VERSION}
+@subtitle @value{UPDATED}
+@author Jeffrey Kegler
+@c The following two commands
+@c start the copyright page.
+@page
+@vskip 0pt plus 1filll
+@insertcopying
+
+Published @value{UPDATED} by Jeffrey Kegler
+@end titlepage
+@c So the toc is printed at the start.
+@contents
+
+@ifnottex
+@node Top, Copying, (dir), (dir)
+@top SLIF internals
+@insertcopying
+@end ifnottex
+
+@menu
+* Copying::                     
+* About this document::         
+* Internal Interface::          
+* GNU Free Documentation License::  
+
+@detailmenu
+ --- The Detailed Node Listing ---
+
+Internal Interface
+
+* Symbol internal methods::     
+* Rule internals::              
+* Grammar internals::           
+* Recognizer internals::        
+* Bocage internals::            
+* Ordering internals::          
+* Tree internals::              
+* Valuator internals::          
+
+@end detailmenu
+@end menu
+
+@node Copying, About this document, Top, Top
+@unnumbered GNU LESSER GENERAL PUBLIC LICENSE
+@include lgpl-3.0.texi
+
+@node About this document, Internal Interface, Copying, Top
+@chapter About this document
+
+This manual is a tool
+for is those working on the SLIF internals.
+Unless you are thoroughly familiar with Libmarpa and 
+the SLIF already,
+it is not of interest to you.
+
+@node Internal Interface, GNU Free Documentation License, About this document, Top
+@chapter Internal Interface
+
+Internal methods are only for testing and development of libmarpa.
+They are listed here (and sometimes described) for the convenience
+of those working on libmarpa's internals.
+
+Internal methods are subject to change.
+Applications should not use internal methods.
+If a description exists and might be helpful,
+it may be included below,
+but all applications
+should treat these methods as ``undocumented''.
+
+@menu
+* Symbol internal methods::     
+* Rule internals::              
+* Grammar internals::           
+* Recognizer internals::        
+* Bocage internals::            
+* Ordering internals::          
+* Tree internals::              
+* Valuator internals::          
+@end menu
+
+@node GNU Free Documentation License,  , Internal Interface, Top
+@appendix GNU Free Documentation License
+
+@include fdl-1.3.texi
+
+@bye
+
+@c vim: expandtab shiftwidth=4:

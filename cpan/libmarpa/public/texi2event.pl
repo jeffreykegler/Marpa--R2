@@ -84,7 +84,7 @@ for ( my $event_number = 0; $event_number < $event_count; $event_number++ ) {
 }
 
 say {$codes_c}
-    'const struct s_marpa_event_description marpa_event_description[] = {';
+    'const struct marpa_event_description_s marpa_event_description[] = {';
 for ( my $event_number = 0; $event_number < $event_count; $event_number++ ) {
     my $suggested_description = $event_suggested_messages[$event_number]
         // "Unknown event";

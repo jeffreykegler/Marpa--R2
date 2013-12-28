@@ -205,7 +205,7 @@ for ( my $error_number = 0; $error_number < $error_count; $error_number++ ) {
         . $error_number;
 }
 
-say {$codes_c} 'const struct s_marpa_error_description marpa_error_description[] = {';
+say {$codes_c} 'const struct marpa_error_description_s marpa_error_description[] = {';
 for ( my $error_number = 0; $error_number < $error_count; $error_number++ ) {
     my $error_name = $errors[$error_number];
     my $suggested_description = $error_suggested_messages[$error_number]

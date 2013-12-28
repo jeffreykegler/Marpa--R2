@@ -31,7 +31,7 @@
 
 \secpagedepth=1
 
-\def\title{Marpa's ami tools}
+\def\title{Marpa's Scanless interface}
 \def\topofcontents{\null\vfill
   \centerline{\titlefont Marpa's Scanless interface (SLIF)}
   \vfill}
@@ -158,28 +158,34 @@ used in a private function.
 on one hand,
 and its name and long form description,
 on the other.
-@<Body of public header file@> =
-struct s_marpa_error_description
+@<Public incomplete structures@> =
+struct marpa_error_description_s;
+@ @<Public structures@> =
+struct marpa_error_description_s
 {
   Marpa_Error_Code error_code;
   const char *name;
   const char *suggested;
 };
-extern const struct s_marpa_error_description marpa_error_description[];
+@ @<Public global data declarations@> =
+extern const struct marpa_error_description_s marpa_error_description[];
 
 @** Event description structure.
 @ Keeps data for mapping back and forth between event code,
 on one hand,
 and its name and long form description,
 on the other..
-@<Body of public header file@> =
-struct s_marpa_event_description
+@<Public incomplete structures@> =
+struct marpa_event_description_s;
+@ @<Public structures@> =
+struct marpa_event_description_s
 {
   Marpa_Event_Type event_code;
   const char *name;
   const char *suggested;
 };
-extern const struct s_marpa_event_description marpa_event_description[];
+@ @<Public global data declarations@> =
+extern const struct marpa_event_description_s marpa_event_description[];
 
 @** Step type description structure.
 @ Keeps data for mapping back and forth between
@@ -187,15 +193,302 @@ evaluation step code,
 on one hand,
 and its name,
 on the other.
-
-@<Body of public header file@> =
-struct s_marpa_step_type_description
+@<Public incomplete structures@> =
+struct marpa_step_type_description_s;
+@ @<Public structures@> =
+struct marpa_step_type_description_s
 {
   Marpa_Step_Type step_type;
   const char *name;
 };
-extern const struct s_marpa_step_type_description
+@ @<Public global data declarations@> =
+extern const struct marpa_step_type_description_s
   marpa_step_type_description[];
+
+@** SLIF Recognizer (SLR) code.
+@ Make this pubic for now, until I have write
+a proper method-based interface.
+@<Public incomplete structures@> =
+struct marpa_slr_s;
+typedef struct marpa_slr_s* Marpa_SLR;
+@ @<Public structures@> =
+struct marpa_slr_s {
+  MARPA_DSTACK_DECLARE(t_event_dstack);
+  MARPA_DSTACK_DECLARE(t_lexeme_dstack);
+  @<Int aligned SLR elements@>@;
+  int t_count_of_deleted_events;
+};
+@ @<Private typedefs@> =
+typedef Marpa_SLR SLR;
+
+@**Events.
+@<Public incomplete structures@> =
+union marpa_slr_event_s;
+
+@ @<Public macros@> =
+#define MARPA_SLREV_TYPE(event) ((event)->t_header.t_event_type)
+
+@ @<Public structures@> =
+union marpa_slr_event_s
+{
+  struct
+  {
+    int t_event_type;
+  } t_header;
+
+  struct
+  {
+    int event_type;
+    int t_codepoint;
+    int t_perl_pos;
+    int t_current_lexer_ix;
+  } t_trace_codepoint_read;
+
+  struct
+  {
+    int event_type;
+    int t_codepoint;
+    int t_perl_pos;
+    int t_symbol_id;
+    int t_current_lexer_ix;
+  } t_trace_codepoint_rejected;
+
+  struct
+  {
+    int event_type;
+    int t_codepoint;
+    int t_perl_pos;
+    int t_symbol_id;
+    int t_current_lexer_ix;
+  } t_trace_codepoint_accepted;
+
+  struct
+  {
+    int event_type;
+    int t_event_type;
+    int t_rule_id;
+    int t_start_of_lexeme;
+    int t_end_of_lexeme;
+    int t_current_lexer_ix;
+  } t_trace_codepoint_discarded;
+
+
+  struct
+  {
+    int event_type;
+    int t_event_type;
+    int t_lexeme;
+    int t_start_of_lexeme;
+    int t_end_of_lexeme;
+  } t_trace_lexeme_ignored;
+
+  struct
+  {
+    int event_type;
+    int t_rule_id;
+    int t_start_of_lexeme;
+    int t_end_of_lexeme;
+    int t_current_lexer_ix;
+  } t_trace_lexeme_discarded;
+
+  struct
+  {
+    int event_type;
+    int t_symbol;
+  } t_symbol_completed;
+
+  struct
+  {
+    int event_type;
+    int t_symbol;
+  } t_symbol_nulled;
+
+  struct
+  {
+    int event_type;
+    int t_symbol;
+  } t_symbol_predicted;
+
+  struct
+  {
+    int event_type;
+    int t_event;
+  } t_marpa_r_unknown;
+
+  struct
+  {
+    int event_type;
+    int t_start_of_lexeme;      /* start */
+    int t_end_of_lexeme;        /* end */
+    int t_lexeme;               /* lexeme */
+    int t_current_lexer_ix;
+  }
+  t_trace_lexeme_rejected;
+
+  struct
+  {
+    int event_type;
+    int t_start_of_lexeme;      /* start */
+    int t_end_of_lexeme;        /* end */
+    int t_lexeme;               /* lexeme */
+    int t_current_lexer_ix;
+    int t_priority;
+    int t_required_priority;
+  } t_trace_lexeme_acceptable;
+
+  struct
+  {
+    int event_type;
+    int t_start_of_pause_lexeme;        /* start */
+    int t_end_of_pause_lexeme;  /* end */
+    int t_pause_lexeme;         /* lexeme */
+  } t_trace_before_lexeme;
+
+  struct
+  {
+    int event_type;
+    int t_pause_lexeme;         /* lexeme */
+  } t_before_lexeme;
+
+  struct
+  {
+    int event_type;
+    int t_start_of_lexeme;      /* start */
+    int t_end_of_lexeme;        /* end */
+    int t_lexeme;               /* lexeme */
+  } t_trace_after_lexeme;
+
+  struct
+  {
+    int event_type;
+    int t_lexeme;               /* lexeme */
+  } t_after_lexeme;
+
+  struct
+  {
+    int event_type;
+    int t_start_of_lexeme;      /* start */
+    int t_end_of_lexeme;        /* end */
+    int t_lexeme;               /* lexeme */
+  }
+  t_trace_attempting_lexeme;
+
+  struct
+  {
+    int event_type;
+    int t_start_of_lexeme;      /* start */
+    int t_end_of_lexeme;        /* end */
+    int t_lexeme;               /* lexeme */
+  }
+  t_trace_duplicate_lexeme;
+
+  struct
+  {
+    int event_type;
+    int t_start_of_lexeme;      /* start */
+    int t_end_of_lexeme;        /* end */
+    int t_lexeme;               /* lexeme */
+    int t_current_lexer_ix;
+  }
+  t_trace_accepted_lexeme;
+
+  struct
+  {
+    int event_type;
+    int t_start_of_lexeme;      /* start */
+    int t_end_of_lexeme;        /* end */
+    int t_lexeme;               /* lexeme */
+    int t_current_lexer_ix;
+    int t_priority;
+    int t_required_priority;
+  } t_lexeme_acceptable;
+  struct
+  {
+    int event_type;
+    int t_perl_pos;
+    int t_old_lexer_ix;
+    int t_new_lexer_ix;
+  } t_trace_change_lexers;
+  struct
+  {
+    int event_type;
+  } t_no_acceptable_input;
+  struct
+  {
+    int event_type;
+    int t_perl_pos;
+    int t_current_lexer_ix;
+  } t_lexer_restarted_recce;
+
+};
+
+@ @<Function definitions@> =
+Marpa_SLR marpa_slr_new(void)
+{
+    @<Return |NULL| on failure@>@;
+    SLR slr;
+    slr = marpa_malloc(sizeof(*slr));
+    @<Initialize SLR elements@>@;
+    return slr;
+}
+
+@ @<Initialize SLR elements@> =
+{
+  MARPA_DSTACK_INIT (slr->t_event_dstack, union marpa_slr_event_s,
+                     MAX (1024 / sizeof (union marpa_slr_event_s), 16));
+  slr->t_count_of_deleted_events = 0;
+  MARPA_DSTACK_INIT (slr->t_lexeme_dstack, union marpa_slr_event_s,
+                     MAX (1024 / sizeof (union marpa_slr_event_s), 16));
+}
+
+@*0 Reference counting and destructors.
+@ @<Int aligned SLR elements@>= int t_ref_count;
+@ @<Initialize SLR elements@> =
+slr->t_ref_count = 1;
+
+@ Decrement the SLR reference count.
+@<Function definitions@> =
+PRIVATE void
+slr_unref (Marpa_SLR slr)
+{
+  MARPA_ASSERT (slr->t_ref_count > 0)
+  slr->t_ref_count--;
+  if (slr->t_ref_count <= 0)
+    {
+      slr_free(slr);
+    }
+}
+void
+marpa_slr_unref (Marpa_SLR slr)
+{
+   slr_unref(slr);
+}
+
+@ Increment the SLR reference count.
+@<Function definitions@> =
+PRIVATE SLR
+slr_ref (SLR slr)
+{
+  MARPA_ASSERT(slr->t_ref_count > 0)
+  slr->t_ref_count++;
+  return slr;
+}
+Marpa_SLR
+marpa_slr_ref (Marpa_SLR slr)
+{
+   return slr_ref(slr);
+}
+
+@ @<Function definitions@> =
+PRIVATE void slr_free(SLR slr)
+{
+   MARPA_DSTACK_DESTROY(slr->t_event_dstack);
+   MARPA_DSTACK_DESTROY(slr->t_lexeme_dstack);
+  marpa_free( slr);
+}
+
+@** Error handling.  
+@<Return |NULL| on failure@> = void* const failure_indicator = NULL;
 
 @** File layouts.  
 @ The .c file has no contents at the moment, so just in
@@ -208,15 +501,18 @@ it should be deleted.
 #define MARPA_DEBUG 0
 #endif
 
-#include "marpa_slif.h"
 #include "marpa_int.h"
+#include "marpa.h"
+#include "marpa_util.h"
+#include "marpa_ami.h"
+#include "marpa_slif.h"
 
 @<Private macros@>@;
+@<Private typedefs@>@;
 
 @ @(marpa_slif.c.p50@> =
 
-int marpa__slif_dummy(void);
-int marpa__slif_dummy(void) { return 1 ; }
+@<Function definitions@>@;
 
 @*0 The public header file.
 @(marpa_slif.h.p50@> =
@@ -224,9 +520,10 @@ int marpa__slif_dummy(void) { return 1 ; }
 #ifndef _MARPA_SLIF_H__
 #define _MARPA_SLIF_H__ 1
 
-#include "marpa.h"
-
-@<Body of public header file@>@;
+@<Public macros@>@;
+@<Public incomplete structures@>@;
+@<Public structures@>@;
+@<Public global data declarations@>@;
 
 #endif /* |_MARPA_SLIF_H__| */
 @** Index.

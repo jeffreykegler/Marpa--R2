@@ -54,9 +54,9 @@ marpa.c: $(MARPA_C_PIECES)
 marpa.h.p50 marpa.c.p10 marpa.c.p50: ../shared/copyright_page_license.w marpa.w
 	$(CTANGLE) marpa.w
 
-marpa.h.p80: api.texi internal.texi texi2proto.pl
+marpa.h.p80: api.texi internal.texi
 	cat api.texi internal.texi | \
-	  perl texi2proto.pl > marpa.h.p80
+	  perl ../bin/texi2proto.pl > marpa.h.p80
 
 CPPWRAP = perl ../bin/cppwrap.pl
 
