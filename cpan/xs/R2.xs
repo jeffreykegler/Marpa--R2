@@ -2002,7 +2002,7 @@ slr_alternatives (Scanless_R * slr)
 	  /* -2 means a discarded item */
 	  if (g1_lexeme <= -2)
 	    {
-	      union marpa_slr_event_s *lexeme_entry =  mapra__slr_lexeme_push(slr->gift);
+	      union marpa_slr_event_s *lexeme_entry =  marpa__slr_lexeme_push(slr->gift);
 	      MARPA_SLREV_TYPE (lexeme_entry) = MARPA_SLRTR_LEXEME_DISCARDED;
 	      lexeme_entry->t_trace_lexeme_discarded.t_rule_id = rule_id;
 	      lexeme_entry->t_trace_lexeme_discarded.t_start_of_lexeme =
@@ -2019,7 +2019,7 @@ slr_alternatives (Scanless_R * slr)
 	  is_expected = marpa_r_terminal_is_expected (r1, g1_lexeme);
 	  if (!is_expected)
 	    {
-	      union marpa_slr_event_s *lexeme_entry =  mapra__slr_lexeme_push(slr->gift);
+	      union marpa_slr_event_s *lexeme_entry =  marpa__slr_lexeme_push(slr->gift);
 	      MARPA_SLREV_TYPE (lexeme_entry) = MARPA_SLRTR_LEXEME_REJECTED;
 	      lexeme_entry->t_trace_lexeme_rejected.t_start_of_lexeme =
 		slr->start_of_lexeme;
@@ -2044,7 +2044,7 @@ slr_alternatives (Scanless_R * slr)
 	    }
 
 	  {
-          union marpa_slr_event_s *lexeme_entry =  mapra__slr_lexeme_push(slr->gift);
+          union marpa_slr_event_s *lexeme_entry =  marpa__slr_lexeme_push(slr->gift);
 	    MARPA_SLREV_TYPE (lexeme_entry) = MARPA_SLRTR_LEXEME_ACCEPTABLE;
 	    lexeme_entry->t_lexeme_acceptable.t_start_of_lexeme =
 	      slr->start_of_lexeme;
@@ -2070,8 +2070,7 @@ slr_alternatives (Scanless_R * slr)
 
   {
     int i;
-    const int lexeme_dstack_length =
-      MARPA_DSTACK_LENGTH (slr->gift->t_lexeme_dstack);
+    const int lexeme_dstack_length = marpa__slr_lexeme_count(slr->gift);
     for (i = 0; i < lexeme_dstack_length; i++)
       {
 	union marpa_slr_event_s *const lexeme_stack_event =
@@ -2131,8 +2130,7 @@ slr_alternatives (Scanless_R * slr)
        multiple pause-before lexemes, but the legacy mechanism must be supported. */
     Marpa_Symbol_ID g1_lexeme = -1;
     int i;
-    const int lexeme_dstack_length =
-      MARPA_DSTACK_LENGTH (slr->gift->t_lexeme_dstack);
+    const int lexeme_dstack_length = marpa__slr_lexeme_count(slr->gift);
     for (i = 0; i < lexeme_dstack_length; i++)
       {
 	union marpa_slr_event_s *const lexeme_entry =
@@ -2181,8 +2179,7 @@ slr_alternatives (Scanless_R * slr)
   {
     int return_value;
     int i;
-    const int lexeme_dstack_length =
-      MARPA_DSTACK_LENGTH (slr->gift->t_lexeme_dstack);
+    const int lexeme_dstack_length = marpa__slr_lexeme_count(slr->gift);
     for (i = 0; i < lexeme_dstack_length; i++)
       {
 	union marpa_slr_event_s *const event =
@@ -5528,8 +5525,7 @@ PPCODE:
 		  XSRETURN_PV (result_string);
 		}
 	      event_count = av_len (slr->r1_wrapper->event_queue) + 1;
-	      event_count += MARPA_DSTACK_LENGTH (slr->gift->t_event_dstack);
-	      event_count -= slr->gift->t_count_of_deleted_events;
+	      event_count += marpa__slr_event_count(slr->gift);
 	      if (event_count)
 		{
 		  XSRETURN_PV ("event");
@@ -5628,10 +5624,10 @@ PPCODE:
 {
   int i;
   int queue_length;
-  const int dstack_length = MARPA_DSTACK_LENGTH (slr->gift->t_event_dstack);
+  const int event_max_index = marpa__slr_event_max_index(slr->gift);
   AV *const event_queue_av = slr->r1_wrapper->event_queue;
 
-  for (i = 0; i < dstack_length; i++)
+  for (i = 0; i <= event_max_index; i++)
     {
       union marpa_slr_event_s *const slr_event =
         MARPA_DSTACK_INDEX (slr->gift->t_event_dstack, union marpa_slr_event_s, i);

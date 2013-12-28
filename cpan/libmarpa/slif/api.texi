@@ -338,6 +338,15 @@ Never returns failure.
 
 @end deftypefun
 
+@deftypefun int marpa__slr_event_count( Marpa_SLR slr )
+@end deftypefun
+
+@deftypefun int marpa__slr_event_max_index( Marpa_SLR slr )
+@end deftypefun
+
+@deftypefun int marpa__slr_lexeme_count( Marpa_SLR slr )
+@end deftypefun
+
 @node GNU Free Documentation License,  , Work in Progress, Top
 @appendix GNU Free Documentation License
 
