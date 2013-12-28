@@ -322,6 +322,9 @@ zero.
 
 @end deftypefun
 
+@deftypefun void marpa__slr_event_clear( Marpa_SLR @var{slr} )
+@end deftypefun
+
 @deftypefun union marpa_slr_event_s * marpa__slr_event_push( Marpa_SLR @var{slr} )
 
 Return value:
@@ -337,6 +340,9 @@ Never returns failure.
 @end deftypefun
 
 @deftypefun union marpa_slr_event_s * marpa__slr_event_entry( Marpa_SLR @var{slr}, int @var{i} )
+@end deftypefun
+
+@deftypefun void marpa__slr_lexeme_clear( Marpa_SLR @var{slr} )
 @end deftypefun
 
 @deftypefun union marpa_slr_event_s * marpa__slr_lexeme_push( Marpa_SLR @var{slr} )

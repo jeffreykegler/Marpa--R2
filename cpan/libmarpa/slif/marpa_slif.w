@@ -489,6 +489,13 @@ PRIVATE void slr_free(SLR slr)
 }
 
 @ @<Function definitions@> =
+void marpa__slr_event_clear( Marpa_SLR slr )
+{
+  MARPA_DSTACK_CLEAR (slr->t_event_dstack);
+  slr->t_count_of_deleted_events = 0;
+}
+
+@ @<Function definitions@> =
 int marpa__slr_event_count( Marpa_SLR slr )
 {
   const int event_count = MARPA_DSTACK_LENGTH (slr->t_event_dstack);
@@ -511,6 +518,12 @@ union marpa_slr_event_s * marpa__slr_event_push( Marpa_SLR slr )
 union marpa_slr_event_s * marpa__slr_event_entry( Marpa_SLR slr, int i )
 {
     return MARPA_DSTACK_INDEX (slr->t_event_dstack, union marpa_slr_event_s, i);
+}
+
+@ @<Function definitions@> =
+void marpa__slr_lexeme_clear( Marpa_SLR slr )
+{
+  MARPA_DSTACK_CLEAR (slr->t_lexeme_dstack);
 }
 
 @ @<Function definitions@> =
