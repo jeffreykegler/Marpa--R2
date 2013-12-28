@@ -2073,9 +2073,7 @@ slr_alternatives (Scanless_R * slr)
     const int lexeme_dstack_length = marpa__slr_lexeme_count(slr->gift);
     for (i = 0; i < lexeme_dstack_length; i++)
       {
-	union marpa_slr_event_s *const lexeme_stack_event =
-	  MARPA_DSTACK_INDEX (slr->gift->t_lexeme_dstack, union marpa_slr_event_s,
-			      i);
+	union marpa_slr_event_s *const lexeme_stack_event = marpa__slr_lexeme_entry( slr->gift, i);
 	const int event_type = MARPA_SLREV_TYPE (lexeme_stack_event);
 	switch (event_type)
 	  {
@@ -2133,9 +2131,7 @@ slr_alternatives (Scanless_R * slr)
     const int lexeme_dstack_length = marpa__slr_lexeme_count(slr->gift);
     for (i = 0; i < lexeme_dstack_length; i++)
       {
-	union marpa_slr_event_s *const lexeme_entry =
-	  MARPA_DSTACK_INDEX (slr->gift->t_lexeme_dstack, union marpa_slr_event_s,
-			      i);
+	union marpa_slr_event_s *const lexeme_entry = marpa__slr_lexeme_entry( slr->gift, i);
 	const int event_type = MARPA_SLREV_TYPE (lexeme_entry);
 	if (event_type == MARPA_SLRTR_LEXEME_ACCEPTABLE)
 	  {
@@ -2182,9 +2178,7 @@ slr_alternatives (Scanless_R * slr)
     const int lexeme_dstack_length = marpa__slr_lexeme_count(slr->gift);
     for (i = 0; i < lexeme_dstack_length; i++)
       {
-	union marpa_slr_event_s *const event =
-	  MARPA_DSTACK_INDEX (slr->gift->t_lexeme_dstack, union marpa_slr_event_s,
-			      i);
+	union marpa_slr_event_s *const event = marpa__slr_lexeme_entry( slr->gift, i);
 	const int event_type = MARPA_SLREV_TYPE (event);
 	if (event_type == MARPA_SLRTR_LEXEME_ACCEPTABLE)
 	  {
@@ -5629,8 +5623,7 @@ PPCODE:
 
   for (i = 0; i <= event_max_index; i++)
     {
-      union marpa_slr_event_s *const slr_event =
-        MARPA_DSTACK_INDEX (slr->gift->t_event_dstack, union marpa_slr_event_s, i);
+	union marpa_slr_event_s *const slr_event = marpa__slr_event_entry( slr->gift, i);
 
       const int event_type = MARPA_SLREV_TYPE (slr_event);
       switch (event_type)
