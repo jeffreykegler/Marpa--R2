@@ -192,7 +192,6 @@ typedef struct
   Marpa_SLR gift;
 
   MARPA_DSTACK_DECLARE(t_event_dstack);
-  int t_count_of_deleted_events;
   MARPA_DSTACK_DECLARE(t_lexeme_dstack);
   /* Before this are declarations destined for the non-XS SLIF */
 
@@ -5300,7 +5299,6 @@ PPCODE:
 
   MARPA_DSTACK_INIT (slr->t_event_dstack, union marpa_slr_event_s,
                      MAX (1024 / sizeof (union marpa_slr_event_s), 16));
-  slr->t_count_of_deleted_events = 0;
   MARPA_DSTACK_INIT (slr->t_lexeme_dstack, union marpa_slr_event_s,
                      MAX (1024 / sizeof (union marpa_slr_event_s), 16));
 
@@ -5508,7 +5506,7 @@ PPCODE:
   /* Clear event queue */
   av_clear (slr->r1_wrapper->event_queue);
   MARPA_DSTACK_CLEAR (slr->t_event_dstack);
-  slr->t_count_of_deleted_events = 0;
+  slr->gift->t_count_of_deleted_events = 0;
 
 
   /* Application intervention resets perl_pos */
@@ -5600,7 +5598,7 @@ PPCODE:
 		}
 	      event_count = av_len (slr->r1_wrapper->event_queue) + 1;
 	      event_count += MARPA_DSTACK_LENGTH (slr->t_event_dstack);
-	      event_count -= slr->t_count_of_deleted_events;
+	      event_count -= slr->gift->t_count_of_deleted_events;
 	      if (event_count)
 		{
 		  XSRETURN_PV ("event");
