@@ -188,6 +188,9 @@ typedef struct
   int too_many_earley_items;
 
   /* After this are declarations destined for the non-XS SLIF */
+
+  Marpa_SLR gift;
+
   MARPA_DSTACK_DECLARE(t_event_dstack);
   int t_count_of_deleted_events;
   MARPA_DSTACK_DECLARE(t_lexeme_dstack);
@@ -5293,6 +5296,8 @@ PPCODE:
 
   /* After this is code destined for the non-XS SLIF */
 
+  slr->gift = marpa__slr_new();
+
   MARPA_DSTACK_INIT (slr->t_event_dstack, union marpa_slr_event_s,
                      MAX (1024 / sizeof (union marpa_slr_event_s), 16));
   slr->t_count_of_deleted_events = 0;
@@ -5319,6 +5324,7 @@ PPCODE:
 
   /* After this is code destined for the non-XS SLIF */
 
+   marpa__slr_unref(slr->gift);
    MARPA_DSTACK_DESTROY(slr->t_event_dstack);
    MARPA_DSTACK_DESTROY(slr->t_lexeme_dstack);
 

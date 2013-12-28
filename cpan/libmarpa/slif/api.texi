@@ -273,6 +273,10 @@ in BNF as a right-recursion?
 @node About Libmarpa, Architecture, About this document, Top
 @chapter About the SLIF
 
+This document is in draft, and this interface is alpha
+and experimental.
+Currently all methods begin with @code{marpa__} to indicate this.
+
 The Scanless interface (SLIF) is a layser above
 Libmarpa, which implements the Marpa parsing algorithm.
 Marpa is named
@@ -290,42 +294,28 @@ However, layers may be added on top of the SLIF.
 @node Untested methods,  , Experimental methods, Work in Progress
 @section Methods
 
-@deftypefun Marpa_SLR marpa_slr_new (void)
+@deftypefun Marpa_SLR marpa__slr_new (void)
 
-Creates a new grammar time object.
-The returned grammar object is not yet precomputed,
-and will have no symbols and rules.
-Its reference count will be 1.
-
-Unless the application calls @code{marpa_c_error},
-Libmarpa will not reference the location
-pointed to by the @var{configuration}
-argument after @code{marpa_slr_new} returns.
-The @var{configuration} argument may be @code{NULL},
-but if it is,
-there will be no way to determine
-the error code on failure.
-
-Return value: On success, the grammar object.
-On failure, @code{NULL},
-and the error code is set in @var{configuration}.
+Return value: On success, the SLR object.
+On failure, @code{NULL}.
 
 @end deftypefun
 
 @node Grammar reference counting, Symbols, Grammar constructor, Grammar methods
 @section Tracking the reference count of the SLR
 
-@deftypefun Marpa_SLR marpa_slr_ref (Marpa_SLR @var{slr})
+@deftypefun Marpa_SLR marpa__slr_ref (Marpa_SLR @var{slr})
+
 Increases the reference count by 1.
 Not needed by most applications.
 
 Return value:
-On success, the grammar object it was called with;
+On success, the SLR object it was called with;
 @code{NULL} on failure.
 
 @end deftypefun
 
-@deftypefun void marpa_slr_unref (Marpa_SLR @var{slr})
+@deftypefun void marpa__slr_unref (Marpa_SLR @var{slr})
 Decreases the reference count by 1,
 destroying @var{slr} once the reference count reaches
 zero.

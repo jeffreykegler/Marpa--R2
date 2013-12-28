@@ -423,7 +423,7 @@ union marpa_slr_event_s
 };
 
 @ @<Function definitions@> =
-Marpa_SLR marpa_slr_new(void)
+Marpa_SLR marpa__slr_new(void)
 {
     @<Return |NULL| on failure@>@;
     SLR slr;
@@ -459,7 +459,7 @@ slr_unref (Marpa_SLR slr)
     }
 }
 void
-marpa_slr_unref (Marpa_SLR slr)
+marpa__slr_unref (Marpa_SLR slr)
 {
    slr_unref(slr);
 }
@@ -474,7 +474,7 @@ slr_ref (SLR slr)
   return slr;
 }
 Marpa_SLR
-marpa_slr_ref (Marpa_SLR slr)
+marpa__slr_ref (Marpa_SLR slr)
 {
    return slr_ref(slr);
 }
