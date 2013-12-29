@@ -258,10 +258,10 @@ enum marpa_op
 typedef struct { enum marpa_op op; const char *name; } Marpa_OP_Data;
 
 @ @<Public constant declarations@> =
-Marpa_OP_Data marpa_op_data[];
+Marpa_OP_Data *marpa_op_data;
 
 @ @<Global constant definitions@> =
-Marpa_OP_Data marpa_op_data[] = {
+static Marpa_OP_Data marpa_op_data_object[] = {
 {  op_alternative, "alternative" },
 {  op_bless, "bless" },
 {  op_callback, "callback" },
@@ -286,6 +286,7 @@ Marpa_OP_Data marpa_op_data[] = {
 {  op_pause, "pause" },
   { -1, (char *)NULL}
 };
+Marpa_OP_Data *marpa_op_data = marpa_op_data_object;
 
 
 @** Events.
