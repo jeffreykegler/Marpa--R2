@@ -127,24 +127,38 @@
 @i ../shared/copyright_page_license.w
 
 @** About this document.
-This document is very much under construction,
-enough so that readers may question why I make it
-available at all.  Two reasons:
-\li Despite its problems, it is the best way to read the source code
-at this point.
-\li Since it is essential to changing the code, not making it available
-could be seen to violate the spirit of the open source.
-@ This will eventually become a real book describing the
-code.
-Much rewriting and reorganization is needed for that
-to happen.
-\par
-Marpa is a very unusual C library -- no system calls, no floating
+The original intent was that this document would evolve
+toward a book describing the code, in roughly the same form as those that
+Don Knuth produces using this system.
+But in fact this document has evolved into
+very heavily commented source code.
+There are lots and lots of notes,
+many quite detailed,
+but little thought is being given to the overall
+``structure'' that a book would need.
+Maybe someday.
+@ One focus is on those sections which have caused the most trouble --
+I make it a habit to think the ideas through and record my thoughts
+here.  That means that those sections which never cause me any problems
+are very lightly documented.
+@ A second focus is on matters that are unlikely to emerge from
+the code itself.
+The matters include
+\li Alternative implementations, and the reasons they
+might be worse and/or better;
+\li Analysis of time and space complexity;
+\li Where needed, proofs of correctness; and
+\li Other mathematical or theoretical considerations.
+@ This document and this way of documenting has proved invaluable for me
+in keeping up what has become a mass of complex code.
+I fear, though, it is less helpful for any other reader, even
+a technically very savvy one.
+
+@ Marpa is a very unusual C library -- no system calls, no floating
 point and almost no arithmetic.  A lot of data structures
 and pointer twiddling.
 I have found that a lot of good coding practices in other
 contexts are not in this one.
-\par
 @ As one example, I intended to fully to avoid abbreviations.
 This is good practice -- in most cases all abbreviations save is
 some typing, at a very high cost in readability.
@@ -155,11 +169,11 @@ $$|To_AHFA_of_YIM_by_NSYID|$$
 that is pretty incomprehensible.
 But is
 $$Aycock\_Horspool\_FA\_To\_State\_of\_Earley\_Item\_by\_Internal\_Symbol\_ID$$,
-(where the FA must still be abbreviated to allow the line to fit into 80 characters)
+where "Finite Automaton" must still be abbreviated as "FA"
+to allow the line to fit into 80 characters,
 really any better?
-\par
 My experience say no.
-I have a lot of practice coming back to pages of both, cold, 
+@ I have a lot of practice coming back to pages of both, cold, 
 and trying to figure them out.
 Both are daunting, but the abbreviations are more elegant, and look
 better on the page, while unabbreviated names routinely pose almost insoluble
@@ -179,18 +193,11 @@ way through.
 Thus the code is highly inconsistent in this respect.
 At the moment,
 that's true of a lot of my other coding conventions.
-\par
-To summarize, the reader who has not yet been scared off,
-needs to be aware that the coding conventions are not yet
-consistent internally, and not yet consistent with their
+@ The reader
+should be aware that the coding conventions may not be
+consistent internally, or
+consistent with their
 documentation.
-@
-The Cweb is being written along with the code.
-If the code works right off the bat, its accompanying text
-will be a first draft.
-The more trouble I had understanding an issue,
-and writing the code,
-the more thorough the documentation.
 
 @** Design.
 @*0 Layers.
@@ -5119,10 +5126,6 @@ PRIVATE void AHFA_initialize(AHFA ahfa)
 
 @*0 Complete symbols container.
 @
-Simple completions are those which can be determined directly from the AHFA state ID,
-with knowing the history of the parse.
-Completion events are completions of symbols which have been set up
-for completion events.
 Direct completion events are the completion events
 that are direct results of the rules contained in the current AHFA state.
 Indirect completion events include all possible completions,
@@ -16064,7 +16067,6 @@ and debugging.
 
 @** Memory allocation.
 
-@*0 Memory allocation failures.
 @ Most of the memory allocation logic is in other
 documents.
 Here is its potentially public interface,
