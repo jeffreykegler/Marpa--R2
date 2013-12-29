@@ -362,62 +362,9 @@ static int marpa_r2_warn(const char* format, ...)
    return 1;
 }
 
-enum marpa_op
-{
-  op_end_marker = 0,
-  op_alternative,
-  op_bless,
-  op_callback,
-  op_earleme_complete,
-  op_noop,
-  op_push_one,
-  op_push_length,
-  op_push_undef,
-  op_push_sequence,
-  op_push_values,
-  op_push_start_location,
-  op_result_is_array,
-  op_result_is_constant,
-  op_result_is_rhs_n,
-  op_result_is_n_of_sequence,
-  op_result_is_token_value,
-  op_result_is_undef,
-  op_invalid_char,
-  op_set_lexer,
-  op_retry_or_set_lexer,
-  op_pause
-};
-
-typedef struct { enum marpa_op op; const char *name; } Marpa_XS_OP_Data;
-static Marpa_XS_OP_Data marpa_op_data[] = {
-{  op_alternative, "alternative" },
-{  op_bless, "bless" },
-{  op_callback, "callback" },
-{  op_earleme_complete, "earleme_complete" },
-{  op_end_marker, "end_marker" },
-{  op_noop, "noop" },
-{  op_push_length, "push_length" },
-{  op_push_one, "push_one" },
-{  op_push_sequence, "push_sequence" },
-{  op_push_start_location, "push_start_location" },
-{  op_push_undef, "push_undef" },
-{  op_push_values, "push_values" },
-{  op_result_is_array, "result_is_array" },
-{  op_result_is_constant, "result_is_constant" },
-{  op_result_is_n_of_sequence, "result_is_n_of_sequence" },
-{  op_result_is_rhs_n, "result_is_rhs_n" },
-{  op_result_is_token_value, "result_is_token_value" },
-{  op_result_is_undef, "result_is_undef" },
-{  op_invalid_char, "invalid_char" },
-{  op_set_lexer, "set_lexer" },
-{  op_retry_or_set_lexer, "retry_or_set_lexer" },
-{  op_pause, "pause" },
-  { -1, (char *)NULL}
-};
-
 static const char* op_to_op_name(enum marpa_op op)
 {
-  Marpa_XS_OP_Data *op_data = marpa_op_data;
+  Marpa_OP_Data *op_data = marpa_op_data;
   for (op_data = marpa_op_data; op_data->name; op_data++)
     {
       if (op == op_data->op)
@@ -2377,7 +2324,7 @@ op( op_name )
      char *op_name;
 PPCODE:
 {
-  Marpa_XS_OP_Data *op_data = marpa_op_data;
+  Marpa_OP_Data *op_data = marpa_op_data;
   for (op_data = marpa_op_data; op_data->name; op_data++)
     {
       if (strEQ (op_name, op_data->name))

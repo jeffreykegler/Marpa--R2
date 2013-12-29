@@ -167,7 +167,7 @@ struct marpa_error_description_s
   const char *name;
   const char *suggested;
 };
-@ @<Public global data declarations@> =
+@ @<Public constant declarations@> =
 extern const struct marpa_error_description_s marpa_error_description[];
 
 @** Event description structure.
@@ -184,7 +184,7 @@ struct marpa_event_description_s
   const char *name;
   const char *suggested;
 };
-@ @<Public global data declarations@> =
+@ @<Public constant declarations@> =
 extern const struct marpa_event_description_s marpa_event_description[];
 
 @** Step type description structure.
@@ -201,7 +201,7 @@ struct marpa_step_type_description_s
   Marpa_Step_Type step_type;
   const char *name;
 };
-@ @<Public global data declarations@> =
+@ @<Public constant declarations@> =
 extern const struct marpa_step_type_description_s
   marpa_step_type_description[];
 
@@ -221,7 +221,74 @@ struct marpa_slr_s {
 @ @<Private typedefs@> =
 typedef Marpa_SLR SLR;
 
-@**Events.
+@** Operations.
+Small virtual machines are used in various places,
+and their operations are kept in a single list.
+This seems to make sense while they overlap heavily
+and there are few of them.
+
+@ @<Public enumerations@> =
+enum marpa_op
+{
+  op_end_marker = 0,
+  op_alternative,
+  op_bless,
+  op_callback,
+  op_earleme_complete,
+  op_noop,
+  op_push_one,
+  op_push_length,
+  op_push_undef,
+  op_push_sequence,
+  op_push_values,
+  op_push_start_location,
+  op_result_is_array,
+  op_result_is_constant,
+  op_result_is_rhs_n,
+  op_result_is_n_of_sequence,
+  op_result_is_token_value,
+  op_result_is_undef,
+  op_invalid_char,
+  op_set_lexer,
+  op_retry_or_set_lexer,
+  op_pause
+};
+
+@ @<Public typedefs@> =
+typedef struct { enum marpa_op op; const char *name; } Marpa_OP_Data;
+
+@ @<Public constant declarations@> =
+Marpa_OP_Data marpa_op_data[];
+
+@ @<Global constant definitions@> =
+Marpa_OP_Data marpa_op_data[] = {
+{  op_alternative, "alternative" },
+{  op_bless, "bless" },
+{  op_callback, "callback" },
+{  op_earleme_complete, "earleme_complete" },
+{  op_end_marker, "end_marker" },
+{  op_noop, "noop" },
+{  op_push_length, "push_length" },
+{  op_push_one, "push_one" },
+{  op_push_sequence, "push_sequence" },
+{  op_push_start_location, "push_start_location" },
+{  op_push_undef, "push_undef" },
+{  op_push_values, "push_values" },
+{  op_result_is_array, "result_is_array" },
+{  op_result_is_constant, "result_is_constant" },
+{  op_result_is_n_of_sequence, "result_is_n_of_sequence" },
+{  op_result_is_rhs_n, "result_is_rhs_n" },
+{  op_result_is_token_value, "result_is_token_value" },
+{  op_result_is_undef, "result_is_undef" },
+{  op_invalid_char, "invalid_char" },
+{  op_set_lexer, "set_lexer" },
+{  op_retry_or_set_lexer, "retry_or_set_lexer" },
+{  op_pause, "pause" },
+  { -1, (char *)NULL}
+};
+
+
+@** Events.
 @<Public incomplete structures@> =
 union marpa_slr_event_s;
 
@@ -592,6 +659,7 @@ it should be deleted.
 
 @ @(marpa_slif.c.p50@> =
 
+@<Global constant definitions@>@;
 @<Function definitions@>@;
 
 @*0 The public header file.
@@ -602,8 +670,10 @@ it should be deleted.
 
 @h
 @<Public incomplete structures@>@;
+@<Public enumerations@>@;
+@<Public typedefs@>@;
 @<Public structures@>@;
-@<Public global data declarations@>@;
+@<Public constant declarations@>@;
 
 #endif /* |_MARPA_SLIF_H__| */
 @** Index.
