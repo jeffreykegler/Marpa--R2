@@ -242,16 +242,18 @@ sub Marpa::R2::Internal::Scanless::R::set {
     state $common_naif_recce_args = {
         map { ( $_, 1 ); }
             qw(end max_parses semantics_package too_many_earley_items
-            trace_actions trace_file_handle trace_lexers trace_terminals trace_values)
+            trace_actions trace_file_handle trace_terminals trace_values)
     };
-    state $set_method_args =
-        { map { ( $_, 1 ); } keys %{$common_naif_recce_args} };
+    state $set_method_args = {
+        map { ( $_, 1 ); } qw(trace_lexers),
+        keys %{$common_naif_recce_args}
+    };
     state $new_method_args = {
-        map { ( $_, 1 ); } qw(grammar ranking_method),
+        map { ( $_, 1 ); } qw(grammar ranking_method trace_lexers ),
         keys %{$set_method_args}
     };
     state $series_restart_method_args =
-        { map { ( $_, 1 ); } keys %{$common_naif_recce_args} };
+        { map { ( $_, 1 ); } qw(trace_lexers), keys %{$common_naif_recce_args} };
 
     for my $args (@hash_ref_args) {
         my $ref_type = ref $args;
@@ -338,7 +340,7 @@ sub Marpa::R2::Internal::Scanless::R::set {
     state $copyable_naif_recce_args = {
         map { ( $_, 1 ); }
             qw(end max_parses semantics_package too_many_earley_items ranking_method
-            trace_actions trace_file_handle trace_lexers trace_terminals trace_values)
+            trace_actions trace_file_handle trace_terminals trace_values)
     };
 
     # Prune flat args of all those named args which are NOT to be copied
