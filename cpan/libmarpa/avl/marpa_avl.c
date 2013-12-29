@@ -29,8 +29,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include "config.h"
+#include "marpa.h"
+#include "marpa_ami.h"
 #include "marpa_obs.h"
-#include "marpa_int.h"
 #include "marpa_avl.h"
 
 static const int minimum_alignment =

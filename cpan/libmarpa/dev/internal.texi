@@ -63,6 +63,7 @@ Internal Interface
 * Ordering internals::          
 * Tree internals::              
 * Valuator internals::          
+* Debugging methods::           
 
 @end detailmenu
 @end menu
@@ -102,6 +103,7 @@ should treat these methods as ``undocumented''.
 * Ordering internals::          
 * Tree internals::              
 * Valuator internals::          
+* Debugging methods::           
 @end menu
 
 @node Symbol internal methods, Rule internals, Internal Interface, Internal Interface
@@ -587,7 +589,7 @@ Return the is-cause bit for @var{nook_id}.
 Return the is-predecessor bit for @var{nook_id}.
 @end deftypefun
 
-@node Valuator internals,  , Tree internals, Internal Interface
+@node Valuator internals, Debugging methods, Tree internals, Internal Interface
 @section Valuator internals
 
 @deftypefun int _marpa_v_trace ( @
@@ -597,6 +599,15 @@ Return the is-predecessor bit for @var{nook_id}.
 
 @deftypefun Marpa_Nook_ID _marpa_v_nook ( @
     Marpa_Value @var{v})
+@end deftypefun
+
+@node Debugging methods,  , Valuator internals, Internal Interface
+@section Debugging methods
+
+@deftypefun void marpa_debug_level_set ( int @var{level} )
+@end deftypefun
+
+@deftypefun void marpa_debug_handler_set ( int (*@var{debug_handler})(const char*, ...) )
 @end deftypefun
 
 @node GNU Free Documentation License,  , Internal Interface, Top

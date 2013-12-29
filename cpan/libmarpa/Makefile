@@ -39,8 +39,6 @@ STAGE_FILES = \
     stage/marpa.c \
     stage/marpa.h \
     stage/marpa_slif.h \
-    stage/marpa_util.h \
-    stage/marpa_int.h \
     stage/marpa_obs.c \
     stage/marpa_obs.h \
     stage/marpa_ami.h \
@@ -80,12 +78,6 @@ stage/marpa.h: public/marpa.h
 	cp $? $@
 
 stage/marpa_slif.h: public/marpa_slif.h
-	cp $? $@
-
-stage/marpa_int.h: dev/marpa_int.h
-	cp $? $@
-
-stage/marpa_util.h: dev/marpa_util.h
 	cp $? $@
 
 stage/marpa_obs.c: obs/marpa_obs.c

@@ -19,8 +19,8 @@ AM_CFLAGS = $(WARNING_CFLAGS) $(MARPA_DEBUG_FLAG)
 AM_CPPFLAGS = $(WARNING_CPPFLAGS)
 ACLOCAL_AMFLAGS = -I m4
 noinst_LTLIBRARIES = libmarpa.la
-libmarpa_la_SOURCES = marpa_obs.c marpa.c marpa_obs.h \
-    marpa_util.h marpa_int.h marpa.h \
+libmarpa_la_SOURCES = marpa.c marpa.h \
+    marpa_obs.c marpa_obs.h \
     marpa_avl.c marpa_avl.h \
     marpa_ami.c marpa_ami.h \
     marpa_codes.c marpa_slif.c
@@ -29,7 +29,7 @@ EXTRA_DIST = VERSION
 libmarpa_la_LIBADD = $(LIBOBJS)
 include_HEADERS = marpa.h \
   marpa_avl.h marpa_ami.h \
-  marpa_slif.h marpa_obs.h marpa_int.h marpa_util.h
+  marpa_slif.h marpa_obs.h
 nodist_include_HEADERS = marpa_config.h
 DISTCLEANFILES = marpa_config.h
 TEXI2PDF = texi2pdf --pdf --batch --quiet

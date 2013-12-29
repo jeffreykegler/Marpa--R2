@@ -1,0 +1,239 @@
+\input texinfo @c -*-texinfo-*-
+@c %**start of header
+@setfilename util_api.info
+@include version.texi
+@settitle Libmarpa @value{VERSION}
+@finalout
+@c %**end of header
+
+@copying
+This manual (@value{UPDATED})
+is for Libmarpa @value{VERSION}.
+
+Copyright @copyright{} 2013 Jeffrey Kegler.
+
+@quotation
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the @acronym{GNU} Free Documentation License,
+Version 1.3 or any later version published by the Free Software
+Foundation.
+A copy of the license is included in the section entitled
+``@acronym{GNU} Free Documentation License.''
+@end quotation
+@end copying
+
+@titlepage
+@title Libmarpa accessories
+@subtitle Version @value{VERSION}
+@subtitle @value{UPDATED}
+@author Jeffrey Kegler
+
+@c The following two commands
+@c start the copyright page.
+@page
+@vskip 0pt plus 1filll
+@insertcopying
+
+Published @value{UPDATED} by Jeffrey Kegler
+@end titlepage
+@c So the toc is printed at the start.
+@contents
+
+@ifnottex
+@node Top, Copying, (dir), (dir)
+@top Libmarpa accessories
+@insertcopying
+@end ifnottex
+
+@menu
+* Copying::                     
+* About this document::         
+* About Libmarpa::              
+* Architecture::                
+* Input::                       
+* Semantics::                   
+* Threads::                     
+* Fatal Errors::                
+* Introduction to the external interface::  
+* Static methods::              
+* Configuration methods::       
+* Grammar methods::             
+* Recognizer methods::          
+* Progress reports::            
+* Bocage methods::              
+* Ordering methods::            
+* Tree methods::                
+* Value methods::               
+* Events::                      
+* Error methods macros and codes::  
+* Design notes::                
+* Work in Progress::            
+* GNU Free Documentation License::  
+
+@detailmenu
+ --- The Detailed Node Listing ---
+
+About this document
+
+* How to read this document::   
+* Prerequisites::               
+* Parsing theory::              
+
+Architecture
+
+* Major objects::               
+* Time objects::                
+* Reference counting::          
+* Numbered objects::            
+
+Input
+
+* Earlemes::                    
+* Terminals::                   
+
+Earlemes
+
+* The traditional model::       
+* The earleme variables::       
+* The significances of the earleme variables::  
+* The initial earleme settings::  
+* The standard model of input::  
+* Ambiguous input::             
+* Variable length tokens::      
+* The generalized model::       
+* General rules for the earleme variables::  
+
+Semantics
+
+* How Libmarpa semantics work::  
+* Valued and unvalued symbols::  
+
+Introduction to the external interface
+
+* About the overviews::         
+* Return values::               
+* Naming conventions::          
+
+Grammar methods
+
+* Grammar overview::            
+* Grammar constructor::         
+* Grammar reference counting::  
+* Symbols::                     
+* Rules::                       
+* Sequences::                   
+* Ranks::                       
+* Grammar precomputation::      
+
+Recognizer methods
+
+* Recognizer overview::         
+* Recognizer constructor::      
+* Recognizer reference counting::  
+* Recognizer life cycle mutators::  
+* Location accessors::          
+* Other parse status methods::  
+* Untested recognizer methods::  
+
+Bocage methods
+
+* Bocage overview::             
+* Bocage constructor::          
+* Bocage reference counting::   
+* Bocage accessor::             
+
+Ordering methods
+
+* Ordering overview::           
+* Ordering constructor::        
+* Ordering reference counting::  
+* Order accessor::              
+* Non-default ordering::        
+
+Tree methods
+
+* Tree overview::               
+* Tree constructor::            
+* Tree reference counting::     
+* Tree iteration::              
+
+Value methods
+
+* Value overview::              
+* How to use the valuator::     
+* Advantages of step-driven valuation::  
+* Maintaining the stack::       
+* Valuator constructor::        
+* Valuator reference counting::  
+* Registering semantics::       
+* Stepping through the valuator::  
+* Valuator steps by type::      
+* Basic step accessors::        
+* Other step accessors::        
+
+Maintaining the stack
+
+* Sizing the stack::            
+* Initializing locations in the stack::  
+
+Events
+
+* Events overview::             
+* Event methods::               
+* Event codes::                 
+
+Error methods, macros and codes
+
+* Error methods::               
+* Error Macros::                
+* External error codes::        
+* Internal error codes::        
+
+Design notes
+
+* Why so many time objects::    
+* Design of numbered objects::  
+* LHS Terminals::               
+
+Work in Progress
+
+* Experimental methods::        
+* Untested methods::            
+
+@end detailmenu
+@end menu
+
+@node Copying, About this document, Top, Top
+@unnumbered GNU LESSER GENERAL PUBLIC LICENSE
+@include lgpl-3.0.texi
+
+@node About this document, About Libmarpa, Copying, Top
+@chapter About this document
+
+@menu
+* How to read this document::   
+* Prerequisites::               
+* Parsing theory::              
+@end menu
+
+@node About Libmarpa, Architecture, About this document, Top
+@chapter About the SLIF
+
+This document is in draft, and this interface is alpha
+and experimental.
+Currently all methods begin with @code{marpa__} to indicate this.
+It contains ``accessory'' methods, macros, etc., for Libmarpa
+and its associated librarires.
+
+@node Untested methods,  , Experimental methods, Work in Progress
+@section Methods
+
+No methods as yet.
+
+@node GNU Free Documentation License,  , Work in Progress, Top
+@appendix GNU Free Documentation License
+
+@include fdl-1.3.texi
+
+@bye
+@c vim: expandtab shiftwidth=4:

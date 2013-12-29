@@ -206,7 +206,7 @@ static inline
 void* marpa_malloc(size_t size)
 {
     void *newmem = malloc(size);
-    if (_MARPA_UNLIKELY(!newmem)) { (*_marpa_out_of_memory)(); }
+    if (_MARPA_UNLIKELY(!newmem)) { (*marpa__out_of_memory)(); }
     return newmem;
 }
 
@@ -225,7 +225,7 @@ marpa_realloc(void *p, size_t size)
 {
    if (_MARPA_LIKELY(p != NULL)) {
         void *newmem = realloc(p, size);
-        if (_MARPA_UNLIKELY(!newmem)) (*_marpa_out_of_memory)();
+        if (_MARPA_UNLIKELY(!newmem)) (*marpa__out_of_memory)();
         return newmem;
    }
    return marpa_malloc(size);
@@ -334,6 +334,126 @@ marpa_dstack_resize (struct marpa_dstack_s *this, size_t type_bytes,
     }
   return this->t_base;
 }
+
+@** Debugging.
+The |MARPA_DEBUG| flag enables intrusive debugging logic.
+``Intrusive" debugging includes things which would
+be annoying in production, such as detailed messages about
+internal matters on |STDERR|.
+|MARPA_DEBUG| is expected to be defined in the |CFLAGS|.
+|MARPA_DEBUG| implies |MARPA_ENABLE_ASSERT|, but not
+vice versa.
+@<Debug macros@> =
+#define MARPA_OFF_DEBUG1(a)
+#define MARPA_OFF_DEBUG2(a, b)
+#define MARPA_OFF_DEBUG3(a, b, c)
+#define MARPA_OFF_DEBUG4(a, b, c, d)
+#define MARPA_OFF_DEBUG5(a, b, c, d, e)
+#define MARPA_OFF_ASSERT(expr)
+@ Returns int so that it can be portably used
+in a logically-anded expression.
+@<Function definitions@> =
+int marpa__default_debug_handler (const char *format, ...)
+{
+   va_list args;
+   va_start (args, format);
+   vfprintf (stderr, format, args);
+   va_end (args);
+   putc('\n', stderr);
+   return 1;
+}
+
+
+@ @<Debug macros@> =
+
+#ifndef MARPA_DEBUG
+#define MARPA_DEBUG 0
+#endif
+
+#if MARPA_DEBUG
+
+#undef MARPA_ENABLE_ASSERT
+#define MARPA_ENABLE_ASSERT 1
+
+#define MARPA_DEBUG1(a) @[ (marpa__debug_level && \
+    (*marpa__debug_handler)(a)) @]
+#define MARPA_DEBUG2(a,b) @[ (marpa__debug_level && \
+    (*marpa__debug_handler)((a),(b))) @]
+#define MARPA_DEBUG3(a,b,c) @[ (marpa__debug_level && \
+    (*marpa__debug_handler)((a),(b),(c))) @]
+#define MARPA_DEBUG4(a,b,c,d) @[ (marpa__debug_level && \
+    (*marpa__debug_handler)((a),(b),(c),(d))) @]
+#define MARPA_DEBUG5(a,b,c,d,e) @[ (marpa__debug_level && \
+    (*marpa__debug_handler)((a),(b),(c),(d),(e))) @]
+
+#define MARPA_ASSERT(expr) do { if _MARPA_LIKELY (expr) ; else \
+       (*marpa__debug_handler) ("%s: assertion failed %s", STRLOC, #expr); } while (0);
+#else /* if not |MARPA_DEBUG| */
+#define MARPA_DEBUG1(a) @[@]
+#define MARPA_DEBUG2(a, b) @[@]
+#define MARPA_DEBUG3(a, b, c) @[@]
+#define MARPA_DEBUG4(a, b, c, d) @[@]
+#define MARPA_DEBUG5(a, b, c, d, e) @[@]
+#define MARPA_ASSERT(exp) @[@]
+#endif
+
+#ifndef MARPA_ENABLE_ASSERT
+#define MARPA_ENABLE_ASSERT 0
+#endif
+
+#if MARPA_ENABLE_ASSERT
+#undef MARPA_ASSERT
+#define MARPA_ASSERT(expr) do { if _MARPA_LIKELY (expr) ; else \
+       (*marpa__debug_handler) ("%s: assertion failed %s", STRLOC, #expr); } while (0);
+#endif
+
+@*0 Internal macros.
+@<Internal macros@> =
+
+#if     __GNUC__ > 2 || (__GNUC__ == 2 && __GNUC_MINOR__ > 4)
+#define UNUSED __attribute__((__unused__))
+#else
+#define UNUSED
+#endif
+
+#if defined (__GNUC__) && defined (__STRICT_ANSI__)
+#  undef inline
+#  define inline __inline__
+#endif
+
+#undef      MAX
+#define MAX(a, b)  (((a) > (b)) ? (a) : (b))
+
+#undef      CLAMP
+#define CLAMP(x, low, high)  (((x) > (high)) ? (high) : (((x) < (low)) ? (low) : (x)))
+
+#undef STRINGIFY_ARG
+#define STRINGIFY_ARG(contents)       #contents
+#undef STRINGIFY
+#define STRINGIFY(macro_or_string)        STRINGIFY_ARG (macro_or_string)
+
+/* A string identifying the current code position */
+#if defined(__GNUC__) && (__GNUC__ < 3) && !defined(__cplusplus)
+#  define STRLOC        __FILE__ ":" STRINGIFY (__LINE__) ":" __PRETTY_FUNCTION__ "()"
+#else
+#  define STRLOC        __FILE__ ":" STRINGIFY (__LINE__)
+#endif
+
+/* Provide a string identifying the current function, non-concatenatable */
+#if defined (__GNUC__)
+#  define STRFUNC     ((const char*) (__PRETTY_FUNCTION__))
+#elif defined (__STDC_VERSION__) && __STDC_VERSION__ >= 19901L
+#  define STRFUNC     ((const char*) (__func__))
+#else
+#  define STRFUNC     ((const char*) ("???"))
+#endif
+
+#if defined __GNUC__
+# define alignof(type) (__alignof__(type))
+#else
+# define alignof(type) (offsetof (struct { char __slot1; type __slot2; }, __slot2))
+#endif
+
 @** File layout.  
 @ The output files are written in pieces,
 with the license prepended,
@@ -362,6 +482,9 @@ So I add such a comment.
 #define _MARPA_UNLIKELY(expr) (expr)
 #endif
 
+@<Debug macros@>
+@<Internal macros@>
+
 @h
 @<Friend incomplete structures@>@;
 
@@ -374,17 +497,28 @@ So I add such a comment.
 #endif /* |_MARPA_AMI_H__| */
 
 @*0 |marpa_ami.c| layout.
+@ These C90 headers
+are needed for the default debug handler.
+This is strictly C90 and is always compiled in.
+We don't want to require applications to obey
+the |MARPA_DEBUG| flag and compile conditionally.
+This means that
+applications must be allowed to set the debug level
+and handler, even when debugging is not compiled in,
+and they will be meaningless.
 @(marpa_ami.c.p10@> =
 
+#include <stdarg.h>
+#include <stdio.h>
+
+@ @(marpa_ami.c.p10@> =
 #include "config.h"
 
 #ifndef MARPA_DEBUG
 #define MARPA_DEBUG 0
 #endif
 
-#include "marpa_int.h"
 #include "marpa.h"
-#include "marpa_util.h"
 #include "marpa_ami.h"
 
 @<Private macros@>@;
@@ -393,8 +527,8 @@ So I add such a comment.
 case, I include a dummy function.  Once there are other contents,
 it should be deleted.
 @(marpa_ami.c.p50@> =
-int _marpa_ami_dummy(void);
-int _marpa_ami_dummy(void) { return 1 ; }
+
+@<Function definitions@>@;
 
 @** Index.
 

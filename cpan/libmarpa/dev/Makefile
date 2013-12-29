@@ -43,7 +43,7 @@ CTANGLE = ctangle -p
 
 all: marpa.pdf sources
 
-sources: marpa.c marpa.h.p50 marpa.h.p80 marpa_int.h marpa_util.h marpa.h.p80
+sources: marpa.c marpa.h.p50 marpa.h.p80 marpa.h.p80
 
 C_LANGUAGE_PREAMBLE = ../shared/license.c ../shared/do_not_edit.c
 MARPA_C_PIECES = $(C_LANGUAGE_PREAMBLE) marpa.c.p10 marpa.c.p40 marpa.c.p50
@@ -82,8 +82,7 @@ update_texi:
 
 CLEAN_FILES = marpa.c marpa.c.p10 marpa.c.p40 marpa.c.p50 \
   marpa.h.p50 marpa.h.p80 \
-  marpa.idx marpa.log marpa.pdf marpa.scn marpa.tex marpa.toc \
-  marpa_int.h marpa_util.h
+  marpa.idx marpa.log marpa.pdf marpa.scn marpa.tex marpa.toc
 
 clean:
 	rm -f $(CLEAN_FILES)
