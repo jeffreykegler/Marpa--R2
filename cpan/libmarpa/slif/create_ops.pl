@@ -55,14 +55,14 @@ for (my $i = 0; $i <= $#ops; $i++) {
    say {$h_fh} "#define $macro $i";
 }
 
-say q<static Marpa_OP_Data marpa_op_by_name_object[] = {>;
+say q<static struct op_data_s op_by_name_object[] = {>;
 for (my $i = 0; $i <= $#ops; $i++) {
    my ($name, $macro) = @{$ops[$i]};
    say qq<  { "$name", $macro },>;
 }
 say q<};>;
 
-say q<static const char* marpa_op_name_by_id_object[] = {>;
+say q<static const char* op_name_by_id_object[] = {>;
 for (my $i = 0; $i <= $#ops; $i++) {
    my ($name) = @{$ops[$i]};
    say qq<  "$name",>;

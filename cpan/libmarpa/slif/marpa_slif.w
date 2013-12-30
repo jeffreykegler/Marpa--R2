@@ -227,23 +227,8 @@ and their operations are kept in a single list.
 This seems to make sense while they overlap heavily
 and there are few of them.
 
-@ @<Public typedefs@> =
-typedef struct { const char *name; int op; } Marpa_OP_Data;
-
-@ @<Public constant declarations@> =
-Marpa_OP_Data *marpa_op_by_name;
-
-@ This must be sorted, because |bsearch| is used.
-@<Global constant definitions@> =
-Marpa_OP_Data *marpa_op_by_name = marpa_op_by_name_object;
-const char** marpa_op_name_by_id = marpa_op_name_by_id_object;
-
-@ For the moment these are internal, and the args are assumed to
-be valid data.
-@<Function definitions@> =
-static int op_data_cmp(const void* a, const void* b) {
-   return strcmp(((Marpa_OP_Data*)a)->name, ((Marpa_OP_Data*)b)->name);
-}
+@ @<Private structures@> =
+struct op_data_s { const char *name; int op; };
 
 @ For the moment these are internal, and the args are assumed to
 be valid data.
@@ -251,22 +236,22 @@ be valid data.
 const char*
 marpa__slif_op_name (const int op_id)
 {
-  if (op_id >= (int)Dim(marpa_op_name_by_id_object)) return "unknown";
-  return marpa_op_name_by_id_object[op_id];
+  if (op_id >= (int)Dim(op_name_by_id_object)) return "unknown";
+  return op_name_by_id_object[op_id];
 }
 
 int
 marpa__slif_op_id (const char *name)
 {
   int lo = 0;
-  int hi = Dim (marpa_op_by_name_object) - 1;
+  int hi = Dim (op_by_name_object) - 1;
   while (hi >= lo)
     {
       const int trial = lo + (hi - lo) / 2;
-      const char *trial_name = marpa_op_by_name_object[trial].name;
+      const char *trial_name = op_by_name_object[trial].name;
       int cmp = strcmp (name, trial_name);
       if (!cmp)
-	return marpa_op_by_name_object[trial].op;
+	return op_by_name_object[trial].op;
       if (cmp < 0)
 	{
 	  hi = trial - 1;
@@ -650,7 +635,6 @@ it should be deleted.
 
 @ @(marpa_slif.c.p50@> =
 
-@<Global constant definitions@>@;
 @<Function definitions@>@;
 
 @*0 The public header file.
@@ -661,7 +645,6 @@ it should be deleted.
 
 @h
 @<Public incomplete structures@>@;
-@<Public typedefs@>@;
 @<Public structures@>@;
 @<Public constant declarations@>@;
 
