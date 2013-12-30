@@ -1059,17 +1059,17 @@ main (int argc, char *argv[])
 
       {
         int okay;
-        struct libavl_allocator *a = mt_allocator (alloc);
+	marpa__tavl_allocator_default = mt_allocator (alloc);
 
         switch (opts.test)
           {
           case TST_CORRECTNESS:
-            okay = test_correctness (a, insert, delete, opts.node_cnt,
+            okay = test_correctness (insert, delete, opts.node_cnt,
                                      opts.verbosity);
             break;
 
           case TST_OVERFLOW:
-            okay = test_overflow (a, insert, opts.node_cnt, opts.verbosity);
+            okay = test_overflow (insert, opts.node_cnt, opts.verbosity);
             break;
 
           case TST_NULL:

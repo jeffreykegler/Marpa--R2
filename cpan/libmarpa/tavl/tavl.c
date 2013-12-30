@@ -30,15 +30,13 @@
    and memory allocator |allocator|.
    Returns |NULL| if memory allocation failed. */
 struct tavl_table *
-marpa__tavl_create (tavl_comparison_func *compare, void *param,
-            struct libavl_allocator *allocator)
+marpa__tavl_create (tavl_comparison_func *compare, void *param)
 {
   struct tavl_table *tree;
+  struct libavl_allocator* const allocator = marpa__tavl_allocator_default;
 
   assert (compare != NULL);
 
-  if (allocator == NULL)
-    allocator = &marpa__tavl_allocator_default;
 
   tree = allocator->libavl_malloc (allocator, sizeof *tree);
   if (tree == NULL)
@@ -841,7 +839,7 @@ copy_error_recovery (struct tavl_node *p,
    Otherwise, the same allocator used for |org| is used. */
 struct tavl_table *
 marpa__tavl_copy (const struct tavl_table *org, tavl_copy_func *copy,
-          tavl_item_func *destroy, struct libavl_allocator *allocator)
+          tavl_item_func *destroy)
 {
   struct tavl_table *new;
 
@@ -850,8 +848,7 @@ marpa__tavl_copy (const struct tavl_table *org, tavl_copy_func *copy,
   struct tavl_node rp, rq;
 
   assert (org != NULL);
-  new = marpa__tavl_create (org->tavl_compare, org->tavl_param,
-                     allocator != NULL ? allocator : org->tavl_alloc);
+  new = marpa__tavl_create (org->tavl_compare, org->tavl_param);
   if (new == NULL)
     return NULL;
 
@@ -956,11 +953,13 @@ marpa__tavl_free (struct libavl_allocator *allocator, void *block)
 }
 
 /* Default memory allocator that uses |malloc()| and |free()|. */
-struct libavl_allocator marpa__tavl_allocator_default =
+/* Fail allocator -- should not be used and always fails. */
+struct libavl_allocator default_allocator =
   {
     marpa__tavl_malloc,
     marpa__tavl_free
   };
+struct libavl_allocator *marpa__tavl_allocator_default = &default_allocator;
 
 #undef NDEBUG
 #include <assert.h>

@@ -393,15 +393,14 @@ verify_tree (struct tavl_table *tree, int array[], size_t n)
    Uses |allocator| as the allocator for tree and node data.
    Higher values of |verbosity| produce more debug output. */
 int
-test_correctness (struct libavl_allocator *allocator,
-                  int insert[], int delete[], int n, int verbosity)
+test_correctness ( int insert[], int delete[], int n, int verbosity)
 {
   struct tavl_table *tree;
   int okay = 1;
   int i;
 
   /* Test creating a TAVL and inserting into it. */
-  tree = marpa__tavl_create (compare_ints, NULL, allocator);
+  tree = marpa__tavl_create (compare_ints, NULL);
   if (tree == NULL)
     {
       if (verbosity >= 0)
@@ -517,7 +516,7 @@ test_correctness (struct libavl_allocator *allocator,
 
       /* Copy the tree and make sure it's identical. */
       {
-        struct tavl_table *copy = marpa__tavl_copy (tree, NULL, NULL, NULL);
+        struct tavl_table *copy = marpa__tavl_copy (tree, NULL, NULL);
         if (copy == NULL)
           {
             if (verbosity >= 0)
@@ -666,7 +665,7 @@ test_bst_t_prev (struct tavl_table *tree, int n)
 static int
 test_bst_copy (struct tavl_table *tree, int n)
 {
-  struct tavl_table *copy = marpa__tavl_copy (tree, NULL, NULL, NULL);
+  struct tavl_table *copy = marpa__tavl_copy (tree, NULL, NULL);
   int okay = compare_trees (tree->tavl_root, copy->tavl_root);
 
   marpa__tavl_destroy (copy, NULL);
@@ -680,8 +679,7 @@ test_bst_copy (struct tavl_table *tree, int n)
    Uses |allocator| as the allocator for tree and node data.
    Use |verbosity| to set the level of chatter on |stdout|. */
 int
-test_overflow (struct libavl_allocator *allocator,
-               int order[], int n, int verbosity)
+test_overflow ( int order[], int n, int verbosity)
 {
   /* An overflow tester function. */
   typedef int test_func (struct tavl_table *, int n);
@@ -716,7 +714,7 @@ test_overflow (struct libavl_allocator *allocator,
       if (verbosity >= 2)
         printf ("  Running %s test...\n", i->name);
 
-      tree = marpa__tavl_create (compare_ints, NULL, allocator);
+      tree = marpa__tavl_create (compare_ints, NULL);
       if (tree == NULL)
         {
           printf ("    Out of memory creating tree.\n");

@@ -30,12 +30,11 @@ struct libavl_allocator
     void *(*libavl_malloc) (struct libavl_allocator *, size_t libavl_size);
     void (*libavl_free) (struct libavl_allocator *, void *libavl_block);
   };
+extern struct libavl_allocator* marpa__tavl_allocator_default;
 #endif
 
-int test_correctness (struct libavl_allocator *allocator,
-                      int insert[], int delete[], int n, int verbosity);
-int test_overflow (struct libavl_allocator *, int order[], int n,
-                   int verbosity);
+int test_correctness ( int insert[], int delete[], int n, int verbosity);
+int test_overflow ( int order[], int n, int verbosity);
 int compare_ints (const void *pa, const void *pb, void *param);
 
 #endif /* test.h */

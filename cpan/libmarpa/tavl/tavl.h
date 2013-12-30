@@ -46,10 +46,10 @@ struct libavl_allocator
     void *(*libavl_malloc) (struct libavl_allocator *, size_t libavl_size);
     void (*libavl_free) (struct libavl_allocator *, void *libavl_block);
   };
+extern struct libavl_allocator* marpa__tavl_allocator_default;
 #endif
 
 /* Default memory allocator. */
-extern struct libavl_allocator marpa__tavl_allocator_default;
 void *tavl_malloc (struct libavl_allocator *, size_t);
 void tavl_free (struct libavl_allocator *, void *);
 
@@ -92,10 +92,9 @@ struct tavl_traverser
   };
 
 /* Table functions. */
-struct tavl_table *tavl_create (tavl_comparison_func *, void *,
-                              struct libavl_allocator *);
-struct tavl_table *tavl_copy (const struct tavl_table *, tavl_copy_func *,
-                            tavl_item_func *, struct libavl_allocator *);
+struct tavl_table *marpa__tavl_create (tavl_comparison_func *, void *);
+struct tavl_table *marpa__tavl_copy (const struct tavl_table *, tavl_copy_func *,
+                            tavl_item_func *);
 void marpa__tavl_destroy (struct tavl_table *, tavl_item_func *);
 void **marpa__tavl_probe (struct tavl_table *, void *);
 void *marpa__tavl_insert (struct tavl_table *, void *);
