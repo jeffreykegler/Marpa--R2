@@ -189,6 +189,11 @@ struct mt_allocator
     int block_cnt;                      /* Number of still-allocated blocks. */
   };
 
+static void fatal(const char* message) {
+    puts(message);
+    abort();
+}
+
 static void *mt_allocate (struct libavl_allocator *, size_t);
 static void mt_free (struct libavl_allocator *, void *);
 
@@ -296,15 +301,16 @@ reject_request (struct mt_allocator *mt, size_t size)
             mt->alloc_idx++, (unsigned long) size);
 }
 
-/* Allocates and returns a block of |size| bytes. */
+/* Allocates and returns a block of |size| bytes.
+   Does not return on failure -- never returns NULL.
+*/
 static void *
 mt_allocate (struct libavl_allocator *allocator, size_t size)
 {
   struct mt_allocator *mt = (struct mt_allocator *) allocator;
 
   /* Special case. */
-  if (size == 0)
-    return NULL;
+  if (size == 0) fatal("mt_allocate called with 0 param");
 
   switch (mt->policy)
     {
@@ -318,7 +324,7 @@ mt_allocate (struct libavl_allocator *allocator, size_t size)
       if (mt->arg[MT_COUNT] == 0)
         {
           reject_request (mt, size);
-          return NULL;
+          fatal("mt_allocate() rejected request");
         }
       mt->arg[MT_COUNT]--;
       return new_block (mt, size);
@@ -327,7 +333,7 @@ mt_allocate (struct libavl_allocator *allocator, size_t size)
       if (rand () / (RAND_MAX / 100 + 1) < mt->arg[MT_PERCENT])
         {
           reject_request (mt, size);
-          return NULL;
+          fatal("mt_allocate() rejected request");
         }
       else
         return new_block (mt, size);

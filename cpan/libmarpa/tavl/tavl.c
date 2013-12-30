@@ -944,20 +944,25 @@ marpa__tavl_destroy (struct tavl_table *tree, tavl_item_func *destroy)
   MY_AVL_FREE( tree);
 }
 
+static void fatal(const char* message) {
+    puts(message);
+    abort();
+}
+
 /* Allocates |size| bytes of space using |malloc()|.
    Returns a null pointer if allocation fails. */
 void *
 marpa__tavl_malloc (struct libavl_allocator *allocator, size_t size)
 {
-  assert (allocator != NULL && size > 0);
-  return malloc (size);
+  void* result = malloc (size);
+  if (!result) fatal("out of memory");
+  return result;
 }
 
 /* Frees |block|. */
 void
 marpa__tavl_free (struct libavl_allocator *allocator, void *block)
 {
-  assert (allocator != NULL && block != NULL);
   free (block);
 }
 
