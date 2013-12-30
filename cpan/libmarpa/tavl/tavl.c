@@ -25,6 +25,16 @@
 #include <stdlib.h>
 #include "tavl.h"
 
+/* I changed the memory allocator from a parameter to a global.  Not
+ * thread-safe, but it is only used in the test, which is not threaded.
+ * In production Marpa's * |my_malloc| is hardwired in, by the following defines,
+ * and that is thread-safe.
+ */
+
+/* First parameter is really not needed */
+#define MY_AVL_MALLOC(size) \
+  (marpa__tavl_allocator_default->libavl_malloc(marpa__tavl_allocator_default, (size)))
+
 /* Creates and returns a new table
    with comparison function |compare| using parameter |param|
    and memory allocator |allocator|.
@@ -37,8 +47,7 @@ marpa__tavl_create (tavl_comparison_func *compare, void *param)
 
   assert (compare != NULL);
 
-
-  tree = allocator->libavl_malloc (allocator, sizeof *tree);
+  tree = MY_AVL_MALLOC( sizeof *tree);
   if (tree == NULL)
     return NULL;
 
