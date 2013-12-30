@@ -625,9 +625,8 @@ it should be deleted.
 #define MARPA_DEBUG 0
 #endif
 
-#include "marpa.h"
-#include "marpa_ami.h"
 #include "marpa_slif.h"
+#include "marpa_ami.h"
 
 @<Private macros@>@;
 @<Private typedefs@>@;
@@ -642,6 +641,8 @@ it should be deleted.
 
 #ifndef _MARPA_SLIF_H__
 #define _MARPA_SLIF_H__ 1
+
+#include "marpa.h"
 
 @h
 @<Public incomplete structures@>@;
