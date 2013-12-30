@@ -359,6 +359,12 @@ Never returns failure.
 @deftypefun union marpa_slr_event_s * marpa__slr_lexeme_entry( Marpa_SLR @var{slr}, int @var{i} )
 @end deftypefun
 
+@deftypefun int marpa__slif_op_id (const char* @var{op_name} )
+@end deftypefun
+
+@deftypefun const char* marpa__slif_op_name (int @var{op_id} )
+@end deftypefun
+
 @node GNU Free Documentation License,  , Work in Progress, Top
 @appendix GNU Free Documentation License
 

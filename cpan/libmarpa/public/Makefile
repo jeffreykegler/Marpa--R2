@@ -37,13 +37,16 @@ marpa.h.p80: ../dev/marpa.h.p80
 marpa.h: $(MARPA_H_PIECES)
 	cat $(MARPA_H_PIECES) > marpa.h
 
-MARPA_SLIF_H_PIECES = $(C_LANGUAGE_PREAMBLE) marpa_slif.h.p50 marpa_slif.h.p80
+MARPA_SLIF_H_PIECES = $(C_LANGUAGE_PREAMBLE) marpa_slif.h.p50 marpa_slif.h.p80 marpa_slif.h-ops
 
 CPPWRAP = perl ../bin/cppwrap.pl
 marpa_slif.h.p50: ../slif/marpa_slif.h.p50
 	cp $? $@
 
 marpa_slif.h.p80: ../slif/marpa_slif.h.p80
+	$(CPPWRAP) $@ < $? > $@
+
+marpa_slif.h-ops: ../slif/marpa_slif.h-ops
 	$(CPPWRAP) $@ < $? > $@
 
 marpa_slif.h: $(MARPA_SLIF_H_PIECES)

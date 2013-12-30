@@ -46,11 +46,12 @@ CTANGLE = ctangle -p
 
 all: marpa_slif.pdf sources
 
-sources: marpa_slif.c marpa_slif.h.p50 marpa_slif.h.p80
+sources: marpa_slif.c marpa_slif.h.p50 marpa_slif.h.p80 marpa_slif.h-ops marpa_slif.c-ops
 
 C_LANGUAGE_PREAMBLE = ../shared/license.c ../shared/do_not_edit.c
 MARPA_SLIF_H_PIECES =  $(C_LANGUAGE_PREAMBLE) marpa_slif.h.p50 marpa_slif.h.p80
-MARPA_SLIF_C_PIECES = $(C_LANGUAGE_PREAMBLE) marpa_slif.c.p10 marpa_slif.c.p40 marpa_slif.c.p50
+MARPA_SLIF_C_PIECES = $(C_LANGUAGE_PREAMBLE) marpa_slif.c.p10 marpa_slif.c-ops \
+  marpa_slif.c.p40 marpa_slif.c.p50
 
 marpa_slif.h.p50 marpa_slif.c.p10 marpa_slif.c.p50: ../shared/copyright_page_license.w marpa_slif.w
 	$(CTANGLE) marpa_slif.w
@@ -73,6 +74,9 @@ marpa_slif.c.p40: marpa_slif.w
 marpa_slif.h.p80: api.texi internal.texi
 	cat api.texi internal.texi | \
 	  perl ../bin/texi2proto.pl > marpa_slif.h.p80
+
+marpa_slif.h-ops marpa_slif.c-ops: create_ops.pl
+	perl create_ops.pl marpa_slif.h-ops | $(CPPWRAP) marpa_slif.c-ops > marpa_slif.c-ops
 
 update_texi:
 	emacs -batch internal.texi \

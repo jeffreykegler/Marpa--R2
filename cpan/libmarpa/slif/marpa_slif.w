@@ -227,67 +227,57 @@ and their operations are kept in a single list.
 This seems to make sense while they overlap heavily
 and there are few of them.
 
-@ @<Public enumerations@> =
-enum marpa_op
-{
-  op_end_marker = 0,
-  op_alternative,
-  op_bless,
-  op_callback,
-  op_earleme_complete,
-  op_noop,
-  op_push_one,
-  op_push_length,
-  op_push_undef,
-  op_push_sequence,
-  op_push_values,
-  op_push_start_location,
-  op_result_is_array,
-  op_result_is_constant,
-  op_result_is_rhs_n,
-  op_result_is_n_of_sequence,
-  op_result_is_token_value,
-  op_result_is_undef,
-  op_invalid_char,
-  op_set_lexer,
-  op_retry_or_set_lexer,
-  op_pause
-};
-
 @ @<Public typedefs@> =
-typedef struct { enum marpa_op op; const char *name; } Marpa_OP_Data;
+typedef struct { const char *name; int op; } Marpa_OP_Data;
 
 @ @<Public constant declarations@> =
-Marpa_OP_Data *marpa_op_data;
+Marpa_OP_Data *marpa_op_by_name;
 
-@ @<Global constant definitions@> =
-static Marpa_OP_Data marpa_op_data_object[] = {
-{  op_alternative, "alternative" },
-{  op_bless, "bless" },
-{  op_callback, "callback" },
-{  op_earleme_complete, "earleme_complete" },
-{  op_end_marker, "end_marker" },
-{  op_noop, "noop" },
-{  op_push_length, "push_length" },
-{  op_push_one, "push_one" },
-{  op_push_sequence, "push_sequence" },
-{  op_push_start_location, "push_start_location" },
-{  op_push_undef, "push_undef" },
-{  op_push_values, "push_values" },
-{  op_result_is_array, "result_is_array" },
-{  op_result_is_constant, "result_is_constant" },
-{  op_result_is_n_of_sequence, "result_is_n_of_sequence" },
-{  op_result_is_rhs_n, "result_is_rhs_n" },
-{  op_result_is_token_value, "result_is_token_value" },
-{  op_result_is_undef, "result_is_undef" },
-{  op_invalid_char, "invalid_char" },
-{  op_set_lexer, "set_lexer" },
-{  op_retry_or_set_lexer, "retry_or_set_lexer" },
-{  op_pause, "pause" },
-  { -1, (char *)NULL}
-};
-Marpa_OP_Data *marpa_op_data = marpa_op_data_object;
+@ This must be sorted, because |bsearch| is used.
+@<Global constant definitions@> =
+Marpa_OP_Data *marpa_op_by_name = marpa_op_by_name_object;
+const char** marpa_op_name_by_id = marpa_op_name_by_id_object;
 
+@ For the moment these are internal, and the args are assumed to
+be valid data.
+@<Function definitions@> =
+static int op_data_cmp(const void* a, const void* b) {
+   return strcmp(((Marpa_OP_Data*)a)->name, ((Marpa_OP_Data*)b)->name);
+}
+
+@ For the moment these are internal, and the args are assumed to
+be valid data.
+@<Function definitions@> =
+const char*
+marpa__slif_op_name (const int op_id)
+{
+  if (op_id >= (int)Dim(marpa_op_name_by_id_object)) return "unknown";
+  return marpa_op_name_by_id_object[op_id];
+}
+
+int
+marpa__slif_op_id (const char *name)
+{
+  int lo = 0;
+  int hi = Dim (marpa_op_by_name_object) - 1;
+  while (hi >= lo)
+    {
+      const int trial = lo + (hi - lo) / 2;
+      const char *trial_name = marpa_op_by_name_object[trial].name;
+      int cmp = strcmp (name, trial_name);
+      if (!cmp)
+	return marpa_op_by_name_object[trial].op;
+      if (cmp < 0)
+	{
+	  hi = trial - 1;
+	}
+      else
+	{
+	  lo = trial + 1;
+	}
+    }
+  return -1;
+}
 
 @** Events.
 @<Public incomplete structures@> =
@@ -671,7 +661,6 @@ it should be deleted.
 
 @h
 @<Public incomplete structures@>@;
-@<Public enumerations@>@;
 @<Public typedefs@>@;
 @<Public structures@>@;
 @<Public constant declarations@>@;

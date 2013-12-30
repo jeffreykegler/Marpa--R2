@@ -362,19 +362,6 @@ static int marpa_r2_warn(const char* format, ...)
    return 1;
 }
 
-static const char* op_to_op_name(enum marpa_op op)
-{
-  Marpa_OP_Data *op_data = marpa_op_data;
-  for (op_data = marpa_op_data; op_data->name; op_data++)
-    {
-      if (op == op_data->op)
-        {
-          return op_data->name;
-        }
-    }
-  return "unknown";
-}
-
 /* Static grammar methods */
 
 #define SET_G_WRAPPER_FROM_G_SV(g_wrapper, g_sv) { \
@@ -715,7 +702,7 @@ if (trace_lexers >= 1)
           IV op_code = ops[op_ix];
           switch (op_code)
             {
-            case op_alternative:
+            case MARPA_OP_ALTERNATIVE:
               {
                 int result;
                 int symbol_id;
@@ -784,11 +771,11 @@ if (trace_lexers >= 1)
               }
               break;
 
-            case op_invalid_char:
+            case MARPA_OP_INVALID_CHAR:
               slr->codepoint = codepoint;
               return U_READ_INVALID_CHAR;
 
-            case op_earleme_complete:
+            case MARPA_OP_EARLEME_COMPLETE:
               {
                 int result;
                 if (tokens_accepted < 1)
@@ -1031,7 +1018,7 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
             result_string = "valuator unknown step";
           event_data[0] = newSVpvs ("starting op");
           event_data[1] = newSVpv (result_string, 0);
-          event_data[2] = newSVpv (op_to_op_name (op_code), 0);
+          event_data[2] = newSVpv (marpa__slif_op_name (op_code), 0);
           event = av_make (Dim (event_data), event_data);
           av_push (v_wrapper->event_queue, newRV_noinc ((SV *) event));
         }
@@ -1042,13 +1029,13 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
         case 0:
           return -1;
 
-        case op_result_is_undef:
+        case MARPA_OP_RESULT_IS_UNDEF:
           {
             av_fill (stack, -1 + result_ix);
           }
           return -1;
 
-        case op_result_is_constant:
+        case MARPA_OP_RESULT_IS_CONSTANT:
           {
             IV constant_ix = ops[op_ix++];
             SV **p_constant_sv;
@@ -1084,8 +1071,8 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
           }
           return -1;
 
-        case op_result_is_rhs_n:
-        case op_result_is_n_of_sequence:
+        case MARPA_OP_RESULT_IS_RHS_N:
+        case MARPA_OP_RESULT_IS_N_OF_SEQUENCE:
           {
             SV **stored_av;
             SV **p_sv;
@@ -1108,7 +1095,7 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
               }
 
             /* Determine index of SV to fetch */
-            if (op_code == op_result_is_rhs_n)
+            if (op_code == MARPA_OP_RESULT_IS_RHS_N)
               {
                 if (stack_offset > 0)
                   {
@@ -1159,7 +1146,7 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
           }
           return -1;
 
-        case op_result_is_array:
+        case MARPA_OP_RESULT_IS_ARRAY:
           {
             SV **stored_av;
             /* Increment ref count of values_av to de-mortalize it */
@@ -1196,8 +1183,8 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
           }
           return -1;
 
-        case op_push_values:
-        case op_push_sequence:
+        case MARPA_OP_PUSH_VALUES:
+        case MARPA_OP_PUSH_SEQUENCE:
           {
 
             if (!values_av)
@@ -1244,7 +1231,7 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
                 {
                   int stack_ix;
                   const int arg_n = marpa_v_arg_n (v);
-                  int increment = op_code == op_push_sequence ? 2 : 1;
+                  int increment = op_code == MARPA_OP_PUSH_SEQUENCE ? 2 : 1;
 
                   for (stack_ix = result_ix; stack_ix <= arg_n;
                        stack_ix += increment)
@@ -1270,7 +1257,7 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
           }
           break;
 
-        case op_push_undef:
+        case MARPA_OP_PUSH_UNDEF:
           {
             if (!values_av)
               {
@@ -1280,7 +1267,7 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
           }
           goto NEXT_OP_CODE;
 
-        case op_push_one:
+        case MARPA_OP_PUSH_ONE:
           {
             int offset;
             SV **p_sv;
@@ -1307,7 +1294,7 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
           }
           goto NEXT_OP_CODE;
 
-        case op_push_start_location:
+        case MARPA_OP_PUSH_START_LOCATION:
           {
             int start_location;
             Scanless_R *slr = v_wrapper->slr;
@@ -1343,7 +1330,7 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
           }
           goto NEXT_OP_CODE;
 
-        case op_push_length:
+        case MARPA_OP_PUSH_LENGTH:
           {
             int length;
             Scanless_R *slr = v_wrapper->slr;
@@ -1393,13 +1380,13 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
           }
           goto NEXT_OP_CODE;
 
-        case op_bless:
+        case MARPA_OP_BLESS:
           {
             blessing = ops[op_ix++];
           }
           goto NEXT_OP_CODE;
 
-        case op_callback:
+        case MARPA_OP_CALLBACK:
           {
             const char *result_string = step_type_to_string (step_type);
             SV **p_stack_results = stack_results;
@@ -1452,7 +1439,7 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
           }
           /* NOT REACHED */
 
-        case op_result_is_token_value:
+        case MARPA_OP_RESULT_IS_TOKEN_VALUE:
           {
             SV **p_token_value_sv;
             Scanless_R *slr = v_wrapper->slr;
@@ -1527,7 +1514,7 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
               step_type_string = "Unknown";
             croak
               ("Bad op code (%lu, '%s') in v->stack_step, step_type '%s'",
-               (unsigned long) op_code, op_to_op_name (op_code),
+               (unsigned long) op_code, marpa__slif_op_name (op_code),
                step_type_string);
           }
         }
@@ -2324,27 +2311,23 @@ op( op_name )
      char *op_name;
 PPCODE:
 {
-  Marpa_OP_Data *op_data = marpa_op_data;
-  for (op_data = marpa_op_data; op_data->name; op_data++)
+  const int op_id = marpa__slif_op_id (op_name);
+  if (op_id >= 0)
     {
-      if (strEQ (op_name, op_data->name))
-        {
-          XSRETURN_IV ((IV) op_data->op);
-        }
+      XSRETURN_IV ((IV) op_id);
     }
-  croak("Problem with Marpa::R2::Thin->op('%s'): No such op", op_name);
+  croak ("Problem with Marpa::R2::Thin->op('%s'): No such op", op_name);
 }
 
  # This search is not optimized.  This list is short
  # and the data is constant.  It is expected this lookup
  # will be done mainly for error messages.
 void
-op_name( op_as_iv )
-     IV op_as_iv;
+op_name( op )
+     IV op;
 PPCODE:
 {
-  const enum marpa_op op = (enum marpa_op)op_as_iv;
-  XSRETURN_PV (op_to_op_name(op));
+  XSRETURN_PV (marpa__slif_op_name(op));
 }
 
 void
@@ -3326,8 +3309,8 @@ PPCODE:
     const int highest_rule_id = marpa_g_highest_rule_id (g);
     AV *av = v_wrapper->rule_semantics;
     av_extend (av, highest_rule_id);
-    ops[0] = op_push_values;
-    ops[1] = op_callback;
+    ops[0] = MARPA_OP_PUSH_VALUES;
+    ops[1] = MARPA_OP_CALLBACK;
     ops[2] = 0;
     for (ix = 0; ix <= highest_rule_id; ix++)
       {
@@ -3348,7 +3331,7 @@ PPCODE:
     const int highest_symbol_id = marpa_g_highest_symbol_id (g);
     AV *av = v_wrapper->nulling_semantics;
     av_extend (av, highest_symbol_id);
-    ops[0] = op_result_is_undef;
+    ops[0] = MARPA_OP_RESULT_IS_UNDEF;
     ops[1] = 0;
     for (ix = 0; ix <= highest_symbol_id; ix++)
       {
@@ -3369,7 +3352,7 @@ PPCODE:
     const int highest_symbol_id = marpa_g_highest_symbol_id (g);
     AV *av = v_wrapper->token_semantics;
     av_extend (av, highest_symbol_id);
-    ops[0] = op_result_is_token_value;
+    ops[0] = MARPA_OP_RESULT_IS_TOKEN_VALUE;
     ops[1] = 0;
     for (ix = 0; ix <= highest_symbol_id; ix++)
       {

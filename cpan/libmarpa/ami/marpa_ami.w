@@ -421,6 +421,9 @@ int marpa__default_debug_handler (const char *format, ...)
 #  define inline __inline__
 #endif
 
+#undef Dim
+#define Dim(x) (sizeof(x)/sizeof(*x))
+
 #undef      MAX
 #define MAX(a, b)  (((a) > (b)) ? (a) : (b))
 
