@@ -34,6 +34,8 @@
 /* First parameter is really not needed */
 #define MY_AVL_MALLOC(size) \
   (marpa__tavl_allocator_default->libavl_malloc(marpa__tavl_allocator_default, (size)))
+#define MY_AVL_FREE(p) \
+  (marpa__tavl_allocator_default->libavl_free(marpa__tavl_allocator_default, (p)))
 
 /* Creates and returns a new table
    with comparison function |compare| using parameter |param|
@@ -43,7 +45,6 @@ struct tavl_table *
 marpa__tavl_create (tavl_comparison_func *compare, void *param)
 {
   struct tavl_table *tree;
-  struct libavl_allocator* const allocator = marpa__tavl_allocator_default;
 
   assert (compare != NULL);
 
@@ -54,7 +55,6 @@ marpa__tavl_create (tavl_comparison_func *compare, void *param)
   tree->tavl_root = NULL;
   tree->tavl_compare = compare;
   tree->tavl_param = param;
-  tree->tavl_alloc = allocator;
   tree->tavl_count = 0;
 
   return tree;
@@ -131,7 +131,7 @@ marpa__tavl_probe (struct tavl_table *tree, void *item)
       dir = 0;
     }
 
-  n = tree->tavl_alloc->libavl_malloc (tree->tavl_alloc, sizeof *n);
+  n = MY_AVL_MALLOC( sizeof *n);
   if (n == NULL)
     return NULL;
 
@@ -432,7 +432,7 @@ marpa__tavl_delete (struct tavl_table *tree, const void *item)
         }
     }
 
-  tree->tavl_alloc->libavl_free (tree->tavl_alloc, p);
+  MY_AVL_FREE( p);
 
   while (q != (struct tavl_node *) &tree->tavl_root)
     {
@@ -796,7 +796,7 @@ copy_node (struct tavl_table *tree,
            const struct tavl_node *src, tavl_copy_func *copy)
 {
   struct tavl_node *new =
-    tree->tavl_alloc->libavl_malloc (tree->tavl_alloc, sizeof *new);
+    MY_AVL_MALLOC( sizeof *new);
   if (new == NULL)
     return 0;
 
@@ -936,12 +936,12 @@ marpa__tavl_destroy (struct tavl_table *tree, tavl_item_func *destroy)
 
       if (destroy != NULL && p->tavl_data != NULL)
         destroy (p->tavl_data, tree->tavl_param);
-      tree->tavl_alloc->libavl_free (tree->tavl_alloc, p);
+      MY_AVL_FREE( p);
 
       p = n;
     }
 
-  tree->tavl_alloc->libavl_free (tree->tavl_alloc, tree);
+  MY_AVL_FREE( tree);
 }
 
 /* Allocates |size| bytes of space using |malloc()|.

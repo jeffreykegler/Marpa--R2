@@ -64,7 +64,6 @@ struct tavl_table
     struct tavl_node *tavl_root;        /* Tree's root. */
     tavl_comparison_func *tavl_compare; /* Comparison function. */
     void *tavl_param;                   /* Extra argument to |tavl_compare|. */
-    struct libavl_allocator *tavl_alloc; /* Memory allocator. */
     size_t tavl_count;                  /* Number of items in tree. */
   };
 
