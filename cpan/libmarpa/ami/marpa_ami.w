@@ -185,7 +185,7 @@ used in a private function.
 libmarpa wrappers the standard memory functions
 to provide more convenient behaviors.
 \li The allocators do not return on failed memory allocations.
-\li |marpa_realloc| is equivalent to |marpa_malloc| if called with
+\li |my_realloc| is equivalent to |my_malloc| if called with
 a |NULL| pointer.  (This is the GNU C library behavior.)
 @ {\bf To Do}: @^To Do@>
 For the moment, the memory allocators are hard-wired to
@@ -195,7 +195,7 @@ these choices.
 
 @<Friend static inline functions@> =
 static inline
-void marpa_free (void *p)
+void my_free (void *p)
 {
   free (p);
 }
@@ -203,7 +203,7 @@ void marpa_free (void *p)
 @ @<Friend static inline functions@> =
 
 static inline
-void* marpa_malloc(size_t size)
+void* my_malloc(size_t size)
 {
     void *newmem = malloc(size);
     if (_MARPA_UNLIKELY(!newmem)) { (*marpa__out_of_memory)(); }
@@ -212,29 +212,29 @@ void* marpa_malloc(size_t size)
 
 static inline
 void*
-marpa_malloc0(size_t size)
+my_malloc0(size_t size)
 {
-    void* newmem = marpa_malloc(size);
+    void* newmem = my_malloc(size);
     memset (newmem, 0, size);
     return newmem;
 }
 
 static inline
 void*
-marpa_realloc(void *p, size_t size)
+my_realloc(void *p, size_t size)
 {
    if (_MARPA_LIKELY(p != NULL)) {
         void *newmem = realloc(p, size);
         if (_MARPA_UNLIKELY(!newmem)) (*marpa__out_of_memory)();
         return newmem;
    }
-   return marpa_malloc(size);
+   return my_malloc(size);
 }
 
 @
-@d marpa_new(type, count) ((type *)marpa_malloc((sizeof(type)*(count))))
+@d marpa_new(type, count) ((type *)my_malloc((sizeof(type)*(count))))
 @d marpa_renew(type, p, count) 
-    ((type *)marpa_realloc((p), (sizeof(type)*(count))))
+    ((type *)my_realloc((p), (sizeof(type)*(count))))
 
 @** Dynamic stacks.
 |libmarpa| uses stacks and worklists extensively.
@@ -304,7 +304,7 @@ resizings unnecessary.
 The |MARPA_STOLEN_DSTACK_DATA_FREE| macro is intended
 to help the ``thief" container
 deallocate the data it now has ``stolen".
-@d MARPA_STOLEN_DSTACK_DATA_FREE(data) (marpa_free(data))
+@d MARPA_STOLEN_DSTACK_DATA_FREE(data) (my_free(data))
 @d MARPA_DSTACK_DESTROY(this) MARPA_STOLEN_DSTACK_DATA_FREE(this.t_base)
 @s MARPA_DSTACK int
 @<Friend incomplete structures@> =
@@ -330,7 +330,7 @@ marpa_dstack_resize (struct marpa_dstack_s *this, size_t type_bytes,
     {                           /* We do not shrink the stack
                                    in this method */
       this->t_capacity = new_size;
-      this->t_base = marpa_realloc (this->t_base, new_size * type_bytes);
+      this->t_base = my_realloc (this->t_base, new_size * type_bytes);
     }
   return this->t_base;
 }

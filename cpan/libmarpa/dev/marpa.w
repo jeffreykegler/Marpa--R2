@@ -667,7 +667,7 @@ Marpa_Grammar marpa_g_new (Marpa_Config* configuration)
         configuration->t_error = MARPA_ERR_I_AM_NOT_OK;
         return NULL;
     }
-    g = marpa_malloc(sizeof(struct marpa_g));
+    g = my_malloc(sizeof(struct marpa_g));
     /* \comment Set |t_is_ok| to a bad value, just in case */
     g->t_is_ok = 0;
     @<Initialize grammar elements@>@;
@@ -722,7 +722,7 @@ PRIVATE
 void grammar_free(GRAMMAR g)
 {
     @<Destroy grammar elements@>@;
-    marpa_free(g);
+    my_free(g);
 }
 
 @*0 The grammar's symbol list.
@@ -3666,7 +3666,7 @@ Change so that this runs only if there are prediction events.
   XRLID xrlid;
   int nullable_xsy_count = 0;   /* Use this to make sure we
                                    have enough CILAR buffer space */
-  void* matrix_buffer = marpa_malloc(matrix_sizeof(
+  void* matrix_buffer = my_malloc(matrix_sizeof(
      (unsigned int) pre_census_xsy_count,
                        (unsigned int) pre_census_xsy_count)); /* This
   matrix is large and very temporary, so it does not go on the obstack */
@@ -3704,7 +3704,7 @@ Change so that this runs only if there are prediction events.
       Nulled_XSYIDs_of_XSYID (xsyid) = 
         cil_bv_add(&g->t_cilar, bv_nullifications_by_to_xsy);
     }
-    marpa_free(matrix_buffer);
+    my_free(matrix_buffer);
 }
 
 @** The sequence rewrite.
@@ -4750,7 +4750,7 @@ I test that |g->t_AHFA_items| is non-zero.
 @ @<Initialize grammar elements@> =
 g->t_AHFA_items = NULL;
 @ @<Destroy grammar elements@> =
-     marpa_free(g->t_AHFA_items);
+     my_free(g->t_AHFA_items);
 
 @ Check that AHFA item ID is in valid range.
 @<Function definitions@> =
@@ -4994,7 +4994,7 @@ AHFA item as its new, final ID.
     {
       Sort_Key_of_AIM (sort_array[item_id]) = item_id;
     }
-  marpa_free (sort_array);
+  my_free (sort_array);
 }
 
 @** AHFA state (AHFA) code.
@@ -5684,11 +5684,11 @@ You can get the AIM from the AEX, but not vice versa.
 }
 
 @ @<Free locals for creating AHFA states@> =
-   marpa_free(irl_by_sort_key);
+   my_free(irl_by_sort_key);
     @<Free duplicates data structures@>@;
 
 @ @<Free duplicates data structures@> =
-marpa_free(singleton_duplicates);
+my_free(singleton_duplicates);
 _marpa_avl_destroy(duplicates);
 
 @ @<Construct initial AHFA states@> =
@@ -6141,7 +6141,7 @@ with |S2| on its LHS.
     @<Populate |irl_by_sort_key|@>@/
     @<Populate |sort_key_by_irl_id| with second pass value@>@/
     @<Populate the prediction matrix@>@/
-    marpa_free(sort_key_by_irl_id);
+    my_free(sort_key_by_irl_id);
 }
 
 @ For creating prediction AHFA states, we need to have an ordering of rules
@@ -6740,7 +6740,7 @@ struct s_input {
 @ @<Function definitions@> =
 PRIVATE INPUT input_new (GRAMMAR g)
 {
-  INPUT input = marpa_malloc (sizeof(struct s_input));
+  INPUT input = my_malloc (sizeof(struct s_input));
   TOK_Obs_of_I (input) = marpa_obs_init;
   @<Initialize input elements@>@;
   return input;
@@ -6783,7 +6783,7 @@ guarantee that it is safe to destroy it.
 PRIVATE void input_free(INPUT input)
 {
     marpa_obs_free(TOK_Obs_of_I(input));
-    marpa_free( input);
+    my_free( input);
 }
 
 @*0 Token obstack.
@@ -6842,7 +6842,7 @@ Marpa_Recognizer marpa_r_new( Marpa_Grammar g )
     @<Return |NULL| on failure@>@;
     @<Fail if not precomputed@>@;
     nsy_count = NSY_Count_of_G(g);
-    r = marpa_malloc(sizeof(struct marpa_r));
+    r = my_malloc(sizeof(struct marpa_r));
     @<Initialize recognizer obstack@>@;
     @<Initialize recognizer elements@>@;
    return r;
@@ -6894,7 +6894,7 @@ void recce_free(struct marpa_r *r)
     @<Destroy recognizer elements@>@;
     grammar_unref(g);
     @<Destroy recognizer obstack@>@;
-    marpa_free( r);
+    my_free( r);
 }
 
 @*0 Base objects.
@@ -11054,9 +11054,9 @@ Top_ORID_of_B(b) = -1;
 {
   OR* or_nodes = ORs_of_B (b);
   AND and_nodes = ANDs_of_B (b);
-  marpa_free (or_nodes);
+  my_free (or_nodes);
   ORs_of_B (b) = NULL;
-  marpa_free (and_nodes);
+  my_free (and_nodes);
   ANDs_of_B (b) = NULL;
 }
 
@@ -12841,7 +12841,7 @@ Marpa_Order marpa_o_new(Marpa_Bocage b)
     @<Unpack bocage objects@>@;
     ORDER o;
     @<Fail if fatal error@>@;
-    o = marpa_malloc(sizeof(*o));
+    o = my_malloc(sizeof(*o));
     B_of_O(o) = b;
     bocage_ref(b);
     @<Pre-initialize order elements@>@;
@@ -12894,7 +12894,7 @@ PRIVATE void order_free(ORDER o)
   @<Unpack order objects@>@;
   bocage_unref(b);
   marpa_obs_free(OBS_of_O(o));
-  marpa_free( o);
+  my_free( o);
 }
 
 @ @<Unpack order objects@> =
@@ -13125,7 +13125,7 @@ int marpa_o_rank( Marpa_Order o)
         @<Sort |work_or_node| for "rank by rule"@>@;
       or_node_id++;
     }
-   marpa_free(rank_by_and_id);
+   my_free(rank_by_and_id);
 }
 
 @ An insertion sort is used here, which is
@@ -13318,7 +13318,7 @@ Marpa_Tree marpa_t_new(Marpa_Order o)
     TREE t;
     @<Unpack order objects@>@;
     @<Fail if fatal error@>@;
-    t = marpa_malloc(sizeof(*t));
+    t = my_malloc(sizeof(*t));
     O_of_T(t) = o;
     order_ref(o);
     O_is_Frozen(o) = 1;
@@ -13392,7 +13392,7 @@ PRIVATE void tree_free(TREE t)
 {
     order_unref(O_of_T(t));
     tree_exhaust(t);
-    marpa_free( t);
+    my_free( t);
 }
 
 @*0 Tree pause counting.
@@ -14643,7 +14643,7 @@ PRIVATE Bit_Vector bv_create(unsigned int bits)
 {
     unsigned int size = bv_bits_to_size(bits);
     unsigned int bytes = (size + bv_hiddenwords) * sizeof(Bit_Vector_Word);
-    unsigned int* addr = (Bit_Vector) marpa_malloc0((size_t) bytes);
+    unsigned int* addr = (Bit_Vector) my_malloc0((size_t) bytes);
     *addr++ = bits;
     *addr++ = size;
     *addr++ = bv_bits_to_unused_mask(bits);
@@ -14729,7 +14729,7 @@ PRIVATE void bv_free(Bit_Vector vector)
     if (_MARPA_LIKELY(vector != NULL))
     {
         vector -= bv_hiddenwords;
-        marpa_free(vector);
+        my_free(vector);
     }
 }
 
@@ -15263,7 +15263,7 @@ set up, in which case they can be made very fast.
 @d FSTACK_PUSH(stack) ((stack).t_base+stack.t_count++)
 @d FSTACK_POP(stack) ((stack).t_count <= 0 ? NULL : (stack).t_base+(--(stack).t_count))
 @d FSTACK_IS_INITIALIZED(stack) ((stack).t_base)
-@d FSTACK_DESTROY(stack) (marpa_free((stack).t_base))
+@d FSTACK_DESTROY(stack) (my_free((stack).t_base))
 
 @*0 Dynamic queues.
 This is simply a dynamic stack extended with a second
@@ -15735,7 +15735,7 @@ PRIVATE void psar_destroy(const PSAR psar)
         PSL *owner = psl->t_owner;
         if (owner)
           *owner = NULL;
-        marpa_free ( psl);
+        my_free ( psl);
         psl = next_psl;
       }
 }
@@ -15743,7 +15743,7 @@ PRIVATE void psar_destroy(const PSAR psar)
 PRIVATE PSL psl_new(const PSAR psar)
 {
      int i;
-     PSL new_psl = marpa_malloc(Sizeof_PSL(psar));
+     PSL new_psl = my_malloc(Sizeof_PSL(psar));
      new_psl->t_next = NULL;
      new_psl->t_prev = NULL;
      new_psl->t_owner = NULL;

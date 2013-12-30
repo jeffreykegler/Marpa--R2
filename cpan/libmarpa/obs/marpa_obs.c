@@ -111,7 +111,7 @@ struct marpa_obstack * _marpa_obs_begin ( int size, int alignment)
   size = MAX (minimum_chunk_size, size);
 #endif
 
-  chunk = marpa_malloc (size);
+  chunk = my_malloc (size);
   h = &chunk->contents.obstack_header;
 
   h->chunk_size = size;
@@ -151,7 +151,7 @@ _marpa_obs_newchunk (struct marpa_obstack *h, int length)
 #endif
 
   /* Allocate and initialize the new chunk.  */
-  new_chunk = marpa_malloc( new_size);
+  new_chunk = my_malloc( new_size);
   h->chunk = new_chunk;
   new_chunk->header.prev = old_chunk;
   new_chunk->header.limit = h->chunk_limit = (char *) new_chunk + new_size;
@@ -203,7 +203,7 @@ _marpa_obs_free (struct marpa_obstack *h)
   while (lp != 0)
     {
       plp = lp->header.prev;
-      marpa_free (lp);
+      my_free (lp);
       lp = plp;
     }
 }

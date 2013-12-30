@@ -494,7 +494,7 @@ Marpa_SLR marpa__slr_new(void)
 {
     @<Return |NULL| on failure@>@;
     SLR slr;
-    slr = marpa_malloc(sizeof(*slr));
+    slr = my_malloc(sizeof(*slr));
     @<Initialize SLR elements@>@;
     return slr;
 }
@@ -552,7 +552,7 @@ PRIVATE void slr_free(SLR slr)
 {
    MARPA_DSTACK_DESTROY(slr->t_event_dstack);
    MARPA_DSTACK_DESTROY(slr->t_lexeme_dstack);
-  marpa_free( slr);
+  my_free( slr);
 }
 
 @ @<Function definitions@> =
