@@ -52,7 +52,7 @@
 
 #endif /* TESTING AVL */
 
-#include "tavl.h"
+#include "marpa_tavl.h"
 
 /* Creates and returns a new table
    with comparison function |compare| using parameter |param|

@@ -13,7 +13,7 @@
 # General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 
-.PHONY: install docs
+.PHONY: install docs sources
 
 # Order matters -- configure.ac must be first
 DOC_SOURCE_FILES = \
@@ -36,23 +36,25 @@ CONFIGURE_FILES = \
 
 STAGE_FILES = \
     $(CONFIGURE_FILES) \
-    stage/marpa.c \
-    stage/marpa.h \
-    stage/marpa_slif.h \
-    stage/marpa_obs.c \
-    stage/marpa_obs.h \
-    stage/marpa_ami.h \
-    stage/marpa_ami.c \
-    stage/marpa_avl.h \
-    stage/marpa_codes.c \
-    stage/marpa_slif.c \
-    stage/marpa_avl.c \
-    stage/NEWS \
-    stage/VERSION.in \
-    stage/README \
+    stage/AUTHORS \
     stage/ChangeLog \
     stage/COPYING.LESSER \
-    stage/AUTHORS
+    stage/marpa_ami.c \
+    stage/marpa_ami.h \
+    stage/marpa_avl.c \
+    stage/marpa_avl.h \
+    stage/marpa.c \
+    stage/marpa_codes.c \
+    stage/marpa.h \
+    stage/marpa_obs.c \
+    stage/marpa_obs.h \
+    stage/marpa_slif.c \
+    stage/marpa_slif.h \
+    stage/marpa_tavl.c \
+    stage/marpa_tavl.h \
+    stage/NEWS \
+    stage/README \
+    stage/VERSION.in
 
 dummy:
 	@echo install is the main target
@@ -101,7 +103,13 @@ stage/marpa_ami.h: ami/marpa_ami.h
 stage/marpa_avl.c: avl/marpa_avl.c
 	cp $? $@
 
-stage/marpa_avl.h: avl/marpa_avl.h
+stage/marpa_avl.c: avl/marpa_avl.c
+	cp $? $@
+
+stage/marpa_tavl.h: tavl/marpa_tavl.h
+	cp $? $@
+
+stage/marpa_tavl.c: tavl/marpa_tavl.c
 	cp $? $@
 
 stage/README: ac/README
@@ -169,22 +177,13 @@ doc/internal.pdf: doc/Makefile doc/internal.texi
 doc/internal.html/index.html: doc/Makefile doc/internal.texi
 	cd doc && make html
 
-install: dev_sources ami_sources slif_sources public_sources \
-    stage/stamp-h1 doc/stamp-h1
+install: sources stage/stamp-h1 doc/stamp-h1
 
-dev_sources:
-	cd dev && make
+MAKEABLE_DIR = ami dev slif tavl public
+CLEANABLE_DIR = $(MAKEABLE_DIR)
 
-ami_sources:
-	cd ami && make
-
-slif_sources:
-	cd slif && make
-
-public_sources:
-	cd public && make
-
-CLEANABLE_DIR = ami dev public slif tavl
+sources:
+	for d in $(MAKEABLE_DIR); do (cd $$d; make); done
 
 clean:
 	for d in $(CLEANABLE_DIR); do (cd $$d; make clean); done

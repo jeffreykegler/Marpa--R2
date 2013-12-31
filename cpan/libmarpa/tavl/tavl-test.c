@@ -24,7 +24,7 @@
 #include <assert.h>
 #include <limits.h>
 #include <stdio.h>
-#include "tavl.h"
+#include "marpa_tavl.h"
 #include "test.h"
 
 /* Prints the structure of |node|,
