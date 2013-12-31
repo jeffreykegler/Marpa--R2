@@ -97,8 +97,8 @@ void *marpa__tavl_insert (struct tavl_table *, void *);
 void *marpa__tavl_replace (struct tavl_table *, void *);
 void *marpa__tavl_delete (struct tavl_table *, const void *);
 void *marpa__tavl_find (const struct tavl_table *, const void *);
-void tavl_assert_insert (struct tavl_table *, void *);
-void *tavl_assert_delete (struct tavl_table *, void *);
+void marpa__tavl_assert_insert (struct tavl_table *, void *);
+void *marpa__tavl_assert_delete (struct tavl_table *, void *);
 
 #define tavl_count(table) ((size_t) (table)->tavl_count)
 
