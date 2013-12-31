@@ -18,13 +18,13 @@ LDFLAGS = -g
 
 all: tavl-test
 
-tavl-test: tavl.c tavl-test.c test.c tavl.h test.h 
-	$(CC) $(CFLAGS) -DTESTING_TAVL $(LDFLAGS) test.c tavl-test.c tavl.c -o $@
+tavl-test: marpa_tavl.c tavl-test.c test.c marpa_tavl.h test.h 
+	$(CC) $(CFLAGS) -DTESTING_TAVL $(LDFLAGS) test.c tavl-test.c marpa_tavl.c -o $@
 
 pfaff_version = 2.0.3
 
 clean:
-	rm -f $(programs)
+	rm -f tavl-test
 	rm -f *.o *.tmp
 	rm -f a.out foo*
 
