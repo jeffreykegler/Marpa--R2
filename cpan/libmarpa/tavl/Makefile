@@ -16,31 +16,12 @@
 CFLAGS = -g -W -Wall -ansi -pedantic # enable many GCC warnings
 LDFLAGS = -g
 
-testers = tavl-test
-targets = $(testers)
-programs = $(targets)
+all: tavl-test
 
-sources =					tavl.c tavl.h tavl-test.c			
-
-all: programs
-programs: $(programs)
-sources: $(sources)
-
-tavl-test: tavl.o tavl-test.o test.o
-
-tavl-test.c: tavl.h test.h
-
-test.c: test.h
-bsts.c: test.h
+tavl-test: tavl.c tavl-test.c test.c tavl.h test.h 
+	$(CC) $(CFLAGS) -DTESTING_TAVL $(LDFLAGS) test.c tavl-test.c tavl.c -o $@
 
 pfaff_version = 2.0.3
-
-check: $(testers)
-	@for d in $(testers); do		\
-		echo "Checking $$d.";		\
-		./check-table ./$$d || exit 1;	\
-		echo;				\
-	done
 
 clean:
 	rm -f $(programs)
@@ -48,6 +29,4 @@ clean:
 	rm -f a.out foo*
 
 .PHONY: all
-.PHONY: docs 
-.PHONY: programs sources
 .PHONY: clean

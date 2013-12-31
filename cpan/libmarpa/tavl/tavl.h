@@ -49,10 +49,6 @@ struct libavl_allocator
 extern struct libavl_allocator* marpa__tavl_allocator_default;
 #endif
 
-/* Default memory allocator. */
-void *tavl_malloc (struct libavl_allocator *, size_t);
-void tavl_free (struct libavl_allocator *, void *);
-
 /* Maximum TAVL height. */
 #ifndef TAVL_MAX_HEIGHT
 #define TAVL_MAX_HEIGHT 32
@@ -65,6 +61,7 @@ struct tavl_table
     tavl_comparison_func *tavl_compare; /* Comparison function. */
     void *tavl_param;                   /* Extra argument to |tavl_compare|. */
     size_t tavl_count;                  /* Number of items in tree. */
+    unsigned int tavl_duplicate_found:1;
   };
 
 /* Characterizes a link as a child pointer or a thread. */
@@ -116,5 +113,15 @@ void *marpa__tavl_t_next (struct tavl_traverser *);
 void *marpa__tavl_t_prev (struct tavl_traverser *);
 void *marpa__tavl_t_cur (struct tavl_traverser *);
 void *marpa__tavl_t_replace (struct tavl_traverser *, void *);
+
+/* For testing, we don't include the Marpa utility macros, so make
+ * sure we have this one
+ */
+#undef UNUSED
+#if     __GNUC__ >  2 || (__GNUC__ == 2 && __GNUC_MINOR__ >  4)
+#define UNUSED __attribute__((__unused__))
+#else
+#define UNUSED
+#endif
 
 #endif /* tavl.h */

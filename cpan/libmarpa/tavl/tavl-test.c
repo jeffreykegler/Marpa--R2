@@ -543,7 +543,7 @@ test_correctness ( int insert[], int delete[], int n, int verbosity)
 }
 
 static int
-test_bst_t_first (struct tavl_table *tree, int n)
+test_bst_t_first (struct tavl_table *tree, int n UNUSED)
 {
   struct tavl_traverser trav;
   int *first;
@@ -560,7 +560,7 @@ test_bst_t_first (struct tavl_table *tree, int n)
 }
 
 static int
-test_bst_t_last (struct tavl_table *tree, int n)
+test_bst_t_last (struct tavl_table *tree, int n UNUSED)
 {
   struct tavl_traverser trav;
   int *last;
@@ -663,7 +663,7 @@ test_bst_t_prev (struct tavl_table *tree, int n)
 }
 
 static int
-test_bst_copy (struct tavl_table *tree, int n)
+test_bst_copy (struct tavl_table *tree, int n UNUSED)
 {
   struct tavl_table *copy = marpa__tavl_copy (tree, NULL, NULL);
   int okay = compare_trees (tree->tavl_root, copy->tavl_root);

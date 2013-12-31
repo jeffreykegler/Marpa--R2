@@ -29,6 +29,12 @@
 #include <time.h>
 #include "test.h"
 
+#if     __GNUC__ >  2 || (__GNUC__ == 2 && __GNUC_MINOR__ >  4)
+#define UNUSED __attribute__((__unused__))
+#else
+#define UNUSED
+#endif
+
 /* Insertion order. */
 enum insert_order
   {
@@ -109,7 +115,7 @@ char *pgm_name;
 /* Comparison function for pointers to |int|s.
    |param| is not used. */
 int
-compare_ints (const void *pa, const void *pb, void *param)
+compare_ints (const void *pa, const void *pb, void *param UNUSED)
 {
   const int *a = pa;
   const int *b = pb;
@@ -998,7 +1004,7 @@ time_seed (void)
 }
 
 int
-main (int argc, char *argv[])
+main (int argc UNUSED, char *argv[])
 {
   struct test_options opts;        /* Command-line options. */
   int *insert, *delete;                /* Insertion and deletion orders. */

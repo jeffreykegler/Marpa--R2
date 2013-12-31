@@ -23,7 +23,6 @@
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "tavl.h"
 
 /* I changed the memory allocator from a parameter to a global.  Not
  * thread-safe, but it is only used in the test, which is not threaded.
@@ -31,11 +30,29 @@
  * and that is thread-safe.
  */
 
+#ifndef TESTING_TAVL
+#define TESTING_TAVL 0
+#endif /* TESTING_TAVL */
+
+#if TESTING_TAVL
+
 /* First parameter is really not needed */
 #define MY_AVL_MALLOC(size) \
   (marpa__tavl_allocator_default->libavl_malloc(marpa__tavl_allocator_default, (size)))
 #define MY_AVL_FREE(p) \
   (marpa__tavl_allocator_default->libavl_free(marpa__tavl_allocator_default, (p)))
+
+#else /* not TESTING_TAVL */
+
+#include "marpa_slif.h"
+#include "marpa_ami.h"
+
+#define MY_AVL_MALLOC(size) (my_malloc(size))
+#define MY_AVL_FREE(p) (my_free(p))
+
+#endif /* TESTING AVL */
+
+#include "tavl.h"
 
 /* Creates and returns a new table
    with comparison function |compare| using parameter |param|
@@ -49,8 +66,6 @@ marpa__tavl_create (tavl_comparison_func *compare, void *param)
   assert (compare != NULL);
 
   tree = MY_AVL_MALLOC( sizeof *tree);
-  if (tree == NULL)
-    return NULL;
 
   tree->tavl_root = NULL;
   tree->tavl_compare = compare;
@@ -106,6 +121,7 @@ marpa__tavl_probe (struct tavl_table *tree, void *item)
   int k = 0;              /* Number of cached results. */
 
   assert (tree != NULL && item != NULL);
+  tree->tavl_duplicate_found = 0; /* Default to no duplicate found */
 
   z = (struct tavl_node *) &tree->tavl_root;
   y = tree->tavl_root;
@@ -114,8 +130,10 @@ marpa__tavl_probe (struct tavl_table *tree, void *item)
       for (q = z, p = y; ; q = p, p = p->tavl_link[dir])
         {
           int cmp = tree->tavl_compare (item, p->tavl_data, tree->tavl_param);
-          if (cmp == 0)
+          if (cmp == 0) {
+	    tree->tavl_duplicate_found = 1;
             return &p->tavl_data;
+	  }
 
           if (p->tavl_balance != 0)
             z = q, y = p, k = 0;
@@ -132,8 +150,6 @@ marpa__tavl_probe (struct tavl_table *tree, void *item)
     }
 
   n = MY_AVL_MALLOC( sizeof *n);
-  if (n == NULL)
-    return NULL;
 
   tree->tavl_count++;
   n->tavl_data = item;
@@ -264,7 +280,7 @@ void *
 marpa__tavl_insert (struct tavl_table *table, void *item)
 {
   void **p = marpa__tavl_probe (table, item);
-  return p == NULL || *p == item ? NULL : *p;
+  return table->tavl_duplicate_found ? *p : NULL;
 }
 
 /* Inserts |item| into |table|, replacing any duplicate item.
@@ -275,14 +291,12 @@ void *
 marpa__tavl_replace (struct tavl_table *table, void *item)
 {
   void **p = marpa__tavl_probe (table, item);
-  if (p == NULL || *p == item)
-    return NULL;
-  else
-    {
+  if (table->tavl_duplicate_found) {
       void *r = *p;
       *p = item;
       return r;
-    }
+  }
+  return NULL;
 }
 
 /* Returns the parent of |node| within |tree|,
@@ -797,8 +811,6 @@ copy_node (struct tavl_table *tree,
 {
   struct tavl_node *new =
     MY_AVL_MALLOC( sizeof *new);
-  if (new == NULL)
-    return 0;
 
   new->tavl_link[dir] = dst->tavl_link[dir];
   new->tavl_tag[dir] = TAVL_THREAD;
@@ -951,27 +963,25 @@ static void fatal(const char* message) {
 
 /* Allocates |size| bytes of space using |malloc()|.
    Returns a null pointer if allocation fails. */
-void *
-marpa__tavl_malloc (struct libavl_allocator *allocator, size_t size)
+static void *
+tavl_malloc (struct libavl_allocator *allocator UNUSED, size_t size UNUSED)
 {
-  void* result = malloc (size);
-  if (!result) fatal("out of memory");
-  return result;
+  fatal("Internal error: legacy TAVL malloc called");
+  return NULL;
 }
 
 /* Frees |block|. */
-void
-marpa__tavl_free (struct libavl_allocator *allocator, void *block)
+static void tavl_free (struct libavl_allocator *allocator UNUSED, void *block UNUSED)
 {
-  free (block);
+  fatal("Internal error: legacy TAVL free called");
 }
 
 /* Default memory allocator that uses |malloc()| and |free()|. */
 /* Fail allocator -- should not be used and always fails. */
 struct libavl_allocator default_allocator =
   {
-    marpa__tavl_malloc,
-    marpa__tavl_free
+    tavl_malloc,
+    tavl_free
   };
 struct libavl_allocator *marpa__tavl_allocator_default = &default_allocator;
 
