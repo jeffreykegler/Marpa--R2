@@ -55,10 +55,6 @@ struct marpa_obstack    /* control current object in current chunk */
   char *object_base;            /* address of object we are building */
   char *next_free;              /* where to add next char to current object */
   char *chunk_limit;            /* address of char after current chunk */
-  union
-  {
-    ptrdiff_t tempint;
-  } temp;                       /* Temporary for some macros.  */
   int alignment_mask;           /* Mask of alignment for each object. */
 };
 
@@ -112,13 +108,17 @@ void _marpa_obs_free (struct marpa_obstack *__obstack);
 # define marpa_obstack_object_size(h) \
  (unsigned) ((h)->next_free - (h)->object_base)
 
-/* "Confirm" the size of a reserved object, currently being built.
- * Confirmed size must be less than or equal to the reserved size.
+/* "Confirm", which is to set at its final value,
+ * the size of a reserved object, currently being built.
+ * The caller needs to ensure that the
+ * confirmed size is less than or equal to the reserved size.
  * "Fast" here means there is no check -- it is up to the caller
  * to ensure that the confirmed size is not too big
  */
-# define marpa_obs_confirm_fast(h, n) \
-  ((h)->next_free = (h)->object_base + (n))
+static inline
+void marpa_obs_confirm_fast (struct marpa_obstack* h, int length) {
+  h->next_free = h->object_base + length;
+}
 
 /* Reject any object being built, as if it never existed */
 # define marpa_obs_reject(h) \
@@ -126,14 +126,6 @@ void _marpa_obs_free (struct marpa_obstack *__obstack);
 
 # define marpa_obstack_room(h)          \
  (unsigned) ((h)->chunk_limit - (h)->next_free)
-
-#if 0
-# define marpa_obs_reserve(h,length)                                    \
-( (h)->temp.tempint = (length),                                         \
-  (MARPA_OBS_NEED_CHUNK((h), (h)->temp.tempint)         \
-   ? (_marpa_obs_newchunk ((h), (h)->temp.tempint), 0) : 0),            \
-  marpa_obs_reserve_fast (h, (h)->temp.tempint))
-#endif
 
 static inline
 void *marpa_obs_reserve (struct marpa_obstack* h, int length) {
