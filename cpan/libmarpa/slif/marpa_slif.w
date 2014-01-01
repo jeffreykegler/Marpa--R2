@@ -672,11 +672,10 @@ union marpa_slr_event_s * marpa__slr_lexeme_entry( Marpa_SLR slr, int i )
 @<Return |NULL| on failure@> = void* const failure_indicator UNUSED = NULL;
 
 @** File layouts.  
-@ The .c file has no contents at the moment, so just in
-case, I include a dummy function.  Once there are other contents,
-it should be deleted.
 @*0 The main code file.
 @(marpa_slif.c.p10@> =
+
+#include "config.h"
 
 #ifndef MARPA_DEBUG
 #define MARPA_DEBUG 0

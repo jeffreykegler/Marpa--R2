@@ -500,6 +500,11 @@ So I add such a comment.
 #endif /* |_MARPA_AMI_H__| */
 
 @*0 |marpa_ami.c| layout.
+
+@ @(marpa_ami.c.p10@> =
+
+#include "config.h"
+
 @ These C90 headers
 are needed for the default debug handler.
 This is strictly C90 and is always compiled in.
@@ -515,7 +520,6 @@ and they will be meaningless.
 #include <stdio.h>
 
 @ @(marpa_ami.c.p10@> =
-#include "config.h"
 
 #ifndef MARPA_DEBUG
 #define MARPA_DEBUG 0

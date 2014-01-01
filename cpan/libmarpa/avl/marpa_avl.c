@@ -24,12 +24,12 @@
  * http://www.gnu.org/licenses/.
  */
 
+#include "config.h"
+
 #include <assert.h>
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include "config.h"
 #include "marpa.h"
+
 #include "marpa_ami.h"
 #include "marpa_obs.h"
 #include "marpa_avl.h"

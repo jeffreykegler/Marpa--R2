@@ -20,6 +20,7 @@
    02110-1301 USA.
 */
 
+
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -36,6 +37,10 @@
 
 #if TESTING_TAVL
 
+#include <assert.h>
+#include <stdio.h>
+#include <stdlib.h>
+
 /* First parameter is really not needed */
 #define MY_AVL_MALLOC(size) \
   (marpa__tavl_allocator_default->libavl_malloc(marpa__tavl_allocator_default, (size)))
@@ -43,6 +48,11 @@
   (marpa__tavl_allocator_default->libavl_free(marpa__tavl_allocator_default, (p)))
 
 #else /* not TESTING_TAVL */
+
+#include "config.h"
+
+#include <assert.h>
+#include <stdio.h>
 
 #include "marpa_slif.h"
 #include "marpa_ami.h"

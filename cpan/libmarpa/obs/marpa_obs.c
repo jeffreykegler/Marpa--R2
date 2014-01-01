@@ -24,8 +24,6 @@
  * http://www.gnu.org/licenses/.
  */
 
-#include <stdlib.h>
-
 # include "config.h"
 
 #ifdef HAVE_INTTYPES_H

@@ -16259,12 +16259,12 @@ So I add such a comment.
 @ @(marpa.c.p10@> =
 
 #include "config.h"
-#include "marpa.h"
 
 #ifndef MARPA_DEBUG
 #define MARPA_DEBUG 0
 #endif
 
+#include "marpa.h"
 #include "marpa_ami.h"
 @h
 #include "marpa_obs.h"
