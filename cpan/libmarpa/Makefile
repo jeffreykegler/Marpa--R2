@@ -103,7 +103,7 @@ stage/marpa_ami.h: ami/marpa_ami.h
 stage/marpa_avl.c: avl/marpa_avl.c
 	cp $? $@
 
-stage/marpa_avl.c: avl/marpa_avl.c
+stage/marpa_avl.h: avl/marpa_avl.h
 	cp $? $@
 
 stage/marpa_tavl.h: tavl/marpa_tavl.h

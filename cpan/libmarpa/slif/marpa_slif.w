@@ -187,6 +187,11 @@ struct marpa_event_description_s
 @ @<Public constant declarations@> =
 extern const struct marpa_event_description_s marpa_event_description[];
 
+@** Codepoints.
+
+@ @<Public typedefs@> = 
+typedef unsigned int Marpa_Codepoint;
+
 @** Step type description structure.
 @ Keeps data for mapping back and forth between
 evaluation step code,
@@ -205,7 +210,7 @@ struct marpa_step_type_description_s
 extern const struct marpa_step_type_description_s
   marpa_step_type_description[];
 
-@** SLIF Recognizer (SLR) code.
+@** The SLIF Recognizer (SLR).
 @ Make this pubic for now, until I have write
 a proper method-based interface.
 @<Public incomplete structures@> =
@@ -213,13 +218,71 @@ struct marpa_slr_s;
 typedef struct marpa_slr_s* Marpa_SLR;
 @ @<Private structures@> =
 struct marpa_slr_s {
-  MARPA_DSTACK_DECLARE(t_event_dstack);
-  MARPA_DSTACK_DECLARE(t_lexeme_dstack);
+  @<Widely aligned SLR elements@>@;
   @<Int aligned SLR elements@>@;
   int t_count_of_deleted_events;
 };
 @ @<Private typedefs@> =
 typedef Marpa_SLR SLR;
+
+@** SLR Constructor.
+
+@ @<Function definitions@> =
+Marpa_SLR marpa__slr_new(void)
+{
+    @<Return |NULL| on failure@>@;
+    SLR slr;
+    slr = my_malloc(sizeof(*slr));
+    @<Initialize SLR elements@>@;
+    return slr;
+}
+
+@** SLR Reference counting and destructors.
+@ @<Int aligned SLR elements@>= int t_ref_count;
+
+@ @<Initialize SLR elements@> =
+slr->t_ref_count = 1;
+
+@ Decrement the SLR reference count.
+@<Function definitions@> =
+PRIVATE void
+slr_unref (Marpa_SLR slr)
+{
+  MARPA_ASSERT (slr->t_ref_count > 0)
+  slr->t_ref_count--;
+  if (slr->t_ref_count <= 0)
+    {
+      slr_free(slr);
+    }
+}
+void
+marpa__slr_unref (Marpa_SLR slr)
+{
+   slr_unref(slr);
+}
+
+@ Increment the SLR reference count.
+@<Function definitions@> =
+PRIVATE SLR
+slr_ref (SLR slr)
+{
+  MARPA_ASSERT(slr->t_ref_count > 0)
+  slr->t_ref_count++;
+  return slr;
+}
+
+Marpa_SLR
+marpa__slr_ref (Marpa_SLR slr)
+{
+   return slr_ref(slr);
+}
+
+@ @<Function definitions@> =
+PRIVATE void slr_free(SLR slr)
+{
+    @<Destroy SLR elements@>@;
+  my_free( slr);
+}
 
 @** Operations.
 Small virtual machines are used in various places,
@@ -227,20 +290,23 @@ and their operations are kept in a single list.
 This seems to make sense while they overlap heavily
 and there are few of them.
 
+@ @<Public typedefs@> = 
+typedef int Marpa_Op;
+
 @ @<Private structures@> =
-struct op_data_s { const char *name; int op; };
+struct op_data_s { const char *name; Marpa_Op op; };
 
 @ For the moment these are internal, and the args are assumed to
 be valid data.
 @<Function definitions@> =
 const char*
-marpa__slif_op_name (const int op_id)
+marpa__slif_op_name (const Marpa_Op op_id)
 {
   if (op_id >= (int)Dim(op_name_by_id_object)) return "unknown";
   return op_name_by_id_object[op_id];
 }
 
-int
+Marpa_Op
 marpa__slif_op_id (const char *name)
 {
   int lo = 0;
@@ -262,6 +328,44 @@ marpa__slif_op_id (const char *name)
 	}
     }
   return -1;
+}
+
+@** Per-codepoint data.
+
+@ @<Private structures@> =
+struct per_codepoint_data_s {
+    Marpa_Codepoint t_codepoint;
+    Marpa_Op t_ops[1];
+};
+
+@ @<Function definitions@> =
+PRIVATE int
+cmp_per_codepoint_key( const void* a, const void* b, void* param UNUSED)
+{
+    const Marpa_Codepoint codepoint_a = ((struct per_codepoint_data_s*)a)->t_codepoint;
+    const Marpa_Codepoint codepoint_b = ((struct per_codepoint_data_s*)b)->t_codepoint;
+    if (codepoint_a == codepoint_b) return 0;
+    return codepoint_a < codepoint_b ? -1 : 1;
+}
+
+@ @<Widely aligned SLR elements@> =
+   struct tavl_table* t_per_codepoint_tavl;
+
+@ @<Initialize SLR elements@> =
+{
+   slr->t_per_codepoint_tavl = marpa__tavl_create(cmp_per_codepoint_key, NULL);
+}
+
+@ @<Function definitions@> =
+PRIVATE void
+per_codepoint_data_destroy(void *p, void* param UNUSED)
+{
+    my_free(p);
+}
+
+@ @<Destroy SLR elements@> =
+{
+    marpa__tavl_destroy (slr->t_per_codepoint_tavl, per_codepoint_data_destroy);
 }
 
 @** Events.
@@ -489,15 +593,9 @@ union marpa_slr_event_s
 
 };
 
-@ @<Function definitions@> =
-Marpa_SLR marpa__slr_new(void)
-{
-    @<Return |NULL| on failure@>@;
-    SLR slr;
-    slr = my_malloc(sizeof(*slr));
-    @<Initialize SLR elements@>@;
-    return slr;
-}
+@ @<Widely aligned SLR elements@> =
+  MARPA_DSTACK_DECLARE(t_event_dstack);
+  MARPA_DSTACK_DECLARE(t_lexeme_dstack);
 
 @ @<Initialize SLR elements@> =
 {
@@ -508,51 +606,10 @@ Marpa_SLR marpa__slr_new(void)
                      MAX (1024 / sizeof (union marpa_slr_event_s), 16));
 }
 
-@*0 Reference counting and destructors.
-@ @<Int aligned SLR elements@>= int t_ref_count;
-@ @<Initialize SLR elements@> =
-slr->t_ref_count = 1;
-
-@ Decrement the SLR reference count.
-@<Function definitions@> =
-PRIVATE void
-slr_unref (Marpa_SLR slr)
-{
-  MARPA_ASSERT (slr->t_ref_count > 0)
-  slr->t_ref_count--;
-  if (slr->t_ref_count <= 0)
-    {
-      slr_free(slr);
-    }
-}
-void
-marpa__slr_unref (Marpa_SLR slr)
-{
-   slr_unref(slr);
-}
-
-@ Increment the SLR reference count.
-@<Function definitions@> =
-PRIVATE SLR
-slr_ref (SLR slr)
-{
-  MARPA_ASSERT(slr->t_ref_count > 0)
-  slr->t_ref_count++;
-  return slr;
-}
-
-Marpa_SLR
-marpa__slr_ref (Marpa_SLR slr)
-{
-   return slr_ref(slr);
-}
-
-@ @<Function definitions@> =
-PRIVATE void slr_free(SLR slr)
+@ @<Destroy SLR elements@> =
 {
    MARPA_DSTACK_DESTROY(slr->t_event_dstack);
    MARPA_DSTACK_DESTROY(slr->t_lexeme_dstack);
-  my_free( slr);
 }
 
 @ @<Function definitions@> =
@@ -612,7 +669,7 @@ union marpa_slr_event_s * marpa__slr_lexeme_entry( Marpa_SLR slr, int i )
 }
 
 @** Error handling.  
-@<Return |NULL| on failure@> = void* const failure_indicator = NULL;
+@<Return |NULL| on failure@> = void* const failure_indicator UNUSED = NULL;
 
 @** File layouts.  
 @ The .c file has no contents at the moment, so just in
@@ -627,6 +684,7 @@ it should be deleted.
 
 #include "marpa_slif.h"
 #include "marpa_ami.h"
+#include "marpa_tavl.h"
 
 @<Private macros@>@;
 @<Private typedefs@>@;
@@ -645,6 +703,7 @@ it should be deleted.
 #include "marpa.h"
 
 @h
+@<Public typedefs@>@;
 @<Public incomplete structures@>@;
 @<Public structures@>@;
 @<Public constant declarations@>@;
