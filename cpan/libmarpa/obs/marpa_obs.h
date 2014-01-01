@@ -81,7 +81,6 @@ struct marpa_obstack    /* control current object in current chunk */
   char *object_base;            /* address of object we are building */
   char *next_free;              /* where to add next char to current object */
   char *chunk_limit;            /* address of char after current chunk */
-  int alignment_mask;           /* Mask of alignment for each object. */
 };
 
 struct marpa_obstack_chunk_header               /* Lives at front of each chunk. */
@@ -127,8 +126,6 @@ void _marpa_obs_free (struct marpa_obstack *__obstack);
 
 /* Mask specifying low bits that should be clear in address of an object.  */
 
-#define marpa_obstack_alignment_mask(h) ((h)->alignment_mask)
-
 #define marpa_obs_init  marpa_obs_begin (0, 0)
 
 # define marpa_obstack_object_size(h) \
@@ -152,7 +149,7 @@ void marpa_obs_reserve (struct marpa_obstack* h, int length) {
     {
        _marpa_obs_newchunk(h, length);
     }
-    h->next_free = MARPA_PTR_ALIGN ((char*)h->chunk, (h->next_free+length), h->alignment_mask);
+    h->next_free = MARPA_PTR_ALIGN ((char*)h->chunk, (h->next_free+length), (DEFAULT_ALIGNMENT-1));
 }
 
 static inline
@@ -160,7 +157,7 @@ void *marpa_obs_finish (struct marpa_obstack *h)
 {
   void * const finished_object = h->object_base;
   h->next_free = 
-    MARPA_PTR_ALIGN (h->object_base, h->next_free, h->alignment_mask);
+    MARPA_PTR_ALIGN (h->object_base, h->next_free, (DEFAULT_ALIGNMENT-1));
   if (h->next_free > h->chunk_limit) {
    h->next_free = h->chunk_limit;
   }
