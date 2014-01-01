@@ -58,7 +58,6 @@ struct marpa_obstack    /* control current object in current chunk */
   union
   {
     ptrdiff_t tempint;
-    void *tempptr;
   } temp;                       /* Temporary for some macros.  */
   int alignment_mask;           /* Mask of alignment for each object. */
 };
@@ -110,8 +109,6 @@ void _marpa_obs_free (struct marpa_obstack *__obstack);
 
 #define marpa_obs_init  marpa_obs_begin (0, 0)
 
-#define marpa_obs_reserve_fast(h,n) ((h)->next_free += (n))
-
 # define marpa_obstack_object_size(h) \
  (unsigned) ((h)->next_free - (h)->object_base)
 
@@ -130,18 +127,22 @@ void _marpa_obs_free (struct marpa_obstack *__obstack);
 # define marpa_obstack_room(h)          \
  (unsigned) ((h)->chunk_limit - (h)->next_free)
 
-#if MARPA_OBSTACK_DEBUG
-#define MARPA_OBS_NEED_CHUNK(h, length) (1)
-#else
-#define MARPA_OBS_NEED_CHUNK(h, length) \
-  ((h)->chunk_limit - (h)->next_free < (length))
-#endif
-
+#if 0
 # define marpa_obs_reserve(h,length)                                    \
 ( (h)->temp.tempint = (length),                                         \
   (MARPA_OBS_NEED_CHUNK((h), (h)->temp.tempint)         \
    ? (_marpa_obs_newchunk ((h), (h)->temp.tempint), 0) : 0),            \
   marpa_obs_reserve_fast (h, (h)->temp.tempint))
+#endif
+
+static inline
+void *marpa_obs_reserve (struct marpa_obstack* h, int length) {
+    if (MARPA_OBSTACK_DEBUG || h->chunk_limit - h->next_free < length)
+    {
+       _marpa_obs_newchunk(h, length);
+    }
+    return h->next_free += length;
+}
 
 # define marpa_obs_alloc(h,length)                                      \
  (marpa_obs_reserve ((h), (length)), marpa_obs_finish ((h)))
@@ -149,17 +150,18 @@ void _marpa_obs_free (struct marpa_obstack *__obstack);
 #define marpa_obs_new(h, type, count) \
     ((type *)marpa_obs_alloc((h), (sizeof(type)*(count))))
 
-# define marpa_obs_finish(h)                                            \
-( \
-  (h)->temp.tempptr = (h)->object_base,                                 \
-  (h)->next_free                                                        \
-    = MARPA_PTR_ALIGN ((h)->object_base, (h)->next_free,                        \
-                   (h)->alignment_mask),                                \
-  (((h)->next_free - (char *) (h)->chunk                                \
-    > (h)->chunk_limit - (char *) (h)->chunk)                           \
-   ? ((h)->next_free = (h)->chunk_limit) : 0),                          \
-  (h)->object_base = (h)->next_free,                                    \
-  (h)->temp.tempptr)
+static inline
+void *marpa_obs_finish (struct marpa_obstack *h)
+{
+  void * const finished_object = h->object_base;
+  h->next_free = 
+    MARPA_PTR_ALIGN (h->object_base, h->next_free, h->alignment_mask);
+  if (h->next_free > h->chunk_limit) {
+   h->next_free = h->chunk_limit;
+  }
+  h->object_base = h->next_free;
+  return finished_object;
+}
 
 # define marpa_obs_free(h)      (_marpa_obs_free((h)))
 
