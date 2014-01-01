@@ -189,6 +189,14 @@ AC_SUBST(WARNING_CPPFLAGS)
 AC_ARG_VAR(MARPA_DEBUG_FLAG,[Marpa debugging])
 AC_TYPE_UINTMAX_T
 AC_TYPE_INTMAX_T
+
+AC_CHECK_SIZEOF([int])
+if test "$ac_cv_sizeof_int" -lt 4; then
+    AC_MSG_ERROR(
+        [Marpa requires that int be at least 32 bits -- on this system that is not the case])
+fi
+
+
 AC_C_INLINE
 
 AC_CONFIG_FILES( [Makefile])
