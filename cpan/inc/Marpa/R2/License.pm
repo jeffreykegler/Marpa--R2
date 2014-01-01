@@ -287,10 +287,8 @@ my %files_by_type = (
     'libmarpa/public/marpa_slif.h.p20' => \&trivial,
     'libmarpa/public/marpa.h.p10' => \&trivial,
     'libmarpa/public/marpa.h.p90' => \&trivial,
-    'libmarpa/ami/internal.texi'          => \&license_problems_in_fdl_file,
     'libmarpa/dev/README'                    => \&trivial,
     'libmarpa/dev/VERSION.in'                => \&trivial,
-    'libmarpa/dev/api.texi'                 => \&license_problems_in_fdl_file,
     'libmarpa/ac/VERSION.in'          => \&trivial,
     'libmarpa_dist/VERSION'                 => \&trivial,
     'libmarpa_dist/VERSION.in'              => \&trivial,
@@ -300,16 +298,13 @@ my %files_by_type = (
         \&ignored,    # originally from Cweb, leave it alone
     'libmarpa/ac_doc/fdl-1.3.texi'  => \&ignored,
     'libmarpa/ac_doc/lgpl-3.0.texi' => \&ignored,
-    'libmarpa/dev/internal.texi'          => \&license_problems_in_fdl_file,
     'libmarpa/stage/config.h.in' =>
         check_tag( 'Generated from configure.ac by autoheader', 250 ),
     'libmarpa/test/Makefile'       => \&trivial,
     'libmarpa/test/README'         => \&trivial,
     'libmarpa/test/dev/install-sh' => \&check_X_copyright,
-    'libmarpa_doc_dist/api.texi'   => \&license_problems_in_fdl_file,
     'libmarpa_doc_dist/fdl-1.3.texi' =>
         \&ignored,    ## GNU license text, leave it alone
-    'libmarpa_doc_dist/internal.texi'  => \&license_problems_in_fdl_file,
     'libmarpa_doc_dist/lgpl-3.0.texi'  => \&ignored,
     'libmarpa_doc_dist/version.texi'   => \&trivial,
     'libmarpa_doc_dist/version_i.texi' => \&trivial,
@@ -319,12 +314,14 @@ my %files_by_type = (
     'libmarpa/tavl/README' => \&trivial,
 
     # Leave Pfaff's licensing as is
-    'libmarpa/tavl/tavl.c' => \&ignored,
+    'libmarpa_dist/marpa_tavl.c' => \&ignored,
+    'libmarpa_dist/marpa_tavl.h' => \&ignored,
+    'libmarpa/tavl/marpa_tavl.c' => \&ignored,
+    'libmarpa/tavl/marpa_tavl.h' => \&ignored,
+    'libmarpa/tavl/README.Pfaff' => \&ignored,
+    'libmarpa/tavl/tavl-test.c' => \&ignored,
     'libmarpa/tavl/test.c' => \&ignored,
     'libmarpa/tavl/test.h' => \&ignored,
-    'libmarpa/tavl/tavl.h' => \&ignored,
-    'libmarpa/tavl/tavl-test.c' => \&ignored,
-    'libmarpa/tavl/README.Pfaff' => \&ignored,
 );
 
 # Common files in the GNU distributions
@@ -378,6 +375,10 @@ sub file_type {
         if $filepart =~ /[.] (t|pl|pm|PL) \z /xms;
     return \&license_problems_in_perl_file
         if $filepart eq 'typemap';
+    return \&license_problems_in_fdl_file
+        if $filepart eq 'internal.texi';
+    return \&license_problems_in_fdl_file
+        if $filepart eq 'api.texi';
     return \&license_problems_in_pod_file if $filepart =~ /[.]pod \z/xms;
     return \&license_problems_in_c_file
         if $filepart =~ /[.] (xs|c|h) \z /xms;

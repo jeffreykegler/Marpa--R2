@@ -73,8 +73,8 @@ for my $versioned_file (@versioned_files) {
 
 for my $configure_ac_file (
     qw(
-    cpan/libmarpa/dev/dist/configure.ac
-    cpan/libmarpa/dev/doc_dist/configure.ac
+    cpan/libmarpa/ac/configure.ac
+    cpan/libmarpa/ac_doc/configure.ac
     )
     )
 {

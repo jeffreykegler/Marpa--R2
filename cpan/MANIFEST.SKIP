@@ -113,6 +113,12 @@
 ^libmarpa/dev/old_pod/
 ^libmarpa/doc/
 ^libmarpa/obs/orig/
+^libmarpa/public/marpa_slif[.]h-ops
+^libmarpa/public/marpa_slif[.]h[.]p80
+^libmarpa/slif/marpa_slif[.]c-ops
+^libmarpa/slif/marpa_slif[.]h-ops
+^libmarpa/slif/marpa_slif[.]h[.]p80
+^libmarpa/tavl/tavl-test
 ^libmarpa/public/marpa[.]c-err$
 ^libmarpa/public/marpa[.]c-event$
 ^libmarpa/public/marpa[.]c-step$
