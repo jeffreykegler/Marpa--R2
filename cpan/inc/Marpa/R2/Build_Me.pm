@@ -506,6 +506,9 @@ INLINEHOOK
             }
             close(CONFIG_H);
             $ac = Config::AutoConf->new();
+            if ($ac->check_sizeof_type('int') < 4) {
+                die "Marpa requires that int be at least 32 bits -- on this system that is not the case";
+            }
             $ac->check_stdc_headers;
             $ac->check_default_headers();
             $ac->check_type('unsigned long long int');
