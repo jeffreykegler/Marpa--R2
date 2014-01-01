@@ -134,17 +134,7 @@ void _marpa_obs_free (struct marpa_obstack *__obstack);
 # define marpa_obstack_object_size(h) \
  (unsigned) ((h)->next_free - (h)->object_base)
 
-/* "Confirm", which is to set at its final value,
- * the size of a reserved object, currently being built.
- * The caller needs to ensure that the
- * confirmed size is less than or equal to the reserved size.
- * "Fast" here means there is no check -- it is up to the caller
- * to ensure that the confirmed size is not too big
- */
-static inline
-void marpa_obs_confirm_fast (struct marpa_obstack* h, int length) {
-  h->next_free = h->object_base + length;
-}
+# define marpa_obs_free(h)      (_marpa_obs_free((h)))
 
 /* Reject any object being built, as if it never existed */
 # define marpa_obs_reject(h) \
@@ -153,20 +143,17 @@ void marpa_obs_confirm_fast (struct marpa_obstack* h, int length) {
 # define marpa_obstack_room(h)          \
  (unsigned) ((h)->chunk_limit - (h)->next_free)
 
+#define marpa_obs_new(h, type, count) \
+    ((type *)marpa_obs_alloc((h), (sizeof(type)*(count))))
+
 static inline
-void *marpa_obs_reserve (struct marpa_obstack* h, int length) {
+void marpa_obs_reserve (struct marpa_obstack* h, int length) {
     if (MARPA_OBSTACK_DEBUG || h->chunk_limit - h->next_free < length)
     {
        _marpa_obs_newchunk(h, length);
     }
-    return h->next_free += length;
+    h->next_free = MARPA_PTR_ALIGN ((char*)h->chunk, (h->next_free+length), h->alignment_mask);
 }
-
-# define marpa_obs_alloc(h,length)                                      \
- (marpa_obs_reserve ((h), (length)), marpa_obs_finish ((h)))
-
-#define marpa_obs_new(h, type, count) \
-    ((type *)marpa_obs_alloc((h), (sizeof(type)*(count))))
 
 static inline
 void *marpa_obs_finish (struct marpa_obstack *h)
@@ -181,7 +168,23 @@ void *marpa_obs_finish (struct marpa_obstack *h)
   return finished_object;
 }
 
-# define marpa_obs_free(h)      (_marpa_obs_free((h)))
+static inline
+void* marpa_obs_alloc (struct marpa_obstack* h, int length) {
+    marpa_obs_reserve(h, length);
+    return marpa_obs_finish(h);
+}
+
+/* "Confirm", which is to set at its final value,
+ * the size of a reserved object, currently being built.
+ * The caller needs to ensure that the
+ * confirmed size is less than or equal to the reserved size.
+ * "Fast" here means there is no check -- it is up to the caller
+ * to ensure that the confirmed size is not too big
+ */
+static inline
+void marpa_obs_confirm_fast (struct marpa_obstack* h, int length) {
+  h->next_free = h->object_base + length;
+}
 
 #endif /* marpa_obs.h */
 
