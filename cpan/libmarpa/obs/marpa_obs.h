@@ -27,12 +27,38 @@
 #ifndef _MARPA_OBS_H__
 #define _MARPA_OBS_H__ 1
 
-#include <stddef.h>
-#include <string.h>
-
 #ifndef MARPA_OBSTACK_DEBUG
 #define MARPA_OBSTACK_DEBUG 0
 #endif
+
+#ifdef HAVE_INTTYPES_H
+# include <inttypes.h>
+#endif
+#ifdef HAVE_STDINT_H
+# include <stdint.h>
+#endif
+
+/* Determine default alignment.  */
+union worst_aligned_object
+{
+/* intmax_t is guaranteed by AUTOCONF's AC_TYPE_INTMAX_T.
+    Similarly, for uintmax_t.
+*/
+  uintmax_t t_imax;
+  intmax_t t_uimax;
+/* According to the autoconf manual, long double is provided by
+   all non-obsolescent C compilers. */
+  long double t_d;
+  void *t_p;
+};
+
+struct fooalign
+{
+  char c;
+  union worst_aligned_object u;
+};
+
+#define DEFAULT_ALIGNMENT (offsetof (struct fooalign, u))
 
 /* If B is the base of an object addressed by P, return the result of
    aligning P to the next multiple of A + 1.  B and P must be of type

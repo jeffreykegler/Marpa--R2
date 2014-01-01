@@ -26,44 +26,14 @@
 
 # include "config.h"
 
-#ifdef HAVE_INTTYPES_H
-# include <inttypes.h>
-#endif
-#ifdef HAVE_STDINT_H
-# include <stdint.h>
-#endif
-
 # include "marpa.h"
 # include "marpa_ami.h"
 # include "marpa_obs.h"
 
-/* Determine default alignment.  */
-union worst_aligned_object
-{
-/* intmax_t is guaranteed by AUTOCONF's AC_TYPE_INTMAX_T.
-    Similarly, for uintmax_t.
-*/
-  uintmax_t t_imax;
-  intmax_t t_uimax;
-/* According to the autoconf manual, long double is provided by
-   all non-obsolescent C compilers. */
-  long double t_d;
-  void *t_p;
-};
-
-struct fooalign
-{
-  char c;
-  union worst_aligned_object u;
-};
 /* If malloc were really smart, it would round addresses to DEFAULT_ALIGNMENT.
    But in fact it might be less smart and round addresses to as much as
    DEFAULT_ROUNDING.  So we prepare for it to do that.  */
-enum
-  {
-    DEFAULT_ALIGNMENT = offsetof (struct fooalign, u),
-    DEFAULT_ROUNDING = sizeof (union worst_aligned_object)
-  };
+#define DEFAULT_ROUNDING (sizeof (union worst_aligned_object))
 
 #define DEBUG_CONTENTS_OFFSET \
   offsetof( \
