@@ -450,7 +450,8 @@ sub do_libmarpa {
         #
         ## C.f. http://fr.slideshare.net/hashashin/building-c-and-c-libraries-with-perl
         #
-        my @c = qw/marpa.c marpa_obs.c marpa_avl.c/;
+        my @c = qw/marpa_ami.c marpa_avl.c marpa.c
+            marpa_codes.c marpa_obs.c marpa_slif.c marpa_tavl.c/;
         if (! -r 'config.h') {
             #
             ## Because Config::AutoConf can only generate #define/#undef
