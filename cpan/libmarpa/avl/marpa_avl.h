@@ -77,8 +77,7 @@ typedef struct marpa_avl_traverser* MARPA_AVL_TRAV;
 #define MARPA_AVL_OBSTACK(table) ((table)->avl_obstack)
 
 /* Table functions. */
-MARPA_AVL_TREE _marpa_avl_create (marpa_avl_comparison_func *, void *,
-                              int alignment);
+MARPA_AVL_TREE _marpa_avl_create (marpa_avl_comparison_func *, void *);
 MARPA_AVL_TREE _marpa_avl_copy (const MARPA_AVL_TREE , marpa_avl_copy_func *,
                             marpa_avl_item_func *, int alignment);
 void _marpa_avl_destroy (MARPA_AVL_TREE );

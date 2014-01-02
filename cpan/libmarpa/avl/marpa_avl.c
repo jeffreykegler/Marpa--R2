@@ -34,9 +34,6 @@
 #include "marpa_obs.h"
 #include "marpa_avl.h"
 
-static const int minimum_alignment =
-  MAX ((int) alignof (struct marpa_avl_node), alignof (struct marpa_avl_traverser));
-
 /* An AVL tree node. */
 typedef struct marpa_avl_node* NODE;
 
@@ -44,12 +41,10 @@ typedef struct marpa_avl_node* NODE;
    with comparison function |compare| using parameter |param|.
    */
 MARPA_AVL_TREE 
-_marpa_avl_create (marpa_avl_comparison_func *compare, void *param,
-            int requested_alignment)
+_marpa_avl_create (marpa_avl_comparison_func *compare, void *param)
 {
   MARPA_AVL_TREE tree;
-  const int alignment = MAX(minimum_alignment, requested_alignment);
-  struct marpa_obstack *avl_obstack = marpa_obs_begin(0, alignment);
+  struct marpa_obstack *avl_obstack = marpa_obs_init;
 
   assert (compare != NULL);
 
@@ -119,7 +114,7 @@ _marpa_avl_probe (MARPA_AVL_TREE tree, void *item)
       da[k++] = dir = cmp > 0;
     }
 
-  n = q->avl_link[dir] = marpa_obs_alloc (tree->avl_obstack, sizeof *n);
+  n = q->avl_link[dir] = marpa_obs_new (tree->avl_obstack, struct marpa_avl_node, 1);
 
   tree->avl_count++;
   n->avl_data = item;

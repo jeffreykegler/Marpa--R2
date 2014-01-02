@@ -1104,7 +1104,7 @@ to help detect BNF rules.
 @<Widely aligned grammar elements@> =
 MARPA_AVL_TREE t_xrl_tree;
 @ @<Initialize grammar elements@> =
-  (g)->t_xrl_tree = _marpa_avl_create (duplicate_rule_cmp, NULL, 0);
+  (g)->t_xrl_tree = _marpa_avl_create (duplicate_rule_cmp, NULL);
 @ @<Clear rule duplication tree@> =
 {
     _marpa_avl_destroy ((g)->t_xrl_tree);
@@ -1136,7 +1136,7 @@ struct marpa_obstack* t_obs;
 struct marpa_obstack* t_xrl_obs;
 @ @<Initialize grammar elements@> =
 g->t_obs = marpa_obs_init;
-g->t_xrl_obs = marpa_obs_begin(0, alignof(struct s_xrl));
+g->t_xrl_obs = marpa_obs_init;
 @ @<Destroy grammar elements@> =
 marpa_obs_free(g->t_obs);
 marpa_obs_free(g->t_xrl_obs);
@@ -2032,7 +2032,7 @@ PRIVATE
   XRL xrl;
   const int sizeof_xrl = offsetof (struct s_xrl, t_symbols) +
     (length + 1) * sizeof (xrl->t_symbols[0]);
-  marpa_obs_reserve (g->t_xrl_obs, sizeof_xrl);
+  marpa_obs_start (g->t_xrl_obs, sizeof_xrl, ALIGNOF(XRL));
   xrl = marpa_obs_base (g->t_xrl_obs);
   Length_of_XRL (xrl) = length;
   xrl->t_symbols[0] = lhs;
@@ -3198,8 +3198,7 @@ PRIVATE_NOT_INLINE int sym_rule_cmp(
   Marpa_Rule_ID rule_id;
 
   /* \comment AVL tree for RHS symbols */
-  const MARPA_AVL_TREE rhs_avl_tree =
-    _marpa_avl_create (sym_rule_cmp, NULL, alignof (struct sym_rule_pair));
+  const MARPA_AVL_TREE rhs_avl_tree = _marpa_avl_create (sym_rule_cmp, NULL);
     /* Size of G is sum of RHS lengths, plus 1 for each rule, which here is necessary
     for separator of sequences */
   struct sym_rule_pair *const p_rh_sym_rule_pair_base =
@@ -3208,8 +3207,7 @@ PRIVATE_NOT_INLINE int sym_rule_cmp(
   struct sym_rule_pair *p_rh_sym_rule_pairs = p_rh_sym_rule_pair_base;
 
   /* \comment AVL tree for LHS symbols */
-  const MARPA_AVL_TREE lhs_avl_tree =
-    _marpa_avl_create (sym_rule_cmp, NULL, alignof (struct sym_rule_pair));
+  const MARPA_AVL_TREE lhs_avl_tree = _marpa_avl_create (sym_rule_cmp, NULL);
   struct sym_rule_pair *const p_lh_sym_rule_pair_base =
     marpa_obs_new (MARPA_AVL_OBSTACK (lhs_avl_tree), struct sym_rule_pair,
                     xrl_count);
@@ -5530,7 +5528,7 @@ PRIVATE_NOT_INLINE int AHFA_state_cmp(
 {
   unsigned int item_id;
   unsigned int no_of_items_in_grammar = AIM_Count_of_G (g);
-  duplicates = _marpa_avl_create (AHFA_state_cmp, NULL, 0);
+  duplicates = _marpa_avl_create (AHFA_state_cmp, NULL);
   singleton_duplicates = marpa_new (AHFA, no_of_items_in_grammar);
   for (item_id = 0; item_id < no_of_items_in_grammar; item_id++)
     {
@@ -5869,7 +5867,7 @@ of minimum sizes.
 {
   IRLID irl_id;
   const MARPA_AVL_TREE lhs_avl_tree =
-    _marpa_avl_create (sym_rule_cmp, NULL, alignof (struct sym_rule_pair));
+    _marpa_avl_create (sym_rule_cmp, NULL);
   struct sym_rule_pair *const p_sym_rule_pair_base =
     marpa_obs_new (MARPA_AVL_OBSTACK (lhs_avl_tree), struct sym_rule_pair,
                     irl_count);
@@ -12276,7 +12274,7 @@ int marpa_r_progress_report_start(
   @<Clear progress report in |r|@>@;
   {
     const MARPA_AVL_TREE report_tree =
-      _marpa_avl_create (report_item_cmp, NULL, alignof (PROGRESS));
+      _marpa_avl_create (report_item_cmp, NULL);
     const YIM *const earley_items = YIMs_of_YS (earley_set);
     const int earley_item_count = YIM_Count_of_YS (earley_set);
     int earley_item_id;
@@ -15356,7 +15354,7 @@ PRIVATE void
 cilar_init (const CILAR cilar)
 {
   cilar->t_obs = marpa_obs_init;
-  cilar->t_avl = _marpa_avl_create (cil_cmp, NULL, 0);
+  cilar->t_avl = _marpa_avl_create (cil_cmp, NULL);
   MARPA_DSTACK_INIT(cilar->t_buffer, int, 2);
   *MARPA_DSTACK_INDEX(cilar->t_buffer, int, 0) = 0;
 }
