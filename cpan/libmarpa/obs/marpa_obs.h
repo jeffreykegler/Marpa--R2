@@ -39,7 +39,7 @@
 #endif
 
 /* Determine default alignment.  */
-union worst_aligned_object
+typedef union
 {
 /* intmax_t is guaranteed by AUTOCONF's AC_TYPE_INTMAX_T.
     Similarly, for uintmax_t.
@@ -50,15 +50,11 @@ union worst_aligned_object
    all non-obsolescent C compilers. */
   long double t_d;
   void *t_p;
-};
+} worst_aligned_object;
 
-struct fooalign
-{
-  char c;
-  union worst_aligned_object u;
-};
-
-#define DEFAULT_ALIGNMENT (offsetof (struct fooalign, u))
+#define ALIGNOF(type) offsetof (struct { char c; type member; }, member)
+#define DEFAULT_ALIGNMENT ALIGNOF(worst_aligned_object)
+#define WORST_MALLOC_ROUNDING (sizeof (worst_aligned_object))
 
 /* If B is the base of an object addressed by P, return the result of
    aligning P to the next multiple of A + 1.  B and P must be of type
@@ -143,7 +139,7 @@ void _marpa_obs_free (struct marpa_obstack *__obstack);
  (unsigned) ((h)->chunk_limit - (h)->next_free)
 
 #define marpa_obs_new(h, type, count) \
-    ((type *)marpa_obs_alloc((h), (sizeof(type)*(count))))
+    ((type *)marpa_obs_aligned((h), (sizeof(type)*(count)), ALIGNOF(type)))
 
 /* Start an object */
 static inline void
@@ -173,11 +169,15 @@ void *marpa_obs_finish (struct marpa_obstack *h)
   return finished_object;
 }
 
-static inline
-void* marpa_obs_alloc (struct marpa_obstack* h, int length) {
-    marpa_obs_reserve(h, length);
-    return marpa_obs_finish(h);
+static inline void *
+marpa_obs_aligned (struct marpa_obstack *h, int length, int alignment)
+{
+  marpa_obs_start (h, length, alignment);
+  return marpa_obs_finish (h);
 }
+
+#define marpa_obs_alloc(h, length) \
+    (marpa_obs_aligned((h), (length), DEFAULT_ALIGNMENT))
 
 /* "Confirm", which is to set at its final value,
  * the size of a reserved object, currently being built.

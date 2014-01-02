@@ -41,10 +41,9 @@
      less sensitive to the size of the request. 
      If malloc were really smart, it would round addresses to DEFAULT_ALIGNMENT.
      But in fact it might be less smart and round addresses to as much as
-     DEFAULT_ROUNDING.  So we prepare for it to do that.
+     WORST_MALLOC_ROUNDING.  So we prepare for it to do that.
      */
-#define DEFAULT_ROUNDING (sizeof (union worst_aligned_object))
-#define MALLOC_OVERHEAD ( ALIGN_UP(12, DEFAULT_ROUNDING) + ALIGN_UP(4, DEFAULT_ROUNDING))
+#define MALLOC_OVERHEAD ( ALIGN_UP(12, WORST_MALLOC_ROUNDING) + ALIGN_UP(4, WORST_MALLOC_ROUNDING))
 
 #define MINIMUM_CHUNK_SIZE (sizeof(struct marpa_obstack_chunk))
 
