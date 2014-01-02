@@ -86,8 +86,8 @@ struct marpa_obstack    /* control current object in current chunk */
 
 struct marpa_obstack_chunk_header               /* Lives at front of each chunk. */
 {
-  char *limit;                  /* 1 past end of this chunk */
   struct marpa_obstack_chunk* prev;     /* address of prior chunk or NULL */
+  int size;                  /* 1 past end of this chunk */
 };
 
 struct marpa_obstack_chunk
@@ -136,7 +136,7 @@ void _marpa_obs_free (struct marpa_obstack *__obstack);
   ((h)->next_free = (h)->object_base)
 
 # define marpa_obstack_room(h)          \
- (unsigned) ((h)->chunk->header.limit - (h)->next_free)
+ ((h)->chunk->header.size - ((h)->next_free - (char*)((h)->chunk)))
 
 #define marpa_obs_new(h, type, count) \
     ((type *)marpa_obs_aligned((h), (sizeof(type)*(count)), ALIGNOF(type)))
@@ -145,8 +145,7 @@ void _marpa_obs_free (struct marpa_obstack *__obstack);
 static inline void
 marpa_obs_start (struct marpa_obstack *h, int length, int alignment)
 {
-  if (MARPA_OBSTACK_DEBUG
-      || h->chunk->header.limit - h->next_free < length + alignment - 1)
+  if (MARPA_OBSTACK_DEBUG || length + alignment - 1 > marpa_obstack_room(h))
     {
       _marpa_obs_newchunk (h, length);
     }
