@@ -145,17 +145,24 @@ void _marpa_obs_free (struct marpa_obstack *__obstack);
 #define marpa_obs_new(h, type, count) \
     ((type *)marpa_obs_alloc((h), (sizeof(type)*(count))))
 
+/* Start an object */
 static inline void
-marpa_obs_reserve (struct marpa_obstack *h, int length)
+marpa_obs_start (struct marpa_obstack *h, int length, int alignment)
 {
   if (MARPA_OBSTACK_DEBUG
-      || h->chunk_limit - h->next_free < length + (int) DEFAULT_ALIGNMENT - 1)
+      || h->chunk_limit - h->next_free < length + alignment - 1)
     {
       _marpa_obs_newchunk (h, length);
     }
   h->next_free =
     ALIGN_POINTER ((char *) h->chunk, (h->next_free + length),
-		   DEFAULT_ALIGNMENT);
+		   alignment);
+}
+
+static inline void
+marpa_obs_reserve (struct marpa_obstack *h, int length)
+{
+  marpa_obs_start(h, length, DEFAULT_ALIGNMENT);
 }
 
 static inline
