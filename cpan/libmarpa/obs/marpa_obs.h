@@ -64,6 +64,9 @@ struct fooalign
    aligning P to the next multiple of A + 1.  B and P must be of type
    char *.  A + 1 must be a power of 2.  */
 
+#define ALIGN_UP(x, align) (((x) + (align) - 1) & ~((align) - 1))
+#define ALIGN_DOWN(x, align) ((x) & ~((align) - 1))
+
 #define MARPA_PTR_ALIGN(B, P, A) ((B) + (((P) - (B) + (A)) & ~(A)))
 
 /*

@@ -30,60 +30,49 @@
 # include "marpa_ami.h"
 # include "marpa_obs.h"
 
-/* If malloc were really smart, it would round addresses to DEFAULT_ALIGNMENT.
-   But in fact it might be less smart and round addresses to as much as
-   DEFAULT_ROUNDING.  So we prepare for it to do that.  */
+/* Default size is what GNU malloc can fit in a 4096-byte block.
+     12 is sizeof (mhead) and 4 is EXTRA from GNU malloc.
+     Use the values for range checking, because if range checking is off,
+     the extra bytes won't be missed terribly, but if range checking is on
+     and we used a larger request, a whole extra 4096 bytes would be
+     allocated.
+
+     These number are irrelevant to the new GNU malloc.  I suspect it is
+     less sensitive to the size of the request. 
+     If malloc were really smart, it would round addresses to DEFAULT_ALIGNMENT.
+     But in fact it might be less smart and round addresses to as much as
+     DEFAULT_ROUNDING.  So we prepare for it to do that.
+     */
 #define DEFAULT_ROUNDING (sizeof (union worst_aligned_object))
+#define MALLOC_OVERHEAD ( ALIGN_UP(12, DEFAULT_ROUNDING) + ALIGN_UP(4, DEFAULT_ROUNDING))
 
-#define DEBUG_CONTENTS_OFFSET \
-  offsetof( \
-    struct { \
-      struct marpa_obstack_chunk_header header; \
-      union worst_aligned_object contents; \
-    }, contents)
+#define MINIMUM_CHUNK_SIZE (sizeof(struct marpa_obstack_chunk))
 
-/* Initialize an obstack H for use.  Specify chunk size SIZE (0 means default).
-   Objects start on multiples of ALIGNMENT (0 means use default).
-
-   Return nonzero if successful, calls obstack_alloc_failed_handler if
-   allocation fails.  */
+/* We align the size down so that alignment up will not increase it . */
+#define DEFAULT_CHUNK_SIZE ALIGN_DOWN(4096 - MALLOC_OVERHEAD, DEFAULT_ALIGNMENT)
 
 struct marpa_obstack * _marpa_obs_begin ( int size, int alignment)
 {
   struct marpa_obstack_chunk *chunk;    /* points to new chunk */
   struct marpa_obstack *h;      /* points to new obstack */
-  const int minimum_chunk_size = sizeof(struct marpa_obstack_chunk);
   /* Just enough room for the chunk and obstack headers */
 
   if (alignment == 0)
     alignment = DEFAULT_ALIGNMENT;
-  if (size == 0)
-    /* Default size is what GNU malloc can fit in a 4096-byte block.  */
-    {
-      /* 12 is sizeof (mhead) and 4 is EXTRA from GNU malloc.
-         Use the values for range checking, because if range checking is off,
-         the extra bytes won't be missed terribly, but if range checking is on
-         and we used a larger request, a whole extra 4096 bytes would be
-         allocated.
-
-         These number are irrelevant to the new GNU malloc.  I suspect it is
-         less sensitive to the size of the request.  */
-      int extra = ((((12 + DEFAULT_ROUNDING - 1) & ~(DEFAULT_ROUNDING - 1))
-                    + 4 + DEFAULT_ROUNDING - 1) & ~(DEFAULT_ROUNDING - 1));
-      size = 4096 - extra;
+  if (size == 0) {
+      size = DEFAULT_CHUNK_SIZE;
     }
 
-#if MARPA_OBSTACK_DEBUG
-  size = minimum_chunk_size;
-#else
-  size = MAX (minimum_chunk_size, size);
-#endif
+  /* Use the minimum size if we are debugging */
+  if (MARPA_OBSTACK_DEBUG) size = 0;
 
+  size = MAX (MINIMUM_CHUNK_SIZE, size);
+  size = ALIGN_UP(size, DEFAULT_ALIGNMENT);
   chunk = my_malloc (size);
   h = &chunk->contents.obstack_header;
 
-  h->chunk_size = size;
   h->chunk = chunk;
+  h->chunk_size = size;
 
   h->next_free = h->object_base = 
     MARPA_PTR_ALIGN ((char *) chunk, ((char *)h + sizeof(*h)), alignment - 1);
@@ -108,14 +97,14 @@ _marpa_obs_newchunk (struct marpa_obstack *h, int length)
   long  new_size;
   char *object_base;
 
-  /* Compute size for new chunk.  */
-#if MARPA_OBSTACK_DEBUG
-  new_size = DEBUG_CONTENTS_OFFSET + length;
-#else
-  new_size = (length) + (DEFAULT_ALIGNMENT-1) + 100 + sizeof(struct marpa_obstack_chunk_header);
-  if (new_size < h->chunk_size)
+  /* Compute size for new chunk.
+   * Make sure there is enough room for |length| after |chunk_limit| is
+   * aligned down.
+   */
+  new_size = MINIMUM_CHUNK_SIZE + length + DEFAULT_ALIGNMENT - 1;
+  if (!MARPA_OBSTACK_DEBUG && new_size < h->chunk_size) {
     new_size = h->chunk_size;
-#endif
+  }
 
   /* Allocate and initialize the new chunk.  */
   new_chunk = my_malloc( new_size);
