@@ -66,8 +66,7 @@ struct fooalign
 
 #define ALIGN_UP(x, align) (((x) + (align) - 1) & ~((align) - 1))
 #define ALIGN_DOWN(x, align) ((x) & ~((align) - 1))
-
-#define MARPA_PTR_ALIGN(B, P, A) ((B) + (((P) - (B) + (A)) & ~(A)))
+#define ALIGN_POINTER(base, p, align) ((base) + ALIGN_UP((p)-(base), (align)))
 
 /*
    The original GNU obstack implementation used __PTR_ALIGN,
@@ -152,15 +151,14 @@ void marpa_obs_reserve (struct marpa_obstack* h, int length) {
     {
        _marpa_obs_newchunk(h, length);
     }
-    h->next_free = MARPA_PTR_ALIGN ((char*)h->chunk, (h->next_free+length), (DEFAULT_ALIGNMENT-1));
+    h->next_free = ALIGN_POINTER ((char*)h->chunk, (h->next_free+length), DEFAULT_ALIGNMENT);
 }
 
 static inline
 void *marpa_obs_finish (struct marpa_obstack *h)
 {
   void * const finished_object = h->object_base;
-  h->next_free = 
-    MARPA_PTR_ALIGN (h->object_base, h->next_free, (DEFAULT_ALIGNMENT-1));
+  h->next_free = ALIGN_POINTER(h->object_base, h->next_free, DEFAULT_ALIGNMENT);
   if (h->next_free > h->chunk_limit) {
    h->next_free = h->chunk_limit;
   }

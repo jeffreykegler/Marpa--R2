@@ -66,7 +66,7 @@ struct marpa_obstack * _marpa_obs_begin ( int size, int alignment)
   /* Use the minimum size if we are debugging */
   if (MARPA_OBSTACK_DEBUG) size = 0;
 
-  size = MAX (MINIMUM_CHUNK_SIZE, size);
+  size = MAX ((int)MINIMUM_CHUNK_SIZE, size);
   size = ALIGN_UP(size, DEFAULT_ALIGNMENT);
   chunk = my_malloc (size);
   h = &chunk->contents.obstack_header;
@@ -75,7 +75,7 @@ struct marpa_obstack * _marpa_obs_begin ( int size, int alignment)
   h->chunk_size = size;
 
   h->next_free = h->object_base = 
-    MARPA_PTR_ALIGN ((char *) chunk, ((char *)h + sizeof(*h)), alignment - 1);
+    ALIGN_POINTER ((char *) chunk, ((char *)h + sizeof(*h)), alignment);
     /* The first object can go after the obstack header, suitably aligned */
   h->chunk_limit = chunk->header.limit = (char *) chunk + h->chunk_size;
   chunk->header.prev = 0;
@@ -114,7 +114,7 @@ _marpa_obs_newchunk (struct marpa_obstack *h, int length)
 
   /* Compute an aligned object_base in the new chunk */
   object_base =
-    MARPA_PTR_ALIGN ((char *) new_chunk, new_chunk->contents.contents, (DEFAULT_ALIGNMENT-1));
+    ALIGN_POINTER ((char *) new_chunk, new_chunk->contents.contents, DEFAULT_ALIGNMENT);
 
   h->object_base = object_base;
   h->next_free = h->object_base;
