@@ -69,11 +69,11 @@ struct marpa_obstack * _marpa_obs_begin ( int size)
   h = &chunk->contents.obstack_header;
 
   h->chunk = chunk;
-  h->chunk_size = size;
+  h->minimum_chunk_size = size;
 
     /* The first object can go after the obstack header */
   h->next_free = h->object_base = ((char *)h + sizeof(*h));
-  chunk->header.limit = (char *) chunk + h->chunk_size;
+  chunk->header.limit = (char *) chunk + h->minimum_chunk_size;
   chunk->header.prev = 0;
   return h;
 }
@@ -98,8 +98,8 @@ _marpa_obs_newchunk (struct marpa_obstack *h, int length)
    * for adjusting alignment.
    */
   new_size = MINIMUM_CHUNK_SIZE + length + 2* DEFAULT_ALIGNMENT;
-  if (!MARPA_OBSTACK_DEBUG && new_size < h->chunk_size) {
-    new_size = h->chunk_size;
+  if (!MARPA_OBSTACK_DEBUG && new_size < h->minimum_chunk_size) {
+    new_size = h->minimum_chunk_size;
   }
 
   /* Allocate and initialize the new chunk.  */
@@ -113,32 +113,6 @@ _marpa_obs_newchunk (struct marpa_obstack *h, int length)
 
   h->object_base = object_base;
   h->next_free = h->object_base;
-}
-
-/* Return nonzero if object OBJ has been allocated from obstack H.
-   This is here for debugging.
-   If you use it in a program, you are probably losing.  */
-
-/* Suppress -Wmissing-prototypes warning.  We don't want to declare this in
-   obstack.h because it is just for debugging.  */
-int _marpa_obs_allocated_p (struct marpa_obstack *h, void *obj);
-
-int
-_marpa_obs_allocated_p (struct marpa_obstack *h, void *obj)
-{
-  struct marpa_obstack_chunk *lp;       /* below addr of any objects in this chunk */
-  struct marpa_obstack_chunk *plp;      /* point to previous chunk if any */
-
-  lp = (h)->chunk;
-  /* We use >= rather than > since the object cannot be exactly at
-     the beginning of the chunk but might be an empty object exactly
-     at the end of an adjacent chunk.  */
-  while (lp != 0 && ((void *) lp >= obj || (void *) (lp)->header.limit < obj))
-    {
-      plp = lp->header.prev;
-      lp = plp;
-    }
-  return lp != 0;
 }
 
 /* Free everything in H.  */

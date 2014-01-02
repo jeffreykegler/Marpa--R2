@@ -78,10 +78,10 @@ typedef union
 
 struct marpa_obstack    /* control current object in current chunk */
 {
-  long chunk_size;              /* preferred size to allocate chunks in */
   struct marpa_obstack_chunk *chunk;    /* address of current struct obstack_chunk */
   char *object_base;            /* address of object we are building */
   char *next_free;              /* where to add next char to current object */
+  int minimum_chunk_size;              /* preferred size to allocate chunks in */
 };
 
 struct marpa_obstack_chunk_header               /* Lives at front of each chunk. */
@@ -117,8 +117,6 @@ void _marpa_obs_free (struct marpa_obstack *__obstack);
 #define marpa_obs_base(h) ((void *) (h)->object_base)
 
 /* Size for allocating ordinary chunks.  */
-
-#define marpa_obstack_chunk_size(h) ((h)->chunk_size)
 
 /* Pointer to next byte not yet allocated in current chunk.  */
 
