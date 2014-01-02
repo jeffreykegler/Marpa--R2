@@ -73,7 +73,7 @@ struct marpa_obstack * _marpa_obs_begin ( int size)
 
     /* The first object can go after the obstack header */
   h->next_free = h->object_base = ((char *)h + sizeof(*h));
-  h->chunk_limit = chunk->header.limit = (char *) chunk + h->chunk_size;
+  chunk->header.limit = (char *) chunk + h->chunk_size;
   chunk->header.prev = 0;
   return h;
 }
@@ -106,7 +106,7 @@ _marpa_obs_newchunk (struct marpa_obstack *h, int length)
   new_chunk = my_malloc( new_size);
   h->chunk = new_chunk;
   new_chunk->header.prev = old_chunk;
-  new_chunk->header.limit = h->chunk_limit = (char *) new_chunk + new_size;
+  new_chunk->header.limit = (char *) new_chunk + new_size;
 
   /* Compute an aligned object_base in the new chunk */
   object_base = new_chunk->contents.contents;

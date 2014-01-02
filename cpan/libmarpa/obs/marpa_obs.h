@@ -48,7 +48,11 @@ typedef union
   intmax_t t_uimax;
 /* According to the autoconf manual, long double is provided by
    all non-obsolescent C compilers. */
-  long double t_d;
+  long double t_ld;
+  /* In some configurations, for historic reasons, double's require
+   * stricter alignment than long double's.
+   */
+  double t_d;
   void *t_p;
 } worst_aligned_object;
 
@@ -78,7 +82,6 @@ struct marpa_obstack    /* control current object in current chunk */
   struct marpa_obstack_chunk *chunk;    /* address of current struct obstack_chunk */
   char *object_base;            /* address of object we are building */
   char *next_free;              /* where to add next char to current object */
-  char *chunk_limit;            /* address of char after current chunk */
 };
 
 struct marpa_obstack_chunk_header               /* Lives at front of each chunk. */
@@ -135,7 +138,7 @@ void _marpa_obs_free (struct marpa_obstack *__obstack);
   ((h)->next_free = (h)->object_base)
 
 # define marpa_obstack_room(h)          \
- (unsigned) ((h)->chunk_limit - (h)->next_free)
+ (unsigned) ((h)->chunk->header.limit - (h)->next_free)
 
 #define marpa_obs_new(h, type, count) \
     ((type *)marpa_obs_aligned((h), (sizeof(type)*(count)), ALIGNOF(type)))
@@ -145,7 +148,7 @@ static inline void
 marpa_obs_start (struct marpa_obstack *h, int length, int alignment)
 {
   if (MARPA_OBSTACK_DEBUG
-      || h->chunk_limit - h->next_free < length + alignment - 1)
+      || h->chunk->header.limit - h->next_free < length + alignment - 1)
     {
       _marpa_obs_newchunk (h, length);
     }
