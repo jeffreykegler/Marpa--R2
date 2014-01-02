@@ -158,7 +158,7 @@ static inline
 void *marpa_obs_finish (struct marpa_obstack *h)
 {
   void * const finished_object = h->object_base;
-  h->next_free = ALIGN_POINTER(h->object_base, h->next_free, DEFAULT_ALIGNMENT);
+  h->next_free = ALIGN_POINTER((char *)h->chunk, h->next_free, DEFAULT_ALIGNMENT);
   if (h->next_free > h->chunk_limit) {
    h->next_free = h->chunk_limit;
   }
