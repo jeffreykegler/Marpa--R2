@@ -50,14 +50,12 @@
 /* We align the size down so that alignment up will not increase it . */
 #define DEFAULT_CHUNK_SIZE ALIGN_DOWN(4096 - MALLOC_OVERHEAD, DEFAULT_ALIGNMENT)
 
-struct marpa_obstack * _marpa_obs_begin ( int size, int alignment)
+struct marpa_obstack * _marpa_obs_begin ( int size)
 {
   struct marpa_obstack_chunk *chunk;    /* points to new chunk */
   struct marpa_obstack *h;      /* points to new obstack */
   /* Just enough room for the chunk and obstack headers */
 
-  if (alignment == 0)
-    alignment = DEFAULT_ALIGNMENT;
   if (size == 0) {
       size = DEFAULT_CHUNK_SIZE;
     }
@@ -74,7 +72,7 @@ struct marpa_obstack * _marpa_obs_begin ( int size, int alignment)
   h->chunk_size = size;
 
   h->next_free = h->object_base = 
-    ALIGN_POINTER ((char *) chunk, ((char *)h + sizeof(*h)), alignment);
+    ALIGN_POINTER ((char *) chunk, ((char *)h + sizeof(*h)), DEFAULT_ALIGNMENT);
     /* The first object can go after the obstack header, suitably aligned */
   h->chunk_limit = chunk->header.limit = (char *) chunk + h->chunk_size;
   chunk->header.prev = 0;

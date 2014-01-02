@@ -100,8 +100,7 @@ struct marpa_obstack_chunk
 
 extern void _marpa_obs_newchunk (struct marpa_obstack *, int);
 
-extern struct marpa_obstack* _marpa_obs_begin (int, int);
-#define marpa_obs_begin _marpa_obs_begin
+extern struct marpa_obstack* _marpa_obs_begin (int);
 
 extern int _marpa_obs_memory_used (struct marpa_obstack *);
 #define marpa_obstack_memory_used(h) _marpa_obs_memory_used (h)
@@ -124,7 +123,7 @@ void _marpa_obs_free (struct marpa_obstack *__obstack);
 
 /* Mask specifying low bits that should be clear in address of an object.  */
 
-#define marpa_obs_init  marpa_obs_begin (0, 0)
+#define marpa_obs_init  _marpa_obs_begin (0)
 
 # define marpa_obstack_object_size(h) \
  (unsigned) ((h)->next_free - (h)->object_base)
