@@ -44,11 +44,8 @@
      WORST_MALLOC_ROUNDING.  So we prepare for it to do that.
      */
 #define MALLOC_OVERHEAD ( ALIGN_UP(12, WORST_MALLOC_ROUNDING) + ALIGN_UP(4, WORST_MALLOC_ROUNDING))
-
 #define MINIMUM_CHUNK_SIZE (sizeof(struct marpa_obstack_chunk))
-
-/* We align the size down so that alignment up will not increase it . */
-#define DEFAULT_CHUNK_SIZE ALIGN_DOWN(4096 - MALLOC_OVERHEAD, DEFAULT_ALIGNMENT)
+#define DEFAULT_CHUNK_SIZE (4096 - MALLOC_OVERHEAD)
 
 struct marpa_obstack * _marpa_obs_begin ( int size)
 {
@@ -64,7 +61,6 @@ struct marpa_obstack * _marpa_obs_begin ( int size)
   if (MARPA_OBSTACK_DEBUG) size = 0;
 
   size = MAX ((int)MINIMUM_CHUNK_SIZE, size);
-  size = ALIGN_UP(size, DEFAULT_ALIGNMENT);
   chunk = my_malloc (size);
   h = &chunk->contents.obstack_header;
 
@@ -107,7 +103,6 @@ _marpa_obs_newchunk (struct marpa_obstack *h, int length)
   new_chunk->header.prev = old_chunk;
   new_chunk->header.size = new_size;
 
-  /* Compute an aligned object_base in the new chunk */
   object_base = new_chunk->contents.contents;
 
   h->object_base = object_base;

@@ -145,13 +145,20 @@ void _marpa_obs_free (struct marpa_obstack *__obstack);
 static inline void
 marpa_obs_start (struct marpa_obstack *h, int length, int alignment)
 {
-  if (MARPA_OBSTACK_DEBUG || length + alignment - 1 > marpa_obstack_room(h))
+  if (!MARPA_OBSTACK_DEBUG)
     {
-      _marpa_obs_newchunk (h, length);
+      int offset = h->next_free - (char *) (h->chunk);
+      offset = ALIGN_UP (offset, alignment);
+      if (offset + length <= h->chunk->header.size)
+	{
+	  h->object_base = (char *) (h->chunk) + offset;
+	  h->next_free = h->object_base + length;
+	  return;
+	}
     }
+  _marpa_obs_newchunk (h, length);
   h->next_free =
-    ALIGN_POINTER ((char *) h->chunk, (h->next_free + length),
-		   alignment);
+    ALIGN_POINTER ((char *) h->chunk, (h->next_free + length), alignment);
 }
 
 static inline void
