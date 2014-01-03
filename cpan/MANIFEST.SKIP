@@ -21,6 +21,9 @@
 
 # Permanent
 
+# Used by Ruslan S. for cygwin compile
+^libmarpa_dist/compile
+
 # LC_ALL=C sort
 /[.]gdb_history$
 /[.]gitignore$
@@ -142,7 +145,6 @@
 ^libmarpa/slif/marpa_slif[.]scn$
 ^libmarpa/slif/marpa_slif[.]tex$
 ^libmarpa/slif/marpa_slif[.]toc$
-^libmarpa_dist/compile
 ^libmarpa/stage/
 ^libmarpa/test/
 ^libmarpa_build/
