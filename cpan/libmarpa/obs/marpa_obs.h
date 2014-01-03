@@ -157,8 +157,8 @@ marpa_obs_start (struct marpa_obstack *h, int length, int alignment)
 	}
     }
   _marpa_obs_newchunk (h, length);
-  h->next_free =
-    ALIGN_POINTER ((char *) h->chunk, (h->next_free + length), alignment);
+  h->object_base = ALIGN_POINTER ((char *) h->chunk, h->object_base, alignment);
+  h->next_free = h->object_base + length;
 }
 
 static inline void
