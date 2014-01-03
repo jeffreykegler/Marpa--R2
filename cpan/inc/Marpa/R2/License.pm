@@ -151,6 +151,7 @@ my %GNU_file = (
         )
     } qw(
         aclocal.m4
+        compile
         config.guess
         config.sub
         configure
