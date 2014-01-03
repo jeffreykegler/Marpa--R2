@@ -90,9 +90,9 @@ _marpa_obs_newchunk (struct marpa_obstack *h, int length)
 
   /* Compute size for new chunk.
    * Make sure there is enough room for |length|
-   * for adjusting alignment.
+   * after adjusting alignment.
    */
-  new_size = MINIMUM_CHUNK_SIZE + length + 2* DEFAULT_ALIGNMENT;
+  new_size = length + offsetof(struct marpa_obstack_chunk, contents) + DEFAULT_ALIGNMENT;
   if (!MARPA_OBSTACK_DEBUG && new_size < h->minimum_chunk_size) {
     new_size = h->minimum_chunk_size;
   }
