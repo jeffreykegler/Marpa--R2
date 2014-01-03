@@ -479,6 +479,7 @@ static void lexer_destroy(Lexer *lexer)
     Safefree(lexer->per_codepoint_array[i]);
   }
   SvREFCNT_dec (lexer->g_sv);
+  Safefree(lexer);
 }
 
 /* Static lexer methods */
@@ -4812,6 +4813,7 @@ PPCODE:
           lexer_destroy (lexer);
         }
     }
+  Safefree (slg->lexers);
   SvREFCNT_dec (slg->g1_sv);
   Safefree (slg->symbol_g_properties);
   Safefree (slg);
