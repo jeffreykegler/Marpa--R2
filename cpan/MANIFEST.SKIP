@@ -21,9 +21,6 @@
 
 # Permanent
 
-# Used by Ruslan S. for cygwin compile
-^libmarpa_dist/compile
-
 # LC_ALL=C sort
 /[.]gdb_history$
 /[.]gitignore$

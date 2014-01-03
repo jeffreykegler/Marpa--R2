@@ -189,6 +189,7 @@ libmarpa_dist/README
 libmarpa_dist/VERSION
 libmarpa_dist/VERSION.in
 libmarpa_dist/aclocal.m4
+libmarpa_dist/compile
 libmarpa_dist/config.guess
 libmarpa_dist/config.h.in
 libmarpa_dist/config.sub
