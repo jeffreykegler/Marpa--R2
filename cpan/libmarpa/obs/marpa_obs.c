@@ -47,27 +47,29 @@
 #define MINIMUM_CHUNK_SIZE (sizeof(struct marpa_obstack_chunk))
 #define DEFAULT_CHUNK_SIZE (4096 - MALLOC_OVERHEAD)
 
-struct marpa_obstack * _marpa_obs_begin ( int size)
+struct marpa_obstack *
+marpa__obs_begin (int size)
 {
-  struct marpa_obstack_chunk *chunk;    /* points to new chunk */
-  struct marpa_obstack *h;      /* points to new obstack */
+  struct marpa_obstack_chunk *chunk;	/* points to new chunk */
+  struct marpa_obstack *h;	/* points to new obstack */
   /* Just enough room for the chunk and obstack headers */
 
-  if (size == 0) {
-      size = DEFAULT_CHUNK_SIZE;
+  if (MARPA_OBSTACK_DEBUG)
+    {
+      /* Use the minimum size if we are debugging */
+      size = MINIMUM_CHUNK_SIZE;
     }
-
-  /* Use the minimum size if we are debugging */
-  if (MARPA_OBSTACK_DEBUG) size = 0;
-
-  size = MAX ((int)MINIMUM_CHUNK_SIZE, size);
+  else
+    {
+      size = MAX (DEFAULT_CHUNK_SIZE, size);
+    }
   chunk = my_malloc (size);
   h = &chunk->contents.obstack_header;
 
   h->chunk = chunk;
 
-    /* The first object can go after the obstack header */
-  h->next_free = h->object_base = ((char *)h + sizeof(*h));
+  /* The first object can go after the obstack header */
+  h->next_free = h->object_base = ((char *) h + sizeof (*h));
   chunk->header.size = h->minimum_chunk_size = size;
   chunk->header.prev = 0;
   return h;
@@ -81,7 +83,7 @@ struct marpa_obstack * _marpa_obs_begin ( int size)
    to the beginning of the new one.  */
 
 void
-_marpa_obs_newchunk (struct marpa_obstack *h, int length)
+marpa__obs_newchunk (struct marpa_obstack *h, int length)
 {
   struct marpa_obstack_chunk *old_chunk = h->chunk;
   struct marpa_obstack_chunk *new_chunk;
@@ -111,7 +113,7 @@ _marpa_obs_newchunk (struct marpa_obstack *h, int length)
 
 /* Free everything in H.  */
 void
-_marpa_obs_free (struct marpa_obstack *h)
+marpa__obs_free (struct marpa_obstack *h)
 {
   struct marpa_obstack_chunk *lp;       /* below addr of any objects in this chunk */
   struct marpa_obstack_chunk *plp;      /* point to previous chunk if any */
@@ -125,19 +127,6 @@ _marpa_obs_free (struct marpa_obstack *h)
       my_free (lp);
       lp = plp;
     }
-}
-
-int
-_marpa_obs_memory_used (struct marpa_obstack *h)
-{
-  struct marpa_obstack_chunk *lp;
-  int nbytes = 0;
-
-  for (lp = h->chunk; lp != 0; lp = lp->header.prev)
-    {
-      nbytes += lp->header.size;
-    }
-  return nbytes;
 }
 
 /* vim: set expandtab shiftwidth=4: */

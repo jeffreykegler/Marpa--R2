@@ -101,14 +101,11 @@ struct marpa_obstack_chunk
 
 /* Declare the external functions we use; they are in obstack.c.  */
 
-extern void _marpa_obs_newchunk (struct marpa_obstack *, int);
+extern void marpa__obs_newchunk (struct marpa_obstack *, int);
 
-extern struct marpa_obstack* _marpa_obs_begin (int);
+extern struct marpa_obstack* marpa__obs_begin (int);
 
-extern int _marpa_obs_memory_used (struct marpa_obstack *);
-#define marpa_obstack_memory_used(h) _marpa_obs_memory_used (h)
-
-void _marpa_obs_free (struct marpa_obstack *__obstack);
+void marpa__obs_free (struct marpa_obstack *__obstack);
 
 /* Pointer to beginning of object being allocated or to be allocated next.
    Note that this might not be the final address of the object
@@ -124,12 +121,12 @@ void _marpa_obs_free (struct marpa_obstack *__obstack);
 
 /* Mask specifying low bits that should be clear in address of an object.  */
 
-#define marpa_obs_init  _marpa_obs_begin (0)
+#define marpa_obs_init  marpa__obs_begin (0)
 
 # define marpa_obstack_object_size(h) \
  (unsigned) ((h)->next_free - (h)->object_base)
 
-# define marpa_obs_free(h)      (_marpa_obs_free((h)))
+# define marpa_obs_free(h)      (marpa__obs_free((h)))
 
 /* Reject any object being built, as if it never existed */
 # define marpa_obs_reject(h) \
@@ -156,7 +153,7 @@ marpa_obs_start (struct marpa_obstack *h, int length, int alignment)
 	  return;
 	}
     }
-  _marpa_obs_newchunk (h, length);
+  marpa__obs_newchunk (h, length);
   h->object_base = ALIGN_POINTER ((char *) h->chunk, h->object_base, alignment);
   h->next_free = h->object_base + length;
 }
