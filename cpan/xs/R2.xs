@@ -2496,7 +2496,12 @@ PPCODE:
   XPUSHs (sv_2mortal (newSViv (marpa_g_event_value (&event))));
 }
 
-Marpa_Rule_ID
+ # Actually returns Marpa_Rule_ID, void is here to eliminate RETVAL 
+ # that remains unused with PPCODE. The same applies to all void's below 
+ # when preceded with a return type commented out, e.g. 
+ #    # int
+ #    void
+void
 rule_new( g_wrapper, lhs, rhs_av )
     G_Wrapper *g_wrapper;
     Marpa_Symbol_ID lhs;
@@ -2535,7 +2540,8 @@ PPCODE:
  # the hash args.  This seems to be the way things are
  # done in Perl -- in particular there seems to be no
  # easy way to  prevent that.
-Marpa_Rule_ID
+# Marpa_Rule_ID
+void
 sequence_new( g_wrapper, lhs, rhs, args )
     G_Wrapper *g_wrapper;
     Marpa_Symbol_ID lhs;
@@ -3707,7 +3713,8 @@ PPCODE:
   XSRETURN_NO;
 }
 
-Marpa_Symbol_ID
+# Marpa_Symbol_ID
+void
 _marpa_g_source_xsy( g_wrapper, symbol_id )
     G_Wrapper *g_wrapper;
     Marpa_Symbol_ID symbol_id;
@@ -3726,7 +3733,8 @@ PPCODE:
   XPUSHs (sv_2mortal (newSViv (source_xsy)));
 }
 
-Marpa_Rule_ID
+# Marpa_Rule_ID
+void
 _marpa_g_nsy_lhs_xrl( g_wrapper, nsy_id )
     G_Wrapper *g_wrapper;
     Marpa_NSY_ID nsy_id;
@@ -3746,7 +3754,8 @@ PPCODE:
   XPUSHs (sv_2mortal (newSViv (rule_id)));
 }
 
-Marpa_Rule_ID
+# Marpa_Rule_ID
+void
 _marpa_g_nsy_xrl_offset( g_wrapper, nsy_id )
     G_Wrapper *g_wrapper;
     Marpa_NSY_ID nsy_id;
@@ -3766,7 +3775,8 @@ PPCODE:
   XPUSHs (sv_2mortal (newSViv (offset)));
 }
 
-int
+# int
+void
 _marpa_g_virtual_start( g_wrapper, irl_id )
     G_Wrapper *g_wrapper;
     Marpa_IRL_ID irl_id;
@@ -3786,7 +3796,8 @@ PPCODE:
     XPUSHs( sv_2mortal( newSViv(result) ) );
 }
 
-int
+# int
+void
 _marpa_g_virtual_end( g_wrapper, irl_id )
     G_Wrapper *g_wrapper;
     Marpa_IRL_ID irl_id;
@@ -3856,7 +3867,8 @@ PPCODE:
   XSRETURN_NO;
 }
 
-Marpa_Rule_ID
+# Marpa_Rule_ID
+void
 _marpa_g_real_symbol_count( g_wrapper, rule_id )
     G_Wrapper *g_wrapper;
     Marpa_Rule_ID rule_id;
@@ -3876,7 +3888,8 @@ PPCODE:
   XPUSHs (sv_2mortal (newSViv (result)));
 }
 
-Marpa_Rule_ID
+# Marpa_Rule_ID
+void
 _marpa_g_source_xrl ( g_wrapper, irl_id )
     G_Wrapper *g_wrapper;
     Marpa_IRL_ID irl_id;
@@ -3896,7 +3909,8 @@ PPCODE:
   XPUSHs (sv_2mortal (newSViv (result)));
 }
 
-Marpa_Rule_ID
+# Marpa_Rule_ID
+void
 _marpa_g_irl_semantic_equivalent( g_wrapper, irl_id )
     G_Wrapper *g_wrapper;
     Marpa_IRL_ID irl_id;
@@ -3916,7 +3930,8 @@ PPCODE:
   XPUSHs (sv_2mortal (newSViv (result)));
 }
 
-int
+# int
+void
 _marpa_g_AHFA_item_count( g_wrapper )
     G_Wrapper *g_wrapper;
 PPCODE:
@@ -3934,7 +3949,8 @@ PPCODE:
   XPUSHs (sv_2mortal (newSViv (result)));
 }
 
-int
+# int
+void
 _marpa_g_irl_count( g_wrapper )
     G_Wrapper *g_wrapper;
 PPCODE:
@@ -3970,7 +3986,8 @@ PPCODE:
   XPUSHs (sv_2mortal (newSViv (result)));
 }
 
-Marpa_IRL_ID
+# Marpa_IRL_ID
+void
 _marpa_g_AHFA_item_irl( g_wrapper, item_id )
     G_Wrapper *g_wrapper;
     Marpa_AHFA_Item_ID item_id;
@@ -3983,7 +4000,8 @@ PPCODE:
 }
 
  # -1 is a valid return value, so -2 indicates an error
-int
+# int
+void
 _marpa_g_AHFA_item_position( g_wrapper, item_id )
     G_Wrapper *g_wrapper;
     Marpa_AHFA_Item_ID item_id;
@@ -3995,7 +4013,8 @@ PPCODE:
       XPUSHs (sv_2mortal (newSViv (result)));
 }
 
-int
+# int
+void
 _marpa_g_AHFA_item_sort_key( g_wrapper, item_id )
     G_Wrapper *g_wrapper;
     Marpa_AHFA_Item_ID item_id;
@@ -4008,7 +4027,8 @@ PPCODE:
 }
 
  # -1 is a valid return value, and -2 indicates an error
-Marpa_Symbol_ID
+# Marpa_Symbol_ID
+void
 _marpa_g_AHFA_item_postdot( g_wrapper, item_id )
     G_Wrapper *g_wrapper;
     Marpa_AHFA_Item_ID item_id;
@@ -4020,7 +4040,8 @@ PPCODE:
       XPUSHs (sv_2mortal (newSViv (result)));
 }
 
-int
+# int
+void
 _marpa_g_AHFA_state_count( g_wrapper )
     G_Wrapper *g_wrapper;
 PPCODE:
@@ -4095,7 +4116,8 @@ PPCODE:
 }
 
  # -1 is a valid return value, and -2 indicates an error
-Marpa_AHFA_State_ID
+# Marpa_AHFA_State_ID
+void
 _marpa_g_AHFA_state_empty_transition( g_wrapper, AHFA_state_id )
     G_Wrapper *g_wrapper;
     Marpa_AHFA_State_ID AHFA_state_id;
@@ -4481,7 +4503,8 @@ PPCODE:
 
 MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin::O
 
-int
+# int
+void
 _marpa_o_and_node_order_get( o_wrapper, or_node_id, and_ix )
     O_Wrapper *o_wrapper;
     Marpa_Or_Node_ID or_node_id;
@@ -4536,7 +4559,8 @@ PPCODE:
 
 MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin::T
 
-int
+# int
+void
 _marpa_t_size( t_wrapper )
     T_Wrapper *t_wrapper;
 PPCODE:
@@ -4555,7 +4579,8 @@ PPCODE:
   XPUSHs (sv_2mortal (newSViv (result)));
 }
 
-int
+# int
+void
 _marpa_t_nook_or_node( t_wrapper, nook_id )
     T_Wrapper *t_wrapper;
     Marpa_Nook_ID nook_id;
@@ -4575,7 +4600,8 @@ PPCODE:
   XPUSHs (sv_2mortal (newSViv (result)));
 }
 
-int
+# int
+void
 _marpa_t_nook_choice( t_wrapper, nook_id )
     T_Wrapper *t_wrapper;
     Marpa_Nook_ID nook_id;
@@ -4595,7 +4621,8 @@ PPCODE:
   XPUSHs (sv_2mortal (newSViv (result)));
 }
 
-int
+# int
+void
 _marpa_t_nook_parent( t_wrapper, nook_id )
     T_Wrapper *t_wrapper;
     Marpa_Nook_ID nook_id;
@@ -4615,7 +4642,8 @@ PPCODE:
   XPUSHs (sv_2mortal (newSViv (result)));
 }
 
-int
+# int
+void
 _marpa_t_nook_is_cause( t_wrapper, nook_id )
     T_Wrapper *t_wrapper;
     Marpa_Nook_ID nook_id;
@@ -4635,7 +4663,8 @@ PPCODE:
   XPUSHs (sv_2mortal (newSViv (result)));
 }
 
-int
+# int
+void
 _marpa_t_nook_cause_is_ready( t_wrapper, nook_id )
     T_Wrapper *t_wrapper;
     Marpa_Nook_ID nook_id;
@@ -4656,7 +4685,8 @@ PPCODE:
 }
 
 
-int
+# int
+void
 _marpa_t_nook_is_predecessor( t_wrapper, nook_id )
     T_Wrapper *t_wrapper;
     Marpa_Nook_ID nook_id;
@@ -4676,7 +4706,8 @@ PPCODE:
   XPUSHs (sv_2mortal (newSViv (result)));
 }
 
-int
+# int
+void
 _marpa_t_nook_predecessor_is_ready( t_wrapper, nook_id )
     T_Wrapper *t_wrapper;
     Marpa_Nook_ID nook_id;
