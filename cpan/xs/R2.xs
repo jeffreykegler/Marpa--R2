@@ -607,7 +607,6 @@ u_read (Scanless_R * slr)
   U8 *input;
   STRLEN len;
   int input_is_utf8;
-  int input_length;
 
   const IV trace_lexers = slr->trace_lexers;
   Lexer *lexer = slr->current_lexer;
@@ -1202,7 +1201,6 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
                   if (slr && token_ix == TOKEN_VALUE_IS_LITERAL)
                     {
                       SV *sv;
-                      int dummy;
                       Marpa_Earley_Set_ID start_earley_set =
                         marpa_v_token_start_es_id (v);
                       Marpa_Earley_Set_ID end_earley_set = marpa_v_es_id (v);
@@ -1454,7 +1452,6 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
               {
                 SV **stored_sv;
                 SV *token_literal_sv;
-                int dummy;
                 Marpa_Earley_Set_ID start_earley_set =
                   marpa_v_token_start_es_id (v);
                 Marpa_Earley_Set_ID end_earley_set = marpa_v_es_id (v);
@@ -1564,7 +1561,6 @@ slr_discard (Scanless_R * slr)
    */
   while (earley_set > 0)
     {
-      int is_expected;
       int return_value;
       const int working_pos = slr->start_of_lexeme + earley_set;
       return_value = marpa_r_progress_report_start (r0, earley_set);
@@ -1881,7 +1877,6 @@ slr_alternatives (Scanless_R * slr)
 
       while (!end_of_earley_items)
 	{
-	  struct symbol_r_properties *symbol_r_properties;
 	  struct symbol_g_properties *symbol_g_properties;
 	  Marpa_Symbol_ID g1_lexeme;
 	  int this_lexeme_priority;
@@ -4825,7 +4820,6 @@ lexer_add( slg, lexer_sv )
     SV *lexer_sv;
 PPCODE:
 {
-  SV *new_sv;
   Lexer *lexer;
 
   if (!sv_isa (lexer_sv, "Marpa::R2::Thin::G"))
@@ -5490,7 +5484,6 @@ pause_span (slr)
      Scanless_R *slr;
 PPCODE:
 {
-  int length;
   Marpa_Symbol_ID pause_lexeme = slr->pause_lexeme;
   if (pause_lexeme < 0)
     {
