@@ -56,6 +56,13 @@ typedef union
   void *t_p;
 } worst_aligned_object;
 
+/* Suppress 'unnamed type definition in parentheses' warning
+   in #define ALIGNOF(type) below 
+   under MS C compiler older than .NET 2003 */
+#if defined(_MSC_VER) && _MSC_VER >= 1310 && !defined(__cplusplus)
+#pragma warning(disable:4116)
+#endif
+
 #define ALIGNOF(type) offsetof (struct { char c; type member; }, member)
 #define DEFAULT_ALIGNMENT ALIGNOF(worst_aligned_object)
 #define WORST_MALLOC_ROUNDING (sizeof (worst_aligned_object))
