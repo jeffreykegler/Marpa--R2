@@ -506,9 +506,14 @@ INLINEHOOK
             }
             close(CONFIG_H);
             $ac = Config::AutoConf->new();
-            if ($ac->check_sizeof_type('int') < 4) {
+            my $sizeof_int = $ac->check_sizeof_type('int');
+            if ($sizeof_int < 4) {
                 die "Marpa requires that int be at least 32 bits -- on this system that is not the case";
             }
+            my @sizes = ($sizeof_int);
+            push @sizes, $ac->check_sizeof_type('void*');
+            push @sizes, $ac->check_sizeof_type('long long');
+
             $ac->check_stdc_headers;
             $ac->check_default_headers();
             $ac->check_type('unsigned long long int');
@@ -524,6 +529,25 @@ INLINEHOOK
             my $memset = $ac->lang_call('', 'memset');
             $ac->msg_checking('memset');
             my $rc = $ac->compile_if_else($memset);
+            $ac->msg_result($rc ? 'yes' : 'no');
+
+            $ac->msg_checking('$Config{alignbytes}');
+            my $alignbytes= $Config{alignbytes};
+            $ac->msg_result($alignbytes);
+            push @sizes, $alignbytes;
+
+            if ( $self->config('ccname') eq 'gcc' ) {
+                my $gcc_biggest_alignment =
+                    $ac->compute_int('__BIGGEST_ALIGNMENT__');
+                $ac->msg_checking("Biggest alignment from GCC");
+                $ac->msg_result($gcc_biggest_alignment);
+                push @sizes, $gcc_biggest_alignment;
+            } ## end if ( $self->config('ccname') eq 'gcc' )
+            my $biggest_alignment = List::Util::max( @sizes );
+            $ac->msg_checking("MARPA__BIGGEST_ALIGNMENT");
+            $ac->msg_result($biggest_alignment);
+            $ac->define_var( 'MARPA__BIGGEST_ALIGNMENT', $biggest_alignment );
+
             $ac->define_var('HAVE_MEMSET', $ac->compile_if_else($memset));
             $ac->define_var('PACKAGE', "\"libmarpa\"");
             $ac->define_var('PACKAGE_BUGREPORT', "\"http://rt.cpan.org/NoAuth/Bugs.html?Dist=Marpa\"");
@@ -533,7 +557,6 @@ INLINEHOOK
             $ac->define_var('PACKAGE_URL', "\"\"");
             $ac->define_var('PACKAGE_VERSION', "\"$libmarpa_version\"");
             $ac->define_var('PACKAGE_STRING', "\"$libmarpa_version\"");
-            $ac->msg_result($rc ? 'yes' : 'no');
             $ac->write_config_h('config_from_autoconf.h');
         }
         if (! -r 'marpa_config.h') {
