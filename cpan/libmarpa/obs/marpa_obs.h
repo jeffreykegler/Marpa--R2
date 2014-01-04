@@ -31,31 +31,6 @@
 #define MARPA_OBSTACK_DEBUG 0
 #endif
 
-#ifdef HAVE_INTTYPES_H
-# include <inttypes.h>
-#endif
-#ifdef HAVE_STDINT_H
-# include <stdint.h>
-#endif
-
-/* Determine default alignment.  */
-typedef union
-{
-/* intmax_t is guaranteed by AUTOCONF's AC_TYPE_INTMAX_T.
-    Similarly, for uintmax_t.
-*/
-  uintmax_t t_imax;
-  intmax_t t_uimax;
-/* According to the autoconf manual, long double is provided by
-   all non-obsolescent C compilers. */
-  long double t_ld;
-  /* In some configurations, for historic reasons, double's require
-   * stricter alignment than long double's.
-   */
-  double t_d;
-  void *t_p;
-} worst_aligned_object;
-
 /* Suppress 'unnamed type definition in parentheses' warning
    in #define ALIGNOF(type) below 
    under MS C compiler older than .NET 2003 */
@@ -64,8 +39,6 @@ typedef union
 #endif
 
 #define ALIGNOF(type) offsetof (struct { char c; type member; }, member)
-#define DEFAULT_ALIGNMENT ALIGNOF(worst_aligned_object)
-#define WORST_MALLOC_ROUNDING (sizeof (worst_aligned_object))
 
 /* If B is the base of an object addressed by P, return the result of
    aligning P to the next multiple of A + 1.  B and P must be of type
@@ -168,7 +141,7 @@ marpa_obs_start (struct marpa_obstack *h, int length, int alignment)
 static inline void
 marpa_obs_reserve (struct marpa_obstack *h, int length)
 {
-  marpa_obs_start(h, length, DEFAULT_ALIGNMENT);
+  marpa_obs_start(h, length, MARPA__BIGGEST_ALIGNMENT);
 }
 
 static inline
@@ -187,7 +160,7 @@ marpa_obs_aligned (struct marpa_obstack *h, int length, int alignment)
 }
 
 #define marpa_obs_alloc(h, length) \
-    (marpa_obs_aligned((h), (length), DEFAULT_ALIGNMENT))
+    (marpa_obs_aligned((h), (length), MARPA__BIGGEST_ALIGNMENT))
 
 /* "Confirm", which is to set at its final value,
  * the size of a reserved object, currently being built.

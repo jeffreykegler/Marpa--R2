@@ -30,19 +30,61 @@
 # include "marpa_ami.h"
 # include "marpa_obs.h"
 
-/* Default size is what GNU malloc can fit in a 4096-byte block.
-     12 is sizeof (mhead) and 4 is EXTRA from GNU malloc.
-     Use the values for range checking, because if range checking is off,
-     the extra bytes won't be missed terribly, but if range checking is on
-     and we used a larger request, a whole extra 4096 bytes would be
-     allocated.
+/* Comments from the original obstack code:
 
-     These number are irrelevant to the new GNU malloc.  I suspect it is
-     less sensitive to the size of the request. 
-     If malloc were really smart, it would round addresses to DEFAULT_ALIGNMENT.
-     But in fact it might be less smart and round addresses to as much as
-     WORST_MALLOC_ROUNDING.  So we prepare for it to do that.
-     */
+   "Default size is what GNU malloc can fit in a 4096-byte block."
+
+    "12 is sizeof (mhead) and 4 is EXTRA from GNU malloc.
+    Use the values for range checking, because if range checking is off,
+    the extra bytes won't be missed terribly, but if range checking is on
+    and we used a larger request, a whole extra 4096 bytes would be
+    allocated."
+
+    "These number are irrelevant to the new GNU malloc.  I suspect it is
+     less sensitive to the size of the request."
+   
+    I should investigate sometime what is a good number for a malloc
+    request.  Perhaps, as the quoted comment suggests, any sufficiently
+    large number is now as good as any other.
+
+ */
+
+#ifdef HAVE_INTTYPES_H
+# include <inttypes.h>
+#endif
+#ifdef HAVE_STDINT_H
+# include <stdint.h>
+#endif
+
+/* Default alignment is now determined by AUTOCONF, but this structure
+ * is used to calculate an maximum sizeof for a set of types. */
+typedef union
+{
+/* intmax_t is guaranteed by AUTOCONF's AC_TYPE_INTMAX_T.
+    Similarly, for uintmax_t.
+*/
+  uintmax_t t_imax;
+  intmax_t t_uimax;
+/* According to the autoconf manual, long double is provided by
+   all non-obsolescent C compilers. */
+  long double t_ld;
+  /* In some configurations, for historic reasons, double's require
+   * stricter alignment than long double's.
+   */
+  double t_d;
+  void *t_p;
+} worst_object;
+
+/* From the original obstack code:
+   "If malloc were really smart, it would round addresses to DEFAULT_ALIGNMENT.
+   But in fact it might be less smart and round addresses to as much as
+   DEFAULT_ROUNDING.  So we prepare for it to do that."
+
+   Here DEFAULT_ROUNDING is renamed to WORST_MALLOC_ROUNDING.
+   I am not clear how necessary this is, but this is a fudge factor, so I suppose
+   it is OK to fudge, as long as you're erring on the conservative side.
+   */
+#define WORST_MALLOC_ROUNDING (sizeof (worst_object))
 #define MALLOC_OVERHEAD ( ALIGN_UP(12, WORST_MALLOC_ROUNDING) + ALIGN_UP(4, WORST_MALLOC_ROUNDING))
 #define MINIMUM_CHUNK_SIZE (sizeof(struct marpa_obstack_chunk))
 #define DEFAULT_CHUNK_SIZE (4096 - MALLOC_OVERHEAD)
@@ -61,7 +103,7 @@ marpa__obs_begin (int size)
     }
   else
     {
-      size = MAX (DEFAULT_CHUNK_SIZE, size);
+      size = MAX ((int)DEFAULT_CHUNK_SIZE, size);
     }
   chunk = my_malloc (size);
   h = &chunk->contents.obstack_header;
@@ -94,7 +136,7 @@ marpa__obs_newchunk (struct marpa_obstack *h, int length)
    * Make sure there is enough room for |length|
    * after adjusting alignment.
    */
-  new_size = length + offsetof(struct marpa_obstack_chunk, contents) + DEFAULT_ALIGNMENT;
+  new_size = length + offsetof(struct marpa_obstack_chunk, contents) + MARPA__BIGGEST_ALIGNMENT;
   if (!MARPA_OBSTACK_DEBUG && new_size < h->minimum_chunk_size) {
     new_size = h->minimum_chunk_size;
   }

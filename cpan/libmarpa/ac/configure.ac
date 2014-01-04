@@ -212,11 +212,11 @@ AC_DEFUN([AX_GCC_BIGGEST_ALIGNMENT],
     AC_LANG_POP([C])
     ])
 
-AC_SUBST(MARPA_BIGGEST_ALIGNMENT)
-MARPA_BIGGEST_ALIGNMENT=1
+biggest_alignment=1
+
 if test x"$GCC" = xyes; then
     AX_GCC_BIGGEST_ALIGNMENT
-    MARPA_BIGGEST_ALIGNMENT=$ax_cv_gcc_biggest_alignment
+    biggest_alignment=$ax_cv_gcc_biggest_alignment
 fi
 
 # ac_cv_alignof_TYPE will always be set and non-null, but
@@ -224,63 +224,66 @@ fi
 # hard to diagnose if not caught here
 AC_CHECK_ALIGNOF(void *)
 alignment=${ac_cv_alignof_void_p:?"Missing void* alignment"}
-if test $alignment -gt $MARPA_BIGGEST_ALIGNMENT; then
-    MARPA_BIGGEST_ALIGNMENT=$alignment
+if test $alignment -gt $biggest_alignment; then
+    biggest_alignment=$alignment
 fi
 
 AC_CHECK_ALIGNOF(int)
 alignment=${ac_cv_alignof_int:?"Missing int alignment"}
-if test $alignment -gt $MARPA_BIGGEST_ALIGNMENT; then
-    MARPA_BIGGEST_ALIGNMENT=$alignment
+if test $alignment -gt $biggest_alignment; then
+    biggest_alignment=$alignment
 fi
 
 AC_CHECK_ALIGNOF(long)
 alignment=${ac_cv_alignof_long:?"Missing long alignment"}
-if test $alignment -gt $MARPA_BIGGEST_ALIGNMENT; then
-    MARPA_BIGGEST_ALIGNMENT=$alignment
+if test $alignment -gt $biggest_alignment; then
+    biggest_alignment=$alignment
 fi
 
 AC_CHECK_ALIGNOF(long long)
 alignment=${ac_cv_alignof_long_long:?"Missing long long alignment"}
-if test $alignment -gt $MARPA_BIGGEST_ALIGNMENT; then
-    MARPA_BIGGEST_ALIGNMENT=$alignment
+if test $alignment -gt $biggest_alignment; then
+    biggest_alignment=$alignment
 fi
 
 AC_CHECK_ALIGNOF(unsigned)
 alignment=${ac_cv_alignof_unsigned:?"Missing unsigned alignment"}
-if test $alignment -gt $MARPA_BIGGEST_ALIGNMENT; then
-    MARPA_BIGGEST_ALIGNMENT=$alignment
+if test $alignment -gt $biggest_alignment; then
+    biggest_alignment=$alignment
 fi
 
 AC_CHECK_ALIGNOF(unsigned long)
 alignment=${ac_cv_alignof_unsigned_long:?"Missing unsigned long alignment"}
-if test $alignment -gt $MARPA_BIGGEST_ALIGNMENT; then
-    MARPA_BIGGEST_ALIGNMENT=$alignment
+if test $alignment -gt $biggest_alignment; then
+    biggest_alignment=$alignment
 fi
 
 AC_CHECK_ALIGNOF(unsigned long long)
 alignment=${ac_cv_alignof_unsigned_long_long:?"Missing unsigned long long alignment"}
-if test $alignment -gt $MARPA_BIGGEST_ALIGNMENT; then
-    MARPA_BIGGEST_ALIGNMENT=$alignment
+if test $alignment -gt $biggest_alignment; then
+    biggest_alignment=$alignment
 fi
 
 AC_CHECK_ALIGNOF(float)
 alignment=${ac_cv_alignof_float:?"Missing float alignment"}
-if test $alignment -gt $MARPA_BIGGEST_ALIGNMENT; then
-    MARPA_BIGGEST_ALIGNMENT=$alignment
+if test $alignment -gt $biggest_alignment; then
+    biggest_alignment=$alignment
 fi
 
 AC_CHECK_ALIGNOF(double)
 alignment=${ac_cv_alignof_double:?"Missing double alignment"}
-if test $alignment -gt $MARPA_BIGGEST_ALIGNMENT; then
-    MARPA_BIGGEST_ALIGNMENT=$alignment
+if test $alignment -gt $biggest_alignment; then
+    biggest_alignment=$alignment
 fi
 
 AC_CHECK_ALIGNOF(long double)
 alignment=${ac_cv_alignof_long_double:?"Missing long double alignment"}
-if test $alignment -gt $MARPA_BIGGEST_ALIGNMENT; then
-    MARPA_BIGGEST_ALIGNMENT=$alignment
+if test $alignment -gt $biggest_alignment; then
+    biggest_alignment=$alignment
 fi
+
+AC_DEFINE_UNQUOTED([MARPA__BIGGEST_ALIGNMENT], [$biggest_alignment],
+          [Define to the biggest alignment required by any type of interest])
 
 AC_C_INLINE
 
