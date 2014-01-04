@@ -300,7 +300,7 @@ struct op_data_s { const char *name; Marpa_Op op; };
 be valid data.
 @<Function definitions@> =
 const char*
-marpa__slif_op_name (const Marpa_Op op_id)
+marpa__slif_op_name (Marpa_Op op_id)
 {
   if (op_id >= (int)Dim(op_name_by_id_object)) return "unknown";
   return op_name_by_id_object[op_id];

@@ -93,12 +93,60 @@ struct tavl_table *marpa__tavl_copy (const struct tavl_table *, tavl_copy_func *
                             tavl_item_func *);
 void marpa__tavl_destroy (struct tavl_table *, tavl_item_func *);
 void **marpa__tavl_probe (struct tavl_table *, void *);
-void *marpa__tavl_insert (struct tavl_table *, void *);
-void *marpa__tavl_replace (struct tavl_table *, void *);
+
 void *marpa__tavl_delete (struct tavl_table *, const void *);
 void *marpa__tavl_find (const struct tavl_table *, const void *);
 void marpa__tavl_assert_insert (struct tavl_table *, void *);
 void *marpa__tavl_assert_delete (struct tavl_table *, void *);
+
+#ifdef TESTING_TAVL
+
+/* For testing, we don't have the usual headers, so we
+ * dummy up in-lining for GCC.  For other compilers, we
+ * just turn it off.
+ */
+#if defined (__GNUC__) && defined (__STRICT_ANSI__)
+#  undef inline
+#  define inline __inline__
+#endif
+
+/* Don't bother with inlining on this test if we are not
+ * GCC.  */
+#ifndef __GNUC__
+#define inline
+#endif
+
+#endif
+
+/* Inserts |item| into |table|.
+   Returns |NULL| if |item| was successfully inserted
+   or if a memory allocation error occurred.
+   Otherwise, returns the duplicate item. */
+static inline
+void *
+marpa__tavl_insert (struct tavl_table *table, void *item)
+{
+  void **p = marpa__tavl_probe (table, item);
+  return table->tavl_duplicate_found ? *p : NULL;
+}
+
+/* Inserts |item| into |table|, replacing any duplicate item.
+   Returns |NULL| if |item| was inserted without replacing a duplicate,
+   or if a memory allocation error occurred.
+   Otherwise, returns the item that was replaced. */
+static inline
+void *
+marpa__tavl_replace (struct tavl_table *table, void *item)
+{
+  void **p = marpa__tavl_probe (table, item);
+  if (table->tavl_duplicate_found) {
+      void *r = *p;
+      *p = item;
+      return r;
+  }
+  return NULL;
+}
+
 
 #define tavl_count(table) ((size_t) (table)->tavl_count)
 

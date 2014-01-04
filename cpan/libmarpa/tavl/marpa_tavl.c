@@ -282,33 +282,6 @@ marpa__tavl_probe (struct tavl_table *tree, void *item)
   return &n->tavl_data;
 }
 
-/* Inserts |item| into |table|.
-   Returns |NULL| if |item| was successfully inserted
-   or if a memory allocation error occurred.
-   Otherwise, returns the duplicate item. */
-void *
-marpa__tavl_insert (struct tavl_table *table, void *item)
-{
-  void **p = marpa__tavl_probe (table, item);
-  return table->tavl_duplicate_found ? *p : NULL;
-}
-
-/* Inserts |item| into |table|, replacing any duplicate item.
-   Returns |NULL| if |item| was inserted without replacing a duplicate,
-   or if a memory allocation error occurred.
-   Otherwise, returns the item that was replaced. */
-void *
-marpa__tavl_replace (struct tavl_table *table, void *item)
-{
-  void **p = marpa__tavl_probe (table, item);
-  if (table->tavl_duplicate_found) {
-      void *r = *p;
-      *p = item;
-      return r;
-  }
-  return NULL;
-}
-
 /* Returns the parent of |node| within |tree|,
    or a pointer to |tavl_root| if |s| is the root of the tree. */
 static struct tavl_node *
