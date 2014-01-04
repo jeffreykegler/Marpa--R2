@@ -30,25 +30,6 @@
 # include "marpa_ami.h"
 # include "marpa_obs.h"
 
-/* Comments from the original obstack code:
-
-   "Default size is what GNU malloc can fit in a 4096-byte block."
-
-    "12 is sizeof (mhead) and 4 is EXTRA from GNU malloc.
-    Use the values for range checking, because if range checking is off,
-    the extra bytes won't be missed terribly, but if range checking is on
-    and we used a larger request, a whole extra 4096 bytes would be
-    allocated."
-
-    "These number are irrelevant to the new GNU malloc.  I suspect it is
-     less sensitive to the size of the request."
-   
-    I should investigate sometime what is a good number for a malloc
-    request.  Perhaps, as the quoted comment suggests, any sufficiently
-    large number is now as good as any other.
-
- */
-
 #ifdef HAVE_INTTYPES_H
 # include <inttypes.h>
 #endif
@@ -74,6 +55,33 @@ typedef union
   double t_d;
   void *t_p;
 } worst_object;
+
+/* If we have a hint available from GCC, and it is bigger than
+ * what we calculate, we use that */
+#if defined(__GNUC__) && defined(__BIGGEST_ALIGNMENT__)
+const int marpa__biggest_alignment = MAX(ALIGNOF(worst_object), __BIGGEST_ALIGNMENT__);
+#else
+const int marpa__biggest_alignment = ALIGNOF(worst_object);
+#endif
+
+/* Comments from the original obstack code:
+
+   "Default size is what GNU malloc can fit in a 4096-byte block."
+
+    "12 is sizeof (mhead) and 4 is EXTRA from GNU malloc.
+    Use the values for range checking, because if range checking is off,
+    the extra bytes won't be missed terribly, but if range checking is on
+    and we used a larger request, a whole extra 4096 bytes would be
+    allocated."
+
+    "These number are irrelevant to the new GNU malloc.  I suspect it is
+     less sensitive to the size of the request."
+   
+    I should investigate sometime what is a good number for a malloc
+    request.  Perhaps, as the quoted comment suggests, any sufficiently
+    large number is now as good as any other.
+
+ */
 
 /* From the original obstack code:
    "If malloc were really smart, it would round addresses to DEFAULT_ALIGNMENT.
@@ -136,7 +144,7 @@ marpa__obs_newchunk (struct marpa_obstack *h, int length)
    * Make sure there is enough room for |length|
    * after adjusting alignment.
    */
-  new_size = length + offsetof(struct marpa_obstack_chunk, contents) + MARPA__BIGGEST_ALIGNMENT;
+  new_size = length + offsetof(struct marpa_obstack_chunk, contents) + marpa__biggest_alignment;
   if (!MARPA_OBSTACK_DEBUG && new_size < h->minimum_chunk_size) {
     new_size = h->minimum_chunk_size;
   }

@@ -40,6 +40,8 @@
 
 #define ALIGNOF(type) offsetof (struct { char c; type member; }, member)
 
+extern const int marpa__biggest_alignment;
+
 /* If B is the base of an object addressed by P, return the result of
    aligning P to the next multiple of A + 1.  B and P must be of type
    char *.  A + 1 must be a power of 2.  */
@@ -141,7 +143,7 @@ marpa_obs_start (struct marpa_obstack *h, int length, int alignment)
 static inline void
 marpa_obs_reserve (struct marpa_obstack *h, int length)
 {
-  marpa_obs_start(h, length, MARPA__BIGGEST_ALIGNMENT);
+  marpa_obs_start(h, length, marpa__biggest_alignment);
 }
 
 static inline
@@ -160,7 +162,7 @@ marpa_obs_aligned (struct marpa_obstack *h, int length, int alignment)
 }
 
 #define marpa_obs_alloc(h, length) \
-    (marpa_obs_aligned((h), (length), MARPA__BIGGEST_ALIGNMENT))
+    (marpa_obs_aligned((h), (length), marpa__biggest_alignment))
 
 /* "Confirm", which is to set at its final value,
  * the size of a reserved object, currently being built.
