@@ -10119,7 +10119,7 @@ That may become its actual value,
 once it is populated.
 @<Create a new, unpopulated, LIM@> = {
     LIM new_lim;
-    new_lim = marpa_obs_alloc(r->t_obs, sizeof(*new_lim));
+    new_lim = marpa_obs_new(r->t_obs, LIM_Object, 1);
     Postdot_NSYID_of_LIM(new_lim) = nsyid;
     YIM_of_PIM(new_lim) = NULL;
     Predecessor_LIM_of_LIM(new_lim) = NULL;
@@ -10574,12 +10574,16 @@ struct s_ur_node_stack {
    UR t_base;
    UR t_top;
 };
+
+@ @<Private structures@> =
 struct s_ur_node {
    UR t_prev;
    UR t_next;
    YIM t_earley_item;
    AEX t_aex;
 };
+typedef struct s_ur_node UR_Object;
+
 @ @d URS_of_R(r) (&(r)->t_ur_node_stack)
 @<Widely aligned recognizer elements@> =
 struct s_ur_node_stack t_ur_node_stack;
@@ -10617,7 +10621,7 @@ PRIVATE void ur_node_stack_destroy(URS stack)
 PRIVATE UR ur_node_new(URS stack, UR prev)
 {
     UR new_ur_node;
-    new_ur_node = marpa_obs_alloc(stack->t_obs, sizeof(new_ur_node[0]));
+    new_ur_node = marpa_obs_new(stack->t_obs, UR_Object, 1);
     Next_UR_of_UR(new_ur_node) = 0;
     Prev_UR_of_UR(new_ur_node) = prev;
     return new_ur_node;
@@ -14663,11 +14667,14 @@ This is offset from the |malloc|'d space,
 by |bv_hiddenwords|.
 @<Function definitions@> =
 PRIVATE Bit_Vector
-bv_obs_create (struct marpa_obstack *obs, unsigned int bits)
+bv_obs_create (struct marpa_obstack *obs, LBW bits)
 {
-  unsigned int size = bv_bits_to_size (bits);
-  unsigned int bytes = (size + bv_hiddenwords) * sizeof (Bit_Vector_Word);
-  unsigned int *addr = (Bit_Vector) marpa_obs_alloc (obs, (size_t) bytes);
+  LBW size = bv_bits_to_size (bits);
+  LBW bytes = (size + bv_hiddenwords) * sizeof (Bit_Vector_Word);
+
+  /* Needs to be aligned for an LBW */
+  LBW *addr = (Bit_Vector) marpa_obs_alloc (obs, (size_t) bytes);
+
   *addr++ = bits;
   *addr++ = size;
   *addr++ = bv_bits_to_unused_mask (bits);
@@ -14700,8 +14707,8 @@ This call allocates a new vector, which must be |free|'d.
 PRIVATE
 Bit_Vector bv_copy(Bit_Vector bv_to, Bit_Vector bv_from)
 {
-    unsigned int *p_to = bv_to;
-    const unsigned int bits = BV_BITS(bv_to);
+    LBW *p_to = bv_to;
+    const LBW bits = BV_BITS(bv_to);
     if (bits > 0)
     {
         int count = BV_SIZE(bv_to);
@@ -14742,7 +14749,7 @@ PRIVATE void bv_free(Bit_Vector vector)
 @<Function definitions@> =
 PRIVATE void bv_fill(Bit_Vector bv)
 {
-    unsigned int size = BV_SIZE(bv);
+    LBW size = BV_SIZE(bv);
     if (size <= 0) return;
     while (size--) *bv++ = ~0u;
     --bv;
@@ -14753,7 +14760,7 @@ PRIVATE void bv_fill(Bit_Vector bv)
 @<Function definitions@> =
 PRIVATE void bv_clear(Bit_Vector bv)
 {
-    unsigned int size = BV_SIZE(bv);
+    LBW size = BV_SIZE(bv);
     if (size <= 0) return;
     while (size--) *bv++ = 0u;
 }
@@ -14765,29 +14772,29 @@ than an interval clear, at the expense of often
 clearing more bits than were requested.
 In some situations clearing the extra bits is OK.
 @ @<Function definitions@> =
-PRIVATE void bv_over_clear(Bit_Vector bv, unsigned int bit)
+PRIVATE void bv_over_clear(Bit_Vector bv, LBW bit)
 {
-    unsigned int length = bit/bv_wordbits+1;
+    LBW length = bit/bv_wordbits+1;
     while (length--) *bv++ = 0u;
 }
 
 @*0 Set a boolean vector bit.
 @ @<Function definitions@> =
-PRIVATE void bv_bit_set(Bit_Vector vector, unsigned int bit)
+PRIVATE void bv_bit_set(Bit_Vector vector, LBW bit)
 {
     *(vector+(bit/bv_wordbits)) |= (bv_lsb << (bit%bv_wordbits));
 }
 
 @*0 Clear a boolean vector bit.
 @<Function definitions@> =
-PRIVATE void bv_bit_clear(Bit_Vector vector, unsigned int bit)
+PRIVATE void bv_bit_clear(Bit_Vector vector, LBW bit)
 {
     *(vector+(bit/bv_wordbits)) &= ~ (bv_lsb << (bit%bv_wordbits));
 }
 
 @*0 Test a boolean vector bit.
 @<Function definitions@> =
-PRIVATE int bv_bit_test(Bit_Vector vector, unsigned int bit)
+PRIVATE int bv_bit_test(Bit_Vector vector, LBW bit)
 {
     return (*(vector+(bit/bv_wordbits)) & (bv_lsb << (bit%bv_wordbits))) != 0u;
 }
@@ -14799,10 +14806,10 @@ so that the return value is 1 if the call had no effect,
 zero otherwise.
 @<Function definitions@> =
 PRIVATE int
-bv_bit_test_then_set (Bit_Vector vector, unsigned int bit)
+bv_bit_test_then_set (Bit_Vector vector, LBW bit)
 {
   Bit_Vector addr = vector + (bit / bv_wordbits);
-  unsigned int mask = bv_lsb << (bit % bv_wordbits);
+  LBW mask = bv_lsb << (bit % bv_wordbits);
   if ((*addr & mask) != 0u)
     return 1;
   *addr |= mask;
@@ -14814,7 +14821,7 @@ bv_bit_test_then_set (Bit_Vector vector, unsigned int bit)
 PRIVATE
 int bv_is_empty(Bit_Vector addr)
 {
-    unsigned int  size = BV_SIZE(addr);
+    LBW  size = BV_SIZE(addr);
     int r = 1;
     if (size > 0) {
         *(addr+size-1) &= BV_MASK(addr);
@@ -14827,8 +14834,8 @@ int bv_is_empty(Bit_Vector addr)
 @<Function definitions@>=
 PRIVATE void bv_not(Bit_Vector X, Bit_Vector Y)
 {
-    unsigned int size = BV_SIZE(X);
-    unsigned int mask = BV_MASK(X);
+    LBW size = BV_SIZE(X);
+    LBW mask = BV_MASK(X);
     while (size-- > 0) *X++ = ~*Y++;
     *(--X) &= mask;
 }
@@ -14837,8 +14844,8 @@ PRIVATE void bv_not(Bit_Vector X, Bit_Vector Y)
 @<Function definitions@>=
 PRIVATE void bv_and(Bit_Vector X, Bit_Vector Y, Bit_Vector Z)
 {
-    unsigned int size = BV_SIZE(X);
-    unsigned int mask = BV_MASK(X);
+    LBW size = BV_SIZE(X);
+    LBW mask = BV_MASK(X);
     while (size-- > 0) *X++ = *Y++ & *Z++;
     *(--X) &= mask;
 }
@@ -14847,8 +14854,8 @@ PRIVATE void bv_and(Bit_Vector X, Bit_Vector Y, Bit_Vector Z)
 @<Function definitions@>=
 PRIVATE void bv_or(Bit_Vector X, Bit_Vector Y, Bit_Vector Z)
 {
-    unsigned int size = BV_SIZE(X);
-    unsigned int mask = BV_MASK(X);
+    LBW size = BV_SIZE(X);
+    LBW mask = BV_MASK(X);
     while (size-- > 0) *X++ = *Y++ | *Z++;
     *(--X) &= mask;
 }
@@ -14857,8 +14864,8 @@ PRIVATE void bv_or(Bit_Vector X, Bit_Vector Y, Bit_Vector Z)
 @<Function definitions@>=
 PRIVATE void bv_or_assign(Bit_Vector X, Bit_Vector Y)
 {
-    unsigned int size = BV_SIZE(X);
-    unsigned int mask = BV_MASK(X);
+    LBW size = BV_SIZE(X);
+    LBW mask = BV_MASK(X);
     while (size-- > 0) *X++ |= *Y++;
     *(--X) &= mask;
 }
@@ -14866,14 +14873,13 @@ PRIVATE void bv_or_assign(Bit_Vector X, Bit_Vector Y)
 @*0 Scan a boolean vector.
 @<Function definitions@>=
 PRIVATE_NOT_INLINE
-int bv_scan(Bit_Vector bv, unsigned int start,
-                                    unsigned int* min, unsigned int* max)
+int bv_scan(Bit_Vector bv, LBW start, LBW* min, LBW* max)
 {
-    unsigned int  size = BV_SIZE(bv);
-    unsigned int  mask = BV_MASK(bv);
-    unsigned int  offset;
-    unsigned int  bitmask;
-    unsigned int  value;
+    LBW  size = BV_SIZE(bv);
+    LBW  mask = BV_MASK(bv);
+    LBW  offset;
+    LBW  bitmask;
+    LBW  value;
     int empty;
 
     if (size == 0) return 0;
@@ -14884,8 +14890,8 @@ int bv_scan(Bit_Vector bv, unsigned int start,
     *(bv+size-1) &= mask;
     bv += offset;
     size -= offset;
-    bitmask = (unsigned int)1 << (start & bv_modmask);
-    mask = ~ (bitmask | (bitmask - (unsigned int)1));
+    bitmask = (LBW)1 << (start & bv_modmask);
+    mask = ~ (bitmask | (bitmask - (LBW)1));
     value = *bv++;
     if ((value & bitmask) == 0)
     {
@@ -14937,11 +14943,11 @@ int bv_scan(Bit_Vector bv, unsigned int start,
 
 @*0 Count the bits in a boolean vector.
 @<Function definitions@>=
-PRIVATE unsigned int
+PRIVATE LBW
 bv_count (Bit_Vector v)
 {
-  unsigned int start, min, max;
-  unsigned int count = 0;
+  LBW start, min, max;
+  LBW count = 0;
   for (start = 0; bv_scan (v, start, &min, &max); start = max + 2)
     {
       count += max - min + 1;
@@ -14988,13 +14994,13 @@ The orignal vector is destroyed.
 PRIVATE void
 rhs_closure (GRAMMAR g, Bit_Vector bv, XRLID ** xrl_list_x_rh_sym)
 {
-  unsigned int min, max, start = 0;
+  LBW min, max, start = 0;
   Marpa_Symbol_ID *end_of_stack = NULL;
   FSTACK_DECLARE (stack, XSYID) @;
   FSTACK_INIT (stack, XSYID, XSY_Count_of_G (g));
   while (bv_scan (bv, start, &min, &max))
     {
-      unsigned int xsy_id;
+      LBW xsy_id;
       for (xsy_id = min; xsy_id <= max; xsy_id++)
         {
           *(FSTACK_PUSH (stack)) = xsy_id;
@@ -15016,7 +15022,7 @@ rhs_closure (GRAMMAR g, Bit_Vector bv, XRLID ** xrl_list_x_rh_sym)
 
           const int is_sequence = XRL_is_Sequence (rule);
 
-          if (bv_bit_test (bv, (unsigned int) lhs_id))
+          if (bv_bit_test (bv, (LBW) lhs_id))
             goto NEXT_RULE;
           rule_length = Length_of_XRL (rule);
 
@@ -15028,7 +15034,7 @@ rhs_closure (GRAMMAR g, Bit_Vector bv, XRLID ** xrl_list_x_rh_sym)
           for (rh_ix = 0; rh_ix < rule_length; rh_ix++)
             {
               if (!bv_bit_test
-                  (bv, (unsigned int) RHS_ID_of_XRL (rule, rh_ix)))
+                  (bv, (LBW) RHS_ID_of_XRL (rule, rh_ix)))
                 goto NEXT_RULE;
             }
 
@@ -15041,7 +15047,7 @@ rhs_closure (GRAMMAR g, Bit_Vector bv, XRLID ** xrl_list_x_rh_sym)
               XSYID separator_id = Separator_of_XRL (rule);
               if (separator_id >= 0)
                 {
-                  if (!bv_bit_test (bv, (unsigned int) separator_id))
+                  if (!bv_bit_test (bv, (LBW) separator_id))
                     goto NEXT_RULE;
                 }
             }
@@ -15049,7 +15055,7 @@ rhs_closure (GRAMMAR g, Bit_Vector bv, XRLID ** xrl_list_x_rh_sym)
           /* If I am here, the bits for the RHS symbols are all
            * set, but the one for the LHS symbol is not.
            */
-          bv_bit_set (bv, (unsigned int) lhs_id);
+          bv_bit_set (bv, (LBW) lhs_id);
           *(FSTACK_PUSH (stack)) = lhs_id;
         NEXT_RULE:;
         }
@@ -15093,16 +15099,16 @@ This is {\bf not} the case with vectors, whose pointer is offset for
 the ``hidden words".
 @<Function definitions@> =
 PRIVATE Bit_Matrix
-matrix_buffer_create (void *buffer, unsigned int rows, unsigned int columns)
+matrix_buffer_create (void *buffer, LBW rows, LBW columns)
 {
-    unsigned int row;
-    const unsigned int bv_data_words = bv_bits_to_size(columns);
-    const unsigned int bv_mask = bv_bits_to_unused_mask(columns);
+    LBW row;
+    const LBW bv_data_words = bv_bits_to_size(columns);
+    const LBW bv_mask = bv_bits_to_unused_mask(columns);
 
     Bit_Matrix matrix_addr = buffer;
     matrix_addr->t_row_count = rows;
     for (row = 0; row < rows; row++) {
-        const unsigned int row_start = row*(bv_data_words+bv_hiddenwords);
+        const LBW row_start = row*(bv_data_words+bv_hiddenwords);
         Bit_Vector_Word* p_current_word = matrix_addr->t_row_data + row_start;
         int data_word_counter = bv_data_words;
         *p_current_word++ = columns;
@@ -15115,10 +15121,10 @@ matrix_buffer_create (void *buffer, unsigned int rows, unsigned int columns)
 
 @*0 Size a boolean matrix in bytes.
 @ @<Function definitions@> =
-PRIVATE size_t matrix_sizeof(unsigned int rows, unsigned int columns)
+PRIVATE size_t matrix_sizeof(LBW rows, LBW columns)
 {
-  const unsigned int bv_data_words = bv_bits_to_size (columns);
-  const unsigned int row_bytes =
+  const LBW bv_data_words = bv_bits_to_size (columns);
+  const LBW row_bytes =
     (bv_data_words + bv_hiddenwords) * sizeof (Bit_Vector_Word);
   return offsetof (struct s_bit_matrix, t_row_data) +(rows) * row_bytes;
 }
@@ -15127,8 +15133,8 @@ PRIVATE size_t matrix_sizeof(unsigned int rows, unsigned int columns)
 @ @<Function definitions@> =
 PRIVATE Bit_Matrix matrix_obs_create(
   struct marpa_obstack *obs,
-  unsigned int rows,
-  unsigned int columns)
+  LBW rows,
+  LBW columns)
 {
   /* Needs to be aligned as a |Bit_Matrix_Object| */
   Bit_Matrix matrix_addr =
@@ -15144,7 +15150,7 @@ PRIVATE void matrix_clear(Bit_Matrix matrix)
     int row_ix;
     const int row_count = matrix->t_row_count;
     Bit_Vector row0 = matrix->t_row_data + bv_hiddenwords;
-    unsigned int words_per_row = BV_SIZE(row0)+bv_hiddenwords;
+    LBW words_per_row = BV_SIZE(row0)+bv_hiddenwords;
     row_ix=0; row = row0;
     while (row_ix < row_count) {
         bv_clear(row);
@@ -15176,16 +15182,16 @@ If it is changed, the vector should be cloned.
 There is a bit of arithmetic, to deal with the
 hidden words offset.
 @<Function definitions@> =
-PRIVATE Bit_Vector matrix_row(Bit_Matrix matrix, unsigned int row)
+PRIVATE Bit_Vector matrix_row(Bit_Matrix matrix, LBW row)
 {
     Bit_Vector row0 = matrix->t_row_data + bv_hiddenwords;
-    unsigned int words_per_row = BV_SIZE(row0)+bv_hiddenwords;
+    LBW words_per_row = BV_SIZE(row0)+bv_hiddenwords;
     return row0 + row*words_per_row;
 }
 
 @*0 Set a boolean matrix bit.
 @ @<Function definitions@> =
-PRIVATE void matrix_bit_set(Bit_Matrix matrix, unsigned int row, unsigned int column)
+PRIVATE void matrix_bit_set(Bit_Matrix matrix, LBW row, LBW column)
 {
     Bit_Vector vector = matrix_row(matrix, row);
     bv_bit_set(vector, column);
@@ -15193,7 +15199,7 @@ PRIVATE void matrix_bit_set(Bit_Matrix matrix, unsigned int row, unsigned int co
 
 @*0 Clear a boolean matrix bit.
 @ @<Function definitions@> =
-PRIVATE void matrix_bit_clear(Bit_Matrix matrix, unsigned int row, unsigned int column)
+PRIVATE void matrix_bit_clear(Bit_Matrix matrix, LBW row, LBW column)
 {
     Bit_Vector vector = matrix_row(matrix, row);
     bv_bit_clear(vector, column);
@@ -15201,7 +15207,7 @@ PRIVATE void matrix_bit_clear(Bit_Matrix matrix, unsigned int row, unsigned int 
 
 @*0 Test a boolean matrix bit.
 @ @<Function definitions@> =
-PRIVATE int matrix_bit_test(Bit_Matrix matrix, unsigned int row, unsigned int column)
+PRIVATE int matrix_bit_test(Bit_Matrix matrix, LBW row, LBW column)
 {
     Bit_Vector vector = matrix_row(matrix, row);
     return bv_bit_test(vector, column);
@@ -15220,16 +15226,16 @@ $O(n^3)$ where the matrix is $n$x$n$.
 @<Function definitions@> =
 PRIVATE_NOT_INLINE void transitive_closure(Bit_Matrix matrix)
 {
-  unsigned int size = matrix_columns (matrix);
-  unsigned int outer_row;
+  LBW size = matrix_columns (matrix);
+  LBW outer_row;
   for (outer_row = 0; outer_row < size; outer_row++)
     {
       Bit_Vector outer_row_v = matrix_row (matrix, outer_row);
-      unsigned int column;
+      LBW column;
       for (column = 0; column < size; column++)
         {
           Bit_Vector inner_row_v = matrix_row (matrix, column);
-          if (bv_bit_test (inner_row_v, (unsigned int) outer_row))
+          if (bv_bit_test (inner_row_v, (LBW) outer_row))
             {
               bv_or_assign (inner_row_v, outer_row_v);
             }
@@ -15447,7 +15453,7 @@ so its current contents will be destroyed.
 @<Function definitions@> =
 PRIVATE CIL cil_bv_add(CILAR cilar, Bit_Vector bv)
 {
-  unsigned int min, max, start = 0;
+  LBW min, max, start = 0;
   cil_buffer_clear (cilar);
   for (start = 0; bv_scan (bv, start, &min, &max); start = max + 2)
     {
