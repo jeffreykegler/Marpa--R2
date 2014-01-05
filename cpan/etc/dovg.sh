@@ -1,5 +1,5 @@
 # Intended to be run from the cpan directory
-ls t/*.t html/t/*.t |
+(ls t/*.t; ls html/t/*.t) |
 while read t
 do
   echo === $t ===;
