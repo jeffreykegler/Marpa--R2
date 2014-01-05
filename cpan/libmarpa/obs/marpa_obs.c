@@ -56,14 +56,6 @@ typedef union
   void *t_p;
 } worst_object;
 
-/* If we have a hint available from GCC, and it is bigger than
- * what we calculate, we use that */
-#if defined(__GNUC__) && defined(__BIGGEST_ALIGNMENT__)
-const int marpa__biggest_alignment = MAX(ALIGNOF(worst_object), __BIGGEST_ALIGNMENT__);
-#else
-const int marpa__biggest_alignment = ALIGNOF(worst_object);
-#endif
-
 /* Comments from the original obstack code:
 
    "Default size is what GNU malloc can fit in a 4096-byte block."
@@ -101,18 +93,30 @@ marpa__obs_begin (int size)
 {
   struct marpa_obstack_chunk *chunk;	/* points to new chunk */
   struct marpa_obstack *h;	/* points to new obstack */
-  /* Just enough room for the chunk and obstack headers */
+  char *object_base;
+  char *chunk_base;
 
+  /* We ignore |size| if it specifies less than the default */
   size = MAX ((int)DEFAULT_CHUNK_SIZE, size);
-  chunk = my_malloc (size);
-  h = &chunk->contents.obstack_header;
+  chunk_base = my_malloc (size);
 
-  h->chunk = chunk;
-
-  /* The first object can go after the obstack header */
-  h->next_free = h->object_base = ((char *) h + sizeof (*h));
-  chunk->header.size = h->minimum_chunk_size = size;
+  /* The chunk header goes at the beginning */
+  chunk = (struct marpa_obstack_chunk*)chunk_base;
+  chunk->header.size = size;
   chunk->header.prev = 0;
+
+  /* Put the header of the obstack itself after the header of its first
+     chunk. */
+  object_base = chunk_base + sizeof(chunk->header);
+  object_base = ALIGN_POINTER (chunk_base, object_base, ALIGNOF (struct marpa_obstack));
+  h = (struct marpa_obstack *)object_base;
+  h->chunk = chunk;
+  h->minimum_chunk_size = size;
+
+  /* Set the obstack to "idle" with the pointer just after the
+     obstack header */
+  object_base += sizeof(*h);
+  h->next_free = h->object_base = object_base;
   return h;
 }
 
@@ -121,21 +125,28 @@ marpa__obs_begin (int size)
    to the current object, or a new object of length LENGTH allocated.
    Unlike original GNU obstacks, does *NOT*
    copy any partial object from the end of the old chunk
-   to the beginning of the new one.  */
+   to the beginning of the new one.
 
-void
-marpa__obs_newchunk (struct marpa_obstack *h, int length)
+   In this implementation, we know the next object we will
+   need, and |length| and |alignment| represent that object.
+   We start the new object, and return its base addess.
+   */
+
+void*
+marpa__obs_newchunk (struct marpa_obstack *h, int length, int alignment)
 {
   struct marpa_obstack_chunk *old_chunk = h->chunk;
   struct marpa_obstack_chunk *new_chunk;
   long  new_size;
-  char *object_base;
+  const int contents_offset = offsetof(struct marpa_obstack_chunk, contents);
+  const int aligned_contents_offset = ALIGN_UP(contents_offset, alignment);
+  const int space_needed_for_alignment = aligned_contents_offset - contents_offset;
 
   /* Compute size for new chunk.
    * Make sure there is enough room for |length|
    * after adjusting alignment.
    */
-  new_size = length + offsetof(struct marpa_obstack_chunk, contents) + marpa__biggest_alignment;
+  new_size = contents_offset + space_needed_for_alignment + length;
   new_size = MAX(new_size, h->minimum_chunk_size);
 
   /* Allocate and initialize the new chunk.  */
@@ -144,10 +155,9 @@ marpa__obs_newchunk (struct marpa_obstack *h, int length)
   new_chunk->header.prev = old_chunk;
   new_chunk->header.size = new_size;
 
-  object_base = new_chunk->contents.contents;
-
-  h->object_base = object_base;
-  h->next_free = h->object_base;
+  h->object_base =  (char *)new_chunk + contents_offset + space_needed_for_alignment;
+  h->next_free = h->object_base + length;
+  return h->object_base;
 }
 
 /* Free everything in H.  */

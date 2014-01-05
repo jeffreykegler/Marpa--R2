@@ -36,8 +36,6 @@
 
 #define ALIGNOF(type) offsetof (struct { char c; type member; }, member)
 
-extern const int marpa__biggest_alignment;
-
 /* If B is the base of an object addressed by P, return the result of
    aligning P to the next multiple of A + 1.  B and P must be of type
    char *.  A + 1 must be a power of 2.  */
@@ -54,32 +52,40 @@ extern const int marpa__biggest_alignment;
    so we don't use it. 
 */
 
+/* |object_base| is the base of the object currently being built.
+   |next_free| is the potential base of the next object, and therefore
+   a limit (we hope!) on the size of the one currently being built.
+   |object_base| == |next_free| if we are "idle" --
+   not currently building an object.  An obstack is "idle" when
+   it is initialized.
+
+   Objects are "started" by moving |next_free| forward so that
+   |next_free| > |object_base|.  Objects are finished by setting
+   |next_free| == |object_base|, so the obstack is again "idle".
+*/
+
 struct marpa_obstack    /* control current object in current chunk */
 {
   struct marpa_obstack_chunk *chunk;    /* address of current struct obstack_chunk */
-  char *object_base;            /* address of object we are building */
-  char *next_free;              /* where to add next char to current object */
+  char *object_base;
+  char *next_free;
   int minimum_chunk_size;              /* preferred size to allocate chunks in */
 };
 
 struct marpa_obstack_chunk_header               /* Lives at front of each chunk. */
 {
   struct marpa_obstack_chunk* prev;     /* address of prior chunk or NULL */
-  int size;                  /* 1 past end of this chunk */
+  int size;
 };
 
 struct marpa_obstack_chunk
 {
   struct marpa_obstack_chunk_header header;
-  union {
-    char contents[4];   /* objects begin here */
-    struct marpa_obstack obstack_header;
-  } contents;
+  /* objects begin here in the second and subsequent chunks */
+  char contents[4];
 };
 
-/* Declare the external functions we use; they are in obstack.c.  */
-
-extern void marpa__obs_newchunk (struct marpa_obstack *, int);
+extern void* marpa__obs_newchunk (struct marpa_obstack *, int, int);
 
 extern struct marpa_obstack* marpa__obs_begin (int);
 
@@ -112,18 +118,13 @@ void marpa__obs_free (struct marpa_obstack *__obstack);
 static inline void*
 marpa_obs_start (struct marpa_obstack *h, int length, int alignment)
 {
-  int offset = h->next_free - (char *) (h->chunk);
-  offset = ALIGN_UP (offset, alignment);
-  if (offset + length > h->chunk->header.size)
+  const int current_offset = h->next_free - (char *) (h->chunk);
+  const int aligned_offset = ALIGN_UP (current_offset, alignment);
+  if (aligned_offset + length > h->chunk->header.size)
     {
-      marpa__obs_newchunk (h, length);
-      h->object_base =
-	ALIGN_POINTER ((char *) h->chunk, h->object_base, alignment);
+      return marpa__obs_newchunk (h, length, alignment);
     }
-  else
-    {
-      h->object_base = (char *) (h->chunk) + offset;
-    }
+  h->object_base = (char *) (h->chunk) + aligned_offset;
   h->next_free = h->object_base + length;
   return h->object_base;
 }
