@@ -93,8 +93,6 @@ fi
 AC_SUBST(WARNING_CFLAGS)
 AC_SUBST(WARNING_CPPFLAGS)
 AC_ARG_VAR(MARPA_DEBUG_FLAG,[Marpa debugging])
-AC_TYPE_UINTMAX_T
-AC_TYPE_INTMAX_T
 
 AC_CHECK_SIZEOF([int])
 if test "$ac_cv_sizeof_int" -lt 4; then
