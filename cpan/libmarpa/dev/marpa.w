@@ -5695,7 +5695,7 @@ _marpa_avl_destroy(duplicates);
   NSYID *postdot_nsyidary;
   AIM start_item;
   NSYID postdot_nsyid;
-  AIM *item_list = marpa_obs_alloc (g->t_obs, sizeof (AIM));
+  AIM *item_list = marpa_obs_new (g->t_obs, AIM, 1);
   /* The start item is the initial item for the start rule */
   start_item = First_AIM_of_IRL(start_irl);
   item_list[0] = start_item;
@@ -5707,7 +5707,7 @@ _marpa_avl_destroy(duplicates);
   TRANSs_of_AHFA (p_initial_state) = transitions_new (g, nsy_count);
   Postdot_NSY_Count_of_AHFA (p_initial_state) = 1;
   postdot_nsyidary = Postdot_NSYIDAry_of_AHFA (p_initial_state) =
-    marpa_obs_alloc (g->t_obs, sizeof (NSYID));
+    marpa_obs_new (g->t_obs, NSYID, 1);
   postdot_nsyid = Postdot_NSYID_of_AIM (start_item);
   *postdot_nsyidary = postdot_nsyid;
   Completion_CIL_of_AHFA(p_initial_state) =
@@ -5766,7 +5766,7 @@ a start rule completion, and it is a
     AHFA_initialize(p_new_state);
     singleton_duplicates[working_aim_id] = p_new_state;
     new_state_item_list = p_new_state->t_items =
-        marpa_obs_alloc (g->t_obs, sizeof (AIM));
+        marpa_obs_new (g->t_obs, AIM, 1);
     new_state_item_list[0] = working_aim_p;
     p_new_state->t_item_count = 1;
     AHFA_is_Predicted(p_new_state) = 0;
@@ -5777,7 +5777,7 @@ a start rule completion, and it is a
     if (postdot_nsyid >= 0)
       {
         NSYID* p_postdot_nsyidary = Postdot_NSYIDAry_of_AHFA(p_new_state) =
-          marpa_obs_alloc (g->t_obs, sizeof (NSYID));
+          marpa_obs_new (g->t_obs, NSYID, 1);
         Completion_CIL_of_AHFA(p_new_state)
           = cil_empty (&g->t_cilar);
         Postdot_NSY_Count_of_AHFA(p_new_state) = 1;
@@ -5840,7 +5840,7 @@ be if written 100\% using indexes.
         memoizations@> =
   const RULEID irl_count = IRL_Count_of_G(g);
   AIM* const item_list_working_buffer
-    = marpa_obs_alloc(obs_precompute, irl_count*sizeof(AIM));
+    = marpa_obs_new(obs_precompute, AIM, irl_count);
   const NSYID nsy_count = NSY_Count_of_G(g);
   const XSYID xsy_count = XSY_Count_of_G(g);
   IRLID** irl_list_x_lh_nsy = NULL;
@@ -5946,7 +5946,7 @@ of minimum sizes.
   {
       int i;
       AIM* const final_aim_list = p_new_state->t_items =
-          marpa_obs_alloc( g->t_obs, no_of_items_in_new_state * sizeof (AIM));
+          marpa_obs_new( g->t_obs, AIM, no_of_items_in_new_state);
       for (i = 0; i < no_of_items_in_new_state; i++) {
           final_aim_list[i] = item_list_working_buffer[i];
       }
