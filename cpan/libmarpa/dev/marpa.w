@@ -2032,8 +2032,7 @@ PRIVATE
   XRL xrl;
   const int sizeof_xrl = offsetof (struct s_xrl, t_symbols) +
     (length + 1) * sizeof (xrl->t_symbols[0]);
-  marpa_obs_start (g->t_xrl_obs, sizeof_xrl, ALIGNOF(XRL));
-  xrl = marpa_obs_base (g->t_xrl_obs);
+  xrl = marpa_obs_start (g->t_xrl_obs, sizeof_xrl, ALIGNOF(XRL));
   Length_of_XRL (xrl) = length;
   xrl->t_symbols[0] = lhs;
   XSY_is_LHS (XSY_by_ID (lhs)) = 1;
@@ -9479,19 +9478,20 @@ altered by the attempt.
 {
   TOK tkn;
   ALT_Object alternative;
-  struct marpa_obstack * const tkn_obstack = TOK_Obs_of_I (input);
+  struct marpa_obstack *const tkn_obstack = TOK_Obs_of_I (input);
   if (value)
     {
-      marpa_obs_reserve (TOK_Obs_of_I (input), sizeof (*tkn));
-      tkn = marpa_obs_base (tkn_obstack);
+      tkn =
+	marpa_obs_start (TOK_Obs_of_I (input), sizeof (*tkn), ALIGNOF (TOK));
       NSYID_of_TOK (tkn) = tkn_nsyid;
       Type_of_TOK (tkn) = VALUED_TOKEN_OR_NODE;
       Value_of_TOK (tkn) = value;
     }
   else
     {
-      marpa_obs_reserve (TOK_Obs_of_I (input), sizeof (tkn->t_unvalued));
-      tkn = marpa_obs_base (tkn_obstack);
+      tkn =
+	marpa_obs_start (TOK_Obs_of_I (input), sizeof (tkn->t_unvalued),
+			 ALIGNOF (struct s_token_unvalued));
       NSYID_of_TOK (tkn) = tkn_nsyid;
       Type_of_TOK (tkn) = UNVALUED_TOKEN_OR_NODE;
     }
@@ -9503,7 +9503,7 @@ altered by the attempt.
   if (alternative_insert (r, &alternative) < 0)
     {
       marpa_obs_reject (tkn_obstack);
-      MARPA_ERROR(MARPA_ERR_DUPLICATE_TOKEN);
+      MARPA_ERROR (MARPA_ERR_DUPLICATE_TOKEN);
       return MARPA_ERR_DUPLICATE_TOKEN;
     }
   tkn = marpa_obs_finish (tkn_obstack);
@@ -13060,8 +13060,7 @@ int marpa_o_rank( Marpa_Order o)
       const ANDID last_and_node_id =
         (first_and_node_id + and_count_of_or) - 1;
       ANDID *const order_base =
-        (marpa_obs_reserve (obs, sizeof (ANDID) * (and_count_of_or + 1)),
-         marpa_obs_base (obs));
+        marpa_obs_start (obs, sizeof (ANDID) * (and_count_of_or + 1), ALIGNOF(ANDID));
       ANDID *order = order_base + 1;
       ANDID and_node_id;
       bocage_was_reordered = 1;

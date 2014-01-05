@@ -94,7 +94,6 @@ const int marpa__biggest_alignment = ALIGNOF(worst_object);
    */
 #define WORST_MALLOC_ROUNDING (sizeof (worst_object))
 #define MALLOC_OVERHEAD ( ALIGN_UP(12, WORST_MALLOC_ROUNDING) + ALIGN_UP(4, WORST_MALLOC_ROUNDING))
-#define MINIMUM_CHUNK_SIZE (sizeof(struct marpa_obstack_chunk))
 #define DEFAULT_CHUNK_SIZE (4096 - MALLOC_OVERHEAD)
 
 struct marpa_obstack *
@@ -104,15 +103,7 @@ marpa__obs_begin (int size)
   struct marpa_obstack *h;	/* points to new obstack */
   /* Just enough room for the chunk and obstack headers */
 
-  if (MARPA_OBSTACK_DEBUG)
-    {
-      /* Use the minimum size if we are debugging */
-      size = MINIMUM_CHUNK_SIZE;
-    }
-  else
-    {
-      size = MAX ((int)DEFAULT_CHUNK_SIZE, size);
-    }
+  size = MAX ((int)DEFAULT_CHUNK_SIZE, size);
   chunk = my_malloc (size);
   h = &chunk->contents.obstack_header;
 
@@ -145,9 +136,7 @@ marpa__obs_newchunk (struct marpa_obstack *h, int length)
    * after adjusting alignment.
    */
   new_size = length + offsetof(struct marpa_obstack_chunk, contents) + marpa__biggest_alignment;
-  if (!MARPA_OBSTACK_DEBUG && new_size < h->minimum_chunk_size) {
-    new_size = h->minimum_chunk_size;
-  }
+  new_size = MAX(new_size, h->minimum_chunk_size);
 
   /* Allocate and initialize the new chunk.  */
   new_chunk = my_malloc( new_size);

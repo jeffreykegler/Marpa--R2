@@ -27,10 +27,6 @@
 #ifndef _MARPA_OBS_H__
 #define _MARPA_OBS_H__ 1
 
-#ifndef MARPA_OBSTACK_DEBUG
-#define MARPA_OBSTACK_DEBUG 0
-#endif
-
 /* Suppress 'unnamed type definition in parentheses' warning
    in #define ALIGNOF(type) below 
    under MS C compiler older than .NET 2003 */
@@ -121,29 +117,23 @@ void marpa__obs_free (struct marpa_obstack *__obstack);
     ((type *)marpa_obs_aligned((h), (sizeof(type)*(count)), ALIGNOF(type)))
 
 /* Start an object */
-static inline void
+static inline void*
 marpa_obs_start (struct marpa_obstack *h, int length, int alignment)
 {
-  if (!MARPA_OBSTACK_DEBUG)
+  int offset = h->next_free - (char *) (h->chunk);
+  offset = ALIGN_UP (offset, alignment);
+  if (offset + length > h->chunk->header.size)
     {
-      int offset = h->next_free - (char *) (h->chunk);
-      offset = ALIGN_UP (offset, alignment);
-      if (offset + length <= h->chunk->header.size)
-	{
-	  h->object_base = (char *) (h->chunk) + offset;
-	  h->next_free = h->object_base + length;
-	  return;
-	}
+      marpa__obs_newchunk (h, length);
+      h->object_base =
+	ALIGN_POINTER ((char *) h->chunk, h->object_base, alignment);
     }
-  marpa__obs_newchunk (h, length);
-  h->object_base = ALIGN_POINTER ((char *) h->chunk, h->object_base, alignment);
+  else
+    {
+      h->object_base = (char *) (h->chunk) + offset;
+    }
   h->next_free = h->object_base + length;
-}
-
-static inline void
-marpa_obs_reserve (struct marpa_obstack *h, int length)
-{
-  marpa_obs_start(h, length, marpa__biggest_alignment);
+  return h->object_base;
 }
 
 static inline
