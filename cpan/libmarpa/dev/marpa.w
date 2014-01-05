@@ -2074,7 +2074,7 @@ irl_start(GRAMMAR g, int length)
     (length + 1) * sizeof (irl->t_nsyid_array[0]);
 
   /* Needs to be aligned as an IRL */
-  irl = marpa_obs_alloc (g->t_obs, sizeof_irl);
+  irl = marpa__obs_alloc (g->t_obs, sizeof_irl, ALIGNOF(IRL_Object));
 
   ID_of_IRL(irl) = MARPA_DSTACK_LENGTH((g)->t_irl_stack);
   Length_of_IRL(irl) = length;
@@ -2723,6 +2723,8 @@ struct s_irl {
   @<Bit aligned IRL elements@>@;
   @<Final IRL elements@>@/
 };
+typedef struct s_irl IRL_Object;
+
 @ @<Public typedefs@> =
 typedef int Marpa_IRL_ID;
 @ @<Private typedefs@> =
@@ -5604,7 +5606,7 @@ NEXT_AHFA_STATE:;
 
               /* Needs to be aligned as a TRANS */
               TRANS new_transition =
-                marpa_obs_alloc (g->t_obs, sizeof_transition);
+                marpa__obs_alloc (g->t_obs, sizeof_transition, ALIGNOF(TRANS_Object));
 
               LV_To_AHFA_of_TRANS (new_transition) =
                 To_AHFA_of_TRANS (working_transition);
@@ -6403,11 +6405,15 @@ struct s_ur_transition {
     int t_completion_count;
 };
 typedef struct s_ur_transition URTRANS_Object;
+
+@ @<Private structures@> =
 struct s_transition {
     struct s_ur_transition t_ur;
     AEX t_leo_base_aex;
     AEX t_aex[1];
 };
+typedef struct s_transition TRANS_Object;
+
 @ @d TRANSs_of_AHFA(ahfa) ((ahfa)->t_transitions)
 @<Widely aligned AHFA state elements@> =
     TRANS* t_transitions;
@@ -8132,6 +8138,7 @@ union u_postdot_item {
     LIM_Object t_leo;
     YIX_Object t_earley;
 };
+typedef union u_postdot_item PIM_Object;
 typedef union u_postdot_item* PIM;
 
 @ This function searches for the
@@ -10055,7 +10062,7 @@ At this point there are no Leo items.
           NSYID nsyid;
 
           /* Need to be aligned for a PIM */
-          new_pim = marpa_obs_alloc (r->t_obs, sizeof (YIX_Object));
+          new_pim = marpa__obs_alloc (r->t_obs, sizeof (YIX_Object), ALIGNOF(PIM_Object));
 
           nsyid = postdot_nsyidary[nsy_ix];
           Postdot_NSYID_of_PIM(new_pim) = nsyid;
@@ -14671,10 +14678,7 @@ bv_obs_create (struct marpa_obstack *obs, LBW bits)
 {
   LBW size = bv_bits_to_size (bits);
   LBW bytes = (size + bv_hiddenwords) * sizeof (Bit_Vector_Word);
-
-  /* Needs to be aligned for an LBW */
-  LBW *addr = (Bit_Vector) marpa_obs_alloc (obs, (size_t) bytes);
-
+  LBW *addr = (Bit_Vector) marpa__obs_alloc (obs, (size_t) bytes, ALIGNOF(LBW));
   *addr++ = bits;
   *addr++ = size;
   *addr++ = bv_bits_to_unused_mask (bits);
@@ -15138,7 +15142,7 @@ PRIVATE Bit_Matrix matrix_obs_create(
 {
   /* Needs to be aligned as a |Bit_Matrix_Object| */
   Bit_Matrix matrix_addr =
-    marpa_obs_alloc (obs, matrix_sizeof (rows, columns));
+    marpa__obs_alloc (obs, matrix_sizeof (rows, columns), ALIGNOF(Bit_Matrix_Object));
   return matrix_buffer_create (matrix_addr, rows, columns);
 }
 

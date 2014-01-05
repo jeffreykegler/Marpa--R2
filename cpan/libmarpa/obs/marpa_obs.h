@@ -91,14 +91,6 @@ void marpa__obs_free (struct marpa_obstack *__obstack);
 
 #define marpa_obs_base(h) ((void *) (h)->object_base)
 
-/* Size for allocating ordinary chunks.  */
-
-/* Pointer to next byte not yet allocated in current chunk.  */
-
-#define marpa_obstack_next_free(h)      ((h)->next_free)
-
-/* Mask specifying low bits that should be clear in address of an object.  */
-
 #define marpa_obs_init  marpa__obs_begin (0)
 
 # define marpa_obstack_object_size(h) \
@@ -114,7 +106,7 @@ void marpa__obs_free (struct marpa_obstack *__obstack);
  ((h)->chunk->header.size - ((h)->next_free - (char*)((h)->chunk)))
 
 #define marpa_obs_new(h, type, count) \
-    ((type *)marpa_obs_aligned((h), (sizeof(type)*(count)), ALIGNOF(type)))
+    ((type *)marpa__obs_alloc((h), (sizeof(type)*(count)), ALIGNOF(type)))
 
 /* Start an object */
 static inline void*
@@ -145,14 +137,11 @@ void *marpa_obs_finish (struct marpa_obstack *h)
 }
 
 static inline void *
-marpa_obs_aligned (struct marpa_obstack *h, int length, int alignment)
+marpa__obs_alloc (struct marpa_obstack *h, int length, int alignment)
 {
   marpa_obs_start (h, length, alignment);
   return marpa_obs_finish (h);
 }
-
-#define marpa_obs_alloc(h, length) \
-    (marpa_obs_aligned((h), (length), marpa__biggest_alignment))
 
 /* "Confirm", which is to set at its final value,
  * the size of a reserved object, currently being built.
