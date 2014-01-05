@@ -2072,7 +2072,10 @@ irl_start(GRAMMAR g, int length)
   IRL irl;
   const int sizeof_irl = offsetof (struct s_irl, t_nsyid_array) +
     (length + 1) * sizeof (irl->t_nsyid_array[0]);
+
+  /* Needs to be aligned as an IRL */
   irl = marpa_obs_alloc (g->t_obs, sizeof_irl);
+
   ID_of_IRL(irl) = MARPA_DSTACK_LENGTH((g)->t_irl_stack);
   Length_of_IRL(irl) = length;
   @<Initialize IRL elements@>@;
@@ -5598,8 +5601,11 @@ NEXT_AHFA_STATE:;
                 offsetof (struct s_transition,
                           t_aex) +
                 completion_count * sizeof (transitions[0]->t_aex[0]);
+
+              /* Needs to be aligned as a TRANS */
               TRANS new_transition =
                 marpa_obs_alloc (g->t_obs, sizeof_transition);
+
               LV_To_AHFA_of_TRANS (new_transition) =
                 To_AHFA_of_TRANS (working_transition);
               LV_Completion_Count_of_TRANS (new_transition) = 0;
@@ -8366,6 +8372,7 @@ struct s_source_link {
     SRCL t_next;
     struct s_source t_source;
 };
+typedef struct s_source_link SRCL_Object;
 
 @ @<Source object structure@>= 
 struct s_ambiguous_source {
@@ -8439,7 +8446,7 @@ tkn_link_add (RECCE r,
     { // If the sourcing is not already ambiguous, make it so
       earley_item_ambiguate (r, item);
     }
-  new_link = marpa_obs_alloc (r->t_obs, sizeof (*new_link));
+  new_link = marpa_obs_new (r->t_obs, SRCL_Object, 1);
   new_link->t_next = LV_First_Token_SRCL_of_YIM (item);
   new_link->t_source.t_predecessor = predecessor;
   TOK_of_Source(new_link->t_source) = tkn;
@@ -8518,7 +8525,7 @@ completion_link_add (RECCE r,
     { // If the sourcing is not already ambiguous, make it so
       earley_item_ambiguate (r, item);
     }
-  new_link = marpa_obs_alloc (r->t_obs, sizeof (*new_link));
+  new_link = marpa_obs_new (r->t_obs, SRCL_Object, 1);
   new_link->t_next = LV_First_Completion_SRCL_of_YIM (item);
   new_link->t_source.t_predecessor = predecessor;
   Cause_of_Source(new_link->t_source) = cause;
@@ -8547,7 +8554,7 @@ leo_link_add (RECCE r,
     { // If the sourcing is not already ambiguous, make it so
       earley_item_ambiguate (r, item);
     }
-  new_link = marpa_obs_alloc (r->t_obs, sizeof (*new_link));
+  new_link = marpa_obs_new (r->t_obs, SRCL_Object, 1);
   new_link->t_next = LV_First_Leo_SRCL_of_YIM (item);
   new_link->t_source.t_predecessor = predecessor;
   Cause_of_Source(new_link->t_source) = cause;
@@ -8592,7 +8599,7 @@ void earley_item_ambiguate (struct marpa_r * r, YIM item)
 }
 
 @ @<Ambiguate token source@> = {
-  SRCL new_link = marpa_obs_alloc (r->t_obs, sizeof (*new_link));
+  SRCL new_link = marpa_obs_new (r->t_obs, SRCL_Object, 1);
   *new_link = *SRCL_of_YIM(item);
   LV_First_Leo_SRCL_of_YIM (item) = NULL;
   LV_First_Completion_SRCL_of_YIM (item) = NULL;
@@ -8600,7 +8607,7 @@ void earley_item_ambiguate (struct marpa_r * r, YIM item)
 }
 
 @ @<Ambiguate completion source@> = {
-  SRCL new_link = marpa_obs_alloc (r->t_obs, sizeof (*new_link));
+  SRCL new_link = marpa_obs_new (r->t_obs, SRCL_Object, 1);
   *new_link = *SRCL_of_YIM(item);
   LV_First_Leo_SRCL_of_YIM (item) = NULL;
   LV_First_Completion_SRCL_of_YIM (item) = new_link;
@@ -8608,7 +8615,7 @@ void earley_item_ambiguate (struct marpa_r * r, YIM item)
 }
 
 @ @<Ambiguate Leo source@> = {
-  SRCL new_link = marpa_obs_alloc (r->t_obs, sizeof (*new_link));
+  SRCL new_link = marpa_obs_new (r->t_obs, SRCL_Object, 1);
   *new_link = *SRCL_of_YIM(item);
   LV_First_Leo_SRCL_of_YIM (item) = new_link;
   LV_First_Completion_SRCL_of_YIM (item) = NULL;
@@ -15077,6 +15084,7 @@ struct s_bit_matrix {
     Bit_Vector_Word t_row_data[1];
 };
 typedef struct s_bit_matrix* Bit_Matrix;
+typedef struct s_bit_matrix Bit_Matrix_Object;
 
 @*0 Create a boolean matrix.
 @ Here the pointer returned is the actual start of the
@@ -15122,6 +15130,7 @@ PRIVATE Bit_Matrix matrix_obs_create(
   unsigned int rows,
   unsigned int columns)
 {
+  /* Needs to be aligned as a |Bit_Matrix_Object| */
   Bit_Matrix matrix_addr =
     marpa_obs_alloc (obs, matrix_sizeof (rows, columns));
   return matrix_buffer_create (matrix_addr, rows, columns);
