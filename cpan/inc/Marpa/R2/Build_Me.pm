@@ -517,9 +517,7 @@ INLINEHOOK
                 $ac->check_type('size_t',    undef, sub {$ac->define_var('size_t', 'long long int');},             undef);
                 $ac->check_type('uintmax_t', undef, sub {$ac->define_var('uintmax_t', 'unsigned long long int');}, undef);
             } else {
-                $ac->check_type('intmax_t',  undef, sub {$ac->define_var('intmax_t', 'long int');},           undef);
-                $ac->check_type('size_t',    undef, sub {$ac->define_var('size_t', 'long int');},             undef);
-                $ac->check_type('uintmax_t', undef, sub {$ac->define_var('uintmax_t', 'unsigned long int');}, undef);
+                die "Marpa requires that unsigned long long int is supported by your compiler";
             }
             my $memset = $ac->lang_call('', 'memset');
             $ac->msg_checking('memset');
