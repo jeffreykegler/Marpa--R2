@@ -6396,6 +6396,7 @@ struct s_ur_transition {
     AHFA t_to_ahfa;
     int t_completion_count;
 };
+typedef struct s_ur_transition URTRANS_Object;
 struct s_transition {
     struct s_ur_transition t_ur;
     AEX t_leo_base_aex;
@@ -6422,7 +6423,7 @@ PRIVATE
 URTRANS transition_new(struct marpa_obstack *obstack, AHFA to_ahfa, int aim_ix)
 {
      URTRANS transition;
-     transition = marpa_obs_alloc (obstack, sizeof (transition[0]));
+     transition = marpa_obs_new (obstack, URTRANS_Object, 1);
      transition->t_to_ahfa = to_ahfa;
      transition->t_completion_count = aim_ix;
      return transition;
@@ -7425,6 +7426,7 @@ struct s_earley_set {
     int t_postdot_sym_count;
     @<Int aligned Earley set elements@>@;
 };
+typedef struct s_earley_set YS_Object;
 
 @*0 Earley item container.
 @d YIM_Count_of_YS(set) ((set)->t_yim_count)
@@ -7551,7 +7553,7 @@ earley_set_new( RECCE r, JEARLEME id)
 {
   YSK_Object key;
   YS set;
-  set = marpa_obs_alloc (r->t_obs, sizeof (*set));
+  set = marpa_obs_new (r->t_obs, YS_Object, 1);
   key.t_earleme = id;
   set->t_key = key;
   set->t_postdot_ary = NULL;
@@ -10044,7 +10046,10 @@ At this point there are no Leo items.
           PIM old_pim = NULL;
           PIM new_pim;
           NSYID nsyid;
-          new_pim = marpa_obs_new (r->t_obs, YIX_Object, 1);
+
+          /* Need to be aligned for a PIM */
+          new_pim = marpa_obs_alloc (r->t_obs, sizeof (YIX_Object));
+
           nsyid = postdot_nsyidary[nsy_ix];
           Postdot_NSYID_of_PIM(new_pim) = nsyid;
           YIM_of_PIM(new_pim) = earley_item;
