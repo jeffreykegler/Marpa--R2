@@ -286,6 +286,7 @@ my %files_by_type = (
     'libmarpa/public/marpa_codes.c.p10' => \&trivial,
     'libmarpa/public/marpa_slif.h.p20' => \&trivial,
     'libmarpa/public/marpa.h.p10' => \&trivial,
+    'libmarpa/public/marpa.h-version' => \&trivial,
     'libmarpa/public/marpa.h.p90' => \&trivial,
     'libmarpa/dev/README'                    => \&trivial,
     'libmarpa/dev/VERSION.in'                => \&trivial,

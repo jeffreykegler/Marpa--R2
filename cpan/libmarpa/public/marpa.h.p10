@@ -8,5 +8,3 @@
 #include "string.h"
 #include "limits.h"
 
-#include "marpa_config.h"
-
