@@ -5991,8 +5991,7 @@ for discovered state with 2+ items@> =
     {
       unsigned int min, max, start;
       NSYID *p_nsyid = Postdot_NSYIDAry_of_AHFA (p_new_state) =
-        marpa_obs_alloc (g->t_obs,
-                          no_of_postdot_nsys * sizeof (NSYID));
+        marpa_obs_new (g->t_obs, NSYID, no_of_postdot_nsys );
       for (start = 0; bv_scan (per_ahfa_postdot_v, start, &min, &max);
            start = max + 2)
         {
@@ -6286,7 +6285,7 @@ create_predicted_AHFA_state(
   {
     int i;
     AIM *const final_aim_list = p_new_state->t_items =
-      marpa_obs_alloc (g->t_obs, no_of_items_in_new_state * sizeof (AIM));
+      marpa_obs_new (g->t_obs, AIM, no_of_items_in_new_state );
     for (i = 0; i < no_of_items_in_new_state; i++)
       {
         final_aim_list[i] = item_list_working_buffer[i];
@@ -6318,8 +6317,7 @@ create_predicted_AHFA_state(
   {
     unsigned int min, max, start;
     NSYID *p_nsyid = Postdot_NSYIDAry_of_AHFA(p_new_state) =
-      marpa_obs_alloc (g->t_obs,
-                     no_of_postdot_nsys * sizeof (NSYID));
+      marpa_obs_new (g->t_obs, NSYID, no_of_postdot_nsys );
     for (start = 0; bv_scan (postdot_v, start, &min, &max); start = max + 2)
       {
         NSYID postdot_nsyid;
@@ -10046,7 +10044,7 @@ At this point there are no Leo items.
           PIM old_pim = NULL;
           PIM new_pim;
           NSYID nsyid;
-          new_pim = marpa_obs_alloc (r->t_obs, sizeof (YIX_Object));
+          new_pim = marpa_obs_new (r->t_obs, YIX_Object, 1);
           nsyid = postdot_nsyidary[nsy_ix];
           Postdot_NSYID_of_PIM(new_pim) = nsyid;
           YIM_of_PIM(new_pim) = earley_item;
@@ -10414,8 +10412,7 @@ of the base YIM.
 @ @<Copy PIM workarea to postdot item array@> = {
     PIM *postdot_array
         = current_earley_set->t_postdot_ary
-        = marpa_obs_alloc (r->t_obs,
-               current_earley_set->t_postdot_sym_count * sizeof (PIM));
+        = marpa_obs_new (r->t_obs, PIM, current_earley_set->t_postdot_sym_count );
     unsigned int min, max, start;
     int postdot_array_ix = 0;
     for (start = 0; bv_scan (r->t_bv_pim_symbols, start, &min, &max); start = max + 2) {
@@ -10709,7 +10706,7 @@ MARPA_ASSERT(ahfa_element_ix < aim_count_of_item)@;
     if (!nodes_by_aex) {
         AEX aex;
         nodes_by_aex = nodes_by_item[item_ordinal] =
-            marpa_obs_alloc(obs, aim_count_of_item*sizeof(OR));
+            marpa_obs_new(obs, OR, aim_count_of_item);
         for (aex = 0; aex < aim_count_of_item; aex++) {
             nodes_by_aex[aex] = NULL;
         }
@@ -11177,7 +11174,7 @@ or arranging to test it.
 {
   const int or_node_id = OR_Count_of_B (b)++;
   OR *or_nodes_of_b = ORs_of_B (b);
-  last_or_node = (OR)marpa_obs_alloc (OBS_of_B(b), sizeof(OR_Object));
+  last_or_node = (OR)marpa_obs_new (OBS_of_B(b), OR_Object, 1);
   ID_of_OR(last_or_node) = or_node_id;
   if (_MARPA_UNLIKELY(or_node_id >= or_node_estimate))
     {
@@ -11611,7 +11608,7 @@ typedef struct s_draft_and_node DAND_Object;
 PRIVATE
 DAND draft_and_node_new(struct marpa_obstack *obs, OR predecessor, OR cause)
 {
-    DAND draft_and_node = marpa_obs_alloc (obs, sizeof(DAND_Object));
+    DAND draft_and_node = marpa_obs_new (obs, DAND_Object, 1);
     Predecessor_OR_of_DAND(draft_and_node) = predecessor;
     Cause_OR_of_DAND(draft_and_node) = cause;
     MARPA_ASSERT(cause != NULL);
@@ -12607,8 +12604,7 @@ struct s_bocage_setup_per_ys* per_ys_data = NULL;
   unsigned int earley_set_count = YS_Count_of_R (r);
   count_of_earley_items_in_parse = 0;
   per_ys_data =
-    marpa_obs_alloc (bocage_setup_obs,
-                   sizeof (struct s_bocage_setup_per_ys) * earley_set_count);
+    marpa_obs_new (bocage_setup_obs, struct s_bocage_setup_per_ys, earley_set_count);
   for (ix = 0; ix < earley_set_count; ix++)
     {
       const YS_Const earley_set = YS_of_R_by_Ord (r, ix);
@@ -12617,7 +12613,7 @@ struct s_bocage_setup_per_ys* per_ys_data = NULL;
         {
           struct s_bocage_setup_per_ys *per_ys = per_ys_data + ix;
           OR ** const per_yim_yixes = per_ys->t_aexes_by_item =
-            marpa_obs_alloc (bocage_setup_obs, sizeof (OR *) * item_count);
+            marpa_obs_new (bocage_setup_obs, OR *, item_count);
           unsigned int item_ordinal;
           per_ys->t_or_psl = NULL;
           per_ys->t_and_psl = NULL;
@@ -13151,7 +13147,7 @@ and code-size savings in exchange for the space.
     {
       const ANDID first_and_node_id = First_ANDID_of_OR (work_or_node);
       ANDID *const order_base =
-        marpa_obs_alloc (obs, sizeof (ANDID) * (and_count_of_or + 1));
+        marpa_obs_new (obs, ANDID, and_count_of_or + 1);
       ANDID *order = order_base + 1;
       int nodes_inserted_so_far;
       bocage_was_reordered = 1;
@@ -13183,7 +13179,7 @@ and code-size savings in exchange for the space.
   obs = OBS_of_O (o) = marpa_obs_init;
   o->t_and_node_orderings =
     and_node_orderings =
-    marpa_obs_alloc (obs, sizeof (ANDID *) * and_count_of_r);
+    marpa_obs_new (obs, ANDID*, and_count_of_r);
   for (and_id = 0; and_id < and_count_of_r; and_id++)
     {
       and_node_orderings[and_id] = (ANDID *) NULL;
