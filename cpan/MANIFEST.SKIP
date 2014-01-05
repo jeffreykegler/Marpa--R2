@@ -22,7 +22,7 @@
 # Permanent
 
 # Used by Ruslan S. for cygwin compile
-^libmarpa_dist/compile
+^libmarpa_dist/compile$
 
 # LC_ALL=C sort
 /[.]gdb_history$
@@ -59,6 +59,7 @@
 ^author.t/perlcritic.errs$
 ^author.t/tidy.errs$
 ^blib/
+^dovg[.]log$
 ^errs$
 ^etc/track[.]list
 ^hide/
@@ -116,12 +117,6 @@
 ^libmarpa/dev/old_pod/
 ^libmarpa/doc/
 ^libmarpa/obs/orig/
-^libmarpa/public/marpa_slif[.]h-ops
-^libmarpa/public/marpa_slif[.]h[.]p80
-^libmarpa/slif/marpa_slif[.]c-ops
-^libmarpa/slif/marpa_slif[.]h-ops
-^libmarpa/slif/marpa_slif[.]h[.]p80
-^libmarpa/tavl/tavl-test
 ^libmarpa/public/marpa[.]c-err$
 ^libmarpa/public/marpa[.]c-event$
 ^libmarpa/public/marpa[.]c-step$
@@ -133,19 +128,25 @@
 ^libmarpa/public/marpa[.]h[.]p80$
 ^libmarpa/public/marpa_codes[.]c$
 ^libmarpa/public/marpa_slif[.]h$
+^libmarpa/public/marpa_slif[.]h-ops
 ^libmarpa/public/marpa_slif[.]h[.]p50$
+^libmarpa/public/marpa_slif[.]h[.]p80
 ^libmarpa/slif/cwebmac[.]tex$
 ^libmarpa/slif/marpa_slif[.]c$
+^libmarpa/slif/marpa_slif[.]c-ops
 ^libmarpa/slif/marpa_slif[.]c[.]p10$
 ^libmarpa/slif/marpa_slif[.]c[.]p40$
 ^libmarpa/slif/marpa_slif[.]c[.]p50$
+^libmarpa/slif/marpa_slif[.]h-ops
 ^libmarpa/slif/marpa_slif[.]h[.]p50$
+^libmarpa/slif/marpa_slif[.]h[.]p80
 ^libmarpa/slif/marpa_slif[.]idx$
 ^libmarpa/slif/marpa_slif[.]log$
 ^libmarpa/slif/marpa_slif[.]scn$
 ^libmarpa/slif/marpa_slif[.]tex$
 ^libmarpa/slif/marpa_slif[.]toc$
 ^libmarpa/stage/
+^libmarpa/tavl/tavl-test
 ^libmarpa/test/
 ^libmarpa_build/
 ^nogit
