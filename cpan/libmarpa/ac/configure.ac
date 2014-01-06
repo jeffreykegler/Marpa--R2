@@ -25,7 +25,7 @@ m4_define(marpa_configure_in)
 
 m4_define([marpa_major_version], [5])
 m4_define([marpa_minor_version], [179])
-m4_define([marpa_micro_version], [105])
+m4_define([marpa_micro_version], [106])
 m4_define([marpa_version],
           [marpa_major_version.marpa_minor_version.marpa_micro_version])
 

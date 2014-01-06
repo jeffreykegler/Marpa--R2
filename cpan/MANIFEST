@@ -119,7 +119,6 @@ libmarpa/ac/ChangeLog
 libmarpa/ac/Makefile.am
 libmarpa/ac/NEWS
 libmarpa/ac/README
-libmarpa/ac/VERSION.in
 libmarpa/ac/configure.ac
 libmarpa/ac_doc/AUTHORS
 libmarpa/ac_doc/COPYING.LESSER
@@ -189,7 +188,6 @@ libmarpa_dist/Makefile.in
 libmarpa_dist/NEWS
 libmarpa_dist/README
 libmarpa_dist/VERSION
-libmarpa_dist/VERSION.in
 libmarpa_dist/aclocal.m4
 libmarpa_dist/config.guess
 libmarpa_dist/config.h.in
