@@ -32,6 +32,10 @@ m4_define([marpa_version],
 AC_INIT([libmarpa],[marpa_version],[http://rt.cpan.org/NoAuth/Bugs.html?Dist=Marpa])
 AC_CONFIG_MACRO_DIR([m4])
 
+AC_SUBST([MARPA_MAJOR_VERSION],[marpa_major_version])
+AC_SUBST([MARPA_MINOR_VERSION],[marpa_minor_version])
+AC_SUBST([MARPA_MICRO_VERSION],[marpa_micro_version])
+
 AM_INIT_AUTOMAKE([])
 
 # Specify a configuration file

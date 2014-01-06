@@ -269,14 +269,16 @@ sub process_xs {
     File::Path::mkpath( $spec->{archdir}, 0, ( oct 777 ) )
         if not -d $spec->{archdir};
 
-    {
-        # finalize libmarpa.a
+    my $libmarpa_archive;
+    if ( $Marpa::R2::USE_PERL_AUTOCONF ) {
         my $libmarpa_libs_dir =
-            File::Spec->catdir( $self->base_dir(), 'libmarpa_build',
-            $Marpa::R2::USE_PERL_AUTOCONF ? ('blib', 'arch', 'auto', 'libmarpa') : '.libs');
-        my $libmarpa_archive = File::Spec->catfile( $libmarpa_libs_dir, $Marpa::R2::USE_PERL_AUTOCONF ? "libmarpa$Config{lib_ext}" : 'libmarpa.a');
-        push @{ $self->{properties}->{objects} }, $libmarpa_archive;
+            File::Spec->catdir( $self->base_dir(), 'libmarpa_build', 'blib', 'arch', 'auto', 'libmarpa');
+        $libmarpa_archive = File::Spec->catfile( $libmarpa_libs_dir, "libmarpa$Config{lib_ext}" );
+    } else {
+        my $libmarpa_libs_dir = File::Spec->catdir( $self->base_dir(), 'libmarpa_build', '.libs');
+        $libmarpa_archive = File::Spec->catfile( $libmarpa_libs_dir, 'libmarpa.a');
     }
+    push @{ $self->{properties}->{objects} }, $libmarpa_archive;
 
     # .xs -> .bs
     $self->add_to_cleanup( $spec->{bs_file} );
@@ -513,12 +515,7 @@ INLINEHOOK
 
             $ac->check_stdc_headers;
             $ac->check_default_headers();
-            $ac->check_type('unsigned long long int');
-            if ($ac->cache_val($ac->_cache_name('unsigned long long int'))) {
-                $ac->check_type('intmax_t',  undef, sub {$ac->define_var('intmax_t', 'long long int');},           undef);
-                $ac->check_type('size_t',    undef, sub {$ac->define_var('size_t', 'long long int');},             undef);
-                $ac->check_type('uintmax_t', undef, sub {$ac->define_var('uintmax_t', 'unsigned long long int');}, undef);
-            } else {
+            if (!$ac->check_type('unsigned long long int')) {
                 die "Marpa requires that unsigned long long int is supported by your compiler";
             }
             my $memset = $ac->lang_call('', 'memset');
@@ -537,27 +534,7 @@ INLINEHOOK
             $ac->define_var('PACKAGE_STRING', "\"$libmarpa_version\"");
             $ac->write_config_h('config_from_autoconf.h');
         }
-        if (! -r 'marpa_config.h') {
-            if ( $self->verbose() ) {
-                say join q{ }, "Doing marpa_config.h"
-                    or die "print failed: $ERRNO";
-            }
-            open my $conf_fh, '>', 'marpa_config.h';
-            print ${conf_fh}  <<MARPA_CONFIG_H;
-#ifndef __MARPA_CONFIG_H__
-#define __MARPA_CONFIG_H__
-        
-#define MARPA_MAJOR_VERSION $libmarpa_version[0]
-#define MARPA_MINOR_VERSION $libmarpa_version[1]
-#define MARPA_MICRO_VERSION $libmarpa_version[2]
-#define MARPA_INTERFACE_AGE 100
-#define MARPA_BINARY_AGE (100 * $libmarpa_version[2] + $libmarpa_version[1])
-#define MARPA_VERSION \"$libmarpa_version\"
-        
-#endif /* __MARPA_CONFIG_H__ */
-MARPA_CONFIG_H
-            close $conf_fh;
-        }
+
         my @o = map {s/\.c$/$Config{obj_ext}/; $_} @c;
         if (! -r 'Makefile.PL') {
             open my $makefile_pl_fh, '>', 'Makefile.PL';
