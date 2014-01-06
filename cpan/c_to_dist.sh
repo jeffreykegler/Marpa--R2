@@ -17,14 +17,15 @@
 version=`libmarpa/stage/configure --version | sed -ne '1s/^libmarpa configure *//p'`
 tar_file=libmarpa/stage/libmarpa-$version.tar.gz
 if test -d libmarpa_dist && test libmarpa_dist/stamp-h1 -nt $tar_file;
-then exit 0;
+then : ;
+else
+  rm -rf libmarpa_dist
+  mkdir libmarpa_dist.$$
+  (cd libmarpa_dist.$$; tar -xzf ../$tar_file)
+  mv libmarpa_dist.$$/libmarpa-$version libmarpa_dist
+  date > libmarpa_dist/stamp-h1
+  rmdir libmarpa_dist.$$
 fi
-rm -rf libmarpa_dist
-mkdir libmarpa_dist.$$
-(cd libmarpa_dist.$$; tar -xzf ../$tar_file)
-mv libmarpa_dist.$$/libmarpa-$version libmarpa_dist
-date > libmarpa_dist/stamp-h1
-rmdir libmarpa_dist.$$
 
 # same thing for the doc directory
 tar_file=libmarpa/doc/libmarpa-doc-$version.tar.gz

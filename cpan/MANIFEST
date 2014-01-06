@@ -230,7 +230,6 @@ libmarpa_doc_dist/README
 libmarpa_doc_dist/aclocal.m4
 libmarpa_doc_dist/api.info
 libmarpa_doc_dist/api.texi
-libmarpa_doc_dist/config.h.in
 libmarpa_doc_dist/configure
 libmarpa_doc_dist/configure.ac
 libmarpa_doc_dist/fdl-1.3.texi
