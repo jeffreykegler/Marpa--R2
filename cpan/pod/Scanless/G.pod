@@ -244,7 +244,7 @@ The first argument is the symbol ID.
 A second, optional, argument is the subgrammar.
 Currently there are L0 and G1 subgrammars.
 The default subgrammar is G1.
-Returns undefined if the symbol does not exist,
+Returns a Perl C<undef> if the symbol does not exist,
 or if it has no description.
 
 =head2 symbol_display_form()
@@ -277,7 +277,7 @@ The first argument is the symbol ID.
 A second, optional, argument is the subgrammar.
 Currently there are L0 and G1 subgrammars.
 The default subgrammar is G1.
-Returns undefined if the symbol does not exist.
+Returns a Perl C<undef> if the symbol does not exist.
 
 =head2 symbol_dsl_form()
 
@@ -315,7 +315,7 @@ The first argument is the symbol ID.
 A second, optional, argument is the subgrammar.
 Currently there are L0 and G1 subgrammars.
 The default subgrammar is G1.
-Returns undefined if the symbol does not exist,
+Returns a Perl C<undef> if the symbol does not exist,
 or if it has no DSL form.
 
 =head2 symbol_ids()
@@ -372,7 +372,7 @@ The first argument is the symbol ID.
 A second, optional, argument is the subgrammar.
 Currently there are L0 and G1 subgrammars.
 The default subgrammar is G1.
-Returns undefined if the symbol does not exist.
+Returns a Perl C<undef> if the symbol does not exist.
 
 =head1 Trace methods
 

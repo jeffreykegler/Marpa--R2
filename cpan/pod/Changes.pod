@@ -160,7 +160,7 @@ now causes an exception.
 The Marpa::R2 recognizer's C<read()> method differs from its Marpa::XS
 equivalent.
 In Marpa::R2, If C<read()>'s token value argument is
-omitted, then the token value will be an undefined value.
+omitted, then the value of the token will be a Perl C<undef>.
 If C<read()>'s
 token value is given explicitly, then that explicit value will be
 the value of the token.  In particular, an explicit C<undef> token
@@ -175,7 +175,8 @@ Marpa::XS equivalent.  Its token value argument must now be a
 reference to the token value, not the token value itself, as in
 Marpa::XS.
 If alternative's token value argument is omitted or a
-C<undef>, then the token has an undefined value.
+Perl C<undef>,
+then the value of the token will be a Perl C<undef>.
 If alternative's
 token value argument is reference to C<undef>, then the value
 of the token is a Perl C<undef>.  For details, see L<the documentation

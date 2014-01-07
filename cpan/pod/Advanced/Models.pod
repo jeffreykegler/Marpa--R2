@@ -195,7 +195,7 @@ The first two arguments are
 the token type and a reference to the token value.
 If the reference to the token value is omitted,
 or is C<undef>,
-the token has an undefined value.
+the value of the token will be a Perl C<undef>.
 
 The third argument to the C<alternative> method is a token
 length.
