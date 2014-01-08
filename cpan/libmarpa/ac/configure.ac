@@ -44,10 +44,6 @@ AC_PROG_CC
 AC_PROG_CPP
 AC_PROG_LN_S
 
-# Checks for header files.
-AC_CHECK_HEADERS([inttypes.h stddef.h stdint.h stdlib.h string.h limits.h])
-AC_CHECK_FUNCS([memset])
-
 # Checks for typedefs, structures, and compiler characteristics.
 AC_TYPE_SIZE_T
 

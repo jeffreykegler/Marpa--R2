@@ -30,13 +30,6 @@
 # include "marpa_ami.h"
 # include "marpa_obs.h"
 
-#ifdef HAVE_INTTYPES_H
-# include <inttypes.h>
-#endif
-#ifdef HAVE_STDINT_H
-# include <stdint.h>
-#endif
-
 /* This estimate of malloc's overhead is the one used in Linus Torvald's slab
  * allocator in git.  I assume that it assumes a 64-bit architecture.
  */
