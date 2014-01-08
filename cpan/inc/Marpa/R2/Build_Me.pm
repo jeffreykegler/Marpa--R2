@@ -518,12 +518,7 @@ INLINEHOOK
             if (!$ac->check_type('unsigned long long int')) {
                 die "Marpa requires that unsigned long long int is supported by your compiler";
             }
-            my $memset = $ac->lang_call('', 'memset');
-            $ac->msg_checking('memset');
-            my $rc = $ac->compile_if_else($memset);
-            $ac->msg_result($rc ? 'yes' : 'no');
 
-            $ac->define_var('HAVE_MEMSET', $ac->compile_if_else($memset));
             $ac->define_var('PACKAGE', "\"libmarpa\"");
             $ac->define_var('PACKAGE_BUGREPORT', "\"http://rt.cpan.org/NoAuth/Bugs.html?Dist=Marpa\"");
             $ac->define_var('PACKAGE_NAME', "\"libmarpa\"");
