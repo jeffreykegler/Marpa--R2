@@ -149,6 +149,12 @@ sub Marpa::R2::Internal::Scanless::G::set {
                 "  It should be a ref to a string\n"
             );
         } ## end if ( $ref_type ne 'SCALAR' )
+        if ( not defined ${$dsl} ) {
+            Marpa::R2::exception(
+                qq{'$arg_name' name argument to Marpa::R2::Scanless::G->new() is a ref to a an undef\n},
+                "  It should be a ref to a string\n"
+            );
+        } ## end if ( $ref_type ne 'SCALAR' )
     } ## end if ( $method eq 'new' )
 
     # A bit hack-ish, but some named args will be copies straight to a member of

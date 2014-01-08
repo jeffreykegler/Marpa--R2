@@ -1,25 +1,31 @@
-use v5.10;
+#!/usr/bin/env perl
+
+use 5.010;
 use strict;
 use warnings;
-
 use Marpa::R2;
+use Data::Dumper;
 
-my $syntax = <<'END';
-:default ::= action => ::first
+my $source = <<'END';
+:default ::= action => ::array
 :start ::= content
 content ::= name ':' value
 name ~ [A-Za-z0-9-]+
 value ~ [A-Za-z0-9:-]+
+:lexeme ~ value forgiving => 1
 END
 
-my $grammar = Marpa::R2::Scanless::G->new( { source => \$syntax } );
-say "rules G0:\n", $grammar->show_rules(1, 'G0');
+my $g = Marpa::R2::Scanless::G->new({
+    source => \$source
+});
 
-my $recce = Marpa::R2::Scanless::R->new(
-    { grammar => $grammar, semantics_package => 'Parse::vCard::Actions::v4', trace_terminals => 1 } );
-my $input = do { local $/; <DATA> };
-eval { $recce->read( \$input ); 1 }
-    or do { say "\nprogress:\n", $recce->show_progress( 0, -1 ); die $@ };
+my $input = 'UID:urn:uuid:4fbe8971-0bc3-424c-9c26-36c3e1eff6b1';
 
-__DATA__
-UID:urn:uuid:4fbe8971-0bc3-424c-9c26-36c3e1eff6b1
+my $slr =
+    Marpa::R2::Scanless::R->new( { grammar => $g,
+   #  trace_terminals => 1
+   } );
+$slr->read( \$input );
+print Dumper([ ${$slr->value} ]); 
+
+# vim: set expandtab shiftwidth=4:
