@@ -14,6 +14,7 @@
 # http://www.gnu.org/licenses/.
 
 # LC_ALL=C sort
+t/naif.t
 .gdbinit
 .gitattributes
 .gitignore
