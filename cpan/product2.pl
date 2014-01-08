@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 
 use 5.010;
-use Marpa::R2;
+use Marpa::R2 2.079_007;
 use Data::Dumper;
 
 my $source = <<'SOURCE';
