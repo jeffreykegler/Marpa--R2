@@ -950,7 +950,7 @@ Marpa_Rank marpa_g_default_rank_set(Marpa_Grammar g, Marpa_Rank rank)
 
 @*0 Grammar is precomputed?.
 @ @d G_is_Precomputed(g) ((g)->t_is_precomputed)
-@<Bit aligned grammar elements@> = unsigned int t_is_precomputed:1;
+@<Bit aligned grammar elements@> = BITFIELD t_is_precomputed:1;
 @ @<Initialize grammar elements@> =
 g->t_is_precomputed = 0;
 @ @<Function definitions@> =
@@ -962,7 +962,7 @@ int marpa_g_is_precomputed(Marpa_Grammar g)
 }
 
 @*0 Grammar has loop?.
-@<Bit aligned grammar elements@> = unsigned int t_has_cycle:1;
+@<Bit aligned grammar elements@> = BITFIELD t_has_cycle:1;
 @ @<Initialize grammar elements@> =
 g->t_has_cycle = 0;
 @ @<Function definitions@> =
@@ -1269,7 +1269,7 @@ marpa_g_symbol_new (Marpa_Grammar g)
 }
 
 @*0 Symbol is start?.
-@<Bit aligned XSY elements@> = unsigned int t_is_start:1;
+@<Bit aligned XSY elements@> = BITFIELD t_is_start:1;
 @ @<Initialize XSY elements@> = xsy->t_is_start = 0;
 @ @<Function definitions@> =
 int marpa_g_symbol_is_start( Marpa_Grammar g, Marpa_Symbol_ID xsy_id) 
@@ -1329,14 +1329,14 @@ Marpa_Grammar g, Marpa_Symbol_ID xsy_id, Marpa_Rank rank)
 Is this (external) symbol on the LHS of any rule,
 whether sequence or BNF.
 @d XSY_is_LHS(xsy) ((xsy)->t_is_lhs)
-@<Bit aligned XSY elements@> = unsigned int t_is_lhs:1;
+@<Bit aligned XSY elements@> = BITFIELD t_is_lhs:1;
 @ @<Initialize XSY elements@> =
     XSY_is_LHS(xsy) = 0;
 
 @*0 Symbol is sequence LHS?.
 Is this (external) symbol on the LHS of a sequence rule?
 @d XSY_is_Sequence_LHS(xsy) ((xsy)->t_is_sequence_lhs)
-@<Bit aligned XSY elements@> = unsigned int t_is_sequence_lhs:1;
+@<Bit aligned XSY elements@> = BITFIELD t_is_sequence_lhs:1;
 @ @<Initialize XSY elements@> =
     XSY_is_Sequence_LHS(xsy) = 0;
 
@@ -1351,8 +1351,8 @@ is arbitrary.
 @d XSY_is_Valued(symbol) ((symbol)->t_is_valued)
 @d XSY_is_Valued_Locked(symbol) ((symbol)->t_is_valued_locked)
 @<Bit aligned XSY elements@> =
-  unsigned int t_is_valued:1;
-  unsigned int t_is_valued_locked:1;
+  BITFIELD t_is_valued:1;
+  BITFIELD t_is_valued_locked:1;
 @ @<Initialize XSY elements@> =
   XSY_is_Valued(xsy) = 0;
   XSY_is_Valued_Locked(xsy) = 0;
@@ -1394,7 +1394,7 @@ int marpa_g_symbol_is_valued_set(
 
 @*0 Symbol is accessible?.
 @d XSY_is_Accessible(xsy) ((xsy)->t_is_accessible)
-@<Bit aligned XSY elements@> = unsigned int t_is_accessible:1;
+@<Bit aligned XSY elements@> = BITFIELD t_is_accessible:1;
 @ @<Initialize XSY elements@> =
 xsy->t_is_accessible = 0;
 @ The trace accessor returns the boolean value.
@@ -1415,7 +1415,7 @@ int marpa_g_symbol_is_accessible(Marpa_Grammar g, Marpa_Symbol_ID xsy_id)
 }
 
 @*0 Symbol is counted?.
-@<Bit aligned XSY elements@> = unsigned int t_is_counted:1;
+@<Bit aligned XSY elements@> = BITFIELD t_is_counted:1;
 @ @<Initialize XSY elements@> =
 xsy->t_is_counted = 0;
 @ @<Function definitions@> =
@@ -1431,7 +1431,7 @@ Marpa_Symbol_ID xsy_id)
 
 @*0 Symbol is nulling?.
 @d XSY_is_Nulling(sym) ((sym)->t_is_nulling)
-@<Bit aligned XSY elements@> = unsigned int t_is_nulling:1;
+@<Bit aligned XSY elements@> = BITFIELD t_is_nulling:1;
 @ @<Initialize XSY elements@> =
 xsy->t_is_nulling = 0;
 @ @<Function definitions@> =
@@ -1448,7 +1448,7 @@ int marpa_g_symbol_is_nulling(Marpa_Grammar g, Marpa_Symbol_ID xsy_id)
 @*0 Symbol is nullable?.
 @d XSY_is_Nullable(xsy) ((xsy)->t_is_nullable)
 @d XSYID_is_Nullable(xsyid) XSY_is_Nullable(XSY_by_ID(xsyid))
-@<Bit aligned XSY elements@> = unsigned int t_is_nullable:1;
+@<Bit aligned XSY elements@> = BITFIELD t_is_nullable:1;
 @ @<Initialize XSY elements@> =
 xsy->t_is_nullable = 0;
 @ @<Function definitions@> =
@@ -1470,8 +1470,8 @@ terminal settings that will
 be overwritten by the default
 from those should not be.
 @<Bit aligned XSY elements@> =
-unsigned int t_is_terminal:1;
-unsigned int t_is_locked_terminal:1;
+BITFIELD t_is_terminal:1;
+BITFIELD t_is_locked_terminal:1;
 @ @<Initialize XSY elements@> =
 xsy->t_is_terminal = 0;
 xsy->t_is_locked_terminal = 0;
@@ -1516,7 +1516,7 @@ Marpa_Grammar g, Marpa_Symbol_ID xsy_id, int value)
 
 @*0 XSY is productive?.
 @d XSY_is_Productive(xsy) ((xsy)->t_is_productive)
-@<Bit aligned XSY elements@> = unsigned int t_is_productive:1;
+@<Bit aligned XSY elements@> = BITFIELD t_is_productive:1;
 @ @<Initialize XSY elements@> =
 xsy->t_is_productive = 0;
 @ @<Function definitions@> =
@@ -1535,7 +1535,7 @@ int marpa_g_symbol_is_productive(
 @*0 XSY is completion event?.
 @d XSY_is_Completion_Event(xsy) ((xsy)->t_is_completion_event)
 @d XSYID_is_Completion_Event(xsyid) XSY_is_Completion_Event(XSY_by_ID(xsyid))
-@<Bit aligned XSY elements@> = unsigned int t_is_completion_event:1;
+@<Bit aligned XSY elements@> = BITFIELD t_is_completion_event:1;
 @ @<Initialize XSY elements@> =
 xsy->t_is_completion_event = 0;
 @ @<Function definitions@> =
@@ -1570,7 +1570,7 @@ Marpa_Grammar g, Marpa_Symbol_ID xsy_id, int value)
 @*0 XSY is nulled event?.
 @d XSY_is_Nulled_Event(xsy) ((xsy)->t_is_nulled_event)
 @d XSYID_is_Nulled_Event(xsyid) XSY_is_Nulled_Event(XSY_by_ID(xsyid))
-@<Bit aligned XSY elements@> = unsigned int t_is_nulled_event:1;
+@<Bit aligned XSY elements@> = BITFIELD t_is_nulled_event:1;
 @ @<Initialize XSY elements@> =
 xsy->t_is_nulled_event = 0;
 @ @<Function definitions@> =
@@ -1605,7 +1605,7 @@ Marpa_Grammar g, Marpa_Symbol_ID xsy_id, int value)
 @*0 XSY is prediction event?.
 @d XSY_is_Prediction_Event(xsy) ((xsy)->t_is_prediction_event)
 @d XSYID_is_Prediction_Event(xsyid) XSY_is_Prediction_Event(XSY_by_ID(xsyid))
-@<Bit aligned XSY elements@> = unsigned int t_is_prediction_event:1;
+@<Bit aligned XSY elements@> = BITFIELD t_is_prediction_event:1;
 @ @<Initialize XSY elements@> =
 xsy->t_is_prediction_event = 0;
 @ @<Function definitions@> =
@@ -1839,7 +1839,7 @@ int _marpa_g_nsy_count(Marpa_Grammar g) {
 
 @ Is Start?.
 @d NSY_is_Start(nsy) ((nsy)->t_is_start)
-@<Bit aligned NSY elements@> = unsigned int t_is_start:1;
+@<Bit aligned NSY elements@> = BITFIELD t_is_start:1;
 @ @<Initialize NSY elements@> = NSY_is_Start(nsy) = 0;
 @ @<Function definitions@> =
 int _marpa_g_nsy_is_start( Marpa_Grammar g, Marpa_NSY_ID nsy_id) 
@@ -1853,7 +1853,7 @@ int _marpa_g_nsy_is_start( Marpa_Grammar g, Marpa_NSY_ID nsy_id)
 
 @ Is LHS?.
 @d NSY_is_LHS(nsy) ((nsy)->t_is_lhs)
-@<Bit aligned NSY elements@> = unsigned int t_is_lhs:1;
+@<Bit aligned NSY elements@> = BITFIELD t_is_lhs:1;
 @ @<Initialize NSY elements@> = NSY_is_LHS(nsy) = 0;
 @ @<Function definitions@> =
 int _marpa_g_nsy_is_lhs( Marpa_Grammar g, Marpa_NSY_ID nsy_id) 
@@ -1867,7 +1867,7 @@ int _marpa_g_nsy_is_lhs( Marpa_Grammar g, Marpa_NSY_ID nsy_id)
 
 @*0 NSY is nulling?.
 @d NSY_is_Nulling(nsy) ((nsy)->t_nsy_is_nulling)
-@<Bit aligned NSY elements@> = unsigned int t_nsy_is_nulling:1;
+@<Bit aligned NSY elements@> = BITFIELD t_nsy_is_nulling:1;
 @ @<Initialize NSY elements@> = NSY_is_Nulling(nsy) = 0;
 @ @<Function definitions@> =
 int _marpa_g_nsy_is_nulling(Marpa_Grammar g, Marpa_NSY_ID nsy_id)
@@ -1884,7 +1884,7 @@ Set if the internal symbol is semantically visible
 externally.
 @d NSY_is_Semantic(nsy) ((nsy)->t_is_semantic)
 @d NSYID_is_Semantic(nsyid) (NSY_is_Semantic(NSY_by_ID(nsyid)))
-@<Bit aligned NSY elements@> = unsigned int t_is_semantic:1;
+@<Bit aligned NSY elements@> = BITFIELD t_is_semantic:1;
 @ @<Initialize NSY elements@> = NSY_is_Semantic(nsy) = 0;
 @ @<Function definitions@> =
 int _marpa_g_nsy_is_semantic(
@@ -2417,7 +2417,7 @@ ranking of the null variants, for rules
 with properly nullable symbols on their
 RHS.
 @<Bit aligned rule elements@> = 
-  unsigned int t_null_ranks_high:1;
+  BITFIELD t_null_ranks_high:1;
 @ @<Initialize rule elements@> =
 rule->t_null_ranks_high = 0;
 @ 
@@ -2457,13 +2457,13 @@ Marpa_Grammar g, Marpa_Rule_ID xrl_id, int flag)
 True for if the rule is a user-created
 BNF rule, false otherwise.
 @d XRL_is_BNF(rule) ((rule)->t_is_bnf)
-@<Bit aligned rule elements@> = unsigned int t_is_bnf:1;
+@<Bit aligned rule elements@> = BITFIELD t_is_bnf:1;
 @ @<Initialize rule elements@> =
 rule->t_is_bnf = 0;
 
 @*0 Rule is sequence?.
 @d XRL_is_Sequence(rule) ((rule)->t_is_sequence)
-@<Bit aligned rule elements@> = unsigned int t_is_sequence:1;
+@<Bit aligned rule elements@> = BITFIELD t_is_sequence:1;
 @ @<Initialize rule elements@> =
 rule->t_is_sequence = 0;
 
@@ -2535,7 +2535,7 @@ evaluation in cases where separators are discarded.
 Alternatively, it may be deleted.
 @<Public defines@> =
 #define MARPA_KEEP_SEPARATION @| @[0x1@]@/
-@ @<Bit aligned rule elements@> = unsigned int t_is_discard:1;
+@ @<Bit aligned rule elements@> = BITFIELD t_is_discard:1;
 @ @<Initialize rule elements@> =
 rule->t_is_discard = 0;
 @ @<Function definitions@> =
@@ -2575,7 +2575,7 @@ taken care of in the rewrite itself.
 @d XRL_is_Proper_Separation(rule) ((rule)->t_is_proper_separation)
 @<Public defines@> =
 #define MARPA_PROPER_SEPARATION @| @[0x2@]@/
-@ @<Bit aligned rule elements@> = unsigned int t_is_proper_separation:1;
+@ @<Bit aligned rule elements@> = BITFIELD t_is_proper_separation:1;
 @ @<Initialize rule elements@> =
 rule->t_is_proper_separation = 0;
 @ @<Function definitions@> =
@@ -2596,7 +2596,7 @@ produces the string of length one
 which consists only of its LHS symbol.
 ``Non-trivially" means the zero-step derivation does not count -- the
 derivation must have at least one step.
-@<Bit aligned rule elements@> = unsigned int t_is_loop:1;
+@<Bit aligned rule elements@> = BITFIELD t_is_loop:1;
 @ @<Initialize rule elements@> =
 rule->t_is_loop = 0;
 @ @<Function definitions@> =
@@ -2613,7 +2613,7 @@ int marpa_g_rule_is_loop(Marpa_Grammar g, Marpa_Rule_ID xrl_id)
 @*0 Is rule nulling?.
 Is the rule nulling?
 @d XRL_is_Nulling(rule) ((rule)->t_is_nulling)
-@<Bit aligned rule elements@> = unsigned int t_is_nulling:1;
+@<Bit aligned rule elements@> = BITFIELD t_is_nulling:1;
 @ @<Initialize rule elements@> =
 XRL_is_Nulling(rule) = 0;
 @ @<Function definitions@> =
@@ -2631,7 +2631,7 @@ int marpa_g_rule_is_nulling(Marpa_Grammar g, Marpa_Rule_ID xrl_id)
 @*0 Is rule nullable?.
 Is the rule nullable?
 @d XRL_is_Nullable(rule) ((rule)->t_is_nullable)
-@<Bit aligned rule elements@> = unsigned int t_is_nullable:1;
+@<Bit aligned rule elements@> = BITFIELD t_is_nullable:1;
 @ @<Initialize rule elements@> =
 XRL_is_Nullable(rule) = 0;
 @ @<Function definitions@> =
@@ -2649,7 +2649,7 @@ int marpa_g_rule_is_nullable(Marpa_Grammar g, Marpa_Rule_ID xrl_id)
 @*0 Is rule accessible?.
 @ A rule is accessible if its LHS is accessible.
 @d XRL_is_Accessible(rule) ((rule)->t_is_accessible)
-@<Bit aligned rule elements@> = unsigned int t_is_accessible:1;
+@<Bit aligned rule elements@> = BITFIELD t_is_accessible:1;
 @ @<Initialize rule elements@> =
 XRL_is_Accessible(rule) = 1;
 @ @<Function definitions@> =
@@ -2667,7 +2667,7 @@ int marpa_g_rule_is_accessible(Marpa_Grammar g, Marpa_Rule_ID xrl_id)
 @*0 Is rule productive?.
 Is the rule productive?
 @d XRL_is_Productive(rule) ((rule)->t_is_productive)
-@<Bit aligned rule elements@> = unsigned int t_is_productive:1;
+@<Bit aligned rule elements@> = BITFIELD t_is_productive:1;
 @ @<Initialize rule elements@> =
 XRL_is_Productive(rule) = 1;
 @ @<Function definitions@> =
@@ -2685,7 +2685,7 @@ int marpa_g_rule_is_productive(Marpa_Grammar g, Marpa_Rule_ID xrl_id)
 @*0 Is XRL used?.
 Is the rule used in computing the AHFA sets?
 @d XRL_is_Used(rule) ((rule)->t_is_used)
-@<Bit aligned rule elements@> = unsigned int t_is_used:1;
+@<Bit aligned rule elements@> = BITFIELD t_is_used:1;
 @ Initialize to not used, because that's easier to debug.
 @<Initialize rule elements@> =
 XRL_is_Used(rule) = 0;
@@ -2816,7 +2816,7 @@ have a non-virtual LHS.
 And if a rule does not have a virtual LHS, then its LHS
 side NSY must have a semantic XRL.
 @d IRL_has_Virtual_LHS(irl) ((irl)->t_is_virtual_lhs)
-@<Bit aligned IRL elements@> = unsigned int t_is_virtual_lhs:1;
+@<Bit aligned IRL elements@> = BITFIELD t_is_virtual_lhs:1;
 @ @<Initialize IRL elements@> =
 IRL_has_Virtual_LHS(irl) = 0;
 @ @<Function definitions@> =
@@ -2832,7 +2832,7 @@ int _marpa_g_irl_is_virtual_lhs(
 
 @*0 IRL has virtual RHS?.
 @d IRL_has_Virtual_RHS(irl) ((irl)->t_is_virtual_rhs)
-@<Bit aligned IRL elements@> = unsigned int t_is_virtual_rhs:1;
+@<Bit aligned IRL elements@> = BITFIELD t_is_virtual_rhs:1;
 @ @<Initialize IRL elements@> =
 IRL_has_Virtual_RHS(irl) = 0;
 @ @<Function definitions@> =
@@ -2848,7 +2848,7 @@ int _marpa_g_irl_is_virtual_rhs(
 
 @*0 IRL right recursion status.
 @d IRL_is_Right_Recursive(irl) ((irl)->t_is_right_recursive)
-@<Bit aligned IRL elements@> = unsigned int t_is_right_recursive:1;
+@<Bit aligned IRL elements@> = BITFIELD t_is_right_recursive:1;
 @ @<Initialize IRL elements@> =
   IRL_is_Right_Recursive(irl) = 0;
 
@@ -5193,7 +5193,7 @@ AHFA state 0 is {\bf not} a predicted AHFA state.
 @d AHFA_is_Predicted(ahfa) ((ahfa)->t_is_predict)
 @d YIM_is_Predicted(yim) AHFA_is_Predicted(AHFA_of_YIM(yim))
 @<Bit aligned AHFA state elements@> =
-unsigned int t_is_predict:1;
+BITFIELD t_is_predict:1;
 
 @*0 Is AHFA a potential Leo base?.
 @ This boolean indicates whether the
@@ -5201,7 +5201,7 @@ AHFA state could be a Leo base.
 @d AHFA_is_Potential_Leo_Base(ahfa) ((ahfa)->t_is_potential_leo_base)
 @d YIM_is_Potential_Leo_Base(yim) AHFA_is_Potential_Leo_Base(AHFA_of_YIM(yim))
 @ @<Bit aligned AHFA state elements@> =
-unsigned int t_is_potential_leo_base:1;
+BITFIELD t_is_potential_leo_base:1;
 @ @<Initialize AHFA@> = AHFA_is_Potential_Leo_Base(ahfa) = 0;
 
 
@@ -6922,7 +6922,7 @@ phases:
 @d R_DURING_INPUT 0x2
 @d R_AFTER_INPUT 0x3
 @<Bit aligned recognizer elements@> =
-   unsigned int t_input_phase:2;
+   BITFIELD t_input_phase:2;
 @ @d Input_Phase_of_R(r) ((r)->t_input_phase)
 @ @<Initialize recognizer elements@> =
     Input_Phase_of_R(r) = R_BEFORE_INPUT;
@@ -7318,8 +7318,8 @@ After Earley set 0 is complete, both booleans will have the same value.
 @ {\bf To Do}: @^To Do@>
 Now that the null parse is special-cased, one boolean may suffice.
 @<Bit aligned recognizer elements@> =
-unsigned int t_use_leo_flag:1;
-unsigned int t_is_using_leo:1;
+BITFIELD t_use_leo_flag:1;
+BITFIELD t_is_using_leo:1;
 @ @<Initialize recognizer elements@> =
 r->t_use_leo_flag = 1;
 r->t_is_using_leo = 0;
@@ -7355,7 +7355,7 @@ where there is no good parse,
 there may be good parses at earlemes prior to the
 earleme at which the parse became exhausted.
 @d R_is_Exhausted(r) ((r)->t_is_exhausted)
-@<Bit aligned recognizer elements@> = unsigned int t_is_exhausted:1;
+@<Bit aligned recognizer elements@> = BITFIELD t_is_exhausted:1;
 @ @<Initialize recognizer elements@> = r->t_is_exhausted = 0;
 @ @<Set |r| exhausted@> = 
 {
@@ -7835,7 +7835,6 @@ sources.
 The only awkwardness takes place
 when the second source is added, and the first one must
 be recopied to make way for pointers to the linked lists.
-@d YIM_FATAL_THRESHOLD (INT_MAX/4)
 @d Complete_NSYID_of_YIM(item, ix) 
     Complete_NSYID_of_AHFA(AHFA_of_YIM(item), (ix))
 @d Complete_NSY_Count_of_YIM(item)
@@ -7861,6 +7860,7 @@ the Earley set.
 @d Origin_of_YIM(item) ((item)->t_key.t_origin)
 @d AIM_of_YIM_by_AEX(yim, aex) AIM_of_AHFA_by_AEX(AHFA_of_YIM(yim), (aex))
 @d AEX_of_YIM_by_AIM(yim, aim) AEX_of_AHFA_by_AIM(AHFA_of_YIM(yim), (aim))
+@s YIM int
 @<Private incomplete structures@> =
 struct s_earley_item;
 typedef struct s_earley_item* YIM;
@@ -7868,7 +7868,14 @@ typedef const struct s_earley_item* YIM_Const;
 struct s_earley_item_key;
 typedef struct s_earley_item_key* YIK;
 
-@ @<Earley item structure@> =
+@ The layout matters a great deal, because there will be lots of them.
+I reduce the size of the YIM ordinal in order to save one word per
+YIM.
+I could widen it beyond the current count, but
+a limit of over 64,000 Earley items in a single Earley set.
+@d YIM_ORDINAL_WIDTH 16
+@d YIM_FATAL_THRESHOLD ((1<<(YIM_ORDINAL_WIDTH))-2)
+@<Earley item structure@> =
 struct s_earley_item_key {
      AHFA t_state;
      YS t_origin;
@@ -7878,8 +7885,9 @@ typedef struct s_earley_item_key YIK_Object;
 struct s_earley_item {
      YIK_Object t_key;
      union u_source_container t_container;
-     int t_ordinal;
-     @<Bit aligned Earley item elements@>@/
+     BITFIELD t_ordinal:YIM_ORDINAL_WIDTH;
+    BITFIELD t_source_type:3;
+    BITFIELD t_rejected:1;
 };
 typedef struct s_earley_item YIM_Object;
 
@@ -7968,8 +7976,6 @@ The Earley item itself is on the obstack.
 @d Earley_Item_has_Complete_Source(item) ((item)->t_source_type == SOURCE_IS_COMPLETION)
 @d Earley_Item_has_Leo_Source(item) ((item)->t_source_type == SOURCE_IS_LEO)
 @d Earley_Item_is_Ambiguous(item) ((item)->t_source_type == SOURCE_IS_AMBIGUOUS)
-@<Bit aligned Earley item elements@> =
-unsigned int t_source_type:3;
 
 @ Not inline, because not used in critical paths.
 This is for creating error messages.
@@ -8639,7 +8645,7 @@ source link.
 @<Widely aligned recognizer elements@> =
 SRCL t_trace_source_link;
 @ @<Bit aligned recognizer elements@> =
-unsigned int t_trace_source_type:3;
+BITFIELD t_trace_source_type:3;
 @ @<Initialize recognizer elements@> =
 r->t_trace_source_link = NULL;
 r->t_trace_source_type = NO_SOURCE;
@@ -12803,7 +12809,7 @@ bocage_free (BOCAGE b)
 Is this bocage for a nulling parse?
 @d B_is_Nulling(b) ((b)->t_is_nulling)
 @ @<Bit aligned bocage elements@> =
-unsigned int t_is_nulling:1;
+BITFIELD t_is_nulling:1;
 @ @<Initialize bocage elements@> =
 B_is_Nulling(b) = 0;
 @ @<Function definitions@> =
@@ -12837,7 +12843,7 @@ struct marpa_order {
     @<Widely aligned order elements@>@;
     @<Int aligned order elements@>@;
     @<Bit aligned order elements@>@;
-    unsigned int t_is_frozen:1;
+    BITFIELD t_is_frozen:1;
 };
 @ @<Pre-initialize order elements@> =
 {
@@ -12939,7 +12945,7 @@ int marpa_o_ambiguity_metric(Marpa_Order o)
 Is this order for a nulling parse?
 @d O_is_Nulling(o) ((o)->t_is_nulling)
 @ @<Bit aligned order elements@> =
-unsigned int t_is_nulling:1;
+BITFIELD t_is_nulling:1;
 @ @<Function definitions@> =
 int marpa_o_is_null(Marpa_Order o)
 {
@@ -13517,7 +13523,7 @@ int marpa_t_next(Marpa_Tree t)
 Is this tree for a nulling parse?
 @d T_is_Exhausted(t) ((t)->t_is_exhausted)
 @ @<Bit aligned tree elements@> =
-unsigned int t_is_exhausted:1;
+BITFIELD t_is_exhausted:1;
 @ @<Pre-initialize tree elements@> =
   T_is_Exhausted(t) = 0;
 
@@ -13525,7 +13531,7 @@ unsigned int t_is_exhausted:1;
 Is this tree for a nulling parse?
 @d T_is_Nulling(t) ((t)->t_is_nulling)
 @ @<Bit aligned tree elements@> =
-unsigned int t_is_nulling:1;
+BITFIELD t_is_nulling:1;
 
 @*0 Claiming and releasing and-nodes.
 To avoid cycles, the same and node is not allowed to occur twice
@@ -13741,10 +13747,10 @@ struct s_nook {
     OR t_or_node;
     int t_choice;
     NOOKID t_parent;
-    unsigned int t_is_cause_ready:1;
-    unsigned int t_is_predecessor_ready:1;
-    unsigned int t_is_cause_of_parent:1;
-    unsigned int t_is_predecessor_of_parent:1;
+    BITFIELD t_is_cause_ready:1;
+    BITFIELD t_is_predecessor_ready:1;
+    BITFIELD t_is_cause_of_parent:1;
+    BITFIELD t_is_predecessor_of_parent:1;
 };
 typedef struct s_nook NOOK_Object;
 
@@ -14103,14 +14109,14 @@ PRIVATE void value_free(VALUE v)
 Is this valuator for a nulling parse?
 @d V_is_Nulling(v) ((v)->t_is_nulling)
 @ @<Bit aligned value elements@> =
-unsigned int t_is_nulling:1;
+BITFIELD t_is_nulling:1;
 @ @<Initialize value elements@> =
   V_is_Nulling(v) = 0;
 
 @*0 Trace valuator?.
 @d V_is_Trace(val) ((val)->t_trace)
 @<Bit aligned value elements@> =
-    unsigned int t_trace:1;
+    BITFIELD t_trace:1;
 @ @<Initialize value elements@> =
    V_is_Trace(v) = 0;
 @ @<Function definitions@> =

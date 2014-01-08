@@ -457,6 +457,10 @@ int marpa__default_debug_handler (const char *format, ...)
 # define alignof(type) (offsetof (struct { char __slot1; type __slot2; }, __slot2))
 #endif
 
+@** Internal typdefs.
+@<Internal typedefs@> =
+typedef unsigned int BITFIELD;
+
 @** File layout.  
 @ The output files are written in pieces,
 with the license prepended,
@@ -487,6 +491,7 @@ So I add such a comment.
 
 @<Debug macros@>
 @<Internal macros@>
+@<Internal typedefs@>
 
 @h
 @<Friend incomplete structures@>@;
