@@ -490,6 +490,8 @@ my $libmarpa_trace_event_handlers = {
     },
     'forgiven lexeme' => sub {
         my ( $slr, $event ) = @_;
+        # Necessary to check, because this one can be returned when not tracing
+        return if not $slr->[Marpa::R2::Internal::Scanless::R::TRACE_TERMINALS];
         my ( undef, undef, $lexeme_start_pos, $lexeme_end_pos, $g1_lexeme,
             $lexer_id )
             = @{$event};

@@ -2015,7 +2015,7 @@ slr_alternatives (Scanless_R * slr)
 	      }
 	    break;
 	  case MARPA_SLRTR_LEXEME_FORGIVEN:
-	    if (slr->trace_terminals || !is_priority_set)
+	    if (slr->trace_terminals)
 	      {
 		    *(marpa__slr_event_push(slr->gift)) = *lexeme_stack_event;
 	      }

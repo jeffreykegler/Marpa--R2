@@ -21,7 +21,7 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 10;
+use Test::More tests => 14;
 use English qw( -no_match_vars );
 use lib 'inc';
 use Marpa::R2::Test;
@@ -154,6 +154,8 @@ INPUT
     'Regression test of bug found by JDD'
 ];
 
+# ===============
+
 my $durand_grammar3 = Marpa::R2::Scanless::G->new(
     {   source => \(<<'END_OF_SOURCE'),
 :default ::= action => ::array
@@ -188,6 +190,65 @@ INPUT
     'Parse OK',
     'Regression test of perl_pos bug found by JDD'
 ];
+
+# Test of forgiving token from Peter Stuifzand
+{
+    my $source = <<'SOURCE';
+:default ::= action => ::array
+product ::= sku (nl) name (nl) price price price (nl)
+
+sku       ~ sku_0 '.' sku_0
+sku_0     ~ [\d]+
+
+price     ~ price_0 ',' price_0
+price_0   ~ [\d]+
+nl        ~ [\n]
+
+sp        ~ [ ]+
+:discard  ~ sp
+
+:lexeme ~ <name> forgiving => 1
+name      ~ [^\n]+
+
+SOURCE
+
+    my $input = <<'INPUT';
+130.12312
+Descriptive line
+1,10 1,10 1,30
+INPUT
+
+    my $slg = Marpa::R2::Scanless::G->new( { source => \$source } );
+    push @tests_data,
+        [
+        $slg, $input,
+        [ '130.12312', 'Descriptive line', '1,10', '1,10', '1,30' ],
+        'Parse OK', 'Test of forgiving token from Peter Stuifzand'
+        ];
+}
+
+# Test of forgiving token from Ruslan Zakirov
+{
+    my $source = <<'SOURCE';
+:default ::= action => ::array
+:start ::= content
+content ::= name ':' value
+name ~ [A-Za-z0-9-]+
+value ~ [A-Za-z0-9:-]+
+:lexeme ~ value forgiving => 1
+SOURCE
+
+    my $input = 'UID:urn:uuid:4fbe8971-0bc3-424c-9c26-36c3e1eff6b1';
+    my $expected_output =
+        [ 'UID', ':', 'urn:uuid:4fbe8971-0bc3-424c-9c26-36c3e1eff6b1' ];
+
+    my $slg = Marpa::R2::Scanless::G->new( { source => \$source } );
+    push @tests_data,
+        [
+        $slg, $input, $expected_output,
+        'Parse OK', 'Test of forgiving token from Ruslan Zakirov'
+        ];
+}
 
 TEST:
 for my $test_data (@tests_data) {
