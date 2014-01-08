@@ -360,6 +360,12 @@ sub Marpa::R2::Internal::MetaAST_Nodes::proper_specification::evaluate {
     return bless { proper => $child->value() }, $PROTO_ALTERNATIVE;
 }
 
+sub Marpa::R2::Internal::MetaAST_Nodes::forgiving_specification::evaluate {
+    my ($values) = @_;
+    my $child = $values->[2];
+    return bless { forgiving => $child->value() }, $PROTO_ALTERNATIVE;
+}
+
 sub Marpa::R2::Internal::MetaAST_Nodes::pause_specification::evaluate {
     my ($values) = @_;
     my $child = $values->[2];
@@ -951,6 +957,10 @@ sub Marpa::R2::Internal::MetaAST_Nodes::lexeme_rule::evaluate {
             $declarations{$key} = $raw_value;
             next ADVERB;
         }
+        if ( $key eq 'forgiving' ) {
+            $declarations{$key} = $raw_value;
+            next ADVERB;
+        }
         my ( $line, $column ) = $parse->{meta_recce}->line_column($start);
         die qq{"$key" adverb not allowed in lexeme rule"\n},
             "  Location was line $line, column $column\n",
@@ -961,6 +971,14 @@ sub Marpa::R2::Internal::MetaAST_Nodes::lexeme_rule::evaluate {
         my ( $line, $column ) = $parse->{meta_recce}->line_column($start);
         die
             qq{"event" adverb not allowed without "pause" adverb in lexeme rule"\n},
+            "  Location was line $line, column $column\n",
+            '  Rule was ', $parse->substring( $start, $length ), "\n";
+    } ## end if ( exists $declarations{'event'} and not exists $declarations...)
+    if ( exists $declarations{'forgiving'} and exists $declarations{'pause'} )
+    {
+        my ( $line, $column ) = $parse->{meta_recce}->line_column($start);
+        die
+            qq{"forgiving" adverb not allowed with "pause" adverb in lexeme rule"\n},
             "  Location was line $line, column $column\n",
             '  Rule was ', $parse->substring( $start, $length ), "\n";
     } ## end if ( exists $declarations{'event'} and not exists $declarations...)
