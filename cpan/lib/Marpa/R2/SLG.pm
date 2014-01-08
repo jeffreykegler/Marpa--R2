@@ -523,6 +523,11 @@ sub Marpa::R2::Internal::Scanless::G::hash_to_runtime {
         if ( defined( my $value = $declarations->{priority} ) ) {
             $thin_slg->g1_lexeme_priority_set( $g1_lexeme_id, $value );
         }
+
+        if ( defined( my $value = $declarations->{forgiving} ) ) {
+            $thin_slg->g1_lexeme_forgiving_set( $g1_lexeme_id, $value );
+        }
+
         my $pause_value = $declarations->{pause};
         if ( defined $pause_value ) {
             $thin_slg->g1_lexeme_pause_set( $g1_lexeme_id, $pause_value );
