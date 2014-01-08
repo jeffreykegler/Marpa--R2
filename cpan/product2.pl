@@ -5,7 +5,7 @@ use Marpa::R2;
 use Data::Dumper;
 
 my $source = <<'SOURCE';
-product ::= sku nl name nl price price price nl
+product ::= sku (nl) name (nl) price price price (nl)
 
 sku       ~ sku_0 '.' sku_0
 sku_0     ~ [\d]+
