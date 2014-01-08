@@ -974,14 +974,6 @@ sub Marpa::R2::Internal::MetaAST_Nodes::lexeme_rule::evaluate {
             "  Location was line $line, column $column\n",
             '  Rule was ', $parse->substring( $start, $length ), "\n";
     } ## end if ( exists $declarations{'event'} and not exists $declarations...)
-    if ( exists $declarations{'forgiving'} and exists $declarations{'pause'} )
-    {
-        my ( $line, $column ) = $parse->{meta_recce}->line_column($start);
-        die
-            qq{"forgiving" adverb not allowed with "pause" adverb in lexeme rule"\n},
-            "  Location was line $line, column $column\n",
-            '  Rule was ', $parse->substring( $start, $length ), "\n";
-    } ## end if ( exists $declarations{'event'} and not exists $declarations...)
     $parse->{lexeme_declarations}->{$symbol_name} = \%declarations;
     ## no critic(Subroutines::ProhibitExplicitReturnUndef)
     return undef;
