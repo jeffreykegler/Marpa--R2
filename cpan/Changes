@@ -15,6 +15,10 @@
 
 Revision history for Marpa::R2
 
+2.079_008
+
+   * Documented forgiving tokens
+
 2.079_007
 
    * Added forgiving tokens
