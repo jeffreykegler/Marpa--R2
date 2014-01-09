@@ -107,8 +107,7 @@ $progress_report = $slr->show_progress( 0, -1 );
 $eval_error =~ s/^(Marpa::R2 \s+ exception \s+ at) .*/$1\n/xms;
 Marpa::R2::Test::is($eval_error, <<'END_OF_TEXT', 'Error message before fix');
 Error in SLIF parse: No lexemes accepted at line 1, column 18
-  Lexer "L0" rejected 1 lexeme(s)
-  Rejected lexeme #1: '*'; value="*"; length = 1
+  Rejected lexeme #0: '*'; value="*"; length = 1
 * String before error: a = 8675309 + 42\s
 * The error was at line 1, column 18, and at character 0x002a '*', ...
 * here: * 711

@@ -102,6 +102,7 @@
 @s MARPA_AVL_TRAV int
 @s MARPA_AVL_TREE int
 @s Bit_Matrix int
+@s BITFIELD int
 @s DAND int
 @s MARPA_DSTACK int
 @s LBV int
@@ -1741,7 +1742,8 @@ symbols created internally by libmarpa.
 
 @ @<Public typedefs@> =
 typedef int Marpa_NSY_ID;
-@ @<Private typedefs@> =
+@ @s NSY int
+@<Private typedefs@> =
 struct s_nsy;
 typedef struct s_nsy* NSY;
 typedef Marpa_NSY_ID NSYID;
@@ -6352,14 +6354,14 @@ a function of AHFA state and symbol.
 and worth a careful look.
 Speed is probably optimal.
 Time complexity is fine --- $O(1)$ in the length of the input.
-@ But this solution is is very space-intensive---%
+@ This solution is is very space-intensive ---
 perhaps $O(\v g\v^2)$.
 But these arrays are extremely sparse,
 Many rows of the array have only one or two entries.
 There are alternatives
 which save a lot of space in return for a small overhead in time.
 @ A very similar problem has been the subject of considerable
-study---%
+study ---
 LALR and LR(0) state tables.
 These also index by state and symbol, and their usage is very
 similar to that expected for the AHFA lookups.
@@ -6929,6 +6931,7 @@ phases:
 
 @*0 Earley set container.
 @d First_YS_of_R(r) ((r)->t_first_earley_set)
+@s JEARLEME int
 @<Widely aligned recognizer elements@> =
 YS t_first_earley_set;
 YS t_latest_earley_set;
@@ -7418,6 +7421,7 @@ able to handle.
 @d Postdot_SYM_Count_of_YS(set) ((set)->t_postdot_sym_count)
 @d First_PIM_of_YS_by_NSYID(set, nsyid) (first_pim_of_ys_by_nsyid((set), (nsyid)))
 @d PIM_NSY_P_of_YS_by_NSYID(set, nsyid) (pim_nsy_p_find((set), (nsyid)))
+@s YS int
 @<Private incomplete structures@> =
 struct s_earley_set;
 typedef struct s_earley_set *YS;
@@ -7434,7 +7438,7 @@ struct s_earley_set {
     YSK_Object t_key;
     union u_postdot_item** t_postdot_ary;
     YS t_next_earley_set;
-    @<Widely aligned Earley set elements@>@/
+    @<Widely aligned Earley set elements@>@;
     int t_postdot_sym_count;
     @<Int aligned Earley set elements@>@;
 };
@@ -7638,6 +7642,7 @@ Marpa_Earleme marpa_r_earleme(Marpa_Recognizer r, Marpa_Earley_Set_ID set_id)
 
 @ Note that this trace function returns the earley set size
 of the {\bf current earley set}.
+It includes rejected |YIM|'s.
 @ @<Function definitions@> =
 int _marpa_r_earley_set_size(Marpa_Recognizer r, Marpa_Earley_Set_ID set_id)
 {
@@ -7664,21 +7669,6 @@ tracked on a per-recognizer basis.
 YIM t_trace_earley_item;
 @ @<Initialize recognizer elements@> =
 r->t_trace_earley_item = NULL;
-@ This function returns the AHFA state ID of an Earley item,
-and sets the trace Earley item,
-if it successfully finds an Earley item
-in the trace Earley set with the specified
-AHFA state ID and origin earleme.
-If there is no such Earley item,
-it returns |-1|,
-and clears the trace Earley item.
-On failure for other reasons,
-it returns |-2|,
-and clears the trace Earley item.
-@ The trace Earley item is cleared if no matching
-Earley item is found, and on failure.
-The trace source link is always
-cleared, regardless of success or failure.
 
 @ This function sets
 the trace Earley set to the one indicated
@@ -7844,6 +7834,7 @@ be recopied to make way for pointers to the linked lists.
 when the Earley item is initialized.
 @d Earley_Item_is_Completion(item)
     (Complete_NSY_Count_of_YIM(item) > 0)
+@s Marpa_Earley_Item_ID int
 @<Public typedefs@> = typedef int Marpa_Earley_Item_ID;
 @ The ID of the Earley item is per-Earley-set, so that
 to uniquely specify the Earley item you must also specify
@@ -7872,7 +7863,8 @@ typedef struct s_earley_item_key* YIK;
 I reduce the size of the YIM ordinal in order to save one word per
 YIM.
 I could widen it beyond the current count, but
-a limit of over 64,000 Earley items in a single Earley set.
+a limit of over 64,000 Earley items in a single Earley set
+should not be restrictive in practice.
 @d YIM_ORDINAL_WIDTH 16
 @d YIM_FATAL_THRESHOLD ((1<<(YIM_ORDINAL_WIDTH))-2)
 @<Earley item structure@> =
@@ -7911,6 +7903,7 @@ PRIVATE YIM earley_item_create(const RECCE r,
   new_item = marpa_obs_new (r->t_obs, struct s_earley_item, 1);
   new_item->t_key = key;
   new_item->t_source_type = NO_SOURCE;
+  new_item->t_rejected = 0;
   Ord_of_YIM(new_item) = count - 1;
   end_of_work_stack = WORK_YIM_PUSH(r);
   *end_of_work_stack = new_item;
@@ -8352,7 +8345,8 @@ But that transition symbol does not have to start at the origin
 and can start anywhere between the origin and the current
 set of the Earley item.
 For example, for an Earley item at earleme 14, with its origin at 10,
-there may be no predecessor in which case the ``cause" starts at 10.
+there may be no predecessor,
+in which case the ``cause" starts at 10.
 Or there may be a predecessor, in which case
 the ``cause" may start at earlemes 11, 12 or 13.
 This different divisions between the (possibly null) predecessor
@@ -8499,7 +8493,9 @@ individual rules and positions until the evaluation phase,
 at this writing it seems to make sense to deal with
 duplicates there.
 @ As shown above, the number of duplicate completion links
-is never more than $O(n)$ where $n$ is the number of Earley items.
+is never more than $O(c \times n) = O(n)$,
+where $c$ is the number of LHS symbols in the grammar
+and $n$ is the number of Earley items.
 For academic purposes, it
 is probably possible to contrive a parse which generates
 a lot of duplicates.
@@ -8639,7 +8635,8 @@ void earley_item_ambiguate (struct marpa_r * r, YIM item)
 Many trace functions track a ``trace source link".
 There is only one of these, shared among all types of
 source link.
-It is an error to call a trace function that is
+It is reported as an error if a trace function is called
+when it is
 inconsistent with the type of the current trace
 source link.
 @<Widely aligned recognizer elements@> =
@@ -8870,10 +8867,10 @@ PRIVATE void trace_source_link_clear(RECCE r)
 @*1 Return the predecessor AHFA state.
 Returns the predecessor AHFA State,
 or -1 if there is no predecessor.
-If the recognizer is trace-safe,
-there is no trace source link,
-the trace source link is a Leo source,
-or there is some other failure,
+If the recognizer is not trace-safe,
+if there is no trace source link,
+if the trace source link is a Leo source,
+or if there is some other failure,
 |-2| is returned.
 @<Function definitions@> =
 AHFAID _marpa_r_source_predecessor_state(Marpa_Recognizer r)
@@ -8913,7 +8910,7 @@ There is no function to return just the token value
 for two reasons.
 First, since token value can be anything
 an additional return value is needed to indicate errors,
-which means the symbol ID comes at virtually zero cost.
+which means the symbol ID comes at essentially zero cost.
 Second, whenever the token value is
 wanted, the symbol ID is almost always wanted as well.
 @<Function definitions@> =
@@ -8989,8 +8986,7 @@ If there is a cause, the middle earleme is always the same
 as the origin of the cause.
 If there is a token,
 the middle earleme is always where the token starts.
-@ The ``predecessor set" is the earleme of the predecessor.
-Returns |-1| if there is no predecessor.
+@ Returns |-1| if there is no predecessor.
 If there are other failures, such as
 there being no source link,
 |-2| is returned.
@@ -9572,12 +9568,13 @@ On failure, it returns |-2|.
 If the completion of the earleme left the parse exhausted, 0 is
 returned.
 @
-While, if the completion of the earleme left the parse exhausted, 0 is
-returned, the converse is not true if tokens may be longer than one earleme.
+If the completion of the earleme left the parse exhausted, 0 is returned.
+The converse is not true -- when tokens may be longer than one earleme,
+zero may be returned even if the parse is not exhausted.
 In those alternative input models, it is possible that no terminals are
 expected at the current earleme, but other terminals might be expected
 at later earlemes.
-That means that the parse can be continued---%
+That means that the parse can be continued ---
 it is not exhausted.
 In those alternative input models,
 if the distinction between zero terminals expected and an
@@ -9638,7 +9635,7 @@ marpa_r_earleme_complete(Marpa_Recognizer r)
 }
 
 @ Currently, |earleme_complete_obs| is only used for completion events,
-and so should only be initialized if they in use.
+and so should only be initialized if they are in use.
 But I expect to use it for other purposes.
 @<Declare |marpa_r_earleme_complete| locals@> =
     const NSYID nsy_count = NSY_Count_of_G(g);
@@ -9973,7 +9970,14 @@ PRIVATE void earley_set_update_items(RECCE r, YS set)
     WORK_YIMS_CLEAR(r);
 }
 
-@ @d P_YS_of_R_by_Ord(r, ord) MARPA_DSTACK_INDEX((r)->t_earley_set_stack, YS, (ord))
+@ This function is called exactly once during a normal parse --
+at the end, when it is time for a bocage to be created.
+It is also called by trace and debugging methods.
+It must be used carefully since it takes $O(\log n)$ time,
+where $n$ is the number of Earley sets.
+If called after every Earley set, it would make Marpa
+$O(n \log n)$ in the best case.
+@d P_YS_of_R_by_Ord(r, ord) MARPA_DSTACK_INDEX((r)->t_earley_set_stack, YS, (ord))
 @d YS_of_R_by_Ord(r, ord) (*P_YS_of_R_by_Ord((r), (ord)))
 @<Function definitions@> =
 PRIVATE void r_update_earley_sets(RECCE r)
@@ -10559,7 +10563,7 @@ one AHFA item in the AHFA state of the Earley item predecessor.
 
 @** Ur-node (UR) code.
 Ur is a German word for ``primordial", which is used
-a lot in academic writing to designate precursors---%
+a lot in academic writing to designate precursors ---
 for example, scholars who believe that Shakespeare's
 {\it Hamlet} is based on another, now lost, play,
 call this play the ur-Hamlet.
@@ -10770,8 +10774,10 @@ MARPA_ASSERT(ahfa_element_ix < aim_count_of_item)@;
         {
           if (YIM_is_Predicted (predecessor_earley_item))
             {
-              Set_boolean_in_PSIA_for_initial_nulls (predecessor_earley_item,
-                                                     predecessor_aim);
+              or_node_estimate +=
+                Set_boolean_in_PSIA_for_initial_nulls (bocage_setup_obs, per_ys_data,
+                                                       predecessor_earley_item,
+                                                       predecessor_aim);
             }
           else
             {
@@ -10793,20 +10799,23 @@ MARPA_ASSERT(ahfa_element_ix < aim_count_of_item)@;
 so that I will know to create the chain of or-nodes for them.
 We don't need to stack the prediction, because it can have
 no other descendants.
-@d Set_boolean_in_PSIA_for_initial_nulls(yim, aim) {
-
-    if (Position_of_AIM(aim) > 0) {
-        const int null_count = Null_Count_of_AIM(aim);
-
-        if (null_count) {
-            AEX aex = AEX_of_YIM_by_AIM((yim),
-                (aim));
-
-            or_node_estimate += null_count;
-            psia_test_and_set(bocage_setup_obs, per_ys_data, 
-                (yim), aex);
-        }
+@<Function definitions@> =
+PRIVATE int
+Set_boolean_in_PSIA_for_initial_nulls (struct marpa_obstack *bocage_setup_obs,
+				       struct s_bocage_setup_per_ys
+				       *per_ys_data, YIM yim, AIM aim)
+{
+  int null_count = 0;
+  if (Position_of_AIM (aim) > 0)
+    {
+      null_count = Null_Count_of_AIM (aim);
+      if (null_count)
+	{
+	  AEX aex = AEX_of_YIM_by_AIM ((yim), (aim));
+	  psia_test_and_set (bocage_setup_obs, per_ys_data, (yim), aex);
+	}
     }
+  return null_count;
 }
 
 @ @<Push child Earley items from completion sources@> =
@@ -10837,8 +10846,9 @@ no other descendants.
           {
             if (YIM_is_Predicted (predecessor_earley_item))
               {
-                Set_boolean_in_PSIA_for_initial_nulls
-                  (predecessor_earley_item, predecessor_aim);
+                or_node_estimate += Set_boolean_in_PSIA_for_initial_nulls
+                  (bocage_setup_obs, per_ys_data,
+                  predecessor_earley_item, predecessor_aim);
               }
             else
               {
@@ -10903,7 +10913,9 @@ no other descendants.
           or_node_estimate += 1 + Null_Count_of_AIM (ur_aim + 1);
           if (YIM_is_Predicted (ur_earley_item))
             {
-              Set_boolean_in_PSIA_for_initial_nulls (ur_earley_item, ur_aim);
+              or_node_estimate +=
+                Set_boolean_in_PSIA_for_initial_nulls (bocage_setup_obs, per_ys_data,
+                                                       ur_earley_item, ur_aim);
             }
           else
             {
@@ -10956,7 +10968,7 @@ predot symbol.
 {\bf Proof of Lemma}:
 Showing that the Earley items share the same origin and current
 YS is straightforward, based on the or-node's construction.
-They share at least one LR0 item in their AHFA states---%
+They share at least one LR0 item in their AHFA states ---
 the LR0 item which defines the or-node.
 Because they share at least one LR0 item and because, by the
 Shared Predot Lemma, every LR0
@@ -11166,7 +11178,7 @@ Top_ORID_of_B(b) = -1;
 }
 
 @*0 Non-Leo or-nodes.
-@ Add the main or-node---%
+@ Add the main or-node ---
 the one that corresponds directly to this AHFA item.
 The exception are predicted AHFA items.
 Or-nodes are not added for predicted AHFA items.
@@ -11323,7 +11335,7 @@ PRIVATE AIM base_aim_of_lim(LIM leo_item)
       return AIM_of_YIM_by_AEX(base, base_aex);
 }
 
-@ Adds the main Leo path or-node---%
+@ Adds the main Leo path or-node ---
 the non-nulling or-node which
 corresponds to the Leo predecessor.
 @<Add main Leo path or-node@> =
@@ -12661,13 +12673,13 @@ even though it can contain a predicted AHFA item.
 @ A linear search of the AHFA items is used.
 As shown elsewhere in this document,
 discovered AHFA states for practical grammars tend to be
-very small---%
+very small ---
 less than two AHFA items.
 Size of the AHFA state is a function of the grammar, so
 any reasonable search is $O(1)$ in terms of the length of
 the input.
 @ The search for the start Earley item is done once
-per parse---%
+per parse ---
 $O(s)$, where $s$ is the size of the end of parse Earley set.
 This makes it very hard to justify any precomputations to
 help the search, because if they have to be done once per
