@@ -11734,9 +11734,12 @@ predecessor.  Set |or_node| to 0 if there is none.
     const AIM work_predecessor_aim = work_ahfa_item - 1;
     const int work_symbol_instance = SYMI_of_AIM (work_ahfa_item);
     OR work_proper_or_node;
-    Set_OR_from_Ord_and_SYMI (work_proper_or_node, work_origin_ordinal,
-                              work_symbol_instance);
-
+    {
+      const int origin = work_origin_ordinal;
+      const SYMI symbol_instance = work_symbol_instance;
+      OR* const p_or_node = &work_proper_or_node;
+      @<Set |*p_or_node| from Ord |origin| and SYMI |symbol_instance|@>@;
+    }
     @<Create Leo draft and-nodes@>@;
     @<Create draft and-nodes for token sources@>@;
     @<Create draft and-nodes for completion sources@>@;
@@ -11793,9 +11796,10 @@ predecessor.  Set |or_node| to 0 if there is none.
   }
 }
 
-@ @d Set_OR_from_Ord_and_SYMI(or_node, origin, symbol_instance) {
+@ @<Set |*p_or_node| from Ord |origin| and SYMI |symbol_instance|@> =
+{
   const PSL or_psl_at_origin = per_ys_data[(origin)].t_or_psl;
-  (or_node) = PSL_Datum (or_psl_at_origin, (symbol_instance));
+  (*p_or_node) = PSL_Datum (or_psl_at_origin, (symbol_instance));
 }
 
 @ @<Add draft and-nodes to the bottom or-node@> =
@@ -11835,15 +11839,20 @@ predecessor.  Set |or_node| to 0 if there is none.
   const AIM aim = AIM_of_YIM_by_AEX (base_earley_item, base_aex);
   path_irl = IRL_of_AIM (aim);
   symbol_instance = Last_Proper_SYMI_of_IRL (path_irl);
-  Set_OR_from_Ord_and_SYMI (path_or_node, origin_ordinal, symbol_instance);
+  {
+     OR* const p_or_node = &path_or_node;
+     const int origin = origin_ordinal;
+    @<Set |*p_or_node| from Ord |origin| and SYMI |symbol_instance|@>@;
+  }
 }
 
 @ @<Add the draft and-nodes to an upper Leo path or-node@> =
 {
   OR dand_cause;
   const SYMI symbol_instance = SYMI_of_Completed_IRL(previous_path_irl);
-  const int origin_ordinal = Ord_of_YS(YS_of_LIM(path_leo_item));
-  Set_OR_from_Ord_and_SYMI(dand_cause, origin_ordinal, symbol_instance);
+  const int origin = Ord_of_YS(YS_of_LIM(path_leo_item));
+  OR* const p_or_node = &dand_cause;
+  @<Set |*p_or_node| from Ord |origin| and SYMI |symbol_instance|@>@;
   draft_and_node_add (bocage_setup_obs, path_or_node,
           dand_predecessor, dand_cause);
 }
@@ -11950,7 +11959,12 @@ predecessor.  Set |or_node| to 0 if there is none.
   const SYMI cause_symbol_instance =
       SYMI_of_Completed_IRL(IRL_of_AIM(cause_ahfa_item));
   @<Set |dand_predecessor|@>@;
-  Set_OR_from_Ord_and_SYMI(dand_cause, middle_ordinal, cause_symbol_instance);
+  {
+    const int origin = middle_ordinal;
+    const SYMI symbol_instance = cause_symbol_instance;
+    OR* const p_or_node = &dand_cause;
+    @<Set |*p_or_node| from Ord |origin| and SYMI |symbol_instance|@>@;
+  }
   draft_and_node_add (bocage_setup_obs, work_proper_or_node,
           dand_predecessor, dand_cause);
 }
