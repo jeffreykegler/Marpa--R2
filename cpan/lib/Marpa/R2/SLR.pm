@@ -1035,21 +1035,21 @@ sub Marpa::R2::Scanless::R::read_problem {
             $problem_pos = $thin_slr->problem_pos();
             my ( $line, $column ) = $slr->line_column($problem_pos);
             my $lexer_name;
-            my $rejected_count = 0 ;
             my @details = ();
-            EVENT: for my $event ( $thin_slr->events() ) {
+            my %rejections = ();
+            my @events = $thin_slr->events() ;
+            if (scalar @events > 100) {
+               my $omitted = scalar @events - 100;
+               push @details, "  [there were $omitted events -- only the first 100 were examined]";
+               $#events = 99;
+            }
+            EVENT: for my $event ( @events ) {
                 my ( $event_type, $trace_event_type, $lexeme_start_pos,
                     $lexeme_end_pos, $g1_lexeme, $lexer_id )
                     = @{$event};
                 next EVENT
                     if $event_type ne q{'trace}
                     or $trace_event_type ne 'rejected lexeme';
-                $rejected_count++;
-                if ( $rejected_count > 5 ) {
-                    my $omitted = $rejected_count - 5;
-                    push @details,
-                        "  [$omitted rejected lexemes omitted from listing]";
-                }
                 my $thin_slr = $slr->[Marpa::R2::Internal::Scanless::R::C];
                 my $raw_token_value =
                     $thin_slr->substring( $lexeme_start_pos,
@@ -1063,18 +1063,33 @@ sub Marpa::R2::Scanless::R::read_problem {
                 $lexer_name =
                     $slg->[Marpa::R2::Internal::Scanless::G::LEXER_NAME_BY_ID]
                     ->[$lexer_id];
-                push @details,
-                    qq{  Rejected lexeme #$rejected_count: }
-                    . $thick_g1_grammar->symbol_in_display_form($g1_lexeme)
+
+                # Different internal symbols may have the same external "display form",
+                # which in naive reporting logic would result in many identical messages,
+                # confusing the user.  This logic makes sure that identical rejection
+                # reports are not repeated, even when they have different causes
+                # internally.
+
+                $rejections{
+                    $thick_g1_grammar->symbol_in_display_form($g1_lexeme)
                     . qq{; value="$raw_token_value"; length = }
-                    . ( $lexeme_end_pos - $lexeme_start_pos );
+                    . ( $lexeme_end_pos - $lexeme_start_pos )} = 1;
             } ## end EVENT: for my $event ( $thin_slr->events() )
             my @problem = ();
-            if ($rejected_count) {
+            my @rejections = keys %rejections;
+            if (scalar @rejections) {
+                my $rejection_count = scalar @rejections;
                 push @problem,
-                    "No lexemes accepted at line $line, column $column",
-                    qq{  Lexer "$lexer_name" rejected $rejected_count lexeme(s)},
-                    @details;
+                    "No lexemes accepted at line $line, column $column";
+                REJECTION: for my $i (0 .. 5) {
+                    my $rejection = $rejections[$i];
+                    last REJECTION if not defined $rejection;
+                    push @problem, qq{  Rejected lexeme #$i: $rejection};
+                }
+                if ($rejection_count > 5) {
+                   push @problem, "  [there were $rejection_count rejection messages -- only the first 5 are shown]";
+                }
+                push @problem, @details;
             } ## end if ($rejected_count)
             else {
                 push @problem,

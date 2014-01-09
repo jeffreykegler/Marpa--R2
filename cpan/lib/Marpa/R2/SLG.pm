@@ -524,7 +524,7 @@ sub Marpa::R2::Internal::Scanless::G::hash_to_runtime {
 
         Marpa::R2::exception(
             "Symbol <$lexeme_name> is declared as a lexeme, but it is not used as one.\n"
-        ) if not $g1_lexemes[$g1_lexeme_id];
+        ) if not defined $g1_lexeme_id or not $g1_lexemes[$g1_lexeme_id];
 
         if ( defined( my $value = $declarations->{priority} ) ) {
             $thin_slg->g1_lexeme_priority_set( $g1_lexeme_id, $value );
