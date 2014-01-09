@@ -637,7 +637,7 @@ and does not affect rules.
 Only the defaults for
 the L<C<action>|/"action"> and L<C<bless>|/"bless"> adverbs
 can be specified in a lexeme default statement.
-Only one lexeme default statement is allowed in a file.
+Only one lexeme default statement is allowed in a grammar.
 
 =head2 Named event statement
 
