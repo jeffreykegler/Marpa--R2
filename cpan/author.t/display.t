@@ -176,9 +176,9 @@ sub compare {
         return 1 if -1 != index ${$formatted_original}, ${$formatted_copy};
         Test::More::diag(
             "Partial: ",
-            $copy->{filename},
-            ' vs. ',
             $original->{filename},
+            ' vs. ',
+            $copy->{filename},
             "\n",
             (   Text::Diff::diff $formatted_original,
                 $formatted_copy,

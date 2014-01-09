@@ -229,14 +229,22 @@ INPUT
 
 # Test of forgiving token from Ruslan Zakirov
 {
-    my $source = <<'SOURCE';
+
+# Marpa::R2::Display
+# name: forgiving adverb example
+# start-after-line: END_OF_SOURCE
+# end-before-line: '^END_OF_SOURCE$'
+
+    my $source = <<'END_OF_SOURCE';
 :default ::= action => ::array
 :start ::= content
 content ::= name ':' value
 name ~ [A-Za-z0-9-]+
 value ~ [A-Za-z0-9:-]+
 :lexeme ~ value forgiving => 1
-SOURCE
+END_OF_SOURCE
+
+# Marpa::R2::Display
 
     my $input = 'UID:urn:uuid:4fbe8971-0bc3-424c-9c26-36c3e1eff6b1';
     my $expected_output =
