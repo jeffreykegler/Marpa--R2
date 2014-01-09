@@ -11325,7 +11325,8 @@ PRIVATE AEX lim_base_data_get(LIM leo_item, YIM* p_base)
       return Leo_Base_AEX_of_TRANS (transition);
 }
 
-@ @d Path_AIM_of_LIM(lim) (base_aim_of_lim(lim)+1)
+@
+@d Path_AIM_of_LIM(lim) (base_aim_of_lim(lim)+1)
 @d Base_AIM_of_LIM(lim) (base_aim_of_lim(lim))
 @<Function definitions@> =
 PRIVATE AIM base_aim_of_lim(LIM leo_item)
