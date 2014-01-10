@@ -10256,7 +10256,7 @@ once it is populated.
 }
 
 @ This code fully populates the data in the LIMs.
-It determines the Leo predecesors of the LIMs, if any,
+It determines the Leo predecessors of the LIMs, if any,
 then populates that datum and the predecessor-dependent
 data.
 @ The algorithm is fast, if not a model of simplicity.
@@ -10418,7 +10418,7 @@ put the same LIM on LIM chain twice.  Since a LIM chain links are one-to-one,
 ensuring that the LIM on the bottom of the chain is never added to the LIM
 chain is enough to enforce this.
 @ When I am about to add a LIM twice to the LIM chain, instead I break the
-chain at that point.  The top of chain will then have no LIM predecesor,
+chain at that point.  The top of chain will then have no LIM predecessor,
 instead of being part of a cycle.  Since the LIM information is always optional,
 and in that case would be useless, breaking the chain in this way causes no
 problems.
