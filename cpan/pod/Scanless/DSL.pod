@@ -266,7 +266,7 @@ normalize-whitespace: 1
 =for Marpa::R2::Display::End
 
 A character class in square brackets ("C<[]>")
-can be used in a RHS alternative of a prioritized rule,
+can be used in an RHS alternative of a prioritized rule,
 a quantified rule or a discard rule.
 Marpa character classes may contain anything acceptable to Perl,
 and follow the same escaping conventions as Perl's character classes.
@@ -359,8 +359,8 @@ the right side declaration is described in detail below.
 
 The right side declaration of a rule will often contain one or
 more RHS alternatives.
-A RHS alternative is a series of RHS primaries,
-where a RHS primary may be a symbol name,
+An RHS alternative is a series of RHS primaries,
+where an RHS primary may be a symbol name,
 a character class,
 or a single quoted string.
 Associated with each RHS is often
@@ -455,7 +455,7 @@ Start rules must be G1 rules.
 =head2 Empty rules
 
 An empty rule is a rule with an empty RHS.
-The empty RHS, technically, is a RHS alternative, one with zero RHS primaries.
+The empty RHS, technically, is an RHS alternative, one with zero RHS primaries.
 The L<C<action>|/"action"> and
 L<C<bless>|/"bless"> adverbs are allowed 
 for the empty RHS alternative,
@@ -1119,7 +1119,7 @@ Marpa's precedence parsing is NOT based on
 the special treatment of operators.
 
 For the purpose of precedence,
-an operand is an occurrence in a RHS alternative
+an operand is an occurrence in an RHS alternative
 of the LHS symbol.
 An operator is considered to be anything 
 that is not an operand.

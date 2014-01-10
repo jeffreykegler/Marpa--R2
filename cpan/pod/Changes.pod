@@ -254,7 +254,7 @@ a nulling symbol to be used as a terminal.
 To the extent that the Marpa::XS behavior made sense,
 it can be duplicated by creating a symbol which
 is the LHS of two rules, one empty,
-and the other rule with a RHS consisting of exactly one
+and the other rule with an RHS consisting of exactly one
 terminal symbol.
 
 =head2 A sequence must have a unique LHS

@@ -618,7 +618,7 @@ That's fine, but why no other, more relevant, occurrences of C<E<lt>numeric expr
 
 We look back at the grammar.
 Aside for the rule for the 'C<string>' operator,
-C<E<lt>numeric expressionE<gt>> occurs on a RHS in two places.
+C<E<lt>numeric expressionE<gt>> occurs on an RHS in two places.
 One is in the prioritized rule which defines
 C<E<lt>numeric expressionE<gt>>.
 

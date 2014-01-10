@@ -185,7 +185,7 @@ from two different DSL rules.
 
 =head2 Null variant ranking
 
-Some rules have a RHS which contains
+Some rules have an RHS which contains
 B<proper nullables>:
 symbols
 which may be nulled, but which are not nulling
