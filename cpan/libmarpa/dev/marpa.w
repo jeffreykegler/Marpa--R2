@@ -4695,22 +4695,20 @@ where $s$ is the size of the grammar.
 This is the same as the theoretical worst case.
 
 @ Here are the number of items for predicted states for the Perl grammar.
-The number of states with that item count in is parentheses:
+Here in tabular form are the sizes most common sizes, in order of
+decreasing frequency:
 \par
 \vskip\baselineskip
 \vbox{\offinterlineskip
 \halign{&#&
   \strut\quad\hfil#\quad\cr
 &\omit&&\omit&\cr
-&Size\hfil&&Perl predicted states&\cr\
+&Size\hfil&&Frequency&\cr\
 &\omit&&\omit&\cr
-&1&&3&\cr
 &2&&5&\cr
-&3&&4&\cr
-&4&&3&\cr
-&5&&1&\cr
-&6&&2&\cr
-&7&&2&\cr
+&3,142&&4&\cr
+&1,4&&3&\cr
+&6,7, 143&&2&\cr
 &\omit&&\omit&\cr}
 }
 \vskip\baselineskip
@@ -4718,6 +4716,7 @@ The number of states with that item count in is parentheses:
 
 In addition, the Perl grammar had exactly one predicted state of
 the following sizes:
+5,
 64,
 71,
 77,
@@ -4742,8 +4741,6 @@ the following sizes:
 136,
 137,
 141,
-142,
-143,
 144,
 149,
 151,
@@ -4757,8 +4754,7 @@ the following sizes:
 The average size was 83.59 AHFA items.
 The average of the size squared was 11356.41.
 
-@*1 HTML Data.
-@ And here is the same data for some grammar of HTML:
+@ And here is the same data for a sample HTML grammar:
 \par
 \vskip\baselineskip
 \vbox{\offinterlineskip
@@ -4792,6 +4788,26 @@ The average of the size squared was 11356.41.
 The number of predicted states in the HTML grammar was 1855.
 The average size was 14.60.
 the average size squared was 250.93.
+
+@ The number of predicted states in the C grammar was 114.
+The average size was 54.81.
+The average size squared was 5361.28.
+The sizes of the predicted states for the C grammar were spread from 1 
+to 222.
+\li The most frequent sizes were 2 and 3, tied at
+six states each.
+\li There were five states of size 8.
+\li There were four states in each of the sizes 4 and 90.
+\li There were three states in each of the following sizes:
+      6, 11, 31, and 47
+\li There were two states in each of the following sizes:
+           5, 14, 42, 64, 68, 78, 91, 95, and 98.
+\li There was a single state of each of the following sizes:
+     1, 7, 9, 12, 15, 17, 18, 19, 21, 22, 25, 28, 29, 33, 34, 36,
+    37, 40, 43, 44, 45, 46, 52, 53, 54, 57, 58, 61, 65, 66, 69, 72,
+    74, 76, 80, 81, 86, 87, 89, 94, 96, 97, 99, 102, 105, 108,
+   115, 117, 119, 123, 125, 127, 144, 149, 150, 154, 181, 219,
+   and 222.
 
 @** AHFA item (AIM) code.
 AHFA states are sets of AHFA items.
