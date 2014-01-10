@@ -10144,7 +10144,6 @@ postdot_items_create (RECCE r,
   YS current_earley_set)
 {
   @<Unpack recognizer objects@>@;
-    JEARLEME current_earley_set_id = Earleme_of_YS(current_earley_set);
     @<Reinitialize containers used in PIM setup@>@;
     @<Start YIXes in PIM workarea@>@;
     if (r->t_is_using_leo) {
@@ -10382,20 +10381,27 @@ completions via several different symbols.
 because it relies on the Top AHFA value containing
 the base AHFA to-state.
 In a populated LIM, this will not necessarily be the case.
-@<Find predecessor LIM of unpopulated LIM@> = {
-    const YIM base_yim = Base_YIM_of_LIM(lim_to_process);
-    const YS predecessor_set = Origin_of_YIM(base_yim);
-    const AHFA base_to_ahfa = Top_AHFA_of_LIM(lim_to_process);
-    const NSYID predecessor_transition_nsyid =
-      Leo_LHS_NSYID_of_AHFA(base_to_ahfa);
-    PIM predecessor_pim;
-    if (Earleme_of_YS(predecessor_set) < current_earley_set_id) {
-        predecessor_pim
-        = First_PIM_of_YS_by_NSYID (predecessor_set, predecessor_transition_nsyid);
-    } else {
-        predecessor_pim = r->t_pim_workarea[predecessor_transition_nsyid];
+@<Find predecessor LIM of unpopulated LIM@> =
+{
+  const YIM base_yim = Base_YIM_of_LIM (lim_to_process);
+  const YS predecessor_set = Origin_of_YIM (base_yim);
+  const AHFA base_to_ahfa = Top_AHFA_of_LIM (lim_to_process);
+  const NSYID predecessor_transition_nsyid =
+    Leo_LHS_NSYID_of_AHFA (base_to_ahfa);
+  PIM predecessor_pim;
+  if (Earleme_of_YS (predecessor_set) < Earleme_of_YS (current_earley_set))
+    {
+      predecessor_pim
+	=
+	First_PIM_of_YS_by_NSYID (predecessor_set,
+				  predecessor_transition_nsyid);
     }
-    predecessor_lim = PIM_is_LIM(predecessor_pim) ? LIM_of_PIM(predecessor_pim) : NULL;
+  else
+    {
+      predecessor_pim = r->t_pim_workarea[predecessor_transition_nsyid];
+    }
+  predecessor_lim =
+    PIM_is_LIM (predecessor_pim) ? LIM_of_PIM (predecessor_pim) : NULL;
 }
 
 @ @<Widely aligned recognizer elements@> =
