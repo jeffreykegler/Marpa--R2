@@ -4614,6 +4614,16 @@ but the numbers are heavily skewed toward the low
 end.  Here are the item counts that appear, with the percent of the total
 discovered AHFA states with that item count in parentheses.
 in parentheses:
+\vbox{\offinterlineskip
+\halign{&#&
+  \strut\quad\hfil#\quad\cr
+&\omit&&\omit&\cr
+&Count\hfil&&Perl&\cr\
+&\omit&&\omit&\cr
+&1&&(67.05\%)&\cr
+&\omit&&\omit&\cr}
+}
+
 1   (67.05\%);
 2   (25.67\%);
 3   (2.87\%);
