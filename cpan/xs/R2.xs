@@ -5930,6 +5930,10 @@ PPCODE:
     }
   if (pos > logical_size)
     {
+      if (logical_size < 0) {
+          croak ("Problem in slr->line_column(%ld): line/column information not available",
+                 (long) pos);
+      }
       croak ("Problem in slr->line_column(%ld): position out of range",
              (long) pos);
     }

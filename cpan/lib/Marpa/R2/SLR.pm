@@ -1331,6 +1331,8 @@ sub Marpa::R2::Scanless::R::series_restart {
 
 # Given a list of G1 locations, return the minimum span in the input string
 # that includes them all
+# Caller must ensure that there is an input, which is not the case
+# when the parse is initialized.
 sub g1_locations_to_input_range {
     my ( $slr, @g1_locations ) = @_;
     my $thin_slr = $slr->[Marpa::R2::Internal::Scanless::R::C];
@@ -1424,11 +1426,15 @@ sub Marpa::R2::Scanless::R::show_progress {
                     $origin_desc = $origins[0] . q{...} . $origins[-1];
                 }
 
-                my $input_range = input_range_describe(
-                    $slr, g1_locations_to_input_range(
-                        $slr, $current_earleme, @origins
-                    )
-                );
+                my $input_range = q{};
+                if ( $current_earleme > 0 ) {
+                    $input_range = input_range_describe(
+                        $slr,
+                        g1_locations_to_input_range(
+                            $slr, $current_earleme, @origins
+                        )
+                    );
+                } ## end if ( $current_earleme > 0 )
 
                 my $rhs_length = $grammar_c->rule_length($rule_id);
                 my $item_text;
