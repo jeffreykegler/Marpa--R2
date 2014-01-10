@@ -471,6 +471,10 @@ sub Marpa::R2::Internal::MetaAST_Nodes::lexeme_default_statement::evaluate {
             $parse->{lexeme_default_adverbs}->{$key} = $value;
             next ADVERB;
         }
+        if ( $key eq 'forgiving' ) {
+            $parse->{lexeme_default_adverbs}->{$key} = $value;
+            next ADVERB;
+        }
         Marpa::R2::exception(
             qq{"$key" adverb not allowed as lexeme default"});
     } ## end ADVERB: for my $key ( keys %{$adverb_list} )

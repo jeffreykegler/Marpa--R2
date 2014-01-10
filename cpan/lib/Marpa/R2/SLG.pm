@@ -504,16 +504,14 @@ sub Marpa::R2::Internal::Scanless::G::hash_to_runtime {
         my $lexer_count = $g1_lexemes[$g1_lexeme];
 
         # OK if it never was a lexeme in G1
-        next LEXEME if not defined $lexer_count;
-
         # OK if used in at least one lexer
-        next LEXEME if $lexer_count >= 1;
-
-        my $lexeme_name = $g1_tracer->symbol_name($g1_lexeme);
-        Marpa::R2::exception(
-            "A lexeme in G1 is not a lexeme in any of the lexers: $lexeme_name"
-        );
-    } ## end LEXEME: for my $g1_lexeme ( 0 .. $#{$g1_lexeme} )
+        if ( defined $lexer_count and $lexer_count < 0 ) {
+            my $lexeme_name = $g1_tracer->symbol_name($g1_lexeme);
+            Marpa::R2::exception(
+                "A lexeme in G1 is not a lexeme in any of the lexers: $lexeme_name"
+            );
+        } ## end if ( defined $lexer_count and $lexer_count < 0 )
+    } ## end LEXEME: for my $g1_lexeme ( 0 .. $#g1_lexemes )
 
     # More processing of G1 lexemes
     my $lexeme_declarations = $hashed_source->{lexeme_declarations};
