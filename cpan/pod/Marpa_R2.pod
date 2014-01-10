@@ -466,11 +466,11 @@ When the non-leaf node is valued, its value becomes
 the value of its LHS symbol,
 and this value will become
 the value of
-a RHS symbol of another node with one
+an RHS symbol of another node with one
 exception.
 
 The one exception, the node with a LHS symbol
-that does not become a RHS
+that does not become an RHS
 symbol,
 is the value of the top (or "root") node.
 The value of the top node becomes the
@@ -527,7 +527,7 @@ that is, the value corresponding to the first symbol of the rule's RHS.
 The other way we specify semantics in this example
 is by using an
 C<action> adverb
-for a RHS alternative.
+for an RHS alternative.
 We've seen the C<action> adverb twice, but skipped over it.
 Now it is time to look at it.
 

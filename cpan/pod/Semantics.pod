@@ -283,7 +283,7 @@ L<the lexeme default statement|Marpa::R2::Scanless::DSL/"Lexeme default statemen
 =head2 Rule actions
 
 The implicit action for a rule instance is to return a Perl C<undef>.
-An explicit action for a RHS alternative can be specified using
+An explicit action for an RHS alternative can be specified using
 L<the C<action> adverb|Marpa::R2::Scanless::DSL/"action">
 for the its RHS alternative.
 A default explicit action for RHS alternatives can be specified with a
@@ -407,7 +407,7 @@ The C<::lhs> blessing is most useful in a default pseudo-rule.
 The lexeme
 is blessed into
 a class whose name is based on the name of the lexeme.
-The C<::name> blessing is not allowed for a RHS alternative.
+The C<::name> blessing is not allowed for an RHS alternative.
 
 The class is derived from the symbol name in the same way,
 and subject to the same restrictions,

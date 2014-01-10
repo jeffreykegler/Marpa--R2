@@ -4770,7 +4770,7 @@ Suggested message: "The recognizer has been started".
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_RHS_IX_NEGATIVE
-The index of a RHS symbol was specified,
+The index of an RHS symbol was specified,
 and it was negative.
 That is not allowed.
 Numeric value: 63.

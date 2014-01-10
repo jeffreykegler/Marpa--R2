@@ -2295,7 +2295,7 @@ are either shorter than
 a small constant in length, or
 else shorter than the XRL which is their
 source.
-On a 32-bit machine, this still allows a RHS of over a billion
+On a 32-bit machine, this still allows an RHS of over a billion
 symbols.
 I believe
 by the time 64-bit machines become universal,

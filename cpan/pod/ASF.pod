@@ -430,7 +430,7 @@ partial: 1
 =for Marpa::R2::Display::End
 
 Requires exactly one argument, C<$rh_ix>, which must be the zero-based
-index of a RHS child of the current rule instance.
+index of an RHS child of the current rule instance.
 Returns the value of the C<$rh_ix>'th child of the current rule instance.
 For convenient iteration,
 returns C<undef> if the value of the C<$rh_ix> is greater than or equal to the RHS length.
