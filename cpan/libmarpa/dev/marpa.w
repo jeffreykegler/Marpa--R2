@@ -4645,7 +4645,9 @@ just one or two items.
 The average size is 1.5235,
 and the average of the $|size|^2$ is 3.9405.
 
-@ For the HTML grammars I used, the totals are even more lopsided:
+@ For HTML, I looked at a parser which generates grammars on
+the fly, aggregating the states in all of them.
+For the the HTML grammars I used, the totals are even more lopsided:
 80.96\% of all discovered states have only 1 item.
 All the others (19.04\%) have 2 items.
 The average size is 1.1904,
@@ -4706,9 +4708,9 @@ decreasing frequency:
 &Size\hfil&&Frequency&\cr\
 &\omit&&\omit&\cr
 &2&&5&\cr
-&3,142&&4&\cr
-&1,4&&3&\cr
-&6,7, 143&&2&\cr
+&3, 142&&4&\cr
+&1, 4&&3&\cr
+&6, 7, 143&&2&\cr
 &\omit&&\omit&\cr}
 }
 \vskip\baselineskip
@@ -4754,7 +4756,7 @@ the following sizes:
 The average size was 83.59 AHFA items.
 The average of the size squared was 11356.41.
 
-@ And here is the same data for a sample HTML grammar:
+@ And here is the same data for the collection of HTML grammars:
 \par
 \vskip\baselineskip
 \vbox{\offinterlineskip
@@ -4785,9 +4787,9 @@ The average of the size squared was 11356.41.
 \vskip\baselineskip
 
 @
-The number of predicted states in the HTML grammar was 1855.
-The average size was 14.60.
-the average size squared was 250.93.
+The total number of predicted states in the HTML grammars was 1855.
+Their average size was 14.60.
+Their average size squared was 250.93.
 
 @ The number of predicted states in the C grammar was 114.
 The average size was 54.81.
