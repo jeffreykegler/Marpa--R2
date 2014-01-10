@@ -4609,33 +4609,38 @@ rule with |nonnulling_id| on the LHS.
 @** The Aycock-Horspool finite automata.
 
 @*0 Some statistics on AHFA states.
-For Perl's grammar, the discovered states range in size from 1 to 20 items,
+
+@*1 Discovered states.
+
+@ For Perl's grammar, the discovered states range in size from 1 to 20 items,
 but the numbers are heavily skewed toward the low
 end.  Here are the item counts that appear, with the percent of the total
 discovered AHFA states with that item count in parentheses.
 in parentheses:
+\par
+\vskip\baselineskip
 \vbox{\offinterlineskip
 \halign{&#&
   \strut\quad\hfil#\quad\cr
 &\omit&&\omit&\cr
-&Count\hfil&&Perl&\cr\
+&Size\hfil&&Perl discovered&\cr\
+&&&states (percent)\hfil&\cr\
 &\omit&&\omit&\cr
-&1&&(67.05\%)&\cr
+&1&&67.05\%&\cr
+&2&&25.67\%\cr
+&3&&2.87\%\cr
+&4&&2.68\%\cr
+&5&&0.19\%\cr
+&6&&0.38\%\cr
+&7&&0.19\%\cr
+&8&&0.57\%\cr
+&9&&0.19\%\cr
+&20&&0.19\%\cr
 &\omit&&\omit&\cr}
 }
-
-1   (67.05\%);
-2   (25.67\%);
-3   (2.87\%);
-4   (2.68\%);
-5   (0.19\%);
-6   (0.38\%);
-7   (0.19\%);
-8   (0.57\%);
-9   (0.19\%); and
-20   (0.19\%).
-
-@ As can be seen, well over 90\% of the total discovered states have
+\vskip\baselineskip
+\par
+As can be seen, well over 90\% of the total discovered states have
 just one or two items.
 The average size is 1.5235,
 and the average of the $|size|^2$ is 3.9405.
@@ -4646,6 +4651,42 @@ All the others (19.04\%) have 2 items.
 The average size is 1.1904,
 and the average of the $|size|^2$ is 1.5712.
 
+@ For a compiler-quality C grammar,
+the discovered states range in size from 1 to 15 items but again,
+the numbers are heavily skewed toward the low
+end.  Here are the item counts that appear, with the percent of the total
+discovered AHFA states with that item count in parentheses.
+in parentheses:
+\par
+\vskip\baselineskip
+\vbox{\offinterlineskip
+\halign{&#&
+  \strut\quad\hfil#\quad\cr
+&\omit&&\omit&\cr
+&Size\hfil&&C discovered states&\cr\
+&\omit&&\omit&\cr
+&1&&695&\cr
+&2&&188&\cr
+&3&&40&\cr
+&4&&17&\cr
+&5&&6&\cr
+&6&&8&\cr
+&7&&6&\cr
+&8&&4&\cr
+&9&&1&\cr
+&10&&2&\cr
+&12&&2&\cr
+&15&&1&\cr
+&\omit&&\omit&\cr}
+}
+\vskip\baselineskip
+\par
+There were 970 discovered C states.
+The average size was 1.52.
+The average of the size squared was 3.98.
+
+@*1 Predicted states.
+
 @ The number of predicted states tends to be much more
 evenly distributed.
 It also tends to be much larger, and
@@ -4653,68 +4694,104 @@ the average for practical grammars may be $O(s)$,
 where $s$ is the size of the grammar.
 This is the same as the theoretical worst case.
 
-Here are the number of items for predicted states for the Perl grammar.
+@ Here are the number of items for predicted states for the Perl grammar.
 The number of states with that item count in is parentheses:
-1 item (3),
-2 items (5),
-3 items (4),
-4 items (3),
-5 items (1),
-6 items (2),
-7 items (2),
-64 items (1),
-71 items (1),
-77 items (1),
-79 items (1),
-81 items (1),
-83 items (1),
-85 items (1),
-88 items (1),
-90 items (1),
-98 items (1),
-100 items (1),
-102 items (1),
-104 items (1),
-106 items (1),
-108 items (1),
-111 items (1),
-116 items (1),
-127 items (1),
-129 items (1),
-132 items (1),
-135 items (1),
-136 items (1),
-137 items (1),
-141 items (1),
-142 items (4),
-143 items (2),
-144 items (1),
-149 items (1),
-151 items (1),
-156 items (1),
-157 items (1),
-220 items (1),
-224 items (1),
-225 items (1).
-And here is the same data for some grammar of HTML:
-1 item (95),
-2 items (95),
-4 items (95),
-11 items (181),
-14 items (181),
-15 items (294),
-16 items (112),
-18 items (349),
-19 items (120),
-20 items (190),
-21 items (63),
-22 items (22),
-24 items (8),
-25 items (16),
-26 items (16),
-28 items (2),
-29 items (16).
+\par
+\vskip\baselineskip
+\vbox{\offinterlineskip
+\halign{&#&
+  \strut\quad\hfil#\quad\cr
+&\omit&&\omit&\cr
+&Size\hfil&&Perl predicted states&\cr\
+&\omit&&\omit&\cr
+&1&&3&\cr
+&2&&5&\cr
+&3&&4&\cr
+&4&&3&\cr
+&5&&1&\cr
+&6&&2&\cr
+&7&&2&\cr
+&\omit&&\omit&\cr}
+}
+\vskip\baselineskip
+\par
 
+In addition, the Perl grammar had exactly one predicted state of
+the following sizes:
+64,
+71,
+77,
+79,
+81,
+83,
+85,
+88,
+90,
+98,
+100,
+102,
+104,
+106,
+108,
+111,
+116,
+127,
+129,
+132,
+135,
+136,
+137,
+141,
+142,
+143,
+144,
+149,
+151,
+156,
+157,
+220,
+224, and
+225.
+
+@ The number of predicted states in the Perl grammar was 58.
+The average size was 83.59 AHFA items.
+The average of the size squared was 11356.41.
+
+@*1 HTML Data.
+@ And here is the same data for some grammar of HTML:
+\par
+\vskip\baselineskip
+\vbox{\offinterlineskip
+\halign{&#&
+  \strut\quad\hfil#\quad\cr
+&\omit&&\omit&\cr
+&Size\hfil&&HTML predicted states&\cr\
+&\omit&&\omit&\cr
+&1&&95&\cr
+&2&&95&\cr
+&4&&95&\cr
+&11&&181&\cr
+&14&&181&\cr
+&15&&294&\cr
+&16&&112&\cr
+&18&&349&\cr
+&19&&120&\cr
+&20&&190&\cr
+&21&&63&\cr
+&22&&22&\cr
+&24&&8&\cr
+&25&&16&\cr
+&26&&16&\cr
+&28&&2&\cr
+&29&&16&\cr
+&\omit&&\omit&\cr}
+}
+\vskip\baselineskip
+
+@
+The number of predicted states in the HTML grammar was 1855.
+The average size was 14.60.
+the average size squared was 250.93.
 
 @** AHFA item (AIM) code.
 AHFA states are sets of AHFA items.
