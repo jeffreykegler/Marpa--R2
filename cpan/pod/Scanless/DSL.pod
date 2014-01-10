@@ -635,7 +635,10 @@ lexeme adverbs.
 It only changes the defaults for lexemes,
 and does not affect rules.
 Only the defaults for
-the L<C<action>|/"action"> and L<C<bless>|/"bless"> adverbs
+the L<C<action>|/"action">,
+L<C<bless>|/"bless">,
+and L<C<forgiving>|/"forgiving">
+adverbs
 can be specified in a lexeme default statement.
 Only one lexeme default statement is allowed in a grammar.
 

@@ -21,7 +21,7 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 14;
+use Test::More tests => 16;
 use English qw( -no_match_vars );
 use lib 'inc';
 use Marpa::R2::Test;
@@ -255,6 +255,38 @@ END_OF_SOURCE
         [
         $slg, $input, $expected_output,
         'Parse OK', 'Test of forgiving token from Ruslan Zakirov'
+        ];
+}
+
+# Test of forgiving token from Ruslan Zakirov
+# This time using the lexeme default statement
+{
+
+# Marpa::R2::Display
+# name: forgiving adverb example
+# start-after-line: END_OF_SOURCE
+# end-before-line: '^END_OF_SOURCE$'
+
+    my $source = <<'END_OF_SOURCE';
+lexeme default = forgiving => 1
+:default ::= action => ::array
+:start ::= content
+content ::= name ':' value
+name ~ [A-Za-z0-9-]+
+value ~ [A-Za-z0-9:-]+
+END_OF_SOURCE
+
+# Marpa::R2::Display
+
+    my $input = 'UID:urn:uuid:4fbe8971-0bc3-424c-9c26-36c3e1eff6b1';
+    my $expected_output =
+        [ 'UID', ':', 'urn:uuid:4fbe8971-0bc3-424c-9c26-36c3e1eff6b1' ];
+
+    my $slg = Marpa::R2::Scanless::G->new( { source => \$source } );
+    push @tests_data,
+        [
+        $slg, $input, $expected_output,
+        'Parse OK', 'Test of forgiving token using lexeme default statment'
         ];
 }
 

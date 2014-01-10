@@ -511,7 +511,23 @@ sub Marpa::R2::Internal::Scanless::G::hash_to_runtime {
                 "A lexeme in G1 is not a lexeme in any of the lexers: $lexeme_name"
             );
         } ## end if ( defined $lexer_count and $lexer_count < 0 )
+
+
     } ## end LEXEME: for my $g1_lexeme ( 0 .. $#g1_lexemes )
+
+    # At this point we know which symbols are lexemes.
+
+    # First phase of applying defaults
+    my $lexeme_default_adverbs = $hashed_source->{lexeme_default_adverbs};
+    APPLY_DEFAULT_LEXEME_ADVERBS: {
+        last APPLY_DEFAULT_LEXEME_ADVERBS if not $lexeme_default_adverbs;
+        my $forgiving_default_value = $lexeme_default_adverbs->{forgiving};
+        last APPLY_DEFAULT_LEXEME_ADVERBS if not $forgiving_default_value;
+        LEXEME: for my $g1_lexeme_id ( grep { defined } 0 .. $#g1_lexemes ) {
+            $thin_slg->g1_lexeme_forgiving_set( $g1_lexeme_id,
+                $forgiving_default_value );
+        }
+    } ## end APPLY_DEFAULT_LEXEME_ADVERBS:
 
     # More processing of G1 lexemes
     my $lexeme_declarations = $hashed_source->{lexeme_declarations};
@@ -600,8 +616,10 @@ sub Marpa::R2::Internal::Scanless::G::hash_to_runtime {
 
     # This section violates the NAIF interface, directly changing some
     # of its internal structures.
+    #
+    # Some lexeme default adverbs are applied in earlier phases.
+    #
     APPLY_DEFAULT_LEXEME_ADVERBS: {
-        my $lexeme_default_adverbs = $hashed_source->{lexeme_default_adverbs};
         last APPLY_DEFAULT_LEXEME_ADVERBS if not $lexeme_default_adverbs;
 
         my $action = $lexeme_default_adverbs->{action};
