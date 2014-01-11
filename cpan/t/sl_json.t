@@ -234,7 +234,9 @@ json         ::= object
 
 object       ::= ('{') members ('}')       action => do_object
 
-members      ::= pair*                 action => ::array separator => <comma>
+# comma is provided as a char class here, to ensure that char classes
+# as separators are in the test suite.
+members      ::= pair*                 action => ::array separator => [,]
 
 pair         ::= string (':') value action => ::array
 
@@ -250,7 +252,9 @@ value        ::= string
 array        ::= ('[' ']')               action => []
                | ('[') elements (']') 
 
-elements     ::= value+                action => ::array separator => <comma>
+# comma is provided as a char class here, to ensure that char classes
+# as separators are in the test suite.
+elements     ::= value+                action => ::array separator => [,]
 
 number         ~ int
                | int frac
@@ -281,8 +285,6 @@ lstring        ~ quote in_string quote
 quote          ~ ["]
 in_string      ~ in_string_char*
 in_string_char  ~ [^"] | '\"'
-
-comma          ~ ','
 
 :discard       ~ whitespace
 whitespace     ~ [\s]+

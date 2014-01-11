@@ -1106,9 +1106,11 @@ see L<the document on parse order|Marpa::R2::Semantics::Order>.
 =head2 separator
 
 The C<separator> keyword is only valid for a quantified right side,
-and its value must be a symbol of the grammar.
-If specified, that symbol must separate items of the sequence.
-A separator symbol may not be nullable.
+and its value must be a single symbol --
+either a single symbol name,
+or a character class.
+If specified, the separator must separate items of the sequence.
+A separator may not be nullable.
 
 =head1 Precedence
 
