@@ -313,6 +313,7 @@ t/jirotka.t
 t/leo.t
 t/leo2.t
 t/leo3.t
+t/leo_unit.t
 t/leo_cycle.t
 t/leo_example.t
 t/limits.t
