@@ -604,7 +604,7 @@ Return the is-predecessor bit for @var{nook_id}.
 @node Debugging methods,  , Valuator internals, Internal Interface
 @section Debugging methods
 
-@deftypefun void marpa_debug_level_set ( int @var{level} )
+@deftypefun int marpa_debug_level_set ( int @var{level} )
 @end deftypefun
 
 @deftypefun void marpa_debug_handler_set ( int (*@var{debug_handler})(const char*, ...) )

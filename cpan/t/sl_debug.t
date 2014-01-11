@@ -150,12 +150,12 @@ Test::More::is_deeply( $value_ref, $expected_output, 'Value before fix' );
 
 Marpa::R2::Test::is( $progress_report,
     <<'END_PROGRESS_REPORT', 'progress report' );
-P0 @0-0 L1c1 statements -> . statement *
-P1 @0-0 L1c1 statement -> . assignment
-P2 @0-0 L1c1 statement -> . <numeric assignment>
-P3 @0-0 L1c1 assignment -> . 'set' variable 'to' expression
-P4 @0-0 L1c1 <numeric assignment> -> . variable '=' expression
-P19 @0-0 L1c1 :start -> . statements
+P0 @0-0 L0c0 statements -> . statement *
+P1 @0-0 L0c0 statement -> . assignment
+P2 @0-0 L0c0 statement -> . <numeric assignment>
+P3 @0-0 L0c0 assignment -> . 'set' variable 'to' expression
+P4 @0-0 L0c0 <numeric assignment> -> . variable '=' expression
+P19 @0-0 L0c0 :start -> . statements
 R4:1 @0-1 L1c1 <numeric assignment> -> variable . '=' expression
 R4:2 @0-2 L1c1-3 <numeric assignment> -> variable '=' . expression
 P5 @2-2 L1c3 expression -> . expression

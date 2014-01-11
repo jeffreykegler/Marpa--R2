@@ -1426,33 +1426,36 @@ sub Marpa::R2::Scanless::R::show_progress {
                     $origin_desc = $origins[0] . q{...} . $origins[-1];
                 }
 
-                my $input_range = q{};
+                my $rhs_length = $grammar_c->rule_length($rule_id);
+                my @item_text;
+
+                if ( $position >= $rhs_length ) {
+                    push @item_text, "F$rule_id";
+                }
+                elsif ($position) {
+                    push @item_text, "R$rule_id:$position";
+                }
+                else {
+                    push @item_text, "P$rule_id";
+                }
+                push @item_text, "x$origins_count" if $origins_count > 1;
+                push @item_text, q{@} . $origin_desc . q{-} . $current_earleme;
+
                 if ( $current_earleme > 0 ) {
-                    $input_range = input_range_describe(
+                    my $input_range = input_range_describe(
                         $slr,
                         g1_locations_to_input_range(
                             $slr, $current_earleme, @origins
                         )
                     );
-                } ## end if ( $current_earleme > 0 )
+                    push @item_text, $input_range;
+                }  else {
+                    push @item_text, 'L0c0';
+                }
 
-                my $rhs_length = $grammar_c->rule_length($rule_id);
-                my $item_text;
-
-                if ( $position >= $rhs_length ) {
-                    $item_text .= "F$rule_id";
-                }
-                elsif ($position) {
-                    $item_text .= "R$rule_id:$position";
-                }
-                else {
-                    $item_text .= "P$rule_id";
-                }
-                $item_text .= " x$origins_count" if $origins_count > 1;
-                $item_text .= q{ @} . $origin_desc . q{-} . $current_earleme . q{ } . $input_range . q{ };
-                $item_text
-                    .= $slg->show_dotted_rule( $rule_id, $position );
-                $text .= $item_text . "\n";
+                push @item_text,
+                    $slg->show_dotted_rule( $rule_id, $position );
+                $text .= ( join q{ }, @item_text ) . "\n";
             } ## end for my $position ( sort { $a <=> $b } keys %{...})
         } ## end for my $rule_id ( sort { $a <=> $b } keys ...)
 
