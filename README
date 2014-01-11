@@ -1,10 +1,1 @@
-This is a working repository for RELEASE 2 of the Marpa.  This is
-beta software.
-
-This repository contains the Marpa::R2 module.  It has a CPAN-based
-installation procedure.
-
-Within Marpa::R2 are several development directories.  These are
-not needed to build & install Marpa::R2, or even to do much of the
-development.  These do not have stable, fully documented installation
-procedures.
+This is a working repository for RELEASE 2 of the Marpa.

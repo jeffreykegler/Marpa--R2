@@ -1,6 +1,2 @@
-Because this repository is a collection of development environments
-created for refactoring, there is no 100% up-to-date, accurate
-installation procedure.
-
-There is an install target in the Makefile.  It is not necessarily
-fully up to date with the software and is best used as a checklist.
+Most users will want to install Marpa as a CPAN module.  For the more
+adventurous, there is an install target in the Makefile.
