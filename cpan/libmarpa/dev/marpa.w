@@ -10104,6 +10104,57 @@ PRIVATE void r_update_earley_sets(RECCE r)
 }
 
 @** Create the postdot items.
+
+@*0 About Leo items and unit rules.
+
+@ Much of the logic in the code is required to allow the Leo logic
+to handle unit rules in right recursions.
+Right recursions that involve only unit rules might be overlooked --
+they are either finite in length (limited by the number of symbols
+in the grammar) or involve cycles.
+Either way, they could reasonably be ignored.
+@ But a right recursion often takes place through multiple rules,
+and in practical cases following
+an important and lengthy right recursion,
+one with many non-unit rules,
+may require following short stretches of
+unit rules.
+@ If a unit rule is the base item of a Leo item,
+it must be a prediction.  This is because the base
+item will have a dot position that is penultimate --
+at the dot location just before the final one.
+In a unit rule this is the beginning of the rule.
+@ Unit rules have a special issue when it comes to creating
+Leo items.
+Every Leo item, if it is to be useful
+and continue the recursion,
+needs to find a Leo predecessor.
+In the text that follows, recording the predecessor
+data in an Leo item is called ``populating'' that item.
+@
+The Leo predecessor of a unit rule Leo base item
+will be in the same Earley set that we are working on,
+and since this is the same Earley set for which
+we are creating Leo items,
+it may not have been built yet.
+Worse, it may be part of a cycle.
+To solve this problem, the code that follows builds
+LIM chains --
+chains of LIM's which require the next one
+on the chain to be populated.
+Every LIM on a LIM chain will have a base rule
+which is a unit rule and a prediction.
+@ A chain ends
+\li when it results in a cycle,
+in which case the right recursion will not followed further.
+\li when a LIM is found which is not a unit
+rule, because that LIM's predecessor will be in a previous
+Earley set, and its information will be available.
+\li when it find a unit rule LIM which is populated,
+perhaps by a run through a previous LIM chain.
+
+@*0 Code.
+
 @ This function inserts regular and Leo postdot items into
 the postdot list.
 Not inlined, because of its size, and because it is used
@@ -10126,7 +10177,7 @@ of memoization here is in order
 now that I use Leo items only in cases of
 an actual right recursion.
 This may require running benchmarks.
-@<Widely aligned recognizer elements@> =
+@ @<Widely aligned recognizer elements@> =
   Bit_Vector t_bv_lim_symbols;
   Bit_Vector t_bv_pim_symbols;
   void** t_pim_workarea;
