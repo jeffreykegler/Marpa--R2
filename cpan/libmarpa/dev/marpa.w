@@ -10141,7 +10141,7 @@ This may require running benchmarks.
 PRIVATE_NOT_INLINE void
 postdot_items_create (RECCE r,
   Bit_Vector bv_ok_for_chain,
-  YS current_earley_set)
+  const YS current_earley_set)
 {
   @<Unpack recognizer objects@>@;
     @<Reinitialize containers used in PIM setup@>@;
@@ -10389,7 +10389,7 @@ In a populated LIM, this will not necessarily be the case.
   const NSYID predecessor_transition_nsyid =
     Leo_LHS_NSYID_of_AHFA (base_to_ahfa);
   PIM predecessor_pim;
-  if (Earleme_of_YS (predecessor_set) < Earleme_of_YS (current_earley_set))
+  if (Ord_of_YS (predecessor_set) < Ord_of_YS (current_earley_set))
     {
       predecessor_pim
 	=
