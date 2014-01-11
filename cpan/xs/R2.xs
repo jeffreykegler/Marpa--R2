@@ -2836,6 +2836,8 @@ PPCODE:
   G_Wrapper *g_wrapper;
   Marpa_Recce r;
   Marpa_Grammar g;
+  PERL_UNUSED_ARG(class);
+
   if (!sv_isa (g_sv, "Marpa::R2::Thin::G"))
     {
       croak
@@ -2978,6 +2980,8 @@ PPCODE:
   Marpa_Recognizer r = r_wrapper->r;
   B_Wrapper *b_wrapper;
   Marpa_Bocage b = marpa_b_new (r, ordinal);
+  PERL_UNUSED_ARG(class);
+
   if (!b)
     {
       if (!r_wrapper->base->throw) { XSRETURN_UNDEF; }
@@ -3019,6 +3023,8 @@ PPCODE:
   Marpa_Bocage b = b_wrapper->b;
   O_Wrapper *o_wrapper;
   Marpa_Order o = marpa_o_new (b);
+  PERL_UNUSED_ARG(class);
+
   if (!o)
     {
       if (!b_wrapper->base->throw) { XSRETURN_UNDEF; }
@@ -3060,6 +3066,8 @@ PPCODE:
   Marpa_Order o = o_wrapper->o;
   T_Wrapper *t_wrapper;
   Marpa_Tree t = marpa_t_new (o);
+  PERL_UNUSED_ARG(class);
+
   if (!t)
     {
       if (!o_wrapper->base->throw) { XSRETURN_UNDEF; }
@@ -3101,6 +3109,8 @@ PPCODE:
   Marpa_Tree t = t_wrapper->t;
   V_Wrapper *v_wrapper;
   Marpa_Value v = marpa_v_new (t);
+  PERL_UNUSED_ARG(class);
+
   if (!v)
     {
       if (!t_wrapper->base->throw)
@@ -3986,7 +3996,8 @@ PPCODE:
   XPUSHs (sv_2mortal (newSViv (result)));
 }
 
-int
+# int
+void
 _marpa_g_nsy_count( g_wrapper )
     G_Wrapper *g_wrapper;
 PPCODE:
@@ -4798,6 +4809,7 @@ PPCODE:
 {
   SV* new_sv;
   Scanless_G *slg;
+  PERL_UNUSED_ARG(class);
 
   if (!sv_isa (l0_sv, "Marpa::R2::Thin::G"))
     {
@@ -5143,6 +5155,7 @@ PPCODE:
   SV *new_sv;
   Scanless_R *slr;
   Scanless_G *slg;
+  PERL_UNUSED_ARG(class);
 
   if (!sv_isa (slg_sv, "Marpa::R2::Thin::SLG"))
     {

@@ -250,7 +250,7 @@ sub process_xs {
     if ( $self->config('ccname') eq 'gcc' ) {
         ## -W instead of -Wextra is case the GCC is pre 3.0.0
         ## -Winline omitted because too noisy
-        push @new_ccflags, qw( -Wall -W
+        push @new_ccflags, qw( -Wall -W -ansi
             -Wpointer-arith -Wstrict-prototypes -Wwrite-strings
             -Wmissing-declarations );
         push @new_ccflags, '-Wdeclaration-after-statement' if gcc_is_at_least('3.4.6');
