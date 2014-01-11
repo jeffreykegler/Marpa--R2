@@ -370,31 +370,20 @@ int marpa__default_debug_handler (const char *format, ...)
 #define MARPA_DEBUG 0
 #endif
 
-#if MARPA_DEBUG
-
-#undef MARPA_ENABLE_ASSERT
-#define MARPA_ENABLE_ASSERT 1
-
-#define MARPA_DEBUG1(a) @[ (marpa__debug_level && \
+#define MARPA_DEBUG1(a) @[ (MARPA_DEBUG && marpa__debug_level && \
     (*marpa__debug_handler)(a)) @]
-#define MARPA_DEBUG2(a,b) @[ (marpa__debug_level && \
+#define MARPA_DEBUG2(a,b) @[ (MARPA_DEBUG && marpa__debug_level && \
     (*marpa__debug_handler)((a),(b))) @]
-#define MARPA_DEBUG3(a,b,c) @[ (marpa__debug_level && \
+#define MARPA_DEBUG3(a,b,c) @[ (MARPA_DEBUG && marpa__debug_level && \
     (*marpa__debug_handler)((a),(b),(c))) @]
-#define MARPA_DEBUG4(a,b,c,d) @[ (marpa__debug_level && \
+#define MARPA_DEBUG4(a,b,c,d) @[ (MARPA_DEBUG && marpa__debug_level && \
     (*marpa__debug_handler)((a),(b),(c),(d))) @]
-#define MARPA_DEBUG5(a,b,c,d,e) @[ (marpa__debug_level && \
+#define MARPA_DEBUG5(a,b,c,d,e) @[ (MARPA_DEBUG && marpa__debug_level && \
     (*marpa__debug_handler)((a),(b),(c),(d),(e))) @]
 
-#define MARPA_ASSERT(expr) do { if _MARPA_LIKELY (expr) ; else \
-       (*marpa__debug_handler) ("%s: assertion failed %s", STRLOC, #expr); } while (0);
-#else /* if not |MARPA_DEBUG| */
-#define MARPA_DEBUG1(a) @[@]
-#define MARPA_DEBUG2(a, b) @[@]
-#define MARPA_DEBUG3(a, b, c) @[@]
-#define MARPA_DEBUG4(a, b, c, d) @[@]
-#define MARPA_DEBUG5(a, b, c, d, e) @[@]
-#define MARPA_ASSERT(exp) @[@]
+#if MARPA_DEBUG
+#undef MARPA_ENABLE_ASSERT
+#define MARPA_ENABLE_ASSERT 1
 #endif
 
 #ifndef MARPA_ENABLE_ASSERT
@@ -405,6 +394,8 @@ int marpa__default_debug_handler (const char *format, ...)
 #undef MARPA_ASSERT
 #define MARPA_ASSERT(expr) do { if _MARPA_LIKELY (expr) ; else \
        (*marpa__debug_handler) ("%s: assertion failed %s", STRLOC, #expr); } while (0);
+#else /* if not |MARPA_DEBUG| */
+#define MARPA_ASSERT(exp) @[@]
 #endif
 
 @*0 Internal macros.

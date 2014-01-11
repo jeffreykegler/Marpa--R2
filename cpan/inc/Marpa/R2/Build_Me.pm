@@ -436,9 +436,8 @@ sub do_libmarpa {
         if ( defined $ENV{LIBMARPA_CFLAGS} ) {
             $ENV{CFLAGS} = $ENV{LIBMARPA_CFLAGS};
         }
-        push @debug_flags, '-DMARPA_DEBUG';
+        push @debug_flags, '-DMARPA_DEBUG=1';
         push @debug_flags, '-fno-inline', '-Wno-inline' if ($self->config('cc') eq 'gcc');
-        push @debug_flags, '-DMARPA_OBSTACK_DEBUG';
         push @configure_command_args,
             'MARPA_DEBUG_FLAG=' . ( join q{ }, @debug_flags );
     } ## end if ( defined $self->args('Marpa-debug') )

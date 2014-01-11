@@ -16286,9 +16286,11 @@ void marpa_debug_handler_set( int (*debug_handler)(const char*, ...) )
 }
 
 @ @<Function definitions@> =
-void marpa_debug_level_set( int level )
+int marpa_debug_level_set( int new_level )
 {
-    marpa__debug_level = level;
+    const int old_level = marpa__debug_level;
+    marpa__debug_level = new_level;
+    return old_level;
 }
 
 

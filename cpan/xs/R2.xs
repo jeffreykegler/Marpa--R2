@@ -2296,11 +2296,14 @@ MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin
 PROTOTYPES: DISABLE
 
 void
-debug_level_set(level)
-    int level;
+debug_level_set(new_level)
+    int new_level;
 PPCODE:
 {
-   marpa_debug_level_set(level);
+  const int old_level = marpa_debug_level_set (new_level);
+  if (old_level || new_level)
+    marpa_r2_warn ("libmarpa debug level set to %d, was %d", new_level,
+		   old_level);
   XSRETURN_YES;
 }
 
@@ -6393,4 +6396,5 @@ INCLUDE: general_pattern.xsh
 
 BOOT:
     marpa_debug_handler_set(marpa_r2_warn);
+
     /* vim: set expandtab shiftwidth=4: */
