@@ -443,7 +443,6 @@ static Lexer* lexer_add(Scanless_G* slg, SV* g_sv)
   Marpa_Rule_ID lexer_rule_count;
   int lexer_count = slg->lexer_count;
   int lexer_buffer_size = slg->lexer_buffer_size;
-  Lexer** lexers = slg->lexers;
 
   Newx (lexer, 1, Lexer);
   lexer->g_sv = g_sv;
@@ -536,7 +535,6 @@ u_convert_events (Scanless_R * slr)
 {
   dTHX;
   int event_ix;
-  int non_fatal_event_count = 0;
   Marpa_Grammar g = slr->current_lexer->g_wrapper->g;
   const int event_count = marpa_g_event_count (g);
   for (event_ix = 0; event_ix < event_count; event_ix++)
@@ -2277,8 +2275,6 @@ slr_es_span_to_literal_sv (Scanless_R * slr,
     {
       int length_in_positions;
       int start_position;
-      STRLEN dummy;
-      char *input = SvPV (slr->input, dummy);
       slr_es_to_literal_span (slr,
                               start_earley_set, length,
                               &start_position, &length_in_positions);
@@ -5441,8 +5437,6 @@ PPCODE:
       int consume_input = 0;
       if (slr->lexer_start_pos >= 0)
 	{
-	  STRLEN input_length = SvCUR (slr->input);
-
 	  if (slr->lexer_start_pos >= slr->end_pos)
 	    {
 	      XSRETURN_PV ("");
@@ -6045,7 +6039,6 @@ g1_lexeme_complete (slr, start_pos_sv, length_sv)
 PPCODE:
 {
   int result;
-  const int old_pos = slr->perl_pos;
   const int input_length = slr->pos_db_logical_size;
 
   int start_pos = SvIOK (start_pos_sv) ? SvIV (start_pos_sv) : slr->perl_pos;
