@@ -301,9 +301,9 @@ name: SLG symbol_dsl_form() 2 arg synopsis
 
 Given a symbol ID, returns the "DSL form" of the symbol.
 This is the name of the symbol in a form similar
-to the way it specified by the user in the DSL.
+to the way it is specified by the user in the DSL.
 If the symbol has an explicit name,
-the symbol's DSL form is same as its explici name.
+the symbol's DSL form is the same as its explicit name.
 The DSL form may or may not be defined if a symbol does not have
 an explicit name.
 The DSL form of a symbol is not intended for use as a symbol name
