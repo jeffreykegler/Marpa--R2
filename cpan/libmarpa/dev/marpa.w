@@ -8010,7 +8010,7 @@ PRIVATE YIM earley_item_create(const RECCE r,
   new_item->t_key = key;
   new_item->t_source_type = NO_SOURCE;
   new_item->t_rejected = 0;
-  Ord_of_YIM(new_item) = YIM_ORDINAL_CLAMP(count - 1);
+  Ord_of_YIM(new_item) = YIM_ORDINAL_CLAMP((unsigned int)count - 1);
   end_of_work_stack = WORK_YIM_PUSH(r);
   *end_of_work_stack = new_item;
   return new_item;
@@ -13885,19 +13885,21 @@ Otherwise, the tree is exhausted.
 
 @ @<Add new nook to tree@> =
 {
-   NOOKID new_nook_id = Size_of_T(t);
-   NOOK new_nook = FSTACK_PUSH(t->t_nook_stack);
-    *(FSTACK_PUSH(t->t_nook_worklist)) = new_nook_id;
-    Parent_of_NOOK(new_nook) = *p_work_nook_id;
-    Choice_of_NOOK(new_nook) = choice;
-    OR_of_NOOK(new_nook) = child_or_node;
-    NOOK_Cause_is_Expanded(new_nook) = 0;
-    if ( ( NOOK_is_Cause(new_nook) = child_is_cause ) ) {
-        NOOK_Cause_is_Expanded(work_nook) = 1;
+  NOOKID new_nook_id = Size_of_T (t);
+  NOOK new_nook = FSTACK_PUSH (t->t_nook_stack);
+  *(FSTACK_PUSH (t->t_nook_worklist)) = new_nook_id;
+  Parent_of_NOOK (new_nook) = *p_work_nook_id;
+  Choice_of_NOOK (new_nook) = choice;
+  OR_of_NOOK (new_nook) = child_or_node;
+  NOOK_Cause_is_Expanded (new_nook) = 0;
+  if ((NOOK_is_Cause (new_nook) = Boolean (child_is_cause)))
+    {
+      NOOK_Cause_is_Expanded (work_nook) = 1;
     }
-    NOOK_Predecessor_is_Expanded(new_nook) = 0;
-    if ( ( NOOK_is_Predecessor(new_nook) = child_is_predecessor ) ) {
-        NOOK_Predecessor_is_Expanded(work_nook) = 1;
+  NOOK_Predecessor_is_Expanded (new_nook) = 0;
+  if ((NOOK_is_Predecessor (new_nook) = Boolean (child_is_predecessor)))
+    {
+      NOOK_Predecessor_is_Expanded (work_nook) = 1;
     }
 }
 
