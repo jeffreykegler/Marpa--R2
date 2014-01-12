@@ -118,7 +118,7 @@ void marpa__obs_free (struct marpa_obstack *__obstack);
 static inline void*
 marpa_obs_start (struct marpa_obstack *h, size_t length, size_t alignment)
 {
-  const size_t current_offset = h->next_free - (char *) (h->chunk);
+  const size_t current_offset = (size_t)(h->next_free - (char *) (h->chunk));
   const size_t aligned_offset = ALIGN_UP (current_offset, alignment);
   if (aligned_offset + length > h->chunk->header.size)
     {

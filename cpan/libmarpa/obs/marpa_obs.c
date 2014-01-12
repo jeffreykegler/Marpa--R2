@@ -85,7 +85,7 @@ marpa__obs_newchunk (struct marpa_obstack *h, size_t length, size_t alignment)
 {
   struct marpa_obstack_chunk *old_chunk = h->chunk;
   struct marpa_obstack_chunk *new_chunk;
-  long  new_size;
+  size_t new_size;
   const size_t contents_offset = offsetof(struct marpa_obstack_chunk, contents);
   const size_t aligned_contents_offset = ALIGN_UP(contents_offset, alignment);
   const size_t space_needed_for_alignment = aligned_contents_offset - contents_offset;

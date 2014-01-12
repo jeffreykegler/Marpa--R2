@@ -2072,7 +2072,7 @@ PRIVATE IRL
 irl_start(GRAMMAR g, int length)
 {
   IRL irl;
-  const int sizeof_irl = offsetof (struct s_irl, t_nsyid_array) +
+  const size_t sizeof_irl = offsetof (struct s_irl, t_nsyid_array) +
     ((size_t)length + 1) * sizeof (irl->t_nsyid_array[0]);
 
   /* Needs to be aligned as an IRL */
@@ -3323,7 +3323,7 @@ and a flag which indicates if there are any.
 @<Census terminals@> =
 {
   XSYID symid;
-  terminal_v = bv_obs_create (obs_precompute, pre_census_xsy_count);
+  terminal_v = bv_obs_create (obs_precompute, (size_t)pre_census_xsy_count);
   bv_not (terminal_v, lhs_v);
   for (symid = 0; symid < pre_census_xsy_count; symid++)
     {
@@ -3439,13 +3439,14 @@ where many of the right hand sides repeat symbols.
 {
   XRLID rule_id;
   reach_matrix =
-    matrix_obs_create (obs_precompute, pre_census_xsy_count,
-		       pre_census_xsy_count);
+    matrix_obs_create (obs_precompute, (size_t)pre_census_xsy_count,
+		       (size_t)pre_census_xsy_count);
   for (rule_id = 0; rule_id < xrl_count; rule_id++)
     {
       XRL rule = XRL_by_ID (rule_id);
       XSYID lhs_id = LHS_ID_of_RULE (rule);
-      unsigned int rhs_ix, rule_length = Length_of_XRL (rule);
+      int rhs_ix;
+      int rule_length = Length_of_XRL (rule);
       for (rhs_ix = 0; rhs_ix < rule_length; rhs_ix++)
 	{
 	  matrix_bit_set (reach_matrix,
@@ -6205,7 +6206,7 @@ states.
 
 @ @<Construct prediction matrix@> = {
     Bit_Matrix prediction_nsy_by_nsy_matrix =
-        matrix_obs_create (obs_precompute, nsy_count, nsy_count);
+        matrix_obs_create (obs_precompute, (size_t)nsy_count, (size_t)nsy_count);
     @<Initialize the |prediction_nsy_by_nsy_matrix|@>@/
     transitive_closure(prediction_nsy_by_nsy_matrix);
     @<Create the prediction matrix from the symbol-by-symbol matrix@>@/
