@@ -15317,7 +15317,7 @@ This is {\bf not} the case with vectors, whose pointer is offset for
 the ``hidden words".
 @<Function definitions@> =
 PRIVATE Bit_Matrix
-matrix_buffer_create (void *buffer, LBW rows, LBW columns)
+matrix_buffer_create (void *buffer, int rows, int columns)
 {
     LBW row;
     const LBW bv_data_words = bv_bits_to_size(columns);
@@ -15339,7 +15339,7 @@ matrix_buffer_create (void *buffer, LBW rows, LBW columns)
 
 @*0 Size a boolean matrix in bytes.
 @ @<Function definitions@> =
-PRIVATE size_t matrix_sizeof(LBW rows, LBW columns)
+PRIVATE size_t matrix_sizeof(int rows, int columns)
 {
   const LBW bv_data_words = bv_bits_to_size (columns);
   const LBW row_bytes =
@@ -15351,8 +15351,8 @@ PRIVATE size_t matrix_sizeof(LBW rows, LBW columns)
 @ @<Function definitions@> =
 PRIVATE Bit_Matrix matrix_obs_create(
   struct marpa_obstack *obs,
-  LBW rows,
-  LBW columns)
+  int rows,
+  int columns)
 {
   /* Needs to be aligned as a |Bit_Matrix_Object| */
   Bit_Matrix matrix_addr =
