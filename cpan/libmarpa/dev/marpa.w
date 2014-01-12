@@ -5623,13 +5623,12 @@ PRIVATE_NOT_INLINE int AHFA_state_cmp(
 @ @<Declare locals for creating AHFA states@> =
    AHFA p_working_state;
    const int initial_no_of_states = 2*AIM_Count_of_G(g);
-   AIM AHFA_item_0_p = g->t_AHFA_items;
    Bit_Matrix prediction_matrix;
    IRL* irl_by_sort_key = marpa_new(IRL, irl_count);
   Bit_Vector per_ahfa_complete_v = bv_obs_create (obs_precompute, nsy_count);
   Bit_Vector per_ahfa_postdot_v = bv_obs_create (obs_precompute, nsy_count);
     MARPA_AVL_TREE duplicates;
-    AHFA* singleton_duplicates;
+      AHFA* singleton_duplicates;
    DQUEUE_DECLARE(states);
   int ahfa_count_of_g;
 
@@ -5676,7 +5675,18 @@ PRIVATE_NOT_INLINE int AHFA_state_cmp(
       no_of_items_in_new_state = current_item_ix - first_working_item_ix;
       if (no_of_items_in_new_state == 1)
         {
-        @<Create a 1-item discovered AHFA state@>@;
+        create_singleton_AHFA_state( g,
+          item_list[first_working_item_ix]+1,
+          singleton_duplicates,
+          obs_precompute,
+          p_working_state,
+           irl_by_sort_key,
+          &states,
+         duplicates,
+         item_list_working_buffer,
+         prediction_matrix,
+         working_nsyid
+        );
         }
       else
         {
@@ -5798,12 +5808,9 @@ You can get the AIM from the AEX, but not vice versa.
 }
 
 @ @<Free locals for creating AHFA states@> =
-   my_free(irl_by_sort_key);
-    @<Free duplicates data structures@>@;
-
-@ @<Free duplicates data structures@> =
-my_free(singleton_duplicates);
-_marpa_avl_destroy(duplicates);
+  my_free(irl_by_sort_key);
+  my_free(singleton_duplicates);
+  _marpa_avl_destroy(duplicates);
 
 @ @<Construct initial AHFA states@> =
 {
@@ -5864,21 +5871,38 @@ Therefore there is only one AHFA state containing
 a start rule completion, and it is a
 1-item discovered AHFA states.
 {\bf QED}.
-@<Create a 1-item discovered AHFA state@> = {
+@<Function definitions@> =
+PRIVATE void
+create_singleton_AHFA_state(
+    GRAMMAR g,
+    AIM working_aim_p,
+      AHFA* singleton_duplicates,
+    struct marpa_obstack *obs_precompute,
+    AHFA p_working_state,
+     IRL* irl_by_sort_key,
+     DQUEUE states_p,
+     MARPA_AVL_TREE duplicates,
+     AIM* item_list_working_buffer,
+   Bit_Matrix prediction_matrix,
+   NSYID working_nsyid
+)
+{
+  /* \comment Every AHFA has at least one item */
+
+   const AIM AHFA_item_0_p = g->t_AHFA_items;
     AHFA p_new_state;
     AIM* new_state_item_list;
-    AIM working_aim_p = item_list[first_working_item_ix];
     Marpa_AHFA_Item_ID working_aim_id;
     NSYID postdot_nsyid;
-    working_aim_p++;            // Transition to next item for this rule
     working_aim_id = working_aim_p - AHFA_item_0_p;
-    p_new_state = singleton_duplicates[working_aim_id];
+    p_new_state = singleton_duplicates[working_aim_id]; /* This will not
+    be necessary after transition to singleton-only AHFA states */
     if (p_new_state)
       {                         /* Do not add, this is a duplicate */
         transition_add (obs_precompute, p_working_state, working_nsyid, p_new_state);
-        goto NEXT_WORKING_SYMBOL;
+        return;
       }
-    p_new_state = DQUEUE_PUSH (states, AHFA_Object);
+    p_new_state = DQUEUE_PUSH ((*states_p), AHFA_Object);
     /* Create a new AHFA state */
     AHFA_initialize(p_new_state);
     singleton_duplicates[working_aim_id] = p_new_state;
@@ -5887,8 +5911,8 @@ a start rule completion, and it is a
     new_state_item_list[0] = working_aim_p;
     p_new_state->t_item_count = 1;
     AHFA_is_Predicted(p_new_state) = 0;
-    p_new_state->t_key.t_id = p_new_state - DQUEUE_BASE (states, AHFA_Object);
-    TRANSs_of_AHFA(p_new_state) = transitions_new(g, nsy_count);
+    p_new_state->t_key.t_id = p_new_state - DQUEUE_BASE ((*states_p), AHFA_Object);
+    TRANSs_of_AHFA(p_new_state) = transitions_new(g, NSY_Count_of_G(g));
     transition_add (obs_precompute, p_working_state, working_nsyid, p_new_state);
     postdot_nsyid = Postdot_NSYID_of_AIM(working_aim_p);
     if (postdot_nsyid >= 0)
@@ -5905,7 +5929,7 @@ a start rule completion, and it is a
     create_predicted_AHFA_state (g,
                                  matrix_row (prediction_matrix,
                                              postdot_nsyid),
-                                 irl_by_sort_key, &states, duplicates,
+                                 irl_by_sort_key, states_p, duplicates,
                                  item_list_working_buffer);
       }
     else
