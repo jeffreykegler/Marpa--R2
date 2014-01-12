@@ -5882,13 +5882,13 @@ a start rule completion, and it is a
 1-item discovered AHFA states.
 {\bf QED}.
 @<Function definitions@> =
-PRIVATE void
+PRIVATE AHFA
 create_singleton_AHFA_state(
     GRAMMAR g,
     AIM working_aim_p,
       AHFA* singleton_duplicates,
     struct marpa_obstack *obs_precompute,
-    AHFA p_working_state,
+    AHFA previous_ahfa,
      IRL* irl_by_sort_key,
      DQUEUE states_p,
      MARPA_AVL_TREE duplicates,
@@ -5899,43 +5899,42 @@ create_singleton_AHFA_state(
   /* \comment Every AHFA has at least one item */
 
    const AIM AHFA_item_0_p = g->t_AHFA_items;
-    AHFA p_new_state;
+    AHFA new_ahfa;
     AIM* new_state_item_list;
-    Marpa_AHFA_Item_ID working_aim_id;
     NSYID postdot_nsyid;
-    working_aim_id = working_aim_p - AHFA_item_0_p;
+    const Marpa_AHFA_Item_ID working_aim_id = working_aim_p - AHFA_item_0_p;
     const NSYID transition_nsyid = Postdot_NSYID_of_AIM (working_aim_p-1);
-    p_new_state = singleton_duplicates[working_aim_id]; /* This will not
+    new_ahfa = singleton_duplicates[working_aim_id]; /* This will not
     be necessary after transition to singleton-only AHFA states */
-    if (p_new_state)
+    if (new_ahfa)
       {                         /* Do not add, this is a duplicate */
-        transition_add (obs_precompute, p_working_state, transition_nsyid, p_new_state);
-        return;
+        transition_add (obs_precompute, previous_ahfa, transition_nsyid, new_ahfa);
+        return new_ahfa;
       }
-    p_new_state = DQUEUE_PUSH ((*states_p), AHFA_Object);
+    new_ahfa = DQUEUE_PUSH ((*states_p), AHFA_Object);
     /* Create a new AHFA state */
-    AHFA_initialize(p_new_state);
-    singleton_duplicates[working_aim_id] = p_new_state;
-    new_state_item_list = p_new_state->t_items =
+    AHFA_initialize(new_ahfa);
+    singleton_duplicates[working_aim_id] = new_ahfa;
+    new_state_item_list = new_ahfa->t_items =
         marpa_obs_new (g->t_obs, AIM, 1);
     new_state_item_list[0] = working_aim_p;
-    p_new_state->t_item_count = 1;
-    AHFA_is_Predicted(p_new_state) = 0;
-    p_new_state->t_key.t_id = p_new_state - DQUEUE_BASE ((*states_p), AHFA_Object);
-    TRANSs_of_AHFA(p_new_state) = transitions_new(g, NSY_Count_of_G(g));
-    transition_add (obs_precompute, p_working_state, transition_nsyid, p_new_state);
+    new_ahfa->t_item_count = 1;
+    AHFA_is_Predicted(new_ahfa) = 0;
+    new_ahfa->t_key.t_id = new_ahfa - DQUEUE_BASE ((*states_p), AHFA_Object);
+    TRANSs_of_AHFA(new_ahfa) = transitions_new(g, NSY_Count_of_G(g));
+    transition_add (obs_precompute, previous_ahfa, transition_nsyid, new_ahfa);
     postdot_nsyid = Postdot_NSYID_of_AIM(working_aim_p);
     if (postdot_nsyid >= 0)
       {
-        NSYID* p_postdot_nsyidary = Postdot_NSYIDAry_of_AHFA(p_new_state) =
+        NSYID* p_postdot_nsyidary = Postdot_NSYIDAry_of_AHFA(new_ahfa) =
           marpa_obs_new (g->t_obs, NSYID, 1);
-        Completion_CIL_of_AHFA(p_new_state)
+        Completion_CIL_of_AHFA(new_ahfa)
           = cil_empty (&g->t_cilar);
-        Postdot_NSY_Count_of_AHFA(p_new_state) = 1;
+        Postdot_NSY_Count_of_AHFA(new_ahfa) = 1;
         *p_postdot_nsyidary = postdot_nsyid;
     /* If the sole item is not a completion
      attempt to create a predicted AHFA state as well */
-    p_new_state->t_empty_transition =
+    new_ahfa->t_empty_transition =
     create_predicted_AHFA_state (g,
                                  matrix_row (prediction_matrix,
                                              postdot_nsyid),
@@ -5947,14 +5946,15 @@ create_singleton_AHFA_state(
         /* The only AIM is a completion */
         const IRL irl = IRL_of_AIM(working_aim_p);
         const NSYID lhs_nsyid = LHSID_of_IRL(irl);
-        Completion_CIL_of_AHFA(p_new_state) = cil_singleton(&g->t_cilar, lhs_nsyid);
-        completion_count_inc(obs_precompute, p_new_state, lhs_nsyid);
+        Completion_CIL_of_AHFA(new_ahfa) = cil_singleton(&g->t_cilar, lhs_nsyid);
+        completion_count_inc(obs_precompute, new_ahfa, lhs_nsyid);
 
-        Postdot_NSY_Count_of_AHFA(p_new_state) = 0;
-        p_new_state->t_empty_transition = NULL;
+        Postdot_NSY_Count_of_AHFA(new_ahfa) = 0;
+        new_ahfa->t_empty_transition = NULL;
         @<If this state can be a Leo completion,
         set the Leo completion symbol to |lhs_id|@>@;
   }
+  return new_ahfa;
 }
 
 @
@@ -5967,8 +5967,8 @@ set the Leo completion symbol to |lhs_id|@> =
   const IRL aim_irl = IRL_of_AIM (working_aim_p);
   if (IRL_is_Right_Recursive(aim_irl))
     {
-      Leo_LHS_NSYID_of_AHFA (p_new_state) = lhs_nsyid;
-      Leo_IRLID_of_AHFA (p_new_state) = ID_of_IRL(aim_irl);
+      Leo_LHS_NSYID_of_AHFA (new_ahfa) = lhs_nsyid;
+      Leo_IRLID_of_AHFA (new_ahfa) = ID_of_IRL(aim_irl);
     }
 }
 
