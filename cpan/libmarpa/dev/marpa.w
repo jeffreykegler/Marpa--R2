@@ -6024,8 +6024,8 @@ of minimum sizes.
 @ @<Create a discovered AHFA state with 2+ items@> =
 {
   AHFA p_new_state;
-  unsigned int predecessor_ix;
-  unsigned int no_of_new_items_so_far = 0;
+  int predecessor_ix;
+  int no_of_new_items_so_far = 0;
   AHFA queued_AHFA_state;
   p_new_state = DQUEUE_PUSH (states, AHFA_Object);
   p_new_state->t_item_count = no_of_items_in_new_state;
@@ -6608,7 +6608,7 @@ int _marpa_g_AHFA_state_transitions(Marpa_Grammar g,
     XSYID nsyid;
     int nsy_count;
     int ix = 0;
-    const int max_ix = buffer_size / sizeof(*buffer);
+    const int max_ix = buffer_size / (int)sizeof(*buffer);
     const int max_results = max_ix / 2;
     /* Rounding is important -- with 32-bits ints,
       the number of results which fit into 15 bytes is 1.
@@ -7052,7 +7052,7 @@ r->t_current_earleme = -1;
 @d Current_Earleme_of_R(r) ((r)->t_current_earleme)
 @<Function definitions@> =
 unsigned int marpa_r_current_earleme(Marpa_Recognizer r)
-{ return Current_Earleme_of_R(r); }
+{ return (unsigned int)Current_Earleme_of_R(r); }
 
 @ @d Current_YS_of_R(r) current_ys_of_r(r)
 @<Function definitions@> =
@@ -7098,7 +7098,7 @@ No complete or predicted Earley item will be found after the current earleme.
 @ @<Initialize recognizer elements@> = r->t_furthest_earleme = 0;
 @ @<Function definitions@> =
 unsigned int marpa_r_furthest_earleme(Marpa_Recognizer r)
-{ return Furthest_Earleme_of_R(r); }
+{ return (unsigned int)Furthest_Earleme_of_R(r); }
 
 @*0 Event variables.
 The count of unmasked XSY events.
@@ -12830,15 +12830,15 @@ struct s_bocage_setup_per_ys* per_ys_data = NULL;
 @
 @<Allocate bocage setup working data@>=
 {
-  unsigned int ix;
-  unsigned int earley_set_count = YS_Count_of_R (r);
+  int ix;
+  int earley_set_count = YS_Count_of_R (r);
   count_of_earley_items_in_parse = 0;
   per_ys_data =
     marpa_obs_new (bocage_setup_obs, struct s_bocage_setup_per_ys, earley_set_count);
   for (ix = 0; ix < earley_set_count; ix++)
     {
       const YS_Const earley_set = YS_of_R_by_Ord (r, ix);
-      const unsigned int item_count = YIM_Count_of_YS (earley_set);
+      const int item_count = YIM_Count_of_YS (earley_set);
       count_of_earley_items_in_parse += item_count;
         {
           struct s_bocage_setup_per_ys *per_ys = per_ys_data + ix;
@@ -13286,7 +13286,8 @@ int marpa_o_rank( Marpa_Order o)
       const ANDID last_and_node_id =
         (first_and_node_id + and_count_of_or) - 1;
       ANDID *const order_base =
-        marpa_obs_start (obs, sizeof (ANDID) * (and_count_of_or + 1), ALIGNOF(ANDID));
+        marpa_obs_start (obs, (int) sizeof (ANDID) * (and_count_of_or + 1),
+                       ALIGNOF (ANDID));
       ANDID *order = order_base + 1;
       ANDID and_node_id;
       bocage_was_reordered = 1;
@@ -13308,7 +13309,7 @@ int marpa_o_rank( Marpa_Order o)
         int final_count = (order - order_base) - 1;
         *order_base = final_count;
         ambiguity_metric = MAX (ambiguity_metric, final_count);
-        marpa_obs_confirm_fast (obs, sizeof (ANDID) * (final_count + 1));
+        marpa_obs_confirm_fast (obs, (int)sizeof (ANDID) * (final_count + 1));
         and_node_orderings[or_node_id] = marpa_obs_finish (obs);
       }
     }
@@ -14745,7 +14746,8 @@ typedef LBW* LBV;
 @<Function definitions@> =
 PRIVATE int lbv_bits_to_size(int bits)
 {
-    return ((LBW)bits+(lbv_wordbits-1))/lbv_wordbits;
+  const LBW result = ((LBW) bits + (lbv_wordbits - 1)) / lbv_wordbits;
+  return (int) result;
 }
 
 @*0 Create an unitialized LBV on an obstack.
@@ -14924,7 +14926,7 @@ Bit_Vector bv_copy(Bit_Vector bv_to, Bit_Vector bv_from)
     const LBW bits = BV_BITS(bv_to);
     if (bits > 0)
     {
-        int count = BV_SIZE(bv_to);
+        LBW count = BV_SIZE(bv_to);
         while (count--) *p_to++ = *bv_from++;
     }
     return(bv_to);
@@ -15227,7 +15229,7 @@ rhs_closure (GRAMMAR g, Bit_Vector bv, XRLID ** xrl_list_x_rh_sym)
   FSTACK_INIT (stack, XSYID, XSY_Count_of_G (g));
   while (bv_scan (bv, start, &min, &max))
     {
-      LBW xsy_id;
+      XSYID xsy_id;
       for (xsy_id = min; xsy_id <= max; xsy_id++)
         {
           *(FSTACK_PUSH (stack)) = xsy_id;
@@ -15282,7 +15284,7 @@ rhs_closure (GRAMMAR g, Bit_Vector bv, XRLID ** xrl_list_x_rh_sym)
           /* If I am here, the bits for the RHS symbols are all
            * set, but the one for the LHS symbol is not.
            */
-          bv_bit_set (bv, (LBW) lhs_id);
+          bv_bit_set (bv, lhs_id);
           *(FSTACK_PUSH (stack)) = lhs_id;
         NEXT_RULE:;
         }
