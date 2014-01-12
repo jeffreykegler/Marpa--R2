@@ -3360,14 +3360,14 @@ RULEID** xrl_list_x_lh_sym = NULL;
 
 @ @<Census nullable symbols@> = 
 {
-  unsigned int min, max, start;
+  int min, max, start;
   XSYID xsy_id;
   int counted_nullables = 0;
   nullable_v = bv_obs_clone (obs_precompute, empty_lhs_v);
   rhs_closure (g, nullable_v, xrl_list_x_rh_sym);
   for (start = 0; bv_scan (nullable_v, start, &min, &max); start = max + 2)
     {
-      for (xsy_id = (XSYID) min; xsy_id <= (XSYID) max;
+      for (xsy_id = min; xsy_id <= max;
            xsy_id++)
         {
           XSY xsy = XSY_by_ID (xsy_id);
@@ -3392,13 +3392,13 @@ RULEID** xrl_list_x_lh_sym = NULL;
   bv_or (productive_v, nullable_v, terminal_v);
   rhs_closure (g, productive_v, xrl_list_x_rh_sym);
   {
-    unsigned int min, max, start;
+    int min, max, start;
     XSYID symid;
     for (start = 0; bv_scan (productive_v, start, &min, &max);
          start = max + 2)
       {
-        for (symid = (XSYID) min;
-             symid <= (XSYID) max; symid++)
+        for (symid = min;
+             symid <= max; symid++)
           {
             XSY symbol = XSY_by_ID (symid);
             symbol->t_is_productive = 1;
@@ -3476,12 +3476,12 @@ Therefore there is no code to free it.
 {
   Bit_Vector accessible_v =
     matrix_row (reach_matrix, start_xsy_id);
-  unsigned int min, max, start;
+  int min, max, start;
   XSYID symid;
   for (start = 0; bv_scan (accessible_v, start, &min, &max); start = max + 2)
     {
-      for (symid = (XSYID) min;
-           symid <= (XSYID) max; symid++)
+      for (symid =  min;
+           symid <=  max; symid++)
         {
           XSY symbol = XSY_by_ID (symid);
           symbol->t_is_accessible = 1;
@@ -3496,12 +3496,12 @@ reach a terminal symbol.
 {
   Bit_Vector reaches_terminal_v = bv_shadow (terminal_v);
   int nulling_terminal_found = 0;
-  unsigned int min, max, start;
+  int min, max, start;
   for (start = 0; bv_scan (lhs_v, start, &min, &max); start = max + 2)
     {
       XSYID productive_id;
-      for (productive_id = (XSYID) min;
-           productive_id <= (XSYID) max; productive_id++)
+      for (productive_id =  min;
+           productive_id <=  max; productive_id++)
         {
           bv_and (reaches_terminal_v, terminal_v,
                   matrix_row (reach_matrix, productive_id));
@@ -6105,15 +6105,15 @@ for discovered state with 2+ items@> =
   if ((no_of_postdot_nsys = Postdot_NSY_Count_of_AHFA (p_new_state) =
        bv_count (per_ahfa_postdot_v)))
     {
-      unsigned int min, max, start;
+      int min, max, start;
       NSYID *p_nsyid = Postdot_NSYIDAry_of_AHFA (p_new_state) =
         marpa_obs_new (g->t_obs, NSYID, no_of_postdot_nsys );
       for (start = 0; bv_scan (per_ahfa_postdot_v, start, &min, &max);
            start = max + 2)
         {
           NSYID postdot_nsyid;
-          for (postdot_nsyid = (NSYID) min;
-               postdot_nsyid <= (NSYID) max; postdot_nsyid++)
+          for (postdot_nsyid = min;
+               postdot_nsyid <= max; postdot_nsyid++)
             {
               *p_nsyid++ = postdot_nsyid;
             }
@@ -6323,14 +6323,14 @@ which can be used to index the rules in a boolean vector.
   for (from_nsyid = 0; from_nsyid < nsy_count; from_nsyid++)
     {
       // for every row of the symbol-by-symbol matrix
-      unsigned int min, max, start;
+      int min, max, start;
       for (start = 0;
            bv_scan (matrix_row
                     (prediction_nsy_by_nsy_matrix, from_nsyid),
                     start, &min, &max); start = max + 2)
         {
           NSYID to_nsyid;
-          for (to_nsyid = min; to_nsyid <= (NSYID)max; to_nsyid++)
+          for (to_nsyid = min; to_nsyid <= max; to_nsyid++)
             {
               // for every predicted symbol
               RULEID *p_irl_x_lh_nsy = irl_list_x_lh_nsy[to_nsyid];
@@ -6367,12 +6367,12 @@ create_predicted_AHFA_state(
   if (no_of_items_in_new_state == 0)
     return NULL;
   {
-    unsigned int start, min, max;
+    int start, min, max;
       // \comment Scan the prediction rule vector again, this time to populate the list
     for (start = 0; bv_scan (prediction_rule_vector, start, &min, &max);
          start = max + 2)
       {
-        unsigned int sort_ordinal;
+        int sort_ordinal;
         for (sort_ordinal = min; sort_ordinal <= max; sort_ordinal++)
           {
             /* Add the initial item for the predicted rule */
@@ -6431,14 +6431,14 @@ create_predicted_AHFA_state(
     if ((no_of_postdot_nsys = Postdot_NSY_Count_of_AHFA(p_new_state) =
      bv_count (postdot_v)))
   {
-    unsigned int min, max, start;
+    int min, max, start;
     NSYID *p_nsyid = Postdot_NSYIDAry_of_AHFA(p_new_state) =
       marpa_obs_new (g->t_obs, NSYID, no_of_postdot_nsys );
     for (start = 0; bv_scan (postdot_v, start, &min, &max); start = max + 2)
       {
         NSYID postdot_nsyid;
-        for (postdot_nsyid = (NSYID) min;
-             postdot_nsyid <= (NSYID) max; postdot_nsyid++)
+        for (postdot_nsyid = min;
+             postdot_nsyid <= max; postdot_nsyid++)
           {
             *p_nsyid++ = postdot_nsyid;
           }
@@ -7145,7 +7145,7 @@ int marpa_r_terminals_expected(Marpa_Recognizer r, Marpa_Symbol_ID* buffer)
 {
     @<Return |-2| on failure@>@;
       @<Unpack recognizer objects@>@;
-    unsigned int min, max, start;
+    int min, max, start;
     int ix = 0;
     @<Fail if fatal error@>@;
     @<Fail if recognizer not started@>@;
@@ -7153,7 +7153,7 @@ int marpa_r_terminals_expected(Marpa_Recognizer r, Marpa_Symbol_ID* buffer)
          start = max + 2)
       {
         NSYID nsyid;
-        for (nsyid = (NSYID) min; nsyid <= (NSYID) max; nsyid++)
+        for (nsyid = min; nsyid <= max; nsyid++)
           {
             const XSY xsy = Source_XSY_of_NSYID(nsyid);
             buffer[ix++] = ID_of_XSY(xsy);
@@ -9923,7 +9923,7 @@ PRIVATE void trigger_events(RECCE r)
 {
   const GRAMMAR g = G_of_R (r);
   const YS current_earley_set = Latest_YS_of_R (r);
-  unsigned int min, max, start;
+  int min, max, start;
   int yim_ix;
   struct marpa_obstack *const trigger_events_obs = marpa_obs_init;
   const YIM *yims = YIMs_of_YS (current_earley_set);
@@ -10016,7 +10016,7 @@ PRIVATE void trigger_events(RECCE r)
        start = max + 2)
     {
       XSYID event_xsyid;
-      for (event_xsyid = (NSYID) min; event_xsyid <= (NSYID) max;
+      for (event_xsyid = min; event_xsyid <= max;
            event_xsyid++)
         {
           if (lbv_bit_test
@@ -10030,7 +10030,7 @@ PRIVATE void trigger_events(RECCE r)
        start = max + 2)
     {
       XSYID event_xsyid;
-      for (event_xsyid = (NSYID) min; event_xsyid <= (NSYID) max;
+      for (event_xsyid = min; event_xsyid <= max;
            event_xsyid++)
         {
           if (lbv_bit_test
@@ -10259,7 +10259,7 @@ Leo item have not been fully populated.
 @d LIM_is_Populated(leo) (Origin_of_LIM(leo) != NULL)
 @<Start LIMs in PIM workarea@> =
 {
-  unsigned int min, max, start;
+  int min, max, start;
   for (start = 0; bv_scan (r->t_bv_pim_symbols, start, &min, &max);
        start = max + 2)
     {
@@ -10377,7 +10377,7 @@ ID must
 \li Must not have already been added to a LIM chain for this
 Earley set.\par
 @<Add predecessors to LIMs@> = {
-  unsigned int min, max, start;
+  int min, max, start;
 
   bv_copy(bv_ok_for_chain, r->t_bv_lim_symbols);
   for (start = 0; bv_scan (r->t_bv_lim_symbols, start, &min, &max);
@@ -10606,11 +10606,11 @@ of the base YIM.
     PIM *postdot_array
         = current_earley_set->t_postdot_ary
         = marpa_obs_new (r->t_obs, PIM, current_earley_set->t_postdot_sym_count );
-    unsigned int min, max, start;
+    int min, max, start;
     int postdot_array_ix = 0;
     for (start = 0; bv_scan (r->t_bv_pim_symbols, start, &min, &max); start = max + 2) {
         NSYID nsyid;
-        for (nsyid = (NSYID)min; nsyid <= (NSYID) max; nsyid++) {
+        for (nsyid = min; nsyid <= max; nsyid++) {
             PIM this_pim = r->t_pim_workarea[nsyid];
             if (lbv_bit_test(r->t_nsy_expected_is_event, nsyid)) {
               XSY xsy = Source_XSY_of_NSYID(nsyid);
@@ -15091,8 +15091,11 @@ PRIVATE void bv_or_assign(Bit_Vector X, Bit_Vector Y)
 @*0 Scan a boolean vector.
 @<Function definitions@>=
 PRIVATE_NOT_INLINE
-int bv_scan(Bit_Vector bv, LBW start, LBW* min, LBW* max)
+int bv_scan(Bit_Vector bv, int raw_start, int* raw_min, int* raw_max)
 {
+    LBW start = (LBW)raw_start;
+    LBW min;
+    LBW max;
     LBW  size = BV_SIZE(bv);
     LBW  mask = BV_MASK(bv);
     LBW  offset;
@@ -15102,8 +15105,8 @@ int bv_scan(Bit_Vector bv, LBW start, LBW* min, LBW* max)
 
     if (size == 0) return 0;
     if (start >= BV_BITS(bv)) return 0;
-    *min = start;
-    *max = start;
+    min = start;
+    max = start;
     offset = start / bv_wordbits;
     *(bv+size-1) &= mask;
     bv += offset;
@@ -15122,7 +15125,11 @@ int bv_scan(Bit_Vector bv, LBW start, LBW* min, LBW* max)
             {
                 if ((value = *bv++)) empty = 0; else offset++;
             }
-            if (empty) return 0;
+            if (empty) {
+              *raw_min = (int)min;
+              *raw_max = (int)max;
+              return 0;
+            }
         }
         start = offset * bv_wordbits;
         bitmask = bv_lsb;
@@ -15134,8 +15141,8 @@ int bv_scan(Bit_Vector bv, LBW start, LBW* min, LBW* max)
             start++;
         }
         mask = ~ (bitmask | (bitmask - 1));
-        *min = start;
-        *max = start;
+        min = start;
+        max = start;
     }
     value = ~ value;
     value &= mask;
@@ -15155,7 +15162,9 @@ int bv_scan(Bit_Vector bv, LBW start, LBW* min, LBW* max)
         value >>= 1;
         start++;
     }
-    *max = --start;
+    max = --start;
+    *raw_min = (int)min;
+    *raw_max = (int)max;
     return 1;
 }
 
