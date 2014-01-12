@@ -1389,7 +1389,7 @@ int marpa_g_symbol_is_valued_set(
       MARPA_ERROR(MARPA_ERR_VALUED_IS_LOCKED);
       return failure_indicator;
     }
-  XSY_is_Valued (symbol) = value;
+  XSY_is_Valued (symbol) = (BITFIELD)value;
   return value;
 }
 
@@ -1512,7 +1512,7 @@ Marpa_Grammar g, Marpa_Symbol_ID xsy_id, int value)
         return failure_indicator;
       }
     XSY_is_Locked_Terminal (symbol) = 1;
-    return XSY_is_Terminal (symbol) = value;
+    return XSY_is_Terminal (symbol) = (BITFIELD)value;
 }
 
 @*0 XSY is productive?.
@@ -1562,7 +1562,7 @@ Marpa_Grammar g, Marpa_Symbol_ID xsy_id, int value)
     xsy = XSY_by_ID (xsy_id);
     switch (value) {
     case 0: case 1:
-      return XSY_is_Completion_Event (xsy) = value;
+      return XSY_is_Completion_Event (xsy) = (BITFIELD)value;
     }
     MARPA_ERROR (MARPA_ERR_INVALID_BOOLEAN);
     return failure_indicator;
@@ -1597,7 +1597,7 @@ Marpa_Grammar g, Marpa_Symbol_ID xsy_id, int value)
     xsy = XSY_by_ID (xsy_id);
     switch (value) {
     case 0: case 1:
-      return XSY_is_Nulled_Event (xsy) = value;
+      return XSY_is_Nulled_Event (xsy) = (BITFIELD)value;
     }
     MARPA_ERROR (MARPA_ERR_INVALID_BOOLEAN);
     return failure_indicator;
@@ -1632,7 +1632,7 @@ Marpa_Grammar g, Marpa_Symbol_ID xsy_id, int value)
     xsy = XSY_by_ID (xsy_id);
     switch (value) {
     case 0: case 1:
-      return XSY_is_Prediction_Event (xsy) = value;
+      return XSY_is_Prediction_Event (xsy) = (BITFIELD)value;
     }
     MARPA_ERROR (MARPA_ERR_INVALID_BOOLEAN);
     return failure_indicator;
@@ -3209,7 +3209,7 @@ PRIVATE_NOT_INLINE int sym_rule_cmp(
     for separator of sequences */
   struct sym_rule_pair *const p_rh_sym_rule_pair_base =
     marpa_obs_new (MARPA_AVL_OBSTACK (rhs_avl_tree), struct sym_rule_pair,
-                    External_Size_of_G (g));
+                    (size_t)External_Size_of_G (g));
   struct sym_rule_pair *p_rh_sym_rule_pairs = p_rh_sym_rule_pair_base;
 
   /* \comment AVL tree for LHS symbols */
