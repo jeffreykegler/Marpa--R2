@@ -5684,8 +5684,7 @@ PRIVATE_NOT_INLINE int AHFA_state_cmp(
           &states,
          duplicates,
          item_list_working_buffer,
-         prediction_matrix,
-         working_nsyid
+         prediction_matrix
         );
         }
       else
@@ -5827,6 +5826,7 @@ You can get the AIM from the AEX, but not vice versa.
   p_initial_state->t_items = item_list;
   p_initial_state->t_item_count = 1;
   p_initial_state->t_key.t_id = 0;
+  singleton_duplicates[0] = p_initial_state;
   AHFA_is_Predicted (p_initial_state) = 0;
   TRANSs_of_AHFA (p_initial_state) = transitions_new (g, nsy_count);
   Postdot_NSY_Count_of_AHFA (p_initial_state) = 1;
@@ -5883,8 +5883,7 @@ create_singleton_AHFA_state(
      DQUEUE states_p,
      MARPA_AVL_TREE duplicates,
      AIM* item_list_working_buffer,
-   Bit_Matrix prediction_matrix,
-   NSYID working_nsyid
+   Bit_Matrix prediction_matrix
 )
 {
   /* \comment Every AHFA has at least one item */
@@ -5895,11 +5894,12 @@ create_singleton_AHFA_state(
     Marpa_AHFA_Item_ID working_aim_id;
     NSYID postdot_nsyid;
     working_aim_id = working_aim_p - AHFA_item_0_p;
+    const NSYID transition_nsyid = Postdot_NSYID_of_AIM (working_aim_p-1);
     p_new_state = singleton_duplicates[working_aim_id]; /* This will not
     be necessary after transition to singleton-only AHFA states */
     if (p_new_state)
       {                         /* Do not add, this is a duplicate */
-        transition_add (obs_precompute, p_working_state, working_nsyid, p_new_state);
+        transition_add (obs_precompute, p_working_state, transition_nsyid, p_new_state);
         return;
       }
     p_new_state = DQUEUE_PUSH ((*states_p), AHFA_Object);
@@ -5913,7 +5913,7 @@ create_singleton_AHFA_state(
     AHFA_is_Predicted(p_new_state) = 0;
     p_new_state->t_key.t_id = p_new_state - DQUEUE_BASE ((*states_p), AHFA_Object);
     TRANSs_of_AHFA(p_new_state) = transitions_new(g, NSY_Count_of_G(g));
-    transition_add (obs_precompute, p_working_state, working_nsyid, p_new_state);
+    transition_add (obs_precompute, p_working_state, transition_nsyid, p_new_state);
     postdot_nsyid = Postdot_NSYID_of_AIM(working_aim_p);
     if (postdot_nsyid >= 0)
       {
