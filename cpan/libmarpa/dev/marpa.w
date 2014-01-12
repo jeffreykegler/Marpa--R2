@@ -5639,8 +5639,8 @@ PRIVATE_NOT_INLINE int AHFA_state_cmp(
 
 @ @<Initialize duplicates data structures@> =
 {
-  unsigned item_id;
-  unsigned no_of_items_in_grammar = AIM_Count_of_G (g);
+  int item_id;
+  int no_of_items_in_grammar = AIM_Count_of_G (g);
   duplicates = _marpa_avl_create (AHFA_state_cmp, NULL);
   singleton_duplicates = marpa_new (AHFA, no_of_items_in_grammar);
   for (item_id = 0; item_id < no_of_items_in_grammar; item_id++)
