@@ -42,7 +42,8 @@
 
 #define ALIGN_UP(x, align) (((x) + (align) - 1) & ~((align) - 1))
 #define ALIGN_DOWN(x, align) ((x) & ~((align) - 1))
-#define ALIGN_POINTER(base, p, align) ((base) + ALIGN_UP((p)-(base), (align)))
+#define ALIGN_POINTER(base, p, align) \
+    ((base) + (ptrdiff_t)ALIGN_UP((size_t)((p)-(base)), (align)))
 
 /*
    The original GNU obstack implementation used __PTR_ALIGN,

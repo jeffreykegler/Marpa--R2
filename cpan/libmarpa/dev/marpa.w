@@ -3343,7 +3343,7 @@ and a flag which indicates if there are any.
       /* \comment If not marked by the user, take the default
          from the boolean vector and mark the symbol,
          if necessary. */
-      if (bv_bit_test (terminal_v, (unsigned int) symid))
+      if (bv_bit_test (terminal_v, symid))
         XSY_is_Terminal (symbol) = 1;
     }
 }
@@ -3408,7 +3408,7 @@ RULEID** xrl_list_x_lh_sym = NULL;
 }
 
 @ @<Check that start symbol is productive@> =
-if (_MARPA_UNLIKELY(!bv_bit_test(productive_v, (unsigned int)start_xsy_id)))
+if (_MARPA_UNLIKELY(!bv_bit_test(productive_v, start_xsy_id)))
 {
     MARPA_ERROR(MARPA_ERR_UNPRODUCTIVE_START);
     goto FAILURE;
@@ -10234,7 +10234,7 @@ At this point there are no Leo items.
           nsyid = postdot_nsyidary[nsy_ix];
           Postdot_NSYID_of_PIM(new_pim) = nsyid;
           YIM_of_PIM(new_pim) = earley_item;
-          if (bv_bit_test(r->t_bv_pim_symbols, (unsigned int)nsyid))
+          if (bv_bit_test(r->t_bv_pim_symbols, nsyid))
               old_pim = r->t_pim_workarea[nsyid];
           Next_PIM_of_PIM(new_pim) = old_pim;
           if (!old_pim) current_earley_set->t_postdot_sym_count++;
@@ -10503,7 +10503,7 @@ problems.
       lim_to_process = predecessor_lim;
       postdot_nsyid_of_lim_to_process = Postdot_NSYID_of_LIM (lim_to_process);
       if (!bv_bit_test
-          (bv_ok_for_chain, (unsigned int) postdot_nsyid_of_lim_to_process))
+          (bv_ok_for_chain, postdot_nsyid_of_lim_to_process))
         {
           /* If I am about to add a previously added LIM to the LIM chain, I
              break the LIM chain at this point.
@@ -13744,7 +13744,7 @@ set the bit) and return 1.
 @<Function definitions@> =
 PRIVATE int tree_or_node_try(TREE tree, ORID or_node_id)
 {
-    return !bv_bit_test_then_set(tree->t_or_node_in_use, (unsigned int)or_node_id);
+    return !bv_bit_test_then_set(tree->t_or_node_in_use, or_node_id);
 }
 @ Release the and-node by unsetting its bit.
 @<Function definitions@> =
@@ -14774,7 +14774,7 @@ lbv_zero (Bit_Vector lbv, int bits)
 @*0 Create a zeroed LBV on an obstack.
 @<Function definitions@> =
 PRIVATE Bit_Vector
-lbv_obs_new0 (struct marpa_obstack *obs, int bits)
+lbv_obs_new0 (struct marpa_obstack *obs, size_t bits)
 {
   LBV lbv = lbv_obs_new(obs, bits);
   return lbv_zero(lbv, bits);
@@ -14784,11 +14784,11 @@ lbv_obs_new0 (struct marpa_obstack *obs, int bits)
 @d lbv_w(lbv, bit) ((lbv)+((bit)/lbv_wordbits))
 @d lbv_b(bit) (lbv_lsb << ((bit)%bv_wordbits))
 @d lbv_bit_set(lbv, bit)
-  (*lbv_w ((lbv), (bit)) |= lbv_b (bit))
+  (*lbv_w ((lbv), (LBW)(bit)) |= lbv_b ((LBW)(bit)))
 @d lbv_bit_clear(lbv, bit)
-  (*lbv_w ((lbv), (bit)) &= ~lbv_b (bit))
+  (*lbv_w ((lbv), ((LBW)(bit))) &= ~lbv_b ((LBW)(bit)))
 @d lbv_bit_test(lbv, bit)
-  ((*lbv_w ((lbv), (bit)) & lbv_b (bit)) != 0U)
+  ((*lbv_w ((lbv), ((LBW)(bit))) & lbv_b ((LBW)(bit))) != 0U)
 
 @*0 Clone an LBV onto an obstack.
 @<Function definitions@> =
@@ -15439,16 +15439,16 @@ $O(n^3)$ where the matrix is $n$x$n$.
 @<Function definitions@> =
 PRIVATE_NOT_INLINE void transitive_closure(Bit_Matrix matrix)
 {
-  LBW size = matrix_columns (matrix);
-  LBW outer_row;
+  int size = matrix_columns (matrix);
+  int outer_row;
   for (outer_row = 0; outer_row < size; outer_row++)
     {
       Bit_Vector outer_row_v = matrix_row (matrix, outer_row);
-      LBW column;
+      int column;
       for (column = 0; column < size; column++)
         {
           Bit_Vector inner_row_v = matrix_row (matrix, column);
-          if (bv_bit_test (inner_row_v, (LBW) outer_row))
+          if (bv_bit_test (inner_row_v, outer_row))
             {
               bv_or_assign (inner_row_v, outer_row_v);
             }
