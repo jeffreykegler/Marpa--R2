@@ -147,7 +147,8 @@ marpa__tavl_probe (struct tavl_table *tree, void *item)
 
           if (p->tavl_balance != 0)
             z = q, y = p, k = 0;
-          da[k++] = dir = cmp > 0;
+          dir = cmp > 0;
+          da[k++] = (unsigned char)dir;
 
           if (p->tavl_tag[dir] == TAVL_THREAD)
             break;

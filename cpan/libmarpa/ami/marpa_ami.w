@@ -451,6 +451,8 @@ int marpa__default_debug_handler (const char *format, ...)
 @** Internal typdefs.
 @<Internal typedefs@> =
 typedef unsigned int BITFIELD;
+@<Internal macros@>
+#define Boolean(value) ((value) ? 1 : 0)
 
 @** File layout.  
 @ The output files are written in pieces,

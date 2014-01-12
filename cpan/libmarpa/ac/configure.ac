@@ -80,6 +80,7 @@ AC_CACHE_CHECK([whether GCC handles -Wdeclaration-after-statement],
 CFLAGS="$marpa_save_CFLAGS"
 
 dnl -Winline eliminated because it was too noisy
+dnl -Wno-sign-conversion for the moment, because a bit too noisy
 dnl One to a line to make these easy to edit
 WARNING_CFLAGS="-Wall \
 $marpa_cv_prog_gcc_wextra \
@@ -89,7 +90,7 @@ $marpa_cv_prog_gcc_wdas \
 -Wwrite-strings \
 -Wshadow \
 -Wmissing-declarations \
--Wconversion \
+-Wconversion -Wno-sign-conversion \
 -ansi -pedantic"
 
 WARNING_CPPFLAGS=" \

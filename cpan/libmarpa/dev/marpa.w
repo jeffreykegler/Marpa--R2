@@ -1389,7 +1389,7 @@ int marpa_g_symbol_is_valued_set(
       MARPA_ERROR(MARPA_ERR_VALUED_IS_LOCKED);
       return failure_indicator;
     }
-  XSY_is_Valued (symbol) = (BITFIELD)value;
+  XSY_is_Valued (symbol) = Boolean(value);
   return value;
 }
 
@@ -1512,7 +1512,7 @@ Marpa_Grammar g, Marpa_Symbol_ID xsy_id, int value)
         return failure_indicator;
       }
     XSY_is_Locked_Terminal (symbol) = 1;
-    return XSY_is_Terminal (symbol) = (BITFIELD)value;
+    return XSY_is_Terminal (symbol) = Boolean(value);
 }
 
 @*0 XSY is productive?.
@@ -1562,7 +1562,7 @@ Marpa_Grammar g, Marpa_Symbol_ID xsy_id, int value)
     xsy = XSY_by_ID (xsy_id);
     switch (value) {
     case 0: case 1:
-      return XSY_is_Completion_Event (xsy) = (BITFIELD)value;
+      return XSY_is_Completion_Event (xsy) = Boolean(value);
     }
     MARPA_ERROR (MARPA_ERR_INVALID_BOOLEAN);
     return failure_indicator;
@@ -1597,7 +1597,7 @@ Marpa_Grammar g, Marpa_Symbol_ID xsy_id, int value)
     xsy = XSY_by_ID (xsy_id);
     switch (value) {
     case 0: case 1:
-      return XSY_is_Nulled_Event (xsy) = (BITFIELD)value;
+      return XSY_is_Nulled_Event (xsy) = Boolean(value);
     }
     MARPA_ERROR (MARPA_ERR_INVALID_BOOLEAN);
     return failure_indicator;
@@ -1632,7 +1632,7 @@ Marpa_Grammar g, Marpa_Symbol_ID xsy_id, int value)
     xsy = XSY_by_ID (xsy_id);
     switch (value) {
     case 0: case 1:
-      return XSY_is_Prediction_Event (xsy) = (BITFIELD)value;
+      return XSY_is_Prediction_Event (xsy) = Boolean(value);
     }
     MARPA_ERROR (MARPA_ERR_INVALID_BOOLEAN);
     return failure_indicator;
@@ -2452,7 +2452,7 @@ Marpa_Grammar g, Marpa_Rule_ID xrl_id, int flag)
         MARPA_ERROR (MARPA_ERR_INVALID_BOOLEAN);
         return failure_indicator;
       }
-    return Null_Ranks_High_of_RULE(xrl) = flag;
+    return Null_Ranks_High_of_RULE(xrl) = Boolean(flag);
 }
 
 @*0 Rule is user-created BNF?.
@@ -3567,9 +3567,9 @@ Classify as nulling, nullable or productive.
       if (_MARPA_UNLIKELY (!XSY_is_Productive (rh_xsy)))
         is_productive = 0;
     }
-  XRL_is_Nulling (xrl) = is_nulling;
-  XRL_is_Nullable (xrl) = is_nullable;
-  XRL_is_Productive (xrl) = is_productive;
+  XRL_is_Nulling (xrl) = Boolean(is_nulling);
+  XRL_is_Nullable (xrl) = Boolean(is_nullable);
+  XRL_is_Productive (xrl) = Boolean(is_productive);
   XRL_is_Used (xrl) = XRL_is_Accessible (xrl) && XRL_is_Productive (xrl)
     && !XRL_is_Nulling (xrl);
 }
@@ -4424,7 +4424,7 @@ rule structure, and performing the call back.
 {
   const int is_virtual_lhs = (piece_start > 0);
   Source_XRL_of_IRL(chaf_irl) = rule;
-  IRL_has_Virtual_LHS (chaf_irl) = is_virtual_lhs;
+  IRL_has_Virtual_LHS (chaf_irl) = Boolean(is_virtual_lhs);
   IRL_has_Virtual_RHS (chaf_irl) =
     Length_of_IRL (chaf_irl) > real_symbol_count;
   Virtual_Start_of_IRL(chaf_irl) = piece_start;
@@ -14329,7 +14329,7 @@ int _marpa_v_trace(Marpa_Value public_v, int flag)
       MARPA_ERROR(MARPA_ERR_VALUATOR_INACTIVE);
       return failure_indicator;
     }
-    V_is_Trace(v) = flag;
+    V_is_Trace(v) = Boolean(flag);
     return 1;
 }
 

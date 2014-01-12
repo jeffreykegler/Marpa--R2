@@ -111,7 +111,8 @@ _marpa_avl_probe (MARPA_AVL_TREE tree, void *item)
 
       if (p->avl_balance != 0)
         z = q, y = p, k = 0;
-      da[k++] = dir = cmp > 0;
+      dir = cmp > 0;
+      da[k++] = (unsigned char)dir;
     }
 
   n = q->avl_link[dir] = marpa_obs_new (tree->avl_obstack, struct marpa_avl_node, 1);
