@@ -37,7 +37,7 @@
 #define DEFAULT_CHUNK_SIZE (4096 - MALLOC_OVERHEAD)
 
 struct marpa_obstack *
-marpa__obs_begin (int size)
+marpa__obs_begin (size_t size)
 {
   struct marpa_obstack_chunk *chunk;	/* points to new chunk */
   struct marpa_obstack *h;	/* points to new obstack */
@@ -81,14 +81,14 @@ marpa__obs_begin (int size)
    */
 
 void*
-marpa__obs_newchunk (struct marpa_obstack *h, int length, int alignment)
+marpa__obs_newchunk (struct marpa_obstack *h, size_t length, size_t alignment)
 {
   struct marpa_obstack_chunk *old_chunk = h->chunk;
   struct marpa_obstack_chunk *new_chunk;
   long  new_size;
-  const int contents_offset = offsetof(struct marpa_obstack_chunk, contents);
-  const int aligned_contents_offset = ALIGN_UP(contents_offset, alignment);
-  const int space_needed_for_alignment = aligned_contents_offset - contents_offset;
+  const size_t contents_offset = offsetof(struct marpa_obstack_chunk, contents);
+  const size_t aligned_contents_offset = ALIGN_UP(contents_offset, alignment);
+  const size_t space_needed_for_alignment = aligned_contents_offset - contents_offset;
 
   /* Compute size for new chunk.
    * Make sure there is enough room for |length|

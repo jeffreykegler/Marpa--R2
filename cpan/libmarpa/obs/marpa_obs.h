@@ -69,13 +69,13 @@ struct marpa_obstack    /* control current object in current chunk */
   struct marpa_obstack_chunk *chunk;    /* address of current struct obstack_chunk */
   char *object_base;
   char *next_free;
-  int minimum_chunk_size;              /* preferred size to allocate chunks in */
+  size_t minimum_chunk_size;              /* preferred size to allocate chunks in */
 };
 
 struct marpa_obstack_chunk_header               /* Lives at front of each chunk. */
 {
   struct marpa_obstack_chunk* prev;     /* address of prior chunk or NULL */
-  int size;
+  size_t size;
 };
 
 struct marpa_obstack_chunk
@@ -85,9 +85,9 @@ struct marpa_obstack_chunk
   char contents[4];
 };
 
-extern void* marpa__obs_newchunk (struct marpa_obstack *, int, int);
+extern void* marpa__obs_newchunk (struct marpa_obstack *, size_t, size_t);
 
-extern struct marpa_obstack* marpa__obs_begin (int);
+extern struct marpa_obstack* marpa__obs_begin (size_t);
 
 void marpa__obs_free (struct marpa_obstack *__obstack);
 
@@ -116,10 +116,10 @@ void marpa__obs_free (struct marpa_obstack *__obstack);
 
 /* Start an object */
 static inline void*
-marpa_obs_start (struct marpa_obstack *h, int length, int alignment)
+marpa_obs_start (struct marpa_obstack *h, size_t length, size_t alignment)
 {
-  const int current_offset = h->next_free - (char *) (h->chunk);
-  const int aligned_offset = ALIGN_UP (current_offset, alignment);
+  const size_t current_offset = h->next_free - (char *) (h->chunk);
+  const size_t aligned_offset = ALIGN_UP (current_offset, alignment);
   if (aligned_offset + length > h->chunk->header.size)
     {
       return marpa__obs_newchunk (h, length, alignment);
@@ -138,7 +138,7 @@ void *marpa_obs_finish (struct marpa_obstack *h)
 }
 
 static inline void *
-marpa__obs_alloc (struct marpa_obstack *h, int length, int alignment)
+marpa__obs_alloc (struct marpa_obstack *h, size_t length, size_t alignment)
 {
   marpa_obs_start (h, length, alignment);
   return marpa_obs_finish (h);

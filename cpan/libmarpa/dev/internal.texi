@@ -234,10 +234,10 @@ On other failures, -2.
 @deftypefun int _marpa_g_irl_is_virtual_rhs (Marpa_Grammar @var{g}, @
     Marpa_IRL_ID @var{irl_id})
 @end deftypefun
-@deftypefun @code{unsigned int} _marpa_g_virtual_start (Marpa_Grammar @var{g}, @
+@deftypefun @code{int} _marpa_g_virtual_start (Marpa_Grammar @var{g}, @
     Marpa_IRL_ID @var{irl_id})
 @end deftypefun
-@deftypefun @code{unsigned int} _marpa_g_virtual_end (Marpa_Grammar @var{g}, @
+@deftypefun @code{int} _marpa_g_virtual_end (Marpa_Grammar @var{g}, @
     Marpa_IRL_ID @var{irl_id})
 @end deftypefun
 @deftypefun Marpa_Rule_ID _marpa_g_source_xrl (Marpa_Grammar @var{g}, @

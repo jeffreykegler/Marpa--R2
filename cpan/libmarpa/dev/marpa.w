@@ -2032,8 +2032,8 @@ PRIVATE
   XRL xrl_start (GRAMMAR g, const XSYID lhs, const XSYID * rhs, int length)
 {
   XRL xrl;
-  const int sizeof_xrl = offsetof (struct s_xrl, t_symbols) +
-    (length + 1) * sizeof (xrl->t_symbols[0]);
+  const size_t sizeof_xrl = offsetof (struct s_xrl, t_symbols) +
+    ((size_t)length + 1) * sizeof (xrl->t_symbols[0]);
   xrl = marpa_obs_start (g->t_xrl_obs, sizeof_xrl, ALIGNOF(XRL));
   Length_of_XRL (xrl) = length;
   xrl->t_symbols[0] = lhs;
@@ -2073,7 +2073,7 @@ irl_start(GRAMMAR g, int length)
 {
   IRL irl;
   const int sizeof_irl = offsetof (struct s_irl, t_nsyid_array) +
-    (length + 1) * sizeof (irl->t_nsyid_array[0]);
+    ((size_t)length + 1) * sizeof (irl->t_nsyid_array[0]);
 
   /* Needs to be aligned as an IRL */
   irl = marpa__obs_alloc (g->t_obs, sizeof_irl, ALIGNOF(IRL_Object));
@@ -2882,7 +2882,7 @@ where the IRL starts.
 @<Int aligned IRL elements@> = int t_virtual_start;
 @ @<Initialize IRL elements@> = irl->t_virtual_start = -1;
 @ @<Function definitions@> =
-unsigned int _marpa_g_virtual_start(
+int _marpa_g_virtual_start(
     Marpa_Grammar g,
     Marpa_IRL_ID irl_id)
 {
@@ -2902,7 +2902,7 @@ where the IRL ends.
 @<Int aligned IRL elements@> = int t_virtual_end;
 @ @<Initialize IRL elements@> = irl->t_virtual_end = -1;
 @ @<Function definitions@> =
-unsigned int _marpa_g_virtual_end(
+int _marpa_g_virtual_end(
     Marpa_Grammar g,
     Marpa_IRL_ID irl_id)
 {
@@ -3216,10 +3216,10 @@ PRIVATE_NOT_INLINE int sym_rule_cmp(
   const MARPA_AVL_TREE lhs_avl_tree = _marpa_avl_create (sym_rule_cmp, NULL);
   struct sym_rule_pair *const p_lh_sym_rule_pair_base =
     marpa_obs_new (MARPA_AVL_OBSTACK (lhs_avl_tree), struct sym_rule_pair,
-                    xrl_count);
+                    (size_t)xrl_count);
   struct sym_rule_pair *p_lh_sym_rule_pairs = p_lh_sym_rule_pair_base;
 
-  lhs_v = bv_obs_create (obs_precompute, pre_census_xsy_count);
+  lhs_v = bv_obs_create (obs_precompute, (size_t)pre_census_xsy_count);
   empty_lhs_v = bv_obs_shadow (obs_precompute, lhs_v);
   for (rule_id = 0; rule_id < xrl_count; rule_id++)
     {
@@ -3272,12 +3272,12 @@ PRIVATE_NOT_INLINE int sym_rule_cmp(
     struct sym_rule_pair *pair;
     XSYID seen_symid = -1;
     RULEID *const rule_data_base =
-      marpa_obs_new (obs_precompute, RULEID, External_Size_of_G (g));
+      marpa_obs_new (obs_precompute, RULEID, (size_t)External_Size_of_G (g));
     RULEID *p_rule_data = rule_data_base;
     traverser = _marpa_avl_t_init (rhs_avl_tree);
     /* \comment One extra "symbol" as an end marker */
     xrl_list_x_rh_sym =
-      marpa_obs_new (obs_precompute, RULEID *, pre_census_xsy_count + 1);
+      marpa_obs_new (obs_precompute, RULEID *, (size_t)pre_census_xsy_count + 1);
     for (pair = _marpa_avl_t_first (traverser); pair;
          pair = (struct sym_rule_pair*)_marpa_avl_t_next (traverser))
       {
@@ -3296,12 +3296,12 @@ PRIVATE_NOT_INLINE int sym_rule_cmp(
     struct sym_rule_pair *pair;
     XSYID seen_symid = -1;
     RULEID *const rule_data_base =
-      marpa_obs_new (obs_precompute, RULEID, xrl_count);
+      marpa_obs_new (obs_precompute, RULEID, (size_t)xrl_count);
     RULEID *p_rule_data = rule_data_base;
     traverser = _marpa_avl_t_init (lhs_avl_tree);
     /* \comment One extra "symbol" as an end marker */
     xrl_list_x_lh_sym =
-      marpa_obs_new (obs_precompute, RULEID *, pre_census_xsy_count + 1);
+      marpa_obs_new (obs_precompute, RULEID *, (size_t)pre_census_xsy_count + 1);
     for (pair = _marpa_avl_t_first (traverser); pair;
         pair = (struct sym_rule_pair *) _marpa_avl_t_next (traverser))
       {
