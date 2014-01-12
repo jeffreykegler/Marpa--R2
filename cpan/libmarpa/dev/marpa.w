@@ -3450,8 +3450,8 @@ where many of the right hand sides repeat symbols.
       for (rhs_ix = 0; rhs_ix < rule_length; rhs_ix++)
 	{
 	  matrix_bit_set (reach_matrix,
-			  (unsigned int) lhs_id,
-			  (unsigned int) RHS_ID_of_RULE (rule, rhs_ix));
+			  lhs_id,
+			  RHS_ID_of_RULE (rule, rhs_ix));
 	}
       if (XRL_is_Sequence (rule))
 	{
@@ -3459,8 +3459,8 @@ where many of the right hand sides repeat symbols.
 	  if (separator_id >= 0)
 	    {
 	      matrix_bit_set (reach_matrix,
-			      (unsigned int) lhs_id,
-			      (unsigned int) separator_id);
+			      lhs_id,
+			      separator_id);
 	    }
 	}
     }
@@ -3475,7 +3475,7 @@ Therefore there is no code to free it.
 @<Census accessible symbols@> = 
 {
   Bit_Vector accessible_v =
-    matrix_row (reach_matrix, (unsigned int) start_xsy_id);
+    matrix_row (reach_matrix, start_xsy_id);
   unsigned int min, max, start;
   XSYID symid;
   for (start = 0; bv_scan (accessible_v, start, &min, &max); start = max + 2)
@@ -3504,7 +3504,7 @@ reach a terminal symbol.
            productive_id <= (XSYID) max; productive_id++)
         {
           bv_and (reaches_terminal_v, terminal_v,
-                  matrix_row (reach_matrix, (unsigned int) productive_id));
+                  matrix_row (reach_matrix, productive_id));
           if (bv_is_empty (reaches_terminal_v))
             {
               const XSY symbol = XSY_by_ID (productive_id);
@@ -3672,19 +3672,19 @@ Change so that this runs only if there are prediction events.
   int nullable_xsy_count = 0;   /* Use this to make sure we
                                    have enough CILAR buffer space */
   void* matrix_buffer = my_malloc(matrix_sizeof(
-     (unsigned int) pre_census_xsy_count,
-                       (unsigned int) pre_census_xsy_count)); /* This
+     pre_census_xsy_count,
+                       pre_census_xsy_count)); /* This
   matrix is large and very temporary, so it does not go on the obstack */
   Bit_Matrix nullification_matrix =
-    matrix_buffer_create (matrix_buffer, (unsigned int) pre_census_xsy_count,
-                       (unsigned int) pre_census_xsy_count);
+    matrix_buffer_create (matrix_buffer, pre_census_xsy_count,
+                       pre_census_xsy_count);
   for (xsyid = 0; xsyid < pre_census_xsy_count; xsyid++)
     {                           /* Every nullable symbol symbol nullifies itself */
       if (!XSYID_is_Nullable (xsyid))
         continue;
       nullable_xsy_count++;
-      matrix_bit_set (nullification_matrix, (unsigned int) xsyid,
-                      (unsigned int) xsyid);
+      matrix_bit_set (nullification_matrix, xsyid,
+                      xsyid);
     }
   for (xrlid = 0; xrlid < xrl_count; xrlid++)
     {
@@ -3696,8 +3696,8 @@ Change so that this runs only if there are prediction events.
           for (rh_ix = 0; rh_ix < Length_of_XRL (xrl); rh_ix++)
             {
               const XSYID rhs_id = RHS_ID_of_XRL (xrl, rh_ix);
-              matrix_bit_set (nullification_matrix, (unsigned int) lhs_id,
-                              (unsigned int) rhs_id);
+              matrix_bit_set (nullification_matrix, lhs_id,
+                              rhs_id);
             }
         }
     }
@@ -4517,8 +4517,8 @@ loop rule count, with the final tally.
 {
     int loop_rule_count = 0;
     Bit_Matrix unit_transition_matrix =
-        matrix_obs_create (obs_precompute, (unsigned int) xrl_count,
-            (unsigned int) xrl_count);
+        matrix_obs_create (obs_precompute, xrl_count,
+            xrl_count);
     @<Mark direct unit transitions in |unit_transition_matrix|@>@;
     transitive_closure(unit_transition_matrix);
     @<Mark loop rules@>@;
@@ -4598,8 +4598,8 @@ rule with |nonnulling_id| on the LHS.
     {
       XRL rule;
       if (!matrix_bit_test
-          (unit_transition_matrix, (unsigned int) rule_id,
-           (unsigned int) rule_id))
+          (unit_transition_matrix, rule_id,
+           rule_id))
         continue;
       loop_rule_count++;
       rule = XRL_by_ID (rule_id);
@@ -5489,8 +5489,8 @@ one non-nulling symbol in each IRL. */
 If so, the rule is right recursive.
 (There is at least one non-nulling symbol in each IRL.) */
               if (matrix_bit_test (nsy_by_right_nsy_matrix,
-                                   (unsigned int) rh_nsyid,
-                                   (unsigned int) LHSID_of_IRL (irl)))
+                                   rh_nsyid,
+                                   LHSID_of_IRL (irl)))
                 {
                   IRL_is_Right_Recursive (irl) = 1;
                 }
@@ -5830,7 +5830,7 @@ _marpa_avl_destroy(duplicates);
     cil_empty (&g->t_cilar);
   p_initial_state->t_empty_transition = create_predicted_AHFA_state (g,
                                matrix_row (prediction_matrix,
-                                           (unsigned int) postdot_nsyid),
+                                           postdot_nsyid),
                                irl_by_sort_key, &states, duplicates,
                                item_list_working_buffer);
 }
@@ -5903,7 +5903,7 @@ a start rule completion, and it is a
     p_new_state->t_empty_transition =
     create_predicted_AHFA_state (g,
                                  matrix_row (prediction_matrix,
-                                             (unsigned int) postdot_nsyid),
+                                             postdot_nsyid),
                                  irl_by_sort_key, &states, duplicates,
                                  item_list_working_buffer);
       }
@@ -6326,7 +6326,7 @@ which can be used to index the rules in a boolean vector.
       unsigned int min, max, start;
       for (start = 0;
            bv_scan (matrix_row
-                    (prediction_nsy_by_nsy_matrix, (unsigned int) from_nsyid),
+                    (prediction_nsy_by_nsy_matrix, from_nsyid),
                     start, &min, &max); start = max + 2)
         {
           NSYID to_nsyid;
@@ -6814,8 +6814,8 @@ AHFAID _marpa_g_AHFA_state_empty_transition(Marpa_Grammar g,
             continue;           /* This AHFA is not a Leo completion,
                                    so we are done. */
           if (matrix_bit_test (nsy_by_right_nsy_matrix,
-                               (unsigned int) outer_nsyid,
-                               (unsigned int) inner_nsyid))
+                               outer_nsyid,
+                               inner_nsyid))
             {
               /* |inner_ahfa == outer_ahfa|
               is not treated as special case
@@ -7133,7 +7133,7 @@ this boolean vector is initialized to |NULL| so that the destructor
 can tell if there is a boolean vector to be freed.
 @<Widely aligned recognizer elements@> = Bit_Vector t_bv_nsyid_is_expected;
 @ @<Initialize recognizer elements@> = 
-    r->t_bv_nsyid_is_expected = bv_obs_create( r->t_obs, (unsigned int)nsy_count );
+    r->t_bv_nsyid_is_expected = bv_obs_create( r->t_obs, (size_t)nsy_count );
 @ Returns |-2| if there was a failure.
 The buffer is expected to be large enough to hold
 the result.
@@ -10239,7 +10239,7 @@ At this point there are no Leo items.
           Next_PIM_of_PIM(new_pim) = old_pim;
           if (!old_pim) current_earley_set->t_postdot_sym_count++;
           r->t_pim_workarea[nsyid] = new_pim;
-          bv_bit_set(r->t_bv_pim_symbols, (unsigned int)nsyid);
+          bv_bit_set(r->t_bv_pim_symbols, nsyid);
         }
     }
 }
@@ -10304,7 +10304,7 @@ once it is populated.
     YS_of_LIM(new_lim) = current_earley_set;
     Next_PIM_of_LIM(new_lim) = this_pim;
     r->t_pim_workarea[nsyid] = new_lim;
-    bv_bit_set(r->t_bv_lim_symbols, (unsigned int)nsyid);
+    bv_bit_set(r->t_bv_lim_symbols, nsyid);
 }
 
 @ This code fully populates the data in the LIMs.
@@ -10488,7 +10488,7 @@ problems.
   lim_chain_ix = 0;
   r->t_lim_chain[lim_chain_ix++] = LIM_of_PIM (lim_to_process);
   bv_bit_clear (bv_ok_for_chain,
-                (unsigned int) postdot_nsyid_of_lim_to_process);
+                postdot_nsyid_of_lim_to_process);
   /* Make sure this LIM
      is not added to a LIM chain again for this Earley set */
   while (1)
@@ -10519,7 +10519,7 @@ problems.
       /* |lim_to_process| is not populated, as shown above */
 
       bv_bit_clear (bv_ok_for_chain,
-                    (unsigned int) postdot_nsyid_of_lim_to_process);
+                    postdot_nsyid_of_lim_to_process);
       /* Make sure this LIM
          is not added to a LIM chain again for this Earley set */
         /* \comment |predecesssor_lim = NULL|,
@@ -13565,7 +13565,7 @@ Marpa_Tree marpa_t_new(Marpa_Order o)
       const int and_count = AND_Count_of_B (b);
       const int or_count = OR_Count_of_B (b);
       T_is_Nulling (t) = 0;
-      t->t_or_node_in_use = bv_create ((unsigned int) or_count);
+      t->t_or_node_in_use = bv_create (or_count);
       FSTACK_INIT (t->t_nook_stack, NOOK_Object, and_count);
       FSTACK_INIT (t->t_nook_worklist, int, and_count);
     }
@@ -13750,7 +13750,7 @@ PRIVATE int tree_or_node_try(TREE tree, ORID or_node_id)
 @<Function definitions@> =
 PRIVATE void tree_or_node_release(TREE tree, ORID or_node_id)
 {
-    bv_bit_clear(tree->t_or_node_in_use, (unsigned int)or_node_id);
+    bv_bit_clear(tree->t_or_node_in_use, or_node_id);
 }
 
 @*0 Iterating the tree.
@@ -14844,16 +14844,16 @@ static const unsigned int bv_msb = lbv_msb;
 
 @ Given a number of bits, compute the size.
 @<Function definitions@> =
-PRIVATE unsigned int bv_bits_to_size(unsigned int bits)
+PRIVATE unsigned int bv_bits_to_size(int bits)
 {
-    return (bits+bv_modmask)/bv_wordbits;
+    return ((LBW)bits+bv_modmask)/bv_wordbits;
 }
 @ Given a number of bits, compute the unused-bit mask.
 @<Function definitions@> =
-PRIVATE unsigned int bv_bits_to_unused_mask(unsigned int bits)
+PRIVATE unsigned int bv_bits_to_unused_mask(int bits)
 {
-    unsigned int mask = bits & bv_modmask;
-    if (mask) mask = (unsigned int) ~(~0uL << mask); else mask = (unsigned int) ~0uL;
+    LBW mask = (LBW)bits & bv_modmask;
+    if (mask) mask = (LBW) ~(~0uL << mask); else mask = (LBW) ~0uL;
     return(mask);
 }
 
@@ -14864,11 +14864,11 @@ the pointer returned is to the data.
 This is offset from the |malloc|'d space,
 by |bv_hiddenwords|.
 @<Function definitions@> =
-PRIVATE Bit_Vector bv_create(unsigned int bits)
+PRIVATE Bit_Vector bv_create(int bits)
 {
-    unsigned int size = bv_bits_to_size(bits);
-    unsigned int bytes = (size + bv_hiddenwords) * sizeof(Bit_Vector_Word);
-    unsigned int* addr = (Bit_Vector) my_malloc0((size_t) bytes);
+    LBW size = bv_bits_to_size(bits);
+    LBW bytes = (size + bv_hiddenwords) * sizeof(Bit_Vector_Word);
+    LBW* addr = (Bit_Vector) my_malloc0((size_t) bytes);
     *addr++ = bits;
     *addr++ = size;
     *addr++ = bv_bits_to_unused_mask(bits);
