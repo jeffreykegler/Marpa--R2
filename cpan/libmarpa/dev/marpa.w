@@ -5608,6 +5608,16 @@ PRIVATE_NOT_INLINE int AHFA_state_cmp(
    @<Construct prediction matrix@>@;
    @<Construct right derivation matrix@>@;
    @<Construct initial AHFA states@>@;
+
+    {
+      AIMID aim_id;
+      const int aim_count = AIM_Count_of_G (g);
+      for (aim_id = 0; aim_id < aim_count; aim_id++)
+        {
+          // Populate singletons here
+        }
+    }
+
    while ((p_working_state = DQUEUE_NEXT(states, AHFA_Object))) {
        @<Process an AHFA state from the working stack@>@;
    }
