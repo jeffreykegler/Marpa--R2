@@ -89,6 +89,7 @@ $marpa_cv_prog_gcc_wdas \
 -Wwrite-strings \
 -Wshadow \
 -Wmissing-declarations \
+-Wconversion \
 -ansi -pedantic"
 
 WARNING_CPPFLAGS=" \

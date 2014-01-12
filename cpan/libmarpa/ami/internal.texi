@@ -108,7 +108,7 @@ should treat these methods as ``undocumented''.
 @deftypefun static inline void * marpa_dstack_resize ( @
   struct marpa_dstack_s *@var{this}, @
   size_t @var{type_bytes}, @
-   int @var{new_size})
+  size_t @var{new_size})
 @end deftypefun
 
 @node GNU Free Documentation License,  , Internal Interface, Top
