@@ -250,11 +250,19 @@ sub process_xs {
     if ( $self->config('ccname') eq 'gcc' ) {
         ## -W instead of -Wextra is case the GCC is pre 3.0.0
         ## -Winline omitted because too noisy
-        push @new_ccflags, qw( -Wall -W -ansi
+        push @new_ccflags, qw( -Wall -W -ansi -pedantic
             -Wpointer-arith -Wstrict-prototypes -Wwrite-strings
             -Wmissing-declarations );
         push @new_ccflags, '-Wdeclaration-after-statement' if gcc_is_at_least('3.4.6');
     } ## end if ( $self->config('cc') eq 'gcc' )
+    elsif ( $self->config('ccname') eq 'cl' ) {
+        ## maximum level which produces no warnings currently
+        push @new_ccflags, qw( -W3 );
+    }
+    # this suppresses unnecessary warnings from perl (and other) headers 
+    # when compiling XS code
+    push @new_ccflags, qw( -DPERL_GCC_PEDANTIC );
+    
     if ( defined $self->args('XS-debug') ) {
         say 'XS-debug flag is on';
         push @new_ccflags, qw( -ansi -pedantic -Wundef -Wendif-labels -Wall );
