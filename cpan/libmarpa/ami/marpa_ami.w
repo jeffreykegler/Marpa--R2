@@ -232,9 +232,9 @@ my_realloc(void *p, size_t size)
 }
 
 @
-@d marpa_new(type, count) ((type *)my_malloc((sizeof(type)*(count))))
+@d marpa_new(type, count) ((type *)my_malloc((sizeof(type)*((size_t)(count)))))
 @d marpa_renew(type, p, count) 
-    ((type *)my_realloc((p), (sizeof(type)*(count))))
+    ((type *)my_realloc((p), (sizeof(type)*((size_t)(count)))))
 
 @** Dynamic stacks.
 |libmarpa| uses stacks and worklists extensively.

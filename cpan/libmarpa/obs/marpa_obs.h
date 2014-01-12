@@ -113,7 +113,7 @@ void marpa__obs_free (struct marpa_obstack *__obstack);
  ((h)->chunk->header.size - ((h)->next_free - (char*)((h)->chunk)))
 
 #define marpa_obs_new(h, type, count) \
-    ((type *)marpa__obs_alloc((h), (sizeof(type)*(count)), ALIGNOF(type)))
+    ((type *)marpa__obs_alloc((h), (sizeof(type)*((size_t)(count))), ALIGNOF(type)))
 
 /* Start an object */
 static inline void*

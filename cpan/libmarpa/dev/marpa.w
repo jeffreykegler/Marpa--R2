@@ -3439,8 +3439,8 @@ where many of the right hand sides repeat symbols.
 {
   XRLID rule_id;
   reach_matrix =
-    matrix_obs_create (obs_precompute, (size_t)pre_census_xsy_count,
-		       (size_t)pre_census_xsy_count);
+    matrix_obs_create (obs_precompute, pre_census_xsy_count,
+		       pre_census_xsy_count);
   for (rule_id = 0; rule_id < xrl_count; rule_id++)
     {
       XRL rule = XRL_by_ID (rule_id);
@@ -3705,7 +3705,7 @@ Change so that this runs only if there are prediction events.
   for (xsyid = 0; xsyid < pre_census_xsy_count; xsyid++)
     {
       Bit_Vector bv_nullifications_by_to_xsy =
-        matrix_row (nullification_matrix, (unsigned long) xsyid);
+        matrix_row (nullification_matrix, xsyid);
       Nulled_XSYIDs_of_XSYID (xsyid) = 
         cil_bv_add(&g->t_cilar, bv_nullifications_by_to_xsy);
     }
@@ -4853,7 +4853,7 @@ A lot of code relies on these facts.
 @
 @d AIM_Count_of_G(g) ((g)->t_aim_count)
 @<Int aligned grammar elements@> =
-   unsigned int t_aim_count;
+   int t_aim_count;
 @ The space is allocated during precomputation.
 Because the grammar may be destroyed before precomputation,
 I test that |g->t_AHFA_items| is non-zero.
@@ -4952,7 +4952,7 @@ int _marpa_g_AHFA_item_sort_key(Marpa_Grammar g,
     AIMID ahfa_item_count = 0;
     AIM base_item;
     AIM current_item;
-    unsigned int symbol_instance_of_next_rule = 0;
+    int symbol_instance_of_next_rule = 0;
     for (irl_id = 0; irl_id < irl_count; irl_id++) {
       const IRL irl = IRL_by_ID(irl_id);
       @<Count the AHFA items in a rule@>@;
@@ -5651,8 +5651,8 @@ PRIVATE_NOT_INLINE int AHFA_state_cmp(
 
 @ @<Process an AHFA state from the working stack@> =
 {
-  unsigned int no_of_items = p_working_state->t_item_count;
-  unsigned int current_item_ix = 0;
+  int no_of_items = p_working_state->t_item_count;
+  int current_item_ix = 0;
   AIM *item_list;
   NSYID working_nsyid;
   item_list = p_working_state->t_items;
@@ -14774,7 +14774,7 @@ lbv_zero (Bit_Vector lbv, int bits)
 @*0 Create a zeroed LBV on an obstack.
 @<Function definitions@> =
 PRIVATE Bit_Vector
-lbv_obs_new0 (struct marpa_obstack *obs, size_t bits)
+lbv_obs_new0 (struct marpa_obstack *obs, int bits)
 {
   LBV lbv = lbv_obs_new(obs, bits);
   return lbv_zero(lbv, bits);
