@@ -5376,7 +5376,7 @@ PRIVATE int AHFA_state_id_is_valid(GRAMMAR g, AHFAID AHFA_state_id)
 @d Postdot_NSY_Count_of_AHFA(state) ((state)->t_postdot_nsy_count)
 @d Postdot_NSYIDAry_of_AHFA(state) ((state)->t_postdot_nsyidary)
 @<Widely aligned AHFA state elements@> = Marpa_Symbol_ID* t_postdot_nsyidary;
-@ @<Int aligned AHFA state elements@> = unsigned int t_postdot_nsy_count;
+@ @<Int aligned AHFA state elements@> = int t_postdot_nsy_count;
 
 @*0 AHFA state external accessors.
 @<Function definitions@> =
@@ -5707,10 +5707,10 @@ NEXT_AHFA_STATE:;
             {
               int completion_count =
                 Completion_Count_of_TRANS (working_transition);
-              int sizeof_transition =
+              size_t sizeof_transition =
                 offsetof (struct s_transition,
                           t_aex) +
-                completion_count * sizeof (transitions[0]->t_aex[0]);
+                (size_t)completion_count * sizeof (transitions[0]->t_aex[0]);
 
               /* Needs to be aligned as a TRANS */
               TRANS new_transition =
@@ -5773,7 +5773,7 @@ You can get the AIM from the AEX, but not vice versa.
       AIM *aims = AIMs_of_AHFA (from_ahfa);
       int aim_count = AIM_Count_of_AHFA (from_ahfa);
       AEX aex;
-      qsort (aims, aim_count, sizeof (AIM *), cmp_by_aimid);
+      qsort (aims, (size_t)aim_count, sizeof (AIM *), cmp_by_aimid);
       for (aex = 0; aex < aim_count; aex++)
         {
           AIM ahfa_item = aims[aex];
@@ -6288,8 +6288,8 @@ cmp_by_irl_sort_key(const void* ap, const void* bp)
 {
   const IRL irl_a = *(IRL *) ap;
   const IRL irl_b = *(IRL *) bp;
-  unsigned int sort_key_a;
-  unsigned int sort_key_b;
+  int sort_key_a;
+  int sort_key_b;
   SET_1ST_PASS_SORT_KEY_FOR_IRL (sort_key_a, irl_a);
   SET_1ST_PASS_SORT_KEY_FOR_IRL (sort_key_b, irl_b);
   if (sort_key_a != sort_key_b)
@@ -12511,7 +12511,7 @@ int marpa_r_progress_report_start(
         @<Do the progress report for |earley_item|@>@;
       }
     r->t_progress_report_traverser = _marpa_avl_t_init(report_tree);
-    return marpa_avl_count (report_tree);
+    return (int)marpa_avl_count (report_tree);
   }
 }
 @ Start the progress report again.
@@ -12844,7 +12844,7 @@ struct s_bocage_setup_per_ys* per_ys_data = NULL;
           struct s_bocage_setup_per_ys *per_ys = per_ys_data + ix;
           OR ** const per_yim_yixes = per_ys->t_aexes_by_item =
             marpa_obs_new (bocage_setup_obs, OR *, item_count);
-          unsigned int item_ordinal;
+          int item_ordinal;
           per_ys->t_or_psl = NULL;
           per_ys->t_and_psl = NULL;
           for (item_ordinal = 0; item_ordinal < item_count; item_ordinal++)
@@ -13286,7 +13286,7 @@ int marpa_o_rank( Marpa_Order o)
       const ANDID last_and_node_id =
         (first_and_node_id + and_count_of_or) - 1;
       ANDID *const order_base =
-        marpa_obs_start (obs, (int) sizeof (ANDID) * (and_count_of_or + 1),
+        marpa_obs_start (obs, sizeof (ANDID) * (and_count_of_or + 1),
                        ALIGNOF (ANDID));
       ANDID *order = order_base + 1;
       ANDID and_node_id;
