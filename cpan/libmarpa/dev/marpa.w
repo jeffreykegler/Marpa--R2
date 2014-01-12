@@ -3007,13 +3007,9 @@ the rule, offset by the position of that preceding AHFA item.
 PRIVATE int
 symbol_instance_of_ahfa_item_get (AIM aim)
 {
-  int position = Position_of_AIM (aim);
-  const int null_count = Null_Count_of_AIM(aim);
-  /* \comment If this AHFA item is not a prediction */
-  if (position < 0 || position - null_count > 0) {
+  if (!AIM_is_Prediction(aim)) {
       const IRL irl = IRL_of_AIM (aim);
-      position = Position_of_AIM(aim-1);
-      return SYMI_of_IRL(irl) + position;
+      return SYMI_of_IRL(irl) + Position_of_AIM(aim-1);
   }
   return -1;
 }
@@ -4877,11 +4873,6 @@ return item_id < (AIMID)AIM_Count_of_G(g) && item_id >= 0;
 @<Widely aligned AHFA item elements@> =
     IRL t_irl;
 
-@*0 Position.
-Position in the RHS, -1 for a completion.
-@d Position_of_AIM(aim) ((aim)->t_position)
-@<Int aligned AHFA item elements@> =
-int t_position;
 
 @*0 Postdot symbol.
 |-1| if the item is a completion.
@@ -4898,6 +4889,15 @@ this AHFA items's dot position.
 @d Null_Count_of_AIM(aim) ((aim)->t_leading_nulls)
 @<Int aligned AHFA item elements@> =
 int t_leading_nulls;
+
+@*0 Position.
+Position in the RHS, -1 for a completion.
+@d Position_of_AIM(aim) ((aim)->t_position)
+@d AIM_is_Prediction(aim) (
+  Position_of_AIM(aim) >= 0
+  && Position_of_AIM(aim) <= Null_Count_of_AIM(aim) )
+@<Int aligned AHFA item elements@> =
+int t_position;
 
 @*0 AHFA item external accessors.
 @<Function definitions@> =
