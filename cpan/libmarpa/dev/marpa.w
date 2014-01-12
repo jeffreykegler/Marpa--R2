@@ -7971,6 +7971,7 @@ I could widen it beyond the current count, but
 a limit of over 64,000 Earley items in a single Earley set
 should not be restrictive in practice.
 @d YIM_ORDINAL_WIDTH 16
+@d YIM_ORDINAL_CLAMP(x) (((1<<(YIM_ORDINAL_WIDTH))-1) & (x))
 @d YIM_FATAL_THRESHOLD ((1<<(YIM_ORDINAL_WIDTH))-2)
 @<Earley item structure@> =
 struct s_earley_item_key {
@@ -8009,7 +8010,7 @@ PRIVATE YIM earley_item_create(const RECCE r,
   new_item->t_key = key;
   new_item->t_source_type = NO_SOURCE;
   new_item->t_rejected = 0;
-  Ord_of_YIM(new_item) = count - 1;
+  Ord_of_YIM(new_item) = YIM_ORDINAL_CLAMP(count - 1);
   end_of_work_stack = WORK_YIM_PUSH(r);
   *end_of_work_stack = new_item;
   return new_item;
