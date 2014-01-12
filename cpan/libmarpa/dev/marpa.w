@@ -14985,31 +14985,35 @@ than an interval clear, at the expense of often
 clearing more bits than were requested.
 In some situations clearing the extra bits is OK.
 @ @<Function definitions@> =
-PRIVATE void bv_over_clear(Bit_Vector bv, LBW bit)
+PRIVATE void bv_over_clear(Bit_Vector bv, int raw_bit)
 {
-    LBW length = bit/bv_wordbits+1;
-    while (length--) *bv++ = 0u;
+  const LBW bit = (LBW)raw_bit;
+  LBW length = bit/bv_wordbits+1;
+  while (length--) *bv++ = 0u;
 }
 
 @*0 Set a boolean vector bit.
 @ @<Function definitions@> =
-PRIVATE void bv_bit_set(Bit_Vector vector, LBW bit)
+PRIVATE void bv_bit_set(Bit_Vector vector, int raw_bit)
 {
-    *(vector+(bit/bv_wordbits)) |= (bv_lsb << (bit%bv_wordbits));
+  const LBW bit = (LBW)raw_bit;
+  *(vector+(bit/bv_wordbits)) |= (bv_lsb << (bit%bv_wordbits));
 }
 
 @*0 Clear a boolean vector bit.
 @<Function definitions@> =
-PRIVATE void bv_bit_clear(Bit_Vector vector, LBW bit)
+PRIVATE void bv_bit_clear(Bit_Vector vector, int raw_bit)
 {
-    *(vector+(bit/bv_wordbits)) &= ~ (bv_lsb << (bit%bv_wordbits));
+  const LBW bit = (LBW)raw_bit;
+  *(vector+(bit/bv_wordbits)) &= ~ (bv_lsb << (bit%bv_wordbits));
 }
 
 @*0 Test a boolean vector bit.
 @<Function definitions@> =
-PRIVATE int bv_bit_test(Bit_Vector vector, LBW bit)
+PRIVATE int bv_bit_test(Bit_Vector vector, int raw_bit)
 {
-    return (*(vector+(bit/bv_wordbits)) & (bv_lsb << (bit%bv_wordbits))) != 0u;
+  const LBW bit = (LBW)raw_bit;
+  return (*(vector+(bit/bv_wordbits)) & (bv_lsb << (bit%bv_wordbits))) != 0u;
 }
 
 @*0 Test and set a boolean vector bit.
@@ -15019,8 +15023,9 @@ so that the return value is 1 if the call had no effect,
 zero otherwise.
 @<Function definitions@> =
 PRIVATE int
-bv_bit_test_then_set (Bit_Vector vector, LBW bit)
+bv_bit_test_then_set (Bit_Vector vector, int raw_bit)
 {
+  const LBW bit = (LBW)raw_bit;
   Bit_Vector addr = vector + (bit / bv_wordbits);
   LBW mask = bv_lsb << (bit % bv_wordbits);
   if ((*addr & mask) != 0u)
@@ -15235,7 +15240,7 @@ rhs_closure (GRAMMAR g, Bit_Vector bv, XRLID ** xrl_list_x_rh_sym)
 
           const int is_sequence = XRL_is_Sequence (rule);
 
-          if (bv_bit_test (bv, (LBW) lhs_id))
+          if (bv_bit_test (bv, lhs_id))
             goto NEXT_RULE;
           rule_length = Length_of_XRL (rule);
 
@@ -15247,7 +15252,7 @@ rhs_closure (GRAMMAR g, Bit_Vector bv, XRLID ** xrl_list_x_rh_sym)
           for (rh_ix = 0; rh_ix < rule_length; rh_ix++)
             {
               if (!bv_bit_test
-                  (bv, (LBW) RHS_ID_of_XRL (rule, rh_ix)))
+                  (bv, RHS_ID_of_XRL (rule, rh_ix)))
                 goto NEXT_RULE;
             }
 
@@ -15260,7 +15265,7 @@ rhs_closure (GRAMMAR g, Bit_Vector bv, XRLID ** xrl_list_x_rh_sym)
               XSYID separator_id = Separator_of_XRL (rule);
               if (separator_id >= 0)
                 {
-                  if (!bv_bit_test (bv, (LBW) separator_id))
+                  if (!bv_bit_test (bv, separator_id))
                     goto NEXT_RULE;
                 }
             }
