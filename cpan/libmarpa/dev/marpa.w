@@ -14745,7 +14745,7 @@ typedef LBW* LBV;
 @<Function definitions@> =
 PRIVATE int lbv_bits_to_size(int bits)
 {
-    return (bits+(lbv_wordbits-1))/lbv_wordbits;
+    return ((LBW)bits+(lbv_wordbits-1))/lbv_wordbits;
 }
 
 @*0 Create an unitialized LBV on an obstack.
@@ -14869,7 +14869,7 @@ PRIVATE Bit_Vector bv_create(int bits)
     LBW size = bv_bits_to_size(bits);
     LBW bytes = (size + bv_hiddenwords) * sizeof(Bit_Vector_Word);
     LBW* addr = (Bit_Vector) my_malloc0((size_t) bytes);
-    *addr++ = bits;
+    *addr++ = (LBW)bits;
     *addr++ = size;
     *addr++ = bv_bits_to_unused_mask(bits);
     return addr;
@@ -14883,12 +14883,12 @@ This is offset from the |malloc|'d space,
 by |bv_hiddenwords|.
 @<Function definitions@> =
 PRIVATE Bit_Vector
-bv_obs_create (struct marpa_obstack *obs, LBW bits)
+bv_obs_create (struct marpa_obstack *obs, int bits)
 {
   LBW size = bv_bits_to_size (bits);
   LBW bytes = (size + bv_hiddenwords) * sizeof (Bit_Vector_Word);
   LBW *addr = (Bit_Vector) marpa__obs_alloc (obs, (size_t) bytes, ALIGNOF(LBW));
-  *addr++ = bits;
+  *addr++ = (LBW)bits;
   *addr++ = size;
   *addr++ = bv_bits_to_unused_mask (bits);
   if (size > 0) {
@@ -14905,11 +14905,11 @@ all bits unset.
 @<Function definitions@> =
 PRIVATE Bit_Vector bv_shadow(Bit_Vector bv)
 {
-    return bv_create(BV_BITS(bv));
+    return bv_create((int)BV_BITS(bv));
 }
 PRIVATE Bit_Vector bv_obs_shadow(struct marpa_obstack * obs, Bit_Vector bv)
 {
-    return bv_obs_create(obs, BV_BITS(bv));
+    return bv_obs_create(obs, (int)BV_BITS(bv));
 }
 
 @*0 Clone a boolean vector.
@@ -15170,11 +15170,11 @@ int bv_scan(Bit_Vector bv, int raw_start, int* raw_min, int* raw_max)
 
 @*0 Count the bits in a boolean vector.
 @<Function definitions@>=
-PRIVATE LBW
+PRIVATE int
 bv_count (Bit_Vector v)
 {
-  LBW start, min, max;
-  LBW count = 0;
+  int start, min, max;
+  int count = 0;
   for (start = 0; bv_scan (v, start, &min, &max); start = max + 2)
     {
       count += max - min + 1;
@@ -15221,7 +15221,7 @@ The orignal vector is destroyed.
 PRIVATE void
 rhs_closure (GRAMMAR g, Bit_Vector bv, XRLID ** xrl_list_x_rh_sym)
 {
-  LBW min, max, start = 0;
+  int min, max, start = 0;
   Marpa_Symbol_ID *end_of_stack = NULL;
   FSTACK_DECLARE (stack, XSYID) @;
   FSTACK_INIT (stack, XSYID, XSY_Count_of_G (g));
@@ -15680,12 +15680,12 @@ so its current contents will be destroyed.
 @<Function definitions@> =
 PRIVATE CIL cil_bv_add(CILAR cilar, Bit_Vector bv)
 {
-  LBW min, max, start = 0;
+  int min, max, start = 0;
   cil_buffer_clear (cilar);
   for (start = 0; bv_scan (bv, start, &min, &max); start = max + 2)
     {
       int new_item;
-      for (new_item = (int) min; new_item <= (int) max; new_item++)
+      for (new_item = min; new_item <= max; new_item++)
         {
           cil_buffer_push (cilar, new_item);
         }
