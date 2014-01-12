@@ -3219,7 +3219,7 @@ PRIVATE_NOT_INLINE int sym_rule_cmp(
                     (size_t)xrl_count);
   struct sym_rule_pair *p_lh_sym_rule_pairs = p_lh_sym_rule_pair_base;
 
-  lhs_v = bv_obs_create (obs_precompute, (size_t)pre_census_xsy_count);
+  lhs_v = bv_obs_create (obs_precompute, pre_census_xsy_count);
   empty_lhs_v = bv_obs_shadow (obs_precompute, lhs_v);
   for (rule_id = 0; rule_id < xrl_count; rule_id++)
     {
@@ -3323,7 +3323,7 @@ and a flag which indicates if there are any.
 @<Census terminals@> =
 {
   XSYID symid;
-  terminal_v = bv_obs_create (obs_precompute, (size_t)pre_census_xsy_count);
+  terminal_v = bv_obs_create (obs_precompute, pre_census_xsy_count);
   bv_not (terminal_v, lhs_v);
   for (symid = 0; symid < pre_census_xsy_count; symid++)
     {
@@ -4949,7 +4949,7 @@ int _marpa_g_AHFA_item_sort_key(Marpa_Grammar g,
 @ @<Create AHFA items@> =
 {
     IRLID irl_id;
-    AIMID ahfa_item_count = 0;
+    int ahfa_item_count = 0;
     AIM base_item;
     AIM current_item;
     int symbol_instance_of_next_rule = 0;
@@ -5099,7 +5099,7 @@ AHFA item as its new, final ID.
     {
       sort_array[item_id] = items + item_id;
     }
-  qsort (sort_array, (int) ahfa_item_count, sizeof (AIM), cmp_by_postdot_and_aimid);
+  qsort (sort_array, ahfa_item_count, sizeof (AIM), cmp_by_postdot_and_aimid);
   for (item_id = 0; item_id < (Marpa_AHFA_Item_ID) ahfa_item_count; item_id++)
     {
       Sort_Key_of_AIM (sort_array[item_id]) = item_id;
@@ -5621,7 +5621,7 @@ PRIVATE_NOT_INLINE int AHFA_state_cmp(
 
 @ @<Declare locals for creating AHFA states@> =
    AHFA p_working_state;
-   const unsigned int initial_no_of_states = 2*AIM_Count_of_G(g);
+   const int initial_no_of_states = 2*AIM_Count_of_G(g);
    AIM AHFA_item_0_p = g->t_AHFA_items;
    Bit_Matrix prediction_matrix;
    IRL* irl_by_sort_key = marpa_new(IRL, irl_count);
@@ -6206,7 +6206,7 @@ states.
 
 @ @<Construct prediction matrix@> = {
     Bit_Matrix prediction_nsy_by_nsy_matrix =
-        matrix_obs_create (obs_precompute, (size_t)nsy_count, (size_t)nsy_count);
+        matrix_obs_create (obs_precompute, nsy_count, nsy_count);
     @<Initialize the |prediction_nsy_by_nsy_matrix|@>@/
     transitive_closure(prediction_nsy_by_nsy_matrix);
     @<Create the prediction matrix from the symbol-by-symbol matrix@>@/
@@ -6273,7 +6273,7 @@ so that they can be used as the indices of a boolean vector.
     {
       irl_by_sort_key[irl_id] = IRL_by_ID (irl_id);
     }
-  qsort (irl_by_sort_key, (int) irl_count,
+  qsort (irl_by_sort_key, irl_count,
          sizeof (RULE), cmp_by_irl_sort_key);
 }
 
@@ -15328,17 +15328,17 @@ the ``hidden words".
 PRIVATE Bit_Matrix
 matrix_buffer_create (void *buffer, int rows, int columns)
 {
-    LBW row;
+    int row;
     const LBW bv_data_words = bv_bits_to_size(columns);
     const LBW bv_mask = bv_bits_to_unused_mask(columns);
 
     Bit_Matrix matrix_addr = buffer;
     matrix_addr->t_row_count = rows;
     for (row = 0; row < rows; row++) {
-        const LBW row_start = row*(bv_data_words+bv_hiddenwords);
-        Bit_Vector_Word* p_current_word = matrix_addr->t_row_data + row_start;
-        int data_word_counter = bv_data_words;
-        *p_current_word++ = columns;
+        const LBW row_start = (LBW)row*(bv_data_words+bv_hiddenwords);
+        LBW* p_current_word = matrix_addr->t_row_data + row_start;
+        LBW data_word_counter = bv_data_words;
+        *p_current_word++ = (LBW)columns;
         *p_current_word++ = bv_data_words;
         *p_current_word++ = bv_mask;
         while (data_word_counter--) *p_current_word++ = 0;
@@ -15353,7 +15353,7 @@ PRIVATE size_t matrix_sizeof(int rows, int columns)
   const LBW bv_data_words = bv_bits_to_size (columns);
   const LBW row_bytes =
     (bv_data_words + bv_hiddenwords) * sizeof (Bit_Vector_Word);
-  return offsetof (struct s_bit_matrix, t_row_data) +(rows) * row_bytes;
+  return offsetof (struct s_bit_matrix, t_row_data) +((size_t)rows) * row_bytes;
 }
 
 @*0 Create a boolean matrix on an obstack.
@@ -15396,7 +15396,7 @@ idea internally of how many rows it has.
 PRIVATE int matrix_columns(Bit_Matrix matrix)
 {
     Bit_Vector row0 = matrix->t_row_data + bv_hiddenwords;
-    return BV_BITS(row0);
+    return (int)BV_BITS(row0);
 }
 
 @*0 Find a row of a boolean matrix.
@@ -15413,7 +15413,7 @@ PRIVATE Bit_Vector matrix_row(Bit_Matrix matrix, int row)
 {
     Bit_Vector row0 = matrix->t_row_data + bv_hiddenwords;
     LBW words_per_row = BV_SIZE(row0)+bv_hiddenwords;
-    return row0 + row*words_per_row;
+    return row0 + (LBW)row*words_per_row;
 }
 
 @*0 Set a boolean matrix bit.
@@ -15917,7 +15917,7 @@ when deallocating.
 struct s_per_earley_set_list;
 typedef struct s_per_earley_set_list *PSL;
 @ @d Sizeof_PSL(psar)
-    (sizeof(PSL_Object) + (psar->t_psl_length - 1) * sizeof(void *))
+    (sizeof(PSL_Object) + ((size_t)psar->t_psl_length - 1) * sizeof(void *))
 @d PSL_Datum(psl, i) ((psl)->t_data[(i)])
 @<Private structures@> =
 struct s_per_earley_set_list {

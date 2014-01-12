@@ -273,7 +273,7 @@ memory has been allocated and therefore no attempt
 to free memory should be made.
 @d MARPA_DSTACK_IS_INITIALIZED(this) ((this).t_base)
 @d MARPA_DSTACK_SAFE(this)
-  (((this).t_count = (int)((this).t_capacity = 0)), ((this).t_base = NULL))
+  (((this).t_count = (this).t_capacity = 0), ((this).t_base = NULL))
 
 @ A stack reinitialized by
 |MARPA_DSTACK_CLEAR| contains 0 elements,
@@ -284,7 +284,7 @@ a stable, high-water mark, which will make future
 resizings unnecessary.
 @d MARPA_DSTACK_CLEAR(this) ((this).t_count = 0)
 @d MARPA_DSTACK_PUSH(this, type) (
-      (_MARPA_UNLIKELY((this).t_count >= (int)(this).t_capacity)
+      (_MARPA_UNLIKELY((this).t_count >= (this).t_capacity)
       ? marpa_dstack_resize2(&(this), sizeof(type))
       : 0),
      ((type *)(this).t_base+(this).t_count++)
@@ -311,9 +311,9 @@ deallocate the data it now has ``stolen".
 struct marpa_dstack_s;
 typedef struct marpa_dstack_s* MARPA_DSTACK;
 @ @<Friend structures@> =
-struct marpa_dstack_s { int t_count; size_t t_capacity; void * t_base; };
+struct marpa_dstack_s { int t_count; int t_capacity; void * t_base; };
 @ @<Friend static inline functions@> =
-static inline void * marpa_dstack_resize2(struct marpa_dstack_s* this, size_t type_bytes)
+static inline void * marpa_dstack_resize2(struct marpa_dstack_s* this, int type_bytes)
 {
     return marpa_dstack_resize(this, type_bytes, this->t_capacity*2);
 }
@@ -323,14 +323,14 @@ static inline void * marpa_dstack_resize2(struct marpa_dstack_s* this, size_t ty
   (marpa_dstack_resize((this), sizeof(type), (new_size)))
 @ @<Friend static inline functions@> =
 static inline void *
-marpa_dstack_resize (struct marpa_dstack_s *this, size_t type_bytes,
-                     size_t new_size)
+marpa_dstack_resize (struct marpa_dstack_s *this, int type_bytes,
+                     int new_size)
 {
   if (new_size > this->t_capacity)
     {                           /* We do not shrink the stack
                                    in this method */
       this->t_capacity = new_size;
-      this->t_base = my_realloc (this->t_base, (size_t)new_size * type_bytes);
+      this->t_base = my_realloc (this->t_base, (size_t)new_size * (size_t)type_bytes);
     }
   return this->t_base;
 }
