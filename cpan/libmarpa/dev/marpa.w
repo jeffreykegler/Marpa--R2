@@ -3228,7 +3228,7 @@ PRIVATE_NOT_INLINE int sym_rule_cmp(
       const int rule_length = Length_of_XRL (rule);
       const int is_sequence = XRL_is_Sequence (rule);
 
-      bv_bit_set (lhs_v, (unsigned int) lhs_id);
+      bv_bit_set (lhs_v, lhs_id);
 
       /* \comment Insert the LH Sym / XRL pair into the LH AVL tree */
       p_lh_sym_rule_pairs->t_symid = lhs_id;
@@ -3241,7 +3241,7 @@ PRIVATE_NOT_INLINE int sym_rule_cmp(
           const XSYID separator_id = Separator_of_XRL(rule);
           if (Minimum_of_XRL (rule) <= 0)
             {
-              bv_bit_set (empty_lhs_v, (unsigned int) lhs_id);
+              bv_bit_set (empty_lhs_v, lhs_id);
             }
             if (separator_id >= 0) {
               p_rh_sym_rule_pairs->t_symid = separator_id;
@@ -3253,7 +3253,7 @@ PRIVATE_NOT_INLINE int sym_rule_cmp(
 
       if (rule_length <= 0)
         {
-          bv_bit_set (empty_lhs_v, (unsigned int) lhs_id);
+          bv_bit_set (empty_lhs_v, lhs_id);
         }
       else
         {
@@ -3334,10 +3334,10 @@ and a flag which indicates if there are any.
         {
           if (XSY_is_Terminal (symbol))
             {
-              bv_bit_set (terminal_v, (unsigned int) symid);
+              bv_bit_set (terminal_v, symid);
               continue;
             }
-          bv_bit_clear (terminal_v, (unsigned int) symid);
+          bv_bit_clear (terminal_v, symid);
           continue;
         }
       /* \comment If not marked by the user, take the default
@@ -4586,7 +4586,7 @@ rule with |nonnulling_id| on the LHS.
       /* Direct loops ($A \RA A$) only need the $(rule_id, rule_id)$ bit set,
          but it is not clear that it is a win to special case them. */
       const RULEID to_rule_id = *p_xrl;
-      matrix_bit_set (unit_transition_matrix, (unsigned int) rule_id,
+      matrix_bit_set (unit_transition_matrix, rule_id,
                       to_rule_id);
     }
 }
@@ -5465,8 +5465,8 @@ one non-nulling symbol in each IRL. */
           if (!NSY_is_Nulling (NSY_by_ID (rh_nsyid)))
             {
               matrix_bit_set (nsy_by_right_nsy_matrix,
-                              (unsigned int) LHSID_of_IRL (irl),
-                              (unsigned int) rh_nsyid);
+                              LHSID_of_IRL (irl),
+                              rh_nsyid);
               break;
             }
         }
@@ -5518,8 +5518,8 @@ one non-nulling symbol in each IRL. */
           if (!NSY_is_Nulling (NSY_by_ID (rh_nsyid)))
             {
               matrix_bit_set (nsy_by_right_nsy_matrix,
-                              (unsigned int) LHSID_of_IRL (irl),
-                              (unsigned int) rh_nsyid);
+                              LHSID_of_IRL (irl),
+                              rh_nsyid);
               break;
             }
         }
@@ -6095,11 +6095,11 @@ for discovered state with 2+ items@> =
           completion_count_inc (obs_precompute, p_new_state,
                                 complete_symbol_nsyid);
           bv_bit_set (per_ahfa_complete_v,
-                      (unsigned int) complete_symbol_nsyid);
+                      complete_symbol_nsyid);
         }
       else
         {
-          bv_bit_set (per_ahfa_postdot_v, (unsigned int) postdot_nsyid);
+          bv_bit_set (per_ahfa_postdot_v, postdot_nsyid);
         }
     }
   if ((no_of_postdot_nsys = Postdot_NSY_Count_of_AHFA (p_new_state) =
@@ -6221,8 +6221,8 @@ states.
       /* If a symbol appears on a LHS, it predicts itself. */
       NSY nsy = NSY_by_ID (nsyid);
       if (!NSY_is_LHS(nsy)) continue;
-      matrix_bit_set (prediction_nsy_by_nsy_matrix, (unsigned int) nsyid,
-                (unsigned int) nsyid);
+      matrix_bit_set (prediction_nsy_by_nsy_matrix, nsyid,
+                nsyid);
     }
   for (irl_id = 0; irl_id < irl_count; irl_id++)
     {
@@ -6237,8 +6237,8 @@ states.
       /* Set a bit in the matrix */
       from_nsyid = LHS_NSYID_of_AIM (item);
       matrix_bit_set (prediction_nsy_by_nsy_matrix,
-        (unsigned int) from_nsyid,
-        (unsigned int) to_nsyid);
+        from_nsyid,
+        to_nsyid);
     }
 }
 
@@ -6342,7 +6342,7 @@ which can be used to index the rules in a boolean vector.
                   unsigned int sort_ordinal =
                     sort_key_by_irl_id[irl_with_this_lhs];
                   matrix_bit_set (prediction_matrix,
-                                  (unsigned int) from_nsyid, sort_ordinal);
+                                  from_nsyid, sort_ordinal);
                   // Set the $(symbol, rule sort key)$ bit in the matrix
                 }
             }
@@ -6426,7 +6426,7 @@ create_predicted_AHFA_state(
         AIM item = item_list_working_buffer[item_ix];
         NSYID postdot_nsyid = Postdot_NSYID_of_AIM (item);
         if (postdot_nsyid >= 0)
-          bv_bit_set (postdot_v, (unsigned int) postdot_nsyid);
+          bv_bit_set (postdot_v, postdot_nsyid);
       }
     if ((no_of_postdot_nsys = Postdot_NSY_Count_of_AHFA(p_new_state) =
      bv_count (postdot_v)))
@@ -6665,7 +6665,7 @@ AHFAID _marpa_g_AHFA_state_empty_transition(Marpa_Grammar g,
           if (nsy)
             {
               bv_bit_set (g->t_bv_nsyid_is_terminal,
-                          (unsigned int) ID_of_NSY (nsy));
+                           ID_of_NSY (nsy));
             }
         }
     }
@@ -15400,7 +15400,7 @@ If it is changed, the vector should be cloned.
 There is a bit of arithmetic, to deal with the
 hidden words offset.
 @<Function definitions@> =
-PRIVATE Bit_Vector matrix_row(Bit_Matrix matrix, LBW row)
+PRIVATE Bit_Vector matrix_row(Bit_Matrix matrix, int row)
 {
     Bit_Vector row0 = matrix->t_row_data + bv_hiddenwords;
     LBW words_per_row = BV_SIZE(row0)+bv_hiddenwords;
@@ -15409,7 +15409,7 @@ PRIVATE Bit_Vector matrix_row(Bit_Matrix matrix, LBW row)
 
 @*0 Set a boolean matrix bit.
 @ @<Function definitions@> =
-PRIVATE void matrix_bit_set(Bit_Matrix matrix, LBW row, LBW column)
+PRIVATE void matrix_bit_set(Bit_Matrix matrix, int row, int column)
 {
     Bit_Vector vector = matrix_row(matrix, row);
     bv_bit_set(vector, column);
@@ -15417,7 +15417,7 @@ PRIVATE void matrix_bit_set(Bit_Matrix matrix, LBW row, LBW column)
 
 @*0 Clear a boolean matrix bit.
 @ @<Function definitions@> =
-PRIVATE void matrix_bit_clear(Bit_Matrix matrix, LBW row, LBW column)
+PRIVATE void matrix_bit_clear(Bit_Matrix matrix, int row, int column)
 {
     Bit_Vector vector = matrix_row(matrix, row);
     bv_bit_clear(vector, column);
@@ -15425,7 +15425,7 @@ PRIVATE void matrix_bit_clear(Bit_Matrix matrix, LBW row, LBW column)
 
 @*0 Test a boolean matrix bit.
 @ @<Function definitions@> =
-PRIVATE int matrix_bit_test(Bit_Matrix matrix, LBW row, LBW column)
+PRIVATE int matrix_bit_test(Bit_Matrix matrix, int row, int column)
 {
     Bit_Vector vector = matrix_row(matrix, row);
     return bv_bit_test(vector, column);
