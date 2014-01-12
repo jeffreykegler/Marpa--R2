@@ -5220,9 +5220,11 @@ typedef struct s_AHFA_state AHFA_Object;
 Only a few AHFA items are initialized.
 Most are set dependent on context.
 @<Function definitions@> =
-PRIVATE void AHFA_initialize(AHFA ahfa)
+PRIVATE void AHFA_initialize(GRAMMAR g, AHFA ahfa)
 {
+    const AHFAID new_AHFA_id = AHFA_Count_of_G(g)++;
     @<Initialize AHFA@>@;
+    ahfa->t_key.t_id = new_AHFA_id;
 }
 
 @*0 XSYID Events.
@@ -5623,7 +5625,7 @@ PRIVATE_NOT_INLINE int AHFA_state_cmp(
    }
    g->t_AHFA = DQUEUE_BASE(states, AHFA_Object); /* ``Steals"
        the |DQUEUE|'s data */
-   ahfa_count_of_g = AHFA_Count_of_G(g) = DQUEUE_END(states);
+   ahfa_count_of_g = AHFA_Count_of_G(g);
    @<Resize the transitions@>@;
    @<Resort the AIMs and populate the Leo base AEXes@>@;
    @<Populate the completed symbol data in the transitions@>@;
@@ -5832,10 +5834,9 @@ You can get the AIM from the AEX, but not vice versa.
   /* The start item is the initial item for the start rule */
   start_item = First_AIM_of_IRL(start_irl);
   item_list[0] = start_item;
-  AHFA_initialize(p_initial_state);
+  AHFA_initialize(g, p_initial_state);
   p_initial_state->t_items = item_list;
   p_initial_state->t_item_count = 1;
-  p_initial_state->t_key.t_id = 0;
   singleton_duplicates[0] = p_initial_state;
   AHFA_is_Predicted (p_initial_state) = 0;
   TRANSs_of_AHFA (p_initial_state) = transitions_new (g, nsy_count);
@@ -5913,14 +5914,13 @@ create_singleton_AHFA_state(
       }
     new_ahfa = DQUEUE_PUSH ((*states_p), AHFA_Object);
     /* Create a new AHFA state */
-    AHFA_initialize(new_ahfa);
+    AHFA_initialize(g, new_ahfa);
     singleton_duplicates[working_aim_id] = new_ahfa;
     new_state_item_list = new_ahfa->t_items =
         marpa_obs_new (g->t_obs, AIM, 1);
     new_state_item_list[0] = working_aim_p;
     new_ahfa->t_item_count = 1;
     AHFA_is_Predicted(new_ahfa) = 0;
-    new_ahfa->t_key.t_id = new_ahfa - DQUEUE_BASE ((*states_p), AHFA_Object);
     TRANSs_of_AHFA(new_ahfa) = transitions_new(g, NSY_Count_of_G(g));
     transition_add (obs_precompute, previous_ahfa, transition_nsyid, new_ahfa);
     postdot_nsyid = Postdot_NSYID_of_AIM(working_aim_p);
@@ -6093,7 +6093,6 @@ of minimum sizes.
       goto NEXT_WORKING_SYMBOL;
     }
   // If we added the new state, finish up its data.
-  p_new_state->t_key.t_id = p_new_state - DQUEUE_BASE (states, AHFA_Object);
   {
       int i;
       AIM* const final_aim_list = p_new_state->t_items =
@@ -6102,7 +6101,7 @@ of minimum sizes.
           final_aim_list[i] = item_list_working_buffer[i];
       }
   }
-  AHFA_initialize (p_new_state);
+  AHFA_initialize (g, p_new_state);
   AHFA_is_Predicted (p_new_state) = 0;
   TRANSs_of_AHFA (p_new_state) = transitions_new (g, nsy_count);
   @<Calculate complete and postdot symbols
@@ -6417,7 +6416,7 @@ create_predicted_AHFA_state(
       }
   }
   p_new_state = DQUEUE_PUSH ((*states_p), AHFA_Object);
-  AHFA_initialize (p_new_state);
+  AHFA_initialize (g, p_new_state);
   p_new_state->t_items = item_list_working_buffer;
   p_new_state->t_item_count = no_of_items_in_new_state;
   {
@@ -6427,12 +6426,11 @@ create_predicted_AHFA_state(
         /* The new state would be a duplicate.
            Back it out and return the one that already exists */
         (void) DQUEUE_POP ((*states_p), AHFA_Object);
+        AHFA_Count_of_G(g)--;
         return queued_AHFA_state;
       }
   }
   // The new state was added -- finish up its data
-  p_new_state->t_key.t_id =
-    p_new_state - DQUEUE_BASE ((*states_p), AHFA_Object);
   {
     int i;
     AIM *const final_aim_list = p_new_state->t_items =
