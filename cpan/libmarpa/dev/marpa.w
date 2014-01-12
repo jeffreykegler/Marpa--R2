@@ -5099,7 +5099,8 @@ AHFA item as its new, final ID.
     {
       sort_array[item_id] = items + item_id;
     }
-  qsort (sort_array, ahfa_item_count, sizeof (AIM), cmp_by_postdot_and_aimid);
+  qsort (sort_array, (size_t)ahfa_item_count,
+    sizeof (AIM), cmp_by_postdot_and_aimid);
   for (item_id = 0; item_id < (Marpa_AHFA_Item_ID) ahfa_item_count; item_id++)
     {
       Sort_Key_of_AIM (sort_array[item_id]) = item_id;
@@ -5638,8 +5639,8 @@ PRIVATE_NOT_INLINE int AHFA_state_cmp(
 
 @ @<Initialize duplicates data structures@> =
 {
-  unsigned int item_id;
-  unsigned int no_of_items_in_grammar = AIM_Count_of_G (g);
+  unsigned item_id;
+  unsigned no_of_items_in_grammar = AIM_Count_of_G (g);
   duplicates = _marpa_avl_create (AHFA_state_cmp, NULL);
   singleton_duplicates = marpa_new (AHFA, no_of_items_in_grammar);
   for (item_id = 0; item_id < no_of_items_in_grammar; item_id++)
@@ -6249,7 +6250,7 @@ Specifically, if symbol |S1| predicts symbol |S2|, then symbol |S1|
 predicts every rule
 with |S2| on its LHS.
 @<Create the prediction matrix from the symbol-by-symbol matrix@> = {
-    unsigned int* sort_key_by_irl_id = marpa_new(unsigned int, irl_count);
+    int* sort_key_by_irl_id = marpa_new(int, irl_count);
     @<Populate |irl_by_sort_key|@>@/
     @<Populate |sort_key_by_irl_id| with second pass value@>@/
     @<Populate the prediction matrix@>@/
@@ -6273,7 +6274,7 @@ so that they can be used as the indices of a boolean vector.
     {
       irl_by_sort_key[irl_id] = IRL_by_ID (irl_id);
     }
-  qsort (irl_by_sort_key, irl_count,
+  qsort (irl_by_sort_key, (size_t)irl_count,
          sizeof (RULE), cmp_by_irl_sort_key);
 }
 
@@ -6339,7 +6340,7 @@ which can be used to index the rules in a boolean vector.
                 {
                   // For every rule with that symbol on its LHS
                   const IRLID irl_with_this_lhs = *p_irl_x_lh_nsy;
-                  unsigned int sort_ordinal =
+                  int sort_ordinal =
                     sort_key_by_irl_id[irl_with_this_lhs];
                   matrix_bit_set (prediction_matrix,
                                   from_nsyid, sort_ordinal);
@@ -7133,7 +7134,7 @@ this boolean vector is initialized to |NULL| so that the destructor
 can tell if there is a boolean vector to be freed.
 @<Widely aligned recognizer elements@> = Bit_Vector t_bv_nsyid_is_expected;
 @ @<Initialize recognizer elements@> = 
-    r->t_bv_nsyid_is_expected = bv_obs_create( r->t_obs, (size_t)nsy_count );
+    r->t_bv_nsyid_is_expected = bv_obs_create( r->t_obs, nsy_count );
 @ Returns |-2| if there was a failure.
 The buffer is expected to be large enough to hold
 the result.
@@ -13286,7 +13287,8 @@ int marpa_o_rank( Marpa_Order o)
       const ANDID last_and_node_id =
         (first_and_node_id + and_count_of_or) - 1;
       ANDID *const order_base =
-        marpa_obs_start (obs, sizeof (ANDID) * (and_count_of_or + 1),
+        marpa_obs_start (obs,
+          sizeof (ANDID) * ((size_t)and_count_of_or + 1),
                        ALIGNOF (ANDID));
       ANDID *order = order_base + 1;
       ANDID and_node_id;
