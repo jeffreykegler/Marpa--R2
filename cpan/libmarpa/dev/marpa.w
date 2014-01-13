@@ -9122,62 +9122,65 @@ Marpa_Symbol_ID _marpa_r_source_leo_transition_symbol(Marpa_Recognizer r)
     return failure_indicator;
 }
 
-@*1 Return the middle earleme.
-Every source has a ``middle earleme" defined.
-Every source has
-\li An origin (or start earleme).
-\li An end earleme (the current set).
-\li A ``middle earleme".
+@*1 Return the middle Earley set ordinal.
+Every source has the following defined:
+\li An origin (or start ordinal).
+\li An end ordinal (the current set).
+\li A ``middle ordinal".
 An Earley item can be thought of as covering a ``span"
 from its origin to the current set.
 For each source,
 this span is divided into two pieces at the middle
-earleme.
-@ Informally, the middle earleme can be thought of as
+ordinal.
+@ Informally, the middle ordinal can be thought of as
 dividing the span between the predecessor and either
 the source's cause or its token.
-If the source has no predecessor, the middle earleme
+If the source has no predecessor, the middle ordinal
 is the same as the origin.
-If there is a predecessor, the middle earleme is
+If there is a predecessor, the middle ordinal is
 the current set of the predecessor.
-If there is a cause, the middle earleme is always the same
+If there is a cause, the middle ordinal is always the same
 as the origin of the cause.
 If there is a token,
-the middle earleme is always where the token starts.
-@ Returns |-1| if there is no predecessor.
-If there are other failures, such as
+the middle ordinal is always where the token starts.
+On failure, such as
 there being no source link,
 |-2| is returned.
 @<Function definitions@> =
 Marpa_Earley_Set_ID _marpa_r_source_middle(Marpa_Recognizer r)
 {
    @<Return |-2| on failure@>@/
-   const JEARLEME no_predecessor = -1;
+   YIM predecessor_yim = NULL;
    unsigned int source_type;
    SRCL source_link;
   @<Unpack recognizer objects@>@;
     @<Fail if not trace-safe@>@/
    source_type = r->t_trace_source_type;
     @<Set source link, failing if necessary@>@/
-    switch (source_type)
+
+  switch (source_type)
+    {
+    case SOURCE_IS_LEO:
       {
-      case SOURCE_IS_LEO:
-        {
-          LIM predecessor = LIM_of_SRCL (source_link);
-          if (!predecessor) return no_predecessor;
-          return
-            YS_Ord_of_YIM (Base_YIM_of_LIM (predecessor));
-        }
-      case SOURCE_IS_TOKEN:
-      case SOURCE_IS_COMPLETION:
-        {
-          YIM predecessor = Predecessor_of_SRCL (source_link);
-          if (!predecessor) return no_predecessor;
-          return YS_Ord_of_YIM (predecessor);
-        }
-    }
-    MARPA_ERROR(invalid_source_type_code (source_type));
-    return failure_indicator;
+        LIM predecessor = LIM_of_SRCL (source_link);
+        if (predecessor)
+          predecessor_yim = Base_YIM_of_LIM (predecessor);
+        break;
+      }
+    case SOURCE_IS_TOKEN:
+    case SOURCE_IS_COMPLETION:
+      {
+        predecessor_yim = Predecessor_of_SRCL (source_link);
+        break;
+      }
+    default:
+      MARPA_ERROR (invalid_source_type_code (source_type));
+      return failure_indicator;
+  }
+
+  if (predecessor_yim)
+    return YS_Ord_of_YIM (predecessor_yim);
+  return Origin_Ord_of_YIM (r->t_trace_earley_item);
 }
 
 @ @<Set source link, failing if necessary@> =
@@ -9858,7 +9861,9 @@ The return value means success, with no events.
                                                 current_earley_set,
                                                 Origin_of_YIM (predecessor),
                                                 scanned_AHFA);
-      tkn_link_add (r, scanned_earley_item, predecessor, tkn);
+      tkn_link_add (r, scanned_earley_item,
+        (YIM_is_Predicted(predecessor) ? NULL : predecessor),
+        tkn);
       prediction_AHFA = Empty_Transition_of_AHFA (scanned_AHFA);
       if (!prediction_AHFA) continue;
       scanned_earley_item = earley_item_assign (r,
@@ -9935,7 +9940,9 @@ add those Earley items it ``causes".
          }
          @<Add Earley item predicted by completion, if there is one@>@;
      }
-     completion_link_add(r, effect, predecessor, cause);
+     completion_link_add(r, effect,
+        (YIM_is_Predicted(predecessor) ? NULL : predecessor),
+       cause);
 }
 
 @ @<Push effect onto completion stack@> = {
