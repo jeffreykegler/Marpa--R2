@@ -5701,24 +5701,10 @@ PRIVATE_NOT_INLINE int AHFA_state_cmp(
       no_of_items_in_new_state = current_item_ix - first_working_item_ix;
       if (no_of_items_in_new_state == 1)
         {
-          AIMID id_of_aim = ID_of_AIM(item_list[first_working_item_ix]+1);
-          MARPA_ASSERT(singleton_duplicates[id_of_aim]);
-          AHFA singleton_ahfa = singleton_duplicates[id_of_aim];
-          MARPA_DEBUG2("Would like to skip creation of AHFA for AIM %d", id_of_aim);
+          const AIMID id_of_aim = ID_of_AIM(item_list[first_working_item_ix]+1);
+          const AHFA singleton_ahfa = singleton_duplicates[id_of_aim];
+          MARPA_ASSERT(singleton_ahfa);
             transition_add (obs_precompute, p_working_state, working_nsyid, singleton_ahfa);
-if (0) {
-        create_singleton_AHFA_state( g,
-          item_list[first_working_item_ix]+1,
-          singleton_duplicates,
-          obs_precompute,
-          p_working_state,
-           irl_by_sort_key,
-          &states,
-         duplicates,
-         item_list_working_buffer,
-         prediction_matrix
-        );
-}
         }
       else
         {
@@ -5925,7 +5911,9 @@ create_singleton_AHFA_state(
     AIM* new_state_item_list;
     NSYID postdot_nsyid;
     const Marpa_AHFA_Item_ID working_aim_id = working_aim_p - AHFA_item_0_p;
-          MARPA_DEBUG2("create_singleton_AHFA_state(AIM %d)", working_aim_id);
+
+    MARPA_OFF_DEBUG2("create_singleton_AHFA_state(AIM %d)", working_aim_id);
+
     const NSYID transition_nsyid = Postdot_NSYID_of_AIM (working_aim_p-1);
     new_ahfa = singleton_duplicates[working_aim_id]; /* This will not
     be necessary after transition to singleton-only AHFA states */
@@ -5936,7 +5924,9 @@ create_singleton_AHFA_state(
         }
         return new_ahfa;
       }
-    MARPA_DEBUG2("Creating singleton AHFA for AIM %d", working_aim_id);
+
+    MARPA_OFF_DEBUG2("Creating singleton AHFA for AIM %d", working_aim_id);
+
     new_ahfa = DQUEUE_PUSH ((*states_p), AHFA_Object);
     /* Create a new AHFA state */
     AHFA_initialize(g, new_ahfa);
