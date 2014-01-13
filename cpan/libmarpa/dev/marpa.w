@@ -5611,14 +5611,27 @@ PRIVATE_NOT_INLINE int AHFA_state_cmp(
    @<Construct right derivation matrix@>@;
    @<Construct initial AHFA states@>@;
 
+{
+  AIMID aim_id;
+  const int aim_count = AIM_Count_of_G (g);
+  AHFA previous_ahfa = NULL;
+  for (aim_id = 0; aim_id < aim_count; aim_id++)
     {
-      AIMID aim_id;
-      const int aim_count = AIM_Count_of_G (g);
-      for (aim_id = 0; aim_id < aim_count; aim_id++)
-        {
-          // Populate singletons here
-        }
+      const AIM aim = AIM_by_ID (aim_id);
+      if (AIM_is_Prediction (aim))
+	{
+	  previous_ahfa = NULL;
+	  continue;
+	}
+      // Populate singletons here
+      previous_ahfa =
+	create_singleton_AHFA_state (g, aim, singleton_duplicates,
+				     obs_precompute, previous_ahfa,
+				     irl_by_sort_key, &states, duplicates,
+				     item_list_working_buffer,
+				     prediction_matrix);
     }
+}
 
    while ((p_working_state = DQUEUE_NEXT(states, AHFA_Object))) {
        @<Process an AHFA state from the working stack@>@;
