@@ -5909,7 +5909,9 @@ create_singleton_AHFA_state(
     be necessary after transition to singleton-only AHFA states */
     if (new_ahfa)
       {                         /* Do not add, this is a duplicate */
-        transition_add (obs_precompute, previous_ahfa, transition_nsyid, new_ahfa);
+        if (previous_ahfa) {
+            transition_add (obs_precompute, previous_ahfa, transition_nsyid, new_ahfa);
+        }
         return new_ahfa;
       }
     new_ahfa = DQUEUE_PUSH ((*states_p), AHFA_Object);
@@ -5922,7 +5924,9 @@ create_singleton_AHFA_state(
     new_ahfa->t_item_count = 1;
     AHFA_is_Predicted(new_ahfa) = 0;
     TRANSs_of_AHFA(new_ahfa) = transitions_new(g, NSY_Count_of_G(g));
-    transition_add (obs_precompute, previous_ahfa, transition_nsyid, new_ahfa);
+    if (previous_ahfa) {
+      transition_add (obs_precompute, previous_ahfa, transition_nsyid, new_ahfa);
+    }
     postdot_nsyid = Postdot_NSYID_of_AIM(working_aim_p);
     if (postdot_nsyid >= 0)
       {
