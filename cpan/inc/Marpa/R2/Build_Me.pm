@@ -257,7 +257,15 @@ sub process_xs {
     } ## end if ( $self->config('cc') eq 'gcc' )
     if ( defined $self->args('XS-debug') ) {
         say 'XS-debug flag is on';
-        push @new_ccflags, qw( -ansi -pedantic -Wundef -Wendif-labels -Wall );
+        if ( $self->config('ccname') eq 'gcc' ) {
+            push @new_ccflags, qw( -Wall -ansi -pedantic -Wundef -Wendif-labels );
+        } ## end if ( $self->config('cc') eq 'gcc' )
+        elsif ( $self->config('ccname') eq 'cl' ){
+            ## gcc's -Wundef is msvc's C4668 that is on with -Wall
+            ## gcc's -ansi -pedantic is msvc's /Za, but windows.h can't be compiled with it
+            ## msvc's equivalent for gcc's -Wendif-labels can't be found :)
+            push @new_ccflags, qw( -W4 -Wp64 );
+        } ## end elsif ( $self->config('ccname') eq 'cl' ){
     }
     my $ccflags = $self->config('ccflags');
     $self->config( ccflags => ( $ccflags . q{ } . join q{ }, @new_ccflags ) );
