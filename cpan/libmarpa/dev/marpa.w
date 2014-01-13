@@ -5911,10 +5911,11 @@ create_singleton_AHFA_state(
     AIM* new_state_item_list;
     NSYID postdot_nsyid;
     const Marpa_AHFA_Item_ID working_aim_id = working_aim_p - AHFA_item_0_p;
-
+    NSYID transition_nsyid;
+    
     MARPA_OFF_DEBUG2("create_singleton_AHFA_state(AIM %d)", working_aim_id);
 
-    const NSYID transition_nsyid = Postdot_NSYID_of_AIM (working_aim_p-1);
+    transition_nsyid = Postdot_NSYID_of_AIM (working_aim_p-1);
     new_ahfa = singleton_duplicates[working_aim_id]; /* This will not
     be necessary after transition to singleton-only AHFA states */
     if (new_ahfa)
