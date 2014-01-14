@@ -11149,31 +11149,27 @@ Set_boolean_in_PSIA_for_initial_nulls (struct marpa_obstack *bocage_setup_obs,
     {
       const YIM cause_earley_item = Cause_of_SRCL (source_link);
       LIM leo_predecessor = LIM_of_SRCL (source_link);
-      const NSYID transition_nsyid = Postdot_NSYID_of_LIM (leo_predecessor);
-      const TRANS cause_completion_data =
-        TRANS_of_YIM_by_NSYID (cause_earley_item, transition_nsyid);
-      YIM ur_earley_item = cause_earley_item;
-      /* There is now only one AEX in a completion */
-      @<Push ur-node if new@>@;
+      {
+        const YIM ur_earley_item = cause_earley_item;
+        /* There is now only one AEX in a completion */
+        @<Push ur-node if new@>@;
+      }
       while (leo_predecessor)
         {
-          NSYID postdot_nsyid = Postdot_NSYID_of_LIM (leo_predecessor);
-          YIM leo_base = Base_YIM_of_LIM (leo_predecessor);
-          TRANS transition = TRANS_of_YIM_by_NSYID (leo_base, postdot_nsyid);
-          const AEX ur_aex = Leo_Base_AEX_of_TRANS (transition);
-          const AIM ur_aim = AIM_of_YIM_by_AEX (leo_base, ur_aex);
-          ur_earley_item = leo_base;
-          /* Increment the
-             estimate to account for the Leo path or-nodes */
-          or_node_estimate += 1 + Null_Count_of_AIM (ur_aim + 1);
-          if (YIM_is_Predicted (ur_earley_item))
+          const NSYID postdot_nsyid = Postdot_NSYID_of_LIM (leo_predecessor);
+          const YIM leo_base_yim = Base_YIM_of_LIM (leo_predecessor);
+          if (YIM_is_Predicted (leo_base_yim))
             {
+                TRANS transition = TRANS_of_YIM_by_NSYID (leo_base_yim, postdot_nsyid);
+                const AEX prediction_aex = Leo_Base_AEX_of_TRANS (transition);
+                const AIM prediction_aim = AIM_of_YIM_by_AEX (leo_base_yim, prediction_aex);
               or_node_estimate +=
                 Set_boolean_in_PSIA_for_initial_nulls (bocage_setup_obs, per_ys_data,
-                                                       ur_earley_item, ur_aim);
+                                                       leo_base_yim, prediction_aim);
             }
           else
             {
+              const YIM ur_earley_item = leo_base_yim;
               @<Push ur-node if new@>@;
             }
           leo_predecessor = Predecessor_LIM_of_LIM (leo_predecessor);
