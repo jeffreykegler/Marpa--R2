@@ -9877,6 +9877,7 @@ The return value means success, with no events.
                   /* This is a prediction, so there must be a next AIM for every
                   AIM in it. */
                   const AHFA scanned_AHFA = AHFA_of_AIM(next_aim);
+                  MARPA_ASSERT(scanned_AHFA);
                   /* The next aim is *not* a prediction AIM, so it must
                   have a singleton AHFA */
                   @<Create the earley items for |scanned_AHFA|@>@;
@@ -9890,22 +9891,20 @@ The return value means success, with no events.
     }
 }
 
-@ @<Create the earley items for |scanned_AHFA|@> = {
-      YIM scanned_earley_item;
-      AHFA prediction_AHFA;
-	  scanned_earley_item = earley_item_assign (r,
-						    current_earley_set,
-						    Origin_of_YIM
-						    (predecessor),
-						    scanned_AHFA);
-	  tkn_link_add (r, scanned_earley_item, predecessor, tkn);
-	  prediction_AHFA = Empty_Transition_of_AHFA (scanned_AHFA);
-	  if (!prediction_AHFA)
-	    continue;
-	  scanned_earley_item = earley_item_assign (r,
-						    current_earley_set,
-						    current_earley_set,
-						    prediction_AHFA);
+@ @<Create the earley items for |scanned_AHFA|@> =
+{
+  const AHFA prediction_AHFA = Empty_Transition_of_AHFA (scanned_AHFA);
+  const YIM scanned_earley_item = earley_item_assign (r,
+						      current_earley_set,
+						      Origin_of_YIM
+						      (predecessor),
+						      scanned_AHFA);
+  tkn_link_add (r, scanned_earley_item, predecessor, tkn);
+  if (prediction_AHFA)
+    {
+      earley_item_assign (r, current_earley_set, current_earley_set,
+			  prediction_AHFA);
+    }
 }
 
 @ @<Pre-populate the completion stack@> = {
