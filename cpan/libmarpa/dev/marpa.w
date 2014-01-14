@@ -9861,9 +9861,7 @@ The return value means success, with no events.
                                                 current_earley_set,
                                                 Origin_of_YIM (predecessor),
                                                 scanned_AHFA);
-      tkn_link_add (r, scanned_earley_item,
-        (YIM_is_Predicted(predecessor) ? NULL : predecessor),
-        tkn);
+      tkn_link_add (r, scanned_earley_item, predecessor, tkn);
       prediction_AHFA = Empty_Transition_of_AHFA (scanned_AHFA);
       if (!prediction_AHFA) continue;
       scanned_earley_item = earley_item_assign (r,
@@ -9940,9 +9938,7 @@ add those Earley items it ``causes".
          }
          @<Add Earley item predicted by completion, if there is one@>@;
      }
-     completion_link_add(r, effect,
-        (YIM_is_Predicted(predecessor) ? NULL : predecessor),
-       cause);
+     completion_link_add(r, effect, predecessor, cause);
 }
 
 @ @<Push effect onto completion stack@> = {
