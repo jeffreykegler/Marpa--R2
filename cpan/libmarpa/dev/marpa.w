@@ -5650,6 +5650,7 @@ PRIVATE_NOT_INLINE int AHFA_state_cmp(
    ahfa_count_of_g = AHFA_Count_of_G(g);
    @<Resize the transitions@>@;
    @<Resort the AIMs and populate the Leo base AEXes@>@;
+   @<Mark potential Leo bases@>
    @<Populate the completed symbol data in the transitions@>@;
    @<Free locals for creating AHFA states@>@;
 }
@@ -5824,11 +5825,37 @@ You can get the AIM from the AEX, but not vice versa.
               if (to_ahfa && AHFA_is_Leo_Completion (to_ahfa))
                 {
                   Leo_Base_AEX_of_TRANS (transition) = aex;
-                  AHFA_is_Potential_Leo_Base (from_ahfa) = 1;
                 }
               else
                 {
                   Leo_Base_AEX_of_TRANS (transition) = -1;
+                }
+            }
+        }
+    }
+}
+
+@ @<Mark potential Leo bases@> =
+{
+  int ahfa_id;
+  for (ahfa_id = 0; ahfa_id < ahfa_count_of_g; ahfa_id++)
+    {
+      AHFA from_ahfa = AHFA_of_G_by_ID (g, ahfa_id);
+      AIM *aims = AIMs_of_AHFA (from_ahfa);
+      int aim_count = AIM_Count_of_AHFA (from_ahfa);
+      AEX aex;
+      for (aex = 0; aex < aim_count; aex++)
+        {
+          AIM from_ahfa_item = aims[aex];
+          NSYID postdot_nsyid = Postdot_NSYID_of_AIM (from_ahfa_item);
+          if (postdot_nsyid >= 0)
+            {
+              /* There is a next AIM because there is a postdot symbol */
+              AIM next_aim = Next_AIM_of_AIM(from_ahfa_item);
+              AHFA to_ahfa = AHFA_of_AIM(next_aim);
+              if (to_ahfa && AHFA_is_Leo_Completion (to_ahfa))
+                {
+                  AHFA_is_Potential_Leo_Base (from_ahfa) = 1;
                 }
             }
         }
