@@ -10962,8 +10962,6 @@ never on the stack.
     ur_node_stack_reset(ur_node_stack);
     {
        const YIM ur_earley_item = start_yim;
-       const AIM ur_aim = start_aim;
-       const AEX ur_aex = start_aex;
         @<Push ur-node if new@>@;
     }
     while ((ur_node = ur_node_pop(ur_node_stack)))
@@ -10983,11 +10981,14 @@ never on the stack.
     }
 }
 
-@ @<Push ur-node if new@> = {
+@ There is now only one AIM unless the item is a prediction, which it never is
+if we are here.
+@<Push ur-node if new@> = {
     if (!psia_test_and_set
-        (bocage_setup_obs, per_ys_data, ur_earley_item, ur_aex))
+        (bocage_setup_obs, per_ys_data, ur_earley_item, 0))
       {
-        ur_node_push (ur_node_stack, ur_earley_item, ur_aex);
+        const AIM ur_aim = AIM_of_YIM_by_AEX(ur_earley_item, 0);
+        ur_node_push (ur_node_stack, ur_earley_item, 0);
         or_node_estimate += 1 + Null_Count_of_AIM(ur_aim);
       }
 }
@@ -11055,9 +11056,6 @@ MARPA_ASSERT(ahfa_element_ix < aim_count_of_item)@;
           else
             {
               const YIM ur_earley_item = predecessor_earley_item;
-              const AEX ur_aex =
-                AEX_of_YIM_by_AIM (predecessor_earley_item, predecessor_aim);
-              const AIM ur_aim = predecessor_aim;
               @<Push ur-node if new@>@;
             }
         }
@@ -11127,19 +11125,12 @@ Set_boolean_in_PSIA_for_initial_nulls (struct marpa_obstack *bocage_setup_obs,
 	  else
 	    {
 	      const YIM ur_earley_item = predecessor_earley_item;
-	      const AEX ur_aex =
-		AEX_of_YIM_by_AIM (predecessor_earley_item, predecessor_aim);
-	      const AIM ur_aim = predecessor_aim;
 	      @<Push ur-node if new@>@;
 	    }
 	}
       {
-	const TRANS cause_completion_data =
-	  TRANS_of_YIM_by_NSYID (cause_earley_item, transition_symbol_nsyid);
 	const YIM ur_earley_item = cause_earley_item;
 	/* There is now only one AEX in a completion */
-	const AIM ur_aim = AIM_of_YIM_by_AEX (ur_earley_item, 0);
-	const AEX ur_aex = 0;
 	@<Push ur-node if new@>@;
       }
       if (!source_link)
@@ -11163,8 +11154,6 @@ Set_boolean_in_PSIA_for_initial_nulls (struct marpa_obstack *bocage_setup_obs,
         TRANS_of_YIM_by_NSYID (cause_earley_item, transition_nsyid);
       YIM ur_earley_item = cause_earley_item;
       /* There is now only one AEX in a completion */
-      const AIM ur_aim = AIM_of_YIM_by_AEX (ur_earley_item, 0);
-      const AEX ur_aex = 0;
       @<Push ur-node if new@>@;
       while (leo_predecessor)
         {
