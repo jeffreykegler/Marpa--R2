@@ -9949,7 +9949,13 @@ add those Earley items it ``causes".
       const YIM predecessor = YIM_of_PIM (postdot_item);
       if (predecessor)
         { /* Not a Leo item */
-          @<Add effect, plus any prediction, for non-Leo predecessor@>@;
+          if (0) { ;
+          } else {
+            const AHFA effect_AHFA_state = To_AHFA_of_YIM_by_NSYID(predecessor, complete_nsyid);
+            const YS origin = Origin_of_YIM(predecessor);
+            @<Add |effect_AHFA_state|, plus any prediction,
+              for non-Leo predecessor at |origin|@>@;
+          }
         }
       else
         {                       /* A Leo item */
@@ -9961,26 +9967,24 @@ add those Earley items it ``causes".
     }
 }
 
-@ @<Add effect, plus any prediction, for non-Leo predecessor@> =
+@ @<Add |effect_AHFA_state|, plus any prediction, for non-Leo predecessor at |origin|@> =
 {
-    const YS origin = Origin_of_YIM(predecessor);
-     const AHFA effect_AHFA_state = To_AHFA_of_YIM_by_NSYID(predecessor, complete_nsyid);
-     const YIM effect = earley_item_assign(r, current_earley_set,
-          origin, effect_AHFA_state);
-     if (Earley_Item_has_No_Source(effect)) {
-            const AHFA prediction_AHFA_state =
-              Empty_Transition_of_AHFA (effect_AHFA_state);
-         /* If it has no source, then it is new */
-         if (Earley_Item_is_Completion(effect)) {
-             @<Push |effect| onto completion stack@>@;
-         }
-        if (prediction_AHFA_state)
-          {
-            earley_item_assign (r, current_earley_set, current_earley_set,
-                                prediction_AHFA_state);
-          }
-     }
-     completion_link_add(r, effect, predecessor, cause);
+   const YIM effect = earley_item_assign(r, current_earley_set,
+        origin, effect_AHFA_state);
+   if (Earley_Item_has_No_Source(effect)) {
+          const AHFA prediction_AHFA_state =
+            Empty_Transition_of_AHFA (effect_AHFA_state);
+       /* If it has no source, then it is new */
+       if (Earley_Item_is_Completion(effect)) {
+           @<Push |effect| onto completion stack@>@;
+       }
+      if (prediction_AHFA_state)
+        {
+          earley_item_assign (r, current_earley_set, current_earley_set,
+                              prediction_AHFA_state);
+        }
+   }
+   completion_link_add(r, effect, predecessor, cause);
 }
 
 @ @<Push |effect| onto completion stack@> = {
