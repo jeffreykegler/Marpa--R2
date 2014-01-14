@@ -1248,7 +1248,7 @@ or an array of two elements.
 
 =item *
 
-It the last step was C<MARPA_STEP_RULE>,
+If the last step was C<MARPA_STEP_RULE>,
 the array contains the locations where the rule starts
 and ends,
 as returned
