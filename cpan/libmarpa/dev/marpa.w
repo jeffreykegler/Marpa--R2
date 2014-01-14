@@ -9949,10 +9949,29 @@ add those Earley items it ``causes".
       const YIM predecessor = YIM_of_PIM (postdot_item);
       if (predecessor)
         { /* Not a Leo item */
-          if (0) { ;
+      if (YIM_is_Predicted (predecessor))
+	{
+              const AHFA predecessor_ahfa = AHFA_of_YIM(predecessor);
+              AIM* const aims = AIMs_of_AHFA(predecessor_ahfa);
+              const int aim_count = AIM_Count_of_AHFA(predecessor_ahfa);
+              AEX aex;
+              for (aex = 0; aex < aim_count; aex++) {
+                  const AIM predecessor_aim = aims[aex];
+                  if (Postdot_NSYID_of_AIM(predecessor_aim) == complete_nsyid) {
+                    const AIM next_aim = Next_AIM_of_AIM(predecessor_aim);
+                    /* This is a prediction, so there must be a next AIM for every
+                    AIM in it. */
+                    const AHFA effect_AHFA = AHFA_of_AIM(next_aim);
+                    MARPA_ASSERT(effect_AHFA);
+                    /* The next aim is *not* a prediction AIM, so it must
+                    have a singleton AHFA */
+                    @<Add |effect_AHFA|, plus any prediction,
+                      for non-Leo |predecessor|@>@;
+                  }
+              }
           } else {
-            const AHFA effect_AHFA_state = To_AHFA_of_YIM_by_NSYID(predecessor, complete_nsyid);
-            @<Add |effect_AHFA_state|, plus any prediction,
+            const AHFA effect_AHFA = To_AHFA_of_YIM_by_NSYID(predecessor, complete_nsyid);
+            @<Add |effect_AHFA|, plus any prediction,
               for non-Leo |predecessor|@>@;
           }
         }
@@ -9966,14 +9985,14 @@ add those Earley items it ``causes".
     }
 }
 
-@ @<Add |effect_AHFA_state|, plus any prediction, for non-Leo |predecessor|@> =
+@ @<Add |effect_AHFA|, plus any prediction, for non-Leo |predecessor|@> =
 {
    const YS origin = Origin_of_YIM(predecessor);
    const YIM effect = earley_item_assign(r, current_earley_set,
-        origin, effect_AHFA_state);
+        origin, effect_AHFA);
    if (Earley_Item_has_No_Source(effect)) {
           const AHFA prediction_AHFA_state =
-            Empty_Transition_of_AHFA (effect_AHFA_state);
+            Empty_Transition_of_AHFA (effect_AHFA);
        /* If it has no source, then it is new */
        if (Earley_Item_is_Completion(effect)) {
            @<Push |effect| onto completion stack@>@;
@@ -9995,9 +10014,9 @@ add those Earley items it ``causes".
 @ @<Add effect of Leo item@> = {
     const LIM leo_item = LIM_of_PIM (postdot_item);
     const YS origin = Origin_of_LIM (leo_item);
-    const AHFA effect_AHFA_state = Top_AHFA_of_LIM (leo_item);
+    const AHFA effect_AHFA = Top_AHFA_of_LIM (leo_item);
     const YIM effect = earley_item_assign (r, current_earley_set,
-                                 origin, effect_AHFA_state);
+                                 origin, effect_AHFA);
     if (Earley_Item_has_No_Source (effect))
       {
         /* If it has no source, then it is new */
