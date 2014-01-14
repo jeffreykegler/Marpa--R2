@@ -9952,9 +9952,8 @@ add those Earley items it ``causes".
           if (0) { ;
           } else {
             const AHFA effect_AHFA_state = To_AHFA_of_YIM_by_NSYID(predecessor, complete_nsyid);
-            const YS origin = Origin_of_YIM(predecessor);
             @<Add |effect_AHFA_state|, plus any prediction,
-              for non-Leo predecessor at |origin|@>@;
+              for non-Leo |predecessor|@>@;
           }
         }
       else
@@ -9967,8 +9966,9 @@ add those Earley items it ``causes".
     }
 }
 
-@ @<Add |effect_AHFA_state|, plus any prediction, for non-Leo predecessor at |origin|@> =
+@ @<Add |effect_AHFA_state|, plus any prediction, for non-Leo |predecessor|@> =
 {
+   const YS origin = Origin_of_YIM(predecessor);
    const YIM effect = earley_item_assign(r, current_earley_set,
         origin, effect_AHFA_state);
    if (Earley_Item_has_No_Source(effect)) {
