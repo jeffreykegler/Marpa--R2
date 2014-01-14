@@ -9857,27 +9857,55 @@ The return value means success, with no events.
 {
   YS start_earley_set = Start_YS_of_ALT (alternative);
   TOK tkn = TOK_of_ALT (alternative);
-  NSYID tkn_nsyid = NSYID_of_TOK(tkn);
+  NSYID tkn_nsyid = NSYID_of_TOK (tkn);
   PIM pim = First_PIM_of_YS_by_NSYID (start_earley_set, tkn_nsyid);
-  for ( ; pim ; pim = Next_PIM_of_PIM (pim)) {
-      AHFA scanned_AHFA, prediction_AHFA;
-      YIM scanned_earley_item;
-      YIM predecessor = YIM_of_PIM (pim);
+  for (; pim; pim = Next_PIM_of_PIM (pim))
+    {
+      const YIM predecessor = YIM_of_PIM (pim);
       if (!predecessor)
-        continue;               // Ignore Leo items when scanning
-      scanned_AHFA = To_AHFA_of_YIM_by_NSYID (predecessor, tkn_nsyid);
-      scanned_earley_item = earley_item_assign (r,
-                                                current_earley_set,
-                                                Origin_of_YIM (predecessor),
-                                                scanned_AHFA);
-      tkn_link_add (r, scanned_earley_item, predecessor, tkn);
-      prediction_AHFA = Empty_Transition_of_AHFA (scanned_AHFA);
-      if (!prediction_AHFA) continue;
-      scanned_earley_item = earley_item_assign (r,
-                                                    current_earley_set,
-                                                    current_earley_set,
-                                                    prediction_AHFA);
+	continue;		// Ignore Leo items when scanning
+
+      if (0 && YIM_is_Predicted (predecessor))
+	{
+              const AHFA predecessor_ahfa = AHFA_of_YIM(predecessor);
+              AIM* const aims = AIMs_of_AHFA(predecessor_ahfa);
+              const int aim_count = AIM_Count_of_AHFA(predecessor_ahfa);
+              AEX aex;
+              for (aex = 0; aex < aim_count; aex++) {
+                  const AIM predecessor_aim = aims[aex];
+                  const AIM next_aim = Next_AIM_of_AIM(predecessor_aim);
+                  /* This is a prediction, so there must be a next AIM for every
+                  AIM in it. */
+                  const AHFA scanned_AHFA = AHFA_of_AIM(next_aim);
+                  /* The next aim is *not* a prediction AIM, so it must
+                  have a singleton AHFA */
+                  @<Create the earley items for |scanned_AHFA|@>@;
+              }
+	}
+      else
+	{
+	  const AHFA scanned_AHFA = To_AHFA_of_YIM_by_NSYID (predecessor, tkn_nsyid);
+        @<Create the earley items for |scanned_AHFA|@> @;
+        }
     }
+}
+
+@ @<Create the earley items for |scanned_AHFA|@> = {
+      YIM scanned_earley_item;
+      AHFA prediction_AHFA;
+	  scanned_earley_item = earley_item_assign (r,
+						    current_earley_set,
+						    Origin_of_YIM
+						    (predecessor),
+						    scanned_AHFA);
+	  tkn_link_add (r, scanned_earley_item, predecessor, tkn);
+	  prediction_AHFA = Empty_Transition_of_AHFA (scanned_AHFA);
+	  if (!prediction_AHFA)
+	    continue;
+	  scanned_earley_item = earley_item_assign (r,
+						    current_earley_set,
+						    current_earley_set,
+						    prediction_AHFA);
 }
 
 @ @<Pre-populate the completion stack@> = {
