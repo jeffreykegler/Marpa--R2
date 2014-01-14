@@ -11094,7 +11094,8 @@ Set_boolean_in_PSIA_for_initial_nulls (struct marpa_obstack *bocage_setup_obs,
   SRCL source_link = NULL;
   YIM predecessor_earley_item = NULL;
   YIM cause_earley_item = NULL;
-  const NSYID transition_symbol_nsyid = Postdot_NSYID_of_AIM(predecessor_aim);
+  const NSYID transition_symbol_nsyid =
+    Postdot_NSYID_of_AIM (predecessor_aim);
   switch (source_type)
     {
     case SOURCE_IS_COMPLETION:
@@ -11104,46 +11105,43 @@ Set_boolean_in_PSIA_for_initial_nulls (struct marpa_obstack *bocage_setup_obs,
     case SOURCE_IS_AMBIGUOUS:
       source_link = LV_First_Completion_SRCL_of_YIM (parent_earley_item);
       if (source_link)
-        {
-          predecessor_earley_item = Predecessor_of_SRCL (source_link);
-          cause_earley_item = Cause_of_SRCL (source_link);
-          source_link = Next_SRCL_of_SRCL (source_link);
-        }
-        break;
+	{
+	  predecessor_earley_item = Predecessor_of_SRCL (source_link);
+	  cause_earley_item = Cause_of_SRCL (source_link);
+	  source_link = Next_SRCL_of_SRCL (source_link);
+	}
+      break;
     }
   while (cause_earley_item)
     {
-        if (predecessor_earley_item)
-          {
-            if (YIM_is_Predicted (predecessor_earley_item))
-              {
-                or_node_estimate += Set_boolean_in_PSIA_for_initial_nulls
-                  (bocage_setup_obs, per_ys_data,
-                  predecessor_earley_item, predecessor_aim);
-              }
-            else
-              {
-                const YIM ur_earley_item = predecessor_earley_item;
-                const AEX ur_aex =
-                  AEX_of_YIM_by_AIM (predecessor_earley_item, predecessor_aim);
-                const AIM ur_aim = predecessor_aim;
-                @<Push ur-node if new@>@;
-              }
-          }
-    {
-      const TRANS cause_completion_data =
-        TRANS_of_YIM_by_NSYID (cause_earley_item, transition_symbol_nsyid);
-      const int aex_count = Completion_Count_of_TRANS (cause_completion_data);
-      const AEX * const aexes = AEXs_of_TRANS (cause_completion_data);
-      const YIM ur_earley_item = cause_earley_item;
-      int ix;
-      for (ix = 0; ix < aex_count; ix++) {
-          const AEX ur_aex = aexes[ix];
-          const AIM ur_aim = AIM_of_YIM_by_AEX(ur_earley_item, ur_aex);
-            @<Push ur-node if new@>@;
+      if (predecessor_earley_item)
+	{
+	  if (YIM_is_Predicted (predecessor_earley_item))
+	    {
+	      or_node_estimate += Set_boolean_in_PSIA_for_initial_nulls
+		(bocage_setup_obs, per_ys_data,
+		 predecessor_earley_item, predecessor_aim);
+	    }
+	  else
+	    {
+	      const YIM ur_earley_item = predecessor_earley_item;
+	      const AEX ur_aex =
+		AEX_of_YIM_by_AIM (predecessor_earley_item, predecessor_aim);
+	      const AIM ur_aim = predecessor_aim;
+	      @<Push ur-node if new@>@;
+	    }
+	}
+      {
+	const TRANS cause_completion_data =
+	  TRANS_of_YIM_by_NSYID (cause_earley_item, transition_symbol_nsyid);
+	const YIM ur_earley_item = cause_earley_item;
+	/* There is now only one AEX in a completion */
+	const AIM ur_aim = AIM_of_YIM_by_AEX (ur_earley_item, 0);
+	const AEX ur_aex = 0;
+	@<Push ur-node if new@>@;
       }
-    }
-      if (!source_link) break;
+      if (!source_link)
+	break;
       predecessor_earley_item = Predecessor_of_SRCL (source_link);
       cause_earley_item = Cause_of_SRCL (source_link);
       source_link = Next_SRCL_of_SRCL (source_link);
@@ -11161,16 +11159,11 @@ Set_boolean_in_PSIA_for_initial_nulls (struct marpa_obstack *bocage_setup_obs,
       const NSYID transition_nsyid = Postdot_NSYID_of_LIM (leo_predecessor);
       const TRANS cause_completion_data =
         TRANS_of_YIM_by_NSYID (cause_earley_item, transition_nsyid);
-      const int aex_count = Completion_Count_of_TRANS (cause_completion_data);
-      const AEX *const aexes = AEXs_of_TRANS (cause_completion_data);
-      int ix;
       YIM ur_earley_item = cause_earley_item;
-      for (ix = 0; ix < aex_count; ix++)
-        {
-          const AEX ur_aex = aexes[ix];
-          const AIM ur_aim = AIM_of_YIM_by_AEX (ur_earley_item, ur_aex);
-          @<Push ur-node if new@>@;
-        }
+      /* There is now only one AEX in a completion */
+      const AIM ur_aim = AIM_of_YIM_by_AEX (ur_earley_item, 0);
+      const AEX ur_aex = 0;
+      @<Push ur-node if new@>@;
       while (leo_predecessor)
         {
           NSYID postdot_nsyid = Postdot_NSYID_of_LIM (leo_predecessor);
@@ -12076,19 +12069,13 @@ predecessor.  Set |or_node| to 0 if there is none.
 @ @<Add draft and-nodes to the bottom or-node@> =
 {
   const NSYID transition_nsyid = Postdot_NSYID_of_LIM (leo_predecessor);
+  OR dand_cause;
   const TRANS cause_completion_data =
     TRANS_of_YIM_by_NSYID (cause_earley_item, transition_nsyid);
-  const int aex_count = Completion_Count_of_TRANS (cause_completion_data);
-  const AEX *const aexes = AEXs_of_TRANS (cause_completion_data);
-  int ix;
-  for (ix = 0; ix < aex_count; ix++)
-    {
-      const AEX cause_aex = aexes[ix];
-      OR dand_cause;
-      Set_OR_from_YIM_and_AEX(dand_cause, cause_earley_item, cause_aex);
-      draft_and_node_add (bocage_setup_obs, path_or_node,
-                          dand_predecessor, dand_cause);
-    }
+    /* There is now only one AEX in a completion */
+  Set_OR_from_YIM_and_AEX (dand_cause, cause_earley_item, 0);
+  draft_and_node_add (bocage_setup_obs, path_or_node,
+		      dand_predecessor, dand_cause);
 }
 
 @ It is assumed that there is an or-node entry for
@@ -12207,13 +12194,7 @@ predecessor.  Set |or_node| to 0 if there is none.
     {
       const TRANS cause_completion_data =
         TRANS_of_YIM_by_NSYID (cause_earley_item, transition_symbol_nsyid);
-      const int aex_count = Completion_Count_of_TRANS (cause_completion_data);
-      const AEX * const aexes = AEXs_of_TRANS (cause_completion_data);
-      int ix;
-      for (ix = 0; ix < aex_count; ix++) {
-          const AEX cause_aex = aexes[ix];
             @<Add draft and-node for completion source@>@;
-      }
       if (!source_link) break;
       predecessor_earley_item = Predecessor_of_SRCL (source_link);
       cause_earley_item = Cause_of_SRCL (source_link);
@@ -12226,7 +12207,8 @@ predecessor.  Set |or_node| to 0 if there is none.
   OR dand_predecessor;
   OR dand_cause;
   const int middle_ordinal = Origin_Ord_of_YIM(cause_earley_item);
-  const AIM cause_ahfa_item = AIM_of_YIM_by_AEX(cause_earley_item, cause_aex);
+  /* There is now only one AEX in a completion */
+  const AIM cause_ahfa_item = AIM_of_YIM_by_AEX(cause_earley_item, 0);
   const SYMI cause_symbol_instance =
       SYMI_of_Completed_IRL(IRL_of_AIM(cause_ahfa_item));
   @<Set |dand_predecessor|@>@;
