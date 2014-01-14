@@ -9865,7 +9865,7 @@ The return value means success, with no events.
       if (!predecessor)
 	continue;		// Ignore Leo items when scanning
 
-      if (0 && YIM_is_Predicted (predecessor))
+      if (YIM_is_Predicted (predecessor))
 	{
               const AHFA predecessor_ahfa = AHFA_of_YIM(predecessor);
               AIM* const aims = AIMs_of_AHFA(predecessor_ahfa);
@@ -9873,14 +9873,16 @@ The return value means success, with no events.
               AEX aex;
               for (aex = 0; aex < aim_count; aex++) {
                   const AIM predecessor_aim = aims[aex];
-                  const AIM next_aim = Next_AIM_of_AIM(predecessor_aim);
-                  /* This is a prediction, so there must be a next AIM for every
-                  AIM in it. */
-                  const AHFA scanned_AHFA = AHFA_of_AIM(next_aim);
-                  MARPA_ASSERT(scanned_AHFA);
-                  /* The next aim is *not* a prediction AIM, so it must
-                  have a singleton AHFA */
-                  @<Create the earley items for |scanned_AHFA|@>@;
+                  if (Postdot_NSYID_of_AIM(predecessor_aim) == tkn_nsyid) {
+                    const AIM next_aim = Next_AIM_of_AIM(predecessor_aim);
+                    /* This is a prediction, so there must be a next AIM for every
+                    AIM in it. */
+                    const AHFA scanned_AHFA = AHFA_of_AIM(next_aim);
+                    MARPA_ASSERT(scanned_AHFA);
+                    /* The next aim is *not* a prediction AIM, so it must
+                    have a singleton AHFA */
+                    @<Create the earley items for |scanned_AHFA|@>@;
+                  }
               }
 	}
       else
