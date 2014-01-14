@@ -5813,13 +5813,15 @@ You can get the AIM from the AEX, but not vice versa.
       qsort (aims, (size_t)aim_count, sizeof (AIM *), cmp_by_aimid);
       for (aex = 0; aex < aim_count; aex++)
         {
-          AIM ahfa_item = aims[aex];
-          NSYID postdot_nsyid = Postdot_NSYID_of_AIM (ahfa_item);
+          AIM from_ahfa_item = aims[aex];
+          NSYID postdot_nsyid = Postdot_NSYID_of_AIM (from_ahfa_item);
           if (postdot_nsyid >= 0)
             {
+              /* There is a next AIM because there is a postdot symbol */
+              AIM next_aim = Next_AIM_of_AIM(from_ahfa_item);
               TRANS transition = transitions[postdot_nsyid];
-              AHFA to_ahfa = To_AHFA_of_TRANS (transition);
-              if (AHFA_is_Leo_Completion (to_ahfa))
+              AHFA to_ahfa = AHFA_of_AIM(next_aim);
+              if (to_ahfa && AHFA_is_Leo_Completion (to_ahfa))
                 {
                   Leo_Base_AEX_of_TRANS (transition) = aex;
                   AHFA_is_Potential_Leo_Base (from_ahfa) = 1;
