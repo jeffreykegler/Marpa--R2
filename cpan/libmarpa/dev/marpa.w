@@ -4874,7 +4874,6 @@ return item_id < (AIMID)AIM_Count_of_G(g) && item_id >= 0;
 @<Widely aligned AHFA item elements@> =
     IRL t_irl;
 
-
 @*0 Postdot symbol.
 |-1| if the item is a completion.
 @d Postdot_NSYID_of_AIM(item) ((item)->t_postdot_nsyid)
@@ -4899,6 +4898,13 @@ Position in the RHS, -1 for a completion.
   && Position_of_AIM(aim) <= Null_Count_of_AIM(aim) )
 @<Int aligned AHFA item elements@> =
 int t_position;
+
+@*0 Singleton AHFA.
+A singleton AHFA whose only AHFA item is
+this one.
+@d AHFA_of_AIM(aim) ((aim)->t_singleton_ahfa)
+@<Widely aligned AHFA item elements@> =
+    AHFA t_singleton_ahfa;
 
 @*0 AHFA item external accessors.
 @<Function definitions@> =
@@ -5017,6 +5023,7 @@ int _marpa_g_AHFA_item_sort_key(Marpa_Grammar g,
   Null_Count_of_AIM(current_item) = leading_nulls;
   Postdot_NSYID_of_AIM (current_item) = rh_nsyid;
   Position_of_AIM (current_item) = rhs_ix;
+  AHFA_of_AIM(current_item) = NULL;
 }
 
 @ @<Create an AHFA item for a completion@> =
@@ -5026,6 +5033,7 @@ int _marpa_g_AHFA_item_sort_key(Marpa_Grammar g,
   Null_Count_of_AIM(current_item) = leading_nulls;
   Postdot_NSYID_of_AIM (current_item) = -1;
   Position_of_AIM (current_item) = -1;
+  AHFA_of_AIM(current_item) = NULL;
 }
 
 @ This is done after creating the AHFA items, because in
@@ -5893,7 +5901,7 @@ a start rule completion, and it is a
 PRIVATE AHFA
 create_singleton_AHFA_state(
     GRAMMAR g,
-    AIM working_aim_p,
+    AIM base_aim,
       AHFA* singleton_duplicates,
     struct marpa_obstack *obs_precompute,
     AHFA previous_ahfa,
@@ -5910,12 +5918,12 @@ create_singleton_AHFA_state(
     AHFA new_ahfa;
     AIM* new_state_item_list;
     NSYID postdot_nsyid;
-    const Marpa_AHFA_Item_ID working_aim_id = working_aim_p - AHFA_item_0_p;
+    const Marpa_AHFA_Item_ID working_aim_id = base_aim - AHFA_item_0_p;
     NSYID transition_nsyid;
     
     MARPA_OFF_DEBUG2("create_singleton_AHFA_state(AIM %d)", working_aim_id);
 
-    transition_nsyid = Postdot_NSYID_of_AIM (working_aim_p-1);
+    transition_nsyid = Postdot_NSYID_of_AIM (base_aim-1);
     new_ahfa = singleton_duplicates[working_aim_id]; /* This will not
     be necessary after transition to singleton-only AHFA states */
     if (new_ahfa)
@@ -5934,14 +5942,14 @@ create_singleton_AHFA_state(
     singleton_duplicates[working_aim_id] = new_ahfa;
     new_state_item_list = new_ahfa->t_items =
         marpa_obs_new (g->t_obs, AIM, 1);
-    new_state_item_list[0] = working_aim_p;
+    new_state_item_list[0] = base_aim;
     new_ahfa->t_item_count = 1;
     AHFA_is_Predicted(new_ahfa) = 0;
     TRANSs_of_AHFA(new_ahfa) = transitions_new(g, NSY_Count_of_G(g));
     if (previous_ahfa) {
       transition_add (obs_precompute, previous_ahfa, transition_nsyid, new_ahfa);
     }
-    postdot_nsyid = Postdot_NSYID_of_AIM(working_aim_p);
+    postdot_nsyid = Postdot_NSYID_of_AIM(base_aim);
     if (postdot_nsyid >= 0)
       {
         NSYID* p_postdot_nsyidary = Postdot_NSYIDAry_of_AHFA(new_ahfa) =
@@ -5962,7 +5970,7 @@ create_singleton_AHFA_state(
     else
       {
         /* The only AIM is a completion */
-        const IRL irl = IRL_of_AIM(working_aim_p);
+        const IRL irl = IRL_of_AIM(base_aim);
         const NSYID lhs_nsyid = LHSID_of_IRL(irl);
         Completion_CIL_of_AHFA(new_ahfa) = cil_singleton(&g->t_cilar, lhs_nsyid);
         completion_count_inc(obs_precompute, new_ahfa, lhs_nsyid);
@@ -5972,6 +5980,7 @@ create_singleton_AHFA_state(
         @<If this state can be a Leo completion,
         set the Leo completion symbol to |lhs_id|@>@;
   }
+  AHFA_of_AIM(base_aim) = new_ahfa;
   return new_ahfa;
 }
 
@@ -5982,7 +5991,7 @@ This is an enhancement from Leo 1991.
 @<If this state can be a Leo completion,
 set the Leo completion symbol to |lhs_id|@> =
 {
-  const IRL aim_irl = IRL_of_AIM (working_aim_p);
+  const IRL aim_irl = IRL_of_AIM (base_aim);
   if (IRL_is_Right_Recursive(aim_irl))
     {
       Leo_LHS_NSYID_of_AHFA (new_ahfa) = lhs_nsyid;
