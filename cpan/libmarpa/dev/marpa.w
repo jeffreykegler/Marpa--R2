@@ -5269,6 +5269,8 @@ CIL t_direct_completion_event_nsyids;
 CIL t_complete_nsyids;
 
 @*0 AHFA item container.
+@ @s AEX int
+@<Private typedefs@> = typedef int AEX;
 @ @d AIMs_of_AHFA(ahfa) ((ahfa)->t_items)
 @d AIM_of_AHFA_by_AEX(ahfa, aex) (AIMs_of_AHFA(ahfa)[aex])
 @d AEX_of_AHFA_by_AIM(ahfa, aim) aex_of_ahfa_by_aim_get((ahfa), (aim))
@@ -5668,7 +5670,6 @@ PRIVATE_NOT_INLINE int AHFA_state_cmp(
    g->t_AHFA = DQUEUE_BASE(states, AHFA_Object); /* ``Steals"
        the |DQUEUE|'s data */
    ahfa_count_of_g = AHFA_Count_of_G(g);
-   @<Resize the transitions@>@;
    @<Resort the AIMs@>@;
    @<Mark potential Leo bases@>
    @<Free locals for creating AHFA states@>@;
@@ -5732,7 +5733,6 @@ PRIVATE_NOT_INLINE int AHFA_state_cmp(
           const AIMID id_of_aim = ID_of_AIM(item_list[first_working_item_ix]+1);
           const AHFA singleton_ahfa = singleton_duplicates[id_of_aim];
           MARPA_ASSERT(singleton_ahfa);
-            transition_add (obs_precompute, p_working_state, working_nsyid, singleton_ahfa);
         }
       else
         {
@@ -5748,36 +5748,7 @@ PRIVATE_NOT_INLINE int AHFA_state_cmp(
 NEXT_AHFA_STATE:;
 }
 
-@ Here is where the final transitions are allocated.
-@<Resize the transitions@> =
-{
-  int ahfa_id;
-  for (ahfa_id = 0; ahfa_id < ahfa_count_of_g; ahfa_id++)
-    {
-      NSYID nsyid;
-      AHFA ahfa = AHFA_of_G_by_ID (g, ahfa_id);
-      TRANS *const transitions = TRANSs_of_AHFA (ahfa);
-      for (nsyid = 0; nsyid < nsy_count; nsyid++)
-	{
-	  TRANS working_transition = transitions[nsyid];
-	  if (working_transition)
-	    {
-	      TRANS new_transition = marpa_obs_new (g->t_obs, TRANS_Object, 1);
-
-	      transitions[nsyid] = new_transition;
-	    }
-	}
-    }
-}
-
-@ For every AHFA item which can be a Leo base, and any transition
-(or postdot) symbol that leads to a Leo completion, put the AEX
-into the |TRANS| structure, for memoization.
-The AEX is memoized, instead of the AIM,
-because, in one of the efficiency hacks,
-the AEX will be used as the index of an array.
-You can get the AIM from the AEX, but not vice versa.
-@<Resort the AIMs@> =
+@ @<Resort the AIMs@> =
 {
   int ahfa_id;
   for (ahfa_id = 0; ahfa_id < ahfa_count_of_g; ahfa_id++)
@@ -5837,7 +5808,6 @@ You can get the AIM from the AEX, but not vice versa.
   p_initial_state->t_item_count = 1;
   singleton_duplicates[0] = p_initial_state;
   AHFA_is_Predicted (p_initial_state) = 0;
-  TRANSs_of_AHFA (p_initial_state) = transitions_new (g, nsy_count);
   Postdot_NSY_Count_of_AHFA (p_initial_state) = 1;
   postdot_nsyidary = Postdot_NSYIDAry_of_AHFA (p_initial_state) =
     marpa_obs_new (g->t_obs, NSYID, 1);
@@ -5911,9 +5881,6 @@ create_singleton_AHFA_state(
     be necessary after transition to singleton-only AHFA states */
     if (new_ahfa)
       {                         /* Do not add, this is a duplicate */
-        if (previous_ahfa) {
-            transition_add (obs_precompute, previous_ahfa, transition_nsyid, new_ahfa);
-        }
         return new_ahfa;
       }
 
@@ -5928,10 +5895,6 @@ create_singleton_AHFA_state(
     new_state_item_list[0] = base_aim;
     new_ahfa->t_item_count = 1;
     AHFA_is_Predicted(new_ahfa) = 0;
-    TRANSs_of_AHFA(new_ahfa) = transitions_new(g, NSY_Count_of_G(g));
-    if (previous_ahfa) {
-      transition_add (obs_precompute, previous_ahfa, transition_nsyid, new_ahfa);
-    }
     postdot_nsyid = Postdot_NSYID_of_AIM(base_aim);
     if (postdot_nsyid >= 0)
       {
@@ -6097,8 +6060,6 @@ of minimum sizes.
     {                           // The new state would be a duplicate
 // Back it out and go on to the next in the queue
       (void) DQUEUE_POP (states, AHFA_Object);
-      transition_add (obs_precompute, p_working_state, working_nsyid,
-                      queued_AHFA_state);
       goto NEXT_WORKING_SYMBOL;
     }
   // If we added the new state, finish up its data.
@@ -6112,11 +6073,8 @@ of minimum sizes.
   }
   AHFA_initialize (g, p_new_state);
   AHFA_is_Predicted (p_new_state) = 0;
-  TRANSs_of_AHFA (p_new_state) = transitions_new (g, nsy_count);
   @<Calculate complete and postdot symbols
     for discovered state with 2+ items@>@;
-  transition_add (obs_precompute, p_working_state, working_nsyid,
-                  p_new_state);
   @<Calculate the predicted rule vector for
     state with 2+ items, and add the predicted AHFA state@>@;
 }
@@ -6449,7 +6407,6 @@ create_predicted_AHFA_state(
   }
   AHFA_is_Predicted (p_new_state) = 1;
   p_new_state->t_empty_transition = NULL;
-  TRANSs_of_AHFA (p_new_state) = transitions_new (g, NSY_Count_of_G(g));
   Completion_CIL_of_AHFA(p_new_state) = cil_empty (&g->t_cilar);
   @<Calculate postdot symbols for predicted state@>@;
   return p_new_state;
@@ -6485,107 +6442,6 @@ create_predicted_AHFA_state(
       }
   }
   bv_free(postdot_v);
-}
-
-@** Transition (TRANS) code.
-This code deals with data which is accessed
-as a function of AHFA state and symbol.
-The most important data
-of this type are the AHFA state transitions,
-which is why the per-AHFA-per-symbol data is called
-``transition" data.
-But per-AHFA symbol completion data is also
-a function of AHFA state and symbol.
-@ This operation is at the heart of the parse engine,
-and worth a careful look.
-Speed is probably optimal.
-Time complexity is fine --- $O(1)$ in the length of the input.
-@ This solution is is very space-intensive ---
-perhaps $O(\v g\v^2)$.
-But these arrays are extremely sparse,
-Many rows of the array have only one or two entries.
-There are alternatives
-which save a lot of space in return for a small overhead in time.
-@ A very similar problem has been the subject of considerable
-study ---
-LALR and LR(0) state tables.
-These also index by state and symbol, and their usage is very
-similar to that expected for the AHFA lookups.
-@ Bison's solution is probably worth study.
-This is a kind of perfect hashing, and quite complex.
-I do wonder if it would not be over-engineering
-in the libmarpa context.
-In practical applications, a binary search, or even
-a linear search,
-may have be fastest implementation for
-the average case.
-@ The trend is for memory to get cheap,
-favoring the sparse 2-dimensional array
-which is the present solution.
-But I expect the trend will also be for grammars to get larger.
-This would be a good issue to run some benchmarks on,
-once I stabilize the C code implemention.
-
-@d TRANS_of_AHFA_by_NSYID(from_ahfa, nsyid)
-    (*(TRANSs_of_AHFA(from_ahfa)+(nsyid)))
-@d TRANS_of_YIM_by_NSYID(yim, nsyid) TRANS_of_AHFA_by_NSYID(AHFA_of_YIM(yim), (nsyid))
-@ @s TRANS int
-@<Private incomplete structures@> =
-struct s_transition;
-typedef struct s_transition* TRANS;
-struct s_ur_transition;
-typedef struct s_ur_transition* URTRANS;
-@ @s AEX int
-@<Private typedefs@> = typedef int AEX;
-@ @<Private structures@> =
-struct s_ur_transition {
-    AHFA t_dummy;
-};
-typedef struct s_ur_transition URTRANS_Object;
-
-@ @<Private structures@> =
-struct s_transition {
-    struct s_ur_transition t_ur;
-};
-typedef struct s_transition TRANS_Object;
-
-@ @d TRANSs_of_AHFA(ahfa) ((ahfa)->t_transitions)
-@<Widely aligned AHFA state elements@> =
-    TRANS* t_transitions;
-
-@ @<Function definitions@> =
-PRIVATE
-URTRANS transition_new(struct marpa_obstack *obstack, AHFA to_ahfa, int aim_ix)
-{
-     URTRANS transition;
-     transition = marpa_obs_new (obstack, URTRANS_Object, 1);
-     return transition;
-}
-
-@ @<Function definitions@> =
-PRIVATE TRANS* transitions_new(GRAMMAR g, int nsy_count)
-{
-    int nsyid = 0;
-    TRANS* transitions = marpa_obs_new(g->t_obs, TRANS, nsy_count);
-    while (nsyid < nsy_count) transitions[nsyid++] = NULL; /*
-        |malloc0| will not work because NULL is not guaranteed
-        to be a bitwise zero. */
-    return transitions;
-}
-
-@ @<Function definitions@> =
-PRIVATE
-void
-transition_add (struct marpa_obstack *obstack, AHFA from_ahfa, NSYID nsyid,
-                AHFA to_ahfa)
-{
-    TRANS* transitions = TRANSs_of_AHFA(from_ahfa);
-    TRANS transition = transitions[nsyid];
-    if (!transition) {
-        transitions[nsyid] = (TRANS)transition_new(obstack, to_ahfa, 0);
-        return;
-    }
-    return;
 }
 
 @** AHFA trace functions.
