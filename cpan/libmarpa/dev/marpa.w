@@ -5736,7 +5736,7 @@ PRIVATE_NOT_INLINE int AHFA_state_cmp(
         }
       else
         {
-        @<Create a discovered AHFA state with 2+ items@>@;
+        if (0) { @<Create a discovered AHFA state with 2+ items@>@; }
         }
     NEXT_WORKING_SYMBOL:;
       if (current_item_ix >= no_of_items)

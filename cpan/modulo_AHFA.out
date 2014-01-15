@@ -50,58 +50,47 @@ t/00-load.t ............ ok
 # | 28|* S6:                     | 45|* S6:                     |
 # | 29|S -> A[] S[R0:1] .        | 46|S -> A[] S[R0:1] .        |
 # | 30|* S7:                     | 47|* S7:                     |
-# * 31|S[R0:1] -> A . S[R0:2]    * 48|S[R0:1] -> A[] S[R0:2] .  *
-# * 32|* S8: predict             * 49|* S8:                     *
-# * 33|S[R0:2] -> . A A          * 50|S[R0:2] -> A A .          *
-# * 34|S[R0:2] -> . A A[]        *   |                          |
-# * 35|S[R0:2] -> A[] . A        *   |                          |
-# * 36|A -> . a                  *   |                          |
-# | 37|* S9:                     | 51|* S9:                     |
-# * 38|S[R0:1] -> A S[R0:2] .    * 52|S -> A S[R0:1] .          *
-# | 39|* S10:                    | 53|* S10:                    |
-# * 40|S[R0:1] -> A A[] A[] .    * 54|S[R0:1] -> A S[R0:2] .    *
-# | 41|* S11:                    | 55|* S11:                    |
+# |   |                          * 48|S[R0:1] -> A[] S[R0:2] .  *
+# |   |                          * 49|* S8:                     *
+# |   |                          * 50|S[R0:2] -> A A .          *
+# |   |                          * 51|* S9:                     *
+# |   |                          * 52|S -> A S[R0:1] .          *
+# |   |                          * 53|* S10:                    *
+# |   |                          * 54|S[R0:1] -> A S[R0:2] .    *
+# |   |                          * 55|* S11:                    *
+# | 31|S[R0:1] -> A . S[R0:2]    | 56|S[R0:1] -> A . S[R0:2]    |
+# * 32|* S8: predict             * 57|S[R0:1] -> A A[] A[] .    *
+# |   |                          * 58|S[R0:2] -> A . A          *
+# |   |                          * 59|S[R0:2] -> A A[] .        *
+# |   |                          * 60|S[R0:2] -> A[] A .        *
+# |   |                          * 61| <A> => S8                *
+# |   |                          * 62| <S[R0:2]> => S10         *
+# |   |                          * 63|* S12: predict            *
+# | 33|S[R0:2] -> . A A          | 64|S[R0:2] -> . A A          |
+# | 34|S[R0:2] -> . A A[]        | 65|S[R0:2] -> . A A[]        |
+# | 35|S[R0:2] -> A[] . A        | 66|S[R0:2] -> A[] . A        |
+# | 36|A -> . a                  | 67|A -> . a                  |
+# * 37|* S9:                     * 68| <A> => S13; S14          *
+# * 38|S[R0:1] -> A S[R0:2] .    * 69| <a> => S5                *
+# * 39|* S10:                    * 70|* S13:                    *
+# * 40|S[R0:1] -> A A[] A[] .    *   |                          |
+# * 41|* S11:                    *   |                          |
 # * 42|S[R0:1] -> A[] S[R0:2] .  *   |                          |
 # * 43|* S12:                    *   |                          |
-# * 44|S[R0:2] -> A . A          *   |                          |
+# | 44|S[R0:2] -> A . A          | 71|S[R0:2] -> A . A          |
 # * 45|* S13: predict            *   |                          |
 # * 46|A -> . a                  *   |                          |
 # * 47|* S14:                    *   |                          |
 # * 48|S[R0:2] -> A A .          *   |                          |
 # * 49|* S15:                    *   |                          |
-# * 50|S[R0:2] -> A A[] .        *   |                          |
+# | 50|S[R0:2] -> A A[] .        | 72|S[R0:2] -> A A[] .        |
 # * 51|* S16:                    *   |                          |
-# * 52|S[R0:2] -> A[] A .        *   |                          |
-# * 53|* S17:                    *   |                          |
-# * 54|A -> a .                  *   |                          |
-# * 55|* S18:                    *   |                          |
-# * 56|S[\'] -> S .              *   |                          |
-# * 57|* S19:                    *   |                          |
-# * 58|S -> A . S[R0:1]          *   |                          |
-# * 59|S -> A A[] A[] A[] .      *   |                          |
-# | 60|S[R0:1] -> A . S[R0:2]    | 56|S[R0:1] -> A . S[R0:2]    |
-# | 61|S[R0:1] -> A A[] A[] .    | 57|S[R0:1] -> A A[] A[] .    |
-# | 62|S[R0:2] -> A . A          | 58|S[R0:2] -> A . A          |
-# | 63|S[R0:2] -> A A[] .        | 59|S[R0:2] -> A A[] .        |
-# | 64|S[R0:2] -> A[] A .        | 60|S[R0:2] -> A[] A .        |
-# * 65|* S20:                    * 61| <A> => S8                *
-# * 66|S[R0:1] -> A . S[R0:2]    * 62| <S[R0:2]> => S10         *
-# * 67|S[R0:1] -> A A[] A[] .    * 63|* S12: predict            *
-# |   |                          * 64|S[R0:2] -> . A A          *
-# |   |                          * 65|S[R0:2] -> . A A[]        *
-# |   |                          * 66|S[R0:2] -> A[] . A        *
-# |   |                          * 67|A -> . a                  *
-# |   |                          * 68| <A> => S13; S14          *
-# |   |                          * 69| <a> => S5                *
-# |   |                          * 70|* S13:                    *
-# | 68|S[R0:2] -> A . A          | 71|S[R0:2] -> A . A          |
-# | 69|S[R0:2] -> A A[] .        | 72|S[R0:2] -> A A[] .        |
-# | 70|S[R0:2] -> A[] A .        | 73|S[R0:2] -> A[] A .        |
-# * 71|* S21:                    * 74| <A> => S8                *
-# * 72|S[R0:2] -> A . A          * 75|* S14: predict            *
-# * 73|S[R0:2] -> A A[] .        * 76|A -> . a                  *
-# * 74|S[R0:2] -> A[] A .        * 77| <a> => S5                *
-# | 75|'                         | 78|'                         |
+# | 52|S[R0:2] -> A[] A .        | 73|S[R0:2] -> A[] A .        |
+# * 53|* S17:                    * 74| <A> => S8                *
+# * 54|A -> a .                  * 75|* S14: predict            *
+# * 55|* S18:                    * 76|A -> . a                  *
+# * 56|S[\'] -> S .              * 77| <a> => S5                *
+# | 57|'                         | 78|'                         |
 # +---+--------------------------+---+--------------------------+
 
 #   Failed test 'Aycock/Horspool Parse Status at earleme 1'
@@ -435,58 +424,47 @@ t/balanced.t ........... ok
 # | 28|* S6:                     | 45|* S6:                     |
 # | 29|S -> A[] S[R0:1] .        | 46|S -> A[] S[R0:1] .        |
 # | 30|* S7:                     | 47|* S7:                     |
-# * 31|S[R0:1] -> A . S[R0:2]    * 48|S[R0:1] -> A[] S[R0:2] .  *
-# * 32|* S8: predict             * 49|* S8:                     *
-# * 33|S[R0:2] -> . A A          * 50|S[R0:2] -> A A .          *
-# * 34|S[R0:2] -> . A A[]        *   |                          |
-# * 35|S[R0:2] -> A[] . A        *   |                          |
-# * 36|A -> . a                  *   |                          |
-# | 37|* S9:                     | 51|* S9:                     |
-# * 38|S[R0:1] -> A S[R0:2] .    * 52|S -> A S[R0:1] .          *
-# | 39|* S10:                    | 53|* S10:                    |
-# * 40|S[R0:1] -> A A[] A[] .    * 54|S[R0:1] -> A S[R0:2] .    *
-# | 41|* S11:                    | 55|* S11:                    |
+# |   |                          * 48|S[R0:1] -> A[] S[R0:2] .  *
+# |   |                          * 49|* S8:                     *
+# |   |                          * 50|S[R0:2] -> A A .          *
+# |   |                          * 51|* S9:                     *
+# |   |                          * 52|S -> A S[R0:1] .          *
+# |   |                          * 53|* S10:                    *
+# |   |                          * 54|S[R0:1] -> A S[R0:2] .    *
+# |   |                          * 55|* S11:                    *
+# | 31|S[R0:1] -> A . S[R0:2]    | 56|S[R0:1] -> A . S[R0:2]    |
+# * 32|* S8: predict             * 57|S[R0:1] -> A A[] A[] .    *
+# |   |                          * 58|S[R0:2] -> A . A          *
+# |   |                          * 59|S[R0:2] -> A A[] .        *
+# |   |                          * 60|S[R0:2] -> A[] A .        *
+# |   |                          * 61| <A> => S8                *
+# |   |                          * 62| <S[R0:2]> => S10         *
+# |   |                          * 63|* S12: predict            *
+# | 33|S[R0:2] -> . A A          | 64|S[R0:2] -> . A A          |
+# | 34|S[R0:2] -> . A A[]        | 65|S[R0:2] -> . A A[]        |
+# | 35|S[R0:2] -> A[] . A        | 66|S[R0:2] -> A[] . A        |
+# | 36|A -> . a                  | 67|A -> . a                  |
+# * 37|* S9:                     * 68| <A> => S13; S14          *
+# * 38|S[R0:1] -> A S[R0:2] .    * 69| <a> => S5                *
+# * 39|* S10:                    * 70|* S13:                    *
+# * 40|S[R0:1] -> A A[] A[] .    *   |                          |
+# * 41|* S11:                    *   |                          |
 # * 42|S[R0:1] -> A[] S[R0:2] .  *   |                          |
 # * 43|* S12:                    *   |                          |
-# * 44|S[R0:2] -> A . A          *   |                          |
+# | 44|S[R0:2] -> A . A          | 71|S[R0:2] -> A . A          |
 # * 45|* S13: predict            *   |                          |
 # * 46|A -> . a                  *   |                          |
 # * 47|* S14:                    *   |                          |
 # * 48|S[R0:2] -> A A .          *   |                          |
 # * 49|* S15:                    *   |                          |
-# * 50|S[R0:2] -> A A[] .        *   |                          |
+# | 50|S[R0:2] -> A A[] .        | 72|S[R0:2] -> A A[] .        |
 # * 51|* S16:                    *   |                          |
-# * 52|S[R0:2] -> A[] A .        *   |                          |
-# * 53|* S17:                    *   |                          |
-# * 54|A -> a .                  *   |                          |
-# * 55|* S18:                    *   |                          |
-# * 56|S[\'] -> S .              *   |                          |
-# * 57|* S19:                    *   |                          |
-# * 58|S -> A . S[R0:1]          *   |                          |
-# * 59|S -> A A[] A[] A[] .      *   |                          |
-# | 60|S[R0:1] -> A . S[R0:2]    | 56|S[R0:1] -> A . S[R0:2]    |
-# | 61|S[R0:1] -> A A[] A[] .    | 57|S[R0:1] -> A A[] A[] .    |
-# | 62|S[R0:2] -> A . A          | 58|S[R0:2] -> A . A          |
-# | 63|S[R0:2] -> A A[] .        | 59|S[R0:2] -> A A[] .        |
-# | 64|S[R0:2] -> A[] A .        | 60|S[R0:2] -> A[] A .        |
-# * 65|* S20:                    * 61| <A> => S8                *
-# * 66|S[R0:1] -> A . S[R0:2]    * 62| <S[R0:2]> => S10         *
-# * 67|S[R0:1] -> A A[] A[] .    * 63|* S12: predict            *
-# |   |                          * 64|S[R0:2] -> . A A          *
-# |   |                          * 65|S[R0:2] -> . A A[]        *
-# |   |                          * 66|S[R0:2] -> A[] . A        *
-# |   |                          * 67|A -> . a                  *
-# |   |                          * 68| <A> => S13; S14          *
-# |   |                          * 69| <a> => S5                *
-# |   |                          * 70|* S13:                    *
-# | 68|S[R0:2] -> A . A          | 71|S[R0:2] -> A . A          |
-# | 69|S[R0:2] -> A A[] .        | 72|S[R0:2] -> A A[] .        |
-# | 70|S[R0:2] -> A[] A .        | 73|S[R0:2] -> A[] A .        |
-# * 71|* S21:                    * 74| <A> => S8                *
-# * 72|S[R0:2] -> A . A          * 75|* S14: predict            *
-# * 73|S[R0:2] -> A A[] .        * 76|A -> . a                  *
-# * 74|S[R0:2] -> A[] A .        * 77| <a> => S5                *
-# | 75|'                         | 78|'                         |
+# | 52|S[R0:2] -> A[] A .        | 73|S[R0:2] -> A[] A .        |
+# * 53|* S17:                    * 74| <A> => S8                *
+# * 54|A -> a .                  * 75|* S14: predict            *
+# * 55|* S18:                    * 76|A -> . a                  *
+# * 56|S[\'] -> S .              * 77| <a> => S5                *
+# | 57|'                         | 78|'                         |
 # +---+--------------------------+---+--------------------------+
 
 #   Failed test 'Aycock/Horspool Parse Status'
@@ -815,18 +793,7 @@ t/dsl.t ................ ok
 # | 46|n -> a .                | 59|n -> a .                |
 # * 47|* S18:                  *   |                        |
 # * 48|S[\'] -> S .            *   |                        |
-# * 49|* S19:                  *   |                        |
-# * 50|p -> a .                *   |                        |
-# * 51|n -> a .                *   |                        |
-# * 52|* S20:                  *   |                        |
-# * 53|S -> p . p S[R0:2]      *   |                        |
-# * 54|S -> p p[] . S[R0:2]    *   |                        |
-# * 55|S -> p[] p . S[R0:2]    *   |                        |
-# * 56|S[R0:2] -> p . n        *   |                        |
-# * 57|* S21:                  *   |                        |
-# * 58|S -> p p[] S[R0:2] .    *   |                        |
-# * 59|S -> p[] p S[R0:2] .    *   |                        |
-# | 60|'                       | 60|'                       |
+# | 49|'                       | 60|'                       |
 # +---+------------------------+---+------------------------+
 # Looks like you failed 1 test of 5.
 t/duplicate_parse.t .... 
@@ -991,18 +958,7 @@ Failed 2/12 subtests
 # | 46|n -> a .                | 59|n -> a .                |
 # * 47|* S18:                  *   |                        |
 # * 48|S[\'] -> S .            *   |                        |
-# * 49|* S19:                  *   |                        |
-# * 50|p -> a .                *   |                        |
-# * 51|n -> a .                *   |                        |
-# * 52|* S20:                  *   |                        |
-# * 53|S -> p . p S[R0:2]      *   |                        |
-# * 54|S -> p p[] . S[R0:2]    *   |                        |
-# * 55|S -> p[] p . S[R0:2]    *   |                        |
-# * 56|S[R0:2] -> p . n        *   |                        |
-# * 57|* S21:                  *   |                        |
-# * 58|S -> p p[] S[R0:2] .    *   |                        |
-# * 59|S -> p[] p S[R0:2] .    *   |                        |
-# | 60|'                       | 60|'                       |
+# | 49|'                       | 60|'                       |
 # +---+------------------------+---+------------------------+
 # Looks like you failed 1 test of 10.
 t/final_nonnullable.t .. 
@@ -1067,15 +1023,9 @@ t/gabend.t ............. ok
 # | 33|* S12: leo-c                        | 49|* S12: leo-c                        |
 # | 34|Factor -> Factor Multiply Factor .  | 50|Factor -> Factor Multiply Factor .  |
 # | 35|* S13:                              | 51|* S13:                              |
-# * 36|Expression[\'] -> Expression .      *   |                                    |
-# * 37|* S14:                              *   |                                    |
-# * 38|Expression -> Term .                *   |                                    |
-# * 39|Term -> Term . Add Term             *   |                                    |
-# * 40|* S15:                              *   |                                    |
-# * 41|Term -> Factor .                    *   |                                    |
-# | 42|Factor -> Factor . Multiply Factor  | 52|Factor -> Factor . Multiply Factor  |
+# * 36|Expression[\'] -> Expression .      * 52|Factor -> Factor . Multiply Factor  *
 # |   |                                    * 53| <Multiply> => S8; S9               *
-# | 43|'                                   | 54|'                                   |
+# | 37|'                                   | 54|'                                   |
 # +---+------------------------------------+---+------------------------------------+
 
 #   Failed test 'Implementation Example Earley Sets'
@@ -1230,157 +1180,131 @@ t/initial_nulls.t ...... ok
 # |    |                                                                          *  65|* S18:                                                                    *
 # |  49|MetricSelect -> SELECT MetricExpr . ByClause MetricSelect[R3:3]           |  66|MetricSelect -> SELECT MetricExpr . ByClause MetricSelect[R3:3]           |
 # *  50|* S21: predict                                                            *  67|MetricSelect -> SELECT MetricExpr . ByClause Match[] Filter[] WithPf[]    *
-# *  51|ByClause -> . BY                                                          *  68|MetricSelect -> SELECT MetricExpr ByClause[] . MetricSelect[R3:3]         *
-# *  52|* S22:                                                                    *  69|MetricSelect -> SELECT MetricExpr ByClause[] Match[] Filter[] WithPf[] .  *
-# *  53|MetricSelect -> SELECT MetricExpr ByClause . MetricSelect[R3:3]           *  70| <ByClause> => S21; S22                                                   *
-# *  54|* S23: predict                                                            *  71| <MetricSelect[R3:3]> => S23                                              *
+# |    |                                                                          *  68|MetricSelect -> SELECT MetricExpr ByClause[] . MetricSelect[R3:3]         *
+# |    |                                                                          *  69|MetricSelect -> SELECT MetricExpr ByClause[] Match[] Filter[] WithPf[] .  *
+# |    |                                                                          *  70| <ByClause> => S21; S22                                                   *
+# |    |                                                                          *  71| <MetricSelect[R3:3]> => S23                                              *
 # |    |                                                                          *  72|* S19: predict                                                            *
-# |  55|MetricSelect[R3:3] -> . Match MetricSelect[R3:4]                          |  73|MetricSelect[R3:3] -> . Match MetricSelect[R3:4]                          |
-# |  56|MetricSelect[R3:3] -> . Match Filter[] WithPf[]                           |  74|MetricSelect[R3:3] -> . Match Filter[] WithPf[]                           |
-# |  57|MetricSelect[R3:3] -> Match[] . MetricSelect[R3:4]                        |  75|MetricSelect[R3:3] -> Match[] . MetricSelect[R3:4]                        |
-# |  58|MetricSelect[R3:4] -> . Filter WithPf                                     |  76|MetricSelect[R3:4] -> . Filter WithPf                                     |
-# |  59|MetricSelect[R3:4] -> . Filter WithPf[]                                   |  77|MetricSelect[R3:4] -> . Filter WithPf[]                                   |
-# |  60|MetricSelect[R3:4] -> Filter[] . WithPf                                   |  78|MetricSelect[R3:4] -> Filter[] . WithPf                                   |
-# |    |                                                                          *  79|ByClause -> . BY                                                          *
-# |  61|Match -> . FOR                                                            |  80|Match -> . FOR                                                            |
-# |  62|Filter -> . WHERE FilterExpr                                              |  81|Filter -> . WHERE FilterExpr                                              |
-# |  63|WithPf -> . WITH PF                                                       |  82|WithPf -> . WITH PF                                                       |
-# *  64|* S24:                                                                    *  83| <BY> => S24                                                              *
-# *  65|MetricSelect -> SELECT MetricExpr ByClause MetricSelect[R3:3] .           *  84| <FOR> => S25                                                             *
-# *  66|* S25:                                                                    *  85| <Filter> => S31; S32                                                     *
-# *  67|MetricSelect -> SELECT . MetricExpr ByClause Match[] Filter[] WithPf[]    *  86| <Match> => S29; S30                                                      *
-# *  68|* S26:                                                                    *  87| <MetricSelect[R3:4]> => S34                                              *
-# *  69|MetricSelect -> SELECT MetricExpr . ByClause Match[] Filter[] WithPf[]    *  88| <WHERE> => S26; S27                                                      *
-# *  70|* S27:                                                                    *  89| <WITH> => S28                                                            *
+# |    |                                                                          *  73|MetricSelect[R3:3] -> . Match MetricSelect[R3:4]                          *
+# |    |                                                                          *  74|MetricSelect[R3:3] -> . Match Filter[] WithPf[]                           *
+# |    |                                                                          *  75|MetricSelect[R3:3] -> Match[] . MetricSelect[R3:4]                        *
+# |    |                                                                          *  76|MetricSelect[R3:4] -> . Filter WithPf                                     *
+# |    |                                                                          *  77|MetricSelect[R3:4] -> . Filter WithPf[]                                   *
+# |    |                                                                          *  78|MetricSelect[R3:4] -> Filter[] . WithPf                                   *
+# |  51|ByClause -> . BY                                                          |  79|ByClause -> . BY                                                          |
+# *  52|* S22:                                                                    *  80|Match -> . FOR                                                            *
+# |    |                                                                          *  81|Filter -> . WHERE FilterExpr                                              *
+# |    |                                                                          *  82|WithPf -> . WITH PF                                                       *
+# |    |                                                                          *  83| <BY> => S24                                                              *
+# |    |                                                                          *  84| <FOR> => S25                                                             *
+# |    |                                                                          *  85| <Filter> => S31; S32                                                     *
+# |    |                                                                          *  86| <Match> => S29; S30                                                      *
+# |    |                                                                          *  87| <MetricSelect[R3:4]> => S34                                              *
+# |    |                                                                          *  88| <WHERE> => S26; S27                                                      *
+# |    |                                                                          *  89| <WITH> => S28                                                            *
 # |    |                                                                          *  90| <WithPf> => S33                                                          *
 # |    |                                                                          *  91|* S20:                                                                    *
 # |    |                                                                          *  92|MetricExpr -> NUMBER .                                                    *
 # |    |                                                                          *  93|* S21:                                                                    *
-# |    |                                                                          *  94|MetricSelect -> SELECT MetricExpr ByClause . MetricSelect[R3:3]           *
-# |  71|MetricSelect -> SELECT MetricExpr ByClause Match[] Filter[] WithPf[] .    |  95|MetricSelect -> SELECT MetricExpr ByClause Match[] Filter[] WithPf[] .    |
-# *  72|* S28:                                                                    *  96| <MetricSelect[R3:3]> => S35                                              *
-# *  73|MetricSelect -> SELECT . MetricExpr ByClause[] MetricSelect[R3:3]         *  97|* S22: predict                                                            *
-# *  74|* S29:                                                                    *  98|MetricSelect[R3:3] -> . Match MetricSelect[R3:4]                          *
-# *  75|MetricSelect -> SELECT MetricExpr ByClause[] . MetricSelect[R3:3]         *  99|MetricSelect[R3:3] -> . Match Filter[] WithPf[]                           *
-# *  76|* S30:                                                                    * 100|MetricSelect[R3:3] -> Match[] . MetricSelect[R3:4]                        *
+# |  53|MetricSelect -> SELECT MetricExpr ByClause . MetricSelect[R3:3]           |  94|MetricSelect -> SELECT MetricExpr ByClause . MetricSelect[R3:3]           |
+# *  54|* S23: predict                                                            *  95|MetricSelect -> SELECT MetricExpr ByClause Match[] Filter[] WithPf[] .    *
+# |    |                                                                          *  96| <MetricSelect[R3:3]> => S35                                              *
+# |    |                                                                          *  97|* S22: predict                                                            *
+# |  55|MetricSelect[R3:3] -> . Match MetricSelect[R3:4]                          |  98|MetricSelect[R3:3] -> . Match MetricSelect[R3:4]                          |
+# |  56|MetricSelect[R3:3] -> . Match Filter[] WithPf[]                           |  99|MetricSelect[R3:3] -> . Match Filter[] WithPf[]                           |
+# |  57|MetricSelect[R3:3] -> Match[] . MetricSelect[R3:4]                        | 100|MetricSelect[R3:3] -> Match[] . MetricSelect[R3:4]                        |
+# +----+--------------------------------------------------------------------------+----+--------------------------------------------------------------------------+
+# |  61|Match -> . FOR                                                            | 104|Match -> . FOR                                                            |
+# |  62|Filter -> . WHERE FilterExpr                                              | 105|Filter -> . WHERE FilterExpr                                              |
+# |  63|WithPf -> . WITH PF                                                       | 106|WithPf -> . WITH PF                                                       |
+# |    |                                                                          * 107| <FOR> => S25                                                             *
+# |    |                                                                          * 108| <Filter> => S31; S32                                                     *
+# |    |                                                                          * 109| <Match> => S29; S30                                                      *
+# |    |                                                                          * 110| <MetricSelect[R3:4]> => S34                                              *
+# |    |                                                                          * 111| <WHERE> => S26; S27                                                      *
+# |    |                                                                          * 112| <WITH> => S28                                                            *
+# |    |                                                                          * 113| <WithPf> => S33                                                          *
+# |    |                                                                          * 114|* S23:                                                                    *
+# |    |                                                                          * 115|MetricSelect -> SELECT MetricExpr ByClause[] MetricSelect[R3:3] .         *
+# |  64|* S24:                                                                    | 116|* S24:                                                                    |
+# *  65|MetricSelect -> SELECT MetricExpr ByClause MetricSelect[R3:3] .           * 117|ByClause -> BY .                                                          *
+# |  66|* S25:                                                                    | 118|* S25:                                                                    |
+# *  67|MetricSelect -> SELECT . MetricExpr ByClause Match[] Filter[] WithPf[]    * 119|Match -> FOR .                                                            *
+# |  68|* S26:                                                                    | 120|* S26:                                                                    |
+# *  69|MetricSelect -> SELECT MetricExpr . ByClause Match[] Filter[] WithPf[]    * 121|Filter -> WHERE . FilterExpr                                              *
+# *  70|* S27:                                                                    * 122| <FilterExpr> => S36                                                      *
+# *  71|MetricSelect -> SELECT MetricExpr ByClause Match[] Filter[] WithPf[] .    * 123|* S27: predict                                                            *
+# |    |                                                                          * 124|FilterExpr -> . TRUE                                                      *
+# |    |                                                                          * 125|FilterExpr -> . FALSE                                                     *
+# |    |                                                                          * 126| <FALSE> => S37                                                           *
+# |    |                                                                          * 127| <TRUE> => S38                                                            *
+# |  72|* S28:                                                                    | 128|* S28:                                                                    |
+# *  73|MetricSelect -> SELECT . MetricExpr ByClause[] MetricSelect[R3:3]         * 129|WithPf -> WITH . PF                                                       *
+# |    |                                                                          * 130| <PF> => S39                                                              *
+# |  74|* S29:                                                                    | 131|* S29:                                                                    |
+# *  75|MetricSelect -> SELECT MetricExpr ByClause[] . MetricSelect[R3:3]         *    |                                                                          |
+# *  76|* S30:                                                                    *    |                                                                          |
 # *  77|MetricSelect -> SELECT MetricExpr ByClause[] MetricSelect[R3:3] .         *    |                                                                          |
 # *  78|* S31:                                                                    *    |                                                                          |
 # *  79|MetricSelect -> SELECT . MetricExpr ByClause[] Match[] Filter[] WithPf[]  *    |                                                                          |
 # *  80|* S32:                                                                    *    |                                                                          |
 # *  81|MetricSelect -> SELECT MetricExpr ByClause[] Match[] Filter[] WithPf[] .  *    |                                                                          |
 # *  82|* S33:                                                                    *    |                                                                          |
-# *  83|MetricSelect[R3:3] -> Match . MetricSelect[R3:4]                          *    |                                                                          |
-# *  84|* S34: predict                                                            *    |                                                                          |
-# |  85|MetricSelect[R3:4] -> . Filter WithPf                                     | 101|MetricSelect[R3:4] -> . Filter WithPf                                     |
-# |  86|MetricSelect[R3:4] -> . Filter WithPf[]                                   | 102|MetricSelect[R3:4] -> . Filter WithPf[]                                   |
-# |  87|MetricSelect[R3:4] -> Filter[] . WithPf                                   | 103|MetricSelect[R3:4] -> Filter[] . WithPf                                   |
-# |    |                                                                          * 104|Match -> . FOR                                                            *
-# |  88|Filter -> . WHERE FilterExpr                                              | 105|Filter -> . WHERE FilterExpr                                              |
-# |  89|WithPf -> . WITH PF                                                       | 106|WithPf -> . WITH PF                                                       |
-# *  90|* S35:                                                                    * 107| <FOR> => S25                                                             *
-# *  91|MetricSelect[R3:3] -> Match MetricSelect[R3:4] .                          * 108| <Filter> => S31; S32                                                     *
-# *  92|* S36:                                                                    * 109| <Match> => S29; S30                                                      *
-# *  93|MetricSelect[R3:3] -> Match Filter[] WithPf[] .                           * 110| <MetricSelect[R3:4]> => S34                                              *
-# *  94|* S37:                                                                    * 111| <WHERE> => S26; S27                                                      *
-# *  95|MetricSelect[R3:3] -> Match[] MetricSelect[R3:4] .                        * 112| <WITH> => S28                                                            *
-# *  96|* S38:                                                                    * 113| <WithPf> => S33                                                          *
-# *  97|MetricSelect[R3:4] -> Filter . WithPf                                     * 114|* S23:                                                                    *
-# *  98|* S39: predict                                                            * 115|MetricSelect -> SELECT MetricExpr ByClause[] MetricSelect[R3:3] .         *
-# *  99|WithPf -> . WITH PF                                                       * 116|* S24:                                                                    *
+# |  83|MetricSelect[R3:3] -> Match . MetricSelect[R3:4]                          | 132|MetricSelect[R3:3] -> Match . MetricSelect[R3:4]                          |
+# *  84|* S34: predict                                                            * 133|MetricSelect[R3:3] -> Match Filter[] WithPf[] .                           *
+# |    |                                                                          * 134| <MetricSelect[R3:4]> => S40                                              *
+# |    |                                                                          * 135|* S30: predict                                                            *
+# |  85|MetricSelect[R3:4] -> . Filter WithPf                                     | 136|MetricSelect[R3:4] -> . Filter WithPf                                     |
+# |  86|MetricSelect[R3:4] -> . Filter WithPf[]                                   | 137|MetricSelect[R3:4] -> . Filter WithPf[]                                   |
+# |  87|MetricSelect[R3:4] -> Filter[] . WithPf                                   | 138|MetricSelect[R3:4] -> Filter[] . WithPf                                   |
+# |  88|Filter -> . WHERE FilterExpr                                              | 139|Filter -> . WHERE FilterExpr                                              |
+# |  89|WithPf -> . WITH PF                                                       | 140|WithPf -> . WITH PF                                                       |
+# *  90|* S35:                                                                    * 141| <Filter> => S31; S32                                                     *
+# *  91|MetricSelect[R3:3] -> Match MetricSelect[R3:4] .                          * 142| <WHERE> => S26; S27                                                      *
+# *  92|* S36:                                                                    * 143| <WITH> => S28                                                            *
+# *  93|MetricSelect[R3:3] -> Match Filter[] WithPf[] .                           * 144| <WithPf> => S33                                                          *
+# *  94|* S37:                                                                    * 145|* S31:                                                                    *
+# *  95|MetricSelect[R3:3] -> Match[] MetricSelect[R3:4] .                        *    |                                                                          |
+# *  96|* S38:                                                                    *    |                                                                          |
+# |  97|MetricSelect[R3:4] -> Filter . WithPf                                     | 146|MetricSelect[R3:4] -> Filter . WithPf                                     |
+# *  98|* S39: predict                                                            *    |                                                                          |
+# *  99|WithPf -> . WITH PF                                                       *    |                                                                          |
 # * 100|* S40:                                                                    *    |                                                                          |
 # * 101|MetricSelect[R3:4] -> Filter WithPf .                                     *    |                                                                          |
 # * 102|* S41:                                                                    *    |                                                                          |
-# * 103|MetricSelect[R3:4] -> Filter WithPf[] .                                   *    |                                                                          |
-# * 104|* S42:                                                                    *    |                                                                          |
-# * 105|MetricSelect[R3:4] -> Filter[] WithPf .                                   *    |                                                                          |
-# * 106|* S43:                                                                    *    |                                                                          |
-# * 107|MetricExpr -> NUMBER .                                                    *    |                                                                          |
-# * 108|* S44:                                                                    *    |                                                                          |
-# | 109|ByClause -> BY .                                                          | 117|ByClause -> BY .                                                          |
-# * 110|* S45:                                                                    * 118|* S25:                                                                    *
-# | 111|Match -> FOR .                                                            | 119|Match -> FOR .                                                            |
-# * 112|* S46:                                                                    * 120|* S26:                                                                    *
-# | 113|Filter -> WHERE . FilterExpr                                              | 121|Filter -> WHERE . FilterExpr                                              |
-# * 114|* S47: predict                                                            * 122| <FilterExpr> => S36                                                      *
-# |    |                                                                          * 123|* S27: predict                                                            *
-# | 115|FilterExpr -> . TRUE                                                      | 124|FilterExpr -> . TRUE                                                      |
-# | 116|FilterExpr -> . FALSE                                                     | 125|FilterExpr -> . FALSE                                                     |
-# * 117|* S48:                                                                    * 126| <FALSE> => S37                                                           *
-# * 118|Filter -> WHERE FilterExpr .                                              * 127| <TRUE> => S38                                                            *
-# * 119|* S49:                                                                    * 128|* S28:                                                                    *
-# * 120|FilterExpr -> TRUE .                                                      *    |                                                                          |
-# * 121|* S50:                                                                    *    |                                                                          |
-# * 122|FilterExpr -> FALSE .                                                     *    |                                                                          |
-# * 123|* S51:                                                                    *    |                                                                          |
-# | 124|WithPf -> WITH . PF                                                       | 129|WithPf -> WITH . PF                                                       |
-# * 125|* S52:                                                                    * 130| <PF> => S39                                                              *
-# * 126|WithPf -> WITH PF .                                                       * 131|* S29:                                                                    *
-# * 127|* S53:                                                                    *    |                                                                          |
-# * 128|Input[\'] -> Input .                                                      *    |                                                                          |
-# * 129|* S54:                                                                    *    |                                                                          |
-# * 130|Input -> Input[Seq] .                                                     *    |                                                                          |
-# * 131|Input -> Input[Seq] . SEPARATOR                                           *    |                                                                          |
-# * 132|Input[Seq] -> Input[Seq] . SEPARATOR Statement                            *    |                                                                          |
-# * 133|* S55:                                                                    *    |                                                                          |
-# * 134|MetricSelect -> SELECT . MetricExpr ByClause MetricSelect[R3:3]           *    |                                                                          |
-# * 135|MetricSelect -> SELECT . MetricExpr ByClause Match[] Filter[] WithPf[]    *    |                                                                          |
-# * 136|MetricSelect -> SELECT . MetricExpr ByClause[] MetricSelect[R3:3]         *    |                                                                          |
-# * 137|MetricSelect -> SELECT . MetricExpr ByClause[] Match[] Filter[] WithPf[]  *    |                                                                          |
-# * 138|* S56:                                                                    *    |                                                                          |
-# | 139|MetricSelect[R3:3] -> Match . MetricSelect[R3:4]                          | 132|MetricSelect[R3:3] -> Match . MetricSelect[R3:4]                          |
-# | 140|MetricSelect[R3:3] -> Match Filter[] WithPf[] .                           | 133|MetricSelect[R3:3] -> Match Filter[] WithPf[] .                           |
-# * 141|* S57:                                                                    * 134| <MetricSelect[R3:4]> => S40                                              *
-# * 142|MetricSelect[R3:4] -> Filter . WithPf                                     * 135|* S30: predict                                                            *
-# * 143|MetricSelect[R3:4] -> Filter WithPf[] .                                   *    |                                                                          |
-# * 144|* S58:                                                                    *    |                                                                          |
-# * 145|Input -> Input[Seq] SEPARATOR .                                           *    |                                                                          |
-# * 146|Input[Seq] -> Input[Seq] SEPARATOR . Statement                            *    |                                                                          |
-# * 147|* S59:                                                                    *    |                                                                          |
-# * 148|MetricSelect -> SELECT MetricExpr . ByClause MetricSelect[R3:3]           *    |                                                                          |
-# * 149|MetricSelect -> SELECT MetricExpr . ByClause Match[] Filter[] WithPf[]    *    |                                                                          |
-# * 150|MetricSelect -> SELECT MetricExpr ByClause[] . MetricSelect[R3:3]         *    |                                                                          |
-# * 151|MetricSelect -> SELECT MetricExpr ByClause[] Match[] Filter[] WithPf[] .  *    |                                                                          |
-# * 152|* S60: predict                                                            *    |                                                                          |
-# * 153|MetricSelect[R3:3] -> . Match MetricSelect[R3:4]                          *    |                                                                          |
-# * 154|MetricSelect[R3:3] -> . Match Filter[] WithPf[]                           *    |                                                                          |
-# * 155|MetricSelect[R3:3] -> Match[] . MetricSelect[R3:4]                        *    |                                                                          |
-# | 156|MetricSelect[R3:4] -> . Filter WithPf                                     | 136|MetricSelect[R3:4] -> . Filter WithPf                                     |
-# | 157|MetricSelect[R3:4] -> . Filter WithPf[]                                   | 137|MetricSelect[R3:4] -> . Filter WithPf[]                                   |
-# | 158|MetricSelect[R3:4] -> Filter[] . WithPf                                   | 138|MetricSelect[R3:4] -> Filter[] . WithPf                                   |
-# * 159|ByClause -> . BY                                                          *    |                                                                          |
-# * 160|Match -> . FOR                                                            *    |                                                                          |
-# | 161|Filter -> . WHERE FilterExpr                                              | 139|Filter -> . WHERE FilterExpr                                              |
-# | 162|WithPf -> . WITH PF                                                       | 140|WithPf -> . WITH PF                                                       |
-# * 163|* S61:                                                                    * 141| <Filter> => S31; S32                                                     *
-# * 164|MetricSelect -> SELECT MetricExpr ByClause . MetricSelect[R3:3]           * 142| <WHERE> => S26; S27                                                      *
-# * 165|MetricSelect -> SELECT MetricExpr ByClause Match[] Filter[] WithPf[] .    * 143| <WITH> => S28                                                            *
-# |    |                                                                          * 144| <WithPf> => S33                                                          *
-# |    |                                                                          * 145|* S31:                                                                    *
-# |    |                                                                          * 146|MetricSelect[R3:4] -> Filter . WithPf                                     *
-# |    |                                                                          * 147|MetricSelect[R3:4] -> Filter WithPf[] .                                   *
-# |    |                                                                          * 148| <WithPf> => S41                                                          *
+# | 103|MetricSelect[R3:4] -> Filter WithPf[] .                                   | 147|MetricSelect[R3:4] -> Filter WithPf[] .                                   |
+# * 104|* S42:                                                                    * 148| <WithPf> => S41                                                          *
 # |    |                                                                          * 149|* S32: predict                                                            *
 # |    |                                                                          * 150|WithPf -> . WITH PF                                                       *
 # |    |                                                                          * 151| <WITH> => S28                                                            *
 # |    |                                                                          * 152|* S33:                                                                    *
-# |    |                                                                          * 153|MetricSelect[R3:4] -> Filter[] WithPf .                                   *
-# |    |                                                                          * 154|* S34:                                                                    *
-# |    |                                                                          * 155|MetricSelect[R3:3] -> Match[] MetricSelect[R3:4] .                        *
-# |    |                                                                          * 156|* S35:                                                                    *
-# |    |                                                                          * 157|MetricSelect -> SELECT MetricExpr ByClause MetricSelect[R3:3] .           *
-# |    |                                                                          * 158|* S36:                                                                    *
-# |    |                                                                          * 159|Filter -> WHERE FilterExpr .                                              *
-# |    |                                                                          * 160|* S37:                                                                    *
-# |    |                                                                          * 161|FilterExpr -> FALSE .                                                     *
-# |    |                                                                          * 162|* S38:                                                                    *
-# |    |                                                                          * 163|FilterExpr -> TRUE .                                                      *
-# |    |                                                                          * 164|* S39:                                                                    *
-# |    |                                                                          * 165|WithPf -> WITH PF .                                                       *
-# |    |                                                                          * 166|* S40:                                                                    *
-# |    |                                                                          * 167|MetricSelect[R3:3] -> Match MetricSelect[R3:4] .                          *
+# | 105|MetricSelect[R3:4] -> Filter[] WithPf .                                   | 153|MetricSelect[R3:4] -> Filter[] WithPf .                                   |
+# * 106|* S43:                                                                    * 154|* S34:                                                                    *
+# * 107|MetricExpr -> NUMBER .                                                    * 155|MetricSelect[R3:3] -> Match[] MetricSelect[R3:4] .                        *
+# * 108|* S44:                                                                    * 156|* S35:                                                                    *
+# * 109|ByClause -> BY .                                                          * 157|MetricSelect -> SELECT MetricExpr ByClause MetricSelect[R3:3] .           *
+# * 110|* S45:                                                                    * 158|* S36:                                                                    *
+# * 111|Match -> FOR .                                                            *    |                                                                          |
+# * 112|* S46:                                                                    *    |                                                                          |
+# * 113|Filter -> WHERE . FilterExpr                                              *    |                                                                          |
+# * 114|* S47: predict                                                            *    |                                                                          |
+# * 115|FilterExpr -> . TRUE                                                      *    |                                                                          |
+# * 116|FilterExpr -> . FALSE                                                     *    |                                                                          |
+# * 117|* S48:                                                                    *    |                                                                          |
+# | 118|Filter -> WHERE FilterExpr .                                              | 159|Filter -> WHERE FilterExpr .                                              |
+# * 119|* S49:                                                                    * 160|* S37:                                                                    *
+# * 120|FilterExpr -> TRUE .                                                      *    |                                                                          |
+# * 121|* S50:                                                                    *    |                                                                          |
+# | 122|FilterExpr -> FALSE .                                                     | 161|FilterExpr -> FALSE .                                                     |
+# * 123|* S51:                                                                    * 162|* S38:                                                                    *
+# * 124|WithPf -> WITH . PF                                                       * 163|FilterExpr -> TRUE .                                                      *
+# * 125|* S52:                                                                    * 164|* S39:                                                                    *
+# | 126|WithPf -> WITH PF .                                                       | 165|WithPf -> WITH PF .                                                       |
+# * 127|* S53:                                                                    * 166|* S40:                                                                    *
+# * 128|Input[\'] -> Input .                                                      * 167|MetricSelect[R3:3] -> Match MetricSelect[R3:4] .                          *
 # |    |                                                                          * 168|* S41:                                                                    *
 # |    |                                                                          * 169|MetricSelect[R3:4] -> Filter WithPf .                                     *
-# | 166|'                                                                         | 170|'                                                                         |
+# | 129|'                                                                         | 170|'                                                                         |
 # +----+--------------------------------------------------------------------------+----+--------------------------------------------------------------------------+
 
 #   Failed test 'Earley Sets'
@@ -1463,15 +1387,17 @@ Failed 2/8 subtests
 # |   |                * 10| <C> => S4          *
 # |   |                * 11| <a> => S1; S3      *
 # |  9|* S2:           | 12|* S2:               |
-# * 10|S -> a . S      *   |                    |
+# |   |                * 13|S[\'] -> S .        *
+# |   |                * 14|* S3:               *
+# | 10|S -> a . S      | 15|S -> a . S          |
 # * 11|* S3: leo-c     *   |                    |
 # * 12|S -> a S .      *   |                    |
 # * 13|* S4:           *   |                    |
-# * 14|S -> a S[] .    *   |                    |
+# | 14|S -> a S[] .    | 16|S -> a S[] .        |
 # * 15|* S5:           *   |                    |
 # * 16|S -> C .        *   |                    |
 # * 17|* S6:           *   |                    |
-# * 18|C -> a . C b    *   |                    |
+# | 18|C -> a . C b    | 17|C -> a . C b        |
 # * 19|* S7: predict   *   |                    |
 # * 20|C -> . a C b    *   |                    |
 # * 21|C -> . a C[] b  *   |                    |
@@ -1480,31 +1406,22 @@ Failed 2/8 subtests
 # * 24|* S9:           *   |                    |
 # * 25|C -> a C b .    *   |                    |
 # * 26|* S10:          *   |                    |
-# * 27|C -> a C[] . b  *   |                    |
-# * 28|* S11:          *   |                    |
-# * 29|C -> a C[] b .  *   |                    |
-# * 30|* S12:          *   |                    |
-# | 31|S[\'] -> S .    | 13|S[\'] -> S .        |
-# * 32|* S13:          * 14|* S3:               *
-# | 33|S -> a . S      | 15|S -> a . S          |
-# | 34|S -> a S[] .    | 16|S -> a S[] .        |
-# | 35|C -> a . C b    | 17|C -> a . C b        |
-# | 36|C -> a C[] . b  | 18|C -> a C[] . b      |
-# * 37|* S14:          * 19| <C> => S7          *
-# * 38|C -> a . C b    * 20| <S> => S6; leo(S)  *
-# * 39|C -> a C[] . b  * 21| <b> => S5          *
+# | 27|C -> a C[] . b  | 18|C -> a C[] . b      |
+# * 28|* S11:          * 19| <C> => S7          *
+# |   |                * 20| <S> => S6; leo(S)  *
+# |   |                * 21| <b> => S5          *
 # |   |                * 22|* S4:               *
 # |   |                * 23|S -> C .            *
 # |   |                * 24|* S5:               *
-# |   |                * 25|C -> a C[] b .      *
-# |   |                * 26|* S6: leo-c         *
-# |   |                * 27|S -> a S .          *
+# | 29|C -> a C[] b .  | 25|C -> a C[] b .      |
+# * 30|* S12:          * 26|* S6: leo-c         *
+# * 31|S[\'] -> S .    * 27|S -> a S .          *
 # |   |                * 28|* S7:               *
 # |   |                * 29|C -> a C . b        *
 # |   |                * 30| <b> => S8          *
 # |   |                * 31|* S8:               *
 # |   |                * 32|C -> a C b .        *
-# | 40|'               | 33|'                   |
+# | 32|'               | 33|'                   |
 # +---+----------------+---+--------------------+
 # Looks like you failed 1 test of 17.
 t/leo.t ................ 
@@ -1524,20 +1441,17 @@ Failed 1/17 subtests
 # |  5|S -> . a S[]   |  6|S -> . a S[]        |
 # |   |               *  7| <a> => S1; S3      *
 # |  6|* S2:          |  8|* S2:               |
-# *  7|S -> a . S     *   |                    |
+# |   |               *  9|S[\'] -> S .        *
+# |   |               * 10|* S3:               *
+# |  7|S -> a . S     | 11|S -> a . S          |
 # *  8|* S3: leo-c    *   |                    |
 # *  9|S -> a S .     *   |                    |
 # * 10|* S4:          *   |                    |
-# * 11|S -> a S[] .   *   |                    |
-# * 12|* S5:          *   |                    |
-# | 13|S[\'] -> S .   |  9|S[\'] -> S .        |
-# * 14|* S6:          * 10|* S3:               *
-# | 15|S -> a . S     | 11|S -> a . S          |
-# | 16|S -> a S[] .   | 12|S -> a S[] .        |
-# |   |               * 13| <S> => S4; leo(S)  *
-# |   |               * 14|* S4: leo-c         *
+# | 11|S -> a S[] .   | 12|S -> a S[] .        |
+# * 12|* S5:          * 13| <S> => S4; leo(S)  *
+# * 13|S[\'] -> S .   * 14|* S4: leo-c         *
 # |   |               * 15|S -> a S .          *
-# | 17|'              | 16|'                   |
+# | 14|'              | 16|'                   |
 # +---+---------------+---+--------------------+
 
 #   Failed test 'Leo flag 0, size'
@@ -1600,10 +1514,7 @@ Failed 3/9 subtests
 # * 23|C -> S .       * 31|B -> C .            *
 # * 24|* S9:          *   |                    |
 # * 25|S[\'] -> S .   *   |                    |
-# * 26|* S10:         *   |                    |
-# * 27|S -> a . A     *   |                    |
-# * 28|S -> a A[] .   *   |                    |
-# | 29|'              | 32|'                   |
+# | 26|'              | 32|'                   |
 # +---+---------------+---+--------------------+
 
 #   Failed test 'Leo flag 0, size 80'
@@ -1685,10 +1596,7 @@ Failed 3/7 subtests
 # * 38|A -> B .       * 51|F -> G .             *
 # * 39|* S14:         *   |                     |
 # * 40|S[\'] -> S .   *   |                     |
-# * 41|* S15:         *   |                     |
-# * 42|S -> a . A     *   |                     |
-# * 43|S -> a A[] .   *   |                     |
-# | 44|'              | 52|'                    |
+# | 41|'              | 52|'                    |
 # +---+---------------+---+---------------------+
 
 #   Failed test 'size 5'
@@ -2090,15 +1998,7 @@ Failed 3/6 subtests
 # * 47|Lvalue -> Variable .                                *   |                                                    |
 # * 48|* S18:                                              *   |                                                    |
 # * 49|Statement[\'] -> Statement .                        *   |                                                    |
-# * 50|* S19:                                              *   |                                                    |
-# * 51|Expression -> Lvalue . AssignOp Expression          *   |                                                    |
-# * 52|Expression -> Lvalue . AddAssignOp Expression       *   |                                                    |
-# * 53|Expression -> Lvalue . MinusAssignOp Expression     *   |                                                    |
-# * 54|Expression -> Lvalue . MultiplyAssignOp Expression  *   |                                                    |
-# * 55|* S20:                                              *   |                                                    |
-# * 56|Expression -> Variable .                            *   |                                                    |
-# * 57|Lvalue -> Variable .                                *   |                                                    |
-# | 58|'                                                   | 60|'                                                   |
+# | 50|'                                                   | 60|'                                                   |
 # +---+----------------------------------------------------+---+----------------------------------------------------+
 
 #   Failed test 'Leo Example Earley Sets "Before"'
@@ -2216,10 +2116,7 @@ Failed 2/6 subtests
 # * 20|C -> c .       *   |                    |
 # * 21|* S9:          *   |                    |
 # * 22|A[\'] -> A .   *   |                    |
-# * 23|* S10:         *   |                    |
-# * 24|C -> c . A     *   |                    |
-# * 25|C -> c .       *   |                    |
-# | 26|'              | 28|'                   |
+# | 23|'              | 28|'                   |
 # +---+---------------+---+--------------------+
 
 #   Failed test 'Leo flag 0, size was 12 but 11 was expected'
@@ -2288,10 +2185,7 @@ t/limits.t ............. ok
 # * 28|E -> Number .        * 38|* S11: leo-c             *
 # * 29|* S12:               * 39|E -> E Minus E .         *
 # * 30|E[\'] -> E .         *   |                         |
-# * 31|* S13:               *   |                         |
-# * 32|E -> E . Minus E     *   |                         |
-# * 33|E -> E . MinusMinus  *   |                         |
-# | 34|'                    | 40|'                        |
+# | 31|'                    | 40|'                        |
 # +---+---------------------+---+-------------------------+
 # Looks like you failed 1 test of 10.
 t/minus.t .............. 
@@ -2594,6 +2488,6 @@ t/sl_ah2.t           (Wstat: 512 Tests: 26 Failed: 2)
 t/sl_gif1.t          (Wstat: 768 Tests: 22 Failed: 3)
   Failed tests:  17, 19, 21
   Non-zero exit status: 3
-Files=103, Tests=964, 49 wallclock secs ( 0.81 usr  0.37 sys + 44.48 cusr  2.48 csys = 48.14 CPU)
+Files=103, Tests=964, 47 wallclock secs ( 0.78 usr  0.36 sys + 44.30 cusr  2.39 csys = 47.83 CPU)
 Result: FAIL
 Failed 19/103 test programs. 45/964 subtests failed.
