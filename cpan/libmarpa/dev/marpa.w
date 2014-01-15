@@ -4842,9 +4842,13 @@ be found by incrementing the AIM pointer,
 the successor can be found by decrementing it,
 and AIM pointers can be portably compared.
 A lot of code relies on these facts.
-@d Next_AIM_of_AIM(aim) ((aim)+1)
 @d AIM_by_ID(id) (g->t_AHFA_items+(id))
 @d ID_of_AIM(aim) ((aim) - g->t_AHFA_items)
+@ These require the caller to make sure all the |AIM|'s
+involved exist.
+@d Next_AIM_of_AIM(aim) ((aim)+1)
+@d Prev_AIM_of_AIM(aim) ((aim)-1)
+
 @<Widely aligned grammar elements@> =
    AIM t_AHFA_items;
 @
@@ -11537,11 +11541,17 @@ and the index of the relevant AHFA item.
 @<Function definitions@> =
 PRIVATE AEX lim_base_data_get(LIM leo_item, YIM* p_base)
 {
-      const NSYID postdot_nsyid = Postdot_NSYID_of_LIM (leo_item);
       const YIM base = Base_YIM_of_LIM(leo_item);
-      const TRANS transition = TRANS_of_YIM_by_NSYID (base, postdot_nsyid);
       *p_base = base;
-      return Leo_Base_AEX_of_TRANS (transition);
+      if (YIM_is_Predicted(base)) {
+          const AHFA base_to_ahfa = Base_to_AHFA_of_LIM(leo_item);
+          const AIM base_to_aim = AIM_of_AHFA_by_AEX(base_to_ahfa, 0);
+          const AIM base_aim = Prev_AIM_of_AIM(base_to_aim);
+          const AHFA base_ahfa = AHFA_of_YIM(base);
+          /* A bit inefficient, but OK for now */
+          return AEX_of_AHFA_by_AIM(base_ahfa, base_aim);
+      }
+      return 0;
 }
 
 @
