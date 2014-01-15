@@ -5651,7 +5651,7 @@ PRIVATE_NOT_INLINE int AHFA_state_cmp(
    @<Resize the transitions@>@;
    @<Resort the AIMs and populate the Leo base AEXes@>@;
    @<Mark potential Leo bases@>
-   @<Populate the completed symbol data in the transitions@>@;
+   if (0) { @<Populate the completed symbol data in the transitions@>@; }
    @<Free locals for creating AHFA states@>@;
 }
 
