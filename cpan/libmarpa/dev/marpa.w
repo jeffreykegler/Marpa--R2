@@ -5657,7 +5657,6 @@ PRIVATE_NOT_INLINE int AHFA_state_cmp(
       // Populate singletons here
       previous_ahfa =
 	create_singleton_AHFA_state (g, aim, singleton_duplicates,
-				     obs_precompute, previous_ahfa,
 				     irl_by_sort_key, &states, duplicates,
 				     item_list_working_buffer,
 				     prediction_matrix);
@@ -5672,12 +5671,14 @@ PRIVATE_NOT_INLINE int AHFA_state_cmp(
    @<Free locals for creating AHFA states@>@;
 }
 
-@ @<Declare locals for creating AHFA states@> =
+@ |singleton_duplicates| can probably be eliminated once
+I no longer special-case the start rule.
+|duplicates| can probably be eliminated once predictions
+get special handling.
+@<Declare locals for creating AHFA states@> =
    const int initial_no_of_states = 2*AIM_Count_of_G(g);
    Bit_Matrix prediction_matrix;
    IRL* irl_by_sort_key = marpa_new(IRL, irl_count);
-  Bit_Vector per_ahfa_complete_v = bv_obs_create (obs_precompute, nsy_count);
-  Bit_Vector per_ahfa_postdot_v = bv_obs_create (obs_precompute, nsy_count);
     MARPA_AVL_TREE duplicates;
       AHFA* singleton_duplicates;
    DQUEUE_DECLARE(states);
@@ -5744,7 +5745,9 @@ PRIVATE_NOT_INLINE int AHFA_state_cmp(
   my_free(singleton_duplicates);
   _marpa_avl_destroy(duplicates);
 
-@ @<Construct initial AHFA states@> =
+@ I am not sure there is a need to special-case these
+any more.
+@<Construct initial AHFA states@> =
 {
   AHFA p_initial_state = DQUEUE_PUSH (states, AHFA_Object);
   const IRL start_irl = g->t_start_irl;
@@ -5808,8 +5811,6 @@ create_singleton_AHFA_state(
     GRAMMAR g,
     AIM base_aim,
       AHFA* singleton_duplicates,
-    struct marpa_obstack *obs_precompute,
-    AHFA previous_ahfa,
      IRL* irl_by_sort_key,
      DQUEUE states_p,
      MARPA_AVL_TREE duplicates,
@@ -5824,11 +5825,7 @@ create_singleton_AHFA_state(
     AIM* new_state_item_list;
     NSYID postdot_nsyid;
     const Marpa_AHFA_Item_ID working_aim_id = base_aim - AHFA_item_0_p;
-    NSYID transition_nsyid;
     
-    MARPA_OFF_DEBUG2("create_singleton_AHFA_state(AIM %d)", working_aim_id);
-
-    transition_nsyid = Postdot_NSYID_of_AIM (base_aim-1);
     new_ahfa = singleton_duplicates[working_aim_id]; /* This will not
     be necessary after transition to singleton-only AHFA states */
     if (new_ahfa)
@@ -10572,7 +10569,6 @@ if we are here.
     if (!psia_test_and_set
         (bocage_setup_obs, per_ys_data, ur_earley_item, 0))
       {
-        const AIM ur_aim = AIM_of_YIM_by_AEX(ur_earley_item, 0);
         ur_node_push (ur_node_stack, ur_earley_item, 0);
       }
 }
@@ -10677,8 +10673,6 @@ Set_boolean_in_PSIA_for_initial_nulls (struct marpa_obstack *bocage_setup_obs,
   SRCL source_link = NULL;
   YIM predecessor_earley_item = NULL;
   YIM cause_earley_item = NULL;
-  const NSYID transition_symbol_nsyid =
-    Postdot_NSYID_of_AIM (predecessor_aim);
   switch (source_type)
     {
     case SOURCE_IS_COMPLETION:
@@ -11643,7 +11637,6 @@ predecessor.  Set |or_node| to 0 if there is none.
 
 @ @<Add draft and-nodes to the bottom or-node@> =
 {
-  const NSYID transition_nsyid = Postdot_NSYID_of_LIM (leo_predecessor);
   OR dand_cause;
     /* There is now only one AEX in a completion */
   Set_OR_from_YIM_and_AEX (dand_cause, cause_earley_item, 0);
@@ -11746,7 +11739,6 @@ predecessor.  Set |or_node| to 0 if there is none.
   SRCL source_link = NULL;
   YIM predecessor_earley_item = NULL;
   YIM cause_earley_item = NULL;
-  const NSYID transition_symbol_nsyid = Postdot_NSYID_of_AIM(work_predecessor_aim);
   switch (work_source_type)
     {
     case SOURCE_IS_COMPLETION:
