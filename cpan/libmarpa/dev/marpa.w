@@ -5653,7 +5653,7 @@ PRIVATE_NOT_INLINE int AHFA_state_cmp(
        the |DQUEUE|'s data */
    ahfa_count_of_g = AHFA_Count_of_G(g);
    @<Resize the transitions@>@;
-   @<Resort the AIMs and populate the Leo base AEXes@>@;
+   @<Resort the AIMs@>@;
    @<Mark potential Leo bases@>
    @<Free locals for creating AHFA states@>@;
 }
@@ -5742,23 +5742,17 @@ NEXT_AHFA_STATE:;
       AHFA ahfa = AHFA_of_G_by_ID (g, ahfa_id);
       TRANS *const transitions = TRANSs_of_AHFA (ahfa);
       for (nsyid = 0; nsyid < nsy_count; nsyid++)
-        {
-          TRANS working_transition = transitions[nsyid];
-          if (working_transition)
-            {
-              size_t sizeof_transition =
-                offsetof (struct s_transition,
-                          t_aex);
+	{
+	  TRANS working_transition = transitions[nsyid];
+	  if (working_transition)
+	    {
+	      TRANS new_transition = marpa_obs_new (g->t_obs, TRANS, 1);
 
-              /* Needs to be aligned as a TRANS */
-              TRANS new_transition =
-                marpa__obs_alloc (g->t_obs, sizeof_transition, ALIGNOF(TRANS_Object));
-
-              LV_To_AHFA_of_TRANS (new_transition) =
-                To_AHFA_of_TRANS (working_transition);
-              transitions[nsyid] = new_transition;
-            }
-        }
+	      LV_To_AHFA_of_TRANS (new_transition) =
+		To_AHFA_of_TRANS (working_transition);
+	      transitions[nsyid] = new_transition;
+	    }
+	}
     }
 }
 
@@ -5769,37 +5763,15 @@ The AEX is memoized, instead of the AIM,
 because, in one of the efficiency hacks,
 the AEX will be used as the index of an array.
 You can get the AIM from the AEX, but not vice versa.
-@<Resort the AIMs and populate the Leo base AEXes@> =
+@<Resort the AIMs@> =
 {
   int ahfa_id;
   for (ahfa_id = 0; ahfa_id < ahfa_count_of_g; ahfa_id++)
     {
       AHFA from_ahfa = AHFA_of_G_by_ID (g, ahfa_id);
-      TRANS *const transitions = TRANSs_of_AHFA (from_ahfa);
       AIM *aims = AIMs_of_AHFA (from_ahfa);
       int aim_count = AIM_Count_of_AHFA (from_ahfa);
-      AEX aex;
       qsort (aims, (size_t)aim_count, sizeof (AIM *), cmp_by_aimid);
-      for (aex = 0; aex < aim_count; aex++)
-        {
-          AIM from_ahfa_item = aims[aex];
-          NSYID postdot_nsyid = Postdot_NSYID_of_AIM (from_ahfa_item);
-          if (postdot_nsyid >= 0)
-            {
-              /* There is a next AIM because there is a postdot symbol */
-              AIM next_aim = Next_AIM_of_AIM(from_ahfa_item);
-              TRANS transition = transitions[postdot_nsyid];
-              AHFA to_ahfa = AHFA_of_AIM(next_aim);
-              if (to_ahfa && AHFA_is_Leo_Completion (to_ahfa))
-                {
-                  Leo_Base_AEX_of_TRANS (transition) = aex;
-                }
-              else
-                {
-                  Leo_Base_AEX_of_TRANS (transition) = -1;
-                }
-            }
-        }
     }
 }
 
@@ -6548,8 +6520,6 @@ once I stabilize the C code implemention.
 @d To_AHFA_of_AHFA_by_NSYID(from_ahfa, id)
      (To_AHFA_of_TRANS(TRANS_of_AHFA_by_NSYID((from_ahfa), (id))))
 @d To_AHFA_of_YIM_by_NSYID(yim, id) To_AHFA_of_AHFA_by_NSYID(AHFA_of_YIM(yim), (id))
-@d AEXs_of_TRANS(trans) ((trans)->t_aex)
-@d Leo_Base_AEX_of_TRANS(trans) ((trans)->t_leo_base_aex)
 @ @s TRANS int
 @<Private incomplete structures@> =
 struct s_transition;
@@ -6567,8 +6537,6 @@ typedef struct s_ur_transition URTRANS_Object;
 @ @<Private structures@> =
 struct s_transition {
     struct s_ur_transition t_ur;
-    AEX t_leo_base_aex;
-    AEX t_aex[1];
 };
 typedef struct s_transition TRANS_Object;
 
