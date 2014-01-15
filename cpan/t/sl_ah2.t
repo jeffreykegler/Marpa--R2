@@ -76,20 +76,20 @@ END_OF_AMBIGUITY_DESC
 
 $ambiguity_expected[2] = <<'END_OF_AMBIGUITY_DESC';
 Length of symbol "A" at line 1, column 1 is ambiguous
-  Choice 1 is zero length
-  Choice 2, length=1, ends at line 1, column 1
-  Choice 2: a
+  Choice 1, length=1, ends at line 1, column 1
+  Choice 1: a
+  Choice 2 is zero length
 END_OF_AMBIGUITY_DESC
 
 $ambiguity_expected[3] = <<'END_OF_AMBIGUITY_DESC';
 Length of symbol "A" at line 1, column 1 is ambiguous
-  Choice 1 is zero length
-  Choice 2, length=1, ends at line 1, column 1
-  Choice 2: a
-Length of symbol "A" at line 1, column 2 is ambiguous
-  Choice 1, length=1, ends at line 1, column 2
+  Choice 1, length=1, ends at line 1, column 1
   Choice 1: a
   Choice 2 is zero length
+Length of symbol "A" at line 1, column 2 is ambiguous
+  Choice 1 is zero length
+  Choice 2, length=1, ends at line 1, column 2
+  Choice 2: a
 END_OF_AMBIGUITY_DESC
 
 $ambiguity_expected[4] = 'No ambiguity';
