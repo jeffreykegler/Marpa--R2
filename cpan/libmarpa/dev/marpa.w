@@ -5764,8 +5764,6 @@ NEXT_AHFA_STATE:;
 	    {
 	      TRANS new_transition = marpa_obs_new (g->t_obs, TRANS_Object, 1);
 
-	      LV_To_AHFA_of_TRANS (new_transition) =
-		To_AHFA_of_TRANS (working_transition);
 	      transitions[nsyid] = new_transition;
 	    }
 	}
@@ -6531,8 +6529,6 @@ once I stabilize the C code implemention.
 @d TRANS_of_AHFA_by_NSYID(from_ahfa, nsyid)
     (*(TRANSs_of_AHFA(from_ahfa)+(nsyid)))
 @d TRANS_of_YIM_by_NSYID(yim, nsyid) TRANS_of_AHFA_by_NSYID(AHFA_of_YIM(yim), (nsyid))
-@d To_AHFA_of_TRANS(trans) (to_ahfa_of_transition_get(trans))
-@d LV_To_AHFA_of_TRANS(trans) ((trans)->t_ur.t_to_ahfa)
 @ @s TRANS int
 @<Private incomplete structures@> =
 struct s_transition;
@@ -6543,7 +6539,7 @@ typedef struct s_ur_transition* URTRANS;
 @<Private typedefs@> = typedef int AEX;
 @ @<Private structures@> =
 struct s_ur_transition {
-    AHFA t_to_ahfa;
+    AHFA t_dummy;
 };
 typedef struct s_ur_transition URTRANS_Object;
 
@@ -6556,12 +6552,6 @@ typedef struct s_transition TRANS_Object;
 @ @d TRANSs_of_AHFA(ahfa) ((ahfa)->t_transitions)
 @<Widely aligned AHFA state elements@> =
     TRANS* t_transitions;
-@ @<Function definitions@> =
-PRIVATE AHFA to_ahfa_of_transition_get(TRANS transition)
-{
-     if (!transition) return NULL;
-     return transition->t_ur.t_to_ahfa;
-}
 
 @ @<Function definitions@> =
 PRIVATE
@@ -6569,7 +6559,6 @@ URTRANS transition_new(struct marpa_obstack *obstack, AHFA to_ahfa, int aim_ix)
 {
      URTRANS transition;
      transition = marpa_obs_new (obstack, URTRANS_Object, 1);
-     transition->t_to_ahfa = to_ahfa;
      return transition;
 }
 
@@ -6596,46 +6585,10 @@ transition_add (struct marpa_obstack *obstack, AHFA from_ahfa, NSYID nsyid,
         transitions[nsyid] = (TRANS)transition_new(obstack, to_ahfa, 0);
         return;
     }
-    LV_To_AHFA_of_TRANS(transition) = to_ahfa;
     return;
 }
 
 @** AHFA trace functions.
-@ @<Function definitions@> =
-int _marpa_g_AHFA_state_transitions(Marpa_Grammar g,
-    Marpa_AHFA_State_ID AHFA_state_id,
-    int *buffer,
-    int buffer_size
-    ) {
-
-    @<Return |-2| on failure@>@;
-    AHFA from_ahfa_state;
-    TRANS* transitions;
-    XSYID nsyid;
-    int nsy_count;
-    int ix = 0;
-    const int max_ix = buffer_size / (int)sizeof(*buffer);
-    const int max_results = max_ix / 2;
-    /* Rounding is important -- with 32-bits ints,
-      the number of results which fit into 15 bytes is 1.
-      The number of results which fit into 7 bytes is zero.
-      */
-
-    @<Fail if not precomputed@>@;
-    @<Fail if |AHFA_state_id| is invalid@>@;
-    if (max_results <= 0) return 0;
-    from_ahfa_state = AHFA_of_G_by_ID(g, AHFA_state_id);
-    transitions = TRANSs_of_AHFA(from_ahfa_state); 
-    nsy_count = NSY_Count_of_G(g);
-    for (nsyid = 0; nsyid < nsy_count; nsyid++) {
-        AHFA to_ahfa_state = To_AHFA_of_TRANS(transitions[nsyid]);
-        if (!to_ahfa_state) continue;
-        buffer[ix++] = nsyid;
-        buffer[ix++] = ID_of_AHFA(to_ahfa_state);
-        if (ix/2 >= max_results) break;
-    }
-    return ix/2;
-}
 
 @** Empty transition code.
 @d Empty_Transition_of_AHFA(state) ((state)->t_empty_transition)
@@ -12012,8 +11965,6 @@ predecessor.  Set |or_node| to 0 if there is none.
 {
   const NSYID transition_nsyid = Postdot_NSYID_of_LIM (leo_predecessor);
   OR dand_cause;
-  const TRANS cause_completion_data =
-    TRANS_of_YIM_by_NSYID (cause_earley_item, transition_nsyid);
     /* There is now only one AEX in a completion */
   Set_OR_from_YIM_and_AEX (dand_cause, cause_earley_item, 0);
   draft_and_node_add (bocage_setup_obs, path_or_node,
@@ -12134,8 +12085,6 @@ predecessor.  Set |or_node| to 0 if there is none.
     }
   while (cause_earley_item)
     {
-      const TRANS cause_completion_data =
-        TRANS_of_YIM_by_NSYID (cause_earley_item, transition_symbol_nsyid);
             @<Add draft and-node for completion source@>@;
       if (!source_link) break;
       predecessor_earley_item = Predecessor_of_SRCL (source_link);

@@ -257,32 +257,6 @@ sub show_AHFA {
 
         next STATE if not $verbose;
 
-        my @raw_transitions =
-            $grammar_c->_marpa_g_AHFA_state_transitions($state_id);
-        my %transitions = ();
-        while ( my ( $isy_id, $to_state_id ) = splice @raw_transitions, 0, 2 )
-        {
-            my $symbol_name = $self->isy_name($isy_id);
-            $transitions{$symbol_name} = $to_state_id;
-        }
-        for my $transition_symbol ( sort keys %transitions ) {
-            $text .= ' <' . $transition_symbol . '> => ';
-            my $to_state_id = $transitions{$transition_symbol};
-            my @to_descs    = ("S$to_state_id");
-            my $lhs_id =
-                $grammar_c->_marpa_g_AHFA_state_leo_lhs_symbol($to_state_id);
-            if ( defined $lhs_id ) {
-                my $lhs_name = $self->isy_name($lhs_id);
-                push @to_descs, "leo($lhs_name)";
-            }
-            my $empty_transition_state =
-                $grammar_c->_marpa_g_AHFA_state_empty_transition(
-                $to_state_id);
-            $empty_transition_state >= 0
-                and push @to_descs, "S$empty_transition_state";
-            $text .= ( join q{; }, sort @to_descs ) . "\n";
-        } ## end for my $transition_symbol ( sort keys %transitions )
-
     } ## end STATE: for ( my $state_id = 0; $state_id < $AHFA_state_count...)
     return $text;
 } ## end sub show_AHFA
