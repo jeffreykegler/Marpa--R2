@@ -5664,9 +5664,6 @@ PRIVATE_NOT_INLINE int AHFA_state_cmp(
     }
 }
 
-   while ((p_working_state = DQUEUE_NEXT(states, AHFA_Object))) {
-       @<Process an AHFA state from the working stack@>@;
-   }
    g->t_AHFA = DQUEUE_BASE(states, AHFA_Object); /* ``Steals"
        the |DQUEUE|'s data */
    ahfa_count_of_g = AHFA_Count_of_G(g);
@@ -5676,7 +5673,6 @@ PRIVATE_NOT_INLINE int AHFA_state_cmp(
 }
 
 @ @<Declare locals for creating AHFA states@> =
-   AHFA p_working_state;
    const int initial_no_of_states = 2*AIM_Count_of_G(g);
    Bit_Matrix prediction_matrix;
    IRL* irl_by_sort_key = marpa_new(IRL, irl_count);
@@ -5702,50 +5698,6 @@ PRIVATE_NOT_INLINE int AHFA_state_cmp(
       singleton_duplicates[item_id] = NULL;
       // All zero bits are not necessarily a NULL pointer
     }
-}
-
-@ @<Process an AHFA state from the working stack@> =
-{
-  int no_of_items = p_working_state->t_item_count;
-  int current_item_ix = 0;
-  AIM *item_list;
-  NSYID working_nsyid;
-  item_list = p_working_state->t_items;
-  /* \comment Every AHFA has at least one item */
-  working_nsyid = Postdot_NSYID_of_AIM (item_list[0]); 
-    /* \comment All items in this state are completions */
-  if (working_nsyid < 0)
-    goto NEXT_AHFA_STATE;   
-  while (1)
-    {                           /* Loop over all items for this state */
-      int first_working_item_ix = current_item_ix;
-      int no_of_items_in_new_state;
-      for (current_item_ix++;
-           current_item_ix < no_of_items; current_item_ix++)
-        {
-          if (Postdot_NSYID_of_AIM (item_list[current_item_ix]) !=
-              working_nsyid)
-            break;
-        }
-      no_of_items_in_new_state = current_item_ix - first_working_item_ix;
-      if (no_of_items_in_new_state == 1)
-        {
-          const AIMID id_of_aim = ID_of_AIM(item_list[first_working_item_ix]+1);
-          const AHFA singleton_ahfa = singleton_duplicates[id_of_aim];
-          MARPA_ASSERT(singleton_ahfa);
-        }
-      else
-        {
-        if (0) { @<Create a discovered AHFA state with 2+ items@>@; }
-        }
-    NEXT_WORKING_SYMBOL:;
-      if (current_item_ix >= no_of_items)
-        break;
-      working_nsyid = Postdot_NSYID_of_AIM (item_list[current_item_ix]);
-      if (working_nsyid < 0)
-        break;
-    }
-NEXT_AHFA_STATE:;
 }
 
 @ @<Resort the AIMs@> =
@@ -6028,99 +5980,6 @@ of minimum sizes.
   _marpa_avl_destroy (lhs_avl_tree);
 }
 
-@ @<Create a discovered AHFA state with 2+ items@> =
-{
-  AHFA p_new_state;
-  int predecessor_ix;
-  int no_of_new_items_so_far = 0;
-  AHFA queued_AHFA_state;
-  p_new_state = DQUEUE_PUSH (states, AHFA_Object);
-  p_new_state->t_item_count = no_of_items_in_new_state;
-  for (predecessor_ix = first_working_item_ix;
-       predecessor_ix < current_item_ix; predecessor_ix++)
-    {
-      int pre_insertion_point_ix = no_of_new_items_so_far - 1;
-      AIM new_item_p = item_list[predecessor_ix] + 1;   // Transition to the next item
-      while (pre_insertion_point_ix >= 0)
-        {                       // Insert the new item, ordered by |sort_key|
-          AIM *current_item_pp =
-            item_list_working_buffer + pre_insertion_point_ix;
-          if (Sort_Key_of_AIM (new_item_p) >=
-              Sort_Key_of_AIM (*current_item_pp))
-            break;
-          *(current_item_pp + 1) = *current_item_pp;
-          pre_insertion_point_ix--;
-        }
-      item_list_working_buffer[pre_insertion_point_ix + 1] = new_item_p;
-      no_of_new_items_so_far++;
-    }
-  p_new_state->t_items = item_list_working_buffer;
-  queued_AHFA_state = assign_AHFA_state (p_new_state, duplicates);
-  if (queued_AHFA_state)
-    {                           // The new state would be a duplicate
-// Back it out and go on to the next in the queue
-      (void) DQUEUE_POP (states, AHFA_Object);
-      goto NEXT_WORKING_SYMBOL;
-    }
-  // If we added the new state, finish up its data.
-  {
-      int i;
-      AIM* const final_aim_list = p_new_state->t_items =
-          marpa_obs_new( g->t_obs, AIM, no_of_items_in_new_state);
-      for (i = 0; i < no_of_items_in_new_state; i++) {
-          final_aim_list[i] = item_list_working_buffer[i];
-      }
-  }
-  AHFA_initialize (g, p_new_state);
-  AHFA_is_Predicted (p_new_state) = 0;
-  @<Calculate complete and postdot symbols
-    for discovered state with 2+ items@>@;
-  @<Calculate the predicted rule vector for
-    state with 2+ items, and add the predicted AHFA state@>@;
-}
-
-@ @<Calculate complete and postdot symbols
-for discovered state with 2+ items@> =
-{
-  int item_ix;
-  int no_of_postdot_nsys;
-  bv_clear (per_ahfa_complete_v);
-  bv_clear (per_ahfa_postdot_v);
-  for (item_ix = 0; item_ix < no_of_items_in_new_state; item_ix++)
-    {
-      AIM item = item_list_working_buffer[item_ix];
-      NSYID postdot_nsyid = Postdot_NSYID_of_AIM (item);
-      if (postdot_nsyid < 0)
-        {
-          NSYID complete_symbol_nsyid = LHS_NSYID_of_AIM (item);
-          bv_bit_set (per_ahfa_complete_v,
-                      complete_symbol_nsyid);
-        }
-      else
-        {
-          bv_bit_set (per_ahfa_postdot_v, postdot_nsyid);
-        }
-    }
-  if ((no_of_postdot_nsys = Postdot_NSY_Count_of_AHFA (p_new_state) =
-       bv_count (per_ahfa_postdot_v)))
-    {
-      int min, max, start;
-      NSYID *p_nsyid = Postdot_NSYIDAry_of_AHFA (p_new_state) =
-        marpa_obs_new (g->t_obs, NSYID, no_of_postdot_nsys );
-      for (start = 0; bv_scan (per_ahfa_postdot_v, start, &min, &max);
-           start = max + 2)
-        {
-          NSYID postdot_nsyid;
-          for (postdot_nsyid = min;
-               postdot_nsyid <= max; postdot_nsyid++)
-            {
-              *p_nsyid++ = postdot_nsyid;
-            }
-        }
-    }
-  Completion_CIL_of_AHFA (p_new_state) = cil_bv_add (&g->t_cilar, per_ahfa_complete_v);
-}
-
 @ Find the AHFA state in the argument,
 creating it if it does not exist.
 When it does not exist, insert it
@@ -6133,41 +5992,6 @@ assign_AHFA_state (AHFA sought_state, MARPA_AVL_TREE duplicates)
 {
   const AHFA state_found = _marpa_avl_insert(duplicates, sought_state);
   return state_found;
-}
-
-@ @<Calculate the predicted rule vector for
-    state with 2+ items, and add the predicted AHFA state@> =
-{
-  int item_ix;
-  NSYID postdot_nsyid = -1;     // Initialized to prevent GCC warning
-  for (item_ix = 0; item_ix < no_of_items_in_new_state; item_ix++)
-    {
-      postdot_nsyid = Postdot_NSYID_of_AIM (item_list_working_buffer[item_ix]);
-      if (postdot_nsyid >= 0)
-        break;
-    }
-  p_new_state->t_empty_transition = NULL;
-  if (postdot_nsyid >= 0)
-    {                           /* If any item is not a completion ... */
-      Bit_Vector predicted_rule_vector
-        = bv_shadow (matrix_row (prediction_matrix, postdot_nsyid));
-      for (item_ix = 0; item_ix < no_of_items_in_new_state; item_ix++)
-        {
-          /* ``or" the other non-complete items into the prediction rule vector */
-          postdot_nsyid = Postdot_NSYID_of_AIM (item_list_working_buffer[item_ix]);
-          if (postdot_nsyid < 0)
-            continue;
-          bv_or_assign (predicted_rule_vector,
-                        matrix_row (prediction_matrix, postdot_nsyid));
-        }
-      /* \comment Add the predicted rule */
-      p_new_state->t_empty_transition =
-        create_predicted_AHFA_state (g, predicted_rule_vector,
-                                 irl_by_sort_key, &states,
-                                 duplicates,
-                                 item_list_working_buffer);
-      bv_free (predicted_rule_vector);
-    }
 }
 
 @*0 Predicted AHFA states.
