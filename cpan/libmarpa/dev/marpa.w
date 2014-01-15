@@ -6533,9 +6533,6 @@ once I stabilize the C code implemention.
 @d TRANS_of_YIM_by_NSYID(yim, nsyid) TRANS_of_AHFA_by_NSYID(AHFA_of_YIM(yim), (nsyid))
 @d To_AHFA_of_TRANS(trans) (to_ahfa_of_transition_get(trans))
 @d LV_To_AHFA_of_TRANS(trans) ((trans)->t_ur.t_to_ahfa)
-@d To_AHFA_of_AHFA_by_NSYID(from_ahfa, id)
-     (To_AHFA_of_TRANS(TRANS_of_AHFA_by_NSYID((from_ahfa), (id))))
-@d To_AHFA_of_YIM_by_NSYID(yim, id) To_AHFA_of_AHFA_by_NSYID(AHFA_of_YIM(yim), (id))
 @ @s TRANS int
 @<Private incomplete structures@> =
 struct s_transition;
@@ -9924,7 +9921,10 @@ add those Earley items it ``causes".
                   }
               }
           } else {
-            const AHFA effect_AHFA = To_AHFA_of_YIM_by_NSYID(predecessor, complete_nsyid);
+            const AHFA predecessor_ahfa = AHFA_of_YIM(predecessor);
+            const AIM predecessor_aim = AIM_of_AHFA_by_AEX(predecessor_ahfa, 0);
+            const AIM effect_aim = Next_AIM_of_AIM(predecessor_aim);
+            const AHFA effect_AHFA = AHFA_of_AIM(effect_aim);
             @<Add |effect_AHFA|, plus any prediction,
               for non-Leo |predecessor|@>@;
           }
