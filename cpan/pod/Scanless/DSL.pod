@@ -901,8 +901,8 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
-The C<null-ranking> adverb applies only to rules.
-and is ignored unless
+The C<null-ranking> adverb applies only to G1 rules
+(L0 rules do not have a semantics) and is ignored unless
 the SLIF recognizer's C<ranking_method> named argument
 is set to something other than its default.
 Some rule alternatives can match the same input in several ways,
