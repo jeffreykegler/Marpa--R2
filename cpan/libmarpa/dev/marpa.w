@@ -10505,15 +10505,13 @@ The base Earley item's AHFA state can have multiple
 rules, and in its list of rules there can
 be transitions to Leo
 completions via several different symbols.
-@ This code only works for unpopulated LIMs,
-because it relies on the Top AHFA value containing
-the base AHFA to-state.
+The code is used for unpopulated LIMs.
 In a populated LIM, this will not necessarily be the case.
 @<Find predecessor LIM of unpopulated LIM@> =
 {
   const YIM base_yim = Base_YIM_of_LIM (lim_to_process);
   const YS predecessor_set = Origin_of_YIM (base_yim);
-  const AHFA base_to_ahfa = Top_AHFA_of_LIM (lim_to_process);
+  const AHFA base_to_ahfa = Base_to_AHFA_of_LIM (lim_to_process);
   const NSYID predecessor_transition_nsyid =
     Leo_LHS_NSYID_of_AHFA (base_to_ahfa);
   PIM predecessor_pim;
@@ -10628,19 +10626,16 @@ which stabilizes short of closure.
 Secondary optimzations ensure this is fairly cheap as well.
 @<Populate |lim_to_process| from |predecessor_lim|@> =
 {
-  const AHFA root_ahfa = Top_AHFA_of_LIM (predecessor_lim);
+  const AHFA new_top_ahfa = Top_AHFA_of_LIM (predecessor_lim);
   const CIL predecessor_cil = CIL_of_LIM (predecessor_lim);
   /* \comment Initialize to be just the predcessor's list of AHFA IDs.
        Overwrite if we need to add another. */
   CIL_of_LIM (lim_to_process) = predecessor_cil;        
   Predecessor_LIM_of_LIM (lim_to_process) = predecessor_lim;
   Origin_of_LIM (lim_to_process) = Origin_of_LIM (predecessor_lim);
-  if (Event_Group_Size_of_AHFA (root_ahfa) > Count_of_CIL (predecessor_cil))
+  if (Event_Group_Size_of_AHFA (new_top_ahfa) > Count_of_CIL (predecessor_cil))
     {                           /* Might we need to add another AHFA ID? */
-      /* \comment The base to-AHFA
-      was memoized as a potential Top AHFA for this LIM.
-           It will be overwritten shortly */
-      const AHFA base_to_ahfa = Top_AHFA_of_LIM (lim_to_process);      
+      const AHFA base_to_ahfa = Base_to_AHFA_of_LIM (lim_to_process);      
       const CIL base_to_ahfa_event_ahfaids =
         Event_AHFAIDs_of_AHFA (base_to_ahfa);
       if (Count_of_CIL (base_to_ahfa_event_ahfaids))
@@ -10654,7 +10649,7 @@ Secondary optimzations ensure this is fairly cheap as well.
             }
         }
     }
-  Top_AHFA_of_LIM (lim_to_process) = root_ahfa;
+  Top_AHFA_of_LIM (lim_to_process) = new_top_ahfa;
 }
 
 @ If we have reached this code, either we do not have a predecessor
@@ -10667,14 +10662,13 @@ which proved impossible to populate because it is part of a cycle.
 @ The predecessor LIM and the top AHFA to-state were initialized
 to the appropriate values for this case,
 and do not need to be changed.
-The predecessor LIM was initialized to |NULL|,
-and the top AHFA to-state was initialized to the AHFA to-state
+The predecessor LIM was initialized to |NULL|.
 of the base YIM.
 @<Populate |lim_to_process| from its base Earley item@> = {
-  const AHFA root_AHFA = Top_AHFA_of_LIM(lim_to_process);
+  const AHFA base_to_AHFA = Base_to_AHFA_of_LIM(lim_to_process);
   const YIM base_yim = Base_YIM_of_LIM(lim_to_process);
   Origin_of_LIM (lim_to_process) = Origin_of_YIM (base_yim);
-  CIL_of_LIM(lim_to_process) = Event_AHFAIDs_of_AHFA(root_AHFA);
+  CIL_of_LIM(lim_to_process) = Event_AHFAIDs_of_AHFA(base_to_AHFA);
 }
 
 @ @<Copy PIM workarea to postdot item array@> = {
