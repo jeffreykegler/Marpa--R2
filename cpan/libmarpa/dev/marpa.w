@@ -5651,7 +5651,6 @@ PRIVATE_NOT_INLINE int AHFA_state_cmp(
    @<Resize the transitions@>@;
    @<Resort the AIMs and populate the Leo base AEXes@>@;
    @<Mark potential Leo bases@>
-   if (0) { @<Populate the completed symbol data in the transitions@>@; }
    @<Free locals for creating AHFA states@>@;
 }
 
@@ -5743,12 +5742,9 @@ NEXT_AHFA_STATE:;
           TRANS working_transition = transitions[nsyid];
           if (working_transition)
             {
-              int completion_count =
-                Completion_Count_of_TRANS (working_transition);
               size_t sizeof_transition =
                 offsetof (struct s_transition,
-                          t_aex) +
-                (size_t)completion_count * sizeof (transitions[0]->t_aex[0]);
+                          t_aex);
 
               /* Needs to be aligned as a TRANS */
               TRANS new_transition =
@@ -5756,42 +5752,10 @@ NEXT_AHFA_STATE:;
 
               LV_To_AHFA_of_TRANS (new_transition) =
                 To_AHFA_of_TRANS (working_transition);
-              LV_Completion_Count_of_TRANS (new_transition) = 0;
               transitions[nsyid] = new_transition;
             }
         }
     }
-}
-
-@ Earlier we counted the number of completions,
-recorded it in |LV_Completion_Count_of_TRANS|,
-allocated the space,
-and then zeroed |LV_Completion_Count_of_TRANS|.
-Here we actually copy the data in,
-incrementing
-|LV_Completion_Count_of_TRANS| as we do.
-@<Populate the completed symbol data in the transitions@> =
-{
-     int ahfa_id;
-     for (ahfa_id = 0; ahfa_id < ahfa_count_of_g; ahfa_id++) {
-          const AHFA ahfa = AHFA_of_G_by_ID(g, ahfa_id);
-          TRANS* const transitions = TRANSs_of_AHFA(ahfa);
-          if (Complete_NSY_Count_of_AHFA(ahfa) > 0) {
-              AIM* aims = AIMs_of_AHFA(ahfa);
-              int aim_count = AIM_Count_of_AHFA(ahfa);
-              AEX aex;
-              for (aex = 0; aex < aim_count; aex++) {
-                  AIM ahfa_item = aims[aex];
-                  if (AIM_is_Completion(ahfa_item)) {
-                      NSYID completed_nsyid = LHS_NSYID_of_AIM(ahfa_item);
-                      TRANS transition = transitions[completed_nsyid];
-                      AEX* aexes = AEXs_of_TRANS(transition);
-                      int aex_ix = LV_Completion_Count_of_TRANS(transition)++;
-                      aexes[aex_ix] = aex;
-                  }
-              }
-          }
-     }
 }
 
 @ For every AHFA item which can be a Leo base, and any transition
@@ -6002,7 +5966,6 @@ create_singleton_AHFA_state(
         const IRL irl = IRL_of_AIM(base_aim);
         const NSYID lhs_nsyid = LHSID_of_IRL(irl);
         Completion_CIL_of_AHFA(new_ahfa) = cil_singleton(&g->t_cilar, lhs_nsyid);
-        completion_count_inc(obs_precompute, new_ahfa, lhs_nsyid);
 
         Postdot_NSY_Count_of_AHFA(new_ahfa) = 0;
         new_ahfa->t_empty_transition = NULL;
@@ -6182,8 +6145,6 @@ for discovered state with 2+ items@> =
       if (postdot_nsyid < 0)
         {
           NSYID complete_symbol_nsyid = LHS_NSYID_of_AIM (item);
-          completion_count_inc (obs_precompute, p_new_state,
-                                complete_symbol_nsyid);
           bv_bit_set (per_ahfa_complete_v,
                       complete_symbol_nsyid);
         }
@@ -6580,9 +6541,6 @@ once I stabilize the C code implemention.
 @d TRANS_of_YIM_by_NSYID(yim, nsyid) TRANS_of_AHFA_by_NSYID(AHFA_of_YIM(yim), (nsyid))
 @d To_AHFA_of_TRANS(trans) (to_ahfa_of_transition_get(trans))
 @d LV_To_AHFA_of_TRANS(trans) ((trans)->t_ur.t_to_ahfa)
-@d Completion_Count_of_TRANS(trans)
-    (completion_count_of_transition_get(trans))
-@d LV_Completion_Count_of_TRANS(trans) ((trans)->t_ur.t_completion_count)
 @d To_AHFA_of_AHFA_by_NSYID(from_ahfa, id)
      (To_AHFA_of_TRANS(TRANS_of_AHFA_by_NSYID((from_ahfa), (id))))
 @d To_AHFA_of_YIM_by_NSYID(yim, id) To_AHFA_of_AHFA_by_NSYID(AHFA_of_YIM(yim), (id))
@@ -6599,7 +6557,6 @@ typedef struct s_ur_transition* URTRANS;
 @ @<Private structures@> =
 struct s_ur_transition {
     AHFA t_to_ahfa;
-    int t_completion_count;
 };
 typedef struct s_ur_transition URTRANS_Object;
 
@@ -6620,12 +6577,6 @@ PRIVATE AHFA to_ahfa_of_transition_get(TRANS transition)
      if (!transition) return NULL;
      return transition->t_ur.t_to_ahfa;
 }
-@ @<Function definitions@> =
-PRIVATE int completion_count_of_transition_get(TRANS transition)
-{
-     if (!transition) return 0;
-     return transition->t_ur.t_completion_count;
-}
 
 @ @<Function definitions@> =
 PRIVATE
@@ -6634,7 +6585,6 @@ URTRANS transition_new(struct marpa_obstack *obstack, AHFA to_ahfa, int aim_ix)
      URTRANS transition;
      transition = marpa_obs_new (obstack, URTRANS_Object, 1);
      transition->t_to_ahfa = to_ahfa;
-     transition->t_completion_count = aim_ix;
      return transition;
 }
 
@@ -6662,24 +6612,6 @@ transition_add (struct marpa_obstack *obstack, AHFA from_ahfa, NSYID nsyid,
         return;
     }
     LV_To_AHFA_of_TRANS(transition) = to_ahfa;
-    return;
-}
-
-@ The completion data is populated in two stages.
-First a count is kept, so that the array can be properly sized.
-Once all the counts are complete,
-the array is populated.
-@<Function definitions@> =
-PRIVATE
-void completion_count_inc(struct marpa_obstack *obstack, AHFA from_ahfa, NSYID nsyid)
-{
-    TRANS* transitions = TRANSs_of_AHFA(from_ahfa);
-    TRANS transition = transitions[nsyid];
-    if (!transition) {
-        transitions[nsyid] = (TRANS)transition_new(obstack, NULL, 1);
-        return;
-    }
-    LV_Completion_Count_of_TRANS(transition)++;
     return;
 }
 
