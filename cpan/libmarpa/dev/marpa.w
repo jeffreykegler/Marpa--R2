@@ -5746,7 +5746,7 @@ NEXT_AHFA_STATE:;
 	  TRANS working_transition = transitions[nsyid];
 	  if (working_transition)
 	    {
-	      TRANS new_transition = marpa_obs_new (g->t_obs, TRANS, 1);
+	      TRANS new_transition = marpa_obs_new (g->t_obs, TRANS_Object, 1);
 
 	      LV_To_AHFA_of_TRANS (new_transition) =
 		To_AHFA_of_TRANS (working_transition);
@@ -9822,7 +9822,10 @@ The return value means success, with no events.
 	}
       else
 	{
-	  const AHFA scanned_AHFA = To_AHFA_of_YIM_by_NSYID (predecessor, tkn_nsyid);
+          const AHFA predecessor_ahfa = AHFA_of_YIM(predecessor);
+          const AIM predecessor_aim = AIM_of_AHFA_by_AEX(predecessor_ahfa, 0);
+          const AIM scanned_aim = Next_AIM_of_AIM(predecessor_aim);
+	  const AHFA scanned_AHFA = AHFA_of_AIM(scanned_aim);
         @<Create the earley items for |scanned_AHFA|@> @;
         }
     }
@@ -10285,9 +10288,6 @@ At this point there are no Leo items.
         }
     }
 }
-
-@ {\bf To Do}: @^To Do@>
-Memoize the |TRANS| pointer in the Leo items?
 
 @ This code creates the Earley indexes in the PIM workarea.
 The Leo items do not contain predecessors or have the
@@ -12584,11 +12584,8 @@ int marpa_r_progress_report_reset( Marpa_Recognizer r)
                   goto NEXT_PHASE;
                 }
               {
-                const YIM base_earley_item = Base_YIM_of_LIM (leo_item);
-                const NSYID postdot_nsyid = Postdot_NSYID_of_LIM (leo_item);
                 report_origin = Ord_of_YS (YS_of_LIM (leo_item));
-                report_AHFA_state =
-                  To_AHFA_of_YIM_by_NSYID (base_earley_item, postdot_nsyid);
+                report_AHFA_state = Base_to_AHFA_of_LIM(leo_item);
                 next_leo_item = Predecessor_LIM_of_LIM (leo_item);
                 goto INSERT_ITEMS_INTO_TREE;
               }
