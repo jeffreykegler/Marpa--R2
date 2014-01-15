@@ -11116,13 +11116,12 @@ Set_boolean_in_PSIA_for_initial_nulls (struct marpa_obstack *bocage_setup_obs,
       }
       while (leo_predecessor)
         {
-          const NSYID postdot_nsyid = Postdot_NSYID_of_LIM (leo_predecessor);
           const YIM leo_base_yim = Base_YIM_of_LIM (leo_predecessor);
           if (YIM_is_Predicted (leo_base_yim))
             {
-                TRANS transition = TRANS_of_YIM_by_NSYID (leo_base_yim, postdot_nsyid);
-                const AEX prediction_aex = Leo_Base_AEX_of_TRANS (transition);
-                const AIM prediction_aim = AIM_of_YIM_by_AEX (leo_base_yim, prediction_aex);
+                const AHFA leo_final_ahfa = Base_to_AHFA_of_LIM(leo_predecessor);
+                const AIM leo_final_aim = AIM_of_AHFA_by_AEX(leo_final_ahfa, 0);
+                const AIM prediction_aim = Prev_AIM_of_AIM(leo_final_aim);
               or_node_estimate +=
                 Set_boolean_in_PSIA_for_initial_nulls (bocage_setup_obs, per_ys_data,
                                                        leo_base_yim, prediction_aim);
