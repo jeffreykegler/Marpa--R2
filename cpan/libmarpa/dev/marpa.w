@@ -5307,6 +5307,22 @@ PRIVATE AEX aex_of_ahfa_by_aim_get(AHFA ahfa, AIM sought_aim)
   return -1;
 }
 
+@ Temporary?  This is for potential Leo items,
+and we need to return only the first,
+or -1 if there were none.
+@<Function definitions@> =
+PRIVATE AEX aex_of_ahfa_by_postdot_get(AHFA ahfa, NSYID sought_nsyid)
+{
+    const AIM* const aims = AIMs_of_AHFA(ahfa);
+    const int aim_count = AIM_Count_of_AHFA(ahfa);
+    int i;
+    for (i = 0; i < aim_count; i++) {
+      const NSYID working_nsyid = Postdot_NSYID_of_AIM (aims[i]);
+      if (working_nsyid == sought_nsyid) return i;
+    }
+  return -1;
+}
+
 @*0 Is AHFA predicted?.
 @ This boolean indicates whether the
 {\bf AHFA state} is predicted,
@@ -10307,23 +10323,31 @@ Leo item have not been fully populated.
     {
       NSYID nsyid;
       for (nsyid = (NSYID) min; nsyid <= (NSYID) max; nsyid++)
-        {
-          PIM this_pim = r->t_pim_workarea[nsyid];
-          if (!Next_PIM_of_PIM (this_pim))
-            {                   /* Do not create a Leo item if there is more
-                                   than one YIX */
-              YIM leo_base = YIM_of_PIM (this_pim);
-              if (YIM_is_Potential_Leo_Base (leo_base))
-                {
-                  AHFA base_to_ahfa =
-                    To_AHFA_of_YIM_by_NSYID (leo_base, nsyid);
-                  if (AHFA_is_Leo_Completion (base_to_ahfa))
-                    {
-                      @<Create a new, unpopulated, LIM@>@;
-                    }
-                }
-            }
-        }
+	{
+	  const PIM this_pim = r->t_pim_workarea[nsyid];
+	  if (!Next_PIM_of_PIM (this_pim))
+	    {			/* Do not create a Leo item if there is more
+				   than one YIX */
+	      const YIM leo_base = YIM_of_PIM (this_pim);
+	      if (YIM_is_Potential_Leo_Base (leo_base))
+		{
+		  const AHFA leo_base_ahfa = AHFA_of_YIM (leo_base);
+		  const AEX potential_leo_aex =
+		    aex_of_ahfa_by_postdot_get (leo_base_ahfa, nsyid);
+		  if (potential_leo_aex >= 0)
+		    {
+		      const AIM base_from_aim =
+			AIM_of_AHFA_by_AEX (leo_base_ahfa, potential_leo_aex);
+		      const AIM base_to_aim = Next_AIM_of_AIM (base_from_aim);
+		      const AHFA base_to_ahfa = AHFA_of_AIM (base_to_aim);
+		      if (AHFA_is_Leo_Completion (base_to_ahfa))
+			{
+			  @<Create a new, unpopulated, LIM@>@;
+			}
+		    }
+		}
+	    }
+	}
     }
 }
 
@@ -10917,7 +10941,6 @@ if we are here.
       {
         const AIM ur_aim = AIM_of_YIM_by_AEX(ur_earley_item, 0);
         ur_node_push (ur_node_stack, ur_earley_item, 0);
-        or_node_estimate += 1 + Null_Count_of_AIM(ur_aim);
       }
 }
 
@@ -10976,7 +10999,6 @@ MARPA_ASSERT(ahfa_element_ix < aim_count_of_item)@;
         {
           if (YIM_is_Predicted (predecessor_earley_item))
             {
-              or_node_estimate +=
                 Set_boolean_in_PSIA_for_initial_nulls (bocage_setup_obs, per_ys_data,
                                                        predecessor_earley_item,
                                                        predecessor_aim);
@@ -11046,7 +11068,7 @@ Set_boolean_in_PSIA_for_initial_nulls (struct marpa_obstack *bocage_setup_obs,
 	{
 	  if (YIM_is_Predicted (predecessor_earley_item))
 	    {
-	      or_node_estimate += Set_boolean_in_PSIA_for_initial_nulls
+	       Set_boolean_in_PSIA_for_initial_nulls
 		(bocage_setup_obs, per_ys_data,
 		 predecessor_earley_item, predecessor_aim);
 	    }
@@ -11090,7 +11112,6 @@ Set_boolean_in_PSIA_for_initial_nulls (struct marpa_obstack *bocage_setup_obs,
                 const AHFA leo_final_ahfa = Base_to_AHFA_of_LIM(leo_predecessor);
                 const AIM leo_final_aim = AIM_of_AHFA_by_AEX(leo_final_ahfa, 0);
                 const AIM prediction_aim = Prev_AIM_of_AIM(leo_final_aim);
-              or_node_estimate +=
                 Set_boolean_in_PSIA_for_initial_nulls (bocage_setup_obs, per_ys_data,
                                                        leo_base_yim, prediction_aim);
             }
@@ -11246,6 +11267,7 @@ static const OR dummy_or_node = (OR)&dummy_or_node_type;
 @ @d ORs_of_B(b) ((b)->t_or_nodes)
 @d OR_of_B_by_ID(b, id) (ORs_of_B(b)[(id)])
 @d OR_Count_of_B(b) ((b)->t_or_node_count)
+@d OR_Capacity_of_B(b) ((b)->t_or_node_capacity)
 @d ANDs_of_B(b) ((b)->t_and_nodes)
 @d AND_Count_of_B(b) ((b)->t_and_node_count)
 @d Top_ORID_of_B(b) ((b)->t_top_or_node_id)
@@ -11253,6 +11275,7 @@ static const OR dummy_or_node = (OR)&dummy_or_node_type;
 OR* t_or_nodes;
 AND t_and_nodes;
 @ @<Int aligned bocage elements@> =
+int t_or_node_capacity;
 int t_or_node_count;
 int t_and_node_count;
 ORID t_top_or_node_id;
@@ -11281,7 +11304,8 @@ Top_ORID_of_B(b) = -1;
   const PSAR or_psar = &or_per_ys_arena;
   int work_earley_set_ordinal;
   OR last_or_node = NULL ;
-  ORs_of_B (b) = marpa_new (OR, or_node_estimate);
+  OR_Capacity_of_B(b) = count_of_earley_items_in_parse;
+  ORs_of_B (b) = marpa_new (OR, OR_Capacity_of_B(b));
   psar_init (or_psar, SYMI_Count_of_G (g));
   for (work_earley_set_ordinal = 0;
       work_earley_set_ordinal < earley_set_count_of_r;
@@ -11395,20 +11419,19 @@ It should not be invoked, which means it is never tested,
 which raises the question of either having confidence in the logic
 and deleting the code,
 or arranging to test it.
+r
 @<Set |last_or_node| to a new or-node@> =
 {
   const int or_node_id = OR_Count_of_B (b)++;
-  OR *or_nodes_of_b = ORs_of_B (b);
   last_or_node = (OR)marpa_obs_new (OBS_of_B(b), OR_Object, 1);
   ID_of_OR(last_or_node) = or_node_id;
-  if (_MARPA_UNLIKELY(or_node_id >= or_node_estimate))
+  if (_MARPA_UNLIKELY(or_node_id >= OR_Capacity_of_B(b)))
     {
-      MARPA_ASSERT(0);
-      or_node_estimate *= 2;
-      ORs_of_B (b) = or_nodes_of_b =
-        marpa_renew (OR, or_nodes_of_b, or_node_estimate);
+      OR_Capacity_of_B(b) *= 2;
+      ORs_of_B (b) =
+        marpa_renew (OR, ORs_of_B(b), OR_Capacity_of_B(b));
     }
-  or_nodes_of_b[or_node_id] = last_or_node;
+  OR_of_B_by_ID(b,or_node_id) = last_or_node;
 }
 
 
@@ -11617,13 +11640,12 @@ or negative.
 }
 @ @<Set |or_node| or fail@> =
 {
-  OR *const or_nodes = ORs_of_B (b);
-  if (_MARPA_UNLIKELY (!or_nodes))
+  if (_MARPA_UNLIKELY (!ORs_of_B(b)))
     {
       MARPA_ERROR (MARPA_ERR_NO_OR_NODES);
       return failure_indicator;
     }
-  or_node = or_nodes[or_node_id];
+  or_node = OR_of_B_by_ID(b, or_node_id);
 }
 
 @ @<Function definitions@> =
@@ -12144,14 +12166,13 @@ predecessor.  Set |or_node| to 0 if there is none.
 
 @ @<Mark duplicate draft and-nodes@> =
 {
-  OR * const or_nodes_of_b = ORs_of_B (b);
   const int or_node_count_of_b = OR_Count_of_B(b);
   PSAR_Object and_per_ys_arena;
   const PSAR and_psar = &and_per_ys_arena;
   int or_node_id = 0;
   psar_init (and_psar, irl_count+nsy_count);
   while (or_node_id < or_node_count_of_b) {
-      const OR work_or_node = or_nodes_of_b[or_node_id];
+      const OR work_or_node = OR_of_B_by_ID(b, or_node_id);
     @<Mark the duplicate draft and-nodes for |work_or_node|@>@;
     or_node_id++;
   }
@@ -12255,13 +12276,12 @@ typedef struct s_and_node AND_Object;
   const int or_count_of_b = OR_Count_of_B (b);
   int or_node_id;
   int and_node_id = 0;
-  const OR *ors_of_b = ORs_of_B (b);
   const AND ands_of_b = ANDs_of_B (b) =
     marpa_new (AND_Object, unique_draft_and_node_count);
   for (or_node_id = 0; or_node_id < or_count_of_b; or_node_id++)
     {
       int and_count_of_parent_or = 0;
-      const OR or_node = ors_of_b[or_node_id];
+      const OR or_node = OR_of_B_by_ID(b, or_node_id);
       DAND dand = DANDs_of_OR (or_node);
         First_ANDID_of_OR(or_node) = and_node_id;
       while (dand)
@@ -12798,7 +12818,6 @@ AIM start_aim = NULL;
 AEX start_aex = -1;
 struct marpa_obstack* bocage_setup_obs = NULL;
 int count_of_earley_items_in_parse;
-int or_node_estimate = 0;
 const int earley_set_count_of_r = YS_Count_of_R (r);
 
 @ @<Private incomplete structures@> =
@@ -13268,14 +13287,13 @@ int marpa_o_rank( Marpa_Order o)
 @ @<Sort bocage for "high rank only"@> =
 {
   const AND and_nodes = ANDs_of_B (b);
-  OR *const or_nodes = ORs_of_B (b);
   const int or_node_count_of_b = OR_Count_of_B (b);
   int or_node_id = 0;
   int ambiguity_metric = 1;
 
   while (or_node_id < or_node_count_of_b)
     {
-      const OR work_or_node = or_nodes[or_node_id];
+      const OR work_or_node = OR_of_B_by_ID(b, or_node_id);
       const ANDID and_count_of_or = AND_Count_of_OR (work_or_node);
         @<Sort |work_or_node| for "high rank only"@>@;
       or_node_id++;
@@ -13336,7 +13354,6 @@ int marpa_o_rank( Marpa_Order o)
 @ @<Sort bocage for "rank by rule"@> =
 {
   const AND and_nodes = ANDs_of_B (b);
-  OR *const or_nodes = ORs_of_B (b);
   const int or_node_count_of_b = OR_Count_of_B (b);
   const int and_node_count_of_b = AND_Count_of_B (b);
   int or_node_id = 0;
@@ -13351,7 +13368,7 @@ int marpa_o_rank( Marpa_Order o)
     }
   while (or_node_id < or_node_count_of_b)
     {
-      const OR work_or_node = or_nodes[or_node_id];
+      const OR work_or_node = OR_of_B_by_ID(b, or_node_id);
       const ANDID and_count_of_or = AND_Count_of_OR (work_or_node);
         @<Sort |work_or_node| for "rank by rule"@>@;
       or_node_id++;
