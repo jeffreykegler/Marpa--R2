@@ -20,6 +20,9 @@
 ^meta_to_asf[.]pl$
 ^marpa-problem[.]pl$
 ^product2[.]t$
+^code[.]errs$
+^dist[.]errs$
+^modulo_AHFA[.]out$
 
 # Permanent
 

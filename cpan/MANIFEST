@@ -323,7 +323,6 @@ t/null_infinite1.t
 t/null_infinite4.t
 t/null_value.t
 t/pascal.t
-t/perl.t
 t/rabend.t
 t/randal.t
 t/rewrite.t
