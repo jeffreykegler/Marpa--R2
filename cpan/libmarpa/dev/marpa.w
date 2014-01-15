@@ -5642,26 +5642,21 @@ PRIVATE_NOT_INLINE int AHFA_state_cmp(
    @<Construct right derivation matrix@>@;
    @<Construct initial AHFA states@>@;
 
-{
-  AIMID aim_id;
-  const int aim_count = AIM_Count_of_G (g);
-  AHFA previous_ahfa = NULL;
-  for (aim_id = 0; aim_id < aim_count; aim_id++)
     {
-      const AIM aim = AIM_by_ID (aim_id);
-      if (AIM_is_Prediction (aim))
-	{
-	  previous_ahfa = NULL;
-	  continue;
-	}
-      // Populate singletons here
-      previous_ahfa =
-	create_singleton_AHFA_state (g, aim, singleton_duplicates,
-				     irl_by_sort_key, &states, duplicates,
-				     item_list_working_buffer,
-				     prediction_matrix);
+      AIMID aim_id;
+      const int aim_count = AIM_Count_of_G (g);
+      for (aim_id = 0; aim_id < aim_count; aim_id++)
+        {
+          const AIM aim = AIM_by_ID (aim_id);
+          if (!AIM_is_Prediction (aim))
+            {
+              create_singleton_AHFA_state (g, aim, singleton_duplicates,
+                                           irl_by_sort_key, &states, duplicates,
+                                           item_list_working_buffer,
+                                           prediction_matrix);
+            }
+        }
     }
-}
 
    g->t_AHFA = DQUEUE_BASE(states, AHFA_Object); /* ``Steals"
        the |DQUEUE|'s data */
@@ -12396,7 +12391,7 @@ Marpa_Bocage marpa_b_new(Marpa_Recognizer r,
         B_is_Nulling (b) = 1;
         return b;
       }
-    @<Find |start_yim|, |start_aim| and |start_aex|@>@;
+    @<Find |start_yim| and |start_aex|@>@;
     if (!start_yim) goto NO_PARSE;
     bocage_setup_obs = marpa_obs_init;
     @<Allocate bocage setup working data@>@;
@@ -12435,7 +12430,6 @@ BOCAGE b = NULL;
 YS end_of_parse_earley_set;
 JEARLEME end_of_parse_earleme;
 YIM start_yim = NULL;
-AIM start_aim = NULL;
 AEX start_aex = -1;
 struct marpa_obstack* bocage_setup_obs = NULL;
 int count_of_earley_items_in_parse;
@@ -12525,7 +12519,7 @@ It is hard to believe that for practical grammars
 that $O(\wsize \cdot s') <= O(s)$, which
 is what it would take for any per-Earley set overhead
 to make sense.
-@<Find |start_yim|, |start_aim| and |start_aex|@> =
+@<Find |start_yim| and |start_aex|@> =
 {
     int yim_ix;
     YIM* const earley_items = YIMs_of_YS(end_of_parse_earley_set);
@@ -12543,7 +12537,6 @@ to make sense.
             for (aex = 0; aex < ahfa_item_count; aex++) {
                  const AIM ahfa_item = ahfa_items[aex];
                  if (IRLID_of_AIM(ahfa_item) == sought_irl_id) {
-                      start_aim = ahfa_item;
                       start_yim = earley_item;
                       start_aex = aex;
                       break;

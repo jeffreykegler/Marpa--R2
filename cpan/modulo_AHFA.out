@@ -1,5 +1,5 @@
-# Marpa::R2 version is 2.079_008
-# Libmarpa version is 5.179.108
+# Marpa::R2 version is 2.079_009
+# Libmarpa version is 5.179.109
 t/00-load.t ............ ok
 
 #   Failed test 'Aycock/Horspool AHFA'
@@ -2197,13 +2197,6 @@ t/null_infinite1.t ..... ok
 t/null_infinite4.t ..... ok
 t/null_value.t ......... ok
 t/pascal.t ............. ok
-Perl token "ARROW" was not accepted: '->'
-PPI token is PPI::Token::Operator: [no file]:12:3, content="->" at t/perl.t line 613
-# Looks like you planned 12 tests but ran 1.
-# Looks like your test exited with 255 just after 1.
-t/perl.t ............... 
-Dubious, test returned 255 (wstat 65280, 0xff00)
-Failed 11/12 subtests 
 t/rabend.t ............. ok
 t/randal.t ............. ok
 t/rewrite.t ............ ok
@@ -2415,8 +2408,8 @@ t/syn_stuifzand.t ...... ok
 t/thin_eq.t ............ ok
 t/timeflies.t .......... ok
 t/use.t ................ ok
-# Using Marpa::R2::HTML 2.079008
-# Using Marpa::R2 2.079008 2014-01-14T22:41:21
+# Using Marpa::R2::HTML 2.079009
+# Using Marpa::R2 2.079009 2014-01-15T11:44:24
 html/t/00-load.t ....... ok
 html/t/cfg_fmt.t ....... ok
 html/t/config.t ........ ok
@@ -2479,15 +2472,12 @@ t/leo_unit.t         (Wstat: 768 Tests: 7 Failed: 3)
 t/minus.t            (Wstat: 256 Tests: 10 Failed: 1)
   Failed test:  2
   Non-zero exit status: 1
-t/perl.t             (Wstat: 65280 Tests: 1 Failed: 0)
-  Non-zero exit status: 255
-  Parse errors: Bad plan.  You planned 12 tests but ran 1.
 t/sl_ah2.t           (Wstat: 512 Tests: 26 Failed: 2)
   Failed tests:  17, 23
   Non-zero exit status: 2
 t/sl_gif1.t          (Wstat: 768 Tests: 22 Failed: 3)
   Failed tests:  17, 19, 21
   Non-zero exit status: 3
-Files=103, Tests=964, 47 wallclock secs ( 0.78 usr  0.36 sys + 44.30 cusr  2.39 csys = 47.83 CPU)
+Files=102, Tests=963, 47 wallclock secs ( 0.78 usr  0.36 sys + 43.62 cusr  2.16 csys = 46.92 CPU)
 Result: FAIL
-Failed 19/103 test programs. 45/964 subtests failed.
+Failed 18/102 test programs. 45/963 subtests failed.
