@@ -815,7 +815,9 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
-The C<event> adverb applies only to lexemes.
+The C<event> adverb applies only to lexemes and
+is only allowed in 
+L<a C<:lexeme> pseudo-rule|/"Lexeme pseudo-rule">.
 It turns a lexeme's pause into a named event,
 using the name specified as its value.
 Applications are encouraged to turn all lexeme
@@ -838,7 +840,10 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
-The C<forgiving> adverb applies only to lexemes.
+The C<forgiving> adverb applies only to lexemes and
+is only allowed in 
+L<a C<:lexeme> pseudo-rule|/"Lexeme pseudo-rule"> and 
+L<a C<:lexeme default> statement|/"Lexeme default statement">.
 Its value is a boolean.
 If the boolean is set it indicates that a token
 is "forgiving".  The default value is 0,
@@ -934,7 +939,9 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
-The C<pause> adverb applies only to lexemes.
+The C<pause> adverb applies only to lexemes and
+is only allowed in 
+L<a C<:lexeme> pseudo-rule|/"Lexeme pseudo-rule">.
 Pauses take effect during
 L<the Scanless recognizer's read()|Marpa::R2::Scanless::R/"read()">
 and L<resume()|Marpa::R2::Scanless::R/"resume()"> methods.
