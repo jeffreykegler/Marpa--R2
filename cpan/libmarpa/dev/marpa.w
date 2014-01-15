@@ -8159,6 +8159,7 @@ with a |NULL| Earley item pointer.
 @d Next_PIM_of_LIM(leo) (Next_PIM_of_YIX(YIX_of_LIM(leo)))
 @d Origin_of_LIM(leo) ((leo)->t_origin)
 @d Top_AHFA_of_LIM(leo) ((leo)->t_top_ahfa)
+@d Base_to_AHFA_of_LIM(leo) ((leo)->t_base_to_ahfa)
 @d Predecessor_LIM_of_LIM(leo) ((leo)->t_predecessor)
 @d Base_YIM_of_LIM(leo) ((leo)->t_base)
 @d YS_of_LIM(leo) ((leo)->t_set)
@@ -8172,6 +8173,7 @@ struct s_leo_item {
     @<Widely aligned LIM elements@>@;
      YS t_origin;
      AHFA t_top_ahfa;
+     AHFA t_base_to_ahfa;
      LIM t_predecessor;
      YIM t_base;
      YS t_set;
@@ -10368,6 +10370,7 @@ once it is populated.
     Origin_of_LIM(new_lim) = NULL;
     CIL_of_LIM(new_lim) = NULL;
     Top_AHFA_of_LIM(new_lim) = base_to_ahfa;
+    Base_to_AHFA_of_LIM(new_lim) = base_to_ahfa;
     Base_YIM_of_LIM(new_lim) = leo_base;
     YS_of_LIM(new_lim) = current_earley_set;
     Next_PIM_of_LIM(new_lim) = this_pim;
@@ -11542,7 +11545,7 @@ PRIVATE AEX lim_base_data_get(LIM leo_item, YIM* p_base)
 }
 
 @
-@d Path_AIM_of_LIM(lim) (base_aim_of_lim(lim)+1)
+@d Path_AIM_of_LIM(lim) (AIM_of_AHFA_by_AEX(Base_to_AHFA_of_LIM(lim), 0))
 @d Base_AIM_of_LIM(lim) (base_aim_of_lim(lim))
 @<Function definitions@> =
 PRIVATE AIM base_aim_of_lim(LIM leo_item)
