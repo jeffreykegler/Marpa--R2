@@ -106,57 +106,40 @@ Marpa::R2::Test::is( $show_AHFA_output,
     <<'END_AHFA', 'Implementation Example AHFA' );
 * S0:
 Expression['] -> . Expression
- <Expression> => S2
 * S1: predict
 Expression -> . Term
 Term -> . Factor
 Factor -> . Number
 Term -> . Term Add Term
 Factor -> . Factor Multiply Factor
- <Factor> => S4
- <Number> => S5
- <Term> => S3
 * S2:
-Expression['] -> Expression .
-* S3:
 Expression -> Term .
-Term -> Term . Add Term
- <Add> => S6; S7
-* S4:
+* S3:
 Term -> Factor .
-Factor -> Factor . Multiply Factor
- <Multiply> => S8; S9
-* S5:
+* S4:
 Factor -> Number .
+* S5:
+Term -> Term . Add Term
 * S6:
 Term -> Term Add . Term
- <Term> => S10; leo(Term)
 * S7: predict
 Term -> . Factor
 Factor -> . Number
 Term -> . Term Add Term
 Factor -> . Factor Multiply Factor
- <Factor> => S4
- <Number> => S5
- <Term> => S11
-* S8:
+* S8: leo-c
+Term -> Term Add Term .
+* S9:
+Factor -> Factor . Multiply Factor
+* S10:
 Factor -> Factor Multiply . Factor
- <Factor> => S12; leo(Factor)
-* S9: predict
+* S11: predict
 Factor -> . Number
 Factor -> . Factor Multiply Factor
- <Factor> => S13
- <Number> => S5
-* S10: leo-c
-Term -> Term Add Term .
-* S11:
-Term -> Term . Add Term
- <Add> => S6; S7
 * S12: leo-c
 Factor -> Factor Multiply Factor .
 * S13:
-Factor -> Factor . Multiply Factor
- <Multiply> => S8; S9
+Expression['] -> Expression .
 END_AHFA
 
 my $show_earley_sets_output = $recce->show_earley_sets();
@@ -167,30 +150,36 @@ Earley Set 0
 S0@0-0
 S1@0-0
 Earley Set 1
-S2@0-1 [p=S0@0-0; c=S3@0-1]
+S2@0-1 [p=S1@0-0; c=S3@0-1]
 S3@0-1 [p=S1@0-0; c=S4@0-1]
-S4@0-1 [p=S1@0-0; c=S5@0-1]
-S5@0-1 [p=S1@0-0; s=Number; t=\42]
+S4@0-1 [p=S1@0-0; s=Number; t=\42]
+S5@0-1 [p=S1@0-0; c=S3@0-1]
+S9@0-1 [p=S1@0-0; c=S4@0-1]
+S13@0-1 [p=S0@0-0; c=S2@0-1]
 Earley Set 2
-S8@0-2 [p=S4@0-1; s=Multiply; t=\'*']
-S9@2-2
+S10@0-2 [p=S9@0-1; s=Multiply; t=\'*']
+S11@2-2
 Earley Set 3
-S2@0-3 [p=S0@0-0; c=S3@0-3]
-S3@0-3 [p=S1@0-0; c=S4@0-3]
-S4@0-3 [p=S1@0-0; c=S12@0-3]
-S12@0-3 [p=S8@0-2; c=S5@2-3]
-S5@2-3 [p=S9@2-2; s=Number; t=\1]
-S13@2-3 [p=S9@2-2; c=S5@2-3]
+S2@0-3 [p=S1@0-0; c=S3@0-3]
+S3@0-3 [p=S1@0-0; c=S12@0-3]
+S5@0-3 [p=S1@0-0; c=S3@0-3]
+S9@0-3 [p=S1@0-0; c=S12@0-3]
+S12@0-3 [p=S10@0-2; c=S4@2-3]
+S13@0-3 [p=S0@0-0; c=S2@0-3]
+S4@2-3 [p=S11@2-2; s=Number; t=\1]
+S9@2-3 [p=S11@2-2; c=S4@2-3]
 Earley Set 4
-S6@0-4 [p=S3@0-3; s=Add; t=\'+']
+S6@0-4 [p=S5@0-3; s=Add; t=\'+']
 S7@4-4
 Earley Set 5
-S2@0-5 [p=S0@0-0; c=S3@0-5]
-S3@0-5 [p=S1@0-0; c=S10@0-5]
-S10@0-5 [p=S6@0-4; c=S4@4-5]
-S4@4-5 [p=S7@4-4; c=S5@4-5]
-S5@4-5 [p=S7@4-4; s=Number; t=\7]
-S11@4-5 [p=S7@4-4; c=S4@4-5]
+S2@0-5 [p=S1@0-0; c=S8@0-5]
+S5@0-5 [p=S1@0-0; c=S8@0-5]
+S8@0-5 [p=S6@0-4; c=S3@4-5]
+S13@0-5 [p=S0@0-0; c=S2@0-5]
+S3@4-5 [p=S7@4-4; c=S4@4-5]
+S4@4-5 [p=S7@4-4; s=Number; t=\7]
+S5@4-5 [p=S7@4-4; c=S3@4-5]
+S9@4-5 [p=S7@4-4; c=S4@4-5]
 END_EARLEY_SETS
 
 Marpa::R2::Test::is( $show_earley_sets_output, $expected_earley_sets,

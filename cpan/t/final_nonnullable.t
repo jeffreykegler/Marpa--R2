@@ -68,7 +68,6 @@ Marpa::R2::Test::is( $grammar->show_AHFA,
     <<'END_OF_STRING', 'final nonnulling AHFA' );
 * S0:
 S['] -> . S
- <S> => S2
 * S1: predict
 S -> . p p S[R0:2]
 S -> . p p[] S[R0:2]
@@ -78,53 +77,43 @@ S[R0:2] -> . p n
 S[R0:2] -> p[] . n
 p -> . a
 n -> . a
- <S[R0:2]> => S7
- <a> => S3
- <n> => S6
- <p> => S4; S5
 * S2:
-S['] -> S .
-* S3:
-p -> a .
-n -> a .
-* S4:
 S -> p . p S[R0:2]
-S -> p p[] . S[R0:2]
-S -> p[] p . S[R0:2]
-S[R0:2] -> p . n
- <S[R0:2]> => S10
- <n> => S9
- <p> => S5; S8
+* S3: predict
+p -> . a
+* S4:
+S -> p p . S[R0:2]
 * S5: predict
 S[R0:2] -> . p n
 S[R0:2] -> p[] . n
 p -> . a
 n -> . a
- <a> => S3
- <n> => S6
- <p> => S11; S12
 * S6:
-S[R0:2] -> p[] n .
+S -> p p S[R0:2] .
 * S7:
-S -> p[] p[] S[R0:2] .
+S -> p p[] . S[R0:2]
 * S8:
-S -> p p . S[R0:2]
- <S[R0:2]> => S13
-* S9:
-S[R0:2] -> p n .
-* S10:
 S -> p p[] S[R0:2] .
+* S9:
+S -> p[] p . S[R0:2]
+* S10:
 S -> p[] p S[R0:2] .
 * S11:
+S -> p[] p[] S[R0:2] .
+* S12:
 S[R0:2] -> p . n
- <n> => S9
-* S12: predict
+* S13: predict
 n -> . a
- <a> => S14
-* S13:
-S -> p p S[R0:2] .
 * S14:
+S[R0:2] -> p n .
+* S15:
+S[R0:2] -> p[] n .
+* S16:
+p -> a .
+* S17:
 n -> a .
+* S18:
+S['] -> S .
 END_OF_STRING
 
 my @expected = map {
