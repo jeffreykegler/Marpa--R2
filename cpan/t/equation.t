@@ -167,24 +167,19 @@ Marpa::R2::Test::is( ${$actual_ref},
     <<'END_AHFA', 'Ambiguous Equation AHFA' );
 * S0:
 E['] -> . E
- <E> => S2
 * S1: predict
 E -> . E Op E
 E -> . Number
- <E> => S3
- <Number> => S4
 * S2:
-E['] -> E .
-* S3:
 E -> E . Op E
- <Op> => S1; S5
-* S4:
-E -> Number .
-* S5:
+* S3:
 E -> E Op . E
- <E> => S6; leo(E)
-* S6: leo-c
+* S4: leo-c
 E -> E Op E .
+* S5:
+E -> Number .
+* S6:
+E['] -> E .
 END_AHFA
 
 $actual_ref = save_stdout();
@@ -226,45 +221,45 @@ Earley Set 0
 S0@0-0
 S1@0-0
 Earley Set 1
-S2@0-1 [p=S0@0-0; c=S4@0-1]
-S3@0-1 [p=S1@0-0; c=S4@0-1]
-S4@0-1 [p=S1@0-0; s=Number; t=\2]
+S2@0-1 [p=S1@0-0; c=S5@0-1]
+S5@0-1 [p=S1@0-0; s=Number; t=\2]
+S6@0-1 [p=S0@0-0; c=S5@0-1]
 Earley Set 2
-S5@0-2 [p=S3@0-1; s=Op; t=\'-']
+S3@0-2 [p=S2@0-1; s=Op; t=\'-']
 S1@2-2
 Earley Set 3
-S2@0-3 [p=S0@0-0; c=S6@0-3]
-S3@0-3 [p=S1@0-0; c=S6@0-3]
-S6@0-3 [p=S5@0-2; c=S4@2-3]
-S3@2-3 [p=S1@2-2; c=S4@2-3]
-S4@2-3 [p=S1@2-2; s=Number; t=\0]
+S2@0-3 [p=S1@0-0; c=S4@0-3]
+S4@0-3 [p=S3@0-2; c=S5@2-3]
+S6@0-3 [p=S0@0-0; c=S4@0-3]
+S2@2-3 [p=S1@2-2; c=S5@2-3]
+S5@2-3 [p=S1@2-2; s=Number; t=\0]
 Earley Set 4
-S5@0-4 [p=S3@0-3; s=Op; t=\'*']
-S5@2-4 [p=S3@2-3; s=Op; t=\'*']
+S3@0-4 [p=S2@0-3; s=Op; t=\'*']
+S3@2-4 [p=S2@2-3; s=Op; t=\'*']
 S1@4-4
 Earley Set 5
-S2@0-5 [p=S0@0-0; c=S6@0-5]
-S3@0-5 [p=S1@0-0; c=S6@0-5]
-S6@0-5 [p=S5@0-2; c=S6@2-5] [p=S5@0-4; c=S4@4-5]
-S3@2-5 [p=S1@2-2; c=S6@2-5]
-S6@2-5 [p=S5@2-4; c=S4@4-5]
-S3@4-5 [p=S1@4-4; c=S4@4-5]
-S4@4-5 [p=S1@4-4; s=Number; t=\3]
+S2@0-5 [p=S1@0-0; c=S4@0-5]
+S4@0-5 [p=S3@0-2; c=S4@2-5] [p=S3@0-4; c=S5@4-5]
+S6@0-5 [p=S0@0-0; c=S4@0-5]
+S2@2-5 [p=S1@2-2; c=S4@2-5]
+S4@2-5 [p=S3@2-4; c=S5@4-5]
+S2@4-5 [p=S1@4-4; c=S5@4-5]
+S5@4-5 [p=S1@4-4; s=Number; t=\3]
 Earley Set 6
-S5@0-6 [p=S3@0-5; s=Op; t=\'+']
-S5@2-6 [p=S3@2-5; s=Op; t=\'+']
-S5@4-6 [p=S3@4-5; s=Op; t=\'+']
+S3@0-6 [p=S2@0-5; s=Op; t=\'+']
+S3@2-6 [p=S2@2-5; s=Op; t=\'+']
+S3@4-6 [p=S2@4-5; s=Op; t=\'+']
 S1@6-6
 Earley Set 7
-S2@0-7 [p=S0@0-0; c=S6@0-7]
-S3@0-7 [p=S1@0-0; c=S6@0-7]
-S6@0-7 [p=S5@0-2; c=S6@2-7] [p=S5@0-4; c=S6@4-7] [p=S5@0-6; c=S4@6-7]
-S3@2-7 [p=S1@2-2; c=S6@2-7]
-S6@2-7 [p=S5@2-4; c=S6@4-7] [p=S5@2-6; c=S4@6-7]
-S3@4-7 [p=S1@4-4; c=S6@4-7]
-S6@4-7 [p=S5@4-6; c=S4@6-7]
-S3@6-7 [p=S1@6-6; c=S4@6-7]
-S4@6-7 [p=S1@6-6; s=Number; t=\1]
+S2@0-7 [p=S1@0-0; c=S4@0-7]
+S4@0-7 [p=S3@0-2; c=S4@2-7] [p=S3@0-4; c=S4@4-7] [p=S3@0-6; c=S5@6-7]
+S6@0-7 [p=S0@0-0; c=S4@0-7]
+S2@2-7 [p=S1@2-2; c=S4@2-7]
+S4@2-7 [p=S3@2-4; c=S4@4-7] [p=S3@2-6; c=S5@6-7]
+S2@4-7 [p=S1@4-4; c=S4@4-7]
+S4@4-7 [p=S3@4-6; c=S5@6-7]
+S2@6-7 [p=S1@6-6; c=S5@6-7]
+S5@6-7 [p=S1@6-6; s=Number; t=\1]
 END_OF_EARLEY_SETS
 
 Marpa::R2::Test::is( ${$actual_ref}, $expected_earley_sets,
