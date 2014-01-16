@@ -163,101 +163,58 @@ Marpa::R2::Test::is( $grammar->show_AHFA(),
 <<'END_OF_AHFA', 'AHFA' );
 * S0:
 Input['] -> . Input
- <Input> => S2
 * S1: predict
 Input -> . Input[Seq]
 Input -> . Input[Seq] SEPARATOR
 Input[Seq] -> . Statement
 Input[Seq] -> . Input[Seq] SEPARATOR Statement
 Statement -> . CREATE TypeDef
- <CREATE> => S3; S4
- <Input[Seq]> => S6
- <Statement> => S5
 * S2:
-Input['] -> Input .
+Input -> Input[Seq] .
 * S3:
-Statement -> CREATE . TypeDef
- <TypeDef> => S7
-* S4: predict
-TypeDef -> . METRIC ID_METRIC AS MetricSelect
- <METRIC> => S8
+Input -> Input[Seq] . SEPARATOR
+* S4:
+Input -> Input[Seq] SEPARATOR .
 * S5:
 Input[Seq] -> Statement .
 * S6:
-Input -> Input[Seq] .
-Input -> Input[Seq] . SEPARATOR
 Input[Seq] -> Input[Seq] . SEPARATOR Statement
- <SEPARATOR> => S10; S9
 * S7:
-Statement -> CREATE TypeDef .
-* S8:
-TypeDef -> METRIC . ID_METRIC AS MetricSelect
- <ID_METRIC> => S11
-* S9:
-Input -> Input[Seq] SEPARATOR .
 Input[Seq] -> Input[Seq] SEPARATOR . Statement
- <Statement> => S12
-* S10: predict
+* S8: predict
 Statement -> . CREATE TypeDef
- <CREATE> => S3; S4
-* S11:
-TypeDef -> METRIC ID_METRIC . AS MetricSelect
- <AS> => S13; S14
-* S12:
+* S9:
 Input[Seq] -> Input[Seq] SEPARATOR Statement .
+* S10:
+Statement -> CREATE . TypeDef
+* S11: predict
+TypeDef -> . METRIC ID_METRIC AS MetricSelect
+* S12:
+Statement -> CREATE TypeDef .
 * S13:
+TypeDef -> METRIC . ID_METRIC AS MetricSelect
+* S14:
+TypeDef -> METRIC ID_METRIC . AS MetricSelect
+* S15:
 TypeDef -> METRIC ID_METRIC AS . MetricSelect
- <MetricSelect> => S15
-* S14: predict
+* S16: predict
 MetricSelect -> . SELECT MetricExpr ByClause MetricSelect[R3:3]
 MetricSelect -> . SELECT MetricExpr ByClause Match[] Filter[] WithPf[]
 MetricSelect -> . SELECT MetricExpr ByClause[] MetricSelect[R3:3]
 MetricSelect -> . SELECT MetricExpr ByClause[] Match[] Filter[] WithPf[]
- <SELECT> => S16; S17
-* S15:
+* S17:
 TypeDef -> METRIC ID_METRIC AS MetricSelect .
-* S16:
-MetricSelect -> SELECT . MetricExpr ByClause MetricSelect[R3:3]
-MetricSelect -> SELECT . MetricExpr ByClause Match[] Filter[] WithPf[]
-MetricSelect -> SELECT . MetricExpr ByClause[] MetricSelect[R3:3]
-MetricSelect -> SELECT . MetricExpr ByClause[] Match[] Filter[] WithPf[]
- <MetricExpr> => S18; S19
-* S17: predict
-MetricExpr -> . NUMBER
- <NUMBER> => S20
 * S18:
-MetricSelect -> SELECT MetricExpr . ByClause MetricSelect[R3:3]
-MetricSelect -> SELECT MetricExpr . ByClause Match[] Filter[] WithPf[]
-MetricSelect -> SELECT MetricExpr ByClause[] . MetricSelect[R3:3]
-MetricSelect -> SELECT MetricExpr ByClause[] Match[] Filter[] WithPf[] .
- <ByClause> => S21; S22
- <MetricSelect[R3:3]> => S23
+MetricSelect -> SELECT . MetricExpr ByClause MetricSelect[R3:3]
 * S19: predict
-MetricSelect[R3:3] -> . Match MetricSelect[R3:4]
-MetricSelect[R3:3] -> . Match Filter[] WithPf[]
-MetricSelect[R3:3] -> Match[] . MetricSelect[R3:4]
-MetricSelect[R3:4] -> . Filter WithPf
-MetricSelect[R3:4] -> . Filter WithPf[]
-MetricSelect[R3:4] -> Filter[] . WithPf
-ByClause -> . BY
-Match -> . FOR
-Filter -> . WHERE FilterExpr
-WithPf -> . WITH PF
- <BY> => S24
- <FOR> => S25
- <Filter> => S31; S32
- <Match> => S29; S30
- <MetricSelect[R3:4]> => S34
- <WHERE> => S26; S27
- <WITH> => S28
- <WithPf> => S33
+MetricExpr -> . NUMBER
 * S20:
-MetricExpr -> NUMBER .
-* S21:
+MetricSelect -> SELECT MetricExpr . ByClause MetricSelect[R3:3]
+* S21: predict
+ByClause -> . BY
+* S22:
 MetricSelect -> SELECT MetricExpr ByClause . MetricSelect[R3:3]
-MetricSelect -> SELECT MetricExpr ByClause Match[] Filter[] WithPf[] .
- <MetricSelect[R3:3]> => S35
-* S22: predict
+* S23: predict
 MetricSelect[R3:3] -> . Match MetricSelect[R3:4]
 MetricSelect[R3:3] -> . Match Filter[] WithPf[]
 MetricSelect[R3:3] -> Match[] . MetricSelect[R3:4]
@@ -267,69 +224,71 @@ MetricSelect[R3:4] -> Filter[] . WithPf
 Match -> . FOR
 Filter -> . WHERE FilterExpr
 WithPf -> . WITH PF
- <FOR> => S25
- <Filter> => S31; S32
- <Match> => S29; S30
- <MetricSelect[R3:4]> => S34
- <WHERE> => S26; S27
- <WITH> => S28
- <WithPf> => S33
-* S23:
-MetricSelect -> SELECT MetricExpr ByClause[] MetricSelect[R3:3] .
 * S24:
-ByClause -> BY .
+MetricSelect -> SELECT MetricExpr ByClause MetricSelect[R3:3] .
 * S25:
-Match -> FOR .
+MetricSelect -> SELECT . MetricExpr ByClause Match[] Filter[] WithPf[]
 * S26:
+MetricSelect -> SELECT MetricExpr . ByClause Match[] Filter[] WithPf[]
+* S27:
+MetricSelect -> SELECT MetricExpr ByClause Match[] Filter[] WithPf[] .
+* S28:
+MetricSelect -> SELECT . MetricExpr ByClause[] MetricSelect[R3:3]
+* S29:
+MetricSelect -> SELECT MetricExpr ByClause[] . MetricSelect[R3:3]
+* S30:
+MetricSelect -> SELECT MetricExpr ByClause[] MetricSelect[R3:3] .
+* S31:
+MetricSelect -> SELECT . MetricExpr ByClause[] Match[] Filter[] WithPf[]
+* S32:
+MetricSelect -> SELECT MetricExpr ByClause[] Match[] Filter[] WithPf[] .
+* S33:
+MetricSelect[R3:3] -> Match . MetricSelect[R3:4]
+* S34: predict
+MetricSelect[R3:4] -> . Filter WithPf
+MetricSelect[R3:4] -> . Filter WithPf[]
+MetricSelect[R3:4] -> Filter[] . WithPf
+Filter -> . WHERE FilterExpr
+WithPf -> . WITH PF
+* S35:
+MetricSelect[R3:3] -> Match MetricSelect[R3:4] .
+* S36:
+MetricSelect[R3:3] -> Match Filter[] WithPf[] .
+* S37:
+MetricSelect[R3:3] -> Match[] MetricSelect[R3:4] .
+* S38:
+MetricSelect[R3:4] -> Filter . WithPf
+* S39: predict
+WithPf -> . WITH PF
+* S40:
+MetricSelect[R3:4] -> Filter WithPf .
+* S41:
+MetricSelect[R3:4] -> Filter WithPf[] .
+* S42:
+MetricSelect[R3:4] -> Filter[] WithPf .
+* S43:
+MetricExpr -> NUMBER .
+* S44:
+ByClause -> BY .
+* S45:
+Match -> FOR .
+* S46:
 Filter -> WHERE . FilterExpr
- <FilterExpr> => S36
-* S27: predict
+* S47: predict
 FilterExpr -> . TRUE
 FilterExpr -> . FALSE
- <FALSE> => S37
- <TRUE> => S38
-* S28:
-WithPf -> WITH . PF
- <PF> => S39
-* S29:
-MetricSelect[R3:3] -> Match . MetricSelect[R3:4]
-MetricSelect[R3:3] -> Match Filter[] WithPf[] .
- <MetricSelect[R3:4]> => S40
-* S30: predict
-MetricSelect[R3:4] -> . Filter WithPf
-MetricSelect[R3:4] -> . Filter WithPf[]
-MetricSelect[R3:4] -> Filter[] . WithPf
-Filter -> . WHERE FilterExpr
-WithPf -> . WITH PF
- <Filter> => S31; S32
- <WHERE> => S26; S27
- <WITH> => S28
- <WithPf> => S33
-* S31:
-MetricSelect[R3:4] -> Filter . WithPf
-MetricSelect[R3:4] -> Filter WithPf[] .
- <WithPf> => S41
-* S32: predict
-WithPf -> . WITH PF
- <WITH> => S28
-* S33:
-MetricSelect[R3:4] -> Filter[] WithPf .
-* S34:
-MetricSelect[R3:3] -> Match[] MetricSelect[R3:4] .
-* S35:
-MetricSelect -> SELECT MetricExpr ByClause MetricSelect[R3:3] .
-* S36:
+* S48:
 Filter -> WHERE FilterExpr .
-* S37:
-FilterExpr -> FALSE .
-* S38:
+* S49:
 FilterExpr -> TRUE .
-* S39:
+* S50:
+FilterExpr -> FALSE .
+* S51:
+WithPf -> WITH . PF
+* S52:
 WithPf -> WITH PF .
-* S40:
-MetricSelect[R3:3] -> Match MetricSelect[R3:4] .
-* S41:
-MetricSelect[R3:4] -> Filter WithPf .
+* S53:
+Input['] -> Input .
 END_OF_AHFA
 
 Marpa::R2::Test::is( $grammar->show_AHFA_items(),
@@ -481,42 +440,54 @@ Earley Set 0
 S0@0-0
 S1@0-0
 Earley Set 1
-S3@0-1 [p=S1@0-0; s=CREATE; t=\'Create']
-S4@1-1
+S10@0-1 [p=S1@0-0; s=CREATE; t=\'Create']
+S11@1-1
 Earley Set 2
-S8@1-2 [p=S4@1-1; s=METRIC; t=\'Metric']
+S13@1-2 [p=S11@1-1; s=METRIC; t=\'Metric']
 Earley Set 3
-S11@1-3 [p=S8@1-2; s=ID_METRIC; t=\'m']
+S14@1-3 [p=S13@1-2; s=ID_METRIC; t=\'m']
 Earley Set 4
-S13@1-4 [p=S11@1-3; s=AS; t=\'As']
-S14@4-4
+S15@1-4 [p=S14@1-3; s=AS; t=\'As']
+S16@4-4
 Earley Set 5
-S16@4-5 [p=S14@4-4; s=SELECT; t=\'Select']
-S17@5-5
+S18@4-5 [p=S16@4-4; s=SELECT; t=\'Select']
+S25@4-5 [p=S16@4-4; s=SELECT; t=\'Select']
+S28@4-5 [p=S16@4-4; s=SELECT; t=\'Select']
+S31@4-5 [p=S16@4-4; s=SELECT; t=\'Select']
+S19@5-5
 Earley Set 6
-S2@0-6 [p=S0@0-0; c=S6@0-6]
-S5@0-6 [p=S1@0-0; c=S7@0-6]
+S2@0-6 [p=S1@0-0; c=S5@0-6]
+S3@0-6 [p=S1@0-0; c=S5@0-6]
+S5@0-6 [p=S1@0-0; c=S12@0-6]
 S6@0-6 [p=S1@0-0; c=S5@0-6]
-S7@0-6 [p=S3@0-1; c=S15@1-6]
-S15@1-6 [p=S13@1-4; c=S18@4-6]
-S18@4-6 [p=S16@4-5; c=S20@5-6]
-S20@5-6 [p=S17@5-5; s=NUMBER; t=\1]
-S19@6-6
+S12@0-6 [p=S10@0-1; c=S17@1-6]
+S53@0-6 [p=S0@0-0; c=S2@0-6]
+S17@1-6 [p=S15@1-4; c=S32@4-6]
+S20@4-6 [p=S18@4-5; c=S43@5-6]
+S26@4-6 [p=S25@4-5; c=S43@5-6]
+S29@4-6 [p=S28@4-5; c=S43@5-6]
+S32@4-6 [p=S31@4-5; c=S43@5-6]
+S43@5-6 [p=S19@5-5; s=NUMBER; t=\1]
+S21@6-6
+S23@6-6
 Earley Set 7
-S26@6-7 [p=S19@6-6; s=WHERE; t=\'Where']
-S27@7-7
+S46@6-7 [p=S23@6-6; s=WHERE; t=\'Where']
+S47@7-7
 Earley Set 8
-S2@0-8 [p=S0@0-0; c=S6@0-8]
-S5@0-8 [p=S1@0-0; c=S7@0-8]
+S2@0-8 [p=S1@0-0; c=S5@0-8]
+S3@0-8 [p=S1@0-0; c=S5@0-8]
+S5@0-8 [p=S1@0-0; c=S12@0-8]
 S6@0-8 [p=S1@0-0; c=S5@0-8]
-S7@0-8 [p=S3@0-1; c=S15@1-8]
-S15@1-8 [p=S13@1-4; c=S23@4-8]
-S23@4-8 [p=S18@4-6; c=S34@6-8]
-S31@6-8 [p=S19@6-6; c=S36@6-8]
-S34@6-8 [p=S19@6-6; c=S31@6-8]
-S36@6-8 [p=S26@6-7; c=S38@7-8]
-S38@7-8 [p=S27@7-7; s=TRUE; t=\'True']
-S32@8-8
+S12@0-8 [p=S10@0-1; c=S17@1-8]
+S53@0-8 [p=S0@0-0; c=S2@0-8]
+S17@1-8 [p=S15@1-4; c=S30@4-8]
+S30@4-8 [p=S29@4-6; c=S37@6-8]
+S37@6-8 [p=S23@6-6; c=S41@6-8]
+S38@6-8 [p=S23@6-6; c=S48@6-8]
+S41@6-8 [p=S23@6-6; c=S48@6-8]
+S48@6-8 [p=S46@6-7; c=S49@7-8]
+S49@7-8 [p=S47@7-7; s=TRUE; t=\'True']
+S39@8-8
 END_OF_EARLEY_SETS
 
 Marpa::R2::Test::is( $recog->show_and_nodes(),
