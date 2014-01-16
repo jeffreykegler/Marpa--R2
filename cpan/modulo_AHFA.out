@@ -1473,69 +1473,7 @@ Failed 1/17 subtests
 t/leo2.t ............... 
 Dubious, test returned 3 (wstat 768, 0x300)
 Failed 3/9 subtests 
-
-#   Failed test 'Leo166 AHFA'
-#   at t/leo3.t line 73.
-# +---+---------------+---+--------------------+
-# | Ln|Got            | Ln|Expected            |
-# +---+---------------+---+--------------------+
-# |  1|'* S0:         |  1|'* S0:              |
-# |  2|S[\'] -> . S   |  2|S[\'] -> . S        |
-# |   |               *  3| <S> => S2          *
-# |  3|* S1: predict  |  4|* S1: predict       |
-# |  4|S -> . a A     |  5|S -> . a A          |
-# |  5|S -> . a A[]   |  6|S -> . a A[]        |
-# |   |               *  7| <a> => S3; S4      *
-# |  6|* S2:          |  8|* S2:               |
-# |   |               *  9|S[\'] -> S .        *
-# |   |               * 10|* S3:               *
-# |  7|S -> a . A     | 11|S -> a . A          |
-# *  8|* S3: predict  * 12|S -> a A[] .        *
-# |   |               * 13| <A> => S5; leo(S)  *
-# |   |               * 14|* S4: predict       *
-# |  9|S -> . a A     | 15|S -> . a A          |
-# | 10|S -> . a A[]   | 16|S -> . a A[]        |
-# | 11|A -> . B       | 17|A -> . B            |
-# | 12|B -> . C       | 18|B -> . C            |
-# | 13|C -> . S       | 19|C -> . S            |
-# * 14|* S4: leo-c    * 20| <B> => S7; leo(A)  *
-# |   |               * 21| <C> => S8; leo(B)  *
-# |   |               * 22| <S> => S6; leo(C)  *
-# |   |               * 23| <a> => S3; S4      *
-# |   |               * 24|* S5: leo-c         *
-# | 15|S -> a A .     | 25|S -> a A .          |
-# * 16|* S5:          *   |                    |
-# * 17|S -> a A[] .   *   |                    |
-# | 18|* S6: leo-c    | 26|* S6: leo-c         |
-# * 19|A -> B .       * 27|C -> S .            *
-# | 20|* S7: leo-c    | 28|* S7: leo-c         |
-# * 21|B -> C .       * 29|A -> B .            *
-# | 22|* S8: leo-c    | 30|* S8: leo-c         |
-# * 23|C -> S .       * 31|B -> C .            *
-# * 24|* S9:          *   |                    |
-# * 25|S[\'] -> S .   *   |                    |
-# | 26|'              | 32|'                   |
-# +---+---------------+---+--------------------+
-
-#   Failed test 'Leo flag 0, size 80'
-#   at t/leo3.t line 128.
-# +---+-----+----------+
-# | Ln|Got  |Expected  |
-# +---+-----+----------+
-# *  1|80   |79        *
-# +---+-----+----------+
-
-#   Failed test 'Leo flag 1, size 5'
-#   at t/leo3.t line 128.
-# +---+-----+----------+
-# | Ln|Got  |Expected  |
-# +---+-----+----------+
-# *  1|5    |4         *
-# +---+-----+----------+
-# Looks like you failed 3 tests of 7.
-t/leo3.t ............... 
-Dubious, test returned 3 (wstat 768, 0x300)
-Failed 3/7 subtests 
+t/leo3.t ............... ok
 t/leo_cycle.t .......... ok
 t/leo_example.t ........ ok
 t/leo_unit.t ........... ok
@@ -1645,9 +1583,6 @@ t/leo.t              (Wstat: 256 Tests: 17 Failed: 1)
 t/leo2.t             (Wstat: 768 Tests: 9 Failed: 3)
   Failed tests:  3-4, 6
   Non-zero exit status: 3
-t/leo3.t             (Wstat: 768 Tests: 7 Failed: 3)
-  Failed tests:  3-4, 6
-  Non-zero exit status: 3
-Files=102, Tests=963, 46 wallclock secs ( 0.79 usr  0.32 sys + 42.21 cusr  2.29 csys = 45.61 CPU)
+Files=102, Tests=963, 46 wallclock secs ( 0.77 usr  0.31 sys + 42.76 cusr  2.44 csys = 46.28 CPU)
 Result: FAIL
-Failed 12/102 test programs. 31/963 subtests failed.
+Failed 11/102 test programs. 28/963 subtests failed.
