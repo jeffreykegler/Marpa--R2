@@ -2139,58 +2139,7 @@ t/leo_unit.t ...........
 Dubious, test returned 3 (wstat 768, 0x300)
 Failed 3/7 subtests 
 t/limits.t ............. ok
-
-#   Failed test 'Minuses Equation AHFA'
-#   at t/minus.t line 131.
-# +---+---------------------+---+-------------------------+
-# | Ln|Got                  | Ln|Expected                 |
-# +---+---------------------+---+-------------------------+
-# |  1|'* S0:               |  1|'* S0:                   |
-# |  2|E[\'] -> . E         |  2|E[\'] -> . E             |
-# |   |                     *  3| <E> => S2               *
-# |  3|* S1: predict        |  4|* S1: predict            |
-# |  4|E -> . E Minus E     |  5|E -> . E Minus E         |
-# |  5|E -> . E MinusMinus  |  6|E -> . E MinusMinus      |
-# |  6|E -> . MinusMinus E  |  7|E -> . MinusMinus E      |
-# |  7|E -> . Minus E       |  8|E -> . Minus E           |
-# |  8|E -> . Number        |  9|E -> . Number            |
-# |   |                     * 10| <E> => S6               *
-# |   |                     * 11| <Minus> => S1; S3       *
-# |   |                     * 12| <MinusMinus> => S1; S4  *
-# |   |                     * 13| <Number> => S5          *
-# |  9|* S2:                | 14|* S2:                    |
-# * 10|E -> E . Minus E     * 15|E[\'] -> E .             *
-# | 11|* S3:                | 16|* S3:                    |
-# * 12|E -> E Minus . E     * 17|E -> Minus . E           *
-# * 13|* S4: leo-c          * 18| <E> => S7; leo(E)       *
-# * 14|E -> E Minus E .     * 19|* S4:                    *
-# |   |                     * 20|E -> MinusMinus . E      *
-# |   |                     * 21| <E> => S8; leo(E)       *
-# | 15|* S5:                | 22|* S5:                    |
-# * 16|E -> E . MinusMinus  * 23|E -> Number .            *
-# | 17|* S6:                | 24|* S6:                    |
-# * 18|E -> E MinusMinus .  * 25|E -> E . Minus E         *
-# * 19|* S7:                * 26|E -> E . MinusMinus      *
-# * 20|E -> MinusMinus . E  * 27| <Minus> => S1; S9       *
-# |   |                     * 28| <MinusMinus> => S10     *
-# |   |                     * 29|* S7: leo-c              *
-# |   |                     * 30|E -> Minus E .           *
-# | 21|* S8: leo-c          | 31|* S8: leo-c              |
-# | 22|E -> MinusMinus E .  | 32|E -> MinusMinus E .      |
-# | 23|* S9:                | 33|* S9:                    |
-# * 24|E -> Minus . E       * 34|E -> E Minus . E         *
-# * 25|* S10: leo-c         * 35| <E> => S11; leo(E)      *
-# * 26|E -> Minus E .       * 36|* S10:                   *
-# * 27|* S11:               * 37|E -> E MinusMinus .      *
-# * 28|E -> Number .        * 38|* S11: leo-c             *
-# * 29|* S12:               * 39|E -> E Minus E .         *
-# * 30|E[\'] -> E .         *   |                         |
-# | 31|'                    | 40|'                        |
-# +---+---------------------+---+-------------------------+
-# Looks like you failed 1 test of 10.
-t/minus.t .............. 
-Dubious, test returned 1 (wstat 256, 0x100)
-Failed 1/10 subtests 
+t/minus.t .............. ok
 t/naif.t ............... ok
 t/null_example.t ....... ok
 t/null_infinite1.t ..... ok
@@ -2307,9 +2256,6 @@ t/leo_example.t      (Wstat: 512 Tests: 6 Failed: 2)
 t/leo_unit.t         (Wstat: 768 Tests: 7 Failed: 3)
   Failed tests:  3-4, 6
   Non-zero exit status: 3
-t/minus.t            (Wstat: 256 Tests: 10 Failed: 1)
-  Failed test:  2
-  Non-zero exit status: 1
-Files=102, Tests=963, 47 wallclock secs ( 0.78 usr  0.35 sys + 43.56 cusr  2.52 csys = 47.21 CPU)
+Files=102, Tests=963, 49 wallclock secs ( 0.80 usr  0.35 sys + 43.04 cusr  2.46 csys = 46.65 CPU)
 Result: FAIL
-Failed 16/102 test programs. 40/963 subtests failed.
+Failed 15/102 test programs. 39/963 subtests failed.

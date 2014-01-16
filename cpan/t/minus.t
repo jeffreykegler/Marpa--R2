@@ -132,43 +132,34 @@ Marpa::R2::Test::is( $grammar->show_AHFA,
     <<'END_AHFA', 'Minuses Equation AHFA' );
 * S0:
 E['] -> . E
- <E> => S2
 * S1: predict
 E -> . E Minus E
 E -> . E MinusMinus
 E -> . MinusMinus E
 E -> . Minus E
 E -> . Number
- <E> => S6
- <Minus> => S1; S3
- <MinusMinus> => S1; S4
- <Number> => S5
 * S2:
-E['] -> E .
-* S3:
-E -> Minus . E
- <E> => S7; leo(E)
-* S4:
-E -> MinusMinus . E
- <E> => S8; leo(E)
-* S5:
-E -> Number .
-* S6:
 E -> E . Minus E
+* S3:
+E -> E Minus . E
+* S4: leo-c
+E -> E Minus E .
+* S5:
 E -> E . MinusMinus
- <Minus> => S1; S9
- <MinusMinus> => S10
-* S7: leo-c
-E -> Minus E .
+* S6:
+E -> E MinusMinus .
+* S7:
+E -> MinusMinus . E
 * S8: leo-c
 E -> MinusMinus E .
 * S9:
-E -> E Minus . E
- <E> => S11; leo(E)
-* S10:
-E -> E MinusMinus .
-* S11: leo-c
-E -> E Minus E .
+E -> Minus . E
+* S10: leo-c
+E -> Minus E .
+* S11:
+E -> Number .
+* S12:
+E['] -> E .
 END_AHFA
 
 my %expected = map { ( $_ => 1 ) } (
