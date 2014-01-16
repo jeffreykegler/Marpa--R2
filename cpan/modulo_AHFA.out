@@ -1072,32 +1072,7 @@ t/gabend.t ............. ok
 t/implementation.t ..... 
 Dubious, test returned 2 (wstat 512, 0x200)
 Failed 2/8 subtests 
-
-#   Failed test 'cycle8 trace'
-#   at t/infinite.t line 199.
-# +---+---------------------------------------------------+---+-------------------------------------------+
-# | Ln|Got                                                | Ln|Expected                                   |
-# +---+---------------------------------------------------+---+-------------------------------------------+
-# |  1|'Cycle found involving rule: 0: S -> A             |  1|'Cycle found involving rule: 0: S -> A     |
-# |  2|Cycle found involving rule: 1: A -> B T U          |  2|Cycle found involving rule: 1: A -> B T U  |
-# |  3|Cycle found involving rule: 2: B -> V C            |  3|Cycle found involving rule: 2: B -> V C    |
-# |  4|Cycle found involving rule: 3: C -> W D X          |  4|Cycle found involving rule: 3: C -> W D X  |
-# |  5|Cycle found involving rule: 4: D -> E              |  5|Cycle found involving rule: 4: D -> E      |
-# |  6|Cycle found involving rule: 5: E -> S              |  6|Cycle found involving rule: 5: E -> S      |
-# *  7|Earley item count (100) exceeds warning threshold  *   |                                           |
-# *  8|Earley item count (101) exceeds warning threshold  *   |                                           |
-# *  9|Earley item count (102) exceeds warning threshold  *   |                                           |
-# * 10|Earley item count (103) exceeds warning threshold  *   |                                           |
-# * 11|Earley item count (104) exceeds warning threshold  *   |                                           |
-# * 12|Earley item count (105) exceeds warning threshold  *   |                                           |
-# * 13|Earley item count (106) exceeds warning threshold  *   |                                           |
-# * 14|Earley item count (107) exceeds warning threshold  *   |                                           |
-# | 15|'                                                  |  7|'                                          |
-# +---+---------------------------------------------------+---+-------------------------------------------+
-# Looks like you failed 1 test of 6.
-t/infinite.t ........... 
-Dubious, test returned 1 (wstat 256, 0x100)
-Failed 1/6 subtests 
+t/infinite.t ........... ok
 t/infinite2.t .......... ok
 t/infinite_plex.t ...... ok
 t/initial_nulls.t ...... ok
@@ -1202,9 +1177,6 @@ t/final_nonnullable.t (Wstat: 256 Tests: 10 Failed: 1)
 t/implementation.t   (Wstat: 512 Tests: 8 Failed: 2)
   Failed tests:  4-5
   Non-zero exit status: 2
-t/infinite.t         (Wstat: 256 Tests: 6 Failed: 1)
-  Failed test:  6
-  Non-zero exit status: 1
-Files=102, Tests=963, 46 wallclock secs ( 0.76 usr  0.33 sys + 42.91 cusr  2.34 csys = 46.34 CPU)
+Files=102, Tests=963, 46 wallclock secs ( 0.79 usr  0.35 sys + 43.02 cusr  2.37 csys = 46.53 CPU)
 Result: FAIL
-Failed 8/102 test programs. 22/963 subtests failed.
+Failed 7/102 test programs. 21/963 subtests failed.

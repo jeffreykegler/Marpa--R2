@@ -5670,6 +5670,9 @@ PRIVATE_NOT_INLINE int AHFA_state_cmp(
 I no longer special-case the start rule.
 |duplicates| can probably be eliminated once predictions
 get special handling.
+|initial_no_of_states| might bear some rethinking, but
+we're elimination AHFA states, so it stays where it is
+until then.
 @<Declare locals for creating AHFA states@> =
    const int initial_no_of_states = 2*AIM_Count_of_G(g);
    Bit_Matrix prediction_matrix;
@@ -6699,7 +6702,7 @@ PRIVATE YS current_ys_of_r(RECCE r)
 @<Int aligned recognizer elements@> = int t_earley_item_warning_threshold;
 @ @<Initialize recognizer elements@> =
 r->t_earley_item_warning_threshold =
-    MAX (DEFAULT_YIM_WARNING_THRESHOLD, AIM_Count_of_G (g) * 2);
+    MAX (DEFAULT_YIM_WARNING_THRESHOLD, AIM_Count_of_G (g) * 3);
 @ @<Function definitions@> =
 int
 marpa_r_earley_item_warning_threshold (Marpa_Recognizer r)
