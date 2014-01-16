@@ -271,8 +271,7 @@ partial: 1
 normalize-whitespace: 1
 
     Error in SLIF parse: No lexemes accepted at line 1, column 18
-      Lexer "L0" rejected 1 lexeme(s)
-      Rejected lexeme #1: '*'; value="*"; length = 1
+      Rejected lexeme #0: Lexer "L0"; '*'; value="*"; length = 1
     * String before error: a = 8675309 + 42\s
     * The error was at line 1, column 18, and at character 0x002a '*', ...
     * here: * 711
@@ -565,12 +564,12 @@ name: SLIF debug example progress report
 partial: 1
 normalize-whitespace: 1
 
-    P0 @0-0 L1c1 statements -> . statement *
-    P1 @0-0 L1c1 statement -> . assignment
-    P2 @0-0 L1c1 statement -> . <numeric assignment>
-    P3 @0-0 L1c1 assignment -> . 'set' variable 'to' expression
-    P4 @0-0 L1c1 <numeric assignment> -> . variable '=' expression
-    P19 @0-0 L1c1 :start -> . statements
+    P0 @0-0 L0c0 statements -> . statement *
+    P1 @0-0 L0c0 statement -> . assignment
+    P2 @0-0 L0c0 statement -> . <numeric assignment>
+    P3 @0-0 L0c0 assignment -> . 'set' variable 'to' expression
+    P4 @0-0 L0c0 <numeric assignment> -> . variable '=' expression
+    P19 @0-0 L0c0 :start -> . statements
 
 =for Marpa::R2::Display::End
 
@@ -580,7 +579,7 @@ to see if R19 is predicted anywhere.
 No R19.  Not anywhere.
 
 The LHS of R19 is C<E<lt>numeric expressionE<gt>>.
-We look in the progress report for dotted rules where 
+We look in the progress report for dotted rules where
 C<E<lt>numeric expressionE<gt>> is expected -- that is,
 dotted rules where C<E<lt>numeric expressionE<gt>> is the post-dot symbol.
 There are none.
@@ -588,7 +587,7 @@ There are none.
 Next we look for places in the progress reports where
 C<E<lt>numeric expressionE<gt>> occurs at all,
 whether post-dot or not.
-In the progress reports, 
+In the progress reports,
 C<E<lt>numeric expressionE<gt>> occurs in only two dotted rule instances.
 Here they are:
 
@@ -634,8 +633,8 @@ normalize-whitespace: 1
 
 =for Marpa::R2::Display::End
 
-This rule 
-will never put 
+This rule
+will never put
 C<E<lt>numeric expressionE<gt>> into the Earley items
 unless there is
 a C<E<lt>numeric expressionE<gt>> already there.
@@ -710,7 +709,7 @@ The range is always reported in increasing numeric order,
 even when the position at
 the end of the range was visited before the input string position
 at the beginning of the range.
-And, if necessary to include all visited input string positions, the range 
+And, if necessary to include all visited input string positions, the range
 may include input string positions which were not visited.
 
 Most applications move forward continuously in the input string,
@@ -1013,8 +1012,7 @@ remove-display-indent: 1
 remove-blank-last-line: 1
 
     Error in SLIF parse: No lexemes accepted at line 1, column 18
-      Lexer "L0" rejected 1 lexeme(s)
-      Rejected lexeme #1: '*'; value="*"; length = 1
+      Rejected lexeme #0: Lexer "L0"; '*'; value="*"; length = 1
     * String before error: a = 8675309 + 42\s
     * The error was at line 1, column 18, and at character 0x002a '*', ...
     * here: * 711
@@ -1088,12 +1086,12 @@ name: SLIF debug example progress report
 remove-display-indent: 1
 remove-blank-last-line: 1
 
-  P0 @0-0 L1c1 statements -> . statement *
-  P1 @0-0 L1c1 statement -> . assignment
-  P2 @0-0 L1c1 statement -> . <numeric assignment>
-  P3 @0-0 L1c1 assignment -> . 'set' variable 'to' expression
-  P4 @0-0 L1c1 <numeric assignment> -> . variable '=' expression
-  P19 @0-0 L1c1 :start -> . statements
+  P0 @0-0 L0c0 statements -> . statement *
+  P1 @0-0 L0c0 statement -> . assignment
+  P2 @0-0 L0c0 statement -> . <numeric assignment>
+  P3 @0-0 L0c0 assignment -> . 'set' variable 'to' expression
+  P4 @0-0 L0c0 <numeric assignment> -> . variable '=' expression
+  P19 @0-0 L0c0 :start -> . statements
   R4:1 @0-1 L1c1 <numeric assignment> -> variable . '=' expression
   R4:2 @0-2 L1c1-3 <numeric assignment> -> variable '=' . expression
   P5 @2-2 L1c3 expression -> . expression
