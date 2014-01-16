@@ -81,36 +81,35 @@ END_OF_STRING
 Marpa::R2::Test::is( $grammar->show_AHFA, <<'END_OF_STRING', 'Leo168 AHFA' );
 * S0:
 S['] -> . S
- <S> => S2
 * S1: predict
 S -> . a S
 S -> . a S[]
 S -> . C
 C -> . a C b
 C -> . a C[] b
- <C> => S4
- <a> => S1; S3
 * S2:
-S['] -> S .
-* S3:
 S -> a . S
-S -> a S[] .
-C -> a . C b
-C -> a C[] . b
- <C> => S7
- <S> => S6; leo(S)
- <b> => S5
-* S4:
-S -> C .
-* S5:
-C -> a C[] b .
-* S6: leo-c
+* S3: leo-c
 S -> a S .
-* S7:
-C -> a C . b
- <b> => S8
+* S4:
+S -> a S[] .
+* S5:
+S -> C .
+* S6:
+C -> a . C b
+* S7: predict
+C -> . a C b
+C -> . a C[] b
 * S8:
+C -> a C . b
+* S9:
 C -> a C b .
+* S10:
+C -> a C[] . b
+* S11:
+C -> a C[] b .
+* S12:
+S['] -> S .
 END_OF_STRING
 
 my %expected = (

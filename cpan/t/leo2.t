@@ -59,19 +59,17 @@ END_OF_STRING
 Marpa::R2::Test::is( $grammar->show_AHFA, <<'END_OF_STRING', 'Leo166 AHFA' );
 * S0:
 S['] -> . S
- <S> => S2
 * S1: predict
 S -> . a S
 S -> . a S[]
- <a> => S1; S3
 * S2:
-S['] -> S .
-* S3:
 S -> a . S
-S -> a S[] .
- <S> => S4; leo(S)
-* S4: leo-c
+* S3: leo-c
 S -> a S .
+* S4:
+S -> a S[] .
+* S5:
+S['] -> S .
 END_OF_STRING
 
 my $length = 50;
@@ -97,7 +95,7 @@ LEO_FLAG: for my $leo_flag ( 0, 1 ) {
         $max_size = $size > $max_size ? $size : $max_size;
     } ## end while ( $i++ < $length )
 
-    my $expected_size = $leo_flag ? 4 : $length + 2;
+    my $expected_size = $leo_flag ? 5 : $length + 3;
     Marpa::R2::Test::is( $max_size, $expected_size,
         "Leo flag $leo_flag, size" );
 
