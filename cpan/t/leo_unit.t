@@ -68,34 +68,30 @@ Marpa::R2::Test::is( $grammar->show_rules,
 3: C -> c
 END_OF_STRING
 
+
 Marpa::R2::Test::is( $grammar->show_AHFA, <<'END_OF_STRING', 'Leo166 AHFA' );
 * S0:
 A['] -> . A
- <A> => S2
 * S1: predict
 A -> . a B
- <a> => S3; S4
 * S2:
-A['] -> A .
-* S3:
 A -> a . B
- <B> => S5; leo(A)
-* S4: predict
+* S3: predict
 B -> . C
 C -> . c A
 C -> . c
- <C> => S7; leo(B)
- <c> => S1; S6
-* S5: leo-c
+* S4: leo-c
 A -> a B .
+* S5: leo-c
+B -> C .
 * S6:
 C -> c . A
-C -> c .
- <A> => S8; leo(C)
 * S7: leo-c
-B -> C .
-* S8: leo-c
 C -> c A .
+* S8:
+C -> c .
+* S9:
+A['] -> A .
 END_OF_STRING
 
 my $input = 'acacac';
@@ -119,7 +115,7 @@ LEO_FLAG: for my $leo_flag ( 0, 1 ) {
     } ## end TOKEN: for ( my $i = 0; $i < $length_of_input; $i++ )
 
     my $max_size = List::Util::max(@sizes);
-    my $expected_size = $leo_flag ? 4 : ( $length_of_input / 2 ) * 3 + 2;
+    my $expected_size = $leo_flag ? 5 : ( $length_of_input / 2 ) * 3 + 3;
     Marpa::R2::Test::is( $max_size, $expected_size,
         "Leo flag $leo_flag, size was $max_size but $expected_size was expected" );
 
