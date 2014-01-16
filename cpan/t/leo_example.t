@@ -136,7 +136,6 @@ my $show_AHFA_output = $grammar->show_AHFA();
 Marpa::R2::Test::is( $show_AHFA_output, <<'END_AHFA', 'Leo Example AHFA' );
 * S0:
 Statement['] -> . Statement
- <Statement> => S2
 * S1: predict
 Statement -> . Expression
 Expression -> . Lvalue AssignOp Expression
@@ -145,54 +144,45 @@ Expression -> . Lvalue MinusAssignOp Expression
 Expression -> . Lvalue MultiplyAssignOp Expression
 Expression -> . Variable
 Lvalue -> . Variable
- <Expression> => S3
- <Lvalue> => S4
- <Variable> => S5
 * S2:
-Statement['] -> Statement .
-* S3:
 Statement -> Expression .
-* S4:
+* S3:
 Expression -> Lvalue . AssignOp Expression
-Expression -> Lvalue . AddAssignOp Expression
-Expression -> Lvalue . MinusAssignOp Expression
-Expression -> Lvalue . MultiplyAssignOp Expression
- <AddAssignOp> => S7; S8
- <AssignOp> => S6; S7
- <MinusAssignOp> => S7; S9
- <MultiplyAssignOp> => S10; S7
-* S5:
-Expression -> Variable .
-Lvalue -> Variable .
-* S6:
+* S4:
 Expression -> Lvalue AssignOp . Expression
- <Expression> => S11; leo(Expression)
-* S7: predict
+* S5: predict
 Expression -> . Lvalue AssignOp Expression
 Expression -> . Lvalue AddAssignOp Expression
 Expression -> . Lvalue MinusAssignOp Expression
 Expression -> . Lvalue MultiplyAssignOp Expression
 Expression -> . Variable
 Lvalue -> . Variable
- <Lvalue> => S4
- <Variable> => S5
+* S6: leo-c
+Expression -> Lvalue AssignOp Expression .
+* S7:
+Expression -> Lvalue . AddAssignOp Expression
 * S8:
 Expression -> Lvalue AddAssignOp . Expression
- <Expression> => S12; leo(Expression)
-* S9:
-Expression -> Lvalue MinusAssignOp . Expression
- <Expression> => S13; leo(Expression)
-* S10:
-Expression -> Lvalue MultiplyAssignOp . Expression
- <Expression> => S14; leo(Expression)
-* S11: leo-c
-Expression -> Lvalue AssignOp Expression .
-* S12: leo-c
+* S9: leo-c
 Expression -> Lvalue AddAssignOp Expression .
-* S13: leo-c
+* S10:
+Expression -> Lvalue . MinusAssignOp Expression
+* S11:
+Expression -> Lvalue MinusAssignOp . Expression
+* S12: leo-c
 Expression -> Lvalue MinusAssignOp Expression .
-* S14: leo-c
+* S13:
+Expression -> Lvalue . MultiplyAssignOp Expression
+* S14:
+Expression -> Lvalue MultiplyAssignOp . Expression
+* S15: leo-c
 Expression -> Lvalue MultiplyAssignOp Expression .
+* S16:
+Expression -> Variable .
+* S17:
+Lvalue -> Variable .
+* S18:
+Statement['] -> Statement .
 END_AHFA
 
 my $show_earley_sets_output_before = $recce->show_earley_sets();
@@ -204,50 +194,70 @@ Earley Set 0
 S0@0-0
 S1@0-0
 Earley Set 1
-S2@0-1 [p=S0@0-0; c=S3@0-1]
-S3@0-1 [p=S1@0-0; c=S5@0-1]
-S4@0-1 [p=S1@0-0; c=S5@0-1]
-S5@0-1 [p=S1@0-0; s=Variable; t=\'a']
+S2@0-1 [p=S1@0-0; c=S16@0-1]
+S3@0-1 [p=S1@0-0; c=S17@0-1]
+S7@0-1 [p=S1@0-0; c=S17@0-1]
+S10@0-1 [p=S1@0-0; c=S17@0-1]
+S13@0-1 [p=S1@0-0; c=S17@0-1]
+S16@0-1 [p=S1@0-0; s=Variable; t=\'a']
+S17@0-1 [p=S1@0-0; s=Variable; t=\'a']
+S18@0-1 [p=S0@0-0; c=S2@0-1]
 Earley Set 2
-S6@0-2 [p=S4@0-1; s=AssignOp; t=\'=']
-S7@2-2
-L1@2 ["Expression"; S6@0-2]
+S4@0-2 [p=S3@0-1; s=AssignOp; t=\'=']
+S5@2-2
+L1@2 ["Expression"; S4@0-2]
 Earley Set 3
-S2@0-3 [p=S0@0-0; c=S3@0-3]
-S3@0-3 [p=S1@0-0; c=S11@0-3]
-S11@0-3 [l=L1@2; c=S5@2-3]
-S4@2-3 [p=S7@2-2; c=S5@2-3]
-S5@2-3 [p=S7@2-2; s=Variable; t=\'b']
+S2@0-3 [p=S1@0-0; c=S6@0-3]
+S6@0-3 [l=L1@2; c=S16@2-3]
+S18@0-3 [p=S0@0-0; c=S2@0-3]
+S3@2-3 [p=S5@2-2; c=S17@2-3]
+S7@2-3 [p=S5@2-2; c=S17@2-3]
+S10@2-3 [p=S5@2-2; c=S17@2-3]
+S13@2-3 [p=S5@2-2; c=S17@2-3]
+S16@2-3 [p=S5@2-2; s=Variable; t=\'b']
+S17@2-3 [p=S5@2-2; s=Variable; t=\'b']
 Earley Set 4
-S8@2-4 [p=S4@2-3; s=AddAssignOp; t=\'+=']
-S7@4-4
+S8@2-4 [p=S7@2-3; s=AddAssignOp; t=\'+=']
+S5@4-4
 L1@4 ["Expression"; L1@2; S8@2-4]
 Earley Set 5
-S2@0-5 [p=S0@0-0; c=S3@0-5]
-S3@0-5 [p=S1@0-0; c=S11@0-5]
-S11@0-5 [l=L1@4; c=S5@4-5]
-S4@4-5 [p=S7@4-4; c=S5@4-5]
-S5@4-5 [p=S7@4-4; s=Variable; t=\'c']
+S2@0-5 [p=S1@0-0; c=S6@0-5]
+S6@0-5 [l=L1@4; c=S16@4-5]
+S18@0-5 [p=S0@0-0; c=S2@0-5]
+S3@4-5 [p=S5@4-4; c=S17@4-5]
+S7@4-5 [p=S5@4-4; c=S17@4-5]
+S10@4-5 [p=S5@4-4; c=S17@4-5]
+S13@4-5 [p=S5@4-4; c=S17@4-5]
+S16@4-5 [p=S5@4-4; s=Variable; t=\'c']
+S17@4-5 [p=S5@4-4; s=Variable; t=\'c']
 Earley Set 6
-S9@4-6 [p=S4@4-5; s=MinusAssignOp; t=\'-=']
-S7@6-6
-L1@6 ["Expression"; L1@4; S9@4-6]
+S11@4-6 [p=S10@4-5; s=MinusAssignOp; t=\'-=']
+S5@6-6
+L1@6 ["Expression"; L1@4; S11@4-6]
 Earley Set 7
-S2@0-7 [p=S0@0-0; c=S3@0-7]
-S3@0-7 [p=S1@0-0; c=S11@0-7]
-S11@0-7 [l=L1@6; c=S5@6-7]
-S4@6-7 [p=S7@6-6; c=S5@6-7]
-S5@6-7 [p=S7@6-6; s=Variable; t=\'d']
+S2@0-7 [p=S1@0-0; c=S6@0-7]
+S6@0-7 [l=L1@6; c=S16@6-7]
+S18@0-7 [p=S0@0-0; c=S2@0-7]
+S3@6-7 [p=S5@6-6; c=S17@6-7]
+S7@6-7 [p=S5@6-6; c=S17@6-7]
+S10@6-7 [p=S5@6-6; c=S17@6-7]
+S13@6-7 [p=S5@6-6; c=S17@6-7]
+S16@6-7 [p=S5@6-6; s=Variable; t=\'d']
+S17@6-7 [p=S5@6-6; s=Variable; t=\'d']
 Earley Set 8
-S10@6-8 [p=S4@6-7; s=MultiplyAssignOp; t=\'*=']
-S7@8-8
-L1@8 ["Expression"; L1@6; S10@6-8]
+S14@6-8 [p=S13@6-7; s=MultiplyAssignOp; t=\'*=']
+S5@8-8
+L1@8 ["Expression"; L1@6; S14@6-8]
 Earley Set 9
-S2@0-9 [p=S0@0-0; c=S3@0-9]
-S3@0-9 [p=S1@0-0; c=S11@0-9]
-S11@0-9 [l=L1@8; c=S5@8-9]
-S4@8-9 [p=S7@8-8; c=S5@8-9]
-S5@8-9 [p=S7@8-8; s=Variable; t=\'e']
+S2@0-9 [p=S1@0-0; c=S6@0-9]
+S6@0-9 [l=L1@8; c=S16@8-9]
+S18@0-9 [p=S0@0-0; c=S2@0-9]
+S3@8-9 [p=S5@8-8; c=S17@8-9]
+S7@8-9 [p=S5@8-8; c=S17@8-9]
+S10@8-9 [p=S5@8-8; c=S17@8-9]
+S13@8-9 [p=S5@8-8; c=S17@8-9]
+S16@8-9 [p=S5@8-8; s=Variable; t=\'e']
+S17@8-9 [p=S5@8-8; s=Variable; t=\'e']
 END_EARLEY_SETS
 
 my $trace_output;
