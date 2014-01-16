@@ -339,41 +339,7 @@ t/ah2.t ................
 Dubious, test returned 6 (wstat 1536, 0x600)
 Failed 6/30 subtests 
 t/ah_numeric.t ......... ok
-
-#   Failed test 'Output for basic ASF synopsis'
-#   at t/asf_syn.t line 85.
-# +---+---------------------------------------------------+---+---------------------------------------------------+
-# | Ln|Got                                                | Ln|Expected                                           |
-# +---+---------------------------------------------------+---+---------------------------------------------------+
-# |  1|'Glade 2 has 2 symches                             |  1|'Glade 2 has 2 symches                             |
-# |  2|  Glade 2, Symch 0, pair ::= duple                 |  2|  Glade 2, Symch 0, pair ::= duple                 |
-# |  3|      Glade 6, duple ::= item item                 |  3|      Glade 6, duple ::= item item                 |
-# |  4|          Glade 8 has 2 symches                    |  4|          Glade 8 has 2 symches                    |
-# |  5|            Glade 8, Symch 0, item ::= Hesperus    |  5|            Glade 8, Symch 0, item ::= Hesperus    |
-# |  6|                Glade 13, Hesperus ::= \'a\'       |  6|                Glade 13, Hesperus ::= \'a\'       |
-# *  7|                    Glade 14, Symbol \'a\': "a"    *  7|                    Glade 15, Symbol \'a\': "a"    *
-# |  8|            Glade 8, Symch 1, item ::= Phosphorus  |  8|            Glade 8, Symch 1, item ::= Phosphorus  |
-# |  9|                Glade 1, Phosphorus ::= \'a\'      |  9|                Glade 1, Phosphorus ::= \'a\'      |
-# * 10|                    Glade 16, Symbol \'a\': "a"    * 10|                    Glade 17, Symbol \'a\': "a"    *
-# | 11|          Glade 7 has 2 symches                    | 11|          Glade 7 has 2 symches                    |
-# * 12|            Glade 7, Symch 0, item ::= Phosphorus  * 12|            Glade 7, Symch 0, item ::= Hesperus    *
-# * 13|                Glade 9, Phosphorus ::= \'a\'      * 13|                Glade 22, Hesperus ::= \'a\'       *
-# * 14|                    Glade 21, Symbol \'a\': "a"    *   |                                                   |
-# * 15|            Glade 7, Symch 1, item ::= Hesperus    *   |                                                   |
-# * 16|                Glade 20, Hesperus ::= \'a\'       *   |                                                   |
-# | 17|                    Glade 24, Symbol \'a\': "a"    | 14|                    Glade 24, Symbol \'a\': "a"    |
-# |   |                                                   * 15|            Glade 7, Symch 1, item ::= Phosphorus  *
-# |   |                                                   * 16|                Glade 9, Phosphorus ::= \'a\'      *
-# |   |                                                   * 17|                    Glade 26, Symbol \'a\': "a"    *
-# | 18|  Glade 2, Symch 1, pair ::= item item             | 18|  Glade 2, Symch 1, pair ::= item item             |
-# | 19|      Glade 8 revisited                            | 19|      Glade 8 revisited                            |
-# | 20|      Glade 7 revisited                            | 20|      Glade 7 revisited                            |
-# | 21|'                                                  | 21|'                                                  |
-# +---+---------------------------------------------------+---+---------------------------------------------------+
-# Looks like you failed 1 test of 1.
-t/asf_syn.t ............ 
-Dubious, test returned 1 (wstat 256, 0x100)
-Failed 1/1 subtests 
+t/asf_syn.t ............ ok
 t/balanced.t ........... ok
 
 #   Failed test 'Aycock/Horspool AHFA'
@@ -720,85 +686,7 @@ t/debug_leo.t .......... ok
 t/debug_seq.t .......... ok
 t/deprecated1.t ........ ok
 t/dsl.t ................ ok
-
-#   Failed test 'duplicate parse AHFA'
-#   at t/duplicate_parse.t line 67.
-# +---+------------------------+---+------------------------+
-# | Ln|Got                     | Ln|Expected                |
-# +---+------------------------+---+------------------------+
-# |  1|'* S0:                  |  1|'* S0:                  |
-# |  2|S[\'] -> . S            |  2|S[\'] -> . S            |
-# |   |                        *  3| <S> => S2              *
-# |  3|* S1: predict           |  4|* S1: predict           |
-# |  4|S -> . p p S[R0:2]      |  5|S -> . p p S[R0:2]      |
-# |  5|S -> . p p[] S[R0:2]    |  6|S -> . p p[] S[R0:2]    |
-# +---+------------------------+---+------------------------+
-# |  9|S[R0:2] -> p[] . n      | 10|S[R0:2] -> p[] . n      |
-# | 10|p -> . a                | 11|p -> . a                |
-# | 11|n -> . a                | 12|n -> . a                |
-# |   |                        * 13| <S[R0:2]> => S7        *
-# |   |                        * 14| <a> => S3              *
-# |   |                        * 15| <n> => S6              *
-# |   |                        * 16| <p> => S4; S5          *
-# | 12|* S2:                   | 17|* S2:                   |
-# * 13|S -> p . p S[R0:2]      * 18|S[\'] -> S .            *
-# * 14|* S3: predict           * 19|* S3:                   *
-# * 15|p -> . a                * 20|p -> a .                *
-# |   |                        * 21|n -> a .                *
-# | 16|* S4:                   | 22|* S4:                   |
-# * 17|S -> p p . S[R0:2]      * 23|S -> p . p S[R0:2]      *
-# |   |                        * 24|S -> p p[] . S[R0:2]    *
-# |   |                        * 25|S -> p[] p . S[R0:2]    *
-# |   |                        * 26|S[R0:2] -> p . n        *
-# |   |                        * 27| <S[R0:2]> => S10       *
-# |   |                        * 28| <n> => S9              *
-# |   |                        * 29| <p> => S5; S8          *
-# | 18|* S5: predict           | 30|* S5: predict           |
-# | 19|S[R0:2] -> . p n        | 31|S[R0:2] -> . p n        |
-# | 20|S[R0:2] -> p[] . n      | 32|S[R0:2] -> p[] . n      |
-# | 21|p -> . a                | 33|p -> . a                |
-# | 22|n -> . a                | 34|n -> . a                |
-# |   |                        * 35| <a> => S3              *
-# |   |                        * 36| <n> => S6              *
-# |   |                        * 37| <p> => S11; S12        *
-# | 23|* S6:                   | 38|* S6:                   |
-# * 24|S -> p p S[R0:2] .      * 39|S[R0:2] -> p[] n .      *
-# | 25|* S7:                   | 40|* S7:                   |
-# * 26|S -> p p[] . S[R0:2]    * 41|S -> p[] p[] S[R0:2] .  *
-# | 27|* S8:                   | 42|* S8:                   |
-# * 28|S -> p p[] S[R0:2] .    * 43|S -> p p . S[R0:2]      *
-# |   |                        * 44| <S[R0:2]> => S13       *
-# | 29|* S9:                   | 45|* S9:                   |
-# * 30|S -> p[] p . S[R0:2]    * 46|S[R0:2] -> p n .        *
-# | 31|* S10:                  | 47|* S10:                  |
-# |   |                        * 48|S -> p p[] S[R0:2] .    *
-# | 32|S -> p[] p S[R0:2] .    | 49|S -> p[] p S[R0:2] .    |
-# | 33|* S11:                  | 50|* S11:                  |
-# * 34|S -> p[] p[] S[R0:2] .  *   |                        |
-# * 35|* S12:                  *   |                        |
-# | 36|S[R0:2] -> p . n        | 51|S[R0:2] -> p . n        |
-# * 37|* S13: predict          * 52| <n> => S9              *
-# |   |                        * 53|* S12: predict          *
-# | 38|n -> . a                | 54|n -> . a                |
-# |   |                        * 55| <a> => S14             *
-# |   |                        * 56|* S13:                  *
-# |   |                        * 57|S -> p p S[R0:2] .      *
-# | 39|* S14:                  | 58|* S14:                  |
-# * 40|S[R0:2] -> p n .        *   |                        |
-# * 41|* S15:                  *   |                        |
-# * 42|S[R0:2] -> p[] n .      *   |                        |
-# * 43|* S16:                  *   |                        |
-# * 44|p -> a .                *   |                        |
-# * 45|* S17:                  *   |                        |
-# | 46|n -> a .                | 59|n -> a .                |
-# * 47|* S18:                  *   |                        |
-# * 48|S[\'] -> S .            *   |                        |
-# | 49|'                       | 60|'                       |
-# +---+------------------------+---+------------------------+
-# Looks like you failed 1 test of 5.
-t/duplicate_parse.t .... 
-Dubious, test returned 1 (wstat 256, 0x100)
-Failed 1/5 subtests 
+t/duplicate_parse.t .... ok
 t/equation.t ........... ok
 t/final_nonnullable.t .. ok
 t/gabend.t ............. ok
@@ -890,15 +778,9 @@ Test Summary Report
 t/ah2.t              (Wstat: 1536 Tests: 30 Failed: 6)
   Failed tests:  8, 10-14
   Non-zero exit status: 6
-t/asf_syn.t          (Wstat: 256 Tests: 1 Failed: 1)
-  Failed test:  1
-  Non-zero exit status: 1
 t/bocage.t           (Wstat: 2048 Tests: 19 Failed: 8)
   Failed tests:  7-9, 11, 13, 15, 18-19
   Non-zero exit status: 8
-t/duplicate_parse.t  (Wstat: 256 Tests: 5 Failed: 1)
-  Failed test:  2
-  Non-zero exit status: 1
-Files=102, Tests=963, 46 wallclock secs ( 0.79 usr  0.29 sys + 42.56 cusr  2.28 csys = 45.92 CPU)
+Files=102, Tests=963, 46 wallclock secs ( 0.78 usr  0.32 sys + 42.66 cusr  2.53 csys = 46.29 CPU)
 Result: FAIL
-Failed 4/102 test programs. 16/963 subtests failed.
+Failed 2/102 test programs. 14/963 subtests failed.
