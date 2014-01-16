@@ -22,7 +22,7 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 30;
+use Test::More tests => 25;
 use lib 'inc';
 use Marpa::R2::Test;
 use Marpa::R2;
@@ -156,7 +156,6 @@ EOS
 Marpa::R2::Test::is( $grammar->show_AHFA, <<'EOS', 'Aycock/Horspool AHFA' );
 * S0:
 S['] -> . S
- <S> => S2
 * S1: predict
 S -> . A S[R0:1]
 S -> . A A[] A[] A[]
@@ -168,24 +167,9 @@ S[R0:2] -> . A A
 S[R0:2] -> . A A[]
 S[R0:2] -> A[] . A
 A -> . a
- <A> => S3; S4
- <S[R0:1]> => S6
- <S[R0:2]> => S7
- <a> => S5
 * S2:
-S['] -> S .
-* S3:
 S -> A . S[R0:1]
-S -> A A[] A[] A[] .
-S[R0:1] -> A . S[R0:2]
-S[R0:1] -> A A[] A[] .
-S[R0:2] -> A . A
-S[R0:2] -> A A[] .
-S[R0:2] -> A[] A .
- <A> => S8
- <S[R0:1]> => S9
- <S[R0:2]> => S10
-* S4: predict
+* S3: predict
 S[R0:1] -> . A S[R0:2]
 S[R0:1] -> . A A[] A[]
 S[R0:1] -> A[] . S[R0:2]
@@ -193,108 +177,110 @@ S[R0:2] -> . A A
 S[R0:2] -> . A A[]
 S[R0:2] -> A[] . A
 A -> . a
- <A> => S11; S12
- <S[R0:2]> => S7
- <a> => S5
+* S4:
+S -> A S[R0:1] .
 * S5:
-A -> a .
+S -> A A[] A[] A[] .
 * S6:
 S -> A[] S[R0:1] .
 * S7:
-S[R0:1] -> A[] S[R0:2] .
-* S8:
-S[R0:2] -> A A .
-* S9:
-S -> A S[R0:1] .
-* S10:
-S[R0:1] -> A S[R0:2] .
-* S11:
 S[R0:1] -> A . S[R0:2]
-S[R0:1] -> A A[] A[] .
-S[R0:2] -> A . A
-S[R0:2] -> A A[] .
-S[R0:2] -> A[] A .
- <A> => S8
- <S[R0:2]> => S10
-* S12: predict
+* S8: predict
 S[R0:2] -> . A A
 S[R0:2] -> . A A[]
 S[R0:2] -> A[] . A
 A -> . a
- <A> => S13; S14
- <a> => S5
-* S13:
+* S9:
+S[R0:1] -> A S[R0:2] .
+* S10:
+S[R0:1] -> A A[] A[] .
+* S11:
+S[R0:1] -> A[] S[R0:2] .
+* S12:
 S[R0:2] -> A . A
-S[R0:2] -> A A[] .
-S[R0:2] -> A[] A .
- <A> => S8
-* S14: predict
+* S13: predict
 A -> . a
- <a> => S5
+* S14:
+S[R0:2] -> A A .
+* S15:
+S[R0:2] -> A A[] .
+* S16:
+S[R0:2] -> A[] A .
+* S17:
+A -> a .
+* S18:
+S['] -> S .
 EOS
 
 my $recce = Marpa::R2::Recognizer->new( { grammar => $grammar } );
 
-my @set = (
-    <<'END_OF_SET0', <<'END_OF_SET1', <<'END_OF_SET2', <<'END_OF_SET3', <<'END_OF_SET4', );
+my $expected_earley_sets = <<'END_OF_SETS';
+Last Completed: 4; Furthest: 4
 Earley Set 0
 S0@0-0
 S1@0-0
-END_OF_SET0
 Earley Set 1
-S2@0-1 [p=S0@0-0; c=S3@0-1] [p=S0@0-0; c=S6@0-1]
-S3@0-1 [p=S1@0-0; c=S5@0-1]
-S5@0-1 [p=S1@0-0; s=a; t=\'a']
-S6@0-1 [p=S1@0-0; c=S3@0-1] [p=S1@0-0; c=S7@0-1]
-S7@0-1 [p=S1@0-0; c=S3@0-1]
-S4@1-1
-END_OF_SET1
+S2@0-1 [p=S1@0-0; c=S17@0-1]
+S5@0-1 [p=S1@0-0; c=S17@0-1]
+S6@0-1 [p=S1@0-0; c=S10@0-1] [p=S1@0-0; c=S11@0-1]
+S7@0-1 [p=S1@0-0; c=S17@0-1]
+S10@0-1 [p=S1@0-0; c=S17@0-1]
+S11@0-1 [p=S1@0-0; c=S15@0-1] [p=S1@0-0; c=S16@0-1]
+S12@0-1 [p=S1@0-0; c=S17@0-1]
+S15@0-1 [p=S1@0-0; c=S17@0-1]
+S16@0-1 [p=S1@0-0; c=S17@0-1]
+S17@0-1 [p=S1@0-0; s=a; t=\'a']
+S18@0-1 [p=S0@0-0; c=S5@0-1] [p=S0@0-0; c=S6@0-1]
+S3@1-1
+S8@1-1
+S13@1-1
 Earley Set 2
-S2@0-2 [p=S0@0-0; c=S6@0-2] [p=S0@0-0; c=S9@0-2]
-S6@0-2 [p=S1@0-0; c=S7@0-2] [p=S1@0-0; c=S10@0-2]
-S7@0-2 [p=S1@0-0; c=S8@0-2]
-S8@0-2 [p=S3@0-1; c=S5@1-2]
-S9@0-2 [p=S3@0-1; c=S7@1-2] [p=S3@0-1; c=S11@1-2]
-S10@0-2 [p=S3@0-1; c=S11@1-2]
-S5@1-2 [p=S4@1-1; s=a; t=\'a']
-S7@1-2 [p=S4@1-1; c=S11@1-2]
-S11@1-2 [p=S4@1-1; c=S5@1-2]
-S12@2-2
-END_OF_SET2
+S4@0-2 [p=S2@0-1; c=S10@1-2] [p=S2@0-1; c=S11@1-2]
+S6@0-2 [p=S1@0-0; c=S9@0-2] [p=S1@0-0; c=S11@0-2]
+S9@0-2 [p=S7@0-1; c=S15@1-2] [p=S7@0-1; c=S16@1-2]
+S11@0-2 [p=S1@0-0; c=S14@0-2]
+S14@0-2 [p=S12@0-1; c=S17@1-2]
+S18@0-2 [p=S0@0-0; c=S4@0-2] [p=S0@0-0; c=S6@0-2]
+S7@1-2 [p=S3@1-1; c=S17@1-2]
+S10@1-2 [p=S3@1-1; c=S17@1-2]
+S11@1-2 [p=S3@1-1; c=S15@1-2] [p=S3@1-1; c=S16@1-2]
+S12@1-2 [p=S3@1-1; c=S17@1-2] [p=S8@1-1; c=S17@1-2]
+S15@1-2 [p=S3@1-1; c=S17@1-2] [p=S8@1-1; c=S17@1-2]
+S16@1-2 [p=S3@1-1; c=S17@1-2] [p=S8@1-1; c=S17@1-2]
+S17@1-2 [p=S3@1-1; s=a; t=\'a'] [p=S8@1-1; s=a; t=\'a'] [p=S13@1-1; s=a; t=\'a']
+S8@2-2
+S13@2-2
 Earley Set 3
-S2@0-3 [p=S0@0-0; c=S6@0-3] [p=S0@0-0; c=S9@0-3]
-S6@0-3 [p=S1@0-0; c=S10@0-3]
-S9@0-3 [p=S3@0-1; c=S7@1-3] [p=S3@0-1; c=S10@1-3]
-S10@0-3 [p=S3@0-1; c=S8@1-3]
-S7@1-3 [p=S4@1-1; c=S8@1-3]
-S8@1-3 [p=S11@1-2; c=S5@2-3]
-S10@1-3 [p=S11@1-2; c=S13@2-3]
-S5@2-3 [p=S12@2-2; s=a; t=\'a']
-S13@2-3 [p=S12@2-2; c=S5@2-3]
-S14@3-3
-END_OF_SET3
+S4@0-3 [p=S2@0-1; c=S9@1-3] [p=S2@0-1; c=S11@1-3]
+S6@0-3 [p=S1@0-0; c=S9@0-3]
+S9@0-3 [p=S7@0-1; c=S14@1-3]
+S18@0-3 [p=S0@0-0; c=S4@0-3] [p=S0@0-0; c=S6@0-3]
+S9@1-3 [p=S7@1-2; c=S15@2-3] [p=S7@1-2; c=S16@2-3]
+S11@1-3 [p=S3@1-1; c=S14@1-3]
+S14@1-3 [p=S12@1-2; c=S17@2-3]
+S12@2-3 [p=S8@2-2; c=S17@2-3]
+S15@2-3 [p=S8@2-2; c=S17@2-3]
+S16@2-3 [p=S8@2-2; c=S17@2-3]
+S17@2-3 [p=S8@2-2; s=a; t=\'a'] [p=S13@2-2; s=a; t=\'a']
+S13@3-3
 Earley Set 4
-S2@0-4 [p=S0@0-0; c=S9@0-4]
-S9@0-4 [p=S3@0-1; c=S10@1-4]
-S10@1-4 [p=S11@1-2; c=S8@2-4]
-S8@2-4 [p=S13@2-3; c=S5@3-4]
-S5@3-4 [p=S14@3-3; s=a; t=\'a']
-END_OF_SET4
+S4@0-4 [p=S2@0-1; c=S9@1-4]
+S18@0-4 [p=S0@0-0; c=S4@0-4]
+S9@1-4 [p=S7@1-2; c=S14@2-4]
+S14@2-4 [p=S12@2-3; c=S17@3-4]
+S17@3-4 [p=S13@3-3; s=a; t=\'a']
+END_OF_SETS
 
 my $input_length = 4;
-EARLEME: for my $earleme ( 0 .. $input_length + 1 ) {
-    my $furthest = my $last_completed =
-        List::Util::min( $earleme, $input_length );
-    Marpa::R2::Test::is(
-        $recce->show_earley_sets(1),
-        "Last Completed: $last_completed; Furthest: $furthest\n"
-            . ( join q{}, @set[ 0 .. $furthest ] ),
-        "Aycock/Horspool Parse Status at earleme $earleme"
-    );
-    next EARLEME if $earleme == $input_length;
-    last EARLEME if $earleme > $input_length;
+for (my $i = 0; $i < $input_length; $i++) {
     $recce->read( 'a', 'a' );
-} ## end for my $earleme ( 0 .. $input_length + 1 )
+}
+
+Marpa::R2::Test::is(
+    $recce->show_earley_sets(1),
+    $expected_earley_sets,
+    'Aycock/Horspool Earley sets'
+);
 
 my @expected = map {
     +{ map { ( $_ => 1 ) } @{$_} }
