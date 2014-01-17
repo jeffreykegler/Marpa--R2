@@ -9953,11 +9953,10 @@ Leo item have not been fully populated.
 	      {
 		// Not a prediction, so there is only one AIM.
 		const AHFA leo_base_ahfa = AHFA_of_YIM (leo_base);
-		MARPA_ASSERT (AIM_Count_of_AHFA (leo_base_ahfa) == 1);
 		const AIM leo_base_aim =
 		  AIM_of_AHFA_by_AEX (leo_base_ahfa, 0);
-		MARPA_ASSERT (Postdot_NSYID_of_AIM (leo_base_aim) == nsyid);
 		const IRL leo_base_irl = IRL_of_AIM (leo_base_aim);
+
 		if (!IRL_is_Leo (leo_base_irl))
 		  goto NEXT_NSYID;
 		potential_leo_penult_aim = leo_base_aim;
