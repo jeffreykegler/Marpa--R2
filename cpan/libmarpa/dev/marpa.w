@@ -9903,52 +9903,77 @@ Leo item have not been fully populated.
       for (nsyid = (NSYID) min; nsyid <= (NSYID) max; nsyid++)
 	{
 	  const PIM this_pim = r->t_pim_workarea[nsyid];
-	  if (!Next_PIM_of_PIM (this_pim))
-	    {			/* Do not create a Leo item if there is more
-				   than one YIX */
-	      const YIM leo_base = YIM_of_PIM (this_pim);
-	      AIM potential_leo_penult_aim = NULL;
-	      if (YIM_is_Predicted (leo_base))
-                {
-                  const AHFA leo_base_ahfa = AHFA_of_YIM (leo_base);
-                  const AIM *const aims = AIMs_of_AHFA (leo_base_ahfa);
-                  const int aim_count = AIM_Count_of_AHFA (leo_base_ahfa);
-                  int i;
-                  for (i = 0; i < aim_count; i++)
-                    {
-                      NSYID trial_nsyid;
-                      const AIM trial_aim = aims[i];
-                      const IRL trial_irl = IRL_of_AIM (trial_aim);
-                      if (!IRL_is_Unit_Rule (trial_irl)) continue;
-                      if (!IRL_is_Leo (trial_irl)) continue;
-                      trial_nsyid = Postdot_NSYID_of_AIM (trial_aim);
-                      if (trial_nsyid != nsyid) continue;
-                      potential_leo_penult_aim = trial_aim;
-                      break;
-                    }
-                }
-	      else
+	  if (Next_PIM_of_PIM (this_pim))
+	    goto NEXT_NSYID;
+                /* Do not create a Leo item if there is more
+                   than one YIX */
+          {
+	    const YIM leo_base = YIM_of_PIM (this_pim);
+	    AIM potential_leo_penult_aim = NULL;
+	    if (YIM_is_Predicted (leo_base))
+	      {
+		const AHFA leo_base_ahfa = AHFA_of_YIM (leo_base);
+		const AIM *const aims = AIMs_of_AHFA (leo_base_ahfa);
+		const int aim_count = AIM_Count_of_AHFA (leo_base_ahfa);
+		int i;
+		int trial_aex = -1;
+		for (i = 0; i < aim_count; i++)
+		  {		// Find where our nysid is in the AIM's
+		    const AIM trial_aim = aims[i];
+		    const NSYID trial_nsyid =
+		      Postdot_NSYID_of_AIM (trial_aim);
+		    if (trial_nsyid != nsyid)
+		      continue;
+		    trial_aex = i;
+		    break;
+		  }
+                /* We know that aex is not zero here */
+                MARPA_ASSERT (trial_aex);
+		for (i = trial_aex + 1; i < aim_count; i++)
+		  {		// But check for duplicates 
+		    const AIM trial_aim = aims[i];
+		    const NSYID trial_nsyid =
+		      Postdot_NSYID_of_AIM (trial_aim);
+		    if (trial_nsyid == nsyid)
+		      goto NEXT_NSYID;
+		  }
 		{
-		  // Not a prediction, so there is only one AIM.
-		      const AHFA leo_base_ahfa = AHFA_of_YIM (leo_base);
-                  MARPA_ASSERT(AIM_Count_of_AHFA (leo_base_ahfa) == 1);
-                      const AIM leo_base_aim = AIM_of_AHFA_by_AEX (leo_base_ahfa, 0);
-                      const IRL leo_base_irl = IRL_of_AIM(leo_base_aim);
-                      if (IRL_is_Leo(leo_base_irl)) {
-                        potential_leo_penult_aim = leo_base_aim;
-                      }
+		  const AIM trial_aim = aims[trial_aex];
+		  const IRL trial_irl = IRL_of_AIM (trial_aim);
+		  if (IRL_is_Unit_Rule (trial_irl))
+		    goto NEXT_NSYID;
+		  if (IRL_is_Leo (trial_irl))
+		    goto NEXT_NSYID;
+		  potential_leo_penult_aim = trial_aim;
+		  MARPA_ASSERT (AIM_is_Leo_Completion
+				(Next_AIM_of_AIM (potential_leo_penult_aim)));
 		}
-	      if (potential_leo_penult_aim)
+	      }
+	    else
+	      {
+		// Not a prediction, so there is only one AIM.
+		const AHFA leo_base_ahfa = AHFA_of_YIM (leo_base);
+		MARPA_ASSERT (AIM_Count_of_AHFA (leo_base_ahfa) == 1);
+		const AIM leo_base_aim =
+		  AIM_of_AHFA_by_AEX (leo_base_ahfa, 0);
+		MARPA_ASSERT (Postdot_NSYID_of_AIM (leo_base_aim) == nsyid);
+		const IRL leo_base_irl = IRL_of_AIM (leo_base_aim);
+		if (!IRL_is_Leo (leo_base_irl))
+		  goto NEXT_NSYID;
+		potential_leo_penult_aim = leo_base_aim;
+	      }
+            MARPA_ASSERT(potential_leo_penult_aim);
+	    {
+	      const AIM base_to_aim =
+		Next_AIM_of_AIM (potential_leo_penult_aim);
+	      const AHFA base_to_ahfa = AHFA_of_AIM (base_to_aim);
+	      if (AHFA_is_Leo_Completion (base_to_ahfa))
 		{
-		  const AIM base_to_aim =
-		    Next_AIM_of_AIM (potential_leo_penult_aim);
-		  const AHFA base_to_ahfa = AHFA_of_AIM (base_to_aim);
-                  MARPA_ASSERT(AHFA_is_Leo_Completion (base_to_ahfa));
-                  if (AHFA_is_Leo_Completion (base_to_ahfa)) {
-                    @<Create a new, unpopulated, LIM@>@;
-                  }
+		  @<Create a new, unpopulated, LIM@>@;
 		}
 	    }
+	  }
+	NEXT_NSYID:;
 	}
     }
 }
