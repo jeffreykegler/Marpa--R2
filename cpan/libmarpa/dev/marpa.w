@@ -9957,15 +9957,36 @@ Leo item have not been fully populated.
 	    {			/* Do not create a Leo item if there is more
 				   than one YIX */
 	      const YIM leo_base = YIM_of_PIM (this_pim);
-	      if (YIM_is_Potential_Leo_Base (leo_base))
+	      if (YIM_is_Predicted (leo_base))
 		{
-		  const AHFA leo_base_ahfa = AHFA_of_YIM (leo_base);
-		  const AEX potential_leo_aex =
-		    aex_of_ahfa_by_postdot_get (leo_base_ahfa, nsyid);
-		  if (potential_leo_aex >= 0)
+		  if (YIM_is_Potential_Leo_Base (leo_base))
 		    {
+		      const AHFA leo_base_ahfa = AHFA_of_YIM (leo_base);
+		      const AEX potential_leo_aex =
+			aex_of_ahfa_by_postdot_get (leo_base_ahfa, nsyid);
+		      if (potential_leo_aex >= 0)
+			{
+			  const AIM base_from_aim =
+			    AIM_of_AHFA_by_AEX (leo_base_ahfa,
+						potential_leo_aex);
+			  const AIM base_to_aim =
+			    Next_AIM_of_AIM (base_from_aim);
+			  const AHFA base_to_ahfa = AHFA_of_AIM (base_to_aim);
+			  if (AHFA_is_Leo_Completion (base_to_ahfa))
+			    {
+			      @<Create a new, unpopulated, LIM@>@;
+			    }
+			}
+		    }
+		}
+	      else
+		{
+		  // Not a prediction, so there is only one AIM.
+		  if (YIM_is_Potential_Leo_Base (leo_base))
+		    {
+		      const AHFA leo_base_ahfa = AHFA_of_YIM (leo_base);
 		      const AIM base_from_aim =
-			AIM_of_AHFA_by_AEX (leo_base_ahfa, potential_leo_aex);
+			AIM_of_AHFA_by_AEX (leo_base_ahfa, 0);
 		      const AIM base_to_aim = Next_AIM_of_AIM (base_from_aim);
 		      const AHFA base_to_ahfa = AHFA_of_AIM (base_to_aim);
 		      if (AHFA_is_Leo_Completion (base_to_ahfa))
