@@ -142,7 +142,7 @@ E -> . Number
 E -> E . Minus E
 * S3:
 E -> E Minus . E
-* S4: leo-c
+* S4:
 E -> E Minus E .
 * S5:
 E -> E . MinusMinus
@@ -150,11 +150,11 @@ E -> E . MinusMinus
 E -> E MinusMinus .
 * S7:
 E -> MinusMinus . E
-* S8: leo-c
+* S8:
 E -> MinusMinus E .
 * S9:
 E -> Minus . E
-* S10: leo-c
+* S10:
 E -> Minus E .
 * S11:
 E -> Number .

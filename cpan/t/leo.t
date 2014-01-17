@@ -89,7 +89,7 @@ C -> . a C b
 C -> . a C[] b
 * S2:
 S -> a . S
-* S3: leo-c
+* S3:
 S -> a S .
 * S4:
 S -> a S[] .

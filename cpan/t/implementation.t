@@ -127,7 +127,7 @@ Term -> . Factor
 Factor -> . Number
 Term -> . Term Add Term
 Factor -> . Factor Multiply Factor
-* S8: leo-c
+* S8:
 Term -> Term Add Term .
 * S9:
 Factor -> Factor . Multiply Factor
@@ -136,7 +136,7 @@ Factor -> Factor Multiply . Factor
 * S11: predict
 Factor -> . Number
 Factor -> . Factor Multiply Factor
-* S12: leo-c
+* S12:
 Factor -> Factor Multiply Factor .
 * S13:
 Expression['] -> Expression .

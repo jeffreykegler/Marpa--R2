@@ -103,25 +103,25 @@ F -> . G
 C -> . D
 G -> . H
 A -> . B
-* S4: leo-c
+* S4:
 S -> a A .
 * S5:
 S -> a A[] .
-* S6: leo-c
+* S6:
 H -> S .
-* S7: leo-c
+* S7:
 B -> C .
-* S8: leo-c
+* S8:
 D -> E .
-* S9: leo-c
+* S9:
 E -> F .
-* S10: leo-c
+* S10:
 F -> G .
-* S11: leo-c
+* S11:
 C -> D .
-* S12: leo-c
+* S12:
 G -> H .
-* S13: leo-c
+* S13:
 A -> B .
 * S14:
 S['] -> S .

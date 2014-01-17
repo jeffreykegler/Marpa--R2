@@ -80,13 +80,13 @@ A -> a . B
 B -> . C
 C -> . c A
 C -> . c
-* S4: leo-c
+* S4:
 A -> a B .
-* S5: leo-c
+* S5:
 B -> C .
 * S6:
 C -> c . A
-* S7: leo-c
+* S7:
 C -> c A .
 * S8:
 C -> c .

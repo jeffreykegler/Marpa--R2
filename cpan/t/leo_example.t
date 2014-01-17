@@ -157,25 +157,25 @@ Expression -> . Lvalue MinusAssignOp Expression
 Expression -> . Lvalue MultiplyAssignOp Expression
 Expression -> . Variable
 Lvalue -> . Variable
-* S6: leo-c
+* S6:
 Expression -> Lvalue AssignOp Expression .
 * S7:
 Expression -> Lvalue . AddAssignOp Expression
 * S8:
 Expression -> Lvalue AddAssignOp . Expression
-* S9: leo-c
+* S9:
 Expression -> Lvalue AddAssignOp Expression .
 * S10:
 Expression -> Lvalue . MinusAssignOp Expression
 * S11:
 Expression -> Lvalue MinusAssignOp . Expression
-* S12: leo-c
+* S12:
 Expression -> Lvalue MinusAssignOp Expression .
 * S13:
 Expression -> Lvalue . MultiplyAssignOp Expression
 * S14:
 Expression -> Lvalue MultiplyAssignOp . Expression
-* S15: leo-c
+* S15:
 Expression -> Lvalue MultiplyAssignOp Expression .
 * S16:
 Expression -> Variable .

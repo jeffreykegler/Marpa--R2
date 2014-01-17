@@ -84,15 +84,15 @@ S -> . a A[]
 A -> . B
 B -> . C
 C -> . S
-* S4: leo-c
+* S4:
 S -> a A .
 * S5:
 S -> a A[] .
-* S6: leo-c
+* S6:
 A -> B .
-* S7: leo-c
+* S7:
 B -> C .
-* S8: leo-c
+* S8:
 C -> S .
 * S9:
 S['] -> S .

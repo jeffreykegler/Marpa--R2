@@ -64,7 +64,7 @@ S -> . a S
 S -> . a S[]
 * S2:
 S -> a . S
-* S3: leo-c
+* S3:
 S -> a S .
 * S4:
 S -> a S[] .

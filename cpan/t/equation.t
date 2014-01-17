@@ -174,7 +174,7 @@ E -> . Number
 E -> E . Op E
 * S3:
 E -> E Op . E
-* S4: leo-c
+* S4:
 E -> E Op E .
 * S5:
 E -> Number .

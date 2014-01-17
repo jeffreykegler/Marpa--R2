@@ -5306,6 +5306,14 @@ CIL t_complete_nsyids;
 @d AEX_of_AHFA_by_AIM(ahfa, aim) aex_of_ahfa_by_aim_get((ahfa), (aim))
 @<Widely aligned AHFA state elements@> =
 AIM* t_items;
+
+@*0 AHFA to AIM macros.
+These assume there is only one AIM in the AHFA,
+which is the case with discovered AHFA's.
+@d AIM_of_AHFA(ahfa) AIM_of_AHFA_by_AEX((ahfa), 0)
+@d IRL_of_AHFA(ahfa) IRL_of_AIM(AIM_of_AHFA(ahfa))
+@d LHSID_of_AHFA(ahfa) LHSID_of_IRL(IRL_of_AHFA(ahfa))
+
 @ @d AIM_Count_of_AHFA(ahfa) ((ahfa)->t_item_count)
 @<Int aligned AHFA state elements@> =
 int t_item_count;
@@ -5574,23 +5582,8 @@ The Leo LHS symbol is the LHS of the Leo IRL,
 The value of the Leo completion symbol is used to
 determine if an Earley item
 with this AHFA state is eligible to be a Leo completion.
-@d Leo_LHS_NSYID_of_AHFA(state) ((state)->t_leo_lhs_nsyid)
 @d AHFA_is_Leo_Completion(state)
    AIM_is_Leo_Completion(AIM_of_AHFA_by_AEX((state), 0))
-@ @<Int aligned AHFA state elements@> =
-  NSYID t_leo_lhs_nsyid;
-@ @<Initialize AHFA@> =
-  Leo_LHS_NSYID_of_AHFA(ahfa) = -1;
-@ @<Function definitions@> =
-Marpa_Symbol_ID _marpa_g_AHFA_state_leo_lhs_symbol(Marpa_Grammar g,
-        Marpa_AHFA_State_ID AHFA_state_id) {
-    @<Return |-2| on failure@>@;
-    AHFA state;
-    @<Fail if not precomputed@>@;
-    @<Fail if |AHFA_state_id| is invalid@>@;
-    state = AHFA_of_G_by_ID(g, AHFA_state_id);
-    return Leo_LHS_NSYID_of_AHFA(state);
-}
 
 @*0 Sorting AHFA states.
 @ The ordering of the AHFA states can be arbitrarily chosen
@@ -5843,25 +5836,9 @@ create_singleton_AHFA_state(
 
         Postdot_NSY_Count_of_AHFA(new_ahfa) = 0;
         new_ahfa->t_empty_transition = NULL;
-        @<If this state can be a Leo completion,
-        set the Leo completion symbol to |lhs_id|@>@;
   }
   AHFA_of_AIM(base_aim) = new_ahfa;
   return new_ahfa;
-}
-
-@
-Assuming this is a 1-item completion, mark this state as
-a Leo completion if the rule is right recursive.
-This is an enhancement from Leo 1991.
-@<If this state can be a Leo completion,
-set the Leo completion symbol to |lhs_id|@> =
-{
-  const IRL aim_irl = IRL_of_AIM (base_aim);
-  if (IRL_is_Right_Recursive(aim_irl))
-    {
-      Leo_LHS_NSYID_of_AHFA (new_ahfa) = lhs_nsyid;
-    }
 }
 
 @ Discovered AHFA states are usually quite small
@@ -6408,7 +6385,7 @@ AHFAID _marpa_g_AHFA_state_empty_transition(Marpa_Grammar g,
         continue;               /* This AHFA is not a Leo completion,
                                    so we are done. */
        }
-      outer_nsyid = Leo_LHS_NSYID_of_AHFA (outer_ahfa);
+      outer_nsyid = LHSID_of_AHFA (outer_ahfa);
       for (inner_ahfa_id = 0; inner_ahfa_id < ahfa_count_of_g;
            inner_ahfa_id++)
         {
@@ -6420,7 +6397,7 @@ AHFAID _marpa_g_AHFA_state_empty_transition(Marpa_Grammar g,
           if (!AHFA_is_Leo_Completion(inner_ahfa))
             continue;           /* This AHFA is not a Leo completion,
                                    so we are done. */
-          inner_nsyid = Leo_LHS_NSYID_of_AHFA (inner_ahfa);
+          inner_nsyid = LHSID_of_AHFA (inner_ahfa);
           if (matrix_bit_test (nsy_by_right_nsy_matrix,
                                outer_nsyid,
                                inner_nsyid))
@@ -10130,7 +10107,7 @@ In a populated LIM, this will not necessarily be the case.
   const YS predecessor_set = Origin_of_YIM (base_yim);
   const AHFA base_to_ahfa = Base_to_AHFA_of_LIM (lim_to_process);
   const NSYID predecessor_transition_nsyid =
-    Leo_LHS_NSYID_of_AHFA (base_to_ahfa);
+    LHSID_of_AHFA (base_to_ahfa);
   PIM predecessor_pim;
   if (Ord_of_YS (predecessor_set) < Ord_of_YS (current_earley_set))
     {
