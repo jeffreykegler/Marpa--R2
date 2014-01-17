@@ -2777,6 +2777,7 @@ Marpa_NSY_ID _marpa_g_irl_rhs(Marpa_Grammar g, Marpa_IRL_ID irl_id, int ix) {
 }
 
 @ @d Length_of_IRL(irl) ((irl)->t_length)
+@d IRL_is_Unit_Rule(irl) ((irl)->t_length == 1)
 @<Int aligned IRL elements@> = int t_length;
 @ @<Function definitions@> =
 int _marpa_g_irl_length(Marpa_Grammar g, Marpa_IRL_ID irl_id) {
@@ -2849,7 +2850,10 @@ int _marpa_g_irl_is_virtual_rhs(
 }
 
 @*0 IRL right recursion status.
+Being right recursive, for an IRL,
+means it will be used in the Leo logic.
 @d IRL_is_Right_Recursive(irl) ((irl)->t_is_right_recursive)
+@d IRL_is_Leo(irl) IRL_is_Right_Recursive(irl)
 @<Bit aligned IRL elements@> = BITFIELD t_is_right_recursive:1;
 @ @<Initialize IRL elements@> =
   IRL_is_Right_Recursive(irl) = 0;
@@ -5340,6 +5344,8 @@ BITFIELD t_is_predict:1;
 @*0 Is AHFA a potential Leo base?.
 @ This boolean indicates whether the
 AHFA state could be a Leo base.
+With the elimination of AHFA states, it may not longer be worth
+the trouble.
 @d AHFA_is_Potential_Leo_Base(ahfa) ((ahfa)->t_is_potential_leo_base)
 @d YIM_is_Potential_Leo_Base(yim) AHFA_is_Potential_Leo_Base(AHFA_of_YIM(yim))
 @ @<Bit aligned AHFA state elements@> =
@@ -5711,7 +5717,9 @@ until then.
     }
 }
 
-@ @<Mark potential Leo bases@> =
+@ With the elimination of AHFA states, marking potential leo base
+AHFA states or |AIM|'s may not be worth the trouble.
+@<Mark potential Leo bases@> =
 {
   int ahfa_id;
   for (ahfa_id = 0; ahfa_id < ahfa_count_of_g; ahfa_id++)
@@ -9957,6 +9965,7 @@ Leo item have not been fully populated.
 	    {			/* Do not create a Leo item if there is more
 				   than one YIX */
 	      const YIM leo_base = YIM_of_PIM (this_pim);
+	      AIM potential_leo_penult_aim = NULL;
 	      if (YIM_is_Predicted (leo_base))
 		{
 		  if (YIM_is_Potential_Leo_Base (leo_base))
@@ -9966,33 +9975,31 @@ Leo item have not been fully populated.
 			aex_of_ahfa_by_postdot_get (leo_base_ahfa, nsyid);
 		      if (potential_leo_aex >= 0)
 			{
-			  const AIM base_from_aim =
+			  potential_leo_penult_aim =
 			    AIM_of_AHFA_by_AEX (leo_base_ahfa,
 						potential_leo_aex);
-			  const AIM base_to_aim =
-			    Next_AIM_of_AIM (base_from_aim);
-			  const AHFA base_to_ahfa = AHFA_of_AIM (base_to_aim);
-			  if (AHFA_is_Leo_Completion (base_to_ahfa))
-			    {
-			      @<Create a new, unpopulated, LIM@>@;
-			    }
 			}
 		    }
 		}
 	      else
 		{
 		  // Not a prediction, so there is only one AIM.
+                  // "potential" bit is not accurate, except for discovered |AIM|'s
 		  if (YIM_is_Potential_Leo_Base (leo_base))
 		    {
 		      const AHFA leo_base_ahfa = AHFA_of_YIM (leo_base);
-		      const AIM base_from_aim =
+		      potential_leo_penult_aim =
 			AIM_of_AHFA_by_AEX (leo_base_ahfa, 0);
-		      const AIM base_to_aim = Next_AIM_of_AIM (base_from_aim);
-		      const AHFA base_to_ahfa = AHFA_of_AIM (base_to_aim);
-		      if (AHFA_is_Leo_Completion (base_to_ahfa))
-			{
-			  @<Create a new, unpopulated, LIM@>@;
-			}
+		    }
+		}
+	      if (potential_leo_penult_aim)
+		{
+		  const AIM base_to_aim =
+		    Next_AIM_of_AIM (potential_leo_penult_aim);
+		  const AHFA base_to_ahfa = AHFA_of_AIM (base_to_aim);
+		  if (AHFA_is_Leo_Completion (base_to_ahfa))
+		    {
+		      @<Create a new, unpopulated, LIM@>@;
 		    }
 		}
 	    }
