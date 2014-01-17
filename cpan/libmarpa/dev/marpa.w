@@ -9927,8 +9927,8 @@ Leo item have not been fully populated.
 		    trial_aex = i;
 		    break;
 		  }
-                /* We know that aex is not zero here */
-                MARPA_ASSERT (trial_aex);
+                /* We know that aex is initialized here */
+                MARPA_ASSERT (trial_aex > 0);
 		for (i = trial_aex + 1; i < aim_count; i++)
 		  {		// But check for duplicates 
 		    const AIM trial_aim = aims[i];
@@ -9940,9 +9940,9 @@ Leo item have not been fully populated.
 		{
 		  const AIM trial_aim = aims[trial_aex];
 		  const IRL trial_irl = IRL_of_AIM (trial_aim);
-		  if (IRL_is_Unit_Rule (trial_irl))
+		  if (!IRL_is_Unit_Rule (trial_irl))
 		    goto NEXT_NSYID;
-		  if (IRL_is_Leo (trial_irl))
+		  if (!IRL_is_Leo (trial_irl))
 		    goto NEXT_NSYID;
 		  potential_leo_penult_aim = trial_aim;
 		  MARPA_ASSERT (AIM_is_Leo_Completion
