@@ -1180,6 +1180,22 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
           }
           return -1;
 
+        case MARPA_OP_PUSH_LHS:
+          {
+            if (!values_av)
+              {
+                values_av = (AV *) sv_2mortal ((SV *) newAV ());
+              }
+            /* return undef for now */
+            av_push (values_av, &PL_sv_undef);
+
+            if (step_type == MARPA_STEP_RULE)
+              {
+                
+              }
+          }
+          goto NEXT_OP_CODE; /* or break; -- ask */
+
         case MARPA_OP_PUSH_VALUES:
         case MARPA_OP_PUSH_SEQUENCE:
           {

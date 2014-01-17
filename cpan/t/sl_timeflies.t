@@ -56,7 +56,7 @@ my $grammar = Marpa::R2::Scanless::G->new(
     {   bless_package => 'PennTags',
         source => \(<<'END_OF_SOURCE'),
         
-:default ::= action => [values] bless => ::lhs
+:default ::= action => [lhs,values]
 lexeme default = action => [value] bless => ::name
 
 S   ::= NP  VP  period  
@@ -130,7 +130,7 @@ for my $sentence (split /\n/, $paragraph){
     $recce->read( \$sentence );
 
     while ( defined( my $value_ref = $recce->value() ) ) {
-        my $value = $value_ref ? ${$value_ref}->bracket : 'No parse';
+        my $value = $value_ref ? PennTags::S::bracket( ${$value_ref} ) : 'No parse';
         push @actual, $value;
     }
 }
@@ -139,9 +139,8 @@ my %s_tags; # structural tags
 
 sub PennTags::S::bracket   { 
     %s_tags = map { $_ => undef } qw{ NP VP PP period } unless %s_tags;
-    my ($tag, $contents) = ( ref $_[0], $_[0] );
+    my ($tag, $contents) = @_;
     state $level++;
-    $tag =~ s/^PennTags:://;
     my $bracketed = 
         exists $s_tags{$tag} ? ("\n" . ("  " x ($level-1))) : '';
     $tag = '.' if $tag eq 'period';
