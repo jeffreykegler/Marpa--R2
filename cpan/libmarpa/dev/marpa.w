@@ -6400,26 +6400,27 @@ AHFAID _marpa_g_AHFA_state_empty_transition(Marpa_Grammar g,
          is an event AHFA.
          An AHFA, even if it is not itself an event AHFA,
          may be in a non-empty AHFA event group.  */
-      const NSYID outer_nsyid = Leo_LHS_NSYID_of_AHFA (outer_ahfa);
-      if (outer_nsyid < 0) {
+      NSYID outer_nsyid;
+      if (!AHFA_is_Leo_Completion(outer_ahfa)) {
           if (AHFA_has_Event (outer_ahfa)) {
               Event_Group_Size_of_AHFA (outer_ahfa) = 1;
           }
         continue;               /* This AHFA is not a Leo completion,
                                    so we are done. */
        }
+      outer_nsyid = Leo_LHS_NSYID_of_AHFA (outer_ahfa);
       for (inner_ahfa_id = 0; inner_ahfa_id < ahfa_count_of_g;
            inner_ahfa_id++)
         {
-          IRLID inner_nsyid;
+          NSYID inner_nsyid;
           const AHFA inner_ahfa = AHFA_by_ID (inner_ahfa_id);
           if (!AHFA_has_Event (inner_ahfa))
             continue;           /* Not in the group, because it
                                    is not an event AHFA. */
-          inner_nsyid = Leo_LHS_NSYID_of_AHFA (inner_ahfa);
-          if (inner_nsyid < 0)
+          if (!AHFA_is_Leo_Completion(inner_ahfa))
             continue;           /* This AHFA is not a Leo completion,
                                    so we are done. */
+          inner_nsyid = Leo_LHS_NSYID_of_AHFA (inner_ahfa);
           if (matrix_bit_test (nsy_by_right_nsy_matrix,
                                outer_nsyid,
                                inner_nsyid))
