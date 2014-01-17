@@ -4830,6 +4830,7 @@ struct s_AHFA_item {
     int t_sort_key;
     @<Widely aligned AHFA item elements@>@;
     @<Int aligned AHFA item elements@>@;
+    @<Bit aligned AHFA item elements@>@;
 };
 @ @<Private incomplete structures@> =
 struct s_AHFA_item;
@@ -4898,7 +4899,8 @@ this AHFA items's dot position.
 @<Int aligned AHFA item elements@> =
 int t_leading_nulls;
 
-@*0 Position.
+@*0 RHS Position.
+RHS position include nulling symbols.
 Position in the RHS, -1 for a completion.
 @d Position_of_AIM(aim) ((aim)->t_position)
 @d AIM_is_Prediction(aim) (
@@ -4906,6 +4908,16 @@ Position in the RHS, -1 for a completion.
   && Position_of_AIM(aim) <= Null_Count_of_AIM(aim) )
 @<Int aligned AHFA item elements@> =
 int t_position;
+
+@*0 Quasi-position.
+Quasi-positions are those modulo nulling symbols.
+@d AIM_is_Predicted(aim) ((aim)->t_is_predicted)
+@d AIM_is_Quasi_Final(aim) ((aim)->t_is_quasi_final)
+@d AIM_is_Quasi_Penult(aim) ((aim)->t_is_quasi_penult)
+@<Bit aligned AHFA item elements@> =
+  BITFIELD t_is_predicted:1;
+  BITFIELD t_is_quasi_final:1;
+  BITFIELD t_is_quasi_penult:1;
 
 @*0 Singleton AHFA.
 A singleton AHFA whose only AHFA item is
@@ -4993,6 +5005,7 @@ int _marpa_g_AHFA_item_sort_key(Marpa_Grammar g,
 {
   int leading_nulls = 0;
   int rhs_ix;
+  const AIM first_item = current_item;
   for (rhs_ix = 0; rhs_ix < Length_of_IRL(irl); rhs_ix++)
     {
       NSYID rh_nsyid = RHSID_of_IRL (irl, rhs_ix);
@@ -5009,6 +5022,10 @@ int _marpa_g_AHFA_item_sort_key(Marpa_Grammar g,
         }
     }
   @<Create an AHFA item for a completion@>@;
+  /* The defaults are correct for all the other
+     quasi-positions except these */
+  AIM_is_Predicted(first_item) = 1;
+  AIM_is_Quasi_Penult(current_item - 1) = 1;
   current_item++;
 }
 
@@ -5032,6 +5049,9 @@ int _marpa_g_AHFA_item_sort_key(Marpa_Grammar g,
   Postdot_NSYID_of_AIM (current_item) = rh_nsyid;
   Position_of_AIM (current_item) = rhs_ix;
   AHFA_of_AIM(current_item) = NULL;
+  AIM_is_Predicted(current_item) = 0;
+  AIM_is_Quasi_Final(current_item) = 0;
+  AIM_is_Quasi_Penult(current_item) = 0;
 }
 
 @ @<Create an AHFA item for a completion@> =
@@ -5042,6 +5062,9 @@ int _marpa_g_AHFA_item_sort_key(Marpa_Grammar g,
   Postdot_NSYID_of_AIM (current_item) = -1;
   Position_of_AIM (current_item) = -1;
   AHFA_of_AIM(current_item) = NULL;
+  AIM_is_Quasi_Final(current_item) = 1;
+  AIM_is_Predicted(current_item) = 0;
+  AIM_is_Quasi_Penult(current_item) = 0;
 }
 
 @ This is done after creating the AHFA items, because in
@@ -5049,6 +5072,9 @@ theory the |marpa_renew| might have moved them.
 This is not likely since the |marpa_renew| shortened the array,
 but if you are hoping for portability,
 you want to follow the rules.
+@ Walks backwards through the |AIM|'s, setting each to the the
+first of its |IRL|.  Last setting wins, which works since
+we are traversing backwards.
 @<Populate the first |AIM|'s of the |RULE|'s@> =
 {
   AIM items = g->t_AHFA_items;
@@ -5313,22 +5339,6 @@ PRIVATE AEX aex_of_ahfa_by_aim_get(AHFA ahfa, AIM sought_aim)
   return -1;
 }
 
-@ Temporary?  This is for potential Leo items,
-and we need to return only the first,
-or -1 if there were none.
-@<Function definitions@> =
-PRIVATE AEX aex_of_ahfa_by_postdot_get(AHFA ahfa, NSYID sought_nsyid)
-{
-    const AIM* const aims = AIMs_of_AHFA(ahfa);
-    const int aim_count = AIM_Count_of_AHFA(ahfa);
-    int i;
-    for (i = 0; i < aim_count; i++) {
-      const NSYID working_nsyid = Postdot_NSYID_of_AIM (aims[i]);
-      if (working_nsyid == sought_nsyid) return i;
-    }
-  return -1;
-}
-
 @*0 Is AHFA predicted?.
 @ This boolean indicates whether the
 {\bf AHFA state} is predicted,
@@ -5340,18 +5350,6 @@ AHFA state 0 is {\bf not} a predicted AHFA state.
 @d YIM_is_Predicted(yim) AHFA_is_Predicted(AHFA_of_YIM(yim))
 @<Bit aligned AHFA state elements@> =
 BITFIELD t_is_predict:1;
-
-@*0 Is AHFA a potential Leo base?.
-@ This boolean indicates whether the
-AHFA state could be a Leo base.
-With the elimination of AHFA states, it may not longer be worth
-the trouble.
-@d AHFA_is_Potential_Leo_Base(ahfa) ((ahfa)->t_is_potential_leo_base)
-@d YIM_is_Potential_Leo_Base(yim) AHFA_is_Potential_Leo_Base(AHFA_of_YIM(yim))
-@ @<Bit aligned AHFA state elements@> =
-BITFIELD t_is_potential_leo_base:1;
-@ @<Initialize AHFA@> = AHFA_is_Potential_Leo_Base(ahfa) = 0;
-
 
 @*0 Event data.
 A boolean tracks whether this is an
@@ -5668,7 +5666,6 @@ PRIVATE_NOT_INLINE int AHFA_state_cmp(
        the |DQUEUE|'s data */
    ahfa_count_of_g = AHFA_Count_of_G(g);
    @<Resort the AIMs@>@;
-   @<Mark potential Leo bases@>
    @<Free locals for creating AHFA states@>@;
 }
 
@@ -5717,42 +5714,13 @@ until then.
     }
 }
 
-@ With the elimination of AHFA states, marking potential leo base
-AHFA states or |AIM|'s may not be worth the trouble.
-@<Mark potential Leo bases@> =
-{
-  int ahfa_id;
-  for (ahfa_id = 0; ahfa_id < ahfa_count_of_g; ahfa_id++)
-    {
-      AHFA from_ahfa = AHFA_of_G_by_ID (g, ahfa_id);
-      AIM *aims = AIMs_of_AHFA (from_ahfa);
-      int aim_count = AIM_Count_of_AHFA (from_ahfa);
-      AEX aex;
-      for (aex = 0; aex < aim_count; aex++)
-        {
-          AIM from_ahfa_item = aims[aex];
-          NSYID postdot_nsyid = Postdot_NSYID_of_AIM (from_ahfa_item);
-          if (postdot_nsyid >= 0)
-            {
-              /* There is a next AIM because there is a postdot symbol */
-              AIM next_aim = Next_AIM_of_AIM(from_ahfa_item);
-              AHFA to_ahfa = AHFA_of_AIM(next_aim);
-              if (to_ahfa && AHFA_is_Leo_Completion (to_ahfa))
-                {
-                  AHFA_is_Potential_Leo_Base (from_ahfa) = 1;
-                }
-            }
-        }
-    }
-}
-
 @ @<Free locals for creating AHFA states@> =
   my_free(irl_by_sort_key);
   my_free(singleton_duplicates);
   _marpa_avl_destroy(duplicates);
 
-@ I am not sure there is a need to special-case these
-any more.
+@ This logic should be reworked after the transition away
+from AHFA states.
 @<Construct initial AHFA states@> =
 {
   AHFA p_initial_state = DQUEUE_PUSH (states, AHFA_Object);
@@ -9967,30 +9935,38 @@ Leo item have not been fully populated.
 	      const YIM leo_base = YIM_of_PIM (this_pim);
 	      AIM potential_leo_penult_aim = NULL;
 	      if (YIM_is_Predicted (leo_base))
-		{
-		  if (YIM_is_Potential_Leo_Base (leo_base))
-		    {
-		      const AHFA leo_base_ahfa = AHFA_of_YIM (leo_base);
-		      const AEX potential_leo_aex =
-			aex_of_ahfa_by_postdot_get (leo_base_ahfa, nsyid);
-		      if (potential_leo_aex >= 0)
-			{
-			  potential_leo_penult_aim =
-			    AIM_of_AHFA_by_AEX (leo_base_ahfa,
-						potential_leo_aex);
-			}
-		    }
-		}
+                {
+                  const AHFA leo_base_ahfa = AHFA_of_YIM (leo_base);
+                  const AIM *const aims = AIMs_of_AHFA (leo_base_ahfa);
+                  const int aim_count = AIM_Count_of_AHFA (leo_base_ahfa);
+                  int i;
+                  for (i = 0; i < aim_count; i++)
+                    {
+                      const AIM trial_aim = aims[i];
+                      const NSYID trial_nsyid = Postdot_NSYID_of_AIM (trial_aim);
+                      if (trial_nsyid == nsyid)
+                        {
+                          const IRL trial_irl = IRL_of_AIM (trial_aim);
+                          if (IRL_is_Unit_Rule (trial_irl) && IRL_is_Leo (trial_irl))
+                            {
+                              /* Is it worth it to memoize "leo unit rule" status as a bit
+                                 in the IRL? */
+                              potential_leo_penult_aim = trial_aim;
+                              break;
+                            }
+                        }
+                    }
+                }
 	      else
 		{
 		  // Not a prediction, so there is only one AIM.
                   // "potential" bit is not accurate, except for discovered |AIM|'s
-		  if (YIM_is_Potential_Leo_Base (leo_base))
-		    {
 		      const AHFA leo_base_ahfa = AHFA_of_YIM (leo_base);
-		      potential_leo_penult_aim =
-			AIM_of_AHFA_by_AEX (leo_base_ahfa, 0);
-		    }
+                      const AIM leo_base_aim = AIM_of_AHFA_by_AEX (leo_base_ahfa, 0);
+                      const IRL leo_base_irl = IRL_of_AIM(leo_base_aim);
+                      if (IRL_is_Leo(leo_base_irl)) {
+                        potential_leo_penult_aim = leo_base_aim;
+                      }
 		}
 	      if (potential_leo_penult_aim)
 		{
