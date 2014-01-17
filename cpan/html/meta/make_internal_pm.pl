@@ -97,7 +97,7 @@ use warnings;
 use Carp;
 
 use vars qw($VERSION $STRING_VERSION);
-$VERSION        = '2.079_009';
+$VERSION        = '2.079_010';
 $STRING_VERSION = $VERSION;
 $VERSION = eval $VERSION;
 END_OF_HEADER
