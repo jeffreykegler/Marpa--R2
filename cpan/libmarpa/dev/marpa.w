@@ -2777,7 +2777,6 @@ Marpa_NSY_ID _marpa_g_irl_rhs(Marpa_Grammar g, Marpa_IRL_ID irl_id, int ix) {
 }
 
 @ @d Length_of_IRL(irl) ((irl)->t_length)
-@d IRL_is_Unit_Rule(irl) ((irl)->t_length == 1)
 @<Int aligned IRL elements@> = int t_length;
 @ @<Function definitions@> =
 int _marpa_g_irl_length(Marpa_Grammar g, Marpa_IRL_ID irl_id) {
@@ -2787,6 +2786,13 @@ int _marpa_g_irl_length(Marpa_Grammar g, Marpa_IRL_ID irl_id) {
     @<Fail if |irl_id| is invalid@>@;
     return Length_of_IRL(IRL_by_ID(irl_id));
 }
+
+@ An IRL is a unit rule (that is, a rule of length one,
+not counting nullable symbols) if and only if its AIM
+count is 2 -- the predicted AIM and the final AIM.
+@d IRL_is_Unit_Rule(irl) ((irl)->t_aim_count == 2)
+@d AIM_Count_of_IRL(irl) ((irl)->t_aim_count)
+@<Int aligned IRL elements@> = int t_aim_count;
 
 @*0 IRL has virtual LHS?.
 This is for Marpa's ``internal semantics".
@@ -4830,7 +4836,6 @@ struct s_AHFA_item {
     int t_sort_key;
     @<Widely aligned AHFA item elements@>@;
     @<Int aligned AHFA item elements@>@;
-    @<Bit aligned AHFA item elements@>@;
 };
 @ @<Private incomplete structures@> =
 struct s_AHFA_item;
@@ -4903,6 +4908,8 @@ int t_leading_nulls;
 RHS position include nulling symbols.
 Position in the RHS, -1 for a completion.
 @d Position_of_AIM(aim) ((aim)->t_position)
+@ Probably should replace this with the one
+based on the quasi-position.
 @d AIM_is_Prediction(aim) (
   Position_of_AIM(aim) >= 0
   && Position_of_AIM(aim) <= Null_Count_of_AIM(aim) )
@@ -4911,13 +4918,9 @@ int t_position;
 
 @*0 Quasi-position.
 Quasi-positions are those modulo nulling symbols.
-@d AIM_is_Predicted(aim) ((aim)->t_is_predicted)
-@d AIM_is_Quasi_Final(aim) ((aim)->t_is_quasi_final)
-@d AIM_is_Quasi_Penult(aim) ((aim)->t_is_quasi_penult)
-@<Bit aligned AHFA item elements@> =
-  BITFIELD t_is_predicted:1;
-  BITFIELD t_is_quasi_final:1;
-  BITFIELD t_is_quasi_penult:1;
+@d Quasi_Position_of_AIM(aim) ((aim)->t_quasi_position)
+@<Int aligned AHFA item elements@> =
+  int t_quasi_position;
 
 @*0 Singleton AHFA.
 A singleton AHFA whose only AHFA item is
@@ -5005,7 +5008,7 @@ int _marpa_g_AHFA_item_sort_key(Marpa_Grammar g,
 {
   int leading_nulls = 0;
   int rhs_ix;
-  const AIM first_item = current_item;
+  const AIM first_aim_of_irl = current_item;
   for (rhs_ix = 0; rhs_ix < Length_of_IRL(irl); rhs_ix++)
     {
       NSYID rh_nsyid = RHSID_of_IRL (irl, rhs_ix);
@@ -5013,8 +5016,8 @@ int _marpa_g_AHFA_item_sort_key(Marpa_Grammar g,
         {
           Last_Proper_SYMI_of_IRL(irl) = symbol_instance_of_next_rule + rhs_ix;
           @<Create an AHFA item for a precompletion@>@;
-          leading_nulls = 0;
           current_item++;
+          leading_nulls = 0;
         }
       else
         {
@@ -5022,11 +5025,8 @@ int _marpa_g_AHFA_item_sort_key(Marpa_Grammar g,
         }
     }
   @<Create an AHFA item for a completion@>@;
-  /* The defaults are correct for all the other
-     quasi-positions except these */
-  AIM_is_Predicted(first_item) = 1;
-  AIM_is_Quasi_Penult(current_item - 1) = 1;
   current_item++;
+  AIM_Count_of_IRL(irl) = current_item - first_aim_of_irl;
 }
 
 @ @<Count the AHFA items in a rule@> =
@@ -5043,28 +5043,25 @@ int _marpa_g_AHFA_item_sort_key(Marpa_Grammar g,
 
 @ @<Create an AHFA item for a precompletion@> =
 {
-  IRL_of_AIM (current_item) = irl;
-  Sort_Key_of_AIM (current_item) = current_item - base_item;
-  Null_Count_of_AIM(current_item) = leading_nulls;
+  @<Initializations common to all AHFA items@>@;
   Postdot_NSYID_of_AIM (current_item) = rh_nsyid;
   Position_of_AIM (current_item) = rhs_ix;
-  AHFA_of_AIM(current_item) = NULL;
-  AIM_is_Predicted(current_item) = 0;
-  AIM_is_Quasi_Final(current_item) = 0;
-  AIM_is_Quasi_Penult(current_item) = 0;
 }
 
 @ @<Create an AHFA item for a completion@> =
 {
-  IRL_of_AIM (current_item) = irl;
-  Sort_Key_of_AIM (current_item) = current_item - base_item;
-  Null_Count_of_AIM(current_item) = leading_nulls;
+  @<Initializations common to all AHFA items@>@;
   Postdot_NSYID_of_AIM (current_item) = -1;
   Position_of_AIM (current_item) = -1;
+}
+
+@ @<Initializations common to all AHFA items@> =
+{
+  IRL_of_AIM (current_item) = irl;
+  Null_Count_of_AIM(current_item) = leading_nulls;
+  Sort_Key_of_AIM (current_item) = current_item - base_item;
   AHFA_of_AIM(current_item) = NULL;
-  AIM_is_Quasi_Final(current_item) = 1;
-  AIM_is_Predicted(current_item) = 0;
-  AIM_is_Quasi_Penult(current_item) = 0;
+  Quasi_Position_of_AIM(current_item) = current_item - first_aim_of_irl;
 }
 
 @ This is done after creating the AHFA items, because in
@@ -9942,19 +9939,15 @@ Leo item have not been fully populated.
                   int i;
                   for (i = 0; i < aim_count; i++)
                     {
+                      NSYID trial_nsyid;
                       const AIM trial_aim = aims[i];
-                      const NSYID trial_nsyid = Postdot_NSYID_of_AIM (trial_aim);
-                      if (trial_nsyid == nsyid)
-                        {
-                          const IRL trial_irl = IRL_of_AIM (trial_aim);
-                          if (IRL_is_Unit_Rule (trial_irl) && IRL_is_Leo (trial_irl))
-                            {
-                              /* Is it worth it to memoize "leo unit rule" status as a bit
-                                 in the IRL? */
-                              potential_leo_penult_aim = trial_aim;
-                              break;
-                            }
-                        }
+                      const IRL trial_irl = IRL_of_AIM (trial_aim);
+                      if (!IRL_is_Unit_Rule (trial_irl)) continue;
+                      if (!IRL_is_Leo (trial_irl)) continue;
+                      trial_nsyid = Postdot_NSYID_of_AIM (trial_aim);
+                      if (trial_nsyid != nsyid) continue;
+                      potential_leo_penult_aim = trial_aim;
+                      break;
                     }
                 }
 	      else
