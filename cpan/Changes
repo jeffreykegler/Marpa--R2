@@ -15,6 +15,10 @@
 
 Revision history for Marpa::R2
 
+2.079_010
+
+   * Fix bug in Phase 1
+
 2.079_009
 
    * Phase 1 of Marpa parse engine rewrite
