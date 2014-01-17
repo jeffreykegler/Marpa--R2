@@ -4892,6 +4892,9 @@ return item_id < (AIMID)AIM_Count_of_G(g) && item_id >= 0;
 |-1| if the item is a completion.
 @d Postdot_NSYID_of_AIM(item) ((item)->t_postdot_nsyid)
 @d AIM_is_Completion(aim) (Postdot_NSYID_of_AIM(aim) < 0)
+@d AIM_is_Leo(aim) (IRL_is_Leo(IRL_of_AIM(aim)))
+@d AIM_is_Leo_Completion(aim)
+  (AIM_is_Completion(aim) && AIM_is_Leo(aim))
 @<Int aligned AHFA item elements@> = NSYID t_postdot_nsyid;
 
 @*0 Leading nulls.
@@ -5572,14 +5575,12 @@ The value of the Leo completion symbol is used to
 determine if an Earley item
 with this AHFA state is eligible to be a Leo completion.
 @d Leo_LHS_NSYID_of_AHFA(state) ((state)->t_leo_lhs_nsyid)
-@d Leo_IRLID_of_AHFA(state) ((state)->t_leo_irlid)
-@d AHFA_is_Leo_Completion(state) (Leo_IRLID_of_AHFA(state) >= 0)
+@d AHFA_is_Leo_Completion(state)
+   AIM_is_Leo_Completion(AIM_of_AHFA_by_AEX((state), 0))
 @ @<Int aligned AHFA state elements@> =
   NSYID t_leo_lhs_nsyid;
-  IRLID t_leo_irlid;
 @ @<Initialize AHFA@> =
   Leo_LHS_NSYID_of_AHFA(ahfa) = -1;
-  Leo_IRLID_of_AHFA(ahfa) = -1;
 @ @<Function definitions@> =
 Marpa_Symbol_ID _marpa_g_AHFA_state_leo_lhs_symbol(Marpa_Grammar g,
         Marpa_AHFA_State_ID AHFA_state_id) {
@@ -5860,7 +5861,6 @@ set the Leo completion symbol to |lhs_id|@> =
   if (IRL_is_Right_Recursive(aim_irl))
     {
       Leo_LHS_NSYID_of_AHFA (new_ahfa) = lhs_nsyid;
-      Leo_IRLID_of_AHFA (new_ahfa) = ID_of_IRL(aim_irl);
     }
 }
 
@@ -7542,7 +7542,6 @@ be recopied to make way for pointers to the linked lists.
     Complete_NSYID_of_AHFA(AHFA_of_YIM(item), (ix))
 @d Complete_NSY_Count_of_YIM(item)
     Complete_NSY_Count_of_AHFA(AHFA_of_YIM(item))
-@d Leo_IRLID_of_YIM(yim) Leo_IRLID_of_AHFA(AHFA_of_YIM(yim))
 @ It might be slightly faster if this boolean is memoized in the Earley item
 when the Earley item is initialized.
 @d Earley_Item_is_Completion(item)
@@ -9953,8 +9952,8 @@ Leo item have not been fully populated.
 	      else
 		{
 		  // Not a prediction, so there is only one AIM.
-                  // "potential" bit is not accurate, except for discovered |AIM|'s
 		      const AHFA leo_base_ahfa = AHFA_of_YIM (leo_base);
+                  MARPA_ASSERT(AIM_Count_of_AHFA (leo_base_ahfa) == 1);
                       const AIM leo_base_aim = AIM_of_AHFA_by_AEX (leo_base_ahfa, 0);
                       const IRL leo_base_irl = IRL_of_AIM(leo_base_aim);
                       if (IRL_is_Leo(leo_base_irl)) {
@@ -9966,10 +9965,10 @@ Leo item have not been fully populated.
 		  const AIM base_to_aim =
 		    Next_AIM_of_AIM (potential_leo_penult_aim);
 		  const AHFA base_to_ahfa = AHFA_of_AIM (base_to_aim);
-		  if (AHFA_is_Leo_Completion (base_to_ahfa))
-		    {
-		      @<Create a new, unpopulated, LIM@>@;
-		    }
+                  MARPA_ASSERT(AHFA_is_Leo_Completion (base_to_ahfa));
+                  if (AHFA_is_Leo_Completion (base_to_ahfa)) {
+                    @<Create a new, unpopulated, LIM@>@;
+                  }
 		}
 	    }
 	}
@@ -11218,6 +11217,7 @@ or-nodes follow a completion.
         {
           DAND draft_and_node;
           const int rhs_ix = symbol_instance - SYMI_of_IRL(path_irl);
+          MARPA_ASSERT (rhs_ix < Length_of_IRL (path_irl)) @;
           const OR predecessor = rhs_ix ? last_or_node : NULL;
           const OR cause = Nulling_OR_by_NSYID( RHSID_of_IRL (path_irl, rhs_ix ) );
           MARPA_ASSERT (symbol_instance < Length_of_IRL (path_irl)) @;
