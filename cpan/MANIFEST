@@ -14,7 +14,6 @@
 # http://www.gnu.org/licenses/.
 
 # LC_ALL=C sort
-t/naif.t
 .gdbinit
 .gitattributes
 .gitignore
@@ -313,16 +312,18 @@ t/jirotka.t
 t/leo.t
 t/leo2.t
 t/leo3.t
-t/leo_unit.t
 t/leo_cycle.t
 t/leo_example.t
+t/leo_unit.t
 t/limits.t
 t/minus.t
+t/naif.t
 t/null_example.t
 t/null_infinite1.t
 t/null_infinite4.t
 t/null_value.t
 t/pascal.t
+t/perl.t
 t/rabend.t
 t/randal.t
 t/rewrite.t
