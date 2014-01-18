@@ -52,9 +52,11 @@ use lib 'inc';
 use Marpa::R2::Test;
 use Marpa::R2;
 
+use Data::Dumper;
+$Data::Dumper::Indent = 0;
+
 my $grammar = Marpa::R2::Scanless::G->new(
-    {   bless_package => 'PennTags',
-        source => \(<<'END_OF_SOURCE'),
+    {   source => \(<<'END_OF_SOURCE'),
         
 :default ::= action => [lhs,values]
 lexeme default = action => [lhs,value]
@@ -121,39 +123,38 @@ Time flies like an arrow.
 Fruit flies like a banana.
 END_OF_PARAGRAPH
 
-my @actual = ();
+# structural tags -- need a newline
+my %s_tags = map { $_ => undef } qw{ NP VP PP period }; 
 
+my @actual = ();
 for my $sentence (split /\n/, $paragraph){
 
     my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar  } );
-
     $recce->read( \$sentence );
 
     while ( defined( my $value_ref = $recce->value() ) ) {
-        use YAML;
-        say STDERR Dump ${$value_ref};
-        my $value = $value_ref ? PennTags::S::bracket( ${$value_ref} ) : 'No parse';
+#        warn Dumper ${$value_ref};
+        my $value = $value_ref ? bracket ( ${$value_ref} ) : 'No parse';
+        warn $value;
         push @actual, $value;
     }
 }
 
-my %s_tags; # structural tags
-
-sub PennTags::S::bracket   { 
-    %s_tags = map { $_ => undef } qw{ NP VP PP period } unless %s_tags;
-    my ($tag, $contents) = @_;
+sub bracket   { 
+    my ($lhs_id, @contents) = @{ $_[0] };
+    my $tag = $grammar->symbol_display_form($lhs_id);
     state $level++;
     my $bracketed = 
         exists $s_tags{$tag} ? ("\n" . ("  " x ($level-1))) : '';
     $tag = '.' if $tag eq 'period';
-    if (ref $contents->[0]){
+    if (ref $contents[0]){
         $bracketed .= 
                 "($tag "
-            .   join(' ', map { PennTags::S::bracket($_) } @$contents) 
+            .   join(' ', map { bracket($_) } @contents) 
             .   ")";
     }
     else {
-        $bracketed .= "($tag $contents->[0])";
+        $bracketed .= "($tag $contents[0])";
     }
     $level--;
     return $bracketed;
