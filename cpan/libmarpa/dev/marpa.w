@@ -9867,8 +9867,9 @@ At this point there are no Leo items.
           PIM new_pim;
           NSYID nsyid;
 
-          /* Need to be aligned for a PIM */
-          new_pim = marpa__obs_alloc (r->t_obs, sizeof (YIX_Object), ALIGNOF(PIM_Object));
+	  /* Need to be aligned for a PIM */
+          new_pim = marpa__obs_alloc(r->t_obs,
+            sizeof(YIX_Object), ALIGNOF(PIM_Object));
 
           nsyid = postdot_nsyidary[nsy_ix];
           Postdot_NSYID_of_PIM(new_pim) = nsyid;
