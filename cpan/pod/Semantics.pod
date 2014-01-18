@@ -775,7 +775,7 @@ it becomes the value of the node, as is.
 References are scalars in this context so that,
 for example, the value of the node could be a reference to an array.
 
-Another possiiblity is that the Perl scalar action is a reference to code.
+Another possibility is that the Perl scalar action is a reference to code.
 What happens in this case is very different from the case where the action
 is a rule evaluation closure.
 A rule evaluation closure is executed to produce the value of the node.
@@ -885,7 +885,7 @@ there is no per-parse constructor.
 
 The per-parse constructor is called with one argument.
 This argument is the argument of the
-the SLIF recognizer's C<value()> method, if one was defined.
+SLIF recognizer's C<value()> method, if one was defined.
 Otherwise it is the name of the semantics package.
 
 The result returned by the per-parse constructor becomes the per-parse argument.
