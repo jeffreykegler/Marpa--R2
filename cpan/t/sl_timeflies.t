@@ -133,9 +133,7 @@ for my $sentence (split /\n/, $paragraph){
     $recce->read( \$sentence );
 
     while ( defined( my $value_ref = $recce->value() ) ) {
-#        warn Dumper ${$value_ref};
         my $value = $value_ref ? bracket ( ${$value_ref} ) : 'No parse';
-        warn $value;
         push @actual, $value;
     }
 }
