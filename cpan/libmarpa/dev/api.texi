@@ -3447,7 +3447,7 @@ use the @code{marpa_v_step()} method.
 
 @code{marpa_v_step()} returns the type
 of step.
-Most step types has values associated with them.
+Most step types have values associated with them.
 To access these values use the methods
 described in the section @ref{Basic step accessors}.
 How to perform the steps is described in
