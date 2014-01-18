@@ -1186,15 +1186,38 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
               {
                 values_av = (AV *) sv_2mortal ((SV *) newAV ());
               }
-            /* return undef for now */
-            av_push (values_av, &PL_sv_undef);
-
-            if (step_type == MARPA_STEP_RULE)
+            switch (step_type)
               {
-                
+              case MARPA_STEP_TOKEN:
+                {
+                  Marpa_Rule_ID symbol_id = marpa_v_token (v);
+                  av_push (values_av, newSViv ((IV) symbol_id));
+                }
+                break;
+
+              case MARPA_STEP_RULE:
+                {
+                  Marpa_Grammar self = v_wrapper->base->g;
+                  Marpa_Rule_ID rule_id = marpa_v_rule (v);
+                  /* lhs_id may need to be checked for -1 and 0 
+                   * like gp_result as in general_pattern.xsh/rule_lhs 
+                   * -- ask 
+                   */
+                  Marpa_Symbol_ID lhs_id = marpa_g_rule_lhs (self, rule_id);
+                  av_push (values_av, newSViv ((IV) lhs_id));
+                }
+                break;
+
+              default:
+              case MARPA_STEP_NULLING_SYMBOL:
+                /* A no-op : push nothing. */
+                /* Or does this need to be handled too 
+                 * -- ask 
+                 */
+                break;
               }
           }
-          goto NEXT_OP_CODE; /* or break; -- ask */
+          goto NEXT_OP_CODE;
 
         case MARPA_OP_PUSH_VALUES:
         case MARPA_OP_PUSH_SEQUENCE:
