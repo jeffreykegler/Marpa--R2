@@ -1199,21 +1199,19 @@ v_do_stack_ops (V_Wrapper * v_wrapper, SV ** stack_results)
                 {
                   Marpa_Grammar self = v_wrapper->base->g;
                   Marpa_Rule_ID rule_id = marpa_v_rule (v);
-                  /* lhs_id may need to be checked for -1 and 0 
-                   * like gp_result as in general_pattern.xsh/rule_lhs 
-                   * -- ask 
-                   */
                   Marpa_Symbol_ID lhs_id = marpa_g_rule_lhs (self, rule_id);
+                  if (lhs_id < 0)
+                    {
+                      croak 
+                        ("Problem in v->stack_step: marpa_g_rule_lhs returned a negative: %d", lhs_id);
+                    }
                   av_push (values_av, newSViv ((IV) lhs_id));
                 }
                 break;
 
               default:
               case MARPA_STEP_NULLING_SYMBOL:
-                /* A no-op : push nothing. */
-                /* Or does this need to be handled too 
-                 * -- ask 
-                 */
+                av_push (values_av, &PL_sv_undef);
                 break;
               }
           }
