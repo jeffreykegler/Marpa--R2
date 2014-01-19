@@ -23,7 +23,7 @@ releng: install full_test
 	git status
 
 basic_test:
-	(cd cpan && ./Build test)
+	(cd cpan && ./Build test) 2>&1 | tee basic_test.out
 
 full_test: etc_make
 	(cd cpan; \
