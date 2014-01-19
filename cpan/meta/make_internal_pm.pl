@@ -301,6 +301,7 @@ __DATA__
     ASF
     VALUES { Memoized values, by glade ID }
     CODE { The anonymous subtroutine for traversal }
+    PER_TRAVERSE_OBJECT { a "scratch" object for the traversal }
     GLADE
     SYMCH_IX
     FACTORING_IX

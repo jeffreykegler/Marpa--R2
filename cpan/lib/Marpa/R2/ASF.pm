@@ -1344,6 +1344,7 @@ sub Marpa::R2::ASF::traverse {
     my $traverser  = bless [], "Marpa::R2::Internal::ASF::Traverse";
     $traverser->[Marpa::R2::Internal::ASF::Traverse::ASF]      = $asf;
     $traverser->[Marpa::R2::Internal::ASF::Traverse::CODE]     = $method;
+    $traverser->[Marpa::R2::Internal::ASF::Traverse::PER_TRAVERSE_OBJECT] = $per_traverse_object;
     $traverser->[Marpa::R2::Internal::ASF::Traverse::VALUES]   = [];
     $traverser->[Marpa::R2::Internal::ASF::Traverse::GLADE]    = $peak_glade;
     $traverser->[Marpa::R2::Internal::ASF::Traverse::SYMCH_IX] = 0;
@@ -1394,7 +1395,7 @@ sub Marpa::R2::Internal::ASF::Traverse::rh_length {
     my $symch = $glade->[Marpa::R2::Internal::Glade::SYMCHES]->[$symch_ix];
     my ( $rule_id, undef, @factorings ) = @{$symch};
     Marpa::R2::exception(
-        '$glade->rh_value($rh_ix) called for a token -- that is not allowed')
+        '$glade->rh_length($rh_ix) called for a token -- that is not allowed')
         if $rule_id < 0;
     my $factoring_ix =
         $traverser->[Marpa::R2::Internal::ASF::Traverse::FACTORING_IX];
@@ -1430,7 +1431,10 @@ sub Marpa::R2::Internal::ASF::Traverse::rh_value {
     $child_traverser->[Marpa::R2::Internal::ASF::Traverse::SYMCH_IX]     = 0;
     $child_traverser->[Marpa::R2::Internal::ASF::Traverse::FACTORING_IX] = 0;
     my $code  = $traverser->[Marpa::R2::Internal::ASF::Traverse::CODE];
-    my $value = $code->($child_traverser);
+    my $value = $code->(
+        $child_traverser,
+        $traverser->[Marpa::R2::Internal::ASF::Traverse::PER_TRAVERSE_OBJECT]
+    );
     Marpa::R2::exception(
         'The ASF traversing method returned undef -- that is not allowed')
         if not defined $value;

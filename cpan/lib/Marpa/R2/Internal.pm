@@ -163,9 +163,10 @@ package Marpa::R2::Internal::ASF::Traverse;
 use constant ASF => 0;
 use constant VALUES => 1;
 use constant CODE => 2;
-use constant GLADE => 3;
-use constant SYMCH_IX => 4;
-use constant FACTORING_IX => 5;
+use constant PER_TRAVERSE_OBJECT => 3;
+use constant GLADE => 4;
+use constant SYMCH_IX => 5;
+use constant FACTORING_IX => 6;
 
 package Marpa::R2::Internal::Nidset;
 use constant ID => 0;
