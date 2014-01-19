@@ -52,9 +52,6 @@ use lib 'inc';
 use Marpa::R2::Test;
 use Marpa::R2;
 
-use Data::Dumper;
-$Data::Dumper::Indent = 0;
-
 my $grammar = Marpa::R2::Scanless::G->new(
     {   source => \(<<'END_OF_SOURCE'),
         
