@@ -142,7 +142,7 @@ boolean ~ [01]
 
 <array descriptor> ~ '[' <result item descriptor list> ']'
 <result item descriptor list> ~ <result item descriptor>* separator => [,]
-<result item descriptor> ~ 'start' | 'length' | 'value' | 'values'
+<result item descriptor> ~ 'start' | 'length' | 'lhs' | 'value' | 'values'
 
 # In single quotes strings and character classes
 # no escaping or internal newlines, and disallow empty string
