@@ -113,7 +113,8 @@ Marpa::R2::Test::is( ( join "\n", sort @actual ) . "\n",
 # Marpa::R2::Display
 # name: ASF synopsis code
 
-my $panda_grammar = Marpa::R2::Scanless::G->new( { source => \$dsl } );
+my $panda_grammar = Marpa::R2::Scanless::G->new(
+    { source => \$dsl, bless_package => 'PennTags', } );
 my $panda_recce = Marpa::R2::Scanless::R->new( { grammar => $panda_grammar } );
 $panda_recce->read( \$sentence );
 my $asf = Marpa::R2::ASF->new( { slr=>$panda_recce } );

@@ -374,6 +374,10 @@ sub Marpa::R2::ASF::new {
     } ## end if ( defined $recce->[Marpa::R2::Internal::Recognizer::TREE_MODE...])
     $recce->[Marpa::R2::Internal::Recognizer::TREE_MODE] = 'forest';
 
+    (   $asf->[Marpa::R2::Internal::ASF::RULE_RESOLUTIONS],
+        $asf->[Marpa::R2::Internal::ASF::LEXEME_RESOLUTIONS]
+    ) = Marpa::R2::Internal::Value::resolve_recce( $recce, $slr );
+
     $asf->[Marpa::R2::Internal::ASF::SYMCH_BLESSING_PACKAGE] = 'My_Symch';
     $asf->[Marpa::R2::Internal::ASF::FACTORING_BLESSING_PACKAGE] =
         'My_Factoring';

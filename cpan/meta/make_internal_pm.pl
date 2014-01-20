@@ -271,6 +271,9 @@ __DATA__
       both structures from being freed, and create a memory leak. }
 
     SLR { The underlying SLR }
+    LEXEME_RESOLUTIONS
+    RULE_RESOLUTIONS
+
     FACTORING_MAX
     RULE_BLESSINGS
     SYMBOL_BLESSINGS
