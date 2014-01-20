@@ -77,21 +77,21 @@ sub Marpa::R2::Internal::Recognizer::resolve_action {
     } ## end if ( my $closure = $closures->{$closure_name} )
 
     my $fully_qualified_name;
-    DETERMINE_FULLY_QUALIFIED_NAME: {
-        if ( $closure_name =~ /([:][:])|[']/xms ) {
-            $fully_qualified_name = $closure_name;
-            last DETERMINE_FULLY_QUALIFIED_NAME;
-        }
+    if ( $closure_name =~ /([:][:])|[']/xms ) {
+        $fully_qualified_name = $closure_name;
+    }
+
+    if (not $fully_qualified_name) {
         my $resolve_package =
             $recce->[Marpa::R2::Internal::Recognizer::RESOLVE_PACKAGE];
-        last DETERMINE_FULLY_QUALIFIED_NAME if not defined $resolve_package;
+        if (not defined $resolve_package) {
+            ${$p_error} = Marpa::R2::Internal::X->new(
+                message => qq{Could not fully qualify "$closure_name": no resolve package},
+                name => 'NO RESOLVE PACKAGE'
+            );
+            return;
+        }
         $fully_qualified_name = $resolve_package . q{::} . $closure_name;
-    } ## end DETERMINE_FULLY_QUALIFIED_NAME:
-
-    if ( not defined $fully_qualified_name ) {
-        ${$p_error} = qq{Could not fully qualify "$closure_name"}
-            if defined $p_error;
-        return;
     }
 
     my $closure;
@@ -446,6 +446,17 @@ sub Marpa::R2::Recognizer::ordering_create {
     return 1;
 } ## end sub Marpa::R2::Recognizer::ordering_create
 
+sub resolve_rule_by_id {
+    my ( $recce, $rule_id, $p_error ) = @_;
+    my $grammar     = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
+    my $rules       = $grammar->[Marpa::R2::Internal::Grammar::RULES];
+    my $rule        = $rules->[$rule_id];
+    my $action_name = $rule->[Marpa::R2::Internal::Rule::ACTION_NAME];
+    return if not defined $action_name;
+    return Marpa::R2::Internal::Recognizer::resolve_action( $recce,
+        $action_name, $p_error );
+} ## end sub resolve_rule_by_id
+
 # Returns false if no parse
 sub Marpa::R2::Recognizer::value {
     my ( $recce, $slr, $per_parse_arg ) = @_;
@@ -702,28 +713,15 @@ sub Marpa::R2::Recognizer::value {
 
         RULE: for my $rule_id ( $grammar->rule_ids() ) {
 
-            my $rule   = $rules->[$rule_id];
-            my $action = $rule->[Marpa::R2::Internal::Rule::ACTION_NAME];
+            my $rule_resolution = resolve_rule_by_id( $recce, $rule_id );
+            if (    not defined $rule_resolution
+                and $default_empty_action
+                and $grammar_c->rule_length($rule_id) == 0 )
+            {
+                $rule_resolution = $default_empty_action_resolution;
+            } ## end if ( not defined $rule_resolution and ...)
 
-            my $rule_resolution;
-            my $blessing_error;
-            DETERMINE_RULE_RESOLUTION: {
-                if ($action) {
-                    $rule_resolution =
-                        Marpa::R2::Internal::Recognizer::resolve_action(
-                        $recce, $action, \$blessing_error );
-                    last DETERMINE_RULE_RESOLUTION;
-                } ## end if ($action)
-
-                if (    $default_empty_action
-                    and $grammar_c->rule_length($rule_id) == 0 )
-                {
-                    $rule_resolution = $default_empty_action_resolution;
-                    last DETERMINE_RULE_RESOLUTION;
-                } ## end if ( $default_empty_action and $grammar_c...)
-
-                $rule_resolution = $default_action_resolution;
-            } ## end DETERMINE_RULE_RESOLUTION:
+            $rule_resolution //= $default_action_resolution;
 
             if ( not $rule_resolution ) {
                 my $rule_desc;
@@ -734,6 +732,8 @@ sub Marpa::R2::Recognizer::value {
                 my $message =
                     "Could not resolve action\n  Rule was $rule_desc\n";
 
+                my $rule = $rules->[$rule_id];
+                my $action = $rule->[Marpa::R2::Internal::Rule::ACTION_NAME];
                 $message .= qq{  Action was specified as "$action"\n}
                     if defined $action;
                 my $recce_error =

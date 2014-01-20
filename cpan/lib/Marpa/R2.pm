@@ -130,6 +130,39 @@ sub Marpa::R2::exception {
     Carp::croak($exception, q{Marpa::R2 exception});
 }
 
+package Marpa::R2::Internal::X;
+
+use overload (
+    q{""} => sub {
+        my ($self) = @_;
+        return $self->{message} // $self->{fallback_message};
+    },
+    fallback => 1
+);
+
+sub new {
+    my ( $class, @hash_ref_args ) = @_;
+    my %x_object = ();
+    for my $hash_ref_arg (@hash_ref_args) {
+        if ( ref $hash_ref_arg ne "HASH" ) {
+            my $ref_type = ref $hash_ref_arg;
+            my $ref_desc = $ref_type ? "ref to $ref_type" : "not a ref";
+            die
+                "Internal error: args to Marpa::R2::Internal::X->new is $ref_desc -- it should be hash ref";
+        } ## end if ( ref $hash_ref_arg ne "HASH" )
+        $x_object{$_} = $hash_ref_arg->{$_} for keys %{$hash_ref_arg};
+    } ## end for my $hash_ref_arg (@hash_ref_args)
+    my $name = $x_object{name};
+    die("Internal error: an excepion must have a name") if not $name;
+    $x_object{fallback_message} = qq{Exception "$name" thrown};
+    return bless \%x_object, $class;
+} ## end sub new
+
+sub name {
+    my ($self) = @_;
+    return $self->{name};
+}
+
 1;
 
 # vim: set expandtab shiftwidth=4:
