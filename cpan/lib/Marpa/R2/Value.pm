@@ -1018,11 +1018,8 @@ sub Marpa::R2::Recognizer::value {
         $recce->[Marpa::R2::Internal::Recognizer::NULL_VALUES] =
             \@null_symbol_closures;
 
-        my @semantics_by_lexeme_id = ();
-        my @blessing_by_lexeme_id  = ();
-
         # Check the lexeme semantics
-        {
+
             # ::whatever is deprecated and has been removed from the docs
             # it is now equivalent to ::undef
             LEXEME: for my $lexeme_id ( 0 .. $#{$symbols} ) {
@@ -1067,12 +1064,20 @@ sub Marpa::R2::Recognizer::value {
                         qq{    Blessing as specified as "$blessing"\n}
                     );
                 } ## end CHECK_BLESSING:
-                $semantics_by_lexeme_id[$lexeme_id] = $semantics;
-                $blessing_by_lexeme_id[$lexeme_id]  = $blessing;
+
+                    $lexeme_resolutions->[$lexeme_id] = [ $semantics, $blessing ];
 
             } ## end LEXEME: for my $lexeme_id ( 0 .. $#{$symbols} )
 
-        }
+        my @semantics_by_lexeme_id = ();
+        my @blessing_by_lexeme_id  = ();
+
+        LEXEME: for my $lexeme_id ( 0 .. $#{$symbols} ) {
+            my ( $semantics, $blessing ) =
+                @{ $lexeme_resolutions->[$lexeme_id] };
+            $semantics_by_lexeme_id[$lexeme_id] = $semantics;
+            $blessing_by_lexeme_id[$lexeme_id]  = $blessing;
+        } ## end LEXEME: for my $lexeme_id ( 0 .. $#{$symbols} )
 
         my $null_values =
             $recce->[Marpa::R2::Internal::Recognizer::NULL_VALUES];
