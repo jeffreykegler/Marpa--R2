@@ -15,6 +15,10 @@
 
 Revision history for Marpa::R2
 
+2.079_011
+
+   * Phase 1/2 "inter-phase"
+
 2.079_010
 
    * Fix bug in Phase 1
