@@ -401,16 +401,20 @@ sub Marpa::R2::ASF::new {
     my $grammar_c = $grammar->[Marpa::R2::Internal::Grammar::C];
     my $recce_c   = $recce->[Marpa::R2::Internal::Recognizer::C];
 
-    $recce->ordering_create()
-        if not $recce->[Marpa::R2::Internal::Recognizer::O_C];
-
-    my $bocage   = $recce->[Marpa::R2::Internal::Recognizer::B_C];
     my $ordering = $recce->[Marpa::R2::Internal::Recognizer::O_C];
+    if (not $ordering) {
+        if (not $recce->ordering_create()) {
+            Marpa::R2::exception( "Parse failed\n") }
+        $ordering = $recce->[Marpa::R2::Internal::Recognizer::O_C];
+    }
+
     Marpa::R2::exception(
         "An attempt was make to create an ASF for a null parse\n",
         "  A null parse is a successful parse of a zero-length string\n",
         "  ASF's are not defined for null parses\n"
     ) if $ordering->is_null();
+
+    my $bocage   = $recce->[Marpa::R2::Internal::Recognizer::B_C];
 
     my $or_nodes = $asf->[Marpa::R2::Internal::ASF::OR_NODES] = [];
     use sort 'stable';
