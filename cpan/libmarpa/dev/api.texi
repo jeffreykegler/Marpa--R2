@@ -4459,7 +4459,6 @@ Suggested message: "Grammar has cycle".
 
 @deftypevr Macro int MARPA_ERR_INACCESSIBLE_TOKEN
 This error code indicates that
-indicates that
 the token symbol is an inaccessible symbol --- one which
 cannot be reached from the start symbol.
 
