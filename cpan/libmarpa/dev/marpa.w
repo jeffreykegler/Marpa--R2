@@ -9001,9 +9001,15 @@ PRIVATE int alternative_insert(RECCE r, ALT new_alternative)
     int return_value = 1;
     YS set0;
     YIK_Object key;
-    AHFA state;
+
+    AIM start_aim;
+    AHFA start_ahfa;
+    AHFA empty_ahfa;
+
   @<Unpack recognizer objects@>@;
   @<Return |-2| on failure@>@;
+
+
   @<Fail if recognizer started@>@;
   {
     @<Declare |marpa_r_start_input| locals@>@;
@@ -9031,14 +9037,17 @@ PRIVATE int alternative_insert(RECCE r, ALT new_alternative)
     set0 = earley_set_new(r, 0);
     Latest_YS_of_R(r) = set0;
     First_YS_of_R(r) = set0;
-    state = AHFA_of_AIM(First_AIM_of_IRL(g->t_start_irl));
+
+    start_aim = First_AIM_of_IRL(g->t_start_irl);
+    start_ahfa = AHFA_of_AIM(start_aim);
+
     key.t_origin = set0;
-    key.t_state = state;
+    key.t_state = start_ahfa;
     key.t_set = set0;
     earley_item_create(r, key);
-    state = Empty_Transition_of_AHFA(state);
-    if (state) {
-        key.t_state = state;
+    empty_ahfa = Empty_Transition_of_AHFA(start_ahfa);
+    if (empty_ahfa) {
+        key.t_state = empty_ahfa;
         earley_item_create(r, key);
     } 
     postdot_items_create(r, bv_ok_for_chain, set0);
