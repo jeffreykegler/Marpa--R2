@@ -25,6 +25,12 @@ releng: install full_test
 basic_test:
 	(cd cpan && ./Build test) 2>&1 | tee basic_test.out
 
+rebuild: etc_make
+	(cd cpan; \
+	    ./Build; \
+	    ./Build test; \
+	) 2>&1 | tee rebuild.out
+
 full_test: etc_make
 	(cd cpan; \
 	    ./Build realclean; \
