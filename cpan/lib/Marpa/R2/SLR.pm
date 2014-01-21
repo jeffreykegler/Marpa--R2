@@ -1316,7 +1316,7 @@ sub Marpa::R2::Scanless::R::rule_closure {
     my ( $slr, $rule_id ) = @_;
     
     my $recce = $slr->[Marpa::R2::Internal::Scanless::R::THICK_G1_RECCE];
-    
+
     if ( not $recce->[Marpa::R2::Internal::Recognizer::REGISTRATIONS] ) {
 
         my $grammar           = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
@@ -1344,11 +1344,20 @@ sub Marpa::R2::Scanless::R::rule_closure {
 
     } ## end if ( not $recce->[Marpa::R2::Internal::Recognizer::REGISTRATIONS...])
     
-    warn Data::Dumper::Dumper $recce->[Marpa::R2::Internal::Recognizer::REGISTRATIONS];
-    warn Data::Dumper::Dumper $recce->[Marpa::R2::Internal::Recognizer::CLOSURE_BY_SYMBOL_ID];
-    warn Data::Dumper::Dumper $recce->[Marpa::R2::Internal::Recognizer::CLOSURE_BY_RULE_ID];
-        
-    return ;
+    my $rule_closure = $recce->[Marpa::R2::Internal::Recognizer::CLOSURE_BY_RULE_ID]->[$rule_id];
+    if (defined $rule_closure){
+        my $ref_rule_closure = ref $rule_closure;
+        if (    $ref_rule_closure eq 'CODE' ){
+            return $rule_closure;
+        }
+        elsif ( $ref_rule_closure eq 'SCALAR' ){
+            return $rule_closure;
+        }
+    }
+    else{
+        return
+    }
+    
 } ## end sub Marpa::R2::Scanless::R::rule_closure
 
 sub Marpa::R2::Scanless::R::value {
