@@ -31,38 +31,40 @@ use Marpa::R2::Test;
 
 use Marpa::R2;
 
-my $data = MarpaX::JSON::parse_json(q${"test":"1"}$);
+my $p = MarpaX::JSON->new();
+
+my $data = $p->parse_json(q${"test":"1"}$);
 is($data->{test}, 1);
 
 {
     my $test = q${"test":[1,2,3]}$;
-    $data = MarpaX::JSON::parse_json(q${"test":[1,2,3]}$);
+    $data = $p->parse_json(q${"test":[1,2,3]}$);
     is_deeply( $data->{test}, [ 1, 2, 3 ], $test );
 }
 
-$data = MarpaX::JSON::parse_json(q${"test":true}$);
+$data = $p->parse_json(q${"test":true}$);
 is($data->{test}, 1);
 
-$data = MarpaX::JSON::parse_json(q${"test":false}$);
+$data = $p->parse_json(q${"test":false}$);
 is($data->{test}, '');
 
-$data = MarpaX::JSON::parse_json(q${"test":null}$);
+$data = $p->parse_json(q${"test":null}$);
 is($data->{test}, undef);
 
-$data = MarpaX::JSON::parse_json(q${"test":null, "test2":"hello world"}$);
+$data = $p->parse_json(q${"test":null, "test2":"hello world"}$);
 is($data->{test}, undef);
 is($data->{test2}, "hello world");
 
-$data = MarpaX::JSON::parse_json(q${"test":"1.25"}$);
+$data = $p->parse_json(q${"test":"1.25"}$);
 is($data->{test}, '1.25', '1.25');
 
-$data = MarpaX::JSON::parse_json(q${"test":"1.25e4"}$);
+$data = $p->parse_json(q${"test":"1.25e4"}$);
 is($data->{test}, '1.25e4', '1.25e4');
 
-$data = MarpaX::JSON::parse_json(q$[]$);
+$data = $p->parse_json(q$[]$);
 is_deeply($data, [], '[]');
 
-$data = MarpaX::JSON::parse_json(<<'JSON');
+$data = $p->parse_json(<<'JSON');
 [
       {
          "precision": "zip",
@@ -95,7 +97,7 @@ is_deeply($data, [
       Zip => 94085, State => "CA" }
 ], 'Geo data');
 
-$data = MarpaX::JSON::parse_json(<<'JSON');
+$data = $p->parse_json(<<'JSON');
 {
     "Image": {
         "Width":  800,
@@ -160,10 +162,10 @@ my $big_test = <<'JSON';
     }
 }
 JSON
-$data = MarpaX::JSON::parse_json($big_test);
+$data = $p->parse_json($big_test);
 
-my $trace = MarpaX::JSON::trace_json($big_test);
-is($trace, <<'END_OF_EXPECTED_TRACE');
+my $trace = $p->trace_json($big_test);
+is($trace, <<'END_OF_EXPECTED_TRACE', 'big test trace');
 Line 2, column 5, lexeme <lstring>, literal ""source""
 Line 2, column 16, lexeme <lstring>, literal ""<a href=\"http://janetter.net/\" rel=\"nofollow\">Janetter</a>""
 Line 3, column 5, lexeme <lstring>, literal ""entities""
@@ -210,10 +212,10 @@ Line 33, column 9, lexeme <lstring>, literal ""verified""
 END_OF_EXPECTED_TRACE
 
 
-$data = MarpaX::JSON::parse_json(<<'JSON');
+$data = $p->parse_json(<<'JSON');
 { "test":  "\u2603" }
 JSON
-is($data->{test}, "\x{2603}");
+is($data->{test}, "\x{2603}", 'Unicode char');
 
 package MarpaX::JSON;
 
@@ -328,20 +330,18 @@ sub parse {
 } ## end sub parse
 
 sub parse_json {
-    my ($string) = @_;
-    my $parser = MarpaX::JSON->new();
-    return $parser->parse($string);
+    my ($self, $string) = @_;
+    return $self->parse($string);
 }
 
 sub trace_json {
-    my ($string) = @_;
-    my $parser = MarpaX::JSON->new();
+    my ($self, $string) = @_;
     my $trace_desc = q{};
 
 # Marpa::R2::Display
 # name: SLIF trace example
 
-    my $re = Marpa::R2::Scanless::R->new( { grammar => $parser->{grammar} } );
+    my $re = Marpa::R2::Scanless::R->new( { grammar => $self->{grammar} } );
     my $length = length $string;
     for (
         my $pos = $re->read( \$string );
