@@ -9308,6 +9308,7 @@ marpa_r_earleme_complete(Marpa_Recognizer r)
       YIM cause = *cause_p;
         @<Add new Earley items for |cause|@>@;
     }
+    @<Add predictions@>@;
     postdot_items_create(r, bv_ok_for_chain, current_earley_set);
 
       /* \comment If no terminals are expected, and there are no Earley items in
@@ -9424,18 +9425,12 @@ The return value means success, with no events.
 
 @ @<Create the earley items for |scanned_AHFA|@> =
 {
-  const AHFA prediction_AHFA = Empty_Transition_of_AHFA (scanned_AHFA);
   const YIM scanned_earley_item = earley_item_assign (r,
 						      current_earley_set,
 						      Origin_of_YIM
 						      (predecessor),
 						      scanned_AHFA);
   tkn_link_add (r, scanned_earley_item, predecessor, tkn);
-  if (prediction_AHFA)
-    {
-      earley_item_assign (r, current_earley_set, current_earley_set,
-			  prediction_AHFA);
-    }
 }
 
 @ @<Pre-populate the completion stack@> = {
@@ -9523,17 +9518,10 @@ add those Earley items it ``causes".
    const YIM effect = earley_item_assign(r, current_earley_set,
         origin, effect_AHFA);
    if (Earley_Item_has_No_Source(effect)) {
-          const AHFA prediction_AHFA_state =
-            Empty_Transition_of_AHFA (effect_AHFA);
        /* If it has no source, then it is new */
        if (Earley_Item_is_Completion(effect)) {
            @<Push |effect| onto completion stack@>@;
        }
-      if (prediction_AHFA_state)
-        {
-          earley_item_assign (r, current_earley_set, current_earley_set,
-                              prediction_AHFA_state);
-        }
    }
    completion_link_add(r, effect, predecessor, cause);
 }
@@ -9555,6 +9543,23 @@ add those Earley items it ``causes".
         @<Push |effect| onto completion stack@>@;
       }
     leo_link_add (r, effect, leo_item, cause);
+}
+
+@ @<Add predictions@> =
+{
+    YIM* work_earley_items = MARPA_DSTACK_BASE (r->t_yim_work_stack, YIM );
+    int no_of_work_earley_items = MARPA_DSTACK_LENGTH (r->t_yim_work_stack );
+    int ix;
+    for (ix = 0;
+         ix < no_of_work_earley_items;
+         ix++) {
+        YIM earley_item = work_earley_items[ix];
+      const AHFA state = AHFA_of_YIM (earley_item);
+      const AHFA prediction_AHFA = Empty_Transition_of_AHFA (state);
+      if (!prediction_AHFA) continue;
+      earley_item_assign (r, current_earley_set, current_earley_set,
+			  prediction_AHFA);
+    }
 }
 
 @ @<Function definitions@> =
