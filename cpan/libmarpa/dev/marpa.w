@@ -5651,7 +5651,7 @@ PRIVATE_NOT_INLINE int AHFA_state_cmp(
 	}
       else
 	{
-	  create_singleton_AHFA_state (g, aim, singleton_duplicates,
+	  create_singleton_AHFA_state (g, aim,
 				       irl_by_sort_key, &states, duplicates,
 				       item_list_working_buffer,
 				       prediction_matrix);
@@ -5666,9 +5666,7 @@ PRIVATE_NOT_INLINE int AHFA_state_cmp(
    @<Free locals for creating AHFA states@>@;
 }
 
-@ |singleton_duplicates| can probably be eliminated once
-I no longer special-case the start rule.
-|duplicates| can probably be eliminated once predictions
+@ |duplicates| can probably be eliminated once predictions
 get special handling.
 |initial_no_of_states| might bear some rethinking, but
 we're elimination AHFA states, so it stays where it is
@@ -5678,7 +5676,6 @@ until then.
    Bit_Matrix prediction_matrix;
    IRL* irl_by_sort_key = marpa_new(IRL, irl_count);
     MARPA_AVL_TREE duplicates;
-      AHFA* singleton_duplicates;
    DQUEUE_DECLARE(states);
   int ahfa_count_of_g;
 
@@ -5688,15 +5685,7 @@ until then.
 
 @ @<Initialize duplicates data structures@> =
 {
-  int item_id;
-  int no_of_items_in_grammar = AIM_Count_of_G (g);
   duplicates = _marpa_avl_create (AHFA_state_cmp, NULL);
-  singleton_duplicates = marpa_new (AHFA, no_of_items_in_grammar);
-  for (item_id = 0; item_id < no_of_items_in_grammar; item_id++)
-    {
-      singleton_duplicates[item_id] = NULL;
-      // All zero bits are not necessarily a NULL pointer
-    }
 }
 
 @ @<Resort the AIMs@> =
@@ -5713,7 +5702,6 @@ until then.
 
 @ @<Free locals for creating AHFA states@> =
   my_free(irl_by_sort_key);
-  my_free(singleton_duplicates);
   _marpa_avl_destroy(duplicates);
 
 @ This logic should be reworked after the transition away
@@ -5725,14 +5713,21 @@ from AHFA states.
   NSYID *postdot_nsyidary;
   AIM start_item;
   NSYID postdot_nsyid;
-  AIM *item_list = marpa_obs_new (g->t_obs, AIM, 1);
-  /* The start item is the initial item for the start rule */
-  start_item = First_AIM_of_IRL(start_irl);
-  item_list[0] = start_item;
+  AIM *item_list;
+
   AHFA_initialize(g, p_initial_state);
+
+  start_item = First_AIM_of_IRL(start_irl);
+  /* The start item is the initial item for the start rule */
+
+  item_list = marpa_obs_new (g->t_obs, AIM, 1);
+  item_list[0] = start_item;
   p_initial_state->t_items = item_list;
   p_initial_state->t_item_count = 1;
-  singleton_duplicates[0] = p_initial_state;
+
+  assign_AHFA_state(p_initial_state, duplicates);
+  /* Do not check return -- we can assume it will note be found */
+
   AHFA_is_Predicted (p_initial_state) = 0;
   Postdot_NSY_Count_of_AHFA (p_initial_state) = 1;
   postdot_nsyidary = Postdot_NSYIDAry_of_AHFA (p_initial_state) =
@@ -5781,7 +5776,6 @@ PRIVATE AHFA
 create_singleton_AHFA_state(
     GRAMMAR g,
     AIM base_aim,
-      AHFA* singleton_duplicates,
      IRL* irl_by_sort_key,
      DQUEUE states_p,
      MARPA_AVL_TREE duplicates,
@@ -5795,21 +5789,10 @@ create_singleton_AHFA_state(
     AHFA new_ahfa;
     AIM* new_state_item_list;
     NSYID postdot_nsyid;
-    const Marpa_AHFA_Item_ID working_aim_id = base_aim - AHFA_item_0_p;
-    
-    new_ahfa = singleton_duplicates[working_aim_id]; /* This will not
-    be necessary after transition to singleton-only AHFA states */
-    if (new_ahfa)
-      {                         /* Do not add, this is a duplicate */
-        return new_ahfa;
-      }
-
-    MARPA_OFF_DEBUG2("Creating singleton AHFA for AIM %d", working_aim_id);
 
     new_ahfa = DQUEUE_PUSH ((*states_p), AHFA_Object);
     /* Create a new AHFA state */
     AHFA_initialize(g, new_ahfa);
-    singleton_duplicates[working_aim_id] = new_ahfa;
     new_state_item_list = new_ahfa->t_items =
         marpa_obs_new (g->t_obs, AIM, 1);
     new_state_item_list[0] = base_aim;
