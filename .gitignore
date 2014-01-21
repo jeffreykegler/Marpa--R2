@@ -1,5 +1,6 @@
-full_test.out
 basic_test.out
+full_test.out
+rebuild.out
 releng.out
 *.swp
 [.]DS_store
