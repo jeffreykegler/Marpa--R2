@@ -5739,6 +5739,9 @@ from AHFA states.
   *postdot_nsyidary = postdot_nsyid;
   Completion_CIL_of_AHFA(p_initial_state) =
     cil_empty (&g->t_cilar);
+
+  AHFA_of_AIM(start_item) = p_initial_state;
+
   p_initial_state->t_empty_transition = create_predicted_AHFA_state (g,
                                matrix_row (prediction_matrix,
                                            postdot_nsyid),
@@ -8998,7 +9001,7 @@ PRIVATE int alternative_insert(RECCE r, ALT new_alternative)
     set0 = earley_set_new(r, 0);
     Latest_YS_of_R(r) = set0;
     First_YS_of_R(r) = set0;
-    state = AHFA_of_G_by_ID(g, 0);
+    state = AHFA_of_AIM(First_AIM_of_IRL(g->t_start_irl));
     key.t_origin = set0;
     key.t_state = state;
     key.t_set = set0;
