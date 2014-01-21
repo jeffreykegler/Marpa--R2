@@ -9045,6 +9045,20 @@ PRIVATE int alternative_insert(RECCE r, ALT new_alternative)
     key.t_state = start_ahfa;
     key.t_set = set0;
     earley_item_create(r, key);
+
+    {
+      int cil_ix;
+      const CIL prediction_cil = Predicted_IRL_CIL_of_AIM(start_aim);
+      const int prediction_count = Count_of_CIL (prediction_cil);
+      for (cil_ix = 0; cil_ix < prediction_count; cil_ix++)
+        {
+          const IRLID prediction_irlid = Item_of_CIL (prediction_cil, cil_ix);
+          const IRL prediction_irl = IRL_by_ID(prediction_irlid);
+          const AIM prediction_aim = First_AIM_of_IRL(prediction_irl);
+          const AHFA prediction_ahfa = AHFA_of_AIM(prediction_aim);
+        }
+    }
+
     empty_ahfa = Empty_Transition_of_AHFA(start_ahfa);
     if (empty_ahfa) {
         key.t_state = empty_ahfa;
