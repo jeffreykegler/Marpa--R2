@@ -1389,7 +1389,7 @@ sub Marpa::R2::Internal::ASF::Traverse::rule_id {
     my ( $rule_id ) = @{$symch};
     return if $rule_id < 0;
     return $rule_id;
-} ## end sub Marpa::R2::Internal::ASF::Traverse::rh_length
+} ## end sub Marpa::R2::Internal::ASF::Traverse::rule_id
 
 sub Marpa::R2::Internal::ASF::Traverse::rh_length {
     my ( $traverser ) = @_;
