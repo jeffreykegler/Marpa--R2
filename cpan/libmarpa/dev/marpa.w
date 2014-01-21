@@ -3076,7 +3076,9 @@ int marpa_g_precompute(Marpa_Grammar g)
         memoizations@>@;
         @<Calculate Rule by LHS lists@>@;
         @<Create AHFA items@>@;
+        @<Construct prediction matrix@>@;
         @<Create AHFA states@>@;
+        @<Populate the predicted IRL CIL's in the AIM's@>
         @<Populate the terminal boolean vector@>@;
         @<Populate the event boolean vectors@>@;
         @<Populate the prediction
@@ -4932,6 +4934,13 @@ this one.
 @<Widely aligned AHFA item elements@> =
     AHFA t_singleton_ahfa;
 
+@*0 Predicted IRL's.
+A CIL representing the predicted IRL's.
+The empty CIL if there are none.
+@d Predicted_IRL_CIL_of_AIM(aim) ((aim)->t_predicted_irl_cil)
+@<Widely aligned AHFA item elements@> =
+    CIL t_predicted_irl_cil;
+
 @*0 AHFA item external accessors.
 @<Function definitions@> =
 int _marpa_g_AHFA_item_count(Marpa_Grammar g) {
@@ -5633,7 +5642,6 @@ PRIVATE_NOT_INLINE int AHFA_state_cmp(
 {
     @<Declare locals for creating AHFA states@>@;
     @<Initialize locals for creating AHFA states@>@;
-   @<Construct prediction matrix@>@;
    @<Construct right derivation matrix@>@;
    @<Construct initial AHFA states@>@;
 
@@ -5676,8 +5684,6 @@ we're elimination AHFA states, so it stays where it is
 until then.
 @<Declare locals for creating AHFA states@> =
    const int initial_no_of_states = 2*AIM_Count_of_G(g);
-   Bit_Matrix prediction_matrix;
-   IRL* irl_by_sort_key = marpa_new(IRL, irl_count);
     MARPA_AVL_TREE duplicates;
    DQUEUE_DECLARE(states);
   int ahfa_count_of_g;
@@ -5729,7 +5735,7 @@ from AHFA states.
   p_initial_state->t_item_count = 1;
 
   assign_AHFA_state(p_initial_state, duplicates);
-  /* Do not check return -- we can assume it will note be found */
+  /* Do not check return -- we can assume it will not be found */
 
   AHFA_is_Predicted (p_initial_state) = 0;
   Postdot_NSY_Count_of_AHFA (p_initial_state) = 1;
@@ -5860,6 +5866,8 @@ be if written 100\% using indexes.
   const XSYID xsy_count = XSY_Count_of_G(g);
   IRLID** irl_list_x_lh_nsy = NULL;
   Bit_Matrix nsy_by_right_nsy_matrix;
+   Bit_Matrix prediction_matrix;
+   IRL* irl_by_sort_key = marpa_new(IRL, irl_count);
 
 @ Initialized based on the capacity of the XRL stack, rather
 than its length, as a convenient way to deal with issues
@@ -6276,6 +6284,28 @@ AHFAID _marpa_g_AHFA_state_empty_transition(Marpa_Grammar g,
     if (empty_transition_state)
       return ID_of_AHFA (empty_transition_state);
     return -1;
+}
+
+@** Populating the predicted IRL CIL's in the AIM's.
+@ @<Populate the predicted IRL CIL's in the AIM's@> =
+{
+  AIMID aim_id;
+  const int aim_count = AIM_Count_of_G (g);
+  for (aim_id = 0; aim_id < aim_count; aim_id++)
+    {
+      const AIM aim = AIM_by_ID (aim_id);
+      const NSYID postdot_nsyid = Postdot_NSYID_of_AIM (aim);
+      if (postdot_nsyid < 0)
+	{
+	  Predicted_IRL_CIL_of_AIM (aim) = cil_empty (&g->t_cilar);
+	}
+      else
+	{
+	  Predicted_IRL_CIL_of_AIM (aim) =
+	    cil_bv_add (&g->t_cilar,
+			matrix_row (prediction_matrix, postdot_nsyid));
+	}
+    }
 }
 
 @** Populating the terminal boolean vector.
