@@ -1311,6 +1311,21 @@ sub Marpa::R2::Scanless::R::ambiguity_metric {
     return $ordering->ambiguity_metric();
 } ## end sub Marpa::R2::Scanless::R::ambiguity_metric
 
+sub Marpa::R2::Scanless::R::rule_closure {
+    my ( $slr, $rule_id ) = @_;
+    
+    my $thick_g1_recce =
+        $slr->[Marpa::R2::Internal::Scanless::R::THICK_G1_RECCE];
+
+    my ($rule_resolutions, $lexeme_resolutions) = Marpa::R2::Internal::Value::resolve_recce( $thick_g1_recce, $slr, {} );
+    
+    use Data::Dumper;
+    warn Dumper $rule_resolutions;
+    warn Dumper $lexeme_resolutions;
+    
+    return ;
+} ## end sub Marpa::R2::Scanless::R::rule_closure
+
 sub Marpa::R2::Scanless::R::value {
     my ( $slr, $per_parse_arg ) = @_;
     my $thick_g1_recce =
