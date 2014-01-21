@@ -13,7 +13,7 @@
 # General Public License along with Marpa::R2.  If not, see
 # http://www.gnu.org/licenses/.
 
-.PHONY: dummy basic_test full_test etc_make install cpan_dist_files releng
+.PHONY: dummy basic_test rebuild single_test full_test etc_make install cpan_dist_files releng
 
 dummy: 
 
@@ -30,6 +30,12 @@ rebuild: etc_make
 	    ./Build; \
 	    ./Build test; \
 	) 2>&1 | tee rebuild.out
+
+single_test: etc_make
+	(cd cpan; \
+	    ./Build; \
+	    ./Build test --test_files $(TEST); \
+	) 2>&1 | tee single_test.out
 
 full_test: etc_make
 	(cd cpan; \
