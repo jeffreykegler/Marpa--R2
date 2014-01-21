@@ -1312,17 +1312,42 @@ sub Marpa::R2::Scanless::R::ambiguity_metric {
 } ## end sub Marpa::R2::Scanless::R::ambiguity_metric
 
 sub Marpa::R2::Scanless::R::rule_closure {
+
     my ( $slr, $rule_id ) = @_;
     
-    my $thick_g1_recce =
-        $slr->[Marpa::R2::Internal::Scanless::R::THICK_G1_RECCE];
+    my $recce = $slr->[Marpa::R2::Internal::Scanless::R::THICK_G1_RECCE];
+    
+    if ( not $recce->[Marpa::R2::Internal::Recognizer::REGISTRATIONS] ) {
 
-    my ($rule_resolutions, $lexeme_resolutions) = Marpa::R2::Internal::Value::resolve_recce( $thick_g1_recce, $slr, {} );
+        my $grammar           = $recce->[Marpa::R2::Internal::Recognizer::GRAMMAR];
+        my $grammar_c         = $grammar->[Marpa::R2::Internal::Grammar::C];
+        my $recce_c           = $recce->[Marpa::R2::Internal::Recognizer::C];
+        my $per_parse_arg     = {};
+        my $trace_actions     = $recce->[Marpa::R2::Internal::Recognizer::TRACE_ACTIONS] // 0;
+        my $trace_file_handle = $recce->[Marpa::R2::Internal::Recognizer::TRACE_FILE_HANDLE];
+        my $rules             = $grammar->[Marpa::R2::Internal::Grammar::RULES];
+        my $symbols           = $grammar->[Marpa::R2::Internal::Grammar::SYMBOLS];
+        my $tracer            = $grammar->[Marpa::R2::Internal::Grammar::TRACER];
+
+        Marpa::R2::Internal::Value::init_registrations(
+            $recce, 
+            $slr, 
+            $grammar, 
+            $grammar_c, 
+            $per_parse_arg, 
+            $trace_actions, 
+            $trace_file_handle, 
+            $symbols, 
+            $rules, 
+            $tracer
+        );
+
+    } ## end if ( not $recce->[Marpa::R2::Internal::Recognizer::REGISTRATIONS...])
     
-    use Data::Dumper;
-    warn Dumper $rule_resolutions;
-    warn Dumper $lexeme_resolutions;
-    
+    warn Data::Dumper::Dumper $recce->[Marpa::R2::Internal::Recognizer::REGISTRATIONS];
+    warn Data::Dumper::Dumper $recce->[Marpa::R2::Internal::Recognizer::CLOSURE_BY_SYMBOL_ID];
+    warn Data::Dumper::Dumper $recce->[Marpa::R2::Internal::Recognizer::CLOSURE_BY_RULE_ID];
+        
     return ;
 } ## end sub Marpa::R2::Scanless::R::rule_closure
 

@@ -126,6 +126,8 @@ my $asf = Marpa::R2::ASF->new( { slr=>$panda_recce } );
 my $full_result = $asf->traverse( {}, \&full_traverser );
 my $pruned_result = $asf->traverse( {}, \&pruning_traverser );
 
+warn "rule_closure", $panda_recce->rule_closure( 5 );
+
 # Marpa::R2::Display::End
 
 # Marpa::R2::Display
@@ -146,8 +148,6 @@ sub full_traverser {
         my $penn_tag = penn_tag($symbol_name);
         return ["($penn_tag $literal)"];
     } ## end if ( not defined $rule_id )
-    
-    warn $panda_recce->rule_closure( $rule_id ); exit;
     
     # Our result will be a list of choices
     my @return_value = ();
