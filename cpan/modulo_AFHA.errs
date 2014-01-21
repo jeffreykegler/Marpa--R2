@@ -1,0 +1,436 @@
+# Marpa::R2 version is 2.079_011
+# Libmarpa version is 5.179.111
+t/00-load.t ............ ok
+t/ah2.t ................ ok
+t/ah_numeric.t ......... ok
+t/asf_syn.t ............ ok
+t/balanced.t ........... ok
+
+#   Failed test 'Tree, "(;a;a;a)"'
+#   at t/bocage.t line 382.
+# +---+--------------------------------+--------------------------------+
+# | Ln|Got                             |Expected                        |
+# +---+--------------------------------+--------------------------------+
+# |  1|'0: o17[-] R10:1@0-3 p=ok c=ok  |'0: o17[-] R10:1@0-3 p=ok c=ok  |
+# *  2| o17[0]* ::= a17 R10:1@0-3C2@0  | o17[0] ::= a18 R10:1@0-3C0@0   *
+# *  3| o17[1] ::= a18 R10:1@0-3C0@0   | o17[1]* ::= a19 R10:1@0-3C2@0  *
+# *  4|1: o16[c0] R2:2@0-3 p=ok c=ok   |1: o18[c0] R2:2@0-3 p=ok c=ok   *
+# *  5| o16[0]* ::= a16 R2:2@0-3C3@0   | o18[0]* ::= a20 R2:2@0-3C3@0   *
+# *  6|2: o15[c1] R3:2@0-3 p=ok c=ok   |2: o14[c1] R3:2@0-3 p=ok c=ok   *
+# *  7| o15[0]* ::= a15 R3:2@0-3C6@1   | o14[0]* ::= a14 R3:2@0-3C6@1   *
+# |  8|3: o13[c2] R6:2@1-3 p=ok c=ok   |3: o13[c2] R6:2@1-3 p=ok c=ok   |
+# |  9| o13[0]* ::= a13 R6:2@1-3C9@2   | o13[0]* ::= a13 R6:2@1-3C9@2   |
+# | 10|4: o9[c3] R9:1@2-3 p=ok c=ok    |4: o9[c3] R9:1@2-3 p=ok c=ok    |
+# | 11| o9[0]* ::= a9 R9:1@2-3S4@2     | o9[0]* ::= a9 R9:1@2-3S4@2     |
+# | 12|5: o6[p3] R6:1@1-2 p=ok c=ok    |5: o6[p3] R6:1@1-2 p=ok c=ok    |
+# | 13| o6[0]* ::= a6 R6:1@1-2C9@1     | o6[0]* ::= a6 R6:1@1-2C9@1     |
+# | 14|6: o5[c5] R9:1@1-2 p=ok c=ok    |6: o5[c5] R9:1@1-2 p=ok c=ok    |
+# | 15| o5[0]* ::= a5 R9:1@1-2S4@1     | o5[0]* ::= a5 R9:1@1-2S4@1     |
+# * 16|7: o3[p2] R3:1@0-1 p=ok c=ok    |7: o4[p2] R3:1@0-1 p=ok c=ok    *
+# * 17| o3[0]* ::= a3 R3:1@0-1C9@0     | o4[0]* ::= a4 R3:1@0-1C9@0     *
+# | 18|8: o1[c7] R9:1@0-1 p=ok c=ok    |8: o1[c7] R9:1@0-1 p=ok c=ok    |
+# | 19| o1[0]* ::= a1 R9:1@0-1S4@0     | o1[0]* ::= a1 R9:1@0-1S4@0     |
+# | 20|9: o0[p1] R2:1@0-0 p=ok c=ok    |9: o0[p1] R2:1@0-0 p=ok c=ok    |
+# | 21| o0[0]* ::= a0 R2:1@0-0S3@0     | o0[0]* ::= a0 R2:1@0-0S3@0     |
+# | 22|'                               |'                               |
+# +---+--------------------------------+--------------------------------+
+
+#   Failed test 'Tree, "(a;;a;a)"'
+#   at t/bocage.t line 382.
+# +---+--------------------------------+--------------------------------+
+# | Ln|Got                             |Expected                        |
+# +---+--------------------------------+--------------------------------+
+# |  1|'0: o17[-] R10:1@0-3 p=ok c=ok  |'0: o17[-] R10:1@0-3 p=ok c=ok  |
+# *  2| o17[0] ::= a17 R10:1@0-3C2@0   | o17[0]* ::= a18 R10:1@0-3C0@0  *
+# *  3| o17[1]* ::= a18 R10:1@0-3C0@0  | o17[1] ::= a19 R10:1@0-3C2@0   *
+# *  4|1: o18[c0] R0:2@0-3 p=ok c=ok   |1: o16[c0] R0:2@0-3 p=ok c=ok   *
+# *  5| o18[0]* ::= a19 R0:2@0-3C5@1   | o16[0]* ::= a16 R0:2@0-3C5@1   *
+# *  6| o18[1] ::= a20 R0:2@0-3C3@1    | o16[1] ::= a17 R0:2@0-3C3@1    *
+# *  7|2: o14[c1] R5:2@1-3 p=ok c=ok   |2: o15[c1] R5:2@1-3 p=ok c=ok   *
+# *  8| o14[0]* ::= a14 R5:2@1-3C6@1   | o15[0]* ::= a15 R5:2@1-3C6@1   *
+# |  9|3: o13[c2] R6:2@1-3 p=ok c=ok   |3: o13[c2] R6:2@1-3 p=ok c=ok   |
+# | 10| o13[0]* ::= a13 R6:2@1-3C9@2   | o13[0]* ::= a13 R6:2@1-3C9@2   |
+# | 11|4: o9[c3] R9:1@2-3 p=ok c=ok    |4: o9[c3] R9:1@2-3 p=ok c=ok    |
+# | 12| o9[0]* ::= a9 R9:1@2-3S4@2     | o9[0]* ::= a9 R9:1@2-3S4@2     |
+# | 13|5: o6[p3] R6:1@1-2 p=ok c=ok    |5: o6[p3] R6:1@1-2 p=ok c=ok    |
+# | 14| o6[0]* ::= a6 R6:1@1-2C9@1     | o6[0]* ::= a6 R6:1@1-2C9@1     |
+# | 15|6: o5[c5] R9:1@1-2 p=ok c=ok    |6: o5[c5] R9:1@1-2 p=ok c=ok    |
+# | 16| o5[0]* ::= a5 R9:1@1-2S4@1     | o5[0]* ::= a5 R9:1@1-2S4@1     |
+# * 17|7: o4[p2] R5:1@1-1 p=ok c=ok    |7: o3[p2] R5:1@1-1 p=ok c=ok    *
+# * 18| o4[0]* ::= a4 R5:1@1-1S3@1     | o3[0]* ::= a3 R5:1@1-1S3@1     *
+# | 19|8: o2[p1] R0:1@0-1 p=ok c=ok    |8: o2[p1] R0:1@0-1 p=ok c=ok    |
+# | 20| o2[0]* ::= a2 R0:1@0-1C9@0     | o2[0]* ::= a2 R0:1@0-1C9@0     |
+# | 21|9: o1[c8] R9:1@0-1 p=ok c=ok    |9: o1[c8] R9:1@0-1 p=ok c=ok    |
+# | 22| o1[0]* ::= a1 R9:1@0-1S4@0     | o1[0]* ::= a1 R9:1@0-1S4@0     |
+# | 23|'                               |'                               |
+# +---+--------------------------------+--------------------------------+
+
+#   Failed test 'Tree, "(a;a;;a)"'
+#   at t/bocage.t line 382.
+# +---+--------------------------------+--------------------------------+
+# | Ln|Got                             |Expected                        |
+# +---+--------------------------------+--------------------------------+
+# |  1|'0: o17[-] R10:1@0-3 p=ok c=ok  |'0: o17[-] R10:1@0-3 p=ok c=ok  |
+# *  2| o17[0] ::= a17 R10:1@0-3C2@0   | o17[0]* ::= a18 R10:1@0-3C0@0  *
+# *  3| o17[1]* ::= a18 R10:1@0-3C0@0  | o17[1] ::= a19 R10:1@0-3C2@0   *
+# *  4|1: o18[c0] R0:2@0-3 p=ok c=ok   |1: o16[c0] R0:2@0-3 p=ok c=ok   *
+# *  5| o18[0] ::= a19 R0:2@0-3C5@1    | o16[0] ::= a16 R0:2@0-3C5@1    *
+# *  6| o18[1]* ::= a20 R0:2@0-3C3@1   | o16[1]* ::= a17 R0:2@0-3C3@1   *
+# |  7|2: o19[c1] R3:2@1-3 p=ok c=ok   |2: o19[c1] R3:2@1-3 p=ok c=ok   |
+# |  8| o19[0]* ::= a21 R3:2@1-3C8@2   | o19[0]* ::= a21 R3:2@1-3C8@2   |
+# |  9| o19[1] ::= a22 R3:2@1-3C7@2    | o19[1] ::= a22 R3:2@1-3C7@2    |
+# | 10|3: o12[c2] R8:2@2-3 p=ok c=ok   |3: o12[c2] R8:2@2-3 p=ok c=ok   |
+# | 11| o12[0]* ::= a12 R8:2@2-3C9@2   | o12[0]* ::= a12 R8:2@2-3C9@2   |
+# | 12|4: o9[c3] R9:1@2-3 p=ok c=ok    |4: o9[c3] R9:1@2-3 p=ok c=ok    |
+# | 13| o9[0]* ::= a9 R9:1@2-3S4@2     | o9[0]* ::= a9 R9:1@2-3S4@2     |
+# | 14|5: o8[p3] R8:1@2-2 p=ok c=ok    |5: o8[p3] R8:1@2-2 p=ok c=ok    |
+# | 15| o8[0]* ::= a8 R8:1@2-2S3@2     | o8[0]* ::= a8 R8:1@2-2S3@2     |
+# | 16|6: o7[p2] R3:1@1-2 p=ok c=ok    |6: o7[p2] R3:1@1-2 p=ok c=ok    |
+# | 17| o7[0]* ::= a7 R3:1@1-2C9@1     | o7[0]* ::= a7 R3:1@1-2C9@1     |
+# | 18|7: o5[c6] R9:1@1-2 p=ok c=ok    |7: o5[c6] R9:1@1-2 p=ok c=ok    |
+# | 19| o5[0]* ::= a5 R9:1@1-2S4@1     | o5[0]* ::= a5 R9:1@1-2S4@1     |
+# | 20|8: o2[p1] R0:1@0-1 p=ok c=ok    |8: o2[p1] R0:1@0-1 p=ok c=ok    |
+# | 21| o2[0]* ::= a2 R0:1@0-1C9@0     | o2[0]* ::= a2 R0:1@0-1C9@0     |
+# | 22|9: o1[c8] R9:1@0-1 p=ok c=ok    |9: o1[c8] R9:1@0-1 p=ok c=ok    |
+# | 23| o1[0]* ::= a1 R9:1@0-1S4@0     | o1[0]* ::= a1 R9:1@0-1S4@0     |
+# | 24|'                               |'                               |
+# +---+--------------------------------+--------------------------------+
+
+#   Failed test 'Tree, "(a;a;a;)"'
+#   at t/bocage.t line 382.
+# +---+--------------------------------+--------------------------------+
+# | Ln|Got                             |Expected                        |
+# +---+--------------------------------+--------------------------------+
+# |  1|'0: o17[-] R10:1@0-3 p=ok c=ok  |'0: o17[-] R10:1@0-3 p=ok c=ok  |
+# *  2| o17[0] ::= a17 R10:1@0-3C2@0   | o17[0]* ::= a18 R10:1@0-3C0@0  *
+# *  3| o17[1]* ::= a18 R10:1@0-3C0@0  | o17[1] ::= a19 R10:1@0-3C2@0   *
+# *  4|1: o18[c0] R0:2@0-3 p=ok c=ok   |1: o16[c0] R0:2@0-3 p=ok c=ok   *
+# *  5| o18[0] ::= a19 R0:2@0-3C5@1    | o16[0] ::= a16 R0:2@0-3C5@1    *
+# *  6| o18[1]* ::= a20 R0:2@0-3C3@1   | o16[1]* ::= a17 R0:2@0-3C3@1   *
+# |  7|2: o19[c1] R3:2@1-3 p=ok c=ok   |2: o19[c1] R3:2@1-3 p=ok c=ok   |
+# |  8| o19[0] ::= a21 R3:2@1-3C8@2    | o19[0] ::= a21 R3:2@1-3C8@2    |
+# |  9| o19[1]* ::= a22 R3:2@1-3C7@2   | o19[1]* ::= a22 R3:2@1-3C7@2   |
+# | 10|3: o11[c2] R7:2@2-3 p=ok c=ok   |3: o11[c2] R7:2@2-3 p=ok c=ok   |
+# | 11| o11[0]* ::= a11 R7:2@2-3S3@3   | o11[0]* ::= a11 R7:2@2-3S3@3   |
+# | 12|4: o10[p3] R7:1@2-3 p=ok c=ok   |4: o10[p3] R7:1@2-3 p=ok c=ok   |
+# | 13| o10[0]* ::= a10 R7:1@2-3C9@2   | o10[0]* ::= a10 R7:1@2-3C9@2   |
+# | 14|5: o9[c4] R9:1@2-3 p=ok c=ok    |5: o9[c4] R9:1@2-3 p=ok c=ok    |
+# | 15| o9[0]* ::= a9 R9:1@2-3S4@2     | o9[0]* ::= a9 R9:1@2-3S4@2     |
+# | 16|6: o7[p2] R3:1@1-2 p=ok c=ok    |6: o7[p2] R3:1@1-2 p=ok c=ok    |
+# | 17| o7[0]* ::= a7 R3:1@1-2C9@1     | o7[0]* ::= a7 R3:1@1-2C9@1     |
+# | 18|7: o5[c6] R9:1@1-2 p=ok c=ok    |7: o5[c6] R9:1@1-2 p=ok c=ok    |
+# | 19| o5[0]* ::= a5 R9:1@1-2S4@1     | o5[0]* ::= a5 R9:1@1-2S4@1     |
+# | 20|8: o2[p1] R0:1@0-1 p=ok c=ok    |8: o2[p1] R0:1@0-1 p=ok c=ok    |
+# | 21| o2[0]* ::= a2 R0:1@0-1C9@0     | o2[0]* ::= a2 R0:1@0-1C9@0     |
+# | 22|9: o1[c8] R9:1@0-1 p=ok c=ok    |9: o1[c8] R9:1@0-1 p=ok c=ok    |
+# | 23| o1[0]* ::= a1 R9:1@0-1S4@0     | o1[0]* ::= a1 R9:1@0-1S4@0     |
+# | 24|'                               |'                               |
+# +---+--------------------------------+--------------------------------+
+
+#   Failed test 'XS And nodes'
+#   at t/bocage.t line 454.
+# +---+-----------------------------+---+-----------------------------+
+# | Ln|Got                          | Ln|Expected                     |
+# +---+-----------------------------+---+-----------------------------+
+# |  1|'And-node #0: R2:1@0-0S3@0   |  1|'And-node #0: R2:1@0-0S3@0   |
+# |  2|And-node #2: R0:1@0-1C9@0    |  2|And-node #2: R0:1@0-1C9@0    |
+# *  3|And-node #3: R3:1@0-1C9@0    *  3|And-node #4: R3:1@0-1C9@0    *
+# |  4|And-node #1: R9:1@0-1S4@0    |  4|And-node #1: R9:1@0-1S4@0    |
+# *  5|And-node #19: R0:2@0-3C5@1   *  5|And-node #16: R0:2@0-3C5@1   *
+# *  6|And-node #20: R0:2@0-3C3@1   *  6|And-node #17: R0:2@0-3C3@1   *
+# *  7|And-node #16: R2:2@0-3C3@0   *  7|And-node #20: R2:2@0-3C3@0   *
+# *  8|And-node #15: R3:2@0-3C6@1   *  8|And-node #14: R3:2@0-3C6@1   *
+# *  9|And-node #17: R10:1@0-3C2@0  *   |                             |
+# | 10|And-node #18: R10:1@0-3C0@0  |  9|And-node #18: R10:1@0-3C0@0  |
+# * 11|And-node #4: R5:1@1-1S3@1    * 10|And-node #19: R10:1@0-3C2@0  *
+# |   |                             * 11|And-node #3: R5:1@1-1S3@1    *
+# | 12|And-node #7: R3:1@1-2C9@1    | 12|And-node #7: R3:1@1-2C9@1    |
+# | 13|And-node #6: R6:1@1-2C9@1    | 13|And-node #6: R6:1@1-2C9@1    |
+# | 14|And-node #5: R9:1@1-2S4@1    | 14|And-node #5: R9:1@1-2S4@1    |
+# | 15|And-node #21: R3:2@1-3C8@2   | 15|And-node #21: R3:2@1-3C8@2   |
+# | 16|And-node #22: R3:2@1-3C7@2   | 16|And-node #22: R3:2@1-3C7@2   |
+# * 17|And-node #14: R5:2@1-3C6@1   * 17|And-node #15: R5:2@1-3C6@1   *
+# | 18|And-node #13: R6:2@1-3C9@2   | 18|And-node #13: R6:2@1-3C9@2   |
+# | 19|And-node #8: R8:1@2-2S3@2    | 19|And-node #8: R8:1@2-2S3@2    |
+# | 20|And-node #10: R7:1@2-3C9@2   | 20|And-node #10: R7:1@2-3C9@2   |
+# | 21|And-node #11: R7:2@2-3S3@3   | 21|And-node #11: R7:2@2-3S3@3   |
+# | 22|And-node #12: R8:2@2-3C9@2   | 22|And-node #12: R8:2@2-3C9@2   |
+# | 23|And-node #9: R9:1@2-3S4@2    | 23|And-node #9: R9:1@2-3S4@2    |
+# | 24|'                            | 24|'                            |
+# +---+-----------------------------+---+-----------------------------+
+
+#   Failed test 'XS Bocage'
+#   at t/bocage.t line 483.
+# +---+-----------------------------------+-----------------------------------+
+# | Ln|Got                                |Expected                           |
+# +---+-----------------------------------+-----------------------------------+
+# |  1|'0: 0=R2:1@0-0 - S3                |'0: 0=R2:1@0-0 - S3                |
+# |  2|1: 1=R9:1@0-1 - S4                 |1: 1=R9:1@0-1 - S4                 |
+# |  3|2: 2=R0:1@0-1 - R9:1@0-1           |2: 2=R0:1@0-1 - R9:1@0-1           |
+# *  4|3: 3=R3:1@0-1 - R9:1@0-1           |3: 3=R5:1@1-1 - S3                 *
+# *  5|4: 4=R5:1@1-1 - S3                 |4: 4=R3:1@0-1 - R9:1@0-1           *
+# |  6|5: 5=R9:1@1-2 - S4                 |5: 5=R9:1@1-2 - S4                 |
+# |  7|6: 6=R6:1@1-2 - R9:1@1-2           |6: 6=R6:1@1-2 - R9:1@1-2           |
+# |  8|7: 7=R3:1@1-2 - R9:1@1-2           |7: 7=R3:1@1-2 - R9:1@1-2           |
+# |  9|8: 8=R8:1@2-2 - S3                 |8: 8=R8:1@2-2 - S3                 |
+# | 10|9: 9=R9:1@2-3 - S4                 |9: 9=R9:1@2-3 - S4                 |
+# | 11|10: 10=R7:1@2-3 - R9:1@2-3         |10: 10=R7:1@2-3 - R9:1@2-3         |
+# | 12|11: 11=R7:2@2-3 R7:1@2-3 S3        |11: 11=R7:2@2-3 R7:1@2-3 S3        |
+# | 13|12: 12=R8:2@2-3 R8:1@2-2 R9:1@2-3  |12: 12=R8:2@2-3 R8:1@2-2 R9:1@2-3  |
+# | 14|13: 13=R6:2@1-3 R6:1@1-2 R9:1@2-3  |13: 13=R6:2@1-3 R6:1@1-2 R9:1@2-3  |
+# * 15|14: 14=R5:2@1-3 R5:1@1-1 R6:2@1-3  |14: 14=R3:2@0-3 R3:1@0-1 R6:2@1-3  *
+# * 16|15: 15=R3:2@0-3 R3:1@0-1 R6:2@1-3  |15: 15=R5:2@1-3 R5:1@1-1 R6:2@1-3  *
+# * 17|16: 16=R2:2@0-3 R2:1@0-0 R3:2@0-3  |16: 16=R0:2@0-3 R0:1@0-1 R5:2@1-3  *
+# * 18|17: 17=R10:1@0-3 - R2:2@0-3        |17: 16=R0:2@0-3 R0:1@0-1 R3:2@1-3  *
+# | 19|18: 17=R10:1@0-3 - R0:2@0-3        |18: 17=R10:1@0-3 - R0:2@0-3        |
+# * 20|19: 18=R0:2@0-3 R0:1@0-1 R5:2@1-3  |19: 17=R10:1@0-3 - R2:2@0-3        *
+# * 21|20: 18=R0:2@0-3 R0:1@0-1 R3:2@1-3  |20: 18=R2:2@0-3 R2:1@0-0 R3:2@0-3  *
+# | 22|21: 19=R3:2@1-3 R3:1@1-2 R8:2@2-3  |21: 19=R3:2@1-3 R3:1@1-2 R8:2@2-3  |
+# | 23|22: 19=R3:2@1-3 R3:1@1-2 R7:2@2-3  |22: 19=R3:2@1-3 R3:1@1-2 R7:2@2-3  |
+# | 24|'                                  |'                                  |
+# +---+-----------------------------------+-----------------------------------+
+# Looks like you failed 6 tests of 19.
+t/bocage.t ............. 
+Dubious, test returned 6 (wstat 1536, 0x600)
+Failed 6/19 subtests 
+t/catalan.t ............ ok
+t/chaf.t ............... ok
+t/code_diag.t .......... ok
+t/context.t ............ ok
+t/counter.t ............ ok
+t/curly.t .............. ok
+t/curly2.t ............. ok
+t/debug.t .............. ok
+t/debug_leo.t .......... ok
+t/debug_seq.t .......... ok
+t/deprecated1.t ........ ok
+t/dsl.t ................ ok
+t/duplicate_parse.t .... ok
+t/equation.t ........... ok
+t/final_nonnullable.t .. ok
+t/gabend.t ............. ok
+t/implementation.t ..... ok
+t/infinite.t ........... ok
+t/infinite2.t .......... ok
+t/infinite_plex.t ...... ok
+t/initial_nulls.t ...... ok
+t/jirotka.t ............ ok
+t/leo.t ................ ok
+t/leo2.t ............... ok
+t/leo3.t ............... ok
+t/leo_cycle.t .......... ok
+t/leo_example.t ........ ok
+t/leo_unit.t ........... ok
+t/limits.t ............. ok
+t/minus.t .............. ok
+t/naif.t ............... ok
+t/null_example.t ....... ok
+t/null_infinite1.t ..... ok
+t/null_infinite4.t ..... ok
+t/null_value.t ......... ok
+t/pascal.t ............. ok
+t/perl.t ............... ok
+t/rabend.t ............. ok
+t/randal.t ............. ok
+t/rewrite.t ............ ok
+t/sequence.t ........... ok
+t/sequence2.t .......... ok
+t/sl_action.t .......... ok
+t/sl_action2.t ......... ok
+t/sl_advent.t .......... ok
+
+#   Failed test 'Ambiguity description for length 2'
+#   at t/sl_ah2.t line 144.
+# +---+--------------------------------------------------------+--------------------------------------------------------+
+# | Ln|Got                                                     |Expected                                                |
+# +---+--------------------------------------------------------+--------------------------------------------------------+
+# |  1|'Length of symbol "A" at line 1, column 1 is ambiguous  |'Length of symbol "A" at line 1, column 1 is ambiguous  |
+# *  2|  Choice 1 is zero length                               |  Choice 1, length=1, ends at line 1, column 1          *
+# *  3|  Choice 2, length=1, ends at line 1, column 1          |  Choice 1: a                                           *
+# *  4|  Choice 2: a                                           |  Choice 2 is zero length                               *
+# |  5|'                                                       |'                                                       |
+# +---+--------------------------------------------------------+--------------------------------------------------------+
+
+#   Failed test 'Ambiguity description for length 3'
+#   at t/sl_ah2.t line 144.
+# +---+--------------------------------------------------------+---+--------------------------------------------------------+
+# | Ln|Got                                                     | Ln|Expected                                                |
+# +---+--------------------------------------------------------+---+--------------------------------------------------------+
+# |  1|'Length of symbol "A" at line 1, column 1 is ambiguous  |  1|'Length of symbol "A" at line 1, column 1 is ambiguous  |
+# *  2|  Choice 1 is zero length                               *  2|  Choice 1, length=1, ends at line 1, column 1          *
+# *  3|  Choice 2, length=1, ends at line 1, column 1          *   |                                                        |
+# *  4|  Choice 2: a                                           *   |                                                        |
+# *  5|Length of symbol "A" at line 1, column 2 is ambiguous   *   |                                                        |
+# *  6|  Choice 1, length=1, ends at line 1, column 2          *   |                                                        |
+# |  7|  Choice 1: a                                           |  3|  Choice 1: a                                           |
+# |  8|  Choice 2 is zero length                               |  4|  Choice 2 is zero length                               |
+# |   |                                                        *  5|Length of symbol "A" at line 1, column 2 is ambiguous   *
+# |   |                                                        *  6|  Choice 1 is zero length                               *
+# |   |                                                        *  7|  Choice 2, length=1, ends at line 1, column 2          *
+# |   |                                                        *  8|  Choice 2: a                                           *
+# |  9|'                                                       |  9|'                                                       |
+# +---+--------------------------------------------------------+---+--------------------------------------------------------+
+# Looks like you failed 2 tests of 26.
+t/sl_ah2.t ............. 
+Dubious, test returned 2 (wstat 512, 0x200)
+Failed 2/26 subtests 
+t/sl_ambig.t ........... ok
+t/sl_ast.t ............. ok
+t/sl_astsyn.t .......... ok
+t/sl_calc.t ............ ok
+t/sl_completed.t ....... ok
+t/sl_debug.t ........... ok
+t/sl_diag.t ............ ok
+t/sl_dsl.t ............. ok
+t/sl_durand.t .......... ok
+t/sl_dyck.t ............ ok
+t/sl_event.t ........... ok
+t/sl_exhaust.t ......... ok
+t/sl_external1.t ....... ok
+t/sl_fullsyn.t ......... ok
+t/sl_gia.t ............. ok
+t/sl_gia_err.t ......... ok
+t/sl_gie.t ............. ok
+
+#   Failed test 'Value of Nulls grammar for "aaa"'
+#   at t/sl_gif1.t line 436.
+# +---+------------------------------------------+---+------------------------------------------+
+# | Ln|Got                                       | Ln|Expected                                  |
+# +---+------------------------------------------+---+------------------------------------------+
+# |  1|'$VAR1 = \\\'GL2 Rule 0: top ::= a a a a  |  1|'$VAR1 = \\\'GL2 Rule 0: top ::= a a a a  |
+# |  2|  Factoring #0                            |  2|  Factoring #0                            |
+# *  3|    GL3 Symbol a: ""                      *  3|    GL3 Rule 1: a ::= \\\'a\\\'           *
+# *  4|    GL4 Rule 1: a ::= \\\'a\\\'           *  4|      GL4 Symbol \\\'a\\\': "a"           *
+# *  5|      GL5 Symbol \\\'a\\\': "a"           *  5|    GL5 Symbol a: ""                      *
+# |  6|    GL6 Rule 1: a ::= \\\'a\\\'           |  6|    GL6 Rule 1: a ::= \\\'a\\\'           |
+# |  7|      GL7 Symbol \\\'a\\\': "a"           |  7|      GL7 Symbol \\\'a\\\': "a"           |
+# |  8|    GL8 Rule 1: a ::= \\\'a\\\'           |  8|    GL8 Rule 1: a ::= \\\'a\\\'           |
+# |  9|      GL9 Symbol \\\'a\\\': "a"           |  9|      GL9 Symbol \\\'a\\\': "a"           |
+# | 10|  Factoring #1                            | 10|  Factoring #1                            |
+# * 11|    GL4 already displayed                 * 11|    GL3 already displayed                 *
+# * 12|    GL10 Symbol a: ""                     *   |                                          |
+# | 13|    GL6 already displayed                 | 12|    GL6 already displayed                 |
+# |   |                                          * 13|    GL10 Symbol a: ""                     *
+# | 14|    GL8 already displayed                 | 14|    GL8 already displayed                 |
+# | 15|  Factoring #2                            | 15|  Factoring #2                            |
+# * 16|    GL4 already displayed                 * 16|    GL3 already displayed                 *
+# | 17|    GL6 already displayed                 | 17|    GL6 already displayed                 |
+# * 18|    GL11 Symbol a: ""                     *   |                                          |
+# | 19|    GL8 already displayed                 | 18|    GL8 already displayed                 |
+# |   |                                          * 19|    GL11 Symbol a: ""                     *
+# | 20|  Factoring #3                            | 20|  Factoring #3                            |
+# * 21|    GL4 already displayed                 * 21|    GL12 Symbol a: ""                     *
+# |   |                                          * 22|    GL3 already displayed                 *
+# | 22|    GL6 already displayed                 | 23|    GL6 already displayed                 |
+# | 23|    GL8 already displayed                 | 24|    GL8 already displayed                 |
+# * 24|    GL12 Symbol a: ""                     *   |                                          |
+# | 25|\';                                       | 25|\';                                       |
+# | 26|'                                         | 26|'                                         |
+# +---+------------------------------------------+---+------------------------------------------+
+
+#   Failed test 'Value of Nulls grammar for "aa"'
+#   at t/sl_gif1.t line 436.
+# +---+------------------------------------------+---+------------------------------------------+
+# | Ln|Got                                       | Ln|Expected                                  |
+# +---+------------------------------------------+---+------------------------------------------+
+# |  1|'$VAR1 = \\\'GL2 Rule 0: top ::= a a a a  |  1|'$VAR1 = \\\'GL2 Rule 0: top ::= a a a a  |
+# |  2|  Factoring #0                            |  2|  Factoring #0                            |
+# *  3|    GL3 Symbol a: ""                      *  3|    GL3 Rule 1: a ::= \\\'a\\\'           *
+# *  4|    GL4 Symbol a: ""                      *  4|      GL4 Symbol \\\'a\\\': "a"           *
+# |  5|    GL5 Rule 1: a ::= \\\'a\\\'           |  5|    GL5 Rule 1: a ::= \\\'a\\\'           |
+# |  6|      GL6 Symbol \\\'a\\\': "a"           |  6|      GL6 Symbol \\\'a\\\': "a"           |
+# *  7|    GL7 Rule 1: a ::= \\\'a\\\'           *  7|    GL7 Symbol a: ""                      *
+# *  8|      GL8 Symbol \\\'a\\\': "a"           *  8|    GL8 Symbol a: ""                      *
+# |  9|  Factoring #1                            |  9|  Factoring #1                            |
+# | 10|    GL3 already displayed                 | 10|    GL3 already displayed                 |
+# * 11|    GL5 already displayed                 *   |                                          |
+# | 12|    GL9 Symbol a: ""                      | 11|    GL9 Symbol a: ""                      |
+# * 13|    GL7 already displayed                 * 12|    GL10 Symbol a: ""                     *
+# |   |                                          * 13|    GL5 already displayed                 *
+# | 14|  Factoring #2                            | 14|  Factoring #2                            |
+# | 15|    GL3 already displayed                 | 15|    GL3 already displayed                 |
+# |   |                                          * 16|    GL9 already displayed                 *
+# | 16|    GL5 already displayed                 | 17|    GL5 already displayed                 |
+# * 17|    GL7 already displayed                 *   |                                          |
+# * 18|    GL10 Symbol a: ""                     *   |                                          |
+# * 19|  Factoring #3                            *   |                                          |
+# * 20|    GL5 already displayed                 *   |                                          |
+# * 21|    GL7 already displayed                 *   |                                          |
+# | 22|    GL11 Symbol a: ""                     | 18|    GL11 Symbol a: ""                     |
+# |   |                                          * 19|  Factoring #3                            *
+# | 23|    GL12 Symbol a: ""                     | 20|    GL12 Symbol a: ""                     |
+# |   |                                          * 21|    GL3 already displayed                 *
+# |   |                                          * 22|    GL10 already displayed                *
+# |   |                                          * 23|    GL5 already displayed                 *
+# | 24|  Factoring #4                            | 24|  Factoring #4                            |
+# |   |                                          * 25|    GL12 already displayed                *
+# |   |                                          * 26|    GL3 already displayed                 *
+# | 25|    GL5 already displayed                 | 27|    GL5 already displayed                 |
+# * 26|    GL13 Symbol a: ""                     * 28|    GL11 already displayed                *
+# * 27|    GL9 already displayed                 *   |                                          |
+# * 28|    GL7 already displayed                 *   |                                          |
+# | 29|  Factoring #5                            | 29|  Factoring #5                            |
+# |   |                                          * 30|    GL12 already displayed                *
+# |   |                                          * 31|    GL13 Symbol a: ""                     *
+# |   |                                          * 32|    GL3 already displayed                 *
+# | 30|    GL5 already displayed                 | 33|    GL5 already displayed                 |
+# * 31|    GL13 already displayed                *   |                                          |
+# * 32|    GL7 already displayed                 *   |                                          |
+# * 33|    GL10 already displayed                *   |                                          |
+# | 34|\';                                       | 34|\';                                       |
+# | 35|'                                         | 35|'                                         |
+# +---+------------------------------------------+---+------------------------------------------+
+# Looks like you failed 2 tests of 22.
+t/sl_gif1.t ............ 
+Dubious, test returned 2 (wstat 512, 0x200)
+Failed 2/22 subtests 
+t/sl_gsyn.t ............ ok
+t/sl_json.t ............ ok
+t/sl_leo.t ............. ok
+t/sl_leo2.t ............ ok
+t/sl_lexevent.t ........ ok
+t/sl_null_example.t .... ok
+t/sl_numeric.t ......... ok
+t/sl_panda.t ........... ok
+t/sl_pascal.t .......... ok
+t/sl_prefix.t .......... ok
+t/sl_rank.t ............ ok
+t/sl_syn.t ............. ok
+t/sl_taint.t ........... ok
+t/sl_timeflies.t ....... ok
+t/sl_topsyn.t .......... ok
+t/sl_wall.t ............ ok
+t/stuifzand.t .......... ok
+t/syn_engine.t ......... ok
+t/syn_stuifzand.t ...... ok
+t/thin_eq.t ............ ok
+t/timeflies.t .......... ok
+t/use.t ................ ok
+# Using Marpa::R2::HTML 2.079011
+# Using Marpa::R2 2.079011 2014-01-20T14:02:23
+html/t/00-load.t ....... ok
+html/t/cfg_fmt.t ....... ok
+html/t/config.t ........ ok
+html/t/copy.t .......... ok
+html/t/examples.t ...... ok
+html/t/fmt.t ........... ok
+html/t/missing.t ....... ok
+html/t/parse.t ......... ok
+html/t/score.t ......... ok
+html/t/synopsis.t ...... ok
+html/t/tang.t .......... ok
+
+Test Summary Report
+-------------------
+t/bocage.t           (Wstat: 1536 Tests: 19 Failed: 6)
+  Failed tests:  9, 11, 13, 15, 18-19
+  Non-zero exit status: 6
+t/sl_ah2.t           (Wstat: 512 Tests: 26 Failed: 2)
+  Failed tests:  17, 23
+  Non-zero exit status: 2
+t/sl_gif1.t          (Wstat: 512 Tests: 22 Failed: 2)
+  Failed tests:  17, 19
+  Non-zero exit status: 2
+Files=103, Tests=970, 49 wallclock secs ( 0.78 usr  0.41 sys + 43.69 cusr  2.60 csys = 47.48 CPU)
+Result: FAIL
+Failed 3/103 test programs. 10/970 subtests failed.
