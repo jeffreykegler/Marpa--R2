@@ -1291,10 +1291,12 @@ sub Marpa::R2::Recognizer::value {
 
                 my @push_ops = ();
                 my $array_descriptor = substr $semantics, 1, -1;
+                $array_descriptor =~ s/^\s*|\s*$//g;
                 RESULT_DESCRIPTOR:
-                for my $result_descriptor ( split /[,]/xms,
+                for my $result_descriptor ( split /[,]\s*/xms,
                     $array_descriptor )
                 {
+                    $result_descriptor =~ s/^\s*|\s*$//g;
                     if ( $result_descriptor eq 'start' ) {
                         push @push_ops, $op_push_start_location;
                         next RESULT_DESCRIPTOR;

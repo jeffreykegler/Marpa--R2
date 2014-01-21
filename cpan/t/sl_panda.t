@@ -35,8 +35,8 @@ use Marpa::R2;
 
 my $dsl = <<'END_OF_SOURCE';
 
-:default ::= action => [values] bless => ::lhs
-lexeme default = action => [value] bless => ::name
+:default ::= action => [ values ] bless => ::lhs
+lexeme default = action => [ value ] bless => ::name
 
 S   ::= NP  VP  period  bless => S
 

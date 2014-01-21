@@ -55,8 +55,8 @@ use Marpa::R2;
 my $grammar = Marpa::R2::Scanless::G->new(
     {   source => \(<<'END_OF_SOURCE'),
         
-:default ::= action => [lhs,values]
-lexeme default = action => [lhs,value]
+:default ::= action => [lhs, values ]
+lexeme default = action => [ lhs, value ]
 
 S   ::= NP  VP  period  
 
