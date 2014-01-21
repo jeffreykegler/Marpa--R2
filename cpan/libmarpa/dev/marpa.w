@@ -5645,9 +5645,12 @@ PRIVATE_NOT_INLINE int AHFA_state_cmp(
       const AIM aim = AIM_by_ID (aim_id);
       if (AIM_is_Prediction (aim))
 	{
-	  create_predicted_singleton (g, irl_by_sort_key, &states,
-				      duplicates,
-				      item_list_working_buffer, aim);
+	  if (IRL_of_AIM (aim) != g->t_start_irl)
+	    {
+	      create_predicted_singleton (g, irl_by_sort_key, &states,
+					  duplicates,
+					  item_list_working_buffer, aim);
+	    }
 	}
       else
 	{
