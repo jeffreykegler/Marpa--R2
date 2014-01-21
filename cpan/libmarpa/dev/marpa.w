@@ -5655,17 +5655,19 @@ PRIVATE_NOT_INLINE int AHFA_state_cmp(
 	{
 	  if (IRL_of_AIM (aim) != g->t_start_irl)
 	    {
-	      create_predicted_singleton (g, irl_by_sort_key, &states,
+	      const AHFA ahfa = create_predicted_singleton (g, irl_by_sort_key, &states,
 					  duplicates,
 					  item_list_working_buffer, aim);
+              AHFA_of_AIM(aim) = ahfa;
 	    }
 	}
       else
 	{
-	  create_singleton_AHFA_state (g, aim,
+	  const AHFA ahfa = create_singleton_AHFA_state (g, aim,
 				       irl_by_sort_key, &states, duplicates,
 				       item_list_working_buffer,
 				       prediction_matrix);
+          AHFA_of_AIM(aim) = ahfa;
 	}
     }
 }
@@ -9056,6 +9058,8 @@ PRIVATE int alternative_insert(RECCE r, ALT new_alternative)
           const IRL prediction_irl = IRL_by_ID(prediction_irlid);
           const AIM prediction_aim = First_AIM_of_IRL(prediction_irl);
           const AHFA prediction_ahfa = AHFA_of_AIM(prediction_aim);
+          key.t_state = prediction_ahfa;
+          if (0) { earley_item_create(r, key); }
         }
     }
 

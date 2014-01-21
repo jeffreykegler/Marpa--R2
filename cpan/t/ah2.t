@@ -22,7 +22,7 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 25;
+use Test::More tests => 26;
 use lib 'inc';
 use Marpa::R2::Test;
 use Marpa::R2;
@@ -81,6 +81,21 @@ Marpa::R2::Test::is( $grammar->show_isys,
 6: S[R0:1]
 7: S[R0:2]
 8: S[']
+EOS
+
+Marpa::R2::Test::is( $grammar->show_irls,
+    <<'EOS', 'Aycock/Horspool ISYs' );
+0: S -> A S[R0:1]
+1: S -> A A[] A[] A[]
+2: S -> A[] S[R0:1]
+3: S[R0:1] -> A S[R0:2]
+4: S[R0:1] -> A A[] A[]
+5: S[R0:1] -> A[] S[R0:2]
+6: S[R0:2] -> A A
+7: S[R0:2] -> A A[]
+8: S[R0:2] -> A[] A
+9: A -> a
+10: S['] -> S
 EOS
 
 Marpa::R2::Test::is(

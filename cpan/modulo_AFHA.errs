@@ -3,7 +3,7 @@
 t/00-load.t ............ ok
 
 #   Failed test 'Aycock/Horspool AHFA'
-#   at t/ah2.t line 156.
+#   at t/ah2.t line 171.
 # +---+--------------------------+---+--------------------------+
 # | Ln|Got                       | Ln|Expected                  |
 # +---+--------------------------+---+--------------------------+
@@ -75,7 +75,7 @@ t/00-load.t ............ ok
 # +---+--------------------------+---+--------------------------+
 
 #   Failed test 'Aycock/Horspool Earley sets'
-#   at t/ah2.t line 279.
+#   at t/ah2.t line 294.
 # +---+--------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------------+
 # | Ln|Got                                                                                         |Expected                                                                                   |
 # +---+--------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------------+
@@ -133,10 +133,10 @@ t/00-load.t ............ ok
 # * 54|S26@3-4 [p=S20@3-3; s=a; t=\\\'a\']                                                         |S17@3-4 [p=S13@3-3; s=a; t=\\\'a\']                                                        *
 # | 55|'                                                                                           |'                                                                                          |
 # +---+--------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------------+
-# Looks like you failed 2 tests of 25.
+# Looks like you failed 2 tests of 26.
 t/ah2.t ................ 
 Dubious, test returned 2 (wstat 512, 0x200)
-Failed 2/25 subtests 
+Failed 2/26 subtests 
 t/ah_numeric.t ......... ok
 t/asf_syn.t ............ ok
 t/balanced.t ........... ok
@@ -1921,8 +1921,8 @@ html/t/tang.t .......... ok
 
 Test Summary Report
 -------------------
-t/ah2.t              (Wstat: 512 Tests: 25 Failed: 2)
-  Failed tests:  8-9
+t/ah2.t              (Wstat: 512 Tests: 26 Failed: 2)
+  Failed tests:  9-10
   Non-zero exit status: 2
 t/bocage.t           (Wstat: 2048 Tests: 19 Failed: 8)
   Failed tests:  7-9, 11, 13, 15, 18-19
@@ -1969,6 +1969,6 @@ t/sl_ah2.t           (Wstat: 512 Tests: 26 Failed: 2)
 t/sl_gif1.t          (Wstat: 512 Tests: 22 Failed: 2)
   Failed tests:  17, 19
   Non-zero exit status: 2
-Files=103, Tests=970, 50 wallclock secs ( 0.79 usr  0.33 sys + 45.67 cusr  2.49 csys = 49.28 CPU)
+Files=103, Tests=971, 49 wallclock secs ( 0.78 usr  0.36 sys + 45.35 cusr  2.37 csys = 48.86 CPU)
 Result: FAIL
-Failed 16/103 test programs. 31/970 subtests failed.
+Failed 16/103 test programs. 31/971 subtests failed.
