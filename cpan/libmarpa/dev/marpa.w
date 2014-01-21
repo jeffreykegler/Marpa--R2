@@ -5637,21 +5637,27 @@ PRIVATE_NOT_INLINE int AHFA_state_cmp(
    @<Construct right derivation matrix@>@;
    @<Construct initial AHFA states@>@;
 
+{
+  AIMID aim_id;
+  const int aim_count = AIM_Count_of_G (g);
+  for (aim_id = 0; aim_id < aim_count; aim_id++)
     {
-      AIMID aim_id;
-      const int aim_count = AIM_Count_of_G (g);
-      for (aim_id = 0; aim_id < aim_count; aim_id++)
-        {
-          const AIM aim = AIM_by_ID (aim_id);
-          if (!AIM_is_Prediction (aim))
-            {
-              create_singleton_AHFA_state (g, aim, singleton_duplicates,
-                                           irl_by_sort_key, &states, duplicates,
-                                           item_list_working_buffer,
-                                           prediction_matrix);
-            }
-        }
+      const AIM aim = AIM_by_ID (aim_id);
+      if (AIM_is_Prediction (aim))
+	{
+	  create_predicted_singleton (g, irl_by_sort_key, &states,
+				      duplicates,
+				      item_list_working_buffer, aim);
+	}
+      else
+	{
+	  create_singleton_AHFA_state (g, aim, singleton_duplicates,
+				       irl_by_sort_key, &states, duplicates,
+				       item_list_working_buffer,
+				       prediction_matrix);
+	}
     }
+}
 
    g->t_AHFA = DQUEUE_BASE(states, AHFA_Object); /* ``Steals"
        the |DQUEUE|'s data */
@@ -6178,6 +6184,55 @@ create_predicted_AHFA_state(
   p_new_state->t_empty_transition = NULL;
   Completion_CIL_of_AHFA(p_new_state) = cil_empty (&g->t_cilar);
   @<Calculate postdot symbols for predicted state@>@;
+  return p_new_state;
+}
+
+@ @<Function definitions@> =
+PRIVATE_NOT_INLINE AHFA
+create_predicted_singleton(
+     GRAMMAR g,
+     IRL* irl_by_sort_key,
+     DQUEUE states_p,
+     MARPA_AVL_TREE duplicates,
+     AIM* item_list_working_buffer,
+     AIM aim_prediction
+     )
+{
+  AHFA p_new_state;
+  int item_list_ix = 0;
+  const int no_of_items_in_new_state = 1;
+  item_list_working_buffer[item_list_ix++] = aim_prediction;
+
+  p_new_state = DQUEUE_PUSH ((*states_p), AHFA_Object);
+  AHFA_initialize (g, p_new_state);
+  p_new_state->t_items = item_list_working_buffer;
+  p_new_state->t_item_count = no_of_items_in_new_state;
+  {
+    AHFA queued_AHFA_state = assign_AHFA_state (p_new_state, duplicates);
+    if (queued_AHFA_state)
+      {
+        /* The new state would be a duplicate.
+           Back it out and return the one that already exists */
+        (void) DQUEUE_POP ((*states_p), AHFA_Object);
+        AHFA_Count_of_G(g)--;
+        return queued_AHFA_state;
+      }
+  }
+  // The new state was added -- finish up its data
+  {
+    int i;
+    AIM *const final_aim_list = p_new_state->t_items =
+      marpa_obs_new (g->t_obs, AIM, no_of_items_in_new_state );
+    for (i = 0; i < no_of_items_in_new_state; i++)
+      {
+        final_aim_list[i] = item_list_working_buffer[i];
+      }
+  }
+  AHFA_is_Predicted (p_new_state) = 1;
+  p_new_state->t_empty_transition = NULL;
+  Completion_CIL_of_AHFA(p_new_state) = cil_empty (&g->t_cilar);
+  @<Calculate postdot symbols for predicted state@>@;
+  AHFA_of_AIM(aim_prediction) = p_new_state;
   return p_new_state;
 }
 
