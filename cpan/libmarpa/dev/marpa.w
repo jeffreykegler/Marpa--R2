@@ -5259,15 +5259,14 @@ CIL t_complete_nsyids;
 @*0 AHFA item container.
 @ @s AEX int
 @<Private typedefs@> = typedef int AEX;
-@ @d AIMs_of_AHFA(ahfa) ((ahfa)->t_items)
-@d AIM_of_AHFA_by_AEX(ahfa, aex) (AIMs_of_AHFA(ahfa)[aex])
+@
 @<Widely aligned AHFA state elements@> =
 AIM* t_items;
 
 @*0 AHFA to AIM macros.
 These assume there is only one AIM in the AHFA,
 which is the case with discovered AHFA's.
-@d AIM_of_AHFA(ahfa) AIM_of_AHFA_by_AEX((ahfa), 0)
+@d AIM_of_AHFA(ahfa) ( ((ahfa)->t_items)[0] )
 @d IRL_of_AHFA(ahfa) IRL_of_AIM(AIM_of_AHFA(ahfa))
 @d LHSID_of_AHFA(ahfa) LHSID_of_IRL(IRL_of_AHFA(ahfa))
 
@@ -5354,9 +5353,7 @@ int _marpa_g_AHFA_state_count(Marpa_Grammar g) {
     return AHFA_Count_of_G(g);
 }
 
-@ @d AIMID_of_AHFA_by_AEX(g, ahfa, aex)
-   ((ahfa)->t_items[aex] - (g)->t_AHFA_items)
-@<Function definitions@> =
+@ @<Function definitions@> =
 Marpa_AHFA_Item_ID _marpa_g_AHFA_state_item(Marpa_Grammar g,
      AHFAID AHFA_state_id,
         int item_ix) {
@@ -5373,7 +5370,7 @@ Marpa_AHFA_Item_ID _marpa_g_AHFA_state_item(Marpa_Grammar g,
         MARPA_ERROR(MARPA_ERR_AHFA_IX_OOB);
         return failure_indicator;
     }
-    return AIMID_of_AHFA_by_AEX(g, state, item_ix);
+    return ID_of_AIM(AIM_of_AHFA(state));
 }
 
 @ @<Function definitions@> =
@@ -5496,7 +5493,7 @@ The value of the Leo completion symbol is used to
 determine if an Earley item
 with this AHFA state is eligible to be a Leo completion.
 @d AHFA_is_Leo_Completion(state)
-   AIM_is_Leo_Completion(AIM_of_AHFA_by_AEX((state), 0))
+  AIM_is_Leo_Completion(AIM_of_AHFA(state))
 
 @*0 Creating AHFA states.
 @<Create AHFA states@> =
@@ -6000,7 +5997,7 @@ create_predicted_singleton(
       bv_clear (bv_nulled_xsyid);
         {
           int rhs_ix;
-          const AIM aim = AIM_of_AHFA_by_AEX (ahfa, aex);
+          const AIM aim = AIM_of_AHFA (ahfa);
           const NSYID postdot_nsyid = Postdot_NSYID_of_AIM (aim);
           const IRL irl = IRL_of_AIM (aim);
           int raw_position = Position_of_AIM (aim);
@@ -9130,7 +9127,7 @@ The return value means success, with no events.
 
 	{
           const AHFA predecessor_ahfa = AHFA_of_YIM(predecessor);
-          const AIM predecessor_aim = AIM_of_AHFA_by_AEX(predecessor_ahfa, 0);
+          const AIM predecessor_aim = AIM_of_AHFA(predecessor_ahfa);
           const AIM scanned_aim = Next_AIM_of_AIM(predecessor_aim);
 	  const AHFA scanned_AHFA = AHFA_of_AIM(scanned_aim);
         @<Create the earley items for |scanned_AHFA|@> @;
@@ -9190,7 +9187,7 @@ add those Earley items it ``causes".
       if (predecessor)
         { /* Not a Leo item */
             const AHFA predecessor_ahfa = AHFA_of_YIM(predecessor);
-            const AIM predecessor_aim = AIM_of_AHFA_by_AEX(predecessor_ahfa, 0);
+            const AIM predecessor_aim = AIM_of_AHFA(predecessor_ahfa);
             const AIM effect_aim = Next_AIM_of_AIM(predecessor_aim);
             const AHFA effect_AHFA = AHFA_of_AIM(effect_aim);
             @<Add |effect_AHFA|, plus any prediction,
@@ -10401,7 +10398,7 @@ Set_boolean_in_PSIA_for_initial_nulls (struct marpa_obstack *bocage_setup_obs,
           if (YIM_is_Predicted (leo_base_yim))
             {
                 const AHFA leo_final_ahfa = Base_to_AHFA_of_LIM(leo_predecessor);
-                const AIM leo_final_aim = AIM_of_AHFA_by_AEX(leo_final_ahfa, 0);
+                const AIM leo_final_aim = AIM_of_AHFA(leo_final_ahfa);
                 const AIM prediction_aim = Prev_AIM_of_AIM(leo_final_aim);
                 Set_boolean_in_PSIA_for_initial_nulls (bocage_setup_obs, per_ys_data,
                                                        leo_base_yim, prediction_aim);
@@ -10796,18 +10793,16 @@ requirements in the process.
   LIM previous_leo_item = this_leo_item;
   while ((this_leo_item = Predecessor_LIM_of_LIM (this_leo_item)))
     {
-        const int ordinal_of_set_of_this_leo_item = Ord_of_YS(YS_of_LIM(this_leo_item));
-          const AIM path_ahfa_item = Path_AIM_of_LIM(previous_leo_item);
-          const IRL path_irl = IRL_of_AIM(path_ahfa_item);
-          const int symbol_instance_of_path_ahfa_item = SYMI_of_AIM(path_ahfa_item);
-        @<Add main Leo path or-node@>@;
-        @<Add Leo path nulling token or-nodes@>@;
-        previous_leo_item = this_leo_item;
+      const int ordinal_of_set_of_this_leo_item = Ord_of_YS(YS_of_LIM(this_leo_item));
+      const AIM path_ahfa_item = 
+       (AIM_of_AHFA(Base_to_AHFA_of_LIM(previous_leo_item)));
+      const IRL path_irl = IRL_of_AIM(path_ahfa_item);
+      const int symbol_instance_of_path_ahfa_item = SYMI_of_AIM(path_ahfa_item);
+      @<Add main Leo path or-node@>@;
+      @<Add Leo path nulling token or-nodes@>@;
+      previous_leo_item = this_leo_item;
     }
 }
-
-@
-@d Path_AIM_of_LIM(lim) (AIM_of_AHFA_by_AEX(Base_to_AHFA_of_LIM(lim), 0))
 
 @ Adds the main Leo path or-node ---
 the non-nulling or-node which
