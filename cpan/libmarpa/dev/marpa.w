@@ -5221,24 +5221,6 @@ PRIVATE void AHFA_initialize(GRAMMAR g, AHFA ahfa)
   CIL t_nulled_xsyids;
   CIL t_prediction_xsyids;
 
-@*0 Complete symbols container.
-@
-Direct completion events are the completion events
-that are direct results of the rules contained in the current AHFA state.
-Indirect completion events include all possible completions,
-including indirect ones found through right recursion
-and Leo items.
-@d Completion_CIL_of_AHFA(state) ((state)->t_complete_nsyids)
-@d Complete_NSYID_of_AHFA(state, ix)
-  Item_of_CIL(Completion_CIL_of_AHFA(state), (ix))
-@d Complete_NSY_Count_of_AHFA(state)
-  Count_of_CIL(Completion_CIL_of_AHFA(state))
-
-@ @<Widely aligned AHFA state elements@> =
-CIL t_indirect_completion_event_nsyids;
-CIL t_direct_completion_event_nsyids;
-CIL t_complete_nsyids;
-
 @*0 AHFA item container.
 @ @s AEX int
 @<Private typedefs@> = typedef int AEX;
@@ -5523,9 +5505,6 @@ from AHFA states.
   p_initial_state->t_items[0] = start_item;
 
   AHFA_is_Predicted (p_initial_state) = 0;
-  Completion_CIL_of_AHFA(p_initial_state) =
-    cil_empty (&g->t_cilar);
-
   AHFA_of_AIM(start_item) = p_initial_state;
   AIM_is_Populated(start_item) = 1;
 
@@ -5571,27 +5550,12 @@ create_singleton_AHFA_state(
 
    const AIM AHFA_item_0_p = g->t_AHFA_items;
     AHFA new_ahfa;
-    NSYID postdot_nsyid;
 
     new_ahfa = DQUEUE_PUSH ((*states_p), AHFA_Object);
     /* Create a new AHFA state */
     AHFA_initialize(g, new_ahfa);
     new_ahfa->t_items[0] = base_aim;
     AHFA_is_Predicted(new_ahfa) = 0;
-    postdot_nsyid = Postdot_NSYID_of_AIM(base_aim);
-    if (postdot_nsyid >= 0)
-      {
-        Completion_CIL_of_AHFA(new_ahfa)
-          = cil_empty (&g->t_cilar);
-      }
-    else
-      {
-        /* The only AIM is a completion */
-        const IRL irl = IRL_of_AIM(base_aim);
-        const NSYID lhs_nsyid = LHSID_of_IRL(irl);
-        Completion_CIL_of_AHFA(new_ahfa) = cil_singleton(&g->t_cilar, lhs_nsyid);
-
-  }
   AHFA_of_AIM(base_aim) = new_ahfa;
   return new_ahfa;
 }
@@ -5806,7 +5770,6 @@ create_predicted_singleton(
   AHFA_initialize (g, p_new_state);
   p_new_state->t_items[0] = aim_prediction;
   AHFA_is_Predicted (p_new_state) = 1;
-  Completion_CIL_of_AHFA(p_new_state) = cil_empty (&g->t_cilar);
   AHFA_of_AIM(aim_prediction) = p_new_state;
   return p_new_state;
 }
@@ -7124,14 +7087,12 @@ sources.
 The only awkwardness takes place
 when the second source is added, and the first one must
 be recopied to make way for pointers to the linked lists.
-@d Complete_NSYID_of_YIM(item, ix) 
-    Complete_NSYID_of_AHFA(AHFA_of_YIM(item), (ix))
-@d Complete_NSY_Count_of_YIM(item)
-    Complete_NSY_Count_of_AHFA(AHFA_of_YIM(item))
+@d LHS_NSYID_of_YIM(yim)
+  LHS_NSYID_of_AIM(AIM_of_YIM(yim))
 @ It might be slightly faster if this boolean is memoized in the Earley item
 when the Earley item is initialized.
 @d Earley_Item_is_Completion(item)
-    (Complete_NSY_Count_of_YIM(item) > 0)
+    (AIM_is_Completion(AIM_of_YIM(item)))
 @s Marpa_Earley_Item_ID int
 @<Public typedefs@> = typedef int Marpa_Earley_Item_ID;
 @ The ID of the Earley item is per-Earley-set, so that
@@ -9068,12 +9029,10 @@ The return value means success, with no events.
 add those Earley items it ``causes".
 @<Add new Earley items for |cause|@> =
 {
-  int count = Complete_NSY_Count_of_YIM (cause);
-  YS middle = Origin_of_YIM (cause);
-  int nsy_ix;
-  for (nsy_ix = 0; nsy_ix < count; nsy_ix++)
+  if (Earley_Item_is_Completion(cause))
     {
-      NSYID complete_nsyid = Complete_NSYID_of_YIM(cause, nsy_ix);
+      NSYID complete_nsyid = LHS_NSYID_of_YIM(cause);
+      const YS middle = Origin_of_YIM (cause);
       @<Add new Earley items for |complete_nsyid| and |cause|@>@;
     }
 }
