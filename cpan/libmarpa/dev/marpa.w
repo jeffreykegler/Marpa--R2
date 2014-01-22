@@ -5213,10 +5213,10 @@ PRIVATE void AHFA_initialize(GRAMMAR g, AHFA ahfa)
 
 @*0 XSYID Events.
 @
-@d Completion_XSYIDs_of_AHFA(state) ((state)->t_completion_xsyids)
-@d Nulled_XSYIDs_of_AHFA(state) ((state)->t_nulled_xsyids)
-@d Prediction_XSYIDs_of_AHFA(state) ((state)->t_prediction_xsyids)
-@ @<Widely aligned AHFA state elements@> =
+@d Completion_XSYIDs_of_AIM(aim) ((aim)->t_completion_xsyids)
+@d Nulled_XSYIDs_of_AIM(aim) ((aim)->t_nulled_xsyids)
+@d Prediction_XSYIDs_of_AIM(aim) ((aim)->t_prediction_xsyids)
+@ @<Widely aligned AIM elements@> =
   CIL t_completion_xsyids;
   CIL t_nulled_xsyids;
   CIL t_prediction_xsyids;
@@ -5346,17 +5346,6 @@ Marpa_AHFA_Item_ID _marpa_g_AHFA_state_item(Marpa_Grammar g,
         return failure_indicator;
     }
     return ID_of_AIM(AIM_of_AHFA(state));
-}
-
-@ @<Function definitions@> =
-int _marpa_g_AHFA_state_is_predict(Marpa_Grammar g,
-        AHFAID AHFA_state_id) {
-    AHFA state;
-    @<Return |-2| on failure@>@/
-    @<Fail if not precomputed@>@/
-    @<Fail if |AHFA_state_id| is invalid@>@/
-    state = AHFA_by_ID(AHFA_state_id);
-    return AHFA_is_Predicted(state);
 }
 
 @*0 The NSY right derivation matrix.
@@ -5901,14 +5890,14 @@ create_predicted_singleton(
     {
       const AEX aex = 0;
       const AHFA ahfa = AHFA_by_ID (ahfaid);
+      const AIM aim = AIM_of_AHFA (ahfa);
+      const NSYID postdot_nsyid = Postdot_NSYID_of_AIM (aim);
+      const IRL irl = IRL_of_AIM (aim);
       bv_clear (bv_completion_xsyid);
       bv_clear (bv_prediction_xsyid);
       bv_clear (bv_nulled_xsyid);
         {
           int rhs_ix;
-          const AIM aim = AIM_of_AHFA (ahfa);
-          const NSYID postdot_nsyid = Postdot_NSYID_of_AIM (aim);
-          const IRL irl = IRL_of_AIM (aim);
           int raw_position = Position_of_AIM (aim);
           if (raw_position < 0)
             {                   // Completion
@@ -5946,10 +5935,10 @@ create_predicted_singleton(
                 }
             }
         }
-      Completion_XSYIDs_of_AHFA (ahfa) =
+      Completion_XSYIDs_of_AIM (aim) =
         cil_bv_add (cilar, bv_completion_xsyid);
-      Nulled_XSYIDs_of_AHFA (ahfa) = cil_bv_add (cilar, bv_nulled_xsyid);
-      Prediction_XSYIDs_of_AHFA (ahfa) =
+      Nulled_XSYIDs_of_AIM (aim) = cil_bv_add (cilar, bv_nulled_xsyid);
+      Prediction_XSYIDs_of_AIM (aim) =
         cil_bv_add (cilar, bv_prediction_xsyid);
     }
   bv_free (bv_completion_xsyid);
@@ -5964,10 +5953,11 @@ create_predicted_singleton(
     {
       const CILAR cilar = &g->t_cilar;
       const AHFA ahfa = AHFA_by_ID (ahfa_id);
+      const AIM aim = AIM_of_AHFA(ahfa);
       const int ahfa_is_event =
-        Count_of_CIL (Completion_XSYIDs_of_AHFA (ahfa))
-        || Count_of_CIL (Nulled_XSYIDs_of_AHFA (ahfa))
-        || Count_of_CIL (Prediction_XSYIDs_of_AHFA (ahfa));
+        Count_of_CIL (Completion_XSYIDs_of_AIM (aim))
+        || Count_of_CIL (Nulled_XSYIDs_of_AIM (aim))
+        || Count_of_CIL (Prediction_XSYIDs_of_AIM (aim));
       Event_AHFAIDs_of_AHFA (ahfa) =
         ahfa_is_event ? cil_singleton (cilar, ahfa_id) : cil_empty (cilar);
     }
@@ -9238,9 +9228,10 @@ PRIVATE void trigger_events(RECCE r)
         {
           int cil_ix;
           const AHFA event_ahfa = AHFA_by_ID (event_ahfaid);
+          const AIM event_aim = AIM_of_AHFA(event_ahfa);
           {
             const CIL completion_xsyids =
-              Completion_XSYIDs_of_AHFA (event_ahfa);
+              Completion_XSYIDs_of_AIM (event_aim);
             const int event_xsy_count = Count_of_CIL (completion_xsyids);
             for (cil_ix = 0; cil_ix < event_xsy_count; cil_ix++)
               {
@@ -9249,7 +9240,7 @@ PRIVATE void trigger_events(RECCE r)
               }
           }
           {
-            const CIL nulled_xsyids = Nulled_XSYIDs_of_AHFA (event_ahfa);
+            const CIL nulled_xsyids = Nulled_XSYIDs_of_AIM (event_aim);
             const int event_xsy_count = Count_of_CIL (nulled_xsyids);
             for (cil_ix = 0; cil_ix < event_xsy_count; cil_ix++)
               {
@@ -9259,7 +9250,7 @@ PRIVATE void trigger_events(RECCE r)
           }
           {
             const CIL prediction_xsyids =
-              Prediction_XSYIDs_of_AHFA (event_ahfa);
+              Prediction_XSYIDs_of_AIM (event_aim);
             const int event_xsy_count = Count_of_CIL (prediction_xsyids);
             for (cil_ix = 0; cil_ix < event_xsy_count; cil_ix++)
               {

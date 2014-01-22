@@ -4105,24 +4105,6 @@ PPCODE:
       XPUSHs (sv_2mortal (newSViv (result)));
 }
 
-void
-_marpa_g_AHFA_state_is_predict( g_wrapper, AHFA_state_id )
-    G_Wrapper *g_wrapper;
-    Marpa_AHFA_State_ID AHFA_state_id;
-PPCODE:
-{
-  Marpa_Grammar g = g_wrapper->g;
-  int result = _marpa_g_AHFA_state_is_predict (g, AHFA_state_id);
-  if (result < 0)
-    {
-      croak ("Problem in AHFA_state_is_predict(%d): %s", AHFA_state_id,
-        xs_g_error (g_wrapper));
-    }
-  if (result)
-    XSRETURN_YES;
-  XSRETURN_NO;
-}
-
 MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin::R
 
 void
