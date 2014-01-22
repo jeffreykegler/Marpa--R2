@@ -4079,19 +4079,6 @@ PPCODE:
       XPUSHs (sv_2mortal (newSViv (result)));
 }
 
-# int
-void
-_marpa_g_AHFA_item_sort_key( g_wrapper, item_id )
-    G_Wrapper *g_wrapper;
-    Marpa_AHFA_Item_ID item_id;
-PPCODE:
-{
-    Marpa_Grammar g = g_wrapper->g;
-    int result = _marpa_g_AHFA_item_sort_key(g, item_id);
-    if (result < 0) { XSRETURN_UNDEF; }
-      XPUSHs (sv_2mortal (newSViv (result)));
-}
-
  # -1 is a valid return value, and -2 indicates an error
 # Marpa_Symbol_ID
 void

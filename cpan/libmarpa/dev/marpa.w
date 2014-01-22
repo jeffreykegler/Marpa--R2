@@ -4831,11 +4831,8 @@ each AHFA items correponds one-to-one to a duple,
 the duple being a a rule and a position in that rule.
 @<Public typedefs@> =
 typedef int Marpa_AHFA_Item_ID;
-@
-@d Sort_Key_of_AIM(aim) ((aim)->t_sort_key)
-@<Private structures@> =
+@ @<Private structures@> =
 struct s_AHFA_item {
-    int t_sort_key;
     @<Widely aligned AIM elements@>@;
     @<Int aligned AIM elements@>@;
     @<Bit aligned AIM elements@>@;
@@ -4979,15 +4976,6 @@ Marpa_Symbol_ID _marpa_g_AHFA_item_postdot(Marpa_Grammar g,
     return Postdot_NSYID_of_AIM(AIM_by_ID(item_id));
 }
 
-@ @<Function definitions@> =
-int _marpa_g_AHFA_item_sort_key(Marpa_Grammar g,
-        Marpa_AHFA_Item_ID item_id) {
-    @<Return |-2| on failure@>@/
-    @<Fail if not precomputed@>@/
-    @<Fail if |item_id| is invalid@>@/
-    return Sort_Key_of_AIM(AIM_by_ID(item_id));
-}
-
 @** Creating the AHFA items.
 @ @<Create AHFA items@> =
 {
@@ -5071,7 +5059,6 @@ int _marpa_g_AHFA_item_sort_key(Marpa_Grammar g,
 {
   IRL_of_AIM (current_item) = irl;
   Null_Count_of_AIM(current_item) = leading_nulls;
-  Sort_Key_of_AIM (current_item) = current_item - base_item;
   AIM_is_Populated(current_item) = 0;
   AHFA_of_AIM(current_item) = NULL;
   Quasi_Position_of_AIM(current_item) = current_item - first_aim_of_irl;
@@ -5121,7 +5108,7 @@ AHFA states has been computed.
 It essentially serves to prevent computing this data
 @d AIM_is_Populated(aim) ((aim)->t_is_populated)
 @<Bit aligned AIM elements@> =
-BITFIELD t_is_populated:1;
+  BITFIELD t_is_populated:1;
 
 @** AHFA state (AHFA) code.
 
@@ -5527,49 +5514,6 @@ with this AHFA state is eligible to be a Leo completion.
 @d AHFA_is_Leo_Completion(state)
    AIM_is_Leo_Completion(AIM_of_AHFA_by_AEX((state), 0))
 
-@*0 Sorting AHFA states.
-@ The ordering of the AHFA states can be arbitrarily chosen
-to be efficient to compute.
-The only requirement is that states with identical sets
-of items compare equal.
-Here the length is the first subkey, because
-that will be enough to order most predicted states.
-The discovered states will be efficient to compute because
-they will tend either to be short,
-or quickly differentiated
-by length.
-\par
-Note that this function is not used for discovered AHFA states of
-size 1.
-Checking those for duplicates is optimized, using an array
-indexed by the ID of their only AHFA item.
-@ @<Function definitions@> =
-PRIVATE_NOT_INLINE int AHFA_state_cmp(
-    const void* ap,
-    const void* bp,
-    void *param @,@, UNUSED)
-{
-    AIM* items_a;
-    AIM* items_b;
-    const AHFA state_a = (AHFA)ap;
-    const AHFA state_b = (AHFA)bp;
-    const int length_a = state_a->t_item_count;
-    const int length_b = state_b->t_item_count;
-    int major_key = length_a - length_b;
-    if (major_key) return major_key;
-    {
-      int i, minor_key;
-      items_a = state_a->t_items;
-      items_b = state_b->t_items;
-      for (i = 0; i < length_a; i++)
-        {
-          minor_key = Sort_Key_of_AIM (items_a[i]) - Sort_Key_of_AIM (items_b[i]);
-          if (minor_key) return minor_key;
-        }
-    }
-    return 0;
-}
-
 @*0 Creating AHFA states.
 @<Create AHFA states@> =
 {
@@ -5589,13 +5533,12 @@ PRIVATE_NOT_INLINE int AHFA_state_cmp(
       if (AIM_is_Prediction (aim))
 	{
 	      ahfa = create_predicted_singleton (g, &states,
-					  duplicates,
 					  item_list_working_buffer, aim);
 	}
       else
 	{
 	  ahfa = create_singleton_AHFA_state (g, aim,
-				       &states, duplicates,
+				       &states,
 				       item_list_working_buffer);
 	}
       AHFA_of_AIM(aim) = ahfa;
@@ -5606,44 +5549,18 @@ PRIVATE_NOT_INLINE int AHFA_state_cmp(
    g->t_AHFA = DQUEUE_BASE(states, AHFA_Object); /* ``Steals"
        the |DQUEUE|'s data */
    ahfa_count_of_g = AHFA_Count_of_G(g);
-   @<Resort the AIMs@>@;
-   @<Free locals for creating AHFA states@>@;
 }
 
-@ |duplicates| can probably be eliminated once predictions
-get special handling.
-|initial_no_of_states| might bear some rethinking, but
+@ |initial_no_of_states| might bear some rethinking, but
 we're elimination AHFA states, so it stays where it is
 until then.
 @<Declare locals for creating AHFA states@> =
    const int initial_no_of_states = 2*AIM_Count_of_G(g);
-    MARPA_AVL_TREE duplicates;
    DQUEUE_DECLARE(states);
   int ahfa_count_of_g;
 
 @ @<Initialize locals for creating AHFA states@> =
-    @<Initialize duplicates data structures@>@;
    DQUEUE_INIT(states, AHFA_Object, initial_no_of_states);
-
-@ @<Initialize duplicates data structures@> =
-{
-  duplicates = _marpa_avl_create (AHFA_state_cmp, NULL);
-}
-
-@ @<Resort the AIMs@> =
-{
-  int ahfa_id;
-  for (ahfa_id = 0; ahfa_id < ahfa_count_of_g; ahfa_id++)
-    {
-      AHFA from_ahfa = AHFA_of_G_by_ID (g, ahfa_id);
-      AIM *aims = AIMs_of_AHFA (from_ahfa);
-      int aim_count = AIM_Count_of_AHFA (from_ahfa);
-      qsort (aims, (size_t)aim_count, sizeof (AIM *), cmp_by_aimid);
-    }
-}
-
-@ @<Free locals for creating AHFA states@> =
-  _marpa_avl_destroy(duplicates);
 
 @ This logic should be reworked after the transition away
 from AHFA states.
@@ -5665,9 +5582,6 @@ from AHFA states.
   item_list[0] = start_item;
   p_initial_state->t_items = item_list;
   p_initial_state->t_item_count = 1;
-
-  assign_AHFA_state(p_initial_state, duplicates);
-  /* Do not check return -- we can assume it will not be found */
 
   AHFA_is_Predicted (p_initial_state) = 0;
   Postdot_NSY_Count_of_AHFA (p_initial_state) = 1;
@@ -5718,7 +5632,6 @@ create_singleton_AHFA_state(
     GRAMMAR g,
     AIM base_aim,
      DQUEUE states_p,
-     MARPA_AVL_TREE duplicates,
      AIM* item_list_working_buffer
 )
 {
@@ -5849,20 +5762,6 @@ of minimum sizes.
   _marpa_avl_destroy (lhs_avl_tree);
 }
 
-@ Find the AHFA state in the argument,
-creating it if it does not exist.
-When it does not exist, insert it
-in the sequence of states
-and return |NULL|.
-When it does exist, return a pointer to it.
-@<Function definitions@> =
-PRIVATE AHFA
-assign_AHFA_state (AHFA sought_state, MARPA_AVL_TREE duplicates)
-{
-  const AHFA state_found = _marpa_avl_insert(duplicates, sought_state);
-  return state_found;
-}
-
 @*0 Predicted AHFA states.
 The method for building predicted AHFA states is optimized using
 precomputed boolean vectors.
@@ -5982,7 +5881,6 @@ PRIVATE_NOT_INLINE AHFA
 create_predicted_singleton(
      GRAMMAR g,
      DQUEUE states_p,
-     MARPA_AVL_TREE duplicates,
      AIM* item_list_working_buffer,
      AIM aim_prediction
      )
@@ -5996,18 +5894,6 @@ create_predicted_singleton(
   AHFA_initialize (g, p_new_state);
   p_new_state->t_items = item_list_working_buffer;
   p_new_state->t_item_count = no_of_items_in_new_state;
-  {
-    AHFA queued_AHFA_state = assign_AHFA_state (p_new_state, duplicates);
-    if (queued_AHFA_state)
-      {
-        /* The new state would be a duplicate.
-           Back it out and return the one that already exists */
-        (void) DQUEUE_POP ((*states_p), AHFA_Object);
-        AHFA_Count_of_G(g)--;
-        return queued_AHFA_state;
-      }
-  }
-  // The new state was added -- finish up its data
   {
     int i;
     AIM *const final_aim_list = p_new_state->t_items =
