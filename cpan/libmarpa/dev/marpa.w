@@ -5340,13 +5340,6 @@ PRIVATE int AHFA_state_id_is_valid(GRAMMAR g, AHFAID AHFA_state_id)
     return AHFA_state_id < AHFA_Count_of_G(g) && AHFA_state_id >= 0;
 }
 
-    
-@*0 Postdot symbols.
-@d Postdot_NSY_Count_of_AHFA(state) ((state)->t_postdot_nsy_count)
-@d Postdot_NSYIDAry_of_AHFA(state) ((state)->t_postdot_nsyidary)
-@<Widely aligned AHFA state elements@> = Marpa_Symbol_ID* t_postdot_nsyidary;
-@ @<Int aligned AHFA state elements@> = int t_postdot_nsy_count;
-
 @*0 AHFA state external accessors.
 @<Function definitions@> =
 int _marpa_g_AHFA_state_count(Marpa_Grammar g) {
@@ -5547,9 +5540,7 @@ from AHFA states.
 {
   AHFA p_initial_state = DQUEUE_PUSH (states, AHFA_Object);
   const IRL start_irl = g->t_start_irl;
-  NSYID *postdot_nsyidary;
   AIM start_item;
-  NSYID postdot_nsyid;
 
   AHFA_initialize(g, p_initial_state);
 
@@ -5559,11 +5550,6 @@ from AHFA states.
   p_initial_state->t_items[0] = start_item;
 
   AHFA_is_Predicted (p_initial_state) = 0;
-  Postdot_NSY_Count_of_AHFA (p_initial_state) = 1;
-  postdot_nsyidary = Postdot_NSYIDAry_of_AHFA (p_initial_state) =
-    marpa_obs_new (g->t_obs, NSYID, 1);
-  postdot_nsyid = Postdot_NSYID_of_AIM (start_item);
-  *postdot_nsyidary = postdot_nsyid;
   Completion_CIL_of_AHFA(p_initial_state) =
     cil_empty (&g->t_cilar);
 
@@ -5622,14 +5608,8 @@ create_singleton_AHFA_state(
     postdot_nsyid = Postdot_NSYID_of_AIM(base_aim);
     if (postdot_nsyid >= 0)
       {
-        NSYID* p_postdot_nsyidary = Postdot_NSYIDAry_of_AHFA(new_ahfa) =
-          marpa_obs_new (g->t_obs, NSYID, 1);
         Completion_CIL_of_AHFA(new_ahfa)
           = cil_empty (&g->t_cilar);
-        Postdot_NSY_Count_of_AHFA(new_ahfa) = 1;
-        *p_postdot_nsyidary = postdot_nsyid;
-    /* If the sole item is not a completion
-     attempt to create a predicted AHFA state as well */
       }
     else
       {
@@ -5638,7 +5618,6 @@ create_singleton_AHFA_state(
         const NSYID lhs_nsyid = LHSID_of_IRL(irl);
         Completion_CIL_of_AHFA(new_ahfa) = cil_singleton(&g->t_cilar, lhs_nsyid);
 
-        Postdot_NSY_Count_of_AHFA(new_ahfa) = 0;
   }
   AHFA_of_AIM(base_aim) = new_ahfa;
   return new_ahfa;
@@ -5855,38 +5834,8 @@ create_predicted_singleton(
   p_new_state->t_items[0] = aim_prediction;
   AHFA_is_Predicted (p_new_state) = 1;
   Completion_CIL_of_AHFA(p_new_state) = cil_empty (&g->t_cilar);
-  @<Calculate postdot symbols for |aim_prediction|@>@;
   AHFA_of_AIM(aim_prediction) = p_new_state;
   return p_new_state;
-}
-
-@ @<Calculate postdot symbols for |aim_prediction|@> =
-{
-  NSYID nsy_count = NSY_Count_of_G (g);
-  NSYID no_of_postdot_nsys;
-  Bit_Vector postdot_v = bv_create (nsy_count);
-  {
-    NSYID postdot_nsyid = Postdot_NSYID_of_AIM (aim_prediction);
-    if (postdot_nsyid >= 0)
-      bv_bit_set (postdot_v, postdot_nsyid);
-  }
-
-  if ((no_of_postdot_nsys = Postdot_NSY_Count_of_AHFA (p_new_state) =
-       bv_count (postdot_v)))
-    {
-      int min, max, start;
-      NSYID *p_nsyid = Postdot_NSYIDAry_of_AHFA (p_new_state) =
-	marpa_obs_new (g->t_obs, NSYID, no_of_postdot_nsys);
-      for (start = 0; bv_scan (postdot_v, start, &min, &max); start = max + 2)
-	{
-	  NSYID postdot_nsyid;
-	  for (postdot_nsyid = min; postdot_nsyid <= max; postdot_nsyid++)
-	    {
-	      *p_nsyid++ = postdot_nsyid;
-	    }
-	}
-    }
-  bv_free (postdot_v);
 }
 
 @** AHFA trace functions.
@@ -9544,14 +9493,12 @@ At this point there are no Leo items.
     int ix;
     for (ix = 0;
          ix < no_of_work_earley_items;
-         ix++) {
+         ix++)
+     {
         YIM earley_item = work_earley_items[ix];
-      AHFA state = AHFA_of_YIM (earley_item);
-      int nsy_ix;
-      NSYID postdot_nsy_count = Postdot_NSY_Count_of_AHFA (state);
-      NSYID *postdot_nsyidary =
-        Postdot_NSYIDAry_of_AHFA (state);
-      for (nsy_ix = 0; nsy_ix < postdot_nsy_count; nsy_ix++)
+      AIM aim = AIM_of_YIM (earley_item);
+      const NSYID postdot_nsyid = Postdot_NSYID_of_AIM(aim);
+      if (postdot_nsyid < 0) continue;
         {
           PIM old_pim = NULL;
           PIM new_pim;
@@ -9561,15 +9508,14 @@ At this point there are no Leo items.
           new_pim = marpa__obs_alloc(r->t_obs,
             sizeof(YIX_Object), ALIGNOF(PIM_Object));
 
-          nsyid = postdot_nsyidary[nsy_ix];
-          Postdot_NSYID_of_PIM(new_pim) = nsyid;
+          Postdot_NSYID_of_PIM(new_pim) = postdot_nsyid;
           YIM_of_PIM(new_pim) = earley_item;
-          if (bv_bit_test(r->t_bv_pim_symbols, nsyid))
-              old_pim = r->t_pim_workarea[nsyid];
+          if (bv_bit_test(r->t_bv_pim_symbols, postdot_nsyid))
+              old_pim = r->t_pim_workarea[postdot_nsyid];
           Next_PIM_of_PIM(new_pim) = old_pim;
           if (!old_pim) current_earley_set->t_postdot_sym_count++;
-          r->t_pim_workarea[nsyid] = new_pim;
-          bv_bit_set(r->t_bv_pim_symbols, nsyid);
+          r->t_pim_workarea[postdot_nsyid] = new_pim;
+          bv_bit_set(r->t_bv_pim_symbols, postdot_nsyid);
         }
     }
 }
