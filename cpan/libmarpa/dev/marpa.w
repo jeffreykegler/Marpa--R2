@@ -5312,7 +5312,6 @@ CIL t_complete_nsyids;
 @<Private typedefs@> = typedef int AEX;
 @ @d AIMs_of_AHFA(ahfa) ((ahfa)->t_items)
 @d AIM_of_AHFA_by_AEX(ahfa, aex) (AIMs_of_AHFA(ahfa)[aex])
-@d AEX_of_AHFA_by_AIM(ahfa, aim) aex_of_ahfa_by_aim_get((ahfa), (aim))
 @<Widely aligned AHFA state elements@> =
 AIM* t_items;
 
@@ -5326,35 +5325,6 @@ which is the case with discovered AHFA's.
 @ @d AIM_Count_of_AHFA(ahfa) ((ahfa)->t_item_count)
 @<Int aligned AHFA state elements@> =
 int t_item_count;
-@ Binary search is overkill for discovered states,
-not even repaying the overhead.
-But prediction states can get larger,
-and the overhead is always low.
-An alternative is to have different search routines based on the number
-of AIM items, but that is more overhead.
-Perhaps better to just search than
-to spend cycles figuring out how to search.
-@ This function assumes that the caller knows that the AHFA item
-is in the AHFA state.
-@<Function definitions@> =
-PRIVATE AEX aex_of_ahfa_by_aim_get(AHFA ahfa, AIM sought_aim)
-{
-    AIM* const aims = AIMs_of_AHFA(ahfa);
-    int aim_count = AIM_Count_of_AHFA(ahfa);
-    int hi = aim_count - 1;
-    int lo = 0;
-    while (hi >= lo) { // A binary search
-       int trial_aex = lo+(hi-lo)/2; // guards against overflow
-       AIM trial_aim = aims[trial_aex];
-       if (trial_aim == sought_aim) return trial_aex;
-       if (trial_aim < sought_aim) {
-           lo = trial_aex+1;
-       } else {
-           hi = trial_aex-1;
-       }
-  }
-  return -1;
-}
 
 @*0 Is AHFA predicted?.
 @ This boolean indicates whether the
@@ -7482,7 +7452,6 @@ the Earley set.
 @d Origin_of_YIM(item) ((item)->t_key.t_origin)
 @d AIM_of_YIM_by_AEX(yim, aex) AIM_of_AHFA_by_AEX(AHFA_of_YIM(yim), (aex))
 @d AIM_of_YIM(yim) AIM_of_AHFA_by_AEX(AHFA_of_YIM(yim), 0)
-@d AEX_of_YIM_by_AIM(yim, aim) AEX_of_AHFA_by_AIM(AHFA_of_YIM(yim), (aim))
 @s YIM int
 @<Private incomplete structures@> =
 struct s_earley_item;
@@ -10669,7 +10638,8 @@ Set_boolean_in_PSIA_for_initial_nulls (struct marpa_obstack *bocage_setup_obs,
       null_count = Null_Count_of_AIM (aim);
       if (null_count)
 	{
-	  AEX aex = AEX_of_YIM_by_AIM ((yim), (aim));
+	  // the AEX is now always zero.
+          const int aex = 0;
 	  psia_test_and_set (bocage_setup_obs, per_ys_data, (yim), aex);
 	}
     }
