@@ -67,7 +67,7 @@ END_OF_SOURCE
 # Marpa::R2::Display::End
 
 my $grammar = Marpa::R2::Scanless::G->new(
-    { source => \$dsl, } );
+    { source => \$dsl } );
 
 # Marpa::R2::Display
 # name: ASF synopsis output
@@ -126,8 +126,6 @@ my $asf = Marpa::R2::ASF->new( { slr=>$panda_recce } );
 my $full_result = $asf->traverse( {}, \&full_traverser );
 my $pruned_result = $asf->traverse( {}, \&pruning_traverser );
 
-warn "rule_closure", $panda_recce->rule_closure( 5 );
-
 # Marpa::R2::Display::End
 
 # Marpa::R2::Display
@@ -144,7 +142,6 @@ sub full_traverser {
     # A token is a single choice, and we know enough to fully Penn-tag it
     if ( not defined $rule_id ) {
         my $literal = $glade->literal();
-#        my $penn_tag = $panda_recce->rule_closure( $symbol_id )->( $glade->rh_values() );
         my $penn_tag = penn_tag($symbol_name);
         return ["($penn_tag $literal)"];
     } ## end if ( not defined $rule_id )
@@ -182,6 +179,7 @@ sub full_traverser {
         # elements
         my $join_ws = q{ };
         $join_ws = qq{\n   } if $symbol_name eq 'S';
+
         push @return_value,
             map { '(' . penn_tag($symbol_name) . q{ } . ( join $join_ws, @{$_} ) . ')' }
             @results;
@@ -211,6 +209,10 @@ sub penn_tag {
    return $symbol_name;
 }
 
+use Data::Dumper;
+$Data::Dumper::Terse = 1;
+$Data::Dumper::Indent = 0;
+
 sub pruning_traverser {
 
     # This routine converts the glade into a list of Penn-tagged elements.  It is called recursively.
@@ -221,21 +223,19 @@ sub pruning_traverser {
 
     # A token is a single choice, and we know enough to fully Penn-tag it
     if ( not defined $rule_id ) {
-        my $literal = $glade->literal();
-        my $penn_tag = penn_tag($symbol_name);
-        return "($penn_tag $literal)";
+        return [ $glade->literal() ]; # wrap for the closure call
     }
 
     my @return_value = $glade->rh_values();
 
-    # Special case for the start rule
-    return (join q{ }, @return_value) . "\n" if  $symbol_name eq '[:start]' ;
-
-    my $join_ws = q{ };
-    $join_ws = qq{\n   } if $symbol_name eq 'S';
-    my $penn_tag = penn_tag($symbol_name);
-    return "($penn_tag " . ( join $join_ws, @return_value ) . ')';
-
+    if ($symbol_name eq '[:start]'){
+        # Special case for the start rule
+        return $return_value[0] . "\n"  ;
+    }
+    else{
+        my $closure = $panda_recce->rule_closure($rule_id);
+        return $panda_recce->rule_closure($rule_id)->( {}, @return_value );
+    }
 }
 
 # Marpa::R2::Display::End
