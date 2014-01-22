@@ -234,8 +234,6 @@ sub show_AHFA {
     STATE:
     for ( my $state_id = 0; $state_id < $AHFA_state_count; $state_id++ ) {
         $text .= "* S$state_id:";
-        $grammar_c->_marpa_g_AHFA_state_is_predict($state_id)
-            and $text .= ' predict';
         $text .= "\n";
         my $item_id = $grammar_c->_marpa_g_AHFA_state_item($state_id, 0);
         $text .= $self->show_brief_AHFA_item($item_id);
