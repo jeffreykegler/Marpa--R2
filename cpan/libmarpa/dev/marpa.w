@@ -5888,29 +5888,30 @@ create_predicted_singleton(
   NSYID nsy_count = NSY_Count_of_G (g);
   int item_ix;
   NSYID no_of_postdot_nsys;
-  Bit_Vector postdot_v = bv_create ( nsy_count );
-        AIM item = item_list_working_buffer[0];
-        NSYID postdot_nsyid = Postdot_NSYID_of_AIM (item);
-        if (postdot_nsyid >= 0)
-          bv_bit_set (postdot_v, postdot_nsyid);
-
-    if ((no_of_postdot_nsys = Postdot_NSY_Count_of_AHFA(p_new_state) =
-     bv_count (postdot_v)))
+  Bit_Vector postdot_v = bv_create (nsy_count);
+  AIM item = item_list_working_buffer[0];
   {
-    int min, max, start;
-    NSYID *p_nsyid = Postdot_NSYIDAry_of_AHFA(p_new_state) =
-      marpa_obs_new (g->t_obs, NSYID, no_of_postdot_nsys );
-    for (start = 0; bv_scan (postdot_v, start, &min, &max); start = max + 2)
-      {
-        NSYID postdot_nsyid;
-        for (postdot_nsyid = min;
-             postdot_nsyid <= max; postdot_nsyid++)
-          {
-            *p_nsyid++ = postdot_nsyid;
-          }
-      }
+    NSYID postdot_nsyid = Postdot_NSYID_of_AIM (item);
+    if (postdot_nsyid >= 0)
+      bv_bit_set (postdot_v, postdot_nsyid);
   }
-  bv_free(postdot_v);
+
+  if ((no_of_postdot_nsys = Postdot_NSY_Count_of_AHFA (p_new_state) =
+       bv_count (postdot_v)))
+    {
+      int min, max, start;
+      NSYID *p_nsyid = Postdot_NSYIDAry_of_AHFA (p_new_state) =
+	marpa_obs_new (g->t_obs, NSYID, no_of_postdot_nsys);
+      for (start = 0; bv_scan (postdot_v, start, &min, &max); start = max + 2)
+	{
+	  NSYID postdot_nsyid;
+	  for (postdot_nsyid = min; postdot_nsyid <= max; postdot_nsyid++)
+	    {
+	      *p_nsyid++ = postdot_nsyid;
+	    }
+	}
+    }
+  bv_free (postdot_v);
 }
 
 @** AHFA trace functions.
@@ -7247,8 +7248,7 @@ the Earley set.
 @d Origin_Earleme_of_YIM(item) (Earleme_of_YS(Origin_of_YIM(item)))
 @d Origin_Ord_of_YIM(item) (Ord_of_YS(Origin_of_YIM(item)))
 @d Origin_of_YIM(item) ((item)->t_key.t_origin)
-@d AIM_of_YIM_by_AEX(yim, aex) AIM_of_AHFA_by_AEX(AHFA_of_YIM(yim), (aex))
-@d AIM_of_YIM(yim) AIM_of_AHFA_by_AEX(AHFA_of_YIM(yim), 0)
+@d AIM_of_YIM(yim) AIM_of_AHFA(AHFA_of_YIM(yim))
 @s YIM int
 @<Private incomplete structures@> =
 struct s_earley_item;
@@ -8701,16 +8701,6 @@ PRIVATE int alternative_insert(RECCE r, ALT new_alternative)
         }
     }
 
-    if (0)
-      {
-        empty_ahfa = Empty_Transition_of_AHFA (start_ahfa);
-        if (empty_ahfa)
-          {
-            key.t_state = empty_ahfa;
-            earley_item_create (r, key);
-          }
-      }
-
     postdot_items_create(r, bv_ok_for_chain, set0);
     earley_set_update_items(r, set0);
     r->t_is_using_leo = r->t_use_leo_flag;
@@ -9277,15 +9267,6 @@ the Leo items.
 	    }
 	}
 
-      if (0)
-	{
-	  const AHFA state = AHFA_of_YIM (earley_item);
-	  const AHFA prediction_AHFA = Empty_Transition_of_AHFA (state);
-	  if (!prediction_AHFA)
-	    continue;
-	  earley_item_assign (r, current_earley_set, current_earley_set,
-			      prediction_AHFA);
-	}
     }
 }
 
@@ -10237,7 +10218,7 @@ never on the stack.
     {
         const YIM_Const parent_earley_item = YIM_of_UR(ur_node);
         const AEX parent_aex = AEX_of_UR(ur_node);
-        const AIM parent_aim = AIM_of_YIM_by_AEX (parent_earley_item, parent_aex);
+        const AIM parent_aim = AIM_of_YIM(parent_earley_item);
         MARPA_ASSERT(parent_aim >= AIM_by_ID(1))@;
         const AIM predecessor_aim = parent_aim - 1;
         /* Note that the postdot symbol of the predecessor is NOT necessarily the
@@ -10666,7 +10647,7 @@ Top_ORID_of_B(b) = -1;
 
 @ @<Create the or-nodes for |work_earley_item| and |work_aex|@> =
 {
-  AIM ahfa_item = AIM_of_YIM_by_AEX(work_earley_item, work_aex);
+  AIM ahfa_item = AIM_of_YIM(work_earley_item);
   SYMI ahfa_item_symbol_instance;
   OR psia_or_node = NULL;
   ahfa_item_symbol_instance = SYMI_of_AIM(ahfa_item);
@@ -11212,7 +11193,7 @@ predecessor.  Set |or_node| to 0 if there is none.
 @ @<Create draft and-nodes for |or_node|@> =
 {
     unsigned int work_source_type = Source_Type_of_YIM (work_earley_item);
-    const AIM work_ahfa_item = AIM_of_YIM_by_AEX (work_earley_item, work_aex);
+    const AIM work_ahfa_item = AIM_of_YIM (work_earley_item);
     MARPA_ASSERT (work_ahfa_item >= AIM_by_ID (1))@;
     const AIM work_predecessor_aim = work_ahfa_item - 1;
     const int work_symbol_instance = SYMI_of_AIM (work_ahfa_item);
@@ -11419,7 +11400,7 @@ been eliminated.)
   OR dand_cause;
   const int middle_ordinal = Origin_Ord_of_YIM(cause_earley_item);
   /* There is now only one AEX in a completion */
-  const AIM cause_ahfa_item = AIM_of_YIM_by_AEX(cause_earley_item, 0);
+  const AIM cause_ahfa_item = AIM_of_YIM(cause_earley_item);
   const SYMI cause_symbol_instance =
       SYMI_of_Completed_IRL(IRL_of_AIM(cause_ahfa_item));
   @<Set |dand_predecessor|@>@;
