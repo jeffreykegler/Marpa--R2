@@ -5280,6 +5280,8 @@ without events.
 @d Event_Group_Size_of_AHFA(ahfa) ((ahfa)->t_event_group_size)
 @d Event_AHFAIDs_of_AHFA(ahfa) ((ahfa)->t_event_ahfaids)
 @d AHFA_has_Event(ahfa) (Count_of_CIL(Event_AHFAIDs_of_AHFA(ahfa)) != 0)
+@d AIM_has_Event(aim)
+  (Count_of_CIL(Event_AHFAIDs_of_AHFA(AHFA_of_AIM(aim))) != 0)
 @ This CIL is at most of size 1.
 It is either the singleton containing the AHFA's
 own ID, or the empty CIL.
@@ -9176,25 +9178,24 @@ PRIVATE void trigger_events(RECCE r)
   struct marpa_obstack *const trigger_events_obs = marpa_obs_init;
   const YIM *yims = YIMs_of_YS (current_earley_set);
   const XSYID xsy_count = XSY_Count_of_G (g);
-  const AHFAID ahfa_count = AHFA_Count_of_G (g);
+  const AHFAID aim_count = AIM_Count_of_G (g);
   Bit_Vector bv_completion_event_trigger =
     bv_obs_create (trigger_events_obs, xsy_count);
   Bit_Vector bv_nulled_event_trigger =
     bv_obs_create (trigger_events_obs, xsy_count);
   Bit_Vector bv_prediction_event_trigger =
     bv_obs_create (trigger_events_obs, xsy_count);
-  Bit_Vector bv_ahfa_event_trigger =
-    bv_obs_create (trigger_events_obs, ahfa_count);
+  Bit_Vector bv_aim_event_trigger =
+    bv_obs_create (trigger_events_obs, aim_count);
   const int working_earley_item_count = YIM_Count_of_YS (current_earley_set);
   for (yim_ix = 0; yim_ix < working_earley_item_count; yim_ix++)
     {
       const YIM yim = yims[yim_ix];
-      const AHFA root_ahfa = AHFA_of_YIM (yim);
-      const AHFAID root_ahfaid = ID_of_AHFA (root_ahfa);
-      if (AHFA_has_Event (root_ahfa))
+      const AIM root_aim = AIM_of_YIM (yim);
+      if (AIM_has_Event (root_aim))
         {                       /* Note that we go on to look at the Leo path, even if
                                    the top AHFA is not an event AHFA */
-          bv_bit_set (bv_ahfa_event_trigger, root_ahfaid);
+          bv_bit_set (bv_aim_event_trigger, ID_of_AIM(root_aim));
         }
       {
         /* Now do the NSYs for any Leo links */
@@ -9211,7 +9212,9 @@ PRIVATE void trigger_events(RECCE r)
               {
                 const NSYID leo_path_ahfaid =
                   Item_of_CIL (event_ahfaids, cil_ix);
-                bv_bit_set (bv_ahfa_event_trigger, leo_path_ahfaid);
+                const AHFA leo_path_ahfa = AHFA_by_ID(leo_path_ahfaid);
+                bv_bit_set (bv_aim_event_trigger,
+                  ID_of_AIM(AIM_of_AHFA(leo_path_ahfa)));
                 /* No need to test if AHFA is an event AHFA --
                    all paths in the LIM's CIL will be */
               }
@@ -9219,16 +9222,15 @@ PRIVATE void trigger_events(RECCE r)
       }
     }
 
-  for (start = 0; bv_scan (bv_ahfa_event_trigger, start, &min, &max);
+  for (start = 0; bv_scan (bv_aim_event_trigger, start, &min, &max);
        start = max + 2)
     {
-      XSYID event_ahfaid;
-      for (event_ahfaid = (NSYID) min; event_ahfaid <= (NSYID) max;
-           event_ahfaid++)
+      XSYID event_aimid;
+      for (event_aimid = (NSYID) min; event_aimid <= (NSYID) max;
+           event_aimid++)
         {
           int cil_ix;
-          const AHFA event_ahfa = AHFA_by_ID (event_ahfaid);
-          const AIM event_aim = AIM_of_AHFA(event_ahfa);
+          const AIM event_aim = AIM_by_ID(event_aimid);
           {
             const CIL completion_xsyids =
               Completion_XSYIDs_of_AIM (event_aim);
