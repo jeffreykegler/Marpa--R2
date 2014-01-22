@@ -817,7 +817,6 @@ int _marpa_g_irl_count(Marpa_Grammar g) {
 @ Internal accessor to find a rule by its id.
 @d XRL_by_ID(id) (*MARPA_DSTACK_INDEX((g)->t_xrl_stack, XRL, (id)))
 @d IRL_by_ID(id) (*MARPA_DSTACK_INDEX((g)->t_irl_stack, IRL, (id)))
-@d RULE_by_ID(g, id) (XRL_by_ID(id))
 
 @ Adds the rule to the list of rules kept by the Grammar
 object.
@@ -5084,22 +5083,6 @@ we are traversing backwards.
     }
 }
 
-@ This functions sorts a list of pointers to
-AHFA items by AHFA item id,
-which is their most natural order.
-Once the AHFA states are created,
-they are restored to this order.
-For portability,
-it requires the AIMs to be in an array.
-@ @<Function definitions@> =
-PRIVATE_NOT_INLINE int cmp_by_aimid (const void* ap,
-        const void* bp)
-{
-    AIM a = *(AIM*)ap;
-    AIM b = *(AIM*)bp;
-    return a-b;
-}
-
 @*0 Is AIM populated?.
 @ This boolean indicates whether the AIM
 is ``populated'' -- that is,
@@ -5313,7 +5296,6 @@ int t_event_group_size;
 @*0 AHFA container in grammar.
 @ @<Widely aligned grammar elements@> = struct s_AHFA_state* t_AHFA;
 @
-@d AHFA_of_G_by_ID(g, id) ((g)->t_AHFA+(id))
 @d AHFA_by_ID(id) (g->t_AHFA+(id))
 @d AHFA_Count_of_G(g) ((g)->t_AHFA_len)
 @<Int aligned grammar elements@> = int t_AHFA_len;
@@ -5354,7 +5336,7 @@ Marpa_AHFA_Item_ID _marpa_g_AHFA_state_item(Marpa_Grammar g,
     @<Return |-2| on failure@>@/
     @<Fail if not precomputed@>@/
     @<Fail if |AHFA_state_id| is invalid@>@/
-    state = AHFA_of_G_by_ID(g, AHFA_state_id);
+    state = AHFA_by_ID(AHFA_state_id);
     if (item_ix < 0) {
         MARPA_ERROR(MARPA_ERR_AHFA_IX_NEGATIVE);
         return failure_indicator;
@@ -5373,7 +5355,7 @@ int _marpa_g_AHFA_state_is_predict(Marpa_Grammar g,
     @<Return |-2| on failure@>@/
     @<Fail if not precomputed@>@/
     @<Fail if |AHFA_state_id| is invalid@>@/
-    state = AHFA_of_G_by_ID(g, AHFA_state_id);
+    state = AHFA_by_ID(AHFA_state_id);
     return AHFA_is_Predicted(state);
 }
 
@@ -5918,7 +5900,7 @@ create_predicted_singleton(
   for (ahfaid = 0; ahfaid < ahfa_count_of_g; ahfaid++)
     {
       const AEX aex = 0;
-      const AHFA ahfa = AHFA_of_G_by_ID (g, ahfaid);
+      const AHFA ahfa = AHFA_by_ID (ahfaid);
       bv_clear (bv_completion_xsyid);
       bv_clear (bv_prediction_xsyid);
       bv_clear (bv_nulled_xsyid);
