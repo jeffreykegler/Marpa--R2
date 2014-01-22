@@ -260,6 +260,7 @@ say {$out} gp_generate(qw(_marpa_g_irl_length Marpa_IRL_ID rule_id));
 say {$out} gp_generate(qw(_marpa_g_irl_rank Marpa_IRL_ID irl_id));
 say {$out} gp_generate(qw(_marpa_g_nsy_rank Marpa_NSY_ID nsy_id));
 say {$out} gp_generate(qw(_marpa_g_nsy_is_semantic Marpa_NSY_ID nsy_id));
+say {$out} gp_generate(qw(_marpa_g_AHFA_state_item int state_id int item_ix));
 
 $main::CLASS_LETTER   = 'b';
 $main::LIBMARPA_CLASS = 'Marpa_Bocage';

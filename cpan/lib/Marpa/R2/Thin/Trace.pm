@@ -237,17 +237,8 @@ sub show_AHFA {
         $grammar_c->_marpa_g_AHFA_state_is_predict($state_id)
             and $text .= ' predict';
         $text .= "\n";
-        my @items = ();
-        for my $item_id ( $grammar_c->_marpa_g_AHFA_state_items($state_id) ) {
-            push @items,
-                [
-                $grammar_c->_marpa_g_AHFA_item_irl($item_id),
-                $grammar_c->_marpa_g_AHFA_item_postdot($item_id),
-                $self->show_brief_AHFA_item($item_id)
-                ];
-        } ## end for my $item_id ( $grammar_c->_marpa_g_AHFA_state_items...)
-        $text .= join "\n", map { $_->[2] }
-            sort { $a->[0] <=> $b->[0] || $a->[1] <=> $b->[1] } @items;
+        my $item_id = $grammar_c->_marpa_g_AHFA_state_item($state_id, 0);
+        $text .= $self->show_brief_AHFA_item($item_id);
         $text .= "\n";
 
         next STATE if not $verbose;

@@ -4105,43 +4105,6 @@ PPCODE:
       XPUSHs (sv_2mortal (newSViv (result)));
 }
 
- # In scalar context, returns the count
-void
-_marpa_g_AHFA_state_items( g_wrapper, AHFA_state_id )
-    G_Wrapper *g_wrapper;
-    Marpa_AHFA_State_ID AHFA_state_id;
-PPCODE:
-{
-    Marpa_Grammar g = g_wrapper->g;
-    int count = _marpa_g_AHFA_state_item_count(g, AHFA_state_id);
-    if (count < 0) { croak("Invalid AHFA state %d", AHFA_state_id); }
-    if (GIMME == G_ARRAY) {
-        int item_ix;
-        EXTEND(SP, count);
-        for (item_ix = 0; item_ix < count; item_ix++) {
-            Marpa_AHFA_Item_ID item_id
-                = _marpa_g_AHFA_state_item(g, AHFA_state_id, item_ix);
-            PUSHs( sv_2mortal( newSViv(item_id) ) );
-        }
-    } else {
-        XPUSHs( sv_2mortal( newSViv(count) ) );
-    }
-}
-
- # -1 is a valid return value, and -2 indicates an error
-# Marpa_AHFA_State_ID
-void
-_marpa_g_AHFA_state_empty_transition( g_wrapper, AHFA_state_id )
-    G_Wrapper *g_wrapper;
-    Marpa_AHFA_State_ID AHFA_state_id;
-PPCODE:
-{
-  Marpa_Grammar g = g_wrapper->g;
-    int result = _marpa_g_AHFA_state_empty_transition(g, AHFA_state_id);
-    if (result <= -2) { XSRETURN_UNDEF; }
-      XPUSHs (sv_2mortal (newSViv (result)));
-}
-
 void
 _marpa_g_AHFA_state_is_predict( g_wrapper, AHFA_state_id )
     G_Wrapper *g_wrapper;
