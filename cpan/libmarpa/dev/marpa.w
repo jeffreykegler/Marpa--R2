@@ -5261,7 +5261,7 @@ CIL t_complete_nsyids;
 @<Private typedefs@> = typedef int AEX;
 @
 @<Widely aligned AHFA state elements@> =
-AIM* t_items;
+AIM t_items[1];
 
 @*0 AHFA to AIM macros.
 These assume there is only one AIM in the AHFA,
@@ -5514,13 +5514,11 @@ with this AHFA state is eligible to be a Leo completion.
       if (AIM_is_Prediction (aim))
 	{
 	      ahfa = create_predicted_singleton (g, &states,
-					  item_list_working_buffer, aim);
+					  aim);
 	}
       else
 	{
-	  ahfa = create_singleton_AHFA_state (g, aim,
-				       &states,
-				       item_list_working_buffer);
+	  ahfa = create_singleton_AHFA_state (g, aim, &states);
 	}
       AHFA_of_AIM(aim) = ahfa;
       AIM_is_Populated(aim) = 1;
@@ -5552,16 +5550,13 @@ from AHFA states.
   NSYID *postdot_nsyidary;
   AIM start_item;
   NSYID postdot_nsyid;
-  AIM *item_list;
 
   AHFA_initialize(g, p_initial_state);
 
   start_item = First_AIM_of_IRL(start_irl);
   /* The start item is the initial item for the start rule */
 
-  item_list = marpa_obs_new (g->t_obs, AIM, 1);
-  item_list[0] = start_item;
-  p_initial_state->t_items = item_list;
+  p_initial_state->t_items[0] = start_item;
 
   AHFA_is_Predicted (p_initial_state) = 0;
   Postdot_NSY_Count_of_AHFA (p_initial_state) = 1;
@@ -5610,23 +5605,19 @@ PRIVATE AHFA
 create_singleton_AHFA_state(
     GRAMMAR g,
     AIM base_aim,
-     DQUEUE states_p,
-     AIM* item_list_working_buffer
+     DQUEUE states_p
 )
 {
   /* \comment Every AHFA has at least one item */
 
    const AIM AHFA_item_0_p = g->t_AHFA_items;
     AHFA new_ahfa;
-    AIM* new_state_item_list;
     NSYID postdot_nsyid;
 
     new_ahfa = DQUEUE_PUSH ((*states_p), AHFA_Object);
     /* Create a new AHFA state */
     AHFA_initialize(g, new_ahfa);
-    new_state_item_list = new_ahfa->t_items =
-        marpa_obs_new (g->t_obs, AIM, 1);
-    new_state_item_list[0] = base_aim;
+    new_ahfa->t_items[0] = base_aim;
     AHFA_is_Predicted(new_ahfa) = 0;
     postdot_nsyid = Postdot_NSYID_of_AIM(base_aim);
     if (postdot_nsyid >= 0)
@@ -5671,8 +5662,6 @@ be if written 100\% using indexes.
 @<Declare variables for the internal grammar
         memoizations@> =
   const RULEID irl_count = IRL_Count_of_G(g);
-  AIM* const item_list_working_buffer
-    = marpa_obs_new(obs_precompute, AIM, irl_count);
   const NSYID nsy_count = NSY_Count_of_G(g);
   const XSYID xsy_count = XSY_Count_of_G(g);
   IRLID** irl_list_x_lh_nsy = NULL;
@@ -5857,38 +5846,27 @@ PRIVATE_NOT_INLINE AHFA
 create_predicted_singleton(
      GRAMMAR g,
      DQUEUE states_p,
-     AIM* item_list_working_buffer,
      AIM aim_prediction
      )
 {
   AHFA p_new_state;
-  int item_list_ix = 0;
-  item_list_working_buffer[item_list_ix++] = aim_prediction;
-
   p_new_state = DQUEUE_PUSH ((*states_p), AHFA_Object);
   AHFA_initialize (g, p_new_state);
-  p_new_state->t_items = item_list_working_buffer;
-  {
-    AIM *const final_aim_list = p_new_state->t_items =
-      marpa_obs_new (g->t_obs, AIM, 1 );
-      final_aim_list[0] = item_list_working_buffer[0];
-  }
+  p_new_state->t_items[0] = aim_prediction;
   AHFA_is_Predicted (p_new_state) = 1;
   Completion_CIL_of_AHFA(p_new_state) = cil_empty (&g->t_cilar);
-  @<Calculate postdot symbols for predicted state@>@;
+  @<Calculate postdot symbols for |aim_prediction|@>@;
   AHFA_of_AIM(aim_prediction) = p_new_state;
   return p_new_state;
 }
 
-@ @<Calculate postdot symbols for predicted state@> =
+@ @<Calculate postdot symbols for |aim_prediction|@> =
 {
   NSYID nsy_count = NSY_Count_of_G (g);
-  int item_ix;
   NSYID no_of_postdot_nsys;
   Bit_Vector postdot_v = bv_create (nsy_count);
-  AIM item = item_list_working_buffer[0];
   {
-    NSYID postdot_nsyid = Postdot_NSYID_of_AIM (item);
+    NSYID postdot_nsyid = Postdot_NSYID_of_AIM (aim_prediction);
     if (postdot_nsyid >= 0)
       bv_bit_set (postdot_v, postdot_nsyid);
   }
