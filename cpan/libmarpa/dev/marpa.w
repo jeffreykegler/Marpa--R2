@@ -11155,34 +11155,8 @@ requirements in the process.
     }
 }
 
-@ Get the base data for a Leo item -- its base Earley item
-and the index of the relevant AHFA item.
-@<Function definitions@> =
-PRIVATE AEX lim_base_data_get(LIM leo_item, YIM* p_base)
-{
-      const YIM base = Base_YIM_of_LIM(leo_item);
-      *p_base = base;
-      if (YIM_is_Predicted(base)) {
-          const AHFA base_to_ahfa = Base_to_AHFA_of_LIM(leo_item);
-          const AIM base_to_aim = AIM_of_AHFA_by_AEX(base_to_ahfa, 0);
-          const AIM base_aim = Prev_AIM_of_AIM(base_to_aim);
-          const AHFA base_ahfa = AHFA_of_YIM(base);
-          /* A bit inefficient, but OK for now */
-          return AEX_of_AHFA_by_AIM(base_ahfa, base_aim);
-      }
-      return 0;
-}
-
 @
 @d Path_AIM_of_LIM(lim) (AIM_of_AHFA_by_AEX(Base_to_AHFA_of_LIM(lim), 0))
-@d Base_AIM_of_LIM(lim) (base_aim_of_lim(lim))
-@<Function definitions@> =
-PRIVATE AIM base_aim_of_lim(LIM leo_item)
-{
-      YIM base;
-      const AEX base_aex = lim_base_data_get(leo_item, &base);
-      return AIM_of_YIM_by_AEX(base, base_aex);
-}
 
 @ Adds the main Leo path or-node ---
 the non-nulling or-node which
@@ -11612,8 +11586,7 @@ predecessor.  Set |or_node| to 0 if there is none.
     LIM higher_path_leo_item = Predecessor_LIM_of_LIM(path_leo_item);
     OR dand_predecessor;
     OR path_or_node;
-    YIM base_earley_item;
-    AEX base_aex = lim_base_data_get(path_leo_item, &base_earley_item);
+    YIM base_earley_item = Base_YIM_of_LIM(path_leo_item);
     Set_OR_from_YIM(dand_predecessor, base_earley_item);
     @<Set |path_or_node|@>@;
     @<Add draft and-nodes to the bottom or-node@>@;
@@ -11621,7 +11594,7 @@ predecessor.  Set |or_node| to 0 if there is none.
     while (higher_path_leo_item) {
         path_leo_item = higher_path_leo_item;
         higher_path_leo_item = Predecessor_LIM_of_LIM(path_leo_item);
-        base_aex = lim_base_data_get(path_leo_item, &base_earley_item);
+        base_earley_item = Base_YIM_of_LIM(path_leo_item);
         Set_OR_from_YIM(dand_predecessor, base_earley_item);
         @<Set |path_or_node|@>@;
         @<Add the draft and-nodes to an upper Leo path or-node@>@;
@@ -11671,7 +11644,7 @@ been eliminated.)
 {
   int symbol_instance;
   const int origin_ordinal = Origin_Ord_of_YIM (base_earley_item);
-  const AIM aim = AIM_of_YIM_by_AEX (base_earley_item, base_aex);
+  const AIM aim = AIM_of_YIM (base_earley_item);
   path_irl = IRL_of_AIM (aim);
   symbol_instance = Last_Proper_SYMI_of_IRL (path_irl);
   {
