@@ -5751,13 +5751,6 @@ from AHFA states.
   AHFA_of_AIM(start_item) = p_initial_state;
 
   p_initial_state->t_empty_transition = NULL;
-  if (0) {
-    p_initial_state->t_empty_transition = create_predicted_AHFA_state (g,
-                               matrix_row (prediction_matrix,
-                                           postdot_nsyid),
-                               irl_by_sort_key, &states, duplicates,
-                               item_list_working_buffer);
-  }
 }
 
 @* Discovered AHFA states.
@@ -5827,13 +5820,6 @@ create_singleton_AHFA_state(
     /* If the sole item is not a completion
      attempt to create a predicted AHFA state as well */
     new_ahfa->t_empty_transition = NULL;
-        if (0) {
-    create_predicted_AHFA_state (g,
-                                 matrix_row (prediction_matrix,
-                                             postdot_nsyid),
-                                 irl_by_sort_key, states_p, duplicates,
-                                 item_list_working_buffer);
-         }
       }
     else
       {
@@ -6132,69 +6118,6 @@ which can be used to index the rules in a boolean vector.
             }
         }
     }
-}
-
-@ @<Function definitions@> =
-PRIVATE_NOT_INLINE AHFA
-create_predicted_AHFA_state(
-     GRAMMAR g,
-     Bit_Vector prediction_rule_vector,
-     IRL* irl_by_sort_key,
-     DQUEUE states_p,
-     MARPA_AVL_TREE duplicates,
-     AIM* item_list_working_buffer
-     )
-{
-  AHFA p_new_state;
-  int item_list_ix = 0;
-  int no_of_items_in_new_state = bv_count (prediction_rule_vector);
-  if (no_of_items_in_new_state == 0)
-    return NULL;
-  {
-    int start, min, max;
-      // \comment Scan the prediction rule vector again, this time to populate the list
-    for (start = 0; bv_scan (prediction_rule_vector, start, &min, &max);
-         start = max + 2)
-      {
-        int sort_ordinal;
-        for (sort_ordinal = min; sort_ordinal <= max; sort_ordinal++)
-          {
-            /* Add the initial item for the predicted rule */
-            const IRL irl = irl_by_sort_key[sort_ordinal];
-            item_list_working_buffer[item_list_ix++] = First_AIM_of_IRL(irl);
-          }
-      }
-  }
-  p_new_state = DQUEUE_PUSH ((*states_p), AHFA_Object);
-  AHFA_initialize (g, p_new_state);
-  p_new_state->t_items = item_list_working_buffer;
-  p_new_state->t_item_count = no_of_items_in_new_state;
-  {
-    AHFA queued_AHFA_state = assign_AHFA_state (p_new_state, duplicates);
-    if (queued_AHFA_state)
-      {
-        /* The new state would be a duplicate.
-           Back it out and return the one that already exists */
-        (void) DQUEUE_POP ((*states_p), AHFA_Object);
-        AHFA_Count_of_G(g)--;
-        return queued_AHFA_state;
-      }
-  }
-  // The new state was added -- finish up its data
-  {
-    int i;
-    AIM *const final_aim_list = p_new_state->t_items =
-      marpa_obs_new (g->t_obs, AIM, no_of_items_in_new_state );
-    for (i = 0; i < no_of_items_in_new_state; i++)
-      {
-        final_aim_list[i] = item_list_working_buffer[i];
-      }
-  }
-  AHFA_is_Predicted (p_new_state) = 1;
-  p_new_state->t_empty_transition = NULL;
-  Completion_CIL_of_AHFA(p_new_state) = cil_empty (&g->t_cilar);
-  @<Calculate postdot symbols for predicted state@>@;
-  return p_new_state;
 }
 
 @ @<Function definitions@> =
