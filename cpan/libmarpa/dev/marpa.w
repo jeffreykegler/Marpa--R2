@@ -7633,6 +7633,7 @@ the Earley set.
 @d Origin_Ord_of_YIM(item) (Ord_of_YS(Origin_of_YIM(item)))
 @d Origin_of_YIM(item) ((item)->t_key.t_origin)
 @d AIM_of_YIM_by_AEX(yim, aex) AIM_of_AHFA_by_AEX(AHFA_of_YIM(yim), (aex))
+@d AIM_of_YIM(yim) AIM_of_AHFA_by_AEX(AHFA_of_YIM(yim), 0)
 @d AEX_of_YIM_by_AIM(yim, aim) AEX_of_AHFA_by_AIM(AHFA_of_YIM(yim), (aim))
 @s YIM int
 @<Private incomplete structures@> =
@@ -9358,6 +9359,7 @@ This section is devoted to the logic for completion.
 @d Work_YIM_Count_of_R(r) MARPA_DSTACK_LENGTH((r)->t_yim_work_stack)
 @d WORK_YIMS_CLEAR(r) MARPA_DSTACK_CLEAR((r)->t_yim_work_stack)
 @d WORK_YIM_PUSH(r) MARPA_DSTACK_PUSH((r)->t_yim_work_stack, YIM)
+@d WORK_YIM_ITEM(r, ix) (*MARPA_DSTACK_INDEX((r)->t_yim_work_stack, YIM, ix))
 @<Widely aligned recognizer elements@> = MARPA_DSTACK_DECLARE(t_yim_work_stack);
 @ @<Initialize recognizer elements@> = MARPA_DSTACK_SAFE(r->t_yim_work_stack);
 @ @<Initialize Earley item work stacks@> =
@@ -9564,6 +9566,7 @@ The return value means success, with no events.
 }
 
 @ @<Pre-populate the completion stack@> = {
+    /* We know the no new items are added to the stack in this scope */
     YIM* work_earley_items = MARPA_DSTACK_BASE (r->t_yim_work_stack, YIM );
     int no_of_work_earley_items = MARPA_DSTACK_LENGTH (r->t_yim_work_stack );
     int ix;
@@ -9675,20 +9678,43 @@ add those Earley items it ``causes".
     leo_link_add (r, effect, leo_item, cause);
 }
 
-@ @<Add predictions@> =
+@ Note that there may already be predictions on the stack from
+the Leo items.
+@<Add predictions@> =
 {
-    YIM* work_earley_items = MARPA_DSTACK_BASE (r->t_yim_work_stack, YIM );
-    int no_of_work_earley_items = MARPA_DSTACK_LENGTH (r->t_yim_work_stack );
-    int ix;
-    for (ix = 0;
-         ix < no_of_work_earley_items;
-         ix++) {
-        YIM earley_item = work_earley_items[ix];
-      const AHFA state = AHFA_of_YIM (earley_item);
-      const AHFA prediction_AHFA = Empty_Transition_of_AHFA (state);
-      if (!prediction_AHFA) continue;
-      earley_item_assign (r, current_earley_set, current_earley_set,
-			  prediction_AHFA);
+  int ix;
+  const int no_of_work_earley_items = MARPA_DSTACK_LENGTH (r->t_yim_work_stack);
+  for (ix = 0; ix < no_of_work_earley_items; ix++)
+    {
+      YIM earley_item = WORK_YIM_ITEM(r, ix);
+
+      if (1)
+	{
+	  int cil_ix;
+	  const AIM aim = AIM_of_YIM (earley_item);
+	  const CIL prediction_cil = Predicted_IRL_CIL_of_AIM (aim);
+	  const int prediction_count = Count_of_CIL (prediction_cil);
+	  for (cil_ix = 0; cil_ix < prediction_count; cil_ix++)
+	    {
+	      const IRLID prediction_irlid =
+		Item_of_CIL (prediction_cil, cil_ix);
+	      const IRL prediction_irl = IRL_by_ID (prediction_irlid);
+	      const AIM prediction_aim = First_AIM_of_IRL (prediction_irl);
+	      const AHFA prediction_ahfa = AHFA_of_AIM (prediction_aim);
+	      earley_item_assign (r, current_earley_set, current_earley_set,
+				  prediction_ahfa);
+	    }
+	}
+
+      if (0)
+	{
+	  const AHFA state = AHFA_of_YIM (earley_item);
+	  const AHFA prediction_AHFA = Empty_Transition_of_AHFA (state);
+	  if (!prediction_AHFA)
+	    continue;
+	  earley_item_assign (r, current_earley_set, current_earley_set,
+			      prediction_AHFA);
+	}
     }
 }
 
@@ -9841,6 +9867,7 @@ PRIVATE void earley_set_update_items(RECCE r, YS set)
     int i;
     YIMs_of_YS(set) = marpa_obs_new(r->t_obs, YIM, YIM_Count_of_YS(set));
     finished_earley_items = YIMs_of_YS(set);
+    /* We know that no new earley items will be added in this scope */
     working_earley_items = Work_YIMs_of_R(r);
     working_earley_item_count = Work_YIM_Count_of_R(r);
     for (i = 0; i < working_earley_item_count; i++) {
@@ -9984,6 +10011,7 @@ postdot_items_create (RECCE r,
 @ This code creates the Earley indexes in the PIM workarea.
 At this point there are no Leo items.
 @<Start YIXes in PIM workarea@> = {
+    /* No new Earley items are created in this scope */
     YIM* work_earley_items = MARPA_DSTACK_BASE (r->t_yim_work_stack, YIM );
     int no_of_work_earley_items = MARPA_DSTACK_LENGTH (r->t_yim_work_stack );
     int ix;
