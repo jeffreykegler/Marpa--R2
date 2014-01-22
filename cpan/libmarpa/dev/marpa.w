@@ -5655,7 +5655,7 @@ PRIVATE_NOT_INLINE int AHFA_state_cmp(
 	{
 	  if (IRL_of_AIM (aim) != g->t_start_irl)
 	    {
-	      const AHFA ahfa = create_predicted_singleton (g, irl_by_sort_key, &states,
+	      const AHFA ahfa = create_predicted_singleton (g, &states,
 					  duplicates,
 					  item_list_working_buffer, aim);
               AHFA_of_AIM(aim) = ahfa;
@@ -5664,9 +5664,8 @@ PRIVATE_NOT_INLINE int AHFA_state_cmp(
       else
 	{
 	  const AHFA ahfa = create_singleton_AHFA_state (g, aim,
-				       irl_by_sort_key, &states, duplicates,
-				       item_list_working_buffer,
-				       prediction_matrix);
+				       &states, duplicates,
+				       item_list_working_buffer);
           AHFA_of_AIM(aim) = ahfa;
 	}
     }
@@ -5712,7 +5711,6 @@ until then.
 }
 
 @ @<Free locals for creating AHFA states@> =
-  my_free(irl_by_sort_key);
   _marpa_avl_destroy(duplicates);
 
 @ This logic should be reworked after the transition away
@@ -5786,11 +5784,9 @@ PRIVATE AHFA
 create_singleton_AHFA_state(
     GRAMMAR g,
     AIM base_aim,
-     IRL* irl_by_sort_key,
      DQUEUE states_p,
      MARPA_AVL_TREE duplicates,
-     AIM* item_list_working_buffer,
-   Bit_Matrix prediction_matrix
+     AIM* item_list_working_buffer
 )
 {
   /* \comment Every AHFA has at least one item */
@@ -5859,8 +5855,6 @@ be if written 100\% using indexes.
   const XSYID xsy_count = XSY_Count_of_G(g);
   IRLID** irl_list_x_lh_nsy = NULL;
   Bit_Matrix nsy_by_right_nsy_matrix;
-   Bit_Matrix prediction_matrix;
-   IRL* irl_by_sort_key = marpa_new(IRL, irl_count);
    Bit_Matrix prediction_nsy_by_irl_matrix;
 
 @ Initialized based on the capacity of the XRL stack, rather
@@ -6014,77 +6008,12 @@ Specifically, if symbol |S1| predicts symbol |S2|, then symbol |S1|
 predicts every rule
 with |S2| on its LHS.
 @<Create the prediction matrix from the symbol-by-symbol matrix@> = {
-    int* sort_key_by_irl_id = marpa_new(int, irl_count);
-    @<Populate |irl_by_sort_key|@>@/
-    @<Populate |sort_key_by_irl_id| with second pass value@>@/
     @<Populate the prediction matrix@>@/
-    my_free(sort_key_by_irl_id);
-}
-
-@ For creating prediction AHFA states, we need to have an ordering of rules
-by their postdot symbol.
-Here we take a first pass at this, letting the value be the postdot symbol for
-the predictable rules.
-This first pass fully captures the order,
-but in the 
-final result we want the keys to be unique integers
-in a sequence start from 0,
-so that they can be used as the indices of a boolean vector.
-
-@ @<Populate |irl_by_sort_key|@> =
-{
-  IRLID irl_id;
-  for (irl_id = 0; irl_id < irl_count; irl_id++)
-    {
-      irl_by_sort_key[irl_id] = IRL_by_ID (irl_id);
-    }
-  qsort (irl_by_sort_key, (size_t)irl_count,
-         sizeof (RULE), cmp_by_irl_sort_key);
-}
-
-@
-@d SET_1ST_PASS_SORT_KEY_FOR_IRL(sort_key, irl) {
-  const AIM aim = First_AIM_of_IRL(irl);
-  (sort_key) = Postdot_NSYID_of_AIM (aim);
-}
-@<Function definitions@> =
-PRIVATE_NOT_INLINE int
-cmp_by_irl_sort_key(const void* ap, const void* bp)
-{
-  const IRL irl_a = *(IRL *) ap;
-  const IRL irl_b = *(IRL *) bp;
-  int sort_key_a;
-  int sort_key_b;
-  SET_1ST_PASS_SORT_KEY_FOR_IRL (sort_key_a, irl_a);
-  SET_1ST_PASS_SORT_KEY_FOR_IRL (sort_key_b, irl_b);
-  if (sort_key_a != sort_key_b)
-    return sort_key_a - sort_key_b;
-  {
-    IRLID a_id = ID_of_IRL (irl_a);
-    IRLID b_id = ID_of_IRL (irl_b);
-    return a_id - b_id;
-  }
-}
-
-@ We have now sorted the rules into the final sort key order.
-The final version of the sort keys are ordinals,
-which can be used to index the rules in a boolean vector.
-@<Populate |sort_key_by_irl_id| with second pass value@> =
-{
-  IRLID sort_ordinal;
-  for (sort_ordinal = 0; sort_ordinal < irl_count; sort_ordinal++)
-    {
-      IRL irl = irl_by_sort_key[sort_ordinal];
-      sort_key_by_irl_id[ID_of_IRL(irl)] = sort_ordinal;
-    }
 }
 
 @ @<Populate the prediction matrix@> =
 {
   NSYID from_nsyid;
-  prediction_matrix =
-    matrix_obs_create (obs_precompute, nsy_count,
-                       irl_count);
   prediction_nsy_by_irl_matrix =
     matrix_obs_create (obs_precompute, nsy_count,
                        irl_count);
@@ -6107,11 +6036,6 @@ which can be used to index the rules in a boolean vector.
                 {
                   // For every rule with that symbol on its LHS
                   const IRLID irl_with_this_lhs = *p_irl_x_lh_nsy;
-                  int sort_ordinal =
-                    sort_key_by_irl_id[irl_with_this_lhs];
-                  matrix_bit_set (prediction_matrix,
-                                  from_nsyid, sort_ordinal);
-                  // Set the $(symbol, rule sort key)$ bit in the matrix
                   matrix_bit_set (prediction_nsy_by_irl_matrix,
                                   from_nsyid, irl_with_this_lhs);
                 }
@@ -6124,7 +6048,6 @@ which can be used to index the rules in a boolean vector.
 PRIVATE_NOT_INLINE AHFA
 create_predicted_singleton(
      GRAMMAR g,
-     IRL* irl_by_sort_key,
      DQUEUE states_p,
      MARPA_AVL_TREE duplicates,
      AIM* item_list_working_buffer,
