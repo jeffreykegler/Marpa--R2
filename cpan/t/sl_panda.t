@@ -218,8 +218,7 @@ sub pruning_traverser {
         return "($penn_tag $literal)";
     }
 
-    my $length = $glade->rh_length();
-    my @return_value = map { $glade->rh_value($_) } 0 .. $length - 1;
+    my @return_value = $glade->rh_values($_);
 
     # Special case for the start rule
     return (join q{ }, @return_value) . "\n" if  $symbol_name eq '[:start]' ;
@@ -266,8 +265,7 @@ sub located_traverser {
         return "($penn_tag $literal)";
     }
 
-    my $rh_length = $glade->rh_length();
-    my @return_value = map { $glade->rh_value($_) } 0 .. $rh_length - 1;
+    my @return_value = $glade->rh_values();
 
     # Special case for the start rule
     return (join q{ }, @return_value) . "\n" if  $symbol_name eq '[:start]' ;
