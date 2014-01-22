@@ -5826,12 +5826,14 @@ create_singleton_AHFA_state(
         *p_postdot_nsyidary = postdot_nsyid;
     /* If the sole item is not a completion
      attempt to create a predicted AHFA state as well */
-    new_ahfa->t_empty_transition =
+    new_ahfa->t_empty_transition = NULL;
+        if (0) {
     create_predicted_AHFA_state (g,
                                  matrix_row (prediction_matrix,
                                              postdot_nsyid),
                                  irl_by_sort_key, states_p, duplicates,
                                  item_list_working_buffer);
+         }
       }
     else
       {
