@@ -5750,11 +5750,14 @@ from AHFA states.
 
   AHFA_of_AIM(start_item) = p_initial_state;
 
-  p_initial_state->t_empty_transition = create_predicted_AHFA_state (g,
+  p_initial_state->t_empty_transition = NULL;
+  if (0) {
+    p_initial_state->t_empty_transition = create_predicted_AHFA_state (g,
                                matrix_row (prediction_matrix,
                                            postdot_nsyid),
                                irl_by_sort_key, &states, duplicates,
                                item_list_working_buffer);
+  }
 }
 
 @* Discovered AHFA states.
