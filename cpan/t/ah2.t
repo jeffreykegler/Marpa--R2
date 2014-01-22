@@ -84,7 +84,7 @@ Marpa::R2::Test::is( $grammar->show_isys,
 EOS
 
 Marpa::R2::Test::is( $grammar->show_irls,
-    <<'EOS', 'Aycock/Horspool ISYs' );
+    <<'EOS', 'Aycock/Horspool IRLs' );
 0: S -> A S[R0:1]
 1: S -> A A[] A[] A[]
 2: S -> A[] S[R0:1]

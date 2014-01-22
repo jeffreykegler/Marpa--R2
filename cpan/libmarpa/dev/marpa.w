@@ -10035,7 +10035,7 @@ Leo item have not been fully populated.
 		    break;
 		  }
                 /* We know that aex is initialized here */
-                MARPA_ASSERT (trial_aex > 0);
+                MARPA_ASSERT (trial_aex >= 0);
 		for (i = trial_aex + 1; i < aim_count; i++)
 		  {		// But check for duplicates 
 		    const AIM trial_aim = aims[i];
