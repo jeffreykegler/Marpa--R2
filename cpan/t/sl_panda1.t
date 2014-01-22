@@ -137,6 +137,7 @@ sub full_traverser {
     # A token is a single choice, and we know enough to fully Penn-tag it
     if ( not defined $rule_id ) {
         my $literal = $glade->literal();
+#        my $penn_tag = $panda_grammar->rule_closure( $rule_id )->();
         my $penn_tag = penn_tag($symbol_name);
         return ["($penn_tag $literal)"];
     } ## end if ( not defined $rule_id )
@@ -218,8 +219,7 @@ sub pruning_traverser {
         return "($penn_tag $literal)";
     }
 
-    my $length = $glade->rh_length();
-    my @return_value = map { $glade->rh_value($_) } 0 .. $length - 1;
+    my @return_value = $glade->rh_values();
 
     # Special case for the start rule
     return (join q{ }, @return_value) . "\n" if  $symbol_name eq '[:start]' ;
@@ -265,12 +265,10 @@ sub located_traverser {
         my $penn_tag = penn_tag($symbol_name);
         return "($penn_tag $literal)";
     }
-
-    my $rh_length = $glade->rh_length();
-    my @return_value = map { $glade->rh_value($_) } 0 .. $rh_length - 1;
-
+    
+    my @return_value = $glade->rh_values();
     # Special case for the start rule
-    return (join q{ }, @return_value) . "\n" if  $symbol_name eq '[:start]' ;
+    return ( join q{ }, @return_value ) . "\n" if  $symbol_name eq '[:start]' ;
 
 # Marpa::R2::Display::Start
 # name: ASF span() traverser method example
