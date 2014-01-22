@@ -35,22 +35,21 @@ use Marpa::R2;
 
 my $dsl = <<'END_OF_SOURCE';
 
-:default ::= action => [values] bless => ::lhs
-lexeme default = action => [value] bless => ::name
+lexeme default = action => [value]
 
-S   ::= NP  VP  period  bless => S
+S   ::= NP  VP  period  action => do_S
 
-NP  ::= NN              bless => NP
-    |   NNS          bless => NP
-    |   DT  NN          bless => NP
-    |   NN  NNS         bless => NP
-    |   NNS CC NNS  bless => NP
+NP  ::= NN              action => do_NP_NN
+    |   NNS             action => do_NP_NNS
+    |   DT  NN          action => do_NP_DT_NN
+    |   NN  NNS         action => do_NP_NN_NNS
+    |   NNS CC NNS      action => do_NP_NNS_CC_NNS
 
-VP  ::= VBZ NP          bless => VP
-    | VP VBZ NNS        bless => VP
-    | VP CC VP bless => VP
-    | VP VP CC VP bless => VP
-    | VBZ bless => VP
+VP  ::= VBZ NP          action => do_VP_VBZ_NP
+    | VP VBZ NNS        action => do_VP_VP_VBZ_NNS
+    | VP CC VP          action => do_VP_VP_CC_VP
+    | VP VP CC VP       action => do_VP_VP_VP_CC_VP
+    | VBZ               action => do_VP_VBZ
 
 period ~ '.'
 
@@ -68,7 +67,7 @@ END_OF_SOURCE
 # Marpa::R2::Display::End
 
 my $grammar = Marpa::R2::Scanless::G->new(
-    { bless_package => 'PennTags', source => \$dsl, } );
+    { source => \$dsl, } );
 
 # Marpa::R2::Display
 # name: ASF synopsis output
@@ -98,12 +97,15 @@ my $sentence = 'a panda eats shoots and leaves.';
 
 my @actual = ();
 
-my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
+my $recce = Marpa::R2::Scanless::R->new( { 
+    grammar => $grammar,
+    semantics_package => 'PennTags'
+} );
 
 $recce->read( \$sentence );
 
 while ( defined( my $value_ref = $recce->value() ) ) {
-    my $value = $value_ref ? ${$value_ref}->bracket() : 'No parse';
+    my $value = $value_ref ? ${$value_ref} : 'No parse';
     push @actual, $value;
 }
 
@@ -114,8 +116,11 @@ Marpa::R2::Test::is( ( join "\n", sort @actual ) . "\n",
 # name: ASF synopsis code
 
 my $panda_grammar = Marpa::R2::Scanless::G->new(
-    { source => \$dsl, bless_package => 'PennTags', } );
-my $panda_recce = Marpa::R2::Scanless::R->new( { grammar => $panda_grammar } );
+    { source => \$dsl } );
+my $panda_recce = Marpa::R2::Scanless::R->new( { 
+    grammar => $panda_grammar,
+    semantics_package => 'PennTags'
+} );
 $panda_recce->read( \$sentence );
 my $asf = Marpa::R2::ASF->new( { slr=>$panda_recce } );
 my $full_result = $asf->traverse( {}, \&full_traverser );
@@ -302,27 +307,19 @@ END_OF_OUTPUT
 
 Marpa::R2::Test::is(  $located_actual, $located_expected, 'Located Penn tag example' );
 
-package PennTags;
+sub PennTags::do_S  { "(S $_[1]\n   $_[2]\n   (. .))" }
 
-sub contents {
-    join( $_[0], map { $_->bracket() } @{ $_[1] } );
-}
+sub PennTags::do_NP_NN          { "(NP (NN $_[1]->[0]))" }
+sub PennTags::do_NP_NNS         { "(NP (NNS $_[1]->[0]))" }
+sub PennTags::do_NP_DT_NN       { "(NP (DT $_[1]->[0]) (NN $_[2]->[0]))" }
+sub PennTags::do_NP_NN_NNS      { "(NP (NN $_[1]->[0]) (NNS $_[2]->[0]))" }
+sub PennTags::do_NP_NNS_CC_NNS  { "(NP (NNS $_[1]->[0]) (CC $_[2]->[0]) (NNS $_[3]->[0]))" }
 
-sub PennTags::S::bracket { "(S " . contents( "\n   ", $_[0] ) . ")" }
-sub PennTags::NP::bracket { "(NP " . contents( ' ', $_[0] ) . ")" }
-sub PennTags::VP::bracket { "(VP " . contents( ' ', $_[0] ) . ")" }
-sub PennTags::PP::bracket { "(PP " . contents( ' ', $_[0] ) . ")" }
-
-sub PennTags::CC::bracket  {"(CC $_[0]->[0])"}
-sub PennTags::DT::bracket  {"(DT $_[0]->[0])"}
-sub PennTags::IN::bracket  {"(IN $_[0]->[0])"}
-sub PennTags::NN::bracket  {"(NN $_[0]->[0])"}
-sub PennTags::NNS::bracket {"(NNS $_[0]->[0])"}
-sub PennTags::VB::bracket  {"(VB $_[0]->[0])"}
-sub PennTags::VBP::bracket {"(VBP $_[0]->[0])"}
-sub PennTags::VBZ::bracket {"(VBZ $_[0]->[0])"}
-
-sub PennTags::period::bracket {"(. .)"}
+sub PennTags::do_VP_VBZ_NP      { "(VP (VBZ $_[1]->[0]) $_[2])" }
+sub PennTags::do_VP_VP_VBZ_NNS  { "(VP $_[1] (VBZ $_[2]->[0]) (NNS $_[3]->[0]))" }
+sub PennTags::do_VP_VP_CC_VP    { "(VP $_[1] (CC $_[2]->[0]) $_[3])" }
+sub PennTags::do_VP_VP_VP_CC_VP { "(VP $_[1] $_[2] (CC $_[3]->[0]) $_[4])" }
+sub PennTags::do_VP_VBZ         { "(VP (VBZ $_[1]->[0]))" }
 
 1;    # In case used as "do" file
 
