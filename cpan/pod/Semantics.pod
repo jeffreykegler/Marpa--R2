@@ -449,7 +449,7 @@ name: SLIF DSL synopsis
 partial: 1
 normalize-whitespace: 1
 
-    lexeme default = action => [start,length,value] bless => ::name
+    lexeme default = action => [start,length,lhs,value] bless => ::name
 
 =for Marpa::R2::Display::End
 
@@ -481,11 +481,18 @@ Length is in characters.
 The C<start> array item descriptor puts
 a single-element list into the array.
 That one element will be
-the start location of the rule or lexeme instance into the array.
+the start location of the rule or lexeme instance.
 The start location is an offset in the input string.
 The elements of the C<length> and C<start> item descriptors are defined
 such that the end location
 is always start location plus length.
+
+=item C<lhs>
+
+The C<lhs> array item descriptor puts
+a single-element list into the array.
+That one element will be the ID of the LHS symbol of 
+the rule or lexeme instance.
 
 =item C<value>
 

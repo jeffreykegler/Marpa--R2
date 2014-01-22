@@ -565,6 +565,8 @@ normalize-whitespace: 1
 
     :default ::= action => [values] bless => ::lhs
 
+    :default ::= action => [lhs,values]
+
 =for Marpa::R2::Display::End
 
 The purpose of
@@ -627,6 +629,8 @@ partial: 1
 normalize-whitespace: 1
 
     lexeme default = action => [start,length,value] bless => ::name
+
+    lexeme default = action => [start,length,lhs,value]
 
 =for Marpa::R2::Display::End
 
