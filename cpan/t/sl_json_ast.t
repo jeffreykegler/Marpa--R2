@@ -211,11 +211,8 @@ is($data->{test}, "\x{2603}", 'Unicode char');
 
 package MarpaX::JSON;
 
-#use Data::Dumper;
-
 sub new {
-#$Data::Dumper::Indent = 0;
-$Data::Dumper::Terse  = 1;
+
     my ($class) = @_;
 
     my $self = bless {}, $class;
@@ -298,47 +295,36 @@ sub parse {
     );
     $re->read( \$string );
     my $ast = ${ $re->value() };
-#    warn Dumper $ast;
-    my $json = $self->decode ( $ast );
-#    warn Dumper $json;
-    return $json;
+    return $self->decode ( $ast );
 } ## end sub parse
 
 sub decode {
     my $self = shift;
     
     my $ast  = shift;
-#    warn "\n", Dumper $ast;
     
     if (ref $ast){
         my ($id, @nodes) = @$ast;
         $id = $self->{grammar}->symbol_display_form($id);
         if ($id eq 'json'){
-#            warn "handled $id: ", Dumper @nodes;
             $self->decode(@nodes);
         }
         elsif ($id eq 'members'){
-#            warn "handled $id: ", Dumper @nodes;
             return { map { $self->decode($_) } @nodes }; 
         }
         elsif ($id eq 'pair'){
-#            warn "handled $id: ", Dumper @nodes;
             return map { $self->decode($_) } @nodes; 
         }
         elsif ($id eq 'elements'){
-#            warn "handled $id: ", Dumper @nodes;
             return [ map { $self->decode($_) } @nodes ]; 
         }
         elsif ($id eq 'string'){
-#            warn "handled $id: ", Dumper @nodes;
-            return decode_string( $nodes[0]->[1] );
+            return decode_string( substr $nodes[0]->[1], 1, -1 );
         }
         elsif ($id eq 'number'){
-#            warn "handled $id: ", Dumper @nodes;
             return $nodes[0];
         }
         elsif ($id eq 'object'){
-#            warn "handled $id: ", Dumper @nodes;
             return {} unless @nodes;
             return $self->decode($_) for @nodes; 
         }
@@ -347,7 +333,6 @@ sub decode {
             return $self->decode($_) for @nodes; 
         }
         else{
-#            warn "not handled yet $id: ", Dumper @nodes;
             return $self->decode($_) for @nodes; 
         }
     }
@@ -366,8 +351,6 @@ sub parse_json {
 
 sub decode_string {
     my ($s) = @_;
-    
-    $s = substr $s, 1, -1;
     
     $s =~ s/\\u([0-9A-Fa-f]{4})/chr(hex($1))/egxms;
     $s =~ s/\\n/\n/gxms;
