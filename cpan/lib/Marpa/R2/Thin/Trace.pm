@@ -201,11 +201,8 @@ sub show_AHFA_item {
     my ( $self, $item_id ) = @_;
     my $grammar_c  = $self->{g};
     my $postdot_id = $grammar_c->_marpa_g_AHFA_item_postdot($item_id);
-    my $sort_key   = $grammar_c->_marpa_g_AHFA_item_sort_key($item_id);
     my $text       = "AHFA item $item_id: ";
     my @properties = ();
-    push @properties, "sort = $sort_key";
-
     if ( $postdot_id < 0 ) {
         push @properties, 'completion';
     }

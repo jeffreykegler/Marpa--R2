@@ -2,6 +2,64 @@
 # Libmarpa version is 5.179.111
 t/00-load.t ............ ok
 
+#   Failed test 'Aycock/Horspool AHFA Items'
+#   at t/ah2.t line 117.
+# +---+-----------------------------------+----------------------------------------------+
+# | Ln|Got                                |Expected                                      |
+# +---+-----------------------------------+----------------------------------------------+
+# *  1|'AHFA item 0: postdot = "A"        |'AHFA item 0: sort = 1; postdot = "A"         *
+# |  2|    S -> . A S[R0:1]               |    S -> . A S[R0:1]                          |
+# *  3|AHFA item 1: postdot = "S[R0:1]"   |AHFA item 1: sort = 10; postdot = "S[R0:1]"   *
+# |  4|    S -> A . S[R0:1]               |    S -> A . S[R0:1]                          |
+# *  5|AHFA item 2: completion            |AHFA item 2: sort = 14; completion            *
+# |  6|    S -> A S[R0:1] .               |    S -> A S[R0:1] .                          |
+# *  7|AHFA item 3: postdot = "A"         |AHFA item 3: sort = 2; postdot = "A"          *
+# |  8|    S -> . A A[] A[] A[]           |    S -> . A A[] A[] A[]                      |
+# *  9|AHFA item 4: completion            |AHFA item 4: sort = 15; completion            *
+# | 10|    S -> A A[] A[] A[] .           |    S -> A A[] A[] A[] .                      |
+# * 11|AHFA item 5: postdot = "S[R0:1]"   |AHFA item 5: sort = 11; postdot = "S[R0:1]"   *
+# | 12|    S -> A[] . S[R0:1]             |    S -> A[] . S[R0:1]                        |
+# * 13|AHFA item 6: completion            |AHFA item 6: sort = 16; completion            *
+# | 14|    S -> A[] S[R0:1] .             |    S -> A[] S[R0:1] .                        |
+# * 15|AHFA item 7: postdot = "A"         |AHFA item 7: sort = 3; postdot = "A"          *
+# | 16|    S[R0:1] -> . A S[R0:2]         |    S[R0:1] -> . A S[R0:2]                    |
+# * 17|AHFA item 8: postdot = "S[R0:2]"   |AHFA item 8: sort = 12; postdot = "S[R0:2]"   *
+# | 18|    S[R0:1] -> A . S[R0:2]         |    S[R0:1] -> A . S[R0:2]                    |
+# * 19|AHFA item 9: completion            |AHFA item 9: sort = 17; completion            *
+# | 20|    S[R0:1] -> A S[R0:2] .         |    S[R0:1] -> A S[R0:2] .                    |
+# * 21|AHFA item 10: postdot = "A"        |AHFA item 10: sort = 4; postdot = "A"         *
+# | 22|    S[R0:1] -> . A A[] A[]         |    S[R0:1] -> . A A[] A[]                    |
+# * 23|AHFA item 11: completion           |AHFA item 11: sort = 18; completion           *
+# | 24|    S[R0:1] -> A A[] A[] .         |    S[R0:1] -> A A[] A[] .                    |
+# * 25|AHFA item 12: postdot = "S[R0:2]"  |AHFA item 12: sort = 13; postdot = "S[R0:2]"  *
+# | 26|    S[R0:1] -> A[] . S[R0:2]       |    S[R0:1] -> A[] . S[R0:2]                  |
+# * 27|AHFA item 13: completion           |AHFA item 13: sort = 19; completion           *
+# | 28|    S[R0:1] -> A[] S[R0:2] .       |    S[R0:1] -> A[] S[R0:2] .                  |
+# * 29|AHFA item 14: postdot = "A"        |AHFA item 14: sort = 5; postdot = "A"         *
+# | 30|    S[R0:2] -> . A A               |    S[R0:2] -> . A A                          |
+# * 31|AHFA item 15: postdot = "A"        |AHFA item 15: sort = 6; postdot = "A"         *
+# | 32|    S[R0:2] -> A . A               |    S[R0:2] -> A . A                          |
+# * 33|AHFA item 16: completion           |AHFA item 16: sort = 20; completion           *
+# | 34|    S[R0:2] -> A A .               |    S[R0:2] -> A A .                          |
+# * 35|AHFA item 17: postdot = "A"        |AHFA item 17: sort = 7; postdot = "A"         *
+# | 36|    S[R0:2] -> . A A[]             |    S[R0:2] -> . A A[]                        |
+# * 37|AHFA item 18: completion           |AHFA item 18: sort = 21; completion           *
+# | 38|    S[R0:2] -> A A[] .             |    S[R0:2] -> A A[] .                        |
+# * 39|AHFA item 19: postdot = "A"        |AHFA item 19: sort = 8; postdot = "A"         *
+# | 40|    S[R0:2] -> A[] . A             |    S[R0:2] -> A[] . A                        |
+# * 41|AHFA item 20: completion           |AHFA item 20: sort = 22; completion           *
+# | 42|    S[R0:2] -> A[] A .             |    S[R0:2] -> A[] A .                        |
+# * 43|AHFA item 21: postdot = "a"        |AHFA item 21: sort = 9; postdot = "a"         *
+# | 44|    A -> . a                       |    A -> . a                                  |
+# * 45|AHFA item 22: completion           |AHFA item 22: sort = 23; completion           *
+# | 46|    A -> a .                       |    A -> a .                                  |
+# * 47|AHFA item 23: postdot = "S"        |AHFA item 23: sort = 0; postdot = "S"         *
+# | 48|    S[\'] -> . S                   |    S[\'] -> . S                              |
+# * 49|AHFA item 24: completion           |AHFA item 24: sort = 24; completion           *
+# | 50|    S[\'] -> S .                   |    S[\'] -> S .                              |
+# | 51|'                                  |'                                             |
+# +---+-----------------------------------+----------------------------------------------+
+
 #   Failed test 'Aycock/Horspool AHFA'
 #   at t/ah2.t line 171.
 # +---+--------------------------+---+--------------------------+
@@ -159,10 +217,10 @@ t/00-load.t ............ ok
 # * 69|S23@3-4 [p=S22@3-3; s=a; t=\\\'a\']                    * 54|S17@3-4 [p=S13@3-3; s=a; t=\\\'a\']                                                        *
 # | 70|'                                                      | 55|'                                                                                          |
 # +---+-------------------------------------------------------+---+-------------------------------------------------------------------------------------------+
-# Looks like you failed 2 tests of 26.
+# Looks like you failed 3 tests of 26.
 t/ah2.t ................ 
-Dubious, test returned 2 (wstat 512, 0x200)
-Failed 2/26 subtests 
+Dubious, test returned 3 (wstat 768, 0x300)
+Failed 3/26 subtests 
 t/ah_numeric.t ......... ok
 
 #   Failed test 'Output for basic ASF synopsis'
@@ -200,6 +258,64 @@ t/asf_syn.t ............
 Dubious, test returned 1 (wstat 256, 0x100)
 Failed 1/1 subtests 
 t/balanced.t ........... ok
+
+#   Failed test 'Aycock/Horspool AHFA Items'
+#   at t/bocage.t line 91.
+# +---+-----------------------------------+----------------------------------------------+
+# | Ln|Got                                |Expected                                      |
+# +---+-----------------------------------+----------------------------------------------+
+# *  1|'AHFA item 0: postdot = "A"        |'AHFA item 0: sort = 1; postdot = "A"         *
+# |  2|    S -> . A S[R0:1]               |    S -> . A S[R0:1]                          |
+# *  3|AHFA item 1: postdot = "S[R0:1]"   |AHFA item 1: sort = 10; postdot = "S[R0:1]"   *
+# |  4|    S -> A . S[R0:1]               |    S -> A . S[R0:1]                          |
+# *  5|AHFA item 2: completion            |AHFA item 2: sort = 14; completion            *
+# |  6|    S -> A S[R0:1] .               |    S -> A S[R0:1] .                          |
+# *  7|AHFA item 3: postdot = "A"         |AHFA item 3: sort = 2; postdot = "A"          *
+# |  8|    S -> . A A[] A[] A[]           |    S -> . A A[] A[] A[]                      |
+# *  9|AHFA item 4: completion            |AHFA item 4: sort = 15; completion            *
+# | 10|    S -> A A[] A[] A[] .           |    S -> A A[] A[] A[] .                      |
+# * 11|AHFA item 5: postdot = "S[R0:1]"   |AHFA item 5: sort = 11; postdot = "S[R0:1]"   *
+# | 12|    S -> A[] . S[R0:1]             |    S -> A[] . S[R0:1]                        |
+# * 13|AHFA item 6: completion            |AHFA item 6: sort = 16; completion            *
+# | 14|    S -> A[] S[R0:1] .             |    S -> A[] S[R0:1] .                        |
+# * 15|AHFA item 7: postdot = "A"         |AHFA item 7: sort = 3; postdot = "A"          *
+# | 16|    S[R0:1] -> . A S[R0:2]         |    S[R0:1] -> . A S[R0:2]                    |
+# * 17|AHFA item 8: postdot = "S[R0:2]"   |AHFA item 8: sort = 12; postdot = "S[R0:2]"   *
+# | 18|    S[R0:1] -> A . S[R0:2]         |    S[R0:1] -> A . S[R0:2]                    |
+# * 19|AHFA item 9: completion            |AHFA item 9: sort = 17; completion            *
+# | 20|    S[R0:1] -> A S[R0:2] .         |    S[R0:1] -> A S[R0:2] .                    |
+# * 21|AHFA item 10: postdot = "A"        |AHFA item 10: sort = 4; postdot = "A"         *
+# | 22|    S[R0:1] -> . A A[] A[]         |    S[R0:1] -> . A A[] A[]                    |
+# * 23|AHFA item 11: completion           |AHFA item 11: sort = 18; completion           *
+# | 24|    S[R0:1] -> A A[] A[] .         |    S[R0:1] -> A A[] A[] .                    |
+# * 25|AHFA item 12: postdot = "S[R0:2]"  |AHFA item 12: sort = 13; postdot = "S[R0:2]"  *
+# | 26|    S[R0:1] -> A[] . S[R0:2]       |    S[R0:1] -> A[] . S[R0:2]                  |
+# * 27|AHFA item 13: completion           |AHFA item 13: sort = 19; completion           *
+# | 28|    S[R0:1] -> A[] S[R0:2] .       |    S[R0:1] -> A[] S[R0:2] .                  |
+# * 29|AHFA item 14: postdot = "A"        |AHFA item 14: sort = 5; postdot = "A"         *
+# | 30|    S[R0:2] -> . A A               |    S[R0:2] -> . A A                          |
+# * 31|AHFA item 15: postdot = "A"        |AHFA item 15: sort = 6; postdot = "A"         *
+# | 32|    S[R0:2] -> A . A               |    S[R0:2] -> A . A                          |
+# * 33|AHFA item 16: completion           |AHFA item 16: sort = 20; completion           *
+# | 34|    S[R0:2] -> A A .               |    S[R0:2] -> A A .                          |
+# * 35|AHFA item 17: postdot = "A"        |AHFA item 17: sort = 7; postdot = "A"         *
+# | 36|    S[R0:2] -> . A A[]             |    S[R0:2] -> . A A[]                        |
+# * 37|AHFA item 18: completion           |AHFA item 18: sort = 21; completion           *
+# | 38|    S[R0:2] -> A A[] .             |    S[R0:2] -> A A[] .                        |
+# * 39|AHFA item 19: postdot = "A"        |AHFA item 19: sort = 8; postdot = "A"         *
+# | 40|    S[R0:2] -> A[] . A             |    S[R0:2] -> A[] . A                        |
+# * 41|AHFA item 20: completion           |AHFA item 20: sort = 22; completion           *
+# | 42|    S[R0:2] -> A[] A .             |    S[R0:2] -> A[] A .                        |
+# * 43|AHFA item 21: postdot = "a"        |AHFA item 21: sort = 9; postdot = "a"         *
+# | 44|    A -> . a                       |    A -> . a                                  |
+# * 45|AHFA item 22: completion           |AHFA item 22: sort = 23; completion           *
+# | 46|    A -> a .                       |    A -> a .                                  |
+# * 47|AHFA item 23: postdot = "S"        |AHFA item 23: sort = 0; postdot = "S"         *
+# | 48|    S[\'] -> . S                   |    S[\'] -> . S                              |
+# * 49|AHFA item 24: completion           |AHFA item 24: sort = 24; completion           *
+# | 50|    S[\'] -> S .                   |    S[\'] -> S .                              |
+# | 51|'                                  |'                                             |
+# +---+-----------------------------------+----------------------------------------------+
 
 #   Failed test 'Aycock/Horspool AHFA'
 #   at t/bocage.t line 145.
@@ -536,10 +652,10 @@ t/balanced.t ........... ok
 # * 23|22: 19=R3:2@1-3 R3:1@1-2 R8:2@2-3  |22: 19=R3:2@1-3 R3:1@1-2 R7:2@2-3  *
 # | 24|'                                  |'                                  |
 # +---+-----------------------------------+-----------------------------------+
-# Looks like you failed 8 tests of 19.
+# Looks like you failed 9 tests of 19.
 t/bocage.t ............. 
-Dubious, test returned 8 (wstat 2048, 0x800)
-Failed 8/19 subtests 
+Dubious, test returned 9 (wstat 2304, 0x900)
+Failed 9/19 subtests 
 t/catalan.t ............ ok
 t/chaf.t ............... ok
 t/code_diag.t .......... ok
@@ -624,6 +740,30 @@ t/duplicate_parse.t ....
 Dubious, test returned 1 (wstat 256, 0x100)
 Failed 1/5 subtests 
 
+#   Failed test 'Ambiguous Equation AHFA Items'
+#   at t/equation.t line 141.
+# +---+---------------------------------+-------------------------------------------+
+# | Ln|Got                              |Expected                                   |
+# +---+---------------------------------+-------------------------------------------+
+# *  1|'AHFA item 0: postdot = "E"      |'AHFA item 0: sort = 0; postdot = "E"      *
+# |  2|    E -> . E Op E                |    E -> . E Op E                          |
+# *  3|AHFA item 1: postdot = "Op"      |AHFA item 1: sort = 3; postdot = "Op"      *
+# |  4|    E -> E . Op E                |    E -> E . Op E                          |
+# *  5|AHFA item 2: postdot = "E"       |AHFA item 2: sort = 1; postdot = "E"       *
+# |  6|    E -> E Op . E                |    E -> E Op . E                          |
+# *  7|AHFA item 3: completion          |AHFA item 3: sort = 5; completion          *
+# |  8|    E -> E Op E .                |    E -> E Op E .                          |
+# *  9|AHFA item 4: postdot = "Number"  |AHFA item 4: sort = 4; postdot = "Number"  *
+# | 10|    E -> . Number                |    E -> . Number                          |
+# * 11|AHFA item 5: completion          |AHFA item 5: sort = 6; completion          *
+# | 12|    E -> Number .                |    E -> Number .                          |
+# * 13|AHFA item 6: postdot = "E"       |AHFA item 6: sort = 2; postdot = "E"       *
+# | 14|    E[\'] -> . E                 |    E[\'] -> . E                           |
+# * 15|AHFA item 7: completion          |AHFA item 7: sort = 7; completion          *
+# | 16|    E[\'] -> E .                 |    E[\'] -> E .                           |
+# | 17|'                                |'                                          |
+# +---+---------------------------------+-------------------------------------------+
+
 #   Failed test 'Ambiguous Equation AHFA'
 #   at t/equation.t line 166.
 # +---+---------------+---+---------------+
@@ -703,10 +843,10 @@ Failed 1/5 subtests
 # * 48|S6@6-7 [p=S5@6-6; s=Number; t=\\1]                                     * 44|S5@6-7 [p=S1@6-6; s=Number; t=\\1]                                     *
 # | 49|'                                                                      | 45|'                                                                      |
 # +---+-----------------------------------------------------------------------+---+-----------------------------------------------------------------------+
-# Looks like you failed 2 tests of 12.
+# Looks like you failed 3 tests of 12.
 t/equation.t ........... 
-Dubious, test returned 2 (wstat 512, 0x200)
-Failed 2/12 subtests 
+Dubious, test returned 3 (wstat 768, 0x300)
+Failed 3/12 subtests 
 
 #   Failed test 'final nonnulling AHFA'
 #   at t/final_nonnullable.t line 67.
@@ -1069,6 +1209,148 @@ t/initial_nulls.t ...... ok
 # | 135|'                                                                         | 129|'                                                                         |
 # +----+--------------------------------------------------------------------------+----+--------------------------------------------------------------------------+
 
+#   Failed test 'AHFA Items'
+#   at t/jirotka.t line 294.
+# +----+------------------------------------------------------------------------------+------------------------------------------------------------------------------+
+# |  Ln|Got                                                                           |Expected                                                                      |
+# +----+------------------------------------------------------------------------------+------------------------------------------------------------------------------+
+# *   1|'AHFA item 0: postdot = "Input[Seq]"                                          |'AHFA item 0: sort = 36; postdot = "Input[Seq]"                               *
+# |   2|    Input -> . Input[Seq]                                                     |    Input -> . Input[Seq]                                                     |
+# *   3|AHFA item 1: completion                                                       |AHFA item 1: sort = 43; completion                                            *
+# |   4|    Input -> Input[Seq] .                                                     |    Input -> Input[Seq] .                                                     |
+# *   5|AHFA item 2: postdot = "Input[Seq]"                                           |AHFA item 2: sort = 37; postdot = "Input[Seq]"                                *
+# |   6|    Input -> . Input[Seq] SEPARATOR                                           |    Input -> . Input[Seq] SEPARATOR                                           |
+# *   7|AHFA item 3: postdot = "SEPARATOR"                                            |AHFA item 3: sort = 15; postdot = "SEPARATOR"                                 *
+# |   8|    Input -> Input[Seq] . SEPARATOR                                           |    Input -> Input[Seq] . SEPARATOR                                           |
+# *   9|AHFA item 4: completion                                                       |AHFA item 4: sort = 44; completion                                            *
+# |  10|    Input -> Input[Seq] SEPARATOR .                                           |    Input -> Input[Seq] SEPARATOR .                                           |
+# *  11|AHFA item 5: postdot = "Statement"                                            |AHFA item 5: sort = 19; postdot = "Statement"                                 *
+# |  12|    Input[Seq] -> . Statement                                                 |    Input[Seq] -> . Statement                                                 |
+# *  13|AHFA item 6: completion                                                       |AHFA item 6: sort = 45; completion                                            *
+# |  14|    Input[Seq] -> Statement .                                                 |    Input[Seq] -> Statement .                                                 |
+# *  15|AHFA item 7: postdot = "Input[Seq]"                                           |AHFA item 7: sort = 38; postdot = "Input[Seq]"                                *
+# |  16|    Input[Seq] -> . Input[Seq] SEPARATOR Statement                            |    Input[Seq] -> . Input[Seq] SEPARATOR Statement                            |
+# *  17|AHFA item 8: postdot = "SEPARATOR"                                            |AHFA item 8: sort = 16; postdot = "SEPARATOR"                                 *
+# |  18|    Input[Seq] -> Input[Seq] . SEPARATOR Statement                            |    Input[Seq] -> Input[Seq] . SEPARATOR Statement                            |
+# *  19|AHFA item 9: postdot = "Statement"                                            |AHFA item 9: sort = 20; postdot = "Statement"                                 *
+# |  20|    Input[Seq] -> Input[Seq] SEPARATOR . Statement                            |    Input[Seq] -> Input[Seq] SEPARATOR . Statement                            |
+# *  21|AHFA item 10: completion                                                      |AHFA item 10: sort = 46; completion                                           *
+# |  22|    Input[Seq] -> Input[Seq] SEPARATOR Statement .                            |    Input[Seq] -> Input[Seq] SEPARATOR Statement .                            |
+# *  23|AHFA item 11: postdot = "CREATE"                                              |AHFA item 11: sort = 2; postdot = "CREATE"                                    *
+# |  24|    Statement -> . CREATE TypeDef                                             |    Statement -> . CREATE TypeDef                                             |
+# *  25|AHFA item 12: postdot = "TypeDef"                                             |AHFA item 12: sort = 21; postdot = "TypeDef"                                  *
+# |  26|    Statement -> CREATE . TypeDef                                             |    Statement -> CREATE . TypeDef                                             |
+# *  27|AHFA item 13: completion                                                      |AHFA item 13: sort = 47; completion                                           *
+# |  28|    Statement -> CREATE TypeDef .                                             |    Statement -> CREATE TypeDef .                                             |
+# *  29|AHFA item 14: postdot = "METRIC"                                              |AHFA item 14: sort = 5; postdot = "METRIC"                                    *
+# |  30|    TypeDef -> . METRIC ID_METRIC AS MetricSelect                             |    TypeDef -> . METRIC ID_METRIC AS MetricSelect                             |
+# *  31|AHFA item 15: postdot = "ID_METRIC"                                           |AHFA item 15: sort = 14; postdot = "ID_METRIC"                                *
+# |  32|    TypeDef -> METRIC . ID_METRIC AS MetricSelect                             |    TypeDef -> METRIC . ID_METRIC AS MetricSelect                             |
+# *  33|AHFA item 16: postdot = "AS"                                                  |AHFA item 16: sort = 0; postdot = "AS"                                        *
+# |  34|    TypeDef -> METRIC ID_METRIC . AS MetricSelect                             |    TypeDef -> METRIC ID_METRIC . AS MetricSelect                             |
+# *  35|AHFA item 17: postdot = "MetricSelect"                                        |AHFA item 17: sort = 22; postdot = "MetricSelect"                             *
+# |  36|    TypeDef -> METRIC ID_METRIC AS . MetricSelect                             |    TypeDef -> METRIC ID_METRIC AS . MetricSelect                             |
+# *  37|AHFA item 18: completion                                                      |AHFA item 18: sort = 48; completion                                           *
+# |  38|    TypeDef -> METRIC ID_METRIC AS MetricSelect .                             |    TypeDef -> METRIC ID_METRIC AS MetricSelect .                             |
+# *  39|AHFA item 19: postdot = "SELECT"                                              |AHFA item 19: sort = 7; postdot = "SELECT"                                    *
+# |  40|    MetricSelect -> . SELECT MetricExpr ByClause MetricSelect[R3:3]           |    MetricSelect -> . SELECT MetricExpr ByClause MetricSelect[R3:3]           |
+# *  41|AHFA item 20: postdot = "MetricExpr"                                          |AHFA item 20: sort = 23; postdot = "MetricExpr"                               *
+# |  42|    MetricSelect -> SELECT . MetricExpr ByClause MetricSelect[R3:3]           |    MetricSelect -> SELECT . MetricExpr ByClause MetricSelect[R3:3]           |
+# *  43|AHFA item 21: postdot = "ByClause"                                            |AHFA item 21: sort = 27; postdot = "ByClause"                                 *
+# |  44|    MetricSelect -> SELECT MetricExpr . ByClause MetricSelect[R3:3]           |    MetricSelect -> SELECT MetricExpr . ByClause MetricSelect[R3:3]           |
+# *  45|AHFA item 22: postdot = "MetricSelect[R3:3]"                                  |AHFA item 22: sort = 39; postdot = "MetricSelect[R3:3]"                       *
+# |  46|    MetricSelect -> SELECT MetricExpr ByClause . MetricSelect[R3:3]           |    MetricSelect -> SELECT MetricExpr ByClause . MetricSelect[R3:3]           |
+# *  47|AHFA item 23: completion                                                      |AHFA item 23: sort = 49; completion                                           *
+# |  48|    MetricSelect -> SELECT MetricExpr ByClause MetricSelect[R3:3] .           |    MetricSelect -> SELECT MetricExpr ByClause MetricSelect[R3:3] .           |
+# *  49|AHFA item 24: postdot = "SELECT"                                              |AHFA item 24: sort = 8; postdot = "SELECT"                                    *
+# |  50|    MetricSelect -> . SELECT MetricExpr ByClause Match[] Filter[] WithPf[]    |    MetricSelect -> . SELECT MetricExpr ByClause Match[] Filter[] WithPf[]    |
+# *  51|AHFA item 25: postdot = "MetricExpr"                                          |AHFA item 25: sort = 24; postdot = "MetricExpr"                               *
+# |  52|    MetricSelect -> SELECT . MetricExpr ByClause Match[] Filter[] WithPf[]    |    MetricSelect -> SELECT . MetricExpr ByClause Match[] Filter[] WithPf[]    |
+# *  53|AHFA item 26: postdot = "ByClause"                                            |AHFA item 26: sort = 28; postdot = "ByClause"                                 *
+# |  54|    MetricSelect -> SELECT MetricExpr . ByClause Match[] Filter[] WithPf[]    |    MetricSelect -> SELECT MetricExpr . ByClause Match[] Filter[] WithPf[]    |
+# *  55|AHFA item 27: completion                                                      |AHFA item 27: sort = 50; completion                                           *
+# |  56|    MetricSelect -> SELECT MetricExpr ByClause Match[] Filter[] WithPf[] .    |    MetricSelect -> SELECT MetricExpr ByClause Match[] Filter[] WithPf[] .    |
+# *  57|AHFA item 28: postdot = "SELECT"                                              |AHFA item 28: sort = 9; postdot = "SELECT"                                    *
+# |  58|    MetricSelect -> . SELECT MetricExpr ByClause[] MetricSelect[R3:3]         |    MetricSelect -> . SELECT MetricExpr ByClause[] MetricSelect[R3:3]         |
+# *  59|AHFA item 29: postdot = "MetricExpr"                                          |AHFA item 29: sort = 25; postdot = "MetricExpr"                               *
+# |  60|    MetricSelect -> SELECT . MetricExpr ByClause[] MetricSelect[R3:3]         |    MetricSelect -> SELECT . MetricExpr ByClause[] MetricSelect[R3:3]         |
+# *  61|AHFA item 30: postdot = "MetricSelect[R3:3]"                                  |AHFA item 30: sort = 40; postdot = "MetricSelect[R3:3]"                       *
+# |  62|    MetricSelect -> SELECT MetricExpr ByClause[] . MetricSelect[R3:3]         |    MetricSelect -> SELECT MetricExpr ByClause[] . MetricSelect[R3:3]         |
+# *  63|AHFA item 31: completion                                                      |AHFA item 31: sort = 51; completion                                           *
+# |  64|    MetricSelect -> SELECT MetricExpr ByClause[] MetricSelect[R3:3] .         |    MetricSelect -> SELECT MetricExpr ByClause[] MetricSelect[R3:3] .         |
+# *  65|AHFA item 32: postdot = "SELECT"                                              |AHFA item 32: sort = 10; postdot = "SELECT"                                   *
+# |  66|    MetricSelect -> . SELECT MetricExpr ByClause[] Match[] Filter[] WithPf[]  |    MetricSelect -> . SELECT MetricExpr ByClause[] Match[] Filter[] WithPf[]  |
+# *  67|AHFA item 33: postdot = "MetricExpr"                                          |AHFA item 33: sort = 26; postdot = "MetricExpr"                               *
+# |  68|    MetricSelect -> SELECT . MetricExpr ByClause[] Match[] Filter[] WithPf[]  |    MetricSelect -> SELECT . MetricExpr ByClause[] Match[] Filter[] WithPf[]  |
+# *  69|AHFA item 34: completion                                                      |AHFA item 34: sort = 52; completion                                           *
+# |  70|    MetricSelect -> SELECT MetricExpr ByClause[] Match[] Filter[] WithPf[] .  |    MetricSelect -> SELECT MetricExpr ByClause[] Match[] Filter[] WithPf[] .  |
+# *  71|AHFA item 35: postdot = "Match"                                               |AHFA item 35: sort = 29; postdot = "Match"                                    *
+# |  72|    MetricSelect[R3:3] -> . Match MetricSelect[R3:4]                          |    MetricSelect[R3:3] -> . Match MetricSelect[R3:4]                          |
+# *  73|AHFA item 36: postdot = "MetricSelect[R3:4]"                                  |AHFA item 36: sort = 41; postdot = "MetricSelect[R3:4]"                       *
+# |  74|    MetricSelect[R3:3] -> Match . MetricSelect[R3:4]                          |    MetricSelect[R3:3] -> Match . MetricSelect[R3:4]                          |
+# *  75|AHFA item 37: completion                                                      |AHFA item 37: sort = 53; completion                                           *
+# |  76|    MetricSelect[R3:3] -> Match MetricSelect[R3:4] .                          |    MetricSelect[R3:3] -> Match MetricSelect[R3:4] .                          |
+# *  77|AHFA item 38: postdot = "Match"                                               |AHFA item 38: sort = 30; postdot = "Match"                                    *
+# |  78|    MetricSelect[R3:3] -> . Match Filter[] WithPf[]                           |    MetricSelect[R3:3] -> . Match Filter[] WithPf[]                           |
+# *  79|AHFA item 39: completion                                                      |AHFA item 39: sort = 54; completion                                           *
+# |  80|    MetricSelect[R3:3] -> Match Filter[] WithPf[] .                           |    MetricSelect[R3:3] -> Match Filter[] WithPf[] .                           |
+# *  81|AHFA item 40: postdot = "MetricSelect[R3:4]"                                  |AHFA item 40: sort = 42; postdot = "MetricSelect[R3:4]"                       *
+# |  82|    MetricSelect[R3:3] -> Match[] . MetricSelect[R3:4]                        |    MetricSelect[R3:3] -> Match[] . MetricSelect[R3:4]                        |
+# *  83|AHFA item 41: completion                                                      |AHFA item 41: sort = 55; completion                                           *
+# |  84|    MetricSelect[R3:3] -> Match[] MetricSelect[R3:4] .                        |    MetricSelect[R3:3] -> Match[] MetricSelect[R3:4] .                        |
+# *  85|AHFA item 42: postdot = "Filter"                                              |AHFA item 42: sort = 31; postdot = "Filter"                                   *
+# |  86|    MetricSelect[R3:4] -> . Filter WithPf                                     |    MetricSelect[R3:4] -> . Filter WithPf                                     |
+# *  87|AHFA item 43: postdot = "WithPf"                                              |AHFA item 43: sort = 33; postdot = "WithPf"                                   *
+# |  88|    MetricSelect[R3:4] -> Filter . WithPf                                     |    MetricSelect[R3:4] -> Filter . WithPf                                     |
+# *  89|AHFA item 44: completion                                                      |AHFA item 44: sort = 56; completion                                           *
+# |  90|    MetricSelect[R3:4] -> Filter WithPf .                                     |    MetricSelect[R3:4] -> Filter WithPf .                                     |
+# *  91|AHFA item 45: postdot = "Filter"                                              |AHFA item 45: sort = 32; postdot = "Filter"                                   *
+# |  92|    MetricSelect[R3:4] -> . Filter WithPf[]                                   |    MetricSelect[R3:4] -> . Filter WithPf[]                                   |
+# *  93|AHFA item 46: completion                                                      |AHFA item 46: sort = 57; completion                                           *
+# |  94|    MetricSelect[R3:4] -> Filter WithPf[] .                                   |    MetricSelect[R3:4] -> Filter WithPf[] .                                   |
+# *  95|AHFA item 47: postdot = "WithPf"                                              |AHFA item 47: sort = 34; postdot = "WithPf"                                   *
+# |  96|    MetricSelect[R3:4] -> Filter[] . WithPf                                   |    MetricSelect[R3:4] -> Filter[] . WithPf                                   |
+# *  97|AHFA item 48: completion                                                      |AHFA item 48: sort = 58; completion                                           *
+# |  98|    MetricSelect[R3:4] -> Filter[] WithPf .                                   |    MetricSelect[R3:4] -> Filter[] WithPf .                                   |
+# *  99|AHFA item 49: postdot = "NUMBER"                                              |AHFA item 49: sort = 17; postdot = "NUMBER"                                   *
+# | 100|    MetricExpr -> . NUMBER                                                    |    MetricExpr -> . NUMBER                                                    |
+# * 101|AHFA item 50: completion                                                      |AHFA item 50: sort = 59; completion                                           *
+# | 102|    MetricExpr -> NUMBER .                                                    |    MetricExpr -> NUMBER .                                                    |
+# * 103|AHFA item 51: postdot = "BY"                                                  |AHFA item 51: sort = 1; postdot = "BY"                                        *
+# | 104|    ByClause -> . BY                                                          |    ByClause -> . BY                                                          |
+# * 105|AHFA item 52: completion                                                      |AHFA item 52: sort = 60; completion                                           *
+# | 106|    ByClause -> BY .                                                          |    ByClause -> BY .                                                          |
+# * 107|AHFA item 53: postdot = "FOR"                                                 |AHFA item 53: sort = 4; postdot = "FOR"                                       *
+# | 108|    Match -> . FOR                                                            |    Match -> . FOR                                                            |
+# * 109|AHFA item 54: completion                                                      |AHFA item 54: sort = 61; completion                                           *
+# | 110|    Match -> FOR .                                                            |    Match -> FOR .                                                            |
+# * 111|AHFA item 55: postdot = "WHERE"                                               |AHFA item 55: sort = 12; postdot = "WHERE"                                    *
+# | 112|    Filter -> . WHERE FilterExpr                                              |    Filter -> . WHERE FilterExpr                                              |
+# * 113|AHFA item 56: postdot = "FilterExpr"                                          |AHFA item 56: sort = 35; postdot = "FilterExpr"                               *
+# | 114|    Filter -> WHERE . FilterExpr                                              |    Filter -> WHERE . FilterExpr                                              |
+# * 115|AHFA item 57: completion                                                      |AHFA item 57: sort = 62; completion                                           *
+# | 116|    Filter -> WHERE FilterExpr .                                              |    Filter -> WHERE FilterExpr .                                              |
+# * 117|AHFA item 58: postdot = "TRUE"                                                |AHFA item 58: sort = 11; postdot = "TRUE"                                     *
+# | 118|    FilterExpr -> . TRUE                                                      |    FilterExpr -> . TRUE                                                      |
+# * 119|AHFA item 59: completion                                                      |AHFA item 59: sort = 63; completion                                           *
+# | 120|    FilterExpr -> TRUE .                                                      |    FilterExpr -> TRUE .                                                      |
+# * 121|AHFA item 60: postdot = "FALSE"                                               |AHFA item 60: sort = 3; postdot = "FALSE"                                     *
+# | 122|    FilterExpr -> . FALSE                                                     |    FilterExpr -> . FALSE                                                     |
+# * 123|AHFA item 61: completion                                                      |AHFA item 61: sort = 64; completion                                           *
+# | 124|    FilterExpr -> FALSE .                                                     |    FilterExpr -> FALSE .                                                     |
+# * 125|AHFA item 62: postdot = "WITH"                                                |AHFA item 62: sort = 13; postdot = "WITH"                                     *
+# | 126|    WithPf -> . WITH PF                                                       |    WithPf -> . WITH PF                                                       |
+# * 127|AHFA item 63: postdot = "PF"                                                  |AHFA item 63: sort = 6; postdot = "PF"                                        *
+# | 128|    WithPf -> WITH . PF                                                       |    WithPf -> WITH . PF                                                       |
+# * 129|AHFA item 64: completion                                                      |AHFA item 64: sort = 65; completion                                           *
+# | 130|    WithPf -> WITH PF .                                                       |    WithPf -> WITH PF .                                                       |
+# * 131|AHFA item 65: postdot = "Input"                                               |AHFA item 65: sort = 18; postdot = "Input"                                    *
+# | 132|    Input[\'] -> . Input                                                      |    Input[\'] -> . Input                                                      |
+# * 133|AHFA item 66: completion                                                      |AHFA item 66: sort = 66; completion                                           *
+# | 134|    Input[\'] -> Input .                                                      |    Input[\'] -> Input .                                                      |
+# | 135|'                                                                             |'                                                                             |
+# +----+------------------------------------------------------------------------------+------------------------------------------------------------------------------+
+
 #   Failed test 'Earley Sets'
 #   at t/jirotka.t line 436.
 # +---+-----------------------------------------------+---+-----------------------------------------------+
@@ -1144,10 +1426,10 @@ t/initial_nulls.t ...... ok
 # * 69|S63@8-8                                        * 53|S39@8-8                                        *
 # | 70|'                                              | 54|'                                              |
 # +---+-----------------------------------------------+---+-----------------------------------------------+
-# Looks like you failed 2 tests of 8.
+# Looks like you failed 3 tests of 8.
 t/jirotka.t ............ 
-Dubious, test returned 2 (wstat 512, 0x200)
-Failed 2/8 subtests 
+Dubious, test returned 3 (wstat 768, 0x300)
+Failed 3/8 subtests 
 
 #   Failed test 'Leo168 AHFA'
 #   at t/leo.t line 81.
@@ -2363,30 +2645,30 @@ html/t/tang.t .......... ok
 
 Test Summary Report
 -------------------
-t/ah2.t              (Wstat: 512 Tests: 26 Failed: 2)
-  Failed tests:  9-10
-  Non-zero exit status: 2
+t/ah2.t              (Wstat: 768 Tests: 26 Failed: 3)
+  Failed tests:  8-10
+  Non-zero exit status: 3
 t/asf_syn.t          (Wstat: 256 Tests: 1 Failed: 1)
   Failed test:  1
   Non-zero exit status: 1
-t/bocage.t           (Wstat: 2048 Tests: 19 Failed: 8)
-  Failed tests:  7-9, 11, 13, 15, 18-19
-  Non-zero exit status: 8
+t/bocage.t           (Wstat: 2304 Tests: 19 Failed: 9)
+  Failed tests:  6-9, 11, 13, 15, 18-19
+  Non-zero exit status: 9
 t/duplicate_parse.t  (Wstat: 256 Tests: 5 Failed: 1)
   Failed test:  2
   Non-zero exit status: 1
-t/equation.t         (Wstat: 512 Tests: 12 Failed: 2)
-  Failed tests:  4, 6
-  Non-zero exit status: 2
+t/equation.t         (Wstat: 768 Tests: 12 Failed: 3)
+  Failed tests:  3-4, 6
+  Non-zero exit status: 3
 t/final_nonnullable.t (Wstat: 256 Tests: 10 Failed: 1)
   Failed test:  2
   Non-zero exit status: 1
 t/implementation.t   (Wstat: 512 Tests: 8 Failed: 2)
   Failed tests:  4-5
   Non-zero exit status: 2
-t/jirotka.t          (Wstat: 512 Tests: 8 Failed: 2)
-  Failed tests:  3, 5
-  Non-zero exit status: 2
+t/jirotka.t          (Wstat: 768 Tests: 8 Failed: 3)
+  Failed tests:  3-5
+  Non-zero exit status: 3
 t/leo.t              (Wstat: 256 Tests: 17 Failed: 1)
   Failed test:  3
   Non-zero exit status: 1
@@ -2414,6 +2696,6 @@ t/sl_ah2.t           (Wstat: 512 Tests: 26 Failed: 2)
 t/sl_gif1.t          (Wstat: 768 Tests: 22 Failed: 3)
   Failed tests:  17, 19, 21
   Non-zero exit status: 3
-Files=103, Tests=971, 51 wallclock secs ( 0.80 usr  0.42 sys + 46.95 cusr  2.60 csys = 50.77 CPU)
+Files=103, Tests=971, 51 wallclock secs ( 0.80 usr  0.39 sys + 47.36 cusr  2.42 csys = 50.97 CPU)
 Result: FAIL
-Failed 17/103 test programs. 38/971 subtests failed.
+Failed 17/103 test programs. 42/971 subtests failed.

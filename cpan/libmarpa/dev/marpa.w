@@ -4836,8 +4836,9 @@ typedef int Marpa_AHFA_Item_ID;
 @<Private structures@> =
 struct s_AHFA_item {
     int t_sort_key;
-    @<Widely aligned AHFA item elements@>@;
-    @<Int aligned AHFA item elements@>@;
+    @<Widely aligned AIM elements@>@;
+    @<Int aligned AIM elements@>@;
+    @<Bit aligned AIM elements@>@;
 };
 @ @<Private incomplete structures@> =
 struct s_AHFA_item;
@@ -4887,7 +4888,7 @@ return item_id < (AIMID)AIM_Count_of_G(g) && item_id >= 0;
 @d IRL_of_AIM(aim) ((aim)->t_irl)
 @d IRLID_of_AIM(item) ID_of_IRL(IRL_of_AIM(item))
 @d LHS_NSYID_of_AIM(item) LHSID_of_IRL(IRL_of_AIM(item))
-@<Widely aligned AHFA item elements@> =
+@<Widely aligned AIM elements@> =
     IRL t_irl;
 
 @*0 Postdot symbol.
@@ -4897,7 +4898,7 @@ return item_id < (AIMID)AIM_Count_of_G(g) && item_id >= 0;
 @d AIM_is_Leo(aim) (IRL_is_Leo(IRL_of_AIM(aim)))
 @d AIM_is_Leo_Completion(aim)
   (AIM_is_Completion(aim) && AIM_is_Leo(aim))
-@<Int aligned AHFA item elements@> = NSYID t_postdot_nsyid;
+@<Int aligned AIM elements@> = NSYID t_postdot_nsyid;
 
 @*0 Leading nulls.
 In libmarpa's AHFA items, the dot position is never in front
@@ -4906,7 +4907,7 @@ is also a nulling symbol.)
 This element contains the count of nulling symbols preceding
 this AHFA items's dot position.
 @d Null_Count_of_AIM(aim) ((aim)->t_leading_nulls)
-@<Int aligned AHFA item elements@> =
+@<Int aligned AIM elements@> =
 int t_leading_nulls;
 
 @*0 RHS Position.
@@ -4918,27 +4919,27 @@ based on the quasi-position.
 @d AIM_is_Prediction(aim) (
   Position_of_AIM(aim) >= 0
   && Position_of_AIM(aim) <= Null_Count_of_AIM(aim) )
-@<Int aligned AHFA item elements@> =
+@<Int aligned AIM elements@> =
 int t_position;
 
 @*0 Quasi-position.
 Quasi-positions are those modulo nulling symbols.
 @d Quasi_Position_of_AIM(aim) ((aim)->t_quasi_position)
-@<Int aligned AHFA item elements@> =
+@<Int aligned AIM elements@> =
   int t_quasi_position;
 
 @*0 Singleton AHFA.
 A singleton AHFA whose only AHFA item is
 this one.
 @d AHFA_of_AIM(aim) ((aim)->t_singleton_ahfa)
-@<Widely aligned AHFA item elements@> =
+@<Widely aligned AIM elements@> =
     AHFA t_singleton_ahfa;
 
 @*0 Predicted IRL's.
 A CIL representing the predicted IRL's.
 The empty CIL if there are none.
 @d Predicted_IRL_CIL_of_AIM(aim) ((aim)->t_predicted_irl_cil)
-@<Widely aligned AHFA item elements@> =
+@<Widely aligned AIM elements@> =
     CIL t_predicted_irl_cil;
 
 @*0 AHFA item external accessors.
@@ -5013,7 +5014,6 @@ int _marpa_g_AHFA_item_sort_key(Marpa_Grammar g,
     AIM_Count_of_G(g) = ahfa_item_count;
     g->t_AHFA_items = marpa_renew(struct s_AHFA_item, base_item, ahfa_item_count);
     @<Populate the first |AIM|'s of the |RULE|'s@>@;
-    @<Set up the AHFA item ids@>@;
 }
 
 @ @<Create the AHFA items for |irl|@> =
@@ -5072,6 +5072,7 @@ int _marpa_g_AHFA_item_sort_key(Marpa_Grammar g,
   IRL_of_AIM (current_item) = irl;
   Null_Count_of_AIM(current_item) = leading_nulls;
   Sort_Key_of_AIM (current_item) = current_item - base_item;
+  AIM_is_Populated(current_item) = 0;
   AHFA_of_AIM(current_item) = NULL;
   Quasi_Position_of_AIM(current_item) = current_item - first_aim_of_irl;
 }
@@ -5112,53 +5113,15 @@ PRIVATE_NOT_INLINE int cmp_by_aimid (const void* ap,
     return a-b;
 }
 
-@ The AHFA items were created with a temporary ID which sorts them
-by rule, then by position within that rule.  We need one that sort the AHFA items
-by (from major to minor) postdot symbol, then rule, then position.
-A postdot symbol of $-1$ should sort high.
-This comparison function is used in the logic to change the AHFA item ID's
-from their temporary values to their final ones.
-@ @<Function definitions@> =
-PRIVATE_NOT_INLINE int cmp_by_postdot_and_aimid (const void* ap,
-        const void* bp)
-{
-    AIM a = *(AIM*)ap;
-    AIM b = *(AIM*)bp;
-    int a_postdot = Postdot_NSYID_of_AIM(a);
-    int b_postdot = Postdot_NSYID_of_AIM(b);
-    if (a_postdot == b_postdot)
-      return Sort_Key_of_AIM (a) - Sort_Key_of_AIM (b);
-    if (a_postdot < 0) return 1;
-    if (b_postdot < 0) return -1;
-    return a_postdot-b_postdot;
-}
-
-@ Change the AHFA ID's from their temporary form to their
-final form.
-Pointers to the AHFA items are copied to a temporary array
-which is then sorted in the order required for the new ID.
-As a result, the final AHFA ID number will be the same as
-the index in this temporary arra.
-A final loop then indexes through
-the temporary array and writes the index to the pointed-to
-AHFA item as its new, final ID.
-@<Set up the AHFA item ids@> =
-{
-  Marpa_AHFA_Item_ID item_id;
-  AIM *sort_array = marpa_new (struct s_AHFA_item *, ahfa_item_count);
-  AIM items = g->t_AHFA_items;
-  for (item_id = 0; item_id < (Marpa_AHFA_Item_ID) ahfa_item_count; item_id++)
-    {
-      sort_array[item_id] = items + item_id;
-    }
-  qsort (sort_array, (size_t)ahfa_item_count,
-    sizeof (AIM), cmp_by_postdot_and_aimid);
-  for (item_id = 0; item_id < (Marpa_AHFA_Item_ID) ahfa_item_count; item_id++)
-    {
-      Sort_Key_of_AIM (sort_array[item_id]) = item_id;
-    }
-  my_free (sort_array);
-}
+@*0 Is AIM populated?.
+@ This boolean indicates whether the AIM
+is ``populated'' -- that is,
+whether certain data formerly associated with
+AHFA states has been computed.
+It essentially serves to prevent computing this data
+@d AIM_is_Populated(aim) ((aim)->t_is_populated)
+@<Bit aligned AIM elements@> =
+BITFIELD t_is_populated:1;
 
 @** AHFA state (AHFA) code.
 
@@ -5620,24 +5583,23 @@ PRIVATE_NOT_INLINE int AHFA_state_cmp(
   const int aim_count = AIM_Count_of_G (g);
   for (aim_id = 0; aim_id < aim_count; aim_id++)
     {
+      AHFA ahfa;
       const AIM aim = AIM_by_ID (aim_id);
+      if (AIM_is_Populated(aim)) continue;
       if (AIM_is_Prediction (aim))
 	{
-	  if (IRL_of_AIM (aim) != g->t_start_irl)
-	    {
-	      const AHFA ahfa = create_predicted_singleton (g, &states,
+	      ahfa = create_predicted_singleton (g, &states,
 					  duplicates,
 					  item_list_working_buffer, aim);
-              AHFA_of_AIM(aim) = ahfa;
-	    }
 	}
       else
 	{
-	  const AHFA ahfa = create_singleton_AHFA_state (g, aim,
+	  ahfa = create_singleton_AHFA_state (g, aim,
 				       &states, duplicates,
 				       item_list_working_buffer);
-          AHFA_of_AIM(aim) = ahfa;
 	}
+      AHFA_of_AIM(aim) = ahfa;
+      AIM_is_Populated(aim) = 1;
     }
 }
 
@@ -5717,6 +5679,7 @@ from AHFA states.
     cil_empty (&g->t_cilar);
 
   AHFA_of_AIM(start_item) = p_initial_state;
+  AIM_is_Populated(start_item) = 1;
 
   p_initial_state->t_empty_transition = NULL;
 }
