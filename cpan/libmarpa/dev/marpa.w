@@ -11614,7 +11614,7 @@ predecessor.  Set |or_node| to 0 if there is none.
     OR path_or_node;
     YIM base_earley_item;
     AEX base_aex = lim_base_data_get(path_leo_item, &base_earley_item);
-    Set_OR_from_YIM_and_AEX(dand_predecessor, base_earley_item, base_aex);
+    Set_OR_from_YIM(dand_predecessor, base_earley_item);
     @<Set |path_or_node|@>@;
     @<Add draft and-nodes to the bottom or-node@>@;
     previous_path_irl = path_irl;
@@ -11622,7 +11622,7 @@ predecessor.  Set |or_node| to 0 if there is none.
         path_leo_item = higher_path_leo_item;
         higher_path_leo_item = Predecessor_LIM_of_LIM(path_leo_item);
         base_aex = lim_base_data_get(path_leo_item, &base_earley_item);
-        Set_OR_from_YIM_and_AEX(dand_predecessor, base_earley_item, base_aex);
+        Set_OR_from_YIM(dand_predecessor, base_earley_item);
         @<Set |path_or_node|@>@;
         @<Add the draft and-nodes to an upper Leo path or-node@>@;
         previous_path_irl = path_irl;
@@ -11648,21 +11648,23 @@ predecessor.  Set |or_node| to 0 if there is none.
 {
   OR dand_cause;
     /* There is now only one AEX in a completion */
-  Set_OR_from_YIM_and_AEX (dand_cause, cause_earley_item, 0);
+  Set_OR_from_YIM(dand_cause, cause_earley_item);
   draft_and_node_add (bocage_setup_obs, path_or_node,
 		      dand_predecessor, dand_cause);
 }
 
 @ It is assumed that there is an or-node entry for
-|psia_yim| and |psia_aex|.
-@d Set_OR_from_YIM_and_AEX(psia_or, psia_yim, psia_aex) {
+|psia_yim| at index 0.
+(The index is obsolete now that the LR(0) states have
+been eliminated.)
+@d Set_OR_from_YIM(psia_or, psia_yim) {
   const YIM psia_earley_item = psia_yim;
   const int psia_earley_set_ordinal = YS_Ord_of_YIM (psia_earley_item);
   OR **const psia_nodes_by_item =
     per_ys_data[psia_earley_set_ordinal].t_aexes_by_item;
   const int psia_item_ordinal = Ord_of_YIM (psia_earley_item);
   OR *const psia_nodes_by_aex = psia_nodes_by_item[psia_item_ordinal];
-  psia_or = psia_nodes_by_aex ? psia_nodes_by_aex[psia_aex] : NULL;
+  psia_or = psia_nodes_by_aex ? psia_nodes_by_aex[0] : NULL;
 }
 
 @ @<Use Leo base data to set |path_or_node|@> =
@@ -11736,10 +11738,7 @@ predecessor.  Set |or_node| to 0 if there is none.
     }
   else
     {
-      const AEX predecessor_aex =
-        AEX_of_YIM_by_AIM (predecessor_earley_item, work_predecessor_aim);
-      Set_OR_from_YIM_and_AEX (dand_predecessor, predecessor_earley_item,
-                               predecessor_aex);
+      Set_OR_from_YIM (dand_predecessor, predecessor_earley_item);
     }
 }
 
