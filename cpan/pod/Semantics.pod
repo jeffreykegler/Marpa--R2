@@ -491,7 +491,7 @@ is always start location plus length.
 
 The C<lhs> array item descriptor puts
 a single-element list into the array.
-That one element will be the ID of the LHS symbol of 
+That one element will be the LHS symbol ID of 
 the rule or lexeme instance.
 
 =item C<value>
