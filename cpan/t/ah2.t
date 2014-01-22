@@ -286,10 +286,15 @@ S14@2-4 [p=S12@2-3; c=S17@3-4]
 S17@3-4 [p=S13@3-3; s=a; t=\'a']
 END_OF_SETS
 
+# say STDERR "AHFA:\n", $grammar->show_AHFA();
+
 my $input_length = 4;
 for (my $i = 0; $i < $input_length; $i++) {
+    # say STDERR "Earley sets at $i:\n", $recce->show_earley_sets();
     $recce->read( 'a', 'a' );
 }
+
+# say STDERR "Earley sets at end:\n", $recce->show_earley_sets();
 
 Marpa::R2::Test::is(
     $recce->show_earley_sets(1),

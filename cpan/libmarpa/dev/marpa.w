@@ -5870,6 +5870,7 @@ be if written 100\% using indexes.
   Bit_Matrix nsy_by_right_nsy_matrix;
    Bit_Matrix prediction_matrix;
    IRL* irl_by_sort_key = marpa_new(IRL, irl_count);
+   Bit_Matrix prediction_nsy_by_irl_matrix;
 
 @ Initialized based on the capacity of the XRL stack, rather
 than its length, as a convenient way to deal with issues
@@ -6093,6 +6094,9 @@ which can be used to index the rules in a boolean vector.
   prediction_matrix =
     matrix_obs_create (obs_precompute, nsy_count,
                        irl_count);
+  prediction_nsy_by_irl_matrix =
+    matrix_obs_create (obs_precompute, nsy_count,
+                       irl_count);
   for (from_nsyid = 0; from_nsyid < nsy_count; from_nsyid++)
     {
       // for every row of the symbol-by-symbol matrix
@@ -6117,6 +6121,8 @@ which can be used to index the rules in a boolean vector.
                   matrix_bit_set (prediction_matrix,
                                   from_nsyid, sort_ordinal);
                   // Set the $(symbol, rule sort key)$ bit in the matrix
+                  matrix_bit_set (prediction_nsy_by_irl_matrix,
+                                  from_nsyid, irl_with_this_lhs);
                 }
             }
         }
@@ -6305,7 +6311,7 @@ AHFAID _marpa_g_AHFA_state_empty_transition(Marpa_Grammar g,
 	{
 	  Predicted_IRL_CIL_of_AIM (aim) =
 	    cil_bv_add (&g->t_cilar,
-			matrix_row (prediction_matrix, postdot_nsyid));
+			matrix_row (prediction_nsy_by_irl_matrix, postdot_nsyid));
 	}
     }
 }
@@ -6615,10 +6621,12 @@ In the event of an error creating the recognizer,
 Marpa_Recognizer marpa_r_new( Marpa_Grammar g )
 {
     RECCE r;
-    NSYID nsy_count;
+    int nsy_count;
+    int irl_count;
     @<Return |NULL| on failure@>@;
     @<Fail if not precomputed@>@;
     nsy_count = NSY_Count_of_G(g);
+    irl_count = IRL_Count_of_G(g);
     r = my_malloc(sizeof(struct marpa_r));
     @<Initialize recognizer obstack@>@;
     @<Initialize recognizer elements@>@;
@@ -6788,10 +6796,6 @@ r->t_active_event_count = 0;
 A boolean vector by symbol ID,
 with the bits set if the symbol is expected
 at the current earleme.
-This vector is not size until input starts.
-When the recognizer is created,
-this boolean vector is initialized to |NULL| so that the destructor
-can tell if there is a boolean vector to be freed.
 @<Widely aligned recognizer elements@> = Bit_Vector t_bv_nsyid_is_expected;
 @ @<Initialize recognizer elements@> = 
     r->t_bv_nsyid_is_expected = bv_obs_create( r->t_obs, nsy_count );
@@ -6822,6 +6826,7 @@ int marpa_r_terminals_expected(Marpa_Recognizer r, Marpa_Symbol_ID* buffer)
       }
     return ix;
 }
+
 @ @<Function definitions@> =
 int marpa_r_terminal_is_expected(Marpa_Recognizer r,
 Marpa_Symbol_ID xsy_id)
@@ -7114,6 +7119,15 @@ Marpa_Recognizer r, int value)
     @<Fail if recognizer started@>@;
     return r->t_use_leo_flag = value ? 1 : 0;
 }
+
+@*0 Predicted IRL boolean vector.
+A boolean vector by IRL ID,
+used while building the Earley sets.
+It is set if an IRL has already been predicted,
+unset otherwise.
+@<Widely aligned recognizer elements@> = Bit_Vector t_bv_irl_is_predicted;
+@ @<Initialize recognizer elements@> = 
+    r->t_bv_irl_is_predicted = bv_obs_create( r->t_obs, irl_count );
 
 @*1 Is the parser exhausted?.
 A parser is ``exhausted" if it cannot accept any more input.
@@ -9004,6 +9018,7 @@ PRIVATE int alternative_insert(RECCE r, ALT new_alternative)
     YS set0;
     YIK_Object key;
 
+    IRL start_irl;
     AIM start_aim;
     AHFA start_ahfa;
     AHFA empty_ahfa;
@@ -9040,13 +9055,16 @@ PRIVATE int alternative_insert(RECCE r, ALT new_alternative)
     Latest_YS_of_R(r) = set0;
     First_YS_of_R(r) = set0;
 
-    start_aim = First_AIM_of_IRL(g->t_start_irl);
+    start_irl = g->t_start_irl;
+    start_aim = First_AIM_of_IRL(start_irl);
     start_ahfa = AHFA_of_AIM(start_aim);
 
     key.t_origin = set0;
     key.t_state = start_ahfa;
     key.t_set = set0;
     earley_item_create(r, key);
+    bv_clear (r->t_bv_irl_is_predicted);
+    bv_bit_set (r->t_bv_irl_is_predicted, ID_of_IRL(start_irl));
 
     {
       int cil_ix;
@@ -9055,19 +9073,26 @@ PRIVATE int alternative_insert(RECCE r, ALT new_alternative)
       for (cil_ix = 0; cil_ix < prediction_count; cil_ix++)
         {
           const IRLID prediction_irlid = Item_of_CIL (prediction_cil, cil_ix);
+          if (!bv_bit_test_then_set(r->t_bv_irl_is_predicted, prediction_irlid)) {
           const IRL prediction_irl = IRL_by_ID(prediction_irlid);
           const AIM prediction_aim = First_AIM_of_IRL(prediction_irl);
           const AHFA prediction_ahfa = AHFA_of_AIM(prediction_aim);
           key.t_state = prediction_ahfa;
-          if (0) { earley_item_create(r, key); }
+          if (1) { earley_item_create(r, key); }
+          }
         }
     }
 
-    empty_ahfa = Empty_Transition_of_AHFA(start_ahfa);
-    if (empty_ahfa) {
-        key.t_state = empty_ahfa;
-        earley_item_create(r, key);
-    } 
+    if (0)
+      {
+        empty_ahfa = Empty_Transition_of_AHFA (start_ahfa);
+        if (empty_ahfa)
+          {
+            key.t_state = empty_ahfa;
+            earley_item_create (r, key);
+          }
+      }
+
     postdot_items_create(r, bv_ok_for_chain, set0);
     earley_set_update_items(r, set0);
     r->t_is_using_leo = r->t_use_leo_flag;
@@ -9400,6 +9425,7 @@ marpa_r_earleme_complete(Marpa_Recognizer r)
     G_EVENTS_CLEAR(g);
     psar_dealloc(Dot_PSAR_of_R(r));
     bv_clear (r->t_bv_nsyid_is_expected);
+    bv_clear (r->t_bv_irl_is_predicted);
     @<Initialize |current_earleme|@>@;
     @<Return 0 if no alternatives@>@;
     @<Initialize |current_earley_set|@>@;
