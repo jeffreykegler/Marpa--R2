@@ -565,6 +565,13 @@ normalize-whitespace: 1
 
     :default ::= action => [values] bless => ::lhs
 
+=for Marpa::R2::Display::End
+
+=for Marpa::R2::Display
+name: SLIF DSL synopsis
+partial: 1
+normalize-whitespace: 1
+
     :default ::= action => [lhs,values]
 
 =for Marpa::R2::Display::End
@@ -629,6 +636,13 @@ partial: 1
 normalize-whitespace: 1
 
     lexeme default = action => [start,length,value] bless => ::name
+
+=for Marpa::R2::Display::End
+
+=for Marpa::R2::Display
+name: SLIF DSL synopsis
+partial: 1
+normalize-whitespace: 1
 
     lexeme default = action => [start,length,lhs,value]
 
