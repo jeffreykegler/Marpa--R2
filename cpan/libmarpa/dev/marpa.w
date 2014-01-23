@@ -10639,8 +10639,7 @@ requirements in the process.
   while ((this_leo_item = Predecessor_LIM_of_LIM (this_leo_item)))
     {
       const int ordinal_of_set_of_this_leo_item = Ord_of_YS(YS_of_LIM(this_leo_item));
-      const AIM path_ahfa_item = 
-       (AIM_of_AHFA(Base_to_AHFA_of_LIM(previous_leo_item)));
+      const AIM path_ahfa_item = Base_to_AIM_of_LIM(previous_leo_item);
       const IRL path_irl = IRL_of_AIM(path_ahfa_item);
       const int symbol_instance_of_path_ahfa_item = SYMI_of_AIM(path_ahfa_item);
       @<Add main Leo path or-node@>@;
@@ -11659,14 +11658,14 @@ int marpa_r_progress_report_reset( Marpa_Recognizer r)
   while (1)
     {
       YSID report_origin;
-      AHFA report_AHFA_state;
+      AIM report_aim;
       while (1)
-        {                       // this loop finds the next AHFA state to report
+        {                       // this loop finds the next AIM to report
           const int phase = next_phase;
           if (phase == initial_phase)
             {
               report_origin = Origin_Ord_of_YIM (earley_item);
-              report_AHFA_state = AHFA_of_YIM (earley_item);
+              report_aim = AIM_of_YIM (earley_item);
               next_phase = leo_source_link_phase;
               goto INSERT_ITEMS_INTO_TREE;
             }
@@ -11695,7 +11694,7 @@ int marpa_r_progress_report_reset( Marpa_Recognizer r)
                 }
               {
                 report_origin = Ord_of_YS (YS_of_LIM (leo_item));
-                report_AHFA_state = Base_to_AHFA_of_LIM(leo_item);
+                report_aim = Base_to_AIM_of_LIM(leo_item);
                 next_leo_item = Predecessor_LIM_of_LIM (leo_item);
                 goto INSERT_ITEMS_INTO_TREE;
               }
@@ -11703,14 +11702,13 @@ int marpa_r_progress_report_reset( Marpa_Recognizer r)
         NEXT_PHASE:;
         }
     INSERT_ITEMS_INTO_TREE:
-      @<Insert items into tree for |report_AHFA_state| and |report_origin|@>@;
+      @<Insert items into tree for |report_aim| and |report_origin|@>@;
     }
 NEXT_EARLEY_ITEM:;
 }
 
-@ @<Insert items into tree for |report_AHFA_state| and |report_origin|@> =
+@ @<Insert items into tree for |report_aim| and |report_origin|@> =
 {
-  const AIM report_aim = AIM_of_AHFA (report_AHFA_state);
   const IRL irl = IRL_of_AIM (report_aim);
   const XRL source_xrl = Source_XRL_of_IRL (irl);
   if (source_xrl)
@@ -11999,12 +11997,11 @@ to make sense.
     const int earley_item_count = YIM_Count_of_YS(end_of_parse_earley_set);
     for (yim_ix = 0; yim_ix < earley_item_count; yim_ix++) {
         const YIM earley_item = earley_items[yim_ix];
-        const AHFA ahfa_state = AHFA_of_YIM(earley_item);
         if (Origin_Earleme_of_YIM(earley_item) > 0) continue; // Not a start YIM
         if (YIM_was_Predicted(earley_item)) continue;
         {
-           const AIM ahfa_item = AIM_of_AHFA(ahfa_state);
-           if (IRLID_of_AIM(ahfa_item) == sought_irl_id) {
+           const AIM aim = AIM_of_YIM(earley_item);
+           if (IRLID_of_AIM(aim) == sought_irl_id) {
                 start_yim = earley_item;
                       break;
             }
