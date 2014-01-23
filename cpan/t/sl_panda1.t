@@ -23,7 +23,7 @@ use strict;
 use warnings;
 use English qw( -no_match_vars );
 
-use Test::More tests => 4;
+use Test::More tests => 3;
 use lib 'inc';
 use Marpa::R2::Test;
 use Marpa::R2;
@@ -250,59 +250,6 @@ END_OF_OUTPUT
 
 Marpa::R2::Test::is( $pruned_result, $pruned_expected,
     'Ambiguous English sentence using ASF: pruned' );
-
-my $located_actual = $asf->traverse( {}, \&located_traverser );
-
-sub located_traverser {
-
-    # This routine converts the glade into a list of Penn-tagged elements.  It is called recursively.
-    my ($glade, $scratch)     = @_;
-    my $rule_id     = $glade->rule_id();
-    my $symbol_id   = $glade->symbol_id();
-    my $symbol_name = $panda_grammar->symbol_name($symbol_id);
-
-    # A token is a single choice, and we know enough to fully Penn-tag it
-    if ( not defined $rule_id ) {
-        my $literal = $glade->literal();
-        my $penn_tag = penn_tag($symbol_name);
-        return "($penn_tag $literal)";
-    }
-    
-    my @return_value = $glade->rh_values();
-    # Special case for the start rule
-    return ( join q{ }, @return_value ) . "\n" if  $symbol_name eq '[:start]' ;
-
-# Marpa::R2::Display::Start
-# name: ASF span() traverser method example
-
-    my ( $start, $length ) = $glade->span();
-    my $end = $start + $length - 1;
-
-# Marpa::R2::Display::End
-
-    my $location = q{@};
-    $location .= $start >= $end ? $start : "$start-$end";
-    my $join_ws = q{ };
-    $join_ws = qq{\n   } if $symbol_name eq 'S';
-    return "($symbol_name$location " . ( join $join_ws, @return_value ) . ')';
-    my $penn_tag = penn_tag($symbol_name);
-    return "($penn_tag$location " . ( join $join_ws, @return_value ) . ')';
-
-}
-
-# name: ASF located synopsis output
-# start-after-line: END_OF_OUTPUT
-# end-before-line: '^END_OF_OUTPUT$'
-
-my $located_expected = <<'END_OF_OUTPUT';
-(S@0-30 (NP@0-6 (DT a) (NN panda))
-   (VP@8-29 (VBZ eats) (NP@13-29 (NNS shoots) (CC and) (NNS leaves)))
-   (. .))
-END_OF_OUTPUT
-
-# Marpa::R2::Display::End
-
-Marpa::R2::Test::is(  $located_actual, $located_expected, 'Located Penn tag example' );
 
 sub PennTags::do_S  { "(S $_[1]\n   $_[2]\n   (. .))" }
 
