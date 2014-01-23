@@ -130,10 +130,6 @@ my $pruned_result = $asf->traverse( {}, \&pruning_traverser );
 # name: ASF synopsis full traverser code
 sub full_traverser {
 
-    use Data::Dumper;
-    $Data::Dumper::Indent = 0;
-    $Data::Dumper::Terse = 1;
-
     # This routine converts the glade into a list of Penn-tagged elements.  It is called recursively.
     my ($glade, $scratch)     = @_;
     my $rule_id     = $glade->rule_id();
@@ -213,10 +209,6 @@ sub penn_tag {
    return q{.} if $symbol_name eq 'period';
    return $symbol_name;
 }
-
-use Data::Dumper;
-$Data::Dumper::Terse = 1;
-$Data::Dumper::Indent = 0;
 
 sub pruning_traverser {
 
