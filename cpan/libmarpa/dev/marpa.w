@@ -9126,7 +9126,7 @@ PRIVATE void trigger_events(RECCE r)
   struct marpa_obstack *const trigger_events_obs = marpa_obs_init;
   const YIM *yims = YIMs_of_YS (current_earley_set);
   const XSYID xsy_count = XSY_Count_of_G (g);
-  const AHFAID aim_count = AIM_Count_of_G (g);
+  const int aim_count = AIM_Count_of_G (g);
   Bit_Vector bv_completion_event_trigger =
     bv_obs_create (trigger_events_obs, xsy_count);
   Bit_Vector bv_nulled_event_trigger =
@@ -9643,9 +9643,9 @@ In a populated LIM, this will not necessarily be the case.
 {
   const YIM base_yim = Base_YIM_of_LIM (lim_to_process);
   const YS predecessor_set = Origin_of_YIM (base_yim);
-  const AHFA base_to_ahfa = Base_to_AHFA_of_LIM (lim_to_process);
+  const AIM base_to_aim = Base_to_AIM_of_LIM (lim_to_process);
   const NSYID predecessor_transition_nsyid =
-    LHSID_of_AHFA (base_to_ahfa);
+    LHSID_of_AIM (base_to_aim);
   PIM predecessor_pim;
   if (Ord_of_YS (predecessor_set) < Ord_of_YS (current_earley_set))
     {
@@ -9797,10 +9797,10 @@ and do not need to be changed.
 The predecessor LIM was initialized to |NULL|.
 of the base YIM.
 @<Populate |lim_to_process| from its base Earley item@> = {
-  const AHFA base_to_AHFA = Base_to_AHFA_of_LIM(lim_to_process);
+  const AIM base_to_aim = Base_to_AIM_of_LIM(lim_to_process);
   const YIM base_yim = Base_YIM_of_LIM(lim_to_process);
   Origin_of_LIM (lim_to_process) = Origin_of_YIM (base_yim);
-  CIL_of_LIM(lim_to_process) = Event_AIMIDs_of_AIM(AIM_of_AHFA(base_to_AHFA));
+  CIL_of_LIM(lim_to_process) = Event_AIMIDs_of_AIM(base_to_aim);
 }
 
 @ @<Copy PIM workarea to postdot item array@> = {
@@ -10242,8 +10242,7 @@ Set_boolean_in_PSIA_for_initial_nulls (struct marpa_obstack *bocage_setup_obs,
           const YIM leo_base_yim = Base_YIM_of_LIM (leo_predecessor);
           if (YIM_was_Predicted (leo_base_yim))
             {
-                const AHFA leo_final_ahfa = Base_to_AHFA_of_LIM(leo_predecessor);
-                const AIM leo_final_aim = AIM_of_AHFA(leo_final_ahfa);
+                const AIM leo_final_aim = Base_to_AIM_of_LIM(leo_predecessor);
                 const AIM prediction_aim = Prev_AIM_of_AIM(leo_final_aim);
                 Set_boolean_in_PSIA_for_initial_nulls (bocage_setup_obs, per_ys_data,
                                                        leo_base_yim, prediction_aim);
@@ -15505,7 +15504,7 @@ yim_tag_safe (char * buffer, YIM yim)
 {
   if (!yim) return "NULL";
   sprintf (buffer, "S%d@@%d-%d",
-           AHFAID_of_YIM (yim), Origin_Earleme_of_YIM (yim),
+           AIMID_of_YIM (yim), Origin_Earleme_of_YIM (yim),
            Earleme_of_YIM (yim));
   return buffer;
 }
