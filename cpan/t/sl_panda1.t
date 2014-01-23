@@ -35,8 +35,6 @@ use Marpa::R2;
 
 my $dsl = <<'END_OF_SOURCE';
 
-lexeme default = action => [value]
-
 S   ::= NP  VP  period  action => do_S
 
 NP  ::= NN              action => do_NP_NN
@@ -146,17 +144,15 @@ sub full_traverser {
     if ( not defined $rule_id ) {
         my $literal = $glade->literal();
         my $penn_tag = penn_tag($symbol_name);
+        return [ $glade->literal() ];
         return ["($penn_tag $literal)"];
-#        return [ $glade->literal() ]; # need to wrap it for passing to the rule closure
     } ## end if ( not defined $rule_id )
     
     # Our result will be a list of choices
     my @return_value = ();
 
-    warn "Rule ", $rule_id, ", Values: ", Dumper($glade->rh_values())," x\n";
     CHOICE: while (1) {
 
-        warn "  Rule ", $glade->rule_id(), ", Values: ", Dumper ( $glade->rh_values( $glade->rule_id() ) );
         # The results at each position are a list of choices, so
         # to produce a new result list, we need to take a Cartesian
         # product of all the choices
@@ -166,15 +162,12 @@ sub full_traverser {
             my @new_results = ();
             for my $old_result (@results) {
                 my $child_value = $values[$rh_ix];
-                warn "        child_value: ", Dumper $child_value;
                 for my $new_value ( @{ $child_value } ) {
-                    warn "        new_value: ", Dumper $new_value;
                     push @new_results, [ @{$old_result}, $new_value ];
                 }
             }
             @results = @new_results;
         } ## end for my $rh_ix ( 0 .. $length - 1 )
-        warn "    = ", Dumper \@results;
 
         # Special case for the start rule: just collapse one level of lists
         if ( $symbol_name eq '[:start]' ) {
@@ -190,7 +183,10 @@ sub full_traverser {
         $join_ws = qq{\n   } if $symbol_name eq 'S';
 
         push @return_value,
-            map { '(' . penn_tag($symbol_name) . q{ } . ( join $join_ws, @{$_} ) . ')' }
+            map {
+                $panda_recce->rule_closure($glade->rule_id())->( {}, @{$_} );
+#            '(' . penn_tag($symbol_name) . q{ } . ( join $join_ws, @{$_} ) . ')' 
+            }
             @results;
 
         # Look at the next alternative in this glade, or end the
@@ -198,7 +194,6 @@ sub full_traverser {
         last CHOICE if not defined $glade->next();
 
     } ## end CHOICE: while (1)
-    warn "\n";
     
     # Return the list of Penn-tagged elements for this glade
     return \@return_value;
@@ -233,7 +228,7 @@ sub pruning_traverser {
 
     # A token is a single choice, and we know enough to fully Penn-tag it
     if ( not defined $rule_id ) {
-        return [ $glade->literal() ]; # wrap for the closure call
+        return $glade->literal(); # wrap for the closure call
     }
 
     my @return_value = $glade->rh_values();
@@ -323,17 +318,17 @@ Marpa::R2::Test::is(  $located_actual, $located_expected, 'Located Penn tag exam
 
 sub PennTags::do_S  { "(S $_[1]\n   $_[2]\n   (. .))" }
 
-sub PennTags::do_NP_NN          { "(NP (NN $_[1]->[0]))" }
-sub PennTags::do_NP_NNS         { "(NP (NNS $_[1]->[0]))" }
-sub PennTags::do_NP_DT_NN       { "(NP (DT $_[1]->[0]) (NN $_[2]->[0]))" }
-sub PennTags::do_NP_NN_NNS      { "(NP (NN $_[1]->[0]) (NNS $_[2]->[0]))" }
-sub PennTags::do_NP_NNS_CC_NNS  { "(NP (NNS $_[1]->[0]) (CC $_[2]->[0]) (NNS $_[3]->[0]))" }
+sub PennTags::do_NP_NN          { "(NP (NN $_[1]))" }
+sub PennTags::do_NP_NNS         { "(NP (NNS $_[1]))" }
+sub PennTags::do_NP_DT_NN       { "(NP (DT $_[1]) (NN $_[2]))" }
+sub PennTags::do_NP_NN_NNS      { "(NP (NN $_[1]) (NNS $_[2]))" }
+sub PennTags::do_NP_NNS_CC_NNS  { "(NP (NNS $_[1]) (CC $_[2]) (NNS $_[3]))" }
 
-sub PennTags::do_VP_VBZ_NP      { "(VP (VBZ $_[1]->[0]) $_[2])" }
-sub PennTags::do_VP_VP_VBZ_NNS  { "(VP $_[1] (VBZ $_[2]->[0]) (NNS $_[3]->[0]))" }
-sub PennTags::do_VP_VP_CC_VP    { "(VP $_[1] (CC $_[2]->[0]) $_[3])" }
-sub PennTags::do_VP_VP_VP_CC_VP { "(VP $_[1] $_[2] (CC $_[3]->[0]) $_[4])" }
-sub PennTags::do_VP_VBZ         { "(VP (VBZ $_[1]->[0]))" }
+sub PennTags::do_VP_VBZ_NP      { "(VP (VBZ $_[1]) $_[2])" }
+sub PennTags::do_VP_VP_VBZ_NNS  { "(VP $_[1] (VBZ $_[2]) (NNS $_[3]))" }
+sub PennTags::do_VP_VP_CC_VP    { "(VP $_[1] (CC $_[2]) $_[3])" }
+sub PennTags::do_VP_VP_VP_CC_VP { "(VP $_[1] $_[2] (CC $_[3]) $_[4])" }
+sub PennTags::do_VP_VBZ         { "(VP (VBZ $_[1]))" }
 
 1;    # In case used as "do" file
 
