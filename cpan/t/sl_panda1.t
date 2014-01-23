@@ -138,10 +138,7 @@ sub full_traverser {
 
     # A token is a single choice, and we know enough to fully Penn-tag it
     if ( not defined $rule_id ) {
-        my $literal = $glade->literal();
-        my $penn_tag = penn_tag($symbol_name);
         return [ $glade->literal() ];
-        return ["($penn_tag $literal)"];
     } ## end if ( not defined $rule_id )
     
     # Our result will be a list of choices
@@ -181,7 +178,6 @@ sub full_traverser {
         push @return_value,
             map {
                 $panda_recce->rule_closure($glade->rule_id())->( {}, @{$_} );
-#            '(' . penn_tag($symbol_name) . q{ } . ( join $join_ws, @{$_} ) . ')' 
             }
             @results;
 
