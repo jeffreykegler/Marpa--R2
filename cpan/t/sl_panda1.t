@@ -130,8 +130,11 @@ my $pruned_result = $asf->traverse( {}, \&pruning_traverser );
 
 # Marpa::R2::Display
 # name: ASF synopsis full traverser code
-
 sub full_traverser {
+
+    use Data::Dumper;
+    $Data::Dumper::Indent = 0;
+    $Data::Dumper::Terse = 1;
 
     # This routine converts the glade into a list of Penn-tagged elements.  It is called recursively.
     my ($glade, $scratch)     = @_;
@@ -144,30 +147,36 @@ sub full_traverser {
         my $literal = $glade->literal();
         my $penn_tag = penn_tag($symbol_name);
         return ["($penn_tag $literal)"];
+#        return [ $glade->literal() ]; # need to wrap it for passing to the rule closure
     } ## end if ( not defined $rule_id )
     
     # Our result will be a list of choices
     my @return_value = ();
 
+    warn "Rule ", $rule_id, ", Values: ", Dumper($glade->rh_values())," x\n";
     CHOICE: while (1) {
 
+        warn "  Rule ", $glade->rule_id(), ", Values: ", Dumper ( $glade->rh_values( $glade->rule_id() ) );
         # The results at each position are a list of choices, so
         # to produce a new result list, we need to take a Cartesian
         # product of all the choices
-        my $length = $glade->rh_length();
+        my @values = $glade->rh_values();
         my @results = ( [] );
-        for my $rh_ix ( 0 .. $length - 1 ) {
+        for my $rh_ix ( 0 .. @values - 1 ) {
             my @new_results = ();
             for my $old_result (@results) {
-                my $child_value = $glade->rh_value($rh_ix);
+                my $child_value = $values[$rh_ix];
+                warn "        child_value: ", Dumper $child_value;
                 for my $new_value ( @{ $child_value } ) {
+                    warn "        new_value: ", Dumper $new_value;
                     push @new_results, [ @{$old_result}, $new_value ];
                 }
             }
             @results = @new_results;
         } ## end for my $rh_ix ( 0 .. $length - 1 )
+        warn "    = ", Dumper \@results;
 
-        # Special case for the start rule
+        # Special case for the start rule: just collapse one level of lists
         if ( $symbol_name eq '[:start]' ) {
             return [ map { join q{}, @{$_} } @results ];
         }
@@ -189,7 +198,8 @@ sub full_traverser {
         last CHOICE if not defined $glade->next();
 
     } ## end CHOICE: while (1)
-
+    warn "\n";
+    
     # Return the list of Penn-tagged elements for this glade
     return \@return_value;
 } ## end sub full_traverser
