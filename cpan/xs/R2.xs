@@ -4056,7 +4056,7 @@ PPCODE:
 void
 _marpa_g_AHFA_item_irl( g_wrapper, item_id )
     G_Wrapper *g_wrapper;
-    Marpa_AHFA_Item_ID item_id;
+    Marpa_AIM_ID item_id;
 PPCODE:
 {
     Marpa_Grammar g = g_wrapper->g;
@@ -4070,7 +4070,7 @@ PPCODE:
 void
 _marpa_g_AHFA_item_position( g_wrapper, item_id )
     G_Wrapper *g_wrapper;
-    Marpa_AHFA_Item_ID item_id;
+    Marpa_AIM_ID item_id;
 PPCODE:
 {
     Marpa_Grammar g = g_wrapper->g;
@@ -4084,7 +4084,7 @@ PPCODE:
 void
 _marpa_g_AHFA_item_postdot( g_wrapper, item_id )
     G_Wrapper *g_wrapper;
-    Marpa_AHFA_Item_ID item_id;
+    Marpa_AIM_ID item_id;
 PPCODE:
 {
     Marpa_Grammar g = g_wrapper->g;

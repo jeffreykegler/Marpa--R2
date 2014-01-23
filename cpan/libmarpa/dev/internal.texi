@@ -270,23 +270,23 @@ Marpa's internals, as described in
 @deftypefun int _marpa_g_AHFA_item_count (Marpa_Grammar @var{g})
 @end deftypefun
 @deftypefun Marpa_Rule_ID _marpa_g_AHFA_item_irl (Marpa_Grammar @var{g}, @
-    Marpa_AHFA_Item_ID @var{item_id})
+    Marpa_AIM_ID @var{item_id})
 @end deftypefun
 @deftypefun int _marpa_g_AHFA_item_position (Marpa_Grammar @var{g}, @
-    Marpa_AHFA_Item_ID @var{item_id})
+    Marpa_AIM_ID @var{item_id})
 @end deftypefun
 @deftypefun Marpa_Symbol_ID _marpa_g_AHFA_item_postdot (Marpa_Grammar @var{g}, @
-    Marpa_AHFA_Item_ID @var{item_id})
+    Marpa_AIM_ID @var{item_id})
 @end deftypefun
 @deftypefun int _marpa_g_AHFA_item_sort_key (Marpa_Grammar @var{g}, @
-    Marpa_AHFA_Item_ID @var{item_id})
+    Marpa_AIM_ID @var{item_id})
 @end deftypefun
 @deftypefun int _marpa_g_AHFA_state_count (Marpa_Grammar @var{g})
 @end deftypefun
 @deftypefun int _marpa_g_AHFA_state_item_count (Marpa_Grammar @var{g}, @
     Marpa_AHFA_State_ID @var{AHFA_state_id})
 @end deftypefun
-@deftypefun Marpa_AHFA_Item_ID _marpa_g_AHFA_state_item (Marpa_Grammar @var{g}, @
+@deftypefun Marpa_AIM_ID _marpa_g_AHFA_state_item (Marpa_Grammar @var{g}, @
      Marpa_AHFA_State_ID @var{AHFA_state_id}, @
  int @var{item_ix})
 @end deftypefun
@@ -306,7 +306,7 @@ Marpa's internals, as described in
 @end deftypefun
 @deftypefun Marpa_AHFA_State_ID _marpa_g_AHFA_state_empty_transition ( @
     Marpa_Grammar @var{g}, @
-     Marpa_AHFA_Item_ID @var{AHFA_item_id})
+     Marpa_AIM_ID @var{AHFA_item_id})
 @end deftypefun
 
 @node Recognizer internals, Bocage internals, Grammar internals, Internal Interface

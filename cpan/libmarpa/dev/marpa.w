@@ -4826,7 +4826,7 @@ The finite automaton is not longer in use, but its special
 items (dotted rules which ignore nullables) remain very
 much a part of Marpa's parsing strategy.
 @<Public typedefs@> =
-typedef int Marpa_AHFA_Item_ID;
+typedef int Marpa_AIM_ID;
 @ @<Private structures@> =
 struct s_aim {
     @<Widely aligned AIM elements@>@;
@@ -4836,7 +4836,7 @@ struct s_aim {
 @ @<Private incomplete structures@> =
 struct s_aim;
 typedef struct s_aim* AIM;
-typedef Marpa_AHFA_Item_ID AIMID;
+typedef Marpa_AIM_ID AIMID;
 
 @ A pointer to two lists of AHFA items.
 The one list contains the AHFA items themselves, in
@@ -4950,7 +4950,7 @@ int _marpa_g_AHFA_item_count(Marpa_Grammar g) {
 
 @ @<Function definitions@> =
 Marpa_IRL_ID _marpa_g_AHFA_item_irl(Marpa_Grammar g,
-        Marpa_AHFA_Item_ID item_id) {
+        Marpa_AIM_ID item_id) {
     @<Return |-2| on failure@>@/
     @<Fail if not precomputed@>@/
     @<Fail if |item_id| is invalid@>@/
@@ -4960,7 +4960,7 @@ Marpa_IRL_ID _marpa_g_AHFA_item_irl(Marpa_Grammar g,
 @ |-1| is the value for completions, so |-2| is the failure indicator.
 @ @<Function definitions@> =
 int _marpa_g_AHFA_item_position(Marpa_Grammar g,
-        Marpa_AHFA_Item_ID item_id) {
+        Marpa_AIM_ID item_id) {
     @<Return |-2| on failure@>@/
     @<Fail if not precomputed@>@/
     @<Fail if |item_id| is invalid@>@/
@@ -4970,7 +4970,7 @@ int _marpa_g_AHFA_item_position(Marpa_Grammar g,
 @ |-1| is the value for completions, so |-2| is the failure indicator.
 @ @<Function definitions@> =
 Marpa_Symbol_ID _marpa_g_AHFA_item_postdot(Marpa_Grammar g,
-        Marpa_AHFA_Item_ID item_id) {
+        Marpa_AIM_ID item_id) {
     @<Return |-2| on failure@>@/
     @<Fail if not precomputed@>@/
     @<Fail if |item_id| is invalid@>@/
@@ -4981,7 +4981,7 @@ Marpa_Symbol_ID _marpa_g_AHFA_item_postdot(Marpa_Grammar g,
 @ @<Create AHFA items@> =
 {
     IRLID irl_id;
-    int ahfa_item_count = 0;
+    int aim_count = 0;
     AIM base_item;
     AIM current_item;
     int symbol_instance_of_next_rule = 0;
@@ -4989,7 +4989,7 @@ Marpa_Symbol_ID _marpa_g_AHFA_item_postdot(Marpa_Grammar g,
       const IRL irl = IRL_by_ID(irl_id);
       @<Count the AHFA items in a rule@>@;
     }
-    current_item = base_item = marpa_new(struct s_aim, ahfa_item_count);
+    current_item = base_item = marpa_new(struct s_aim, aim_count);
     for (irl_id = 0; irl_id < irl_count; irl_id++) {
       const IRL irl = IRL_by_ID(irl_id);
       @<Create the AHFA items for |irl|@>@;
@@ -4999,9 +4999,9 @@ Marpa_Symbol_ID _marpa_g_AHFA_item_postdot(Marpa_Grammar g,
       }
     }
     SYMI_Count_of_G(g) = symbol_instance_of_next_rule;
-    MARPA_ASSERT(ahfa_item_count == current_item - base_item);
-    AIM_Count_of_G(g) = ahfa_item_count;
-    g->t_aims = marpa_renew(struct s_aim, base_item, ahfa_item_count);
+    MARPA_ASSERT(aim_count == current_item - base_item);
+    AIM_Count_of_G(g) = aim_count;
+    g->t_aims = marpa_renew(struct s_aim, base_item, aim_count);
     @<Populate the first |AIM|'s of the |RULE|'s@>@;
 }
 
@@ -5037,9 +5037,9 @@ Marpa_Symbol_ID _marpa_g_AHFA_item_postdot(Marpa_Grammar g,
     {
       const NSYID rh_nsyid = RHSID_of_IRL (irl, rhs_ix);
       const NSY nsy = NSY_by_ID (rh_nsyid);
-      if (!NSY_is_Nulling(nsy)) ahfa_item_count++;
+      if (!NSY_is_Nulling(nsy)) aim_count++;
     }
-  ahfa_item_count++;
+  aim_count++;
 }
 
 @ @<Create an AHFA item for a precompletion@> =
@@ -5077,7 +5077,7 @@ we are traversing backwards.
 @<Populate the first |AIM|'s of the |RULE|'s@> =
 {
   AIM items = g->t_aims;
-  AIMID item_id = (AIMID) ahfa_item_count;
+  AIMID item_id = (AIMID) aim_count;
   for (item_id--; item_id >= 0; item_id--)
     {
       AIM item = items + item_id;
@@ -5305,7 +5305,7 @@ int _marpa_g_AHFA_state_count(Marpa_Grammar g) {
 }
 
 @ @<Function definitions@> =
-Marpa_AHFA_Item_ID _marpa_g_AHFA_state_item(Marpa_Grammar g,
+Marpa_AIM_ID _marpa_g_AHFA_state_item(Marpa_Grammar g,
      AHFAID AHFA_state_id,
         int item_ix) {
     AHFA state;
@@ -10465,10 +10465,10 @@ Top_ORID_of_B(b) = -1;
 
 @ @<Create the or-nodes for |work_earley_item| and |work_aex|@> =
 {
-  AIM ahfa_item = AIM_of_YIM(work_earley_item);
-  SYMI ahfa_item_symbol_instance;
+  AIM aim = AIM_of_YIM(work_earley_item);
+  SYMI aim_symbol_instance;
   OR psia_or_node = NULL;
-  ahfa_item_symbol_instance = SYMI_of_AIM(ahfa_item);
+  aim_symbol_instance = SYMI_of_AIM(aim);
   {
         PSL or_psl;
         {
@@ -10496,22 +10496,22 @@ The exception are predicted AHFA items.
 Or-nodes are not added for predicted AHFA items.
 @<Add main or-node@> =
 {
-  if (ahfa_item_symbol_instance >= 0)
+  if (aim_symbol_instance >= 0)
     {
       OR or_node;
-MARPA_ASSERT(ahfa_item_symbol_instance < SYMI_Count_of_G(g))@;
-      or_node = PSL_Datum (or_psl, ahfa_item_symbol_instance);
+MARPA_ASSERT(aim_symbol_instance < SYMI_Count_of_G(g))@;
+      or_node = PSL_Datum (or_psl, aim_symbol_instance);
       if (!or_node || YS_Ord_of_OR(or_node) != work_earley_set_ordinal)
         {
-          const IRL irl = IRL_of_AIM(ahfa_item);
+          const IRL irl = IRL_of_AIM(aim);
           @<Set |last_or_node| to a new or-node@>@;
           or_node = last_or_node;
-          PSL_Datum (or_psl, ahfa_item_symbol_instance) = last_or_node;
+          PSL_Datum (or_psl, aim_symbol_instance) = last_or_node;
           Origin_Ord_of_OR(or_node) = Origin_Ord_of_YIM(work_earley_item);
           YS_Ord_of_OR(or_node) = work_earley_set_ordinal;
           IRL_of_OR(or_node) = irl;
           Position_of_OR (or_node) =
-              ahfa_item_symbol_instance - SYMI_of_IRL (irl) + 1;
+              aim_symbol_instance - SYMI_of_IRL (irl) + 1;
           DANDs_of_OR(or_node) = NULL;
         }
         psia_or_node = or_node;
@@ -10550,14 +10550,14 @@ The exception is where there is no predecessor,
 and this is the case if |Position_of_OR(or_node) == 0|.
 @<Add nulling token or-nodes@> =
 {
-  const int null_count = Null_Count_of_AIM (ahfa_item);
+  const int null_count = Null_Count_of_AIM (aim);
   if (null_count > 0)
     {
-      const IRL irl = IRL_of_AIM (ahfa_item);
+      const IRL irl = IRL_of_AIM (aim);
       const int symbol_instance_of_rule = SYMI_of_IRL(irl);
         const int first_null_symbol_instance =
-          ahfa_item_symbol_instance <
-          0 ? symbol_instance_of_rule : ahfa_item_symbol_instance + 1;
+          aim_symbol_instance <
+          0 ? symbol_instance_of_rule : aim_symbol_instance + 1;
       int i;
       for (i = 0; i < null_count; i++)
         {
@@ -10615,9 +10615,9 @@ requirements in the process.
   while ((this_leo_item = Predecessor_LIM_of_LIM (this_leo_item)))
     {
       const int ordinal_of_set_of_this_leo_item = Ord_of_YS(YS_of_LIM(this_leo_item));
-      const AIM path_ahfa_item = Base_to_AIM_of_LIM(previous_leo_item);
-      const IRL path_irl = IRL_of_AIM(path_ahfa_item);
-      const int symbol_instance_of_path_ahfa_item = SYMI_of_AIM(path_ahfa_item);
+      const AIM path_aim = Base_to_AIM_of_LIM(previous_leo_item);
+      const IRL path_irl = IRL_of_AIM(path_aim);
+      const int symbol_instance_of_path_aim = SYMI_of_AIM(path_aim);
       @<Add main Leo path or-node@>@;
       @<Add Leo path nulling token or-nodes@>@;
       previous_leo_item = this_leo_item;
@@ -10638,17 +10638,17 @@ corresponds to the Leo predecessor.
         @<Claim the or-node PSL for |psl_ys_ord| as |claimed_psl|@>@;
         leo_psl = claimed_psl ;
       }
-      or_node = PSL_Datum (leo_psl, symbol_instance_of_path_ahfa_item);
+      or_node = PSL_Datum (leo_psl, symbol_instance_of_path_aim);
       if (!or_node || YS_Ord_of_OR(or_node) != work_earley_set_ordinal)
         {
           @<Set |last_or_node| to a new or-node@>@;
-          PSL_Datum (leo_psl, symbol_instance_of_path_ahfa_item) = or_node =
+          PSL_Datum (leo_psl, symbol_instance_of_path_aim) = or_node =
               last_or_node;
           Origin_Ord_of_OR(or_node) = ordinal_of_set_of_this_leo_item;
           YS_Ord_of_OR(or_node) = work_earley_set_ordinal;
           IRL_of_OR(or_node) = path_irl;
           Position_of_OR (or_node) =
-              symbol_instance_of_path_ahfa_item - SYMI_of_IRL (path_irl) + 1;
+              symbol_instance_of_path_aim - SYMI_of_IRL (path_irl) + 1;
           DANDs_of_OR(or_node) = NULL;
         }
     }
@@ -10661,10 +10661,10 @@ or-nodes follow a completion.
 @<Add Leo path nulling token or-nodes@> =
 {
   int i;
-  const int null_count = Null_Count_of_AIM (path_ahfa_item);
+  const int null_count = Null_Count_of_AIM (path_aim);
   for (i = 1; i <= null_count; i++)
     {
-      const int symbol_instance = symbol_instance_of_path_ahfa_item + i;
+      const int symbol_instance = symbol_instance_of_path_aim + i;
       OR or_node = PSL_Datum (this_earley_set_psl, symbol_instance);
       MARPA_ASSERT (symbol_instance < SYMI_Count_of_G (g)) @;
       if (!or_node || YS_Ord_of_OR (or_node) != work_earley_set_ordinal)
@@ -11008,10 +11008,10 @@ predecessor.  Set |or_node| to 0 if there is none.
 @ @<Create draft and-nodes for |or_node|@> =
 {
     unsigned int work_source_type = Source_Type_of_YIM (work_earley_item);
-    const AIM work_ahfa_item = AIM_of_YIM (work_earley_item);
-    MARPA_ASSERT (work_ahfa_item >= AIM_by_ID (1))@;
-    const AIM work_predecessor_aim = work_ahfa_item - 1;
-    const int work_symbol_instance = SYMI_of_AIM (work_ahfa_item);
+    const AIM work_aim = AIM_of_YIM (work_earley_item);
+    MARPA_ASSERT (work_aim >= AIM_by_ID (1))@;
+    const AIM work_predecessor_aim = work_aim - 1;
+    const int work_symbol_instance = SYMI_of_AIM (work_aim);
     OR work_proper_or_node;
     {
       const int origin = work_origin_ordinal;
@@ -11215,9 +11215,9 @@ been eliminated.)
   OR dand_cause;
   const int middle_ordinal = Origin_Ord_of_YIM(cause_earley_item);
   /* There is now only one AEX in a completion */
-  const AIM cause_ahfa_item = AIM_of_YIM(cause_earley_item);
+  const AIM cause_aim = AIM_of_YIM(cause_earley_item);
   const SYMI cause_symbol_instance =
-      SYMI_of_Completed_IRL(IRL_of_AIM(cause_ahfa_item));
+      SYMI_of_Completed_IRL(IRL_of_AIM(cause_aim));
   @<Set |dand_predecessor|@>@;
   {
     const int origin = middle_ordinal;
