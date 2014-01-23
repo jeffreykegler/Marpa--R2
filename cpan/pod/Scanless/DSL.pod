@@ -171,7 +171,7 @@ will all be regarded as the same symbol name.
 The explicit form of that symbol name
 is C<< <op comma> >>, except that, again, the
 angle brackets are for clarity,
-and are not part of the explicity name.
+and are not part of the explicit name.
 
 Explicit, reserved and internal symbol names are often
 displayed between angle brackets,
