@@ -5095,7 +5095,6 @@ It essentially serves to prevent computing this data
 typedef int Marpa_AHFA_State_ID;
 @ @<Private typedefs@> =
 typedef struct s_AHFA_state* AHFA;
-typedef int AHFAID;
 @ @<Private incomplete structures@> = struct s_AHFA_state;
 @ @<Private structures@> =
 struct s_AHFA_state_key {
@@ -5113,7 +5112,7 @@ Most are set dependent on context.
 @<Function definitions@> =
 PRIVATE void AHFA_initialize(GRAMMAR g, AHFA ahfa)
 {
-    const AHFAID new_AHFA_id = AHFA_Count_of_G(g)++;
+    const int new_AHFA_id = AHFA_Count_of_G(g)++;
     ahfa->t_key.t_id = new_AHFA_id;
 }
 
@@ -5195,40 +5194,6 @@ AHFA_Count_of_G(g) = 0;
 
 @*0 ID of AHFA state.
 @d ID_of_AHFA(state) ((state)->t_key.t_id)
-
-@*0 Validate AHFA ID.
-Check that AHFA ID is in valid range.
-@<Function definitions@> =
-PRIVATE int AHFA_state_id_is_valid(GRAMMAR g, AHFAID AHFA_state_id)
-{
-    return AHFA_state_id < AHFA_Count_of_G(g) && AHFA_state_id >= 0;
-}
-
-@*0 AHFA state external accessors.
-@<Function definitions@> =
-int _marpa_g_AHFA_state_count(Marpa_Grammar g) {
-    return AHFA_Count_of_G(g);
-}
-
-@ @<Function definitions@> =
-Marpa_AIM_ID _marpa_g_AHFA_state_item(Marpa_Grammar g,
-     AHFAID AHFA_state_id,
-        int item_ix) {
-    AHFA state;
-    @<Return |-2| on failure@>@/
-    @<Fail if not precomputed@>@/
-    @<Fail if |AHFA_state_id| is invalid@>@/
-    state = AHFA_by_ID(AHFA_state_id);
-    if (item_ix < 0) {
-        MARPA_ERROR(MARPA_ERR_AHFA_IX_NEGATIVE);
-        return failure_indicator;
-    }
-    if (item_ix != 0) {
-        MARPA_ERROR(MARPA_ERR_AHFA_IX_OOB);
-        return failure_indicator;
-    }
-    return ID_of_AIM(AIM_of_AHFA(state));
-}
 
 @*0 The NSY right derivation matrix.
 The NSY right derivation matrix is used in determining which
@@ -6877,7 +6842,7 @@ _marpa_r_earley_item_trace (Marpa_Recognizer r, Marpa_Earley_Item_ID item_id)
   earley_items = YIMs_of_YS (trace_earley_set);
   earley_item = earley_items[item_id];
   r->t_trace_earley_item = earley_item;
-  return AHFAID_of_YIM (earley_item);
+  return AIMID_of_YIM (earley_item);
 }
 
 @ Clear all the data elements specifically
@@ -6957,8 +6922,8 @@ the Earley set.
 @d YS_Ord_of_YIM(item) (Ord_of_YS(YS_of_YIM(item)))
 @d Ord_of_YIM(item) ((item)->t_ordinal)
 @d Earleme_of_YIM(item) Earleme_of_YS(YS_of_YIM(item))
-@d AHFAID_of_YIM(item) (ID_of_AHFA(AHFA_of_YIM(item)))
 @d AIM_of_YIM(item) ((item)->t_key.t_aim)
+@d AIMID_of_YIM(item) ID_of_AIM(AIM_of_YIM(item))
 @d AHFA_of_YIM(item) AHFA_of_AIM(AIM_of_YIM(item))
 @d Origin_Earleme_of_YIM(item) (Earleme_of_YS(Origin_of_YIM(item)))
 @d Origin_Ord_of_YIM(item) (Ord_of_YS(Origin_of_YIM(item)))
@@ -7215,7 +7180,8 @@ Marpa_Earley_Set_ID _marpa_r_leo_base_origin(Marpa_Recognizer r)
   return Origin_Ord_of_YIM(base_earley_item);
 }
 
-@ @<Function definitions@> =
+@ Actually return AIM ID, not the obsolete AHFA ID.
+@<Function definitions@> =
 Marpa_AHFA_State_ID _marpa_r_leo_base_state(Marpa_Recognizer r)
 {
   const JEARLEME pim_is_not_a_leo_item = -1;
@@ -7230,7 +7196,7 @@ Marpa_AHFA_State_ID _marpa_r_leo_base_state(Marpa_Recognizer r)
   }
   if (YIM_of_PIM(postdot_item)) return pim_is_not_a_leo_item;
   base_earley_item = Base_YIM_of_LIM(LIM_of_PIM(postdot_item));
-  return AHFAID_of_YIM(base_earley_item);
+  return AIMID_of_YIM(base_earley_item);
 }
 
 @** Postdot item (PIM) code.
@@ -7533,8 +7499,8 @@ union u_source_container {
 @d NSYID_of_YIM(yim) NSYID_of_Source(Source_of_YIM(yim))
 @d NSYID_of_SRCL(link) NSYID_of_Source(Source_of_SRCL(link))
 
-@ @d Cause_AHFAID_of_SRCL(srcl)
-    AHFAID_of_YIM((YIM)Cause_of_SRCL(srcl))
+@ @d Cause_AIMID_of_SRCL(srcl)
+    AIMID_of_YIM((YIM)Cause_of_SRCL(srcl))
 @d Leo_Transition_NSYID_of_SRCL(leo_source_link)
     Postdot_NSYID_of_LIM(LIM_of_SRCL(leo_source_link))
 
@@ -7836,7 +7802,8 @@ Marpa_Symbol_ID _marpa_r_next_token_link_trace(Marpa_Recognizer r)
 @*1 Trace first completion link.
 @ Set the trace source link to a completion link,
 if there is one, otherwise clear the completion source link.
-Returns the AHFA state ID of the cause
+Returns the AIM ID
+(not the obsolete AHFA state ID) of the cause
 if there was a completion source link,
 |-1| if there was none,
 and |-2| on some other kind of failure.
@@ -7856,7 +7823,7 @@ Marpa_Symbol_ID _marpa_r_first_completion_link_trace(Marpa_Recognizer r)
         r->t_trace_source_type = SOURCE_IS_COMPLETION;
         source_link = SRCL_of_YIM(item);
         r->t_trace_source_link = source_link;
-        return Cause_AHFAID_of_SRCL (source_link);
+        return Cause_AIMID_of_SRCL (source_link);
       case SOURCE_IS_AMBIGUOUS:
         {
           source_link = LV_First_Completion_SRCL_of_YIM (item);
@@ -7864,7 +7831,7 @@ Marpa_Symbol_ID _marpa_r_first_completion_link_trace(Marpa_Recognizer r)
             {
               r->t_trace_source_type = SOURCE_IS_COMPLETION;
               r->t_trace_source_link = source_link;
-              return Cause_AHFAID_of_SRCL (source_link);
+              return Cause_AIMID_of_SRCL (source_link);
             }
         }
       }
@@ -7876,7 +7843,7 @@ Marpa_Symbol_ID _marpa_r_first_completion_link_trace(Marpa_Recognizer r)
 @ Set the trace source link to the next completion link,
 if there is one.
 Otherwise clear the trace source link.
-@ Returns the symbol ID if there is
+@ Returns the cause AIM ID if there is
 a next completion source link,
 |-1| if there was none,
 and |-2| on some other kind of failure.
@@ -7900,13 +7867,14 @@ Marpa_Symbol_ID _marpa_r_next_completion_link_trace(Marpa_Recognizer r)
         return -1;
     }
     r->t_trace_source_link = source_link;
-    return Cause_AHFAID_of_SRCL (source_link);
+    return Cause_AIMID_of_SRCL (source_link);
 }
 
 @*1 Trace first Leo link.
 @ Set the trace source link to a Leo link,
 if there is one, otherwise clear the Leo source link.
-Returns the AHFA state ID of the cause
+Returns the AIM ID (not
+the obsolete AHFA state ID) of the cause
 if there was a Leo source link,
 |-1| if there was none,
 and |-2| on some other kind of failure.
@@ -7924,7 +7892,7 @@ _marpa_r_first_leo_link_trace (Marpa_Recognizer r)
   if (source_link) {
       r->t_trace_source_type = SOURCE_IS_LEO;
       r->t_trace_source_link = source_link;
-      return Cause_AHFAID_of_SRCL (source_link);
+      return Cause_AIMID_of_SRCL (source_link);
   }
   trace_source_link_clear (r);
   return -1;
@@ -7934,7 +7902,7 @@ _marpa_r_first_leo_link_trace (Marpa_Recognizer r)
 @ Set the trace source link to the next Leo link,
 if there is one.
 Otherwise clear the trace source link.
-@ Returns the symbol ID if there is
+@ Returns the AIM ID if there is
 a next Leo source link,
 |-1| if there was none,
 and |-2| on some other kind of failure.
@@ -7961,7 +7929,7 @@ _marpa_r_next_leo_link_trace (Marpa_Recognizer r)
       return -1;
     }
   r->t_trace_source_link = source_link;
-  return Cause_AHFAID_of_SRCL (source_link);
+  return Cause_AIMID_of_SRCL (source_link);
 }
 
 @ @<Set |item|, failing if necessary@> =
@@ -7980,8 +7948,8 @@ PRIVATE void trace_source_link_clear(RECCE r)
     r->t_trace_source_type = NO_SOURCE;
 }
 
-@*1 Return the predecessor AHFA state.
-Returns the predecessor AHFA State,
+@*1 Return the predecessor AIM ID.
+Returns the predecessor AIM ID,
 or -1 if there is no predecessor.
 If the recognizer is not trace-safe,
 if there is no trace source link,
@@ -7989,7 +7957,7 @@ if the trace source link is a Leo source,
 or if there is some other failure,
 |-2| is returned.
 @<Function definitions@> =
-AHFAID _marpa_r_source_predecessor_state(Marpa_Recognizer r)
+AIMID _marpa_r_source_predecessor_state(Marpa_Recognizer r)
 {
    @<Return |-2| on failure@>@/
    unsigned int source_type;
@@ -8004,7 +7972,7 @@ AHFAID _marpa_r_source_predecessor_state(Marpa_Recognizer r)
     case SOURCE_IS_COMPLETION: {
         YIM predecessor = Predecessor_of_SRCL(source_link);
         if (!predecessor) return -1;
-        return AHFAID_of_YIM(predecessor);
+        return AIMID_of_YIM(predecessor);
     }
     }
     MARPA_ERROR(invalid_source_type_code(source_type));
@@ -8353,8 +8321,6 @@ PRIVATE int alternative_insert(RECCE r, ALT new_alternative)
 
     IRL start_irl;
     AIM start_aim;
-    AHFA start_ahfa;
-    AHFA empty_ahfa;
 
   @<Unpack recognizer objects@>@;
   @<Return |-2| on failure@>@;

@@ -4093,18 +4093,6 @@ PPCODE:
       XPUSHs (sv_2mortal (newSViv (result)));
 }
 
-# int
-void
-_marpa_g_AHFA_state_count( g_wrapper )
-    G_Wrapper *g_wrapper;
-PPCODE:
-{
-    Marpa_Grammar g = g_wrapper->g;
-    int result = _marpa_g_AHFA_state_count(g );
-    if (result < 0) { XSRETURN_UNDEF; }
-      XPUSHs (sv_2mortal (newSViv (result)));
-}
-
 MODULE = Marpa::R2        PACKAGE = Marpa::R2::Thin::R
 
 void

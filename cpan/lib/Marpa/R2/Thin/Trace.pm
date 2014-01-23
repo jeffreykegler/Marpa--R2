@@ -201,7 +201,7 @@ sub show_AHFA_item {
     my ( $self, $item_id ) = @_;
     my $grammar_c  = $self->{g};
     my $postdot_id = $grammar_c->_marpa_g_AHFA_item_postdot($item_id);
-    my $text       = "AHFA item $item_id: ";
+    my $text       = "AIM $item_id: ";
     my @properties = ();
     if ( $postdot_id < 0 ) {
         push @properties, 'completion';
@@ -226,23 +226,7 @@ sub show_brief_AHFA_item {
 } ## end sub show_brief_AHFA_item
 
 sub show_AHFA {
-    my ( $self, $verbose ) = @_;
-    $verbose //= 1;    # legacy is to be verbose, so default to it
-    my $grammar_c        = $self->{g};
-    my $text             = q{};
-    my $AHFA_state_count = $grammar_c->_marpa_g_AHFA_state_count();
-    STATE:
-    for ( my $state_id = 0; $state_id < $AHFA_state_count; $state_id++ ) {
-        $text .= "* S$state_id:";
-        $text .= "\n";
-        my $item_id = $grammar_c->_marpa_g_AHFA_state_item($state_id, 0);
-        $text .= $self->show_brief_AHFA_item($item_id);
-        $text .= "\n";
-
-        next STATE if not $verbose;
-
-    } ## end STATE: for ( my $state_id = 0; $state_id < $AHFA_state_count...)
-    return $text;
+    goto &show_AHFA_items;
 } ## end sub show_AHFA
 
 sub show_AHFA_items {
