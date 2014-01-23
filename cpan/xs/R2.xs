@@ -4147,7 +4147,7 @@ _marpa_r_earley_set_trace( r_wrapper, set_ordinal )
     Marpa_Earley_Set_ID set_ordinal;
 PPCODE:
     { struct marpa_r* r = r_wrapper->r;
-    Marpa_AHFA_State_ID result = _marpa_r_earley_set_trace(
+    Marpa_AIM_ID result = _marpa_r_earley_set_trace(
         r, set_ordinal );
     if (result == -1) { XSRETURN_UNDEF; }
     if (result < 0) { croak("problem with r->_marpa_r_earley_set_trace: %s", xs_g_error(r_wrapper->base)); }
@@ -4160,7 +4160,7 @@ _marpa_r_earley_item_trace( r_wrapper, item_ordinal )
     Marpa_Earley_Item_ID item_ordinal;
 PPCODE:
     { struct marpa_r* r = r_wrapper->r;
-    Marpa_AHFA_State_ID result = _marpa_r_earley_item_trace(
+    Marpa_AIM_ID result = _marpa_r_earley_item_trace(
         r, item_ordinal);
     if (result == -1) { XSRETURN_UNDEF; }
     if (result < 0) { croak("problem with r->_marpa_r_earley_item_trace: %s", xs_g_error(r_wrapper->base)); }

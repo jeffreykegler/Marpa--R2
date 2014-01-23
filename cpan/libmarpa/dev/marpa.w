@@ -2684,7 +2684,6 @@ int marpa_g_rule_is_productive(Marpa_Grammar g, Marpa_Rule_ID xrl_id)
 }
 
 @*0 Is XRL used?.
-Is the rule used in computing the AHFA sets?
 @d XRL_is_Used(rule) ((rule)->t_is_used)
 @<Bit aligned rule elements@> = BITFIELD t_is_used:1;
 @ Initialize to not used, because that's easier to debug.
@@ -3076,7 +3075,7 @@ int marpa_g_precompute(Marpa_Grammar g)
         @<Calculate Rule by LHS lists@>@;
         @<Create AIMs@>@;
         @<Construct prediction matrix@>@;
-        @<Create AHFA states@>@;
+        @<Populate AIMs@>@;
         @<Populate the predicted IRL CIL's in the AIM's@>
         @<Populate the terminal boolean vector@>@;
         @<Populate the event boolean vectors@>@;
@@ -4921,13 +4920,6 @@ Quasi-positions are those modulo nulling symbols.
 @<Int aligned AIM elements@> =
   int t_quasi_position;
 
-@*0 Singleton AHFA.
-A singleton AHFA whose only AIM is
-this one.
-@d AHFA_of_AIM(aim) ((aim)->t_singleton_ahfa)
-@<Widely aligned AIM elements@> =
-    AHFA t_singleton_ahfa;
-
 @*0 Predicted IRL's.
 A CIL representing the predicted IRL's.
 The empty CIL if there are none.
@@ -5057,7 +5049,6 @@ Marpa_Symbol_ID _marpa_g_AHFA_item_postdot(Marpa_Grammar g,
   IRL_of_AIM (current_item) = irl;
   Null_Count_of_AIM(current_item) = leading_nulls;
   AIM_is_Populated(current_item) = 0;
-  AHFA_of_AIM(current_item) = NULL;
   Quasi_Position_of_AIM(current_item) = current_item - first_aim_of_irl;
 }
 
@@ -5091,31 +5082,6 @@ It essentially serves to prevent computing this data
 @<Bit aligned AIM elements@> =
   BITFIELD t_is_populated:1;
 
-@ @<Public typedefs@> =
-typedef int Marpa_AHFA_State_ID;
-@ @<Private typedefs@> =
-typedef struct s_AHFA_state* AHFA;
-@ @<Private incomplete structures@> = struct s_AHFA_state;
-@ @<Private structures@> =
-struct s_AHFA_state_key {
-    Marpa_AHFA_State_ID t_id;
-};
-struct s_AHFA_state {
-    struct s_AHFA_state_key t_key;
-    AIM t_items[1];
-};
-typedef struct s_AHFA_state AHFA_Object;
-
-@*0 Initialization.
-Only a few AIM's are initialized.
-Most are set dependent on context.
-@<Function definitions@> =
-PRIVATE void AHFA_initialize(GRAMMAR g, AHFA ahfa)
-{
-    const int new_AHFA_id = AHFA_Count_of_G(g)++;
-    ahfa->t_key.t_id = new_AHFA_id;
-}
-
 @*0 XSYID Events.
 @
 @d Completion_XSYIDs_of_AIM(aim) ((aim)->t_completion_xsyids)
@@ -5141,7 +5107,7 @@ If it is true the AIM is a prediction,
 but it is false for the start AIM at location 0,
 which is a prediction, but which is the result
 of initalization, and not of prediction.
-@d AIM_was_Predicted(ahfa) ((ahfa)->t_was_predicted)
+@d AIM_was_Predicted(aim) ((aim)->t_was_predicted)
 @d YIM_was_Predicted(yim) AIM_was_Predicted(AIM_of_YIM(yim))
 @<Bit aligned AIM elements@> =
 BITFIELD t_was_predicted:1;
@@ -5173,27 +5139,6 @@ int t_event_group_size;
 @ @<Initialize event data for |current_item|@> =
   Event_AIMIDs_of_AIM(current_item) = NULL;
   Event_Group_Size_of_AIM(current_item) = 0;
-
-@*0 AHFA container in grammar.
-@ @<Widely aligned grammar elements@> = struct s_AHFA_state* t_AHFA;
-@
-@d AHFA_by_ID(id) (g->t_AHFA+(id))
-@d AHFA_Count_of_G(g) ((g)->t_AHFA_len)
-@<Int aligned grammar elements@> = int t_AHFA_len;
-@ @<Initialize grammar elements@> =
-g->t_AHFA = NULL;
-AHFA_Count_of_G(g) = 0;
-@*0 Destructor.
-@<Destroy grammar elements@> =
-{
-  if (g->t_AHFA)
-    {
-      STOLEN_DQUEUE_DATA_FREE (g->t_AHFA);
-    }
-}
-
-@*0 ID of AHFA state.
-@d ID_of_AHFA(state) ((state)->t_key.t_id)
 
 @*0 The NSY right derivation matrix.
 The NSY right derivation matrix is used in determining which
@@ -5293,67 +5238,41 @@ one non-nulling symbol in each IRL. */
     }
 }
 
-@*0 Creating AHFA states.
-@<Create AHFA states@> =
+@*0 Populating the AIMs.
+@<Populate AIMs@> =
 {
-    @<Declare locals for creating AHFA states@>@;
-    @<Initialize locals for creating AHFA states@>@;
    @<Construct right derivation matrix@>@;
-   @<Construct initial AHFA states@>@;
+   @<Populate initial AIM@>@;
 
 {
   AIMID aim_id;
   const int aim_count = AIM_Count_of_G (g);
   for (aim_id = 0; aim_id < aim_count; aim_id++)
     {
-      AHFA ahfa;
       const AIM aim = AIM_by_ID (aim_id);
       if (AIM_is_Populated(aim)) continue;
       if (AIM_is_Prediction (aim))
 	{
-	      ahfa = create_predicted_singleton (g, &states,
-					  aim);
+          AIM_was_Predicted(aim) = 1;
 	}
       else
 	{
-	  ahfa = create_singleton_AHFA_state (g, aim, &states);
+          AIM_was_Predicted(aim) = 0;
 	}
-      AHFA_of_AIM(aim) = ahfa;
       AIM_is_Populated(aim) = 1;
     }
 }
 
-   g->t_AHFA = DQUEUE_BASE(states, AHFA_Object); /* ``Steals"
-       the |DQUEUE|'s data */
 }
 
-@ |initial_no_of_states| might bear some rethinking, but
-we're elimination AHFA states, so it stays where it is
-until then.
-@<Declare locals for creating AHFA states@> =
-   const int initial_no_of_states = 2*AIM_Count_of_G(g);
-   DQUEUE_DECLARE(states);
-
-@ @<Initialize locals for creating AHFA states@> =
-   DQUEUE_INIT(states, AHFA_Object, initial_no_of_states);
-
-@ This logic should be reworked after the transition away
-from AHFA states.
-@<Construct initial AHFA states@> =
+@ @<Populate initial AIM@> =
 {
-  AHFA p_initial_state = DQUEUE_PUSH (states, AHFA_Object);
   const IRL start_irl = g->t_start_irl;
   AIM start_item;
 
-  AHFA_initialize(g, p_initial_state);
-
   start_item = First_AIM_of_IRL(start_irl);
   /* The start item is the initial item for the start rule */
-
-  p_initial_state->t_items[0] = start_item;
-
   AIM_was_Predicted (start_item) = 0;
-  AHFA_of_AIM(start_item) = p_initial_state;
   AIM_is_Populated(start_item) = 1;
 
 }
@@ -5386,26 +5305,6 @@ Therefore there is only one AHFA state containing
 a start rule completion, and it is a
 1-item discovered AHFA states.
 {\bf QED}.
-@<Function definitions@> =
-PRIVATE AHFA
-create_singleton_AHFA_state(
-    GRAMMAR g,
-    AIM base_aim,
-     DQUEUE states_p
-)
-{
-  /* \comment Every AHFA has at least one item */
-
-    AHFA new_ahfa;
-
-    new_ahfa = DQUEUE_PUSH ((*states_p), AHFA_Object);
-    /* Create a new AHFA state */
-    AHFA_initialize(g, new_ahfa);
-    new_ahfa->t_items[0] = base_aim;
-    AIM_was_Predicted(base_aim) = 0;
-  AHFA_of_AIM(base_aim) = new_ahfa;
-  return new_ahfa;
-}
 
 @ Discovered AHFA states are usually quite small
 and the insertion sort here is probably optimal for the usual cases.
@@ -5578,25 +5477,6 @@ with |S2| on its LHS.
         }
     }
 }
-
-@ @<Function definitions@> =
-PRIVATE_NOT_INLINE AHFA
-create_predicted_singleton(
-     GRAMMAR g,
-     DQUEUE states_p,
-     AIM aim_prediction
-     )
-{
-  AHFA p_new_state;
-  p_new_state = DQUEUE_PUSH ((*states_p), AHFA_Object);
-  AHFA_initialize (g, p_new_state);
-  p_new_state->t_items[0] = aim_prediction;
-  AIM_was_Predicted (aim_prediction) = 1;
-  AHFA_of_AIM(aim_prediction) = p_new_state;
-  return p_new_state;
-}
-
-@** AHFA trace functions.
 
 @** Populating the predicted IRL CIL's in the AIM's.
 @ @<Populate the predicted IRL CIL's in the AIM's@> =
@@ -6812,7 +6692,7 @@ _marpa_r_earley_set_trace (Marpa_Recognizer r, Marpa_Earley_Set_ID set_id)
 }
 
 @ @<Function definitions@> =
-Marpa_AHFA_State_ID
+Marpa_AIM_ID
 _marpa_r_earley_item_trace (Marpa_Recognizer r, Marpa_Earley_Item_ID item_id)
 {
   const int yim_does_not_exist = -1;
@@ -6924,7 +6804,6 @@ the Earley set.
 @d Earleme_of_YIM(item) Earleme_of_YS(YS_of_YIM(item))
 @d AIM_of_YIM(item) ((item)->t_key.t_aim)
 @d AIMID_of_YIM(item) ID_of_AIM(AIM_of_YIM(item))
-@d AHFA_of_YIM(item) AHFA_of_AIM(AIM_of_YIM(item))
 @d Origin_Earleme_of_YIM(item) (Earleme_of_YS(Origin_of_YIM(item)))
 @d Origin_Ord_of_YIM(item) (Ord_of_YS(Origin_of_YIM(item)))
 @d Origin_of_YIM(item) ((item)->t_key.t_origin)
@@ -7182,7 +7061,7 @@ Marpa_Earley_Set_ID _marpa_r_leo_base_origin(Marpa_Recognizer r)
 
 @ Actually return AIM ID, not the obsolete AHFA ID.
 @<Function definitions@> =
-Marpa_AHFA_State_ID _marpa_r_leo_base_state(Marpa_Recognizer r)
+Marpa_AIM_ID _marpa_r_leo_base_state(Marpa_Recognizer r)
 {
   const JEARLEME pim_is_not_a_leo_item = -1;
   @<Return |-2| on failure@>@;
@@ -7384,7 +7263,7 @@ _marpa_r_next_postdot_item_trace (Marpa_Recognizer r)
 }
 
 @ @<Function definitions@> =
-Marpa_AHFA_State_ID _marpa_r_postdot_item_symbol(Marpa_Recognizer r)
+Marpa_Symbol_ID _marpa_r_postdot_item_symbol(Marpa_Recognizer r)
 {
   @<Return |-2| on failure@>@;
   PIM postdot_item = r->t_trace_postdot_item;
@@ -8968,7 +8847,7 @@ PRIVATE void trigger_events(RECCE r)
       const AIM root_aim = AIM_of_YIM (yim);
       if (AIM_has_Event (root_aim))
         {                       /* Note that we go on to look at the Leo path, even if
-                                   the top AHFA is not an event AHFA */
+                                   the top AIM is not an event AIM */
           bv_bit_set (bv_aim_event_trigger, ID_of_AIM(root_aim));
         }
       {
@@ -8987,7 +8866,7 @@ PRIVATE void trigger_events(RECCE r)
                 const NSYID leo_path_aimid =
                   Item_of_CIL (event_aimids, cil_ix);
                 bv_bit_set (bv_aim_event_trigger, leo_path_aimid);
-                /* No need to test if AHFA is an event AHFA --
+                /* No need to test if AIM is an event AIM --
                    all paths in the LIM's CIL will be */
               }
           }
@@ -9315,9 +9194,9 @@ Leo item have not been fully populated.
     }
 }
 
-@ The Top AHFA of the new LIM is temporarily used
+@ The Top AIM of the new LIM is temporarily used
 to memoize
-the value of the AHFA to-state for the LIM's
+the value of the AIM to-state for the LIM's
 base YIM.
 That may become its actual value,
 once it is populated.
@@ -9450,14 +9329,14 @@ set up and I can find it there.
 in the base item will be the same, because the two rules
 are the same.
 Given the |main_loop_symbol_id| we can look up either the
-appropriate rule in the base Earley item's AHFA state,
-or the Leo completion's AHFA state.
+appropriate rule in the base Earley item's AIM,
+or the Leo completion's AIM.
 It is most convenient to find the LHS of the completed
 rule as the
-only possible Leo LHS of the Leo completion's AHFA state.
-The AHFA state for the Leo completion is guaranteed
+only possible Leo LHS of the Leo completion's AIM.
+The AIM for the Leo completion is guaranteed
 to have only one rule.
-The base Earley item's AHFA state can have multiple
+The base Earley item's AIM can have multiple
 rules, and in its list of rules there can
 be transitions to Leo
 completions via several different symbols.
@@ -9575,9 +9454,9 @@ for (lim_chain_ix--; lim_chain_ix >= 0; lim_chain_ix--) {
 }
 
 @ This code is optimized for cases where there are no events,
-or the lists of AHFA IDs is "at closure".
+or the lists of AIM IDs is "at closure".
 These are the most frequent and worst case scenarios.
-The new remaining "worst case" is a recursive series of AHFA ID's
+The new remaining "worst case" is a recursive series of AIM ID's
 which stabilizes short of closure.
 Secondary optimzations ensure this is fairly cheap as well.
 @<Populate |lim_to_process| from |predecessor_lim|@> =
@@ -9615,7 +9494,7 @@ for populating its successor.
 An unpopulated predecessor LIM
 may occur when there is a predecessor LIM
 which proved impossible to populate because it is part of a cycle.
-@ The predecessor LIM and the top AHFA to-state were initialized
+@ The predecessor LIM and the top AIM to-state were initialized
 to the appropriate values for this case,
 and do not need to be changed.
 The predecessor LIM was initialized to |NULL|.
@@ -15121,11 +15000,6 @@ if (_MARPA_UNLIKELY(XRLID_is_Malformed(xrl_id))) {
 @ @<Fail if |item_id| is invalid@> =
 if (_MARPA_UNLIKELY(!aim_is_valid(g, item_id))) {
     MARPA_ERROR(MARPA_ERR_INVALID_AIMID);
-    return failure_indicator;
-}
-@ @<Fail if |AHFA_state_id| is invalid@> =
-if (_MARPA_UNLIKELY(!AHFA_state_id_is_valid(g, AHFA_state_id))) {
-    MARPA_ERROR(MARPA_ERR_INVALID_AHFA_ID);
     return failure_indicator;
 }
 

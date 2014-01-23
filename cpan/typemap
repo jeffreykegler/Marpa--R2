@@ -28,7 +28,6 @@ Marpa_Rule_ID T_IV
 Marpa_IRL_ID T_IV
 Marpa_NSY_ID T_IV
 Marpa_AIM_ID T_IV
-Marpa_AHFA_State_ID T_IV
 Marpa_Earley_Set_ID T_IV
 Marpa_Earley_Item_ID T_IV
 Marpa_Earleme T_IV

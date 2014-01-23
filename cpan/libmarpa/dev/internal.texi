@@ -281,33 +281,6 @@ Marpa's internals, as described in
 @deftypefun int _marpa_g_AHFA_item_sort_key (Marpa_Grammar @var{g}, @
     Marpa_AIM_ID @var{item_id})
 @end deftypefun
-@deftypefun int _marpa_g_AHFA_state_count (Marpa_Grammar @var{g})
-@end deftypefun
-@deftypefun int _marpa_g_AHFA_state_item_count (Marpa_Grammar @var{g}, @
-    Marpa_AHFA_State_ID @var{AHFA_state_id})
-@end deftypefun
-@deftypefun Marpa_AIM_ID _marpa_g_AHFA_state_item (Marpa_Grammar @var{g}, @
-     Marpa_AHFA_State_ID @var{AHFA_state_id}, @
- int @var{item_ix})
-@end deftypefun
-@deftypefun int _marpa_g_AHFA_state_is_predict (Marpa_Grammar @var{g}, @
- Marpa_AHFA_State_ID @var{AHFA_state_id})
-@end deftypefun
-@deftypefun Marpa_Symbol_ID _marpa_g_AHFA_state_leo_lhs_symbol ( @
-    Marpa_Grammar @var{g}, @
-    Marpa_AHFA_State_ID @var{AHFA_state_id})
-@end deftypefun
-@deftypefun int _marpa_g_AHFA_state_transitions ( @
-    Marpa_Grammar @var{g}, @
-    Marpa_AHFA_State_ID @var{AHFA_state_id}, @
-    int *@var{buffer}, @
-    int @var{buffer_size} @
-    )
-@end deftypefun
-@deftypefun Marpa_AHFA_State_ID _marpa_g_AHFA_state_empty_transition ( @
-    Marpa_Grammar @var{g}, @
-     Marpa_AIM_ID @var{AHFA_item_id})
-@end deftypefun
 
 @node Recognizer internals, Bocage internals, Grammar internals, Internal Interface
 @section Recognizer internals
@@ -333,7 +306,7 @@ and development.
 @deftypefun Marpa_Earleme _marpa_r_earley_set_trace (Marpa_Recognizer r, Marpa_Earley_Set_ID @var{set_id})
 @end deftypefun
 
-@deftypefun Marpa_AHFA_State_ID _marpa_r_earley_item_trace (Marpa_Recognizer r, Marpa_Earley_Item_ID @var{item_id})
+@deftypefun Marpa_AIM_ID _marpa_r_earley_item_trace (Marpa_Recognizer r, Marpa_Earley_Item_ID @var{item_id})
 @end deftypefun
 
 @deftypefun Marpa_Earley_Set_ID _marpa_r_earley_item_origin (Marpa_Recognizer @var{r})
@@ -345,10 +318,10 @@ and development.
 @deftypefun Marpa_Earley_Set_ID _marpa_r_leo_base_origin (Marpa_Recognizer @var{r})
 @end deftypefun
 
-@deftypefun Marpa_AHFA_State_ID _marpa_r_leo_base_state (Marpa_Recognizer @var{r})
+@deftypefun Marpa_AIM_ID _marpa_r_leo_base_state (Marpa_Recognizer @var{r})
 @end deftypefun
 
-@deftypefun Marpa_AHFA_State_ID _marpa_r_leo_expansion_ahfa (Marpa_Recognizer @var{r})
+@deftypefun Marpa_AIM_ID _marpa_r_leo_expansion_ahfa (Marpa_Recognizer @var{r})
 @end deftypefun
 
 @deftypefun Marpa_Symbol_ID _marpa_r_postdot_symbol_trace (Marpa_Recognizer r, Marpa_Symbol_ID @var{symid})
@@ -360,7 +333,7 @@ and development.
 @deftypefun Marpa_Symbol_ID _marpa_r_next_postdot_item_trace (Marpa_Recognizer @var{r})
 @end deftypefun
 
-@deftypefun Marpa_AHFA_State_ID _marpa_r_postdot_item_symbol (Marpa_Recognizer @var{r})
+@deftypefun Marpa_Symbol_ID _marpa_r_postdot_item_symbol (Marpa_Recognizer @var{r})
 @end deftypefun
 
 @deftypefun Marpa_Symbol_ID _marpa_r_first_token_link_trace (Marpa_Recognizer @var{r})
@@ -381,7 +354,7 @@ and development.
 @deftypefun Marpa_Symbol_ID _marpa_r_next_leo_link_trace (Marpa_Recognizer @var{r})
 @end deftypefun
 
-@deftypefun Marpa_AHFA_State_ID _marpa_r_source_predecessor_state (Marpa_Recognizer @var{r})
+@deftypefun Marpa_AIM_ID _marpa_r_source_predecessor_state (Marpa_Recognizer @var{r})
 @end deftypefun
 
 @deftypefun Marpa_Symbol_ID _marpa_r_source_token (Marpa_Recognizer r, int *@var{value_p})
