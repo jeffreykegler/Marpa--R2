@@ -2971,7 +2971,7 @@ Marpa_Rank _marpa_g_irl_rank(
 }
 
 @*0 First AIM.
-This is the first AHFA item for a rule.
+This is the first AIM for a rule.
 There may not be one, in which case it is |NULL|.
 Currently, this is not used after grammar precomputation,
 and there may be an optimization here.
@@ -3007,11 +3007,11 @@ Symbol instances are used in evaluation.
 In evaluation we are looking at what we have,
 so the emphasis is on what precedes the dot position.
 @ The symbol instance of a prediction is $-1$.
-If the AHFA item is not a prediction, then it has a preceding
-AHFA item for the same rule.
+If the AIM is not a prediction, then it has a preceding
+AIM for the same rule.
 In that case the symbol instance is the
 base symbol instance for
-the rule, offset by the position of that preceding AHFA item.
+the rule, offset by the position of that preceding AIM.
 @<Function definitions@> =
 PRIVATE int
 symbol_instance_of_aim_get (AIM aim)
@@ -3074,7 +3074,7 @@ int marpa_g_precompute(Marpa_Grammar g)
         @<Declare variables for the internal grammar
         memoizations@>@;
         @<Calculate Rule by LHS lists@>@;
-        @<Create AHFA items@>@;
+        @<Create AIMs@>@;
         @<Construct prediction matrix@>@;
         @<Create AHFA states@>@;
         @<Populate the predicted IRL CIL's in the AIM's@>
@@ -4838,12 +4838,7 @@ struct s_aim;
 typedef struct s_aim* AIM;
 typedef Marpa_AIM_ID AIMID;
 
-@ A pointer to two lists of AHFA items.
-The one list contains the AHFA items themselves, in
-AHFA item ID order.
-The other is indexed by rule ID, and contains a pointer to
-the first AHFA item for that rule.
-@ Because AHFA items are in an array, the predecessor can
+@ Because AIM's are in an array, the predecessor can
 be found by incrementing the AIM pointer,
 the successor can be found by decrementing it,
 and AIM pointers can be portably compared.
@@ -4869,7 +4864,7 @@ g->t_aims = NULL;
 @ @<Destroy grammar elements@> =
      my_free(g->t_aims);
 
-@ Check that AHFA item ID is in valid range.
+@ Check that AIM ID is in valid range.
 @<Function definitions@> =
 PRIVATE int aim_is_valid(
 GRAMMAR g, AIMID item_id)
@@ -4895,11 +4890,11 @@ return item_id < (AIMID)AIM_Count_of_G(g) && item_id >= 0;
 @<Int aligned AIM elements@> = NSYID t_postdot_nsyid;
 
 @*0 Leading nulls.
-In libmarpa's AHFA items, the dot position is never in front
+In libmarpa's AIM's, the dot position is never in front
 of a nulling symbol.  (Due to rewriting, every nullable symbol
 is also a nulling symbol.)
 This element contains the count of nulling symbols preceding
-this AHFA items's dot position.
+this AIM's dot position.
 @d Null_Count_of_AIM(aim) ((aim)->t_leading_nulls)
 @<Int aligned AIM elements@> =
 int t_leading_nulls;
@@ -4927,7 +4922,7 @@ Quasi-positions are those modulo nulling symbols.
   int t_quasi_position;
 
 @*0 Singleton AHFA.
-A singleton AHFA whose only AHFA item is
+A singleton AHFA whose only AIM is
 this one.
 @d AHFA_of_AIM(aim) ((aim)->t_singleton_ahfa)
 @<Widely aligned AIM elements@> =
@@ -4940,7 +4935,7 @@ The empty CIL if there are none.
 @<Widely aligned AIM elements@> =
     CIL t_predicted_irl_cil;
 
-@*0 AHFA item external accessors.
+@*0 AIM external accessors.
 @<Function definitions@> =
 int _marpa_g_AHFA_item_count(Marpa_Grammar g) {
     @<Return |-2| on failure@>@/
@@ -4977,8 +4972,8 @@ Marpa_Symbol_ID _marpa_g_AHFA_item_postdot(Marpa_Grammar g,
     return Postdot_NSYID_of_AIM(AIM_by_ID(item_id));
 }
 
-@** Creating the AHFA items.
-@ @<Create AHFA items@> =
+@** Creating the AIMs.
+@ @<Create AIMs@> =
 {
     IRLID irl_id;
     int aim_count = 0;
@@ -4987,12 +4982,12 @@ Marpa_Symbol_ID _marpa_g_AHFA_item_postdot(Marpa_Grammar g,
     int symbol_instance_of_next_rule = 0;
     for (irl_id = 0; irl_id < irl_count; irl_id++) {
       const IRL irl = IRL_by_ID(irl_id);
-      @<Count the AHFA items in a rule@>@;
+      @<Count the AIMs in a rule@>@;
     }
     current_item = base_item = marpa_new(struct s_aim, aim_count);
     for (irl_id = 0; irl_id < irl_count; irl_id++) {
       const IRL irl = IRL_by_ID(irl_id);
-      @<Create the AHFA items for |irl|@>@;
+      @<Create the AIMs for |irl|@>@;
       {
         SYMI_of_IRL(irl) = symbol_instance_of_next_rule;
         symbol_instance_of_next_rule += Length_of_IRL(irl);
@@ -5005,7 +5000,7 @@ Marpa_Symbol_ID _marpa_g_AHFA_item_postdot(Marpa_Grammar g,
     @<Populate the first |AIM|'s of the |RULE|'s@>@;
 }
 
-@ @<Create the AHFA items for |irl|@> =
+@ @<Create the AIMs for |irl|@> =
 {
   int leading_nulls = 0;
   int rhs_ix;
@@ -5016,7 +5011,7 @@ Marpa_Symbol_ID _marpa_g_AHFA_item_postdot(Marpa_Grammar g,
       if (!NSY_is_Nulling(NSY_by_ID(rh_nsyid)))
         {
           Last_Proper_SYMI_of_IRL(irl) = symbol_instance_of_next_rule + rhs_ix;
-          @<Create an AHFA item for a precompletion@>@;
+          @<Create an AIM for a precompletion@>@;
           current_item++;
           leading_nulls = 0;
         }
@@ -5025,12 +5020,12 @@ Marpa_Symbol_ID _marpa_g_AHFA_item_postdot(Marpa_Grammar g,
           leading_nulls++;
         }
     }
-  @<Create an AHFA item for a completion@>@;
+  @<Create an AIM for a completion@>@;
   current_item++;
   AIM_Count_of_IRL(irl) = current_item - first_aim_of_irl;
 }
 
-@ @<Count the AHFA items in a rule@> =
+@ @<Count the AIMs in a rule@> =
 {
   int rhs_ix;
   for (rhs_ix = 0; rhs_ix < Length_of_IRL(irl); rhs_ix++)
@@ -5042,22 +5037,22 @@ Marpa_Symbol_ID _marpa_g_AHFA_item_postdot(Marpa_Grammar g,
   aim_count++;
 }
 
-@ @<Create an AHFA item for a precompletion@> =
+@ @<Create an AIM for a precompletion@> =
 {
-  @<Initializations common to all AHFA items@>@;
+  @<Initializations common to all AIMs@>@;
   Postdot_NSYID_of_AIM (current_item) = rh_nsyid;
   Position_of_AIM (current_item) = rhs_ix;
 }
 
-@ @<Create an AHFA item for a completion@> =
+@ @<Create an AIM for a completion@> =
 {
-  @<Initializations common to all AHFA items@>@;
+  @<Initializations common to all AIMs@>@;
   Postdot_NSYID_of_AIM (current_item) = -1;
   Position_of_AIM (current_item) = -1;
   @<Initialize event data for |current_item|@>@;
 }
 
-@ @<Initializations common to all AHFA items@> =
+@ @<Initializations common to all AIMs@> =
 {
   IRL_of_AIM (current_item) = irl;
   Null_Count_of_AIM(current_item) = leading_nulls;
@@ -5066,7 +5061,7 @@ Marpa_Symbol_ID _marpa_g_AHFA_item_postdot(Marpa_Grammar g,
   Quasi_Position_of_AIM(current_item) = current_item - first_aim_of_irl;
 }
 
-@ This is done after creating the AHFA items, because in
+@ This is done after creating the AIMs, because in
 theory the |marpa_renew| might have moved them.
 This is not likely since the |marpa_renew| shortened the array,
 but if you are hoping for portability,
@@ -5096,96 +5091,7 @@ It essentially serves to prevent computing this data
 @<Bit aligned AIM elements@> =
   BITFIELD t_is_populated:1;
 
-@** AHFA state (AHFA) code.
-
-This algorithm to create the AHFA states is new with |libmarpa|.
-It is based on noting that the states to be created fall into
-distinct classes, and that considerable optimization is possible
-if the classes of AHFA states are optimized separately.
-@ In their paper Aycock and Horspool divide the states of their
-automaton into
-call non-kernel and kernel states.
-In the AHFA, kernel states are called discovered AHFA states.
-Non-kernel states are called predicted AHFA states.
-If an AHFA states contains a start rule or
-or an AHFA item for which at least some
-non-nulling symbol has been recognized,
-it is an {\bf discovered} AHFA state.
-Otherwise, the AHFA state will contain only predictions,
-and is a {\bf predicted} AHFA state.
-@ Predicted AHFA states are so called because they only contain
-items which predict, according to the grammar,
-what might be found in the input.
-Discovered AHFA states are so called because either they ``report"
-the start of the input
-or they ``report" symbols actually found in the input.
-@ {\bf The Initial AHFA State}:
-This is the only state which can
-contain an AHFA item for a null rule.
-It only takes one of three possible forms.
-Listing the reasons that it makes sense to special-case
-this class would take more space than the code to do it.
-@ {\bf The Initial AHFA Prediction State}:
-This state is paired with a special-cased state, so it would
-require going out of our way to {\bf not} special-case this
-state as well.
-It does
-share with the other initial state that property that it is not
-necessary to check to ensure it does not duplicate an existing
-state.
-Other than that, the code is much like that to create any other
-prediction state.
-@ {\bf Discovered States with 1 item}:
-These may be specially optimized for.
-Sorting the items can be dispensed with.
-Checking for duplicates can be done using an array indexed by
-the ID of the only AHFA item.
-Statistics for practical grammars show that most discovered states
-contain only a single AHFA item, so there is a big payoff from
-special-casing these.
-@ {\bf Discovered States with 2 or more items}:
-For non-singleton discovered states,
-I use a hand-written insertion sort,
-and check for duplicates using a hash with a customized key.
-Further optimizations are possible, but
-few discovered states fall into this case.
-Also, discovered states of 2 items are a large enough class to justify
-separating out, if a significant optimization for them could be
-found.
-@ {\bf Predicted States}:
-These are treated differently from discovered states.
-The items in these are always a subset of the initial items for rules,
-and therefore correspond one-to-one with a powerset of the rules.
-This fact is used in precomputing rule boolean vectors, by postdot symbol,
-to speed up the construction of these.
-An advantage of using boolean vectors is that a radix sort of the items
-happens as a side effect.
-Because prediction states follow a very different distribution from
-discovered states, they have their own hash for checking duplicates.
-
-@ {\bf Estimating the number of AHFA States}: Based on the numbers given previously
-for Perl and HTML,
-$2s$ is a good high-ball estimate of the number of AHFA states for
-grammars of practical interest,
-where $s$ is the size of the grammar.
-I come up with this as follows.
-
-Let the size of an AHFA state be the number of AHFA items it contains.
-\li It is impossible for the number of AHFA items to greater than
-the size of the grammar.
-\li It is impossible for the number of discovered states of size 1
-to be greater than the number of AHFA items.
-\li The number of discovered states of size 2 or greater
-will typically be half the number of discovered states of size 1,
-or less.
-\li The number of predicted states will typically be
-considerably less than half the number of discovered states.
-
-The three possibilities just enumerated exhaust the possibilities for AHFA states.
-The total is ${s \over 2} + {s \over 2} + s = 2s$.
-Typically, the number of AHFA states should be less than this estimate.
-
-@<Public typedefs@> =
+@ @<Public typedefs@> =
 typedef int Marpa_AHFA_State_ID;
 @ @<Private typedefs@> =
 typedef struct s_AHFA_state* AHFA;
@@ -5202,7 +5108,7 @@ struct s_AHFA_state {
 typedef struct s_AHFA_state AHFA_Object;
 
 @*0 Initialization.
-Only a few AHFA items are initialized.
+Only a few AIM's are initialized.
 Most are set dependent on context.
 @<Function definitions@> =
 PRIVATE void AHFA_initialize(GRAMMAR g, AHFA ahfa)
@@ -5221,7 +5127,7 @@ PRIVATE void AHFA_initialize(GRAMMAR g, AHFA ahfa)
   CIL t_nulled_xsyids;
   CIL t_prediction_xsyids;
 
-@*0 AHFA item container.
+@*0 AIM container.
 @ @s AEX int
 @<Private typedefs@> = typedef int AEX;
 
@@ -5619,32 +5525,7 @@ of minimum sizes.
   _marpa_avl_destroy (lhs_avl_tree);
 }
 
-@*0 Predicted AHFA states.
-The method for building predicted AHFA states is optimized using
-precomputed boolean vectors.
-This should be very fast,
-but it is possible to think other methods might
-be better, at least in some cases.
-The boolean vectors are $O(s)$ in length, where $s$ is the
-size of the grammar, and so is the time complexity of the method used.
-@ It may be possible to look at a list of
-only the AHFA items actually present in each state,
-which might be $O(\log s)$ in the average case.
-An advantage of the boolean vectors is they
-implicitly perform a radix sort.
-This would have to be performed explicitly for an enumerated
-list of AHFA items, making the putative average case $O(\log s \cdot \log \log s)$.
-@ In the worst case, however, the number of AHFA items in the predicted states is
-$O(s)$, making the time complexity
-of a list solution, $O(s \cdot \log s)$.
-In normal cases,
-the practical advantages of boolean vectors are overwhelming and swamp the theoretical
-time complexity.
-The advantage of listing AHFA items is restricted to a putative ``average" case,
-and even there would not kick in until the grammars became very large.
-My conclusion is that alternatives to the boolean vector implementation deserve
-further investigation, but that at present, and overall,
-boolean vectors appear clearly superior to the alternatives.
+@*0 Predictions.
 @ For the predicted states, I construct a symbol-by-rule matrix
 of predictions.  First, I determine which symbols directly predict
 others.  Then I compute the transitive closure.
@@ -10491,9 +10372,9 @@ Top_ORID_of_B(b) = -1;
 
 @*0 Non-Leo or-nodes.
 @ Add the main or-node ---
-the one that corresponds directly to this AHFA item.
-The exception are predicted AHFA items.
-Or-nodes are not added for predicted AHFA items.
+the one that corresponds directly to this AIM.
+The exception are predicted AIM's.
+Or-nodes are not added for predicted AIM's.
 @<Add main or-node@> =
 {
   if (aim_symbol_instance >= 0)
@@ -11943,15 +11824,7 @@ struct s_bocage_setup_per_ys* per_ys_data = NULL;
 @ Predicted AHFA states can be skipped since they
 contain no completions.
 Note that AHFA state 0 is not marked as a predicted AHFA state,
-even though it can contain a predicted AHFA item.
-@ A linear search of the AHFA items is used.
-As shown elsewhere in this document,
-discovered AHFA states for practical grammars tend to be
-very small ---
-less than two AHFA items.
-Size of the AHFA state is a function of the grammar, so
-any reasonable search is $O(1)$ in terms of the length of
-the input.
+even though it can contain a predicted AIM.
 @ The search for the start Earley item is done once
 per parse ---
 $O(s)$, where $s$ is the size of the end of parse Earley set.
@@ -14937,7 +14810,7 @@ There are several cases where Marpa needs to
 look up a triple $\langle s,s',k \rangle$,
 where $s$ and $s'$ are earlemes, and $0<k<n$,
 where $n$ is a reasonably small constant,
-such as the number of AHFA items.
+such as the number of AIM's.
 Earley items, or-nodes and and-nodes are examples.
 @ Lookup for Earley items needs to be $O(1)$
 to justify Marpa's time complexity claims.
@@ -15547,9 +15420,9 @@ or_tag (OR or)
   return or_tag_safe (DEBUG_or_tag_buffer, or);
 }
 
-@*0 AHFA item tag.
+@*0 AIM tag.
 Functions to print a descriptive tag for
-an AHFA item.
+an AIM.
 One is passed a buffer to keep it thread-safe.
 The other uses a global buffer,
 which is not thread-safe, but
