@@ -5258,13 +5258,13 @@ These data are used in various optimizations --
 the event processing can ignore AIM's
 without events.
 @d Event_Group_Size_of_AIM(aim) ((aim)->t_event_group_size)
-@d Event_AIMIDs_of_AIM(aim) ((aim)->t_event_ahfaids)
+@d Event_AIMIDs_of_AIM(aim) ((aim)->t_event_aimids)
 @d AIM_has_Event(aim) (Count_of_CIL(Event_AIMIDs_of_AIM(aim)) != 0)
 @ This CIL is at most of size 1.
 It is either the singleton containing the AHFA's
 own ID, or the empty CIL.
 @<Widely aligned AIM elements@> =
-CIL t_event_ahfaids;
+CIL t_event_aimids;
 @ A counter tracks the number of AHFAs in
 this AHFA's event group.
 @<Int aligned AIM elements@> =
@@ -6105,6 +6105,7 @@ Marpa_Recognizer marpa_r_new( Marpa_Grammar g )
     r = my_malloc(sizeof(struct marpa_r));
     @<Initialize recognizer obstack@>@;
     @<Initialize recognizer elements@>@;
+    @<Initialize dot PSAR@>@;
    return r;
 }
 
@@ -6160,7 +6161,6 @@ void recce_free(struct marpa_r *r)
 @*0 Base objects.
 Initialized in |marpa_r_new|.
 @d G_of_R(r) (G_of_I((r)->t_input))
-@d AHFA_Count_of_R(r) AHFA_Count_of_G(G_of_R(r))
 @<Unpack recognizer objects@> =
 const INPUT input = I_of_R(r);
 const GRAMMAR g = G_of_I(input);
@@ -7167,17 +7167,18 @@ PRIVATE YIM
 earley_item_assign (const RECCE r, const YS set, const YS origin,
                     const AHFA state)
 {
+  const GRAMMAR g = G_of_R (r);
   YIK_Object key;
   YIM yim;
   PSL psl;
-  AHFAID ahfa_id = ID_of_AHFA(state);
+  AIMID aim_id = ID_of_AIM(AIM_of_AHFA(state));
   PSL *psl_owner = &Dot_PSL_of_YS (origin);
   if (!*psl_owner)
     {
       psl_claim (psl_owner, Dot_PSAR_of_R(r));
     }
   psl = *psl_owner;
-  yim = PSL_Datum (psl, ahfa_id);
+  yim = PSL_Datum (psl, aim_id);
   if (yim
       && Earleme_of_YIM (yim) == Earleme_of_YS (set)
       && Earleme_of_YS (Origin_of_YIM (yim)) == Earleme_of_YS (origin))
@@ -7188,7 +7189,7 @@ earley_item_assign (const RECCE r, const YS set, const YS origin,
   key.t_state = state;
   key.t_set = set;
   yim = earley_item_create (r, key);
-  PSL_Datum (psl, ahfa_id) = yim;
+  PSL_Datum (psl, aim_id) = yim;
   return yim;
 }
 
@@ -15065,10 +15066,28 @@ typedef struct s_per_earley_set_arena PSAR_Object;
 @ @d Dot_PSAR_of_R(r) (&(r)->t_dot_psar_object)
 @<Widely aligned recognizer elements@> =
 PSAR_Object t_dot_psar_object;
-@ @<Initialize recognizer elements@> =
-  psar_init(Dot_PSAR_of_R(r), AHFA_Count_of_R (r));
+@ @<Initialize dot PSAR@> =
+{
+  if (G_is_Trivial(g)) {
+    psar_safe(Dot_PSAR_of_R(r));
+  } else {
+    psar_init(Dot_PSAR_of_R(r), AIM_Count_of_G (g));
+  }
+}
 @ @<Destroy recognizer elements@> =
   psar_destroy(Dot_PSAR_of_R(r));
+@ Create a ``safe'' PSAR.
+A ``safe'' data structure is not
+considered initialized,
+and will need to be initialized before use.
+But the destructor may ``safely'' be called on it.
+@<Function definitions@> =
+PRIVATE void
+psar_safe (const PSAR psar)
+{
+  psar->t_psl_length = 0;
+  psar->t_first_psl = psar->t_first_free_psl = NULL;
+}
 @ @<Function definitions@> =
 PRIVATE void
 psar_init (const PSAR psar, int length)
