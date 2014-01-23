@@ -3082,8 +3082,8 @@ int marpa_g_precompute(Marpa_Grammar g)
         @<Populate the event boolean vectors@>@;
         @<Populate the prediction
           and nulled symbol CILs@>@;
-        @<Mark the event AHFAs@>@;
-        @<Calculate AHFA Event Group Sizes@>@;
+        @<Mark the event AIMs@>@;
+        @<Calculate AIM Event Group Sizes@>@;
     }
     g->t_is_precomputed = 1;
     if (g->t_has_cycle)
@@ -4881,6 +4881,7 @@ return item_id < (AIMID)AIM_Count_of_G(g) && item_id >= 0;
 @d IRL_of_AIM(aim) ((aim)->t_irl)
 @d IRLID_of_AIM(item) ID_of_IRL(IRL_of_AIM(item))
 @d LHS_NSYID_of_AIM(item) LHSID_of_IRL(IRL_of_AIM(item))
+@d LHSID_of_AIM(item) LHS_NSYID_of_AIM(item)
 @<Widely aligned AIM elements@> =
     IRL t_irl;
 
@@ -5837,17 +5838,16 @@ create_predicted_singleton(
 
 @ @<Populate the prediction and nulled symbol CILs@> =
 {
-  AHFAID ahfaid;
-  const AHFAID ahfa_count_of_g = AHFA_Count_of_G (g);
+  AIMID aim_id;
+  const int aim_count_of_g = AIM_Count_of_G (g);
   const LBV bv_completion_xsyid = bv_create (xsy_count);
   const LBV bv_prediction_xsyid = bv_create (xsy_count);
   const LBV bv_nulled_xsyid = bv_create (xsy_count);
   const CILAR cilar = &g->t_cilar;
-  for (ahfaid = 0; ahfaid < ahfa_count_of_g; ahfaid++)
+  for (aim_id = 0; aim_id < aim_count_of_g; aim_id++)
     {
       const AEX aex = 0;
-      const AHFA ahfa = AHFA_by_ID (ahfaid);
-      const AIM aim = AIM_of_AHFA (ahfa);
+      const AIM aim = AIM_by_ID (aim_id);
       const NSYID postdot_nsyid = Postdot_NSYID_of_AIM (aim);
       const IRL irl = IRL_of_AIM (aim);
       bv_clear (bv_completion_xsyid);
@@ -5903,7 +5903,7 @@ create_predicted_singleton(
   bv_free (bv_nulled_xsyid);
 }
 
-@ @<Mark the event AHFAs@> =
+@ @<Mark the event AIMs@> =
 {
   AIMID aim_id;
   for (aim_id = 0; aim_id < AIM_Count_of_G (g); aim_id++)
@@ -5919,47 +5919,47 @@ create_predicted_singleton(
     }
 }
 
-@ @<Calculate AHFA Event Group Sizes@> =
+@ @<Calculate AIM Event Group Sizes@> =
 {
-  const AHFAID ahfa_count_of_g = AHFA_Count_of_G (g);
-  AHFAID outer_ahfa_id;
-  for (outer_ahfa_id = 0; outer_ahfa_id < ahfa_count_of_g; outer_ahfa_id++)
+  const int aim_count_of_g = AIM_Count_of_G (g);
+  AIMID outer_aim_id;
+  for (outer_aim_id = 0; outer_aim_id < aim_count_of_g; outer_aim_id++)
     {
-      AHFAID inner_ahfa_id;
-      const AHFA outer_ahfa = AHFA_by_ID (outer_ahfa_id);
-      /* There is no test that |outer_ahfa|
-         is an event AHFA.
-         An AHFA, even if it is not itself an event AHFA,
-         may be in a non-empty AHFA event group.  */
+      AIMID inner_aim_id;
+      const AIM outer_aim = AIM_by_ID (outer_aim_id);
+      /* There is no test that |outer_aim|
+         is an event AIM.
+         An AIM, even if it is not itself an event AIM,
+         may be in a non-empty AIM event group.  */
       NSYID outer_nsyid;
-      if (!AHFA_is_Leo_Completion(outer_ahfa)) {
-          if (AIM_has_Event (AIM_of_AHFA(outer_ahfa))) {
-              Event_Group_Size_of_AIM (AIM_of_AHFA(outer_ahfa)) = 1;
+      if (!AIM_is_Leo_Completion(outer_aim)) {
+          if (AIM_has_Event (outer_aim)) {
+              Event_Group_Size_of_AIM (outer_aim) = 1;
           }
-        continue;               /* This AHFA is not a Leo completion,
+        continue;               /* This AIM is not a Leo completion,
                                    so we are done. */
        }
-      outer_nsyid = LHSID_of_AHFA (outer_ahfa);
-      for (inner_ahfa_id = 0; inner_ahfa_id < ahfa_count_of_g;
-           inner_ahfa_id++)
+      outer_nsyid = LHSID_of_AIM (outer_aim);
+      for (inner_aim_id = 0; inner_aim_id < aim_count_of_g;
+           inner_aim_id++)
         {
           NSYID inner_nsyid;
-          const AHFA inner_ahfa = AHFA_by_ID (inner_ahfa_id);
-          if (!AIM_has_Event (AIM_of_AHFA(inner_ahfa)))
+          const AIM inner_aim = AIM_by_ID (inner_aim_id);
+          if (!AIM_has_Event (inner_aim))
             continue;           /* Not in the group, because it
-                                   is not an event AHFA. */
-          if (!AHFA_is_Leo_Completion(inner_ahfa))
-            continue;           /* This AHFA is not a Leo completion,
+                                   is not an event AIM. */
+          if (!AIM_is_Leo_Completion(inner_aim))
+            continue;           /* This AIM is not a Leo completion,
                                    so we are done. */
-          inner_nsyid = LHSID_of_AHFA (inner_ahfa);
+          inner_nsyid = LHSID_of_AIM (inner_aim);
           if (matrix_bit_test (nsy_by_right_nsy_matrix,
                                outer_nsyid,
                                inner_nsyid))
             {
-              /* |inner_ahfa == outer_ahfa|
+              /* |inner_aim == outer_aim|
               is not treated as special case
               */
-              Event_Group_Size_of_AIM (AIM_of_AHFA(outer_ahfa))++; 
+              Event_Group_Size_of_AIM (outer_aim)++; 
             }
         }
     }
