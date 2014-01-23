@@ -37,9 +37,9 @@ my $dsl = <<'END_OF_SOURCE';
 
 S   ::= NP  VP  period  action => do_S
 
-NP  ::= NN              action => do_NP_NN
-    |   NNS             action => do_NP_NNS
-    |   DT  NN          action => do_NP_DT_NN
+NP  ::= NN              action => do_NP_NN      
+    |   NNS             action => do_NP_NNS   
+    |   DT  NN          action => do_NP_DT_NN   
     |   NN  NNS         action => do_NP_NN_NNS
     |   NNS CC NNS      action => do_NP_NNS_CC_NNS
 
@@ -115,10 +115,9 @@ Marpa::R2::Test::is( ( join "\n", sort @actual ) . "\n",
 
 my $panda_grammar = Marpa::R2::Scanless::G->new(
     { source => \$dsl } );
-my $panda_recce = Marpa::R2::Scanless::R->new( { 
-    grammar => $panda_grammar,
-    semantics_package => 'PennTags'
-} );
+my $panda_recce = Marpa::R2::Scanless::R->new( 
+    { grammar => $panda_grammar,
+      semantics_package => 'PennTags' } );
 $panda_recce->read( \$sentence );
 my $asf = Marpa::R2::ASF->new( { slr=>$panda_recce } );
 my $full_result = $asf->traverse( {}, \&full_traverser );
@@ -130,13 +129,16 @@ my $pruned_result = $asf->traverse( {}, \&pruning_traverser );
 # name: ASF synopsis full traverser code
 sub full_traverser {
 
-    # This routine converts the glade into a list of Penn-tagged elements.  It is called recursively.
+    # This routine converts the glade into a list of Penn-tagged elements
+    # by calling semantic action closures fetched from the recognizer.
+    # It is called recursively.
     my ($glade, $scratch)     = @_;
     my $rule_id     = $glade->rule_id();
     my $symbol_id   = $glade->symbol_id();
     my $symbol_name = $panda_grammar->symbol_name($symbol_id);
 
-    # A token is a single choice, and we know enough to fully Penn-tag it
+    # A token is a single choice and we just return it as a literal wrapped
+    # to match the rule closures parameter list
     if ( not defined $rule_id ) {
         return [ $glade->literal() ];
     } ## end if ( not defined $rule_id )
@@ -146,7 +148,7 @@ sub full_traverser {
 
     CHOICE: while (1) {
 
-        # The results at each position are a list of choices, so
+        # The parse results at each position are a list of choices, so
         # to produce a new result list, we need to take a Cartesian
         # product of all the choices
         my @values = $glade->rh_values();
@@ -168,18 +170,29 @@ sub full_traverser {
         }
 
         # Now we have a list of choices, as a list of lists.  Each sub list
-        # is a list of Penn-tagged elements, which we need to join into
-        # a single Penn-tagged element.  The result will be to collapse
-        # one level of lists, and leave us with a list of Penn-tagged
-        # elements
-        my $join_ws = q{ };
-        $join_ws = qq{\n   } if $symbol_name eq 'S';
+        # is a list of parse results, which we need to pass to the rule closures
+        # and join into a single Penn-tagged element.  The result will be 
+        # to collapse one level of lists, and leave us with a list of 
+        # Penn-tagged elements.
+        
+        # First, we take the semantic action closure of the rule as defined in the 
+        # recognizer's semantic package. 
+        my $closure = $panda_recce->rule_closure( $glade->rule_id() );
+        # Note: $glade->rule_id() is used instead of the above $rule_id, because
+        # $glade->next() must have been called and the current glade (and thus
+        # the rule) might have changed 
+        
+        # Now, we need to check if the semantic action of the rule is defined 
+        # as a closure. For now, we just die if it is not.
+        #
+        # However, start, length, lhs, and values builtins can be emulated by
+        # using $glade->span(), $glade->symbol_id(), and $glade->rh_values().
+        # Stull, defining closures would probably serve you better.
+        unless (defined $closure and ref $closure eq 'CODE'){
+            die "The semantics of Rule #" . $glade->rule_id() . "is not defined as a closure.";
+        }
 
-        push @return_value,
-            map {
-                $panda_recce->rule_closure($glade->rule_id())->( {}, @{$_} );
-            }
-            @results;
+        push @return_value, map { $closure->( {}, @{$_} ) } @results;
 
         # Look at the next alternative in this glade, or end the
         # loop if there is none
