@@ -3997,15 +3997,15 @@ PPCODE:
 
 # int
 void
-_marpa_g_AHFA_item_count( g_wrapper )
+_marpa_g_ahm_count( g_wrapper )
     G_Wrapper *g_wrapper;
 PPCODE:
 {
   Marpa_Grammar g = g_wrapper->g;
-  int result = _marpa_g_AHFA_item_count (g);
+  int result = _marpa_g_ahm_count (g);
   if (result <= -2)
     {
-      croak ("Problem in g->_marpa_g_AHFA_item_count(): %s", xs_g_error (g_wrapper));
+      croak ("Problem in g->_marpa_g_ahm_count(): %s", xs_g_error (g_wrapper));
     }
   if (result < 0)
     {
@@ -4054,13 +4054,13 @@ PPCODE:
 
 # Marpa_IRL_ID
 void
-_marpa_g_AHFA_item_irl( g_wrapper, item_id )
+_marpa_g_ahm_irl( g_wrapper, item_id )
     G_Wrapper *g_wrapper;
-    Marpa_AIM_ID item_id;
+    Marpa_AHM_ID item_id;
 PPCODE:
 {
     Marpa_Grammar g = g_wrapper->g;
-    int result = _marpa_g_AHFA_item_irl(g, item_id);
+    int result = _marpa_g_ahm_irl(g, item_id);
     if (result < 0) { XSRETURN_UNDEF; }
       XPUSHs (sv_2mortal (newSViv (result)));
 }
@@ -4068,13 +4068,13 @@ PPCODE:
  # -1 is a valid return value, so -2 indicates an error
 # int
 void
-_marpa_g_AHFA_item_position( g_wrapper, item_id )
+_marpa_g_ahm_position( g_wrapper, item_id )
     G_Wrapper *g_wrapper;
-    Marpa_AIM_ID item_id;
+    Marpa_AHM_ID item_id;
 PPCODE:
 {
     Marpa_Grammar g = g_wrapper->g;
-    int result = _marpa_g_AHFA_item_position(g, item_id);
+    int result = _marpa_g_ahm_position(g, item_id);
     if (result <= -2) { XSRETURN_UNDEF; }
       XPUSHs (sv_2mortal (newSViv (result)));
 }
@@ -4082,13 +4082,13 @@ PPCODE:
  # -1 is a valid return value, and -2 indicates an error
 # Marpa_Symbol_ID
 void
-_marpa_g_AHFA_item_postdot( g_wrapper, item_id )
+_marpa_g_ahm_postdot( g_wrapper, item_id )
     G_Wrapper *g_wrapper;
-    Marpa_AIM_ID item_id;
+    Marpa_AHM_ID item_id;
 PPCODE:
 {
     Marpa_Grammar g = g_wrapper->g;
-    int result = _marpa_g_AHFA_item_postdot(g, item_id);
+    int result = _marpa_g_ahm_postdot(g, item_id);
     if (result <= -2) { XSRETURN_UNDEF; }
       XPUSHs (sv_2mortal (newSViv (result)));
 }
@@ -4147,7 +4147,7 @@ _marpa_r_earley_set_trace( r_wrapper, set_ordinal )
     Marpa_Earley_Set_ID set_ordinal;
 PPCODE:
     { struct marpa_r* r = r_wrapper->r;
-    Marpa_AIM_ID result = _marpa_r_earley_set_trace(
+    Marpa_AHM_ID result = _marpa_r_earley_set_trace(
         r, set_ordinal );
     if (result == -1) { XSRETURN_UNDEF; }
     if (result < 0) { croak("problem with r->_marpa_r_earley_set_trace: %s", xs_g_error(r_wrapper->base)); }
@@ -4160,7 +4160,7 @@ _marpa_r_earley_item_trace( r_wrapper, item_ordinal )
     Marpa_Earley_Item_ID item_ordinal;
 PPCODE:
     { struct marpa_r* r = r_wrapper->r;
-    Marpa_AIM_ID result = _marpa_r_earley_item_trace(
+    Marpa_AHM_ID result = _marpa_r_earley_item_trace(
         r, item_ordinal);
     if (result == -1) { XSRETURN_UNDEF; }
     if (result < 0) { croak("problem with r->_marpa_r_earley_item_trace: %s", xs_g_error(r_wrapper->base)); }

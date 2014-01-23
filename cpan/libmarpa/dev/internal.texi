@@ -261,25 +261,24 @@ On other failures, -2.
 @node Grammar internals, Recognizer internals, Rule internals, Internal Interface
 @section Grammar internal methods
 
-The methods in this section are accessors for Libmarpa's
-AHFA items and states.
+The methods in this section are accessors for Libmarpa's AHMs.
 Their use requires familiarity with
 Marpa's internals, as described in
 @cite{Marpa: The Program}.
 
-@deftypefun int _marpa_g_AHFA_item_count (Marpa_Grammar @var{g})
+@deftypefun int _marpa_g_ahm_count (Marpa_Grammar @var{g})
 @end deftypefun
-@deftypefun Marpa_Rule_ID _marpa_g_AHFA_item_irl (Marpa_Grammar @var{g}, @
-    Marpa_AIM_ID @var{item_id})
+@deftypefun Marpa_Rule_ID _marpa_g_ahm_irl (Marpa_Grammar @var{g}, @
+    Marpa_AHM_ID @var{item_id})
 @end deftypefun
-@deftypefun int _marpa_g_AHFA_item_position (Marpa_Grammar @var{g}, @
-    Marpa_AIM_ID @var{item_id})
+@deftypefun int _marpa_g_ahm_position (Marpa_Grammar @var{g}, @
+    Marpa_AHM_ID @var{item_id})
 @end deftypefun
-@deftypefun Marpa_Symbol_ID _marpa_g_AHFA_item_postdot (Marpa_Grammar @var{g}, @
-    Marpa_AIM_ID @var{item_id})
+@deftypefun Marpa_Symbol_ID _marpa_g_ahm_postdot (Marpa_Grammar @var{g}, @
+    Marpa_AHM_ID @var{item_id})
 @end deftypefun
-@deftypefun int _marpa_g_AHFA_item_sort_key (Marpa_Grammar @var{g}, @
-    Marpa_AIM_ID @var{item_id})
+@deftypefun int _marpa_g_ahm_sort_key (Marpa_Grammar @var{g}, @
+    Marpa_AHM_ID @var{item_id})
 @end deftypefun
 
 @node Recognizer internals, Bocage internals, Grammar internals, Internal Interface
@@ -306,7 +305,7 @@ and development.
 @deftypefun Marpa_Earleme _marpa_r_earley_set_trace (Marpa_Recognizer r, Marpa_Earley_Set_ID @var{set_id})
 @end deftypefun
 
-@deftypefun Marpa_AIM_ID _marpa_r_earley_item_trace (Marpa_Recognizer r, Marpa_Earley_Item_ID @var{item_id})
+@deftypefun Marpa_AHM_ID _marpa_r_earley_item_trace (Marpa_Recognizer r, Marpa_Earley_Item_ID @var{item_id})
 @end deftypefun
 
 @deftypefun Marpa_Earley_Set_ID _marpa_r_earley_item_origin (Marpa_Recognizer @var{r})
@@ -318,10 +317,7 @@ and development.
 @deftypefun Marpa_Earley_Set_ID _marpa_r_leo_base_origin (Marpa_Recognizer @var{r})
 @end deftypefun
 
-@deftypefun Marpa_AIM_ID _marpa_r_leo_base_state (Marpa_Recognizer @var{r})
-@end deftypefun
-
-@deftypefun Marpa_AIM_ID _marpa_r_leo_expansion_ahfa (Marpa_Recognizer @var{r})
+@deftypefun Marpa_AHM_ID _marpa_r_leo_base_state (Marpa_Recognizer @var{r})
 @end deftypefun
 
 @deftypefun Marpa_Symbol_ID _marpa_r_postdot_symbol_trace (Marpa_Recognizer r, Marpa_Symbol_ID @var{symid})
@@ -354,7 +350,7 @@ and development.
 @deftypefun Marpa_Symbol_ID _marpa_r_next_leo_link_trace (Marpa_Recognizer @var{r})
 @end deftypefun
 
-@deftypefun Marpa_AIM_ID _marpa_r_source_predecessor_state (Marpa_Recognizer @var{r})
+@deftypefun Marpa_AHM_ID _marpa_r_source_predecessor_state (Marpa_Recognizer @var{r})
 @end deftypefun
 
 @deftypefun Marpa_Symbol_ID _marpa_r_source_token (Marpa_Recognizer r, int *@var{value_p})

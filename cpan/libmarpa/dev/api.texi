@@ -5034,7 +5034,7 @@ users of the external interface
 should never
 see development errors.
 
-Development errors has an error string
+Development errors have an error string
 associated with them.
 The error string is a
 short 7-bit ASCII error string
@@ -5057,10 +5057,17 @@ Numeric value: 19.
 @end deftypevr
 
 @deftypevr Macro int MARPA_ERR_INVALID_AHFA_ID
+The AHFA ID was invalid.  There are no AHFAs
+any more, so this message should not occur.
 Numeric value: 20.
 @end deftypevr
+
 @deftypevr Macro int MARPA_ERR_INVALID_AIMID
+The AHM ID was invalid.  The term ``AIMID''
+is a legacy of earlier implementations and must
+be kept for backward compatibility.
 Numeric value: 21.
+
 @end deftypevr
 @deftypevr Macro int MARPA_ERR_INVALID_IRLID
 Numeric value: 23.
