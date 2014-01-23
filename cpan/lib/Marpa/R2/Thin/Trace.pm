@@ -201,7 +201,7 @@ sub show_AHFA_item {
     my ( $self, $item_id ) = @_;
     my $grammar_c  = $self->{g};
     my $postdot_id = $grammar_c->_marpa_g_AHFA_item_postdot($item_id);
-    my $text       = "AIM $item_id: ";
+    my $text       = "AHM $item_id: ";
     my @properties = ();
     if ( $postdot_id < 0 ) {
         push @properties, 'completion';
