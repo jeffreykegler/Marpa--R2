@@ -4819,15 +4819,12 @@ six states each.
    115, 117, 119, 123, 125, 127, 144, 149, 150, 154, 181, 219,
    and 222.
 
-@** AHFA item (AIM) code.
-AHFA states are sets of AHFA items.
-AHFA items are named by analogy with LR(0) items.
-LR(0) items play the same role in the LR(0) automaton that
-AHFA items play in the AHFA ---
-the states of the automata correspond to sets of the items.
-Also like LR(0) items,
-each AHFA items correponds one-to-one to a duple,
-the duple being a a rule and a position in that rule.
+@** Aycock-Horspool item (AIM) code.
+These were formerly called AHFA items,
+where AHFA stood for ``Aycock-Horspool finite automaton''.
+The finite automaton is not longer in use, but its special 
+items (dotted rules which ignore nullables) remain very
+much a part of Marpa's parsing strategy.
 @<Public typedefs@> =
 typedef int Marpa_AHFA_Item_ID;
 @ @<Private structures@> =
@@ -7284,8 +7281,11 @@ with a |NULL| Earley item pointer.
 @d Postdot_NSYID_of_LIM(leo) (Postdot_NSYID_of_YIX(YIX_of_LIM(leo)))
 @d Next_PIM_of_LIM(leo) (Next_PIM_of_YIX(YIX_of_LIM(leo)))
 @d Origin_of_LIM(leo) ((leo)->t_origin)
-@d Top_AHFA_of_LIM(leo) ((leo)->t_top_ahfa)
-@d Base_to_AHFA_of_LIM(leo) ((leo)->t_base_to_ahfa)
+@d Top_AIM_of_LIM(leo) ((leo)->t_top_aim)
+@d Top_AHFA_of_LIM(leo) 
+  AHFA_of_AIM(Top_AIM_of_LIM(leo))
+@d Base_to_AIM_of_LIM(leo) ((leo)->t_base_to_aim)
+@d Base_to_AHFA_of_LIM(leo) AHFA_of_AIM(Base_to_AIM_of_LIM(leo))
 @d Predecessor_LIM_of_LIM(leo) ((leo)->t_predecessor)
 @d Base_YIM_of_LIM(leo) ((leo)->t_base)
 @d YS_of_LIM(leo) ((leo)->t_set)
@@ -7298,8 +7298,8 @@ struct s_leo_item {
      YIX_Object t_earley_ix;
     @<Widely aligned LIM elements@>@;
      YS t_origin;
-     AHFA t_top_ahfa;
-     AHFA t_base_to_ahfa;
+     AIM t_top_aim;
+     AIM t_base_to_aim;
      LIM t_predecessor;
      YIM t_base;
      YS t_set;
@@ -9510,8 +9510,8 @@ once it is populated.
     Predecessor_LIM_of_LIM(new_lim) = NULL;
     Origin_of_LIM(new_lim) = NULL;
     CIL_of_LIM(new_lim) = NULL;
-    Top_AHFA_of_LIM(new_lim) = base_to_ahfa;
-    Base_to_AHFA_of_LIM(new_lim) = base_to_ahfa;
+    Top_AIM_of_LIM(new_lim) = AIM_of_AHFA(base_to_ahfa);
+    Base_to_AIM_of_LIM(new_lim) = AIM_of_AHFA(base_to_ahfa);
     Base_YIM_of_LIM(new_lim) = leo_base;
     YS_of_LIM(new_lim) = current_earley_set;
     Next_PIM_of_LIM(new_lim) = this_pim;
@@ -9763,17 +9763,16 @@ which stabilizes short of closure.
 Secondary optimzations ensure this is fairly cheap as well.
 @<Populate |lim_to_process| from |predecessor_lim|@> =
 {
-  const AHFA new_top_ahfa = Top_AHFA_of_LIM (predecessor_lim);
+  const AIM new_top_aim = Top_AIM_of_LIM (predecessor_lim);
   const CIL predecessor_cil = CIL_of_LIM (predecessor_lim);
-  /* \comment Initialize to be just the predcessor's list of AHFA IDs.
+  /* \comment Initialize to be just the predcessor's list of AIM IDs.
        Overwrite if we need to add another. */
   CIL_of_LIM (lim_to_process) = predecessor_cil;        
   Predecessor_LIM_of_LIM (lim_to_process) = predecessor_lim;
   Origin_of_LIM (lim_to_process) = Origin_of_LIM (predecessor_lim);
-  if (Event_Group_Size_of_AIM (AIM_of_AHFA(new_top_ahfa)) > Count_of_CIL (predecessor_cil))
-    {                           /* Might we need to add another AHFA ID? */
-      const AHFA base_to_ahfa = Base_to_AHFA_of_LIM (lim_to_process);      
-      const AIM base_to_aim = AIM_of_AHFA(base_to_ahfa);
+  if (Event_Group_Size_of_AIM (new_top_aim) > Count_of_CIL (predecessor_cil))
+    {                           /* Might we need to add another AIM ID? */
+      const AIM base_to_aim = Base_to_AIM_of_LIM(lim_to_process);
       const CIL base_to_aim_event_aimids =
         Event_AIMIDs_of_AIM (base_to_aim);
       if (Count_of_CIL (base_to_aim_event_aimids))
@@ -9787,7 +9786,7 @@ Secondary optimzations ensure this is fairly cheap as well.
             }
         }
     }
-  Top_AHFA_of_LIM (lim_to_process) = new_top_ahfa;
+  Top_AIM_of_LIM (lim_to_process) = new_top_aim;
 }
 
 @ If we have reached this code, either we do not have a predecessor
