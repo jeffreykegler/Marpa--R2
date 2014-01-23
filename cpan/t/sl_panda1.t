@@ -200,12 +200,6 @@ Marpa::R2::Test::is( $cooked_result, $full_expected,
 # Marpa::R2::Display
 # name: ASF synopsis pruning traverser code
 
-sub penn_tag {
-   my ($symbol_name) = @_;
-   return q{.} if $symbol_name eq 'period';
-   return $symbol_name;
-}
-
 sub pruning_traverser {
 
     # This routine converts the glade into a list of Penn-tagged elements.  It is called recursively.
