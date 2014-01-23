@@ -4910,13 +4910,17 @@ int t_leading_nulls;
 RHS position include nulling symbols.
 Position in the RHS, -1 for a completion.
 @d Position_of_AIM(aim) ((aim)->t_position)
-@ Probably should replace this with the one
-based on the quasi-position.
-@d AIM_is_Prediction(aim) (
-  Position_of_AIM(aim) >= 0
-  && Position_of_AIM(aim) <= Null_Count_of_AIM(aim) )
 @<Int aligned AIM elements@> =
 int t_position;
+
+@ Note the difference between |AIM_was_Prediction|
+and |AIM_is_Prediction|.
+|AIM_is_Prediction| indicates whether the dotted rule is
+a prediction.
+|AIM_was_Prediction| indicates whether the AIM is the result
+of a prediction.
+In the case of the start AIM, it is result of Initialization.
+@d AIM_is_Prediction(aim) (Quasi_Position_of_AIM(aim) == 0)
 
 @*0 Quasi-position.
 Quasi-positions are those modulo nulling symbols.
@@ -5196,7 +5200,6 @@ struct s_AHFA_state {
     struct s_AHFA_state_key t_key;
     @<Widely aligned AHFA state elements@>@;
     @<Int aligned AHFA state elements@>@;
-    @<Bit aligned AHFA state elements@>@;
 };
 typedef struct s_AHFA_state AHFA_Object;
 
@@ -5236,16 +5239,15 @@ which is the case with discovered AHFA's.
 @d LHSID_of_AHFA(ahfa) LHSID_of_IRL(IRL_of_AHFA(ahfa))
 
 @*0 Is AHFA predicted?.
-@ This boolean indicates whether the
-{\bf AHFA state} is predicted,
-as opposed to whether it contains any predicted 
-AHFA items.
-This makes a difference in AHFA state 0.
-AHFA state 0 is {\bf not} a predicted AHFA state.
-@d AHFA_is_Predicted(ahfa) ((ahfa)->t_is_predict)
-@d YIM_is_Predicted(yim) AHFA_is_Predicted(AHFA_of_YIM(yim))
-@<Bit aligned AHFA state elements@> =
-BITFIELD t_is_predict:1;
+@ This boolean indicates source, not contents.
+If it is true the AIM is a prediction,
+but it is false for the start AIM at location 0,
+which is a prediction, but which is the result
+of initalization, and not of prediction.
+@d AIM_was_Predicted(ahfa) ((ahfa)->t_was_predicted)
+@d YIM_was_Predicted(yim) AIM_was_Predicted(AIM_of_YIM(yim))
+@<Bit aligned AIM elements@> =
+BITFIELD t_was_predicted:1;
 
 @*0 Event data.
 A boolean tracks whether this is an
@@ -5504,7 +5506,7 @@ from AHFA states.
 
   p_initial_state->t_items[0] = start_item;
 
-  AHFA_is_Predicted (p_initial_state) = 0;
+  AIM_was_Predicted (start_item) = 0;
   AHFA_of_AIM(start_item) = p_initial_state;
   AIM_is_Populated(start_item) = 1;
 
@@ -5555,7 +5557,7 @@ create_singleton_AHFA_state(
     /* Create a new AHFA state */
     AHFA_initialize(g, new_ahfa);
     new_ahfa->t_items[0] = base_aim;
-    AHFA_is_Predicted(new_ahfa) = 0;
+    AIM_was_Predicted(base_aim) = 0;
   AHFA_of_AIM(base_aim) = new_ahfa;
   return new_ahfa;
 }
@@ -5769,7 +5771,7 @@ create_predicted_singleton(
   p_new_state = DQUEUE_PUSH ((*states_p), AHFA_Object);
   AHFA_initialize (g, p_new_state);
   p_new_state->t_items[0] = aim_prediction;
-  AHFA_is_Predicted (p_new_state) = 1;
+  AIM_was_Predicted (aim_prediction) = 1;
   AHFA_of_AIM(aim_prediction) = p_new_state;
   return p_new_state;
 }
@@ -10079,7 +10081,7 @@ never on the stack.
         /* Note that the postdot symbol of the predecessor is NOT necessarily the
            predot symbol, because there may be nulling symbols in between. */
         unsigned int source_type = Source_Type_of_YIM (parent_earley_item);
-        MARPA_ASSERT(!YIM_is_Predicted(parent_earley_item))@;
+        MARPA_ASSERT(!YIM_was_Predicted(parent_earley_item))@;
         @<Push child Earley items from token sources@>@;
         @<Push child Earley items from completion sources@>@;
         @<Push child Earley items from Leo sources@>@;
@@ -10144,7 +10146,7 @@ PRIVATE int psia_test_and_set(
     {
       if (predecessor_earley_item)
         {
-          if (YIM_is_Predicted (predecessor_earley_item))
+          if (YIM_was_Predicted (predecessor_earley_item))
             {
                 Set_boolean_in_PSIA_for_initial_nulls (bocage_setup_obs, per_ys_data,
                                                        predecessor_earley_item,
@@ -10212,7 +10214,7 @@ Set_boolean_in_PSIA_for_initial_nulls (struct marpa_obstack *bocage_setup_obs,
     {
       if (predecessor_earley_item)
 	{
-	  if (YIM_is_Predicted (predecessor_earley_item))
+	  if (YIM_was_Predicted (predecessor_earley_item))
 	    {
 	       Set_boolean_in_PSIA_for_initial_nulls
 		(bocage_setup_obs, per_ys_data,
@@ -10253,7 +10255,7 @@ Set_boolean_in_PSIA_for_initial_nulls (struct marpa_obstack *bocage_setup_obs,
       while (leo_predecessor)
         {
           const YIM leo_base_yim = Base_YIM_of_LIM (leo_predecessor);
-          if (YIM_is_Predicted (leo_base_yim))
+          if (YIM_was_Predicted (leo_base_yim))
             {
                 const AHFA leo_final_ahfa = Base_to_AHFA_of_LIM(leo_predecessor);
                 const AIM leo_final_aim = AIM_of_AHFA(leo_final_ahfa);
@@ -12014,7 +12016,7 @@ to make sense.
         const YIM earley_item = earley_items[yim_ix];
         const AHFA ahfa_state = AHFA_of_YIM(earley_item);
         if (Origin_Earleme_of_YIM(earley_item) > 0) continue; // Not a start YIM
-        if (AHFA_is_Predicted(ahfa_state)) continue;
+        if (YIM_was_Predicted(earley_item)) continue;
         {
            const AIM ahfa_item = AIM_of_AHFA(ahfa_state);
            if (IRLID_of_AIM(ahfa_item) == sought_irl_id) {
