@@ -2994,7 +2994,7 @@ int t_symbol_instance_count;
 @d Last_Proper_SYMI_of_IRL(irl) ((irl)->t_last_proper_symi)
 @d SYMI_of_Completed_IRL(irl)
     (SYMI_of_IRL(irl) + Length_of_IRL(irl)-1)
-@d SYMI_of_AIM(aim) (symbol_instance_of_ahfa_item_get(aim))
+@d SYMI_of_AIM(aim) (symbol_instance_of_aim_get(aim))
 @<Int aligned IRL elements@> =
 int t_symbol_instance_base;
 int t_last_proper_symi;
@@ -3014,7 +3014,7 @@ base symbol instance for
 the rule, offset by the position of that preceding AHFA item.
 @<Function definitions@> =
 PRIVATE int
-symbol_instance_of_ahfa_item_get (AIM aim)
+symbol_instance_of_aim_get (AIM aim)
 {
   if (!AIM_is_Prediction(aim)) {
       const IRL irl = IRL_of_AIM (aim);
@@ -5229,8 +5229,6 @@ PRIVATE void AHFA_initialize(GRAMMAR g, AHFA ahfa)
 These assume there is only one AIM in the AHFA,
 which is the case with discovered AHFA's.
 @d AIM_of_AHFA(ahfa) ( ((ahfa)->t_items)[0] )
-@d IRL_of_AHFA(ahfa) IRL_of_AIM(AIM_of_AHFA(ahfa))
-@d LHSID_of_AHFA(ahfa) LHSID_of_IRL(IRL_of_AHFA(ahfa))
 
 @*0 Is AHFA predicted?.
 @ This boolean indicates source, not contents.
@@ -5424,19 +5422,6 @@ one non-nulling symbol in each IRL. */
     }
 }
 
-@*0 Leo IRL and LHS.
-The Leo IRL of an AHFA is its rule,
-if that state can be a Leo completion.
-Otherwise it is |-1|.
-(There will be only one if it is a Leo completion.)
-The Leo LHS symbol is the LHS of the Leo IRL,
--1 if there is no Leo IRL.
-The value of the Leo completion symbol is used to
-determine if an Earley item
-with this AHFA state is eligible to be a Leo completion.
-@d AHFA_is_Leo_Completion(state)
-  AIM_is_Leo_Completion(AIM_of_AHFA(state))
-
 @*0 Creating AHFA states.
 @<Create AHFA states@> =
 {
@@ -5469,7 +5454,6 @@ with this AHFA state is eligible to be a Leo completion.
 
    g->t_AHFA = DQUEUE_BASE(states, AHFA_Object); /* ``Steals"
        the |DQUEUE|'s data */
-   ahfa_count_of_g = AHFA_Count_of_G(g);
 }
 
 @ |initial_no_of_states| might bear some rethinking, but
@@ -5478,7 +5462,6 @@ until then.
 @<Declare locals for creating AHFA states@> =
    const int initial_no_of_states = 2*AIM_Count_of_G(g);
    DQUEUE_DECLARE(states);
-  int ahfa_count_of_g;
 
 @ @<Initialize locals for creating AHFA states@> =
    DQUEUE_INIT(states, AHFA_Object, initial_no_of_states);
@@ -8978,8 +8961,7 @@ The return value means success, with no events.
 	continue;		// Ignore Leo items when scanning
 
 	{
-          const AHFA predecessor_ahfa = AHFA_of_YIM(predecessor);
-          const AIM predecessor_aim = AIM_of_AHFA(predecessor_ahfa);
+          const AIM predecessor_aim = AIM_of_YIM(predecessor);
           const AIM scanned_aim = Next_AIM_of_AIM(predecessor_aim);
         @<Create the earley items for |scanned_aim|@> @;
         }
