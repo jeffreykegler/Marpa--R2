@@ -5461,7 +5461,6 @@ with |S2| on its LHS.
   const CILAR cilar = &g->t_cilar;
   for (aim_id = 0; aim_id < aim_count_of_g; aim_id++)
     {
-      const AEX aex = 0;
       const AHM aim = AHM_by_ID (aim_id);
       const NSYID postdot_nsyid = Postdot_NSYID_of_AHM (aim);
       const IRL irl = IRL_of_AHM (aim);
@@ -9034,7 +9033,6 @@ At this point there are no Leo items.
         {
           PIM old_pim = NULL;
           PIM new_pim;
-          NSYID nsyid;
 
 	  /* Need to be aligned for a PIM */
           new_pim = marpa__obs_alloc(r->t_obs,
@@ -9668,7 +9666,6 @@ never on the stack.
     while ((ur_node = ur_node_pop(ur_node_stack)))
     {
         const YIM_Const parent_earley_item = YIM_of_UR(ur_node);
-        const AEX parent_aex = AEX_of_UR(ur_node);
         const AHM parent_aim = AHM_of_YIM(parent_earley_item);
         MARPA_ASSERT(parent_aim >= AHM_by_ID(1))@;
         const AHM predecessor_aim = parent_aim - 1;
