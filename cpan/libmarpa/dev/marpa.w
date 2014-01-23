@@ -7162,13 +7162,12 @@ PRIVATE YIM earley_item_create(const RECCE r,
 @ @<Function definitions@> =
 PRIVATE YIM
 earley_item_assign (const RECCE r, const YS set, const YS origin,
-                    const AHFA state)
+                    const AIM aim)
 {
   const GRAMMAR g = G_of_R (r);
   YIK_Object key;
   YIM yim;
   PSL psl;
-  AIM aim = AIM_of_AHFA(state);
   AIMID aim_id = ID_of_AIM(aim);
   PSL *psl_owner = &Dot_PSL_of_YS (origin);
   if (!*psl_owner)
@@ -8985,19 +8984,18 @@ The return value means success, with no events.
           const AHFA predecessor_ahfa = AHFA_of_YIM(predecessor);
           const AIM predecessor_aim = AIM_of_AHFA(predecessor_ahfa);
           const AIM scanned_aim = Next_AIM_of_AIM(predecessor_aim);
-	  const AHFA scanned_AHFA = AHFA_of_AIM(scanned_aim);
-        @<Create the earley items for |scanned_AHFA|@> @;
+        @<Create the earley items for |scanned_aim|@> @;
         }
     }
 }
 
-@ @<Create the earley items for |scanned_AHFA|@> =
+@ @<Create the earley items for |scanned_aim|@> =
 {
   const YIM scanned_earley_item = earley_item_assign (r,
 						      current_earley_set,
 						      Origin_of_YIM
 						      (predecessor),
-						      scanned_AHFA);
+						      scanned_aim);
   tkn_link_add (r, scanned_earley_item, predecessor, tkn);
 }
 
@@ -9040,11 +9038,9 @@ add those Earley items it ``causes".
       const YIM predecessor = YIM_of_PIM (postdot_item);
       if (predecessor)
         { /* Not a Leo item */
-            const AHFA predecessor_ahfa = AHFA_of_YIM(predecessor);
-            const AIM predecessor_aim = AIM_of_AHFA(predecessor_ahfa);
+            const AIM predecessor_aim = AIM_of_YIM(predecessor);
             const AIM effect_aim = Next_AIM_of_AIM(predecessor_aim);
-            const AHFA effect_AHFA = AHFA_of_AIM(effect_aim);
-            @<Add |effect_AHFA|, plus any prediction,
+            @<Add |effect_aim|, plus any prediction,
               for non-Leo |predecessor|@>@;
         }
       else
@@ -9057,11 +9053,11 @@ add those Earley items it ``causes".
     }
 }
 
-@ @<Add |effect_AHFA|, plus any prediction, for non-Leo |predecessor|@> =
+@ @<Add |effect_aim|, plus any prediction, for non-Leo |predecessor|@> =
 {
    const YS origin = Origin_of_YIM(predecessor);
    const YIM effect = earley_item_assign(r, current_earley_set,
-        origin, effect_AHFA);
+        origin, effect_aim);
    if (Earley_Item_has_No_Source(effect)) {
        /* If it has no source, then it is new */
        if (Earley_Item_is_Completion(effect)) {
@@ -9079,9 +9075,9 @@ add those Earley items it ``causes".
 @ @<Add effect of Leo item@> = {
     const LIM leo_item = LIM_of_PIM (postdot_item);
     const YS origin = Origin_of_LIM (leo_item);
-    const AHFA effect_AHFA = Top_AHFA_of_LIM (leo_item);
+    const AIM effect_aim = Top_AIM_of_LIM (leo_item);
     const YIM effect = earley_item_assign (r, current_earley_set,
-                                 origin, effect_AHFA);
+                                 origin, effect_aim);
     if (Earley_Item_has_No_Source (effect))
       {
         /* If it has no source, then it is new */
@@ -9112,9 +9108,8 @@ the Leo items.
 		Item_of_CIL (prediction_cil, cil_ix);
 	      const IRL prediction_irl = IRL_by_ID (prediction_irlid);
 	      const AIM prediction_aim = First_AIM_of_IRL (prediction_irl);
-	      const AHFA prediction_ahfa = AHFA_of_AIM (prediction_aim);
 	      earley_item_assign (r, current_earley_set, current_earley_set,
-				  prediction_ahfa);
+				  prediction_aim);
 	    }
 	}
 
