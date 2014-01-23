@@ -7097,11 +7097,11 @@ the Earley set.
 @d Ord_of_YIM(item) ((item)->t_ordinal)
 @d Earleme_of_YIM(item) Earleme_of_YS(YS_of_YIM(item))
 @d AHFAID_of_YIM(item) (ID_of_AHFA(AHFA_of_YIM(item)))
-@d AHFA_of_YIM(item) ((item)->t_key.t_state)
+@d AIM_of_YIM(item) ((item)->t_key.t_aim)
+@d AHFA_of_YIM(item) AHFA_of_AIM(AIM_of_YIM(item))
 @d Origin_Earleme_of_YIM(item) (Earleme_of_YS(Origin_of_YIM(item)))
 @d Origin_Ord_of_YIM(item) (Ord_of_YS(Origin_of_YIM(item)))
 @d Origin_of_YIM(item) ((item)->t_key.t_origin)
-@d AIM_of_YIM(yim) AIM_of_AHFA(AHFA_of_YIM(yim))
 @s YIM int
 @<Private incomplete structures@> =
 struct s_earley_item;
@@ -7121,7 +7121,7 @@ should not be restrictive in practice.
 @d YIM_FATAL_THRESHOLD ((1<<(YIM_ORDINAL_WIDTH))-2)
 @<Earley item structure@> =
 struct s_earley_item_key {
-     AHFA t_state;
+     AIM t_aim;
      YS t_origin;
      YS t_set;
 };
@@ -7171,7 +7171,8 @@ earley_item_assign (const RECCE r, const YS set, const YS origin,
   YIK_Object key;
   YIM yim;
   PSL psl;
-  AIMID aim_id = ID_of_AIM(AIM_of_AHFA(state));
+  AIM aim = AIM_of_AHFA(state);
+  AIMID aim_id = ID_of_AIM(aim);
   PSL *psl_owner = &Dot_PSL_of_YS (origin);
   if (!*psl_owner)
     {
@@ -7186,7 +7187,7 @@ earley_item_assign (const RECCE r, const YS set, const YS origin,
       return yim;
     }
   key.t_origin = origin;
-  key.t_state = state;
+  key.t_aim = aim;
   key.t_set = set;
   yim = earley_item_create (r, key);
   PSL_Datum (psl, aim_id) = yim;
@@ -8529,10 +8530,9 @@ PRIVATE int alternative_insert(RECCE r, ALT new_alternative)
 
     start_irl = g->t_start_irl;
     start_aim = First_AIM_of_IRL(start_irl);
-    start_ahfa = AHFA_of_AIM(start_aim);
 
     key.t_origin = set0;
-    key.t_state = start_ahfa;
+    key.t_aim = start_aim;
     key.t_set = set0;
     earley_item_create(r, key);
     bv_clear (r->t_bv_irl_is_predicted);
@@ -8548,8 +8548,7 @@ PRIVATE int alternative_insert(RECCE r, ALT new_alternative)
           if (!bv_bit_test_then_set(r->t_bv_irl_is_predicted, prediction_irlid)) {
           const IRL prediction_irl = IRL_by_ID(prediction_irlid);
           const AIM prediction_aim = First_AIM_of_IRL(prediction_irl);
-          const AHFA prediction_ahfa = AHFA_of_AIM(prediction_aim);
-          key.t_state = prediction_ahfa;
+          key.t_aim = prediction_aim;
           if (1) { earley_item_create(r, key); }
           }
         }
