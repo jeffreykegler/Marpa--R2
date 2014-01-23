@@ -7281,10 +7281,7 @@ with a |NULL| Earley item pointer.
 @d Next_PIM_of_LIM(leo) (Next_PIM_of_YIX(YIX_of_LIM(leo)))
 @d Origin_of_LIM(leo) ((leo)->t_origin)
 @d Top_AIM_of_LIM(leo) ((leo)->t_top_aim)
-@d Top_AHFA_of_LIM(leo) 
-  AHFA_of_AIM(Top_AIM_of_LIM(leo))
 @d Base_to_AIM_of_LIM(leo) ((leo)->t_base_to_aim)
-@d Base_to_AHFA_of_LIM(leo) AHFA_of_AIM(Base_to_AIM_of_LIM(leo))
 @d Predecessor_LIM_of_LIM(leo) ((leo)->t_predecessor)
 @d Base_YIM_of_LIM(leo) ((leo)->t_base)
 @d YS_of_LIM(leo) ((leo)->t_set)
@@ -9468,8 +9465,7 @@ Leo item have not been fully populated.
           {
 	    const YIM leo_base = YIM_of_PIM (this_pim);
 	    AIM potential_leo_penult_aim = NULL;
-		const AHFA leo_base_ahfa = AHFA_of_YIM (leo_base);
-		const AIM leo_base_aim = AIM_of_AHFA (leo_base_ahfa);
+		const AIM leo_base_aim = AIM_of_YIM (leo_base);
 		const IRL leo_base_irl = IRL_of_AIM (leo_base_aim);
 
 		if (!IRL_is_Leo (leo_base_irl))
@@ -9479,8 +9475,7 @@ Leo item have not been fully populated.
 	    {
 	      const AIM base_to_aim =
 		Next_AIM_of_AIM (potential_leo_penult_aim);
-	      const AHFA base_to_ahfa = AHFA_of_AIM (base_to_aim);
-	      if (AHFA_is_Leo_Completion (base_to_ahfa))
+	      if (AIM_is_Leo_Completion (base_to_aim))
 		{
 		  @<Create a new, unpopulated, LIM@>@;
 		}
@@ -9505,8 +9500,8 @@ once it is populated.
     Predecessor_LIM_of_LIM(new_lim) = NULL;
     Origin_of_LIM(new_lim) = NULL;
     CIL_of_LIM(new_lim) = NULL;
-    Top_AIM_of_LIM(new_lim) = AIM_of_AHFA(base_to_ahfa);
-    Base_to_AIM_of_LIM(new_lim) = AIM_of_AHFA(base_to_ahfa);
+    Top_AIM_of_LIM(new_lim) = base_to_aim;
+    Base_to_AIM_of_LIM(new_lim) = base_to_aim;
     Base_YIM_of_LIM(new_lim) = leo_base;
     YS_of_LIM(new_lim) = current_earley_set;
     Next_PIM_of_LIM(new_lim) = this_pim;
