@@ -244,7 +244,9 @@ sub pruning_traverser {
     }
     else{
         my $closure = $panda_recce->rule_closure($rule_id);
-        return $panda_recce->rule_closure($rule_id)->( {}, @return_value );
+        die "The semantics of Rule $rule_id is not defined as a closure." 
+            unless defined $closure and ref $closure eq 'CODE';
+        return $closure->( {}, @return_value );
     }
 }
 
