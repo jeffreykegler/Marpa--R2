@@ -178,10 +178,9 @@ displayed between angle brackets,
 regardless of whether the symbol was originally
 specified in bracketed form.
 
-There are cases in which a SLIF symbol needs to be 
-referred to by name in Perl code.
-In this cases, it is the symbols explicit name
-that is used.
+When a SLIF symbol needs to be 
+referred to by name in Perl code,
+it is the symbol's explicit name that is used.
 
 =head1 Single-quoted strings
 
