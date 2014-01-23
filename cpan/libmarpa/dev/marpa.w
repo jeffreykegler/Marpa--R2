@@ -3075,7 +3075,7 @@ int marpa_g_precompute(Marpa_Grammar g)
         @<Calculate Rule by LHS lists@>@;
         @<Create AHMs@>@;
         @<Construct prediction matrix@>@;
-        @<Populate AHMs@>@;
+        @<Construct right derivation matrix@>@;
         @<Populate the predicted IRL CIL's in the AHM's@>
         @<Populate the terminal boolean vector@>@;
         @<Populate the event boolean vectors@>@;
@@ -4905,11 +4905,11 @@ Position in the RHS, -1 for a completion.
 @<Int aligned AHM elements@> =
 int t_position;
 
-@ Note the difference between |AHM_was_Prediction|
+@ Note the difference between |AHM_was_Predicted|
 and |AHM_is_Prediction|.
 |AHM_is_Prediction| indicates whether the dotted rule is
 a prediction.
-|AHM_was_Prediction| indicates whether the AHM is the result
+|AHM_was_Predicted| indicates whether the AHM is the result
 of a prediction.
 In the case of the start AHM, it is result of Initialization.
 @d AHM_is_Prediction(aim) (Quasi_Position_of_AHM(aim) == 0)
@@ -5041,15 +5041,17 @@ Marpa_Symbol_ID _marpa_g_ahm_postdot(Marpa_Grammar g,
   @<Initializations common to all AHMs@>@;
   Postdot_NSYID_of_AHM (current_item) = -1;
   Position_of_AHM (current_item) = -1;
-  @<Initialize event data for |current_item|@>@;
 }
 
 @ @<Initializations common to all AHMs@> =
 {
   IRL_of_AHM (current_item) = irl;
-  Null_Count_of_AHM(current_item) = leading_nulls;
-  AHM_is_Populated(current_item) = 0;
-  Quasi_Position_of_AHM(current_item) = current_item - first_aim_of_irl;
+  Null_Count_of_AHM (current_item) = leading_nulls;
+  Quasi_Position_of_AHM (current_item) = current_item - first_aim_of_irl;
+  AHM_was_Predicted (current_item) =
+    ((Quasi_Position_of_AHM (current_item) == 0)
+     && (ID_of_IRL(irl) != ID_of_IRL (g->t_start_irl)));
+  @<Initialize event data for |current_item|@>@;
 }
 
 @ This is done after creating the AHMs, because in
@@ -5072,16 +5074,6 @@ we are traversing backwards.
     }
 }
 
-@*0 Is AHM populated?.
-@ This boolean indicates whether the AHM
-is ``populated'' -- that is,
-whether certain data formerly associated with
-AHFA states has been computed.
-It essentially serves to prevent computing this data
-@d AHM_is_Populated(aim) ((aim)->t_is_populated)
-@<Bit aligned AHM elements@> =
-  BITFIELD t_is_populated:1;
-
 @*0 XSYID Events.
 @
 @d Completion_XSYIDs_of_AHM(aim) ((aim)->t_completion_xsyids)
@@ -5096,12 +5088,7 @@ It essentially serves to prevent computing this data
 @ @s AEX int
 @<Private typedefs@> = typedef int AEX;
 
-@*0 AHFA to AHM macros.
-These assume there is only one AHM in the AHFA,
-which is the case with discovered AHFA's.
-@d AHM_of_AHFA(ahfa) ( ((ahfa)->t_items)[0] )
-
-@*0 Is AHFA predicted?.
+@*0 Is AHM predicted?.
 @ This boolean indicates source, not contents.
 If it is true the AHM is a prediction,
 but it is false for the start AHM at location 0,
@@ -5114,7 +5101,7 @@ BITFIELD t_was_predicted:1;
 
 @*0 Event data.
 A boolean tracks whether this is an
-"event AHFA", that is, whether there is
+"event AHM", that is, whether there is
 an event for this AHM itself.
 Even an non-event AHM may be part of an
 "event group".
@@ -5128,12 +5115,12 @@ without events.
 @d Event_AHMIDs_of_AHM(aim) ((aim)->t_event_aimids)
 @d AHM_has_Event(aim) (Count_of_CIL(Event_AHMIDs_of_AHM(aim)) != 0)
 @ This CIL is at most of size 1.
-It is either the singleton containing the AHFA's
+It is either the singleton containing the AHM's
 own ID, or the empty CIL.
 @<Widely aligned AHM elements@> =
 CIL t_event_aimids;
-@ A counter tracks the number of AHFAs in
-this AHFA's event group.
+@ A counter tracks the number of AHMs in
+this AHM's event group.
 @<Int aligned AHM elements@> =
 int t_event_group_size;
 @ @<Initialize event data for |current_item|@> =
@@ -5238,90 +5225,8 @@ one non-nulling symbol in each IRL. */
     }
 }
 
-@*0 Populating the AHMs.
-@<Populate AHMs@> =
-{
-   @<Construct right derivation matrix@>@;
-   @<Populate initial AHM@>@;
-
-{
-  AHMID aim_id;
-  const int aim_count = AHM_Count_of_G (g);
-  for (aim_id = 0; aim_id < aim_count; aim_id++)
-    {
-      const AHM aim = AHM_by_ID (aim_id);
-      if (AHM_is_Populated(aim)) continue;
-      if (AHM_is_Prediction (aim))
-	{
-          AHM_was_Predicted(aim) = 1;
-	}
-      else
-	{
-          AHM_was_Predicted(aim) = 0;
-	}
-      AHM_is_Populated(aim) = 1;
-    }
-}
-
-}
-
-@ @<Populate initial AHM@> =
-{
-  const IRL start_irl = g->t_start_irl;
-  AHM start_item;
-
-  start_item = First_AHM_of_IRL(start_irl);
-  /* The start item is the initial item for the start rule */
-  AHM_was_Predicted (start_item) = 0;
-  AHM_is_Populated(start_item) = 1;
-
-}
-
 @* Discovered AHFA states.
-@ {\bf Theorem}:
-An AHFA state that contains a start rule completion is always
-a 1-item discovered state.
-{\bf Proof}:
-The grammar is augmented,
-so that no other rule predicts a start rule.
-This means that AHFA state 0 will contain the only predicted
-start rule.
-AHFA state 0 contains the predicted start rule.
-@ The form of the non-null predicted start rule
-is $S' \leftarrow \cdot S$,
-where $S'$ is the augmented start symbol and $S$ was
-the start symbol in the original grammar.
-This rule will be the only transition out of AHFA state 0.
-Call the to-state of this transition, state $n$.
-State $n$ will clearly contain a completed start rule
-( $S' \leftarrow S \cdot$ ),
-which will be rule for the only AHFA item in AHFA state $n$.
-\par
-Since only state 0 contains 
-$S' \leftarrow \cdot S$,
-only AHFA state $n$ will contain 
-$S' \leftarrow S \cdot$.
-Therefore there is only one AHFA state containing
-a start rule completion, and it is a
-1-item discovered AHFA states.
-{\bf QED}.
-
-@ Discovered AHFA states are usually quite small
-and the insertion sort here is probably optimal for the usual cases.
-It is $O(n^2)$ for the large AHFA states, but at present there is
-little value in coding for such cases.
-Average complexity -- probably $O(1)$.
-Implemented worst-case complexity: $O(n^2)$.
-Theoretical complexity: $O(n \log n)$, because another sort can easily be
-substituted for the insertion sort.
-\par
-Note the mixture of indexing and old-fashioned pointer twiddling
-in the insertion sort.
-I am usually of the opinion that the pointer twiddling should be left
-to the optimizer, but in this case I think that a little bit of
-pointer twiddling actually makes the code clearer than it would
-be if written 100\% using indexes.
-@<Declare variables for the internal grammar
+@ @<Declare variables for the internal grammar
         memoizations@> =
   const RULEID irl_count = IRL_Count_of_G(g);
   const NSYID nsy_count = NSY_Count_of_G(g);
@@ -5436,7 +5341,8 @@ states.
 }
 
 @ At this point I have a full matrix showing which symbol implies a prediction
-of which others.  To save repeated processing when building the AHFA prediction states,
+of which others.  To save repeated processing when creating the prediction Earley
+items,
 I now convert it into a matrix from symbols to the rules they predict.
 Specifically, if symbol |S1| predicts symbol |S2|, then symbol |S1|
 predicts every rule
@@ -6842,7 +6748,7 @@ typedef struct s_earley_item YIM_Object;
 
 @*0 Constructor.
 Find an Earley item object, creating it if it does not exist.
-Only in a couple of cases per parse (in AHFA state 0),
+Only in a few cases per parse (in Earley set 0),
 do we already
 know that the Earley item is unique in the set.
 These are not worth optimizing for.
