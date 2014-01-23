@@ -4831,14 +4831,14 @@ the duple being a a rule and a position in that rule.
 @<Public typedefs@> =
 typedef int Marpa_AHFA_Item_ID;
 @ @<Private structures@> =
-struct s_AHFA_item {
+struct s_aim {
     @<Widely aligned AIM elements@>@;
     @<Int aligned AIM elements@>@;
     @<Bit aligned AIM elements@>@;
 };
 @ @<Private incomplete structures@> =
-struct s_AHFA_item;
-typedef struct s_AHFA_item* AIM;
+struct s_aim;
+typedef struct s_aim* AIM;
 typedef Marpa_AHFA_Item_ID AIMID;
 
 @ A pointer to two lists of AHFA items.
@@ -4851,26 +4851,26 @@ be found by incrementing the AIM pointer,
 the successor can be found by decrementing it,
 and AIM pointers can be portably compared.
 A lot of code relies on these facts.
-@d AIM_by_ID(id) (g->t_AHFA_items+(id))
-@d ID_of_AIM(aim) ((aim) - g->t_AHFA_items)
+@d AIM_by_ID(id) (g->t_aims+(id))
+@d ID_of_AIM(aim) ((aim) - g->t_aims)
 @ These require the caller to make sure all the |AIM|'s
 involved exist.
 @d Next_AIM_of_AIM(aim) ((aim)+1)
 @d Prev_AIM_of_AIM(aim) ((aim)-1)
 
 @<Widely aligned grammar elements@> =
-   AIM t_AHFA_items;
+   AIM t_aims;
 @
 @d AIM_Count_of_G(g) ((g)->t_aim_count)
 @<Int aligned grammar elements@> =
    int t_aim_count;
 @ The space is allocated during precomputation.
 Because the grammar may be destroyed before precomputation,
-I test that |g->t_AHFA_items| is non-zero.
+I test that |g->t_aims| is non-zero.
 @ @<Initialize grammar elements@> =
-g->t_AHFA_items = NULL;
+g->t_aims = NULL;
 @ @<Destroy grammar elements@> =
-     my_free(g->t_AHFA_items);
+     my_free(g->t_aims);
 
 @ Check that AHFA item ID is in valid range.
 @<Function definitions@> =
@@ -4991,7 +4991,7 @@ Marpa_Symbol_ID _marpa_g_AHFA_item_postdot(Marpa_Grammar g,
       const IRL irl = IRL_by_ID(irl_id);
       @<Count the AHFA items in a rule@>@;
     }
-    current_item = base_item = marpa_new(struct s_AHFA_item, ahfa_item_count);
+    current_item = base_item = marpa_new(struct s_aim, ahfa_item_count);
     for (irl_id = 0; irl_id < irl_count; irl_id++) {
       const IRL irl = IRL_by_ID(irl_id);
       @<Create the AHFA items for |irl|@>@;
@@ -5003,7 +5003,7 @@ Marpa_Symbol_ID _marpa_g_AHFA_item_postdot(Marpa_Grammar g,
     SYMI_Count_of_G(g) = symbol_instance_of_next_rule;
     MARPA_ASSERT(ahfa_item_count == current_item - base_item);
     AIM_Count_of_G(g) = ahfa_item_count;
-    g->t_AHFA_items = marpa_renew(struct s_AHFA_item, base_item, ahfa_item_count);
+    g->t_aims = marpa_renew(struct s_aim, base_item, ahfa_item_count);
     @<Populate the first |AIM|'s of the |RULE|'s@>@;
 }
 
@@ -5078,7 +5078,7 @@ first of its |IRL|.  Last setting wins, which works since
 we are traversing backwards.
 @<Populate the first |AIM|'s of the |RULE|'s@> =
 {
-  AIM items = g->t_AHFA_items;
+  AIM items = g->t_aims;
   AIMID item_id = (AIMID) ahfa_item_count;
   for (item_id--; item_id >= 0; item_id--)
     {
@@ -5544,7 +5544,6 @@ create_singleton_AHFA_state(
 {
   /* \comment Every AHFA has at least one item */
 
-   const AIM AHFA_item_0_p = g->t_AHFA_items;
     AHFA new_ahfa;
 
     new_ahfa = DQUEUE_PUSH ((*states_p), AHFA_Object);
@@ -5909,13 +5908,11 @@ create_predicted_singleton(
 
 @ @<Mark the event AHFAs@> =
 {
-  AHFAID ahfa_id;
-  for (ahfa_id = 0; ahfa_id < AHFA_Count_of_G (g); ahfa_id++)
+  AIMID aim_id;
+  for (aim_id = 0; aim_id < AIM_Count_of_G (g); aim_id++)
     {
       const CILAR cilar = &g->t_cilar;
-      const AHFA ahfa = AHFA_by_ID (ahfa_id);
-      const AIM aim = AIM_of_AHFA(ahfa);
-      const AIMID aim_id =ID_of_AIM(aim);
+      const AIM aim = AIM_by_ID(aim_id);
       const int aim_is_event =
         Count_of_CIL (Completion_XSYIDs_of_AIM (aim))
         || Count_of_CIL (Nulled_XSYIDs_of_AIM (aim))
