@@ -171,7 +171,7 @@ sub show_dotted_irl {
     my $lhs_id     = $grammar_c->_marpa_g_irl_lhs($irl_id);
     my $irl_length = $grammar_c->_marpa_g_irl_length($irl_id);
 
-    my $text = $self->isy_name($lhs_id) . q{ ->};
+    my $text = $self->isy_name($lhs_id) . q{ ::=};
 
     if ( $dot_position < 0 ) {
         $dot_position = $irl_length;

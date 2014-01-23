@@ -22,7 +22,7 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 26;
+use Test::More tests => 25;
 use lib 'inc';
 use Marpa::R2::Test;
 use Marpa::R2;
@@ -115,116 +115,57 @@ Marpa::R2::Test::is(
 );
 
 Marpa::R2::Test::is( $grammar->show_ahms(),
-    <<'EOS', 'Aycock/Horspool AHFA Items' );
-AHFA item 0: sort = 1; postdot = "A"
-    S -> . A S[R0:1]
-AHFA item 1: sort = 10; postdot = "S[R0:1]"
-    S -> A . S[R0:1]
-AHFA item 2: sort = 14; completion
-    S -> A S[R0:1] .
-AHFA item 3: sort = 2; postdot = "A"
-    S -> . A A[] A[] A[]
-AHFA item 4: sort = 15; completion
-    S -> A A[] A[] A[] .
-AHFA item 5: sort = 11; postdot = "S[R0:1]"
-    S -> A[] . S[R0:1]
-AHFA item 6: sort = 16; completion
-    S -> A[] S[R0:1] .
-AHFA item 7: sort = 3; postdot = "A"
-    S[R0:1] -> . A S[R0:2]
-AHFA item 8: sort = 12; postdot = "S[R0:2]"
-    S[R0:1] -> A . S[R0:2]
-AHFA item 9: sort = 17; completion
-    S[R0:1] -> A S[R0:2] .
-AHFA item 10: sort = 4; postdot = "A"
-    S[R0:1] -> . A A[] A[]
-AHFA item 11: sort = 18; completion
-    S[R0:1] -> A A[] A[] .
-AHFA item 12: sort = 13; postdot = "S[R0:2]"
-    S[R0:1] -> A[] . S[R0:2]
-AHFA item 13: sort = 19; completion
-    S[R0:1] -> A[] S[R0:2] .
-AHFA item 14: sort = 5; postdot = "A"
-    S[R0:2] -> . A A
-AHFA item 15: sort = 6; postdot = "A"
-    S[R0:2] -> A . A
-AHFA item 16: sort = 20; completion
-    S[R0:2] -> A A .
-AHFA item 17: sort = 7; postdot = "A"
-    S[R0:2] -> . A A[]
-AHFA item 18: sort = 21; completion
-    S[R0:2] -> A A[] .
-AHFA item 19: sort = 8; postdot = "A"
-    S[R0:2] -> A[] . A
-AHFA item 20: sort = 22; completion
-    S[R0:2] -> A[] A .
-AHFA item 21: sort = 9; postdot = "a"
-    A -> . a
-AHFA item 22: sort = 23; completion
-    A -> a .
-AHFA item 23: sort = 0; postdot = "S"
-    S['] -> . S
-AHFA item 24: sort = 24; completion
-    S['] -> S .
-EOS
-
-Marpa::R2::Test::is( $grammar->show_ahms, <<'EOS', 'Aycock/Horspool AHFA' );
-* S0:
-S['] -> . S
-* S1: predict
-S -> . A S[R0:1]
-S -> . A A[] A[] A[]
-S -> A[] . S[R0:1]
-S[R0:1] -> . A S[R0:2]
-S[R0:1] -> . A A[] A[]
-S[R0:1] -> A[] . S[R0:2]
-S[R0:2] -> . A A
-S[R0:2] -> . A A[]
-S[R0:2] -> A[] . A
-A -> . a
-* S2:
-S -> A . S[R0:1]
-* S3: predict
-S[R0:1] -> . A S[R0:2]
-S[R0:1] -> . A A[] A[]
-S[R0:1] -> A[] . S[R0:2]
-S[R0:2] -> . A A
-S[R0:2] -> . A A[]
-S[R0:2] -> A[] . A
-A -> . a
-* S4:
-S -> A S[R0:1] .
-* S5:
-S -> A A[] A[] A[] .
-* S6:
-S -> A[] S[R0:1] .
-* S7:
-S[R0:1] -> A . S[R0:2]
-* S8: predict
-S[R0:2] -> . A A
-S[R0:2] -> . A A[]
-S[R0:2] -> A[] . A
-A -> . a
-* S9:
-S[R0:1] -> A S[R0:2] .
-* S10:
-S[R0:1] -> A A[] A[] .
-* S11:
-S[R0:1] -> A[] S[R0:2] .
-* S12:
-S[R0:2] -> A . A
-* S13: predict
-A -> . a
-* S14:
-S[R0:2] -> A A .
-* S15:
-S[R0:2] -> A A[] .
-* S16:
-S[R0:2] -> A[] A .
-* S17:
-A -> a .
-* S18:
-S['] -> S .
+    <<'EOS', 'Aycock/Horspool AHMs' );
+AHM 0: postdot = "A"
+    S ::= . A S[R0:1]
+AHM 1: postdot = "S[R0:1]"
+    S ::= A . S[R0:1]
+AHM 2: completion
+    S ::= A S[R0:1] .
+AHM 3: postdot = "A"
+    S ::= . A A[] A[] A[]
+AHM 4: completion
+    S ::= A A[] A[] A[] .
+AHM 5: postdot = "S[R0:1]"
+    S ::= A[] . S[R0:1]
+AHM 6: completion
+    S ::= A[] S[R0:1] .
+AHM 7: postdot = "A"
+    S[R0:1] ::= . A S[R0:2]
+AHM 8: postdot = "S[R0:2]"
+    S[R0:1] ::= A . S[R0:2]
+AHM 9: completion
+    S[R0:1] ::= A S[R0:2] .
+AHM 10: postdot = "A"
+    S[R0:1] ::= . A A[] A[]
+AHM 11: completion
+    S[R0:1] ::= A A[] A[] .
+AHM 12: postdot = "S[R0:2]"
+    S[R0:1] ::= A[] . S[R0:2]
+AHM 13: completion
+    S[R0:1] ::= A[] S[R0:2] .
+AHM 14: postdot = "A"
+    S[R0:2] ::= . A A
+AHM 15: postdot = "A"
+    S[R0:2] ::= A . A
+AHM 16: completion
+    S[R0:2] ::= A A .
+AHM 17: postdot = "A"
+    S[R0:2] ::= . A A[]
+AHM 18: completion
+    S[R0:2] ::= A A[] .
+AHM 19: postdot = "A"
+    S[R0:2] ::= A[] . A
+AHM 20: completion
+    S[R0:2] ::= A[] A .
+AHM 21: postdot = "a"
+    A ::= . a
+AHM 22: completion
+    A ::= a .
+AHM 23: postdot = "S"
+    S['] ::= . S
+AHM 24: completion
+    S['] ::= S .
 EOS
 
 my $recce = Marpa::R2::Recognizer->new( { grammar => $grammar } );
@@ -232,72 +173,185 @@ my $recce = Marpa::R2::Recognizer->new( { grammar => $grammar } );
 my $expected_earley_sets = <<'END_OF_SETS';
 Last Completed: 4; Furthest: 4
 Earley Set 0
-S0@0-0
-S1@0-0
+ahm23: R10:0@0-0
+  R10:0: S['] ::= . S
+ahm0: R0:0@0-0
+  R0:0: S ::= . A S[R0:1]
+ahm3: R1:0@0-0
+  R1:0: S ::= . A A[] A[] A[]
+ahm5: R2:1@0-0
+  R2:1: S ::= A[] . S[R0:1]
+ahm7: R3:0@0-0
+  R3:0: S[R0:1] ::= . A S[R0:2]
+ahm10: R4:0@0-0
+  R4:0: S[R0:1] ::= . A A[] A[]
+ahm12: R5:1@0-0
+  R5:1: S[R0:1] ::= A[] . S[R0:2]
+ahm14: R6:0@0-0
+  R6:0: S[R0:2] ::= . A A
+ahm17: R7:0@0-0
+  R7:0: S[R0:2] ::= . A A[]
+ahm19: R8:1@0-0
+  R8:1: S[R0:2] ::= A[] . A
+ahm21: R9:0@0-0
+  R9:0: A ::= . a
 Earley Set 1
-S2@0-1 [p=S1@0-0; c=S17@0-1]
-S5@0-1 [p=S1@0-0; c=S17@0-1]
-S6@0-1 [p=S1@0-0; c=S10@0-1] [p=S1@0-0; c=S11@0-1]
-S7@0-1 [p=S1@0-0; c=S17@0-1]
-S10@0-1 [p=S1@0-0; c=S17@0-1]
-S11@0-1 [p=S1@0-0; c=S15@0-1] [p=S1@0-0; c=S16@0-1]
-S12@0-1 [p=S1@0-0; c=S17@0-1]
-S15@0-1 [p=S1@0-0; c=S17@0-1]
-S16@0-1 [p=S1@0-0; c=S17@0-1]
-S17@0-1 [p=S1@0-0; s=a; t=\'a']
-S18@0-1 [p=S0@0-0; c=S5@0-1] [p=S0@0-0; c=S6@0-1]
-S3@1-1
-S8@1-1
-S13@1-1
+ahm22: R9$@0-1
+  R9$: A ::= a .
+  [c=R9:0@0-0; s=a; t=\'a']
+ahm20: R8$@0-1
+  R8$: S[R0:2] ::= A[] A .
+  [p=R8:1@0-0; c=R9$@0-1]
+ahm18: R7$@0-1
+  R7$: S[R0:2] ::= A A[] .
+  [p=R7:0@0-0; c=R9$@0-1]
+ahm15: R6:1@0-1
+  R6:1: S[R0:2] ::= A . A
+  [p=R6:0@0-0; c=R9$@0-1]
+ahm11: R4$@0-1
+  R4$: S[R0:1] ::= A A[] A[] .
+  [p=R4:0@0-0; c=R9$@0-1]
+ahm8: R3:1@0-1
+  R3:1: S[R0:1] ::= A . S[R0:2]
+  [p=R3:0@0-0; c=R9$@0-1]
+ahm4: R1$@0-1
+  R1$: S ::= A A[] A[] A[] .
+  [p=R1:0@0-0; c=R9$@0-1]
+ahm1: R0:1@0-1
+  R0:1: S ::= A . S[R0:1]
+  [p=R0:0@0-0; c=R9$@0-1]
+ahm24: R10$@0-1
+  R10$: S['] ::= S .
+  [p=R10:0@0-0; c=R1$@0-1] [p=R10:0@0-0; c=R2$@0-1]
+ahm6: R2$@0-1
+  R2$: S ::= A[] S[R0:1] .
+  [p=R2:1@0-0; c=R4$@0-1] [p=R2:1@0-0; c=R5$@0-1]
+ahm13: R5$@0-1
+  R5$: S[R0:1] ::= A[] S[R0:2] .
+  [p=R5:1@0-0; c=R7$@0-1] [p=R5:1@0-0; c=R8$@0-1]
+ahm21: R9:0@1-1
+  R9:0: A ::= . a
+ahm14: R6:0@1-1
+  R6:0: S[R0:2] ::= . A A
+ahm17: R7:0@1-1
+  R7:0: S[R0:2] ::= . A A[]
+ahm19: R8:1@1-1
+  R8:1: S[R0:2] ::= A[] . A
+ahm7: R3:0@1-1
+  R3:0: S[R0:1] ::= . A S[R0:2]
+ahm10: R4:0@1-1
+  R4:0: S[R0:1] ::= . A A[] A[]
+ahm12: R5:1@1-1
+  R5:1: S[R0:1] ::= A[] . S[R0:2]
 Earley Set 2
-S4@0-2 [p=S2@0-1; c=S10@1-2] [p=S2@0-1; c=S11@1-2]
-S6@0-2 [p=S1@0-0; c=S9@0-2] [p=S1@0-0; c=S11@0-2]
-S9@0-2 [p=S7@0-1; c=S15@1-2] [p=S7@0-1; c=S16@1-2]
-S11@0-2 [p=S1@0-0; c=S14@0-2]
-S14@0-2 [p=S12@0-1; c=S17@1-2]
-S18@0-2 [p=S0@0-0; c=S4@0-2] [p=S0@0-0; c=S6@0-2]
-S7@1-2 [p=S3@1-1; c=S17@1-2]
-S10@1-2 [p=S3@1-1; c=S17@1-2]
-S11@1-2 [p=S3@1-1; c=S15@1-2] [p=S3@1-1; c=S16@1-2]
-S12@1-2 [p=S3@1-1; c=S17@1-2] [p=S8@1-1; c=S17@1-2]
-S15@1-2 [p=S3@1-1; c=S17@1-2] [p=S8@1-1; c=S17@1-2]
-S16@1-2 [p=S3@1-1; c=S17@1-2] [p=S8@1-1; c=S17@1-2]
-S17@1-2 [p=S3@1-1; s=a; t=\'a'] [p=S8@1-1; s=a; t=\'a'] [p=S13@1-1; s=a; t=\'a']
-S8@2-2
-S13@2-2
+ahm22: R9$@1-2
+  R9$: A ::= a .
+  [c=R9:0@1-1; s=a; t=\'a']
+ahm11: R4$@1-2
+  R4$: S[R0:1] ::= A A[] A[] .
+  [p=R4:0@1-1; c=R9$@1-2]
+ahm8: R3:1@1-2
+  R3:1: S[R0:1] ::= A . S[R0:2]
+  [p=R3:0@1-1; c=R9$@1-2]
+ahm20: R8$@1-2
+  R8$: S[R0:2] ::= A[] A .
+  [p=R8:1@1-1; c=R9$@1-2]
+ahm18: R7$@1-2
+  R7$: S[R0:2] ::= A A[] .
+  [p=R7:0@1-1; c=R9$@1-2]
+ahm15: R6:1@1-2
+  R6:1: S[R0:2] ::= A . A
+  [p=R6:0@1-1; c=R9$@1-2]
+ahm16: R6$@0-2
+  R6$: S[R0:2] ::= A A .
+  [p=R6:1@0-1; c=R9$@1-2]
+ahm13: R5$@0-2
+  R5$: S[R0:1] ::= A[] S[R0:2] .
+  [p=R5:1@0-0; c=R6$@0-2]
+ahm6: R2$@0-2
+  R2$: S ::= A[] S[R0:1] .
+  [p=R2:1@0-0; c=R3$@0-2] [p=R2:1@0-0; c=R5$@0-2]
+ahm24: R10$@0-2
+  R10$: S['] ::= S .
+  [p=R10:0@0-0; c=R0$@0-2] [p=R10:0@0-0; c=R2$@0-2]
+ahm13: R5$@1-2
+  R5$: S[R0:1] ::= A[] S[R0:2] .
+  [p=R5:1@1-1; c=R7$@1-2] [p=R5:1@1-1; c=R8$@1-2]
+ahm9: R3$@0-2
+  R3$: S[R0:1] ::= A S[R0:2] .
+  [p=R3:1@0-1; c=R7$@1-2] [p=R3:1@0-1; c=R8$@1-2]
+ahm2: R0$@0-2
+  R0$: S ::= A S[R0:1] .
+  [p=R0:1@0-1; c=R4$@1-2] [p=R0:1@0-1; c=R5$@1-2]
+ahm14: R6:0@2-2
+  R6:0: S[R0:2] ::= . A A
+ahm17: R7:0@2-2
+  R7:0: S[R0:2] ::= . A A[]
+ahm19: R8:1@2-2
+  R8:1: S[R0:2] ::= A[] . A
+ahm21: R9:0@2-2
+  R9:0: A ::= . a
 Earley Set 3
-S4@0-3 [p=S2@0-1; c=S9@1-3] [p=S2@0-1; c=S11@1-3]
-S6@0-3 [p=S1@0-0; c=S9@0-3]
-S9@0-3 [p=S7@0-1; c=S14@1-3]
-S18@0-3 [p=S0@0-0; c=S4@0-3] [p=S0@0-0; c=S6@0-3]
-S9@1-3 [p=S7@1-2; c=S15@2-3] [p=S7@1-2; c=S16@2-3]
-S11@1-3 [p=S3@1-1; c=S14@1-3]
-S14@1-3 [p=S12@1-2; c=S17@2-3]
-S12@2-3 [p=S8@2-2; c=S17@2-3]
-S15@2-3 [p=S8@2-2; c=S17@2-3]
-S16@2-3 [p=S8@2-2; c=S17@2-3]
-S17@2-3 [p=S8@2-2; s=a; t=\'a'] [p=S13@2-2; s=a; t=\'a']
-S13@3-3
+ahm22: R9$@2-3
+  R9$: A ::= a .
+  [c=R9:0@2-2; s=a; t=\'a']
+ahm20: R8$@2-3
+  R8$: S[R0:2] ::= A[] A .
+  [p=R8:1@2-2; c=R9$@2-3]
+ahm18: R7$@2-3
+  R7$: S[R0:2] ::= A A[] .
+  [p=R7:0@2-2; c=R9$@2-3]
+ahm15: R6:1@2-3
+  R6:1: S[R0:2] ::= A . A
+  [p=R6:0@2-2; c=R9$@2-3]
+ahm16: R6$@1-3
+  R6$: S[R0:2] ::= A A .
+  [p=R6:1@1-2; c=R9$@2-3]
+ahm13: R5$@1-3
+  R5$: S[R0:1] ::= A[] S[R0:2] .
+  [p=R5:1@1-1; c=R6$@1-3]
+ahm9: R3$@0-3
+  R3$: S[R0:1] ::= A S[R0:2] .
+  [p=R3:1@0-1; c=R6$@1-3]
+ahm6: R2$@0-3
+  R2$: S ::= A[] S[R0:1] .
+  [p=R2:1@0-0; c=R3$@0-3]
+ahm24: R10$@0-3
+  R10$: S['] ::= S .
+  [p=R10:0@0-0; c=R0$@0-3] [p=R10:0@0-0; c=R2$@0-3]
+ahm2: R0$@0-3
+  R0$: S ::= A S[R0:1] .
+  [p=R0:1@0-1; c=R3$@1-3] [p=R0:1@0-1; c=R5$@1-3]
+ahm9: R3$@1-3
+  R3$: S[R0:1] ::= A S[R0:2] .
+  [p=R3:1@1-2; c=R7$@2-3] [p=R3:1@1-2; c=R8$@2-3]
+ahm21: R9:0@3-3
+  R9:0: A ::= . a
 Earley Set 4
-S4@0-4 [p=S2@0-1; c=S9@1-4]
-S18@0-4 [p=S0@0-0; c=S4@0-4]
-S9@1-4 [p=S7@1-2; c=S14@2-4]
-S14@2-4 [p=S12@2-3; c=S17@3-4]
-S17@3-4 [p=S13@3-3; s=a; t=\'a']
+ahm22: R9$@3-4
+  R9$: A ::= a .
+  [c=R9:0@3-3; s=a; t=\'a']
+ahm16: R6$@2-4
+  R6$: S[R0:2] ::= A A .
+  [p=R6:1@2-3; c=R9$@3-4]
+ahm9: R3$@1-4
+  R3$: S[R0:1] ::= A S[R0:2] .
+  [p=R3:1@1-2; c=R6$@2-4]
+ahm2: R0$@0-4
+  R0$: S ::= A S[R0:1] .
+  [p=R0:1@0-1; c=R3$@1-4]
+ahm24: R10$@0-4
+  R10$: S['] ::= S .
+  [p=R10:0@0-0; c=R0$@0-4]
 END_OF_SETS
-
-# say STDERR "AHFA:\n", $grammar->show_ahms();
 
 my $input_length = 4;
 for (my $i = 0; $i < $input_length; $i++) {
-    # say STDERR "Earley sets at $i:\n", $recce->show_earley_sets();
     $recce->read( 'a', 'a' );
 }
 
-# say STDERR "Earley sets at end:\n", $recce->show_earley_sets();
-
 Marpa::R2::Test::is(
-    $recce->show_earley_sets(1),
+    $recce->show_earley_sets(2),
     $expected_earley_sets,
     'Aycock/Horspool Earley sets'
 );
