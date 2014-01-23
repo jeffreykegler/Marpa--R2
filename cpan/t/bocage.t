@@ -88,7 +88,7 @@ Marpa::R2::Test::is(
     'Aycock/Horspool Accessible Symbols'
 );
 
-Marpa::R2::Test::is( $grammar->show_AHFA_items(),
+Marpa::R2::Test::is( $grammar->show_ahms(),
     <<'EOS', 'Aycock/Horspool AHFA Items' );
 AHFA item 0: sort = 1; postdot = "A"
     S -> . A S[R0:1]

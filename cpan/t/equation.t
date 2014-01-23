@@ -135,7 +135,7 @@ END_RULES
 
 $actual_ref = save_stdout();
 
-print $grammar->show_AHFA_items()
+print $grammar->show_ahms()
     or die "print failed: $ERRNO";
 
 Marpa::R2::Test::is( ${$actual_ref},

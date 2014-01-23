@@ -1642,10 +1642,10 @@ sub Marpa::R2::Grammar::show_AHFA {
         ->show_AHFA($verbose);
 }
 
-sub Marpa::R2::Grammar::show_AHFA_items {
+sub Marpa::R2::Grammar::show_ahms {
     my ( $grammar, $verbose ) = @_;
     return $grammar->[Marpa::R2::Internal::Grammar::TRACER]
-        ->show_AHFA_items($verbose);
+        ->show_ahms($verbose);
 }
 
 1;

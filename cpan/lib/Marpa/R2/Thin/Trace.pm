@@ -226,10 +226,10 @@ sub show_brief_AHFA_item {
 } ## end sub show_brief_AHFA_item
 
 sub show_AHFA {
-    goto &show_AHFA_items;
+    goto &show_ahms;
 } ## end sub show_AHFA
 
-sub show_AHFA_items {
+sub show_ahms {
     my ($self)    = @_;
     my $grammar_c = $self->{g};
     my $text      = q{};
@@ -238,7 +238,7 @@ sub show_AHFA_items {
         $text .= $self->show_AHFA_item($AHFA_item_id);
     }
     return $text;
-} ## end sub show_AHFA_items
+} ## end sub show_ahms
 
 sub isy_name {
     my ( $self, $id ) = @_;

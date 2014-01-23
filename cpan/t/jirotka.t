@@ -291,7 +291,7 @@ WithPf -> WITH PF .
 Input['] -> Input .
 END_OF_AHFA
 
-Marpa::R2::Test::is( $grammar->show_AHFA_items(),
+Marpa::R2::Test::is( $grammar->show_ahms(),
     <<'END_OF_AHFA_ITEMS', 'AHFA Items' );
 AHFA item 0: sort = 36; postdot = "Input[Seq]"
     Input -> . Input[Seq]
