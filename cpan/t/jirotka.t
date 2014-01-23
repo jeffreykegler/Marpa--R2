@@ -160,139 +160,7 @@ Marpa::R2::Test::is( $grammar->show_rules(),
 END_OF_RULES
 
 Marpa::R2::Test::is( $grammar->show_ahms(),
-<<'END_OF_AHFA', 'AHFA' );
-* S0:
-Input['] -> . Input
-* S1: predict
-Input -> . Input[Seq]
-Input -> . Input[Seq] SEPARATOR
-Input[Seq] -> . Statement
-Input[Seq] -> . Input[Seq] SEPARATOR Statement
-Statement -> . CREATE TypeDef
-* S2:
-Input -> Input[Seq] .
-* S3:
-Input -> Input[Seq] . SEPARATOR
-* S4:
-Input -> Input[Seq] SEPARATOR .
-* S5:
-Input[Seq] -> Statement .
-* S6:
-Input[Seq] -> Input[Seq] . SEPARATOR Statement
-* S7:
-Input[Seq] -> Input[Seq] SEPARATOR . Statement
-* S8: predict
-Statement -> . CREATE TypeDef
-* S9:
-Input[Seq] -> Input[Seq] SEPARATOR Statement .
-* S10:
-Statement -> CREATE . TypeDef
-* S11: predict
-TypeDef -> . METRIC ID_METRIC AS MetricSelect
-* S12:
-Statement -> CREATE TypeDef .
-* S13:
-TypeDef -> METRIC . ID_METRIC AS MetricSelect
-* S14:
-TypeDef -> METRIC ID_METRIC . AS MetricSelect
-* S15:
-TypeDef -> METRIC ID_METRIC AS . MetricSelect
-* S16: predict
-MetricSelect -> . SELECT MetricExpr ByClause MetricSelect[R3:3]
-MetricSelect -> . SELECT MetricExpr ByClause Match[] Filter[] WithPf[]
-MetricSelect -> . SELECT MetricExpr ByClause[] MetricSelect[R3:3]
-MetricSelect -> . SELECT MetricExpr ByClause[] Match[] Filter[] WithPf[]
-* S17:
-TypeDef -> METRIC ID_METRIC AS MetricSelect .
-* S18:
-MetricSelect -> SELECT . MetricExpr ByClause MetricSelect[R3:3]
-* S19: predict
-MetricExpr -> . NUMBER
-* S20:
-MetricSelect -> SELECT MetricExpr . ByClause MetricSelect[R3:3]
-* S21: predict
-ByClause -> . BY
-* S22:
-MetricSelect -> SELECT MetricExpr ByClause . MetricSelect[R3:3]
-* S23: predict
-MetricSelect[R3:3] -> . Match MetricSelect[R3:4]
-MetricSelect[R3:3] -> . Match Filter[] WithPf[]
-MetricSelect[R3:3] -> Match[] . MetricSelect[R3:4]
-MetricSelect[R3:4] -> . Filter WithPf
-MetricSelect[R3:4] -> . Filter WithPf[]
-MetricSelect[R3:4] -> Filter[] . WithPf
-Match -> . FOR
-Filter -> . WHERE FilterExpr
-WithPf -> . WITH PF
-* S24:
-MetricSelect -> SELECT MetricExpr ByClause MetricSelect[R3:3] .
-* S25:
-MetricSelect -> SELECT . MetricExpr ByClause Match[] Filter[] WithPf[]
-* S26:
-MetricSelect -> SELECT MetricExpr . ByClause Match[] Filter[] WithPf[]
-* S27:
-MetricSelect -> SELECT MetricExpr ByClause Match[] Filter[] WithPf[] .
-* S28:
-MetricSelect -> SELECT . MetricExpr ByClause[] MetricSelect[R3:3]
-* S29:
-MetricSelect -> SELECT MetricExpr ByClause[] . MetricSelect[R3:3]
-* S30:
-MetricSelect -> SELECT MetricExpr ByClause[] MetricSelect[R3:3] .
-* S31:
-MetricSelect -> SELECT . MetricExpr ByClause[] Match[] Filter[] WithPf[]
-* S32:
-MetricSelect -> SELECT MetricExpr ByClause[] Match[] Filter[] WithPf[] .
-* S33:
-MetricSelect[R3:3] -> Match . MetricSelect[R3:4]
-* S34: predict
-MetricSelect[R3:4] -> . Filter WithPf
-MetricSelect[R3:4] -> . Filter WithPf[]
-MetricSelect[R3:4] -> Filter[] . WithPf
-Filter -> . WHERE FilterExpr
-WithPf -> . WITH PF
-* S35:
-MetricSelect[R3:3] -> Match MetricSelect[R3:4] .
-* S36:
-MetricSelect[R3:3] -> Match Filter[] WithPf[] .
-* S37:
-MetricSelect[R3:3] -> Match[] MetricSelect[R3:4] .
-* S38:
-MetricSelect[R3:4] -> Filter . WithPf
-* S39: predict
-WithPf -> . WITH PF
-* S40:
-MetricSelect[R3:4] -> Filter WithPf .
-* S41:
-MetricSelect[R3:4] -> Filter WithPf[] .
-* S42:
-MetricSelect[R3:4] -> Filter[] WithPf .
-* S43:
-MetricExpr -> NUMBER .
-* S44:
-ByClause -> BY .
-* S45:
-Match -> FOR .
-* S46:
-Filter -> WHERE . FilterExpr
-* S47: predict
-FilterExpr -> . TRUE
-FilterExpr -> . FALSE
-* S48:
-Filter -> WHERE FilterExpr .
-* S49:
-FilterExpr -> TRUE .
-* S50:
-FilterExpr -> FALSE .
-* S51:
-WithPf -> WITH . PF
-* S52:
-WithPf -> WITH PF .
-* S53:
-Input['] -> Input .
-END_OF_AHFA
-
-Marpa::R2::Test::is( $grammar->show_ahms(),
-    <<'END_OF_AHFA_ITEMS', 'AHFA Items' );
+    <<'END_OF_AHMS', 'AHMs' );
 AHFA item 0: sort = 36; postdot = "Input[Seq]"
     Input -> . Input[Seq]
 AHFA item 1: sort = 43; completion
@@ -427,7 +295,7 @@ AHFA item 65: sort = 18; postdot = "Input"
     Input['] -> . Input
 AHFA item 66: sort = 66; completion
     Input['] -> Input .
-END_OF_AHFA_ITEMS
+END_OF_AHMS
 
 my $recog = Marpa::R2::Recognizer->new( { grammar => $grammar } );
 for my $token ( @{$tokens} ) { $recog->read( @{$token} ); }

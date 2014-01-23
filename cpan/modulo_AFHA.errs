@@ -98,72 +98,8 @@ t/balanced.t ........... ok
 # | 51|'                              |'                                             |
 # +---+-------------------------------+----------------------------------------------+
 
-#   Failed test 'Aycock/Horspool AHFA'
-#   at t/bocage.t line 145.
-# +---+-------------------------------+---+--------------------------+
-# | Ln|Got                            | Ln|Expected                  |
-# +---+-------------------------------+---+--------------------------+
-# *  1|'AHM 0: postdot = "A"          *  1|'* S0:                    *
-# *  2|    S ::= . A S[R0:1]          *  2|S[\'] -> . S              *
-# *  3|AHM 1: postdot = "S[R0:1]"     *  3|* S1: predict             *
-# *  4|    S ::= A . S[R0:1]          *  4|S -> . A S[R0:1]          *
-# *  5|AHM 2: completion              *  5|S -> . A A[] A[] A[]      *
-# *  6|    S ::= A S[R0:1] .          *  6|S -> A[] . S[R0:1]        *
-# *  7|AHM 3: postdot = "A"           *  7|S[R0:1] -> . A S[R0:2]    *
-# *  8|    S ::= . A A[] A[] A[]      *  8|S[R0:1] -> . A A[] A[]    *
-# *  9|AHM 4: completion              *  9|S[R0:1] -> A[] . S[R0:2]  *
-# * 10|    S ::= A A[] A[] A[] .      * 10|S[R0:2] -> . A A          *
-# * 11|AHM 5: postdot = "S[R0:1]"     * 11|S[R0:2] -> . A A[]        *
-# * 12|    S ::= A[] . S[R0:1]        * 12|S[R0:2] -> A[] . A        *
-# * 13|AHM 6: completion              * 13|A -> . a                  *
-# * 14|    S ::= A[] S[R0:1] .        * 14|* S2:                     *
-# * 15|AHM 7: postdot = "A"           * 15|S -> A . S[R0:1]          *
-# * 16|    S[R0:1] ::= . A S[R0:2]    * 16|* S3: predict             *
-# * 17|AHM 8: postdot = "S[R0:2]"     * 17|S[R0:1] -> . A S[R0:2]    *
-# * 18|    S[R0:1] ::= A . S[R0:2]    * 18|S[R0:1] -> . A A[] A[]    *
-# * 19|AHM 9: completion              * 19|S[R0:1] -> A[] . S[R0:2]  *
-# * 20|    S[R0:1] ::= A S[R0:2] .    * 20|S[R0:2] -> . A A          *
-# * 21|AHM 10: postdot = "A"          * 21|S[R0:2] -> . A A[]        *
-# * 22|    S[R0:1] ::= . A A[] A[]    * 22|S[R0:2] -> A[] . A        *
-# * 23|AHM 11: completion             * 23|A -> . a                  *
-# * 24|    S[R0:1] ::= A A[] A[] .    * 24|* S4:                     *
-# * 25|AHM 12: postdot = "S[R0:2]"    * 25|S -> A S[R0:1] .          *
-# * 26|    S[R0:1] ::= A[] . S[R0:2]  * 26|* S5:                     *
-# * 27|AHM 13: completion             * 27|S -> A A[] A[] A[] .      *
-# * 28|    S[R0:1] ::= A[] S[R0:2] .  * 28|* S6:                     *
-# * 29|AHM 14: postdot = "A"          * 29|S -> A[] S[R0:1] .        *
-# * 30|    S[R0:2] ::= . A A          * 30|* S7:                     *
-# * 31|AHM 15: postdot = "A"          * 31|S[R0:1] -> A . S[R0:2]    *
-# * 32|    S[R0:2] ::= A . A          * 32|* S8: predict             *
-# * 33|AHM 16: completion             * 33|S[R0:2] -> . A A          *
-# * 34|    S[R0:2] ::= A A .          * 34|S[R0:2] -> . A A[]        *
-# * 35|AHM 17: postdot = "A"          * 35|S[R0:2] -> A[] . A        *
-# * 36|    S[R0:2] ::= . A A[]        * 36|A -> . a                  *
-# * 37|AHM 18: completion             * 37|* S9:                     *
-# * 38|    S[R0:2] ::= A A[] .        * 38|S[R0:1] -> A S[R0:2] .    *
-# * 39|AHM 19: postdot = "A"          * 39|* S10:                    *
-# * 40|    S[R0:2] ::= A[] . A        * 40|S[R0:1] -> A A[] A[] .    *
-# * 41|AHM 20: completion             * 41|* S11:                    *
-# * 42|    S[R0:2] ::= A[] A .        * 42|S[R0:1] -> A[] S[R0:2] .  *
-# * 43|AHM 21: postdot = "a"          * 43|* S12:                    *
-# * 44|    A ::= . a                  * 44|S[R0:2] -> A . A          *
-# * 45|AHM 22: completion             * 45|* S13: predict            *
-# * 46|    A ::= a .                  * 46|A -> . a                  *
-# * 47|AHM 23: postdot = "S"          * 47|* S14:                    *
-# * 48|    S[\'] ::= . S              * 48|S[R0:2] -> A A .          *
-# * 49|AHM 24: completion             * 49|* S15:                    *
-# * 50|    S[\'] ::= S .              * 50|S[R0:2] -> A A[] .        *
-# |   |                               * 51|* S16:                    *
-# |   |                               * 52|S[R0:2] -> A[] A .        *
-# |   |                               * 53|* S17:                    *
-# |   |                               * 54|A -> a .                  *
-# |   |                               * 55|* S18:                    *
-# |   |                               * 56|S[\'] -> S .              *
-# | 51|'                              | 57|'                         |
-# +---+-------------------------------+---+--------------------------+
-
 #   Failed test 'Aycock/Horspool Earley Sets'
-#   at t/bocage.t line 364.
+#   at t/bocage.t line 305.
 # +----+-----------------------------------------------------+---+-------------------------------------------------------------------------------------------+
 # |  Ln|Got                                                  | Ln|Expected                                                                                   |
 # +----+-----------------------------------------------------+---+-------------------------------------------------------------------------------------------+
@@ -327,7 +263,7 @@ t/balanced.t ........... ok
 # +----+-----------------------------------------------------+---+-------------------------------------------------------------------------------------------+
 
 #   Failed test 'Tree, "(;a;a;a)"'
-#   at t/bocage.t line 382.
+#   at t/bocage.t line 323.
 # +---+--------------------------------+--------------------------------+
 # | Ln|Got                             |Expected                        |
 # +---+--------------------------------+--------------------------------+
@@ -356,7 +292,7 @@ t/balanced.t ........... ok
 # +---+--------------------------------+--------------------------------+
 
 #   Failed test 'Tree, "(a;;a;a)"'
-#   at t/bocage.t line 382.
+#   at t/bocage.t line 323.
 # +---+--------------------------------+--------------------------------+
 # | Ln|Got                             |Expected                        |
 # +---+--------------------------------+--------------------------------+
@@ -386,7 +322,7 @@ t/balanced.t ........... ok
 # +---+--------------------------------+--------------------------------+
 
 #   Failed test 'Tree, "(a;a;a;)"'
-#   at t/bocage.t line 382.
+#   at t/bocage.t line 323.
 # +---+--------------------------------+--------------------------------+
 # | Ln|Got                             |Expected                        |
 # +---+--------------------------------+--------------------------------+
@@ -417,7 +353,7 @@ t/balanced.t ........... ok
 # +---+--------------------------------+--------------------------------+
 
 #   Failed test 'Tree, "(a;a;;a)"'
-#   at t/bocage.t line 382.
+#   at t/bocage.t line 323.
 # +---+--------------------------------+--------------------------------+
 # | Ln|Got                             |Expected                        |
 # +---+--------------------------------+--------------------------------+
@@ -448,7 +384,7 @@ t/balanced.t ........... ok
 # +---+--------------------------------+--------------------------------+
 
 #   Failed test 'XS And nodes'
-#   at t/bocage.t line 454.
+#   at t/bocage.t line 395.
 # +---+-----------------------------+---+-----------------------------+
 # | Ln|Got                          | Ln|Expected                     |
 # +---+-----------------------------+---+-----------------------------+
@@ -480,7 +416,7 @@ t/balanced.t ........... ok
 # +---+-----------------------------+---+-----------------------------+
 
 #   Failed test 'XS Bocage'
-#   at t/bocage.t line 483.
+#   at t/bocage.t line 424.
 # +---+-----------------------------------+-----------------------------------+
 # | Ln|Got                                |Expected                           |
 # +---+-----------------------------------+-----------------------------------+
@@ -509,10 +445,10 @@ t/balanced.t ........... ok
 # * 23|22: 19=R3:2@1-3 R3:1@1-2 R8:2@2-3  |22: 19=R3:2@1-3 R3:1@1-2 R7:2@2-3  *
 # | 24|'                                  |'                                  |
 # +---+-----------------------------------+-----------------------------------+
-# Looks like you failed 9 tests of 19.
+# Looks like you failed 8 tests of 18.
 t/bocage.t ............. 
-Dubious, test returned 9 (wstat 2304, 0x900)
-Failed 9/19 subtests 
+Dubious, test returned 8 (wstat 2048, 0x800)
+Failed 8/18 subtests 
 t/catalan.t ............ ok
 t/chaf.t ............... ok
 t/code_diag.t .......... ok
@@ -586,56 +522,34 @@ t/duplicate_parse.t ....
 Dubious, test returned 1 (wstat 256, 0x100)
 Failed 1/5 subtests 
 
-#   Failed test 'Ambiguous Equation AHFA Items'
-#   at t/equation.t line 141.
-# +---+---------------------------+-------------------------------------------+
-# | Ln|Got                        |Expected                                   |
-# +---+---------------------------+-------------------------------------------+
-# *  1|'AHM 0: postdot = "E"      |'AHFA item 0: sort = 0; postdot = "E"      *
-# *  2|    E ::= . E Op E         |    E -> . E Op E                          *
-# *  3|AHM 1: postdot = "Op"      |AHFA item 1: sort = 3; postdot = "Op"      *
-# *  4|    E ::= E . Op E         |    E -> E . Op E                          *
-# *  5|AHM 2: postdot = "E"       |AHFA item 2: sort = 1; postdot = "E"       *
-# *  6|    E ::= E Op . E         |    E -> E Op . E                          *
-# *  7|AHM 3: completion          |AHFA item 3: sort = 5; completion          *
-# *  8|    E ::= E Op E .         |    E -> E Op E .                          *
-# *  9|AHM 4: postdot = "Number"  |AHFA item 4: sort = 4; postdot = "Number"  *
-# * 10|    E ::= . Number         |    E -> . Number                          *
-# * 11|AHM 5: completion          |AHFA item 5: sort = 6; completion          *
-# * 12|    E ::= Number .         |    E -> Number .                          *
-# * 13|AHM 6: postdot = "E"       |AHFA item 6: sort = 2; postdot = "E"       *
-# * 14|    E[\'] ::= . E          |    E[\'] -> . E                           *
-# * 15|AHM 7: completion          |AHFA item 7: sort = 7; completion          *
-# * 16|    E[\'] ::= E .          |    E[\'] -> E .                           *
-# | 17|'                          |'                                          |
-# +---+---------------------------+-------------------------------------------+
-
-#   Failed test 'Ambiguous Equation AHFA'
-#   at t/equation.t line 166.
-# +---+---------------------------+---+---------------+
-# | Ln|Got                        | Ln|Expected       |
-# +---+---------------------------+---+---------------+
-# *  1|'AHM 0: postdot = "E"      *  1|'* S0:         *
-# *  2|    E ::= . E Op E         *  2|E[\'] -> . E   *
-# *  3|AHM 1: postdot = "Op"      *  3|* S1: predict  *
-# *  4|    E ::= E . Op E         *  4|E -> . E Op E  *
-# *  5|AHM 2: postdot = "E"       *  5|E -> . Number  *
-# *  6|    E ::= E Op . E         *  6|* S2:          *
-# *  7|AHM 3: completion          *  7|E -> E . Op E  *
-# *  8|    E ::= E Op E .         *  8|* S3:          *
-# *  9|AHM 4: postdot = "Number"  *  9|E -> E Op . E  *
-# * 10|    E ::= . Number         * 10|* S4:          *
-# * 11|AHM 5: completion          * 11|E -> E Op E .  *
-# * 12|    E ::= Number .         * 12|* S5:          *
-# * 13|AHM 6: postdot = "E"       * 13|E -> Number .  *
-# * 14|    E[\'] ::= . E          * 14|* S6:          *
-# * 15|AHM 7: completion          * 15|E[\'] -> E .   *
-# * 16|    E[\'] ::= E .          *   |               |
-# | 17|'                          | 16|'              |
-# +---+---------------------------+---+---------------+
+#   Failed test 'Ambiguous Equation AHMs'
+#   at t/equation.t line 137.
+# +---+---------------------------+---+-------------------------------------------+
+# | Ln|Got                        | Ln|Expected                                   |
+# +---+---------------------------+---+-------------------------------------------+
+# *  1|'0: E -> E Op E            *  1|'AHFA item 0: sort = 0; postdot = "E"      *
+# *  2|1: E -> Number             *  2|    E -> . E Op E                          *
+# *  3|AHM 0: postdot = "E"       *  3|AHFA item 1: sort = 3; postdot = "Op"      *
+# *  4|    E ::= . E Op E         *  4|    E -> E . Op E                          *
+# *  5|AHM 1: postdot = "Op"      *  5|AHFA item 2: sort = 1; postdot = "E"       *
+# *  6|    E ::= E . Op E         *  6|    E -> E Op . E                          *
+# *  7|AHM 2: postdot = "E"       *  7|AHFA item 3: sort = 5; completion          *
+# *  8|    E ::= E Op . E         *  8|    E -> E Op E .                          *
+# *  9|AHM 3: completion          *  9|AHFA item 4: sort = 4; postdot = "Number"  *
+# * 10|    E ::= E Op E .         * 10|    E -> . Number                          *
+# * 11|AHM 4: postdot = "Number"  * 11|AHFA item 5: sort = 6; completion          *
+# * 12|    E ::= . Number         * 12|    E -> Number .                          *
+# * 13|AHM 5: completion          * 13|AHFA item 6: sort = 2; postdot = "E"       *
+# * 14|    E ::= Number .         * 14|    E[\'] -> . E                           *
+# * 15|AHM 6: postdot = "E"       * 15|AHFA item 7: sort = 7; completion          *
+# * 16|    E[\'] ::= . E          * 16|    E[\'] -> E .                           *
+# * 17|AHM 7: completion          *   |                                           |
+# * 18|    E[\'] ::= E .          *   |                                           |
+# | 19|'                          | 17|'                                          |
+# +---+---------------------------+---+-------------------------------------------+
 
 #   Failed test 'Ambiguous Equation Earley Sets'
-#   at t/equation.t line 265.
+#   at t/equation.t line 237.
 # +----+---------------------------------------------------------------------------+---+-----------------------------------------------------------------------+
 # |  Ln|Got                                                                        | Ln|Expected                                                               |
 # +----+---------------------------------------------------------------------------+---+-----------------------------------------------------------------------+
@@ -758,10 +672,10 @@ Failed 1/5 subtests
 # * 117|  [p=R0:0@4-4; c=R0$@4-7]                                                  *   |                                                                       |
 # | 118|'                                                                          | 45|'                                                                      |
 # +----+---------------------------------------------------------------------------+---+-----------------------------------------------------------------------+
-# Looks like you failed 3 tests of 12.
+# Looks like you failed 2 tests of 11.
 t/equation.t ........... 
-Dubious, test returned 3 (wstat 768, 0x300)
-Failed 3/12 subtests 
+Dubious, test returned 2 (wstat 512, 0x200)
+Failed 2/11 subtests 
 
 #   Failed test 'final nonnulling AHFA'
 #   at t/final_nonnullable.t line 67.
@@ -987,150 +901,8 @@ t/infinite2.t .......... ok
 t/infinite_plex.t ...... ok
 t/initial_nulls.t ...... ok
 
-#   Failed test 'AHFA'
+#   Failed test 'AHMs'
 #   at t/jirotka.t line 162.
-# +----+-------------------------------------------------------------------------------+----+--------------------------------------------------------------------------+
-# |  Ln|Got                                                                            |  Ln|Expected                                                                  |
-# +----+-------------------------------------------------------------------------------+----+--------------------------------------------------------------------------+
-# *   1|'AHM 0: postdot = "Input[Seq]"                                                 *   1|'* S0:                                                                    *
-# *   2|    Input ::= . Input[Seq]                                                     *   2|Input[\'] -> . Input                                                      *
-# *   3|AHM 1: completion                                                              *   3|* S1: predict                                                             *
-# *   4|    Input ::= Input[Seq] .                                                     *   4|Input -> . Input[Seq]                                                     *
-# *   5|AHM 2: postdot = "Input[Seq]"                                                  *   5|Input -> . Input[Seq] SEPARATOR                                           *
-# *   6|    Input ::= . Input[Seq] SEPARATOR                                           *   6|Input[Seq] -> . Statement                                                 *
-# *   7|AHM 3: postdot = "SEPARATOR"                                                   *   7|Input[Seq] -> . Input[Seq] SEPARATOR Statement                            *
-# *   8|    Input ::= Input[Seq] . SEPARATOR                                           *   8|Statement -> . CREATE TypeDef                                             *
-# *   9|AHM 4: completion                                                              *   9|* S2:                                                                     *
-# *  10|    Input ::= Input[Seq] SEPARATOR .                                           *  10|Input -> Input[Seq] .                                                     *
-# *  11|AHM 5: postdot = "Statement"                                                   *  11|* S3:                                                                     *
-# *  12|    Input[Seq] ::= . Statement                                                 *  12|Input -> Input[Seq] . SEPARATOR                                           *
-# *  13|AHM 6: completion                                                              *  13|* S4:                                                                     *
-# *  14|    Input[Seq] ::= Statement .                                                 *  14|Input -> Input[Seq] SEPARATOR .                                           *
-# *  15|AHM 7: postdot = "Input[Seq]"                                                  *  15|* S5:                                                                     *
-# *  16|    Input[Seq] ::= . Input[Seq] SEPARATOR Statement                            *  16|Input[Seq] -> Statement .                                                 *
-# *  17|AHM 8: postdot = "SEPARATOR"                                                   *  17|* S6:                                                                     *
-# *  18|    Input[Seq] ::= Input[Seq] . SEPARATOR Statement                            *  18|Input[Seq] -> Input[Seq] . SEPARATOR Statement                            *
-# *  19|AHM 9: postdot = "Statement"                                                   *  19|* S7:                                                                     *
-# *  20|    Input[Seq] ::= Input[Seq] SEPARATOR . Statement                            *  20|Input[Seq] -> Input[Seq] SEPARATOR . Statement                            *
-# *  21|AHM 10: completion                                                             *  21|* S8: predict                                                             *
-# *  22|    Input[Seq] ::= Input[Seq] SEPARATOR Statement .                            *  22|Statement -> . CREATE TypeDef                                             *
-# *  23|AHM 11: postdot = "CREATE"                                                     *  23|* S9:                                                                     *
-# *  24|    Statement ::= . CREATE TypeDef                                             *  24|Input[Seq] -> Input[Seq] SEPARATOR Statement .                            *
-# *  25|AHM 12: postdot = "TypeDef"                                                    *  25|* S10:                                                                    *
-# *  26|    Statement ::= CREATE . TypeDef                                             *  26|Statement -> CREATE . TypeDef                                             *
-# *  27|AHM 13: completion                                                             *  27|* S11: predict                                                            *
-# *  28|    Statement ::= CREATE TypeDef .                                             *  28|TypeDef -> . METRIC ID_METRIC AS MetricSelect                             *
-# *  29|AHM 14: postdot = "METRIC"                                                     *  29|* S12:                                                                    *
-# *  30|    TypeDef ::= . METRIC ID_METRIC AS MetricSelect                             *  30|Statement -> CREATE TypeDef .                                             *
-# *  31|AHM 15: postdot = "ID_METRIC"                                                  *  31|* S13:                                                                    *
-# *  32|    TypeDef ::= METRIC . ID_METRIC AS MetricSelect                             *  32|TypeDef -> METRIC . ID_METRIC AS MetricSelect                             *
-# *  33|AHM 16: postdot = "AS"                                                         *  33|* S14:                                                                    *
-# *  34|    TypeDef ::= METRIC ID_METRIC . AS MetricSelect                             *  34|TypeDef -> METRIC ID_METRIC . AS MetricSelect                             *
-# *  35|AHM 17: postdot = "MetricSelect"                                               *  35|* S15:                                                                    *
-# *  36|    TypeDef ::= METRIC ID_METRIC AS . MetricSelect                             *  36|TypeDef -> METRIC ID_METRIC AS . MetricSelect                             *
-# *  37|AHM 18: completion                                                             *  37|* S16: predict                                                            *
-# *  38|    TypeDef ::= METRIC ID_METRIC AS MetricSelect .                             *  38|MetricSelect -> . SELECT MetricExpr ByClause MetricSelect[R3:3]           *
-# *  39|AHM 19: postdot = "SELECT"                                                     *  39|MetricSelect -> . SELECT MetricExpr ByClause Match[] Filter[] WithPf[]    *
-# *  40|    MetricSelect ::= . SELECT MetricExpr ByClause MetricSelect[R3:3]           *  40|MetricSelect -> . SELECT MetricExpr ByClause[] MetricSelect[R3:3]         *
-# *  41|AHM 20: postdot = "MetricExpr"                                                 *  41|MetricSelect -> . SELECT MetricExpr ByClause[] Match[] Filter[] WithPf[]  *
-# *  42|    MetricSelect ::= SELECT . MetricExpr ByClause MetricSelect[R3:3]           *  42|* S17:                                                                    *
-# *  43|AHM 21: postdot = "ByClause"                                                   *  43|TypeDef -> METRIC ID_METRIC AS MetricSelect .                             *
-# *  44|    MetricSelect ::= SELECT MetricExpr . ByClause MetricSelect[R3:3]           *  44|* S18:                                                                    *
-# *  45|AHM 22: postdot = "MetricSelect[R3:3]"                                         *  45|MetricSelect -> SELECT . MetricExpr ByClause MetricSelect[R3:3]           *
-# *  46|    MetricSelect ::= SELECT MetricExpr ByClause . MetricSelect[R3:3]           *  46|* S19: predict                                                            *
-# *  47|AHM 23: completion                                                             *  47|MetricExpr -> . NUMBER                                                    *
-# *  48|    MetricSelect ::= SELECT MetricExpr ByClause MetricSelect[R3:3] .           *  48|* S20:                                                                    *
-# *  49|AHM 24: postdot = "SELECT"                                                     *  49|MetricSelect -> SELECT MetricExpr . ByClause MetricSelect[R3:3]           *
-# *  50|    MetricSelect ::= . SELECT MetricExpr ByClause Match[] Filter[] WithPf[]    *  50|* S21: predict                                                            *
-# *  51|AHM 25: postdot = "MetricExpr"                                                 *  51|ByClause -> . BY                                                          *
-# *  52|    MetricSelect ::= SELECT . MetricExpr ByClause Match[] Filter[] WithPf[]    *  52|* S22:                                                                    *
-# *  53|AHM 26: postdot = "ByClause"                                                   *  53|MetricSelect -> SELECT MetricExpr ByClause . MetricSelect[R3:3]           *
-# *  54|    MetricSelect ::= SELECT MetricExpr . ByClause Match[] Filter[] WithPf[]    *  54|* S23: predict                                                            *
-# *  55|AHM 27: completion                                                             *  55|MetricSelect[R3:3] -> . Match MetricSelect[R3:4]                          *
-# *  56|    MetricSelect ::= SELECT MetricExpr ByClause Match[] Filter[] WithPf[] .    *  56|MetricSelect[R3:3] -> . Match Filter[] WithPf[]                           *
-# *  57|AHM 28: postdot = "SELECT"                                                     *  57|MetricSelect[R3:3] -> Match[] . MetricSelect[R3:4]                        *
-# *  58|    MetricSelect ::= . SELECT MetricExpr ByClause[] MetricSelect[R3:3]         *  58|MetricSelect[R3:4] -> . Filter WithPf                                     *
-# *  59|AHM 29: postdot = "MetricExpr"                                                 *  59|MetricSelect[R3:4] -> . Filter WithPf[]                                   *
-# *  60|    MetricSelect ::= SELECT . MetricExpr ByClause[] MetricSelect[R3:3]         *  60|MetricSelect[R3:4] -> Filter[] . WithPf                                   *
-# *  61|AHM 30: postdot = "MetricSelect[R3:3]"                                         *  61|Match -> . FOR                                                            *
-# *  62|    MetricSelect ::= SELECT MetricExpr ByClause[] . MetricSelect[R3:3]         *  62|Filter -> . WHERE FilterExpr                                              *
-# *  63|AHM 31: completion                                                             *  63|WithPf -> . WITH PF                                                       *
-# *  64|    MetricSelect ::= SELECT MetricExpr ByClause[] MetricSelect[R3:3] .         *  64|* S24:                                                                    *
-# *  65|AHM 32: postdot = "SELECT"                                                     *  65|MetricSelect -> SELECT MetricExpr ByClause MetricSelect[R3:3] .           *
-# *  66|    MetricSelect ::= . SELECT MetricExpr ByClause[] Match[] Filter[] WithPf[]  *  66|* S25:                                                                    *
-# *  67|AHM 33: postdot = "MetricExpr"                                                 *  67|MetricSelect -> SELECT . MetricExpr ByClause Match[] Filter[] WithPf[]    *
-# *  68|    MetricSelect ::= SELECT . MetricExpr ByClause[] Match[] Filter[] WithPf[]  *  68|* S26:                                                                    *
-# *  69|AHM 34: completion                                                             *  69|MetricSelect -> SELECT MetricExpr . ByClause Match[] Filter[] WithPf[]    *
-# *  70|    MetricSelect ::= SELECT MetricExpr ByClause[] Match[] Filter[] WithPf[] .  *  70|* S27:                                                                    *
-# *  71|AHM 35: postdot = "Match"                                                      *  71|MetricSelect -> SELECT MetricExpr ByClause Match[] Filter[] WithPf[] .    *
-# *  72|    MetricSelect[R3:3] ::= . Match MetricSelect[R3:4]                          *  72|* S28:                                                                    *
-# *  73|AHM 36: postdot = "MetricSelect[R3:4]"                                         *  73|MetricSelect -> SELECT . MetricExpr ByClause[] MetricSelect[R3:3]         *
-# *  74|    MetricSelect[R3:3] ::= Match . MetricSelect[R3:4]                          *  74|* S29:                                                                    *
-# *  75|AHM 37: completion                                                             *  75|MetricSelect -> SELECT MetricExpr ByClause[] . MetricSelect[R3:3]         *
-# *  76|    MetricSelect[R3:3] ::= Match MetricSelect[R3:4] .                          *  76|* S30:                                                                    *
-# *  77|AHM 38: postdot = "Match"                                                      *  77|MetricSelect -> SELECT MetricExpr ByClause[] MetricSelect[R3:3] .         *
-# *  78|    MetricSelect[R3:3] ::= . Match Filter[] WithPf[]                           *  78|* S31:                                                                    *
-# *  79|AHM 39: completion                                                             *  79|MetricSelect -> SELECT . MetricExpr ByClause[] Match[] Filter[] WithPf[]  *
-# *  80|    MetricSelect[R3:3] ::= Match Filter[] WithPf[] .                           *  80|* S32:                                                                    *
-# *  81|AHM 40: postdot = "MetricSelect[R3:4]"                                         *  81|MetricSelect -> SELECT MetricExpr ByClause[] Match[] Filter[] WithPf[] .  *
-# *  82|    MetricSelect[R3:3] ::= Match[] . MetricSelect[R3:4]                        *  82|* S33:                                                                    *
-# *  83|AHM 41: completion                                                             *  83|MetricSelect[R3:3] -> Match . MetricSelect[R3:4]                          *
-# *  84|    MetricSelect[R3:3] ::= Match[] MetricSelect[R3:4] .                        *  84|* S34: predict                                                            *
-# *  85|AHM 42: postdot = "Filter"                                                     *  85|MetricSelect[R3:4] -> . Filter WithPf                                     *
-# *  86|    MetricSelect[R3:4] ::= . Filter WithPf                                     *  86|MetricSelect[R3:4] -> . Filter WithPf[]                                   *
-# *  87|AHM 43: postdot = "WithPf"                                                     *  87|MetricSelect[R3:4] -> Filter[] . WithPf                                   *
-# *  88|    MetricSelect[R3:4] ::= Filter . WithPf                                     *  88|Filter -> . WHERE FilterExpr                                              *
-# *  89|AHM 44: completion                                                             *  89|WithPf -> . WITH PF                                                       *
-# *  90|    MetricSelect[R3:4] ::= Filter WithPf .                                     *  90|* S35:                                                                    *
-# *  91|AHM 45: postdot = "Filter"                                                     *  91|MetricSelect[R3:3] -> Match MetricSelect[R3:4] .                          *
-# *  92|    MetricSelect[R3:4] ::= . Filter WithPf[]                                   *  92|* S36:                                                                    *
-# *  93|AHM 46: completion                                                             *  93|MetricSelect[R3:3] -> Match Filter[] WithPf[] .                           *
-# *  94|    MetricSelect[R3:4] ::= Filter WithPf[] .                                   *  94|* S37:                                                                    *
-# *  95|AHM 47: postdot = "WithPf"                                                     *  95|MetricSelect[R3:3] -> Match[] MetricSelect[R3:4] .                        *
-# *  96|    MetricSelect[R3:4] ::= Filter[] . WithPf                                   *  96|* S38:                                                                    *
-# *  97|AHM 48: completion                                                             *  97|MetricSelect[R3:4] -> Filter . WithPf                                     *
-# *  98|    MetricSelect[R3:4] ::= Filter[] WithPf .                                   *  98|* S39: predict                                                            *
-# *  99|AHM 49: postdot = "NUMBER"                                                     *  99|WithPf -> . WITH PF                                                       *
-# * 100|    MetricExpr ::= . NUMBER                                                    * 100|* S40:                                                                    *
-# * 101|AHM 50: completion                                                             * 101|MetricSelect[R3:4] -> Filter WithPf .                                     *
-# * 102|    MetricExpr ::= NUMBER .                                                    * 102|* S41:                                                                    *
-# * 103|AHM 51: postdot = "BY"                                                         * 103|MetricSelect[R3:4] -> Filter WithPf[] .                                   *
-# * 104|    ByClause ::= . BY                                                          * 104|* S42:                                                                    *
-# * 105|AHM 52: completion                                                             * 105|MetricSelect[R3:4] -> Filter[] WithPf .                                   *
-# * 106|    ByClause ::= BY .                                                          * 106|* S43:                                                                    *
-# * 107|AHM 53: postdot = "FOR"                                                        * 107|MetricExpr -> NUMBER .                                                    *
-# * 108|    Match ::= . FOR                                                            * 108|* S44:                                                                    *
-# * 109|AHM 54: completion                                                             * 109|ByClause -> BY .                                                          *
-# * 110|    Match ::= FOR .                                                            * 110|* S45:                                                                    *
-# * 111|AHM 55: postdot = "WHERE"                                                      * 111|Match -> FOR .                                                            *
-# * 112|    Filter ::= . WHERE FilterExpr                                              * 112|* S46:                                                                    *
-# * 113|AHM 56: postdot = "FilterExpr"                                                 * 113|Filter -> WHERE . FilterExpr                                              *
-# * 114|    Filter ::= WHERE . FilterExpr                                              * 114|* S47: predict                                                            *
-# * 115|AHM 57: completion                                                             * 115|FilterExpr -> . TRUE                                                      *
-# * 116|    Filter ::= WHERE FilterExpr .                                              * 116|FilterExpr -> . FALSE                                                     *
-# * 117|AHM 58: postdot = "TRUE"                                                       * 117|* S48:                                                                    *
-# * 118|    FilterExpr ::= . TRUE                                                      * 118|Filter -> WHERE FilterExpr .                                              *
-# * 119|AHM 59: completion                                                             * 119|* S49:                                                                    *
-# * 120|    FilterExpr ::= TRUE .                                                      * 120|FilterExpr -> TRUE .                                                      *
-# * 121|AHM 60: postdot = "FALSE"                                                      * 121|* S50:                                                                    *
-# * 122|    FilterExpr ::= . FALSE                                                     * 122|FilterExpr -> FALSE .                                                     *
-# * 123|AHM 61: completion                                                             * 123|* S51:                                                                    *
-# * 124|    FilterExpr ::= FALSE .                                                     * 124|WithPf -> WITH . PF                                                       *
-# * 125|AHM 62: postdot = "WITH"                                                       * 125|* S52:                                                                    *
-# * 126|    WithPf ::= . WITH PF                                                       * 126|WithPf -> WITH PF .                                                       *
-# * 127|AHM 63: postdot = "PF"                                                         * 127|* S53:                                                                    *
-# * 128|    WithPf ::= WITH . PF                                                       * 128|Input[\'] -> Input .                                                      *
-# * 129|AHM 64: completion                                                             *    |                                                                          |
-# * 130|    WithPf ::= WITH PF .                                                       *    |                                                                          |
-# * 131|AHM 65: postdot = "Input"                                                      *    |                                                                          |
-# * 132|    Input[\'] ::= . Input                                                      *    |                                                                          |
-# * 133|AHM 66: completion                                                             *    |                                                                          |
-# * 134|    Input[\'] ::= Input .                                                      *    |                                                                          |
-# | 135|'                                                                              | 129|'                                                                         |
-# +----+-------------------------------------------------------------------------------+----+--------------------------------------------------------------------------+
-
-#   Failed test 'AHFA Items'
-#   at t/jirotka.t line 294.
 # +----+-------------------------------------------------------------------------------+------------------------------------------------------------------------------+
 # |  Ln|Got                                                                            |Expected                                                                      |
 # +----+-------------------------------------------------------------------------------+------------------------------------------------------------------------------+
@@ -1272,7 +1044,7 @@ t/initial_nulls.t ...... ok
 # +----+-------------------------------------------------------------------------------+------------------------------------------------------------------------------+
 
 #   Failed test 'Earley Sets'
-#   at t/jirotka.t line 436.
+#   at t/jirotka.t line 304.
 # +----+-----------------------------------------------------------------------------------+---+-----------------------------------------------+
 # |  Ln|Got                                                                                | Ln|Expected                                       |
 # +----+-----------------------------------------------------------------------------------+---+-----------------------------------------------+
@@ -1440,9 +1212,10 @@ t/initial_nulls.t ...... ok
 # * 162|  R22:0: WithPf ::= . WITH PF                                                      *   |                                               |
 # | 163|'                                                                                  | 54|'                                              |
 # +----+-----------------------------------------------------------------------------------+---+-----------------------------------------------+
-# Looks like you failed 3 tests of 8.
+# Looks like you planned 8 tests but ran 7.
+# Looks like you failed 2 tests of 7 run.
 t/jirotka.t ............ 
-Dubious, test returned 3 (wstat 768, 0x300)
+Dubious, test returned 2 (wstat 512, 0x200)
 Failed 3/8 subtests 
 
 #   Failed test 'Leo168 AHFA'
@@ -3113,24 +2886,25 @@ Test Summary Report
 t/asf_syn.t          (Wstat: 256 Tests: 1 Failed: 1)
   Failed test:  1
   Non-zero exit status: 1
-t/bocage.t           (Wstat: 2304 Tests: 19 Failed: 9)
-  Failed tests:  6-9, 11, 13, 15, 18-19
-  Non-zero exit status: 9
+t/bocage.t           (Wstat: 2048 Tests: 18 Failed: 8)
+  Failed tests:  6-8, 10, 12, 14, 17-18
+  Non-zero exit status: 8
 t/duplicate_parse.t  (Wstat: 256 Tests: 5 Failed: 1)
   Failed test:  2
   Non-zero exit status: 1
-t/equation.t         (Wstat: 768 Tests: 12 Failed: 3)
-  Failed tests:  3-4, 6
-  Non-zero exit status: 3
+t/equation.t         (Wstat: 512 Tests: 11 Failed: 2)
+  Failed tests:  3, 5
+  Non-zero exit status: 2
 t/final_nonnullable.t (Wstat: 256 Tests: 10 Failed: 1)
   Failed test:  2
   Non-zero exit status: 1
 t/implementation.t   (Wstat: 512 Tests: 8 Failed: 2)
   Failed tests:  4-5
   Non-zero exit status: 2
-t/jirotka.t          (Wstat: 768 Tests: 8 Failed: 3)
-  Failed tests:  3-5
-  Non-zero exit status: 3
+t/jirotka.t          (Wstat: 512 Tests: 7 Failed: 2)
+  Failed tests:  3-4
+  Non-zero exit status: 2
+  Parse errors: Bad plan.  You planned 8 tests but ran 7.
 t/leo.t              (Wstat: 256 Tests: 17 Failed: 1)
   Failed test:  3
   Non-zero exit status: 1
@@ -3158,6 +2932,6 @@ t/sl_ah2.t           (Wstat: 512 Tests: 26 Failed: 2)
 t/sl_gif1.t          (Wstat: 768 Tests: 22 Failed: 3)
   Failed tests:  17, 19, 21
   Non-zero exit status: 3
-Files=103, Tests=970, 50 wallclock secs ( 0.76 usr  0.40 sys + 46.44 cusr  2.48 csys = 50.08 CPU)
+Files=103, Tests=967, 51 wallclock secs ( 0.81 usr  0.33 sys + 45.71 cusr  2.39 csys = 49.24 CPU)
 Result: FAIL
-Failed 16/103 test programs. 39/970 subtests failed.
+Failed 16/103 test programs. 36/967 subtests failed.

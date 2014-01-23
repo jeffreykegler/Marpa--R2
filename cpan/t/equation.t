@@ -19,7 +19,7 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 12;
+use Test::More tests => 11;
 
 use lib 'inc';
 use Marpa::R2::Test;
@@ -131,15 +131,11 @@ Marpa::R2::Test::is( ${$actual_ref},
 1: E -> Number
 END_RULES
 
-# Alternative tests: AHFA items if XS, NFA items if PP
-
-$actual_ref = save_stdout();
-
 print $grammar->show_ahms()
     or die "print failed: $ERRNO";
 
 Marpa::R2::Test::is( ${$actual_ref},
-    <<'EOS', 'Ambiguous Equation AHFA Items' );
+    <<'EOS', 'Ambiguous Equation AHMs' );
 AHFA item 0: sort = 0; postdot = "E"
     E -> . E Op E
 AHFA item 1: sort = 3; postdot = "Op"
@@ -157,30 +153,6 @@ AHFA item 6: sort = 2; postdot = "E"
 AHFA item 7: sort = 7; completion
     E['] -> E .
 EOS
-
-$actual_ref = save_stdout();
-
-print $grammar->show_ahms()
-    or die "print failed: $ERRNO";
-
-Marpa::R2::Test::is( ${$actual_ref},
-    <<'END_AHFA', 'Ambiguous Equation AHFA' );
-* S0:
-E['] -> . E
-* S1: predict
-E -> . E Op E
-E -> . Number
-* S2:
-E -> E . Op E
-* S3:
-E -> E Op . E
-* S4:
-E -> E Op E .
-* S5:
-E -> Number .
-* S6:
-E['] -> E .
-END_AHFA
 
 $actual_ref = save_stdout();
 

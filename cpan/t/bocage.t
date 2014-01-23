@@ -24,7 +24,7 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 19;
+use Test::More tests => 18;
 use lib 'inc';
 use Marpa::R2::Test;
 use Marpa::R2;
@@ -140,65 +140,6 @@ AHFA item 23: sort = 0; postdot = "S"
     S['] -> . S
 AHFA item 24: sort = 24; completion
     S['] -> S .
-EOS
-
-Marpa::R2::Test::is( $grammar->show_ahms, <<'EOS', 'Aycock/Horspool AHFA' );
-* S0:
-S['] -> . S
-* S1: predict
-S -> . A S[R0:1]
-S -> . A A[] A[] A[]
-S -> A[] . S[R0:1]
-S[R0:1] -> . A S[R0:2]
-S[R0:1] -> . A A[] A[]
-S[R0:1] -> A[] . S[R0:2]
-S[R0:2] -> . A A
-S[R0:2] -> . A A[]
-S[R0:2] -> A[] . A
-A -> . a
-* S2:
-S -> A . S[R0:1]
-* S3: predict
-S[R0:1] -> . A S[R0:2]
-S[R0:1] -> . A A[] A[]
-S[R0:1] -> A[] . S[R0:2]
-S[R0:2] -> . A A
-S[R0:2] -> . A A[]
-S[R0:2] -> A[] . A
-A -> . a
-* S4:
-S -> A S[R0:1] .
-* S5:
-S -> A A[] A[] A[] .
-* S6:
-S -> A[] S[R0:1] .
-* S7:
-S[R0:1] -> A . S[R0:2]
-* S8: predict
-S[R0:2] -> . A A
-S[R0:2] -> . A A[]
-S[R0:2] -> A[] . A
-A -> . a
-* S9:
-S[R0:1] -> A S[R0:2] .
-* S10:
-S[R0:1] -> A A[] A[] .
-* S11:
-S[R0:1] -> A[] S[R0:2] .
-* S12:
-S[R0:2] -> A . A
-* S13: predict
-A -> . a
-* S14:
-S[R0:2] -> A A .
-* S15:
-S[R0:2] -> A A[] .
-* S16:
-S[R0:2] -> A[] A .
-* S17:
-A -> a .
-* S18:
-S['] -> S .
 EOS
 
 my $recce = Marpa::R2::Recognizer->new( { grammar => $grammar } );
