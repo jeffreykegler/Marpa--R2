@@ -70,7 +70,7 @@ Marpa::R2::Test::is( $grammar->show_rules,
 4: S -> /* empty !used */
 END_OF_STRING
 
-Marpa::R2::Test::is( $grammar->show_AHFA, <<'END_OF_STRING', 'Leo166 AHFA' );
+Marpa::R2::Test::is( $grammar->show_ahms, <<'END_OF_STRING', 'Leo166 AHFA' );
 * S0:
 S['] -> . S
 * S1: predict

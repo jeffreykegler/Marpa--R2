@@ -131,9 +131,9 @@ Marpa::R2::Test::is( $show_rules_output, <<'END_RULES', 'Leo Example Rules' );
 6: Lvalue -> Variable
 END_RULES
 
-my $show_AHFA_output = $grammar->show_AHFA();
+my $show_ahms_output = $grammar->show_ahms();
 
-Marpa::R2::Test::is( $show_AHFA_output, <<'END_AHFA', 'Leo Example AHFA' );
+Marpa::R2::Test::is( $show_ahms_output, <<'END_AHFA', 'Leo Example AHFA' );
 * S0:
 Statement['] -> . Statement
 * S1: predict

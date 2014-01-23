@@ -100,9 +100,9 @@ Marpa::R2::Test::is( $show_rules_output,
 4: Factor -> Factor Multiply Factor
 END_RULES
 
-my $show_AHFA_output = $grammar->show_AHFA();
+my $show_ahms_output = $grammar->show_ahms();
 
-Marpa::R2::Test::is( $show_AHFA_output,
+Marpa::R2::Test::is( $show_ahms_output,
     <<'END_AHFA', 'Implementation Example AHFA' );
 * S0:
 Expression['] -> . Expression

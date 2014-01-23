@@ -159,7 +159,7 @@ Marpa::R2::Test::is( $grammar->show_rules(),
 14: WithPf -> WITH PF
 END_OF_RULES
 
-Marpa::R2::Test::is( $grammar->show_AHFA(),
+Marpa::R2::Test::is( $grammar->show_ahms(),
 <<'END_OF_AHFA', 'AHFA' );
 * S0:
 Input['] -> . Input

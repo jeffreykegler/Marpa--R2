@@ -197,7 +197,7 @@ sub show_dotted_irl {
 
 } ## end sub show_dotted_irl
 
-sub show_AHFA_item {
+sub show_ahm {
     my ( $self, $item_id ) = @_;
     my $grammar_c  = $self->{g};
     my $postdot_id = $grammar_c->_marpa_g_ahm_postdot($item_id);
@@ -212,22 +212,18 @@ sub show_AHFA_item {
     }
     $text .= join q{; }, @properties;
     $text .= "\n" . ( q{ } x 4 );
-    $text .= $self->show_brief_AHFA_item($item_id) . "\n";
+    $text .= $self->show_brief_ahm($item_id) . "\n";
     return $text;
-} ## end sub show_AHFA_item
+} ## end sub show_ahm
 
-sub show_brief_AHFA_item {
+sub show_brief_ahm {
     my ( $self, $item_id ) = @_;
     my $grammar_c  = $self->{g};
     my $postdot_id = $grammar_c->_marpa_g_ahm_postdot($item_id);
     my $irl_id     = $grammar_c->_marpa_g_ahm_irl($item_id);
     my $position   = $grammar_c->_marpa_g_ahm_position($item_id);
     return $self->show_dotted_irl( $irl_id, $position );
-} ## end sub show_brief_AHFA_item
-
-sub show_AHFA {
-    goto &show_ahms;
-} ## end sub show_AHFA
+} ## end sub show_brief_ahm
 
 sub show_ahms {
     my ($self)    = @_;
@@ -235,7 +231,7 @@ sub show_ahms {
     my $text      = q{};
     my $count     = $grammar_c->_marpa_g_ahm_count();
     for my $AHFA_item_id ( 0 .. $count - 1 ) {
-        $text .= $self->show_AHFA_item($AHFA_item_id);
+        $text .= $self->show_ahm($AHFA_item_id);
     }
     return $text;
 } ## end sub show_ahms

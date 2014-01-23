@@ -64,7 +64,7 @@ Marpa::R2::Test::is( $grammar->show_rules,
 3: n -> a
 END_OF_STRING
 
-Marpa::R2::Test::is( $grammar->show_AHFA,
+Marpa::R2::Test::is( $grammar->show_ahms,
     <<'END_OF_STRING', 'final nonnulling AHFA' );
 * S0:
 S['] -> . S

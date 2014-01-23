@@ -1636,12 +1636,6 @@ sub Marpa::R2::Grammar::rule_is_used {
     return $grammar_c->_marpa_g_rule_is_used($rule_id);
 }
 
-sub Marpa::R2::Grammar::show_AHFA {
-    my ( $grammar, $verbose ) = @_;
-    return $grammar->[Marpa::R2::Internal::Grammar::TRACER]
-        ->show_AHFA($verbose);
-}
-
 sub Marpa::R2::Grammar::show_ahms {
     my ( $grammar, $verbose ) = @_;
     return $grammar->[Marpa::R2::Internal::Grammar::TRACER]

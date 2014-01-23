@@ -127,7 +127,7 @@ A -> B .
 S['] -> S .
 END_OF_STRING
 
-Marpa::R2::Test::is( $grammar->show_AHFA(), $expected_ahfa_output,
+Marpa::R2::Test::is( $grammar->show_ahms(), $expected_ahfa_output,
     'Leo166 AHFA' );
 
 my $length = 20;

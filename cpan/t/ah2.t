@@ -168,7 +168,7 @@ AHFA item 24: sort = 24; completion
     S['] -> S .
 EOS
 
-Marpa::R2::Test::is( $grammar->show_AHFA, <<'EOS', 'Aycock/Horspool AHFA' );
+Marpa::R2::Test::is( $grammar->show_ahms, <<'EOS', 'Aycock/Horspool AHFA' );
 * S0:
 S['] -> . S
 * S1: predict
@@ -286,7 +286,7 @@ S14@2-4 [p=S12@2-3; c=S17@3-4]
 S17@3-4 [p=S13@3-3; s=a; t=\'a']
 END_OF_SETS
 
-# say STDERR "AHFA:\n", $grammar->show_AHFA();
+# say STDERR "AHFA:\n", $grammar->show_ahms();
 
 my $input_length = 4;
 for (my $i = 0; $i < $input_length; $i++) {

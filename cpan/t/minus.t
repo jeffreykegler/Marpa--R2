@@ -128,7 +128,7 @@ Marpa::R2::Test::is( $grammar->show_rules,
 4: E -> Number
 END_RULES
 
-Marpa::R2::Test::is( $grammar->show_AHFA,
+Marpa::R2::Test::is( $grammar->show_ahms,
     <<'END_AHFA', 'Minuses Equation AHFA' );
 * S0:
 E['] -> . E
