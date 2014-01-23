@@ -5056,6 +5056,7 @@ Marpa_Symbol_ID _marpa_g_AHFA_item_postdot(Marpa_Grammar g,
   @<Initializations common to all AHFA items@>@;
   Postdot_NSYID_of_AIM (current_item) = -1;
   Position_of_AIM (current_item) = -1;
+  @<Initialize event data for |current_item|@>@;
 }
 
 @ @<Initializations common to all AHFA items@> =
@@ -5198,8 +5199,7 @@ struct s_AHFA_state_key {
 };
 struct s_AHFA_state {
     struct s_AHFA_state_key t_key;
-    @<Widely aligned AHFA state elements@>@;
-    @<Int aligned AHFA state elements@>@;
+    AIM t_items[1];
 };
 typedef struct s_AHFA_state AHFA_Object;
 
@@ -5210,7 +5210,6 @@ Most are set dependent on context.
 PRIVATE void AHFA_initialize(GRAMMAR g, AHFA ahfa)
 {
     const AHFAID new_AHFA_id = AHFA_Count_of_G(g)++;
-    @<Initialize AHFA@>@;
     ahfa->t_key.t_id = new_AHFA_id;
 }
 
@@ -5227,9 +5226,6 @@ PRIVATE void AHFA_initialize(GRAMMAR g, AHFA ahfa)
 @*0 AHFA item container.
 @ @s AEX int
 @<Private typedefs@> = typedef int AEX;
-@
-@<Widely aligned AHFA state elements@> =
-AIM t_items[1];
 
 @*0 AHFA to AIM macros.
 These assume there is only one AIM in the AHFA,
@@ -5252,32 +5248,30 @@ BITFIELD t_was_predicted:1;
 @*0 Event data.
 A boolean tracks whether this is an
 "event AHFA", that is, whether there is
-an event for this AHFA itself.
-Even an non-event AHFA may be part of an
+an event for this AIM itself.
+Even an non-event AIM may be part of an
 "event group".
-In this context, the subset of event AHFAs in an
-AHFA's right recursion group is called an
+In this context, the subset of event AIMs in an
+AIM's right recursion group is called an
 "event group".
 These data are used in various optimizations --
-the event processing can ignore AHFA states
+the event processing can ignore AIM's
 without events.
-@d Event_Group_Size_of_AHFA(ahfa) ((ahfa)->t_event_group_size)
-@d Event_AHFAIDs_of_AHFA(ahfa) ((ahfa)->t_event_ahfaids)
-@d AHFA_has_Event(ahfa) (Count_of_CIL(Event_AHFAIDs_of_AHFA(ahfa)) != 0)
-@d AIM_has_Event(aim)
-  (Count_of_CIL(Event_AHFAIDs_of_AHFA(AHFA_of_AIM(aim))) != 0)
+@d Event_Group_Size_of_AIM(aim) ((aim)->t_event_group_size)
+@d Event_AIMIDs_of_AIM(aim) ((aim)->t_event_ahfaids)
+@d AIM_has_Event(aim) (Count_of_CIL(Event_AIMIDs_of_AIM(aim)) != 0)
 @ This CIL is at most of size 1.
 It is either the singleton containing the AHFA's
 own ID, or the empty CIL.
-@<Widely aligned AHFA state elements@> =
+@<Widely aligned AIM elements@> =
 CIL t_event_ahfaids;
 @ A counter tracks the number of AHFAs in
 this AHFA's event group.
-@<Int aligned AHFA state elements@> =
+@<Int aligned AIM elements@> =
 int t_event_group_size;
-@ @<Initialize AHFA@> =
-  Event_AHFAIDs_of_AHFA(ahfa) = NULL;
-  Event_Group_Size_of_AHFA(ahfa) = 0;
+@ @<Initialize event data for |current_item|@> =
+  Event_AIMIDs_of_AIM(current_item) = NULL;
+  Event_Group_Size_of_AIM(current_item) = 0;
 
 @*0 AHFA container in grammar.
 @ @<Widely aligned grammar elements@> = struct s_AHFA_state* t_AHFA;
@@ -5921,12 +5915,13 @@ create_predicted_singleton(
       const CILAR cilar = &g->t_cilar;
       const AHFA ahfa = AHFA_by_ID (ahfa_id);
       const AIM aim = AIM_of_AHFA(ahfa);
-      const int ahfa_is_event =
+      const AIMID aim_id =ID_of_AIM(aim);
+      const int aim_is_event =
         Count_of_CIL (Completion_XSYIDs_of_AIM (aim))
         || Count_of_CIL (Nulled_XSYIDs_of_AIM (aim))
         || Count_of_CIL (Prediction_XSYIDs_of_AIM (aim));
-      Event_AHFAIDs_of_AHFA (ahfa) =
-        ahfa_is_event ? cil_singleton (cilar, ahfa_id) : cil_empty (cilar);
+      Event_AIMIDs_of_AIM (aim) =
+        aim_is_event ? cil_singleton (cilar, aim_id) : cil_empty (cilar);
     }
 }
 
@@ -5944,8 +5939,8 @@ create_predicted_singleton(
          may be in a non-empty AHFA event group.  */
       NSYID outer_nsyid;
       if (!AHFA_is_Leo_Completion(outer_ahfa)) {
-          if (AHFA_has_Event (outer_ahfa)) {
-              Event_Group_Size_of_AHFA (outer_ahfa) = 1;
+          if (AIM_has_Event (AIM_of_AHFA(outer_ahfa))) {
+              Event_Group_Size_of_AIM (AIM_of_AHFA(outer_ahfa)) = 1;
           }
         continue;               /* This AHFA is not a Leo completion,
                                    so we are done. */
@@ -5956,7 +5951,7 @@ create_predicted_singleton(
         {
           NSYID inner_nsyid;
           const AHFA inner_ahfa = AHFA_by_ID (inner_ahfa_id);
-          if (!AHFA_has_Event (inner_ahfa))
+          if (!AIM_has_Event (AIM_of_AHFA(inner_ahfa)))
             continue;           /* Not in the group, because it
                                    is not an event AHFA. */
           if (!AHFA_is_Leo_Completion(inner_ahfa))
@@ -5970,7 +5965,7 @@ create_predicted_singleton(
               /* |inner_ahfa == outer_ahfa|
               is not treated as special case
               */
-              Event_Group_Size_of_AHFA (outer_ahfa)++; 
+              Event_Group_Size_of_AIM (AIM_of_AHFA(outer_ahfa))++; 
             }
         }
     }
@@ -9167,15 +9162,13 @@ PRIVATE void trigger_events(RECCE r)
           {
             int cil_ix;
             const LIM lim = LIM_of_SRCL (setup_source_link);
-            const CIL event_ahfaids = CIL_of_LIM (lim);
-            const int event_ahfa_count = Count_of_CIL (event_ahfaids);
-            for (cil_ix = 0; cil_ix < event_ahfa_count; cil_ix++)
+            const CIL event_aimids = CIL_of_LIM (lim);
+            const int event_aim_count = Count_of_CIL (event_aimids);
+            for (cil_ix = 0; cil_ix < event_aim_count; cil_ix++)
               {
-                const NSYID leo_path_ahfaid =
-                  Item_of_CIL (event_ahfaids, cil_ix);
-                const AHFA leo_path_ahfa = AHFA_by_ID(leo_path_ahfaid);
-                bv_bit_set (bv_aim_event_trigger,
-                  ID_of_AIM(AIM_of_AHFA(leo_path_ahfa)));
+                const NSYID leo_path_aimid =
+                  Item_of_CIL (event_aimids, cil_ix);
+                bv_bit_set (bv_aim_event_trigger, leo_path_aimid);
                 /* No need to test if AHFA is an event AHFA --
                    all paths in the LIM's CIL will be */
               }
@@ -9780,16 +9773,17 @@ Secondary optimzations ensure this is fairly cheap as well.
   CIL_of_LIM (lim_to_process) = predecessor_cil;        
   Predecessor_LIM_of_LIM (lim_to_process) = predecessor_lim;
   Origin_of_LIM (lim_to_process) = Origin_of_LIM (predecessor_lim);
-  if (Event_Group_Size_of_AHFA (new_top_ahfa) > Count_of_CIL (predecessor_cil))
+  if (Event_Group_Size_of_AIM (AIM_of_AHFA(new_top_ahfa)) > Count_of_CIL (predecessor_cil))
     {                           /* Might we need to add another AHFA ID? */
       const AHFA base_to_ahfa = Base_to_AHFA_of_LIM (lim_to_process);      
-      const CIL base_to_ahfa_event_ahfaids =
-        Event_AHFAIDs_of_AHFA (base_to_ahfa);
-      if (Count_of_CIL (base_to_ahfa_event_ahfaids))
+      const AIM base_to_aim = AIM_of_AHFA(base_to_ahfa);
+      const CIL base_to_aim_event_aimids =
+        Event_AIMIDs_of_AIM (base_to_aim);
+      if (Count_of_CIL (base_to_aim_event_aimids))
         {
           CIL new_cil = cil_merge_one (&g->t_cilar, predecessor_cil,
                                        Item_of_CIL
-                                       (base_to_ahfa_event_ahfaids, 0));
+                                       (base_to_aim_event_aimids, 0));
           if (new_cil)
             {
               CIL_of_LIM (lim_to_process) = new_cil;
@@ -9815,7 +9809,7 @@ of the base YIM.
   const AHFA base_to_AHFA = Base_to_AHFA_of_LIM(lim_to_process);
   const YIM base_yim = Base_YIM_of_LIM(lim_to_process);
   Origin_of_LIM (lim_to_process) = Origin_of_YIM (base_yim);
-  CIL_of_LIM(lim_to_process) = Event_AHFAIDs_of_AHFA(base_to_AHFA);
+  CIL_of_LIM(lim_to_process) = Event_AIMIDs_of_AIM(AIM_of_AHFA(base_to_AHFA));
 }
 
 @ @<Copy PIM workarea to postdot item array@> = {
