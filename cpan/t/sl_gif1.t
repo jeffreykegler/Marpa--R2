@@ -323,27 +323,27 @@ push @tests_data, [
     <<'END_OF_ASF',
 GL2 Rule 0: top ::= a a a a
   Factoring #0
-    GL3 Rule 1: a ::= 'a'
-      GL4 Symbol 'a': "a"
-    GL5 Symbol a: ""
+    GL3 Symbol a: ""
+    GL4 Rule 1: a ::= 'a'
+      GL5 Symbol 'a': "a"
     GL6 Rule 1: a ::= 'a'
       GL7 Symbol 'a': "a"
     GL8 Rule 1: a ::= 'a'
       GL9 Symbol 'a': "a"
   Factoring #1
-    GL3 already displayed
-    GL6 already displayed
+    GL4 already displayed
     GL10 Symbol a: ""
+    GL6 already displayed
     GL8 already displayed
   Factoring #2
-    GL3 already displayed
+    GL4 already displayed
     GL6 already displayed
     GL8 already displayed
     GL11 Symbol a: ""
   Factoring #3
-    GL12 Symbol a: ""
-    GL3 already displayed
+    GL4 already displayed
     GL6 already displayed
+    GL12 Symbol a: ""
     GL8 already displayed
 END_OF_ASF
     'ASF OK',
@@ -356,37 +356,37 @@ push @tests_data, [
     <<'END_OF_ASF',
 GL2 Rule 0: top ::= a a a a
   Factoring #0
-    GL3 Rule 1: a ::= 'a'
-      GL4 Symbol 'a': "a"
+    GL3 Symbol a: ""
+    GL4 Symbol a: ""
     GL5 Rule 1: a ::= 'a'
       GL6 Symbol 'a': "a"
-    GL7 Symbol a: ""
-    GL8 Symbol a: ""
+    GL7 Rule 1: a ::= 'a'
+      GL8 Symbol 'a': "a"
   Factoring #1
     GL3 already displayed
-    GL9 Symbol a: ""
-    GL10 Symbol a: ""
     GL5 already displayed
+    GL7 already displayed
+    GL9 Symbol a: ""
   Factoring #2
     GL3 already displayed
-    GL9 already displayed
+    GL5 already displayed
+    GL10 Symbol a: ""
+    GL7 already displayed
+  Factoring #3
     GL5 already displayed
     GL11 Symbol a: ""
-  Factoring #3
-    GL12 Symbol a: ""
-    GL3 already displayed
-    GL10 already displayed
-    GL5 already displayed
+    GL7 already displayed
+    GL9 already displayed
   Factoring #4
-    GL12 already displayed
-    GL3 already displayed
     GL5 already displayed
     GL11 already displayed
+    GL10 already displayed
+    GL7 already displayed
   Factoring #5
-    GL12 already displayed
-    GL13 Symbol a: ""
-    GL3 already displayed
     GL5 already displayed
+    GL7 already displayed
+    GL12 Symbol a: ""
+    GL13 Symbol a: ""
 END_OF_ASF
     'ASF OK',
     'Nulls grammar for "aa"'
@@ -405,19 +405,19 @@ GL2 Rule 0: top ::= a a a a
     GL7 Symbol a: ""
   Factoring #1
     GL8 Symbol a: ""
+    GL3 already displayed
     GL9 Symbol a: ""
     GL10 Symbol a: ""
-    GL3 already displayed
   Factoring #2
     GL8 already displayed
-    GL9 already displayed
-    GL3 already displayed
     GL11 Symbol a: ""
-  Factoring #3
-    GL8 already displayed
     GL3 already displayed
     GL12 Symbol a: ""
+  Factoring #3
+    GL8 already displayed
+    GL11 already displayed
     GL13 Symbol a: ""
+    GL3 already displayed
 END_OF_ASF
     'ASF OK',
     'Nulls grammar for "a"'
